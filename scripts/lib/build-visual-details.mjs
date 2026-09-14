@@ -84,7 +84,7 @@ function fallbackImage(group) {
  */
 const SHARED_ASSET_PREFIX = 'shared-';
 const sharedAssetStem = imagePath => `${SHARED_ASSET_PREFIX}${crypto.createHash('sha1').update(imagePath).digest('hex').slice(0, 8)}`;
-const GENERATED_ASSET_PATTERN = /^(.+)-(\d+)\.webp$/;
+const GENERATED_ASSET_PATTERN = /^(.+)-(?:\d+|og)\.webp$/;
 
 /** Derived from the existing shell/React registries; never a second authored copy. */
 export function buildVisualDetails(html, book) {
@@ -101,6 +101,7 @@ export function buildVisualDetails(html, book) {
       featureKey: item.featureKey, featureKeyTo: item.featureKeyTo, action: item.action, accessType: item.price === '무료' ? 'free' : undefined,
     })),
     ...react.map(item => ({ ...item, href: item.launchRoute })),
+    ...Object.entries(verified).filter(([,item]) => item.sourceAction).map(([slug,item]) => ({ slug, title:item.title, href:item.href, action:item.sourceAction })),
   ];
   const items = {}, seen = new Set();
   for (const source of sources) {
@@ -150,19 +151,22 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    final.benefits ||= (copy.receives?.length ? copy.receives.map(item => item.title) : copy.feats || final.panels.flatMap(panel => panel.items || [])).slice(0, 6);
+    final.contents ||= copy.outline?.map(item => ({ title: item.title, detail: item.detail })) || [];
+    final.theme ||= ({ '관계·궁합': 'rose', '타로·신탁': 'burgundy', '별자리·동양 점성': 'indigo', '상징·마음': 'emerald', '오늘·시기': 'saffron' })[group] || 'navy';
     // Keep the existing image panels, but carry the same product-specific decision
     // information that the visual popup replaces. No new price or access policy.
     final.journey = {
     questions: final.journey?.questions || (copy.answersQuestions?.length ? copy.answersQuestions : final.panels.find(panel => panel.title === '이런 질문에 도움이 됩니다')?.items || []),
-      trustNotes: copy.trustNotes || book.trustNotes.free || [],
-      faq: copy.faq || [],
+      trustNotes: final.journey?.trustNotes || copy.trustNotes || book.trustNotes.free || [],
+      faq: final.journey?.faq || copy.faq || [],
     };
     if (final.verification === 'verified' && !final.image) final.image = fallbackImage(final.category || group);
   }
   const index = Object.values(items).map(final => ({
     slug: final.slug, title: final.title, href: final.href, featureKey: final.featureKey,
     accessType: final.accessType, image: final.image, aliases: final.aliases,
-    category: final.category, description: final.description, verification: final.verification,
+    category: final.category, description: final.journey?.questions?.[0] || final.description, verification: final.verification,
   }));
   return { index, items };
 }
@@ -205,7 +209,16 @@ export async function writeVisualDetails(html, book) {
           item.heroVariants.push({ src: `/feature-details/assets/${name}`, width });
         }
         item.image = item.heroVariants[item.heroVariants.length - 1].src;
+        const cardName = `${stem}-320.webp`;
+        await sharp(source).resize(320, 180, { fit: 'cover' }).webp({ quality: 76 }).toFile(path.join(directory, 'assets', cardName));
+        writtenAssets.add(cardName);
+        item.cardImage = `/feature-details/assets/${cardName}`;
+        const ogName = `${stem}-og.webp`;
+        await sharp(source).resize(1200, 630, { fit: 'cover' }).webp({ quality: 78 }).toFile(path.join(directory, 'assets', ogName));
+        writtenAssets.add(ogName);
+        item.ogImage = `/feature-details/assets/${ogName}`;
         data.index.find(entry => entry.slug === slug).image = item.image;
+        data.index.find(entry => entry.slug === slug).cardImage = item.cardImage;
       }
       for (const panel of item.panels) {
         if (!panel.verifiedCapture) continue;
@@ -226,6 +239,11 @@ export async function writeVisualDetails(html, book) {
     fs.unlinkSync(path.join(directory, 'assets', name));
   }
   const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];
+  for (const item of Object.values(data.items)) {
+    if (item.verification !== 'verified') continue;
+    item.related = (item.relatedProducts || []).map(slug => data.items[slug]).filter(other => other?.verification === 'verified' && other.slug !== item.slug).slice(0, 4).map(other => ({ slug: other.slug, title: other.title, hook: other.journey?.questions?.[0] || other.headline, image: other.cardImage || other.image }));
+    writeJsonAtomic(path.join(directory, `${item.slug}.json`), item);
+  }
   writeJsonAtomic(path.join(directory, 'catalog.json'), published);
   writeJsonAtomic(path.join(root, 'lib/marketing/feature-visual-details.generated.json'), data, 2);
   console.log(`[sync:visual-details] ${data.index.length} unique features; ${published.length} reviewed introductions published`);

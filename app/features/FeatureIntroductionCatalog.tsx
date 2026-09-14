@@ -8,6 +8,7 @@ type CatalogItem = {
   description?: string;
   category?: string;
   image?: string;
+  cardImage?: string;
 };
 
 const CATEGORY_ORDER = [
@@ -63,7 +64,7 @@ export default function FeatureIntroductionCatalog({ items }: { items: CatalogIt
             {item.description ? <p>{item.description}</p> : null}
             <strong>내용과 이용 방법 보기</strong>
           </div>
-          {item.image ? <img src={item.image} width="160" height="100" alt="" loading="lazy" decoding="async" /> : null}
+          {item.image ? <img src={item.cardImage || item.image} width="320" height="180" alt="" loading="lazy" decoding="async" /> : null}
         </a>
       </li>)}
     </ul> : <div className="featureCatalogEmpty">

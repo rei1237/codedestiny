@@ -1,6 +1,8 @@
 import { loadFeatureDetail, renderFeatureDetailPanels } from './feature-detail-panels.mjs';
 import { shareIntroductionFromButton } from './feature-introduction-share.mjs';
 const revisions = new WeakMap();
+const actionCleanups = new WeakMap();
+const legacyCleanups = new WeakMap();
 let stylePromise;
 
 function ensureFeatureDetailStyles() {
@@ -23,23 +25,57 @@ function ensureFeatureDetailStyles() {
 }
 
 export async function mountFeatureDetailPreview(overlay, keys) {
+  actionCleanups.get(overlay)?.();
+  legacyCleanups.get(overlay)?.();
   const revision = (revisions.get(overlay) || 0) + 1;
   revisions.set(overlay, revision);
   overlay.classList.remove('pvw-visual');
   overlay.classList.remove('pvw-journey-trust');
   overlay.querySelector('[data-feature-visual-host]')?.remove();
   if (!/^ko\b/i.test(document.documentElement.lang || 'ko')) return;
+  const retired = [...overlay.querySelectorAll('#tilePvwTagline,#tilePvwDesc,#tilePvwFeats,#tilePvwQuestionsSec,#tilePvwStepsSec,#tilePvwRecommendedSec,#tilePvwTrustSec,#tilePvwFaqSec,#tilePvwReceiveSec,#tilePvwOutlineSec,#tilePvwCmpSec,#tilePvwReqSec,#tilePvwPremiumBlock,#tilePvwAudSec,#tilePvwQuestSec,#tilePvwScaleSec,#tilePvwPriceTitle')].map(node => ({ node, display: node.style.getPropertyValue('display'), priority: node.style.getPropertyPriority('display') }));
+  retired.forEach(({node}) => node.style.setProperty('display', 'none', 'important'));
+  legacyCleanups.set(overlay, () => retired.forEach(({node,display,priority}) => { if (display) node.style.setProperty('display', display, priority); else node.style.removeProperty('display'); }));
   const title = overlay.querySelector('#tilePvwTitle');
   if (!title) return;
   const host = document.createElement('div');
   host.dataset.featureVisualHost = '';
+  host.setAttribute('aria-busy', 'true');
+  host.textContent = '상품 이야기를 펼치고 있어요.';
   title.after(host);
   try {
     const detail = await loadFeatureDetail(keys);
-    if (!detail || revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
+    if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
+    if (!detail) throw new Error('DETAIL_NOT_FOUND');
     await ensureFeatureDetailStyles();
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     host.innerHTML = renderFeatureDetailPanels(detail, { conversionPrompt: true });
+    host.removeAttribute('aria-busy');
+    const source = overlay.querySelector('#tilePvwCtaBtn');
+    const price = overlay.querySelector('#tilePvwCost');
+    const status = overlay.querySelector('#tilePvwCtaMeta');
+    const slot = host.querySelector('[data-fortune-hero-action]');
+    if (source && slot) {
+      const action = document.createElement('div'); action.className = 'fortuneAction';
+      const label = document.createElement('p');
+      const button = document.createElement('button'); button.type = 'button';
+      button.addEventListener('click', () => source.click());
+      const statusLabel = document.createElement('p'); statusLabel.className = 'fortuneSampleNote'; statusLabel.setAttribute('role', 'status');
+      action.append(label, button, statusLabel); slot.replaceChildren(action);
+      const footer = overlay.querySelector('.tile-pvw-cta-sticky');
+      const root = overlay.querySelector('.tile-pvw-scroll');
+      const visibility = typeof IntersectionObserver === 'function' && footer ? new IntersectionObserver(entries => { footer.classList.toggle('fortuneCtaAtTop', entries[0].boundingClientRect.bottom > (entries[0].rootBounds?.top ?? 0)); }, { root }) : null;
+      visibility?.observe(action);
+      const sync = () => { label.textContent = price?.textContent?.trim() || (detail.accessType === 'free' ? '무료' : '시작 화면에서 이용 조건 확인'); button.textContent = source.textContent.trim(); button.disabled = source.disabled || source.getAttribute('aria-disabled') === 'true'; statusLabel.textContent = status?.textContent?.trim() || ''; statusLabel.hidden = !statusLabel.textContent; };
+      sync();
+      const observer = new MutationObserver(sync);
+      observer.observe(source, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled','aria-disabled'] });
+      if (price) observer.observe(price, { childList: true, subtree: true, characterData: true });
+      if (status) observer.observe(status, { childList: true, subtree: true, characterData: true });
+      const closing = new MutationObserver(() => { if (!overlay.classList.contains('pvw-open')) { observer.disconnect(); closing.disconnect(); visibility?.disconnect(); footer?.classList.remove('fortuneCtaAtTop'); } });
+      closing.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+      actionCleanups.set(overlay, () => { observer.disconnect(); closing.disconnect(); });
+    }
     host.addEventListener('click', event => {
       const shareButton = event.target.closest('[data-feature-share]');
       if (shareButton) { void shareIntroductionFromButton(shareButton, detail); return; }
@@ -55,6 +91,8 @@ export async function mountFeatureDetailPreview(overlay, keys) {
   } catch {
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     const retry = document.createElement('button');
+    host.textContent = '';
+    host.removeAttribute('aria-busy');
     retry.type = 'button';
     retry.textContent = '상세 내용 다시 불러오기';
     retry.style.minHeight = '44px';

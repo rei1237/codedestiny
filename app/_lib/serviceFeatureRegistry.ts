@@ -1,5 +1,5 @@
 import { lookupServerCoinPrice } from "./serviceCoinPrice";
-import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+
 
 // 가격 조회만 필요한 클라이언트는 ./serviceCoinPrice 를 직접 import 할 것.
 // 여기서 가져오면 아래 12로케일 카피 표(약 9,000줄)까지 번들에 실린다.
@@ -54,7 +54,7 @@ export type ServiceFeatureMedia = Pick<ServiceFeature, "image" | "heroImageAlt">
 
 export const DEFAULT_SERVICE_IMAGE = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 
-const stableServiceAsset = (publicPath: string) => getAssetUrlFromPublicPath(publicPath);
+
 
 function withServerPrice(feature: ServiceFeature): ServiceFeature {
   const coinPrice = feature.coinPrice ?? lookupServerCoinPrice(feature.featureKey);
@@ -3923,7 +3923,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "saju",
     copyKey: "saju",
     category: "saju",
-    image: stableServiceAsset("/fuctionassets/saju.webp"),
+    image: "/feature-details/assets/saju-320.webp",
     detailRoute: "/services/saju",
     launchRoute: "/?action=cdOneStepFreeSajuEntry",
     accessType: "free",
@@ -3932,7 +3932,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "ziwei",
     copyKey: "ziwei",
     category: "ziwei",
-    image: stableServiceAsset("/fuctionassets/jami.webp"),
+    image: "/feature-details/assets/ziwei-320.webp",
     detailRoute: "/services/ziwei",
     launchRoute: "/ziwei/chart",
     // 명반 열람은 무료다. 영구 해금 모델은 없어졌고(AdvancedZiweiSectionV2 에 게이트 렌더가 없다,
@@ -3945,7 +3945,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "sukyo",
     copyKey: "sukyo",
     category: "astrology",
-    image: stableServiceAsset("/fuctionassets/sukyo.webp"),
+    image: "/feature-details/assets/sukyo-320.webp",
     detailRoute: "/services/sukyo",
     launchRoute: "/index.html?action=openSukuyoModal",
     accessType: "free",
@@ -3954,7 +3954,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "vedic",
     copyKey: "vedic",
     category: "astrology",
-    image: stableServiceAsset("/fuctionassets/veda.webp"),
+    image: "/feature-details/assets/vedic-320.webp",
     detailRoute: "/services/vedic",
     launchRoute: "/index.html?action=navigateToVedic",
     accessType: "free",
@@ -3963,7 +3963,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "astrology",
     copyKey: "astrology",
     category: "astrology",
-    image: stableServiceAsset("/fuctionassets/jumsung.webp"),
+    image: "/feature-details/assets/astrology-320.webp",
     detailRoute: "/services/astrology",
     launchRoute: "/index.html?action=openAstroModal",
     accessType: "free",
@@ -3972,7 +3972,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "tarot",
     copyKey: "tarot",
     category: "tarot",
-    image: "/fuctionassets/ai%20tarrot.webp",
+    image: "/feature-details/assets/tarot-320.webp",
     detailRoute: "/services/tarot",
     launchRoute: "/index.html?action=openTarotModal",
     accessType: "free",
@@ -3981,7 +3981,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "tarot-prompt-maker",
     copyKey: "tarot-prompt-maker",
     category: "tarot",
-    image: "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
+    image: "/feature-details/assets/tarot-prompt-maker-320.webp",
     detailRoute: "/services/tarot-prompt-maker",
     launchRoute: "/tarot/prompt-maker",
     accessType: "paid",
@@ -3991,7 +3991,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "palm-reading",
     copyKey: "palm-reading",
     category: "palm",
-    image: "/fuctionassets/%EC%86%90%EA%B8%88.webp",
+    image: "/feature-details/assets/palm-reading-320.webp",
     detailRoute: "/services/palm-reading",
     launchRoute: "/palm-reading",
     accessType: "paid",
@@ -4000,7 +4000,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "face-reading",
     copyKey: "face-reading",
     category: "face",
-    image: "/fuctionassets/ai%20animal.webp",
+    image: "/feature-details/assets/face-reading-320.webp",
     detailRoute: "/features/face-reading",
     launchRoute: "/animal/physio",
     accessType: "free",
@@ -4009,7 +4009,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "bias-destiny",
     copyKey: "bias-destiny",
     category: "love",
-    image: stableServiceAsset("/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"),
+    image: "/feature-details/assets/bias-destiny-320.webp",
     detailRoute: "/services/bias-destiny",
     launchRoute: "/saju/destiny-bias",
     accessType: "free",
@@ -4018,7 +4018,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "love-code",
     copyKey: "love-code",
     category: "love",
-    image: stableServiceAsset("/fuctionassets/love code.webp"),
+    image: "/feature-details/assets/love-simulation-320.webp",
     detailRoute: "/services/love-code",
     launchRoute: "/index.html?action=openLoveSimulation",
     accessType: "paid",
@@ -4028,7 +4028,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "omikuji",
     copyKey: "omikuji",
     category: "fun",
-    image: "/fuctionassets/%EC%98%A4%EB%AF%B8%EC%BF%A0%EC%A7%80.webp",
+    image: "/feature-details/assets/omikuji-320.webp",
     detailRoute: "/services/omikuji",
     launchRoute: "/emoi_omikuji_v2.html",
     accessType: "free",
@@ -4046,7 +4046,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "destiny-meeting-place",
     copyKey: "destiny-meeting-place",
     category: "fun",
-    image: "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp",
+    image: "/feature-details/assets/destiny-meeting-place-320.webp",
     detailRoute: "/services/destiny-meeting-place",
     launchRoute: "/saju/destiny-meeting-place",
     accessType: "paid",
@@ -4056,7 +4056,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "saju-lifebook",
     copyKey: "saju-lifebook",
     category: "premium",
-    image: stableServiceAsset("/fuctionassets/lifebook.webp"),
+    image: "/feature-details/assets/life-book-ai-320.webp",
     detailRoute: "/services/saju-lifebook",
     launchRoute: "/life-book-ai",
     accessType: "paid",
@@ -4066,7 +4066,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "ziwei-ai",
     copyKey: "ziwei-ai",
     category: "premium",
-    image: "/fuctionassets/jamipremiun.webp",
+    image: "/feature-details/assets/ziwei-ai-320.webp",
     detailRoute: "/services/ziwei",
     launchRoute: "/ziwei-ai",
     accessType: "paid",
@@ -4086,7 +4086,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     slug: "animal-totem",
     copyKey: "animal-totem",
     category: "fun",
-    image: "/fuctionassets/animaltotem.webp",
+    image: "/feature-details/assets/animal-totem-320.webp",
     detailRoute: "/services/animal-totem",
     launchRoute: "/index.html?action=openAnimalTotemModal",
     accessType: "paid",

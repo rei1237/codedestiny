@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
+import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { useT, useTPick, type Translate, type TranslatePick } from "@/lib/i18n/useT";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
@@ -414,7 +415,20 @@ export function FeatureMarketingDetailModal({
   const pathname = usePathname() || "/";
   const [navPending, setNavPending] = useState(false);
   const [hasVisualDetail, setHasVisualDetail] = useState(false);
+  useBackNavigation({ scope: 'overlay', enabled: open, onBack: () => { onClose(); return true; } });
   const t = useT();
+  useEffect(() => {
+    if (!hasVisualDetail) return;
+    const action = overlayRef.current?.querySelector('[data-fortune-hero-action]');
+    const root = overlayRef.current?.querySelector('.cd-detail-scroll');
+    const footer = conversionRef.current;
+    if (!action || !footer) return;
+    const observer = new IntersectionObserver(entries => {
+      footer.classList.toggle('fortuneCtaAtTop', entries[0].boundingClientRect.bottom > (entries[0].rootBounds?.top ?? 0));
+    }, { root });
+    observer.observe(action);
+    return () => { observer.disconnect(); footer.classList.remove('fortuneCtaAtTop'); };
+  }, [hasVisualDetail]);
   const copy = useFeatureMarketingCopy(target, open);
   // 🔴 호출부가 featureKey 를 안 넘기면 가격이 영영 빈칸이고 그러면 priceReady 가 false 라
   // CTA 가 잠긴다(2026-09-03 실측: /app 허브 유료 8종 중 손금 1종 — 레지스트리에 featureKey 가
@@ -562,12 +576,13 @@ export function FeatureMarketingDetailModal({
                 keys={marketingKeys(target)}
                 enabled={open && getCurrentLoadingLocale() === "ko"}
                 onReady={setHasVisualDetail}
+                heroAction={<div className="fortuneAction"><p>{priceText(target, priceState, t)}</p><Link href={target.href} onClick={handleCtaClick} aria-disabled={!priceReady} aria-busy={navPending} tabIndex={priceReady ? undefined : -1}>{navPending ? t("preview.navPending") : copy?.ctaLabel || t("preview.ctaPaid")}</Link></div>}
                 onRequestConversion={() => {
                   conversionRef.current?.scrollIntoView({ block: "nearest" });
                   conversionRef.current?.querySelector("a")?.focus({ preventScroll: true });
                 }}
               />
-              <div hidden={hasVisualDetail}>
+              <div hidden={getCurrentLoadingLocale() === "ko"}>
               {copy ? (
                 <div className="cd-detail-body">
                   <p className="cd-detail-headline">{copy.headline}</p>

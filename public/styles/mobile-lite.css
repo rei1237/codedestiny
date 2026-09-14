@@ -664,22 +664,22 @@
      = 8px 확정 겹침), 기능마다 자기 글자색이 남의 표면 위에 떠서 사라지는 회귀를
      두 번 땜질해야 했다. 그 층을 걷어낸 자리가 아래다.
      가드: npm run verify:mobile-detail-nonintrusive (허용 속성 화이트리스트) */
-  [data-component="MobileFeatureDetail"] {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
 
-  [data-component="MobileFeatureDetail"]::before,
-  [data-component="MobileFeatureDetail"]::after,
-  [data-component="MobileFeatureDetail"] [aria-hidden="true"]::before,
-  [data-component="MobileFeatureDetail"] [aria-hidden="true"]::after {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual)::before,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual)::after,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [aria-hidden="true"]::before,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [aria-hidden="true"]::after {
     pointer-events: none !important;
   }
 
   /* 셸 — 가로로 삐져나가는 것만 막고 세로 스크롤을 연다. 패딩·배경·라운드·최대폭은
      기능이 자기 마크업/CSS 에서 정한 값을 그대로 쓴다. 예전에 여기서 margin·padding 을
      덮는 바람에 타로 셸의 margin-top:60px(닫기 버튼 자리)이 사라져 제목이 X 밑으로 들어갔다. */
-  [data-component="MobileFeatureDetail"] [data-mobile-detail-shell] {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-mobile-detail-shell] {
     box-sizing: border-box !important;
     max-width: 100% !important;
     overflow-x: hidden !important;
@@ -700,7 +700,7 @@
      겹쳤다. 그걸 풀려고 모달 4종에 개별 해제 CSS 를 덧대야 했다(index.html 쪽도 함께 제거).
      텍스트 라벨이 붙은 본문 CTA 는 data-mobile-detail-close="inline" 이라 여기 걸리지 않는다. */
   [data-mobile-detail-close="primary"],
-  [data-component="MobileFeatureDetail"] [data-naming-close="1"] {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-naming-close="1"] {
     min-width: 48px !important;
     min-height: 48px !important;
     touch-action: manipulation !important;
@@ -708,9 +708,9 @@
 
   /* 입력 — 16px 은 iOS 가 포커스 시 화면을 자동 확대하지 않는 하한이라 인체공학 항목이다
      (타이포 취향이 아니다). 라운드·라인하이트 같은 외형은 기능 CSS 에 맡긴다. */
-  [data-component="MobileFeatureDetail"] input,
-  [data-component="MobileFeatureDetail"] select,
-  [data-component="MobileFeatureDetail"] textarea {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) input,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) select,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) textarea {
     box-sizing: border-box !important;
     max-width: 100% !important;
     min-height: 48px !important;
@@ -718,56 +718,56 @@
     scroll-margin-bottom: 156px !important;
   }
 
-  [data-component="MobileFeatureDetail"] textarea {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) textarea {
     resize: vertical !important;
   }
 
-  [data-component="MobileFeatureDetail"] button,
-  [data-component="MobileFeatureDetail"] [role="button"],
-  [data-component="MobileFeatureDetail"] a[href] {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) button,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [role="button"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) a[href] {
     min-height: 48px;
     touch-action: manipulation;
     -webkit-tap-highlight-color: rgba(255, 255, 255, 0.08);
   }
 
-  [data-component="MobileFeatureDetail"] [data-action*="start"],
-  [data-component="MobileFeatureDetail"] [data-action*="Start"],
-  [data-component="MobileFeatureDetail"] [data-action*="generate"],
-  [data-component="MobileFeatureDetail"] [data-action*="Generate"],
-  [data-component="MobileFeatureDetail"] [data-action*="Payment"],
-  [data-component="MobileFeatureDetail"] [data-action*="payment"],
-  [data-component="MobileFeatureDetail"] [data-action*="confirm"],
-  [data-component="MobileFeatureDetail"] [data-action*="Confirm"],
-  [data-component="MobileFeatureDetail"] [type="submit"] {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="start"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="Start"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="generate"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="Generate"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="Payment"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="payment"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="confirm"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [data-action*="Confirm"],
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) [type="submit"] {
     min-height: 48px !important;
   }
 
   /* 아코디언 — 접기는 화면 길이 대응이라 유지하되, 겉모습은 기능 CSS 에 맡긴다.
      예전엔 summary 에 display:flex 를 강제해 그리드 헤더가 가로로 붕괴하고
      긴 한글이 한 글자씩 세로로 줄바꿈되는 회귀가 났다. */
-  [data-component="MobileFeatureDetail"] details[data-mobile-detail-accordion] > summary {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) details[data-mobile-detail-accordion] > summary {
     min-height: 48px !important;
     cursor: pointer !important;
   }
 
-  [data-component="MobileFeatureDetail"] .tarot-action-btns,
-  [data-component="MobileFeatureDetail"] .dream-ledger-actions--result,
-  [data-component="MobileFeatureDetail"] .naming-prompt-actions,
-  [data-component="MobileFeatureDetail"] .kcg-action-btns {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .tarot-action-btns,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .dream-ledger-actions--result,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .naming-prompt-actions,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .kcg-action-btns {
     display: grid !important;
     grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
 
-  [data-component="MobileFeatureDetail"] .dream-ledger-ambience,
-  [data-component="MobileFeatureDetail"] .ps-bg-ornament,
-  [data-component="MobileFeatureDetail"] .tarot-love-sparkles,
-  [data-component="MobileFeatureDetail"] .tarot-love-symbols,
-  [data-component="MobileFeatureDetail"] .tarot-love-floating-cards,
-  [data-component="MobileFeatureDetail"] .animal-totem-aurora,
-  [data-component="MobileFeatureDetail"] .animal-totem-particles,
-  [data-component="MobileFeatureDetail"] .df-studio-cosmos,
-  [data-component="MobileFeatureDetail"] .kemet-eye-rings {
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .dream-ledger-ambience,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .ps-bg-ornament,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .tarot-love-sparkles,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .tarot-love-symbols,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .tarot-love-floating-cards,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .animal-totem-aurora,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .animal-totem-particles,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .df-studio-cosmos,
+  [data-component="MobileFeatureDetail"]:not(.pvw-visual) .kemet-eye-rings {
     pointer-events: none !important;
   }
 

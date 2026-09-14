@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     siteName: siteSeo.brandName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "마스터 인연의 서" }],
+    images: [{ url: `${siteSeo.siteUrl}/feature-details/assets/master-love-codex-og.webp`, width: 1200, height: 630, alt: "마스터 인연의 서" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [siteSeo.defaultOgImage],
+    images: [`${siteSeo.siteUrl}/feature-details/assets/master-love-codex-og.webp`],
   },
 };
 

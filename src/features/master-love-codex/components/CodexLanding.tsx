@@ -20,6 +20,7 @@ import CodexPremiumCard from "./CodexPremiumCard";
 import CodexWhyPremium from "./CodexWhyPremium";
 import CodexTrustStrip from "./CodexTrustStrip";
 import CodexFloatingCta from "./CodexFloatingCta";
+import CodexProductIntroduction from "./CodexProductIntroduction";
 import { masterLoveCodexAssets } from "../data/assets";
 import { CODEX_HERO_SPECS } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
@@ -44,6 +45,8 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
   const heroSpecs = useCodexContentCopy("heroSpecs", CODEX_HERO_SPECS);
   const floatingBilling = masterLoveCodexBilling(FLOATING_MODE, locale);
   const soloTitle = masterLoveCodexBilling("solo", locale).title;
+
+  if (locale === 'ko') return <CodexProductIntroduction onEnter={onEnter} onReplayPrologue={onReplayPrologue} hasSeenPrologue={hasSeenPrologue} />;
 
   return (
     <CodexShell ariaLabel={copy.entryAriaLabel(soloTitle)}>

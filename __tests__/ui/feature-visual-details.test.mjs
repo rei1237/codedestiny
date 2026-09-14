@@ -7,30 +7,31 @@ const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json'
 const sharedHero = '/feature-details/assets/feature-detail-shared-hero-v1-960.webp';
 const shell = fs.readFileSync('index.html', 'utf8');
 
-test('every tile popup uses the shared responsive hero before marketing detail hydration', () => {
-  assert.match(shell, /var imgSrc='\/feature-details\/assets\/feature-detail-shared-hero-v1-960\.webp'/);
-  assert.match(shell, /feature-detail-shared-hero-v1-480\.webp 480w, \/feature-details\/assets\/feature-detail-shared-hero-v1-960\.webp 960w/);
-  assert.doesNotMatch(shell, /var imgSrc=\(imgWrap&&imgWrap\.getAttribute\('data-img-src'\)\)/);
+test('tile popup preserves the selected product art before hydration', () => {
+  assert.ok(shell.includes("var imgSrc=(tileImage&&(tileImage.currentSrc||tileImage.getAttribute('src')))||d.img||'';"));
+  assert.ok(shell.includes("_heroImg.removeAttribute('srcset')"));
 });
 
-test('popup reading colors cannot fall back to per-card or standalone-page palettes', () => {
-  const popupCss = fs.readFileSync('styles/feature-marketing-detail.css', 'utf8');
-  const visualCss = fs.readFileSync('styles/feature-visual-detail.css', 'utf8');
-  assert.match(popupCss, /\.tile-pvw-overlay:not\(\.pvw-visual\) \.tile-pvw-title[\s\S]*color: #3c1830 !important/);
-  assert.match(popupCss, /\.tile-pvw-overlay:not\(\.pvw-visual\) \.tile-pvw-tagline[\s\S]*color: #70445c !important/);
-  assert.match(visualCss, /\.tile-pvw-overlay\.pvw-visual \.featureVisualDetail\{[^}]*color:#3c1830!important/);
-  assert.match(visualCss, /\.tile-pvw-overlay\.pvw-visual \.featureVisualDetail :is\(p,[^}]*color:#70445c!important/);
+test('editorial detail owns a complete readable palette and horizontal layout', () => {
+  const css = fs.readFileSync('styles/feature-visual-detail.css', 'utf8');
+  for (const token of ['--fortune-paper:', '--fortune-ink:', '--fortune-muted:', '--fortune-accent:']) assert.ok(css.includes(token));
+  assert.ok(css.includes('prefers-reduced-motion'));
+  assert.ok(!css.includes('writing-mode:vertical'));
 });
 
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
-  assert.equal(generated.index.length, 65);
+  assert.equal(generated.index.length, 72);
   assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
-  assert.equal(catalog.length, 63);
+  assert.equal(catalog.length, 70);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
+  const artworkHashes = new Set();
   for (const entry of catalog) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${entry.slug}.json`, 'utf8'));
     assert.equal(detail.verification, 'verified');
+    const hash = fs.readFileSync('public' + detail.image).toString('base64');
+    assert.ok(!artworkHashes.has(hash), entry.slug + ': repeated product artwork');
+    artworkHashes.add(hash);
     assert.ok(detail.image, `${entry.slug}: OG 대표 이미지가 없다`);
     assert.ok(detail.evidence.length);
     detail.evidence.forEach(source => assert.ok(fs.existsSync(source), source));
@@ -41,31 +42,13 @@ test('published visual introductions have proven sources, real assets, and disti
     }
     for (const variant of detail.heroVariants || []) assert.ok(fs.statSync(`public${variant.src}`).size <= 180000);
     const rendered = renderFeatureDetailPanels(detail);
-    assert.ok(rendered.includes(detail.journey?.questions?.[0] || detail.headline));
-    assert.ok(rendered.includes(sharedHero), `${entry.slug}: 공통 상세 이미지가 없다`);
-    assert.ok(rendered.includes('feature-detail-shared-hero-v1-480.webp 480w'));
-    if (detail.image !== sharedHero) assert.ok(!rendered.includes(`src="${detail.image}"`), `${entry.slug}: 기존 비율 이미지가 남았다`);
+    assert.ok(rendered.includes(detail.headline));
+    assert.ok(rendered.includes('src="' + detail.image + '"'), entry.slug + ': product art missing');
+    assert.ok(!rendered.includes(sharedHero));
+    if (detail.cardImage) assert.ok(fs.statSync('public' + detail.cardImage).size <= 50000);
+    assert.ok(detail.benefits?.length, entry.slug + ': product benefits missing');
   }
   assert.ok(!catalog.find(item => item.slug === 'animal-destiny').aliases.includes('animal-destiny-unlock'), 'free route must not replace a separately locked feature');
-  const neo = JSON.parse(fs.readFileSync('public/feature-details/neo-operation-room.json', 'utf8'));
-  assert.equal(neo.panels[0].visualPreview, 'neo');
-  assert.match(renderFeatureDetailPanels(neo), /한 가지 지도로/);
-  assert.doesNotMatch(renderFeatureDetailPanels(neo), /개발용 예시|개인 결과/);
-  for (const [slug, preview] of Object.entries({ saju: 'saju', ziwei: 'ziwei', sukyo: 'sukuyo', vedic: 'vedic', astrology: 'astrology' })) {
-    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
-    assert.equal(detail.panels[0].visualPreview, preview, `${slug}: 체계별 SVG/HTML 미리보기가 없다`);
-    assert.doesNotMatch(renderFeatureDetailPanels(detail), /개발용 예시|개인 결과/, `${slug}: 내부 검증 문구가 노출됐다`);
-  }
-  for (const [slug, preview] of Object.entries({ 'tarot-love-relationship': 'tarot-love', 'tarot-reunion': 'tarot-reunion', 'tarot-mindscan': 'tarot-mindscan' })) {
-    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
-    assert.equal(detail.panels[0].visualPreview, preview, `${slug}: 관계별 SVG/HTML 미리보기가 없다`);
-    assert.doesNotMatch(renderFeatureDetailPanels(detail), /개발용 예시|개인 결과/, `${slug}: 내부 검증 문구가 노출됐다`);
-  }
-  for (const [slug, preview] of Object.entries({ 'master-love-codex': 'master-codex', 'love-simulation': 'love-code', 'nakshatra-compat': 'nakshatra-compat' })) {
-    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
-    assert.equal(detail.panels[0].visualPreview, preview, `${slug}: 궁합 기능별 SVG/HTML 미리보기가 없다`);
-    assert.doesNotMatch(renderFeatureDetailPanels(detail), /개발용 예시|개인 결과/, `${slug}: 내부 검증 문구가 노출됐다`);
-  }
   const animal = JSON.parse(fs.readFileSync('public/feature-details/animal-destiny.json', 'utf8'));
   assert.ok(animal.image, '동물 도감의 독립 소개 OG 대표 이미지가 없다');
   const face = JSON.parse(fs.readFileSync('public/feature-details/face-reading.json', 'utf8'));
@@ -73,7 +56,7 @@ test('published visual introductions have proven sources, real assets, and disti
   assert.match(registry, /slug: "face-reading"[\s\S]*detailRoute: "\/features\/face-reading"[\s\S]*launchRoute: "\/animal\/physio"/);
   assert.equal(face.href, '/animal/physio');
   assert.equal(face.ctaLabel, '무료로 동물 관상 보기');
-  assert.equal(face.panels[0].previewTone, '상징·마음');
+
   assert.deepEqual(Object.values(generated.items).filter(item => item.verification !== 'verified').map(item => item.slug).sort(), ['points', 'saju-animal']);
 });
 
@@ -91,11 +74,10 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
     const html = renderFeatureDetailPanels(detail, { conversionPrompt: true });
     assert.match(html, /data-purchase-stage="awareness"/);
     assert.match(html, /data-feature-conversion-request/);
-    assert.doesNotMatch(html, /상세페이지 새 화면에서 보기|href=|onclick=/);
+    assert.doesNotMatch(html, /onclick=|href="(?:https?:|javascript:|\/checkout|\/payment)/);
+    for (const link of html.matchAll(/href="([^"]+)"/g)) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
     assert.doesNotMatch(renderFeatureDetailPanels(detail), /data-feature-conversion-request/);
-    for (const panel of detail.panels) {
-      if (panel.visualPreview) assert.match(html, /featureEditorial/);
-    }
+    assert.doesNotMatch(html, /featureEditorial|핵심 흐름 미리보기/);
   }
   const html = renderFeatureDetailPanels({ verification: 'verified', journey: { questions: ['<img src=x onerror=x>'], trustNotes: ['<script>'], faq: [{ q: '<iframe>', a: '<svg onload=x>' }] }, panels: [] }, { conversionPrompt: true });
   assert.doesNotMatch(html, /<img|<script|<iframe|<svg/);
