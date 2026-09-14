@@ -3,6 +3,7 @@ import { connectDb, mongoose, withMongoRetry } from "../db.js";
 import { getOptionalUserFromRequest } from "../auth.js";
 import { getEnv } from "../env.js";
 import { getRequestMeta, json } from "../http.js";
+import * as consultationModels from "../models.js";
 import {
   AbuseScore,
   ContentEntitlement,
@@ -543,10 +544,61 @@ export function aiActionFromPath(path = "", serviceKey = "") {
   return AI_FALLBACK_ACTION;
 }
 
+const CHECKPOINT_RESUME_MODELS = Object.freeze({
+  "astrology-ai": "AstrologyAiConsultation",
+  "vedic-ai": "VedicAiConsultation",
+  "ziwei-ai": "ZiweiAiConsultation",
+  "love-secret-ai": "LoveSecretAiConsultation",
+  "life-book-ai": "LifeBookAiConsultation",
+  "new-year-ai": "NewYearAiConsultation",
+  "sukuyo-compatibility-ai": "SukuyoCompatibilityAiConsultation",
+  "neo-operation-room": "NeoOperationRoomConsultation",
+});
+
+// Only a small server-ID resume envelope can change the quota classification. The
+// original request stream remains available to the route's ownership/payment checks.
+async function readCheckpointResumeBody(request) {
+  if (Number(request.headers.get("content-length") || 0) > 4096) return null;
+  let reader;
+  try {
+    reader = request.clone().body?.getReader();
+    if (!reader) return null;
+    const chunks = []; let bytes = 0;
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > 4096) return null;
+      chunks.push(value);
+    }
+    const buffer = new Uint8Array(bytes); let offset = 0;
+    for (const chunk of chunks) { buffer.set(chunk, offset); offset += chunk.byteLength; }
+    return JSON.parse(new TextDecoder().decode(buffer));
+  } catch { return null; }
+  finally { if (reader) void reader.cancel().catch(() => {}); }
+}
+
+async function isOwnedCheckpointResume(request, env, serviceKey, userId) {
+  const modelName = CHECKPOINT_RESUME_MODELS[serviceKey];
+  if (!modelName || !userId || request.method !== "POST") return false;
+  const body = await readCheckpointResumeBody(request);
+  const id = serviceKey === "neo-operation-room" ? body?.sessionId || body?.resultId : body?.resumeSessionId;
+  if (typeof id !== "string" || !/^[a-zA-Z0-9_:-]{8,120}$/.test(id)) return false;
+  try {
+    await connectDb(env);
+    const model = consultationModels[modelName];
+    const saved = await model.findOne({ userId, [serviceKey === "sukuyo-compatibility-ai" ? "_id" : "id"]: id })
+      .select("status serviceType llmMeta.resumeBody llmMeta.delivery.resumeBody").lean();
+    if (!saved || (serviceKey === "ziwei-ai" && saved.serviceType && saved.serviceType !== serviceKey)) return false;
+    return Boolean(saved.status === "completed" || saved.llmMeta?.resumeBody || saved.llmMeta?.delivery?.resumeBody);
+  } catch { return false; } // A missing/unavailable record cannot exempt a new start from its budget.
+}
+
 export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", path = "", userId = "" } = {}) {
-  const action = aiActionFromPath(path, serviceKey);
+  let action = aiActionFromPath(path, serviceKey);
   const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
   const resolvedUserId = userId || String(auth?.userId || "");
+  if (action === "start" && await isOwnedCheckpointResume(request, env, serviceKey, resolvedUserId)) action = "batch";
   const method = cleanText(request?.method).toUpperCase();
   const isRead = AI_READ_ACTIONS.has(action) && method === "GET";
   // 🔴 기본 버킷에서는 메서드를 좁히지 않는다 — 아직 분류 안 된 GET 라우트를 405 로 죽이면
