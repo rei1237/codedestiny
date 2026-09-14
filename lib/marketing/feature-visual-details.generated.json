@@ -1278,6 +1278,77 @@
       "description": "왜 같은 말에도 다르게 반응할까요?",
       "verification": "verified",
       "cardImage": "/feature-details/assets/sukuyo-compatibility-ai-320.webp"
+    },
+    {
+      "slug": "astrology-ai",
+      "title": "점성술 전문가 상담",
+      "href": "/astrology-ai",
+      "featureKey": "astrology-ai-consultation",
+      "accessType": "paid",
+      "image": "/feature-details/assets/astrology-ai-960.webp",
+      "aliases": [
+        "astrology-ai-consultation",
+        "astrology-ai",
+        "/astrology-ai",
+        "/astrology-ai/"
+      ],
+      "category": "별자리·동양 점성",
+      "description": "왜 마음과 상황이 따로 놀까요?",
+      "verification": "verified",
+      "cardImage": "/feature-details/assets/astrology-ai-320.webp"
+    },
+    {
+      "slug": "vedic-ai",
+      "title": "베다점 전문가 상담",
+      "href": "/vedic-ai",
+      "featureKey": "vedic-ai-consultation",
+      "accessType": "paid",
+      "image": "/feature-details/assets/vedic-ai-960.webp",
+      "aliases": [
+        "vedic-ai-consultation",
+        "vedic-ai",
+        "/vedic-ai",
+        "/vedic-ai/"
+      ],
+      "category": "별자리·동양 점성",
+      "description": "지금 내린 결정이 장기 흐름과 맞을까요?",
+      "verification": "verified",
+      "cardImage": "/feature-details/assets/vedic-ai-320.webp"
+    },
+    {
+      "slug": "nakshatra-ai",
+      "title": "숙요·나크샤트라 통합 상담",
+      "href": "/nakshatra/ai",
+      "featureKey": "nakshatra-ai-consultation",
+      "accessType": "paid",
+      "image": "/feature-details/assets/nakshatra-ai-960.webp",
+      "aliases": [
+        "nakshatra-ai-consultation",
+        "nakshatra-ai",
+        "/nakshatra/ai",
+        "/nakshatra/ai/"
+      ],
+      "category": "별자리·동양 점성",
+      "description": "나는 원래 어떤 사람일까요?",
+      "verification": "verified",
+      "cardImage": "/feature-details/assets/nakshatra-ai-320.webp"
+    },
+    {
+      "slug": "nakshatra-vvip-codex",
+      "title": "나크샤트라 VVIP 코덱스",
+      "href": "/nakshatra/vvip",
+      "featureKey": "nakshatra-vvip-codex",
+      "accessType": "paid",
+      "image": "/feature-details/assets/nakshatra-vvip-codex-960.webp",
+      "aliases": [
+        "nakshatra-vvip-codex",
+        "/nakshatra/vvip",
+        "/nakshatra/vvip/"
+      ],
+      "category": "별자리·동양 점성",
+      "description": "27수 전체에서 내 자리는 어디인가요?",
+      "verification": "verified",
+      "cardImage": "/feature-details/assets/nakshatra-vvip-codex-320.webp"
     }
   ],
   "items": {
@@ -6718,6 +6789,297 @@
       ],
       "cardImage": "/feature-details/assets/sukuyo-compatibility-ai-320.webp",
       "ogImage": "/feature-details/assets/sukuyo-compatibility-ai-og.webp",
+      "related": []
+    },
+    "astrology-ai": {
+      "slug": "astrology-ai",
+      "title": "점성술 전문가 상담",
+      "href": "/astrology-ai",
+      "featureKey": "astrology-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/feature-details/assets/astrology-ai-960.webp",
+      "aliases": [
+        "astrology-ai-consultation",
+        "astrology-ai",
+        "/astrology-ai",
+        "/astrology-ai/"
+      ],
+      "category": "별자리·동양 점성",
+      "headline": "별의 지도에 지금의 질문을 놓아보세요",
+      "description": "태양과 달, 상승궁이 보여주는 나의 중심부터 관계와 일의 고민까지. 출생 차트의 단서를 따라 지금의 선택을 차분하게 정리합니다.",
+      "panels": [],
+      "ctaLabel": "나의 별 이야기 시작하기",
+      "evidence": [
+        "app/astrology-ai/AstrologyAiClient.tsx",
+        "index.html"
+      ],
+      "verification": "verified",
+      "sourceAction": "astrology-ai-consultation",
+      "benefits": [
+        "태양·달·상승궁",
+        "행성과 주요 각도",
+        "지금 고민의 맥락",
+        "트랜짓과 행동 조언"
+      ],
+      "contents": [
+        {
+          "title": "입력 요약"
+        },
+        {
+          "title": "현재 질문"
+        },
+        {
+          "title": "상담 본문"
+        },
+        {
+          "title": "출생 천궁도와 차트 시그니처"
+        },
+        {
+          "title": "주요 근거와 차트 원본"
+        }
+      ],
+      "journey": {
+        "questions": [
+          "왜 마음과 상황이 따로 놀까요?",
+          "언제 움직이는 게 좋을까요?",
+          "사람들에게 나는 어떻게 보일까요?"
+        ],
+        "trustNotes": [],
+        "faq": []
+      },
+      "imageAlt": "점성술 전문가 상담의 천문 관측 장면을 담은 오리지널 일러스트",
+      "theme": "indigo",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/astrology-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/astrology-ai-960.webp",
+          "width": 960
+        }
+      ],
+      "cardImage": "/feature-details/assets/astrology-ai-320.webp",
+      "ogImage": "/feature-details/assets/astrology-ai-og.webp",
+      "related": []
+    },
+    "vedic-ai": {
+      "slug": "vedic-ai",
+      "title": "베다점 전문가 상담",
+      "href": "/vedic-ai",
+      "featureKey": "vedic-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/feature-details/assets/vedic-ai-960.webp",
+      "aliases": [
+        "vedic-ai-consultation",
+        "vedic-ai",
+        "/vedic-ai",
+        "/vedic-ai/"
+      ],
+      "category": "별자리·동양 점성",
+      "headline": "반복되는 선택에는 어떤 시간이 흐를까요?",
+      "description": "타고난 기질과 역할, 관계의 리듬을 라시 차트와 다샤의 흐름에 비추어 읽습니다. 지금 내가 할 수 있는 작은 선택으로 이야기를 이어갑니다.",
+      "panels": [],
+      "ctaLabel": "나의 별 이야기 시작하기",
+      "evidence": [
+        "app/vedic-ai/VedicAiClient.tsx",
+        "index.html"
+      ],
+      "verification": "verified",
+      "sourceAction": "vedic-ai-consultation",
+      "benefits": [
+        "라시 차트의 핵심",
+        "일과 삶의 방향",
+        "인연과 관계",
+        "다샤와 실천 조언"
+      ],
+      "contents": [
+        {
+          "title": "카르마의 기원"
+        },
+        {
+          "title": "물질적 성취와 다르마"
+        },
+        {
+          "title": "인연과 영혼의 파트너"
+        },
+        {
+          "title": "현재의 다샤 흐름과 우파야"
+        },
+        {
+          "title": "해석 근거 흐름"
+        }
+      ],
+      "journey": {
+        "questions": [
+          "지금 내린 결정이 장기 흐름과 맞을까요?",
+          "왜 노력의 타이밍이 자꾸 어긋날까요?",
+          "이 시기에 무엇을 준비해야 할까요?"
+        ],
+        "trustNotes": [],
+        "faq": []
+      },
+      "imageAlt": "베다점 전문가 상담의 천문 관측 장면을 담은 오리지널 일러스트",
+      "theme": "saffron",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/vedic-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/vedic-ai-960.webp",
+          "width": 960
+        }
+      ],
+      "cardImage": "/feature-details/assets/vedic-ai-320.webp",
+      "ogImage": "/feature-details/assets/vedic-ai-og.webp",
+      "related": []
+    },
+    "nakshatra-ai": {
+      "slug": "nakshatra-ai",
+      "title": "숙요·나크샤트라 통합 상담",
+      "href": "/nakshatra/ai",
+      "featureKey": "nakshatra-ai-consultation",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/feature-details/assets/nakshatra-ai-960.webp",
+      "aliases": [
+        "nakshatra-ai-consultation",
+        "nakshatra-ai",
+        "/nakshatra/ai",
+        "/nakshatra/ai/"
+      ],
+      "category": "별자리·동양 점성",
+      "headline": "같은 달 아래, 두 전통이 읽어낸 나",
+      "description": "숙요와 나크샤트라가 비추는 나를 나란히 놓아봅니다. 닮은 해석과 다른 해석 사이에서 사랑과 일, 반복되는 마음의 습관을 살펴봅니다.",
+      "panels": [],
+      "ctaLabel": "나의 별 이야기 시작하기",
+      "evidence": [
+        "app/nakshatra/ai/NakshatraAiClient.tsx",
+        "index.html"
+      ],
+      "verification": "verified",
+      "sourceAction": "nakshatra-ai-consultation",
+      "benefits": [
+        "본명숙과 나크샤트라",
+        "겉과 속의 기질",
+        "사랑과 일의 방식",
+        "두 전통의 접점과 차이"
+      ],
+      "contents": [
+        {
+          "title": "두 별 계산과 첫 요약"
+        },
+        {
+          "title": "본질과 안팎의 결"
+        },
+        {
+          "title": "사랑과 일"
+        },
+        {
+          "title": "반복되는 패턴과 두 전통의 차이"
+        },
+        {
+          "title": "사용 설명서와 마지막 문장"
+        }
+      ],
+      "journey": {
+        "questions": [
+          "나는 원래 어떤 사람일까요?",
+          "나는 어떤 사랑과 관계를 원하는 사람일까요?",
+          "내가 일을 잘할 수 있는 환경은 어디일까요?"
+        ],
+        "trustNotes": [],
+        "faq": []
+      },
+      "imageAlt": "숙요·나크샤트라 통합 상담의 천문 관측 장면을 담은 오리지널 일러스트",
+      "theme": "indigo",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/nakshatra-ai-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/nakshatra-ai-960.webp",
+          "width": 960
+        }
+      ],
+      "cardImage": "/feature-details/assets/nakshatra-ai-320.webp",
+      "ogImage": "/feature-details/assets/nakshatra-ai-og.webp",
+      "related": []
+    },
+    "nakshatra-vvip-codex": {
+      "slug": "nakshatra-vvip-codex",
+      "title": "나크샤트라 VVIP 코덱스",
+      "href": "/nakshatra/vvip",
+      "featureKey": "nakshatra-vvip-codex",
+      "featureKeyTo": "",
+      "accessType": "paid",
+      "image": "/feature-details/assets/nakshatra-vvip-codex-960.webp",
+      "aliases": [
+        "nakshatra-vvip-codex",
+        "/nakshatra/vvip",
+        "/nakshatra/vvip/"
+      ],
+      "category": "별자리·동양 점성",
+      "headline": "나의 별에서 인생의 지형까지, 한 권으로",
+      "description": "본명숙과 나크샤트라, 지배성과 다샤를 하나의 목차에 펼칩니다. 별의 위치와 시간의 흐름을 번갈아 읽으며 나를 바라볼 시야를 넓혀보세요.",
+      "panels": [],
+      "ctaLabel": "나의 코덱스 열기",
+      "evidence": [
+        "app/nakshatra/vvip/VvipClient.tsx",
+        "index.html"
+      ],
+      "verification": "verified",
+      "sourceAction": "nakshatra-vvip-codex",
+      "benefits": [
+        "명식과 세 관점의 해설",
+        "27수 안에서의 내 자리",
+        "지배성 심화 리포트",
+        "다샤 인생지도"
+      ],
+      "contents": [
+        {
+          "title": "제1장 · 명식 총람"
+        },
+        {
+          "title": "제2장 · 세 대가의 목소리"
+        },
+        {
+          "title": "제3장 · 27수 지형에서의 내 자리"
+        },
+        {
+          "title": "제4장 · 지배성 심화 리포트"
+        },
+        {
+          "title": "제5장 · 다샤 인생지도"
+        }
+      ],
+      "journey": {
+        "questions": [
+          "27수 전체에서 내 자리는 어디인가요?",
+          "다른 자리들과는 어떤 관계인가요?",
+          "앞으로의 방향을 어디에 둬야 하나요?"
+        ],
+        "trustNotes": [],
+        "faq": []
+      },
+      "imageAlt": "나크샤트라 VVIP 코덱스의 천문 관측 장면을 담은 오리지널 일러스트",
+      "theme": "indigo",
+      "heroVariants": [
+        {
+          "src": "/feature-details/assets/nakshatra-vvip-codex-480.webp",
+          "width": 480
+        },
+        {
+          "src": "/feature-details/assets/nakshatra-vvip-codex-960.webp",
+          "width": 960
+        }
+      ],
+      "cardImage": "/feature-details/assets/nakshatra-vvip-codex-320.webp",
+      "ogImage": "/feature-details/assets/nakshatra-vvip-codex-og.webp",
       "related": []
     }
   }

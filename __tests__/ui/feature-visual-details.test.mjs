@@ -21,9 +21,9 @@ test('editorial detail owns a complete readable palette and horizontal layout', 
 
 test('published visual introductions have proven sources, real assets, and distinct destinations', () => {
   const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
-  assert.equal(generated.index.length, 72);
+  assert.equal(generated.index.length, 76);
   assert.equal(new Set(generated.index.map(item => item.slug)).size, generated.index.length);
-  assert.equal(catalog.length, 70);
+  assert.equal(catalog.length, 74);
   assert.equal(new Set(catalog.map(item => item.slug)).size, catalog.length);
   const artworkHashes = new Set();
   for (const entry of catalog) {
