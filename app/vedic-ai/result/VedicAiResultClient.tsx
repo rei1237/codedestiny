@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Home, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { toDisplayText } from "@/lib/llm-text";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
-import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
+import { StructuredReadingResult, parseStructuredReading, splitAssistantSections, pollVedicResult } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildVedicPreviewPayload } from "@/lib/dev-preview/fixtures/vedic";
@@ -67,10 +67,19 @@ export default function VedicAiResultClient() {
   const [view, setView] = useState<ViewState>({ kind: "loading" });
   const [viewAll, setViewAll] = usePagedViewerMode("vedicAiViewerModeV1");
 
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => { setView({ kind: "loading" }); setResumeEpoch(value => value + 1); });
+  useEffect(() => {
+    const resume = () => { if (document.visibilityState !== "hidden") setResumeEpoch(value => value + 1); };
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("id") || "";
-    let cancelled = false;
-
+    let cancelled = false, hasPartial = false;
+    const sameOwner = captureOwner();
+    const isCurrent = () => !cancelled && sameOwner();
     (async () => {
       try {
         const previewState = readDevPreviewState();
@@ -80,48 +89,27 @@ export default function VedicAiResultClient() {
           else setView({ kind: "missing" });
           return;
         }
-        const path = id
-          ? `/api/vedic-ai/result?id=${encodeURIComponent(id)}`
-          : "/api/vedic-ai/result";
-        // 생성 중(202)이면 완료까지 몇 차례 재확인한다(서버 신선도 창 420s 이내에서 40회 ≈ 5분).
-        for (let attempt = 0; attempt < 40; attempt += 1) {
-          const response = await authFetch(path);
-          if (response.status === 401) {
-            // authFetch가 일시 401을 503으로 이미 흡수하므로, 여기 도달한 401은 확정 로그아웃이다.
-            if (!cancelled) setView({ kind: "login" });
-            return;
-          }
-          if (isRetriableResultPollFailure(response.status)) {
-            // 일시적 DB/인증 장애(503)는 미조회 화면으로 종착하지 말고 202처럼 재폴링해 자가 복구한다.
-            if (cancelled) return;
-            await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
-            continue;
-          }
-          if (id && response.status === 202) {
-            if (cancelled) return;
-            await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
-            continue;
-          }
-          const data = await response.json().catch(() => ({}));
-          if (cancelled) return;
-          if (id) {
-            if (data?.ok && data.consultation) setView({ kind: "detail", consultation: data.consultation as Consultation });
-            else setView({ kind: "missing" });
-          } else {
-            setView({ kind: "list", items: Array.isArray(data?.consultations) ? data.consultations : [] });
-          }
-          return;
+        let sessionId = id;
+        if (!sessionId) {
+          const response = await authFetch("/api/vedic-ai/result");
+          const data = await response.json();
+          if (!isCurrent()) return;
+          if (response.status === 401) { setView({ kind: "login" }); return; }
+          if (!response.ok) throw new Error("RESULT_UNAVAILABLE");
+          sessionId = data.pendingSessionId || "";
+          if (!sessionId) { setView({ kind: "list", items: data.consultations || [] }); return; }
+          const url = new URL(window.location.href); url.searchParams.set("id", sessionId); window.history.replaceState({}, "", url);
         }
-        if (!cancelled) setView({ kind: "missing" });
+        const result = await pollVedicResult(sessionId, isCurrent, consultation => { hasPartial = true; setView({ kind: "detail", consultation }); });
+        if (!isCurrent()) return;
+        if (result.consultation) setView({ kind: "detail", consultation: result.consultation });
+        else if (!hasPartial) setView({ kind: "missing" });
       } catch {
-        if (!cancelled) setView({ kind: "missing" });
+        if (isCurrent() && !hasPartial) setView({ kind: "missing" });
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    return () => { cancelled = true; };
+  }, [resumeEpoch, captureOwner]);
 
   const backLink = (
     <Link href="/vedic-ai/" className={styles.resultListItem} style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
@@ -204,12 +192,14 @@ export default function VedicAiResultClient() {
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
       <section className={styles.resultPanel}>
+        {consultation.status !== "completed" && <div className={styles.resumeStatus} role="status"><h2>{COPY.resumeTitle}</h2><p>{COPY.resumeBody}</p><button type="button" className={styles.resultListItem} onClick={() => setResumeEpoch(value => value + 1)}>{COPY.resumeButton}</button></div>}
         <div className={styles.chatList}>
           {consultation.messages.map((message, index) => {
             const structured = message.role === "assistant" ? parseStructuredReading(message.content) : null;
             if (structured) {
               return (
                 <StructuredReadingResult
+                  completed={consultation.status === "completed"}
                   key={`${message.role}-${index}`}
                   reading={structured}
                   chart={chart}

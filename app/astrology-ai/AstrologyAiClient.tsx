@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -1541,7 +1542,15 @@ async function pollAstrologyResult(sessionId: string, scope: LocaleRequestScope)
       continue;
     }
     if (!scope.isCurrent()) return null;
-    if (response.status === 202) continue;
+    if (response.status === 202) {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return null;
+      const resumed = await authFetch(API_ENDPOINTS.start, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: sessionId }) });
+      if (!scope.isCurrent()) return null;
+      const data = await resumed.json().catch(() => ({}));
+      if (resumed.status === 202 || (resumed.status === 503 && data.retryable)) continue;
+      if (!resumed.ok || data.ok === false) throw new Error(data.reason || "SERVER_ERROR");
+      return data as Consultation;
+    }
     if (response.status === 429) throw new Error("RATE_LIMITED");
     if (response.status === 404 || response.status === 409) throw new Error("LLM_ERROR");
     if (!response.ok) throw new Error("SERVER_ERROR");
@@ -1572,6 +1581,28 @@ export default function AstrologyAiClient() {
   const lockRef = useRef(false);
   const idempotencyKeyRef = useRef(makeIdempotencyKey());
   const progressTimersRef = useRef<number[]>([]);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setResultUrl(""); setPhase("idle"); setError(""); setResumeEpoch(value => value + 1); });
+  useEffect(() => {
+    const sameOwner = captureOwner();
+    let alive = true;
+    const resume = async () => {
+      if (lockRef.current || document.visibilityState === "hidden") return;
+      try {
+        const response = await authFetch("/api/astrology-ai/pending");
+        const payload = await response.json();
+        if (!alive || !sameOwner() || !response.ok || !payload.sessionId || lockRef.current) return;
+        const url = resultPath(payload.sessionId);
+        setResultUrl(url);
+        openResultPage(url);
+      } catch { /* 다음 온라인·계정 복귀 때 서버 기록을 다시 확인한다. */ }
+    };
+    void resume();
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => { alive = false; window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeEpoch, captureOwner]);
   const captureLocaleScope = useLocaleRequestScope(() => {
     clearProgressTimers();
     if (phase === "reading") setPhase("idle");
@@ -1694,7 +1725,9 @@ export default function AstrologyAiClient() {
   /* payloadOverride 는 결제 후 재개 전용이다 — 리다이렉트로 돌아오면 form 이 초기값이라
      buildPayload() 가 빈 입력을 보낸다. 그때 결제 직전에 실어 보낸 입력을 그대로 쓴다. */
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, payloadOverride?: Record<string, unknown>) {
-    const scope = captureLocaleScope();
+    const localeScope = captureLocaleScope();
+    const sameOwner = captureOwner();
+    const scope = { ...localeScope, isCurrent: () => sameOwner() && localeScope.isCurrent() };
     try {
       setPhase("reading");
       // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.

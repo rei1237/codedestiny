@@ -1,10 +1,12 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
-import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
+import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, VedicAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -36,7 +38,7 @@ const ORDER_NAME = "베다점 전문가 상담";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const MIN_INITIAL_READING_CHARS = 15000;
-const MAX_INITIAL_READING_CHARS = 23000;
+const MAX_INITIAL_READING_CHARS = 25000;
 const MAX_ASSISTANT_TEXT_CHARS = 60000;
 // ── 첫 상담을 나눠 쓰는 단위 ────────────────────────────────────────────────
 //
@@ -50,9 +52,9 @@ const MAX_ASSISTANT_TEXT_CHARS = 60000;
 // 🔴 분량 판정(validateConsultationQuality)은 READING_SECTION_KEYS 4개의 body 만 센다.
 //    근거 흐름 그룹은 화면에는 나가지만 분량 합계에는 들어가지 않는다 — 그래서 요구 하한
 //    15,000자는 **읽기 섹션 4개만으로** 채워야 하고, 그룹 minChars 합도 그 기준으로 잡았다.
-const VEDIC_GROUP_MAX_OUTPUT_TOKENS = 11000;
-const VEDIC_READING_GROUP_MIN_CHARS = 3800;
-const VEDIC_READING_GROUP_MAX_CHARS = 5600;
+const VEDIC_GROUP_MAX_OUTPUT_TOKENS = 12500;
+const VEDIC_READING_GROUP_MIN_CHARS = 4400;
+const VEDIC_READING_GROUP_MAX_CHARS = 6000;
 const VEDIC_REASONING_GROUP_KEY = "reasoning_flows";
 // 상담문은 차트 요소별 나열이 아니라 삶의 주제 네 갈래로 쓴다.
 // 요소별 7섹션 시절에는 라그나·라시·그라하를 각각 설명하느라 "요소 설명서"가 됐고,
@@ -622,7 +624,19 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   await connectDb(env);
 
   // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
+  const revoked = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
+  const clauses = ids.flatMap(id => [{ requestId: id }, { idempotencyKey: id }, { merchantUid: id }, { impUid: id }, { paymentId: id }]);
+  const metadataIds = ids.flatMap(id => [{ "metadata.requestId": id }, { "metadata.idempotencyKey": id }, { "metadata.purchaseId": id }, { "metadata.orderId": id }, { sourceId: id }]);
+  const markers = ["refundedForServiceExecution", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: String(userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    Payment.findOne({ userId: userObjectId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    PointHistory.findOne({ userId: userObjectId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: userObjectId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return null;
   const user = await withMongoRetry(env, () => loadBillingUser(userObjectId));
+  if (clean(user?.role).toLowerCase() === "admin") return { accessType: "paid", source: "admin", prepaid: false };
   if (likelyAccessType === "pass") {
     const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
     if (featureAccess.allowed) {
@@ -1173,21 +1187,25 @@ function summaryCards(chart) {
 }
 
 function consultationPayload(doc) {
+  const chart = doc.llmMeta?.chartSnapshot || doc.vedicChart;
   return {
     id: doc.id,
     status: doc.status,
+    saved: doc.status === "completed",
+    idempotencyKey: doc.idempotencyKey,
+    completedGroups: Object.keys(doc.llmMeta?.groups || {}),
     // locale 필드가 없던 상담은 기존 한국어 결과로 취급한다. 재열람이 현재 UI 언어를 과거 본문에 덮지 않는다.
     locale: clean(doc.locale, 10) || "ko",
     birthInfo: doc.birthInfo,
     topic: doc.topic,
     userQuestion: doc.userQuestion || "",
-    vedicChart: doc.vedicChart,
+    vedicChart: chart,
     accessType: doc.accessType,
     paymentId: doc.paymentId || "",
     messages: doc.messages || [],
-    summaryCards: summaryCards(doc.vedicChart || {}),
+    summaryCards: summaryCards(chart || {}),
     // 차트는 예전부터 저장돼 있었으므로 이 변경 이전에 만들어진 상담도 근거 패널을 그대로 얻는다.
-    analysisBasis: doc.vedicChart ? buildVedicAnalysisBasis(doc.vedicChart) : null,
+    analysisBasis: chart ? buildVedicAnalysisBasis(chart) : null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -1283,12 +1301,6 @@ async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey,
     if (String(payload.userId) !== String(auth.userId) || payload.idempotencyKey !== idempotencyKey || payload.inputHash !== normalized.inputHash) {
       throw Object.assign(new Error("INVALID_ACCESS_TOKEN"), { status: 403 });
     }
-    return {
-      accessType: payload.accessType || "paid",
-      paymentId: payload.paymentId || "",
-      source: payload.admin ? "admin-token" : "access-token",
-      prepaid: false,
-    };
   }
   return resolveBillingEvidence({
     env,
@@ -1306,7 +1318,7 @@ async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey,
 async function generateVedicGroup(env, input, chart, group, context, repairLines = [], options = {}) {
   // 동기 생성이라 엣지가 100초에 요청을 끊는다. clamp 를 걸어야 라우트가 먼저 판정해
   // 짧아진 결과라도 degrade 경로로 전달하고, 생성 실패 기록·선차감 복원이 실행된다.
-  const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
+  const vedicTimeoutMs = clampSyncLlmTimeoutMs(Math.min(45000, Number(env?.VEDIC_AI_TIMEOUT_MS) || 45000), 45000);
   // CMS 오버라이드는 이 그룹의 계약 하한과 코드 기본값 사이에서만 움직인다(clampPromptModelConfig 주석).
   const modelConfig = await cmsPromptModelConfig(env, "vedic-ai", {
     minTokens: tokensRequiredForChars(group.minChars),
@@ -1321,11 +1333,12 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       temperature: repairLines.length
         ? Math.min(modelConfig.temperature ?? 0.72, 0.62)
         : (modelConfig.temperature ?? 0.72),
-      attempts: 2,
+      attempts: 1,
       baseTokens: groupBaseTokens,
       capTokens: Math.round(groupBaseTokens * 1.3),
       responseMimeType: "application/json",
       timeoutMs: vedicTimeoutMs,
+      fallbackToWorkersAI: false,
       // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.
       fallbackMinChars: Math.round(group.minChars * 0.4),
       // 캐시가 없으면 같은 입력의 재요청이 그룹 5개를 통째로 다시 생성한다. 인메모리 startLocks 는
@@ -1383,6 +1396,43 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
     requireStructured: true,
     chart,
   };
+
+  if (options.checkpoint) {
+    const rows = { ...(options.groups || {}) };
+    const attempts = { ...(options.attempts || {}) };
+    const bodies = text => Object.values(parseStructuredConsultationText(text)?.sections || {}).map(section => section?.body || "").join("\n\n");
+    const valid = (group, row) => {
+      const parsed = parseStructuredConsultationText(row?.text || "");
+      const keys = group.includeReasoning ? Object.keys(buildReasoningSectionSchema()) : group.sectionKeys;
+      const text = bodies(row?.text || "");
+      return parsed && Object.keys(parsed.sections || {}).every(key => keys.includes(key))
+        && keys.every(key => clean(parsed.sections?.[key]?.title) && countPaidReportBodyChars(parsed.sections?.[key]?.body) >= (group.includeReasoning ? 400 : group.minChars))
+        && countPaidReportBodyChars(text) >= group.minChars && countPaidReportBodyChars(text) <= group.maxChars
+        && !hasRepeatedReportPassage(text) && !validateChartConsistency(row.text, chart).length
+        && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue))
+        && (!group.includeScores || Object.keys(parsed.scores || {}).length > 0)
+        && group.sectionKeys.every(key => clean(parsed.sections[key].title).includes(REQUIRED_SECTION_LABELS[key]));
+    };
+    const pending = VEDIC_SECTION_GROUPS.filter(group => !valid(group, rows[group.key]));
+    if (pending.some(group => Number(attempts[group.key] || 0) >= 3)) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
+    const group = pending[0];
+    if (group) {
+      attempts[group.key] = Number(attempts[group.key] || 0) + 1;
+      await options.checkpoint({ groups: rows, attempts });
+      const row = await generateVedicGroup(env, input, chart, group, context, [], { ...options, skipCacheRead: attempts[group.key] > 1 });
+      const otherText = Object.entries(rows).filter(([key]) => key !== group.key).map(([, value]) => bodies(value.text)).join("\n\n");
+      if (valid(group, row) && !hasRepeatedReportPassage(`${otherText}\n\n${bodies(row.text)}`)) {
+        rows[group.key] = row;
+        await options.checkpoint({ groups: rows, attempts });
+      }
+    }
+    const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => rows[group.key]).filter(Boolean));
+    const complete = VEDIC_SECTION_GROUPS.every(group => valid(group, rows[group.key])) && countPaidReportBodyChars(bodies(content)) >= 20000;
+    const quality = validateConsultationQuality(content, qualityOptions);
+    if (complete && !quality.ok) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
+    const first = Object.values(rows)[0];
+    return { content, complete, meta: { provider: first?.provider || "", model: first?.model || "", quality, groups: rows, attempts } };
+  }
 
   // 웨이브 1 — 전 그룹 동시 생성. 벽시계는 그룹 시간의 합이 아니라 가장 느린 그룹 하나다.
   let rows = await Promise.all(VEDIC_SECTION_GROUPS.map((group) => generateVedicGroup(env, input, chart, group, context, [], options)));
@@ -1450,127 +1500,108 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
   return { content, meta: { provider, model, isMock: false, quality } };
 }
 
+async function saveVedicDelivery(filter, fields, resultId) {
+  try {
+    const saved = await VedicAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!saved?.id) throw resultStorageUnavailable(resultId);
+    const confirmed = await VedicAiConsultation.findOne({ id: resultId, userId: filter.userId }).lean();
+    if (!confirmed || Object.entries(fields).some(([key, value]) => JSON.stringify(confirmed[key]) !== JSON.stringify(value))) throw resultStorageUnavailable(resultId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(resultId); }
+}
+
 async function generateConsultation({ request, env, auth, body, normalized, idempotencyKey }) {
   const pricing = getPricing();
   const context = routeLogContext(request, body, normalized, idempotencyKey);
   await connectDb(env);
-  const existing = await withMongoRetry(env, () => VedicAiConsultation.findOne({
-    userId: String(auth.userId),
-    idempotencyKey,
-  }));
-  if (existing?.status === "completed" && existing.inputHash === normalized.inputHash) {
-    return json({ ok: true, consultation: consultationPayload(existing.toObject()) });
-  }
-  // 진행 중 생성에 대한 재-POST는 재생성하지 않고 202로 안내(폴링 대상).
-  // 신선도 창 = 차트 계산 + 초기 180s + 품질 재시도 180s + 마진.
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 420000) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "나크샤트라의 빛을 읽고 있습니다" }, { status: 202 });
-  }
-
+  const existing = await VedicAiConsultation.findOne({ userId: String(auth.userId), idempotencyKey }).lean();
+  if (existing && existing.inputHash !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.");
+  if (existing?.status === "completed") return json({ ok: true, consultation: consultationPayload(existing) });
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
   const access = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
   if (!access) return paymentVerifyFailed();
   logVedicAi("LLM Payment Guard Passed", { ...context, accessCheckResult: access.source || access.accessType });
-
-  // 직전 시도가 실패로 끝났으면 이번 생성만 캐시 조회를 건너뛴다(쓰기는 유지 — 성공한 재생성이
-  // 같은 키를 덮어써 스스로 낫는다). 아래에서 doc.generationError 를 지우므로 그 전에 판정한다.
-  const skipCacheRead = Boolean(existing && (existing.generationError || existing.status === "failed"));
-
-  const sessionId = existing?.id || `vedic-ai-${Date.now()}-${randomSuffix()}`;
-  const doc = existing || new VedicAiConsultation({
-    id: sessionId,
-    userId: String(auth.userId),
-    idempotencyKey,
-    inputHash: normalized.inputHash,
-  });
-  // idempotencyKey는 결제/재열람 경계다. locale은 결과 메타데이터일 뿐 키에 넣지 않는다.
-  doc.locale = existing?.locale || normalized.locale;
-  doc.birthInfo = normalized.input.birthInfo;
-  doc.topic = normalized.input.topic;
-  doc.userQuestion = normalized.input.userQuestion;
-  doc.accessType = ["pass", "subscription"].includes(access.accessType) ? access.accessType : "paid";
-  doc.paymentId = access.paymentId || "";
-  doc.status = "generating";
-  doc.generationError = null;
-  doc.messages = [];
-  await doc.save();
-
-  let chart;
+  const sessionId = existing?.id || `vedic-ai-${randomUUID()}`;
+  const owner = { id: sessionId, userId: String(auth.userId) };
+  const lease = randomUUID();
+  const now = new Date();
+  const pendingResponse = doc => json({ ok: true, sessionId, status: doc.status, retryable: true, consultation: consultationPayload(doc) }, { status: 202 });
+  if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return pendingResponse(existing);
+  let doc;
   try {
-    logVedicAi("Chart Data Start", context);
-    chart = await calculateVedicAiChart(env, normalized.input, { requestUrl: request.url });
-    logVedicAi("Chart Data Success", {
-      ...context,
-      hasLagna: Boolean(chart?.lagna),
-      hasNakshatra: Boolean(chart?.moon?.nakshatra),
-      interpretationMode: clean(chart?.calculationMeta?.interpretationMode, 80),
-    });
-  } catch (error) {
-    doc.status = "generation_failed";
-    doc.generationError = { code: error?.code || "CHART_CALCULATION_FAILED", message: clean(error?.message || error, 500), at: new Date() };
-    await doc.save();
-    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
-    logVedicAi("Refund Or Restore", { ...context, restored, reason: "chart_failed" }, restored ? "log" : "warn");
-    logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
-    if (error?.code === "BIRTH_PLACE_INVALID") return serverError(MESSAGES.placeInvalid, 422, "BIRTH_PLACE_INVALID");
-    return serverError(MESSAGES.calculationFailed, 422, "CHART_CALCULATION_FAILED");
-  }
-
-  try {
-    logVedicAi("LLM Generate Start", context);
-    const { content, meta } = await generateInitialReading(env, normalized.input, chart, context, { skipCacheRead, locale: doc.locale });
-    doc.vedicChart = chart;
-    doc.messages = [
-      ...(normalized.input.userQuestion ? [{ role: "user", content: normalized.input.userQuestion, createdAt: new Date() }] : []),
-      { role: "assistant", content, createdAt: new Date() },
-    ];
-    doc.status = "completed";
-    doc.usageAppliedAt = doc.usageAppliedAt || new Date();
-    doc.llmMeta = meta;
-    await doc.save();
-    if (access.source === "direct-payment" && access.paymentDocId) {
-      await Payment.updateOne(
-        { _id: new mongoose.Types.ObjectId(access.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY },
-        { $set: { status: "fulfilled", sessionId: doc.id, orderState: "UNLOCKED" } },
-      ).catch(() => {});
+    if (existing) {
+      doc = await VedicAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease } }, { new: true }).lean();
+      if (!doc) return pendingResponse(existing);
+    } else {
+      const resumeBody = { ...body, idempotencyKey, locale: normalized.locale };
+      delete resumeBody.accessToken;
+      doc = await VedicAiConsultation.create({ ...owner, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, locale: normalized.locale, accessType: ["pass", "subscription"].includes(access.accessType) ? access.accessType : "paid", paymentId: access.paymentId || "", messages: [], status: "generating", generationLease: lease, llmMeta: { resumeBody, groups: {}, attempts: {} } });
+      doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
-    logVedicAi("LLM Generate Success", { ...context, provider: meta.provider, model: meta.model });
-    return json({ ok: true, consultation: consultationPayload(doc.toObject()) });
   } catch (error) {
-    doc.vedicChart = chart;
-    doc.status = "generation_failed";
-    doc.generationError = { code: "LLM_FAILED", message: clean(error?.message || error, 500), at: new Date() };
-    await doc.save();
-    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
-    logVedicAi("Refund Or Restore", { ...context, restored, reason: "llm_failed" }, restored ? "log" : "warn");
-    logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
+    if (error?.code === 11000) {
+      const duplicate = await VedicAiConsultation.findOne({ userId: String(auth.userId), idempotencyKey }).lean();
+      if (duplicate) return json({ ok: true, sessionId: duplicate.id, status: duplicate.status, consultation: consultationPayload(duplicate) }, { status: duplicate.status === "completed" ? 200 : 202 });
+    }
+    return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
+  }
+  const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
+  try {
+    if (doc.status !== "delivery_pending") {
+      const chart = doc.llmMeta?.chartSnapshot || await calculateVedicAiChart(env, normalized.input, { requestUrl: request.url });
+      const resumeBody = { ...body, idempotencyKey, locale: doc.locale };
+      delete resumeBody.accessToken;
+      doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody: doc.llmMeta?.resumeBody || resumeBody, chartSnapshot: chart } }, sessionId);
+      const generated = await generateInitialReading(env, normalized.input, chart, context, {
+        locale: doc.locale, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts,
+        checkpoint: async ({ groups, attempts }) => {
+          const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => groups[group.key]).filter(Boolean));
+          doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
+        },
+      });
+      doc = await saveVedicDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta } }, sessionId);
+      if (!generated.complete) return pendingResponse(doc);
+    }
+    const fresh = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
+    if (!fresh) return paymentVerifyFailed();
+    doc = await saveVedicDelivery(locked, { status: "completed", generationLease: "", usageAppliedAt: doc.usageAppliedAt || now }, sessionId);
+    if (fresh.source === "direct-payment" && fresh.paymentDocId) {
+      await Payment.updateOne({ _id: new mongoose.Types.ObjectId(fresh.paymentDocId), userId: objectId(auth.userId), featureKey: FEATURE_KEY, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, orderState: "UNLOCKED" } }).catch(error => logVedicAi("Usage bookkeeping failed", { code: error?.code }, "warn"));
+    }
+    return json({ ok: true, consultation: consultationPayload(doc) });
+  } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
+    await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
     return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");
+  } finally {
+    await VedicAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});
   }
 }
 
 async function handleStart(request, env) {
   if (request.method !== "POST") return methodNotAllowed();
-  const body = await readJson(request);
-  const normalized = normalizeConsultationInput(body);
-  normalized.locale = resolveAiLocaleFromRequest(request, body);
-  const idempotencyKey = readIdempotencyKey(request, body);
-  const context = routeLogContext(request, body, normalized, idempotencyKey);
-  logVedicAi("Submit Start", context);
-
-  if (!normalized.ok) {
-    logVedicAi("LLM Payload Validated", { ...context, validationResult: "failed", errors: normalized.errors }, "warn");
-    return invalidInput(normalized.message, normalized.errors);
-  }
-  logVedicAi("LLM Payload Validated", { ...context, validationResult: "success" });
-
+  let body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth?.userId) return loginRequired();
+  let resumeKey = "";
+  if (body.resumeSessionId) {
+    await connectDb(env);
+    const saved = await VedicAiConsultation.findOne({ id: clean(body.resumeSessionId, 120), userId: String(auth.userId) }).lean();
+    if (!saved) return notFound();
+    if (saved.status === "completed") return json({ ok: true, consultation: consultationPayload(saved) });
+    if (!saved.llmMeta?.resumeBody) return invalidInput(MESSAGES.invalidInput);
+    body = { ...saved.llmMeta.resumeBody };
+    resumeKey = saved.idempotencyKey;
+  }
+  const normalized = normalizeConsultationInput(body);
+  normalized.locale = resolveAiLocaleFromRequest(request, body);
+  const idempotencyKey = resumeKey || readIdempotencyKey(request, body);
+  if (!normalized.ok) return invalidInput(normalized.message, normalized.errors);
   if (!idempotencyKey) return invalidInput(MESSAGES.invalidInput);
-  getPricing();
-
   const lockKey = `${auth.userId}:${idempotencyKey}`;
-  if (startLocks.has(lockKey)) return startLocks.get(lockKey);
-  const promise = generateConsultation({ request, env, auth, body, normalized, idempotencyKey })
-    .finally(() => startLocks.delete(lockKey));
+  if (startLocks.has(lockKey)) return (await startLocks.get(lockKey)).clone();
+  const promise = generateConsultation({ request, env, auth, body, normalized, idempotencyKey }).finally(() => startLocks.delete(lockKey));
   startLocks.set(lockKey, promise);
   return promise;
 }
@@ -1596,6 +1627,7 @@ async function handleResult(request, env) {
       .lean();
     return json({
       ok: true,
+      pendingSessionId: (await VedicAiConsultation.findOne({ userId: String(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean())?.id || "",
       consultations: rows.map((row) => ({
         id: row.id,
         topic: row.topic || "",
@@ -1614,9 +1646,14 @@ async function handleResult(request, env) {
   }).lean();
   if (!consultation) return notFound();
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
-  if (consultation.status === "generating") {
+  if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
+    if (consultation.llmMeta?.resumeBody) {
+      const body = consultation.llmMeta.resumeBody;
+      const access = await resolveStartAccess({ env, auth, body, normalized: normalizeConsultationInput(body), idempotencyKey: consultation.idempotencyKey, pricing: getPricing() });
+      if (!access) return paymentVerifyFailed();
+    }
     return json(
-      { ok: true, sessionId: consultation.id, status: "generating", message: "나크샤트라의 빛을 읽고 있습니다" },
+      { ok: true, sessionId: consultation.id, status: consultation.status, retryable: true, consultation: consultationPayload(consultation), message: "저장된 분석부터 이어서 생성합니다." },
       { status: 202, headers: { "Retry-After": "3" } },
     );
   }
@@ -1655,6 +1692,7 @@ export async function handleVedicAiRoutes(request, env) {
     return notFound();
   } catch (error) {
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,

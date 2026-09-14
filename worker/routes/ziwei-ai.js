@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
@@ -7,7 +7,7 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
-import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
+import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, ZiweiAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -32,6 +32,9 @@ import {
 import { applyZiweiHanjaToStructuredText, stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { buildZiweiDomainBriefLines, getZiweiPromptTemplate, resolveZiweiDomainFromFocus } from "../lib/ziwei-ai-prompt-templates.mjs";
 import { buildZiweiPersonalityContextLines } from "../lib/ziwei-personality-context.js";
+
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -699,7 +702,7 @@ async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempo
     if (featureAccess.allowed) {
       return {
         ok: true,
-        accessType: featureAccess.accessType || "pass",
+        accessType: normalizeConsultAccessType(featureAccess.accessType) || "pass",
         paymentId: tokens[0] || "",
         prepaid: true,
         evidenceType: "pass",
@@ -791,7 +794,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
 
   const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
   if (featureAccess.allowed) {
-    return { ok: true, accessType: featureAccess.accessType || "pass", paymentId: "" };
+    return { ok: true, accessType: normalizeConsultAccessType(featureAccess.accessType) || "pass", paymentId: "" };
   }
 
   if (hasMonthlyCredit(user, pricing.membershipCreditCost)) {
@@ -1774,7 +1777,79 @@ function buildZiweiDuplicateInstruction(duplicates, group) {
  * ₩30,000 정상 결제로 배달했다. 그룹당 3,600~4,600자면 40초 안에 완주하므로 폴백을 타지 않는다.
  * 전체 벽시계는 가장 느린 그룹 기준이라 예산 안에 들어온다.
  */
-async function generateInitialConsultation(env, { input, chart, logContext = {} }) {
+const ZIWEI_GROUP_MAX_ATTEMPTS = 3;
+const ziweiSectionBody = sections => Object.values(sections).map(row => String(row?.body || "")).join("\n");
+async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {} }) {
+  groups = { ...groups }; attempts = { ...attempts };
+  const merge = () => Object.assign({}, ...Object.values(groups));
+  let sections = merge();
+  const grounding = enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections }), chart);
+  const repairIds = Object.keys(groups).length === SECTION_GROUP_SPECS.length ? resolveGroundingRetryGroupIds(grounding.issues) : [];
+  const group = SECTION_GROUP_SPECS.find(row => !groups[row.id] || repairIds.includes(row.id));
+  if (group) {
+    if (Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS) {
+      const error = new Error("필수 분량과 계산 근거를 갖춘 결과를 완성하지 못했습니다.");
+      error.code = "REPORT_QUALITY_FAILED"; throw error;
+    }
+    attempts[group.id] = Number(attempts[group.id] || 0) + 1;
+    await checkpoint({ groups, attempts, meta }); // Reserve before the provider; a lost response consumes this attempt.
+    const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
+    let generated;
+    try {
+      const calls = await Promise.allSettled([callGeminiJsonWithRetry(env, [
+        buildSectionGroupPrompt(input, chart, group),
+        `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${Math.ceil(group.targetChars * 0.9)}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
+        ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
+      ].join("\n"), {
+        systemPrompt: await resolveSystemPrompt(env), taskType: "fortune", responseMimeType: "application/json",
+        temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
+        baseTokens: Math.max(SECTION_GROUP_TARGET_TOKENS, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
+        capTokens: 11000, fallbackToWorkersAI: false,
+        cache: { store: createLlmCacheStore(env), deterministic: true, keyExtra: `ziwei-delivery-v1-${group.id}`, skipRead: attempts[group.id] > 1 },
+        logContext: { ...logContext, sectionGroup: group.id },
+      }), ...(group.id === "foundation" && attempts[group.id] === 1 ? [callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), { systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000, baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false, responseMimeType: "application/json", logContext: { ...logContext, sectionGroup: "meta" } })] : [])]);
+      generated = calls[0].status === "fulfilled" ? calls[0].value : null;
+      if (calls[1]?.status === "fulfilled" && calls[1].value?.ok) meta = parseMetaFromText(calls[1].value.text) || meta;
+    } catch (error) {
+      logZiweiAi("Group interrupted", { sectionGroup: group.id, code: error?.code }, "warn");
+    }
+    const mockBlocked = (generated?.isMock === true || /mock/i.test(generated?.provider || "")) && !isStagingLlmMockEnabled(env);
+    const parsed = generated?.ok && !mockBlocked ? parseSectionsFromGroupText(generated.text) : {};
+    const next = Object.fromEntries(group.sections.filter(key => parsed[key]).map(key => [key, parsed[key]]));
+    const body = ziweiSectionBody(next);
+    const candidate = { ...sections, ...next };
+    const valid = group.sections.every(key => clean(next[key]?.title) && countPaidReportBodyChars(next[key]?.body) >= 120)
+      && countPaidReportBodyChars(body) >= Math.ceil(group.targetChars * 0.9)
+      && countPaidReportBodyChars(body) <= Math.ceil(group.targetChars * 1.18)
+      && !hasRepeatedReportPassage(ziweiSectionBody(candidate))
+      && !collectZiweiCrossSectionDuplicates(candidate).length;
+    if (valid) {
+      groups[group.id] = next;
+      await checkpoint({ groups, attempts, meta });
+      sections = merge();
+    }
+    if (!valid && attempts[group.id] >= ZIWEI_GROUP_MAX_ATTEMPTS) {
+      const error = new Error("해당 챕터의 품질 검사를 통과하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error;
+    }
+  }
+  const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart);
+  const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
+  const chars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
+  return { text, complete: SECTION_GROUP_SPECS.every(row => groups[row.id]) && !checked.issues.length && chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
+}
+
+async function saveZiweiDelivery(filter, fields, resultId) {
+  try {
+    const written = await ZiweiAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!written) throw resultStorageUnavailable(resultId);
+    const confirmed = await ZiweiAiConsultation.findOne({ id: resultId, userId: filter.userId }).lean();
+    if (!confirmed || Object.entries(fields).some(([key, value]) => JSON.stringify(confirmed[key]) !== JSON.stringify(value))) throw resultStorageUnavailable(resultId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(resultId); }
+}
+
+async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta }) {
+  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta });
   const startedAt = Date.now();
   const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
   const retryTimeoutMs = () => Math.max(18000, Math.min(SECTION_GROUP_TIMEOUT_MS, remainingMs() - 6000));
@@ -2131,12 +2206,12 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   return false;
 }
 
-async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricing, prepaid = false, requestId = "" }) {
-  const existing = await ZiweiAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+async function applyUsageOnce({ userId, sessionId, accessType, pricing, prepaid = false, requestId = "" }) {
+  const existing = await ZiweiAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
   if (prepaid && normalizeConsultAccessType(accessType) !== "pass") {
     await ZiweiAiConsultation.updateOne(
-      { id: sessionId, usageAppliedAt: null },
+      { id: sessionId, userId: clean(userId), usageAppliedAt: null },
       { $set: { usageAppliedAt: new Date() } },
     );
     return true;
@@ -2167,24 +2242,9 @@ async function applyUsageOnce({ userId, sessionId, accessType, paymentId, pricin
     }
   }
 
-  if (tokenAccessType === "paid" && paymentId) {
-    await Payment.updateOne(
-      { userId, featureKey: FEATURE_KEY, merchantUid: paymentId },
-      {
-        $set: {
-          status: "fulfilled",
-          orderState: "UNLOCKED",
-          reportId: sessionId,
-          sessionId,
-          "pricingSnapshot.sessionId": sessionId,
-          "pricingSnapshot.usageAppliedAt": new Date().toISOString(),
-        },
-      },
-    ).catch(() => {});
-  }
 
   await ZiweiAiConsultation.updateOne(
-    { id: sessionId, usageAppliedAt: null },
+    { id: sessionId, userId: clean(userId), usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
   );
   return true;
@@ -2211,12 +2271,14 @@ function buildSummaryCards(chart = {}, topic = "") {
 }
 
 function publicConsultation(doc) {
-  const chart = doc.ziweiChart || {};
+  const chart = doc.llmMeta?.chartSnapshot || doc.ziweiChart || {};
   return {
     ok: true,
     sessionId: clean(doc.id),
     consultation: {
       id: clean(doc.id),
+      saved: doc.status === "completed",
+      completedGroups: Object.keys(doc.llmMeta?.groups || {}),
       accessType: clean(doc.accessType),
       status: clean(doc.status),
       birthInfo: doc.birthInfo || {},
@@ -2340,9 +2402,22 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     // prepare에서 발급한 이용권/월정석/결제/관리자 토큰을 모두 신뢰한다(네오와 동일).
     // 월정석(subscription)은 아래 handleStart의 applyUsageOnce에서 실제 차감된다.
     if (!isAllowedConsultTokenAccessType(payload.accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
-    return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
+    body = { ...body, accessType, paymentId: clean(payload.paymentId, 160) || body.paymentId };
   }
 
+  const tokens = collectBillingTokens(body, idempotencyKey);
+  const revoked = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
+  const clauses = billingTokenClauses(tokens);
+  const metadataIds = [...pointHistoryTokenClauses(tokens), ...tokens.map(sourceId => ({ sourceId }))];
+  const markers = ["refundedForServiceExecution", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
+  if (isAdmin(auth)) return { ok: true, accessType: "admin" };
   const paymentId = clean(body?.paymentId || body?.merchantUid || body?.merchant_uid, 160);
   if (paymentId) {
     const directVerify = await verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inputHash: normalized.inputHash, pricing });
@@ -2356,156 +2431,86 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
-async function handleStart(request, env, route = "/api/ziwei-ai/generate", ctx = null) {
-  logZiweiAi("Generate Start", safeLogPayload({ route, env }));
-  const body = await readJson(request);
-  const idempotencyKey = readIdempotencyKey(request, body);
-  logZiweiAi("Payload Received", safeLogPayload({ route, requestId: idempotencyKey, body, env }));
-  const normalized = normalizeConsultationInput(body);
-  if (!normalized.ok) {
-    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, validation: "failed", env, error: new Error(normalized.message) }), "warn");
-    return invalidInput(normalized.message);
-  }
-  logZiweiAi("Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
-  if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
-
+async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
+  let body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
-
   await connectDb(env);
+  let idempotencyKey = readIdempotencyKey(request, body);
+  if (body.resumeSessionId) {
+    const saved = await ZiweiAiConsultation.findOne({ id: clean(body.resumeSessionId, 120), userId: clean(auth.userId) }).lean();
+    if (!saved || (saved.serviceType && saved.serviceType !== SERVICE_KEY)) return notFound();
+    if (saved.status === "completed") return json(publicConsultation(saved));
+    if (!saved.llmMeta?.resumeBody) return invalidInput("원래 상담 요청으로 다시 시도해 주세요.", 409);
+    body = { ...saved.llmMeta.resumeBody }; idempotencyKey = saved.idempotencyKey;
+  }
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) return invalidInput(normalized.message);
+  if (idempotencyKey.length < 12) return invalidInput();
   const pricing = getPricing();
-  logZiweiAi("Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-  if (!access.ok) {
-    if (access.reason === "LOGIN_REQUIRED") return loginRequired();
-    if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
-    return paymentVerifyFailed();
-  }
-  logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-  logZiweiAi("Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-
-  const existing = await withMongoRetry(env, () => ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
-  if (existing && clean(existing.inputHash) !== normalized.inputHash) {
-    return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
-  }
+  const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicConsultation(existing));
-  // 창이 짧으면 재-POST가 중복 생성을 기동하고, 길면 잘린 세션이 좀비로 남는다(GENERATING_FRESHNESS_MS 주석 참고).
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATING_FRESHNESS_MS) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "별궁의 흐름을 읽고 있습니다" }, { status: 202 });
-  }
-
-  let chart;
-  try {
-    logZiweiAi("Chart Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
-    logZiweiAi("Chart Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-  } catch (error) {
-    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "chart_data_failed", access: access.accessType, env, error }), "error");
-    await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
-    return calculationFailed();
-  }
-
-  const sessionId = existing?.id || `zwai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  if (!access.ok) return paymentVerifyFailed();
+  logZiweiAi("Payment Guard Passed", { route, requestId: idempotencyKey, access: access.accessType });
+  const sessionId = existing?.id || `zwai_${randomUUID()}`;
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const lease = randomUUID();
   const now = new Date();
-  const seed = {
-    id: sessionId,
-    userId: clean(auth.userId),
-    birthInfo: normalized.input.birthInfo,
-    topic: normalized.input.topic,
-    userQuestion: normalized.input.userQuestion,
-    ziweiChart: chart,
-    accessType: access.accessType,
-    paymentId: clean(access.paymentId, 160),
-    messages: [],
-    idempotencyKey,
-    inputHash: normalized.inputHash,
-    status: "generating",
-    generationError: null,
-  };
-
-  if (existing) {
-    await ZiweiAiConsultation.updateOne(
-      { id: existing.id },
-      { $set: { ...seed, updatedAt: now } },
-    );
-  } else {
-    try {
-      await ZiweiAiConsultation.create(seed);
-    } catch (error) {
-      if (error?.code === 11000) {
-        const duplicate = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
-        if (duplicate?.status === "completed") return json(publicConsultation(duplicate));
-        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "별궁의 흐름을 읽고 있습니다" }, { status: 202 });
-      }
-      throw error;
+  const pending = doc => json({ ...publicConsultation(doc), status: doc.status, retryable: true }, { status: 202 });
+  if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATING_FRESHNESS_MS) return pending(existing);
+  let doc;
+  try {
+    if (existing) {
+      doc = await ZiweiAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease } }, { new: true }).lean();
+      if (!doc) return pending(existing);
+    } else {
+      const resumeBody = { ...body, idempotencyKey, accessType: access.accessType };
+      delete resumeBody.accessToken;
+      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {} } });
+      doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
-  }
-
-  // 결제/이용권 확인이 끝난 이 시점에 즉시 202를 돌려주고, LLM 생성은 백그라운드(waitUntil)에서 완주한다.
-  // 클라이언트(패널·페이지)는 /result 폴링으로 수렴하므로 연결이 끊겨도 유료 결과가 유실되지 않는다(neo와 동일 패턴).
-  // 실패 시 환불(restorePrepaidAccessOnFailure)·generation_failed 기록은 아래 catch가 백그라운드에서도 그대로 수행한다.
-  const runGeneration = async () => {
-  try {
-    const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
-    // 섹션 그룹 병렬 생성 — 근거 재시도(grounding)와 한자 병기, 최종 분량 판정까지 이 안에서 끝난다.
-    // 예전의 단일 호출 옵션(minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
-    // maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS)은 병합 결과를 판정하는 기준으로 그대로 살아 있다.
-    const generated = await generateInitialConsultation(env, { input: normalized.input, chart, logContext });
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
-    const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
-    const completed = await ZiweiAiConsultation.findOneAndUpdate(
-      { id: sessionId },
-      {
-        $set: {
-          status: "completed",
-          messages: [
-            { role: "user", content: firstUserMessage, createdAt: now },
-            { role: "assistant", content: generated.text, createdAt: new Date() },
-          ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean();
-    logZiweiAi("Generate Success", {
-      ...logContext,
-      providerReason: generated.provider || generated.model || "real_llm_success",
-      provider: generated.provider,
-      model: generated.model,
-    });
-    return completed;
   } catch (error) {
-    logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
-    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
-    logZiweiAi("Refund Or Restore", {
-      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
-      restored,
-      accessPrepaid: access.prepaid === true,
-    }, restored ? "info" : "warn");
-    await ZiweiAiConsultation.updateOne(
-      { id: sessionId },
-      {
-        $set: {
-          status: "generation_failed",
-          generationError: {
-            code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
-          },
-        },
-      },
-    ).catch(() => {});
-    throw error;
+    if (error?.code === 11000) {
+      const duplicate = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+      if (duplicate) return duplicate.status === "completed" ? json(publicConsultation(duplicate)) : pending(duplicate);
+    }
+    return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
-  };
-
-  // 동기 생성: 요청 안에서 완결해 완료 결과를 바로 반환한다. waitUntil 백그라운드+/result 폴링은 공유 DB 연결을
-  // 여러 요청이 재사용하게 만들어 Cloudflare Workers 요청 간 I/O 격리로 결과가 고착되던 문제가 있어 쓰지 않는다(네오와 동일).
+  const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
   try {
-    return json(publicConsultation(await runGeneration()));
-  } catch {
+    if (doc.status !== "delivery_pending") {
+      const chart = doc.llmMeta?.chartSnapshot || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+      const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
+      doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
+      const generated = await generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta,
+        checkpoint: async ({ groups, attempts, meta }) => {
+          const sections = Object.assign({}, ...Object.values(groups));
+          const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
+          doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, reportMeta: meta }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
+        },
+      });
+      doc = await saveZiweiDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta }, messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content: generated.text, createdAt: now }] }, sessionId);
+      if (!generated.complete) return pending(doc);
+    }
+    const fresh = await resolveStartAccess({ request, env, auth, body: doc.llmMeta.resumeBody, normalized, pricing, idempotencyKey });
+    if (!fresh.ok) return paymentVerifyFailed();
+    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true, requestId: idempotencyKey });
+    doc = await saveZiweiDelivery(locked, { status: "completed", generationLease: "", generationError: null }, sessionId);
+    if (access.accessType === "paid" && access.paymentId) await Payment.updateOne({ userId: auth.userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId, status: { $in: ["paid", "success", "fulfilled"] } }, { $set: { status: "fulfilled", sessionId, reportId: sessionId, orderState: "UNLOCKED" } }).catch(() => {});
+    return json(publicConsultation(doc));
+  } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    // Once a complete body exists, payment/apply uncertainty must retry that same delivery, never refund or regenerate.
+    if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
+    await saveZiweiDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
+    const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
+    logZiweiAi("Refund Or Restore", { route, requestId: idempotencyKey, restored });
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
+  } finally {
+    await ZiweiAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});
   }
 }
 
@@ -2538,6 +2543,7 @@ async function handleResult(request, env) {
       .lean();
     return json({
       ok: true,
+      pendingSessionId: (await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), serviceType: SERVICE_KEY, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean())?.id || "",
       consultations: rows.map((row) => ({
         id: clean(row.id),
         topic: clean(row.topic),
@@ -2555,19 +2561,14 @@ async function handleResult(request, env) {
     userId: clean(auth.userId),
   }).lean();
   if (!consultation) return notFound();
-  // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
-  if (consultation.status === "generating") {
-    // 단, 신선도 창을 넘긴 `generating`은 생성 주체가 이미 사라진 좀비다(엣지 컷·워커 크래시).
-    // 계속 202를 돌려주면 클라이언트가 최대 65회를 헛돌다 타임아웃 문구로 끝난다 — 그 자리에서 종단시킨다.
-    const generatingAgeMs = Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime();
-    if (generatingAgeMs >= GENERATING_FRESHNESS_MS) {
-      logZiweiAi("Stale Generating Terminated", { route: "/api/ziwei-ai/result", sessionId: consultation.id, generatingAgeMs }, "warn");
-      return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  if (consultation.serviceType && consultation.serviceType !== SERVICE_KEY) return notFound();
+  if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
+    if (consultation.llmMeta?.resumeBody) {
+      const body = consultation.llmMeta.resumeBody;
+      const access = await resolveStartAccess({ request, env, auth, body, normalized: normalizeConsultationInput(body), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+      if (!access.ok) return paymentVerifyFailed();
     }
-    return json(
-      { ok: true, sessionId: consultation.id, status: "generating", message: "별궁의 흐름을 읽고 있습니다" },
-      { status: 202, headers: { "Retry-After": "3" } },
-    );
+    return json({ ...publicConsultation(consultation), status: consultation.status, retryable: true }, { status: 202, headers: { "Retry-After": "3" } });
   }
   if (consultation.status !== "completed") {
     return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
@@ -2610,6 +2611,7 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     console.error("[ziwei-ai]", clean(error?.code || error?.message || error, 500));
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {

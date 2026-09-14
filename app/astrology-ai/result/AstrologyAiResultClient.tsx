@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -470,6 +471,14 @@ export default function AstrologyAiResultClient() {
   const [pdfError, setPdfError] = useState("");
   const [viewAll, setViewAll] = usePagedViewerMode("astrologyAiViewerModeV1");
   const [exportExpand, setExportExpand] = useState(false);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => { setConsultation(null); setResumeEpoch(value => value + 1); });
+  useEffect(() => {
+    const resume = () => { if (document.visibilityState !== "hidden") setResumeEpoch(value => value + 1); };
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
 
   useEffect(() => {
     setResultId(toText(new URLSearchParams(window.location.search).get("id")));
@@ -478,6 +487,7 @@ export default function AstrologyAiResultClient() {
 
   useEffect(() => {
     let alive = true;
+    const sameOwner = captureOwner();
     async function loadResult() {
       if (!queryReady) return;
       if (!resultId) {
@@ -497,8 +507,18 @@ export default function AstrologyAiResultClient() {
         }
         // 생성 중(202)이면 완료까지 몇 차례 재확인한다(서버 생성 최악 ~8분, 여기선 40회 ≈ 5분).
         for (let attempt = 0; attempt < 40; attempt += 1) {
-          const response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
-          const payload = await response.json().catch(() => ({}));
+          let response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
+          let payload = await response.json().catch(() => ({}));
+          if (!alive || !sameOwner()) return;
+          if (response.status === 202) {
+            setConsultation(payload as Consultation);
+            setLoading(false);
+            if (document.visibilityState === "hidden") return;
+            response = await authFetch("/api/astrology-ai/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: resultId }) });
+            payload = await response.json().catch(() => ({}));
+            if (!alive || !sameOwner()) return;
+            if (Array.isArray(payload.messages)) setConsultation(payload as Consultation);
+          }
           // 일시적 DB/인증 장애(503·retryable)는 202와 동일하게 재폴링해 자가 복구한다(하드 종료 금지).
           if (response.status === 202 || isRetriableResultPollFailure(response.status, payload)) {
             if (!alive) return;
@@ -513,16 +533,16 @@ export default function AstrologyAiResultClient() {
         }
         throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 잠시 후 새로고침해 주세요.");
       } catch (caught) {
-        if (alive) setError(friendlyErrorMessage(caught, "저장된 상담 결과를 불러오지 못했습니다."));
+        if (alive && sameOwner()) setError(friendlyErrorMessage(caught, "저장된 상담 결과를 불러오지 못했습니다."));
       } finally {
-        if (alive) setLoading(false);
+        if (alive && sameOwner()) setLoading(false);
       }
     }
     void loadResult();
     return () => {
       alive = false;
     };
-  }, [queryReady, resultId]);
+  }, [queryReady, resultId, resumeEpoch, captureOwner]);
 
   const birth = consultation?.birthInfo || {};
   const place = birth.birthPlace || {};
@@ -602,13 +622,13 @@ export default function AstrologyAiResultClient() {
       <div className="pointer-events-none fixed inset-0 opacity-40 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#c4b5fd_1px,transparent_1px)] [background-position:0_0,34px_42px] [background-size:88px_88px,128px_128px]" aria-hidden="true" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f5d487]/60 to-transparent" aria-hidden="true" />
 
-      <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <section className="relative mx-auto w-full max-w-7xl px-4 pb-6 pt-20 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <Link href="/astrology-ai" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/15 bg-white/[0.035] px-4 text-sm font-bold text-slate-100 transition hover:border-[#f5d487]/40 hover:bg-white/[0.065]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             상담 입력으로 돌아가기
           </Link>
-          {consultation && (
+          {consultation?.status === "completed" && (
             <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-[#f5d487] px-4 text-sm font-black text-[#161019] shadow-lg shadow-[#f5d487]/15 transition hover:bg-[#ffe6a8] disabled:cursor-not-allowed disabled:opacity-60">
               {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
               {pdfLoading ? "별자리 리포트를 정리하는 중입니다" : "PDF 다운로드"}
@@ -625,12 +645,13 @@ export default function AstrologyAiResultClient() {
           </div>
         )}
 
-        {!loading && error && (
-          <div className="grid min-h-[60vh] place-items-center rounded-lg border border-rose-300/25 bg-rose-400/10 p-8 text-center shadow-2xl shadow-black/25">
+        {!loading && (error || (consultation && consultation.status !== "completed")) && (
+          <div className="mb-5 grid place-items-center rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 p-6 text-center shadow-2xl shadow-black/25" role="status">
             <div className="max-w-md">
-              <AlertCircle className="mx-auto h-9 w-9 text-rose-200" aria-hidden="true" />
-              <h1 className="mt-4 text-2xl font-black text-white">결과를 열 수 없습니다</h1>
-              <p className="mt-3 text-sm leading-7 text-rose-50">{error}</p>
+              {error ? <AlertCircle className="mx-auto h-7 w-7 text-rose-200" aria-hidden="true" /> : <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#f5d487] motion-reduce:animate-none" aria-hidden="true" />}
+              <h2 className="mt-4 break-keep text-xl font-black text-white">{error ? "상담을 이어서 확인해 주세요" : "저장된 분석부터 읽어 보세요"}</h2>
+              <p className="mt-3 text-sm leading-7 text-rose-50">{error || "남은 분석을 같은 요청으로 이어서 생성하고 있습니다."}</p>
+              <button type="button" className="mt-4 min-h-11 rounded-lg border border-white/30 px-4" onClick={() => setResumeEpoch(value => value + 1)}>이어서 생성하기</button>
             </div>
           </div>
         )}
@@ -640,7 +661,7 @@ export default function AstrologyAiResultClient() {
             <article className="space-y-6">
               <header className={`${RESULT_PANEL_CLASS} overflow-hidden p-6 sm:p-8`}>
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">Code Destiny Astrology</p>
-                <h1 className="mt-3 text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
+                <h1 className="mt-3 break-keep text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
                   {userName}님의 별자리 상담
                 </h1>
                 <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">

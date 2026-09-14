@@ -222,13 +222,13 @@ function assertNeverThrows(feature, label, run) {
   // 점성술은 첫 상담을 섹션으로 나눠 쓴다 — 예산 단위가 "상담 전체"가 아니라 "섹션 하나"다.
   // 그래서 전체 분량이 아니라 각 섹션의 목표 대비 토큰 여유를 본다.
   // (섹션 합이 전체 게이트와 맞는지는 verify:astrology-sectioned 가 따로 단언한다.)
-  const { ASTROLOGY_SECTIONS } = __astrologyAiTestUtils;
+  const { ASTROLOGY_SECTIONS, ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS } = __astrologyAiTestUtils;
   assert(Array.isArray(ASTROLOGY_SECTIONS) && ASTROLOGY_SECTIONS.length > 0, `${feature}: 섹션 정의가 없다`);
   for (const section of ASTROLOGY_SECTIONS) {
     assertBudget(`${feature}:${section.key}`, {
       minChars: section.minChars,
       maxChars: section.maxChars,
-      maxOutputTokens: 9600,
+      maxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS,
       tokenConstantName: "ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS",
       sourcePath: "worker/routes/astrology-ai.js",
     });
@@ -992,7 +992,8 @@ const EXPECTED_LLM_CALL_SITES = {
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
   // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
   "worker/routes/pet-saju-ai.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
-  "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 3, "worker/routes/ziwei-deep-report.js": 1,
+  // Ziwei: two checkpointed calls (body/meta), both disable fallback and use one bounded attempt; legacy helpers retain three calls.
+  "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
   "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
 };
 for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {

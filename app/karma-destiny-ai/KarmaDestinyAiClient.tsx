@@ -12,6 +12,8 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { authFetch } from "@/app/_lib/auth-client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -2284,6 +2286,21 @@ export default function KarmaDestinyAiPage() {
   const formTouchedRef = useRef(false);
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  const [recoveryEpoch, setRecoveryEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => { setMessages([]); setSessionId(""); setIntegratedResult(null); setSummaryCards(null); setError(""); setNotice(""); startLockRef.current = false; setRecoveryEpoch(value => value + 1); });
+  useEffect(() => {
+    const restore = async () => {
+      if (document.visibilityState === "hidden" || startLockRef.current) return;
+      const isCurrent = captureOwner();
+      try {
+        const response = await authFetch("/api/karma-destiny-ai/result");
+        const pending = await response.json().catch(() => ({}));
+        if (isCurrent() && response.ok && pending.sessionId && ["generating", "partial", "delivery_pending"].includes(pending.status)) window.location.assign(`/karma-destiny-ai/result?sessionId=${encodeURIComponent(pending.sessionId)}`);
+      } catch { /* The saved report remains available for the next lifecycle event. */ }
+    };
+    void restore(); window.addEventListener("online", restore); document.addEventListener("visibilitychange", restore);
+    return () => { window.removeEventListener("online", restore); document.removeEventListener("visibilitychange", restore); };
+  }, [recoveryEpoch, captureOwner]);
   useEffect(() => {
     if (!profileSeed) return;
     setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
@@ -2371,6 +2388,7 @@ export default function KarmaDestinyAiPage() {
     idempotencyKey: string,
     access: Record<string, unknown>,
   ) => {
+    const isCurrent = captureOwner();
     setStatus("reading");
     // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(idempotencyKey);
@@ -2379,6 +2397,7 @@ export default function KarmaDestinyAiPage() {
       ...access,
     }, idempotencyKey);
 
+    if (!isCurrent()) return false;
     if (result.ok && result.sessionId) {
       setSessionId(result.sessionId || "");
       setAccessType(result.accessType || "");
@@ -2390,7 +2409,7 @@ export default function KarmaDestinyAiPage() {
       setStatus("reading");
       const target = `/karma-destiny-ai/result?sessionId=${encodeURIComponent(result.sessionId)}${result.status === "completed" ? "" : "&pending=1"}`;
       window.location.assign(target);
-      return;
+      return result.status === "completed";
     }
     if (result.ok && result.status === "generating") {
       setNotice(result.message || copy.statusReading);
@@ -2400,7 +2419,7 @@ export default function KarmaDestinyAiPage() {
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(copy.paymentVerifyFailedMessage);
     if (result.reason === "LLM_ERROR") throw new Error(copy.llmErrorMessage);
     throw new Error(result.message || copy.serverErrorMessage);
-  }, [copy]);
+  }, [copy, captureOwner]);
 
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
      죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 빈 폼으로 돌아온다. grant.payload 는
@@ -2413,8 +2432,7 @@ export default function KarmaDestinyAiPage() {
     setError("");
     setNotice("");
     try {
-      await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
-      return true;
+      return await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) }) === true;
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : copy.serverErrorMessage);
       setStatus("error");

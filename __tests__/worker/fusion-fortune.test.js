@@ -121,6 +121,39 @@ function fusionAdapters(calls) {
 }
 
 describe("Fusion Fortune per-use billing and mock generation", () => {
+  it("keeps sibling checkpoints and propagates storage failure without repair calls", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
+    const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      expect(options.timeoutMs).toBeLessThanOrEqual(45000);
+      const group = FUSION_SECTION_GROUP_SPECS.find(item => item.id === options.logContext.sectionGroup);
+      return { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)) };
+    });
+    const snapshots = [];
+    const onCheckpoint = jest.fn(async snapshot => {
+      snapshots.push(snapshot);
+      if (snapshots.length === 1) throw Object.assign(new Error("storage"), { code: "RESULT_STORAGE_UNAVAILABLE" });
+    });
+    await expect(generateFusionFortuneWithRealLLM({ input, context, stage: 1,
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
+      providerCall, onCheckpoint,
+    })).rejects.toMatchObject({ code: "RESULT_STORAGE_UNAVAILABLE" });
+    expect(providerCall).toHaveBeenCalledTimes(6);
+    expect(onCheckpoint).toHaveBeenCalledTimes(6);
+    expect(snapshots.at(-1)).toHaveProperty("sajuSection.content");
+    expect(snapshots.at(-1)).toHaveProperty("tarotSection.content");
+  });
+
+  it("does not start providers when only the storage reserve remains", async () => {
+    const providerCall = jest.fn();
+    const generated = await generateFusionFortuneWithRealLLM({ input, context: {}, stage: 1,
+      deadlineStartAt: Date.now() - 62000,
+      env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" }, providerCall,
+    });
+    expect(providerCall).not.toHaveBeenCalled();
+    expect(generated.deliverable).toBe(false);
+  });
+
   it("prices the reading at 300 coins (30,000 KRW) as a per-use feature", () => {
     expect(FUSION_FORTUNE_PAID_FEATURE_KEY).toBe("fusion-fortune-consultation");
     expect(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 300, amountKRW: 30000 });

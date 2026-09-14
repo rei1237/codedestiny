@@ -3,6 +3,7 @@
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -69,6 +70,7 @@ const SUKUYO_SECTION_SPECS = [
   { key: "outlook", title: "🔭 展望 — 시간에 따른 변화", minChars: 1200, guide: "만난 직후 / 1년 후 / 3년 후 / 5년 이후 네 구간으로 나눠 관계가 어떻게 변하는지 서술하고, 각 구간마다 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오를 함께 제시" },
   { key: "closingLetter", title: "💌 一言 — 달빛이 전하는 한마디", minChars: 700, guide: "앞의 모든 해석을 종합해 두 사람에게 건네는 짧은 편지 한 편을 감성적인 문체로 쓴다. 번호 목록·체크리스트를 쓰지 않고 이어지는 문장으로만 쓰며, 마지막 문장은 반드시 두 사람의 이름을 모두 불러 마무리한다" },
 ];
+SUKUYO_SECTION_SPECS.forEach(spec => { spec.minChars = Math.max(spec.minChars, 1500); });
 const SUKUYO_SECTION_SPEC_MAP = new Map(SUKUYO_SECTION_SPECS.map((spec) => [spec.key, spec]));
 const SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS = SUKUYO_SECTION_SPECS.reduce((total, section) => total + section.minChars, 0);
 const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 26000;
@@ -93,7 +95,7 @@ const SUKUYO_SECTION_GROUPS = [
 ];
 // 그룹 1회가 엣지 100초 컷 안쪽에서 끝나야 한다. clamp 를 통과시키되(60s < 85s 상한),
 // 나중에 이 값을 올릴 때 자동으로 깎이도록 감싸 둔다.
-const SUKUYO_SECTION_TIMEOUT_MS = clampSyncLlmTimeoutMs(60000);
+const SUKUYO_SECTION_TIMEOUT_MS = clampSyncLlmTimeoutMs(45000);
 // 한 장의 본문 상한. 토큰 예산(capTokens)은 그룹 합계 + 완충을 담을 수 있어야 한다(worker/lib/llm-budget.js).
 const SUKUYO_SECTION_BODY_MAX_CHARS = 6000;
 const SUKUYO_SECTION_BASE_TOKENS = 8000;
@@ -1242,21 +1244,28 @@ async function handleEnsureAccess(request, env) {
 }
 
 async function resolveStartAccess(request, env, auth, body, normalized, accessHash) {
+  const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key"));
   const token = clean(body.accessToken || body.access_token);
-  const tokenPayload = token ? await verifyToken(env, token) : null;
-  if (
-    tokenPayload
-    && tokenPayload.userId === String(auth.userId)
-    && tokenPayload.inputHash === accessHash
-    && (!tokenPayload.idempotencyKey || tokenPayload.idempotencyKey === normalizeId(body.idempotencyKey || request.headers.get("idempotency-key")))
-  ) {
-    return { ok: true, accessType: tokenPayload.accessType || "pass", paymentId: "" };
-  }
+  const tokenPayload = token ? await verifyToken(env, token).catch(() => null) : null;
+  if (tokenPayload && (tokenPayload.userId !== String(auth.userId) || tokenPayload.inputHash !== accessHash || (tokenPayload.idempotencyKey && tokenPayload.idempotencyKey !== idempotencyKey))) return { ok: false };
+  await connectDb(env);
+  const ids = collectBillingEvidenceIds({ ...body, idempotencyKey });
+  const clauses = ids.flatMap(id => [{ requestId: id }, { idempotencyKey: id }, { merchantUid: id }, { impUid: id }, { paymentId: id }]);
+  const markers = ["refundedForServiceExecution", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const revoked = ["cancelled", "canceled", "refunded", "CANCELLED", "REFUNDED"];
+  if (!ids.length) return { ok: false };
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: String(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: buildPointHistoryEvidenceQuery(ids) }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: [...buildPointHistoryEvidenceQuery(ids), ...ids.map(id => ({ sourceId: id }))] }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false };
   const user = await resolveUser(auth, env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
-  if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
-  const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, body));
+  const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, { ...body, idempotencyKey }));
   if (billingEvidence?.ok) return billingEvidence;
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
+  if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
   const paidPaymentId = paymentIdFromBody(body);
   if (await hasPaidPayment(env, auth, paidPaymentId)) return { ok: true, accessType: "paid", paymentId: paidPaymentId };
   return { ok: false };
@@ -1290,7 +1299,7 @@ function buildSectionGroupPrompt(input, calculation, group) {
     ...specs.map((spec) => [
       `● ${spec.title}  (키: ${spec.key})`,
       `   요구 사항: ${spec.guide}`,
-      `   분량: 공백 포함 최소 ${spec.minChars.toLocaleString("ko-KR")}자, 상한 ${Math.round(spec.minChars * 1.5).toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
+      `   분량: 제목·공백·마크다운을 제외한 본문 최소 ${spec.minChars.toLocaleString("ko-KR")}자, 상한 ${Math.round(spec.minChars * 1.5).toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
     ].join("\n")),
     "",
     "각 장 본문은 3~6개 소단락으로 나누고, 마크업은 **굵게**, 번호 목록(1. ), 하이픈 목록(- ), 인용(> ) 네 가지만 사용합니다.",
@@ -1453,14 +1462,14 @@ function sukuyoSectionCache(env, keyExtra) {
 }
 
 /** 그룹 하나(장 3개)를 생성한다. 실패하면 빈 객체를 돌려주고 나머지 그룹을 죽이지 않는다. */
-async function generateSectionGroup(env, input, calculation, group, systemPrompt) {
+async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1) {
   const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).minChars, 0);
   try {
     const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group), {
       systemPrompt,
       taskType: "fortune",
       temperature: 0.74,
-      attempts: 2,
+      attempts: 1,
       baseTokens: SUKUYO_SECTION_BASE_TOKENS,
       capTokens: SUKUYO_SECTION_CAP_TOKENS,
       responseMimeType: "application/json",
@@ -1468,28 +1477,19 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
       // 🔴 유료 라우트에서 폴백을 켰으면 fallbackMinChars 는 필수다(관례: 최소 분량 × 0.4).
       // 없으면 Workers AI 폴백이 8% 분량을 정상 결제로 통과시킨다.
       fallbackMinChars: Math.round(groupMinChars * 0.4),
-      cache: sukuyoSectionCache(env, group.id),
+      cache: attempt === 1 ? sukuyoSectionCache(env, group.id) : undefined,
     });
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
-    if (!ai?.ok || ((/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env))) return { sections: {}, provider: "", model: "" };
+    if (!ai?.ok || ai?.truncated === true || ((/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env))) return { sections: {}, provider: "", model: "" };
     const raw = sanitizeConsultationText(ai?.text || "");
     const parsed = parseJsonObjectFromText(raw) || {};
     const sections = {};
     group.keys.forEach((key) => {
       const spec = SUKUYO_SECTION_SPEC_MAP.get(key);
       const body = extractSectionBody(parsed[key]?.body ? JSON.stringify({ body: parsed[key].body }) : "");
-      if (body.length >= 240) sections[key] = { title: spec.title, body };
+      if (countPaidReportBodyChars(body) >= spec.minChars && !hasRepeatedReportPassage(body)) sections[key] = { title: spec.title, body };
     });
-    // 구조화 파싱이 통째로 실패했는데 읽을 만한 원문이 남아 있으면 첫 장에라도 실어 보낸다.
-    // 경량 보장 계약 — 결제된 생성물을 빈손으로 돌려보내지 않는다.
-    if (!Object.keys(sections).length) {
-      const recovered = extractSectionBody(raw);
-      if (recovered.length >= 240) {
-        const spec = SUKUYO_SECTION_SPEC_MAP.get(group.keys[0]);
-        sections[group.keys[0]] = { title: spec.title, body: recovered };
-      }
-    }
     return { sections, provider, model };
   } catch (error) {
     logSukyoAi("[Sukyo AI Section Group Failed]", {
@@ -1509,7 +1509,7 @@ async function generateSummary(env, input, calculation, systemPrompt) {
       systemPrompt,
       taskType: "fortune",
       temperature: 0.7,
-      attempts: 2,
+      attempts: 1,
       baseTokens: 4000,
       capTokens: 5200,
       responseMimeType: "application/json",
@@ -1543,52 +1543,39 @@ async function generateSummary(env, input, calculation, systemPrompt) {
  * 궁합 상담 전체를 한 요청 안에서 만든다 — 다섯 섹션 그룹 + 요약을 병렬로 부르고 하나로 병합한다.
  * 벽시계는 가장 느린 그룹 기준(약 40초)이라 엣지 100초 컷 안쪽에서 끝난다.
  */
-async function createCompatibilityAnswer(env, input, calculation) {
-  const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
-  const settled = await Promise.allSettled([
-    ...SUKUYO_SECTION_GROUPS.map((group) => generateSectionGroup(env, input, calculation, group, systemPrompt)),
-    generateSummary(env, input, calculation, systemPrompt),
-  ]);
-
-  const merged = {};
-  let provider = "";
-  let model = "";
-  settled.slice(0, SUKUYO_SECTION_GROUPS.length).forEach((entry) => {
-    if (entry.status !== "fulfilled") return;
-    Object.assign(merged, entry.value.sections);
-    provider = entry.value.provider || provider;
-    model = entry.value.model || model;
-  });
-  const summaryEntry = settled[settled.length - 1];
-  const summary = summaryEntry.status === "fulfilled" ? summaryEntry.value : null;
-
-  // 읽는 순서를 SUKUYO_SECTION_SPECS 순서로 고정한다(생성 순서가 아니라 목차 순서로 보여야 한다).
-  const sections = Object.fromEntries(
-    SUKUYO_SECTION_SPECS.filter((spec) => merged[spec.key]).map((spec) => [spec.key, merged[spec.key]]),
-  );
-  const totalChars = Object.values(sections).reduce((sum, section) => sum + clean(section.body).length, 0);
-  logSukyoAi("[Sukyo AI Generate Done]", {
-    route: "/api/sukuyo-compatibility-ai/generate",
-    requestId: input.idempotencyKey,
-    sections: Object.keys(sections).length,
-    expected: SUKUYO_SECTION_SPECS.length,
-    totalChars,
-  });
-
-  // 전부 실패했을 때만 실패로 돌린다 — 그래야 선차감 복원 경로가 돈다.
-  // 일부만 왔으면 짧아도 전달한다(경량 보장 계약).
-  if (totalChars < 600) {
-    throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+async function createCompatibilityAnswer(env, input, calculation, options = {}) {
+  const sections = { ...(options.sections || {}) };
+  const attempts = options.attempts || {};
+  const isComplete = key => countPaidReportBodyChars(sections[key]?.body) >= SUKUYO_SECTION_SPEC_MAP.get(key).minChars && !hasRepeatedReportPassage(sections[key]?.body);
+  const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(key => !isComplete(key)) })).filter(group => group.keys.length);
+  const group = pending[0];
+  if (group && Number(attempts[group.id] || 0) >= 3) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+  let provider = "", model = "";
+  let summary = options.summary || null;
+  if (group) {
+    const attempt = Number(attempts[group.id] || 0) + 1;
+    await options.onReserve?.(group.id, attempt);
+    const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+    const [generated, generatedSummary] = await Promise.all([
+      generateSectionGroup(env, input, calculation, group, systemPrompt, attempt),
+      !summary && group.id === SUKUYO_SECTION_GROUPS[0].id && attempt === 1 ? generateSummary(env, input, calculation, systemPrompt) : Promise.resolve(summary),
+    ]);
+    summary = generatedSummary || summary;
+    Object.assign(sections, generated.sections); provider = generated.provider; model = generated.model;
+    await options.onCheckpoint?.({ sections, summary });
   }
+  const complete = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0) >= 20000;
+  const result = { meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta, ...(summary || {}), sections };
+  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections };
+}
 
-  const result = {
-    meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta,
-    ...(summary?.headline ? { headline: summary.headline } : {}),
-    ...(summary?.insight ? { insight: summary.insight } : {}),
-    ...(summary && Object.keys(summary.scoreNotes).length ? { scoreNotes: summary.scoreNotes } : {}),
-    sections,
-  };
-  return { content: JSON.stringify(result, null, 2), provider, model };
+async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) {
+  try {
+    const saved = await SukuyoCompatibilityAiConsultation.findOneAndUpdate({ _id: sessionId, userId, status: "generating", generationLease }, { $set: values }, { new: true }).lean();
+    const confirmed = saved && await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId }).lean();
+    if (!confirmed || Object.entries(values).some(([key, value]) => JSON.stringify(key.split('.').reduce((at, part) => at?.[part], confirmed)) !== JSON.stringify(value))) throw resultStorageUnavailable(sessionId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(sessionId); }
 }
 
 /** 개인 상담(단일 텍스트)은 예전 그대로 한 번에 만든다 — 분량이 4천 토큰대라 배치가 필요 없다. */
@@ -1668,7 +1655,9 @@ async function serializeConsultation(doc) {
     sukuyoResult: raw.sukuyoResult,
     // 두 사람의 생년월일은 예전부터 저장돼 있으므로 근거를 다시 계산해 붙인다
     // (이 변경 이전에 만들어진 상담도 근거 패널을 그대로 얻는다). 순수 계산이라 실패는 조용히 넘긴다.
-    analysisBasis: await safeSukuyoAnalysisBasis(raw),
+    analysisBasis: raw.llmMeta?.calculation && raw.llmMeta?.resumeBody ? buildSukuyoAnalysisBasis(normalizeInput(raw.llmMeta.resumeBody), raw.llmMeta.calculation) : await safeSukuyoAnalysisBasis(raw),
+    idempotencyKey: raw.idempotencyKey,
+    saved: consultationStatus(raw) === "completed",
     relationshipType: raw.relationshipType,
     topic: raw.topic,
     accessType: raw.accessType,
@@ -1838,9 +1827,20 @@ async function handleStart(request, env) {
     if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
-  const body = await readJson(request);
+  let body = await readJson(request);
+  if (body.resumeSessionId) {
+    if (!isObjectIdLike(body.resumeSessionId)) return notFound();
+    await connectDb(env);
+    const saved = await SukuyoCompatibilityAiConsultation.findOne({ _id: normalizeId(body.resumeSessionId), userId: auth.userId }).lean();
+    if (!saved) return notFound();
+    if (consultationStatus(saved) === "completed") return json({ ok: true, saved: true, consultation: await serializeConsultation(saved) });
+    if (!saved.llmMeta?.resumeBody) return json({ ok: false, reason: "REQUEST_CONFLICT" }, { status: 409 });
+    body = { ...saved.llmMeta.resumeBody, idempotencyKey: saved.idempotencyKey };
+    delete body.accessToken; delete body.access_token;
+  }
   const normalized = normalizeInput(body);
-  const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key") || `sukuyo-ai-${Date.now().toString(36)}`);
+  const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key"));
+  if (!idempotencyKey) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
   logSukyoAi("[Sukyo AI LLM Generate Start]", {
     route: "/api/sukuyo-compatibility-ai/generate",
     requestId: idempotencyKey,
@@ -1856,8 +1856,9 @@ async function handleStart(request, env) {
   });
   if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput, errors: normalized.errors }, { status: 422 });
   const lockKey = `${auth.userId}:${idempotencyKey}`;
-  if (startLocks.has(lockKey)) return startLocks.get(lockKey);
+  if (startLocks.has(lockKey)) return (await startLocks.get(lockKey)).clone();
 
+  let activeLease = "";
   const pending = (async () => {
     await connectDb(env);
     const existing = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
@@ -1875,7 +1876,7 @@ async function handleStart(request, env) {
         { status: 202 },
       );
     }
-    // generation_failed 이거나 창을 넘긴 generating 은 재생성 대상이라 아래로 흘려보낸다.
+    if (existingStatus === "generation_failed") return json({ ok: false, reason: "LLM_FAILED" }, { status: 409 });
     const accessHash = await inputHash(normalized);
     if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
@@ -1895,7 +1896,7 @@ async function handleStart(request, env) {
     }
     if (existingStatus === "delivery_pending") {
       const completed = await confirmSukuyoDelivery(auth.userId, String(existing._id), existing.messages, existing.generationLease);
-      await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date());
+      await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date()).catch(() => {});
       return json({ ok: true, consultation: await serializeConsultation(completed), reused: true });
     }
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {
@@ -1907,7 +1908,7 @@ async function handleStart(request, env) {
     });
     let calculation;
     try {
-      calculation = await calculateSukuyo(normalized, env, request.url);
+      calculation = existing?.llmMeta?.calculation || await calculateSukuyo(normalized, env, request.url);
     } catch (calcError) {
       // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
       const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError).catch(() => false);
@@ -1962,7 +1963,8 @@ async function handleStart(request, env) {
       topic: normalized.topic,
       accessType: access.accessType,
       paymentId: access.paymentId || paymentIdFromBody(body),
-      messages: [],
+      messages: existing?.messages || [],
+      llmMeta: { ...(existing?.llmMeta || {}), calculation, resumeBody: existing?.llmMeta?.resumeBody || { ...body, accessToken: undefined, access_token: undefined } },
       provider: "",
       model: "",
       status: "generating",
@@ -1971,6 +1973,7 @@ async function handleStart(request, env) {
     // 🔴 여기부터 중복 생성 창이 닫힌다. 예전에는 LLM 6회를 다 태운 뒤에야 문서가 생겨서,
     // 그 60~100초 사이에 들어온 같은 키의 요청이 findOne 에서 아무것도 못 찾고 또 생성했다.
     let sessionId = "";
+    activeLease = seedFields.generationLease;
     if (existing) {
       // 재시드(실패했거나 창을 넘긴 문서). 조건부 갱신이라, 그 사이 다른 isolate 가 먼저 재시드했으면
       // matchedCount 가 0 이 되어 이중 생성 대신 202 로 합류한다. modifiedCount 는 $set 이 no-op 일 때
@@ -1981,7 +1984,7 @@ async function handleStart(request, env) {
           _id: existing._id,
           userId: auth.userId,
           status: { $nin: ["completed", "delivery_pending"] },
-          $or: [{ status: "generation_failed" }, { status: "generating", updatedAt: { $lt: staleCutoff } }],
+          $or: [{ status: "partial" }, { status: "generating", updatedAt: { $lt: staleCutoff } }],
         },
         { $set: { ...seedFields, updatedAt: now } },
       );
@@ -1997,7 +2000,7 @@ async function handleStart(request, env) {
         const seeded = await SukuyoCompatibilityAiConsultation.create(seedFields);
         sessionId = String(seeded._id);
       } catch (seedError) {
-        if (Number(seedError?.code) !== 11000) throw seedError;
+        if (Number(seedError?.code) !== 11000) throw resultStorageUnavailable(idempotencyKey);
         // 같은 키의 시드를 다른 isolate 가 방금 먼저 넣었다 — 우리는 생성하지 않고 합류한다.
         // LLM 6회가 실제로 절약되는 지점이다(예전에는 생성이 끝난 뒤에야 이 에러를 만났다).
         const duplicate = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
@@ -2015,42 +2018,31 @@ async function handleStart(request, env) {
       firstAnswer = normalized.consultationType === "compatibility"
         // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
-        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation)
+        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
+          sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary,
+          onReserve: (groupId, attempt) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt }),
+          onCheckpoint: ({ sections, summary }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary }),
+        })
         : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
     } catch (genError) {
-      // 선차감된 코인/월정석이 있으면 되돌린 뒤 에러를 전파한다. 환급을 상태 뒤집기보다 먼저 두는 이유:
-      // 이 사이에서 isolate 가 죽으면 "환급 안 됨 + 즉시 재시도 가능"(재과금 위험)보다
-      // "환급됨 + 창(120s)만큼 대기"가 낫다.
-      const owned = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease }).lean();
-      if (!owned) throw resultStorageUnavailable(sessionId);
-      const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
-      logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
-        route: "/api/sukuyo-compatibility-ai/generate",
-        requestId: idempotencyKey,
-        consultationType: normalized.consultationType,
-        restored,
-      }, restored ? null : genError, env);
-      // 시드를 지우지 않고 generation_failed 로 뒤집는다 — 그래야 다음 POST 가 202 에 막히지 않고
-      // 재생성으로 떨어진다. 상태 쓰기 실패가 원래 에러를 가리면 안 되므로 삼킨다(창이 안전망이다).
-      await SukuyoCompatibilityAiConsultation.updateOne(
-        { _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease },
-        {
-          $set: {
-            status: "generation_failed",
-            generationError: {
-              code: clean(genError?.code || "LLM_GENERATION_FAILED", 80),
-              message: clean(genError?.message || genError, 500),
-              at: new Date().toISOString(),
-            },
-          },
-        },
-      ).catch(() => {});
+      if (genError?.code === "RESULT_STORAGE_UNAVAILABLE") throw genError;
+      // 실패 확정도 현재 생성 잠금을 소유한 요청만 수행한다. 저장 장애는 환불로 보내지 않는다.
+      await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "generation_failed", generationError: {
+        code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString(),
+      } });
+      await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
       throw genError;
     }
     const messages = [
       { role: "user", content: normalized.question, createdAt: now },
       { role: "assistant", content: firstAnswer.content, createdAt: now },
     ];
+    if (normalized.consultationType === "compatibility" && !firstAnswer.complete) {
+      const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "partial", messages, generationLease: "" });
+      return json({ ok: true, saved: false, status: "partial", sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
+    }
+    const freshAccess = await resolveStartAccess(request, env, auth, body, normalized, accessHash).catch(() => { throw resultStorageUnavailable(sessionId); });
+    if (!freshAccess.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     const pendingDelivery = await SukuyoCompatibilityAiConsultation.findOneAndUpdate(
       { _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease },
       {
@@ -2066,7 +2058,7 @@ async function handleStart(request, env) {
     ).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
     if (!pendingDelivery) throw resultStorageUnavailable(sessionId);
     const completed = await confirmSukuyoDelivery(auth.userId, sessionId, messages, seedFields.generationLease);
-    await recordSuccessfulUsage(auth, idempotencyKey, access, { _id: sessionId }, now);
+    await recordSuccessfulUsage(auth, idempotencyKey, access, { _id: sessionId }, now).catch(() => {});
     return json({
       ok: true,
       consultation: await serializeConsultation(completed),
@@ -2087,7 +2079,8 @@ async function handleStart(request, env) {
       errorMessage: clean(error?.message || ""),
     }, error, env);
     return json({ ok: false, reason: code, message }, { status: status >= 400 && status < 600 ? status : 500 });
-  }).finally(() => {
+  }).finally(async () => {
+    if (activeLease) await SukuyoCompatibilityAiConsultation.updateOne({ userId: auth.userId, idempotencyKey, status: "generating", generationLease: activeLease }, { $set: { status: "partial", generationLease: "" } }).catch(() => {});
     startLocks.delete(lockKey);
   });
   startLocks.set(lockKey, pending);
@@ -2195,7 +2188,7 @@ async function handleResult(request, env) {
       // 시드(generating)와 실패본은 messages 가 비어 있어 목록에서 빈 줄로 보인다.
       // $nin 은 필드가 없는 문서도 매칭하므로 status 가 없던 옛 문서는 그대로 남는다 —
       // 🔴 여기를 status: "completed" 양성 매칭으로 바꾸면 기존 사용자의 목록이 통째로 사라진다.
-      status: { $nin: ["generating", "generation_failed", "delivery_pending"] },
+      status: { $nin: ["generating", "partial", "generation_failed", "delivery_pending"] },
     })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
@@ -2203,8 +2196,10 @@ async function handleResult(request, env) {
       .limit(10)
       .select("personA.name personA.shuku personB.name personB.shuku sukuyoResult.relationType relationshipType createdAt updatedAt")
       .lean();
+    const pending = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
     return json({
       ok: true,
+      pendingSessionId: pending ? String(pending._id) : "",
       consultations: rows.map((row) => ({
         id: String(row._id),
         personAName: clean(row.personA?.name, 80) || "나",
@@ -2225,25 +2220,14 @@ async function handleResult(request, env) {
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean();
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
   const status = consultationStatus(consultation);
-  if (status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-  if (status === "generating") {
-    // 창을 넘긴 generating 은 아무도 만들고 있지 않다. 202 를 계속 돌려주면 폴링이 상한까지 헛돌므로
-    // 종결 신호를 준다. 🔴 503 이 아니라 409 여야 한다 — isRetriableResultPollFailure
-    // (app/_lib/consultationResultPolling.ts)가 503 을 전부 재시도로 읽고, 이 라우트의 래퍼도
-    // 진짜 DB 장애에 이미 503 을 쓰고 있어 둘이 구분되지 않는다.
-    if (isStaleGenerating(consultation)) {
-      return json({
-        ok: false,
-        sessionId,
-        status: "generating",
-        reason: "GENERATION_INTERRUPTED",
-        message: MESSAGES.generationInterrupted,
-      }, { status: 409 });
+  if (["generating", "partial", "delivery_pending"].includes(status)) {
+    const body = consultation.llmMeta?.resumeBody;
+    if (body) {
+      const normalized = normalizeInput(body);
+      if (!(await resolveStartAccess(request, env, auth, { ...body, idempotencyKey: consultation.idempotencyKey }, normalized, consultation.inputHash)).ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     }
-    return json(
-      { ok: true, sessionId, status: "generating", message: MESSAGES.generating },
-      { status: 202, headers: { "Retry-After": "3" } },
-    );
+    return json({ ok: true, saved: false, sessionId, resumeSessionId: sessionId, idempotencyKey: consultation.idempotencyKey,
+      status: status === "generating" && isStaleGenerating(consultation) ? "partial" : status, consultation: await serializeConsultation(consultation) }, { status: 202 });
   }
   if (status === "generation_failed") {
     return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });

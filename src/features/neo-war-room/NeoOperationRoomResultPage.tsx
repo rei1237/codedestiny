@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
@@ -99,6 +101,7 @@ type NeoResultSession = {
   id?: string;
   sessionId?: string;
   status?: "generating" | "completed" | "generation_failed" | string;
+  completedChapters?: string[];
   selectedMethod?: NeoWarRoomConsultMode;
   topic?: string;
   intensity?: string;
@@ -459,73 +462,46 @@ export default function NeoOperationRoomResultPage() {
     };
   }, []);
 
+  const [recoveryEpoch, setRecoveryEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false);
+    setRecoveryEpoch(value => value + 1);
+  });
+  useEffect(() => {
+    const recover = () => { if (document.visibilityState !== "hidden" && navigator.onLine) setRecoveryEpoch(value => value + 1); };
+    window.addEventListener("online", recover); document.addEventListener("visibilitychange", recover);
+    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+  }, []);
   useEffect(() => {
     let cancelled = false;
-    // 생성은 서버 백그라운드에서 진행되므로, 결과 페이지를 직접 열면 아직 generating(202)일 수 있다.
-    // 완료(또는 실패)로 수렴할 때까지 폴링한다. 4s×60=240s, CF rate-limit(10s당 100회) 여유 안.
+    const ownerIsCurrent = captureOwner();
+    const isCurrent = () => !cancelled && ownerIsCurrent();
     async function loadResult() {
       if (localPreviewMode) {
         const previewSession = buildLocalPreviewSession(localPreviewMode);
-        setSession(previewSession);
-        setSelectedChecks(previewSession.realityCheck?.selectedChecks || []);
-        setFreeform(previewSession.realityCheck?.freeform || "");
-        setShowRealityForm(localPreviewMode === "reality");
-        setError("");
-        setLoading(false);
-        return;
+        setSession(previewSession); setLoading(false); return;
       }
-      if (!attemptId) {
-        setLoading(false);
-        setError(getNeoResultCopy(getCurrentLoadingLocale()).missingAttemptIdError);
-        return;
-      }
-      setLoading(true);
       setError("");
-      for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
-        try {
-          const response = await authFetch(`/api/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`);
-          const data = await response.json().catch(() => ({}));
-          if (cancelled) return;
-          // 아직 생성 중(202) — 생성 상태를 보여주고 잠시 후 다시 조회한다.
-          if (response.status === 202 || (data?.ok && data.status === "generating")) {
-            setSession((current) => (current?.status === "generating" ? current : (data as NeoResultSession)));
-            setLoading(false);
-            await new Promise((resolve) => window.setTimeout(resolve, RESULT_POLL_INTERVAL_MS));
-            if (cancelled) return;
-            continue;
-          }
-          if (!response.ok || !data?.ok) {
-            const currentResultCopy = getNeoResultCopy(getCurrentLoadingLocale());
-            const message = asErrorMessage(data) || (response.status === 401 ? currentResultCopy.loginRequiredError : currentResultCopy.notFoundError);
-            setError(message);
-            setSession(null);
-            setLoading(false);
-            return;
-          }
-          setSession(data as NeoResultSession);
-          setSelectedChecks(Array.isArray(data.realityCheck?.selectedChecks) ? data.realityCheck.selectedChecks : []);
-          setFreeform(String(data.realityCheck?.freeform || ""));
-          setShowRealityForm(!data.refinedOrder);
-          setLoading(false);
-          return;
-        } catch {
-          if (cancelled) return;
-          // 일시적 네트워크 오류 — 잠시 후 재시도.
-          await new Promise((resolve) => window.setTimeout(resolve, RESULT_POLL_INTERVAL_MS));
-          if (cancelled) return;
-        }
-      }
-      // 폴링 예산 소진 — 생성이 지연되고 있음을 알린다(이용권/권한은 보존).
-      if (!cancelled) {
+      try {
+        const data = await receiveNeoBriefing<NeoResultSession>(attemptId, partial => {
+          if (!isCurrent()) return;
+          setSession(partial); setLoading(false);
+          if (!attemptId && partial.sessionId) window.history.replaceState(null, "", `/neo-operation-room/result?attemptId=${encodeURIComponent(partial.sessionId)}`);
+        }, isCurrent);
+        if (!isCurrent()) return;
+        setSession(data);
+        setSelectedChecks(data.realityCheck?.selectedChecks || []);
+        setFreeform(data.realityCheck?.freeform || "");
+        setShowRealityForm(!data.refinedOrder); setLoading(false);
+      } catch (caught) {
+        if (!isCurrent()) return;
         setLoading(false);
-        setError(getNeoResultCopy(getCurrentLoadingLocale()).pollTimeoutError);
+        setError(caught instanceof Error && caught.message === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : resultCopy.pollTimeoutError);
       }
     }
-    loadResult();
-    return () => {
-      cancelled = true;
-    };
-  }, [attemptId, localPreviewMode]);
+    void loadResult();
+    return () => { cancelled = true; };
+  }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError]);
 
   async function handleRefine() {
     if (!session?.sessionId) return;
@@ -741,11 +717,11 @@ export default function NeoOperationRoomResultPage() {
         partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true,
       }
     : null;
-  const isGenerating = loading || session?.status === "generating";
+  const isGenerating = loading || Boolean(session && session.status !== "completed" && session.status !== "generation_failed");
   const isFailed = Boolean(error) || session?.status === "generation_failed";
   const heroOperationTitle = refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle;
   const heroStatus = refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone;
-  const canUnlockNeoBenefits = !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
+  const canUnlockNeoBenefits = !isGenerating && !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
   const neoLetterText = useMemo(
     () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod, dialogueLocale), dialogueLocale) : "",
     [neoBenefitsUnlocked, selectedMethod, session, dialogueLocale],
@@ -822,6 +798,7 @@ export default function NeoOperationRoomResultPage() {
             imageClassName={styles.stateNeoImage}
           />
           <h2>{resultCopy.generatingTitle}</h2>
+          <p>{session?.completedChapters?.length || 0} / 14</p>
           <p>{selectedMethod
             ? getNeoResultGeneratingBody(methodLabel(selectedMethod, dialogueLocale), dialogueLocale)
             : resultCopy.generatingBodyDefault}</p>
@@ -843,11 +820,11 @@ export default function NeoOperationRoomResultPage() {
           <NeoWarRoomAssetImage asset={neoResultStampAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
           <h2>{resultCopy.failedTitle}</h2>
           <p>{error || session?.generationError?.message || resultCopy.failedDefaultMessage}</p>
-          <Link href="/neo-operation-room" prefetch={false}>{resultCopy.retryLink}</Link>
+          <button type="button" onClick={() => setRecoveryEpoch(value => value + 1)}>{resultCopy.retryLink}</button>
         </section>
       ) : null}
 
-      {!isGenerating && !isFailed && session ? (
+      {session && briefing ? (
         <div className={styles.layout}>
           <aside className={styles.sidePanel}>
             <NeoWarRoomAssetImage
@@ -880,14 +857,14 @@ export default function NeoOperationRoomResultPage() {
                 evidenceFallbackLabel={selectedMethodDefinition.resultEvidenceLabel}
                 hasRefined={Boolean(refined)}
                 badgeIndex={badgeAward.currentBadgeIndex}
-                onOpenReality={() => setShowRealityForm(true)}
+                onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }}
                 viewAll={viewAll}
                 onViewAllChange={setViewAll}
                 expandForExport={exportExpand}
                 locale={dialogueLocale}
               />
             ) : null}
-            {showRealityForm && briefing ? (
+            {!isGenerating && showRealityForm && briefing ? (
               <RealityCheckForm
                 selectedChecks={selectedChecks}
                 setSelectedChecks={setSelectedChecks}
@@ -912,8 +889,8 @@ export default function NeoOperationRoomResultPage() {
             <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} locale={dialogueLocale} />
             <section className={styles.actionBar} aria-label={resultCopy.actionBarAria}>
               <div className={styles.actionCopy}>
-                <span>{refined ? "Final Order Ready" : "Briefing Ready"}</span>
-                <strong>{refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone}</strong>
+                <span>{isGenerating ? resultCopy.generatingTitle : refined ? "Final Order Ready" : "Briefing Ready"}</span>
+                <strong>{isGenerating ? resultCopy.generatingTitle : refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone}</strong>
               </div>
               <div className={styles.actionButtons}>
                 <button
@@ -932,7 +909,7 @@ export default function NeoOperationRoomResultPage() {
                   className={styles.pdfButton}
                   data-loading={pdfLoading ? "true" : "false"}
                   data-locked={neoBenefitsUnlocked ? "false" : "true"}
-                  disabled={pdfLoading || !neoBenefitsUnlocked}
+                  disabled={isGenerating || pdfLoading || !neoBenefitsUnlocked}
                   onClick={handlePdfDownload}
                 >
                   {pdfLoading ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <Download aria-hidden="true" /> : <Lock aria-hidden="true" />}
@@ -955,7 +932,7 @@ export default function NeoOperationRoomResultPage() {
                 locale={dialogueLocale}
               />
             )}
-            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} locale={dialogueLocale} />
+            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => { if (!isGenerating) setShowRealityForm(true); }} hasRefined={Boolean(refined)} locale={dialogueLocale} />
           </section>
         </div>
       ) : null}
@@ -1108,7 +1085,7 @@ function ResultSummaryCover({
       {session.question ? <p className={styles.summaryQuestion}>{session.question}</p> : null}
       <div className={styles.summarySeal}>
         <LionBadgeStamp badgeIndex={badgeIndex} className={styles.stampImageFrame} />
-        <p>{refined ? resultCopy.summaryRefinedNote : resultCopy.summaryInitialNote}</p>
+        <p>{session.status !== "completed" ? resultCopy.generatingTitle : refined ? resultCopy.summaryRefinedNote : resultCopy.summaryInitialNote}</p>
       </div>
     </article>
   );

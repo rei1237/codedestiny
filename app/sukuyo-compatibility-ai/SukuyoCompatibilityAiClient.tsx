@@ -3,6 +3,7 @@
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -21,6 +22,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -194,6 +196,8 @@ type ConsultationMessage = {
   createdAt?: string;
 };
 type Consultation = {
+  idempotencyKey?: string;
+  saved?: boolean;
   id: string;
   status?: string;
   consultationType?: ConsultationType;
@@ -585,14 +589,9 @@ function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-// 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
-// 첫 폴은 빠르게(0.7s) 프로브해 조기 완료를 잡고 이후 3~8s 로 램프한다.
-// 상한 25회(≈193s)는 서버 신선도 창(120s)을 덮는 값이다 — 그 창을 넘기면 서버가
-// 409(GENERATION_INTERRUPTED)로 폴링을 끊으므로 vedic/astrology 의 40회는 죽은 무게가 된다.
-const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
-const RESULT_POLL_MAX_ATTEMPTS = 25;
-
 type StartResult = {
+  resultId?: string;
+  idempotencyKey?: string;
   ok?: boolean;
   reason?: string;
   message?: string;
@@ -600,31 +599,6 @@ type StartResult = {
   sessionId?: string;
   consultation?: Consultation;
 };
-
-async function pollSukuyoResult(sessionId: string): Promise<StartResult> {
-  for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
-    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
-    let response: Response;
-    try {
-      response = await authFetch(
-        `/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(sessionId)}`,
-        { method: "GET" },
-        { retryOn401: false },
-      );
-    } catch {
-      continue;
-    }
-    if (response.status === 202) continue;
-    if (response.status === 429) throw new Error("TEMPORARY_UNAVAILABLE");
-    const data = (await response.json().catch(() => ({}))) as StartResult;
-    // 일시적 DB/인증 장애(503 DB_DEGRADED 등)로 폴링을 끊지 않는다 — 이미 결제·생성이 끝난 결과를
-    // 순단 하나로 잃는다. 단 서버의 generation_failed 도 503 이라 그건 종결로 빠져나가야 한다.
-    if (isRetriableResultPollFailure(response.status, data) && data.reason !== "LLM_FAILED") continue;
-    if (!response.ok) throw new Error(toText(data.reason) || "SERVER_ERROR");
-    return data;
-  }
-  throw new Error("GENERATION_TIMEOUT");
-}
 
 function distanceLabel(value?: string) {
   if (value === "near") return "근거리";
@@ -1082,7 +1056,8 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
     }
   };
 
-  return (
+  if (!mounted) return null;
+  return createPortal(
     <div className={styles.resultModal} role="dialog" aria-modal="true" aria-label={copy.modalAria}>
       <header className={styles.modalHeader}>
         <div>
@@ -1240,7 +1215,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
           <p>이 해석은 숙요점 상징 체계를 바탕으로 관계의 흐름을 비추는 참고용 상담입니다. 현실의 선택, 동의, 경계, 건강과 법률·재정 판단은 당사자의 충분한 대화와 전문 검토를 함께 따라야 합니다.</p>
         </footer>
       </div>
-    </div>
+    </div>, document.body,
   );
 }
 
@@ -1286,6 +1261,12 @@ export default function SukuyoCompatibilityAiClient() {
   // 그러면 생성 요청이 두 번 나가고, 서버의 startLocks 는 인메모리라 다른 isolate 로 갈리면
   // 그룹 6개 생성이 통째로 두 번 돈다. 다른 AI 클라이언트가 쓰는 ref 락 패턴을 맞춘다.
   const submitLockRef = useRef(false);
+  const pendingGenerationRef = useRef<{ key: string; body: Record<string, unknown>; access: Record<string, unknown>; sessionId?: string } | null>(null);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    pendingGenerationRef.current = null; submitKeyRef.current = ""; submitLockRef.current = false;
+    setConsultation(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle"); setResumeEpoch(value => value + 1);
+  });
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
 
@@ -1326,32 +1307,24 @@ export default function SukuyoCompatibilityAiClient() {
     }
   }
 
-  // 재열람: ?cid= 복원 + 지난 궁합 목록
   useEffect(() => {
-    let cancelled = false;
-    const cid = new URLSearchParams(window.location.search).get("cid");
-    (async () => {
-      if (cid) {
-        try {
-          const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(cid)}`);
-          const data = await response.json().catch(() => ({}));
-          if (!cancelled && data?.ok && data.consultation) setConsultation(data.consultation as Consultation);
-        } catch {
-          // 재열람 실패는 조용히 무시
-        }
-      }
-      try {
-        const response = await authFetch("/api/sukuyo-compatibility-ai/result");
-        if (!response.ok) return;
-        const data = await response.json().catch(() => ({}));
-        if (!cancelled && Array.isArray(data?.consultations)) setRecentList(data.consultations);
-      } catch {
-        // 목록 조회 실패는 무시
-      }
+    let cancelled = false; const isCurrent = captureDeliveryScope();
+    void (async () => {
+      if (submitLockRef.current) return;
+      const response = await authFetch("/api/sukuyo-compatibility-ai/result").catch(() => null);
+      const data = response?.ok ? await response.json().catch(() => ({})) : {};
+      if (cancelled || !isCurrent()) return;
+      if (Array.isArray(data.consultations)) setRecentList(data.consultations);
+      const cid = data.pendingSessionId || new URLSearchParams(window.location.search).get("cid");
+      if (cid) void loadRecentConsultation(cid);
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeEpoch, captureDeliveryScope]);
+  useEffect(() => {
+    const resume = () => { if (!document.hidden) setResumeEpoch(value => value + 1); };
+    window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
   }, []);
 
   // 궁합 초대(?cp=) — 공유자(A)의 생일을 상대 칸(personB)에 자동 채움. base64url(JSON), share.js 인코드와 대칭.
@@ -1386,23 +1359,17 @@ export default function SukuyoCompatibilityAiClient() {
   }, []);
 
   async function loadRecentConsultation(id: string) {
+    if (submitLockRef.current) return;
+    const isCurrent = captureDeliveryScope(); submitLockRef.current = true;
     try {
       const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(id)}`);
-      // 목록이 더는 생성 중 문서를 내려주지 않으므로 여기는 경합 방어용이다(목록을 받은 직후 재생성 등).
-      if (response.status === 202) {
-        setNotice("이 상담은 아직 생성 중이에요. 잠시 후 다시 열어 주세요.");
-        return;
-      }
-      const data = await response.json().catch(() => ({}));
-      if (data?.ok && data.consultation) {
-        setConsultation(data.consultation as Consultation);
-        rememberConsultationUrl(id);
-        return;
-      }
-      setError("상담 내역을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
-    } catch {
-      setError(ERROR_TEXT.NETWORK_ERROR);
-    }
+      const data = await response.json().catch(() => ({})) as StartResult;
+      if (!isCurrent()) return;
+      if (!data.ok) throw new Error(data.reason || "SERVER_ERROR");
+      if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(id); }
+      if (response.status === 202) await startConsultation(data.idempotencyKey || data.consultation?.idempotencyKey || submitKeyRef.current || makeIdempotencyKey(), {}, true, { resumeSessionId: id });
+    } catch (error) { if (isCurrent()) { setError(error instanceof Error ? error.message : ERROR_TEXT.NETWORK_ERROR); setPhase("idle"); } }
+    finally { if (isCurrent()) submitLockRef.current = false; }
   }
 
   useEffect(() => {
@@ -1443,7 +1410,7 @@ export default function SukuyoCompatibilityAiClient() {
   }), [consultationType, personA, personB, relationshipType, topic, hiddenQuestion]);
 
   function resetAttempt() {
-    if (busy) return;
+    if (busy || pendingGenerationRef.current) return;
     submitKeyRef.current = "";
     setError("");
     setNotice("");
@@ -1483,64 +1450,45 @@ export default function SukuyoCompatibilityAiClient() {
 
   // 🔴 payloadOverride: 결제 복귀 재개는 새 문서라 위 useMemo payload 가 기본 폼으로 되살아나 있다.
   //    재개 경로는 결제 직전에 굳혀 둔 입력을 그대로 넘겨야 다른 사람의 궁합이 생성되지 않는다.
-  async function startConsultation(
-    idempotencyKey: string,
-    access: Record<string, unknown>,
-    paymentWasRequired = false,
-    payloadOverride?: Record<string, unknown>,
-  ) {
+  async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false, payloadOverride?: Record<string, unknown>) {
+    const isCurrent = captureDeliveryScope();
+    pendingGenerationRef.current = { key: idempotencyKey, body: payloadOverride || payload, access };
     setPhase("start");
-    const body = payloadOverride || payload;
-    let started: { status: number; data: StartResult };
-    try {
-      started = await postJson<StartResult>(
-        "/api/sukuyo-compatibility-ai/generate",
-        { ...body, ...access, idempotencyKey },
-        idempotencyKey,
-      );
-    } catch {
-      // authFetch 는 22초에 요청을 끊는다(app/_lib/auth-client.ts). 이 라우트의 생성은 60~100초라
-      // 첫 POST 는 사실상 항상 여기로 온다 — 예외가 아니라 정상 경로다. 같은 idempotencyKey 로
-      // 1회만 다시 보낸다. 서버는 이미 시드를 써 뒀으므로 재생성 대신 202(sessionId)로 답하고,
-      // 아래에서 폴링으로 수렴한다. 같은 access 객체를 재사용하므로 추가 과금은 없다.
-      started = await postJson<StartResult>(
-        "/api/sukuyo-compatibility-ai/generate",
-        { ...body, ...access, idempotencyKey },
-        idempotencyKey,
-      );
-    }
-    const { status, data } = started;
-    const applyConsultation = (next: Consultation) => {
-      setConsultation(next);
-      if (next.id) rememberConsultationUrl(next.id);
-      setError("");
-      setNotice("");
-      setPhase("idle");
-      submitKeyRef.current = "";
-    };
-    if (data.ok && data.consultation) {
-      applyConsultation(data.consultation);
-      return;
-    }
-    if (status === 202 && data.sessionId) {
-      setNotice(toText(data.message) || "두 사람의 별을 읽고 있어요. 잠시만 기다려 주세요.");
-      const resolved = await pollSukuyoResult(data.sessionId);
-      if (resolved.ok && resolved.consultation) {
-        applyConsultation(resolved.consultation);
-        return;
+    let failures = 0;
+    for (let wave = 0; wave < 20; wave++) {
+      if (!isCurrent()) return false;
+      if (document.hidden) { setPhase("idle"); return false; }
+      const pending = pendingGenerationRef.current;
+      if (!pending) return false;
+      let started: { status: number; data: StartResult };
+      try {
+        started = await postJson<StartResult>("/api/sukuyo-compatibility-ai/generate", pending.sessionId ? { resumeSessionId: pending.sessionId } : { ...pending.body, ...pending.access, idempotencyKey }, idempotencyKey);
+      } catch (error) {
+        if (!isCurrent()) return false;
+        if (++failures > 2) throw error;
+        await sleep(failures * 1500); continue;
       }
-      throw new Error(toText(resolved.reason) || "SERVER_ERROR");
+      if (!isCurrent()) return false;
+      const { status, data } = started;
+      const sessionId = data.sessionId || data.consultation?.id || (/^[0-9a-f]{24}$/i.test(data.resultId || "") ? data.resultId : "");
+      if (sessionId) { pending.sessionId = sessionId; rememberConsultationUrl(sessionId); }
+      if (status === 503 && data.reason === "RESULT_STORAGE_UNAVAILABLE" && ++failures <= 2) { await sleep(failures * 1500); continue; }
+      if (!data.ok) throw new Error(status === 402 && paymentWasRequired ? "PAYMENT_VERIFY_FAILED" : data.reason || "SERVER_ERROR");
+      failures = 0;
+      if (data.consultation) setConsultation(data.consultation);
+      if (status !== 202 && data.consultation && (!data.consultation.status || data.consultation.status === "completed")) {
+        pendingGenerationRef.current = null; submitKeyRef.current = ""; setError(""); setNotice(""); setPhase("idle"); return true;
+      }
+      setNotice("완성된 내용을 저장했습니다. 다음 장을 이어서 작성하고 있어요.");
+      if (data.status === "generating") await sleep(3000);
     }
-    if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
-    if (data.reason === "LLM_FAILED") throw new Error("LLM_FAILED");
-    if (data.reason === "CALCULATION_FAILED") throw new Error("CALCULATION_FAILED");
-    if (data.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
-    throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : "SERVER_ERROR"));
+    setPhase("idle"); return false;
   }
 
   // 모바일 PortOne 리다이렉트로 runSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const isCurrent = captureDeliveryScope();
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const restored = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
     if (!idempotencyKey || !restored) return false;
@@ -1550,29 +1498,37 @@ export default function SukuyoCompatibilityAiClient() {
     setNotice("");
     try {
       const payment = extractPayment(grant?.payload, idempotencyKey);
-      await startConsultation(idempotencyKey, { ...payment, billingGate: asRecord(grant?.payload) }, true, restored);
-      return true;
+      return await startConsultation(idempotencyKey, { ...payment, billingGate: asRecord(grant?.payload) }, true, restored);
     } catch (caught) {
+      if (!isCurrent()) return false;
       const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
       setPhase("idle");
       return false;
     } finally {
-      submitLockRef.current = false;
+      if (isCurrent()) submitLockRef.current = false;
     }
   });
 
   async function handleSubmit() {
     if (submitLockRef.current || busy) return;
+    const isCurrent = captureDeliveryScope();
     submitLockRef.current = true;
     try {
       await runSubmit();
     } finally {
-      submitLockRef.current = false;
+      if (isCurrent()) submitLockRef.current = false;
     }
   }
 
   async function runSubmit() {
+    const isCurrent = captureDeliveryScope();
+    const pending = pendingGenerationRef.current;
+    if (pending) {
+      try { await startConsultation(pending.key, pending.access, true, pending.sessionId ? { resumeSessionId: pending.sessionId } : pending.body); }
+      catch (error) { if (isCurrent()) { setError(error instanceof Error ? error.message : ERROR_TEXT.SERVER_ERROR); setPhase("idle"); } }
+      return;
+    }
     const previewState = readDevPreviewState();
     if (previewState) {
       setPhase("start");
@@ -1618,6 +1574,7 @@ export default function SukuyoCompatibilityAiClient() {
         ),
         { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
       );
+      if (!isCurrent()) return;
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
@@ -1644,6 +1601,7 @@ export default function SukuyoCompatibilityAiClient() {
         ...buildBillingGateInput(paymentPayload, idempotencyKey),
         resume: buildResume({ idempotencyKey, payload: packPaidResumeArg(payload) }),
       });
+      if (!isCurrent()) return;
       if (!isPaymentGranted(runtimeResult)) {
         const runtimeCode = String(runtimeResult.error?.code || "").toUpperCase();
         if (runtimeCode === "PAYMENT_CANCELLED") throw new Error("PAYMENT_CANCELLED");
@@ -1652,6 +1610,7 @@ export default function SukuyoCompatibilityAiClient() {
       const payment = extractPayment(runtimeResult, idempotencyKey);
       await startConsultation(idempotencyKey, { ...payment, billingGate: asRecord(runtimeResult.data) }, true);
     } catch (caught) {
+      if (!isCurrent()) return;
       const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
       const paymentCancelled = code === "PAYMENT_CANCELLED";
       // 이용권/결제 단계 실패에만 "이용권" 제목을 쓴다 — LLM/서버 오류까지 이용권 실패로 보이던 오표기 방지.
@@ -1957,7 +1916,7 @@ export default function SukuyoCompatibilityAiClient() {
           ) : (
             <div className={styles.resultPanel}>
               <div className={styles.resultHeader}>
-                <p><Moon size={15} /> 달빛 답장이 완성되었습니다</p>
+                <p><Moon size={15} /> {consultation?.status && consultation.status !== "completed" ? "저장된 답장을 읽으며 다음 장을 기다려 주세요" : "달빛 답장이 완성되었습니다"}</p>
                 <h2>결과 레이어에서 궁합을 확인하고 PDF로 저장할 수 있습니다</h2>
               </div>
               <div className={styles.actions}>
@@ -1965,13 +1924,19 @@ export default function SukuyoCompatibilityAiClient() {
                   <Moon size={18} />
                   달빛 답장 다시 열기
                 </button>
+                {consultation?.status && consultation.status !== "completed" && (
+                  <button type="button" className={styles.primaryButton} disabled={busy} onClick={() => void handleSubmit()}>
+                    이어서 생성하기
+                  </button>
+                )}
                 <button
                   type="button"
                   className={styles.ghostButton}
+                  disabled={busy}
                   onClick={() => {
                     setConsultation(null);
                     setResultOpen(false);
-                    submitKeyRef.current = "";
+                    submitKeyRef.current = ""; pendingGenerationRef.current = null;
                   }}
                 >
                   새 궁합 보기
@@ -1989,7 +1954,7 @@ export default function SukuyoCompatibilityAiClient() {
           )}
         </section>
       </section>
-      {phase === "start" && <MoonLoadingScreen basis={basis} />}
+      {phase === "start" && !result && <MoonLoadingScreen basis={basis} />}
       {result && resultOpen && (
         <CompatResultModal
           result={result}

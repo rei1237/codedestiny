@@ -347,7 +347,7 @@
 .documentStack {
   display: grid;
   gap: 18px;
-  scroll-margin-top: 24px;
+  scroll-margin-top: 84px;
 }
 
 .documentCard,

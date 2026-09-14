@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { authFetch } from "@/app/_lib/auth-client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { useSearchParams } from "next/navigation";
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
@@ -808,7 +810,7 @@ function useKarmaResultCopy(): KarmaResultCopy {
 }
 
 async function requestJson<T>(url: string, init: RequestInit | undefined, copy: KarmaResultCopy): Promise<T> {
-  const response = await fetch(url, {
+  const response = await authFetch(url, {
     credentials: "include",
     cache: "no-store",
     ...init,
@@ -819,7 +821,9 @@ async function requestJson<T>(url: string, init: RequestInit | undefined, copy: 
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok && payload?.ok !== true) {
-    throw new Error(payload?.message || copy.loadFailed);
+    const error = new Error(payload?.message || copy.loadFailed) as Error & { retryable?: boolean };
+    error.retryable = response.status === 503 && payload?.retryable === true;
+    throw error;
   }
   return payload as T;
 }
@@ -844,7 +848,9 @@ type Density = "full" | "summary";
 function KarmaDestinyResultInner() {
   const copy = useKarmaResultCopy();
   const searchParams = useSearchParams();
-  const sessionId = searchParams?.get("sessionId") || searchParams?.get("reportId") || searchParams?.get("attemptId") || searchParams?.get("idempotencyKey") || "";
+  const [recoveredSessionId, setRecoveredSessionId] = useState("");
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const sessionId = searchParams?.get("sessionId") || searchParams?.get("reportId") || searchParams?.get("attemptId") || searchParams?.get("idempotencyKey") || recoveredSessionId;
   const [result, setResult] = useState<KarmaResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [continuing, setContinuing] = useState(false);
@@ -870,7 +876,19 @@ function KarmaDestinyResultInner() {
   const generationStallRef = useRef({ lastChapters: -1, stalls: 0 });
   // 배치 락 TTL 390s(서버) 동안 다른 탭/죽은 isolate가 락을 쥐면 무진척 라운드(~1.2s)가 이어진다.
   // 390s를 견디도록 상한을 설정(≈0.8req/s — CF 10초당 100회 제한 대비 충분한 여유).
-  const maxGenerationStalls = 360;
+  const maxGenerationStalls = 48;
+  const transientFailuresRef = useRef(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    setResult(null); setError(""); setNotice(""); setRecoveredSessionId(""); setLoading(true); setContinuing(false);
+    batchInFlightRef.current = false; transientFailuresRef.current = 0; generationStallRef.current = { lastChapters: -1, stalls: 0 };
+    setOpenChapters(new Set()); setExpandedBodies(new Set()); setOpenEvidence(new Set()); setReadCount(0); readIdsRef.current = new Set();
+    setResumeEpoch(value => value + 1);
+  });
+  useEffect(() => {
+    const resume = () => { if (document.visibilityState !== "hidden") { transientFailuresRef.current = 0; generationStallRef.current.stalls = 0; setResumeEpoch(value => value + 1); } };
+    window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
 
   const report = useMemo(() => normalizeReport(result), [result]);
   // `report?.chapters || []` 를 그대로 쓰면 report 가 null 인 동안 매 렌더 새 배열이 되어
@@ -883,6 +901,7 @@ function KarmaDestinyResultInner() {
   const todayLine = useMemo(() => pickTodayLine(report?.keyLines || []), [report?.keyLines]);
 
   const loadResult = useCallback(async () => {
+    const isCurrent = captureOwner();
     const previewState = readDevPreviewState();
     if (previewState) {
       setResult(buildKarmaDestinyPreviewPayload(previewState) as KarmaResult);
@@ -890,24 +909,22 @@ function KarmaDestinyResultInner() {
       setLoading(false);
       return;
     }
-    if (!sessionId) {
-      setError(copy.sessionNotFound);
-      setLoading(false);
-      return;
-    }
     try {
       const payload = await requestJson<KarmaResult>(`/api/karma-destiny-ai/result?sessionId=${encodeURIComponent(sessionId)}`, undefined, copy);
+      if (!isCurrent()) return;
+      if (!sessionId && payload.sessionId) { setRecoveredSessionId(payload.sessionId); window.history.replaceState(null, "", `/karma-destiny-ai/result?sessionId=${encodeURIComponent(payload.sessionId)}`); }
       setResult(payload);
       setError("");
     } catch (caught) {
-      setError(friendlyErrorMessage(caught, copy.loadFailed));
+      if (isCurrent()) setError(friendlyErrorMessage(caught, copy.loadFailed));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [sessionId, copy]);
+  }, [sessionId, copy, captureOwner]);
 
   const continueGeneration = useCallback(async () => {
-    if (!sessionId || batchInFlightRef.current) return;
+    if (!sessionId || batchInFlightRef.current || document.visibilityState === "hidden") return;
+    const isCurrent = captureOwner();
     batchInFlightRef.current = true;
     setContinuing(true);
     try {
@@ -915,6 +932,8 @@ function KarmaDestinyResultInner() {
         method: "POST",
         body: JSON.stringify({ sessionId }),
       }, copy);
+      if (!isCurrent()) return;
+      transientFailuresRef.current = 0;
       const completed = Number(payload?.generationProgress?.completedChapters ?? 0);
       const stall = generationStallRef.current;
       if (completed > stall.lastChapters) {
@@ -924,33 +943,35 @@ function KarmaDestinyResultInner() {
         stall.stalls += 1;
       }
       setResult(payload);
-      if (payload?.status === "generating" && stall.stalls >= maxGenerationStalls) {
+      if (["generating", "partial", "delivery_pending"].includes(payload?.status || "") && stall.stalls >= maxGenerationStalls) {
         setError(copy.generationStalled);
       } else {
         setError("");
       }
     } catch (caught) {
-      setError(friendlyErrorMessage(caught, copy.generationHalted));
+      if (!isCurrent()) return;
+      transientFailuresRef.current += 1;
+      if ((caught instanceof TypeError || (caught as { retryable?: boolean })?.retryable) && transientFailuresRef.current < 6) setError("");
+      else setError(friendlyErrorMessage(caught, copy.generationHalted));
     } finally {
-      batchInFlightRef.current = false;
-      setContinuing(false);
+      if (isCurrent()) { batchInFlightRef.current = false; setContinuing(false); }
     }
-  }, [sessionId, copy]);
+  }, [sessionId, copy, captureOwner]);
 
   useEffect(() => {
     void loadResult();
-  }, [loadResult]);
+  }, [loadResult, resumeEpoch]);
 
   useEffect(() => {
-    if (result?.status !== "generating" || error) return undefined;
+    if (!["generating", "partial", "delivery_pending"].includes(result?.status || "") || error || document.visibilityState === "hidden") return undefined;
     const timer = window.setTimeout(() => {
       void continueGeneration();
-    }, continuing ? 2600 : 900);
+    }, continuing ? 2600 : transientFailuresRef.current ? 5000 : 2600);
     return () => window.clearTimeout(timer);
   }, [continueGeneration, continuing, error, result?.status, result?.generationProgress?.completedChapters]);
 
   useEffect(() => {
-    if (result?.status !== "completed" || !chapters.length) return;
+    if (!chapters.length) return;
     setOpenChapters((prev) => (prev.size ? prev : new Set(chapters.map((chapter) => chapter.id))));
   }, [chapters, result?.status]);
 
@@ -979,7 +1000,7 @@ function KarmaDestinyResultInner() {
   // 스크롤 스파이 — 섹션 탭·염주 레일·읽기 진행률·순차 등장을 옵저버 하나로 처리한다.
   // rootMargin/threshold 는 기존 튜닝값 그대로다(활성 판정이 이 값에 맞춰져 있다).
   useEffect(() => {
-    if (result?.status !== "completed" || !chapters.length || typeof IntersectionObserver === "undefined") return;
+    if (!chapters.length || typeof IntersectionObserver === "undefined") return;
     const visible = new Map<string, number>();
     const markRead = (id: string) => {
       if (exportingRef.current || readIdsRef.current.has(id)) return;
@@ -1020,7 +1041,7 @@ function KarmaDestinyResultInner() {
     nodes.forEach((node) => observer.observe(node));
     setActiveChapterId((prev) => prev || chapters[0]?.id || "");
     return () => observer.disconnect();
-  }, [chapters, density, result?.status, sessionId]);
+  }, [chapters, density, result?.status, sessionId, loading]);
 
   const copyText = async (text: string, message: string) => {
     await navigator.clipboard.writeText(text);
@@ -1034,7 +1055,7 @@ function KarmaDestinyResultInner() {
 
   const handleDownload = async () => {
     const element = document.getElementById("karma-premium-report");
-    if (!element || downloading) return;
+    if (!element || downloading || result?.status !== "completed") return;
     setDownloading(true);
     // 접힌 "더 읽기" 본문·미개봉 챕터·요약 모드가 PDF에서 잘리지 않도록 전부 펼친 뒤 캡처한다.
     setOpenChapters(new Set(chapters.map((chapter) => chapter.id)));
@@ -1117,7 +1138,7 @@ function KarmaDestinyResultInner() {
     );
   }
 
-  const isGenerating = result?.status === "generating";
+  const isGenerating = ["generating", "partial", "delivery_pending"].includes(result?.status || "");
   const isCompleted = result?.status === "completed";
   const summaryMode = density === "summary" && !exporting;
 
@@ -1158,11 +1179,12 @@ function KarmaDestinyResultInner() {
             {continuing ? <Loader2 size={17} className="kdai-spin" /> : <RefreshCw size={17} />}
             <span>{continuing ? copy.loaderContinuing : copy.loaderRetry}</span>
           </button>
+          {chapters.length > 0 && <a href="#karma-premium-report">{copy.tocButton}</a>}
           {error && <p className="kdai-inline-error">{error}</p>}
         </ObservatoryLoader>
       )}
 
-      {isCompleted && report && (
+      {(isCompleted || chapters.length > 0) && report && (
         <div className="kdo-observatory">
           <aside className={`kdai-toc ${tocOpen ? "is-open" : ""}`}>
             <div className="kdai-toc__head">
@@ -1203,7 +1225,7 @@ function KarmaDestinyResultInner() {
               <div className="kdai-report-actions">
                 <button type="button" onClick={() => setTocOpen(true)}><Menu size={17} /> {copy.tocButton}</button>
                 <button type="button" onClick={() => void copyAll()}><Copy size={17} /> {copy.copyAllButton}</button>
-                <button type="button" onClick={handleDownload} disabled={downloading}>
+                <button type="button" onClick={handleDownload} disabled={downloading || !isCompleted}>
                   {downloading ? <Loader2 size={17} className="kdai-spin" /> : <Download size={17} />}
                   {copy.pdfSaveButton}
                 </button>

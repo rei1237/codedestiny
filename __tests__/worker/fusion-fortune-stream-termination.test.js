@@ -88,6 +88,39 @@ async function drain(response) {
 
 describe("Fusion Fortune SSE stream termination", () => {
   for (const mode of ["null", "throw"]) {
+    it(`non-stream storage ${mode} fails before committing the generation`, async () => {
+      storageMode = mode;
+      let committed = false;
+      generateImpl = async ({ onDelivery }) => {
+        await onDelivery({ requestId: "storage-request", result: { title: "결과" }, stage: 1 });
+        committed = true;
+        return { ok: true, stage: 1, stageStatus: "partial" };
+      };
+      const response = await handleFusionFortuneRoutes(new Request("https://example.test/api/fusion-fortune/generate", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: "storage-request" }),
+      }), ENV, null);
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId: "storage-request" });
+      expect(committed).toBe(false);
+    });
+  }
+
+  it("runs only one stage per non-stream request and returns the same resume ID", async () => {
+    const stages = [];
+    generateImpl = async ({ onDelivery, stage, requestId }) => {
+      stages.push(stage);
+      await onDelivery({ requestId, stage, result: { title: "저장된 분석" } });
+      return { ok: true, requestId, stage, stageStatus: "partial" };
+    };
+    const response = await handleFusionFortuneRoutes(new Request("https://example.test/api/fusion-fortune/generate", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ requestId: "original-paid-id" }),
+    }), ENV, null);
+    expect(stages).toEqual([1]);
+    expect(response.status).toBe(202);
+    expect(await response.json()).toMatchObject({ requestId: "original-paid-id", nextStage: 2, consultationId: "saved-id" });
+  });
+
+  for (const mode of ["null", "throw"]) {
     it(`storage ${mode} never emits a successful result`, async () => {
       storageMode = mode;
       generateImpl = async ({ onDelivery }) => {

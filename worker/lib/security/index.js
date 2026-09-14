@@ -534,6 +534,8 @@ export function aiActionFromPath(path = "", serviceKey = "") {
   if (/\/(message|refine|chat)$/.test(normalized)) return "message";
   if (/\/basis$/.test(normalized)) return "basis";
   if (/\/(unlock|unlock-benefits)$/.test(normalized)) return "unlock";
+  // 계정·화면·온라인 복귀 때 한 번 조회하며 생성은 하지 않는다. 기존 read 100회/분 한도 적용.
+  if (service === "astrology-ai" && normalized === "/api/astrology-ai/pending") return "read";
   if (/\/(plan|badges|honey-drops|balance)$/.test(normalized)) return "read";
   // 서비스 루트(`/api/<service>` · 후행 슬래시 포함) — 일부 서비스가 `/plan` 별칭으로 쓴다.
   if (service && (normalized === `/api/${service}` || normalized === `/api/${service}/`)) return "read";
