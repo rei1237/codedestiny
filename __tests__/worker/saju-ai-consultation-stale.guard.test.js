@@ -58,6 +58,10 @@ describe("2-스트라이크 환불 판정", () => {
   const now = new Date("2026-08-14T00:10:00.000Z");
   const at = (msAgo) => new Date(now.getTime() - msAgo).toISOString();
 
+  test("읽기로 회수한 중단 기록도 생성 실패 스트라이크로 세지 않는다", () => {
+    expect(resolveSajuAIPromptFailureBilling({ status: "generation_failed", error: { code: "STALE_GENERATION_RECOVERED" } }, now).refundOnFailure).toBe(false);
+  });
+
   test("첫 시도의 실패는 환불하지 않는다 — 결제를 보존해야 무료 재시도가 실제로 열린다", () => {
     expect(resolveSajuAIPromptFailureBilling(null, now).refundOnFailure).toBe(false);
     expect(resolveSajuAIPromptFailureBilling({ status: "generating", updatedAt: at(1000) }, now).refundOnFailure).toBe(false);

@@ -1,4 +1,5 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import { PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "./analysis-basis-contract.js";
 import { buildEvidenceRuleLines } from "./fortune-reasoning-contract.js";
 import {
@@ -20,7 +21,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = 200;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v6";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v7";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -42,8 +43,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 1, title: "질문에 대한 핵심 답변" }),
       Object.freeze({ no: 2, title: "이 명식의 중심 성향" }),
     ]),
-    minChars: 3000,
-    maxChars: 4600,
+    minChars: 4000,
+    maxChars: 5600,
     guide: "사용자의 질문에 첫 문단에서 바로 답한 뒤, 이 명식이 반복시키는 중심 성향과 그것이 삶에서 드러나는 장면을 풀어 주세요.",
   }),
   Object.freeze({
@@ -53,8 +54,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 3, title: "십성 구조 해석" }),
       Object.freeze({ no: 4, title: "오행 균형 해석" }),
     ]),
-    minChars: 3000,
-    maxChars: 4600,
+    minChars: 4000,
+    maxChars: 5600,
     guide: "확정표에 적힌 십성만 써서 구조를 읽고, 오행의 과한 곳과 부족한 곳이 일상에서 어떻게 함께 드러나는지 이어 주세요.",
   }),
   Object.freeze({
@@ -64,8 +65,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 5, title: "현재 고민과 명식의 연결" }),
       Object.freeze({ no: 6, title: "일/돈/관계/연애/건강 리듬" }),
     ]),
-    minChars: 3200,
-    maxChars: 4800,
+    minChars: 4000,
+    maxChars: 5600,
     guide: "지금의 고민을 명식의 어느 자리가 만들고 있는지 짚고, 일·돈·관계·연애·건강 다섯 영역의 리듬을 각각 구체적 장면으로 보여 주세요.",
   }),
   Object.freeze({
@@ -75,8 +76,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 7, title: "대운의 전환점" }),
       Object.freeze({ no: 8, title: "올해의 흐름" }),
     ]),
-    minChars: 3000,
-    maxChars: 4600,
+    minChars: 4000,
+    maxChars: 5600,
     guide: "지나온 대운과 지금 대운, 다음 대운이 각각 어떤 성격의 시기인지 나누고, 그 사이의 전환점에서 실제로 무엇이 바뀌었고 무엇이 바뀔지 짚어 주세요. 이어서 올해의 세운이 원국의 어느 자리를 건드리는지 밝히고, 상반기와 하반기의 결이 어떻게 다른지 구분해 주세요. 다른 챕터에서 다루는 성향·구조·영역별 리듬을 다시 설명하지 말고, 여기서는 **시기의 순서**만 다루세요. '좋아진다/나빠진다'로 뭉뚱그리지 말고 어느 달·어느 시기에 무엇을 하면 유리하고 무엇을 미루는 편이 나은지로 쓰세요.",
   }),
   Object.freeze({
@@ -88,8 +89,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 11, title: "30일 실천 가이드" }),
       Object.freeze({ no: 12, title: "마지막 한마디" }),
     ]),
-    minChars: 3000,
-    maxChars: 4600,
+    minChars: 4000,
+    maxChars: 5600,
     guide: "반복되는 손해 패턴을 먼저 짚고, 그것을 뒤집는 전략과 30일 안에 실제로 해볼 행동으로 좁힌 뒤, 마지막 한마디로 따뜻하지만 가볍지 않게 닫아 주세요.",
   }),
 ]);
@@ -99,17 +100,11 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
  * 2,000자 덮는다 — 소제목·줄바꿈 몫과 토크나이저 오차를 흡수하는 완충이다.
  * (같은 값의 선례: worker/routes/astrology-ai.js ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS)
  */
-export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 9600;
+export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 11000;
 
-/**
- * 조립본의 유료 배달 하한. 그룹 minChars 합(15,200)의 약 76%다
- * (인생의 책 80% / 자미두수 55% 사이).
- *
- * 🔴 이 값은 "배달을 막는 문턱"이 아니라 "웨이브2를 돌게 만드는 신호"다. 미달이어도 기존
- *    경량 보장(렌더 가능 텍스트 ≥400자 salvage)이 그대로 결과를 전달하므로 환불률을 올리지
- *    않는다. salvage 를 지우면 이 상수가 곧바로 환불 문턱으로 돌변한다.
- */
-export const SAJU_AI_MIN_RESULT_CHARS = 11500;
+// New reports complete only after all chapter bodies meet this floor and storage is confirmed.
+// Historical purchased reports keep their existing read contract.
+export const SAJU_AI_MIN_RESULT_CHARS = PAID_REPORT_MIN_BODY_CHARS;
 
 export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
   career: Object.freeze({

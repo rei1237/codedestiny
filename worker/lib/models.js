@@ -820,7 +820,7 @@ const paidExecutionRecordSchema = new mongoose.Schema({
   orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   status: {
     type: String,
-    enum: ["paid_pending_generation", "generating", "completed", "generation_failed", "refunded", "cancelled"],
+    enum: ["paid_pending_generation", "generating", "partial", "delivery_pending", "completed", "generation_failed", "refunded", "cancelled"],
     default: "paid_pending_generation",
     index: true,
   },

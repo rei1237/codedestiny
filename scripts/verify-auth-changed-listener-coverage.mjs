@@ -137,6 +137,11 @@ const REGISTRY = {
     verdict: "benign",
     why: "이전 사용자의 결제 증거를 메모리에서 지우는 것뿐. 되울림에 돌아도 부작용이 없고, 안 도는 것이 오히려 위험하다.",
   },
+  "js/saju-engine.js#1": {
+    expr: "discardForAccountChange",
+    verdict: "filtered",
+    why: "실제 계정 변경에서 상담 본문과 진행 중 응답을 폐기한다. 이용권 상태 되울림은 무시한다.",
+  },
   "js/share.js#0": {
     expr: "function(){",
     verdict: "benign",

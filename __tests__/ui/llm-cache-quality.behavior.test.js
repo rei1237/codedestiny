@@ -46,3 +46,20 @@ test("a failed generation never poisons the next retry cache", async () => {
   assert.equal(result.truncated, true);
   assert.equal(saves, 0);
 });
+
+test("skipRead bypasses a poisoned cache but still writes the repaired result", async () => {
+  const complete = { text: "회복된 상담 본문".repeat(30), provider: "gemini" };
+  let saved;
+  await withLLMCache({ prompt: "skip-read" }, async () => complete, {
+    deterministic: true, skipRead: true, minChars: 100,
+    store: { get: async () => { throw new Error("must skip reads"); }, set: async (_key, value) => { saved = value; } },
+  });
+  assert.equal(saved, complete);
+});
+
+test("even a long truncated response is never cached", async () => {
+  await withLLMCache({ prompt: "long-truncated" }, async () => ({ text: "미완성본문".repeat(100), truncated: true }), {
+    deterministic: true, minChars: 100,
+    store: { get: async () => null, set: async () => { assert.fail("truncated result cached"); } },
+  });
+});

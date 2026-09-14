@@ -159,7 +159,8 @@ function fakeGroupBody(group, visibleChars) {
   const share = Math.ceil(visibleChars / group.chapters.length);
   return group.chapters.map((chapter, index) => {
     let body = "";
-    while (body.replace(/\s+/g, "").length < share) body += filler;
+    let paragraph = 0;
+    while (body.replace(/\s+/g, "").length < share) body += `${chapter.no}장 ${++paragraph}번째 장면: ${filler}`;
     const closing = index === group.chapters.length - 1 ? "\n오늘부터 한 걸음씩 옮겨 보시길 바랍니다." : "";
     return `${chapter.no}. ${chapter.title}\n${body}${closing}`;
   }).join("\n\n");
