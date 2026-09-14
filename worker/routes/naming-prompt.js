@@ -1,4 +1,6 @@
 import { requireAuth } from "../lib/auth.js";
+import { randomUUID } from "node:crypto";
+import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
@@ -570,7 +572,7 @@ export function buildGeneratedPrompt(input, saju, locale = NAMING_DEFAULT_LOCALE
   // 사주 계산이 실패한 2차 폴백에서는 명식 자리에 "계산 실패" 문자열이 들어간다. 그대로 두면
   // 모델이 그 문자열을 명식으로 읽는다 — 무엇을 해야 하는지 명시한다.
   const sajuFailureNote = String(saju.source || "") === "input-fallback"
-    ? "\n12. 🔴 **사주 자동 계산 실패**: 아래 [사주 계산 결과]의 명식 칸이 \"계산 실패\"로 채워져 있습니다. 그 문자열을 명식으로 읽지 말고, [사용자 정보]의 생년월일·시각·양음력으로 직접 명식을 세운 뒤 용신을 도출하세요. 시각이 미상이면 년·월·일주만으로 진행하고 그 한계를 밝히세요."
+    ? "\n12. 🔴 **사주 자동 계산 실패**: 아래 [사주 계산 결과]의 명식 칸이 \"계산 실패\"로 채워져 있습니다. 그 문자열을 명식으로 읽거나 직접 명식·용신을 계산하지 마세요. 계산 근거 확인이 필요함을 밝히고, 확인되지 않은 기둥·십성·용신은 해설하지 마세요."
     : "";
   const seedNote = hasSeedNames
     ? "\n10. **사용자 후보 이름 있음**: 아래 [사용자 이름 선호]의 후보 이름들을 4장에서 먼저 평가한 뒤, 더 좋은 이름 3~5개를 새로 제안해 함께 다루세요. 무료 입력 단계의 초안이 있었다면 참고안으로만 보고 반드시 사주와 작명 원칙으로 다시 검토하세요."
@@ -586,7 +588,7 @@ ${profile.promptContract}
 
 1. **용신(用神) 최우선**: 이름의 모든 요소(${profile.nameLayers})는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. ${profile.layerTiebreak}
 ${genderNote}
-3. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 제공된 용신 후보를 검증하되, 판단이 다르다면 근거와 함께 수정하세요.
+3. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 계산된 용신 후보는 수정하지 마세요. 억부·조후 해석이 다르면 각각의 적용 조건과 한계를 설명하세요.
 ${profile.legalCharRule}
 ${profile.modernBalanceRule}
 ${profile.uncertaintyRule}
@@ -607,7 +609,7 @@ ${profile.uncertaintyRule}
 ---
 
 ## [사주 계산 결과]
-> 아래는 사주 엔진(${saju.source}${saju.engineVersion ? ` / ${saju.engineVersion}` : ""})이 계산한 결과입니다. 이 데이터를 기반으로 용신을 검증하고 작명에 반영하세요.
+> 아래는 사주 엔진(${saju.source}${saju.engineVersion ? ` / ${saju.engineVersion}` : ""})이 계산한 결과입니다. 이 계산값을 변경하지 않고 근거와 적용 조건을 설명하여 작명에 반영하세요.
 > 사주 스냅샷 해시: ${saju.sajuEvidenceHash || "보조 계산 기준"}
 
 ### 사주 명식 (四柱 命式)
@@ -629,7 +631,7 @@ ${profile.uncertaintyRule}
 ---
 
 ## [용신 판단 근거 — 검증 요청]
-아래는 사주 엔진이 도출한 용신/기신 후보입니다. **당신의 전문 지식으로 검증하고, 다르게 판단된다면 근거와 함께 수정하세요.**
+아래는 사주 엔진이 도출한 용신/기신 후보입니다. **계산값을 재계산하거나 수정하지 말고, 억부·조후의 적용 조건과 상충하는 해석의 한계를 설명하세요.**
 
 - 억부용신 후보: ${saju.eokbuYongshin || "메인 사주 계산 기준 확인"}
 - 조후용신 후보: ${saju.johuYongshin || "메인 사주 계산 기준 확인"}
@@ -681,7 +683,7 @@ ${desiredNamesMarkdown(input.desiredNames)}
 (이 사주를 처음 펼쳐 본 작명가의 첫인상. 어떤 기운을 타고났고, 이름이 무엇을 채워줘야 하는지를 부모에게 말하듯 서너 문단으로.)
 
 ## 2. 사주 풀이와 용신 검증
-(명식·오행 분포·신강약·조후를 풀고, 위 용신/기신 후보를 검증한 결과를 동의/수정 근거와 함께. 목록 활용.)
+(명식·오행 분포·신강약·조후를 풀고, 위 용신/기신 후보를 계산값 그대로 유지하면서 판단 근거와 적용 조건을 함께. 목록 활용.)
 
 ## 3. 이 아이의 작명 원칙
 (이 사주에 맞춘 구체적 기준 — 담을 오행과 피할 오행, ${profile.principleAxes}, 성별·선호 반영 방침.)
@@ -1194,7 +1196,8 @@ function serializeExecutionResult(record) {
   const namingPrompt = record?.result?.namingPrompt || record?.result || null;
   // 구버전 작명 흐름은 generatedResult 없이 generatedPrompt(프롬프트 문자열)만 저장했다 —
   // 그 레코드가 null로 떨어지면 기존 구매자가 결제한 결과를 다시 못 본다. 프롬프트로 폴백 렌더.
-  const generatedResult = String(namingPrompt?.generatedResult || namingPrompt?.generatedPrompt || "");
+  const generatedResult = String(namingPrompt?.generatedResult || (record?.status === "completed" ? namingPrompt?.generatedPrompt : "") || "");
+  if (record?.status !== "completed") return null;
   if (!generatedResult) return null;
   return {
     id: String(record.executionId || record._id || ""),
@@ -1282,60 +1285,44 @@ function buildExecutionBaseFields(auth, access, inputHash, executionId) {
 async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, now) {
   await connectDb(env);
   const executionId = await buildExecutionId(auth, inputHash, access);
+  const owner = { executionId, userId: String(auth.userId) };
   const base = buildExecutionBaseFields(auth, access, inputHash, executionId);
-  const before = await PaidExecutionRecord.findOneAndUpdate(
-    { executionId },
-    {
-      $setOnInsert: {
-        ...base,
-        createdAt: now,
-        updatedAt: now,
-        consumedAt: null,
-        status: "generating",
-        result: {
-          namingPrompt: {
-            version: RESULT_VERSION,
-            productType: PRODUCT_TYPE,
-            inputHash,
-            inputSnapshot: input,
-            sajuSnapshot,
-            generatedPrompt,
-            generatedResult: "",
-            generatedAt: null,
-            accessMethod: access.accessMethod,
-            evidenceId: access.evidenceId,
-          },
-        },
-      },
-    },
-    { upsert: true, returnDocument: "before", timestamps: false },
-  ).lean();
-
-  if (!before) return { state: "claimed", executionId };
-  if (before.status === "completed" && (before.result?.namingPrompt?.generatedResult || before.result?.namingPrompt?.generatedPrompt)) {
-    return { state: "completed", result: serializeExecutionResult(before) };
+  const lease = randomUUID();
+  const seed = { version: RESULT_VERSION, productType: PRODUCT_TYPE, inputHash, inputSnapshot: input, sajuSnapshot,
+    generatedPrompt, generatedResult: "", generatedAt: null, accessMethod: access.accessMethod, evidenceId: access.evidenceId, deliveryLease: lease };
+  const before = await PaidExecutionRecord.findOneAndUpdate(owner, { $setOnInsert: {
+    ...base, createdAt: now, updatedAt: now, consumedAt: null, status: "generating", result: { namingPrompt: seed },
+  } }, { upsert: true, returnDocument: "before", timestamps: false }).lean();
+  if (!before) {
+    const inserted = await PaidExecutionRecord.findOne(owner).lean();
+    if (!inserted || inserted.result?.namingPrompt?.deliveryLease !== lease) throw namingStorageUnavailable(executionId);
+    return { state: "claimed", executionId, lease };
   }
-  const updatedAtMs = new Date(before.updatedAt || before.createdAt || 0).getTime();
-  const fresh = Number.isFinite(updatedAtMs) && (Date.now() - updatedAtMs) < NAMING_GENERATION_FRESHNESS_MS;
-  if (before.status === "generating" && fresh) {
-    return { state: "in_flight", executionId };
-  }
-  // 실패했거나 오래된 generating 잔재 → 소유권을 되찾아 재생성.
-  const claimed = await PaidExecutionRecord.findOneAndUpdate(
-    { _id: before._id, status: before.status, updatedAt: before.updatedAt || null },
-    {
-      $set: {
-        status: "generating",
-        error: null,
-        "result.namingPrompt": { version: RESULT_VERSION, productType: PRODUCT_TYPE,
-          inputHash, inputSnapshot: input, sajuSnapshot, generatedPrompt, generatedResult: "",
-          generatedAt: null, accessMethod: access.accessMethod, evidenceId: access.evidenceId },
-      },
-    },
-    { returnDocument: "after" },
-  ).lean();
+  if (["refunded", "cancelled"].includes(before.status)) throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
+  if (before.status === "completed") return { state: "completed", result: serializeExecutionResult(before) };
+  const snapshot = before.result?.namingPrompt || seed;
+  const fresh = Date.now() - new Date(before.updatedAt || before.createdAt || 0).getTime() < NAMING_GENERATION_FRESHNESS_MS;
+  if (fresh && (snapshot.deliveryLease || (before.status === "generating" && snapshot.deliveryLease === undefined))) return { state: "in_flight", executionId };
+  const pending = Boolean(snapshot.generatedResult);
+  const claimed = await PaidExecutionRecord.findOneAndUpdate({ ...owner, status: before.status, updatedAt: before.updatedAt || null }, {
+    $set: { status: pending ? "delivery_pending" : "generating", error: null,
+      "result.namingPrompt": { ...snapshot, deliveryLease: lease } },
+  }, { returnDocument: "after" }).lean();
   if (!claimed) return { state: "in_flight", executionId };
-  return { state: "claimed", executionId };
+  return { state: pending ? "delivery_pending" : "claimed", executionId, lease, snapshot };
+}
+
+function namingStorageUnavailable(executionId) {
+  return Object.assign(new Error("Result storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE", status: 503, resultId: executionId });
+}
+async function saveNamingDelivery(filter, fields) {
+  try {
+    const written = await PaidExecutionRecord.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!written) throw namingStorageUnavailable(filter.executionId);
+    const confirmed = await PaidExecutionRecord.findOne({ executionId: filter.executionId, userId: filter.userId }).lean();
+    if (!confirmed || Object.entries(fields).some(([key, value]) => JSON.stringify(confirmed[key]) !== JSON.stringify(value))) throw namingStorageUnavailable(filter.executionId);
+    return confirmed;
+  } catch { throw namingStorageUnavailable(filter.executionId); }
 }
 
 /**
@@ -1429,17 +1416,14 @@ async function generateNamingResult(env, prompt) {
   };
 }
 
-async function markNamingGenerationFailed(env, executionId, error) {
-  await connectDb(env);
-  await PaidExecutionRecord.updateOne(
-    { executionId },
+async function markNamingGenerationFailed(env, executionId, error, userId, lease) {
+  await saveNamingDelivery(
+    { executionId, userId, status: "generating", "result.namingPrompt.deliveryLease": lease },
     {
-      $set: {
         status: "generation_failed",
         error: { message: clean(error?.message, 300), code: clean(error?.code, 80) },
-      },
     },
-  ).catch(() => {});
+  );
 }
 
 // 월정석만 하드 환불한다(love-secret-ai.js와 동일 전략). 단건/이용권은 환불하지 않고 재시도로 회복 —
@@ -1550,21 +1534,18 @@ async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSn
       evidenceId: access.evidenceId,
     },
   };
-  const record = await PaidExecutionRecord.findOneAndUpdate(
-    { executionId },
-    {
-      $setOnInsert: base,
-      $set: {
-        status: "completed",
-        consumedAt: generatedAt,
-        completedAt: generatedAt,
-        error: null,
-        result,
-      },
-    },
-    { upsert: true, returnDocument: "after" },
-  ).lean();
-  return record;
+  const owner = { executionId, userId: String(auth.userId), status: { $nin: ["completed", "refunded", "cancelled"] } };
+  const current = await PaidExecutionRecord.findOne({ executionId, userId: String(auth.userId) }).lean();
+  const lease = llmMeta.deliveryLease || current?.result?.namingPrompt?.deliveryLease;
+  if (!lease) throw namingStorageUnavailable(executionId);
+  const filter = { ...owner, "result.namingPrompt.deliveryLease": lease };
+  result.namingPrompt.deliveryLease = lease;
+  await saveNamingDelivery(filter, { status: "delivery_pending", result });
+  if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [base.requestId, base.idempotencyKey, base.paymentId, base.orderId])) {
+    throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
+  }
+  result.namingPrompt.deliveryLease = "";
+  return saveNamingDelivery(filter, { status: "completed", consumedAt: generatedAt, completedAt: generatedAt, error: null, result });
 }
 
 async function handleCheckout(request, env) {
@@ -1625,6 +1606,9 @@ async function handleGenerate(request, env, ctx = null) {
   }
   const access = await verifyNamingAccess(env, auth, body, inputHash);
 
+  if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [access.requestId, access.evidenceId, access.paymentId])) {
+    throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
+  }
   const payment = access.payment || null;
   const existing = payment ? serializeResult(payment) : null;
   if (existing) {
@@ -1635,6 +1619,9 @@ async function handleGenerate(request, env, ctx = null) {
   }
 
   const executionId = await buildExecutionId(auth, inputHash, access);
+  if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [executionId, access.requestId, access.evidenceId, access.paymentId])) {
+    throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
+  }
   const existingExecution = await findExecutionResultForUser(env, auth, executionId);
   if (existingExecution) {
     if (existingExecution.inputHash !== inputHash) {
@@ -1650,7 +1637,9 @@ async function handleGenerate(request, env, ctx = null) {
   const generatedPrompt = buildGeneratedPrompt(input, sajuSnapshot, body.locale);
   const claimedAt = new Date();
 
-  const claim = await beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, claimedAt);
+  let claim;
+  try { claim = await beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, claimedAt); }
+  catch (error) { if (error?.code === "PAYMENT_REVOKED") throw error; throw namingStorageUnavailable(executionId); }
   if (claim.state === "completed") {
     return json({ ok: true, idempotent: true, result: claim.result });
   }
@@ -1662,19 +1651,28 @@ async function handleGenerate(request, env, ctx = null) {
       message: NAMING_GENERATING_MESSAGE,
     }, { status: 202 });
   }
+  const deliveryInput = claim.snapshot?.inputSnapshot || input;
+  const deliverySaju = claim.snapshot?.sajuSnapshot || sajuSnapshot;
+  const deliveryPrompt = claim.snapshot?.generatedPrompt || generatedPrompt;
 
   // LLM 생성 + 결과 저장 파이프라인. 성공 시 실행 레코드를 반환하고, 실패 시 generation_failed 기록·
   // 접근권 회복(월정석 환불/단건·이용권은 재시도로 회복)을 마친 뒤 재throw한다. 이 클로저는 즉시-202
   // 백그라운드(waitUntil)와 동기 폴백 양쪽에서 그대로 재사용되므로, 실패 처리를 반드시 내부에 둔다.
   const runGeneration = async () => {
+    let generatedBodyReady = false;
     try {
-      const generated = await generateNamingResult(env, generatedPrompt);
+      const generated = claim.state === "delivery_pending"
+        ? { text: claim.snapshot.generatedResult, provider: claim.snapshot.provider, model: claim.snapshot.model }
+        : await generateNamingResult(env, deliveryPrompt);
+      generatedBodyReady = true;
       // 이름 카드 블록을 본문에서 분리한다. 파싱 실패 시 카드 없이 원문 그대로(조용한 강등).
-      const parsed = parseNamingResultCards(generated.text);
+      const parsed = claim.state === "delivery_pending"
+        ? { cleanText: generated.text, cards: claim.snapshot.nameCards || [], finalPick: claim.snapshot.finalPick || null }
+        : parseNamingResultCards(generated.text);
       const generatedAt = new Date();
       const execution = await upsertExecutionRecord(
-        env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, parsed.cleanText, generatedAt,
-        { provider: generated.provider, model: generated.model, nameCards: parsed.cards, finalPick: parsed.finalPick },
+        env, auth, access, inputHash, deliveryInput, deliverySaju, deliveryPrompt, parsed.cleanText, generatedAt,
+        { provider: generated.provider, model: generated.model, nameCards: parsed.cards, finalPick: parsed.finalPick, deliveryLease: claim.lease },
       );
       if (payment?._id) {
         await mirrorNamingResultToPayment(payment._id, {
@@ -1695,7 +1693,9 @@ async function handleGenerate(request, env, ctx = null) {
       }
       return execution;
     } catch (error) {
-      await markNamingGenerationFailed(env, claim.executionId, error);
+      if (error?.code === "RESULT_STORAGE_UNAVAILABLE" || error?.code === "PAYMENT_REVOKED") throw error;
+      if (generatedBodyReady) throw namingStorageUnavailable(claim.executionId);
+      await markNamingGenerationFailed(env, claim.executionId, error, String(auth.userId), claim.lease);
       // 월정석은 하드 환불되지만 단건결제/이용권은 환불이 아니라 재시도로 회복한다 —
       // 같은 결제/이용권 증거로 /generate를 다시 호출하면 실패 레코드를 인계해 추가 차감 없이 재생성한다.
       await restoreNamingAccessOnFailure(env, auth, access);
@@ -1712,7 +1712,9 @@ async function handleGenerate(request, env, ctx = null) {
       idempotent: false,
       result: serializeExecutionResult(execution),
     }, { status: 201 });
-  } catch {
+  } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId: claim.executionId, executionId: claim.executionId, message: "작명 결과 저장을 확인하지 못했어요. 같은 결과를 이어서 확인해 주세요." }, { status: 503 });
+    if (error?.code === "PAYMENT_REVOKED") return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
     // retryable을 명시해 클라이언트가 무결과로 멈추지 않고 자동 재시도하도록 신호한다.
     return json({
       ok: false,
@@ -1721,6 +1723,8 @@ async function handleGenerate(request, env, ctx = null) {
       message: NAMING_LLM_ERROR_MESSAGE,
       retryable: true,
     }, { status: 503 });
+  } finally {
+    await PaidExecutionRecord.updateOne({ executionId: claim.executionId, userId: String(auth.userId), "result.namingPrompt.deliveryLease": claim.lease, status: { $ne: "completed" } }, { $set: { "result.namingPrompt.deliveryLease": "" } }).catch(() => {});
   }
 }
 
@@ -1728,7 +1732,10 @@ async function handleResult(request, env, id) {
   const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const record = await findExecutionRecordForUser(env, auth, id);
   if (record) {
-    if (record.status === "generating") {
+    if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [record.requestId, record.idempotencyKey, record.paymentId, record.orderId])) {
+      throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
+    }
+    if (["generating", "delivery_pending"].includes(record.status)) {
       // 생성 isolate가 도중에 죽으면 레코드가 generating으로 고착돼 GET /result가 영원히 202를 준다.
       // freshness 창을 넘긴 generating은 재개 불가로 보고 재시도 신호를 준다 —
       // 클라이언트가 같은 결제/이용권 증거로 /generate를 다시 호출하면 beginNamingGeneration이 인계·재생성한다.
@@ -1782,6 +1789,7 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
     }
     return methodNotAllowed();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId, executionId: error.resultId }, { status: 503 });
     return handleRouteError(error, {
       request,
       env,

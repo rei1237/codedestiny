@@ -69,8 +69,8 @@ const SAJU = Object.freeze({
 });
 
 describe("작명 프롬프트 로케일 분기", () => {
-  test("ko 프롬프트는 분기 도입 전과 바이트 단위로 같다", () => {
-    const golden = readFileSync(GOLDEN, "utf8");
+  test("ko 프롬프트는 승인된 계산 근거 고정 계약과 같다", () => {
+    const golden = readFileSync(GOLDEN, "utf8").replace(/\r\n/g, "\n");
     expect(buildGeneratedPrompt(INPUT, SAJU, "ko")).toBe(golden);
   });
 
