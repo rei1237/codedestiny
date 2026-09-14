@@ -195,6 +195,7 @@ describe("예전에 보안 계층을 통째로 빠져나가던 경로", () => {
     ["neo-operation-room", "/api/neo-operation-room/badges/balance"],
     ["ziwei-deep-report", "/api/ziwei-deep-report/plan"],
     ["master-love-codex", "/api/master-love-codex/plan"],
+    ["astrology-ai", "/api/astrology-ai/pending"],
   ])("GET %s%s 는 read 버킷이고 405 가 아니다", async (serviceKey, pathname) => {
     const { result, endpoints } = await callAiSecurity(serviceKey, pathname, "GET");
     expect(result.ok).toBe(true);
