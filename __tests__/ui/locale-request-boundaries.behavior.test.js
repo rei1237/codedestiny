@@ -228,6 +228,7 @@ function sajuFixture() {
     locale: 'ko', localeEpoch: 0, pollingEpoch: 0, rootEl: { isConnected: true },
     pollTimer: null, pollAttempts: 0, pollErrorStreak: 0, pollNotFoundStreak: 0, POLL_MAX_ATTEMPTS: 120,
     activePendingJob: null, requestLocale: 'ko', requestInFlight: false, resumeBtn: null,
+    _sajuPromptOwnerId: () => 'fixture-owner',
     setTimeout: fn => { timers.set(++id, fn); return id; }, clearTimeout: key => timers.delete(key),
     stopProgress() {}, setLoading() {}, setProgress() {},
     rememberPendingJob: job => { ctx.activePendingJob = job; },

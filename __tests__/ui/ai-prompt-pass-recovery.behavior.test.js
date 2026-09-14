@@ -171,6 +171,7 @@ async function routeFixture(name) {
     readSajuAIPromptPaymentIdentity: () => ({ paymentId: '', orderId: input.requestId }),
     buildSajuAIPromptExecutionId: () => 'fixture-execution',
     findSajuAIExecutionForRead: async () => ({ status: 'completed' }),
+    PaidExecutionRecord: { findOne: () => ({ lean: async () => ({ status: 'completed' }) }) },
     normalizeSajuAIStoredResult: () => ({ ok: true, resultText: 'stored saju result' }),
     handlePigCoinConsume: async request => {
       const body = await request.json();
