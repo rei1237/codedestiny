@@ -200,10 +200,9 @@ check(
 );
 const aiSource = read("worker/routes/pet-saju-ai.js");
 check(/requirePremiumReportAccess/.test(aiSource), "유료 라우트는 requirePremiumReportAccess로 결제를 검증해야 한다");
-check(
-  aiSource.indexOf("resolveAccess") < aiSource.indexOf("generateNarration"),
-  "유료 라우트는 LLM 호출보다 먼저 결제를 검증해야 한다",
-);
+// Provider execution now belongs to the shared checkpoint runner. The route's
+// access-before-provider behavior is exercised by pet-paid-delivery.test.js.
+check(/verify:\s*original\s*=>\s*resolveAccess/.test(aiSource), "저장·재개 실행기는 기존 결제 검증 함수를 받아야 한다");
 check(!/ctx\.waitUntil/.test(stripComments(aiSource)), "유료 라우트는 waitUntil 백그라운드 생성을 쓰지 않는다(동기 반환)");
 check(!/paymentMode/.test(aiSource), "라우트에 paymentMode 하드코딩 금지(이용권 선검사 스킵·월정석 소거)");
 

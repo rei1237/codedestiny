@@ -1,5 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
+import { HttpError } from '../../worker/lib/http.js';
 let route,docs,provider,revoked,userId,fault,lost,external,kind,mode;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -19,7 +20,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>({ok:true,accessType:mode})}));
+ jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  ({handlePetSajuAiRoutes:route}=await import('../../worker/routes/pet-saju-ai.js'));
@@ -35,6 +36,10 @@ const pet={name:'나비',species:'cat',birthDate:'2020-01-01',birthTimeUnknown:t
 const original=()=>({requestId:'original-paid-request',date:'2026-09-15',transactionId:'paid-'+mode,...(kind==='report'?{pet}:{petA:pet,petB:{...pet,name:'달이',birthDate:'2021-02-02'}})});
 const post=body=>route(new Request('https://mock.test/api/pet-saju-ai/'+kind,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{});
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
+test('access rejection prevents initial and resumed provider calls',async()=>{
+ mode='denied';expect((await start()).status).toBe(403);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
+ mode='pass';await start();const calls=provider.mock.calls.length;mode='denied';expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(calls);
+});
 async function finish(){let response;for(let n=0;n<8;n++){response=await resume();if(response.status!==202)break;}return response;}
 test.each(['report','compat'].flatMap(type=>['pass','monthly','single'].map(mode=>[type,mode])))('%s %s saves a real report and reopens without regeneration',async(type,access)=>{
  kind=type;mode=access;expect((await start()).status).toBe(202);expect((await finish()).status).toBe(200);const count=provider.mock.calls.length;
