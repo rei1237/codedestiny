@@ -4444,6 +4444,7 @@ function publicFortuneTeaStoredResult(doc, fallback = {}) {
   const resultId = cleanText(stored.resultId || doc?.resultId || fallback.resultId, 180);
   return {
     ...stored,
+    ...(!doc?.honeyLetter && ["pending", "refund_pending"].includes(doc?.honeyLetterDelivery?.status) ? { honeyLetterPending: true } : {}),
     resultId,
     serviceScope: cleanText(stored.serviceScope || doc?.serviceScope || fallback.serviceScope, 80) || FORTUNE_TEA_HOUSE_SCOPE,
     consultationMode: normalizeConsultationMode(stored.consultationMode || doc?.consultationMode || fallback.consultationMode),
@@ -5152,19 +5153,19 @@ async function generateHoneyLetter(resultDoc, env) {
   throw lastError || new Error("honey letter quality failed");
 }
 
-async function refundHoneyLetterSpend({ userId, resultId, consultationMode, idempotencyKey, spendLedgerId, reason }) {
+async function refundHoneyLetterSpend({ userId, resultId, consultationMode, idempotencyKey, spendLedgerId, receiptPath, receiptToken, reason }) {
   const now = new Date();
   const { wallets, ledgers } = honeyCollections();
   await wallets.updateOne(
-    { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE },
+    { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, [`${receiptPath}.token`]: receiptToken, [`${receiptPath}.status`]: "charged" },
     {
       $inc: { balance: HONEY_LETTER_COST, totalSpent: -HONEY_LETTER_COST },
-      $set: { updatedAt: now },
+      $set: { updatedAt: now, [`${receiptPath}.status`]: "refunded" },
     },
   );
   try {
     await ledgers.insertOne({
-      _id: `refund:${userId}:${resultId}:${idempotencyKey}`,
+      _id: `refund:${spendLedgerId}`,
       userId,
       type: "refund",
       amount: HONEY_LETTER_COST,
@@ -5224,148 +5225,116 @@ async function handleHoneyLetter(request, env, path) {
     });
   }
 
-  const lockedResult = await results.findOneAndUpdate(
-    {
-      userId,
-      resultId,
-      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
-      status: "completed",
-      honeyLetter: { $exists: false },
-      honeyLetterLock: { $exists: false },
-    },
-    {
-      $set: {
-        honeyLetterLock: { idempotencyKey, createdAt: now },
-        updatedAt: now,
-      },
-    },
-    { returnDocument: "after" },
-  );
-  const lockedDoc = unwrapUpdatedDoc(lockedResult);
-  if (!lockedDoc) {
-    const latest = await results.findOne({ userId, resultId });
-    const latestLetter = publicHoneyLetter(latest?.honeyLetter || latest?.result?.honeyLetter);
-    const wallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
-    if (latestLetter) {
-      return json({
-        success: true,
-        serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
-        spent: 0,
-        balance: honeyStatePayload(wallet).balance,
-        honeyDrops: honeyStatePayload(wallet),
-        honeyLetter: latestLetter,
-        alreadyApplied: true,
-      });
-    }
-    return honeyLetterError("YEONI_HONEY_LETTER_IN_PROGRESS", 409);
-  }
-
+  const token = randomUUID();
+  const lockQuery = { userId, resultId, "honeyLetterLock.token": token };
+  const walletQuery = { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE };
+  // Receipt and balance live in the same document: an acknowledged debit is not
+  // required to prove consumption after a connection disappears.
+  const receiptPath = `honeyLetterSpends.${createHash("sha256").update(resultId).digest("hex")}`;
+  const readReceipt = (wallet) => wallet?.honeyLetterSpends?.[receiptPath.split(".")[1]];
+  const unavailable = () => honeyLetterError("RESULT_STORAGE_UNAVAILABLE", 503);
+  const release = () => results.updateOne(lockQuery, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
+  let generating = false;
   try {
-    const walletBefore = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
-    const current = honeyStatePayload(walletBefore).balance;
-    if (current < HONEY_LETTER_COST) {
-      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
-      return honeyLetterError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, {
-        required: HONEY_LETTER_COST,
-        current,
-      });
-    }
-
-    const honeyLetter = await generateHoneyLetter(lockedDoc, env);
-    const chargedWallet = await wallets.findOneAndUpdate(
-      { userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, balance: { $gte: HONEY_LETTER_COST } },
+    const lockedDoc = unwrapUpdatedDoc(await results.findOneAndUpdate(
       {
-        $inc: { balance: -HONEY_LETTER_COST, totalSpent: HONEY_LETTER_COST },
-        $set: { updatedAt: new Date() },
+        userId, resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: "completed",
+        honeyLetter: { $exists: false },
+        $or: [
+          { honeyLetterLock: { $exists: false } },
+          { "honeyLetterLock.expiresAt": { $lte: now } },
+          // Old locks have no receipt. Do not guess whether their debit happened.
+        ],
       },
+      { $set: { honeyLetterLock: { token, idempotencyKey, createdAt: now, expiresAt: new Date(now.getTime() + 120000) }, updatedAt: now } },
       { returnDocument: "after" },
-    );
-    const chargedWalletDoc = unwrapUpdatedDoc(chargedWallet);
-    if (!chargedWalletDoc) {
-      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
-      const latestWallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
-      return honeyLetterError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, {
-        required: HONEY_LETTER_COST,
-        current: honeyStatePayload(latestWallet).balance,
-      });
-    }
+    ));
+    if (!lockedDoc) return honeyLetterError("YEONI_HONEY_LETTER_IN_PROGRESS", 409);
 
-    const spendLedgerId = `spend:${userId}:${resultId}`;
-    try {
-      await ledgers.insertOne({
-        _id: spendLedgerId,
-        userId,
-        type: "spend",
-        amount: HONEY_LETTER_COST,
-        reason: "YEONI_HONEY_LETTER_SPEND",
-        serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
-        relatedResultId: resultId,
-        relatedConsultationMode: lockedDoc.consultationMode,
-        idempotencyKey,
-        createdAt: new Date(),
-        metadata: { source: "yeoni-honey-letter" },
-      });
-    } catch (error) {
-      await refundHoneyLetterSpend({ userId, resultId, consultationMode: lockedDoc.consultationMode, idempotencyKey, spendLedgerId, reason: "spend_ledger_failed" });
-      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
-      if (Number(error?.code) === 11000) {
-        const latest = await results.findOne({ userId, resultId });
-        const latestLetter = publicHoneyLetter(latest?.honeyLetter || latest?.result?.honeyLetter);
-        const latestWallet = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
-        if (latestLetter) {
-          return json({
-            success: true,
-            serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
-            spent: 0,
-            balance: honeyStatePayload(latestWallet).balance,
-            honeyDrops: honeyStatePayload(latestWallet),
-            honeyLetter: latestLetter,
-            alreadyApplied: true,
-          });
-        }
-      }
-      throw error;
-    }
+    let draft = lockedDoc.honeyLetterDelivery;
+    let wallet = await wallets.findOne(walletQuery);
+    let receipt = readReceipt(wallet);
+    // Preserve unresolved legacy spend evidence rather than consuming again.
+    if (!receipt && await ledgers.findOne({ _id: `spend:${userId}:${resultId}` })) return unavailable();
 
-    const storedLetter = {
-      title: honeyLetter.title || "연이의 꿀편지",
-      body: honeyLetter.body,
-      createdAt: new Date(),
-      provider: cleanText(honeyLetter.provider, 80),
-      model: cleanText(honeyLetter.model, 120),
-      spendLedgerId,
-    };
-    const storeResult = await results.updateOne(
-      { userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey, honeyLetter: { $exists: false } },
-      {
-        $set: {
-          honeyLetter: storedLetter,
-          "result.honeyLetter": storedLetter,
-          updatedAt: new Date(),
-        },
-        $unset: { honeyLetterLock: "" },
-      },
-    );
-    if (!storeResult.matchedCount || !storeResult.modifiedCount) {
-      await refundHoneyLetterSpend({ userId, resultId, consultationMode: lockedDoc.consultationMode, idempotencyKey, spendLedgerId, reason: "result_store_failed" });
-      await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } });
+    const finishRefund = async () => {
+      await refundHoneyLetterSpend({ userId, resultId, consultationMode: lockedDoc.consultationMode,
+        idempotencyKey: draft.idempotencyKey, spendLedgerId: draft.spendLedgerId,
+        receiptPath, receiptToken: draft.receiptToken, reason: "result_store_failed" });
+      const refunded = readReceipt(await wallets.findOne(walletQuery));
+      if (refunded?.token !== draft.receiptToken || refunded?.status !== "refunded") throw new Error("RESULT_STORAGE_UNAVAILABLE");
+      const stored = await results.updateOne(lockQuery, { $set: { "honeyLetterDelivery.status": "refunded", updatedAt: new Date() } });
+      if (!stored?.matchedCount) throw new Error("RESULT_STORAGE_UNAVAILABLE");
       return honeyLetterError("YEONI_HONEY_LETTER_SAVE_FAILED", 500);
-    }
+    };
+    if (draft?.status === "refund_pending") return await finishRefund();
 
-    const walletAfter = await wallets.findOne({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
-    return json({
-      success: true,
-      serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
-      spent: HONEY_LETTER_COST,
-      balance: honeyStatePayload(walletAfter).balance,
-      honeyDrops: honeyStatePayload(walletAfter),
-      honeyLetter: publicHoneyLetter(storedLetter),
-      alreadyApplied: false,
-    });
+    if (receipt?.status !== "charged" && honeyStatePayload(wallet).balance < HONEY_LETTER_COST) {
+      return honeyLetterError("INSUFFICIENT_TEA_HOUSE_HONEY_DROPS", 402, { required: HONEY_LETTER_COST, current: honeyStatePayload(wallet).balance });
+    }
+    if (!draft || draft.status === "refunded") {
+      generating = !draft?.letter;
+      const letter = draft?.letter || await generateHoneyLetter(lockedDoc, env);
+      generating = false;
+      const receiptToken = randomUUID();
+      draft = { status: "pending", idempotencyKey, receiptToken,
+        spendLedgerId: `spend:${userId}:${resultId}:${receiptToken}`, letter };
+      const saved = await results.updateOne(lockQuery, { $set: { honeyLetterDelivery: draft, updatedAt: new Date() } });
+      if (!saved?.matchedCount) return unavailable();
+    }
+    const confirmed = await results.findOne(lockQuery);
+    if (confirmed?.honeyLetterDelivery?.receiptToken !== draft.receiptToken ||
+        confirmed?.honeyLetterDelivery?.letter?.body !== draft.letter.body) return unavailable();
+
+    if (receipt?.status !== "charged") {
+      const charged = unwrapUpdatedDoc(await wallets.findOneAndUpdate(
+        { ...walletQuery, balance: { $gte: HONEY_LETTER_COST }, [`${receiptPath}.status`]: { $ne: "charged" } },
+        { $inc: { balance: -HONEY_LETTER_COST, totalSpent: HONEY_LETTER_COST },
+          $set: { updatedAt: new Date(), [receiptPath]: { status: "charged", token: draft.receiptToken, spendLedgerId: draft.spendLedgerId } } },
+        { returnDocument: "after" },
+      ));
+      wallet = charged || await wallets.findOne(walletQuery);
+      receipt = readReceipt(wallet);
+    }
+    if (receipt?.status !== "charged" || receipt.token !== draft.receiptToken) return unavailable();
+    const ledger = { _id: draft.spendLedgerId, userId, type: "spend", amount: HONEY_LETTER_COST,
+      reason: "YEONI_HONEY_LETTER_SPEND", serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+      relatedResultId: resultId, relatedConsultationMode: lockedDoc.consultationMode,
+      idempotencyKey: draft.idempotencyKey, createdAt: new Date(), metadata: { source: "yeoni-honey-letter" } };
+    await ledgers.updateOne({ _id: ledger._id }, { $setOnInsert: ledger }, { upsert: true });
+    if (!(await ledgers.findOne({ _id: ledger._id, userId, type: "spend" }))) return unavailable();
+
+    const storedLetter = { title: draft.letter.title || "연이의 꿀편지", body: draft.letter.body,
+      createdAt: new Date(), provider: cleanText(draft.letter.provider, 80),
+      model: cleanText(draft.letter.model, 120), spendLedgerId: draft.spendLedgerId };
+    const stored = await results.updateOne(
+      { ...lockQuery, honeyLetter: { $exists: false }, "honeyLetterDelivery.status": "pending" },
+      { $set: { honeyLetter: storedLetter, "result.honeyLetter": storedLetter, "honeyLetterDelivery.status": "completed", updatedAt: new Date() } },
+    );
+    const latest = await results.findOne({ userId, resultId });
+    if (!stored?.matchedCount || !stored?.modifiedCount) {
+      // Only an acknowledged no-write under our own lock is a confirmed failure.
+      // Lost responses and a different lease owner must never trigger a refund.
+      if (stored && latest?.honeyLetterLock?.token === token && !latest.honeyLetter) {
+        const marked = await results.updateOne({ ...lockQuery, honeyLetter: { $exists: false } },
+          { $set: { "honeyLetterDelivery.status": "refund_pending" } });
+        if (marked?.matchedCount) return await finishRefund();
+      }
+      return unavailable();
+    }
+    const letter = publicHoneyLetter(latest?.honeyLetter);
+    if (!letter || letter.body !== storedLetter.body) return unavailable();
+    const walletAfter = await wallets.findOne(walletQuery);
+    return json({ success: true, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, spent: HONEY_LETTER_COST,
+      balance: honeyStatePayload(walletAfter).balance, honeyDrops: honeyStatePayload(walletAfter),
+      honeyLetter: letter, alreadyApplied: false });
   } catch (error) {
-    await results.updateOne({ userId, resultId, "honeyLetterLock.idempotencyKey": idempotencyKey }, { $unset: { honeyLetterLock: "" }, $set: { updatedAt: new Date() } }).catch(() => undefined);
     console.warn("[fortune-tea-house/honey-letter] failed", error);
-    return honeyLetterError("YEONI_HONEY_LETTER_GENERATION_FAILED", Number(error?.status || 0) || 502);
+    return generating
+      ? honeyLetterError("YEONI_HONEY_LETTER_GENERATION_FAILED", Number(error?.status || 0) || 502)
+      : unavailable();
+  } finally {
+    await release().catch(() => undefined);
   }
 }
 

@@ -1,8 +1,9 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
@@ -291,7 +292,8 @@ const KO = {
   ki7hqs6v: "핵심 의미",
   kj7r9fgs: "상담을 마치고 감사 인사를 건네는 연이",
   kjkazywc: "두 사람의 작은 역할",
-  kjloqzzq: "연이가 편지를 끝까지 묶지 못했어요. 꿀방울은 그대로 지켜둘게요.",
+  kjloqzzq: "편지 전달을 확인하지 못했어요. 잠시 후 같은 편지를 다시 확인해 주세요.",
+  honeyLetterResume: "같은 편지 다시 확인하기",
   kjwi7efm: "연이가 사주를 섞지 않고, 카드와 지금 적어주신 질문의 향을 한 장의 상담 기록으로 엮었습니다.",
   kkn8datm: "숙요점 궁합",
   kl1lj6o9: "출생정보와 기본 기운 중심",
@@ -409,6 +411,14 @@ export default function TeaHouseResultSheet({
   );
   const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
   const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
+  const honeyRequestRef = useRef(false);
+  const honeyMountedRef = useRef(true);
+  const authState = useAuthStore();
+  const honeyOwner = String(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid || "");
+  const honeyScopeRef = useRef({ owner: honeyOwner, resultId: result.resultId });
+  if (honeyScopeRef.current.owner !== honeyOwner || honeyScopeRef.current.resultId !== result.resultId) {
+    honeyScopeRef.current = { owner: honeyOwner, resultId: result.resultId };
+  }
   const [saveStatus, setSaveStatus] = useState("");
   const [pdfBusy, setPdfBusy] = useState(false);
   const resultSheetRef = useRef<HTMLElement>(null);
@@ -483,7 +493,7 @@ export default function TeaHouseResultSheet({
   const primaryTenGodMeta = primaryTenGodId ? tenGodMeta[primaryTenGodId] : null;
   const honeyLetter = result.honeyLetter;
   const honeyBalance = honeyDrops?.currentHoneyDrops ?? honeyDrops?.balance ?? 0;
-  const canRequestHoneyLetter = Boolean(result.resultId && honeyDrops?.authenticated && honeyBalance >= 10 && !honeyLetter && !honeyLetterLoading);
+  const canRequestHoneyLetter = Boolean(result.resultId && honeyDrops?.authenticated && (honeyBalance >= 10 || result.honeyLetterPending) && !honeyLetter && !honeyLetterLoading);
   const previewKeywords = result.luckyKeywords.slice(0, 3);
   const resultThanksLine = copy.kbjwmh4s;
   const choiceSimulationTitle = isTarotMode
@@ -544,8 +554,15 @@ export default function TeaHouseResultSheet({
           },
         ];
 
-  async function requestHoneyLetter() {
-    if (!result.resultId || honeyLetterLoading) return;
+  const requestHoneyLetter = useCallback(async () => {
+    if (!result.resultId || !honeyOwner || honeyRequestRef.current) return;
+    honeyRequestRef.current = true;
+    const scope = honeyScopeRef.current;
+    const isCurrent = () => {
+      const user = getAuthState().user;
+      const owner = String(user?.id || user?.userId || user?._id || user?.uid || "");
+      return honeyMountedRef.current && owner === honeyOwner && honeyScopeRef.current === scope;
+    };
     setHoneyLetterLoading(true);
     setHoneyLetterMessage(copy.kdbdx9nr);
     try {
@@ -557,6 +574,7 @@ export default function TeaHouseResultSheet({
         cache: "no-store",
       });
       const payload = (await response.json().catch(() => ({}))) as HoneyLetterApiResponse;
+      if (!isCurrent()) return;
       if (!response.ok || !payload.success || !payload.honeyLetter) {
         if (payload.errorCode === "INSUFFICIENT_TEA_HOUSE_HONEY_DROPS") {
           setHoneyLetterMessage(copy.k70ozsbh);
@@ -570,18 +588,48 @@ export default function TeaHouseResultSheet({
           setHoneyLetterMessage(copy.kvsndfs4);
           return;
         }
+        if (payload.errorCode === "RESULT_STORAGE_UNAVAILABLE") onResultUpdate({ ...result, honeyLetterPending: true });
+        if (payload.errorCode === "YEONI_HONEY_LETTER_SAVE_FAILED") onResultUpdate({ ...result, honeyLetterPending: false });
         setHoneyLetterMessage(copy.kjloqzzq);
         return;
       }
       if (payload.honeyDrops) onHoneyDropsChange(payload.honeyDrops);
-      onResultUpdate({ ...result, honeyLetter: payload.honeyLetter });
+      onResultUpdate({ ...result, honeyLetter: payload.honeyLetter, honeyLetterPending: false });
       setHoneyLetterMessage(payload.alreadyApplied ? copy.kyv3bqjg : copy.khnbjp0r);
     } catch {
-      setHoneyLetterMessage(copy.kjloqzzq);
+      if (isCurrent()) {
+        onResultUpdate({ ...result, honeyLetterPending: true });
+        setHoneyLetterMessage(copy.kjloqzzq);
+      }
     } finally {
-      setHoneyLetterLoading(false);
+      honeyRequestRef.current = false;
+      if (honeyMountedRef.current) setHoneyLetterLoading(false);
     }
-  }
+  }, [result, honeyOwner, copy, onHoneyDropsChange, onResultUpdate]);
+  const honeyResumeRef = useRef(requestHoneyLetter);
+  honeyResumeRef.current = requestHoneyLetter;
+
+  useEffect(() => {
+    honeyMountedRef.current = true;
+    return () => { honeyMountedRef.current = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!result.honeyLetterPending || result.honeyLetter || !honeyOwner) return;
+    const resume = () => {
+      if (document.visibilityState === "visible" && navigator.onLine) void honeyResumeRef.current();
+    };
+    // A bounded delay also handles a lost response while the original lease is alive.
+    // Event-based recovery remains available after automatic retries finish.
+    const timers = [1000, 45000, 125000].map(delay => window.setTimeout(resume, delay));
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => {
+      timers.forEach(timer => window.clearTimeout(timer));
+      window.removeEventListener("online", resume);
+      document.removeEventListener("visibilitychange", resume);
+    };
+  }, [result.honeyLetterPending, result.honeyLetter, result.resultId, honeyOwner]);
 
   function saveResultAsTextFile() {
     try {
@@ -1035,11 +1083,11 @@ export default function TeaHouseResultSheet({
                     {copy.kdo9dh9f}
                   </p>
                   <TeaHouseButton onClick={requestHoneyLetter} disabled={!canRequestHoneyLetter}>
-                    {honeyLetterLoading ? copy.kgmrpa72 : copy.kublwiza}
+                    {honeyLetterLoading ? copy.kgmrpa72 : result.honeyLetterPending ? copy.honeyLetterResume : copy.kublwiza}
                   </TeaHouseButton>
                   {!honeyDrops?.authenticated ? (
                     <small>{copy.khebg0os}</small>
-                  ) : honeyBalance < 10 ? (
+                  ) : honeyBalance < 10 && !result.honeyLetterPending ? (
                     <small>{copy.k70ozsbh}</small>
                   ) : null}
                 </div>

@@ -16567,7 +16567,7 @@
       "ki7hqs6v": "Core meaning",
       "kj7r9fgs": "Yeoni offering thanks as the reading closes",
       "kjkazywc": "A small role for each of you",
-      "kjloqzzq": "Yeoni couldn't tie the letter shut. Your honey drops are kept as they were.",
+      "kjloqzzq": "Penghantaran surat anda belum dapat disahkan. Sila semak surat yang sama sebentar lagi.",
       "kjwi7efm": "Yeoni did not shuffle in the Four Pillars — she wove the cards and the scent of the question you wrote into one reading record.",
       "kkn8datm": "Sukuyo compatibility",
       "kl1lj6o9": "Centred on birth details and base energy",
@@ -16639,7 +16639,8 @@
       "pdfButtonBusy": "Building your PDF…",
       "pdfSaved": "Saved the reading as a PDF.",
       "pdfFailed": "We couldn't save the PDF. Please try again in a moment.",
-      "pdfFileName": "destiny-tea-house-{title}-{date}.pdf"
+      "pdfFileName": "destiny-tea-house-{title}-{date}.pdf",
+      "honeyLetterResume": "Semak semula surat yang sama"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "Yes",

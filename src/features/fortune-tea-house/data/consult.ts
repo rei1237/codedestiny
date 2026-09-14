@@ -469,5 +469,6 @@ export type FortuneTeaHouseConsultResponse = {
   actionPrescription: string;
   luckyKeywords: string[];
   honeyLetter?: FortuneTeaHouseHoneyLetter;
+  honeyLetterPending?: boolean;
   closingLine: string;
 };

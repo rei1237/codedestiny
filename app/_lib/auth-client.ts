@@ -533,7 +533,8 @@ function authRequestTimeoutMs(request: Request) {
   const fortuneRoute = /^\/api\/fortune\/(?:(?:saju|ziwei|sukuyo|astrology|vedic)\/(?:ai-prompt|question-prompt)|saju-ai-consultation\/create|vedic\/prashna\/generate|guardian\/(?:generate|chat))$/.test(path);
   const otherRoute = /^\/api\/(?:destiny-compass-ai\/report(?:\/continue)?|pet-saju-ai\/(?:report|compat)|fortune-tea-house\/consult|tarot\/(?:oracle-consultation|ijik-reading|crystal-soul|mindscan|reading|love-reading|numerology-reading))$/.test(path);
   const additionalRoute = /^\/api\/(?:oracle\/geomancy|celestial-harmony|dream\/(?:psycho-analysis|dream-tarot|dream-prompt|prompt-maker|tarot-consult))$/.test(path);
-  return reportRoute || fortuneRoute || otherRoute || additionalRoute ? 95000 : AUTH_FETCH_TIMEOUT_MS;
+  const honeyLetterRoute = /^\/api\/fortune-tea-house\/results\/(?:[^/]+\/)?honey-letter$/.test(path);
+  return reportRoute || fortuneRoute || otherRoute || additionalRoute || honeyLetterRoute ? 95000 : AUTH_FETCH_TIMEOUT_MS;
 }
 
 // 호출부가 자기 signal 을 준 경우(취소 제어를 이미 쥐고 있는 경우)에는 건드리지 않는다.

@@ -44,6 +44,7 @@ function unsetAt(target, path) {
 
 function matchesCondition(actual, expected) {
   if (expected && typeof expected === "object" && !Array.isArray(expected)) {
+    if (Object.prototype.hasOwnProperty.call(expected, "$lte")) return actual !== undefined && new Date(actual).getTime() <= new Date(expected.$lte).getTime();
     if (Object.prototype.hasOwnProperty.call(expected, "$gte")) return Number(actual || 0) >= Number(expected.$gte);
     if (Object.prototype.hasOwnProperty.call(expected, "$exists")) return expected.$exists ? actual !== undefined : actual === undefined;
     if (Object.prototype.hasOwnProperty.call(expected, "$in")) return Array.isArray(expected.$in) && expected.$in.includes(actual);
@@ -233,6 +234,9 @@ async function seedReadyResult({ resultId = "fortune-tea-house:letter-1", balanc
 }
 
 beforeAll(async () => {
+  jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
+    getSwissMoonLongitudes: async (_env, moments) => moments.map(() => 120),
+  }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
     getCurrentUser: jest.fn(async () => authState),
     getOptionalUserFromRequest: jest.fn(async () => authState),
@@ -375,6 +379,151 @@ function billingGatePayload(featureKey, requestId) {
     consume: { featureKey, requestId, transactionId: `exec:${requestId}`, accessType: "single_purchase" },
   };
 }
+
+describe("honey letter interrupted delivery", () => {
+  const send = (resultId, env = { NODE_ENV: "test", FORTUNE_TEA_HOUSE_HONEY_LETTER_TEST_TEXT: longHoneyLetter() }, key = "resume-letter") => handleFortuneTeaHouseRoutes(new Request(
+    `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}/honey-letter`,
+    { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ idempotencyKey: key }) },
+  ), env);
+
+  test.each(["before", "after"])("final save response lost %s write retains delivery without another spend", async (when) => {
+    const resultId = await seedReadyResult({ balance: 20 });
+    const results = collection("fortune_tea_house_results");
+    const original = results.updateOne.bind(results);
+    let fail = true;
+    jest.spyOn(results, "updateOne").mockImplementation(async (query, update, options) => {
+      if (fail && update?.$set?.honeyLetter) {
+        fail = false;
+        if (when === "after") await original(query, update, options);
+        throw new Error("MOCK_SAVE_RESPONSE_LOST");
+      }
+      return original(query, update, options);
+    });
+    const first = await readJson(await send(resultId));
+    expect(first.status).toBe(503);
+    expect(first.payload.errorCode).toBe("RESULT_STORAGE_UNAVAILABLE");
+    const second = await readJson(await send(resultId, {}, "different-client-key"));
+    expect(second.payload.success).toBe(true);
+    expect(second.payload.honeyLetter.body).toBe(longHoneyLetter().trim());
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "refund")).toHaveLength(0);
+  });
+
+  test("wallet debit response lost resumes the saved letter without a second debit", async () => {
+    const resultId = await seedReadyResult({ balance: 20 });
+    const wallets = collection("fortune_tea_house_honey_wallets");
+    const original = wallets.findOneAndUpdate.bind(wallets);
+    jest.spyOn(wallets, "findOneAndUpdate").mockImplementationOnce(async (...args) => {
+      await original(...args);
+      throw new Error("MOCK_DEBIT_RESPONSE_LOST");
+    });
+    const first = await readJson(await send(resultId));
+    expect(first.status).toBe(503);
+    expect(first.payload.errorCode).toBe("RESULT_STORAGE_UNAVAILABLE");
+    const second = await readJson(await send(resultId, {}, "different-client-key"));
+    expect(second.payload.success).toBe(true);
+    expect(wallets.all()[0].balance).toBe(10);
+    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "spend")).toHaveLength(1);
+  });
+
+  test("expired owned lease resumes while an active lease blocks duplicate generation", async () => {
+    const resultId = await seedReadyResult();
+    const results = collection("fortune_tea_house_results");
+    await results.updateOne({ resultId }, { $set: { honeyLetterLock: { token: "old", expiresAt: new Date(Date.now() + 120000) } } });
+    expect((await send(resultId)).status).toBe(409);
+    await results.updateOne({ resultId }, { $set: { "honeyLetterLock.expiresAt": new Date(0) } });
+    expect((await readJson(await send(resultId))).payload.success).toBe(true);
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(0);
+  });
+
+  test("draft confirmation failure spends nothing and reuses the generated prose", async () => {
+    const resultId = await seedReadyResult();
+    const results = collection("fortune_tea_house_results");
+    const original = results.findOne.bind(results);
+    let fail = true;
+    jest.spyOn(results, "findOne").mockImplementation(async query => {
+      if (query["honeyLetterLock.token"] && fail) { fail = false; throw new Error("MOCK_DRAFT_READ_LOST"); }
+      return original(query);
+    });
+    expect((await send(resultId)).status).toBe(503);
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+    expect((await readJson(await send(resultId))).payload.success).toBe(true);
+  });
+
+  test("refund response loss completes once, then a new attempt can reuse the draft", async () => {
+    const resultId = await seedReadyResult();
+    const results = collection("fortune_tea_house_results");
+    const wallets = collection("fortune_tea_house_honey_wallets");
+    const save = results.updateOne.bind(results);
+    let failSave = true;
+    jest.spyOn(results, "updateOne").mockImplementation(async (q, u, o) => {
+      if (u?.$set?.honeyLetter && failSave) { failSave = false; return { matchedCount: 1, modifiedCount: 0 }; }
+      return save(q, u, o);
+    });
+    const refund = wallets.updateOne.bind(wallets);
+    let failRefund = true;
+    jest.spyOn(wallets, "updateOne").mockImplementation(async (q, u, o) => {
+      const written = await refund(q, u, o);
+      if (u?.$inc?.balance === 10 && failRefund) { failRefund = false; throw new Error("MOCK_REFUND_RESPONSE_LOST"); }
+      return written;
+    });
+    expect((await send(resultId)).status).toBe(503);
+    expect(wallets.all()[0].balance).toBe(10);
+    expect((await send(resultId)).status).toBe(500);
+    expect(wallets.all()[0].balance).toBe(10);
+    expect((await readJson(await send(resultId))).payload.success).toBe(true);
+    expect(wallets.all()[0].balance).toBe(0);
+    expect(collection("fortune_tea_house_honey_ledgers").all().filter(row => row.type === "refund")).toHaveLength(1);
+  });
+
+  test("another account cannot resume or read the draft", async () => {
+    const resultId = await seedReadyResult();
+    authState = { userId: "another-user" };
+    expect((await send(resultId)).status).toBe(404);
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+  });
+
+  test.each(["before", "after"])("spend ledger response lost %s write resumes without a refund", async when => {
+    const resultId = await seedReadyResult();
+    const ledgers = collection("fortune_tea_house_honey_ledgers");
+    const original = ledgers.updateOne.bind(ledgers);
+    jest.spyOn(ledgers, "updateOne").mockImplementationOnce(async (...args) => {
+      if (when === "after") await original(...args);
+      throw new Error("MOCK_LEDGER_LOST");
+    });
+    expect((await send(resultId)).status).toBe(503);
+    const detail = await readJson(await handleFortuneTeaHouseRoutes(new Request(
+      `https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}`), {}));
+    expect(detail.payload.result.honeyLetterPending).toBe(true);
+    expect(detail.payload.result.honeyLetter).toBeUndefined();
+    expect((await readJson(await send(resultId))).payload.success).toBe(true);
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(0);
+    expect(ledgers.all().filter(row => row.type === "spend")).toHaveLength(1);
+    expect(ledgers.all().filter(row => row.type === "refund")).toHaveLength(0);
+  });
+
+  test("parallel requests spend once and a replaced lease cannot overwrite delivery", async () => {
+    const resultId = await seedReadyResult({ balance: 20 });
+    const replies = await Promise.all([send(resultId), send(resultId)]);
+    expect(replies.map(response => response.status).sort()).toEqual([200, 409]);
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+    const results = collection("fortune_tea_house_results");
+    expect((await results.findOne({ resultId })).honeyLetterLock).toBeUndefined();
+  });
+
+  test("a stale generator losing its lease cannot charge or clear the new lock", async () => {
+    const resultId = await seedReadyResult();
+    const results = collection("fortune_tea_house_results");
+    const original = results.updateOne.bind(results);
+    jest.spyOn(results, "updateOne").mockImplementation(async (q, u, o) => {
+      if (u?.$set?.honeyLetterDelivery) await original({ resultId }, { $set: { "honeyLetterLock.token": "new-owner" } });
+      return original(q, u, o);
+    });
+    expect((await send(resultId)).status).toBe(503);
+    expect(collection("fortune_tea_house_honey_wallets").all()[0].balance).toBe(10);
+    expect((await results.findOne({ resultId })).honeyLetterLock.token).toBe("new-owner");
+  });
+});
 
 describe("fortune tea house honey drops", () => {
   test.each(["tarot", "saju", "sukuyo"])("%s consult accepts verified billing gate evidence", async (mode) => {

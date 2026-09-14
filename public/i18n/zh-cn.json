@@ -16567,7 +16567,7 @@
       "ki7hqs6v": "核心含义",
       "kj7r9fgs": "在咨询结束时道谢的 Yeoni",
       "kjkazywc": "两人各自的小小角色",
-      "kjloqzzq": "Yeoni 没能把信收好尾。蜜滴会原样为你保留。",
+      "kjloqzzq": "暂时无法确认信件是否送达。请稍后再次查看同一封信。",
       "kjwi7efm": "Yeoni 没有掺入四柱，而是把牌与你此刻写下的问题的香气编成一份咨询记录。",
       "kkn8datm": "宿曜合婚",
       "kl1lj6o9": "以出生资讯与基本之气为中心",
@@ -16639,7 +16639,8 @@
       "pdfButtonBusy": "正在生成 PDF…",
       "pdfSaved": "已将咨询结果保存为 PDF。",
       "pdfFailed": "PDF 保存失败，请稍后再试。",
-      "pdfFileName": "运命茶馆-{title}-{date}.pdf"
+      "pdfFileName": "运命茶馆-{title}-{date}.pdf",
+      "honeyLetterResume": "再次查看同一封信"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "有",

@@ -5986,7 +5986,7 @@
       "ki7hqs6v": "핵심 의미",
       "kj7r9fgs": "상담을 마치고 감사 인사를 건네는 연이",
       "kjkazywc": "두 사람의 작은 역할",
-      "kjloqzzq": "연이가 편지를 끝까지 묶지 못했어요. 꿀방울은 그대로 지켜둘게요.",
+      "kjloqzzq": "편지 전달을 확인하지 못했어요. 잠시 후 같은 편지를 다시 확인해 주세요.",
       "kjwi7efm": "연이가 사주를 섞지 않고, 카드와 지금 적어주신 질문의 향을 한 장의 상담 기록으로 엮었습니다.",
       "kkn8datm": "숙요점 궁합",
       "kl1lj6o9": "출생정보와 기본 기운 중심",
@@ -6058,7 +6058,8 @@
       "pdfButtonBusy": "PDF 만드는 중…",
       "pdfSaved": "상담 결과를 PDF로 저장했어요.",
       "pdfFailed": "PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
-      "pdfFileName": "운명의-찻집-{title}-{date}.pdf"
+      "pdfFileName": "운명의-찻집-{title}-{date}.pdf",
+      "honeyLetterResume": "같은 편지 다시 확인하기"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "있음",

@@ -16567,7 +16567,7 @@
       "ki7hqs6v": "核心の意味",
       "kj7r9fgs": "鑑定を終えて感謝を伝えるヨニ",
       "kjkazywc": "おふたりの小さな役割",
-      "kjloqzzq": "ヨニが手紙を最後まで結べませんでした。ハニードロップはそのまま守っておきます。",
+      "kjloqzzq": "手紙のお届けを確認できませんでした。しばらくしてから同じ手紙をもう一度ご確認ください。",
       "kjwi7efm": "ヨニは四柱推命を混ぜず、カードと今書いてくださった質問の香りを一枚の鑑定記録に編みました。",
       "kkn8datm": "宿曜の相性",
       "kl1lj6o9": "出生情報と基本の気中心",
@@ -16639,7 +16639,8 @@
       "pdfButtonBusy": "PDFを作成中…",
       "pdfSaved": "相談結果をPDFで保存しました。",
       "pdfFailed": "PDFの保存に失敗しました。しばらくしてからもう一度お試しください。",
-      "pdfFileName": "運命の茶館-{title}-{date}.pdf"
+      "pdfFileName": "運命の茶館-{title}-{date}.pdf",
+      "honeyLetterResume": "同じ手紙をもう一度確認"
     },
     "fortuneTeaHouseDebugPanel": {
       "k1lcnd8v": "あり",
