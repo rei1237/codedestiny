@@ -1,12 +1,16 @@
 ---
 status: active
 updated: 2026-09-14
-next: "P1 저장 실패 경로를 mock 재현하고 상품별 완료 조건을 통합 검증한다."
+next: "찻집 mock 개선 완료. 별도 요청 시 나머지 P1 저장 경로부터 진행한다."
 ---
 
 # 다른 유료 LLM 기능 조사 근거
 
 기준 `0e2dff85192f077ab62bb58795937b1515a50fd5`. 운영 로그·주문·실 LLM은 조회/호출하지 않았다. 코드에서 확인한 경로와 위험 가설을 구분한다. 가격/상품 정본은 `worker/lib/paid-feature-registry.js`의 `FEATURE_KEY_PRICE_TABLE`, `PER_USE_PAID_FEATURE_KEYS`, aliases이다. 이름에 AI가 있다는 이유로 모두 실 LLM 상품이라 판단하지 않는다. 정적 해금·판매 중단 키·프롬프트 상품을 보존한다.
+
+## 2026-09-14 찻집 후속 적용
+
+찻집 구현 커밋 `dd01ead6fc290d2a320bd8a82681aeb9ea87f4a2`: pending 결과 저장/재조회 → 기존 증빙 apply → 완료 저장/재조회 → 리워드를 분리했다. 동일 요청·원문·증빙과 잠금 토큰을 유지하여 저장 실패/응답 유실을 복구하고, 화면의 계정별 재개 기록은 24시간 보존한다. 찻집 Jest 85/85, 화면 Node 14/14 통과. billing/DB/LLM은 mock이며 실서비스 E2E 증명이 아니다. 전달 확인 명령·검증 한계·기존 사주 보조 검사 실패는 [인수인계](paid-llm-delivery-20260914.md)에 기록했다. 나머지 항목은 미수정이다.
 
 ## 우선순위 P1: 코드에서 확인한 저장/완료 문제
 
@@ -14,7 +18,7 @@ next: "P1 저장 실패 경로를 mock 재현하고 상품별 완료 조건을 �
 
 | 기능 | 정본 위치 | 확인된 경로와 다음 재현 |
 |---|---|---|
-| 운명의 찻집 5상품 | `worker/routes/fortune-tea-house.js:5253`, `:5315` handleConsult | deferred apply 후 `saveFortuneTeaHouseResult`와 리워드 지급을 같은 try로 감싼다. 저장 throw도 honey_reward_unavailable로 처리하고 ok:true 반환 가능. DB 저장 throw mock으로 성공 응답/차감 여부 확인. 저장 성공 전 완료 금지, 리워드 장애와 분리. |
+| 운명의 찻집 5상품 | `worker/routes/fortune-tea-house.js` handleConsult / saveFortuneTeaHouseResult / completeFortuneTeaHouseDelivery | 위 후속 커밋에서 저장·리워드 분리 및 pending 복구 적용. 저장 실패는 503이며 완료 확인 전 성공/리워드 금지. 이용권·월정석·단건 증빙의 장애 검사는 타로 요청을 공통 fixture로 사용했고 기존 사주/3·5카드 콘텐츠 검사도 통과했다. 모든 SKU의 실 E2E 완료 판정은 아니다. |
 | 심화 자미두수 PDF | `worker/routes/ziwei-deep-report.js:400`, `:446` persistNextBatch | 첫/후속 저장의 catch가 예외를 삼키고, 후속 문서 미존재도 return. 토큰의 누적 장수·분량은 저장 실패와 무관하게 진행할 수 있다. 두 저장점 실패를 각각 주입하고 마지막 배치 done 및 재열람을 확인. |
 | 초융합 | `worker/routes/fusion-fortune.js:106`, `:400` | persistFusionDelivery는 실패를 빈 ID로 반환. checkpoint는 빈 ID를 거부하지만 마지막 저장 뒤 일반 응답/스트림 complete 경로는 빈 ID를 전달할 수 있다. checkpoint 성공 후 최종 저장만 실패시키고 검증. |
 | 숙요 궁합 | `worker/routes/sukuyo-compatibility-ai.js:2029` | 저장 findOneAndUpdate가 null이면 임시 completed 객체로 결과를 반환하고 usage 성공 기록. throw와 null 반환을 각각 검사. null도 재열람 가능한 저장으로 간주해서는 안 됨. |

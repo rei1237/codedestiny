@@ -1,45 +1,68 @@
 ---
 status: active
 updated: 2026-09-14
-next: "찻집 저장 실패 mock을 재현하고 결과 저장과 리워드 실패 처리를 분리한다."
+next: "찻집 mock 구현/검증 완료. main CI 전달 상태를 확인하고, 별도 요청 시 나머지 P1 저장 경로를 진행한다."
 ---
 
 # 유료 LLM 결과 전달 후속 인수인계
 
-사용자 요청: 마스터 인연의 서 작업 후 다른 LLM 기능의 결제·생성·전달 경로를 조사하고 후속 문서를 남길 것. **아래 미수정 기능을 해결 완료로 보고하지 않는다.**
-
 ## 현재 기준
 
-- 작업 디렉터리: `D:\Development\code-destiny`, main.
-- 마지막 구현 커밋: `64e211fef438c80b9d769985b642326e00f25038`. 본 문서 갱신과 묶어 origin/main에 전달한다. 최종 전달 상태는 `git status -sb`와 main CI로 확인한다.
-- 구현 내역: `git log --oneline 5f7594dd5..64e211fef`. 인연의 서 계산 입력·근거 계약, 지도/휴먼 디자인 부분 완료 처리, 공통 캐시 재검증. 마지막 보완은 생시 미상 검사를 한국어 정규식에서 certainty 필드 검사로 교체한 것이다. 가격·이용권·월정석·단건 결제 및 환불 정책 유지.
-- 조사 상세: [paid-llm-delivery-findings-20260914.md](paid-llm-delivery-findings-20260914.md). 코드 경로 확인이며 운영 주문 장애 재현은 아니다.
+- 작업 디렉터리: `D:\Development\code-destiny`, `main`.
+- 마지막 구현 커밋: `dd01ead6fc290d2a320bd8a82681aeb9ea87f4a2` (`fix(tea-house): recover saved paid deliveries`). 기준 커밋은 `ffc080579c5c22f8d36d2b308b0f15b27c08285c`였다.
+- 사용자의 중지 요청 뒤 “다시 재개해줘” 지시로 미커밋 초안을 이어받아 구현했다. 중지 체크포인트는 이 문서로 대체한다.
+- 이번 승인 범위는 **찻집 저장·복구까지**. 심화 자미두수 PDF·초융합·숙요 궁합 등은 미수정이며 해결 완료로 보고하지 않는다.
+- 조사 상세: [paid-llm-delivery-findings-20260914.md](paid-llm-delivery-findings-20260914.md).
 
-## 남은 작업 순서
+## 찻집 구현과 계약
 
-1. 찻집 결과 저장 예외가 성공 응답이 되는 경로부터 mock으로 재현. 저장과 리워드를 분리하고 원래 결제 증빙·멱등키로 복구. 이어서 심화 자미두수 PDF와 초융합 저장 경로.
-2. 점성술·베다·자미두수·신년운세·연애 비책의 품질 미달 결과를 partial로 보존. 정상 부분 유지, 실패 부분만 제한된 예산으로 수선. 상태만 바꾸면 재열람 필터가 차단하므로 서버·화면을 함께 변경.
-3. registry의 나머지 기능군을 상세 표 순서로 검사. 기존 구매의 재열람은 새 품질 계약으로 차단하지 않는다.
-4. 이번 인연의 서의 남은 의미 검증: 현재 근거 ID·대상·기간·판정 메타데이터 검사는 있으나 자유 본문/지표의 의미적 모순 전수 검사는 없다. 개인판 교차 방향은 산출 근거가 없어 판단 보류다. 절기/자정 경계 fixture 확대와 실제 LLM 품질 검증을 별도 구분한다.
+- 생성 결과를 기존 결과 컬렉션의 `delivery_pending`으로 저장/재조회한 뒤 원래 증빙으로 deferred apply, 최종 `completed` 저장/재조회, 리워드 순으로 진행한다.
+- 저장 throw/null/완료 확인 실패는 HTTP 503 `ok:false`, `retryable:true`, `reason:RESULT_STORAGE_UNAVAILABLE`, `resultId`. apply 응답 유실은 `RESULT_DELIVERY_PENDING`으로 안내하고 cancel/새 요청으로 바꾸지 않는다.
+- pending 재개는 생성 본문을 그대로 사용한다. 사용자·결과 ID·requestId·입력 해시·결제 식별자를 묶고 UUID 잠금 토큰의 조건부 쓰기로 늦은 응답이 다른 소유자의 결과를 덮지 못하게 한다. 원문/증빙 변경은 409다.
+- 명시적 증빙은 현재 이용권보다 먼저 확인한다. 취소/환불된 실행 레코드와 원결제 상태를 거부하며, 생성 후 apply 직전에도 권한을 재확인한다. 조회 실패는 다른 증빙이나 이용권으로 우회하지 않는다.
+- 리워드 실패는 저장된 상담 성공과 분리한다. 저장 성공 응답 유실 뒤 재조회되는 기존 완료 결과도 새로 생성/차감하지 않는다.
+- 화면은 계정별로 원문·찻잔·attemptId·증빙을 보존한다. 기존 유료 재개 코어를 사용하고 이용권 직접 통과도 같은 요청으로 재시도한다. localStorage 우선/sessionStorage 폴백, 24시간 유효 기간이며 저장소가 막히면 인페이지 메모리 복구만 가능하다. 로그인/계정 전환 시 해당 계정의 기록만 복원하고 완료 시 해당 시도만 지운다.
+- 상담 API 호출 이후의 저장/전달 실패는 로컬 초안 성공으로 바꾸지 않는다.
 
-완료 조건: 이용권·월정석·단건 결제 각각 중복 콜백/409/503/저장 실패/응답 유실/재로그인/취소·환불에서 추가 차감 없이 원래 결과를 저장·재열람. 모든 필수 부분의 품질 통과와 DB 저장 성공 뒤에만 완료. 실결제·실 LLM·운영 DB 작업은 별도 승인.
+## 수정 파일과 유지 범위
 
-## 검증 근거
+- 서버: `worker/routes/fortune-tea-house.js`.
+- 화면/복구: `src/features/fortune-tea-house/FortuneTeaHousePage.tsx`, `src/features/fortune-tea-house/lib/consultRecovery.ts`.
+- 테스트: 찻집 honey-drops, delivery-billing, saju-timing, tarot-cardwise Jest 및 recovery.behavior Node 검사. 기존 콘텐츠 검사 두 곳의 빈 DB 스텁을 `__tests__/fixtures/fortune-tea-result-store.cjs`로 보완했다.
+- 화면 소스 변경으로 찻집 URL lastmod/signature 및 사이트맵 미러를 재생성했다. URL 집합 변경 없음.
+- 가격·이용권·월정석·단건 결제·환불 정책, 인증 공통 코드, billing 공통 구현, DB 스키마/인덱스, 타 기능의 생성 코드는 변경하지 않았다.
 
-- 인연의 서 근거·품질 Jest 100/100(영문 미상 생시 fixture 포함); 부분 전달 행동 검사 5/5(개인·궁합 각 20장 저장·재조회 포함).
-- reader mock: 360/390/430/1280px, 저장소 접근 불가와 취소 구매 검사 통과. 개인판 브라우저 검증이며 실 모바일 PG 복귀가 아니다.
-- 공통 캐시 행동 검사 5/5, 분석 근거 계약 94개 통과.
-- `check:fast`는 실행했으나 종료하지 않는 PG mock 검사로 중단. 해당 jsdom 정리 수정 후 단독 검사 통과. 이전 구현 push의 Paid Flow Gates 통과.
-- `0e2dff851` 코드 main CI **success**: https://github.com/rei1237/codedestiny/actions/runs/34814700582 (타입·린트, 전체 테스트, Pages/Worker 빌드, 정적 가드, CI required 통과). 이후 언어 독립성 보완의 최종 push CI는 `gh run list --branch main --workflow pr-ci.yml --limit 3`으로 확인한다.
+## 검증 근거와 한계
+
+- `npm run test:jest -- --runInBand fortune-tea-house`: **6 suites, 85/85 통과**.
+- `npm run test:jest -- --runInBand __tests__/worker/fortune-tea-house-honey-drops.test.js __tests__/worker/fortune-tea-house-delivery-billing.test.js __tests__/worker/deferred-billing-proof.test.js`: **73/73 통과**(앞 검사와 중복 포함).
+- `node --test __tests__/ui/fortune-tea-house-recovery.behavior.test.js __tests__/ui/fortune-tea-house-paid-resume.static.test.js`: **14/14 통과**. 실제 제출 함수와 복구 effect를 추출하여 저장 실패/409/402/응답 유실, 원문 유지, 저장소 차단, 재로그인/계정 전환을 mock으로 실행했다. 실제 브라우저/실기기 로그인 E2E 증명은 아니다.
+- billing 검사 3개는 실제 apply/완료 함수 본문을 실행하고 DB/최하위 소비 함수를 mock으로 대체했다. 완료 응답 유실 후 동일 키 재요청이 소비 함수에 재진입하지 않음을 확인했다. 실 PG/실차감·운영 DB 증명은 아니다.
+- `npm run check:fast -- --plan`: critical 선택. `npm run check:fast`는 문서/변경 lint/전체 lint를 통과하고 sitemap drift에서 중단했다. `npm run sitemap:generate` 후 `npm run verify:sitemap-drift` 통과. check:fast 전체 성공으로 보고하지 않는다.
+- 별도 `npm run typecheck`, `verify:billing-pass-policy`, `verify:portone-single-payment`, `verify:paid-gate-ui`, `verify:payment-choice-parity`, `verify:checkout-pass-card`, `verify:paid-feature-billing-policy`, `verify:ai-prompt-billing-policy`, `verify:paid-resume-wiring`, `verify:worker-no-undef`, `verify:mongo-query-index-shapes`, `git diff --check` 통과.
+- 추가 `verify:ai-consultation-flows`는 사주 캐시 쓰기 조건을 찾는 `verify:saju-ai-consultation-recovery`에서 실패했다. 해당 검사 및 입력 4파일(`fortune.js`, 사주 엔진/미러, `lib/llm-cache.ts`)은 기준 HEAD와 동일함을 확인했다. 이번 찻집 범위 밖 기존 실패이며 미수정이다.
+- Impeccable 변경 UI detector: `[]`. 레이아웃 변경 없음, 실브라우저 시각 검사 미실행.
+- 실 LLM·실결제·운영 DB·수동 배포 호출 없음. 로컬 전체 검사를 반복하지 않고 공식 판정은 push 후 main CI를 확인한다.
+
+## 전달 확인
+
+이 문서는 구현 커밋 후 작성했다. 최종 push의 CI는 다음 명령으로 확인하고, 같은 commit의 `CI required` 성공을 전달 기준으로 삼는다. 이전 기준 커밋의 CI 성공을 이번 변경의 근거로 쓰지 않는다.
 
 ```powershell
-npm run verify:handoff-contract
-node --test __tests__/ui/paid-report-partial.behavior.test.js __tests__/ui/llm-cache-quality.behavior.test.js
-npm run test:jest -- --runInBand __tests__/worker/master-love-codex-evidence.test.js __tests__/worker/master-love-codex-quality.test.js
+git status -sb
+git log -2 --oneline
+gh run list --branch main --workflow pr-ci.yml --limit 3
 ```
+
+## 남은 작업
+
+1. 이번 찻집 범위 외 P1: 심화 자미두수 PDF의 첫/후속 저장, 초융합 최종 저장, 숙요 궁합 null 저장 경로. 별도 요청 시 진행한다.
+2. 점성술·베다·자미두수·신년운세·연애 비책 품질 미달 partial 보존은 이전 조사 그대로 미수정이다.
+3. 기존 인연의 서의 의미적 모순 검사/경계 fixture 및 나머지 registry 전수 검사는 별개다. 기존 구매 재열람을 새로운 품질 계약으로 차단하지 않는다.
+4. 실제 브라우저/실기기 PG 복귀·실 LLM 품질·운영 주문 복구 및 환불 경합은 이번 mock 검증과 분리한다. 실서비스 검증에는 별도 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md와 연결된 조사 문서를 읽고, main 작업 상태와 구현 커밋 64e211fef438c80b9d769985b642326e00f25038를 확인한 뒤 찻집 handleConsult의 저장 실패 mock 재현부터 이어서 진행하라. 기존 변경을 보존하고 실 LLM·실결제·운영 DB 없이 검증한다.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md와 연결된 조사 문서를 읽어라. 마지막 찻집 구현 커밋은 dd01ead6fc290d2a320bd8a82681aeb9ea87f4a2다. 먼저 main 상태와 해당 구현이 포함된 최신 push의 CI를 확인하고 기존 변경을 보존하라. 찻집 서버 저장/복구 및 계정별 화면 재개는 mock으로 구현·검증됐으며, 남은 타 기능의 P1 저장 경로는 새 요청 범위에 맞춰 선택하라. 실 LLM·실결제·운영 DB 호출 없이 mock으로 검증하라.
 ```
