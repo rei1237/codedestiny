@@ -8,6 +8,7 @@
  */
 
 import { jest } from "@jest/globals";
+import createResultStore from "../fixtures/fortune-tea-result-store.cjs";
 
 const USER_ID = "64f0a1b2c3d4e5f678901288";
 // 황금 계피차(금전운) 규칙의 정본 섹션 제목 — 개수(9)와 문구가 프롬프트·검증기·폴백에 함께 전파된다.
@@ -39,7 +40,7 @@ function createFakeCollection() {
 const fakeCollections = new Map();
 const fakeDb = {
   collection(name) {
-    if (!fakeCollections.has(name)) fakeCollections.set(name, createFakeCollection());
+    if (!fakeCollections.has(name)) fakeCollections.set(name, name === "fortune_tea_house_results" ? createResultStore() : createFakeCollection());
     return fakeCollections.get(name);
   },
 };

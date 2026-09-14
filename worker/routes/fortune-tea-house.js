@@ -5,7 +5,7 @@ import { callGeminiText } from "../lib/gemini.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
@@ -1250,10 +1250,22 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
     ? await leanFindOne(PaidExecutionRecord, {
       userId: cleanText(auth.userId, 120),
       featureId: featureKey,
-      status: { $in: FORTUNE_TEA_HOUSE_BILLING_STATUSES },
       $or: deferredClauses,
     }, { sort: { updatedAt: -1, createdAt: -1 }, select: "_id executionId requestId paymentId accessMethod result status" })
     : null;
+  if (deferredRecord && !FORTUNE_TEA_HOUSE_BILLING_STATUSES.includes(deferredRecord.status)) {
+    return { ok: false, reason: "BILLING_EVIDENCE_REVOKED" };
+  }
+  const paymentEvidenceIds = [...new Set([...ids, cleanText(deferredRecord?.paymentId, 180)].filter(Boolean))];
+  const revokedPaymentClauses = idClauses(Payment, paymentEvidenceIds, ["merchantUid", "impUid", "requestId", "metadata.requestId"]);
+  if (revokedPaymentClauses.length) {
+    const revokedPayment = await leanFindOne(Payment, {
+      userId: auth.userId,
+      status: { $in: ["cancelled", "canceled", "refunded", "refund_pending", "partially_refunded"] },
+      $or: revokedPaymentClauses,
+    }, { select: "_id" });
+    if (revokedPayment) return { ok: false, reason: "BILLING_EVIDENCE_REVOKED" };
+  }
   if (deferredRecord) {
     const deferredUsage = objectValue(objectValue(deferredRecord.result).deferredUsage);
     return {
@@ -1520,32 +1532,19 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     }
     throw error;
   }
-  if (isReusableFortuneTeaAccessDecision(accessDecision)) {
-    return {
-      ok: true,
-      auth,
-      featureKey,
-      pricing: accessDecision.pricing || pricingResult.pricing,
-      accessDecision,
-      deferredUsage: false,
-    };
-  }
 
   let billingEvidenceAccess;
   try {
     billingEvidenceAccess = await resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, featureKey });
   } catch (error) {
-    if (isTransientMongoError(error)) {
-      return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
-    }
-    // 증빙 조회는 접근을 '더 열어 주는' 보너스 경로다 — 여기서 던지면 결제 안내(402)까지 막혀
-    // 사용자는 결제창도 못 본 채 내부 서버 오류만 받는다. 원인은 남기고 '증빙 없음'으로 떨어뜨린다.
-    console.error("[fortune-tea-house] billing evidence lookup failed", {
-      featureKey,
-      name: error?.name,
-      message: error?.message,
-    });
-    billingEvidenceAccess = null;
+    console.warn("[fortune-tea-house] billing evidence unavailable", { name: error?.name });
+    // 조회 실패를 이용권/다른 증빙으로 우회하면 취소된 원결제가 다시 승인될 수 있다.
+    return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
+  }
+
+  if (billingEvidenceAccess?.reason === "BILLING_EVIDENCE_REVOKED") {
+    return { ok: false, response: json({ ok: false, reason: "BILLING_EVIDENCE_REVOKED",
+      message: "취소되거나 환불된 상담 요청이에요. 결제 내역을 확인해 주세요." }, { status: 402 }) };
   }
   if (billingEvidenceAccess?.reason === "FEATURE_MISMATCH") {
     return {
@@ -1564,6 +1563,17 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
         pricing: pricingResult.pricing,
       },
       deferredUsage: billingEvidenceAccess.reason === "BILLING_GATE_DEFERRED",
+    };
+  }
+
+  if (isReusableFortuneTeaAccessDecision(accessDecision)) {
+    return {
+      ok: true,
+      auth,
+      featureKey,
+      pricing: accessDecision.pricing || pricingResult.pricing,
+      accessDecision,
+      deferredUsage: false,
     };
   }
 
@@ -4272,7 +4282,7 @@ function buildFortuneTeaResultStorageId(userId, resultId) {
 const FORTUNE_TEA_GENERATION_LOCK_TTL_MS = EDGE_RESPONSE_DEADLINE_MS + 50000;
 
 function isFreshFortuneTeaGeneration(doc, now = Date.now()) {
-  if (!doc || doc.status !== "generating") return false;
+  if (!doc || !["generating", "delivery_pending"].includes(doc.status) || !doc.generationLock) return false;
   const updatedAt = new Date(doc.updatedAt || doc.createdAt || 0).getTime();
   return Number.isFinite(updatedAt) && now - updatedAt < FORTUNE_TEA_GENERATION_LOCK_TTL_MS;
 }
@@ -4291,12 +4301,19 @@ function publicFortuneTeaStoredResult(doc, fallback = {}) {
   };
 }
 
-async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, featureKey, pricing, requestId }) {
+async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, featureKey, pricing, requestId, requestHash, accessKey }) {
   if (!auth?.userId) return { ok: true };
   const userId = String(auth.userId);
   const now = new Date();
   const { results } = honeyCollections();
   const existing = await results.findOne({ userId, resultId });
+  if (existing?.deliveryRequestId && (existing.deliveryRequestId !== requestId || existing.featureKey !== featureKey
+    || (existing.generationRequestHash && existing.generationRequestHash !== requestHash)
+    || (existing.deliveryAccessKey && existing.deliveryAccessKey !== accessKey))) {
+    const error = new Error("기존 상담과 같은 요청으로 다시 확인해 주세요.");
+    error.status = 409;
+    throw error;
+  }
   if (existing?.status === "completed") {
     const result = publicFortuneTeaStoredResult(existing, {
       resultId,
@@ -4310,24 +4327,31 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
     return { ok: false, inProgress: true, doc: existing };
   }
 
+  const pending = existing?.status === "delivery_pending" && publicFortuneTeaStoredResult(existing);
+  const lockToken = randomUUID();
   try {
     // 조회 이후 다른 요청이 생성/완료했을 수 있다. 읽은 상태와 시각이 여전히
     // 같은 문서만 claim한다. 최초 생성은 결정적 _id의 unique 제약이 중재한다.
     const claimed = await results.updateOne(
       existing
-        ? { userId, resultId, status: existing.status, updatedAt: existing.updatedAt || null }
+        ? { userId, resultId, status: existing.status, updatedAt: existing.updatedAt || null,
+          "generationLock.token": existing.generationLock?.token || { $exists: false } }
         : { userId, resultId, _id: buildFortuneTeaResultStorageId(userId, resultId), status: { $exists: false } },
       {
         $set: {
           userId,
           resultId,
           serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
-          consultationMode: normalizeConsultationMode(consultRequest.consultationMode),
+          consultationMode: pending ? existing.consultationMode : normalizeConsultationMode(consultRequest.consultationMode),
           featureKey,
-          pricing: pricing || {},
-          profileId: cleanText(consultRequest.profileId, 120),
-          status: "generating",
+          pricing: pending ? existing.pricing : pricing || {},
+          profileId: pending ? existing.profileId : cleanText(consultRequest.profileId, 120),
+          status: pending ? "delivery_pending" : "generating",
+          deliveryRequestId: requestId,
+          generationRequestHash: requestHash,
+          deliveryAccessKey: accessKey,
           generationLock: {
+            token: lockToken,
             requestId: cleanText(requestId || resultId, 180),
             startedAt: now,
           },
@@ -4348,16 +4372,16 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
     if (Number(error?.code) === 11000) return { ok: false, inProgress: true };
     throw error;
   }
-  return { ok: true };
+  return { ok: true, lockToken, pending: pending ? { result: pending, generationMeta: existing.generationMeta || {} } : null };
 }
 
-async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, message }) {
+async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, message, lockToken }) {
   if (!auth?.userId) return;
   const userId = String(auth.userId);
   const now = new Date();
   const { results } = honeyCollections();
-  await results.updateOne(
-    { userId, resultId },
+  const failed = await results.updateOne(
+    { userId, resultId, status: "generating", ...(lockToken ? { "generationLock.token": lockToken } : {}) },
     {
       $set: {
         status: "generation_failed",
@@ -4373,7 +4397,9 @@ async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, messa
     },
   ).catch((error) => {
     console.warn("[fortune-tea-house/consult] generation failure status update failed", error);
+    return null;
   });
+  return Boolean(failed?.matchedCount);
 }
 
 function dateIso(value) {
@@ -4472,13 +4498,13 @@ function resultPayloadForStorage(result) {
   return safe;
 }
 
-async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, result, generationMeta }) {
+async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, result, generationMeta, requestId, lockToken }) {
   if (!auth?.userId) return null;
   const userId = String(auth.userId);
   const now = new Date();
   const { results } = honeyCollections();
-  await results.updateOne(
-    { userId, resultId },
+  const saved = await results.updateOne(
+    { userId, resultId, status: "generating", "generationLock.token": lockToken },
     {
       $set: {
         userId,
@@ -4487,22 +4513,53 @@ async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, resul
         consultationMode: normalizeConsultationMode(consultRequest.consultationMode),
         featureKey: cleanText(result.featureKey, 160),
         pricing: result.pricing || {},
-        status: "completed",
+        status: "delivery_pending",
+        deliveryRequestId: requestId,
         profileId: cleanText(consultRequest.profileId, 120),
         questionSummary: cleanMultiline(result.questionSummary || consultRequest.question, 1200),
         result: resultPayloadForStorage(result),
         generationMeta: generationMeta || {},
         updatedAt: now,
       },
-      $unset: { generationLock: "", generationError: "" },
-      $setOnInsert: {
-        _id: buildFortuneTeaResultStorageId(userId, resultId),
-        createdAt: now,
-      },
+      $unset: { generationError: "" },
     },
-    { upsert: true },
   );
-  return results.findOne({ userId, resultId });
+  if (!saved?.matchedCount) throw new Error("RESULT_STORAGE_UNAVAILABLE");
+  const doc = await results.findOne({ userId, resultId, status: "delivery_pending", "generationLock.token": lockToken });
+  if (!publicFortuneTeaStoredResult(doc)) throw new Error("RESULT_STORAGE_UNAVAILABLE");
+  return doc;
+}
+
+async function completeFortuneTeaHouseDelivery({ auth, resultId, lockToken }) {
+  const { results } = honeyCollections();
+  const userId = String(auth.userId);
+  const saved = await results.updateOne(
+    { userId, resultId, status: "delivery_pending", "generationLock.token": lockToken },
+    { $set: { status: "completed", updatedAt: new Date() }, $unset: { generationLock: "", generationError: "" } },
+  );
+  if (!saved?.matchedCount) throw new Error("RESULT_STORAGE_UNAVAILABLE");
+  const doc = await results.findOne({ userId, resultId, status: "completed" });
+  if (!publicFortuneTeaStoredResult(doc)) throw new Error("RESULT_STORAGE_UNAVAILABLE");
+  return doc;
+}
+
+async function releaseFortuneTeaDelivery({ auth, resultId, lockToken }) {
+  try {
+    const { results } = honeyCollections();
+    // 저장 응답만 유실됐을 수도 있다. 본문과 completed 상태는 덮지 않는다.
+    await results.updateOne(
+      { userId: String(auth.userId), resultId, "generationLock.token": lockToken, status: { $in: ["generating", "delivery_pending"] } },
+      { $unset: { generationLock: "" }, $set: { updatedAt: new Date() } },
+    );
+  } catch {
+    // DB가 복구되면 기존 잠금 TTL 이후 같은 요청으로 이어받는다.
+    console.warn("[fortune-tea-house] delivery lock release unavailable");
+  }
+}
+
+function fortuneTeaStorageUnavailable(resultId) {
+  return json({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId,
+    message: "상담 저장을 확인하지 못했어요. 다시 시도하면 같은 요청으로 이어서 확인할게요." }, { status: 503 });
 }
 
 const FORTUNE_TEA_HOUSE_HISTORY_LIST_LIMIT = 20;
@@ -5206,6 +5263,7 @@ async function handleConsult(request, env, ctx = null) {
 
   const body = await readJson(request);
   const consultRequest = normalizeRequest(body);
+  const requestHash = createHash("sha256").update(JSON.stringify(consultRequest)).digest("hex");
   await prepareFortuneTeaSukuyoAstronomy(consultRequest, env, request.url);
   const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
   if (!access.ok) return access.response;
@@ -5213,16 +5271,24 @@ async function handleConsult(request, env, ctx = null) {
   const fallback = normalizeDraftResult(body?.draftResult, consultRequest);
   const resultId = buildHoneyResultId(body, consultRequest);
   const requestId = readFortuneTeaRequestId(body, consultRequest);
+  let generation;
   if (access.auth?.userId) {
-    await connectDb(env);
-    const generation = await beginFortuneTeaHouseGeneration({
-      auth: access.auth,
-      resultId,
-      consultRequest,
-      featureKey: access.featureKey,
-      pricing: access.pricing,
-      requestId,
-    });
+    try {
+      await connectDb(env);
+      generation = await beginFortuneTeaHouseGeneration({
+        auth: access.auth,
+        resultId,
+        consultRequest,
+        featureKey: access.featureKey,
+        pricing: access.pricing,
+        requestId,
+        requestHash,
+        accessKey: access.accessDecision?.paymentId || "reusable",
+      });
+    } catch (error) {
+      if (error?.status === 409) throw error;
+      return fortuneTeaStorageUnavailable(resultId);
+    }
     if (generation.completed) {
       const honeyDrops = await readHoneyDropsState(request, env);
       return json({
@@ -5248,27 +5314,20 @@ async function handleConsult(request, env, ctx = null) {
       }, { status: 202 });
     }
   }
-  // 생성→차감(apply)→저장→리워드 전체를 클로저로 묶는다 — ctx가 있고 로그인 사용자면(생성 레코드로
-  // 재-POST 폴링 수렴 가능) 즉시 202 후 백그라운드(waitUntil)에서 완주하고, 아니면 기존 동기 계약 유지.
-  // apply/cancel·markFailed가 클로저 안에 함께 있어 차감은 여전히 '생성 성공 후'에만 일어난다.
+  // 생성 결과 보존 → 기존 증빙 apply → 완료 저장 → 리워드 순서로 전달한다.
   const runGeneration = async () => {
   let generated;
   try {
-    generated = await generateConsultResult(consultRequest, fallback, env);
-    if (access.deferredUsage) {
-      await callFortuneTeaDeferredUsageRoute({
-        request,
-        env,
-        auth: access.auth,
-        path: "apply",
-        featureKey: access.featureKey,
-        pricing: access.pricing,
-        requestId,
-        resultId,
-      });
-    }
+    generated = generation?.pending || await generateConsultResult(consultRequest, fallback, env);
   } catch (error) {
-    if (access.deferredUsage) {
+    const failedCurrentGeneration = await markFortuneTeaHouseGenerationFailed({
+      lockToken: generation?.lockToken,
+      auth: access.auth,
+      resultId,
+      code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
+      message: cleanText(error?.message || error, 500),
+    });
+    if (access.deferredUsage && failedCurrentGeneration) {
       await callFortuneTeaDeferredUsageRoute({
         request,
         env,
@@ -5284,12 +5343,7 @@ async function handleConsult(request, env, ctx = null) {
         console.warn("[fortune-tea-house/billing-deferred] cancel failed", cancelError);
       });
     }
-    await markFortuneTeaHouseGenerationFailed({
-      auth: access.auth,
-      resultId,
-      code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
-      message: cleanText(error?.message || error, 500),
-    });
+
     if (cleanText(error?.code, 80) === "FORTUNE_TEA_HOUSE_LLM_RETRYABLE") {
       return json({
         ok: false,
@@ -5301,7 +5355,7 @@ async function handleConsult(request, env, ctx = null) {
     throw error;
   }
   const auth = access.auth;
-  const result = {
+  const result = generation?.pending ? generated.result : {
     ...generated.result,
     resultId,
     serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
@@ -5315,8 +5369,38 @@ async function handleConsult(request, env, ctx = null) {
   if (auth?.userId) {
     try {
       await connectDb(env);
-      await saveFortuneTeaHouseResult({ auth, resultId, consultRequest, result, generationMeta: generated.generationMeta });
-      honeyDrops = await grantHoneyDropReward(auth, resultId, consultRequest.consultationMode);
+      if (!generation.pending) {
+        await saveFortuneTeaHouseResult({ auth, resultId, consultRequest, result, generationMeta: generated.generationMeta, requestId, lockToken: generation.lockToken });
+      }
+    } catch (_error) {
+      await releaseFortuneTeaDelivery({ auth, resultId, lockToken: generation.lockToken });
+      return fortuneTeaStorageUnavailable(resultId);
+    }
+    // apply가 반영된 뒤 응답만 유실될 수 있으므로 cancel하지 않는다.
+    // 동일 requestId의 기존 billing 멱등 처리로 다음 요청에서 확정한다.
+    try {
+      const deliveryAccess = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
+      if (!deliveryAccess.ok) {
+        await releaseFortuneTeaDelivery({ auth, resultId, lockToken: generation.lockToken });
+        return deliveryAccess.response;
+      }
+      if (deliveryAccess.deferredUsage) {
+        await callFortuneTeaDeferredUsageRoute({ request, env, auth, path: "apply", featureKey: access.featureKey,
+          pricing: access.pricing, requestId, resultId });
+      }
+    } catch (error) {
+      await releaseFortuneTeaDelivery({ auth, resultId, lockToken: generation.lockToken });
+      return json({ ok: false, retryable: true, reason: "RESULT_DELIVERY_PENDING", resultId,
+        message: "상담 전달을 확인하고 있어요. 같은 요청으로 다시 확인해 주세요." }, { status: Number(error?.status) >= 400 && Number(error?.status) < 500 ? Number(error.status) : 503 });
+    }
+    try {
+      await completeFortuneTeaHouseDelivery({ auth, resultId, lockToken: generation.lockToken });
+    } catch (_error) {
+      await releaseFortuneTeaDelivery({ auth, resultId, lockToken: generation.lockToken });
+      return fortuneTeaStorageUnavailable(resultId);
+    }
+    try {
+      honeyDrops = await grantHoneyDropReward(auth, resultId, result.consultationMode);
     } catch (error) {
       console.warn("[fortune-tea-house/honey-drops] reward disabled", error);
       honeyDrops = {

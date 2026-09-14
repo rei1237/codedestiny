@@ -11,6 +11,8 @@ import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
 import { authFetch } from "@/app/_lib/auth-client";
+import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
+import { readFortuneTeaRecovery, saveFortuneTeaRecovery, clearFortuneTeaRecovery, type FortuneTeaRecovery } from "./lib/consultRecovery";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput, FortuneTeaTarotSpread } from "./data/consult";
 import { KRW_PER_COIN, KRW_PER_MONTHLY_CREDIT } from "@/lib/payment/coin-pricing";
@@ -251,11 +253,7 @@ type FortuneTeaPrepaidResume = {
 };
 
 /** 결제는 끝났는데 상담 생성이 실패한 시도. 인페이지 재제출이 이 값을 이어받아 재과금을 막는다. */
-type FortuneTeaSettledAttempt = {
-  attemptId: string;
-  featureKey: string;
-  billingGate: Record<string, unknown>;
-};
+type FortuneTeaSettledAttempt = FortuneTeaRecovery;
 
 /**
  * 결제 증빙을 실은 /consult 본문. 인페이지 결제와 재개가 같은 조립기를 쓴다 —
@@ -534,6 +532,8 @@ function TeaHouseHistoryLoadingDialog({ onClose }: { onClose: () => void }) {
 }
 
 export default function FortuneTeaHousePage() {
+  const authState = useAuthStore();
+  const recoveryOwner = toText(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid);
   const [stage, setStage] = useState<TeaHouseStage>("landing");
   const [notice, setNotice] = useState("");
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
@@ -575,6 +575,33 @@ export default function FortuneTeaHousePage() {
    * featureKey 가 다르면 가격이 다른 상담이므로 이어받지 않는다.
    */
   const unusedPaidAttemptRef = useRef<FortuneTeaSettledAttempt | null>(null);
+  const recoveryOwnerRef = useRef("");
+  useEffect(() => {
+    if (recoveryOwnerRef.current === recoveryOwner) return;
+    const previousOwner = recoveryOwnerRef.current;
+    recoveryOwnerRef.current = recoveryOwner;
+    // 초기 인증 예열이 끝난 것만으로 진행 중인 제출을 취소하지 않는다.
+    if (!previousOwner && recoveryOwner && submitLockRef.current) return;
+    unusedPaidAttemptRef.current = null;
+    consultRunRef.current += 1;
+    submitLockRef.current = false;
+    setIsSubmitting(false);
+    setConsultResult(null);
+    const saved = readFortuneTeaRecovery(recoveryOwner);
+    if (saved) {
+      unusedPaidAttemptRef.current = saved;
+      setSelectedCup(saved.cup);
+      setQuestionInput(saved.questionInput);
+      setSubmitError("이전 상담 요청이 남아 있어요. 다시 시작하면 같은 요청으로 전달을 확인해요.");
+      setStage("questionInput");
+    } else {
+      setQuestionInput({});
+      setSelectedCup(null);
+      setSubmitError("");
+      setStage("landing");
+    }
+  }, [recoveryOwner]);
+
   const loadingBgmIndexRef = useRef(0);
   const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
@@ -935,8 +962,14 @@ export default function FortuneTeaHousePage() {
     logSubmitStep("selectedCup", selectedCup);
     logSubmitStep("input", nextQuestionInput);
 
+    const currentUser = getAuthState().user;
+    const ownerId = toText(currentUser?.id || currentUser?.userId || currentUser?._id || currentUser?.uid);
+    const recovery = unusedPaidAttemptRef.current;
+    const carriedRecovery = !prepaid && recovery?.ownerId === ownerId
+      && recovery.featureKey === resolveFortuneTeaFeatureKey(nextQuestionInput) ? recovery : null;
+    if (carriedRecovery) nextQuestionInput = carriedRecovery.questionInput;
     // 재개는 서술자에 실린 찻잔으로 들어온다 — 복귀 문서의 selectedCup 은 아직 null 이다.
-    const activeCup = prepaid?.cup || selectedCup;
+    const activeCup = prepaid?.cup || carriedRecovery?.cup || selectedCup;
     if (!activeCup) {
       goToStage("teaSelect");
       return;
@@ -955,6 +988,7 @@ export default function FortuneTeaHousePage() {
     let localPreviewResult: FortuneTeaHouseConsultResponse | null = null;
     let localPreviewResultId = "";
     let accessGateStarted = false;
+    let deliveryStarted = false;
 
     try {
       const startedAt = Date.now();
@@ -1003,12 +1037,7 @@ export default function FortuneTeaHousePage() {
       };
       // 앞선 시도가 결제까지 끝내고 생성에서 실패했다면 그 시도를 그대로 이어받는다 —
       // 새 attemptId 로 다시 게이트를 타면 서버가 결제 기록을 못 찾아 재과금된다.
-      const reusablePaidAttempt = unusedPaidAttemptRef.current;
-      const carriedPaid = !prepaid
-        && reusablePaidAttempt
-        && reusablePaidAttempt.featureKey === resolveFortuneTeaFeatureKey(nextQuestionInput)
-        ? reusablePaidAttempt
-        : null;
+      const carriedPaid = carriedRecovery;
       const settledPayment = Boolean(prepaid || carriedPaid);
       const attemptId = prepaid
         ? prepaid.attemptId
@@ -1024,7 +1053,7 @@ export default function FortuneTeaHousePage() {
       // Phase-1 이전에 인증을 예열해 이용권 보유자가 첫 제출에서 서버 게이트를 원샷 통과하도록 한다.
       await ensureFortuneTeaAuthReady();
       const requestPayloadWithAttempt: FortuneTeaConsultPostBody = {
-        ...(prepaid?.requestPayload || requestPayload),
+        ...(prepaid?.requestPayload || carriedPaid?.requestPayload || requestPayload),
         selectedTeaCupId: activeCup.id,
         selectedTeaCupName: activeCup.name,
         selectedTeaCupTopic: activeCup.topic,
@@ -1115,15 +1144,19 @@ export default function FortuneTeaHousePage() {
         }
       }
 
-      // 결제 증빙이 생긴 시도는 생성이 실패해도 이미 청구된 상태다 — 성공할 때까지 붙들어 두고
-      // 인페이지 재제출이 같은 attemptId 로 이어받게 한다(재과금 방지).
-      if (billingEvidenceBody) {
-        unusedPaidAttemptRef.current = {
-          attemptId,
-          featureKey: toText(billingEvidenceBody.featureKey) || resolveFortuneTeaFeatureKey(nextQuestionInput),
-          billingGate: asRecord(billingEvidenceBody.billingGate),
-        };
-      }
+      // 이용권 직접 통과도 같은 요청으로 복구한다. 원문/증빙을 저장한 뒤에만 생성한다.
+      const initialConsultBody: FortuneTeaConsultPostBody = carriedPaid?.requestPayload
+        || billingEvidenceBody || { ...requestPayloadWithAttempt, draftResult: localDraft };
+      const verifiedUser = getAuthState().user;
+      const attemptOwnerId = toText(verifiedUser?.id || verifiedUser?.userId || verifiedUser?._id || verifiedUser?.uid) || ownerId;
+      const recoveryRecord: FortuneTeaRecovery = {
+        ownerId: attemptOwnerId, attemptId,
+        featureKey: toText(initialConsultBody.featureKey) || resolveFortuneTeaFeatureKey(nextQuestionInput),
+        billingGate: asRecord(initialConsultBody.billingGate), requestPayload: initialConsultBody,
+        questionInput: nextQuestionInput, cup: activeCup,
+      };
+      unusedPaidAttemptRef.current = recoveryRecord;
+      saveFortuneTeaRecovery(recoveryRecord);
 
       // 이용권/결제 판정이 끝났으니 게이트를 닫고, 생성은 찻집 테마 로딩(scentLoading) 아래에서 진행한다.
       if (!settledPayment) {
@@ -1137,7 +1170,7 @@ export default function FortuneTeaHousePage() {
       logSubmitStep("api result start");
       const abortController = new AbortController();
       const localPreviewTimeoutId = useLocalPreview ? window.setTimeout(() => abortController.abort(), 8500) : null;
-      const initialConsultBody: FortuneTeaConsultPostBody = billingEvidenceBody || { ...requestPayloadWithAttempt, draftResult: localDraft };
+      deliveryStarted = true;
       // 202(생성 중) 응답 시 폴링에 재사용할 body.
       const consultPollBody: FortuneTeaConsultPostBody = initialConsultBody;
       let { response, payload } = await postFortuneTeaConsultRequest(initialConsultBody, abortController.signal).finally(() => {
@@ -1196,6 +1229,7 @@ export default function FortuneTeaHousePage() {
       }
       // 상담문이 실제로 도착했다 — 이 시도의 결제는 소진됐으므로 이어받기 대상에서 뺀다.
       if (unusedPaidAttemptRef.current?.attemptId === attemptId) unusedPaidAttemptRef.current = null;
+      clearFortuneTeaRecovery(attemptOwnerId, attemptId);
       submitSucceededRef.current = true;
       setConsultResult(nextResult);
       if (payload.generationMeta?.mode === "local_fallback") {
@@ -1226,7 +1260,7 @@ export default function FortuneTeaHousePage() {
         (error as Error & { paymentRequired?: boolean }).paymentRequired
         || generationPending
       );
-      if (localPreviewResult && useLocalPreview && !blocksLocalPreview) {
+      if (localPreviewResult && useLocalPreview && !deliveryStarted && !blocksLocalPreview) {
         if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput, localPreviewResultId);
         markGenerationComplete();
         const nextResult = {

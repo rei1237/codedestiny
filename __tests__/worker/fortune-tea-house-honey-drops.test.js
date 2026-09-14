@@ -9,6 +9,10 @@ let handleFortuneTeaHouseRoutes;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
 let paidAccessAllowed = true;
 let callGeminiTextMock;
+let billingMock;
+let billingCalls;
+let appliedKeys;
+let loseApplyResponse;
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -44,6 +48,7 @@ function matchesCondition(actual, expected) {
     if (Object.prototype.hasOwnProperty.call(expected, "$in")) return Array.isArray(expected.$in) && expected.$in.includes(actual);
     if (Object.prototype.hasOwnProperty.call(expected, "$ne")) return actual !== expected.$ne;
   }
+  if (actual instanceof Date || expected instanceof Date) return new Date(actual).getTime() === new Date(expected).getTime();
   return actual === expected;
 }
 
@@ -105,6 +110,7 @@ class FakeCollection {
       });
       applyUpdate(doc, update, true);
       doc._id = doc._id || `fake_${++this.seq}`;
+      if (this.rows.has(doc._id)) throw Object.assign(new Error("duplicate key"), { code: 11000 });
       this.rows.set(doc._id, doc);
       return { matchedCount: 0, modifiedCount: 0, upsertedCount: 1 };
     }
@@ -253,14 +259,26 @@ beforeAll(async () => {
     // 라우트가 llm-cache-store 를 통해 참조한다. 이 스위트는 캐시 동작을 검증하지 않으므로 빈 스텁.
     LlmResponseCache: {},
   }));
+  billingMock = jest.fn(async (request) => {
+    const body = await request.json();
+    const path = new URL(request.url).pathname.split("/").pop();
+    billingCalls.push({ path, ...body });
+    if (path === "apply") {
+      const doc = await collection("fortune_tea_house_results").findOne({ resultId: body.resultId });
+      expect(doc.status).toBe("delivery_pending");
+      expect(doc.result).toBeTruthy();
+      appliedKeys.add(body.requestId);
+      if (loseApplyResponse) {
+        loseApplyResponse = false;
+        throw new Error("MOCK_APPLY_RESPONSE_LOST");
+      }
+    }
+    return new Response(JSON.stringify({ ok: true, data: { deferredUsage: true, status: "completed" } }), {
+      status: 200, headers: { "content-type": "application/json" },
+    });
+  });
   jest.unstable_mockModule("../../worker/routes/billing.js", () => ({
-    handleBillingRoutes: jest.fn(async () => new Response(JSON.stringify({
-      ok: true,
-      data: { deferredUsage: true, status: "completed" },
-    }), {
-      status: 200,
-      headers: { "content-type": "application/json" },
-    })),
+    handleBillingRoutes: billingMock,
     BILLING_SNAPSHOT_USER_PROJECTION: {},
   }));
   callGeminiTextMock = jest.fn(async () => ({ ok: false, error: "external_call_blocked" }));
@@ -274,6 +292,10 @@ beforeAll(async () => {
 beforeEach(() => {
   // LLM fixtures settle immediately; clear unused group deadlines per test.
   jest.useFakeTimers({ doNotFake: ['Date', 'performance', 'nextTick', 'queueMicrotask', 'setImmediate', 'clearImmediate'] });
+  jest.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("EXTERNAL_FETCH_FORBIDDEN"); });
+  billingCalls = [];
+  appliedKeys = new Set();
+  loseApplyResponse = false;
   fakeDb.reset();
   authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
   paidAccessAllowed = true;
@@ -281,6 +303,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  jest.restoreAllMocks();
   jest.clearAllTimers();
   jest.useRealTimers();
 });
@@ -540,5 +563,216 @@ describe("fortune tea house honey drops", () => {
     expect(ledgers.filter((row) => row.type === "spend")).toHaveLength(1);
     expect(ledgers.filter((row) => row.type === "refund")).toHaveLength(1);
     expect(resultDoc.honeyLetter).toBeUndefined();
+  });
+});
+
+
+describe.each(["membership_pass", "monthly", "single"])("delivery recovery: %s", (accessMethod) => {
+  const resultCollection = () => collection("fortune_tea_house_results");
+  async function prepare(id) {
+    paidAccessAllowed = false;
+    await seedBillingEvidence({ featureKey: FEATURE_KEYS.tarot, requestId: id, accessMethod });
+    return { ...validConsultBody(id), requestId: id, idempotencyKey: id, billingGate: billingGatePayload(FEATURE_KEYS.tarot, id) };
+  }
+  const post = async (body) => {
+    const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
+      method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": body.requestId }, body: JSON.stringify(body),
+    }), { NODE_ENV: "test" });
+    return { status: response.status, payload: await response.json() };
+  };
+  const rewards = () => collection("fortune_tea_house_honey_ledgers").all().filter(row => row.reason === "TEA_HOUSE_CONSULTATION_REWARD");
+
+  test.each(["throw", "null", "write_response_lost"])("checkpoint %s never completes or applies", async (fault) => {
+    const body = await prepare(`checkpoint-${accessMethod}-${fault}`);
+    const rows = resultCollection();
+    const update = rows.updateOne.bind(rows);
+    const read = rows.findOne.bind(rows);
+    let failed = false;
+    jest.spyOn(rows, "updateOne").mockImplementation(async (q, u, o) => {
+      if (!failed && u.$set?.status === "delivery_pending") {
+        failed = true;
+        if (fault === "write_response_lost") await update(q, u, o);
+        if (fault !== "null") throw new Error("MOCK_STORAGE_UNAVAILABLE");
+        return null;
+      }
+      return update(q, u, o);
+    });
+    const first = await post(body);
+    expect(first.status).toBe(503);
+    expect(first.payload).toMatchObject({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE" });
+    expect(billingCalls).toHaveLength(0);
+    expect(rewards()).toHaveLength(0);
+    const generated = callGeminiTextMock.mock.calls.length;
+    const next = await post(body);
+    expect(next.status).toBe(200);
+    if (fault === "write_response_lost") expect(callGeminiTextMock.mock.calls.length).toBe(generated);
+    expect((await read({ resultId: next.payload.result.resultId })).status).toBe("completed");
+    expect(appliedKeys.size).toBe(1);
+  });
+
+  test.each(["throw", "null", "confirmation_null"])("final save %s preserves exact result for retry", async (fault) => {
+    const body = await prepare(`final-${accessMethod}-${fault}`);
+    const rows = resultCollection();
+    const update = rows.updateOne.bind(rows);
+    const read = rows.findOne.bind(rows);
+    let failed = false;
+    jest.spyOn(rows, "updateOne").mockImplementation(async (q, u, o) => {
+      if (!failed && u.$set?.status === "completed" && fault !== "confirmation_null") {
+        failed = true;
+        if (fault === "throw") throw new Error("MOCK_STORAGE_UNAVAILABLE");
+        return null;
+      }
+      return update(q, u, o);
+    });
+    jest.spyOn(rows, "findOne").mockImplementation(async (q) => {
+      if (!failed && q.status === "completed" && fault === "confirmation_null") { failed = true; return null; }
+      return read(q);
+    });
+    const first = await post(body);
+    expect(first.status).toBe(503);
+    expect(first.payload.reason).toBe("RESULT_STORAGE_UNAVAILABLE");
+    expect(rewards()).toHaveLength(0);
+    const saved = rows.all()[0];
+    const generated = callGeminiTextMock.mock.calls.length;
+    // New Request and auth object stand in for a refreshed/re-authenticated client.
+    authState = { userId: USER_ID, role: "user" };
+    const next = await post(JSON.parse(JSON.stringify(body)));
+    expect(next.status).toBe(200);
+    expect(next.payload.result).toEqual(saved.result);
+    expect(callGeminiTextMock.mock.calls.length).toBe(generated);
+    expect(appliedKeys.size).toBe(1);
+    expect(billingCalls.every(call => call.requestId === body.requestId && call.idempotencyKey === body.requestId)).toBe(true);
+    const detail = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(saved.resultId)}`), { NODE_ENV: "test" });
+    expect(detail.status).toBe(200);
+  });
+
+  test("apply response loss retries same evidence without generation or cancel", async () => {
+    const body = await prepare(`apply-${accessMethod}`);
+    loseApplyResponse = true;
+    expect((await post(body)).status).toBe(503);
+    const saved = resultCollection().all()[0];
+    expect(saved.status).toBe("delivery_pending");
+    const generated = callGeminiTextMock.mock.calls.length;
+    const next = await post(body);
+    expect(next.status).toBe(200);
+    expect(next.payload.result).toEqual(saved.result);
+    expect(callGeminiTextMock.mock.calls.length).toBe(generated);
+    expect(appliedKeys.size).toBe(1);
+    expect(billingCalls.map(call => call.path)).toEqual(["apply", "apply"]);
+  });
+
+  test("reward failure preserves successful delivery and cached reread", async () => {
+    const body = await prepare(`reward-${accessMethod}`);
+    jest.spyOn(collection("fortune_tea_house_honey_wallets"), "updateOne").mockRejectedValue(new Error("MOCK_REWARD_UNAVAILABLE"));
+    const first = await post(body);
+    expect(first.status).toBe(200);
+    expect(first.payload.honeyDrops.reason).toBe("honey_reward_unavailable");
+    expect(resultCollection().all()[0].status).toBe("completed");
+    const next = await post(body);
+    expect(next.payload.cached).toBe(true);
+    expect(next.payload.result).toEqual(first.payload.result);
+  });
+
+  test.each(["cancelled", "refunded"])("%s evidence cannot resume pending result even with a current pass", async (status) => {
+    const body = await prepare(`revoked-${accessMethod}-${status}`);
+    loseApplyResponse = true;
+    await post(body);
+    const generated = callGeminiTextMock.mock.calls.length;
+    await collection("paid_execution_records").updateOne({ requestId: body.requestId }, { $set: { status } });
+    paidAccessAllowed = true;
+    const next = await post(body);
+    expect(next.status).toBe(402);
+    expect(callGeminiTextMock.mock.calls.length).toBe(generated);
+    expect(resultCollection().all()[0].status).toBe("delivery_pending");
+  });
+
+  test("refunded original payment overrides an old completed execution proof", async () => {
+    const body = await prepare(`payment-refund-${accessMethod}`);
+    loseApplyResponse = true;
+    await post(body);
+    await collection("paid_execution_records").updateOne({ requestId: body.requestId }, { $set: { status: "completed" } });
+    await collection("payments").insertOne({ _id: "refund", userId: USER_ID, merchantUid: `pay:${body.requestId}`, status: "refunded" });
+    paidAccessAllowed = true;
+    const next = await post(body);
+    expect(next.status).toBe(402);
+    expect(next.payload.reason).toBe("BILLING_EVIDENCE_REVOKED");
+    expect(billingCalls).toHaveLength(1);
+  });
+
+  test("pending recovery rejects a changed payment identity", async () => {
+    const body = await prepare(`proof-change-${accessMethod}`);
+    loseApplyResponse = true;
+    await post(body);
+    await collection("paid_execution_records").updateOne({ requestId: body.requestId }, { $set: { paymentId: "different-payment" } });
+    expect((await post(body)).status).toBe(409);
+    expect(billingCalls).toHaveLength(1);
+  });
+
+  test("pending concurrent recovery retains original result and confirms once", async () => {
+    const body = await prepare(`pending-concurrent-${accessMethod}`);
+    loseApplyResponse = true;
+    await post(body);
+    const saved = resultCollection().all()[0];
+    const generated = callGeminiTextMock.mock.calls.length;
+    const responses = await Promise.all([post(body), post(body)]);
+    expect(responses.map(r => r.status).sort()).toEqual([200, 202]);
+    expect(responses.find(r => r.status === 200).payload.result).toEqual(saved.result);
+    expect(callGeminiTextMock.mock.calls.length).toBe(generated);
+    expect(appliedKeys.size).toBe(1);
+  });
+
+  test("pending input changes return 409 without changing stored input or applying", async () => {
+    const body = await prepare(`input-conflict-${accessMethod}`);
+    loseApplyResponse = true;
+    await post(body);
+    const saved = resultCollection().all()[0];
+    const next = await post({ ...body, question: "다른 질문으로 바꾼 요청입니다" });
+    expect(next.status).toBe(409);
+    expect(resultCollection().all()[0]).toEqual(saved);
+    expect(billingCalls).toHaveLength(1);
+  });
+
+  test("late final write cannot complete or release a newer owner's lock", async () => {
+    const body = await prepare(`stale-lock-${accessMethod}`);
+    const rows = resultCollection();
+    const update = rows.updateOne.bind(rows);
+    jest.spyOn(rows, "updateOne").mockImplementation(async (q, u, o) => {
+      if (u.$set?.status === "completed") {
+        await update({ resultId: q.resultId }, { $set: { "generationLock.token": "new-owner" } });
+      }
+      return update(q, u, o);
+    });
+    const next = await post(body);
+    expect(next.status).toBe(503);
+    const saved = rows.all()[0];
+    expect(saved.status).toBe("delivery_pending");
+    expect(saved.generationLock.token).toBe("new-owner");
+    expect(rewards()).toHaveLength(0);
+  });
+
+  test("cancellation during generation is rechecked before apply", async () => {
+    const body = await prepare(`mid-cancel-${accessMethod}`);
+    const rows = resultCollection();
+    const update = rows.updateOne.bind(rows);
+    jest.spyOn(rows, "updateOne").mockImplementation(async (q, u, o) => {
+      const result = await update(q, u, o);
+      if (u.$set?.status === "delivery_pending") {
+        await collection("paid_execution_records").updateOne({ requestId: body.requestId }, { $set: { status: "refunded" } });
+      }
+      return result;
+    });
+    expect((await post(body)).status).toBe(402);
+    expect(billingCalls).toHaveLength(0);
+    expect(rows.all()[0].status).toBe("delivery_pending");
+    expect(rewards()).toHaveLength(0);
+  });
+
+  test("concurrent same-key requests generate and apply once", async () => {
+    const body = await prepare(`concurrent-${accessMethod}`);
+    const results = await Promise.all([post(body), post(body)]);
+    expect(results.map(r => r.status).sort()).toEqual([200, 202]);
+    expect(billingCalls.filter(call => call.path === "apply")).toHaveLength(1);
+    expect(rewards()).toHaveLength(1);
+    expect((await post(body)).payload.cached).toBe(true);
   });
 });

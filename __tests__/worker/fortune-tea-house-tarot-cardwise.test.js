@@ -6,6 +6,7 @@
  */
 
 import { jest } from "@jest/globals";
+import createResultStore from "../fixtures/fortune-tea-result-store.cjs";
 import { isHeartScentName } from "../../lib/fortune-tea-house/heart-scents.js";
 
 const USER_ID = "64f0a1b2c3d4e5f678901299";
@@ -32,7 +33,7 @@ function createFakeCollection() {
 const fakeCollections = new Map();
 const fakeDb = {
   collection(name) {
-    if (!fakeCollections.has(name)) fakeCollections.set(name, createFakeCollection());
+    if (!fakeCollections.has(name)) fakeCollections.set(name, name === "fortune_tea_house_results" ? createResultStore() : createFakeCollection());
     return fakeCollections.get(name);
   },
 };
