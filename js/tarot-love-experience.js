@@ -26,8 +26,8 @@
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   var TAROT_API_TIMEOUT_MS = 12000;
-  // love-reading은 서버가 LLM 상담문을 동기 생성한다(서버 상한 ~42s). draw보다 넉넉히 대기하되 프리뷰 터널 60s 컷 아래로 둔다.
-  var TAROT_READING_API_TIMEOUT_MS = 55000;
+  // 생성은 45초 제공자 호출 묶음과 저장 확인을 기다리며, 다음 요청은 저장된 부분부터 이어 간다.
+  var TAROT_READING_API_TIMEOUT_MS = 95000;
   var RELATIONSHIP_POSITIONS = ["position_1", "position_2", "position_3", "position_4", "position_5", "position_6"];
   var LOCAL_RELATIONSHIP_DECK = [
     { cardId: "M00", name: "The Fool", nameKr: "바보" },
@@ -633,7 +633,7 @@
   }
 
   function consumeCoinDirect(cost, reason, featureKey, resume) {
-    var requestId = "tarot-love:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    var requestId = state.requestId, owner = loveAccount(), seq = flowSeq;
     if (typeof window._cdOpenPaidServiceGate === "function") {
       return Promise.resolve(window._cdOpenPaidServiceGate({
         title: reason,
@@ -646,6 +646,7 @@
         requestId: requestId,
         resume: resume || undefined,
       })).then(function(result) {
+        if (seq !== flowSeq || owner !== loveAccount()) return false;
         rememberLoveCharge(result && result.transactionId, result && (result.payload || result));
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
       }).catch(function(error) {
@@ -688,6 +689,7 @@
 
   function rememberLoveCharge(transactionId, payload) {
     state.lastChargeTransactionId = extractLoveChargeTransactionId(transactionId, payload);
+    rememberLoveDelivery(state.deliveryEntry);
   }
 
   function rollbackCoinBestEffort(cost, reason, featureKey) {
@@ -697,7 +699,7 @@
     };
     if (token) rollbackHeaders.Authorization = "Bearer " + token;
     var sourceTransactionId = String(state.lastChargeTransactionId || "").trim();
-    var requestId = "tarot-love-refund:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    var requestId = "tarot-love-refund:" + state.requestId;
     // 정본 환불 라우트(/api/billing/refund → /api/fortune/pig-coin/refund 위임). 과거의
     // 과거 포인트 적립 경로는 사용하지 않고 정본 환불 경로만 호출한다.
     return fetch("/api/billing/refund", {
@@ -729,9 +731,11 @@
     if (state.hasAccess) return Promise.resolve(true);
     if (state.paymentInFlight) return Promise.resolve(false);
     state.paymentInFlight = true;
+    var paymentOwner = loveAccount(), paymentSeq = flowSeq;
 
     return new Promise(function (resolve) {
       function done(ok) {
+        if (paymentSeq !== flowSeq || paymentOwner !== loveAccount()) { resolve(false); return; }
         state.paymentInFlight = false;
         state.hasAccess = !!ok;
         resolve(!!ok);
@@ -741,9 +745,9 @@
         window._cdCoinGatePerUse(
           LOVE_COIN_COST,
           LOVE_REASON,
-          function (transactionId, payload) { rememberLoveCharge(transactionId, payload); done(true); },
+          function (transactionId, payload) { if (paymentSeq === flowSeq && paymentOwner === loveAccount()) rememberLoveCharge(transactionId, payload); done(true); },
           function () { done(false); },
-          resume ? { resume: resume } : undefined
+          { resume: resume || undefined, requestId: state.requestId, featureKey: LOVE_FEATURE_KEY }
         );
         return;
       }
@@ -1091,6 +1095,7 @@
     else document.body.style.overflow = "hidden";
     resetTarotLoveFlow();
     triggerSubtitleTypewriter();
+    void recoverLoveDelivery();
   }
 
   function triggerSubtitleTypewriter() {
@@ -1116,6 +1121,7 @@
 
   function resetTarotLoveFlow() {
     flowSeq++;
+    state.requestId='';state.deliveryEntry=null;state.delivery=null;state.deliveryBusy=false;state.lastChargeTransactionId='';
     state.cards = [];
     state.revealedCount = 0;
     state.reading = null;
@@ -1142,6 +1148,7 @@
     if (!intro || !draw) return;
 
     var seq = ++flowSeq;
+    state.requestId='';state.deliveryEntry=null;state.delivery=null;state.deliveryBusy=false;state.lastChargeTransactionId='';state.hasAccess=false;
     var panel = document.querySelector(".tarot-love-panel");
     if (panel) panel.classList.add("ritual-burst");
 
@@ -1316,7 +1323,7 @@
       kind: LOVE_RESUME_KIND,
       // 셸의 기존 딥링크(index-inline-runtime 의 __cdLazyActionLoaders). 새 라우팅을 만들지 않는다.
       action: "openTarotLoveModal",
-      args: { cards: packed },
+      args: { cards: packed, requestId: state.requestId, locale: getTarotLoveLocale() },
     };
   }
 
@@ -1339,7 +1346,7 @@
     var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
     var restored = null;
     try { restored = JSON.parse(String(args.cards || "")); } catch (e) { restored = null; }
-    if (!restored || !restored.length) return false;
+    if (!restored || restored.length !== 6 || !args.requestId) return false;
     return waitForLoveOverlay(LOVE_RESUME_WAIT_MS).then(function (ready) {
       // 모달이 끝내 안 열리면 false — 복귀 처리(destiny-profile)가 '지금 열기' 카드를 그린다.
       if (!ready) return false;
@@ -1347,7 +1354,11 @@
       // 켜지지 않도록 여기서 내린다(정상 흐름에서는 startTarotLoveReading 이 하는 일).
       var intro = byId("tarotLoveIntroStage");
       if (intro) intro.classList.remove("is-active");
+      flowSeq++;
+      state.requestId = String(args.requestId);
       state.cards = normalizeRelationshipCards(restored);
+      state.deliveryEntry = { body: { requestId: state.requestId, cards: state.cards.map(function(c){return {cardId:c.cardId,position:c.position,orientation:c.orientation};}), clientCards: state.cards, locale: String(args.locale || getTarotLoveLocale()) } };
+      rememberLoveDelivery(state.deliveryEntry);
       state.revealedCount = state.cards.length;
       state.readingPromise = null;
       state.readingResult = null;
@@ -1367,49 +1378,91 @@
 
   function showTarotLoveFinalReading() {
     if (state.revealedCount < 6 || !state.cards.length) return;
-    // 결제 전에 뽑은 카드를 서술자로 굳혀 둔다 — 복귀 페이지는 이 값 없이는 재현할 수 없다.
+    if (!state.requestId) state.requestId = "tarot-love:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    if (!state.deliveryEntry) state.deliveryEntry = { body: { requestId: state.requestId, cards: normalizeRelationshipCards(state.cards).map(function(c){return {cardId:c.cardId,position:c.position,orientation:c.orientation};}), clientCards: state.cards, locale: getTarotLoveLocale() } };
+    rememberLoveDelivery(state.deliveryEntry);
     requireLoveAccess(buildLoveResumeDescriptor()).then(function (ok) {
       if (!ok) return;
       _runTarotLoveFinalReading();
     });
   }
 
-  function requestTarotLoveReading() {
-    var normalizedCards = normalizeRelationshipCards(state.cards);
-    state.cards = normalizedCards;
-    var drawnForApi = normalizedCards.map(function (c) {
-      return {
-        cardId: c.cardId,
-        position: c.position,
-        orientation: c.orientation,
-      };
-    });
-
-    return callTarotApi("love-reading", {
-      cards: drawnForApi,
-      locale: getTarotLoveLocale(),
-    }, TAROT_READING_API_TIMEOUT_MS).then(function (data) {
-      if (!data.reading) throw new Error("No reading data");
-      return data;
-    });
+  function loveAccount() { try { var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); return String(user && (user.id || user._id || user.userId || user.uid) || ''); } catch (_) { return ''; } }
+  function loveDeliveryKey(owner) { return 'cd:love-tarot-delivery:v1:' + owner; }
+  function rememberLoveDelivery(entry) {
+    var owner = loveAccount(); if (!owner || !entry) return;
+    entry.lastChargeTransactionId = state.lastChargeTransactionId || entry.lastChargeTransactionId || '';
+    try { localStorage.setItem(loveDeliveryKey(owner), JSON.stringify(entry)); } catch (_) {}
   }
+  function loveDeliveryRequest(method, path, body) {
+    var controller = new AbortController(), timer = setTimeout(function(){ controller.abort(); }, method === 'POST' ? TAROT_READING_API_TIMEOUT_MS : 22000);
+    var headers = { 'Content-Type': 'application/json', 'x-code-destiny-locale': body && body.locale || state.deliveryEntry && state.deliveryEntry.body.locale || getTarotLoveLocale() }, token = getAuthToken();
+    if (token) headers.Authorization = 'Bearer ' + token;
+    return fetch('/api/' + path, { method: method, headers: headers, credentials: 'include', cache: 'no-store', signal: controller.signal,
+      body: body ? JSON.stringify(body) : undefined }).then(async function(response){ return { status: response.status, payload: await response.json() }; }).finally(function(){clearTimeout(timer);});
+  }
+  function showLoveDelivery(data) {
+    state.delivery = Object.assign({}, state.delivery || {}, data, { deliverySections: data.deliverySections || (state.delivery && state.delivery.deliverySections) || [] });
+    var container = byId('tarotLoveReadingContent'); if (!container) return;
+    var positionKey = loveDeliveryKey(loveAccount()) + ':position:' + (state.delivery.resultId || state.requestId);
+    var previousTop = container.scrollTop;
+    try { if (!previousTop) previousTop = Number(localStorage.getItem(positionKey)) || 0; } catch (_) {}
+    var saved = data.saved && data.status === 'completed';
+    if (saved && !data.deliverySections) { state.reading = data.reading; renderTarotLoveResult(); return; }
+    var parts = state.delivery.deliverySections, korean = getTarotLoveLocale() === 'ko';
+    container.innerHTML = '<div class="tarot-love-delivery"><div role="status">' + (saved ? (korean ? '상담 저장 완료' : 'Consultation saved') : (korean ? '본문 저장 ' : 'Saved sections ') + ((state.delivery.completedParts || []).length) + ' / ' + (state.delivery.totalParts || 21)) + '</div>'
+      + (!saved && !state.deliveryBusy && data.retryable !== false ? '<button type="button" data-love-continue>' + (korean ? '이어서 생성하기' : 'Continue reading') + '</button>' : '')
+      + (data.retryable === false ? '<p>' + (korean ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.') + '</p>' : '')
+      + '<nav aria-label="상담 목차">' + parts.map(function(part){return '<a href="#tl-' + escapeHtml(part.key) + '">' + escapeHtml(part.title) + '</a>';}).join('') + '</nav>'
+      + parts.map(function(part){return '<section id="tl-' + escapeHtml(part.key) + '"><h3>' + escapeHtml(part.title) + '</h3><div class="tarot-love-delivery-body">' + escapeHtml(part.body) + '</div></section>';}).join('') + '</div>';
+    var retry = container.querySelector('[data-love-continue]'); if (retry) retry.addEventListener('click', _runTarotLoveFinalReading);
+    container.querySelectorAll('a[href^="#tl-"]').forEach(function(link){link.addEventListener('click',function(event){event.preventDefault();var target=byId(link.getAttribute('href').slice(1));if(target)target.scrollIntoView({block:'start'});});});
+    container.scrollTop = previousTop;
+    container.onscroll = function(){ if (state.owner === loveAccount()) { try { localStorage.setItem(positionKey, String(container.scrollTop)); } catch (_) {} } };
+    if (saved) state.reading = data.reading;
 
-  // 결제 전 프리페치 — 실패해도 alert·롤백 없이 조용히 버리고, 결제 승인 시점에 새 요청으로 재시도된다.
-  function prefetchTarotLoveReading() {
-    if (state.readingPromise || state.readingResult) return;
-    // 비로그인 상태에서는 love-reading이 인증(requireAuth)에서 401로 확정 실패하므로 프리페치하지 않는다.
-    // 결제 후 인증된 상태에서 _runTarotLoveFinalReading가 정식 요청한다(지연 단축 이점은 로그인 유저에게 유지).
-    if (!getAuthToken()) return;
-    var seq = flowSeq;
-    var promise = requestTarotLoveReading().then(function (data) {
-      if (seq === flowSeq) state.readingResult = data;
-      return data;
+  }
+  async function requestTarotLoveReading() {
+    if (!state.hasAccess || !state.deliveryEntry || !loveAccount()) throw new Error('결제 요청을 확인해 주세요.');
+    var owner = loveAccount(), seq = flowSeq, entry = state.deliveryEntry;
+    if (!window.CDPaidNarrativeReader) await import('/js/core/paid-narrative-reader.js');
+    await window.CDPaidNarrativeReader.run(entry.resultId ? { resumeResultId: entry.resultId } : entry.body, {
+      active: function(){return seq === flowSeq && loveAccount() === owner;},
+      visible: function(){var overlay=byId('tarotLoveOverlay');return !!(overlay && overlay.classList.contains('is-open') && !document.hidden);},
+      post: function(body){return loveDeliveryRequest('POST','tarot/love-reading',body);},
+      get: function(){return loveDeliveryRequest('GET','tarot/love-result');},
+      wait: function(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});},
+      persist: function(_body,id){entry.resultId=id;rememberLoveDelivery(entry);},
+      show: function(data){if(data.resultId){entry.resultId=data.resultId;rememberLoveDelivery(entry);}stopTarotLoveLoadingCycle();showLoveDelivery(data);},
     });
-    promise.catch(function () {
-      // 비로그인 401 등 결제 전 실패는 삼킨다(unhandled rejection 방지). 소비는 _run 쪽 catch가 담당.
-      if (seq === flowSeq && state.readingPromise === promise) state.readingPromise = null;
-    });
-    state.readingPromise = promise;
+    return state.delivery;
+  }
+  // Paid generation starts only after the original payment request is verified.
+  function prefetchTarotLoveReading() { return; }
+
+  async function recoverLoveDelivery() {
+    var overlay=byId('tarotLoveOverlay');if(!overlay || !overlay.classList.contains('is-open'))return;
+    if(state.owner && state.owner !== loveAccount()) resetTarotLoveFlow();
+    if(state.deliveryBusy)return;
+    var seq=flowSeq;
+    try {
+      var authReply=await loveDeliveryRequest('GET','auth/me');
+      if(seq!==flowSeq || authReply.status!==200 || !authReply.payload.user)return;
+      localStorage.setItem('fortune_auth_user',JSON.stringify(authReply.payload.user));
+      var owner=loveAccount();state.owner=owner;
+      var entry=null;try{entry=JSON.parse(localStorage.getItem(loveDeliveryKey(owner))||'null');}catch(_){}
+      var reply=await loveDeliveryRequest('GET','tarot/love-result'+(entry && entry.resultId?'?resultId='+encodeURIComponent(entry.resultId):''));
+      if(seq!==flowSeq || owner!==loveAccount())return;
+      if(reply.status===401 || reply.status===403)return;
+      if(reply.payload.ok && reply.payload.resumeInputs)entry={body:reply.payload.resumeInputs,resultId:reply.payload.resultId,lastChargeTransactionId:entry && entry.lastChargeTransactionId};
+      if(!entry || !entry.body || !entry.body.requestId)return;
+      state.deliveryEntry=entry;state.requestId=entry.body.requestId;state.lastChargeTransactionId=entry.lastChargeTransactionId || '';
+      state.cards=normalizeRelationshipCards(entry.body.clientCards || entry.body.cards);state.revealedCount=6;state.hasAccess=true;
+      ['tarotLoveIntroStage','tarotLoveDrawStage'].forEach(function(id){var el=byId(id);if(el)el.classList.remove('is-active');});
+      byId('tarotLoveResultStage').classList.add('is-active');
+      if(reply.payload.ok){rememberLoveDelivery(entry);showLoveDelivery(reply.payload);}
+      if(!(reply.payload.saved && reply.payload.status==='completed'))_runTarotLoveFinalReading();
+    } catch (_) { /* Reopening later uses the same saved request. */ }
   }
 
   var tarotLoveLoadingTimer = null;
@@ -1461,59 +1514,26 @@
   }
 
   function _runTarotLoveFinalReading() {
-    if (!state.hasAccess) {
-      window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
-      return;
-    }
-
-    var seq = flowSeq;
-    var draw = byId("tarotLoveDrawStage");
-    var result = byId("tarotLoveResultStage");
-    // 결제 확인 즉시 결과 스테이지로 전환하고, 생성이 끝날 때까지 로딩 상태를 보여준다.
-    if (draw) draw.classList.remove("is-active");
-    if (result) result.classList.add("is-active");
-    renderTarotLoveLoading();
-
-    var pending;
-    if (state.readingResult) {
-      pending = Promise.resolve(state.readingResult);
-    } else if (state.readingPromise) {
-      // 프리페치가 진행 중이면 그대로 기다리고, 늦게 실패하면(비로그인 401 등) 로그인된 현재 상태로 한 번 새로 요청한다.
-      pending = state.readingPromise.catch(function () {
-        return requestTarotLoveReading();
-      });
-    } else {
-      pending = requestTarotLoveReading();
-    }
-
-    pending
-      .then(function (data) {
-        if (seq !== flowSeq) return;
-        stopTarotLoveLoadingCycle();
-        state.reading = data.reading;
-        renderTarotLoveResult();
-      })
-      .catch(function (err) {
-        stopTarotLoveLoadingCycle();
-        console.error("Tarot Love reading error:", err);
-        if (seq === flowSeq) {
-          var draw2 = byId("tarotLoveDrawStage");
-          var result2 = byId("tarotLoveResultStage");
-          var container = byId("tarotLoveReadingContent");
-          if (result2) result2.classList.remove("is-active");
-          if (draw2) draw2.classList.add("is-active");
-          if (container) container.innerHTML = "";
-        }
-
-        rollbackCoinBestEffort(LOVE_COIN_COST, LOVE_REASON, LOVE_FEATURE_KEY).then(function (rolledBack) {
-          state.hasAccess = false;
-          if (rolledBack) {
-            window.alert("해석 생성 오류가 발생해 결제 금액을 복구했습니다. 다시 시도해 주세요.");
-          } else {
-            window.alert("해석 생성 중 오류가 발생했습니다. 결과 페이지 진입이 차단되었습니다. 잠시 후 다시 시도해 주세요.");
-          }
-        });
-      });
+    if (!state.hasAccess || state.deliveryBusy) return;
+    var seq=flowSeq, owner=loveAccount();
+    state.owner=owner;
+    var draw=byId('tarotLoveDrawStage'), result=byId('tarotLoveResultStage');
+    if(draw)draw.classList.remove('is-active');if(result)result.classList.add('is-active');
+    state.deliveryBusy=true;
+    if(state.delivery)showLoveDelivery(state.delivery);else renderTarotLoveLoading();
+    state.readingPromise=requestTarotLoveReading().catch(function(error){
+      if(seq!==flowSeq || owner!==loveAccount())return;
+      // Storage/transport failures preserve the paid request. Only a confirmed
+      // exhausted generation with a known original charge uses the existing refund path.
+      if(state.delivery && state.delivery.retryable===false && state.lastChargeTransactionId){
+        return rollbackCoinBestEffort(LOVE_COIN_COST,LOVE_REASON,LOVE_FEATURE_KEY).then(function(refunded){if(refunded && seq===flowSeq){state.hasAccess=false;state.delivery={retryable:false,deliverySections:[]};window.alert('해석 생성 오류로 기존 결제 금액을 복구했습니다.');}});
+      }
+      void error;
+    }).finally(function(){
+      if(seq!==flowSeq || owner!==loveAccount())return;
+      state.deliveryBusy=false;state.readingPromise=null;stopTarotLoveLoadingCycle();
+      showLoveDelivery(state.delivery || {saved:false,retryable:true});
+    });
   }
 
   function removeRepeatedSentencesForUi(text) {
@@ -1948,6 +1968,10 @@
     refs.resultStage = byId("tarotLoveResultStage");
   });
 
+  window.addEventListener('online',function(){void recoverLoveDelivery();});
+  window.addEventListener('cd:auth-changed',function(){void recoverLoveDelivery();});
+  window.addEventListener('storage',function(event){if(['fortune_auth_user','fortune_auth_token'].indexOf(event.key)>=0)void recoverLoveDelivery();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)void recoverLoveDelivery();});
   window.openTarotLoveModal = openTarotLoveModal;
   window.closeTarotLoveModal = closeTarotLoveModal;
   window.startTarotLoveReading = startTarotLoveReading;

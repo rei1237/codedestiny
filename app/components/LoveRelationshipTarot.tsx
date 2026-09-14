@@ -9,7 +9,8 @@ import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "../hooks/
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { continueOracleDelivery, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 
 type DrawnCard = {
   cardId: string;
@@ -381,8 +382,18 @@ function safeCardName(card?: DrawnCard, idx?: number) {
   return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
 }
 
+type LoveRecovery = { body: { cards: PayloadCard[]; clientCards?: DrawnCard[]; locale: LoadingLocale; requestId: string }; resultId?: string };
+const loveOwner = () => { const user = getAuthState().user; return String(user?.id || user?.userId || user?._id || user?.uid || ''); };
+const loveRecoveryKey = (owner: string) => `cd:love-tarot-delivery:v1:${owner}`;
+
 export default function LoveRelationshipTarot() {
   const { ensurePaidAccess } = useCoinGate();
+  const auth = useAuthStore();
+  const owner = String(auth.user?.id || auth.user?.userId || auth.user?._id || auth.user?.uid || '');
+  const recoveryRef = useRef<LoveRecovery | null>(null), requestIdRef = useRef('');
+  const runRef = useRef(0), busyRef = useRef(false);
+  const [delivery, setDelivery] = useState<OracleDeliveryResponse | null>(null);
+  useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [cards, setCards] = useState<DrawnCard[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
@@ -408,49 +419,95 @@ export default function LoveRelationshipTarot() {
   }, []);
 
   // 게이트 없는 리딩 코어. 결제 게이트 뒤에서도, 리다이렉트 복귀 재개에서도 같은 요청을 쓴다.
-  async function performReading(payloadCards: PayloadCard[], readingLocale: LoadingLocale) {
-    // 서버는 42s 데드라인에 로컬 폴백으로라도 확정 응답을 준다. 연결이 끊겨 무한 대기(정적 스피너)로
-    // 멈추지 않도록 55s(서버 42s + 여유)에 중단한다 — 중단돼도 paidAccessGrantedRef가 남아 재시도는 무과금.
-    const controller = new AbortController();
-    const timeoutId = window.setTimeout(() => controller.abort(), 55000);
-    let res: Response;
-    try {
-      res = await fetch("/api/tarot/love-reading", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: readingLocale },
-        body: JSON.stringify({
-          cards: payloadCards,
-          locale: readingLocale,
-        }),
-        signal: controller.signal,
-      });
-    } catch (err: any) {
-      if (err?.name === "AbortError") throw new Error(copy.readingError);
-      throw err;
-    } finally {
-      window.clearTimeout(timeoutId);
-    }
-    const data = await res.json();
-    if (!res.ok || data?.ok === false) {
-      throw new Error(data?.message || copy.readingError);
-    }
-    setReadingRaw(data?.reading ?? data);
+  function remember(entry: LoveRecovery, expectedOwner = loveOwner()) {
+    if (!expectedOwner || expectedOwner !== loveOwner()) return;
+    recoveryRef.current = entry;
+    try { localStorage.setItem(loveRecoveryKey(expectedOwner), JSON.stringify(entry)); } catch { /* Server checkpoint survives. */ }
   }
+
+  async function performReading(payloadCards: PayloadCard[], readingLocale: LoadingLocale, requestId: string) {
+    if (busyRef.current) return;
+    const expectedOwner = loveOwner();
+    if (!expectedOwner) throw new Error(copy.authRequired);
+    const entry = recoveryRef.current?.body.requestId === requestId ? recoveryRef.current
+      : { body: { cards: payloadCards, locale: readingLocale, requestId } };
+    remember(entry, expectedOwner);
+    const run = ++runRef.current;
+    const active = () => run === runRef.current && expectedOwner === loveOwner();
+    busyRef.current = true; setLoading(true);
+    try {
+      const { authFetch } = await import('../_lib/auth-client');
+      const result = await continueOracleDelivery({ endpoint: '/api/tarot/love-reading', body: entry.resultId ? { resumeResultId: entry.resultId } : entry.body,
+        fetcher: authFetch, active, progress: data => {
+          setDelivery(previous => ({ ...previous, ...data, deliverySections: data.deliverySections ?? previous?.deliverySections,
+            completedParts: data.completedParts ?? previous?.completedParts, totalParts: data.totalParts ?? previous?.totalParts }));
+          if (data.resultId) { entry.resultId = data.resultId; remember(entry, expectedOwner); }
+        } });
+      if (!active() || !result) return;
+      if (result.saved && result.status === 'completed' && result.reading) { setReadingRaw(result.reading); return; }
+      throw new Error(readingLocale === 'ko' ? '저장된 본문을 보존했습니다. 잠시 후 이어서 생성해 주세요.' : 'Saved sections are retained. Continue the reading shortly.');
+    } finally { if (active()) { busyRef.current = false; setLoading(false); } }
+  }
+
+  useEffect(() => {
+    const run = ++runRef.current;
+    busyRef.current = false; recoveryRef.current = null; paidAccessGrantedRef.current = false;
+    setDelivery(null); setReadingRaw(null); setLoading(false); setError(''); setCards([]); setRevealedCount(0);
+    if (!owner || !auth.authReady) return;
+    let disposed = false;
+    const active = () => !disposed && run === runRef.current && owner === loveOwner();
+    void (async () => {
+      let entry: LoveRecovery | null = null;
+      try { entry = JSON.parse(localStorage.getItem(loveRecoveryKey(owner)) || 'null'); } catch { /* Use server recovery. */ }
+      const { authFetch } = await import('../_lib/auth-client');
+      let data: OracleDeliveryResponse | null = null;
+      try {
+        const response = await authFetch(`/api/tarot/love-result${entry?.resultId ? `?resultId=${encodeURIComponent(entry.resultId)}` : ''}`);
+        const result: OracleDeliveryResponse = await response.json();
+        if (!active()) return;
+        if (response.ok && result.ok && result.resumeInputs) { data = result; entry = { body: result.resumeInputs as LoveRecovery['body'], resultId: result.resultId }; }
+        else if ([401, 403].includes(response.status)) return;
+      } catch { /* Original local evidence remains available. */ }
+      if (!active() || !entry?.body?.requestId || !Array.isArray(entry.body.cards)) return;
+      remember(entry, owner); requestIdRef.current = entry.body.requestId; paidAccessGrantedRef.current = true;
+      setCards(entry.body.clientCards || entry.body.cards); setRevealedCount(CARD_COUNT); setDelivery(data);
+      if (data?.saved && data.status === 'completed' && data.reading) setReadingRaw(data.reading);
+    })().catch(() => {});
+    return () => { disposed = true; runRef.current += 1; };
+    // Account changes own recovery; edited cards cannot replace a paid request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner, auth.authReady]);
+
+  function resumeSaved() {
+    const entry = recoveryRef.current;
+    if (!entry || busyRef.current || delivery?.retryable === false || owner !== loveOwner()) return;
+    setError('');
+    void performReading(entry.body.cards, entry.body.locale, entry.body.requestId)
+      .catch(error => { if (owner === loveOwner()) setError(String(error?.message || copy.readingError)); });
+  }
+  useEffect(() => {
+    const resume = () => { if (!document.hidden && !delivery?.saved) resumeSaved(); };
+    window.addEventListener('online', resume); document.addEventListener('visibilitychange', resume);
+    return () => { window.removeEventListener('online', resume); document.removeEventListener('visibilitychange', resume); };
+    // The immutable recovery entry owns the request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner, delivery?.saved, delivery?.retryable]);
 
   /* 결제 후 자동 재개 — 모바일 PortOne 복귀는 카드가 한 장도 뽑히지 않은 초기 화면이다. 서술자에 실어 둔
      뽑은 카드를 먼저 되살려야 결과와 카드가 맞물린다. 🔴 게이트를 다시 타지 않는다 — 실패하면 false 로
      지속 카드에 넘겨 영수증을 남긴다(다시 눌러도 무과금). */
   const buildResume = usePaidResume("tarot-love-relationship", async (args) => {
     const restored = unpackPaidResumeArg<DrawnCard[]>(args.cards);
-    if (!Array.isArray(restored) || restored.length !== CARD_COUNT) return false;
+    const requestId = String(args.requestId || "");
+    if (!requestId || !Array.isArray(restored) || restored.length !== CARD_COUNT) return false;
     const readingLocale = (String(args.locale || "") || locale) as LoadingLocale;
     setCards(restored);
     setRevealedCount(CARD_COUNT);
     setLoading(true);
     setError("");
     try {
-      await performReading(toPayloadCards(restored), readingLocale);
+      requestIdRef.current = requestId; paidAccessGrantedRef.current = true;
+      await performReading(toPayloadCards(restored), readingLocale, requestId);
       return true;
     } catch (e: any) {
       setError(e?.message || copy.readingError);
@@ -461,6 +518,8 @@ export default function LoveRelationshipTarot() {
   });
 
   async function startDraw() {
+    runRef.current += 1; busyRef.current = false; recoveryRef.current = null;
+    requestIdRef.current = ''; paidAccessGrantedRef.current = false; setDelivery(null);
     setLoading(true);
     setError("");
     setReadingRaw(null);
@@ -490,6 +549,7 @@ export default function LoveRelationshipTarot() {
   }
 
   async function loadReading() {
+    const requestOwner = loveOwner();
     if (!canRead) return;
     setLoading(true);
     setError("");
@@ -514,7 +574,9 @@ export default function LoveRelationshipTarot() {
 
       const payloadCards = toPayloadCards(cards);
 
-      const executeReading = () => performReading(payloadCards, locale);
+      if (!requestIdRef.current) requestIdRef.current = `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      if (!recoveryRef.current) remember({ body: { cards: payloadCards, clientCards: cards, locale, requestId: requestIdRef.current } });
+      const executeReading = () => loveOwner() === requestOwner ? performReading(payloadCards, locale, requestIdRef.current) : Promise.resolve();
 
       if (isFlowerAdminMode) {
         await executeReading();
@@ -532,8 +594,8 @@ export default function LoveRelationshipTarot() {
         featureKey: "tarot-love-relationship",
         cost: lookupServerCoinPrice("tarot-love-relationship"),
         reason: copy.paymentReason,
-        requestId: `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        resume: buildResume({ cards: packPaidResumeArg(cards), locale }),
+        requestId: requestIdRef.current,
+        resume: buildResume({ cards: packPaidResumeArg(cards), locale, requestId: requestIdRef.current }),
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
           // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라
@@ -661,7 +723,7 @@ export default function LoveRelationshipTarot() {
               <button
                 type="button"
                 onClick={loadReading}
-                disabled={!canRead}
+                disabled={!canRead || Boolean(readingRaw) || delivery?.retryable === false}
                 className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
               >
                 {loading ? copy.preparing : copy.viewReading}
@@ -677,7 +739,16 @@ export default function LoveRelationshipTarot() {
           <section className="rounded-xl border border-rose-600/40 bg-rose-950/30 p-4 text-sm text-rose-200">{error}</section>
         ) : null}
 
-        {readingRaw ? (
+        {(delivery || recoveryRef.current) && <section className="rounded-xl border border-violet-200/30 bg-slate-950 p-5 text-slate-100 [overflow-wrap:anywhere]">
+          {!delivery?.saved && <><p role="status">{locale === 'ko' ? '본문 저장' : 'Saved sections'} {delivery?.completedParts?.length || 0} / {delivery?.totalParts || 21}{loading ? ' · …' : ''}</p>
+            {!loading && delivery?.retryable !== false && <button type="button" onClick={resumeSaved} className="my-4 rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3">{locale === 'ko' ? '이어서 생성하기' : 'Continue reading'}</button>}
+            {delivery?.retryable === false && <p>{locale === 'ko' ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.'}</p>}
+          </>}
+          <nav aria-label="Contents" className="my-4 flex flex-wrap gap-2 text-sm">{delivery?.deliverySections?.map(section => <a key={section.key} href={`#love-${section.key}`} className="rounded-lg border border-violet-200/30 p-2">{section.title}</a>)}</nav>
+          <div className="space-y-6">{delivery?.deliverySections?.map(section => <section key={section.key} id={`love-${section.key}`} className="scroll-mt-24"><h3 className="mb-3 font-bold">{section.title}</h3><div className="whitespace-pre-wrap text-[15px] leading-8">{section.body}</div></section>)}</div>
+        </section>}
+
+        {readingRaw && !delivery?.deliverySections?.length ? (
           <section className="rounded-2xl border border-emerald-600/35 bg-emerald-950/20 p-5">
             <h2 className="mb-3 text-lg font-semibold">{copy.resultTitle}</h2>
             <div className="space-y-3 text-sm leading-7 text-slate-100">

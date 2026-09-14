@@ -1,4 +1,4 @@
-import { bindGlobalActions } from './uiBindings.js?v=build-d8840ce723d9';
+import { bindGlobalActions } from './uiBindings.js?v=build-c3c2089e0d35';
 
 function applyProgressiveContainment(doc) {
   if (!doc || !doc.documentElement || !('contentVisibility' in doc.documentElement.style)) return;

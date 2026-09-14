@@ -1,11 +1,4 @@
-// "우리는 무슨 사이?" 타로 대기 병목 제거 회귀 검증 (jsdom에서 js/tarot-love-experience.js 실제 실행)
-//   1. 카드 뽑기 클릭 → 서버 draw 응답 없이도 즉시 draw 스테이지 전환 + 로컬 6장 렌더
-//   2. 서버 draw 응답이 미플립 상태에 도착하면 78장 덱 카드로 교체
-//   3. 첫 플립 → love-reading 프리페치 발사, 결제 승인 시 재사용(추가 호출 없음) + 즉시 결과 렌더
-//   4. 프리페치 in-flight 실패 → 결제 후 로딩 UI 표시 + 새 요청으로 복구(롤백 없음)
-//   5. 프리페치·재요청 모두 실패 → 기존 롤백 + draw 복귀 경로 유지
-//   6. 리셋 후 도착한 늦은 draw 응답은 새 세션을 덮지 않음
-//   0. 루트/public 사본 동기화(npm run sync:public 누락 감지)
+// Actual static client and continuation runner with all network/payment mocked.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -42,147 +35,52 @@ const html = `<!doctype html><body>
   </div>
 </body>`;
 
-const dom = new JSDOM(html, { url: "https://code-destiny.com/", runScripts: "outside-only", pretendToBeVisual: true });
-const win = dom.window;
-const doc = win.document;
 
-const fetchCalls = [];
-const alerts = [];
-win.alert = (msg) => alerts.push(String(msg || ""));
-win.fetch = function (url, init) {
-  const entry = { url: String(url), body: init && init.body ? String(init.body) : "", settled: false };
-  entry.promise = new Promise((res, rej) => {
-    entry.resolveWith = (data, status = 200) => {
-      entry.settled = true;
-      res({ ok: status >= 200 && status < 300, status, statusText: "", json: async () => data, text: async () => JSON.stringify(data) });
-    };
-    entry.rejectWith = (err) => {
-      entry.settled = true;
-      rej(err || new Error("mock network error"));
-    };
-  });
-  fetchCalls.push(entry);
-  // 롤백 경로(billing/refund)는 즉시 성공 처리해 alert 분기까지 흘려보낸다.
-  if (entry.url.includes("/billing/refund")) entry.resolveWith({ ok: true });
-  return entry.promise;
+const dom = new JSDOM(html, { url: 'https://mock.test/', runScripts: 'outside-only', pretendToBeVisual: true });
+const win=dom.window,doc=win.document,fetchCalls=[],gates=[],alerts=[];
+win.AbortController=globalThis.AbortController;
+const timeout=win.setTimeout.bind(win);win.setTimeout=(fn,ms,...args)=>timeout(fn,ms<=5000?1:ms,...args);
+win.localStorage.setItem('fortune_auth_token','verify-token');win.localStorage.setItem('fortune_auth_user',JSON.stringify({id:'owner-a'}));
+win.alert=message=>alerts.push(message);let auto=[],stored=null;
+win.fetch=(url,init={})=>{
+ url=String(url);if(!url.startsWith('/api/'))throw Error('External fetch forbidden: '+url);
+ const call={url,body:init.body?JSON.parse(init.body):null,settled:false};fetchCalls.push(call);
+ const promise=new Promise((resolve,reject)=>{call.resolveWith=(data,status=200)=>{call.settled=true;resolve({ok:status>=200&&status<300,status,json:async()=>data,text:async()=>JSON.stringify(data)});};call.rejectWith=reject;});
+ if(url.includes('/auth/me'))call.resolveWith({ok:true,user:JSON.parse(win.localStorage.getItem('fortune_auth_user'))});
+ else if(url.includes('/love-result'))call.resolveWith(stored||{ok:false},stored?(stored.saved?200:202):404);
+ else if(url.includes('/billing/refund'))call.resolveWith({ok:true});
+ else if(url.includes('/love-reading')&&auto.length){const [status,data]=auto.shift();call.resolveWith(data,status);}
+ else if(!url.includes('/love-reading')&&!url.includes('/draw'))throw Error('Unexpected request: '+url);
+ return promise;
 };
-win._cdCoinGatePerUse = (cost, reason, onOk) => onOk();
-// 로그인 유저 시나리오 — 프리페치는 인증된 유저에게만 발사된다(비로그인은 love-reading이 401 확정이라 스킵).
-try {
-  win.localStorage.setItem("fortune_auth_token", "verify-token");
-} catch (e) {
-  Object.defineProperty(win, "localStorage", {
-    value: { getItem: () => "verify-token", setItem() {}, removeItem() {}, clear() {} },
-    configurable: true,
-  });
-}
-
-const flush = async (turns = 4) => {
-  for (let i = 0; i < turns; i += 1) await new Promise((r) => setTimeout(r, 0));
-};
-const calls = (endpoint) => fetchCalls.filter((c) => c.url.includes(endpoint));
-const pendingCalls = (endpoint) => calls(endpoint).filter((c) => !c.settled);
-// 네트워크 레벨 실패(HTTP status 없음)는 callTarotApi가 상대경로(primary) 1회 + 대체 origin 폴백 1회를
-// 시도하므로 정확히 2회 거절하면 소진된다(5xx만 시간축 재시도 대상이며, 목은 status 없는 거절이라 해당 없음).
-const failEndpoint = async (endpoint) => {
-  for (let i = 0; i < 2; i += 1) {
-    pendingCalls(endpoint).forEach((c) => c.rejectWith(new Error("mock fail")));
-    await flush();
-  }
-};
-const serverCards = (marker) =>
-  ["M00", "M01", "M02", "M03", "M04", "M05"].map((id, i) => ({
-    cardId: id,
-    name: `Server Card ${i + 1}`,
-    nameKr: `${marker}${i + 1}`,
-    position: `position_${i + 1}`,
-    orientation: "upright",
-  }));
-
-win.eval(read("js/tarot-love-experience.js"));
-
-const intro = doc.getElementById("tarotLoveIntroStage");
-const draw = doc.getElementById("tarotLoveDrawStage");
-const result = doc.getElementById("tarotLoveResultStage");
-const grid = doc.getElementById("tarotLoveCardGrid");
-const content = doc.getElementById("tarotLoveReadingContent");
-const finalBtn = doc.getElementById("tarotLoveFinalBtn");
-
-// ── 1. 클릭 즉시 전환(서버 draw 응답 이전) ──
-win.startTarotLoveReading();
-assert.equal(draw.classList.contains("is-active"), true, "클릭 직후 draw 스테이지가 동기적으로 활성화되어야 함");
-assert.equal(intro.classList.contains("is-active"), false, "클릭 직후 intro 스테이지 비활성");
-assert.equal(grid.querySelectorAll(".tarot-love-slot").length, 6, "로컬 덱 6장이 즉시 렌더되어야 함");
-assert.equal(finalBtn.disabled, true, "최종 버튼은 뒤집기 전 disabled");
-assert.equal(calls("/api/tarot/draw").length, 1, "서버 draw는 백그라운드로 1회 발사");
-
-// ── 2. 미플립 상태의 서버 덱 교체 ──
-calls("/api/tarot/draw")[0].resolveWith({ ok: true, spreadType: "relationship_six_card", cards: serverCards("서버검증카드") });
-await flush();
-assert.match(grid.textContent, /서버검증카드1/, "미플립 상태에서 서버 덱으로 교체되어야 함");
-
-// ── 3. 첫 플립 프리페치 + 결제 승인 시 재사용 ──
-win.flipTarotLoveCard(0);
-assert.equal(calls("/api/tarot/love-reading").length, 1, "첫 플립 순간 love-reading 프리페치 1회 발사");
-for (let i = 1; i < 6; i += 1) win.flipTarotLoveCard(i);
-assert.equal(calls("/api/tarot/love-reading").length, 1, "추가 플립으로 중복 프리페치가 생기면 안 됨");
-assert.equal(finalBtn.disabled, false, "6장 플립 후 최종 버튼 활성화");
-calls("/api/tarot/love-reading")[0].resolveWith({ ok: true, reading: { overallVibe: "프리페치검증문장입니다.", positionBreakdown: [] } });
-await flush();
-win.showTarotLoveFinalReading();
-await flush();
-assert.equal(result.classList.contains("is-active"), true, "결제 승인 후 결과 스테이지 활성화");
-assert.equal(draw.classList.contains("is-active"), false, "결과 진입 시 draw 스테이지 비활성");
-assert.match(content.textContent, /프리페치검증문장/, "프리페치된 리딩이 즉시 렌더되어야 함");
-assert.equal(calls("/api/tarot/love-reading").length, 1, "프리페치 재사용 — 결제 후 추가 love-reading 호출 금지");
-
-// ── 4. 프리페치 in-flight 실패 → 로딩 UI + 결제 후 재요청 복구 ──
-win.resetTarotLoveFlow();
-win.startTarotLoveReading();
-for (let i = 0; i < 6; i += 1) win.flipTarotLoveCard(i);
-const prefetchCountBefore = calls("/api/tarot/love-reading").length;
-win.showTarotLoveFinalReading();
-await flush();
-assert.equal(result.classList.contains("is-active"), true, "생성 대기 중에도 결과 스테이지로 즉시 전환");
-assert.ok(content.querySelector(".tarot-love-loading"), "생성 대기 중 로딩 블록 표시");
-await failEndpoint("/api/tarot/love-reading");
-const retryPending = pendingCalls("/api/tarot/love-reading");
-assert.equal(retryPending.length, 1, "프리페치 실패 시 결제 완료 상태에서 새 요청 1회");
-retryPending[0].resolveWith({ ok: true, reading: { overallVibe: "재요청복구문장입니다.", positionBreakdown: [] } });
-await flush();
-assert.match(content.textContent, /재요청복구문장/, "재요청 결과가 렌더되어야 함");
-assert.equal(calls("/billing/refund").length, 0, "재요청 성공 시 롤백이 발생하면 안 됨");
-assert.equal(alerts.length, 0, "재요청 성공 시 오류 alert 금지");
-assert.ok(calls("/api/tarot/love-reading").length > prefetchCountBefore, "재요청이 실제 발사되어야 함");
-
-// ── 5. 전부 실패 → 롤백 + draw 복귀 유지 ──
-win.resetTarotLoveFlow();
-win.startTarotLoveReading();
-for (let i = 0; i < 6; i += 1) win.flipTarotLoveCard(i);
-await failEndpoint("/api/tarot/love-reading"); // 프리페치 자체 실패(결제 전 — alert 없어야 함)
-assert.equal(alerts.length, 0, "결제 전 프리페치 실패는 조용히 처리");
-win.showTarotLoveFinalReading();
-await flush();
-await failEndpoint("/api/tarot/love-reading"); // 결제 후 재요청도 실패
-await flush();
-assert.equal(calls("/billing/refund").length, 1, "최종 실패 시 롤백 경로(billing/refund) 유지");
-assert.equal(alerts.length, 1, "최종 실패 시 오류 alert 1회");
-assert.match(alerts[0], /복구|오류/, "실패 안내 문구");
-assert.equal(result.classList.contains("is-active"), false, "최종 실패 시 결과 스테이지 해제");
-assert.equal(draw.classList.contains("is-active"), true, "최종 실패 시 draw 스테이지 복귀");
-assert.equal(content.innerHTML, "", "최종 실패 시 로딩/결과 컨테이너 비움");
-
-// ── 6. 리셋 후 늦게 도착한 draw 응답 무시 ──
-const drawCallsBefore = calls("/api/tarot/draw").length;
-win.resetTarotLoveFlow();
-win.startTarotLoveReading();
-const staleDraw = calls("/api/tarot/draw").slice(drawCallsBefore);
-assert.equal(staleDraw.length, 1, "새 세션 draw 발사 확인");
-win.resetTarotLoveFlow();
-staleDraw[0].resolveWith({ ok: true, spreadType: "relationship_six_card", cards: serverCards("낡은응답카드") });
-await flush();
-assert.doesNotMatch(grid.textContent, /낡은응답카드/, "리셋 후 도착한 draw 응답이 그리드를 덮으면 안 됨");
-assert.equal(draw.classList.contains("is-active"), false, "리셋 후 draw 스테이지가 되살아나면 안 됨");
-
-win.close();
-console.log("verify-tarot-love-instant-flow: OK (즉시 전환·프리페치 재사용·로딩 UI·실패 롤백·낡은 응답 가드 모두 통과)");
+win._cdCoinGatePerUse=(cost,reason,onOk,_cancel,options)=>{gates.push(options);onOk('0123456789abcdef01234567',{});};
+win.eval(read('js/core/paid-narrative-reader.js'));win.eval(read('js/tarot-love-experience.js'));
+doc.getElementById('tarotLoveOverlay').classList.add('is-open');
+const flush=async()=>{for(let i=0;i<12;i++)await new Promise(resolve=>setTimeout(resolve,1));};
+const calls=end=>fetchCalls.filter(call=>call.url.includes(end));
+const pending=end=>calls(end).filter(call=>!call.settled);
+const cards=marker=>Array.from({length:6},(_,i)=>({cardId:'M'+String(i).padStart(2,'0'),nameKr:marker+i,position:'position_'+(i+1),orientation:'upright'}));
+const draw=doc.getElementById('tarotLoveDrawStage'),grid=doc.getElementById('tarotLoveCardGrid'),content=doc.getElementById('tarotLoveReadingContent');
+const partial={ok:true,status:'partial',saved:false,retryable:true,resultId:'saved-love-result',resumeBody:{resumeResultId:'saved-love-result'},completedParts:['first'],totalParts:21,deliverySections:[{key:'first',title:'카드 근거',body:'먼저 저장된 해석입니다.'}]};
+const complete={...partial,status:'completed',saved:true,reading:{overallVibe:'완료'},deliverySections:[...partial.deliverySections,{key:'last',title:'마지막 조언',body:'끝까지 전달한 해석입니다.'}]};
+win.startTarotLoveReading();assert.equal(draw.classList.contains('is-active'),true);assert.equal(grid.querySelectorAll('.tarot-love-slot').length,6);
+calls('/draw')[0].resolveWith({ok:true,cards:cards('서버')});await flush();assert.match(grid.textContent,/서버0/);
+for(let i=0;i<6;i++)win.flipTarotLoveCard(i);assert.equal(calls('/love-reading').length,0,'No paid LLM before gate');
+win.showTarotLoveFinalReading();await flush();assert.equal(calls('/love-reading').length,1);
+const original=calls('/love-reading')[0].body;assert.equal(original.requestId,gates[0].requestId);assert.equal(gates[0].resume.args.requestId,original.requestId);
+calls('/love-reading')[0].resolveWith(partial,202);await flush();assert.match(content.textContent,/먼저 저장된/);assert.deepEqual(pending('/love-reading')[0].body,{resumeResultId:'saved-love-result'});
+pending('/love-reading')[0].resolveWith(complete);await flush();assert.match(content.textContent,/끝까지 전달/);assert.equal(calls('/billing/refund').length,0);
+// Storage failures preserve the paid attempt and keep manual retry outside the gate.
+win.resetTarotLoveFlow();win.startTarotLoveReading();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);
+auto=Array.from({length:4},()=>[503,{ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE'}]);win.showTarotLoveFinalReading();await flush();
+assert.ok(content.querySelector('[data-love-continue]'));assert.equal(gates.length,2);assert.equal(calls('/billing/refund').length,0);
+const failedOriginal=calls('/love-reading').at(-1).body;auto=[[200,complete]];content.querySelector('[data-love-continue]').click();await flush();assert.equal(gates.length,2);assert.deepEqual(calls('/love-reading').at(-1).body,failedOriginal);
+// Reopening retrieves the saved result without a new LLM request or payment.
+stored={...complete,resumeInputs:failedOriginal};const before=calls('/love-reading').length;win.closeTarotLoveModal();win.openTarotLoveModal();await flush();assert.match(content.textContent,/끝까지 전달/);assert.equal(calls('/love-reading').length,before);assert.equal(gates.length,2);
+// A confirmed exhausted generation with its original charge keeps the existing refund path.
+stored=null;win.resetTarotLoveFlow();win.startTarotLoveReading();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);auto=[[202,{...partial,retryable:false}]];win.showTarotLoveFinalReading();await flush();assert.equal(calls('/billing/refund').length,1);assert.equal(calls('/billing/refund')[0].body.sourceTransactionId,'0123456789abcdef01234567');
+// An account change discards a late generated result.
+win.resetTarotLoveFlow();win.startTarotLoveReading();for(let i=0;i<6;i++)win.flipTarotLoveCard(i);win.showTarotLoveFinalReading();await flush();const staleReading=pending('/love-reading')[0];win.localStorage.setItem('fortune_auth_user',JSON.stringify({id:'owner-b'}));win.dispatchEvent(new win.Event('cd:auth-changed'));await flush();staleReading.resolveWith(complete);await flush();assert.doesNotMatch(content.textContent,/끝까지 전달/);
+// Late draw responses cannot revive a reset session.
+win.startTarotLoveReading();const staleDraw=pending('/draw').at(-1);win.resetTarotLoveFlow();staleDraw.resolveWith({ok:true,cards:cards('낡은카드')});await flush();assert.doesNotMatch(grid.textContent,/낡은카드/);assert.equal(draw.classList.contains('is-active'),false);
+win.close();console.log('verify-tarot-love-instant-flow: OK (instant draw, paid identity, partial delivery, storage retry, reopening, terminal refund and account isolation)');

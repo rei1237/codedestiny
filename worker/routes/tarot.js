@@ -1,6 +1,5 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
-import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -13,8 +12,7 @@ import {
   guardWarningTarotText,
 } from "../../lib/tarot/warning-card-guard.mjs";
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
-import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
-import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
+import { normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import {
   validateOracleConsultationInput,
 } from "../../lib/tarot/oracle-consultation.mjs";
@@ -1664,6 +1662,28 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   };
 }
 
+async function handleLoveTarotDelivery(request, env, body) {
+  const featureKey = "tarot-love-relationship";
+  const spec = { featureKey, minCost: FEATURE_KEY_PRICE_TABLE[featureKey].cost, codePrefix: "LOVE_TAROT",
+    reason: "우리는 무슨 사이? 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
+  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, spec) : null;
+  if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
+    retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });
+  const auth = initial?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  const { deliverLoveTarot } = await import("../lib/love-tarot-delivery.js");
+  return deliverLoveTarot(request, env, auth, body, async original => {
+    const access = initial || await verifyTarotPerUseAccess(request, env, original, spec, auth);
+    if (!access.ok) throw createHttpError(access.status || 402, access.message, { code: access.code, reason: access.reason || "", retryable: ![401, 403].includes(access.status) });
+  }, (original, locale) => {
+    if (!Array.isArray(original.cards) || original.cards.length !== 6 || original.cards.some(card => !getTarotCardByAnyId(card?.cardId)
+      || !["upright", "reversed"].includes(card?.orientation))) throw createHttpError(400, "카드 여섯 장과 방향을 확인해 주세요.", { reason: "INVALID_CARDS" });
+    const payload = buildReadingPayload({ spreadType: "relationship_six_card", category: "love", cards: original.cards,
+      serviceKey: featureKey, userQuestion: asText(original.userQuestion), userContext: original.userContext });
+    payload.reading = normalizeLoveReadingPayload(payload.reading, payload.cards || [], locale);
+    return payload;
+  });
+}
+
 async function handleMindscanDelivery(request, env, body) {
   const spec = { featureKey: MINDSCAN_FEATURE_KEY, minCost: MINDSCAN_MIN_COST, codePrefix: "MINDSCAN",
     reason: "마인드스캔 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
@@ -1732,6 +1752,8 @@ export async function handleTarotRoutes(request, env = {}) {
       }
       return json(publicYearResult(record));
     }
+
+    if (method === "GET" && path === "/love-result") return await handleLoveTarotDelivery(request, env, {});
 
     if (method === "GET" && path === "/mindscan-result") return await handleMindscanDelivery(request, env, {});
 
@@ -1815,6 +1837,8 @@ export async function handleTarotRoutes(request, env = {}) {
       }
       return await handleOracleDelivery(request, env, body);
     }
+
+    if (path === "/love-reading") return await handleLoveTarotDelivery(request, env, body);
 
     // 🔴 연간 리딩(십이지신 천운 타로)은 아래 requireYearTarotAccess 가 곧바로 다시 인증한다.
     // auth 에는 요청 단위 메모이제이션이 없어(worker/lib/auth.js) 여기서 한 번 더 부르면 User 조회와
@@ -1929,33 +1953,6 @@ export async function handleTarotRoutes(request, env = {}) {
         return json(stored.payload);
       }
 
-      return json(payload);
-    }
-
-    if (path === "/love-reading") {
-      const spreadType = "relationship_six_card";
-      const cards = Array.isArray(body?.cards) ? body.cards : [];
-      const payload = buildReadingPayload({
-        spreadType,
-        category: "love",
-        cards,
-        serviceKey: "tarot-love-relationship",
-        userQuestion: asText(body?.userQuestion),
-        userContext: body?.userContext,
-      });
-      const loveLocale = getAmbientAiLocale() || "ko";
-      payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || [], loveLocale);
-      // LLM 상담문 생성 — 실패 시 위에서 만든 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
-      const enhanced = await enhanceLoveReadingWithLlm(payload.reading, {
-        locale: loveLocale,
-        env,
-        userQuestion: asText(body?.userQuestion),
-      });
-      payload.reading = enhanced.reading;
-      payload.readingSource = enhanced.source;
-      payload.consultingHighlights = buildLoveConsultingHighlights(payload.reading);
-      payload.isRelationshipReading = true;
-      payload.api = "love-reading";
       return json(payload);
     }
 
