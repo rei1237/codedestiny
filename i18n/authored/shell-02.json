@@ -257,18 +257,18 @@
   },
 
   "shell.fortuneGatewayEntry.fortuneGatewayEntryShell.klg50va": {
-    "ko": "대화는 서버에 저장되지 않습니다.",
-    "en": "Conversation and analysis happen only inside each screen; nothing is sent from this one.",
-    "ja": "対話と分析は各画面の中だけで行われ、この画面からは何の情報も送信しません。",
-    "zh-CN": "对话与分析只在各自的页面内进行，本页面不会发送任何信息。",
-    "zh-TW": "對話與分析只在各自的頁面內進行，本頁面不會傳送任何資訊。",
-    "vi": "Trò chuyện và phân tích chỉ diễn ra bên trong từng màn hình; màn hình này không gửi đi bất cứ thông tin nào.",
-    "hi": "बातचीत और विश्लेषण केवल संबंधित स्क्रीन के भीतर होते हैं; इस स्क्रीन से कुछ भी नहीं भेजा जाता।",
-    "es": "La conversación y el análisis ocurren solo dentro de cada pantalla; desde esta no se envía nada.",
-    "fr": "La conversation et l'analyse se déroulent uniquement dans chaque écran ; rien n'est envoyé depuis celui-ci.",
-    "de": "Gespräch und Analyse finden nur innerhalb des jeweiligen Bildschirms statt; von diesem wird nichts gesendet.",
-    "nl": "Gesprek en analyse gebeuren alleen binnen elk scherm; vanaf dit scherm wordt niets verzonden.",
-    "ms": "Perbualan dan analisis berlaku dalam setiap skrin sahaja; tiada apa-apa dihantar dari skrin ini."
+    "ko": "상담 내역은 상담방에서 다시 확인할 수 있어요.",
+    "en": "You can reopen your conversation in the consultation room.",
+    "ja": "相談履歴は相談ルームで再確認できます。",
+    "zh-CN": "您可以在咨询室再次查看咨询记录。",
+    "zh-TW": "您可以在諮詢室再次查看諮詢記錄。",
+    "vi": "Bạn có thể xem lại cuộc trò chuyện trong phòng tư vấn.",
+    "hi": "आप परामर्श कक्ष में अपनी बातचीत फिर से देख सकते हैं।",
+    "es": "Puedes volver a ver la conversación en la sala de consulta.",
+    "fr": "Vous pouvez retrouver votre conversation dans le salon de consultation.",
+    "de": "Du kannst dein Gespräch im Beratungsraum erneut öffnen.",
+    "nl": "Je kunt je gesprek opnieuw openen in de adviesruimte.",
+    "ms": "Anda boleh membuka semula perbualan di bilik konsultasi."
   },
 
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": {

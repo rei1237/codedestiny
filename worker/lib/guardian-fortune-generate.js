@@ -112,6 +112,7 @@ export async function generateGuardianFortuneRequest({
   scenario = "normal",
   abortSignal,
   onDelivery,
+  paidDelivery,
 } = {}) {
   const normalizedUserId = String(userId || "").trim();
   const isLoggedIn = Boolean(normalizedUserId);
@@ -132,6 +133,10 @@ export async function generateGuardianFortuneRequest({
   }
 
 
+  if (normalizedUserId && paidDelivery) {
+    const resumed = await paidDelivery({ input: safeInput, userId: normalizedUserId, requestId, resolvePaidAccess, resumeOnly: true, contextOptions });
+    if (resumed) return resumed;
+  }
   let reservation;
   try {
     reservation = await reserveGuardianFortuneUsage({
@@ -168,6 +173,15 @@ export async function generateGuardianFortuneRequest({
       requestId,
       retryable: reservation.retryable === true,
     });
+  }
+
+  if (reservation.source === 'paid' && paidDelivery) {
+    const delivered = await paidDelivery({ input: safeInput, userId: normalizedUserId, requestId, resolvePaidAccess, contextOptions });
+    // No free counter was reserved for a paid turn. Releasing this attempt only
+    // permits the same paid request to retry after an initial storage failure.
+    if (delivered?.ok) await commitGuardianFortuneUsage(reservation, { store, now, ctx: contextOptions?.ctx });
+    else if (delivered?.status === 503) await releaseGuardianFortuneUsage(reservation, { store, now }).catch(() => {});
+    return delivered;
   }
 
   try {

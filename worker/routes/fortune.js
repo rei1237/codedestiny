@@ -1,4 +1,5 @@
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
+import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
@@ -6373,6 +6374,7 @@ async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
     if (rateLimitResponse) return guardianFortuneRouteResponse(rateLimitResponse, { cookie: identity.cookie });
     const store = createMongoGuardianFortuneStore({ env });
     result = await generateGuardianFortuneRequest({
+      paidDelivery: options => deliverGuardianPaid({ ...options, env }),
       input: body,
       userId: identity.userId,
       guestIdHash: identity.guestIdHash,
@@ -6622,6 +6624,12 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
 
     if (method === "POST" && path === "/guardian/generate") {
       return await handleGuardianFortuneGenerateRoute(request, env, ctx, trace);
+    }
+    if (method === 'GET' && path === '/guardian/result') {
+      const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
+      const result = await deliverGuardianPaid({ env, userId: auth.userId, readOnly: true,
+        resolvePaidAccess: buildGuardianFortunePaidAccessResolver(env, Number(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]?.cost || 0)) });
+      return guardianFortuneRouteResponse(result);
     }
 
     if (method === "POST" && path === "/guardian/chat") {

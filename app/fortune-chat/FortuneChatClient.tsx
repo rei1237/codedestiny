@@ -1,5 +1,7 @@
 "use client";
 
+import { readPendingTurn, requestGuardianTurn } from "./paid-turn-recovery";
+
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -317,6 +319,7 @@ export default function FortuneChatClient() {
   // fetch/json 처리까지 막지 못하므로, 세대 번호도 함께 확인한다.
   const localeRequestEpochRef = useRef(0);
   const activeReadingRef = useRef<{ controller: AbortController; epoch: number } | null>(null);
+  const restoredTurnRef = useRef('');
   // 요청 시점의 최신 대화를 읽되 requestReading 을 매 메시지마다 새로 만들지 않기 위한 참조.
   const messagesRef = useRef<Message[]>(messages);
   messagesRef.current = messages;
@@ -339,6 +342,16 @@ export default function FortuneChatClient() {
   }, [apiBase, params]);
 
   useEffect(() => { void bootstrap().catch((reason) => setError(reason instanceof Error ? reason.message : "상담방을 열지 못했어요.")); }, [bootstrap]);
+  useEffect(() => {
+    const changeAccount = () => {
+      localeRequestEpochRef.current += 1;
+      activeReadingRef.current?.controller.abort();
+      setSessionId(''); setMessages(welcome('yeoni')); setShareDraftToken('');
+      void bootstrap().catch(() => setError('현재 계정의 상담방을 다시 열어 주세요.'));
+    };
+    window.addEventListener('cd:auth-changed', changeAccount);
+    return () => window.removeEventListener('cd:auth-changed', changeAccount);
+  }, [bootstrap]);
   useEffect(() => { timelineRef.current?.scrollTo({ top: timelineRef.current.scrollHeight, behavior: "smooth" }); }, [messages, busy]);
   useEffect(() => () => { if (persistTimerRef.current) window.clearTimeout(persistTimerRef.current); }, []);
   useEffect(() => {
@@ -346,9 +359,13 @@ export default function FortuneChatClient() {
       localeRequestEpochRef.current += 1;
       activeReadingRef.current?.controller.abort();
     };
+    window.addEventListener("cd:auth-changed", discardForLocaleChange);
     window.addEventListener("languagechange", discardForLocaleChange);
     window.addEventListener("cd:locale-ready", discardForLocaleChange);
     return () => {
+      localeRequestEpochRef.current += 1;
+      activeReadingRef.current?.controller.abort();
+      window.removeEventListener("cd:auth-changed", discardForLocaleChange);
       window.removeEventListener("languagechange", discardForLocaleChange);
       window.removeEventListener("cd:locale-ready", discardForLocaleChange);
     };
@@ -377,7 +394,7 @@ export default function FortuneChatClient() {
   }, [apiBase, sessionId, topic]);
 
   const append = useCallback((items: Message[], nextTopic = topic) => {
-    setMessages((current) => { const next = [...current, ...items]; persist(next, nextTopic); return next; });
+    setMessages((current) => { const known = new Set(current.map(item => item.id)); const next = [...current, ...items.filter(item => !known.has(item.id))]; persist(next, nextTopic); return next; });
   }, [persist, topic]);
 
   const topicKey = TOPIC_MAP[topic] || "decision";
@@ -434,12 +451,12 @@ export default function FortuneChatClient() {
     // 방법이 없었다).
     const timer = window.setTimeout(() => controller.abort(), 100000);
     try {
-      const response = await fetch(`${apiBase}/api/fortune/guardian/generate`, {
-        method: "POST",
-        credentials: "include",
+      return await requestGuardianTurn({
+        url: `${apiBase}/api/fortune/guardian/generate`, sessionId, paid: needsPayment || Boolean(ctx),
         signal: controller.signal,
+        active: () => localeRequestEpochRef.current === localeEpoch && toAiLocale(detectLocale()) === aiLocale,
         headers: { "Content-Type": "application/json", "Idempotency-Key": requestId, [AI_LOCALE_HEADER]: aiLocale },
-        body: JSON.stringify({
+        body: {
           requestId,
           birthDate: ctx ? ctx.birthDate : birth.birthDate,
           ...((ctx ? ctx.birthTime : birth.birthTime) ? { birthTime: ctx ? ctx.birthTime : birth.birthTime } : {}),
@@ -451,11 +468,8 @@ export default function FortuneChatClient() {
           locale: aiLocale,
           ...(concern ? { concern } : {}),
           ...(recentTurns.length ? { recentTurns } : {}),
-        }),
+        },
       });
-      const payload = await response.json().catch(() => null);
-      const stale = localeRequestEpochRef.current !== localeEpoch || toAiLocale(detectLocale()) !== aiLocale;
-      return { status: response.status, ok: response.ok, payload, stale };
     } catch (reason) {
       if (localeRequestEpochRef.current !== localeEpoch) {
         return { status: 0, ok: false, payload: null, stale: true };
@@ -465,7 +479,7 @@ export default function FortuneChatClient() {
       window.clearTimeout(timer);
       if (activeReadingRef.current?.controller === controller) activeReadingRef.current = null;
     }
-  }, [apiBase, birth, activeCategory, topicKey, character]);
+  }, [apiBase, birth, activeCategory, topicKey, character, sessionId, needsPayment]);
 
   /* 응답을 화면에 푸는 부분만 떼어낸다 — 결제 후 자동 재개(리다이렉트 복귀)가 게이트를 다시 타지
      않고 이 코어만 부를 수 있어야 한다. 판정·문구는 손대지 않고 위치만 옮겼다. */
@@ -480,7 +494,7 @@ export default function FortuneChatClient() {
     // 놓치면 아래에서 영문 원문이 그대로 화면에 박힌다.
     const retryable = attempt.payload?.retryable === true || attempt.payload?.error?.retryable === true;
     if (attempt.status >= 500 || retryable) {
-      setError(friendlyError(attempt.payload?.message, "지금 상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요. 횟수나 결제는 차감되지 않았어요."));
+      setError(friendlyError(attempt.payload?.message, "지금 상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요. 같은 상담의 결제 내역과 저장 상태를 다시 확인해 주세요."));
       return false;
     }
     if (!attempt.ok || !attempt.payload?.ok) throw new Error(friendlyError(attempt.payload?.message));
@@ -496,10 +510,10 @@ export default function FortuneChatClient() {
     const premiumReason = premiumHref ? String(premiumCta.reason || "").trim() : "";
     const evidence = Array.isArray(result.evidenceLines) ? result.evidenceLines : [];
     append([
-      { id: id(), speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: [result.innerState, result.coreReading, result.topicAdvice].filter(Boolean).join("\n\n") || "결과를 정리하고 있어요." },
-      ...(result.cautionPattern ? [{ id: id(), speaker: "assistant" as const, kind: "reading" as const, text: "조심해서 볼 반복 패턴", detail: result.cautionPattern }] : []),
-      { id: id(), speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: [result.luckyAction, evidence.length ? `읽은 근거\n${evidence.map((line: string) => `· ${line}`).join("\n")}` : ""].filter(Boolean).join("\n\n") || "작은 선택 하나부터 가볍게 시작해 보세요." },
-      { id: id(), speaker: "assistant", kind: "cta", ctaHref: premiumHref, text: premiumLabel || "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: premiumReason || "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
+      { id: String(attempt.payload.requestId || 'reading') + ':1', speaker: "assistant", kind: "reading", text: result.openingLine || "지금의 흐름을 차분히 읽고 있어요.", detail: [result.innerState, result.coreReading, result.topicAdvice].filter(Boolean).join("\n\n") || "결과를 정리하고 있어요." },
+      ...(result.cautionPattern ? [{ id: String(attempt.payload.requestId || 'reading') + ':2', speaker: "assistant" as const, kind: "reading" as const, text: "조심해서 볼 반복 패턴", detail: result.cautionPattern }] : []),
+      { id: String(attempt.payload.requestId || 'reading') + ':3', speaker: "assistant", kind: "reading", text: "지금 해볼 한 가지", detail: [result.luckyAction, evidence.length ? `읽은 근거\n${evidence.map((line: string) => `· ${line}`).join("\n")}` : ""].filter(Boolean).join("\n\n") || "작은 선택 하나부터 가볍게 시작해 보세요." },
+      { id: String(attempt.payload.requestId || 'reading') + ':4', speaker: "assistant", kind: "cta", ctaHref: premiumHref, text: premiumLabel || "이 고민을 더 넓은 흐름까지 이어 볼까요?", detail: premiumReason || "초융합 심층 리딩은 사주·자미두수·베다점·숙요점·점성술·타로의 공통 신호와 차이를 한 번에 연결해, 반복되는 패턴과 다음 시기의 선택 기준을 정리합니다." },
     ]);
     setFollowUps(Array.isArray(result.followUpQuestions) ? result.followUpQuestions.slice(0, 3) : []);
     setQuestion("");
@@ -512,6 +526,39 @@ export default function FortuneChatClient() {
     setShareDraftToken(typeof attempt.payload.shareDraftToken === "string" ? attempt.payload.shareDraftToken : "");
     return true;
   }, [append]);
+
+  const recoveryCallbacksRef = useRef({ requestReading, presentAttempt });
+  recoveryCallbacksRef.current = { requestReading, presentAttempt };
+  useEffect(() => {
+    let stopped = false;
+    const recover = async () => {
+      if (stopped || !sessionId || document.visibilityState === 'hidden' || activeReadingRef.current) return;
+      let pending = readPendingTurn(sessionId, true);
+      if (!pending) {
+        try {
+          const response = await fetch(`${apiBase}/api/fortune/guardian/result`, { credentials: 'include', cache: 'no-store' });
+          const payload = await response.json();
+          if (stopped || !payload?.resumeInputs || !payload.requestId) return;
+          pending = { body: { ...payload.resumeInputs, requestId: payload.requestId }, completed: payload.saved === true };
+        } catch { return; }
+      }
+      const requestId = String(pending.body.requestId);
+      if (messagesRef.current.some(message => message.id === requestId + ':1')) return;
+      if (restoredTurnRef.current === requestId) return;
+      restoredTurnRef.current = requestId;
+      setBusy(true);
+      try {
+        const attempt = await recoveryCallbacksRef.current.requestReading(requestId, String(pending.body.concern || ''), pending.body as unknown as ReadingContext);
+        if (!stopped) recoveryCallbacksRef.current.presentAttempt(attempt);
+      } catch (reason) { if (!stopped) setError(friendlyError(reason, '저장된 상담을 다시 확인해 주세요.')); }
+      finally { if (!stopped) setBusy(false); }
+    };
+    const wake = () => { restoredTurnRef.current = ''; void recover(); };
+    void recover();
+    window.addEventListener('online', wake);
+    document.addEventListener('visibilitychange', wake);
+    return () => { stopped = true; window.removeEventListener('online', wake); document.removeEventListener('visibilitychange', wake); };
+  }, [sessionId, apiBase]);
 
   /* 결제 후 자동 재개 — 결제창이 상위 프레임을 리다이렉트하면 send 의 await 가 죽어 상담이
      시작조차 안 된다(결제만 되고 답이 없는 상태). 질문·명식·모드는 결제 직전 값을 서술자에 싣고,
@@ -545,6 +592,14 @@ export default function FortuneChatClient() {
 
   const send = async () => {
     if (busy || isPaying) return;
+    const pending = readPendingTurn(sessionId);
+    if (pending) {
+      setBusy(true); setError("");
+      try { presentAttempt(await requestReading(String(pending.body.requestId), String(pending.body.concern || ""), pending.body as unknown as ReadingContext)); }
+      catch (reason) { setError(friendlyError(reason, "저장된 상담을 다시 확인해 주세요.")); }
+      finally { setBusy(false); }
+      return;
+    }
     const concern = question.trim().slice(0, CONCERN_MAX_LENGTH);
     if (!topic && !concern) { setError("궁금한 분야를 고르거나, 직접 질문을 적어 주세요."); return; }
     if (!birth.birthDate) {

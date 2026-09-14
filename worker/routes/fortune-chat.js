@@ -32,7 +32,7 @@ function ownedSessionFilter(sessionId, who) {
     return { ...sessionFilter, userId: objectIdOrString(who.userId) };
   }
   if (who.guestIdHash) {
-    return { ...sessionFilter, anonymousSessionId: who.guestIdHash };
+    return { ...sessionFilter, anonymousSessionId: who.guestIdHash, userId: null };
   }
   return null;
 }
@@ -48,7 +48,7 @@ async function bootstrap(request, env) {
     enabled: isFusionFortuneApiEnabled(env),
   });
   const accountFilter = who.userId ? { userId: objectIdOrString(who.userId) } : null;
-  const anonymousFilter = who.guestIdHash ? { anonymousSessionId: who.guestIdHash } : null;
+  const anonymousFilter = who.guestIdHash ? { anonymousSessionId: who.guestIdHash, userId: null } : null;
   let session = accountFilter ? await FortuneChatSession.findOne(accountFilter).sort({ updatedAt: -1 }).lean() : null;
   if (!session && anonymousFilter) {
     session = await FortuneChatSession.findOne(anonymousFilter).sort({ updatedAt: -1 }).lean();
@@ -96,9 +96,14 @@ export async function handleFortuneChatRoutes(request, env) {
     const who = await identity(request, env); const filter = ownedSessionFilter(path.slice(10), who);
     if (!filter) return notFound(); const body = await readJson(request); await connectDb(env);
     const existing = await FortuneChatSession.findOne(filter).lean(); if (!existing) return notFound();
-    const incoming = Array.isArray(body?.messages) ? body.messages.slice(-20) : [];
+    const incoming = Array.isArray(body?.messages) ? body.messages.slice(-80) : [];
     const messages = body?.append === true ? [...(existing.messages || []), ...incoming].slice(-80) : incoming;
-    const session = await FortuneChatSession.findOneAndUpdate(filter, { $set: { messages, selectedTopic: String(body?.selectedTopic || existing.selectedTopic || "").slice(0, 80), mode: body?.mode === "fusion_deep_reading" ? "fusion_deep_reading" : existing.mode, paymentStatus: String(body?.paymentStatus || existing.paymentStatus || "idle").slice(0, 40), generationStatus: String(body?.generationStatus || existing.generationStatus || "idle").slice(0, 40) } }, { new: true }).lean(); return json({ ok: true, session });
+    try {
+    const session = await FortuneChatSession.findOneAndUpdate(filter, { $set: { messages, selectedTopic: String(body?.selectedTopic || existing.selectedTopic || "").slice(0, 80), mode: body?.mode === "fusion_deep_reading" ? "fusion_deep_reading" : existing.mode, paymentStatus: String(body?.paymentStatus || existing.paymentStatus || "idle").slice(0, 40), generationStatus: String(body?.generationStatus || existing.generationStatus || "idle").slice(0, 40) } }, { new: true }).lean();
+    const confirmed = session ? await FortuneChatSession.findOne(filter).lean() : null;
+    if (!confirmed || JSON.stringify(confirmed.messages) !== JSON.stringify(messages)) return json({ ok: false, error: 'RESULT_STORAGE_UNAVAILABLE', retryable: true }, { status: 503 });
+    return json({ ok: true, session: confirmed });
+    } catch { return json({ ok: false, error: 'RESULT_STORAGE_UNAVAILABLE', retryable: true }, { status: 503 }); }
   }
   if (["/bootstrap", "/merge-anonymous"].includes(path) || path.startsWith("/sessions/")) return methodNotAllowed();
   return notFound();
