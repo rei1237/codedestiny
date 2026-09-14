@@ -1,4 +1,6 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
@@ -8,6 +10,8 @@ import {
   AstrologyAiConsultation,
   PaidExecutionRecord,
   Payment,
+  PointHistory,
+  MonthlyCreditLedger,
   User,
 } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
@@ -46,8 +50,9 @@ const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니�
 //    정반대의 사실이라, 환불하고도 저 문구를 내보내면 사용자는 재시도가 무료라고 믿고 결제창을 다시 만난다.
 const CARD_REFUNDED_MESSAGE = "상담을 완성하지 못했습니다. 결제하신 금액은 자동으로 환불되니 확인 후 다시 시도해 주세요.";
 const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
-const ASTROLOGY_AI_MIN_RESULT_CHARS = 15000;
-const ASTROLOGY_AI_MAX_RESULT_CHARS = 26000;
+const ASTROLOGY_AI_MIN_RESULT_CHARS = 20000;
+const ASTROLOGY_AI_MAX_RESULT_CHARS = 32000;
+const ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS = 11000;
 const ASTROLOGY_AI_SANITIZE_MAX_CHARS = 70000;
 const ASTROLOGY_AI_MIN_EXPERT_PARTS = 5;
 
@@ -563,10 +568,21 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: INVALID_INPUT_MESSAGE };
     }
-    return { ok: true, accessType: clean(payload.accessType), paymentId: clean(payload.paymentId, 160), source: "token" };
   }
 
   const ctx = billingContextFromBody(body);
+  const ids = [...new Set([idempotencyKey, ctx.paymentId, ctx.transactionId, ctx.ledgerId].map(value => clean(value, 180)).filter(Boolean))];
+  const clauses = ids.flatMap(id => [{ requestId: id }, { idempotencyKey: id }, { merchantUid: id }, { impUid: id }, { paymentId: id }]);
+  const metadataIds = ids.flatMap(id => [{ "metadata.requestId": id }, { "metadata.idempotencyKey": id }, { "metadata.purchaseId": id }, { "metadata.orderId": id }, { sourceId: id }]);
+  const revoked = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
+  const markers = ["refundedForServiceExecution", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: String(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
   const paidPayment = await withMongoRetry(env, () => hasPaidPayment(auth, ctx.paymentId, idempotencyKey));
   if (paidPayment) {
     return {
@@ -581,7 +597,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     };
   }
 
-  if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY") {
+  {
     if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
       return {
         ok: true,
@@ -596,7 +612,8 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
 
   if (ctx.accessType === "membership_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS") {
-    if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
+    const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
+    if (decision.allowed && (!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
       return {
         ok: true,
         accessType: "pass",
@@ -898,8 +915,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
   {
     key: "opening_core",
     label: "질문에 대한 답과 태양·달·상승궁의 중심축",
-    minChars: 2600,
-    maxChars: 4200,
+    minChars: 3400,
+    maxChars: 5000,
     reasoningKeys: ["structure_core"],
     expertParts: ["core_identity"],
     guide: "사용자의 현재 질문에 첫 문단에서 바로 답한 뒤, 태양·달·상승궁이 만드는 중심축과 그 축이 삶에서 반복시키는 장면을 풀어 주세요. 출생시간 미상이면 상승궁과 하우스는 확정하지 말고 제한적 해석임을 밝히세요.",
@@ -907,8 +924,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
   {
     key: "personal_growth",
     label: "개인 행성의 생활 패턴과 목성·토성의 성장 과제",
-    minChars: 2600,
-    maxChars: 4200,
+    minChars: 3400,
+    maxChars: 5000,
     reasoningKeys: ["influence_factors"],
     expertParts: ["personal_planets", "growth_planets"],
     guide: "수성·금성·화성이 만드는 생각·애정·추진 방식의 생활 패턴을 구체적 장면으로 보여 주고, 목성·토성이 요구하는 성장 과제와 그 과제가 지금 어떤 형태로 오는지 이어 주세요.",
@@ -916,8 +933,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
   {
     key: "evidence_domains",
     label: "각도·원소·모드 균형과 분야별 해석",
-    minChars: 3000,
-    maxChars: 4600,
+    minChars: 3400,
+    maxChars: 5000,
     reasoningKeys: ["evidence_basis", "domain_matrix"],
     expertParts: ["aspects_balance"],
     guide: "주요 각도와 원소·모드 균형을 해석 근거로 명확히 밝히고, 그 근거 위에서 분야별 분석을 이어 주세요. 계산 데이터에 없는 각도는 지어내지 말고, 없으면 행성 배치와 원소 균형 중심으로 이어가세요.",
@@ -925,8 +942,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
   {
     key: "timing_action",
     label: "하우스·트랜짓의 시기감과 실천 처방",
-    minChars: 2600,
-    maxChars: 4200,
+    minChars: 3400,
+    maxChars: 5000,
     reasoningKeys: ["action_plan"],
     expertParts: ["houses_timing", "topic_practice"],
     guide: "하우스 또는 현재 트랜짓이 주는 시기감을 짚고, 상담 주제에 맞는 선택 기준과 실천 루틴으로 좁혀 주세요. 마무리는 오늘 바로 해볼 수 있는 작은 행동과 2주 안에 점검할 선택 기준으로 닫아 주세요.",
@@ -934,8 +951,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
   {
     key: "relationship_patterns",
     label: "관계에서 반복되는 패턴과 그 안에서 내가 맡는 역할",
-    minChars: 2600,
-    maxChars: 4200,
+    minChars: 3400,
+    maxChars: 5000,
     reasoningKeys: [],
     expertParts: [],
     guide: "금성·화성·달과 (출생시간이 있으면) 7하우스를 근거로, 이 사람이 관계에서 반복적으로 놓이는 자리와 그때 스스로 맡게 되는 역할을 풀어 주세요. 끌리는 상대의 유형, 가까워질 때 나오는 습관, 멀어질 때 먼저 무너지는 지점을 각각 다른 장면으로 보여 주세요. 앞선 부분에서 이미 다룬 '수성·금성·화성의 생활 패턴'을 다시 설명하지 말고, 그 기질이 **타인과 맞물릴 때** 무엇이 달라지는지에만 집중하세요. 출생시간이 없으면 7하우스는 확정하지 말고 달과 금성 중심으로 이어가세요.",
@@ -943,8 +960,8 @@ const ASTROLOGY_SECTIONS = Object.freeze([
   {
     key: "yearly_outlook",
     label: "앞으로 1년의 분기별 흐름",
-    minChars: 2800,
-    maxChars: 4400,
+    minChars: 3400,
+    maxChars: 5000,
     reasoningKeys: [],
     expertParts: [],
     guide: "현재 트랜짓을 근거로 앞으로 1년을 네 분기로 나눠, 각 분기마다 무엇이 열리고 무엇이 조여드는지를 따로 써 주세요. 분기마다 '이 시기에 하면 유리한 일'과 '미루는 편이 나은 일'을 구체적인 행동으로 구분해 주고, 계산 데이터에 없는 트랜짓은 지어내지 말고 없으면 출생 차트의 행성 배치가 만드는 리듬으로 대신하세요. 앞선 부분의 '지금의 시기감'과 겹치지 않도록, 여기서는 지금이 아니라 **앞으로의 순서**만 다루세요. 네 분기가 서로 같은 말이 되지 않게 각 분기의 초점을 다르게 잡으세요.",
@@ -1101,8 +1118,8 @@ function buildSectionPrompt(input, chart, section, repairLines = []) {
 async function generateSectionedConsultation(env, input, chart, options = {}) {
   const minLength = Math.max(0, Math.floor(Number(options.minLength || 0)));
   const maxLength = Math.max(0, Math.floor(Number(options.maxLength || 0)));
-  const timeoutMs = clampSyncLlmTimeoutMs(Number(env.ASTROLOGY_AI_TIMEOUT_MS));
-  const sectionMaxOutputTokens = Number(options.sectionMaxOutputTokens || env.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS || 9600);
+  const timeoutMs = Math.min(45000, clampSyncLlmTimeoutMs(Number(env.ASTROLOGY_AI_TIMEOUT_MS)));
+  const sectionMaxOutputTokens = Number(options.sectionMaxOutputTokens || env.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS || ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS);
   const astrologyLlmCache = {
     store: createLlmCacheStore(env),
     deterministic: true,
@@ -1122,6 +1139,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       temperature: modelConfig.temperature ?? options.temperature ?? 0.72,
       maxOutputTokens: modelConfig.maxOutputTokens ?? sectionMaxOutputTokens,
       timeoutMs,
+      attempts: 1,
       fallbackToWorkersAI: options.fallbackToWorkersAI,
       // 섹션 단위 문턱 — 전체 목표가 아니라 이 섹션 목표의 40%.
       fallbackMinChars: Math.round(section.minChars * 0.4),
@@ -1139,7 +1157,44 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
   };
 
   // 웨이브 1 — 전 섹션 동시 생성. 벽시계는 섹션 시간의 합이 아니라 가장 느린 섹션 하나.
-  let results = await Promise.all(ASTROLOGY_SECTIONS.map((section) => runSection(section, [], 0)));
+  if (options.checkpoint) {
+    const sections = { ...(options.sections || {}) };
+    const attempts = { ...(options.attempts || {}) };
+    const validText = (section, text) => countPaidReportBodyChars(text) >= section.minChars
+      && countPaidReportBodyChars(text) <= section.maxChars
+      && !hasRepeatedReportPassage(text)
+      && !getConsultationQualityIssues(text).length
+      && !getMissingExpertParts(text).some(part => section.expertParts.includes(part.id));
+    const valid = section => validText(section, sections[section.key]?.text || "");
+    const pending = ASTROLOGY_SECTIONS.filter(section => !valid(section));
+    if (pending.some(section => Number(attempts[section.key] || 0) >= 3)) {
+      throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED" });
+    }
+    const batch = pending.slice(0, 2);
+    for (const section of batch) attempts[section.key] = Number(attempts[section.key] || 0) + 1;
+    await options.checkpoint({ sections, attempts });
+    let queue = Promise.resolve();
+    const outcomes = await Promise.allSettled(batch.map(async section => {
+      const row = await runSection(section, [], attempts[section.key]);
+      if (!row.ok || !validText(section, row.text)) return;
+      const otherText = Object.entries(sections).filter(([key]) => key !== section.key).map(([, value]) => value.text).join("\n\n");
+      if (hasRepeatedReportPassage(`${otherText}\n\n${row.text}`)) return;
+      sections[section.key] = row;
+      const snapshot = { sections: { ...sections }, attempts: { ...attempts } };
+      queue = queue.catch(() => {}).then(() => options.checkpoint(snapshot));
+      await queue;
+    }));
+    const storageFailure = outcomes.find(row => row.status === "rejected" && row.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
+    if (storageFailure) throw storageFailure.reason;
+    const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
+    const complete = ASTROLOGY_SECTIONS.every(valid) && countPaidReportBodyChars(content) >= ASTROLOGY_AI_MIN_RESULT_CHARS;
+    const issues = complete ? getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: true }) : [];
+    if (complete && (issues.length || hasRepeatedReportPassage(content))) {
+      throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED", issues });
+    }
+    return { content, complete, sections, attempts, provider: Object.values(sections)[0]?.provider || "", model: Object.values(sections)[0]?.model || "", quality: { charCount: countPaidReportBodyChars(content), minLength, maxLength } };
+  }
+  const results = await Promise.all(ASTROLOGY_SECTIONS.map((section) => runSection(section, [], 0)));
 
   // 웨이브 2 — 모자란 섹션만 다시 쓴다(전체 재생성 금지).
   const shortfall = results.filter((row) => !row.ok || countConsultationChars(row.text) < row.section.minChars);
@@ -1344,14 +1399,14 @@ async function generateConsultation(env, prompt, options = {}) {
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }) {
-  const existing = await AstrologyAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+  const existing = await AstrologyAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
   if (source !== "billing-gate" && accessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
   }
-  await AstrologyAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
+  await AstrologyAiConsultation.updateOne({ id: sessionId, userId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
   return true;
 }
 
@@ -1567,6 +1622,9 @@ function publicSession(doc) {
     id: clean(raw?.id || raw?._id),
     sessionId: clean(raw?.id || raw?._id),
     status: clean(raw?.status),
+    saved: raw?.status === "completed",
+    idempotencyKey: clean(raw?.idempotencyKey, 180),
+    completedSections: ASTROLOGY_SECTIONS.filter(section => raw?.llmMeta?.sections?.[section.key]?.text).map(section => section.key),
     accessType: clean(raw?.accessType),
     birthInfo: raw?.birthInfo || null,
     topic: clean(raw?.topic),
@@ -1631,147 +1689,108 @@ async function handleEnsureAccess(request, env) {
   return paymentRequired(pricing, idempotencyKey);
 }
 
-async function handleStart(request, env, ctx) {
-  const body = await readJson(request);
-  const normalized = normalizeInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
-  const idempotencyKey = readIdempotencyKey(request, body);
-  if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+async function saveAstrologyDelivery(filter, fields, resultId) {
+  try {
+    const saved = await AstrologyAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!saved?.id) throw resultStorageUnavailable(resultId);
+    const confirmed = await AstrologyAiConsultation.findOne({ id: resultId, userId: filter.userId }).lean();
+    if (!confirmed || Object.entries(fields).some(([key, value]) => JSON.stringify(confirmed[key]) !== JSON.stringify(value))) throw resultStorageUnavailable(resultId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(resultId); }
+}
+
+async function handleStart(request, env) {
+  let body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
-
   await connectDb(env);
-  const pricing = getPricing();
-  console.info("[AstrologyAI] access check started", { route: "/api/astrology-ai/start", requestId: idempotencyKey });
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-  if (!access.ok) {
-    console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/start", requestId: idempotencyKey, reason: access.reason || "PAYMENT_VERIFY_FAILED" });
-    if (access.reason === "LOGIN_REQUIRED") return loginRequired();
-    if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
-    return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  let existing = null;
+  if (body.resumeSessionId) {
+    existing = await AstrologyAiConsultation.findOne({ id: clean(body.resumeSessionId, 120), userId: auth.userId }).lean();
+    if (!existing) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+    if (existing.status === "completed") return json(publicSession(existing));
+    if (!existing.llmMeta?.resumeBody) return invalidInput(INVALID_INPUT_MESSAGE, 409);
+    body = { ...existing.llmMeta.resumeBody, idempotencyKey: existing.idempotencyKey };
   }
-  console.info("[AstrologyAI] access check success", { route: "/api/astrology-ai/start", requestId: idempotencyKey, accessType: access.accessType, source: access.source });
-
-  const existing = await AstrologyAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
-  if (existing && clean(existing.inputHash) !== normalized.inputHash) {
-    return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
-  }
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) return invalidInput(normalized.message);
+  const idempotencyKey = existing?.idempotencyKey || readIdempotencyKey(request, body);
+  if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  existing ||= await AstrologyAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
+  if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  // 신선도 창은 최악 파이프라인(차트 계산 + 초기 150s + expand 150s + condense 150s) + 마진.
-  // 창이 파이프라인보다 짧으면 재-POST가 진행 중 생성을 중복 기동한다(찻집 390s 락과 같은 원리).
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 480000) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "행성과 별자리의 흐름을 읽고 있습니다" }, { status: 202 });
-  }
-
-  const sessionId = existing?.id || `astroai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json({ ...publicSession(existing), retryable: true }, { status: 202 });
+  const pricing = getPricing();
+  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  const sessionId = existing?.id || `astroai_${randomUUID()}`;
+  const lease = randomUUID();
   const now = new Date();
-  const seed = {
-    id: sessionId,
-    userId: auth.userId,
-    idempotencyKey,
-    inputHash: normalized.inputHash,
-    birthInfo: normalized.input.birthInfo,
-    topic: normalized.input.topic,
-    userQuestion: normalized.input.userQuestion,
-    astrologyChart: null,
-    accessType: access.accessType,
-    paymentId: clean(access.paymentId, 160),
-    messages: [],
-    status: "generating",
-    generationError: null,
-  };
-
-  if (existing) {
-    await AstrologyAiConsultation.updateOne({ id: existing.id }, { $set: { ...seed, updatedAt: now } });
-  } else {
-    try {
-      await AstrologyAiConsultation.create(seed);
-    } catch (error) {
-      if (error?.code === 11000) {
-        const duplicate = await AstrologyAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
-        if (duplicate?.status === "completed") return json(publicSession(duplicate));
-        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "행성과 별자리의 흐름을 읽고 있습니다" }, { status: 202 });
-      }
-      throw error;
-    }
-  }
-
-  await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
-  // 결제/이용권 확인·"생성중" 문서·환불예약이 끝난 이 시점에 즉시 202를 돌려주고, 생성은 백그라운드(waitUntil)에서 완주한다.
-  // 클라는 /result 폴링으로 수렴한다(ziwei·찻집과 동일). 실패 시 환불·generation_failed 기록은 아래 catch가 백그라운드에서도 수행한다.
-  const runGeneration = async () => {
+  const owner = { id: sessionId, userId: auth.userId };
+  let doc;
   try {
-    console.info("[AstrologyAI] generation started", { route: "/api/astrology-ai/start", requestId: idempotencyKey, sessionId });
-    const chart = await calculateAstrologyChart(env, normalized, request.url);
-    // 섹션 분할 생성 — 한 호출에 1만~2만자를 요구하던 구조가 expand/condense 재생성을
-    // 상시 유발했다(출력 2~3배). 섹션당 목표는 모델이 한 번에 채우는 크기로 잡는다.
-    // 폴백 문턱은 섹션 단위(각 섹션 목표의 40%)로 내려가 있다.
-    const generated = await generateSectionedConsultation(env, normalized.input, chart, {
-      minLength: ASTROLOGY_AI_MIN_RESULT_CHARS,
-      maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
-      sectionMaxOutputTokens: Number(env.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS || 9600),
-      requireExpertParts: true,
-    });
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
-    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
-    const completed = await AstrologyAiConsultation.findOneAndUpdate(
-      { id: sessionId },
-      {
-        $set: {
-          status: "completed",
-          astrologyChart: chart,
-          messages: [
-            { role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now },
-            { role: "assistant", content: generated.content, createdAt: new Date() },
-          ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString(), quality: generated.quality },
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean();
-    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
-    console.info("[AstrologyAI] generation success", { requestId: idempotencyKey, sessionId, provider: generated.provider, model: generated.model });
-    console.info("[AstrologyAI] result saved", { requestId: idempotencyKey, resultId: sessionId });
-    return json(publicSession(completed));
-  } catch (error) {
-    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-    const cardRefund = await refundCardPaymentOnFailure(env, auth, access, error);
-    if (cardRefund.refunded) {
-      console.info("[AstrologyAI] card payment auto-refunded", { requestId: idempotencyKey, sessionId, idempotent: Boolean(cardRefund.idempotent) });
-    } else if (cardRefund.refundFailed) {
-      console.error("[AstrologyAI] card payment auto-refund failed", { requestId: idempotencyKey, sessionId, reason: clean(cardRefund.reason, 200) });
+    if (existing) {
+      doc = await AstrologyAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ generationLease: "" }, { generationLease: { $exists: false } }, { updatedAt: { $lt: new Date(Date.now() - 120000) } }] }, { $set: { generationLease: lease } }, { new: true }).lean();
+      if (!doc) return json({ ...publicSession(existing), status: "generating", retryable: true }, { status: 202 });
+    } else {
+      const resumeBody = { ...body, idempotencyKey };
+      delete resumeBody.accessToken;
+      doc = await AstrologyAiConsultation.create({ ...owner, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, paymentId: clean(access.paymentId, 160), messages: [], status: "generating", generationLease: lease, llmMeta: { resumeBody, sections: {}, attempts: {} } });
+      doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
-    await AstrologyAiConsultation.updateOne(
-      { id: sessionId },
-      {
-        $set: {
-          status: "generation_failed",
-          generationError: {
-            code: clean(error?.code || "GENERATION_FAILED", 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
-          },
-        },
-      },
-    ).catch(() => {});
-    const isCalculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;
-    // 환불했으면 "결제 권한은 보존" 문구를 쓸 수 없다 — 사용자가 재시도를 무료로 믿고 결제창을 다시 만난다.
-    // reason·status 코드는 클라이언트 분기(copy.errorText)를 흔들지 않도록 그대로 둔다.
-    const failureMessage = cardRefund.refunded
-      ? CARD_REFUNDED_MESSAGE
-      : (isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE);
-    return json({
-      ok: false,
-      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
-      message: failureMessage,
-    }, { status: isCalculationError ? 422 : 503 });
+  } catch (error) {
+    if (error?.code === 11000) return json({ ok: true, sessionId, status: "generating", retryable: true }, { status: 202 });
+    return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
-  };
-
-  // 동기 생성: 요청 안에서 완결해 완료 결과를 바로 반환한다. waitUntil 백그라운드+/result 폴링은 공유 DB 연결을
-  // 여러 요청이 재사용하게 만들어 Cloudflare Workers 요청 간 I/O 격리로 결과가 고착되던 문제가 있어 쓰지 않는다(네오와 동일).
-  return await runGeneration();
+  const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
+  try {
+    await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
+    if (doc.status !== "delivery_pending") {
+      if (!doc.llmMeta?.resumeBody) {
+        const resumeBody = { ...body, idempotencyKey };
+        delete resumeBody.accessToken;
+        doc = await saveAstrologyDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
+      }
+      const chart = doc.astrologyChart || await calculateAstrologyChart(env, normalized, request.url);
+      doc = await saveAstrologyDelivery(locked, { astrologyChart: chart }, sessionId);
+      const generated = await generateSectionedConsultation(env, normalized.input, chart, {
+        minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
+        sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS, fallbackToWorkersAI: false,
+        sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts,
+        checkpoint: async ({ sections, attempts }) => {
+          const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
+          doc = await saveAstrologyDelivery(locked, {
+            llmMeta: { ...doc.llmMeta, sections, attempts },
+            messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content, createdAt: now }],
+          }, sessionId);
+        },
+      });
+      doc = await saveAstrologyDelivery(locked, {
+        status: generated.complete ? "delivery_pending" : "partial",
+        llmMeta: { ...doc.llmMeta, provider: generated.provider, model: generated.model, quality: generated.quality },
+      }, sessionId);
+      if (!generated.complete) return json({ ...publicSession(doc), retryable: true }, { status: 202 });
+    }
+    // 결과 저장 장애는 생성 실패 환불 대상이 아니다. 원래 결제 증빙은 완료 직전 다시 확인한다.
+    const fresh = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+    if (!fresh.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    try { await applyUsageOnce({ userId: auth.userId, sessionId, accessType: fresh.accessType, pricing, source: fresh.source }); }
+    catch { throw resultStorageUnavailable(sessionId); }
+    doc = await saveAstrologyDelivery(locked, { status: "completed", generationLease: "" }, sessionId);
+    await recordSuccessfulUsage(auth, idempotencyKey, fresh, sessionId, pricing).catch(error => console.warn("[astrology-ai] usage bookkeeping failed", { code: error?.code }));
+    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    return json(publicSession(doc));
+  } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
+    await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
+    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+    const calculationError = clean(error?.code).startsWith("ASTRO_") || Number(error?.status) === 400;
+    return json({ ok: false, reason: calculationError ? "CALCULATION_ERROR" : "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : calculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE }, { status: calculationError ? 422 : 503 });
+  } finally {
+    await AstrologyAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});
+  }
 }
 
 async function handleResult(request, env, pathId = "") {
@@ -1809,9 +1828,14 @@ async function handleResult(request, env, pathId = "") {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
   }
   // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
-  if (consultation.status === "generating") {
+  if (["generating", "partial", "delivery_pending"].includes(consultation.status)) {
+    if (consultation.llmMeta?.resumeBody) {
+      const body = consultation.llmMeta.resumeBody;
+      const access = await resolveStartAccess({ request, env, auth, body, normalized: normalizeInput(body), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+      if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    }
     return json(
-      { ok: true, sessionId: consultation.id, status: "generating", message: "행성과 별자리의 흐름을 읽고 있습니다" },
+      { ...publicSession(consultation), retryable: true, message: "저장된 분석부터 이어서 생성합니다." },
       { status: 202, headers: { "Retry-After": "3" } },
     );
   }
@@ -1850,6 +1874,13 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/astrology-ai");
   try {
+    if (method === "GET" && path === "/pending") {
+      const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+      if (!auth) return loginRequired();
+      await connectDb(env);
+      const pending = await AstrologyAiConsultation.findOne({ userId: auth.userId, status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).select("id").lean();
+      return json({ ok: true, sessionId: pending?.id || "" });
+    }
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && path === "/basis") return await handleBasis(request, env);
@@ -1858,6 +1889,7 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     console.error("[astrology-ai]", clean(error?.stack || error?.message || error, 1200));
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
@@ -1885,6 +1917,7 @@ export const __astrologyAiTestUtils = {
   getConsultationQualityIssues,
   ASTROLOGY_AI_MIN_RESULT_CHARS,
   ASTROLOGY_AI_MAX_RESULT_CHARS,
+  ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS,
   refundCardPaymentOnFailure,
   CARD_REFUNDED_MESSAGE,
 };

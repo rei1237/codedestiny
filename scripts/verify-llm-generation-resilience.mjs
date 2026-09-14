@@ -222,13 +222,13 @@ function assertNeverThrows(feature, label, run) {
   // 점성술은 첫 상담을 섹션으로 나눠 쓴다 — 예산 단위가 "상담 전체"가 아니라 "섹션 하나"다.
   // 그래서 전체 분량이 아니라 각 섹션의 목표 대비 토큰 여유를 본다.
   // (섹션 합이 전체 게이트와 맞는지는 verify:astrology-sectioned 가 따로 단언한다.)
-  const { ASTROLOGY_SECTIONS } = __astrologyAiTestUtils;
+  const { ASTROLOGY_SECTIONS, ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS } = __astrologyAiTestUtils;
   assert(Array.isArray(ASTROLOGY_SECTIONS) && ASTROLOGY_SECTIONS.length > 0, `${feature}: 섹션 정의가 없다`);
   for (const section of ASTROLOGY_SECTIONS) {
     assertBudget(`${feature}:${section.key}`, {
       minChars: section.minChars,
       maxChars: section.maxChars,
-      maxOutputTokens: 9600,
+      maxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS,
       tokenConstantName: "ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS",
       sourcePath: "worker/routes/astrology-ai.js",
     });

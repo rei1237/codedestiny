@@ -176,7 +176,7 @@ for (const when of ['sleep', 'fetch', 'body']) {
 test('astrology does not retry or open an old generation after locale change', async () => {
   const first = deferred(); let requests = 0, opened = 0;
   const f = fixture({ setPhase() {}, releasePaidFeatureGate() {}, setProgressIndex() {}, scheduleReadingProgress() {},
-    API_ENDPOINTS: { start: '/start' }, buildPayload: () => ({}),
+    API_ENDPOINTS: { start: '/start' }, buildPayload: () => ({}), captureOwner: () => () => true,
     postJson: () => { requests++; return first.promise; }, openResultPage: () => { opened++; },
   });
   f.ctx.captureLocaleScope = f.ctx.useLocaleRequestScope(() => {}); f.mount();
