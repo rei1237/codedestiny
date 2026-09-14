@@ -4,7 +4,7 @@ import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { KarmaDestinyAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { KarmaDestinyAiConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -13,6 +13,9 @@ import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
 
 // 결정적(생년월일+질문 기반) 생성 → 캐시 + in-flight dedup으로 재시도/새로고침 중복 과금 방지.
@@ -101,7 +104,7 @@ const PREMIUM_BATCH_SIZE = 4;
 const PREMIUM_CHAPTER_CONCURRENCY = 4;
 // 배치 1회 = 생성(120s) + JSON 수선/보강 재호출 가능성까지의 최악 시간을 덮어야 한다.
 // 락이 파이프라인보다 짧으면 병렬 폴링 POST가 같은 배치를 중복 기동한다(찻집 390s 락과 같은 원리).
-const PREMIUM_BATCH_LOCK_TTL_MS = 390_000;
+const PREMIUM_BATCH_LOCK_TTL_MS = 120_000;
 const PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2;
 const PREMIUM_CHAPTER_TARGET_LENGTH = "2,100~2,400자";
 const INITIAL_SECTION_SYMBOLS = ["業", "源", "流", "課", "緣", "情", "財", "職", "體", "才", "轉", "策", "總", "句", "箋"];
@@ -1979,11 +1982,12 @@ async function callRealGeminiText(env, prompt, options = {}) {
     temperature: options.temperature ?? 0.72,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
     // 45s 단락 함정 회피. 장 하나가 2,400자면 여유 있게 75s 안에 끝난다.
-    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
+    timeoutMs: options.singleAttempt ? 45000 : clampSyncLlmTimeoutMs(Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000),
+    ...(options.singleAttempt ? { fallbackToWorkersAI: false } : {}),
     // 유료 라우트라 Workers AI 폴백에는 최소 분량 문턱을 반드시 함께 건다.
     // 문턱 미달이면 호출이 실패로 돌아 아래 실패 처리가 그대로 돈다.
     fallbackMinChars: Math.round(Number(options.chapterMinLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH) * 0.4),
-    cache: buildKarmaLlmCache(env, clean(options.cacheStage) || "chapter-batch"),
+    cache: { ...buildKarmaLlmCache(env, clean(options.cacheStage) || "chapter-batch"), skipRead: options.skipCache === true },
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
@@ -2007,13 +2011,15 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
       maxOutputTokens: CHAPTER_MAX_OUTPUT_TOKENS,
       systemPrompt: buildSystemPrompt("initial"),
       // 장별 캐시 키 — 재시도 시 이미 성공한 장은 캐시에서 즉시 돌아온다.
-      cacheStage: `chapter-${definition.id}`,
+      cacheStage: `${context.singleAttempt ? "delivery-v2-" : ""}chapter-${definition.id}`,
+      singleAttempt: context.singleAttempt === true, skipCache: context.retry === true,
       chapterMinLength: definition.minLength,
     });
     let payload;
     try {
       payload = extractJsonPayload(generated.text);
-    } catch {
+    } catch (error) {
+      if (context.singleAttempt) throw error;
       // 장당 7,000토큰이면 MAX_TOKENS 잘림이 사실상 없어 이 경로는 드물다.
       // 그래도 남겨 두는 이유는 모델이 코드펜스·설명문을 덧붙이는 경우가 있기 때문이다.
       const repaired = await callRealGeminiText(env, [
@@ -2032,6 +2038,7 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
       generated.model = repaired.model || generated.model;
     }
     const raw = safeArray(payload?.chapters).find((item) => clean(item?.id) === definition.id) || payload;
+    if (context.singleAttempt && safeArray(raw?.keyTakeaways).filter(Boolean).length < 3) return { ok: false, definition, reason: "CHAPTER_TAKEAWAYS_MISSING" };
     if (!clean(raw?.content)) {
       return { ok: false, definition, reason: "EMPTY_CHAPTER_CONTENT" };
     }
@@ -2212,7 +2219,7 @@ async function applyUsageAfterSuccessfulGeneration({ request, env, auth, consult
     throw gateError;
   } else {
     await KarmaDestinyAiConsultation.updateOne(
-      { id: consultation.id, usageAppliedAt: null },
+      { id: consultation.id, userId: clean(auth.userId), usageAppliedAt: null },
       { $set: { usageAppliedAt: new Date() } },
     );
   }
@@ -2251,11 +2258,11 @@ function buildSummaryCards(integratedResult = {}) {
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
-  const existing = await KarmaDestinyAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+  const existing = await KarmaDestinyAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
 
   await KarmaDestinyAiConsultation.updateOne(
-    { id: sessionId, usageAppliedAt: null },
+    { id: sessionId, userId: clean(userId), usageAppliedAt: null },
     { $set: { usageAppliedAt: new Date() } },
   );
   return true;
@@ -2287,6 +2294,7 @@ function publicSession(doc) {
     attemptId: clean(doc.attemptId || doc.idempotencyKey),
     accessType: clean(doc.accessType),
     status: clean(doc.status),
+    saved: doc.status === "completed",
     generatedAt,
     totalCharCount: Number(doc.totalCharCount || (chapters.length ? countUserVisibleChars(formatChaptersAsConsultationText(chapters)) : 0)),
     userInput: buildPublicUserInput(doc),
@@ -2382,34 +2390,31 @@ async function handleEnsureAccess(request, env) {
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
+  if (!mongoose.Types.ObjectId.isValid(String(auth.userId || ""))) return { ok: false, reason: "PAYMENT_REQUIRED", code: "START_ACCESS_CONFIRMATION_REQUIRED" };
   const token = clean(body?.accessToken || request.headers.get("x-karma-destiny-ai-access-token"));
   if (token) {
     const payload = await verifyAccessToken(env, token);
-    if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
-      return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
-    }
-    return {
-      ok: true,
-      accessType: clean(payload.accessType),
-      paymentId: clean(payload.paymentId, 160),
-      billingRequestId: clean(payload.billingRequestId, 180),
-      usageAlreadyApplied: payload.usageAlreadyApplied === true,
-      deferredUsage: payload.deferredUsage === true,
-    };
+    if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) return { ok: false, reason: "INVALID_INPUT" };
+    body = { ...body, accessType: payload.accessType, paymentId: payload.paymentId || body.paymentId };
   }
-
-  const billing = await withMongoRetry(env, () => findBillingGateEvidence({ env, userId: auth.userId, idempotencyKey, body }));
-  if (billing?.ok) return {
-    ...billing,
-    usageAlreadyApplied: billing.usageAlreadyApplied === true,
-  };
-
-  return {
-    ok: false,
-    reason: "PAYMENT_REQUIRED",
-    message: "상담 생성 전 결제 확인이 필요합니다.",
-    code: "START_ACCESS_CONFIRMATION_REQUIRED",
-  };
+  const tokens = collectBillingTokens(body, idempotencyKey);
+  const revoked = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
+  const metadataIds = [...billingTokenClauses(tokens), ...tokens.map(sourceId => ({ sourceId }))];
+  const markers = ["refundedForServiceExecution", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: deferredTokenClauses(tokens) }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: paymentTokenClauses(tokens) }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
+  const billing = await findBillingGateEvidence({ env, userId: auth.userId, idempotencyKey, body });
+  if (billing?.ok) return billing;
+  const user = await loadBillingUser(auth.userId);
+  if (isAdmin(auth) || clean(user?.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", usageAlreadyApplied: true };
+  const featureAccess = resolveFeatureAccessPolicy({ user: user || {}, pricing, coinCost: pricing.coinPrice });
+  if (featureAccess.allowed) return { ok: true, accessType: "pass", usageAlreadyApplied: false };
+  return { ok: false, reason: "PAYMENT_REQUIRED", code: "START_ACCESS_CONFIRMATION_REQUIRED" };
 }
 
 function cloneBillingHeaders(request) {
@@ -2469,6 +2474,10 @@ async function handleStart(request, env) {
 
   await connectDb(env);
   const pricing = getPricing();
+  const existing = await withMongoRetry(env, () => KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
+  if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
+  if (existing?.status === "completed") return json(publicSession(existing));
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR" }, { status: 409 });
   logKarmaAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok) {
@@ -2479,24 +2488,23 @@ async function handleStart(request, env) {
   logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logKarmaAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
-  const existing = await withMongoRetry(env, () => KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
-  if (existing && clean(existing.inputHash) !== normalized.inputHash) {
-    return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
-  }
-  if (existing?.status === "completed") return json(publicSession(existing));
+  if (existing?.integratedResult && Number(existing.schemaVersion) === REPORT_SCHEMA_VERSION) return json(publicSession(existing), { status: 202 });
+  if (existing && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json(publicSession(existing), { status: 202 });
 
   const sessionId = existing?.id || `kdai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   const now = new Date();
   // 🔴 판이 다른 진행중 문서를 이어붙이면 안 된다. 구 16장 문서에 15장 정의를 적용하면
   // chapter-09 같은 id 가 서로 다른 장을 가리켜 LLM_BATCH_CHAPTER_MISSING → 결제 후 무결과가
   // 된다. 과금은 아직 deferredUsage 상태라 처음부터 다시 생성해도 사용자 손해가 없다.
-  const resumable = existing?.status === "generating"
+  const resumable = ["generating", "partial", "delivery_pending"].includes(existing?.status)
     && Number(existing?.schemaVersion || 1) === REPORT_SCHEMA_VERSION;
   const resumedChapters = resumable ? safeArray(existing.chapters) : [];
   if (existing?.status === "generating" && !resumable) {
     logKarmaAi("Report Schema Changed", { requestId: idempotencyKey, sessionId: clean(existing.id), from: Number(existing?.schemaVersion || 1), to: REPORT_SCHEMA_VERSION }, "warn");
   }
+  const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
   const seed = {
+    llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody },
     id: sessionId,
     reportId: clean(existing?.reportId || sessionId, 120),
     attemptId: idempotencyKey,
@@ -2535,10 +2543,11 @@ async function handleStart(request, env) {
     generationError: null,
   };
 
+  let savingSeed = true;
   try {
     if (existing) {
       await KarmaDestinyAiConsultation.updateOne(
-        { id: existing.id },
+        { id: existing.id, userId: clean(auth.userId), status: { $ne: "completed" } },
         { $set: { ...seed, updatedAt: now } },
       );
     } else {
@@ -2554,6 +2563,7 @@ async function handleStart(request, env) {
       }
     }
 
+    savingSeed = false;
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     const integratedResult = (resumable && existing?.integratedResult)
       || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo, { lensUsageWeights: LENS_USAGE_WEIGHTS, requestUrl: request.url });
@@ -2569,26 +2579,15 @@ async function handleStart(request, env) {
     const summaryCards = (resumable && existing?.summaryCards) || buildSummaryCards(integratedResult);
     const lensContribution = integratedResult?.lensContribution
       || computeLensContribution(asObject(integratedResult?.lenses), LENS_USAGE_WEIGHTS);
-    const prepared = await KarmaDestinyAiConsultation.findOneAndUpdate(
-      { id: sessionId },
-      {
-        $set: {
-          status: "generating",
-          integratedResult,
-          summaryCards,
-          schemaVersion: REPORT_SCHEMA_VERSION,
-          lensContribution,
-          lensAvailability: integratedResult?.lensAvailability || null,
-          generationProgress: buildGenerationProgress({ ...seed, integratedResult, summaryCards }),
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean();
+    const prepared = await saveKarmaDelivery({ id: sessionId, userId: clean(auth.userId), status: { $ne: "completed" } }, {
+      status: "generating", integratedResult, summaryCards, schemaVersion: REPORT_SCHEMA_VERSION, lensContribution,
+      lensAvailability: integratedResult?.lensAvailability || null, generationProgress: buildGenerationProgress({ ...seed, integratedResult, summaryCards }), generationError: null,
+    }, sessionId);
     return json(publicSession(prepared), { status: 202 });
   } catch (error) {
+    if (savingSeed || error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await KarmaDestinyAiConsultation.updateOne(
-      { id: sessionId },
+      { id: sessionId, userId: clean(auth.userId), status: { $ne: "completed" } },
       {
         $set: {
           status: "generation_failed",
@@ -2623,201 +2622,116 @@ async function handleStart(request, env) {
   }
 }
 
+async function saveKarmaDelivery(filter, fields, resultId) {
+  try {
+    const written = await KarmaDestinyAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    const saved = written && await KarmaDestinyAiConsultation.findOne({ id: resultId, userId: filter.userId }).lean();
+    if (!saved || Object.entries(fields).some(([key, value]) => stableJson(saved[key]) !== stableJson(value))) throw resultStorageUnavailable(resultId);
+    return saved;
+  } catch { throw resultStorageUnavailable(resultId); }
+}
+function karmaChapterReady(chapter, definition) {
+  const content = clean(chapter?.content);
+  return !!content && countUserVisibleChars(formatChapterContent(chapter)) >= definition.minLength
+    && countPaidReportBodyChars(content) >= Math.floor(definition.minLength * 0.75)
+    && safeArray(chapter?.keyTakeaways).filter(Boolean).length >= 3
+    && !hasRepeatedReportPassage(content) && !hasForbiddenResult(content)
+    && !detectGenericAdviceWarnings(content).length;
+}
 async function handleGenerateBatch(request, env) {
-  const route = "/api/karma-destiny-ai/generate-batch";
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.reportId || body?.attemptId || body?.idempotencyKey, 180);
-  if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
-
-  // billing 프로젝션으로 한 번에 읽어 두면, 아래 applyUsageAfterSuccessfulGeneration/
-  // cancelDeferredUsageIfNeeded 의 내부 coin-gate 위임이 users 를 다시 읽지 않는다(preverifiedAuth).
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
-
   await connectDb(env);
-  const pricing = getPricing();
   let consultation = await KarmaDestinyAiConsultation.findOne(buildResultLookup(sessionId, auth)).lean();
-  if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+  if (!consultation) return notFound();
   if (consultation.status === "completed") return json(publicSession(consultation));
-  if (consultation.status === "generation_failed") {
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, sessionId: consultation.id, status: consultation.status }, { status: 409 });
-  }
+  if (consultation.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
   if (!consultation.integratedResult) {
-    return json({ ok: false, reason: "CALCULATION_ERROR", message: CALCULATION_ERROR_MESSAGE }, { status: 422 });
-  }
-  // handleStart 가 이미 판이 다른 문서를 재개 대상에서 제외하지만, 배포 전환 틈새에 잡힌
-  // 폴링이 구 문서를 그대로 밀고 들어오는 경로가 남는다. 여기서 한 번 더 막는다 —
-  // 막지 않으면 챕터 id 가 서로 다른 장을 가리켜 결제 후 무결과가 된다.
-  if (Number(consultation.schemaVersion || 1) !== REPORT_SCHEMA_VERSION) {
-    logKarmaAi("Report Schema Changed", { sessionId: clean(consultation.id), from: Number(consultation.schemaVersion || 1), to: REPORT_SCHEMA_VERSION }, "warn");
-    return json({
-      ok: false,
-      reason: "REPORT_SCHEMA_CHANGED",
-      message: "리포트 구성이 갱신되었습니다. 같은 세션으로 다시 시작하면 처음부터 새로 작성됩니다.",
-      sessionId: consultation.id,
-    }, { status: 409 });
-  }
-
-  const lock = asObject(consultation.generationProgress);
-  const lockAgeMs = lock.lockedAt ? Date.now() - new Date(lock.lockedAt).getTime() : Number.POSITIVE_INFINITY;
-  if (clean(lock.lockToken) && lockAgeMs >= 0 && lockAgeMs < PREMIUM_BATCH_LOCK_TTL_MS) {
+    if (consultation.llmMeta?.resumeBody && Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime() >= PREMIUM_BATCH_LOCK_TTL_MS) {
+      const url = new URL(request.url); url.pathname = "/api/karma-destiny-ai/start";
+      const headers = cloneBillingHeaders(request); headers.set("Idempotency-Key", consultation.idempotencyKey);
+      return handleStart(new Request(url, { method: "POST", headers, body: JSON.stringify(consultation.llmMeta.resumeBody) }), env);
+    }
     return json(publicSession(consultation), { status: 202 });
   }
-
+  if (Number(consultation.schemaVersion || 1) !== REPORT_SCHEMA_VERSION) return json({ ok: false, reason: "REPORT_SCHEMA_CHANGED", message: "원래 요청으로 다시 시작해 주세요." }, { status: 409 });
+  const pricing = getPricing();
+  const resumeBody = consultation.llmMeta?.resumeBody || { birthInfo: consultation.birthInfo, topic: consultation.topic, userQuestion: consultation.userQuestion, paymentId: consultation.paymentId, accessType: consultation.accessType };
+  const normalized = { ok: true, inputHash: consultation.inputHash };
+  const checkAccess = () => resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey: consultation.idempotencyKey });
+  if (!(await checkAccess()).ok) return paymentVerifyFailed();
+  const owner = { id: consultation.id, userId: clean(auth.userId) };
   const lockToken = randomToken(12);
-  const currentChapters = safeArray(consultation.chapters);
-  const batchIndex = Math.min(Math.floor(currentChapters.length / PREMIUM_BATCH_SIZE), Math.ceil(PREMIUM_CHAPTERS.length / PREMIUM_BATCH_SIZE) - 1);
-  await KarmaDestinyAiConsultation.updateOne(
-    { id: consultation.id, userId: clean(auth.userId), status: "generating" },
-    {
-      $set: {
-        generationProgress: buildGenerationProgress(consultation, {
-          chapters: currentChapters,
-          activeBatchIndex: batchIndex,
-          lockToken,
-          lockedAt: new Date(),
-          stageLabel: GENERATION_STAGES[Math.min(batchIndex + 1, GENERATION_STAGES.length - 1)],
-        }),
-      },
-    },
-  );
-  consultation = await KarmaDestinyAiConsultation.findOne({ id: consultation.id, userId: clean(auth.userId) }).lean();
-
-  const logContext = safeLogPayload({
-    route,
-    requestId: consultation.idempotencyKey,
-    body,
-    normalized: {
-      input: {
-        serviceType: "karma-ai-consultation",
-        focusArea: "batch_generation",
-        question: consultation.userQuestion,
-        birthInfo: consultation.birthInfo,
-      },
-    },
-    access: consultation.accessType,
-    env,
-  });
-
+  const pending = doc => json(publicSession(doc), { status: 202 });
   try {
-    let chapters = safeArray(consultation.chapters).sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
-    if (chapters.length < PREMIUM_CHAPTERS.length) {
-      const generated = await generateChapterBatch(env, consultation, batchIndex, logContext);
-      const generatedIds = new Set(generated.chapters.map((chapter) => chapter.id));
-      chapters = [
-        ...chapters.filter((chapter) => !generatedIds.has(chapter.id)),
-        ...generated.chapters,
-      ].sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
-      const chapterSummaries = [
-        ...safeArray(consultation.chapterSummaries).filter((item) => Number(item?.batchIndex) !== batchIndex),
-        generated.chapterSummary,
-      ].sort((a, b) => Number(a?.batchIndex || 0) - Number(b?.batchIndex || 0));
-      const avoidPhrases = uniq([
-        ...safeArray(consultation.generationProgress?.avoidPhrases),
-        ...generated.avoidPhrases,
-        ...safeArray(generated.chapterSummary?.avoidPhrases),
-      ]).slice(0, 24);
-
-      consultation = await KarmaDestinyAiConsultation.findOneAndUpdate(
-        { id: consultation.id, userId: clean(auth.userId) },
-        {
-          $set: {
-            chapters,
-            chapterSummaries,
-            totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(chapters)),
-            generationProgress: {
-              ...buildGenerationProgress(consultation, {
-                chapters,
-                activeBatchIndex: Math.floor(chapters.length / PREMIUM_BATCH_SIZE),
-                lockToken: "",
-                lockedAt: null,
-                stageLabel: chapters.length >= PREMIUM_CHAPTERS.length ? "최종 품질을 확인하는 중" : GENERATION_STAGES[Math.min(batchIndex + 1, GENERATION_STAGES.length - 1)],
-              }),
-              avoidPhrases,
-            },
-            llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
-          },
-        },
-        { new: true },
-      ).lean();
+    const locked = await KarmaDestinyAiConsultation.findOneAndUpdate({ ...owner, status: { $nin: ["completed", "generation_failed"] }, $or: [{ "generationProgress.lockToken": "" }, { "generationProgress.lockToken": { $exists: false } }, { "generationProgress.lockedAt": { $lt: new Date(Date.now() - PREMIUM_BATCH_LOCK_TTL_MS) } }] }, { $set: { generationProgress: buildGenerationProgress(consultation, { lockToken, lockedAt: new Date() }) } }, { new: true }).lean();
+    if (!locked) return pending(consultation);
+    consultation = locked;
+  } catch { return json(resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), { status: 503 }); }
+  const filter = { ...owner, status: { $ne: "completed" }, "generationProgress.lockToken": lockToken };
+  try {
+    let chapters = safeArray(consultation.chapters);
+    if (consultation.status !== "delivery_pending") {
+      const quality = validatePremiumReportQuality(chapters);
+      const bodyChars = countPaidReportBodyChars(chapters.map(row => row.content).join("\n"));
+      let targets = PREMIUM_CHAPTERS.filter(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def));
+      if (!targets.length && (!quality.ok || bodyChars < 20000)) {
+        const affected = new Set([...quality.shortChapters, ...quality.missingChapters, ...quality.summaryWarnings]);
+        for (const warning of quality.repeatedPhraseWarnings) {
+          chapters.filter(chapter => normalizePlainText(formatChapterContent(chapter)).replace(/[.,!?。？！\s]/g, "").includes(warning.sample)).slice(1).forEach(chapter => affected.add(chapter.id));
+        }
+        for (const warning of quality.genericAdviceWarnings) {
+          const chapter = [...chapters].reverse().find(row => formatChapterContent(row).includes(warning.phrase));
+          if (chapter) affected.add(chapter.id);
+        }
+        chapters.filter(chapter => hasForbiddenResult(formatChapterContent(chapter))).forEach(chapter => affected.add(chapter.id));
+        targets = PREMIUM_CHAPTERS.filter(def => affected.has(def.id));
+        if (!targets.length) targets = [...PREMIUM_CHAPTERS].sort((a, b) => {
+          const ratio = def => countUserVisibleChars(formatChapterContent(chapters.find(row => row.id === def.id))) / Number(String(def.targetLength).replace(/,/g, "").match(/\d+/)?.[0] || def.minLength);
+          return ratio(a) - ratio(b);
+        });
+      }
+      targets = targets.slice(0, PREMIUM_BATCH_SIZE);
+      const attempts = { ...consultation.llmMeta?.attempts };
+      if (targets.some(def => Number(attempts[def.id] || 0) >= 3)) { const error = new Error("필수 챕터의 품질 기준을 충족하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
+      targets.forEach(def => { attempts[def.id] = Number(attempts[def.id] || 0) + 1; });
+      consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
+      let queue = Promise.resolve();
+      const results = await Promise.allSettled(targets.map(async definition => {
+        const row = await generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets });
+        if (!row.ok || !karmaChapterReady(row.chapter, definition)) return;
+        const save = queue.catch(() => {}).then(async () => {
+          const candidate = [...safeArray(consultation.chapters).filter(chapter => chapter.id !== definition.id), row.chapter].sort((a, b) => a.order - b.order);
+          if (hasRepeatedReportPassage(candidate.map(chapter => chapter.content).join("\n"))) return;
+          consultation = await saveKarmaDelivery(filter, { chapters: candidate, totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(candidate)), generationProgress: buildGenerationProgress(consultation, { chapters: candidate, lockToken, lockedAt: new Date() }), llmMeta: { ...consultation.llmMeta, provider: row.provider, model: row.model } }, consultation.id);
+        });
+        queue = save; await save;
+      }));
+      const storageFailure = results.find(row => row.status === "rejected");
+      if (storageFailure) throw storageFailure.reason;
+      chapters = safeArray(consultation.chapters);
+      const finalQuality = validatePremiumReportQuality(chapters);
+      if (!finalQuality.ok || countPaidReportBodyChars(chapters.map(row => row.content).join("\n")) < 20000) {
+        consultation = await saveKarmaDelivery(filter, { status: "partial", qualityCheck: finalQuality }, consultation.id);
+        return pending(consultation);
+      }
+      const createdAt = new Date();
+      consultation = await saveKarmaDelivery(filter, { status: "delivery_pending", chapters, qualityCheck: finalQuality, totalCharCount: finalQuality.totalCharCount, finalLetter: clean(chapters.find(row => row.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000), messages: [{ role: "user", content: consultation.userQuestion || consultation.topic, createdAt }, { role: "assistant", content: formatChaptersAsConsultationText(chapters), createdAt }] }, consultation.id);
     }
-
-    chapters = safeArray(consultation.chapters).sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
-    if (chapters.length < PREMIUM_CHAPTERS.length) {
-      return json(publicSession(consultation), { status: 202 });
-    }
-
-    let quality = validatePremiumReportQuality(chapters);
-    let provider = clean(consultation.llmMeta?.provider);
-    let model = clean(consultation.llmMeta?.model);
-    for (let attempt = 1; attempt <= PREMIUM_REINFORCEMENT_MAX_ATTEMPTS && !quality.ok; attempt += 1) {
-      const reinforced = await reinforcePremiumReport(env, consultation, chapters, quality, attempt, logContext);
-      chapters = reinforced.chapters;
-      provider = reinforced.provider || provider;
-      model = reinforced.model || model;
-      quality = validatePremiumReportQuality(chapters);
-    }
-
-    if (!quality.ok) {
-      const error = new Error("Karma destiny consultation did not meet premium quality requirements.");
-      error.code = quality.tooShort ? "LLM_RESULT_TOO_SHORT" : "LLM_RESULT_QUALITY_FAILED";
-      error.quality = quality;
-      throw error;
-    }
-
+    if (!(await checkAccess()).ok) return paymentVerifyFailed();
     await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
-    const completedAt = new Date();
-    const assistantContent = formatChaptersAsConsultationText(chapters);
-    const finalLetter = clean(chapters.find((chapter) => chapter.id === FINAL_LETTER_CHAPTER_ID)?.content, 14000);
-    const completed = await KarmaDestinyAiConsultation.findOneAndUpdate(
-      { id: consultation.id, userId: clean(auth.userId) },
-      {
-        $set: {
-          status: "completed",
-          chapters,
-          finalLetter,
-          generatedAt: completedAt,
-          totalCharCount: quality.totalCharCount,
-          qualityCheck: quality,
-          generationProgress: buildGenerationProgress({ ...consultation, status: "completed" }, { chapters, status: "completed", percent: 100, lockToken: "", lockedAt: null, stageLabel: "최종 편지를 봉인했습니다" }),
-          messages: [
-            { role: "user", content: `${consultation.topic}${consultation.userQuestion ? `\n${consultation.userQuestion}` : ""}`, createdAt: consultation.createdAt || completedAt },
-            { role: "assistant", content: assistantContent, createdAt: completedAt },
-          ],
-          usageAppliedAt: completedAt,
-          llmMeta: { provider, model, completedAt: completedAt.toISOString(), deferredUsageApplied: asObject(consultation.billingState).deferredUsage === true },
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean();
-    logKarmaAi("LLM Generate Success", { ...logContext, provider, model, totalCharCount: quality.totalCharCount, chapterCount: chapters.length });
-    return json(publicSession(completed));
+    const now = new Date();
+    consultation = await saveKarmaDelivery(filter, { status: "completed", generatedAt: now, usageAppliedAt: consultation.usageAppliedAt || now, generationProgress: buildGenerationProgress(consultation, { status: "completed", lockToken: "", lockedAt: null, percent: 100 }), generationError: null }, consultation.id);
+    return json(publicSession(consultation));
   } catch (error) {
-    await KarmaDestinyAiConsultation.updateOne(
-      { id: consultation.id, userId: clean(auth.userId) },
-      {
-        $set: {
-          status: "generation_failed",
-          qualityCheck: error?.quality || null,
-          generationProgress: {
-            ...buildGenerationProgress(consultation, { chapters: safeArray(consultation.chapters), lockToken: "", lockedAt: null }),
-            lockToken: "",
-            lockedAt: null,
-          },
-          generationError: {
-            code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
-          },
-        },
-      },
-    ).catch(() => {});
-    await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error }).catch((restoreError) => {
-      logKarmaAi("LLM Refund Or Restore", safeLogPayload({ route, requestId: consultation.idempotencyKey, body, access: consultation.accessType, env, error: restoreError }), "warn");
-    });
-    logKarmaAi("LLM Error", safeLogPayload({ route, requestId: consultation.idempotencyKey, body, access: consultation.accessType, env, error }), "error");
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, sessionId: consultation.id, status: "generation_failed" }, { status: 503 });
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE" || consultation.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), { status: 503 });
+    consultation = await saveKarmaDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, consultation.id);
+    await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error });
+    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
+  } finally {
+    await KarmaDestinyAiConsultation.updateOne({ ...owner, "generationProgress.lockToken": lockToken }, { $set: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null } }).catch(() => {});
   }
 }
 
@@ -2825,7 +2739,7 @@ async function handleResult(request, env, path) {
   const url = new URL(request.url);
   const pathId = path.startsWith("/result/") ? decodeURIComponent(path.slice("/result/".length)) : "";
   const identifier = clean(pathId || url.searchParams.get("sessionId") || url.searchParams.get("reportId") || url.searchParams.get("attemptId") || url.searchParams.get("idempotencyKey"), 180);
-  if (!identifier) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+
 
   // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 하드 503으로 끊지 말고
   // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
@@ -2843,9 +2757,16 @@ async function handleResult(request, env, path) {
   if (!auth) return loginRequired();
 
   await connectDb(env);
-  const consultation = await KarmaDestinyAiConsultation.findOne(buildResultLookup(identifier, auth)).lean();
+  const consultation = identifier
+    ? await KarmaDestinyAiConsultation.findOne(buildResultLookup(identifier, auth)).lean()
+    : await KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
-  const statusCode = consultation.status === "generating" ? 202 : consultation.status === "generation_failed" ? 409 : 200;
+  if (consultation.status !== "completed") {
+    const resumeBody = consultation.llmMeta?.resumeBody || { paymentId: consultation.paymentId, accessType: consultation.accessType };
+    const access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+    if (!access.ok) return paymentVerifyFailed();
+  }
+  const statusCode = ["generating", "partial", "delivery_pending"].includes(consultation.status) ? 202 : consultation.status === "generation_failed" ? 409 : 200;
   return json(publicSession(consultation), { status: statusCode });
 }
 
@@ -2923,6 +2844,7 @@ export async function handleKarmaDestinyAiRoutes(request, env = {}) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     console.error("[karma-destiny-ai]", clean(error?.code || error?.message || error, 500));
     logKarmaAi("LLM Error", safeLogPayload({ route: "/api/karma-destiny-ai", env, error }), "error");
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(전 AI 라우트 정본).

@@ -573,12 +573,8 @@ export default function ResultStyles() {
           font-size: 0.88rem;
         }
 
-        /* ── 순차 등장 ─────────────────────────────────────────────────── */
-        [data-kdo-reveal] {
-          opacity: 0;
-          transform: translate3d(0, 14px, 0);
-          transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-        }
+        /* 저장된 본문은 observer 실행 여부와 관계없이 처음부터 읽을 수 있다. */
+        [data-kdo-reveal] { opacity: 1; transform: none; }
         [data-kdo-reveal].is-revealed { opacity: 1; transform: none; }
 
         /* ── 모바일 ───────────────────────────────────────────────────── */
