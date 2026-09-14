@@ -63,7 +63,7 @@ test('an already-started refund is never changed back into a delivered execution
  report.status='completed';execution.refundStatus='pending';expect(await inspect(execution)).toBe('unmanaged');
  expect(queries).toHaveLength(0);
 });
-test.each(['pet-saju-ai-consultation','pet-compatibility-ai','animal-totem-basic','animal-totem-deep','dream-psycho-analysis'])('%s saved narrative is not refunded by timeout cleanup',async feature=>{
+test.each(['pet-saju-ai-consultation','pet-compatibility-ai','animal-totem-basic','animal-totem-deep','dream-psycho-analysis','geomancy'])('%s saved narrative is not refunded by timeout cleanup',async feature=>{
  execution.featureKey=feature;execution.metadata={paidNarrative:{tasks:[{id:'personality'}],parts:{}}};expect(await inspect(execution)).toBe('recoverable');expect(queries).toHaveLength(0);
 });
 test('celestial card checkpoints in the execution collection remain recoverable',async()=>{

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
 <title>Geomancy Oracle — Codex Alchemicus</title>
+<script src="/js/core/paid-narrative-reader.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-17db4d49a2c4"></script>
 <script src="/js/core/checkout-entry.js?v=build-17db4d49a2c4"></script>
@@ -398,6 +399,9 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Cormorant Garamond'
 #rs-ai-q{position:relative;z-index:10;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase;letter-spacing:.26em;color:rgba(240,200,110,.85);}
 #rs-ai-loading{position:relative;z-index:10;}
 .ai-sp-lbl{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.2em;color:rgba(235,210,150,.6);}
+#rs-ai-txt nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;white-space:normal;}
+#rs-ai-txt nav button,#geomancyDeliveryProgress button{min-height:44px;padding:10px 14px;border:1px solid var(--gold);border-radius:8px;background:transparent;color:#f8f0dc;font:inherit;font-size:16px;text-align:left;cursor:pointer;}
+#geomancyDeliveryProgress{color:#f8f0dc;font-size:16px;line-height:1.6;}
 #rs-ai-txt{position:relative;z-index:10;min-height:2.6em;white-space:pre-wrap;font-family:'Cormorant Garamond',serif;font-size:1.2rem;line-height:1.95;color:rgba(248,240,220,.95);}
 #rs-advice{position:relative;z-index:10;margin-top:20px;border-left:2px solid rgba(212,168,67,.4);padding-left:16px;}
 #rs-advice-txt{font-family:'Cormorant Garamond',serif;font-size:1.125rem;font-style:italic;line-height:1.6;color:rgba(240,200,110,.9);}
@@ -799,6 +803,52 @@ function setStatus(msg,glo=false){
   setTimeout(()=>{el.textContent=msg;el.classList.toggle('glo',glo);el.style.opacity='1';},240);
 }
 
+let geomancyOwner='', geomancyEpoch=0, geomancySaved=null, geomancyFlight=null, geomancyLatest=null;
+function geomancyAccount(){try{const u=JSON.parse(localStorage.getItem('fortune_auth_user')||'null');return String(u?._id||u?.id||u?.userId||'');}catch(_){return '';}}
+function storeGeomancy(){if(geomancyOwner&&geomancyOwner===geomancyAccount())try{localStorage.setItem('cd:geomancy:v2:'+geomancyOwner,JSON.stringify(geomancySaved));}catch(_){}}
+function syncGeomancyOwner(){const owner=geomancyAccount();if(owner!==geomancyOwner){geomancyOwner=owner;geomancyEpoch++;geomancyFlight=null;geomancyLatest=null;geomancySaved=null;
+  try{geomancySaved=JSON.parse(localStorage.getItem('cd:geomancy:v2:'+owner)||'null');}catch(_){}
+  document.getElementById('rs-ai-txt').textContent='';document.getElementById('rs-advice-txt').textContent='';document.getElementById('rs-q-txt').textContent='';document.getElementById('q-input').value='';document.getElementById('geomancyDeliveryProgress')?.remove();document.getElementById('start-screen').style.display='flex';document.getElementById('cards-grid').textContent='';document.getElementById('result-screen').classList.remove('open');
+}return owner;}
+function geomancyProgress(text,retry){let p=document.getElementById('geomancyDeliveryProgress');if(!p){p=document.createElement('div');p.id='geomancyDeliveryProgress';document.getElementById('rs-ai-txt').before(p);}p.textContent='';
+ const label=document.createElement('p');label.setAttribute('role','status');label.textContent=text;p.appendChild(label);
+ if(retry){const button=document.createElement('button');button.textContent='이어서 생성하기';button.type='button';button.onclick=recoverGeomancy;p.appendChild(button);}}
+async function geomancyRequest(body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),body?90000:22000);
+ const headers={'Content-Type':'application/json','x-code-destiny-locale':geomancySaved?.body?.locale||window.cdStandaloneAiLocale.current()};
+ const token=localStorage.getItem('fortune_auth_token');if(token)headers.Authorization='Bearer '+token;
+ try{const r=await fetch(body?'/api/oracle/geomancy':'/api/oracle/result'+(geomancySaved?.resultId?'?resultId='+encodeURIComponent(geomancySaved.resultId):''),{method:body?'POST':'GET',credentials:'include',headers,signal:controller.signal,body:body?JSON.stringify(body):undefined});return {status:r.status,payload:await r.json()};}
+ finally{clearTimeout(timer);}}
+function showGeomancyDelivery(data){geomancyLatest=data;geomancySaved={...geomancySaved,requestId:data.requestId,resultId:data.resultId,body:data.status==='completed'?null:data.resumeBody};storeGeomancy();
+ document.getElementById('start-screen').style.display='none';document.getElementById('q-screen').classList.remove('show');
+ document.getElementById('result-screen').classList.add('open');document.getElementById('rs-q-txt').textContent=data.question||'';
+ const txt=document.getElementById('rs-ai-txt');txt.style.opacity='1';txt.style.overflowWrap='anywhere';txt.textContent='';
+ const labels=['종합 해석',...geomancyLocaleCopy(data.locale).slice(0,6)];
+ const toc=document.createElement('nav');toc.setAttribute('aria-label','신탁 목차');txt.appendChild(toc);
+ ['answer','keyJudgement','energyFlow','risk','timing','actionTip','advice'].forEach((key,i)=>{if(!data[key])return;
+   const section=document.createElement('section'),heading=document.createElement('h3'),content=document.createElement('div');section.id='geomancy-part-'+key;heading.textContent=labels[i];content.textContent=data[key];section.append(heading,content);txt.appendChild(section);
+   const button=document.createElement('button');button.type='button';button.textContent=labels[i];button.onclick=()=>{geomancySaved.chapter=key;storeGeomancy();section.scrollIntoView({block:'start'});};toc.appendChild(button);
+ });
+ if(geomancySaved.chapter){const back=document.createElement('button');back.type='button';back.textContent='읽던 부분으로 이동';back.onclick=()=>document.getElementById('geomancy-part-'+geomancySaved.chapter)?.scrollIntoView({block:'start'});toc.prepend(back);}
+ const grid=document.getElementById('cards-grid');grid.textContent='';
+ ['cause','flow','judge'].forEach((role,i)=>{const card=data.cards?.[role],figure=Object.values(FIG).find(f=>f.en===card?.english);if(figure)grid.appendChild(buildFigCard(figure.r,['card-past','card-present','card-judge'][i],['🜁','🜃','☉'][i],['원인','흐름','신탁'][i],card.korean,figure[data.theme==='sultan'?'su':'al']));});
+ document.getElementById('rs-advice').style.display='none';document.getElementById('rs-advice-txt').textContent='';
+ document.getElementById('rs-ai-loading').classList.remove('show');
+ geomancyProgress(data.status==='completed'?'저장된 신탁입니다.':(data.completedParts||[]).length+'/'+data.totalParts+' 부분 저장 · 나머지를 생성하고 있어요.',false);
+}
+function runSavedGeomancy(body){if(geomancyFlight)return geomancyFlight;const owner=geomancyOwner,epoch=geomancyEpoch;
+ const active=()=>Boolean(owner)&&owner===geomancyAccount()&&epoch===geomancyEpoch;if(!active())return Promise.resolve(false);
+ const flight=(async()=>{try{return await window.CDPaidNarrativeReader.run(body,{active,visible:()=>document.visibilityState!=='hidden'&&navigator.onLine!==false,
+ post:geomancyRequest,get:()=>geomancyRequest(),wait:ms=>new Promise(resolve=>setTimeout(resolve,ms)),
+ persist:(body,resultId)=>{geomancySaved={...geomancySaved,body,resultId};storeGeomancy();},show:showGeomancyDelivery});
+ }catch(error){if(active()){document.getElementById('start-screen').style.display='none';document.getElementById('q-screen').classList.remove('show');document.getElementById('result-screen').classList.add('open');geomancyProgress(error.message,geomancyLatest?.retryable!==false);}return false;}
+ finally{if(geomancyFlight===flight){geomancyFlight=null;if(active()&&geomancySaved?.body)geomancyProgress('저장된 요청을 보존했어요. 같은 결과를 이어서 확인해 주세요.',geomancyLatest?.retryable!==false);}}})();geomancyFlight=flight;return flight;}
+function recoverGeomancy(){if(!syncGeomancyOwner())return Promise.resolve(false);return runSavedGeomancy(geomancySaved?.body);}
+window.addEventListener('cd:auth-changed',()=>recoverGeomancy());
+window.addEventListener('online',()=>recoverGeomancy());
+window.addEventListener('storage',event=>{if(['fortune_auth_user','fortune_auth_token'].includes(event.key))recoverGeomancy();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')recoverGeomancy();});
+window.addEventListener('load',()=>recoverGeomancy());
+
 /* ═══════════════════════════════════════════
    FLOW
 ═══════════════════════════════════════════ */
@@ -856,13 +906,15 @@ function setGeomancyPaymentPending(show, message) {
 }
 
 function consumeGeomancyPerUseCoin(resume) {
+  const gateOwner=geomancyOwner,gateEpoch=geomancyEpoch;
+  const gateActive=()=>gateOwner===geomancyAccount()&&gateEpoch===geomancyEpoch;
   return new Promise((resolve) => {
     if (GEOMANCY_COIN_COST <= 0) { resolve(true); return; }
     if (typeof window.__cdIsAdminLikeUser === 'function' && window.__cdIsAdminLikeUser()) {
       resolve(true);
       return;
     }
-    var requestId = 'geomancy:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+    var requestId = geomancySaved.requestId;
     if (typeof window._cdCoinGatePerUse === 'function') {
       try {
         var granted = false;
@@ -870,8 +922,10 @@ function consumeGeomancyPerUseCoin(resume) {
           GEOMANCY_COIN_COST,
           '지오맨시 흙점 리딩',
           function(_transactionId, payload) {
+            if(!gateActive()){resolve(false);return;}
             granted = true;
             _captureGeomancyEvidence(_transactionId, payload);
+            geomancyPayEvidence.requestId = requestId;
             var source = payload && typeof payload === 'object' ? payload : {};
             var data = source.data && typeof source.data === 'object' ? source.data : {};
             var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
@@ -898,15 +952,18 @@ function consumeGeomancyPerUseCoin(resume) {
         );
         if (gateResult && typeof gateResult.then === 'function') {
           gateResult.then(function(result) {
+            if(!gateActive()){resolve(false);return;}
             if (granted) return;
             if (!result || typeof result !== 'object') { resolve(false); return; }
             var payload = result.payload && typeof result.payload === 'object' ? result.payload : result;
             var status = String(result.status || payload.status || '').toLowerCase();
+            _captureGeomancyEvidence(payload.transactionId, payload); geomancyPayEvidence.requestId=requestId;
             resolve(status === 'granted' || status === 'paid' || status === 'success' || Boolean(payload.accessGrant) || Boolean(payload.premiumAccessToken) || Boolean(payload.consume));
           }).catch(function() { resolve(false); });
         } else if (gateResult && typeof gateResult === 'object') {
           var immediatePayload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
           var immediateStatus = String(gateResult.status || immediatePayload.status || '').toLowerCase();
+          _captureGeomancyEvidence(immediatePayload.transactionId, immediatePayload); geomancyPayEvidence.requestId=requestId;
           resolve(immediateStatus === 'granted' || immediateStatus === 'paid' || immediateStatus === 'success' || Boolean(immediatePayload.accessGrant) || Boolean(immediatePayload.premiumAccessToken) || Boolean(immediatePayload.consume));
         }
         return;
@@ -926,6 +983,8 @@ function onCircleClick(){
 
 async function submitQ(){
   if (geomancyPayingInFlight) return;
+  syncGeomancyOwner();
+  if (geomancySaved && geomancySaved.body) return recoverGeomancy();
   const v=document.getElementById('q-input').value.trim();
   if(!v){
     const inp=document.getElementById('q-input');
@@ -934,6 +993,9 @@ async function submitQ(){
     setTimeout(()=>inp.style.borderColor='',1200);
     return;
   }
+  if (!geomancyOwner) { window.alert('로그인 후 이용해 주세요.'); return; }
+  geomancySaved = { requestId: 'geomancy:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9),
+    question: v, theme: theme, counts: Array.from({length:16},()=>8+Math.floor(Math.random()*22)) };
   geomancyPayingInFlight = true;
   const qBtn = document.getElementById('q-btn');
   const prevText = qBtn ? qBtn.innerHTML : '';
@@ -942,6 +1004,7 @@ async function submitQ(){
     qBtn.style.opacity = '0.72';
     qBtn.innerHTML = '<span>✦</span><span>결제를 확인하고 있습니다…</span><span>✦</span>';
   }
+  const paymentEpoch=geomancyEpoch;
   const paid = await consumeGeomancyPerUseCoin(buildGeomancyResumeDescriptor(v));
   geomancyPayingInFlight = false;
   if (qBtn) {
@@ -949,8 +1012,8 @@ async function submitQ(){
     qBtn.style.opacity = '';
     qBtn.innerHTML = prevText;
   }
-  if (!paid) return;
-  geomancyEnterActivation(v);
+  if (!paid || paymentEpoch!==geomancyEpoch) return;
+  return geomancyEnterActivation(v);
 }
 
 /* 🔴 결제 게이트가 없는 코어다. 재개 핸들러는 이쪽을 부른다 — 게이트를 다시 타는 submitQ 를
@@ -958,8 +1021,18 @@ async function submitQ(){
 function geomancyEnterActivation(text){
   question=text;
   document.getElementById('q-screen').classList.remove('show');
+  if (geomancySaved && geomancySaved.counts) {
+    rowData = geomancySaved.counts.map(count=>({count,odd:count%2===1}));
+    const chart = calcChart();
+    geomancySaved.body = Object.assign({requestId:geomancySaved.requestId,question:text,theme:geomancySaved.theme,
+      chart:chart,locale:window.cdStandaloneAiLocale.current(),cards:{
+        cause:toOracleCardPayload(findFig(chart.witnesses[0]),geomancySaved.theme,'원인'),
+        flow:toOracleCardPayload(findFig(chart.witnesses[1]),geomancySaved.theme,'흐름'),
+        judge:toOracleCardPayload(findFig(chart.judge),geomancySaved.theme,'신탁')}},geomancyPayEvidence,{requestId:geomancySaved.requestId});
+    storeGeomancy();
+  }
   doActivation();
-  return true;
+  return runSavedGeomancy(geomancySaved && geomancySaved.body);
 }
 
 /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────
@@ -975,12 +1048,15 @@ function buildGeomancyResumeDescriptor(text){
   // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
   // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
   //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
-  return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked } };
+  return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked, requestId: geomancySaved.requestId, theme: geomancySaved.theme, counts: geomancySaved.counts } };
 }
 
 function runGeomancyResume(descriptor, grant){
   const args = (descriptor && descriptor.args && typeof descriptor.args === 'object') ? descriptor.args : {};
   const asked = String(args.question || '').trim();
+  syncGeomancyOwner();
+  if (!geomancyOwner) return false;
+  if (geomancySaved && geomancySaved.requestId === (args.requestId || grant?.requestId)) return recoverGeomancy();
   // 🔴 유효성 판정을 전역 대입보다 앞에 둔다 — 빈 질문으로 덮으면 질문 표시가 빈 채로 점괘만 돈다.
   // false 를 돌려주면 복귀 처리가 '지금 열기' 카드로 떨어뜨린다(영수증이 남아 재클릭은 무료다).
   if (!asked) return false;
@@ -995,6 +1071,10 @@ function runGeomancyResume(descriptor, grant){
     const input = document.getElementById('q-input');
     if (input) input.value = asked;
   } catch (_e) {}
+  geomancySaved = {requestId:args.requestId || grant.requestId,question:asked,theme:args.theme || theme,
+    counts:Array.isArray(args.counts)&&args.counts.length===16?args.counts:Array.from({length:16},()=>8+Math.floor(Math.random()*22))};
+  if (!geomancySaved.requestId) return false;
+  theme=geomancySaved.theme;
   return geomancyEnterActivation(asked);
 }
 
@@ -1007,18 +1087,19 @@ function runGeomancyResume(descriptor, grant){
 document.getElementById('q-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))submitQ();});
 
 async function doActivation(){
+  const activeEpoch=geomancyEpoch;
   activateSound();
   const w=document.getElementById('tc-wrap');
   w.style.pointerEvents='none';w.classList.add('firing');
-  await sleep(900);
+  await sleep(900);if(activeEpoch!==geomancyEpoch)return;
   document.getElementById('flash').style.opacity='1';
-  await sleep(150);
+  await sleep(150);if(activeEpoch!==geomancyEpoch)return;
   const ds=document.getElementById('div-screen');
-  ds.style.display='block';await sleep(40);ds.classList.add('show');
+  ds.style.display='block';await sleep(40);if(activeEpoch!==geomancyEpoch)return;ds.classList.add('show');
   document.getElementById('flash').style.transition='opacity .65s ease';
   document.getElementById('flash').style.opacity='0';
   document.getElementById('start-screen').classList.add('hide');
-  await sleep(750);document.getElementById('start-screen').style.display='none';
+  await sleep(750);if(activeEpoch!==geomancyEpoch)return;document.getElementById('start-screen').style.display='none';
   document.getElementById('q-display-text').textContent=question;
   startAutoCast();
 }
@@ -1046,7 +1127,7 @@ function initRows(){
 
 function castRow(i){
   return new Promise(res=>{
-    const cnt=8+Math.floor(Math.random()*22);
+    const cnt=geomancySaved?.counts?.[i] ?? (8+Math.floor(Math.random()*22));
     const isOdd=cnt%2===1;
     rowData[i]={count:cnt,odd:isOdd};
     const{div,cv,r}=rowEls[i];
@@ -1073,10 +1154,11 @@ function castRow(i){
 }
 
 async function startAutoCast(){
+  const activeEpoch=geomancyEpoch;
   initRows();setStatus('운명의 흙이 새겨지고 있습니다…',true);await sleep(280);
-  for(let i=0;i<16;i++){await sleep(120);await castRow(i);}
+  for(let i=0;i<16;i++){await sleep(120);if(activeEpoch!==geomancyEpoch)return;await castRow(i);}
   setStatus('16개의 행이 완성되었습니다. 방패 차트를 생성합니다…');
-  await sleep(750);generateChart();
+  await sleep(750);if(activeEpoch!==geomancyEpoch)return;generateChart();
 }
 
 /* ═══════════════════════════════════════════
@@ -1182,6 +1264,7 @@ function generateChart(){
 }
 
 function animateReveal(figs,chart){
+  const activeEpoch=geomancyEpoch;
   const waves=[[0,1,2,3,4,5,6,7],[8,9,10,11],[12,13],[14]];
   const connW=[[0,1,2,3],[4,5],[6]];
   let delay=120;
@@ -1193,7 +1276,7 @@ function animateReveal(figs,chart){
     if(wi<3){const cw=wi;setTimeout(()=>{(connW[cw]||[]).forEach(cni=>{[0,1,2,3].forEach(li=>{const l=document.getElementById(`cl-${cni}-${li}`);if(!l)return;l.style.opacity='.32';const x1=+l.getAttribute('x1'),y1=+l.getAttribute('y1'),x2=+l.getAttribute('x2'),y2=+l.getAttribute('y2');const len=Math.hypot(x2-x1,y2-y1)||1;l.setAttribute('stroke-dasharray',len);l.setAttribute('stroke-dashoffset',len);let st=null;(function s(ts){if(!st)st=ts;const t=Math.min((ts-st)/480,1);const e=t<.5?2*t*t:-1+(4-2*t)*t;l.setAttribute('stroke-dashoffset',len*(1-e));if(t<1)requestAnimationFrame(s);})(performance.now());});});},delay);}
     delay+=280;
   });
-  setTimeout(()=>{setStatus('재판관의 심판이 내려집니다…',true);setTimeout(()=>showResult(chart),900);},delay+450);
+  setTimeout(()=>{setStatus('재판관의 심판이 내려집니다…',true);setTimeout(()=>{if(activeEpoch===geomancyEpoch)showResult(chart);},900);},delay+450);
 }
 
 /* ═══════════════════════════════════════════
@@ -1319,29 +1402,8 @@ async function showResult(chart){
     setTimeout(()=>{c.style.transition='opacity .6s ease, transform .6s ease';c.style.opacity='1';c.style.transform='translateY(0)';},300+i*200);
   });
 
-  // Fetch AI answer
-  await sleep(800);
-  document.getElementById('rs-ai-loading').classList.add('show');
-  document.getElementById('rs-ai-txt').style.opacity='0';
-
-  const requestLocale=window.cdStandaloneAiLocale.current();
-  const oracleResult=await fetchOracle(question,{cause:causeData,flow:flowData,judge:judgeData},t);
-  document.getElementById('rs-ai-loading').classList.remove('show');
-  document.getElementById('rs-ai-txt').style.opacity='1';
-  if(requestLocale!==window.cdStandaloneAiLocale.current())return;
-
-  if(oracleResult?.advice){
-    document.getElementById('rs-advice').style.display='block';
-    document.getElementById('rs-advice-txt').textContent=oracleResult.advice;
-  }
-
-  if(oracleResult?.text){
-    await typeOut(document.getElementById('rs-ai-txt'),oracleResult.text);
-  } else {
-    document.getElementById('rs-ai-txt').textContent=requestLocale==='ko'
-      ? buildLocalCombinedOracle(causeData,flowData,judgeData,t)
-      : geomancyLocaleCopy(requestLocale)[6];
-  }
+  // Generation already started alongside the cast animation; reuse its saved request.
+  await fetchOracle();
 }
 
 function toOracleCardPayload(fd,t,roleName){
@@ -1375,32 +1437,9 @@ function buildLocalCombinedOracle(causeData,flowData,judgeData,t){
   return [p1,p2,p3,p4].join('\n\n');
 }
 
-async function fetchOracle(q,cards,t){
-  if(!cards||!cards.judge)return null;
-  try{
-    var _authToken='';try{_authToken=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
-    const _headers={'Content-Type':'application/json', 'x-code-destiny-locale':window.cdStandaloneAiLocale.current()};
-    if(_authToken)_headers['Authorization']='Bearer '+_authToken;
-    const r=await fetch('/api/oracle/geomancy',{
-      method:'POST',
-      credentials:'include',
-      headers:_headers,
-      body:JSON.stringify(Object.assign({
-        question:q,
-        theme:t,
-        cards:{
-          cause:toOracleCardPayload(cards.cause,t,'원인'),
-          flow:toOracleCardPayload(cards.flow,t,'흐름'),
-          judge:toOracleCardPayload(cards.judge,t,'신탁'),
-        },
-      }, geomancyPayEvidence || {}))
-    });
-    if(!r.ok)return null;
-    const data=await r.json();
-    const txt=formatOraclePayload(data,_headers['x-code-destiny-locale']);
-    if(!txt)return null;
-    return {text:txt,advice:data?.advice||data?.actionTip||null};
-  }catch (e) {return null;}
+async function fetchOracle(){
+  await recoverGeomancy();
+  return geomancyLatest ? {text:formatOraclePayload(geomancyLatest,geomancyLatest.locale),advice:geomancyLatest.advice} : null;
 }
 
 function geomancyLocaleCopy(locale){
@@ -1436,8 +1475,8 @@ function formatOraclePayload(data,locale){
 }
 
 async function typeOut(el,txt){
-  el.textContent='';
-  for(let i=0;i<txt.length;i++){el.textContent+=txt[i];if(i%4===0)await sleep(14);}
+  el.textContent=txt;
+  el.style.overflowWrap='anywhere';
 }
 
 function closeResult(){

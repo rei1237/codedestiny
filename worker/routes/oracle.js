@@ -2,8 +2,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { REASONING_OUTPUT_RULE_LINES } from "../lib/fortune-reasoning-contract.js";
-import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
+import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
+import { HttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
@@ -19,10 +19,6 @@ function limitText(value, max = 600) {
 function normalizeTheme(value) {
   const theme = clean(value).toLowerCase();
   return theme === "sultan" ? "sultan" : "alchemist";
-}
-
-function cardName(card) {
-  return clean(card?.korean) || clean(card?.english) || "미지정 형상";
 }
 
 function normalizeCard(raw, fallbackRole) {
@@ -62,49 +58,6 @@ function parseJsonCandidate(text) {
   }
 
   return null;
-}
-
-function buildFallbackOracle({ question, theme, cause, flow, judge, locale = "ko" }) {
-  // The deterministic copy below is Korean. Never use it as another locale's result.
-  if (toAiLocale(locale) !== "ko") return null;
-  const isAlchemist = theme === "alchemist";
-  const tone = isAlchemist
-    ? "연금 도가니의 불꽃"
-    : "사막의 별빛과 바람";
-
-  const causeName = cardName(cause);
-  const flowName = cardName(flow);
-  const judgeName = cardName(judge);
-
-  const causeMeaning = clean(cause.meaning) || "질문의 뿌리에 오래된 감정과 미해결 선택이 누적되어 있습니다.";
-  const flowMeaning = clean(flow.meaning) || "현재는 선택의 에너지가 빠르게 재배열되는 변곡 구간입니다.";
-  const judgeMeaning = clean(judge.meaning) || "최종적으로는 불필요한 집착을 정리하고 핵심 우선순위를 붙드는 것이 정답입니다.";
-
-  const answer = [
-    `${tone} 위에서 읽은 결과, 질문의 핵심은 '${causeName} → ${flowName} → ${judgeName}'로 이어지는 변환의 연쇄에 있습니다.`,
-    `${causeName}는 지금의 고민이 우연히 생긴 것이 아니라, 과거의 선택 패턴과 감정 누적에서 비롯되었음을 보여줍니다. ${causeMeaning}`,
-    `${flowName}는 바로 지금 작동 중인 힘을 드러냅니다. ${flowMeaning}`,
-    `그리고 재판관인 ${judgeName}는 결론을 명확히 고정합니다. ${judgeMeaning}`,
-    "즉, 지금 필요한 것은 더 많은 정보 수집보다 실행 우선순위 재정렬이며, 작은 행동을 연속으로 누적해 흐름을 고정하는 것입니다.",
-  ].join(" ");
-
-  const keyJudgement = `${judgeName}의 판결은 '핵심 하나를 선택하고, 나머지는 과감히 정리하라'입니다. 복잡함을 줄일수록 운세의 상승 구간이 빨리 열립니다.`;
-  const energyFlow = `${causeName}가 만든 배경 압력 위에 ${flowName}의 움직임이 겹치며 에너지가 요동치는 구조입니다. 이때 ${judgeName}의 방향성에 맞춰 일정·관계·자원 배치를 단순화하면 운의 낭비를 크게 줄일 수 있습니다.`;
-  const risk = "감정이 흔들리는 순간 즉흥적으로 결정을 확정하거나, 반대로 완벽한 타이밍만 기다리며 실행을 미루는 패턴이 가장 큰 리스크입니다. 기준 없는 확장보다 한 가지 축을 끝까지 밀어붙이세요.";
-  const timing = "앞으로 7일은 정리와 기준 수립, 21일은 실행 루틴 고정, 40일은 첫 성과 확인 구간으로 읽힙니다. 초반 3일 안에 첫 액션을 시작하면 흐름이 훨씬 안정적으로 올라갑니다.";
-  const actionTip = clean(judge.advice)
-    || `${judgeName}의 조언: 오늘 안에 한 가지 결정을 문장으로 확정하고, 24시간 내 실행 가능한 첫 단계(10~20분 분량)를 즉시 완료하십시오.`;
-
-  return {
-    source: "fallback",
-    answer,
-    keyJudgement,
-    energyFlow,
-    risk,
-    timing,
-    actionTip,
-    advice: actionTip,
-  };
 }
 
 function fillRichText(value, fallback, minChars) {
@@ -165,78 +118,30 @@ function buildGeomancyPrompt({ question, theme, cause, flow, judge, locale }) {
   ].join("\n\n");
 }
 
-async function buildGeomancyOracle(env, payload) {
-  const fallback = buildFallbackOracle(payload);
-  const prompt = buildGeomancyPrompt(payload);
-
-  const ai = await callGeminiText(env, prompt, {
-    locale: payload.locale,
-    // modelEnvKeys/topP/maxAttemptsPerPair 는 callGeminiText 가 읽지 않는 옵션이었다
-    // (지정해도 적용된 적이 없다). 모델 오버라이드 의도만 살아있는 `model` 로 옮긴다.
-    model: clean(env.GEOMANCY_GEMINI_MODEL),
-    temperature: 0.83,
-    maxOutputTokens: 4096,
-    timeoutMs: Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS || 45000),
-    // 필드별 최소 분량 합(220+70+90+70+50+45+40=585) × 0.4. 미달이면 buildFallbackOracle 로.
-    fallbackMinChars: 240,
-    // 동일 질문+카드 조합 재시도 시 캐시 + in-flight dedup으로 중복 과금 방지
-    cache: {
-      store: createLlmCacheStore(env),
-      deterministic: true,
-      ttlSeconds: 30 * 24 * 60 * 60,
-      keyExtra: "oracle-geomancy-v1",
-    },
-  });
-
-  if (!ai.ok) {
-    if (!fallback) return { ok: false, code: "ORACLE_RESULT_QUALITY_FAILED" };
-    return {
-      ok: true,
-      ...fallback,
-      message: ai.message || "Gemini 응답 실패로 기본 지오맨시 해석을 반환했습니다.",
-    };
-  }
-
-  const parsed = parseJsonCandidate(ai.text);
-  const normalized = normalizeOraclePayload(parsed, fallback);
-  if (!normalized) return { ok: false, code: "ORACLE_RESULT_QUALITY_FAILED" };
-  return {
-    ok: true,
-    ...normalized,
-    model: ai.model || "",
-  };
+const ORACLE_SECTIONS = [
+  ["answer", "질문과 세 형상의 종합 해석"], ["keyJudgement", "핵심 판단의 근거와 반대 조건"],
+  ["energyFlow", "원인에서 현재 흐름으로 이어지는 패턴"], ["risk", "주의점과 선택의 대안"],
+  ["timing", "7일·21일·40일 실천 계획: 예언이 아닌 점검 시점"],
+  ["actionTip", "생활에 적용할 구체적인 행동과 점검 방법"], ["advice", "전체 해석을 연결한 성찰과 마무리"],
+];
+function oracleInput(body) {
+  const question = limitText(body.question, 500);
+  if (question.length < 2) throw new HttpError(400, "질문을 2자 이상 입력해 주세요.");
+  const judge = body.judge || body.cards?.judge;
+  if (!judge || !(judge.korean || judge.english || judge.ko || judge.en || judge.name)) throw new HttpError(422, "신탁 형상을 확인해 주세요.");
+  return { question, theme: normalizeTheme(body.theme), locale: toAiLocale(getAmbientAiLocale() || body.locale),
+    cause: normalizeCard(body.cause || body.cards?.cause || judge, "원인"),
+    flow: normalizeCard(body.flow || body.cards?.flow || judge, "흐름"), judge: normalizeCard(judge, "신탁") };
 }
 
 export async function handleOracleRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
-    if (method !== "POST") {
-      if (["GET", "POST"].includes(method)) return notFound();
-      return methodNotAllowed();
-    }
-
     const path = getRoutePath(request, "/api/oracle");
-    if (path !== "/geomancy") return notFound();
-
-    const body = await readJson(request);
-    const question = limitText(body?.question, 500);
-    if (question.length < 2) {
-      return json({ ok: false, message: "질문을 2자 이상 입력해 주세요." }, { status: 400 });
-    }
-
-    const theme = normalizeTheme(body?.theme);
-    const judgeRaw = body?.judge || body?.cards?.judge || null;
-    const causeRaw = body?.cause || body?.cards?.cause || judgeRaw;
-    const flowRaw = body?.flow || body?.cards?.flow || judgeRaw;
-
-    const payload = {
-      locale: toAiLocale(getAmbientAiLocale() || body?.locale),
-      question,
-      theme,
-      cause: normalizeCard(causeRaw, "원인"),
-      flow: normalizeCard(flowRaw, "흐름"),
-      judge: normalizeCard(judgeRaw, "신탁"),
-    };
+    if (path !== "/geomancy" && path !== "/result") return notFound();
+    if ((path === "/geomancy" && method !== "POST") || (path === "/result" && method !== "GET")) return methodNotAllowed();
+    const body = method === "POST" ? await readJson(request) : {};
+    if (method === "POST" && !body.resumeResultId) oracleInput(body);
 
     // 결제 확인을 Gemini 호출 이전에 서버에서 강제한다 — 클라이언트 우회 직접 호출로
     // 무료 LLM 생성이 되지 않도록. celestial-harmony와 동일한 requirePremiumReportAccess 패턴.
@@ -249,34 +154,36 @@ export async function handleOracleRoutes(request, env = {}) {
       }
       throw e;
     }
-    const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "geomancyOracle", {
-      ...(body || {}),
-      featureKey: "geomancy",
-      reportType: "geomancyOracle",
-      transactionId: clean(body?.transactionId),
-      purchaseId: clean(body?.purchaseId),
-      requestId: clean(body?.requestId),
-      sessionId: clean(body?.sessionId),
-      reportId: clean(body?.reportId),
-      premiumAccessToken: clean(
-        request.headers.get("x-premium-access-token")
-        || body?.premiumAccessToken
-        || cookieValue(request, "cd_premium_access")
-        || "",
-      ) || undefined,
-      _accessRoute: "/api/oracle",
+    return await runPaidNarrativeDelivery(request, env, auth, body, {
+      featureKey: "geomancy", reportType: "geomancyOracle",
+      verify: async original => {
+        const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "geomancyOracle", {
+          ...original, featureKey: "geomancy", reportType: "geomancyOracle",
+          premiumAccessToken: clean(request.headers.get("x-premium-access-token") || original.premiumAccessToken || cookieValue(request, "cd_premium_access")) || undefined,
+          _accessRoute: "/api/oracle",
+        });
+        if (!access?.ok) throw new HttpError(Number(access?.status || 402), "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED" });
+      },
+      seed: original => {
+        const input = oracleInput(original);
+        return { input, prompt: buildGeomancyPrompt(input), minBodyChars: 20000,
+          tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 3000 })) };
+      },
+      produce: async (task, state) => {
+        const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}\n위 전체 JSON 스키마 대신 이번 부분만 JSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 3,000자, 목표 3,600~4,200자입니다. 다른 부분을 반복하지 말고 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
+        const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
+          timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
+          maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json" });
+        if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+        return parseJsonCandidate(ai.text);
+      },
+      render: state => ({ ...Object.fromEntries(ORACLE_SECTIONS.map(([id]) => [id, state.parts[id] || ""])),
+        source: Object.keys(state.parts).length ? "gemini" : "pending", requestId: state.body.requestId,
+        question: state.input.question, theme: state.input.theme, locale: state.locale,
+        cards: { cause: state.input.cause, flow: state.input.flow, judge: state.input.judge } }),
     });
-    if (!access?.ok) {
-      return json({
-        ok: false,
-        code: access?.code || "PAYMENT_REQUIRED",
-        message: Number(access?.status) === 401 ? "로그인 후 지오맨시 오라클을 이용해 주세요." : "결제 확인이 필요합니다.",
-      }, { status: Number(access?.status || 402) });
-    }
-
-    const result = await buildGeomancyOracle(env, payload);
-    return json(result, result.ok ? {} : { status: 502 });
   } catch (error) {
-    return handleRouteError(error);
+    if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 });
+    return handleRouteError(error, { request, env });
   }
 }
