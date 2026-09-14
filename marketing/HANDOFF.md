@@ -95,3 +95,9 @@ D01 4개 연속글 공개 유지 확인, 당일 운세 추가 게시 생략. 기
 - 일반 운세 카드뉴스: F01~F08, 8세트 × 5장 = **40장 JPG**. 사주 4편·자미두수 2편·숙요 2편이며, 9/16~10/7 주 2회 업로드 캘린더와 일치한다.
 - 전달 위치: `C:\Users\user\Desktop\CODE DESTINY 일일운세 - YYYY-MM-DD` 및 `C:\Users\user\Desktop\CODE DESTINY 인스타 콘텐츠 - YYYY-MM-DD - Fxx`.
 - Instagram 직접 업로드 규칙 유지: JPG/PNG만 사용하고 WebP는 업로드 폴더에 넣지 않는다. 전달은 게시 완료가 아니므로 URL 확인 뒤에만 content-log에 공개 상태를 기록한다.
+
+## 최신 전달 규칙 — 2026-09-15
+
+- 앞으로 신규 Instagram 업로드 패키지는 바탕화면의 단일 루트 `C:\Users\user\Desktop\CODE DESTINY 인스타 업로드 대기` 아래에만 만든다. 일일운세는 `일일운세\YYYY-MM-DD`, 일반 콘텐츠는 `운세 콘텐츠\YYYY-MM-DD - Fxx` 형식을 사용한다.
+- 날짜별 패키지는 최초 전달 뒤 불변이다. 같은 날짜 폴더, source 카드, 또는 content-log 기록이 있으면 재생성·덮어쓰기·중복 전달하지 말고 공개 URL만 갱신한다.
+- 기존 바탕화면 날짜별 폴더는 보존한다. 사용자 요청 없이 이동·삭제하지 않는다.

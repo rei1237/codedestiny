@@ -7,11 +7,17 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = json.loads((ROOT / 'copy' / 'daily-month-20260909-20261015.json').read_text(encoding='utf-8'))
 SOURCE = ROOT / 'card-news' / 'daily-20260909-20261015'
 DESKTOP = Path.home() / 'Desktop'
+DELIVERY_ROOT = DESKTOP / 'CODE DESTINY 인스타 업로드 대기' / '일일운세'
 weekdays = ['월', '화', '수', '목', '금', '토', '일']
 
 for date_text, pillar in zip(DATA['dates'], DATA['pillars']):
     dt = date.fromisoformat(date_text)
-    destination = DESKTOP / f'CODE DESTINY 일일운세 - {date_text}'
+    destination = DELIVERY_ROOT / date_text
+    # Date-specific packages are immutable once delivered. Do not recreate or
+    # overwrite an existing date; publication status is tracked separately.
+    if destination.exists():
+        print(f'Skipped existing delivery: {destination}')
+        continue
     destination.mkdir(parents=True, exist_ok=True)
     for old in destination.glob('*.webp'):
         old.unlink()

@@ -9,6 +9,7 @@ FONT = Path('C:/Windows/Fonts/malgun.ttf')
 BOLD = Path('C:/Windows/Fonts/malgunbd.ttf')
 YEONI = Image.open(ROOT / 'assets' / 'yeoni-original.webp').convert('RGBA')
 DESKTOP = Path.home() / 'Desktop'
+DELIVERY_ROOT = DESKTOP / 'CODE DESTINY 인스타 업로드 대기' / '운세 콘텐츠'
 
 def font(size, bold=False): return ImageFont.truetype(str(BOLD if bold else FONT), size)
 def canvas():
@@ -47,7 +48,10 @@ for item in DATA:
             y=wrapped(d,slide,126,440,43,width=820,bold=True,leading=20)
             d.text((126,max(y+40,835)),'사주·자미두수·숙요는 서로 다른 체계입니다.',font=font(23),fill='#715060')
         footer(d,page); save(im,out/f'{page:02}.jpg')
-    destination = DESKTOP / f"CODE DESTINY 인스타 콘텐츠 - {item['date']} - {item['id']}"
+    destination = DELIVERY_ROOT / f"{item['date']} - {item['id']}"
+    if destination.exists():
+        print(f'Skipped existing delivery: {destination}')
+        continue
     destination.mkdir(parents=True,exist_ok=True)
     for old in destination.glob('*.webp'): old.unlink()
     for card in out.glob('*.jpg'): shutil.copy2(card,destination/card.name)
