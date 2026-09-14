@@ -188,38 +188,41 @@ test('astrology does not retry or open an old generation after locale change', a
 });
 
 const compassFile = 'app/destiny-compass/_hooks/useCompassReport.ts';
-test('compass pins both waves and cache to original locale without updating switched UI', async () => {
-  const a = deferred(), b = deferred(), requests = [], cache = new Map();
+test('compass preserves original paid request and stops stale locale delivery', async () => {
+  const response = deferred(), requests = [], cache = new Map();
+  const storage = { getItem: key => cache.get(key), setItem: (key, value) => cache.set(key, value), removeItem: key => cache.delete(key) };
   const f = fixture({
-    sessionStorage: { getItem: key => cache.get(key), setItem: (key, value) => cache.set(key, value) },
+    sessionStorage: storage, localStorage: storage, document: { hidden: false, addEventListener() {}, removeEventListener() {} }, navigator: { onLine: true },
+    getAuthState: () => ({ user: { id: 'owner' } }), usePaidDeliveryScope: () => () => () => true,
     AI_LOCALE_HEADER: 'x-code-destiny-locale',
     useCoinGate: () => ({ ensurePaidAccess: async () => ({ ok: true, transactionId: 'paid-1' }), isPaying: false }),
     useDestinyCompassCopy: () => ({}), makeGateRequestId: () => 'unchanged-key', collectDeepEvidence: () => ({}),
-    fetch: (_path, init) => { requests.push(init); return requests.length === 1 ? a.promise : b.promise; },
+    authFetch: (_path, init) => { if (init.method === 'GET') return Promise.resolve({ json: async () => ({ reports: [] }) }); requests.push(init); return response.promise; },
   });
   load(f.ctx, compassFile, ['FEATURE_KEY', 'COIN_PRICE', 'AMOUNT_KRW', 'WAVE_A_TIMEOUT_MS', 'WAVE_B_TIMEOUT_MS', 'INITIAL',
     'sessionKeyFor', 'readCache', 'writeCache', 'postJson', 'mergeSections', 'useCompassReport']);
   const field = { seed: 1, sources: [], directions: [], primary: {}, strongArea: {}, blockedArea: {} };
-  const hook = f.ctx.useCompassReport({ emotion: 'calm' }, field, 'question'); f.mount();
+  const hook = f.ctx.useCompassReport({ emotion: 'calm' }, field, 'question'); f.mount(); await flush();
   const pending = hook.unlock(); await flush();
   f.change('en'); const count = f.changes.length;
-  a.resolve({ status: 200, json: async () => ({ ok: true, reportId: 'report', sections: [{ key: 'a', body: '한국어 A' }], continuation: { token: 'token' } }) });
-  await flush();
-  assert.equal(requests.length, 2);
-  b.resolve({ status: 200, json: async () => ({ sections: [{ key: 'b', body: '한국어 B' }] }) }); await pending;
+  response.resolve({ status: 202, json: async () => ({ ok: true, reportId: 'report', sections: [{ key: 'a', body: '한국어 A' }] }) });
+  await pending;
+  assert.equal(requests.length, 1);
   assert.equal(f.changes.length, count);
-  assert.deepEqual(requests.map(request => request.headers['x-code-destiny-locale']), ['ko', 'ko']);
-  assert.equal(JSON.parse(requests[1].body).idempotencyKey, 'unchanged-key');
-  assert.equal([...cache.keys()].every(key => key.endsWith(':ko')), true);
-  const stored = JSON.parse([...cache.values()][0]); assert.equal(stored.sections.b.body, '한국어 B');
+  assert.equal(requests[0].headers['x-code-destiny-locale'], 'ko');
+  assert.equal(JSON.parse(requests[0].body).idempotencyKey, 'unchanged-key');
+  const stored = JSON.parse([...cache.values()][0]);
+  assert.equal(stored.requestId, 'unchanged-key'); assert.equal(stored.transactionId, 'paid-1');
+  assert.equal([...cache.keys()].every(key => key.includes(':owner:') && key.endsWith(':ko:request')), true);
 });
-test('compass legacy cache is preserved as historical content without guessing its locale', () => {
-  const cache = new Map([['key', JSON.stringify({ sections: { a: { body: '한국어' } } })]]);
-  const f = fixture({ sessionStorage: { getItem: key => cache.get(key) } });
+
+test('compass leaves unscoped legacy cache intact but reads only exact owner and locale keys', () => {
+  const cache = new Map([['key', JSON.stringify({ sections: { a: { body: '한국어' } } })], ['key:owner:ko', JSON.stringify({ sections: { a: { body: '소유 결과' } } })]]);
+  const f = fixture({ localStorage: { getItem: key => cache.get(key) }, sessionStorage: { getItem: () => null } });
   load(f.ctx, compassFile, ['readCache']);
-  assert.equal(f.ctx.readCache('key:en'), null);
-  assert.equal(f.ctx.readCache('key:ko'), null);
-  assert.equal(f.ctx.readCache('key:en', true).sections.a.body, '한국어'); assert.equal(cache.size, 1);
+  assert.equal(f.ctx.readCache('key:other:ko'), null);
+  assert.equal(f.ctx.readCache('key:owner:en', true), null);
+  assert.equal(f.ctx.readCache('key:owner:ko').sections.a.body, '소유 결과'); assert.equal(cache.size, 2);
 });
 
 function sajuFixture() {
