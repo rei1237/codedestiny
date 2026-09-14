@@ -151,6 +151,10 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    // These inline wrappers are source evidence, never browser asset requests.
+    if (['destiny-flower', 'astrology-flower', 'ziwei-flower', 'sukuyo-flower'].includes(record.slug)) {
+      final.evidence = [...new Set(['js/core/index-inline-runtime.js', ...final.evidence])];
+    }
     final.benefits ||= (copy.receives?.length ? copy.receives.map(item => item.title) : copy.feats || final.panels.flatMap(panel => panel.items || [])).slice(0, 6);
     final.contents ||= copy.outline?.map(item => ({ title: item.title, detail: item.detail })) || [];
     final.theme ||= ({ '관계·궁합': 'rose', '타로·신탁': 'burgundy', '별자리·동양 점성': 'indigo', '상징·마음': 'emerald', '오늘·시기': 'saffron' })[group] || 'navy';
