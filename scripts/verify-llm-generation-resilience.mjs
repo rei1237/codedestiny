@@ -992,7 +992,8 @@ const EXPECTED_LLM_CALL_SITES = {
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
   // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
   "worker/routes/pet-saju-ai.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
-  "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 3, "worker/routes/ziwei-deep-report.js": 1,
+  // Ziwei: two checkpointed calls (body/meta), both disable fallback and use one bounded attempt; legacy helpers retain three calls.
+  "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
   "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
 };
 for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {

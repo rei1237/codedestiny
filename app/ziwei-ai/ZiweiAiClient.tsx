@@ -7,6 +7,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
@@ -230,6 +231,8 @@ type ConsultationMessage = {
 type Consultation = {
   id: string;
   status?: string;
+  saved?: boolean;
+  completedGroups?: string[];
   accessType?: AccessType;
   birthInfo?: BirthInfo;
   topic?: string;
@@ -258,6 +261,8 @@ type StructuredZiweiResult = {
 };
 
 type ApiResult = {
+  retryable?: boolean;
+  resultId?: string;
   ok?: boolean;
   reason?: string;
   message?: string;
@@ -558,28 +563,40 @@ function sleep(ms: number) {
 // 자미두수는 분량이 가장 커(본문 2만~3만자) 최악 ~8분(240s + grounding 재시도) — 65회로 커버, 1req/0.7~8s.
 // 첫 폴은 빠르게(0.7s) 프로브해 조기 완료를 즉시 잡고, 이후 3~8s로 램프한다.
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
-const RESULT_POLL_MAX_ATTEMPTS = 65;
+const RESULT_POLL_MAX_ATTEMPTS = 30;
 
-async function pollZiweiResult(sessionId: string): Promise<ApiResult> {
+export async function pollZiweiResult(sessionId: string, isCurrent = () => true, onPartial?: (consultation: Consultation) => void): Promise<ApiResult> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
     let response: Response;
     try {
       response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
     } catch {
       continue;
     }
-    if (response.status === 202) continue;
-    if (response.status === 429) {
-      throw new Error("요청이 잠시 몰렸습니다. 잠시 후 다시 시도해 주세요.");
+    if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+    if (response.status === 202) {
+      const partial = await response.json().catch(() => ({}));
+      if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+      if (partial.consultation) onPartial?.(partial.consultation);
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") return { ok: false, reason: "GENERATION_PAUSED" };
+      const resumed = await authFetch("/api/ziwei-ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: sessionId }) });
+      const data = await resumed.json().catch(() => ({}));
+      if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+      if (data.consultation) onPartial?.(data.consultation);
+      if (resumed.status === 202 || (resumed.status === 503 && data.retryable)) continue;
+      if (!resumed.ok || data.ok === false) throw new Error(data.reason || "SERVER_ERROR");
+      return data;
     }
+    if (response.status === 429) throw new Error("SERVER_ERROR");
     const data = (await response.json().catch(() => ({}))) as ApiResult;
-    // 일시적 DB/인증 장애(503·retryable)는 하드 종료하지 말고 계속 폴링해 자가 복구한다.
-    if (isRetriableResultPollFailure(response.status, data)) continue;
-    if (!response.ok) throw new Error(mapError(data, response.status));
+    if (!isCurrent()) return { ok: false, reason: "GENERATION_PAUSED" };
+    if (response.status === 503 && data.retryable) continue;
+    if (!response.ok) throw new Error(toText(data.reason) || "SERVER_ERROR");
     return data;
   }
-  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+  throw new Error("GENERATION_TIMEOUT");
 }
 
 function toText(value: unknown) {
@@ -814,6 +831,11 @@ export default function ZiweiAiPage() {
   const resultRef = useRef<HTMLDivElement | null>(null);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    setConsultation(null); setBasis(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle");
+    busyRef.current = false; idempotencyRef.current = ""; setResumeEpoch(value => value + 1);
+  });
 
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
@@ -864,53 +886,42 @@ export default function ZiweiAiPage() {
     }
   }
 
-  // 재열람: ?cid= 복원 + 지난 상담 목록
+  async function resumeSavedConsultation(id: string) {
+    if (busyRef.current) return false;
+    const isCurrent = captureOwner();
+    busyRef.current = true; setPhase("reading"); setError(""); rememberConsultationUrl(id);
+    try {
+      const data = await pollZiweiResult(id, isCurrent, partial => { if (isCurrent()) setConsultation(partial); });
+      if (!isCurrent()) return false;
+      if (data.consultation) setConsultation(data.consultation);
+      setPhase("ready");
+      return data.consultation?.status === "completed";
+    } catch (caught) {
+      if (isCurrent()) { setError(caught instanceof Error ? caught.message : ERROR_TEXT.NETWORK_ERROR); setPhase("idle"); }
+      return false;
+    } finally { if (isCurrent()) busyRef.current = false; }
+  }
   useEffect(() => {
-    let cancelled = false;
-    const cid = new URLSearchParams(window.location.search).get("cid");
+    const resume = () => { if (document.visibilityState !== "hidden") setResumeEpoch(value => value + 1); };
+    window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
+  useEffect(() => {
+    const isCurrent = captureOwner(); let cancelled = false;
     (async () => {
-      if (cid) {
-        try {
-          const response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(cid)}`);
-          const data = await response.json().catch(() => ({})) as ApiResult;
-          if (!cancelled && data?.ok && data.consultation) {
-            setConsultation(data.consultation);
-            setPhase("ready");
-          }
-        } catch {
-          // 재열람 실패는 조용히 무시
-        }
-      }
       try {
         const response = await authFetch("/api/ziwei-ai/result");
-        if (!response.ok) return;
         const data = await response.json().catch(() => ({}));
-        if (!cancelled && Array.isArray(data?.consultations)) setRecentList(data.consultations);
-      } catch {
-        // 목록 조회 실패는 무시
-      }
+        if (cancelled || !isCurrent() || !response.ok) return;
+        if (Array.isArray(data.consultations)) setRecentList(data.consultations);
+        const id = new URLSearchParams(window.location.search).get("cid") || data.pendingSessionId;
+        if (id) await resumeSavedConsultation(id);
+      } catch { /* Saved request remains discoverable on the next lifecycle event. */ }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function loadRecentConsultation(id: string) {
-    try {
-      const response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(id)}`);
-      const data = await response.json().catch(() => ({})) as ApiResult;
-      if (data?.ok && data.consultation) {
-        setConsultation(data.consultation);
-        setPhase("ready");
-        rememberConsultationUrl(id);
-        return;
-      }
-      setError("지난 상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
-    } catch {
-      setError(ERROR_TEXT.NETWORK_ERROR);
-    }
-  }
+  }, [resumeEpoch, captureOwner]);
+  async function loadRecentConsultation(id: string) { await resumeSavedConsultation(id); }
 
   const busy = phase === "checking" || phase === "payment" || phase === "reading";
   const summary = consultation?.summaryCards || {};
@@ -950,34 +961,20 @@ export default function ZiweiAiPage() {
   }
 
   async function generateConsultation(idempotencyKey: string, payload: ReturnType<typeof buildConsultationPayload>, extra: Record<string, unknown>) {
-    setPhase("reading");
-    // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다(확인 완료 프레임 최소 노출 후 닫힘).
-    releasePaidFeatureGate(idempotencyKey);
-    setNotice("명궁과 신궁의 흐름을 맞춰보는 중...");
-    const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/generate", {
-      ...payload,
-      ...extra,
-      idempotencyKey,
-    }, idempotencyKey);
-    if (data.ok && data.consultation) {
-      setConsultation(data.consultation);
-      rememberConsultationUrl(data.consultation.id);
-      setPhase("ready");
-      setNotice("");
-      return;
-    }
-    if (status === 202 && data.sessionId) {
-      // 생성이 진행 중 — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다(이전에는 여기서 멈춰 영구 대기였다).
-      setNotice("12궁의 별자리를 펼치는 중...");
-      const resolved = await pollZiweiResult(data.sessionId);
-      if (resolved.ok && resolved.consultation) {
-        setConsultation(resolved.consultation);
-        rememberConsultationUrl(resolved.consultation.id);
-        setPhase("ready");
-        setNotice("");
-        return;
-      }
-      throw new Error(mapError(resolved, 0));
+    const isCurrent = captureOwner();
+    setPhase("reading"); setNotice("명궁과 신궁의 흐름을 맞춰보는 중..."); releasePaidFeatureGate(idempotencyKey);
+    const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/generate", { ...payload, ...extra, idempotencyKey }, idempotencyKey);
+    if (!isCurrent()) return false;
+    if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(data.consultation.id); }
+    if (status === 200 && data.ok && data.consultation?.status === "completed") { setPhase("ready"); setNotice(""); return true; }
+    const resumeId = data.sessionId || (data.retryable ? data.resultId : "");
+    if ((status === 202 || (status === 503 && data.retryable)) && resumeId) {
+      rememberConsultationUrl(resumeId);
+      const resolved = await pollZiweiResult(resumeId, isCurrent, partial => { if (isCurrent()) setConsultation(partial); });
+      if (!isCurrent()) return false;
+      if (resolved.consultation) setConsultation(resolved.consultation);
+      setPhase("ready"); setNotice("");
+      return resolved.consultation?.status === "completed";
     }
     throw new Error(mapError(data, status));
   }
@@ -992,8 +989,7 @@ export default function ZiweiAiPage() {
     idempotencyRef.current = idempotencyKey;
     setError("");
     try {
-      await generateConsultation(idempotencyKey, payload, extractPayment(grant?.payload, idempotencyKey));
-      return true;
+      return await generateConsultation(idempotencyKey, payload, extractPayment(grant?.payload, idempotencyKey));
     } catch (caught) {
       setError(caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
       setNotice("");
@@ -1006,6 +1002,7 @@ export default function ZiweiAiPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (consultation?.id && consultation.status !== "completed") { await resumeSavedConsultation(consultation.id); return; }
     if (busyRef.current) return;
     busyRef.current = true;
     const idempotencyKey = idempotencyRef.current || createIdempotencyKey();
@@ -1122,7 +1119,7 @@ export default function ZiweiAiPage() {
 
   async function handlePdfDownload() {
     const element = resultRef.current;
-    if (!element || pdfLoading) return;
+    if (!element || pdfLoading || consultation?.status !== "completed") return;
     setPdfLoading(true);
     setError("");
     try {
@@ -1261,9 +1258,9 @@ export default function ZiweiAiPage() {
           {notice && <p className="notice"><Moon size={16} />{notice}</p>}
           {error && <p className="error">{error}</p>}
         </form>
-        <ExpertStickyCta theme="ziwei" targetId="ziwei-consultation-form" label="별궁 상담 열기" price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
+        <ExpertStickyCta theme="ziwei" targetId={consultation ? "ziwei-saved-result" : "ziwei-consultation-form"} label={consultation ? "저장된 상담 읽기" : "별궁 상담 열기"} price={<PriceBadge featureKey="ziwei-ai-consultation" prefix="상담 이용 가격 " />} />
 
-        <div className="resultPane">
+        <div className="resultPane" id="ziwei-saved-result">
           {isLoadingConsultation ? (
             <div className="loadingState">
               <div className="palaceSigil isSpinning" aria-hidden="true">
@@ -1303,12 +1300,13 @@ export default function ZiweiAiPage() {
             </div>
           ) : (
             <>
+              {consultation.status !== "completed" && <div role="status" className="notice">저장된 {consultation.completedGroups?.length || 0}/6 묶음부터 읽어 보세요. <button type="button" disabled={busy} onClick={() => void resumeSavedConsultation(consultation.id)}>이어서 생성하기</button></div>}
               <div className="resultToolbar" data-ziwei-pdf-download="complete-result-v20260630">
                 <div>
-                  <span>완성 상담</span>
-                  <strong>별궁 기록이 완성되었습니다</strong>
+                  <span>{consultation.status === "completed" ? "완성 상담" : "상담 생성 중"}</span>
+                  <strong>{consultation.status === "completed" ? "별궁 기록이 완성되었습니다" : "저장된 챕터부터 확인하세요"}</strong>
                 </div>
-                <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading}>
+                <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading || consultation?.status !== "completed"}>
                   {pdfLoading ? <Loader2 className="spin" size={17} /> : <Download size={17} />}
                   {pdfLoading ? "저장 중" : "PDF 다운로드"}
                 </button>
@@ -1478,7 +1476,7 @@ export default function ZiweiAiPage() {
         .notice,.error{display:flex;align-items:center;gap:7px;margin:0;border-radius:8px;padding:10px 11px;font-size:13px;line-height:1.5}
         .notice{border:1px solid rgba(245,217,145,.30);background:rgba(245,217,145,.10);color:#fff0b8}
         .error{border:1px solid rgba(248,113,113,.38);background:rgba(127,29,29,.30);color:#fecaca}
-        .resultPane{min-height:640px;padding:18px}
+        .resultPane{grid-column:1/-1;min-height:640px;padding:18px}
         .emptyState,.loadingState{min-height:584px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;color:#d7ceff}
         .emptyState strong,.loadingState strong{color:#fffaf0;font-family:var(--font-display);font-size:21px}
         .emptyState span,.loadingState span{max-width:360px;color:#beb8df;line-height:1.65}

@@ -62,7 +62,10 @@ function matchesConsultation(filter = {}) {
   if (filter.id && consultation.id !== filter.id) return false;
   if (filter.userId && consultation.userId !== filter.userId) return false;
   if (filter.idempotencyKey && consultation.idempotencyKey !== filter.idempotencyKey) return false;
-  if (filter.status && consultation.status !== filter.status) return false;
+  if (typeof filter.status === "string" && consultation.status !== filter.status) return false;
+  if (filter.status?.$ne && consultation.status === filter.status.$ne) return false;
+  if (filter.status?.$nin?.includes(consultation.status)) return false;
+  if (filter.generationLease && filter.generationLease !== consultation.generationLease) return false;
   return true;
 }
 
@@ -111,18 +114,18 @@ const SECTION_LABELS = {
   prescription: "마지막 처방",
 };
 
-function sectionBody(key) {
+function sectionBody(key, target) {
   const label = SECTION_LABELS[key] || key;
   const grounding = key === "reading_guide"
     ? "명궁 형제궁 부부궁 자녀궁 재백궁 질액궁 천이궁 노복궁 관록궁 전택궁 복덕궁 부모궁을 삼방사정으로 연결하고 자미 천기 태양 무곡 천동 염정 천부 태음 탐랑 거문 천상 천량 칠살 파군 문창 문곡의 강약 ◎을 근거로 읽습니다. "
     : "";
   let body = grounding;
   let index = 1;
-  while (body.length < 1280) {
+  while (body.replace(/\s/g, "").length < target) {
     body += `${label} ${index}에서는 선택의 기준과 현실에서 확인할 장면을 구체적으로 나누고, 서두르기보다 기록과 대화를 통해 판단을 검증한 뒤 다음 행동을 작게 실행하는 방향을 짚습니다. `;
     index += 1;
   }
-  return body.slice(0, 1280);
+  return body;
 }
 
 function mockStructuredResponse(prompt) {
@@ -149,10 +152,12 @@ function mockStructuredResponse(prompt) {
   const match = prompt.match(/- 위 JSON 의 ([^\n]+?) 만 작성합니다\./);
   if (!match) throw new Error("section group prompt was not recognized");
   const keys = match[1].split(",").map((key) => key.trim()).filter(Boolean);
+  const targets = { reading_guide: 3600, evidence_basis: 4500, flow: 4400, career: 4400, relationship: 4200, caution: 4000 };
+  const target = Math.floor(targets[keys[0]] / keys.length);
   return JSON.stringify({
     sections: Object.fromEntries(keys.map((key) => [key, {
       title: SECTION_LABELS[key] || key,
-      body: sectionBody(key),
+      body: sectionBody(key, target),
     }])),
   });
 }
@@ -214,6 +219,7 @@ beforeAll(async () => {
     cmsPromptText: jest.fn(async (_env, _key, fallback) => fallback),
   }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+    PaidExecutionRecord: { findOne: () => query(() => null) },
     MonthlyCreditLedger: {
       findOne: jest.fn(() => query(() => null)),
       updateOne: jest.fn(async () => ({ modifiedCount: 0 })),
@@ -313,7 +319,11 @@ test("Family 이용권: 실제 prepare → generate는 provider-free 결과를 �
     idempotencyKey: REQUEST_ID,
   });
 
-  const generateResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env);
+  let generateResponse;
+  for (let wave = 0; wave < 6; wave++) {
+    generateResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env);
+    if (wave < 5) { expect(generateResponse.status).toBe(202); expect(consumePassForFeatureMock).not.toHaveBeenCalled(); }
+  }
   const generated = await generateResponse.json();
 
   expect(generateResponse.status).toBe(200);
