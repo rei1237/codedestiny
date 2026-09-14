@@ -64,7 +64,7 @@ for (const [mode, chapters] of [["solo", MASTER_LOVE_CODEX_CHAPTERS], ["compat",
     expect(contract.records.some(item => item.system === "saju")).toBe(true);
     expect(contract.records.some(item => item.system === "ziwei")).toBe(true);
     const parsed = { body: "기질의 차이를 대화에서 확인합니다.", evidence: contract.records.map(record => ({
-      evidenceId: record.id, subject: record.subject, system: record.system, period: record.period, explanation: "계산된 근거입니다",
+      evidenceId: record.id, subject: record.subject, system: record.system, period: record.period, certainty: record.certainty, explanation: "계산된 근거입니다",
     })), crossChecks: contract.crossChecks.map(record => ({ id: record.id, status: record.status, explanation: "각 체계의 방향을 구분합니다" })) };
     expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
     expect(() => assertCodexEvidence({ ...parsed, evidence: [{ ...parsed.evidence[0], evidenceId: "invented" }] }, contract)).toThrow("LLM_EVIDENCE_INVALID");
@@ -73,3 +73,16 @@ for (const [mode, chapters] of [["solo", MASTER_LOVE_CODEX_CHAPTERS], ["compat",
     expect(() => assertCodexEvidence({ ...parsed, body: "제공된 근거를 설명하지 않고 누구에게나 해당되는 조언을 길게 반복해서 분량만 채우는 문장입니다. ".repeat(3) }, contract)).toThrow("LLM_OUTPUT_REPEATED");
   });
 }
+
+test("unknown-time evidence keeps uncertainty without requiring Korean prose", () => {
+  const unknown = { ...person, birthTimeUnknown: true };
+  const contract = buildCodexEvidence({ chapter: MASTER_LOVE_CODEX_CHAPTERS[0], saju: chart(unknown), ziweiChart: ziwei(unknown) });
+  const parsed = { body: "Keep the birth-time assumption separate from established facts.",
+    evidence: contract.records.map(record => ({ evidenceId: record.id, subject: record.subject, system: record.system,
+      period: record.period, certainty: record.certainty, explanation: "This placement is provisional because the birth time is unknown." })),
+    crossChecks: contract.crossChecks.map(record => ({ id: record.id, status: record.status, explanation: "There is insufficient directional evidence." })) };
+  expect(contract.records.some(record => record.certainty === "provisional")).toBe(true);
+  expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
+  const certified = { ...parsed, evidence: parsed.evidence.map(item => ({ ...item, certainty: "calculated" })) };
+  expect(() => assertCodexEvidence(certified, contract)).toThrow("LLM_UNCERTAINTY_MISSING");
+});

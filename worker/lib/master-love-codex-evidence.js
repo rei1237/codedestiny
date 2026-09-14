@@ -1,5 +1,5 @@
 // Calculation facts only. The model explains these records; it cannot create them.
-export const CODEX_EVIDENCE_VERSION = "codex-evidence-v2";
+export const CODEX_EVIDENCE_VERSION = "codex-evidence-v3";
 
 const SAJU_FIELDS = [
   [/일간|기질|전체/, "dayMaster"], [/월지|전체/, "monthPillar"],
@@ -59,7 +59,7 @@ export function formatCodexEvidence(contract) {
   return [
     "[이 장의 검증 가능한 근거 — 아래 ID와 값만 인용]",
     JSON.stringify(contract),
-    "evidence 각 항목에 evidenceId, subject, system(saju 또는 ziwei), period를 아래 기록과 정확히 일치시킨다. natal은 원국, 연도는 해당 세운, major-luck-cycles는 기록된 대운 기간만 뜻한다. label과 explanation은 독자용 한국어로 쓴다.",
+    "evidence 각 항목에 evidenceId, subject, system(saju 또는 ziwei), period, certainty를 아래 기록과 정확히 일치시킨다. natal은 원국, 연도는 해당 세운, major-luck-cycles는 기록된 대운 기간만 뜻한다. label과 explanation은 요청된 출력 언어로 쓴다.",
     "crossChecks는 아래 각 판정을 {id,status,explanation}으로 설명한다. status를 바꾸지 않는다. pending은 판단 보류이며 일치나 불일치로 확정하지 않는다.",
     "사주와 자미두수의 근거를 각각 인용하되 provisional은 가정임을 설명한다. 한 체계의 근거가 없으면 새로 만들어 채우지 않는다.",
     "핵심 해석 → 사주 근거 → 자미두수 근거 → 일치·상충·판단 보류의 이유 → 행동 순서로 전개한다.",
@@ -74,7 +74,9 @@ export function assertCodexEvidence(parsed, contract) {
   for (const item of parsed.evidence || []) {
     const record = byId.get(item.evidenceId);
     if (!record || record.subject !== item.subject || record.system !== item.system || record.period !== item.period) throw new Error("LLM_EVIDENCE_INVALID");
-    if (record.certainty === "provisional" && !/가정|미상|잠정|확인.*필요/.test(item.explanation)) throw new Error("LLM_UNCERTAINTY_MISSING");
+    // Do not inspect Korean words here: legitimate non-Korean explanations must
+    // satisfy the same machine-readable uncertainty contract.
+    if (record.certainty !== item.certainty) throw new Error("LLM_UNCERTAINTY_MISSING");
     cited.add(record.id);
   }
   for (const system of ["saju", "ziwei"]) {

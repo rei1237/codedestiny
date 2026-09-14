@@ -601,6 +601,7 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
         evidenceId: text(entry.evidenceId, 120),
         subject: text(entry.subject, 16),
         period: text(entry.period, 32),
+        certainty: text(entry.certainty, 16),
         system: entry.system === "saju" ? "사주" : entry.system === "ziwei" ? "자미두수" : text(entry.system, 32),
         explanation: text(entry.explanation, 180),
       };
