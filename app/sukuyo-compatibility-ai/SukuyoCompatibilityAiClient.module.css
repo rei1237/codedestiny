@@ -1,4 +1,5 @@
-.screen {
+.screen,
+.resultModal {
   --sk-bg-deep: #080914;
   --sk-bg-mid: #111124;
   --sk-gold: #ffe8b6;
@@ -12,6 +13,9 @@
   --sk-ink-gold: #e8d5a3;
   --sk-ink-violet: #c4b5fd;
   --sk-ink-ivory: #f4e6c8;
+}
+
+.screen {
   position: relative;
   min-height: 100svh;
   padding: clamp(18px, 4vw, 44px) 20px;
@@ -29,7 +33,11 @@
 .screen,
 .screen *,
 .screen *::before,
-.screen *::after {
+.screen *::after,
+.resultModal,
+.resultModal *,
+.resultModal *::before,
+.resultModal *::after {
   box-sizing: border-box;
 }
 
@@ -1091,7 +1099,8 @@
 .resultModal {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  /* AppChrome의 고정 탐색 버튼(2147481200)보다 결과·닫기 버튼을 위에 둔다. */
+  z-index: 2147481201;
   overflow-y: auto;
   background:
     radial-gradient(circle at 50% 0%, rgba(244, 217, 139, .09), transparent 26%),
