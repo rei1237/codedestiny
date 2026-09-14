@@ -1282,7 +1282,7 @@ const lifeBookAiConsultationSchema = new mongoose.Schema({
   messages: { type: [lifeBookAiMessageSchema], default: [] },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },

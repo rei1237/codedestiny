@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -290,12 +291,12 @@ for (const marker of ["49,000원", "해금"]) {
 for (const marker of [
   "lifeFortune",
   "인생 총운 전문가 상담",
-  "const LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS = 30000;",
+  "const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 20000;",
   "const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;",
-  // 🔴 stale 창은 클라 폴링 예산(≈400초) 안이어야 GENERATION_STALLED 가 사용자에게 도달한다.
-  //    하한은 락 TTL 90s + 웨이브 최악 42s = 132s 이므로 180s 밑으로 내리지 말 것.
+  // 실제 생성 락과 부분 저장을 구분해 다음 웨이브가 재개된다.
   "const SECTION_LOCK_TTL_MS = 90 * 1000;",
-  "const LIFE_BOOK_GENERATING_STALE_MS = 3 * 60 * 1000;",
+  "saveLifeBookState",
+  "finishLifeBookDelivery",
   "const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;",
   "const SECTION_CONCURRENCY = 4;",
   "const MAX_GENERATION_WAVES = 8;",
@@ -424,6 +425,9 @@ includes("worker/lib/life-book-ai-saju.js", saju, "getYun");
   assert(lifeFortune?.cost === 300 && lifeFortune?.amountKRW === 30000, "life-fortune-ai-consultation must be 300 coins / 30,000 KRW");
   assert(isPerUsePaidFeatureKey("life-fortune-ai-consultation") === true, "life-fortune-ai-consultation must be registered as a per-use paid feature");
 }
+
+const regression = spawnSync(process.execPath, ["--test", "__tests__/ui/life-book-paid-delivery.behavior.test.js"], { cwd: root, encoding: "utf8" });
+if (regression.status !== 0) failures.push(regression.stdout + regression.stderr);
 
 if (failures.length) {
   console.error("[verify-life-book-ai-flow] FAIL");

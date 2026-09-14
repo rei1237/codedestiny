@@ -40,20 +40,10 @@ const typewriter = read("app/life-book-ai/result/useTypewriter.ts");
 const dock = read("app/life-book-ai/result/_components/ResultActionDock.tsx");
 const cover = read("app/life-book-ai/result/_components/BookOpenCover.tsx");
 
-test("재시도가 idempotencyKey 를 새로 만들지 않는다 (이중 결제 차단)", () => {
-  // 🔴 워커의 unique index 와 웨이브 락이 중복 생성·중복 차감을 막는 근거가 이 키다.
-  //    웨이브 루프 안에서 키를 새로 만들면 매 재시도가 새 결제가 된다.
-  const loopStart = client.indexOf("const runGeneration = useCallback(");
-  const loopEnd = client.indexOf("const submit = useCallback(");
-  assert.ok(loopStart >= 0 && loopEnd > loopStart, "runGeneration 을 찾지 못했다");
-  const loopBody = client.slice(loopStart, loopEnd);
-  assert.ok(!loopBody.includes("createIdempotencyKey("), "웨이브 루프 안에서 새 멱등키를 만들면 안 된다");
-  assert.ok(loopBody.includes("runGenerateWave(payload, idempotencyKey, access"), "웨이브는 넘겨받은 키를 그대로 써야 한다");
-
-  const waveStart = api.indexOf("export async function runGenerateWave");
-  assert.ok(waveStart >= 0, "runGenerateWave 를 찾지 못했다");
-  const waveBody = api.slice(waveStart);
-  assert.ok(!/randomUUID|Date\.now\(\)\s*\+/.test(waveBody), "재시도 경로에서 키를 새로 만들면 안 된다");
+test("재시도 멱등키 계약은 실제 생성 루프로 검증한다", () => {
+  const { spawnSync } = require("node:child_process");
+  const run = spawnSync(process.execPath, ["--test", "--test-name-pattern=실제 클라이언트", "__tests__/ui/life-book-paid-delivery.behavior.test.js"], { cwd: root, encoding: "utf8" });
+  assert.equal(run.status, 0, run.stdout + run.stderr);
 });
 
 test("확정 실패는 재시도 대상에서 제외된다", () => {

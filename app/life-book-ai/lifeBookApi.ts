@@ -124,7 +124,7 @@ export async function runGenerateWave(
         ? data.progress as { completed: number; total: number }
         : null;
 
-      if (httpStatus === 200 && data?.status === "completed") {
+      if (httpStatus === 200 && data?.status === "completed" && data?.saved === true) {
         return { status: "completed", httpStatus, reason, message, progress, data };
       }
       // 202 = 이 웨이브는 끝났고 남은 섹션이 있다. 409 GENERATION_IN_PROGRESS = 다른 웨이브가 락을 쥐고 있다.

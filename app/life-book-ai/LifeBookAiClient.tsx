@@ -1,4 +1,5 @@
 "use client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import {
@@ -1394,6 +1395,11 @@ export default function LifeBookAiClient() {
   const startLockRef = useRef(false);
   const retryRef = useRef<{ payload: ReturnType<typeof buildConsultationPayload>; requestId: string; access: Record<string, unknown> | null; mode: LifeBookMode } | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    retryRef.current = null; startLockRef.current = false;
+    idempotencyKeyRef.current = createIdempotencyKey();
+    setStatus("idle"); setResultUrl(""); setNotice(""); setError(""); setWaveProgress(null);
+  });
   const router = useRouter();
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
@@ -1491,22 +1497,30 @@ export default function LifeBookAiClient() {
     idempotencyKey: string,
     access: Record<string, unknown>,
   ) => {
+    const isCurrent = captureDeliveryScope();
+    let resumeSessionId = "";
     setStatus("generating");
     // 다음 화면(집필 중 상태)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
     releasePaidFeatureGate(idempotencyKey);
 
     for (let wave = 0; wave < MAX_GENERATE_WAVES; wave += 1) {
-      const outcome = await runGenerateWave(payload, idempotencyKey, access, () => {
-        setNotice(FAILURE_COPY.retrying);
+      if (!isCurrent()) return false;
+      if (document.hidden) { goToResult(idempotencyKey); return false; }
+      const outcome = await runGenerateWave(resumeSessionId ? { resumeSessionId } : payload, idempotencyKey, resumeSessionId ? {} : access, () => {
+        if (isCurrent()) setNotice(FAILURE_COPY.retrying);
       });
+      if (!isCurrent()) return false;
+      resumeSessionId = String(outcome.data?.sessionId || resumeSessionId);
+
 
       if (outcome.status === "completed") {
         setNotice("");
         setError("");
         setStatus("completed");
         setWaveProgress({ completed: 1, total: 1 });
+        retryRef.current = null;
         goToResult(idempotencyKey);
-        return;
+        return true;
       }
       if (outcome.status === "failed") {
         const error = new Error(reasonCopy(outcome.reason, outcome.message || LLM_ERROR_MESSAGE));
@@ -1520,13 +1534,15 @@ export default function LifeBookAiClient() {
         await new Promise((resolve) => setTimeout(resolve, WAVE_LOCK_RETRY_DELAY_MS));
       }
     }
-    // 웨이브 상한을 다 써도 안 끝났다면 결과 화면이 폴링으로 이어받는다(서버가 stale 을 확정 실패로 승격한다).
+    // 요청 예산을 다 쓰면 결과 화면에서 저장된 섹션 다음부터 이어받는다.
     goToResult(idempotencyKey);
-  }, [goToResult]);
+    return false;
+  }, [goToResult, captureDeliveryScope]);
 
   // 모바일 PortOne 리다이렉트로 submit 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(runGeneration)를 원래 requestId 로 부른다.
   const buildResume = usePaidResume(RESUME_KIND, async (args, grant) => {
+    const isCurrent = captureDeliveryScope();
     const requestId = typeof args.requestId === "string" ? args.requestId : "";
     const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
     if (!requestId || !payload) return false;
@@ -1543,22 +1559,23 @@ export default function LifeBookAiClient() {
     setStartedAt(Date.now());
     setWaveProgress(null);
     try {
-      await runGeneration(payload, requestId, access);
-      return true;
+      return await runGeneration(payload, requestId, access);
     } catch (err) {
+      if (!isCurrent()) return false;
       const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
       setRefunded((err as { refunded?: boolean })?.refunded === true);
       setError(message);
       setStatus("error");
       return false;
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
   });
 
   const submit = useCallback(async (event?: FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
     if (startLockRef.current || isBusy) return;
+    const isCurrent = captureDeliveryScope();
 
     const requestId = idempotencyKeyRef.current;
     const currentValidation = validateForm(form, copy);
@@ -1611,6 +1628,7 @@ export default function LifeBookAiClient() {
           message: copy.passCheckCompleteMessage,
         });
         retryRef.current = { payload, requestId, access: { accessToken: access.accessToken }, mode };
+        if (!isCurrent()) return;
         await runGeneration(payload, requestId, { accessToken: access.accessToken });
         return;
       }
@@ -1664,11 +1682,13 @@ export default function LifeBookAiClient() {
           focusArea: form.focusArea,
         });
         retryRef.current = { payload, requestId, access: { billingGate: gate.data as Record<string, unknown> }, mode };
+        if (!isCurrent()) return;
         await runGeneration(payload, requestId, { billingGate: gate.data as Record<string, unknown> });
         return;
       }
       throw new Error(("message" in denied && denied.message) ? denied.message : SERVER_ERROR_MESSAGE);
     } catch (err) {
+      if (!isCurrent()) return false;
       // 🔴 개발자 문구가 화면에 뜨지 않게 마지막 안전망을 통과시킨다(한글 없는 메시지는 콘솔로만 간다).
       const raw = err instanceof TypeError
         ? NETWORK_ERROR_MESSAGE
@@ -1689,13 +1709,14 @@ export default function LifeBookAiClient() {
         cancelled: paymentCancelled,
       });
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
-  }, [form, runGeneration, isBusy, copy, buildResume]);
+  }, [form, runGeneration, isBusy, copy, buildResume, captureDeliveryScope]);
 
   // 확정 실패 후 사용자가 직접 누르는 재시도. 이미 환불이 끝난 세션은 새 키(=새 결제)로 다시 연다.
   const handleRetry = useCallback(async () => {
     if (startLockRef.current || isBusy) return;
+    const isCurrent = captureDeliveryScope();
     const stashed = retryRef.current;
     setRefunded(false);
     setError("");
@@ -1711,13 +1732,14 @@ export default function LifeBookAiClient() {
     try {
       await runGeneration(stashed.payload, stashed.requestId, stashed.access);
     } catch (err) {
+      if (!isCurrent()) return false;
       const message = friendlyErrorMessage(err instanceof Error ? err.message : SERVER_ERROR_MESSAGE, SERVER_ERROR_MESSAGE);
       setError(message);
       setStatus("error");
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
-  }, [isBusy, runGeneration, submit]);
+  }, [isBusy, runGeneration, submit, captureDeliveryScope]);
   const statusLabel = useMemo(() => {
     if (status === "generating") return GENERATION_STEPS[activeStep] || GENERATION_STEPS[0];
     return PHASE_COPY[status] || PHASE_COPY.idle;

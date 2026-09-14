@@ -1,4 +1,5 @@
 "use client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -1389,19 +1390,43 @@ function LifeBookResultContent() {
   const pollIntervalMs = 3200;
   // 429 응답 연속 횟수 — CF rate-limit(10초당 100회) 회피용 지수 백오프 계수
   const rateLimitStreakRef = useRef(0);
+  const resumeInFlightRef = useRef(false);
+  const resumeCallsRef = useRef(0);
+  const [reloadEpoch, setReloadEpoch] = useState(0);
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    setResult(null); setError(""); setPollAttempts(0);
+    resumeInFlightRef.current = false; resumeCallsRef.current = 0;
+    setReloadEpoch(value => value + 1);
+  });
 
   const loadResult = useCallback(async () => {
-    if (!attemptId) {
-      setError(copy.resultLinkMissing);
-      setLoading(false);
-      return;
-    }
+    if (resumeInFlightRef.current) return;
+    const isCurrent = captureDeliveryScope();
     try {
       const previewState = readDevPreviewState();
       const response = previewState
         ? buildDevPreviewResponse(buildLifeBookPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
         : await authFetch(`/api/life-book-ai/result?attemptId=${encodeURIComponent(attemptId)}`);
-      const payload = await response.json().catch(() => ({})) as LifeBookResult;
+      let payload = await response.json().catch(() => ({})) as LifeBookResult;
+      if (!isCurrent()) return;
+      if (response.status === 202 && ["partial", "delivery_pending"].includes(payload.status || "")) {
+        setResult(payload); setLoading(false);
+        if (document.hidden || resumeCallsRef.current >= 12) return;
+        resumeInFlightRef.current = true;
+        resumeCallsRef.current += 1;
+        try {
+          const resumed = await authFetch("/api/life-book-ai/generate", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ resumeSessionId: payload.sessionId || payload.consultationId }),
+          });
+          const next = await resumed.json().catch(() => ({})) as LifeBookResult;
+          if (!isCurrent()) return;
+          if (!resumed.ok || next.ok === false) throw new Error(toText(next.message) || copy.loadFailed);
+          payload = next;
+          setResult(next); setError("");
+        } finally { if (isCurrent()) resumeInFlightRef.current = false; }
+        return;
+      }
       if (pending && response.status === 404) {
         setResult({ status: "generating", message: copy.preparingBook });
         setError("");
@@ -1446,20 +1471,35 @@ function LifeBookResultContent() {
       setError("");
       setPollAttempts(0);
     } catch (caught) {
+      if (!isCurrent()) return;
       setError(friendlyErrorMessage(caught, copy.loadFailed));
     } finally {
-      setLoading(false);
+      if (isCurrent()) setLoading(false);
     }
-  }, [attemptId, pending, copy]);
+  }, [attemptId, pending, copy, captureDeliveryScope]);
 
   useEffect(() => {
     void loadResult();
-  }, [loadResult]);
+  }, [loadResult, reloadEpoch]);
+
+  useEffect(() => {
+    const resume = () => {
+      if (document.hidden) return;
+      setPollAttempts(0); resumeCallsRef.current = 0;
+      setReloadEpoch(value => value + 1);
+    };
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("online", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("online", resume);
+    };
+  }, []);
 
   useEffect(() => {
     // status가 generating일 때만 폴링한다. pending 플래그를 함께 보면 completed가 된 뒤에도
     // 폴링이 멈추지 않고, loadResult 성공 시 setPollAttempts(0) 리셋과 맞물려 상한이 무력화된다.
-    if (result?.status !== "generating") return;
+    if (!["generating", "partial", "delivery_pending"].includes(result?.status || "")) return;
     if (pollAttempts >= maxPollAttempts) {
       setError(FAILURE_COPY.exhausted);
       return;
@@ -1468,6 +1508,7 @@ function LifeBookResultContent() {
     // 첫 폴은 빠르게(0.8s) 프로브해 조기 완료를 즉시 잡고, 이후 3.2s 간격으로 최악치까지 커버한다.
     const effectiveIntervalMs = (pollAttempts === 0 ? 800 : pollIntervalMs) * backoffFactor;
     const timer = window.setInterval(() => {
+      if (document.hidden || resumeInFlightRef.current) return;
       setPollAttempts((prev) => prev + 1);
       void loadResult();
     }, effectiveIntervalMs);
@@ -1497,7 +1538,7 @@ function LifeBookResultContent() {
     if (chapterCount > revealedCountRef.current) setFreshChapterIndex(chapterCount - 1);
     revealedCountRef.current = Math.max(revealedCountRef.current, chapterCount);
   }, [chapterCount]);
-  const isStreamingIn = result?.status === "generating";
+  const isStreamingIn = ["generating", "partial", "delivery_pending"].includes(result?.status || "");
   const birth = result?.birthInfo || {};
   const saju = result?.sajuResult || null;
   const generatedAt = toText(result?.updatedAt || result?.createdAt);
@@ -1532,7 +1573,7 @@ function LifeBookResultContent() {
   const handleCoverOpened = useCallback(() => {
     window.requestAnimationFrame(() => documentHeadingRef.current?.focus());
   }, []);
-  const isGenerating = result?.status === "generating";
+  const isGenerating = ["generating", "partial", "delivery_pending"].includes(result?.status || "");
   const pillarLabels = getPillarLabels(getCurrentLoadingLocale());
   const dayStem = splitGanji(formatSajuValue(saju?.dayPillar, copy.calcLimited)).stem;
   const tenGodOf = (ganji: string) => {
