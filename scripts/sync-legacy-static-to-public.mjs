@@ -368,6 +368,8 @@ function assertEntryHtmlHealthy(html, relPath) {
 }
 
 function makePublicShellFromRoot(rootHtml) {
+  // Apply shell cleanup identically in Windows checkouts and Linux CI.
+  rootHtml = rootHtml.replace(/\r\n?/g, "\n");
   const normalizeBlock = [
     "  <script>",
     "    (function normalizeRootIndexPath() {",
