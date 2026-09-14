@@ -12,26 +12,26 @@
 // 무료 /api/destiny-compass(narrate)와 **다른 파일**인 이유: 그쪽은 worker/index.js 에서
 // 보안 래퍼 없이 bare 마운트된 무인증·무DB 계약이다. 형제 -ai 파일 선례: ziwei-island / pet-saju.
 
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { getAmbientAiLocale, runWithAiLocale, resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
+import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, cookieValue, HttpError } from "../lib/http.js";
 import { connectDb, isTransientMongoError } from "../lib/db.js";
 import { DestinyCompassReport } from "../lib/models.js";
 import { requireAuth, getAccessTokenSecret, getJwtAudience, getJwtIssuer } from "../lib/auth.js";
-import { signJwt, verifyJwt } from "../lib/jwt.js";
+import { verifyJwt } from "../lib/jwt.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from "../lib/service-execution-task.js";
-import { pendingReportSections } from "../lib/paid-report-completeness.js";
 import {
   COMPASS_REPORT_VERSION,
   COMPASS_SECTIONS,
   COMPASS_SECTION_MAX_OUTPUT_TOKENS,
-  COMPASS_WAVE_A_KEYS,
-  COMPASS_WAVE_B_KEYS,
   buildAllowedLabels,
   buildCompassBasisPayload,
   buildCompassSectionPrompt,
@@ -50,17 +50,9 @@ const REPORT_TYPE = "destinyCompassDeepReport";
 const SERVICE_KEY = "destiny-compass";
 const REPORT_COST = 100;
 const CONTINUATION_TYPE = "destiny-compass-report-continuation";
-const CONTINUATION_TTL = "10m";
 
 /** 섹션 하나에 허용하는 LLM 대기. 웨이브 예산 안에서 다시 깎인다. */
 const COMPASS_SECTION_TIMEOUT_MS = 42000;
-/** 교정(repair) 한 바퀴를 더 돌리려면 최소 이만큼 남아 있어야 한다. */
-const COMPASS_REPAIR_MIN_REMAINING_MS = 12000;
-/** 웨이브 A 는 인증·결제 왕복이 앞에 붙으므로 B 보다 짧게 잡는다. */
-const COMPASS_WAVE_A_BUDGET_MS = 58000;
-const COMPASS_WAVE_B_BUDGET_MS = 72000;
-/** 웨이브 A 가 이만큼도 못 살리면 리포트라고 부를 수 없다 → 환불. */
-const WAVE_A_MIN_USABLE_SECTIONS = 3;
 const DELIVERY_MIN_CHARS = 400;
 
 const LLM_ERROR_MESSAGE = "리포트를 완성하지 못했어요. 결제는 자동 환급됩니다. 잠시 후 다시 시도해 주세요.";
@@ -294,9 +286,8 @@ async function refundExecution(env, auth, input, reportId, reasonMessage) {
 }
 
 // ── 영속화 ─────────────────────────────────────────────────────
-// 🔴 전부 best-effort 다. DB 가 흔들려도 생성·전달은 그대로 진행해야 한다 —
-//    저장을 못 했다고 결제한 결과를 버리면 그게 더 큰 사고다.
-//    읽기(/result)만 예외로, 실패를 transient 503 으로 올려 클라가 재시도하게 한다.
+// 생성 전 요청을 보존하고 정상 섹션마다 저장·재조회를 확인한다.
+// 저장 불확실성은 생성 실패 환불과 구분한다.
 
 function sectionsForDb(sections) {
   return sections.map((s) => ({
@@ -308,84 +299,97 @@ function sectionsForDb(sections) {
 async function loadStoredReport(env, userId, { idempotencyKey, reportId }) {
   try {
     await connectDb(env);
-    const query = reportId ? { id: reportId, userId: String(userId) } : { userId: String(userId), idempotencyKey };
-    return await DestinyCompassReport.findOne(query).lean();
-  } catch (error) {
-    console.warn("[destiny-compass-ai] report load failed", { message: clean(error?.message || error, 200) });
-    return null;
-  }
+    return await DestinyCompassReport.findOne(reportId ? { id: reportId, userId: String(userId) } : { userId: String(userId), idempotencyKey }).lean();
+  } catch { throw resultStorageUnavailable(reportId || idempotencyKey); }
 }
 
-async function persistWaveA(env, userId, input, reportId, context, sections, access) {
+async function saveCompassDelivery(env, filter, fields, reportId) {
   try {
-    await connectDb(env);
-    await DestinyCompassReport.findOneAndUpdate(
-      { userId: String(userId), idempotencyKey: input.idempotencyKey },
-      {
-        $set: {
-          id: reportId,
-          userId: String(userId),
-          idempotencyKey: input.idempotencyKey,
-          inputHash: buildInputHash(input),
-          seedHash: buildHashes(input).seedHash,
-          question: input.question,
-          emotion: input.emotion,
-          field: input.field,
-          evidencePack: input.evidencePack,
-          basis: context.basisPayload,
-          systemConfidence: context.systemConfidence,
-          sections: sectionsForDb(sections),
-          status: "partial",
-          accessType: clean(access?.accessType, 40),
-          generationError: null,
-        },
-      },
-      { upsert: true, new: true },
-    );
-  } catch (error) {
-    console.warn("[destiny-compass-ai] wave A persist failed", { message: clean(error?.message || error, 200) });
-    throw error;
-  }
+    const write = await DestinyCompassReport.updateOne(filter, { $set: fields });
+    if (!write?.matchedCount) throw resultStorageUnavailable(reportId);
+    const saved = await loadStoredReport(env, filter.userId, { reportId });
+    const matches = (expected, actual) => {
+      if (expected instanceof Date) return expected.getTime() === new Date(actual).getTime();
+      if (Array.isArray(expected)) return Array.isArray(actual) && expected.length === actual.length && expected.every((row, i) => matches(row, actual[i]));
+      if (expected && typeof expected === "object") return Boolean(actual) && Object.keys(expected).every(key => matches(expected[key], actual[key]));
+      return expected === actual;
+    };
+    if (!saved || Object.keys(fields).some(key => !matches(fields[key], saved[key]))) throw resultStorageUnavailable(reportId);
+    return saved;
+  } catch { throw resultStorageUnavailable(reportId); }
 }
 
-async function persistWaveB(env, userId, reportId, sections, complete) {
-  try {
-    await connectDb(env);
-    const doc = await DestinyCompassReport.findOne({ id: reportId, userId: String(userId) });
-    if (!doc) throw new Error("REPORT_NOT_SAVED");
-    const byKey = new Map(doc.sections.map((s) => [s.key, s]));
-    for (const s of sectionsForDb(sections)) byKey.set(s.key, s);
-    doc.sections = [...byKey.values()].sort((a, b) => (a.order || 0) - (b.order || 0));
-    doc.status = complete ? "completed" : "partial";
-    if (complete && !doc.usageAppliedAt) doc.usageAppliedAt = new Date();
-    await doc.save();
-    return doc;
-  } catch (error) {
-    console.warn("[destiny-compass-ai] wave B persist failed", { message: clean(error?.message || error, 200) });
-    throw error;
-  }
+async function compassAccessCurrent(doc) {
+  return !await isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.llmMeta?.requestId, doc.llmMeta?.transactionId, executionKeyOf(doc.idempotencyKey)]);
 }
 
-async function markReportFailed(env, userId, input, reportId, reason) {
+function runCompassDelivery(env, auth, initial) {
+  return runWithAiLocale(initial.llmMeta?.locale || getAmbientAiLocale() || "ko", () => runCompassDeliveryInLocale(env, auth, initial));
+}
+
+async function runCompassDeliveryInLocale(env, auth, initial) {
+  const reportId = initial.id;
+  if (initial.status === "completed") return json(publicStoredReport(initial));
+  if (!await compassAccessCurrent(initial)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (initial.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", refunded: initial.generationError?.refunded === true }, { status: 409 });
+  const claimed = await DestinyCompassReport.findOneAndUpdate({ id: reportId, userId: String(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] },
+    $or: [{ lock: null }, { "lock.at": { $lt: new Date(Date.now() - 120000) } }] },
+    { $set: { lock: { token: crypto.randomUUID(), at: new Date() } } }, { new: true }).lean();
+  if (!claimed) return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, resultId: reportId }, { status: 409 });
+  const filter = { id: reportId, userId: String(auth.userId), "lock.token": claimed.lock.token, status: { $ne: "completed" } };
+  let current = claimed;
   try {
-    await connectDb(env);
-    await DestinyCompassReport.findOneAndUpdate(
-      { userId: String(userId), idempotencyKey: input.idempotencyKey },
-      {
-        $set: {
-          id: reportId,
-          userId: String(userId),
-          idempotencyKey: input.idempotencyKey,
-          inputHash: buildInputHash(input),
-          status: "generation_failed",
-          generationError: { reason: clean(reason, 200), at: new Date().toISOString() },
-        },
-      },
-      { upsert: true },
-    );
-  } catch (error) {
-    console.warn("[destiny-compass-ai] fail-mark failed", { message: clean(error?.message || error, 200) });
-  }
+    if (!current.field || !current.evidencePack) return json({ ok: false, reason: "CALCULATION_INCOMPLETE" }, { status: 422 });
+    const input = { idempotencyKey: current.idempotencyKey, question: current.question, emotion: current.emotion, field: current.field, evidencePack: current.evidencePack };
+    const context = buildContext(input);
+    const saved = new Map((current.sections || []).filter(row => row.status === "ok" && countPaidReportBodyChars(row.body) >= getCompassSection(row.key)?.minChars).map(row => [row.key, row]));
+    const missing = COMPASS_SECTIONS.filter(spec => !saved.has(spec.key));
+    const attempts = { ...current.llmMeta?.attempts }, failures = { ...current.llmMeta?.failures };
+    if (missing.some(spec => Number(attempts[spec.key] || 0) >= 3)) {
+      if (missing.some(spec => Number(attempts[spec.key] || 0) >= 3 && Number(failures[spec.key] || 0) < 3)) throw resultStorageUnavailable(reportId);
+      if (!(current.sections || []).some(row => countPaidReportBodyChars(row.body) >= DELIVERY_MIN_CHARS)) {
+        current = await saveCompassDelivery(env, filter, { status: "generation_failed", generationError: { reason: "GENERATION_FAILED" } }, reportId);
+        const refunded = await refundExecution(env, auth, input, reportId, "bounded section generation failed");
+        if (refunded) await saveCompassDelivery(env, filter, { generationError: { reason: "GENERATION_FAILED", refunded: true } }, reportId);
+        return json({ ok: false, reason: "GENERATION_FAILED", refunded, resultId: reportId }, { status: 503 });
+      }
+      return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: false }, { status: 202 });
+    }
+    const wave = missing.slice(0, 4);
+    if (wave.length) {
+      wave.forEach(spec => { attempts[spec.key] = Number(attempts[spec.key] || 0) + 1; });
+      current = await saveCompassDelivery(env, filter, { llmMeta: { ...current.llmMeta, attempts } }, reportId);
+      context.digests = [...saved.values()].map(row => ({ title: row.title, text: row.body.slice(0, 300) }));
+      const systemPrompt = await resolveSystemPrompt(env), cacheStore = createLlmCacheStore(env);
+      let queue = Promise.resolve();
+      const outcomes = await Promise.allSettled(wave.map(async spec => {
+        const result = await generateCompassSection(env, spec, context, { systemPrompt, cacheStore, timeoutMs: COMPASS_SECTION_TIMEOUT_MS, repairIssues: attempts[spec.key] > 1 ? ["분량과 계산 근거를 보완하세요."] : [] });
+        const write = queue.catch(() => {}).then(async () => {
+          const issues = result.ok ? validateCompassSection(result.text, { spec, allowedLabels: context.allowedLabels, seenSentences: new Set() }) : ["provider_failed"];
+          const valid = result.ok && !result.truncated && !issues.length && countPaidReportBodyChars(result.text) >= spec.minChars
+            && !hasRepeatedReportPassage([...saved.values()].map(row => row.body).concat(result.text).join("\n"));
+          if (valid) saved.set(spec.key, toPublicSection({ ...result, issues: [] }, context));
+          else failures[spec.key] = Number(failures[spec.key] || 0) + 1;
+          const sections = new Map((current.sections || []).map(row => [row.key, row]));
+          if (result.ok && !sections.has(spec.key)) sections.set(spec.key, toPublicSection({ ...result, issues: valid ? [] : [...issues, "quality_incomplete"] }, context));
+          for (const [key, row] of saved) sections.set(key, row);
+          current = await saveCompassDelivery(env, filter, { sections: sectionsForDb([...sections.values()]), status: "partial", llmMeta: { ...current.llmMeta, attempts, failures } }, reportId);
+        }); queue = write; await write;
+      }));
+      const failed = outcomes.find(row => row.status === "rejected");
+      if (failed) throw failed.reason;
+    }
+    if (COMPASS_SECTIONS.every(spec => saved.has(spec.key))) {
+      const body = COMPASS_SECTIONS.map(spec => saved.get(spec.key).body).join("\n");
+      if (countPaidReportBodyChars(body) < 20000 || hasRepeatedReportPassage(body)) return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: false }, { status: 202 });
+      current = await saveCompassDelivery(env, filter, { status: "delivery_pending" }, reportId);
+      if (!await compassAccessCurrent(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+      current = await saveCompassDelivery(env, filter, { status: "completed", usageAppliedAt: new Date(), lock: null }, reportId);
+      await completeRefundableExecution(env, auth, input, reportId);
+      return json(publicStoredReport(current));
+    }
+    return json({ ...publicStoredReport(current), retryable: true }, { status: 202 });
+  } finally { await DestinyCompassReport.updateOne({ id: reportId, userId: String(auth.userId), "lock.token": claimed.lock.token }, { $set: { lock: null } }).catch(() => {}); }
 }
 
 /** 저장본 → 응답 봉투. 재열람과 멱등 재요청이 같은 모양을 받는다. */
@@ -394,6 +398,9 @@ function publicStoredReport(doc) {
   return {
     ok: true,
     reportId: doc.id,
+    status: doc.status,
+    locale: doc.llmMeta?.locale || "ko",
+    progress: { completed: (doc.sections || []).filter(row => row.status === "ok").length, total: COMPASS_SECTIONS.length },
     version: COMPASS_REPORT_VERSION,
     stage: doc.status === "completed" ? "complete" : "partial",
     basis: doc.basis || null,
@@ -415,7 +422,8 @@ function resolveSystemPrompt(env) {
  * @returns {Promise<{key: string, ok: boolean, text: string, evidenceIds: string[], issues: string[], truncated: boolean, provider: string, reason: string}>}
  */
 async function generateCompassSection(env, spec, context, options) {
-  const { systemPrompt, cacheStore, timeoutMs, repairIssues } = options;
+  const { systemPrompt, cacheStore, repairIssues } = options;
+  const timeoutMs = clampSyncLlmTimeoutMs(options.timeoutMs);
   const empty = { key: spec.key, ok: false, text: "", evidenceIds: [], issues: [], truncated: false, provider: "", reason: "" };
 
   let ai;
@@ -426,7 +434,7 @@ async function generateCompassSection(env, spec, context, options) {
       temperature: repairIssues?.length ? 0.58 : 0.68,
       maxOutputTokens: COMPASS_SECTION_MAX_OUTPUT_TOKENS,
       timeoutMs,
-      fallbackToWorkersAI: true,
+      fallbackToWorkersAI: false,
       // 🔴 폴백을 켠 유료 라우트는 문턱을 반드시 함께 준다. 없으면 8% 분량이 정상 결제로 나간다.
       fallbackMinChars: compassFallbackMinChars(spec),
       cache: {
@@ -467,57 +475,6 @@ async function generateCompassSection(env, spec, context, options) {
   };
 }
 
-/**
- * 한 웨이브를 병렬 생성하고, 규칙을 어긴 섹션만 한 바퀴 교정한다.
- * 벽시계 = 가장 느린 섹션 하나(합이 아니다).
- */
-async function runWave(env, keys, context, options) {
-  const { budgetMs, startedAt, cacheStore, systemPrompt } = options;
-  const remaining = () => budgetMs - (Date.now() - startedAt);
-  const timeoutMs = clampSyncLlmTimeoutMs(Math.min(COMPASS_SECTION_TIMEOUT_MS, Math.max(1, remaining())));
-
-  const specs = keys.map(getCompassSection).filter(Boolean);
-  let results = await Promise.all(
-    specs.map((spec) => generateCompassSection(env, spec, context, { systemPrompt, cacheStore, timeoutMs })),
-  );
-
-  // 검증 → 교정 1회. 문장 중복 검사는 결정론 순서로 누적해야 재현된다.
-  const seenSentences = context.seenSentences;
-  results = results.map((result) => {
-    const spec = getCompassSection(result.key);
-    if (!result.ok) return result;
-    return { ...result, issues: validateCompassSection(result.text, { spec, allowedLabels: context.allowedLabels, seenSentences }) };
-  });
-
-  const needsRepair = results.filter((r) => r.ok && r.issues.length);
-  if (needsRepair.length && remaining() > COMPASS_REPAIR_MIN_REMAINING_MS) {
-    const repairTimeout = clampSyncLlmTimeoutMs(Math.max(1, Math.min(COMPASS_SECTION_TIMEOUT_MS, remaining() - 4000)));
-    const repaired = await Promise.all(
-      needsRepair.map((r) => generateCompassSection(env, getCompassSection(r.key), context, {
-        systemPrompt, cacheStore, timeoutMs: repairTimeout, repairIssues: r.issues,
-      })),
-    );
-    const byKey = new Map(repaired.filter((r) => r.ok).map((r) => [r.key, r]));
-    results = results.map((result) => {
-      const fix = byKey.get(result.key);
-      if (!fix) return result;
-      const issues = validateCompassSection(fix.text, { spec: getCompassSection(fix.key), allowedLabels: context.allowedLabels, seenSentences });
-      // 교정본이 더 나쁘면 원본을 지킨다(재시도가 결과를 깎지 않게).
-      return issues.length <= result.issues.length ? { ...fix, issues } : result;
-    });
-  }
-
-  // 확정된 본문의 문장을 누적해 다음 웨이브의 중복 검사를 가능하게 한다.
-  for (const result of results) {
-    if (!result.ok) continue;
-    for (const sentence of result.text.split(/(?<=[.!?。])\s+/)) {
-      const s = sentence.replace(/\s+/g, " ").trim();
-      if (s.length >= 24) seenSentences.add(s);
-    }
-  }
-  return results;
-}
-
 function toPublicSection(result, context) {
   const spec = getCompassSection(result.key);
   const grounds = resolveGrounds(result.evidenceIds, context.evidencePack, context.starsBySystem);
@@ -555,14 +512,6 @@ function buildContext(input) {
 
 // ── 이어받기 토큰 ──────────────────────────────────────────────
 
-async function issueContinuationToken(env, auth, input, reportId, digests) {
-  return signJwt(
-    { typ: CONTINUATION_TYPE, featureKey: FEATURE_KEY, userId: String(auth.userId), reportId, inputHash: buildInputHash(input), digests },
-    getAccessTokenSecret(env),
-    { expiresIn: CONTINUATION_TTL, issuer: getJwtIssuer(env), audience: getJwtAudience(env) },
-  );
-}
-
 async function readContinuationToken(env, auth, token, input) {
   let payload;
   try {
@@ -590,151 +539,41 @@ async function readContinuationToken(env, auth, token, input) {
 async function handleReport(request, env) {
   const body = await readJson(request);
   const input = normalizeReportInput(body);
-  const { auth, access } = await resolveAccess(request, env, body, "/api/destiny-compass-ai/report");
-
-  const reportId = `dcdr_${buildHashes(input).seedHash}_${hash36(input.idempotencyKey)}`;
-
-  // 같은 요청 키로 다시 들어오면 재생성하지 않는다 — 이미 낸 돈으로 만든 리포트를 그대로 돌려준다.
-  // (새로고침·이중 클릭·네트워크 재시도가 두 번째 생성을 부르지 않게)
+  const auth = await requireAuth(request, env);
   const stored = await loadStoredReport(env, auth.userId, { idempotencyKey: input.idempotencyKey });
-  if (stored && stored.sections?.length && stored.status !== "generation_failed") {
-    const pending = pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], stored.sections);
-    return json({
-      ...publicStoredReport(stored),
-      continuation: pending.length
-        ? { token: await issueContinuationToken(env, auth, input, stored.id, []), pendingSections: pending }
-        : undefined,
-    });
-  }
-
+  if (stored) return runCompassDelivery(env, auth, stored);
+  const { access } = await resolveAccess(request, env, body, "/api/destiny-compass-ai/report");
+  const reportId = `dcdr_${buildHashes(input).seedHash}_${hash36(input.idempotencyKey)}`;
   const context = buildContext(input);
-  const startedAt = Date.now();
-
-  // 생성 전에 선차감을 '되돌릴 수 있는 상태'로 연다. 실패하면 아래 refundExecution 이 복원한다.
+  // Store normalized interpretation inputs and a hashed seed before any provider call.
+  const seed = { id: reportId, userId: String(auth.userId), idempotencyKey: input.idempotencyKey, inputHash: buildInputHash(input), seedHash: buildHashes(input).seedHash,
+    question: input.question, emotion: input.emotion, field: { ...input.field, seed: buildHashes(input).seedHash }, evidencePack: input.evidencePack,
+    basis: context.basisPayload, systemConfidence: context.systemConfidence, sections: [], status: "generating", accessType: clean(access.accessType, 40), lock: null,
+    llmMeta: { locale: resolveAiLocaleFromRequest(request, body), requestId: clean(body.requestId || input.idempotencyKey, 180), transactionId: clean(access.matchedTransactionId || body.transactionId || body.purchaseId, 180), attempts: {}, failures: {} } };
+  let saved;
+  try {
+    const write = await DestinyCompassReport.updateOne({ userId: String(auth.userId), idempotencyKey: input.idempotencyKey }, { $setOnInsert: seed }, { upsert: true });
+    if (!write || !(write.matchedCount || write.upsertedCount)) throw resultStorageUnavailable(reportId);
+    saved = await loadStoredReport(env, auth.userId, { reportId });
+    if (!saved?.field || saved.idempotencyKey !== input.idempotencyKey) throw resultStorageUnavailable(reportId);
+  } catch { throw resultStorageUnavailable(reportId); }
   await startRefundableExecution(env, auth, access, input, reportId);
-
-  const results = await runWave(env, COMPASS_WAVE_A_KEYS, context, {
-    budgetMs: COMPASS_WAVE_A_BUDGET_MS,
-    startedAt,
-    cacheStore: createLlmCacheStore(env),
-    systemPrompt: await resolveSystemPrompt(env),
-  });
-
-  const usable = results.filter((r) => r.ok);
-  const assembled = usable.map((r) => r.text).join("\n\n");
-  const deliverable = usable.length >= WAVE_A_MIN_USABLE_SECTIONS && hasRenderableLlmText(assembled, { minChars: DELIVERY_MIN_CHARS });
-
-  if (!deliverable) {
-    const refunded = await refundExecution(env, auth, input, reportId, "웨이브 A 생성 실패");
-    await markReportFailed(env, auth.userId, input, reportId, "wave_a_not_deliverable");
-    return json({
-      ok: false,
-      reason: "GENERATION_FAILED",
-      refunded,
-      retryable: true,
-      message: refunded ? LLM_ERROR_MESSAGE : "리포트를 완성하지 못했어요. 잠시 후 다시 시도해 주세요.",
-    }, { status: 503 });
-  }
-
-  const sections = usable.map((r) => toPublicSection(r, context)).sort((a, b) => a.order - b.order);
-  const digests = sections.map((s) => ({ title: s.title, text: s.body.slice(0, 300) }));
-
-  // 전달 직전에 저장한다. 여기서 실패해도 응답은 그대로 나간다(사용자가 결과를 잃지 않는다).
-  await persistWaveA(env, auth.userId, input, reportId, context, sections, access);
-
-  return json({
-    ok: true,
-    reportId,
-    version: COMPASS_REPORT_VERSION,
-    stage: "partial",
-    continuation: {
-      token: await issueContinuationToken(env, auth, input, reportId, digests),
-      pendingSections: pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], sections),
-    },
-    basis: context.basisPayload,
-    systemConfidence: context.systemConfidence,
-    sections,
-    degraded: sections.some((s) => s.status !== "ok") || usable.length < COMPASS_WAVE_A_KEYS.length,
-    provider: clean(usable[0]?.provider, 40),
-  });
+  return runCompassDelivery(env, auth, saved);
 }
 
 async function handleContinue(request, env) {
   const body = await readJson(request);
-  const input = normalizeReportInput(body);
-
-  let auth;
-  try {
-    auth = await requireAuth(request, env);
-  } catch (error) {
-    if (Number(error?.status) === 401) throw new HttpError(401, "로그인 후 이용해 주세요.", { error: "LOGIN_REQUIRED" });
-    throw error;
+  const auth = await requireAuth(request, env);
+  let reportId = clean(body?.reportId, 120);
+  if (!reportId && body?.continuationToken) {
+    const payload = await readContinuationToken(env, auth, body.continuationToken, normalizeReportInput(body));
+    reportId = clean(payload.reportId, 120);
   }
-
-  // 이어받기는 과금하지 않는다 — 웨이브 A 에서 이미 받았다. 토큰이 결제 증거를 대신한다.
-  const payload = await readContinuationToken(env, auth, body?.continuationToken, input);
-  const reportId = clean(payload.reportId, 120);
-
-  // 저장본이 있으면 그것이 정본이다 — 토큰의 digests 는 10분 만료라 놓칠 수 있다.
-  const stored = await loadStoredReport(env, auth.userId, { reportId });
-  if (stored?.status === "completed") return json(publicStoredReport(stored));
-
-  const context = buildContext(input);
-  const storedDigests = (stored?.sections || [])
-    .filter((s) => s.body)
-    .map((s) => ({ title: clean(s.title, 60), text: clean(s.body, 300) }));
-  context.digests = storedDigests.length
-    ? storedDigests
-    : (Array.isArray(payload.digests)
-      ? payload.digests.map((d) => ({ title: clean(d?.title, 60), text: clean(d?.text, 300) })).filter((d) => d.title && d.text)
-      : []);
-  for (const digest of context.digests) context.seenSentences.add(digest.text);
-
-  const pending = pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], stored?.sections);
-  // Repair source sections before generating synthesis. Preserve every valid section.
-  const missingSource = pending.filter(key => COMPASS_WAVE_A_KEYS.includes(key));
-  const waveKeys = missingSource.length ? missingSource : pending.filter(key => COMPASS_WAVE_B_KEYS.includes(key));
-  const results = await runWave(env, waveKeys, context, {
-    budgetMs: COMPASS_WAVE_B_BUDGET_MS,
-    startedAt: Date.now(),
-    cacheStore: createLlmCacheStore(env),
-    systemPrompt: await resolveSystemPrompt(env),
-  });
-
-  const usable = results.filter((r) => r.ok);
-  const sections = usable.map((r) => toPublicSection(r, context)).sort((a, b) => a.order - b.order);
-
-  // 웨이브 B 는 무과금이라 503 을 내지 않는다. 비어도 A 의 5섹션은 이미 사용자 손에 있다.
-  if (!sections.length) {
-    return json({
-      ok: true, reportId, version: COMPASS_REPORT_VERSION, stage: "partial_failed",
-      sections: [], degraded: true, retryable: true,
-      message: "종합 해석을 불러오지 못했어요. 다시 시도하면 이어서 채워집니다.",
-    });
-  }
-
-  const merged = new Map((stored?.sections || []).map(section => [section.key, section]));
-  for (const section of sections) merged.set(section.key, section);
-  const remaining = pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], [...merged.values()]);
-  const complete = remaining.length === 0;
-  await persistWaveB(env, auth.userId, reportId, sections, complete);
-
-  // 전달이 확정된 시점에 선차감을 확정한다(여기까지 왔다면 결제된 만큼은 나갔다).
-  if (complete) await completeRefundableExecution(env, auth, input, reportId);
-
-  return json({
-    ok: true,
-    reportId,
-    version: COMPASS_REPORT_VERSION,
-    stage: complete ? "complete" : "partial_failed",
-    retryable: !complete,
-    continuation: complete ? undefined : {
-      token: await issueContinuationToken(env, auth, input, reportId, context.digests), pendingSections: remaining,
-    },
-    sections,
-    degraded: sections.some((s) => s.status !== "ok") || usable.length < COMPASS_WAVE_B_KEYS.length,
-    provider: clean(usable[0]?.provider, 40),
-  });
+  const idempotencyKey = clean(body?.idempotencyKey, 120);
+  if (!reportId && !idempotencyKey) throw invalidInput("reportId가 필요합니다.");
+  const stored = await loadStoredReport(env, auth.userId, { reportId, idempotencyKey });
+  if (!stored) return json({ ok: false, reason: "NOT_FOUND" }, { status: 404 });
+  return runCompassDelivery(env, auth, stored);
 }
 
 /**
@@ -766,13 +605,9 @@ async function handleResult(request, env) {
     }
     const doc = await DestinyCompassReport.findOne({ id, userId: String(auth.userId) }).lean();
     if (!doc) return json({ ok: false, reason: "NOT_FOUND", message: "리포트를 찾을 수 없어요." }, { status: 404 });
-    if (doc.status === "generating") {
-      return json({ ok: false, reason: "GENERATING", retryable: true, message: "아직 만들고 있어요." }, { status: 202, headers: { "Retry-After": "3" } });
-    }
-    if (doc.status === "generation_failed") {
-      return json({ ok: false, reason: "GENERATION_FAILED", message: "이 리포트는 생성에 실패했어요. 결제는 환급 처리됩니다." }, { status: 409 });
-    }
-    return json(publicStoredReport(doc));
+    if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", refunded: doc.generationError?.refunded === true }, { status: 409 });
+    if (doc.status !== "completed" && !await compassAccessCurrent(doc)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    return json({ ...publicStoredReport(doc), retryable: doc.status !== "completed" }, { status: doc.status === "completed" ? 200 : 202 });
   } catch (error) {
     // 일시적 Mongo 장애를 404 로 내리면 "결제한 리포트가 사라졌다"로 보인다.
     if (isTransientMongoError(error)) {
@@ -783,6 +618,7 @@ async function handleResult(request, env) {
 }
 
 function routeError(error) {
+  if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
   if (error instanceof HttpError) {
     return json({ ok: false, reason: error.payload?.error || "BAD_REQUEST", message: error.message }, { status: error.status });
   }

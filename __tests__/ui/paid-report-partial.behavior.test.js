@@ -16,12 +16,11 @@ function runFunction(file, name, state) {
 }
 
 test("compass storage errors cannot become a completed response", async () => {
-  const persist = runFunction("worker/routes/destiny-compass-ai.js", "persistWaveB", {
-    connectDb: async () => {}, console: { warn() {} }, clean: String,
-    sectionsForDb: value => value,
-    DestinyCompassReport: { findOne: async () => ({ sections: [], save: async () => { throw new Error("storage unavailable"); } }) },
+  const persist = runFunction("worker/routes/destiny-compass-ai.js", "saveCompassDelivery", {
+    resultStorageUnavailable: () => new Error("storage unavailable"),
+    DestinyCompassReport: { updateOne: async () => { throw new Error("storage unavailable"); } },
   });
-  await assert.rejects(persist({}, "owner", "report", [{ key: "a", body: "body" }], true), /storage unavailable/);
+  await assert.rejects(persist({}, { userId: "owner" }, { status: "completed" }, "report"), /storage unavailable/);
 });
 
 test("human design quality pause preserves result and never closes or refunds execution", async () => {

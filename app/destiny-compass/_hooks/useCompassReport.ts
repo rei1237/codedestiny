@@ -11,6 +11,9 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
+import { authFetch } from "@/app/_lib/auth-client";
+import { getAuthState } from "@/app/_lib/auth-store";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import type { PaidResumeArgs, PaidResumeDescriptor, PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
@@ -70,13 +73,14 @@ function sessionKeyFor(field: DirectionField, question: string, locale: string):
   let h = 5381;
   const src = `${field.seed}|${question}`;
   for (let i = 0; i < src.length; i += 1) h = ((h * 33) ^ src.charCodeAt(i)) >>> 0;
-  return `cd-compass-report:${(h >>> 0).toString(36)}:${locale}`;
+  const user = getAuthState().user;
+  return `cd-compass-report:${String(user?.id || user?.userId || user?._id || user?.uid || "guest")}:${(h >>> 0).toString(36)}:${locale}`;
 }
 
-function readCache(key: string, allowLegacy = false): ReportState | null {
+function readCache(key: string): ReportState | null {
   try {
     // 과거 캐시의 언어를 추측하지 않는다. 기존 보관본 복원에서만 원문 그대로 읽는다.
-    const raw = sessionStorage.getItem(key) || (allowLegacy ? sessionStorage.getItem(key.slice(0, key.lastIndexOf(":"))) : null);
+    const raw = localStorage.getItem(key) || sessionStorage.getItem(key);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ReportState;
     return parsed?.sections ? { ...parsed, error: null } : null;
@@ -87,7 +91,7 @@ function readCache(key: string, allowLegacy = false): ReportState | null {
 
 function writeCache(key: string, state: ReportState) {
   try {
-    sessionStorage.setItem(key, JSON.stringify(state));
+    localStorage.setItem(key, JSON.stringify(state));
   } catch {
     /* 저장 실패는 무시 — 화면에는 이미 떠 있다 */
   }
@@ -97,7 +101,7 @@ async function postJson(path: string, body: unknown, timeoutMs: number, locale: 
   const ctrl = new AbortController();
   const timer = window.setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(path, {
+    const res = await authFetch(path, {
       method: "POST",
       credentials: "include",
       cache: "no-store",
@@ -136,6 +140,7 @@ function mergeSections(
 export interface CompassReportResumeWiring {
   buildResume?: (args?: PaidResumeArgs) => PaidResumeDescriptor;
   grant?: PaidResumeGrant | null;
+  onDelivery?: (completed: boolean) => void;
 }
 
 /** 인페이지 게이트의 transactionId 와 같은 자리에서 뽑는다(useCoinGate: consume.transactionId || consume._id). */
@@ -150,13 +155,19 @@ export function useCompassReport(
   field: DirectionField | null,
   question: string,
   resumeWiring?: CompassReportResumeWiring,
+  savedReportId = "",
 ) {
   const copy = useDestinyCompassCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [state, setState] = useState<ReportState>(INITIAL);
   const inFlight = useRef(false);
   const continuationRef = useRef<string>("");
-  const payloadRef = useRef<{ field: unknown; evidencePack: unknown; idempotencyKey: string } | null>(null);
+  const payloadRef = useRef<Record<string, unknown> | null>(null);
+  const reportIdRef = useRef("");
+  const [accountEpoch, setAccountEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    inFlight.current = false; payloadRef.current = null; continuationRef.current = ""; reportIdRef.current = ""; resumedRef.current = false; setState(INITIAL); setAccountEpoch(value => value + 1);
+  });
   const resumedRef = useRef(false);
   const captureLocaleScope = useLocaleRequestScope(() => {
     const locale = toAiLocale(detectLocale());
@@ -167,52 +178,72 @@ export function useCompassReport(
   /** 세션 캐시 복원 — 같은 탭에서 결과 화면을 오가도 다시 결제하지 않는다. */
   const restore = useCallback(() => {
     if (!field) return;
-    const cached = readCache(sessionKeyFor(field, question, toAiLocale(detectLocale())), true);
+    const cached = readCache(sessionKeyFor(field, question, toAiLocale(detectLocale())));
     if (cached && Object.keys(cached.sections).length) setState(cached);
   }, [field, question]);
 
   const runWaveB = useCallback(async (base: ReportState, scope: LocaleRequestScope = captureLocaleScope()) => {
-    const payload = payloadRef.current;
-    if (!payload || !continuationRef.current) return;
-    if (scope.isCurrent()) setState({ ...base, phase: "waveB", canRetryWaveB: false });
-    try {
-      const { data } = await postJson(
-        "/api/destiny-compass-ai/report/continue",
-        { ...payload, continuationToken: continuationRef.current },
-        WAVE_B_TIMEOUT_MS,
-        base.locale || scope.locale,
-      );
-      const sections = mergeSections(base.sections, data?.sections);
-      const complete = data?.stage === "complete";
-      const continuation = data?.continuation as { token?: string } | undefined;
-      if (typeof continuation?.token === "string") continuationRef.current = continuation.token;
-      const next: ReportState = {
-        ...base,
-        sections,
-        phase: complete ? "done" : "waveB",
-        // 이어받기는 무과금이라 실패해도 503 이 아니다. 비었으면 재시도 버튼만 켠다.
-        canRetryWaveB: !complete,
-        error: null,
-      };
-      if (scope.isCurrent()) setState(next);
-      if (field) writeCache(sessionKeyFor(field, question, base.locale || scope.locale), next);
-    } catch {
-      const retry: ReportState = { ...base, phase: "waveB", canRetryWaveB: true };
-      if (scope.isCurrent()) setState(retry);
-      if (field) writeCache(sessionKeyFor(field, question, base.locale || scope.locale), retry);
+    const isCurrent = captureOwner();
+    let current = base;
+    reportIdRef.current = base.reportId || reportIdRef.current;
+    for (let wave = 0; wave < 24; wave++) {
+      if (!isCurrent() || !scope.isCurrent()) return;
+      if (document.hidden || !navigator.onLine) return;
+      setState({ ...current, phase: "waveB", canRetryWaveB: false });
+      try {
+        const { status, data } = await postJson(
+          reportIdRef.current ? "/api/destiny-compass-ai/report/continue" : "/api/destiny-compass-ai/report",
+          reportIdRef.current ? { reportId: reportIdRef.current } : payloadRef.current,
+          WAVE_B_TIMEOUT_MS, base.locale || scope.locale,
+        );
+        if (!isCurrent() || !scope.isCurrent()) return;
+        if (typeof data.resultId === "string" && data.resultId) reportIdRef.current = data.resultId;
+        if (status === 404 && payloadRef.current) { reportIdRef.current = ""; continue; }
+        if (status === 409 && data.reason === "GENERATION_IN_PROGRESS" || status >= 500 && data.retryable === true) {
+          await new Promise(resolve => window.setTimeout(resolve, 4000)); continue;
+        }
+        if (!data.ok && data.refunded === true) {
+          if (field) { try { const key = sessionKeyFor(field, question, base.locale || scope.locale); localStorage.removeItem(key); localStorage.removeItem(key + ":request"); } catch { /* confirmed refund only */ } }
+          payloadRef.current = null; reportIdRef.current = "";
+          setState({ ...INITIAL, phase: "failed", error: copy.reportFailedRefundedMessage });
+          resumeWiring?.onDelivery?.(false); return;
+        }
+        if (!data.ok) throw Error(typeof data.message === "string" ? data.message : copy.reportFailedMessage);
+        const complete = data.stage === "complete";
+        current = { ...current, locale: typeof data.locale === "string" ? data.locale : current.locale, reportId: String(data.reportId || reportIdRef.current),
+          sections: mergeSections(current.sections, data.sections),
+          systemConfidence: Array.isArray(data.systemConfidence) ? data.systemConfidence as SystemConfidenceRow[] : current.systemConfidence,
+          phase: complete ? "done" : "waveB", canRetryWaveB: !complete, error: null };
+        reportIdRef.current = current.reportId;
+        const url = new URL(window.location.href); url.searchParams.set("reportId", current.reportId); window.history.replaceState(null, "", url.toString());
+        setState(current);
+        if (field) writeCache(sessionKeyFor(field, question, base.locale || scope.locale), current);
+        if (complete) { resumeWiring?.onDelivery?.(true); return; }
+        if (data.retryable === false) break;
+      } catch (error) {
+        if (!isCurrent() || !scope.isCurrent()) return;
+        current = { ...current, error: error instanceof Error ? error.message : copy.connectionLostMessage };
+        break;
+      }
     }
-  }, [field, question, captureLocaleScope]);
+    if (!isCurrent() || !scope.isCurrent()) return;
+    const retry: ReportState = { ...current, reportId: reportIdRef.current, phase: "waveB", canRetryWaveB: true };
+    setState(retry);
+    if (field) writeCache(sessionKeyFor(field, question, base.locale || scope.locale), retry);
+    resumeWiring?.onDelivery?.(false);
+  }, [captureOwner, field, question, captureLocaleScope, copy, resumeWiring]);
 
   /**
    * 게이트 없는 생성부 — 인페이지 결제 직후와 결제 복귀 재개가 같은 본문을 쓴다.
    * 🔴 여기서 다시 ensurePaidAccess 를 부르지 않는다(결제는 이미 끝났다).
    * 호출부가 inFlight 락을 잡고 들어온다.
    */
-  const generate = useCallback(async (transactionId: string) => {
+  const generate = useCallback(async (transactionId: string, originalRequestId: string) => {
+    const isCurrent = captureOwner();
     if (!input || !field) return;
     const scope = captureLocaleScope();
     try {
-      const idempotencyKey = makeGateRequestId(FEATURE_KEY);
+      const idempotencyKey = originalRequestId;
       const payload = {
         idempotencyKey,
         question,
@@ -232,12 +263,16 @@ export function useCompassReport(
         purchaseId: transactionId,
         requestId: idempotencyKey,
       };
-      payloadRef.current = { field: payload.field, evidencePack: payload.evidencePack, idempotencyKey };
+      payloadRef.current = payload;
+      try { localStorage.setItem(sessionKeyFor(field, question, scope.locale) + ":request", JSON.stringify(payload)); } catch { /* server result is the recovery source */ }
 
       setState((prev) => ({ ...prev, phase: "waveA" }));
       const { status, data } = await postJson("/api/destiny-compass-ai/report", payload, WAVE_A_TIMEOUT_MS, scope.locale);
 
-      if (status !== 200 || data?.ok !== true) {
+      if (!isCurrent() || !scope.isCurrent()) return;
+      if (![200, 202].includes(status) || data?.ok !== true) {
+        if (typeof data.resultId === "string") reportIdRef.current = data.resultId;
+        if (data.retryable === true) { await runWaveB({ ...INITIAL, locale: scope.locale, reportId: reportIdRef.current }, scope); return; }
         if (!scope.isCurrent()) return;
         const refunded = data?.refunded === true;
         setState((prev) => ({
@@ -254,42 +289,58 @@ export function useCompassReport(
 
       const waveA: ReportState = {
         locale: scope.locale,
-        phase: "waveB",
+        phase: data.stage === "complete" ? "done" : "waveB",
         reportId: typeof data.reportId === "string" ? data.reportId : "",
         sections: mergeSections({}, data.sections),
         systemConfidence: Array.isArray(data.systemConfidence) ? (data.systemConfidence as SystemConfidenceRow[]) : [],
         error: null,
         canRetryWaveB: false,
       };
+      reportIdRef.current = waveA.reportId;
+      const url = new URL(window.location.href); url.searchParams.set("reportId", waveA.reportId); window.history.replaceState(null, "", url.toString());
       continuationRef.current = String((data.continuation as { token?: string })?.token || "");
       if (scope.isCurrent()) setState(waveA);
       writeCache(sessionKeyFor(field, question, scope.locale), { ...waveA, canRetryWaveB: true });
 
       // 웨이브 A 는 이미 화면에 있다. B 는 그 위에서 이어 채운다.
+      if (data.stage === "complete") { resumeWiring?.onDelivery?.(true); return; }
       await runWaveB(waveA, scope);
     } catch {
-      if (scope.isCurrent()) setState((prev) => ({ ...prev, phase: "failed", error: copy.connectionLostMessage }));
+      if (isCurrent() && scope.isCurrent()) {
+        await runWaveB({ ...INITIAL, locale: scope.locale, reportId: reportIdRef.current }, scope);
+      }
     }
-  }, [input, field, question, runWaveB, copy, captureLocaleScope]);
+  }, [captureOwner, input, field, question, runWaveB, copy, captureLocaleScope, resumeWiring]);
 
   const unlock = useCallback(async () => {
     if (!input || !field || inFlight.current || isPaying) return;
     // 전환 중 완료된 캐시도 명시적 재열람에서는 복원하고 결제를 다시 열지 않는다.
-    const cached = readCache(sessionKeyFor(field, question, toAiLocale(detectLocale())), true);
-    if (cached && Object.keys(cached.sections).length) { setState(cached); return; }
+    const cached = readCache(sessionKeyFor(field, question, toAiLocale(detectLocale())));
+    if (cached?.phase === "done") { setState(cached); return; }
+    const locale = toAiLocale(detectLocale());
+    try { payloadRef.current = JSON.parse(localStorage.getItem(sessionKeyFor(field, question, locale) + ":request") || "null"); } catch { /* server recovery remains available */ }
+    if (cached?.reportId || payloadRef.current) {
+      inFlight.current = true;
+      const isCurrent = captureOwner();
+      try { await runWaveB(cached || { ...INITIAL, locale }); } finally { if (isCurrent()) inFlight.current = false; }
+      return;
+    }
     inFlight.current = true;
     setState((prev) => ({ ...prev, phase: "paying", error: null }));
 
+    const isCurrent = captureOwner();
+    const originalRequestId = makeGateRequestId(FEATURE_KEY);
     try {
       const gate = await ensurePaidAccess({
         featureKey: FEATURE_KEY,
         coinPrice: COIN_PRICE,
         amountKRW: AMOUNT_KRW,
         reason: copy.deepReportGateReason,
-        requestId: makeGateRequestId(FEATURE_KEY),
-        resume: resumeWiring?.buildResume?.(),
+        requestId: originalRequestId,
+        resume: resumeWiring?.buildResume?.({ requestId: originalRequestId }),
       });
 
+      if (!isCurrent()) return;
       if (!gate.ok) {
         if (redirectToLoginOnAuthRequired(gate.code)) {
           setState((prev) => ({ ...prev, phase: "locked", error: copy.loginRedirectMessage }));
@@ -303,11 +354,11 @@ export function useCompassReport(
         return;
       }
 
-      await generate(gate.transactionId);
+      await generate(gate.transactionId, originalRequestId);
     } finally {
-      inFlight.current = false;
+      if (isCurrent()) inFlight.current = false;
     }
-  }, [input, field, isPaying, ensurePaidAccess, generate, copy, resumeWiring]);
+  }, [captureOwner, input, field, question, isPaying, ensurePaidAccess, generate, runWaveB, copy, resumeWiring]);
 
   /**
    * 결제 복귀 재개 — CompassApp 이 세션을 되살리고 증빙을 내려 주면 게이트를 건너뛰고 생성만 돈다.
@@ -318,10 +369,46 @@ export function useCompassReport(
     if (!resumeGrant || !input || !field || resumedRef.current || inFlight.current) return;
     resumedRef.current = true;
     inFlight.current = true;
-    void generate(resumeTransactionId(resumeGrant)).finally(() => {
+    void generate(resumeTransactionId(resumeGrant), resumeGrant.requestId || resumeTransactionId(resumeGrant)).finally(() => {
       inFlight.current = false;
     });
   }, [resumeGrant, input, field, generate]);
+
+  useEffect(() => {
+    if (!field && !savedReportId) return;
+    const isCurrent = captureOwner();
+    const recover = async () => {
+      if (inFlight.current || document.hidden || !navigator.onLine) return;
+      inFlight.current = true;
+      try {
+        const locale = toAiLocale(detectLocale()), key = field ? sessionKeyFor(field, question, locale) : "";
+        const cached = readCache(key);
+        try { payloadRef.current = JSON.parse(localStorage.getItem(key + ":request") || "null"); } catch { /* storage may be unavailable */ }
+        let reportId = savedReportId || cached?.reportId || reportIdRef.current;
+        if (!reportId) {
+          const response = await authFetch("/api/destiny-compass-ai/result", { method: "GET" });
+          const data = await response.json();
+          if (!isCurrent()) return;
+          reportId = data.reports?.find((row: { question?: string; status?: string }) => row.question === question && ["generating", "partial", "delivery_pending"].includes(String(row.status)))?.reportId || "";
+        }
+        if (reportId) {
+          const response = await authFetch(`/api/destiny-compass-ai/result?id=${encodeURIComponent(reportId)}`, { method: "GET" });
+          const data = await response.json();
+          if (!isCurrent()) return;
+          if (!data.ok) { setState({ ...INITIAL, reportId, phase: "failed", error: typeof data.message === "string" ? data.message : copy.reportFailedMessage, canRetryWaveB: true }); reportIdRef.current = reportId; return; }
+          const restored: ReportState = { ...INITIAL, locale: typeof data.locale === "string" ? data.locale : locale, reportId, sections: mergeSections({}, data.sections), systemConfidence: data.systemConfidence || [], phase: data.stage === "complete" ? "done" : "waveB" };
+          setState(restored); reportIdRef.current = reportId;
+          if (data.stage !== "complete") await runWaveB(restored);
+        } else if (payloadRef.current) await runWaveB({ ...INITIAL, locale });
+      } catch { /* same paid recovery remains available */ }
+      finally { if (isCurrent()) inFlight.current = false; }
+    };
+    void recover();
+    window.addEventListener("online", recover); document.addEventListener("visibilitychange", recover);
+    return () => { inFlight.current = false; window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+    // Resume the stored request on entry or account change, not each progress render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [field, question, accountEpoch, savedReportId]);
 
   const retryWaveB = useCallback(() => {
     if (inFlight.current) return;

@@ -25,7 +25,7 @@ export const COMPASS_REPORT_VERSION = "compass-report-v1";
  * charsAllowedByTokens(7000) = 4,666자 → 최대 요구 분량 3,000자 대비 1,666자 여유(요구 1,500자).
  * 🔴 verify:llm-generation-resilience 의 assertBudget 이 이 숫자를 소스에서 직접 찾는다.
  */
-export const COMPASS_SECTION_MAX_OUTPUT_TOKENS = 7000;
+export const COMPASS_SECTION_MAX_OUTPUT_TOKENS = 8500;
 
 /** 체계 라벨 — 화면·프롬프트가 같은 이름을 쓴다. 베다는 산출 범위까지 이름에 박는다. */
 export const COMPASS_SYSTEM_LABEL = Object.freeze({
@@ -47,61 +47,61 @@ export const COMPASS_SECTIONS = Object.freeze([
   {
     key: "opening", order: 1, wave: "A", system: null,
     title: "지금 당신의 자리",
-    minChars: 600, maxChars: 2200,
+    minChars: 2000, maxChars: 3600,
     guide: "고민을 한 번 알아주고, 지금 서 있는 자리를 '운명의 좌표' 한 문장으로 못 박은 뒤 왜 그렇게 읽히는지 짚는다. 대표 방향과 점수는 확정값 그대로 쓴다.",
   },
   {
     key: "saju_reading", order: 2, wave: "A", system: "saju",
     title: "사주가 말하는 결",
-    minChars: 1400, maxChars: 3000,
+    minChars: 2000, maxChars: 3600,
     guide: "일간과 오행 분포에서 출발해 십성·월령·용신·십이운성 순서로 읽는다. 각 단락은 확정값 항목명을 그대로 인용하고, 그 값이 왜 이 결론으로 이어지는지 한 다리씩 설명한다.",
   },
   {
     key: "ziwei_reading", order: 3, wave: "A", system: "ziwei",
     title: "자미두수 명반의 축",
-    minChars: 1200, maxChars: 2800,
+    minChars: 2000, maxChars: 3600,
     guide: "명궁 주성 → 삼방사정 회조 → 사화 착지 → 궁 강약 순서로 읽는다. 사화는 어느 궁에 떨어졌는지를 반드시 밝히고, 화기는 '막힘'이 아니라 '집중해야 할 자리'로 다룬다.",
   },
   {
     key: "sukuyo_reading", order: 4, wave: "A", system: "sukuyo",
     title: "숙요 27수의 리듬",
-    minChars: 900, maxChars: 2500,
+    minChars: 2000, maxChars: 3600,
     guide: "본명숙의 요(曜)와 기질에서 출발해 일·사랑·재물의 결을 각각 한 단락으로 읽는다. 숙요는 '타고난 리듬'을 보는 체계임을 전제로, 사건 예언이 아니라 리듬 설명으로 쓴다.",
   },
   {
     key: "tarot_vara_reading", order: 5, wave: "A", system: "tarot",
     title: "오늘의 카드와 요일의 기운",
-    minChars: 700, maxChars: 2300,
+    minChars: 2000, maxChars: 3600,
     guide: "오늘의 카드 상징을 먼저 읽고, 이어서 태어난 요일의 지배성을 읽는다. 두 신호는 명식보다 가벼운 '오늘의 결'임을 분명히 밝힌다. 카드의 역방향은 이 서비스가 뽑지 않으므로 언급하지 않는다.",
   },
   {
     key: "cross_synthesis", order: 6, wave: "B", system: null,
     title: "다섯 체계가 겹치는 지점",
-    minChars: 1200, maxChars: 2800,
+    minChars: 2000, maxChars: 3600,
     guide: "앞의 체계별 해석을 나란히 놓고 ① 여러 체계가 같은 말을 하는 지점 ② 서로 엇갈리는 지점을 각각 구체적으로 짚는다. 엇갈릴 때는 어느 쪽을 더 무겁게 볼지와 그 이유(데이터 품질·가중치)를 밝힌다. 억지로 하나로 합치지 않는다.",
   },
   {
     key: "timeline_reading", order: 7, wave: "B", system: null,
     title: "30일·90일·1년·3년 항로",
-    minChars: 1100, maxChars: 2700,
+    minChars: 2000, maxChars: 3600,
     guide: "네 구간의 날씨와 기세 수치를 확정값 그대로 쓰고, 구간마다 '무엇이 달라지는가'를 서로 다른 내용으로 쓴다. 네 구간이 같은 말을 반복하면 실패다. 기회와 주의는 다음 섹션에서 따로 다루므로 여기서는 흐름의 변화만 쓴다.",
   },
   {
     key: "opportunity_reading", order: 8, wave: "B", system: null,
     title: "반드시 잡아야 하는 기회",
-    minChars: 900, maxChars: 2500,
+    minChars: 2000, maxChars: 3600,
     guide: "강한 영역과 기세가 오르는 구간에서 실제로 붙잡을 수 있는 기회를 3가지 제시한다. 기회마다 ① 무엇을 ② 언제쯤 ③ 어느 근거에서 나왔는지를 함께 쓴다. 막연한 '기회가 온다'가 아니라 알아볼 수 있는 형태로 묘사한다.",
   },
   {
     key: "blocked_and_care", order: 9, wave: "B", system: null,
     title: "막힌 자리와 돌보는 법",
-    minChars: 900, maxChars: 2500,
+    minChars: 2000, maxChars: 3600,
     guide: "쉬어갈 영역이 왜 막혀 보이는지 근거로 설명하고, 지금 피하는 편이 나은 선택 3가지를 구체적으로 짚는다. 그 자리를 억지로 밀지 않으면서 회복시키는 방법을 함께 준다. 불안을 키우지 말고 지나가는 국면으로 다룬다.",
   },
   {
     key: "action_plan", order: 10, wave: "B", system: null,
     title: "오늘부터의 다섯 걸음",
-    minChars: 1000, maxChars: 2600,
+    minChars: 2000, maxChars: 3600,
     guide: "오늘 / 이번 주 / 이번 달로 나눠 손에 잡히는 행동을 제시한다. 각 행동에는 '어느 근거에서 나온 것인지'를 붙인다. '노력하세요' 같은 막연한 말은 실패로 친다. 마지막에 나침반이 가리키는 방향을 한 문장으로 다시 못 박는다.",
   },
 ]);

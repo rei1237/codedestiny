@@ -1058,10 +1058,11 @@ const destinyCompassReportSchema = new mongoose.Schema({
   systemConfidence: { type: mongoose.Schema.Types.Mixed, default: [] },
   sections: { type: [destinyCompassSectionSchema], default: [] },
   // partial = 웨이브 A 만 도착. completed = B 까지. 재열람은 partial 도 보여준다.
-  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
   accessType: { type: String, default: "", trim: true, maxlength: 40 },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  lock: { type: mongoose.Schema.Types.Mixed, default: null },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "destinyCompassReports" });
 

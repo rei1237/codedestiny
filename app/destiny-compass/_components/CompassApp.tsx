@@ -3,10 +3,11 @@
  * 운명의 나침반 오케스트레이터 — 히어로 → 생년 → 선택 무대(고민 입력) → 처리 → 결과 → 오늘.
  * 결정론 엔진은 세션(useCompassSession)이 처리 단계에서 실행. 결과/오늘 화면은 기존 재사용(P2에서 격상).
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePaidResume, type PaidResumeGrant } from "@/app/hooks/usePaidResume";
 import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
 import { JourneyHub } from "./JourneyHub";
+import { SavedCompassReport } from "./SavedCompassReport";
 import { CompassReport } from "./CompassReport";
 import { Crossroads } from "./Crossroads";
 import { FutureSim } from "./FutureSim";
@@ -23,6 +24,8 @@ import map from "./map.module.css";
 
 export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   const copy = useDestinyCompassCopy();
+  const [savedReportId, setSavedReportId] = useState("");
+  useEffect(() => { setSavedReportId(new URLSearchParams(window.location.search).get("reportId") || ""); }, []);
   const s = useCompassSession(start);
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
@@ -64,17 +67,19 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
   });
 
   // 🔴 심층 리포트만 서버 생성이 남아 있다 — 증빙을 그대로 내려 보내야 402 가 안 난다.
+  const reportDelivery = useRef<((completed: boolean) => void) | null>(null);
+  const onReportDelivery = useCallback((completed: boolean) => { reportDelivery.current?.(completed); reportDelivery.current = null; }, []);
   const buildReportResume = usePaidResume("destiny-compass-deep-report", (_args, grant) => {
     if (!s.restoreSnapshot()) return false;
     setResumedReportGrant(grant);
     setResumedStep("result");
     s.setStep("result");
-    return true;
+    return new Promise<boolean>(resolve => { reportDelivery.current = resolve; });
   });
 
   const reportResumeWiring = useMemo(
-    () => ({ buildResume: buildReportResume, grant: resumedStep === "result" ? resumedReportGrant : null }),
-    [buildReportResume, resumedStep, resumedReportGrant],
+    () => ({ buildResume: buildReportResume, onDelivery: onReportDelivery, grant: resumedStep === "result" ? resumedReportGrant : null }),
+    [buildReportResume, onReportDelivery, resumedStep, resumedReportGrant],
   );
 
   /**
@@ -95,6 +100,8 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
     },
     [clearResumeMarks, s],
   );
+
+  if (savedReportId) return <SavedCompassReport reportId={savedReportId} />;
 
   if (s.step === "hub" || s.step === "birth") {
     return <JourneyHub onStart={(birth) => { s.setBirth(birth); goStep("map"); }} />;
