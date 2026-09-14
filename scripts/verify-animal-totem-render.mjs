@@ -39,7 +39,7 @@ function check(label, condition, detail = "") {
    셸 전체를 로드하지 않는 이유: 이 검증의 대상은 모달이고, 셸 전체는 수백 개의 스크립트를 끌고 온다.
    대신 마크업을 셸에서 직접 잘라오므로 HTML 이 바뀌면 이 검증도 함께 따라간다(하드코딩 아님). */
 function extractModalMarkup() {
-  const html = read("index.html");
+  const html = read("index.html").replace(/\r\n/g, "\n");
   const start = html.indexOf('<div id="animalTotemOverlay"');
   assert.ok(start > 0, "index.html 에 #animalTotemOverlay 가 있어야 함");
   const endMarker = "\n      </div>\n";
@@ -56,6 +56,10 @@ const dom = new JSDOM(`<!doctype html><html lang="ko"><body>${extractModalMarkup
 });
 const { window } = dom;
 const { document } = window;
+window.localStorage.setItem("fortune_auth_user", JSON.stringify({ id: "render-owner" }));
+window.AbortController = AbortController;
+const realSetTimeout = window.setTimeout.bind(window);
+window.setTimeout = (fn, ms) => realSetTimeout(fn, ms >= 1000 && ms < 22000 ? 5 : ms);
 
 // jsdom 미구현 API 채우기 — 렌더러가 참조하는 것만.
 window.matchMedia = window.matchMedia || function matchMedia() {
@@ -93,31 +97,32 @@ window._cdCoinGatePerUse = function mockGate(cost, reason, onOk, _onFail, opts) 
 let narrativeMode = "llm";
 const fetchCalls = [];
 window.fetch = function mockFetch(url, init) {
-  fetchCalls.push({ url: String(url), body: JSON.parse(String(init?.body || "{}")) });
+  assert.ok(String(url).startsWith("/api/animal-totem/"), "외부 fetch 금지");
+  if (init?.method === "GET") return Promise.resolve({ status: 404, json: async () => ({ ok: false }) });
+  const original = JSON.parse(String(init?.body || "{}"));
+  fetchCalls.push({ url: String(url), body: original });
   if (narrativeMode === "fail") return Promise.reject(new Error("network down"));
   const body = {
     ok: true,
     source: narrativeMode === "template" ? "template" : "llm",
     degraded: narrativeMode === "template",
-    mode: "three",
+    mode: original.mode, cards: original.cards, question: original.question, requestId: original.requestId,
+    resultId: "paid-narrative:render-result", status: "completed", saved: true,
     narrative: {
       opening: "MOCK_OPENING 그 질문을 오래 안고 계셨겠어요.",
       question_answer: "MOCK_BODY 카드 순서대로 답이 쌓입니다.",
-      card_bridges: [
-        { slot: "past_wound", animalId: "x", line: "MOCK_BRIDGE_1" },
-        { slot: "present_energy", animalId: "y", line: "MOCK_BRIDGE_2" },
-        { slot: "integration_path", animalId: "z", line: "MOCK_BRIDGE_3" },
-      ],
+      card_bridges: original.cards.map((card, i) => ({ slot: card.slot, animalId: card.animalId, line: `MOCK_BRIDGE_${i + 1}` })),
       closing: "MOCK_CLOSING 한 줄만 붙잡아 보세요.",
       action_plan: ["MOCK_PLAN_1", "MOCK_PLAN_2", "MOCK_PLAN_3"],
       shadow_gift_synthesis: "",
     },
   };
-  return Promise.resolve({ ok: true, json: () => Promise.resolve(body) });
+  return Promise.resolve({ status: 200, ok: true, json: () => Promise.resolve(body) });
 };
 
 // 렌더러 로드 (전역 IIFE 두 개).
 window.eval(read("js/services/animal-totem-content-engine.js"));
+window.eval(read("js/core/paid-narrative-reader.js"));
 window.eval(read("js/animal-totem-experience.js"));
 
 const sleep = (ms) => new Promise((r) => window.setTimeout(r, ms));
@@ -182,7 +187,7 @@ check("결제 게이트 1회 호출", gateCalls.length === 1);
 check("featureKey = animal-totem-basic", gateCalls[0]?.opts?.featureKey === "animal-totem-basic");
 check("cost = 30", gateCalls[0]?.cost === 30);
 check("categoryKey = animal-totem", gateCalls[0]?.opts?.categoryKey === "animal-totem");
-check("requestId 전달됨", String(gateCalls[0]?.opts?.requestId || "").startsWith("animal-totem:basic:"));
+check("requestId 전달됨", String(gateCalls[0]?.opts?.requestId || "").startsWith("animal-totem:"));
 check("뽑기 스테이지로 이동", activeStage() === "animalTotemDrawStage");
 
 const cards = $$(".totem-draw-card");
@@ -262,7 +267,7 @@ console.log("\n[8] 보관함 저장 · 복원");
 $("[data-totem-save]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 await sleep(0);
 check("저장 후 버튼 비활성", $("[data-totem-save]").disabled === true);
-const archived = JSON.parse(window.localStorage.getItem("cd_animal_totem_archive_v1") || "[]");
+const archived = JSON.parse(window.localStorage.getItem("cd_animal_totem_archive_v1:render-owner") || "[]");
 check("보관함에 1건", archived.length === 1);
 check("질문 함께 보관", archived[0].question === QUESTION);
 check("카드는 id 만 보관(용량 절약)", archived[0].cards.every((c) => c.animalId && !c.essence));
@@ -270,7 +275,7 @@ check("카드는 id 만 보관(용량 절약)", archived[0].cards.every((c) => c
 window.resetAnimalTotemFlow();
 check("리셋 후 인트로", activeStage() === "animalTotemIntroStage");
 
-console.log("\n[9] LLM 실패 → 정적 리딩은 온전히 (환불 없이 degrade)");
+console.log("\n[9] LLM 실패 → 정적 리딩과 같은 요청 재개 안내 보존");
 narrativeMode = "fail";
 gateCalls.length = 0;
 fetchCalls.length = 0;
@@ -292,6 +297,7 @@ await sleep(80);
 check("LLM 실패해도 결과 스테이지 도달", activeStage() === "animalTotemResultStage");
 check("정적 오프닝으로 대체", $(".totem-narrative-opening").textContent.trim().length > 20);
 check("카드 5장 전부 전 레이어 렌더", $$(".totem-guidance-affirmation").length === 5);
+check("저장 실패 재개 버튼 표시", !!$("[data-totem-resume]"));
 check("AI 브릿지는 없음(정상 — 정적 리딩엔 없다)", $$(".totem-guidance-bridge").length === 0);
 check("빈 실천 플랜 섹션을 만들지 않음", $$(".totem-narrative-plan").length === 0);
 
