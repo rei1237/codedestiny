@@ -12,7 +12,6 @@ import {
   guardWarningTarotSection,
   guardWarningTarotText,
 } from "../../lib/tarot/warning-card-guard.mjs";
-import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mjs";
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
@@ -464,7 +463,7 @@ async function verifyOracleConsultationAccess(request, env, body = {}, verifiedA
  * @param {{featureKey:string, minCost:number, codePrefix:string, reason:string,
  *          authMessage:string, retryHint:string}} spec
  */
-async function verifyTarotPerUseAccess(request, env, body, spec) {
+async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = null) {
   const authRequired = `${spec.codePrefix}_AUTH_REQUIRED`;
   const verifyUnavailable = `${spec.codePrefix}_VERIFY_UNAVAILABLE`;
   const notVerified = `${spec.codePrefix}_PAYMENT_NOT_VERIFIED`;
@@ -472,7 +471,7 @@ async function verifyTarotPerUseAccess(request, env, body, spec) {
   let auth = null;
   let authError = null;
   try {
-    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = verifiedAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     authError = error;
   }
@@ -1665,6 +1664,20 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   };
 }
 
+async function handleMindscanDelivery(request, env, body) {
+  const spec = { featureKey: MINDSCAN_FEATURE_KEY, minCost: MINDSCAN_MIN_COST, codePrefix: "MINDSCAN",
+    reason: "마인드스캔 타로 리딩", authMessage: "로그인 후 리딩을 확인할 수 있습니다.", retryHint: "기존 결제 요청으로 다시 시도해 주세요." };
+  const initial = request.method === "POST" && !body.resumeResultId ? await verifyTarotPerUseAccess(request, env, body, spec) : null;
+  if (initial && !initial.ok) return json({ ok: false, code: initial.code, reason: initial.reason || "", message: initial.message,
+    retryable: ![401, 403].includes(initial.status) }, { status: initial.status || 402 });
+  const auth = initial?.auth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  const { deliverMindscan } = await import("../lib/mindscan-delivery.js");
+  return deliverMindscan(request, env, auth, body, async original => {
+    const access = initial || await verifyTarotPerUseAccess(request, env, original, spec, auth);
+    if (!access.ok) throw createHttpError(access.status || 402, access.message, { code: access.code, reason: access.reason || "", retryable: ![401, 403].includes(access.status) });
+  });
+}
+
 async function handleOracleDelivery(request, env, body) {
   let auth;
   try { auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION }); }
@@ -1719,6 +1732,8 @@ export async function handleTarotRoutes(request, env = {}) {
       }
       return json(publicYearResult(record));
     }
+
+    if (method === "GET" && path === "/mindscan-result") return await handleMindscanDelivery(request, env, {});
 
     if (method === "GET" && path === "/oracle-result") return await handleOracleDelivery(request, env, {});
 
@@ -1989,49 +2004,7 @@ export async function handleTarotRoutes(request, env = {}) {
 
     // 🔴 여기는 **Gemini 를 직접 부른다**. 2026-08-24 이전에는 인증도 결제 확인도 없어서,
     //    유료 리딩이 공짜로 나가는 것에 더해 누구나 LLM 비용을 태울 수 있는 구멍이었다.
-    if (path === "/mindscan") {
-      const access = await verifyTarotPerUseAccess(request, env, body, {
-        featureKey: MINDSCAN_FEATURE_KEY,
-        minCost: MINDSCAN_MIN_COST,
-        codePrefix: "MINDSCAN",
-        reason: "마인드스캔 타로 리딩",
-        authMessage: "로그인 후 리딩을 확인할 수 있습니다.",
-        retryHint: "리딩 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
-      });
-      if (!access.ok) {
-        return json(
-          {
-            ok: false,
-            code: access.code || "MINDSCAN_PAYMENT_NOT_VERIFIED",
-            reason: access.reason || "",
-            message: access.message,
-          },
-          { status: access.status || 402 },
-        );
-      }
-
-      const pairs = Array.isArray(body?.pairs) ? body.pairs : [];
-      const question = String(body?.question || "").trim();
-      if (!pairs.length) {
-        return json({ ok: false, message: "카드 페어 데이터가 필요합니다." }, { status: 400 });
-      }
-
-      if (!question) {
-        return json({ ok: false, message: "상담 질문이 필요합니다." }, { status: 400 });
-      }
-
-      const reading = await buildMindscanReadingPayload(pairs, { question, env, locale: getAmbientAiLocale() || "ko" });
-      if (!reading?.ok) {
-        return json(
-          {
-            ok: false,
-            message: reading?.message || "카드 정보를 불러오는 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
-          },
-          { status: 422 },
-        );
-      }
-      return json(reading);
-    }
+    if (path === "/mindscan") return await handleMindscanDelivery(request, env, body);
 
     return notFound();
   } catch (error) {

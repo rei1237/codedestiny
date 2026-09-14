@@ -11,11 +11,12 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { detectLocale } from "@/lib/i18n/dictionary";
-import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { continueOracleDelivery, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
-type Stage = "intro" | "picking" | "spread" | "result";
+type Stage = "intro" | "picking" | "spread" | "result" | "delivery";
 type PickRound = "main" | "sub";
 
 /** /api/tarot/mindscan 이 받는 카드 짝. 재개 서술자에도 이대로 실린다. */
@@ -796,13 +797,15 @@ interface ResultStageProps {
   question: string;
   onRestart: () => void;
   reportRef: React.RefObject<HTMLDivElement>;
+  resultId?: string;
   copy: MindScanTarotCopy;
 }
 
-function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef, copy }: ResultStageProps) {
+function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef, resultId, copy }: ResultStageProps) {
   const [shareMsg, setShareMsg] = useState("");
   const [aiPromptMsg, setAiPromptMsg] = useState("");
-  const [visibleCount, setVisibleCount] = useState(0);
+  const visibleCount = (reading.sections?.length || 0) + 10;
+  const [readingPosition, setReadingPosition] = useState('');
   const LUXE_PANEL = "rounded-[1.5rem] border border-amber-200/25 bg-[linear-gradient(145deg,rgba(36,20,10,0.84),rgba(22,14,22,0.9)_48%,rgba(10,10,18,0.92))] backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.58),0_0_28px_rgba(251,191,36,0.14)]";
   const LUXE_CARD = "rounded-[1.2rem] border border-amber-100/20 bg-[linear-gradient(150deg,rgba(30,20,16,0.78),rgba(16,16,26,0.82))] backdrop-blur-lg";
   const summaryCard = reading.summaryCard || {};
@@ -840,13 +843,19 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
     setOpenedInsightIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
   }, []);
 
-  // Stagger-reveal sections
   useEffect(() => {
-    const total = (reading.sections?.length ?? 0) + 10;
-    let n = 0;
-    const t = setInterval(() => { n++; setVisibleCount(n); if (n >= total) clearInterval(t); }, 200);
-    return () => clearInterval(t);
-  }, [reading.sections?.length]);
+    const owner = mindscanOwner();
+    if (!owner || !resultId) return;
+    const key = `${mindscanRecoveryKey(owner)}:reading:${resultId}`;
+    try { setReadingPosition(localStorage.getItem(key) || ''); } catch { /* Optional position. */ }
+    const observer = new IntersectionObserver(entries => {
+      const entry = entries.find(item => item.isIntersecting);
+      if (!entry || mindscanOwner() !== owner) return;
+      try { localStorage.setItem(key, entry.target.id); } catch { /* Reading is still available. */ }
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    reading.sections.forEach(section => { const element = document.getElementById(`mindscan-chapter-${section.slot}`); if (element) observer.observe(element); });
+    return () => observer.disconnect();
+  }, [resultId, reading.sections]);
 
   const buildText = useCallback(() => [
     "[말과 행동 사이 타로 리딩]", `페르소나: ${reading.persona}`, "",
@@ -1068,7 +1077,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
         </m.div>
 
         {/* Report content */}
-        <div ref={reportRef} className="w-full max-w-2xl space-y-4">
+        <div ref={reportRef} className="w-full max-w-2xl space-y-4 [overflow-wrap:anywhere] [&_p]:whitespace-pre-line">
 
           {/* Intro */}
           <m.div className={`${LUXE_CARD} p-5 sm:p-6`}
@@ -1221,9 +1230,13 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
             </m.article>
           )}
 
+          {readingPosition && <a href={`#${readingPosition}`} className="block text-sm text-amber-100">{getCurrentLoadingLocale() === 'ko' ? '읽던 위치로 이동' : 'Continue reading'}</a>}
+          <nav aria-label="Contents" className="flex flex-wrap gap-2 text-sm text-amber-100">
+            {reading.sections.map(section => <a key={section.slot} href={`#mindscan-chapter-${section.slot}`} className="rounded-lg border border-amber-200/30 p-2">{section.positionTitle || section.title}</a>)}
+          </nav>
           {/* Sections */}
           {(reading.sections || []).map((s, i) => (
-            <m.article key={s.slot} className={`${LUXE_CARD} p-5 sm:p-6`}
+            <m.article id={`mindscan-chapter-${s.slot}`} key={s.slot} className={`${LUXE_CARD} scroll-mt-8 p-5 sm:p-6`}
               style={{ background: i % 2 === 0 ? "linear-gradient(140deg,rgba(48,23,29,0.74),rgba(30,19,34,0.66))" : "linear-gradient(140deg,rgba(39,26,18,0.74),rgba(19,20,36,0.66))" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= i + 7 ? 1 : 0, y: visibleCount >= i + 7 ? 0 : 16 }}
@@ -1276,17 +1289,17 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
                 </div>
               )}
               <div className="sm:pl-12 mt-3 grid grid-cols-1 gap-2">
-                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionCardFaceLabel}</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? copy.orientationReversed : copy.orientationUpright})` : ""}</p>
+                <p className="text-[15px] sm:text-base text-purple-100/85 leading-8"><b>{copy.sectionCardFaceLabel}</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? copy.orientationReversed : copy.orientationUpright})` : ""}</p>
                 {s.cardMeaning && s.cardMeaning !== (s.summary || s.content) && (
-                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionCardMeaningLabel}</b> {s.cardMeaning}</p>
+                  <p className="text-[15px] sm:text-base text-purple-100/85 leading-8"><b>{copy.sectionCardMeaningLabel}</b> {s.cardMeaning}</p>
                 )}
-                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionPositionWhisperLabel}</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
+                <p className="text-[15px] sm:text-base text-purple-100/85 leading-8"><b>{copy.sectionPositionWhisperLabel}</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
                 {s.emotionalReading && s.emotionalReading !== (s.summary || s.content) && (
-                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionEmotionalReadingLabel}</b> {s.emotionalReading}</p>
+                  <p className="text-[15px] sm:text-base text-purple-100/85 leading-8"><b>{copy.sectionEmotionalReadingLabel}</b> {s.emotionalReading}</p>
                 )}
-                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionHiddenMessageLabel}</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
-                <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>{copy.sectionCautionLabel}</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
-                <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>{copy.sectionAdviceLabel}</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
+                <p className="text-[15px] sm:text-base text-purple-100/85 leading-8"><b>{copy.sectionHiddenMessageLabel}</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
+                <p className="text-[15px] sm:text-base text-amber-100/90 leading-8"><b>{copy.sectionCautionLabel}</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
+                <p className="text-[15px] sm:text-base text-emerald-100/90 leading-8"><b>{copy.sectionAdviceLabel}</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
               </div>
             </m.article>
           ))}
@@ -1456,9 +1469,19 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef,
   );
 }
 
+type MindscanRecovery = { body: { pairs: ReadingPair[]; question: string; requestId: string; locale: string }; resultId?: string };
+const mindscanOwner = () => { const user = getAuthState().user; return String(user?.id || user?.userId || user?._id || user?.uid || ''); };
+const mindscanRecoveryKey = (owner: string) => `cd:mindscan-delivery:v1:${owner}`;
+
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function MindScanTarot() {
   const { ensurePaidAccess } = useCoinGate();
+  const auth = useAuthStore();
+  const owner = String(auth.user?.id || auth.user?.userId || auth.user?._id || auth.user?.uid || '');
+  const recoveryRef = useRef<MindscanRecovery | null>(null);
+  const runRef = useRef(0), busyRef = useRef(false);
+  const [delivery, setDelivery] = useState<OracleDeliveryResponse | null>(null);
+  useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = useMemo(() => getMindScanTarotCopy(locale), [locale]);
 
@@ -1552,21 +1575,79 @@ export default function MindScanTarot() {
   }, [pickRound, mainPicks, subPicks]);
 
   // 게이트 없는 리딩 코어. 결제 게이트 뒤에서도, 리다이렉트 복귀 재개에서도 같은 요청을 쓴다.
+  const remember = useCallback((entry: MindscanRecovery, expectedOwner = mindscanOwner()) => {
+    if (!expectedOwner || expectedOwner !== mindscanOwner()) return;
+    recoveryRef.current = entry;
+    try { localStorage.setItem(mindscanRecoveryKey(expectedOwner), JSON.stringify(entry)); } catch { /* Server recovery remains available. */ }
+  }, []);
+
   const performReading = useCallback(async (pairs: ReadingPair[], askedQuestion: string, requestId: string) => {
-    const res = await fetch("/api/tarot/mindscan", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: detectLocale() },
-      body: JSON.stringify({ pairs, question: askedQuestion, requestId }),
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok && data && Array.isArray(data.sections)) {
-      setReading(data as ReadingResult);
-      setStage("result");
-      return;
-    }
-    throw new Error(String(data?.message || data?.error || copy.requestFailedTemplate(res.status)));
-  }, [copy]);
+    if (busyRef.current) return;
+    const expectedOwner = mindscanOwner();
+    if (!expectedOwner) throw new Error(copy.loginRequiredError);
+    const entry = recoveryRef.current?.body.requestId === requestId ? recoveryRef.current
+      : { body: { pairs, question: askedQuestion, requestId, locale: detectLocale() } };
+    remember(entry, expectedOwner);
+    const run = ++runRef.current;
+    const active = () => run === runRef.current && expectedOwner === mindscanOwner();
+    busyRef.current = true; setReadingLoading(true); setStage('delivery');
+    try {
+      const { authFetch } = await import('../_lib/auth-client');
+      const result = await continueOracleDelivery({ endpoint: '/api/tarot/mindscan', body: entry.resultId ? { resumeResultId: entry.resultId } : entry.body,
+        fetcher: authFetch, active, progress: data => {
+          setDelivery(previous => ({ ...previous, ...data, deliverySections: data.deliverySections ?? previous?.deliverySections,
+            completedParts: data.completedParts ?? previous?.completedParts, totalParts: data.totalParts ?? previous?.totalParts }));
+          if (data.resultId) { entry.resultId = data.resultId; remember(entry, expectedOwner); }
+        } });
+      if (!active() || !result) return;
+      if (result.saved && result.status === 'completed' && result.reading) { setReading(result.reading as ReadingResult); setStage('result'); return; }
+      throw new Error(locale === 'ko' ? '저장된 본문을 보존했습니다. 잠시 후 이어서 생성해 주세요.' : 'Saved sections are retained. Continue the reading shortly.');
+    } finally { if (active()) { busyRef.current = false; setReadingLoading(false); } }
+  }, [copy, locale, remember]);
+
+  useEffect(() => {
+    const run = ++runRef.current;
+    busyRef.current = false; recoveryRef.current = null; paidAccessGrantedRef.current = false;
+    setDelivery(null); setReading(null); setReadingLoading(false); setReadingError(''); setQuestion(''); setStage('intro');
+    drawnRef.current = {}; drawnSubRef.current = {}; setDrawn({}); setDrawnSub({});
+    if (!owner || !auth.authReady) return;
+    let disposed = false;
+    const active = () => !disposed && run === runRef.current && owner === mindscanOwner();
+    void (async () => {
+      let entry: MindscanRecovery | null = null;
+      try { entry = JSON.parse(localStorage.getItem(mindscanRecoveryKey(owner)) || 'null'); } catch { /* Try server record. */ }
+      const { authFetch } = await import('../_lib/auth-client');
+      let data: OracleDeliveryResponse | null = null;
+      try {
+        const response = await authFetch(`/api/tarot/mindscan-result${entry?.resultId ? `?resultId=${encodeURIComponent(entry.resultId)}` : ''}`);
+        const result: OracleDeliveryResponse = await response.json();
+        if (!active()) return;
+        if (response.ok && result.ok && result.resumeInputs) { data = result; entry = { body: result.resumeInputs as MindscanRecovery['body'], resultId: result.resultId }; }
+        else if ([401, 403].includes(response.status)) return;
+      } catch { /* Local original payment request survives transport failure. */ }
+      if (!active() || !entry?.body?.requestId || !Array.isArray(entry.body.pairs)) return;
+      remember(entry, owner); paidRequestIdRef.current = entry.body.requestId; paidAccessGrantedRef.current = true;
+      const main: Record<string, number> = {}, sub: Record<string, number> = {};
+      entry.body.pairs.forEach(pair => { main[pair.positionId] = pair.mainCardId; sub[pair.positionId] = pair.subCardId; });
+      drawnRef.current = main; drawnSubRef.current = sub; setDrawn(main); setDrawnSub(sub); setQuestion(entry.body.question); setDelivery(data);
+      if (data?.saved && data.status === 'completed' && data.reading) { setReading(data.reading as ReadingResult); setStage('result'); }
+      else setStage('delivery');
+    })().catch(() => {});
+    return () => { disposed = true; runRef.current += 1; };
+  }, [owner, auth.authReady, remember]);
+
+  const resumeSaved = useCallback(() => {
+    const entry = recoveryRef.current;
+    if (!entry || busyRef.current || delivery?.retryable === false || mindscanOwner() !== owner) return;
+    setReadingError('');
+    void performReading(entry.body.pairs, entry.body.question, entry.body.requestId)
+      .catch(error => { if (mindscanOwner() === owner) setReadingError(friendlyErrorMessage(error, copy.genericErrorFallback)); });
+  }, [owner, delivery?.retryable, performReading, copy]);
+  useEffect(() => {
+    const resume = () => { if (!document.hidden && !delivery?.saved) resumeSaved(); };
+    window.addEventListener('online', resume); document.addEventListener('visibilitychange', resume);
+    return () => { window.removeEventListener('online', resume); document.removeEventListener('visibilitychange', resume); };
+  }, [resumeSaved, delivery?.saved]);
 
   /* 결제 후 자동 재개 — 모바일 PortOne 복귀는 뽑은 카드도 질문도 없는 초기 화면이다. 서술자에 실어 둔
      스프레드를 되살리고 처음 결제한 requestId 그대로 리딩을 받는다(새로 만들면 서버가 증빙을 못 찾아
@@ -1642,6 +1723,7 @@ export default function MindScanTarot() {
         paidRequestIdRef.current = `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       }
 
+      if (!recoveryRef.current || recoveryRef.current.body.requestId !== paidRequestIdRef.current) remember({ body: { pairs, question: trimmedQuestion, requestId: paidRequestIdRef.current, locale: detectLocale() } });
       const executeReading = () => performReading(pairs, trimmedQuestion, paidRequestIdRef.current);
 
       if (isFlowerAdminMode) {
@@ -1721,9 +1803,11 @@ export default function MindScanTarot() {
     } finally {
       setReadingLoading(false);
     }
-  }, [buildResume, copy, ensurePaidAccess, performReading, question, readingLoading, reading]);
+  }, [buildResume, copy, ensurePaidAccess, performReading, question, readingLoading, reading, remember]);
 
   const restart = useCallback(() => {
+    runRef.current += 1; busyRef.current = false; recoveryRef.current = null; setDelivery(null);
+    paidAccessGrantedRef.current = false; paidRequestIdRef.current = '';
     setStage("intro"); setPickRound("main");
     setQuestion("");
     setMainPicks([]); setSubPicks([]);
@@ -1753,9 +1837,22 @@ export default function MindScanTarot() {
             question={question} onQuestionChange={setQuestion}
             onGenerateReading={handleGenerateReading} copy={copy} />
         )}
+        {stage === 'delivery' && <div key="delivery" className="fixed inset-0 z-20 overflow-y-auto px-4 py-20 text-stone-100">
+          <div className="mx-auto max-w-2xl space-y-5 [overflow-wrap:anywhere]">
+            <h2 className="text-xl font-bold">{locale === 'ko' ? '마인드스캔 상담' : 'Mindscan reading'}</h2>
+            <p role="status">{locale === 'ko' ? '본문 저장' : 'Saved sections'} {delivery?.completedParts?.length || 0} / {delivery?.totalParts || 25}{readingLoading ? ' · …' : ''}</p>
+            {readingError && <p role="alert">{readingError}</p>}
+            {!readingLoading && delivery?.retryable !== false && <button type="button" onClick={resumeSaved} className="rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3 font-semibold">{locale === 'ko' ? '이어서 생성하기' : 'Continue reading'}</button>}
+            {delivery?.retryable === false && <p>{locale === 'ko' ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.'}</p>}
+            <nav aria-label="Contents" className="flex flex-wrap gap-2 text-sm">{delivery?.deliverySections?.map(section => <a key={section.key} className="rounded-lg border border-violet-200/30 p-2" href={`#mindscan-${section.key}`}>{section.title}</a>)}</nav>
+            {delivery?.deliverySections?.map(section => <section id={`mindscan-${section.key}`} key={section.key} className="scroll-mt-20 rounded-xl border border-violet-200/20 bg-slate-950/80 p-5">
+              <h3 className="mb-4 font-bold">{section.title}</h3><div className="whitespace-pre-wrap text-[15px] leading-8">{section.body}</div>
+            </section>)}
+          </div>
+        </div>}
         {stage === "result" && reading && (
           <ResultStage key="result"
-            drawn={drawn} drawnSub={drawnSub} reading={reading} question={question} onRestart={restart} reportRef={reportRef} copy={copy} />
+            drawn={drawn} drawnSub={drawnSub} reading={reading} question={question} onRestart={restart} reportRef={reportRef} resultId={delivery?.resultId} copy={copy} />
         )}
       </AnimatePresence>
     </div>

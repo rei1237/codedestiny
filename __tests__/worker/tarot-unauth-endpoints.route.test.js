@@ -55,10 +55,10 @@ beforeAll(async () => {
       PAID_FEATURE_ACCESS_USER_PROJECTION: "",
     })),
     // 🔴 생성기가 **한 번이라도 돌았는지** 세야 "402 인데 LLM 은 이미 태웠다" 를 잡을 수 있다.
-    jest.unstable_mockModule("../../lib/tarot/mindscan-reading.mjs", () => ({
-      buildMindscanReadingPayload: async () => {
-        mindscanBuilt += 1;
-        return { ok: true, sections: [{ title: "t", body: "b" }] };
+    jest.unstable_mockModule("../../worker/lib/mindscan-delivery.js", () => ({
+      deliverMindscan: async (_request, _env, _auth, body, verify) => {
+        await verify(body); mindscanBuilt += 1;
+        return new Response(JSON.stringify({ ok: true, sections: [{ title: "t", body: "b" }] }), { headers: { "Content-Type": "application/json" } });
       },
     })),
     jest.unstable_mockModule("../../lib/tarot/crystal-soul-reading.mjs", () => ({

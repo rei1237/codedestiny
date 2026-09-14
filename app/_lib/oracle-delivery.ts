@@ -3,23 +3,24 @@ export type OracleDeliveryResponse = {
   resultId?: string; code?: string; reason?: string; completedParts?: string[]; totalParts?: number;
   sections?: { key: string; title: string; body: string }[];
   resumeInputs?: Record<string, unknown>; consultation?: unknown;
+  reading?: unknown; deliverySections?: { key: string; title: string; body: string }[];
 };
 
 // Four bounded server calls run per wave; transport retries keep the same identity.
-export async function continueOracleDelivery({ body, fetcher, active, progress, pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)) }: {
+export async function continueOracleDelivery({ body, fetcher, active, progress, endpoint = '/api/tarot/oracle-consultation', pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)) }: {
   body: Record<string, unknown>; fetcher: (url: string, init: RequestInit) => Promise<Response>;
-  active: () => boolean; progress: (data: OracleDeliveryResponse) => void; pause?: (ms: number) => Promise<void>;
+  active: () => boolean; progress: (data: OracleDeliveryResponse) => void; pause?: (ms: number) => Promise<void>; endpoint?: string;
 }) {
   let pending = body, failures = 0;
   for (let wave = 0; wave < 40 && active(); wave += 1) {
     try {
-      const response = await fetcher('/api/tarot/oracle-consultation', {
+      const response = await fetcher(endpoint, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending),
       });
       const data: OracleDeliveryResponse = await response.json();
       if (!active()) return null;
       progress(data);
-      if (response.status === 200 && data.ok && data.saved && data.status === 'completed' && data.consultation) return data;
+      if (response.status === 200 && data.ok && data.saved && data.status === 'completed' && (data.consultation || data.reading)) return data;
       if (data.resultId) pending = { resumeResultId: data.resultId };
       if (response.status === 202 && data.ok) {
         failures = 0;

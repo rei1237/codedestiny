@@ -44,3 +44,14 @@ test('account changes discard a late result and stop continuation', async () => 
 test('HTTP 200 without final saved confirmation is not accepted as completed', async () => {
   const h = harness([[200, { ...complete, saved: false }]]); assert.equal((await h.run()).saved, false);
 });
+test('mindscan uses its own route and waits for confirmed reading storage', async () => {
+  let calls = 0;
+  const result = await continueOracleDelivery({ endpoint: '/api/tarot/mindscan', body: original, active: () => true, pause: async () => {}, progress: () => {},
+    fetcher: async (url, init) => {
+      assert.equal(url, '/api/tarot/mindscan');
+      assert.deepEqual(JSON.parse(init.body), calls ? { resumeResultId: 'saved-result' } : original);
+      calls += 1;
+      return new Response(JSON.stringify({ ...pending, status: calls === 1 ? 'partial' : 'completed', saved: calls > 1, reading: { sections: [] } }), { status: calls === 1 ? 202 : 200 });
+    } });
+  assert.equal(result.saved, true); assert.equal(calls, 2);
+});
