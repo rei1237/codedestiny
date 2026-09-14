@@ -11,6 +11,9 @@
  */
 import { jest } from "@jest/globals";
 import mongoose from "mongoose";
+import { refundPassCoverage as restoreQuota } from "../../worker/lib/pass-consumption.js";
+import "../../worker/payments/db.js";
+import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const EXECUTION_ID = "64b7f2a1c3d4e5f6012345aa";
@@ -20,6 +23,7 @@ const CYCLE_KEY = "2026-09";
 let failServiceExecution;
 let executions;
 let users;
+let refundDb;
 
 function thenableWithLean(value) {
   const promise = Promise.resolve(value);
@@ -52,6 +56,7 @@ function applySet(target, update) {
 }
 
 beforeAll(async () => {
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ refundPassCoverage: input => { refundDb.rows.splice(0, users.length, ...users); return restoreQuota({ ...input, db: refundDb }); } }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => {}),
     withMongoRetry: async (_env, op) => op(),
@@ -130,6 +135,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  refundDb = makeFakePaymentDb();
   executions = [{
     _id: EXECUTION_ID,
     userId: USER_ID,

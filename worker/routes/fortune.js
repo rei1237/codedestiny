@@ -5437,6 +5437,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
         const passRefundResult = await refundPassCoverage({
           userId: auth.userId,
           cycleKey: passRefund.cycleKey,
+          refundId: `ziwei-ai-prompt:${requestId}`,
           cost: passRefund.cost,
         });
         refundOk = passRefundResult.refunded === true;

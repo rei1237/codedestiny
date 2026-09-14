@@ -14,7 +14,8 @@
 // 🔴 소진 플래그를 새로 만들지 않는다. consumePassCoverage 가 차감 직후 소진을 판정해
 //    expiresAt 을 now 로 당기고, 활성 판정이 전부 expiresAt 을 보므로 하위 게이트가 자동으로
 //    전부 닫힌다(passes.js applyBudgetExhaustionTermination 주석).
-import { User } from "./models.js";
+import { createHash } from "node:crypto";
+import { User, PointHistory } from "./models.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 import { mongoose, mongoTransactionOptions } from "./db.js";
 
@@ -194,14 +195,18 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
  *
  * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
  */
-export async function refundPassCoverage({ userId, cycleKey, cost, db = nativeDb }) {
+export async function refundPassCoverage({ userId, cycleKey, cost, refundId, db = nativeDb }) {
   const amount = Math.max(0, Math.floor(Number(cost) || 0));
   const key = String(cycleKey || "").trim();
-  if (!userId || amount <= 0 || !key) return { refunded: false, skipped: true };
+  if (!userId || amount <= 0 || !key || !refundId) return { refunded: false, skipped: true };
   const { toObjectId } = await loadPaymentDb();
   const uid = toObjectId(userId);
   if (!uid) return { refunded: false, skipped: true };
-  const updated = unwrapUser(await db.findOneAndUpdate(
+  const receiptId = toObjectId(createHash("sha256").update(JSON.stringify(["pass-quota-refund", String(userId), key, String(refundId)])).digest("hex").slice(0, 24));
+  const result = await db.transaction(async tx => {
+    const receipt = await tx.findOne(PointHistory, { _id: receiptId, userId: uid });
+    if (receipt) return { refunded: true, idempotent: true, amount: receipt.metadata.amount };
+    const updated = unwrapUser(await tx.findOneAndUpdate(
     User,
     {
       _id: uid,
@@ -211,7 +216,17 @@ export async function refundPassCoverage({ userId, cycleKey, cost, db = nativeDb
     { $inc: { "profileSubscription.monthlySpendCoin": -amount } },
     { returnDocument: "after" },
   ));
-  if (!updated) return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
-  invalidatePassUsageReadCaches(userId);
-  return { refunded: true, amount };
+    if (!updated) return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
+    // The durable receipt and quota restoration commit together. A lost response
+    // or a later session-marker failure cannot restore another request's quota.
+    await tx.findOneAndUpdate(PointHistory, { _id: receiptId }, { $setOnInsert: {
+      _id: receiptId, userId: uid, kind: "refund", delta: 0,
+      reason: "pass_quota_refund", balanceAfter: Number(updated.points || 0),
+      metadata: { passQuotaRefund: true, refundId: String(refundId), cycleKey: key, amount },
+      createdAt: new Date(),
+    } }, { upsert: true, returnDocument: "after" });
+    return { refunded: true, idempotent: false, amount };
+  });
+  if (result.refunded) invalidatePassUsageReadCaches(userId);
+  return result;
 }

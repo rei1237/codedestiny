@@ -1052,7 +1052,7 @@ async function refundSessionPassIfNeeded(sessionId, userId, doc, existingChapter
   const refundFn = dependencies.refundPassCoverage || refundPassCoverage;
   const SessionModel = dependencies.MasterLoveCodexSession || MasterLoveCodexSession;
   try {
-    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost });
+    const result = await refundFn({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}` });
     if (result.refunded) {
       await SessionModel.updateOne(
         { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },

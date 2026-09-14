@@ -45,7 +45,7 @@ describe("refundSessionPassIfNeeded", () => {
   test("챕터가 0개인 세션이 실패하면 환불을 시도하고 refundedAt 을 기록한다", async () => {
     const d = deps();
     await refundSessionPassIfNeeded(sessionId, userId, { passRefund: refund }, [], d);
-    expect(d.refundPassCoverage).toHaveBeenCalledWith({ userId, cycleKey: refund.cycleKey, cost: refund.cost });
+    expect(d.refundPassCoverage).toHaveBeenCalledWith({ userId, cycleKey: refund.cycleKey, cost: refund.cost, refundId: `master-love-codex:${sessionId}` });
     expect(d.MasterLoveCodexSession.updateOne).toHaveBeenCalledWith(
       { id: sessionId, userId, "passRefund.refundedAt": { $exists: false } },
       { $set: { "passRefund.refundedAt": expect.any(Date) } },

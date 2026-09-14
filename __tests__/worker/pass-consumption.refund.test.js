@@ -28,7 +28,7 @@ test("사이클키가 일치하고 잔액이 충분하면 정확히 cost 만큼 
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 300 });
 
-  const result = await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 300, db });
+  const result = await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: CYCLE_KEY, cost: 300, db });
 
   expect(result).toMatchObject({ refunded: true, amount: 300 });
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(0);
@@ -38,7 +38,7 @@ test("사이클이 넘어간 뒤에는 다른 달 카운터를 건드리지 않�
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 300, premiumUseCycleKey: "old-cycle" });
 
-  const result = await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 300, db });
+  const result = await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: CYCLE_KEY, cost: 300, db });
 
   expect(result).toMatchObject({ refunded: false, skipped: true });
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(300);
@@ -48,29 +48,63 @@ test("잔액이 환불액보다 적으면(끼어든 다른 소비) skip 하고 �
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 100 });
 
-  const result = await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 300, db });
+  const result = await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: CYCLE_KEY, cost: 300, db });
 
   expect(result).toMatchObject({ refunded: false, skipped: true });
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(100);
 });
 
-test("같은 요청을 재호출해도(재시도) 잔액 가드 때문에 이중 환불되지 않는다", async () => {
+test("같은 요청을 재호출해도 영속 영수증으로 이중 환불되지 않는다", async () => {
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 300 });
 
-  const first = await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 300, db });
-  const second = await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 300, db });
+  const first = await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: CYCLE_KEY, cost: 300, db });
+  const second = await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: CYCLE_KEY, cost: 300, db });
 
   expect(first).toMatchObject({ refunded: true, amount: 300 });
-  expect(second).toMatchObject({ refunded: false, skipped: true });
+  expect(second).toMatchObject({ refunded: true, idempotent: true });
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(0);
+});
+
+test("other usage remains intact after a repeated refund with sufficient balance", async () => {
+  const db = makeFakePaymentDb();
+  seed(db, { monthlySpendCoin: 1200 });
+  const input = { userId: USER, cycleKey: CYCLE_KEY, cost: 300, refundId: "first", db };
+  await refundPassCoverage(input);
+  expect(await refundPassCoverage(input)).toMatchObject({ refunded: true, idempotent: true });
+  expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(900);
+  await refundPassCoverage({ ...input, refundId: "second" });
+  expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(600);
+});
+
+test("receipt write failure rolls back quota and a retry restores it once", async () => {
+  const db = makeFakePaymentDb();
+  seed(db, { monthlySpendCoin: 1200 });
+  const write = db.findOneAndUpdate;
+  db.findOneAndUpdate = async (...args) => {
+    if (args[2].$setOnInsert) throw new Error("receipt unavailable");
+    return write(...args);
+  };
+  const input = { userId: USER, cycleKey: CYCLE_KEY, cost: 300, refundId: "atomic", db };
+  await expect(refundPassCoverage(input)).rejects.toThrow("receipt unavailable");
+  expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(1200);
+  db.findOneAndUpdate = write;
+  await refundPassCoverage(input);
+  expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(900);
+});
+
+test("missing refund identity cannot restore quota", async () => {
+  const db = makeFakePaymentDb();
+  seed(db, { monthlySpendCoin: 300 });
+  expect(await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 300, db })).toMatchObject({ refunded: false });
+  expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(300);
 });
 
 test("cost 가 0 이하이거나 cycleKey 가 없으면 DB 를 건드리지 않고 skip 한다", async () => {
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 300 });
 
-  expect(await refundPassCoverage({ userId: USER, cycleKey: CYCLE_KEY, cost: 0, db })).toMatchObject({ refunded: false, skipped: true });
-  expect(await refundPassCoverage({ userId: USER, cycleKey: "", cost: 300, db })).toMatchObject({ refunded: false, skipped: true });
+  expect(await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: CYCLE_KEY, cost: 0, db })).toMatchObject({ refunded: false, skipped: true });
+  expect(await refundPassCoverage({ userId: USER, refundId: "test-request", cycleKey: "", cost: 300, db })).toMatchObject({ refunded: false, skipped: true });
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(300);
 });

@@ -169,36 +169,36 @@ async function handlePrepare(request, env) {
 }
 
 // ── 결제 차감 복구 ───────────────────────────────────────────────────────────
-// 이용권·관리자 통과에는 transactionId 가 없고 차감도 없으므로 되돌릴 것이 없다.
+// 이용권 차감은 저장된 passRefund 증빙으로 복구하고, 관리자 통과는 제외한다.
 // 형태는 human-design-report.js:230-275 와 같다(같은 verifyPerUsePayment 입력).
 const executionKeyOf = (requestId) => `${FEATURE_KEY}:${requestId}`;
 
-async function openRefundableExecution(env, userId, requestId, sessionId, transactionId) {
-  if (!transactionId) return;
+async function openRefundableExecution(env, userId, requestId, sessionId, transactionId, passRefund) {
+  if (!transactionId && !passRefund) return;
   await startServiceExecution(env, userId, {
     executionKey: executionKeyOf(requestId), requestId: executionKeyOf(requestId),
     featureKey: FEATURE_KEY, cost: COST, sourceTransactionId: transactionId,
     reportId: sessionId, reportType: FEATURE_KEY, idempotencyKey: requestId,
-    metadata: { featureKey: FEATURE_KEY, reportId: sessionId },
+    metadata: { featureKey: FEATURE_KEY, reportId: sessionId, ...(passRefund ? { passRefund } : {}) },
   }).catch((error) => { console.warn("[relationship-boundary-test] execution open failed", clean(error?.message || error, 200)); });
 }
 
-async function closeExecution(env, userId, requestId, sessionId, transactionId) {
-  if (!transactionId) return;
+async function closeExecution(env, userId, requestId, sessionId, transactionId, passRefund) {
+  if (!transactionId && !passRefund) return;
   await completeServiceExecution(env, userId, {
     executionKey: executionKeyOf(requestId), requestId: executionKeyOf(requestId),
-    reportId: sessionId, metadata: { featureKey: FEATURE_KEY, reportId: sessionId },
+    reportId: sessionId, metadata: { featureKey: FEATURE_KEY, reportId: sessionId, ...(passRefund ? { passRefund } : {}) },
   }).catch((error) => { console.warn("[relationship-boundary-test] execution close failed", clean(error?.message || error, 200)); });
 }
 
-async function refundExecution(env, userId, requestId, sessionId, reasonMessage, transactionId) {
-  if (!transactionId) return false;
+async function refundExecution(env, userId, requestId, sessionId, reasonMessage, transactionId, passRefund) {
+  if (!transactionId && !passRefund) return false;
   const result = await failServiceExecution(env, userId, {
     executionKey: executionKeyOf(requestId), requestId: executionKeyOf(requestId),
     reportId: sessionId, reasonCode: "relationship_boundary_test_generation_failed",
     reasonMessage: clean(reasonMessage, 300), failureStage: "generation", forceRefundOnClose: true,
   }).catch((error) => { console.error("[relationship-boundary-test] execution refund failed", clean(error?.message || error, 200)); return null; });
-  return Boolean(result);
+  return result?.refundStatus === "refunded";
 }
 
 async function handleStart(request, env) {

@@ -61,7 +61,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
     let seed;
     try { seed = callbacks.seed(input); }
     catch { return json({ ok: false, reason: "CALCULATION_FAILED" }, { status: 422 }); }
-    const meta = { ...seed.meta, locale: getAmbientAiLocale() || "ko", resumeBody: { targetInfo: body.targetInfo, idempotencyKey: body.idempotencyKey }, lease,
+    const meta = { ...seed.meta, passRefund: access.passRefund || null, locale: getAmbientAiLocale() || "ko", resumeBody: { targetInfo: body.targetInfo, idempotencyKey: body.idempotencyKey }, lease,
       evidenceHash: createHash("sha256").update(JSON.stringify(seed.meta)).digest("hex"), delivery: { parts: {}, attempts: {}, invalidAttempts: {} } };
     const fields = { ...seed.fields, id: sessionId, userId, targetInfo: input.targetInfo, inputHash: input.inputHash, idempotencyKey: body.idempotencyKey,
       accessType: access.source || "paid", paymentId: stored?.paymentId || access.transactionId || "", status: "generating", llmMeta: meta, generationError: null };
@@ -84,7 +84,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
   if (stored.llmMeta.lease.token !== token) return relationshipPending(stored);
   const filter = { userId, id: sessionId, status: { $in: ["generating", "partial", "delivery_pending"] }, "llmMeta.lease.token": token };
   try {
-    await callbacks.open(userId, body.idempotencyKey, sessionId, stored.paymentId);
+    await callbacks.open(userId, body.idempotencyKey, sessionId, stored.paymentId, stored.llmMeta.passRefund);
     if (!relationshipDeliveryComplete(stored.llmMeta.delivery)) {
       const wave = await generateRelationshipWave(env, stored.llmMeta, async delivery => {
         const meta = { ...stored.llmMeta, delivery };
@@ -93,7 +93,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
       stored = await save(filter, { llmMeta: { ...stored.llmMeta, limited: wave.limited } });
       if (wave.knownFailed) {
         stored = await save(filter, { status: "generation_failed", generationError: { reason: "READING_INCOMPLETE" } });
-        const refunded = await callbacks.refund(userId, body.idempotencyKey, sessionId, "READING_INCOMPLETE", stored.paymentId);
+        const refunded = await callbacks.refund(userId, body.idempotencyKey, sessionId, "READING_INCOMPLETE", stored.paymentId, stored.llmMeta.passRefund);
         return json({ ok: false, reason: "GENERATION_FAILED", retryable: false, sessionId, refunded }, { status: 503 });
       }
     }
@@ -101,7 +101,7 @@ export async function runRelationshipDelivery(env, auth, supplied, callbacks) {
     stored = await save(filter, { ...relationshipContent(stored.llmMeta), status: "delivery_pending" });
     if (await relationshipRevoked(stored)) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
     stored = await save(filter, { status: "completed", generationError: null });
-    await callbacks.close(userId, body.idempotencyKey, sessionId, stored.paymentId);
+    await callbacks.close(userId, body.idempotencyKey, sessionId, stored.paymentId, stored.llmMeta.passRefund);
     return json(relationshipPublicResult(stored));
   } finally {
     await RelationshipBoundaryTest.updateOne({ userId, id: sessionId, "llmMeta.lease.token": token }, { $set: { "llmMeta.lease.token": "", "llmMeta.lease.until": null } }).catch(() => {});

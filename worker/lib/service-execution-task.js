@@ -521,21 +521,12 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
     return { refunded: true, idempotent: true, amount: cost };
   }
 
-  const updated = await User.findOneAndUpdate(
-    {
-      _id: userId,
-      "profileSubscription.premiumUseCycleKey": cycleKey,
-      "profileSubscription.monthlySpendCoin": { $gte: cost },
-    },
-    { $inc: { "profileSubscription.monthlySpendCoin": -cost } },
-    { returnDocument: "after", projection: { "profileSubscription.monthlySpendCoin": 1 } },
-  ).lean();
-  if (!updated) {
-    return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };
-  }
-
-  try { invalidateAccessStateCacheForUser(userId); } catch {}
-
+  const { refundPassCoverage } = await import("./pass-consumption.js");
+  const result = await refundPassCoverage({
+    userId, cycleKey, cost,
+    refundId: `${execution.featureKey}:${execution.idempotencyKey || execution.executionKey || executionId}`,
+  });
+  if (!result.refunded) return result;
   await ServiceExecutionTransaction.updateOne(
     { _id: executionId },
     { $set: { "metadata.passRefund.refundedAt": new Date() } },

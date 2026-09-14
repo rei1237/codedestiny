@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let route, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes;
+let route, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -29,15 +29,15 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,getOptionalUserFromRequest:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async()=>({proven:true,source:accessMode,transactionId:'original-'+accessMode})}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async()=>({proven:true,source:accessMode,...(accessMode==='pass'?{passRefund:docs.length?undefined:{cycleKey:'2026-10-01',cost:300}}:{transactionId:'original-'+accessMode})})}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,RelationshipBoundaryTest:model,
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
- jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async()=>({}),completeServiceExecution:async()=>{expect(docs[0].status).toBe('completed');closes++;},failServiceExecution:async()=>{expect(docs[0].status).toBe('generation_failed');refunds++;return {};}}));
+ jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async(_env,_user,input)=>{executionMetadata=input.metadata;return {};},completeServiceExecution:async()=>{expect(docs[0].status).toBe('completed');closes++;},failServiceExecution:async()=>{expect(docs[0].status).toBe('generation_failed');refunds++;return refundOutcome;}}));
  ({handleRelationshipBoundaryTestRoutes:route}=await import('../../worker/routes/relationship-boundary-test.js'));
 });
-beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;
+beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.attempts).toBe(1);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash[":\s]+([a-f0-9]{64})/)[1];
@@ -95,6 +95,18 @@ test('unknown provider interruption is bounded without a generation-failure refu
 test('known invalid generation refunds only after failure state is verified',async()=>{
  provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));await start();await resume();const response=await resume();
  expect(response.status).toBe(503);expect((await response.json()).reason).toBe('GENERATION_FAILED');expect(refunds).toBe(1);
+});
+test('pass evidence survives separate requests without a payment transaction id',async()=>{
+ provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
+ await start();expect(docs[0].paymentId).toBe('');await resume();const response=await resume();
+ expect(executionMetadata.passRefund).toEqual({cycleKey:'2026-10-01',cost:300});
+ expect((await response.json()).refunded).toBe(true);expect(refunds).toBe(1);
+ await resume();expect(refunds).toBe(1);
+});
+test('unsuccessful settlement is never reported as refunded',async()=>{
+ refundOutcome={refundStatus:'refund_failed'};
+ provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
+ await start();await resume();expect((await (await resume()).json()).refunded).toBe(false);
 });
 test('query-shaped ids are rejected before storage lookup',async()=>{
  expect((await post({resumeSessionId:{$ne:null}})).status).toBe(422);
