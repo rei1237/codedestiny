@@ -7,27 +7,29 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson, cookieValue, 
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
-import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+
+
+
 import { computePetBlueprint } from "./pet-saju.js";
 import { buildPetCompat } from "../lib/pet/pet-compat.js";
 import { normalizeRequestDate } from "../lib/pet/pet-input.js";
-import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
+import { renderPetNarrative, seedPetReport, seedPetCompat } from "../lib/pet-report-delivery.js";
+
 
 const REPORT_FEATURE_KEY = "pet-saju-ai-consultation";
 const REPORT_TYPE = "petSajuReport";
-const REPORT_TITLE = "반려동물 사주 AI 심층 리포트";
+
 
 const COMPAT_FEATURE_KEY = "pet-compatibility-ai";
 const COMPAT_REPORT_TYPE = "petCompatReport";
-const COMPAT_TITLE = "반려동물 궁합 분석";
+
 
 const SYSTEM_PROMPT = [
   "당신은 반려동물 행동과 명리학을 함께 다루는 상담가입니다.",
   "주어진 [사실] 수치는 이미 확정된 계산 결과입니다. 절대 바꾸거나 새 수치를 만들지 마세요.",
   "의학적 진단·처방·질병명은 쓰지 말고, 생활 관리와 보호자의 행동 제안으로만 표현하세요.",
-  "문장은 보호자에게 직접 말하듯 담백하고 단정적으로 씁니다. 과장·미사여구·이모지는 쓰지 마세요.",
+  "문장은 보호자에게 직접 말하듯 가능성과 관찰 조건을 구분해 담백하게 씁니다. 과장·미사여구·이모지는 쓰지 마세요.",
   "반드시 JSON 객체 하나만 출력하세요.",
 ].join("\n");
 
@@ -39,10 +41,10 @@ function starsText(stars) {
   return "★".repeat(Math.max(0, Math.min(5, Number(stars) || 0)));
 }
 
-async function resolveAccess(request, env, body, { featureKey, reportType, route }) {
-  let auth;
+async function resolveAccess(request, env, body, { featureKey, reportType, route }, knownAuth) {
+  let auth = knownAuth;
   try {
-    auth = await requireAuth(request, env);
+    if (!auth) auth = await requireAuth(request, env);
   } catch (error) {
     if (Number(error?.status) === 401) {
       throw new HttpError(401, "로그인 후 이용해 주세요.", { error: "UNAUTHORIZED" });
@@ -142,54 +144,6 @@ function buildReportPrompt(blueprint) {
   ].join("\n");
 }
 
-function fallbackReport(blueprint) {
-  const name = blueprint.name || "이 아이";
-  const useful = blueprint.balance.usefulElement;
-  const excess = blueprint.balance.excessElement;
-  return {
-    personality: blueprint.summary.paragraphs,
-    habitats: blueprint.deep.habitats.map((item) => ({
-      id: item.id,
-      reading: `${item.labelKo}은(는) ${item.supplies.join("·")}기운을 채워 주고 ${item.soothes.join("·")}기운을 눌러 줍니다. ${name}에게 부족한 ${useful}을 보충하는 자리라 머무는 시간이 길수록 컨디션이 안정됩니다.`,
-    })),
-    plays: blueprint.deep.plays.map((item) => `${item.labelKo} — 부족한 ${useful}기운을 자연스럽게 채워 줍니다.`),
-    coach: blueprint.deep.coach?.action || `오늘은 ${useful}기운을 채우는 시간을 15분만 만들어 주세요.`,
-    care: `${excess}기운이 강해 쉽게 달아오를 수 있습니다. 활동 뒤에는 반드시 조용한 회복 시간을 붙여 주세요. 식사와 잠자리 시간을 매일 같게 유지하면 기복이 줄어듭니다. 평소와 다른 신호가 이어지면 생활 리듬부터 먼저 점검해 주세요.`,
-    closing: `${name}의 기운은 보호자가 만들어 주는 하루의 리듬을 그대로 따라갑니다. 오늘 한 가지만 바꿔도 충분합니다.`,
-    degraded: true,
-  };
-}
-
-function normalizeReport(parsed, blueprint, locale = "ko") {
-  if (!parsed || typeof parsed !== "object") return null;
-  const isKorean = locale === "ko";
-  const personality = Array.isArray(parsed.personality) ? parsed.personality.map(clean).filter(Boolean) : [];
-  if (personality.length < 2) return null;
-
-  const readingById = new Map();
-  for (const item of Array.isArray(parsed.habitats) ? parsed.habitats : []) {
-    const id = clean(item?.id);
-    const reading = clean(item?.reading);
-    if (id && reading) readingById.set(id, reading);
-  }
-
-  const habitats = blueprint.deep.habitats.map((item) => ({
-    id: item.id,
-    reading: readingById.get(item.id) || (isKorean ? `${item.labelKo}은(는) ${item.supplies.join("·")}기운을 채워 주는 자리입니다.` : ""),
-  }));
-  const plays = (Array.isArray(parsed.plays) ? parsed.plays.map(clean).filter(Boolean) : []).slice(0, 5);
-  const coach = clean(parsed.coach) || (isKorean ? blueprint.deep.coach?.action || "" : "");
-  const care = clean(parsed.care);
-  const closing = clean(parsed.closing);
-  if (!isKorean && (!habitats.every((item) => item.reading) || !plays.length || !coach || !care || !closing)) return null;
-
-  return {
-    personality,
-    habitats, plays, coach, care, closing,
-    degraded: false,
-  };
-}
-
 // ── 궁합 ──────────────────────────────────────────────────────
 
 function buildCompatFacts(compat, blueprintA, blueprintB) {
@@ -231,169 +185,32 @@ function buildCompatPrompt(compat, blueprintA, blueprintB) {
   ].join("\n");
 }
 
-function fallbackCompat(compat) {
-  const [petA, petB] = compat.pets;
-  return {
-    verdict: `${compat.grade} — 종합 ${compat.score}점의 관계입니다.`,
-    overview: compat.notes.slice(0, 2),
-    dimensions: compat.dimensions.map((item) => ({
-      key: item.key,
-      reading: `${item.labelKo}은(는) ${item.value}점입니다. ${item.inverted ? "수치가 낮을수록 좋은 축이며, 자원이 겹치는 상황을 줄이면 더 내려갑니다." : "지금 흐름을 유지하면 이 축은 안정적으로 이어집니다."}`,
-    })),
-    places: compat.sharedPlaces.map((item) => ({
-      id: item.id,
-      reading: `${item.labelKo}은(는) 두 아이가 각자 원하는 거리를 지키면서도 같은 공간에 있을 수 있는 자리입니다.`,
-    })),
-    cautions: [
-      `${petA.excessElement}기운과 ${petB.excessElement}기운이 동시에 올라가는 시간대에는 자원(밥그릇·잠자리)을 분리해 주세요.`,
-      `한쪽이 먼저 지치면 나머지가 계속 요구할 수 있습니다. 각자의 휴식 공간을 따로 확보해 주세요.`,
-    ],
-    routine: `아침에는 각자 따로 활동을 시작하고, 낮에 짧은 합동 놀이를 한 번 넣습니다. 저녁에는 다시 각자의 자리로 분리해 휴식하게 하세요. 하루 한 번은 두 아이를 같은 공간에서 같은 시간에 먹이면 관계가 안정됩니다.`,
-    degraded: true,
-  };
-}
-
-function normalizeCompat(parsed, compat, locale = "ko") {
-  if (!parsed || typeof parsed !== "object") return null;
-  const isKorean = locale === "ko";
-  const overview = Array.isArray(parsed.overview) ? parsed.overview.map(clean).filter(Boolean) : [];
-  if (!clean(parsed.verdict) || overview.length < 1) return null;
-
-  const dimById = new Map();
-  for (const item of Array.isArray(parsed.dimensions) ? parsed.dimensions : []) {
-    const key = clean(item?.key);
-    const reading = clean(item?.reading);
-    if (key && reading) dimById.set(key, reading);
-  }
-  const placeById = new Map();
-  for (const item of Array.isArray(parsed.places) ? parsed.places : []) {
-    const id = clean(item?.id);
-    const reading = clean(item?.reading);
-    if (id && reading) placeById.set(id, reading);
-  }
-
-  const dimensions = compat.dimensions.map((item) => ({
-    key: item.key,
-    reading: dimById.get(item.key) || (isKorean ? `${item.labelKo}은(는) ${item.value}점입니다.` : ""),
-  }));
-  const places = compat.sharedPlaces.map((item) => ({
-    id: item.id,
-    reading: placeById.get(item.id) || (isKorean ? `${item.labelKo}은(는) 두 아이가 함께 머물기 좋은 자리입니다.` : ""),
-  }));
-  const cautions = (Array.isArray(parsed.cautions) ? parsed.cautions.map(clean).filter(Boolean) : []).slice(0, 4);
-  const routine = clean(parsed.routine);
-  if (!isKorean && (!dimensions.every((item) => item.reading) || !places.every((item) => item.reading) || !cautions.length || !routine)) return null;
-
-  return {
-    verdict: clean(parsed.verdict),
-    overview,
-    dimensions, places, cautions, routine,
-    degraded: false,
-  };
-}
-
-// ── 생성 공통 ─────────────────────────────────────────────────
-
-function parseJsonLoose(text) {
-  const source = clean(text);
-  if (!source) return null;
-  try {
-    return JSON.parse(source);
-  } catch (_) {
-    const start = source.indexOf("{");
-    const end = source.lastIndexOf("}");
-    if (start < 0 || end <= start) return null;
-    try {
-      return JSON.parse(source.slice(start, end + 1));
-    } catch (_) {
-      return null;
-    }
-  }
-}
-
-async function generateNarration(env, prompt, cacheKeyExtra, baseTokens, minChars) {
-  const ai = await callGeminiJsonWithRetry(env, prompt, {
-    systemPrompt: SYSTEM_PROMPT,
-    taskType: "fortune",
-    temperature: 0.55,
-    attempts: 2,
-    timeoutMs: Number(env.PET_SAJU_PROVIDER_TIMEOUT_MS || 45000),
-    baseTokens,
-    capTokens: Math.round(baseTokens * 1.8),
-    fallbackToWorkersAI: true,
-    // 짧은 폴백 응답이 정상 리포트로 팔리지 않게 막는다(관례: 최소 분량 × 0.4).
-    // 미달이면 호출이 실패로 돌아 아래 degraded 템플릿(fallbackReport/fallbackCompat)이 대신한다.
-    fallbackMinChars: Math.round(minChars * 0.4),
-    cache: {
-      store: createLlmCacheStore(env),
-      deterministic: true,
-      ttlSeconds: 7 * 24 * 60 * 60,
-      keyExtra: cacheKeyExtra,
+async function handlePetDelivery(request, env, kind) {
+  const body = request.method === "POST" ? await readJson(request) : {};
+  const auth = await requireAuth(request, env);
+  const featureKey = kind === "report" ? REPORT_FEATURE_KEY : COMPAT_FEATURE_KEY;
+  const reportType = kind === "report" ? REPORT_TYPE : COMPAT_REPORT_TYPE;
+  return runPaidNarrativeDelivery(request, env, auth, body, {
+    featureKey, reportType, render: renderPetNarrative,
+    timeoutMs: env.PET_SAJU_PROVIDER_TIMEOUT_MS,
+    verify: original => resolveAccess(request, env, original, { featureKey, reportType, route: `/api/pet-saju-ai/${kind}` }, auth),
+    seed: original => {
+      const date = normalizeRequestDate(original.date);
+      if (kind === "report") {
+        const { blueprint } = computePetBlueprint(original.pet, date);
+        return seedPetReport(blueprint, buildReportPrompt(blueprint), SYSTEM_PROMPT);
+      }
+      const pets = [computePetBlueprint(original.petA, date, "첫째 프로필").blueprint, computePetBlueprint(original.petB, date, "둘째 프로필").blueprint];
+      const compat = buildPetCompat(...pets);
+      return seedPetCompat(compat, pets, buildCompatPrompt(compat, ...pets), SYSTEM_PROMPT);
     },
   });
-  if (!ai?.ok || !hasRenderableLlmText(ai.text)) return null;
-  return parseJsonLoose(ai.text);
 }
-
-// ── 라우트 핸들러 ─────────────────────────────────────────────
-
-async function handleReport(request, env) {
-  const body = await readJson(request);
-  await resolveAccess(request, env, body, {
-    featureKey: REPORT_FEATURE_KEY,
-    reportType: REPORT_TYPE,
-    route: "/api/pet-saju-ai/report",
-  });
-
-  const date = normalizeRequestDate(body?.date);
-  const { blueprint } = computePetBlueprint(body?.pet, date);
-
-  const parsed = await generateNarration(
-    env,
-    buildReportPrompt(blueprint),
-    `pet-report-v1-${blueprint.petKey}-${date}`,
-    3400,
-    1400, // 리포트 문장 스펙 합산(성격 문단 + 명당 5곳 + 코칭/케어/맺음) 최소치
-  );
-  const locale = getAmbientAiLocale() || "ko";
-  const report = normalizeReport(parsed, blueprint, locale);
-  if (!report && locale !== "ko") {
-    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated reading is incomplete for the selected language." }, { status: 502 });
-  }
-
-  return json({ ok: true, title: REPORT_TITLE, blueprint, report: report || fallbackReport(blueprint) });
-}
-
-async function handleCompat(request, env) {
-  const body = await readJson(request);
-  await resolveAccess(request, env, body, {
-    featureKey: COMPAT_FEATURE_KEY,
-    reportType: COMPAT_REPORT_TYPE,
-    route: "/api/pet-saju-ai/compat",
-  });
-
-  const date = normalizeRequestDate(body?.date);
-  const { blueprint: blueprintA } = computePetBlueprint(body?.petA, date, "첫째 프로필");
-  const { blueprint: blueprintB } = computePetBlueprint(body?.petB, date, "둘째 프로필");
-  const compat = buildPetCompat(blueprintA, blueprintB);
-
-  const parsed = await generateNarration(
-    env,
-    buildCompatPrompt(compat, blueprintA, blueprintB),
-    `pet-compat-v1-${blueprintA.petKey}-${blueprintB.petKey}-${date}`,
-    3000,
-    1200, // 궁합 문장 스펙 합산(차원 리딩 + 공유 명당 + 주의/루틴) 최소치
-  );
-  const locale = getAmbientAiLocale() || "ko";
-  const reading = normalizeCompat(parsed, compat, locale);
-  if (!reading && locale !== "ko") {
-    return json({ ok: false, code: "AI_LOCALE_RESULT_INCOMPLETE", message: "Generated reading is incomplete for the selected language." }, { status: 502 });
-  }
-
-  return json({ ok: true, title: COMPAT_TITLE, compat, reading: reading || fallbackCompat(compat), pets: [blueprintA, blueprintB] });
-}
+const handleReport = (request, env) => handlePetDelivery(request, env, "report");
+const handleCompat = (request, env) => handlePetDelivery(request, env, "compat");
 
 function routeError(error) {
+  if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 });
   if (error instanceof HttpError) {
     return json({ ok: false, error: error.payload?.error || "BAD_REQUEST", message: error.message }, { status: error.status });
   }
@@ -406,6 +223,12 @@ export async function handlePetSajuAiRoutes(request, env) {
     const path = getRoutePath(request, "/api/pet-saju-ai");
     const method = request.method.toUpperCase();
     if (method === "OPTIONS") return new Response(null, { status: 204 });
+    if (path === "/result") {
+      if (method !== "GET") return methodNotAllowed();
+      const kind = new URL(request.url).searchParams.get("kind");
+      if (!["report", "compat"].includes(kind)) return json({ ok: false, reason: "INVALID_REPORT_KIND" }, { status: 422 });
+      return await handlePetDelivery(request, env, kind);
+    }
     if (path === "/report") {
       if (method !== "POST") return methodNotAllowed();
       return await handleReport(request, env);

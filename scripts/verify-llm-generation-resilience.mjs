@@ -893,7 +893,7 @@ const LLM_CALL_FILES = [
   "worker/routes/karma-destiny-ai.js", "worker/routes/life-book-ai.js", "worker/routes/love-secret-ai.js",
   "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/lib/naming-report-delivery.js",
   "worker/routes/neo-operation-room.js", "worker/routes/new-year-ai.js", "worker/routes/oracle.js",
-  "worker/routes/pet-saju-ai.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
+  "worker/lib/paid-narrative-delivery.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
   "worker/routes/yoga-guru.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
   "worker/routes/ziwei-island-ai.js", "worker/lib/fusion-fortune.js", "worker/lib/palm-vision.js",
 ];
@@ -906,7 +906,7 @@ const DEAD_LLM_OPTION_KEYS = ["topP", "modelEnvKeys", "maxAttemptsPerPair", "tot
 // (fallbackToWorkersAI: false 로 폴백 자체를 끈 호출은 예외 — 짧은 폴백이 애초에 생기지 않는다.)
 const GATE_REQUIRED_FILES = [
   "worker/lib/relationship-report-delivery.js",
-  "worker/routes/pet-saju-ai.js",
+  "worker/lib/paid-narrative-delivery.js",
   "worker/routes/ziwei-deep-report.js",
   "worker/routes/neo-operation-room.js",
   "worker/lib/celestial-report-delivery.js",
@@ -990,7 +990,7 @@ const EXPECTED_LLM_CALL_SITES = {
   // vedic 1건: 그룹 생성 하나로 웨이브 1(전 그룹 동시)·2(분량 미달)·3(품질 미달)이 모두 지나간다.
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
   // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
-  "worker/routes/pet-saju-ai.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
+  "worker/lib/paid-narrative-delivery.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
   // Ziwei: two checkpointed calls (body/meta), both disable fallback and use one bounded attempt; legacy helpers retain three calls.
   "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 5, "worker/routes/ziwei-deep-report.js": 1,
   "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,

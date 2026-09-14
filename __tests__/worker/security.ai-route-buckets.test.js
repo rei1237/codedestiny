@@ -40,7 +40,8 @@ const checkpointModel = {
   findOne: filter => ({ select() { return this; }, lean: async () => {
     if (checkpointLookupFails) throw new Error('mock DB unavailable');
     return checkpointDoc && filter.userId === checkpointDoc.userId
-      && (filter.executionId || filter.id || filter._id) === (checkpointDoc.executionId || checkpointDoc.id)
+      && (filter.executionKey || filter.executionId || filter.id || filter._id) === (checkpointDoc.executionKey || checkpointDoc.executionId || checkpointDoc.id)
+      && (!filter.featureKey || filter.featureKey === checkpointDoc.featureKey)
       && (!filter.featureId || filter.featureId === checkpointDoc.featureId)
       && (!filter.serviceType || filter.serviceType === checkpointDoc.serviceType) ? checkpointDoc : null;
   } }),
@@ -74,6 +75,7 @@ const noopModel = () => ({
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   AstrologyAiConsultation: checkpointModel,
   RelationshipBoundaryTest: checkpointModel,
+  ServiceExecutionTransaction: checkpointModel,
   VedicAiConsultation: checkpointModel,
   ZiweiAiConsultation: checkpointModel,
   LoveSecretAiConsultation: checkpointModel,
@@ -336,6 +338,14 @@ describe('서버 저장본의 재개는 새 리포트 일일 예산을 소비하
     expect((await enforce('astrology-ai',{birthDate:'1990-01-01'})).ok).toBe(false);
     expect((await enforce('astrology-ai',{resumeSessionId:'another-result'})).ok).toBe(false);
     expect((await enforce('astrology-ai',{resumeSessionId:{$ne:null}})).ok).toBe(false);
+  });
+  test.each(['report','compat'])('펫 %s 재개는 소유자와 상품별로만 batch를 사용한다',async kind=>{
+    exhaustedStarts=true;checkpointDoc={userId:'user-1',executionKey:'paid-narrative:stored-result',featureKey:kind==='report'?'pet-saju-ai-consultation':'pet-compatibility-ai',status:'pending',metadata:{paidNarrative:{body:{requestId:'original'}}}};
+    const body={resumeResultId:checkpointDoc.executionKey};
+    expect((await enforce('pet-saju-ai',body,'user-1',kind)).ok).toBe(true);
+    expect(RATE_LIMIT_CALLS.at(-1).endpoint).toBe('ai:pet-saju-ai:batch');
+    expect((await enforce('pet-saju-ai',body,'other-owner',kind)).ok).toBe(false);
+    expect((await enforce('pet-saju-ai',body,'user-1',kind==='report'?'compat':'report')).ok).toBe(false);
   });
   test.each(['naming-prompt', 'ziwei-island-ai'])('%s 재개는 소유자와 상품을 함께 확인한다', async service => {
     exhaustedStarts = true;

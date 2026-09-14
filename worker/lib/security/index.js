@@ -556,6 +556,7 @@ const CHECKPOINT_RESUME_MODELS = Object.freeze({
   "naming-prompt": "PaidExecutionRecord",
   "ziwei-island-ai": "ZiweiAiConsultation",
   "relationship-boundary-test": "RelationshipBoundaryTest",
+  "pet-saju-ai": "ServiceExecutionTransaction",
 });
 
 // Only a small server-ID resume envelope can change the quota classification. The
@@ -585,17 +586,20 @@ async function isOwnedCheckpointResume(request, env, serviceKey, userId) {
   const modelName = CHECKPOINT_RESUME_MODELS[serviceKey];
   if (!modelName || !userId || request.method !== "POST") return false;
   const body = await readCheckpointResumeBody(request);
-  const id = serviceKey === "naming-prompt" ? body?.resumeExecutionId : serviceKey === "neo-operation-room" ? body?.sessionId || body?.resultId : body?.resumeSessionId;
+  const pet = serviceKey === "pet-saju-ai";
+  const id = pet ? body?.resumeResultId : serviceKey === "naming-prompt" ? body?.resumeExecutionId : serviceKey === "neo-operation-room" ? body?.sessionId || body?.resultId : body?.resumeSessionId;
   const maxIdLength = serviceKey === "naming-prompt" ? 160 : 120;
   if (typeof id !== "string" || id.length > maxIdLength || !/^[a-zA-Z0-9_:-]{8,160}$/.test(id)) return false;
   try {
     await connectDb(env);
     const model = consultationModels[modelName];
-    const saved = await model.findOne({ userId, [serviceKey === "naming-prompt" ? "executionId" : serviceKey === "sukuyo-compatibility-ai" ? "_id" : "id"]: id,
-      ...(serviceKey === "naming-prompt" ? { featureId: "premium-naming-prompt" } : serviceKey === "ziwei-island-ai" ? { serviceType: "ziwei-island-palace-consult" } : {}) })
-      .select("status serviceType llmMeta.resumeBody llmMeta.delivery.resumeBody llmMeta.input result.namingPrompt.delivery").lean();
+    const petFeature = new URL(request.url).pathname.endsWith("/report") ? "pet-saju-ai-consultation" : new URL(request.url).pathname.endsWith("/compat") ? "pet-compatibility-ai" : "";
+    if (pet && !petFeature) return false;
+    const saved = await model.findOne({ userId, [pet ? "executionKey" : serviceKey === "naming-prompt" ? "executionId" : serviceKey === "sukuyo-compatibility-ai" ? "_id" : "id"]: id,
+      ...(pet ? { featureKey: petFeature } : serviceKey === "naming-prompt" ? { featureId: "premium-naming-prompt" } : serviceKey === "ziwei-island-ai" ? { serviceType: "ziwei-island-palace-consult" } : {}) })
+      .select("status serviceType llmMeta.resumeBody llmMeta.delivery.resumeBody llmMeta.input result.namingPrompt.delivery metadata.paidNarrative.body").lean();
     if (!saved || (serviceKey === "ziwei-ai" && saved.serviceType && saved.serviceType !== serviceKey)) return false;
-    return Boolean(saved.status === "completed" || saved.llmMeta?.resumeBody || saved.llmMeta?.delivery?.resumeBody
+    return Boolean((pet && saved.metadata?.paidNarrative?.body) || saved.status === "completed" || saved.llmMeta?.resumeBody || saved.llmMeta?.delivery?.resumeBody
       || (serviceKey === "ziwei-island-ai" && saved.llmMeta?.input) || (serviceKey === "naming-prompt" && saved.result?.namingPrompt?.delivery));
   } catch { return false; } // A missing/unavailable record cannot exempt a new start from its budget.
 }

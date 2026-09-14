@@ -314,6 +314,12 @@ h3{font-size:1.05rem; line-height:1.4}
   .btn:not(:disabled):hover{transform:none}
   .pick__item:hover{transform:none}
 }
+#stepReport .prose p, #stepReport .prose, #stepReport .rank__body,
+#stepCompat .prose p, #stepCompat .prose, #stepCompat .rank__body, #stepCompat .daily__text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+.pet-report-toc a { color: inherit; text-underline-offset: 4px; }
 </style>
 </head>
 <body>
@@ -478,6 +484,7 @@ h3{font-size:1.05rem; line-height:1.4}
   </div>
 </div>
 
+<script src="/js/core/paid-narrative-reader.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-17db4d49a2c4"></script>
 <script src="/js/core/checkout-entry.js?v=build-17db4d49a2c4"></script>
@@ -669,6 +676,7 @@ function apiFetch(path, options){
     headers: headers,
     body: init.body,
     credentials: "include",
+    signal: init.signal,
     cache: "no-store"
   }).then(function(res){
     return res.text().then(function(text){
@@ -1318,8 +1326,69 @@ function handlePaidFailure(error, retry){
   ]);
 }
 
+/* 유료 본문은 계정별 원래 요청/서버 ID로 복구한다. 새 결제 게이트는 이 루프에 없다. */
+var petDeliveryOwner='',petDeliveryEpoch=0,petDeliveryRecords={},petDeliveryFlights={};
+function petAccount(){try{var user=JSON.parse(localStorage.getItem('fortune_auth_user')||'null');return String(user&&(user.id||user.userId||user._id||user.uid)||'');}catch(_){return '';}}
+function petDeliveryKey(kind){return petDeliveryOwner?'cd:pet-paid:v2:'+encodeURIComponent(petDeliveryOwner)+':'+kind:'';}
+function rememberPetDelivery(kind,record){petDeliveryRecords[kind]=record;var key=petDeliveryKey(kind);if(key)try{localStorage.setItem(key,JSON.stringify(record,function(name,value){return /^(premiumAccessToken|token|accessToken|authorization)$/i.test(name)?undefined:value;}));localStorage.setItem(petDeliveryKey('last'),kind);}catch(_){} }
+function selectPetAccount(owner){if(owner===petDeliveryOwner)return;petDeliveryOwner=owner;petDeliveryEpoch++;petDeliveryRecords={};petDeliveryFlights={};state.report=null;state.compat=null;state.blueprint=null;hideOverlay();clear($('stepReport'));clear($('stepCompat'));go('intro');['report','compat'].forEach(function(kind){try{petDeliveryRecords[kind]=JSON.parse(localStorage.getItem(petDeliveryKey(kind))||'null')||{};}catch(_){petDeliveryRecords[kind]={};}});}
+window.addEventListener('cd:auth-changed',function(){selectPetAccount(petAccount());void recoverPetDeliveries();});
+window.addEventListener('storage',function(event){if(event.key==='fortune_auth_user'){selectPetAccount(petAccount());void recoverPetDeliveries();}});
+function petDeliveryRequest(path,body){var controller=new AbortController();var timer=setTimeout(function(){controller.abort();},body?90000:22000);return apiFetch(path,{method:body?'POST':'GET',body:body?JSON.stringify(body):undefined,signal:controller.signal}).finally(function(){clearTimeout(timer);});}
+function showPetDelivery(kind,payload){
+  var record=petDeliveryRecords[kind]||{};record.status=payload.status||'completed';record.resultId=payload.resultId||record.resultId;record.completedParts=payload.completedParts||[];record.totalParts=payload.totalParts||0;
+  if(record.status==='completed')record.body=null;rememberPetDelivery(kind,record);
+  if(kind==='report'){state.report=payload.report;state.blueprint=payload.blueprint;renderReport();}
+  else{state.compat={compat:payload.compat,reading:payload.reading,pets:(payload.pets||[]).map(function(pet){return {name:pet.name,species:pet.species&&pet.species.key||pet.species,breed:pet.breed&&pet.breed.key||pet.breed};})};renderCompatResult();}
+  hideOverlay();var host=$(kind==='report'?'stepReport':'stepCompat');if(!host.classList.contains('is-active'))go(kind);
+}
+function runPetDelivery(kind,body){
+  var existing=petDeliveryFlights[kind];if(existing){var prior=(petDeliveryRecords[kind]||{}).requestId;if(body&&body.requestId&&prior&&body.requestId!==prior)return Promise.resolve(false);return existing;}
+  var owner=petDeliveryOwner,epoch=petDeliveryEpoch;if(!owner){selectPetAccount(petAccount());owner=petDeliveryOwner;epoch=petDeliveryEpoch;}
+  var active=function(){return owner===petDeliveryOwner&&epoch===petDeliveryEpoch;};
+  var record=petDeliveryRecords[kind]||{};
+  if(body&&body.requestId&&record.requestId&&body.requestId!==record.requestId)record={};
+  var initial=record.body||body||null;if(initial){record.body=initial;record.requestId=initial.requestId||record.requestId;rememberPetDelivery(kind,record);}
+  if(initial&&!(kind==='report'?state.report:state.compat))showLoading('리포트를 쓰는 중','정상적으로 작성된 부분부터 저장하고 있어요.');
+  var promise=window.CDPaidNarrativeReader.run(initial,{
+    active:active,visible:function(){return document.visibilityState!=='hidden'&&navigator.onLine!==false;},wait:function(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});},
+    get:function(){return petDeliveryRequest('/api/pet-saju-ai/result?kind='+kind+(record.resultId?'&resultId='+encodeURIComponent(record.resultId):'&pending=1'));},
+    post:function(value){return petDeliveryRequest('/api/pet-saju-ai/'+kind,value);},
+    persist:function(value,id){if(active()){record.body=value;record.resultId=id;rememberPetDelivery(kind,record);}},
+    show:function(value){if(active())showPetDelivery(kind,value);}
+  }).finally(function(){if(active()){delete petDeliveryFlights[kind];if(kind==='report'&&state.report)renderReport();if(kind==='compat'&&state.compat)renderCompatResult();hideOverlay();}});
+  petDeliveryFlights[kind]=promise;return promise;
+}
+var petRecoveryRunning=false;
+async function recoverPetDeliveries(){
+  if(petRecoveryRunning||document.visibilityState==='hidden'||navigator.onLine===false)return;
+  petRecoveryRunning=true;var epoch=petDeliveryEpoch;
+  try{
+    var owner=petAccount();try{var auth=await petDeliveryRequest('/api/auth/me');if(epoch!==petDeliveryEpoch)return;if(auth.status===401){selectPetAccount('');return;}var user=auth.payload&&auth.payload.user;if(user)owner=String(user.id||user.userId||user._id||user.uid||'');}catch(_){}
+    if(!owner)return;selectPetAccount(owner);epoch=petDeliveryEpoch;
+    var last='report';try{last=localStorage.getItem(petDeliveryKey('last'))||'report';}catch(_){}
+    var kinds=last==='compat'?['compat','report']:['report','compat'];
+    for(var i=0;i<kinds.length;i++){if(epoch!==petDeliveryEpoch)return;var kind=kinds[i];await runPetDelivery(kind,null);if((petDeliveryRecords[kind]||{}).resultId)break;}
+  }catch(error){if(epoch===petDeliveryEpoch)handlePaidFailure(error,function(){void recoverPetDeliveries();});}
+  finally{petRecoveryRunning=false;}
+}
+window.addEventListener('online',function(){void recoverPetDeliveries();});
+document.addEventListener('visibilitychange',function(){void recoverPetDeliveries();});
+function petDeliveryControls(host,kind){
+  var record=petDeliveryRecords[kind]||{};
+  if(record.status&&record.status!=='completed'){
+    var panel=el('div','prose');panel.setAttribute('aria-live','polite');panel.appendChild(el('p',null,(record.completedParts||[]).length+'/'+record.totalParts+' 부분 저장 · 저장된 본문부터 읽을 수 있어요.'));
+    var resume=el('button','btn btn--ghost',petDeliveryFlights[kind]?'이어서 작성 중':'같은 결과 이어서 생성하기');resume.disabled=!!petDeliveryFlights[kind];resume.addEventListener('click',function(){runPetDelivery(kind,null).catch(function(error){handlePaidFailure(error,function(){void recoverPetDeliveries();});});});panel.appendChild(resume);host.insertBefore(panel,host.children[1]||null);
+  }
+  var nav=el('nav','prose pet-report-toc');nav.setAttribute('aria-label','리포트 목차');var key=petDeliveryKey(kind)+':reading:'+String(record.resultId||'');
+  Array.prototype.forEach.call(host.querySelectorAll('h2'),function(heading,index){heading.id='pet-'+kind+'-chapter-'+index;heading.style.scrollMarginTop='6rem';var link=el('a',null,heading.textContent);link.href='#'+heading.id;link.style.display='inline-block';link.style.padding='12px';link.addEventListener('click',function(){try{localStorage.setItem(key,heading.id);}catch(_){}});nav.appendChild(link);});
+  try{var saved=localStorage.getItem(key);if(saved&&saved.indexOf('pet-'+kind+'-chapter-')===0){var back=el('a',null,'읽던 장으로 이동');back.href='#'+saved;back.style.display='block';back.style.padding='12px';nav.appendChild(back);}}catch(_){}
+  host.insertBefore(nav,host.children[1]||null);
+}
+
 /* ═══ 11) 심층 리포트 ═══ */
 function openReport(){
+  if (petDeliveryRecords.report && petDeliveryRecords.report.body) { runPetDelivery('report',petDeliveryRecords.report.body).catch(function(error){handlePaidFailure(error,openReport);}); return; }
   if (!state.blueprint) { go("species"); return; }
   if (state.report) { renderReport(); go("report"); return; }
   showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
@@ -1332,21 +1401,7 @@ function openReport(){
 
 /* 🔴 게이트를 타지 않는 코어다 — 재개는 반드시 여기로 들어온다. 게이트를 타는 openReport 로
    되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
-function runPetReportCore(gate, profile){
-  showLoading("리포트를 쓰는 중", "우리 아이에게 맞는 환경과 놀이를 찾고 있어요.");
-  return apiFetch("/api/pet-saju-ai/report", {
-    method: "POST",
-    body: JSON.stringify(paidRequestBody(gate, { pet: profile }))
-  }).then(function(res){
-    if (!res.ok || !res.payload.report) throw new Error((res.payload && res.payload.message) || "리포트 생성에 실패했습니다.");
-    state.report = res.payload.report;
-    if (res.payload.blueprint) state.blueprint = res.payload.blueprint;
-    hideOverlay();
-    renderReport();
-    go("report");
-    return true;
-  });
-}
+function runPetReportCore(gate, profile){ return runPetDelivery("report", paidRequestBody(gate, {pet:profile})); }
 
 function renderReport(){
   var host = $("stepReport");
@@ -1384,8 +1439,8 @@ function renderReport(){
   host.appendChild(ranks);
 
   host.appendChild(sectionTitle("추천 놀이"));
-  var tags = el("div", "tags");
-  report.plays.forEach(function(play){ tags.appendChild(el("span", "tag", play)); });
+  var tags = el("div", "prose");
+  report.plays.forEach(function(play){ tags.appendChild(el("p", null, play)); });
   host.appendChild(tags);
 
   host.appendChild(sectionTitle("오늘의 행복 코치"));
@@ -1402,6 +1457,7 @@ function renderReport(){
       "AI 서술이 지연되어 계산 결과를 그대로 정리한 판본을 보여 드리고 있습니다. 잠시 후 다시 열면 상세 서술이 붙습니다."));
   }
   host.appendChild(el("p", "field__hint", "의학적 진단이 아니라 생활 관리 관점의 안내입니다."));
+  petDeliveryControls(host,'report');
 }
 
 /* ═══ 12) 궁합 ═══ */
@@ -1465,6 +1521,7 @@ function renderCompatPicker(){
 }
 
 function openCompat(){
+  if (petDeliveryRecords.compat && petDeliveryRecords.compat.body) { runPetDelivery('compat',petDeliveryRecords.compat.body).catch(function(error){handlePaidFailure(error,openCompat);}); return; }
   var petA = state.pets[state.compatPick[0]];
   var petB = state.pets[state.compatPick[1]];
   if (!petA || !petB) return;
@@ -1477,20 +1534,7 @@ function openCompat(){
 }
 
 /* 게이트를 타지 않는 코어(위 리포트 코어와 같은 이유). */
-function runPetCompatCore(gate, petA, petB){
-  showLoading("두 아이의 기운을 겹쳐 보는 중", "상생·상극과 서로를 채우는 정도를 계산하고 있어요.");
-  return apiFetch("/api/pet-saju-ai/compat", {
-    method: "POST",
-    body: JSON.stringify(paidRequestBody(gate, { petA: petA, petB: petB }))
-  }).then(function(res){
-    if (!res.ok || !res.payload.compat) throw new Error((res.payload && res.payload.message) || "궁합 계산에 실패했습니다.");
-    state.compat = { compat: res.payload.compat, reading: res.payload.reading, pets: [petA, petB] };
-    hideOverlay();
-    renderCompatResult();
-    go("compat");
-    return true;
-  });
-}
+function runPetCompatCore(gate, petA, petB){ return runPetDelivery("compat", paidRequestBody(gate, {petA:petA,petB:petB})); }
 
 /* ── 결제 후 자동 재개(모바일 리다이렉트 복귀) ────────────────────────────────
    두 유료 산출물 모두 **서버 호출**이라, 화면 복원만으로는 부족하고 결제 증빙을 다시 실어야 한다.
@@ -1549,19 +1593,7 @@ function runPetReportResume(descriptor, grant){
   if (!gate) return false;
 
   state.profile = profile;
-  var ready = state.blueprint
-    ? Promise.resolve(state.blueprint)
-    // 설계도는 무료 계산이다 — 새로고침으로 사라졌으면 유료 리포트 전에 여기서 다시 받는다.
-    : requestBlueprint(profile).then(function(blueprint){
-      state.blueprint = blueprint;
-      state.report = null;
-      savePet(profile);
-      setAccent(blueprint.balance.usefulElement);
-      renderResult();
-      return blueprint;
-    });
-  return ready
-    .then(function(){ return runPetReportCore(gate, profile); })
+  return runPetReportCore(gate, profile)
     .then(function(ok){ return ok !== false; })
     .catch(function(error){ handlePaidFailure(error, openReport); return false; });
 }
@@ -1677,6 +1709,7 @@ function renderCompatResult(){
   var row = el("div", "btn-row");
   row.appendChild(again);
   host.appendChild(row);
+  petDeliveryControls(host,'compat');
 }
 
 /* ═══ 13) 저장한 아이 ═══ */
@@ -1779,10 +1812,12 @@ function boot(){
   seedStars();
   bindNav();
   $("introMyPets").hidden = state.pets.length === 0;
+  void recoverPetDeliveries();
   loadCatalog().then(function(){
     renderSpecies();
     renderProfileForm();
   }).catch(function(){
+    if(state.report||state.compat)return;
     showError("목록을 불러오지 못했어요", "네트워크 상태를 확인한 뒤 다시 시도해 주세요.", [
       { label: "다시 시도", primary: true, onClick: function(){ hideOverlay(); boot(); } }
     ]);
