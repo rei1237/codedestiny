@@ -653,11 +653,11 @@ console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않
   check("🔴 심화 상담: /start 가 일시 장애면 죽이지 않고 폴링으로 넘긴다(생성 자체가 안 되던 원인)",
     /isRetriableResultPollFailure\(response\.status, data\)\) \{[\s\S]{0,220}pollResult\(idempotencyKey/.test(ai));
   check("🔴 심화 상담: 일시 장애가 진행 예산을 먹지 않는다(별도 카운터)",
-    /TRANSIENT_MAX_RETRIES/.test(ai) && /transientLeft -= 1/.test(ai));
+    /TRANSIENT_MAX_RETRIES/.test(ai) && /--transientLeft/.test(ai) && /response.status === 202\) attempt \+= 1/.test(ai) && !/deadline; attempt\+\+/.test(ai));
   check("🔴 심화 상담: 블립 예산을 회복시키지 않는다(상한이 곱해지는 것 방지)",
     !/transientLeft = TRANSIENT_MAX_RETRIES;\s*\n\s*attempt \+= 1/.test(ai));
   check("🔴 심화 상담: 카운터와 별개로 벽시계 상한이 있다",
-    /GENERATION_DEADLINE_MS/.test(ai) && (ai.match(/Date\.now\(\) < deadline/g) || []).length === 2);
+    /GENERATION_DEADLINE_MS/.test(ai) && /attempt < POLL_MAX_ATTEMPTS && Date\.now\(\) < deadline/.test(ai));
 }
 
 console.log(`\n${failures === 0 ? "PASS" : `FAIL (${failures})`} — 나크샤트라 심화 리포트 검증`);

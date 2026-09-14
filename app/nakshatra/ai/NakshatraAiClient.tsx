@@ -211,7 +211,7 @@ export default function NakshatraAiClient() {
     setPhase("generating");
     let transientLeft = TRANSIENT_MAX_RETRIES;
     const deadline = Date.now() + GENERATION_DEADLINE_MS;
-    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS && Date.now() < deadline; attempt++) {
+    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS && Date.now() < deadline;) {
       if (!isCurrent()) return;
       if (document.hidden || !navigator.onLine) { busyRef.current = false; return; }
       try {
@@ -241,7 +241,8 @@ export default function NakshatraAiClient() {
         if (response.status !== 202 && response.status !== 404 && !isRetriableResultPollFailure(response.status, data)) {
           fail(toText(data.message) || copy.aiErrorConflict); return;
         }
-        if (response.status !== 202 && --transientLeft <= 0) break;
+        if (response.status === 202) attempt += 1;
+        else if (--transientLeft <= 0) break;
       } catch {
         if (!isCurrent()) return;
         if (--transientLeft <= 0) break;
