@@ -82,7 +82,8 @@ export function buildNewYearPreviewPayload(state: DevPreviewState) {
     ok: true,
     sessionId: "dev-preview-new-year",
     accessType: "pass",
-    status: "ready",
+    status: "completed",
+    saved: true,
     messages: [
       { role: "user" as const, content: "이직해도 될까요?", createdAt: "2026-07-08T08:59:00.000Z" },
       { role: "assistant" as const, content, createdAt: "2026-07-08T09:00:00.000Z" },

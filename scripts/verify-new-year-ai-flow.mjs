@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -109,15 +110,15 @@ assertIncludes("worker/routes/new-year-ai.js", "yongshin");
 assertIncludes("worker/routes/new-year-ai.js", "johu");
 assertIncludes("worker/routes/new-year-ai.js", "daewoonSewoon");
 assertIncludes("worker/routes/new-year-ai.js", "annualInteractions");
-assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MIN_TOTAL_CHARS = 15000");
-assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MAX_TOTAL_CHARS = 24000");
+assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MIN_TOTAL_CHARS = 20000");
+assertIncludes("worker/routes/new-year-ai.js", "NEW_YEAR_AI_MAX_TOTAL_CHARS = 28000");
 assertIncludes("worker/routes/new-year-ai.js", "validateConsultationQuality");
 assertIncludes("worker/routes/new-year-ai.js", "buildMockConsultationText");
 assertIncludes("worker/routes/new-year-ai.js", "buildConsultationCompressionPrompt");
 assertIncludes("worker/routes/new-year-ai.js", "buildBasicSajuProfile");
 assertIncludes("worker/routes/new-year-ai.js", "sajuProfile");
-assertIncludes("worker/routes/new-year-ai.js", "path: \"apply\"");
-assertIncludes("worker/routes/new-year-ai.js", "path: \"cancel\"");
+assertIncludes("worker/routes/new-year-ai.js", "finishNewYearDelivery");
+assertIncludes("worker/routes/new-year-ai.js", "callDeferredUsageRoute");
 assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Prepare Start\"");
 assertIncludes("worker/routes/new-year-ai.js", "logNewYearAi(\"Generate Success\"");
 assertIncludes("worker/routes/new-year-ai.js", "providerReason");
@@ -175,9 +176,9 @@ assert(firstPrompt.includes("[계산된 사주와 세운 데이터]"), "new-year
 assert(firstPrompt.includes("처음 입력한 더 깊게 보고 싶은 흐름"), "new-year-ai first prompt should use the initial deep-flow question");
 assert(firstPrompt.includes("새해 전체 운의 핵심 결론"), "new-year-ai first prompt should request consultation sections");
 assert(firstPrompt.includes("격국, 용신·기신, 조후, 대운-세운 관계"), "new-year-ai first prompt should request advanced saju synthesis");
-assert(firstPrompt.includes("전체 본문 합계는 공백을 제외하고 15,000자 이상 24,000자 이하"), "new-year-ai prompt should require 15k-24k total content chars");
-assert(firstPrompt.includes("권장 분량은 17,000~22,000자"), "new-year-ai prompt should guide the rough expected length");
-assert(firstPrompt.includes("각 항목마다 15,000자를 쓰지 말고"), "new-year-ai prompt should not require the whole target per section");
+assert(firstPrompt.includes("전체 본문 합계는 공백을 제외하고 20,000자 이상 28,000자 이하"), "new-year-ai prompt should require 20k-28k total content chars");
+assert(firstPrompt.includes("권장 분량은 22,000~25,000자"), "new-year-ai prompt should guide the rough expected length");
+assert(firstPrompt.includes("각 항목마다 20,000자를 쓰지 말고"), "new-year-ai prompt should not require the whole target per section");
 assert(firstPrompt.includes("단순히 문장을 길게 늘이지 말고"), "new-year-ai prompt should require expert additions instead of filler");
 assert(firstPrompt.includes("[카테고리별 참고 신호"), "new-year-ai prompt should surface per-category domain signals");
 assert(firstPrompt.includes("**연애·재회**, **재물·수입**, **직업·이직**, **건강·멘탈**, **가족·관계**, **학업·성장**"), "new-year-ai prompt should require the 6 category subsections");
@@ -189,8 +190,8 @@ assert(
 );
 const sectionMinSum = sections.reduce((sum, section) => sum + section.minChars, 0);
 const sectionMaxSum = sections.reduce((sum, section) => sum + section.maxChars, 0);
-assert(sectionMinSum >= 15000, `section minChars sum should reach the 15k floor, got ${sectionMinSum}`);
-assert(sectionMaxSum <= 24000, `section maxChars sum should stay under the 24k ceiling, got ${sectionMaxSum}`);
+assert(sectionMinSum >= 20000, `section minChars sum should reach the 20k floor, got ${sectionMinSum}`);
+assert(sectionMaxSum <= 28000, `section maxChars sum should stay under the 28k ceiling, got ${sectionMaxSum}`);
 // 6개 카테고리 소제목은 빠짐없이 어느 한 분야 섹션이 책임져야 한다. 비면 그 이슈는 영원히 해소되지 않는다.
 const categorySectionKey = route.__newYearAiTestUtils.NEW_YEAR_AI_CATEGORY_SECTION_KEY;
 for (const category of ["love", "money", "career", "health", "relationship", "study"]) {
@@ -234,19 +235,19 @@ assertIncludes(pageSourcePath, "ReadingProgressPanel", "client should show gener
 assertIncludes(pageSourcePath, 'data-pdf-section={`domain-${card.key}`}', "domain cards should stay in the PDF capture set");
 assertIncludes(pageSourcePath, "is-exporting", "client should force-reveal off-screen cards before PDF capture");
 assertIncludes("worker/routes/new-year-ai.js", "publicSections", "result payload should expose per-domain sections");
-assertIncludes("worker/routes/new-year-ai.js", "sections: generated.sections", "completed session should persist per-domain sections");
+assertIncludes("worker/routes/new-year-ai.js", "'llmMeta.sections': generated.sections", "completed session should persist per-domain sections");
 
 const systemPrompt = route.__newYearAiTestUtils.buildSystemPrompt();
 assert(systemPrompt.includes("최고 수준의 명리학자"), "new-year-ai system prompt should strengthen expert saju voice");
 assert(systemPrompt.includes("격국과 용신·기신, 조후, 대운의 배경"), "new-year-ai system prompt should include advanced saju lenses");
-assert(systemPrompt.includes("완성 상담문 전체 본문은 공백을 제외하고 15,000자 이상 24,000자 이하"), "new-year-ai system prompt should require 15k-24k total chars");
+assert(systemPrompt.includes("완성 상담문 전체 본문은 공백을 제외하고 20,000자 이상 28,000자 이하"), "new-year-ai system prompt should require 20k-28k total chars");
 assert(systemPrompt.includes("명리 전문가로서 격국·월령"), "new-year-ai system prompt should require expert part additions");
 
 const mockConsultationText = route.__newYearAiTestUtils.buildMockConsultationText();
 const mockQuality = route.__newYearAiTestUtils.validateConsultationQuality(mockConsultationText);
 assert(mockQuality.ok === true, `mock consultation should pass quality gate: ${mockQuality.issues.join(", ")}`);
-assert(mockQuality.totalChars >= 15000, "mock consultation should be at least 15k total chars");
-assert(mockQuality.totalChars <= 24000, "mock consultation should stay under 24k total chars");
+assert(mockQuality.totalChars >= 20000, "mock consultation should be at least 20k total chars");
+assert(mockQuality.totalChars <= 28000, "mock consultation should stay under 28k total chars");
 assert(mockQuality.sectionCount >= 6, "mock consultation should include enough substantial sections");
 assert(mockQuality.missingTopics.length === 0, "mock consultation should cover all required expert topics");
 
@@ -324,6 +325,9 @@ const oldResponse = await oldRoute.handleSajuNewYearRoutes(new Request("https://
 const oldBody = await oldResponse.json();
 assert(oldResponse.status === 410, "old saju-new-year route should be replaced");
 assert(oldBody.code === "NEW_YEAR_AI_REPLACED", "old saju-new-year route should not create jobs");
+
+const delivery = spawnSync(process.execPath, ["--test", "__tests__/ui/new-year-paid-delivery.behavior.test.js"], { cwd: root, encoding: "utf8" });
+assert(delivery.status === 0, delivery.stdout + delivery.stderr);
 
 if (!process.exitCode) {
   console.log("[verify-new-year-ai-flow] ok");

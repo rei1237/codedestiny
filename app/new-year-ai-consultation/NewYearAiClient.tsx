@@ -1,8 +1,8 @@
 "use client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { CalendarDays, Download, Loader2, Moon, Share2, Sparkles, WalletCards } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
   beginPaidFeatureGateCheck,
@@ -284,6 +284,9 @@ type ConsultationResult = {
   sessionId?: string;
   accessType?: AccessType;
   status?: string;
+  saved?: boolean;
+  resultId?: string;
+  progress?: { completed: number; total: number };
   messages?: ChatMessage[];
   sections?: ConsultationSection[];
   sajuProfile?: SajuProfile | null;
@@ -394,7 +397,7 @@ function validateConsultationForm(form: ConsultationForm) {
 }
 
 async function postJson<T>(path: string, body: Record<string, unknown>, idempotencyKey?: string): Promise<{ response: Response; payload: T }> {
-  const response = await fetch(path, {
+  const response = await authFetch(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -419,8 +422,9 @@ function sleep(ms: number) {
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
-async function pollNewYearResult(sessionId: string): Promise<ConsultationResult> {
+async function pollNewYearResult(sessionId: string, isCurrent = () => true): Promise<ConsultationResult> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    if (!isCurrent() || document.hidden) return { ok: true, status: "partial", sessionId };
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
     let response: Response;
     try {
@@ -429,9 +433,10 @@ async function pollNewYearResult(sessionId: string): Promise<ConsultationResult>
     } catch {
       continue;
     }
-    if (response.status === 202) continue;
     if (response.status === 429) throw new Error(SERVER_ERROR_MESSAGE);
     const payload = (await response.json().catch(() => ({}))) as ConsultationResult;
+    if (response.status === 202 && payload.status === "generating") continue;
+    if (response.status === 202) return payload;
     // 일시적 DB/인증 장애(503·retryable)는 하드 종료하지 말고 계속 폴링해 자가 복구한다.
     if (isRetriableResultPollFailure(response.status, payload)) continue;
     if (!response.ok) throw new Error(payload.message || LLM_ERROR_MESSAGE);
@@ -628,22 +633,10 @@ function NewYearQuestionAnswerCard({ name, question, answer }: { name: string; q
   );
 }
 
-// 결과 카드의 등장 연출. data-pdf-section 마커는 감싸는 쪽이 아니라 안쪽 요소에 그대로 두어
-// PDF 캡처 대상이 바뀌지 않게 한다. 대신 .nyai-reveal 클래스가 내보내기 시 강제 노출의 손잡이다.
-function RevealBlock({ index = 0, children }: { index?: number; children: ReactNode }) {
-  const reduceMotion = useReducedMotion();
-  if (reduceMotion) return <div className="nyai-reveal">{children}</div>;
-  return (
-    <motion.div
-      className="nyai-reveal"
-      initial={{ opacity: 0, y: 26 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.12 }}
-      transition={{ duration: 0.55, delay: Math.min(index, 5) * 0.09, ease: [0.16, 1, 0.3, 1] }}
-    >
-      {children}
-    </motion.div>
-  );
+// 긴 유료 본문은 화면 진입 비율이나 애니메이션 로딩과 관계없이 즉시 읽을 수 있어야 한다.
+// 내보내기/레이아웃 클래스와 호출부 계약은 유지한다.
+function RevealBlock({ children }: { index?: number; children: ReactNode }) {
+  return <div className="nyai-reveal">{children}</div>;
 }
 
 function DomainConsultationCards({ bodies }: { bodies: Map<string, string> }) {
@@ -1618,6 +1611,14 @@ export default function NewYearAiConsultationPage() {
   const [isSharing, setIsSharing] = useState(false);
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const pendingGenerationRef = useRef<{ payload: Record<string, unknown>; key: string; access: Record<string, unknown> } | null>(null);
+  const [reloadEpoch, setReloadEpoch] = useState(0);
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    pendingGenerationRef.current = null; startLockRef.current = false;
+    idempotencyKeyRef.current = createIdempotencyKey();
+    setMessages([]); setServerSections([]); setSajuProfile(null); setMonthlyFlow([]); setTargetYearInfo(null); setRecentSessions([]);
+    setStatus("idle"); setError(""); setNotice(""); setReloadEpoch(value => value + 1);
+  });
   const resultRef = useRef<HTMLDivElement | null>(null);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
@@ -1639,13 +1640,13 @@ export default function NewYearAiConsultationPage() {
     setAccessType(result.accessType || "");
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);
-    setReadingProgress(100);
+    setReadingProgress(result.status && result.status !== "completed" ? Math.round(100 * (result.progress?.completed || 0) / (result.progress?.total || 5)) : 100);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
     setTargetYearInfo(result.targetYear || null);
     setNotice("");
     setError("");
-    setStatus("ready");
+    setStatus(result.status && result.status !== "completed" ? "reading" : "ready");
     if (result.sessionId && typeof window !== "undefined") {
       try {
         const url = new URL(window.location.href);
@@ -1657,31 +1658,80 @@ export default function NewYearAiConsultationPage() {
     }
   }, []);
 
-  const loadSession = useCallback(async (sessionId: string) => {
-    try {
-      const response = await fetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`, { credentials: "include" });
-      const result = await response.json().catch(() => ({})) as ConsultationResult;
-      if (result.ok && Array.isArray(result.messages) && result.messages.length) {
-        applyResult({ ...result, sessionId });
-        return true;
+  const startConsultation = useCallback(async (
+    payload: Record<string, unknown>, idempotencyKey: string, access: Record<string, unknown>,
+  ) => {
+    const isCurrent = captureDeliveryScope();
+    pendingGenerationRef.current = { payload, key: idempotencyKey, access };
+    setStatus("reading");
+    let transientFailures = 0;
+    for (let wave = 0; wave < 18; wave += 1) {
+      if (!isCurrent()) return false;
+      if (document.hidden) { setStatus("ready"); return false; }
+      const pending = pendingGenerationRef.current;
+      if (!pending) return false;
+      let response: Response, result: ConsultationResult;
+      try {
+        const started = await postJson<ConsultationResult>("/api/new-year-ai/start", { ...pending.payload, ...pending.access }, pending.key);
+        response = started.response; result = started.payload;
+      } catch (error) {
+        if (!isCurrent()) return false;
+        if (++transientFailures > 2) throw error;
+        await sleep(1500 * transientFailures); continue;
       }
-    } catch {
-      // 재열람 실패는 조용히 무시 — 새 상담은 그대로 시작 가능
+      if (!isCurrent()) return false;
+      const sessionId = result.sessionId || result.resultId;
+      if (sessionId) pendingGenerationRef.current = { payload: { resumeSessionId: sessionId }, key: idempotencyKey, access: {} };
+      if (response.status === 503 && ++transientFailures <= 2) { await sleep(1500 * transientFailures); continue; }
+      if (!response.ok || !result.ok) throw new Error(result.message || SERVER_ERROR_MESSAGE);
+      transientFailures = 0;
+      if (result.status === "generating" && result.sessionId) result = await pollNewYearResult(result.sessionId, isCurrent);
+      if (!isCurrent()) return false;
+      if (result.status === "completed" && result.saved === true) {
+        applyResult(result); pendingGenerationRef.current = null; return true;
+      }
+      applyResult(result);
+      setNotice(`저장된 분야 ${result.progress?.completed || 0}/${result.progress?.total || 5} · 이어서 준비하고 있습니다.`);
     }
+    setStatus("ready");
     return false;
-  }, [applyResult]);
+  }, [applyResult, captureDeliveryScope]);
+
+  const loadSession = useCallback(async (sessionId: string) => {
+    if (startLockRef.current) return false;
+    const isCurrent = captureDeliveryScope();
+    startLockRef.current = true;
+    try {
+      const response = await authFetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`);
+      const result = await response.json().catch(() => ({})) as ConsultationResult;
+      if (!isCurrent()) return false;
+      if (response.status === 202) {
+        applyResult(result);
+        return await startConsultation({ resumeSessionId: sessionId }, idempotencyKeyRef.current, {});
+      }
+      if (response.ok && result.ok && result.status === "completed") { applyResult(result); return true; }
+      if (!response.ok) setError(result.message || SERVER_ERROR_MESSAGE);
+    } catch (caught) {
+      if (isCurrent()) { setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE); setStatus("error"); }
+    } finally { if (isCurrent()) startLockRef.current = false; }
+    return false;
+  }, [applyResult, captureDeliveryScope, startConsultation]);
 
   // 재열람: ?sid= 복원 + 지난 상담 목록
   useEffect(() => {
     let cancelled = false;
+    const isCurrent = captureDeliveryScope();
     const sid = new URLSearchParams(window.location.search).get("sid");
     if (sid) void loadSession(sid);
     (async () => {
       try {
-        const response = await fetch("/api/new-year-ai/result", { credentials: "include" });
+        const response = await authFetch("/api/new-year-ai/result");
         if (!response.ok) return;
         const data = await response.json().catch(() => ({}));
-        if (!cancelled && Array.isArray(data?.sessions)) setRecentSessions(data.sessions);
+        if (!cancelled && isCurrent()) {
+          if (Array.isArray(data?.sessions)) setRecentSessions(data.sessions);
+          if (!sid && data.pendingSessionId) void loadSession(data.pendingSessionId);
+        }
       } catch {
         // 목록 조회 실패는 무시
       }
@@ -1690,6 +1740,12 @@ export default function NewYearAiConsultationPage() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadEpoch, captureDeliveryScope, loadSession]);
+
+  useEffect(() => {
+    const resume = () => { if (!document.hidden) setReloadEpoch(value => value + 1); };
+    document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume);
+    return () => { document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume); };
   }, []);
 
   const statusText = useMemo(() => {
@@ -1759,40 +1815,10 @@ export default function NewYearAiConsultationPage() {
     resetAttempt();
   }, [resetAttempt]);
 
-  const startConsultation = useCallback(async (
-    payload: ReturnType<typeof buildConsultationPayload>,
-    idempotencyKey: string,
-    access: { accessToken?: string; billingGate?: Record<string, unknown> },
-  ) => {
-    setStatus("reading");
-    const { payload: result } = await postJson<ConsultationResult>("/api/new-year-ai/start", {
-      ...payload,
-      ...access,
-    }, idempotencyKey);
-
-    if (result.ok && Array.isArray(result.messages) && result.messages.length) {
-      applyResult(result);
-      return;
-    }
-    if (result.ok && result.status === "generating" && result.sessionId) {
-      // 생성이 진행 중 — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다(이전에는 여기서 멈춰 영구 대기였다).
-      setNotice(result.message || "올해의 흐름을 읽고 있습니다");
-      setStatus("reading");
-      const resolved = await pollNewYearResult(result.sessionId);
-      if (resolved.ok && Array.isArray(resolved.messages) && resolved.messages.length) {
-        applyResult(resolved);
-        return;
-      }
-      throw new Error(resolved.message || LLM_ERROR_MESSAGE);
-    }
-    if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
-    if (result.reason === "LLM_ERROR") throw new Error(LLM_ERROR_MESSAGE);
-    throw new Error(result.message || SERVER_ERROR_MESSAGE);
-  }, [applyResult]);
-
   // 모바일 PortOne 리다이렉트로 handleSubmit 의 await 가 죽은 뒤, 복귀한 새 문서에서 상담을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(startConsultation)를 원래 idempotencyKey 로 부른다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const isCurrent = captureDeliveryScope();
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const payload = unpackPaidResumeArg<ReturnType<typeof buildConsultationPayload>>(args.payload);
     if (!idempotencyKey || !payload) return false;
@@ -1801,20 +1827,29 @@ export default function NewYearAiConsultationPage() {
     setError("");
     setNotice("");
     try {
-      await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
-      return true;
+      return await startConsultation(payload, idempotencyKey, { billingGate: asRecord(grant?.payload) });
     } catch (caught) {
+      if (!isCurrent()) return false;
       setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE);
       setStatus("error");
       return false;
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
   });
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const isCurrent = captureDeliveryScope();
     if (startLockRef.current || isBusy) return;
+    const pending = pendingGenerationRef.current;
+    if (pending) {
+      startLockRef.current = true;
+      try { await startConsultation(pending.payload, pending.key, pending.access); }
+      catch (caught) { if (!isCurrent()) return; setError(caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE); setStatus("error"); }
+      finally { if (isCurrent()) startLockRef.current = false; }
+      return;
+    }
     const previewState = readDevPreviewState();
     if (previewState) {
       setStatus("reading");
@@ -1865,6 +1900,7 @@ export default function NewYearAiConsultationPage() {
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 새해의 흐름을 읽고 있습니다.",
         });
+        if (!isCurrent()) return;
         await startConsultation(payload, idempotencyKey, { accessToken: access.accessToken });
         return;
       }
@@ -1890,11 +1926,13 @@ export default function NewYearAiConsultationPage() {
           if (code === "PAYMENT_CANCELLED") throw new Error(PAYMENT_CANCELLED_MESSAGE);
           throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
         }
+        if (!isCurrent()) return;
         await startConsultation(payload, idempotencyKey, { billingGate: gate.data as Record<string, unknown> });
         return;
       }
       throw new Error("message" in denied ? denied.message || SERVER_ERROR_MESSAGE : SERVER_ERROR_MESSAGE);
     } catch (caught) {
+      if (!isCurrent()) return;
       const message = caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE;
       const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setError(
@@ -1920,7 +1958,7 @@ export default function NewYearAiConsultationPage() {
         cancelled: paymentCancelled,
       });
     } finally {
-      startLockRef.current = false;
+      if (isCurrent()) startLockRef.current = false;
     }
   };
 
