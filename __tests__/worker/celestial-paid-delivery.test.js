@@ -114,3 +114,9 @@ test('historical completed archives reopen without a new length gate or provider
  docs.push({userId:user,executionKey:'legacy-execution',reportType:'celestialHarmony',featureKey:'tarot-celestial-harmony',reportId:body.reportId,status:'success',premiumStatus:'completed',metadata:{result:{summary:{overallTheme:'historical short report'},cards:body.cards,payment:{reportId:body.reportId}}}});
  const response=await start();expect(response.status).toBe(200);expect((await response.json()).result.summary.overallTheme).toBe('historical short report');expect(provider).not.toHaveBeenCalled();
 });
+test('provider overrides retain the short-call token and time ceiling',async()=>{
+ const {generateCelestialWave}=await import('../../worker/lib/celestial-report-delivery.js');await start();
+ const snapshot=docs[0].metadata.celestialDelivery;
+ await generateCelestialWave({CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS:'90000',CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS:'24000',CELESTIAL_HARMONY_TEMPERATURE:'0.4'},snapshot,async()=>{});
+ expect(provider.mock.calls.at(-1)[2]).toMatchObject({timeoutMs:45000,maxOutputTokens:11000,temperature:0.4});
+});

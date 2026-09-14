@@ -9,6 +9,10 @@ const DOMAINS = ["love", "work", "money", "health"];
 const strings = value => typeof value === "string" ? value : Array.isArray(value) ? value.map(strings).join("\n") : value && typeof value === "object" ? Object.values(value).map(strings).join("\n") : "";
 const enough = (value, min) => typeof value === "string" && countPaidReportBodyChars(value) >= min;
 const parse = raw => { try { const value = String(raw || ""); return JSON.parse(value.slice(value.indexOf("{"), value.lastIndexOf("}") + 1)); } catch { return null; } };
+const boundedSetting = (value, fallback, min, max) => {
+  const number = Number(value);
+  return value !== undefined && value !== "" && Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
+};
 
 export function celestialDeliveryComplete(delivery) {
   return Array.from({length:11},(_,i)=>String(i)).every(id=>delivery.parts?.[id]) && Boolean(delivery.parts?.summary)
@@ -46,7 +50,9 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
     try {
       ai=await runWithAiLocale(snapshot.locale||"ko",()=>callGeminiText(env,requestPrompt,{
         model:["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"].map(key=>String(env?.[key]||"").trim()).find(Boolean),
-        taskType:"fortune",temperature:0.68,timeoutMs:45000,maxOutputTokens:11000,fallbackToWorkersAI:false,logContext:{sectionGroup:id},
+        taskType:"fortune",temperature:boundedSetting(env?.CELESTIAL_HARMONY_TEMPERATURE,0.68,0,1),
+        timeoutMs:boundedSetting(env?.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS,45000,15000,45000),
+        maxOutputTokens:boundedSetting(env?.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000,8000,11000),fallbackToWorkersAI:false,logContext:{sectionGroup:id},
       }));
     } catch { return; }
     const value=ai?.ok && ai.truncated!==true && !/mock/i.test(ai.provider||"") ? parse(ai.text) : null;
