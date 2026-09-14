@@ -39,7 +39,10 @@ let exhaustedStarts = false;
 const checkpointModel = {
   findOne: filter => ({ select() { return this; }, lean: async () => {
     if (checkpointLookupFails) throw new Error('mock DB unavailable');
-    return checkpointDoc && filter.userId === checkpointDoc.userId && (filter.id || filter._id) === checkpointDoc.id ? checkpointDoc : null;
+    return checkpointDoc && filter.userId === checkpointDoc.userId
+      && (filter.executionId || filter.id || filter._id) === (checkpointDoc.executionId || checkpointDoc.id)
+      && (!filter.featureId || filter.featureId === checkpointDoc.featureId)
+      && (!filter.serviceType || filter.serviceType === checkpointDoc.serviceType) ? checkpointDoc : null;
   } }),
 };
 
@@ -83,12 +86,12 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       if (filter?.kind === "rate_limit") {
         RATE_LIMIT_CALLS.push({ endpoint: filter.endpoint, limitSeen: update?.$inc?.score });
       }
-      return { lean: async () => ({ score: exhaustedStarts && filter.endpoint.endsWith(':start:daily') ? 61 : 1 }) };
+      return { lean: async () => ({ score: exhaustedStarts && /:(start|generate):daily$/.test(filter.endpoint) ? 10001 : 1 }) };
     },
     create: async () => null,
   },
   ContentEntitlement: noopModel(),
-  PaidExecutionRecord: noopModel(),
+  PaidExecutionRecord: checkpointModel,
   Payment: noopModel(),
   ProfileCard: noopModel(),
   SecurityEvent: noopModel(),
@@ -332,6 +335,20 @@ describe('서버 저장본의 재개는 새 리포트 일일 예산을 소비하
     expect((await enforce('astrology-ai',{birthDate:'1990-01-01'})).ok).toBe(false);
     expect((await enforce('astrology-ai',{resumeSessionId:'another-result'})).ok).toBe(false);
     expect((await enforce('astrology-ai',{resumeSessionId:{$ne:null}})).ok).toBe(false);
+  });
+  test.each(['naming-prompt', 'ziwei-island-ai'])('%s 재개는 소유자와 상품을 함께 확인한다', async service => {
+    exhaustedStarts = true;
+    const naming = service === 'naming-prompt';
+    checkpointDoc = naming
+      ? { executionId: 'n'.repeat(160), userId: 'user-1', featureId: 'premium-naming-prompt', status: 'partial', result: { namingPrompt: { delivery: { chapters: {} } } } }
+      : { id: 'saved-island-id', userId: 'user-1', serviceType: 'ziwei-island-palace-consult', status: 'partial', llmMeta: { input: { palaceKey: '명궁' } } };
+    const body = naming ? { resumeExecutionId: checkpointDoc.executionId } : { resumeSessionId: checkpointDoc.id };
+    expect((await enforce(service, body, 'user-1', 'generate')).ok).toBe(true);
+    expect(RATE_LIMIT_CALLS.map(row => row.endpoint)).toEqual([`ai:${service}:batch`]);
+    expect((await enforce(service, body, 'different-owner', 'generate')).ok).toBe(false);
+    if (naming) checkpointDoc.featureId = 'different-product';
+    else checkpointDoc.serviceType = 'ziwei-ai';
+    expect((await enforce(service, body, 'user-1', 'generate')).ok).toBe(false);
   });
   test('DB 장애와 서버 원본이 없는 미완료 문서는 예외 버킷을 받지 않는다',async()=>{
     exhaustedStarts=true;checkpointLookupFails=true;

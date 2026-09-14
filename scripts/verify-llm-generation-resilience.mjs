@@ -552,16 +552,12 @@ for (const [feature, path, timeoutVar] of [
 // 여기서 막는 것은 "섹션화 없이 하한만 올리는 변경"이다 — 섹션화하면 이 단언을 그때 함께 옮긴다.
 // 운명 찻집 3종은 2026-08-15 에 섹션 병렬로 옮겨 아래 전용 블록이 대신 지킨다.
 const SINGLE_CALL_FLOOR_CEILING = 6000;
-for (const [feature, path, constantName] of [
-  ["naming-prompt", "worker/routes/naming-prompt.js", "NAMING_MIN_TOTAL_CONTENT_CHARS"],
-]) {
-  const value = Number((read(path).match(new RegExp(`const ${constantName} = (\\d+);`)) || [])[1]);
-  checks += 1;
-  assert(
-    Number.isFinite(value) && value <= SINGLE_CALL_FLOOR_CEILING,
-    `${feature}: ${constantName} = ${value} 는 단일 호출이 채울 수 있는 한계(${SINGLE_CALL_FLOOR_CEILING}자)를 넘는다.`
-    + " 분량을 늘리려면 먼저 섹션 병렬로 쪼개라(astrology-ai.js · vedic-ai.js 패턴)",
-  );
+// Naming now generates eight independently checkpointed chapters, rather than one oversized call.
+{
+  const { NAMING_CHAPTERS, namingReportComplete } = await import("../worker/lib/naming-report-delivery.js");
+  checks += 2;
+  assert(NAMING_CHAPTERS.length === 8, "naming chapter contract");
+  assert(!namingReportComplete({ chapters: {} }), "empty naming report cannot complete");
 }
 
 // ── 운명의 찻집: 섹션 병렬 예산 ─────────────────────────────────────────────
@@ -894,7 +890,7 @@ const LLM_CALL_FILES = [
   "worker/routes/celestial-harmony.js", "worker/routes/destiny-compass-ai.js", "worker/routes/destiny-compass.js",
   "worker/routes/dream.js", "worker/routes/fortune-tea-house.js", "worker/routes/fortune.js",
   "worker/routes/karma-destiny-ai.js", "worker/routes/life-book-ai.js", "worker/routes/love-secret-ai.js",
-  "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/routes/naming-prompt.js",
+  "worker/routes/master-love-codex.js", "worker/routes/nakshatra-ai.js", "worker/lib/naming-report-delivery.js",
   "worker/routes/neo-operation-room.js", "worker/routes/new-year-ai.js", "worker/routes/oracle.js",
   "worker/routes/pet-saju-ai.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
   "worker/routes/yoga-guru.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
@@ -986,7 +982,7 @@ const EXPECTED_LLM_CALL_SITES = {
   // 사주의 전용 이어쓰기 repair 호출은 그룹 재생성으로 대체되며 사라졌다(4 → 3).
   "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 3,
   "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
-  "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/routes/naming-prompt.js": 1,
+  "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/lib/naming-report-delivery.js": 1,
   "worker/routes/neo-operation-room.js": 1, "worker/routes/new-year-ai.js": 2, "worker/routes/oracle.js": 1,
   // vedic 1건: 그룹 생성 하나로 웨이브 1(전 그룹 동시)·2(분량 미달)·3(품질 미달)이 모두 지나간다.
   // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다

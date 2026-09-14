@@ -3,7 +3,7 @@
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { handleSessionInvalidated } from "@/app/_lib/auth-store";
+import { refreshAuth, useAuthStore, handleSessionInvalidated } from "@/app/_lib/auth-store";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -11,6 +11,7 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { toDisplayText } from "@/lib/llm-text";
@@ -2026,6 +2027,11 @@ export default function NamingAiClient() {
     inputHash: string;
     access: ReturnType<typeof extractNamingAccess>;
   } | null>(null);
+  const captureDelivery = usePaidDeliveryScope(() => {
+    retryRef.current = null; setBusy(false); setError(""); setPhase("idle");
+  });
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
 
   const updateForm = useCallback((patch: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...patch }));
@@ -2148,6 +2154,21 @@ export default function NamingAiClient() {
     Boolean(form.desiredType || form.preferenceTone || form.generationNameRule || form.siblingHarmony || form.avoidFamilyNames || form.memo),
   ];
 
+  const { user: recoveryUser } = useAuthStore();
+  const recoveryOwner = String(recoveryUser?.id || recoveryUser?.userId || recoveryUser?._id || recoveryUser?.uid || "");
+  useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
+  useEffect(() => {
+    if (!recoveryOwner) return;
+    let alive = true;
+    void authFetch("/api/naming-prompt/result/pending").then(async response => {
+      const data = await response.json();
+      if (alive && !busyRef.current && !retryRef.current && response.status === 202 && data.executionId) {
+        window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(data.executionId)}`);
+      }
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [recoveryOwner]);
+
   function applyCandidate(candidate: DraftNameCandidate) {
     setForm((prev) => ({
       ...prev,
@@ -2184,12 +2205,11 @@ export default function NamingAiClient() {
     inputHash: string;
     access: ReturnType<typeof extractNamingAccess>;
   }) {
+    const active = captureDelivery();
     const { input, inputHash, access } = args;
     setPhase("generating");
     // /generate가 이용권/결제 접근권을 직접 검증하므로 별도 verify-payment 선검사는 두지 않는다
-    // (이용권 중복 검사 제거 — 서버 검사 1회). 생성은 그 요청 안에서 동기로 끝나고 201로 결과가 온다.
-    // 네트워크가 끊겨도 서버 쪽 생성은 대개 완주해 실행 레코드가 남는다 — 같은 입력·같은 증거로 한 번
-    // 더 부르면 beginNamingGeneration이 그 레코드를 그대로 돌려주므로(추가 차감 없음) 1회 재시도한다.
+    // 후보와 장별 묶음을 저장한 뒤 202를 반환한다. 응답 유실 시 같은 입력과 증거로 한 번 재조회한다.
     const generateOnce = () => postJson<{
       ok: boolean;
       code?: string;
@@ -2217,10 +2237,12 @@ export default function NamingAiClient() {
     try {
       genRes = await generateOnce();
     } catch (caught) {
+      if (!active()) return false;
       if ((caught instanceof Error ? caught.message : "") !== "NETWORK_ERROR") throw caught;
       genRes = await generateOnce();
     }
 
+    if (!active()) return false;
     assertAuthorized(genRes.status);
     if (genRes.status === 402) throw new Error("PAYMENT_FAILED");
     if (genRes.status === 503 || genRes.data?.reason === "LLM_ERROR") {
@@ -2230,15 +2252,16 @@ export default function NamingAiClient() {
     if (!genRes.data?.ok || !executionId) {
       throw new Error(String(genRes.data?.code || "GENERATE_FAILED"));
     }
-    // 백그라운드 생성이 실패하면 실패 표면이 결과 페이지로 넘어간다 — 결과 페이지가 추가 차감 없이
-    // 재생성(= /generate 재호출)할 수 있도록 재시도 페이로드를 executionId 키로 넘긴다.
+    // 결과 페이지가 원래 실행 ID로 저장된 장 이후를 이어 생성한다.
     stashNamingRetryPayload(executionId, { input, inputHash, access });
     retryRef.current = null;
     window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(executionId)}`);
+    return genRes.status === 200 || genRes.status === 201;
   }
 
   async function handleRetry() {
     if (busy) return;
+    const active = captureDelivery();
     const pending = retryRef.current;
     if (!pending) {
       await handleSubmit();
@@ -2249,11 +2272,12 @@ export default function NamingAiClient() {
     try {
       await runVerifyAndGenerate(pending);
     } catch (caught) {
+      if (!active()) return;
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(errorMessage(code, copy));
       setPhase("error");
     } finally {
-      setBusy(false);
+      if (active()) setBusy(false);
     }
   }
 
@@ -2261,6 +2285,7 @@ export default function NamingAiClient() {
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(runVerifyAndGenerate)를 결제 직전에 굳힌 입력·inputHash 로
   //    부른다 — 복귀 문서의 form 은 기본값이라 여기서 다시 toRawInput(form) 을 하면 다른 이름이 생성된다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const active = captureDelivery();
     const inputHash = typeof args.inputHash === "string" ? args.inputHash : "";
     const input = unpackPaidResumeArg<Record<string, unknown>>(args.input);
     if (!inputHash || !input) return false;
@@ -2269,20 +2294,21 @@ export default function NamingAiClient() {
     try {
       const access = extractNamingAccess(grant?.payload);
       retryRef.current = { input, inputHash, access };
-      await runVerifyAndGenerate({ input, inputHash, access });
-      return true;
+      return await runVerifyAndGenerate({ input, inputHash, access });
     } catch (caught) {
+      if (!active()) return false;
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(errorMessage(code, copy));
       setPhase("error");
       return false;
     } finally {
-      setBusy(false);
+      if (active()) setBusy(false);
     }
   });
 
   async function handleSubmit() {
     if (busy) return;
+    const active = captureDelivery();
     if (missing.length) {
       setError(copy.missingFieldsMessage(missing));
       setStep(missing.includes(copy.fieldNames.familyName) && !missing.includes(copy.fieldNames.gender) && !missing.includes(copy.fieldNames.birthDate) ? 1 : 0);
@@ -2305,6 +2331,7 @@ export default function NamingAiClient() {
         inputHash: string;
         checkoutPayload?: Record<string, unknown>;
       }>("/api/naming-prompt/checkout", { input });
+      if (!active()) return;
       assertAuthorized(checkoutRes.status);
       if (!checkoutRes.data?.ok) throw new Error(String(checkoutRes.data?.code || "CHECKOUT_FAILED"));
 
@@ -2338,6 +2365,7 @@ export default function NamingAiClient() {
         resume: buildResume({ inputHash, input: packPaidResumeArg(input) }),
       });
 
+      if (!active()) return;
       if (!isPaymentGranted(gate)) {
         const code = String(gate.error?.code || "").toUpperCase();
         const cancelled = code === "PAYMENT_CANCELLED";
@@ -2355,6 +2383,7 @@ export default function NamingAiClient() {
       retryRef.current = { input, inputHash, access };
       await runVerifyAndGenerate({ input, inputHash, access });
     } catch (caught) {
+      if (!active()) return;
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setError(errorMessage(code, copy));
       setPhase("error");
@@ -2369,7 +2398,7 @@ export default function NamingAiClient() {
         });
       }
     } finally {
-      setBusy(false);
+      if (active()) setBusy(false);
     }
   }
 

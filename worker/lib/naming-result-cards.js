@@ -89,7 +89,7 @@ function parseFinalLine(line) {
  * @param {string} text
  * @returns {{ cards: Array<object>, finalPick: object|null, cleanText: string }}
  */
-export function parseNamingResultCards(text) {
+export function parseNamingResultCards(text, { allowCardsOnly = false } = {}) {
   const source = String(text ?? "");
   const fallback = { cards: [], finalPick: null, cleanText: source };
   try {
@@ -122,7 +122,7 @@ export function parseNamingResultCards(text) {
       .replace(/\n#{2,3}\s*\[?이름\s*카드[^\n]*$/i, "")
       .replace(/\n-{3,}\s*$/, "")
       .trim();
-    if (!cleanText) return fallback;
+    if (!cleanText && !allowCardsOnly) return fallback;
     return { cards, finalPick, cleanText };
   } catch (e) {
     void e;

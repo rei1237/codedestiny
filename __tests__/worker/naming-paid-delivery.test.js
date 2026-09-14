@@ -37,24 +37,68 @@ beforeAll(async()=>{
  ({handleNamingPromptRoutes:route}=await import('../../worker/routes/naming-prompt.js'));
 });
 beforeEach(()=>{docs=[];fault=null;lost=false;blocked=false;mode='PASS';userId=uid;refund=jest.fn();
- provider=jest.fn(async()=>({ok:true,provider:'gemini',text:Array.from({length:8},(_,n)=>`## ${n+1}. 검증 장\n`+Array.from({length:25},(_,i)=>`${n}장 ${i}번째 이름의 의미와 소리 흐름은 계산된 근거와 일상에서의 사용 조건을 함께 살펴보고 판단합니다. `).join('')).join('\n\n')}));
+ provider=jest.fn(async(_env,prompt,options)=>{
+  expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);
+  if(options.logContext.sectionGroup==='candidates')return {ok:true,provider:'gemini',text:'[이름카드]\n'+['서윤','서연','지우','지유','소율'].map(name=>`후보: ${name} | 뜻: 이름의 의미 | 총평: 생활 속에서 부르기 좋은 이름`).join('\n')+'\n최종: 서윤 | 이유: 가족의 선호와 어울립니다.\n[/이름카드]'};
+  const id=options.logContext.sectionGroup;
+  return {ok:true,provider:'gemini',text:JSON.stringify({title:`검증 ${id}장`,body:Array.from({length:65},(_,i)=>`${id}장 ${i}번째 이름의 의미와 소리 흐름은 계산된 근거와 일상에서의 사용 조건을 함께 살펴보고 판단합니다. `).join(''),evidenceHash:prompt.match(/"evidenceHash":"([a-f0-9]+)"/)[1]})};
+ });
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('External fetch blocked');});
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore();});
 async function start(){return route(new Request('https://mock.test/api/naming-prompt/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'original-paid',input:{gender:'F',birthDate:'1995-04-18',birthTime:'09:00',calendarType:'solar',familyName:'김'}})}),{});}
+async function resume(extra={}){return route(new Request('https://mock.test/api/naming-prompt/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({resumeExecutionId:docs[0].executionId,...extra})}),{});}
 for(const access of ['PASS','MONTHLY','SINGLE'])it(`${access}: stored provider body is completed and replayed without regenerating`,async()=>{
- mode=access;const first=await start();expect(first.status).toBe(201);expect((await first.json()).result.generatedResult).toContain('이름의 의미');expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(1);
- expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
+ mode=access;expect((await start()).status).toBe(202);expect((await start()).status).toBe(202);const first=await start();expect(first.status).toBe(201);expect((await first.json()).result.generatedResult).toContain('이름의 의미');expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(9);
+ expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9);expect(refund).not.toHaveBeenCalled();
 });
 for(const kind of ['throw','null','confirm'])it(`final ${kind} returns storage 503 and reuses the pending result`,async()=>{
- fault={status:'completed',kind};const first=await start();expect(first.status).toBe(503);expect(await first.json()).toMatchObject({ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE',resultId:docs[0].executionId});
+ await start();await start();fault={status:'completed',kind};const first=await start();expect(first.status).toBe(503);expect(await first.json()).toMatchObject({ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE',resultId:docs[0].executionId});
  expect(refund).not.toHaveBeenCalled();expect(docs[0].status).not.toBe('generation_failed');
- expect([200,201]).toContain((await start()).status);expect(provider).toHaveBeenCalledTimes(1);
+ expect([200,201]).toContain((await start()).status);expect(provider).toHaveBeenCalledTimes(9);
 });
 it('generating prompt is never a customer completed result',async()=>{
  let release;const promise=new Promise(resolve=>{release=resolve;});const base=provider.getMockImplementation();provider.mockImplementation(async()=>{await promise;return base();});
  const running=start();for(let n=0;n<50&&!docs.length;n++)await new Promise(resolve=>setImmediate(resolve));
- const duplicate=await start();expect(duplicate.status).toBe(202);expect((await duplicate.json()).result).toBeUndefined();release();expect((await running).status).toBe(201);
+ const duplicate=await start();expect(duplicate.status).toBe(202);expect((await duplicate.json()).result).toBeUndefined();release();expect((await running).status).toBe(202);
 });
-it('revoked completion is not replayed',async()=>{await start();blocked=true;expect((await start()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(1);});
+it('revoked completion is not replayed',async()=>{await start();await start();await start();blocked=true;expect((await start()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(9);});
 it('other owners cannot read generated results',async()=>{await start();userId='other-owner';const res=await route(new Request(`https://mock.test/api/naming-prompt/result/${docs[0].executionId}`),{});expect(res.status).toBe(404);});
+
+it('successful chapters survive a provider interruption; only missing chapters resume',async()=>{
+ await start();const base=provider.getMockImplementation();provider.mockImplementationOnce((...args)=>base(...args)).mockImplementationOnce(()=>{throw Error('disconnected');});
+ expect((await start()).status).toBe(202);expect(Object.keys(docs[0].result.namingPrompt.delivery.chapters)).toHaveLength(3);
+ await start();expect((await start()).status).toBe(201);expect(provider).toHaveBeenCalledTimes(10);
+});
+it('result GET restores partial body and input-free server resume id',async()=>{
+ await start();await start();const id=docs[0].executionId;
+ const response=await route(new Request(`https://mock.test/api/naming-prompt/result/${id}`),{});expect(response.status).toBe(202);
+ expect(await response.json()).toMatchObject({resumeBody:{resumeExecutionId:id},result:{status:'partial',completedChapters:['1','2','3','4']}});
+});
+it('server-only resume keeps the original evidence and locale and refuses changed inputs',async()=>{
+ await start();const original=clone(docs[0].result.namingPrompt);
+ expect((await resume({locale:'en'})).status).toBe(202);
+ expect(docs[0].result.namingPrompt.locale).toBe(original.locale);
+ expect(docs[0].result.namingPrompt.access).toEqual(original.access);
+ expect((await resume({input:{...original.inputSnapshot,familyName:'이'}})).status).toBe(409);
+ expect((await resume()).status).toBe(201);expect(provider).toHaveBeenCalledTimes(9);
+});
+for(const kind of ['throw','null','confirm'])it(`checkpoint ${kind} prevents a false completion and resumes stored chapters`,async()=>{
+ await start();fault={status:'partial',kind};expect((await resume()).status).toBe(503);
+ expect(docs[0].status).not.toBe('completed');expect(refund).not.toHaveBeenCalled();
+ for(let n=0;n<3&&docs[0].status!=='completed';n++)await resume();
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(9);
+});
+it('short or contradictory chapter evidence is not accepted and only that chapter is repaired',async()=>{
+ await start();const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{
+  const ai=await base(...args),value=JSON.parse(ai.text);value.evidenceHash='invented';return {...ai,text:JSON.stringify(value)};
+ });
+ expect((await resume()).status).toBe(202);expect(docs[0].result.namingPrompt.delivery.chapters[1]).toBeUndefined();
+ await resume();await resume();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10);
+});
+it('19999/20000 body boundary requires all eight named chapters',async()=>{
+ const {namingReportComplete}=await import('../../worker/lib/naming-report-delivery.js');
+ const chapters=Object.fromEntries(Array.from({length:8},(_,i)=>[i+1,{id:i+1,title:'제목',body:'가'.repeat(i?2500:2499)}]));
+ expect(namingReportComplete({chapters})).toBe(false);chapters[1].body+='나';expect(namingReportComplete({chapters})).toBe(true);
+ delete chapters[5];expect(namingReportComplete({chapters})).toBe(false);
+});

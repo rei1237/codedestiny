@@ -85,11 +85,8 @@ assert(pricing?.cost === 300 && pricing?.amountKRW === 30000, "premium-naming-pr
 // ---- 4. worker/routes/naming-prompt.js: LLM 직접호출 + 202/환불 배선 확인 (정적) ----
 const route = read("worker/routes/naming-prompt.js");
 for (const marker of [
-  'import { callGeminiText } from "../lib/gemini.js";',
-  'import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";',
   'import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";',
   "async function beginNamingGeneration(",
-  "async function generateNamingResult(",
   "async function markNamingGenerationFailed(",
   "async function refundNamingMonthlyCredit(",
   "async function restoreNamingAccessOnFailure(",
@@ -101,8 +98,7 @@ for (const marker of [
   // 9850c890 에서 waitUntil 백그라운드를 걷고 요청 안에서 생성을 끝내도록 되돌렸다
   // (Workers 요청 간 I/O 격리로 폴링 결과가 고착되던 문제). 실패는 503 재시도로 내려가고
   // 결과 조회는 202/503 으로 회수 가능해야 한다 — 그 계약을 단언한다.
-  "async function handleGenerate(request, env, ctx",
-  "clampSyncLlmTimeoutMs(",
+  "async function handleGenerate(request, env",
   "retryable: true",
 ]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
@@ -122,7 +118,7 @@ assertIncludes(
 // 🔴 로케일은 프롬프트 조립에만 쓰고 inputHash 에는 절대 넣지 않는다. 넣으면
 //    (a) 배포 전 결제·배포 후 생성 사용자가 해시 불일치로 막히고
 //    (b) 언어만 바꿔 재요청할 때 같은 리딩에 30,000원이 다시 청구된다.
-assertIncludes("worker/routes/naming-prompt.js", route, "buildGeneratedPrompt(input, sajuSnapshot, body.locale)");
+assertIncludes("worker/routes/naming-prompt.js", route, "buildGeneratedPrompt(input, sajuSnapshot, locale)");
 for (const marker of ["locale: clean(raw.locale", "locale: raw.locale", "locale,\n    year:"]) {
   assertNotIncludes("worker/routes/naming-prompt.js", route, marker);
 }
@@ -240,9 +236,9 @@ assertIncludes("worker/routes/naming-prompt.js", route, "findSettledNamingPaymen
   assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "signal: controller.signal");
   assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "GENERATE_TIMEOUT_MS)");
   // 재시도 예산 가드 — 2차 LLM 호출이 엣지 한계를 넘기지 않아야 실패 처리·환불 경로가 돈다.
-  for (const marker of ["remainingBudgetMs", "MIN_RETRY_BUDGET_MS", "EDGE_RESPONSE_DEADLINE_MS"]) {
-    assertIncludes("worker/routes/naming-prompt.js", route, marker);
-  }
+  const namingDelivery = read("worker/lib/naming-report-delivery.js");
+  for (const marker of ["timeoutMs: 45000", "fallbackToWorkersAI: false", ".slice(0, 4)", "await persist()"])
+    assertIncludes("worker/lib/naming-report-delivery.js", namingDelivery, marker);
 }
 // 코인게이트가 단건 성공에서 돌려주는 식별자가 merchantUid 로 고정돼 있지 않다.
 for (const marker of ["{ requestId: normalized }", "{ idempotencyKey: normalized }"]) {
@@ -377,16 +373,14 @@ assert(
 
 // ---- 9. 작명첩 8장 프롬프트 계약 + 카드 블록 배선 (정적) ----
 for (const marker of [
-  'import { parseNamingResultCards } from "../lib/naming-result-cards.js";',
   'const RESULT_VERSION = "naming-result-v20260712";',
   "## 1. 작명가의 총평",
   "## 4. 이름 후보 상세",
   "## 8. 이름을 올리기 전에",
   // 카드 계약문은 로케일마다 갈리므로 프로파일에서 온다. ko 는 기존 상수를 그대로 재수출한다.
   "${profile.cardBlockContract}",
-  "parseNamingResultCards(generated.text)",
-  "nameCards: parsed.cards",
-  "finalPick: parsed.finalPick",
+  "nameCards: snapshot.nameCards",
+  "finalPick: snapshot.finalPick",
 ]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
 }

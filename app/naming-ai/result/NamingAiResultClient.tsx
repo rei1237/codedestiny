@@ -5,9 +5,12 @@ import Link from "next/link";
 import { AlertCircle, ArrowLeft, Check, Copy, Download, ScrollText } from "lucide-react";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE } from "@/constants/loadingMessages";
 import { authFetch } from "@/app/_lib/auth-client";
-import { handleSessionInvalidated } from "@/app/_lib/auth-store";
+import { refreshAuth, useAuthStore, handleSessionInvalidated } from "@/app/_lib/auth-store";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { runNamingReader } from "@/lib/naming-paid-reader.js";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import { readNamingRetryPayload, clearNamingRetryPayload } from "../retryHandoff";
+import { clearNamingRetryPayload } from "../retryHandoff";
 import { parseAssistantSections, toDisplayText } from "@/lib/llm-text";
 import { currentNamingResultCopy } from "./resultCopy";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
@@ -60,6 +63,8 @@ type NamingNameCard = {
 type NamingFinalPick = { name?: string; reason?: string };
 
 type NamingResult = {
+  status?: string; saved?: boolean; completedChapters?: string[]; totalChapters?: number;
+  chapters?: Record<string, { id: number; title: string; body: string }>;
   generatedPrompt?: string;
   generatedResult?: string;
   nameCards?: NamingNameCard[];
@@ -73,6 +78,7 @@ type NamingResult = {
 
 type ResultEnvelope = {
   ok?: boolean;
+  retryable?: boolean; resumeBody?: Record<string, unknown>;
   result?: NamingResult;
   message?: string;
 };
@@ -163,6 +169,7 @@ export default function NamingAiResultClient() {
   const [promptOpen, setPromptOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [waitStep, setWaitStep] = useState(0);
+  const [readingChapter, setReadingChapter] = useState(1);
 
   useEffect(() => {
     setExecutionId(toText(new URLSearchParams(window.location.search).get("executionId")));
@@ -176,100 +183,64 @@ export default function NamingAiResultClient() {
     return () => window.clearInterval(timer);
   }, [pending]);
 
+  const { user: deliveryUser } = useAuthStore();
+  const deliveryOwner = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
+  const readingKey = deliveryOwner && executionId ? `namingReadingV1:${encodeURIComponent(deliveryOwner)}:${executionId}` : "";
   useEffect(() => {
-    if (!queryReady) return;
-    if (!executionId) {
-      setError(COPY.errLinkMissing);
-      setLoading(false);
-      return;
-    }
+    let chapter = 1;
+    try { const saved = Number(readingKey && localStorage.getItem(readingKey)); if (Number.isInteger(saved) && saved >= 1 && saved <= 8) chapter = saved; } catch {}
+    setReadingChapter(chapter);
+  }, [readingKey]);
+  const chapterIds = result?.chapters ? Object.keys(result.chapters).map(Number).sort((a, b) => a - b) : [];
+  const captureDelivery = usePaidDeliveryScope(() => { setResult(null); setPending(false); setFailed(false); setError(""); setLoading(true); });
+  useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
+  usePaidResume("premium-naming-prompt", async () => {
+    if (result?.status === "completed") return true;
+    setRetryKey(key => key + 1); return false;
+  });
+  useEffect(() => {
+    const resume = () => { if (document.visibilityState !== "hidden" && navigator.onLine !== false) setRetryKey(key => key + 1); };
+    window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
+  useEffect(() => {
+    if (!queryReady || !deliveryOwner) return;
+    if (!executionId) { setError(COPY.errLinkMissing); setLoading(false); return; }
     let alive = true;
-    let timer = 0;
-    let attempts = 0;
-    const maxAttempts = 100; // 3s * 100 ≈ 5분 상한 — 무한 폴링(Cloudflare 1015) 방지
-    async function loadResult() {
-      setLoading(true);
-      setError("");
-      setFailed(false);
-      try {
-        const response = await authFetch(buildResultEndpoint(executionId));
-        const payload = (await response.json().catch(() => ({}))) as ResultEnvelope;
-        // 429(Cloudflare rate-limit)는 실패가 아니라 잠깐 물러섰다 다시 와야 하는 신호 —
-        // 202와 동일하게 대기 취급하되 더 길게(6s) 백오프한다.
-        if (response.status === 429) {
-          if (!alive) return;
-          attempts += 1;
-          if (attempts >= maxAttempts) {
-            setPending(false);
-            setError(COPY.errDelayed);
-            return;
-          }
-          setPending(true);
-          setLoading(true);
-          timer = window.setTimeout(loadResult, 6000);
-          return;
-        }
-        if (response.status === 202) {
-          if (!alive) return;
-          attempts += 1;
-          if (attempts >= maxAttempts) {
-            setPending(false);
-            setError(COPY.errDelayed);
-            return;
-          }
-          setPending(true);
-          setLoading(true);
-          timer = window.setTimeout(loadResult, 3000);
-          return;
-        }
-        if (response.status === 503) {
-          if (!alive) return;
-          setFailed(true);
-          setError(toText(payload?.message) || COPY.errGenerateFailed);
-          return;
-        }
-        if (!response.ok || payload?.ok === false || !payload?.result) {
-          // 앱 수준 확정 실패(404 등)는 재시도하지 않고 즉시 종료한다 — catch는 순수 네트워크 오류만 담당.
-          if (alive) setError(toText(payload?.message) || COPY.errLoadFailed);
-          return;
-        }
-        if (alive) {
-          setResult(payload.result);
-          setPending(false);
-          clearNamingRetryPayload(executionId); // 결과 수렴 완료 — 재시도 핸드오프 페이로드 정리.
-        }
-      } catch (caught) {
-        // 여기 도달하면 fetch/JSON 파싱 자체가 실패한 일시 네트워크 오류다 —
-        // 상한 내에서 백오프 재시도로 흡수하고, 상한을 넘겨야 최종 실패로 노출한다.
-        if (!alive) return;
-        attempts += 1;
-        if (attempts < maxAttempts) {
-          setPending(true);
-          setLoading(true);
-          timer = window.setTimeout(loadResult, 4000);
-          return;
-        }
-        setError(friendlyErrorMessage(caught, COPY.errLoadFailed));
-      } finally {
-        if (alive) setLoading(false);
-      }
-    }
-    void loadResult();
-    return () => {
-      alive = false;
-      if (timer) window.clearTimeout(timer);
+    const inScope = captureDelivery();
+    const active = () => alive && inScope();
+    setError(""); setFailed(false); setPending(true);
+    const read = async (url: string, body?: Record<string, unknown>) => {
+      const response = await authFetch(url, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : { method: "GET" });
+      if (response.status === 401 && active()) handleSessionInvalidated({ redirect: true });
+      return { status: response.status, data: await response.json() as ResultEnvelope };
     };
-  }, [queryReady, executionId, retryKey]);
+    void runNamingReader(executionId, {
+      get: (id: string) => read(buildResultEndpoint(id)),
+      post: (body: Record<string, unknown>) => read("/api/naming-prompt/generate", body),
+      show: (value: NamingResult) => { if (active()) { setResult(value); setLoading(false); } },
+      active, visible: () => document.visibilityState !== "hidden" && navigator.onLine !== false,
+      wait: (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms)),
+    }).then(complete => {
+      if (!active()) return;
+      setPending(!complete); setLoading(false);
+      if (complete) clearNamingRetryPayload(executionId);
+    }).catch(caught => {
+      if (!active()) return;
+      setFailed(true); setError(friendlyErrorMessage(caught, COPY.errGenerateFailed)); setLoading(false);
+    });
+    return () => { alive = false; };
+  }, [queryReady, executionId, retryKey, deliveryOwner, captureDelivery]);
 
   const sections = useMemo(
     () =>
-      parseAssistantSections(result?.generatedResult || "", {
+      result?.chapters ? Object.values(result.chapters).sort((a, b) => a.id - b.id).map(chapter => ({ title: chapter.title, body: chapter.body })) : parseAssistantSections(result?.generatedResult || "", {
         titleKeywords: SECTION_TITLE_KEYWORDS,
         fallbackTitles: FALLBACK_SECTION_TITLES,
         minHeadings: 5,
         numberedHeadings: true,
       }),
-    [result?.generatedResult],
+    [result?.generatedResult, result?.chapters],
   );
 
   const nameCards = useMemo(
@@ -329,36 +300,7 @@ export default function NamingAiResultClient() {
   // 재호출해 재생성한다(백그라운드 실패/stale 레코드를 인계 → coin-gate 미호출 → 추가 차감 없음).
   // 페이로드가 없으면(URL 직접 진입) 재폴링만 한다. 어느 경우든 폴링 이펙트를 재실행해 상태에 수렴시킨다.
   async function handleRetry() {
-    const payload = readNamingRetryPayload(executionId);
-    if (payload) {
-      setFailed(false);
-      setError("");
-      setPending(true);
-      setLoading(true);
-      const access = (payload.access || {}) as Record<string, unknown>;
-      try {
-        const res = await authFetch("/api/naming-prompt/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paymentId: access.paymentId,
-            inputHash: payload.inputHash,
-            input: payload.input,
-            paymentContext: access.raw,
-            accessGrant: access.accessGrant,
-            consume: access.consume,
-            payment: access.payment,
-          }),
-        });
-        if (res.status === 401 || res.status === 403) {
-          handleSessionInvalidated({ redirect: true });
-          return;
-        }
-      } catch {
-        // 네트워크 오류는 아래 폴링 재개에서 흡수한다.
-      }
-    }
-    setRetryKey((key) => key + 1);
+    setRetryKey(key => key + 1);
   }
 
   async function handleCopyPrompt() {
@@ -415,7 +357,7 @@ export default function NamingAiResultClient() {
         aria-hidden="true"
       />
 
-      <section className="relative mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-9 lg:px-8">
+      <section className="relative mx-auto w-full max-w-5xl px-4 pb-6 pt-20 sm:px-6 sm:pb-9 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Link
             href="/naming-ai"
@@ -428,7 +370,7 @@ export default function NamingAiResultClient() {
             <button
               type="button"
               onClick={() => void handlePdfDownload()}
-              disabled={pdfLoading}
+              disabled={pdfLoading || pending || result?.status !== "completed" && result?.saved === false}
               className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-black text-[#0a0818] transition hover:bg-[#d5cafe] disabled:cursor-not-allowed disabled:opacity-60 ${VIOLET_GLOW}`}
             >
               {pdfLoading
@@ -439,6 +381,10 @@ export default function NamingAiResultClient() {
           )}
         </div>
 
+        {pending && !loading && <section className={`${PANEL} mb-6 p-5`} aria-live="polite">
+          <p>{result?.completedChapters?.length || 0}/8 · {COPY.openingSaved}</p>
+          <button type="button" onClick={() => void handleRetry()} className="mt-3 min-h-11 rounded-full border border-[#c4b5fd]/40 px-5">{COPY.retry}</button>
+        </section>}
         {loading && (
           <div className={`${PANEL} min-h-[60vh] p-7 sm:p-10`}>
             <p className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)] sm:text-xl" aria-live="polite">
@@ -498,7 +444,7 @@ export default function NamingAiResultClient() {
           </div>
         )}
 
-        {!loading && !error && result && (
+        {result && (
           <div id="naming-ai-result-document" className="relative space-y-6">
             {/* 표지 — 작명첩의 첫 장 */}
             <header data-naming-pdf-page className={`${PANEL} relative overflow-hidden p-7 sm:p-10`}>
@@ -640,6 +586,12 @@ export default function NamingAiResultClient() {
             <section>
               <PagedResultViewer
                 pages={viewerPages}
+                activePage={chapterIds.length ? Math.max(0, chapterIds.indexOf(readingChapter)) : readingChapter - 1}
+                onPageChange={index => {
+                  const chapter = chapterIds[index] || index + 1;
+                  setReadingChapter(chapter);
+                  if (readingKey) { try { localStorage.setItem(readingKey, String(chapter)); } catch {} }
+                }}
                 deckLabel={COPY.deckLabel}
                 viewAll={viewAll}
                 onViewAllChange={setViewAll}
