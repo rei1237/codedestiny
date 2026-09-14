@@ -26,15 +26,24 @@ export function quickWins(rows = []) {
       lowSample: row.impressions < 100 }))
     .sort((a, b) => b.impressions - a.impressions);
 }
+export function searchEvidence(state, now = Date.now()) {
+  // Reopening an old account report does not make its reporting period current.
+  const dates = [state.observedAt, state.period?.end].map(value => Date.parse(value));
+  if (dates.some(date => !Number.isFinite(date) || date > now)) {
+    throw new Error('Invalid search evidence date');
+  }
+  const stale = dates.some(date => (now - date) / 86400000 > 8);
+  return { stale, quickWins: stale ? [] : quickWins(state.gscRows) };
+}
 export async function run() {
   const state = JSON.parse(await readFile('docs/seo/SEO_STATE.json', 'utf8'));
   const candidates = JSON.parse(await readFile('docs/seo/outreach/candidates.json', 'utf8'));
-  const ageDays = (Date.now() - Date.parse(state.observedAt)) / 86400000;
-  if (!Number.isFinite(ageDays)) throw new Error('Invalid observation date');
+  const evidence = searchEvidence(state);
   const opportunities = candidates.map(c => ({ ...c, evaluation: scoreOpportunity(c) }))
     .sort((a, b) => b.evaluation.score - a.evaluation.score).slice(0, 20);
   const report = { generatedAt: new Date().toISOString(), observedAt: state.observedAt,
-    stale: ageDays > 8, metrics: state.metrics, quickWins: quickWins(state.gscRows), opportunities,
+    ...evidence, period: state.period, recent28Days: state.recent28Days ?? null,
+    metrics: state.metrics, opportunities,
     acquiredLinks: state.acquiredLinks, nextActions: state.nextActions, sends: 0 };
   const m = state.metrics;
   const display = value => value == null ? '미확인' : String(value);
@@ -42,9 +51,11 @@ export async function run() {
     `데이터 갱신 필요: ${report.stale ? '예 — 이번 주 수치로 사용하지 않음' : '아니오'}`, '',
     `Organic Clicks: ${display(m.organicClicks)}`, `Impressions: ${display(m.impressions)}`,
     `CTR: ${m.ctr == null ? '미확인' : `${m.ctr}%`}`, `Indexed Pages: ${display(m.indexedPages)}`,
-    `New Referring Domains: ${display(m.newReferringDomains)}`, '', '## 이번 주 개선',
+    `New Referring Domains: ${display(m.newReferringDomains)}`,
+    `색인 보고서 갱신일: ${state.indexing?.updatedAt ?? '미확인'} (실적 기간과 별도)`, '', '## 이번 주 개선',
     `기록 기준: ${state.lastWeeklyCycle}; 과거 기록은 이번 주 완료로 집계하지 않음.`,
     ...state.improvements.map(x => `- ${x}`), '', '## 새로운 SEO 기회',
+    ...(report.stale ? ['- 검색 데이터 갱신 전까지 기존 표본의 자동 개선 추천을 보류합니다.'] : []),
     ...report.quickWins.map(x => `- ${x.query || x.page}: ${x.impressions}회, ${x.position}위 (${x.evidence}${x.lowSample ? ', 적은 표본' : ''})`),
     '', '## 백링크 후보', ...opportunities.map(c => `- ${c.site}: ${c.evaluation.score}/100, ${c.evaluation.tier}, 미확인 ${c.evaluation.unknown.length}항목, ${c.status}`),
     '', '## 획득된 링크',
