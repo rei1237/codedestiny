@@ -143,6 +143,7 @@ beforeAll(async () => {
 
   // 🔴 계약 모듈은 **통째로 대역하지 않는다** — 섹션 목록·상한 같은 상수가 통째로 사라지면
   //    이 테스트가 지키려는 계약 자체가 없어진다. 순수 조립 함수 둘만 덮는다.
+  jest.unstable_mockModule("../../worker/lib/paid-result-revocation.js", () => ({ isPaidResultRevoked: async () => false }));
   const actualContract = await import("../../worker/lib/human-design-report-contract.js");
   sectionCount = actualContract.HD_REPORT_SECTIONS.length;
   jest.unstable_mockModule("../../worker/lib/human-design-report-contract.js", () => ({

@@ -154,7 +154,7 @@ export function buildHumanDesignReportSectionPrompt(input) {
   const question = String(userQuestion || "").trim().slice(0, 600);
   const ko = locale === "ko";
   const title = HD_REPORT_SECTION_TITLES[spec.key]?.[locale] || spec.key;
-  const targetMinChars = effectiveMinChars(spec, requiredIds.length);
+  const targetMinChars = Math.max(spec.minChars, effectiveMinChars(spec, requiredIds.length));
 
   // ── 불변 접두 ──────────────────────────────────────────────────────────────
   const head = [

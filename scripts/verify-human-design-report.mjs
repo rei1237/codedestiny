@@ -344,8 +344,8 @@ if (!routeSource) {
   //    상한 검사는 락 클레임 **조건 안**에 있어야 원자적이다.
   check("웨이브 상한이 락 클레임 조건에 들어 있다",
     /waveCount:\s*\{\s*\$lt:\s*HD_REPORT_MAX_WAVES\s*\}/.test(routeCode));
-  check("웨이브를 다 쓰면 닫고 환불한다",
-    /WAVE_BUDGET_EXHAUSTED/.test(routeCode) && /HD_REPORT_MAX_WAVES/.test(generateBody));
+  check("웨이브 예산 소진과 응답 유실을 구분한다",
+    /waveBudgetExhausted/.test(generateBody) && /waveInFlight/.test(generateBody) && /resultStorageUnavailable/.test(generateBody));
 
   // 🔴 $setOnInsert 는 **기존 문서에 아무것도 쓰지 못한다.** generation_failed 로 닫힌 문서를
   //    그대로 두면 /generate 가 곧바로 409 GENERATION_ALREADY_FAILED 를 돌려주고, 사용자는
@@ -376,17 +376,12 @@ if (!routeSource) {
     .map((marker) => routeCode.indexOf(marker, publicStart + 1))
     .filter((index) => index > 0);
   const publicBody = publicStart >= 0 && publicEnds.length ? routeCode.slice(publicStart, Math.min(...publicEnds)) : "";
-  const deliveredLine = routeCode.split("\n").find((line) => line.includes("const delivered = all.filter")) || "";
-  const acceptedStatuses = (text) => [...new Set(
-    [...text.matchAll(/section\.status === "(\w+)"/g)].map((matched) => matched[1]),
-  )].sort().join("+");
-  const publicAccepted = acceptedStatuses(publicBody);
-  const deliveredAccepted = acceptedStatuses(deliveredLine);
-  check(`🔴 publicReport 가 내보내는 섹션 집합이 과금 하한과 같다 (${publicAccepted || "없음"} vs ${deliveredAccepted || "없음"})`,
-    Boolean(publicAccepted) && publicAccepted === deliveredAccepted);
+  check("진행 본문은 공개하되 정상 18개 섹션과 본문 분량을 완료 조건으로 사용한다",
+    /degraded/.test(publicBody) && /normal.length === HD_REPORT_SECTIONS.length/.test(generateBody)
+    && /countPaidReportBodyChars\(reportBody\) >= 20000/.test(generateBody));
 
   check("🔴 /result 에 결제 게이트가 없다", !/verifyPerUsePayment|PAYMENT_REQUIRED/.test(resultBody));
-  check("/result 가 좀비를 승격해 환불한다", /GENERATION_STALLED/.test(resultBody) && /refundExecution/.test(resultBody));
+  check("/result 는 저장 결과를 조회하고 취소 증빙을 확인하며 경과 시간으로 환불하지 않는다", /verifyStoredHdAccess/.test(resultBody) && !/refundExecution|updateOne|finalizeReport/.test(resultBody));
 
   check("폴백 문턱을 실제로 넘긴다", /fallbackMinChars:\s*hdReportFallbackMinChars\(spec\)/.test(routeCode));
   check("🔴 LLM 캐시에 minChars 를 준다 (안 주면 미달 응답이 30일 굳는다)",
@@ -397,7 +392,7 @@ if (!routeSource) {
     /startServiceExecution\s*\(/.test(routeCode)
     && /completeServiceExecution\s*\(/.test(routeCode)
     && /failServiceExecution\s*\(/.test(routeCode));
-  check("전달 하한을 넘으면 결제를 유지한다", /hasRenderableLlmText\s*\(/.test(routeCode));
+  check("읽을 수 있는 미완성 본문은 보존한다", /status: "partial"/.test(generateBody) && /hdSectionBody\(row\)\) >= 400/.test(generateBody));
   check("전달 하한 미달이면 환불한다", /REPORT_UNDELIVERABLE/.test(routeCode));
 
   check("🔴 ctx.waitUntil 백그라운드 생성을 쓰지 않는다", !/waitUntil/.test(routeCode));

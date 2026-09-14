@@ -94,7 +94,7 @@ function useReportViewerLocale(override?: ViewerLocale): ViewerLocale {
 export default function HumanDesignReportClient({ locale: localeOverride }: { locale?: ViewerLocale } = {}) {
   const locale = useReportViewerLocale(localeOverride);
   const [birth, setBirth] = useState<BirthInput | null>(null);
-  const [chart, setChart] = useState<HdChart | null>(null);
+  const [localChart, setChart] = useState<HdChart | null>(null);
   const [inputHash, setInputHash] = useState("");
   // 🔴 에러를 **번역된 문장**으로 들고 있지 않는다. 그러면 아래 이펙트가 locale 에 의존하게
   //    되고, locale 은 마운트 뒤에 이펙트로 재확정되므로(useReportViewerLocale) ko 가 아닌
@@ -141,10 +141,6 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
     return () => { cancelled = true; };
   }, []);
 
-  const chartErrorText = chartError
-    ? ("text" in chartError ? chartError.text : say(chartError.key, locale))
-    : "";
-
   // New reports use the service locale. Existing report IDs retain their saved language.
   const bodyRequestLocale: ReportLocale = useLocale();
 
@@ -156,6 +152,12 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
   });
 
   const { doc, phase } = generation;
+  const chart = doc?.chart || localChart;
+  const chartErrorText = !chart && chartError
+    ? ("text" in chartError ? chartError.text : say(chartError.key, locale))
+    : "";
+
+
 
   // ② 저장된 리포트 + 차트 → 웹/PDF 공용 플랜.
   const plan = useMemo<ReportPlan | null>(() => {

@@ -18,6 +18,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Locale as ViewerLocale } from "@/app/human-design/_copy";
 
+import { getAuthState } from "@/app/_lib/auth-store";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
@@ -70,9 +72,13 @@ const WAVE_REQUEST_BUDGET_MS = 110000;
 /** 🔴 시도 횟수는 늘리지 않는다 — 95초짜리 시도를 5회 돌리면 사용자를 8분 붙든다. */
 const WAVE_REQUEST_MAX_ATTEMPTS = 2;
 
+function ownerStorageKey(key: string) {
+  const user = getAuthState().user;
+  return `${key}:${String(user?.id || user?.userId || user?._id || user?.uid || "guest")}`;
+}
 function readStorage(key: string): string {
   try {
-    return window.localStorage.getItem(key) || "";
+    return window.localStorage.getItem(ownerStorageKey(key)) || "";
   } catch {
     return "";
   }
@@ -80,7 +86,7 @@ function readStorage(key: string): string {
 
 function writeStorage(key: string, value: string): void {
   try {
-    window.localStorage.setItem(key, value);
+    window.localStorage.setItem(ownerStorageKey(key), value);
   } catch {
     /* 프라이빗 모드 등에서 막히는 것은 치명적이지 않다 — URL 이 두 번째 복구 수단이다. */
   }
@@ -88,7 +94,7 @@ function writeStorage(key: string, value: string): void {
 
 function dropStorage(key: string): void {
   try {
-    window.localStorage.removeItem(key);
+    window.localStorage.removeItem(ownerStorageKey(key));
   } catch {
     /* 지우지 못해도 서버가 새 문서를 만들 때 스스로 정리된다. */
   }
@@ -141,9 +147,18 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
   const reportIdRef = useRef("");
   const runningRef = useRef(false);
+
+
   /** 최초 진입 조회의 약속. 결제 후 재개가 이걸 기다린 뒤에 생성을 시작한다. */
   const bootRef = useRef<Promise<void> | null>(null);
   const startedAtRef = useRef(0);
+  const completedRef = useRef(false);
+  const [accountEpoch, setAccountEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    runningRef.current = false; reportIdRef.current = ""; bootRef.current = null; completedRef.current = false;
+    setDoc(null); setPlanEntries([]); setError(""); setBusy(false); setPhase("loading");
+    setAccountEpoch(value => value + 1);
+  });
 
   const fail = useCallback((message: string) => {
     setError(message);
@@ -180,6 +195,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
   }, [phase]);
 
   const applyDoc = useCallback((next: ReportDocument) => {
+    completedRef.current = next.status === "completed";
     setDoc(next);
     reportIdRef.current = next.reportId || reportIdRef.current;
     if (next.reportId) writeStorage(REPORT_ID_STORAGE_KEY, next.reportId);
@@ -191,6 +207,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
    *    사용자가 자기 리포트에서 막힌다.
    */
   const runWaves = useCallback(async (reportId: string, resumeQuality = false) => {
+    const isCurrent = captureOwner();
     setPhase("generating");
     setError("");
     if (!startedAtRef.current) startedAtRef.current = Date.now();
@@ -201,6 +218,8 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
     let lockWaitStartedAt = 0;
 
     for (;;) {
+      if (!isCurrent()) return;
+      if (document.hidden || !navigator.onLine) return;
       if (waves >= MAX_WAVES) throw new Error(say("budgetExceeded", uiLocale));
 
       const { status, data, transient } = await postPaidBody(
@@ -213,6 +232,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
         },
       );
 
+      if (!isCurrent()) return;
       if (!data?.ok) {
         // 409 는 실패가 아니라 "다른 탭이 이미 웨이브를 돌리는 중" 이다. 짧게 양보하고
         // 같은 루프를 계속한다 — 새 재시도 계층이 아니라 이 루프의 대기 상태다.
@@ -224,7 +244,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
         }
         // 🔴 서버가 이미 닫고 환불한 경우. 이어서 만들기가 성공할 길이 없으므로 저장 키를
         //    놓고 재구매 화면으로 되돌린다 — 환불받은 사용자가 다시 살 수 있어야 한다.
-        if (REFUNDED_REASONS.has(String(data?.reason || ""))) {
+        if (data?.refunded === true && REFUNDED_REASONS.has(String(data?.reason || ""))) {
           releaseAfterRefund();
           setError(say("stalled", uiLocale));
           setPhase("locked");
@@ -247,42 +267,46 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
       const completed = next.progress?.completed ?? next.sections?.length ?? 0;
       if (completed > written) { written = completed; noProgress = 0; } else { noProgress += 1; }
-      if (noProgress >= MAX_NO_PROGRESS) throw new Error(say("budgetExceeded", uiLocale));
+      if (next.status !== "completed" && noProgress >= MAX_NO_PROGRESS) throw new Error(say("budgetExceeded", uiLocale));
 
       if (next.status === "completed") {
         setPhase("reading");
         return;
       }
     }
-  }, [applyDoc, fail, releaseAfterRefund, uiLocale]);
+  }, [captureOwner, applyDoc, fail, releaseAfterRefund, uiLocale]);
 
   const guarded = useCallback(async (work: () => Promise<void>) => {
+    const isCurrent = captureOwner();
     if (runningRef.current) return;
     runningRef.current = true;
     setBusy(true);
     try {
       await work();
     } catch (caught) {
+      if (!isCurrent()) return;
       fail(caught instanceof Error && caught.message ? caught.message : say("serverError", uiLocale));
     } finally {
-      runningRef.current = false;
-      setBusy(false);
+      if (isCurrent()) { runningRef.current = false; setBusy(false); }
     }
-  }, [fail, uiLocale]);
+  }, [captureOwner, fail, uiLocale]);
 
   /** 저장된 리포트를 연다. 없으면 잠금 화면으로 떨어진다 — 여기서는 결제를 부르지 않는다. */
   const load = useCallback(async (reportId: string) => {
+    const isCurrent = captureOwner();
     const query = reportId
       ? `reportId=${encodeURIComponent(reportId)}`
-      : `inputHash=${encodeURIComponent(inputHash)}&locale=${encodeURIComponent(locale)}`;
+      : inputHash ? `inputHash=${encodeURIComponent(inputHash)}&locale=${encodeURIComponent(locale)}` : "";
     let response: Response;
     try {
       response = await authFetch(`/api/human-design-report/result?${query}`, { method: "GET" });
     } catch {
+      if (!isCurrent()) return;
       fail(say("networkError", uiLocale));
       return;
     }
     const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!isCurrent()) return;
 
     if (response.status === 404 || data?.reason === "REPORT_NOT_FOUND") {
       setPhase("locked");
@@ -297,7 +321,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
     }
     if (!data?.ok) {
       // 좀비 승격(환불 완료)과 확정 실패는 다시 살 수 있는 상태다 — 저장 키를 놓고 되돌린다.
-      if (REFUNDED_REASONS.has(String(data?.reason || ""))) {
+      if (data?.refunded === true && REFUNDED_REASONS.has(String(data?.reason || ""))) {
         releaseAfterRefund();
         setError(say("stalled", uiLocale));
         setPhase("locked");
@@ -307,37 +331,54 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
       return;
     }
 
+    if (Array.isArray(data.reports)) {
+      const pending = data.reports.find((row: { status?: string }) => ["generating", "delivery_pending", "partial"].includes(String(row.status)));
+      if (pending?.id) await load(String(pending.id));
+      else setPhase("locked");
+      return;
+    }
     const next = data as unknown as ReportDocument;
     applyDoc(next);
     if (next.status === "partial") {
       fail(say("budgetExceeded", uiLocale));
       return;
     }
-    if (next.status === "generating") {
+    if (next.status === "generating" || next.status === "delivery_pending") {
       // 🔴 결제 없이 생성만 재개한다. 새로고침이 이중 결제가 되지 않는 지점이 여기다.
       await runWaves(next.reportId);
       return;
     }
     setPhase("reading");
-  }, [applyDoc, fail, inputHash, locale, releaseAfterRefund, runWaves, uiLocale]);
+  }, [captureOwner, applyDoc, fail, inputHash, locale, releaseAfterRefund, runWaves, uiLocale]);
+
+  useEffect(() => {
+    const recover = () => {
+      if (!document.hidden && navigator.onLine && reportIdRef.current && !runningRef.current && !completedRef.current) void guarded(() => load(reportIdRef.current));
+    };
+    window.addEventListener("online", recover); document.addEventListener("visibilitychange", recover);
+    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+  }, [guarded, load]);
 
   /** 최초 진입 — URL 의 reportId, 없으면 이 차트로 산 리포트가 있는지 본다. */
   useEffect(() => {
-    if (!inputHash) return;
     const params = new URLSearchParams(window.location.search);
     const fromUrl = params.get("reportId") || "";
-    const stored = fromUrl || "";
+    const stored = fromUrl || (!inputHash ? readStorage(REPORT_ID_STORAGE_KEY) : "");
     reportIdRef.current = stored;
     // 결제 후 재개가 이 최초 조회를 기다릴 수 있도록 약속을 남긴다 — guarded 는 단일비행이라
     // 조회가 도는 중에 재개가 들어오면 조용히 건너뛰어(=false) 재개가 실패로 보인다.
     bootRef.current = guarded(() => load(stored));
     // inputHash 가 정해진 뒤 한 번만 돈다. 이후 전이는 purchase/resume 이 만든다.
+    return () => { runningRef.current = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputHash]);
+  }, [inputHash, accountEpoch]);
 
   /** 결제가 끝난 뒤의 생성 개시. 🔴 결제 게이트를 다시 부르지 않는다 — 결제 후 재개도 여기로 들어온다. */
   const startPaidReport = useCallback(async (requestId: string, birthInput: Record<string, unknown>): Promise<boolean> => {
+    const isCurrent = captureOwner();
+    completedRef.current = false;
     const { data } = await postPaidBody("/api/human-design-report/start", { birth: birthInput, locale, requestId });
+    if (!isCurrent()) return false;
     if (!data?.ok) {
       fail(typeof data?.message === "string" && data.message ? data.message : say("serverError", uiLocale));
       return false;
@@ -358,21 +399,21 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
       applyDoc(data as unknown as ReportDocument);
       if (data.status === "partial") {
         fail(say("budgetExceeded", uiLocale));
-        return true;
+        return isCurrent() && completedRef.current;
       }
       // 🔴 재열람이 곧 완성본은 아니다. /start 는 앞 세션이 중간에 끊긴 generating 문서도
       //    reused 로 돌려준다. 그때 reading 으로 보내면 빈 리포트를 그리고 사용자는
       //    결제하고도 아무것도 못 본다 — 남은 웨이브를 이어서 돌려야 한다.
-      if (data.status === "generating") {
+      if (data.status === "generating" || data.status === "delivery_pending") {
         await runWaves(reportId);
-        return true;
+        return isCurrent() && completedRef.current;
       }
       setPhase("reading");
-      return true;
+      return isCurrent() && completedRef.current;
     }
     await runWaves(reportId);
-    return true;
-  }, [applyDoc, fail, locale, runWaves, uiLocale]);
+    return isCurrent() && completedRef.current;
+  }, [captureOwner, applyDoc, fail, locale, runWaves, uiLocale]);
 
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 ensurePaidAccess 의 await 가 페이지와 함께 죽는다.
      그러면 /start 가 영영 안 불려 결제한 사용자가 잠금 화면으로 되돌아온다. requestId 는
@@ -390,6 +431,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
   const purchase = useCallback(() => {
     if (!birth || !inputHash) return;
+    const isCurrent = captureOwner();
     void guarded(async () => {
       const requestId = stableRequestId(inputHash, locale);
       const gate = await ensurePaidAccess({
@@ -400,6 +442,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
         requestId,
         resume: buildResume({ requestId, birth: packPaidResumeArg(birth) }),
       });
+      if (!isCurrent()) return;
       if (!gate.ok) {
         if (gate.code === "PAYMENT_CANCELLED") return;
         if (gate.code === "LOGIN_REQUIRED" || gate.code === "AUTH_REQUIRED") {
@@ -412,7 +455,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
       await startPaidReport(requestId, birth);
     });
-  }, [birth, buildResume, ensurePaidAccess, fail, guarded, inputHash, locale, startPaidReport, uiLocale]);
+  }, [captureOwner, birth, buildResume, ensurePaidAccess, fail, guarded, inputHash, locale, startPaidReport, uiLocale]);
 
   const resume = useCallback(() => {
     const reportId = reportIdRef.current || readStorage(REPORT_ID_STORAGE_KEY);

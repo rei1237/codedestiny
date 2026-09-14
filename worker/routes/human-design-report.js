@@ -21,26 +21,24 @@
 // /start 가 결제를 확인하고 환불 가능 상태를 연다. 생성이 실패해도 결제를 되돌릴 뿐 결과를
 // 버리지 않는다 — 렌더 가능한 분량이 남아 있으면 degraded 로 전달하고 결제를 유지한다.
 
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { HumanDesignCalculation, HumanDesignReport } from "../lib/models.js";
-import { pendingReportSections } from "../lib/paid-report-completeness.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { escapeRawControlCharsInJsonStrings } from "../lib/json-text-repair.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
-import { runWithConcurrency } from "../lib/concurrency.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { completeServiceExecution, failServiceExecution, startServiceExecution } from "../lib/service-execution-task.js";
 import { CALCULATION_VERSION } from "../../lib/human-design/version.js";
 import { clean, computeInputHash, isValidBirth, normalizeBirthBody } from "../lib/human-design-birth-input.js";
 import {
-  HD_REPORT_DELIVER_MIN_SECTIONS,
-  HD_REPORT_DELIVER_MIN_TOTAL_CHARS,
   HD_REPORT_LOCALES,
   HD_REPORT_LOCK_TTL_MS,
   HD_REPORT_MAX_SECTION_ATTEMPTS,
@@ -49,9 +47,7 @@ import {
   HD_REPORT_SECTION_CONCURRENCY,
   HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,
   HD_REPORT_SECTION_TIMEOUT_MS,
-  HD_REPORT_STALE_MS,
   HD_REPORT_VERSION,
-  HD_REPORT_WAVE_BUDGET_MS,
   buildAllowedIds,
   buildHumanDesignFactSnapshot,
   effectiveMinChars,
@@ -109,9 +105,7 @@ function executionKeyOf(requestId) {
 /** 화면·PDF 가 함께 쓰는 공개 형태. 저장 문서의 내부 필드(lock·basis)는 내보내지 않는다. */
 function publicReport(doc) {
   const sections = (doc.sections || [])
-    // 🔴 과금·전달 하한(handleGenerate 의 delivered)이 "ok || degraded" 를 세므로 여기도 같아야
-    //    한다. ok 만 내보내면 진행률이 실제보다 적게 보고돼 클라이언트의 무진전 카운터가
-    //    멀쩡한 생성을 끊고, 완성된 리포트도 결제 기준(14장)보다 적은 장수로 보인다.
+    // 미완성 본문도 표시하되 완료 진행률은 검증된 섹션만 센다.
     .filter((section) => section.status === "ok" || section.status === "degraded")
     .sort((a, b) => a.order - b.order)
     .map((section) => ({
@@ -125,6 +119,7 @@ function publicReport(doc) {
     }));
   return {
     reportId: doc.id,
+    chart: doc.basis?.chart || null,
     contractVersion: doc.contractVersion,
     locale: doc.locale,
     status: doc.status,
@@ -168,7 +163,7 @@ async function claimWave(env, userId, reportId) {
     {
       id: reportId,
       userId,
-      status: "generating",
+      status: { $in: ["generating", "delivery_pending"] },
       // 🔴 웨이브 상한. 이게 없으면 클라이언트가 /generate 를 무한히 부를 수 있고, 실패가
       //    반복되는 리포트 하나가 LLM 호출을 끝없이 태운다. 상한을 조건에 넣어야 원자적으로 막힌다.
       waveCount: { $lt: HD_REPORT_MAX_WAVES },
@@ -178,7 +173,7 @@ async function claimWave(env, userId, reportId) {
         { "lock.at": { $lt: staleBefore } },
       ],
     },
-    { $inc: { waveCount: 1 }, $set: { "lock.at": new Date(), "lock.token": crypto.randomUUID() } },
+    { $inc: { waveCount: 1 }, $set: { lock: { at: new Date(), token: crypto.randomUUID() } } },
     { new: true },
   ).lean());
 }
@@ -194,36 +189,6 @@ async function releaseLock(env, userId, reportId, token) {
     // 락은 만료로도 풀린다. 해제 실패가 생성을 막지 않는다.
     console.warn("[human-design-report] lock release failed", clean(error?.message || error, 200));
   }
-}
-
-/** 🔴 이번 웨이브에서 만든 섹션만 제자리 갱신 — arrayFilters 로 쓰기 1회. */
-async function saveWave(env, userId, reportId, produced, totals) {
-  if (!produced.length) return;
-  const set = {
-    totalChars: totals.totalChars,
-    degraded: totals.degraded,
-    qualityIssues: totals.qualityIssues.slice(0, 40),
-    llmMeta: totals.llmMeta,
-  };
-  const filters = [];
-  produced.forEach((section, index) => {
-    set[`sections.$[s${index}]`] = section;
-    filters.push({ [`s${index}.key`]: section.key });
-  });
-  await connectDb(env);
-  await withMongoRetry(env, () => HumanDesignReport.updateOne(
-    { id: reportId, userId },
-    { $set: set },
-    { arrayFilters: filters },
-  ));
-}
-
-async function finalizeReport(env, userId, reportId, status, extra = {}) {
-  await connectDb(env);
-  await withMongoRetry(env, () => HumanDesignReport.updateOne(
-    { id: reportId, userId },
-    { $set: { status, lock: null, completedAt: status === "completed" ? new Date() : null, ...extra } },
-  ));
 }
 
 // ── 결제 · 환불 ──────────────────────────────────────────────────────────────
@@ -320,6 +285,8 @@ async function generateSection(env, context, spec, attemptState) {
     temperature: 0.8,
     taskType: "fortune",
     timeoutMs: HD_REPORT_SECTION_TIMEOUT_MS,
+    attempts: 1,
+    fallbackToWorkersAI: false,
     // 🔴 폴백을 켠 유료 라우트는 이게 필수다. 안 주면 Workers AI 가 8% 분량을 내놔도
     //    정상 결제 결과로 전달되고 재시도·환불 경로가 사라진다.
     fallbackMinChars: hdReportFallbackMinChars(spec),
@@ -334,7 +301,7 @@ async function generateSection(env, context, spec, attemptState) {
     logContext: { route: "human-design-report", section: spec.key, locale },
   });
 
-  if (!ai?.ok || !ai.text) {
+  if (!ai?.ok || !ai.text || ai.truncated || /MAX_TOKENS|length/i.test(ai.finishReason || "")) {
     return { ok: false, issues: [`ai_unavailable:${clean(ai?.error, 40) || "unknown"}`], meta: ai };
   }
   const payload = parseSectionPayload(ai.text);
@@ -343,6 +310,9 @@ async function generateSection(env, context, spec, attemptState) {
   const verdict = validateHumanDesignReportSection(payload, {
     spec, snapshot, locale, allowed, requiredIds, seenSentences,
   });
+  if (countPaidReportBodyChars(hdSectionBody({ ...payload, subsections: verdict.keptSubsections })) < Math.max(spec.minChars, effectiveMinChars(spec, requiredIds.length))) {
+    verdict.ok = false; verdict.issues.push("body_minimum_not_met");
+  }
   return { ok: verdict.ok, issues: verdict.issues, payload, verdict, meta: ai };
 }
 
@@ -385,6 +355,7 @@ async function handleStart(request, env) {
   //    다시 여는 길이다(fusion-fortune.js 의 재열람 계약과 같다).
   const existing = await findReport(env, auth.userId, { reportKey });
   if (existing && existing.status !== "generation_failed") {
+    if (existing.status !== "completed" && !await verifyStoredHdAccess(existing)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     return json({ ok: true, reused: true, ...publicReport(existing) }, { headers: noStore });
   }
 
@@ -450,7 +421,7 @@ async function handleStart(request, env) {
     calculationVersion: calculation.calculationVersion || CALCULATION_VERSION,
     contractVersion: HD_REPORT_VERSION,
     locale,
-    basis: { snapshot, allowed: { ...allowed, all: [...allowed.all] } },
+    basis: { chart: calculation, snapshot, allowed: { ...allowed, all: [...allowed.all] } },
     status: "generating",
     // 18유닛 자리를 미리 심어 둔다 — 이후 웨이브가 배열 push 없이 제자리 갱신만 하면 된다.
     sections: HD_REPORT_SECTIONS.map((spec) => ({
@@ -471,7 +442,9 @@ async function handleStart(request, env) {
     billingRequestId: requestId,
   };
 
+  try {
   await connectDb(env);
+  let write;
   if (existing) {
     // 🔴 여기 도달하는 existing 은 generation_failed 하나뿐이다(위 재열람 분기가 나머지를 돌려준다).
     //    그런데 $setOnInsert 는 **기존 문서에 아무것도 쓰지 못한다.** 닫힌 문서를 그대로 두면
@@ -481,7 +454,7 @@ async function handleStart(request, env) {
     //    claimWave 의 상한 조건이 첫 웨이브부터 걸린다.
     // 🔴 billingRequestId 는 doc 안에서 이번 requestId 로 갱신된다 — 옛 값을 남기면 이후 환불이
     //    이미 환불된 실행을 다시 닫고, 이번 결제금은 영영 돌아가지 않는다.
-    await withMongoRetry(env, () => HumanDesignReport.updateOne(
+    write = await withMongoRetry(env, () => HumanDesignReport.updateOne(
       { userId: auth.userId, reportKey, status: "generation_failed" },
       {
         $set: {
@@ -499,13 +472,17 @@ async function handleStart(request, env) {
       },
     ));
   } else {
-    await withMongoRetry(env, () => HumanDesignReport.updateOne(
+    write = await withMongoRetry(env, () => HumanDesignReport.updateOne(
       { userId: auth.userId, reportKey },
       { $setOnInsert: doc },
       { upsert: true },
     ));
   }
 
+  if (!write || !(write.matchedCount || write.upsertedCount)) throw resultStorageUnavailable(reportId);
+  const saved = await findReport(env, auth.userId, { id: reportId });
+  if (!saved || saved.status !== "generating" || saved.billingRequestId !== requestId || !saved.basis?.snapshot) throw resultStorageUnavailable(reportId);
+  } catch { throw resultStorageUnavailable(reportId); }
   await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120), proof.passRefund);
 
   return json(
@@ -526,169 +503,120 @@ async function handleStart(request, env) {
   );
 }
 
+function hdSectionBody(section) {
+  return [section.body || "", ...(section.subsections || []).map(row => row.body || "")].join("\n");
+}
+async function verifyStoredHdAccess(doc) {
+  if (await isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.billingRequestId, doc.paymentId, executionKeyOf(doc.billingRequestId)])) return false;
+  return true;
+}
+async function saveHdDelivery(env, filter, fields, reportId) {
+  try {
+    const write = await withMongoRetry(env, () => HumanDesignReport.updateOne(filter, { $set: fields }));
+    if (!write?.matchedCount) throw resultStorageUnavailable(reportId);
+    const confirmed = await findReport(env, filter.userId, { id: reportId });
+    const matches = (expected, actual) => {
+      if (expected instanceof Date) return expected.getTime() === new Date(actual).getTime();
+      if (Array.isArray(expected)) return Array.isArray(actual) && expected.length === actual.length && expected.every((row, i) => matches(row, actual[i]));
+      if (expected && typeof expected === "object") return Boolean(actual) && Object.keys(expected).every(key => matches(expected[key], actual[key]));
+      return expected === actual;
+    };
+    if (!confirmed || Object.keys(fields).some(key => !matches(fields[key], confirmed[key]))) throw resultStorageUnavailable(reportId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(reportId); }
+}
 async function handleGenerate(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
   const reportId = clean(body?.reportId, 200);
-  if (!reportId) {
-    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  if (!reportId) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 400 });
+  let current = await findReport(env, auth.userId, { id: reportId });
+  if (!current) return json({ ok: false, reason: "REPORT_NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
+  if (current.status === "completed") return json({ ok: true, ...publicReport(current) }, { headers: noStore });
+  if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  // 기존 명시적 '부족한 영역 보완'만 새 제한 실행을 연다. 자동으로 예산을 초기화하지 않는다.
+  if (body?.resumeQuality === true && current.status === "partial") {
+    current = await saveHdDelivery(env, { id: reportId, userId: auth.userId, status: "partial" }, {
+      status: "generating", waveCount: 0, generationError: null,
+      sections: current.sections.map(row => row.status === "ok" ? row : { ...row, attempts: 0 }),
+    }, reportId);
   }
-
-  // Only an explicit reader action opens another bounded repair run. This CAS
-  // cannot reset a running wave or a completed/refunded report.
-  if (body?.resumeQuality === true) {
-    await connectDb(env);
-    await withMongoRetry(env, () => HumanDesignReport.updateOne(
-      { id: reportId, userId: auth.userId, status: "partial" },
-      { $set: { status: "generating", waveCount: 0, generationError: null,
-        "sections.$[repair].attempts": 0 } },
-      { arrayFilters: [{ "repair.status": { $ne: "ok" } }] },
-    ));
-  }
-
-  // 🔴 결제를 다시 검증하지 않는다. 문서 자체가 증빙이다 — 증빙된 결제 없이는 /start 가
-  //    문서를 만들지 않는다. 소유권은 { id, userId } 조건이 본다.
-  const claimed = await claimWave(env, auth.userId, reportId);
-  if (!claimed) {
-    const current = await findReport(env, auth.userId, { id: reportId });
-    if (!current) return json({ ok: false, reason: "REPORT_NOT_FOUND", message: MESSAGES.notFound }, { status: 404 });
-    if (current.status === "completed") {
+  if (current.status === "partial") return json({ ok: true, ...publicReport(current), retryable: true }, { status: 202, headers: noStore });
+  if (current.status === "generation_failed") return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", refunded: current.generationError?.refunded === true, message: MESSAGES.failed }, { status: 409 });
+  const completeParts = current.sections.every(row => row.status === "ok");
+  const waveBudgetExhausted = Number(current.waveCount || 0) >= HD_REPORT_MAX_WAVES;
+  // 저장만 남은 회차는 생성 웨이브 예산을 소비하지 않고 같은 lease를 잡는다.
+  const claimed = completeParts || waveBudgetExhausted
+    ? await HumanDesignReport.findOneAndUpdate({ id: reportId, userId: auth.userId, status: { $in: ["generating", "delivery_pending"] },
+      $or: [{ lock: null }, { "lock.at": { $lt: new Date(Date.now() - HD_REPORT_LOCK_TTL_MS) } }] },
+      { $set: { lock: { token: crypto.randomUUID(), at: new Date() } } }, { new: true }).lean()
+    : await claimWave(env, auth.userId, reportId);
+  if (!claimed) return json({ ok: false, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.busy }, { status: 409, headers: { ...noStore, "Retry-After": "4" } });
+  current = claimed;
+  const filter = { id: reportId, userId: auth.userId, "lock.token": claimed.lock.token, status: { $ne: "completed" } };
+  try {
+    const snapshot = current.basis?.snapshot, rawAllowed = current.basis?.allowed;
+    if (!snapshot || !rawAllowed) return json({ ok: false, reason: "CALCULATION_INCOMPLETE" }, { status: 422 });
+    const allowed = { ...rawAllowed, all: new Set(rawAllowed.all || []) };
+    const pending = waveBudgetExhausted ? [] : current.sections.filter(row => row.status !== "ok" && row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS).slice(0, HD_REPORT_SECTION_CONCURRENCY);
+    if (pending.length) {
+      const keys = new Set(pending.map(row => row.key));
+      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => keys.has(row.key) ? { ...row, attempts: Number(row.attempts || 0) + 1 } : row),
+        llmMeta: { ...current.llmMeta, unknownAttempt: Boolean(current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight), waveInFlight: true } }, reportId);
+      const done = current.sections.filter(row => row.status === "ok"), seenSentences = new Set();
+      done.forEach(row => rememberSentences(seenSentences, row));
+      const context = { snapshot, allowed, locale: current.locale, inputHash: current.inputHash, seenSentences,
+        priorDigests: done.slice(-6).map(row => sectionDigest(row, current.locale)), cacheStore: createLlmCacheStore(env) };
+      let queue = Promise.resolve();
+      const outcomes = await Promise.allSettled(pending.map(async prior => {
+        const spec = HD_REPORT_SECTIONS.find(row => row.key === prior.key);
+        let result;
+        try { result = await generateSection(env, context, spec, { attempt: prior.attempts + 1, issues: prior.issues || [] }); }
+        catch { result = { ok: false, issues: ["ai_unavailable"] }; }
+        result.attempts = prior.attempts + 1;
+        let section = result.payload ? toStoredSection(spec, current.locale, result)
+          : { ...prior, attempts: result.attempts, status: prior.body ? "degraded" : "pending", issues: result.issues };
+        const write = queue.catch(() => {}).then(async () => {
+          // Read back under the same lease before merging a sibling. A previous write
+          // may have succeeded even when its confirmation was lost.
+          const latest = await findReport(env, auth.userId, { id: reportId });
+          if (!latest || latest.lock?.token !== claimed.lock.token) throw resultStorageUnavailable(reportId);
+          current = latest;
+          const normalBodies = current.sections.filter(row => row.status === "ok").map(hdSectionBody);
+          if (section.status === "ok" && hasRepeatedReportPassage(normalBodies.concat(hdSectionBody(section)).join("\n"))) section = { ...section, status: "degraded", issues: ["repeated_body"] };
+          const sections = current.sections.map(row => row.key === section.key ? section : row);
+          const totalChars = sections.filter(row => row.status === "ok" || row.status === "degraded").reduce((sum, row) => sum + countPaidReportBodyChars(hdSectionBody(row)), 0);
+          current = await saveHdDelivery(env, filter, { sections, totalChars, degraded: sections.some(row => row.status === "degraded") }, reportId);
+        }); queue = write; await write;
+      }));
+      const failure = outcomes.find(row => row.status === "rejected");
+      if (failure) throw failure.reason;
+      current = await saveHdDelivery(env, filter, { llmMeta: { ...current.llmMeta, waveInFlight: false } }, reportId);
+    }
+    if (current.sections.every(row => row.status === "ok") && countPaidReportBodyChars(current.sections.map(hdSectionBody).join("\n")) < 20000) {
+      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => countPaidReportBodyChars(hdSectionBody(row)) < HD_REPORT_SECTIONS.find(spec => spec.key === row.key).minChars
+        ? { ...row, status: "degraded", issues: ["body_minimum_not_met"] } : row) }, reportId);
+    }
+    const normal = current.sections.filter(row => row.status === "ok");
+    const reportBody = normal.map(hdSectionBody).join("\n");
+    if (normal.length === HD_REPORT_SECTIONS.length && countPaidReportBodyChars(reportBody) >= 20000 && !hasRepeatedReportPassage(reportBody)) {
+      current = await saveHdDelivery(env, filter, { status: "delivery_pending" }, reportId);
+      if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+      current = await saveHdDelivery(env, filter, { status: "completed", completedAt: new Date(), lock: null }, reportId);
+      await closeExecution(env, auth.userId, current.billingRequestId, reportId).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
       return json({ ok: true, ...publicReport(current) }, { headers: noStore });
     }
-    if (current.status === "partial") return json({ ok: true, ...publicReport(current), retryable: true }, { headers: noStore });
-    if (current.status === "generation_failed") {
-      return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", message: MESSAGES.failed }, { status: 409, headers: noStore });
+    const exhausted = waveBudgetExhausted || current.sections.every(row => row.status === "ok" || row.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS);
+    if (exhausted && !current.sections.some(row => countPaidReportBodyChars(hdSectionBody(row)) >= 400)) {
+      if (current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight) throw resultStorageUnavailable(reportId);
+      current = await saveHdDelivery(env, filter, { status: "generation_failed", generationError: { reason: "BELOW_DELIVERY_FLOOR" } }, reportId);
+      const refunded = await refundExecution(env, auth.userId, current.billingRequestId, reportId, "delivery floor not met");
+      if (refunded) current = await saveHdDelivery(env, filter, { generationError: { reason: "BELOW_DELIVERY_FLOOR", refunded: true } }, reportId);
+      return json({ ok: false, reason: "REPORT_UNDELIVERABLE", refunded, message: MESSAGES.failed }, { status: 503 });
     }
-    // 🔴 웨이브를 다 썼는데 아직 완성이 아니다 — 더 부르게 두지 않고 닫고 환불한다.
-    //    그대로 두면 클라이언트가 409 를 영원히 받으며 "만드는 중" 화면에 갇힌다.
-    if (Number(current.waveCount || 0) >= HD_REPORT_MAX_WAVES) {
-      if (hasRenderableLlmText((current.sections || []).map(section => section.body).join("\n"), { minChars: 400 })) {
-        await finalizeReport(env, auth.userId, reportId, "partial", {
-          generationError: { reason: "QUALITY_REPAIR_REQUIRED", at: new Date().toISOString() },
-        });
-        return json({ ok: true, ...publicReport({ ...current, status: "partial" }), retryable: true }, { headers: noStore });
-      }
-      await finalizeReport(env, auth.userId, reportId, "generation_failed", {
-        generationError: { reason: "WAVE_BUDGET_EXHAUSTED", waves: current.waveCount, at: new Date().toISOString() },
-      });
-      const refunded = await refundExecution(env, auth.userId, current.billingRequestId, reportId, "wave budget exhausted");
-      return json(
-        { ok: false, retryable: false, reason: "GENERATION_STALLED", refunded, message: MESSAGES.failed },
-        { status: 503, headers: noStore },
-      );
-    }
-    // 다른 요청이 웨이브를 잡고 있다. 이중 팬아웃을 막는 자리다.
-    // 🔴 retryable 을 붙이지 않는다. 붙이면 postPaidBody 가 이 409 를 스스로 5회 재시도해
-    //    useReportGeneration 의 4초 양보 위에 재시도가 한 겹 더 쌓이고(코딩 원칙 6),
-    //    웨이브당 요청이 5배가 되어 /start 와 공유하는 분당 15회 상한을 넘긴다.
-    //    재시도 주기는 아래 Retry-After 를 보고 클라이언트가 정한다.
-    return json(
-      { ok: false, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.busy },
-      { status: 409, headers: { ...noStore, "Retry-After": "4" } },
-    );
-  }
-
-  const lockToken = claimed.lock?.token || "";
-  const locale = claimed.locale;
-  const snapshot = claimed.basis?.snapshot;
-  const rawAllowed = claimed.basis?.allowed;
-  if (!snapshot || !rawAllowed) {
-    await releaseLock(env, auth.userId, reportId, lockToken);
-    return json({ ok: false, reason: "CALCULATION_INCOMPLETE", message: MESSAGES.failed }, { status: 500 });
-  }
-  const allowed = { ...rawAllowed, all: new Set(rawAllowed.all || []) };
-
-  const stored = [...(claimed.sections || [])].sort((a, b) => a.order - b.order);
-  const done = stored.filter((section) => section.status === "ok");
-  const pending = stored
-    .filter((section) => section.status !== "ok" && section.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS)
-    .slice(0, HD_REPORT_SECTION_CONCURRENCY);
-
-  // 앞선 섹션의 문장과 요약 — 반복 금지와 문맥 연결의 재료다.
-  const seenSentences = new Set();
-  for (const section of done) rememberSentences(seenSentences, section);
-  const priorDigests = done.slice(-6).map((section) => sectionDigest(section, locale));
-
-  const cacheStore = createLlmCacheStore(env);
-  const context = { snapshot, allowed, locale, priorDigests, seenSentences, cacheStore, inputHash: claimed.inputHash };
-  const waveDeadline = Date.now() + HD_REPORT_WAVE_BUDGET_MS;
-
-  let produced = [];
-  try {
-    produced = (await runWithConcurrency(pending, HD_REPORT_SECTION_CONCURRENCY, async (storedSection) => {
-      const spec = HD_REPORT_SECTIONS.find((item) => item.key === storedSection.key);
-      if (!spec || Date.now() > waveDeadline) return null;
-
-      let attempt = Number(storedSection.attempts || 0);
-      let result = null;
-      // 교정은 1회만. 그 이상은 다음 웨이브가 이어받는다(요청 예산을 지키기 위해).
-      for (let round = 0; round < 2; round += 1) {
-        attempt += 1;
-        result = await generateSection(env, context, spec, { attempt, issues: round === 0 ? [] : result.issues });
-        result.attempts = attempt;
-        if (result.ok) break;
-        if (attempt >= HD_REPORT_MAX_SECTION_ATTEMPTS || Date.now() > waveDeadline) break;
-      }
-      if (!result) return null;
-      if (!result.payload) {
-        return { ...storedSection, status: storedSection.body ? "degraded" : attempt >= HD_REPORT_MAX_SECTION_ATTEMPTS ? "failed" : "pending", attempts: attempt, issues: result.issues.slice(0, 6) };
-      }
-      // 🔴 검증에 걸려도 본문이 있으면 버리지 않는다 — degraded 로 전달하고 결제를 유지한다
-      //    (경량 보장 계약). 버리는 것은 본문 자체가 없을 때뿐이다.
-      const section = toStoredSection(spec, locale, result);
-      if (result.ok) rememberSentences(seenSentences, section);
-      return section;
-    })).filter(Boolean);
-  } finally {
-    await releaseLock(env, auth.userId, reportId, lockToken);
-  }
-
-  const merged = new Map(stored.map((section) => [section.key, section]));
-  for (const section of produced) merged.set(section.key, section);
-  const all = [...merged.values()];
-  const delivered = all.filter((section) => section.status === "ok" || section.status === "degraded");
-  const totalChars = delivered.reduce((sum, section) => sum + Number(section.chars || 0), 0);
-  const qualityIssues = delivered.flatMap((section) => (section.issues || []).map((issue) => `${section.key}:${issue}`));
-
-  await saveWave(env, auth.userId, reportId, produced, {
-    totalChars,
-    degraded: delivered.some((section) => section.status === "degraded"),
-    qualityIssues,
-    llmMeta: { at: new Date().toISOString(), waves: claimed.waveCount },
-  });
-
-  const exhausted = all.every((section) => section.status === "ok" || section.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS);
-  if (!exhausted) {
-    const fresh = await findReport(env, auth.userId, { id: reportId });
-    return json({ ok: true, ...publicReport(fresh || claimed), status: "generating" }, { status: 202, headers: { ...noStore, "Retry-After": "1" } });
-  }
-
-  // 🔴 전달 경계 — "리포트라고 부를 수 있는가". 넘으면 결제 유지, 미달이면 환불한다.
-  const renderable = hasRenderableLlmText(delivered.map((section) => section.body).join("\n"), { minChars: 400 });
-  const missing = pendingReportSections(HD_REPORT_SECTIONS.map(section => section.key), all);
-  if (!missing.length && delivered.length >= HD_REPORT_DELIVER_MIN_SECTIONS && totalChars >= HD_REPORT_DELIVER_MIN_TOTAL_CHARS && renderable) {
-    await finalizeReport(env, auth.userId, reportId, "completed");
-    await closeExecution(env, auth.userId, claimed.billingRequestId, reportId);
-    const fresh = await findReport(env, auth.userId, { id: reportId });
-    return json({ ok: true, ...publicReport(fresh || claimed), status: "completed" }, { headers: noStore });
-  }
-
-  if (renderable) {
-    await finalizeReport(env, auth.userId, reportId, "partial", {
-      generationError: { reason: "QUALITY_REPAIR_REQUIRED", sections: missing, at: new Date().toISOString() },
-    });
-    const fresh = await findReport(env, auth.userId, { id: reportId });
-    return json({ ok: true, ...publicReport(fresh), retryable: true }, { headers: noStore });
-  }
-
-  await finalizeReport(env, auth.userId, reportId, "generation_failed", {
-    generationError: { reason: "BELOW_DELIVERY_FLOOR", sections: delivered.length, totalChars, at: new Date().toISOString() },
-  });
-  const refunded = await refundExecution(env, auth.userId, claimed.billingRequestId, reportId, "delivery floor not met");
-  return json(
-    { ok: false, retryable: true, reason: "REPORT_UNDELIVERABLE", refunded, message: MESSAGES.failed },
-    { status: 503, headers: noStore },
-  );
+    if (exhausted) current = await saveHdDelivery(env, filter, { status: "partial", generationError: { reason: "QUALITY_REPAIR_REQUIRED" } }, reportId);
+    return json({ ok: true, ...publicReport(current), retryable: true }, { status: 202, headers: noStore });
+  } finally { await releaseLock(env, auth.userId, reportId, claimed.lock.token); }
 }
 
 async function handleResult(request, env) {
@@ -714,30 +642,13 @@ async function handleResult(request, env) {
 
   if (!doc) return json({ ok: false, reason: "REPORT_NOT_FOUND", message: MESSAGES.notFound }, { status: 404, headers: noStore });
 
-  // 🔴 좀비 승격 — 생성 중인데 오래 갱신이 없으면 실패로 닫고 환불한다. 그대로 두면
-  //    사용자가 "만드는 중" 화면에 영원히 갇힌다.
-  if (doc.status === "generating" && Date.now() - new Date(doc.updatedAt || doc.createdAt).getTime() > HD_REPORT_STALE_MS) {
-    if (hasRenderableLlmText((doc.sections || []).map(section => section.body).join("\n"), { minChars: 400 })) {
-      await finalizeReport(env, auth.userId, doc.id, "partial", {
-        generationError: { reason: "QUALITY_REPAIR_REQUIRED", at: new Date().toISOString() },
-      });
-      return json({ ok: true, ...publicReport({ ...doc, status: "partial" }), retryable: true }, { headers: noStore });
-    }
-    await finalizeReport(env, auth.userId, doc.id, "generation_failed", {
-      generationError: { reason: "STALLED", at: new Date().toISOString() },
-    });
-    const refunded = await refundExecution(env, auth.userId, doc.billingRequestId, doc.id, "generation stalled");
-    return json({ ok: false, retryable: true, reason: "GENERATION_STALLED", refunded, message: MESSAGES.failed }, { status: 503, headers: noStore });
+  if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", refunded: doc.generationError?.refunded === true, message: MESSAGES.failed }, { status: 409 });
+  if (doc.status !== "completed" && !await verifyStoredHdAccess(doc)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  if (!doc.basis?.chart && doc.inputHash) {
+    const archived = await findArchivedChart(env, auth.userId, doc.inputHash);
+    if (archived?.calculation) doc = { ...doc, basis: { ...doc.basis, chart: archived.calculation } };
   }
-
-  if (doc.status === "generating") {
-    return json({ ok: true, ...publicReport(doc) }, { status: 202, headers: { ...noStore, "Retry-After": "3" } });
-  }
-  if (doc.status === "generation_failed") {
-    return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.failed }, { status: 409, headers: noStore });
-  }
-  // 🔴 결제 게이트를 두지 않는다 — 본인이 이미 결제해 받은 결과를 다시 여는 것이다.
-  return json({ ok: true, ...publicReport(doc) }, { headers: noStore });
+  return json({ ok: true, ...publicReport(doc) }, { status: ["generating", "delivery_pending", "partial"].includes(doc.status) ? 202 : 200, headers: noStore });
 }
 
 export async function handleHumanDesignReportRoutes(request, env = {}) {
@@ -751,6 +662,7 @@ export async function handleHumanDesignReportRoutes(request, env = {}) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     if (error instanceof HttpError) {
       const reason = error.payload?.error || (error.status === 401 ? "LOGIN_REQUIRED" : "BAD_REQUEST");
       return json(

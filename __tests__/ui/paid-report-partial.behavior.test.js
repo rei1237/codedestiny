@@ -31,6 +31,9 @@ test("human design quality pause preserves result and never closes or refunds ex
     lock: { token: "mine" }, basis: { snapshot: {}, allowed: {} } };
   const generate = runFunction("worker/routes/human-design-report.js", "handleGenerate", {
     requireAuth: async () => ({ userId: "owner" }), readJson: async () => ({ reportId: "owned" }),
+    verifyStoredHdAccess: async () => true, HD_REPORT_MAX_WAVES: 10,
+    hdSectionBody: row => row.body, countPaidReportBodyChars: body => body.length,
+    saveHdDelivery: async (_env, _filter, fields) => { doc = { ...doc, ...fields }; events.push(fields.status); return doc; },
     clean: String, claimWave: async () => doc, HD_REPORT_SECTIONS: [{ key: "a" }],
     HD_REPORT_MAX_SECTION_ATTEMPTS: 3, HD_REPORT_SECTION_CONCURRENCY: 4,
     HD_REPORT_WAVE_BUDGET_MS: 1000, HD_REPORT_DELIVER_MIN_SECTIONS: 1, HD_REPORT_DELIVER_MIN_TOTAL_CHARS: 400,
@@ -52,6 +55,7 @@ test("partial human design result is returned on re-entry without generating or 
   const doc = { id: "owned", status: "partial", sections: [{ body: "saved" }] };
   const generate = runFunction("worker/routes/human-design-report.js", "handleGenerate", {
     requireAuth: async () => ({ userId: "owner" }), readJson: async () => ({ reportId: "owned" }),
+    verifyStoredHdAccess: async () => true,
     clean: String, claimWave: async () => null, findReport: async () => doc,
     publicReport: value => value, json: value => value, noStore: {},
   });
@@ -71,8 +75,14 @@ for (const mode of ["solo", "compat"]) {
         return { matchedCount: 1 };
       },
     };
+    const storageError = () => new Error("RESULT_STORAGE_UNAVAILABLE");
+    const save = runFunction("worker/routes/master-love-codex.js", "saveCodexDelivery", {
+      MasterLoveCodexSession: model, resultStorageUnavailable: storageError,
+    });
     const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWave", {
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
+      saveCodexDelivery: save, resultStorageUnavailable: storageError,
+      hasRepeatedReportPassage: () => false, countPaidReportBodyChars: body => body.replace(/\s/g, "").length,
       MasterLoveCodexSession: model, CHAPTER_BATCH_SIZE: 3, CHAPTER_CONCURRENCY: 3,
       buildMemory: () => "", runWithConcurrency: (items, _count, fn) => Promise.all(items.map(fn)),
       recoverCodexSession: async () => ({ session: stored }),
@@ -80,10 +90,10 @@ for (const mode of ["solo", "compat"]) {
       refundSessionPassIfNeeded: async () => {}, refundSessionBillingIfNeeded: async () => {},
       console: { error() {}, warn() {} },
     });
-    const generateChapter = async (_env, { chapter }) => ({ status: "ok", chapter: { ...chapter, ok: true, chars: 2500, body: "stored body" } });
+    const generateChapter = async (_env, { chapter }) => ({ status: "ok", chapter: { ...chapter, ok: true, chars: 2500, body: `chapter ${chapter.id} ` + "본문".repeat(1250) } });
     const run = () => wave({}, { sessionId: "book", userId: "owner", doc: structuredClone(stored), lockToken: "mock-lock", dependencies: { generateChapter } });
-    assert.equal((await run()).outcome, "failed");
-    assert.equal(stored.chapters.length, 0);
+    assert.equal((await run()).outcome, "storage_failed");
+    assert.equal(stored.chapters.length, 3);
     assert.notEqual(stored.status, "completed");
     for (let i = 0; i < 7; i++) await run();
     const reopened = await model.findOne().lean();

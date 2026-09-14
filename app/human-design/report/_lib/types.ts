@@ -76,10 +76,11 @@ export type ReportSection = {
 };
 
 export type ReportDocument = {
+  chart?: HdChart | null;
   reportId: string;
   contractVersion: string;
   locale: ReportLocale;
-  status: "generating" | "partial" | "completed" | "generation_failed";
+  status: "generating" | "delivery_pending" | "partial" | "completed" | "generation_failed";
   degraded: boolean;
   totalChars: number;
   progress: { completed: number; total: number };
