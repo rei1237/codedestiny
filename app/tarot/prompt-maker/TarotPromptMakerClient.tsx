@@ -1,10 +1,12 @@
 "use client";
 
 import { AnimatePresence, m } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
+import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { continueOracleDelivery, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../../hooks/usePaidResume";
 import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
@@ -2436,7 +2438,9 @@ function StarField() {
 
 // 사용자가 누를 수 있는 무과금 재생성 횟수. 서버의 requestId 단위 상한(4회)보다 낮게 둬서
 // 정상 사용이 429 를 먼저 만나지 않게 한다(첫 생성 1회 + 여기 2회 = 3회).
-const ORACLE_CONSULTATION_MAX_RETRIES = 2;
+type OracleRecovery = { body: Record<string, unknown>; inputs: OracleResumeInputs; resultId?: string };
+const oracleOwner = () => { const user = getAuthState().user; return String(user?.id || user?.userId || user?._id || user?.uid || ''); };
+const oracleRecoveryKey = (owner: string) => `cd:oracle-delivery:v1:${owner}`;
 
 // 회당결제라 상담마다 새 requestId 가 필요하다(찻집·수비학 타로와 동일 계약) — 영구 해금이던
 // 시절의 고정 requestId(사용자당 결제 1회 전제)는 더 이상 맞지 않는다.
@@ -2539,21 +2543,18 @@ const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
 
 // 서버 응답(status + code)을 화면 상태로 접는다. 🔴 응답을 못 읽은 경우까지 포함해 **모든** 실패가
 // 여기서 사유를 얻는다 — 하나라도 빠지면 예전처럼 "생성 실패" 한 줄로 되돌아간다.
-function resolveConsultationFailure(status: number, code: string): Exclude<OracleConsultationStatus, "llm" | null> {
-  if (code === "ORACLE_CONSULTATION_INVALID_INPUT") return "failed_input";
-  if (code === "ORACLE_CONSULTATION_RETRY_LIMIT") return "failed_limit";
-  if (status === 401 || status === 403) return "failed_auth";
-  if (status === 402) return "failed_payment";
-  if (status === 503) return "failed_infra";
-  if (status === 429) return "failed_limit";
-  if (status === 0) return "failed_network";
-  return "failed_generation";
-}
-
 /* ─── Main Component ─── */
 export default function TarotPromptMakerPage() {
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const { ensurePaidAccess, isPaying } = useCoinGate();
+  const authState = useAuthStore();
+  const owner = String(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid || '');
+  const deliveryRun = useRef(0);
+  const deliveryBusy = useRef(false);
+  const recovery = useRef<OracleRecovery | null>(null);
+  const [delivery, setDelivery] = useState<OracleDeliveryResponse | null>(null);
+  const [readingPosition, setReadingPosition] = useState('');
+  useEffect(() => { if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {}); }, []);
 
   const [oracleMode, setOracleMode] = useState<OracleDeckMode>("tarot");
   const [stage, setStage] = useState<Stage>("question");
@@ -2877,69 +2878,126 @@ export default function TarotPromptMakerPage() {
   // 서버가 실제 Gemini 상담을 생성한다 — 결제는 이미 끝난 뒤라 여기서 실패해도 과금은 그대로다.
   // 실패 시에는 이미 화면에 있는 프롬프트(promptResult)를 안전망으로 그대로 남겨 둔다.
   // 레노먼드 모드는 서버 카드 카탈로그가 아직 없어 스코프 밖(항상 프롬프트 전용으로 남는다).
+  function rememberOracle(entry: OracleRecovery, expectedOwner = oracleOwner()) {
+    if (!expectedOwner || expectedOwner !== oracleOwner()) return;
+    recovery.current = entry;
+    try { localStorage.setItem(oracleRecoveryKey(expectedOwner), JSON.stringify(entry)); } catch { /* Server checkpoint remains available. */ }
+  }
+
+  function prepareOracle(requestId: string, inputs: OracleResumeInputs): OracleRecovery {
+    return { inputs, body: { requestId, spreadTitle: inputs.spread.title, category: inputs.category,
+      question: inputs.question, tone: 'consult', locale, clientResume: inputs,
+      cards: inputs.cards.map(card => ({ cardId: card.cardCode, orientation: card.orientation,
+        positionLabel: card.positionLabel, positionDescription: card.positionDescription })) } };
+  }
+
   async function requestOracleConsultation(requestId: string, inputs?: OracleResumeInputs) {
-    if (!inputs && isLenormandMode) return false;
-    const spreadTitle = inputs ? inputs.spread.title : selectedSpread.title;
-    const category = inputs ? inputs.category : selectedQuestionCategory;
-    const consultQuestion = inputs ? inputs.question : effectiveQuestion;
-    const consultCards = inputs ? inputs.cards : drawnCards;
+    if ((!inputs && isLenormandMode) || deliveryBusy.current) return false;
+    const expectedOwner = oracleOwner();
+    if (!expectedOwner) return false;
+    const entry = recovery.current?.body.requestId === requestId ? recovery.current : prepareOracle(requestId,
+      inputs || { spread: selectedSpread, category: selectedQuestionCategory, question: effectiveQuestion, cards: drawnCards });
+    rememberOracle(entry, expectedOwner);
+    const run = ++deliveryRun.current;
+    const active = () => run === deliveryRun.current && oracleOwner() === expectedOwner;
+    deliveryBusy.current = true;
     setConsultationLoading(true);
-    setConsultation(null);
-    setConsultationSource(null);
-    // 실패해도 재시도 버튼이 결제된 requestId 를 쥐고 있어야 한다.
+    if (consultationRequestId !== requestId) { setDelivery(null); setConsultation(null); setConsultationSource(null); }
     setConsultationRequestId(requestId);
+    setConsultationRetryable(false);
     try {
-      const { authFetch } = await import("../../_lib/auth-client");
-      const res = await authFetch("/api/tarot/oracle-consultation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requestId,
-          spreadTitle,
-          category,
-          question: consultQuestion,
-          tone: "consult",
-          locale,
-          cards: consultCards.map((card) => ({
-            cardId: card.cardCode,
-            orientation: card.orientation,
-            positionLabel: card.positionLabel,
-            positionDescription: card.positionDescription,
-          })),
-        }),
-      });
-      const data = await res.json().catch(() => null);
-      if (res.ok && data?.ok && data?.consultation) {
-        setConsultation(data.consultation as OracleConsultation);
-        setConsultationSource("llm");
-        setConsultationRetryable(false);
-        return true;
+      const { authFetch } = await import('../../_lib/auth-client');
+      const result = await continueOracleDelivery({ body: entry.resultId ? { resumeResultId: entry.resultId } : entry.body,
+        fetcher: authFetch, active, progress: data => {
+          setDelivery(previous => ({ ...previous, ...data, sections: data.sections ?? previous?.sections,
+            completedParts: data.completedParts ?? previous?.completedParts, totalParts: data.totalParts ?? previous?.totalParts }));
+          if (data.resultId) { entry.resultId = data.resultId; rememberOracle(entry, expectedOwner); }
+          if (data.consultation) setConsultation(data.consultation as OracleConsultation);
+        } });
+      if (!active() || !result) return false;
+      if (result.status === 'completed' && result.saved && result.consultation) {
+        setConsultationSource('llm'); setConsultationRetryable(false); return true;
       }
-      setConsultationSource(resolveConsultationFailure(res.status, String(data?.code || "")));
-      // 서버가 판정을 안 보냈으면(구버전 워커 등) 재시도를 허용한다 — 막는 쪽이 더 나쁘다.
-      setConsultationRetryable(data?.retryable !== false);
-      setShowPromptDetail(true);
-      return false;
-    } catch {
-      // fetch 자체가 던진 경우. 응답이 없으므로 status 0 으로 네트워크 실패로 접는다.
-      setConsultationSource("failed_network");
-      setConsultationRetryable(true);
-      setShowPromptDetail(true);
+      setConsultationSource('failed_network');
+      setConsultationRetryable(result.retryable !== false);
       return false;
     } finally {
-      setConsultationLoading(false);
+      if (active()) { deliveryBusy.current = false; setConsultationLoading(false); }
     }
   }
 
-  // 🔴 결제된 requestId 를 그대로 재사용한다 — ensurePaidAccess 를 다시 부르지 않으므로 추가 과금이
-  // 없다(verifyPerUsePayment 는 조회만 하므로 같은 requestId 가 반복 증빙된다). 서버에도
-  // requestId 단위 재생성 상한이 걸려 있어 이 버튼이 무제한 호출 경로가 되지 않는다.
   async function handleRetryOracleConsultation() {
     if (consultationLoading || !consultationRequestId) return;
-    if (consultationRetries >= ORACLE_CONSULTATION_MAX_RETRIES) return;
-    setConsultationRetries((prev) => prev + 1);
+    setConsultationRetries(prev => prev + 1);
     await requestOracleConsultation(consultationRequestId);
   }
+
+  useEffect(() => {
+    const run = ++deliveryRun.current;
+    deliveryBusy.current = false; recovery.current = null;
+    setDelivery(null); setConsultation(null); setConsultationSource(null); setConsultationLoading(false);
+    setConsultationRequestId(null); setConsultationRetryable(false);
+    setPromptResult(null); setStage('question'); setDrawnCards([]); setQuestion('');
+    if (!owner || !authState.authReady) return;
+    let disposed = false;
+    const active = () => !disposed && run === deliveryRun.current && owner === oracleOwner();
+    void (async () => {
+      let entry: OracleRecovery | null = null;
+      try { entry = JSON.parse(localStorage.getItem(oracleRecoveryKey(owner)) || 'null'); } catch { /* Use server recovery. */ }
+      try {
+        const { authFetch } = await import('../../_lib/auth-client');
+        const response = await authFetch(`/api/tarot/oracle-result${entry?.resultId ? `?resultId=${encodeURIComponent(entry.resultId)}` : ''}`);
+        const data: OracleDeliveryResponse = await response.json();
+        if (!active()) return;
+        if (response.ok && data.ok && data.resumeInputs?.clientResume) {
+          entry = { body: data.resumeInputs, inputs: data.resumeInputs.clientResume as OracleResumeInputs, resultId: data.resultId };
+          setDelivery(data);
+          if (data.consultation) setConsultation(data.consultation as OracleConsultation);
+          setConsultationSource(data.saved && data.status === 'completed' ? 'llm' : 'failed_network');
+          setConsultationRetryable(!data.saved && data.retryable !== false);
+        } else if ([401, 403].includes(response.status)) return;
+      } catch { /* Local original request is still recoverable without reopening payment. */ }
+      if (!active() || !entry?.body?.requestId || !entry.inputs?.spread || !Array.isArray(entry.inputs.cards)) return;
+      rememberOracle(entry, owner);
+      const restored = entry.inputs;
+      const prompt = await buildPromptForCurrentState(restored);
+      if (!active()) return;
+      setOracleMode('tarot'); setSelectedSpreadId(restored.spread.id); setDrawnCards(restored.cards);
+      setManualCategory(restored.category); setQuestion(restored.question); setPromptResult(prompt); setStage('prompt');
+      setConsultationRequestId(String(entry.body.requestId));
+      if (!entry.resultId) { setConsultationSource('failed_network'); setConsultationRetryable(true); }
+    })().catch(() => {});
+    return () => { disposed = true; deliveryRun.current += 1; };
+    // Recovery follows verified account changes; input edits must not restart a paid request.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner, authState.authReady]);
+
+  useEffect(() => {
+    if (!owner || !delivery?.resultId || !delivery.sections?.length) return;
+    const key = `${oracleRecoveryKey(owner)}:reading:${delivery.resultId}`;
+    try { setReadingPosition(localStorage.getItem(key) || ''); } catch { /* Reading remains available. */ }
+    const observer = new IntersectionObserver(entries => {
+      const entry = entries.find(item => item.isIntersecting);
+      if (!entry || oracleOwner() !== owner) return;
+      try { localStorage.setItem(key, entry.target.id); } catch { /* Optional reading position. */ }
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    delivery.sections.forEach(section => { const element = document.getElementById(`oracle-${section.key}`); if (element) observer.observe(element); });
+    return () => observer.disconnect();
+  }, [owner, delivery?.resultId, delivery?.sections]);
+
+  useEffect(() => {
+    const resume = () => {
+      const entry = recovery.current;
+      if (!owner || owner !== oracleOwner() || document.hidden || !entry || deliveryBusy.current
+        || delivery?.saved || delivery?.retryable === false) return;
+      void requestOracleConsultation(String(entry.body.requestId));
+    };
+    window.addEventListener('online', resume);
+    document.addEventListener('visibilitychange', resume);
+    return () => { window.removeEventListener('online', resume); document.removeEventListener('visibilitychange', resume); };
+    // The immutable recovery entry, rather than edited form state, owns continuation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [owner, delivery?.saved, delivery?.retryable]);
 
   function handleQuestionChip(text: string) {
     setQuestion(text);
@@ -3057,6 +3115,8 @@ export default function TarotPromptMakerPage() {
         return;
       }
       const requestId = buildOracleConsultationRequestId(oracleTierFeatureKey);
+      const paidInputs = { spread: selectedSpread, category: selectedQuestionCategory, question: effectiveQuestion, cards: drawnCards };
+      rememberOracle(prepareOracle(requestId, paidInputs));
       const paymentResult = await ensurePaidAccess({
         featureKey: oracleTierFeatureKey,
         cost: oracleTierCost,
@@ -3072,14 +3132,14 @@ export default function TarotPromptMakerPage() {
         onPaid: ({ chargedCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           pendingGenerate = generate().then(() => {
             // 결제는 이미 끝났으니 프롬프트 화면을 곧바로 보여주고, AI 상담은 뒤에서 이어서 불러온다.
-            void requestOracleConsultation(requestId);
+            void requestOracleConsultation(requestId, paidInputs);
             // 🔴 판정은 accessSource 로만 한다. 예전에는 `chargedCoins <= 0 && billingPassIncluded` 폴백이
             // 함께 걸려 있었는데, 월정석 결제도 chargedCoins 가 0 이고 billingPassIncluded 는 이용권을
             // 보유하기만 하면(커버 여부와 무관하게) true 라, 월정석 결제가 아래 월정석 분기에 닿기 전에
             // 이용권 모달로 새 나갔다.
             if (accessSource === "subscription") {
               showSubscriptionIncludedNotice({
-                message: feedbackCopy.subscriptionPromptComplete,
+                message: consultationCopy.loading,
                 reason: feedbackCopy.subscriptionReason,
                 tier: subscriptionTier || billingSnapshot?.subscriptionTier,
               });
@@ -3814,7 +3874,39 @@ export default function TarotPromptMakerPage() {
                           </div>
                         )}
 
-                        {!consultationLoading && consultationSource === "llm" && consultation && (
+                        {!consultationLoading && consultationSource?.startsWith("failed") && (
+                          <div className="space-y-3">
+                            <p className="text-amber-200/80 text-xs leading-6">
+                              {delivery ? (locale === "ko" ? "저장된 상담을 이어서 받을 수 있습니다. 아래에서 이어서 생성해 주세요." : "Your saved consultation can be continued below.") : consultationFailureMessage}
+                            </p>
+                            {consultationRetryable && consultationRequestId && (
+                              <button
+                                type="button"
+                                onClick={handleRetryOracleConsultation}
+                                className="rounded-xl border border-[#c084fc]/40 px-4 py-2 text-xs font-semibold text-[#e9d5ff] hover:border-[#c084fc] hover:text-white transition-colors"
+                                style={{ background: "rgba(124,58,237,0.18)" }}
+                              >
+                                {locale === "ko" ? "이어서 생성하기" : consultationCopy.retry}
+                              </button>
+                            )}
+
+                          </div>
+                        )}
+                        {delivery && !delivery.saved && <div className="mb-4 text-sm text-violet-100" role="status">
+                          {locale === 'ko' ? '상담 본문 저장' : 'Saved sections'} {delivery.completedParts?.length || 0} / {delivery.totalParts || '…'}
+                          {delivery.retryable === false && <p>{locale === 'ko' ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.'}</p>}
+                        </div>}
+                        {readingPosition && <a href={`#${readingPosition}`} className="mb-4 block text-sm text-violet-100">{locale === 'ko' ? '읽던 위치로 이동' : 'Continue reading'}</a>}
+                        {!!delivery?.sections?.length && <nav aria-label={locale === 'ko' ? '상담 목차' : 'Contents'} className="mb-5 flex flex-wrap gap-2 text-xs">
+                          {delivery.sections.map(section => <a className="rounded-lg border border-violet-300/30 p-2 text-violet-100" key={section.key} href={`#oracle-${section.key}`}>{section.title}</a>)}
+                        </nav>}
+                        {!!delivery?.sections?.length && <div className="space-y-5 break-words text-sm leading-7 text-violet-50">
+                          {delivery.sections.map(section => <section id={`oracle-${section.key}`} key={section.key} className="scroll-mt-24" >
+                            <h3 className="mb-3 font-bold">{section.title}</h3>
+                            <div className="whitespace-pre-wrap [overflow-wrap:anywhere]">{section.body}</div>
+                          </section>)}
+                        </div>}
+                        {!delivery?.sections?.length && !consultationLoading && consultationSource === "llm" && consultation && (
                           <div className="space-y-4 text-sm leading-7 text-[#f3e8ff]/90">
                             <p>{consultation.coreQuestion}</p>
                             <p className="text-[#f3e8ff]/80">{consultation.bigPicture}</p>
@@ -3877,26 +3969,7 @@ export default function TarotPromptMakerPage() {
                           </div>
                         )}
 
-                        {!consultationLoading && consultationSource?.startsWith("failed") && (
-                          <div className="space-y-3">
-                            <p className="text-amber-200/80 text-xs leading-6">
-                              {consultationFailureMessage}
-                            </p>
-                            {consultationRetryable && consultationRequestId && consultationRetries < ORACLE_CONSULTATION_MAX_RETRIES && (
-                              <button
-                                type="button"
-                                onClick={handleRetryOracleConsultation}
-                                className="rounded-xl border border-[#c084fc]/40 px-4 py-2 text-xs font-semibold text-[#e9d5ff] hover:border-[#c084fc] hover:text-white transition-colors"
-                                style={{ background: "rgba(124,58,237,0.18)" }}
-                              >
-                                {consultationCopy.retry}
-                              </button>
-                            )}
-                            {consultationRetryable && consultationRetries >= ORACLE_CONSULTATION_MAX_RETRIES && (
-                              <p className="text-[#c4b5fd]/70 text-xs leading-6">{consultationCopy.retryExhausted}</p>
-                            )}
-                          </div>
-                        )}
+
                       </div>
                     )}
 
