@@ -15,7 +15,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'), models=await import('../../worker/lib/models.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,
-  HumanDesignReport:resultModel,DestinyCompassReport:resultModel,NakshatraAiConsultation:resultModel,AstrologyAiConsultation:resultModel,NeoOperationRoomConsultation:resultModel,ZiweiDeepReport:resultModel,
+  HumanDesignReport:resultModel,DestinyCompassReport:resultModel,NakshatraAiConsultation:resultModel,AstrologyAiConsultation:resultModel,NeoOperationRoomConsultation:resultModel,ZiweiDeepReport:resultModel,RelationshipBoundaryTest:resultModel,
   ServiceExecutionTransaction:{
    findById:()=>query(execution),
    findOneAndUpdate:(filter,update)=>{
@@ -36,7 +36,7 @@ beforeEach(()=>{
  external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
 afterEach(()=>{expect(refund).not.toHaveBeenCalled();expect(external).not.toHaveBeenCalled();external.mockRestore();});
-test.each(['human-design-report','destiny-compass-deep-report','nakshatra-ai-consultation','astrology-ai-consultation','neo-operation-room-consultation','ziwei-deep-pdf'])('%s stored checkpoint is not timed out into a refund',async feature=>{
+test.each(['human-design-report','destiny-compass-deep-report','nakshatra-ai-consultation','astrology-ai-consultation','neo-operation-room-consultation','ziwei-deep-pdf','relationship-boundary-test'])('%s stored checkpoint is not timed out into a refund',async feature=>{
  execution.featureKey=feature;
  const result=await sweep({}, {limit:1});
  expect(result).toMatchObject({scanned:1,refunded:0,pending:1});expect(execution.status).toBe('pending');

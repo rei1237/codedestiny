@@ -555,6 +555,7 @@ const CHECKPOINT_RESUME_MODELS = Object.freeze({
   "neo-operation-room": "NeoOperationRoomConsultation",
   "naming-prompt": "PaidExecutionRecord",
   "ziwei-island-ai": "ZiweiAiConsultation",
+  "relationship-boundary-test": "RelationshipBoundaryTest",
 });
 
 // Only a small server-ID resume envelope can change the quota classification. The

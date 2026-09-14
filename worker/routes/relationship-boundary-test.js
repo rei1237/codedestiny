@@ -1,16 +1,17 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest } from "../lib/auth.js";
-import { connectDb, isTransientMongoError } from "../lib/db.js";
-import { RelationshipBoundaryTest } from "../lib/models.js";
+import { isTransientMongoError } from "../lib/db.js";
+
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
-import { callGeminiJsonWithRetry as defaultCallGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
-import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+
 import { completeServiceExecution, failServiceExecution, startServiceExecution } from "../lib/service-execution-task.js";
-import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
+import { runRelationshipDelivery, findRelationshipResult, relationshipPending, relationshipPublicResult, relationshipRevoked } from "../lib/relationship-delivery-store.js";
+
 
 const FEATURE_KEY = "relationship-boundary-test";
 const SERVICE_KEY = "relationship-boundary-test";
@@ -23,7 +24,7 @@ const clean = (value, max = 0) => {
   return max ? text.slice(0, max) : text;
 };
 const hash = (value) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
-const id = () => `rbt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+
 
 function normalize(body = {}) {
   const target = body.targetInfo && typeof body.targetInfo === "object" ? body.targetInfo : {};
@@ -102,62 +103,6 @@ function fallback(result) {
   };
 }
 
-// ── 동기 LLM 생성의 시간 예산 ────────────────────────────────────────────────
-// 이 라우트는 요청 안에서 생성을 끝내고 응답한다(202+waitUntil 폴링은 9850c890 에서
-// 되돌린 방향이다 — 공유 DB 연결의 요청 간 I/O 격리로 결과가 고착됐다).
-// 엣지는 100s(EDGE_RESPONSE_DEADLINE_MS)에 요청을 끊으므로 LLM 대기는 그보다 먼저 끝나야 한다.
-// 🔴 15,000자를 한 번에 뽑는 24,000토큰 단일 호출은 ~200tok/s 기준 벽시계만 ~120s 라
-//    구조적으로 엣지를 넘는다. 그래서 장면 5개 + 프레임 1개를 병렬로 나눠 부른다 —
-//    벽시계가 합이 아니라 최댓값이 된다.
-
-/** 요청 시작 기준 LLM 총 예산. 남는 20s 는 결과 저장·실패 시 환불 Mongo 왕복 몫이다. */
-const RBT_LLM_BUDGET_MS = 80000;
-/** Workers AI 폴백에는 timeoutMs 가 안 걸린다(env.AI.run 에 AbortSignal 없음). 그 몫을 미리 뗀다. */
-const RBT_FALLBACK_RESERVE_MS = 12000;
-/** 웨이브1 장면 1개 대기 상한. 8,000토큰(≈40s) + TTFT·속도변동 여유. 병렬이라 벽시계는 이 하나. */
-const RBT_SECTION_TIMEOUT_MS = 48000;
-/** 웨이브2 대기 상한. 48s + 30s = 78s 로 총예산 80s 안에 들어온다. */
-const RBT_REPAIR_TIMEOUT_MS = 30000;
-/** 이만큼도 안 남았으면 웨이브2를 시작하지 않는다 — 시작해 놓고 잘리면 통째로 버려진다. */
-const RBT_REPAIR_MIN_REMAINING_MS = 28000;
-/** 이보다 짧게밖에 못 기다리면 호출해도 잘려서 빈손이 된다. */
-const RBT_MIN_CALL_MS = 15000;
-/** 엣지에 잘려 죽은 `generating` 문서는 이 시간이 지나면 재시도를 막지 않는다. */
-const RBT_STALE_GENERATING_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
-
-const RBT_SECTION_TOKENS = 8000;
-const RBT_FRAME_TOKENS = 2000;
-const RBT_SECTION_MIN_CHARS = 2000;
-/** 폴백 수용 문턱 = 장면 하한 2,000자의 40%. CLAUDE.md 의 fallbackMinChars 관례. */
-const RBT_SECTION_FALLBACK_MIN_CHARS = 800;
-const MIN_READING_CHARS = 15000;
-
-const readingText = (value, max) => String(value ?? "").replace(/\r\n?/g, "\n").trim().slice(0, max);
-
-/**
- * 남은 예산 안에서만 기다린다. 0을 돌려주면 호출부가 그 호출을 건너뛴다.
- * 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아가므로 반드시 그 앞에서 막는다.
- */
-function sectionTimeoutMs(deadlineAt, capMs) {
-  const budget = deadlineAt - Date.now() - RBT_FALLBACK_RESERVE_MS;
-  if (budget < RBT_MIN_CALL_MS) return 0;
-  return clampSyncLlmTimeoutMs(Math.min(capMs, budget));
-}
-
-/** 문장이 끊긴 꼬리를 잘라낸다(잘린 응답도 분량만 채우면 쓸 수 있게). */
-function trimToLastCompleteSentence(text) {
-  const value = String(text ?? "");
-  const cut = Math.max(value.lastIndexOf("."), value.lastIndexOf("!"), value.lastIndexOf("?"), value.lastIndexOf("다.")) ;
-  return cut > 0 ? value.slice(0, cut + 1).trim() : value.trim();
-}
-
-/** Workers AI 폴백은 타임아웃이 없다. 예산 밖으로 새지 않게 바깥에서 한 번 더 막는다. */
-function withHardTimeout(promise, ms, onTimeout) {
-  let timer;
-  const guard = new Promise((resolve) => { timer = setTimeout(() => resolve(onTimeout), ms); });
-  return Promise.race([promise, guard]).finally(() => clearTimeout(timer));
-}
-
 const SECTION_SPECS = Object.freeze([
   Object.freeze({ title: "프롤로그: 첫 장면", focus: "이 명식이 관계 안에서 서 있는 자리를 한 장면으로 연다. 확정 근거를 쉬운 말로 풀고, 관심을 받는 힘 자체는 잘못이 아니라는 전제를 세운다." }),
   Object.freeze({ title: "시선이 머무는 이유", focus: "관계 밖 자극이 시작되는 일상의 계기를 구체적인 장면으로 쓴다. 사건이 아니라 마음이 비는 순간을 알아차리는 법으로 전개한다." }),
@@ -183,6 +128,8 @@ function anchors(saju, result, targetGender) {
     `[점수대 연출] 장면=${result.storyDirection.scene}; 긴장=${result.storyDirection.tension}; 보호 행동=${result.storyDirection.action}`,
     `[확정 근거] ${result.scoreFactors.join(" ")}`,
     `[명식] 일간=${clean(saju.myChart?.dayMaster)} 일주=${clean(saju.myChart?.dayPillar)} 대운=${clean(saju.myChart?.majorLuck?.currentCycle?.pillar, 20)}`,
+    `[계산 근거 정본] ${JSON.stringify(saju.myChart || {})}`,
+    "계산값은 바꾸지 말고 해설하세요. 출생시각 미상·절입 경계·용신 해석 조건은 정본이 제공한 기준과 한계에 따라 설명하세요. 근거가 없는 시기나 신살은 만들지 마세요.",
   ];
 }
 
@@ -195,7 +142,7 @@ function buildSectionPrompt(saju, result, targetGender, index) {
     `[이번에 쓸 장면] ${index + 1}장 「${spec.title}」`,
     `[이 장면의 역할] ${spec.focus}`,
     `[다른 장면이 맡은 주제 — 침범하지 마세요] ${others.join(" / ")}`,
-    "이 장면의 본문만 3200~4000자로 쓰세요. 제목·번호·머리말·마크다운을 붙이지 말고 본문 문장만 출력합니다. 짧은 문단을 빈 줄로 나눠 8~12개 문단으로 구성하세요.",
+    "이 장면의 본문만 4400~5000자로 쓰세요. 제목·번호·머리말·마크다운을 붙이지 말고 본문 문장만 출력합니다. 짧은 문단을 빈 줄로 나눠 8~12개 문단으로 구성하세요.",
   ].join("\n");
 }
 
@@ -210,102 +157,6 @@ function prompt(saju, result, targetGender) {
     "summary는 본문 장면을 되풀이하지 말고 6~8문장으로 전체를 꿰어 씁니다. finalMessage는 4~6문장으로 씁니다.",
     JSON.stringify({ character: { title: "웹툰 캐릭터명", caption: "한 문장 소개" }, summary: "6~8문장", finalMessage: "4~6문장" }),
   ].join("\n");
-}
-
-/**
- * 스테이징 mock 응답을 유료 결과로 쓸 수 있는지 판정한다.
- *
- * 🔴 스테이징은 LLM 실호출을 막아 둔 환경이다(wrangler.staging.toml 의
- *    APP_ENV=staging + STAGING_LLM_MOCK_ENABLED=true + WORKERS_AI_ENABLED=false).
- *    거기서 lib/llm-client.ts 는 프롬프트에 박힌 JSON 스키마를 그대로 흉내 낸
- *    고정 fixture 를 돌려준다. JSON 모드 fixture 는 모든 문자열이 ~130자짜리
- *    한 문장이라 이 기능의 장면 하한 2,000자를 절대 못 넘는다 — 그래서 스테이징에서는
- *    결제가 끝나도 100% READING_INCOMPLETE 였다. 장면을 산문(JSON 아님)으로 받으면
- *    fixture 가 maxTokens 에 비례한 길이로 와서 하한을 넘긴다.
- * 반대로 프로덕션에서 mock 이 새어 나오면 만원짜리 결과로 fixture 를 저장하게 되므로
- * 그때는 실패로 취급한다(이웃 12개 라우트와 같은 판정).
- */
-const mockRejected = (env, response) => (/mock/i.test(String(response?.provider || "")) || /mock/i.test(String(response?.model || "")) || response?.isMock === true) && !isStagingLlmMockEnabled(env);
-
-/** 장면 1개 호출. 실패를 throw 하지 않고 빈 문자열로 돌려 한 장면이 나머지를 죽이지 않게 한다.
- *  🔴 주입 파라미터 이름을 줄이지 말 것. scripts/audit-ai-locale-calls.mjs 는 호출부 식별자로
- *  LLM 호출 원장을 만들기 때문에, `call` 같은 짧은 이름으로 바꾸면 실제로는 호출하면서도
- *  원장에서 조용히 사라진다(가드는 fail-closed 여야 한다). */
-async function callSection(env, callGeminiJsonWithRetry, promptText, timeoutMs, maxTokens) {
-  if (!timeoutMs) return "";
-  const attempt = Promise.resolve()
-    .then(() => callGeminiJsonWithRetry(env, promptText, {
-      temperature: 0.72, baseTokens: maxTokens, capTokens: maxTokens, attempts: 1,
-      timeoutMs, responseMimeType: "", taskType: "fortune",
-      fallbackToWorkersAI: true, fallbackMinChars: RBT_SECTION_FALLBACK_MIN_CHARS,
-    }))
-    .catch(() => null);
-  const response = await withHardTimeout(attempt, timeoutMs + RBT_FALLBACK_RESERVE_MS, null);
-  if (!response?.ok || !response.text || mockRejected(env, response)) return "";
-  const body = readingText(response.text, 12000);
-  return response.truncated ? trimToLastCompleteSentence(body) : body;
-}
-
-async function callFrame(env, callGeminiJsonWithRetry, promptText, timeoutMs) {
-  if (!timeoutMs) return null;
-  const attempt = Promise.resolve()
-    .then(() => callGeminiJsonWithRetry(env, promptText, {
-      temperature: 0.72, baseTokens: RBT_FRAME_TOKENS, capTokens: RBT_FRAME_TOKENS, attempts: 1,
-      timeoutMs, taskType: "fortune", fallbackToWorkersAI: true, fallbackMinChars: 200,
-    }))
-    .catch(() => null);
-  const response = await withHardTimeout(attempt, timeoutMs + RBT_FALLBACK_RESERVE_MS, null);
-  if (!response?.ok || !response.text || mockRejected(env, response)) return null;
-  try {
-    const parsed = JSON.parse(response.text);
-    return parsed && typeof parsed === "object" ? parsed : null;
-  } catch { return null; }
-}
-
-async function generate(saju, boundary, targetGender, env, callGeminiJsonWithRetry = defaultCallGeminiJsonWithRetry, startedAt = Date.now()) {
-  const local = fallback(boundary);
-  const deadlineAt = startedAt + RBT_LLM_BUDGET_MS;
-
-  // 웨이브1 — 장면 5개 + 프레임 1개를 동시에. 벽시계는 가장 느린 하나다.
-  const wave1 = sectionTimeoutMs(deadlineAt, RBT_SECTION_TIMEOUT_MS);
-  const [frame, ...bodies] = await Promise.all([
-    callFrame(env, callGeminiJsonWithRetry, prompt(saju, boundary, targetGender), wave1),
-    ...SECTION_SPECS.map((_, index) => callSection(env, callGeminiJsonWithRetry, buildSectionPrompt(saju, boundary, targetGender, index), wave1, RBT_SECTION_TOKENS)),
-  ]);
-
-  const sections = SECTION_SPECS.map((spec, index) => ({ title: spec.title, body: bodies[index] }));
-  let resolvedFrame = frame;
-
-  // 웨이브2 — 비었거나 짧은 장면(과 실패한 프레임)만 다시 부른다.
-  const shortIndexes = sections.map((section, index) => (section.body.length < RBT_SECTION_MIN_CHARS ? index : -1)).filter((index) => index >= 0);
-  const needsFrame = !resolvedFrame || !clean(resolvedFrame.summary);
-  if (shortIndexes.length || needsFrame) {
-    const remaining = deadlineAt - Date.now();
-    const wave2 = remaining >= RBT_REPAIR_MIN_REMAINING_MS ? sectionTimeoutMs(deadlineAt, RBT_REPAIR_TIMEOUT_MS) : 0;
-    if (wave2) {
-      const [repairedFrame, ...repairedBodies] = await Promise.all([
-        needsFrame ? callFrame(env, callGeminiJsonWithRetry, prompt(saju, boundary, targetGender), wave2) : Promise.resolve(resolvedFrame),
-        ...shortIndexes.map((index) => callSection(env, callGeminiJsonWithRetry, buildSectionPrompt(saju, boundary, targetGender, index), wave2, RBT_SECTION_TOKENS)),
-      ]);
-      if (repairedFrame) resolvedFrame = repairedFrame;
-      // 실제로 길어졌을 때만 채택한다.
-      shortIndexes.forEach((index, order) => { if (repairedBodies[order].length > sections[index].body.length) sections[index].body = repairedBodies[order]; });
-    }
-  }
-
-  // 유료 결과의 하한은 그대로다. 채우지 못하면 하드코딩 본문으로 대체하지 않고 실패를 알린다.
-  const total = sections.reduce((sum, section) => sum + section.body.length, 0);
-  if (sections.some((section) => section.body.length < RBT_SECTION_MIN_CHARS) || total < MIN_READING_CHARS) throw new Error("READING_INCOMPLETE");
-  const summary = clean(resolvedFrame?.summary, 1000);
-  if (!summary) throw new Error("READING_INCOMPLETE");
-
-  const character = resolvedFrame?.character && typeof resolvedFrame.character === "object" ? resolvedFrame.character : {};
-  return {
-    character: { title: clean(character.title, 40) || local.character.title, caption: clean(character.caption, 300) || local.character.caption },
-    summary,
-    sections,
-    finalMessage: clean(resolvedFrame?.finalMessage, 2000) || local.finalMessage,
-  };
 }
 
 async function handlePrepare(request, env) {
@@ -350,101 +201,47 @@ async function refundExecution(env, userId, requestId, sessionId, reasonMessage,
   return Boolean(result);
 }
 
-/** 저장 문서에서 화면이 쓰는 것만 내보낸다(userId·targetInfo·paymentId·_id 는 응답에 넣지 않는다). */
-const publicResult = (doc) => ({
-  ok: true, sessionId: doc.id, score: doc.score, grade: doc.grade, character: doc.character,
-  scoreFactors: doc.scoreFactors, summary: doc.summary, sections: doc.sections, finalMessage: doc.finalMessage,
-});
-
-/** 엣지에 잘려 죽은 `generating` 문서인가. timestamps:true 의 updatedAt 을 쓴다(스키마 변경 없음). */
-function isStaleGenerating(doc) {
-  const touchedAt = new Date(doc?.updatedAt || doc?.createdAt || 0).getTime();
-  return !Number.isFinite(touchedAt) || Date.now() - touchedAt > RBT_STALE_GENERATING_MS;
-}
-
-// `/generate` URL은 클라이언트 계약이다. 이 기능은 웨이브 이어쓰기가 아니라
-// 한 번에 장문 리포트를 생성하므로 보안 계층에서는 start 버킷으로 분류한다.
 async function handleStart(request, env) {
-  // 🔴 LLM 예산의 기준점은 핸들러 진입 시각이다. 인증·결제확인·DB 왕복이 느린 날
-  //    생성까지 예산을 온전히 주면 합계가 엣지 한계를 넘는다.
-  const requestStartedAt = Date.now();
-  const body = await readJson(request); const requestId = clean(body.idempotencyKey || request.headers.get("Idempotency-Key"), 180); const input = normalize(body);
-  if (!input.ok || requestId.length < 12) return json({ ok: false, reason: "INVALID_INPUT", message: input.message || "입력 정보를 확인해 주세요." }, { status: 422 });
+  const body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-  if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED", message: "로그인 후 이용해 주세요." }, { status: 401 });
-  const proof = await verifyPerUsePayment(env, { userId: auth.userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId });
-  if (proof.proven === null) return json({ ok: false, reason: "DB_DEGRADED", retryable: true, message: "결제 확인이 지연되고 있어요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
-  if (!proof.proven) return json({ ok: false, reason: "PAYMENT_REQUIRED", message: "결제 또는 이용권 확인이 필요합니다." }, { status: 402 });
-
-  await connectDb(env);
-  const userId = clean(auth.userId);
-  const existing = await RelationshipBoundaryTest.findOne({ userId, idempotencyKey: requestId }).lean();
-  if (existing?.status === "completed") return json(publicResult(existing));
-  // 같은 결제 키로 다른 대상자를 보내는 것은 한 번의 결제로 두 결과를 받는 길이다.
-  if (existing && existing.inputHash && existing.inputHash !== input.inputHash) {
-    return json({ ok: false, reason: "INPUT_MISMATCH", message: "이 결제 건에는 다른 대상자 정보가 저장돼 있어요. 새로 시작해 주세요." }, { status: 409 });
-  }
-  // 아직 살아 있는 생성은 중복 실행하지 않는다. 잘려 죽은 세션은 재시도를 막지 않는다.
-  if (existing?.status === "generating" && !isStaleGenerating(existing)) {
-    return json({ ok: false, reason: "GENERATING", sessionId: existing.id, retryable: true, message: "결과를 작성하고 있어요. 잠시만 기다려 주세요." }, { status: 202 });
-  }
-
-  let saju; try { saju = calculateLoveSecretAiSaju(input.normalized); } catch { return json({ ok: false, reason: "CALCULATION_FAILED", message: "사주 계산을 완료하지 못했어요." }, { status: 422 }); }
-  const boundary = scoreBoundary(saju);
-  const sessionId = existing?.id || id();
-  const base = {
-    id: sessionId, userId, targetInfo: input.targetInfo, inputHash: input.inputHash,
-    accessType: proof.source || "paid", paymentId: proof.transactionId || "",
-    ...boundary, sajuFacts: { dayMaster: saju.myChart?.dayMaster, dayPillar: saju.myChart?.dayPillar },
-  };
-  // 🔴 생성 전에 문서를 남긴다. 엣지가 요청을 끊어도 회수할 기록이 남고,
-  //    스키마 required(score·grade·character)는 채점 결과와 폴백 캐릭터로 선충전한다.
-  await RelationshipBoundaryTest.findOneAndUpdate(
-    { userId, idempotencyKey: requestId },
-    { $set: { ...base, character: existing?.character || fallback(boundary).character, status: "generating", generationError: null } },
-    { new: true, upsert: true, setDefaultsOnInsert: true },
-  );
-  await openRefundableExecution(env, userId, requestId, sessionId, proof.transactionId);
-
-  let content;
-  try {
-    content = await generate(saju, boundary, input.targetInfo.gender, env, defaultCallGeminiJsonWithRetry, requestStartedAt);
-  } catch (error) {
-    const reason = clean(error?.message || error, 300);
-    await RelationshipBoundaryTest.updateOne({ userId, idempotencyKey: requestId }, { $set: { status: "generation_failed", generationError: { reason, at: new Date() } } }).catch(() => {});
-    const refunded = await refundExecution(env, userId, requestId, sessionId, reason, proof.transactionId);
-    return json({
-      ok: false, reason: "GENERATION_FAILED", retryable: true, sessionId, refunded,
-      message: refunded
-        ? "결과를 작성하지 못해 결제를 되돌렸어요. 잠시 후 다시 시도해 주세요."
-        : "결과를 작성하지 못했어요. 결제는 그대로 남아 있으니 잠시 후 다시 시도해 주세요.",
-    }, { status: 503 });
-  }
-
-  const doc = await RelationshipBoundaryTest.findOneAndUpdate({ userId, idempotencyKey: requestId }, { $set: { ...base, ...content, status: "completed", generationError: null } }, { new: true, upsert: true, setDefaultsOnInsert: true }).lean();
-  await closeExecution(env, userId, requestId, sessionId, proof.transactionId);
-  return json(publicResult(doc));
+  if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
+  const supplied = { ...body, idempotencyKey: body.idempotencyKey || request.headers.get("Idempotency-Key") || "" };
+  if (!supplied.resumeSessionId && supplied.idempotencyKey.length < 12) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
+  return runRelationshipDelivery(env, auth, supplied, {
+    normalize,
+    verify: (userId, requestId) => verifyPerUsePayment(env, { userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId }),
+    seed: input => {
+      const saju = calculateLoveSecretAiSaju(input.normalized), boundary = scoreBoundary(saju);
+      return {
+        fields: { ...boundary, character: fallback(boundary).character, sajuFacts: { dayMaster: saju.myChart?.dayMaster, dayPillar: saju.myChart?.dayPillar } },
+        meta: { facts: saju, titles: SECTION_TITLES, framePrompt: prompt(saju, boundary, input.targetInfo.gender), sectionPrompts: SECTION_SPECS.map((_, i) => buildSectionPrompt(saju, boundary, input.targetInfo.gender, i)) },
+      };
+    },
+    open: (...args) => openRefundableExecution(env, ...args),
+    close: (...args) => closeExecution(env, ...args),
+    refund: (...args) => refundExecution(env, ...args),
+  });
 }
-
 async function handleResult(request, env) {
-  const sessionId = clean(new URL(request.url).searchParams.get("sessionId"), 120); const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-  if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED", message: "로그인 후 이용해 주세요." }, { status: 401 });
-  await connectDb(env); const doc = await RelationshipBoundaryTest.findOne({ id: sessionId, userId: clean(auth.userId) }).lean();
-  if (!doc) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: "결과를 찾지 못했어요." }, { status: 404 });
-  // 폴링이 수렴하려면 완료 외의 상태도 구분해서 알려야 한다.
-  if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", retryable: true, sessionId: doc.id, message: "결과를 작성하지 못했어요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
-  if (doc.status !== "completed") {
-    if (isStaleGenerating(doc)) return json({ ok: false, reason: "GENERATION_FAILED", retryable: true, sessionId: doc.id, message: "결과 작성이 중단됐어요. 다시 시도해 주세요." }, { status: 503 });
-    return json({ ok: false, reason: "GENERATING", retryable: true, sessionId: doc.id, message: "결과를 작성하고 있어요." }, { status: 202 });
-  }
-  return json(publicResult(doc));
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
+  const params = new URL(request.url).searchParams;
+  const sessionId = clean(params.get("sessionId"), 120);
+  const doc = await findRelationshipResult(env, { userId: String(auth.userId), ...(sessionId ? { id: sessionId } : { status: { $in: ["generating", "partial", "delivery_pending"] } }) });
+  if (!doc) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  const proof = await verifyPerUsePayment(env, { userId: auth.userId, featureKey: FEATURE_KEY, coinPrice: COST, requestId: doc.idempotencyKey });
+  if (proof.proven === null) return json({ ok: false, reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true, resultId: doc.id }, { status: 503 });
+  if (!proof.proven || await relationshipRevoked(doc)) return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
+  if (doc.status === "completed") return json(relationshipPublicResult(doc));
+  if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", retryable: false, sessionId: doc.id }, { status: 503 });
+  return relationshipPending(doc);
 }
 
 export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
   // 🔴 await 없이 반환하면 핸들러 예외가 이 try/catch 를 지나쳐 최상위로 샌다
   //    (그러면 DB_DEGRADED 판정도 못 하고 비-JSON 응답이 될 수 있다).
   try { const path = getRoutePath(request, "/api/relationship-boundary-test"); if (request.method === "POST" && path === "/prepare") return await handlePrepare(request, env); if (request.method === "POST" && path === "/generate") return await handleStart(request, env); if (request.method === "GET" && path === "/result") return await handleResult(request, env); return ["GET", "POST"].includes(request.method) ? notFound() : methodNotAllowed(); }
-  catch (error) { if (isTransientMongoError(error)) return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요." }, { status: 503 }); console.error("[relationship-boundary-test]", clean(error?.message || error, 300)); return json({ ok: false, reason: "SERVER_ERROR", message: "결과를 준비하는 중 문제가 생겼어요." }, { status: 500 }); }
+  catch (error) { if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 }); if (isTransientMongoError(error)) return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요." }, { status: 503 }); console.error("[relationship-boundary-test]", clean(error?.message || error, 300)); return json({ ok: false, reason: "SERVER_ERROR", message: "결과를 준비하는 중 문제가 생겼어요." }, { status: 500 }); }
 }
 
-export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, buildSectionPrompt, SECTION_SPECS, SECTION_TITLES, paymentPayload, generate, MIN_READING_CHARS, RBT_SECTION_MIN_CHARS, RBT_SECTION_TOKENS, RBT_LLM_BUDGET_MS };
+export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, buildSectionPrompt, SECTION_SPECS, SECTION_TITLES, paymentPayload };

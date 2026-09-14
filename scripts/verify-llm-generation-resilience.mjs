@@ -886,6 +886,7 @@ function llmCallOptionLiterals(source) {
 }
 
 const LLM_CALL_FILES = [
+  "worker/lib/relationship-report-delivery.js",
   "worker/routes/admin.js", "worker/routes/animal-totem.js", "worker/routes/astrology-ai.js",
   "worker/lib/celestial-report-delivery.js", "worker/routes/destiny-compass-ai.js", "worker/routes/destiny-compass.js",
   "worker/routes/dream.js", "worker/routes/fortune-tea-house.js", "worker/routes/fortune.js",
@@ -904,6 +905,7 @@ const DEAD_LLM_OPTION_KEYS = ["topP", "modelEnvKeys", "maxAttemptsPerPair", "tot
 // 이 파일들의 LLM 호출은 결과가 그대로 사용자에게 배달되므로 폴백 게이트가 반드시 있어야 한다.
 // (fallbackToWorkersAI: false 로 폴백 자체를 끈 호출은 예외 — 짧은 폴백이 애초에 생기지 않는다.)
 const GATE_REQUIRED_FILES = [
+  "worker/lib/relationship-report-delivery.js",
   "worker/routes/pet-saju-ai.js",
   "worker/routes/ziwei-deep-report.js",
   "worker/routes/neo-operation-room.js",
@@ -976,6 +978,7 @@ for (const anchor of ["chapter.minChars", "LLM_OUTPUT_INCOMPLETE", "LLM_DNA_INCO
 // 새 LLM 호출부 트립와이어. 호출이 늘거나 줄면 실패한다 — 새로 추가한 호출이 게이트가 필요한지
 // 사람이 한 번 판단하고 이 표를 갱신하게 만드는 것이 목적이다(줄 번호가 아니라 개수라 잘 안 깨진다).
 const EXPECTED_LLM_CALL_SITES = {
+  "worker/lib/relationship-report-delivery.js": 1,
   "worker/routes/admin.js": 1, "worker/routes/animal-totem.js": 1, "worker/routes/astrology-ai.js": 4,
   "worker/lib/celestial-report-delivery.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1,
   // fortune.js 3건: 사주 그룹 생성(웨이브1·2가 같은 호출부를 공유) + 형제 4종 공용 풀 생성 + 그 이어쓰기 repair.

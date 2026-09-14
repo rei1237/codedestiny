@@ -73,6 +73,7 @@ const noopModel = () => ({
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   AstrologyAiConsultation: checkpointModel,
+  RelationshipBoundaryTest: checkpointModel,
   VedicAiConsultation: checkpointModel,
   ZiweiAiConsultation: checkpointModel,
   LoveSecretAiConsultation: checkpointModel,
@@ -309,7 +310,7 @@ describe("AI 라우트 경로 전수 분류", () => {
     expect(unclassified).toEqual([]);
   });
 });
-const checkpointServices = ['astrology-ai','vedic-ai','ziwei-ai','love-secret-ai','life-book-ai','new-year-ai','sukuyo-compatibility-ai','neo-operation-room'];
+const checkpointServices = ['astrology-ai','vedic-ai','ziwei-ai','love-secret-ai','life-book-ai','new-year-ai','sukuyo-compatibility-ai','neo-operation-room','relationship-boundary-test'];
 describe('서버 저장본의 재개는 새 리포트 일일 예산을 소비하지 않는다', () => {
   beforeEach(() => { checkpointDoc={id:'saved-result-id',userId:'user-1',status:'partial',llmMeta:{resumeBody:{idempotencyKey:'original-key'}}};checkpointLookupFails=false;exhaustedStarts=false;RATE_LIMIT_CALLS.length=0; });
   afterEach(() => { checkpointDoc=null;checkpointLookupFails=false;exhaustedStarts=false; });

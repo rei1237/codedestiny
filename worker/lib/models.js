@@ -1967,7 +1967,8 @@ const relationshipBoundaryTestSchema = new mongoose.Schema({
   sections: { type: [{ title: String, body: String }], default: [] },
   finalMessage: { type: String, default: "", trim: true, maxlength: 2000 },
   sajuFacts: { type: mongoose.Schema.Types.Mixed, default: null },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "relationshipBoundaryTests" });
 

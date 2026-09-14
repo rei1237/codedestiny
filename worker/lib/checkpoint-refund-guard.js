@@ -9,6 +9,7 @@ const RESULT_MODELS = Object.freeze({
   "astrology-ai-consultation": "AstrologyAiConsultation",
   "neo-operation-room-consultation": "NeoOperationRoomConsultation",
   "ziwei-deep-pdf": "ZiweiDeepReport",
+  "relationship-boundary-test": "RelationshipBoundaryTest",
 });
 
 export async function inspectCheckpointBeforeTimeoutRefund(execution) {
