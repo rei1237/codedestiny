@@ -15,6 +15,9 @@
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 export type VedicResultCopy = {
+  resumeTitle: string;
+  resumeBody: string;
+  resumeButton: string;
   backToConsult: string;
   loadingSaved: string;
   loginTitle: string;
@@ -33,6 +36,9 @@ export type VedicResultCopy = {
 };
 
 const RESULT_KO: VedicResultCopy = {
+  resumeTitle: "저장된 분석부터 읽어 보세요",
+  resumeBody: "남은 묶음을 같은 요청으로 이어서 생성합니다.",
+  resumeButton: "이어서 생성하기",
   backToConsult: "베다점 전문가 상담으로 돌아가기",
   loadingSaved: "저장된 별의 지도를 여는 중입니다.",
   loginTitle: "로그인이 필요합니다",
@@ -50,6 +56,9 @@ const RESULT_KO: VedicResultCopy = {
 };
 
 const RESULT_EN: VedicResultCopy = {
+  resumeTitle: "Start reading your saved analysis",
+  resumeBody: "The remaining sections will continue under the same request.",
+  resumeButton: "Continue generation",
   backToConsult: "Back to the Vedic astrology consultation",
   loadingSaved: "Opening your saved star map.",
   loginTitle: "Sign-in required",
@@ -67,6 +76,9 @@ const RESULT_EN: VedicResultCopy = {
 };
 
 const RESULT_JA: VedicResultCopy = {
+  resumeTitle: "保存済みの分析からお読みください",
+  resumeBody: "残りの項目を同じリクエストで引き続き生成します。",
+  resumeButton: "生成を再開",
   backToConsult: "ヴェーダ占星術の専門相談に戻る",
   loadingSaved: "保存された星の地図を開いています。",
   loginTitle: "ログインが必要です",
@@ -84,6 +96,9 @@ const RESULT_JA: VedicResultCopy = {
 };
 
 const RESULT_ZH_CN: VedicResultCopy = {
+  resumeTitle: "先阅读已保存的分析",
+  resumeBody: "将使用同一请求继续生成剩余章节。",
+  resumeButton: "继续生成",
   backToConsult: "返回吠陀占星专家咨询",
   loadingSaved: "正在打开已保存的星图。",
   loginTitle: "需要登录",
@@ -101,6 +116,9 @@ const RESULT_ZH_CN: VedicResultCopy = {
 };
 
 const RESULT_ZH_TW: VedicResultCopy = {
+  resumeTitle: "先閱讀已儲存的分析",
+  resumeBody: "將使用同一請求繼續產生剩餘章節。",
+  resumeButton: "繼續產生",
   backToConsult: "返回吠陀占星專家諮詢",
   loadingSaved: "正在開啟已儲存的星圖。",
   loginTitle: "需要登入",

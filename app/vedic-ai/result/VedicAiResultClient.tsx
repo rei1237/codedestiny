@@ -192,7 +192,7 @@ export default function VedicAiResultClient() {
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
       <section className={styles.resultPanel}>
-        {consultation.status !== "completed" && <div className={styles.resumeStatus} role="status"><h2>저장된 분석부터 읽어 보세요</h2><p>남은 묶음을 같은 요청으로 이어서 생성합니다.</p><button type="button" className={styles.resultListItem} onClick={() => setResumeEpoch(value => value + 1)}>이어서 생성하기</button></div>}
+        {consultation.status !== "completed" && <div className={styles.resumeStatus} role="status"><h2>{COPY.resumeTitle}</h2><p>{COPY.resumeBody}</p><button type="button" className={styles.resultListItem} onClick={() => setResumeEpoch(value => value + 1)}>{COPY.resumeButton}</button></div>}
         <div className={styles.chatList}>
           {consultation.messages.map((message, index) => {
             const structured = message.role === "assistant" ? parseStructuredReading(message.content) : null;
