@@ -10,11 +10,14 @@ let handleDreamRoutes;
 let mockGetOptionalUserFromRequest;
 let mockCanAccessPaidFeature;
 let mockVerifyPremiumAccessToken;
+let mockVerifyPerUsePayment;
 
 beforeAll(async () => {
   mockGetOptionalUserFromRequest = jest.fn();
   mockCanAccessPaidFeature = jest.fn();
   mockVerifyPremiumAccessToken = jest.fn();
+  mockVerifyPerUsePayment = jest.fn();
+  jest.unstable_mockModule("../../worker/lib/nakshatra-paid-access.js", () => ({ verifyPerUsePayment: mockVerifyPerUsePayment }));
 
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({
     callGeminiText: jest.fn(async () => ({ ok: false, error: "mocked" })),
@@ -34,13 +37,14 @@ beforeAll(async () => {
   }));
 
   const mod = await import("../../worker/routes/dream.js");
-  handleDreamRoutes = mod.handleDreamRoutes;
+  handleDreamRoutes = async (request, env) => { const result = await mod.verifyPsychoDreamAccess(request, env, await request.json()); return new Response(JSON.stringify(result), { status: result.ok ? 200 : result.status }); };
 });
 
 beforeEach(() => {
   mockGetOptionalUserFromRequest.mockReset();
   mockCanAccessPaidFeature.mockReset();
   mockVerifyPremiumAccessToken.mockReset();
+  mockVerifyPerUsePayment.mockReset();
 });
 
 function buildRequest(body) {
@@ -130,6 +134,16 @@ describe("verifyPsychoDreamAccess (real implementation)", () => {
 
     expect(res.status).toBe(402);
     expect(payload.code).toBe("PAYMENT_REQUIRED");
+  });
+
+  test.each([true, null, false])("만료된 토큰 이후 원래 결제 증빙 %s를 그대로 판정한다", async proven => {
+    mockGetOptionalUserFromRequest.mockResolvedValue({ userId: "user-1" });
+    mockCanAccessPaidFeature.mockResolvedValue({ allowed: false, reason: "PAYMENT_REQUIRED" });
+    mockVerifyPremiumAccessToken.mockResolvedValue({ ok: false });
+    mockVerifyPerUsePayment.mockResolvedValue({ proven, source: "moonstone" });
+    const response = await handleDreamRoutes(buildRequest({ dreamText: "햇살 아래 산책하는 꿈을 꾸었습니다.", premiumAccessToken: "expired", requestId: "original-paid-request" }), {});
+    expect(response.status).toBe(proven === true ? 200 : proven === null ? 503 : 402);
+    expect(mockVerifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({ userId: "user-1", featureKey: "dream-psycho-analysis", requestId: "original-paid-request", coinPrice: 30 }));
   });
 
   test("이용권도 결제 토큰도 없으면 402 결제 요구를 반환한다", async () => {

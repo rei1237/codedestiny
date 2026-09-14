@@ -161,6 +161,12 @@
     },
   };
 
+  Object.assign(PSYCHO_DREAM_TEXT_TRANSLATIONS.ko, { resumeReading: "같은 해몽 이어서 확인하기", savedReading: "저장된 해몽입니다.", partsSaved: "부분 저장 · 나머지를 생성하고 있어요.", readPosition: "읽던 장으로 이동", preserved: "생성한 내용과 요청을 보존했어요. 같은 해몽을 이어서 확인할 수 있습니다.", signIn: "로그인 후 해몽을 이용해 주세요.", limit: "생성 한도에 도달했어요. 저장된 내용을 보존했으며 추가 확인이 필요합니다." });
+  Object.assign(PSYCHO_DREAM_TEXT_TRANSLATIONS.en, { resumeReading: "Continue this dream reading", savedReading: "Your saved dream reading.", partsSaved: "parts saved · generating the rest", readPosition: "Return to your chapter", preserved: "Your request and generated text are saved. Continue this reading when ready.", signIn: "Please sign in to read your dream.", limit: "The generation limit has been reached. Your saved text is preserved and needs further review." });
+  Object.assign(PSYCHO_DREAM_TEXT_TRANSLATIONS.ja, { resumeReading: "同じ夢の解釈を続ける", savedReading: "保存された夢の解釈です。", partsSaved: "部分を保存・残りを生成中", readPosition: "読んでいた章へ", preserved: "依頼と生成済みの文章を保存しました。同じ解釈を続けられます。", signIn: "ログインして夢の解釈をご利用ください。", limit: "生成回数の上限に達しました。保存済みの文章は保持され、追加確認が必要です。" });
+  Object.assign(PSYCHO_DREAM_TEXT_TRANSLATIONS["zh-CN"], { resumeReading: "继续本次梦境解读", savedReading: "已保存的梦境解读。", partsSaved: "部分已保存 · 正在生成其余内容", readPosition: "返回上次阅读的章节", preserved: "已保存请求和生成的内容，可以继续本次解读。", signIn: "请登录后使用梦境解读。", limit: "已达到生成次数上限，保存的内容将保留，需要进一步确认。" });
+  Object.assign(PSYCHO_DREAM_TEXT_TRANSLATIONS["zh-TW"], { resumeReading: "繼續本次夢境解讀", savedReading: "已儲存的夢境解讀。", partsSaved: "部分已儲存 · 正在生成其餘內容", readPosition: "返回上次閱讀的章節", preserved: "已儲存請求和生成的內容，可以繼續本次解讀。", signIn: "請登入後使用夢境解讀。", limit: "已達到生成次數上限，儲存的內容將保留，需要進一步確認。" });
+
   var state = {
     uiLocked: false,
     currentRecordId: "",
@@ -270,25 +276,6 @@
   function getCookie(name) {
     var m = String(document.cookie || "").match(new RegExp("(^| )" + name + "=([^;]+)"));
     return m ? decodeURIComponent(m[2]) : "";
-  }
-
-  function getOrCreateAnonKey() {
-    var key = "";
-    try {
-      key = localStorage.getItem("cd_anon_key") || "";
-    } catch (_) {}
-    if (key) return String(key);
-
-    var created = "";
-    try {
-      created = (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) || "";
-    } catch (_) {}
-    if (!created) created = String(Date.now()) + "-" + Math.random().toString(16).slice(2);
-    key = "anon:" + created;
-    try {
-      localStorage.setItem("cd_anon_key", key);
-    } catch (_) {}
-    return key;
   }
 
   function getAuthToken() {
@@ -664,7 +651,7 @@
       currentTitle = title;
       sectionOpen = true;
       html +=
-        '<div class="ps-report-section">' +
+        '<div class="ps-report-section"' + (/^Chapter (\d+)\./.test(title) ? ' data-psycho-chapter="' + title.match(/^Chapter (\d+)\./)[1] + '"' : "") + ">" +
         '<div class="ps-report-section-title">' +
         escapeHtml(title) +
         "</div>" +
@@ -732,169 +719,132 @@
     return html;
   }
 
-  async function analyzeDream() {
-    if (state.uiLocked) return;
-    var dreamText = ($(TEXTAREA_ID) && $(TEXTAREA_ID).value ? $(TEXTAREA_ID).value : "").trim();
-    if (!dreamText) {
-      setError(psychoDreamText("validationRequired"));
-      return;
-    }
-    if (dreamText.length < 8) {
-      setError(psychoDreamText("validationMin"));
-      return;
-    }
-
-    var overlay = $(OVERLAY_ID);
-    if (!overlay) return;
-
-    // 결제/이용권 게이트는 승인 후 같은 액션(psychoDreamStartAnalysis)을 다시 호출한다.
-    // 이때 게이트가 세팅해 둔 승인 신호(data-pvw-bypass 또는 cd_pa_* 세션 플래그)를 소비해
-    // 게이트를 재실행하지 않고 실제 분석 요청으로 넘어간다. (신호가 없으면 최초 진입 → 게이트 실행)
-    var analyzeBtn = $("psychoDreamAnalyzeBtn");
-    var gateApproved = false;
-    try {
-      if (analyzeBtn && analyzeBtn.getAttribute("data-pvw-bypass") === "1") gateApproved = true;
-      if (sessionStorage.getItem("cd_pa_psychoDreamStartAnalysis") === "1") {
-        gateApproved = true;
-        // 1회만 소비해 회당 결제 성격을 유지한다(다음 분석은 다시 게이트를 거친다).
-        sessionStorage.removeItem("cd_pa_psychoDreamStartAnalysis");
-      }
-    } catch (_) {}
-    if (!gateApproved && analyzeBtn && typeof window.__cdRunPerUseCoinGateFromTile === "function") {
-      if (window.__cdRunPerUseCoinGateFromTile(analyzeBtn)) return;
-    }
-
-    state.uiLocked = true;
-    stopLoading();
-    setError("");
-    setScreen("loading");
-    startLoading();
-
-    var anonKey = getOrCreateAnonKey();
-    var token = getAuthToken();
-
-    try {
-      var headers = {
-        "Content-Type": "application/json",
-        "x-cd-anon-key": anonKey,
-      };
-      if (token) headers["Authorization"] = "Bearer " + token;
-
-      // External provider 응답이 지연될 때 “무한 로딩”처럼 보이지 않도록
-      // 프론트에서도 Abort 기반 타임아웃을 둡니다.
-      var controller = typeof AbortController === "function" ? new AbortController() : null;
-      var timeoutMs = 45000;
-      var timeoutId = null;
-      if (controller) {
-        timeoutId = setTimeout(function () {
-          try {
-            controller.abort();
-          } catch (_) {}
-        }, timeoutMs);
-      }
-
-      var res = null;
-      try {
-        var premiumAccessToken = getPremiumAccessToken();
-        res = await fetch(getPsychoAnalysisUrl(), {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify({ dreamText: dreamText, premiumAccessToken: premiumAccessToken || undefined }),
-          signal: controller ? controller.signal : undefined,
-        });
-      } finally {
-        if (timeoutId) clearTimeout(timeoutId);
-      }
-
-      var data = null;
-      try {
-        var ct = (res.headers && res.headers.get && res.headers.get("content-type")) || "";
-        if (ct.indexOf("application/json") === -1) {
-          throw new Error("non-json");
-        }
-        data = await res.json();
-      } catch (_) {
-        data = null;
-      }
-
-      if (!data || typeof data !== "object") {
-        stopTyping();
-        var hint =
-          res.status === 404
-            ? psychoDreamText("serviceNotFound")
-            : psychoDreamText("serverNoResponse");
-        setError(hint);
-        setScreen("input");
-        return;
-      }
-
-      if (!res.ok || !data.ok) {
-        var msg = getPsychoDreamLocale() === "ko" && data && data.message ? data.message : psychoDreamText("analysisFailed");
-        stopTyping();
-        setError(msg);
-        setScreen("input");
-        return;
-      }
-
-      state.currentRecordId = (data.record && data.record.id) || "";
-      state.currentMarkdown = (data.record && data.record.markdown) || "";
-
-      var metaEl = $(REPORT_META_ID);
-      if (metaEl) {
-        var cachedTag = data.cached ? " (" + psychoDreamText("cached") + ")" : "";
-        var dateStr = new Date().toLocaleString();
-        var bits = [dateStr, psychoDreamText("reportMeta")];
-        if (data.formatWarning) bits.push(psychoDreamText("formatWarning"));
-        metaEl.textContent = bits.join(" · ") + cachedTag;
-      }
-
-      var mdEl = $(RESULT_MARKDOWN_ID);
-      if (mdEl) {
-        // Typewriter effect: Freud가 조심스레 소견서를 써 내려가는 듯한 연출
-        stopTyping();
-        state.typingActive = true;
-        mdEl.innerHTML = "";
-
-        var fullMd = state.currentMarkdown || "";
-        var total = fullMd.length;
-        var reveal = 0;
-
-        // Text length에 따라 속도를 조정합니다.
-        var charsPerTick = total < 800 ? 3 : total < 1600 ? 2 : 1;
-        var tickMs = total < 800 ? 18 : 14;
-
-        state.typingTimer = setInterval(function () {
-          if (!state.typingActive) return;
-          reveal = Math.min(total, reveal + charsPerTick);
-          var part = fullMd.slice(0, reveal);
-          mdEl.innerHTML = renderPsychoDreamMarkdown(part);
-          if (reveal >= total) {
-            stopTyping();
-            mdEl.innerHTML = renderPsychoDreamMarkdown(fullMd);
-          }
-        }, tickMs);
-      }
-
-      stopLoading();
-      setScreen("result");
-
-      // DB 없이도 동작해야 하므로 분석 결과는 화면에만 표시하고 즉시 공유 가능하도록 둡니다.
-    } catch (e) {
-      stopLoading();
-      stopTyping();
-      var rawErrorMessage = (e && e.message) || "";
-      var msg = psychoDreamText("networkFailed");
-      if (e && (e.name === "AbortError" || String(rawErrorMessage || "").toLowerCase().includes("abort"))) {
-        msg = psychoDreamText("timeout");
-      }
-      setError(msg);
-      setScreen("input");
-      // 모바일: 키보드 베일만 해제 (body lock은 모달이 열린 상태이므로 해제 금지)
-      try { setPsychoKeyboardVeil(false); } catch (_) {}
-    } finally {
-      state.uiLocked = false;
-    }
+  var paidOwner = "", paidEpoch = 0, paidFlight = null, paidRecord = null, paidReaderLoad = null, paidCanRetry = true;
+  function readPaidOwner() {
+    try { var user = JSON.parse(localStorage.getItem("fortune_auth_user") || "null"); return String(user && (user.id || user._id || user.userId) || ""); } catch (_) { return ""; }
   }
+  function paidKey() { return "cd:psycho-dream:v2:" + encodeURIComponent(paidOwner); }
+  function syncPaidOwner() {
+    var owner = readPaidOwner();
+    if (owner !== paidOwner) {
+      paidOwner = owner; paidEpoch++; paidFlight = null; paidRecord = null; resetUI();
+      if ($(RESULT_MARKDOWN_ID)) $(RESULT_MARKDOWN_ID).textContent = "";
+      var progress = $("psychoPaidProgress"); if (progress) progress.remove();
+      var toc = $("psychoPaidContents"); if (toc) toc.remove();
+    }
+    return owner;
+  }
+  function storePaidRecord() {
+    if (!paidOwner || paidOwner !== readPaidOwner()) return;
+    try { localStorage.setItem(paidKey(), JSON.stringify(paidRecord)); } catch (_) {}
+  }
+  function loadPaidRecord() {
+    try { return paidOwner ? JSON.parse(localStorage.getItem(paidKey()) || "null") : null; } catch (_) { return null; }
+  }
+  function loadPaidReader() {
+    if (window.CDPaidNarrativeReader) return Promise.resolve(window.CDPaidNarrativeReader);
+    if (!paidReaderLoad) paidReaderLoad = new Promise(function(resolve, reject) {
+      var script = document.createElement("script"); script.src = "/js/core/paid-narrative-reader.js";
+      script.onload = function() { resolve(window.CDPaidNarrativeReader); };
+      script.onerror = function() { paidReaderLoad = null; reject(new Error(psychoDreamText("networkFailed"))); };
+      document.head.appendChild(script);
+    });
+    return paidReaderLoad;
+  }
+  async function paidRequest(body) {
+    var headers = { "Content-Type": "application/json" }, token = getAuthToken(); if (token) headers.Authorization = "Bearer " + token;
+    var controller = new AbortController(), timer = setTimeout(function() { controller.abort(); }, body ? 90000 : 22000);
+    var url = body ? getPsychoAnalysisUrl() : getPsychoAnalysisUrl().replace(/psycho-analysis$/, "psycho-result") + (paidRecord && paidRecord.resultId ? "?resultId=" + encodeURIComponent(paidRecord.resultId) : "");
+    var payload = body && Object.assign({}, body); if (payload && !payload.resumeResultId) payload.premiumAccessToken = getPremiumAccessToken() || undefined;
+    try { var response = await fetch(url, { method: body ? "POST" : "GET", headers: headers, credentials: "include", signal: controller.signal, body: payload ? JSON.stringify(payload) : undefined }); return { status: response.status, payload: await response.json() }; }
+    finally { clearTimeout(timer); }
+  }
+  function showPaidProgress(message, canRetry) {
+    var host = $(RESULT_SCREEN_ID); if (!host) return;
+    var progress = $("psychoPaidProgress"); if (!progress) { progress = document.createElement("div"); progress.id = "psychoPaidProgress"; host.prepend(progress); }
+    progress.textContent = "";
+    var status = document.createElement("p"); status.setAttribute("role", "status"); status.style.color = "#f5ead0"; status.textContent = message; progress.appendChild(status);
+    if (canRetry) { var retry = document.createElement("button"); retry.type = "button"; retry.className = "ps-btn ps-btn-primary"; retry.textContent = psychoDreamText("resumeReading"); retry.onclick = recoverPaidDream; progress.appendChild(retry); }
+  }
+  function showPaidDream(data) {
+    paidCanRetry = data.retryable !== false;
+    paidRecord = Object.assign({}, paidRecord, { requestId: data.requestId, resultId: data.resultId, body: data.status === "completed" ? null : data.resumeBody }); storePaidRecord();
+    state.currentRecordId = data.resultId; state.currentMarkdown = data.record && data.record.markdown || "";
+    stopTyping(); stopLoading(); setScreen("result");
+    var md = $(RESULT_MARKDOWN_ID); if (md) { md.innerHTML = state.currentMarkdown ? renderPsychoDreamMarkdown(state.currentMarkdown) : ""; md.style.overflowWrap = "anywhere"; }
+    if ($(TEXTAREA_ID) && data.dreamText) $(TEXTAREA_ID).value = data.dreamText;
+    if ($(REPORT_META_ID)) $(REPORT_META_ID).textContent = psychoDreamText("reportMeta");
+    showPaidProgress(data.status === "completed" ? psychoDreamText("savedReading") : (data.completedParts || []).length + "/" + data.totalParts + " " + psychoDreamText("partsSaved"), false);
+    var toc = $("psychoPaidContents"); if (!toc) { toc = document.createElement("nav"); toc.id = "psychoPaidContents"; md.parentNode.insertBefore(toc, md); }
+    toc.textContent = "";
+    (data.chapters || []).forEach(function(chapter, i) {
+      if (!chapter.body) return;
+      var target = md.querySelector('[data-psycho-chapter="' + (i + 1) + '"]'); if (!target) return;
+      var link = document.createElement("button"); link.type = "button"; link.className = "ps-btn"; link.textContent = chapter.title;
+      link.style.whiteSpace = "normal"; link.style.textAlign = "left";
+      link.onclick = function() { paidRecord.chapter = i + 1; storePaidRecord(); target.scrollIntoView({ block: "start" }); }; toc.appendChild(link);
+    });
+    if (paidRecord.chapter) { var back = document.createElement("button"); back.type = "button"; back.className = "ps-btn"; back.textContent = psychoDreamText("readPosition");
+      back.onclick = function() { var target = md.querySelector('[data-psycho-chapter="' + paidRecord.chapter + '"]'); if (target) target.scrollIntoView({ block: "start" }); }; toc.prepend(back); }
+  }
+  function runPaidDream(initial) {
+    if (paidFlight) return paidFlight;
+    var owner = paidOwner, epoch = paidEpoch;
+    var active = function() { return Boolean(owner) && owner === readPaidOwner() && epoch === paidEpoch; };
+    if (!active()) return Promise.resolve(false);
+    if (initial && initial.requestId) { paidRecord = { requestId: initial.requestId, body: initial }; storePaidRecord(); }
+    state.uiLocked = true; paidCanRetry = true;
+    var flight = (async function() {
+      try { var reader = await loadPaidReader(); return await reader.run(initial, {
+        active: active, visible: function() { return document.visibilityState !== "hidden" && navigator.onLine !== false; }, post: paidRequest, get: function() { return paidRequest(null); },
+        wait: function(ms) { return new Promise(function(resolve) { setTimeout(resolve, ms); }); },
+        persist: function(body, id) { paidRecord = Object.assign({}, paidRecord, { body: body, resultId: id }); storePaidRecord(); }, show: showPaidDream
+      }); } catch (error) { if (active()) { stopLoading(); setScreen("result"); showPaidProgress(error.message || psychoDreamText("networkFailed"), paidCanRetry); } return false; }
+      finally { if (paidFlight === flight) { paidFlight = null; state.uiLocked = false; if (active() && paidRecord && paidRecord.body) { stopLoading(); setScreen("result"); showPaidProgress(psychoDreamText(paidCanRetry ? "preserved" : "limit"), paidCanRetry); } } }
+    }()); paidFlight = flight; return flight;
+  }
+  async function recoverPaidDream() {
+    if (!syncPaidOwner()) return false;
+    if (paidFlight) return paidFlight;
+    paidRecord = loadPaidRecord(); return runPaidDream(paidRecord && paidRecord.body);
+  }
+  async function analyzeDream() {
+    if (!syncPaidOwner()) { setError(psychoDreamText("signIn")); return false; }
+    if (state.uiLocked || paidFlight) return false;
+    var pending = loadPaidRecord(); if (pending && pending.body) return recoverPaidDream();
+    var dreamText = ($(TEXTAREA_ID) && $(TEXTAREA_ID).value || "").trim();
+    if (!dreamText || dreamText.length < 8) { setError(psychoDreamText(dreamText ? "validationMin" : "validationRequired")); return false; }
+    var button = $("psychoDreamAnalyzeBtn"), cost = Number(button && button.getAttribute("data-coin-cost"));
+    if (!(cost > 0) || typeof window._cdCoinGatePerUse !== "function") { setError(psychoDreamText("analysisFailed")); return false; }
+    var body = { requestId: "psycho-dream:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9), dreamText: dreamText };
+    var epoch = paidEpoch, granted = false; state.uiLocked = true;
+    try {
+      var result = await window._cdCoinGatePerUse(cost, psychoDreamText("reportMeta"), function() { granted = true; }, function() { granted = false; }, {
+        featureKey: "dream-psycho-analysis", serviceKey: "dream-psycho-analysis", requestId: body.requestId,
+        resume: { kind: "psycho-dream-analysis", action: "openPsychoDreamModal", args: body }
+      });
+      if (epoch !== paidEpoch || (!granted && result?.ok !== true)) return false;
+      setScreen("loading"); startLoading(); return await runPaidDream(body);
+    } finally { if (epoch === paidEpoch) state.uiLocked = false; }
+  }
+  async function resumePaidDream(descriptor) {
+    if (!syncPaidOwner()) return false;
+    var body = descriptor && descriptor.args; if (!body || !body.requestId || !body.dreamText) return false;
+    var epoch = paidEpoch;
+    if (paidFlight) { if (paidRecord && paidRecord.requestId === body.requestId) return paidFlight; await paidFlight; }
+    if (epoch !== paidEpoch) return false;
+    var stored = loadPaidRecord(); if (stored && stored.requestId === body.requestId) return recoverPaidDream();
+    return runPaidDream(body);
+  }
+  if (window.__cdCheckoutEntry && typeof window.__cdCheckoutEntry.registerPaidResumeHandler === "function") window.__cdCheckoutEntry.registerPaidResumeHandler("psycho-dream-analysis", resumePaidDream);
+  function resumeVisibleDream() {
+    syncPaidOwner(); var overlay = $(OVERLAY_ID);
+    if (overlay && overlay.classList.contains("ps-overlay--show") && document.visibilityState !== "hidden") recoverPaidDream();
+  }
+  window.addEventListener("cd:auth-changed", resumeVisibleDream);
+  window.addEventListener("storage", function(event) { if (event.key === "fortune_auth_user" || event.key === "fortune_auth_token") resumeVisibleDream(); });
+  window.addEventListener("online", resumeVisibleDream);
+  document.addEventListener("visibilitychange", resumeVisibleDream);
 
   window.openPsychoDreamModal = function openPsychoDreamModal() {
     injectFreudsStudyStyles();
@@ -902,11 +852,12 @@
     // 이전 세션에서 남은 승인 신호가 있으면 게이트를 건너뛰고 무료로 분석되므로 진입 시 제거한다.
     try { sessionStorage.removeItem("cd_pa_psychoDreamStartAnalysis"); } catch (_) {}
 
-    resetUI();
+    if (!paidFlight) resetUI();
     setOverlayVisible(true);
     setBodyLock(true);
     syncPsychoViewportHeight();
     setWizardHint(psychoDreamText("wizardHint"));
+    recoverPaidDream();
   };
 
   window.closePsychoDreamModal = function closePsychoDreamModal() {
@@ -929,7 +880,7 @@
   };
 
   window.psychoDreamStartAnalysis = function psychoDreamStartAnalysis() {
-    analyzeDream();
+    return analyzeDream();
   };
 
   window.psychoDreamReset = function psychoDreamReset() {
@@ -993,7 +944,7 @@
   var analyzeBtn = $( "psychoDreamAnalyzeBtn" );
   if (analyzeBtn) {
     analyzeBtn.addEventListener("click", function () {
-      analyzeDream();
+      return analyzeDream();
     });
   }
 

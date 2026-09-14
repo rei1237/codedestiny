@@ -921,7 +921,7 @@ const GATE_EXEMPT = [
   [
     "worker/routes/dream.js",
     "evaluatePsychoMarkdownQuality",
-    "정신분석 해몽은 5장 구조·450자 하한을 라우트가 직접 검사한다 — 게이트를 겹쳐 걸지 않는다",
+    "정신분석 해몽은 5장·10부분을 검사하고 20,000자 및 저장 확인 후 완료한다 — 폴백을 끄고 장별 품질 검사를 적용한다",
   ],
   [
     "worker/routes/master-love-codex.js",

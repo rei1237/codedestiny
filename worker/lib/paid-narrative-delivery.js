@@ -30,12 +30,12 @@ async function save(filter, fields) {
 async function revoked(doc, featureKey, body) {
   return ["refunded", "cancelled"].includes(doc?.status) || await isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId]);
 }
-function respond(doc, render) {
+function respond(doc, render, busy = false) {
   const state = doc.metadata.paidNarrative;
   if (doc.premiumStatus === "completed") return json({ ...doc.metadata.result, ok: true, status: "completed", resultId: doc.executionKey, saved: true });
   return json({ ...render(state), ok: true, status: ready(state) ? "delivery_pending" : Object.keys(state.parts).length ? "partial" : "generating",
     saved: false, retryable: !limited(state), resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
-    completedParts: Object.keys(state.parts), totalParts: state.tasks.length,
+    completedParts: Object.keys(state.parts), totalParts: state.tasks.length, busy, retryAfterMs: busy ? 5000 : 1000,
   }, { status: 202 });
 }
 
@@ -57,7 +57,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc?.premiumStatus === "completed" || request.method === "GET") return respond(doc, render);
   const now = new Date(), token = randomUUID();
   const lock = { token, until: new Date(now.getTime() + 120000) };
-  if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render);
+  if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render, true);
   if (!doc) {
     const seeded = await seed(original);
     const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale: getAmbientAiLocale() || "ko", parts: {}, attempts: {} };
@@ -74,11 +74,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   } else {
     try {
       const claim = await ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey, status: "pending", "lock.token": doc.lock?.token ?? null }, { $set: { lock } }, { returnDocument: "after" }).lean();
-      if (!claim) return respond(doc, render);
+      if (!claim) return respond(doc, render, true);
       doc = claim;
     } catch { throw failure(executionKey); }
   }
-  if (doc.lock.token !== token) return respond(doc, render);
+  if (doc.lock.token !== token) return respond(doc, render, true);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
   const persist = async () => { doc = await save(filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state) } }); };

@@ -63,7 +63,7 @@ const __lazyActionLoaders = {
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-09eb3486c209'),
   openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-6d2c2ef4778c'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-b6aaa30161a0'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-bbb6469f96c1'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
       __loadScriptOnce('/js/animal-totem-experience.js?v=build-238cc147ed8a')

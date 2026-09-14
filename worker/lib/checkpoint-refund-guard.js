@@ -16,7 +16,7 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution) {
   // An already-started refund must finish its existing idempotent settlement.
   if (execution.refundStatus && execution.refundStatus !== "none") return "unmanaged";
   if (execution.featureKey === "tarot-celestial-harmony" && execution.metadata?.celestialDelivery?.delivery) return "recoverable";
-  if (["pet-saju-ai-consultation", "pet-compatibility-ai", "animal-totem-basic", "animal-totem-deep"].includes(execution.featureKey) && execution.metadata?.paidNarrative?.tasks) return "recoverable";
+  if (["pet-saju-ai-consultation", "pet-compatibility-ai", "animal-totem-basic", "animal-totem-deep", "dream-psycho-analysis"].includes(execution.featureKey) && execution.metadata?.paidNarrative?.tasks) return "recoverable";
   const modelName = RESULT_MODELS[execution.featureKey];
   if (!modelName) return "unmanaged";
   const id = execution.reportId || execution.sessionId || execution.metadata?.reportId;
