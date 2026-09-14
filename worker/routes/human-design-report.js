@@ -25,6 +25,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } f
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { HumanDesignCalculation, HumanDesignReport } from "../lib/models.js";
+import { pendingReportSections } from "../lib/paid-report-completeness.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -129,7 +130,7 @@ function publicReport(doc) {
     status: doc.status,
     degraded: doc.degraded === true,
     totalChars: doc.totalChars || 0,
-    progress: { completed: sections.length, total: HD_REPORT_SECTIONS.length },
+    progress: { completed: (doc.sections || []).filter(section => section.status === "ok").length, total: HD_REPORT_SECTIONS.length },
     sections,
   };
 }
@@ -533,6 +534,18 @@ async function handleGenerate(request, env) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
 
+  // Only an explicit reader action opens another bounded repair run. This CAS
+  // cannot reset a running wave or a completed/refunded report.
+  if (body?.resumeQuality === true) {
+    await connectDb(env);
+    await withMongoRetry(env, () => HumanDesignReport.updateOne(
+      { id: reportId, userId: auth.userId, status: "partial" },
+      { $set: { status: "generating", waveCount: 0, generationError: null,
+        "sections.$[repair].attempts": 0 } },
+      { arrayFilters: [{ "repair.status": { $ne: "ok" } }] },
+    ));
+  }
+
   // 🔴 결제를 다시 검증하지 않는다. 문서 자체가 증빙이다 — 증빙된 결제 없이는 /start 가
   //    문서를 만들지 않는다. 소유권은 { id, userId } 조건이 본다.
   const claimed = await claimWave(env, auth.userId, reportId);
@@ -542,12 +555,19 @@ async function handleGenerate(request, env) {
     if (current.status === "completed") {
       return json({ ok: true, ...publicReport(current) }, { headers: noStore });
     }
+    if (current.status === "partial") return json({ ok: true, ...publicReport(current), retryable: true }, { headers: noStore });
     if (current.status === "generation_failed") {
       return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", message: MESSAGES.failed }, { status: 409, headers: noStore });
     }
     // 🔴 웨이브를 다 썼는데 아직 완성이 아니다 — 더 부르게 두지 않고 닫고 환불한다.
     //    그대로 두면 클라이언트가 409 를 영원히 받으며 "만드는 중" 화면에 갇힌다.
     if (Number(current.waveCount || 0) >= HD_REPORT_MAX_WAVES) {
+      if (hasRenderableLlmText((current.sections || []).map(section => section.body).join("\n"), { minChars: 400 })) {
+        await finalizeReport(env, auth.userId, reportId, "partial", {
+          generationError: { reason: "QUALITY_REPAIR_REQUIRED", at: new Date().toISOString() },
+        });
+        return json({ ok: true, ...publicReport({ ...current, status: "partial" }), retryable: true }, { headers: noStore });
+      }
       await finalizeReport(env, auth.userId, reportId, "generation_failed", {
         generationError: { reason: "WAVE_BUDGET_EXHAUSTED", waves: current.waveCount, at: new Date().toISOString() },
       });
@@ -579,9 +599,9 @@ async function handleGenerate(request, env) {
   const allowed = { ...rawAllowed, all: new Set(rawAllowed.all || []) };
 
   const stored = [...(claimed.sections || [])].sort((a, b) => a.order - b.order);
-  const done = stored.filter((section) => section.status === "ok" || section.status === "degraded");
+  const done = stored.filter((section) => section.status === "ok");
   const pending = stored
-    .filter((section) => section.status === "pending" || (section.status === "failed" && section.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS))
+    .filter((section) => section.status !== "ok" && section.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS)
     .slice(0, HD_REPORT_SECTION_CONCURRENCY);
 
   // 앞선 섹션의 문장과 요약 — 반복 금지와 문맥 연결의 재료다.
@@ -611,7 +631,7 @@ async function handleGenerate(request, env) {
       }
       if (!result) return null;
       if (!result.payload) {
-        return { ...storedSection, status: attempt >= HD_REPORT_MAX_SECTION_ATTEMPTS ? "failed" : "pending", attempts: attempt, issues: result.issues.slice(0, 6) };
+        return { ...storedSection, status: storedSection.body ? "degraded" : attempt >= HD_REPORT_MAX_SECTION_ATTEMPTS ? "failed" : "pending", attempts: attempt, issues: result.issues.slice(0, 6) };
       }
       // 🔴 검증에 걸려도 본문이 있으면 버리지 않는다 — degraded 로 전달하고 결제를 유지한다
       //    (경량 보장 계약). 버리는 것은 본문 자체가 없을 때뿐이다.
@@ -637,7 +657,7 @@ async function handleGenerate(request, env) {
     llmMeta: { at: new Date().toISOString(), waves: claimed.waveCount },
   });
 
-  const exhausted = all.every((section) => section.status === "ok" || section.status === "degraded" || section.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS);
+  const exhausted = all.every((section) => section.status === "ok" || section.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS);
   if (!exhausted) {
     const fresh = await findReport(env, auth.userId, { id: reportId });
     return json({ ok: true, ...publicReport(fresh || claimed), status: "generating" }, { status: 202, headers: { ...noStore, "Retry-After": "1" } });
@@ -645,11 +665,20 @@ async function handleGenerate(request, env) {
 
   // 🔴 전달 경계 — "리포트라고 부를 수 있는가". 넘으면 결제 유지, 미달이면 환불한다.
   const renderable = hasRenderableLlmText(delivered.map((section) => section.body).join("\n"), { minChars: 400 });
-  if (delivered.length >= HD_REPORT_DELIVER_MIN_SECTIONS && totalChars >= HD_REPORT_DELIVER_MIN_TOTAL_CHARS && renderable) {
+  const missing = pendingReportSections(HD_REPORT_SECTIONS.map(section => section.key), all);
+  if (!missing.length && delivered.length >= HD_REPORT_DELIVER_MIN_SECTIONS && totalChars >= HD_REPORT_DELIVER_MIN_TOTAL_CHARS && renderable) {
     await finalizeReport(env, auth.userId, reportId, "completed");
     await closeExecution(env, auth.userId, claimed.billingRequestId, reportId);
     const fresh = await findReport(env, auth.userId, { id: reportId });
     return json({ ok: true, ...publicReport(fresh || claimed), status: "completed" }, { headers: noStore });
+  }
+
+  if (renderable) {
+    await finalizeReport(env, auth.userId, reportId, "partial", {
+      generationError: { reason: "QUALITY_REPAIR_REQUIRED", sections: missing, at: new Date().toISOString() },
+    });
+    const fresh = await findReport(env, auth.userId, { id: reportId });
+    return json({ ok: true, ...publicReport(fresh), retryable: true }, { headers: noStore });
   }
 
   await finalizeReport(env, auth.userId, reportId, "generation_failed", {
@@ -688,6 +717,12 @@ async function handleResult(request, env) {
   // 🔴 좀비 승격 — 생성 중인데 오래 갱신이 없으면 실패로 닫고 환불한다. 그대로 두면
   //    사용자가 "만드는 중" 화면에 영원히 갇힌다.
   if (doc.status === "generating" && Date.now() - new Date(doc.updatedAt || doc.createdAt).getTime() > HD_REPORT_STALE_MS) {
+    if (hasRenderableLlmText((doc.sections || []).map(section => section.body).join("\n"), { minChars: 400 })) {
+      await finalizeReport(env, auth.userId, doc.id, "partial", {
+        generationError: { reason: "QUALITY_REPAIR_REQUIRED", at: new Date().toISOString() },
+      });
+      return json({ ok: true, ...publicReport({ ...doc, status: "partial" }), retryable: true }, { headers: noStore });
+    }
     await finalizeReport(env, auth.userId, doc.id, "generation_failed", {
       generationError: { reason: "STALLED", at: new Date().toISOString() },
     });

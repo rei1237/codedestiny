@@ -25,6 +25,7 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from "../lib/service-execution-task.js";
+import { pendingReportSections } from "../lib/paid-report-completeness.js";
 import {
   COMPASS_REPORT_VERSION,
   COMPASS_SECTIONS,
@@ -343,6 +344,7 @@ async function persistWaveA(env, userId, input, reportId, context, sections, acc
     );
   } catch (error) {
     console.warn("[destiny-compass-ai] wave A persist failed", { message: clean(error?.message || error, 200) });
+    throw error;
   }
 }
 
@@ -350,15 +352,17 @@ async function persistWaveB(env, userId, reportId, sections, complete) {
   try {
     await connectDb(env);
     const doc = await DestinyCompassReport.findOne({ id: reportId, userId: String(userId) });
-    if (!doc) return;
+    if (!doc) throw new Error("REPORT_NOT_SAVED");
     const byKey = new Map(doc.sections.map((s) => [s.key, s]));
     for (const s of sectionsForDb(sections)) byKey.set(s.key, s);
     doc.sections = [...byKey.values()].sort((a, b) => (a.order || 0) - (b.order || 0));
     doc.status = complete ? "completed" : "partial";
     if (complete && !doc.usageAppliedAt) doc.usageAppliedAt = new Date();
     await doc.save();
+    return doc;
   } catch (error) {
     console.warn("[destiny-compass-ai] wave B persist failed", { message: clean(error?.message || error, 200) });
+    throw error;
   }
 }
 
@@ -594,7 +598,7 @@ async function handleReport(request, env) {
   // (새로고침·이중 클릭·네트워크 재시도가 두 번째 생성을 부르지 않게)
   const stored = await loadStoredReport(env, auth.userId, { idempotencyKey: input.idempotencyKey });
   if (stored && stored.sections?.length && stored.status !== "generation_failed") {
-    const pending = COMPASS_WAVE_B_KEYS.filter((k) => !stored.sections.some((s) => s.key === k));
+    const pending = pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], stored.sections);
     return json({
       ...publicStoredReport(stored),
       continuation: pending.length
@@ -645,7 +649,7 @@ async function handleReport(request, env) {
     stage: "partial",
     continuation: {
       token: await issueContinuationToken(env, auth, input, reportId, digests),
-      pendingSections: COMPASS_WAVE_B_KEYS.slice(),
+      pendingSections: pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], sections),
     },
     basis: context.basisPayload,
     systemConfidence: context.systemConfidence,
@@ -686,7 +690,11 @@ async function handleContinue(request, env) {
       : []);
   for (const digest of context.digests) context.seenSentences.add(digest.text);
 
-  const results = await runWave(env, COMPASS_WAVE_B_KEYS, context, {
+  const pending = pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], stored?.sections);
+  // Repair source sections before generating synthesis. Preserve every valid section.
+  const missingSource = pending.filter(key => COMPASS_WAVE_A_KEYS.includes(key));
+  const waveKeys = missingSource.length ? missingSource : pending.filter(key => COMPASS_WAVE_B_KEYS.includes(key));
+  const results = await runWave(env, waveKeys, context, {
     budgetMs: COMPASS_WAVE_B_BUDGET_MS,
     startedAt: Date.now(),
     cacheStore: createLlmCacheStore(env),
@@ -705,17 +713,24 @@ async function handleContinue(request, env) {
     });
   }
 
-  const complete = usable.length === COMPASS_WAVE_B_KEYS.length;
+  const merged = new Map((stored?.sections || []).map(section => [section.key, section]));
+  for (const section of sections) merged.set(section.key, section);
+  const remaining = pendingReportSections([...COMPASS_WAVE_A_KEYS, ...COMPASS_WAVE_B_KEYS], [...merged.values()]);
+  const complete = remaining.length === 0;
   await persistWaveB(env, auth.userId, reportId, sections, complete);
 
   // 전달이 확정된 시점에 선차감을 확정한다(여기까지 왔다면 결제된 만큼은 나갔다).
-  await completeRefundableExecution(env, auth, input, reportId);
+  if (complete) await completeRefundableExecution(env, auth, input, reportId);
 
   return json({
     ok: true,
     reportId,
     version: COMPASS_REPORT_VERSION,
     stage: complete ? "complete" : "partial_failed",
+    retryable: !complete,
+    continuation: complete ? undefined : {
+      token: await issueContinuationToken(env, auth, input, reportId, context.digests), pendingSections: remaining,
+    },
     sections,
     degraded: sections.some((s) => s.status !== "ok") || usable.length < COMPASS_WAVE_B_KEYS.length,
     provider: clean(usable[0]?.provider, 40),

@@ -235,7 +235,7 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
         />
       )}
 
-      {chart && plan && (phase === "reading" || phase === "generating") && (
+      {chart && plan && (phase === "reading" || phase === "generating" || (phase === "error" && Boolean(doc?.sections.length))) && (
         <div className={styles.reader} ref={articleRef}>
           <ReportCover cover={plan.cover} stats={plan.stats} locale={locale} bodyLocale={bodyLocale} />
 

@@ -183,13 +183,15 @@ export function useCompassReport(
         base.locale || scope.locale,
       );
       const sections = mergeSections(base.sections, data?.sections);
-      const grew = Object.keys(sections).length > Object.keys(base.sections).length;
+      const complete = data?.stage === "complete";
+      const continuation = data?.continuation as { token?: string } | undefined;
+      if (typeof continuation?.token === "string") continuationRef.current = continuation.token;
       const next: ReportState = {
         ...base,
         sections,
-        phase: grew ? "done" : "waveB",
+        phase: complete ? "done" : "waveB",
         // 이어받기는 무과금이라 실패해도 503 이 아니다. 비었으면 재시도 버튼만 켠다.
-        canRetryWaveB: !grew,
+        canRetryWaveB: !complete,
         error: null,
       };
       if (scope.isCurrent()) setState(next);

@@ -79,7 +79,7 @@ export type ReportDocument = {
   reportId: string;
   contractVersion: string;
   locale: ReportLocale;
-  status: "generating" | "completed" | "generation_failed";
+  status: "generating" | "partial" | "completed" | "generation_failed";
   degraded: boolean;
   totalChars: number;
   progress: { completed: number; total: number };

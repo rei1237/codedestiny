@@ -1665,7 +1665,7 @@ const humanDesignReportSchema = new mongoose.Schema({
   //    왕복(1.3초)이 웨이브 수만큼 붙는다. 락 클레임 한 번이 문서 전체를 돌려주므로
   //    이 필드가 있으면 웨이브당 DB 읽기가 1회로 끝난다.
   basis: { type: mongoose.Schema.Types.Mixed, default: null },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "generating", index: true },
   // [{ key, order, title, body, subsections, keyPoints, evidence, chars, status, attempts, issues }]
   // 🔴 상한을 명시한다. life-book 이 상한 없이 두었다가 "update validator 가 안 돌아 조용히
   //    통과했을 뿐 계약상 잘릴 수 있는 값" 이 된 전례가 있다(위 messages.content 주석).

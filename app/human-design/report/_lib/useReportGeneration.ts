@@ -190,7 +190,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
    * 🔴 결제를 다시 부르지 않는다 — 문서 자체가 증빙이고, 재검증을 넣으면 생성 도중에 결제한
    *    사용자가 자기 리포트에서 막힌다.
    */
-  const runWaves = useCallback(async (reportId: string) => {
+  const runWaves = useCallback(async (reportId: string, resumeQuality = false) => {
     setPhase("generating");
     setError("");
     if (!startedAtRef.current) startedAtRef.current = Date.now();
@@ -205,7 +205,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
       const { status, data, transient } = await postPaidBody(
         "/api/human-design-report/generate",
-        { reportId },
+        { reportId, ...(waves === 0 && resumeQuality ? { resumeQuality: true } : {}) },
         {
           timeoutMs: WAVE_REQUEST_TIMEOUT_MS,
           budgetMs: WAVE_REQUEST_BUDGET_MS,
@@ -240,6 +240,10 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
       lockWaitStartedAt = 0;
       const next = data as unknown as ReportDocument;
       applyDoc(next);
+      if (next.status === "partial") {
+        fail(say("budgetExceeded", uiLocale));
+        return;
+      }
 
       const completed = next.progress?.completed ?? next.sections?.length ?? 0;
       if (completed > written) { written = completed; noProgress = 0; } else { noProgress += 1; }
@@ -250,7 +254,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
         return;
       }
     }
-  }, [applyDoc, releaseAfterRefund, uiLocale]);
+  }, [applyDoc, fail, releaseAfterRefund, uiLocale]);
 
   const guarded = useCallback(async (work: () => Promise<void>) => {
     if (runningRef.current) return;
@@ -305,6 +309,10 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
     const next = data as unknown as ReportDocument;
     applyDoc(next);
+    if (next.status === "partial") {
+      fail(say("budgetExceeded", uiLocale));
+      return;
+    }
     if (next.status === "generating") {
       // 🔴 결제 없이 생성만 재개한다. 새로고침이 이중 결제가 되지 않는 지점이 여기다.
       await runWaves(next.reportId);
@@ -348,6 +356,10 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
     if (data.reused === true) {
       applyDoc(data as unknown as ReportDocument);
+      if (data.status === "partial") {
+        fail(say("budgetExceeded", uiLocale));
+        return true;
+      }
       // 🔴 재열람이 곧 완성본은 아니다. /start 는 앞 세션이 중간에 끊긴 generating 문서도
       //    reused 로 돌려준다. 그때 reading 으로 보내면 빈 리포트를 그리고 사용자는
       //    결제하고도 아무것도 못 본다 — 남은 웨이브를 이어서 돌려야 한다.
@@ -405,7 +417,7 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
   const resume = useCallback(() => {
     const reportId = reportIdRef.current || readStorage(REPORT_ID_STORAGE_KEY);
     if (!reportId) return;
-    void guarded(() => runWaves(reportId));
+    void guarded(() => runWaves(reportId, true));
   }, [guarded, runWaves]);
 
   const completedKeys = new Set((doc?.sections || []).map((section) => section.key));
