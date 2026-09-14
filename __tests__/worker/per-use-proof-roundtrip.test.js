@@ -134,6 +134,15 @@ const proveFusion = () => verifyPerUsePayment({}, {
   requestId: REQUEST_ID,
 });
 
+test('read-only result lookup requires an existing receipt and never buys pass coverage', async () => {
+  const input = { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID, requireExisting: true };
+  userDoc = { _id: USER_ID, role: 'user', passTier: 'family', isActive: true, expiresAt: '2099-01-01' };
+  await expect(verifyPerUsePayment({}, input)).resolves.toMatchObject({ proven: false, reason: 'NO_EXISTING_CONSUMPTION' });
+  expect(userDoc.recentConsumeRequestIds).toBeUndefined();
+  await runWriter();
+  await expect(verifyPerUsePayment({}, input)).resolves.toMatchObject({ proven: true, source: 'monthly' });
+});
+
 describe("월정석 차감 → 회당 결제 증빙", () => {
   test("🔴 정산까지 끝난 월정석 차감은 증빙된다 (초융합 402 실사고의 재현)", async () => {
     await runWriter();
