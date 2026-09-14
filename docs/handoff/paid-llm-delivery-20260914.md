@@ -11,8 +11,8 @@ next: "찻집 저장 실패 mock을 재현하고 결과 저장과 리워드 실�
 ## 현재 기준
 
 - 작업 디렉터리: `D:\Development\code-destiny`, main.
-- 마지막 구현 커밋: `0e2dff85192f077ab62bb58795937b1515a50fd5`, origin/main push 완료. 본 문서는 그 이후 문서 커밋으로 전달한다.
-- 구현 내역: `git log --oneline 5f7594dd5..0e2dff851`. 인연의 서 계산 입력·근거 계약, 지도/휴먼 디자인 부분 완료 처리, 공통 캐시 재검증. 가격·이용권·월정석·단건 결제 및 환불 정책 유지.
+- 마지막 구현 커밋: `64e211fef438c80b9d769985b642326e00f25038`. 본 문서 갱신과 묶어 origin/main에 전달한다. 최종 전달 상태는 `git status -sb`와 main CI로 확인한다.
+- 구현 내역: `git log --oneline 5f7594dd5..64e211fef`. 인연의 서 계산 입력·근거 계약, 지도/휴먼 디자인 부분 완료 처리, 공통 캐시 재검증. 마지막 보완은 생시 미상 검사를 한국어 정규식에서 certainty 필드 검사로 교체한 것이다. 가격·이용권·월정석·단건 결제 및 환불 정책 유지.
 - 조사 상세: [paid-llm-delivery-findings-20260914.md](paid-llm-delivery-findings-20260914.md). 코드 경로 확인이며 운영 주문 장애 재현은 아니다.
 
 ## 남은 작업 순서
@@ -26,11 +26,11 @@ next: "찻집 저장 실패 mock을 재현하고 결과 저장과 리워드 실�
 
 ## 검증 근거
 
-- 인연의 서 근거·품질 Jest 99/99; 부분 전달 행동 검사 5/5(개인·궁합 각 20장 저장·재조회 포함).
+- 인연의 서 근거·품질 Jest 100/100(영문 미상 생시 fixture 포함); 부분 전달 행동 검사 5/5(개인·궁합 각 20장 저장·재조회 포함).
 - reader mock: 360/390/430/1280px, 저장소 접근 불가와 취소 구매 검사 통과. 개인판 브라우저 검증이며 실 모바일 PG 복귀가 아니다.
 - 공통 캐시 행동 검사 5/5, 분석 근거 계약 94개 통과.
 - `check:fast`는 실행했으나 종료하지 않는 PG mock 검사로 중단. 해당 jsdom 정리 수정 후 단독 검사 통과. 이전 구현 push의 Paid Flow Gates 통과.
-- 최신 코드 main CI **success**: https://github.com/rei1237/codedestiny/actions/runs/34814700582 (타입·린트, 전체 테스트, Pages/Worker 빌드, 정적 가드, CI required 통과).
+- `0e2dff851` 코드 main CI **success**: https://github.com/rei1237/codedestiny/actions/runs/34814700582 (타입·린트, 전체 테스트, Pages/Worker 빌드, 정적 가드, CI required 통과). 이후 언어 독립성 보완의 최종 push CI는 `gh run list --branch main --workflow pr-ci.yml --limit 3`으로 확인한다.
 
 ```powershell
 npm run verify:handoff-contract
@@ -41,5 +41,5 @@ npm run test:jest -- --runInBand __tests__/worker/master-love-codex-evidence.tes
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md와 연결된 조사 문서를 읽고, main 작업 상태와 구현 커밋 0e2dff85192f077ab62bb58795937b1515a50fd5를 확인한 뒤 찻집 handleConsult의 저장 실패 mock 재현부터 이어서 진행하라. 기존 변경을 보존하고 실 LLM·실결제·운영 DB 없이 검증한다.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md와 연결된 조사 문서를 읽고, main 작업 상태와 구현 커밋 64e211fef438c80b9d769985b642326e00f25038를 확인한 뒤 찻집 handleConsult의 저장 실패 mock 재현부터 이어서 진행하라. 기존 변경을 보존하고 실 LLM·실결제·운영 DB 없이 검증한다.
 ```
