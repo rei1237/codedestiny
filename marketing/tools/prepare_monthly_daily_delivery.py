@@ -33,7 +33,7 @@ for date_text, pillar in zip(DATA['dates'], DATA['pillars']):
 띠별 운세는 연지 기준의 일반 해석입니다. 내 사주 전체와 함께 참고해주세요.
 
 CODE DESTINY · code-destiny.com
-#오늘의운세 #띠별운세 #사주 #꽃돼지연이 #코드데스티니
+#오늘의운세 #띠별운세 #사주 #꽃돼지연이 #꿀꿀운세 #코드데스티니
 '''
     (destination / '캡션.txt').write_text(caption, encoding='utf-8')
     (destination / '업로드 순서.txt').write_text(
