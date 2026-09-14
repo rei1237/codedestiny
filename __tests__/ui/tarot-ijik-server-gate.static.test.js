@@ -136,8 +136,14 @@ test('증빙 판정기가 세 번째 사본이 아니다', () => {
   // verifyPerUsePayment 호출은 라우트마다 하나씩 — 새로 베낀 사본이 늘면 여기서 잡힌다.
   const calls = (route.match(/verifyPerUsePayment\(env, \{/g) || []).length;
   assert.ok(calls <= 3, `verifyPerUsePayment 호출이 ${calls}곳이다 — 증빙 로직을 또 베꼈다`);
-  assert.ok(
-    /async function verifyTarotPerUseAccess\(request, env, body, spec\)/.test(route),
-    '매개변수화된 판정기가 사라졌다',
-  );
+  const ts = require('typescript');
+  const ast = ts.createSourceFile(ROUTE_REL, route, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const verifier = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'verifyTarotPerUseAccess');
+  assert.ok(verifier, '매개변수화된 판정기가 사라졌다');
+  assert.deepEqual(verifier.parameters.slice(0, 4).map(parameter => parameter.name.getText(ast)), ['request', 'env', 'body', 'spec']);
+  if (verifier.parameters.length > 4) {
+    assert.equal(verifier.parameters.length, 5);
+    assert.equal(verifier.parameters[4].name.getText(ast), 'verifiedAuth');
+    assert.equal(verifier.parameters[4].initializer.kind, ts.SyntaxKind.NullKeyword);
+  }
 });
