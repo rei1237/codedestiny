@@ -16287,6 +16287,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       : null;
     // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
     var requestEpoch = 0;
+    if (window._cdBindQuestionRecovery) window._cdBindQuestionRecovery('sukuyo', { question: questionEl, answer: answerEl, output: outputEl, wrap: promptWrap, copy: copyBtn, busy: function() { return isLoading; }, loading: setLoading, status: setStatus });
     var retryHint = (typeof window !== 'undefined' && window._cdAIPromptRetryHint)
       || ' 이미 결제가 확인되었으니 추가 결제 없이 다시 시도할 수 있습니다.';
 

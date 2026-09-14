@@ -7220,12 +7220,104 @@ function _cdIsTransientConsultResult(result) {
     || code === 'BALANCE_SNAPSHOT_UNAVAILABLE'
     || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE';
 }
+function _cdQuestionOwner() {
+  try {
+    var user = typeof getStoredAuthUser === 'function' ? getStoredAuthUser() : null;
+    return String(user && (user.id || user._id || user.userId || user.uid) || '');
+  } catch (_) { return ''; }
+}
+function _cdRememberQuestionResult(payload) {
+  var owner = _cdQuestionOwner();
+  var match = String(payload && payload.featureKey || '').match(/^(astrology|vedic|ziwei|sukuyo)(?:_ai_prompt_generator|-ai-prompt)$/);
+  if (!owner || !match || !payload.resultId) return;
+  try { sessionStorage.setItem('cd.question.result:' + owner + ':' + match[1], payload.resultId); } catch (_) {}
+}
+function _cdMountQuestionRecovery(kind, options) {
+  var owner = _cdQuestionOwner(), running = false, stopped = false, finished = false;
+  if (!owner) return;
+  var key = 'cd.question.result:' + owner + ':' + kind;
+  function active() { return !stopped && owner === _cdQuestionOwner() && options.attached(); }
+  function stop() {
+    stopped = true;
+    window.removeEventListener('online', recover);
+    document.removeEventListener('visibilitychange', recover);
+    window.removeEventListener('cd:auth-changed', stop);
+    options.clear();
+  }
+  async function recover() {
+    if (!active() || running || finished || options.busy() || document.visibilityState === 'hidden') return;
+    running = true;
+    var body = null, resultId = '';
+    try {
+      try { resultId = sessionStorage.getItem(key) || ''; } catch (_) {}
+      var headers = { 'Content-Type': 'application/json' };
+      var token = typeof getFortuneAuthToken === 'function' ? getFortuneAuthToken() : '';
+      if (token) headers.Authorization = 'Bearer ' + token;
+      var result = await _cdRetryTransientPost(async function() {
+        if (!active()) throw new Error('상담 화면이 변경되었습니다.');
+        var response = await fetch('/api/fortune/' + kind + (body ? '/ai-prompt' : '/ai-result' + (resultId ? '?resultId=' + encodeURIComponent(resultId) : '')), {
+          method: body ? 'POST' : 'GET', headers: headers, credentials: 'include', cache: 'no-store', ...(body ? { body: JSON.stringify(body) } : {})
+        });
+        var payload = await response.json();
+        if (!active()) throw new Error('상담 화면이 변경되었습니다.');
+        if (response.status === 202 && payload.resumeBody) body = payload.resumeBody;
+        return { ok: response.ok, status: response.status, payload: payload };
+      }, { onProgress: function(payload) { if (active()) { options.loading(true); options.show(payload); } } });
+      if (!active()) return;
+      if (result.status === 404) { try { sessionStorage.removeItem(key); } catch (_) {} return; }
+      if (result.status === 401 || result.status === 403) { options.clear(); finished = true; return; }
+      if (result.ok && result.payload.saved === true && result.payload.status === 'completed') { finished = true; options.show(result.payload); }
+      else if (result.status !== 401 && result.status !== 403) options.error(result.payload.message || '저장된 상담을 다시 확인해 주세요.');
+    } catch (_) { if (active()) options.error('연결이 돌아오면 저장된 상담을 다시 확인합니다.'); }
+    finally { running = false; if (active()) options.loading(false); }
+  }
+  window.addEventListener('online', recover);
+  document.addEventListener('visibilitychange', recover);
+  window.addEventListener('cd:auth-changed', stop);
+  recover();
+}
+function _cdBindQuestionRecovery(kind, ui) {
+  _cdMountQuestionRecovery(kind, {
+    attached: function() { return document.documentElement.contains(ui.question); },
+    busy: ui.busy, loading: ui.loading, error: function(message) { ui.status(message, 'error'); },
+    clear: function() { if (ui.answer) ui.answer.innerHTML = ''; ui.output.value = ''; },
+    show: function(payload) {
+      if (!ui.question.value && payload.resumeInputs) ui.question.value = payload.resumeInputs.question || '';
+      if (ui.answer && payload.resultText) {
+        ui.answer.innerHTML = _cdRenderConsultAnswerHtml(payload.resultText);
+        ui.answer.style.display = 'block';
+      }
+      ui.output.value = payload.generatedPrompt || payload.prompt || '';
+      if (ui.wrap) ui.wrap.style.display = 'block';
+      if (ui.copy) ui.copy.style.display = 'inline-flex';
+      ui.status(payload.saved === true ? '저장된 상담을 불러왔습니다.' : '저장된 부분을 보여드리며 나머지 상담을 이어서 작성하고 있습니다.', payload.saved === true ? 'success' : 'info');
+    }
+  });
+}
+
 function _cdRetryTransientPost(fetchFn, opts) {
   var o = opts || {};
   var maxAttempts = Math.max(1, o.maxAttempts || 3);
   var baseDelayMs = o.baseDelayMs || 900;
+  var waves = 0;
+  var cancelled = false;
+  function cancel() { cancelled = true; }
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('cd:auth-changed', cancel);
   function attempt(n) {
-    return Promise.resolve().then(fetchFn).then(function(result) {
+    return Promise.resolve().then(function() {
+      if (cancelled) throw new Error('상담 계정이 변경되었습니다.');
+      return fetchFn();
+    }).then(function(result) {
+      if (cancelled) throw new Error('상담 계정이 변경되었습니다.');
+      if (typeof _cdRememberQuestionResult === 'function' && result && result.payload) _cdRememberQuestionResult(result.payload);
+      if (result && result.status === 202 && result.payload && result.payload.resumeBody) {
+        if (typeof o.onProgress === 'function') o.onProgress(result.payload);
+        if (result.payload.retryable !== false && ++waves < 40) {
+          return new Promise(function(resolve) { setTimeout(resolve, Math.min(5000, Math.max(1000, result.payload.retryAfterMs || 1000))); })
+            .then(function() { return attempt(1); });
+        }
+        return { ok: false, status: 503, payload: Object.assign({}, result.payload, { ok: false, paymentRetainedForRetry: true, message: '저장된 상담을 보존했어요. 같은 상담으로 다시 확인해 주세요.' }) };
+      }
       if (n < maxAttempts && _cdIsTransientConsultResult(result)) {
         return new Promise(function(resolve) { setTimeout(resolve, baseDelayMs * n); })
           .then(function() { return attempt(n + 1); });
@@ -7233,19 +7325,23 @@ function _cdRetryTransientPost(fetchFn, opts) {
       return result;
     }).catch(function(err) {
       // 네트워크 예외(fetch reject)도 전이로 간주해 백오프 재시도.
-      if (n < maxAttempts) {
+      if (!cancelled && n < maxAttempts) {
         return new Promise(function(resolve) { setTimeout(resolve, baseDelayMs * n); })
           .then(function() { return attempt(n + 1); });
       }
       throw err;
     });
   }
-  return attempt(1);
+  return attempt(1).finally(function() {
+    if (typeof window !== 'undefined' && window.removeEventListener) window.removeEventListener('cd:auth-changed', cancel);
+  });
 }
 try {
   if (typeof window !== 'undefined') {
     window._cdRetryTransientPost = _cdRetryTransientPost;
     window._cdIsTransientConsultResult = _cdIsTransientConsultResult;
+    window._cdMountQuestionRecovery = _cdMountQuestionRecovery;
+    window._cdBindQuestionRecovery = _cdBindQuestionRecovery;
   }
 } catch (_) {}
 
@@ -14496,6 +14592,7 @@ function renderAstroInsightLegacyNeon() {
       var inFlight = false;
       var paidResumeDone = null;
       var astroEvidenceStore = _cdAIPromptEvidenceStore();
+      _cdBindQuestionRecovery('astrology', { question: inputEl, answer: answerEl, output: outputEl, wrap: outputWrap, copy: copyBtn, busy: function() { return inFlight; }, loading: setLoading, status: function(message, tone) { _astroSetPromptStatus(statusEl, message, tone); } });
       // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
       var astroRequestEpoch = 0;
       var astroRetryFree = false;
@@ -21833,6 +21930,7 @@ function renderZiwei(p, natal, targetId) {
 
     var isLoading = false;
     var zwEvidenceStore = _cdAIPromptEvidenceStore();
+    _cdBindQuestionRecovery('ziwei', { question: questionEl, answer: answerEl, output: outputEl, wrap: promptWrap, copy: copyBtn, busy: function() { return isLoading; }, loading: setLoading, status: setStatus });
     // 생성 성공 시에만 올린다. 실패 재시도는 같은 requestId(재결제 없음), 성공 후 재요청은 새 결제.
     var zwRequestEpoch = 0;
     var zwRetryFree = false;

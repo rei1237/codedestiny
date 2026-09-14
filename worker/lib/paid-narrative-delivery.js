@@ -32,6 +32,8 @@ async function revoked(doc, featureKey, body) {
 }
 function respond(doc, render, busy = false) {
   const state = doc.metadata.paidNarrative;
+  if (state.failureResult) return json(state.failureResult, { status: 500 });
+  if (state.exhaustionClaimed) return json({ ok: false, code: "RESULT_STORAGE_UNAVAILABLE", reason: "DELIVERY_REVIEW_REQUIRED", resultId: doc.executionKey, retryable: false, paymentRetainedForRetry: true }, { status: 503 });
   if (doc.premiumStatus === "completed") return json({ ...doc.metadata.result, ok: true, status: "completed", resultId: doc.executionKey, saved: true });
   return json({ ...render(state), ok: true, status: ready(state) ? "delivery_pending" : Object.keys(state.parts).length ? "partial" : "generating",
     saved: false, retryable: !limited(state), resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
@@ -41,7 +43,7 @@ function respond(doc, render, busy = false) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, timeoutMs = 45000 }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, timeoutMs = 45000 }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -54,7 +56,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   await verify(original);
   if (await revoked(doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && hash(cleanBody(body)) !== hash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
-  if (doc?.premiumStatus === "completed" || request.method === "GET") return respond(doc, render);
+  if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return respond(doc, render);
   const now = new Date(), token = randomUUID();
   const lock = { token, until: new Date(now.getTime() + 120000) };
   if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render, true);
@@ -112,7 +114,18 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       queue = queue.then(accept, accept); await queue;
     }));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
-    if (!ready(state)) return respond(doc, render);
+    if (!ready(state)) {
+      if (limited(state) && onExhausted) {
+        // Persist a single refund claim before any external side effect. An
+        // uncertain refund response is for reconciliation, never another refund.
+        state = { ...state, exhaustionClaimed: true };
+        await persist();
+        const failureResult = await onExhausted(state);
+        state = { ...state, failureResult };
+        await persist();
+      }
+      return respond(doc, render);
+    }
     doc = await save(filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
     if (await revoked(doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
     doc = await save(filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date() });

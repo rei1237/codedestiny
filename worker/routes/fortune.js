@@ -1,3 +1,4 @@
+import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
@@ -4179,9 +4180,8 @@ async function enrichAstrologyPromptResultWithSwiss(astrologyResult, env, reques
 }
 
 async function handleAstrologyAIPrompt(request, auth, env) {
-  // LLM 예산의 기산점. 인증·결제·Swiss 보강·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
-  const startedAt = Date.now();
-  const body = await readJson(request);
+  const body = await readFeatureQuestionRequest(request, env, auth, ASTROLOGY_AI_PROMPT_FEATURE_KEY);
+  if (body instanceof Response) return body;
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
   const astrologyResult = await enrichAstrologyPromptResultWithSwiss(body?.astrologyResult, env, request.url);
@@ -4283,40 +4283,19 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
-    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
-    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, {
-      builtPrompt,
-      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
-    });
-    if (!consultation.ok) {
-      const genError = new Error(consultation.error || "Astrology AI consultation generation failed.");
-      genError.code = "LLM_GENERATION_RETRYABLE";
-      throw genError;
-    }
-
-    return json({
-      ok: true,
-      resultText: consultation.text,
-      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
-      prompt: builtPrompt.prompt,
-      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
-      title: builtPrompt.title || "점성술 심층 질문 프롬프트",
-      summaryIntent: builtPrompt.summaryIntent || "",
-      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
-      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
-        ? builtPrompt.recommendedFollowUpQuestions
-        : [],
-      caution: String(builtPrompt.caution || "").trim() || undefined,
-      questionType: builtPrompt.questionType,
-      chargedCoins,
+    return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
-      balanceAfter,
-      compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
-      model: consultation.model,
-      provider: consultation.provider,
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund: null, balanceAfter }),
+      prepare: async () => ({ built: builtPrompt, factsInput: { astrologyResult, compatibilityResult } }),
+      refund: async proof => {
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend } = proof);
+        return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
+      },
     });
   } catch (error) {
+    return json({ ok: false, code: 'RESULT_STORAGE_UNAVAILABLE', requestId, retryable: true, paymentRetainedForRetry: true }, { status: 503 });
+  }
+  async function refundGeneration(error) {
     let refundAttempted = false;
     let refundOk = false;
     if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
@@ -4369,13 +4348,13 @@ async function handleAstrologyAIPrompt(request, auth, env) {
       500,
       buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
+
   }
 }
 
 async function handleVedicAIPrompt(request, auth, env) {
-  // LLM 예산의 기산점. 인증·결제·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
-  const startedAt = Date.now();
-  const body = await readJson(request);
+  const body = await readFeatureQuestionRequest(request, env, auth, VEDIC_AI_PROMPT_FEATURE_KEY);
+  if (body instanceof Response) return body;
   const question = String(body?.question || "").trim();
   const vedicResult = body?.vedicResult;
   const compatibilityResult = body?.compatibilityResult;
@@ -4466,41 +4445,19 @@ async function handleVedicAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
-    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
-    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, {
-      builtPrompt,
-      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
-    });
-    if (!consultation.ok) {
-      const genError = new Error(consultation.error || "Vedic AI consultation generation failed.");
-      genError.code = "LLM_GENERATION_RETRYABLE";
-      throw genError;
-    }
-
-    return json({
-      ok: true,
-      resultText: consultation.text,
-      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
-      prompt: builtPrompt.prompt,
-      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
-      title: builtPrompt.title || "베다 점성술 심층 질문 프롬프트",
-      summaryIntent: builtPrompt.summaryIntent || "",
-      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
-      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
-        ? builtPrompt.recommendedFollowUpQuestions
-        : [],
-      caution: String(builtPrompt.caution || "").trim() || undefined,
-      questionType: builtPrompt.questionType,
-      chargedCoins,
+    return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
-      balanceAfter,
-      compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
-      compatibilityHint: String(builtPrompt.compatibilityHint || ""),
-      model: consultation.model,
-      provider: consultation.provider,
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund: null, balanceAfter }),
+      prepare: async () => ({ built: builtPrompt, factsInput: { vedicResult, compatibilityResult } }),
+      refund: async proof => {
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend } = proof);
+        return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
+      },
     });
   } catch (error) {
+    return json({ ok: false, code: 'RESULT_STORAGE_UNAVAILABLE', requestId, retryable: true, paymentRetainedForRetry: true }, { status: 503 });
+  }
+  async function refundGeneration(error) {
     let refundAttempted = false;
     let refundOk = false;
     if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
@@ -4553,6 +4510,7 @@ async function handleVedicAIPrompt(request, auth, env) {
       500,
       buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
+
   }
 }
 
@@ -5292,9 +5250,8 @@ async function runFeatureAiConsultation(env, {
 }
 
 async function handleZiweiAIPrompt(request, auth, env) {
-  // LLM 예산의 기산점. 인증·결제·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
-  const startedAt = Date.now();
-  const body = await readJson(request);
+  const body = await readFeatureQuestionRequest(request, env, auth, ZIWEI_AI_PROMPT_FEATURE_KEY);
+  if (body instanceof Response) return body;
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
   const chartResult = body?.chartResult;
@@ -5424,39 +5381,19 @@ async function handleZiweiAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
-    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
-    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, {
-      builtPrompt,
-      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
-    });
-    if (!consultation.ok) {
-      const genError = new Error(consultation.error || "Ziwei AI consultation generation failed.");
-      genError.code = "LLM_GENERATION_RETRYABLE";
-      throw genError;
-    }
-
-    return json({
-      ok: true,
-      resultText: consultation.text,
-      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
-      prompt: generatedPrompt,
-      generatedPrompt,
-      title: builtPrompt.title || "자미두수 심층 질문 프롬프트",
-      summaryIntent: builtPrompt.summaryIntent || "",
-      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
-      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
-        ? builtPrompt.recommendedFollowUpQuestions
-        : [],
-      caution: String(builtPrompt.caution || "").trim() || undefined,
-      questionType: builtPrompt.questionType,
-      chargedCoins,
+    return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
-      balanceAfter,
-      model: consultation.model,
-      provider: consultation.provider,
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund, balanceAfter }),
+      prepare: async () => ({ built: builtPrompt, factsInput: chartResult }),
+      refund: async proof => {
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund } = proof);
+        return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
+      },
     });
   } catch (error) {
+    return json({ ok: false, code: 'RESULT_STORAGE_UNAVAILABLE', requestId, retryable: true, paymentRetainedForRetry: true }, { status: 503 });
+  }
+  async function refundGeneration(error) {
     let refundAttempted = false;
     let refundOk = false;
     if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
@@ -5523,6 +5460,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
       500,
       buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
+
   }
 }
 
@@ -5557,7 +5495,8 @@ function mapSukuyoConsumeFailure(response, payload) {
 async function handleSukuyoAIPrompt(request, auth, env) {
   // LLM 예산의 기산점. 인증·결제·프롬프트 구성에 쓴 시간만큼 생성 시간이 줄어든다.
   const startedAt = Date.now();
-  const body = await readJson(request);
+  const body = await readFeatureQuestionRequest(request, env, auth, SUKUYO_AI_PROMPT_FEATURE_KEY);
+  if (body instanceof Response) return body;
   const question = String(body?.question || "").trim();
   const domain = String(body?.domain || "").trim();
   const basicResult = body?.basicResult;
@@ -5693,41 +5632,19 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
-    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
-    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
-    const consultation = await runFeatureAiConsultation(env, {
-      builtPrompt,
-      deadlineAt: startedAt + FEATURE_AI_LLM_BUDGET_MS,
-    });
-    if (!consultation.ok) {
-      const genError = new Error(consultation.error || "Sukuyo AI consultation generation failed.");
-      genError.code = "LLM_GENERATION_RETRYABLE";
-      throw genError;
-    }
-
-    return json({
-      ok: true,
-      resultText: consultation.text,
-      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
-      prompt: builtPrompt.prompt,
-      generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
-      title: builtPrompt.title || "숙요점 심층 질문 프롬프트",
-      summaryIntent: builtPrompt.summaryIntent || "",
-      analysisAngles: Array.isArray(builtPrompt.analysisAngles) ? builtPrompt.analysisAngles : [],
-      recommendedFollowUpQuestions: Array.isArray(builtPrompt.recommendedFollowUpQuestions)
-        ? builtPrompt.recommendedFollowUpQuestions
-        : [],
-      caution: String(builtPrompt.caution || "").trim() || undefined,
-      questionType: builtPrompt.questionType,
-      chargedCoins,
+    return await deliverFeatureQuestion(request, env, auth, { ...body, requestId }, {
       featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
-      balanceAfter,
-      compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
-      compatibilityHint: String(builtPrompt.compatibilityHint || ""),
-      model: consultation.model,
-      provider: consultation.provider,
+      verify: async () => ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend, passRefund: null, balanceAfter }),
+      prepare: async () => ({ built: builtPrompt, factsInput: { basicResult, compatibilityResult } }),
+      refund: async proof => {
+        ({ chargedCoins, sourceTransactionId, isPointSpend, isCardSpend } = proof);
+        return refundGeneration(Object.assign(new Error('Generation attempts exhausted'), { code: 'LLM_GENERATION_RETRYABLE' }));
+      },
     });
   } catch (error) {
+    return json({ ok: false, code: 'RESULT_STORAGE_UNAVAILABLE', requestId, retryable: true, paymentRetainedForRetry: true }, { status: 503 });
+  }
+  async function refundGeneration(error) {
     let refundAttempted = false;
     let refundOk = false;
     if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
@@ -5780,6 +5697,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       500,
       buildAIPromptRetryDetails({ refundAttempted, refundOk, requestId }),
     );
+
   }
 }
 
@@ -6793,7 +6711,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       return await handlePigCoinConsume(request, authCtx.auth, { env });
     }
 
-    if (method === "POST" && path === "/ziwei/ai-prompt") {
+    if ((method === "POST" && path === "/ziwei/ai-prompt") || (method === "GET" && path === "/ziwei/ai-result")) {
       const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
@@ -6802,7 +6720,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       return await handleZiweiAIPrompt(request, auth, env);
     }
 
-    if (method === "POST" && path === "/sukuyo/ai-prompt") {
+    if ((method === "POST" && path === "/sukuyo/ai-prompt") || (method === "GET" && path === "/sukuyo/ai-result")) {
       const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildSukuyoAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
@@ -6847,7 +6765,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       return await handleSajuAIConsultationResult(request, auth, path, env);
     }
 
-    if (method === "POST" && path === "/astrology/ai-prompt") {
+    if ((method === "POST" && path === "/astrology/ai-prompt") || (method === "GET" && path === "/astrology/ai-result")) {
       const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildAstrologyAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
@@ -6856,7 +6774,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       return await handleAstrologyAIPrompt(request, auth, env);
     }
 
-    if (method === "POST" && path === "/vedic/ai-prompt") {
+    if ((method === "POST" && path === "/vedic/ai-prompt") || (method === "GET" && path === "/vedic/ai-result")) {
       const auth = await resolvePaidRouteAuth(request, env, { userProjection: AI_PROMPT_CONSUME_USER_PROJECTION });
       if (!auth) {
         return buildVedicAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);

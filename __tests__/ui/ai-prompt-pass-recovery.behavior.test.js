@@ -156,6 +156,15 @@ async function routeFixture(name) {
   Object.assign(f.context, {
     Request, Response, Headers, console: { info() {}, warn() {}, error() {} },
     json, readJson: request => request.json(),
+    readFeatureQuestionRequest: request => request.json(),
+    // The delivery engine has its own real-handler storage/fault suite. This
+    // fixture verifies the existing pass proof reaches that engine unchanged.
+    deliverFeatureQuestion: async (_request, _env, _auth, body, options) => {
+      assert.equal(body.requestId, input.requestId);
+      await options.verify(body);
+      generated += 1;
+      return json({ ok: true, saved: true, status: 'completed', resultText: 'generated ziwei result' });
+    },
     withMongoRetry: async (_env, action) => action(),
     primePromptTemplateOverrides: async () => {},
     buildSajuAIPrompt: fakePrompt, buildZiweiAIPrompt: fakePrompt,
