@@ -45,10 +45,11 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     toText: value => String(value || ""), asRecord: value => value || {},
     resolveFortuneTeaFeatureKey: () => "fortune-tea-house-saju-consultation",
     canUseLocalConsultPreview: () => true,
-    logSubmitStep() {}, startGenerationProgress() {}, setQuestionInput(value) { state.input = value; },
+    logSubmitStep() {}, startGenerationProgress() {}, clearGenerationProgressTimer() {}, setQuestionInput(value) { state.input = value; },
     setConsultResult(value) { state.result = value; }, setSubmitError(value) { state.error = value; },
     setIsSubmitting() {}, setGenerationProgress() {}, setNotice() {}, setHoneyDrops() {},
-    setHoneyRewardMessage() {}, setHoneyRewardBurstKey() {},
+    setHoneyRewardMessage() {}, setHoneyRewardBurstKey() {}, setPartialSections(value) { state.partial = value; },
+    authFetch: async () => ({ ok: false }),
     markGenerationComplete() { state.completed = true; }, markGenerationError() {},
     goToStage(value) { state.stage = value; },
     buildFortuneTeaHouseConsultResult: () => ({ body: "LOCAL_PREVIEW" }),
@@ -155,4 +156,45 @@ test("actual recovery effect restores after login and clears visible state on ac
   run();
   assert.equal(h.state.unusedPaidAttemptRef.current.attemptId, h.posts[0].attemptId);
   assert.equal(h.state.stage, "questionInput");
+});
+
+
+test('actual poll shows each saved wave and keeps the same request until completed', async () => {
+  const body = {attemptId: 'original', requestId:'original', billingGate:{paymentId:'paid'}};
+  const posted = [], progress = [];
+  const state = {
+    FORTUNE_TEA_POLL_BACKOFFS_MS: [0,0,0], window:{setTimeout:fn=>fn()},
+    postFortuneTeaConsultRequest: async value => {
+      posted.push(value);
+      return posted.length < 3 ? {response:{status:202},payload:{ok:true,status:'generating',retryable:true,completedSections:[{key:'part-'+posted.length,body:'saved'}]}} : {response:{status:200},payload:{ok:true,result:{resultId:'saved'}}};
+    },
+    isFortuneTeaGenerationPending: response => response.status===202,
+    buildFortuneTeaGenerationPendingError: message=>new Error(message),
+  };
+  vm.createContext(state);vm.runInContext(functionSource('pollFortuneTeaConsultResult'),state);
+  const result = await state.pollFortuneTeaConsultResult(body,()=>false,value=>progress.push(value));
+  assert.equal(result.response.status,200);assert.equal(progress.length,2);
+  assert.ok(posted.every(value=>value===body));
+  state.postFortuneTeaConsultRequest=async()=>({response:{status:202},payload:{retryable:false,completedSections:[]}});
+  await assert.rejects(state.pollFortuneTeaConsultResult(body,()=>false),/생성 한도/);
+});
+
+test('actual owner effect restores a server checkpoint without local storage or a payment gate', async () => {
+  const h = harness();let effect;
+  function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect'&&node.arguments[1]?.getText(ast)==='[recoveryOwner]')effect=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}
+  visit(ast);
+  const body={...input,attemptId:'original',requestId:'original',idempotencyKey:'original',featureKey:'fortune-tea-house-saju-consultation',selectedTeaCupId:cup.id,billingGate:{paymentId:'paid'}};
+  Object.assign(h.state,{
+    recoveryOwnerRef:{current:''},recoveryOwner:'user-a',
+    setSelectedCup:value=>{h.state.cup=value;},setStage:value=>{h.state.stage=value;},
+    getTeaHouseCupById:()=>cup,
+    authFetch:async()=>({status:202,json:async()=>({requestPayload:body,completedSections:[{key:'part',title:'저장한 장',body:'saved narrative'}]})}),
+  });
+  vm.runInContext(functionSource('buildFortuneTeaQuestionInputFromRequestPayload'),h.state);
+  vm.runInContext(ts.transpileModule(`(${effect})();`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,h.state);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.state.stage,'questionInput');assert.equal(h.state.partial[0].body,'saved narrative');
+  assert.equal(h.state.unusedPaidAttemptRef.current.attemptId,'original');
+  assert.deepEqual(h.state.unusedPaidAttemptRef.current.requestPayload,body);
+  assert.equal(h.gateCalls(),0);assert.equal(h.posts.length,0);
 });

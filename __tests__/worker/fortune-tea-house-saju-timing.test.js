@@ -9,6 +9,7 @@
 
 import { jest } from "@jest/globals";
 import createResultStore from "../fixtures/fortune-tea-result-store.cjs";
+import teaFixtures from '../fixtures/fortune-tea-llm-payload.cjs';
 
 const USER_ID = "64f0a1b2c3d4e5f678901288";
 // 황금 계피차(금전운) 규칙의 정본 섹션 제목 — 개수(9)와 문구가 프롬프트·검증기·폴백에 함께 전파된다.
@@ -102,7 +103,7 @@ function consultBody(overrides = {}) {
 async function postConsult(body) {
   const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", 'cf-connecting-ip': body.attemptId },
     body: JSON.stringify(body),
   }), { NODE_ENV: "test", GEMINIF_API_KEY: "test-key" });
   return { status: response.status, payload: await response.json() };
@@ -198,10 +199,34 @@ describe("운명 찻집 사주 — 시기 근거 테이블", () => {
 });
 
 describe("운명 찻집 사주 — 섹션 부분 병합", () => {
+  test('all required sections complete across requests and preserve original pillars and timing facts', async () => {
+    const body = consultBody({ attemptId: 'saju-complete-parts' });
+    const long = (label) => Array.from({length: 17}, (_, index) => `${label} 사례 ${index}에서는 일간과 오행, 십성의 계산 근거를 확인합니다. ${label} 검토 ${index}의 재성, 비겁, 소비, 금전, 투자, 30일 계획은 대운과 세운의 주어진 구간을 기준으로 현실의 수입과 지출을 비교하며 해석하는 예시입니다.`).join('\n');
+    let mismatched = false;
+    callGeminiTextMock.mockImplementation(async (_env, raw) => {
+      const output = JSON.parse(JSON.stringify(teaFixtures.buildLlmPayload('three')).replace(/펜타클 10|황제|컵 5/g, '입력 명식').replace(/카드/g, '명식'));
+      output.saju = { title: '명식과 금전의 흐름', summary: long('요약'), oneLineAdvice: '지출 기록으로 작은 기준을 확인하세요.', pillars: { day: '잘못된 계산' }, deepSections: SECTION_TITLES.map((title, index) => ({ id: 'llm-' + index, title, body: long(title) })) };
+      if (!mismatched && JSON.parse(raw).groupRule.exactSectionTitle === SECTION_TITLES[0]) {
+        mismatched = true;
+        output.saju.deepSections[0].body = '경금은 정관입니다. ' + output.saju.deepSections[0].body;
+      }
+      return { ok: true, provider: 'gemini', text: JSON.stringify(output) };
+    });
+    let response;
+    for (let wave = 0; wave < 12; wave += 1) {
+      response = await postConsult(body);
+      if (response.status !== 202 || response.payload.retryable === false) break;
+    }
+    const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    expect({ status: response.status, quality: saved.generationCheckpoint.qualityError }).toEqual({ status: 200, quality: undefined });
+    expect(response.payload.result.saju.deepSections.map(section => section.title)).toEqual(SECTION_TITLES);
+    expect(response.payload.result.saju.pillars).toEqual(body.draftResult.saju.pillars);
+    expect(response.payload.result.saju.daewoon).toEqual(DAEWOON_ROWS);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(16);
+    expect(response.payload.result.saju.deepSections[0].body).not.toContain('경금은 정관');
+  });
   test("일부 섹션만 부실해도 나머지 LLM 섹션은 살아남는다", async () => {
-    const strongBody = (title) => `${title}에 대해 말씀드리면, 재성이 월지에 뿌리를 두어 돈이 들어오는 통로가 분명합니다. `
-      + "다만 비겁이 함께 서 있어 소비가 새는 자리도 같이 만들어지니, 30일 단위로 지출을 끊어 보는 편이 안전합니다. "
-      + "일간과 오행의 균형을 기준으로 보면 지금은 규모를 키우기보다 기준을 세우는 시기입니다.";
+    const strongBody = (title) => Array.from({ length: 16 }, (_, i) => `${title}의 ${i + 1}번째 검토는 입력된 명식의 재성과 일간, 오행을 확인하고 실제 지출의 순서를 비교하는 연습입니다. ${title} 사례 ${i + 1}에서는 단정하지 않고 30일 안에 확인할 수 있는 금전 기록을 근거로 소비와 투자의 선택을 나누어 살펴봅니다.`).join('\n');
     const weakBody = "이 대목은 조금 더 살펴보면 좋겠습니다. 마음이 머무는 자리를 천천히 확인해 보세요. 오늘은 여기까지만 짚어 둡니다.";
     const deepSections = SECTION_TITLES.map((title, index) => ({
       id: `llm-${index + 1}`,
@@ -218,18 +243,15 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
 
     const { status, payload } = await postConsult(consultBody({ attemptId: "saju-partial-merge" }));
 
-    expect(status).toBe(200);
-    const merged = payload.result.saju.deepSections;
-    expect(merged.map((section) => section.title)).toEqual(SECTION_TITLES);
-    SECTION_TITLES.forEach((title, index) => {
-      if (index % 2 === 0) {
-        // 하한을 넘긴 LLM 섹션은 그대로 살아 있어야 한다(전량 폴백 교체 회귀 방지).
-        expect(merged[index].body).toBe(strongBody(title));
-      } else {
-        // 하한 미달 섹션만 폴백으로 채운다.
-        expect(merged[index].body).not.toBe(weakBody);
-        expect(merged[index].body.length).toBeGreaterThan(weakBody.length);
-      }
-    });
+    expect(status).toBe(202);
+    expect(payload.result).toBeUndefined();
+    const first = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    const sections = first.generationCheckpoint.parts;
+    expect(sections['saju-section-0'].saju.deepSections[0].body).toBe(strongBody(SECTION_TITLES[0]));
+    expect(sections['saju-section-1']).toBeUndefined();
+    await postConsult(consultBody({ attemptId: 'saju-partial-merge' }));
+    const next = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    expect(next.generationCheckpoint.parts['saju-section-0']).toEqual(sections['saju-section-0']);
+    expect(next.generationCheckpoint.attempts['saju-section-0']).toBe(1);
   });
 });

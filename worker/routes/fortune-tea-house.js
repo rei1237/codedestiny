@@ -16,10 +16,12 @@ import {
   buildSexagenaryYearPillar,
   getTenGodFromDayMaster,
   toKoreanGanji,
+  validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
-import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+import { getAmbientAiLocale, runWithAiLocale } from "../lib/ai-locale-context.js";
 import { toDisplayText } from "../../lib/llm-text.js";
 import {
   buildFallbackHeartScent,
@@ -1636,7 +1638,7 @@ function normalizeDeepSections(value) {
       return {
         id: cleanText(section.id || `section-${index + 1}`, 80),
         title: cleanText(section.title, 80),
-        body: cleanMultiline(section.body, 1800),
+        body: cleanMultiline(section.body, 6000),
         tone: cleanText(section.tone, 20) || undefined,
       };
     })
@@ -1845,6 +1847,7 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
       .map((row) => `${row.scope === "daewoon" ? "대운" : row.scope === "sewoon" ? "세운" : row.scope} ${row.label}`)
       .join(" | ");
     return {
+      fixedTenGodTable: factSnapshot.fixedTenGodTable,
       tenGodFixedTable: (factSnapshot.fixedTenGodTable || [])
         .map((row) => `${row.stem}${row.stemKorean ? `(${row.stemKorean})` : ""}=${row.tenGod}`)
         .join(" | "),
@@ -2810,14 +2813,13 @@ function mergeEmotionAnalysis(candidates, fallbackItems, treatAllZeroAsMissing =
   // 타로 결과의 게이지는 결정론 폴백도 모두 0이 아니므로, 전부 0인 후보는
   // LLM이 수치를 채우지 못한 것으로 보고 후보 전체를 무시한다. 개별 0은
   // 기존 병합 규칙을 유지하되, 이 예외만으로 모든 게이지가 0으로 덮이는 것을 막는다.
-  const list = treatAllZeroAsMissing && isAllZeroEmotionAnalysis(candidates)
-    ? []
-    : (Array.isArray(candidates) ? candidates : []);
+  const keepComputedValues = treatAllZeroAsMissing && isAllZeroEmotionAnalysis(candidates);
+  const list = Array.isArray(candidates) ? candidates : [];
   const merged = fallbackItems.map((fallbackItem, index) => {
     const candidate = list[index] && typeof list[index] === "object" ? list[index] : {};
     return {
       label: mergeLine(candidate.label, fallbackItem.label, 40),
-      value: mergePercentValue(candidate.value, fallbackItem.value),
+      value: keepComputedValues ? fallbackItem.value : mergePercentValue(candidate.value, fallbackItem.value),
       description: mergeProse(candidate.description, fallbackItem.description, 900),
       tone: cleanText(candidate.tone, 20) || fallbackItem.tone,
     };
@@ -3671,6 +3673,11 @@ function resolveFortuneTeaGroups(request, fallback, consultationMode) {
  */
 function applyFortuneTeaGroupScope(prompt, group) {
   if (!group) return prompt;
+  // The saved chapter contract replaces the old short-field length suggestions.
+  if (group.paths) {
+    prompt = JSON.parse(JSON.stringify(prompt, (_, value) => typeof value === 'string'
+      ? value.replace(/권장 분량:[^.。\n]*[.。]?/g, '') : value));
+  }
   const outputSchema = {};
   for (const [key, value] of Object.entries(prompt.outputSchema || {})) {
     outputSchema[key] = FORTUNE_TEA_PRESERVED_SCHEMA_KEYS.includes(key) || group.fields.includes(key)
@@ -3681,8 +3688,15 @@ function applyFortuneTeaGroupScope(prompt, group) {
     ...prompt,
     groupRule: {
       group: group.label,
-      writeOnly: group.fields,
+      writeOnly: group.paths || group.fields,
+      ...(group.sectionTitle ? { exactSectionTitle: group.sectionTitle, sajuDeepSections: "오직 이 제목의 장 하나만 반환한다." } : {}),
+      ...(group.positionId ? { exactPositionId: group.positionId, tarotCardReadings: "오직 이 위치의 카드 해설 하나만 반환한다." } : {}),
       minimumKoreanChars: group.minChars,
+      ...(group.paths ? {
+        targetBodyChars: Math.ceil(group.minChars * 1.2),
+        completionRule: '제목·목차·공백·기호를 제외한 본문만 센다. 각 담당 필드에 고르게 배분하고 계산 근거, 생활 패턴, 반대 조건, 실행 조언을 서로 다른 문단으로 설명한다. 계산값을 만들거나 수정하지 않는다.',
+        fieldLimits: '일반 본문 필드당 최대 4000자, 카드별 detail 각 900자, 감정 description 각 900자, choice result 1600자/caution 600자, closingLine 1200자. 특정 필드 하나에 몰아 쓰지 않는다.',
+      } : {}),
       lengthRule: `이번 호출이 담당한 필드의 텍스트 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
         + ` 상담 전체 목표는 ${group.modeMinChars}자이고 나머지는 다른 그룹이 같은 시각에 쓰고 있다.`,
       handledElsewhere: group.handledElsewhere,
@@ -3702,6 +3716,7 @@ function applyFortuneTeaGroupScope(prompt, group) {
 /** 담당 밖 필드는 병합 전에 버린다 — 프롬프트가 새어 다른 그룹의 글을 덮어쓰지 못하게 한다. */
 function pickFortuneTeaGroupFields(parsed, group) {
   if (!parsed || typeof parsed !== "object") return null;
+  if (group.paths) return pickTeaCheckpointFields(parsed, group);
   const picked = {};
   for (const field of group.fields) {
     if (parsed[field] !== undefined) picked[field] = parsed[field];
@@ -4068,6 +4083,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
       responseMimeType: "application/json",
       // 그룹 최소 분량 × 0.4. 통짜 시절의 600 은 그룹 단위에서 아무것도 막지 못한다.
       fallbackMinChars: Math.round(group.minChars * 0.4),
+      fallbackToWorkersAI: false,
       // 이 라우트는 캐시도 in-flight dedup 도 없어 같은 입력의 재요청이 전 그룹을 다시 생성했다.
       // 웨이브 2 의 재생성은 attempt 와 qualityHint 가 프롬프트·temperature 를 함께 바꾸므로
       // 실패한 시도의 응답이 같은 키를 차지하지 않는다.
@@ -4080,20 +4096,21 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // 🔴 프롬프트를 바꾼 PR 은 이 버전을 반드시 올린다. 결정론 캐시 TTL 이 30일이라
         // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
         // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
-        keyExtra: `tea-house-${consultationMode}-${group.key}-v2`,
+        keyExtra: `tea-house-${consultationMode}-${group.key}-v3`,
         minChars: group.minChars,
       },
     });
     // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
     // 그 경로가 예산을 넘겨 엣지 컷을 유발하지 않도록 하드 레이스를 건다.
+    let deadlineTimer;
     const ai = await Promise.race([
       call,
-      new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: "group_hard_deadline" }), timeoutMs + 4000)),
-    ]);
+      new Promise((resolve) => { deadlineTimer = setTimeout(() => resolve({ ok: false, error: "group_hard_deadline" }), timeoutMs + 4000); }),
+    ]).finally(() => clearTimeout(deadlineTimer));
 
     const provider = cleanText(ai?.provider, 60);
     const model = cleanText(ai?.model, 80);
-    if (!ai?.ok) return fail(cleanText(ai?.error || ai?.message || "LLM_FAILED", 60), provider, model);
+    if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${provider} ${model}`)) return fail(cleanText(ai?.error || ai?.message || "LLM_FAILED", 60), provider, model);
 
     const picked = pickFortuneTeaGroupFields(extractJson(ai.text), group);
     if (!picked || !Object.keys(picked).length) return fail("EMPTY_GROUP_FIELDS", provider, model);
@@ -4101,6 +4118,140 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
   } catch (error) {
     return fail(cleanText(error instanceof Error ? error.message : error, 60));
   }
+}
+
+
+function teaField(source, path) { return path.split('.').reduce((value, key) => value?.[key], source); }
+function teaSet(target, path, value) { const keys = path.split('.'), last = keys.pop(); let at = target; for (const key of keys)
+    at = at[key] ||= {}; at[last] = value; }
+function teaNarrativeText(value) {
+    if (typeof value === 'string')
+        return value;
+    if (Array.isArray(value))
+        return value.map(teaNarrativeText).join('\n');
+    if (value && typeof value === 'object')
+        return Object.entries(value).filter(([key]) => !/^(?:id|.*Id|title|label|name|nameKo|nameEn|positionId|pair|tone|category|value|score|available|orientation)$/.test(key)).map(([, part]) => teaNarrativeText(part)).join('\n');
+    return '';
+}
+function pickTeaCheckpointFields(parsed, group) {
+    if (group.sectionTitle) {
+        const section = parsed.saju?.deepSections?.find(item => item?.title === group.sectionTitle);
+        return typeof section?.body === 'string' ? { saju: { deepSections: [section] } } : null;
+    }
+    if (group.positionId) {
+        const card = parsed.tarotCardReadings?.find(item => item?.positionId === group.positionId);
+        if (!card || TAROT_CARD_DETAIL_FIELDS.some(key => typeof card[key] !== 'string'))
+            return null;
+        const cards = Array(group.cardCount).fill(null);
+        cards[group.cardIndex] = card;
+        return { tarotCardReadings: cards };
+    }
+    const picked = {};
+    for (const path of group.paths) {
+        const value = teaField(parsed, path);
+        if (value === undefined || value === null)
+            return null;
+        teaSet(picked, path, value);
+    }
+    return picked;
+}
+function buildTeaCheckpointGroups(request, fallback) {
+    const groups = [];
+    const add = (key, label, paths, minChars, extra = {}) => groups.push({ key, label, paths, minChars, fields: [...new Set(paths.map(path => path.split('.')[0]))], modeMinChars: 20000, handledElsewhere: [], ...extra });
+    if (isSajuFamilyMode(request.consultationMode)) {
+        add('saju-summary', '명식의 핵심 근거', ['sessionTitle', 'questionSummary', 'saju.title', 'saju.summary', 'saju.oneLineAdvice'], 1000);
+        const titles = getSajuRequiredSectionTitles(request), min = Math.max(1000, Math.ceil(6000 / titles.length));
+        titles.forEach((title, i) => add('saju-section-' + i, title, ['saju.deepSections'], min, { sectionTitle: title }));
+    }
+    else if (request.consultationMode === 'sukuyo') {
+        add('sukuyo-summary', '두 본명숙 관계의 근거', ['sessionTitle', 'questionSummary', 'sukuyoCompatibility.title', 'sukuyoCompatibility.summary'], 3000);
+        add('sukuyo-strengths', '관계의 강점과 반대 조건', ['sukuyoCompatibility.strengths'], 2000);
+        add('sukuyo-cautions', '관계의 주의점과 실천', ['sukuyoCompatibility.cautions', 'sukuyoCompatibility.adviceKeywords'], 2000);
+    }
+    else {
+        add('tarot-overview', '카드의 연결과 마음의 향', ['sessionTitle', 'questionSummary', 'tarot.reading', 'cardInteractions', 'heartScent'], 1000);
+        const cards = fallback.tarotSpreadCards || [];
+        cards.forEach((card, i) => add('tarot-card-' + i, card.positionLabel + ' 카드 해석', ['tarotCardReadings'], Math.max(1500, Math.ceil(6000 / cards.length)), { positionId: card.positionId, cardIndex: i, cardCount: cards.length }));
+    }
+    add('emotion', '감정의 흐름', ['emotionAnalysis'], 1500);
+    add('reading-main', '연이가 읽은 현재의 흐름', ['yeoniReading.intro', 'yeoniReading.main'], 3500);
+    add('reading-advice', '연이의 조언과 주의점', ['yeoniReading.advice', 'yeoniReading.caution'], 3500);
+    add('synthesis', '해석의 연결과 선택의 대안', ['synthesis', 'choiceSimulation'], 3500);
+    add('action', '생활 속 실천과 맺음', ['actionPrescription', 'luckyKeywords', 'closingLine'], 2500);
+    return groups;
+}
+async function saveTeaCheckpoint(auth, resultId, lockToken, state) {
+    try {
+        const { results } = honeyCollections();
+        const filter = { userId: String(auth.userId), resultId, status: 'generating', 'generationLock.token': lockToken };
+        const written = await results.updateOne(filter, { $set: { generationCheckpoint: structuredClone(state), updatedAt: new Date() } });
+        if (!written?.matchedCount)
+            throw Error('missing write');
+        const doc = await results.findOne(filter);
+        if (JSON.stringify(doc?.generationCheckpoint) !== JSON.stringify(state))
+            throw Error('unconfirmed write');
+    }
+    catch {
+        throw Object.assign(new Error('RESULT_STORAGE_UNAVAILABLE'), { code: 'RESULT_STORAGE_UNAVAILABLE' });
+    }
+}
+function teaCheckpointProgress(state, resultId) {
+    return { ok: true, status: 'generating', retryable: state.groups.some(group => (!state.parts[group.key] || state.repairs?.includes(group.key)) && (state.attempts[group.key] || 0) < 3), resultId,
+        completedSections: state.groups.filter(group => state.parts[group.key]).map(group => ({ key: group.key, title: group.label, body: teaNarrativeText(state.parts[group.key]) })), totalSections: state.groups.length,
+        message: '정상 생성한 부분을 저장했어요. 같은 요청으로 나머지를 이어서 작성합니다.' };
+}
+async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, lockToken, checkpoint, body }) {
+    const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko',
+        requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
+    const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)) && (state.attempts[group.key] || 0) < 3).slice(0, 4);
+    if (eligible.length && !hasGeminiKey(env)) {
+        return { partial: { ...teaCheckpointProgress(state, resultId), reason: 'LLM_UNAVAILABLE' } };
+    }
+    for (const group of eligible)
+        state.attempts[group.key] = (state.attempts[group.key] || 0) + 1;
+    await saveTeaCheckpoint(auth, resultId, lockToken, state);
+    let writes = Promise.resolve();
+    const outcomes = await Promise.allSettled(eligible.map(async (group) => {
+        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '' }));
+        if (!output.ok)
+            return;
+        const rendered = mergeLlmResult(state.fallback, output.parsed);
+            const normalized = group.positionId ? { tarotCardReadings: rendered.tarotSpreadCards.map((card, i) => i === group.cardIndex ? { positionId: group.positionId, ...card.detail } : null) } : pickTeaCheckpointFields(rendered, group);
+            if (countPaidReportBodyChars(teaNarrativeText(normalized)) < group.minChars || hasRepeatedReportPassage(teaNarrativeText(normalized)))
+                return;
+            if (state.request.consultationMode === 'saju' && !validateSajuMyeongsikTenGodText(
+                teaNarrativeText(normalized), buildFortuneTeaSajuMyeongsikFacts(state.request, state.fallback.saju),
+            ).ok) return;
+        const accept = async () => { state.parts[group.key] = normalized; state.repairs = state.repairs.filter(key => key !== group.key); await saveTeaCheckpoint(auth, resultId, lockToken, state); };
+        writes = writes.then(accept, accept);
+        await writes;
+    }));
+    const rejected = outcomes.find(outcome => outcome.status === 'rejected');
+    if (rejected)
+        throw rejected.reason;
+    if (state.groups.some(group => !state.parts[group.key]) || state.repairs.length)
+        return { partial: teaCheckpointProgress(state, resultId) };
+    let result = state.fallback;
+    for (const group of state.groups)
+        result = mergeLlmResult(result, state.parts[group.key]);
+    try {
+        assertConsultQuality(result, state.fallback);
+        // Only provider-written narrative contributes to the new detailed-report floor.
+        const bodyText = state.groups.map(group => teaNarrativeText(state.parts[group.key])).join('\n');
+        if (countPaidReportBodyChars(bodyText) < 20000)
+            throw Error('report body length');
+        if (hasRepeatedReportPassage(bodyText))
+            throw Error('repeated narrative across sections');
+    }
+    catch (error) {
+        state.qualityError = String(error.message || error);
+        const exact = state.groups.filter(group => state.qualityError.includes(group.label));
+        const scoped = state.groups.filter(group => group.paths.some(path => state.qualityError.includes(path.split('.')[0])));
+        state.repairs = (exact.length ? exact : scoped.length ? scoped : state.groups).map(group => group.key);
+        await saveTeaCheckpoint(auth, resultId, lockToken, state);
+        return { partial: teaCheckpointProgress(state, resultId) };
+    }
+    return { result, generationMeta: { mode: 'gemini', checkpointVersion: 1, generatedAt: new Date().toISOString(), completedGroups: state.groups.map(group => group.key) } };
 }
 
 async function generateConsultResult(request, fallback, env) {
@@ -4372,7 +4523,7 @@ async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, 
     if (Number(error?.code) === 11000) return { ok: false, inProgress: true };
     throw error;
   }
-  return { ok: true, lockToken, pending: pending ? { result: pending, generationMeta: existing.generationMeta || {} } : null };
+  return { ok: true, lockToken, checkpoint: existing?.generationCheckpoint, pending: pending ? { result: pending, generationMeta: existing.generationMeta || {} } : null };
 }
 
 async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, message, lockToken }) {
@@ -4597,6 +4748,27 @@ async function readFortuneTeaHouseResultsList(request, env) {
       .toArray();
   });
   return { ok: true, items: docs.map(publicFortuneTeaResultListItem).filter(Boolean) };
+}
+
+async function handleFortuneTeaHousePending(request, env) {
+    const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    if (!auth?.userId)
+        return json({ ok: false }, { status: 401 });
+    let doc;
+    try {
+        await connectDb(env);
+        const { results } = honeyCollections();
+        doc = await results.find({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: { $in: ['generating', 'delivery_pending'] }, 'generationCheckpoint.requestBody': { $exists: true } }).sort({ updatedAt: -1 }).limit(1).next();
+    }
+    catch {
+        return fortuneTeaStorageUnavailable('pending');
+    }
+    if (!doc)
+        return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
+    const state = doc.generationCheckpoint, access = await verifyFortuneTeaHouseConsultAccess(request, env, state.requestBody, state.request);
+    if (!access.ok)
+        return access.response;
+    return json({ ...teaCheckpointProgress(state, doc.resultId), ...(doc.status === 'delivery_pending' ? { retryable: true } : {}), requestPayload: state.requestBody }, { status: 202 });
 }
 
 async function handleFortuneTeaHouseResultsList(request, env) {
@@ -5307,7 +5479,9 @@ async function handleConsult(request, env, ctx = null) {
     if (generation.inProgress) {
       return json({
         ok: true,
+        ...(generation.doc?.generationCheckpoint ? teaCheckpointProgress(generation.doc.generationCheckpoint,resultId) : {}),
         status: "generating",
+        busy: true,
         retryable: true,
         resultId,
         message: "결제는 확인되었고 상담문은 아직 생성 중입니다. 잠시 뒤 같은 요청으로 다시 확인해 주세요.",
@@ -5318,8 +5492,12 @@ async function handleConsult(request, env, ctx = null) {
   const runGeneration = async () => {
   let generated;
   try {
-    generated = generation?.pending || await generateConsultResult(consultRequest, fallback, env);
+    generated = generation?.pending || (access.auth?.userId && (hasGeminiKey(env) || generation?.checkpoint)
+      ? await generateTeaCheckpoint(consultRequest,fallback,env,{auth:access.auth,resultId,lockToken:generation.lockToken,checkpoint:generation.checkpoint,body})
+      : await generateConsultResult(consultRequest, fallback, env));
+    if(generated.partial){await releaseFortuneTeaDelivery({auth:access.auth,resultId,lockToken:generation.lockToken});return json(generated.partial,{status:202});}
   } catch (error) {
+    if(error.code==='RESULT_STORAGE_UNAVAILABLE'){await releaseFortuneTeaDelivery({auth:access.auth,resultId,lockToken:generation?.lockToken});return fortuneTeaStorageUnavailable(resultId);}
     const failedCurrentGeneration = await markFortuneTeaHouseGenerationFailed({
       lockToken: generation?.lockToken,
       auth: access.auth,
@@ -5443,6 +5621,7 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}, ctx = null)
     const path = getRoutePath(request, "/api/fortune-tea-house");
     traceMethod = method;
     tracePath = new URL(request.url).pathname;
+    if(method==="GET"&&path==="/pending")return await handleFortuneTeaHousePending(request,env);
     if (method === "GET" && (path === "/honey-drops" || path === "/honey-drops/balance")) {
       return json({ ok: true, honeyDrops: await readHoneyDropsState(request, env) });
     }

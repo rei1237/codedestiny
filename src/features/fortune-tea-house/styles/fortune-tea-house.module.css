@@ -332,6 +332,16 @@
   font-family: var(--tea-font-premium);
 }
 
+.checkpointReading {
+  width: min(100%, 760px);
+  margin-inline: auto;
+  scroll-margin-top: 88px;
+}
+
+.checkpointReading summary {
+  scroll-margin-top: 88px;
+}
+
 .questionSubmitErrorCard p,
 .consultErrorCard p {
   margin: 0;

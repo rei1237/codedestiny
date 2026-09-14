@@ -4,6 +4,7 @@
 
 const USER_ID = "64f0a1b2c3d4e5f678901234";
 const SERVICE_SCOPE = "FORTUNE_TEA_HOUSE";
+const teaFixtures = require('../fixtures/fortune-tea-llm-payload.cjs');
 
 let handleFortuneTeaHouseRoutes;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
@@ -98,6 +99,17 @@ class FakeCollection {
   async findOne(query) {
     const row = Array.from(this.rows.values()).find((doc) => matchesQuery(doc, query));
     return clone(row || null);
+  }
+
+  find(query) {
+    let rows = this.all().filter(doc => matchesQuery(doc, query));
+    const cursor = {
+      sort(order) { const [key, direction] = Object.entries(order)[0]; rows.sort((a, b) => direction * (new Date(valueAt(a, key)) - new Date(valueAt(b, key)))); return cursor; },
+      limit(count) { rows = rows.slice(0, count); return cursor; },
+      next: async () => clone(rows[0] || null),
+      toArray: async () => clone(rows),
+    };
+    return cursor;
   }
 
   async updateOne(query, update, options = {}) {
@@ -571,16 +583,101 @@ describe.each(["membership_pass", "monthly", "single"])("delivery recovery: %s",
   const resultCollection = () => collection("fortune_tea_house_results");
   async function prepare(id) {
     paidAccessAllowed = false;
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', model: 'gemini-2.5-flash', text: JSON.stringify(teaFixtures.buildLlmPayload('three')) }));
     await seedBillingEvidence({ featureKey: FEATURE_KEYS.tarot, requestId: id, accessMethod });
-    return { ...validConsultBody(id), requestId: id, idempotencyKey: id, billingGate: billingGatePayload(FEATURE_KEYS.tarot, id) };
+    return { ...teaFixtures.consultBody({attemptId: id}), requestId: id, idempotencyKey: id, billingGate: billingGatePayload(FEATURE_KEYS.tarot, id) };
   }
-  const post = async (body) => {
+  const postOnce = async (body) => {
     const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
       method: "POST", headers: { "content-type": "application/json", "cf-connecting-ip": body.requestId }, body: JSON.stringify(body),
-    }), { NODE_ENV: "test" });
+    }), { NODE_ENV: "test", GEMINIF_API_KEY: 'mock-key' });
     return { status: response.status, payload: await response.json() };
   };
+  const post = async body => {
+    for (let wave = 0; wave < 12; wave += 1) {
+      const response = await postOnce(body);
+      if (response.status !== 202 || response.payload.busy || response.payload.retryable === false) return response;
+    }
+    throw new Error('mock wave budget exhausted');
+  };
   const rewards = () => collection("fortune_tea_house_honey_ledgers").all().filter(row => row.reason === "TEA_HOUSE_CONSULTATION_REWARD");
+
+  const pending = async () => readJson(await handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/pending'), { NODE_ENV: 'test' }));
+
+  test('four concurrent parts are durable before apply; server recovery reuses every good part', async () => {
+    const body = await prepare(`parts-${accessMethod}`);
+    const first = await postOnce(body);
+    expect(first.status).toBe(202);
+    expect(first.payload.completedSections).toHaveLength(4);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(4);
+    expect(billingCalls).toHaveLength(0);
+    expect(rewards()).toHaveLength(0);
+    const saved = resultCollection().all()[0].generationCheckpoint;
+    authState = { userId: USER_ID, role: 'user' };
+    const recovered = await pending();
+    expect(recovered.status).toBe(202);
+    expect(recovered.payload.requestPayload).toEqual(body);
+    const complete = await post(recovered.payload.requestPayload);
+    expect(complete.status).toBe(200);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(9);
+    expect(resultCollection().all()[0].generationCheckpoint.parts).toMatchObject(saved.parts);
+    expect(appliedKeys.size).toBe(1);
+    expect(rewards()).toHaveLength(1);
+    for (const call of callGeminiTextMock.mock.calls) {
+      expect(call[2].timeoutMs).toBeLessThanOrEqual(45000);
+      expect(call[2].fallbackToWorkersAI).toBe(false);
+    }
+  });
+
+  test.each(['throw', 'null', 'confirmation_null'])('partial checkpoint %s returns 503 without apply or refund', async fault => {
+    const body = await prepare(`partial-store-${accessMethod}-${fault}`);
+    const rows = resultCollection(), update = rows.updateOne.bind(rows), read = rows.findOne.bind(rows);
+    let failed = false;
+    jest.spyOn(rows, 'updateOne').mockImplementation(async (query, change, options) => {
+      if (!failed && change.$set?.generationCheckpoint && fault !== 'confirmation_null') {
+        failed = true;
+        if (fault === 'throw') throw Error('MOCK_STORAGE_FAILURE');
+        return null;
+      }
+      return update(query, change, options);
+    });
+    jest.spyOn(rows, 'findOne').mockImplementation(async query => {
+      const doc = await read(query);
+      if (!failed && fault === 'confirmation_null' && doc?.generationCheckpoint) { failed = true; return null; }
+      return doc;
+    });
+    const first = await postOnce(body);
+    expect(first.status).toBe(503);
+    expect(first.payload).toMatchObject({ ok: false, retryable: true, reason: 'RESULT_STORAGE_UNAVAILABLE' });
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+    expect(billingCalls).toHaveLength(0);
+    expect(rewards()).toHaveLength(0);
+    expect((await post(body)).status).toBe(200);
+    expect(appliedKeys.size).toBe(1);
+  });
+
+  test('pending read isolates accounts and rejects a revoked original proof', async () => {
+    const body = await prepare(`pending-owner-${accessMethod}`);
+    await postOnce(body);
+    authState = { userId: '64f0a1b2c3d4e5f678901999', role: 'user' };
+    expect((await pending()).status).toBe(404);
+    authState = { userId: USER_ID, role: 'user' };
+    await collection('paid_execution_records').updateOne({ requestId: body.requestId }, { $set: { status: 'refunded' } });
+    expect((await pending()).status).toBe(402);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(4);
+    expect(billingCalls).toHaveLength(0);
+  });
+
+  test('one truncated part is regenerated without replacing accepted parts', async () => {
+    const body = await prepare(`truncated-${accessMethod}`);
+    callGeminiTextMock.mockResolvedValueOnce({ ok: true, provider: 'gemini', truncated: true, text: JSON.stringify(teaFixtures.buildLlmPayload('three')) });
+    const first = await postOnce(body);
+    expect(first.payload.completedSections).toHaveLength(3);
+    const saved = resultCollection().all()[0].generationCheckpoint.parts;
+    expect((await post(body)).status).toBe(200);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(10);
+    expect(resultCollection().all()[0].generationCheckpoint.parts).toMatchObject(saved);
+  });
 
   test.each(["throw", "null", "write_response_lost"])("checkpoint %s never completes or applies", async (fault) => {
     const body = await prepare(`checkpoint-${accessMethod}-${fault}`);
@@ -775,4 +872,28 @@ describe.each(["membership_pass", "monthly", "single"])("delivery recovery: %s",
     expect(rewards()).toHaveLength(1);
     expect((await post(body)).payload.cached).toBe(true);
   });
+});
+
+
+test('sukuyo completes saved groups while preserving calculated relationship facts', async () => {
+  const body = consultBodyForMode('sukuyo', 'sukuyo-checkpoint-complete');
+  let facts;
+  callGeminiTextMock.mockImplementation(async (_env, raw) => {
+    const prompt = JSON.parse(raw);
+    facts = prompt.preserveExactly.sukuyoCompatibility;
+    const output = teaFixtures.buildLlmPayload('three');
+    const long = (label, count) => Array.from({length: count}, (_, i) => `${label} 사례 ${i}는 ${facts.user.sukuyoName}와 ${facts.partner.sukuyoName}의 ${facts.relationType} 관계를 주어진 계산값 안에서 설명합니다. ${label} 조건 ${i}에서는 두 사람의 대화 속도와 현실의 약속을 비교하고 상대의 마음을 단정하지 않으며 구체적인 확인 행동을 선택합니다.`).join('\n');
+    output.sukuyoCompatibility = { title: '두 사람의 본명숙 관계', summary: long('요약', 36), strengths: [long('강점', 24)], cautions: [long('주의', 24)], adviceKeywords: ['거리 확인', '약속 정리'], relationType: '계산값 변조', scores: {total: 100} };
+    return {ok: true, provider: 'gemini', text: JSON.stringify(output)};
+  });
+  let response;
+  for (let wave = 0; wave < 10; wave += 1) {
+    response = await readJson(await handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/consult', {method: 'POST', headers: {'content-type':'application/json', 'cf-connecting-ip':'sukuyo-parts'}, body:JSON.stringify(body)}), {NODE_ENV:'test', GEMINIF_API_KEY:'mock-key'}));
+    if(response.status !== 202 || response.payload.retryable === false) break;
+  }
+  const saved = collection('fortune_tea_house_results').all()[0];
+  expect({status: response.status, quality: saved?.generationCheckpoint?.qualityError}).toEqual({status: 200, quality: undefined});
+  expect(response.payload.result.sukuyoCompatibility.relationType).toBe(facts.relationType);
+  expect(response.payload.result.sukuyoCompatibility.scores).toEqual(facts.scores);
+  expect(callGeminiTextMock).toHaveBeenCalledTimes(8);
 });

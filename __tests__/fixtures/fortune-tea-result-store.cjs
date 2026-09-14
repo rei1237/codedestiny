@@ -4,6 +4,7 @@ module.exports = function createResultStore() {
   const read = (doc, key) => key.split('.').reduce((value, part) => value?.[part], doc);
   const matches = (doc, query) => Object.entries(query).every(([key, expected]) => {
     const actual = read(doc, key);
+    if (Object.prototype.toString.call(expected) === '[object Date]') return new Date(actual).getTime() === new Date(expected).getTime();
     if (expected && typeof expected === 'object' && !(expected instanceof Date)) {
       if ('$exists' in expected) return (actual !== undefined) === expected.$exists;
       if ('$in' in expected) return expected.$in.includes(actual);
@@ -19,6 +20,16 @@ module.exports = function createResultStore() {
     else target[last] = structuredClone(value);
   };
   return {
+    find(query) {
+      let selected = [...rows.values()].filter(doc => matches(doc, query));
+      const cursor = {
+        sort(order) { const [key, direction] = Object.entries(order)[0]; selected.sort((a, b) => direction * (new Date(read(a, key)) - new Date(read(b, key)))); return cursor; },
+        limit(count) { selected = selected.slice(0, count); return cursor; },
+        async next() { return structuredClone(selected[0] || null); },
+        async toArray() { return structuredClone(selected); },
+      };
+      return cursor;
+    },
     async findOne(query) { return structuredClone([...rows.values()].find(doc => matches(doc, query)) || null); },
     async updateOne(query, update, options = {}) {
       let doc = [...rows.values()].find(row => matches(row, query));

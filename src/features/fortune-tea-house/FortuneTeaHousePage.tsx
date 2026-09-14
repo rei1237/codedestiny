@@ -11,7 +11,7 @@ import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
 import { authFetch } from "@/app/_lib/auth-client";
-import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
+import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { readFortuneTeaRecovery, saveFortuneTeaRecovery, clearFortuneTeaRecovery, type FortuneTeaRecovery } from "./lib/consultRecovery";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput, FortuneTeaTarotSpread } from "./data/consult";
@@ -102,6 +102,9 @@ type FortuneTeaHouseConsultApiResponse = {
   status?: string;
   reason?: string;
   retryable?: boolean;
+  completedSections?: Array<{ key: string; title: string; body: string }>;
+  totalSections?: number;
+  requestPayload?: FortuneTeaConsultPostBody;
   result?: FortuneTeaHouseConsultResponse;
   honeyDrops?: FortuneTeaHouseHoneyDropsState;
   message?: string;
@@ -312,11 +315,13 @@ function buildFortuneTeaQuestionInputFromRequestPayload(payload: FortuneTeaConsu
 }
 
 const FORTUNE_TEA_POLL_BACKOFFS_MS = [700, 1500, 2500, 4000, 6000, ...Array(31).fill(8000)];
-async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCancelled: () => boolean) {
+async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCancelled: () => boolean, onProgress?: (payload: FortuneTeaHouseConsultApiResponse) => void) {
   for (let attempt = 0; attempt < FORTUNE_TEA_POLL_BACKOFFS_MS.length; attempt += 1) {
     await new Promise((resolve) => window.setTimeout(resolve, FORTUNE_TEA_POLL_BACKOFFS_MS[attempt]));
     if (isCancelled()) return null;
     const next = await postFortuneTeaConsultRequest(body);
+    if (next.payload.completedSections) onProgress?.(next.payload);
+    if (next.payload.retryable === false && isFortuneTeaGenerationPending(next.response,next.payload)) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
     if (next.response.status === 429) return next; // rate-limit: 폴링 종료, 호출부에서 일반 처리
     if (!isFortuneTeaGenerationPending(next.response, next.payload)) return next;
   }
@@ -544,6 +549,7 @@ export default function FortuneTeaHousePage() {
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
   const [questionInput, setQuestionInput] = useState<Partial<FortuneTeaHouseQuestionInput>>({});
+  const [partialSections, setPartialSections] = useState<Array<{key:string;title:string;body:string}>>([]);
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
   const [honeyDrops, setHoneyDrops] = useState<FortuneTeaHouseHoneyDropsState | null>(null);
   const [isTarotAlbumOpen, setIsTarotAlbumOpen] = useState(false);
@@ -577,6 +583,11 @@ export default function FortuneTeaHousePage() {
   const unusedPaidAttemptRef = useRef<FortuneTeaSettledAttempt | null>(null);
   const recoveryOwnerRef = useRef("");
   useEffect(() => {
+    // A restored session may have no verified local user snapshot yet.
+    // Initialize the shared store so server-side recovery can run before submit.
+    if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {});
+  }, []);
+  useEffect(() => {
     if (recoveryOwnerRef.current === recoveryOwner) return;
     const previousOwner = recoveryOwnerRef.current;
     recoveryOwnerRef.current = recoveryOwner;
@@ -587,6 +598,7 @@ export default function FortuneTeaHousePage() {
     submitLockRef.current = false;
     setIsSubmitting(false);
     setConsultResult(null);
+    setPartialSections([]);
     const saved = readFortuneTeaRecovery(recoveryOwner);
     if (saved) {
       unusedPaidAttemptRef.current = saved;
@@ -599,6 +611,19 @@ export default function FortuneTeaHousePage() {
       setSelectedCup(null);
       setSubmitError("");
       setStage("landing");
+      if(recoveryOwner){
+        const owner=recoveryOwner;
+        void authFetch("/api/fortune-tea-house/pending",{method:"GET",cache:"no-store"},{retryOn401:false}).then(async response=>{
+          if(response.status!==202)return;const payload=await response.json() as FortuneTeaHouseConsultApiResponse;
+          if(recoveryOwnerRef.current!==owner||submitLockRef.current||!payload.requestPayload)return;
+          const requestPayload=payload.requestPayload,input=buildFortuneTeaQuestionInputFromRequestPayload(requestPayload),cup=getTeaHouseCupById(toText(requestPayload.selectedTeaCupId));
+          if(!input||!cup)return;
+          const attemptId=toText(requestPayload.attemptId||requestPayload.requestId);if(!attemptId)return;
+          const record:FortuneTeaRecovery={ownerId:owner,attemptId,featureKey:toText(requestPayload.featureKey)||resolveFortuneTeaFeatureKey(input),billingGate:asRecord(requestPayload.billingGate),requestPayload,questionInput:input,cup};
+          unusedPaidAttemptRef.current=record;saveFortuneTeaRecovery(record);setSelectedCup(cup);setQuestionInput(input);setPartialSections(payload.completedSections||[]);
+          setSubmitError("저장된 상담이 있어요. 같은 요청으로 이어서 확인할 수 있어요.");setStage("questionInput");
+        }).catch(()=>{});
+      }
     }
   }, [recoveryOwner]);
 
@@ -1176,8 +1201,23 @@ export default function FortuneTeaHousePage() {
       let { response, payload } = await postFortuneTeaConsultRequest(initialConsultBody, abortController.signal).finally(() => {
         if (localPreviewTimeoutId !== null) window.clearTimeout(localPreviewTimeoutId);
       });
+      const showPartial = (progress: FortuneTeaHouseConsultApiResponse) => {
+        if (consultRunRef.current !== consultRunId) return;
+        clearGenerationProgressTimer();
+        const completed = progress.completedSections?.length || 0;
+        const total = progress.totalSections || 0;
+        setPartialSections(progress.completedSections || []);
+        setGenerationProgress(previous => ({
+          ...previous,
+          percent: Math.min(95, Math.round(completed / Math.max(1, total) * 95)),
+          label: `${completed}/${total} 부분 저장`,
+          message: "저장된 부분을 읽는 동안 나머지를 작성하고 있어요.",
+        }));
+      };
       if (isFortuneTeaGenerationPending(response, payload)) {
-        const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId);
+        showPartial(payload);
+        if (payload.retryable === false) throw buildFortuneTeaGenerationPendingError("저장된 내용을 보존했어요. 생성 한도에 도달해 추가 확인이 필요합니다.");
+        const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId, showPartial);
         if (consultRunRef.current !== consultRunId) return;
         if (polled) ({ response, payload } = polled);
         else throw buildFortuneTeaGenerationPendingError(payload.message);
@@ -1195,7 +1235,7 @@ export default function FortuneTeaHousePage() {
         ({ response, payload } = await postFortuneTeaConsultRequest(billingEvidenceBody));
       }
       if (isFortuneTeaGenerationPending(response, payload)) {
-        const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId);
+        const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId, showPartial);
         if (consultRunRef.current !== consultRunId) return;
         if (polled) ({ response, payload } = polled);
         else throw buildFortuneTeaGenerationPendingError(payload.message);
@@ -1211,6 +1251,7 @@ export default function FortuneTeaHousePage() {
       if (consultRunRef.current !== consultRunId) return;
       if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
       markGenerationComplete();
+      setPartialSections([]);
 
       const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
       if (remainingDelay > 0) {
@@ -1245,13 +1286,10 @@ export default function FortuneTeaHousePage() {
       } else if (payload.generationMeta?.degraded) {
         setNotice("연이가 오늘은 향을 끝까지 우려내지 못해, 읽을 수 있는 부분부터 정성껏 담아 전했어요.");
       }
-      if (nextQuestionInput.consultationMode !== "tarot") {
-        logSubmitStep("go result");
-        goToStage("result");
-        return;
-      }
-      logSubmitStep("go tarotReveal");
-      goToStage("tarotReveal");
+      // Confirmed paid text is immediately readable. Card reveal stays available
+      // through the result sheet's existing onShowTarot action.
+      logSubmitStep("go result");
+      goToStage("result");
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
       logSubmitStep("error", error);
@@ -1316,6 +1354,18 @@ export default function FortuneTeaHousePage() {
     );
   }
 
+  function renderSavedSections() {
+    if (!partialSections.length) return null;
+    return <section className={`${styles.consultErrorCard} ${styles.checkpointReading}`} aria-label="저장된 상담 본문">
+      <h2>먼저 준비된 상담</h2>
+      <p>아직 완성 전인 상담입니다. 저장된 부분부터 읽을 수 있어요.</p>
+      {partialSections.map(section => <details key={section.key}>
+        <summary style={{ padding: '12px 0', cursor: 'pointer' }}>{section.title}</summary>
+        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.85 }}>{section.body}</p>
+      </details>)}
+    </section>;
+  }
+
   function renderScene() {
     if (stage === "landing") {
       return (
@@ -1342,7 +1392,7 @@ export default function FortuneTeaHousePage() {
 
     if (stage === "questionInput" && selectedCup) {
       return (
-        <QuestionInputScene
+        <>{renderSavedSections()}<QuestionInputScene
           selectedCup={selectedCup}
           initialInput={questionInput}
           onDraftChange={setQuestionInput}
@@ -1350,12 +1400,13 @@ export default function FortuneTeaHousePage() {
           onSubmit={submitQuestion}
           isSubmitting={isSubmitting}
           submitError={submitError}
-        />
+        /></>
       );
     }
 
     if (stage === "scentLoading") {
-      return <ScentLoadingScene selectedCup={selectedCup} consultationMode={questionInput.consultationMode} progress={generationProgress} />;
+      return <><ScentLoadingScene selectedCup={selectedCup} consultationMode={questionInput.consultationMode} progress={generationProgress} />
+        {renderSavedSections()}</>;
     }
 
     if (stage === "tarotReveal" && consultResult) {
