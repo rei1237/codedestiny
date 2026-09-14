@@ -6,9 +6,13 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import {
   NeoOperationRoomConsultation,
   PaidExecutionRecord,
+  PointHistory,
+  MonthlyCreditLedger,
   Payment,
   User,
 } from "../lib/models.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -55,7 +59,7 @@ const ACCESS_TOKEN_TYPE = "neo-operation-room-access";
 const ACCESS_TOKEN_TTL = "45m";
 // 백그라운드 생성(14챕터)이 완주하는 최악 시간을 덮는 신선도 창. 이 창 안의 재-POST는 2차 생성을
 // 기동하지 않고 202로 흡수돼 이중 작업/이중 과금을 막는다.
-const GENERATION_FRESHNESS_MS = 300000;
+const GENERATION_FRESHNESS_MS = 120000;
 const TITLE = "네오의 팩폭 작전실";
 const LOGIN_REQUIRED_MESSAGE = "작전을 시작하려면 로그인이 필요하다. 로그인하고 다시 앉아라.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제나 이용권 확인이 끝나지 않았다. 권한을 확인한 뒤 다시 시도해라.";
@@ -509,9 +513,21 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: INVALID_INPUT_MESSAGE };
     }
-    return { ok: true, accessType: clean(payload.accessType), paymentId: clean(payload.paymentId, 160), source: "token" };
+    body = { ...body, paymentId: payload.paymentId || body.paymentId };
   }
   const ctx = billingContextFromBody(body);
+  const tokens = [...new Set([idempotencyKey, ctx.paymentId, ctx.requestId, ctx.transactionId, ctx.ledgerId].filter(Boolean))];
+  const ids = tokens.flatMap(value => ["requestId", "idempotencyKey", "paymentId", "orderId", "impUid", "merchantUid", "executionId"].map(key => ({ [key]: value })));
+  const metadataIds = tokens.flatMap(value => ["sourceId", "metadata.requestId", "metadata.idempotencyKey", "metadata.transactionId"].map(key => ({ [key]: value })));
+  const markers = ["refundedForServiceExecution", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const revoked = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: auth.userId, featureId: FEATURE_KEY, status: { $in: revoked }, $or: ids }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: ids }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
   const paidPayment = await withMongoRetry(env, () => hasPaidPayment(auth, ctx.paymentId, idempotencyKey));
   if (paidPayment) {
     return {
@@ -525,7 +541,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       paymentDocId: clean(paidPayment._id, 64),
     };
   }
-  if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY" || ctx.accessMethod === "MONTHLY_CREDIT" || ctx.accessMethod === "MOONLIGHT_STONE") {
+  {
     if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
       return {
         ok: true,
@@ -538,7 +554,11 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       };
     }
   }
-  if (ctx.accessType === "membership_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS" || ctx.accessMethod === "MEMBERSHIP_PASS" || ctx.accessMethod === "FAMILY_PASS") {
+  const user = await withMongoRetry(env, () => loadUser(auth.userId));
+  if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
+  if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
+  if (isReusablePaidFeatureAccess(decision) && mapPaidFeatureAccessType(decision) === "pass") {
     if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
       return {
         ok: true,
@@ -551,9 +571,6 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       };
     }
   }
-  const user = await withMongoRetry(env, () => loadUser(auth.userId));
-  if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
-  if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
@@ -992,10 +1009,10 @@ const NEO_SECTION_TIMEOUT_MS = 45000;
 // 🔴 이 루프를 공유 헬퍼 callGeminiJsonWithRetry 로 갈아끼우지 말 것. 그쪽은 잘림에만 재시도하고
 // (빈 파싱은 재시도 안 함) 재시도에도 cache 를 그대로 넘긴다 — 여기서 필요한 두 가지를 다 잃는다.
 // deadlineAt 을 주면 남은 예산 안에서만 호출한다(엣지 100s 전에 라우트가 먼저 판정하도록).
-async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0) {
+async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0, singleAttempt = false) {
   try {
     let ai = null;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
+    for (let attempt = 0; attempt < (singleAttempt ? 1 : 2); attempt += 1) {
       // 🔴 예산 검사는 여기 한 곳뿐이다. 시작 가드와 재시도 가드를 따로 두지 말 것(중첩 사전검사).
       const remaining = deadlineAt > 0 ? deadlineAt - Date.now() : NEO_SECTION_TIMEOUT_MS;
       // 남은 예산이 의미 있는 생성을 담기엔 모자라면 시작하지 않는다 — 시작해 봐야 엣지가 끊는다.
@@ -1016,6 +1033,7 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
         fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
+        ...(singleAttempt ? { fallbackToWorkersAI: false } : {}),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
       // Gemini 는 truncated(MAX_TOKENS)로, Workers AI 는 finishReason("length")로만 잘림을 알린다.
@@ -1026,7 +1044,7 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
     const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-    if (!ai?.ok || isMock || clean(ai?.text).length < 40) {
+    if (!ai?.ok || isMock || (singleAttempt && (ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)))) || clean(ai?.text).length < 40) {
       return { id: section.id, parsed: {}, provider, model, ok: false };
     }
     const parsed = parseNeoSectionResponse(ai.text);
@@ -1167,14 +1185,14 @@ async function generateRefinedOrder(env, consultation, realityCheck) {
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }) {
-  const existing = await NeoOperationRoomConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+  const existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
   if (source !== "billing-gate" && accessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
   }
-  await NeoOperationRoomConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
+  await NeoOperationRoomConsultation.updateOne({ id: sessionId, userId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
   return true;
 }
 
@@ -1193,6 +1211,7 @@ async function recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pr
       featureId: FEATURE_KEY,
       profileId: "default",
       requestId: idempotencyKey,
+      status: { $nin: ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"] },
     },
     {
       $setOnInsert: {
@@ -1570,145 +1589,156 @@ async function handleEnsureAccess(request, env) {
   return paymentRequired(pricing, idempotencyKey);
 }
 
+// A request owns one wave. Successful siblings are persisted before the next wave starts.
+function neoBody(value, key = "") {
+  if (/^(title|operationTitle|name|label|method|selectedMethod|documentType|area|palace|coreDiagnosis|repeatedPattern|currentProblem|nextStepPrompt)$/i.test(key)) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value.map(item => neoBody(item)).join("\n");
+  if (value && typeof value === "object") return Object.entries(value).map(([name, item]) => neoBody(item, name)).filter(Boolean).join("\n");
+  return "";
+}
+function neoShape(value, schema) {
+  if (Array.isArray(schema)) return Array.isArray(value) && value.length > 0 && value.every(item => neoShape(item, schema[0]));
+  if (schema && typeof schema === "object") return value && typeof value === "object" && Object.entries(schema).every(([key, item]) => neoShape(value[key], item));
+  return typeof schema === "number" ? Number.isFinite(Number(value)) : typeof value === "string" && value.trim().length > 0;
+}
+function neoSectionReady(section, row, input, methodSummary) {
+  if (!row?.ok || !neoShape(row.parsed, section.schema) || hasForbiddenResultText(row.parsed)) return false;
+  for (const [path, count] of Object.entries(section.counts || {})) {
+    const list = path.split(".").reduce((value, key) => value?.[key], row.parsed);
+    if (!Array.isArray(list) || list.length < count) return false;
+  }
+  // Count the rendered, normalized values; aliases and the calculated fallback cannot inflate length.
+  const rendered = mergeNeoInitialSections([row], input, { ...methodSummary, evidenceSummary: "", summary: "" });
+  const text = neoBody(rendered);
+  if (countPaidReportBodyChars(text) < section.minChars || hasRepeatedReportPassage(text)) return false;
+  if (section.id === "methodEvidence" && methodSummary?.evidenceTokens?.length && !briefingCitesEvidence(rendered, methodSummary.evidenceTokens)) return false;
+  return true;
+}
+function stableNeo(value) {
+  if (Object.prototype.toString.call(value) === "[object Date]") return value.toISOString();
+  if (Array.isArray(value)) return value.map(stableNeo);
+  if (value && typeof value === "object" && !(value instanceof Date)) return Object.fromEntries(Object.keys(value).sort().map(key => [key, stableNeo(value[key])]));
+  return value;
+}
+async function saveNeoDelivery(filter, fields, resultId) {
+  try {
+    const saved = await NeoOperationRoomConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!saved || Object.keys(fields).some(key => JSON.stringify(stableNeo(saved[key])) !== JSON.stringify(stableNeo(fields[key])))) throw resultStorageUnavailable(resultId);
+    const confirmed = await NeoOperationRoomConsultation.findOne({ id: resultId, userId: filter.userId }).lean();
+    if (!confirmed || Object.keys(fields).some(key => JSON.stringify(stableNeo(confirmed[key])) !== JSON.stringify(stableNeo(saved[key])))) throw resultStorageUnavailable(resultId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(resultId); }
+}
+function pendingNeo(doc) {
+  return json({ ...publicSession(doc), resultId: doc.id, retryable: true,
+    completedChapters: Object.keys(doc.llmMeta?.sections || {}), totalChapters: 14 }, { status: 202, headers: { "Retry-After": "3" } });
+}
 async function handleStart(request, env, ctx = null) {
-  const body = await readJson(request);
-  const normalized = normalizeInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
-  const idempotencyKey = readIdempotencyKey(request, body);
-  if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  let body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
-
   await connectDb(env);
-  const pricing = getPricing();
-  const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
-  if (!access.ok) {
-    if (access.reason === "LOGIN_REQUIRED") return loginRequired();
-    if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
-    return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
-  }
-
-  const existing = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean());
+  const requestedId = clean(body.sessionId || body.resultId, 120);
+  let existing = requestedId ? await NeoOperationRoomConsultation.findOne({ id: requestedId, userId: auth.userId }).lean() : null;
+  if (requestedId && !existing) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
+  if (existing?.status === "completed") return json(publicSession(existing));
+  if (existing?.llmMeta?.resumeBody) body = existing.llmMeta.resumeBody;
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) return invalidInput(normalized.message);
+  const idempotencyKey = existing?.idempotencyKey || readIdempotencyKey(request, body);
+  if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  existing ||= await NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATION_FRESHNESS_MS) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "운명의 작전 지도를 펼치는 중이다." }, { status: 202 });
-  }
-
-  // 정찰 지도(계산)는 LLM이 아니므로 포그라운드에서 즉시 검증한다 — 출생정보/차트 오류는 여기서 422로 빠르게 반환.
-  let methodSummary;
-  try {
-    methodSummary = await calculateMethodSummary(env, normalized, request);
-  } catch (error) {
-    const isCalculationError = clean(error?.code).includes("BIRTH") || clean(error?.code).includes("CHART") || Number(error?.status) === 422;
-    return json({
-      ok: false,
-      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
-      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
-    }, { status: isCalculationError ? 422 : 503 });
-  }
-
+  if (existing?.llmMeta?.resumeBody) body = existing.llmMeta.resumeBody;
+  const pricing = getPricing();
+  let access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+  if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: PAYMENT_VERIFY_FAILED_MESSAGE }, { status: 402 });
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
   const sessionId = existing?.id || `neoop_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
-  const now = new Date();
-  const seed = {
-    id: sessionId,
-    userId: auth.userId,
-    idempotencyKey,
-    inputHash: normalized.inputHash,
-    birthInfo: normalized.input.birthInfo,
-    // 궁합 모드가 아니면 null 로 남는다. 결과 재열람 때 같은 명반을 다시 계산하기 위해 저장하며,
-    // 재사용 가능한 프로필(ProfileCard)로는 승격하지 않는다.
-    partnerBirthInfo: normalized.input.partnerBirthInfo || null,
-    relationshipStatus: normalized.input.relationshipStatus || "",
-    selectedMethod: normalized.input.selectedMethod,
-    topic: normalized.input.topic,
-    intensity: normalized.input.intensity,
-    question: normalized.input.question,
-    methodSummary,
-    initialBriefing: null,
-    accessType: access.accessType,
-    paymentId: clean(access.paymentId, 160),
-    messages: [],
-    status: "generating",
-    generationError: null,
-  };
-  if (existing) {
-    await NeoOperationRoomConsultation.updateOne({ id: existing.id }, { $set: { ...seed, updatedAt: now } });
-  } else {
+  const resumeBody = { ...body, idempotencyKey };
+  delete resumeBody.accessToken;
+  if (!existing) {
     try {
-      await NeoOperationRoomConsultation.create(seed);
+      await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
+        ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
+        llmMeta: { resumeBody, sections: {}, attempts: {} } });
+      existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
+      if (!existing) throw resultStorageUnavailable(sessionId);
     } catch (error) {
       if (error?.code === 11000) {
         const duplicate = await NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
-        if (duplicate?.status === "completed") return json(publicSession(duplicate));
-        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "운명의 작전 지도를 펼치는 중이다." }, { status: 202 });
+        if (duplicate) return duplicate.status === "completed" ? json(publicSession(duplicate)) : pendingNeo(duplicate);
       }
-      throw error;
+      throw resultStorageUnavailable(sessionId);
     }
   }
-
-  await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
-
-  // 14챕터 LLM 브리핑을 요청 안에서 '동기'로 생성해 완료 결과를 바로 반환한다.
-  // 비동기(waitUntil)+/result 폴링 방식은, 하나의 공유 MongoDB 연결을 여러 요청 컨텍스트가 재사용하게 만들어
-  // Cloudflare Workers의 요청 간 I/O 격리("Cannot perform I/O on behalf of a different request")와 충돌 →
-  // 생성 DB 쓰기가 취소·타임아웃돼 결과가 영영 'generating'에 고착되던 문제가 있었다. 생성 전체(연결+LLM+쓰기)를
-  // 한 요청 안에서 끝내는 동기 방식은 이 제약에 걸리지 않는다(비동기 전환 전 잘 되던 방식). 계산 검증은 위에서 완료.
+  const lockToken = crypto.randomUUID();
+  let doc;
   try {
-    const generated = await generateBriefing(env, normalized, methodSummary);
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
-    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
-    const completed = await NeoOperationRoomConsultation.findOneAndUpdate(
-      { id: sessionId },
-      {
-        $set: {
-          status: "completed",
-          methodSummary,
-          initialBriefing: generated.briefing,
-          messages: [
-            { role: "user", content: normalized.input.question, createdAt: now },
-            { role: "assistant", content: JSON.stringify(generated.briefing), createdAt: new Date() },
-          ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean();
-    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
-    return json(publicSession(completed));
-  } catch (error) {
-    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-    const cardRefund = await refundCardPaymentOnFailure(env, auth, access, error);
-    if (cardRefund.refunded) {
-      console.info("[neo-operation-room] card payment auto-refunded", { requestId: idempotencyKey, sessionId, idempotent: Boolean(cardRefund.idempotent) });
-    } else if (cardRefund.refundFailed) {
-      console.error("[neo-operation-room] card payment auto-refund failed", { requestId: idempotencyKey, sessionId, reason: clean(cardRefund.reason, 200) });
+    doc = await NeoOperationRoomConsultation.findOneAndUpdate({ id: sessionId, userId: auth.userId, status: { $nin: ["completed", "generation_failed"] },
+      $or: [{ "llmMeta.lockedAt": { $exists: false } }, { "llmMeta.lockedAt": null }, { "llmMeta.lockedAt": { $lt: new Date(Date.now() - GENERATION_FRESHNESS_MS) } }] },
+      { $set: { "llmMeta.lockToken": lockToken, "llmMeta.lockedAt": new Date() } }, { new: true }).lean();
+  } catch { throw resultStorageUnavailable(sessionId); }
+  if (!doc) return pendingNeo(existing);
+  const filter = { id: sessionId, userId: auth.userId, "llmMeta.lockToken": lockToken, status: { $ne: "completed" } };
+  try {
+    if (!doc.methodSummary) {
+      const methodSummary = await calculateMethodSummary(env, normalized, request);
+      doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
     }
-    await NeoOperationRoomConsultation.updateOne(
-      { id: sessionId },
-      {
-        $set: {
-          status: "generation_failed",
-          generationError: {
-            code: clean(error?.code || "GENERATION_FAILED", 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
-          },
-        },
-      },
-    ).catch(() => {});
-    const isCalculationError = clean(error?.code).includes("BIRTH") || clean(error?.code).includes("CHART") || Number(error?.status) === 422;
-    // 환불했으면 "결제 권한은 보존" 문구를 쓸 수 없다 — 사용자가 재시도를 무료로 믿고 결제창을 다시 만난다.
-    // reason·status 코드는 클라이언트 분기를 흔들지 않도록 그대로 둔다.
-    const failureMessage = cardRefund.refunded
-      ? CARD_REFUNDED_MESSAGE
-      : (isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE);
-    return json({
-      ok: false,
-      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
-      message: failureMessage,
-    }, { status: isCalculationError ? 422 : 503 });
+    const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
+    const rows = { ...doc.llmMeta.sections };
+    const missing = sections.filter(section => !neoSectionReady(section, rows[section.id], normalized.input, doc.methodSummary));
+    if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (missing.length) {
+      const selected = missing.slice(0, 4);
+      const attempts = { ...doc.llmMeta.attempts };
+      selected.forEach(section => { attempts[section.id] = Number(attempts[section.id] || 0) + 1; });
+      doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
+      await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
+      const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary };
+      let queue = Promise.resolve();
+      const outcomes = await Promise.allSettled(selected.map(async section => {
+        const prompt = buildNeoInitialSectionPrompt(section, context) + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars * 1.2)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
+        const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
+        if (!neoSectionReady(section, row, normalized.input, doc.methodSummary)) return;
+        const write = queue.catch(() => {}).then(async () => {
+          const candidate = { ...doc.llmMeta.sections, [section.id]: row };
+          const briefing = mergeNeoInitialSections(Object.values(candidate), normalized.input, doc.methodSummary);
+          if (hasRepeatedReportPassage(neoBody(briefing))) return;
+          doc = await saveNeoDelivery(filter, { status: "partial", initialBriefing: briefing, llmMeta: { ...doc.llmMeta, sections: candidate } }, sessionId);
+        });
+        queue = write;
+        await write;
+      }));
+      const failure = outcomes.find(result => result.status === "rejected");
+      if (failure) throw failure.reason;
+    }
+    const allRows = Object.values(doc.llmMeta.sections || {});
+    const briefing = mergeNeoInitialSections(allRows, normalized.input, doc.methodSummary);
+    if (sections.some(section => !neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary))) return pendingNeo(doc);
+    if (countPaidReportBodyChars(neoBody(briefing)) < 20000 || hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (doc.status !== "delivery_pending") doc = await saveNeoDelivery(filter, { status: "delivery_pending", initialBriefing: briefing,
+      messages: [{ role: "user", content: normalized.input.question, createdAt: new Date() }, { role: "assistant", content: JSON.stringify(briefing), createdAt: new Date() }] }, sessionId);
+    try { access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey }); }
+    catch { throw resultStorageUnavailable(sessionId); }
+    if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    try { await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
+    catch { throw resultStorageUnavailable(sessionId); }
+    doc = await saveNeoDelivery(filter, { status: "completed", generationError: null, llmMeta: { ...doc.llmMeta, completedAt: new Date().toISOString(), lockToken: "", lockedAt: null } }, sessionId);
+    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing).catch(error => console.warn("[neo-operation-room] usage record", clean(error?.message, 120)));
+    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    return json(publicSession(doc));
+  } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
+    await saveNeoDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
+    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+    return json({ ok: false, reason: "LLM_ERROR", message: refund.refunded ? CARD_REFUNDED_MESSAGE : LLM_ERROR_MESSAGE }, { status: 503 });
+  } finally {
+    await NeoOperationRoomConsultation.updateOne(filter, { $set: { "llmMeta.lockToken": "", "llmMeta.lockedAt": null } }).catch(() => {});
   }
 }
 
@@ -1716,7 +1746,7 @@ async function handleResult(request, env, pathId = "") {
   const url = new URL(request.url);
   const rawId = pathId || url.searchParams.get("attemptId") || url.searchParams.get("id") || "";
   const resultId = clean(decodeURIComponent(rawId), 120);
-  if (!resultId) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+
   // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 로그아웃 유발 401/하드 500이
   // 아니라 재시도 가능한 503으로 흘려보내 클라가 계속 폴링하도록 한다(찻집과 동일한 완충).
   let auth = null;
@@ -1740,25 +1770,17 @@ async function handleResult(request, env, pathId = "") {
   await connectDb(env);
   const consultation = await NeoOperationRoomConsultation.findOne({
     userId: auth.userId,
-    $or: [{ id: resultId }, { idempotencyKey: resultId }],
+    ...(resultId ? { $or: [{ id: resultId }, { idempotencyKey: resultId }] } : { status: { $in: ["generating", "partial", "delivery_pending"] } }),
   }).lean();
   if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
 
   const status = clean(consultation.status);
-  // 백그라운드 생성이 진행 중 — 프론트가 폴링으로 완료를 수렴하도록 202를 반환한다.
-  // 생성 중에도 선택 술수/주제를 실어 결과 화면이 "네오가 무엇으로 작전을 짜는 중"인지 보여주게 한다.
-  if (status === "generating") {
-    return json(
-      {
-        ok: true,
-        sessionId: clean(consultation.id),
-        status: "generating",
-        selectedMethod: clean(consultation.selectedMethod),
-        topic: clean(consultation.topic),
-        message: "운명의 작전 지도를 펼치는 중이다.",
-      },
-      { status: 202, headers: { "Retry-After": "3" } },
-    );
+  if (["generating", "partial", "delivery_pending"].includes(status)) {
+    const body = consultation.llmMeta?.resumeBody;
+    if (!body) return pendingNeo(consultation);
+    const access = await resolveStartAccess({ request, env, auth, body, normalized: normalizeInput(body), pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+    if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    return pendingNeo(consultation);
   }
   // 생성 실패 — 실제 원인(계산/LLM)을 코드로 실어 프론트가 정확한 문구를 띄우게 한다(이용권 오표시 방지).
   if (status === "generation_failed" || status === "failed") {
@@ -1913,6 +1935,7 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
     return methodNotAllowed();
   } catch (error) {
     console.error("[neo-operation-room]", clean(error?.stack || error?.message || error, 1200));
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(다른 AI 라우트와 동일 정본).
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
@@ -1937,4 +1960,5 @@ export const __neoOperationRoomTestUtils = {
   summarizeAstrology,
   refundCardPaymentOnFailure,
   CARD_REFUNDED_MESSAGE,
+  neoBody, neoSectionReady,
 };

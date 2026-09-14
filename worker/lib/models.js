@@ -1519,7 +1519,7 @@ const neoOperationRoomConsultationSchema = new mongoose.Schema({
   accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   messages: { type: [neoOperationRoomMessageSchema], default: [] },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
   refinementStatus: { type: String, enum: ["idle", "generating", "completed", "generation_failed"], default: "idle", index: true },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },

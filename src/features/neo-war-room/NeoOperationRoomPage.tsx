@@ -3,6 +3,8 @@
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import { receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
@@ -1458,6 +1460,24 @@ export default function NeoOperationRoomPage() {
   const [realityFreeform, setRealityFreeform] = useState("");
   const [refinedOrder, setRefinedOrder] = useState<NeoRefinedOrder | null>(null);
   const [refinePhase, setRefinePhase] = useState<"idle" | "generating" | "completed" | "failed">("idle");
+  const [recoveryEpoch, setRecoveryEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    setBriefing(null); setSessionId(""); setRefinedOrder(null); setFlowPhase("idle");
+    setRecoveryEpoch(value => value + 1);
+  });
+  useEffect(() => {
+    const isCurrent = captureOwner();
+    const recover = async () => {
+      if (document.visibilityState === "hidden" || !navigator.onLine) return;
+      const response = await authFetch("/api/neo-operation-room/result").catch(() => null);
+      const data = await response?.json().catch(() => null);
+      if (isCurrent() && response?.status === 202 && data?.sessionId) window.location.assign(`/neo-operation-room/result?attemptId=${encodeURIComponent(data.sessionId)}`);
+    };
+    void recover();
+    window.addEventListener("online", recover); document.addEventListener("visibilitychange", recover);
+    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+  }, [captureOwner, recoveryEpoch]);
+
   const [refineError, setRefineError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -2113,6 +2133,7 @@ export default function NeoOperationRoomPage() {
       clearNeoWarRoomIdempotencyKey(idempotencyFingerprintRef.current);
       idempotencyFingerprintRef.current = "";
     }
+    if ((session as NeoSession & { status?: string }).status && (session as NeoSession & { status?: string }).status !== "completed") return;
     setSessionId(session.sessionId || session.id || "");
     setBriefing(session.initialBriefing || null);
     setCompatSummary(
@@ -2137,9 +2158,11 @@ export default function NeoOperationRoomPage() {
   }
 
   function finishBriefing(session: NeoSession) {
+    const isCurrent = captureOwner();
     setOperationStageIndex(operationMapStages.length - 1);
     const isFreshBriefing = !session.refinedOrder;
     const reveal = () => {
+      if (!isCurrent()) return;
       if (isFreshBriefing && !prefersReducedMotion) setBriefingRevealStep(0);
       completeWithSession(session);
       window.requestAnimationFrame(() => {
@@ -2157,37 +2180,15 @@ export default function NeoOperationRoomPage() {
   }
 
   async function pollPendingBriefing(resultId: string, accessToken = "") {
-    // 로그인 쿠키 판정이 일시적으로 흔들려도 이미 인가된 세션의 결과 조회는 이어지도록,
-    // ensure-access가 발급한 네오 액세스 토큰을 폴링 헤더로 함께 보내 서버 신원 폴백을 가능케 한다.
-    const pollHeaders: Record<string, string> = { Accept: "application/json" };
-    if (accessToken) pollHeaders["x-neo-operation-room-access-token"] = accessToken;
-    for (let attempt = 0; attempt < PENDING_RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
-      await new Promise((resolve) => window.setTimeout(resolve, PENDING_RESULT_POLL_INTERVAL_MS));
-      try {
-        const response = await authFetch(`${API_ENDPOINTS.result}?attemptId=${encodeURIComponent(resultId)}`, {
-          headers: pollHeaders,
-        });
-        const data = (await response.json().catch(() => ({}))) as NeoSession & { status?: string; reason?: string };
-        if (data.ok && data.initialBriefing) {
-          finishBriefing(data);
-          return;
-        }
-        // 생성 실패: 서버가 실제 원인(LLM/계산)을 reason으로 실어 409로 준다 → 정확한 코드로 던진다.
-        if (response.status === 409 || toText(data.status) === "failed" || toText(data.status) === "generation_failed") {
-          throw new Error(toText(data.reason) === "CALCULATION_ERROR" ? "CALCULATION_ERROR" : "LLM_ERROR");
-        }
-        // 일시적 DB/인증 장애(503·retryable)는 계속 폴링해 자가 복구한다(찻집과 동일 완충).
-        if (isRetriableResultPollFailure(response.status, data)) continue;
-        // authFetch 세션 리프레시까지 실패한 확정 401은 삼키지 말고 종료한다 — 삼키면 92%에서 무한 폴링(고착).
-        if (response.status === 401) throw new Error("LOGIN_REQUIRED");
-        // 그 외(202 generating 등)는 계속 폴링한다.
-      } catch (caught) {
-        // 위에서 던진 실패 코드는 그대로 전파하고, 일시적 네트워크 오류만 삼켜 재시도한다.
-        if (caught instanceof Error && (caught.message === "LLM_ERROR" || caught.message === "CALCULATION_ERROR" || caught.message === "LOGIN_REQUIRED")) throw caught;
-      }
-    }
-    // 폴링 예산 소진 — 생성이 아직 진행 중일 수 있으니 결과 화면에서 확인하도록 안내한다.
-    throw new Error("GENERATION_PENDING");
+    const isCurrent = captureOwner();
+    const data = await receiveNeoBriefing<NeoSession>(resultId, partial => {
+      if (!isCurrent()) return;
+      setSessionId(partial.sessionId || partial.id || "");
+      setBriefing(partial.initialBriefing || null);
+      setResultUrl(partial.resultUrl || "");
+    }, isCurrent, accessToken);
+    if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
+    finishBriefing(data);
   }
 
   // /refine 도 8챕터를 요청 안에서 동기로 생성한다. 엣지(100s)나 네트워크가 먼저 끊기면 서버는 계속
@@ -2247,6 +2248,7 @@ export default function NeoOperationRoomPage() {
       return true;
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      if (code === "ACCOUNT_CHANGED") return false;
       setFlowPhase("failed");
       setOperationReady(false);
       setStatusMessage("");
@@ -2256,6 +2258,7 @@ export default function NeoOperationRoomPage() {
   });
 
   async function startBriefing(idempotencyKey: string, payload: NeoWarRoomAccessPayload, access: Record<string, unknown>) {
+    const isCurrent = captureOwner();
     setFlowPhase("generating");
     setStatusMessage(paidGateCopy.startingMapMessage);
     // ensure-access가 발급한 네오 액세스 토큰(이용권/월정석 경로에만 존재)을 폴링에도 실어 서버 신원 폴백을 돕는다.
@@ -2267,17 +2270,19 @@ export default function NeoOperationRoomPage() {
       { ...payload, ...access },
       idempotencyKey,
     ).catch(() => null);
+    if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     if (!started) {
       setStatusMessage(paidGateCopy.alreadyGeneratingMessage);
       await pollPendingBriefing(idempotencyKey, pollAccessToken);
       return;
     }
+    if (!isCurrent()) throw new Error("ACCOUNT_CHANGED");
     const { response, data } = started;
-    if (data.ok && data.initialBriefing) {
+    if (data.ok && data.initialBriefing && (data as NeoSession & { status?: string }).status === "completed") {
       finishBriefing(data);
       return;
     }
-    if (response.status === 202) {
+    if (response.status === 202 || (data as { retryable?: boolean }).retryable) {
       const pendingId = toText((data as { sessionId?: string }).sessionId) || idempotencyKey;
       setStatusMessage(paidGateCopy.alreadyGeneratingMessage);
       await pollPendingBriefing(pendingId, pollAccessToken);
