@@ -1,5 +1,5 @@
 ---
-status: handoff
+status: active
 updated: 2026-09-15
 next: "최신 체크포인트를 읽고 main/CI 확인 후 꿀편지 저장·차감 유실 mock부터 재개한다."
 ---
