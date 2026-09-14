@@ -21,6 +21,9 @@ next: "작명첩 분할 생성 main CI 확인 후 남은 실제 LLM 상품의 �
 - 직전 작명 저장 수정 0cb627d8badc1c3fac68d0e8194429d78bfc0e2e main CI 34871810372 및 운명의 섬 42c4e4d0f7614439ab40dc4e58f050d4a9f72026 CI 34870945152 성공 확인. 이번 단위는 push 후 main CI 확인한다.
 - 다음: 동물 토템·천궁/오라클·꿈·펫 사주·관계 경계·요가·찻집·타로 및 fortune 잔여 라우트를 실제 상품 목록과 대조한다. 짧은 대화/카드 연결문을 상세 리포트와 구분하고, 우선 결제 후 생성 실패를 성공처럼 반환하거나 결과를 보존하지 않는 경로를 수정한다. 모든 LLM 기능 완료 선언은 아직 하지 않는다.
 
+
+- 전달 보완: 17e59d3f47af67cc2b702ebe60148f1cc7d361e5 CI 34874435433 Static guards에서 naming-ai 소스 변경에 따른 sitemap-lastmod signature 누락 발견. npm run sitemap:generate 후 config/sitemap-lastmod.json의 /naming-ai/ signature 1건만 갱신했고 verify:sitemap-drift 1,264 URL 통과. 본문 날짜·가격·정책 변경 없음. 후속 커밋 CI로 공식 확인한다.
+
 ## 작명첩 저장 실패·잘못된 완료 응답 차단 (2026-09-15)
 
 - 생성 중 레코드의 generatedPrompt를 generatedResult처럼 반환하던 완료 우회를 막았다. 생성용 프롬프트만 남은 과거 completed 구매본의 재열람 계약은 유지한다.
