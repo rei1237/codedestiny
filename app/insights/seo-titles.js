@@ -88,7 +88,7 @@ export const INSIGHT_SEO_TITLES = {
   "ten-gods-practical-map-love-work-money": "십성 실전 지도 — 연애·일·돈의 5가지 언어",
   "today-tarot-routine": "오늘의 타로 루틴 — 하루 한 장으로 배우기",
   "vedic-astrology-12-rasi-complete-personality-guide": "베다 점성술 12라시 — 성격 완전 총정리",
-  "vedic-astrology-navamsa-basics": "나밤샤(D9) 가이드 — 결혼과 행성의 힘",
+  "vedic-astrology-navamsa-basics": "나밤샤(D9) 가이드 — D1과 함께 읽는 법",
   "vedic-compatibility-synastry-basics": "베다 궁합 구나 밀라나 36점법 기초",
   "vedic-dasha-transit-remedy-practical-guide": "다샤·고차르·우파야 — 베다 실전 가이드",
   "vedic-lagna-what-is": "베다 라그나: 상승점과 홀사인 하우스",

@@ -4,5 +4,6 @@ export const EDITORIAL_READING_PATHS = [
   { title: "사주의 해석 순서", slugs: ["ten-gods-beginner-map", "ten-gods-practical-map-love-work-money", "yongshin-finding-method-practical-guide", "daewoon-sewoon-reading-complete-guide"] },
   { title: "서로 다른 체계 비교하기", slugs: ["ziwei-vs-saju", "sukuyo-vs-saju-compatibility", "astrology-vs-saju-differences", "sukuyo-bonmyeongsuk-vs-wolmyeongsuk"] },
   { title: "관계와 상징을 읽는 기초", slugs: ["ziwei-star-brightness", "sukuyo-27-mansions", "sukuyo-love", "sukuyo-compatibility-guide", "astrology-birth-chart-guide", "vedic-lagna-what-is", "tarot-reunion-reading"] },
+  { title: "과장 없이 관계와 상징 읽기", slugs: ["sukuyo-antai", "sukuyo-ankai", "vedic-astrology-navamsa-basics", "tarot-major-arcana-22-complete-meanings"] },
 ];
 export const EDITORIAL_READING_SLUGS = EDITORIAL_READING_PATHS.flatMap((path) => path.slugs);

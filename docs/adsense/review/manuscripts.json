@@ -438,5 +438,93 @@
       "humanReview": "unconfirmed",
       "adsAllowed": false
     }
+  },
+  {
+    "slug": "sukuyo-antai",
+    "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
+    "manuscriptSha256": "584d56d9a835240e494a94e57105edd188d0249cb0e3bda93434c4d5c14c0ea3",
+    "status": "pending",
+    "reviewer": null,
+    "reviewedAt": null,
+    "evidence": null,
+    "adsAllowed": false,
+    "aiEditorialReview": {
+      "slug": "sukuyo-antai",
+      "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
+      "manuscriptSha256": "584d56d9a835240e494a94e57105edd188d0249cb0e3bda93434c4d5c14c0ea3",
+      "status": "ai-edited",
+      "reviewer": "OpenAI Codex (AI)",
+      "reviewedAt": "2026-09-14",
+      "finding": "전생·재회·결혼·사업 성과를 업태의 전형처럼 제시한 문장을 제거하고, 방향과 거리 표지를 대화·경계 질문으로 재구성",
+      "limits": "전통적 관계 표지의 설명이며 실제 관계 결과나 과거 생의 증거가 아님",
+      "humanReview": "unconfirmed",
+      "adsAllowed": false
+    }
+  },
+  {
+    "slug": "sukuyo-ankai",
+    "title": "안괴관계(安壞關係) 가이드 — 안·괴 방향과 거리 분류 읽는 법",
+    "manuscriptSha256": "4855e433f801c0f446b18aa54f908a158c59943bf95c2c287ce461edddf490d4",
+    "status": "pending",
+    "reviewer": null,
+    "reviewedAt": null,
+    "evidence": null,
+    "adsAllowed": false,
+    "aiEditorialReview": {
+      "slug": "sukuyo-ankai",
+      "title": "안괴관계(安壞關係) 가이드 — 안·괴 방향과 거리 분류 읽는 법",
+      "manuscriptSha256": "4855e433f801c0f446b18aa54f908a158c59943bf95c2c287ce461edddf490d4",
+      "status": "ai-edited",
+      "reviewer": "OpenAI Codex (AI)",
+      "reviewedAt": "2026-09-14",
+      "finding": "가장 강렬한 운명·재회·사업 성공·성별 역할 주장을 제거하고, 동의·안전·실제 행동과 계산 분류를 분리",
+      "limits": "안괴는 관계 강도·지속·결말이나 개인의 성격을 측정하지 않음",
+      "humanReview": "unconfirmed",
+      "adsAllowed": false
+    }
+  },
+  {
+    "slug": "vedic-astrology-navamsa-basics",
+    "title": "나밤샤(D9) 가이드: D1과 함께 읽는 결혼·관계 분할차트",
+    "manuscriptSha256": "d00207265491a344b203ecf6edd0685f8582336c67da88191db707d6bc1878b4",
+    "status": "pending",
+    "reviewer": null,
+    "reviewedAt": null,
+    "evidence": null,
+    "adsAllowed": false,
+    "aiEditorialReview": {
+      "slug": "vedic-astrology-navamsa-basics",
+      "title": "나밤샤(D9) 가이드: D1과 함께 읽는 결혼·관계 분할차트",
+      "manuscriptSha256": "d00207265491a344b203ecf6edd0685f8582336c67da88191db707d6bc1878b4",
+      "status": "ai-edited",
+      "reviewer": "OpenAI Codex (AI)",
+      "reviewedAt": "2026-09-14",
+      "finding": "출전 없는 고전 인용과 D9 최종 판정·진짜 힘 단정을 제거하고, 학파 차이와 성별 이분법 관행의 한계를 명시",
+      "limits": "D9는 D1을 대체하거나 현실 사건을 보장하는 과학적 예측 도구가 아님",
+      "humanReview": "unconfirmed",
+      "adsAllowed": false
+    }
+  },
+  {
+    "slug": "tarot-major-arcana-22-complete-meanings",
+    "title": "메이저 아르카나 22장 완전 해설 — 상징·이미지·의미의 통합 가이드",
+    "manuscriptSha256": "53af952641ead0730412b84d65880dc002b8fb87b914ca0bd5a5e24028834c1c",
+    "status": "pending",
+    "reviewer": null,
+    "reviewedAt": null,
+    "evidence": null,
+    "adsAllowed": false,
+    "aiEditorialReview": {
+      "slug": "tarot-major-arcana-22-complete-meanings",
+      "title": "메이저 아르카나 22장 완전 해설 — 상징·이미지·의미의 통합 가이드",
+      "manuscriptSha256": "53af952641ead0730412b84d65880dc002b8fb87b914ca0bd5a5e24028834c1c",
+      "status": "ai-edited",
+      "reviewer": "OpenAI Codex (AI)",
+      "reviewedAt": "2026-09-14",
+      "finding": "RWS 덱과 현대 교육 틀의 범위를 명시하고 임신·합격·화해·치료·사업 결과를 카드가 확인한다는 문장을 검증 가능한 행동 질문으로 교체",
+      "limits": "카드 도상은 덱마다 다르며 의료·시험·계약·타인의 의사를 판정하지 않음",
+      "humanReview": "unconfirmed",
+      "adsAllowed": false
+    }
   }
 ]
