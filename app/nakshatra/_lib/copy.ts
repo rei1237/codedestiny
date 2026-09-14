@@ -292,6 +292,7 @@ export interface NakshatraCopy {
   aiQuestionPlaceholder: string;
   aiBaseChartPrefix: string;
   aiTimeUnknownSuffix: string;
+  aiResumeButton: string;
   aiSubmitButtonPrefix: string;
   aiHasPassNote: string;
   aiNeedBirthTitle: string;
@@ -633,6 +634,7 @@ const NAKSHATRA_COPY_EN: NakshatraCopy = {
   aiQuestionPlaceholder: "e.g. I'm considering changing jobs this year and I'm curious what direction fits my temperament.",
   aiBaseChartPrefix: "Reference chart: ",
   aiTimeUnknownSuffix: " (time unknown · pada omitted)",
+  aiResumeButton: "Continue consultation",
   aiSubmitButtonPrefix: "Start the integrated consultation · ",
   aiHasPassNote: "If you have a pass, it proceeds right away with no payment.",
   aiNeedBirthTitle: "Please calculate your stars first",
@@ -973,6 +975,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "예) 올해 이직을 고민 중인데 제 기질에 맞는 방향이 궁금해요.",
     aiBaseChartPrefix: "기준 명식: ",
     aiTimeUnknownSuffix: " (시각 미상 · 파다 생략)",
+    aiResumeButton: "이어서 상담하기",
     aiSubmitButtonPrefix: "두 별 통합 상담 시작 · ",
     aiHasPassNote: "이용권이 있으면 결제 없이 바로 진행돼요.",
     aiNeedBirthTitle: "먼저 별을 계산해 주세요",
@@ -1311,6 +1314,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "例) 今年転職を考えていますが、自分の気質に合う方向が気になります。",
     aiBaseChartPrefix: "基準命式: ",
     aiTimeUnknownSuffix: " (時刻不明 · パダ省略)",
+    aiResumeButton: "相談を続ける",
     aiSubmitButtonPrefix: "二つの星の統合相談を始める · ",
     aiHasPassNote: "利用券があれば決済なしですぐに進みます。",
     aiNeedBirthTitle: "まず星を計算してください",
@@ -1649,6 +1653,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "例) 今年在考虑换工作,想知道适合我气质的方向。",
     aiBaseChartPrefix: "基准命式: ",
     aiTimeUnknownSuffix: " (时刻不明 · 省略帕达)",
+    aiResumeButton: "继续咨询",
     aiSubmitButtonPrefix: "开始双星整合咨询 · ",
     aiHasPassNote: "如有使用权可免支付立即进行。",
     aiNeedBirthTitle: "请先计算星辰",
@@ -1987,6 +1992,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "例) 今年在考慮換工作,想知道適合我氣質的方向。",
     aiBaseChartPrefix: "基準命式: ",
     aiTimeUnknownSuffix: " (時刻不明 · 省略帕達)",
+    aiResumeButton: "繼續諮詢",
     aiSubmitButtonPrefix: "開始雙星整合諮詢 · ",
     aiHasPassNote: "如有使用權可免付款立即進行。",
     aiNeedBirthTitle: "請先計算星辰",
@@ -2325,6 +2331,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "Ví dụ: Tôi đang cân nhắc đổi việc năm nay, muốn biết hướng đi phù hợp với tính khí của mình.",
     aiBaseChartPrefix: "Mệnh cách chuẩn: ",
     aiTimeUnknownSuffix: " (giờ chưa rõ · bỏ qua pada)",
+    aiResumeButton: "Tiếp tục tư vấn",
     aiSubmitButtonPrefix: "Bắt đầu tư vấn tích hợp hai ngôi sao · ",
     aiHasPassNote: "Nếu có vé sử dụng thì tiến hành ngay không cần thanh toán.",
     aiNeedBirthTitle: "Vui lòng tính chòm sao trước",
@@ -2663,6 +2670,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "उदाहरण: इस साल नौकरी बदलने पर विचार कर रहा हूँ, मेरे स्वभाव के अनुकूल दिशा जानना चाहता हूँ।",
     aiBaseChartPrefix: "आधार कुंडली: ",
     aiTimeUnknownSuffix: " (समय अज्ञात · पद छोड़ा गया)",
+    aiResumeButton: "परामर्श जारी रखें",
     aiSubmitButtonPrefix: "दो सितारों का एकीकृत परामर्श शुरू करें · ",
     aiHasPassNote: "उपयोग पास होने पर बिना भुगतान तुरंत आगे बढ़ता है।",
     aiNeedBirthTitle: "कृपया पहले राशि की गणना करें",
@@ -3001,6 +3009,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "ej. Estoy considerando cambiar de trabajo este año y tengo curiosidad por qué dirección se ajusta a mi temperamento.",
     aiBaseChartPrefix: "Carta de referencia: ",
     aiTimeUnknownSuffix: " (hora desconocida · pada omitido)",
+    aiResumeButton: "Continuar consulta",
     aiSubmitButtonPrefix: "Iniciar la consulta integrada de dos estrellas · ",
     aiHasPassNote: "Si tienes un pase, se procede de inmediato sin pago.",
     aiNeedBirthTitle: "Primero calcula tus estrellas",
@@ -3339,6 +3348,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "ex. J'envisage de changer d'emploi cette année et je suis curieux de savoir quelle direction convient à mon tempérament.",
     aiBaseChartPrefix: "Thème de référence : ",
     aiTimeUnknownSuffix: " (heure inconnue · pada omis)",
+    aiResumeButton: "Poursuivre la consultation",
     aiSubmitButtonPrefix: "Commencer la consultation intégrée de deux étoiles · ",
     aiHasPassNote: "Si vous avez un pass, cela se déroule immédiatement sans paiement.",
     aiNeedBirthTitle: "Calculez d'abord vos étoiles",
@@ -3677,6 +3687,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "z. B. Ich überlege dieses Jahr, den Job zu wechseln, und bin neugierig, welche Richtung zu meinem Temperament passt.",
     aiBaseChartPrefix: "Referenzhoroskop: ",
     aiTimeUnknownSuffix: " (Zeit unbekannt · Pada entfällt)",
+    aiResumeButton: "Beratung fortsetzen",
     aiSubmitButtonPrefix: "Integrierte Zwei-Sterne-Beratung starten · ",
     aiHasPassNote: "Mit Pass geht es sofort ohne Zahlung weiter.",
     aiNeedBirthTitle: "Berechne zuerst deine Sterne",
@@ -4015,6 +4026,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "bijv. Ik overweeg dit jaar van baan te veranderen en ben benieuwd welke richting bij mijn temperament past.",
     aiBaseChartPrefix: "Referentiekaart: ",
     aiTimeUnknownSuffix: " (tijd onbekend · pada weggelaten)",
+    aiResumeButton: "Advies voortzetten",
     aiSubmitButtonPrefix: "Start geïntegreerd tweesterrenadvies · ",
     aiHasPassNote: "Met een pas gaat het direct verder zonder betaling.",
     aiNeedBirthTitle: "Bereken eerst je sterren",
@@ -4353,6 +4365,7 @@ const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
     aiQuestionPlaceholder: "cth. Saya sedang mempertimbangkan untuk bertukar kerja tahun ini dan ingin tahu arah yang sesuai dengan perwatakan saya.",
     aiBaseChartPrefix: "Carta rujukan: ",
     aiTimeUnknownSuffix: " (waktu tidak diketahui · pada diabaikan)",
+    aiResumeButton: "Teruskan konsultasi",
     aiSubmitButtonPrefix: "Mulakan konsultasi bersepadu dua bintang · ",
     aiHasPassNote: "Jika anda mempunyai pas, ia diteruskan segera tanpa pembayaran.",
     aiNeedBirthTitle: "Sila kira bintang anda dahulu",

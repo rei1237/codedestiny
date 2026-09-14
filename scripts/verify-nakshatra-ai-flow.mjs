@@ -69,7 +69,7 @@ ok(NAKSHATRA_PHASE_CONSULTATION.length === 9, "생성 단계는 하나의 상담
   ok(ids.size === 9 && required.every((id) => ids.has(id)), "요구한 의미 기반 schema id 9개 완비");
   ok(topics.size === 9, "각 장에 겹치지 않는 의미 주제 지정");
   ok(NAKSHATRA_SECTIONS.every((item) => item.deck === "consultation"), "숙요·베다 덱 분리 생성 제거");
-  ok(NAKSHATRA_TOTAL_MIN_CHARS >= 8000, "9개 장의 최소 분량 합계가 8,000자 이상");
+  ok(NAKSHATRA_TOTAL_MIN_CHARS >= 20000, "9개 장의 최소 분량 합계가 20,000자 이상");
   ok(NAKSHATRA_SECTIONS.every((item) => Array.isArray(item.rules) && item.rules.length > 0), "각 장의 중복 방지 규칙 존재");
 }
 
@@ -157,7 +157,7 @@ ok(/FEATURE_KEY\s*=\s*"nakshatra-ai-consultation"/.test(routeSrc), "기존 3만�
 ok(routeSrc.includes("canAccessPaidFeature") && routeSrc.includes("allowedPaymentModes"), "이용권·월정석·단건 결제 선택 계약 유지");
 ok(routeSrc.includes("accessSource") && routeSrc.includes("idempotencyKey"), "결제 재개와 이중 차감 방지 계약 유지");
 ok(routeSrc.includes("NAKSHATRA_PHASE_CONSULTATION") && !routeSrc.includes("NAKSHATRA_PHASE_DECKS"), "라우트가 단일 통합 생성 단계 사용");
-ok(routeSrc.includes("decks.consultation") && routeSrc.includes("raw?.decks"), "신규 schema와 기존 저장 결과 재조회 동시 지원");
+ok(routeSrc.includes("mergeConsultationSections") && routeSrc.includes("raw?.decks"), "신규 schema와 기존 저장 결과 재조회 동시 지원");
 
 section("하나의 공개 상품과 모바일 결과 표시");
 const resultSrc = readFileSync(path.join(repoRoot, "app/nakshatra/result/NakshatraResultClient.tsx"), "utf8");

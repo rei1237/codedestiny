@@ -6,6 +6,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta } from "@/app/components/expert-consulting/ExpertConsultationFrame";
@@ -46,12 +47,12 @@ const POLL_INTERVAL_MS = 3500;
 const POLL_MAX_ATTEMPTS = 45;
 // 9개 통합 장 ÷ 배치 4 = 3웨이브. 재시도(섹션 하한 미달 시)까지 감안해 넉넉히 잡는다.
 const TOTAL_SECTIONS = 9;
-const GENERATE_MAX_ATTEMPTS = 24;
-const GENERATE_GAP_MS = 400;
+
+
 // 일시 장애(503 DB_DEGRADED · 세션 리프레시 지연)에만 쓰는 별도 한도.
 // 진행 예산(GENERATE_MAX_ATTEMPTS/POLL_MAX_ATTEMPTS)과 섞으면 블립이 웨이브를 잡아먹는다.
 // 🔴 회복시키지 않는다 — 회복을 넣으면 최악의 경우 (진행예산 × 블립예산)회까지 돌 수 있다.
-const TRANSIENT_MAX_RETRIES = 40;
+const TRANSIENT_MAX_RETRIES = 6;
 // 두 카운터와 별개인 벽시계 상한. 카운터만으로는 상한이 곱해져 사실상 무한이 된다.
 // 9개 통합 장 3웨이브 + 블립 재시도까지 담고도 사용자를 방치하지 않는 값.
 const GENERATION_DEADLINE_MS = 10 * 60 * 1000;
@@ -129,6 +130,17 @@ export default function NakshatraAiClient() {
   const exportRootRef = useRef<HTMLDivElement | null>(null);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const pendingId = useRef("");
+  const pendingStart = useRef<{ body: Record<string, unknown>; key: string } | null>(null);
+  const [accountEpoch, setAccountEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    pendingId.current = "";
+    pendingStart.current = null;
+    busyRef.current = false;
+    resumeCompletedRef.current = false;
+    setDecks(null); setIdentity(null); setAskedQuestion(""); setErrorMsg("");
+    setPhase("intro"); setAccountEpoch(value => value + 1);
+  });
   useEffect(() => {
     if (!natal) return;
     setIdentity({
@@ -141,6 +153,8 @@ export default function NakshatraAiClient() {
 
   const finish = useCallback((session: Record<string, unknown>) => {
     resumeCompletedRef.current = true;
+    pendingId.current = "";
+    pendingStart.current = null;
     const nextDecks = asRecord(session.decks);
     setDecks({
       consultation: Array.isArray(nextDecks.consultation) ? (nextDecks.consultation as Decks["consultation"]) : [],
@@ -173,6 +187,13 @@ export default function NakshatraAiClient() {
   }, []);
 
   const applyProgress = useCallback((data: Record<string, unknown>) => {
+    const saved = asRecord(data.decks);
+    if (Array.isArray(saved.consultation) && saved.consultation.length) {
+      setDecks(saved as unknown as Decks);
+      setTotalChars(Number(data.totalCharCount) || 0);
+      setIdentity(asRecord(data.natal) as unknown as NatalIdentity);
+      setAskedQuestion(toText(data.question));
+    }
     const next = asRecord(data.progress);
     if (!Number(next.total)) return;
     setProgress({
@@ -182,82 +203,92 @@ export default function NakshatraAiClient() {
     });
   }, []);
 
-  // 연결이 끊겨 /generate 를 이어 부르지 못한 경우의 폴백. 서버가 락으로 이어 굽고 있을 수 있다.
+  // 서버에 보존된 요청만 이어 실행한다. GET만 반복하면 미완료 장은 생성되지 않는다.
   const pollResult = useCallback(async (resultId: string, accessToken: string) => {
-    const headers: Record<string, string> = { Accept: "application/json" };
-    if (accessToken) headers[ACCESS_TOKEN_HEADER] = accessToken;
-    // 일시 장애는 폴링 예산을 먹지 않는다(아래 driveGeneration 과 같은 이유).
+    const isCurrent = captureOwner();
+    pendingId.current = resultId;
+    busyRef.current = true;
+    setPhase("generating");
     let transientLeft = TRANSIENT_MAX_RETRIES;
-    let attempt = 0;
     const deadline = Date.now() + GENERATION_DEADLINE_MS;
-    while (attempt < POLL_MAX_ATTEMPTS && Date.now() < deadline) {
-      await sleep(POLL_INTERVAL_MS);
-      let res: Response;
+    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS && Date.now() < deadline; attempt++) {
+      if (!isCurrent()) return;
+      if (document.hidden || !navigator.onLine) { busyRef.current = false; return; }
       try {
-        res = await authFetch(`${API.result}?attemptId=${encodeURIComponent(resultId)}`, { headers });
+        const headers: Record<string, string> = { Accept: "application/json" };
+        if (accessToken) headers[ACCESS_TOKEN_HEADER] = accessToken;
+        let response = await authFetch(`${API.result}?attemptId=${encodeURIComponent(pendingId.current)}`, { headers });
+        let data = await response.json().catch(() => ({})) as Record<string, unknown>;
+        if (!isCurrent()) return;
+        applyProgress(data);
+        if (response.ok && data.status === "completed" && data.decks) { finish(data); return; }
+        if (response.status === 404 && pendingStart.current) {
+          const retried = await postJson(API.start, pendingStart.current.body, pendingStart.current.key);
+          if (!isCurrent()) return;
+          response = retried.response; data = retried.data;
+          applyProgress(data);
+          if (response.ok && data.status === "completed" && data.decks) { finish(data); return; }
+        }
+        if (response.status === 202) {
+          pendingId.current = toText(data.sessionId) || pendingId.current;
+          if (document.hidden || !navigator.onLine) { busyRef.current = false; return; }
+          response = await authFetch(API.generate, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: pendingId.current }) });
+          data = await response.json().catch(() => ({})) as Record<string, unknown>;
+          if (!isCurrent()) return;
+          applyProgress(data);
+          if (response.ok && data.status === "completed" && data.decks) { finish(data); return; }
+        }
+        if (response.status !== 202 && response.status !== 404 && !isRetriableResultPollFailure(response.status, data)) {
+          fail(toText(data.message) || copy.aiErrorConflict); return;
+        }
+        if (response.status !== 202 && --transientLeft <= 0) break;
       } catch {
-        // 네트워크 단절도 일시 장애다.
-        if (transientLeft <= 0) break;
-        transientLeft -= 1;
-        continue;
+        if (!isCurrent()) return;
+        if (--transientLeft <= 0) break;
       }
-      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
-      applyProgress(data);
-      if (res.status === 200 && data.ok && data.decks) { finish(data); return; }
-      if (isRetriableResultPollFailure(res.status, data)) {
-        if (transientLeft <= 0) break;
-        transientLeft -= 1;
-        continue;
-      }
-      attempt += 1;
-      if (res.status === 202 || res.status === 404) continue;
-      if (res.status === 409) { fail(toText(data.message) || copy.aiErrorConflict); return; }
+      await sleep(POLL_INTERVAL_MS);
     }
-    fail(copy.aiErrorTimeout);
-  }, [finish, fail, applyProgress, copy]);
+    if (isCurrent()) fail(copy.aiErrorTimeout);
+  }, [captureOwner, finish, fail, applyProgress, copy]);
 
-  // 9개 통합 장은 한 요청에 다 굽지 못할 수 있다(엣지 100초 컷). 서버가 한 번에 4장씩 굽고 진행률을 돌려주므로
-  // 완료될 때까지 /generate 를 이어 부른다. 진행 위치의 정본은 서버다 — 여기서 인덱스를 보내지 않는다.
-  const driveGeneration = useCallback(async (sessionId: string, idempotencyKey: string, accessToken: string) => {
-    // 🔴 일시 장애는 "진행"이 아니므로 웨이브 예산을 먹으면 안 된다. 블립이 조금만 길어도
-    //    24회를 503으로 다 써 버려 통합 상담을 끝내지 못하고 죽었다. 별도 한도로 센다.
-    let transientLeft = TRANSIENT_MAX_RETRIES;
-    const deadline = Date.now() + GENERATION_DEADLINE_MS;
-    for (let attempt = 0; attempt < GENERATE_MAX_ATTEMPTS && Date.now() < deadline; ) {
-      const step = await postJson(API.generate, { sessionId, idempotencyKey }, idempotencyKey).catch(() => null);
-      if (!step) { await pollResult(sessionId, accessToken); return; }
-      const { response, data } = step;
-      applyProgress(data);
-      if (data.ok && data.decks) { finish(data); return; }
-      if (isRetriableResultPollFailure(response.status, data)) {
-        if (transientLeft <= 0) { await pollResult(sessionId, accessToken); return; }
-        transientLeft -= 1;
-        await sleep(POLL_INTERVAL_MS);
-        continue;
-      }
-      attempt += 1;
-      if (response.status === 202) { await sleep(GENERATE_GAP_MS); continue; }
-      if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail(copy.aiErrorLoginRequired); return; }
-      if (response.status === 409 || response.status === 404) { await pollResult(sessionId, accessToken); return; }
-      fail(toText(data.message) || copy.aiErrorConflict);
-      return;
-    }
-    fail(copy.aiErrorTimeout);
-  }, [finish, fail, pollResult, applyProgress, copy]);
+  useEffect(() => {
+    const isCurrent = captureOwner();
+    const recover = async () => {
+      if (busyRef.current || document.hidden || !navigator.onLine) return;
+      busyRef.current = true;
+      try {
+        const response = await authFetch(API.result);
+        const data = await response.json().catch(() => ({})) as Record<string, unknown>;
+        if (!isCurrent()) return;
+        if (response.status === 202 && data.sessionId) {
+          await pollResult(toText(data.sessionId), ""); return;
+        }
+      } catch { /* 다음 가시성·네트워크 복귀에서 다시 서버 기록을 찾는다. */ }
+      if (isCurrent()) busyRef.current = false;
+    };
+    void recover();
+    window.addEventListener("online", recover);
+    document.addEventListener("visibilitychange", recover);
+    return () => { busyRef.current = false; window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+  }, [captureOwner, pollResult, accountEpoch]);
 
   const startConsult = useCallback(async (payload: Record<string, unknown>, access: Record<string, unknown>) => {
+    const isCurrent = captureOwner();
     resumeCompletedRef.current = false;
     setPhase("generating");
     setStatusMsg(copy.aiStatusGenerating);
     const accessToken = toText(access.accessToken);
     const idempotencyKey = toText(payload.idempotencyKey);
+    pendingId.current = idempotencyKey;
+    pendingStart.current = { body: { ...payload, ...access }, key: idempotencyKey };
     const started = await postJson(API.start, { ...payload, ...access }, idempotencyKey).catch(() => null);
+    if (!isCurrent()) return;
     if (!started) { await pollResult(idempotencyKey, accessToken); return; }
     const { response, data } = started;
     applyProgress(data);
-    if (data.ok && data.decks) { finish(data); return; }
+    if (data.ok && data.status === "completed" && data.decks) { finish(data); return; }
     if (response.status === 202) {
-      await driveGeneration(toText(data.sessionId) || idempotencyKey, idempotencyKey, accessToken);
+      await pollResult(toText(data.sessionId) || idempotencyKey, accessToken);
       return;
     }
     if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail(copy.aiErrorLoginRequired); return; }
@@ -270,7 +301,7 @@ export default function NakshatraAiClient() {
       return;
     }
     fail(toText(data.message) || copy.aiErrorGeneric);
-  }, [finish, fail, pollResult, driveGeneration, applyProgress, copy]);
+  }, [captureOwner, finish, fail, pollResult, applyProgress, copy]);
 
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 runBillingCoinGate 의 await 가 페이지와 함께
      죽는다. 그러면 /start 가 영영 안 불려 결제한 사용자가 인트로로 돌아온다. grant.payload 는
@@ -287,7 +318,10 @@ export default function NakshatraAiClient() {
   });
 
   const beginConsultation = useCallback(async () => {
-    if (!birth || busyRef.current) return;
+    if (busyRef.current) return;
+    if (pendingId.current) { await pollResult(pendingId.current, ""); return; }
+    if (!birth) return;
+    const isCurrent = captureOwner();
     busyRef.current = true;
     setErrorMsg("");
     const idempotencyKey = buildIdempotencyKey();
@@ -298,9 +332,10 @@ export default function NakshatraAiClient() {
     setStatusMsg(copy.aiStatusChecking);
     try {
       const ensure = await postJson(API.ensureAccess, payload, idempotencyKey);
+      if (!isCurrent()) return;
       if (ensure.data.ok) {
         const existing = asRecord(ensure.data.consultation);
-        if (existing.decks) { finish(existing); return; }
+        if (existing.status === "completed" && existing.decks) { finish(existing); return; }
         await startConsult(payload, { accessToken: toText(ensure.data.accessToken) });
         return;
       }
@@ -330,6 +365,7 @@ export default function NakshatraAiClient() {
         productType: SERVICE_ID,
         serviceType: FEATURE_KEY,
       });
+      if (!isCurrent()) return;
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code).toUpperCase();
         if (code === "PAYMENT_CANCELLED" || code === "USER_CANCELLED") { setPhase("intro"); busyRef.current = false; return; }
@@ -338,16 +374,16 @@ export default function NakshatraAiClient() {
       }
       await startConsult(payload, extractPaymentContext(gate, idempotencyKey));
     } catch {
-      fail(copy.aiErrorNetwork);
+      if (isCurrent()) fail(copy.aiErrorNetwork);
     }
-  }, [birth, question, finish, fail, startConsult, buildResume, copy]);
+  }, [captureOwner, pollResult, birth, question, finish, fail, startConsult, buildResume, copy]);
 
   // PDF 저장 — 이미 결제로 열린 결과의 무료 부가 기능(가격·결제 문구 금지).
   // 접힌 <details> 는 빈 캔버스가 되므로 강제 오픈 → 2×rAF+120ms 렌더 대기 → 캡처 → 이전 상태 복원.
   // data-export 는 consult-decks.module.css 의 캡처용 스위치(sticky 요약·backdrop-filter 해제).
   const savePdf = useCallback(async () => {
     const root = exportRootRef.current;
-    if (!root || pdfBusy) return;
+    if (!root || pdfBusy || phase !== "done") return;
     setPdfBusy(true);
     setPdfError("");
     root.setAttribute("data-export", "true");
@@ -372,14 +408,14 @@ export default function NakshatraAiClient() {
       root.removeAttribute("data-export");
       setPdfBusy(false);
     }
-  }, [pdfBusy, identity, copy]);
+  }, [pdfBusy, phase, identity, copy]);
 
   const bgClass =
     "relative isolate min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)] px-4 py-8 text-slate-100 md:py-12";
 
   if (!ready) return <main className="min-h-[100dvh] bg-[#070812]" aria-busy="true" />;
 
-  if (!birth) {
+  if (!birth && !decks) {
     return (
       <main className={`grid place-items-center ${bgClass}`}>
         <div className="w-full max-w-lg text-center motion-safe:animate-fade-in-up">
@@ -401,10 +437,14 @@ export default function NakshatraAiClient() {
     );
   }
 
-  if (phase === "done" && decks) {
+  if (decks) {
     return (
       <main className={bgClass}>
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" />
+        {phase !== "done" && <div className="mx-auto mb-6 mt-12 max-w-3xl text-center" aria-live="polite">
+          <p>{phase === "error" ? errorMsg : copy.aiStatusGenerating} · {progress.completed}/{progress.total}</p>
+          {phase === "error" && <button type="button" onClick={beginConsultation} className="mt-4 min-h-11 rounded-xl border border-amber-200/40 px-5 text-amber-100">{copy.aiResumeButton}</button>}
+        </div>}
         <div ref={exportRootRef}>
           <AiConsultDecks
             decks={decks}
@@ -417,7 +457,7 @@ export default function NakshatraAiClient() {
             <button
               type="button"
               onClick={savePdf}
-              disabled={pdfBusy}
+              disabled={pdfBusy || phase !== "done"}
               className="inline-flex min-h-11 items-center justify-center rounded-xl border border-amber-200/40 px-6 text-sm font-bold text-amber-100 outline-none transition hover:border-amber-200/70 hover:bg-amber-200/10 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818] disabled:cursor-wait disabled:opacity-60"
             >
               {pdfBusy ? copy.aiPdfSavingButton : copy.aiPdfSaveButton}
@@ -428,6 +468,8 @@ export default function NakshatraAiClient() {
       </main>
     );
   }
+
+  if (!birth) return null;
 
   const working = phase === "checking" || phase === "payment" || phase === "generating";
 

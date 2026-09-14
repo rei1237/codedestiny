@@ -18,7 +18,7 @@ export const NAKSHATRA_PERSONA = Object.freeze({
 // 말하지 않고 다음 삶의 장면으로 확장해야 한다.
 export const INTEGRATED_SECTIONS = Object.freeze([
   {
-    id: "dualStarSummary", deck: "consultation", topic: "hero", title: "당신을 부르는 두 개의 별", minChars: 650,
+    id: "dualStarSummary", deck: "consultation", topic: "hero", title: "당신을 부르는 두 개의 별", minChars: 1800,
     scope: "베다의 달 나크샤트라·파다와 숙요의 본명숙을 한 사람의 첫인상으로 묶는다. 첫 문장에서 두 체계가 동시에 강조하는 핵심 결론을 말한다.",
     rules: [
       "‘베다에서는 당신을 …라고 부르고, 숙요에서는 …라고 부릅니다’의 구조를 자연스럽게 사용한다.",
@@ -27,7 +27,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "coreIdentity", deck: "consultation", topic: "identity", title: "두 별이 동시에 말하는 당신의 본질", minChars: 1100,
+    id: "coreIdentity", deck: "consultation", topic: "identity", title: "두 별이 동시에 말하는 당신의 본질", minChars: 3000,
     scope: "두 전통에서 반복되는 신호를 먼저 찾고, 근거 → 교차 해석 → 현실의 모습 순으로 이 사람의 핵심 기질을 설명한다.",
     rules: [
       "공통점은 2~3개로 압축하고, 각각에 베다 근거와 숙요 근거를 모두 남긴다.",
@@ -35,7 +35,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "outerVsInner", deck: "consultation", topic: "inner-life", title: "겉으로 보이는 나와 아무도 모르는 나", minChars: 900,
+    id: "outerVsInner", deck: "consultation", topic: "inner-life", title: "겉으로 보이는 나와 아무도 모르는 나", minChars: 2400,
     scope: "처음 만난 사람 앞, 친해진 뒤, 혼자 있을 때, 스트레스를 받을 때의 모습을 구분해 외부 인상과 내면 욕구의 간격을 상담한다.",
     rules: [
       "감정·행동·관계 반응을 실제 생활 장면으로 쓴다.",
@@ -43,7 +43,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "loveAndRelationships", deck: "consultation", topic: "relationship", title: "나는 어떤 사랑을 원하는 사람일까?", minChars: 1050,
+    id: "loveAndRelationships", deck: "consultation", topic: "relationship", title: "나는 어떤 사랑을 원하는 사람일까?", minChars: 2800,
     scope: "끌리는 사람, 사랑할 때의 모습, 관계에서 원하는 안전감, 오해받기 쉬운 부분, 반복하기 쉬운 패턴과 건강한 관계의 조건을 답한다.",
     rules: [
       "상대의 마음이나 특정 궁합을 확정하지 않는다.",
@@ -51,7 +51,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "talentAndWork", deck: "consultation", topic: "career", title: "내가 일을 잘할 수 있는 환경은 어디일까?", minChars: 1050,
+    id: "talentAndWork", deck: "consultation", topic: "career", title: "내가 일을 잘할 수 있는 환경은 어디일까?", minChars: 2800,
     scope: "사고방식·강점·경쟁력·돈을 만드는 방식·조직과 독립의 적성을 현실적으로 읽고, 맞는 환경과 소모되는 환경을 대비한다.",
     rules: [
       "직업 하나를 단정하지 않는다. 일하는 방식과 선택 기준을 말한다.",
@@ -60,7 +60,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "shadowPattern", deck: "consultation", topic: "shadow", title: "왜 같은 문제를 반복할까?", minChars: 950,
+    id: "shadowPattern", deck: "consultation", topic: "shadow", title: "왜 같은 문제를 반복할까?", minChars: 2400,
     scope: "과해진 강점, 불안할 때의 행동, 관계와 선택에서 되풀이될 수 있는 그림자를 겁주지 않고 현실적인 경향으로 다룬다.",
     rules: [
       "반복되는 실수와 회복 신호를 한 쌍으로 제시한다.",
@@ -68,7 +68,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "contrastBetweenSystems", deck: "consultation", topic: "contrast", title: "두 전통이 서로 다르게 보는 당신", minChars: 1050,
+    id: "contrastBetweenSystems", deck: "consultation", topic: "contrast", title: "두 전통이 서로 다르게 보는 당신", minChars: 2600,
     scope: "베다와 숙요의 결론이 갈리거나 강조점이 다른 2~3개 지점을 밝히고, 충돌처럼 보이는 두 특성이 삶에서 어떻게 함께 나타나는지 해석한다.",
     rules: [
       "반드시 ‘베다에서는 …, 숙요에서는 …’의 비교를 포함하되 두 전통을 승패로 가르지 않는다.",
@@ -77,7 +77,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "lifeManual", deck: "consultation", topic: "growth", title: "당신이라는 별의 사용 설명서", minChars: 900,
+    id: "lifeManual", deck: "consultation", topic: "growth", title: "당신이라는 별의 사용 설명서", minChars: 2400,
     scope: "앞선 상담을 행동 기준으로 바꾼다. 잘될 때의 조건, 무너질 때의 신호, 사람·일을 선택하는 기준, 감정 소모를 줄이는 방법을 제시한다.",
     rules: [
       "실행 조언은 5개 안팎으로, 각각 언제·무엇을·어떻게 할지가 보이게 쓴다.",
@@ -86,7 +86,7 @@ export const INTEGRATED_SECTIONS = Object.freeze([
     ],
   },
   {
-    id: "closingMessage", deck: "consultation", topic: "closing", title: "마지막 별의 문장", minChars: 380,
+    id: "closingMessage", deck: "consultation", topic: "closing", title: "마지막 별의 문장", minChars: 1400,
     scope: "상담 전체에서 나온 이 사람만의 결론을 짧고 강한 마지막 문장으로 남긴다.",
     rules: [
       "모든 사용자에게 통하는 감성 문구나 응원 문구를 쓰지 않는다.",
@@ -192,7 +192,8 @@ export function buildSectionPrompt(section, ctx) {
     "[이 장: " + section.title + "]",
     "- 의미 주제: " + section.topic,
     "- 목적: " + section.scope,
-    "- 최소 분량: 공백 포함 " + section.minChars + "자 이상.",
+    "- vedicEvidence에는 본명 나크샤트라, sukuyoEvidence에는 본명숙 이름을 계산값 그대로 반드시 명시한다.",
+    "- 최소 분량: 제목·목차·마크다운·공백을 제외한 본문 " + section.minChars + "자 이상. 목표 " + Math.ceil(section.minChars * 1.2) + "자. 계산 근거 → 생활 패턴 → 반대 조건과 주의점 → 행동 조언 순으로 구체화한다.",
     "- 첫 문단은 결론부터 말하고, 다음 문단에서 베다 근거 → 숙요 근거 → 두 시선의 통합 → 현실 장면 순으로 깊게 쓴다.",
     "- 모든 문장은 이 사용자의 이야기처럼 쓴다. 백과사전식 신화·행성·상징 나열, ‘해석할 수 있습니다’ 같은 교과서 문체를 쓰지 않는다.",
     "- 이전 장의 결론을 동의어로 반복해 분량을 채우지 않는다. 이번 장의 의미 주제에서만 새 정보를 더한다.",

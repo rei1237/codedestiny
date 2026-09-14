@@ -1552,7 +1552,7 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
   accessSource: { type: String, default: "", trim: true, maxlength: 40 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160 },
   messages: { type: [neoOperationRoomMessageSchema], default: [] },
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating" },
+  status: { type: String, enum: ["generating", "delivery_pending", "completed", "generation_failed"], default: "generating" },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
