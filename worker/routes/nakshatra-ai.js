@@ -27,9 +27,13 @@ import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../l
 import {
   NakshatraAiConsultation,
   PaidExecutionRecord,
+  PointHistory,
+  MonthlyCreditLedger,
   Payment,
   User,
 } from "../lib/models.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -65,7 +69,7 @@ const ACCESS_TOKEN_TTL = "45m";
 const ACCESS_TOKEN_HEADER = "x-nakshatra-ai-access-token";
 // 배치 생성이 완주하는 최악 시간을 덮는 신선도 창. 이 창 안의 재-POST(start)는 2차 생성을 기동하지 않고
 // 202로 흡수돼 이중 작업/이중 과금을 막는다.
-const GENERATION_FRESHNESS_MS = 900000;
+
 const TITLE = "나크샤트라 결정판 전문가 심화 상담";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요해요. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제나 이용권 확인이 아직 끝나지 않았어요. 권한을 확인한 뒤 다시 시도해 주세요.";
@@ -77,14 +81,14 @@ const RESULT_NOT_FOUND_MESSAGE = "저장된 상담을 찾지 못했어요.";
 const SECTION_CONCURRENCY = 4;
 // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피(master-love-codex.js:88-92 와 동일 계약).
 const SECTION_BATCH_SIZE = SECTION_CONCURRENCY;
-const SECTION_TIMEOUT_MS = 60000;
+const SECTION_TIMEOUT_MS = 45000;
 // 배치 1회(생성 + 캐시우회 재시도 최악 시간)를 덮어야 병렬 폴링이 같은 배치를 중복 기동하지 않는다.
-const BATCH_LOCK_TTL_MS = 390000;
+const BATCH_LOCK_TTL_MS = 120000;
 // 섹션이 자기 목표의 이 비율에 못 미치면 '미완'으로 보고 다음 배치에서 다시 생성한다.
 // 이 하한은 9개 통합 장의 실제 상담 밀도를 지킨다. 장 수가 아닌 각 장의 의미 범위를 기준으로 둔다.
-const SECTION_MIN_RATIO = 0.75;
-const SECTION_MAX_ATTEMPTS = 2;
-// 총량 관문. 미달이어도 이미 결제된 결과를 파기하지 않고 전달하되(결제 후 결과 전달 보장), 경고를 남긴다.
+const SECTION_MIN_RATIO = 1;
+const SECTION_MAX_ATTEMPTS = 3;
+// 신규 결과의 필수 본문 분량. 미완료 장은 보존하며 완료로 표시하지 않는다.
 const MIN_TOTAL_CHARS = Math.floor(NAKSHATRA_TOTAL_MIN_CHARS * SECTION_MIN_RATIO);
 const SECTION_BY_ID = new Map(NAKSHATRA_SECTIONS.map((section) => [section.id, section]));
 
@@ -435,9 +439,21 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) {
       return { ok: false, reason: "INVALID_INPUT", message: INVALID_INPUT_MESSAGE };
     }
-    return { ok: true, accessType: clean(payload.accessType), paymentId: clean(payload.paymentId, 160), source: "token" };
+    body = { ...body, paymentId: payload.paymentId || body.paymentId };
   }
   const ctx = billingContextFromBody(body);
+  const tokens = [...new Set([idempotencyKey, ctx.paymentId, ctx.requestId, ctx.transactionId, ctx.ledgerId].filter(Boolean))];
+  const ids = tokens.flatMap(value => ["requestId", "idempotencyKey", "paymentId", "orderId", "impUid", "merchantUid", "executionId"].map(key => ({ [key]: value })));
+  const metadataIds = tokens.flatMap(value => ["sourceId", "metadata.requestId", "metadata.idempotencyKey", "metadata.transactionId"].map(key => ({ [key]: value })));
+  const markers = ["refundedForServiceExecution", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  const revoked = ["refunded", "cancelled", "canceled", "REFUNDED", "CANCELLED"];
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: auth.userId, featureId: FEATURE_KEY, status: { $in: revoked }, $or: ids }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: ids }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false, reason: "PAYMENT_REQUIRED" };
   const paidPayment = await withMongoRetry(env, () => hasPaidPayment(auth, ctx.paymentId, idempotencyKey));
   if (paidPayment) {
     return {
@@ -445,9 +461,13 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       accessType: "paid",
       paymentId: clean(paidPayment.merchantUid || paidPayment.impUid || ctx.paymentId, 160),
       source: "payment",
+      // 생성 실패 시 이 결제를 되짚을 열쇠다. 🔴 클라이언트가 준 ctx.paymentId 가 아니라 위
+      // hasPaidPayment 가 {userId, featureKey, paymentType, status} 로 좁혀 찾은 문서의 _id 를 싣는다
+      // — 조작된 식별자가 환불 대상으로 흘러들 여지를 남기지 않는다.
+      paymentDocId: clean(paidPayment._id, 64),
     };
   }
-  if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY" || ctx.accessMethod === "MONTHLY_CREDIT" || ctx.accessMethod === "MOONLIGHT_STONE") {
+  {
     if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
       return {
         ok: true,
@@ -460,7 +480,11 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       };
     }
   }
-  if (ctx.accessType === "membership_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS" || ctx.accessMethod === "MEMBERSHIP_PASS" || ctx.accessMethod === "FAMILY_PASS") {
+  const user = await withMongoRetry(env, () => loadUser(auth.userId));
+  if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
+  if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
+  if (isReusablePaidFeatureAccess(decision) && mapPaidFeatureAccessType(decision) === "pass") {
     if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
       return {
         ok: true,
@@ -473,21 +497,18 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       };
     }
   }
-  const user = await withMongoRetry(env, () => loadUser(auth.userId));
-  if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
-  if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }) {
-  const existing = await NakshatraAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
+  const existing = await NakshatraAiConsultation.findOne({ id: sessionId, userId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
   if (source !== "billing-gate" && accessType === "subscription") {
     const error = new Error("A Payment Service access grant is required for monthly usage.");
     error.code = "PAYMENT_ACCESS_GRANT_REQUIRED";
     throw error;
   }
-  await NakshatraAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
+  await NakshatraAiConsultation.updateOne({ id: sessionId, userId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });
   return true;
 }
 
@@ -506,6 +527,7 @@ async function recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pr
       featureId: FEATURE_KEY,
       profileId: "default",
       requestId: idempotencyKey,
+      status: { $nin: ["cancelled", "canceled", "refunded", "revoked"] },
     },
     {
       $setOnInsert: {
@@ -590,14 +612,15 @@ function publicSession(doc) {
     id: clean(raw?.id || raw?._id),
     sessionId: clean(raw?.id || raw?._id),
     status: clean(raw?.status),
+    requestId: clean(raw?.idempotencyKey),
     accessType: clean(raw?.accessType),
     question: clean(raw?.question),
     // 결과 렌더에 필요한 필드만 노출 — 내부 근거 텍스트(summaryText)·codex 원본은 은닉.
     natal: raw?.factSummary?.identity || null,
-    decks: raw?.decks || null,
+    decks: raw?.decks || (readSections(raw).some(isSectionSettled) ? mergeConsultationSections(readSections(raw).filter(isSectionSettled)) : null),
     // 진행 인디케이터는 서버 진행률에 실제로 물려 있어야 한다(가짜 진행바 금지).
     progress: {
-      completed: Number(raw?.generationProgress?.completed || 0),
+      completed: raw?.status === "completed" ? Number(raw?.generationProgress?.total || NAKSHATRA_SECTIONS.length) : countSettled(readSections(raw)),
       total: Number(raw?.generationProgress?.total || NAKSHATRA_SECTIONS.length),
       phase: clean(raw?.generationProgress?.phase) || (raw?.status === "completed" ? "done" : "consultation"),
       chars: Number(raw?.totalCharCount || 0),
@@ -658,86 +681,31 @@ async function computeNatalFacts(env, normalized, request) {
   return { summaryText, evidenceTokens, identity };
 }
 
-// ── 동기 생성 — 9개 통합 장. ziwei-deep-report/네오 동시성 패턴 재사용 ──────────
-async function runWithConcurrency(items, limit, worker) {
-  const results = new Array(items.length);
-  let cursor = 0;
-  async function runner() {
-    while (cursor < items.length) {
-      const index = cursor++;
-      results[index] = await worker(items[index], index);
-    }
-  }
-  const runners = Array.from({ length: Math.min(limit, items.length) }, () => runner());
-  await Promise.all(runners);
-  return results;
-}
-
-function countTextChars(value) {
-  if (typeof value === "string") return value.length;
-  if (Array.isArray(value)) return value.reduce((sum, item) => sum + countTextChars(item), 0);
-  if (value && typeof value === "object") return Object.values(value).reduce((sum, item) => sum + countTextChars(item), 0);
-  return 0;
-}
-
 // 챕터 하나 생성 → 섹션 엔트리. 실패해도 body=""로 남겨(전체 실패 방지) 다음 배치에서 재시도한다.
-// 잘림(MAX_TOKENS)·빈 파싱·목표 미달이면 캐시를 우회해 1회 재시도한다.
+// 잘림·빈 파싱·목표 미달은 다음 요청에서 해당 장만 제한적으로 다시 생성한다.
 // 🔴 fallbackMinChars: Workers AI 폴백(70B는 약 1,700자에서 스스로 멈춘다)이 짧은 응답을 완성본으로
 //    돌려주는 것을 막는다. 이게 없으면 2만자 상품이 8% 분량으로 '완료' 저장된다(CLAUDE.md 필수 규칙).
 async function generateSectionOnce(env, section, prompt, cacheConfig) {
-  const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0 };
+  const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0, ok: false };
   try {
-    let ai = null;
-    let parsed = { keyInsight: "", body: "" };
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const useCache = attempt === 0 && cacheConfig;
-      ai = await callGeminiText(env, prompt, {
-        maxOutputTokens: 8192,
-        temperature: 0.65,
-        thinkingBudget: 0,
-        timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS),
-        fallbackMinChars: Math.floor(section.minChars * 0.4),
-        ...(useCache ? { cache: cacheConfig } : {}),
-      });
-      parsed = ai?.ok ? parseSectionResponse(ai.text) : { keyInsight: "", body: "" };
-      const tooShort = parsed.body.length < Math.floor(section.minChars * SECTION_MIN_RATIO);
-      const needsRetry = ai?.ok && (ai.truncated === true || !parsed.body || tooShort);
-      if (!needsRetry) break;
-    }
-    const provider = clean(ai?.provider || "");
-    const model = clean(ai?.model || "");
-    const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-    if (!ai?.ok || isMock || clean(ai?.text).length < 40) {
-      return { ...base, provider, model, ok: false };
-    }
-    if (!parsed.body || hasForbiddenResultText(parsed)) {
-      return { ...base, provider, model, ok: false };
-    }
-    return {
-      ...base,
-      keyInsight: parsed.keyInsight,
-      vedicEvidence: parsed.vedicEvidence,
-      sukuyoEvidence: parsed.sukuyoEvidence,
-      body: parsed.body,
-      chars: parsed.body.length,
-      provider,
-      model,
-      ok: true,
-    };
-  } catch (error) {
-    return { ...base, provider: "", model: "", ok: false, error: clean(error?.message, 120) };
-  }
+    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 10000, temperature: 0.65, thinkingBudget: 0,
+      responseMimeType: "application/json", timeoutMs: clampSyncLlmTimeoutMs(SECTION_TIMEOUT_MS), fallbackToWorkersAI: false,
+      ...(cacheConfig ? { cache: cacheConfig } : {}) });
+    const isMock = (/mock/i.test(ai?.provider || "") || /mock/i.test(ai?.model || "") || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
+    if (!ai?.ok || isMock || ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || "")) return base;
+    const parsed = parseSectionResponse(ai.text);
+    if (!parsed.body || hasForbiddenResultText(parsed)) return base;
+    return { ...base, ...parsed, chars: countPaidReportBodyChars(parsed.body), provider: clean(ai.provider), model: clean(ai.model), ok: true };
+  } catch { return base; }
 }
 
 // ── 배치 진행 계산 ───────────────────────────────────────────────────────────
-// 섹션이 '정착(settled)' 했는가 = 목표 분량의 SECTION_MIN_RATIO 를 넘겼거나, 시도 상한을 다 썼는가.
+// 정상 내용과 본문 최소 분량을 모두 충족한 장만 완료된 부분으로 인정한다.
 // 정착하지 않은 섹션은 다음 배치에서 자동으로 다시 생성된다 → 이게 광고 분량을 실제로 떠받친다.
 function isSectionSettled(entry) {
-  if (!entry) return false;
-  const spec = SECTION_BY_ID.get(entry.id);
-  const floor = spec ? Math.floor(spec.minChars * SECTION_MIN_RATIO) : 1;
-  if (entry.ok && Number(entry.chars || 0) >= floor) return true;
-  return (Number(entry.attempts) || 1) >= SECTION_MAX_ATTEMPTS;
+  const spec = SECTION_BY_ID.get(entry?.id);
+  return Boolean(spec && entry.ok && entry.keyInsight && entry.vedicEvidence && entry.sukuyoEvidence
+    && countPaidReportBodyChars(entry.body) >= spec.minChars && !hasRepeatedReportPassage(entry.body) && !hasForbiddenResultText([entry.keyInsight, entry.body, entry.vedicEvidence, entry.sukuyoEvidence]));
 }
 
 function readSections(doc) {
@@ -758,69 +726,16 @@ function countSettled(done) {
 }
 
 function sumSectionChars(done) {
-  return done.reduce((sum, entry) => sum + (Number(entry?.chars) || 0), 0);
-}
-
-// 한 웨이브만 생성하고 누적 섹션 배열을 돌려준다(요청당 wall-clock = 1 웨이브).
-async function runGenerationBatch(env, session, facts) {
-  const done = readSections(session);
-  const { phase, slice } = pickNextBatch(done);
-  if (!slice.length) return { sections: done, phase, generated: 0 };
-
-  const ctx = {
-    summaryText: facts.summaryText,
-    question: clean(session?.question),
-    writtenMemory: buildWrittenMemory(done),
-  };
-  const cacheStore = createLlmCacheStore(env);
-  const results = await runWithConcurrency(slice, SECTION_CONCURRENCY, (section) => {
-    const prompt = buildSectionPrompt(section, ctx);
-    // 재시도 회차마다 캐시 키를 갈라야 같은 짧은 응답을 다시 받지 않는다.
-    const priorAttempts = Number(done.find((entry) => entry.id === section.id)?.attempts || 0);
-    const cacheConfig = {
-      store: cacheStore,
-      deterministic: true,
-      ttlSeconds: 30 * 24 * 60 * 60,
-      keyExtra: `nakshatra-ai-v3-${section.id}${priorAttempts ? `-r${priorAttempts}` : ""}`,
-    };
-    return generateSectionOnce(env, section, prompt, cacheConfig);
-  });
-
-  const merged = done.slice();
-  for (const result of results) {
-    const priorIndex = merged.findIndex((entry) => entry.id === result.id);
-    const attempts = (Number(priorIndex >= 0 ? merged[priorIndex].attempts : 0) || 0) + 1;
-    const prior = priorIndex >= 0 ? merged[priorIndex] : null;
-    // 재시도가 더 짧게 나오면 이전 결과를 지키다(분량이 뒷걸음질치지 않게).
-    const keepPrior = prior?.ok && Number(prior.chars || 0) > Number(result.chars || 0);
-    const next = keepPrior ? { ...prior, attempts } : { ...result, attempts };
-    if (priorIndex >= 0) merged[priorIndex] = next;
-    else merged.push(next);
-  }
-  // 섹션 순서를 레지스트리 순서로 정렬해 보관한다(부분 결과를 그대로 렌더할 수 있게).
-  const order = new Map(NAKSHATRA_SECTIONS.map((section, index) => [section.id, index]));
-  merged.sort((a, b) => (order.get(a.id) ?? 999) - (order.get(b.id) ?? 999));
-  return { sections: merged, phase, generated: results.length };
+  return done.reduce((sum, entry) => sum + countPaidReportBodyChars(entry?.body), 0);
 }
 
 // 완료 조립. 첫 장과 핵심 장이 비면 하나의 통합 상담 계약이 깨진 것이므로 실패로 돌린다.
 function buildCompletion(sections) {
   const decks = mergeConsultationSections(sections);
-  if (countTextChars(decks) < 400 || decks.consultation.length < 2) {
-    const error = new Error(LLM_ERROR_MESSAGE);
-    error.code = "LLM_FAILED";
-    error.status = 503;
-    throw error;
-  }
   const totalCharCount = sumSectionChars(sections);
-  if (totalCharCount < MIN_TOTAL_CHARS) {
-    // 파기하지 않는다 — 결제한 사용자에게 짧은 실제 상담이 실패 안내보다 낫다. 대신 계측을 남긴다.
-    console.warn("[nakshatra-ai] total chars below floor", { totalCharCount, floor: MIN_TOTAL_CHARS });
-  }
-  const provider = clean(sections.find((entry) => entry.provider)?.provider || "gemini");
-  const model = clean(sections.find((entry) => entry.model)?.model || "");
-  const practice = decks.consultation.find((entry) => entry.id === "lifeManual");
-  return { decks, totalCharCount, provider, model, topInsights: extractTopInsights(practice?.body) };
+  if (countSettled(sections) !== NAKSHATRA_SECTIONS.length || totalCharCount < Math.max(20000, MIN_TOTAL_CHARS)
+    || hasRepeatedReportPassage(sections.map(row => row.body).join("\n"))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+  return { decks, totalCharCount, provider: clean(sections.find(row => row.provider)?.provider), model: clean(sections.find(row => row.model)?.model), topInsights: extractTopInsights(sections.find(row => row.id === "lifeManual")?.body) };
 }
 
 // ── 배치 락 / 진행률 ─────────────────────────────────────────────────────────
@@ -832,7 +747,7 @@ async function acquireBatchLock(env, sessionId, userId) {
     {
       id: sessionId,
       userId,
-      status: "generating",
+      status: { $in: ["generating", "delivery_pending"] },
       $or: [
         { "generationProgress.lockedAt": { $exists: false } },
         { "generationProgress.lockedAt": null },
@@ -844,29 +759,6 @@ async function acquireBatchLock(env, sessionId, userId) {
     { new: true },
   ).lean());
   return updated ? { ok: true, lockToken, doc: updated } : { ok: false };
-}
-
-async function releaseBatchLock(env, sessionId) {
-  await withMongoRetry(env, () => NakshatraAiConsultation.updateOne(
-    { id: sessionId },
-    { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } },
-  )).catch(() => {});
-}
-
-function progressPayload(sessionId, sections, phase) {
-  const completed = countSettled(sections);
-  return {
-    ok: true,
-    sessionId,
-    status: "generating",
-    progress: {
-      completed,
-      total: NAKSHATRA_SECTIONS.length,
-      phase,
-      chars: sumSectionChars(sections),
-    },
-    message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요.",
-  };
 }
 
 // ── 핸들러 ───────────────────────────────────────────────────────────────────
@@ -924,7 +816,8 @@ async function handleStart(request, env) {
   const existing = await withMongoRetry(env, () => NakshatraAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean());
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATION_FRESHNESS_MS) {
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (existing && ["generating", "delivery_pending"].includes(existing.status)) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요." }, { status: 202 });
   }
 
@@ -962,19 +855,24 @@ async function handleStart(request, env) {
     messages: [],
     status: "generating",
     generationError: null,
+    llmMeta: { resumeBody: { ...body, accessToken: undefined, idempotencyKey }, attempts: {} },
   };
   if (existing) {
-    await NakshatraAiConsultation.updateOne({ id: existing.id }, { $set: { ...seed, updatedAt: now } });
+    await saveNakshatraDelivery({ id: existing.id, userId: auth.userId, status: { $ne: "completed" } }, { ...seed, updatedAt: now }, sessionId);
   } else {
     try {
-      await NakshatraAiConsultation.create(seed);
+      const created = await NakshatraAiConsultation.create(seed);
+      if (!created) throw resultStorageUnavailable(sessionId);
+      const confirmed = await NakshatraAiConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
+      if (!confirmed || confirmed.idempotencyKey !== idempotencyKey || confirmed.inputHash !== normalized.inputHash || !confirmed.llmMeta?.resumeBody) throw resultStorageUnavailable(sessionId);
     } catch (error) {
       if (error?.code === 11000) {
         const duplicate = await NakshatraAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
+        if (!duplicate) throw resultStorageUnavailable(sessionId);
         if (duplicate?.status === "completed") return json(publicSession(duplicate));
         return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요." }, { status: 202 });
       }
-      throw error;
+      throw resultStorageUnavailable(sessionId);
     }
   }
 
@@ -982,133 +880,103 @@ async function handleStart(request, env) {
 
   // 첫 웨이브만 굽고 진행률을 돌려준다. 나머지는 클라가 /generate 를 반복 호출해 채운다.
   // 한 요청 = 1 동시성 웨이브라 엣지 100초 컷에 걸리지 않는다(waitUntil 은 여전히 쓰지 않는다).
-  return advanceGeneration({ env, auth, sessionId, idempotencyKey, access, pricing, firstWave: true });
+  return advanceGeneration({ request, env, auth, sessionId, idempotencyKey, access, pricing });
 }
 
 // /start 와 /generate 가 공유하는 진행 엔진. 락 → 1 웨이브 → 부분 저장 → (완료면) 정산.
-async function advanceGeneration({ env, auth, sessionId, idempotencyKey, access, pricing, firstWave = false }) {
-  const lock = await acquireBatchLock(env, sessionId, auth.userId);
-  if (!lock.ok) {
-    // 다른 요청이 같은 배치를 굽고 있다. 이중 생성/이중 과금을 만들지 않고 폴링을 이어 가게 한다.
-    const current = await withMongoRetry(env, () => NakshatraAiConsultation.findOne({ id: sessionId, userId: auth.userId }).lean());
-    if (current?.status === "completed") return json(publicSession(current));
-    const sections = readSections(current);
-    return json(progressPayload(sessionId, sections, pickNextBatch(sections).phase), { status: 202, headers: { "Retry-After": "3" } });
-  }
-
-  const session = lock.doc;
-  const facts = {
-    summaryText: clean(session?.factSummary?.summaryText),
-    identity: session?.factSummary?.identity || null,
-  };
-  if (!facts.summaryText) {
-    await releaseBatchLock(env, sessionId);
-    return json({ ok: false, reason: "CALCULATION_ERROR", message: CALCULATION_ERROR_MESSAGE }, { status: 422 });
-  }
-
+async function saveNakshatraDelivery(filter, fields, resultId) {
   try {
-    const batch = await runGenerationBatch(env, session, facts);
-    const sections = batch.sections;
-    const nextBatch = pickNextBatch(sections);
-    const finished = nextBatch.slice.length === 0;
-
-    if (!finished) {
-      await withMongoRetry(env, () => NakshatraAiConsultation.updateOne(
-        { id: sessionId },
-        {
-          $set: {
-            sections,
-            totalCharCount: sumSectionChars(sections),
-            generationProgress: {
-              completed: countSettled(sections),
-              total: NAKSHATRA_SECTIONS.length,
-              phase: nextBatch.phase,
-              lockedAt: null,
-              lockToken: "",
-            },
-          },
-        },
-      ));
-      return json(progressPayload(sessionId, sections, nextBatch.phase), { status: 202, headers: { "Retry-After": "1" } });
+    const saved = await NakshatraAiConsultation.findOneAndUpdate(filter, { $set: fields }, { new: true }).lean();
+    if (!saved) throw resultStorageUnavailable(resultId);
+    const confirmed = await NakshatraAiConsultation.findOne({ id: resultId, userId: filter.userId }).lean();
+    const equal = (left, right) => stableJson(JSON.parse(JSON.stringify(left))) === stableJson(JSON.parse(JSON.stringify(right)));
+    if (!confirmed || Object.keys(fields).some(key => !equal(fields[key], saved[key]) || !equal(saved[key], confirmed[key]))) throw resultStorageUnavailable(resultId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(resultId); }
+}
+async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey, access, pricing }) {
+  let lock;
+  try { lock = await acquireBatchLock(env, sessionId, auth.userId); } catch { throw resultStorageUnavailable(sessionId); }
+  if (!lock.ok) {
+    const current = await NakshatraAiConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
+    if (!current) throw resultStorageUnavailable(sessionId);
+    return json(publicSession(current), { status: current?.status === "completed" ? 200 : 202 });
+  }
+  let session = lock.doc;
+  const filter = { id: sessionId, userId: auth.userId, "generationProgress.lockToken": lock.lockToken, status: { $ne: "completed" } };
+  try {
+    const missing = pickNextBatch(readSections(session)).slice;
+    const attempts = { ...session.llmMeta?.attempts };
+    const exhausted = missing.filter(section => Number(attempts[section.id] || 0) >= SECTION_MAX_ATTEMPTS);
+    if (exhausted.length) {
+      // 응답·저장 확인이 유실된 실행은 생성 실패로 확정하거나 자동 환불하지 않는다.
+      if (exhausted.some(section => Number(session.llmMeta?.generationFailures?.[section.id] || 0) < SECTION_MAX_ATTEMPTS)) throw resultStorageUnavailable(sessionId);
+      throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     }
-
-    const completion = buildCompletion(sections);
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
-    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
-    const completed = await withMongoRetry(env, () => NakshatraAiConsultation.findOneAndUpdate(
-      { id: sessionId },
-      {
-        $set: {
-          status: "completed",
-          sections,
-          decks: completion.decks,
-          totalCharCount: completion.totalCharCount,
-          generationProgress: {
-            completed: NAKSHATRA_SECTIONS.length,
-            total: NAKSHATRA_SECTIONS.length,
-            phase: "done",
-            lockedAt: null,
-            lockToken: "",
-          },
-          messages: [
-            { role: "user", content: clean(session?.question) || "(자유 상담)", createdAt: new Date(session?.createdAt || Date.now()) },
-            { role: "assistant", content: JSON.stringify(completion.decks), createdAt: new Date() },
-          ],
-          llmMeta: {
-            provider: completion.provider,
-            model: completion.model,
-            totalCharCount: completion.totalCharCount,
-            minTotalChars: MIN_TOTAL_CHARS,
-            topInsights: completion.topInsights,
-            completedAt: new Date().toISOString(),
-          },
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean());
-    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
-    return json(publicSession(completed));
+    if (missing.length) {
+      missing.forEach(section => { attempts[section.id] = Number(attempts[section.id] || 0) + 1; });
+      session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, attempts } }, sessionId);
+      const context = { summaryText: session.factSummary?.summaryText, question: session.question, writtenMemory: buildWrittenMemory(readSections(session)) };
+      let queue = Promise.resolve();
+      const recordGenerationFailure = (sectionId) => {
+        const write = queue.catch(() => {}).then(async () => {
+          const generationFailures = { ...session.llmMeta?.generationFailures };
+          generationFailures[sectionId] = Number(generationFailures[sectionId] || 0) + 1;
+          session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, generationFailures } }, sessionId);
+        });
+        queue = write; return write;
+      };
+      const outcomes = await Promise.allSettled(missing.map(async section => {
+        const prompt = buildSectionPrompt(section, context);
+        const row = await generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
+          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` });
+        const identity = session.factSummary?.identity;
+        if (!isSectionSettled(row) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id); return; }
+        const write = queue.catch(() => {}).then(async () => {
+          const sections = [...readSections(session).filter(saved => saved.id !== row.id), row].sort((a,b) => NAKSHATRA_SECTIONS.findIndex(spec => spec.id === a.id) - NAKSHATRA_SECTIONS.findIndex(spec => spec.id === b.id));
+          if (hasRepeatedReportPassage(sections.map(saved => saved.body).join("\n"))) {
+            const generationFailures = { ...session.llmMeta?.generationFailures, [section.id]: Number(session.llmMeta?.generationFailures?.[section.id] || 0) + 1 };
+            session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, generationFailures } }, sessionId);
+            return;
+          }
+          session = await saveNakshatraDelivery(filter, { sections, totalCharCount: sumSectionChars(sections), generationProgress: { ...session.generationProgress, completed: countSettled(sections), total: NAKSHATRA_SECTIONS.length, phase: "consultation" } }, sessionId);
+        }); queue = write; await write;
+      }));
+      const failure = outcomes.find(outcome => outcome.status === "rejected");
+      if (failure) throw failure.reason;
+    }
+    if (pickNextBatch(readSections(session)).slice.length) return json(publicSession(session), { status: 202 });
+    const completion = buildCompletion(readSections(session));
+    if (session.status !== "delivery_pending") session = await saveNakshatraDelivery(filter, { status: "delivery_pending", decks: completion.decks, totalCharCount: completion.totalCharCount,
+      llmMeta: { ...session.llmMeta, provider: completion.provider, model: completion.model, topInsights: completion.topInsights } }, sessionId);
+    try {
+      access = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey });
+    } catch { throw resultStorageUnavailable(sessionId); }
+    if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    try { await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source }); }
+    catch { throw resultStorageUnavailable(sessionId); }
+    session = await saveNakshatraDelivery(filter, { status: "completed", generationError: null,
+      generationProgress: { completed: NAKSHATRA_SECTIONS.length, total: NAKSHATRA_SECTIONS.length, phase: "done", lockToken: "", lockedAt: null },
+      messages: [{ role: "user", content: session.question || "(자유 상담)", createdAt: new Date() }, { role: "assistant", content: JSON.stringify(completion.decks), createdAt: new Date() }] }, sessionId);
+    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing).catch(error => console.warn("[nakshatra-ai] usage record", clean(error?.message, 120)));
+    await completeRefundableExecution(env, auth, idempotencyKey, sessionId).catch(error => console.warn("[nakshatra-ai] completion record", clean(error?.message, 120)));
+    return json(publicSession(session));
   } catch (error) {
-    await releaseBatchLock(env, sessionId);
-    // 첫 웨이브에서 파국이면 환불하고 실패로 닫는다. 이후 웨이브 실패는 부분 결과가 남아 있으므로
-    // 세션을 죽이지 않고 다음 폴링에서 다시 시도하게 둔다(결제 후 결과 전달 보장).
-    if (!firstWave) {
-      const current = await withMongoRetry(env, () => NakshatraAiConsultation.findOne({ id: sessionId, userId: auth.userId }).lean()).catch(() => null);
-      const sections = readSections(current);
-      if (sections.length) {
-        return json(progressPayload(sessionId, sections, pickNextBatch(sections).phase), { status: 202, headers: { "Retry-After": "3" } });
-      }
-    }
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
+    await saveNakshatraDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED"), message: clean(error?.message, 500) } }, sessionId);
     await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-    await NakshatraAiConsultation.updateOne(
-      { id: sessionId },
-      {
-        $set: {
-          status: "generation_failed",
-          generationError: {
-            code: clean(error?.code || "GENERATION_FAILED", 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
-          },
-        },
-      },
-    ).catch(() => {});
-    const isCalculationError = clean(error?.code).includes("BIRTH") || clean(error?.code).includes("CHART") || Number(error?.status) === 422;
-    return json({
-      ok: false,
-      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
-      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
-    }, { status: isCalculationError ? 422 : 503 });
+    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
+  } finally {
+    await NakshatraAiConsultation.updateOne(filter, { $set: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null } }).catch(() => {});
   }
 }
 
-// POST /generate — 결제는 /start 에서 이미 끝났다. 여기서는 세션 소유만 확인하고 다음 웨이브를 굽는다.
+// POST /generate — 원래 서버 요청의 소유권과 현재 결제 증빙을 다시 확인한다.
 async function handleGenerate(request, env) {
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.attemptId, 120);
   const idempotencyKey = readIdempotencyKey(request, body);
-  if (!sessionId || idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
+  if (!sessionId) return invalidInput(INVALID_INPUT_MESSAGE);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
@@ -1121,21 +989,19 @@ async function handleGenerate(request, env) {
   }
 
   const pricing = getPricing();
-  // 🔴 source 는 반드시 /start 가 보존한 값을 그대로 쓴다. "resume" 같은 새 값을 넣으면
-  // applyUsageOnce 가 billing-gate 로 이미 차감된 월정석을 완료 시 한 번 더 소비한다.
-  const access = {
-    accessType: clean(session.accessType) || "paid",
-    source: clean(session.accessSource) || "billing-gate",
-    paymentId: clean(session.paymentId, 160),
-  };
-  return advanceGeneration({ env, auth, sessionId, idempotencyKey: clean(session.idempotencyKey) || idempotencyKey, access, pricing });
+  const originalKey = clean(session.idempotencyKey);
+  if (idempotencyKey && idempotencyKey !== originalKey) return invalidInput(INVALID_INPUT_MESSAGE, 409);
+  const access = await resolveStartAccess({ request, env, auth, body: session.llmMeta?.resumeBody || { paymentId: session.paymentId }, normalized: { inputHash: session.inputHash }, pricing, idempotencyKey: originalKey });
+  if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  return advanceGeneration({ request, env, auth, sessionId, idempotencyKey: originalKey, access, pricing });
+
 }
 
 async function handleResult(request, env, pathId = "") {
   const url = new URL(request.url);
   const rawId = pathId || url.searchParams.get("attemptId") || url.searchParams.get("id") || "";
   const resultId = clean(decodeURIComponent(rawId), 120);
-  if (!resultId) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
+
   // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 로그아웃 유발 401/하드 500이
   // 아니라 재시도 가능한 503으로 흘려보내 클라가 계속 폴링하도록 한다(네오/찻집과 동일한 완충).
   let auth = null;
@@ -1158,22 +1024,15 @@ async function handleResult(request, env, pathId = "") {
   await connectDb(env);
   const consultation = await NakshatraAiConsultation.findOne({
     userId: auth.userId,
-    $or: [{ id: resultId }, { idempotencyKey: resultId }],
+    ...(resultId ? { $or: [{ id: resultId }, { idempotencyKey: resultId }] } : { status: { $in: ["generating", "delivery_pending"] } }),
   }).lean();
   if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
 
   const status = clean(consultation.status);
-  if (status === "generating") {
-    return json(
-      {
-        ok: true,
-        sessionId: clean(consultation.id),
-        status: "generating",
-        natal: consultation.factSummary?.identity || null,
-        message: "두 개의 별 언어를 한 사람의 이야기로 엮는 중이에요.",
-      },
-      { status: 202, headers: { "Retry-After": "3" } },
-    );
+  if (["generating", "delivery_pending"].includes(status)) {
+    const access = await resolveStartAccess({ request, env, auth, body: consultation.llmMeta?.resumeBody || { paymentId: consultation.paymentId }, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
+    if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    return json(publicSession(consultation), { status: 202, headers: { "Retry-After": "3" } });
   }
   if (status === "generation_failed" || status === "failed") {
     const failCode = clean(consultation.generationError?.code);
@@ -1200,6 +1059,7 @@ export async function handleNakshatraAiRoutes(request, env = {}) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[nakshatra-ai]", clean(error?.stack || error?.message || error, 1200));
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(다른 AI 라우트와 동일 정본).
     if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
