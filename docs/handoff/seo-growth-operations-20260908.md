@@ -1,45 +1,31 @@
 ---
 status: active
-updated: 2026-09-08
-next: PR 1841 최신 CI 확인 후 잔여 현지화와 CMP 증거 확인
+updated: 2026-09-14
+next: 추가 숙요 관계 검색어별 페이지와 표본을 확인하고 검증된 콘텐츠 개선부터 진행
 ---
 
 # SEO Growth 후속 확인
 
-## 지금 상태
+작업 디렉터리: D:\Development\code-destiny (main). 이전 워크트리/PR #1841 지침은 폐기한다.
+마지막 구현 커밋: 6065e9c6ac9848a87c4cc365dd998ce4a027602d. 이 문서 커밋은 같은 main에 전달하며 최종 push/CI 결과는 해당 HEAD로 확인한다.
 
-- cwd: `D:\Development\code-destiny-seo-growth`, branch: `codex/seo-growth-operations-20260908`
-- PR: https://github.com/rei1237/codedestiny/pull/1841 — Ready, 미병합. 마지막 코드 푸시 `676324e7a09c346f795026234167e71372a30002`; 이후 문서 커밋은 PR HEAD 확인.
-- main `1d9d19d085e6ac39960f960c26d969a907cdbf32`까지 통합(모바일 UI #1824 보존). 운영 반영은 하지 않았다.
+## 확인과 수정
 
-## 정본
+9/14 로그인 실측: GSC 3개월 31클릭/377노출/8.2%, 최근28일 8/115/7%. 색인276은 여전히9/4 갱신값. Naver9/13 최근30일 약1.4천/13.7만/1%, 중복제목1643·설명1642(진단9/12). AdSense low value 주의 필요 유지. 구체적인 거절 URL은 제시되지 않음.
 
-`docs/seo/GROWTH_OPERATIONS.md`: 계정 실측·우선순위·63/100 점수 근거·검사 범위.
-`docs/seo/SEO_STATE.json`: 3개월 GSC 기준값과 다음 행동.
-`docs/seo/outreach/candidates.json`: 후보5개·맞춤 초안, 발송0.
+관측일 또는 집계 종료일이 8일 넘으면 자동 Quick Win 추천을 보류한다. 이전 수치는 SEO_STATE.json.history에 보존. 후보5개 재검수·문의경로 보완, 발송0·신규획득 미확인. 예약 지침은 main·targeted검사·CI로 갱신. 다음9/21 09:20KST, GitHub일일/주간/월간도 활성.
 
 ## 검증
 
-fc428f90 통합 코드에서 build:cf, strict 감사(805 HTML/488 sitemap/오류0), 산출물 링크 그래프 감사0건, 48개 mock 브라우저 표본(360/390/430/1280px) 통과. 집중 테스트13개와 public mirror freshness 통과. 홈 공통 키는 비색인 지원 언어7개까지 번역했고, 12개 사전·공개 parity·런타임·마케팅 사전 검사가 통과했다. 직전 c1 기반 check:fast는 Node958/Jest2422 통과. 최신 코드 CI의 빌드·타입·Critical·결제 가드는 통과했고 Static guards의 문서 frontmatter 누락을 후속 커밋으로 고쳤다. 최종 CI는 PR에서 다시 확인한다.
+SEO mock검사6개 통과, growth 출력11개 작은표본/후보5개/발송0. 공개19랜딩·사이트맵1264개경로 검사0문제. 예약작업최근3회성공. check:fast는 계획에 따라 자동확대된다. 최종 로그 seo-qa/operations/check-fast-20260914.log 및 main CI로 판정한다. 운영배포·실LLM·결제·DB쓰기·광고활성화·재신청 없음.
 
-로그: `seo-qa/build.log`, `complete.log`, `artifacts.log`, `mobile-smoke.log`, `mirror-final.log`.
+## 남은 확인
 
-1d9d19d 통합 후 공통 사전·집중 테스트13개는 통과했다. 새 빌드/CI 결과는 PR HEAD와 로그에서 확인한다.
-
-## 남은 작업
-
-1. 최신 HEAD CI 성공 확인. 사용자 승인 없는 병합·배포 금지.
-2. 배포 후 한국어 정책3개(`/privacy/`, `/terms/`, `/contact/`) 반환 hreflang과 해외 홈 확인.
-3. 홈 초대 보상 안내·동적 프로필·상담 상태의 잔여 번역. 월정석100/일500/30일 의미 유지. 번체 신뢰 링크의 한국어 이동 확인.
-4. 인증 CMP 게시, EEA/UK/Switzerland 실제 동의 전후 광고 동작 확인. 재신청은 실행하지 않았다.
-5. GSC 최근28일 Query–Page 교차표, 미색인611개 중 중요 정본 표본, 이미지/내부링크 HTTP, field CWV 조사. noindex/404 숫자로 일괄 삭제하지 않는다.
-
-## 자동 운영
-
-heartbeat `code-destiny-seo-growth`: 월요일09:20KST, 다음9/14. GitHub `SEO Operations`는 기본 브랜치 합류 후 일일07:43/월요일08:19/매월1일09:37 실행. 외부 발송·실제 LLM·결제·운영DB 쓰기 없음. 미확인 지표를 채우지 않는다.
+1. 이전28일은9/135/6.7%/24.6위, 숙요점→/sukuyo/는0클릭/4노출/15.8위로 확인. 추가 숙요 관계 검색어 Query–Page 매칭. 작은표본만으로 글3~10개 수량을 채우지 않는다.
+2. Naver 내일 전갈자리·처녀자리·천칭자리 저CTR 검색의도 확인. 과거v쿼리 진단과 현재정본 구분.
+3. 일본어 비교자료/후보 편집적합성, CMP 게시·지역별동의·실광고 모바일 UX·field CWV. 63점은9/8 별도배점의 역사점수이며 전체승인준비완료 아님. 콘텐츠감사후 점수재산정.
+4. 월간 전체품질감사는10월. 상세정본 docs/seo/GROWTH_OPERATIONS.md, SEO_STATE.json, outreach/candidates.json 재사용.
 
 ## 재개
 
-```text
-D:\Development\code-destiny-seo-growth에서 D:\Development\code-destiny-seo-growth\docs\handoff\seo-growth-operations-20260908.md를 읽고, codex/seo-growth-operations-20260908 / PR #1841의 최신 HEAD CI를 확인한 뒤 잔여 현지화·CMP 증거 확인부터 이어서 진행하라.
-```
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\seo-growth-operations-20260908.md를 읽고, main 상태와 구현6065e9c6ac9848a87c4cc365dd998ce4a027602d 및 문서최신HEAD CI를 확인한 뒤 추가 숙요 관계 검색어 Query–Page 비교부터 이어서 진행하라.

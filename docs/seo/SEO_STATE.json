@@ -362,7 +362,7 @@
     "observedAt": "2026-09-14"
   },
   "nextActions": [
-    "GSC 동일 필터 이전 28일 비교 및 숙요 검색어별 페이지 확인 후 기존 글 개선",
+    "GSC 숙요점→/sukuyo/ 28일 4노출·15.8위 확인. 다른 숙요 관계 검색어의 Query–Page 매칭과 표본 누적 후 기존 글 개선",
     "네이버 내일 전갈자리·처녀자리·천칭자리의 낮은 CTR과 날짜별 검색 의도 대조",
     "일본어 비교 자료와 후보별 편집 적합성 확인; CMP 게시·광고 실동작 검증 전 재신청 보류"
   ],
@@ -448,7 +448,44 @@
     "impressions": 115,
     "ctr": 7,
     "averagePosition": 27,
-    "comparison": null
+    "comparison": {
+      "period": {
+        "start": "2026-07-18",
+        "end": "2026-08-14"
+      },
+      "organicClicks": 9,
+      "impressions": 135,
+      "ctr": 6.7,
+      "averagePosition": 24.6,
+      "note": "GSC 최근28일/이전기간 비교 UI 실측, 웹·국가전체·기기전체. 기간은 비교 대화상자 확인; 차트 접근성 날짜 라벨에는 Invalid Date 오류가 있었음."
+    },
+    "queryPages": [
+      {
+        "query": "숙요점",
+        "page": "https://code-destiny.com/sukuyo/",
+        "clicks": 0,
+        "impressions": 4,
+        "position": 15.8,
+        "evidence": "검색어 셀로 필터 후 페이지 표 1행 및 요약순위 확인",
+        "lowSample": true
+      }
+    ],
+    "pageComparison": [
+      {
+        "page": "/manse/",
+        "clicks": 3,
+        "previousClicks": 0,
+        "impressions": 17,
+        "previousImpressions": 2
+      },
+      {
+        "page": "/sukuyo/",
+        "clicks": 1,
+        "previousClicks": 0,
+        "impressions": 10,
+        "previousImpressions": 1
+      }
+    ]
   },
   "lastHealthCheck": {
     "observedAt": "2026-09-14",
