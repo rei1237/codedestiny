@@ -621,7 +621,7 @@ function attachQuestionFocusedFusionReading(result, context = {}) {
 
 // ── 4그룹 병렬 생성 ───────────────────────────────────────────────────
 // 그룹 하나의 LLM 대기 상한. 네 그룹이 병렬이라 1차 벽시계는 가장 느린 그룹 기준이다.
-const FUSION_GROUP_TIMEOUT_MS = 55000;
+const FUSION_GROUP_TIMEOUT_MS = 45000;
 // 🔴 1회로 고정한다(과거 2). callGeminiJsonWithRetry 내부 재시도는 FUSION_GENERATION_DEADLINE_MS
 //    예산을 전혀 보지 않고 timeoutMs 를 그대로 또 쓴다 — attempts:2 면 그룹 하나가 최악
 //    timeoutMs×2(≈110초)를 예산 확인 없이 써서, 데드라인 안쪽으로 맞춘 클램프(runGroup 의
@@ -634,8 +634,8 @@ const FUSION_GROUP_ATTEMPTS = 1;
 // 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
 const FUSION_GROUP_RETRY_RATIO = 0.8;
 // 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산.
-export const FUSION_GENERATION_DEADLINE_MS = 120000;
-const FUSION_GROUP_RETRY_MIN_BUDGET_MS = 25000;
+export const FUSION_GENERATION_DEADLINE_MS = 82000;
+const FUSION_GROUP_RETRY_MIN_BUDGET_MS = 40000;
 // 🔴 마지막 LLM 호출이 끝난 뒤에도 남아 있어야 하는 예산. 이 구간에서 2만자 폴백 조립 +
 //    2만자 JSON.stringify 검증 + 100KB Mongo upsert + 100KB SSE 전송이 전부 일어난다.
 //    예전 값 8초로는 이 꼬리가 안 끝나 데드라인을 넘겼고, 그러면 화면이 결과 없이 멈췄다.
@@ -658,7 +658,7 @@ function fusionGroupTokens(group, env = {}) {
 /** 그룹 1회 호출의 LLM 대기 상한. FUSION_FORTUNE_LLM_TIMEOUT_MS 로 덮을 수 있다. */
 function fusionGroupTimeoutMs(env = {}) {
   const override = Number(env.FUSION_FORTUNE_LLM_TIMEOUT_MS);
-  if (Number.isFinite(override) && override > 0) return Math.min(90000, Math.max(20000, Math.round(override)));
+  if (Number.isFinite(override) && override > 0) return Math.min(FUSION_GROUP_TIMEOUT_MS, Math.max(20000, Math.round(override)));
   return FUSION_GROUP_TIMEOUT_MS;
 }
 
@@ -1008,13 +1008,13 @@ export async function generateFusionFortuneWithRealLLM({
     Object.assign(merged, value);
     if (typeof onCheckpoint === "function") {
       const snapshot = { ...prior, ...merged };
-      checkpointQueue = checkpointQueue.then(() => onCheckpoint(snapshot));
+      checkpointQueue = checkpointQueue.catch(() => {}).then(() => onCheckpoint(snapshot));
       await checkpointQueue;
     }
     if (group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis" });
   };
   const groupTimeoutMs = fusionGroupTimeoutMs(env);
-  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress } = {}) => {
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
     //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지
@@ -1028,7 +1028,7 @@ export async function generateFusionFortuneWithRealLLM({
       return { ok: true, group, value: saved };
     }
     const remainingBeforeCall = remainingMs();
-    if (remainingBeforeCall <= 0) {
+    if (remainingBeforeCall <= FUSION_TAIL_RESERVE_MS + 1000) {
       console.warn("[fusion-fortune-group-skipped-deadline]", { requestId: text(requestId, 120), stage: stageNumber, sectionGroup: group.id, remainingMs: remainingBeforeCall });
       return { ok: false, group, issue: "deadline_exhausted" };
     }
@@ -1083,7 +1083,7 @@ export async function generateFusionFortuneWithRealLLM({
       && !group.systems.every((system) => validFusionSignals(picked[`${system}Section`], system, context))) {
       return { ok: false, group, issue: "invalid_evidence_reference" };
     }
-    await checkpoint(group, picked);
+    if (persist) await checkpoint(group, picked);
     progress.done += 1;
     await emitFusionFortuneStage(onStage, "compose", { generationStage: stageNumber, group: group.id, phase: progress.phase, completedGroups: progress.done, totalGroups: progress.total });
     return { ok: true, group, value: picked };
@@ -1105,6 +1105,8 @@ export async function generateFusionFortuneWithRealLLM({
 
   try {
     const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
+    const failedStorage = settled.find(outcome => outcome.status === "rejected" && outcome.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
+    if (failedStorage) throw failedStorage.reason;
     settled.forEach((outcome, index) => {
       const group = groups[index];
       if (outcome.status !== "fulfilled" || !outcome.value.ok) {
@@ -1143,9 +1145,10 @@ export async function generateFusionFortuneWithRealLLM({
           thinGroups.includes(group) ? buildFusionEvidenceInstruction(evidenceTokens.get(group.id)) : "",
         ].filter(Boolean).join("\n\n"),
         progress: repairProgress,
+        persist: false,
       })));
-      retried.forEach((outcome, index) => {
-        if (outcome.status !== "fulfilled" || !outcome.value.ok) return;
+      for (const [index, outcome] of retried.entries()) {
+        if (outcome.status !== "fulfilled" || !outcome.value.ok) continue;
         const group = retryTargets[index];
         const previousChars = countFusionGroupChars(merged, group);
         const nextChars = countFusionGroupChars(outcome.value.value, group);
@@ -1154,11 +1157,11 @@ export async function generateFusionFortuneWithRealLLM({
         // 그 이유로 부른 재생성이 "몇 자 짧다"는 이유로 전부 버려져 이 물결이 통째로 헛돈다.
         const reducedDuplicates = countFusionGroupDuplicates(collectFusionCrossSectionDuplicates({ ...prior, ...merged, ...outcome.value.value }), group) < countFusionGroupDuplicates(duplicates, group);
         const gainedEvidence = thinGroups.includes(group) && !isFusionGroupEvidenceThin(outcome.value.value, group, evidenceTokens.get(group.id));
-        if (nextChars <= previousChars && !((reducedDuplicates || gainedEvidence) && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) return;
-        Object.assign(merged, outcome.value.value);
+        if (nextChars <= previousChars && !((reducedDuplicates || gainedEvidence) && nextChars >= previousChars * FUSION_GROUP_RETRY_RATIO)) continue;
+        await checkpoint(group, outcome.value.value);
         const stillFailedIndex = failedGroups.indexOf(group);
         if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
-      });
+      }
     } else if (retryTargets.length) {
       console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), stage: stageNumber, remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
     }
@@ -1247,7 +1250,7 @@ export function createMongoFusionFortuneStore() {
         // 강제 종료해 release()가 호출되지 못한 경우다 — 결제 증빙이 requestId 에 묶여 있어,
         // 여기서 계속 막으면 이미 결제한 사용자가 만료 TTL(10분)까지 결과를 받을 길이 사라진다.
         const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
-          { requestId, $or: [{ status: "released" }, { status: "reserved", updatedAt: { $lt: staleReservedBefore } }] },
+          { requestId, userId: objectIdOrString(userId), $or: [{ status: "released" }, { status: "reserved", updatedAt: { $lt: staleReservedBefore } }] },
           { $set: { status: "reserved", dateKey, expiresAt } },
         ).lean();
         if (!reopened) {
@@ -1260,10 +1263,10 @@ export function createMongoFusionFortuneStore() {
       }
     },
     async release(reservation) {
-      await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "released" } });
+      await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), status: "reserved" }, { $set: { status: "released" } });
     },
     async commit(reservation) {
-      const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, status: "reserved" }, { $set: { status: "completed" } });
+      const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), status: "reserved" }, { $set: { status: "completed" } });
       return Number(attempt.modifiedCount || 0) === 1 ? { committed: true } : null;
     },
   };

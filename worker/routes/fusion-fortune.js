@@ -101,8 +101,7 @@ function canGenerateFusionFortune(env) {
 /**
  * 완성된 결과를 보관본으로 남긴다.
  *
- * 🔴 저장 실패가 배달을 막으면 안 된다 — 결제는 이미 끝났고, 사용자가 기다리는 것은
- * 3만원짜리 결과지 저장 성공이 아니다. 실패는 로그만 남기고 빈 id 를 돌려준다.
+ * 저장·재조회가 확인된 결과만 완료로 전달한다. 저장 장애는 같은 결제 키로 재시도한다.
  */
 async function persistFusionDelivery({ userId, input, delivery }) {
   try {
@@ -338,7 +337,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         // 1단계면 partial — 클라이언트가 같은 requestId 로 stage 2 를 이어서 요청한다.
         stage: Number(result.stage) || streamStage,
         status: result.stageStatus || "completed",
-        // 클라이언트가 ?cid= 딥링크를 남기는 데 쓴다. 저장이 실패했으면 빈 문자열이다.
+        // 클라이언트가 저장된 결과의 ?cid= 딥링크를 남기는 데 쓴다.
         consultationId,
         qualityTier: result.qualityTier || undefined,
         qualityNotice: result.qualityNotice || undefined,
@@ -385,9 +384,9 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       const body = await readJson(request);
       await connectDb(env);
       const requestId = body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key");
-      // 2단계 생성. stage 를 지정하면 그 단계만, 없으면 1→2 를 이어서 돈다(스트림과 같은 계약).
+      // 한 요청에는 한 단계만 실행한다. 다음 단계도 같은 결제 요청 ID를 사용한다.
       const requestedStage = Number(body?.stage);
-      const stages = requestedStage === 1 || requestedStage === 2 ? [requestedStage] : [1, 2];
+      const stages = [requestedStage === 2 ? 2 : 1];
       let prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
       let result = null;
       let consultationId = "";
@@ -408,16 +407,14 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
             const id = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
             if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
           },
+          onDelivery: async (delivery) => {
+            consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
+          },
         });
         if (!result?.ok) return respond(result);
-        consultationId = await persistFusionDelivery({
-          userId: String(auth.userId),
-          input: body,
-          delivery: { requestId: result.requestId, result: result.result, generationSource: result.generationSource, qualityTier: result.qualityTier, qualityNotice: result.qualityNotice, stage: result.stage },
-        });
         prior = { result: result.result, generationSource: result.generationSource };
       }
-      return json({ ...result, consultationId, status: result.stageStatus || "completed" });
+      return json({ ...result, consultationId, nextStage: result.stage === 1 ? 2 : null, status: result.stageStatus || "completed" }, { status: result.stage === 1 ? 202 : 200 });
     }
 
     if (method === "POST" && path === "/generate/stream") {
