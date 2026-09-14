@@ -26,6 +26,7 @@ next: "sukuyo-useo, vedic-retrograde-planets-practical-decoding, career-luck-int
 
 ## 검증
 
+- 구현 커밋: `7af0e16fcf5cc67eae58836a3299b818209241d8`
 - `node scripts/build-editorial-review-packet.mjs`: 24편 검수 묶음 생성, 승인 생성 0.
 - `node scripts/verify-editorial-manuscripts.mjs`: 24편 해시·제목·검수/광고 미승격 확인.
 - `npm run verify:adsense-route-policy`: 통과.
@@ -40,4 +41,4 @@ next: "sukuyo-useo, vedic-retrograde-planets-practical-decoding, career-luck-int
 
 작업 디렉터리: `D:\Development\code-destiny`
 
-재개 지시: `D:\Development\code-destiny`에서 이 문서를 읽고 main의 최종 전달 SHA와 CI를 확인한 뒤 `sukuyo-useo` 품질 감사부터 이어간다. 사람의 실제 확인 없이 인간 검수나 광고 허용을 부여하지 않는다.
+재개 지시: `D:\Development\code-destiny`에서 이 문서를 읽고 main이 clean한지와 구현 커밋 `7af0e16fcf5cc67eae58836a3299b818209241d8` 및 최신 main CI를 확인한 뒤 `sukuyo-useo` 품질 감사부터 이어간다. 사람의 실제 확인 없이 인간 검수나 광고 허용을 부여하지 않는다.
