@@ -1351,7 +1351,9 @@ function publicSession(doc) {
     methodSummary: raw?.methodSummary || null,
     initialBriefing: raw?.initialBriefing || null,
     realityCheck: raw?.realityCheck || null,
-    refinedOrder: raw?.refinedOrder || null,
+    refinedOrder: raw?.refinementStatus === "generating" ? null : raw?.refinedOrder || null,
+    pendingRefinedOrder: raw?.refinementStatus === "generating" && Object.keys(raw?.llmMeta?.refinement?.sections || {}).length ? mergeNeoRefinedSections(Object.values(raw.llmMeta.refinement.sections), raw) : null,
+    refinementProgress: Object.keys(raw?.llmMeta?.refinement?.sections || {}),
     refinementStatus: clean(raw?.refinementStatus),
     generationError: raw?.generationError || null,
     refinementError: raw?.refinementError || null,
@@ -1591,7 +1593,7 @@ async function handleEnsureAccess(request, env) {
 
 // A request owns one wave. Successful siblings are persisted before the next wave starts.
 function neoBody(value, key = "") {
-  if (/^(title|operationTitle|name|label|method|selectedMethod|documentType|area|palace|coreDiagnosis|repeatedPattern|currentProblem|nextStepPrompt)$/i.test(key)) return "";
+  if (/^(title|operationTitle|name|label|status|method|selectedMethod|documentType|area|palace|coreDiagnosis|repeatedPattern|currentProblem|nextStepPrompt)$/i.test(key)) return "";
   if (typeof value === "string") return value;
   if (Array.isArray(value)) return value.map(item => neoBody(item)).join("\n");
   if (value && typeof value === "object") return Object.entries(value).map(([name, item]) => neoBody(item, name)).filter(Boolean).join("\n");
@@ -1802,116 +1804,89 @@ async function handleResult(request, env, pathId = "") {
   return json({ ...publicSession(consultation), badge });
 }
 
+function neoRefinedSectionReady(section, row, consultation) {
+  if (!row?.ok || !neoShape(row.parsed, section.schema) || hasForbiddenResultText(row.parsed)) return false;
+  for (const [path, count] of Object.entries(section.counts || {})) {
+    const list = path.split(".").reduce((value, key) => value?.[key], row.parsed);
+    if (!Array.isArray(list) || list.length < count) return false;
+  }
+  const text = neoBody(mergeNeoRefinedSections([row], consultation));
+  return countPaidReportBodyChars(text) >= section.minChars && !hasRepeatedReportPassage(text);
+}
+function pendingNeoRefinement(doc) {
+  return json({ ...publicSession(doc), resultId: doc.id, retryable: true }, { status: 202, headers: { "Retry-After": "3" } });
+}
 async function handleRefine(request, env) {
-  const body = await readJson(request);
-  const normalized = normalizeRealityCheckInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
+  let body = await readJson(request);
+  const sessionId = clean(body.sessionId || body.consultationId || body.id, 120);
+  if (!sessionId) return invalidInput(RESULT_NOT_FOUND_MESSAGE);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
-
   await connectDb(env);
-  // 🔴 withMongoRetry 없이 생짜로 부르면 풀 재연결 시점의 일시 오류가 그대로 아래 catch 로 떨어져
-  // "LLM 실패"로 오표시된다. 이 파일의 다른 DB 접근 8곳은 전부 감싸고 있는데 여기만 빠져 있었다.
-  const existing = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOne({
-    id: normalized.sessionId,
-    userId: auth.userId,
-    status: "completed",
-  }).lean());
-  if (!existing?.initialBriefing) {
-    return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
-  }
-  if (existing?.refinedOrder && existing?.realityCheck?.answerHash === normalized.realityCheck.answerHash) {
-    return json(publicSession(existing));
-  }
-  // 같은 답변으로 이미 생성이 돌고 있으면 새로 기동하지 않고 202 로 흡수한다 — 없으면 사용자가
-  // 재시도할 때마다 8챕터 생성이 통째로 중복 기동돼 LLM 비용과 쓰기 경합이 같이 늘어난다.
-  // /start 의 GENERATION_FRESHNESS_MS 흡수(위 handleStart)와 같은 규칙이다.
-  if (
-    existing?.refinementStatus === "generating"
-    && existing?.realityCheck?.answerHash === normalized.realityCheck.answerHash
-    && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATION_FRESHNESS_MS
-  ) {
-    return json(
-      { ok: true, sessionId: existing.id, refinementStatus: "generating", message: "수정 작전 명령서를 다시 쓰는 중이다." },
-      { status: 202, headers: { "Retry-After": "3" } },
-    );
-  }
-
-  await withMongoRetry(env, () => NeoOperationRoomConsultation.updateOne(
-    { id: normalized.sessionId, userId: auth.userId },
-    {
-      $set: {
-        refinementStatus: "generating",
-        refinementError: null,
-        realityCheck: normalized.realityCheck,
-      },
-    },
-  ));
-
+  const existing = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId, status: "completed" }).lean());
+  if (!existing?.initialBriefing) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
+  if (Object.keys(body).every(key => ["sessionId", "consultationId", "id"].includes(key))) body = { sessionId, ...(existing.llmMeta?.refinement?.realityCheck || existing.realityCheck || {}) };
+  const normalized = normalizeRealityCheckInput(body);
+  if (!normalized.ok) return invalidInput(normalized.message);
+  if (existing.refinedOrder && existing.refinementStatus !== "generating" && existing.realityCheck?.answerHash === normalized.realityCheck.answerHash) return json(publicSession(existing));
+  const resumeBody = existing.llmMeta?.resumeBody || { idempotencyKey: existing.idempotencyKey, paymentId: existing.paymentId };
+  const access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: existing.inputHash }, pricing: getPricing(), idempotencyKey: existing.idempotencyKey });
+  if (!access.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+  const lockToken = crypto.randomUUID();
+  let doc;
   try {
-    const generated = await generateRefinedOrder(env, existing, normalized.realityCheck);
-    const historyEntry = {
-      version: 2,
-      documentType: "refined_order",
-      operationTitle: generated.refinedOrder.operationTitle,
-      realityCheck: normalized.realityCheck,
-      createdAt: new Date().toISOString(),
-    };
-    const updated = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOneAndUpdate(
-      { id: normalized.sessionId, userId: auth.userId },
-      {
-        $set: {
-          refinedOrder: generated.refinedOrder,
-          realityCheck: normalized.realityCheck,
-          refinementStatus: "completed",
-          refinementError: null,
-          llmMeta: {
-            ...(existing.llmMeta || {}),
-            refinedProvider: generated.provider,
-            refinedModel: generated.model,
-            refinedAt: new Date().toISOString(),
-          },
-        },
-        $push: {
-          versionHistory: historyEntry,
-          messages: {
-            $each: [
-              { role: "user", content: JSON.stringify(normalized.realityCheck), createdAt: new Date() },
-              { role: "assistant", content: JSON.stringify(generated.refinedOrder), createdAt: new Date() },
-            ],
-          },
-        },
-      },
-      { new: true },
-    ).lean());
-    return json(publicSession(updated));
-  } catch (error) {
-    // 🔴 DB 일시 장애를 LLM 실패로 적으면 두 가지가 같이 망가진다 — 사용자는 "운세 생성 실패"를 보고,
-    // refinementStatus 에도 LLM 실패로 남아 원인 추적이 어긋난다. 최상위 catch 가 하던 구분을
-    // 여기서도 한다(이 try/catch 가 먼저 삼켜 거기까지 가지 않는다).
-    const isInfra = isTransientMongoError(error) || isAuthDbInfraError(error);
-    await NeoOperationRoomConsultation.updateOne(
-      { id: normalized.sessionId, userId: auth.userId },
-      {
-        $set: {
-          refinementStatus: "generation_failed",
-          refinementError: {
-            code: clean(error?.code || (isInfra ? "DB_DEGRADED" : "REFINEMENT_FAILED"), 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
-          },
-        },
-      },
-    ).catch(() => {});
-    if (isInfra) {
-      return json({
-        ok: false,
-        retryable: true,
-        reason: "DB_DEGRADED",
-        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
-      }, { status: 503 });
+    doc = await NeoOperationRoomConsultation.findOneAndUpdate({ id: sessionId, userId: auth.userId, status: "completed", $or: [
+      { "llmMeta.refineLockedAt": { $exists: false } }, { "llmMeta.refineLockedAt": null }, { "llmMeta.refineLockedAt": { $lt: new Date(Date.now() - GENERATION_FRESHNESS_MS) } },
+    ] }, { $set: { "llmMeta.refineLockToken": lockToken, "llmMeta.refineLockedAt": new Date() } }, { new: true }).lean();
+  } catch { throw resultStorageUnavailable(sessionId); }
+  if (!doc) return pendingNeoRefinement(existing);
+  const filter = { id: sessionId, userId: auth.userId, status: "completed", "llmMeta.refineLockToken": lockToken };
+  try {
+    const previous = doc.llmMeta.refinement;
+    const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, sections: {}, attempts: {} };
+    const missing = NEO_REFINED_SECTIONS.filter(section => !neoRefinedSectionReady(section, state.sections[section.id], doc));
+    if (missing.some(section => Number(state.attempts[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (missing.length) {
+      const selected = missing.slice(0, 4);
+      const attempts = { ...state.attempts };
+      selected.forEach(section => { attempts[section.id] = Number(attempts[section.id] || 0) + 1; });
+      doc = await saveNeoDelivery(filter, { refinementStatus: "generating", refinementError: null, llmMeta: { ...doc.llmMeta, refinement: { ...state, attempts } } }, sessionId);
+      const context = { selectedMethod: doc.selectedMethod, topic: doc.topic, intensity: doc.intensity, question: doc.question, methodSummary: doc.methodSummary,
+        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing) };
+      let queue = Promise.resolve();
+      const outcomes = await Promise.allSettled(selected.map(async section => {
+        const prompt = buildNeoRefinedSectionPrompt(section, context) + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars * 1.2)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
+        const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
+        if (!neoRefinedSectionReady(section, row, doc)) return;
+        const write = queue.catch(() => {}).then(async () => {
+          const sections = { ...doc.llmMeta.refinement.sections, [section.id]: row };
+          if (hasRepeatedReportPassage(neoBody(mergeNeoRefinedSections(Object.values(sections), doc)))) return;
+          doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, refinement: { ...doc.llmMeta.refinement, sections } } }, sessionId);
+        });
+        queue = write;
+        await write;
+      }));
+      const failure = outcomes.find(result => result.status === "rejected");
+      if (failure) throw failure.reason;
     }
+    if (NEO_REFINED_SECTIONS.some(section => !neoRefinedSectionReady(section, doc.llmMeta.refinement.sections[section.id], doc))) return pendingNeoRefinement(doc);
+    const refinedOrder = mergeNeoRefinedSections(Object.values(doc.llmMeta.refinement.sections), doc);
+    let freshAccess;
+    try { freshAccess = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: doc.inputHash }, pricing: getPricing(), idempotencyKey: doc.idempotencyKey }); }
+    catch { throw resultStorageUnavailable(sessionId); }
+    if (!freshAccess.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
+    const now = new Date();
+    doc = await saveNeoDelivery(filter, { refinedOrder, realityCheck: doc.llmMeta.refinement.realityCheck, refinementStatus: "completed", refinementError: null,
+      versionHistory: [...(doc.versionHistory || []), { version: 2, documentType: "refined_order", operationTitle: refinedOrder.operationTitle, realityCheck: doc.llmMeta.refinement.realityCheck, createdAt: now.toISOString() }],
+      messages: [...(doc.messages || []), { role: "user", content: JSON.stringify(doc.llmMeta.refinement.realityCheck), createdAt: now }, { role: "assistant", content: JSON.stringify(refinedOrder), createdAt: now }],
+      llmMeta: { ...doc.llmMeta, refinedAt: now.toISOString(), refineLockToken: "", refineLockedAt: null } }, sessionId);
+    return json(publicSession(doc));
+  } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") throw error;
+    await saveNeoDelivery(filter, { refinementStatus: "generation_failed", refinementError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
+  } finally {
+    await NeoOperationRoomConsultation.updateOne(filter, { $set: { "llmMeta.refineLockToken": "", "llmMeta.refineLockedAt": null } }).catch(() => {});
   }
 }
 

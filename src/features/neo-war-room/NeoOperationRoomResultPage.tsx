@@ -108,6 +108,9 @@ type NeoResultSession = {
   question?: string;
   initialBriefing?: NeoBriefing | null;
   refinedOrder?: NeoRefinedOrder | null;
+  pendingRefinedOrder?: NeoRefinedOrder | null;
+  refinementStatus?: string;
+  refinementProgress?: string[];
   // 궁합 모드 요약. 상대의 생년월일·출생지는 응답에 없다(상담 문서에만 남는다).
   relationshipMode?: string;
   relationshipStatus?: string;
@@ -154,9 +157,6 @@ const realityCheckOptions = [
 
 const NEO_RESULT_PREVIEW_MODES = new Set<NeoResultPreviewMode>(["loading", "briefing", "reality", "refined"]);
 const NEO_LETTER_BADGE_COST = 5;
-// 1차 브리핑 로딩과 2차 명령서 폴링이 같은 예산을 쓴다. 4s×60=240s, CF rate-limit(10s당 100회) 여유 안.
-const RESULT_POLL_INTERVAL_MS = 4000;
-const RESULT_POLL_MAX_ATTEMPTS = 60;
 const NEO_RESULT_BADGE_COLUMNS = 4;
 const NEO_RESULT_BADGE_ROWS = 3;
 const NEO_RESULT_BADGE_COUNT = 10;
@@ -483,13 +483,18 @@ export default function NeoOperationRoomResultPage() {
       }
       setError("");
       try {
-        const data = await receiveNeoBriefing<NeoResultSession>(attemptId, partial => {
+        let data = await receiveNeoBriefing<NeoResultSession>(attemptId, partial => {
           if (!isCurrent()) return;
           setSession(partial); setLoading(false);
           if (!attemptId && partial.sessionId) window.history.replaceState(null, "", `/neo-operation-room/result?attemptId=${encodeURIComponent(partial.sessionId)}`);
         }, isCurrent);
         if (!isCurrent()) return;
         setSession(data);
+        if (data.refinementStatus === "generating" && data.sessionId) {
+          data = await receiveNeoBriefing<NeoResultSession>(data.sessionId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement");
+          if (!isCurrent()) return;
+          setSession(data);
+        }
         setSelectedChecks(data.realityCheck?.selectedChecks || []);
         setFreeform(data.realityCheck?.freeform || "");
         setShowRealityForm(!data.refinedOrder); setLoading(false);
@@ -504,6 +509,7 @@ export default function NeoOperationRoomResultPage() {
   }, [attemptId, localPreviewMode, recoveryEpoch, captureOwner, resultCopy.loginRequiredError, resultCopy.pollTimeoutError]);
 
   async function handleRefine() {
+    const isCurrent = captureOwner();
     if (!session?.sessionId) return;
     if (!selectedChecks.length && freeform.trim().length < 4) {
       setRefineError(resultCopy.refineMissingAnswerError);
@@ -547,6 +553,7 @@ export default function NeoOperationRoomResultPage() {
         // 수 있다 — 단발 실패로 끝내면 사용자는 "재시도를 계속해야 나온다"를 겪는다.
         response = null;
       }
+      if (!isCurrent()) return;
       if (response?.ok && (data as { ok?: boolean }).ok && (data as { refinedOrder?: unknown }).refinedOrder) {
         setSession(data as NeoResultSession);
         setShowRealityForm(false);
@@ -559,35 +566,20 @@ export default function NeoOperationRoomResultPage() {
         throw new Error(asErrorMessage(data) || resultCopy.refineGenericError);
       }
       const refined = await pollRefinedOrder(session.sessionId);
+      if (!isCurrent()) return;
       setSession(refined);
       setShowRealityForm(false);
     } catch (caught) {
-      setRefineError(caught instanceof Error ? caught.message : resultCopy.refineGenericError);
+      if (isCurrent()) setRefineError(caught instanceof Error ? caught.message : resultCopy.refineGenericError);
     } finally {
-      setRefining(false);
+      if (isCurrent()) setRefining(false);
     }
   }
 
   // 1차 브리핑 로딩이 쓰는 예산(4s × 60)과 같다. refinedOrder 가 붙거나 서버가 실패를 확정할 때까지 본다.
   async function pollRefinedOrder(resultId: string): Promise<NeoResultSession> {
-    for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
-      await new Promise((resolve) => window.setTimeout(resolve, RESULT_POLL_INTERVAL_MS));
-      let response: Response;
-      let data: Record<string, unknown>;
-      try {
-        response = await authFetch(`/api/neo-operation-room/result?attemptId=${encodeURIComponent(resultId)}`);
-        data = await response.json().catch(() => ({}));
-      } catch {
-        // 일시적 네트워크 오류 — 다음 회차에 다시 본다(여기서 던지면 폴링 자체가 죽는다).
-        continue;
-      }
-      if (data.ok && data.refinedOrder) return data as NeoResultSession;
-      if (data.refinementStatus === "generation_failed") {
-        throw new Error(asErrorMessage(data.refinementError) || resultCopy.refineGenericErrorRetry);
-      }
-      if (response.status === 401) throw new Error(resultCopy.loginRequiredError);
-    }
-    throw new Error(resultCopy.refinePendingError);
+    const isCurrent = captureOwner();
+    return receiveNeoBriefing<NeoResultSession>(resultId, partial => { if (isCurrent()) setSession(partial); }, isCurrent, "", "refinement");
   }
 
   async function handleUnlockNeoBenefits() {
@@ -709,7 +701,7 @@ export default function NeoOperationRoomResultPage() {
   }
 
   const briefing = session?.initialBriefing || null;
-  const refined = session?.refinedOrder || null;
+  const refined = session?.refinedOrder || session?.pendingRefinedOrder || null;
   const compatSummary: NeoCompatSummary | null = session?.compatScores
     ? {
         scores: session.compatScores,
@@ -717,7 +709,7 @@ export default function NeoOperationRoomResultPage() {
         partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true,
       }
     : null;
-  const isGenerating = loading || Boolean(session && session.status !== "completed" && session.status !== "generation_failed");
+  const isGenerating = loading || Boolean(session && session.status !== "completed" && session.status !== "generation_failed") || session?.refinementStatus === "generating";
   const isFailed = Boolean(error) || session?.status === "generation_failed";
   const heroOperationTitle = refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle;
   const heroStatus = refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone;
@@ -798,7 +790,7 @@ export default function NeoOperationRoomResultPage() {
             imageClassName={styles.stateNeoImage}
           />
           <h2>{resultCopy.generatingTitle}</h2>
-          <p>{session?.completedChapters?.length || 0} / 14</p>
+          <p>{session?.refinementStatus === "generating" ? `${session.refinementProgress?.length || 0} / 8` : `${session?.completedChapters?.length || 0} / 14`}</p>
           <p>{selectedMethod
             ? getNeoResultGeneratingBody(methodLabel(selectedMethod, dialogueLocale), dialogueLocale)
             : resultCopy.generatingBodyDefault}</p>

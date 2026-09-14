@@ -28,7 +28,13 @@ const model = {
   },
   find: () => ({ sort() { return this; }, limit() { return this; }, select() { return this; }, lean: async () => [] }),
   findOneAndUpdate: (filter, update) => {
-    if (fault && fault.kind !== "usage" && (fault.chapterCount ? Object.keys(update.$set.llmMeta?.sections || {}).length === fault.chapterCount : update.$set.status === fault.status)) {
+    if (fault?.refinementStatus && update.$set.refinementStatus === fault.refinementStatus) {
+      const current=fault; fault=null;
+      if(current.kind==='throw') throw new Error('mock refinement storage');
+      if(current.kind==='null') return query(null);
+      if(current.kind==='confirm') lostConfirmation=true;
+    }
+    if (fault && (fault.status || fault.chapterCount) && fault.kind !== "usage" && (fault.chapterCount ? Object.keys(update.$set.llmMeta?.sections || {}).length === fault.chapterCount : update.$set.status === fault.status)) {
       const current = fault; fault = null;
       if (current.kind === "throw") throw new Error("mock storage");
       if (current.kind === "null") return query(null);
@@ -51,7 +57,7 @@ function prose(seed, length) {
   for (let i = 0; value.replace(/\s/g, "").length < length; i++) value += `${seed}의 ${i}번째 관찰은 현재 생활에서 반복되는 선택을 돌아보고 작은 행동으로 확인하는 과정을 설명합니다. `;
   return value;
 }
-let definitions;
+let definitions, refinedDefinitions;
 beforeAll(async () => {
   const db = await import("../../worker/lib/db.js");
   const auth = await import("../../worker/lib/auth.js");
@@ -72,7 +78,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/service-execution-task.js", () => ({ startServiceExecution: async () => ({}), completeServiceExecution: async () => ({}), failServiceExecution: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
-  ({ NEO_INITIAL_SECTIONS: definitions } = await import("../../worker/lib/neo-operation-room-prompt.js"));
+  ({ NEO_INITIAL_SECTIONS: definitions, NEO_REFINED_SECTIONS: refinedDefinitions } = await import("../../worker/lib/neo-operation-room-prompt.js"));
   ({ handleNeoOperationRoomRoutes: route, __neoOperationRoomTestUtils: utils } = await import("../../worker/routes/neo-operation-room.js"));
 });
 function fixture(section) {
@@ -86,6 +92,7 @@ function fixture(section) {
     if(Array.isArray(value)) return value.map((item,i)=>walk(item,'',path+i,fill));
     if(value && typeof value==='object') return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,walk(v,k,path+k,fill)]));
     if(typeof value==='number') return value;
+    if(key === 'status') return '방향은 맞지만 부족하다';
     if(/^(title|operationTitle|name|label|method|area|palace)$/.test(key)) return "제목" + Array.from(section.id+path).map(c=>String.fromCharCode(0xac00+c.charCodeAt(0))).join("");
     if(!fill) { fields++; return value; }
     return prose(Array.from(section.id+path).map(c=>String.fromCharCode(0xac00+c.charCodeAt(0))).join(""), Math.ceil(section.minChars * 1.3 / fields));
@@ -97,7 +104,7 @@ beforeEach(() => {
  docs=[];fault=null;lostConfirmation=false;blocked=-1;mode='pass';userId=uid;usage=jest.fn();refund=jest.fn(async()=>({}));chart=jest.fn(async()=>({}));
  provider=jest.fn(async(_env,prompt,options)=>{
    expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
-   const section=definitions.find(row=>prompt.includes(`제목: ${row.title}\n`));
+   const section=[...definitions,...refinedDefinitions].find(row=>prompt.includes(`제목: ${row.title}\n`));
    return {ok:true,provider:'gemini',model:'fixture',text:JSON.stringify(fixture(section))};
  });
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
@@ -123,3 +130,10 @@ it('truncated output keeps the other sections and retries only the missing one',
 it('server discovery is owned and historical completed reports bypass new quality rules',async()=>{await start();let response=await route(new Request('https://mock.test/api/neo-operation-room/result'),{});expect(response.status).toBe(202);expect((await response.json()).initialBriefing).toBeTruthy();const id=docs[0].id;userId='other';expect((await route(new Request(`https://mock.test/api/neo-operation-room/result?attemptId=${id}`),{})).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].initialBriefing={old:'short'};blocked=1;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(4)});
 it('cancellation after generation prevents completion bookkeeping',async()=>{for(let i=0;i<3;i++)await start();const original=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const value=await original(...args);blocked=0;return value});expect((await start()).status).toBe(402);expect(docs[0].status).toBe('delivery_pending');expect(usage).not.toHaveBeenCalled()});
 it('overlapping requests acquire only one generation lease',async()=>{let release;const gate=new Promise(resolve=>{release=resolve});const original=provider.getMockImplementation();let enter;const entered=new Promise(resolve=>{enter=resolve});provider.mockImplementation(async(...args)=>{enter();await gate;return original(...args)});const first=start();await entered;expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4);release();expect((await first).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4)});
+
+async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
+async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
+it('refinement saves four sections per request and reuses the same answer',async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);expect((await refine({sessionId:docs[0].id,freeform:'이제 작은 선택부터 바꿔보겠습니다.'})).status).toBe(202);expect(Object.keys(docs[0].llmMeta.refinement.sections)).toHaveLength(4);const response=await refine();expect(await response.clone().json()).toMatchObject({refinementStatus:'completed'});expect(response.status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(docs[0].initialBriefing).toEqual(initial);expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(usage).toHaveBeenCalledTimes(1)});
+for(const kind of ['null','throw','confirm']) it(`refinement final ${kind} preserves the initial report and saved sections`,async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);await refine({sessionId:docs[0].id,freeform:'우선 작은 선택을 바꾸겠습니다.'});fault={refinementStatus:'completed',kind};const response=await refine();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(docs[0].status).toBe('completed');expect(docs[0].initialBriefing).toEqual(initial);const calls=provider.mock.calls.length;expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();expect(docs[0].versionHistory).toHaveLength(1)});
+it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<2;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(26);expect(refund).not.toHaveBeenCalled()});
+it('refinement lease, owner and revoked proof block extra provider calls',async()=>{await initialComplete();await refine({sessionId:docs[0].id,freeform:'작은 선택부터 바꿉니다.'});const calls=provider.mock.calls.length;docs[0].llmMeta.refineLockedAt=new Date();docs[0].llmMeta.refineLockToken='other';expect((await refine()).status).toBe(202);userId='other';expect((await refine()).status).toBe(404);userId=uid;blocked=0;expect((await refine()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(calls)});
