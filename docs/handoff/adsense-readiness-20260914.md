@@ -27,11 +27,13 @@ next: "sukuyo-useo, vedic-retrograde-planets-practical-decoding, career-luck-int
 ## 검증
 
 - 구현 커밋: `7af0e16fcf5cc67eae58836a3299b818209241d8`
+- 공개 숙요 미러 동기화 커밋: `9fe39284e`
 - `node scripts/build-editorial-review-packet.mjs`: 24편 검수 묶음 생성, 승인 생성 0.
 - `node scripts/verify-editorial-manuscripts.mjs`: 24편 해시·제목·검수/광고 미승격 확인.
 - `npm run verify:adsense-route-policy`: 통과.
 - `npm run verify:adsense-readiness`: 오래된 `dist/index.html`에 `/about` 링크가 없어 실패했다. 소스 기준 검사가 아니라 기존 빌드 산출물 불일치이므로 새 CI 빌드에서 재확인한다.
 - `npm run check:fast`: 통과. 결제 안전 88개, Node 1,086개, Jest 2,730개, lint, typecheck, sitemap 1,264 URL 정합, Worker dry-run을 포함했다. 실 LLM·실결제 호출은 없었다.
+- 첫 push의 Main drift watchdog은 숙요 원고 미러 3개가 오래돼 실패했다. `npm run sync:public`로 새 해시 파일과 index를 생성하고 `npm run verify:public-mirror-fresh` 통과 후 `9fe39284e`로 수정했다.
 
 ## 유지한 영역
 
@@ -41,4 +43,4 @@ next: "sukuyo-useo, vedic-retrograde-planets-practical-decoding, career-luck-int
 
 작업 디렉터리: `D:\Development\code-destiny`
 
-재개 지시: `D:\Development\code-destiny`에서 이 문서를 읽고 main이 clean한지와 구현 커밋 `7af0e16fcf5cc67eae58836a3299b818209241d8` 및 최신 main CI를 확인한 뒤 `sukuyo-useo` 품질 감사부터 이어간다. 사람의 실제 확인 없이 인간 검수나 광고 허용을 부여하지 않는다.
+재개 지시: `D:\Development\code-destiny`에서 이 문서를 읽고 main이 clean한지와 구현 커밋 `7af0e16fcf5cc67eae58836a3299b818209241d8`, 미러 수정 커밋 `9fe39284e` 및 최신 main CI를 확인한 뒤 `sukuyo-useo` 품질 감사부터 이어간다. 사람의 실제 확인 없이 인간 검수나 광고 허용을 부여하지 않는다.
