@@ -1414,8 +1414,9 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     //    재시도 버튼이 사라지고, 3만원을 낸 요청을 회수할 방법이 화면에서 없어진다.
     return {
       ok: false,
-      status: cancelled ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500,
+      status: code === "RESULT_STORAGE_UNAVAILABLE" ? 503 : cancelled ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500,
       error: code,
+      ...(code === "RESULT_STORAGE_UNAVAILABLE" ? { reason: code, resultId: error.resultId || safeId } : {}),
       message: cancelled ? "분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.",
       retryRequestId: safeId,
       stage: stageNumber,

@@ -22,6 +22,7 @@ let handleFusionFortuneRoutes;
 let fusionConstants;
 let generateImpl = async () => ({ ok: true });
 let consultationByRequestId = null;
+let storageMode = "success";
 
 beforeAll(async () => {
   // 🔴 fusion-fortune.js 는 **부분** 모킹이다 — 갈아끼우는 것은 생성 함수와 Mongo 스토어뿐이고,
@@ -41,7 +42,10 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => ({ userId: "user-1" }),
     })),
     jest.unstable_mockModule("../../worker/lib/fusion-fortune-consultation.js", () => ({
-      saveFusionFortuneConsultation: async () => "saved-id",
+      saveFusionFortuneConsultation: async () => {
+        if (storageMode === "throw") throw new Error("mock storage unavailable");
+        return storageMode === "null" ? "" : "saved-id";
+      },
       getFusionFortuneConsultation: async () => null,
       getFusionFortuneConsultationByRequestId: async () => consultationByRequestId,
       listFusionFortuneConsultations: async () => [],
@@ -58,6 +62,7 @@ beforeAll(async () => {
 afterEach(() => {
   jest.useRealTimers();
   consultationByRequestId = null;
+  storageMode = "success";
 });
 
 function streamRequest(requestId) {
@@ -82,6 +87,20 @@ async function drain(response) {
 }
 
 describe("Fusion Fortune SSE stream termination", () => {
+  for (const mode of ["null", "throw"]) {
+    it(`storage ${mode} never emits a successful result`, async () => {
+      storageMode = mode;
+      generateImpl = async ({ onDelivery }) => {
+        await onDelivery({ requestId: "storage-request", result: { title: "결과" }, generationSource: "mock" });
+        return { ok: true, result: { title: "결과" } };
+      };
+      const text = await drain(await handleFusionFortuneRoutes(streamRequest("storage-request"), ENV, null));
+      expect(text).toContain("RESULT_STORAGE_UNAVAILABLE");
+      expect(text).toContain('"retryable":true');
+      expect(text).not.toContain("event: result");
+      expect(text).not.toContain("event: complete");
+    });
+  }
   it("🔴 closes the stream with a terminating error event when generation never finishes", async () => {
     jest.useFakeTimers();
     // 영원히 안 끝나는 생성기. abort 신호를 받아도 스스로는 아무것도 하지 않는다 —

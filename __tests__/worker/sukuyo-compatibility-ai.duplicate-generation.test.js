@@ -32,6 +32,7 @@ let store;
 let callGeminiJsonWithRetryMock;
 let callGeminiTextMock;
 let findCallArgs;
+let storageFault;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -95,6 +96,12 @@ function createConsultationStore() {
         return { matchedCount: 1, modifiedCount: 1 };
       },
       findOneAndUpdate(filter, update) {
+        if (storageFault && update.$set?.status === storageFault.status) {
+          const fault = storageFault;
+          storageFault = null;
+          if (fault.kind === "null") return thenableWithLean(null);
+          return { lean: async () => { throw new Error("mock storage failure"); } };
+        }
         const target = docs.find((d) => matchesFilter(d, filter));
         if (target) Object.assign(target, update.$set, { updatedAt: new Date() });
         return thenableWithLean(target || null);
@@ -138,6 +145,9 @@ async function waitFor(predicate, label) {
 
 beforeAll(async () => {
   store = createConsultationStore();
+  jest.unstable_mockModule("../../worker/lib/swiss-ephemeris.js", () => ({
+    getSwissMoonLongitudes: async (_env, moments) => moments.map(() => 120),
+  }));
 
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
     requireAuth: jest.fn(async () => ({ userId: USER_ID, role: "user", authUserDoc: { role: "user" } })),
@@ -194,6 +204,7 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  storageFault = null;
   store.docs.length = 0;
   findCallArgs = [];
   callGeminiJsonWithRetryMock.mockReset();
@@ -207,6 +218,29 @@ function mockSectionsResolvedImmediately() {
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({
     ok: true, provider: "gemini", model: "gemini-2.5-flash", text, truncated: false,
   }));
+}
+
+for (const status of ["delivery_pending", "completed"]) {
+  for (const kind of ["null", "throw"]) {
+    test(`저장 ${status}/${kind}: 503, 완료 위장 없음, 같은 요청 복구`, async () => {
+      mockSectionsResolvedImmediately();
+      storageFault = { status, kind };
+      const failed = await handleSukuyoCompatibilityAiRoutes(startRequest(KEY), ENV);
+      expect(failed.status).toBe(503);
+      const payload = await failed.json();
+      expect(payload).toMatchObject({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE" });
+      const doc = store.findByKey(USER_ID, KEY);
+      expect(doc.status).not.toBe("completed");
+      expect(payload.resultId).toBe(String(doc._id));
+      const generatedBefore = callGeminiJsonWithRetryMock.mock.calls.length;
+      if (status === "completed") {
+        const recovered = await handleSukuyoCompatibilityAiRoutes(startRequest(KEY), ENV);
+        expect(recovered.status).toBe(200);
+        expect(store.findByKey(USER_ID, KEY).status).toBe("completed");
+        expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(generatedBefore);
+      }
+    });
+  }
 }
 
 test("생성 중 같은 idempotencyKey 로 두 번째 요청이 와도 LLM 호출은 6회를 넘지 않는다", async () => {
@@ -330,7 +364,7 @@ test("목록은 시드와 실패본을 감추고 status 없는 옛 문서는 남
 
   expect(findCallArgs).toHaveLength(1);
   // $nin 은 필드가 없는 문서도 매칭하므로 옛 문서가 목록에 그대로 남는다.
-  expect(findCallArgs[0].status).toEqual({ $nin: ["generating", "generation_failed"] });
+  expect(findCallArgs[0].status).toEqual({ $nin: ["generating", "generation_failed", "delivery_pending"] });
 });
 
 test("생성 중인 상담에 후속 질문을 보내면 LLM 을 부르지 않고 409 로 막는다", async () => {

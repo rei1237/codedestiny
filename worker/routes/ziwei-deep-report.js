@@ -26,6 +26,8 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb } from "../lib/db.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
 import { ZiweiDeepReport } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -373,9 +375,7 @@ async function refundExecution(env, userId, idempotencyKey, reportId, reasonMess
 }
 
 // ─── 영속화 ──────────────────────────────────────────────────────
-// 🔴 쓰기는 전부 best-effort 다. DB 가 흔들려도 생성·전달은 그대로 진행해야 한다 —
-//    저장을 못 했다고 결제한 결과를 버리면 그게 더 큰 사고다.
-//    읽기(/result)만 예외로, 실패를 transient 503 으로 올려 클라가 재시도하게 한다.
+// 저장과 재조회가 확인된 배치만 전달한다. 저장 장애는 생성 실패 환불과 분리한다.
 
 function chaptersForDb(chapters) {
   return chapters.map((ch) => ({
@@ -397,7 +397,7 @@ async function loadStoredReport(env, userId, { idempotencyKey, reportId }) {
     return await ZiweiDeepReport.findOne(query).lean();
   } catch (error) {
     console.warn("[ziwei-deep-report] report load failed", clean(error?.message || error, 200));
-    return null;
+    throw resultStorageUnavailable(reportId || idempotencyKey);
   }
 }
 
@@ -405,8 +405,8 @@ async function loadStoredReport(env, userId, { idempotencyKey, reportId }) {
 async function persistFirstBatch(env, userId, normalized, reportId, chart, chapters, accessType) {
   try {
     await connectDb(env);
-    await ZiweiDeepReport.findOneAndUpdate(
-      { userId: clean(userId), idempotencyKey: normalized.idempotencyKey },
+    const saved = await ZiweiDeepReport.findOneAndUpdate(
+      { userId: clean(userId), idempotencyKey: normalized.idempotencyKey, status: { $ne: "completed" } },
       {
         $set: {
           id: reportId,
@@ -427,8 +427,13 @@ async function persistFirstBatch(env, userId, normalized, reportId, chart, chapt
       },
       { upsert: true, new: true },
     );
+    if (!saved) throw resultStorageUnavailable(reportId);
+    const confirmed = await loadStoredReport(env, userId, { reportId });
+    if (!confirmed || JSON.stringify(chaptersForDb(confirmed.chapters)) !== JSON.stringify(chaptersForDb(chapters))) throw resultStorageUnavailable(reportId);
+    return confirmed;
   } catch (error) {
     console.warn("[ziwei-deep-report] first batch persist failed", clean(error?.message || error, 200));
+    throw resultStorageUnavailable(reportId);
   }
 }
 
@@ -446,14 +451,22 @@ function mergeChapters(existing, incoming) {
 async function persistNextBatch(env, userId, reportId, chapters, complete) {
   try {
     await connectDb(env);
-    const doc = await ZiweiDeepReport.findOne({ id: reportId, userId: clean(userId) });
-    if (!doc) return;
-    doc.chapters = mergeChapters(doc.chapters, chapters);
-    doc.status = complete ? "completed" : "partial";
-    if (complete && !doc.usageAppliedAt) doc.usageAppliedAt = new Date();
-    await doc.save();
+    const doc = await ZiweiDeepReport.findOne({ id: reportId, userId: clean(userId) }).lean();
+    if (!doc) throw resultStorageUnavailable(reportId);
+    if (doc.status === "completed") return doc;
+    const merged = mergeChapters(doc.chapters, chapters);
+    const status = complete ? "completed" : "partial";
+    const saved = await ZiweiDeepReport.findOneAndUpdate(
+      { id: reportId, userId: clean(userId), status: { $ne: "completed" }, updatedAt: doc.updatedAt },
+      { $set: { chapters: merged, status, ...(complete && !doc.usageAppliedAt ? { usageAppliedAt: new Date() } : {}) } },
+      { new: true },
+    ).lean();
+    const confirmed = saved && await loadStoredReport(env, userId, { reportId });
+    if (!confirmed || confirmed.status !== status || JSON.stringify(chaptersForDb(confirmed.chapters)) !== JSON.stringify(chaptersForDb(merged))) throw resultStorageUnavailable(reportId);
+    return confirmed;
   } catch (error) {
     console.warn("[ziwei-deep-report] next batch persist failed", clean(error?.message || error, 200));
+    throw resultStorageUnavailable(reportId);
   }
 }
 
@@ -461,7 +474,7 @@ async function markReportFailed(env, userId, normalized, reportId, reason) {
   try {
     await connectDb(env);
     await ZiweiDeepReport.findOneAndUpdate(
-      { userId: clean(userId), idempotencyKey: normalized.idempotencyKey },
+      { userId: clean(userId), idempotencyKey: normalized.idempotencyKey, status: { $ne: "completed" } },
       {
         $set: {
           id: reportId,
@@ -609,7 +622,7 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
 function accumulatedFromStored(stored) {
   const chapters = Array.isArray(stored?.chapters) ? stored.chapters : [];
   return {
-    chars: chapters.reduce((sum, ch) => sum + (Number(ch.chars) || 0), 0),
+    chars: chapters.reduce((sum, ch) => sum + countPaidReportBodyChars(ch.body), 0),
     okChapters: chapters.filter((ch) => ch.ok !== false).length,
   };
 }
@@ -744,6 +757,7 @@ async function handleGenerate(request, env) {
     });
   } catch (error) {
     console.error("[ziwei-deep-report] generate", clean(error?.message, 300));
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     // 첫 배치가 통째로 실패하면 아무것도 못 받은 것이므로 선차감을 되돌린다.
     // 이후 배치 실패는 이미 받은 장이 저장돼 있어 재진입으로 이어붙일 수 있으니 유지한다.
     if (isFirstBatch) {
@@ -840,6 +854,7 @@ export async function handleZiweiDeepReportRoutes(request, env = {}) {
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     console.error("[ziwei-deep-report]", clean(error?.code || error?.message || error, 300));
     return serverError();
   }

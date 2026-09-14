@@ -3,6 +3,7 @@
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -1815,6 +1816,19 @@ async function recordSuccessfulUsage(auth, idempotencyKey, access, consultation,
   );
 }
 
+async function confirmSukuyoDelivery(userId, sessionId, messages, lease) {
+  try {
+    const completed = await SukuyoCompatibilityAiConsultation.findOneAndUpdate(
+      { _id: sessionId, userId, status: "delivery_pending", generationLease: lease },
+      { $set: { status: "completed", generationError: null } }, { new: true },
+    ).lean();
+    const confirmed = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId }).lean();
+    const messageBodies = (items) => JSON.stringify((items || []).map(({ role, content }) => ({ role, content })));
+    if ((!completed && confirmed?.status !== "completed") || confirmed?.status !== "completed" || messageBodies(confirmed.messages) !== messageBodies(messages)) throw resultStorageUnavailable(sessionId);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(sessionId); }
+}
+
 async function handleStart(request, env) {
   let auth = null;
   try {
@@ -1863,6 +1877,7 @@ async function handleStart(request, env) {
     }
     // generation_failed 이거나 창을 넘긴 generating 은 재생성 대상이라 아래로 흘려보낸다.
     const accessHash = await inputHash(normalized);
+    if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
       route: "/api/sukuyo-compatibility-ai/generate",
       requestId: idempotencyKey,
@@ -1877,6 +1892,11 @@ async function handleStart(request, env) {
         accessGranted: false,
       });
       return json({ ok: false, reason: "PAYMENT_REQUIRED", paymentPayload: buildPaymentPayload(idempotencyKey), message: MESSAGES.paymentRequired }, { status: 402 });
+    }
+    if (existingStatus === "delivery_pending") {
+      const completed = await confirmSukuyoDelivery(auth.userId, String(existing._id), existing.messages, existing.generationLease);
+      await recordSuccessfulUsage(auth, idempotencyKey, access, completed, new Date());
+      return json({ ok: true, consultation: await serializeConsultation(completed), reused: true });
     }
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1924,6 +1944,8 @@ async function handleStart(request, env) {
     const seedFields = {
       userId: auth.userId,
       idempotencyKey,
+      inputHash: accessHash,
+      generationLease: crypto.randomUUID(),
       personA: {
         name: normalized.personA.name,
         gender: normalized.personA.gender,
@@ -1958,7 +1980,8 @@ async function handleStart(request, env) {
         {
           _id: existing._id,
           userId: auth.userId,
-          $or: [{ status: { $ne: "generating" } }, { updatedAt: { $lt: staleCutoff } }],
+          status: { $nin: ["completed", "delivery_pending"] },
+          $or: [{ status: "generation_failed" }, { status: "generating", updatedAt: { $lt: staleCutoff } }],
         },
         { $set: { ...seedFields, updatedAt: now } },
       );
@@ -1998,6 +2021,8 @@ async function handleStart(request, env) {
       // 선차감된 코인/월정석이 있으면 되돌린 뒤 에러를 전파한다. 환급을 상태 뒤집기보다 먼저 두는 이유:
       // 이 사이에서 isolate 가 죽으면 "환급 안 됨 + 즉시 재시도 가능"(재과금 위험)보다
       // "환급됨 + 창(120s)만큼 대기"가 낫다.
+      const owned = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease }).lean();
+      if (!owned) throw resultStorageUnavailable(sessionId);
       const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
       logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
         route: "/api/sukuyo-compatibility-ai/generate",
@@ -2008,7 +2033,7 @@ async function handleStart(request, env) {
       // 시드를 지우지 않고 generation_failed 로 뒤집는다 — 그래야 다음 POST 가 202 에 막히지 않고
       // 재생성으로 떨어진다. 상태 쓰기 실패가 원래 에러를 가리면 안 되므로 삼킨다(창이 안전망이다).
       await SukuyoCompatibilityAiConsultation.updateOne(
-        { _id: sessionId, userId: auth.userId },
+        { _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease },
         {
           $set: {
             status: "generation_failed",
@@ -2026,11 +2051,11 @@ async function handleStart(request, env) {
       { role: "user", content: normalized.question, createdAt: now },
       { role: "assistant", content: firstAnswer.content, createdAt: now },
     ];
-    const completed = await SukuyoCompatibilityAiConsultation.findOneAndUpdate(
-      { _id: sessionId, userId: auth.userId },
+    const pendingDelivery = await SukuyoCompatibilityAiConsultation.findOneAndUpdate(
+      { _id: sessionId, userId: auth.userId, status: "generating", generationLease: seedFields.generationLease },
       {
         $set: {
-          status: "completed",
+          status: "delivery_pending",
           generationError: null,
           messages,
           provider: firstAnswer.provider,
@@ -2038,23 +2063,16 @@ async function handleStart(request, env) {
         },
       },
       { new: true },
-    ).lean();
+    ).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
+    if (!pendingDelivery) throw resultStorageUnavailable(sessionId);
+    const completed = await confirmSukuyoDelivery(auth.userId, sessionId, messages, seedFields.generationLease);
     await recordSuccessfulUsage(auth, idempotencyKey, access, { _id: sessionId }, now);
-    // 문서가 그 사이 사라졌더라도(수동 삭제 등) 이미 만든 결과물은 그대로 배달한다.
     return json({
       ok: true,
-      consultation: await serializeConsultation(completed || {
-        ...seedFields,
-        _id: sessionId,
-        status: "completed",
-        messages,
-        provider: firstAnswer.provider,
-        model: firstAnswer.model,
-        createdAt: now,
-        updatedAt: new Date(),
-      }),
+      consultation: await serializeConsultation(completed),
     });
   })().catch((error) => {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     const status = Number(error?.status || 500);
     const code = clean(error?.code || "SERVER_ERROR");
     const message = code === "LLM_FAILED"
@@ -2120,6 +2138,7 @@ async function handleMessage(request, env) {
   // 그 답이 시드에 append 되어 미완성 문서가 "결과 있는 문서"로 둔갑한다. LLM 호출 앞에서 막는다.
   // 옛 문서(status 없음)는 completed 로 읽혀 그대로 통과한다.
   const consultationState = consultationStatus(consultation);
+  if (consultationState === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   if (consultationState === "generating") {
     return json({ ok: false, sessionId, status: consultationState, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.generating }, { status: 409 });
   }
@@ -2176,7 +2195,7 @@ async function handleResult(request, env) {
       // 시드(generating)와 실패본은 messages 가 비어 있어 목록에서 빈 줄로 보인다.
       // $nin 은 필드가 없는 문서도 매칭하므로 status 가 없던 옛 문서는 그대로 남는다 —
       // 🔴 여기를 status: "completed" 양성 매칭으로 바꾸면 기존 사용자의 목록이 통째로 사라진다.
-      status: { $nin: ["generating", "generation_failed"] },
+      status: { $nin: ["generating", "generation_failed", "delivery_pending"] },
     })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
@@ -2206,6 +2225,7 @@ async function handleResult(request, env) {
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean();
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
   const status = consultationStatus(consultation);
+  if (status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   if (status === "generating") {
     // 창을 넘긴 generating 은 아무도 만들고 있지 않다. 202 를 계속 돌려주면 폴링이 상한까지 헛돌므로
     // 종결 신호를 준다. 🔴 503 이 아니라 409 여야 한다 — isRetriableResultPollFailure

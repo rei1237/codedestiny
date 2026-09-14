@@ -14,7 +14,7 @@ import { countFusionFortuneVisibleText } from "./fusion-fortune.js";
 
 // mongoose Mixed 필드는 상한이 없어 16MB 문서 한계까지 들어간다. 인생의 책이 본문에
 // 200,000자 상한을 둔 것과 같은 이유로, 비정상적으로 커진 결과는 저장하지 않는다.
-// (저장 실패가 배달을 막지 않는다 — 호출자가 삼킨다.)
+// 저장 실패는 호출자가 재시도 가능한 저장 장애로 반환한다.
 export const FUSION_CONSULTATION_MAX_RESULT_CHARS = 200000;
 
 function text(value, max = 200) {
@@ -98,12 +98,17 @@ export async function saveFusionFortuneConsultation(payload) {
     return "";
   }
   const { id, userId, idempotencyKey, ...rest } = built.doc;
+  const existing = await FusionFortuneConsultation.findOne({ userId, idempotencyKey }).lean();
+  if (existing?.status === "completed") return text(existing.id, 120);
   const saved = await FusionFortuneConsultation.findOneAndUpdate(
-    { userId, idempotencyKey },
+    { userId, idempotencyKey, status: { $ne: "completed" } },
     { $set: rest, $setOnInsert: { id, userId, idempotencyKey } },
     { upsert: true, new: true, setDefaultsOnInsert: true },
   ).lean();
-  return text(saved?.id, 120) || id;
+  if (!saved?.id) return "";
+  const confirmed = await FusionFortuneConsultation.findOne({ userId, idempotencyKey }).lean();
+  if (!confirmed || confirmed.status !== rest.status || JSON.stringify(confirmed.result) !== JSON.stringify(rest.result)) return "";
+  return text(confirmed.id, 120);
 }
 
 /** 단건 조회 — 본인 결과만. 없으면 null. */

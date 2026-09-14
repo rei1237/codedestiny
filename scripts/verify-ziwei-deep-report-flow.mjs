@@ -14,6 +14,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 
 const LABEL = "[verify:ziwei-deep-report-flow]";
 let failures = 0;
@@ -181,25 +182,17 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
   pass("누적 저장: 재시도해도 중복 없이 머지된다");
 }
 
-// 저장은 best-effort — DB 가 흔들려도 결제한 결과를 버리면 안 된다.
+// 저장 실패는 완료나 환불로 위장하지 않는다. 실제 저장 함수를 mock DB에서 실행한다.
 {
-  for (const fn of ["persistFirstBatch", "persistNextBatch", "markReportFailed", "loadStoredReport"]) {
-    const start = route.indexOf(`function ${fn}(`);
-    assert(start > 0, `${fn} 이 있어야 한다`);
-    const body = route.slice(start, start + 1400);
-    assert(body.includes("try {") && body.includes("catch"), `${fn} 은 try-catch 로 감싸 저장 실패가 전달을 막지 않아야 한다`);
-  }
-  // 읽기 경로(/result)는 반대로 실패를 삼키지 않고 503 으로 올려야 한다.
-  const resultStart = route.indexOf("async function handleResult(");
-  const resultBody = route.slice(resultStart, resultStart + 3000);
-  assert(resultBody.includes("DB_DEGRADED") && resultBody.includes("retryable: true"), "/result 의 DB 실패는 재시도 가능한 503 이어야 한다(조용한 '없음' 금지)");
-  pass("쓰기는 best-effort, 읽기는 transient 503");
+  const checked = spawnSync(process.execPath, ['--test', '__tests__/ui/paid-report-storage.behavior.test.js'], { encoding: 'utf8' });
+  assert(checked.status === 0, checked.stdout + checked.stderr);
+  pass('저장 예외/null/재조회 실패와 완료본 보호 동작');
 }
 
 // 누적 집계는 서명된 토큰이 1차 소스여야 한다(DB 저장 실패와 무관해야 하므로).
 {
   assert(/charsSoFar/.test(route) && /okChaptersSoFar/.test(route), "누적 분량·장수를 액세스 토큰에 실어야 한다");
-  const stored = { chapters: [{ chars: 100, ok: true }, { chars: 200, ok: false }, { chars: 300, ok: true }] };
+  const stored = { chapters: [{ body: "가".repeat(100), chars: 999, ok: true }, { body: "나".repeat(200), chars: 999, ok: false }, { body: "다".repeat(300), chars: 999, ok: true }] };
   const accumulated = utils.accumulatedFromStored(stored);
   assert(accumulated.chars === 600, `저장본 글자수 합계가 틀렸다 (got ${accumulated.chars})`);
   assert(accumulated.okChapters === 2, `저장본 정상 장수가 틀렸다 (got ${accumulated.okChapters})`);

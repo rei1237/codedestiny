@@ -1336,7 +1336,9 @@ const sukuyoCompatibilityAiConsultationSchema = new mongoose.Schema({
   //    (consultationStatus) — 직접 비교하면 결제된 상담이 빈 시드로 덮인다.
   // index 를 달지 않은 이유: status 단독으로 조회하는 쿼리가 없고(목록은 {userId, status}),
   // 달면 autoIndex:false 인 프로덕션에서 verify:mongo-launch-indexes 가 누락으로 잡는다.
-  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating" },
+  status: { type: String, enum: ["generating", "delivery_pending", "completed", "generation_failed"], default: "generating" },
+  generationLease: { type: String, default: "" },
+  inputHash: { type: String, default: "" },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "sukuyoCompatibilityAiConsultations" });
 

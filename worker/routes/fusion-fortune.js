@@ -1,4 +1,5 @@
 import { connectDb } from "../lib/db.js";
+import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -105,7 +106,7 @@ function canGenerateFusionFortune(env) {
  */
 async function persistFusionDelivery({ userId, input, delivery }) {
   try {
-    return await saveFusionFortuneConsultation({
+    const id = await saveFusionFortuneConsultation({
       requestId: delivery?.requestId,
       userId,
       input: input || {},
@@ -115,12 +116,14 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       qualityNotice: delivery?.qualityNotice,
       stage: delivery?.stage,
     });
+    if (!id) throw resultStorageUnavailable(delivery?.requestId);
+    return id;
   } catch (error) {
     console.warn("[fusion-fortune-persist-failed]", {
       requestId: String(delivery?.requestId || "").slice(0, 120),
       message: String(error?.message || "").slice(0, 200),
     });
-    return "";
+    throw resultStorageUnavailable(delivery?.requestId);
   }
 }
 
@@ -313,6 +316,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
       if (!result.ok) {
         await writeFusionFortuneSse(writer, "error", {
           error: result.error || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
+          reason: result.reason,
+          resultId: result.resultId,
           message: result.message || "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
           requestId: result.requestId || "",
           // 402(결제 필요)/503(판단 보류)를 클라이언트가 구분할 수 있어야 결제 게이트를 열지,
@@ -338,9 +343,10 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         qualityTier: result.qualityTier || undefined,
         qualityNotice: result.qualityNotice || undefined,
       });
-    } catch {
+    } catch (error) {
       await writeFusionFortuneSse(writer, "error", {
-        error: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
+        ...(error?.code === "RESULT_STORAGE_UNAVAILABLE" ? { ...resultStorageFailurePayload(error), status: 503 } : {}),
+        error: error?.code === "RESULT_STORAGE_UNAVAILABLE" ? error.code : FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED,
         message: "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
       }).catch(() => {});
     } finally {
@@ -411,7 +417,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
         });
         prior = { result: result.result, generationSource: result.generationSource };
       }
-      return respond({ ...result, consultationId, status: result.stageStatus || "completed" });
+      return json({ ...result, consultationId, status: result.stageStatus || "completed" });
     }
 
     if (method === "POST" && path === "/generate/stream") {
@@ -426,6 +432,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
     if (["/status", "/generate", "/generate/stream", "/result"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     return handleRouteError(error, { request, env, trace: { route: "fusion-fortune", method, requestPath: new URL(request.url).pathname } });
   }
 }
