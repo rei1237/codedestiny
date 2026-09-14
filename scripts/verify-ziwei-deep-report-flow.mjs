@@ -116,8 +116,8 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
   const minChars = utils.MIN_DELIVERABLE_CHARS;
   const minChapters = utils.MIN_DELIVERABLE_CHAPTERS;
 
-  assert(minChars === Math.round(ZIWEI_DEEP_PDF_META.minTotalChars * 0.55), "전달 하한은 목표 분량의 55% 여야 한다(자매 라우트와 동일 비율)");
-  assert(minChapters === Math.ceil(ZIWEI_DEEP_CHAPTERS.length * 0.6), "살아남은 장 하한은 전체의 60% 여야 한다");
+  assert(minChars === 20000, "새 상세 본문의 완료 하한은 20,000자여야 한다");
+  assert(minChapters === ZIWEI_DEEP_CHAPTERS.length, "15개 필수 챕터가 모두 있어야 한다");
 
   assert(utils.judgeDeliverable(minChars, minChapters).ok, "하한을 정확히 채우면 통과해야 한다");
   assert(!utils.judgeDeliverable(minChars - 1, 15).ok, "글자수가 하한 미만이면 실패해야 한다");
@@ -132,7 +132,7 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
 
   // 반대로 한 장만 폴백인 리포트는 통과해야 한다(한 장 때문에 열네 장을 버리지 않는다).
   const nearlyFull = 14 * realChars + fallbackChars;
-  assert(utils.judgeDeliverable(nearlyFull, 14).ok, "한 장만 폴백인 리포트는 정상 배달되어야 한다");
+  assert(!utils.judgeDeliverable(nearlyFull, 14).ok, "한 장이라도 미완성이면 이어 생성해야 한다");
   pass(`전달 게이트: ${minChars}자·${minChapters}장 하한이 폴백 다수만 걸러낸다`);
 }
 
@@ -143,16 +143,9 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
   assert(route.includes("completeServiceExecution"), "전달 확정 시 선차감을 확정해야 한다");
   assert(/forceRefundOnClose:\s*true/.test(route), "forceRefundOnClose 가 없으면 soft-abandon 유예로 빠져 즉시 환불되지 않는다");
 
-  const gateIndex = route.indexOf("const verdict = judgeDeliverable(");
-  const refundIndex = route.indexOf("await refundExecution(", gateIndex);
-  const markIndex = route.indexOf("await markReportFailed(", gateIndex);
-  assert(gateIndex > 0, "전달 게이트 판정부가 있어야 한다");
-  assert(refundIndex > gateIndex, "게이트 실패 직후 환불이 호출되어야 한다");
-  assert(markIndex > gateIndex, "게이트 실패 시 저장본을 generation_failed 로 표시해야 한다");
-
-  // 게이트는 마지막 배치에서만 돌아야 한다(중간 배치에서 걸면 정상 리포트가 환불된다).
-  assert(/if \(batch\.done\) \{\s*\n\s*const verdict = judgeDeliverable\(/.test(route), "전달 게이트는 batch.done 안에서만 판정해야 한다");
-  pass("전달 게이트 실패가 환불·실패표시로 이어진다");
+  const checked = spawnSync(process.execPath, ['--test', '__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js'], { encoding: 'utf8' });
+  assert(checked.status === 0, checked.stdout + checked.stderr);
+  pass("실제 라우트에서 분할 생성·체크포인트·저장 장애·재개를 검증한다");
 }
 
 // ─── 3. 누적 저장 ────────────────────────────────────────────────
@@ -191,7 +184,6 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
 
 // 누적 집계는 서명된 토큰이 1차 소스여야 한다(DB 저장 실패와 무관해야 하므로).
 {
-  assert(/charsSoFar/.test(route) && /okChaptersSoFar/.test(route), "누적 분량·장수를 액세스 토큰에 실어야 한다");
   const stored = { chapters: [{ body: "가".repeat(100), chars: 999, ok: true }, { body: "나".repeat(200), chars: 999, ok: false }, { body: "다".repeat(300), chars: 999, ok: true }] };
   const accumulated = utils.accumulatedFromStored(stored);
   assert(accumulated.chars === 600, `저장본 글자수 합계가 틀렸다 (got ${accumulated.chars})`);
@@ -203,31 +195,23 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
 // ─── 4. 멱등 ────────────────────────────────────────────────────
 
 {
-  const idempotentIndex = route.indexOf("if (stored && stored.chapters?.length && stored.status !== \"generation_failed\")");
-  const startExecIndex = route.indexOf("await startRefundableExecution(");
-  assert(idempotentIndex > 0, "멱등 조기반환 블록이 있어야 한다");
-  assert(startExecIndex > idempotentIndex, "멱등 조기반환은 선차감 오픈보다 앞에 있어야 재과금이 없다");
-
   // 저장본 응답 모양 — 미완성이면 이어받을 위치를 알려줘야 한다.
   const doc = {
     id: "zwdr_x",
     status: "partial",
-    chapters: [
-      { id: "ming", order: 1, chars: 2400, ok: true },
-      { id: "overview", order: 0, chars: 2600, ok: true },
-    ],
+    chapters: ZIWEI_DEEP_CHAPTERS.slice(0, 2).map((def, order) => ({ ...def, order, body: "가".repeat(def.minChars), ok: true })),
   };
   const envelope = utils.publicStoredReport(doc);
   assert(envelope.restored === true, "저장본 응답은 restored 플래그를 달아야 한다");
   assert(envelope.done === false, "partial 저장본은 done 이 아니어야 한다");
   assert(envelope.nextIndex === 2, `미완성 저장본은 이어받을 위치를 줘야 한다 (got ${envelope.nextIndex})`);
   assert(envelope.chapters[0].order === 0, "저장본 챕터는 order 순으로 나가야 한다");
-  assert(envelope.totalChars === 5000, `저장본 총 글자수가 틀렸다 (got ${envelope.totalChars})`);
+  assert(envelope.totalChars === ZIWEI_DEEP_CHAPTERS.slice(0, 2).reduce((sum, def) => sum + def.minChars, 0), `저장본 총 글자수가 틀렸다 (got ${envelope.totalChars})`);
   assert(utils.publicStoredReport({ ...doc, status: "completed" }).done === true, "completed 저장본은 done 이어야 한다");
   assert(utils.publicStoredReport({ ...doc, locale: "ja" }).locale === "ja", "저장된 locale은 재열람 응답에 그대로 나가야 한다");
   assert(utils.publicStoredReport(doc).locale === "ko", "locale 없는 과거 저장본은 기존 한국어 결과로 명시해야 한다");
-  assert(route.includes("locale: outputLocale"), "배치 재개 토큰은 최초 생성 locale을 이어가야 한다");
-  assert(route.includes("generateReportBatch(env, chart, normalized.birthInfo, normalized.consultation, startIndex, outputLocale)"), "후속 배치는 현재 탭이 아닌 고정 locale로 생성해야 한다");
+  assert(route.includes("normalized.locale = stored?.locale || normalized.locale"), "배치 재개 토큰은 최초 생성 locale을 이어가야 한다");
+  assert(route.includes("generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt)"), "후속 배치는 현재 탭이 아닌 고정 locale로 생성해야 한다");
   assert(/index\(\{ userId: 1, idempotencyKey: 1 \}, \{ unique: true \}\)/.test(models), "locale을 결제 멱등 키에 넣어서는 안 된다");
   pass("멱등 재요청이 재과금 없이 저장본을 돌려주고, 미완성이면 이어받는다");
 }

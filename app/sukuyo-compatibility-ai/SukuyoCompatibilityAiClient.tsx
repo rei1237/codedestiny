@@ -934,26 +934,14 @@ function CompareSection({ a, b }: { a: CompatPersonMeta; b: CompatPersonMeta }) 
  * 🔴 PDF 캡처 안전장치: forceVisible 을 주지 않으면 아직 화면에 안 들어온 섹션이 opacity 0 인 채로
  * 캡처돼 그 페이지가 백지로 저장된다.
  */
-function SukuyoReveal({ children, index = 0, forceVisible = false, className }: {
+function SukuyoReveal({ children, className }: {
   children: ReactNode;
   index?: number;
   forceVisible?: boolean;
   className?: string;
 }) {
-  const reduceMotion = useReducedMotion() === true;
-  const skip = forceVisible || reduceMotion;
-  if (skip) return <div className={className}>{children}</div>;
-  return (
-    <m.div
-      className={className}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15, margin: "0px 0px -8% 0px" }}
-      transition={{ duration: 0.36, delay: Math.min(index * 0.06, 0.36), ease: [0.22, 1, 0.36, 1] }}
-    >
-      {children}
-    </m.div>
-  );
+  // 긴 유료 상담은 화면 진입 비율과 관계없이 처음부터 노출한다.
+  return <div className={className}>{children}</div>;
 }
 
 /** ① 관계 한 줄 요약 — 큰 타이포, 가운데. */

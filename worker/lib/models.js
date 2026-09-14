@@ -1104,7 +1104,7 @@ const ziweiDeepReportSchema = new mongoose.Schema({
   ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
   chapters: { type: [ziweiDeepChapterSchema], default: [] },
   // partial = 일부 배치만 도착. completed = 15장 전부. 재열람은 partial 도 보여준다.
-  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "generating", index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "generating", index: true },
   accessType: { type: String, default: "", trim: true, maxlength: 40 },
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },

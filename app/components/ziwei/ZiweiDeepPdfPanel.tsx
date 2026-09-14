@@ -1,4 +1,5 @@
 "use client";
+import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -54,7 +55,7 @@ export interface ZiweiDeepBirthInput {
 }
 
 interface ReportChapter { id: string; title: string; body: string; chars: number; ok?: boolean }
-interface DeepReport { label: string; chapters: ReportChapter[]; totalChars: number; generatedAt: string; restored?: boolean }
+interface DeepReport { label: string; chapters: ReportChapter[]; totalChars: number; generatedAt: string; restored?: boolean; complete?: boolean }
 interface BatchResult { startIndex: number; nextIndex: number; totalChapters: number; done: boolean; chapters: ReportChapter[] }
 interface ReportMeta { label: string; generatedAt: string; minTotalChars: number; chapterCount: number }
 interface StoredReportSummary { id: string; name: string; topic: string; question: string; status: string; createdAt: string }
@@ -158,7 +159,7 @@ type ApiResult = {
   chapters?: ReportChapter[];
   nextIndex?: number;
   totalChapters?: number;
-  done?: boolean;
+  done?: boolean; saved?: boolean; status?: string; resultId?: string; idempotencyKey?: string;
   reports?: StoredReportSummary[];
 };
 
@@ -193,6 +194,12 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   const [historyLoading, setHistoryLoading] = useState(false);
   const busyRef = useRef(false);
   const idempotencyRef = useRef("");
+  const pendingGenerationRef = useRef<{ key: string; body: Record<string, unknown>; extra: Record<string, unknown>; reportId?: string } | null>(null);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureDeliveryScope = usePaidDeliveryScope(() => {
+    pendingGenerationRef.current = null; busyRef.current = false; idempotencyRef.current = "";
+    setReport(null); setHistory(null); setError(""); setPhase("idle"); setResumeEpoch(value => value + 1);
+  });
   const reportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -233,58 +240,55 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   // 🔴 payloadOverride: 결제 복귀 재개는 새 문서라 위 payload 의 재료(birth prop·focusArea·question)가
   //    전부 초기값으로 돌아와 있다. 재개 경로는 결제 직전에 굳혀 둔 입력을 그대로 보낸다.
   async function generate(idempotencyKey: string, extra: Record<string, unknown>, payloadOverride?: Record<string, unknown>) {
+    const isCurrent = captureDeliveryScope();
     const body = payloadOverride || payload;
+    pendingGenerationRef.current = { key: idempotencyKey, body, extra };
     setPhase("generating");
     setGenProgress({ done: 0, total: TOTAL_CHAPTERS });
     const stop = cycleSteps();
+    let failures = 0;
     try {
-      // 15챕터를 배치(startIndex 0→4→8→12)로 나눠 순차 호출한다. 각 요청은 1 웨이브로 짧게
-      // 끝나 타임아웃 위험이 없고, 챕터는 결정론이라 각 배치가 독립·재개 가능하다.
-      const accumulated: ReportChapter[] = [];
-      let meta: ReportMeta | null = null;
-      let restored = false;
-      let accessExtra: Record<string, unknown> = { ...extra };
-      let startIndex = 0;
       for (let guard = 0; guard < MAX_BATCHES; guard += 1) {
-        const { status, data } = await postJson<ApiResult>(
-          "/api/ziwei-deep-report/generate",
-          { ...body, ...accessExtra, idempotencyKey, startIndex },
-          idempotencyKey,
-        );
-        if (!data.ok) throw new Error(mapError(data, status));
-        // 두 번째 배치부터는 재사용 토큰으로 접근(추가 DB·결제 조회 없음).
-        if (data.accessToken) accessExtra = { accessToken: data.accessToken, accessType: data.accessType };
-        if (!meta && data.reportMeta) meta = data.reportMeta;
-
-        // 같은 요청 키의 저장본이 있으면 서버가 재생성 없이 그대로 돌려준다(재과금 없음).
-        // 미완성 저장본이면 nextIndex 부터 이어 만든다.
-        if (data.restored) {
-          restored = true;
-          accumulated.push(...(data.chapters || []));
-          setGenProgress({ done: accumulated.length, total: data.totalChapters || TOTAL_CHAPTERS });
-          if (data.done) break;
-          startIndex = typeof data.nextIndex === "number" ? data.nextIndex : accumulated.length;
-          continue;
+        if (!isCurrent()) return false;
+        if (document.hidden) { setPhase("ready"); return false; }
+        const pending = pendingGenerationRef.current;
+        if (!pending) return false;
+        let response: { status: number; data: ApiResult };
+        try {
+          response = await postJson<ApiResult>("/api/ziwei-deep-report/generate",
+            pending.reportId ? { resumeReportId: pending.reportId } : { ...pending.body, ...pending.extra, idempotencyKey }, idempotencyKey);
+        } catch (error) {
+          if (!isCurrent()) return false;
+          if (++failures > 2) throw error;
+          await new Promise(resolve => setTimeout(resolve, failures * 1500)); continue;
         }
-
-        if (!data.batch) throw new Error(mapError(data, status));
-        accumulated.push(...data.batch.chapters);
-        setGenProgress({ done: Math.min(data.batch.nextIndex, data.batch.totalChapters), total: data.batch.totalChapters });
-        if (data.batch.done) break;
-        startIndex = data.batch.nextIndex;
+        if (!isCurrent()) return false;
+        const { status, data } = response;
+        if (data.reportId || data.resultId) pending.reportId = data.reportId || data.resultId;
+        if (status === 503 && data.reason === "RESULT_STORAGE_UNAVAILABLE" && ++failures <= 2) { await new Promise(resolve => setTimeout(resolve, failures * 1500)); continue; }
+        if (!data.ok) throw new Error(mapError(data, status));
+        failures = 0;
+        if (data.chapters?.length) {
+          applyReport(data.chapters, data.reportMeta || null, data.restored, data.done === true && data.saved === true);
+          setGenProgress({ done: data.chapters.filter(ch => ch.ok !== false).length, total: data.totalChapters || TOTAL_CHAPTERS });
+        }
+        if (data.done === true && data.saved === true) { pendingGenerationRef.current = null; return true; }
+        setPhase("generating");
+        if (data.status === "generating") await new Promise(resolve => setTimeout(resolve, 3000));
       }
-      if (!accumulated.length) throw new Error(copy.errorText.SERVER_ERROR);
-      applyReport(accumulated, meta, restored);
+      setPhase("ready");
+      return false;
     } finally { stop(); }
   }
 
-  function applyReport(chapters: ReportChapter[], meta: ReportMeta | null, restored = false) {
+  function applyReport(chapters: ReportChapter[], meta: ReportMeta | null, restored = false, complete = true) {
     setReport({
       label: meta?.label || copy.reasonText,
       generatedAt: meta?.generatedAt || new Date().toISOString(),
       totalChars: chapters.reduce((sum, ch) => sum + (ch.chars || 0), 0),
       chapters,
       restored,
+      complete,
     });
     setPhase("ready");
   }
@@ -300,34 +304,61 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   /** 내 리포트 목록 — 눌렀을 때만 조회한다(마운트 시 자동 조회 없음). */
   async function loadHistory() {
     if (historyLoading) return;
+    const isCurrent = captureDeliveryScope();
     setHistoryLoading(true);
     setError("");
     try {
       const response = await authFetch("/api/ziwei-deep-report/result", { method: "GET" }, { retryOn401: false });
       const data = (await response.json().catch(() => ({}))) as ApiResult;
       if (!response.ok || !data.ok) throw new Error(mapError(data, response.status));
-      setHistory(data.reports || []);
+      if (isCurrent()) setHistory(data.reports || []);
     } catch (caught) {
+      if (!isCurrent()) return;
       setError(caught instanceof TypeError ? copy.errorText.NETWORK_ERROR : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
-    } finally { setHistoryLoading(false); }
+    } finally { if (isCurrent()) setHistoryLoading(false); }
   }
 
   /** 저장본 재열람 — 결제 없이 저장된 리포트를 그대로 다시 연다. */
   async function openStoredReport(reportId: string) {
     if (busyRef.current) return;
+    const isCurrent = captureDeliveryScope();
     busyRef.current = true;
     setError("");
     setPhase("generating");
     try {
       const response = await authFetch(`/api/ziwei-deep-report/result?id=${encodeURIComponent(reportId)}`, { method: "GET" }, { retryOn401: false });
       const data = (await response.json().catch(() => ({}))) as ApiResult;
-      if (!response.ok || !data.ok || !data.chapters?.length) throw new Error(mapError(data, response.status));
-      applyReport(data.chapters, data.reportMeta || null, true);
+      if (!isCurrent()) return;
+      if (!response.ok || !data.ok) throw new Error(mapError(data, response.status));
+      if (data.chapters?.length) applyReport(data.chapters, data.reportMeta || null, true, data.done === true);
+      if (!data.done) await generate(data.idempotencyKey || idempotencyRef.current || createIdempotencyKey(), {}, { resumeReportId: reportId });
     } catch (caught) {
+      if (!isCurrent()) return;
       setError(caught instanceof TypeError ? copy.errorText.NETWORK_ERROR : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
       setPhase("idle");
-    } finally { busyRef.current = false; }
+    } finally { if (isCurrent()) busyRef.current = false; }
   }
+
+  useEffect(() => {
+    let disposed = false;
+    const isCurrent = captureDeliveryScope();
+    void (async () => {
+      if (busyRef.current) return;
+      const response = await authFetch("/api/ziwei-deep-report/result").catch(() => null);
+      if (!response?.ok || disposed || !isCurrent()) return;
+      const data = await response.json().catch(() => ({})) as ApiResult;
+      const pending = data.reports?.find(row => ["generating", "partial", "delivery_pending"].includes(row.status));
+      if (pending && !disposed && isCurrent()) void openStoredReport(pending.id);
+    })();
+    return () => { disposed = true; };
+    // 저장된 원래 요청으로만 이어받으며 입력 편집은 이 효과를 다시 실행하지 않는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeEpoch, captureDeliveryScope]);
+  useEffect(() => {
+    const resume = () => { if (!document.hidden) setResumeEpoch(value => value + 1); };
+    document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume);
+    return () => { document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume); };
+  }, []);
 
   function validate(): string {
     if (!birth.birthDate || (!birth.birthTime && !birth.birthTimeUnknown)) return copy.errorText.INVALID_INPUT;
@@ -338,6 +369,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   // 모바일 PortOne 리다이렉트로 handleGenerate 의 await 가 죽은 뒤, 복귀한 새 문서에서 생성을 이어받는다.
   // 🔴 게이트를 다시 타지 않고 게이트 없는 코어(generate)를 원래 idempotencyKey 로 부른다.
   const buildResume = usePaidResume(FEATURE_KEY, async (args, grant) => {
+    const isCurrent = captureDeliveryScope();
     const idempotencyKey = typeof args.idempotencyKey === "string" ? args.idempotencyKey : "";
     const restoredPayload = unpackPaidResumeArg<Record<string, unknown>>(args.payload);
     if (!idempotencyKey || !restoredPayload) return false;
@@ -348,17 +380,26 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     if (typeof restoredPayload.focusArea === "string") setFocusArea(restoredPayload.focusArea as FocusArea);
     if (typeof restoredPayload.question === "string") setQuestion(restoredPayload.question);
     try {
-      await generate(idempotencyKey, extractPayment(grant?.payload, idempotencyKey), restoredPayload);
-      return true;
+      return await generate(idempotencyKey, extractPayment(grant?.payload, idempotencyKey), restoredPayload);
     } catch (caught) {
+      if (!isCurrent()) return false;
       setError(caught instanceof TypeError ? copy.errorText.NETWORK_ERROR : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
       setPhase("idle");
       return false;
-    } finally { busyRef.current = false; }
+    } finally { if (isCurrent()) busyRef.current = false; }
   });
 
   async function handleGenerate() {
     if (busyRef.current || disabled) return;
+    const isCurrent = captureDeliveryScope();
+    const pending = pendingGenerationRef.current;
+    if (pending) {
+      busyRef.current = true;
+      try { await generate(pending.key, pending.extra, pending.reportId ? { resumeReportId: pending.reportId } : pending.body); }
+      catch (caught) { if (isCurrent()) setError(caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR); }
+      finally { if (isCurrent()) { busyRef.current = false; setPhase("ready"); } }
+      return;
+    }
     const validationMessage = validate();
     if (validationMessage) { setError(validationMessage); return; }
     busyRef.current = true;
@@ -374,8 +415,10 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey, copy.reasonText));
       gateStarted = true;
       const { status, data } = await postJson<ApiResult>("/api/ziwei-deep-report/prepare", { ...payload, idempotencyKey }, idempotencyKey);
+      if (!isCurrent()) return;
       if (data.ok) {
         completePaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: copy.gateTitleComplete, reason: copy.reasonText, paymentMode: "DIRECT", message: copy.gateMessageGenerating });
+        if (!isCurrent()) return;
         await generate(idempotencyKey, { accessToken: data.accessToken, accessType: data.accessType });
         return;
       }
@@ -394,16 +437,18 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
         if (code === "PAYMENT_CANCELLED") throw new Error(copy.errorText.PAYMENT_CANCELLED);
         throw new Error(copy.errorText.PAYMENT_VERIFY_FAILED);
       }
+      if (!isCurrent()) return;
       await generate(idempotencyKey, extractPayment(gate, idempotencyKey));
     } catch (caught) {
+      if (!isCurrent()) return;
       const message = caught instanceof TypeError ? copy.errorText.NETWORK_ERROR : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR;
       setError(message);
       if (gateStarted) {
         failPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: copy.gateTitleFailed, reason: copy.reasonText, paymentMode: "DIRECT", message, cancelled: message === copy.errorText.PAYMENT_CANCELLED });
       }
       setPhase("idle");
-      idempotencyRef.current = "";
-    } finally { busyRef.current = false; }
+      if (!pendingGenerationRef.current) idempotencyRef.current = "";
+    } finally { if (isCurrent()) busyRef.current = false; }
   }
 
   async function handlePdfDownload() {
@@ -525,15 +570,15 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
           <p role="alert" className="mt-4 rounded-xl border border-rose-400/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</p>
         )}
 
-        {phase === "ready" && report && (
+        {report && (
           <div className="mt-5">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/25 bg-amber-200/10 px-4 py-3">
               <div>
                 <p className="text-xs font-semibold text-amber-100/80">
-                  {report.chapters.length < TOTAL_CHAPTERS ? copy.historyPartialSuffix : report.restored ? copy.readyStatusRestored : copy.readyStatusComplete} · {copy.readyChapterCountTemplate(report.chapters.length, report.totalChars.toLocaleString("ko-KR"))}
+                  {!report.complete ? copy.historyPartialSuffix : report.restored ? copy.readyStatusRestored : copy.readyStatusComplete} · {copy.readyChapterCountTemplate(report.chapters.length, report.totalChars.toLocaleString("ko-KR"))}
                 </p>
                 <p className="text-sm font-bold text-white">
-                  {report.chapters.length < TOTAL_CHAPTERS ? copy.historyPartialSuffix : report.restored ? copy.readyMessageRestored : copy.readyMessageComplete}
+                  {!report.complete ? copy.historyPartialSuffix : report.restored ? copy.readyMessageRestored : copy.readyMessageComplete}
                 </p>
               </div>
               <button
@@ -549,7 +594,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
 
             <button
               type="button"
-              onClick={() => { setPhase("idle"); setReport(null); setHistory(null); idempotencyRef.current = ""; }}
+              onClick={() => { setPhase("idle"); setReport(null); setHistory(null); idempotencyRef.current = ""; pendingGenerationRef.current = null; }}
               className="mt-3 rounded-xl border border-white/12 bg-white/8 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-amber-200/35"
             >
               {copy.retryButton}

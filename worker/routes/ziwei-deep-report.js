@@ -27,8 +27,9 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb } from "../lib/db.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
-import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
-import { ZiweiDeepReport } from "../lib/models.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { ZiweiDeepReport, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -56,9 +57,9 @@ const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청에서 생성할 �
 // 전달 하한 — 폴백 문단이 다수 섞인 리포트를 "완성"으로 배달하지 않기 위한 게이트.
 // 🔴 이 게이트 없이는 15장 중 열 장이 2줄짜리 안내문이어도 30,000원이 정상 결제됐다.
 // 비율 0.55 는 자매 라우트(worker/routes/ziwei-ai.js 의 minDeliverableChars)와 같은 값이다.
-const MIN_DELIVERABLE_CHARS = Math.round(ZIWEI_DEEP_PDF_META.minTotalChars * 0.55);
+const MIN_DELIVERABLE_CHARS = 20000;
 // 글자수만 보면 한 장이 길게 나와 나머지 실패를 가릴 수 있다. 살아남은 장 수도 함께 본다.
-const MIN_DELIVERABLE_CHAPTERS = Math.ceil(ZIWEI_DEEP_CHAPTERS.length * 0.6); // 15장 중 9장
+const MIN_DELIVERABLE_CHAPTERS = ZIWEI_DEEP_CHAPTERS.length;
 
 // `generating` 문서를 "아직 누가 만들고 있다"고 믿어 줄 창(자매 라우트와 동일한 완충).
 const GENERATING_FRESHNESS_MS = 150000;
@@ -232,11 +233,13 @@ async function runWithConcurrency(items, limit, worker) {
     }
   }
   const runners = Array.from({ length: Math.min(limit, items.length) }, () => runner());
-  await Promise.all(runners);
+  const settled = await Promise.allSettled(runners);
+  const rejected = settled.find(row => row.status === "rejected");
+  if (rejected) throw rejected.reason;
   return results;
 }
 
-async function generateChapter(env, chart, birthInfo, chapter, consultation, locale) {
+async function generateChapter(env, chart, birthInfo, chapter, consultation, locale, attempt = 1) {
   const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation);
   // 결정적(명반+생년월일 기반, 자유질문 없음) 챕터 해석 → LLM 응답 캐시 + in-flight dedup.
   const chapterLlmCache = {
@@ -249,16 +252,15 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation, loc
     const ai = await callGeminiText(env, prompt, {
       // 이어쓰기에서는 최초 생성 언어를 명시한다. 현재 탭의 언어가 바뀌어도 한 리포트의 장이 섞이면 안 된다.
       locale,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 9000,
       temperature: 0.72,
       timeoutMs: 60000,
-      cache: chapterLlmCache,
-      // Workers AI 폴백이 챕터 최소 분량(2,200~3,000자)의 40% 미만이면 실패로 돌린다.
-      // 아래 200자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 본문" 하한.
+      cache: attempt === 1 ? chapterLlmCache : undefined,
+      // 제공자 폴백 이후에도 아래에서 챕터 전체 분량과 반복 여부를 검증한다.
       fallbackMinChars: Math.round((chapter.minChars || 2200) * 0.4),
     });
     const body = clean(ai?.text || "");
-    if (body.length >= 200) {
+    if (ai?.ok && ai?.truncated !== true && countPaidReportBodyChars(body) >= chapter.minChars && !hasRepeatedReportPassage(body)) {
       return { id: chapter.id, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini"), ok: true };
     }
     throw new Error("LLM_OUTPUT_TOO_SHORT");
@@ -495,7 +497,8 @@ async function markReportFailed(env, userId, normalized, reportId, reason) {
 
 /** 저장본 → 응답 봉투. 재열람과 멱등 재요청이 같은 모양을 받는다. */
 function publicStoredReport(doc) {
-  const chapters = (doc.chapters || []).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const chapters = reusableDeepChapters(doc).slice().sort((a, b) => (a.order || 0) - (b.order || 0));
+  const nextIndex = ZIWEI_DEEP_CHAPTERS.findIndex(def => !isDeepChapterComplete(chapters.find(ch => ch.id === def.id), def));
   return {
     ok: true,
     restored: true,
@@ -505,6 +508,9 @@ function publicStoredReport(doc) {
     accessType: clean(doc.accessType, 40),
     status: doc.status,
     done: doc.status === "completed",
+    saved: doc.status === "completed",
+    resumeReportId: doc.id,
+    idempotencyKey: doc.idempotencyKey,
     birthInfo: doc.birthInfo || null,
     consultation: {
       focusArea: clean(doc.focusArea, 40),
@@ -521,9 +527,9 @@ function publicStoredReport(doc) {
     },
     chapters,
     // 미완성 저장본이면 여기부터 이어 만들면 된다. 배치는 순차라 중간에 빠진 장이 없다.
-    nextIndex: chapters.length,
+    nextIndex: nextIndex < 0 ? ZIWEI_DEEP_CHAPTERS.length : nextIndex,
     totalChapters: ZIWEI_DEEP_CHAPTERS.length,
-    totalChars: chapters.reduce((sum, ch) => sum + (ch.chars || 0), 0),
+    totalChars: chapters.reduce((sum, ch) => sum + countPaidReportBodyChars(ch.body), 0),
     degraded: chapters.some((ch) => ch.ok === false),
   };
 }
@@ -586,33 +592,31 @@ async function handlePrepare(request, env) {
 }
 
 async function resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey) {
-  // 1) 액세스 토큰(prepare 또는 직전 배치에서 발급)
   const token = clean(asObject(body).accessToken || request.headers.get("x-ziwei-deep-access-token"));
   if (token) {
     try {
       const payload = await verifyAccessToken(env, token);
-      if (clean(payload.userId) === clean(auth.userId) && clean(payload.idempotencyKey) === idempotencyKey && clean(payload.inputHash) === normalized.inputHash) {
-        const accessType = clean(payload.accessType);
-        if (accessType === "admin" || accessType === "paid") {
-          // 누적 분량은 서명된 토큰으로 옮긴다 — 클라이언트가 조작할 수 없고, DB 저장이
-          // best-effort 라 실패해도 전달 게이트 판정이 흔들리지 않는다.
-          return {
-            ok: true,
-            accessType,
-            charsSoFar: Math.max(0, Number(payload.charsSoFar) || 0),
-            okChaptersSoFar: Math.max(0, Number(payload.okChaptersSoFar) || 0),
-            locale: clean(payload.locale, 10) || normalized.locale,
-          };
-        }
-      }
-    } catch (_) { /* fall through */ }
+      if (clean(payload.userId) !== clean(auth.userId) || clean(payload.idempotencyKey) !== idempotencyKey || clean(payload.inputHash) !== normalized.inputHash) return { ok: false };
+    } catch { /* 만료된 토큰 대신 원래 결제 증빙을 다시 확인한다. */ }
   }
-  if (isAdmin(auth)) return { ok: true, accessType: "admin", charsSoFar: 0, okChaptersSoFar: 0, locale: normalized.locale };
-  // 2) 엔타이틀먼트/이용권/방금 완료된 회당 결제 확인
   await connectDb(env);
+  const ids = [...new Set([idempotencyKey, resolveSourceTransactionId(body)].filter(Boolean))];
+  const revoked = ["cancelled", "canceled", "refunded", "CANCELLED", "REFUNDED"];
+  const clauses = ids.flatMap(id => [{ requestId: id }, { executionId: id }, { idempotencyKey: id }, { paymentId: id }, { merchantUid: id }, { impUid: id }, { "metadata.requestId": id }, { "metadata.idempotencyKey": id }]);
+  const sourceIds = ids.filter(id => /^[a-f0-9]{24}$/i.test(id)).map(id => ({ _id: id }));
+  const refundMarkers = ["refundedForServiceExecution", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"];
+  const blocked = await Promise.all([
+    PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    Payment.findOne({ userId: auth.userId, status: { $in: revoked }, $or: clauses }).lean(),
+    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: [...clauses, ...sourceIds] }, { $or: refundMarkers.map(key => ({ [`metadata.${key}`]: true })) }] }).lean(),
+    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: [...clauses, ...sourceIds, ...ids.map(id => ({ sourceId: id }))] }, { $or: refundMarkers.map(key => ({ [`metadata.${key}`]: true })) }] }).lean(),
+  ]);
+  if (blocked.some(Boolean)) return { ok: false };
+  if (isAdmin(auth)) return { ok: true, accessType: "admin", locale: normalized.locale };
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, { userId: auth.userId, featureKeys: [FEATURE_KEY], tokens: ids });
+  if (monthlyEvidence) return { ok: true, accessType: "subscription", locale: normalized.locale };
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
-  if (decision?.allowed) return { ok: true, accessType: "paid", charsSoFar: 0, okChaptersSoFar: 0, locale: normalized.locale };
-  return { ok: false, reason: "PAYMENT_REQUIRED" };
+  return decision?.allowed ? { ok: true, accessType: "paid", locale: normalized.locale } : { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
 /**
@@ -627,151 +631,116 @@ function accumulatedFromStored(stored) {
   };
 }
 
-async function handleGenerate(request, env) {
-  const body = await readJson(request);
-  const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120) || sha256(String(Date.now()));
-  const normalized = normalizeInput(body);
-  if (!normalized.ok) return invalidInput(normalized.message);
-  normalized.locale = resolveAiLocaleFromRequest(request, body);
-  normalized.idempotencyKey = idempotencyKey;
+function reusableDeepChapters(doc) {
+  return mergeChapters(doc?.chapters || [], Object.values(doc?.llmMeta?.checkpoints || {}));
+}
+function isDeepChapterComplete(chapter, definition) {
+  return chapter?.ok === true && countPaidReportBodyChars(chapter.body) >= definition.minChars && !hasRepeatedReportPassage(chapter.body);
+}
+async function saveDeepCheckpoint({ id, userId, lockToken, status = 'generating', values }) {
+  try {
+    const saved = await ZiweiDeepReport.findOneAndUpdate({ id, userId: clean(userId), status, 'llmMeta.lockToken': lockToken }, { $set: values }, { new: true }).lean();
+    const confirmed = saved && await ZiweiDeepReport.findOne({ id, userId: clean(userId) }).lean();
+    if (!confirmed || Object.entries(values).some(([key, value]) => JSON.stringify(key.split('.').reduce((at, part) => at?.[part], confirmed)) !== JSON.stringify(value))) throw resultStorageUnavailable(id);
+    return confirmed;
+  } catch { throw resultStorageUnavailable(id); }
+}
+async function finishDeepDelivery(env, auth, pending) {
+  const completed = await saveDeepCheckpoint({ id: pending.id, userId: auth.userId, lockToken: pending.llmMeta?.lockToken || '', status: 'delivery_pending', values: { status: 'completed', usageAppliedAt: new Date() } });
+  await completeRefundableExecution(env, auth.userId, pending.idempotencyKey, pending.id);
+  return completed;
+}
 
+async function handleGenerate(request, env) {
+  let body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return loginRequired();
-
+  await connectDb(env);
+  if (body.resumeReportId) {
+    const saved = await loadStoredReport(env, auth.userId, { reportId: clean(body.resumeReportId) });
+    if (!saved) return notFound();
+    if (saved.status === 'completed') return json(publicStoredReport(saved));
+    if (!saved.llmMeta?.resumeBody) return invalidInput('원래 상담 정보를 확인하지 못했습니다.', 409);
+    body = { ...saved.llmMeta.resumeBody, idempotencyKey: saved.idempotencyKey, requestId: saved.idempotencyKey };
+    delete body.accessToken;
+    const headers = new Headers(request.headers);
+    headers.delete("x-ziwei-deep-access-token");
+    request = new Request(request.url, { method: request.method, headers });
+  }
+  const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120);
+  if (idempotencyKey.length < 12) return invalidInput();
+  const normalized = normalizeInput(body);
+  if (!normalized.ok) return invalidInput(normalized.message);
+  normalized.idempotencyKey = idempotencyKey;
+  normalized.locale = resolveAiLocaleFromRequest(request, body);
+  let stored = await loadStoredReport(env, auth.userId, { idempotencyKey });
+  if (stored && stored.inputHash !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
+  if (stored?.status === 'completed') return json(publicStoredReport(stored));
+  if (stored?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: MESSAGES.generationFailed }, { status: 409 });
   const access = await resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey);
   if (!access.ok) return paymentVerifyFailed();
-
-  const reportId = buildReportId(auth.userId, normalized.inputHash, idempotencyKey);
-  const rawStartIndex = Number(asObject(body).startIndex);
-  const startIndex = Number.isFinite(rawStartIndex) ? Math.max(0, Math.trunc(rawStartIndex)) : 0;
-  const isFirstBatch = startIndex === 0;
-
-  // 같은 요청 키로 다시 들어오면 재생성하지 않는다 — 이미 낸 돈으로 만든 리포트를 그대로 돌려준다.
-  // (새로고침·이중 클릭·네트워크 재시도가 두 번째 생성을 부르지 않게)
-  // 조기 return 이라 아래 startRefundableExecution 에 도달하지 않아 재과금도 없다.
-  if (isFirstBatch) {
-    const stored = await loadStoredReport(env, auth.userId, { idempotencyKey });
-    if (stored && stored.chapters?.length && stored.status !== "generation_failed") {
-      const accumulated = accumulatedFromStored(stored);
-      return json({
-        ...publicStoredReport(stored),
-        accessType: access.accessType,
-        accessToken: await createAccessToken(env, {
-          userId: auth.userId,
-          accessType: access.accessType,
-          idempotencyKey,
-          inputHash: normalized.inputHash,
-          charsSoFar: accumulated.chars,
-          okChaptersSoFar: accumulated.okChapters,
-        }),
-      });
-    }
-  }
-
-  // 재개 JWT가 없더라도 저장된 부분 리포트의 언어를 이어받는다. 결제 키와 조회 조건은 바꾸지 않는다.
-  let outputLocale = access.locale || normalized.locale;
-  if (!isFirstBatch) {
-    const stored = await loadStoredReport(env, auth.userId, { reportId });
-    if (stored) outputLocale = clean(stored.locale, 10) || "ko";
-  }
-  normalized.locale = outputLocale;
-
+  const reportId = stored?.id || buildReportId(auth.userId, normalized.inputHash, idempotencyKey);
+  normalized.locale = stored?.locale || normalized.locale;
+  if (stored?.status === 'delivery_pending') return json(publicStoredReport(await finishDeepDelivery(env, auth, stored)));
+  if (stored?.llmMeta?.lockedAt && Date.now() - new Date(stored.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS) return json({ ...publicStoredReport(stored), status: 'generating' }, { status: 202 });
   let chart;
-  try {
-    chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
-  } catch (_) {
-    return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
+  try { chart = stored?.llmMeta?.chartSnapshot || stored?.ziweiChart || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() }); }
+  catch { return json({ ok: false, reason: 'CALCULATION_FAILED', message: MESSAGES.calculationFailed }, { status: 422 }); }
+  if (!stored) {
+    try {
+      await ZiweiDeepReport.create({ id: reportId, userId: clean(auth.userId), idempotencyKey, inputHash: normalized.inputHash,
+        locale: normalized.locale, birthInfo: normalized.birthInfo, focusArea: normalized.consultation.focusArea, topic: normalized.consultation.topic,
+        userQuestion: normalized.consultation.question, ziweiChart: chart, chapters: [], status: 'partial', accessType: access.accessType,
+        llmMeta: { chartSnapshot: chart, resumeBody: { ...body, accessToken: undefined }, checkpoints: {}, attempts: {}, lockedAt: null, lockToken: '' } });
+    } catch (error) {
+      if (error?.code !== 11000) throw resultStorageUnavailable(reportId);
+      const duplicate = await loadStoredReport(env, auth.userId, { idempotencyKey });
+      if (!duplicate) throw resultStorageUnavailable(reportId);
+      return json(publicStoredReport(duplicate), { status: duplicate.status === 'completed' ? 200 : 202 });
+    }
+    await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body), idempotencyKey, reportId, getPricing());
   }
-
-  // 선차감을 되돌릴 수 있는 상태로 연다. 첫 배치에서만 — 이후 배치는 같은 실행에 이어붙는다.
-  const sourceTransactionId = resolveSourceTransactionId(body);
-  if (isFirstBatch) {
-    await startRefundableExecution(env, auth.userId, sourceTransactionId, idempotencyKey, reportId, getPricing());
+  const lockToken = sha256(`${reportId}|${Date.now()}|${Math.random()}`);
+  const claimed = await ZiweiDeepReport.findOneAndUpdate({ id: reportId, userId: clean(auth.userId), status: { $in: ['partial', 'generating'] },
+    $or: [{ 'llmMeta.lockedAt': null }, { 'llmMeta.lockedAt': { $exists: false } }, { 'llmMeta.lockedAt': { $lt: new Date(Date.now() - GENERATING_FRESHNESS_MS).toISOString() } }] },
+    { $set: { status: 'generating', 'llmMeta.lockToken': lockToken, 'llmMeta.lockedAt': new Date().toISOString(),
+      'llmMeta.resumeBody': stored?.llmMeta?.resumeBody || { ...body, accessToken: undefined }, 'llmMeta.chartSnapshot': chart } }, { new: true }).lean().catch(() => { throw resultStorageUnavailable(reportId); });
+  if (!claimed) {
+    const current = await loadStoredReport(env, auth.userId, { reportId });
+    if (!current) throw resultStorageUnavailable(reportId);
+    return json(publicStoredReport(current), { status: current.status === 'completed' ? 200 : 202 });
   }
-
   try {
-    const batch = await generateReportBatch(env, chart, normalized.birthInfo, normalized.consultation, startIndex, outputLocale);
-
-    // 누적 집계 — 토큰에 실린 값을 1차 소스로 쓴다(서명돼 있고 DB 저장 실패와 무관하다).
-    let priorChars = Number(access.charsSoFar) || 0;
-    let priorOkChapters = Number(access.okChaptersSoFar) || 0;
-    if (!isFirstBatch && !priorChars) {
-      const stored = await loadStoredReport(env, auth.userId, { reportId });
-      const accumulated = accumulatedFromStored(stored);
-      priorChars = accumulated.chars;
-      priorOkChapters = accumulated.okChapters;
-    }
-    const charsSoFar = priorChars + batch.chapters.reduce((sum, ch) => sum + (ch.chars || 0), 0);
-    const okChaptersSoFar = priorOkChapters + batch.chapters.filter((ch) => ch.ok !== false).length;
-
-    // 🔴 전달 게이트는 15장을 다 모은 마지막 배치에서만 판정한다.
-    if (batch.done) {
-      const verdict = judgeDeliverable(charsSoFar, okChaptersSoFar);
-      if (!verdict.ok) {
-        console.warn("[ziwei-deep-report] not deliverable", clean(verdict.reason, 200));
-        const refunded = await refundExecution(env, auth.userId, idempotencyKey, reportId, MESSAGES.generationFailed);
-        await markReportFailed(env, auth.userId, normalized, reportId, verdict.reason);
-        return json({
-          ok: false,
-          reason: "GENERATION_FAILED",
-          retryable: true,
-          refunded,
-          message: refunded ? MESSAGES.generationFailed : "리포트를 완성하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-        }, { status: 503 });
-      }
-    }
-
-    if (isFirstBatch) {
-      await persistFirstBatch(env, auth.userId, normalized, reportId, chart, batch.chapters, access.accessType);
-    } else {
-      await persistNextBatch(env, auth.userId, reportId, batch.chapters, batch.done);
-    }
-    if (batch.done) {
-      await completeRefundableExecution(env, auth.userId, idempotencyKey, reportId);
-    }
-
-    // 다음 배치가 DB·결제 조회 없이 순수 JWT 검증만으로 접근하도록 재사용 토큰을 발급한다(과금 없음).
-    const accessToken = await createAccessToken(env, {
-      userId: auth.userId,
-      accessType: access.accessType,
-      idempotencyKey,
-      inputHash: normalized.inputHash,
-      charsSoFar,
-      okChaptersSoFar,
-      locale: outputLocale,
+    const chapters = reusableDeepChapters(claimed);
+    const attempts = { ...(claimed.llmMeta?.attempts || {}) };
+    const pending = ZIWEI_DEEP_CHAPTERS.filter(def => !isDeepChapterComplete(chapters.find(ch => ch.id === def.id), def));
+    if (pending.some(def => Number(attempts[def.id] || 0) >= 3)) throw Object.assign(new Error('챕터 생성 한도 안에서 필수 본문을 완성하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
+    const batch = pending.slice(0, CHAPTER_BATCH_SIZE);
+    await runWithConcurrency(batch, CHAPTER_CONCURRENCY, async definition => {
+      const attempt = Number(attempts[definition.id] || 0) + 1;
+      await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.attempts.${definition.id}`]: attempt } });
+      const result = await generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt);
+      const checkpoint = chaptersForDb([{ ...result, order: ZIWEI_DEEP_CHAPTERS.findIndex(def => def.id === definition.id) }])[0];
+      await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.checkpoints.${definition.id}`]: checkpoint } });
     });
-    return json({
-      ok: true,
-      accessType: access.accessType,
-      accessToken,
-      reportId,
-      reportMeta: {
-        featureKey: FEATURE_KEY,
-        label: TITLE,
-        minTotalChars: ZIWEI_DEEP_PDF_META.minTotalChars,
-        chapterCount: batch.totalChapters,
-        generatedAt: new Date().toISOString(),
-      },
-      ...(isFirstBatch ? { birthInfo: normalized.birthInfo, ziweiChart: chart } : {}),
-      batch,
-    });
+    stored = await loadStoredReport(env, auth.userId, { reportId });
+    if (!stored) throw resultStorageUnavailable(reportId);
+    const merged = reusableDeepChapters(stored);
+    const valid = ZIWEI_DEEP_CHAPTERS.filter(def => isDeepChapterComplete(merged.find(ch => ch.id === def.id), def));
+    const counts = accumulatedFromStored({ chapters: merged });
+    const verdict = judgeDeliverable(counts.chars, valid.length);
+    const saved = await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { chapters: chaptersForDb(merged), status: verdict.ok ? 'delivery_pending' : 'partial' } });
+    if (!verdict.ok) return json(publicStoredReport(saved), { status: 202 });
+    const freshAccess = await resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey).catch(() => { throw resultStorageUnavailable(reportId); });
+    if (!freshAccess.ok) return paymentVerifyFailed();
+    return json(publicStoredReport(await finishDeepDelivery(env, auth, saved)));
   } catch (error) {
-    console.error("[ziwei-deep-report] generate", clean(error?.message, 300));
-    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
-    // 첫 배치가 통째로 실패하면 아무것도 못 받은 것이므로 선차감을 되돌린다.
-    // 이후 배치 실패는 이미 받은 장이 저장돼 있어 재진입으로 이어붙일 수 있으니 유지한다.
-    if (isFirstBatch) {
-      const refunded = await refundExecution(env, auth.userId, idempotencyKey, reportId, clean(error?.message, 300));
-      await markReportFailed(env, auth.userId, normalized, reportId, clean(error?.message, 200));
-      return json({
-        ok: false,
-        reason: "GENERATION_FAILED",
-        retryable: true,
-        refunded,
-        message: refunded ? MESSAGES.generationFailed : "리포트 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.",
-      }, { status: 503 });
-    }
-    return serverError("리포트 생성에 실패했습니다. 지금까지 만든 장은 저장돼 있으니 잠시 후 다시 시도해 주세요.", 503);
+    if (error?.code === 'RESULT_STORAGE_UNAVAILABLE') throw error;
+    await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { status: 'generation_failed', generationError: { code: clean(error.code || 'GENERATION_FAILED'), message: clean(error.message, 500) } } });
+    const refunded = await refundExecution(env, auth.userId, idempotencyKey, reportId, clean(error.message, 500));
+    return json({ ok: false, reason: 'GENERATION_FAILED', refunded, message: refunded ? MESSAGES.generationFailed : '리포트를 완성하지 못했습니다. 저장된 내용은 보존됩니다.' }, { status: 503 });
+  } finally {
+    await ZiweiDeepReport.updateOne({ id: reportId, userId: clean(auth.userId), 'llmMeta.lockToken': lockToken }, { $set: { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' } }).catch(() => {});
   }
 }
 
@@ -814,16 +783,14 @@ async function handleResult(request, env) {
     if (doc.status === "generation_failed") {
       return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.generationFailed }, { status: 409 });
     }
-    if (doc.status === "generating") {
-      // 신선도 창을 넘긴 `generating`은 생성 주체가 이미 사라진 좀비다 — 그 자리에서 종단시킨다.
-      const ageMs = Date.now() - new Date(doc.updatedAt || doc.createdAt).getTime();
-      if (ageMs >= GENERATING_FRESHNESS_MS) {
-        return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.generationFailed }, { status: 409 });
+    if (["generating", "partial", "delivery_pending"].includes(doc.status)) {
+      if (doc.llmMeta?.resumeBody) {
+        const body = doc.llmMeta.resumeBody;
+        const normalized = normalizeInput(body); normalized.locale = doc.locale || "ko";
+        if (!normalized.ok || !(await resolveGenerateAccess(request, env, auth, body, normalized, doc.idempotencyKey)).ok) return paymentVerifyFailed();
       }
-      return json(
-        { ok: true, reportId: doc.id, status: "generating" },
-        { status: 202, headers: { "Retry-After": "3" } },
-      );
+      const busy = doc.llmMeta?.lockedAt && Date.now() - new Date(doc.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS;
+      return json({ ...publicStoredReport(doc), status: busy ? "generating" : doc.status === "delivery_pending" ? "delivery_pending" : "partial" }, { status: 202 });
     }
     return json(publicStoredReport(doc));
   } catch (error) {
