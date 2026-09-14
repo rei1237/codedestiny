@@ -202,7 +202,7 @@ console.log("\n[4] 프롬프트 인젝션 / PII");
 console.log("\n[5] 모드 사양 (가격·폴백 문턱)");
 {
   check("one/three 는 basic(30코인)", MODE_SPEC.one.featureKey === "animal-totem-basic" && MODE_SPEC.three.coinPrice === 30);
-  check("five 는 deep(60코인)", MODE_SPEC.five.featureKey === "animal-totem-deep" && MODE_SPEC.five.coinPrice === 60);
+  check("five 는 deep(50 내부 단위)", MODE_SPEC.five.featureKey === "animal-totem-deep" && MODE_SPEC.five.coinPrice === 50);
   // 🔴 폴백을 켠 유료 라우트는 fallbackMinChars 가 반드시 있어야 한다(CLAUDE.md).
   //    관례는 최소 분량 × 0.4 — 없으면 8% 분량 응답이 정상 결제로 전달된다.
   for (const [mode, spec] of Object.entries(MODE_SPEC)) {

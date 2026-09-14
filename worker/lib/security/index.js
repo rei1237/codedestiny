@@ -557,6 +557,7 @@ const CHECKPOINT_RESUME_MODELS = Object.freeze({
   "ziwei-island-ai": "ZiweiAiConsultation",
   "relationship-boundary-test": "RelationshipBoundaryTest",
   "pet-saju-ai": "ServiceExecutionTransaction",
+  "animal-totem": "ServiceExecutionTransaction",
 });
 
 // Only a small server-ID resume envelope can change the quota classification. The
@@ -586,14 +587,14 @@ async function isOwnedCheckpointResume(request, env, serviceKey, userId) {
   const modelName = CHECKPOINT_RESUME_MODELS[serviceKey];
   if (!modelName || !userId || request.method !== "POST") return false;
   const body = await readCheckpointResumeBody(request);
-  const pet = serviceKey === "pet-saju-ai";
+  const pet = serviceKey === "pet-saju-ai" || serviceKey === "animal-totem";
   const id = pet ? body?.resumeResultId : serviceKey === "naming-prompt" ? body?.resumeExecutionId : serviceKey === "neo-operation-room" ? body?.sessionId || body?.resultId : body?.resumeSessionId;
   const maxIdLength = serviceKey === "naming-prompt" ? 160 : 120;
   if (typeof id !== "string" || id.length > maxIdLength || !/^[a-zA-Z0-9_:-]{8,160}$/.test(id)) return false;
   try {
     await connectDb(env);
     const model = consultationModels[modelName];
-    const petFeature = new URL(request.url).pathname.endsWith("/report") ? "pet-saju-ai-consultation" : new URL(request.url).pathname.endsWith("/compat") ? "pet-compatibility-ai" : "";
+    const petFeature = serviceKey === "animal-totem" ? (["one", "three"].includes(body.mode) ? "animal-totem-basic" : body.mode === "five" ? "animal-totem-deep" : "") : new URL(request.url).pathname.endsWith("/report") ? "pet-saju-ai-consultation" : new URL(request.url).pathname.endsWith("/compat") ? "pet-compatibility-ai" : "";
     if (pet && !petFeature) return false;
     const saved = await model.findOne({ userId, [pet ? "executionKey" : serviceKey === "naming-prompt" ? "executionId" : serviceKey === "sukuyo-compatibility-ai" ? "_id" : "id"]: id,
       ...(pet ? { featureKey: petFeature } : serviceKey === "naming-prompt" ? { featureId: "premium-naming-prompt" } : serviceKey === "ziwei-island-ai" ? { serviceType: "ziwei-island-palace-consult" } : {}) })
@@ -608,7 +609,7 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
   let action = aiActionFromPath(path, serviceKey);
   const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
   const resolvedUserId = userId || String(auth?.userId || "");
-  if ((action === "start" || (serviceKey === "naming-prompt" && action === "generate"))
+  if ((action === "start" || (serviceKey === "naming-prompt" && action === "generate") || (serviceKey === "animal-totem" && action === "other"))
     && await isOwnedCheckpointResume(request, env, serviceKey, resolvedUserId)) action = "batch";
   const method = cleanText(request?.method).toUpperCase();
   const isRead = AI_READ_ACTIONS.has(action) && method === "GET";

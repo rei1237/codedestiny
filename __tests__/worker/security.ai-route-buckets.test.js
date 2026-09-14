@@ -347,6 +347,14 @@ describe('서버 저장본의 재개는 새 리포트 일일 예산을 소비하
     expect((await enforce('pet-saju-ai',body,'other-owner',kind)).ok).toBe(false);
     expect((await enforce('pet-saju-ai',body,'user-1',kind==='report'?'compat':'report')).ok).toBe(false);
   });
+  test.each(['three','five'])('동물 토템 %s 저장 재개만 batch를 사용한다',async mode=>{
+    exhaustedStarts=true;checkpointDoc={userId:'user-1',executionKey:'paid-narrative:stored-result',featureKey:mode==='five'?'animal-totem-deep':'animal-totem-basic',status:'pending',metadata:{paidNarrative:{body:{requestId:'original'}}}};
+    const body={mode,resumeResultId:checkpointDoc.executionKey};
+    expect((await enforce('animal-totem',body,'user-1','reading')).ok).toBe(true);
+    expect(RATE_LIMIT_CALLS.at(-1).endpoint).toBe('ai:animal-totem:batch');
+    await enforce('animal-totem',body,'other-owner','reading');expect(RATE_LIMIT_CALLS.at(-1).endpoint).toBe('ai:animal-totem:other');
+    await enforce('animal-totem',{...body,mode:mode==='five'?'three':'five'},'user-1','reading');expect(RATE_LIMIT_CALLS.at(-1).endpoint).toBe('ai:animal-totem:other');
+  });
   test.each(['naming-prompt', 'ziwei-island-ai'])('%s 재개는 소유자와 상품을 함께 확인한다', async service => {
     exhaustedStarts = true;
     const naming = service === 'naming-prompt';

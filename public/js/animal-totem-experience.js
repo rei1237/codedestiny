@@ -2,14 +2,8 @@
  *
  * 흐름: 인트로 → 질문 입력 → 의식 선택 → (결제) → 카드 뒤집기 → 결과 → 보관함
  *
- * 이 파일이 지키는 세 가지 계약:
- *  1) 🔴 결제 배관은 손대지 않는다. _cdCoinGatePerUse 호출부·featureKey·cost 는 그대로다.
- *     달라진 것은 requestId 를 모듈 상태로 올려 워커 증빙 조회에 넘긴다는 점 하나뿐이다.
- *  2) 🔴 카드를 뒤집는 시간이 곧 AI 로딩 시간이다. 결제 성공 직후 /api/animal-totem/reading 을
- *     쏘고, 사용자가 카드를 뒤집는 10~20초 동안 백그라운드로 받는다. 별도 로딩 화면이 없다.
- *     서버는 실패해도 200 + 템플릿 서사를 주므로 무한 대기가 없다.
- *  3) 🔴 재시도를 겹치지 않는다. 워커의 callGeminiJsonWithRetry 가 이미 재시도·폴백 체인을
- *     품고 있다. 여기서는 **단 한 번** 호출하고, 실패하면 즉시 정적 리딩으로 간다.
+ * 결제 후 카드 공개와 LLM 생성을 함께 진행한다. 저장 확인 전에는 원래 요청을
+ * 계정별로 보존하며, 끊긴 호출은 같은 카드·결제 증빙으로만 재개한다.
  *
  * 카드 아트는 이모지가 아니라 동물 id 를 시드로 만든 결정론적 성좌 시길이다(아래 sigil 섹션).
  * 시길을 별도 파일로 두지 않은 이유: 이 모달의 스크립트 로더가 5곳(index-inline-runtime 3곳,
@@ -27,6 +21,9 @@
     narrativePromise: null,
     narrativeSource: "",
     requestId: "",
+    delivery: null,
+    birthSeed: null,
+    deliveryMessage: "",
     revealedOrder: [],
     activeResultTab: 0,
     canvasLoop: null,
@@ -42,10 +39,9 @@
   var ARCHIVE_KEY = "cd_animal_totem_archive_v1";
   var ARCHIVE_LIMIT = 20;
   var QUESTION_DRAFT_KEY = "cd_animal_totem_question_draft";
-  /* 마지막 카드를 뒤집었는데 해설이 아직이면 이만큼만 더 기다린다.
-     서버가 항상 200 을 주므로 이건 네트워크 지연 상한일 뿐이다. */
+  /* 마지막 카드 공개 후에는 정적 본문을 먼저 보여주고 해설 도착 시 갱신한다. */
   var NARRATIVE_GRACE_MS = 9000;
-  var NARRATIVE_REQUEST_TIMEOUT_MS = 32000;
+  var NARRATIVE_REQUEST_TIMEOUT_MS = 90000;
 
   var ANIMAL_TOTEM_TEXT_TRANSLATIONS = {
     ko: {
@@ -557,6 +553,11 @@
     return zh;
   })();
 
+  ANIMAL_TOTEM_TEXT_TRANSLATIONS.ko.delivery = { generating: "카드 해설을 생성하고 저장하고 있어요.", pending: "해설을 보존했어요. 같은 카드로 이어서 생성합니다.", retry: "같은 결과 이어서 확인하기", network: "연결이 끊겼어요. 같은 결과를 다시 확인해 주세요.", reader: "해설 연결을 준비하지 못했어요. 다시 확인해 주세요." };
+  ANIMAL_TOTEM_TEXT_TRANSLATIONS.en.delivery = { generating: "Generating and saving your reading.", pending: "Your reading is saved. Continuing with the same cards.", retry: "Continue this reading", network: "The connection was interrupted. Please reopen this reading.", reader: "Could not prepare the reading. Please try again." };
+  ANIMAL_TOTEM_TEXT_TRANSLATIONS.ja.delivery = { generating: "解説を生成して保存しています。", pending: "解説を保存しました。同じカードで続きを生成します。", retry: "同じ結果の続きを確認", network: "接続が切れました。同じ結果をもう一度確認してください。", reader: "解説の準備ができませんでした。もう一度お試しください。" };
+  ANIMAL_TOTEM_TEXT_TRANSLATIONS.zh.delivery = { generating: "正在生成并保存解读。", pending: "解读已保存，将使用同一组卡片继续生成。", retry: "继续查看本次解读", network: "连接已中断，请重新打开本次解读。", reader: "未能准备解读，请重试。" };
+
   function animalTotemLocale() {
     try {
       var stored = global.localStorage && (
@@ -863,7 +864,7 @@
       /* 🔴 requestId 를 모듈 상태로 올린다. 이 값이 그대로 PointHistory.metadata.requestId 로
          저장되고(worker/routes/billing.js), 워커의 verifyPerUsePayment 가 그 열쇠로 증빙을 찾는다.
          예전에는 지역변수라 결제 후 서버에 "내가 낸 그 건"을 지목할 방법이 없었다. */
-      var requestId = "animal-totem:" + spec.subFeatureKey + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+      var requestId = state.requestId;
       state.requestId = requestId;
 
       var immediate = global._cdCoinGatePerUse(
@@ -1020,60 +1021,103 @@
     };
   }
 
-  /* 🔴 한 번만 호출한다. 워커의 callGeminiJsonWithRetry 가 이미 재시도 + Workers AI 폴백 체인을
-     품고 있어서, 여기서 또 감싸면 시도 배수만 늘고 카드 뒤집기 예산을 넘긴다(CLAUDE.md 원칙 6).
-     실패하면 정적 리딩으로 그대로 간다 — 사용자는 이미 완결된 카드별 리딩을 갖고 있다. */
-  function requestYeoniNarrative() {
-    state.narrative = null;
-    state.narrativeSource = "";
-
-    var engine = global.AnimalTotemContentEngine;
-    if (!engine || typeof engine.buildReadingCards !== "function" || !state.spread) {
-      state.narrativePromise = Promise.resolve(null);
-      return;
+  var deliveryOwner = "", deliveryEpoch = 0, deliveryFlight = null, readerLoad = null;
+  function currentDeliveryOwner() {
+    try { var user = JSON.parse(localStorage.getItem("fortune_auth_user") || "null"); return String(user && (user.id || user._id || user.userId) || ""); } catch (_) { return ""; }
+  }
+  function deliveryKey() { return "cd:animal-totem:v2:" + encodeURIComponent(deliveryOwner); }
+  function syncDeliveryOwner() {
+    var owner = currentDeliveryOwner();
+    if (owner !== deliveryOwner) {
+      deliveryOwner = owner; deliveryEpoch += 1; deliveryFlight = null; state.delivery = null;
+      state.deliveryMessage = ""; state.requestId = "";
+      resetAnimalTotemFlow();
     }
-
-    var payload = {
-      mode: state.mode,
-      requestId: state.requestId,
-      question: state.question,
-      cards: engine.buildReadingCards(state.spread)
-    };
-    var birth = buildBirthSeed();
-    if (birth) payload.birth = birth;
-
-    var headers = { "Content-Type": "application/json" };
-    var token = getAuthToken();
-    if (token) headers.Authorization = "Bearer " + token;
-
-    var controller = typeof AbortController === "function" ? new AbortController() : null;
-    var timeoutId = controller
-      ? setTimeout(function() { controller.abort(); }, NARRATIVE_REQUEST_TIMEOUT_MS)
-      : null;
-
-    state.narrativePromise = fetch("/api/animal-totem/reading", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(payload),
-      cache: "no-store",
-      signal: controller ? controller.signal : undefined
-    })
-      .then(function(response) {
-        return response.json().catch(function() { return null; });
-      })
-      .then(function(data) {
-        if (!data || data.ok !== true || !data.narrative) return null;
-        state.narrative = data.narrative;
-        state.narrativeSource = String(data.source || "");
-        return data.narrative;
-      })
-      .catch(function(error) {
-        console.warn("[animal-totem][narrative]", String((error && error.message) || error).slice(0, 200));
-        return null;
-      })
-      .finally(function() {
-        if (timeoutId) clearTimeout(timeoutId);
-      });
+    return owner;
+  }
+  function persistTotemDelivery() {
+    if (!deliveryOwner || currentDeliveryOwner() !== deliveryOwner || !state.delivery) return;
+    try { localStorage.setItem(deliveryKey(), JSON.stringify(state.delivery)); } catch (_) {}
+  }
+  function readTotemDelivery() {
+    try { return deliveryOwner ? JSON.parse(localStorage.getItem(deliveryKey()) || "null") : null; } catch (_) { return null; }
+  }
+  function narrativeReader() {
+    if (global.CDPaidNarrativeReader) return Promise.resolve(global.CDPaidNarrativeReader);
+    if (!readerLoad) readerLoad = new Promise(function(resolve, reject) {
+      var script = document.createElement("script"); script.src = "/js/core/paid-narrative-reader.js";
+      script.onload = function() { resolve(global.CDPaidNarrativeReader); };
+      script.onerror = function() { readerLoad = null; reject(new Error(animalTotemText("delivery.reader"))); };
+      document.head.appendChild(script);
+    });
+    return readerLoad;
+  }
+  async function totemDeliveryFetch(url, body) {
+    var controller = new AbortController(), timer = setTimeout(function() { controller.abort(); }, body ? NARRATIVE_REQUEST_TIMEOUT_MS : 22000);
+    var headers = { "Content-Type": "application/json" }, token = getAuthToken(); if (token) headers.Authorization = "Bearer " + token;
+    try { var response = await fetch(url, { method: body ? "POST" : "GET", headers: headers, credentials: "include", cache: "no-store", signal: controller.signal, body: body ? JSON.stringify(body) : undefined });
+      return { status: response.status, payload: await response.json() };
+    } finally { clearTimeout(timer); }
+  }
+  function restoreTotemCards(data) {
+    var engine = global.AnimalTotemContentEngine;
+    if (!engine || !data.cards) return;
+    state.mode = data.mode; state.question = data.question || ""; state.requestId = data.requestId;
+    state.spread = { mode: data.mode, cards: data.cards.map(function(item) { return { slot: item.slot, card: engine.getAnimalById(item.animalId) }; }), created_at: new Date().toISOString() };
+    state.consultation = engine.composeConsultation(state.spread, { focus: state.question });
+  }
+  function refreshNarrativeDisplay() {
+    if (!state.consultation || !refs.resultStage || !refs.resultStage.classList.contains("is-active")) return;
+    var tab = state.activeResultTab; renderConsultation(); setResultTab(tab);
+  }
+  function continueTotemDelivery(initial, lookupMode, recovery) {
+    if (deliveryFlight) return deliveryFlight;
+    var owner = deliveryOwner, epoch = deliveryEpoch;
+    var active = function() { return Boolean(owner) && owner === currentDeliveryOwner() && epoch === deliveryEpoch; };
+    if (!active()) return Promise.resolve(false);
+    state.deliveryMessage = animalTotemText("delivery.generating"); refreshNarrativeDisplay();
+    var flight = (async function() {
+      try {
+        var reader = await narrativeReader();
+        return await reader.run(initial, {
+          active: active, visible: function() { return document.visibilityState !== "hidden" && navigator.onLine !== false; },
+          post: function(body) { return totemDeliveryFetch("/api/animal-totem/reading", Object.assign({ mode: state.mode }, body)); },
+          get: function() { var record = state.delivery; return totemDeliveryFetch("/api/animal-totem/result?mode=" + encodeURIComponent(lookupMode || (record && record.mode) || state.mode) + (record && record.resultId ? "&resultId=" + encodeURIComponent(record.resultId) : "")); },
+          wait: function(ms) { return new Promise(function(resolve) { setTimeout(resolve, ms); }); },
+          persist: function(body, resultId) { state.delivery = Object.assign({}, state.delivery, { mode: state.mode, body: body, resultId: resultId }); persistTotemDelivery(); },
+          show: function(data) {
+            restoreTotemCards(data); state.narrative = data.narrative; state.narrativeSource = data.source;
+            state.delivery = Object.assign({}, state.delivery, { mode: data.mode, requestId: data.requestId, resultId: data.resultId, body: data.status === "completed" ? null : data.resumeBody });
+            state.deliveryMessage = data.status === "completed" ? "" : animalTotemText("delivery.pending");
+            persistTotemDelivery();
+            if (recovery) { renderConsultation(); bindResultInteractions(); activateStage(refs.resultStage); } else refreshNarrativeDisplay();
+          }
+        });
+      } catch (error) { if (active()) { state.deliveryMessage = error.message || animalTotemText("delivery.network"); refreshNarrativeDisplay(); } return false;
+      } finally { if (deliveryFlight === flight) { deliveryFlight = null; refreshNarrativeDisplay(); } }
+    }());
+    deliveryFlight = flight; return flight;
+  }
+  function requestYeoniNarrative() {
+    var engine = global.AnimalTotemContentEngine;
+    if (!engine || !state.spread) return Promise.resolve(false);
+    var payload = { mode: state.mode, requestId: state.requestId, question: state.question, cards: engine.buildReadingCards(state.spread) };
+    if (state.birthSeed) payload.birth = state.birthSeed;
+    state.narrative = null; state.narrativeSource = "pending";
+    state.delivery = { mode: state.mode, requestId: state.requestId, body: payload }; persistTotemDelivery();
+    state.narrativePromise = continueTotemDelivery(payload); return state.narrativePromise;
+  }
+  async function recoverTotemDelivery() {
+    if (!syncDeliveryOwner()) return false;
+    if (deliveryFlight) { var waitingEpoch = deliveryEpoch; var result = await deliveryFlight; if (waitingEpoch === deliveryEpoch && state.consultation) { renderConsultation(); bindResultInteractions(); activateStage(refs.resultStage); } return result; }
+    var epoch = deliveryEpoch, record = readTotemDelivery(); state.delivery = record;
+    if (record && record.body && record.body.cards) restoreTotemCards(record.body);
+    var modes = record ? [record.mode] : ["three", "five"];
+    for (var i = 0; i < modes.length && epoch === deliveryEpoch; i += 1) {
+      var done = await continueTotemDelivery(record && record.body, modes[i], true);
+      if (state.consultation && epoch === deliveryEpoch) { renderConsultation(); bindResultInteractions(); activateStage(refs.resultStage); return done; }
+    }
+    return false;
   }
 
   function waitForNarrative() {
@@ -1750,7 +1794,8 @@
         ? '<p class="totem-narrative-question"><span>' + escapeHtml(animalTotemText("result.questionLabel")) + "</span>"
           + escapeHtml(state.question) + "</p>"
         : "")
-      + '<div class="totem-narrative-opening">' + paragraphsHtml(opening) + "</div>"
+      + (state.deliveryMessage ? '<p role="status">' + escapeHtml(state.deliveryMessage) + '</p><button type="button" class="totem-tab" data-totem-resume' + (deliveryFlight ? ' disabled' : '') + '>' + escapeHtml(animalTotemText("delivery.retry")) + '</button>' : "")
+      + '<div class="totem-narrative-opening">'  + paragraphsHtml(opening) + "</div>"
       + (body ? '<div class="totem-narrative-body">' + paragraphsHtml(body) + "</div>" : "")
       + (synthesis
         ? '<section class="totem-narrative-synthesis"><h4>' + escapeHtml(animalTotemText("result.shadowGift")) + "</h4>"
@@ -1769,6 +1814,7 @@
 
   function setResultTab(index) {
     state.activeResultTab = index;
+    if (state.delivery && state.delivery.resultId) { state.delivery.tab = index; persistTotemDelivery(); }
     if (refs.resultTabs) {
       Array.prototype.forEach.call(refs.resultTabs.querySelectorAll("[data-totem-tab]"), function(tab) {
         var active = Number(tab.getAttribute("data-totem-tab")) === index;
@@ -1826,13 +1872,14 @@
     var archiveBtn = refs.resultStage && refs.resultStage.querySelector("[data-totem-archive]");
     if (archiveBtn) archiveBtn.textContent = animalTotemText("result.archive");
 
-    setResultTab(0);
+    setResultTab(state.delivery && Number(state.delivery.tab) || 0);
   }
 
   function bindResultInteractions() {
     if (!refs.resultStage || refs.resultStage._totemTabsBound) return;
     refs.resultStage._totemTabsBound = true;
     refs.resultStage.addEventListener("click", function(event) {
+      if (event.target && event.target.closest && event.target.closest("[data-totem-resume]")) { recoverTotemDelivery(); return; }
       var tab = event.target && event.target.closest && event.target.closest("[data-totem-tab]");
       if (tab) {
         setResultTab(Number(tab.getAttribute("data-totem-tab")) || 0);
@@ -1854,7 +1901,7 @@
      카드 id 만 저장하고 본문은 엔진에서 다시 조립하므로 저장 용량이 작다. */
   function readArchive() {
     try {
-      var raw = localStorage.getItem(ARCHIVE_KEY);
+      var raw = localStorage.getItem(ARCHIVE_KEY + ":" + encodeURIComponent(deliveryOwner));
       var parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch (_) {
@@ -1864,7 +1911,7 @@
 
   function writeArchive(entries) {
     try {
-      localStorage.setItem(ARCHIVE_KEY, JSON.stringify(entries.slice(0, ARCHIVE_LIMIT)));
+      localStorage.setItem(ARCHIVE_KEY + ":" + encodeURIComponent(deliveryOwner), JSON.stringify(entries.slice(0, ARCHIVE_LIMIT)));
       return true;
     } catch (_) {
       return false;
@@ -1879,7 +1926,8 @@
       savedAt: new Date().toISOString(),
       mode: state.mode,
       question: state.question,
-      narrative: state.narrative || null,
+      resultId: state.delivery && state.delivery.resultId,
+      narrative: null,
       narrativeSource: state.narrativeSource || "",
       cards: state.spread.cards.map(function(entry) {
         return { slot: entry.slot, animalId: entry.card.id };
@@ -1908,7 +1956,9 @@
     state.question = String(record.question || "");
     state.spread = { mode: state.mode, cards: cards, created_at: record.savedAt };
     state.consultation = engine.composeConsultation(state.spread, { focus: state.question });
-    state.narrative = record.narrative || null;
+    state.narrative = null;
+    state.delivery = { mode: state.mode, resultId: record.resultId, body: null };
+    if (record.resultId) continueTotemDelivery(null);
     state.narrativeSource = record.narrativeSource || "";
     state.requestId = record.id || "";
 
@@ -1983,8 +2033,9 @@
       /* 모바일: 언어 선택 등 상단 UI가 overlay 위에 보이지 않도록 (z-index·겹침 방지) */
       document.body.classList.add("animal-totem-modal-open");
       lockBody();
-      resetAnimalTotemFlow();
+      if (!deliveryFlight) resetAnimalTotemFlow();
       focusModalEntryPoint();
+      recoverTotemDelivery();
       /* 모바일: 애니메이션 과부하로 Main Thread 차단 방지 — 다음 프레임으로 미룬다.
          예전에는 룬 필드 26개 + 부유 이모지 18개를 만드느라 requestIdleCallback 으로 3단 분산까지
          해야 했는데, 그 장식을 걷어내고 별 캔버스만 남겨 한 번에 켤 수 있게 됐다. */
@@ -2059,7 +2110,7 @@
   /* 🔴 게이트가 없는 뽑기 코어다. 결제 후 재개 핸들러도 이쪽을 부른다 —
      게이트를 다시 타는 drawAnimalTotemSpread 를 부르면 이미 낸 결제가 또 일어난다. */
   function _totemRenderPaidSpread() {
-    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
+    if (!state.spread) state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
     state.consultation = global.AnimalTotemContentEngine.composeConsultation(state.spread, { focus: state.question });
 
     /* 🔴 결제 성공 직후 곧바로 쏜다. 사용자가 카드를 뒤집는 10~20초가 로딩 시간이 된다.
@@ -2082,6 +2133,12 @@
       alert(animalTotemText("errors.engineMissing"));
       return;
     }
+    if (!syncDeliveryOwner()) { openAuthRequiredUi(); return; }
+    var pending = readTotemDelivery();
+    if (pending && pending.body) { recoverTotemDelivery(); return; }
+    state.birthSeed = buildBirthSeed();
+    state.requestId = "animal-totem:" + state.mode + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    state.spread = global.AnimalTotemContentEngine.getRandomSpread(state.mode);
     setFlowBusy(true);
     consumeAnimalTotemPerUse(state.mode).then(function(ok) {
       if (!ok) {
@@ -2115,6 +2172,9 @@
       args: {
         mode: String(state.mode || "three"),
         question: String(state.question || ""),
+        requestId: state.requestId,
+        birth: state.birthSeed,
+        cards: state.spread ? global.AnimalTotemContentEngine.buildReadingCards(state.spread) : [],
       },
     };
   }
@@ -2133,16 +2193,28 @@
     });
   }
 
-  function runTotemDrawResume(descriptor) {
+  function runTotemDrawResume(descriptor, grant) {
     var args = (descriptor && descriptor.args && typeof descriptor.args === "object") ? descriptor.args : {};
-    return waitForTotemDrawResumeTarget(TOTEM_DRAW_RESUME_WAIT_MS).then(function(ready) {
+    return waitForTotemDrawResumeTarget(TOTEM_DRAW_RESUME_WAIT_MS).then(async function(ready) {
       if (!ready) return false;
       ensureRefs();
+      if (!syncDeliveryOwner()) return false;
+      var epoch = deliveryEpoch;
+      if (deliveryFlight) { if (state.requestId === args.requestId) return deliveryFlight; await deliveryFlight; }
+      if (epoch !== deliveryEpoch) return false;
+      // Older redirect descriptors lacked cards; bind their first draw to the original paid operation.
+      args = Object.assign({}, args, { requestId: args.requestId || (grant && (grant.requestId || grant.merchantUid)) });
+      if (!args.requestId) return false;
+      var saved = readTotemDelivery();
+      if (saved && saved.requestId === args.requestId) { state.delivery = saved; return recoverTotemDelivery(); }
+      state.birthSeed = args.birth || null;
+      if (!Array.isArray(args.cards) || !args.cards.length) args.cards = global.AnimalTotemContentEngine.buildReadingCards(global.AnimalTotemContentEngine.getRandomSpread(args.mode));
+      restoreTotemCards(args);
       setMode(args.mode);
       state.question = String(args.question || "").slice(0, QUESTION_MAX);
       setFlowBusy(true);
       _totemRenderPaidSpread();
-      return true;
+      return state.narrativePromise;
     });
   }
 
@@ -2174,7 +2246,9 @@
     if (state.revealedOrder.length === state.spread.cards.length) {
       /* 마지막 카드 — 여기서만 해설을 기다린다. 이미 도착했으면 즉시 통과한다. */
       if (!state.narrative) setDrawStatus(animalTotemText("draw.weaving"), true);
+      var revealEpoch = deliveryEpoch;
       waitForNarrative().then(function() {
+        if (revealEpoch !== deliveryEpoch) return;
         setDrawStatus(state.narrative ? animalTotemText("draw.ready") : "", false);
         renderConsultation();
         bindResultInteractions();
@@ -2222,6 +2296,14 @@
   /* document 한 곳에만 건다(window 중복 등록 시 bubbles:true 발행이 핸들러를 2번 돌린다). */
   document.addEventListener("destinyProfileChanged", handleProfileChanged);
 
+  function resumeVisibleTotem() {
+    syncDeliveryOwner();
+    if (refs.overlay && refs.overlay.classList.contains("is-open") && document.visibilityState !== "hidden") recoverTotemDelivery();
+  }
+  global.addEventListener("cd:auth-changed", resumeVisibleTotem);
+  global.addEventListener("storage", function(event) { if (event.key === "fortune_auth_user" || event.key === "fortune_auth_token") resumeVisibleTotem(); });
+  global.addEventListener("online", resumeVisibleTotem);
+  document.addEventListener("visibilitychange", resumeVisibleTotem);
   global.openAnimalTotemModal = openAnimalTotemModal;
   global.closeAnimalTotemModal = closeAnimalTotemModal;
   global.startAnimalTotemRitual = startAnimalTotemRitual;

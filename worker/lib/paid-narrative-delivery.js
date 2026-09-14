@@ -41,7 +41,7 @@ function respond(doc, render) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, timeoutMs = 45000 }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, timeoutMs = 45000 }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -59,7 +59,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   const lock = { token, until: new Date(now.getTime() + 120000) };
   if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render);
   if (!doc) {
-    const seeded = seed(original);
+    const seeded = await seed(original);
     const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale: getAmbientAiLocale() || "ko", parts: {}, attempts: {} };
     try {
       const inserted = await ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: {
@@ -89,15 +89,19 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     let queue = Promise.resolve();
     const calls = await Promise.allSettled(missing.map(async task => {
       const prompt = `${state.prompt}\n\n[이번 호출 범위]\n${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"} 하나만 출력하세요. 본문은 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.2)}~${Math.ceil(task.minChars * 1.4)}자입니다. 확정 계산값을 바꾸지 말고 근거 → 생활 패턴 → 반대 조건·주의점 → 행동 조언 순으로 짧은 문단을 나누세요. 반복으로 분량을 채우지 마세요.`;
-      let ai;
+      let ai, value;
       try {
-        ai = await runWithAiLocale(state.locale, () => callGeminiJsonWithRetry(env, prompt, {
-          systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.55, attempts: 1,
-          timeoutMs: Math.min(45000, Math.max(15000, Number(timeoutMs) || 45000)), baseTokens: 9500, capTokens: 9500, fallbackToWorkersAI: false,
-        }));
+        if (produce) {
+          value = await runWithAiLocale(state.locale, () => produce(task, state));
+          ai = value ? { ok: true } : null;
+        } else {
+          ai = await runWithAiLocale(state.locale, () => callGeminiJsonWithRetry(env, prompt, {
+            systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.55, attempts: 1,
+            timeoutMs: Math.min(45000, Math.max(15000, Number(timeoutMs) || 45000)), baseTokens: 9500, capTokens: 9500, fallbackToWorkersAI: false,
+          }));
+          try { value = JSON.parse(ai?.text || ""); } catch { value = null; }
+        }
       } catch { return; }
-      let value;
-      try { value = JSON.parse(ai?.text || ""); } catch { value = null; }
       if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
         || value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || countPaidReportBodyChars(value.body) < task.minChars) return;
       const accept = async () => {

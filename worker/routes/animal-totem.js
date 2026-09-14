@@ -14,13 +14,8 @@
 //    증빙 판정은 저장소 정본 헬퍼(verifyPerUsePayment) 하나로 보고, 판정 보류(proven===null)는
 //    402 가 아니라 503 이다 — DB 블립을 미결제로 세탁하면 결제한 사용자가 잠긴다.
 //
-// 🔴 LLM 이 죽어도 환불하지 않는다. 템플릿 서사로 degrade 한다. 근거 세 가지:
-//    ① autoRefundSinglePaymentDeliveryFailure 는 PortOne 카드 환불이라 코인/월정석/이용권
-//       결제(이 기능의 대다수)에는 쓸 수 없고, 코인 환불은 billing.js 내부 클로저라 export 가 없다.
-//    ② 레포 정책이 명시적으로 degrade 다(worker/lib/llm-result-delivery.js 의 "경량 보장 계약").
-//    ③ 카드별 정적 리딩이 이미 완전해서 사용자가 빈손이 되지 않는다.
-//    구현은 "템플릿을 먼저 결정론적으로 만들고 LLM 결과를 필드 단위로 병합"이다(oracle.js 선례).
-//    어느 쪽이든 HTTP 200 이고, source/degraded/llmFailReason 으로 구분한다.
+// 카드별 정적 본문은 유지한다. LLM 연결 해설은 저장·재조회 후에만 완료하며,
+// 중단된 호출은 같은 결제 증빙으로 재개한다. 기존 자동 환불 정책은 바꾸지 않는다.
 
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
@@ -30,6 +25,7 @@ import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
+import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
 
 /* ────────────────────────────── 상수 ────────────────────────────── */
 
@@ -534,11 +530,11 @@ function mergeNarrative(template, parsed, input) {
 // 구조는 worker/routes/tarot.js 의 verifyNumerologyReadingAccess 를 그대로 따른다.
 // 🔴 canAccessPaidFeature 는 부르지 않는다 — 회당결제 키에는 언제나 PAYMENT_REQUIRED 를 돌려준다
 //    (worker/lib/nakshatra-paid-access.js 상단 주석). 증빙은 verifyPerUsePayment 하나로 본다.
-async function verifyAnimalTotemAccess(request, env, input) {
+async function verifyAnimalTotemAccess(request, env, input, knownAuth) {
   let auth = null;
   let authError = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = knownAuth || await requireAuth(request, env);
   } catch (error) {
     authError = error;
   }
@@ -599,75 +595,47 @@ async function verifyAnimalTotemAccess(request, env, input) {
 /* ────────────────────────────── 핸들러 ────────────────────────────── */
 
 async function handleReading(request, env) {
-  const body = await readJson(request);
-  // 입력 검증을 인증보다 먼저 — 잘못된 본문이 Mongo 왕복을 쓰지 않게 한다.
-  const input = normalizeReadingInput(body || {});
-
-  const access = await verifyAnimalTotemAccess(request, env, input);
-  if (!access.ok) {
-    return json(
-      { ok: false, code: access.code, message: access.message, ...(access.reason ? { reason: access.reason } : {}) },
-      { status: access.status },
-    );
-  }
-
-  // 템플릿을 먼저 만든다. 이후 어떤 실패가 나도 사용자는 완결된 서사를 받는다.
-  const template = composeTemplateNarrative(input);
-
-  let ai = null;
-  try {
-    ai = await callGeminiJsonWithRetry(env, buildUserPrompt(input), {
-      systemPrompt: await resolveSystemPrompt(env),
-      taskType: "fortune",
-      temperature: 0.72,
-      // 🔴 timeoutMs 는 Gemini 재시도 + Workers AI 체인이 공유하는 하나의 시계다.
-      //    attempts 는 그 시계를 새로 배정하므로 최악 벽시계는 attempts × timeoutMs 다.
-      //    사용자가 카드를 뒤집는 10~20초 예산 안에 들도록 2×13s 로 묶는다.
-      timeoutMs: clampSyncLlmTimeoutMs(Number(env?.ANIMAL_TOTEM_LLM_TIMEOUT_MS) || 13000),
-      attempts: 2,
-      baseTokens: input.spec.baseTokens,
-      capTokens: Math.round(input.spec.baseTokens * 1.3),
-      responseMimeType: "application/json",
-      // 🔴 폴백을 켠 유료 라우트는 fallbackMinChars 를 반드시 함께 준다(CLAUDE.md).
-      //    문턱 미달이면 호출이 실패로 돌아 아래 템플릿 병합이 그대로 받는다.
-      fallbackMinChars: input.spec.fallbackMinChars,
-      logContext: { requestId: input.requestId.slice(0, 120), featureKey: input.spec.featureKey },
-    });
-  } catch (error) {
-    console.warn("[animal-totem] llm threw", String(error?.message || error).slice(0, 300));
-    ai = null;
-  }
-
-  let llmFailReason = "";
-  if (!ai?.ok) {
-    // 🔴 ai.message 에 "LLM request failed. Gemini: …; Cloudflare Workers AI: …" 가 들어 있다.
-    //    이걸 버리면 프로바이더가 죽어도 "그냥 품질 미달"로만 보인다(destiny-compass.js:188 선례).
-    llmFailReason = String(ai?.error || "llm_failed");
-    console.warn("[animal-totem] llm_failed", JSON.stringify({
-      mode: input.mode,
-      error: ai?.error || "",
-      status: ai?.status ?? null,
-      message: String(ai?.message || "").slice(0, 300),
-    }));
-  }
-
-  const parsed = ai?.ok ? safeParse(ai.text) : null;
-  if (ai?.ok && !parsed) llmFailReason = "unparseable_json";
-
-  const { narrative, adopted } = mergeNarrative(template, parsed, input);
-  const usedLlm = adopted > 0;
-  if (parsed && !usedLlm) llmFailReason = llmFailReason || "all_fields_rejected";
-
-  return json({
-    ok: true,
-    source: usedLlm ? "llm" : "template",
-    degraded: !usedLlm,
-    mode: input.mode,
-    narrative,
-    provider: usedLlm ? String(ai?.provider || "gemini") : "",
-    model: usedLlm ? String(ai?.model || "") : "",
-    llmFailReason,
-    accessSource: access.accessSource || "",
+  const body = request.method === "POST" ? await readJson(request) : {};
+  const mode = body.mode || new URL(request.url).searchParams.get("mode");
+  const spec = MODE_SPEC[mode];
+  if (!spec) throw invalidInput("지원하지 않는 리딩 모드입니다.");
+  if (request.method === "POST" && !body.resumeResultId) normalizeReadingInput(body);
+  const auth = await requireAuth(request, env);
+  return runPaidNarrativeDelivery(request, env, auth, body, {
+    featureKey: spec.featureKey, reportType: "animal-totem",
+    verify: async original => {
+      const input = normalizeReadingInput(original);
+      if (input.spec.featureKey !== spec.featureKey) throw invalidInput("저장된 리딩 모드와 일치하지 않습니다.");
+      const access = await verifyAnimalTotemAccess(request, env, input, auth);
+      if (!access.ok) throw new HttpError(access.status, access.message, { code: access.code, reason: access.reason });
+    },
+    seed: async original => {
+      const input = normalizeReadingInput(original);
+      return { input, prompt: buildUserPrompt(input), systemPrompt: await resolveSystemPrompt(env),
+        tasks: [{ id: "narrative", minChars: spec.minBodyChars }], minBodyChars: spec.minBodyChars };
+    },
+    produce: async (_task, state) => {
+      const ai = await callGeminiJsonWithRetry(env, state.prompt, {
+        systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.72,
+        timeoutMs: Math.min(45000, clampSyncLlmTimeoutMs(Number(env?.ANIMAL_TOTEM_LLM_TIMEOUT_MS) || 45000)),
+        attempts: 1, baseTokens: state.input.spec.baseTokens, capTokens: Math.round(state.input.spec.baseTokens * 1.3),
+        responseMimeType: "application/json", fallbackToWorkersAI: false,
+        logContext: { requestId: state.input.requestId.slice(0, 120), featureKey: state.input.spec.featureKey },
+      });
+      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+      const parsed = safeParse(ai.text);
+      const fields = ["opening", "question_answer", "closing", ...(state.input.mode === "five" ? ["shadow_gift_synthesis"] : [])];
+      if (!parsed || fields.some(key => typeof parsed[key] !== "string")
+        || !Array.isArray(parsed.action_plan) || parsed.action_plan.length !== 3 || parsed.action_plan.some(item => typeof item !== "string")
+        || !Array.isArray(parsed.card_bridges) || parsed.card_bridges.some((bridge, i) =>
+          typeof bridge?.line !== "string" || bridge?.slot !== state.input.cards[i]?.slot || (bridge.animalId && bridge.animalId !== state.input.cards[i]?.animalId))) return null;
+      const { narrative, adopted } = mergeNarrative({}, parsed, state.input);
+      if (adopted !== (state.input.mode === "five" ? 6 : 5)) return null;
+      return { evidenceHash: state.evidenceHash, body: JSON.stringify(narrative) };
+    },
+    render: state => ({ mode: state.input.mode, cards: state.input.cards, question: state.input.question,
+      requestId: state.input.requestId, source: state.parts.narrative ? "llm" : "pending",
+      narrative: state.parts.narrative ? JSON.parse(state.parts.narrative) : null }),
   });
 }
 
@@ -677,12 +645,17 @@ export async function handleAnimalTotemRoutes(request, env) {
     const method = String(request.method || "").toUpperCase();
     if (method === "OPTIONS") return new Response(null, { status: 204 });
 
+    if (path === "/result") {
+      if (method !== "GET") return methodNotAllowed();
+      return await handleReading(request, env);
+    }
     if (path === "/reading") {
       if (method !== "POST") return methodNotAllowed();
       return await handleReading(request, env);
     }
     return notFound();
   } catch (error) {
+    if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 });
     // 🔴 context 를 넘겨야 requestId 가 응답에 실린다(tarot.js:1686 이 문서화한 버그).
     return handleRouteError(error, {
       request,
