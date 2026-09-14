@@ -261,7 +261,7 @@ test("the result screen can be exported to PDF without blank pages", () => {
 
   // 🔴 content-visibility 와 진입 애니메이션은 html2canvas 클론에서 빈 상자·백지를 만든다.
   assert.match(thread, /deferRender && !exporting/);
-  assert.match(thread, /exporting \? "" : "animate-fade-in-up opacity-0/);
+  assert.match(thread, /exporting \? "" : "animate-fade-in-up motion-reduce:animate-none/);
 });
 
 test("fusion colour and type come from one scoped token set", () => {
@@ -313,7 +313,7 @@ test("a paid request survives a page reload so nobody is charged twice", () => {
   const store = read("lib/fusion-paid-request-store.js");
   assert.match(store, /window\.localStorage/);
   // 제출 시 저장소까지 본다 — ref 만 보면 새로고침 뒤 복구가 안 된다.
-  assert.match(client, /if \(!requestId\) \{\s*\n\s*const stored = readFusionPaidRequest\(\);/);
+  assert.match(client, /const stored = readFusionPaidRequest\(\{ ownerId: currentFusionOwner\(\) \}\)/);
   // 🔴 id 만으로는 모자란다. 새로고침 뒤 폼은 초기값이라, 저장본을 안 보내면 재시도가
   //    "같은 결제 · 다른 질문"으로 나간다(2026-09-03: birthPlace 가 조용히 빠졌다).
   assert.match(client, /const requestBody: FusionRequestBody = paidRequestBodyRef\.current \|\|/);
@@ -325,8 +325,7 @@ test("a paid request survives a page reload so nobody is charged twice", () => {
   // 남아 있는 결제를 사용자에게 먼저 알린다(모르면 처음부터 다시 하는 줄 알고 또 결제한다).
   assert.match(client, /이미 결제가 끝난 요청이 남아 있어요/);
 
-  // 서버도 실패 응답에 retryable 을 실어야 화면이 메모리 상태에 기대지 않는다.
-  assert.match(read("worker/lib/fusion-fortune.js"), /retryable: true,\s*\n\s*issues:/);
+  // 저장 장애 retryable/취소 거부는 fusion-paid-delivery-route.test.js에서 실제 라우트로 검사한다.
 });
 
 test("the stream never goes silent long enough to look dead", () => {

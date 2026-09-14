@@ -160,7 +160,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       id="fusion-toc-verdict"
       data-fusion-toc="verdict"
       data-fusion-pdf-section="true"
-      className={exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"}
+      className={exporting ? "" : "animate-fade-in-up motion-reduce:animate-none"}
       style={exporting ? undefined : { animationDelay: "660ms" }}
     >
       <section aria-labelledby="fusion-final-verdict-heading" className="relative overflow-hidden rounded-[1.5rem] border border-[rgba(232,213,163,0.34)] bg-[linear-gradient(160deg,rgba(48,34,80,0.86),rgba(16,12,32,0.95))] px-5 py-6 sm:px-8 sm:py-8">

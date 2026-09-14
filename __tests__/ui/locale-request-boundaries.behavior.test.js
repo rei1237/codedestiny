@@ -68,7 +68,12 @@ test('scope ignores duplicate locale events, rejects ABA and unmounted replies f
 const fusionFile = 'app/fusion-fortune/FusionFortuneClient.tsx';
 function fusionFixture() {
   const applied = [], receipts = [], loading = [];
+  let owner = 'owner-a';
   const f = fixture({
+    captureOwner: () => { const initial = owner; return () => owner === initial; },
+    currentFusionOwner: () => owner,
+    document: { visibilityState: 'visible' }, navigator: { onLine: true },
+    autoRetryRef: { current: { requestId: '', count: 0 } }, setResumeEpoch() {},
     apiBase: '', copy: {}, initialStageStates: () => ({}),
     recoveredStageRef: { current: 1 },
     requestAbortRef: { current: null }, capAbortedRef: { current: false }, autoResumeRef: { current: false },
@@ -83,8 +88,32 @@ function fusionFixture() {
   load(f.ctx, fusionFile, ['captureLocaleScope', 'recoverPaidResult', 'runGeneration']);
   f.mount();
   f.run = (...args) => vm.runInContext('runGeneration', f.ctx)(...args);
-  return { ...f, applied, receipts, loading };
+  return { ...f, applied, receipts, loading, changeOwner: next => { owner = next; } };
 }
+
+test('fusion stops another account from receiving or continuing a paid request', async () => {
+  const f = fusionFixture(), response = deferred(); let calls = 0;
+  f.ctx.runStage = () => { calls++; return response.promise; };
+  const pending = f.run('paid-1', {}, 1, '');
+  f.changeOwner('owner-b');
+  response.resolve({ status: 'partial', nextStage: 1, result: { text: 'private body' } });
+  assert.equal(await pending, false); assert.equal(calls, 1); assert.equal(f.applied.length, 0);
+  assert.equal(f.receipts.some(([id]) => id === ''), false);
+});
+
+test('fusion starts no further provider wave while the mobile tab is hidden or offline', async () => {
+  for (const state of ['hidden', 'offline']) {
+    const f = fusionFixture(); let calls = 0;
+    f.ctx.runStage = async () => {
+      calls++;
+      if (state === 'hidden') f.ctx.document.visibilityState = 'hidden';
+      else f.ctx.navigator.onLine = false;
+      return { status: 'partial', nextStage: 1, result: { text: 'saved body' } };
+    };
+    assert.equal(await f.run('paid-1', {}, 1, ''), false); assert.equal(calls, 1);
+    assert.equal(f.receipts.some(([id]) => id === ''), false);
+  }
+});
 test('fusion drops late stage completion and preserves the paid request', async () => {
   const f = fusionFixture(), stage = deferred();
   let calls = 0;

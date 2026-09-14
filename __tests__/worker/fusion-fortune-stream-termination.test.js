@@ -53,6 +53,7 @@ beforeAll(async () => {
         return storageMode === "null" ? "" : "saved-id";
       },
       getFusionFortuneConsultation: async () => null,
+      getLatestPendingFusionConsultation: async () => null,
       getFusionFortuneConsultationByRequestId: async () => consultationByRequestId,
       listFusionFortuneConsultations: async () => [],
     })),

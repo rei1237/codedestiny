@@ -12,6 +12,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "../_lib/auth-client";
+import { getAuthState, refreshAuth, useAuthStore } from "../_lib/auth-store";
+import { usePaidDeliveryScope } from "../hooks/usePaidDeliveryScope";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { useAiProfileSeed } from "../hooks/useAiProfileSeed";
 import { useCoinGate } from "../hooks/useCoinGate";
@@ -163,6 +165,11 @@ function FieldSystems({ field, copy }: { field: keyof typeof FIELD_SYSTEMS; copy
       <span className="sr-only">{copy.fieldSystemsSrOnly(label)}</span>
     </span>
   );
+}
+
+function currentFusionOwner() {
+  const user = getAuthState().user;
+  return String(user?.id || user?.userId || user?._id || user?.uid || "");
 }
 
 type OpenedConsultation = { requestId?: string; resumeBody?: FusionRequestBody; nextStage?: number; id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string }; status?: string; stage?: number };
@@ -2013,6 +2020,9 @@ function useFusionFortuneCopy(): FusionFortuneCopy {
 }
 
 export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?: ReactNode; valuePreview?: ReactNode }) {
+  const { user: deliveryUser } = useAuthStore();
+  const deliveryOwnerId = String(deliveryUser?.id || deliveryUser?.userId || deliveryUser?._id || deliveryUser?.uid || "");
+  useEffect(() => { void refreshAuth({ silent: true }).catch(() => {}); }, []);
   const copy = useFusionFortuneCopy();
   const expertCopy = useFusionExpertCopy();
   const recoveredStageRef = useRef<1 | 2>(1);
@@ -2067,6 +2077,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   // 실패 카드가 아니라 "이어서 생성" 버튼을 띄운다 — 결제 증빙은 그대로 남는다.
   const [stageTwoFailed, setStageTwoFailed] = useState(false);
   const autoResumeRef = useRef(false);
+  const autoRetryRef = useRef({ requestId: "", count: 0 });
   const captureLocaleScope = useLocaleRequestScope(() => {
     autoResumeRef.current = true;
     if (requestAbortRef.current) {
@@ -2096,10 +2107,24 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   /** PDF 캡처 중에는 접힌 섹션을 전부 펼치고 애니메이션을 끈다(백지 PDF 방지). */
   const [exporting, setExporting] = useState(false);
 
+  const [ownerEpoch, setOwnerEpoch] = useState(0);
+  const [resumeEpoch, setResumeEpoch] = useState(0);
+  const captureOwner = usePaidDeliveryScope(() => {
+    requestAbortRef.current?.abort();
+    requestAbortRef.current = null;
+    paidRequestIdRef.current = ""; paidRequestBodyRef.current = null;
+    autoResumeRef.current = false;
+    setResultState(null); setOpenedConsultationId(""); setOpenedSummary(null); setRecentList([]);
+    setLoading(false); setPendingPaidRequest(false); setStageTwoFailed(false); setFailure(null); setNotice("");
+    setOwnerEpoch(value => value + 1);
+  });
+
   const refresh = useCallback(async () => {
+    const sameOwner = captureOwner();
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/status`, { credentials: "include" }, { retryOn401: true, apiBase });
       const payload = await parseJson<Status & { ok?: boolean }>(response, copy);
+      if (!sameOwner()) return;
       // response.ok 이지만 payload.ok 가 아닌 경우도 조용히 넘기면 status 가 EMPTY_STATUS 에
       // 머물러 제출 버튼이 말없이 계속 비활성 상태로 남는다 — 아래 catch 로 합쳐서 항상
       // 사용자에게 재확인할 방법을 준다.
@@ -2107,19 +2132,20 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       setStatus(payload);
       setStatusUnavailable(false);
     } catch {
+      if (!sameOwner()) return;
       setStatusUnavailable(true);
       setError(copy.statusUnavailableMessage);
     }
-  }, [apiBase, copy]);
+  }, [apiBase, copy, captureOwner]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => { void refresh(); }, [refresh, ownerEpoch]);
 
   /** 결제 증빙(id + 입력)을 ref·저장소·화면 상태에 한꺼번에 반영한다. 세 곳이 어긋나면 이중 결제가 난다. */
   const rememberPaidRequest = useCallback((value: string, body: FusionRequestBody | null = null) => {
     paidRequestIdRef.current = value;
     paidRequestBodyRef.current = value ? body : null;
-    if (value) writeFusionPaidRequest({ requestId: value, body });
-    else clearFusionPaidRequest();
+    if (value) writeFusionPaidRequest({ requestId: value, body }, { ownerId: currentFusionOwner() });
+    else clearFusionPaidRequest({ ownerId: currentFusionOwner() });
     setPendingPaidRequest(Boolean(value));
   }, []);
 
@@ -2144,13 +2170,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   // 새로고침으로 돌아온 사용자의 결제 증빙을 되살린다 — 이게 없으면 다음 제출이 재결제다.
   useEffect(() => {
-    const stored = readFusionPaidRequest();
+    const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() });
     if (!stored) return;
     paidRequestIdRef.current = stored.requestId;
     paidRequestBodyRef.current = stored.body;
     setPendingPaidRequest(true);
     if (stored.body) restoreFormFromBody(stored.body);
-  }, [restoreFormFromBody]);
+  }, [restoreFormFromBody, ownerEpoch, deliveryOwnerId]);
 
   /* 모바일 PortOne 은 상단 프레임을 리다이렉트해 ensurePaidAccess 의 await 가 페이지와 함께 죽는다.
      그러면 아래 rememberPaidRequest 가 실행되지 않아 저장소에도 아무것도 남지 않고, 복귀한 사용자는
@@ -2187,15 +2213,17 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   /** 보관본 목록 새로고침. 비로그인·장애는 조용히 넘긴다 — 재열람은 부가 기능이다. */
   const loadRecentList = useCallback(async () => {
+    const sameOwner = captureOwner();
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result`, { credentials: "include" }, { retryOn401: true, apiBase });
       if (!response.ok) return;
       const payload = await parseJson<{ ok?: boolean; consultations?: FusionRecentItem[] }>(response, copy);
+      if (!sameOwner()) return;
       if (payload.ok && Array.isArray(payload.consultations)) setRecentList(payload.consultations);
     } catch {
       // 목록을 못 불러와도 생성은 그대로 할 수 있어야 한다.
     }
-  }, [apiBase, copy]);
+  }, [apiBase, copy, captureOwner]);
 
   /** 보관본 하나를 화면에 올린다. 재열람(?cid=)과 결제 키 회수가 같은 모양이어야 한다. */
   const applyOpenedConsultation = useCallback((consultation: OpenedConsultation) => {
@@ -2210,7 +2238,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     if (consultation.status === "partial") return;
     setOpenedConsultationId(consultation.id);
     rememberConsultationUrl(consultation.id);
-  }, []);
+  }, [setResult]);
 
   /**
    * 결제 키로 보관본을 되찾는다. 찾았으면 화면에 올리고 true.
@@ -2220,10 +2248,16 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
    * 완성품을 실패 화면으로 덮게 된다. 실패는 조용히 삼킨다 — 회수는 부가 시도지 새 실패 원인이 아니다.
    */
   const recoverPaidResult = useCallback(async (requestId: string, scope: LocaleRequestScope = captureLocaleScope()): Promise<false | "partial" | "completed" | "stale"> => {
+    const suppliedScope = scope, sameOwner = captureOwner();
+    scope = { ...suppliedScope, isCurrent: () => suppliedScope.isCurrent() && sameOwner() };
     if (!requestId) return false;
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?requestId=${encodeURIComponent(requestId)}`, { credentials: "include" }, { retryOn401: true, apiBase });
       if (!scope.isCurrent()) return "stale";
+      if (response.status === 403) {
+        setFailure({ message: copy.storedResultLoadFailedMessage, retryable: false, reason: "RESULT_ACCESS_REVOKED" });
+        return "stale";
+      }
       if (!response.ok) return false;
       const payload = await parseJson<{ ok?: boolean; consultation?: OpenedConsultation }>(response, copy);
       if (!scope.isCurrent()) return "stale";
@@ -2236,13 +2270,31 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     } catch {
       return scope.isCurrent() ? false : "stale";
     }
-  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope, rememberPaidRequest]);
+  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope, captureOwner, rememberPaidRequest]);
+
+  // 소유자 서버 기록에서도 복구한다. 브라우저 저장소가 지워져도 새 결제를 열지 않는다.
+  useEffect(() => {
+    if (!currentFusionOwner() || readFusionPaidRequest({ ownerId: currentFusionOwner() })) return;
+    const sameOwner = captureOwner(); let active = true;
+    void (async () => {
+      try {
+        const response = await authFetch(`${apiBase}/api/fusion-fortune/result?pending=1`, { credentials: "include" }, { retryOn401: true, apiBase });
+        if (!response.ok) return;
+        const payload = await parseJson<{ consultation?: OpenedConsultation }>(response, copy);
+        const doc = payload.consultation;
+        if (!active || !sameOwner() || paidRequestIdRef.current || !doc?.requestId || !doc.resumeBody) return;
+        rememberPaidRequest(doc.requestId, doc.resumeBody);
+        restoreFormFromBody(doc.resumeBody);
+      } catch { /* 재연결 시 같은 소유 기록을 다시 조회한다. */ }
+    })();
+    return () => { active = false; };
+  }, [apiBase, copy, ownerEpoch, deliveryOwnerId, resumeEpoch, captureOwner, rememberPaidRequest, restoreFormFromBody]);
 
   // 새로고침으로 돌아온 결제 요청은 서버에 남은 것부터 본다 — 완성본이면 열고 영수증을 소진,
   // 1단계만 있으면 2단계를 자동으로 이어 간다. 없으면(404) 기존 "이어서 받기" 흐름 그대로다.
   useEffect(() => {
-    if (!pendingPaidRequest || loading || autoResumeRef.current) return;
-    const stored = readFusionPaidRequest();
+    if (!pendingPaidRequest || loading || autoResumeRef.current || document.visibilityState === "hidden" || navigator.onLine === false) return;
+    const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() });
     if (!stored?.requestId) return;
     autoResumeRef.current = true;
     const body = stored.body;
@@ -2253,16 +2305,29 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         setNotice(copy.resultCompletedNotice);
         void loadRecentList();
         rememberPaidRequest("");
-      } else if (recovered === "partial") {
+      } else if (recovered === "partial" || body) {
         await runGenerationRef.current?.(stored.requestId, paidRequestBodyRef.current || body || {}, recoveredStageRef.current, "");
       }
     })();
-  }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice]);
+  }, [pendingPaidRequest, loading, recoverPaidResult, loadRecentList, rememberPaidRequest, copy.resultCompletedNotice, resumeEpoch]);
+
+  useEffect(() => {
+    const resume = () => {
+      if (document.visibilityState === "hidden" || navigator.onLine === false || requestAbortRef.current) return;
+      autoResumeRef.current = false;
+      setResumeEpoch(value => value + 1);
+    };
+    window.addEventListener("online", resume);
+    document.addEventListener("visibilitychange", resume);
+    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+  }, []);
 
   /** 저장된 결과를 연다. 이미 결제한 본인 결과라 추가 결제가 없다. */
   const openConsultation = useCallback(async (id: string) => {
     if (!id) return;
-    const scope = captureLocaleScope();
+    const languageScope = captureLocaleScope();
+    const sameOwner = captureOwner();
+    const scope = { ...languageScope, isCurrent: () => languageScope.isCurrent() && sameOwner() };
     setReopeningId(id);
     setError("");
     try {
@@ -2271,6 +2336,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       if (!scope.isCurrent()) return;
       if (!response.ok || !payload.ok || !payload.consultation?.result) throw new Error(payload.message || copy.storedResultLoadFailedMessage);
       applyOpenedConsultation(payload.consultation);
+      if (payload.consultation.status === "partial" && payload.consultation.requestId && payload.consultation.resumeBody) {
+        recoveredStageRef.current = payload.consultation.nextStage === 1 ? 1 : 2;
+        autoResumeRef.current = false;
+        rememberPaidRequest(payload.consultation.requestId, payload.consultation.resumeBody);
+        restoreFormFromBody(payload.consultation.resumeBody);
+        setStageTwoFailed(true);
+      }
       threadRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (cause) {
       if (!scope.isCurrent()) return;
@@ -2278,7 +2350,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     } finally {
       if (scope.isCurrent()) setReopeningId("");
     }
-  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope]);
+  }, [apiBase, copy, applyOpenedConsultation, captureLocaleScope, captureOwner, rememberPaidRequest, restoreFormFromBody]);
 
   // 첫 진입: ?cid= 가 있으면 그 보관본을 열고, 이어서 목록을 채운다.
   // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지가 통째로 CSR 로 떨어지므로 URL 을 직접 읽는다.
@@ -2286,7 +2358,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     const cid = new URLSearchParams(window.location.search).get("cid") || "";
     if (cid) void openConsultation(cid);
     void loadRecentList();
-  }, [openConsultation, loadRecentList]);
+  }, [openConsultation, loadRecentList, ownerEpoch]);
 
   useEffect(() => {
     if (!profileSeed || profileTouchedRef.current) return;
@@ -2367,13 +2439,13 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     // 이 값은 제출 시점에만 필요하므로 그때 URL 에서 직접 읽는다.
     const fortuneChatSessionId = new URLSearchParams(window.location.search).get("fortuneChatSession") || "";
     if (status.nextAction === "login") { window.location.assign(status.cta?.targetPath || "/auth/login"); return; }
-    if (!pendingPaidRequest && !readFusionPaidRequest() && (!form.birthDate || !form.birthTime)) { setError(expertCopy.required); return; }
+    if (!pendingPaidRequest && !readFusionPaidRequest({ ownerId: currentFusionOwner() }) && (!form.birthDate || !form.birthTime)) { setError(expertCopy.required); return; }
 
     // 앞선 시도가 결제까지 끝났다면 그 requestId 를 재사용한다 — 새 id 로 보내면 증빙을
     // 못 찾아 이미 낸 3만원이 사라진다. 저장소까지 보는 이유는 새로고침으로 ref 가 비기 때문이다.
     let requestId = paidRequestIdRef.current;
     if (!requestId) {
-      const stored = readFusionPaidRequest();
+      const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() });
       if (stored) { requestId = stored.requestId; paidRequestBodyRef.current = stored.body; }
     }
     const resumed = Boolean(requestId);
@@ -2447,7 +2519,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
     requestAbortRef.current?.abort();
     const controller = new AbortController();
     requestAbortRef.current = controller;
-    const scope = captureLocaleScope();
+    const languageScope = captureLocaleScope();
+    const sameOwner = captureOwner();
+    const scope = { ...languageScope, isCurrent: () => languageScope.isCurrent() && sameOwner() };
     // 두 단계와 새로고침 재개는 같은 결제 입력의 최초 생성 언어를 유지한다.
     requestBody = { ...requestBody, locale: toAiLocale(requestBody.locale || scope.locale) };
     const isCurrent = () => scope.isCurrent() && requestAbortRef.current === controller;
@@ -2465,6 +2539,9 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       let payload: Record<string, unknown> = {};
       let stage: 1 | 2 = startStage;
       for (let wave = 0; wave < 12; wave += 1) {
+        if (document.visibilityState === "hidden" || navigator.onLine === false) {
+          setStageTwoFailed(true); return false;
+        }
         reachedStage = stage as 1 | 2;
         recoveredStageRef.current = reachedStage;
         if (stage === 2) { setComposeProgress(null); setStageStates((current) => ({ ...current, fusion: "active" })); }
@@ -2514,6 +2591,18 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       const recovered = await recoverPaidResult(requestId, { ...scope, isCurrent });
       if (!isCurrent() || recovered === "stale") return false;
       const cancelled = aborted && !capAbortedRef.current;
+      const code = String((cause as { errorCode?: string })?.errorCode || "");
+      if (!cancelled && code !== "RESULT_ACCESS_REVOKED" && (recovered === "partial" || (cause as { retryable?: boolean })?.retryable === true || (cause as { httpStatus?: number })?.httpStatus === 503)) {
+        if (autoRetryRef.current.requestId !== requestId) autoRetryRef.current = { requestId, count: 0 };
+        if (autoRetryRef.current.count < 4) {
+          autoRetryRef.current.count += 1;
+          window.setTimeout(() => {
+            if (!isCurrent() && !scope.isCurrent()) return;
+            autoResumeRef.current = false;
+            setResumeEpoch(value => value + 1);
+          }, 4000);
+        }
+      }
       if (recovered === "completed") {
         setNotice(copy.resultCompletedNotice);
         void loadRecentList();
@@ -2595,7 +2684,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
 
   /** 2단계만 다시 요청한다(같은 결제·같은 입력). 증빙이 없으면 폼 제출로 돌아간다. */
   const continueGeneration = async () => {
-    const stored = readFusionPaidRequest();
+    const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() });
     const requestId = paidRequestIdRef.current || stored?.requestId || "";
     let requestBody = paidRequestBodyRef.current || stored?.body || null;
     if (!requestId) { setFailure({ message: copy.storedResultLoadFailedMessage, retryable: false }); return; }

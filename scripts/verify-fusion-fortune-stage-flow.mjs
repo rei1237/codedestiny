@@ -27,7 +27,7 @@ import {
 } from "../worker/lib/fusion-fortune.js";
 import { FUSION_FORTUNE_LENGTH, FUSION_STAGE_COUNT, fusionGroupsForStage } from "../worker/lib/fusion-fortune-prompt.js";
 import { FusionFortuneConsultation } from "../worker/lib/models.js";
-import { fusionConsultationPublicStatus, buildFusionConsultationDoc } from "../worker/lib/fusion-fortune-consultation.js";
+import { listFusionFortuneConsultations, fusionConsultationPublicStatus, buildFusionConsultationDoc } from "../worker/lib/fusion-fortune-consultation.js";
 
 if (process.argv.includes("--live")) {
   console.error("실호출 경로는 이 스크립트에 없습니다. 필요하면 사용자 허락을 먼저 받고 별도 플래그를 만드세요.");
@@ -150,7 +150,13 @@ check("병합 가시 텍스트 ≤ 상한", visible <= FUSION_FORTUNE_LENGTH.tot
   check("스트림: 2단계면 앞 보관본을 읽는다", /loadFusionPriorConsultation\(/.test(route));
   check("스트림: complete 이벤트에 status", /status:\s*result\.stageStatus\s*\|\|\s*"completed"/.test(route));
   check("보관: persist 에 stage 전달", /stage:\s*delivery\?\.stage/.test(route));
-  check("목록은 completed 만", /status:\s*"completed"/.test(read("worker/lib/fusion-fortune-consultation.js")));
+  const originalFind = FusionFortuneConsultation.find;
+  let listFilter, listProjection;
+  FusionFortuneConsultation.find = filter => { listFilter = filter; return { select(projection) { listProjection = projection; return this; }, sort() { return this; }, limit() { return this; }, lean: async () => [] }; };
+  try { await listFusionFortuneConsultations({ userId: "mock-owner" }); }
+  finally { FusionFortuneConsultation.find = originalFind; }
+  check("목록은 본인의 완료 및 미완료 결과", listFilter.userId === "mock-owner" && ["partial", "delivery_pending", "completed"].every(value => listFilter.status.$in.includes(value)));
+  check("목록에 비공개 snapshot 미노출", !listProjection.includes("generationSnapshot") && !listProjection.includes("result"));
 
   check("모델 status enum 에 partial/저장 대기", ["partial", "delivery_pending", "completed"].every(value => FusionFortuneConsultation.schema.path("status").enumValues.includes(value)));
   check("모델 stage 기본값 2", FusionFortuneConsultation.schema.path("stage").defaultValue === 2);

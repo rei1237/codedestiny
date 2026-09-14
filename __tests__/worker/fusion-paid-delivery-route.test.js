@@ -108,6 +108,14 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
    const retry=await route(request(2),ENV);expect(retry.status).toBe(200);expect(docs[0].result.title).toBe('final body');
   }
  });
+ it('discovers an owned unfinished result without browser input',async()=>{
+  generator=async()=>({result:sections,deliverable:false});await route(request(),ENV);
+  docs.unshift({...structuredClone(docs[0]),userId:'other-owner',id:'private-other'});
+  const response=await route(new Request('https://example.test/api/fusion-fortune/result?pending=1'),ENV);
+  expect(response.status).toBe(202);const payload=await response.json();
+  expect(payload.consultation.requestId).toBe('paid-original');expect(payload.consultation.id).not.toBe('private-other');
+  expect(payload.consultation.resumeBody.birthDate).toBe('1995-04-18');
+ });
  it('rejects refunded proof before providers',async()=>{revoked=true;generator=()=>{throw Error('provider must not run')};const response=await route(request(),ENV);expect(response.status).toBe(403);expect(paymentChecks).toHaveLength(0)});
  it('preserves pending output when revocation is detected just before completion',async()=>{
   generator=async()=>({result:sections,deliverable:true,qualityTier:'partial'});await route(request(),ENV);

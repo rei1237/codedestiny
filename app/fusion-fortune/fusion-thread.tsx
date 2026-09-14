@@ -177,7 +177,7 @@ export function ThreadRow({ systemKey, dimmed, index = 0, dataState, exporting =
       data-state={dataState}
       {...(pdfSection ? { "data-fusion-pdf-section": "true" } : {})}
       {...(tocKey ? { id: `fusion-toc-${tocKey}`, "data-fusion-toc": tocKey } : {})}
-      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 max-[430px]:grid-cols-[1.5rem_minmax(0,1fr)] max-[430px]:gap-x-2 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100"} ${className}`}
+      className={`grid grid-cols-[1.75rem_minmax(0,1fr)] items-start gap-x-2.5 max-[430px]:grid-cols-[1.5rem_minmax(0,1fr)] max-[430px]:gap-x-2 sm:grid-cols-[2.25rem_minmax(0,1fr)] sm:gap-x-3.5 ${exporting ? "" : "animate-fade-in-up motion-reduce:animate-none"} ${className}`}
       style={exporting ? undefined : { animationDelay: `${Math.min(index, 14) * 60}ms` }}
     >
       <ThreadAvatar systemKey={systemKey} dimmed={dimmed} />

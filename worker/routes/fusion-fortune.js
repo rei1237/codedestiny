@@ -27,6 +27,7 @@ import {
   claimFusionDeliveryLease,
   releaseFusionDeliveryLease,
   fusionConsultationPublicStatus,
+  getLatestPendingFusionConsultation,
 } from "../lib/fusion-fortune-consultation.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
@@ -228,6 +229,7 @@ async function handleFusionFortuneResultRoute(request, env) {
   // 🔴 결제 증빙 키로 되찾는 경로. 스트림이 result 를 못 보내고 끊긴 사용자가 3만원짜리
   //    결과를 회수하는 유일한 자리다 — 저장이 배달보다 먼저 끝나므로 여기 있으면 있다.
   const requestId = params.get("requestId") || "";
+  if (!id && !requestId && params.get("pending") === "1") return respondFusionConsultation(await getLatestPendingFusionConsultation({ userId }));
   if (!id && requestId) {
     return respondFusionConsultation(await getFusionFortuneConsultationByRequestId({ userId, requestId }));
   }

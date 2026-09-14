@@ -80,8 +80,8 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
       // 다시 열었을 때 "왜 짧지?"에 답할 근거가 사라진다.
       qualityTier: text(qualityTier, 20) || "full",
       qualityNotice: text(qualityNotice, 300),
-      // 2단계 생성: 1단계(여섯 체계 섹션)만 저장된 문서는 partial 이다. 목록에는 나오지 않고
-      // requestId 조회로만 되찾아 2단계를 이어 간다. 2단계 저장이 같은 문서를 completed 로 덮는다.
+      // 2단계 생성: 1단계(여섯 체계 섹션)만 저장된 문서는 partial 이다. 소유 목록과
+      // requestId 조회에서 되찾아 미완료 부분을 이어 간다. 2단계 저장이 같은 문서를 completed 로 덮는다.
       // 옛 보관본(stage 필드 없음)은 응답 기본값이 completed/2 로 읽는다.
       status: deliveryState === "delivery_pending" ? "delivery_pending" : Number(stage) === 1 || result.expertMeta?.complete === false || qualityTier === "partial" ? "partial" : "completed",
       stage: Number(stage) === 1 ? 1 : 2,
@@ -208,12 +208,17 @@ export async function getFusionFortuneConsultationByRequestId({ userId, requestI
   return FusionFortuneConsultation.findOne({ userId: text(userId, 120), idempotencyKey: text(requestId, 180) }).lean();
 }
 
+export async function getLatestPendingFusionConsultation({ userId }) {
+  if (!text(userId, 120)) return null;
+  return FusionFortuneConsultation.findOne({ userId: text(userId, 120), status: { $in: ["partial", "generating", "delivery_pending"] }, "generationSnapshot.context": { $exists: true } }).sort({ createdAt: -1 }).lean();
+}
+
 /** 최근 목록 — 본문(result)은 제외한다. 목록 응답에 2만자를 실을 이유가 없다. */
 export async function listFusionFortuneConsultations({ userId, limit = 10 } = {}) {
   if (!text(userId, 120)) return [];
   const size = Math.min(Math.max(Number(limit) || 10, 1), 20);
-  return FusionFortuneConsultation.find({ userId: text(userId, 120), status: "completed" })
-    .select("id title inputSummary generationSource qualityTier createdAt")
+  return FusionFortuneConsultation.find({ userId: text(userId, 120), status: { $in: ["completed", "partial", "generating", "delivery_pending"] } })
+    .select("id title inputSummary generationSource qualityTier status createdAt")
     .sort({ createdAt: -1 })
     .limit(size)
     .lean();
