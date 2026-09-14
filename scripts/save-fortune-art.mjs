@@ -1,0 +1,12 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import sharp from 'sharp';
+const { slug, source, prompt } = JSON.parse(fs.readFileSync(0, 'utf8'));
+if (!/^[a-z0-9-]+$/.test(slug)) throw new Error('Invalid asset slug');
+const directory = 'public/images/feature-details';
+fs.mkdirSync(directory, { recursive: true });
+const destination = `${directory}/${slug}-hero-v2.webp`;
+await sharp(source).resize(1200, 675, { fit: 'cover' }).webp({ quality: 78 }).toFile(destination);
+fs.mkdirSync('docs/design', { recursive: true });
+fs.appendFileSync('docs/design/fortune-detail-art.jsonl', JSON.stringify({ slug, file: destination, source: path.basename(source), tool: 'image_gen', prompt, bytes: fs.statSync(destination).size }) + '\n');
+console.log(`${slug}: ${fs.statSync(destination).size} bytes`);
