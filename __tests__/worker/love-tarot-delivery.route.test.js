@@ -51,3 +51,23 @@ test('unavailable payment lookup is 503 and never generates',async()=>{mode='una
 test.each([401,403,503])('authentication status %s prevents provider calls',async status=>{authError=Object.assign(Error('auth'),{status});expect((await start()).status).toBe(status);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);});
 
 test('all six original cards and directions retain generated meanings and advice',async()=>{await start();const data=await (await finish()).json();expect(data.reading.positionBreakdown).toHaveLength(6);const base=docs[0].metadata.paidNarrative.base.reading;for(let i=0;i<6;i++){expect(data.reading.positionBreakdown[i].orientation).toBe(base.positionBreakdown[i].orientation);for(const key of ['detail','relationshipInsight','advice','caution'])expect(data.reading.positionBreakdown[i][key]).toBeTruthy();}expect(data.reading.finalAdvice.nextSevenDays).toBeTruthy();});
+
+
+test('foreign generated prose survives checkpoint, rendering and reopening without default padding',async()=>{
+ const {runWithAiLocale}=await import('../../worker/lib/ai-locale-context.js');
+ provider.mockImplementation(async(_env,prompt)=>{
+  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1];
+  const lines=Array.from({length:65},(_,i)=>`${label} observation ${i}: Compare the card position with the practical information available about your relationship before deciding what to ask. ${label} reflection ${i}: Describe a small reversible step and record how both people respond without treating a possible pattern as a certain prediction.`);
+  const body=label.startsWith('matrix-')?Array.from({length:4},(_,g)=>lines.slice(g*17,(g+1)*17).join(' ')).join('\n\n'):lines.join('\n\n');
+  return {ok:true,provider:'gemini',text:JSON.stringify({evidenceHash,body})};
+ });
+ await runWithAiLocale('en',start);const response=await finish();expect(response.status).toBe(200);const data=await response.json();
+ const parts=docs[0].metadata.paidNarrative.parts;
+ expect(data.locale).toBe('en');expect(data.reading.overallVibe).toBe(parts.overallVibe);expect(data.reading.finalAdvice.nextSevenDays).toBe(parts.nextSevenDays);
+ for(let i=0;i<6;i++){
+  const row=data.reading.positionBreakdown[i];expect(row.detail+'\n\n'+row.relationshipInsight).toBe(parts[`card-${i}-meaning`]);
+  expect(row.advice+'\n\n'+row.caution).toBe(parts[`card-${i}-action`]);
+ }
+ expect(data.deliverySections.map(s=>s.body).join('')).not.toMatch(/[가-힣]/);
+ const reopened=await (await resume()).json();expect(reopened.reading).toEqual(data.reading);expect(provider).toHaveBeenCalledTimes(21);
+});

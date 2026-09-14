@@ -4,8 +4,7 @@ import { RUNTIME_LOCALES } from "../../lib/i18n/locale-normalize.js";
 import { normalizeOraclePayload } from "../../worker/routes/oracle.js";
 import { buildFallbackGuardianFortuneResult, validateAndNormalizeGuardianFortuneResult } from "../../worker/lib/guardian-fortune-result.js";
 import { GUARDIAN_FORTUNE_LIST_LIMITS } from "../../worker/lib/guardian-fortune-runtime-contract.js";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 
 const context = { inputSummary: { category: "saju", hasBirthTime: true, hasBirthPlace: true }, availableSystems: ["saju"] };
 function reading() {
@@ -42,9 +41,10 @@ describe("locale postprocessing without Korean padding (pure fixtures, no provid
     expect(normalizeOraclePayload(null, null)).toBeNull();
   });
 
-  it("does not pad foreign results with Korean deterministic fallbacks", () => {
-    const tarot = readFileSync(resolve(process.cwd(), "worker/routes/tarot.js"), "utf8");
-    // Pet and Yoga original-locale delivery are exercised by their actual paid route regressions.
-    expect(tarot).toMatch(/normalizeLoveReadingPayload\(payload\?\.reading, payload\?\.cards \|\| \[\], loveLocale\)/);
+  it.each(RUNTIME_LOCALES.filter(locale => locale !== "ko"))("does not pad the pre-generation love card context with Korean for %s", locale => {
+    const base = normalizeLoveReadingPayload({ overallVibe: "한국어 기본 해설" }, Array.from({ length: 6 }, (_, i) => ({ cardId: `M${String(i).padStart(2, "0")}`, nameEn: `Card ${i + 1}`, orientation: "upright" })), locale);
+    expect(base.overallVibe).toBeTruthy();
+    expect(base.overallVibe).not.toMatch(/[가-힣]/);
+    // Preservation of generated prose is tested through the actual paid love route.
   });
 });
