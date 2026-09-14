@@ -225,6 +225,16 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(second).toMatchObject({ ok: false, errorCode: "FUSION_FORTUNE_REQUEST_IN_PROGRESS", status: 409 });
   });
 
+  it("an old attempt cannot release or commit the replacement reservation", async () => {
+    const store = emptyStore(), started = new Date("2026-09-15T00:00:00Z");
+    const old = await store.reserve("user", "2026-09-15", "lease-race", started);
+    const current = await store.reserve("user", "2026-09-15", "lease-race", new Date(started.getTime() + FUSION_RESERVATION_FRESHNESS_MS + 1));
+    expect(current.ok).toBe(true);
+    await store.release(old);
+    expect(await store.commit(old)).toBeNull();
+    expect(await store.commit(current)).toEqual({committed:true});
+  });
+
   it("🔴 reopens a paid reservation stuck in 'reserved' past the freshness window instead of locking it for the full TTL", async () => {
     // 플랫폼이 생성 도중 워커를 강제 종료하면 store.release()가 아예 호출되지 못해 예약이
     // "reserved"로 멈춘다. 신선도 창(FUSION_RESERVATION_FRESHNESS_MS)이 없으면 결제한 사용자는

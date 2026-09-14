@@ -26,7 +26,8 @@ import {
   hasFusionStageOneResult,
 } from "../worker/lib/fusion-fortune.js";
 import { FUSION_FORTUNE_LENGTH, FUSION_STAGE_COUNT, fusionGroupsForStage } from "../worker/lib/fusion-fortune-prompt.js";
-import { buildFusionConsultationDoc } from "../worker/lib/fusion-fortune-consultation.js";
+import { FusionFortuneConsultation } from "../worker/lib/models.js";
+import { fusionConsultationPublicStatus, buildFusionConsultationDoc } from "../worker/lib/fusion-fortune-consultation.js";
 
 if (process.argv.includes("--live")) {
   console.error("실호출 경로는 이 스크립트에 없습니다. 필요하면 사용자 허락을 먼저 받고 별도 플래그를 만드세요.");
@@ -142,7 +143,8 @@ check("병합 가시 텍스트 ≤ 상한", visible <= FUSION_FORTUNE_LENGTH.tot
 // 라우트·렌더러·클라이언트 — 소스 단언(구 보관본 기본값, stage 배선, partial 이어가기).
 {
   const route = read("worker/routes/fusion-fortune.js");
-  check("응답: 옛 보관본 status 기본값 completed", /status:\s*consultation\.status\s*\|\|\s*"completed"/.test(route));
+  check("응답: 옛 보관본 status 기본값 completed", fusionConsultationPublicStatus({}) === "completed");
+  check("응답: 저장 대기는 partial", fusionConsultationPublicStatus({ status: "delivery_pending" }) === "partial");
   check("응답: 옛 보관본 stage 기본값 2", /stage:\s*Number\(consultation\.stage\)\s*\|\|\s*2/.test(route));
   check("스트림: body.stage 를 읽는다", /Number\(body\?\.stage\)\s*===\s*2\s*\?\s*2\s*:\s*1/.test(route));
   check("스트림: 2단계면 앞 보관본을 읽는다", /loadFusionPriorConsultation\(/.test(route));
@@ -150,9 +152,8 @@ check("병합 가시 텍스트 ≤ 상한", visible <= FUSION_FORTUNE_LENGTH.tot
   check("보관: persist 에 stage 전달", /stage:\s*delivery\?\.stage/.test(route));
   check("목록은 completed 만", /status:\s*"completed"/.test(read("worker/lib/fusion-fortune-consultation.js")));
 
-  const model = read("worker/lib/models.js");
-  check("모델 status enum 에 partial", /enum:\s*\["generating",\s*"partial",\s*"completed",\s*"generation_failed"\]/.test(model));
-  check("모델 stage 기본값 2", /stage:\s*\{\s*type:\s*Number,\s*default:\s*2\s*\}/.test(model));
+  check("모델 status enum 에 partial/저장 대기", ["partial", "delivery_pending", "completed"].every(value => FusionFortuneConsultation.schema.path("status").enumValues.includes(value)));
+  check("모델 stage 기본값 2", FusionFortuneConsultation.schema.path("stage").defaultValue === 2);
 
   const renderer = read("app/fusion-fortune/FusionResultThread.tsx");
   check("렌더러: 요약은 있을 때만", /result\.executiveSummary\s*&&\s*<ThreadRow/.test(renderer));

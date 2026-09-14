@@ -35,6 +35,7 @@ beforeAll(async () => {
   const actualAuth = await import("../../worker/lib/auth.js");
   fusionConstants = actualFusion;
   await Promise.all([
+    jest.unstable_mockModule("../../worker/lib/paid-result-revocation.js", () => ({ isPaidResultRevoked: async () => false })),
     jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...actualDb, connectDb: async () => {} })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       ...actualAuth,
@@ -42,6 +43,9 @@ beforeAll(async () => {
       getOptionalUserFromRequest: async () => ({ userId: "user-1" }),
     })),
     jest.unstable_mockModule("../../worker/lib/fusion-fortune-consultation.js", () => ({
+      claimFusionDeliveryLease: async () => ({ token: "lease" }),
+      releaseFusionDeliveryLease: async () => {},
+      fusionConsultationPublicStatus: consultation => ["generating", "delivery_pending"].includes(consultation.status) ? "partial" : consultation.status || "completed",
       reserveFusionGroupAttempt: async () => 1,
       saveFusionGenerationSnapshot: async snapshot => snapshot,
       saveFusionFortuneConsultation: async () => {

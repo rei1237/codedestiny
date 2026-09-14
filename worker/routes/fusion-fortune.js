@@ -1,4 +1,5 @@
 import { connectDb } from "../lib/db.js";
+import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -23,6 +24,9 @@ import {
   saveFusionFortuneConsultation,
   saveFusionGenerationSnapshot,
   reserveFusionGroupAttempt,
+  claimFusionDeliveryLease,
+  releaseFusionDeliveryLease,
+  fusionConsultationPublicStatus,
 } from "../lib/fusion-fortune-consultation.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
@@ -53,6 +57,7 @@ function buildFusionFortunePaidAccessResolver(env) {
   const coinPrice = Number(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]?.cost || 0);
   return async ({ userId, requestId }) => {
     if (!userId) return { ok: false };
+    if (await isPaidResultRevoked(userId, FUSION_FORTUNE_PAID_FEATURE_KEY, [requestId])) return { ok: false, revoked: true };
     const proof = await verifyPerUsePayment(env, {
       userId,
       featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY,
@@ -108,7 +113,7 @@ function canGenerateFusionFortune(env) {
  */
 async function persistFusionDelivery({ userId, input, delivery }) {
   try {
-    const id = await saveFusionFortuneConsultation({
+    const payload = {
       requestId: delivery?.requestId,
       userId,
       input: input || {},
@@ -118,16 +123,45 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       qualityNotice: delivery?.qualityNotice,
       stage: delivery?.stage,
       nextStage: delivery?.nextStage,
-    });
+      lease: delivery?.lease,
+    };
+    if (delivery?.status === "completed") {
+      const pending = await saveFusionFortuneConsultation({ ...payload, deliveryState: "delivery_pending" });
+      if (!pending) throw resultStorageUnavailable(delivery?.requestId);
+      await assertFusionDeliveryAccess(userId, delivery?.requestId);
+    }
+    const id = await saveFusionFortuneConsultation(payload);
     if (!id) throw resultStorageUnavailable(delivery?.requestId);
     return id;
   } catch (error) {
+    if (error?.code === "RESULT_ACCESS_REVOKED") throw error;
     console.warn("[fusion-fortune-persist-failed]", {
       requestId: String(delivery?.requestId || "").slice(0, 120),
       message: String(error?.message || "").slice(0, 200),
     });
     throw resultStorageUnavailable(delivery?.requestId);
   }
+}
+
+async function assertFusionDeliveryAccess(userId, requestId) {
+  try {
+    if (await isPaidResultRevoked(userId, FUSION_FORTUNE_PAID_FEATURE_KEY, [requestId])) {
+      throw Object.assign(new Error("취소·환불된 결제의 결과는 제공할 수 없어요."), { code: "RESULT_ACCESS_REVOKED", status: 403, resultId: requestId });
+    }
+  } catch (error) {
+    if (error?.code === "RESULT_ACCESS_REVOKED") throw error;
+    throw resultStorageUnavailable(requestId);
+  }
+}
+
+async function replayCompletedFusion(consultation) {
+  if (!consultation?.result || (consultation.status && consultation.status !== "completed")) return null;
+  await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey);
+  return json({ ok: true, status: "completed", stage: 2, nextStage: null,
+    requestId: consultation.idempotencyKey, consultationId: consultation.id, result: consultation.result,
+    qualityTier: consultation.qualityTier || "full", qualityNotice: consultation.qualityNotice || "",
+    fusionStatus: await buildFusionFortuneStatus({ userId: consultation.userId }),
+  });
 }
 
 /**
@@ -143,13 +177,14 @@ async function loadFusionPriorConsultation({ userId, requestId }) {
   }
 }
 
-function respondFusionConsultation(consultation) {
+async function respondFusionConsultation(consultation) {
   if (!consultation) {
     return respond({ ok: false, status: 404, error: "FUSION_FORTUNE_RESULT_NOT_FOUND", message: "저장된 결과를 찾지 못했어요." });
   }
+  await assertFusionDeliveryAccess(consultation.userId, consultation.idempotencyKey);
   return respond({
     ok: true,
-    status: consultation.status === "partial" ? 202 : 200,
+    status: ["partial", "delivery_pending", "generating"].includes(consultation.status) ? 202 : 200,
     consultation: {
       id: consultation.id,
       requestId: consultation.idempotencyKey,
@@ -163,7 +198,7 @@ function respondFusionConsultation(consultation) {
       qualityTier: consultation.qualityTier || "full",
       qualityNotice: consultation.qualityNotice || "",
       // 2단계 생성 이전 보관본에는 둘 다 없다 — 완료본으로 읽는다.
-      status: consultation.status || "completed",
+      status: fusionConsultationPublicStatus(consultation),
       stage: Number(consultation.stage) || 2,
       createdAt: consultation.createdAt,
     },
@@ -229,6 +264,10 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
   const body = await readJson(request);
   await connectDb(env);
+  const streamRequestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 120);
+  const priorConsultation = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId });
+  const completed = await replayCompletedFusion(priorConsultation);
+  if (completed) return completed;
   const transformer = new TransformStream();
   const writer = transformer.writable.getWriter();
   let consultationId = "";
@@ -253,11 +292,9 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   const onClientAbort = () => abortController.abort();
   request.signal?.addEventListener?.("abort", onClientAbort, { once: true });
   const edgeTimer = setTimeout(() => abortController.abort(), edgeDeadlineMs);
-  const streamRequestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 180);
   // 2단계 생성. stage 2 는 같은 requestId 의 1단계 보관본(status partial 또는 completed)을
   // 앞 결과로 넘긴다. 없으면 생성기가 STAGE_ONE_MISSING(409, retryable) 로 1단계부터 다시 하게 한다.
   const streamStage = Number(body?.stage) === 2 ? 2 : 1;
-  const priorConsultation = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId: streamRequestId });
   // 🔴 스트림의 **종료 주체**. 이 자리가 비어 있어서 2026-09-03 에 결제한 사용자의 화면이
   //    영원히 돌았다(원칙 6 확인: 추가가 아니라 없던 주체를 만드는 것 — 종료를 담당하던
   //    코드는 run 의 finally 뿐이었고, run 이 pending 이면 그 finally 는 영원히 안 돈다).
@@ -308,19 +345,23 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         priorGenerationSource: priorConsultation?.generationSource || "",
         priorSnapshot: priorConsultation?.generationSnapshot || null,
         onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
-        onAttempt: groupId => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId: streamRequestId, groupId }),
+        onReserved: () => claimFusionDeliveryLease({ userId: String(auth.userId), requestId: streamRequestId }),
+        onReleased: lease => releaseFusionDeliveryLease({ userId: String(auth.userId), requestId: streamRequestId, lease }),
+        onAttempt: (groupId, lease) => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId: streamRequestId, groupId, lease }),
         onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
 
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아
         // 재열람이 복구 경로가 된다(예전에는 그 순간 3만원짜리 결과가 그대로 사라졌다).
         onCheckpoint: async (delivery) => {
-          const id = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
+          const id = await persistFusionDelivery({ userId: String(auth.userId), input: priorConsultation?.generationSnapshot?.input || body, delivery });
           if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
           await writeFusionFortuneSse(writer, "checkpoint", { result: delivery.result });
         },
         onDelivery: async (delivery) => {
-          consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
-          await writeFusionFortuneSse(writer, "result", { ...delivery, consultationId });
+          consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: priorConsultation?.generationSnapshot?.input || body, delivery });
+          const publicDelivery = { ...delivery };
+          delete publicDelivery.lease;
+          await writeFusionFortuneSse(writer, "result", { ...publicDelivery, consultationId });
         },
       });
       if (!result.ok) {
@@ -395,11 +436,13 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       const auth = await requireUserFromRequest(request, env, { allowDbFallback: true });
       const body = await readJson(request);
       await connectDb(env);
-      const requestId = body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key");
+      const requestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 120);
       // 한 요청에는 한 단계만 실행한다. 다음 단계도 같은 결제 요청 ID를 사용한다.
       const requestedStage = Number(body?.stage);
       const stages = [requestedStage === 2 ? 2 : 1];
       let prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
+      const completed = await replayCompletedFusion(prior);
+      if (completed) return completed;
       let result = null;
       let consultationId = "";
       for (const stage of stages) {
@@ -417,13 +460,15 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
           priorGenerationSource: prior?.generationSource || "",
           priorSnapshot: prior?.generationSnapshot || null,
           onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
-          onAttempt: groupId => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId, groupId }),
+          onReserved: () => claimFusionDeliveryLease({ userId: String(auth.userId), requestId }),
+          onReleased: lease => releaseFusionDeliveryLease({ userId: String(auth.userId), requestId, lease }),
+          onAttempt: (groupId, lease) => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId, groupId, lease }),
           onCheckpoint: async (delivery) => {
-            const id = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
+            const id = await persistFusionDelivery({ userId: String(auth.userId), input: prior?.generationSnapshot?.input || body, delivery });
             if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
           },
           onDelivery: async (delivery) => {
-            consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: body, delivery });
+            consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: prior?.generationSnapshot?.input || body, delivery });
           },
         });
         if (!result?.ok) return respond(result);
@@ -444,6 +489,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
     if (["/status", "/generate", "/generate/stream", "/result"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
+    if (error?.code === "RESULT_ACCESS_REVOKED") return json({ ok: false, reason: error.code, retryable: false, resultId: error.resultId, message: error.message }, { status: 403 });
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     return handleRouteError(error, { request, env, trace: { route: "fusion-fortune", method, requestPath: new URL(request.url).pathname } });
   }

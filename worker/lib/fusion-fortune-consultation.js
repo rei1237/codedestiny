@@ -18,6 +18,10 @@ import { countFusionFortuneVisibleText } from "./fusion-fortune.js";
 // 저장 실패는 호출자가 재시도 가능한 저장 장애로 반환한다.
 export const FUSION_CONSULTATION_MAX_RESULT_CHARS = 200000;
 
+export function fusionConsultationPublicStatus(consultation) {
+  return ["generating", "delivery_pending"].includes(consultation?.status) ? "partial" : consultation?.status || "completed";
+}
+
 function text(value, max = 200) {
   return String(value || "").trim().slice(0, max);
 }
@@ -33,7 +37,7 @@ function newConsultationId() {
  *
  * @returns {{ ok: true, doc: object } | { ok: false, reason: string }}
  */
-export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "", stage = 2, nextStage = null } = {}) {
+export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "", stage = 2, nextStage = null, deliveryState } = {}) {
   if (!text(userId, 120)) return { ok: false, reason: "missing_user" };
   if (!text(requestId, 180)) return { ok: false, reason: "missing_request_id" };
   if (!result || typeof result !== "object" || Array.isArray(result)) return { ok: false, reason: "missing_result" };
@@ -79,7 +83,7 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
       // 2단계 생성: 1단계(여섯 체계 섹션)만 저장된 문서는 partial 이다. 목록에는 나오지 않고
       // requestId 조회로만 되찾아 2단계를 이어 간다. 2단계 저장이 같은 문서를 completed 로 덮는다.
       // 옛 보관본(stage 필드 없음)은 응답 기본값이 completed/2 로 읽는다.
-      status: Number(stage) === 1 || result.expertMeta?.complete === false || qualityTier === "partial" ? "partial" : "completed",
+      status: deliveryState === "delivery_pending" ? "delivery_pending" : Number(stage) === 1 || result.expertMeta?.complete === false || qualityTier === "partial" ? "partial" : "completed",
       stage: Number(stage) === 1 ? 1 : 2,
       nextStage: nextStage === 1 || nextStage === 2 ? nextStage : null,
       llmMeta: llmMeta && typeof llmMeta === "object" ? llmMeta : null,
@@ -101,11 +105,14 @@ export async function saveFusionFortuneConsultation(payload) {
   }
   const { id, userId, idempotencyKey, ...rest } = built.doc;
   const existing = await FusionFortuneConsultation.findOne({ userId, idempotencyKey }).lean();
-  if (existing?.status === "completed") return text(existing.id, 120);
+  if (existing?.status === "completed") {
+    if (payload.lease && JSON.stringify(existing.result) !== JSON.stringify(rest.result)) return "";
+    return text(existing.id, 120);
+  }
   const saved = await FusionFortuneConsultation.findOneAndUpdate(
-    { userId, idempotencyKey, status: { $ne: "completed" } },
+    { userId, idempotencyKey, status: { $ne: "completed" }, ...fusionLeaseFilter(payload.lease) },
     { $set: rest, $setOnInsert: { id, userId, idempotencyKey } },
-    { upsert: true, new: true, setDefaultsOnInsert: true },
+    { upsert: !payload.lease, new: true, setDefaultsOnInsert: true },
   ).lean();
   if (!saved?.id) return "";
   const confirmed = await FusionFortuneConsultation.findOne({ userId, idempotencyKey }).lean();
@@ -113,8 +120,38 @@ export async function saveFusionFortuneConsultation(payload) {
   return text(confirmed.id, 120);
 }
 
+function fusionLeaseFilter(lease) {
+  return lease ? { "generationLease.token": lease.token, "generationLease.expiresAt": { $gt: new Date() } } : {};
+}
+
+/** One lease spans both generation stages, provider reservations and verified delivery. */
+export async function claimFusionDeliveryLease({ userId, requestId }) {
+  const owner = text(userId, 120), key = text(requestId, 180);
+  if (!owner || !key) throw resultStorageUnavailable(key);
+  const now = new Date();
+  const lease = { token: crypto.randomUUID(), expiresAt: new Date(now.getTime() + 150000) };
+  try {
+    const saved = await FusionFortuneConsultation.findOneAndUpdate(
+      { userId: owner, idempotencyKey: key, status: { $ne: "completed" }, $or: [{ generationLease: null }, { "generationLease.expiresAt": { $lte: now } }] },
+      { $set: { generationLease: lease }, $setOnInsert: { id: newConsultationId(), userId: owner, idempotencyKey: key, generationSnapshot: null, result: {}, status: "partial", stage: 1, nextStage: 1 } },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean();
+    const confirmed = saved?.id && await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key, "generationLease.token": lease.token }).lean();
+    if (!confirmed) throw resultStorageUnavailable(key);
+    return lease;
+  } catch (error) {
+    if (Number(error?.code) === 11000) throw Object.assign(new Error("generation lease busy"), { code: "FUSION_FORTUNE_REQUEST_IN_PROGRESS", status: 409 });
+    throw resultStorageUnavailable(key);
+  }
+}
+
+export async function releaseFusionDeliveryLease({ userId, requestId, lease }) {
+  if (!lease?.token) return;
+  await FusionFortuneConsultation.updateOne({ userId: text(userId, 120), idempotencyKey: text(requestId, 180), "generationLease.token": lease.token }, { $set: { generationLease: null } });
+}
+
 /** Private, owner-bound resume input and calculated context. Never included in lists. */
-export async function saveFusionGenerationSnapshot({ userId, requestId, input, context, calculatedAt }) {
+export async function saveFusionGenerationSnapshot({ userId, requestId, input, context, calculatedAt, lease }) {
   try {
     const owner = text(userId, 120), key = text(requestId, 180);
     if (!owner || !key || !context || JSON.stringify({ input, context }).length > 1000000) throw resultStorageUnavailable(key);
@@ -122,9 +159,9 @@ export async function saveFusionGenerationSnapshot({ userId, requestId, input, c
     if (existing?.generationSnapshot?.context || existing?.status === "completed") return existing.generationSnapshot;
     const snapshot = { input, context, calculatedAt, requestId: key, attempts: {} };
     const saved = await FusionFortuneConsultation.findOneAndUpdate(
-      { userId: owner, idempotencyKey: key, generationSnapshot: null, status: { $ne: "completed" } },
+      { userId: owner, idempotencyKey: key, generationSnapshot: null, status: { $ne: "completed" }, ...fusionLeaseFilter(lease) },
       { $set: { generationSnapshot: snapshot }, $setOnInsert: { id: newConsultationId(), userId: owner, idempotencyKey: key, result: {}, status: "partial", stage: 1, qualityTier: "partial" } },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
+      { upsert: !lease, new: true, setDefaultsOnInsert: true },
     ).lean();
     if (!saved?.id) throw resultStorageUnavailable(key);
     const confirmed = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
@@ -134,12 +171,12 @@ export async function saveFusionGenerationSnapshot({ userId, requestId, input, c
 }
 
 /** Reserve a provider call before starting it; lost responses never reset its budget. */
-export async function reserveFusionGroupAttempt({ userId, requestId, groupId }) {
+export async function reserveFusionGroupAttempt({ userId, requestId, groupId, lease }) {
   const owner = text(userId, 120), key = text(requestId, 180);
   if (!/^[a-zA-Z0-9_-]{1,60}$/.test(String(groupId))) throw resultStorageUnavailable(key);
   const field = `generationSnapshot.attempts.${groupId}`;
   try {
-    const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $ne: "completed" },
+    const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $ne: "completed" }, ...fusionLeaseFilter(lease),
       "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: 3 } }] },
       { $inc: { [field]: 1 } }, { new: true }).lean();
     const attempt = Number(reserved?.generationSnapshot?.attempts?.[groupId]);

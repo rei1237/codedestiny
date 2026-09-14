@@ -178,8 +178,9 @@ async function consumeFusionStream(
   onEvent: (event: string, payload: Record<string, unknown>) => void,
 ): Promise<Record<string, unknown>> {
   if (!response.ok || !response.body || !response.headers.get("content-type")?.includes("text/event-stream")) {
-    const fallback = await response.json().catch(() => ({})) as { message?: string };
-    throw new Error(fallback.message || copy.streamStartFailedMessage);
+    const fallback = await response.json().catch(() => ({})) as Record<string, unknown>;
+    if (response.ok && fallback.ok === true && fallback.status === "completed" && fallback.result) return fallback;
+    throw Object.assign(new Error(String(fallback.message || copy.streamStartFailedMessage)), { httpStatus: response.status, errorCode: fallback.reason || fallback.error, retryable: fallback.retryable === true });
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder();

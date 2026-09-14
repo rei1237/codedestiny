@@ -1835,6 +1835,7 @@ const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
   requestId: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, required: true },
   dateKey: { type: String, required: true, trim: true, maxlength: 10 },
+  leaseToken: { type: String, default: "" },
   status: { type: String, enum: ["reserved", "completed", "released", "blocked"], default: "reserved" },
   errorCode: { type: String, default: "", trim: true, maxlength: 100 },
   // expiresAt 는 아래 TTL 인덱스로만 색인한다(idempotency_keys 와 동일한 충돌 회피).
@@ -1866,6 +1867,7 @@ const fusionFortuneConsultationSchema = new mongoose.Schema({
   },
   // 클라이언트가 스트림에서 받는 것과 같은 구조. 재열람 시 그대로 돌려줘 렌더 경로를 하나로 유지한다.
   generationSnapshot: { type: mongoose.Schema.Types.Mixed, default: null },
+  generationLease: { type: mongoose.Schema.Types.Mixed, default: null },
   result: { type: mongoose.Schema.Types.Mixed, required: true },
   visibleTextLength: { type: Number, default: 0 },
   generationSource: { type: String, default: "", trim: true, maxlength: 40 },
@@ -1873,7 +1875,7 @@ const fusionFortuneConsultationSchema = new mongoose.Schema({
   // 보관본에 남아 있어야 한다(옛 보관본에는 없으므로 기본값은 완전 등급으로 읽는다).
   qualityTier: { type: String, default: "full", trim: true, maxlength: 20 },
   qualityNotice: { type: String, default: "", trim: true, maxlength: 300 },
-  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "completed" },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "completed" },
   // 2단계 생성의 진행 단계. 1 = 여섯 체계 섹션만(partial), 2 = 종합·시기·총평까지(completed).
   // 옛 보관본에는 없으므로 기본값은 완료본(2)이다.
   stage: { type: Number, default: 2 },

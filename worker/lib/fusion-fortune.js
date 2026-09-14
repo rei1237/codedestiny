@@ -116,7 +116,7 @@ async function resolveFusionFortunePaidAccess(resolvePaidAccess, context) {
   if (typeof resolvePaidAccess !== "function") return { ok: false, degraded: false };
   try {
     const verdict = await resolvePaidAccess(context);
-    return { ok: verdict?.ok === true, degraded: verdict?.degraded === true };
+    return { ok: verdict?.ok === true, degraded: verdict?.degraded === true, revoked: verdict?.revoked === true };
   } catch {
     return { ok: false, degraded: true };
   }
@@ -1164,6 +1164,8 @@ export async function generateFusionFortuneWithRealLLM({
         const stillFailedIndex = failedGroups.indexOf(group);
         if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
       }
+      const storageFailure = retried.find(outcome => outcome.status === "rejected" && outcome.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
+      if (storageFailure) throw storageFailure.reason;
     } else if (retryTargets.length) {
       console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), stage: stageNumber, remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
     }
@@ -1233,17 +1235,19 @@ export function createMemoryFusionFortuneStore(seed = {}) {
       const previous = attempts.get(requestId);
       const stale = previous?.status === "reserved" && now.getTime() - Number(previous.reservedAt || 0) >= FUSION_RESERVATION_FRESHNESS_MS;
       if (previous && previous.status !== "released" && !stale) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
-      attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved", reservedAt: now.getTime() });
-      return { ok: true, userId: String(userId), dateKey, requestId };
+      const leaseToken = crypto.randomUUID();
+      attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved", reservedAt: now.getTime(), leaseToken });
+      return { ok: true, userId: String(userId), dateKey, requestId, leaseToken };
     }); },
-    async release(reservation) { attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "released" }); },
-    async commit(reservation) { const previous = attempts.get(reservation.requestId); if (!previous || previous.status !== "reserved") return null; attempts.set(reservation.requestId, { ...previous, status: "completed" }); return { committed: true }; },
+    async release(reservation) { const previous = attempts.get(reservation.requestId); if (previous?.leaseToken === reservation.leaseToken && previous?.status === "reserved") attempts.set(reservation.requestId, { ...previous, status: "released" }); },
+    async commit(reservation) { const previous = attempts.get(reservation.requestId); if (!previous || previous.status !== "reserved" || previous.leaseToken !== reservation.leaseToken) return null; attempts.set(reservation.requestId, { ...previous, status: "completed" }); return { committed: true }; },
   };
 }
 
 export function createMongoFusionFortuneStore() {
   return {
     async reserve(userId, dateKey, requestId, now = new Date()) {
+      const leaseToken = crypto.randomUUID();
       const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
       const staleReservedBefore = new Date(now.getTime() - FUSION_RESERVATION_FRESHNESS_MS);
       try {
@@ -1253,22 +1257,22 @@ export function createMongoFusionFortuneStore() {
         // 여기서 계속 막으면 이미 결제한 사용자가 만료 TTL(10분)까지 결과를 받을 길이 사라진다.
         const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
           { requestId, userId: objectIdOrString(userId), $or: [{ status: "released" }, { status: "reserved", updatedAt: { $lt: staleReservedBefore } }] },
-          { $set: { status: "reserved", dateKey, expiresAt } },
+          { $set: { status: "reserved", dateKey, expiresAt, leaseToken } },
         ).lean();
         if (!reopened) {
-          await FusionFortuneGenerationAttempt.create({ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt });
+          await FusionFortuneGenerationAttempt.create({ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt, leaseToken });
         }
-        return { ok: true, userId: String(userId), dateKey, requestId };
+        return { ok: true, userId: String(userId), dateKey, requestId, leaseToken };
       } catch (error) {
         if (Number(error?.code) === 11000) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
         throw error;
       }
     },
     async release(reservation) {
-      await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), status: "reserved" }, { $set: { status: "released" } });
+      await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), leaseToken: reservation.leaseToken, status: "reserved" }, { $set: { status: "released" } });
     },
     async commit(reservation) {
-      const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), status: "reserved" }, { $set: { status: "completed" } });
+      const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), leaseToken: reservation.leaseToken, status: "reserved" }, { $set: { status: "completed" } });
       return Number(attempt.modifiedCount || 0) === 1 ? { committed: true } : null;
     },
   };
@@ -1292,7 +1296,7 @@ export async function buildFusionFortuneStatus({ userId = "", enabled = true } =
  * STAGE_ONE_MISSING(409, retryable) 로 돌려보내 클라이언트가 1단계부터 다시 잇게 한다.
  * 결제 증빙은 두 단계 모두 같은 requestId 로 조회만 한다(재과금·쓰기 없음).
  */
-export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt } = {}) {
+export async function generateFusionFortuneRequest({ input = {}, userId = "", requestId, dateKey, store, resolvePaidAccess, now = new Date(), contextBuilder = buildFusionFortuneContext, generator = generateFusionFortuneWithConfiguredLLM, env = {}, onStage, abortSignal, onDelivery, onCheckpoint, stage = 1, priorResult = null, priorGenerationSource = "", priorSnapshot = null, onSnapshot, onAttempt, onReserved, onReleased } = {}) {
   if (!text(userId)) return { ok: false, status: 401, error: FUSION_FORTUNE_ERROR_CODES.AUTH_REQUIRED, message: "로그인이 필요합니다." };
   const stageNumber = Number(stage) || 1;
   if (stageNumber !== 1 && stageNumber !== 2) return { ok: false, status: 400, error: FUSION_FORTUNE_ERROR_CODES.INVALID_INPUT, message: "입력 정보를 확인해 주세요." };
@@ -1321,6 +1325,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
   // 이중 과금 없이 통과한다 — 생성이 실패한 결제 사용자가 결과를 받을 수 있는 근거다.
   const paid = await resolveFusionFortunePaidAccess(resolvePaidAccess, { userId: text(userId, 120), requestId: safeId });
   if (!paid.ok) {
+    if (paid.revoked) return { ok: false, status: 403, reason: "RESULT_ACCESS_REVOKED", error: "RESULT_ACCESS_REVOKED", resultId: safeId, retryable: false, message: "취소·환불된 결제의 결과는 제공할 수 없어요." };
     return paid.degraded
       ? { ok: false, status: 503, retryable: true, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED, message: "결제 내역을 확인하지 못했어요. 잠시 후 다시 시도해 주세요. 이미 결제하셨다면 차감되지 않습니다." }
       : { ok: false, status: 402, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, message: "초융합 운세는 1회 30,000원입니다.", pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } };
@@ -1336,23 +1341,25 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     return { ok: false, status: reservation.status, error: reservation.errorCode, message: "이미 처리 중인 요청입니다." };
   }
   let committed = false;
+  let deliveryLease = null;
   // 실패 진단용. 어느 관문에서 얼마 만에 죽었는지가 프로덕션에서 유일한 단서다.
   const startedAt = Date.now();
   let generationSourceForLog = "";
   try {
     throwIfFusionFortuneAborted(abortSignal);
+    if (typeof onReserved === "function") deliveryLease = await onReserved();
     const calculationDate = priorSnapshot?.calculatedAt ? new Date(priorSnapshot.calculatedAt) : priorResult?.expertMeta?.calculatedAt ? new Date(priorResult.expertMeta.calculatedAt) : now;
     const contextResult = priorSnapshot?.context ? { ok: true, context: priorSnapshot.context } : await contextBuilder(normalized, { now: calculationDate, env, onStage, ...(normalized.contextVersion === 2 ? { tarotSeed: `${userId}:${safeId}` } : {}) });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
-    if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString() });
+    if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString(), lease: deliveryLease });
     throwIfFusionFortuneAborted(abortSignal);
     // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개
     //    계산기)가 LLM 그룹보다 먼저 같은 120초 예산을 소모하므로, 생성기가 시계를 새로 시작하면
     //    컨텍스트 시간이 예산에 안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
     const expertMeta = { version: FUSION_EXPERT_VERSION, calculationVersion: FUSION_EXPERT_VERSION, promptVersion: FUSION_EXPERT_VERSION, identity, locale: normalized.locale, calculatedAt: calculationDate.toISOString(), pendingStage: stageNumber, complete: false };
     const withMetadata = (value) => normalized.contextVersion === 2 ? { ...value, expertMeta: { ...expertMeta, systems: Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map((system) => [system, { calculation: "complete", analysis: validFusionSignals(value?.[`${system}Section`], system, contextResult.context) ? "complete" : "pending" }])) }, tarotCards: contextResult.context.tarotSpread?.cards || [] } : value;
-    const generated = await generator({ input: normalized, context: contextResult.context, onAttempt, env, requestId: safeId, userId, onStage, now: calculationDate, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource,
-      onCheckpoint: typeof onCheckpoint === "function" ? (value) => onCheckpoint({ requestId: safeId, result: withMetadata(value), generationSource: "gemini_partial", qualityTier: "partial", stage: stageNumber, nextStage: stageNumber, status: "partial" }) : undefined,
+    const generated = await generator({ input: normalized, context: contextResult.context, onAttempt: typeof onAttempt === "function" ? groupId => onAttempt(groupId, deliveryLease) : undefined, env, requestId: safeId, userId, onStage, now: calculationDate, abortSignal, deadlineStartAt: startedAt, stage: stageNumber, priorResult, priorGenerationSource,
+      onCheckpoint: typeof onCheckpoint === "function" ? (value) => onCheckpoint({ requestId: safeId, lease: deliveryLease, result: withMetadata(value), generationSource: "gemini_partial", qualityTier: "partial", stage: stageNumber, nextStage: stageNumber, status: "partial" }) : undefined,
     });
     if (generated?.result && normalized.contextVersion === 2) {
       generated.result = withMetadata(generated.result);
@@ -1386,7 +1393,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     //    것을 안 만들게 하는 장치이지, 이미 만든 것을 버리는 장치가 아니다.
     //    (2026-09-03 사고: 배달 직전·직후 두 곳의 취소 검사가 완성품을 버리고 있었다.)
     if (typeof onDelivery === "function") {
-      await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice, stage: stageNumber, nextStage: stageNumber === 1 ? 2 : null, status: stageStatus });
+      await onDelivery({ requestId: safeId, lease: deliveryLease, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice, stage: stageNumber, nextStage: stageNumber === 1 ? 2 : null, status: stageStatus });
     }
     const commitResult = await store.commit(reservation, now);
     if (!commitResult) {
@@ -1426,14 +1433,16 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     //    재시도 버튼이 사라지고, 3만원을 낸 요청을 회수할 방법이 화면에서 없어진다.
     return {
       ok: false,
-      status: code === "RESULT_STORAGE_UNAVAILABLE" ? 503 : cancelled ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500,
+      status: code === "RESULT_ACCESS_REVOKED" ? 403 : code === "RESULT_STORAGE_UNAVAILABLE" ? 503 : code === FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS ? 409 : cancelled ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500,
       error: code,
       ...(code === "RESULT_STORAGE_UNAVAILABLE" ? { reason: code, resultId: error.resultId || safeId } : {}),
       message: cancelled ? "분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.",
       retryRequestId: safeId,
       stage: stageNumber,
-      retryable: true,
+      retryable: code !== "RESULT_ACCESS_REVOKED",
       issues: Array.isArray(error?.issues) ? error.issues.slice(0, 8) : undefined,
     };
+  } finally {
+    if (deliveryLease && typeof onReleased === "function") await onReleased(deliveryLease).catch(() => {});
   }
 }
