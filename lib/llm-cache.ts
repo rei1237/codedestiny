@@ -104,10 +104,16 @@ const CACHE_GET_TIMEOUT_MS = 1500;
 const CACHE_SET_TIMEOUT_MS = 2000;
 
 function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
     promise,
-    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
-  ]);
+    new Promise<T>((resolve) => { timer = setTimeout(() => resolve(fallback), ms); }),
+  ]).finally(() => clearTimeout(timer));
+}
+
+export function isReusableLlmResponse(value: LLMResponse | null | undefined, minChars = 0): boolean {
+  return Boolean(value?.text?.trim() && !value.truncated
+    && value.text.replace(/\s+/g, "").length >= Math.max(0, minChars));
 }
 
 // 결정적 호출은 캐시 + dedup, 비결정적 호출은 dedup 만 적용한다.
@@ -121,6 +127,7 @@ export async function withLLMCache(
   const store = config?.store;
   const deterministic = config?.deterministic === true;
   const ttlSeconds = Number(config?.ttlSeconds) > 0 ? Number(config.ttlSeconds) : DEFAULT_TTL_SECONDS;
+  const minChars = Number(config?.minChars) > 0 ? Number(config.minChars) : 0;
 
   // 캐시 키 생성이 실패하면 캐시/dedup 을 건너뛰고 바로 호출한다(생성이 막히면 안 됨).
   let cacheKey: string;
@@ -135,7 +142,7 @@ export async function withLLMCache(
   if (deterministic && store && config?.skipRead !== true) {
     try {
       const cached = await withTimeout(store.get(cacheKey), CACHE_GET_TIMEOUT_MS, null);
-      if (cached && cached.text) {
+      if (cached && isReusableLlmResponse(cached, minChars)) {
         if (request.logContext) request.logContext.cacheHit = true;
         console.info("[llm cache_hit]", {
           taskType: request.taskType || "general",
@@ -156,10 +163,7 @@ export async function withLLMCache(
   // 3. 캐시 저장 (결정적 호출만, best-effort). 응답을 지연시키지 않도록 상한을 둔다.
   // 잘린 응답(truncated)은 저장하지 않는다 — TTL 동안 잘린 텍스트가 고정되는 것을 방지.
   // 같은 이유로 minChars 미달 응답도 저장하지 않는다(공백 제외 기준 — rejectShortFallback 과 동일).
-  const minChars = Number(config?.minChars) > 0 ? Number(config.minChars) : 0;
-  const longEnough = minChars <= 0
-    || String(result?.text || "").replace(/\s+/g, "").length >= minChars;
-  if (deterministic && store && result?.text && !result.truncated && longEnough) {
+  if (deterministic && store && isReusableLlmResponse(result, minChars)) {
     try {
       await withTimeout(
         store.set(cacheKey, result, ttlSeconds).catch((error) => {
