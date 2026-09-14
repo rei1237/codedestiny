@@ -95,7 +95,7 @@ async function findMonthlyLedger(env, userId, featureKey, requestId) {
  * 회당 결제 증빙 검증.
  *
  * @param {object} env
- * @param {{ userId:string, featureKey:string, coinPrice:number, requestId:string }} input
+ * @param {{ userId:string, featureKey:string, coinPrice:number, requestId:string, requireExisting?:boolean }} input
  * @returns {Promise<{proven:(boolean|null), source:string, reason:string, transactionId?:string, passRefund?:{cycleKey:string, cost:number}}>}
  *   passRefund : source==="pass" 로 monthlySpendCoin 을 실제로 차감했을 때만 있다 — 뒤 단계(생성)가
  *     실패하면 호출부가 이 정보로 그 차감을 되돌려야 한다(worker/lib/service-execution-task.js
@@ -104,7 +104,7 @@ async function findMonthlyLedger(env, userId, featureKey, requestId) {
  *   proven === false : 증빙 못 찾음
  *   proven === null  : 🔴 판단 보류(DB 일시 장애). 절대 402 로 바꾸지 말 것 — 503 이다.
  */
-export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice = 0, requestId = "" } = {}) {
+export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice = 0, requestId = "", requireExisting = false } = {}) {
   const uid = clean(userId, 64);
   const key = clean(featureKey, 120);
   const rid = clean(requestId);
@@ -154,6 +154,7 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
     if (String(user.role || "").toLowerCase() === "admin") {
       return { proven: true, source: "admin", reason: "" };
     }
+    if (requireExisting) return { proven: false, source: '', reason: 'NO_EXISTING_CONSUMPTION' };
     // 🔴 family 는 canUseByPass 가 가격을 보지 않고 무조건 통과시킨다(profile-limits.js 의
     // "passTier === FAMILY 면 price >= 0 이기만 하면 true"). 그래서 기간당 공정이용 상한
     // (family 10회 · vvip 3회)과 월 누적 한도가 coin-gate 의 소비 단계에만 존재했고, 게이트를

@@ -19,7 +19,8 @@ import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine"
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { usePalmDestinyCopy, type PalmDestinyCopy } from "./_lib/copy";
-import { usePaidResume, packPaidResumeArg, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
+import { usePaidResume, unpackPaidResumeArg } from "@/app/hooks/usePaidResume";
+import { readPaidPalmResult } from './paid-result-recovery';
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
 import { detectLocale } from "@/lib/i18n/dictionary";
 
@@ -242,14 +243,18 @@ const PALM_BILLING_PRICING = resolveServerFeaturePricing({
 });
 
 // 결제 복귀는 새 문서라 분석 응답이 메모리에서 사라진다 — 결제창을 열기 직전에 이 탭에만 남겨 두고
-// 재개할 때 되읽는다(한 번 읽으면 지운다). 🔴 사진은 blob URL 이라 복원할 수 없어 재개 화면에는
+// 과거 결제의 재개에 사용한다. 새 판독은 서버 스냅샷으로 복원한다. 사진은 blob URL 이라 재개 화면에는
 // 판독 본문만 뜨고 손금 오버레이 배경은 빈다 — "결제했는데 아무것도 없음"보다 낫다는 판단이다.
 const PALM_RESUME_STASH_KEY = "cd.palmReading.resumePayload.v1";
+function palmAccountId(): string {
+  try { const user = JSON.parse(window.localStorage.getItem('fortune_auth_user') || '{}'); return String(user.id || user._id || user.userId || ''); }
+  catch { return ''; }
+}
 
 function stashPalmResumePayload(requestId: string, payloadRoot: Record<string, unknown>) {
   if (typeof window === "undefined") return;
   try {
-    window.sessionStorage.setItem(PALM_RESUME_STASH_KEY, JSON.stringify({ requestId, payloadRoot }));
+    window.sessionStorage.setItem(PALM_RESUME_STASH_KEY, JSON.stringify({ requestId, owner: palmAccountId(), payloadRoot }));
   } catch (e) {
     // 용량 초과면 재개만 포기한다(인페이지 결제 경로는 그대로 동작한다).
   }
@@ -260,11 +265,11 @@ function readPalmResumePayload(requestId: string): Record<string, unknown> | nul
   try {
     const raw = window.sessionStorage.getItem(PALM_RESUME_STASH_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { requestId?: string; payloadRoot?: Record<string, unknown> };
+    const parsed = JSON.parse(raw) as { requestId?: string; owner?: string; payloadRoot?: Record<string, unknown> };
+    if (parsed.owner !== undefined && parsed.owner !== palmAccountId()) return null;
     const payloadRoot = parsed?.payloadRoot;
     if (!payloadRoot || typeof payloadRoot !== "object") return null;
     if (requestId && parsed.requestId !== requestId) return null;
-    window.sessionStorage.removeItem(PALM_RESUME_STASH_KEY);
     return payloadRoot;
   } catch (e) {
     return null;
@@ -2144,8 +2149,46 @@ export default function PalmDestinyMain() {
   // 모바일 PortOne 리다이렉트로 handleStartAnalysis 의 await 가 죽은 뒤, 복귀한 새 문서에서 판독을 이어받는다.
   // 🔴 게이트를 다시 타지 않는다 — 분석은 결제 전에 이미 끝났고, 여기서 /api/palm/analyze 를 다시 부르면
   //    사진이 없어 실패하거나(복귀 문서엔 File 이 없다) 같은 판독에 두 번 값을 치른다.
-  const buildResume = usePaidResume(PALM_BILLING_CATEGORY_KEY, (args) => {
+  const recoverPalm = async (requestId: string, signal?: AbortSignal) => {
+    const token = getClientAuthToken();
+    const owner = palmAccountId();
+    const payloadRoot = await readPaidPalmResult(requestId, token, signal);
+    if (signal?.aborted || owner !== palmAccountId() || token !== getClientAuthToken() || !payloadRoot) return false;
+    const prepared = preparePalmResult(payloadRoot);
+    if (!shouldShowPalmResult(prepared.canonical)) return false;
+    applyPalmResult(prepared);
+    return true;
+  };
+  const recoveryRef = useRef(recoverPalm);
+  recoveryRef.current = recoverPalm;
+  useEffect(() => {
+    let busy = false;
+    let owner = palmAccountId();
+    const controller = new AbortController();
+    const recover = async () => {
+      if (busy || submitLockedRef.current || document.visibilityState === 'hidden') return;
+      busy = true;
+      try { await recoveryRef.current('', controller.signal); } catch { /* online/visibility retries the server snapshot */ }
+      finally { busy = false; }
+    };
+    void recover();
+    const changeAccount = () => {
+      const nextOwner = palmAccountId();
+      if (owner === nextOwner) return;
+      owner = nextOwner;
+      setAnalysisResult(null);
+      abortControllerRef.current?.abort();
+      void recover();
+    };
+    window.addEventListener('cd:auth-changed', changeAccount);
+    window.addEventListener('online', recover);
+    document.addEventListener('visibilitychange', recover);
+    return () => { controller.abort(); window.removeEventListener('cd:auth-changed', changeAccount); window.removeEventListener('online', recover); document.removeEventListener('visibilitychange', recover); };
+  }, []);
+  const buildResume = usePaidResume(PALM_BILLING_CATEGORY_KEY, async (args) => {
     const requestId = typeof args.requestId === "string" ? args.requestId : "";
+    if (args.serverSaved === true) return recoverPalm(requestId);
+    // Legacy receipts predate server snapshots; preserve their existing descriptor.
     const payloadRoot = unpackPaidResumeArg<Record<string, unknown>>(args.payloadRoot) || readPalmResumePayload(requestId);
     if (!payloadRoot) return false;
     const prepared = preparePalmResult(payloadRoot);
@@ -2156,6 +2199,13 @@ export default function PalmDestinyMain() {
 
   const handleStartAnalysis = async () => {
     if (!canStartAnalysis || submitLockedRef.current) return;
+    // A previous paid response may have been lost. Try its server receipt before
+    // creating a new request or opening another payment flow.
+    const pending = readPalmResumePayload('');
+    if (pending?.analysisSaved && typeof pending.requestId === 'string') {
+      try { if (await recoverPalm(pending.requestId)) return; }
+      catch { setSubmitMessage(copy.networkErrorMessage); return; }
+    }
 
     const leftSig =
       fileSignatureBySide.left ||
@@ -2256,6 +2306,7 @@ export default function PalmDestinyMain() {
       // 같은 출력 언어를 서버 prompt/cache 경계까지 전달하도록 여기서 한 번 정규화한다.
       const aiLocale = toAiLocale(detectLocale());
       const requestBody = JSON.stringify({
+        requestId: billingRequestId,
         leftPalmImage,
         rightPalmImage,
         leftHandLandmarks: leftVision?.handLandmarks ?? null,
@@ -2345,6 +2396,8 @@ export default function PalmDestinyMain() {
 
       const prepared = preparePalmResult(payloadRoot);
 
+      if (payloadRoot.analysisSaved !== true) throw new Error('RESULT_STORAGE_UNAVAILABLE');
+
       if (!shouldShowPalmResult(prepared.canonical)) {
         setAnalysisResult(null);
         updatePaidFeatureGate({
@@ -2362,7 +2415,7 @@ export default function PalmDestinyMain() {
       // 모바일 PortOne 리다이렉트는 이 문서를 통째로 날린다 — 결제창을 열기 직전에 판독 응답을 이 탭에 남긴다.
       stashPalmResumePayload(billingRequestId, payloadRoot);
       const coinGateResult = await runBillingCoinGate({
-        resume: buildResume({ requestId: billingRequestId, payloadRoot: packPaidResumeArg(payloadRoot) }),
+        resume: buildResume({ requestId: billingRequestId, serverSaved: true }),
         categoryKey: PALM_BILLING_CATEGORY_KEY,
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
@@ -2395,7 +2448,7 @@ export default function PalmDestinyMain() {
         // ignore client-side storage failures
       }
 
-      applyPalmResult(prepared);
+      if (!await recoverPalm(billingRequestId, controller.signal)) throw new Error('PAID_RESULT_NOT_CONFIRMED');
     } catch (error) {
       if (requestIdRef.current !== requestId) {
         return;

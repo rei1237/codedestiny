@@ -479,7 +479,7 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     logContext: { ...logContext, serviceId: "palm-reading", stage: `vision:${declaredSide}` },
   });
 
-  if (!ai?.ok) {
+  if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) {
     console.warn("[palm-vision] gemini call failed", {
       side: declaredSide,
       error: ai?.error,
@@ -642,11 +642,11 @@ ${context}`;
     logContext: { ...logContext, serviceId: "palm-reading", stage: "deep-consult" },
   });
 
-  if (!ai?.ok) {
+  if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) {
     console.warn("[palm-vision] deep consult failed", { error: ai?.error, status: ai?.status });
     return null;
   }
 
   const text = String(ai.text || "").trim();
-  return text ? { text, provider: ai.provider, model: ai.model } : null;
+  return text.replace(/\s/g, '').length >= PALM_CONSULT_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, provider: ai.provider, model: ai.model } : null;
 }

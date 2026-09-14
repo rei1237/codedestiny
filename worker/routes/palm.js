@@ -1,5 +1,6 @@
 import { createHttpError, handleRouteError, json, methodNotAllowed } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
+import { savePalmAnalysis, readPaidPalmAnalysis } from '../lib/palm-result-delivery.js';
 import palmMapEngine from "../../lib/palm/palm-map-engine.js";
 import bothHandsComparisonLib from "../../lib/palm/both-hands-comparison.js";
 import {
@@ -211,6 +212,12 @@ function buildCanonical(params) {
 }
 
 export async function handlePalmRoutes(request, env) {
+  if (request.method === 'GET' && new URL(request.url).pathname.endsWith('/result')) {
+    try {
+      const auth = await requirePalmAuth(request, env);
+      return json(await readPaidPalmAnalysis(env, auth.userId, new URL(request.url).searchParams.get('requestId') || ''));
+    } catch (error) { return handleRouteError(error, { request, env }); }
+  }
   if (request.method.toUpperCase() !== "POST") {
     return methodNotAllowed();
   }
@@ -223,7 +230,7 @@ export async function handlePalmRoutes(request, env) {
   try {
     // 🔴 인증 필수. 이 라우트는 Gemini Vision(사진 최대 2장)을 태우는 유료 경로라,
     //    무인증이면 무제한 무과금 비용 경로가 된다.
-    await requirePalmAuth(request, env);
+    const auth = await requirePalmAuth(request, env);
 
     const body = await readJsonWithLimit(request, MAX_REQUEST_BODY_BYTES);
 
@@ -482,7 +489,7 @@ export async function handlePalmRoutes(request, env) {
     });
 
     // 심층 해석. 구 palm-reading-ai-consult(별도 5,000원 과금)가 하던 일을 기본 분석에 통합했다.
-    // 🔴 실패해도 throw 하지 않는다 — 결제된 요청은 결과를 반드시 전달한다(degrade-not-throw).
+    // 해석 실패는 결제 전 503으로 알린다. 빈 해설로 결제 단계에 진입시키지 않는다.
     //    해석이 비면 클라이언트가 기존 로컬 템플릿으로 폴백하므로 화면이 비지 않는다.
     const deepConsult = await buildPalmDeepConsult(
       env,
@@ -514,7 +521,10 @@ export async function handlePalmRoutes(request, env) {
       || analyses.find((a) => a.purposeAnalysis)?.purposeAnalysis
       || null;
 
-    return json({
+    if ((hasImage(leftInput) || hasImage(rightInput)) && (!usedVision || !consultText)) {
+      return json({ ok: false, code: 'PALM_INTERPRETATION_INCOMPLETE', retryable: true, error: '판독을 완료하지 못했어요. 사진과 연결 상태를 확인한 뒤 다시 시도해 주세요.' }, { status: 503 });
+    }
+    const result = {
       ...canonical,
       interpretation: consultText
         ? {
@@ -540,7 +550,8 @@ export async function handlePalmRoutes(request, env) {
       mode,
       visionUsed: usedVision,
       qualityScore,
-    });
+    };
+    return json(body.requestId ? await savePalmAnalysis(env, auth.userId, body.requestId, result) : result);
   } catch (error) {
     return handleRouteError(error, { request, env, trace });
   }
