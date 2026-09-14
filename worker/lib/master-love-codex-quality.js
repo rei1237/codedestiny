@@ -1,4 +1,5 @@
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
+import { assertCodexEvidence } from "./master-love-codex-evidence.js";
 
 /** Shared editorial contract for both books; calculations and pricing remain unchanged. */
 export function buildCodexEditorialContract(chapter, compatibility) {
@@ -49,11 +50,12 @@ export function buildCodexStagingChapter(chapter, metricDefs) {
 }
 
 /** Validate newly generated chapters only; never invalidate an older purchased book. */
-export function assertCodexChapterQuality(parsed, chapter, metricDefs = []) {
+export function assertCodexChapterQuality(parsed, chapter, metricDefs = [], evidenceContract = null) {
   const source = chapter.structured === false ? { body: parsed } : parsed;
   const body = typeof source?.body === "string" ? source.body.trim() : "";
   if (body.length < (chapter.minChars || 2400)) throw new Error("LLM_OUTPUT_TOO_SHORT");
   if (chapter.structured === false) return;
+  if (evidenceContract) assertCodexEvidence(source, evidenceContract);
   const hasText = value => typeof value === "string" && value.trim().length > 0;
   if (!["narration", "insight", "keySentence", "caution", "bridge"].every(key => hasText(source[key]))
       || !Array.isArray(source.evidence) || !source.evidence.some(item => hasText(item?.label) && hasText(item?.system) && hasText(item?.explanation))
@@ -111,7 +113,7 @@ export function parseChapterJson(text) {
 }
 
 /** Two bounded provider attempts cover malformed JSON and incomplete content too. */
-export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, deadlineAt = Infinity, minBudgetMs = 1000, options = {} }) {
+export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, options = {} }) {
   let failure;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const remaining = deadlineAt - Date.now();
@@ -125,7 +127,7 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
       if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
       if (!ai?.text) throw new Error("LLM_OUTPUT_EMPTY");
       const parsed = parseChapterJson(ai.text);
-      assertCodexChapterQuality(parsed, chapter, metricDefs);
+      assertCodexChapterQuality(parsed, chapter, metricDefs, evidenceContract);
       return { ai, parsed };
     } catch (error) { failure = error; }
   }

@@ -20,7 +20,7 @@
 
 import { canonicalStringify, hashSignature } from "./island/island-weights.js";
 
-export const MASTER_LOVE_CODEX_COMPAT_VERSION = "mlc-compat-v1";
+export const MASTER_LOVE_CODEX_COMPAT_VERSION = "mlc-compat-v2";
 
 // ─── 간지 상수 (사주 엔진과 동일 표기, 이 모듈 전용 사본) ────────────────────
 
@@ -101,12 +101,16 @@ function pillarBranch(pillar) {
 }
 
 /**
- * 엔진의 usefulGod / unfavorableGod 은 "화 기운을 보완 축으로 봅니다." 형태의 문장이다.
- * 문장 맨 앞의 오행 한 글자만 뽑는다(형식이 바뀌면 빈 문자열 → 축이 조용히 빠진다).
+ * 구조화된 보완 지표를 읽는다. 구 저장본은 오행 수량으로 복원하며 설명문을 계산하지 않는다.
  */
-function leadingElement(sentence) {
-  const first = clean(sentence).charAt(0);
-  return ELEMENTS.includes(first) ? first : "";
+function balancingElement(saju, key) {
+  const value = asObject(saju.elementBalance)[key];
+  if (ELEMENTS.includes(value)) return value;
+  // Older stored charts have no structured field. Recompute from numerical facts,
+  // never from prose whose wording may change independently of the calculation.
+  if (!Object.values(asObject(saju.fiveElements)).some(value => num(value) > 0)) return "";
+  const extremes = elementExtremes(saju.fiveElements);
+  return key === "usefulElement" ? extremes.deficient : extremes.dominant;
 }
 
 /** 오행 분포에서 최다·최소 오행 (동점은 목화토금수 고정 순서로 끊어 결정론 보장) */
@@ -242,10 +246,10 @@ function buildTenGodInteraction(selfSaju, partnerSaju) {
 function buildYongshinSupport(selfSaju, partnerSaju) {
   const self = elementExtremes(selfSaju.fiveElements);
   const partner = elementExtremes(partnerSaju.fiveElements);
-  const selfUseful = leadingElement(selfSaju.usefulGod);
-  const selfUnfavorable = leadingElement(selfSaju.unfavorableGod);
-  const partnerUseful = leadingElement(partnerSaju.usefulGod);
-  const partnerUnfavorable = leadingElement(partnerSaju.unfavorableGod);
+  const selfUseful = balancingElement(selfSaju, "usefulElement");
+  const selfUnfavorable = balancingElement(selfSaju, "unfavorableElement");
+  const partnerUseful = balancingElement(partnerSaju, "usefulElement");
+  const partnerUnfavorable = balancingElement(partnerSaju, "unfavorableElement");
 
   const side = (useful, unfavorable, other) => ({
     usefulElement: useful,
@@ -584,6 +588,7 @@ function band(score) {
 function buildCross(sajuAxis, ziweiAxis) {
   const convergence = [];
   const divergence = [];
+  const pending = [];
 
   for (const { theme, sajuKey, ziweiKey, invertZiwei } of CROSS_THEMES) {
     const sajuScore = num(sajuAxis[sajuKey]);
@@ -603,10 +608,10 @@ function buildCross(sajuAxis, ziweiAxis) {
     };
     if (sajuBand === ziweiBand) convergence.push(entry);
     else if ((sajuBand === "high" && ziweiBand === "low") || (sajuBand === "low" && ziweiBand === "high")) divergence.push(entry);
-    else convergence.push({ ...entry, weak: true });
+    else pending.push({ ...entry, reason: "directions_not_conclusive" });
   }
 
-  return { convergence, divergence };
+  return { convergence, divergence, pending };
 }
 
 // ─── 진입점 ──────────────────────────────────────────────────────────────────
@@ -700,6 +705,12 @@ export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partner
   if (asObject(pSaju.calculationMeta).timeUnknown) uncertainty.push("partner_birth_time_unknown");
   if (asObject(sZiwei.uncertainty).birthTimeUnknown) uncertainty.push("self_ziwei_noon_basis");
   if (asObject(pZiwei.uncertainty).birthTimeUnknown) uncertainty.push("partner_ziwei_noon_basis");
+  if (uncertainty.length) {
+    cross.pending = [...cross.convergence, ...cross.divergence, ...cross.pending]
+      .map(entry => ({ ...entry, reason: "birth_time_unknown" }));
+    cross.convergence = [];
+    cross.divergence = [];
+  }
 
   return {
     version: MASTER_LOVE_CODEX_COMPAT_VERSION,

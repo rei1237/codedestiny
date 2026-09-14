@@ -21,6 +21,7 @@ export interface CodexChapterData {
   content?: {
     narration?: string;
     evidence?: Array<{ label: string; system?: string; explanation?: string }>;
+    crossChecks?: Array<{ id: string; status: "agreement" | "conflict" | "pending"; explanation: string }>;
     insight?: string;
     keySentence?: string;
     caution?: string;
@@ -102,6 +103,9 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
           {content?.evidence?.length ? (
             <section className={styles.evidence} aria-label={copy.chapterEvidenceAriaLabel}>
               <h3>{copy.chapterEvidenceAriaLabel}</h3>
+              {content.crossChecks?.map(check => (
+                <p key={check.id} data-cross-status={check.status}>{check.explanation}</p>
+              ))}
               <div className={styles.evidenceChips}>
                 {content.evidence.map((item) => (
                   <details key={`${item.system}-${item.label}`} className={styles.evidenceChip}>

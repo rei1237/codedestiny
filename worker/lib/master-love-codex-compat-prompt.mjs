@@ -348,7 +348,7 @@ export function formatCompatibilityForPrompt(compatibility) {
     if (!clean(s.usefulElement)) return;
     lines.push(`  · ${label}: 보완 축 ${clean(s.usefulElement)} → 상대가 ${s.supplied ? `공급함(${s.suppliedCount})` : "공급하지 않음"}${s.amplified ? ` · 과다 축 ${clean(s.unfavorableElement)}를 더 키움` : ""}`);
   };
-  lines.push(`- 용신 보완 (본인 ${clean(yong.selfStrength) || "-"} / 상대 ${clean(yong.partnerStrength) || "-"})`);
+  lines.push(`- 오행 수량 보완 지표 — 확정 용신 판정 아님 (본인 ${clean(yong.selfStrength) || "-"} / 상대 ${clean(yong.partnerStrength) || "-"})`);
   yongSide("본인 기준", yong.self);
   yongSide("상대 기준", yong.partner);
   if (yong.mutual) lines.push("  · 서로의 보완 축을 함께 공급하는 상호 보완 관계");
@@ -430,6 +430,9 @@ export function formatCompatibilityForPrompt(compatibility) {
       partner_ziwei_noon_basis: "상대 명반은 정오 기준",
     };
     lines.push(`- 유의: ${asArray(c.uncertainty).map((key) => NOTES[key] || clean(key)).join(" / ")}`);
+  }
+  for (const item of asArray(cross.pending)) {
+    lines.push(`- 교차 판단 보류: ${clean(item.theme)} — ${item.reason === "birth_time_unknown" ? "생시 미상으로 명반이 가정에 의존함" : "두 체계의 방향이 뚜렷하게 일치하거나 상충하지 않음"}`);
   }
 
   return lines.filter(Boolean).join("\n");

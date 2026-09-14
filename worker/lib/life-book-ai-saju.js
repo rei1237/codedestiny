@@ -177,13 +177,15 @@ function clean(value, maxLength = 0) {
   return maxLength > 0 ? text.slice(0, maxLength) : text;
 }
 
-function parseDate(value) {
+function parseDate(value, lunar = false) {
   const raw = clean(value, 10);
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
+  if (lunar) return year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 30
+    ? { year, month, day } : null;
   const date = new Date(Date.UTC(year, month - 1, day));
   if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
   if (year < 1900 || year > 2100) return null;
@@ -705,11 +707,11 @@ const pad2 = (value) => String(value).padStart(2, "0");
 const formatSolarDate = (at) => `${at.year}-${pad2(at.month)}-${pad2(at.day)}`;
 
 /** 입력을 양력 KST 벽시계 한 덩어리로 정규화한다. 네 기둥도 대운도 전부 이 시각에서 나온다. */
-function resolveSolarBirth(inputDate, birthTime, calendarType) {
+function resolveSolarBirth(inputDate, birthTime, calendarType, isLeapMonth = false) {
   if (calendarType === "lunar") {
     // 🔴 음력 입력의 양력 환산도 코어가 한다. lunar-javascript 는 중국 음력이라 표본 4,860건 중
     // 180건(3.70%)에서 하루 어긋나고(실측 2026-08-27), 그 하루가 네 기둥을 통째로 옮긴다.
-    const converted = lunarToSolar(inputDate.year, inputDate.month, inputDate.day, false);
+    const converted = lunarToSolar(inputDate.year, inputDate.month, inputDate.day, isLeapMonth);
     if (!converted) {
       const error = new Error("Invalid lunar birth date");
       error.code = "INVALID_BIRTH_DATE";
@@ -721,7 +723,7 @@ function resolveSolarBirth(inputDate, birthTime, calendarType) {
 }
 
 export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
-  const birthDate = parseDate(birthInfo.birthDate);
+  const birthDate = parseDate(birthInfo.birthDate, clean(birthInfo.calendarType).toLowerCase() === "lunar");
   if (!birthDate) {
     const error = new Error("Invalid birth date");
     error.code = "INVALID_BIRTH_DATE";
@@ -729,14 +731,14 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   }
   const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
   const timeUnknown = birthInfo.birthTimeUnknown === true || !clean(birthInfo.birthTime);
-  const birthTime = parseTime(birthInfo.birthTime, 12);
+  const birthTime = parseTime(timeUnknown ? "" : birthInfo.birthTime, 12);
   if (!timeUnknown && !birthTime.valid) {
     const error = new Error("Invalid birth time");
     error.code = "INVALID_BIRTH_TIME";
     throw error;
   }
 
-  const solarBirth = resolveSolarBirth(birthDate, birthTime, calendarType);
+  const solarBirth = resolveSolarBirth(birthDate, birthTime, calendarType, birthInfo.isLeapMonth === true);
   const core = corePillars(solarBirth);
   const yearPillar = core.year;
   const monthPillar = core.month;
@@ -753,7 +755,8 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   const tenGods = buildTenGodDistribution(dayMaster, pillars);
   const usefulElement = pickBalancingElement(fiveElements);
   const dominantElement = pickDominantElement(fiveElements);
-  const currentYear = options.now instanceof Date ? options.now.getUTCFullYear() : new Date().getFullYear();
+  const currentYear = Number.isInteger(options.year) ? options.year
+    : options.now instanceof Date ? options.now.getUTCFullYear() : new Date().getFullYear();
   const pillarDetails = {
     // 🔴 네 기둥의 파생 필드가 전부 같은 표에서 나온다(lib/saju/myeongri-tables.js).
     // 예전에는 년·월만 여기서 뽑고 일·시는 eightChar 에서 뽑아, 節 경계 60분 창에서 한 응답 안에
@@ -812,6 +815,12 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
     tenGods,
     tenGodsByPillar,
     allowedTenGods: ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"],
+    elementBalance: {
+      usefulElement,
+      unfavorableElement: dominantElement,
+      method: "element-count-balance",
+      limitation: "오행 수량의 보완 지표이며 격국·조후를 종합한 용신 확정 판정이 아닙니다.",
+    },
     strength,
     usefulGod,
     unfavorableGod,

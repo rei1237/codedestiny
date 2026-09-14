@@ -107,12 +107,14 @@ function clean(value, max = 0) {
   return max > 0 ? text.slice(0, max) : text;
 }
 
-function parseDate(dateText) {
+function parseDate(dateText, lunar = false) {
   const match = clean(dateText).match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
+  if (lunar) return year >= 1900 && year <= 2100 && month >= 1 && month <= 12 && day >= 1 && day <= 30
+    ? { year, month, day } : null;
   const date = new Date(Date.UTC(year, month - 1, day));
   if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
   if (year < 1900 || year > 2100) return null;
@@ -133,8 +135,12 @@ function parseTime(timeText, unknown) {
  */
 function getLunarDate(parts, calendarType, isLeapMonth) {
   if (calendarType === "lunar") {
-    // 그 해에 그 윤달이 없으면 평달로 읽는다.
-    const leap = Boolean(isLeapMonth) && Boolean(lunarToSolar(parts.year, Math.abs(parts.month), parts.day, true));
+    const leap = Boolean(isLeapMonth);
+    if (!lunarToSolar(parts.year, parts.month, parts.day, leap)) {
+      const error = new Error("INVALID_LUNAR_BIRTH_DATE");
+      error.code = "INVALID_INPUT";
+      throw error;
+    }
     return {
       lunarYear: parts.year,
       lunarMonth: Math.abs(parts.month),
@@ -466,7 +472,7 @@ function buildSummary(outputPalaces, lifePalace, bodyPalace, fourTransformations
 
 export function calculateZiweiAiChart(input = {}, options = {}) {
   const birthInfo = input.birthInfo && typeof input.birthInfo === "object" ? input.birthInfo : input;
-  const dateParts = parseDate(birthInfo.birthDate);
+  const dateParts = parseDate(birthInfo.birthDate, clean(birthInfo.calendarType).toLowerCase() === "lunar");
   const timeParts = parseTime(birthInfo.birthTime, birthInfo.birthTimeUnknown === true);
   if (!dateParts || !timeParts) {
     const error = new Error("INVALID_BIRTH_INFO");

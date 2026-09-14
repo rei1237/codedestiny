@@ -28,6 +28,7 @@ import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, Use
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
 import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
+import { buildCodexEvidence, formatCodexEvidence, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -245,11 +246,11 @@ function buildCharts(normalized) {
   const { birthInfo, partnerInfo } = asObject(normalized);
   try {
     const year = new Date().getFullYear();
-    const saju = calculateLifeBookAiSaju(birthInfo);
+    const saju = calculateLifeBookAiSaju(birthInfo, { year });
     const ziweiChart = calculateZiweiAiChart({ birthInfo }, { year });
     if (!partnerInfo) return { saju, ziweiChart, partnerSaju: null, partnerZiweiChart: null, compatibility: null };
 
-    const partnerSaju = calculateLifeBookAiSaju(partnerInfo);
+    const partnerSaju = calculateLifeBookAiSaju(partnerInfo, { year });
     const partnerZiweiChart = calculateZiweiAiChart({ birthInfo: partnerInfo }, { year });
     const compatibility = buildMasterLoveCodexCompatibility({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
@@ -490,17 +491,17 @@ async function runWithConcurrency(items, limit, worker) {
   return results;
 }
 
-function chapterCache(env, modeKey, chapter) {
+function chapterCache(env, modeKey, chapter, evidenceContract) {
   // 명식·명반 기반 결정론(자유질문 없음)이라 응답 캐시 + in-flight dedup 이 안전하다.
   // 캐시 키는 프롬프트 전문까지 해시하므로(lib/llm-cache.ts) keyExtra 는 모드 구분용 명시적 가드다.
   return {
     store: qualityCheckedCodexCache(createLlmCacheStore(env), value => {
       if (value?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
-      assertCodexChapterQuality(chapter.structured === false ? value?.text : parseChapterJson(value?.text), chapter, resolveMode(modeKey).dnaMetrics);
+      assertCodexChapterQuality(chapter.structured === false ? value?.text : parseChapterJson(value?.text), chapter, resolveMode(modeKey).dnaMetrics, evidenceContract);
     }),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: resolveMode(modeKey).cacheKeyExtra,
+    keyExtra: `${resolveMode(modeKey).cacheKeyExtra}:${CODEX_EVIDENCE_VERSION}`,
   };
 }
 
@@ -590,7 +591,9 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
       if (!label) return null;
       return {
         label,
-        system: text(entry.system, 32),
+        evidenceId: text(entry.evidenceId, 120),
+        subject: text(entry.subject, 16),
+        system: entry.system === "saju" ? "사주" : entry.system === "ziwei" ? "자미두수" : text(entry.system, 32),
         explanation: text(entry.explanation, 180),
       };
     })
@@ -611,6 +614,9 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
   return {
     narration: text(source.narration, 520),
     evidence,
+    crossChecks: Array.isArray(source.crossChecks) ? source.crossChecks.map(item => ({
+      id: text(item.id, 120), status: text(item.status, 24), explanation: text(item.explanation, 600),
+    })) : [],
     insight: text(source.insight, 1200),
     keySentence: text(source.keySentence, 320),
     caution: text(source.caution, 900),
@@ -643,19 +649,21 @@ async function generateChapter(env, {
         content, chars: content.body.length, provider: "staging-mock", ok: true },
       loveDna: chapter.jsonMode ? normalizeLoveDna(parsed, modeDef.dnaMetrics) : null };
   }
-  const prompt = modeDef.mode === "compat"
+  const evidenceContract = buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility });
+  const basePrompt = modeDef.mode === "compat"
     ? buildMasterLoveCodexCompatChapterPrompt({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
       compatibility, birthInfo, partnerInfo, chapter, memory,
     })
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory });
-  const cache = chapterCache(env, modeDef.mode, chapter);
+  const prompt = `${basePrompt}\n${formatCodexEvidence(evidenceContract)}`;
+  const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   try {
     if (chapter.structured !== false) {
       // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
       const raced = await withDeadline(generateCodexChapterResponse(
         (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
-        { chapter, metricDefs: modeDef.dnaMetrics, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS,
+        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS,
           options: { temperature: 0.6, timeoutMs, cache } },
       ), deadlineAt);
       if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
