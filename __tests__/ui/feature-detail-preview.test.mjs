@@ -97,3 +97,20 @@ test('hero action delegates once to original CTA and follows its price and disab
   await new Promise(resolve => setTimeout(resolve, 0));
   dom.window.close();
 });
+
+test('inline paid detail uses reviewed display data and the original action without catalog requests', async () => {
+  const { dom, overlay } = installDom();
+  globalThis.fetch = async () => { throw new Error('Unexpected request'); };
+  const { mountFeatureDetailPreview } = await import('../../js/feature-detail-preview.mjs?inline-paid');
+  let starts = 0;
+  document.getElementById('tilePvwCtaBtn').addEventListener('click', () => starts++);
+  const mounting = mountFeatureDetailPreview(overlay, ['rpt_healthReportCard'], {...detail, inlineAliases:['rpt_healthReportCard']});
+  await new Promise(resolve => setTimeout(resolve, 0));
+  document.getElementById('featureVisualDetailStyles').dispatchEvent(new Event('load'));
+  await mounting;
+  assert.equal(overlay.classList.contains('pvw-visual'), true);
+  assert.equal(overlay.querySelector('[data-feature-share]'), null);
+  overlay.querySelector('.fortuneAction button').click();
+  assert.equal(starts, 1);
+  dom.window.close();
+});

@@ -99,3 +99,28 @@ test('detail loader deduplicates per feature and retries failed fetches', async 
   assert.equal(requests, 3);
   assert.equal(await loadFeatureDetail(['/missing/'], fetcher), null);
 });
+
+test('inline unlock products have individual optimized artwork and preserve their local controller boundary', async () => {
+  const { extractObjectLiteral } = await import('../../scripts/lib/feature-marketing-extract.mjs');
+  const inline = Object.values(extractObjectLiteral(shell, 'FEATURE_VISUAL_DETAILS')).filter(item => item.inlineAliases);
+  assert.equal(inline.length, 11);
+  assert.equal(new Set(inline.map(item=>item.image)).size, 11);
+  for (const item of inline) {
+    assert.equal(item.verification, 'verified');
+    assert.ok(item.contents.length && item.benefits.length, item.slug);
+    assert.ok(!item.sourceAction, 'do not invent a launch route for an inline unlock');
+    for (const image of item.heroVariants) assert.ok(fs.statSync('public'+image.src).size <= 180000);
+    assert.ok(!renderFeatureDetailPanels(item, {conversionPrompt:true}).includes('data-feature-share="native"'));
+  }
+});
+
+test('every priced marketing introduction resolves to a published or inline editorial product', async () => {
+  const { extractObjectLiteral } = await import('../../scripts/lib/feature-marketing-extract.mjs');
+  const { FEATURE_KEY_PRICE_TABLE } = await import('../../worker/lib/paid-feature-registry.js');
+  const copy = extractObjectLiteral(shell, 'FEATURE_MARKETING_COPY');
+  const inline = Object.values(extractObjectLiteral(shell, 'FEATURE_VISUAL_DETAILS')).filter(item => item.inlineAliases);
+  for (const [key, item] of Object.entries(copy)) {
+    if (!FEATURE_KEY_PRICE_TABLE[item.featureId]) continue;
+    assert.ok(catalog.some(entry=>entry.featureKey===item.featureId || entry.aliases.includes(key)) || inline.some(entry=>entry.inlineAliases.includes(key) || entry.inlineAliases.includes(item.featureId)), key+': paid introduction missing');
+  }
+});

@@ -24,7 +24,7 @@ function ensureFeatureDetailStyles() {
   return stylePromise;
 }
 
-export async function mountFeatureDetailPreview(overlay, keys) {
+export async function mountFeatureDetailPreview(overlay, keys, inlineDetail) {
   actionCleanups.get(overlay)?.();
   legacyCleanups.get(overlay)?.();
   const revision = (revisions.get(overlay) || 0) + 1;
@@ -44,9 +44,16 @@ export async function mountFeatureDetailPreview(overlay, keys) {
   host.textContent = '상품 이야기를 펼치고 있어요.';
   title.after(host);
   try {
-    const detail = await loadFeatureDetail(keys);
+    const detail = inlineDetail || await loadFeatureDetail(keys);
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
-    if (!detail) throw new Error('DETAIL_NOT_FOUND');
+    if (!detail) {
+      // Non-product result tools keep their existing introduction; they are not
+      // a failed network request and must not receive an endless retry screen.
+      legacyCleanups.get(overlay)?.();
+      overlay.setAttribute('data-editorial-locale', 'other');
+      host.remove();
+      return;
+    }
     await ensureFeatureDetailStyles();
     if (revisions.get(overlay) !== revision || !overlay.classList.contains('pvw-open')) return;
     host.innerHTML = renderFeatureDetailPanels(detail, { conversionPrompt: true });
@@ -96,7 +103,7 @@ export async function mountFeatureDetailPreview(overlay, keys) {
     retry.type = 'button';
     retry.textContent = '상세 내용 다시 불러오기';
     retry.style.minHeight = '44px';
-    retry.addEventListener('click', () => void mountFeatureDetailPreview(overlay, keys), { once: true });
+    retry.addEventListener('click', () => void mountFeatureDetailPreview(overlay, keys, inlineDetail), { once: true });
     host.append(retry);
   }
 }

@@ -65,6 +65,7 @@ try {
   await resetPage();
   await installFixture({ lockKey: LOCK_KEY, lockCost: 100, unlocked: false });
   const lockedFirst = await clickTileAndRead();
+  assert(lockedFirst.editorialImage.includes('quantum-saju-960.webp'), '잠금 타일 → 해당 상품의 새 Hero가 표시된다', lockedFirst);
   assert(lockedFirst.previewOpen, "잠금 타일 클릭 → 기능 상세 팝업이 뜬다", lockedFirst);
   assert(!lockedFirst.blockOpen, "잠금 타일 클릭 → 카드가 펼쳐지지 않는다", lockedFirst);
   assert(!lockedFirst.paidGateOpen, "잠금 타일 클릭 → 결제 게이트로 직행하지 않는다", lockedFirst);
@@ -235,6 +236,7 @@ function readState() {
     return {
       previewOpen: !!(overlay && overlay.classList.contains('pvw-open')),
       previewCtaLabel: (label && label.textContent || '').trim(),
+      editorialImage: overlay?.querySelector('.featureDetailArt')?.getAttribute('src') || '',
       paidGateOpen: !!(gate && gate.classList.contains('is-open')),
       blockOpen: !!(block && block.classList.contains('open')),
       toggleCalls: Number(window.__cdRptToggleCalls || 0),
@@ -273,11 +275,12 @@ function startStaticServer() {
   const instance = http.createServer((req, res) => {
     const url = new URL(req.url || "/", "http://127.0.0.1");
     const rawPath = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
-    const filePath = path.normalize(path.join(staticRoot, rawPath));
+    let filePath = path.normalize(path.join(staticRoot, rawPath));
     if (!filePath.startsWith(staticRoot)) {
       res.writeHead(403).end("Forbidden");
       return;
     }
+    if (!fs.existsSync(filePath)) filePath = path.join(staticRoot, 'public', rawPath);
     fs.readFile(filePath, (error, buffer) => {
       if (error) {
         res.writeHead(404).end("Not found");
@@ -297,6 +300,7 @@ function contentType(filePath) {
   return {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
+    ".mjs": "text/javascript; charset=utf-8",
     ".css": "text/css; charset=utf-8",
     ".json": "application/json; charset=utf-8",
     ".webp": "image/webp",
