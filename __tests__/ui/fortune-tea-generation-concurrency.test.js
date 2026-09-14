@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
+const { randomUUID } = require('node:crypto');
 
 // Execute the production claim, with only the DB/formatting boundaries faked.
 // No route imports, network, credentials, PG or LLM are available in this VM.
@@ -28,9 +29,10 @@ function fixture(seed = null) {
     async updateOne(filter, update, options) {
       writes.push(filter);
       const matches = row && Object.entries(filter).every(([key, expected]) => {
-        if (expected && typeof expected === 'object' && '$exists' in expected) return (row[key] !== undefined) === expected.$exists;
-        if (expected === null) return row[key] == null;
-        return String(row[key]) === String(expected);
+        const actual = key.split('.').reduce((value, part) => value?.[part], row);
+        if (expected && typeof expected === 'object' && '$exists' in expected) return (actual !== undefined) === expected.$exists;
+        if (expected === null) return actual == null;
+        return String(actual) === String(expected);
       });
       if (matches) {
         Object.assign(row, structuredClone(update.$set));
@@ -43,15 +45,17 @@ function fixture(seed = null) {
     },
   };
   const context = vm.createContext({
+    randomUUID,
+    FORTUNE_TEA_GENERATION_LOCK_TTL_MS: 10000,
     honeyCollections: () => ({ results }),
     cleanText: value => String(value || ''),
     normalizeConsultationMode: value => value,
     buildFortuneTeaResultStorageId: (user, result) => `${user}:${result}`,
     FORTUNE_TEA_HOUSE_SCOPE: 'fortune-tea-house',
     publicFortuneTeaStoredResult: doc => doc.result || null,
-    isFreshFortuneTeaGeneration: doc => doc?.status === 'generating' && Date.now() - new Date(doc.updatedAt).getTime() < 10000,
   });
-  vm.runInContext(declaration.getText(ast) + '\nthis.begin = beginFortuneTeaHouseGeneration;', context);
+  const freshness = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'isFreshFortuneTeaGeneration');
+  vm.runInContext(freshness.getText(ast) + '\n' + declaration.getText(ast) + '\nthis.begin = beginFortuneTeaHouseGeneration;', context);
   const input = { auth: { userId: 'buyer' }, resultId: 'attempt', requestId: 'attempt', featureKey: 'tea', consultRequest: { consultationMode: 'tarot' } };
   return { run: () => context.begin(input), row: () => row, writes };
 }
@@ -63,9 +67,9 @@ test('two callbacks reading no result claim exactly one generation', async () =>
   assert.equal(outcomes.filter(result => result.inProgress).length, 1);
 });
 
-for (const status of ['generation_failed', 'generating']) {
+for (const status of ['generation_failed', 'generating', 'delivery_pending']) {
   test(`two retries of ${status} claim exactly one generation`, async () => {
-    const f = fixture({ _id: 'buyer:attempt', userId: 'buyer', resultId: 'attempt', status, updatedAt: new Date(0) });
+    const f = fixture({ _id: 'buyer:attempt', userId: 'buyer', resultId: 'attempt', status, updatedAt: new Date(0), ...(status === 'delivery_pending' ? { result: { text: 'saved result' } } : {}) });
     const outcomes = await Promise.all([f.run(), f.run()]);
     assert.equal(outcomes.filter(result => result.ok).length, 1);
     assert.equal(outcomes.filter(result => result.inProgress).length, 1);
@@ -80,7 +84,7 @@ test('completed result is replayed without a generation write', async () => {
 });
 
 test('fresh running result is not reclaimed', async () => {
-  const f = fixture({ userId: 'buyer', resultId: 'attempt', status: 'generating', updatedAt: new Date() });
+  const f = fixture({ userId: 'buyer', resultId: 'attempt', status: 'generating', updatedAt: new Date(), generationLock: { token: 'active' } });
   const outcomes = await Promise.all([f.run(), f.run()]);
   assert.equal(outcomes.every(result => result.inProgress), true);
   assert.equal(f.writes.length, 0);

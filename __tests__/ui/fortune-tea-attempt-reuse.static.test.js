@@ -35,7 +35,7 @@ test("재제출은 보관된 attemptId 를 먼저 쓰고, 없을 때만 새로 �
 
 test("가격이 다른 상담(featureKey 불일치)은 이어받지 않는다", () => {
   assert.ok(
-    PAGE.includes("reusablePaidAttempt.featureKey === resolveFortuneTeaFeatureKey(nextQuestionInput)"),
+    PAGE.includes("recovery.featureKey === resolveFortuneTeaFeatureKey(nextQuestionInput)"),
     "featureKey 일치 조건이 사라졌다 — 싼 상담의 결제로 비싼 상담이 열린다",
   );
 });
@@ -54,12 +54,19 @@ test("이어받은 시도는 결제창도 이용권 재검사도 다시 타지 �
 
 test("결제 증빙이 생기면 보관하고, 상담문이 도착하면 비운다", () => {
   assert.ok(
-    PAGE.includes("      if (billingEvidenceBody) {\r\n        unusedPaidAttemptRef.current = {")
-      || PAGE.includes("      if (billingEvidenceBody) {\n        unusedPaidAttemptRef.current = {"),
+    PAGE.includes("unusedPaidAttemptRef.current = recoveryRecord;")
+      && PAGE.includes("saveFortuneTeaRecovery(recoveryRecord);")
+      && PAGE.includes("requestPayload: initialConsultBody"),
     "증빙이 생긴 시도를 보관하지 않는다",
   );
   assert.ok(
     PAGE.includes("if (unusedPaidAttemptRef.current?.attemptId === attemptId) unusedPaidAttemptRef.current = null;"),
     "성공 후 보관분을 비우지 않는다 — 회당 결제가 영구 무료가 된다",
   );
+});
+
+
+test("재개 기록은 현재 계정으로 제한하고 완료 시 해당 시도만 지운다", () => {
+  assert.ok(PAGE.includes("recovery?.ownerId === ownerId"));
+  assert.ok(PAGE.includes("clearFortuneTeaRecovery(attemptOwnerId, attemptId);"));
 });
