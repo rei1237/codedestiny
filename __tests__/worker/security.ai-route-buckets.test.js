@@ -33,6 +33,15 @@ import { fileURLToPath } from "node:url";
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const RATE_LIMIT_CALLS = [];
+let checkpointDoc = null;
+let checkpointLookupFails = false;
+let exhaustedStarts = false;
+const checkpointModel = {
+  findOne: filter => ({ select() { return this; }, lean: async () => {
+    if (checkpointLookupFails) throw new Error('mock DB unavailable');
+    return checkpointDoc && filter.userId === checkpointDoc.userId && (filter.id || filter._id) === checkpointDoc.id ? checkpointDoc : null;
+  } }),
+};
 
 jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   connectDb: jest.fn(async () => undefined),
@@ -60,13 +69,21 @@ const noopModel = () => ({
 });
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  AstrologyAiConsultation: checkpointModel,
+  VedicAiConsultation: checkpointModel,
+  ZiweiAiConsultation: checkpointModel,
+  LoveSecretAiConsultation: checkpointModel,
+  LifeBookAiConsultation: checkpointModel,
+  NewYearAiConsultation: checkpointModel,
+  SukuyoCompatibilityAiConsultation: checkpointModel,
+  NeoOperationRoomConsultation: checkpointModel,
   AbuseScore: {
     findOne: () => ({ lean: async () => null }),
-    findOneAndUpdate: async (filter, update) => {
+    findOneAndUpdate: (filter, update) => {
       if (filter?.kind === "rate_limit") {
         RATE_LIMIT_CALLS.push({ endpoint: filter.endpoint, limitSeen: update?.$inc?.score });
       }
-      return { score: 1 };
+      return { lean: async () => ({ score: exhaustedStarts && filter.endpoint.endsWith(':start:daily') ? 61 : 1 }) };
     },
     create: async () => null,
   },
@@ -287,5 +304,49 @@ describe("AI 라우트 경로 전수 분류", () => {
     // 🔴 여기 경로가 뜨면 "분류기에 규칙 하나 추가"로 끝내지 말고 그 경로의 호출 빈도를 먼저 잰다.
     //    상한을 잘못 주면 살아 있는 흐름이 429 로 끊긴다.
     expect(unclassified).toEqual([]);
+  });
+});
+const checkpointServices = ['astrology-ai','vedic-ai','ziwei-ai','love-secret-ai','life-book-ai','new-year-ai','sukuyo-compatibility-ai','neo-operation-room'];
+describe('서버 저장본의 재개는 새 리포트 일일 예산을 소비하지 않는다', () => {
+  beforeEach(() => { checkpointDoc={id:'saved-result-id',userId:'user-1',status:'partial',llmMeta:{resumeBody:{idempotencyKey:'original-key'}}};checkpointLookupFails=false;exhaustedStarts=false;RATE_LIMIT_CALLS.length=0; });
+  afterEach(() => { checkpointDoc=null;checkpointLookupFails=false;exhaustedStarts=false; });
+  async function enforce(service, body, userId='user-1', suffix='start') {
+    const {enforceAiRouteSecurity}=await import('../../worker/lib/security/index.js');
+    const path=`/api/${service}/${suffix}`;
+    const request=new Request(`https://api.code-destiny.com${path}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    const result=await enforceAiRouteSecurity({request,env:ENV,serviceKey:service,path,userId});
+    expect(await request.json()).toEqual(body);
+    return result;
+  }
+  test.each(checkpointServices)('%s의 저장 ID만 소유자에게 batch 버킷을 준다',async service=>{
+    exhaustedStarts=true;
+    const body=service==='neo-operation-room'?{sessionId:checkpointDoc.id}:{resumeSessionId:checkpointDoc.id};
+    expect((await enforce(service,body)).ok).toBe(true);
+    expect(RATE_LIMIT_CALLS.map(row=>row.endpoint)).toEqual([`ai:${service}:batch`]);
+    RATE_LIMIT_CALLS.length=0;
+    expect((await enforce(service,body,'different-owner')).ok).toBe(false);
+    expect(RATE_LIMIT_CALLS.map(row=>row.endpoint)).toContain(`ai:${service}:start:daily`);
+  });
+  test('새 입력과 조작된 ID는 기존 60건 일일 제한을 유지한다',async()=>{
+    exhaustedStarts=true;
+    expect((await enforce('astrology-ai',{birthDate:'1990-01-01'})).ok).toBe(false);
+    expect((await enforce('astrology-ai',{resumeSessionId:'another-result'})).ok).toBe(false);
+    expect((await enforce('astrology-ai',{resumeSessionId:{$ne:null}})).ok).toBe(false);
+  });
+  test('DB 장애와 서버 원본이 없는 미완료 문서는 예외 버킷을 받지 않는다',async()=>{
+    exhaustedStarts=true;checkpointLookupFails=true;
+    expect((await enforce('astrology-ai',{resumeSessionId:checkpointDoc.id})).ok).toBe(false);
+    checkpointLookupFails=false;checkpointDoc.llmMeta=null;
+    expect((await enforce('astrology-ai',{resumeSessionId:checkpointDoc.id})).ok).toBe(false);
+  });
+  test('다른 자미두수 상품 문서와 큰 입력을 새 리포트 예산 우회에 사용할 수 없다',async()=>{
+    exhaustedStarts=true;checkpointDoc.serviceType='ziwei-island-ai';
+    expect((await enforce('ziwei-ai',{resumeSessionId:checkpointDoc.id})).ok).toBe(false);
+    expect((await enforce('astrology-ai',{resumeSessionId:checkpointDoc.id,padding:'x'.repeat(5000)})).ok).toBe(false);
+  });
+  test('연애 비책의 기존 snapshot 위치와 generate 별칭도 같은 재개 버킷이다',async()=>{
+    checkpointDoc.llmMeta={delivery:{resumeBody:{idempotencyKey:'original-key'}}};exhaustedStarts=true;
+    expect((await enforce('love-secret-ai',{resumeSessionId:checkpointDoc.id},'user-1','generate')).ok).toBe(true);
+    expect(RATE_LIMIT_CALLS.map(row=>row.endpoint)).toEqual(['ai:love-secret-ai:batch']);
   });
 });
