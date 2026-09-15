@@ -1,0 +1,106 @@
+{
+  "sourcePath": "js/saju-engine.js",
+  "sha256": "012091c7a0b72c03d7fc1d12b3306062f82dd30c9033a6cccd29036c7c5422ce",
+  "symbols": [
+    {
+      "name": "_applyTrueSolarTimeCorrection",
+      "sha256": "eb5f340b810da0376d993975e321c82a9ea955894abd3332a9e1088e9db543ee"
+    },
+    {
+      "name": "_shiftDatePartsByDays",
+      "sha256": "c15543cb55e4b2722f34f10df2b5f09ba1d2755b5dc23565e1e276cd80a4712f"
+    },
+    {
+      "name": "_cdCivilDayPillar",
+      "sha256": "07a835f189666d7b2f56789a52a27b130fe8906967e3c608e9160d89be3bfe5c"
+    },
+    {
+      "name": "_CD_STEMS_HANJA",
+      "sha256": "670c2b744531852370fe4db3fc742107e7c9568dea23a9e6e0433a46f49dda8c"
+    },
+    {
+      "name": "_CD_BRANCHES_HANJA",
+      "sha256": "6e1617b2b074d40d4664ec758084555f45c8a61ddab409f44bc45460ef28961e"
+    },
+    {
+      "name": "_cdHourPillarFromDayStem",
+      "sha256": "fdb50c93f9f5d617e9c0002bf4a99ce5c1b67f7ee7a9aa92fa520ca0a9fdaac1"
+    },
+    {
+      "name": "calcPower",
+      "sha256": "02a22b17549ef9f8d699fd363d02676a5475155dfcb344e6a63b29c3af3356cd"
+    },
+    {
+      "name": "GAN",
+      "sha256": "92f8a24a633d0ed9bf4d67ced6a90852261b417dddf6afd49f74c8a9a8abe762"
+    },
+    {
+      "name": "parentOf",
+      "sha256": "fbf81d1a1abd802b0496b98c28f3dc0c0bbcd5d4ec8694a96e4b993c107e7c00"
+    },
+    {
+      "name": "SHENG",
+      "sha256": "4287f0b0ff03152a644f0df6bb01dfba5c05e258e26e0e9d8dfaa1478739da44"
+    },
+    {
+      "name": "JI",
+      "sha256": "803c3a7cf471998c0e901a4f54d2785625b3bcfeb4cf24e6b0b75cdf21d80ddf"
+    },
+    {
+      "name": "KE",
+      "sha256": "5f5132892c322bc75465757650e8745efa15597b744f3f58c14288c02eded1cf"
+    },
+    {
+      "name": "whoControls",
+      "sha256": "b4fa736c144c19dd65e6145d9c64d8f0c8bd04504529fc8327c37dfa6c03433e"
+    },
+    {
+      "name": "calcNatalElement",
+      "sha256": "1f055bfba6aa5bc81b8c787efbe66dfb453ff5fde7c45fb1ab880968cb9aad3c"
+    },
+    {
+      "name": "analyzeJohu",
+      "sha256": "65cb622f6fefe5e1fd54a7b03fc9d0e7563a5182d3014dea8aa831272642c15d"
+    },
+    {
+      "name": "detectJong",
+      "sha256": "2d5468b57bdbe5c7acba15a6c15ea0c750506c77da552011d8f519a2b5e2b690"
+    },
+    {
+      "name": "CD_JANGGAN",
+      "sha256": "0541f5503bcaef57e4c91536137f7d85daee481d226f3c9b03fcfd03b48b778c"
+    },
+    {
+      "name": "applyRuntimeYongshinPolicy",
+      "sha256": "b5ba09b655f1ebc9164dd29c0a3dc4afa06164cbbdd9dfce06eceafe0001599c"
+    },
+    {
+      "name": "_dfArrayCopy",
+      "sha256": "a8e28b49b56afc9d9196a4be0cab4c8e8c10819dc5eb2196c9e035c239128373"
+    },
+    {
+      "name": "_dfJohuUsefulSet",
+      "sha256": "aaa8f80c4bbf634a31bddfd38f0a528bb8e2fa41be2a21f05b775fd7bbd7ce07"
+    },
+    {
+      "name": "_dfUniqueElements",
+      "sha256": "aea4d9d94d76bfe5ad8f24874689e029d68267ba7b1ff0205f3aa7bc1963af5d"
+    },
+    {
+      "name": "CD_SAJU_DAEWUN_YONGSHIN_FIX",
+      "sha256": "dbdf9515c24f06e87490421f6183235092d5ebf3ec347cf004c81476217a9bf9"
+    },
+    {
+      "name": "resolveBirthTimezoneOffset",
+      "sha256": "f35dcbb65aa7999ef10b743376a585fb867308e8a9f5f56fa0af89404b67f5ac"
+    },
+    {
+      "name": "getTimeZoneOffsetHoursAtDate",
+      "sha256": "41ea8eb2405ee14f67e051ba1d796ccb63158a08088d7292075799f3ce367aa8"
+    },
+    {
+      "name": "parseTimeZoneOffsetName",
+      "sha256": "1acbfc0caffdc26d2ff5d7ea9e4711dea3557c6da8febe1ae1d32caef0681323"
+    }
+  ]
+}

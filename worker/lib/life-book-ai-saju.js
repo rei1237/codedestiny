@@ -236,7 +236,7 @@ function normalizeTenGodName(value) {
   return CHINESE_TEN_GOD_TO_KO[text] || text;
 }
 
-function buildHiddenStemDetails(dayStem, branch) {
+export function buildHiddenStemDetails(dayStem, branch) {
   return (HIDDEN_STEMS[branch] || []).map((stem) => ({
     stem,
     element: STEM_ELEMENT[stem] || "",
@@ -512,7 +512,7 @@ function buildNatalInteractions(pillarDetails = {}) {
   };
 }
 
-function buildLuckNatalInteractions(luckPillar, pillarDetails = {}) {
+export function buildLuckNatalInteractions(luckPillar, pillarDetails = {}) {
   const luckStem = pillarStem(luckPillar);
   const luckBranch = pillarBranch(luckPillar);
   const entries = pillarEntries(pillarDetails);

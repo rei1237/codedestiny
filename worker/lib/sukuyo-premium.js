@@ -114,7 +114,7 @@ function getSukuyoChapterMeta(reportType) {
   return reportType === "compatibility" ? SUKUYO_COMPAT_CHAPTER_META : SUKUYO_PERSONAL_CHAPTER_META;
 }
 
-function distanceLabelByRule(shortestDistance, relationType) {
+export function distanceLabelByRule(shortestDistance, relationType) {
   const d = Number(shortestDistance);
   if (relationType === "명" && d === 0) return "동숙";
   if (relationType === "업태") return "특수관계";
