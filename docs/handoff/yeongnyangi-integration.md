@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-15
-next: 5단계 운영 노출(RED, 1회 승인 필요 — SoulCat 워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`, `codex/soulcat-staging-login-payment` == `origin/main` `9d9247c`, 스테이징 워커는 아직 `498742e` — 2·3·4단계는 다음 `deploy-staging.mjs` 때 실린다). 4단계 탈퇴 연동은 완료(CD `c72551999`, SoulCat `9d9247c`). 5단계 체크리스트에 3단계 robots Sitemap 한 줄과 4단계 프로덕션 `SOULCAT_SERVICE` 바인딩이 묶여 있다. 보류: (a) 스테이징 e2e 1회와 2단계 실쿠키 프리필 확인은 사용자 요청 시에만; (b) 로컬 SoulCat main 워크트리(`C:\Users\user\Desktop\SoulCatProject`)는 그 세션이 정리 후 `git pull --ff-only`.
+next: 5단계 S1 — SoulCat 코드 준비 + 스테이징 재배포(A1 승인). 5단계 계획은 아래 "5단계" 절(2026-09-15 확정, 유료는 saju_mackerel 1종만). 이전 기록 — 5단계 운영 노출(RED, 1회 승인 필요 — SoulCat 워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`, `codex/soulcat-staging-login-payment` == `origin/main` `9d9247c`, 스테이징 워커는 아직 `498742e` — 2·3·4단계는 다음 `deploy-staging.mjs` 때 실린다). 4단계 탈퇴 연동은 완료(CD `c72551999`, SoulCat `9d9247c`). 5단계 체크리스트에 3단계 robots Sitemap 한 줄과 4단계 프로덕션 `SOULCAT_SERVICE` 바인딩이 묶여 있다. 보류: (a) 스테이징 e2e 1회와 2단계 실쿠키 프리필 확인은 사용자 요청 시에만; (b) 로컬 SoulCat main 워크트리(`C:\Users\user\Desktop\SoulCatProject`)는 그 세션이 정리 후 `git pull --ff-only`.
 ---
 
 # 영냥이(SoulCat) 편입 — 기존 MID·기존 계정으로 전 서비스 정상 동작시키기
@@ -92,6 +92,54 @@ CD `scripts/generate-sitemap.mjs` `coreRoutes` 에 `/yeongnyangi/`·`/yeongnyang
 
 ## 5단계. 운영 노출 (RED, 1회 승인)
 
+### 확정 계획 (2026-09-15, 사용자 승인 — 배포·과금 승인 A1~A5 는 각 세션에서 따로 받는다)
+
+**사용자 결정: 유료는 `saju_mackerel`(1,000원 고등어 사주) 1종만.** 나머지 27종은 "준비 중".
+
+실측 출발점(2026-09-15):
+- 운영 CD `78c4a554a` 는 main 보다 148커밋 뒤 — 1~4단계 커밋 전부 없음, `code-destiny.com` `/checkout/`·`/yeongnyangi/`·`/api/yeongnyangi/products` 모두 404.
+- SoulCat `origin/main` `9d9247c`, 스테이징 워커 `498742e`(2·3·4단계 미반영).
+- SoulCat `wrangler.worker.jsonc` `env.production`(:94-109) 은 `APP_ENV`·`PUBLIC_ORIGIN`·`AUTH_SERVICE→code-destiny-web`·mock·`ALLOW_LIVE_LLM=false` 만 있다. name·routes·D1·Queue/DLQ·cron·LLM 예산 vars·production 배포 스크립트 없음.
+- `api.ts:331-332` LLM·예산 게이트가 `:341-348` 증빙 조회·402 checkoutUrl 보다 먼저 돈다 → 미개방 상품은 결제창 전에 503(제품 안에서는 돈만 받고 책 없음이 안 생김). 무료 운세는 LLM 미사용(`server/fortune/free/`).
+- `productBudgetReady`(budget.ts:37-48): production 은 `LLM_VERIFIED_PRODUCTS[id]={model,chapters:5,maxKRW>0,manifestVersion:"destiny-book-v4",outputTokens:4096}` 필요 → 1종만 등록하면 1종만 열린다. `budgetConfig` 는 production 에 `LLM_COST_MODE=metered` 요구, `LLM_PRICING_VALID_UNTIL` 만료 시 조용히 503.
+- v4 매니페스트는 실제 LLM 검증 이력 없음(RUNBOOK:18 "기존 실제 검증은 v3").
+- CD: 홈 밴드 게이트 `index.html:20347` `location.hostname!=='staging.code-destiny.com'`(미러 6개 동일), 문구 `:20325`·`:20340`. 운영 `/robots.txt` 정본은 **`app/robots.ts:93`**(정적 두 파일은 폴백). 운영 `worker/wrangler.toml` 에 `[[services]]` 없음. 운영 승격 워크플로는 CI 녹색을 기다리지 않고 자체 검사(`verify:worker-config-parity`·`verify:sitemap` 등)만 돈다. www 는 apex 로 301. CD 개인정보처리방침·`lib/legal` 에 Gemini·국외이전 문구 없음(`git grep -i "gemini\|국외"`).
+
+| 세션 | 내용 | 운영 영향 | 승인 |
+|---|---|---|---|
+| S1 | SoulCat 코드 준비 + 스테이징 재배포 | 없음 | A1 스테이징 배포 |
+| S2 | 스테이징 실 LLM e2e 1회(maxKRW 실측·v4 품질 확인) | 없음 | A2 과금 LLM 1회 + 스테이징 1,000원 테스트결제·취소 |
+| S3 | SoulCat 운영 리소스 생성 + 운영 배포(LLM OFF) | `/yeongnyangi/*` 공개(무료만) | A3 |
+| S4 | CD 운영 릴리스 + SoulCat 유료 1종 활성화 | 홈 밴드·checkout·유료 1종 | A4·A5 |
+
+**S1. SoulCat 코드 준비**(워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`)
+1. `src/lib/seo.ts` 결제 일원화 이전 문안 10곳 교체(terms :55/:72/:89, privacy ~:98/:111, refund :155/:174, ggulggul-fortune :351, 1000-won-fortune :431, about :464) — CD 결제창·카드/카카오페이 단건·이용권·월정석 미적용·환불은 CD `/refund-policy/`. `verify:seo` 통과 유지.
+2. `server/api.ts:126` `GET products` 에 상품별 `available`(`:331` 조건 + `productBudgetReady` try/catch 재사용, 새 판정 로직 금지). `FortuneExperience.tsx:445` CTA·카탈로그는 `available:false` 면 "준비 중" 비활성. 테스트 1건(`tests/staging-llm-gate.test.ts` 패턴: production + verified 1종 → 그 상품만 true).
+3. `wrangler.worker.jsonc` `env.production` 완성(커밋 상태 LLM OFF): `name:"soulcat-service-production"`, routes 5개(`code-destiny.com/yeongnyangi*`·`/share/yeongnyangi/*`·`/_soulcat`·`/_soulcat/*`·`/api/yeongnyangi/*`), D1 `DB→soulcat-fortune-production`(id 는 S3), Queue `soulcat-book-production`+`-dlq`(staging 과 같은 consumer 설정), cron `*/2 * * * *`, vars `LLM_TIMEOUT_MS=60000`·`LLM_MAX_RETRIES=2`·`LLM_MAX_INPUT_TOKENS=32000`·`LLM_MAX_OUTPUT_TOKENS=4096`. 기존 `soulcat-fortune`(172413ab) 재사용 금지(`DOMAIN-INTEGRATION.md:47-49`).
+4. 신규 `scripts/deploy-production.mjs` — `deploy-staging.mjs` 복제·반전(8hex preview, clean tree, version.json sha==HEAD·digest, 모든 route 가 `code-destiny.com/` 시작, service 에 `-staging` 금지, `--var RELEASE_SHA/RELEASE_SOURCE_DIGEST/SOULCAT_PAGES_ORIGIN`, activation 파일 선택 인자).
+5. 신규 `scripts/production-activation.mjs` — allowlist. `LLM_PROVIDER=gemini`·`ALLOW_LIVE_LLM=true`·`LLM_COST_MODE=metered`·`GEMINI_MODEL==GEMINI_PRICING_MODEL`·가격 3종>0·미래 `LLM_PRICING_VALID_UNTIL`·`LLM_VERIFIED_PRODUCTS` 키는 정확히 `saju_mackerel`. 테스트 1건(2종·test 모드·만료 거부).
+6. production 빌드는 `NEXT_PUBLIC_CODE_DESTINY_ORIGIN=https://code-destiny.com`(`src/lib/service-links.ts:8-10` staging 폴백 회피). `docs/DOMAIN-INTEGRATION.md` 에 production 배포·롤백 절.
+7. 검증: `tsc --noEmit`, `npm test`, `npm run build`, `verify:seo`, `wrangler deploy --dry-run` staging·production. ff push. **A1**: build → Pages preview → `deploy-staging.mjs <preview>`(activation 없음) → `/api/yeongnyangi/version` sha·products 전부 `available:false` 실측.
+
+**S2. 스테이징 실 LLM e2e 1회(A2).** 로컬 미커밋 activation(`LLM_STAGING_VALIDATION_MANIFEST=destiny-book-v4`, 운영자 CD 계정 1개, 예산 ≤1,000원) → 로그인 → 고등어 CTA → 402 → `/checkout/` → 1,000원 테스트 모드 결제 → 복귀 → `POST orders` 200 → 5챕터 → 보관함 → consume 멱등 확인. maxKRW 는 스테이징 D1 `llm_reservations` 해당 request `SUM(COALESCE(charged,reserved))` × 1.5 올림(근거 기록). 사용자 책 품질 확인 → CD 관리자 경로로 테스트결제 취소 → activation 없이 스테이징 재배포. 같이: 스테이징 탈퇴 연동 1회(`soulcatCleanup.status=deleted`·D1 행 0), 실쿠키 프리필 1회.
+
+**S3. SoulCat 운영 리소스 + 배포, LLM OFF(A3).** (1) 읽기 조회로 이름 미사용 확인(`wrangler deployments list --name soulcat-service-production`, `d1 list`, `queues list`). (2) `wrangler d1 create soulcat-fortune-production`, `queues create soulcat-book-production`·`-dlq` → id 커밋. (3) 새 빈 D1 에 `wrangler d1 migrations apply soulcat-fortune-production --env production --config wrangler.worker.jsonc --remote`(0001~0007; 0007 은 `worker-entry.ts:59` 쿼리 때문에 필수) — 신규 DB 스키마 생성으로 승인 범위 명시. (4) `GEMINI_API_KEY` 는 사용자가 직접 `wrangler secret put --env production`. (5) production origin build → Pages preview(branch `production-release`) → `deploy-production.mjs <preview>` — SoulCat 은 CI 배포가 없어 로컬 운영 배포 1회 예외로 명시. (6) 실측: `code-destiny.com/yeongnyangi/`·`/yeongnyangi/sitemap.xml`·`/_soulcat/assets/hero-800.webp` 200, `/yeongnyangi/` 에 `x-robots-tag` 없음·`/yeongnyangi/library/` 에는 있음, version sha==HEAD, products 전부 `available:false`, CD `/api/version` 200, 비로그인 `POST /api/yeongnyangi/orders` 401.
+
+**S4. CD 운영 릴리스 + 유료 1종(A4·A5).** 시작 전 `git status` 로 다른 세션 미커밋(현재 `marketing/`) 확인, 쓰는 세션 둘 이상이면 워크트리.
+1. 밴드 `index.html:20345-`: 게이트를 staging+apex 로, **fail-closed** — `/api/yeongnyangi/products` 200 이고 `saju_mackerel.available===true` 일 때만 template 삽입. `:20325`·`:20340` 준비 중 문구 → 오픈 문구(예 "🐟 고등어 사주 1,000원 · 단건 결제"). `npm run sync:public`, 미러 6개 함께 커밋.
+2. robots: `app/robots.ts:93`·`robots.txt`·`public/robots.txt` 에 `Sitemap: https://code-destiny.com/yeongnyangi/sitemap.xml`(S3 200 확인 뒤).
+3. `worker/wrangler.toml` `[[services]] SOULCAT_SERVICE → soulcat-service-production`(구조 변경, A4 명시). `verify-worker-config-parity.mjs` STAGING_ONLY_KEYS :93-94 삭제, `.service` 를 MUST_DIFFER_KEYS 로, fixture `BASE_PRODUCTION`(:389-415) 에 services 블록, 주석 이름 갱신, `--self-test` 통과.
+4. 로컬: `check:fast`, parity + `--self-test`, `verify:sitemap`, withdraw jest. 커밋 3개(밴드/robots/바인딩) → push → main CI.
+5. 승격 전: `node scripts/verify-merge-landed.mjs --check=drift --json --soft --base=origin/main --origin=https://code-destiny.com` 로 미반영 148+커밋 요약 보고, 스테이징 `npm run verify:release`.
+6. **A4** `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` → run URL 전달(폴링 안 함) → 실측: `/checkout/` 200, 밴드 미표시(fail-closed), `/robots.txt` Sitemap 줄, `/api/version` sha.
+7. **A5** 로컬 미커밋 `production-activation.json`(maxKRW=S2 실측, 가격 vars 는 사용자가 현행 Gemini 단가 확인) → 같은 SHA preview 로 `deploy-production.mjs <preview> production-activation.json` → 실측: `saju_mackerel` 만 `available:true`, 밴드 표시, 로그인 `POST orders` 402 checkoutUrl, 결제창 **열림까지만**(운영 실결제 금지, 필요 시 별도 승인).
+
+**롤백.** S1: `wrangler rollback --env staging` 또는 이전 preview 재배포. S3: `wrangler rollback --env production`, 노출 철회는 routes 뺀 config 재배포(새 D1·Queue 는 남겨도 무해). S4 CD: 같은 워크플로 `mode: rollback` + `worker_version_id`/`pages_deployment_id`(`npm run deploy:rollback -- --list`), 코드는 해당 커밋만 `git revert`. A5: activation 없이 같은 preview 재배포 → 결제창 전 503. 바인딩 없는 CD 로 롤백해도 탈퇴는 `skipped` 기록만.
+
+**남는 위험(보고).** (a) CD `/checkout/` 은 `yeongnyangi-` 28키를 다 받는다 — URL 직접 조작으로 미개방 상품을 결제하면 SoulCat 이 소비 전 503 → 수동 환불. 방어(checkout 에서 `available` 선검사)는 결제 코드라 후속. (b) `LLM_PRICING_VALID_UNTIL` 만료 시 조용히 판매 중단 — 갱신일 기록, 결제된 증빙은 미소비로 남아 재활성 후 재시도 가능. (c) 결제 후 생성 FAILED/UNCERTAIN 은 자동 환불 없음(`PAYMENT-LLM-DELIVERY.md:52`). (d) 법무: CD 개인정보처리방침에 Gemini 국외이전 문구 없음, RUNBOOK:120-122 §13·§17·국외이전 미결 — 운영 판매 전 사용자 판단, 문안은 GREEN 별도 커밋. (e) 운영 승격에 1~4단계 외 148커밋 동반. (f) 없는 service 바인딩이 CD 배포를 실패시키는지는 미실측 — S3→S4 순서로 회피.
+
+### 이전 메모 (계획 확정 전)
+
 SoulCat production env 에 routes/D1/Queue 생성, `AUTH_SERVICE` 는 `code-destiny-web`. CD 인젝터 게이트를 `code-destiny.com` 까지 확장, 홈 밴드 "🐟 생선가게 준비 중"·"영냥이가 손님 맞을 준비 중" 제거. 3단계 SEO 오픈을 같은 릴리스에 묶는다: CD 루트 `robots.txt` 와 `public/robots.txt` 의 Sitemap 목록에 `Sitemap: https://code-destiny.com/yeongnyangi/sitemap.xml` 추가(SoulCat production 이 200 을 준 뒤에만), SoulCat production `APP_ENV=production` 확인(이 값이 edge noindex 해제 스위치다), 배포 후 `curl -sI https://code-destiny.com/yeongnyangi/` 에 `x-robots-tag` 없음·`/yeongnyangi/library/` 에는 있음을 실측. 4단계 탈퇴 연동도 같은 릴리스: CD `worker/wrangler.toml` 에 `[[services]] SOULCAT_SERVICE → soulcat-service`(SoulCat production 워커 이름으로 실측 확인, `wrangler.toml` 구조 변경이라 승인 범위에 명시) 추가, `verify-worker-config-parity.mjs` 의 STAGING_ONLY_KEYS 에서 `services.SOULCAT_SERVICE.*` 두 줄 삭제 + `.service` 를 MUST_DIFFER_KEYS 로 이동. 바인딩은 SoulCat production 배포 **뒤**에 넣는다(없는 서비스 바인딩은 CD 워커 배포를 실패시킬 수 있다 — 미실측).
 
 ## 남은 것
@@ -103,7 +151,7 @@ SoulCat production env 에 routes/D1/Queue 생성, `AUTH_SERVICE` 는 `code-dest
 - [x] 2단계 프로필 재사용(SoulCat `b77e4c3` 폼 제출 결함 수정 + `927cd8e` CD 대표 프로필 프리필). 후속: (a) CD `ProfileCard` 에 "시간 모름" 필드가 없어 00:00 을 비울 수밖에 없다 — 실제 자정 출생자는 다시 입력; (b) CD fetch 헬퍼가 `auth.ts`·`payments/cd-entitlement.ts`·`cd-profile.ts` 3중 복제; (c) 다음 스테이징 배포 뒤 실제 CD 쿠키로 프리필 1회 확인(사용자 요청 시).
 - [x] 3단계 SEO 오픈 — SoulCat 쪽(`d2c9286`). CD `robots.txt` Sitemap 한 줄은 5단계 체크리스트로 이관. 후속(보고만): SoulCat SEO·법무 문안이 결제 일원화 이전 서술 — `seo.ts` terms/refund "SoulCat 결제 화면·별도 상품 카탈로그", privacy "준비 중인 로그인·보관함을 실제 저장 기능처럼 안내하지 않습니다", about FAQ "mock 또는 준비 중인 기능", free-fortune/1000-won FAQ 의 "SoulCat 별도 결제 정책" — 운영 색인 전에 CD 결제창·단건 전용 정책으로 갱신 필요.
 - [x] 4단계 탈퇴 연동(CD `c72551999`, SoulCat `9d9247c`). 후속: (a) 다음 SoulCat 스테이징 배포 뒤 테스트 계정으로 스테이징 탈퇴 1회 → `deleted_account_logs.soulcatCleanup.status` `deleted`·D1 행 0 확인(사용자 요청 시); (b) `failed` 로그 재처리 절차(운영자 D1 수동 삭제)는 문서화만 됨, 도구 없음; (c) 프로덕션 바인딩은 5단계.
-- [ ] 5단계 운영 노출
+- [ ] 5단계 운영 노출 — 계획 확정(2026-09-15, 위 "확정 계획"). [ ] S1 SoulCat 코드+스테이징 [ ] S2 스테이징 실 LLM e2e [ ] S3 SoulCat 운영(LLM OFF) [ ] S4 CD 승격+유료 1종
 - 🔴 범위 밖(보고만): main CI `AI Locale Gate` 가 `9fa1c714f` 부터 `recoverGeomancy is not defined` 로 실패 중. `passExcluded` 의미가 v1(`billing.js` 월정석 허용)과 v2(`payments/index.js` 월정석 거부)에서 다름. `KRW_PER_COIN` 3중 선언(`billing-policy.js`·`lib/payment/coin-pricing.ts`·`music-access-policy.js`). 결제창 렌더러 3종이 서버 `hiddenMethods` 를 읽지 않아 호출부 옵션에 의존(`app/checkout/CheckoutClient.tsx` 주석). `app/checkout/**` 이 `paid-flow-gates`·deepRequired 목록에 없다. SoulCat 페르소나 상수(`yeongnyangi.ts`)와 `PRODUCT.md` 의 "~냥" 어미 규칙 불일치. 윈도우 CRLF 체크아웃에서 vendored saju 해시 테스트·`integrity-unique-index-spec` 정적 테스트가 헛실패.
 
 ## 함정
