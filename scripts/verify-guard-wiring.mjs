@@ -94,6 +94,10 @@ const UNWIRED_BY_DESIGN = [
   ["verify:mobile-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],
   ["verify:desktop-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],
   ["verify:hybrid-desktop-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],
+  [
+    "verify:palm-mobile-payment-recovery",
+    "격리 loopback Playwright 실렌더 — 손금 결제 복귀 전달 점검 때 수동 실행. CI 차단 게이트 승격은 사용자 승인 사항",
+  ],
   ["verify:mobile-detail-render", "jsdom 실렌더 — 무거워 수동 실행(정적 짝은 CI 배선됨)"],
   [
     "verify:mobile-bottom-nav-clearance",
