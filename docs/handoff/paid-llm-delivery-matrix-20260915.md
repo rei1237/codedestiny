@@ -1,7 +1,7 @@
 ---
-status: active
+status: completed
 updated: 2026-09-15
-next: "P2 3번의 정적 해금·과거 SKU·alias를 pricing registry와 실제 CTA/consumer 기반 비LLM 전달 검사로 확장한다. 완료된 Compass 무료 narration 정책과 상담 전달 회귀는 재구현하지 않는다."
+next: "별도 승인 없이는 실 LLM·실결제·운영 DB·물리 기기·운영 승격을 실행하지 않는다."
 ---
 
 # 유료 LLM 전체 전달표와 잔여 검증
@@ -121,6 +121,7 @@ next: "P2 3번의 정적 해금·과거 SKU·alias를 pricing registry와 실제
 - `npm run verify:ai-consultation-flows` 전체 통과. typecheck 통과. 대상 ESLint 오류0(기존 경고 있음), worker-no-undef417파일 통과, Mongo query shapes 위반0, route-await69라우터 통과. sitemap/미러는 전달 체크포인트의 최종 결과를 따른다.
 - check:fast의 critical 계획을 확인하고 필요한 targeted 검사를 실행했다. 이전 check:fast 중단을 전체 로컬 성공으로 바꾸어 보고하지 않는다. 공식 완료는 해당 SHA의 main `CI required`다.
 - 무료 Compass 정책 정리 후 `check:fast` critical 전체가 통과했다: Node 1,342/1,342, Jest 3,696/3,696, typecheck, AI 상담 흐름, Worker dry-run과 정적 가드가 모두 통과했다. Compass 전용 W 검사는 5/5다. 사주 LLM·전문가 상담·대표 운명 상담을 다시 묶은 집중 mock 회귀는 Worker 21 suites 454/454, UI/실제 함수 105/105로 총559/559 통과했다. 숫자는 위 전체 집합과 겹치므로 합산하지 않는다. 실 LLM·실결제·운영 DB·물리 기기는 사용하지 않았다.
+- 정적·결정론 유료 전달: 활성 비LLM 34키가 실제 CTA와 결과 consumer에 함께 연결되고 pricing registry의 가격·`unlock`/`per_use` 유형과 일치하는지 고정했다. 판매 중단·통합 3키는 새 판매 CTA가 아니라 과거 이력·무료화/통합 근거로만 보존한다. 활성 consumer가 확인되지 않은 registry-only 9키는 전달 완료로 세지 않으며, 전체 pricing alias 72개는 canonical 가격·결제 유형으로 정규화한다. 실제 화면에서 쓰는 alias 7개도 진입 소스를 대조했다. W/paid-non-llm-delivery.test.js 5/5. 이 검사는 소스 기반 CTA/consumer 계약이며 모든 언어·기기·결제 복귀 E2E 증거는 아니다.
 
 ```powershell
 Set-Location D:\Development\code-destiny
@@ -128,6 +129,7 @@ $paidTests = @(rg --files __tests__/worker | Where-Object { $_ -match 'paid-deli
 node --experimental-vm-modules node_modules/jest/bin/jest.js @paidTests --runInBand --silent
 node --experimental-vm-modules node_modules/jest/bin/jest.js __tests__/worker/expert-follow-up-delivery.test.js __tests__/worker/per-use-proof-roundtrip.test.js --runInBand --silent
 node --require ./scripts/lib/mock-network-guard.cjs --test __tests__/ui/karma-follow-up-recovery.test.js __tests__/ui/palm-paid-result-recovery.test.js
+node --experimental-vm-modules node_modules/jest/bin/jest.js __tests__/worker/paid-non-llm-delivery.test.js --runInBand --silent
 npm run verify:ai-consultation-flows
 ```
 
@@ -143,7 +145,7 @@ npm run verify:ai-consultation-flows
 
 1. **완료 — 프라슈나 결정론 프롬프트 저장·응답 유실.** `fortune.js`가 만료된 `generating` lease만 재인수하고, 계산 결과를 `delivery_pending` checkpoint로 먼저 저장한 뒤 완료한다. 최종 저장 throw/null은 `RESULT_STORAGE_UNAVAILABLE`로 생성 실패·환불과 구분하며, 같은 `PaidExecutionRecord`에서 저장된 프롬프트를 재생성·재결제 없이 완료한다. 완료 쓰기 뒤 DB 응답 유실도 재조회로 확정한다. fixture는 외부 요청 0회와 실행 레코드 1개를 고정한다. W/vedic-prashna-paid-delivery.test.js.
 2. **완료 — 무료 Compass narration 시간 예산·무료 LLM 정책.** 무료 결과는 결정론 계산과 템플릿만으로 먼저 완성하고, LLM은 이미 계산된 근거·문장의 선택적 다듬기 예외로만 쓴다. 새 무료 실 LLM 경로는 자동 확장하지 않으며 서버측 전역 한도·캐시·결정론 fallback·클라이언트보다 짧은 총예산을 별도 검토한다. Compass는 충실도 교정 최대2회×호출당 공유10초, 헬퍼 요청 재시도1회, 서버 총24초/클라이언트32초로 고정했다. 유료 심층 지도 결과·결제 정책과 분리했다. W/destiny-compass-free-narration.test.js.
-3. 표의 정적 해금/과거 SKU/alias는 pricing registry와 실제 CTA/consumer를 조합한 비LLM 전달 검사로 확장한다. 이 표가 모든 정적 SKU E2E 완료표는 아니다.
+3. **완료 — 정적 해금·과거 SKU·alias 비LLM 전달 계약.** `love-code`를 포함한 활성 비LLM 34키는 pricing registry의 가격·결제 유형과 실제 CTA/consumer 소스를 함께 고정했다. `palm-reading-ai-consult`·`human-design-chart`·`sukuyo-symbolic-comparison`은 판매 중단·통합·UI 미사용 근거와 과거 이력 보존 경로를 분리했다. `astro_basic_deep_pack`·`astro_monthly_transit`·`astro_yearly_transit`·`turtleIChing`·`egyptOracle`·`egyptian_oracle_ai_prompt`·`stonehengeRunes`·`stonehenge-runes-ai-prompt`·`sukuyo-monthly-fortune`은 활성 CTA/consumer가 확인되지 않아 registry-only로 남기고 완료 수에 넣지 않았다. 전체 alias 72개의 canonical 가격·결제 유형과 실제 화면 alias 7개의 진입 근거를 검사한다. legacy `loveSimulation`은 현재 CTA가 아니라 과거 읽기 호환 alias로만 정규화한다. W/paid-non-llm-delivery.test.js. 소스 계약 검사이므로 모든 정적 SKU의 이력·언어·디바이스·결제 복귀 E2E 완료표는 아니다.
 
 ### 별도 승인 없이는 실행하지 않을 확인
 
