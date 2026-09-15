@@ -532,6 +532,8 @@ const handleUserRoutes = createLazyRouteHandler("./routes/user.js", () => import
 const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => import("./routes/profile.js"), "handleProfileRoutes");
 const handleProfileListRoute = createLazyRouteHandler("./routes/profile-list.js", () => import("./routes/profile-list.js"), "handleProfileListRoute", "api/profile");
 const handleAccessStateRoutes = createLazyRouteHandler("./routes/access-state.js", () => import("./routes/access-state.js"), "handleAccessStateRoutes", "api/me/access-state");
+// 영냥이(SoulCat) 결제 증빙 조회·소비 — Service Binding 전용, direct_only 단건 결제 증빙만
+const handleYeongnyangiEntitlementRoutes = createLazyRouteHandler("./routes/yeongnyangi-entitlement.js", () => import("./routes/yeongnyangi-entitlement.js"), "handleYeongnyangiEntitlementRoutes", "api/yeongnyangi-entitlement");
 const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
 const handleAstrologyAiRoutes = createLazyRouteHandler("./routes/astrology-ai.js", () => import("./routes/astrology-ai.js"), "handleAstrologyAiRoutes");
 const handleNeoOperationRoomRoutes = createLazyRouteHandler("./routes/neo-operation-room.js", () => import("./routes/neo-operation-room.js"), "handleNeoOperationRoomRoutes", "api/neo-operation-room");
@@ -1842,6 +1844,10 @@ export default {
 
       if (url.pathname === "/api/me/access-state") {
         return withCorsHeaders(request, env, await handleAccessStateRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/yeongnyangi-entitlement" || url.pathname === "/api/yeongnyangi-entitlement/") {
+        return withCorsHeaders(request, env, await handleYeongnyangiEntitlementRoutes(request, env));
       }
 
       if (url.pathname === "/api/subscriptions" || url.pathname.startsWith("/api/subscriptions/")) {
