@@ -12,7 +12,8 @@ next: SoulCat 레포 codex/soulcat-staging-login-payment 브랜치에서 staging
 
 ## 지금 상태
 
-- CD 홈 진입 밴드를 마지막 슬롯(`#cdhGuideSlot`) 뒤에서 **`#cdhQuickSlot`(FORTUNE GATE) 바로 아래**로 이동, "CODE DESTINY NEW WORLD" 밴드로 재설계(2026-09-15, 커밋 `feat(home): promote Yeongnyangi new-world band above the fold`). 게이트는 그대로 `hostname==='staging.code-destiny.com'` — 운영에는 SoulCat 워커 routes/D1 이 없어 CTA 가 404 이므로 사용자 결정으로 스테이징 전용.
+- CD 홈 진입 밴드를 마지막 슬롯(`#cdhGuideSlot`) 뒤에서 **`#cdhQuickSlot`(FORTUNE GATE) 바로 아래**로 이동, "CODE DESTINY NEW WORLD" 밴드로 재설계. main 커밋 `560f762bd`·`729467e34`·`5a76ab5a8`(2026-09-15), 스테이징 실측 완료(360/390/430/1280 클리핑·넘침 없음, 밴드 폭 = 슬롯 폭, 모바일 top ≈ 1,570px). 게이트는 그대로 `hostname==='staging.code-destiny.com'` — 운영에는 SoulCat 워커 routes/D1 이 없어 CTA 가 404 이므로 사용자 결정으로 스테이징 전용.
+- 🔴 범위 밖: main CI `AI Locale Gate` 가 `9fa1c714f` 부터 `ReferenceError: recoverGeomancy is not defined` 로 실패 중(이 작업과 무관, 다른 세션 축).
 - SoulCat 은 별도 워커 `soulcat-service-staging` 이 같은 호스트의 `/yeongnyangi*`, `/_soulcat/*`, `/api/yeongnyangi/*` 를 서빙. 배포 SHA `2348c4e` 는 SoulCat 로컬 브랜치 `codex/soulcat-staging-login-payment`(main 보다 6 커밋 앞, **미푸시**). SoulCat main 워킹트리는 dirty(75 수정/18 미추적) — 이 세션은 건드리지 않았다.
 - 계정: SoulCat `server/auth.ts` `sharedUser()` 가 `fortune_auth_token`/`fortune_auth_refresh` 쿠키만 Service Binding(`AUTH_SERVICE → code-destiny-web-staging`)으로 CD `/api/auth/me` 에 넘겨 검증. 별도 회원 DB·URL 토큰·localStorage JWT 없음. 로그인은 CD `/login/?returnTo=` 링크. → 브리프 요구 충족, 변경 없음.
 - 결제/공개 분리: `PAYMENTS_ENABLED=false` + `server/payments/catalog.ts` 전 product `enabled:false`. 주문 API 는 503 `PAYMENTS_UNAVAILABLE` fail-closed. 무료 기능(멸치 출석·무료 카테고리·방·프롤로그)은 로그인만 있으면 동작.
