@@ -3457,6 +3457,122 @@ function getPrashnaExecutionId(userId, orderId) {
   return `vedic-prashna:${String(userId || "").trim()}:${String(orderId || "").trim()}`.slice(0, 160);
 }
 
+const VEDIC_PRASHNA_STALE_GENERATING_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
+
+function isVedicPrashnaStaleGenerating(record, now = new Date()) {
+  if (!record || record.status !== "generating") return false;
+  const updatedAtMs = Date.parse(
+    record.result?.generationClaimedAt
+      || record.updatedAt
+      || record.consumedAt
+      || record.createdAt
+      || "",
+  );
+  return Number.isFinite(updatedAtMs)
+    && updatedAtMs > 0
+    && now.getTime() - updatedAtMs > VEDIC_PRASHNA_STALE_GENERATING_MS;
+}
+
+function vedicPrashnaStorageError() {
+  const error = new Error("프라슈나 결과 저장을 확인하지 못했어요. 추가 결제 없이 다시 시도해 주세요.");
+  error.code = "RESULT_STORAGE_UNAVAILABLE";
+  error.status = 503;
+  return error;
+}
+
+function hasStoredPrashnaResult(record, expected = null) {
+  const value = record?.result?.prashnaResult;
+  if (!value || typeof value !== "object" || !String(value.resultId || "").trim() || !String(value.promptText || "").trim()) {
+    return false;
+  }
+  return !expected
+    || (value.resultId === expected.resultId && value.promptText === expected.promptText);
+}
+
+async function findPrashnaExecution(executionId, userId) {
+  return PaidExecutionRecord.findOne({ executionId, userId: String(userId) }).lean();
+}
+
+async function persistPrashnaDeliveryCheckpoint({ env, executionId, userId, leaseToken, storedResult, snapshot, prashnaResult, billing }) {
+  try {
+    await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+      { executionId, userId: String(userId), status: "generating", "result.leaseToken": leaseToken },
+      {
+        $set: {
+          status: "delivery_pending",
+          resultId: prashnaResult.resultId,
+          result: {
+            ...storedResult,
+            order: {
+              ...(storedResult.order || {}),
+              paymentStatus: "PAID",
+              generationStatus: "SAVING",
+            },
+            snapshot,
+            chart: prashnaResult.chart,
+            promptText: prashnaResult.promptText,
+            prashnaResult,
+            billing,
+            leaseToken,
+          },
+          error: null,
+        },
+      },
+      { new: true, returnDocument: "after" },
+    ).lean());
+  } catch {
+    // 쓰기는 반영됐지만 응답만 유실됐을 수 있으므로 아래 재조회가 정본이다.
+  }
+  const confirmed = await withMongoRetry(env, () => findPrashnaExecution(executionId, userId)).catch(() => null);
+  if (confirmed?.status === "delivery_pending" && hasStoredPrashnaResult(confirmed, prashnaResult)) return confirmed;
+
+  await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
+    { executionId, userId: String(userId), status: "generating", "result.leaseToken": leaseToken },
+    {
+      $set: {
+        status: "generation_failed",
+        error: {
+          code: "RESULT_STORAGE_UNAVAILABLE",
+          message: "프라슈나 결과 checkpoint 저장을 확인하지 못했습니다.",
+          refundAttempted: false,
+          refundOk: false,
+        },
+      },
+    },
+  )).catch(() => null);
+  throw vedicPrashnaStorageError();
+}
+
+async function completePrashnaDelivery({ env, executionId, userId, leaseToken, completedOrder, snapshot, prashnaResult, billing }) {
+  try {
+    await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+      { executionId, userId: String(userId), status: "delivery_pending", "result.leaseToken": leaseToken },
+      {
+        $set: {
+          status: "completed",
+          completedAt: new Date(),
+          resultId: prashnaResult.resultId,
+          result: {
+            order: completedOrder,
+            snapshot,
+            chart: prashnaResult.chart,
+            promptText: prashnaResult.promptText,
+            prashnaResult,
+            billing,
+          },
+          error: null,
+        },
+      },
+      { new: true, returnDocument: "after" },
+    ).lean());
+  } catch {
+    // 완료 쓰기 뒤 DB 응답만 유실된 경우도 재조회로 성공을 확정한다.
+  }
+  const confirmed = await withMongoRetry(env, () => findPrashnaExecution(executionId, userId)).catch(() => null);
+  if (confirmed?.status === "completed" && hasStoredPrashnaResult(confirmed, prashnaResult)) return confirmed;
+  throw vedicPrashnaStorageError();
+}
+
 function readPrashnaAccessMethod(payload = {}) {
   const text = String(
     payload?.accessMethod
@@ -3611,7 +3727,8 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   if (existing.status === "completed") {
     return json(normalizePrashnaStoredResult(existing));
   }
-  if (existing.status === "generating") {
+  const staleGenerating = isVedicPrashnaStaleGenerating(existing);
+  if (existing.status === "generating" && !staleGenerating) {
     return buildVedicPrashnaError(
       "REQUEST_IN_PROGRESS",
       "이미 처리 중인 주문입니다. 중복 결제 없이 기존 요청의 진행 상태를 확인합니다.",
@@ -3635,7 +3752,8 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
   // 기록돼 카드 환불 경로를 가린다. 사주 경로(readSajuAIPromptPointRefundContext)가 쓰던 가드와 동일.
   let isPointSpend = false;
   let isCardSpend = false;
-  const skipPaymentConsume = existing.status === "generation_failed" && storedResult?.order?.paymentStatus === "PAID";
+  const skipPaymentConsume = storedResult?.order?.paymentStatus === "PAID"
+    && (["generation_failed", "delivery_pending"].includes(existing.status) || staleGenerating);
 
   if (!skipPaymentConsume) {
     const delegatedRequest = new Request(request.url, {
@@ -3678,16 +3796,27 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       _paymentContext: body?._paymentContext,
     }, requestId);
   } else {
-    chargedCoins = VEDIC_PRASHNA_PROMPT_PRICE;
-    sourceTransactionId = String(existing.paymentId || existing.idempotencyKey || requestId || "").trim();
+    chargedCoins = Math.max(0, Number(storedResult?.billing?.chargedCoins ?? existing.amountCoins ?? VEDIC_PRASHNA_PROMPT_PRICE));
+    sourceTransactionId = String(storedResult?.billing?.sourceTransactionId || existing.paymentId || existing.idempotencyKey || requestId || "").trim();
   }
 
-  await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
-    { executionId, status: { $in: ["paid_pending_generation", "generation_failed"] } },
+  const leaseToken = crypto.randomUUID();
+  const claimFilter = {
+    executionId,
+    userId: String(auth.userId),
+    status: existing.status,
+  };
+  if (existing.status === "generating") {
+    if (existing.updatedAt) claimFilter.updatedAt = existing.updatedAt;
+    if (storedResult.leaseToken) claimFilter["result.leaseToken"] = storedResult.leaseToken;
+  }
+  const generationClaimedAt = new Date();
+  let claimed = await withMongoRetry(env, () => PaidExecutionRecord.findOneAndUpdate(
+    claimFilter,
     {
       $set: {
         status: "generating",
-        accessMethod: readPrashnaAccessMethod(consumePayload || body),
+        accessMethod: existing.accessMethod || readPrashnaAccessMethod(consumePayload || body),
         amountCoins: VEDIC_PRASHNA_PROMPT_PRICE,
         amountKRW: VEDIC_PRASHNA_PROMPT_AMOUNT_KRW,
         paymentId: sourceTransactionId,
@@ -3712,13 +3841,45 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
             sourceTransactionId,
             chargedCoins,
           },
+          leaseToken,
+          generationClaimedAt: generationClaimedAt.toISOString(),
         },
+        error: null,
       },
+      $unset: { completedAt: "" },
     },
-  ));
+    { new: true, returnDocument: "after" },
+  ).lean()).catch(() => null);
+  if (!claimed || claimed.status !== "generating" || claimed.result?.leaseToken !== leaseToken) {
+    const current = await withMongoRetry(env, () => findPrashnaExecution(executionId, auth.userId)).catch(() => null);
+    if (current?.status === "completed") return json(normalizePrashnaStoredResult(current));
+    if (current?.status === "generating" && current.result?.leaseToken === leaseToken) {
+      // claim 쓰기는 반영됐지만 DB 응답만 유실됐다. 같은 lease 소유자이므로 그대로 이어 간다.
+      claimed = current;
+    } else if (current?.status === "generating") {
+      return buildVedicPrashnaError(
+        "REQUEST_IN_PROGRESS",
+        "이미 처리 중인 주문입니다. 중복 결제 없이 기존 요청의 진행 상태를 확인합니다.",
+        409,
+        { orderId },
+      );
+    } else {
+      return buildVedicPrashnaError(
+        "RESULT_STORAGE_UNAVAILABLE",
+        "프라슈나 시작 상태를 확인하지 못했어요. 추가 결제 없이 다시 시도해 주세요.",
+        503,
+        { orderId, retryEligible: true, paymentRetainedForRetry: true },
+      );
+    }
+  }
 
   try {
-    const prashnaResult = await generatePrashnaPromptResult(env, snapshot, { requestUrl: request.url });
+    let prashnaResult = existing.status === "delivery_pending" && hasStoredPrashnaResult(existing)
+      ? storedResult.prashnaResult
+      : null;
+    if (!prashnaResult) {
+      prashnaResult = await generatePrashnaPromptResult(env, snapshot, { requestUrl: request.url });
+    }
     const completedOrder = {
       orderId,
       productCode: VEDIC_PRASHNA_PROMPT_PRODUCT_CODE,
@@ -3730,40 +3891,46 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       generationStatus: "GENERATED",
       paidAt: new Date().toISOString(),
     };
-    // 프라슈나 계산이 이미 성공한 뒤 이 저장 한 번이 흔들리면 결과가 통째로 버려지고 아래 catch가
-    // "생성 실패"로 오판해 환불 절차를 탄다(사주 AI 상담과 동일 함정) — withMongoRetry로 흡수한다.
-    await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
-      { executionId },
-      {
-        $set: {
-          status: "completed",
-          completedAt: new Date(),
-          resultId: prashnaResult.resultId,
-          result: {
-            order: completedOrder,
-            snapshot,
-            chart: prashnaResult.chart,
-            promptText: prashnaResult.promptText,
-            prashnaResult,
-            billing: {
-              requestId,
-              sourceTransactionId,
-              chargedCoins,
-            },
-          },
-          error: null,
-        },
-      },
-    ));
+    const billing = { requestId, sourceTransactionId, chargedCoins };
+    await persistPrashnaDeliveryCheckpoint({
+      env,
+      executionId,
+      userId: auth.userId,
+      leaseToken,
+      storedResult: claimed.result || storedResult,
+      snapshot,
+      prashnaResult,
+      billing,
+    });
+    const completed = await completePrashnaDelivery({
+      env,
+      executionId,
+      userId: auth.userId,
+      leaseToken,
+      completedOrder,
+      snapshot,
+      prashnaResult,
+      billing,
+    });
+    const persisted = completed.result.prashnaResult;
     return json({
       ok: true,
-      order: completedOrder,
-      result: prashnaResult,
-      promptText: prashnaResult.promptText,
-      chart: prashnaResult.chart,
-      snapshot,
+      order: completed.result.order,
+      result: persisted,
+      promptText: persisted.promptText,
+      chart: persisted.chart,
+      snapshot: completed.result.snapshot,
     });
   } catch (error) {
+    if (error?.code === "RESULT_STORAGE_UNAVAILABLE") {
+      console.error("[fortune][vedic-prashna] result storage unavailable:", error);
+      return buildVedicPrashnaError(
+        "RESULT_STORAGE_UNAVAILABLE",
+        error.message,
+        503,
+        { orderId, retryEligible: true, paymentRetainedForRetry: true },
+      );
+    }
     let refundAttempted = false;
     let refundOk = false;
     if (isPointSpend && chargedCoins > 0 && sourceTransactionId) {
@@ -3801,7 +3968,7 @@ async function handleVedicPrashnaGenerate(request, auth, env) {
       refundOk = cardRefund.refunded === true;
     }
     await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
-      { executionId },
+      { executionId, userId: String(auth.userId), status: "generating", "result.leaseToken": leaseToken },
       {
         $set: {
           status: refundOk ? "refunded" : "generation_failed",
@@ -6874,6 +7041,8 @@ export const __fortuneAccessTestUtils = {
   readAIPromptRequestId,
   findAIPromptPaidAccessEvidence,
   buildAIPromptVerifiedConsumePayload,
+  handleVedicPrashnaGenerate,
+  isVedicPrashnaStaleGenerating,
 };
 
 // 그룹 병렬 생성은 결제 경로 한가운데에 있어 mock 없이는 손댈 수 없다.

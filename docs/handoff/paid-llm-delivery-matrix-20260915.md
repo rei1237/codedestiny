@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-15
-next: "P2의 프라슈나 결정론 프롬프트 저장·응답 유실 fixture부터 진행한다. P1 completed GET 취소/환불 대조는 재구현하지 않는다."
+next: "P2 2번의 무료 compass narration 시간 예산·무료 운세 LLM 정책을 별도 범위로 맞춘다. 완료된 프라슈나 fixture와 P1 completed GET 대조는 재구현하지 않는다."
 ---
 
 # 유료 LLM 전체 전달표와 잔여 검증
@@ -140,7 +140,7 @@ npm run verify:ai-consultation-flows
 
 ### P2 — 분류가 끝났지만 LLM 개선 밖인 전달/정책 확인
 
-1. 프라슈나 결정론 프롬프트: fortune.js의 generating claim 만료·최종 저장 throw/null/응답 유실 fixture를 추가한다. 생성 실패와 저장 실패를 구분하고 새 결제 없이 같은 PaidExecutionRecord로 복구한다.
+1. **완료 — 프라슈나 결정론 프롬프트 저장·응답 유실.** `fortune.js`가 만료된 `generating` lease만 재인수하고, 계산 결과를 `delivery_pending` checkpoint로 먼저 저장한 뒤 완료한다. 최종 저장 throw/null은 `RESULT_STORAGE_UNAVAILABLE`로 생성 실패·환불과 구분하며, 같은 `PaidExecutionRecord`에서 저장된 프롬프트를 재생성·재결제 없이 완료한다. 완료 쓰기 뒤 DB 응답 유실도 재조회로 확정한다. fixture는 외부 요청 0회와 실행 레코드 1개를 고정한다. W/vedic-prashna-paid-delivery.test.js.
 2. 무료 compass narration의 클라이언트/서버 시간 예산과 무료 운세 LLM 사용 정책을 별도로 맞춘다. 유료 지도 리포트의 완료로 묶지 않는다.
 3. 표의 정적 해금/과거 SKU/alias는 pricing registry와 실제 CTA/consumer를 조합한 비LLM 전달 검사로 확장한다. 이 표가 모든 정적 SKU E2E 완료표는 아니다.
 
