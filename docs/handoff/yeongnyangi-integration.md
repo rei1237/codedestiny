@@ -10,7 +10,7 @@ next: 1단계 결제 일원화 착수 — CD `worker/lib/paid-feature-registry.j
 
 - **추가 MID 발급 없음.** 결제는 code-destiny.com 의 기존 PortOne 스토어·기존 MID·기존 결제창에서만 일어난다. SoulCat 전용 PortOne 스토어·비밀 7종·별도 webhook 은 폐기 대상.
 - **구조는 하이브리드.** 신원·결제·프로필·SEO·탈퇴는 CD 로 통합, SoulCat Worker + D1 은 앱 상태(책·챕터·무료 운세·출석) 저장소로 유지. Mongo 이식 없음. 병합 전환 기준: 영냥이 월 유료 주문이 CD 유료 주문의 30% 초과, 또는 CD 엔진 정정이 SoulCat `server/vendor/code-destiny/` 사본에 반영되지 않아 결과 차이가 보고될 때.
-- **이용권 정책.** 영냥이 책 상품은 이용권 제외(passExcluded, 장문 LLM 원가), 월정석 차감 허용, 카드·카카오 단건 결제 허용.
+- **결제 정책(2026-09-15 재확정).** 영냥이 세계는 "다른 차원"이라 **이용권도 월정석도 통하지 않는다.** 카드·카카오페이 단건 결제만 허용(등록소 `paymentScope:"direct_only"`). 홈 밴드·SoulCat 결제 화면에 이 설정을 명시하고 영냥이 대사("이용권? 월정석? 먹지도 못하는 걸 어디에 써? 나는 꽃돼지 연이처럼 그렇게 혜자는 아니야~")를 싣는다.
 
 ## 완료된 것
 

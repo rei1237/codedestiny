@@ -7,7 +7,7 @@
 // 프론트는 이 파일을 직접 import하지 않고 GET /api/reviews/products로 받는다
 // (worker(.js) ↔ Next(.ts) 빌드 결합을 만들지 않기 위해서 — /api/billing/features와 같은 방식).
 
-import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { YEONGNYANGI_PAID_FEATURE_KEYS, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 
 // featureKeys는 normalizePaidFeatureKey를 통과한 정본 키만 적는다.
 // 별칭(gotoZiweiPremium 등)은 조회 시점에 정규화되므로 여기 나열하지 않는다.
@@ -397,6 +397,9 @@ export const REVIEW_EXCLUDED_FEATURE_KEYS = Object.freeze([
   "sajuDiary",
   // 프로필 카드 추가/수정/삭제라는 UI 조작 과금이라 "상담·리포트 후기" 성격과 맞지 않는다.
   "profile-card-manage",
+  // 영냥이(SoulCat) 상품은 다른 서비스(yeongnyangi.* 워커)에서 소비되는 단건 결제 전용 증빙이라
+  // CD 리뷰 카탈로그의 상담·리포트 그룹에 속하지 않는다. 후기는 SoulCat 쪽에서 다룬다.
+  ...YEONGNYANGI_PAID_FEATURE_KEYS,
 ]);
 
 const PRODUCT_BY_ID = Object.freeze(

@@ -60,6 +60,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
 
   // 402 — 신원은 맞는데 낼 것이 부족하다.
   INSUFFICIENT_MOONSTONE: { status: 402 },
+  // direct_only(영냥이) 상품에 월정석·이용권 결제를 시도했다 — 셸이 단건 결제창으로 인계한다.
+  DIRECT_ONLY_PAYMENT_REQUIRED: { status: 402 },
 
   // 403 — 신원은 맞는데 이 자원에 대한 권한이 없다.
   ORDER_FORBIDDEN: { status: 403 },

@@ -286,6 +286,24 @@ for (const featureKey of listServerPricedFeatureKeys()) {
   // 정본 판정(isPassExcludedPricing)을 그대로 써서 향후 추가되는 제외 기능도 자동으로 덮는다.
   // 과거엔 이 루프가 profile-card-manage에 대해 "premium/vvip는 한도 안이니 커버됨"을 단언해 버그를
   // 정상으로 고정했고, 같은 파일의 licenseTier!=="FAMILY"/profile_card_pass_excluded 단언과 모순이었다.
+  // direct_only(영냥이, 등록소 paymentScope): 이용권도 월정석도 불가 — 단건만 노출된다.
+  // 문서화된 예외(docs/context/payment-gating.md "direct_only 예외"). 정본은 isDirectOnlyPricing 하나.
+  if (__billingTestUtils.isDirectOnlyPricing(pricingInput)) {
+    for (const [label, decisionForTier] of [
+      ["standard", standardDecision],
+      ["premium", premiumDecision],
+      ["vvip", vvipDecision],
+      ["family", familyDecision],
+    ]) {
+      assert.equal(decisionForTier.canUseByPass, false, `${featureKey}: direct_only 는 ${label} 이용권으로 커버되면 안 된다`);
+      assert.equal(decisionForTier.canUseByMonthly, false, `${featureKey}: direct_only 는 월정석으로 커버되면 안 된다(${label})`);
+      assert.deepEqual(decisionForTier.equalPriorityMethods, ["DIRECT_KRW"], `${featureKey}: direct_only 는 단건만 노출한다(${label})`);
+      assert.ok(decisionForTier.hiddenMethods.includes("MOONLIGHT_STONE") && decisionForTier.hiddenMethods.includes("PASS"), `${featureKey}: direct_only 는 이용권·월정석을 숨긴다(${label})`);
+      assert.equal(decisionForTier.decisionReason, "DIRECT_ONLY_PAYMENT_REQUIRED", `${featureKey}: direct_only 결정 사유(${label})`);
+    }
+    continue;
+  }
+
   if (__billingTestUtils.isPassExcludedPricing(pricingInput)) {
     for (const [label, decisionForTier] of [
       ["standard", standardDecision],

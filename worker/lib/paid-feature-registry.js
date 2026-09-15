@@ -129,6 +129,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "fun.quantumLotto.ritualReport",
   "pet-saju-ai-consultation",
   "pet-compatibility-ai",
+  // 영냥이 상품은 /checkout 호스트 페이지가 featureKey 로 결제창을 연다(아래 YEONGNYANGI_PAID_FEATURE_KEYS).
 ];
 
 export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
@@ -180,6 +181,33 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze(
     ]),
   ),
 );
+
+// 영냥이(SoulCat, /yeongnyangi/*) 책 상품. 다른 차원 세계관이라 이용권·월정석이 통하지 않고
+// 단건 결제(카드·카카오페이)만 받는다(paymentScope:"direct_only", 2026-09-15 사용자 확정).
+// 가격 정본은 SoulCat server/payments/catalog.ts 와 같아야 한다(6 체계 × 4 어종 + 퓨전 4종).
+const YEONGNYANGI_SYSTEMS = Object.freeze({
+  saju: "사주", ziwei: "자미두수", sukuyo: "숙요", vedic: "베다점", astrology: "서양 점성술", tarot: "타로",
+});
+const YEONGNYANGI_FISH = Object.freeze({
+  mackerel: ["고등어", 1000], salmon: ["연어", 3000], flounder: ["광어", 5000], tuna: ["참치", 10000],
+});
+const YEONGNYANGI_FUSIONS = Object.freeze([
+  ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 20000],
+  ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 20000],
+  ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 20000],
+  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 30000],
+]);
+function buildYeongnyangiEntry(name, fishName, amountKRW) {
+  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_only" };
+}
+const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
+  ...Object.entries(YEONGNYANGI_SYSTEMS).flatMap(([system, name]) =>
+    Object.entries(YEONGNYANGI_FISH).map(([fish, [fishName, amountKRW]]) =>
+      [`yeongnyangi-${system}-${fish}`, buildYeongnyangiEntry(name, fishName, amountKRW)])),
+  ...YEONGNYANGI_FUSIONS.map(([slug, name, fishName, amountKRW]) =>
+    [`yeongnyangi-${slug}`, buildYeongnyangiEntry(name, fishName, amountKRW)]),
+]));
+export const YEONGNYANGI_PAID_FEATURE_KEYS = Object.freeze(Object.keys(YEONGNYANGI_RAW_PRICE_ENTRIES));
 
 const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "vedic-ai-consultation": { cost: 300, amountKRW: 30000, reason: "베다점 전문가 상담" },
@@ -342,9 +370,18 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   rpt_villainCard: { cost: 50, reason: "빌런 블랙리스트 영구 해금" },
   rpt_secretHouseEntryCard: { cost: 50, reason: "시크릿 하우스 영구 해금" },
   "fun.quantumLotto.ritualReport": { cost: 50, reason: "달빛 럭키 리추얼 리포트" },
+  ...YEONGNYANGI_RAW_PRICE_ENTRIES,
 });
 
 export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE_KEY_PRICE_TABLE);
+
+/** 결제 범위 `direct_only`: 이용권·월정석 모두 불가, 단건 결제(카드·카카오페이)만. 정본 판정은 이 함수 하나. */
+export const PAYMENT_SCOPE_DIRECT_ONLY = "direct_only";
+
+export function isDirectOnlyPaidFeatureKey(featureKey) {
+  const key = normalizePaidFeatureKey(featureKey);
+  return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
+}
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
   [LOVE_CODE_PRODUCT_ID]: {
@@ -521,6 +558,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "pet-saju-ai-consultation",
   "pet-compatibility-ai",
   "profile-card-manage",
+  // 영냥이 책은 매번 새로 생성되는 장문 리포트 → 회당 결제. 언락 테이블에 넣지 않는다.
+  ...YEONGNYANGI_PAID_FEATURE_KEYS,
 ]);
 
 const PDF_PAID_FEATURE_KEY_LIST = Object.freeze([]);
@@ -763,5 +802,5 @@ export function listServerPricedFeatureKeys() {
 }
 
 export const FRONTEND_PAID_FEATURE_KEYS = Object.freeze(
-  Array.from(new Set(INTERNAL_FRONTEND_FEATURE_KEYS)).sort(),
+  Array.from(new Set([...INTERNAL_FRONTEND_FEATURE_KEYS, ...YEONGNYANGI_PAID_FEATURE_KEYS])).sort(),
 );

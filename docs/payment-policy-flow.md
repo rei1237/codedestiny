@@ -25,6 +25,7 @@
 
 ### 결제창 노출 규칙 (공통)
 
+- 🔴 **유일한 예외 — `paymentScope:"direct_only"`(2026-09-15, 현재 영냥이 `yeongnyangi-*` 만).** 세계관상 "다른 차원"이라 이용권도 월정석도 통하지 않고 **단건 결제(카드·카카오페이)만** 받는다. 정본은 등록소 필드와 `isDirectOnlyPaidFeatureKey` 하나이며 서버는 v2 `/coin-gate/moonstone`·`/moonstone/spend` 를 402 `DIRECT_ONLY_PAYMENT_REQUIRED`, `/coin-gate/pass-check` 를 402 `MEMBERSHIP_PASS_NOT_ALLOWED` 로 막는다. 결제창은 `/checkout/` 호스트 페이지(`allowedPaymentModes:["direct"]`)로만 연다. 상세: [payment-gating](context/payment-gating.md).
 - 모든 유료 서비스(A 잠금·B 회당 공통)에 적용된다. **결제창에는 이용권/단건/월정석 세 옵션이 항상 함께 보여야 하며, [이용권으로 구매] 카드를 없애거나 단순 상점 링크로 되돌리는 구현 금지** — 그 카드가 사라지면 스냅샷 없는 이용권 보유자가 이용권을 확인할 방법 자체를 잃는다.
 - **진입 시 이용권 서버 선검사를 되살리지 말 것** — 셸·React·독립 정적 모두 스냅샷 판정만 쓴다. 되살리면 유료 클릭마다 왕복(구 셸 6초 예산 + 재시도 2회, React 15초 프로브)이 결제창 앞에 다시 붙는다. 가드: `verify:portone-single-payment`(`CD_PASS_FIRST_BUDGET_MS`/`CD_PASS_SLOW_NOTE` 부활 금지, `snapshotVerdictOnly` 존재 강제).
 - **결제수단 자동 전환 금지** — `DIRECT_KRW`를 이용권 무료 접근으로 바꾸거나 `MEMBERSHIP_PASS`를 PortOne 주문으로 바꾸지 않는다. 가드: `verify:billing-pass-policy`, `smoke:core`.
@@ -90,6 +91,7 @@
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-09-15 | **영냥이(SoulCat) 상품 28종을 `paymentScope:"direct_only"` 로 등록.** 세 번째 결제 범위 상태 — 이용권·월정석 모두 불가, 단건 결제만. 카탈로그 `directOnly`(passExcluded 포함) 정본 하나로 v2 pass-check·coin-gate/moonstone·moonstone/spend 와 v1 billing.js 판정(`equalPriorityMethods:["DIRECT_KRW"]`, `hiddenMethods` 에 월정석·이용권)을 fail-closed 로 막았다. `verify:billing-pass-policy` 가 세 번째 상태를 단언하고 리뷰 카탈로그는 이 키를 명시 제외한다. 결제창 호스트 `/checkout/` 와 홈 밴드 안내는 같은 1단계의 후속 커밋. |
 | 2026-08-29 | **결제창 2단계에 실시간 계좌이체·상품권 3종 활성화.** KG이니시스가 계좌이체·상품권 지불수단 추가를 처리완료(2026-08-24)해 `TRANSFER` 와 상품권을 열었다. 상품권은 PortOne V2 가 `giftCertificate.giftCertificateType` 을 필수로 요구해 종류별 카드가 필요하므로 정본 표의 **키를 카드 id 로 승격**하고(`GIFT_CULTURELAND`·`GIFT_BOOKNLIFE`·`GIFT_SMART_MUNSANG`) 항목이 `payMethod` 를 들게 했다. 요청 조립부 2곳(셸·독립 정적)은 `resolveDirectPayFields()` 가 준 묶음을 얹는다. `MOBILE` 은 이니시스에서 처리불가(결제경로 미발송) 후 재신청 중이라 계속 잠금. 해피머니·`CULTURE_GIFT` 는 PortOne V2 이니시스 경로에 대응 값이 없어 제외. |
 | 2026-08-29 | **앱(Play) 콘텐츠 티어 가격을 웹가와 동일하게 인하.** 8개 SKU 를 3,900→3,000 / 6,000→5,000 / 8,900→7,000 / 13,000→10,000 / 25,000→20,000 / 39,000→30,000 / 49,000→39,000 / 89,000→70,000 으로 내렸다. 이용권 4종은 2026-08-24 에 이미 동일가였으므로 이제 **앱의 모든 SKU 가 웹가와 같다** — Play 수수료 15%를 그대로 부담한다는 뜻이고 의도된 선택이다. 종전의 "콘텐츠 티어 20~30% 인상" 밴드 검사는 `verify:app-store-pricing`·`verify:app-store-billing-policy` 에서 **동일가 단언(오차 0)** 으로 교체했다. 상품 이름에 금액이 박혀 있어 이름 8개도 함께 내렸다. 🔴 Play Console 등록가 인하가 코드 배포보다 **먼저** 끝나 있어야 한다(사용자가 2026-08-29 확인). 반대 순서면 그 사이가 "앱 표시가 < 실제 청구가" 정책 위반 구간이다. |
 | 2026-08-24 | **등급별 적용 가격 범위 상향 + 상담 포함횟수 폐지.** 건당 상한 3,000/5,000/10,000 → **5,000/10,000/20,000원**(family 상한 없음 유지). 월 이용 한도(3만·10만·20만·50만원)와 프로필 수(3/7/15/무제한)는 종전 그대로. '프리미엄 상담 포함 횟수'(family 10회·vvip 3회)와 그 대상 건의 건당 상한 우회를 폐지해 판정 규칙을 둘로 줄였다. 이용권 앱(Play) SKU 가격을 **웹가와 동일**하게 맞췄다(콘텐츠 티어는 종전대로 20~30% 인상 유지). 사용자 화면에서 '무제한'·'월 누적'·'횟수 제한 없음' 표현을 제거하고 `N원급 콘텐츠까지 · 월 최대 N원 상당 · 프로필 최대 N개`로 통일. 신규 가드 `verify:pass-tier-policy`가 정본과 하드코딩 사본 5곳, 가격 경계, 금지 문구를 함께 강제한다. |

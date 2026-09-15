@@ -1197,7 +1197,17 @@ const ROUTES = {
       ctx.orderId = requestId;
       const profileId = String(body.profileId || body.selectedProfileId || "").trim();
       let billingType = "per_use";
-      try { billingType = String(resolveProduct({ featureKey: product.featureKey }).billingType || "per_use"); } catch { billingType = "per_use"; }
+      let directOnly = false;
+      try {
+        const catalogItem = resolveProduct({ featureKey: product.featureKey });
+        billingType = String(catalogItem.billingType || "per_use");
+        directOnly = catalogItem.directOnly === true;
+      } catch { billingType = "per_use"; }
+      // direct_only(영냥이) 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 directOnly 하나. 구 coin-gate
+      // MONTHLY 요청은 worker/index.js 가 여기로 재작성하므로 이 자리가 실제 관문이다.
+      if (directOnly) {
+        throw paymentError("DIRECT_ONLY_PAYMENT_REQUIRED", "이 상품은 단건 결제로만 이용할 수 있습니다.", { featureKey: product.featureKey });
+      }
       const unlock = billingType !== "per_use";
 
       let spend;
@@ -1316,13 +1326,18 @@ const ROUTES = {
       // 정본은 카탈로그의 passExcluded 하나다 — featureKey 별 예외 분기를 두지 말 것.
       let billingType = "per_use";
       let passExcluded = false;
+      let directOnly = false;
       try {
         const catalogItem = resolveProduct({ featureKey: product.featureKey });
         billingType = String(catalogItem.billingType || "per_use");
         passExcluded = catalogItem.passExcluded === true;
+        directOnly = catalogItem.directOnly === true;
       } catch { /* 카탈로그 미등재는 아래 일반 경로로 */ }
       if (passExcluded) {
-        return passGateFailure("MEMBERSHIP_PASS_NOT_ALLOWED", "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", { featureKey: product.featureKey });
+        const message = directOnly
+          ? "이 상품은 이용권으로 결제할 수 없습니다. 단건 결제로만 이용해 주세요."
+          : "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.";
+        return passGateFailure("MEMBERSHIP_PASS_NOT_ALLOWED", message, { featureKey: product.featureKey, directOnly });
       }
 
       const profileId = String(body.profileId || body.selectedProfileId || "").trim();
@@ -1470,6 +1485,9 @@ const ROUTES = {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
+      if (product.directOnly) {
+        throw paymentError("DIRECT_ONLY_PAYMENT_REQUIRED", "이 상품은 단건 결제로만 이용할 수 있습니다.");
+      }
       if (product.passExcluded) {
         throw paymentError("PASS_NOT_APPLICABLE", "이 기능은 월정석으로 결제할 수 없습니다.");
       }

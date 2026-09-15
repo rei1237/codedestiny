@@ -1,6 +1,11 @@
 import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
-import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import {
+  isDirectOnlyPaidFeatureKey,
+  isPerUsePaidFeatureKey,
+  isUnlockPaidFeatureKey,
+  normalizePaidFeatureKey,
+} from "./paid-feature-registry.js";
 import { Payment, User } from "./models.js";
 import { getUnlockedContentSnapshot } from "./content-unlocks.js";
 import { PermissionService } from "./permission-service.js";
@@ -117,12 +122,15 @@ function resolveMonthlySubscription(user = {}) {
   };
 }
 
+// direct_only(영냥이) 상품은 월정석·월 구독으로 열 수 없다 — 단건 결제만.
 function canUseMonthlyForFeature(featureKey) {
-  return Boolean(cleanText(featureKey));
+  const key = cleanText(featureKey);
+  return Boolean(key) && !isDirectOnlyPaidFeatureKey(key);
 }
 
+// direct_only 는 이용권 제외를 포함한다(이용권도 월정석도 불가).
 function isPassExcluded(featureCandidates = []) {
-  return featureCandidates.some((key) => PASS_EXCLUDED_FEATURE_KEYS.has(cleanText(key)));
+  return featureCandidates.some((key) => PASS_EXCLUDED_FEATURE_KEYS.has(cleanText(key)) || isDirectOnlyPaidFeatureKey(key));
 }
 
 function resolveLicenseReason(tier) {

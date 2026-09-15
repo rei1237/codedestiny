@@ -15,6 +15,7 @@ import {
 import {
   LEGACY_LOVE_CODE_FEATURE_KEYS,
   LOVE_CODE_FEATURE_KEY,
+  isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
   isUnlockPaidFeatureKey,
   normalizePaidFeatureKey,
@@ -594,8 +595,13 @@ function resolvePricingAmountKRW(pricing = {}, coinCost = 0) {
   return calculateKrwAmountFromCoins(coinCost);
 }
 
+// direct_only(영냥이) 상품은 이용권 제외를 포함한다 — 정본은 등록소 paymentScope 하나.
+function isDirectOnlyPricing(pricing = {}) {
+  return isDirectOnlyPaidFeatureKey(pricing?.featureKey);
+}
+
 function isPassExcludedPricing(pricing = {}) {
-  return PASS_EXCLUDED_FEATURE_KEYS.has(String(pricing?.featureKey || "").trim());
+  return PASS_EXCLUDED_FEATURE_KEYS.has(String(pricing?.featureKey || "").trim()) || isDirectOnlyPricing(pricing);
 }
 
 function resolvePassPolicyForTier(tierRaw) {
@@ -1036,10 +1042,13 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     passExcluded,
   });
   const passCovered = featureAccess.allowed && !familyQuotaExhausted && !monthlyQuotaExceeded;
-  const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
+  // direct_only(영냥이): 이용권도 월정석도 불가 — 서버가 MOONLIGHT_STONE 을 내보내면 셸 렌더러가
+  // 월정석 카드를 다시 켜므로(index.html equalPriorityMethods 재활성화) 목록에서 아예 뺀다.
+  const directOnly = isDirectOnlyPricing(pricing);
+  const monthlyCovered = !directOnly && coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
-  // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다.
-  const equalPriorityPaidMethods = ["DIRECT_KRW", "MOONLIGHT_STONE"];
+  // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다(direct_only 예외).
+  const equalPriorityPaidMethods = directOnly ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
 
   return {
     coinCost,
@@ -1060,7 +1069,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : []),
     // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
     // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
     // 사유와 잔여 횟수를 함께 내린다.
@@ -1079,7 +1088,9 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     } : {}),
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (passExcluded
+      : (directOnly
+        ? "DIRECT_ONLY_PAYMENT_REQUIRED"
+        : passExcluded
         ? "PASS_EXCLUDED_PAYMENT_REQUIRED"
         : (familyQuotaExhausted
           ? "PREMIUM_QUOTA_EXHAUSTED"
@@ -3383,8 +3394,18 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   }
   // 이 가드는 음악 트랙 전용이 아니다 — PASS_EXCLUDED_FEATURE_KEYS(프로필 카드 추가/삭제)와
   // 음악 트랙이 같은 판정(isPassExcludedPricing)을 공유하므로 문구도 기능 중립이어야 한다.
+  const directOnlyForPricing = isDirectOnlyPricing(pricing);
   if (membershipPassRequested && passExcludedForPricing) {
-    return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+    return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", directOnlyForPricing ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+      pricing,
+      paymentOptions: buildPassPaymentDecision(null, pricing, null),
+      accessGrant: null,
+      balance: null,
+    });
+  }
+  // direct_only(영냥이): 월정석 차감 경로를 진입에서 닫는다(fail-closed).
+  if (monthlyBalanceRequested && directOnlyForPricing) {
+    return failure(402, "MONTHLY_NOT_ALLOWED", "이 상품은 월정석으로 결제할 수 없습니다. 단건 결제로 이용해 주세요.", undefined, {
       pricing,
       paymentOptions: buildPassPaymentDecision(null, pricing, null),
       accessGrant: null,
@@ -4432,8 +4453,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   if (passExcludedForPricing && coinPaymentRequested) {
     // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출(부족 시 클라이언트가 비활성 처리).
     // 이용권 제외 기능 공용 경로(프로필 카드 추가/삭제 + 음악 트랙) — 문구·변수명을 기능 중립으로 둔다.
-    const passExcludedPaymentMethods = ["DIRECT_KRW", "MOONLIGHT_STONE"];
-    return failure(402, "PAYMENT_REQUIRED", "이 기능은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+    const passExcludedPaymentMethods = directOnlyForPricing ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
+    return failure(402, "PAYMENT_REQUIRED", directOnlyForPricing ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 기능은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       ...paymentDecision,
       paymentOptions: {
@@ -4442,7 +4463,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         recommendedMethod: "PAYMENT_CHOICE",
         recommendedMethods: passExcludedPaymentMethods,
         equalPriorityMethods: passExcludedPaymentMethods,
-        hiddenMethods: ["PASS", "COIN"],
+        hiddenMethods: directOnlyForPricing ? ["PASS", "COIN", "MOONLIGHT_STONE"] : ["PASS", "COIN"],
         paymentPriority: "USER_CHOICE_EQUAL",
       },
       accessDecision,
@@ -6870,6 +6891,7 @@ export const __billingTestUtils = {
   buildPassPaymentDecision,
   buildMembershipPassFromStatusSnapshot,
   buildRefundedSpendSourceId,
+  isDirectOnlyPricing,
   isPassExcludedPricing,
   isExplicitLegacyCoinPaymentMode,
   // 503 분류 3종. 정적 문자열 매칭으로는 "무엇을 DB 장애로 볼 것인가"를 검증할 수 없어 실제로 호출한다.
