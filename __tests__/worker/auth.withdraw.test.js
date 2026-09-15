@@ -148,7 +148,7 @@ function buildWithdrawRequest(overrides = {}) {
 }
 
 async function callWithdraw(overrides) {
-  const response = await authRoutes.__authTestUtils.handleWithdraw(buildWithdrawRequest(overrides), ENV);
+  const response = await authRoutes.__authTestUtils.handleWithdraw(buildWithdrawRequest(overrides), overrides?.env || ENV);
   const payload = await response.json().catch(() => ({}));
   return { status: response.status, payload, headers: response.headers };
 }
@@ -350,10 +350,67 @@ describe("탈퇴 처리 — 비식별화 범위", () => {
     expect(mockRevokeSessions).toHaveBeenCalled();
   });
 
+  test("바인딩이 없는 환경은 영냥이 삭제를 건너뛰고 로그에 skipped 로 남긴다", async () => {
+    const { payload } = await callWithdraw();
+    expect(payload.partialFailure).toBe(false);
+    const [entry] = collectionCalls.get("deleted_account_logs").insertOne.mock.calls[0];
+    expect(entry.soulcatCleanup).toEqual({ status: "skipped", reason: "binding_missing" });
+  });
+
   test("User 비식별화가 실패하면 500 이고 뒷단을 진행하지 않는다", async () => {
     mockUserUpdateOne.mockRejectedValueOnce(new Error("write failed"));
     const { status } = await callWithdraw();
     expect(status).toBe(500);
     expect(collectionCalls.has("pointhistories")).toBe(false);
+  });
+});
+
+// 영냥이(SoulCat) D1 의 codedestiny:<id> 행은 이 워커가 모른다. 탈퇴가 SOULCAT_SERVICE 로 삭제를 부른다.
+describe("탈퇴 처리 — 영냥이 계정 삭제 연동", () => {
+  const SITE = "https://staging.code-destiny.com";
+  function soulcatEnv(fetchImpl) {
+    const fetch = jest.fn(fetchImpl);
+    return { fetch, env: { ...ENV, SITE_BASE_URL: SITE, SOULCAT_SERVICE: { fetch } } };
+  }
+
+  test("비식별화 전에 인증 쿠키만 넘겨 DELETE 를 부르고 결과를 감사 로그에 남긴다", async () => {
+    const { fetch, env } = soulcatEnv(async () => Response.json({ ok: true }));
+    const { status, payload } = await callWithdraw({ env });
+    expect(status).toBe(200);
+    expect(payload.partialFailure).toBe(false);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [request] = fetch.mock.calls[0];
+    expect(request.method).toBe("DELETE");
+    expect(request.url).toBe(`${SITE}/api/yeongnyangi/account`);
+    expect(request.headers.get("origin")).toBe(SITE);
+    expect(request.headers.get("cookie")).toBe(`fortune_auth_token=${accessToken}`);
+    // SoulCat 은 이 쿠키를 /api/auth/me 로 재확인한다 — 비식별화 뒤면 인증이 안 된다.
+    expect(fetch.mock.invocationCallOrder[0]).toBeLessThan(mockUserUpdateOne.mock.invocationCallOrder[0]);
+    const [entry] = collectionCalls.get("deleted_account_logs").insertOne.mock.calls[0];
+    expect(entry.soulcatCleanup).toEqual({ status: "deleted" });
+  });
+
+  test("영냥이 삭제가 실패해도 탈퇴는 완료되고 partialFailure·재시도 로그가 남는다", async () => {
+    for (const impl of [async () => new Response("down", { status: 503 }), async () => { throw new Error("unreachable"); }]) {
+      jest.clearAllMocks();
+      collectionCalls.clear();
+      const { env } = soulcatEnv(impl);
+      const { status, payload } = await callWithdraw({ env });
+      expect(status).toBe(200);
+      expect(payload.partialFailure).toBe(true);
+      expect(mockUserUpdateOne).toHaveBeenCalledTimes(1);
+      const [entry] = collectionCalls.get("deleted_account_logs").insertOne.mock.calls[0];
+      expect(entry.soulcatCleanup.status).toBe("failed");
+    }
+  });
+
+  test("거부된 탈퇴는 영냥이 데이터를 건드리지 않는다", async () => {
+    const { fetch, env } = soulcatEnv(async () => Response.json({ ok: true }));
+    mockVerifyPassword.mockResolvedValue(false);
+    expect((await callWithdraw({ env })).status).toBe(403);
+    handlerStageUser = { ...LOCAL_USER_DOC, status: "withdrawn" };
+    mockVerifyPassword.mockResolvedValue(true);
+    expect((await callWithdraw({ env })).status).toBe(409);
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

@@ -88,6 +88,11 @@ const STAGING_ONLY_KEYS = new Set([
   //    정적 셸 공유 버튼을 배선해 프로덕션에서 켤 때는, 이 줄을 빼기 전에 먼저 바인딩 한 자리를
   //    비워야 한다 — 선례 02560ce64.
   "vars.ENABLE_RESULT_SHARE",
+  // 영냥이 탈퇴 연동(2026-09-15 사용자 승인). SoulCat production 워커가 아직 없어 스테이징에만 둔다.
+  // 영냥이 5단계에서 프로덕션에 service = "soulcat-service" 로 넣을 때 이 두 줄을 빼고
+  // services.SOULCAT_SERVICE.service 를 MUST_DIFFER_KEYS 로 옮긴다(binding 은 같은 값이라 일반 비교).
+  "services.SOULCAT_SERVICE.binding",
+  "services.SOULCAT_SERVICE.service",
 ]);
 
 /**
