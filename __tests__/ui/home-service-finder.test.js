@@ -305,6 +305,23 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
+test("연애 비책·인생의 책·신년운세는 각 서비스 전용 이미지를 쓴다", async () => {
+  const expected = new Map([
+    ["연애 비책", "/feature-details/assets/love-secret-ai-320.webp"],
+    ["인생의 책", "/feature-details/assets/life-book-ai-320.webp"],
+    ["신년운세", "/feature-details/assets/new-year-ai-320.webp"],
+  ]);
+
+  for (const [name, image] of expected) {
+    const { doc, window } = await boot();
+    const hits = await search(window, doc, name);
+    assert.ok(hits.includes(name), `${name}: 검색 결과가 없다`);
+    const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
+      .find((item) => item.querySelector(".fortune-gateway__rec-name").firstChild.textContent.trim() === name);
+    assert.equal(card?.querySelector(".fortune-gateway__rec-media img")?.getAttribute("src"), image, `${name}: 전용 이미지가 아니다`);
+  }
+});
+
 test("필터를 켰다가 모두 끄면 기본 목록으로 되돌아온다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");

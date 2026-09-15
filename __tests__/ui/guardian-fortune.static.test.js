@@ -81,6 +81,10 @@ test('the destiny gate leads to the conversational reading in every shell', () =
     // 🔴 2026-09-02 사용자 결정: 이 카드의 마스코트는 연이 한 명이다(네오 아이콘·왕관 배지 제거).
     //    문안의 "네오"는 상담 안 페르소나 설명이지 카드 그림의 약속이 아니다. 되살리려면 그 결정부터.
     assert.match(gate, /fortune-gateway__door-art-yeon/, shell);
+    // 🔴 2026-09-15 사용자 결정: "오늘의 한마디"는 연이·네오의 말이므로 작약 화관 꽃돼지 연이를 노출한다.
+    //    컬렉션·상세 서비스 일러스트 동기화가 이 마스코트 슬롯까지 확장되면 안 된다.
+    assert.match(gate, /src="\/images\/fortune-tea-house\/yeon-peony-crown\.webp(?:\?v=[^"]+)?"/, shell);
+    assert.doesNotMatch(gate, /feature-details\/assets\/fortune-chat-/i, shell);
     assert.doesNotMatch(gate, /fortune-gateway__door-art-neo|\/icons\/neo-130\.webp/, shell);
     // 장식 라인아트는 텍스트 없는 빈 span 하나로 두고 그림은 CSS mask 가 그린다.
     assert.match(gate, /<span class="fortune-gateway__flora" aria-hidden="true"><\/span>/, shell);

@@ -51,7 +51,7 @@
 
 /* 사주 신년운세 카드는 공통 lifebook 배경이 아닌 전용 커버를 사용 */
 .lifebook-tile.saju-newyear-tile {
-  background: var(--lb-void) url('/fuctionassets/신년운세.webp?v=build-717e909820aa') center 22% / cover no-repeat;
+  background: var(--lb-void) url('/feature-details/assets/new-year-ai-960.webp') center 44% / cover no-repeat;
 }
 
 .lifebook-tile__img-wrap { display: none; }
@@ -64,7 +64,7 @@
     linear-gradient(90deg, rgba(9, 11, 31, 0.36) 0%, rgba(9, 11, 31, 0.08) 42%, rgba(9, 11, 31, 0.5) 100%),
     radial-gradient(circle at 68% 20%, rgba(188, 205, 255, 0.16), transparent 36%),
     repeating-linear-gradient(135deg, rgba(188, 205, 255, 0.05) 0 1px, transparent 1px 18px),
-    url('/fuctionassets/lifebook.webp?v=build-717e909820aa') center 36% / cover no-repeat,
+    url('/feature-details/assets/life-book-ai-960.webp') center 42% / cover no-repeat,
     linear-gradient(135deg, #070817 0%, #121934 38%, #1d2340 62%, #0a1024 100%);
   box-shadow:
     0 24px 60px rgba(7, 11, 32, 0.72),

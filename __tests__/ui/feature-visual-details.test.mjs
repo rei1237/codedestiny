@@ -72,8 +72,27 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     assert.ok(fs.existsSync(`public${generated.items[slug].catalogImage}`));
   }
   assert.equal(marketing['/fortune-tea-house/'].outlineImage, restored['fortune-tea-house']);
+  assert.equal(authored['fortune-chat'].image, '/images/fortune-tea-house/yeon-peony-crown.webp');
   assert.match(authored.novel.image, /novel-hero-v2\.webp$/);
   assert.match(authored.music.image, /music-hero-v2\.webp$/);
+
+  const upgraded = {
+    'life-book-ai': '/images/feature-details/fortune-chat-hero-v2.webp',
+    'love-secret-ai': '/images/feature-details/love-secret-ai-hero-v3.png',
+    'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.png',
+  };
+  for (const [slug, image] of Object.entries(upgraded)) {
+    const detail = authored[slug];
+    assert.equal(detail.image, image, `${slug}: authored hero does not match the approved slot`);
+    assert.ok(detail.contents.length >= 5 && detail.contents.every(item => item.detail), `${slug}: outline is incomplete`);
+    assert.ok(detail.storySections?.length, `${slug}: supporting editorial art is not reused`);
+    assert.equal(detail.journey?.questions?.length, 3, `${slug}: journey questions are incomplete`);
+    assert.equal(detail.journey?.faq?.length, 3, `${slug}: FAQ is incomplete`);
+    assert.ok(detail.method?.title && detail.method?.text && detail.method?.inputs?.length, `${slug}: method is incomplete`);
+    const preview = generated.items[slug].cardImage;
+    assert.equal(preview, `/feature-details/assets/${slug}-320.webp`);
+    assert.ok(fs.existsSync(`public${preview}`));
+  }
 
   const signatureSources = Object.fromEntries([...fragment.querySelectorAll('[data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
   assert.match(signatureSources['master-love-codex'], /%EB%A7%88%EC%8A%A4%ED%84%B0%20%EC%9A%B4%EB%AA%85%20%EC%97%B0%EC%95%A0%20%EB%B9%84%EC%B1%85\.webp$/);
