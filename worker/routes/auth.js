@@ -18,6 +18,7 @@ import {
   getRefreshReuseGraceMs,
   getRefreshTokenExpiresIn,
   getRefreshTokenSecret,
+  hashRefreshToken,
   isAuthDbInfraError,
   isMobileAppAuthRequest,
   refreshSessionMatchesRequest,
@@ -790,11 +791,6 @@ function appendClearAuthCookies(response, request, env) {
       clearDomains,
     });
   }
-}
-
-function hashRefreshToken(rawToken, env) {
-  const pepper = getEnv(env, "AUTH_SECRET") || getAccessTokenSecret(env);
-  return createHash("sha256").update(`${String(rawToken || "")}|${pepper}`).digest("hex");
 }
 
 function buildRefreshSessionFromRequest(request, env, userId) {
@@ -2925,11 +2921,11 @@ async function handleRegister(request, env) {
   }
 }
 
-// 레거시 bcrypt 해시를 로그인 성공 시점에 PBKDF2 로 갈아끼운다(계정당 1회).
+// 레거시 HMAC·bcrypt·저반복/구형 PBKDF2 해시를 로그인 성공 시점에 현행 PBKDF2 로 갈아끼운다.
 // 평문 비밀번호가 손에 있는 지점은 여기뿐이라 이전은 여기서만 가능하다.
 // 🔴 실패·지연이 로그인을 막아서는 안 된다 — 자체 타임아웃을 두고 예외는 삼킨다(다음 로그인에서 재시도).
 // 필터에 기존 passwordHash 를 함께 넣어, 동시에 비밀번호가 바뀐 경우 새 해시를 덮어쓰지 않는다.
-async function upgradeLegacyPasswordHash(user, password, env) {
+async function upgradePasswordHashIfNeeded(user, password, env) {
   try {
     if (!needsPasswordRehash(user?.passwordHash)) return;
     const nextHash = await hashPassword(password);
@@ -3054,7 +3050,7 @@ async function handleLogin(request, env) {
         return buildInvalidLoginResponse();
       }
 
-      const legacyHash = needsPasswordRehash(user.passwordHash);
+      const passwordNeedsRehash = needsPasswordRehash(user.passwordHash);
       // 🔴 재시도마다 KDF 를 다시 태우지 않는다.
       // verifyPassword 는 절대 throw 하지 않고 false 를 돌려주므로(password.js) **재시도 사유가 될 수
       // 없다** — 이 루프로 다시 들어오는 실제 경로는 세션 발급/조회 타임아웃이다. 그런데 예전에는
@@ -3076,7 +3072,7 @@ async function handleLogin(request, env) {
       const passwordOk = verifiedPasswordOk;
       if (!passwordOk) {
         await recordFailedLoginAttempt(loginRateLimitState);
-        timer.log("invalid_credentials", { hashKind: legacyHash ? "bcrypt" : "pbkdf2" });
+        timer.log("invalid_credentials", { hashKind: passwordNeedsRehash ? "legacy" : "pbkdf2" });
         return buildInvalidLoginResponse();
       }
 
@@ -3089,20 +3085,19 @@ async function handleLogin(request, env) {
         return guardianBlock;
       }
 
-      // Rate-limit housekeeping doesn't gate whether the session gets issued, so run it
-      // alongside session creation instead of serializing an extra DB round trip in front of it.
-      // 레거시 bcrypt 해시의 PBKDF2 재해시도 같은 이유로 여기에 얹는다 — 세션 발급을 막지 않는다.
-      const [, , response] = await Promise.all([
-        clearLoginRateLimitIfRecorded(loginRateLimitState),
-        upgradeLegacyPasswordHash(user, password, env),
-        withAuthOpTimeout(
-          createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
-          timeoutMs,
-          "auth_login_issue_session",
-        ),
-      ]);
+      // 세션 발급이 성공한 로그인에서만 재해시한다. 재시도 전에 병렬 재해시를 시작하면 세션 발급이
+      // 실패한 시도에서도 DB 를 쓰고, 다음 조회가 새 해시를 받아 KDF 를 다시 태울 수 있다.
+      const response = await withAuthOpTimeout(
+        createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
+        timeoutMs,
+        "auth_login_issue_session",
+      );
       timer.mark("issueSession");
-      timer.log("success", { attempt, hashKind: legacyHash ? "bcrypt->pbkdf2" : "pbkdf2" });
+      await Promise.all([
+        clearLoginRateLimitIfRecorded(loginRateLimitState),
+        upgradePasswordHashIfNeeded(user, password, env),
+      ]);
+      timer.log("success", { attempt, hashKind: passwordNeedsRehash ? "legacy->pbkdf2" : "pbkdf2" });
       return response;
     } catch (error) {
       const infraFailure = isAuthInfraFailure(error, [

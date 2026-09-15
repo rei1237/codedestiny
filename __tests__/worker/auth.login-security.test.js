@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-const { createHmac } = require("node:crypto");
+const { createHash, createHmac } = require("node:crypto");
 
 const mockConnectDb = jest.fn(async () => undefined);
 const mockResetMongooseConnection = jest.fn(async () => undefined);
@@ -123,6 +123,13 @@ describe("auth production secret guard", () => {
     });
 
     expect(auth).toBeNull();
+  });
+
+  test("refresh token fingerprint keeps the existing peppered SHA-256 format", () => {
+    const env = { AUTH_SECRET: "test-auth-secret", JWT_ACCESS_SECRET: "fallback-access-secret" };
+    const expected = createHash("sha256").update("refresh-token|test-auth-secret").digest("hex");
+
+    expect(authLib.hashRefreshToken("refresh-token", env)).toBe(expected);
   });
 });
 

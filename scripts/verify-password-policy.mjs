@@ -13,7 +13,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { checkPasswordBreached, isLocallyBlockedPassword } from "../worker/lib/password-breach.js";
-import { PBKDF2_MAX_ITERATIONS, hashPassword, verifyPassword } from "../worker/lib/password.js";
+import { PBKDF2_MAX_ITERATIONS, hashPassword, needsPasswordRehash, verifyPassword } from "../worker/lib/password.js";
 import {
   MIN_NEW_PASSWORD_LENGTH,
   validateLoginPayload,
@@ -183,10 +183,27 @@ check("🔴 PBKDF2 반복수가 Cloudflare Workers 상한(100,000)을 넘지 않
   assert.equal(await verifyPassword("Quiet!Harbor42", hash), true, "방금 만든 해시를 검증하지 못했습니다.");
 });
 
+check("구형 비밀번호 해시만 현행 PBKDF2 재해시 대상으로 분류한다", async () => {
+  const salt = "AAAAAAAAAAAAAAAAAAAAAA";
+  const digest = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  const hmacHash = `hmac-sha256-v1$${salt}$vuMU5q0O1PTCq40Mjx4nrqAiQXfVAlyMCABm2GuB08k`;
+
+  assert.equal(await verifyPassword("Quiet!Harbor42", hmacHash), true, "기존 HMAC 계정의 로그인 호환이 깨졌습니다.");
+  assert.equal(await verifyPassword("Quiet!Harbor43", hmacHash), false, "HMAC 오답이 통과했습니다.");
+  assert.equal(needsPasswordRehash(hmacHash), true, "단일 HMAC 가 재해시 대상이 아닙니다.");
+  assert.equal(needsPasswordRehash("$2b$12$abcdefghijklmnopqrstuvwxyz01234567890123456789012345678"), true, "bcrypt 가 재해시 대상이 아닙니다.");
+  assert.equal(needsPasswordRehash(`pbkdf2-sha256$60000$${salt}$${digest}`), true, "저반복 PBKDF2 가 재해시 대상이 아닙니다.");
+  assert.equal(needsPasswordRehash(`pbkdf2$sha256$100000$${salt}$${digest}`), true, "구형 PBKDF2 표기가 재해시 대상이 아닙니다.");
+  assert.equal(needsPasswordRehash(`pbkdf2-sha256$100000$${salt}$${digest}`), false, "현행 PBKDF2 가 불필요하게 재해시됩니다.");
+  assert.equal(needsPasswordRehash(`pbkdf2-sha256$600000$${salt}$${digest}`), false, "Workers 상한 초과 해시를 낮춰 쓰려 합니다.");
+  assert.equal(needsPasswordRehash("malformed"), false, "손상된 해시를 재해시 대상으로 오인했습니다.");
+});
+
 check("시드 스크립트에 평문 비밀번호가 되살아나지 않았다", () => {
   const files = [
     "scripts/ensure-hanyuzu-monthly-stone-user.mjs",
     "scripts/seed-inicis-test-account.mjs",
+    "scripts/seed-preview-test-account.mjs",
     "scripts/seed-test-account.mjs",
     "scripts/seed-dev-users.ts",
   ];
@@ -198,6 +215,8 @@ check("시드 스크립트에 평문 비밀번호가 되살아나지 않았다",
       const offender = codeLines.find((line) => line.includes(literal));
       assert.equal(offender, undefined, `${file} 에 평문 비밀번호 "${literal}" 가 되살아났습니다: ${offender}`);
     }
+    assert.ok(!/from\s+["']bcryptjs["']/.test(codeLines.join("\n")), `${file} 이 새 bcrypt 해시를 만들고 있습니다.`);
+    assert.ok(codeLines.join("\n").includes("hashPassword"), `${file} 이 공용 hashPassword 를 쓰지 않습니다.`);
   }
 });
 

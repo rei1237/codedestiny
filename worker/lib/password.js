@@ -104,11 +104,30 @@ export async function hashPassword(password) {
   return hash;
 }
 
-// 저장된 해시가 레거시 bcrypt 포맷이면 true — 로그인 성공 시 PBKDF2 로 갈아끼우는 신호다.
-// (PBKDF2/HMAC 는 이미 목표 포맷이므로 false. verifyPassword 는 세 포맷을 모두 계속 받는다.)
+function parsePbkdf2Hash(encodedHash) {
+  const parts = String(encodedHash || "").split("$");
+  if (parts.length === 4 && parts[0] === PBKDF2_PREFIX) {
+    return { legacyPrefix: false, iterationsRaw: parts[1], saltRaw: parts[2], hashRaw: parts[3] };
+  }
+  if (parts.length === 5 && `${parts[0]}$${parts[1]}` === PBKDF2_LEGACY_PREFIX) {
+    return { legacyPrefix: true, iterationsRaw: parts[2], saltRaw: parts[3], hashRaw: parts[4] };
+  }
+  return null;
+}
+
+// 로그인 성공 시 현행 PBKDF2 포맷으로 갈아끼워야 하는지 판정한다.
+// HMAC 는 빠른 단일 연산이라 비밀번호 저장용으로 약하고, bcrypt 는 Workers 에서 CPU 부담이 크다.
+// Workers 상한을 넘는 PBKDF2 는 현재 런타임에서 검증할 수 없으므로 여기서 낮춰 쓰지 않는다.
 export function needsPasswordRehash(encodedHash) {
   const hash = String(encodedHash || "").trim();
-  return hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$");
+  if (hash.startsWith(`${HMAC_PREFIX}$`)) return true;
+  if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) return true;
+
+  const parsed = parsePbkdf2Hash(hash);
+  if (!parsed) return false;
+  const iterations = Number(parsed.iterationsRaw);
+  if (!Number.isInteger(iterations) || iterations <= 0 || iterations > PBKDF2_MAX_ITERATIONS) return false;
+  return parsed.legacyPrefix || iterations < PBKDF2_ITERATIONS;
 }
 
 async function verifyHmac(password, encodedHash) {
@@ -127,18 +146,9 @@ async function verifyHmac(password, encodedHash) {
 
 async function verifyPbkdf2(password, encodedHash) {
   try {
-    const parts = String(encodedHash || "").split("$");
-    let iterationsRaw = "";
-    let saltRaw = "";
-    let hashRaw = "";
-
-    if (parts.length === 4 && parts[0] === PBKDF2_PREFIX) {
-      [, iterationsRaw, saltRaw, hashRaw] = parts;
-    } else if (parts.length === 5 && `${parts[0]}$${parts[1]}` === PBKDF2_LEGACY_PREFIX) {
-      [, , iterationsRaw, saltRaw, hashRaw] = parts;
-    } else {
-      return false;
-    }
+    const parsed = parsePbkdf2Hash(encodedHash);
+    if (!parsed) return false;
+    const { iterationsRaw, saltRaw, hashRaw } = parsed;
 
     const iterations = Number(iterationsRaw);
     if (!Number.isFinite(iterations) || iterations <= 0) {

@@ -166,7 +166,7 @@ function getHeaderBearerToken(request) {
   return authorization.match(/^Bearer\s+(.+)$/i)?.[1] || "";
 }
 
-function hashRefreshToken(rawToken, env) {
+export function hashRefreshToken(rawToken, env) {
   const pepper = getEnv(env, "AUTH_SECRET") || getAccessTokenSecret(env);
   return createHash("sha256").update(`${String(rawToken || "")}|${pepper}`).digest("hex");
 }

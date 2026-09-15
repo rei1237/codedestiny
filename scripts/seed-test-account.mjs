@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { dbConnect } from "../app/_lib/dbConnect.js";
 // User 스키마 정본은 worker/lib/models.js 하나다(프로덕션 워커가 쓰는 그것).
 import { User } from "../worker/lib/models.js";
+import { hashPassword } from "../worker/lib/password.js";
 
 function parseArgs(argv) {
   const result = {};
@@ -78,7 +78,7 @@ async function upsertTestAccount() {
   await dbConnect();
 
   const now = new Date();
-  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 12);
+  const passwordHash = await hashPassword(TEST_PASSWORD);
 
   await User.updateOne(
     { email: TEST_LOGIN_ID },

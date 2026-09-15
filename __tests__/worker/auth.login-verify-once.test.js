@@ -23,6 +23,15 @@ const mockVerifyPassword = jest.fn(async () => {
   callOrder.push("verifyPassword");
   return true;
 });
+const mockHashPassword = jest.fn(async () => {
+  callOrder.push("hashPassword");
+  return "pbkdf2-sha256$100000$new-salt$new-hash";
+});
+const mockNeedsPasswordRehash = jest.fn(() => false);
+const mockUserUpdateOne = jest.fn(async () => {
+  callOrder.push("passwordUpdate");
+  return { matchedCount: 1, modifiedCount: 1 };
+});
 
 const mockFindOne = jest.fn(async () => ({
   _id: "64f0a1b2c3d4e5f678901234",
@@ -54,9 +63,9 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
 }));
 
 jest.unstable_mockModule("../../worker/lib/password.js", () => ({
-  hashPassword: jest.fn(async () => "hashed-password"),
+  hashPassword: mockHashPassword,
   verifyPassword: mockVerifyPassword,
-  needsPasswordRehash: jest.fn(() => false),
+  needsPasswordRehash: mockNeedsPasswordRehash,
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
@@ -75,7 +84,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     findOneAndUpdate: jest.fn(async () => null),
     deleteMany: jest.fn(async () => ({})),
   },
-  User: { collection: { findOne: mockFindOne }, findOne: jest.fn(async () => null) },
+  User: { collection: { findOne: mockFindOne, updateOne: mockUserUpdateOne }, findOne: jest.fn(async () => null) },
   PointHistory: { create: jest.fn(async () => ({})) },
   MonthlyCreditLedger: {},
   ProfileCard: {},
@@ -108,6 +117,9 @@ beforeEach(() => {
   callOrder.length = 0;
   sessionCreateAttempts = 0;
   mockVerifyPassword.mockClear();
+  mockHashPassword.mockClear();
+  mockNeedsPasswordRehash.mockReset().mockReturnValue(false);
+  mockUserUpdateOne.mockClear();
   authRoutes.__authTestUtils.clearLoginRateLimitState();
 });
 
@@ -149,4 +161,26 @@ test("a wrong password is still rejected and never issues a session", async () =
   expect(response.status).toBe(401);
   expect(callOrder.filter((entry) => entry === "verifyPassword")).toHaveLength(1);
   expect(sessionCreateAttempts).toBe(0);
+  expect(mockHashPassword).not.toHaveBeenCalled();
+  expect(mockUserUpdateOne).not.toHaveBeenCalled();
+});
+
+test("a legacy hash is upgraded once only after session issuance succeeds", async () => {
+  mockNeedsPasswordRehash.mockReturnValue(true);
+
+  const response = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), ENV);
+
+  expect(response.status).toBe(200);
+  expect(sessionCreateAttempts).toBe(3);
+  expect(mockVerifyPassword).toHaveBeenCalledTimes(1);
+  expect(mockHashPassword).toHaveBeenCalledTimes(1);
+  expect(mockUserUpdateOne).toHaveBeenCalledTimes(1);
+  expect(callOrder.indexOf("hashPassword")).toBeGreaterThan(callOrder.indexOf("sessionCreate#3"));
+  expect(mockUserUpdateOne).toHaveBeenCalledWith(
+    {
+      _id: "64f0a1b2c3d4e5f678901234",
+      passwordHash: "pbkdf2$stored",
+    },
+    { $set: { passwordHash: "pbkdf2-sha256$100000$new-salt$new-hash" } },
+  );
 });
