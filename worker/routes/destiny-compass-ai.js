@@ -15,7 +15,7 @@
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { getAmbientAiLocale, runWithAiLocale, resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
-import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, cookieValue, HttpError } from "../lib/http.js";
 import { connectDb, isTransientMongoError } from "../lib/db.js";
 import { DestinyCompassReport } from "../lib/models.js";
@@ -606,6 +606,9 @@ async function handleResult(request, env) {
     const doc = await DestinyCompassReport.findOne({ id, userId: String(auth.userId) }).lean();
     if (!doc) return json({ ok: false, reason: "NOT_FOUND", message: "리포트를 찾을 수 없어요." }, { status: 404 });
     if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", refunded: doc.generationError?.refunded === true }, { status: 409 });
+    if (doc.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
+      return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
+    }
     if (doc.status !== "completed" && !await compassAccessCurrent(doc)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
     return json({ ...publicStoredReport(doc), retryable: doc.status !== "completed" }, { status: doc.status === "completed" ? 200 : 202 });
   } catch (error) {

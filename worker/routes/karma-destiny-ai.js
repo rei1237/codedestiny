@@ -15,6 +15,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
@@ -2768,6 +2769,9 @@ async function handleResult(request, env, path) {
     const resumeBody = consultation.llmMeta?.resumeBody || { paymentId: consultation.paymentId, accessType: consultation.accessType };
     const access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
     if (!access.ok) return paymentVerifyFailed();
+  }
+  if (consultation.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   if (consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation });
   const statusCode = ["generating", "partial", "delivery_pending"].includes(consultation.status) ? 202 : consultation.status === "generation_failed" ? 409 : 200;

@@ -27,6 +27,7 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb } from "../lib/db.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { ZiweiDeepReport, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
@@ -791,6 +792,9 @@ async function handleResult(request, env) {
       }
       const busy = doc.llmMeta?.lockedAt && Date.now() - new Date(doc.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS;
       return json({ ...publicStoredReport(doc), status: busy ? "generating" : doc.status === "delivery_pending" ? "delivery_pending" : "partial" }, { status: 202 });
+    }
+    if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
+      return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
     }
     return json(publicStoredReport(doc));
   } catch (error) {

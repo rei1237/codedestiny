@@ -23,7 +23,7 @@
 
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
-import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
@@ -643,6 +643,9 @@ async function handleResult(request, env) {
   if (!doc) return json({ ok: false, reason: "REPORT_NOT_FOUND", message: MESSAGES.notFound }, { status: 404, headers: noStore });
 
   if (doc.status === "generation_failed") return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", refunded: doc.generationError?.refunded === true, message: MESSAGES.failed }, { status: 409 });
+  if (doc.status === "completed" && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403, headers: noStore });
+  }
   if (doc.status !== "completed" && !await verifyStoredHdAccess(doc)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   if (!doc.basis?.chart && doc.inputHash) {
     const archived = await findArchivedChart(env, auth.userId, doc.inputHash);

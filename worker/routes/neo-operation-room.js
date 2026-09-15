@@ -12,6 +12,7 @@ import {
   User,
 } from "../lib/models.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -1793,6 +1794,9 @@ async function handleResult(request, env, pathId = "") {
       reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
     }, { status: 409 });
+  }
+  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   // 완료 세션을 여는 바로 그 로드에서 휘장 잔량이 항상 정확히 보이도록 적립(멱등)+backfill 후 payload에 싣는다.
   let badge = null;

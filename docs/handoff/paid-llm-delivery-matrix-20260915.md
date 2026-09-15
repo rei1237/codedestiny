@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-15
-next: "P1의 과거 completed 결과 GET 취소/환불 정책 대조부터 진행한다. 손금 모바일 mock 결제 복귀와 후속 답변 새로고침 복구는 재구현하지 않는다."
+next: "P2의 프라슈나 결정론 프롬프트 저장·응답 유실 fixture부터 진행한다. P1 completed GET 취소/환불 대조는 재구현하지 않는다."
 ---
 
 # 유료 LLM 전체 전달표와 잔여 검증
@@ -93,8 +93,27 @@ next: "P1의 과거 completed 결과 GET 취소/환불 정책 대조부터 진�
 4. **대표 대화**: raw paid 본문 2600자 이상·근거/후속 질문 계약을 통과해야 deterministic enrichment 이전 결과를 받아들인다. provider 설정이 꺼지면 paid 완료로 mock을 돌려주지 않는다. 과거 모든 대화의 새 목록/PDF/기기 간 공유를 추가한 것은 아니다.
 5. **브라우저 증거**: 질문형은 실제 렌더 함수의 390px 샘플, 대표 대화는 실제 컴포넌트+CSS를 사용한 390/1280px mock에서 저장 재개→마지막 조언→새로고침을 확인했다. 대표 대화에서 입력창이 마지막 본문을 덮던 문제를 수정했다. 모든 상품의 실제 전체 셸/실기기/PG/OAuth 증거가 아니다.
 
+## 과거 completed 결과 GET 취소·환불 대조
+
+정본 fixture는 `__tests__/fixtures/paid-completed-result-access-fixtures.mjs`다. 정상 완료 구매본은 현재 이용권·월정석 잔액이나 새 분량 기준을 다시 요구하지 않고 재열람한다. 원래 회차와 연결된 `PaidExecutionRecord`·`Payment`·`PointHistory`·`MonthlyCreditLedger` 중 하나라도 전액 취소·환불을 증명하면 단건 본문 GET은 403으로 차단한다. 부분 취소(`PARTIAL_CANCELLED`)는 `payment-refund.js`의 관리자 검토 계약대로 권한을 자동 회수하지 않으므로, `unlockRevoked`가 별도로 기록되지 않은 한 결과를 오차단하지 않는다.
+
+| 상품 / canonical 키 | completed 단건 조회의 취소 판정 | 정상 과거 구매 보존 |
+|---|---|---|
+| `fortune-chat-consultation`; 질문형 `astrology_ai_prompt_generator`·`ziwei_ai_prompt_generator`·`sukuyo_ai_prompt_generator`·`vedic_ai_prompt_generator`; `pet-saju-ai-consultation`·`pet-compatibility-ai`; `animal-totem-basic`·`animal-totem-deep`; `dream-psycho-analysis`; `geomancy`; `yoga-guru-per-use`; `tarot-love-relationship`·`tarot-mindscan`; 오라클 4티어 | `paid-narrative-delivery.js` 공용 GET이 원래 execution/body 식별자로 취소 저장소 4종을 재확인 | 저장된 `premiumStatus=completed` 본문을 재생성·재차감 없이 반환 |
+| `fusion-fortune-consultation` | 기존 `isPaidResultRevoked` 판정 유지 | 생성 플래그·새 분량과 무관하게 재열람 |
+| `master-love-codex`·`master-love-codex-compat` | `recoverCodexSession`이 모드별 원래 회차의 전액 취소·환불을 차단하고 부분 취소를 구분 | 세션의 기존 챕터와 결제 회차를 그대로 반환 |
+| `neo-operation-room-consultation`; `nakshatra-ai-consultation`; `ziwei-ai-consultation`; `ziwei-deep-pdf`; `astrology-ai-consultation`; `vedic-ai-consultation`; `sukuyo-compatibility-ai`; `karma-destiny-ai-consultation`; `new-year-ai-consultation`; `love-secret-ai-consultation` | completed 단건 GET에 공용 `isStoredPaidResultRevoked` 판정을 추가 | 과거 짧은 완료본에도 새 품질 문턱·현재 이용권 상태를 소급하지 않음 |
+| `life-book-ai-consultation`·`life-fortune-ai-consultation` | 저장 문서의 실제 `featureKey`로 공용 판정해 두 SKU를 섞지 않음 | 구 인생 총운이 인생의 책 키로 저장된 호환 계약도 유지 |
+| `saju_ai_question_prompt` | 사주 결과 GET이 저장 execution의 원래 request/payment 식별자로 공용 판정 | 기존 완료 본문 정규화·재열람 경로 유지 |
+| 찻집 3카드·5카드·사주·사주 궁합·숙요 궁합 5키 | 결과 상세 GET이 저장된 `featureKey`와 `resultId`로 공용 판정 | 목록 요약은 본문이 아니므로 유지하고, 선택한 취소 결과의 본문만 403 |
+| `human-design-report`; `destiny-compass-deep-report` | 기존 미완료 접근 재검사와 별도로 completed GET에 취소 판정 추가 | 완료본에는 현재 이용권/새 품질 문턱을 요구하지 않음 |
+| `premium-naming-report`; `ziwei-island-palace-consult`; `tarot-celestial-harmony`; `relationship-boundary-test`; `palm-reading-general` | 각 기존 단건 결과 저장소의 취소 판정을 유지하고 공용 fixture가 배선을 고정 | 기존 소유권·저장본 반환 계약 유지 |
+
+이 표는 결과 본문 조회 계약이다. 결과 목록의 제목·날짜 요약, 공개 공유 스냅샷, 실제 운영 주문의 환불 실행·정산을 검증한 표가 아니다. fixture는 canonical 46키를 중복 없이 열거하고 정상 재열람과 취소 저장소 4종을 mock으로 대조한다.
+
 ## 실행한 검증과 재현 명령
 
+- 과거 completed 결과 GET: canonical 46키 fixture **96/96**, 관련 Worker 전달 회귀 15 suites **336/336**, 장별 UI/실제 함수 **70/70** 통과. typecheck, worker-no-undef 417파일, Mongo query shapes 943쿼리 위반0. `check:fast` 1차는 새 카르마 GET VM 주입 누락과 CRLF 정적 단언에서 중단됐고 두 항목을 수정해 선택 검사를 재통과했다. 이후 전체 AI 흐름 재실행은 동시에 편집 중이던 시각 상세의 대표 이미지 자산 누락에서 중단됐으며, 해당 미커밋 시각 변경은 이 작업 커밋에 포함하지 않는다. 공식 완료는 아래 커밋 SHA의 main `CI required`로 판정한다.
 - 초기 통합: 유료 저장·재개 Worker29 suites **663/663**, 관련 UI/실제 함수 **128/128**. Jest mock-network-guard 및 Node `--require`로 외부 요청 차단. jsdom CSS 파서 경고가 있었으나 실패는0.
 - 손금: palm 신규/기존·회당증빙 왕복5 suites **124/124**, 복귀 함수 **7/7**.
 - 후속: 신규 후속+카르마2 suites **32/32**, 카르마 실제 화면 함수 **3/3**, 연애 비책 기존 **18/18**.
@@ -117,7 +136,7 @@ npm run verify:ai-consultation-flows
 
 1. **완료 — 손금 모바일 mock 결제 복귀.** 실제 `PalmDestinyMain`+컴파일된 Tailwind의 격리 loopback Playwright에서 390/1280px 사진 선택/품질→mock 저장→mock PG 리다이렉트→새 문서 서버 재열람을 통과했다. 분석 POST 1회, mock 결제 1회, 결과 GET 2회, 원래 requestId/`serverSaved` resume 유지, 재분석·가로 넘침·원본 사진 복원·외부 요청 0. 전체 Next dev 셸은 기존 `lib/palm/package.json(type=commonjs)`의 TS/ESM dev compile 문제로 제외했으므로 전체 셸·물리 기기 증거가 아니다. 최신 미결제 판독은 예전 구매본을 가리며, 자동 폴백은 새 판독으로 오인될 수 있어 명시적 구매 이력 선택 UI가 필요하다는 결론으로 별도 UX 범위에 남겼다. 검사: `npm run verify:palm-mobile-payment-recovery`.
 2. **완료 — 후속 답변 부모 내역 부착 전 전체 새로고침 복구.** 공용 실행 레코드에 답변이 `completed`로 저장된 뒤 부모 상담 `messages` 부착이 실패해도, 카르마·연애 비책의 기존 결과 GET이 같은 계정·상품·부모 세션의 완료 레코드만 찾아 멱등 부착한다. 새 LLM 생성·새 구매·새 차감 없이 실제 카르마 `/result` GET 핸들러에서 복구했으며, 취소된 구매는 저장 답변을 붙이지 않는다. W/expert-follow-up-delivery.test.js.
-3. 각 상품의 **과거 completed 결과 GET**에 대한 취소/환불 정책을 한 표로 대조한다. 초기/부분 재개 검사 성공을 모든 과거 구매 GET의 취소 전수 증명으로 확대하지 않는다. 기존 구매 재열람 보존과 취소된 구매 차단을 함께 fixture로 작성한다.
+3. **완료 — 각 상품의 과거 completed 결과 GET 취소/환불 정책 대조.** canonical 46키를 한 fixture에 고정하고, 정상 과거 구매본은 재열람하며 전액 취소·환불된 원래 회차는 403으로 차단했다. `PARTIAL_CANCELLED`는 권한 자동 회수 전까지 유지하는 기존 관리자 검토 정책과 구분했다. 결과 목록 요약·공개 공유·실운영 환불 실행은 이 완료 범위가 아니다. W/paid-completed-result-access.test.js 및 관련 유료 전달 회귀.
 
 ### P2 — 분류가 끝났지만 LLM 개선 밖인 전달/정책 확인
 

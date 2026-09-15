@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
@@ -1702,6 +1703,10 @@ async function handleResult(request, env, pathId = "") {
       reason: "LLM_ERROR",
       message: LLM_ERROR_MESSAGE,
     }, { status: 503 });
+  }
+
+  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
 
   consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation });

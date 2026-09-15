@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -2235,6 +2236,10 @@ async function handleResult(request, env, pathId = "") {
       reason: "LLM_ERROR",
       message: MESSAGES.llmFailed,
     }, { status: 503 });
+  }
+
+  if (await isStoredPaidResultRevoked(auth.userId, clean(consultation.featureKey, 80) || FEATURE_KEY, consultation)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
 
   const payload = publicSession(consultation);

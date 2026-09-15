@@ -5,6 +5,7 @@ import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/a
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -2231,6 +2232,9 @@ async function handleResult(request, env) {
   }
   if (status === "generation_failed") {
     return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
+  }
+  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json({ ok: true, consultation: await serializeConsultation(consultation) });
 }

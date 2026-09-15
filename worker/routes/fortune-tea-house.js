@@ -20,6 +20,7 @@ import {
 } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { getAmbientAiLocale, runWithAiLocale } from "../lib/ai-locale-context.js";
 import { toDisplayText } from "../../lib/llm-text.js";
@@ -4796,6 +4797,10 @@ async function readFortuneTeaHouseResultDetail(request, env, resultId) {
   });
   const result = doc ? publicFortuneTeaStoredResult(doc, { resultId }) : null;
   if (!result) return { ok: false, status: 404, message: "상담 기록을 찾을 수 없어요." };
+  const featureKey = cleanText(doc.featureKey, 160) || resolveFortuneTeaHouseFeatureKey(doc, doc);
+  if (featureKey && await isStoredPaidResultRevoked(userId, featureKey, doc)) {
+    return { ok: false, status: 403, message: "취소·환불된 상담 결과는 제공할 수 없어요." };
+  }
   return { ok: true, result };
 }
 

@@ -34,8 +34,16 @@ export async function recoverCodexSession({ userId, sessionId, requestId, paymen
     const ids = [session.paymentId, session.billingRequestId, session.idempotencyKey].filter(Boolean);
     const featureKey = session.mode === "compat" ? "master-love-codex-compat" : "master-love-codex";
     const refunded = await models.Payment.findOne({
-      userId, featureKey, status: { $in: ["refunded", "cancelled", "canceled"] },
-      $or: ids.flatMap(id => [{ merchantUid: id }, { impUid: id }, { requestId: id }, { idempotencyKey: id }]),
+      userId, featureKey,
+      $and: [
+        { $or: [
+          { status: { $in: ["cancelled", "canceled"] } },
+          { status: "refunded", orderState: { $nin: ["PARTIAL_CANCELLED", "partial_cancelled"] } },
+          { "metadata.unlockRevoked": true },
+          { "pricingSnapshot.unlockRevoked": true },
+        ] },
+        { $or: ids.flatMap(id => [{ merchantUid: id }, { impUid: id }, { requestId: id }, { idempotencyKey: id }]) },
+      ],
     }).lean();
     if (refunded) return { denied: true, reason: "PURCHASE_REFUNDED" };
   }

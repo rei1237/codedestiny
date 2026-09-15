@@ -35,6 +35,7 @@ import { buildZiweiPersonalityContextLines } from "../lib/ziwei-personality-cont
 
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -2572,6 +2573,9 @@ async function handleResult(request, env) {
   }
   if (consultation.status !== "completed") {
     return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  }
+  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+    return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json(publicConsultation(consultation));
 }

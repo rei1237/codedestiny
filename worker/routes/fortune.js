@@ -3,6 +3,7 @@ import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot, ResultSharedSnapshot } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -5039,6 +5040,9 @@ async function handleSajuAIConsultationResult(request, auth, path = "", env = nu
   if (record.status !== "completed") {
     if (record.result?.resumeBody && !await findAIPromptPaidAccessEvidence({ auth, featureKey: SAJU_AI_PROMPT_FEATURE_KEY, body: record.result.resumeBody, requestId: record.requestId, cost: SAJU_AI_PROMPT_PRICE, env })) return buildSajuAIPromptPaymentRequiredError();
     return json(buildSajuAIStatusPayload(record), { status: record.status === "generation_failed" ? 503 : 202 });
+  }
+  if (await isStoredPaidResultRevoked(auth.userId, SAJU_AI_PROMPT_FEATURE_KEY, record)) {
+    return buildSajuAIPromptError("PAYMENT_REVOKED", "취소·환불된 상담 결과는 제공할 수 없습니다.", 403, { retryable: false });
   }
   const stored = normalizeSajuAIStoredResult(record);
   if (!stored) {

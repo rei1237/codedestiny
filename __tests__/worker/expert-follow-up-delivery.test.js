@@ -67,6 +67,7 @@ test('the actual Karma result GET recovers an answer saved before the parent tra
     KarmaDestinyAiConsultation: reportModel, buildResultLookup: () => ({ id: report.id, userId: owner }), resolveStartAccess: async () => ({ ok: true }),
     paymentVerifyFailed: () => new Response('{}', { status: 403 }), loginRequired: () => new Response('{}', { status: 401 }),
     invalidInput: () => new Response('{}', { status: 404 }), FEATURE_KEY: 'karma-destiny-ai-consultation', recoverSavedExpertFollowUps: recover,
+    isStoredPaidResultRevoked: async () => revoked,
     publicSession: value => ({ ok: true, messages: value.messages, status: value.status }), json: (value, init) => Response.json(value, init),
   });
   vm.runInContext(handler, context);

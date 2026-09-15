@@ -26,7 +26,21 @@ test("another user cannot recover the purchase", async () => {
 test.each(["refunded", "cancelled", "canceled"])("%s purchase cannot be revived by an existing session", async status => {
   const db = fixtures({ ...session, accessType: "paid", paymentId: "order-1" }, { status });
   expect(await recoverCodexSession({ userId, sessionId: session.id }, db)).toMatchObject({ reason: "PURCHASE_REFUNDED" });
-  expect(db.Payment.findOne.mock.calls[0][0].status.$in).toContain(status);
+  expect(JSON.stringify(db.Payment.findOne.mock.calls[0][0])).toContain(status);
+});
+test("partial cancellation keeps the completed purchase readable until its grant is explicitly revoked", async () => {
+  const paid = { ...session, status: "completed", accessType: "paid", paymentId: "order-1" };
+  const db = fixtures(paid, null);
+  expect(await recoverCodexSession({ userId, sessionId: paid.id }, db)).toEqual({ session: paid });
+  expect(db.Payment.findOne.mock.calls[0][0]).toEqual(expect.objectContaining({
+    $and: expect.arrayContaining([
+      expect.objectContaining({
+        $or: expect.arrayContaining([
+          expect.objectContaining({ status: "refunded", orderState: { $nin: ["PARTIAL_CANCELLED", "partial_cancelled"] } }),
+        ]),
+      }),
+    ]),
+  }));
 });
 test("DB outage propagates instead of presenting a new payment", async () => {
   const db = fixtures();
