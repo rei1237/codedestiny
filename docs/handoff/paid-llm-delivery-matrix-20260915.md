@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-15
-next: "P2 2번의 무료 compass narration 시간 예산·무료 운세 LLM 정책을 별도 범위로 맞춘다. 완료된 프라슈나 fixture와 P1 completed GET 대조는 재구현하지 않는다."
+next: "P2 3번의 정적 해금·과거 SKU·alias를 pricing registry와 실제 CTA/consumer 기반 비LLM 전달 검사로 확장한다. 완료된 Compass 무료 narration 정책과 상담 전달 회귀는 재구현하지 않는다."
 ---
 
 # 유료 LLM 전체 전달표와 잔여 검증
@@ -81,7 +81,7 @@ next: "P2 2번의 무료 compass narration 시간 예산·무료 운세 LLM 정�
 | `premium-sibyl-dominator` | sibyl.js가 canonical 사주 계산만으로 리포트 조립(소스 명시) | LLM 스냅샷 표에 포함하지 않음 |
 | 타로 draw/reading, `tarot-year-fortune`, `tarot-crystal-soul-reading`, `tarot-numerology-reading`, `tarot-ijik` | tarot.js의 결정론 리딩/카드 조립 경로 | 활성 LLM인 love/mindscan/oracle/celestial과 분리. 기존 유료 정책 보존 |
 | 주역·이집트·룬·마야 등 질문 프롬프트/정적 해석 | 이름에 AI/prompt가 있어도 활성 서버 생성기가 없으면 실 LLM 완료로 세지 않음 | 개별 결제 SKU의 모든 이력·언어·디바이스 검증은 아래 P2. LLM을 새로 붙이지 않음 |
-| `/api/destiny-compass/narrate` | CompassReport.tsx의 **무료 단문 다듬기**. 실제 LLM 호출 있음. 기본 규칙 문장 먼저 표시, 실패 시 유지 | 32초 클라이언트 대 30초×내부 재시도 예산은 별도 정리 대상. 유료 심층 결과 저장과 무관하며 이번 호출/정책 변경 없음 |
+| `/api/destiny-compass/narrate` | CompassReport.tsx의 **무료 단문 다듬기 예외**. 기본 규칙 문장을 먼저 표시하고 실패 시 그대로 유지한다. 새 운세 계산·판정 변경·결제/이용권 차감·유료 결과 저장을 하지 않는다 | **이번 정리**. 충실도 교정 최대2회, 공용 헬퍼 요청 단위 재시도1회, Gemini/Workers AI 공유 호출 예산10초, 서버 총24초를 32초 클라이언트 중단보다 짧게 고정했다. W/destiny-compass-free-narration.test.js |
 | `/api/fortune/guardian/chat` | 기존 mock/SSE 대화 경로 | 실제 유료 FortuneChatClient의 `/guardian/generate`와 구분. 실 LLM으로 폴백시키지 않음 |
 | admin prompt lab, threads-ai-writer | 관리자/콘텐츠 운영용 LLM 호출 | 고객이 결제한 상담 상품 전달 범위 밖. 외부 발행/호출하지 않음 |
 
@@ -120,6 +120,7 @@ next: "P2 2번의 무료 compass narration 시간 예산·무료 운세 LLM 정�
 - 다른 작업 통합 후: follow-up/guardian/질문형/관계/환급/회당증빙6 suites **148/148**, 질문형·카르마 UI **10/10**. 검사 집합이 겹치므로 숫자를 합산하지 않는다.
 - `npm run verify:ai-consultation-flows` 전체 통과. typecheck 통과. 대상 ESLint 오류0(기존 경고 있음), worker-no-undef417파일 통과, Mongo query shapes 위반0, route-await69라우터 통과. sitemap/미러는 전달 체크포인트의 최종 결과를 따른다.
 - check:fast의 critical 계획을 확인하고 필요한 targeted 검사를 실행했다. 이전 check:fast 중단을 전체 로컬 성공으로 바꾸어 보고하지 않는다. 공식 완료는 해당 SHA의 main `CI required`다.
+- 무료 Compass 정책 정리 후 `check:fast` critical 전체가 통과했다: Node 1,342/1,342, Jest 3,696/3,696, typecheck, AI 상담 흐름, Worker dry-run과 정적 가드가 모두 통과했다. Compass 전용 W 검사는 5/5다. 사주 LLM·전문가 상담·대표 운명 상담을 다시 묶은 집중 mock 회귀는 Worker 21 suites 454/454, UI/실제 함수 105/105로 총559/559 통과했다. 숫자는 위 전체 집합과 겹치므로 합산하지 않는다. 실 LLM·실결제·운영 DB·물리 기기는 사용하지 않았다.
 
 ```powershell
 Set-Location D:\Development\code-destiny
@@ -141,7 +142,7 @@ npm run verify:ai-consultation-flows
 ### P2 — 분류가 끝났지만 LLM 개선 밖인 전달/정책 확인
 
 1. **완료 — 프라슈나 결정론 프롬프트 저장·응답 유실.** `fortune.js`가 만료된 `generating` lease만 재인수하고, 계산 결과를 `delivery_pending` checkpoint로 먼저 저장한 뒤 완료한다. 최종 저장 throw/null은 `RESULT_STORAGE_UNAVAILABLE`로 생성 실패·환불과 구분하며, 같은 `PaidExecutionRecord`에서 저장된 프롬프트를 재생성·재결제 없이 완료한다. 완료 쓰기 뒤 DB 응답 유실도 재조회로 확정한다. fixture는 외부 요청 0회와 실행 레코드 1개를 고정한다. W/vedic-prashna-paid-delivery.test.js.
-2. 무료 compass narration의 클라이언트/서버 시간 예산과 무료 운세 LLM 사용 정책을 별도로 맞춘다. 유료 지도 리포트의 완료로 묶지 않는다.
+2. **완료 — 무료 Compass narration 시간 예산·무료 LLM 정책.** 무료 결과는 결정론 계산과 템플릿만으로 먼저 완성하고, LLM은 이미 계산된 근거·문장의 선택적 다듬기 예외로만 쓴다. 새 무료 실 LLM 경로는 자동 확장하지 않으며 서버측 전역 한도·캐시·결정론 fallback·클라이언트보다 짧은 총예산을 별도 검토한다. Compass는 충실도 교정 최대2회×호출당 공유10초, 헬퍼 요청 재시도1회, 서버 총24초/클라이언트32초로 고정했다. 유료 심층 지도 결과·결제 정책과 분리했다. W/destiny-compass-free-narration.test.js.
 3. 표의 정적 해금/과거 SKU/alias는 pricing registry와 실제 CTA/consumer를 조합한 비LLM 전달 검사로 확장한다. 이 표가 모든 정적 SKU E2E 완료표는 아니다.
 
 ### 별도 승인 없이는 실행하지 않을 확인

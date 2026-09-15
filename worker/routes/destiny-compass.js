@@ -17,6 +17,15 @@ const RATE_LIMIT_MAX_REQUESTS = 30;
 const RATE_LIMIT_ENDPOINT = "destiny-compass:narrate";
 const requestBuckets = new Map();
 
+// 무료 결과는 아래 LLM 없이 이미 완성된다. 이 호출은 문장 다듬기만 하므로 클라이언트의
+// 32초 중단보다 먼저 끝나야 하고, 공용 헬퍼의 요청 단위 재시도를 바깥 충실도 재시도와
+// 겹치지 않는다. 각 호출 안의 Gemini/Workers AI 체인은 같은 10초 시계를 공유한다.
+export const DESTINY_COMPASS_NARRATION_POLICY = Object.freeze({
+  maxFaithfulnessAttempts: 2,
+  providerChainTimeoutMs: 10_000,
+  serverBudgetMs: 24_000,
+});
+
 function readClientKey(request) {
   return String(
     request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "local",
@@ -218,15 +227,21 @@ async function handleNarrate(request, env) {
   }
 
   const store = createLlmCacheStore(env);
+  const systemPrompt = await resolveSystemPrompt(env);
+  const deadlineAt = Date.now() + DESTINY_COMPASS_NARRATION_POLICY.serverBudgetMs;
   // 서버 검증-재시도: 충실하지 않으면 교정 지시로 1회 더. 2회 다 실패 → 클라 템플릿 폴백.
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  for (let attempt = 0; attempt < DESTINY_COMPASS_NARRATION_POLICY.maxFaithfulnessAttempts; attempt += 1) {
+    const remainingMs = deadlineAt - Date.now();
+    if (remainingMs <= 0) break;
     let ai = null;
     try {
       ai = await callGeminiJsonWithRetry(env, buildNarrativePrompt(n, attempt), {
-        systemPrompt: await resolveSystemPrompt(env),
+        systemPrompt,
         taskType: "general",
         temperature: 0.4,
-        timeoutMs: 30000,
+        timeoutMs: Math.min(DESTINY_COMPASS_NARRATION_POLICY.providerChainTimeoutMs, remainingMs),
+        // 바깥 루프가 충실도 교정을 담당한다. 공용 헬퍼의 요청 단위 재시도를 겹치지 않는다.
+        attempts: 1,
         baseTokens: 520,
         capTokens: 820,
         // JSON 강제는 confabulation을 유발 → plain text. 시도별로 캐시키 분리.
