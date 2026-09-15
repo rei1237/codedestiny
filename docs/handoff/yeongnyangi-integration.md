@@ -1,60 +1,110 @@
 ---
 status: active
 updated: 2026-09-15
-next: 1단계 결제 일원화 — CD `paid-feature-registry.js` 에 영냥이 상품을 회당 결제 featureKey 로 등록하고 SoulCat 결제 CTA 를 CD 결제창(`/checkout?featureKey=…&returnTo=/yeongnyangi/…`)으로 보낸 뒤 SoulCat 이 Service Binding 으로 CD 증빙을 조회하게 바꾼다(RED, 양 레포, 승인 필요). 착수 전 PG 사에 "같은 code-destiny.com 호스트의 기존 MID·기존 결제창으로 영냥이 상품 판매 시 추가 MID 불요" 를 확인한다.
+next: 1단계 결제 일원화 착수 — CD `worker/lib/paid-feature-registry.js` 에 영냥이 상품을 회당 결제 featureKey 로 등록하고, Service Binding 전용 증빙 조회 API 를 추가한 뒤, SoulCat 결제 CTA 를 CD 결제창으로 보내고 SoulCat `POST orders` 가 CD 증빙으로 책 생성을 시작하게 바꾼다(RED, 양 레포, 승인 필요). 기존 MID 로 결제하며 추가 MID 는 발급하지 않는다(사용자 확정 2026-09-15).
 ---
 
-# 영냥이(SoulCat) 편입 — 방향 결정과 남은 작업
+# 영냥이(SoulCat) 편입 — 기존 MID·기존 계정으로 전 서비스 정상 동작시키기
 
-## 결정 (2026-09-15, 사용자 승인)
+## 확정 사항 (2026-09-15, 사용자)
 
-**하이브리드**: 사용자·사업 관점은 한 사이트(신원·지갑·SEO 트리·탈퇴 통합), 개발 관점은 SoulCat Worker + D1 런타임 유지. 계획 정본은 `C:\Users\user\.claude\plans\6-replicated-lynx.md`(세션 로컬) — 핵심은 아래에 옮겨 둔다.
+- **추가 MID 발급 없음.** 결제는 code-destiny.com 의 기존 PortOne 스토어·기존 MID·기존 결제창에서만 일어난다. SoulCat 전용 PortOne 스토어·비밀 7종·별도 webhook 은 폐기 대상.
+- **구조는 하이브리드.** 신원·결제·프로필·SEO·탈퇴는 CD 로 통합, SoulCat Worker + D1 은 앱 상태(책·챕터·무료 운세·출석) 저장소로 유지. Mongo 이식 없음. 병합 전환 기준: 영냥이 월 유료 주문이 CD 유료 주문의 30% 초과, 또는 CD 엔진 정정이 SoulCat `server/vendor/code-destiny/` 사본에 반영되지 않아 결과 차이가 보고될 때.
+- **이용권 정책.** 영냥이 책 상품은 이용권 제외(passExcluded, 장문 LLM 원가), 월정석 차감 허용, 카드·카카오 단건 결제 허용.
 
-- SEO 는 서버 통합과 무관. 같은 호스트 `/yeongnyangi/` 서브디렉터리로 도메인 권위는 이미 공유. 남은 SEO 과제는 sitemap 편입·noindex 해제·중복 canonical.
-- **별도 MID 신청 중단.** 결제는 CD PortOne 스토어 + `worker/lib/paid-feature-registry.js` 로 일원화.
-- Mongo 이식은 하지 않음. 병합 전환 기준: (a) 영냥이 월 유료 주문이 CD 유료 주문의 30% 초과, (b) CD 엔진 정정이 SoulCat `server/vendor/code-destiny/` 사본(22.8k 줄)에 반영되지 않아 결과 차이가 보고됨. 둘 중 하나면 병합 착수.
+## 완료된 것
 
-## PG 계약 확인 항목 (사용자 요청, 미확인)
+- 0단계 허브 하이재킹 해소(SoulCat 커밋 `d246d48`, codex 브랜치, 워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`). 실측: `/fortune/` CD 200, `/yeongnyangi/*`·`/api/yeongnyangi/*` 200. 워커 코드는 롤백된 `2348c4e` 버전이 돌지만 라우트가 없어 옛 302 는 도달 불가. 다음 정식 배포 때 새 코드가 실린다.
+- 계정 통합. SoulCat `server/auth.ts` `sharedIdentity()` 가 CD 쿠키(`fortune_auth_token`/`fortune_auth_refresh`)를 Service Binding `AUTH_SERVICE`(→ `code-destiny-web-staging`)으로 CD `/api/auth/me` 에 넘겨 검증. D1 키 `codedestiny:<24hex>`. degraded/token-only 응답은 거부. 변경 불요.
+- CD 홈 밴드(스테이징 게이트). `index.html` `<template id="cd-soulcat-navigation-template">` + 인젝터(`data-marker="cd-soulcat-new-world-v20260915"`).
 
-사용자는 PG 사로부터 "도메인이 다르면 MID 추가 발급 필요" 안내를 받았다. 이 계획에서는 결제가 **기존 호스트(code-destiny.com)의 기존 결제창**에서 일어나므로 도메인이 달라지지 않는다. 다음을 PG 담당자에게 확인 후 여기에 기록한다.
-1. 현재 MID 에 등록된 사이트 URL 이 `code-destiny.com`(호스트 단위)인지, 특정 경로까지인지.
-2. 같은 호스트·같은 사업자에서 판매 상품군(영냥이 운세 책)이 추가될 때 신고만 필요한지, 계약 변경이 필요한지.
-3. 결제 완료 후 `returnTo` 가 `/yeongnyangi/…` 경로여도 문제없는지(리다이렉트 URL 허용 목록 여부).
-예상: 추가 MID 불요. 확인 전까지는 추정.
+## 1단계. 결제 일원화 (RED, 양 레포, 별도 승인 후 착수)
 
-## 지금 상태
+### 목표 흐름
 
-- **0단계 완료(2026-09-15)**: SoulCat 커밋 `d246d48`(codex 브랜치, 워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`)에서 staging routes `fortune*`·`room*`·`library*`·`ggulggul-fortune*` 4개와 `server/edge.ts` `oldScreens` 302 제거, 테스트·OPERATIONS-READINESS 갱신. `npm test` 7/7, tsc 무오류, dry-run 성공.
-- 🔴 배포 함정: `wrangler deploy` 직접 호출은 `SOULCAT_PAGES_ORIGIN`·`RELEASE_SHA` 를 빠뜨려 `/yeongnyangi/*` 가 503 이 됐다. 정식 경로는 `node scripts/deploy-staging.mjs <immutable-preview-url>` 이며 **고정 Pages preview 의 SHA 가 HEAD 와 같아야** 한다(새 커밋 뒤에는 build → Pages preview 업로드 선행). 즉시 `wrangler rollback` 으로 복구(현재 워커 버전 `be245542`, 코드는 `2348c4e`).
-- 라우트는 버전과 별개 트리거라 제거 상태가 유지됨. 실측: `/fortune/` CD 200(무료 운세 허브), `/room/`·`/library/`·`/ggulggul-fortune/` CD 404(CD 에 없는 경로, 정상), `/yeongnyangi/`·`/yeongnyangi/free-fortune/`·`/api/yeongnyangi/products`·`/_soulcat/version.json` 200, `/_soulcat` 302. **하이재킹 해소 확인.**
-- 워커 코드에는 아직 옛 `oldScreens` 가 남아 있지만 라우트가 없어 도달 불가. 다음 정식 배포(다른 세션의 LLM 최적화 작업과 함께)에서 `d246d48` 코드가 실린다.
-- SoulCat codex 브랜치는 다른 세션이 LLM 최적화 작업 중(미푸시 7커밋). 이 세션은 위 4파일 1커밋만 얹었다.
-- CD 홈 밴드: `#cdhQuickSlot` 아래 "CODE DESTINY NEW WORLD", 게이트 `hostname==='staging.code-destiny.com'`. 정본 `index.html` `<template id="cd-soulcat-navigation-template">` + 인젝터 IIFE(`data-marker="cd-soulcat-new-world-v20260915"`).
-- 계정: SoulCat `server/auth.ts` `sharedIdentity()` 가 CD 쿠키만 Service Binding 으로 `/api/auth/me` 에 넘겨 검증. D1 키 `codedestiny:<id>`. 변경 없음.
-- 🔴 범위 밖: main CI `AI Locale Gate` 가 `9fa1c714f` 부터 `recoverGeomancy is not defined` 로 실패 중(다른 세션 축).
+1. 사용자가 SoulCat 화면(`/yeongnyangi/fortune/`)에서 어종을 고른다.
+2. SoulCat 은 결제를 직접 열지 않고 CD 결제 진입으로 보낸다: `/checkout/?featureKey=yeongnyangi-saju-mackerel&returnTo=/yeongnyangi/fortune/?profile=<id>&domain=saju`. 결제창·결제수단 선택·PortOne 호출·webhook·증빙 기록은 전부 CD 기존 코드가 처리한다.
+3. 결제 완료 후 CD 가 `returnTo` 로 돌려보낸다. SoulCat 은 `POST /api/yeongnyangi/orders` 에서 CD 증빙 조회 API 를 Service Binding 으로 호출해 미소비 증빙이 있으면 `fortune_requests` 를 만들고 Queue 에 넣는다. 증빙은 requestId 로 소비 표시한다.
+4. 책 생성·보관함·공유는 기존 SoulCat 파이프라인 그대로.
 
-## 남은 작업 (각 단계 별도 세션·별도 승인)
+### CD 측 작업
 
-- [ ] **1. 결제 일원화 (RED, 양 레포)** — CD: `paid-feature-registry.js` 에 `yeongnyangi-<system>-<tier>` 회당 결제 키 등록(SoulCat `server/payments/catalog.ts` 6 체계 × 4 어종 1,000/3,000/5,000/10,000 + 퓨전 4종), 이용권 제외(passExcluded)·월정석 차감 허용을 `docs/context/payment-gating.md` 에 명시, Service Binding 전용 증빙 조회 API 추가. 가장 가까운 구현 `worker/routes/vedic-ai.js`. SoulCat: `POST orders`·webhook·verify·PortOne 비밀 7종 제거, `entitlements` 를 CD 판정 캐시로 격하, `docs/DOMAIN-INTEGRATION.md` 별도 MID 조항 폐기. 검증: `verify:paid-feature-billing-policy`·`verify:billing-pass-policy`·`verify:portone-single-payment`, SoulCat `npm test`, 스테이징 mock 결제 1회. 실결제 금지.
-- [ ] **2. 프로필 재사용 (SoulCat)** — `sharedIdentity()` 방식으로 `/api/profile/current` 를 읽어 `ProfileCard`(name·gender·birth·location)를 `profiles.input_json` 프리필.
-- [ ] **3. SEO 오픈 (양 레포, 운영 배포와 함께)** — CD `scripts/generate-sitemap.mjs` `coreRoutes` 에 `/yeongnyangi/*` 등록 + 색인 판정 5개소 동기(`docs/context/seo-and-adsense.md:64-76`). SoulCat `src/app/layout.tsx:11` 전역 noindex 해제, `robots.txt` Disallow 제거, library·share 는 noindex 유지. `/yeongnyangi/terms|privacy|refund` 는 CD 법무 페이지로 canonical, `/yeongnyangi/ggulggul-fortune/` 은 CD `/kkul-kkul-unse` 와 키워드 경쟁하므로 sitemap 제외 또는 canonical `/`.
-- [ ] **4. 탈퇴 연동 (RED, 양 레포)** — CD `POST /api/auth/withdraw` 가 SoulCat D1 `codedestiny:<id>` 행을 모른다(SoulCat 에 수신 엔드포인트 없음, `worker/routes/auth.js:5441-5468` 에 외부 호출 없음). Service Binding 으로 SoulCat `DELETE /api/yeongnyangi/account` 호출, 실패 시 탈퇴를 막지 않고 재시도 로그.
-- [ ] **5. 운영 노출 (RED, 1회 승인)** — SoulCat production routes/D1/Queue 생성, CD 인젝터 게이트를 `code-destiny.com` 까지 확장, 홈 밴드 "🐟 생선가게 준비 중"·"영냥이가 손님 맞을 준비 중" 제거.
-- [ ] 유료 CTA "준비 중" 모달(브리프 6항): `src/components/FortuneExperience.tsx` `!product.enabled`, `RoomConsultation.tsx`. 대체 행동 2개 포함.
+- `worker/lib/paid-feature-registry.js`
+  - `RAW_FEATURE_KEY_PRICE_TABLE` 에 키 추가. SoulCat `server/payments/catalog.ts` 의 6 체계(saju·sukuyo·ziwei·vedic·astrology·tarot) × 4 어종(mackerel 1,000 / salmon 3,000 / flounder 5,000 / tuna 10,000) + 퓨전 4종(모둠 20,000·오마카세 30,000 등)을 `yeongnyangi-<system>-<tier>` 로 매핑. `cost` 는 `amountKRW / KRW_PER_COIN(100)`.
+  - `PER_USE_PAID_FEATURE_KEY_LIST` 에 전부 등록(회당 결제). 언락 테이블에는 넣지 않는다.
+  - `FRONTEND_PAID_FEATURE_KEYS` 에도 포함해야 결제창 진입이 키를 인식한다.
+  - 🔴 `resolveByFeatureReason` 이 `resolveByFeatureKey` 보다 우선한다(`:157-167`). reason 테이블에는 넣지 말 것.
+- 이용권 제외: `worker/lib/entitlement-policy.js` `resolveFeatureAccessPolicy` 에서 `yeongnyangi-` 접두 키를 passExcluded 로 판정. 월정석·카드·카카오는 허용. 정책 한 줄을 `docs/context/payment-gating.md` 에 추가.
+- 증빙 조회 API(신규, Service Binding 전용): `GET /api/yeongnyangi-entitlement?featureKey=…` — `worker/index.js` 디스패치에 추가. 요청은 `/api/auth/me` 와 같은 쿠키 검증을 거치고, 응답은 `{ userId, featureKey, proofs:[{ source, id, paidAt, consumedBy }] }`. 증빙 4원(`PaidExecutionRecord`·`Payment`·`PointHistory`·`MonthlyCreditLedger`)은 `worker/routes/vedic-ai.js:633-636` 의 조회 방식을 그대로 재사용한다. `POST` 로 `consumedBy=<requestId>` 를 기록하는 소비 엔드포인트도 같은 파일에 둔다(idempotent, `IdempotencyKey`).
+- 결제창 `returnTo` 허용: `js/core/checkout-entry.js` 와 `lib/payment/portone.ts` 의 복귀 경로 검증에 `/yeongnyangi/` 접두를 허용. 외부 origin 은 계속 거부.
+- 가장 가까운 기존 구현: `worker/routes/vedic-ai.js`(상수 선언 `:32-39`, `getBillingFeaturePricing` `:376`, 증빙 확인 `:633-636`).
+- 결제창 렌더러 3종은 건드리지 않는다. featureKey 등록만으로 기존 결제창이 그대로 쓰인다.
+
+### SoulCat 측 작업 (codex 브랜치 워크트리)
+
+- `server/payments/catalog.ts`: product 에 `cdFeatureKey` 필드 추가, `enabled:true` 로 전환(판매 여부는 CD 레지스트리가 결정).
+- `server/api.ts`
+  - `POST orders`: PortOne 파라미터 생성·`PAYMENTS_ENABLED`·`requireStagingProduct` 분기를 제거. 대신 `AUTH_SERVICE.fetch("/api/yeongnyangi-entitlement?featureKey=")` 로 미소비 증빙을 찾고, 없으면 402 `{ code:"PAYMENT_REQUIRED", checkoutUrl }` 을 돌려준다. 있으면 `createOrder`(status PAID, `payment_id` 에 CD 증빙 id)·`entitlements` ACTIVE·`prepareBook`·Queue 투입 후 CD 소비 엔드포인트 호출.
+  - `payments/webhook`·`payments/verify`·`checkout/customer`·`testing/purchase` 삭제. `server/payments/portone.ts` 와 `@portone/server-sdk` 의존 제거.
+  - `budget.ts` `productBudgetReady`·`LLM_VERIFIED_PRODUCTS` 게이트는 유지(LLM 예산은 SoulCat 책임).
+- `src/components/FortuneExperience.tsx`·`RoomConsultation.tsx`: 유료 CTA 를 `checkoutUrl` 로 이동하는 링크로 교체. "준비 중" 각주는 CD 레지스트리에 키가 없을 때만 표시.
+- `wrangler.worker.jsonc` staging vars `PAYMENTS_ENABLED` 삭제. `scripts/deploy-staging.mjs` 의 `paymentsEnabled !== false` 검사와 `staging-activation.mjs` 의 결제 활성화 항목 제거.
+- 비밀 정리: `wrangler secret delete --env staging` 으로 `PORTONE_*` 7종 제거(배포 성공 확인 후).
+- 문서: `docs/DOMAIN-INTEGRATION.md` 의 "별도 MID·기존 이용권 미적용·주문 미이관" 조항 폐기, `docs/STAGING-LOGIN-PAYMENT-RUNBOOK.md` 의 activation 파일 결제 절차 폐기.
+
+### 검증 (전부 mock, 실결제 금지)
+
+- CD: `npm run check:fast`, `verify:paid-feature-billing-policy`, `verify:ai-prompt-billing-policy`, `verify:billing-pass-policy`, `verify:portone-single-payment`, `verify:paid-gate-ui`, `verify:payment-choice-parity`, `verify:checkout-pass-card`. `paid-gate-auditor` 에이전트로 커밋 전 감사.
+- SoulCat: `npm test`, `tsc --noEmit`, `wrangler deploy --dry-run --env staging`.
+- 스테이징 e2e: 스테이징 1,000원 테스트 모드(`PAYMENT_TEST_AMOUNT_KRW`, CD `worker/lib/portone.js`)로 `yeongnyangi-saju-mackerel` 1회 → `returnTo` 복귀 → `POST orders` 200 → 책 5챕터 생성(LLM mock) → 보관함 표시. 이후 해당 주문 취소.
+- 판정: 로그인 없이 CTA → CD 로그인 → 결제창 → 복귀 → 책 생성까지 새로고침 없이 이어지면 완료.
+
+### 롤백
+
+CD 는 레지스트리·API 커밋 revert. SoulCat 은 커밋 revert 후 `scripts/deploy-staging.mjs` 재배포. 두 쪽 모두 DB 스키마 변경이 없으므로 데이터 롤백 불요.
+
+### 배포 함정 (0단계에서 실측)
+
+SoulCat 워커는 반드시 `node scripts/deploy-staging.mjs <immutable-preview-url>` 로 배포한다. `wrangler deploy` 직접 호출은 `SOULCAT_PAGES_ORIGIN`·`RELEASE_SHA` 가 빠져 `/yeongnyangi/*` 전체가 503 이 된다. 스크립트는 고정 Pages preview 의 SHA 가 HEAD 와 같아야 하므로 새 커밋 뒤에는 build → Pages preview 업로드가 선행된다. 사고 시 `wrangler rollback --env staging` 으로 즉시 복구.
+
+## 2단계. 프로필 재사용 (SoulCat)
+
+`sharedIdentity()` 와 같은 방식으로 `AUTH_SERVICE.fetch("/api/profile/current")` 를 호출해 `ProfileCard`(`name`·`gender M|F|OTHER`·`birth{year,month,day,hour,minute,calType}`·`location{tz,lng,lat}`)를 SoulCat `profiles.input_json` 으로 프리필. SoulCat 자체 profiles 테이블은 유지.
+
+## 3단계. SEO 오픈 (운영 노출과 함께)
+
+CD `scripts/generate-sitemap.mjs` `coreRoutes` 에 `/yeongnyangi/`·`/yeongnyangi/fortune/`·`/yeongnyangi/room/` + SoulCat `seoRoutes` 의 `includeInSitemap:true` 9개 등록, 색인 판정 5개소 동기(`docs/context/seo-and-adsense.md:64-76`). SoulCat `src/app/layout.tsx:11` 전역 noindex 해제, `src/app/yeongnyangi/robots.txt/route.ts` Disallow 제거, library·share 는 noindex 유지. `/yeongnyangi/terms|privacy|refund` 는 CD 법무 페이지로 canonical. `/yeongnyangi/ggulggul-fortune/` 은 CD `/kkul-kkul-unse` 와 키워드 경쟁하므로 sitemap 제외.
+
+## 4단계. 탈퇴 연동 (RED, 양 레포)
+
+CD `POST /api/auth/withdraw`(`worker/routes/auth.js:5441-5468`)가 SoulCat D1 의 `codedestiny:<id>` 행을 모른다. SoulCat 에 `DELETE /api/yeongnyangi/account` 추가(사용자 소유 테이블: profiles·orders·entitlements·fortune_requests/results/books/chapters/reading_progress/shares·chart_snapshots·daily_messages·anchovy_ledger·free_readings), CD 탈퇴에서 Service Binding 으로 호출. 실패해도 탈퇴는 막지 않고 재시도 로그.
+
+## 5단계. 운영 노출 (RED, 1회 승인)
+
+SoulCat production env 에 routes/D1/Queue 생성, `AUTH_SERVICE` 는 `code-destiny-web`. CD 인젝터 게이트를 `code-destiny.com` 까지 확장, 홈 밴드 "🐟 생선가게 준비 중"·"영냥이가 손님 맞을 준비 중" 제거. 3단계 SEO 오픈을 같은 릴리스에 묶는다.
+
+## 남은 것
+
+- [ ] 1단계 결제 일원화
+- [ ] 2단계 프로필 재사용
+- [ ] 3단계 SEO 오픈
+- [ ] 4단계 탈퇴 연동
+- [ ] 5단계 운영 노출
+- [ ] SoulCat codex 브랜치(미푸시 7커밋, 다른 세션이 LLM 최적화 작업 중)를 main 에 합치고 push — 그 세션 담당.
+- 🔴 범위 밖: main CI `AI Locale Gate` 가 `9fa1c714f` 부터 `recoverGeomancy is not defined` 로 실패 중.
 
 ## 함정
 
 - 밴드는 `<template>` 이라 서버 HTML 에 직접 안 보인다. 렌더는 브라우저에서.
 - 에셋은 SoulCat 워커가 서빙하는 `/_soulcat/assets/*` 참조 — SoulCat 배포가 내려가면 이미지만 빈다.
 - 생선 이미지(240×108)는 `object-fit:contain` 으로 통째 표시.
-- SoulCat 워커는 `scripts/deploy-staging.mjs` 로만 배포한다. 직접 `wrangler deploy` 는 503 을 만든다(위 참조).
 - `/fortune/` 302 가 보이면 엣지 캐시다. `?cb=` 를 붙여 재확인.
 
-## 검증
+## 검증 명령
 
 ```
 npm run check:fast
 curl -s https://staging.code-destiny.com/ | grep -c cd-soulcat-navigation-template
-curl -s -o NUL -w "%{http_code}" "https://staging.code-destiny.com/fortune/?cb=1"            # 200 (CD)
-curl -s -o NUL -w "%{http_code}" "https://staging.code-destiny.com/yeongnyangi/free-fortune/?cb=1"   # 200 (SoulCat)
+curl -s -o NUL -w "%{http_code}" "https://staging.code-destiny.com/fortune/?cb=1"                    # 200 (CD)
+curl -s -o NUL -w "%{http_code}" "https://staging.code-destiny.com/yeongnyangi/free-fortune/?cb=1"  # 200 (SoulCat)
 ```
