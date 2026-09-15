@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-15
-next: "최신 main CI와 아래 잔여 검증 항목을 확인한다. 이미 완료한 초기 리포트와 후속 답변의 저장·재개를 다시 구현하지 않는다."
+next: "P1의 후속 답변 부모 내역 부착 전 새로고침 복구부터 확인한다. 손금 모바일 mock 결제 복귀는 재구현하지 않는다."
 ---
 
 # 유료 LLM 전체 전달표와 잔여 검증
@@ -115,7 +115,7 @@ npm run verify:ai-consultation-flows
 
 ### P1 — 실제 연동을 사용하지 않고 더 검증할 범위
 
-1. 손금 실제 React 화면의 사진 선택/품질→mock 저장→mock PG 리다이렉트→서버 재열람을 390/1280px에서 통합 검사한다. 이번 API/함수 검증과 구별한다. 최신 미결제 판독이 예전 구매본을 가리는 경우의 별도 이력 선택 필요성을 검토한다.
+1. **완료 — 손금 모바일 mock 결제 복귀.** 실제 `PalmDestinyMain`+컴파일된 Tailwind의 격리 loopback Playwright에서 390/1280px 사진 선택/품질→mock 저장→mock PG 리다이렉트→새 문서 서버 재열람을 통과했다. 분석 POST 1회, mock 결제 1회, 결과 GET 2회, 원래 requestId/`serverSaved` resume 유지, 재분석·가로 넘침·원본 사진 복원·외부 요청 0. 전체 Next dev 셸은 기존 `lib/palm/package.json(type=commonjs)`의 TS/ESM dev compile 문제로 제외했으므로 전체 셸·물리 기기 증거가 아니다. 최신 미결제 판독은 예전 구매본을 가리며, 자동 폴백은 새 판독으로 오인될 수 있어 명시적 구매 이력 선택 UI가 필요하다는 결론으로 별도 UX 범위에 남겼다. 검사: `npm run verify:palm-mobile-payment-recovery`.
 2. 후속 답변의 전체 새로고침에서 “답변 저장 완료, 부모 내역 부착 전 중단”을 자동 발견하는 UI는 아직 없다. 현재 같은 질문 재전송 복구를 실제 전체 화면에서 검증하고 필요하면 기존 회차 재개 장치에 연결한다. 새 구매를 열지 않는다.
 3. 각 상품의 **과거 completed 결과 GET**에 대한 취소/환불 정책을 한 표로 대조한다. 초기/부분 재개 검사 성공을 모든 과거 구매 GET의 취소 전수 증명으로 확대하지 않는다. 기존 구매 재열람 보존과 취소된 구매 차단을 함께 fixture로 작성한다.
 

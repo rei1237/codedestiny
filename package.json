@@ -274,6 +274,7 @@
     "verify:past-life-face": "node scripts/verify-past-life-face.mjs",
     "verify:static-asset-cache-keys": "node scripts/verify-static-asset-cache-keys.mjs",
     "verify:palm-flow": "node scripts/verify-palm-flow.mjs",
+    "verify:palm-mobile-payment-recovery": "node scripts/verify-palm-mobile-payment-recovery.mjs",
     "verify:route-await-dispatch": "node scripts/verify-route-await-dispatch.mjs",
     "verify:auth-public-origin": "node scripts/verify-auth-public-origin.mjs",
     "verify:worker-security-guards": "node scripts/verify-worker-security-guards.mjs",

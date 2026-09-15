@@ -1,10 +1,19 @@
 ---
 status: active
 updated: 2026-09-15
-next: "전체 전달 매트릭스의 P1/P2와 최신 main CI를 확인한다. 대표·전문가 초기 생성과 후속 저장 보강은 재구현하지 않는다."
+next: "매트릭스 P1의 후속 답변 부모 내역 부착 전 새로고침 복구부터 확인한다. 손금 초기 저장·mock 결제 복귀는 재구현하지 않는다."
 ---
 
 # 다른 유료 LLM 기능 조사 근거
+
+## 최신 체크포인트 — 손금 모바일 mock 결제 복귀 (2026-09-15)
+
+- `530c79813017d660b8c5d6fcf0b96109682358f4` 기준 clean main/origin과 성공한 main `PR CI` 34911952093을 확인한 뒤 시작했다. 시작 시점에는 다른 Code Destiny 작업이 모두 idle이었고 추가 worktree는 없었다.
+- 검증 중 별도 작업이 활성화되어 main/origin이 `7cdc9bc3cba77d990b2fa09a9309285fcbc83172`까지 전진했다. 관련 없는 변경은 그대로 보존하고 손금 검증 5개 파일만 안전 워크트리로 옮겼다. 이동 중 `check:fast`는 움직인 HEAD와 손금 무관 정적 계약 2건 때문에 유효한 최종 판정이 아니므로, 고정 기준에서 다시 실행한다.
+- 고정 기준 재실행은 `npm run check:fast` 전체 통과(유료 게이트 88/88, Node 1340/1340, Jest 3583/3583 포함)했다. 별도 손금 검사는 모바일 mock 복귀 390/1280px, palm flow, 복귀 Node 7/7, 손금 Jest 59/59를 통과했다.
+- `scripts/verify-palm-mobile-payment-recovery.mjs`가 실제 `PalmDestinyMain`+컴파일된 Tailwind를 390/1280px에서 렌더한다. 사진 선택/품질→mock 저장→mock PG 리다이렉트→새 문서 GET 재열람이 각 1/1/2회로 통과하고, 원래 requestId·`serverSaved` resume·마지막 심층 해석을 보존한다. 재분석, 가로 넘침, 원본 사진 복원, 외부 요청은 없다.
+- 전체 Next dev 셸은 기존 `lib/palm/package.json(type=commonjs)` 아래의 TS/ESM 모듈을 dev compiler가 거부해 500이었다. 이 문제는 main CI production build 성공과 구분하며 범위 밖 모듈 재구성으로 우회하지 않았다. 이번 증거는 전체 셸/물리 모바일/실 PG 증거가 아니다.
+- requestId 없는 최신 조회는 최신 미결제 판독이 예전 구매본을 가린다. 새 판독과 과거 판독을 혼동시키는 자동 폴백보다 명시적 구매 이력 선택이 필요해 별도 UX 작업으로 남겼다.
 
 
 

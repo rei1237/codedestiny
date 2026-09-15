@@ -1,10 +1,20 @@
 ---
 status: active
 updated: 2026-09-15
-next: "전체 전달 매트릭스의 P1/P2와 최신 main CI를 확인한다. 대표·전문가 초기 생성과 후속 저장 보강은 재구현하지 않는다."
+next: "매트릭스 P1의 후속 답변 부모 내역 부착 전 새로고침 복구부터 확인한다. 손금 초기 저장·mock 결제 복귀는 재구현하지 않는다."
 ---
 
 # 유료 LLM 결과 전달 후속 인수인계
+
+## 최신 체크포인트 — 손금 모바일 mock 결제 복귀 (2026-09-15)
+
+- 기준 main=origin/main=`530c79813017d660b8c5d6fcf0b96109682358f4`, 워킹트리 clean에서 시작했다. 해당 SHA의 main `PR CI` 34911952093은 success였고, 시작 시점에는 같은 저장소의 다른 작업이 모두 idle이며 추가 Git worktree가 없었다.
+- 검증 도중 별도 작업이 활성화되어 main/origin이 `7cdc9bc3cba77d990b2fa09a9309285fcbc83172`까지 전진했다. 그 작업의 변경을 보존하고 이 5개 파일만 `wt/palm-mobile-recovery-20260915-095111`로 옮겼으며, 공유 main은 clean으로 돌려놓았다. 이동 중 실행된 첫 `check:fast`는 HEAD가 바뀌어 기준이 유효하지 않았고, 손금과 무관한 기존 정적 계약 2건에서 멈췄으므로 격리된 고정 기준에서 다시 판정한다.
+- 고정된 `7cdc9bc3c` 기준 재검증은 `npm run check:fast` 전체 통과(유료 게이트 88/88, Node 1340/1340, Jest 3583/3583 포함)했다. 손금 전용 Playwright, 기존 palm flow, 복귀 Node 7/7, 손금 Jest 59/59, 인수인계 계약 143개도 각각 통과했다.
+- 실제 `PalmDestinyMain`과 Tailwind CSS를 격리 번들한 loopback Playwright에서 390/1280px 사진 선택→품질 판정→mock 서버 저장→mock PG 리다이렉트→새 문서 서버 재열람을 통과했다. 화면마다 분석 POST 1회, mock 결제 1회, 결과 GET 2회이며 원래 requestId와 `serverSaved` resume descriptor가 유지됐다. 복귀 후 재분석·가로 넘침·원본 사진 서버 복원·외부 요청은 0이었다.
+- 검증기는 `scripts/verify-palm-mobile-payment-recovery.mjs`, 명령은 `npm run verify:palm-mobile-payment-recovery`다. MediaPipe·LLM·PG·DB는 모두 브라우저/route mock이고 실 연동은 없다.
+- 전체 Next 개발 셸 기동은 기존 `lib/palm/package.json`의 CommonJS 경계 때문에 palm TypeScript/ESM 모듈이 dev compile 500으로 실패했다. 운영 main CI build 성공과 구분하며 이번 손금 전달 변경으로 해결하지 않았다. 따라서 이번 증거는 실제 React 컴포넌트+컴파일된 CSS이지 전체 Next 셸·물리 기기 증거는 아니다.
+- `/api/palm/result`의 requestId 없는 최신 조회는 최신 미결제 판독이 403이면 더 오래된 구매본을 찾지 않는다. 과거 구매본을 조용히 자동 표시하면 새 사진 결과로 오인할 수 있으므로 자동 폴백은 추가하지 않았다. 구매 이력을 사용자가 명시적으로 고르는 UI가 필요하다는 결론이며 별도 UX 범위로 남겼다.
 
 
 
