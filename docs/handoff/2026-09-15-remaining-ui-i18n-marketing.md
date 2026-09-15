@@ -48,3 +48,9 @@ node scripts/verify-novel-locale-completeness.mjs
 
 - 소스·테스트·검증기·public 코드에서 삭제 경로/심볼 참조 없음. `verify-novel-runtime`, `verify-story-text-sync`, `verify-novel-player-start`, `typecheck`, `verify-handoff-contract` 통과.
 - `check:fast -- --plan` 확인 후 `check:fast` 실행: 결제 게이트 87/88 통과(`npm test` 포함). 나머지 해외결제 안내 검사는 미스테이징 삭제 파일을 `git ls-files`로 읽어 실패했으며, 삭제를 스테이징한 뒤 동일 검사 재실행 통과. 전체 check:fast 후속 단계가 실행됐다고 해석하지 않는다. 최종 공식 게이트는 해당 main 커밋의 CI다.
+
+## 정리 제한
+
+- 삭제 코드 반영 커밋: `3b532c6969d7847c8d296502170e878681c9a519`.
+- 이번 임시 디렉터리 `D:\Development\codedestiny-worktrees\remove-unused-prose-20260915-093744`는 Git 워크트리 등록과 node_modules 정션을 해제했지만 Git 삭제가 Windows 긴 경로 오류로 일부 실패했다. 남은 파일 재귀 삭제는 자동 승인 검토에서 정책상 차단됐다. 원본 main의 node_modules는 존재한다. 과거 5개 워크트리 정리 완료와 구분한다.
+- 이 잔여 디렉터리는 재개 작업 경로가 아니다. 정리가 필요하면 사용자에게 위 제한을 알리고 허용된 방법으로만 처리한다. 다른 셸이나 도구로 차단을 우회하지 않는다.
