@@ -10,7 +10,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { deliverExpertFollowUp } from '../lib/expert-follow-up-delivery.js';
+import { deliverExpertFollowUp, recoverSavedExpertFollowUps } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -2760,7 +2760,7 @@ async function handleResult(request, env, path) {
   if (!auth) return loginRequired();
 
   await connectDb(env);
-  const consultation = identifier
+  let consultation = identifier
     ? await KarmaDestinyAiConsultation.findOne(buildResultLookup(identifier, auth)).lean()
     : await KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] } }).sort({ createdAt: -1 }).lean();
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
@@ -2769,6 +2769,7 @@ async function handleResult(request, env, path) {
     const access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: consultation.inputHash }, pricing: getPricing(), idempotencyKey: consultation.idempotencyKey });
     if (!access.ok) return paymentVerifyFailed();
   }
+  if (consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation });
   const statusCode = ["generating", "partial", "delivery_pending"].includes(consultation.status) ? 202 : consultation.status === "generation_failed" ? 409 : 200;
   return json(publicSession(consultation), { status: statusCode });
 }

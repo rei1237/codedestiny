@@ -65,7 +65,10 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale: getAmbientAiLocale() || "ko", parts: {}, attempts: {} };
     try {
       const inserted = await ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: {
-        userId, executionKey, featureKey, reportType, reportId: executionKey, idempotencyKey: original.requestId,
+        userId, executionKey, featureKey, reportType,
+        reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,
+        sessionId: typeof original.sessionId === "string" ? original.sessionId : "",
+        idempotencyKey: original.requestId,
         status: "pending", premiumStatus: "generating", metadata: { paidNarrative: state }, lock,
         timeoutAt: new Date(now.getTime() + 600000), createdAt: now, updatedAt: now,
       } }, { upsert: true, returnDocument: "after" }).lean();

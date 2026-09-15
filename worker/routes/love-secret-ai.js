@@ -12,7 +12,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { deliverExpertFollowUp } from '../lib/expert-follow-up-delivery.js';
+import { deliverExpertFollowUp, recoverSavedExpertFollowUps } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1669,7 +1669,7 @@ async function handleResult(request, env, pathId = "") {
   ids.forEach((id) => {
     or.push({ id }, { idempotencyKey: id }, { attemptId: id });
   });
-  const consultation = await LoveSecretAiConsultation.findOne({
+  let consultation = await LoveSecretAiConsultation.findOne({
     userId: clean(auth.userId),
     ...(or.length ? { $or: or } : {}),
   }).sort({ createdAt: -1 }).lean();
@@ -1703,6 +1703,8 @@ async function handleResult(request, env, pathId = "") {
       message: LLM_ERROR_MESSAGE,
     }, { status: 503 });
   }
+
+  consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation });
 
   const payload = publicSession(consultation);
   const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
