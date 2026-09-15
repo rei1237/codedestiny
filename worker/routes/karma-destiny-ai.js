@@ -10,6 +10,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { deliverExpertFollowUp } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1619,7 +1620,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: options.temperature || (mode === "follow_up" ? 0.68 : 0.74),
     maxOutputTokens: options.maxOutputTokens || (mode === "initial" ? INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS : 7600),
     // 45s 단락 함정 회피(위 ensureInitialConsultationQuality 주석 참고). 배치당 2만 토큰 ≈ 100s.
-    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
+    timeoutMs: mode === 'follow_up' ? 45000 : Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
+    ...(mode === 'follow_up' ? { fallbackToWorkersAI: false } : {}),
     // 초기 장문도 폴백을 허용하되 목표의 40% 미만이면 실패로 돌린다(재시도·환불 경로 유지).
     ...(mode === "initial" ? { fallbackMinChars: Math.round(INITIAL_CONSULTATION_MIN_LENGTH * 0.4) } : {}),
     cache: buildKarmaLlmCache(env, mode),
@@ -1627,7 +1629,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   let text = clean(ai?.text);
-  if (!ai?.ok || isMock) {
+  if (!ai?.ok || isMock || (mode === 'follow_up' && (ai.truncated || ai.isMock))) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     error.providerDiagnostics = providerDiagnostics;
@@ -1648,6 +1650,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     throw error;
   }
   if (!hasForbiddenResult(text)) return { text, provider, model: clean(ai?.model) };
+  if (mode === 'follow_up') throw new Error('FOLLOW_UP_QUALITY_INCOMPLETE');
 
   const repair = await callGeminiText(env, [
     "다음 상담 답변에서 시스템성 표현과 작업 용어를 모두 제거하고, 자연스러운 운명의 업 상담문으로만 다시 써주세요.",
@@ -2771,7 +2774,6 @@ async function handleResult(request, env, path) {
 }
 
 async function handleMessage(request, env) {
-  const route = "/api/karma-destiny-ai/message";
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
   const message = clean(body?.message || body?.question, 1200);
@@ -2789,46 +2791,7 @@ async function handleMessage(request, env) {
   }).lean();
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
 
-  try {
-    const logContext = safeLogPayload({
-      route,
-      requestId: sessionId,
-      body: { ...body, question: message },
-      normalized: {
-        input: {
-          serviceType: "karma-ai-consultation",
-          focusArea: "follow_up",
-          question: message,
-          birthInfo: consultation.birthInfo,
-        },
-      },
-      access: consultation.accessType,
-      env,
-    });
-    const generated = await generateConsultationText(env, buildFollowUpPrompt(consultation, message), {
-      mode: "follow_up",
-      minLength: 180,
-      maxOutputTokens: 4600,
-      logContext,
-    });
-    const userMessage = { role: "user", content: message, createdAt: new Date() };
-    const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date() };
-    const updated = await KarmaDestinyAiConsultation.findOneAndUpdate(
-      { id: sessionId, userId: clean(auth.userId) },
-      {
-        $push: { messages: { $each: [userMessage, assistantMessage] } },
-        $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
-        },
-      },
-      { new: true },
-    ).lean();
-    logKarmaAi("LLM Generate Success", { ...logContext, provider: generated.provider, model: generated.model });
-    return json(publicSession(updated));
-  } catch (error) {
-    logKarmaAi("LLM Error", safeLogPayload({ route, requestId: sessionId, body, access: "follow_up", env, error }), "error");
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
-  }
+  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 180, maxOutputTokens: 4600 }), render: publicSession });
 }
 
 export async function handleKarmaDestinyAiRoutes(request, env = {}) {

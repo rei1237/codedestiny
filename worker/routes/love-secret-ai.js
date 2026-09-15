@@ -12,6 +12,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { deliverExpertFollowUp } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -955,8 +956,10 @@ async function generateFollowUp(env, consultation, message) {
     temperature: 0.7,
     maxOutputTokens: 5000,
     taskType: "fortune",
+    timeoutMs: 45000,
+    fallbackToWorkersAI: false,
   });
-  if (!ai?.ok || !clean(ai.text)) {
+  if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`) || !clean(ai.text)) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
     error.code = "LLM_GENERATION_FAILED";
     throw error;
@@ -1727,24 +1730,7 @@ async function handleMessage(request, env) {
   }).lean();
   if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
 
-  try {
-    const generated = await generateFollowUp(env, consultation, message);
-    const userMessage = { role: "user", content: message, createdAt: new Date() };
-    const assistantMessage = { role: "assistant", content: generated.text, createdAt: new Date() };
-    const updated = await LoveSecretAiConsultation.findOneAndUpdate(
-      { id: sessionId, userId: clean(auth.userId) },
-      {
-        $push: { messages: { $each: [userMessage, assistantMessage] } },
-        $set: {
-          llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
-        },
-      },
-      { new: true },
-    ).lean();
-    return json(publicSession(updated));
-  } catch (error) {
-    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
-  }
+  return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation, generate: (original, question) => generateFollowUp(env, original, question), render: publicSession });
 }
 
 export async function handleLoveSecretAiRoutes(request, env = {}, ctx) {

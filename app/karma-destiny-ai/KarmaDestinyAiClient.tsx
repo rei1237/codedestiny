@@ -2558,15 +2558,26 @@ export default function KarmaDestinyAiPage() {
     event.preventDefault();
     const message = followUp.trim();
     if (!message || !sessionId || sending) return;
+    const isCurrent = captureOwner();
     setSending(true);
     setError("");
     try {
-      const { payload } = await postJson<ConsultationResult>("/api/karma-destiny-ai/message", { sessionId, message });
-      if (!payload.ok || !Array.isArray(payload.messages)) throw new Error(payload.message || copy.llmErrorMessage);
+      let payload: ConsultationResult | undefined;
+      for (let attempt = 0; attempt < 4 && isCurrent(); attempt += 1) {
+        try {
+          const result = await postJson<ConsultationResult>("/api/karma-destiny-ai/message", { sessionId, message });
+          payload = result.payload;
+          if (result.response.status === 200 || ![202, 409, 429, 503].includes(result.response.status) || (payload as { retryable?: boolean }).retryable === false) break;
+        } catch (error) { if (attempt === 3) throw error; }
+        if (attempt < 3) await new Promise(resolve => window.setTimeout(resolve, 1200));
+      }
+      if (!isCurrent()) return;
+      if (!payload?.ok || !Array.isArray(payload.messages)) throw new Error(payload?.message || copy.llmErrorMessage);
       setMessages(payload.messages);
       setFollowUp("");
       setStatus("ready");
     } catch (caught) {
+      if (!isCurrent()) return;
       setError(caught instanceof Error ? caught.message : copy.llmErrorMessage);
     } finally {
       setSending(false);
