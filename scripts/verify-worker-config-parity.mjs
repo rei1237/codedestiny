@@ -414,6 +414,12 @@ const BASE_PRODUCTION = [
   'crons = ["0 22 * * *"]',
 ].join("\n");
 
+const STAGING_SERVICES_BLOCK = [
+  '[[services]]',
+  'binding = "SOULCAT_SERVICE"',
+  'service = "soulcat-service-staging"',
+];
+
 const BASE_STAGING = [
   'name = "code-destiny-web-staging"',
   'main = "index.js"',
@@ -429,6 +435,8 @@ const BASE_STAGING = [
   '[[r2_buckets]]',
   'binding = "FEEDBACK_IMAGES_BUCKET"',
   'bucket_name = "bugs-staging"',
+  '',
+  ...STAGING_SERVICES_BLOCK,
   '',
   '[vars]',
   'NODE_ENV = "production"',
@@ -447,6 +455,19 @@ const BASE_STAGING = [
   'crons = []',
 ].join("\n");
 
+/** 스테이징 픽스처에서 스테이징 전용 키 하나를 뺀다. services.* 는 바인딩 블록째 뺀다. */
+function withoutStagingOnlyKey(fixture, key) {
+  if (key.startsWith("vars.")) {
+    return fixture.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n");
+  }
+  if (key.startsWith("services.")) {
+    const block = STAGING_SERVICES_BLOCK.join("\n");
+    if (!fixture.includes(block)) throw new Error("fixture services block missing");
+    return fixture.replace(block, "");
+  }
+  throw new Error(`self-test 가 모르는 스테이징 전용 키 종류: ${key}`);
+}
+
 /** 픽스처 [vars] 섹션에 줄을 하나 끼워 넣는다. 파일 끝에 붙이면 [triggers] 아래로 들어간다. */
 function withExtraVar(fixture, line) {
   const anchor = 'NODE_ENV = "production"';
@@ -459,7 +480,7 @@ function runSelfTest() {
     ...[...STAGING_ONLY_KEYS].map((key) => ({
       name: `${key} missing from both configurations fails closed`,
       production: BASE_PRODUCTION,
-      staging: BASE_STAGING.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n"),
+      staging: withoutStagingOnlyKey(BASE_STAGING, key),
       expectFailure: new RegExp(`${key}: 스테이징 전용 키인데 스테이징 설정에 없다`),
     })),
     {
