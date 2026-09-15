@@ -1,5 +1,5 @@
 ---
-status: completed
+status: done
 updated: 2026-09-15
 next: "별도 승인 없이는 실 LLM·실결제·운영 DB·물리 기기·운영 승격을 실행하지 않는다."
 ---
