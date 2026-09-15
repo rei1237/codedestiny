@@ -109,15 +109,15 @@ export function seedFromDestinyProfile(profile: DestinyProfileCard | null | unde
   const hour = formatHourMinute(profile.birthHour);
   const minute = formatHourMinute(profile.birthMinute);
   const calendarType = toCalendarType(profile.calType ?? profile.calendarType);
-  const birthTimeUnknown = toBool(profile.timeUnknown ?? profile.birthTimeUnknown ?? profile.noBirthTime);
+  const birthTimeUnknown = toBool(profile.timeUnknown ?? profile.birthTimeUnknown ?? profile.noBirthTime ?? profile.birth?.timeUnknown);
 
   if (name) seed.name = name;
   if (birthDate) seed.birthDate = birthDate;
   if (calendarType) seed.calendarType = calendarType;
   if (birthTimeUnknown !== undefined) seed.birthTimeUnknown = birthTimeUnknown;
-  if (directBirthTime) {
+  if (!birthTimeUnknown && directBirthTime) {
     seed.birthTime = directBirthTime;
-  } else if (hour || minute) {
+  } else if (!birthTimeUnknown && (hour || minute)) {
     const hh = hour || "00";
     const mm = minute || "00";
     seed.birthTime = `${hh.padStart(2, "0")}:${mm.padStart(2, "0")}`;

@@ -158,7 +158,7 @@ function isValidBirthDateParts(year, month, day) {
   return dt.getUTCFullYear() === year && (dt.getUTCMonth() + 1) === month && dt.getUTCDate() === day;
 }
 
-function validateRequiredBirth(rawProfile) {
+export function validateRequiredBirth(rawProfile) {
   const source = rawProfile && typeof rawProfile === "object" ? rawProfile : {};
   const birth = source.birth && typeof source.birth === "object" ? source.birth : {};
 
@@ -179,12 +179,13 @@ function validateRequiredBirth(rawProfile) {
   );
 
   const hasDateParts = birth.year !== undefined && birth.month !== undefined && birth.day !== undefined;
-  const hasTimeParts = birth.hour !== undefined && birth.minute !== undefined;
+  const timeUnknown = birth.timeUnknown === true || source.timeUnknown === true || source.birthTimeUnknown === true;
+  const hasTimeParts = birth.hour !== undefined && birth.hour !== null && birth.minute !== undefined && birth.minute !== null;
 
   if (!hasDateParts && !parsedDate) {
     return { ok: false, message: "생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요." };
   }
-  if (!hasTimeParts && !parsedTime) {
+  if (!timeUnknown && !hasTimeParts && !parsedTime) {
     return { ok: false, message: "출생 시간을 HH:mm 형식으로 입력해 주세요." };
   }
 
@@ -196,9 +197,9 @@ function validateRequiredBirth(rawProfile) {
     return { ok: false, message: "생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요." };
   }
 
-  const hour = Number(hasTimeParts ? birth.hour : parsedTime?.hour);
-  const minute = Number(hasTimeParts ? birth.minute : parsedTime?.minute);
-  if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59) {
+  const hour = timeUnknown ? null : Number(hasTimeParts ? birth.hour : parsedTime?.hour);
+  const minute = timeUnknown ? null : Number(hasTimeParts ? birth.minute : parsedTime?.minute);
+  if (!timeUnknown && (!Number.isInteger(hour) || hour < 0 || hour > 23 || !Number.isInteger(minute) || minute < 0 || minute > 59)) {
     return { ok: false, message: "출생 시간을 HH:mm 형식으로 입력해 주세요." };
   }
 
@@ -210,6 +211,7 @@ function validateRequiredBirth(rawProfile) {
       day,
       hour,
       minute,
+      timeUnknown,
       calType: sanitizeCalType(birth.calType || source.calType || source.calendarType),
     },
   };
@@ -236,6 +238,7 @@ function normalizeIncomingProfile(raw, index) {
   );
   const parsedTime = parseBirthTimeText(source.birthTime || birth.birthTime || birth.time || source.time);
 
+  const timeUnknown = birth.timeUnknown === true || source.timeUnknown === true || source.birthTimeUnknown === true;
   return {
     profileId: buildProfileId(source.profileId || source.id, index),
     name: sanitizeName(source.name),
@@ -244,8 +247,9 @@ function normalizeIncomingProfile(raw, index) {
       year: sanitizeInt(birth.year ?? parsedDate?.year, 1000, 9999, 1900),
       month: sanitizeInt(birth.month ?? parsedDate?.month, 1, 12, 1),
       day: sanitizeInt(birth.day ?? parsedDate?.day, 1, 31, 1),
-      hour: sanitizeInt(birth.hour ?? parsedTime?.hour, 0, 23, 0),
-      minute: sanitizeInt(birth.minute ?? parsedTime?.minute, 0, 59, 0),
+      timeUnknown,
+      hour: timeUnknown ? null : sanitizeInt(birth.hour ?? parsedTime?.hour, 0, 23, 0),
+      minute: timeUnknown ? null : sanitizeInt(birth.minute ?? parsedTime?.minute, 0, 59, 0),
       calType: sanitizeCalType(birth.calType || source.calType || source.calendarType),
     },
     location: {
@@ -318,15 +322,16 @@ function getRemainingProfileActionCoins(user) {
   return Math.max(0, Math.floor(Number(user?.points || 0)));
 }
 
-function toClientProfile(doc) {
+export function toClientProfile(doc) {
   const year = Number(doc?.birth?.year || 1900);
   const month = Number(doc?.birth?.month || 1);
   const day = Number(doc?.birth?.day || 1);
-  const hour = Number(doc?.birth?.hour || 0);
-  const minute = Number(doc?.birth?.minute || 0);
+  const timeUnknown = doc?.birth?.timeUnknown === true;
+  const hour = timeUnknown ? null : Number(doc?.birth?.hour ?? 0);
+  const minute = timeUnknown ? null : Number(doc?.birth?.minute ?? 0);
   const calendarType = sanitizeCalType(doc?.birth?.calType);
   const birthDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  const birthTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  const birthTime = timeUnknown ? "" : `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
   return {
     id: String(doc.profileId || ""),
@@ -336,6 +341,7 @@ function toClientProfile(doc) {
     gender: sanitizeGender(doc.gender),
     birthDate,
     birthTime,
+    timeUnknown,
     calendarType,
     isDefault: false,
     selected: false,
@@ -346,6 +352,7 @@ function toClientProfile(doc) {
       day,
       hour,
       minute,
+      timeUnknown,
       calType: calendarType,
     },
     location: {

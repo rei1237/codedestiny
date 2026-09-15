@@ -20,6 +20,7 @@ async function digest(value: unknown) {
 }
 function birthFromProfile(profile: any, timeUnknown: boolean) {
   const b=profile.birth || {}, place=profile.location || {};
+  timeUnknown = timeUnknown || b.timeUnknown === true;
   const pad=(n: number)=>String(n).padStart(2,'0');
   return {birthDate:`${b.year}-${pad(b.month)}-${pad(b.day)}`,
     ...(!timeUnknown?{birthTime:`${pad(b.hour)}:${pad(b.minute)}`} : {}),

@@ -243,6 +243,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ "restoreCredentials.credentialId": 1 });
 
 const profileCardBirthSchema = new mongoose.Schema({
+  timeUnknown: { type: Boolean, default: false },
   year: { type: Number, min: 1000, max: 9999 },
   month: { type: Number, min: 1, max: 12 },
   day: { type: Number, min: 1, max: 31 },
