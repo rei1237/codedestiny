@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "b01b431affa1a973",
+      "signature": "e4e323d90f964c58",
       "lastmod": "2026-09-15"
     },
     "/about/": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-09-10"
     },
     "/en/": {
-      "signature": "da7cdcb812b96387",
+      "signature": "2556a9dd7a30756a",
       "lastmod": "2026-09-15"
     },
     "/en/about/": {
@@ -1059,7 +1059,7 @@
       "lastmod": "2026-09-14"
     },
     "/ja/": {
-      "signature": "da7cdcb812b96387",
+      "signature": "2556a9dd7a30756a",
       "lastmod": "2026-09-15"
     },
     "/ja/about/": {
@@ -1579,8 +1579,8 @@
       "lastmod": "2026-09-14"
     },
     "/master-love-codex/": {
-      "signature": "46d23becd181c403",
-      "lastmod": "2026-09-14"
+      "signature": "50737c96e8728f25",
+      "lastmod": "2026-09-15"
     },
     "/mayan-calendar/guide/": {
       "signature": "16c621837926bb71",
@@ -2123,7 +2123,7 @@
       "lastmod": "2026-09-14"
     },
     "/zh-tw/": {
-      "signature": "da7cdcb812b96387",
+      "signature": "2556a9dd7a30756a",
       "lastmod": "2026-09-15"
     },
     "/zh-tw/fortune/": {
@@ -2567,7 +2567,7 @@
       "lastmod": "2026-09-13"
     },
     "/zh/": {
-      "signature": "da7cdcb812b96387",
+      "signature": "2556a9dd7a30756a",
       "lastmod": "2026-09-15"
     },
     "/zh/about/": {
