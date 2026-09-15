@@ -20,12 +20,15 @@ import { runPaidAccessGate } from "@/app/_lib/billing-client";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
+import { products } from "@/worker/yeongnyangi/payments/catalog";
+import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
+import styles from "./checkout.module.css";
 
 const FEATURE_KEY_PATTERN = /^yeongnyangi-[a-z0-9-]+$/;
 const RETURN_TO_PREFIX = "/yeongnyangi/";
 const DEFAULT_RETURN_TO = "/yeongnyangi/";
 const RESUME_KIND = "yeongnyangi-checkout";
-const YEONGNYANGI_QUOTE = "이용권? 월정석? 먹지도 못하는 걸 어디에 써? 나는 꽃돼지 연이처럼 그렇게 혜자는 아니야~";
+
 
 type CheckoutParams = {
   featureKey: string;
@@ -143,68 +146,55 @@ export default function CheckoutClient() {
     });
   }, [pricing, gate.phase, buildResume, params.returnTo]);
 
+  const product = products.find(item => item.cdFeatureKey === params.featureKey);
   return (
-    <div className="min-h-screen bg-[#0b0a14] text-white">
-      <section className="mx-auto flex min-h-[52vh] max-w-xl flex-col justify-center px-5 py-16 sm:px-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-200/80">Yeongnyangi</p>
-        <h1 className="mt-4 text-2xl font-black leading-tight sm:text-3xl">영냥이 복채 결제</h1>
-
-        <div className="mt-6 rounded-2xl border border-amber-200/20 bg-white/5 p-5 text-sm leading-7 text-amber-50/85">
-          <p className="font-semibold text-amber-100">영냥이의 세계는 코드 데스티니와 다른 차원이에요.</p>
-          <p className="mt-1">
-            달빛 이용권도, 월정석도 그 문을 넘지 못합니다. 복채는 생선값 그대로, 단건 결제(카드·카카오페이 등)만 받아요.
-          </p>
-          <blockquote className="mt-4 border-l-2 border-amber-300/60 pl-3 italic text-amber-100/90">
-            “{YEONGNYANGI_QUOTE}”
-            <footer className="mt-1 not-italic text-xs text-amber-200/70">— 영냥이</footer>
-          </blockquote>
+    <main className={styles.page}>
+      <nav className={styles.nav} aria-label="결제 화면 이동">
+        <a href={params.returnTo}>← 영냥이 방</a><a href="/">CODE DESTINY</a>
+      </nav>
+      <section className={styles.checkout} aria-labelledby="checkout-title">
+        <div className={styles.host}>
+          <img src="/assets/yeongnyangi/hero.webp" alt="생선을 기다리는 영냥이" width={480} height={480} />
+          <p>생선은 내가 받을게.<br />네 이야기는 차근차근 살펴보자.</p>
         </div>
-
-        {!pricing ? (
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-sm leading-7 text-amber-50/80">
-            <p className="font-semibold text-amber-100">아직 준비 중인 생선이에요.</p>
-            <p className="mt-1">이 상품은 코드 데스티니 결제 목록에 없어요. 영냥이 방으로 돌아가 다시 골라 주세요.</p>
-            <a
-              href={DEFAULT_RETURN_TO}
-              className="mt-4 inline-flex rounded-full border border-amber-200/40 px-4 py-2 text-sm font-semibold text-amber-100 hover:bg-amber-200/10"
-            >
-              영냥이 방으로 돌아가기
-            </a>
-          </div>
-        ) : (
-          <div className="mt-8">
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm text-amber-50/80">
-              <dt className="text-amber-200/70">상품</dt>
-              <dd>{pricing.featureKey}</dd>
-              <dt className="text-amber-200/70">복채</dt>
-              <dd className="font-semibold text-amber-100">{formatKrw(pricing.amountKRW)} · 단건 결제</dd>
-            </dl>
-            <button
-              type="button"
-              onClick={() => { void startPayment(); }}
-              disabled={!authSettled || !signedIn || gate.phase === "paying" || gate.phase === "paid"}
-              className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-amber-300 px-6 py-3 text-base font-bold text-[#1a1408] transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {!authSettled
-                ? "로그인 상태를 확인하고 있어요"
-                : gate.phase === "paying"
-                  ? "결제창을 여는 중이에요"
-                  : gate.phase === "paid"
-                    ? "결제 완료 · 영냥이 방으로 이동 중"
-                    : `${formatKrw(pricing.amountKRW)} 단건 결제하기`}
-            </button>
-            {gate.phase === "cancelled" ? (
-              <p className="mt-3 text-sm text-amber-50/75">결제를 취소했어요. 준비되면 다시 눌러 주세요.</p>
-            ) : null}
-            {gate.phase === "error" ? (
-              <p className="mt-3 text-sm text-rose-200">{gate.message}</p>
-            ) : null}
-            <a href={params.returnTo} className="mt-4 inline-block text-xs text-amber-200/60 underline-offset-2 hover:underline">
-              결제하지 않고 영냥이 방으로 돌아가기
-            </a>
-          </div>
-        )}
+        <div className={styles.paper}>
+          <h1 id="checkout-title">영냥이에게 건네는 복채</h1>
+          <p className={styles.intro}>고른 생선과 상담 내용을 확인해 줘.</p>
+          {!pricing || !product ? (
+            <div className={styles.notice}>
+              <h2>생선을 다시 골라 주세요</h2>
+              <p>선택한 상품을 확인하지 못했어요. 영냥이 방에서 상담을 다시 선택해 주세요.</p>
+              <a href={DEFAULT_RETURN_TO}>영냥이 방으로 돌아가기</a>
+            </div>
+          ) : (
+            <>
+              <div className={styles.product}>
+                <img src={`/assets/yeongnyangi/fish/${product.fishId}.webp`} alt="" width={240} height={108} />
+                <div><h2>{product.name} · {product.fishName}</h2><p>{depthDescriptions[product.fishId]}</p></div>
+              </div>
+              <dl className={styles.receipt}>
+                <div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div>
+                <div><dt>결제 방식</dt><dd>단건 결제</dd></div>
+                <div className={styles.total}><dt>결제 금액</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
+              </dl>
+              <p className={styles.policy}>영냥이 상담은 단건 결제로 이용해요.<br />이용권과 월정석은 적용되지 않아요.</p>
+              <button type="button" onClick={() => { void startPayment(); }}
+                disabled={!authSettled || !signedIn || gate.phase === "paying" || gate.phase === "paid"}
+                className={styles.pay}>
+                {!authSettled ? "로그인 상태 확인 중" : gate.phase === "paying" ? "결제창을 여는 중이에요"
+                  : gate.phase === "paid" ? "영냥이 방으로 돌아가는 중" : `${formatKrw(pricing.amountKRW)} 단건 결제하기`}
+              </button>
+              <p className={styles.security}>결제수단은 다음 화면에서 선택해 주세요.</p>
+              <div aria-live="polite" className={styles.feedback}>
+                {gate.phase === "cancelled" ? <p>결제를 취소했어요. 준비되면 다시 눌러 주세요.</p> : null}
+                {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
+              </div>
+              <a href={params.returnTo} className={styles.back}>생선 다시 고르기</a>
+              <p className={styles.security}><a href="/terms/">이용약관</a> · <a href="/refund-policy/">환불 정책</a> · <a href="/contact/">문의하기</a></p>
+            </>
+          )}
+        </div>
       </section>
-    </div>
+    </main>
   );
 }
