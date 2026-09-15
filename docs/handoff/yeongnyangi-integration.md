@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-15
-next: 1단계 결제 일원화 착수 — CD `worker/lib/paid-feature-registry.js` 에 영냥이 상품을 회당 결제 featureKey 로 등록하고, Service Binding 전용 증빙 조회 API 를 추가한 뒤, SoulCat 결제 CTA 를 CD 결제창으로 보내고 SoulCat `POST orders` 가 CD 증빙으로 책 생성을 시작하게 바꾼다(RED, 양 레포, 승인 필요). 기존 MID 로 결제하며 추가 MID 는 발급하지 않는다(사용자 확정 2026-09-15).
+next: 1단계 후속 — (a) 스테이징 e2e 1회(`/checkout/?featureKey=yeongnyangi-saju-mackerel&returnTo=/yeongnyangi/fortune/` → 1,000원 테스트 모드 → 복귀 → `POST orders` 200, LLM mock)는 사용자 요청 시에만; (b) SoulCat PortOne 잔재 삭제(웹훅·verify·checkout/customer·testing/purchase·`portone.ts`·`staging-access.ts`·`@portone/server-sdk`·`PAYMENTS_ENABLED` var·`PORTONE_*` 비밀 7종)는 3면 grep 후 별도 커밋, 비밀 삭제는 사용자 1회 승인; (c) 로컬 SoulCat main 워크트리(`C:\Users\user\Desktop\SoulCatProject`)는 미커밋 93파일 때문에 ff 하지 않았다 — 그 세션이 정리 후 `git pull --ff-only`. 그 다음 2단계 프로필 재사용.
 ---
 
 # 영냥이(SoulCat) 편입 — 기존 MID·기존 계정으로 전 서비스 정상 동작시키기
@@ -17,9 +17,10 @@ next: 1단계 결제 일원화 착수 — CD `worker/lib/paid-feature-registry.j
 - 0단계 허브 하이재킹 해소(SoulCat 커밋 `d246d48`, codex 브랜치, 워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`). 실측: `/fortune/` CD 200, `/yeongnyangi/*`·`/api/yeongnyangi/*` 200. 워커 코드는 롤백된 `2348c4e` 버전이 돌지만 라우트가 없어 옛 302 는 도달 불가. 다음 정식 배포 때 새 코드가 실린다.
 - 계정 통합. SoulCat `server/auth.ts` `sharedIdentity()` 가 CD 쿠키(`fortune_auth_token`/`fortune_auth_refresh`)를 Service Binding `AUTH_SERVICE`(→ `code-destiny-web-staging`)으로 CD `/api/auth/me` 에 넘겨 검증. D1 키 `codedestiny:<24hex>`. degraded/token-only 응답은 거부. 변경 불요.
 - CD 홈 밴드(스테이징 게이트). `index.html` `<template id="cd-soulcat-navigation-template">` + 인젝터(`data-marker="cd-soulcat-new-world-v20260915"`).
-- 주제 카드·초융합 모달 (2026-09-15, SoulCat codex 브랜치 `1ec222e`·`f2ab966`·`ba20e2f`, ff 머지, 미푸시·미배포). 홈 "영냥이가 골라봤어" 4카드가 `/yeongnyangi/fortune/?domain=…&topic=love|money|year|relationship` 링크로 유료 책 파이프라인에 직진. 서버 `server/fortune/topics.ts` 가 topicId 허용목록 정본(`year` 추가). `readingManifest` 는 single 상품에서 행 집합·id 는 그대로 두고 주제 챕터를 `self` 다음으로 올려 `연애운 · ` 접두, 커버 packageName 은 `재물운 참치`. 모달은 융합 4상품만 `FishCatalog layout="list"`. 검증: typecheck·`npm test`(vendored saju 해시 1건은 새 워크트리 CRLF 체크아웃 탓, 코덱스 워크트리에서는 통과)·mock 8791 Playwright(홈 링크 4개, 모달 리스트 4장/CTA 0/가로 오버플로 0, 4주제 URL 입력 단계 직진, 잘못된 topic 은 선택 화면 폴백). 후속: `scripts/verify-fusion-ui.mjs`·`verify-fusion-final.mjs` 는 로그인 도입 전 기준이라 차트 단계에서 멎는다(경로만 `/yeongnyangi` 로 고침); 비융합 `FishCatalog` grid 경로 사용처 0(삭제는 별도); `books.ts` summary.title 미반영; `sukuyo&topic=relationship` 은 궁합 모드 강제(personB 필수).
+- **1단계 결제 일원화 (2026-09-15 완료, 단건 전용).** CD main `46fbb8402`(레지스트리 28키 `paymentScope:"direct_only"` + `isDirectOnlyPaidFeatureKey` + 서버 5지점 fail-closed + `verify-billing-pass-policy` 분기 + payment-gating 문서 예외) → `c14efbd47`(`worker/routes/yeongnyangi-entitlement.js`: GET 증빙 목록 / POST 소비, `Payment.metadata.consumedBy` 로 멱등, 다른 requestId 는 409 `ALREADY_CONSUMED`) → `96ccbbd40`(`app/checkout/` 호스트 페이지: `runPaidAccessGate` 를 `allowedPaymentModes:["direct"]`+이용권 선검사 3종 off 로 호출, featureKey 는 `yeongnyangi-` 접두만, returnTo 는 `/yeongnyangi/` 접두만) → `b5a14dd10`(홈 밴드 다른 차원 안내 + 영냥이 대사, 미러 6개 sync). SoulCat codex 브랜치 `e612463`(`catalog.ts` `cdFeatureKey`+전 상품 enabled, 신규 `server/payments/cd-entitlement.ts`, `orders.ts` `findPaidOrder`·`grantProofOrder`(payments id `cd:<merchantUid>`), `api.ts` `POST orders` 가 증빙 없으면 402 `{code:"PAYMENT_REQUIRED",checkoutUrl}`·있으면 금액 일치 확인 → consume → grant → prepareBook → dispatch, `FortuneExperience.tsx` 결제 폼 → "<n>원 단건 결제하러 가기" CTA + 다른 차원 각주·대사, `tests/cd-entitlement.test.ts` 4건). SoulCat `origin/main` 은 `6382dd3..e612463` ff 로 push 됨. 스테이징 배포: Pages preview `https://411e82e9.soulcat.pages.dev` → `soulcat-service-staging` Version `f866a967-0fad-45fc-92bb-719e986775f3`. 실측: `/api/yeongnyangi/products` 28개 전부 `enabled:true`·`cdFeatureKey` 노출. 검증: CD `check:fast`+결제 verify 9종 통과, `paid-gate-auditor` 감사 2회; SoulCat `tsc --noEmit`·`npm test` 100/100·`wrangler deploy --dry-run --env staging --config wrangler.worker.jsonc`. 스테이징 e2e(실결제 테스트 모드)는 미수행. 🔴 activation 파일이 없어 스테이징 `ALLOW_LIVE_LLM=false` 이므로 `POST orders` 는 증빙 이전에 503 `LLM_NOT_CONFIGURED` — 책 생성 검증은 activation 절차(`docs/STAGING-LOGIN-PAYMENT-RUNBOOK.md`) 뒤에. 🔴 남은 PortOne 잔재는 규칙 6/9 로 삭제하지 않았다(아래 "남은 것").
+- 주제 카드·초융합 모달 (2026-09-15, SoulCat codex 브랜치 `1ec222e`·`f2ab966`·`ba20e2f`, ff 머지, `e612463` 과 함께 push·배포됨). 홈 "영냥이가 골라봤어" 4카드가 `/yeongnyangi/fortune/?domain=…&topic=love|money|year|relationship` 링크로 유료 책 파이프라인에 직진. 서버 `server/fortune/topics.ts` 가 topicId 허용목록 정본(`year` 추가). `readingManifest` 는 single 상품에서 행 집합·id 는 그대로 두고 주제 챕터를 `self` 다음으로 올려 `연애운 · ` 접두, 커버 packageName 은 `재물운 참치`. 모달은 융합 4상품만 `FishCatalog layout="list"`. 검증: typecheck·`npm test`(vendored saju 해시 1건은 새 워크트리 CRLF 체크아웃 탓, 코덱스 워크트리에서는 통과)·mock 8791 Playwright(홈 링크 4개, 모달 리스트 4장/CTA 0/가로 오버플로 0, 4주제 URL 입력 단계 직진, 잘못된 topic 은 선택 화면 폴백). 후속: `scripts/verify-fusion-ui.mjs`·`verify-fusion-final.mjs` 는 로그인 도입 전 기준이라 차트 단계에서 멎는다(경로만 `/yeongnyangi` 로 고침); 비융합 `FishCatalog` grid 경로 사용처 0(삭제는 별도); `books.ts` summary.title 미반영; `sukuyo&topic=relationship` 은 궁합 모드 강제(personB 필수).
 
-## 1단계. 결제 일원화 (RED, 양 레포, 별도 승인 후 착수)
+## 1단계. 결제 일원화 (완료 2026-09-15 — 아래는 설계 기록. 실제 구현과 다른 점: `/checkout/` 은 신규 App Router 페이지로 만들었고, 이용권 제외는 `entitlement-policy.js` 가 아니라 레지스트리 `paymentScope:"direct_only"` 한 곳이 정본이며 월정석도 막는다. 증빙원은 `Payment` 단일(직접 결제만). `checkout-entry.js`·`portone.ts` returnTo 수정은 불필요했다 — `/checkout/` 페이지가 PortOne 복귀를 받아 `usePaidResume` 으로 returnTo 를 되살린다.)
 
 ### 목표 흐름
 
@@ -86,13 +87,15 @@ SoulCat production env 에 routes/D1/Queue 생성, `AUTH_SERVICE` 는 `code-dest
 
 ## 남은 것
 
-- [ ] 1단계 결제 일원화
+- [x] 1단계 결제 일원화 (CD `46fbb8402`…`b5a14dd10`, SoulCat `e612463`, 스테이징 `f866a967`)
+- [ ] 1단계 후속 — SoulCat PortOne 잔재 삭제(별도 커밋, 3면 grep): `server/api.ts` 의 `payments/webhook`·`payments/verify`·`checkout/customer`·`testing/purchase` 라우트, `server/payments/portone.ts`·`staging-access.ts`·`customer.ts`, `@portone/server-sdk` 의존, `wrangler.worker.jsonc` `PAYMENTS_ENABLED`, `scripts/deploy-staging.mjs` 의 `paymentsEnabled` 검사, `staging-activation.mjs` 결제 항목, `docs/DOMAIN-INTEGRATION.md`·`docs/STAGING-LOGIN-PAYMENT-RUNBOOK.md` 결제 절. `PORTONE_*` 비밀 7종 `wrangler secret delete --env staging` 은 사용자 1회 승인 후.
+- [ ] 1단계 후속 — 스테이징 e2e 1회(사용자 요청 시): activation 으로 `ALLOW_LIVE_LLM` 을 켠 뒤(LLM 은 mock/test 예산) 1,000원 테스트 모드 결제 → 복귀 → `POST orders` 200 → consume 멱등 확인 → 주문 취소.
+- [ ] 로컬 SoulCat main 워크트리(`C:\Users\user\Desktop\SoulCatProject`, `main`@`6382dd3`)는 다른 세션 미커밋 75수정+18신규 파일(브랜치 변경 파일 23개와 겹침) 때문에 ff 하지 않았다. 그 세션이 커밋/정리 후 `git pull --ff-only`(origin/main = `e612463`).
 - [ ] 2단계 프로필 재사용
 - [ ] 3단계 SEO 오픈
 - [ ] 4단계 탈퇴 연동
 - [ ] 5단계 운영 노출
-- [ ] SoulCat codex 브랜치(미푸시 7커밋, 다른 세션이 LLM 최적화 작업 중)를 main 에 합치고 push — 그 세션 담당.
-- 🔴 범위 밖: main CI `AI Locale Gate` 가 `9fa1c714f` 부터 `recoverGeomancy is not defined` 로 실패 중.
+- 🔴 범위 밖(보고만): main CI `AI Locale Gate` 가 `9fa1c714f` 부터 `recoverGeomancy is not defined` 로 실패 중. `passExcluded` 의미가 v1(`billing.js` 월정석 허용)과 v2(`payments/index.js` 월정석 거부)에서 다름. `KRW_PER_COIN` 3중 선언(`billing-policy.js`·`lib/payment/coin-pricing.ts`·`music-access-policy.js`). 결제창 렌더러 3종이 서버 `hiddenMethods` 를 읽지 않아 호출부 옵션에 의존(`app/checkout/CheckoutClient.tsx` 주석). `app/checkout/**` 이 `paid-flow-gates`·deepRequired 목록에 없다. SoulCat 페르소나 상수(`yeongnyangi.ts`)와 `PRODUCT.md` 의 "~냥" 어미 규칙 불일치. 윈도우 CRLF 체크아웃에서 vendored saju 해시 테스트·`integrity-unique-index-spec` 정적 테스트가 헛실패.
 
 ## 함정
 
