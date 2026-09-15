@@ -1,12 +1,43 @@
 ---
 status: active
 updated: 2026-09-15
-next: "꿀편지 최신 체크포인트와 main/CI를 확인하고 fortune ai-prompt 활성 질문형 경로를 mock 점검한다."
+next: "전체 전달 매트릭스의 P1/P2와 최신 main CI를 확인한다. 대표·전문가 초기 생성과 후속 저장 보강은 재구현하지 않는다."
 ---
 
 # 다른 유료 LLM 기능 조사 근거
 
 
+
+## 최신 체크포인트 — 대표·전문가·잔여 LLM 전달 정리 (2026-09-15)
+
+이 절이 아래 꿀편지 단독 인수인계와 과거 ‘다음 작업’을 대체한다. 사용자의 추가 요청에 따라 질문형4종, 대표 대화, 손금, 전문가 후속 질문까지 이 세션에서 수정했다. 전체 기능·SKU·비LLM 분류·정확한 잔여 검증은 [paid-llm-delivery-matrix-20260915.md](paid-llm-delivery-matrix-20260915.md)를 먼저 읽는다. 단순히 이름에 AI가 있다는 이유로 모든 정적 상품을 LLM 완료표에 넣지 않는다.
+
+### 이번 전달
+
+- 질문형4종: `87c1f9a83d0ac58a94c565a8c38e0fcd47e3d67a`, 정적 캐시 `34df9d9eaa019d682be81c9f3571da6091755c7d`. 점성술·베다·자미·숙요의 실제 질문 API에 계산 사실/증빙 고정, 10부분 분할, 원래 결과 ID 저장·재개를 적용했다. 본문 2만자 하한과 사실 claim 검사를 통과해야 완료한다. 베다는 API 검사이며 활성 frontend 직접 호출은 미발견이다.
+- 대표 대화: `8396271d9ca65428afc86969f7fdfa6952afa7df`, await 보완 `522f7d0699dc3cbfce6daa5d6b639aebe886d20b`. 유료 turn을 서버에 먼저 저장하고 같은 requestId로 복구한다. 무료 소진 후 paid에 mock/fallback 성공을 반환하지 않는다. 대화 내역 80개 저장 재조회, 계정 분리, 새로고침/온라인 재개. 실제390/1280px mock에서 마지막 조언을 입력창이 덮던 CSS 문제를 수정했다.
+- 손금: `5a852626c4752446e8cd6b6b973269225734a189`. 기존 사진 판독→결제 순서를 유지하며 서버에 판독 결과를 확정 저장한 뒤 결제를 준비한다. 사진 판독/심층 해석 실패 시 결제로 진행하지 않는다. GET result는 기존 증빙만 확인하고 이용권을 새로 소비하지 않는다. 원본 사진을 서버 결과에 저장하지 않으며 복귀 시 사진 배경 복원은 제외된다.
+- 전문가 후속: `aeb7a75a4c308c70291bbe681626c2e3e6d98970`. 카르마/연애 비책의 같은 리포트·같은 질문은 같은 저장 답변을 재사용한다. 45초 단일 호출/누적3회, 정상 답변 선저장→내역 원자 append→재조회. 저장 실패/응답 유실/동시 요청에 답변 중복과 재생성을 막는다. 카르마 화면은 같은 질문 최대4회 전송·계정 변경 응답 폐기. 연애 비책 후속 API는 보존하되 현 React 입력 UI는 미발견이다.
+- 기존 꿀편지 작업 `0d7a23b9c4c3fa560ede8930fc89886540d03d8f` / 문서·sitemap `f2a189f9cdf492efe745c7b89f21c9674457289b`는 그대로 보존했다.
+
+### 검증·동시 작업·CI
+
+- 유료 저장/재개 통합 Worker29 suites663개, UI/실제 함수128개 통과. 손금/기존palm/증빙 왕복124개+UI7개. 전문가 후속/카르마32개+UI3개, 연애 비책18개. 다른 작업 통합 뒤 관계/환급/guardian/질문형/후속/증빙148개+UI10개 통과. 집합이 겹치므로 합산하지 않는다.
+- verify:ai-consultation-flows 전체, typecheck, 대상 ESLint 오류0, worker-no-undef417파일, route-await69라우터, Mongo query shapes 위반0, sitemap drift, clean commit 뒤 public-mirror-fresh 통과. check:fast critical 계획/targeted 실행이며 로컬 전체 preflight 성공을 주장하지 않는다.
+- main의 단독 편집 중 별도 `pass-quota-refund 작업 완료 및 정리` 작업이 시작되었고, 그 작업은 `D:\Development\codedestiny-worktrees\reconcile-old-work-20260915-083536`에서 격리했다. 해당 작업의 환급/이용권 갱신 이벤트/번역·마케팅 회수 커밋이 `423984f0a21d3dd894e27caf25e109204d9bb7f4`까지 main/원격에 합쳐졌다. 이를 보존했고 우리 수정만 별도로 stage/commit했다. 우리 작업에서 타 워크트리 삭제/운영 조회/배포를 하지 않았다.
+- `8396271d9` CI34909972378은 Build/Critical/Typecheck 성공, Static에서 bootstrap await 누락 실패. `522f7d069`에서 수정했고 CI34910535169는 success. 질문형 원본87c의 미러 실패는34df에서 수정한 이력이며 이번 실패와 구분한다.
+- 최신 코드 aeb7a75a4의 [PR CI34911530108](https://github.com/rei1237/codedestiny/actions/runs/34911530108)는 Typecheck/Critical 성공, Static에서 함께 합쳐진 정리 문서의 frontmatter 누락으로 실패했다. 해당 문서 본문을 보존하고 status/updated/next만 보완하여 handoff-contract142개 통과. 마지막 문서 커밋의 main CI required는 최종 응답 전에 확인한다. 이 문서의 작성 자체가 CI 통과를 대신하지 않는다.
+- 실 LLM·실결제·운영 DB·수동 배포 호출 없음. mock 성공을 실서비스 전달 보장으로 보고하지 않는다.
+
+### 정확한 잔여 범위
+
+매트릭스 P1/P2를 따른다. 손금 전체 모바일 mock 결제 복귀, 후속 답변 저장 후 부모 내역 부착 전 새로고침 자동 발견, 과거 completed GET의 취소/환불 정책 전수 대조가 남아 있다. 프라슈나 결정론 프롬프트 저장 장애와 무료 compass narration 시간 예산은 별도 분류다. 본문 초기 생성의 구현 완료와 실 LLM 문장 의미의 전수 검증을 혼동하지 않는다.
+
+### 복사할 최신 재개 지시
+
+```text
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-delivery-20260914.md, D:\Development\code-destiny\docs\handoff\paid-llm-delivery-findings-20260914.md, D:\Development\code-destiny\docs\handoff\paid-llm-delivery-matrix-20260915.md의 최상단 체크포인트와 P1/P2를 읽어라. 마지막 구현 커밋 aeb7a75a4c308c70291bbe681626c2e3e6d98970 및 최신 main/원격/CI·동시 편집 상태를 확인하고 기존 변경을 보존하라. 초기 리포트·질문형4종·대표 대화·꿀편지·손금·전문가 후속 저장/재개는 다시 구현하지 마라. 다음은 손금 전체 모바일 mock 결제 복귀, 후속 답변의 부모 내역 부착 전 새로고침 복구, 과거 completed 결과 GET의 취소/환불 대조다. 실 LLM·실결제·운영 DB·배포 없이 실제 코드 mock으로 검증하고 관련 파일만 commit/push한 뒤 동일 SHA의 main CI required를 확인하라.
+```
 
 ## 최신 체크포인트 — 꿀편지 저장·차감 응답 유실 복구 (2026-09-15)
 
