@@ -307,13 +307,18 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
 
 test("연애 비책·인생의 책·신년운세는 각 서비스 전용 이미지를 쓴다", async () => {
   const expected = new Map([
-    ["연애 비책", "/feature-details/assets/love-secret-ai-320.webp"],
-    ["인생의 책", "/feature-details/assets/life-book-ai-320.webp"],
-    ["신년운세", "/feature-details/assets/new-year-ai-320.webp"],
+    ["연애 비책", ["love-secret-ai-consultation", "/feature-details/assets/love-secret-ai-320.webp"]],
+    ["인생의 책", ["life-book-ai-consultation", "/feature-details/assets/life-book-ai-320.webp"]],
+    ["신년운세", ["new-year-ai-consultation", "/feature-details/assets/new-year-ai-320.webp"]],
   ]);
 
-  for (const [name, image] of expected) {
-    const { doc, window } = await boot();
+  for (const [name, [featureKey, image]] of expected) {
+    const sourceTag = Array.from(shell.matchAll(/<[^>]+>/g), (match) => match[0]).find((tag) =>
+      tag.includes(`data-feature-key="${featureKey}"`) && tag.includes(`data-img-src="${image}"`),
+    );
+    assert.ok(sourceTag, `${name}: 홈 원본 타일에 전용 이미지 참조가 없다`);
+    const tagName = /^<([a-z]+)/i.exec(sourceTag)?.[1];
+    const { doc, window } = await boot([`${sourceTag}</${tagName}>`]);
     const hits = await search(window, doc, name);
     assert.ok(hits.includes(name), `${name}: 검색 결과가 없다`);
     const card = Array.from(doc.querySelectorAll("#fortuneGatewayRecs .fortune-gateway__rec"))
