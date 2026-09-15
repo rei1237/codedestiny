@@ -24,6 +24,7 @@ import { connectDb, mongoose } from "../worker/lib/db.js";
 import "../worker/lib/models.js";
 import "../worker/lib/app-store-models.js";
 import "../worker/lib/review-models.js";
+import "../worker/lib/yeongnyangi-models.js";
 import "../worker/lib/feedback-models.js";
 
 // quiet: dotenv 배너는 stdout 으로 나가 --json 출력을 오염시킨다.

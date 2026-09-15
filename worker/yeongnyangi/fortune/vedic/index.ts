@@ -16,11 +16,11 @@ Dasha와 Antardasha는 같은 기간인지 확인하며 기간 없는 사건을 
     "다샤의 흐름",
     "균형을 위한 조언",
   ],
-  async (input, engineEnv = {}) => {
+  async (input, options = {}) => {
     chartInput(input.personA!);
-    const chart = await calculateVedicAiChart(engineEnv, {
+    const chart = await calculateVedicAiChart(options.runtimeEnv || {}, {
       birthInfo: { ...input.personA!, birthPlace: input.personA!.birthPlace },
-    }, { now: new Date(engineEnv.AS_OF || Date.now()) });
+    }, { now: new Date(options.asOf || Date.now()) });
     if(chart.calculationMeta?.fallbackUsed) throw new FortuneError('PRECISE_EPHEMERIS_UNAVAILABLE',503);
     const { chartSummary: _summary, ...facts } = chart;
     return context("vedic", facts, [

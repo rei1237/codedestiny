@@ -57,12 +57,14 @@ export interface FortuneLLMResponse {
 export interface LLMProvider {
   generate(request: FortuneLLMRequest): Promise<FortuneLLMResponse>;
 }
+export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; tarotFusion?: boolean; }
+
 export interface FortuneDomain {
   id: DomainId;
   validateInput(input: unknown): FortuneInput;
   calculate(
     input: FortuneInput,
-    engineEnv?: Record<string, string>,
+    options?: CalculationOptions,
   ): Promise<DomainContext>;
   buildContext(calculated: DomainContext): DomainContext;
   buildPrompt(

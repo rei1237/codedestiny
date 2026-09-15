@@ -14,9 +14,9 @@ export const ziwei = domain(
     "주의할 패턴",
     "영냥이의 조언",
   ],
-  async (input, env = {}) => {
+  async (input, options = {}) => {
     input={...input,personA:koreanCivilProfile(input.personA!).profile};
-    const r = calculateZiweiAiChart(input.personA!,{year:new Date(new Date(env.AS_OF || Date.now()).getTime()+9*3600000).getUTCFullYear()});
+    const r = calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf || Date.now()).getTime()+9*3600000).getUTCFullYear()});
     return context(
       "ziwei",
       {
@@ -27,7 +27,7 @@ export const ziwei = domain(
         majorLuck: r.majorLuck,
         minorLuck: r.minorLuck,
         yearlyLuck: r.yearlyLuck,
-        yearlyTimeline: Array.from({length:10},(_,i)=>calculateZiweiAiChart(input.personA!,{year:new Date(new Date(env.AS_OF||Date.now()).getTime()+9*3600000).getUTCFullYear()+i}).yearlyLuck),
+        yearlyTimeline: Array.from({length:10},(_,i)=>calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf||Date.now()).getTime()+9*3600000).getUTCFullYear()+i}).yearlyLuck),
         sanFangSiZheng: r.sanFangSiZheng,
         bureau: r.bureau,
         lunar: r.lunar,

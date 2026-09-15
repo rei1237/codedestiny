@@ -15,11 +15,11 @@ export const astrology = domain(
     "내면의 갈등",
     "선택을 위한 조언",
   ],
-  async (input, engineEnv = {}) => {
+  async (input, options = {}) => {
     const t = chartInput(input.personA!);
     if (Math.abs(t.lat) >= 66)
       throw new FortuneError("HOUSE_SYSTEM_UNAVAILABLE");
-    const chart = await getSwissWesternChart(engineEnv, t, {
+    const chart = await getSwissWesternChart(options.runtimeEnv || {}, t, {
       strictSwiss: true,
     });
     if (chart.fallbackUsed)

@@ -1,4 +1,5 @@
 import {
+  CalculationOptions,
   DomainContext,
   DomainId,
   FortuneDomain,
@@ -14,7 +15,7 @@ export function domain(
   sections: string[],
   calculate: (
     input: FortuneInput,
-    engineEnv?: Record<string, string>,
+    options?: CalculationOptions,
   ) => Promise<DomainContext>,
 ): FortuneDomain {
   return {

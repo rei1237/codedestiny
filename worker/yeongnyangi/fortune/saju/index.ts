@@ -14,8 +14,8 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
     "현재 흐름",
     "현실적인 조언",
   ],
-  async (input, env = {}) => {
-    const r = calculateScreenSaju(input.personA!,new Date(env.AS_OF || Date.now()));
+  async (input, options = {}) => {
+    const r = calculateScreenSaju(input.personA!,new Date(options.asOf || Date.now()));
     const limitations = [
       "강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.",
       "한국 표준시 출생 기준입니다.",
