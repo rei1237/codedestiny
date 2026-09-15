@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import { JSDOM } from 'jsdom';
 import { renderFeatureDetailPanels } from '../../js/feature-detail-panels.mjs';
 
 const catalog = JSON.parse(fs.readFileSync('public/feature-details/catalog.json', 'utf8'));
@@ -10,6 +11,82 @@ const shell = fs.readFileSync('index.html', 'utf8');
 test('tile popup preserves the selected product art before hydration', () => {
   assert.ok(shell.includes("var imgSrc=(tileImage&&(tileImage.currentSrc||tileImage.getAttribute('src')))||d.img||'';"));
   assert.ok(shell.includes("_heroImg.removeAttribute('srcset')"));
+});
+
+test('restored hero artwork, catalog reuse, and collection previews stay in sync', async () => {
+  const { extractObjectLiteral } = await import('../../scripts/lib/feature-marketing-extract.mjs');
+  const authored = extractObjectLiteral(shell, 'FEATURE_VISUAL_DETAILS');
+  const marketing = extractObjectLiteral(shell, 'FEATURE_MARKETING_COPY');
+  const generated = JSON.parse(fs.readFileSync('lib/marketing/feature-visual-details.generated.json', 'utf8'));
+  const fragment = JSDOM.fragment(shell);
+  const clean = value => String(value || '').replace(/\/$/, '');
+  const verified = Object.values(generated.items).filter(item => item.verification === 'verified');
+  const wrappers = [...fragment.querySelectorAll('.tarot-tile__img-wrap')];
+  let mappedCards = 0;
+
+  assert.equal(wrappers.length, 62);
+  for (const wrapper of wrappers) {
+    const tile = wrapper.closest('.tarot-tile');
+    const attr = name => tile?.getAttribute(name);
+    const candidates = [
+      attr('data-feature-key'), attr('data-tile-lock-key'), attr('data-action'), attr('data-cd-service-id'),
+      attr('data-service-detail-href'), attr('data-fallback-href'), attr('href'), attr('id'),
+    ].filter(Boolean);
+    let slug = '';
+    let expected = '';
+    if (attr('data-feature-key') === 'life-fortune-ai-consultation') {
+      slug = 'life-fortune-report';
+      expected = '/images/feature-details/life-fortune-report-480.webp';
+    } else if (attr('data-feature-key') === 'animal-destiny-unlock') {
+      slug = 'animal-guardian-unlock';
+      expected = '/images/feature-details/animal-guardian-unlock-480.webp';
+    } else {
+      let detail = null;
+      for (const candidate of candidates) {
+        detail = verified.find(item => [item.slug, item.href, ...(item.aliases || [])].some(key => clean(key) === clean(candidate)));
+        if (detail) break;
+      }
+      if (detail) {
+        slug = detail.slug;
+        expected = detail.cardImage || detail.image;
+      }
+    }
+    if (!expected) continue;
+    mappedCards++;
+    assert.equal(wrapper.getAttribute('data-img-src'), expected, `${slug}: collection preview is stale`);
+    const staticImage = wrapper.querySelector('img');
+    if (staticImage) assert.equal(staticImage.getAttribute('src'), expected, `${slug}: static and deferred previews differ`);
+  }
+  assert.equal(mappedCards, 47);
+  assert.equal(wrappers.length - mappedCards, 15);
+
+  const restored = {
+    'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
+    'master-love-codex': '/images/feature-details/master-love-codex-hero-v1.webp',
+    'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v1.webp',
+  };
+  for (const [slug, image] of Object.entries(restored)) {
+    assert.equal(authored[slug].image, image);
+    assert.match(authored[slug].catalogImage, new RegExp(`${slug}-hero-v2\\.webp$`));
+    assert.equal(generated.items[slug].catalogImage, `/feature-details/assets/${slug}-catalog-320.webp`);
+    assert.ok(fs.existsSync(`public${generated.items[slug].catalogImage}`));
+  }
+  assert.equal(marketing['/fortune-tea-house/'].outlineImage, restored['fortune-tea-house']);
+  assert.match(authored.novel.image, /novel-hero-v2\.webp$/);
+  assert.match(authored.music.image, /music-hero-v2\.webp$/);
+
+  const signatureSources = Object.fromEntries([...fragment.querySelectorAll('[data-cd-service-id]')].map(card => [card.getAttribute('data-cd-service-id'), card.querySelector('img')?.getAttribute('src') || '']));
+  assert.match(signatureSources['master-love-codex'], /%EB%A7%88%EC%8A%A4%ED%84%B0%20%EC%9A%B4%EB%AA%85%20%EC%97%B0%EC%95%A0%20%EB%B9%84%EC%B1%85\.webp$/);
+  assert.match(signatureSources['fortune-tea-house'], /DestinyCafe\/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91\.webp$/);
+  assert.match(signatureSources['neo-operation-room'], /DestinyWar\/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4\.webp$/);
+  assert.match(fragment.querySelector('.moon-story-entry__poster img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EB%85%B8%EB%B2%A8\.webp$/);
+  assert.match(fragment.querySelector('.moon-music-entry__cover-stack img')?.getAttribute('src') || '', /CodeDestinyNovel\/%EC%9D%8C%EC%95%85%20%ED%94%8C%EB%A0%88%EC%9D%B4%EC%96%B4\.webp$/);
+});
+
+test('music entry responds to its card width without clipping actions', () => {
+  assert.match(shell, /#cdhMusicSlot\s*\{[\s\S]*container:\s*moon-music-slot\s*\/\s*inline-size/);
+  assert.match(shell, /@container moon-music-slot \(max-width: 720px\)[\s\S]*?\.moon-music-entry__actions\s*\{[\s\S]*?grid-column:\s*1\s*\/\s*-1/);
+  assert.match(shell, /@container moon-music-slot \(max-width: 720px\)[\s\S]*?\.moon-music-entry__meta\s*\{[^}]*flex-wrap:\s*wrap/);
 });
 
 test('editorial detail owns a complete readable palette and horizontal layout', () => {

@@ -170,6 +170,7 @@ export function buildVisualDetails(html, book) {
   const index = Object.values(items).map(final => ({
     slug: final.slug, title: final.title, href: final.href, featureKey: final.featureKey,
     accessType: final.accessType, image: final.image, aliases: final.aliases,
+    ...(final.catalogImage ? { catalogImage: final.catalogImage } : {}),
     category: final.category, description: final.journey?.questions?.[0] || final.description, verification: final.verification,
   }));
   return { index, items };
@@ -196,6 +197,16 @@ export async function writeVisualDetails(html, book) {
   for (const [slug, item] of Object.entries(data.items)) {
     const destination = path.join(directory, `${slug}.json`);
     if (item.verification === 'verified') {
+      if (item.catalogImage?.startsWith('/') && !item.catalogImage.startsWith('//')) {
+        const catalogSource = path.resolve(root, 'public', decodeURIComponent(item.catalogImage.slice(1)));
+        const publicRoot = path.resolve(root, 'public') + path.sep;
+        if (!catalogSource.startsWith(publicRoot)) throw new Error('Catalog image outside public');
+        const catalogName = `${slug}-catalog-320.webp`;
+        await sharp(catalogSource).resize(320, 180, { fit: 'cover' }).webp({ quality: 76 }).toFile(path.join(directory, 'assets', catalogName));
+        writtenAssets.add(catalogName);
+        item.catalogImage = `/feature-details/assets/${catalogName}`;
+        data.index.find(entry => entry.slug === slug).catalogImage = item.catalogImage;
+      }
       if (item.image.startsWith('/') && !item.image.startsWith('//')) {
         const imagePath = item.image;
         const source = path.resolve(root, 'public', decodeURIComponent(imagePath.slice(1)));
@@ -239,7 +250,8 @@ export async function writeVisualDetails(html, book) {
   for (const name of fs.readdirSync(path.join(directory, 'assets'))) {
     if (writtenAssets.has(name)) continue;
     const stem = GENERATED_ASSET_PATTERN.exec(name)?.[1];
-    if (!stem || !(knownSlugs.has(stem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
+    const catalogStem = stem?.endsWith('-catalog') ? stem.slice(0, -'-catalog'.length) : '';
+    if (!stem || !(knownSlugs.has(stem) || knownSlugs.has(catalogStem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
     fs.unlinkSync(path.join(directory, 'assets', name));
   }
   const published = [...new Map(data.index.filter(item => item.verification === 'verified').map(item => [item.slug, item])).values()];

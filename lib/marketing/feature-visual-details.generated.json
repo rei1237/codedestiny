@@ -12,6 +12,7 @@
         "/master-love-codex/",
         "/master-love-codex"
       ],
+      "catalogImage": "/feature-details/assets/master-love-codex-catalog-320.webp",
       "category": "관계·궁합",
       "description": "왜 사랑할 때마다 비슷한 자리에서 멈출까요?",
       "verification": "verified",
@@ -30,6 +31,7 @@
         "/fortune-tea-house/",
         "/fortune-tea-house"
       ],
+      "catalogImage": "/feature-details/assets/fortune-tea-house-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "이 마음을 어떻게 정리하면 좋을까요?",
       "verification": "verified",
@@ -174,6 +176,7 @@
         "/neo-operation-room/",
         "/neo-operation-room"
       ],
+      "catalogImage": "/feature-details/assets/neo-operation-room-catalog-320.webp",
       "category": "사주·심층 상담",
       "description": "여러 고민 중 무엇부터 손대야 할까요?",
       "verification": "verified",
@@ -1377,6 +1380,7 @@
         "src/features/master-love-codex/MasterLoveCodexPage.tsx"
       ],
       "verification": "verified",
+      "catalogImage": "/feature-details/assets/master-love-codex-catalog-320.webp",
       "imageAlt": "달빛 아래 자신의 인연 지도를 펼쳐 보는 사람",
       "theme": "rose",
       "edition": "본인편 미리보기 · 궁합편은 시작 화면에서 별도 선택",
@@ -1523,6 +1527,7 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
+      "catalogImage": "/feature-details/assets/fortune-tea-house-catalog-320.webp",
       "benefits": [
         "질문에 맞춘 카드 해설",
         "감정과 상황의 연결",
@@ -2217,6 +2222,7 @@
         "__tests__/ui/neo-method-card-detail.test.js"
       ],
       "verification": "verified",
+      "catalogImage": "/feature-details/assets/neo-operation-room-catalog-320.webp",
       "benefits": [
         "성향의 핵과 강약",
         "반복되는 선택의 패턴",

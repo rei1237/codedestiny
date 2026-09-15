@@ -38,7 +38,7 @@ function assertNotIncludes(source, needle, label) {
 
 assertIncludes(indexSource, 'href="/karma-destiny-ai/"', "main entry");
 assertIncludes(indexSource, 'data-feature-key="karma-destiny-ai-consultation"', "main entry feature key");
-assertIncludes(indexSource, "/fuctionassets/soul-origin-cover.webp", "image asset preserved");
+assertIncludes(indexSource, "/feature-details/assets/karma-destiny-ai-320.webp", "image asset preserved");
 assertIncludes(indexSource, "전문가 상담 · 30,000원", "price marker");
 assertNotIncludes(indexSource, "openSoulOriginModal", "legacy modal action removed");
 assertNotIncludes(indexSource, "soulOriginModal", "legacy modal removed");

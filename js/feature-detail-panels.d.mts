@@ -4,7 +4,7 @@ export type VisualDetail = {
   aliases: string[]; evidence: string[];
   journey?: { questions: string[]; trustNotes: string[]; faq: { q: string; a: string }[] };
   heroVariants?: { src: string; width: number }[];
-  imageAlt?: string; theme?: string; edition?: string; cardImage?: string; ogImage?: string;
+  imageAlt?: string; theme?: string; edition?: string; cardImage?: string; catalogImage?: string; ogImage?: string;
   benefits?: string[]; contents?: { title: string; detail?: string }[];
   method?: { title: string; text: string; inputs?: string[] };
   sample?: { title: string; text: string; evidence?: string[]; action?: string; note?: string };
