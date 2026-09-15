@@ -69,7 +69,7 @@ for (const locale of locales.RUNTIME_LOCALES) {
     fetch: async (url, init) => { captured = { url, init }; return { ok: true, text: async () => '{}', json: async () => ({ ok: true }) }; },
     AbortController, setTimeout, clearTimeout, API_BASE: '', TAROT_API_TIMEOUT_MS: 100,
     readAuthToken: () => '', readPremiumToken: () => '', currentPremiumToken: '', clean: value => String(value || '').trim(),
-    toOracleCardPayload: value => value, geomancyPayEvidence: {},
+    toOracleCardPayload: value => value, geomancyPayEvidence: {}, geomancySaved: null,
   };
   const cases = [
     ['pet-saju.html', 'apiFetch', "apiFetch('/api/pet-saju-ai/report', {method:'POST',body:'{}'})"],
@@ -85,9 +85,17 @@ for (const locale of locales.RUNTIME_LOCALES) {
     vm.runInNewContext(inlineFunction(file, name), sandbox);
     assert.equal(vm.runInNewContext(name + '()', sandbox)['x-code-destiny-locale'], locale, file);
   }
-  for (const name of ['geomancyLocaleCopy', 'formatOraclePayload', 'fetchOracle']) vm.runInNewContext(inlineFunction('geomancy-oracle-v4.html', name), sandbox);
-  await vm.runInNewContext("fetchOracle('question', {judge:{}}, 'alchemist')", sandbox);
+  // fetchOracle now restores saved delivery; geomancyRequest owns the actual HTTP headers.
+  for (const name of ['geomancyLocaleCopy', 'formatOraclePayload', 'geomancyRequest']) vm.runInNewContext(inlineFunction('geomancy-oracle-v4.html', name), sandbox);
+  captured = null;
+  await vm.runInNewContext("geomancyRequest({question:'fixture'})", sandbox);
+  assert.equal(captured.url, '/api/oracle/geomancy');
+  assert.equal(captured.init.method, 'POST');
   assert.equal(captured.init.headers['x-code-destiny-locale'], locale, 'geomancy');
+  captured = null;
+  await vm.runInNewContext('geomancyRequest()', sandbox);
+  assert.equal(captured.url, '/api/oracle/result');
+  assert.equal(captured.init.headers['x-code-destiny-locale'], locale, 'geomancy restore');
   const formatted = vm.runInNewContext("formatOraclePayload({answer:'fixture',keyJudgement:'fixture'}, '" + locale + "')", sandbox);
   if (locale !== 'ko') assert.doesNotMatch(formatted, /[가-힣]/);
 }
