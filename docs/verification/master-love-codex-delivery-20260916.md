@@ -10,7 +10,7 @@
 - `worker/lib/master-love-codex-recovery-task.js`, `master-love-codex-paid-bootstrap.js`, `worker/index.js`: 기존 크론에서 4분 예산·최대 3세션 순환, 매 배치 새 잠금, 승인 후 `/start` 이전 종료 복구, 입력 없는 구매의 재입력 권리 보존, 완료 실행 기록 재동기화 및 정체·예산 소진 집계를 처리한다.
 - `src/features/master-love-codex/_lib/runCodexBatches.ts`, `copy.ts`, `MasterLoveCodexPage.tsx`, `app/master-love-codex/result/MasterLoveCodexResultClient.tsx`: JSON 본문까지 요청 시간 예산을 적용한다. 최신 저장본 조회 후 이어쓰기, 복귀 이벤트 합류, 서버 대기 시간 준수와 명시적인 자동 재시도 중단을 처리한다. 원래 입력의 출력 언어도 서버 복구에 보존한다.
 - `js/destiny-profile.js`와 public 사본: 승인 후 권한 지급 대기에서도 다음 조회를 예약하고 페이지 캐시·온라인·화면 활성화 복귀를 같은 주문 실행에 합류시킨다.
-- 결제 런타임을 참조하는 React·독립 정적 페이지·public 사본의 변경은 캐시 키 갱신이다. `scripts/restamp-paid-runtime-pins.mjs`로 내용 기반 키를 재생성하며 검증기 기대 키도 함께 갱신했다. 해당 서비스의 생성 로직은 수정하지 않았다.
+- 결제 런타임을 참조하는 React·독립 정적 페이지·public 사본의 변경은 캐시 키 갱신이다. `scripts/restamp-paid-runtime-pins.mjs`로 독립 페이지의 내용 기반 키를 재생성하며 검증기 기대 키도 함께 갱신했다. 셸과 로더 모듈은 `sync:public`의 개별 자산 해시만 사용하도록 생성기의 관리 범위를 분리했다. 해당 서비스의 생성 로직은 수정하지 않았다.
 - `config/payment-freeze.json`은 React 캐시 키 한 줄 변경의 동결 해시만 갱신했다. 신규 `worker/payments/`에는 프론트엔드 스크립트 캐시 참조가 없어 동일한 정책 변경을 이식할 내용이 없다.
 - 관련 `__tests__/worker/master-love-codex-*.test.js`, `__tests__/ui/master-love-codex-*.behavior.test.js`, `paid-report-partial.behavior.test.js`, `direct-payment-poll-safety-net.behavior.test.js`와 `scripts/verify-master-love-codex-efficiency.mjs`: 아래 모의 회귀와 입력 크기를 검증한다.
 
@@ -30,9 +30,14 @@ npm run verify:cron-mongo-op-coverage
 npm run verify:payment-freeze
 npm run check:fast -- --plan
 npm run check:fast
+npm run check:fast -- --committed-head
 ```
 
 검증에는 외부 네트워크 차단과 mock을 사용한다. 1장 저장, 2장 실패·뒤 장 성공, 잘림 교정, 공급자 거절 후 회복, 불확실한 타임아웃 3회 상한, 저장 확인 유실, 검증된 캐시 복구, 잠금 만료와 동시 요청, 새 문서 20장 재열람, 권한 지급 지연, 복귀 URL 미도착, 페이지 캐시·온라인 활성화, JSON 본문 정체, 브라우저 없이 크론 완주 및 4분 예산 중단을 재현한다. 저장소 차단·서버 암호화 복구는 기존 결제 복귀 검사도 함께 유지한다.
+
+관련 서버 검사 180개와 이후 정체 집계 변경의 영향 검사 40개, 인연의 서 복귀·재구매 방지 검사 17개, 부분 결과 검사 5개, 공통 복귀 검사 22개와 실제 SDK 요청 조립 모의 검사 1개가 통과했다. `check:fast`에서 결제 검사 88개와 lint가 통과한 뒤 발견한 사이트맵 변경 시각 원장 누락을 해당 기능의 서명 한 필드로 갱신했다. 마케팅 미커밋 변경은 유지하고 마지막 커밋을 `--committed-head`로 검사한다.
+
+첫 push의 정적 미러 검사는 로더 캐시 키 관리 범위 중복으로 실패했다. 범위를 수정하고 정적 사본을 재생성했다. Windows에서 재생성 도중 `static-policy.css` 쓰기 `UNKNOWN` 오류가 두 번 발생했으며, 정책 페이지 생성과 `sync:public` 재실행은 성공했다. 로컬 `verify:public-mirror-fresh`는 무관한 마케팅 미커밋 변경 때문에 판정 불가로 중단하므로, 보완 커밋의 깨끗한 GitHub CI에서 신선도를 판정한다.
 
 ## 동일 입력의 모의 계측
 

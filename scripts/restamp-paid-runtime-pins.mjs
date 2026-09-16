@@ -9,7 +9,9 @@ const pin = `build-${createHash("sha1").update(`${asset}\n${normalized}\n---\n`)
 const files = execFileSync("git", ["grep", "-l", "-F", `${asset}?v=build-`, "--", "*.html", "*.ts", "*.tsx", "*.js", "*.mjs"], { encoding: "utf8" }).trim().split("\n");
 let changed = 0;
 for (const file of files) {
-  if (/(^|\/)index\.html$/.test(file)) continue; // sync:public owns these pins.
+  // The shell loader graph uses per-asset hashes owned by sync:public.
+  if (/(^|\/)index\.html$/.test(file)
+    || /^(?:public\/)?js\/(?:app\.js|core\/(?:index-inline-runtime|uiBindings|init)\.js|mobile-interaction-patch\.js)$/.test(file)) continue;
   const before = readFileSync(file, "utf8"), after = before.replace(/js\/destiny-profile\.js\?v=build-[A-Za-z0-9_-]+/g, `${asset}?v=${pin}`);
   if (before !== after) { writeFileSync(file, after); changed++; }
 }
