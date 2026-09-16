@@ -30,6 +30,14 @@
 
 ## 재검사 명령
 
+수정 파일(source `c2c4ce56f543fc785ca639b8c1784826478ce59c` 및 후속 `c83f719855aa3f9ef316df024e004e5f69e4b4cc`):
+
+- Worker: `worker/routes/fusion-fortune.js`, `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-consultation.js`, `worker/lib/fusion-fortune-recovery-task.js`, `worker/index.js` — 원래 lease/구매/입력을 보존하는 stage 및 서버 복구.
+- 고객 화면: `app/fusion-fortune/FusionFortuneClient.tsx` — 화면 재개와 영수증 Storage 예외, 첫 stream 전 준비 입력 보관.
+- 행동/공급자 검사: `__tests__/ui/direct-payment-sdk-return.behavior.test.js`, `__tests__/ui/fusion-wake-recovery.behavior.test.js`, `__tests__/ui/payment-resume-context.test.js`, `__tests__/worker/fusion-fortune-stream-termination.test.js`, `__tests__/worker/fusion-fortune.test.js`, `__tests__/worker/fusion-paid-delivery-route.test.js`.
+- 재검사 도구: `scripts/verify-fusion-paid-efficiency.mjs`, `scripts/verify-fusion-paid-reopen-browser.mjs`.
+- 기록: 이 문서. KST 사이트맵 갱신은 위 유료 source와 별도 커밋이다.
+
 ```powershell
 npm run test:jest -- --runInBand __tests__/worker/fusion-fortune.test.js __tests__/worker/fusion-paid-delivery-route.test.js __tests__/worker/fusion-snapshot-delivery.test.js __tests__/worker/fusion-fortune-stream-termination.test.js __tests__/worker/per-use-proof-roundtrip.test.js
 node --test __tests__/ui/direct-payment-sdk-return.behavior.test.js __tests__/ui/payment-resume-context.test.js __tests__/ui/fusion-owner-recovery.behavior.test.js __tests__/ui/fusion-reading-position.behavior.test.js __tests__/ui/fusion-wake-recovery.behavior.test.js __tests__/ui/direct-payment-resume.behavior.test.js

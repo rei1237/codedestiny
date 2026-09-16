@@ -29,6 +29,15 @@
 
 ## 검증·전달
 
+수정 파일(source `acdf20c386004505e643fd3db7976f640b655fdf`):
+
+- Worker: `worker/routes/ziwei-deep-report.js`, `worker/lib/ziwei-deep-report-recovery-task.js`, `worker/index.js` — 같은 구매의 batch/크론 복구·원래 실행 완료 확인.
+- 고객 화면: `app/components/ziwei/ZiweiDeepPdfPanel.tsx`, `app/_lib/profile-card-storage.ts` — 화면 재개 이벤트와 선택 프로필 Storage 예외 경계.
+- 행동/증빙 검사: `__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js`, `__tests__/ui/paid-report-storage.behavior.test.js`, `__tests__/ui/direct-payment-sdk-return.behavior.test.js`, `__tests__/worker/per-use-proof-roundtrip.test.js`, `__tests__/worker/fusion-paid-delivery-route.test.js`.
+- 고객 화면 재검사: `scripts/verify-ziwei-deep-paid-reopen-browser.mjs`.
+- 생성 원장: `config/sitemap-lastmod.json` — 실제 수정에 따른 signature 갱신만, URL/날짜 유지.
+- 기록: `docs/handoff/paid-llm-service-delivery-20260916.md`, `docs/verification/paid-llm-service-checklist-20260916.md`, 이 문서.
+
 ```powershell
 node --test __tests__/ui/ziwei-deep-paid-delivery.behavior.test.js __tests__/ui/paid-report-storage.behavior.test.js __tests__/ui/direct-payment-sdk-return.behavior.test.js
 npm run test:jest -- --runInBand __tests__/worker/per-use-proof-roundtrip.test.js __tests__/worker/fusion-paid-delivery-route.test.js
@@ -53,3 +62,7 @@ check:fast는 critical/failClosed로 결제 88/88·lint/typecheck·Node 1,391·W
 source `acdf20c386004505e643fd3db7976f640b655fdf`를 main fast-forward/push했고 [동일 SHA main CI](https://github.com/rei1237/codedestiny/actions/runs/35123293719)는 모든 lane·CI required success다. 최종 소스의 CI Node 1,397/Jest 276 suite·3,874개도 통과했다. root 반영 전후 dirty 84개·경로·파일별 SHA256이 같았다(root-preservation.json). 실결제·청구 LLM·운영 DB·운영 승격은 실행하지 않았다.
 
 CI 대기 중 타 세션의 Threads 작업 21개 파일을 main `af79c733ee8da1530b8497a07b8d7de05121867b`에서 보존/반영했다. 기존 자미두수 scheduled VM의 다른 작업 mock에 새 runThreadsDailyJobs만 없어 Node 1개가 실패했다. 그 의존성만 no-op으로 추가한 뒤 62개가 통과했다. 실제 자미두수 route/크론/증빙은 그대로 실행하며 SNS 작업은 실행하지 않는다. 동기화의 공식 check:fast는 critical·Node 1,397·Jest 276 suite/3,874개(exit0)다. 이후 handoff 계약 검사에서 새 Threads 문서의 누락된 frontmatter를 재현해 머리말 6줄만 별도 보완했다. 본문은 그대로이며 152개 문서 계약 검사가 통과했다. main 반영 직전에 다른 세션이 같은 mock 보완과 LLM inventory 갱신을 `851cbe758c2833d02d0c8bf5a3a9002f0688b537`로 먼저 전달했다. 이를 보존해 안전 워크트리를 rebase했고 중복 테스트 수정은 사라졌다. 남은 문서만 전달해 동일 SHA CI 후 완료 칸을 갱신한다.
+
+타 세션 후속 SHA `851cbe758c2833d02d0c8bf5a3a9002f0688b537`의 CI 35125534991은 Typecheck/lint·Critical·Build 성공, Static만 같은 Threads 문서 frontmatter 1건으로 실패했다(threads-sync-ci-failure.log). 머리말 보완과 검증 기록은 `1a622b55595daa7ed5cf1323d49c6a5415dd55d0`로 main fast-forward/push했다. root dirty 84개와 파일별 SHA256은 반영 전후 같았다(fixture-root-preservation.json). 코드의 중복 수정이나 SNS 실제 실행은 없었다.
+
+문서 전달 SHA `1a622b55595daa7ed5cf1323d49c6a5415dd55d0`의 [동일 SHA main CI 35125744683](https://github.com/rei1237/codedestiny/actions/runs/35125744683)는 Risk·Static·CI required success다. Type/Build/Critical은 문서 tier로 skipped이며 source `acdf20c386004505e643fd3db7976f640b655fdf`의 전체 lane 성공과 구분한다. 4행을 A~F mock 완료로 체크했다. 사용자 요청에 따라 다음 네오 5행부터의 70구매 키+후속3경로는 인수인계에 남겼고 이번 완료로 처리하지 않는다. 이 최종 체크/인수인계 변경도 문서 gate·commit/push·동일 SHA main CI까지 전달한다.
