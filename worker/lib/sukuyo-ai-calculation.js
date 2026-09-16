@@ -116,24 +116,16 @@ function buildDistanceMetrics(forwardDistance, reverseDistance, shortestDistance
   };
 }
 
-// 자리(aRole/bRole)가 정본 프로필에 있으면 자리별 조언을 그대로 쓴다. 같은 관계라도
-// 방향이 바뀌면 자리가 바뀌므로(예: 안괴 순행 3 → 안/괴, 순행 6 → 괴/안) 두 문장이
-// 실질적으로 달라진다. 자리를 못 찾는 구버전 payload 는 기존 관계명 분기로 폴백한다.
-function buildRoleGuide(relationType, aRole, bRole, shortestDistance) {
+// 자리(aRole/bRole)별 정본 조언을 그대로 쓴다. 같은 관계라도 방향이 바뀌면 자리가
+// 바뀌므로(예: 안괴 순행 3 → 괴/안, 순행 6 → 안/괴) 두 문장이 실질적으로 달라진다.
+// 정본은 27거리 전부에서 advice 가 있는 자리를 주므로 관계명 폴백은 두지 않는다.
+function buildRoleGuide(aRole, bRole) {
   const aProfile = SUKUYO_ROLE_PROFILES[aRole];
   const bProfile = SUKUYO_ROLE_PROFILES[bRole];
-  if (aProfile?.advice && bProfile?.advice) {
-    return {
-      meAction: `${aRole}(${aProfile.han}) — ${aProfile.meaning}. ${aProfile.advice}`,
-      otherAction: `${bRole}(${bProfile.han}) — ${bProfile.meaning}. ${bProfile.advice}`,
-    };
-  }
-  if (relationType === "안괴") return { meAction: "상처가 올라오는 순간 바로 결론을 내리기보다 감정의 온도를 낮추는 시간이 필요합니다.", otherAction: "상대의 방어를 공격으로만 보지 않고 불안의 표현인지 살피는 태도가 도움이 됩니다." };
-  if (relationType === "영친") return { meAction: "호감과 돌봄이 자연스럽지만, 한쪽만 계속 맞추는 흐름은 피해야 합니다.", otherAction: "따뜻함을 당연하게 여기지 말고 고마움을 말로 확인하는 편이 좋습니다." };
-  if (relationType === "우쇠") return { meAction: "친밀함과 경쟁심이 함께 움직이므로 비교보다 각자의 장점을 인정해야 합니다.", otherAction: "자존심이 다칠 때 침묵으로 벌주지 않는 대화가 중요합니다." };
-  if (relationType === "업태") return { meAction: "강한 끌림과 숙제 같은 감정이 함께 오므로 속도를 천천히 잡아야 합니다.", otherAction: "반복되는 패턴을 운명으로만 밀어붙이지 말고 현실의 선택으로 다뤄야 합니다." };
-  if (relationType === "성위") return { meAction: "긴장감과 성장 욕구가 함께 생기니 역할 균형을 분명히 해야 합니다.", otherAction: "서로를 바꾸려 하기보다 각자의 기준을 설명하는 것이 좋습니다." };
-  return { meAction: "닮은 리듬이 강하므로 편안함 속에서도 감정 표현을 미루지 않는 것이 좋습니다.", otherAction: "익숙함 때문에 상대의 변화를 놓치지 않도록 주기적으로 마음을 확인하세요." };
+  return {
+    meAction: `${aRole}(${aProfile.han}) — ${aProfile.meaning}. ${aProfile.advice}`,
+    otherAction: `${bRole}(${bProfile.han}) — ${bProfile.meaning}. ${bProfile.advice}`,
+  };
 }
 
 function buildSukuyoAiCompatibility(personASukuyo, personBSukuyo) {
@@ -165,7 +157,7 @@ function buildSukuyoAiCompatibility(personASukuyo, personBSukuyo) {
     chemistryScore,
     stabilityScore,
     conflictScore,
-    roleActionGuide: buildRoleGuide(relation.relationType, relation.aRole, relation.bRole, shortestDistance),
+    roleActionGuide: buildRoleGuide(relation.aRole, relation.bRole),
   };
 }
 
