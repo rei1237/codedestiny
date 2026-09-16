@@ -8,6 +8,7 @@ import { jest } from "@jest/globals";
 import {
   runMasterLoveCodexRecovery,
   buildAbandonedFilter,
+  buildCodexStalledFilter,
   __masterLoveCodexRecoveryTestUtils,
 } from "../../worker/lib/master-love-codex-recovery-task.js";
 
@@ -40,6 +41,12 @@ function harness(docs, overrides = {}) {
 }
 
 describe("buildAbandonedFilter", () => {
+  test("반복 복구 조회가 updatedAt을 갱신해도 실제 장 진행 정체는 집계한다", () => {
+    const now = Date.now(), filter = buildCodexStalledFilter(now);
+    expect(filter.updatedAt).toBeUndefined();
+    expect(filter.$or[0]['deliveryMeta.lastProgressAt'].$lt.getTime()).toBe(now - 1800000);
+    expect(filter.$or[1].createdAt.$lt.getTime()).toBe(now - 1800000);
+  });
   test("미완 상태 · 방치 시간 · 락 free · 이용권 미환급을 모두 요구한다", () => {
     const now = Date.UTC(2026, 8, 13, 0, 0, 0);
     const filter = buildAbandonedFilter(now);

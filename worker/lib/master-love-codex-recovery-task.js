@@ -66,6 +66,13 @@ export function buildAbandonedFilter(now) {
   };
 }
 
+export function buildCodexStalledFilter(now) {
+  const cutoff = new Date(now - 1800000);
+  return { status: { $in: ["generating", "delivery_pending", "generation_failed"] },
+    "passRefund.refundedAt": { $exists: false }, "billingRefund.refundedAt": { $exists: false },
+    $or: [{ "deliveryMeta.lastProgressAt": { $lt: cutoff } }, { "deliveryMeta.lastProgressAt": null, createdAt: { $lt: cutoff } }] };
+}
+
 export async function runMasterLoveCodexRecovery(env, options = {}) {
   const now = options.now || Date.now();
   const deadline = now + TASK_BUDGET_MS;
@@ -132,8 +139,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
   }
 
   const reviewNeeded = await SessionModel.countDocuments({ "deliveryMeta.reviewRequired": true, status: "generation_failed" });
-  const stalled = await SessionModel.countDocuments({ status: { $in: ["generating", "delivery_pending", "generation_failed"] },
-    updatedAt: { $lt: new Date(now - 1800000) }, "passRefund.refundedAt": { $exists: false }, "billingRefund.refundedAt": { $exists: false } });
+  const stalled = await SessionModel.countDocuments(buildCodexStalledFilter(now));
   console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, outcomes, reviewNeeded, stalled }));
   return { ok: true, scanned: candidates.length, bootstrapped, outcomes, reviewNeeded, stalled };
 }

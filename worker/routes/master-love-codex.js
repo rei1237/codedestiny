@@ -1374,7 +1374,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           const savedChapters = modeDef.chapters.map(spec => byId.get(spec.id)).filter(Boolean);
           const chapters = [];
           for (const spec of modeDef.chapters) { if (!byId.has(spec.id)) break; chapters.push(byId.get(spec.id)); }
-          const fields = { deliveryMeta: { ...current.deliveryMeta, savedChapters, attempts, failures, errors }, chapters,
+          const fields = { deliveryMeta: { ...current.deliveryMeta, savedChapters, attempts, failures, errors,
+            lastProgressAt: valid ? new Date() : current.deliveryMeta?.lastProgressAt || doc.createdAt || null }, chapters,
             totalCharCount: chapters.reduce((sum, row) => sum + Number(row.chars || row.body.length), 0),
             generationProgress: { ...current.generationProgress, completed: savedChapters.length, total: modeDef.chapters.length },
             ...(result?.loveDna && valid ? { loveDna: result.loveDna } : current.loveDna ? { loveDna: current.loveDna } : {}),
@@ -1406,7 +1407,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     if (!authorized || authorized.denied) return { outcome: "denied" };
     current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
       loveDna: current.loveDna || null, totalCharCount: chapters.reduce((sum, row) => sum + row.body.length, 0),
-      deliveryMeta: { ...current.deliveryMeta, reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true },
+      deliveryMeta: { ...current.deliveryMeta, reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true, lastProgressAt: new Date() },
       generationProgress: { completed: chapters.length, total: chapters.length, lockedAt: null, lockToken: "" } }, sessionId);
     await syncCodexExecution(current);
     return { outcome: "completed", session: current, done: true };
