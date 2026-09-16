@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { runPaidAccessGate } from "@/app/_lib/billing-client";
+import { loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
@@ -100,6 +100,20 @@ export default function CheckoutClient() {
 
   const authSettled = auth.status !== "unknown" && auth.status !== "authenticating" && auth.status !== "refreshing";
   const signedIn = auth.isAuthenticated || Boolean(auth.user);
+
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (!params.requestId || !["portone_redirect", "paymentId", "payment_id", "imp_uid"].some(key => query.has(key))) return;
+    // A PG return cannot wait for the provider's idle prewarm. Loading the shared
+    // runtime confirms the original order and invokes the registered resume handler.
+    let active = true;
+    void loadPaidServiceRuntimeGate().then(runtime => {
+      if (!runtime && active) setGate({ phase: "error", message: "결제 상태 확인을 준비하지 못했어요. 새로고침해 주세요. 결제를 마쳤다면 다시 결제하지 마세요." });
+    }).catch(() => {
+      if (active) setGate({ phase: "error", message: "결제 상태 확인을 준비하지 못했어요. 새로고침해 주세요. 결제를 마쳤다면 다시 결제하지 마세요." });
+    });
+    return () => { active = false; };
+  }, [params.requestId]);
 
   useEffect(() => {
     try {
