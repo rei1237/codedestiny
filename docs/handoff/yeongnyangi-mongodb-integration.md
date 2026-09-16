@@ -73,3 +73,10 @@ next: CI 메타데이터·상품 설명 보완 후 MongoDB 스테이징 트랜�
 - main `086a085c8d2e0e440e27d40660c836dae1fa8265` 전달. PR CI `35040824480`에서 Critical checks, Typecheck/lint 통과. Build 실패는 영냥이 하위 페이지 description 누락, Static guards 실패는 yeongnyangi-fusion-all 전용 마케팅 카피 누락. 코드 보완 및 해당 검사 통과 후 재전달 진행 중.
 - 로컬 check:fast 최종 실행 exit 0. paid-gate 88개, 마지막 Jest 273스위트/3783테스트, Worker dry-run 빌드와 타입/lint/관련 정적 검사를 통과했다. 실제 LLM/PG 호출은 없음.
 - 실제 MongoDB `code_destiny_staging` 연결 및 ping 정상(읽기 전용). 기존 CD 사용자와 Payment 증빙을 찾았으며 실제 거래/환불이나 데이터 쓰기는 하지 않았다. 앞으로 기존 테스트 이관 없이 새 Mongo 상태 머신 자체의 스테이징 검증에 집중한다.
+
+### Mongo 실측 및 원본 화면 복원 (2026-09-16)
+
+- 실제 Atlas `code_destiny_staging`에 additive 인덱스 적용 완료. `scripts/verify-yeongnyangi-mongo-staging.mjs --staging-fixtures`로 28개 전 상품을 검증했다. 사용자/운영 거래를 만들지 않는 고유 fixture ID만 사용하며, HTTP 호출을 차단하고 종료 시 자신의 문서만 삭제·0건 확인한다. 트랜잭션, 소유권, 금액 변조, 중복 활성화, lease, 생성 재시도, 완료 복원, 환불 상태 차단 PASS. PG/LLM 본문은 fixture이며 실제 과금 호출은 0회.
+- 원본 메인 디자인 유지. 방·프롤로그 자산/8장면 복원; 별도 mock 채팅 대신 내부 상담/보관함, 무료 버튼은 CODE DESTINY `/today/` 연결. 구 무료/천원 경로는 Pages Worker에서 새 정본으로 연결한다.
+- 브라우저 fixture: 프로필→모의 결제→실패/재시도→완료→새로고침, 28상품 선택, 메인 쓰다듬기, 방/프롤로그 열기·닫기 PASS. 390px 방 스크린샷 확인. 타입/lint, 상품 설명 회귀 17개, redirects budget 94/95 PASS.
+- eeca858fc CI는 추가 sitemap/레거시 마케팅 사전 검사에서 실패했다. 영냥이 홈은 개인화 대화형 서비스 noindex로 명시, 실제 상품 선택/전용 결제의 이름·깊이·구성·등록 가격을 마케팅 가드에서 검증하도록 수정했다. 사용하지 않는 레거시 popup 복사본은 제거. CI 재검증 필요.

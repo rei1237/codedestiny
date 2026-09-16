@@ -103,6 +103,14 @@ try{
  assert.equal(await page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(24, 19, 43)');
  await page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();
  await page.getByText('쓰다듬는 건…',{exact:true}).waitFor();
+ await page.goto(base+'/yeongnyangi/room/#story',{waitUntil:'domcontentloaded'});
+ await page.getByRole('dialog',{name:'영냥이의 프롤로그'}).waitFor();
+ await page.getByRole('button',{name:'닫기',exact:true}).click();
+ await page.getByRole('link',{name:/오늘의 무료 운세 보기/}).waitFor();
+ assert.equal(await page.getByRole('link',{name:/오늘의 무료 운세 보기/}).getAttribute('href'),'/today/');
+ await page.setViewportSize({width:390,height:844});
+ await page.screenshot({path:'build-cache/yeongnyangi-room-390.png',fullPage:true});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  assert.deepEqual(failures,[]);
  console.log(JSON.stringify({status:'PASS',products:products.length,profileCreates:profiles.length,paymentFixtureCalls:payments,consultationCreates:creates,chapters:row.chapters.length,reloadGeneratedAgain:false,providerFailureRecovered:true,realPaidCalls:0}));
 }finally{await browser.close();}

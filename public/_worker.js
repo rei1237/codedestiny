@@ -34,6 +34,8 @@ const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 // 이 코드가 실행된다. 아래 마커가 그 계약이고, scripts/verify-redirects-budget.mjs 가
 // 마커와 _routes.json 의 드리프트를 fail-closed 로 막는다. 워커에서 리다이렉트를 하나 더
 // 다루려면 마커를 한 줄 추가해야 하고, 안 하면 가드가 실패한다.
+// @routes-include: /yeongnyangi/free-fortune*
+// @routes-include: /yeongnyangi/1000-won-fortune*
 // @routes-include: /fortune/*
 // @routes-include: /insights/famous-saju/*
 // @routes-include: /de-de/high-value*
@@ -458,6 +460,14 @@ export default {
 
     if (DYNAMIC_FEED_PATHS.has(url.pathname)) {
       return serveDynamicFeed(request, env);
+    }
+
+    // Retired SoulCat test entry points now use native Code Destiny pages.
+    if (/^\/yeongnyangi\/free-fortune(?:\/|$)/.test(url.pathname)) {
+      return Response.redirect(new URL('/today/', url), 302);
+    }
+    if (/^\/yeongnyangi\/1000-won-fortune(?:\/|$)/.test(url.pathname)) {
+      return Response.redirect(new URL('/yeongnyangi/fortune/?domain=saju&fish=mackerel', url), 302);
     }
 
     const legacyLocaleRedirect = legacyLocaleTarget(url.pathname);

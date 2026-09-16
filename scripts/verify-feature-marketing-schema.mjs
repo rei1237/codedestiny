@@ -19,6 +19,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { extractObjectLiteral } from "./lib/feature-marketing-extract.mjs";
+import { loadTsModule } from "./lib/load-ts-module.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const SHELL = resolve(ROOT, "index.html");
@@ -261,6 +262,25 @@ for (const key of Object.keys(COPY)) {
 }
 
 const { FEATURE_KEY_PRICE_TABLE } = await import("../worker/lib/paid-feature-registry.js");
+// Yeongnyangi has its own product selector and checkout, not the legacy tile popup.
+// Verify that actual presentation against the same server prices instead of introducing
+// a second marketing copy tree (and a generic pass-based popup) for these one-time products.
+const {products:catProducts}=loadTsModule('worker/yeongnyangi/payments/catalog.ts');
+const {depthDescriptions}=loadTsModule('worker/yeongnyangi/fortune/reading-policy.ts');
+const catSelector=readFileSync(resolve(ROOT,'app/yeongnyangi/_components/Consultation.tsx'),'utf8');
+const catCheckout=readFileSync(resolve(ROOT,'app/checkout/CheckoutClient.tsx'),'utf8');
+for(const expected of ['payments/catalog','depthDescriptions[item.fishId]','item.priceKRW','item.chapterCount']) {
+  if(!catSelector.includes(expected))fail(`영냥이 상품 안내 연결 누락: ${expected}`);
+}
+if(!catCheckout.includes('yeongnyangi'))fail('영냥이 전용 결제 안내가 없습니다.');
+const dedicatedCopy=new Map();
+for(const product of catProducts){
+  const price=FEATURE_KEY_PRICE_TABLE[product.cdFeatureKey]?.amountKRW;
+  if(!product.name || !product.fishName || !depthDescriptions[product.fishId] || !product.systems.length ||
+    !Number.isInteger(product.chapterCount) || product.chapterCount<1 || product.priceKRW!==price){
+    fail(`${product.cdFeatureKey}: 전용 상품 안내의 이름·분석 깊이·챕터 수·가격을 확인하세요.`);
+  }else dedicatedCopy.set(product.cdFeatureKey,product);
+}
 const highPrice = Object.entries(FEATURE_KEY_PRICE_TABLE)
   .map(([key, value]) => [key, Number(value?.amountKRW) || Number(value?.cost) * 100])
   .filter(([, won]) => won >= HIGH_PRICE_KRW)
@@ -268,7 +288,7 @@ const highPrice = Object.entries(FEATURE_KEY_PRICE_TABLE)
   .sort();
 
 for (const featureKey of highPrice) {
-  const entry = byFeatureId.get(featureKey);
+  const entry = byFeatureId.get(featureKey) || dedicatedCopy.get(featureKey);
   if (!entry) {
     fail(`${featureKey}: ${HIGH_PRICE_KRW.toLocaleString("ko-KR")}원 이상인데 마케팅 카피가 없습니다 (카테고리 폴백으로 떨어집니다).`);
     continue;

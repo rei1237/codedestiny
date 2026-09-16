@@ -318,7 +318,7 @@ export default function FortuneHome() {
                 <span>무료 운세 보기</span>
                 <ArrowRight size={21} />
               </button>
-              <p>출석 멸치 한 마리로 오늘의 16가지 이야기</p>
+              <p>CODE DESTINY 무료 운세로 오늘의 흐름부터</p>
             </div>
           </section>
 
