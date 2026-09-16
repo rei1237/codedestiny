@@ -46,7 +46,7 @@ export function pickGeminiModels() {
 export function extractGeminiText(payload) {
   const parts = payload?.candidates?.[0]?.content?.parts;
   if (!Array.isArray(parts)) return "";
-  return parts.map((part) => clean(part?.text)).filter(Boolean).join("\n").trim();
+  return parts.filter((part) => part?.thought !== true).map((part) => clean(part?.text)).filter(Boolean).join("\n").trim();
 }
 
 /**

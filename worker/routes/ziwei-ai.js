@@ -19,7 +19,7 @@ import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
@@ -1633,7 +1633,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   let text = clean(ai?.text);
-  if (!ai?.ok || isMock || text.length < (options.minLength || 180)) {
+  if (!isCompleteLlmResponse(ai) || isMock || text.length < (options.minLength || 180)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;

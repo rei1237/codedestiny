@@ -1359,7 +1359,7 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       logContext: { ...context, group: group.key },
     });
     const provider = clean(result?.provider || result?.model || "gemini");
-    if (!result?.ok || ((/mock/i.test(provider) || result?.isMock === true) && !isStagingLlmMockEnabled(env))) return { group, text: "", provider: "", model: "" };
+    if (!result?.ok || result.truncated || /^(MAX_TOKENS|length)$/i.test(clean(result.finishReason)) || ((/mock/i.test(provider) || result?.isMock === true) && !isStagingLlmMockEnabled(env))) return { group, text: "", provider: "", model: "" };
     return { group, text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || "") };
   } catch (error) {
     logVedicAi("Group Generation Failed", { ...context, group: group.key, message: clean(error?.message, 200) }, "warn");

@@ -12,7 +12,7 @@ import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { deliverExpertFollowUp, recoverSavedExpertFollowUps } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -1995,7 +1995,7 @@ async function callRealGeminiText(env, prompt, options = {}) {
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-  if (!ai?.ok || isMock || !clean(ai?.text)) {
+  if (!isCompleteLlmResponse(ai) || isMock || !clean(ai?.text)) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed.", 500));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     error.providerDiagnostics = getProviderDiagnostics(env);

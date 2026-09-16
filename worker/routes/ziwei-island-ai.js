@@ -18,7 +18,7 @@ import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.j
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { stripEmptyParens } from "../lib/ziwei-hanja.js";
@@ -552,7 +552,7 @@ async function generatePalaceText(env, prompt, options = {}) {
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   const text = clean(ai?.text);
-  if (!ai?.ok || isMock || !hasRenderableLlmText(text, { minChars: options.minLength || 300 })) {
+  if (!isCompleteLlmResponse(ai) || isMock || !hasRenderableLlmText(text, { minChars: options.minLength || 300 })) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;

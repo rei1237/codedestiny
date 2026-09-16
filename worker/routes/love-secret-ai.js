@@ -806,7 +806,7 @@ async function generateLoveSecretGroup(env, {
     const provider = clean(ai?.provider);
     const model = clean(ai?.model);
     const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-    if (!ai?.ok || isMock || !clean(ai.text)) {
+    if (!ai?.ok || ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)) || isMock || !clean(ai.text)) {
       return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model };
     }
 

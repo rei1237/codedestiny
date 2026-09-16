@@ -5,6 +5,12 @@
 
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "../../lib/llm-text.js";
 
+/** A readable fragment may be preserved, but cannot become a finished paid section. */
+export function isCompleteLlmResponse(response) {
+  return response?.ok === true && response.truncated !== true
+    && !/^(?:MAX_TOKENS|length)$/i.test(String(response.finishReason || "").trim());
+}
+
 /**
  * 후보 값(문자열/배열/중첩 결과 객체/잘린 JSON)이 사용자에게 보여줄 실질 텍스트를 가졌는지 판정한다.
  * toDisplayText로 평탄화한 뒤(잘린 JSON이면 사람이 읽을 문장만 복구) 공백 제외 길이로 판단.

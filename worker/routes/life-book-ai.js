@@ -1438,7 +1438,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     const text = clean(ai?.text);
     base.provider = provider;
     base.model = clean(ai?.model);
-    if (!ai?.ok || isMock || !text) {
+    if (!ai?.ok || ai.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)) || isMock || !text) {
       base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : clean(ai?.message || ai?.error || "LLM generation failed.", 300);
       return base;
     }

@@ -23,7 +23,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptModelConfig, cmsPromptText } from "../lib/cms-prompts.js";
 import { tokensRequiredForChars } from "../lib/llm-budget.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
@@ -1154,7 +1154,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       error.status = 503;
       throw error;
     }
-    return { section, ok: ai?.ok === true, text: sanitizeConsultationText(ai?.text || ""), provider, model };
+    return { section, ok: isCompleteLlmResponse(ai), text: sanitizeConsultationText(ai?.text || ""), provider, model };
   };
 
   // 웨이브 1 — 전 섹션 동시 생성. 벽시계는 섹션 시간의 합이 아니라 가장 느린 섹션 하나.

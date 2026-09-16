@@ -109,7 +109,7 @@ import {
 } from "../lib/premium-access-token.js";
 import { callGeminiText, createGeminiContextCache, deleteGeminiContextCache } from "../lib/gemini.js";
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
@@ -505,7 +505,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         //    웨이브2의 보강 요청은 접미사에 들어가므로 같은 핸들이 그대로 유효하다.
         geminiCachedContent: contextCache || undefined,
       });
-      return { group, ok: ai?.ok === true, text: normalizeSajuAIResultText(ai?.text), ai };
+      return { group, ok: isCompleteLlmResponse(ai), text: normalizeSajuAIResultText(ai?.text), ai };
     } catch (groupError) {
       console.warn("[SajuMyeongsikAI] section group threw", {
         requestId,

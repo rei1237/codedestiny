@@ -214,6 +214,13 @@ await isolated(async () => {
   assert(fetchCalls.length === 1, `타임아웃은 재시도 대상이 아니다 (실제 ${fetchCalls.length}회)`);
 });
 
+await isolated(async () => {
+  globalThis.fetch = async () => fakeResponse(200, { candidates: [{ content: { parts: [
+    { thought: true, text: "내부 해석 계획" }, { text: '{"body":"완성된 원고"}' },
+  ] }, finishReason: "STOP" }] });
+  const result = await callLLM({ prompt: "thought parts fixture", timeoutMs: 1000, fallbackToWorkersAI: false });
+  assert(result.text === '{"body":"완성된 원고"}', "내부 thinking이 JSON/본문에 섞이면 안 된다");
+});
 globalThis.fetch = originalFetch;
 
 if (failures.length) {

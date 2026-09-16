@@ -5,6 +5,7 @@ const ts = require("typescript");
 const { webcrypto } = require("node:crypto");
 const prompt = require("../../worker/lib/saju-ai-prompt.js");
 const quality = require("../../worker/lib/paid-report-quality.js");
+const { isCompleteLlmResponse } = require("../../worker/lib/llm-result-delivery.js");
 const source = fs.readFileSync(require.resolve("../../worker/routes/fortune.js"), "utf8");
 const ast = ts.createSourceFile("fortune.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 const names = new Set([
@@ -57,7 +58,7 @@ function harness(mode = "single") {
   const charges = new Set();
   const calls = [];
   const ctx = {
-    ...prompt, ...quality, Request, Response, Headers, Date, crypto: webcrypto,
+    ...prompt, ...quality, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
     console: { info() {}, warn() {}, error() {} },
     SAJU_AI_PROMPT_ACCESS_MODE: "per_use", SAJU_AI_PROMPT_AMOUNT_KRW: 20000,
     SAJU_AI_RESULT_SYSTEM_PROMPT: "mock", FEATURE_AI_LLM_BUDGET_MS: 80000,

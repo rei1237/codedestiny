@@ -133,6 +133,7 @@ type GeminiPayload = {
     content?: {
       parts?: Array<{
         text?: string;
+        thought?: boolean;
       }>;
     };
     finishReason?: string;
@@ -483,6 +484,7 @@ function emitTokenUsageLog(
 function extractGeminiText(payload: GeminiPayload): string {
   const parts = payload.candidates?.[0]?.content?.parts || [];
   return parts
+    .filter((part) => part.thought !== true)
     .map((part) => String(part.text || "").trim())
     .filter(Boolean)
     .join("\n")
