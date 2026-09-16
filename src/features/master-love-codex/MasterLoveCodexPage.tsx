@@ -312,6 +312,9 @@ export default function MasterLoveCodexPage() {
       router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
     };
 
+    // A saved, authorized session is enough to open the result. Do not tie the
+    // post-payment document's lifetime to the first LLM response.
+    handOff();
     await runCodexBatches({
       sessionId: startSessionId,
       accessToken: startToken,
@@ -358,7 +361,7 @@ export default function MasterLoveCodexPage() {
     setGenerationError("");
     setPhase("generating");
     try {
-      const startBody = { ...restored, ...extractPayment(grant, idempotencyKey) };
+      const startBody = { ...restored, ...(grant ? extractPayment(grant, idempotencyKey) : {}) };
       const started = await postJson("/api/master-love-codex/start", startBody, idempotencyKey);
       if (!isCurrent()) return false;
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
@@ -366,7 +369,7 @@ export default function MasterLoveCodexPage() {
       pendingResumeRef.current = null;
       setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
-      return isCurrent() && lastSessionRef.current.status === "completed";
+      return isCurrent() && handedOffRef.current;
     } catch (caught) {
       if (!isCurrent()) return false;
       setGenerationError(caught instanceof TypeError
@@ -588,11 +591,15 @@ export default function MasterLoveCodexPage() {
       }
 
       releasePaidFeatureGate(idempotencyKey);
+      pendingResumeRef.current = { args: { idempotencyKey, payload: packPaidResumeArg(startBody) }, grant: null };
+      generationStartedRef.current = true;
+      setPhase("generating");
       const started = await postJson("/api/master-love-codex/start", startBody, idempotencyKey);
       if (!isCurrent()) return;
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status, errorText));
 
       sessionIdRef.current = started.data.sessionId;
+      pendingResumeRef.current = null;
       setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
     } catch (caught) {

@@ -86,3 +86,25 @@ it('legacy completed books remain readable without new quality checks',async()=>
 
 for(const source of [0,1,2])it(`rejects refunded execution or balance ledger ${source}`,async()=>{revokedSource=source;expect((await generate()).status).toBe(402);expect(provider).not.toHaveBeenCalled()});
 it('uncertain exhausted calls do not trigger more LLM or a refund',async()=>{await generate();const ids=docs[0].deliveryMeta.savedChapters.map(row=>row.id);const {__masterLoveCodexTestUtils:utils}=await import('../../worker/routes/master-love-codex.js');const next=utils.MODES.solo.chapters.find(row=>!ids.includes(row.id));docs[0].deliveryMeta.attempts[next.id]=3;expect((await generate()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(4);expect(refund).not.toHaveBeenCalled()});
+
+for (const state of ['retryable', 'deferred']) it(`${state} outages preserve the same paid book past three waves`, async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async () => ({ status: state }));
+  for (let wave = 0; wave < 4; wave++) {
+    expect((await generate()).status).toBe(503);
+    expect(Object.values(docs[0].deliveryMeta.attempts).every(value => value === 0)).toBe(true);
+  }
+  expect(refund).not.toHaveBeenCalled();
+  provider.mockImplementation(normal);
+  for (let wave = 0; wave < 5; wave++) await generate();
+  expect(docs[0].status).toBe('completed');
+  expect(docs[0].paymentId).toBe('original-payment');
+});
+
+it('public progress counts saved siblings without publishing an out-of-order book', async () => {
+  provider.mockImplementationOnce(async () => ({ status: 'fallback' }));
+  const payload = await (await generate()).json();
+  expect(payload.chapters).toHaveLength(0);
+  expect(payload.generationProgress).toEqual({ completed: 3, total: 20 });
+  expect(payload.generationProgress.lockToken).toBeUndefined();
+});

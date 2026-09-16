@@ -123,6 +123,11 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
       ...options, attempts: 1, baseTokens: attempt ? 11000 : 8000, capTokens: 14000,
       timeoutMs: Math.min(Number(options.timeoutMs) || remaining, remaining),
     });
+    if (ai?.ok === false) {
+      throw Object.assign(new Error(ai.message || ai.error || "LLM provider unavailable"), {
+        code: "LLM_PROVIDER_UNAVAILABLE", status: ai.status, retryable: true,
+      });
+    }
     try {
       if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
       if (!ai?.text) throw new Error("LLM_OUTPUT_EMPTY");

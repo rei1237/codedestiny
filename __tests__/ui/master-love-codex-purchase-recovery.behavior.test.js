@@ -50,6 +50,7 @@ test("redirect start failure retries the same paid run without a session or a se
     useCallback: fn => fn,
     pendingResumeRef: { current: null }, sessionIdRef: { current: "" },
     lastTokenRef: { current: "" }, lastSessionRef: { current: {} },
+    handedOffRef: { current: false },
     setGenerationError: message => events.push(["generationError", message]),
     setChapters() {},
     setBirth: update => events.push(["birth", update({ name: "", partner: null })]),
@@ -79,6 +80,20 @@ test("redirect start failure retries the same paid run without a session or a se
   ]);
   assert.equal(events.find(row => row[0] === "birth")[1].partner.name, "partner");
   assert.equal(events.filter(row => row[0] === "generate").length, 1);
+});
+
+test("저장된 세션은 첫 LLM 응답을 기다리지 않고 결과 화면으로 이동한다", async () => {
+  const { state, events } = fixture();
+  Object.assign(state, { useCallback: fn => fn, setGenerationError() {}, setChapters() {},
+    generationStartedRef: { current: false }, sessionIdRef: { current: "" },
+    lastTokenRef: { current: "" }, lastSessionRef: { current: {} }, handedOffRef: { current: false },
+    router: { replace: url => events.push(["navigate", url]) },
+    runCodexBatches: async options => { assert.equal(options.shouldStop(), true); },
+  });
+  const context = vm.createContext(state);
+  vm.runInContext(executable("runBatches"), context);
+  await context.run("owned-book", "token", { status: "generating", chapters: [] });
+  assert.deepEqual(events.filter(row => row[0] === "navigate"), [["navigate", "/master-love-codex/result?sessionId=owned-book"]]);
 });
 test("closed browser recovery uses owned server input and starts without checkout", async () => {
   const { context, events } = fixture();

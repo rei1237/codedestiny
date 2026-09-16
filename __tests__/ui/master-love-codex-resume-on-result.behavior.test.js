@@ -120,6 +120,7 @@ function resumeFixture(target) {
     setResumeError: (value) => { if (value) events.push(["resumeError", value]); },
     setSession: () => {},
     stoppedRef: { current: false },
+    runningRef: { current: false },
     captureOwner: () => () => true,
     document: { hidden: false }, navigator: { onLine: true },
     runCodexBatches: async (options) => { events.push(["loop", options.sessionId, options.accessToken]); return {}; },
@@ -153,4 +154,38 @@ test("네트워크 단절 뒤 같은 책을 조회해 완료 확인을 흡수한
 test("소유자가 변경되면 늦은 생성 결과를 화면에 반영하지 않는다",async()=>{
  let stopped=false;const {context}=loopFixture({generate:async()=>{stopped=true;return{status:200,data:{ok:true,done:true,chapters:chaptersOfLength(20)}}}});
  let shown=0;await context.run({sessionId:'original',accessToken:'token',seed:{status:'generating',chapters:[]},errorText:ERROR_TEXT,shouldStop:()=>stopped,onProgress:()=>shown++});assert.equal(shown,0);
+});
+
+test("앞 장이 지연되어도 뒤 장의 확정 저장을 진행으로 세고 완성한다", async () => {
+  let saved = 0;
+  const { context } = loopFixture({ generate: async () => {
+    saved += 3;
+    return { status: 202, data: { ok: true, chapters: saved < 12 ? [] : chaptersOfLength(20),
+      generationProgress: { completed: Math.min(saved, 20), total: 20 }, done: saved >= 12 } };
+  } });
+  const result = await context.run({ sessionId: "gapped-book", accessToken: "token",
+    seed: { status: "generating", chapters: [] }, errorText: ERROR_TEXT });
+  assert.equal(result.done, true);
+});
+
+test("완료된 구매본은 화면 복귀 때 생성하지 않는다", async () => {
+  const { context, events } = resumeFixture();
+  await context.run({ sessionId: "complete", status: "completed", accessToken: "token", chapters: [] });
+  assert.deepEqual(events, []);
+});
+
+test("초기 조회 장애 뒤 같은 구매본을 다시 읽으면 오류가 해제된다", async () => {
+  let attempt = 0, error = "", stored;
+  const context = vm.createContext({ useCallback: fn => fn, captureOwner: () => () => true,
+    window: { location: { search: "?sessionId=paid-book" } }, URLSearchParams,
+    copy: { resultUnstableRefreshError: "temporary", errorText: ERROR_TEXT },
+    setError: value => { error = value; }, setLoading() {}, setSession: value => { stored = value; },
+    isRetriableResultPollFailure: status => status === 503,
+    authFetch: async () => (++attempt === 1
+      ? { ok: false, status: 503, json: async () => ({ ok: false }) }
+      : { ok: true, status: 200, json: async () => ({ ok: true, sessionId: "paid-book", status: "generating", accessToken: "token", chapters: [] }) }),
+  });
+  vm.runInContext(extract(RESULT_CLIENT, "load"), context);
+  await context.run(); assert.equal(error, "temporary");
+  await context.run(); assert.equal(error, ""); assert.equal(stored.sessionId, "paid-book");
 });

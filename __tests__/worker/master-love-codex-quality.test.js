@@ -143,3 +143,10 @@ test("paid delivery can limit structured generation to one provider call", async
   await expect(generateCodexChapterResponse(call, "prompt", { chapter, maxAttempts: 1 })).rejects.toThrow("LLM_OUTPUT_TOO_SHORT");
   expect(call).toHaveBeenCalledTimes(1);
 });
+
+test("provider outage preserves its cause instead of consuming manuscript repairs", async () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const call = jest.fn().mockResolvedValue({ ok: false, status: 429, error: "llm_failed", message: "overloaded" });
+  await expect(generateCodexChapterResponse(call, "prompt", { chapter })).rejects.toMatchObject({ code: "LLM_PROVIDER_UNAVAILABLE", status: 429, retryable: true });
+  expect(call).toHaveBeenCalledTimes(1);
+});

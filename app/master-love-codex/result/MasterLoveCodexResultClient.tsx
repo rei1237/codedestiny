@@ -20,6 +20,7 @@ import { MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "@/src/features/master-love-cod
 import CodexAmbience from "@/src/features/master-love-codex/components/CodexAmbience";
 import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
 import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
+import CodexGenerating from "@/src/features/master-love-codex/components/CodexGenerating";
 import { masterLoveCodexBgmTracks } from "@/src/features/master-love-codex/data/assets";
 import { getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexCopy } from "@/src/features/master-love-codex/_lib/copy";
 import styles from "@/src/features/master-love-codex/styles/codex.module.css";
@@ -41,6 +42,7 @@ type SessionState = {
   chapters: CodexChapter[];
   loveDna: CodexLoveDna | null;
   totalCharCount: number;
+  generationProgress?: { completed: number; total: number };
   birthInfo: {
     name?: string;
     gender?: string;
@@ -77,9 +79,11 @@ export default function MasterLoveCodexResultClient() {
   const resumeStartedForRef = useRef("");
   /** 화면을 떠나면 루프를 멈춘다 — 언마운트 뒤 setState 와 유령 /generate 왕복을 남기지 않는다. */
   const stoppedRef = useRef(false);
+  const runningRef = useRef(false);
   const [accountEpoch, setAccountEpoch] = useState(0);
   const captureOwner = usePaidDeliveryScope(() => {
     stoppedRef.current = true; resumeStartedForRef.current = "";
+    runningRef.current = false;
     setSession(null); setError(""); setResumeError(""); setResuming(false); setLoading(true);
     setAccountEpoch(value => value + 1);
   });
@@ -113,6 +117,7 @@ export default function MasterLoveCodexResultClient() {
         setLoading(false);
         return;
       }
+      setError("");
       setSession({
         sessionId: String(payload.sessionId || sessionId),
         status: String(payload.status || ""),
@@ -124,6 +129,7 @@ export default function MasterLoveCodexResultClient() {
         chapters: Array.isArray(payload.chapters) ? payload.chapters : [],
         loveDna: payload.loveDna || null,
         totalCharCount: Number(payload.totalCharCount || 0),
+        generationProgress: payload.generationProgress,
         birthInfo: payload.birthInfo || null,
       });
     } catch {
@@ -144,17 +150,19 @@ export default function MasterLoveCodexResultClient() {
    * 반복됐다. 여기서 이으면 사용자가 실제로 머무는 읽기 화면이 완성을 책임진다.
    */
   const resume = useCallback(async (target: SessionState) => {
+    if (runningRef.current || target.status === "completed") return;
     const isCurrent = captureOwner();
     const accessToken = String(target.accessToken || "");
     // 토큰이 없으면 서버가 이 세션을 이 문서에 이어쓰도록 허가하지 않은 것이다 — 링크로 돌려보낸다.
     if (!accessToken) return;
+    runningRef.current = true;
     setResuming(true);
     setResumeError("");
     try {
       await runCodexBatches({
         sessionId: target.sessionId,
         accessToken,
-        seed: { sessionId: target.sessionId, status: target.status, accessToken, chapters: target.chapters },
+        seed: { sessionId: target.sessionId, status: target.status, accessToken, chapters: target.chapters, generationProgress: target.generationProgress },
         errorText: copy.errorText,
         shouldStop: () => stoppedRef.current || !isCurrent() || document.hidden || !navigator.onLine,
         onProgress: (next) => {
@@ -166,6 +174,7 @@ export default function MasterLoveCodexResultClient() {
             chapters: Array.isArray(next.chapters) ? next.chapters : current.chapters,
             loveDna: next.loveDna ?? current.loveDna,
             totalCharCount: Number(next.totalCharCount ?? current.totalCharCount),
+            generationProgress: next.generationProgress ?? current.generationProgress,
           } : current));
         },
       });
@@ -177,6 +186,7 @@ export default function MasterLoveCodexResultClient() {
         ? copy.errorText.NETWORK_ERROR
         : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
     } finally {
+      if (isCurrent()) runningRef.current = false;
       if (!stoppedRef.current && isCurrent()) setResuming(false);
     }
   }, [captureOwner, copy, load]);
@@ -190,10 +200,11 @@ export default function MasterLoveCodexResultClient() {
   }, [session, resume]);
 
   const retryResume = useCallback(() => {
-    if (!session || resuming) return;
+    if (runningRef.current || resuming || session?.status === "completed") return;
+    if (!session || !session.accessToken) { void load(); return; }
     stoppedRef.current = false;
     void resume(session);
-  }, [session, resuming, resume]);
+  }, [session, resuming, resume, load]);
 
   useEffect(() => {
     const recover = () => { if (!document.hidden && navigator.onLine) retryResume(); };
@@ -232,12 +243,21 @@ export default function MasterLoveCodexResultClient() {
           <div className={styles.measure}>
             <p role="alert" className="text-[0.9375rem] leading-8">{error || copy.resultNotFoundFallback}</p>
             <div className="mt-10">
+              <button type="button" className={styles.cta} onClick={() => { void load(); }}>{copy.resultResumeRetry}</button>
               <Link href="/master-love-codex" className={styles.cta}>{copy.resultBackToLanding}</Link>
             </div>
           </div>
         </div>
       </CodexShell>
     );
+  }
+
+  if (!session.chapters.length && session.status !== "completed") {
+    return <>{ambience}<CodexShell ariaLabel={copy.generatingAriaLabel(Boolean(resumeError))}>
+      <CodexGenerating completed={session.generationProgress?.completed || 0} total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
+        latestTitles={[]} name={session.birthInfo?.name || ""} mode={session.mode} accessType={session.accessType}
+        error={resumeError || (!resuming ? copy.resultIncompleteNotice : "")} onRetry={retryResume} />
+    </CodexShell></>;
   }
 
   return (
@@ -266,7 +286,7 @@ export default function MasterLoveCodexResultClient() {
               // aria-live 로 읽어 준다 — 화면을 못 보는 사용자에게도 장이 쌓이는 것이 전달돼야
               // "머물면 완성된다"는 안내가 실제로 지켜지는지 확인할 수 있다.
               <span aria-live="polite">
-                {copy.resultResumingNotice(session.chapters.length, MASTER_LOVE_CODEX_TOTAL_CHAPTERS)}
+                {copy.resultResumingNotice(session.generationProgress?.completed || session.chapters.length, MASTER_LOVE_CODEX_TOTAL_CHAPTERS)}
               </span>
             ) : (
               <>

@@ -700,6 +700,7 @@ async function generateChapter(env, {
     if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
     if (raced.error) throw raced.error;
     const ai = raced.value;
+    if (ai?.ok === false) throw Object.assign(new Error(ai.message || ai.error || "LLM provider unavailable"), { code: "LLM_PROVIDER_UNAVAILABLE" });
     const body = clean(ai?.text || "");
     if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
     assertCodexChapterQuality(body, chapter, modeDef.dnaMetrics);
@@ -713,7 +714,7 @@ async function generateChapter(env, {
     console.error("[master-love-codex] chapter", chapter.id, clean(error?.message, 200));
     const body = fallbackChapterBody(chapter, birthInfo);
     return {
-      status: "fallback",
+      status: error?.code === "LLM_PROVIDER_UNAVAILABLE" ? "retryable" : "fallback",
       chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: "fallback", ok: false },
       loveDna: null,
     };
@@ -749,6 +750,7 @@ function publicSession(doc) {
     partnerZiweiChart: doc?.partnerZiweiChart || null,
     compatibility: doc?.compatibility || null,
     chapters,
+    generationProgress: { completed: Math.max(chapters.length, Number(doc?.generationProgress?.completed || 0)), total: modeDef.chapters.length },
     loveDna: doc?.loveDna || null,
     totalChapters: modeDef.chapters.length,
     totalCharCount: Number(doc?.totalCharCount || 0),
@@ -1272,6 +1274,7 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
       missing.forEach(chapter => { attempts[chapter.id] = Number(attempts[chapter.id] || 0) + 1; });
       current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, attempts } }, sessionId);
       const memory = buildMemory([...byId.values()]);
+      let unavailable = false;
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(missing.map(async chapter => {
         let result;
@@ -1286,7 +1289,12 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
             && result.chapter.body?.length >= (chapter.minChars || 2400)
             && !hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(result.chapter.body).join("\n"));
           if (valid) byId.set(chapter.id, result.chapter);
-          else if (result?.status !== "deferred") failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
+          else if (["retryable", "deferred"].includes(result?.status)) {
+            // Provider outages and work that never started are not bad manuscripts.
+            // Release this confirmed reservation while keeping uncertain calls capped.
+            attempts[chapter.id] = Math.max(0, attempts[chapter.id] - 1);
+            unavailable = true;
+          } else failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
           const savedChapters = modeDef.chapters.map(spec => byId.get(spec.id)).filter(Boolean);
           const chapters = [];
           for (const spec of modeDef.chapters) { if (!byId.has(spec.id)) break; chapters.push(byId.get(spec.id)); }
@@ -1300,6 +1308,7 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
       }));
       const failure = outcomes.find(outcome => outcome.status === "rejected");
       if (failure) throw failure.reason;
+      if (unavailable) return { outcome: "stalled", reason: "LLM_PROVIDER_UNAVAILABLE" };
     }
     if (modeDef.chapters.some(chapter => !byId.has(chapter.id))) return { outcome: "committed", session: current, done: false };
     const chapters = modeDef.chapters.map(chapter => byId.get(chapter.id));

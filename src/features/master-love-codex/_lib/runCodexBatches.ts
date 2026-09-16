@@ -42,6 +42,7 @@ export type CodexSessionPayload = {
   accessType?: string;
   mode?: string;
   chapters?: CodexChapter[];
+  generationProgress?: { completed: number; total: number };
   loveDna?: CodexLoveDna | null;
   totalCharCount?: number;
   totalChapters?: number;
@@ -116,7 +117,7 @@ export async function runCodexBatches({
 }: RunCodexBatchesOptions): Promise<CodexSessionPayload> {
   let token = accessToken;
   let current = seed;
-  let written = Array.isArray(seed.chapters) ? seed.chapters.length : 0;
+  let written = Math.max(seed.chapters?.length || 0, seed.generationProgress?.completed || 0);
   let batches = 0;
   let retries = 0;
   let noProgress = 0;
@@ -145,8 +146,9 @@ export async function runCodexBatches({
         const polled = await fetchCodexSession(sessionId).catch(() => ({ status: 503, data: null }));
         if (shouldStop?.()) return current;
         const chapters = Array.isArray(polled.data?.chapters) ? polled.data.chapters : [];
-        if (polled.data?.ok && (chapters.length > written || polled.data.status === "completed" || polled.data.done)) {
-          written = chapters.length;
+        const saved = Math.max(chapters.length, polled.data?.generationProgress?.completed || 0);
+        if (polled.data?.ok && (saved > written || polled.data.status === "completed" || polled.data.done)) {
+          written = saved;
           current = polled.data;
           if (polled.data.accessToken) token = polled.data.accessToken;
           retries = 0;
@@ -167,7 +169,8 @@ export async function runCodexBatches({
     const chapters = Array.isArray(data.chapters) ? data.chapters : [];
     onProgress?.(data);
     // 서버는 1장 이상 커밋하거나 503 을 준다. 진행 없는 200 이 이어지면 그건 무한루프다.
-    if (chapters.length > written) { written = chapters.length; noProgress = 0; } else { noProgress += 1; }
+    const saved = Math.max(chapters.length, data.generationProgress?.completed || 0);
+    if (saved > written) { written = saved; noProgress = 0; } else { noProgress += 1; }
     if (!(current.done || current.status === "completed") && noProgress >= MAX_NO_PROGRESS_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
   }
   return current;
