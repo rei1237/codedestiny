@@ -1,14 +1,19 @@
 "use client";
-import {useState,type FormEvent} from 'react';
+import {useRef,useState,type FormEvent} from 'react';
 import {birthDateTextInputProps} from '@/lib/birthDateInputProps';
 import {authFetch} from '@/app/_lib/auth-client';
-import type {DestinyProfileCard} from '@/app/_lib/profile-card-storage';
+import {readDestinyProfileAccountId,type DestinyProfileCard} from '@/app/_lib/profile-card-storage';
+import {invalidateProfileCache} from '@/app/_lib/user-session-cache';
 import {loginForCurrentPage} from '../_lib/api';
+import styles from './profiles.module.css';
 export default function ProfileForm({onSaved}:{onSaved:(profile:DestinyProfileCard)=>void}) {
  const [birthDate,setBirthDate]=useState('');
  const [unknown,setUnknown]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const profileId=useRef(''),lock=useRef(false);
  async function save(event:FormEvent<HTMLFormElement>){
-  event.preventDefault();if(busy)return;
+  event.preventDefault();if(lock.current)return;lock.current=true;
+  if(!profileId.current)profileId.current=`yn_${crypto.randomUUID()}`;
+  const account=readDestinyProfileAccountId();
   const form=new FormData(event.currentTarget);setBusy(true);setError('');
   try{
    const place=String(form.get('place')||'').trim();
@@ -21,14 +26,17 @@ export default function ProfileForm({onSaved}:{onSaved:(profile:DestinyProfileCa
    }
    const [year,month,day]=String(form.get('date')).split('-').map(Number);
    const [hour,minute]=String(form.get('time')||'').split(':').map(Number);
-   const response=await authFetch('/api/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:{name:form.get('name'),gender:form.get('gender'),birth:{year,month,day,hour:unknown?null:hour,minute:unknown?null:minute,timeUnknown:unknown,calType:form.get('calendar')},...(location?{location}:{})}})});
+   if(account!==readDestinyProfileAccountId())return;
+   const response=await authFetch('/api/yeongnyangi/profiles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:{profileId:profileId.current,name:form.get('name'),gender:form.get('gender'),birth:{year,month,day,hour:unknown?null:hour,minute:unknown?null:minute,timeUnknown:unknown,calType:form.get('calendar')},...(location?{location}:{})}})});
    if(response.status===401){loginForCurrentPage();return;}
    const data=await response.json();if(!response.ok)throw new Error(data.message||'프로필을 저장하지 못했어요.');
+   if(account!==readDestinyProfileAccountId())return;
+   invalidateProfileCache('yeongnyangi-profile-created');
    onSaved(data.profile);
-  }catch(e){setError(e instanceof Error?e.message:'프로필을 저장하지 못했어요.');}finally{setBusy(false);}
+  }catch(e){setError(e instanceof Error?e.message:'프로필을 저장하지 못했어요.');}finally{lock.current=false;setBusy(false);}
  }
- return <form onSubmit={save}>
-  <h3>CODE DESTINY 프로필 만들기</h3><p>저장한 프로필은 다른 운세에서도 함께 사용할 수 있어요.</p>
+ return <form onSubmit={save} className={styles.profileForm}>
+  <h3>새로운 이야기를 남겨줘.</h3><p>저장한 프로필은 같은 CODE DESTINY 계정의 다른 운세에서도 함께 사용할 수 있어.</p>
   <label>이름<input name="name" required maxLength={40} autoComplete="nickname" /></label>
   <label>성별<select name="gender"><option value="F">여성</option><option value="M">남성</option></select></label>
   <label>생년월일<input name="date" required {...birthDateTextInputProps(birthDate,setBirthDate)} /></label>

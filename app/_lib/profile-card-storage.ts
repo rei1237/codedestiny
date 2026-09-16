@@ -164,6 +164,29 @@ function isLoggedInProfileScope(scope = readProfileScope()): boolean {
   return Boolean(scope && scope !== "guest");
 }
 
+export function readDestinyProfileAccountId(): string {
+  try {
+    const scope = readProfileScope();
+    return isLoggedInProfileScope(scope) ? scope : "";
+  } catch {
+    return "";
+  }
+}
+
+// 계정 범위가 없는 레거시 목록은 로그인 사용자의 빠른 선택 목록에 섞지 않는다.
+export function readScopedDestinyProfileList(): DestinyProfileCard[] {
+  if (typeof window === "undefined" || !readDestinyProfileAccountId()) return [];
+  const key = `${PROFILE_STORAGE_NS}.list::${readProfileScope()}`;
+  const payload = readStoredJson<unknown>(window.localStorage, key)
+    || readStoredJson<unknown>(window.sessionStorage, key);
+  if (!Array.isArray(payload)) {
+    const current = readCurrentDestinyProfile();
+    return current?.id || current?.profileId ? [current] : [];
+  }
+  return payload.map(item => normalizeDestinyProfileCard(item as DestinyProfileCard))
+    .filter((item): item is DestinyProfileCard => Boolean(item && (item.id || item.profileId)));
+}
+
 function scopedActiveProfileIdKey(scope = readProfileScope()): string {
   return `${ACTIVE_PROFILE_ID_KEY}::${scope || "guest"}`;
 }

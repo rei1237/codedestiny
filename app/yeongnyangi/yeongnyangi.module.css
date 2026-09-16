@@ -195,13 +195,9 @@
   color: var(--yn-gold);
 }
 .form {
-  max-width: 700px;
-  background: #261936;
-  border: 1px solid #6f587d;
+  min-width: 0;
   padding: 32px;
-  border-radius: 22px;
-  margin: 34px auto;
-  box-shadow: 0 22px 60px rgba(9, 5, 19, 0.28);
+  background: #291e38;
 }
 .page label {
   display: block;
@@ -244,6 +240,46 @@
   font-size: 0.9rem;
   color: var(--yn-muted);
 }
+.consultationRoom { position:relative; isolation:isolate; max-width:1120px; margin:30px auto 50px; }
+.consultationScenery { position:fixed; inset:0; z-index:-1; pointer-events:none; }
+.consultationScenery img { width:100%; height:100%; object-fit:cover; object-position:50% center; }
+.consultationScenery::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(24,19,43,.78),rgba(24,19,43,.87) 52%,#18132b); }
+.consultationRoom .consultationHeader { display:flex; align-items:center; justify-content:space-between; gap:20px; max-width:none; margin-bottom:22px; padding:24px 0 20px; border-bottom:1px solid #a986574f; }
+.consultationHeader > svg { color:var(--yn-gold); margin-right:18px; flex-shrink:0; }
+.consultationHeader h1 { font-size:clamp(1.8rem,3.5vw,2.8rem); }
+.consultationHeader p { margin:0; line-height:1.8; color:#e1d1e7; }
+.consultationRoom .systemDescription { margin:6px 0 0; padding:8px 0; color:#e1d1e7; }
+.consultationRoom .fishes { margin:20px 0 26px; }
+.consultationRoom .fishes button { background:#2c203bea; box-shadow:none; border-radius:14px; }
+.consultationRoom .fishes button[aria-pressed="true"] { background:#443057; border-color:var(--yn-gold); box-shadow:inset 0 2px 0 #e9c78d; }
+.consultationRoom .tabs button[aria-pressed="true"] { box-shadow:none; }
+.consultationDesk { display:grid; grid-template-columns:minmax(0,1fr); overflow:hidden; border:1px solid #a9865773; border-radius:22px; background:#241930; box-shadow:0 24px 60px #0e081c60; }
+.consultationGuide { padding:28px; background:#21162e; }
+.guideCat { display:block; width:126px; height:126px; object-fit:contain; border-radius:24px; background:#fff3e2; margin:0 0 22px; }
+.consultationGuide h2 { font-size:clamp(1.4rem,2.3vw,1.85rem); line-height:1.6; color:var(--yn-ivory); margin:0 0 16px; letter-spacing:-.025em; }
+.consultationGuide > p { color:#c7b5ce; font-size:.9rem; line-height:1.9; }
+.consultationSummary { padding:20px 0 8px; margin:24px 0 0; border-top:1px solid #72567f; }
+.consultationSummary > div { margin-bottom:18px; }
+.consultationSummary dt { color:#c7b5ce; font-size:.78rem; margin-bottom:5px; }
+.consultationSummary dd { color:#fff3e2; margin:0; font-size:.95rem; overflow-wrap:anywhere; }
+.consultationGuide .guideNote { display:flex; align-items:flex-start; gap:10px; padding-top:16px; border-top:1px solid #72567f; font-size:.8rem; }
+.guideNote svg { flex-shrink:0; margin-top:6px; }
+.consultationForm { padding:30px; }
+.birthDetails { padding:2px 0 20px; }
+.questionSection { border-top:1px solid #72567f; padding-top:24px; }
+.questionSection h2,.questionIntro h2 { font-size:1.28rem; color:#fff3e2; margin:0 0 10px; }
+.questionSection > p { margin:0 0 22px; }
+.consultationForm textarea { min-height:150px; line-height:1.8; }
+.checkoutSection { padding-top:24px; border-top:1px solid #72567f; margin-top:26px; }
+.checkoutTotal { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.checkoutTotal > span { color:#e1d1e7; font-size:.9rem; }
+.checkoutTotal > strong { font-size:1.7rem; font-family:"Yeongnyangi Myeongjo",serif; color:var(--yn-gold); white-space:nowrap; }
+.checkoutTotal small { margin-left:4px; font:400 .9rem "Yeongnyangi Noto",sans-serif; }
+.page .checkoutButton { width:100%; justify-content:space-between; margin-top:10px; min-height:52px; }
+.inputHints { padding-left:20px; font-size:.85rem; color:#e1d1e7; line-height:1.8; }
+@media(min-width:1024px) { .consultationDesk { grid-template-columns:minmax(0,1fr) minmax(0,2fr); } .consultationGuide { border-right:1px solid #72567f; } }
+@media(max-width:1023px) { .consultationGuide { display:grid; grid-template-columns:72px 1fr; gap:0 18px; align-items:center; padding:20px 24px; border-bottom:1px solid #72567f; } .guideCat { width:72px; height:72px; margin:0; border-radius:16px; grid-row:1/3; } .consultationGuide h2 { font-size:1.25rem; margin:0; } .consultationGuide h2 br { display:none; } .consultationGuide > p { font-size:.82rem; margin:4px 0 0; } .consultationGuide > p br { display:none; } .consultationSummary { grid-column:1/-1; display:flex; gap:18px; flex-wrap:wrap; margin-top:16px; padding:14px 0 0; } .consultationSummary > div { margin:0; } .consultationSummary > div:nth-child(2),.consultationSummary > div:nth-child(3) { display:none; } .consultationGuide .guideNote { display:none; } }
+@media(max-width:767px) { .consultationRoom { padding:0 16px; margin-top:10px; } .consultationRoom .consultationHeader { padding-top:20px; } .consultationHeader > svg { width:26px; height:26px; margin:0; } .consultationForm { padding:22px 18px; } .consultationGuide { padding:18px; gap:0 14px; } .consultationSummary { gap:12px 20px; } .consultationDesk { border-radius:18px; } .consultationRoom .fishes { gap:10px; } .consultationRoom .fishes button { padding:14px 12px; } }
 .form .secondary {
   background: #3a2948;
   color: var(--yn-ivory);
@@ -407,8 +443,7 @@
     height: 74px;
   }
   .form {
-    padding: 21px;
-    margin-top: 28px;
+    padding: 22px 18px;
   }
   .progress {
     padding: 18px;

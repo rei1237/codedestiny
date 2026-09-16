@@ -484,6 +484,7 @@ function authGetDedupeKey(url: string, init: RequestInit = {}, forceFresh = fals
     const safePaths = [
       "/api/auth/me",
       "/api/profile",
+      "/api/yeongnyangi/profiles",
       "/api/profile/current",
       "/api/billing/balance",
       "/api/payments/me",
