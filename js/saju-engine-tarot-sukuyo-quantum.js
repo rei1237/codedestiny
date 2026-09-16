@@ -11764,7 +11764,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         };
 
       } else if (D === 9 || D === 18) {
-        var isDebtor = (D === 9);
+        // 정본 배정표상 순행 +18 이 나=業(빚진 쪽), +9 가 나=胎(빚 준 쪽)다.
+        var isDebtor = (D === 18);
         var mg2 = magnetism(tier, 75);
         base = {
           type: isDebtor ? '업(業) — 전생의 채무자' : '태(胎) — 전생의 채권자',
@@ -11794,6 +11795,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
       } else if ([1, 10, 19, 8, 17, 26].includes(D)) {
         var isNear = (tier === 'near' || tier === 'same');
+        // 순행 +8/17/26 이 나=榮(먼저 베푸는 자리), +1/10/19 가 나=親(그 곁에서 자라는 자리).
+        var isBenefactor = [8, 17, 26].includes(D);
         var mg3 = magnetism(tier, isNear ? 97 : 90);
         base = {
           type: '영친(榮親) — 번영의 동반자',
@@ -11803,7 +11806,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           palette: ['#00b894', '#55efc4'],
           theme: visualTheme('golden'),
           icon: '🌟',
-          pastLife: { role: '전생의 번영 공동체', karma: '함께 세상에 아낌없이 나눈 선행의 총합' },
+          pastLife: {
+            role: isBenefactor ? '먼저 내어놓은 사람과 그 곁에서 자란 사람' : '곁에서 자란 사람과 먼저 내어놓은 사람',
+            karma: isBenefactor
+              ? '내가 나눈 몫이 상대의 길을 열어 주었던 시간'
+              : '상대가 나눈 몫에 기대어 내 길이 열렸던 시간'
+          },
           advantages: [
             { icon: '🌌', label: _sajuQuantumText("sq_9363_prop_label"), text: '두 사람이 함께 있을 때 서로의 가능성을 더 쉽게 끌어내는 흐름입니다. 안정감과 응원이 잠재력을 현실로 옮기는 힘이 됩니다.' },
             { icon: '💼', label: _sajuQuantumText("sq_9364_prop_label"), text: '경제적·사회적 흐름이 함께 살아날 가능성이 드러납니다. 이 인연을 통해 인맥이 넓어지고 서로의 기회가 자연스럽게 맞물릴 수 있으나, 공동의 일은 현실적인 계획과 꾸준한 조율이 더해질 때 안정적인 궤도에 오르기 쉽습니다.' },
@@ -11821,6 +11829,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
       } else if ([2, 11, 20, 7, 16, 25].includes(D)) {
         var isNearU = (tier === 'near');
+        // 순행 +2/11/20 이 나=友(먼저 다가가는 자리), +7/16/25 가 나=衰(그 마음을 받는 자리).
+        var isTender = [2, 11, 20].includes(D);
         var mg4 = magnetism(tier, isNearU ? 83 : 76);
         base = {
           type: '우쇠(友衰) — 달의 안식처',
@@ -11830,7 +11840,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           palette: ['#74b9ff', '#a29bfe'],
           theme: visualTheme('lake'),
           icon: '🌙',
-          pastLife: { role: '세상을 등진 은둔 예술가', karma: '책임 없이 순수했던 전생의 교감' },
+          pastLife: {
+            role: isTender ? '먼저 다가간 사람과 그 곁에 머문 사람' : '곁에 머문 사람과 먼저 다가온 사람',
+            karma: isTender
+              ? '내가 기울인 마음이 이 인연을 이어 왔던 시간'
+              : '상대가 기울인 마음에 기대어 머물렀던 시간'
+          },
           advantages: [
             { icon: '🌌', label: _sajuQuantumText("sq_9390_prop_label"), text: '이 사람 곁에 있으면 세상의 소음이 전부 꺼진다. 우주적 고요함이 마음 깊은 곳의 불안을 잠재운다. 두 사람만의 주파수가 세상 가장 평온한 공간을 만든다.' },
             { icon: '💼', label: _sajuQuantumText("sq_9391_prop_label"), text: '취향과 미적 감각이 절묘하게 맞는다. 함께하는 모든 활동에서 완전한 \"취향 일치\"를 경험하며, 서로의 창의력이 시너지를 일으키는 관계.' },
@@ -11891,7 +11906,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           icon: roleInfo ? roleInfo.icon : '⚡',
           ankaiRole: roleInfo,
           distTier: tier,
-          pastLife: { role: '전생의 숙적이자 연인', karma: '끝내지 못한 감정의 핏빛 기억' },
+          pastLife: {
+            role: isAn ? '흔들린 사람과 흔든 사람' : '흔든 사람과 흔들린 사람',
+            karma: isAn
+              ? '상대가 몰고 온 파장을 내가 견디며 자리를 지켰던 기억'
+              : '내가 일으킨 파장이 상대의 자리를 바꾸어 놓았던 기억'
+          },
           advantages: [
             { icon: '🌌', label: _sajuQuantumText("sq_9451_prop_label"), text: isAn
               ? '상대의 에너지가 익숙한 방식을 흔들 수 있습니다. 그 자극을 잘 다루면 미뤄 둔 변화와 성장을 시작하는 계기가 됩니다.'
@@ -12128,12 +12148,18 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if ([3, 6, 12, 15, 21, 24].indexOf(D) >= 0) return '안괴';
       return '성위';
     }
+    // 정본 자리(aRole)에서 파생한다 — 별도 하드코딩 표를 두지 않는다.
+    // 내어주거나 흔드는 자리(榮·友·壞·成)에 내가 서면 내가 작용하는 쪽이고,
+    // 받아들이는 자리(親·衰·安·危)에 서면 상대가 작용하는 쪽이다. 命·業胎 는 상호작용.
+    var SY_ACTIVE_ROLES = { '영': 1, '우': 1, '괴': 1, '성': 1 };
+    var SY_PASSIVE_ROLES = { '친': 1, '쇠': 1, '안': 1, '위': 1 };
     function directionFromD(D) {
-      if (D === 0) return '상호작용';
-      if (D === 9 || D === 18) return '상호작용';
-      if ([1,2,3,4,10,11,12,13,19,20,21,22].indexOf(D) >= 0) return '상대가 나에게 작용';
-      if ([5,6,7,8,14,15,16,17,23,24,25,26].indexOf(D) >= 0) return '내가 상대에게 작용';
-      return '해당없음';
+      var role = syRoleFromForwardDistance(D);
+      var me = role && role.meShort;
+      if (!me) return '해당없음';
+      if (SY_ACTIVE_ROLES[me]) return '내가 상대에게 작용';
+      if (SY_PASSIVE_ROLES[me]) return '상대가 나에게 작용';
+      return '상호작용';
     }
     function scoreFor(relationType, key, seed, purpose, distance) {
       var range = (SCORE_RANGES[relationType] || SCORE_RANGES['명'])[key] || [45,70];
@@ -15484,7 +15510,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var relationToneMap = {
       ankai: '강렬한 끌림과 충돌의 압력이 동시에 작동해 감정의 밀도가 매우 높았습니다.',
-      usei: '오랜 친구 같은 정서적 빚과 응원이 반복되며, 한쪽의 희생이 관계를 지탱했습니다.',
+      usei: '오랜 친구 같은 정서적 빚과 응원이 반복되며, 먼저 마음을 기울인 友 쪽의 수고가 관계를 지탱했습니다.',
       seongwi: '위험과 성취가 교차해 서로의 인생 방향을 크게 바꾸는 동맹이 되었습니다.',
       yeongchin: '가족 같은 친밀감과 보호 본능이 관계의 중심이었고, 편안함이 큰 장점이었습니다.',
       life: '거울처럼 닮은 기질이 강하게 공명해, 서로를 통해 자기 자신을 보던 관계였습니다.',
