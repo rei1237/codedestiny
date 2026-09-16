@@ -1,10 +1,10 @@
 ---
 status: active
 updated: 2026-09-16
-next: 2단계 1~8번이 모두 끝났고 실제 화면 검증까지 마쳤다. 남은 것은 '후속 과제로만 남긴 결함' 뿐이다.
+next: 2단계 1~8번 완료. 후속 과제 6건 중 3건(대비 2건·죽은 코드 2개 모듈)도 처리했다. 남은 것은 '아직 남은 후속 과제' 3건이다.
 ---
 
-# 숙요점 자리(役) 방향 정본 교정 — 1·2단계 완료
+# 숙요점 자리(役) 방향 정본 교정 — 1·2단계 + 후속 과제 3건 완료
 
 작성: 2026-09-16 · 대상 브랜치: main (직접 커밋, PR 없음)
 
@@ -13,7 +13,9 @@ next: 2단계 1~8번이 모두 끝났고 실제 화면 검증까지 마쳤다. �
 "숙요점 2단계는 1~8번이 모두 끝났다. 판정 payload 위에 관계 해설 14장(SY_SEAT_CHAPTERS)과
 전생 서사(SY_SEAT_PASTLIFE)가 자리별로 저작돼 있고, 워커 라우트도 정본 자리표에서 방향을
 끌어온다. verify-sukuyo-role-direction 의 9·10·11번 검사가 27거리 전부를 대조한다.
-실제 화면(390px, 4개 관계)도 열어 확인했다. 남은 것은 아래쪽 '후속 과제로만 남긴 결함' 이다."
+실제 화면(390px, 4개 관계)도 열어 확인했다. 후속 세션에서 히어로·다이어그램 대비(팔레트
+6종 전수 실측)와 죽은 코드 2개 모듈 삭제까지 마쳤다. 남은 것은 아래쪽 '아직 남은 후속 과제'
+3건이며 셋 다 이번 축과 독립이다."
 
 ## 1단계에서 무엇이 틀렸고 무엇을 고쳤나
 
@@ -170,18 +172,56 @@ D=13 성위/원거리. 전부 14장 + 전생 섹션이 나오고 가로 넘침 �
   테마 그라디언트가 비쳐 방향 배지(노랑)가 2.40~2.88:1 이었다. `.62` 로 올려
   5.60~9.65:1 로 통과(커밋 026d85bea, `js/` 수정 후 `npm run sync:public`).
 
-## 후속 과제로만 남긴 결함 (이번 변경과 무관, 고치지 않음)
+## 후속 과제 — 2026-09-16 후속 세션에서 3건 처리
+
+### 완료 — 히어로·다이어그램 대비 (커밋 55f3b7416)
+
+파스텔 팔레트 6종 전부에서 깨져 있었다. 팔레트별로 글자색을 분기하는 대신
+히어로 배경 최상단에 `rgba(2,6,23,.52)` 스크림을 깔아 **배경 휘도에 천장**을 뒀다.
+키커 `.68→.92`, 부제 `.82→.9`, `.sy-compat-fate-wrap` 바탕 `.22→.42`.
+다이어그램은 `fgOrbMe`/`fgOrbPartner` 를 밝은 유리에서 어두운 원반으로 뒤집었다 —
+라벨이 밝은 글자라 바탕이 어두워야 읽힌다. 금색·핑크 글로우 링이 경계를 유지한다.
+
+실측 방식(다음에 같은 축을 볼 때 재사용):
+원본 `js/saju-engine-tarot-sukuyo-quantum.js` 에서 CSS 규칙과 SVG 를 **문자열로 추출**해
+하네스를 짜면 소스와 어긋나지 않는다. 팔레트 6종 × 측정점 9곳을 Playwright 로 렌더하고
+글자만 `color:transparent`(SVG 는 `fill:transparent`)로 지운 뒤 sharp 로 그 자리 픽셀을
+읽어 배경색을 얻고, CSS 에 선언된 잉크색과 합성해 대비를 낸다.
+🔴 `visibility:hidden` 을 쓰면 배지처럼 **자기 배경을 가진 요소의 배경까지 사라져** 오측정이 난다
+(실제로 배지가 1.83:1 로 잘못 나왔고, 잉크만 투명하게 바꾸니 8.19:1 이었다).
+결과: 변경 전 39 FAIL → 변경 후 0 FAIL. 최저 키커 6.31 / 제목 7.03 / 부제 5.95 / 노드 9.84:1.
+
+### 완료 — 죽은 코드 2건 삭제 (커밋 054316fd3)
+
+- `lib/sukuyo-engine-server.ts` 의 `calcRelationType` + `RELATION_TYPES` 20줄.
+  같은 파일의 `calcSukuyoForServer` 는 살아 있다(`app/destiny-compass/_engine/adapters/sukuyoAdapter.ts`,
+  `lib/famous-saju/celebrity-multi-system.ts`, `verify:famous-saju-multisystem`). 건드리지 말 것.
+- `worker/lib/sukyo-report-engine.js`(823줄)와 전용 테스트(113줄) — 같은 커밋에서 함께 삭제.
+
+🔴 이름 함정: 유료 `featureKey` **`sukyo_yearly_fortune_unlock`** 이 같은 `sukyo` 철자를 쓴다.
+파일 삭제와 무관하며 `sukyo` 일괄 치환·정리는 결제 키를 깨뜨린다.
+`docs/payments/payment-*-inventory.json` 에 남은 경로 문자열은 `scripts/audit-payment-p0-inventory.mjs`
+**생성물**이라 손으로 고치지 않았다.
+
+## 아직 남은 후속 과제
 
 - `src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts:65-78` —
   폐기 명칭 `위성` 키가 `성위` 와 같은 내용으로 중복. :47-52 의 우쇠 설명
-  (주도권 싸움/경쟁심)이 정본의 우쇠와 결이 다르다.
-- `lib/sukuyo-engine-server.ts:333-350` `calcRelationType` — `Math.abs` 로 방향이
-  소실된 별개 체계이며 호출부가 없다(죽은 코드).
-- `worker/lib/sukyo-report-engine.js` — 프로덕션 import 없이 테스트만 물고 있는
-  고아 모듈(823줄), `:353` 에 `위성` 잔존.
-- 거리 판정이 한글 리터럴(`'근거리'`) 비교로 프론트 20곳 이상에 흩어져 있어
-  i18n 치환 시 깨질 구조.
-- 궁합 히어로(`.sy-compat-moon-hero`, 2026-06 UI) 텍스트 대비 미달 — 파스텔 그라디언트 위
-  흰 글자라 키커 1.68:1 / 제목 2.22:1 / 부제 1.86:1(파랑 테마 실측, 핑크도 2.0~2.6:1).
-  이번 2단계 추가물이 아니라 기존 헤더라 손대지 않았다.
-- 인연 다이어그램 노드 라벨("각수/나", "저(氏)/상대") 대비 1.77~2.01:1 — 같은 기존 헤더 축.
+  (주도권 싸움/경쟁심)이 정본의 우쇠와 결이 다르다. `buildConsultResult.ts:15` 가
+  실제로 쓰므로 죽은 코드가 아니다 — 문구를 고치면 찻집 궁합 화면이 함께 바뀐다.
+- 거리 판정이 한글 리터럴(`'근거리'`) 비교로 프론트 58곳에 흩어져 있어
+  i18n 치환 시 깨질 구조. 단독 세션 권장.
+- `scripts/audit-payment-p0-inventory.mjs` 가 `package.json`·워크플로 어디에도 배선돼
+  있지 않아 `docs/payments/payment-*-inventory.json` 이 트리와 어긋나도 아무도 알려주지 않는다.
+  이번 삭제와 무관하게 존재하는 구멍이다.
+
+## 세션 중 확인한 하네스 함정
+
+- `npx jest __tests__/worker/fortune-today-hub.route.test.js` 를 직접 돌리면 7건이 깨진다.
+  정규 러너(`check:fast` → `scripts/run-mock-tests.mjs jest`)에서는 274 스위트 3807건 전부 통과한다.
+  **워커 라우트 테스트를 맨 jest 로 돌린 실패는 결함 증거가 아니다.**
+- 같은 체크아웃에서 다른 세션이 동시에 쓰고 있으면 `sitemap:generate` 원장이 그 세션의
+  미커밋 파일까지 서명에 담는다(이번에 35건이 흔들려 04bef2bea 로 되돌렸다).
+  `git add` 전에 `git status` 로 내 파일만 골라 담아야 한다.
+- 옆 세션의 워크트리 머지는 셸 캐시 키를 낡게 만든다 — 머지 직후 `sync:public` +
+  `sitemap:generate` 재실행이 필요하다(42daa5a92).
