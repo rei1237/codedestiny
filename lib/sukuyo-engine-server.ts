@@ -329,26 +329,6 @@ const BASE_DATA: Record<string, MansionTraits> = {
     wealth:"단돈 1원도 헛되이 쓰지 않으며 치밀한 자금 관리로 막대한 부를 서서히 일궈냅니다." },
 };
 
-//  6대 관계 계산 
-const RELATION_TYPES = [
-  { diff: 0,  rel: "안(安)", desc: "같은 숙요. 안정적 공명 관계 — 서로 가장 편안하고 자연스럽습니다." },
-  { diff: 9,  rel: "괴(壞)", desc: "파괴 관계 — 서로 자극이 강하고 갈등성장이 교차합니다." },
-  { diff: 6,  rel: "성(成)", desc: "성취 관계 — 함께하면 목표 달성 시너지가 발생합니다." },
-  { diff: 3,  rel: "쇠(衰)", desc: "소모 관계 — 에너지 소진이 크며 거리 조절이 필요합니다." },
-  { diff: 1,  rel: "우(友)", desc: "우정 관계 — 편안한 동료로서 생산적 협력이 가능합니다." },
-  { diff: 2,  rel: "친(親)", desc: "친밀 관계 — 감정적 유대가 깊고 장기 동반자가 됩니다." },
-] as const;
-
-export function calcRelationType(myIdx: number, targetIdx: number) {
-  const diff = Math.abs(myIdx - targetIdx) % 27;
-  return (
-    RELATION_TYPES.find((r) => r.diff === diff) ?? {
-      rel: "중성(中)",
-      desc: "비교적 중립적인 관계입니다.",
-    }
-  );
-}
-
 //  메인 계산 함수 
 export async function calcSukuyoForServer(
   year: number,
