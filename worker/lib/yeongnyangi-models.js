@@ -19,6 +19,8 @@ const schema = new mongoose.Schema({
   leaseUntil: { type: Date, default: null },
   paymentGeneration: { type: Number, default: 0 },
   attempts: { type: Number, default: 0 },
+  additionalAttempts: { type: Number, default: 0 },
+  recoveryAudit: { type: [mongoose.Schema.Types.Mixed], default: [] },
   errorCode: { type: String, default: '' },
   completedAt: { type: Date, default: null },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });

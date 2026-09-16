@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
 import {config} from 'dotenv';
 import {build} from 'esbuild';
+import {execFileSync} from 'node:child_process';
 import {connectDb,mongoose} from '../worker/lib/db.js';
 import {Payment} from '../worker/lib/models.js';
 import {YeongnyangiRequest,createRequest,readRequest,attachPayment,claimChapter,finishChapter,failChapter} from '../worker/yeongnyangi/repository.js';
@@ -45,6 +46,17 @@ try{
   const failing=await claimChapter(env,userId,id);
   await failChapter(env,userId,id,failing.token,'QA_PROVIDER_FAILURE');
   assert.equal((await attachPayment(env,userId,id,product.priceKRW)).state,'FORTUNE_FAILED');
+  if(i===0){
+   await YeongnyangiRequest.updateOne({_id:id,userId:owner},{$set:{errorCode:'GENERATION_REVIEW_REQUIRED',attempts:7}});
+   const args=['scripts/recover-yeongnyangi-request.mjs','--db',database,'--request',id,'--attempts','2','--reason',`fixture-${run}`];
+   const dryRun=JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8'}).trim().split('\n').at(-1));
+   assert.equal(dryRun.applied,false);assert.equal((await readRequest(env,userId,id)).state,'FORTUNE_FAILED');
+   const applied=JSON.parse(execFileSync(process.execPath,[...args,'--apply'],{encoding:'utf8'}).trim().split('\n').at(-1));
+   assert.equal(applied.applied,true);
+   const recovered=await readRequest(env,userId,id);
+   assert.equal(recovered.additionalAttempts,3);assert.equal(recovered.recoveryAudit.length,1);
+   assert.equal(recovered.chapters.length,1);assert.equal(String(recovered.paymentId),String(paymentIds[i]));
+  }
   const retry=await claimChapter(env,userId,id);
   await finishChapter(env,userId,id,retry.token,1,{summary:'Staging fixture chapter two'},2);
   const restored=await readRequest(env,userId,id);

@@ -80,3 +80,13 @@ next: CI 메타데이터·상품 설명 보완 후 MongoDB 스테이징 트랜�
 - 원본 메인 디자인 유지. 방·프롤로그 자산/8장면 복원; 별도 mock 채팅 대신 내부 상담/보관함, 무료 버튼은 CODE DESTINY `/today/` 연결. 구 무료/천원 경로는 Pages Worker에서 새 정본으로 연결한다.
 - 브라우저 fixture: 프로필→모의 결제→실패/재시도→완료→새로고침, 28상품 선택, 메인 쓰다듬기, 방/프롤로그 열기·닫기 PASS. 390px 방 스크린샷 확인. 타입/lint, 상품 설명 회귀 17개, redirects budget 94/95 PASS.
 - eeca858fc CI는 추가 sitemap/레거시 마케팅 사전 검사에서 실패했다. 영냥이 홈은 개인화 대화형 서비스 noindex로 명시, 실제 상품 선택/전용 결제의 이름·깊이·구성·등록 가격을 마케팅 가드에서 검증하도록 수정했다. 사용하지 않는 레거시 popup 복사본은 제거. CI 재검증 필요.
+
+### 정식 진입 및 복구 절차
+
+- CODE DESTINY 홈 밴드의 staging hostname 제한을 제거하고 내부 `/assets/yeongnyangi/` 자산으로 교체. 같은 계정/프로필 사용 및 단건 정책 안내; 원래 위치와 디자인 유지.
+- D1 소비용 `/api/yeongnyangi-entitlement`는 410으로 폐쇄. 새 경로는 `/api/yeongnyangi/requests/:id/activate`의 Mongo 트랜잭션만 사용. staging SOULCAT_SERVICE 바인딩 제거, parity 가드/self-test 17개 PASS. 기존 탈퇴 정리의 선택 바인딩 함수는 미바인딩 상태에서 skipped이며 Mongo 상담 데이터는 기존 통합 탈퇴 코드가 삭제한다.
+- 반복 생성 실패의 운영 복구: `node scripts/recover-yeongnyangi-request.mjs --db code_destiny_staging --request <64hex> --attempts 2 --reason <incident>`는 dry-run. 확인 후 `--apply`로 1~5회 호출 여유만 추가한다. 유효 결제·실패 상태·동시 변경 검사와 감사 기록을 남기며 기존 결제/본문/시도 횟수를 보존한다. 이 도구 자체는 LLM/PG HTTP를 차단한다. 실제 staging fixture로 dry-run 무변경→복구→완료 검증 PASS, 28상품 재검증과 fixture 정리 PASS.
+- 배포 환경 읽기: production GEMINIF_API_KEY/Mongo/PortOne secret 존재, mock flow false, test amount 없음. staging Gemini 없음/Workers AI false/테스트 금액1000은 의도된 과금 차단. 비밀값은 읽거나 출력하지 않았다.
+- 전환 전 안정 쌍: production SHA78c4a554a34acd08b72b2eaffe667f54a559ce35, Pages d850fcfd-025e-4b7b-8275-cf60f46f2d7b, Worker382d5d35-171e-4493-b248-7a21a91a75ad. staging SHA319fba9491b4091266522329cdff461f5690bf34, Pages41cfe481-bd8f-433d-b2e3-32658c29f06a, Worker310dc0b8-07bc-4cfe-9bf6-6c4e03bb07ca. 아직 전환하지 않았음.
+
+- CI `35042458643`(aabba0c81) 전체 success: Static guards, Typecheck/lint, Pages/Worker build. 후속 retirement check:fast는 결제 88개 및 앞선 검사를 통과하고 폐쇄 endpoint의 잘못된 json 심볼 1건을 발견했다. 기존 jsonResponse로 수정 후 worker-no-undef, Worker dry-run, 영냥이 API/저장소/탈퇴 targeted 회귀 56개 PASS. 후속 커밋의 CI 전체 검증은 별도로 확인한다.

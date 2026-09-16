@@ -88,11 +88,6 @@ const STAGING_ONLY_KEYS = new Set([
   //    정적 셸 공유 버튼을 배선해 프로덕션에서 켤 때는, 이 줄을 빼기 전에 먼저 바인딩 한 자리를
   //    비워야 한다 — 선례 02560ce64.
   "vars.ENABLE_RESULT_SHARE",
-  // 영냥이 탈퇴 연동(2026-09-15 사용자 승인). SoulCat production 워커가 아직 없어 스테이징에만 둔다.
-  // 영냥이 5단계에서 프로덕션에 service = "soulcat-service" 로 넣을 때 이 두 줄을 빼고
-  // services.SOULCAT_SERVICE.service 를 MUST_DIFFER_KEYS 로 옮긴다(binding 은 같은 값이라 일반 비교).
-  "services.SOULCAT_SERVICE.binding",
-  "services.SOULCAT_SERVICE.service",
 ]);
 
 /**
@@ -414,12 +409,6 @@ const BASE_PRODUCTION = [
   'crons = ["0 22 * * *"]',
 ].join("\n");
 
-const STAGING_SERVICES_BLOCK = [
-  '[[services]]',
-  'binding = "SOULCAT_SERVICE"',
-  'service = "soulcat-service-staging"',
-];
-
 const BASE_STAGING = [
   'name = "code-destiny-web-staging"',
   'main = "index.js"',
@@ -436,7 +425,6 @@ const BASE_STAGING = [
   'binding = "FEEDBACK_IMAGES_BUCKET"',
   'bucket_name = "bugs-staging"',
   '',
-  ...STAGING_SERVICES_BLOCK,
   '',
   '[vars]',
   'NODE_ENV = "production"',
@@ -459,11 +447,6 @@ const BASE_STAGING = [
 function withoutStagingOnlyKey(fixture, key) {
   if (key.startsWith("vars.")) {
     return fixture.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n");
-  }
-  if (key.startsWith("services.")) {
-    const block = STAGING_SERVICES_BLOCK.join("\n");
-    if (!fixture.includes(block)) throw new Error("fixture services block missing");
-    return fixture.replace(block, "");
   }
   throw new Error(`self-test 가 모르는 스테이징 전용 키 종류: ${key}`);
 }

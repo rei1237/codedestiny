@@ -76,7 +76,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   if(!token) return row;
   const ordinal=row.chapters.length;
   try {
-    if(row.attempts>row.snapshot.manifest.length*3) throw new FortuneError('GENERATION_REVIEW_REQUIRED',409);
+    if(row.attempts>row.snapshot.manifest.length*3+(row.additionalAttempts || 0)) throw new FortuneError('GENERATION_REVIEW_REQUIRED',409);
     const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(new CodeDestinyProvider(env));
