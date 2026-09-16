@@ -11,6 +11,7 @@
 - `src/features/master-love-codex/_lib/runCodexBatches.ts`, `copy.ts`, `MasterLoveCodexPage.tsx`, `app/master-love-codex/result/MasterLoveCodexResultClient.tsx`: JSON 본문까지 요청 시간 예산을 적용한다. 최신 저장본 조회 후 이어쓰기, 복귀 이벤트 합류, 서버 대기 시간 준수와 명시적인 자동 재시도 중단을 처리한다. 원래 입력의 출력 언어도 서버 복구에 보존한다.
 - `js/destiny-profile.js`와 public 사본: 승인 후 권한 지급 대기에서도 다음 조회를 예약하고 페이지 캐시·온라인·화면 활성화 복귀를 같은 주문 실행에 합류시킨다.
 - 결제 런타임을 참조하는 React·독립 정적 페이지·public 사본의 변경은 캐시 키 갱신이다. `scripts/restamp-paid-runtime-pins.mjs`로 내용 기반 키를 재생성하며 검증기 기대 키도 함께 갱신했다. 해당 서비스의 생성 로직은 수정하지 않았다.
+- `config/payment-freeze.json`은 React 캐시 키 한 줄 변경의 동결 해시만 갱신했다. 신규 `worker/payments/`에는 프론트엔드 스크립트 캐시 참조가 없어 동일한 정책 변경을 이식할 내용이 없다.
 - 관련 `__tests__/worker/master-love-codex-*.test.js`, `__tests__/ui/master-love-codex-*.behavior.test.js`, `paid-report-partial.behavior.test.js`, `direct-payment-poll-safety-net.behavior.test.js`와 `scripts/verify-master-love-codex-efficiency.mjs`: 아래 모의 회귀와 입력 크기를 검증한다.
 
 ## 재현 및 검증 명령
@@ -19,12 +20,14 @@
 npm run test:jest -- --runInBand __tests__/worker/master-love-codex-paid-bootstrap.test.js __tests__/worker/master-love-codex-paid-delivery.test.js __tests__/worker/master-love-codex-recovery-task.test.js __tests__/worker/master-love-codex-quality.test.js __tests__/worker/master-love-codex-evidence.test.js __tests__/worker/master-love-codex-recovery.test.js __tests__/worker/master-love-codex-pass-refund.test.js
 node --test __tests__/ui/master-love-codex-resume-on-result.behavior.test.js __tests__/ui/master-love-codex-purchase-recovery.behavior.test.js __tests__/ui/paid-report-partial.behavior.test.js
 node --test __tests__/ui/direct-payment-resume.behavior.test.js __tests__/ui/direct-payment-poll-safety-net.behavior.test.js
+node --test __tests__/ui/direct-payment-sdk-return.behavior.test.js
 node scripts/verify-master-love-codex-efficiency.mjs
 npm run verify:master-love-codex-budget
 npm run verify:direct-confirm-pending-recovery
 npm run verify:payment-choice-parity -- --self-test
 npm run verify:worker-no-undef
 npm run verify:cron-mongo-op-coverage
+npm run verify:payment-freeze
 npm run check:fast -- --plan
 npm run check:fast
 ```
