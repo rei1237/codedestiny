@@ -38,7 +38,10 @@ for (const [id, engine] of Object.entries(domains)) {
   const prompt = engine.buildPrompt(input, context, 'mackerel');
   assert.equal(prompt.calculatedData.domain, id);
   const changed = await engine.calculate({...input, personA:{...birth,birthDate:'1985-01-02'}}, {asOf:'2026-09-15T00:00:00Z'});
-  assert.notDeepEqual(changed.facts, context.facts);
+  if(id==='tarot'){
+    assert.equal(input.personA,undefined);
+    assert.ok(context.facts.some(f=>f.label==='cards'&&Array.isArray(f.value)&&f.value.length>0));
+  } else assert.notDeepEqual(changed.facts, context.facts);
   if (id !== 'tarot') assert.throws(() => engine.validateInput({personA:{...birth,birthDate:'1997-02-30'}}));
   console.log(`PASS ${id}: calculation, domain evidence, prompt, input variation`);
   checks++;

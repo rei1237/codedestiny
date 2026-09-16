@@ -27,48 +27,12 @@
       "sha256": "fdb50c93f9f5d617e9c0002bf4a99ce5c1b67f7ee7a9aa92fa520ca0a9fdaac1"
     },
     {
-      "name": "calcPower",
-      "sha256": "02a22b17549ef9f8d699fd363d02676a5475155dfcb344e6a63b29c3af3356cd"
-    },
-    {
-      "name": "GAN",
-      "sha256": "92f8a24a633d0ed9bf4d67ced6a90852261b417dddf6afd49f74c8a9a8abe762"
-    },
-    {
-      "name": "parentOf",
-      "sha256": "fbf81d1a1abd802b0496b98c28f3dc0c0bbcd5d4ec8694a96e4b993c107e7c00"
-    },
-    {
-      "name": "SHENG",
-      "sha256": "4287f0b0ff03152a644f0df6bb01dfba5c05e258e26e0e9d8dfaa1478739da44"
-    },
-    {
-      "name": "JI",
-      "sha256": "803c3a7cf471998c0e901a4f54d2785625b3bcfeb4cf24e6b0b75cdf21d80ddf"
-    },
-    {
-      "name": "KE",
-      "sha256": "5f5132892c322bc75465757650e8745efa15597b744f3f58c14288c02eded1cf"
-    },
-    {
-      "name": "whoControls",
-      "sha256": "b4fa736c144c19dd65e6145d9c64d8f0c8bd04504529fc8327c37dfa6c03433e"
-    },
-    {
       "name": "calcNatalElement",
       "sha256": "1f055bfba6aa5bc81b8c787efbe66dfb453ff5fde7c45fb1ab880968cb9aad3c"
     },
     {
       "name": "analyzeJohu",
       "sha256": "65cb622f6fefe5e1fd54a7b03fc9d0e7563a5182d3014dea8aa831272642c15d"
-    },
-    {
-      "name": "detectJong",
-      "sha256": "2d5468b57bdbe5c7acba15a6c15ea0c750506c77da552011d8f519a2b5e2b690"
-    },
-    {
-      "name": "CD_JANGGAN",
-      "sha256": "0541f5503bcaef57e4c91536137f7d85daee481d226f3c9b03fcfd03b48b778c"
     },
     {
       "name": "applyRuntimeYongshinPolicy",
