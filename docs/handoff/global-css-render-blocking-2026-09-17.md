@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 1b(라우트 그룹별 Tailwind 분할) 파일럿 — 설계·검증 기준을 RED 로 보고한 뒤 착수
+next: 1b 는 saju 파일럿에서 회귀 실측으로 기각. /saju/ LCP 를 CSS·폰트·이미지·JS 몫으로 분해한 뒤 다음 수단을 고른다
 ---
 
 # 전역 렌더 차단: 루트 Suspense(완료) + 전역 Tailwind CSS(남음)
@@ -9,7 +9,7 @@ next: 1b(라우트 그룹별 Tailwind 분할) 파일럿 — 설계·검증 기�
 출발점: `docs/handoff/music-lounge-perf-2026-09-16.md` 남은 과제 1번.
 
 ## 다음 세션 첫 문장
-"docs/handoff/global-css-render-blocking-2026-09-17.md 의 1b(라우트 그룹별 Tailwind 분할)를 RED 로 위험·검증·롤백부터 보고한 뒤 saju 그룹 파일럿으로 착수한다. 1a(루트 Suspense 제거)는 끝났다."
+"docs/handoff/global-css-render-blocking-2026-09-17.md 를 읽고, 1b(라우트 그룹별 Tailwind 분할)는 기각됐으니 /saju/ 모바일 LCP(약 7.7초)를 CSS·폰트·이미지·JS 몫으로 실측 분해해 다음 수단을 추천부터 보고한다. 코드는 아직 고치지 않는다."
 
 ## 1a 루트 Suspense 제거 — 완료 (`28b88e330`, push 됨)
 
@@ -50,7 +50,7 @@ check:fast exit 0(jest 276 스위트/3873). 롤백: `git revert 28b88e330`.
 빌드 가드 `[no-dev-server]` 는 다른 워크트리의 dev 서버도 잡는다 — 그 `.next` 가 다른 체크아웃이면 `ALLOW_DEV_SERVER_DURING_BUILD=1`.
 빌드는 `rss.xml`·`insights/rss.xml`·`public/{,insights/}rss.xml` 4개를 고친다 — 커밋하지 말고 되돌린다.
 
-## 1b 전역 Tailwind CSS — 남음 (RED)
+## 1b 전역 Tailwind CSS — saju 파일럿 결과 기각 (코드 변경 없음, 되돌림)
 
 실측(music 워크트리 dist, `8f2b1a38…css` 563KB, br 70KB):
 - Tailwind 유틸리티가 약 450KB(이스케이프 선택자 규칙만 402KB/3814개). 나머지는 globals.css 본문·preflight.
@@ -70,3 +70,32 @@ check:fast exit 0(jest 276 스위트/3873). 롤백: `git revert 28b88e330`.
   메모리 css-move-regressions-need-a-computed-style-diff). 전역에서 빠진 클래스를 쓰는 그룹 밖 파일이 없는지(미매칭 10KB 확인).
   클라이언트 이동 시 그룹 시트 로드 전 FOUC 여부(다른 그룹 → saju 이동).
 - 파일럿: saju(109KB) 하나로 효과(전역 시트 br 크기·/music/ LCP)와 diff 를 먼저 잰다. diff 가 0 이 아니면 되돌리고 보고.
+
+### 파일럿 결과(2026-09-17, 1a `28b88e330` 이후 main 소스) — 기각
+
+구현: `app/saju/layout.js`(통과 레이아웃) → `app/saju/saju-utilities.css`(`@config` + `@tailwind utilities`),
+`tailwind.saju.config.js`(content=app/saju, **blocklist=전역 content 후보 전부**라 saju 전용 클래스만 생성),
+전역 config content 에 `!./app/saju/**`. 커밋하지 않고 되돌렸다.
+
+좋았던 것(실측):
+- 규칙 분할은 정확했다: 옛 유틸리티 5496 규칙 = 새 전역 4588 + saju 908, 잃음 0·추가 0·겹침 0(postcss 로 직접 생성해 대조).
+- 전역 Tailwind 시트 563KB/br 59.5KB → 447KB/br 49.4KB(**-10KB br**), saju 시트 117KB/br 13.2KB. /music/·/tarot/·/saju/ computed style 차이 0.
+- saju 시트는 전역 시트 4개 뒤에 링크된다(예상대로).
+
+🔴 기각 이유 — **유틸리티끼리의 순서가 뒤집힌다**(핸드오프가 걱정한 사용자 CSS 역전이 아니라 다른 축):
+Tailwind 는 한 시트 안에서 기본 → 반응형/상태 변형 순으로, 같은 CSS 변수를 쓰는 from/via → to 순으로 규칙을 정렬해 승자를 정한다.
+saju 전용 클래스만 뒤 시트로 빼면, 전역에 남은 짝(`sm:w-auto`·`to-*`)보다 뒤에 와서 이긴다.
+- 런타임(iPhone 13·1366px, A-vs-A 노이즈 차감): `/saju/destiny-meeting-place/` 데스크탑 48건 — `h-[220px] sm:h-[300px]` 에서 220 이 이겨 main 1104→1024px.
+  `/saju/love-simulation/` 10/20건 — `via-*` 가 `to-*` 의 `--tw-gradient-to` 를 덮어 그라디언트 끝 색 소실. `/saju/destiny-bias/stage/` 구분선 그라디언트 동일.
+- 정적(옛 시트 순서+명시도로 승자 비교, 같은 문자열 공출현 근사): 20쌍 — `w-[190px] sm:w-auto`, `leading-[1.02] sm:text-6xl`, `hover:scale` vs `active:scale`, 그라디언트 11쌍 등.
+- "뒤로 옮겨도 승자가 안 바뀌는" 클래스만 고르면(공출현 근사 없이 보수적으로) **0개**다 — 명시도 (0,1,0) 이 같은 전역 사용자 규칙·유틸리티가 뒤에 너무 많다.
+- blocklist 를 빼고 saju 가 쓰는 유틸리티 전부를 saju 시트에 두면 saju 파일 안 순서는 보존되지만, (1) 공유 컴포넌트 내부 클래스와의 순서, (2) 공용 유틸리티가 루트 사용자 CSS 뒤로 가는 역전, (3) 클라이언트 이동 후 남는 시트가 다른 라우트에 번지는 문제가 생긴다 — 미측정, 권장하지 않음.
+- 순서를 제대로 지키려면 Tailwind 산출물 전체를 native `@layer` 로 재구성해야 하는데, 비레이어 사용자 CSS·CSS 모듈과의 승자가 광범위하게 바뀌는 대형 RED 다.
+
+효과 상한: saju 전용 규칙 전체가 br 약 15KB(전역 Tailwind br 59.5KB 의 약 1/4). 그룹 전용 합계 410KB(원본)를 전부 빼도 br 수십 KB 수준이다.
+→ /saju/ LCP 7.7초(시뮬)에 비해 작을 가능성이 크다. 다음은 LCP 분해 실측이 먼저다.
+
+재현 도구(스크래치, 커밋 안 함): computed style 전수 대조(A 두 번+B, `MSYS_NO_PATHCONV=1` 필요 — Git Bash 가 `/saju/` 인자를 경로로 바꾼다),
+라우트별 CSS 규칙 집합 대조(Next 최적화기가 선언이 같은 규칙을 다르게 묶어 `transform`/`filter` 묶음 49건은 의미 없는 차이), 승자 역전 정적 검사.
+빌드는 두 번 모두 1637/1637 생성 후 선행 결함 `verify:adsense-readiness`(날짜 의존)에서 멈췄다 — dist 는 CSS minify 전 단계, 비교 조건은 동일.
+로컬 `out/`·`.next/` 는 파일럿 빌드 산출물이다(dist 는 HEAD 빌드로 복원). 가드가 out/ 을 읽는 작업 전에는 다시 빌드할 것.
