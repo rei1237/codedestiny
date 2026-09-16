@@ -126,4 +126,5 @@ test('a refund after activation stops further generation',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
   payments[0].status='refunded';
   await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  expect((await repo.readRequest({},owner,'id')).state).toBe('REFUNDED');
 });

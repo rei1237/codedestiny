@@ -991,9 +991,11 @@ const ROUTES = {
       }));
       ctx.productId = product.productId;
       const order = await withDb(env, ctx, (db) => createOrder(db, {
+        env,
+        requestId: body.requestId,
         userId,
         product,
-        idempotencyKey: body.idempotencyKey,
+        idempotencyKey: String(product.featureKey || '').startsWith('yeongnyangi-') ? body.requestId : body.idempotencyKey,
         profileId: body.profileId,
         contentKey: body.contentKey,
         scope: body.scope,
@@ -1072,6 +1074,7 @@ const ROUTES = {
            같은 기능·미결제·옛 가격은 종전대로 재가격 승계이고, 같은 의도의 재전송은 여전히 같은
            주문을 돌려준다(멱등 계약 불변). */
         const created = await createPayableOrder(db, {
+          env,
           userId,
           product,
           idempotencyKey,

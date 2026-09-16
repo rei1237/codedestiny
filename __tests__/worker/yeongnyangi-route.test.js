@@ -1,0 +1,80 @@
+import {jest} from '@jest/globals';
+import {createHttpError,json} from '../../worker/lib/http.js';
+
+const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
+const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
+const find=jest.fn(),select=jest.fn(),sort=jest.fn(),limit=jest.fn(),lean=jest.fn();
+const query={select,sort,limit,lean};
+jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:auth}));
+jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
+jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:security}));
+jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({products:[{id:'saju_mackerel',priceKRW:1000}]}));
+jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
+  prepareFortune:prepare,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
+  providerReady:env=>Boolean(env.GEMINIF_API_KEY),
+}));
+jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
+  readRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},
+}));
+let handleYeongnyangiRoutes;
+beforeAll(async()=>{({handleYeongnyangiRoutes}=await import('../../worker/routes/yeongnyangi.js'));});
+const env={GEMINIF_API_KEY:'fixture-not-called'};
+function request(path,method='GET',body){
+  return new Request('https://code-destiny.com/api/yeongnyangi/'+path,{
+    method,headers:method==='GET'?{}:{'Content-Type':'application/json'},
+    ...(body!==undefined?{body:JSON.stringify(body)}:{}),
+  });
+}
+beforeEach(()=>{
+  jest.clearAllMocks();auth.mockResolvedValue({userId});security.mockResolvedValue({ok:true});
+  for(const fn of [prepare,activate,generate,read])fn.mockResolvedValue({id,state:'PAID'});
+  find.mockReturnValue(query);select.mockReturnValue(query);sort.mockReturnValue(query);limit.mockReturnValue(query);lean.mockResolvedValue([]);
+});
+
+test('public catalogue reports provider availability without account or database access',async()=>{
+  const response=await handleYeongnyangiRoutes(request('products'),{});
+  expect(await response.json()).toMatchObject({products:[{available:false}]});
+  expect(auth).not.toHaveBeenCalled();expect(find).not.toHaveBeenCalled();
+  expect(response.headers.get('Cache-Control')).toContain('no-store');
+});
+test.each(['requests',`requests/${id}`,`requests/${id}/activate`,`requests/${id}/generate`])('expired session cannot access %s',async path=>{
+  auth.mockRejectedValue(createHttpError(401,'로그인이 필요해요.',{code:'LOGIN_REQUIRED'}));
+  const response=await handleYeongnyangiRoutes(request(path,path.endsWith('activate')||path.endsWith('generate')?'POST':'GET'),env);
+  expect(response.status).toBe(401);expect(prepare).not.toHaveBeenCalled();expect(activate).not.toHaveBeenCalled();expect(generate).not.toHaveBeenCalled();
+});
+test.each(['requests',`requests/${id}/activate`,`requests/${id}/generate`])('shared security rejection prevents mutation at %s',async path=>{
+  security.mockResolvedValue({ok:false,response:json({code:'INVALID_ORIGIN'},{status:403})});
+  const response=await handleYeongnyangiRoutes(request(path,'POST',{}),env);
+  expect(response.status).toBe(403);
+  expect(security).toHaveBeenCalledWith(expect.objectContaining({userId,requireJson:true,allowedMethods:['POST'],rateLimitKey:`${userId}:yeongnyangi:write`}));
+  expect(prepare).not.toHaveBeenCalled();expect(activate).not.toHaveBeenCalled();expect(generate).not.toHaveBeenCalled();
+});
+test.each([null,[],42,'invalid'])('invalid JSON object %p fails before preparation',async body=>{
+  expect((await handleYeongnyangiRoutes(request('requests','POST',body),env)).status).toBe(400);
+  expect(prepare).not.toHaveBeenCalled();
+});
+test('payload owner is ignored; authenticated owner is passed to the service',async()=>{
+  const body={userId:'someone-else',profileId:'profile',productId:'saju_mackerel'};
+  const response=await handleYeongnyangiRoutes(request('requests','POST',body),env);
+  expect(response.status).toBe(201);expect(prepare).toHaveBeenCalledWith(env,userId,body);
+});
+test.each(['activate','generate'])('repeat %s requests target the same owned consultation',async action=>{
+  for(let i=0;i<2;i++)expect((await handleYeongnyangiRoutes(request(`requests/${id}/${action}`,'POST',{}),env)).status).toBe(200);
+  expect(action==='activate'?activate:generate).toHaveBeenNthCalledWith(2,env,userId,id);
+});
+test('list uses owner filter, bounded projection and stable pagination',async()=>{
+  const stamp='2026-09-16T00:00:00.000Z';
+  lean.mockResolvedValue(Array.from({length:31},()=>({_id:id,snapshot:{product:{id:'saju_mackerel'}},createdAt:stamp,state:'PAID'})));
+  const response=await handleYeongnyangiRoutes(request(`requests?cursor=${stamp}_${id}`),env);
+  const body=await response.json();expect(body.fortunes).toHaveLength(30);expect(body.nextCursor).toBe(`${stamp}_${id}`);
+  expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,$or:expect.any(Array)}));
+  expect(limit).toHaveBeenCalledWith(31);expect(select.mock.calls[0][0]).not.toMatch(/chapters|analysis/);
+});
+test('invalid cursor does not run a database query',async()=>{
+  expect((await handleYeongnyangiRoutes(request('requests?cursor=bad'),env)).status).toBe(400);expect(find).not.toHaveBeenCalled();
+});
+test('owned lookup propagates a missing or foreign result as 404',async()=>{
+  read.mockRejectedValue(Object.assign(new Error('not found'),{status:404,code:'REQUEST_NOT_FOUND'}));
+  expect((await handleYeongnyangiRoutes(request(`requests/${id}`),env)).status).toBe(404);
+  expect(read).toHaveBeenCalledWith(env,userId,id);
+});

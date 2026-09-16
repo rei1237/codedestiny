@@ -18,32 +18,34 @@ async function digest(value: unknown) {
   const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)));
   return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 }
-function birthFromProfile(profile: any, timeUnknown: boolean) {
+function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = {}) {
   const b=profile.birth || {}, place=profile.location || {};
-  timeUnknown = timeUnknown || b.timeUnknown === true;
+  timeUnknown = timeUnknown || (b.timeUnknown === true && !supplement.birthTime);
   const pad=(n: number)=>String(n).padStart(2,'0');
   return {birthDate:`${b.year}-${pad(b.month)}-${pad(b.day)}`,
-    ...(!timeUnknown?{birthTime:`${pad(b.hour)}:${pad(b.minute)}`} : {}),
+    ...(!timeUnknown?{birthTime:b.timeUnknown===true && supplement.birthTime ? supplement.birthTime : `${pad(b.hour)}:${pad(b.minute)}`} : {}),
     calendarType:b.calType==='solar'?'solar':'lunar',leapMonth:b.calType==='lunar_leap',
     gender:profile.gender==='M'?'male':profile.gender==='F'?'female':undefined,
-    ...(place.label ? {birthPlace:{name:place.label,latitude:place.lat,longitude:place.lng,timezone:place.tz}} : {}),
+    ...(place.label ? {birthPlace:{name:place.label,latitude:place.lat,longitude:place.lng,timezone:place.tz}} : supplement.birthPlace ? {birthPlace:supplement.birthPlace} : {}),
   };
 }
 
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any) {
   const product=getProduct(body.productId);
   if (!providerReady(env)) throw new FortuneError('LLM_NOT_CONFIGURED',503);
+  if (product.domain==='tarot' && product.readingKind==='single') body={...body,profileId:'tarot-question'};
   if (typeof body.profileId !== 'string' || !body.profileId || body.profileId.length>80) throw new FortuneError('PROFILE_REQUIRED');
   await connectDb(env);
-  const profile=await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.profileId}).lean());
+  const profile=body.profileId==='tarot-question' && product.domain==='tarot' ? {updatedAt:null} : await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.profileId}).lean());
   if (!profile) throw new FortuneError('PROFILE_NOT_FOUND',404);
+  if(body.partnerProfileId && (product.domain!=='sukuyo'||product.readingKind!=='single')) throw new FortuneError('PARTNER_NOT_SUPPORTED');
   let partner;
   if (body.partnerProfileId) {
     if(typeof body.partnerProfileId!=='string'||body.partnerProfileId.length>80) throw new FortuneError('INVALID_PROFILE');
     partner=await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.partnerProfileId}).lean());
     if(!partner) throw new FortuneError('PROFILE_NOT_FOUND',404);
   }
-  const raw={personA:birthFromProfile(profile,body.timeUnknown===true),
+  const raw={personA:birthFromProfile(profile,body.timeUnknown===true,body.birthDetails || {}),
     ...(partner?{personB:birthFromProfile(partner,body.partnerTimeUnknown===true)}:{}),
     question:body.question,topicId:body.topicId,readingMode:partner?'compatibility':'personal'};
   const normalized=Object.fromEntries(product.systems.map(id=>[id,domains[id].validateInput(raw)]));
@@ -51,7 +53,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     if(input.personA && ['flounder','tuna'].includes(product.fishId) &&
       (!input.personA.birthTime || !input.personA.birthPlace || !input.personA.gender)) throw new FortuneError('PREMIUM_BIRTH_REQUIRED');
   }
-  const date=new Date().toISOString().slice(0,10);
+  const date=new Date(Date.now()+9*60*60*1000).toISOString().slice(0,10);
   const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date});
   const id=await digest({userId,fingerprint});
   // Deterministic intent also survives losing all browser storage and returning with the same inputs.

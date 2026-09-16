@@ -533,6 +533,7 @@ const handleProfileRoutes = createLazyRouteHandler("./routes/profile.js", () => 
 const handleProfileListRoute = createLazyRouteHandler("./routes/profile-list.js", () => import("./routes/profile-list.js"), "handleProfileListRoute", "api/profile");
 const handleAccessStateRoutes = createLazyRouteHandler("./routes/access-state.js", () => import("./routes/access-state.js"), "handleAccessStateRoutes", "api/me/access-state");
 // 영냥이(SoulCat) 결제 증빙 조회·소비 — Service Binding 전용, direct_only 단건 결제 증빙만
+const handleYeongnyangiRoutes = createLazyRouteHandler("./routes/yeongnyangi.js", () => import("./routes/yeongnyangi.js"), "handleYeongnyangiRoutes", "api/yeongnyangi");
 const handleYeongnyangiEntitlementRoutes = createLazyRouteHandler("./routes/yeongnyangi-entitlement.js", () => import("./routes/yeongnyangi-entitlement.js"), "handleYeongnyangiEntitlementRoutes", "api/yeongnyangi-entitlement");
 const handleSubscriptionRoutes = createLazyRouteHandler("./routes/subscriptions.js", () => import("./routes/subscriptions.js"), "handleSubscriptionRoutes");
 const handleAstrologyAiRoutes = createLazyRouteHandler("./routes/astrology-ai.js", () => import("./routes/astrology-ai.js"), "handleAstrologyAiRoutes");
@@ -1844,6 +1845,10 @@ export default {
 
       if (url.pathname === "/api/me/access-state") {
         return withCorsHeaders(request, env, await handleAccessStateRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/yeongnyangi" || url.pathname.startsWith("/api/yeongnyangi/")) {
+        return withCorsHeaders(request, env, await handleYeongnyangiRoutes(request, env));
       }
 
       if (url.pathname === "/api/yeongnyangi-entitlement" || url.pathname === "/api/yeongnyangi-entitlement/") {

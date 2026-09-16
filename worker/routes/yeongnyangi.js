@@ -6,6 +6,21 @@ import { products } from '../yeongnyangi/payments/catalog.ts';
 import { activateFortune, generateNextChapter, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
 import { readRequest, ownerId, YeongnyangiRequest } from '../yeongnyangi/repository.js';
 
+const messages={
+  "BIRTH_TIME_REQUIRED": "이 운세에는 출생시간이 필요해요. 프로필의 시간을 확인해 주세요.",
+  "BIRTH_PLACE_REQUIRED": "이 운세에는 출생지역이 필요해요. 도시와 국가를 입력해 주세요.",
+  "PREMIUM_BIRTH_REQUIRED": "선택한 깊이의 상담에는 출생시간, 성별, 출생지역이 모두 필요해요.",
+  "INVALID_BIRTH_DATE": "생년월일을 다시 확인해 주세요.",
+  "INVALID_LUNAR_DATE": "음력 날짜와 윤달 여부를 다시 확인해 주세요.",
+  "INVALID_BIRTH_TIME": "출생시간을 시와 분으로 입력해 주세요.",
+  "PROFILE_REQUIRED": "CODE DESTINY 프로필을 선택해 주세요.",
+  "PROFILE_NOT_FOUND": "이 계정에서 프로필을 찾지 못했어요. 다시 선택해 주세요.",
+  "LLM_NOT_CONFIGURED": "지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.",
+  "GENERATION_REVIEW_REQUIRED": "상담을 완료하지 못해 확인이 필요해요. 다시 결제하지 말고 상담 기록의 주문번호와 함께 문의해 주세요.",
+  "FORTUNE_PROVIDER_FAILED": "상담을 잠시 멈췄어요. 다시 결제하지 말고 같은 상담에서 이어가 주세요.",
+  "PARTNER_NOT_SUPPORTED": "두 사람의 궁합은 숙요 상담에서 선택해 주세요."
+};
+
 export async function handleYeongnyangiRoutes(request, env) {
   try {
     const url=new URL(request.url), method=request.method.toUpperCase();
@@ -17,12 +32,28 @@ export async function handleYeongnyangiRoutes(request, env) {
         allowedMethods:['POST'],requireJson:true,rateLimit:{limit:30,windowSeconds:60},rateLimitKey:`${auth.userId}:yeongnyangi:write`});
       if(!security.ok) return security.response;
     }
-    if(path==='requests' && method==='POST') return json({ok:true,fortune:presentFortune(await prepareFortune(env,auth.userId,await readJson(request)))},{status:201});
+    if(path==='requests' && method==='POST') {
+      const body=await readJson(request);
+      if(!body || typeof body!=='object' || Array.isArray(body)) {
+        throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
+      }
+      return json({ok:true,fortune:presentFortune(await prepareFortune(env,auth.userId,body))},{status:201});
+    }
     if(path==='requests' && method==='GET') {
       await connectDb(env);
-      const rows=await withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId)})
-        .select('_id productId state paymentId createdAt completedAt snapshot.product completedChapters errorCode').sort({createdAt:-1}).limit(30).lean());
-      return json({ok:true,fortunes:rows.map(row=>({id:row._id,product:row.snapshot.product,state:row.state,paid:Boolean(row.paymentId),completedChapters:row.completedChapters,createdAt:row.createdAt}))});
+      const cursor=url.searchParams.get('cursor');
+      let before={};
+      if(cursor){
+        const match=cursor.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)_([a-f0-9]{64})$/);
+        if(!match||!Number.isFinite(Date.parse(match[1])))throw createHttpError(400,'잘못된 페이지 위치입니다.',{code:'INVALID_CURSOR'});
+        const stamp=new Date(match[1]);
+        before={$or:[{createdAt:{$lt:stamp}},{createdAt:stamp,_id:{$lt:match[2]}}]};
+      }
+      const rows=await withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),...before})
+        .select('_id productId state paymentId createdAt completedAt snapshot.product completedChapters errorCode').sort({createdAt:-1,_id:-1}).limit(31).lean());
+      const page=rows.slice(0,30),last=page.at(-1);
+      return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
+        fortunes:page.map(row=>({id:row._id,product:row.snapshot.product,state:row.state,paid:Boolean(row.paymentId),completedChapters:row.completedChapters,createdAt:row.createdAt}))});
     }
     const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate))?$/);
     if(!match) return notFound();
@@ -33,7 +64,7 @@ export async function handleYeongnyangiRoutes(request, env) {
     return notFound();
   } catch(error) {
     if(error?.code && error?.status && !error.payload) {
-      return handleRouteError(createHttpError(error.status,'영냥이가 상담을 이어가지 못했어요. 잠시 후 다시 확인해 주세요.',{code:error.code}),{request,env});
+      return handleRouteError(createHttpError(error.status,messages[error.code] || '영냥이가 상담을 이어가지 못했어요. 잠시 후 다시 확인해 주세요.',{code:error.code}),{request,env});
     }
     return handleRouteError(error,{request,env});
   }

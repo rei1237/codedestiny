@@ -275,6 +275,14 @@ describe("탈퇴 거부 조건", () => {
 });
 
 describe("탈퇴 처리 — 비식별화 범위", () => {
+  test("영냥이 상담의 출생정보와 질문도 계정 소유자로 범위를 제한해 삭제한다", async () => {
+    const {status}=await callWithdraw();
+    expect(status).toBe(200);
+    const call=collectionCalls.get('yeongnyangi_requests').deleteMany.mock.calls[0];
+    expect(String(call[0].userId)).toBe(USER_ID);
+    expect(call[1].maxTimeMS).toBe(8000);
+  });
+
   test("정상 탈퇴는 200 이고 인증 쿠키를 만료시킨다", async () => {
     const { status, payload, headers } = await callWithdraw();
     expect(status).toBe(200);

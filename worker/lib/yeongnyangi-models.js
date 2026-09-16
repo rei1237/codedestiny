@@ -17,9 +17,10 @@ const schema = new mongoose.Schema({
   completedChapters: { type: Number, default: 0 },
   leaseToken: { type: String, default: '' },
   leaseUntil: { type: Date, default: null },
+  paymentGeneration: { type: Number, default: 0 },
   attempts: { type: Number, default: 0 },
   errorCode: { type: String, default: '' },
   completedAt: { type: Date, default: null },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });
-schema.index({ userId: 1, createdAt: -1 });
+schema.index({ userId: 1, createdAt: -1, _id: -1 });
 export const YeongnyangiRequest = mongoose.models.YeongnyangiRequest || mongoose.model('YeongnyangiRequest', schema);

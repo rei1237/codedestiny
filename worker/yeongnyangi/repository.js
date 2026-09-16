@@ -24,8 +24,15 @@ export async function createRequest(env, userId, id, values) {
   await connectDb(env);
   const filter = {_id:id,userId:ownerId(userId)};
   // Deterministic _id uses Mongo's built-in unique index, including before optional listing indexes exist.
-  const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate(filter,
-    {$setOnInsert:{...values,...filter,state:'CREATED',chapters:[]}}, {upsert:true,new:true,setDefaultsOnInsert:true}).lean());
+  let row;
+  try {
+    row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate(filter,
+      {$setOnInsert:{...values,...filter,state:'CREATED',chapters:[]}}, {upsert:true,new:true,setDefaultsOnInsert:true}).lean());
+  } catch (error) {
+    // A concurrent upsert won the built-in unique _id index. Return that same intent.
+    if(Number(error?.code)!==11000) throw error;
+    row=await readRequest(env,userId,id);
+  }
   if (row.fingerprint !== values.fingerprint) throw failure(409,'IDEMPOTENCY_CONFLICT');
   return row;
 }
@@ -58,8 +65,11 @@ export async function attachPayment(env, userId, requestId, expectedCharge) {
 export async function claimChapter(env, userId, requestId) {
   const current = await readRequest(env,userId,requestId);
   if (!current.paymentId) throw failure(402,'PAYMENT_REQUIRED');
-  const proof = await withMongoRetry(env, () => Payment.findOne({_id:current.paymentId,userId:ownerId(userId),status:{$in:paidStatuses},'metadata.consumedBy':requestId}).select('_id').lean());
-  if (!proof) throw failure(409,'PAYMENT_NOT_ACTIVE');
+  const proof = await withMongoRetry(env, () => Payment.findOne({_id:current.paymentId,userId:ownerId(userId),'metadata.consumedBy':requestId}).select('_id status').lean());
+  if (!proof || !paidStatuses.includes(proof.status)) {
+    if(proof && ['refunded','cancelled'].includes(proof.status)) await withMongoRetry(env,()=>YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),paymentId:current.paymentId},{$set:{state:'REFUNDED'}}));
+    throw failure(409,'PAYMENT_NOT_ACTIVE');
+  }
   if (current.state === 'COMPLETED') return {row:current,token:null};
   const token=crypto.randomUUID(), now=new Date();
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({

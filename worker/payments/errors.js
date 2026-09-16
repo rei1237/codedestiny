@@ -35,6 +35,8 @@ import { isDbUnavailableError } from "../lib/http.js";
 export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 400 — 요청 자체가 틀렸다. 재시도해도 같다.
   INVALID_REQUEST: { status: 400 },
+  FORTUNE_ALREADY_PAID: { status: 409 },
+  FORTUNE_UNAVAILABLE: { status: 409 },
   GIFT_UNAVAILABLE: { status: 409 },
   GIFT_NOT_FOUND: { status: 404 },
   GIFT_CONFLICT: { status: 409 },
