@@ -35,7 +35,6 @@ const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 // 마커와 _routes.json 의 드리프트를 fail-closed 로 막는다. 워커에서 리다이렉트를 하나 더
 // 다루려면 마커를 한 줄 추가해야 하고, 안 하면 가드가 실패한다.
 // @routes-include: /yeongnyangi/free-fortune*
-// @routes-include: /yeongnyangi/1000-won-fortune*
 // @routes-include: /fortune/*
 // @routes-include: /insights/famous-saju/*
 // @routes-include: /de-de/high-value*
@@ -466,9 +465,7 @@ export default {
     if (/^\/yeongnyangi\/free-fortune(?:\/|$)/.test(url.pathname)) {
       return Response.redirect(new URL('/today/', url), 302);
     }
-    if (/^\/yeongnyangi\/1000-won-fortune(?:\/|$)/.test(url.pathname)) {
-      return Response.redirect(new URL('/yeongnyangi/fortune/?domain=saju&fish=mackerel', url), 302);
-    }
+    // /yeongnyangi/1000-won-fortune/ is now the static 천원사주 hub page, so it is not redirected.
 
     const legacyLocaleRedirect = legacyLocaleTarget(url.pathname);
     if (legacyLocaleRedirect) {

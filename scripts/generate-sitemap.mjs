@@ -175,6 +175,8 @@ const coreRoutes = [
   // 브랜드 별칭("꿀꿀 운세") 의 대표 URL 은 홈 "/" 다. 이 페이지는 그 관계를
   // 설명하는 보조 안내라 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
+  // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 영냥이 고등어(1,000원) 상담만 맡는다.
+  { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },

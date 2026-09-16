@@ -253,6 +253,11 @@ export default function KkulKkulUnsePage() {
           <p className={styles.sectionLead}>
             꿀꿀 사주나 꿀꿀만세력으로 찾은 경우에도 질문에 맞는 해석 페이지를 선택할 수 있습니다. {BRAND_ALIAS_SENTENCE}
           </p>
+          <p className={styles.sectionLead}>
+            같은 계정 안에는 고양이 캐릭터가 상담해 주는 <Link href="/yeongnyangi/">사주보는 고양이 영냥이</Link>도 있습니다.
+            사주, 자미두수, 숙요점, 베다점, 점성술, 타로를 가장 가벼운 고등어 상담으로 시작하는 방법은{" "}
+            <Link href="/yeongnyangi/1000-won-fortune/">천원사주 안내</Link>에서 볼 수 있습니다.
+          </p>
         </div>
       </section>
 

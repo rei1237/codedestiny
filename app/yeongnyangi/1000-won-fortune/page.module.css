@@ -1,0 +1,217 @@
+/* 색은 영냥이 레이아웃(<main class="page">)이 내리는 --yn-* 토큰만 쓴다. */
+.hub {
+  max-width: 1080px;
+  margin: 28px auto 64px;
+  padding: 0 24px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.hub h1,
+.hub h2 {
+  font-family: "Yeongnyangi Myeongjo", serif;
+  letter-spacing: -0.03em;
+  line-height: 1.35;
+}
+.hub h1 {
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  margin: 0 0 18px;
+}
+.hub h2 {
+  color: var(--yn-gold);
+  font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+  margin: 0 0 14px;
+}
+.hub h3 {
+  font-size: 1.14rem;
+  margin: 0 0 10px;
+}
+.hub p {
+  margin: 0 0 12px;
+}
+.hub > section {
+  padding: 40px 0;
+  border-top: 1px solid rgba(233, 199, 141, 0.18);
+}
+.hub > section:first-of-type {
+  border-top: 0;
+  padding-top: 20px;
+}
+.hub section[id],
+.hub h2[id] {
+  scroll-margin-top: 24px;
+}
+
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: var(--yn-muted);
+}
+.crumbs a {
+  text-decoration: none;
+}
+.crumbs a:hover {
+  text-decoration: underline;
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: 32px;
+  align-items: center;
+}
+.intro img {
+  width: 100%;
+  height: auto;
+  border-radius: 24px;
+}
+.kicker {
+  color: var(--yn-gold);
+  font-weight: 700;
+  font-size: 0.94rem;
+}
+
+.actions,
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 20px;
+}
+.actions a:not(.primary),
+.links a:not(.primary),
+.policy a {
+  text-decoration: underline;
+  color: var(--yn-gold);
+}
+.primary {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  border: 1px solid rgba(233, 199, 141, 0.7);
+  border-radius: 12px;
+  background: var(--yn-violet);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.hub a.primary {
+  color: #fff;
+}
+.primary:hover {
+  background: #8a53bf;
+  border-color: var(--yn-gold);
+}
+
+.systems {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.system {
+  padding: 22px;
+  border: 1px solid var(--yn-line);
+  border-radius: 18px;
+  background: var(--yn-surface);
+}
+.system h3 small {
+  display: block;
+  margin-top: 4px;
+  color: var(--yn-muted);
+  font-size: 0.86rem;
+  font-weight: 500;
+}
+.system strong {
+  color: var(--yn-gold);
+  margin-right: 6px;
+}
+.chapters {
+  margin: 0 0 12px;
+  padding-left: 1.3em;
+  color: var(--yn-muted);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  margin-top: 18px;
+}
+.tableWrap table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+.tableWrap caption {
+  text-align: left;
+  color: var(--yn-muted);
+  font-size: 0.86rem;
+  padding-bottom: 8px;
+}
+.tableWrap th,
+.tableWrap td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(114, 86, 127, 0.6);
+  text-align: left;
+  vertical-align: top;
+}
+.tableWrap thead th {
+  color: var(--yn-gold);
+  white-space: nowrap;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 1.3em;
+}
+.steps li {
+  margin-bottom: 10px;
+}
+.steps strong {
+  display: block;
+  color: var(--yn-gold);
+}
+
+.faq {
+  display: grid;
+  gap: 12px;
+}
+.faq section {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: var(--yn-surface);
+}
+.faq p {
+  margin: 0;
+  color: var(--yn-muted);
+}
+.policy {
+  margin-top: 20px;
+  color: var(--yn-muted);
+}
+
+.closing {
+  text-align: center;
+}
+.closing .actions {
+  justify-content: center;
+}
+
+@media (max-width: 760px) {
+  .hub {
+    padding: 0 16px;
+  }
+  .intro {
+    grid-template-columns: 1fr;
+  }
+  .intro img {
+    max-width: 220px;
+    order: -1;
+  }
+  .systems {
+    grid-template-columns: 1fr;
+  }
+}
