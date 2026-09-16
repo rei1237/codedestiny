@@ -85,18 +85,18 @@
     "ms": "Enter both birth dates and confirm each person's natal mansion. The solar/lunar distinction and the midnight boundary have to be lined up first."
   },
   "shellRuntime.f2757": {
-    "ko": "그 거리가 가리키는 결(영친·업태·안괴·명성·위성·우쇠)을 읽고, 실제로 반복해서 부딪히는 장면과 맞춰 봅니다.",
-    "en": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "ja": "その距離が指し示す質（栄親・業胎・安壊・命声・危成・友衰）を読み、実際に繰り返しぶつかる場面と照らし合わせます。",
-    "zh-CN": "读出那段距离所指的纹理（荣亲、业胎、安坏、命声、危成、友衰），再与你们真正一再相撞的场景对照。",
-    "zh-TW": "讀出那段距離所指的紋理（榮親、業胎、安壞、命聲、危成、友衰），再與你們真正一再相撞的場景對照。",
-    "vi": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "hi": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "es": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "fr": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "de": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "nl": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over.",
-    "ms": "Read the grain that distance points to — yeongchin, eoptae, angoe, myeongseong, wiseong, usoe — and match it against the scenes you actually collide in over and over."
+    "ko": "그 거리가 가리키는 결(명·업태·영친·우쇠·안괴·성위)을 읽고, 실제로 반복해서 부딪히는 장면과 맞춰 봅니다.",
+    "en": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "ja": "その距離が指し示す質（命・業胎・栄親・友衰・安壊・成危）を読み、実際に繰り返しぶつかる場面と照らし合わせます。",
+    "zh-CN": "读出那段距离所指的纹理（命、业胎、荣亲、友衰、安坏、成危），再与你们真正一再相撞的场景对照。",
+    "zh-TW": "讀出那段距離所指的紋理（命、業胎、榮親、友衰、安壞、成危），再與你們真正一再相撞的場景對照。",
+    "vi": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "hi": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "es": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "fr": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "de": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "nl": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over.",
+    "ms": "Read the grain that distance points to — myeong, eoptae, yeongchin, usoe, angoe, seongwi — and match it against the scenes you actually collide in over and over."
   },
   "shellRuntime.f2758": {
     "ko": "가족·동료처럼 오래 마주치는 관계에도 같은 방식으로 적용해, 반복 패턴이 어디서 더 뚜렷한지 봅니다.",
