@@ -17924,7 +17924,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-moon-title{font-size:1.34rem;font-weight:900;color:#fff;margin-bottom:4px;line-height:1.24;text-shadow:0 0 18px rgba(255,255,255,.12)}',
             '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.82);margin-bottom:10px}',
             '.sy-compat-badges{display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem}',
-            '.sy-compat-badges span{background:rgba(2,6,23,.28);border:1px solid rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;color:#e0e7ff;line-height:1.45}',
+            '.sy-compat-badges span{background:rgba(2,6,23,.62);border:1px solid rgba(255,255,255,.28);padding:4px 10px;border-radius:999px;color:#eef2ff;line-height:1.45}',
             '.sy-compat-fate-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:150px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
             '.sy-compat-fate-svg{width:100%;height:auto;max-width:380px;display:block;margin:0 auto}',
             '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
