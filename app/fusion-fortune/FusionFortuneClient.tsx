@@ -2488,8 +2488,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || copy.paymentFailedMessage);
         return;
       }
-      // 🔴 결제 직후 id 만 먼저 남긴다. 입력을 만들기 전에 탭이 닫혀도 결제는 살아 있어야 한다.
-      rememberPaidRequest(requestId);
+      // 결제 전에 준비한 입력도 즉시 보관한다. 첫 stream 이전 종료에도 같은 질문으로 재개한다.
+      rememberPaidRequest(requestId, formRequestBody);
     }
 
     {

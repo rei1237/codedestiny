@@ -4,6 +4,23 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
+test('document closure immediately after the paid gate retains the prepared input as well as its request ID', async () => {
+  const ast = ts.createSourceFile('FusionFortuneClient.tsx', fs.readFileSync('app/fusion-fortune/FusionFortuneClient.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let submit, remember;
+  function findSubmit(node) { if (ts.isVariableDeclaration(node) && node.name.getText(ast) === 'submit') submit = node.initializer; ts.forEachChild(node, findSubmit); }
+  findSubmit(ast); assert.ok(submit);
+  function findRemember(node) { if (ts.isCallExpression(node) && node.expression.getText(ast) === 'rememberPaidRequest' && node.arguments[0]?.getText(ast) === 'requestId') remember = node.getText(ast); ts.forEachChild(node, findRemember); }
+  findRemember(submit); assert.ok(remember);
+  const values = new Map(), local = { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
+  const { writeFusionPaidRequest, readFusionPaidRequest } = await import('../../lib/fusion-paid-request-store.js');
+  const formRequestBody = { birthDate: '1995-04-18', birthTime: '08:30', locale: 'ko', concern: 'original paid question', birthPlace: { city: '서울' } };
+  vm.runInNewContext(remember, { requestId: 'original-paid-request', formRequestBody,
+    rememberPaidRequest: (requestId, body) => writeFusionPaidRequest({ requestId, body }, { local, ownerId: 'original-owner' }),
+  }); // Execution ends here: no stream request or later write survives the closed document.
+  const restored = readFusionPaidRequest({ local, ownerId: 'original-owner' });
+  assert.equal(restored.requestId, 'original-paid-request'); assert.deepEqual(restored.body, formRequestBody);
+});
+
 test('blocked receipt storage still resumes the owner-scoped original purchase held by the actual client', async () => {
   const ast = ts.createSourceFile('FusionFortuneClient.tsx', fs.readFileSync('app/fusion-fortune/FusionFortuneClient.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   let effect;
