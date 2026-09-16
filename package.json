@@ -34,6 +34,7 @@
     "adsense:route-audit": "node scripts/generate-adsense-route-audit.mjs",
     "verify:analytics-events": "node scripts/verify-analytics-events.mjs",
     "verify:sns-daily-post": "node scripts/verify-sns-daily-post.mjs",
+    "verify:threads-daily-jobs": "node scripts/verify-threads-daily-jobs.mjs",
     "verify:adsense-route-policy": "node scripts/verify-adsense-route-policy.mjs",
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "verify:editor-notes": "node scripts/verify-editor-notes.mjs",
