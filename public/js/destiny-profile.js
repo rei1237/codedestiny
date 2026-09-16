@@ -4342,6 +4342,7 @@
           // 승인이 확인됐다 — 리다이렉트 복귀와 **같은** 확정·재개 본문을 탄다.
           return _dpResumeDirectPaymentAfterRedirect({ pollingPaymentId: orderId });
         })
+        .then(function () { schedule(); })
         .catch(function () { schedule(); });
     }
 
@@ -4515,7 +4516,20 @@
    *   확인하고 부른 것이다. 쿼리 신호를 기다리지 않고 그 주문을 그대로 확정한다 — 조용한 폴백과
    *   달리 추측이 아니라 서버가 paid 라고 답한 상태라, 확인 오버레이·안내를 그대로 쓴다.
    */
-  async function _dpResumeDirectPaymentAfterRedirect(options) {
+  function _dpResumeDirectPaymentAfterRedirect(options) {
+    var query = new URLSearchParams(window.location.search || '');
+    var ticket = _dpReadDirectResumeTicket();
+    var operation = String((options && options.pollingPaymentId) || query.get('paymentId')
+      || query.get('payment_id') || query.get('imp_uid') || (ticket && ticket.merchantUid) || 'return');
+    var runs = window.__cdDirectPaymentResumeInFlight || (window.__cdDirectPaymentResumeInFlight = Object.create(null));
+    if (runs[operation]) return runs[operation];
+    runs[operation] = Promise.resolve().then(function () {
+      return _dpResumeDirectPaymentAfterRedirectCore(options);
+    }).finally(function () { delete runs[operation]; });
+    return runs[operation];
+  }
+
+  async function _dpResumeDirectPaymentAfterRedirectCore(options) {
     if (typeof window === 'undefined') return;
     var pollingPaymentId = String((options && options.pollingPaymentId) || '').trim();
     if (pollingPaymentId) _dpStopDirectOrderPoll();
@@ -13223,6 +13237,17 @@
   if (!window.__cdDirectPaymentResumeStarted) {
     window.__cdDirectPaymentResumeStarted = true;
     try { void _dpResumeDirectPaymentAfterRedirect(); } catch (_) {}
+    // Mobile app switches and bfcache restores do not reload this script. Resume
+    // the owned order poll on activation; approval is still verified server-side.
+    var recoverDirectOrder = function () {
+      if (document.hidden || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
+      var ticket = _dpReadDirectResumeTicket();
+      if (ticket && ticket.merchantUid) _dpStartDirectOrderPoll(ticket.merchantUid);
+      else void _dpResumeDirectPaymentAfterRedirect();
+    };
+    window.addEventListener('pageshow', recoverDirectOrder);
+    window.addEventListener('online', recoverDirectOrder);
+    document.addEventListener('visibilitychange', recoverDirectOrder);
   }
 
 })();

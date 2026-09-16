@@ -61,6 +61,7 @@ function boot(options) {
     }
     if (target.indexOf("/api/billing/confirm") >= 0) {
       calls.confirm.push(JSON.parse(String((init && init.body) || "{}")));
+      if (opts.pendingOnce && calls.confirm.length === 1) return Promise.resolve(jsonResponse({ ok: true, code: 'GRANT_PENDING', recoveryRequired: true }));
       return Promise.resolve(jsonResponse({ ok: true, unlocked: true, featureKey: "neville-meditation" }));
     }
     return Promise.resolve(jsonResponse({ ok: true }));
@@ -138,5 +139,28 @@ test("티켓이 사라졌으면(다른 경로가 이미 확정했다) 폴링이 
     await new Promise((r) => setTimeout(r, 4000));
     assert.deepEqual(calls.status, []);
     assert.equal(calls.confirm.length, 0);
+  } finally { window.close(); }
+});
+
+test('paid approval followed by GRANT_PENDING keeps polling until the same order opens', async () => {
+  const { window, calls } = boot({ order: { status: 'paid' }, pendingOnce: true });
+  try {
+    window.__cdDirectOrderPollHook.start(ORDER_ID);
+    await waitFor(() => calls.resumed.length === 1, 'pending delivery resumes', 9000);
+    assert.equal(calls.confirm.length, 2);
+    assert.ok(calls.confirm.every(body => body.merchantUid === ORDER_ID));
+    assert.equal(calls.resumed.length, 1);
+  } finally { window.close(); }
+});
+
+test('bfcache, visibility and online activation recover without browser back or duplicate execution', async () => {
+  const { window, calls } = boot({ order: { status: 'paid' } });
+  try {
+    window.dispatchEvent(new window.PageTransitionEvent('pageshow', { persisted: true }));
+    window.document.dispatchEvent(new window.Event('visibilitychange'));
+    window.dispatchEvent(new window.Event('online'));
+    await waitFor(() => calls.resumed.length === 1, 'activation delivery', POLL_WAIT_MS);
+    assert.equal(calls.confirm.length, 1);
+    assert.equal(calls.resumed.length, 1);
   } finally { window.close(); }
 });
