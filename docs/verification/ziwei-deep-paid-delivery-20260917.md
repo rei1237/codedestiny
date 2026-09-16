@@ -50,4 +50,6 @@ check:fast는 critical/failClosed로 결제 88/88·lint/typecheck·Node 1,391·W
 
 마지막 화면 검사의 첫 실행은 전체 Jest와 겹친 동안 focus case에서 입력 폼 mount를 찾지 못해 timeout이었다. 코드를 더 바꾸지 않고 전체 검사 종료 뒤 같은 화면 스크립트를 독립 실행했으며 8case·총 API mock 요청 72개·pageerror 0으로 통과했다(browser-final-serial.log). 환경이 안정된 실행에서 같은 오류는 재현되지 않아 별도 UI 수정은 하지 않았다.
 
-동시 편집 때문에 기존 안전 워크트리를 계속 사용하며 main의 마케팅/앱 변경을 보존한다. 검증된 변경만 commit/push하고 동일 SHA main CI를 확인한 뒤 이 문서와 완료 칸을 갱신한다. 현재는 CI 완료 전이다.
+source `acdf20c386004505e643fd3db7976f640b655fdf`를 main fast-forward/push했고 [동일 SHA main CI](https://github.com/rei1237/codedestiny/actions/runs/35123293719)는 모든 lane·CI required success다. 최종 소스의 CI Node 1,397/Jest 276 suite·3,874개도 통과했다. root 반영 전후 dirty 84개·경로·파일별 SHA256이 같았다(root-preservation.json). 실결제·청구 LLM·운영 DB·운영 승격은 실행하지 않았다.
+
+CI 대기 중 타 세션의 Threads 작업 21개 파일을 main `af79c733ee8da1530b8497a07b8d7de05121867b`에서 보존/반영했다. 기존 자미두수 scheduled VM의 다른 작업 mock에 새 runThreadsDailyJobs만 없어 Node 1개가 실패했다. 그 의존성만 no-op으로 추가한 뒤 62개가 통과했다. 실제 자미두수 route/크론/증빙은 그대로 실행하며 SNS 작업은 실행하지 않는다. 동기화의 공식 check:fast는 critical·Node 1,397·Jest 276 suite/3,874개(exit0)다. 이후 handoff 계약 검사에서 새 Threads 문서의 누락된 frontmatter를 재현해 머리말 6줄만 별도 보완했다. 본문은 그대로이며 152개 문서 계약 검사가 통과했다. main 반영 직전에 다른 세션이 같은 mock 보완과 LLM inventory 갱신을 `851cbe758c2833d02d0c8bf5a3a9002f0688b537`로 먼저 전달했다. 이를 보존해 안전 워크트리를 rebase했고 중복 테스트 수정은 사라졌다. 남은 문서만 전달해 동일 SHA CI 후 완료 칸을 갱신한다.

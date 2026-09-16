@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행은 동일 SHA main CI 완료. 심화 자미 PDF 4행은 mock A~F/PDF 검사를 마쳤으며 check:fast·commit/push·동일 SHA main CI를 끝낸 뒤 네오 5행으로 간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합과 심화 자미 source는 mock A~F·동일 SHA main CI 성공. 새 Threads 디스패처의 자미 VM mock 동기화를 check:fast·commit/push·동일 SHA CI까지 끝낸 뒤 네오 5행으로 간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -18,14 +18,14 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 
 ## 다음 작업
 
-**2026-09-17 심화 자미 PDF 4행 — mock 검증 후 전달 진행 중:** [행별 기록](../verification/ziwei-deep-paid-delivery-20260917.md). 원래 실행 완료 본문 누락·취소 구매 POST 재열람·화면 재개 이벤트·문서 종료 뒤 서버 실행 공백·완료 확인 유실·Storage 차단 화면 예외·공급자 완료 표시 7종을 재현/수정했다. 관련 Node 62/Jest 125, 실제 고객 390/430/1280px 및 단독 재개 이벤트/전체 Storage 차단 8case, PDF 버튼 다운로드 62페이지/15장 전체 본문 추출·렌더를 mock으로 검사했다. 호출 15→15·prompt 36,012→36,012자. 첫 check:fast는 결제 88/88 뒤 sitemap 원장 드리프트 exit1; 공식 생성으로 signature 35개만 갱신하고 check:fast critical·결제88/88·Node1,391·276 suite/3,874 Jest(exit0)를 완료했다. 마지막 공급자 완료 표시 보완 후 관련 Node62·flow 및 독립 고객 화면8case도 통과했다. 동시 세션의 layout/fortune-chat 및 인수인계 3개 파일(28b88e330/5aae0c6fd)을 안전 워크트리에 fast-forward로 보존/반영했고 고객 화면을 재검사했다. **동일 SHA main CI 전까지 4행 완료 체크는 보류한다.** 이후 구매70키+후속3경로는 개별 A~F 미실행이다.
+**2026-09-17 심화 자미 PDF 4행 — source mock A~F·main CI 완료:** [행별 기록](../verification/ziwei-deep-paid-delivery-20260917.md). 실행 완료 본문 누락·취소 구매 POST 재열람·화면 재개·문서 종료 뒤 서버 실행·완료 확인 유실·Storage 예외·공급자 완료 표시 7종을 재현/수정했다. 관련 Node62/Jest125·실제 고객8case·PDF62페이지/15장 전체 본문 추출·렌더 통과. 호출15→15·prompt36,012→36,012자. source `acdf20c386004505e643fd3db7976f640b655fdf`를 main fast-forward/push했고 [동일 SHA main CI 35123293719](https://github.com/rei1237/codedestiny/actions/runs/35123293719)는 모든 lane·CI required·Node1,397/Jest3,874 성공이다. root dirty84개·경로·파일별 SHA256도 반영 전후 같았다. 다른 세션의 layout/fortune-chat과 Threads 21파일은 보존/반영했다. 새 main `af79c733e`의 [CI35124144939](https://github.com/rei1237/codedestiny/actions/runs/35124144939)는 새 Threads 디스패처의 자미 VM mock 누락 1개로 실패했고 로컬과 같은 원인을 확인했다. 해당 no-op 의존성만 추가해 Node62 통과, 공식 check:fast/전달 진행 중이다. **이 동기화 CI 후 4행 완료 칸을 체크한다.** 네오부터 구매70키+후속3경로는 개별 A~F 미실행이다.
 
 **2026-09-17 초융합 mock A~F 완료:** [행별 검증 기록](../verification/fusion-paid-delivery-20260917.md)을 추가했다. source `c2c4ce56f543fc785ca639b8c1784826478ce59c`와 결제 직후 입력 보관 후속 `c83f719855aa3f9ef316df024e004e5f69e4b4cc`를 main에 fast-forward하고 push했다. 부분 전달 lease·문서 종료 뒤 서버 복구·승인 후 첫 생성 전 bootstrap·출력 잘림·bfcache/화면 재개·Storage 차단·첫 stream 전 입력 유실을 재현/수정했다. 실제 계산 6체계/타로 6장, 실제 고객 화면 390/430/1280px 마지막 본문, 서버/공용 결제 왕복 및 새 문서 재열람을 mock으로 검사했다. 첫 최종 check:fast는 critical·88/88 gate·276 suite/3,873 Jest 통과. 마지막 입력 보관 수정까지 복귀 행동검사 33개와 추가 check:fast(276 suite/3,873 Jest, 186.216초)가 통과했다. [동일 SHA main CI](https://github.com/rei1237/codedestiny/actions/runs/35116997629)는 모든 lane·CI required success다. **초융합 외 나머지 71구매 키+후속3경로는 이번 개별 A~F 미실행.** root marketing 84개 dirty 항목과 diff hash가 main 반영 전후 같았으며 다른 워크트리는 보존했다.
 
-현재 안전 작업 디렉터리: `D:\Development\codedestiny-worktrees\paid-af-mock-20260916-20260916-235632` (동시 Claude 편집 때문에 생성). 단독/동시 편집 여부를 다시 확인한 뒤 적절한 체크아웃을 사용한다. 마지막 source SHA는 위 `c83f719855aa3f9ef316df024e004e5f69e4b4cc`다.
+현재 안전 작업 디렉터리: `D:\Development\codedestiny-worktrees\paid-af-mock-20260916-20260916-235632` (동시 Claude 편집 때문에 생성). 단독/동시 편집 여부를 다시 확인한 뒤 적절한 체크아웃을 사용한다. 마지막 유료 source SHA는 위 `acdf20c386004505e643fd3db7976f640b655fdf`다.
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-service-delivery-20260916.md를 읽고, main·타 세션 변경과 c83f719855aa3f9ef316df024e004e5f69e4b4cc 및 main CI 35116997629를 확인하라. 초융합 mock 완료 기록을 재사용하고 심화 자미 PDF 4행의 A~F부터 실제 코드 mock으로 검사하라. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 말라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-service-delivery-20260916.md를 읽고, main·타 세션 변경과 acdf20c386004505e643fd3db7976f640b655fdf 및 main CI 35123293719를 확인하라. 새 Threads 디스패처의 자미 VM fixture 동기화를 공식 검증→commit/push→동일 SHA CI까지 마치고 네오 5행의 A~F부터 실제 코드 mock으로 검사하라. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 말라.
 ```
 
 1. **마스터 2상품의 실제 결제 전달 확인은 별도 단계.** 운영 코드 기준은 확인된 `77007dc4c`다. 이후 인수인계 문서만 바뀐 main SHA와의 차이로 코드 미반영을 오판하거나 재승격하지 않는다. 실제 PG/과금 LLM/운영 DB/실기기·고객 주문 복구는 각각 승인 범위 안에서만 확인한다. 승인 없는 단계는 미검증으로 남기고 다른 상품의 mock 점검은 계속한다. 입력 없는 과거 구매는 구매 권리 보존·재입력 후 결제 없는 복구를 유지한다.
