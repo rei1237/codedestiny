@@ -29,12 +29,12 @@ import { judgeSajuDayFortune } from "../lib/saju-day-fortune.js";
 import { buildSukuyoFromMoonLongitude, calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { assembleTodayMoon } from "../lib/nakshatra-codex.js";
-import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
+import { computeTodaySky } from "../lib/today-sky.js";
 import { primeCmsRecords } from "../lib/cms-records.js";
 import { readCmsThroughCache } from "../lib/cms-cache.js";
 import { buildTodaySajuDetail, buildTodaySajuPublic } from "../lib/today-saju-detail.js";
 import { buildTodaySukuyoDetail, buildTodaySukuyoPublic } from "../lib/today-sukuyo-detail.js";
-import { buildTodayVedicDetail, buildTodayVedicPublic, computePanchanga } from "../lib/today-vedic-detail.js";
+import { buildTodayVedicDetail, buildTodayVedicPublic } from "../lib/today-vedic-detail.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 import { CROSSWALK_OFFSET } from "../../constants/nakshatra-crosswalk.js";
 
@@ -127,11 +127,6 @@ function kstParts(now) {
 
 function dateKey({ year, month, day }) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-// 판창가의 바라(요일). kstParts 가 이미 KST 로 옮긴 Y/M/D 라 UTC 로 다시 세면 된다.
-function weekdayOf({ year, month, day }) {
-  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
 }
 
 // 본명 나크샤트라 이름. assembleTodayMoon 이 타라발라를 잴 때 쓰는 것과 같은 대응
@@ -352,14 +347,9 @@ function buildVedic(sky, natalSukuyoName, wantDetail) {
 // Swiss 가 죽어도 나머지 두 점술은 살려야 하므로 예외를 삼킨다.
 async function resolveTodaySky(env, today, natalIndex, requestUrl) {
   try {
-    const swiss = await getSwissVedicPlanets(
-      env,
-      { year: today.year, month: today.month, day: today.day, hour: 12, minute: 0, timezone: 9, lat: 37.5665, lon: 126.978 },
-      { requestUrl },
-    );
-    const moonLon = Number(swiss?.planets?.Moon);
-    const sunLon = Number(swiss?.planets?.Sun);
-    if (!Number.isFinite(moonLon)) return null;
+    const sky = await computeTodaySky(env, today, { requestUrl });
+    if (!sky) return null;
+    const { moonLon, sunLon, panchanga } = sky;
     const lunar = solarToLunar(today.year, today.month, today.day);
     if (!lunar) return null;
     const todayMoon = assembleTodayMoon({
@@ -367,10 +357,6 @@ async function resolveTodaySky(env, today, natalIndex, requestUrl) {
       lunar: { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth },
       myMansionIndex: natalIndex,
     });
-    // 판창가는 니라야나(시데리얼) 황경으로 계산한다 — swiss 가 주는 값 그대로다.
-    const panchanga = Number.isFinite(sunLon)
-      ? computePanchanga({ sunLon, moonLon, weekday: weekdayOf(today) })
-      : null;
     return { moonLon, sunLon, todayMoon, panchanga, natalNakshatraKo: natalNakshatraNameKo(natalIndex) };
   } catch (error) {
     console.warn("[today-hub-vedic-skip]", String(error?.message || error).slice(0, 200));
