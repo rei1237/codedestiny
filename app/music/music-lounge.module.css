@@ -28,7 +28,8 @@
   width: min(100%, 760px);
   margin-inline: auto;
   padding-inline: 16px;
-  padding-block: calc(16px + env(safe-area-inset-top, 0px)) calc(96px + env(safe-area-inset-bottom, 0px));
+  /* 상단 60px: AppChrome 의 고정 뒤로/홈 알약(top 12px + 44px = 56px)이 브랜드·🌙 를 덮지 않게 */
+  padding-block: calc(60px + env(safe-area-inset-top, 0px)) calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 /* ---------- header ---------- */
@@ -120,8 +121,6 @@
 .chips {
   display: flex; gap: 8px; margin-block: 18px 12px; padding-block: 2px;
   overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-  margin-inline: -16px; padding-inline: 16px;
-  mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
 .chips::-webkit-scrollbar { display: none; }
 .chip {
@@ -187,7 +186,7 @@
 .mini {
   position: fixed; inset-inline: 0; bottom: 0; z-index: 20; display: flex; align-items: center; gap: 4px;
   min-height: 64px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) 12px;
-  background-color: rgba(11, 13, 26, 0.97); border-top: 1px solid var(--line); color: var(--ivory);
+  background-color: var(--ink); border-top: 1px solid var(--line); color: var(--ivory);
   transform: translateY(110%); transition: transform 200ms ease; will-change: transform;
 }
 .mini[data-visible="true"] { transform: translateY(0); }
