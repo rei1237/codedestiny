@@ -52,6 +52,19 @@ export default function TodayReadingGuide() {
             </li>
           ))}
         </ul>
+
+        {/* 무료 결과의 "다음 단계" 한 줄(천원사주 허브). 다른 랜딩은 SeoLandingTemplate 이 같은 필드를 렌더한다. */}
+        {page.nextStep ? (
+          <p className="mt-6 max-w-[62ch] break-keep text-sm leading-7 text-slate-300">
+            {page.nextStep.lead}{" "}
+            <a
+              href={page.nextStep.href}
+              className="font-bold text-amber-200 underline underline-offset-4 transition-colors hover:text-amber-100"
+            >
+              {page.nextStep.label}
+            </a>
+          </p>
+        ) : null}
       </section>
 
       {/* 🔴 /today 는 AppChrome.CHROMELESS_ROUTES 라 SiteFooterHub 가 붙지 않는다. 그래서

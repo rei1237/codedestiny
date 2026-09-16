@@ -183,6 +183,9 @@ export default function SeoLandingTemplate({ page }) {
   const linkGroups = Array.isArray(page?.linkGroups)
     ? page.linkGroups.filter((item) => item?.heading && Array.isArray(item.links) && item.links.length > 0)
     : [];
+  /* 무료 결과의 "다음 단계" 한 줄(천원사주 허브, lib/seo-landing-pages.js yeongnyangiNextStep).
+     선택 필드라 넘기지 않은 랜딩의 출력은 그대로다. */
+  const nextStep = page?.nextStep?.href && page.nextStep.label ? page.nextStep : null;
 
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
@@ -374,6 +377,18 @@ export default function SeoLandingTemplate({ page }) {
             </ul>
           </section>
         ))}
+
+        {nextStep ? (
+          <p className="mt-[clamp(2.5rem,5vw,3.5rem)] max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)] [text-wrap:pretty]">
+            {nextStep.lead}{" "}
+            <Link
+              href={nextStep.href}
+              className={`rounded-[4px] font-semibold text-[#e8d5a3] underline underline-offset-4 transition-colors duration-200 hover:text-[#f4eeff] ${FOCUS_RING}`}
+            >
+              {nextStep.label}
+            </Link>
+          </p>
+        ) : null}
 
         <section aria-labelledby="seoLandingDisclaimer" className="mt-[clamp(2.5rem,5vw,3.5rem)]">
           <h2
