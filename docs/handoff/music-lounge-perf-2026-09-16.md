@@ -9,7 +9,7 @@ next: 운영 승격 후 문서의 남은 과제를 확인하고 음악 페이지
 브랜치 `wt/music-lounge-perf-20260916-182234` → main 직접 머지. 계획 정본은 세션 플랜(측정→구현→회귀→재측정→보고→커밋·push).
 
 ## 다음 세션 첫 문장
-"docs/handoff/music-lounge-perf-2026-09-16.md 의 '남은 과제' 를 읽고, push 된 커밋으로 프로덕션 AFTER Lighthouse(`node scripts/measure-home-lighthouse.mjs --runs=3 --preset=mobile --url=https://code-destiny.com/music/ --label=music-prod-after`)를 배포 후 1회 측정해 아래 표에 채운다."
+"docs/handoff/music-lounge-perf-2026-09-16.md 의 '남은 과제' 1번(전역 루트 Suspense + 전역 CSS 70KB 렌더 차단)을 RED 로 위험·검증·롤백부터 보고한 뒤 착수한다. /music/ 전용 최적화는 끝났다."
 
 ## 무엇을 바꿨나 (커밋 순)
 1. `perf(music): add --route option to measure-home-lighthouse` — `--route=/music/` 로 로컬 dist 라우트 측정.
@@ -30,22 +30,23 @@ next: 운영 승격 후 문서의 남은 과제를 확인하고 음악 페이지
 ## 성능 비교 (Lighthouse 13.1.0 mobile, 3회 중앙값)
 | 지표 | BEFORE prod | BEFORE local dist | AFTER local dist | AFTER prod |
 |---|---|---|---|---|
-| Performance | 67 | 74 | **86** (71–86) | 배포 후 측정 |
-| FCP | 3426 | 2252 | **2102** | |
-| LCP | 7893 (커버 img) | 6520 | **3607** (h1 텍스트) | |
-| TBT (INP 대리) | 122 | 108 | 152 | |
-| CLS | 0.011 | 0.011 | **0.000** | |
-| 초기 요청 수 | 71 | 65–71 | **57** | |
-| 초기 다운로드 | 1387KB | 1201KB | **965KB** | |
-| JS | 632KB | 721KB | 708KB (음악 청크 81KB→61KB, 전역이 대부분) | |
-| CSS | 130KB | 119KB | **106KB** (음악 CSS 127KB→13KB) | |
-| 이미지 | 233KB ×1 | 233KB | **11KB** (Cloudflare Image Resizing 192px) | |
-| 초기 오디오 요청 | 0 | 0 | 0 | |
-| Long Task | 7 (625ms) | 9 (688–814ms) | 7 (687–833ms; gtag·전역 레이아웃 몫) | |
-| DOM | 1055 | 1055 | 889 | |
-| measure:mobile-routes | OF-B 8–10, TT<44=3, IN<16=1 | 동일 | OF 0, TT<44 0, IN<16 0, SAgap 6px ⚠ | |
+| Performance | 67 | 74 | **86** (71–86) | **93** (79–95) |
+| FCP | 3426 | 2252 | **2102** | **2418** (관측 1031) |
+| LCP | 7893 (커버 img) | 6520 | **3607** (h1 텍스트) | **2418** (h1, 관측 1031) |
+| TBT (INP 대리) | 122 | 108 | 152 | **111** |
+| CLS | 0.011 | 0.011 | **0.000** | **0.000** |
+| 초기 요청 수 | 71 | 65–71 | **57** | 62 (jsd 챌린지·gtag 포함) |
+| 초기 다운로드 | 1387KB | 1201KB | **965KB** | **916KB** |
+| JS | 632KB | 721KB | 708KB (음악 청크 81KB→61KB, 전역이 대부분) | 647KB (음악 전용 page 청크 br 21KB 뿐) |
+| CSS | 130KB | 119KB | **106KB** (음악 CSS 127KB→13KB) | 115KB (음악 전용 br 3.4KB, 전역 8f2b1a38 br 70KB·미사용 65KB) |
+| 이미지 | 233KB ×1 | 233KB | **11KB** (Cloudflare Image Resizing 192px) | 10KB |
+| 초기 오디오 요청 | 0 | 0 | 0 | 0 |
+| Long Task | 7 (625ms) | 9 (688–814ms) | 7 (687–833ms; gtag·전역 레이아웃 몫) | 5–6 (579–598ms; 문서 211·gtag 152·jsd 98) |
+| DOM | 1055 | 1055 | 889 | 892 |
+| measure:mobile-routes | OF-B 8–10, TT<44=3, IN<16=1 | 동일 | OF 0, TT<44 0, IN<16 0, SAgap 6px ⚠ | 미측정 |
 
-LHR JSON: `%TEMP%/code-destiny-perf/lhr-music-{prod-before,local-before,local-after2}-mobile-N.json`.
+LHR JSON: `%TEMP%/code-destiny-perf/lhr-music-{prod-before,local-before,local-after2,prod-after}-mobile-N.json`.
+AFTER prod: 2026-09-16 `gh workflow run ... mode=production`(run 35105200682, Pages·Worker `77007dc4c`) 승격 직후 측정. 시뮬 LCP 는 관측 LCP(1031ms) 이전에 시작된 전역 JS·CSS 전부를 의존성으로 잡아 늘어난 값이다(관측 FCP=LCP).
 남은 LCP 3.6s 의 원인은 전역 CSS 550KB(느린 4G 에서 responseEnd 7.3s) + 루트 Suspense 노출 지연으로 실측(Playwright 프로브: JS-off 시 본문 높이 0, 무스로틀 시 FCP=LCP 628ms).
 
 ## 회귀 (Playwright iPhone 13 에뮬레이션, 로컬 dist, /api mock 404) — 56/56 PASS
@@ -54,6 +55,14 @@ LHR JSON: `%TEMP%/code-destiny-perf/lhr-music-{prod-before,local-before,local-af
 스크립트는 세션 스크래치패드(`regress.mjs`)에만 있음 — 영구 테스트로 옮기지 않음.
 
 가드: check:fast exit 0(jest 274/3807), 결제 verify 9종 exit 0, `node --test __tests__/release/payment-inventory.test.js` 11/11, verify:mobile-feature-coverage·music-track-count 통과. visual-checker 3차 판정 OK(대비 최저 5.7:1).
+
+## 2차 최적화 (프로덕션 측정 후)
+- 음악 전용 전송은 이미 JS br 21KB + CSS br 3.4KB 뿐 — 나머지 청크는 /saju/·/about/ 와 공유(전역).
+- 음악 범위 남은 비용 = 첫 로드 스타일·레이아웃(문서 롱태스크 211ms, 행 123개). `.row` 에 `content-visibility: auto; contain-intrinsic-size: auto 57px`.
+  - A/B(프로덕션 HTML 에 규칙 주입, iPhone 13, CPU 4x, gtag·jsd 차단, 스크래치 `ab-cv.mjs`): TaskDuration 중앙값 1318→1199ms(11회, 범위 1273–1395 vs 1170–1235 겹침 없음), 57px 재측정 1593→1435ms(9회, check:fast 동시 실행으로 전체 상승). Layout 410→361ms.
+  - 회귀(스크래치 `regress-cv.mjs`, 모바일·데스크탑) 20/20: 규칙 적용·스크롤 높이 변동(모바일 원본 대비 +6px, 데스크탑 -124px→스크롤 후 보정)·스크롤 프레임 드랍 0/20·마지막 행 보임/44px/선택·화면 밖 텍스트 innerText·검색 0건/복원·화면 밖 행 포커스·페이지 에러 0.
+  - 이 변경은 push 까지(스테이징). 프로덕션 반영은 다음 승격 승인 때.
+- 보류: 커버 srcset(Lighthouse "9KB 낭비", 70px 표시에 192px) — LCP 아님·10KB 이미지라 효과 미미, 변환 수만 늘어 하지 않음.
 
 ## 남은 과제 (범위 밖, 보고만)
 1. 🔴 전역: `app/layout.js:291` 빈 `<Suspense>` 가 모든 App Router 라우트 본문을 `S:0` 은닉 블록으로 내보냄(JS 꺼지면 본문 안 보임) + Tailwind 전역 CSS 550KB 렌더 차단 → 남은 LCP 의 대부분. 별도 RED 작업.
