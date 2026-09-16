@@ -1,17 +1,18 @@
 ---
 status: active
 updated: 2026-09-16
-next: 본문의 2단계 범위에 따라 관계 해설 재저작과 결과 화면 개편을 진행한다.
+next: 2단계 6·5번(판정 payload·상단 배지·요약)은 끝났다. 남은 1~4·7번(해설 전면 재저작·거리 수식자·나/상대 분리·어조·전생 확장)을 진행한다.
 ---
 
-# 숙요점 자리(役) 방향 정본 교정 — 1단계 완료 / 2단계 인수인계
+# 숙요점 자리(役) 방향 정본 교정 — 1단계 완료 / 2단계 진행 중
 
 작성: 2026-09-16 · 대상 브랜치: main (직접 커밋, PR 없음)
 
 ## 다음 세션 첫 문장
 
-"숙요점 2단계 — 관계 6종 × 역할 2 × 거리 3 해설 전면 재저작과 결과 화면 개편을
-`docs/handoff/sukuyo-role-direction.md` 의 2단계 항목대로 시작한다."
+"숙요점 2단계 — 판정 payload(syBuildRelationDirection)는 이미 서 있다. 그 위에서
+관계 6종 × 역할 2 × 거리 3 해설 전면 재저작(2단계 1~4번)과 전생 서사 확장(7번)을
+`docs/handoff/2026-09-16-sukuyo-role-direction.md` 대로 시작한다."
 
 ## 1단계에서 무엇이 틀렸고 무엇을 고쳤나
 
@@ -60,7 +61,34 @@ ESM 을 import 할 수 없어 저작이 중복돼 있고, `SY_ROLE_PROFILE` 은 
 `npm run sync:public` 산출물을 커밋한다(정적 셸 빌드 해시가 함께 바뀌므로
 이어서 `npm run sitemap:generate` 도 필요하다).
 
-## 2단계 (이번 범위 밖 — 사용자 요청 원문 기준)
+## 2단계 (사용자 요청 원문 기준) — 6·5번 완료, 나머지 미착수
+
+### 완료 — 6번(판정 payload) · 5번 상단 배지/요약 (커밋 2b27a7e3b, 2751b609a)
+
+`js/saju-engine-tarot-sukuyo-quantum.js` 의 `syBuildRelationDirection(D)` 가 27거리
+어디서든 아래를 한 번에 돌려준다. 렌더러·요약·프롬프트는 다시 판정하지 않는다.
+
+```
+relationType / relationTypeHan
+personARole(나) / personARoleHan / personBRole(상대) / personBRoleHan
+distance { forward, reverse, shortest, tier, label }
+direction { code: a-to-b | b-to-a | mutual, arrow, label, color }
+interpretationKey   // 예: '우쇠:우:near'
+headerBadge         // 예: '友衰 · 근거리'
+roleBadge           // 예: '나는 友 / 상대는 衰'
+```
+
+- `SukuyoCompatEngine.resolve` 가 `resolved.relationDirection` 으로 싣는다.
+- 결과 상단 hero 에 배지 2개(`data-sy-role-badge`), 본문 첫 섹션에 판정 요약
+  5줄(`data-sy-relation-summary`)이 들어간다.
+- `directionFromD` 의 별도 하드코딩 표를 지웠다. 業/胎 가 '상호작용' 으로 뭉개지던
+  것이 순행 +18 나=業 기준으로 갈린다(의도한 표시 변경).
+- `verify:sukuyo-role-direction` 8번 검사가 이 payload 를 27거리 전수로 문다
+  (자리·거리·방향·해설 키 + A/B 역전 + 화면 마커). 변이 테스트로 무는 것 확인.
+- `interpretationKey` 가 앞으로 쓸 해설 테이블의 조회 키다. 남은 1~4번 재저작은
+  이 키로 본문을 꺼내는 형태로 붙이면 되고, 새 판정 로직을 만들 필요가 없다.
+
+### 남은 항목 (미착수 — 1~4·7번)
 
 1. 관계 6종 × 역할 2 × 거리 3 해설 전면 재저작. 각 관계마다
    본질 → 나의 역할 → 상대의 역할 → 끌리는 이유 → 감정의 흐름 → 시간에 따른 변화
@@ -72,9 +100,9 @@ ESM 을 import 할 수 없어 저작이 중복돼 있고, `SY_ROLE_PROFILE` 은 
 4. 단정 어조 제거 — "최악의 궁합", "무조건", "반드시" 금지. 3단 구조
    (숙요에서는 이렇게 해석한다 → 실제 관계에서는 이렇게 나타날 수 있다 →
    특히 이런 상황에서 체감이 강해질 수 있다).
-5. 결과 화면: 상단에 `[友衰 · 근거리]` 와 `[나는 友 / 상대는 衰]`, 이어서 3~5줄
+5. (완료) 결과 화면: 상단에 `[友衰 · 근거리]` 와 `[나는 友 / 상대는 衰]`, 이어서 3~5줄
    핵심 요약, 그 아래 챕터형 상세. 방향 화살표·색상용 데이터를 payload 에 싣는다.
-6. payload 를 `relationType / personARole / personBRole / distance / direction /
+6. (완료) payload 를 `relationType / personARole / personBRole / distance / direction /
    interpretationKey` 로 분리하고, 방향 맹목인 `SukuyoCompatEngine.resolve`
    (js:11737~11949) 를 방향 인지 구조로 교체한다.
 7. 전생 서사 확장 — 1단계에서는 방향 분기만 넣었다. 유료 인연 레이더
