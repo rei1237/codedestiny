@@ -7663,6 +7663,75 @@ function syRoleFromForwardDistance(distance) {
   };
 }
 
+// ── 관계 판정 단일 payload ────────────────────────────────────────────────
+// 화면·요약·프롬프트·테스트가 전부 이 객체 하나만 본다. 관계명·두 사람의 자리·거리·
+// 방향·해설 키가 여기서 한 번에 정해지며 개별 렌더러가 다시 판정하지 않는다.
+// personARole = 나(A)의 자리, personBRole = 상대(B)의 자리. A/B 를 바꾸면 두 값이
+// 정확히 뒤집힌다(우↔쇠, 영↔친, 안↔괴, 성↔위, 업↔태, 명↔명).
+// 방향은 자리에서 파생한다 — 내어주거나 흔드는 자리(榮·友·壞·成·業)에 내가 서면
+// 내가 작용하는 쪽이고, 받아들이는 자리(親·衰·安·危·胎)에 서면 상대가 작용하는 쪽이다.
+var SY_ROLE_DIRECTION = {
+  '영': 'a-to-b', '우': 'a-to-b', '괴': 'a-to-b', '성': 'a-to-b', '업': 'a-to-b',
+  '친': 'b-to-a', '쇠': 'b-to-a', '안': 'b-to-a', '위': 'b-to-a', '태': 'b-to-a',
+  '명': 'mutual'
+};
+var SY_DIRECTION_PRESENTATION = {
+  'a-to-b': { arrow: '→', label: '내가 상대에게 작용', color: '#fbbf24' },
+  'b-to-a': { arrow: '←', label: '상대가 나에게 작용', color: '#f472b6' },
+  'mutual': { arrow: '↔', label: '상호작용', color: '#c4b5fd' }
+};
+
+function syDistanceLabelByRule(shortest, relationType) {
+  if (relationType === '명' && shortest === 0) return '동숙';
+  if (relationType === '업태') return '특수관계';
+  if (shortest <= 4) return '근거리';
+  if (shortest <= 10) return '중거리';
+  return '원거리';
+}
+
+function syDistanceTier(shortest) {
+  if (shortest === 0) return 'same';
+  if (shortest <= 4) return 'near';
+  if (shortest <= 10) return 'middle';
+  return 'far';
+}
+
+function syBuildRelationDirection(distance) {
+  var role = syRoleFromForwardDistance(distance);
+  if (!role) return null;
+  var forward = role.forwardDistance;
+  var shortest = Math.min(forward, role.reverseDistance);
+  var tier = syDistanceTier(shortest);
+  var distanceLabel = syDistanceLabelByRule(shortest, role.relationType);
+  var code = SY_ROLE_DIRECTION[role.meShort] || 'mutual';
+  var presentation = SY_DIRECTION_PRESENTATION[code];
+  return {
+    relationType: role.relationType,
+    relationTypeHan: role.relationTypeHan,
+    personARole: role.meShort,
+    personARoleHan: role.meHan,
+    personBRole: role.otherShort,
+    personBRoleHan: role.otherHan,
+    distance: {
+      forward: forward,
+      reverse: role.reverseDistance,
+      shortest: shortest,
+      tier: tier,
+      label: distanceLabel
+    },
+    direction: {
+      code: code,
+      arrow: presentation.arrow,
+      label: presentation.label,
+      color: presentation.color
+    },
+    // 해설 조회 키. 같은 관계라도 선 자리와 거리가 다르면 다른 본문을 쓴다.
+    interpretationKey: role.relationType + ':' + role.meShort + ':' + tier,
+    headerBadge: role.relationTypeHan + ' · ' + distanceLabel,
+    roleBadge: '나는 ' + role.meHan + ' / 상대는 ' + role.otherHan
+  };
+}
+
 function syWheelRelationByIndex(myIdx, targetIdx) {
   if (myIdx == null || targetIdx == null) return { short: '-', label: _sajuQuantumText("sq_6461_prop_label"), color: 'rgba(148,163,184,0.36)' };
   var d = (targetIdx - myIdx + 27) % 27;
@@ -11941,6 +12010,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var resolved = applyArchiveVariance(base, D);
       // 안괴 분기만 자리를 채워 왔다. 나머지 21개 거리도 같은 정본 자리를 갖게 여기서 채운다.
       if (!resolved.ankaiRole) resolved.ankaiRole = syRoleFromForwardDistance(D);
+      // 관계 판정의 단일 payload. 아래 렌더러·요약·프롬프트는 여기서만 자리와 방향을 읽는다.
+      resolved.relationDirection = syBuildRelationDirection(D);
       var myIdx = context && context.myIdx != null ? syWheelNormalizeIndex(context.myIdx) : null;
       var partnerIdx = context && context.partnerIdx != null ? syWheelNormalizeIndex(context.partnerIdx) : null;
 
@@ -12148,18 +12219,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if ([3, 6, 12, 15, 21, 24].indexOf(D) >= 0) return '안괴';
       return '성위';
     }
-    // 정본 자리(aRole)에서 파생한다 — 별도 하드코딩 표를 두지 않는다.
-    // 내어주거나 흔드는 자리(榮·友·壞·成)에 내가 서면 내가 작용하는 쪽이고,
-    // 받아들이는 자리(親·衰·安·危)에 서면 상대가 작용하는 쪽이다. 命·業胎 는 상호작용.
-    var SY_ACTIVE_ROLES = { '영': 1, '우': 1, '괴': 1, '성': 1 };
-    var SY_PASSIVE_ROLES = { '친': 1, '쇠': 1, '안': 1, '위': 1 };
+    // 방향은 단일 payload 에서만 읽는다 — 별도 하드코딩 표를 두지 않는다.
     function directionFromD(D) {
-      var role = syRoleFromForwardDistance(D);
-      var me = role && role.meShort;
-      if (!me) return '해당없음';
-      if (SY_ACTIVE_ROLES[me]) return '내가 상대에게 작용';
-      if (SY_PASSIVE_ROLES[me]) return '상대가 나에게 작용';
-      return '상호작용';
+      var payload = syBuildRelationDirection(D);
+      if (!payload) return '해당없음';
+      return payload.direction.label;
     }
     function scoreFor(relationType, key, seed, purpose, distance) {
       var range = (SCORE_RANGES[relationType] || SCORE_RANGES['명'])[key] || [45,70];
@@ -17545,6 +17609,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>`;
           }
 
+          // ── 상단 판정 배지 + 3~5줄 요약 ── 전부 단일 payload(relationDirection)에서만 읽는다.
+          const dirPayload = rel.relationDirection || syBuildRelationDirection(D);
+          const dirDistanceTone = dirPayload ? ({
+            same: '같은 자리에서 만나는 조합이라 차이가 매일 같은 크기로 드러나는 편입니다.',
+            near: '거리가 가까운 조합이라 두 자리의 차이가 일상에서 자주 체감될 수 있습니다.',
+            middle: '거리가 중간인 조합이라 차이가 몰아서 드러났다가 한동안 잦아드는 편입니다.',
+            far: '거리가 먼 조합이라 차이는 드물게, 대신 한 번에 크게 드러나는 편입니다.'
+          }[dirPayload.distance.tier] || '') : '';
+          const dirSummaryLines = (dirPayload && roleInfo) ? [
+            `두 사람은 <strong>${syCanonicalEsc(dirPayload.relationTypeHan)}(${syCanonicalEsc(dirPayload.relationType)})</strong> 관계이며, 27숙의 바퀴에서 <strong>${syCanonicalEsc(dirPayload.distance.label)}</strong>(최단 ${dirPayload.distance.shortest}칸)로 맞물립니다.`,
+            `나는 <strong>${syCanonicalEsc(dirPayload.personARoleHan)}(${syCanonicalEsc(dirPayload.personARole)})</strong> 자리 — ${syCanonicalEsc(roleInfo.meMeaning)}.`,
+            `상대는 <strong>${syCanonicalEsc(dirPayload.personBRoleHan)}(${syCanonicalEsc(dirPayload.personBRole)})</strong> 자리 — ${syCanonicalEsc(roleInfo.otherMeaning)}.`,
+            `숙요에서는 이 관계의 무게가 <strong>${syCanonicalEsc(dirPayload.direction.label)}</strong>하는 쪽으로 기운다고 봅니다. 어느 쪽이 더 나은 자리라는 뜻이 아니라, 같은 장면에서 먼저 움직이는 쪽이 정해져 있다는 뜻에 가깝습니다.`,
+            dirDistanceTone
+          ].filter(Boolean) : [];
+          const dirHeaderBadges = dirPayload ? `
+                  <span data-sy-relation-badge="${syCanonicalEsc(dirPayload.interpretationKey)}" style="color:${dirPayload.direction.color};font-weight:900;">${syCanonicalEsc(dirPayload.headerBadge)}</span>
+                  <span data-sy-role-badge="${syCanonicalEsc(dirPayload.direction.code)}">나는 <strong>${syCanonicalEsc(dirPayload.personARoleHan)}</strong> <span aria-hidden="true">${dirPayload.direction.arrow}</span> 상대는 <strong>${syCanonicalEsc(dirPayload.personBRoleHan)}</strong></span>` : '';
+          const dirSummarySection = dirSummaryLines.length ? `
+            <section data-sy-relation-summary="20260916-sukuyo-direction-payload" style="background:rgba(2,6,23,0.5);border:1px solid ${dirPayload.direction.color}44;border-radius:14px;padding:13px 14px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:${dirPayload.direction.color};letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:8px;">판정 요약</div>
+              <div style="font-size:0.83rem;color:#e2e8f0;line-height:1.85;display:grid;gap:5px;">${dirSummaryLines.map(function(line) { return '<p style="margin:0;">' + line + '</p>'; }).join('')}</div>
+            </section>` : '';
+
           // ── 자리 본문 블록 ── 관계명 한자 풀이 → 나의 자리 → 상대의 자리 → 비대칭이 드러나는 방식 → 자리별 조언.
           const roleTierTone = roleInfo
             ? ((distInfo && distInfo.tier === 'near') || (distInfo && distInfo.tier === 'same')
@@ -17735,7 +17823,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <span>상대방 별: <strong>${tData.mansion}</strong></span>
                   <span>상대 성별: ${partnerGenderLabel}</span>
                   <span>${relationStory.distanceBadge}</span>
-                  <span>${relationStory.relationBadge}</span>
+                  <span>${relationStory.relationBadge}</span>${dirHeaderBadges}
                 </div>
               </div>
               <div class="sy-compat-fate-wrap" aria-hidden="true">
@@ -17795,6 +17883,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             </div>
 
             <div style="padding:20px 16px;">
+
+              ${dirSummarySection}
 
               ${compactSummarySection}
 

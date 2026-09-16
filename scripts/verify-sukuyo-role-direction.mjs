@@ -14,6 +14,9 @@
  *  6. 화면 표시 — '공진자' 뭉개기가 사라졌고, 자리 방향 섹션 마커가 남아 있다.
  *  7. React 휠 파리티 — components/fortune/SukuyoWheel.tsx 의 relationFromDistance 도
  *     27거리 전부에서 정본 aRole 과 같은 자리를 낸다.
+ *  8. 관계 판정 단일 payload — syBuildRelationDirection 이 27거리 전부에서 정본 자리·거리·
+ *     방향·해설 키를 내고, A/B 를 바꾸면 자리와 방향이 함께 뒤집힌다. 화면이 이 payload 를
+ *     실제로 싣고 있는지(상단 배지·판정 요약 마커)도 함께 본다.
  *
  *   node scripts/verify-sukuyo-role-direction.mjs
  */
@@ -64,7 +67,12 @@ let clientRoles = null;
     } catch (error) {
       check(false, `${CLIENT} 자리 휠 블록 평가 실패: ${error.message}`);
     }
-    const missing = ["SY_ROLE_PROFILE", "SY_ROLE_RELATION", "syRoleFromForwardDistance"].filter(
+    const missing = [
+      "SY_ROLE_PROFILE",
+      "SY_ROLE_RELATION",
+      "syRoleFromForwardDistance",
+      "syBuildRelationDirection",
+    ].filter(
       (name) => sandbox[name] == null,
     );
     check(
@@ -282,6 +290,89 @@ this.relationFromDistance = relationFromDistance;`, sandbox, {
     }
   }
 }
+
+// ── 8. 관계 판정 단일 payload — 자리·거리·방향·해설 키가 정본에서 파생되는가 ──────
+// 화면이 payload 하나만 보도록 바꾼 뒤이므로, 이 객체가 틀리면 상단 배지·요약·방향
+// 문구가 한꺼번에 틀린다. 27거리 전부를 정본과 대조하고 A/B 역전까지 확인한다.
+if (clientRoles) {
+  const ACTING_ROLES = new Set(["영", "우", "괴", "성", "업"]);
+  const RECEIVING_ROLES = new Set(["친", "쇠", "안", "위", "태"]);
+  const expectedDistanceLabel = (shortest, relationType) => {
+    if (relationType === "명" && shortest === 0) return "동숙";
+    if (relationType === "업태") return "특수관계";
+    if (shortest <= 4) return "근거리";
+    if (shortest <= 10) return "중거리";
+    return "원거리";
+  };
+  const expectedTier = (shortest) => {
+    if (shortest === 0) return "same";
+    if (shortest <= 4) return "near";
+    if (shortest <= 10) return "middle";
+    return "far";
+  };
+  const problems = [];
+  for (let d = 0; d < 27; d += 1) {
+    const canon = relationFromForwardDistance(d);
+    const payload = clientRoles.syBuildRelationDirection(d);
+    if (!payload) {
+      problems.push(`D=${d} payload 가 null 입니다`);
+      continue;
+    }
+    if (payload.personARole !== canon.aRole || payload.personBRole !== canon.bRole) {
+      problems.push(
+        `D=${d} 자리 불일치 — 정본 ${canon.aRole}/${canon.bRole} vs payload ${payload.personARole}/${payload.personBRole}`,
+      );
+    }
+    if (payload.relationType !== canon.relationType) {
+      problems.push(`D=${d} 관계명 불일치 — 정본 ${canon.relationType} vs payload ${payload.relationType}`);
+    }
+    const shortest = Math.min(d, (27 - d) % 27);
+    if (payload.distance.shortest !== shortest) {
+      problems.push(`D=${d} 최단거리 불일치 — ${shortest} vs ${payload.distance.shortest}`);
+    }
+    if (payload.distance.tier !== expectedTier(shortest)) {
+      problems.push(`D=${d} 거리 구간 불일치 — ${expectedTier(shortest)} vs ${payload.distance.tier}`);
+    }
+    if (payload.distance.label !== expectedDistanceLabel(shortest, canon.relationType)) {
+      problems.push(
+        `D=${d} 거리 라벨 불일치 — ${expectedDistanceLabel(shortest, canon.relationType)} vs ${payload.distance.label}`,
+      );
+    }
+    const expectedCode = ACTING_ROLES.has(canon.aRole)
+      ? "a-to-b"
+      : (RECEIVING_ROLES.has(canon.aRole) ? "b-to-a" : "mutual");
+    if (payload.direction.code !== expectedCode) {
+      problems.push(`D=${d} 방향 불일치 — ${expectedCode} vs ${payload.direction.code}`);
+    }
+    const expectedKey = `${canon.relationType}:${canon.aRole}:${expectedTier(shortest)}`;
+    if (payload.interpretationKey !== expectedKey) {
+      problems.push(`D=${d} 해설 키 불일치 — ${expectedKey} vs ${payload.interpretationKey}`);
+    }
+    // A/B 를 바꾸면 두 자리가 정확히 뒤집혀야 한다.
+    const mirrored = clientRoles.syBuildRelationDirection((27 - d) % 27);
+    if (!mirrored || mirrored.personARole !== payload.personBRole || mirrored.personBRole !== payload.personARole) {
+      problems.push(`D=${d} A/B 역전 실패 — ${payload.personARole}/${payload.personBRole} 의 반대가 아닙니다`);
+    }
+    if (mirrored && payload.direction.code !== "mutual" && mirrored.direction.code === payload.direction.code) {
+      problems.push(`D=${d} A/B 를 바꿔도 방향이 그대로입니다(${payload.direction.code})`);
+    }
+  }
+  check(problems.length === 0, `관계 판정 payload 가 정본과 어긋납니다: ${problems.join(" / ")}`);
+}
+
+// 화면이 payload 를 실제로 쓰는지 — 마커가 사라지면 상단 배지·요약이 죽은 것이다.
+check(
+  clientSource.includes("data-sy-relation-summary="),
+  `${CLIENT} 에 판정 요약 섹션 마커(data-sy-relation-summary)가 없습니다`,
+);
+check(
+  clientSource.includes("data-sy-role-badge="),
+  `${CLIENT} 에 상단 자리 배지 마커(data-sy-role-badge)가 없습니다`,
+);
+check(
+  clientSource.includes("resolved.relationDirection = syBuildRelationDirection(D)"),
+  `${CLIENT} 의 SukuyoCompatEngine.resolve 가 관계 판정 payload 를 싣지 않습니다`,
+);
 
 if (failures.length) {
   console.error("[verify-sukuyo-role-direction] FAILED");
