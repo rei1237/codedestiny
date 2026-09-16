@@ -16,6 +16,8 @@
  *     27거리 전부에서 정본 aRole 과 같은 자리를 낸다.
  *  9. 관계 해설 14장 — 27거리 전부에서 본문이 채워지고, 나 중심/상대 중심이 자리 짝대로
  *     갈리며, 단정 어조가 섞여 있지 않은지. 화면 마커까지 함께 본다.
+ * 10. 전생 서사 — 자리별 장면·흔적·과제가 27거리 전부에서 조립되고, 나/상대가 자리 짝대로
+ *     갈리며, 화면에 실제로 실리는지. 되살린 archiveStory·mission 의 어조까지 함께 본다.
  *  8. 관계 판정 단일 payload — syBuildRelationDirection 이 27거리 전부에서 정본 자리·거리·
  *     방향·해설 키를 내고, A/B 를 바꾸면 자리와 방향이 함께 뒤집힌다. 화면이 이 payload 를
  *     실제로 싣고 있는지(상단 배지·판정 요약 마커)도 함께 본다.
@@ -74,6 +76,12 @@ let clientRoles = null;
       "SY_ROLE_RELATION",
       "syRoleFromForwardDistance",
       "syBuildRelationDirection",
+      "SY_SEAT_CHAPTERS",
+      "SY_TIER_MODIFIER",
+      "SY_RELATION_SYNTHESIS",
+      "syBuildRelationChapters",
+      "SY_SEAT_PASTLIFE",
+      "syBuildPastLifeChapter",
     ].filter(
       (name) => sandbox[name] == null,
     );
@@ -465,6 +473,89 @@ check(
 check(
   clientSource.includes("syBuildRelationChapters(dirPayload)"),
   `${CLIENT} 의 결과 렌더러가 관계 해설 챕터를 조립하지 않습니다`,
+);
+
+
+// ── 10. 전생 서사 — 자리별 조립·시점 분리·어조 ─────────────────────────────
+if (clientRoles) {
+  const pastSeats = clientRoles.SY_SEAT_PASTLIFE;
+  const PAST_FIELDS = ["scene", "trace", "task"];
+  const PAST_SEATS = ["명", "영", "친", "우", "쇠", "안", "괴", "성", "위", "업", "태"];
+  const PAST_BANNED = ["최악", "무조건", "반드시", "절대", "틀림없", "100%"];
+  const pastProblems = [];
+
+  for (const seat of PAST_SEATS) {
+    const entry = pastSeats && pastSeats[seat];
+    if (!entry) {
+      pastProblems.push(`자리 ${seat} 의 전생 서사가 없습니다`);
+      continue;
+    }
+    for (const field of PAST_FIELDS) {
+      const body = entry[field];
+      if (typeof body !== "string" || body.trim().length < 30) {
+        pastProblems.push(`${seat}.${field} 전생 본문이 비었거나 너무 짧습니다`);
+        continue;
+      }
+      for (const word of PAST_BANNED) {
+        if (body.includes(word)) pastProblems.push(`${seat}.${field} 에 단정 어조 '${word}' 가 있습니다`);
+      }
+    }
+  }
+
+  for (let d = 0; d < 27; d += 1) {
+    const payload = clientRoles.syBuildRelationDirection(d);
+    const built = payload ? clientRoles.syBuildPastLifeChapter(payload) : null;
+    if (!built) {
+      pastProblems.push(`D=${d} 전생 서사 조립 실패`);
+      continue;
+    }
+    if (built.interpretationKey !== payload.interpretationKey) {
+      pastProblems.push(`D=${d} 전생 서사 키가 payload 와 다릅니다`);
+    }
+    for (const field of PAST_FIELDS) {
+      const pair = built[field];
+      if (!pair || !pair.me || !pair.other) {
+        pastProblems.push(`D=${d} 전생 ${field} 본문이 비었습니다`);
+        continue;
+      }
+      // 나 = 내 자리 본문, 상대 = 상대 자리 본문. 자리가 다르면 두 본문도 달라야 한다.
+      if (pair.me !== pastSeats[payload.personARole][field]) {
+        pastProblems.push(`D=${d} 전생 ${field} 의 나 본문이 내 자리(${payload.personARole}) 것이 아닙니다`);
+      }
+      if (pair.other !== pastSeats[payload.personBRole][field]) {
+        pastProblems.push(`D=${d} 전생 ${field} 의 상대 본문이 상대 자리(${payload.personBRole}) 것이 아닙니다`);
+      }
+      if (payload.personARole !== payload.personBRole && pair.me === pair.other) {
+        pastProblems.push(`D=${d} 전생 ${field} 에서 자리가 다른데 나/상대 본문이 같습니다`);
+      }
+    }
+  }
+  check(pastProblems.length === 0, `전생 서사가 규칙을 벗어났습니다: ${pastProblems.join(" / ")}`);
+}
+
+// 되살린 전생 원문(archiveStory·mission·archive 변주)도 같은 어조 규칙을 받는다.
+{
+  const surfaced = clientSource.match(/^\s*(?:archiveStory|mission|archive)\s*:\s*'[^']*'/gm) || [];
+  check(
+    surfaced.length >= 12,
+    `${CLIENT} 에서 전생 원문(archiveStory/mission) 을 ${surfaced.length}줄밖에 찾지 못했습니다 — 키 이름이 바뀌었는지 확인하세요`,
+  );
+  const harsh = surfaced.filter((line) =>
+    ["최악", "무조건", "틀림없", "100%"].some((word) => line.includes(word)),
+  );
+  check(
+    harsh.length === 0,
+    `화면에 실리는 전생 원문에 단정 어조가 있습니다: ${harsh.map((l) => l.trim().slice(0, 40)).join(" / ")}`,
+  );
+}
+
+check(
+  clientSource.includes('data-sy-past-life="20260916-sukuyo-past-life-chapter"'),
+  `${CLIENT} 에 전생 서사 섹션 마커(data-sy-past-life)가 없습니다`,
+);
+check(
+  clientSource.includes("syBuildPastLifeChapter(dirPayload)"),
+  `${CLIENT} 의 결과 렌더러가 전생 서사를 조립하지 않습니다`,
 );
 
 if (failures.length) {

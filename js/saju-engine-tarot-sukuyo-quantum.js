@@ -8013,6 +8013,85 @@ function syBuildRelationChapters(payload) {
   };
 }
 
+
+// ── 전생 서사 ──────────────────────────────────────────────────────────────
+// "전생에 어떤 관계였는가"는 원래 base.archiveStory·pastLife·mission 으로 저작돼
+// 있었지만 결과 화면 어디에서도 읽지 않아 사실상 사라져 있었다. 여기서 자리별
+// 흔적·과제를 더해 기본 궁합 안으로 되살린다. 자리 짝이 곧 방향이므로 내 자리의
+// 본문이 나 중심, 상대 자리의 같은 본문이 상대 중심이 된다(SY_SEAT_CHAPTERS 와 동일 규칙).
+// 전생 서술은 사실 주장이 아니라 관계를 읽는 은유로 쓴다 — 단정 어조를 두지 않는다.
+var SY_SEAT_PASTLIFE = {
+  '명': {
+    scene: '같은 자리에서 같은 것을 바라보던 사이로 읽습니다. 나란히 서 있었기에 서로의 선택을 설명할 필요가 없었습니다.',
+    trace: '이번 생에는 처음 만난 자리에서 이미 알던 사람 같다는 감각으로 남습니다. 낯가림이 짧고, 전제를 묻지 않고 건너뛰게 됩니다.',
+    task: '닮은 것을 확인하는 대신 다른 것을 찾아보는 일이 이번 생의 몫에 가깝습니다. 서로를 거울이 아니라 각자의 사람으로 보는 연습입니다.'
+  },
+  '영': {
+    scene: '내가 먼저 내어놓고 상대가 그 곁에서 자라던 시간으로 읽습니다. 나눈 쪽에 기록이 남지 않는 종류의 시간이었습니다.',
+    trace: '이번 생에는 이 사람 앞에서 주고 싶은 마음이 먼저 올라오는 것으로 남습니다. 이유를 찾기 전에 이미 챙기고 있는 자신을 보게 됩니다.',
+    task: '내어주는 일을 멈추기보다 내가 무엇을 받고 싶은지 말해 보는 것이 이번 생의 몫입니다. 말하지 않은 몫은 이번에도 기록되지 않습니다.'
+  },
+  '친': {
+    scene: '상대가 먼저 내어놓은 자리에서 내가 자라던 시간으로 읽습니다. 그 덕에 열린 길이 당연한 것처럼 느껴졌던 시절입니다.',
+    trace: '이번 생에는 이 사람 곁에서 유난히 빨리 긴장이 풀리는 것으로 남습니다. 증명하지 않아도 되는 자리라는 감각이 먼저 옵니다.',
+    task: '받은 것을 그때그때 되돌려 말하는 일이 이번 생의 몫에 가깝습니다. 되돌아간 말이 있어야 두 사람의 기록이 같아집니다.'
+  },
+  '우': {
+    scene: '내가 먼저 손을 뻗어 인연을 이어 두던 시간으로 읽습니다. 끊길 만한 지점마다 움직인 쪽이 나였습니다.',
+    trace: '이번 생에는 먼저 연락하고 먼저 맞추는 습관으로 남습니다. 내가 멈추면 이어지지 않을 것 같다는 감각이 함께 옵니다.',
+    task: '이어 두는 일을 잠시 내려놓고 상대의 속도를 확인해 보는 것이 이번 생의 몫입니다. 쉬어도 끊기지 않는 구간을 찾는 연습입니다.'
+  },
+  '쇠': {
+    scene: '상대가 먼저 뻗은 손에 기대어 인연이 이어지던 시간으로 읽습니다. 내 쪽에서는 애쓴 기억이 크지 않은 종류의 시간입니다.',
+    trace: '이번 생에는 이 사람과의 관계가 유난히 수월하게 느껴지는 것으로 남습니다. 수월함의 출처를 잊기 쉬운 것도 함께 남습니다.',
+    task: '응답을 한 박자 앞당겨 보는 일이 이번 생의 몫에 가깝습니다. 속도 하나만 바뀌어도 상대가 느끼는 무게가 달라집니다.'
+  },
+  '안': {
+    scene: '상대가 몰고 온 변화를 내가 받아내며 자리를 지키던 시간으로 읽습니다. 무너지지 않게 붙든 쪽이 나였습니다.',
+    trace: '이번 생에는 이 사람 앞에서 자꾸 정리하는 역할을 맡게 되는 것으로 남습니다. 흔들려도 내가 자리를 뜨지 않는 편입니다.',
+    task: '견딜 수 있는 양을 미리 말해 두는 일이 이번 생의 몫입니다. 참는 것과 지키는 것을 구분하는 연습이기도 합니다.'
+  },
+  '괴': {
+    scene: '내가 일으킨 파장이 상대의 자리를 바꾸어 놓던 시간으로 읽습니다. 의도한 파괴가 아니라 방향을 바꾼 힘에 가까웠습니다.',
+    trace: '이번 생에는 내가 움직일 때마다 상대의 일상이 크게 흔들리는 것으로 남습니다. 나는 가볍게 던진 말이 상대에게는 오래 남습니다.',
+    task: '변화를 미리 알리는 일이 이번 생의 몫에 가깝습니다. 예고가 붙으면 같은 힘이 파괴가 아니라 갱신으로 작동합니다.'
+  },
+  '성': {
+    scene: '내가 방향을 잡고 상대가 그 방향대로 움직이던 시간으로 읽습니다. 감정보다 목표가 앞서던 종류의 관계였습니다.',
+    trace: '이번 생에는 이 사람과 함께 있으면 무언가 진척된다는 감각으로 남습니다. 만나면 계획부터 서게 되는 편입니다.',
+    task: '목표 없이 함께 있는 시간을 견디는 일이 이번 생의 몫입니다. 역할을 내려놓고도 남는 것이 있는지 확인하는 연습입니다.'
+  },
+  '위': {
+    scene: '상대가 그린 방향 위에서 내가 몸을 움직이던 시간으로 읽습니다. 긴장을 놓을 수 없던 자리였습니다.',
+    trace: '이번 생에는 이 사람 앞에서 잘하고 싶은 마음이 먼저 서는 것으로 남습니다. 편안함보다 각성이 앞서는 편입니다.',
+    task: '감당할 몫의 상한을 말해 두는 일이 이번 생의 몫에 가깝습니다. 상한이 생기면 긴장이 추진력 쪽으로 옮겨 갑니다.'
+  },
+  '업': {
+    scene: '갚지 못한 몫을 남긴 채 헤어진 시간으로 읽습니다. 마무리되지 않은 장면이 그대로 접혀 있었습니다.',
+    trace: '이번 생에는 설명하기 어려운 강한 끌림과 반복되는 장면으로 남습니다. 같은 자리에서 같은 반응이 되풀이됩니다.',
+    task: '되풀이되는 반응 하나에 이름을 붙이는 일이 이번 생의 몫입니다. 이름이 붙는 순간부터 다른 선택지가 생깁니다.'
+  },
+  '태': {
+    scene: '상대가 남긴 몫을 내가 안고 다음을 시작하던 시간으로 읽습니다. 무게와 시작이 같은 자리에 있었습니다.',
+    trace: '이번 생에는 이 사람의 사정을 유난히 잘 이해하게 되는 것으로 남습니다. 이해가 곧 감당으로 이어지기 쉽습니다.',
+    task: '안고 갈 것과 두고 갈 것을 골라 두는 일이 이번 생의 몫에 가깝습니다. 골라 둔 만큼만 무게가 성장으로 바뀝니다.'
+  }
+};
+
+// payload → 전생 서사. 판정하지 않고 조립만 한다.
+function syBuildPastLifeChapter(payload) {
+  if (!payload) return null;
+  var mine = SY_SEAT_PASTLIFE[payload.personARole];
+  var theirs = SY_SEAT_PASTLIFE[payload.personBRole];
+  if (!mine || !theirs) return null;
+  return {
+    interpretationKey: payload.interpretationKey,
+    scene: { me: mine.scene, other: theirs.scene },
+    trace: { me: mine.trace, other: theirs.trace },
+    task: { me: mine.task, other: theirs.task }
+  };
+}
+
 function syWheelRelationByIndex(myIdx, targetIdx) {
   if (myIdx == null || targetIdx == null) return { short: '-', label: _sajuQuantumText("sq_6461_prop_label"), color: 'rgba(148,163,184,0.36)' };
   var d = (targetIdx - myIdx + 27) % 27;
@@ -12017,7 +12096,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         },
         high_calm_strong: {
           archive: '강한 결속이지만 겉으로는 차분하게 드러나는 타입이라, 주변에서는 뒤늦게 두 사람의 영향력을 체감하게 됩니다.',
-          mission: '침묵의 신뢰를 기본값으로 두되, 중요한 의도는 반드시 언어로 확인하세요.'
+          mission: '침묵의 신뢰를 기본값으로 두되, 중요한 의도는 되도록 언어로 한 번 더 확인하세요.'
         },
         mid_hot_strong: {
           archive: '온도는 높은데 합의 구조가 느슨해 감정 급등락이 생기기 쉬운 조합입니다. 강한 끌림이 바로 강한 소모로 번질 수 있습니다.',
@@ -12044,7 +12123,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           mission: '칭찬·감사 같은 긍정 피드백을 의도적으로 자주 표현하세요.'
         },
         mid_hot_light: {
-          archive: '관계의 온도는 빠르게 오르지만 피로 회복이 늦어 중간 이완 구간이 반드시 필요합니다.',
+          archive: '관계의 온도는 빠르게 오르지만 피로 회복이 늦어 중간 이완 구간을 두는 편이 좋습니다.',
           mission: '충돌 후 재접속까지 최소 회복 루틴(휴식-정리-재대화)을 고정하세요.'
         },
         mid_calm_light: {
@@ -12201,7 +12280,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             { icon: '💼', label: _sajuQuantumText("sq_9391_prop_label"), text: '취향과 미적 감각이 절묘하게 맞는다. 함께하는 모든 활동에서 완전한 \"취향 일치\"를 경험하며, 서로의 창의력이 시너지를 일으키는 관계.' },
             { icon: '💜', label: _sajuQuantumText("sq_9392_prop_label"), text: '판단 없이 들어주는 귀. 세상 어디에도 없는 완전한 공감의 에너지. 이 인연 안에서 두 사람은 진정한 \"쉼\"을 얻는다.' }
           ],
-          archiveStory: '전생의 어느 시대, 두 사람은 깊은 산속에서 붓과 먹으로 세상을 담았다. 권력도, 재물도 없었지만 서로의 예술에서 우주를 보았다. 현실의 책임에서 달아난 그 순수한 시절의 기억이 현생에서 \"이 사람 곁이면 무조건 편안하다\"는 본능으로 남아있다.',
+          archiveStory: '전생의 어느 시대, 두 사람은 깊은 산속에서 붓과 먹으로 세상을 담았다. 권력도, 재물도 없었지만 서로의 예술에서 우주를 보았다. 현실의 책임에서 달아난 그 순수한 시절의 기억이 현생에서 \"이 사람 곁에서는 유난히 힘이 덜 든다\"는 감각으로 남아있다.',
           mission: '이 인연의 미래 과제는 \"현실로 내려오는 것\"이다. 아름다운 판타지에만 머물면 두 사람은 서로에게 영원한 \"환상 속 존재\"가 된다. 현실의 불편함을 함께 겪어낼 때, 달의 호수는 생명력 있는 강이 된다.',
           prescription: [
             '🌕 의도적으로 현실적인 활동(예산 짜기, 일상 계획, 집안일 공유 등)을 함께 경험하라. 환상이 아닌 실재로 만날 때 이 인연은 더 깊어진다.',
@@ -17958,6 +18037,42 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               </div>
             </section>` : '';
 
+          // ── 전생 서사 ── 저작돼 있으면서도 화면 어디서도 읽지 않던 archiveStory·pastLife·mission 을
+          // 자리별 흔적·과제와 함께 기본 궁합 안으로 되살린다. 방향은 payload 에서만 읽는다.
+          const pastLifeData = dirPayload ? syBuildPastLifeChapter(dirPayload) : null;
+          const pastLifeRole = rel.pastLife || null;
+          const pastLifeRow = function (title, meText, otherText) {
+            return `<div style="background:rgba(2,6,23,0.44);border:1px solid rgba(148,163,184,0.22);border-radius:11px;padding:10px 11px;">
+                <div style="font-size:0.76rem;font-weight:900;color:#fbcfe8;letter-spacing:0.08em;margin-bottom:6px;">${syCanonicalEsc(title)}</div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;font-size:0.81rem;line-height:1.82;">
+                  <div style="color:#fde68a;"><b style="color:#fbbf24;">나 · ${syCanonicalEsc(dirPayload.personARoleHan)}</b><br>${syCanonicalEsc(meText)}</div>
+                  <div style="color:#fbcfe8;"><b style="color:#f472b6;">상대 · ${syCanonicalEsc(dirPayload.personBRoleHan)}</b><br>${syCanonicalEsc(otherText)}</div>
+                </div>
+              </div>`;
+          };
+          const pastLifeSection = pastLifeData ? `
+            <section data-sy-past-life="20260916-sukuyo-past-life-chapter" style="background:radial-gradient(130% 120% at 12% 0%, rgba(244,114,182,0.14), transparent 46%), rgba(15,23,42,0.6);border:1px solid rgba(244,114,182,0.3);border-radius:14px;padding:14px;margin-bottom:14px;">
+              <div style="font-size:0.74rem;color:#fbcfe8;letter-spacing:0.12em;text-transform:uppercase;font-weight:900;margin-bottom:4px;">전생에 두 사람은 어떤 관계였는가</div>
+              <div style="font-size:0.8rem;color:#f5d0fe;line-height:1.8;margin-bottom:10px;">숙요에서 전생 이야기는 사실을 주장하는 자리가 아니라, 지금 두 사람 사이에 놓인 자리와 방향을 시간의 언어로 옮긴 은유입니다. 아래 서술은 오늘의 관계를 다르게 보기 위한 그림으로 읽어 주세요.</div>
+              ${pastLifeRole ? `<div style="background:rgba(76,29,149,0.22);border:1px solid rgba(196,181,253,0.28);border-radius:11px;padding:10px 11px;margin-bottom:9px;">
+                <div style="font-size:0.82rem;color:#ede9fe;line-height:1.8;">전생의 자리 · <strong>${syCanonicalEsc(pastLifeRole.role)}</strong></div>
+                <div style="font-size:0.81rem;color:#ddd6fe;line-height:1.8;margin-top:4px;">남은 매듭 · ${syCanonicalEsc(pastLifeRole.karma)}</div>
+              </div>` : ''}
+              <div style="display:grid;gap:8px;">
+                ${pastLifeRow('그때의 장면', pastLifeData.scene.me, pastLifeData.scene.other)}
+                ${pastLifeRow('이번 생에 남은 흔적', pastLifeData.trace.me, pastLifeData.trace.other)}
+                ${pastLifeRow('이번 생의 과제', pastLifeData.task.me, pastLifeData.task.other)}
+              </div>
+              ${rel.archiveStory ? `<div style="margin-top:9px;background:rgba(2,6,23,0.5);border:1px solid rgba(148,163,184,0.22);border-radius:11px;padding:10px 11px;">
+                <div style="font-size:0.74rem;font-weight:900;color:#fbcfe8;letter-spacing:0.08em;margin-bottom:5px;">전생 기록보관소</div>
+                <div style="font-size:0.81rem;color:#e2e8f0;line-height:1.85;">${syCanonicalEsc(rel.archiveStory)}</div>
+              </div>` : ''}
+              ${rel.mission ? `<div style="margin-top:9px;background:rgba(2,6,23,0.5);border:1px solid rgba(251,191,36,0.24);border-radius:11px;padding:10px 11px;">
+                <div style="font-size:0.74rem;font-weight:900;color:#fbbf24;letter-spacing:0.08em;margin-bottom:5px;">이 인연이 이번 생에 남긴 숙제</div>
+                <div style="font-size:0.81rem;color:#fde68a;line-height:1.85;">${syCanonicalEsc(rel.mission)}</div>
+              </div>` : ''}
+            </section>` : '';
+
           // ── 자리 본문 블록 ── 관계명 한자 풀이 → 나의 자리 → 상대의 자리 → 비대칭이 드러나는 방식 → 자리별 조언.
           const roleTierTone = roleInfo
             ? ((distInfo && distInfo.tier === 'near') || (distInfo && distInfo.tier === 'same')
@@ -18232,6 +18347,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               ${roleDirectionSection}
 
               ${chapterSection}
+              ${pastLifeSection}
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 상담</div>
