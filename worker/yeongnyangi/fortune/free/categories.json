@@ -1,0 +1,1965 @@
+[
+  {
+    "id": "comprehensive",
+    "label": "종합 프롬프트",
+    "description": "여러 운세 체계를 한데 엮어 질문의 결을 정돈합니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "systems",
+        "label": "활용할 운세 체계",
+        "type": "multiselect",
+        "required": true,
+        "options": [
+          "사주/명리학",
+          "자미두수",
+          "타로",
+          "점성술",
+          "베다점",
+          "수비학",
+          "꿈/상징",
+          "숙요점"
+        ]
+      },
+      {
+        "id": "period",
+        "label": "상담 기간",
+        "type": "select",
+        "options": [
+          "오늘",
+          "이번 주",
+          "이번 달",
+          "3개월",
+          "올해"
+        ]
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": false,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimezone",
+        "label": "출생지 표준시",
+        "type": "select",
+        "options": [
+          "한국 (UTC+9)",
+          "일본 (UTC+9)",
+          "중국·홍콩·대만·싱가포르 (UTC+8)",
+          "베트남·태국 (UTC+7)",
+          "인도 (UTC+5:30)",
+          "아랍에미리트 (UTC+4)",
+          "영국 (UTC+0)",
+          "중부 유럽 (UTC+1)",
+          "미국 동부",
+          "미국 중부",
+          "미국 서부",
+          "캐나다 토론토",
+          "호주 동부",
+          "뉴질랜드"
+        ],
+        "help": "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요."
+      },
+      {
+        "id": "gender",
+        "label": "성별",
+        "type": "select",
+        "options": [
+          "선택 안 함",
+          "남성",
+          "여성"
+        ],
+        "help": "사주 대운의 순행/역행과 자미두수 명반 배치를 산출하는 데 쓰입니다."
+      }
+    ],
+    "role": "사주 명식·자미두수 명반·출생 차트 같은 확정 산출값을 먼저 읽고 체계 간 신호를 대조하는 통합 운세 상담가",
+    "principles": [
+      "해석마다 어느 체계의 어느 값에서 나왔는지 근거를 밝힙니다(예: 월지 신 금왕절, 명궁 태음, 상승궁 천칭자리).",
+      "체계마다 신호가 어긋나면 억지로 하나로 합치지 말고, 어긋난다는 사실과 각각의 근거를 함께 보여 줍니다.",
+      "체계 수만큼 결론을 늘리지 말고, 여러 체계가 겹쳐 가리키는 지점을 먼저 짚습니다.",
+      "질문자의 선택권을 흐리지 않고, 상징은 가능성의 언어로 전합니다."
+    ],
+    "answerSections": [
+      "질문의 핵심 정리",
+      "체계별 근거와 해석 (고른 체계마다 어떤 값에서 무엇을 읽었는지)",
+      "체계 간 겹치는 신호와 어긋나는 신호",
+      "상담 기간에 따른 흐름과 주의할 구간",
+      "현실적인 선택지와 각각의 대가",
+      "오늘부터 할 수 있는 작은 실천"
+    ]
+  },
+  {
+    "id": "basic",
+    "label": "기본 운세",
+    "description": "오늘이나 특정 기간의 흐름을 부담 없이 살핍니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "targetDate",
+        "label": "확인할 날짜 또는 기간",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 2026년 7월, 이번 주말"
+      },
+      {
+        "id": "focusArea",
+        "label": "관심 영역",
+        "type": "multiselect",
+        "options": [
+          "일",
+          "연애",
+          "돈",
+          "건강",
+          "관계",
+          "학업"
+        ]
+      }
+    ],
+    "role": "일상의 흐름을 쉽고 밝게 짚어 주는 운세 상담가",
+    "principles": [
+      "무겁지 않은 언어로 안내합니다.",
+      "기간과 관심 영역을 분명히 나눕니다.",
+      "실행 가능한 조언을 우선합니다."
+    ],
+    "answerSections": [
+      "기간의 전체 흐름",
+      "관심 영역별 신호",
+      "피하면 좋은 행동",
+      "가볍게 시도할 일"
+    ]
+  },
+  {
+    "id": "saju",
+    "label": "사주/명리학",
+    "description": "시간과 오행의 구조로 질문의 뿌리를 살핍니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "gender",
+        "label": "성별",
+        "type": "select",
+        "options": [
+          "선택 안 함",
+          "남성",
+          "여성"
+        ],
+        "help": "사주 대운의 순행/역행과 자미두수 명반 배치를 산출하는 데 쓰입니다."
+      },
+      {
+        "id": "focusPillar",
+        "label": "중점 영역",
+        "type": "select",
+        "options": [
+          "성향",
+          "일과 재능",
+          "관계",
+          "재물",
+          "대운 흐름"
+        ]
+      }
+    ],
+    "role": "오행과 십성의 균형을 차분히 읽는 명리학자",
+    "principles": [
+      "출생 정보가 불완전하면 단정하지 않습니다.",
+      "오행, 십성, 대운을 구분해 설명합니다.",
+      "강약보다 균형과 보완을 중심에 둡니다."
+    ],
+    "answerSections": [
+      "명식에서 먼저 볼 축",
+      "오행과 십성의 흐름",
+      "현재 질문과 맞닿은 지점",
+      "보완하면 좋은 태도",
+      "현실적인 선택 조언"
+    ]
+  },
+  {
+    "id": "yukhyo",
+    "label": "육효",
+    "description": "여섯 효의 변화로 지금 질문의 판단점을 세웁니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "drawMethod",
+        "label": "괘를 얻은 방식",
+        "type": "select",
+        "options": [
+          "동전",
+          "숫자",
+          "시간",
+          "직접 입력"
+        ]
+      },
+      {
+        "id": "sixLines",
+        "label": "여섯 효 또는 동전 결과",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "아래에서 위 순서로 적어 주세요. 예: 소양, 노음, 소음..."
+      },
+      {
+        "id": "questionTime",
+        "label": "질문 시각",
+        "type": "datetime-local"
+      }
+    ],
+    "role": "괘와 효의 변화를 절제된 언어로 읽는 육효 상담가",
+    "principles": [
+      "한 번에 하나의 질문만 다룹니다.",
+      "본괘, 변괘, 동효의 의미를 구분합니다.",
+      "판단은 가능성과 주의점으로 전합니다."
+    ],
+    "answerSections": [
+      "질문의 초점",
+      "본괘의 분위기",
+      "움직이는 효",
+      "변화 뒤의 흐름",
+      "결정 전 확인할 현실 조건"
+    ]
+  },
+  {
+    "id": "dangsaju",
+    "label": "당사주",
+    "description": "열두 자리와 생시의 흐름으로 삶의 결을 살핍니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "lifeArea",
+        "label": "중점 영역",
+        "type": "select",
+        "options": [
+          "전체 흐름",
+          "초년",
+          "중년",
+          "말년",
+          "관계",
+          "일"
+        ]
+      }
+    ],
+    "role": "12성의 흐름을 정교하게 풀어내는 당사주 상담가",
+    "principles": [
+      "12성의 배치를 삶의 시기와 연결합니다.",
+      "고전적 표현을 현대적인 조언으로 풀어냅니다.",
+      "한 사람의 가능성을 좁히지 않습니다."
+    ],
+    "answerSections": [
+      "12성의 중심 흐름",
+      "시기별로 드러나는 결",
+      "현재 질문과 맞물린 자리",
+      "관계와 행동의 조언"
+    ]
+  },
+  {
+    "id": "kusei",
+    "label": "구성기학",
+    "description": "방향과 시기의 질서를 공간적으로 살핍니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "baseDate",
+        "label": "분석 기준일",
+        "type": "date",
+        "required": true
+      },
+      {
+        "id": "directionQuestion",
+        "label": "이동·방향·거주 질문",
+        "type": "textarea",
+        "rows": 3,
+        "placeholder": "예: 이사 방향, 출장 시기, 자리 이동"
+      }
+    ],
+    "role": "방위와 시기의 질서를 명료하게 읽는 구성기학 상담가",
+    "principles": [
+      "방위, 시기, 생활 조건을 함께 봅니다.",
+      "금기보다 조정 가능한 현실 대안을 제안합니다.",
+      "불확실한 계산값은 가능성으로 설명합니다."
+    ],
+    "answerSections": [
+      "본명성과 기준 흐름",
+      "방위에서 살필 신호",
+      "시기 선택의 장단점",
+      "현실적인 조정 방법"
+    ]
+  },
+  {
+    "id": "psych",
+    "label": "심리테스트",
+    "description": "가볍게 자신을 탐색하는 질문을 만듭니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "testTheme",
+        "label": "테스트 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 관계에서 내가 피곤해지는 순간"
+      },
+      {
+        "id": "audience",
+        "label": "대상",
+        "type": "select",
+        "options": [
+          "나 자신",
+          "연인",
+          "친구",
+          "팀",
+          "콘텐츠 독자"
+        ]
+      },
+      {
+        "id": "questionCount",
+        "label": "문항 수",
+        "type": "number",
+        "min": 4,
+        "max": 20
+      },
+      {
+        "id": "resultType",
+        "label": "결과 유형",
+        "type": "select",
+        "options": [
+          "4가지 타입",
+          "5단계 점수",
+          "짧은 리포트",
+          "카드형 결과"
+        ]
+      }
+    ],
+    "role": "부담 없는 질문으로 자기 이해를 돕는 심리테스트 설계자",
+    "principles": [
+      "낙인찍는 표현을 피합니다.",
+      "질문은 짧고 명확하게 둡니다.",
+      "결과는 위로와 실천으로 이어지게 합니다."
+    ],
+    "answerSections": [
+      "테스트 소개",
+      "문항 구성",
+      "채점 기준",
+      "결과 타입",
+      "타입별 조언"
+    ]
+  },
+  {
+    "id": "tarot",
+    "label": "타로",
+    "description": "상징이 담긴 카드로 질문의 흐름을 읽습니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "spread",
+        "label": "스프레드 종류",
+        "type": "select",
+        "required": true,
+        "options": [
+          "원 카드",
+          "3카드",
+          "켈틱 크로스",
+          "관계 스프레드",
+          "직접 지정"
+        ]
+      },
+      {
+        "id": "cardCount",
+        "label": "카드 수",
+        "type": "number",
+        "min": 1,
+        "max": 12
+      },
+      {
+        "id": "drawnCards",
+        "label": "직접 뽑은 카드 및 정·역방향",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "예: 1. The Star 정방향, 2. Two of Cups 역방향"
+      }
+    ],
+    "role": "카드의 상징과 질문자의 마음을 함께 읽는 타로 리더",
+    "principles": [
+      "카드의 정·역방향을 구분합니다.",
+      "상징을 단정적 예언으로 몰아가지 않습니다.",
+      "질문자의 선택과 대화 가능성을 열어 둡니다."
+    ],
+    "answerSections": [
+      "질문에 어울리는 스프레드",
+      "카드별 상징",
+      "카드 사이의 이야기",
+      "지금 필요한 태도",
+      "현실적인 다음 행동"
+    ]
+  },
+  {
+    "id": "astrology",
+    "label": "점성술",
+    "description": "행성과 별자리의 관계를 차트처럼 읽습니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimezone",
+        "label": "출생지 표준시",
+        "type": "select",
+        "options": [
+          "한국 (UTC+9)",
+          "일본 (UTC+9)",
+          "중국·홍콩·대만·싱가포르 (UTC+8)",
+          "베트남·태국 (UTC+7)",
+          "인도 (UTC+5:30)",
+          "아랍에미리트 (UTC+4)",
+          "영국 (UTC+0)",
+          "중부 유럽 (UTC+1)",
+          "미국 동부",
+          "미국 중부",
+          "미국 서부",
+          "캐나다 토론토",
+          "호주 동부",
+          "뉴질랜드"
+        ],
+        "help": "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요."
+      },
+      {
+        "id": "analysisArea",
+        "label": "분석 영역",
+        "type": "select",
+        "options": [
+          "성향",
+          "관계",
+          "커리어",
+          "시기",
+          "트랜짓"
+        ]
+      }
+    ],
+    "role": "행성과 하우스의 관계를 분석적으로 읽는 점성술사",
+    "principles": [
+      "태양, 달, 상승궁을 구분해 설명합니다.",
+      "하우스와 행성의 상징을 현실 언어로 풀어냅니다.",
+      "트랜짓은 가능성의 흐름으로 안내합니다."
+    ],
+    "answerSections": [
+      "차트에서 먼저 볼 축",
+      "행성·하우스의 신호",
+      "질문과 연결되는 지점",
+      "시기별 가능성",
+      "현실적인 조언"
+    ]
+  },
+  {
+    "id": "vedic",
+    "label": "베다점",
+    "description": "전통적인 베다 점성 체계로 흐름을 살핍니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimezone",
+        "label": "출생지 표준시",
+        "type": "select",
+        "options": [
+          "한국 (UTC+9)",
+          "일본 (UTC+9)",
+          "중국·홍콩·대만·싱가포르 (UTC+8)",
+          "베트남·태국 (UTC+7)",
+          "인도 (UTC+5:30)",
+          "아랍에미리트 (UTC+4)",
+          "영국 (UTC+0)",
+          "중부 유럽 (UTC+1)",
+          "미국 동부",
+          "미국 중부",
+          "미국 서부",
+          "캐나다 토론토",
+          "호주 동부",
+          "뉴질랜드"
+        ],
+        "help": "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요."
+      },
+      {
+        "id": "vedicTopic",
+        "label": "분석 주제",
+        "type": "select",
+        "options": [
+          "라그나",
+          "나크샤트라",
+          "다샤",
+          "관계",
+          "커리어"
+        ]
+      },
+      {
+        "id": "advancedSettings",
+        "label": "고급 설정",
+        "type": "textarea",
+        "rows": 3,
+        "advanced": true,
+        "placeholder": "알고 있는 라그나, 나크샤트라, 아야남샤 설정"
+      }
+    ],
+    "role": "베다 점성의 전통을 차분히 풀어내는 베다 점성술사",
+    "principles": [
+      "라그나와 나크샤트라를 구분합니다.",
+      "다샤는 시기의 분위기로 설명합니다.",
+      "전통 용어는 쉬운 말로 덧붙입니다."
+    ],
+    "answerSections": [
+      "베다 차트의 중심",
+      "나크샤트라와 다샤의 흐름",
+      "질문과 연결되는 가능성",
+      "조심할 판단",
+      "실천 조언"
+    ]
+  },
+  {
+    "id": "ziwei",
+    "label": "자미두수",
+    "description": "별과 명궁의 배치를 정밀하게 살핍니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTime",
+        "label": "출생 시각",
+        "type": "time",
+        "help": "정확하지 않다면 고급 설정에서 모름을 선택해 주세요.",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTimeUnknown",
+        "label": "출생 시각 모름",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "gender",
+        "label": "성별",
+        "type": "select",
+        "options": [
+          "선택 안 함",
+          "남성",
+          "여성"
+        ],
+        "help": "사주 대운의 순행/역행과 자미두수 명반 배치를 산출하는 데 쓰입니다."
+      },
+      {
+        "id": "palace",
+        "label": "중점적으로 볼 궁",
+        "type": "select",
+        "options": [
+          "12궁 전체",
+          "명궁",
+          "재백궁",
+          "관록궁",
+          "부처궁",
+          "복덕궁",
+          "천이궁"
+        ],
+        "help": "기본은 12궁 전체입니다. 특정 궁을 고르면 12궁 전체를 근거로 두되 그 궁을 중심으로 풀어 줍니다."
+      }
+    ],
+    "role": "명반 12궁과 별의 배치를 두루 읽는 자미두수 해석가",
+    "principles": [
+      "궁과 별의 역할을 분리해 설명합니다.",
+      "권위적인 단정보다 구조적 가능성을 전합니다.",
+      "질문자의 현실 조건을 함께 살핍니다."
+    ],
+    "answerSections": [
+      "명반 12궁 전체의 짜임",
+      "별의 배치가 비추는 기질",
+      "중점적으로 볼 궁과 질문의 연결",
+      "강점과 보완점",
+      "현실적인 실행 방향"
+    ]
+  },
+  {
+    "id": "sukuyo",
+    "label": "숙요점",
+    "description": "달의 숙과 관계의 흐름을 섬세하게 봅니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "calendarType",
+        "label": "내 양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "birthDate",
+        "label": "내 생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "leapMonth",
+        "label": "내 윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "birthTime",
+        "label": "내 출생 시각",
+        "type": "time",
+        "advanced": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthPlace",
+        "label": "내 출생 지역",
+        "type": "text",
+        "placeholder": "예: 서울",
+        "advanced": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "birthTimezone",
+        "label": "내 출생지 표준시",
+        "type": "select",
+        "options": [
+          "한국 (UTC+9)",
+          "일본 (UTC+9)",
+          "중국·홍콩·대만·싱가포르 (UTC+8)",
+          "베트남·태국 (UTC+7)",
+          "인도 (UTC+5:30)",
+          "아랍에미리트 (UTC+4)",
+          "영국 (UTC+0)",
+          "중부 유럽 (UTC+1)",
+          "미국 동부",
+          "미국 중부",
+          "미국 서부",
+          "캐나다 토론토",
+          "호주 동부",
+          "뉴질랜드"
+        ],
+        "help": "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요.",
+        "advanced": true
+      },
+      {
+        "id": "partnerCalendarType",
+        "label": "상대 양력/음력",
+        "type": "select",
+        "options": [
+          "양력",
+          "음력"
+        ]
+      },
+      {
+        "id": "partnerBirthDate",
+        "label": "상대 생년월일",
+        "type": "date",
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "partnerBirthTime",
+        "label": "상대 출생 시각",
+        "type": "time",
+        "advanced": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "partnerBirthPlace",
+        "label": "상대 출생 지역",
+        "type": "text",
+        "placeholder": "예: 부산",
+        "advanced": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "partnerBirthTimezone",
+        "label": "상대 출생지 표준시",
+        "type": "select",
+        "options": [
+          "한국 (UTC+9)",
+          "일본 (UTC+9)",
+          "중국·홍콩·대만·싱가포르 (UTC+8)",
+          "베트남·태국 (UTC+7)",
+          "인도 (UTC+5:30)",
+          "아랍에미리트 (UTC+4)",
+          "영국 (UTC+0)",
+          "중부 유럽 (UTC+1)",
+          "미국 동부",
+          "미국 중부",
+          "미국 서부",
+          "캐나다 토론토",
+          "호주 동부",
+          "뉴질랜드"
+        ],
+        "help": "출생 시각을 어느 나라 표준시로 적었는지 고릅니다. 해외에서 태어났다면 바꿔 주세요.",
+        "advanced": true
+      },
+      {
+        "id": "partnerLeapMonth",
+        "label": "상대 윤달 여부",
+        "type": "checkbox",
+        "advanced": true
+      },
+      {
+        "id": "relationshipType",
+        "label": "관계 유형",
+        "type": "select",
+        "options": [
+          "연애",
+          "부부",
+          "썸",
+          "친구",
+          "동료",
+          "가족"
+        ]
+      }
+    ],
+    "role": "달의 숙과 관계의 리듬을 섬세하게 읽는 숙요점 상담가",
+    "principles": [
+      "산출된 본명숙과 구요 관계를 근거로 삼되 다시 계산하지 않습니다.",
+      "상대의 마음을 단정하지 않습니다.",
+      "관계의 거리와 리듬을 중심으로 봅니다.",
+      "상호 존중의 행동을 제안합니다."
+    ],
+    "answerSections": [
+      "나와 상대의 본명숙이 보여주는 기본 결",
+      "구요 관계에서 끌림과 피로가 생기는 지점",
+      "관계의 거리와 대화의 타이밍",
+      "이 관계를 지키기 위한 행동"
+    ]
+  },
+  {
+    "id": "numerology",
+    "label": "수비학",
+    "description": "숫자에 담긴 반복과 패턴을 논리적으로 봅니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "birthDate",
+        "label": "생년월일",
+        "type": "date",
+        "required": true,
+        "privacyHint": "입력한 출생 정보는 이 화면에서 프롬프트 문장에만 반영됩니다. 실제 상담에 붙여넣기 전 민감한 정보는 직접 조정해 주세요."
+      },
+      {
+        "id": "includeName",
+        "label": "이름을 함께 반영",
+        "type": "checkbox",
+        "privacyHint": "이름은 숫자 진동을 정리하는 단서로만 프롬프트에 포함됩니다. 공유 전 이니셜로 바꿔도 좋습니다."
+      },
+      {
+        "id": "name",
+        "label": "이름",
+        "type": "text",
+        "advanced": true
+      },
+      {
+        "id": "numberFocus",
+        "label": "분석 숫자 또는 관심 주제",
+        "type": "text",
+        "placeholder": "예: 라이프패스, 7이 반복됨, 이직 시기"
+      }
+    ],
+    "role": "숫자의 반복과 리듬을 논리적으로 해석하는 수비학 해석가",
+    "principles": [
+      "숫자를 성향의 가능성으로 설명합니다.",
+      "반복 패턴과 현재 선택을 연결합니다.",
+      "실천 가능한 행동으로 마무리합니다."
+    ],
+    "answerSections": [
+      "핵심 숫자",
+      "반복되는 패턴",
+      "현재 질문과의 연결",
+      "강점과 과제",
+      "현실적인 조언"
+    ]
+  },
+  {
+    "id": "dream",
+    "label": "꿈/상징",
+    "description": "꿈속 장면과 감정의 상징을 기록합니다.",
+    "fields": [
+      {
+        "id": "dreamText",
+        "label": "꿈의 내용",
+        "type": "textarea",
+        "required": true,
+        "rows": 5,
+        "placeholder": "꿈에서 기억나는 장면을 순서대로 적어 주세요."
+      },
+      {
+        "id": "mainScenes",
+        "label": "주요 장면",
+        "type": "text",
+        "placeholder": "예: 물가, 닫힌 문, 오래된 집"
+      },
+      {
+        "id": "characters",
+        "label": "등장 인물",
+        "type": "text",
+        "placeholder": "예: 낯선 사람, 가족, 예전 친구"
+      },
+      {
+        "id": "emotions",
+        "label": "깨어난 뒤 감정",
+        "type": "multiselect",
+        "options": [
+          "불안",
+          "그리움",
+          "안도",
+          "설렘",
+          "혼란",
+          "슬픔",
+          "해방감"
+        ]
+      },
+      {
+        "id": "symbols",
+        "label": "반복된 상징",
+        "type": "text",
+        "placeholder": "예: 물, 열쇠, 계단, 새"
+      },
+      {
+        "id": "recentContext",
+        "label": "최근 상황",
+        "type": "textarea",
+        "rows": 3
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      }
+    ],
+    "role": "꿈의 장면과 감정의 상징을 섬세하게 읽는 꿈 상징 해석가",
+    "principles": [
+      "꿈을 현실의 확정 예고로 말하지 않습니다.",
+      "상징과 감정을 함께 다룹니다.",
+      "최근 상황과 연결하되 단정하지 않습니다."
+    ],
+    "answerSections": [
+      "꿈의 핵심 장면",
+      "상징별 의미",
+      "감정의 흐름",
+      "최근 상황과의 연결",
+      "기록하거나 실천할 일"
+    ]
+  },
+  {
+    "id": "horary",
+    "label": "호라리",
+    "description": "질문이 떠오른 순간의 시간과 하늘을 봅니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "horaryQuestion",
+        "label": "하나의 명확한 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 3,
+        "help": "예/아니오로 좁힐 수 있을 만큼 선명한 질문이 좋습니다."
+      },
+      {
+        "id": "questionDateTime",
+        "label": "질문이 떠오른 날짜·시각",
+        "type": "datetime-local",
+        "required": true
+      },
+      {
+        "id": "questionPlace",
+        "label": "질문 장소",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 서울 강남구"
+      }
+    ],
+    "role": "질문이 떠오른 순간의 하늘을 읽는 호라리 점성술사",
+    "principles": [
+      "질문은 하나로 좁혀 다룹니다.",
+      "시각과 장소의 불확실성을 명시합니다.",
+      "판단은 가능성과 조건으로 설명합니다."
+    ],
+    "answerSections": [
+      "질문의 성립 여부",
+      "시각과 장소 기준",
+      "주요 시그니피케이터",
+      "가능성과 장애물",
+      "결정 전 확인할 현실 조건"
+    ]
+  },
+  {
+    "id": "meihua",
+    "label": "매화역수",
+    "description": "시간, 수, 자연의 징후로 변화를 관찰합니다.",
+    "fields": [
+      {
+        "id": "topic",
+        "label": "상담 주제",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 올해의 일과 사랑 흐름"
+      },
+      {
+        "id": "question",
+        "label": "구체적인 질문",
+        "type": "textarea",
+        "required": true,
+        "rows": 4,
+        "placeholder": "지금 가장 알고 싶은 마음의 방향을 한 가지로 적어 주세요."
+      },
+      {
+        "id": "context",
+        "label": "상황 설명",
+        "type": "textarea",
+        "rows": 4,
+        "placeholder": "최근의 흐름, 고민의 배경, 마음에 남은 장면을 적어 주세요."
+      },
+      {
+        "id": "tone",
+        "label": "원하는 답변 어조",
+        "type": "select",
+        "options": [
+          "차분한 상담",
+          "따뜻한 위로",
+          "현실적인 조언",
+          "상징적인 문장",
+          "간결한 정리"
+        ]
+      },
+      {
+        "id": "depth",
+        "label": "원하는 답변 깊이",
+        "type": "select",
+        "options": [
+          "핵심만 짧게",
+          "균형 있게",
+          "깊고 자세하게"
+        ]
+      },
+      {
+        "id": "avoid",
+        "label": "피하고 싶은 표현",
+        "type": "text",
+        "placeholder": "예: 겁을 주는 말, 단정적인 예언",
+        "advanced": true
+      },
+      {
+        "id": "eventDateTime",
+        "label": "사건이나 징후가 발생한 시각",
+        "type": "datetime-local",
+        "required": true
+      },
+      {
+        "id": "numberOrSign",
+        "label": "숫자 또는 계기",
+        "type": "text",
+        "required": true,
+        "placeholder": "예: 떠오른 숫자 37, 시계 11:11, 문득 본 매화"
+      },
+      {
+        "id": "observation",
+        "label": "관찰한 징후",
+        "type": "textarea",
+        "rows": 3
+      }
+    ],
+    "role": "수와 징후에서 변화의 결을 읽는 매화역수 해석가",
+    "principles": [
+      "징후를 과장하지 않고 관찰의 단서로 봅니다.",
+      "본괘, 호괘, 변괘의 흐름을 나눕니다.",
+      "시적인 표현과 현실 조언의 균형을 지킵니다."
+    ],
+    "answerSections": [
+      "질문의 씨앗",
+      "숫자와 징후의 의미",
+      "본괘와 변괘의 흐름",
+      "전환점",
+      "현실적인 실천"
+    ]
+  }
+]
+

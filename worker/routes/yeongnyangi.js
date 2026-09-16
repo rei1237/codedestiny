@@ -5,6 +5,7 @@ import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { activateFortune, generateNextChapter, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
 import { readRequest, ownerId, YeongnyangiRequest } from '../yeongnyangi/repository.js';
+import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
   "BIRTH_TIME_REQUIRED": "이 운세에는 출생시간이 필요해요. 프로필의 시간을 확인해 주세요.",
@@ -18,7 +19,12 @@ const messages={
   "LLM_NOT_CONFIGURED": "지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.",
   "GENERATION_REVIEW_REQUIRED": "상담을 완료하지 못해 확인이 필요해요. 다시 결제하지 말고 상담 기록의 주문번호와 함께 문의해 주세요.",
   "FORTUNE_PROVIDER_FAILED": "상담을 잠시 멈췄어요. 다시 결제하지 말고 같은 상담에서 이어가 주세요.",
-  "PARTNER_NOT_SUPPORTED": "두 사람의 궁합은 숙요 상담에서 선택해 주세요."
+  "PARTNER_NOT_SUPPORTED": "두 사람의 궁합은 숙요 상담에서 선택해 주세요.",
+  "ANCHOVY_REQUIRED": "멸치가 한 마리 필요해요. 먼저 오늘 출석을 확인해 주세요.",
+  "DAILY_PASS_REQUIRED": "오늘의 16종을 먼저 열어 주세요. 멸치 한 마리면 모두 볼 수 있어요.",
+  "FREE_PROFILE_REQUIRED": "이 운세에는 본인 프로필이 필요해요. 프로필을 선택하거나 새로 만들어 주세요.",
+  "INVALID_CATEGORY": "선택한 무료 운세를 찾지 못했어요. 목록에서 다시 골라 주세요.",
+  "FREE_READING_PENDING": "영냥이가 같은 이야기를 정리하고 있어요. 잠시 후 다시 확인해 주세요."
 };
 
 export async function handleYeongnyangiRoutes(request, env) {
@@ -32,6 +38,11 @@ export async function handleYeongnyangiRoutes(request, env) {
         allowedMethods:['POST'],requireJson:true,rateLimit:{limit:30,windowSeconds:60},rateLimitKey:`${auth.userId}:yeongnyangi:write`});
       if(!security.ok) return security.response;
     }
+    if(path==='attendance' && method==='GET') return json({ok:true,...await attendanceStatus(env,auth.userId)});
+    if(path==='attendance' && method==='POST') return json({ok:true,...await attend(env,auth.userId)});
+    if(path==='free/unlock' && method==='POST') return json({ok:true,...await unlockToday(env,auth.userId)});
+    if(path==='free/reading' && method==='GET') return json({ok:true,...await getFreeReading(env,auth.userId,url.searchParams.get('category')||'basic')});
+    if(path==='free/reading' && method==='POST') return json({ok:true,result:await prepareFreeReading(env,auth.userId,await readJson(request))});
     if(path==='requests' && method==='POST') {
       const body=await readJson(request);
       if(!body || typeof body!=='object' || Array.isArray(body)) {

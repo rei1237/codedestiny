@@ -3,6 +3,7 @@ import {createHttpError,json} from '../../worker/lib/http.js';
 
 const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
 const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
+const attendance=jest.fn(),attend=jest.fn(),unlock=jest.fn(),freeRead=jest.fn(),freePrepare=jest.fn();
 const find=jest.fn(),select=jest.fn(),sort=jest.fn(),limit=jest.fn(),lean=jest.fn();
 const query={select,sort,limit,lean};
 jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:auth}));
@@ -12,6 +13,9 @@ jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({pr
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
   prepareFortune:prepare,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
   providerReady:env=>Boolean(env.GEMINIF_API_KEY),
+}));
+jest.unstable_mockModule('../../worker/yeongnyangi/free-service.ts',()=>({
+  attendanceStatus:attendance,attend,unlockToday:unlock,getFreeReading:freeRead,prepareFreeReading:freePrepare,
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
   readRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},
@@ -28,6 +32,10 @@ function request(path,method='GET',body){
 beforeEach(()=>{
   jest.clearAllMocks();auth.mockResolvedValue({userId});security.mockResolvedValue({ok:true});
   for(const fn of [prepare,activate,generate,read])fn.mockResolvedValue({id,state:'PAID'});
+  attendance.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false});
+  attend.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false,awarded:true});
+  unlock.mockResolvedValue({day:'2026-09-16',balance:0,attended:true,unlocked:true,newlyUnlocked:true});
+  freeRead.mockResolvedValue({result:null});freePrepare.mockResolvedValue({category:'basic',title:'오늘의 운세'});
   find.mockReturnValue(query);select.mockReturnValue(query);sort.mockReturnValue(query);limit.mockReturnValue(query);lean.mockResolvedValue([]);
 });
 
@@ -77,4 +85,20 @@ test('owned lookup propagates a missing or foreign result as 404',async()=>{
   read.mockRejectedValue(Object.assign(new Error('not found'),{status:404,code:'REQUEST_NOT_FOUND'}));
   expect((await handleYeongnyangiRoutes(request(`requests/${id}`),env)).status).toBe(404);
   expect(read).toHaveBeenCalledWith(env,userId,id);
+});
+test('attendance, daily unlock and free reading always use the authenticated owner',async()=>{
+  expect((await handleYeongnyangiRoutes(request('attendance'),env)).status).toBe(200);
+  expect((await handleYeongnyangiRoutes(request('attendance','POST',{}),env)).status).toBe(200);
+  expect((await handleYeongnyangiRoutes(request('free/unlock','POST',{}),env)).status).toBe(200);
+  expect((await handleYeongnyangiRoutes(request('free/reading?category=basic'),env)).status).toBe(200);
+  const body={userId:'someone-else',category:'basic',profileId:'mine',draft:{}};
+  expect((await handleYeongnyangiRoutes(request('free/reading','POST',body),env)).status).toBe(200);
+  expect(attendance).toHaveBeenCalledWith(env,userId);expect(attend).toHaveBeenCalledWith(env,userId);
+  expect(unlock).toHaveBeenCalledWith(env,userId);expect(freeRead).toHaveBeenCalledWith(env,userId,'basic');
+  expect(freePrepare).toHaveBeenCalledWith(env,userId,body);
+});
+test.each(['attendance','free/unlock','free/reading'])('security rejection prevents free mutation at %s',async path=>{
+  security.mockResolvedValue({ok:false,response:json({code:'INVALID_ORIGIN'},{status:403})});
+  expect((await handleYeongnyangiRoutes(request(path,'POST',{}),env)).status).toBe(403);
+  expect(attend).not.toHaveBeenCalled();expect(unlock).not.toHaveBeenCalled();expect(freePrepare).not.toHaveBeenCalled();
 });

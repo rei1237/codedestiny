@@ -4203,12 +4203,19 @@ async function handleWithdraw(request, env) {
     console.error("[auth/withdraw] profile card delete failed:", error);
   }
 
-  // Consultation snapshots contain the same birth data and private questions as profiles.
+  // Consultation and free-reading snapshots contain birth data and private questions.
   try {
-    await User.db.collection("yeongnyangi_requests").deleteMany({ userId: objectId }, { maxTimeMS: 8000 });
+    for (const collection of [
+      "yeongnyangi_requests",
+      "yeongnyangi_free_readings",
+      "yeongnyangi_anchovy_ledger",
+    ]) {
+      await User.db.collection(collection).deleteMany({ userId: objectId }, { maxTimeMS: 8000 });
+    }
+    await User.db.collection("yeongnyangi_anchovy_accounts").deleteMany({ _id: objectId }, { maxTimeMS: 8000 });
   } catch (error) {
     partialFailure = true;
-    console.error("[auth/withdraw] yeongnyangi consultation delete failed:", error);
+    console.error("[auth/withdraw] yeongnyangi data delete failed:", error);
   }
 
   try {

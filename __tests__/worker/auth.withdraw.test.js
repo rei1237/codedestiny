@@ -281,6 +281,12 @@ describe("탈퇴 처리 — 비식별화 범위", () => {
     const call=collectionCalls.get('yeongnyangi_requests').deleteMany.mock.calls[0];
     expect(String(call[0].userId)).toBe(USER_ID);
     expect(call[1].maxTimeMS).toBe(8000);
+    for(const collection of ['yeongnyangi_free_readings','yeongnyangi_anchovy_ledger']){
+      const owned=collectionCalls.get(collection).deleteMany.mock.calls[0];
+      expect(String(owned[0].userId)).toBe(USER_ID);expect(owned[1].maxTimeMS).toBe(8000);
+    }
+    const account=collectionCalls.get('yeongnyangi_anchovy_accounts').deleteMany.mock.calls[0];
+    expect(String(account[0]._id)).toBe(USER_ID);expect(account[1].maxTimeMS).toBe(8000);
   });
 
   test("정상 탈퇴는 200 이고 인증 쿠키를 만료시킨다", async () => {
