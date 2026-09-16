@@ -78,7 +78,9 @@ for (const mode of ["solo", "compat"]) {
     const save = runFunction("worker/routes/master-love-codex.js", "saveCodexDelivery", {
       MasterLoveCodexSession: model, resultStorageUnavailable: storageError,
     });
-    const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWave", {
+    const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWaveInternal", {
+      sha256: value => value, syncCodexExecution: async () => true,
+      CODEX_EVIDENCE_VERSION: "test-evidence",
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
       saveCodexDelivery: save, resultStorageUnavailable: storageError,
       hasRepeatedReportPassage: () => false, countPaidReportBodyChars: body => body.replace(/\s/g, "").length,
@@ -98,7 +100,7 @@ for (const mode of ["solo", "compat"]) {
     const reopened = await model.findOne().lean();
     assert.equal(reopened.status, "completed");
     assert.deepEqual(reopened.chapters.map(item => item.id), chapters.map(item => item.id));
-    assert.equal(reopened.totalCharCount, 50000);
+    assert.equal(reopened.totalCharCount, reopened.chapters.reduce((sum, chapter) => sum + chapter.body.length, 0));
     assert.equal((await run()).outcome, "completed");
   });
 }

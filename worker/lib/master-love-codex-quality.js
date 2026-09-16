@@ -35,8 +35,12 @@ export function buildCodexChapterMemory(chapters = []) {
 /** Explicitly labelled fixture; its caller must enforce the three staging-only flags. */
 export function buildCodexStagingChapter(chapter, metricDefs) {
   const paragraph = `스테이징 검증용 ${chapter.title} 본문입니다. 실제 상담 해석이 아닙니다. 이 원고는 구매 권한 확인 이후 챕터 생성, 저장, 재열람과 모바일 표시가 연결되는지 확인합니다.\n\n`;
+  const paragraphs = Array.from({ length: Math.ceil(((chapter.minChars || 2400) + 200) / paragraph.length) }, (_, index) => {
+    let sentence = 0;
+    return paragraph.replace(/([^.!?。！？\n]+)([.!?。！？\n]|$)/g, (_match, text, separator) => `[fixture ${chapter.id}:${index}:${sentence++}] ${text}${separator}`);
+  });
   return {
-    body: (`## 스테이징 검증 원고\n\n` + paragraph.repeat(Math.ceil(((chapter.minChars || 2400) + 200) / paragraph.length))),
+    body: `## 스테이징 검증 원고\n\n${paragraphs.join("")}`,
     narration: "스테이징 검증 원고입니다. 실제 상담 결과가 아닙니다.",
     evidence: [{ label: "스테이징 입력", system: "검증", explanation: "서비스 실행과 저장 연결을 검증합니다." }],
     insight: "실제 LLM 비용 없이 생성·저장·복구 흐름을 확인합니다.",
@@ -113,14 +117,14 @@ export function parseChapterJson(text) {
 }
 
 /** Two bounded provider attempts cover malformed JSON and incomplete content too. */
-export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, maxAttempts = 2, options = {} }) {
-  let failure;
+export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, maxAttempts = 2, previousError = "", options = {} }) {
+  let failure = previousError ? new Error(previousError) : null;
   for (let attempt = 0; attempt < Math.min(2, Math.max(1, maxAttempts)); attempt += 1) {
     const remaining = deadlineAt - Date.now();
     if (remaining < minBudgetMs) throw failure || new Error("GENERATION_BUDGET_EXCEEDED");
-    const instruction = attempt ? `\n[재작성] 이전 응답은 ${failure?.message || "INVALID_OUTPUT"} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량과 필수 필드를 지켜 완성된 새 응답을 작성하라.` : "";
+    const instruction = failure ? `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.` : "";
     const ai = await call(prompt + instruction, {
-      ...options, attempts: 1, baseTokens: attempt ? 11000 : 8000, capTokens: 14000,
+      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, capTokens: 14000,
       timeoutMs: Math.min(Number(options.timeoutMs) || remaining, remaining),
     });
     if (ai?.ok === false) {

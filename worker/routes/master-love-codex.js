@@ -48,6 +48,7 @@ import { runCoinRefund, runMonthlyCreditRefund, runPaymentCancel } from "../lib/
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { resolveAiLocaleFromRequest, runWithAiLocale } from "../lib/ai-locale-context.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import {
@@ -642,7 +643,7 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
 
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
-  birthInfo, partnerInfo, chapter, prologueChoice, memory, deadlineAt = Infinity,
+  birthInfo, partnerInfo, chapter, prologueChoice, memory, previousError = "", snapshotKey, deadlineAt = Infinity,
 }) {
   // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
   const remainingMs = deadlineAt - Date.now();
@@ -664,9 +665,9 @@ async function generateChapter(env, {
   const basePrompt = modeDef.mode === "compat"
     ? buildMasterLoveCodexCompatChapterPrompt({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
-      compatibility, birthInfo, partnerInfo, chapter, memory,
+      compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true,
     })
-    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory });
+    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true });
   const prompt = `${basePrompt}\n${formatCodexEvidence(evidenceContract)}`;
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   try {
@@ -674,30 +675,35 @@ async function generateChapter(env, {
       // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
       const raced = await withDeadline(generateCodexChapterResponse(
         (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
-        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1,
+        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1, previousError,
           options: { temperature: 0.6, timeoutMs, cache, fallbackToWorkersAI: false } },
       ), deadlineAt);
-      if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
+      if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
       if (raced.error) throw raced.error;
       const { ai, parsed } = raced.value;
       const content = normalizeChapterContent(parsed);
       const body = content.body;
-      return {
+      const result = {
         status: "ok",
         chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, content, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
         loveDna: chapter.jsonMode ? normalizeLoveDna(parsed, modeDef.dnaMetrics) : null,
       };
+      // A stable, quality-checked checkpoint survives a lost session write/response.
+      // Its identity does not change when a later wave adds chapter summaries.
+      if (snapshotKey) await createLlmCacheStore(env).set(snapshotKey, { text: JSON.stringify({ ...result, parsed }), provider: ai?.provider }, 30 * 86400);
+      return result;
     }
 
     // 기존 공급자 폴백은 유지하되 어느 공급자든 같은 분량·완결 기준을 적용한다.
     const raced = await withDeadline(callGeminiText(env, prompt, {
       maxOutputTokens: 8000,
+      maxProviderAttempts: 1,
       temperature: 0.72,
       fallbackToWorkersAI: false,
       timeoutMs,
       cache,
     }), deadlineAt);
-    if (raced.deferred) return { status: "deferred", chapter: null, loveDna: null };
+    if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
     if (raced.error) throw raced.error;
     const ai = raced.value;
     if (ai?.ok === false) throw Object.assign(new Error(ai.message || ai.error || "LLM provider unavailable"), { code: "LLM_PROVIDER_UNAVAILABLE" });
@@ -713,8 +719,12 @@ async function generateChapter(env, {
     // 오류 안내를 구매한 분석 결과로 완료 처리하지 않는다. 같은 회차로 재시도한다.
     console.error("[master-love-codex] chapter", chapter.id, clean(error?.message, 200));
     const body = fallbackChapterBody(chapter, birthInfo);
+    const providerFailure = error?.code === "LLM_PROVIDER_UNAVAILABLE";
+    const uncertain = /timeout|timed out|aborted|network|fetch failed/i.test(String(error?.message)) || error?.code === "LLM_TIMEOUT_UNCERTAIN" || (providerFailure && (!Number(error?.status) || [408, 504, 524].includes(Number(error.status))));
     return {
-      status: error?.code === "LLM_PROVIDER_UNAVAILABLE" ? "retryable" : "fallback",
+      status: providerFailure || uncertain ? "retryable" : "fallback",
+      failure: { code: uncertain ? "LLM_TIMEOUT_UNCERTAIN" : providerFailure ? "LLM_PROVIDER_UNAVAILABLE" : clean(error?.message || "LLM_QUALITY_FAILED", 120),
+        kind: uncertain ? "uncertain" : providerFailure ? "provider_rejected" : "quality" },
       chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: "fallback", ok: false },
       loveDna: null,
     };
@@ -727,11 +737,17 @@ function buildMemory(chapters = []) {
 }
 
 function publicSession(doc) {
-  const chapters = (Array.isArray(doc?.chapters) ? doc.chapters : [])
+  const modeDef = resolveMode(doc?.mode);
+  const saved = new Map([...(doc?.chapters || []), ...(doc?.deliveryMeta?.savedChapters || [])]
+    .filter(row => row.ok !== false && modeDef.chapters.some(spec => spec.id === row.id && row.body?.length >= (spec.minChars || 2400)))
+    .map(row => [row.id, row]));
+  const readable = [];
+  for (const spec of modeDef.chapters) { if (!saved.has(spec.id)) break; readable.push(saved.get(spec.id)); }
+  const chapters = (doc?.status === "completed" ? (doc?.chapters || []) : readable)
     .slice()
     .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
     .map(({ id, order, symbol, title, body, content, chars, ok }) => ({ id, order, symbol, title, body, content, chars, ok }));
-  const modeDef = resolveMode(doc?.mode);
+  const retryAfterMs = Math.max(0, new Date(doc?.deliveryMeta?.nextAttemptAt || 0).getTime() - Date.now());
   return {
     ok: true,
     sessionId: clean(doc?.id),
@@ -750,7 +766,10 @@ function publicSession(doc) {
     partnerZiweiChart: doc?.partnerZiweiChart || null,
     compatibility: doc?.compatibility || null,
     chapters,
-    generationProgress: { completed: Math.max(chapters.length, Number(doc?.generationProgress?.completed || 0)), total: modeDef.chapters.length },
+    generationProgress: { completed: doc?.status === "completed" ? chapters.length : saved.size, readable: chapters.length, total: modeDef.chapters.length },
+    retryAfterMs,
+    retryable: doc?.deliveryMeta?.reviewRequired ? false : true,
+    ...(doc?.deliveryMeta?.reviewRequired ? { reason: "GENERATION_BUDGET_EXCEEDED", message: "구매한 회차와 저장된 장은 보존되어 있습니다. 이어쓰기 상태의 확인이 필요합니다." } : {}),
     loveDna: doc?.loveDna || null,
     totalChapters: modeDef.chapters.length,
     totalCharCount: Number(doc?.totalCharCount || 0),
@@ -766,13 +785,7 @@ async function sessionWithAccessToken(env, doc) {
   const current = await recoverCodexSession({ userId: doc.userId, sessionId: doc.id });
   if (!current || current.denied) return paymentVerifyFailed();
   doc = current.session;
-  await PaidExecutionRecord.updateOne({
-      userId: String(doc.userId), featureId: resolveMode(doc.mode).featureKey, requestId: doc.billingRequestId || doc.idempotencyKey,
-    status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
-  }, { $set: {
-    resultId: doc.id, status: doc.status === "completed" ? "completed" : "generating",
-    ...(doc.status === "completed" ? { completedAt: doc.updatedAt, consumedAt: doc.updatedAt } : {}),
-  } }).catch(error => console.warn("[master-love-codex] usage record", clean(error?.message, 120)));
+  await syncCodexExecution(doc);
   return json({
     ...publicSession(doc),
     done: doc.status === "completed",
@@ -780,6 +793,23 @@ async function sessionWithAccessToken(env, doc) {
       userId: doc.userId, accessType: doc.accessType, sessionId: doc.id,
     }, sessionMode(doc)),
   }, { status: doc.status === "completed" ? 200 : 202 });
+}
+
+export async function syncCodexExecution(doc) {
+  const saved = await PaidExecutionRecord.updateOne({
+      userId: String(doc.userId), featureId: resolveMode(doc.mode).featureKey, requestId: doc.billingRequestId || doc.idempotencyKey,
+    status: { $in: ["paid_pending_generation", "generating", "generation_failed", "completed"] },
+  }, { $set: {
+    resultId: doc.id, status: doc.status === "completed" ? "completed" : doc.status === "generation_failed" ? "generation_failed" : "generating",
+    error: doc.deliveryMeta?.reviewRequired ? { code: "GENERATION_BUDGET_EXCEEDED", chapterIds: doc.deliveryMeta.exhaustedChapterIds } : null,
+    ...(doc.status === "completed" ? { completedAt: doc.updatedAt, consumedAt: doc.updatedAt } : {}),
+  } }).catch(error => console.warn("[master-love-codex] usage record", clean(error?.message, 120)));
+  if (saved?.matchedCount && doc.status === "completed" && doc.deliveryMeta?.executionSyncPending) {
+    await MasterLoveCodexSession.updateOne({ id: doc.id, userId: doc.userId, status: "completed" }, {
+      $set: { "deliveryMeta.executionSyncPending": false },
+    }).catch(() => {});
+  }
+  return Boolean(saved?.matchedCount);
 }
 
 function handlePlan(request) {
@@ -934,13 +964,16 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
 }
 
 async function handleStart(request, env) {
-  const body = await readJson(request);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  return startCodexSession(request, env, auth, await readJson(request));
+}
+
+// Only authenticated HTTP and trusted, encrypted paid-order recovery call this core.
+export async function startCodexSession(request, env, auth, body) {
   const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 120) || sha256(String(Date.now()));
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
-
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
-  if (!auth) return loginRequired();
 
   await connectDb(env);
   const recovered = await recoverCodexSession({
@@ -993,6 +1026,7 @@ async function handleStart(request, env) {
     idempotencyKey,
     inputHash: normalized.inputHash,
     status: "generating",
+    deliveryMeta: { locale: resolveAiLocaleFromRequest(request, body) },
     passRefund: access.passRefund || null,
   } }, { upsert: true, new: true }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
 
@@ -1029,6 +1063,11 @@ export async function acquireBatchLock(sessionId, userId) {
       id: sessionId,
       userId,
       status: { $in: ["generating", "delivery_pending", "generation_failed"] },
+      "deliveryMeta.reviewRequired": { $ne: true },
+      "passRefund.refundedAt": { $exists: false },
+      "billingRefund.refundedAt": { $exists: false },
+      $and: [{ $or: [{ "deliveryMeta.nextAttemptAt": { $exists: false } }, { "deliveryMeta.nextAttemptAt": null },
+        { "deliveryMeta.nextAttemptAt": { $lte: new Date(now) } }] }],
       $or: [
         { "generationProgress.lockedAt": { $exists: false } },
         { "generationProgress.lockedAt": null },
@@ -1179,6 +1218,9 @@ async function handleGenerate(request, env, dependencies = {}) {
   if (recovered.denied) return paymentVerifyFailed();
   if (tokenPayload && !tokenMatchesMode(tokenPayload, sessionMode(recovered.session))) return paymentVerifyFailed();
   if (recovered.session.status === "completed") return sessionWithAccessToken(env, recovered.session);
+  const waiting = publicSession(recovered.session);
+  if (waiting.retryable === false || waiting.retryAfterMs > 0) return json({ ...waiting, ok: false,
+    reason: waiting.retryable === false ? "GENERATION_BUDGET_EXCEEDED" : "LLM_PROVIDER_UNAVAILABLE" }, { status: 503 });
   const lock = await acquireBatchLock(sessionId, clean(auth.userId));
   if (!lock.ok) {
     const current = await MasterLoveCodexSession.findOne({ id: sessionId, userId: clean(auth.userId) }).lean();
@@ -1216,7 +1258,8 @@ async function handleGenerate(request, env, dependencies = {}) {
     case "stalled": return json({
       ok: false,
       reason: wave.reason,
-      retryable: true,
+      retryable: wave.retryable !== false,
+      retryAfterMs: wave.retryAfterMs || 0,
       message: "생성이 지연되고 있습니다. 지금까지 쓰인 장은 그대로 보관되니 잠시 후 이어서 쓰면 됩니다.",
     }, { status: 503 });
     default: return serverError("이야기를 이어 쓰는 중 문제가 생겼습니다. 결제와 지금까지 쓰인 장은 보존되니 잠시 후 다시 시도해 주세요.", 503);
@@ -1250,7 +1293,11 @@ async function saveCodexDelivery(filter, fields, sessionId) {
   } catch { throw resultStorageUnavailable(sessionId); }
 }
 
-export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dependencies = {}, deadlineAt }) {
+export async function runCodexWave(env, options) {
+  return runWithAiLocale(options.doc?.deliveryMeta?.locale || "ko", () => runCodexWaveInternal(env, options));
+}
+
+async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, dependencies = {}, deadlineAt }) {
   const ownerId = clean(userId);
   const lockFilter = { id: sessionId, userId: ownerId, "generationProgress.lockToken": lockToken, status: { $ne: "completed" } };
   const modeDef = resolveMode(doc.mode);
@@ -1259,16 +1306,41 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
     const byId = new Map([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
       .filter(chapter => chapter.ok !== false && modeDef.chapters.some(spec => spec.id === chapter.id && chapter.body?.length >= (spec.minChars || 2400)))
       .map(chapter => [chapter.id, chapter]));
+    const snapshotStore = dependencies.chapterSnapshotStore || (!dependencies.generateChapter ? createLlmCacheStore(env) : null);
+    const snapshotKey = chapter => `codex-chapter:${sha256(JSON.stringify([sessionId, doc.inputHash, modeDef.mode, chapter.id, CODEX_EVIDENCE_VERSION, doc.deliveryMeta?.locale || "ko", "chapter-v2"]))}`;
+    // Read committed storage first (the lock document), then a stable validated cache.
+    // Even an exhausted uncertain reservation may already have a completed checkpoint.
+    if (snapshotStore) for (const chapter of modeDef.chapters.filter(spec => !byId.has(spec.id) && Number(doc.deliveryMeta?.attempts?.[spec.id]) > 0)) {
+      const restored = await withDeadline(snapshotStore.get(snapshotKey(chapter)), deadlineAt);
+      if (restored.deferred) break;
+      try {
+        const cached = JSON.parse(restored.value?.text || "null");
+        if (!cached?.parsed || cached.chapter?.id !== chapter.id) continue;
+        assertCodexChapterQuality(cached.parsed, chapter, modeDef.dnaMetrics, buildCodexEvidence({ chapter,
+          saju: doc.sajuResult, ziweiChart: doc.ziweiChart, partnerSaju: doc.partnerSajuResult,
+          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility }));
+        const content = normalizeChapterContent(cached.parsed);
+        if (hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(content.body).join("\n"))) continue;
+        byId.set(chapter.id, { id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
+          body: content.body, chars: content.body.length, content, provider: clean(cached.chapter.provider, 40), ok: true });
+        if (chapter.jsonMode) current.loveDna = normalizeLoveDna(cached.parsed, modeDef.dnaMetrics);
+      } catch { /* Invalid caches never become purchased chapters. */ }
+    }
     const missing = modeDef.chapters.filter(chapter => !byId.has(chapter.id)).slice(0, CHAPTER_BATCH_SIZE);
     const attempts = { ...doc.deliveryMeta?.attempts };
-    const exhausted = missing.filter(chapter => Number(attempts[chapter.id] || 0) >= 3);
+    const errors = { ...doc.deliveryMeta?.errors };
+    const exhausted = modeDef.chapters.filter(chapter => !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= 3);
     if (exhausted.length) {
-      if (exhausted.some(chapter => Number(doc.deliveryMeta?.failures?.[chapter.id] || 0) < 3)) throw resultStorageUnavailable(sessionId);
       const reason = "SERVICE_GENERATION_FAILED";
-      current = await saveCodexDelivery(lockFilter, { status: "generation_failed", generationError: { code: reason, at: new Date() } }, sessionId);
-      await refundSessionPassIfNeeded(sessionId, ownerId, current, [...byId.values()], dependencies);
-      await refundSessionBillingIfNeeded(env, sessionId, ownerId, current, [...byId.values()], dependencies);
-      return { outcome: "stalled", reason };
+      current = await saveCodexDelivery(lockFilter, { status: "generation_failed", deliveryMeta: { ...current.deliveryMeta, reviewRequired: true,
+        reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: exhausted.map(row => row.id), savedChapters: [...byId.values()] }, generationError: { code: reason, at: new Date() } }, sessionId);
+      // Uncertain calls/storage are never definitive manuscript failures or refund evidence.
+      if (exhausted.every(chapter => Number(doc.deliveryMeta?.failures?.[chapter.id] || 0) >= 3)) {
+        await refundSessionPassIfNeeded(sessionId, ownerId, current, [...byId.values()], dependencies);
+        await refundSessionBillingIfNeeded(env, sessionId, ownerId, current, [...byId.values()], dependencies);
+      }
+      await syncCodexExecution(current);
+      return { outcome: "stalled", reason: "GENERATION_BUDGET_EXCEEDED", retryable: false };
     }
     if (missing.length) {
       missing.forEach(chapter => { attempts[chapter.id] = Number(attempts[chapter.id] || 0) + 1; });
@@ -1282,43 +1354,61 @@ export async function runCodexWave(env, { sessionId, userId, doc, lockToken, dep
           mode: modeDef.mode, saju: doc.sajuResult, ziweiChart: doc.ziweiChart,
           partnerSaju: doc.partnerSajuResult, partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility,
           birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), memory, deadlineAt,
-        }); } catch { result = { status: "fallback" }; }
+          previousError: errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
+        }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {
           const failures = { ...current.deliveryMeta?.failures };
           const valid = result?.status === "ok" && result.chapter?.id === chapter.id && result.chapter.ok
             && result.chapter.body?.length >= (chapter.minChars || 2400)
             && !hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(result.chapter.body).join("\n"));
-          if (valid) byId.set(chapter.id, result.chapter);
-          else if (["retryable", "deferred"].includes(result?.status)) {
+          if (valid) { byId.set(chapter.id, result.chapter); delete errors[chapter.id]; }
+          else if (result?.status === "deferred" || result?.failure?.kind === "provider_rejected") {
             // Provider outages and work that never started are not bad manuscripts.
             // Release this confirmed reservation while keeping uncertain calls capped.
             attempts[chapter.id] = Math.max(0, attempts[chapter.id] - 1);
             unavailable = true;
-          } else failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
+          } else if (result?.status === "retryable") unavailable = true;
+          else failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
+          if (!valid) errors[chapter.id] = { code: result?.failure?.code || (result?.status === "deferred" ? "CALL_DEFERRED" : result?.status === "ok" ? "LLM_OUTPUT_REPEATED" : "LLM_QUALITY_FAILED"),
+            kind: result?.failure?.kind || (result?.status === "deferred" ? "deferred" : "quality"), at: new Date() };
           const savedChapters = modeDef.chapters.map(spec => byId.get(spec.id)).filter(Boolean);
           const chapters = [];
           for (const spec of modeDef.chapters) { if (!byId.has(spec.id)) break; chapters.push(byId.get(spec.id)); }
-          const fields = { deliveryMeta: { ...current.deliveryMeta, savedChapters, attempts, failures }, chapters,
+          const fields = { deliveryMeta: { ...current.deliveryMeta, savedChapters, attempts, failures, errors }, chapters,
             totalCharCount: chapters.reduce((sum, row) => sum + Number(row.chars || row.body.length), 0),
             generationProgress: { ...current.generationProgress, completed: savedChapters.length, total: modeDef.chapters.length },
-            ...(result?.loveDna && valid ? { loveDna: result.loveDna } : {}),
+            ...(result?.loveDna && valid ? { loveDna: result.loveDna } : current.loveDna ? { loveDna: current.loveDna } : {}),
           };
           current = await saveCodexDelivery(lockFilter, fields, sessionId);
         }); queue = write; await write;
       }));
       const failure = outcomes.find(outcome => outcome.status === "rejected");
       if (failure) throw failure.reason;
-      if (unavailable) return { outcome: "stalled", reason: "LLM_PROVIDER_UNAVAILABLE" };
+      if (unavailable) {
+        const outages = Number(current.deliveryMeta?.outages || 0) + 1;
+        const retryAfterMs = Math.min(600000, 30000 * 2 ** Math.min(outages - 1, 5));
+        current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, outages,
+          nextAttemptAt: new Date(Date.now() + retryAfterMs) }, generationError: { code: "LLM_PROVIDER_UNAVAILABLE", at: new Date() } }, sessionId);
+        return { outcome: "stalled", reason: "LLM_PROVIDER_UNAVAILABLE", retryAfterMs, session: current };
+      }
     }
-    if (modeDef.chapters.some(chapter => !byId.has(chapter.id))) return { outcome: "committed", session: current, done: false };
+    if (modeDef.chapters.some(chapter => !byId.has(chapter.id))) {
+      if (current.deliveryMeta?.outages) current = await saveCodexDelivery(lockFilter, {
+        deliveryMeta: { ...current.deliveryMeta, outages: 0, nextAttemptAt: null }, generationError: null,
+      }, sessionId);
+      return { outcome: "committed", session: current, done: false };
+    }
     const chapters = modeDef.chapters.map(chapter => byId.get(chapter.id));
     const body = chapters.map(chapter => chapter.body).join("\n");
-    if (countPaidReportBodyChars(body) < 20000 || hasRepeatedReportPassage(body)) return { outcome: "stalled", reason: "SERVICE_GENERATION_FAILED" };
+    if (chapters.some((row, index) => row.body.length < modeDef.chapters[index].minChars) || hasRepeatedReportPassage(body)) return { outcome: "stalled", reason: "SERVICE_GENERATION_FAILED" };
     if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters }, sessionId);
     const authorized = await recoverCodexSession({ userId: ownerId, sessionId });
     if (!authorized || authorized.denied) return { outcome: "denied" };
     current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
+      loveDna: current.loveDna || null, totalCharCount: chapters.reduce((sum, row) => sum + row.body.length, 0),
+      deliveryMeta: { ...current.deliveryMeta, reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true },
       generationProgress: { completed: chapters.length, total: chapters.length, lockedAt: null, lockToken: "" } }, sessionId);
+    await syncCodexExecution(current);
     return { outcome: "completed", session: current, done: true };
   } catch (error) {
     // 모델/저장 예외를 생성 실패 환불로 보내지 않는다.

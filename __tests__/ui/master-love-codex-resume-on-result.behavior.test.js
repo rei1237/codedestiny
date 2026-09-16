@@ -181,11 +181,41 @@ test("초기 조회 장애 뒤 같은 구매본을 다시 읽으면 오류가 �
     copy: { resultUnstableRefreshError: "temporary", errorText: ERROR_TEXT },
     setError: value => { error = value; }, setLoading() {}, setSession: value => { stored = value; },
     isRetriableResultPollFailure: status => status === 503,
-    authFetch: async () => (++attempt === 1
-      ? { ok: false, status: 503, json: async () => ({ ok: false }) }
-      : { ok: true, status: 200, json: async () => ({ ok: true, sessionId: "paid-book", status: "generating", accessToken: "token", chapters: [] }) }),
+    fetchCodexSession: async () => (++attempt === 1
+      ? { status: 503, data: { ok: false } }
+      : { status: 200, data: { ok: true, sessionId: "paid-book", status: "generating", accessToken: "token", chapters: [] } }),
   });
-  vm.runInContext(extract(RESULT_CLIENT, "load"), context);
+  vm.runInContext(extract(RESULT_CLIENT, "loadSession"), context);
   await context.run(); assert.equal(error, "temporary");
   await context.run(); assert.equal(error, ""); assert.equal(stored.sessionId, "paid-book");
+});
+
+test("명시적인 retryable false는 503이어도 같은 구매본의 자동 호출을 중단한다", async () => {
+  const { context, calls } = loopFixture({ generate: async () => ({ status: 503, data: { ok: false, retryable: false, message: "review" } }) });
+  await assert.rejects(context.run({ sessionId: "review-book", accessToken: "t", seed: {}, errorText: ERROR_TEXT }), /review/);
+  assert.deepEqual(calls.map(row => row[0]), ["generate"]);
+});
+
+test("헤더가 도착해도 JSON 본문이 멈추면 예산 안에 취소한다", async () => {
+  let signal;
+  const context = vm.createContext({ AbortController, setTimeout, clearTimeout,
+    authFetch: async (_url, init) => { signal = init.signal; return { ok: true, status: 200, json: () => new Promise(() => {}) }; },
+  });
+  vm.runInContext(extract(RUNNER, "codexJson"), context);
+  await assert.rejects(context.run("/mock", {}, 15), /CODEX_RESPONSE_TIMEOUT/);
+  assert.equal(signal.aborted, true);
+});
+
+test("복귀 이벤트가 겹쳐도 최신 저장 상태를 한 번 읽고 같은 구매본에 합류한다", async () => {
+  let release, reads = 0, resumed = 0;
+  const context = vm.createContext({ useCallback: fn => fn, loadInFlightRef: { current: null }, recoveryInFlightRef: { current: false },
+    runningRef: { current: false }, stoppedRef: { current: false }, resumeStartedForRef: { current: "" },
+    document: { hidden: false }, navigator: { onLine: true },
+    loadSession: () => { reads++; return new Promise(resolve => { release = resolve; }); }, resume: async latest => { assert.equal(latest.accessToken, "fresh"); resumed++; },
+  });
+  vm.runInContext(extract(RESULT_CLIENT, "load"), context); context.load = context.run;
+  vm.runInContext(extract(RESULT_CLIENT, "retryResume"), context);
+  const active = context.run(); const duplicate = context.run();
+  release({ sessionId: "same-book", status: "generating", accessToken: "fresh" });
+  await Promise.all([active, duplicate]); assert.equal(reads, 1); assert.equal(resumed, 1);
 });

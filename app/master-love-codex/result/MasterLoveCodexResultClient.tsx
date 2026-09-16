@@ -11,11 +11,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
-import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 // 🔴 이어쓰기 루프의 정본. 진입 화면(MasterLoveCodexPage)과 **같은 함수**를 쓴다 — 여기에
 //    사본을 만들면 두 화면의 재시도·정체 예산이 갈라진다.
-import { runCodexBatches } from "@/src/features/master-love-codex/_lib/runCodexBatches";
+import { runCodexBatches, fetchCodexSession } from "@/src/features/master-love-codex/_lib/runCodexBatches";
 import { MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "@/src/features/master-love-codex/constants";
 import CodexAmbience from "@/src/features/master-love-codex/components/CodexAmbience";
 import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
@@ -42,7 +41,10 @@ type SessionState = {
   chapters: CodexChapter[];
   loveDna: CodexLoveDna | null;
   totalCharCount: number;
-  generationProgress?: { completed: number; total: number };
+  generationProgress?: { completed: number; readable?: number; total: number };
+  retryable?: boolean;
+  retryAfterMs?: number;
+  message?: string;
   birthInfo: {
     name?: string;
     gender?: string;
@@ -80,6 +82,8 @@ export default function MasterLoveCodexResultClient() {
   /** 화면을 떠나면 루프를 멈춘다 — 언마운트 뒤 setState 와 유령 /generate 왕복을 남기지 않는다. */
   const stoppedRef = useRef(false);
   const runningRef = useRef(false);
+  const loadInFlightRef = useRef<Promise<SessionState | undefined> | null>(null);
+  const recoveryInFlightRef = useRef(false);
   const [accountEpoch, setAccountEpoch] = useState(0);
   const captureOwner = usePaidDeliveryScope(() => {
     stoppedRef.current = true; resumeStartedForRef.current = "";
@@ -88,7 +92,7 @@ export default function MasterLoveCodexResultClient() {
     setAccountEpoch(value => value + 1);
   });
 
-  const load = useCallback(async () => {
+  const loadSession = useCallback(async () => {
     if (typeof window === "undefined") return;
     const isCurrent = captureOwner();
     const sessionId = new URLSearchParams(window.location.search).get("sessionId") || "";
@@ -98,18 +102,14 @@ export default function MasterLoveCodexResultClient() {
       return;
     }
     try {
-      const response = await authFetch(`/api/master-love-codex/session?sessionId=${encodeURIComponent(sessionId)}`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const payload = await response.json().catch(() => ({}));
+      const { status, data: payload } = await fetchCodexSession(sessionId);
       if (!isCurrent()) return;
-      if (!response.ok || !payload?.ok) {
-        if (isRetriableResultPollFailure(response.status, payload)) {
+      if (status >= 400 || !payload?.ok) {
+        if (isRetriableResultPollFailure(status, payload)) {
           setError(copy.resultUnstableRefreshError);
-        } else if (response.status === 401) {
+        } else if (status === 401) {
           setError(copy.errorText.LOGIN_REQUIRED);
-        } else if (response.status === 404) {
+        } else if (status === 404) {
           setError(copy.resultNotFoundError);
         } else {
           setError(payload?.message || copy.resultLoadFailedError);
@@ -118,7 +118,7 @@ export default function MasterLoveCodexResultClient() {
         return;
       }
       setError("");
-      setSession({
+      const latest: SessionState = {
         sessionId: String(payload.sessionId || sessionId),
         status: String(payload.status || ""),
         accessToken: String(payload.accessToken || ""),
@@ -130,14 +130,25 @@ export default function MasterLoveCodexResultClient() {
         loveDna: payload.loveDna || null,
         totalCharCount: Number(payload.totalCharCount || 0),
         generationProgress: payload.generationProgress,
+        retryable: payload.retryable, retryAfterMs: payload.retryAfterMs, message: payload.message,
         birthInfo: payload.birthInfo || null,
-      });
+      };
+      setSession(latest);
+      return latest;
     } catch {
       if (isCurrent()) setError(copy.errorText.NETWORK_ERROR);
     } finally {
       if (isCurrent()) setLoading(false);
     }
   }, [captureOwner, copy]);
+
+  const load = useCallback(async () => {
+    if (loadInFlightRef.current) return loadInFlightRef.current;
+    const pending = loadSession();
+    loadInFlightRef.current = pending;
+    try { return await pending; }
+    finally { if (loadInFlightRef.current === pending) loadInFlightRef.current = null; }
+  }, [loadSession]);
 
   useEffect(() => { void load(); }, [load, accountEpoch]);
   useEffect(() => () => { stoppedRef.current = true; }, []);
@@ -150,7 +161,7 @@ export default function MasterLoveCodexResultClient() {
    * 반복됐다. 여기서 이으면 사용자가 실제로 머무는 읽기 화면이 완성을 책임진다.
    */
   const resume = useCallback(async (target: SessionState) => {
-    if (runningRef.current || target.status === "completed") return;
+    if (runningRef.current || target.status === "completed" || target.retryable === false) return;
     const isCurrent = captureOwner();
     const accessToken = String(target.accessToken || "");
     // 토큰이 없으면 서버가 이 세션을 이 문서에 이어쓰도록 허가하지 않은 것이다 — 링크로 돌려보낸다.
@@ -162,7 +173,8 @@ export default function MasterLoveCodexResultClient() {
       await runCodexBatches({
         sessionId: target.sessionId,
         accessToken,
-        seed: { sessionId: target.sessionId, status: target.status, accessToken, chapters: target.chapters, generationProgress: target.generationProgress },
+        seed: { sessionId: target.sessionId, status: target.status, accessToken, chapters: target.chapters, generationProgress: target.generationProgress,
+          retryable: target.retryable, retryAfterMs: target.retryAfterMs },
         errorText: copy.errorText,
         shouldStop: () => stoppedRef.current || !isCurrent() || document.hidden || !navigator.onLine,
         onProgress: (next) => {
@@ -175,6 +187,7 @@ export default function MasterLoveCodexResultClient() {
             loveDna: next.loveDna ?? current.loveDna,
             totalCharCount: Number(next.totalCharCount ?? current.totalCharCount),
             generationProgress: next.generationProgress ?? current.generationProgress,
+            retryable: next.retryable, retryAfterMs: next.retryAfterMs, message: next.message,
           } : current));
         },
       });
@@ -187,30 +200,37 @@ export default function MasterLoveCodexResultClient() {
         : caught instanceof Error ? caught.message : copy.errorText.SERVER_ERROR);
     } finally {
       if (isCurrent()) runningRef.current = false;
+      if (document.hidden || !navigator.onLine) resumeStartedForRef.current = "";
       if (!stoppedRef.current && isCurrent()) setResuming(false);
     }
   }, [captureOwner, copy, load]);
 
   useEffect(() => {
-    if (!session || session.status === "completed" || !session.accessToken) return;
+    if (!session || session.status === "completed" || !session.accessToken || session.retryable === false || document.hidden || !navigator.onLine) return;
     if (resumeStartedForRef.current === session.sessionId) return;
     resumeStartedForRef.current = session.sessionId;
     stoppedRef.current = false;
     void resume(session);
   }, [session, resume]);
 
-  const retryResume = useCallback(() => {
-    if (runningRef.current || resuming || session?.status === "completed") return;
-    if (!session || !session.accessToken) { void load(); return; }
-    stoppedRef.current = false;
-    void resume(session);
-  }, [session, resuming, resume, load]);
+  const retryResume = useCallback(async () => {
+    if (runningRef.current || recoveryInFlightRef.current) return;
+    recoveryInFlightRef.current = true;
+    try {
+      const latest = await load();
+      if (!latest || latest.status === "completed" || latest.retryable === false || document.hidden || !navigator.onLine) return;
+      stoppedRef.current = false;
+      resumeStartedForRef.current = latest.sessionId;
+      await resume(latest);
+    } finally { recoveryInFlightRef.current = false; }
+  }, [resume, load]);
 
   useEffect(() => {
     const recover = () => { if (!document.hidden && navigator.onLine) retryResume(); };
     window.addEventListener("online", recover);
+    window.addEventListener("pageshow", recover);
     document.addEventListener("visibilitychange", recover);
-    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+    return () => { window.removeEventListener("online", recover); window.removeEventListener("pageshow", recover); document.removeEventListener("visibilitychange", recover); };
   }, [retryResume]);
 
   // 봉인을 여는 동안부터 본문까지 같은 트랙이 이어지도록, 프래그먼트의 첫 자식으로 둔다.
@@ -270,7 +290,7 @@ export default function MasterLoveCodexResultClient() {
       {session.status !== "completed" ? (
         <div className="bg-[#0a0818] pt-6">
           <p className={`${styles.measure} text-center text-[0.8125rem] leading-7`} style={{ color: "#b9ad99" }}>
-            {resumeError ? (
+            {session.retryable === false ? session.message || copy.resultResumeFailedNotice : resumeError ? (
               <>
                 {copy.resultResumeFailedNotice}{" "}
                 <button
@@ -286,7 +306,7 @@ export default function MasterLoveCodexResultClient() {
               // aria-live 로 읽어 준다 — 화면을 못 보는 사용자에게도 장이 쌓이는 것이 전달돼야
               // "머물면 완성된다"는 안내가 실제로 지켜지는지 확인할 수 있다.
               <span aria-live="polite">
-                {copy.resultResumingNotice(session.generationProgress?.completed || session.chapters.length, MASTER_LOVE_CODEX_TOTAL_CHAPTERS)}
+                {copy.resultResumingNotice(session.generationProgress?.completed || session.chapters.length, MASTER_LOVE_CODEX_TOTAL_CHAPTERS, session.generationProgress?.readable ?? session.chapters.length)}
               </span>
             ) : (
               <>

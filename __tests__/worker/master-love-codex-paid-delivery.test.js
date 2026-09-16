@@ -9,12 +9,14 @@ function assign(doc, fields) { for (const [key,value] of Object.entries(fields))
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, value]) => {
     if (key === "$or") return value.some(row => matches(doc, row));
+    if (key === "$and") return value.every(row => matches(doc, row));
     if (value && typeof value === "object" && !(value instanceof Date)) {
       if ("$ne" in value) return get(doc, key) !== value.$ne;
       if ("$nin" in value) return !value.$nin.includes(get(doc, key));
       if ("$in" in value) return value.$in.includes(get(doc, key));
       if ("$exists" in value) return (get(doc, key) !== undefined) === value.$exists;
       if ("$lt" in value) return new Date(get(doc, key)) < value.$lt;
+      if ("$lte" in value) return new Date(get(doc, key)) <= value.$lte;
     }
     return String(get(doc, key)) === String(value);
   });
@@ -74,7 +76,7 @@ beforeEach(()=>{
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
-async function generate(){return route(new Request('https://mock.test/api/master-love-codex/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'saved-codex'})}),{},{generateChapter:provider,refundPassCoverage:refund,runCoinRefund:refund,runMonthlyCreditRefund:refund,runPaymentCancel:refund})}
+async function generate(extra = {}){return route(new Request('https://mock.test/api/master-love-codex/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'saved-codex'})}),{},{generateChapter:provider,refundPassCoverage:refund,runCoinRefund:refund,runMonthlyCreditRefund:refund,runPaymentCancel:refund,...extra})}
 for(const accessType of ['pass','monthly_credit','paid'])it(`${accessType} completes five bounded waves with original evidence`,async()=>{docs[0].accessType=accessType;for(let i=0;i<5;i++)expect((await generate()).status).toBe(i<4?202:200);expect(provider).toHaveBeenCalledTimes(20);expect(docs[0].status).toBe('completed');expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(20);expect(refund).not.toHaveBeenCalled()});
 for(const status of ['delivery_pending','completed'])for(const kind of ['throw','null','confirm'])it(`${status} ${kind} preserves generated book`,async()=>{for(let i=0;i<4;i++)await generate();fault={status,kind};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true,resultId:'saved-codex'});expect(refund).not.toHaveBeenCalled();expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(20)});
 it('saves siblings after the first chapter fails',async()=>{provider.mockImplementationOnce(async()=>({status:'fallback'}));expect((await generate()).status).toBe(202);expect(docs[0].chapters).toHaveLength(0);expect(docs[0].deliveryMeta.savedChapters).toHaveLength(3);for(let i=0;i<5;i++)await generate();expect(provider).toHaveBeenCalledTimes(21);expect(docs[0].chapters).toHaveLength(20);expect(refund).not.toHaveBeenCalled()});
@@ -87,12 +89,16 @@ it('legacy completed books remain readable without new quality checks',async()=>
 for(const source of [0,1,2])it(`rejects refunded execution or balance ledger ${source}`,async()=>{revokedSource=source;expect((await generate()).status).toBe(402);expect(provider).not.toHaveBeenCalled()});
 it('uncertain exhausted calls do not trigger more LLM or a refund',async()=>{await generate();const ids=docs[0].deliveryMeta.savedChapters.map(row=>row.id);const {__masterLoveCodexTestUtils:utils}=await import('../../worker/routes/master-love-codex.js');const next=utils.MODES.solo.chapters.find(row=>!ids.includes(row.id));docs[0].deliveryMeta.attempts[next.id]=3;expect((await generate()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(4);expect(refund).not.toHaveBeenCalled()});
 
-for (const state of ['retryable', 'deferred']) it(`${state} outages preserve the same paid book past three waves`, async () => {
+for (const state of ['retryable', 'deferred']) it(`${state} confirmed refusals preserve the same paid book past three waves with durable backoff`, async () => {
   const normal = provider.getMockImplementation();
-  provider.mockImplementation(async () => ({ status: state }));
+  provider.mockImplementation(async () => ({ status: state, failure: { code: 'LLM_PROVIDER_UNAVAILABLE', kind: state === 'deferred' ? 'deferred' : 'provider_rejected' } }));
   for (let wave = 0; wave < 4; wave++) {
     expect((await generate()).status).toBe(503);
     expect(Object.values(docs[0].deliveryMeta.attempts).every(value => value === 0)).toBe(true);
+    const calls = provider.mock.calls.length;
+    expect((await generate()).status).toBe(503);
+    expect(provider).toHaveBeenCalledTimes(calls);
+    docs[0].deliveryMeta.nextAttemptAt = null;
   }
   expect(refund).not.toHaveBeenCalled();
   provider.mockImplementation(normal);
@@ -105,6 +111,88 @@ it('public progress counts saved siblings without publishing an out-of-order boo
   provider.mockImplementationOnce(async () => ({ status: 'fallback' }));
   const payload = await (await generate()).json();
   expect(payload.chapters).toHaveLength(0);
-  expect(payload.generationProgress).toEqual({ completed: 3, total: 20 });
+  expect(payload.generationProgress).toEqual({ completed: 3, readable: 0, total: 20 });
   expect(payload.generationProgress.lockToken).toBeUndefined();
+});
+
+for (const mode of ['solo', 'compat']) it(`${mode} starts with one stored chapter and reopens all 20 required IDs without calls`, async () => {
+  docs[0].mode = mode;
+  const { __masterLoveCodexTestUtils: utils } = await import('../../worker/routes/master-love-codex.js');
+  const first = utils.MODES[mode].chapters[0];
+  docs[0].chapters = [(await provider({}, { chapter: first })).chapter]; provider.mockClear();
+  for (let wave = 0; wave < 5; wave++) await generate();
+  expect(provider).toHaveBeenCalledTimes(19);
+  const reopen = await route(new Request('https://mock.test/api/master-love-codex/session?sessionId=saved-codex'), {});
+  expect((await reopen.json()).chapters.map(row => row.id)).toEqual(utils.MODES[mode].chapters.map(row => row.id));
+  expect(provider).toHaveBeenCalledTimes(19); expect(refund).not.toHaveBeenCalled();
+});
+
+it('chapter two failure preserves later IDs and passes its correction into the next wave', async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (env, input) => input.chapter.order === 2 && !docs[0].deliveryMeta?.errors?.[input.chapter.id]
+    ? { status: 'fallback', failure: { code: 'LLM_OUTPUT_TRUNCATED', kind: 'quality' } } : normal(env, input));
+  const payload = await (await generate()).json();
+  expect(payload.generationProgress).toMatchObject({ completed: 3, readable: 1 });
+  await generate();
+  expect(provider.mock.calls.find(([, input], index) => index >= 4 && input.chapter.order === 2)[1].previousError).toBe('LLM_OUTPUT_TRUNCATED');
+  expect(provider.mock.calls.filter(([, input]) => input.chapter.order === 3)).toHaveLength(1);
+});
+
+it('ambiguous provider timeouts spend the shared budget and stop without refund', async () => {
+  provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_TIMEOUT_UNCERTAIN', kind: 'uncertain' } }));
+  for (let wave = 0; wave < 3; wave++) { await generate(); docs[0].deliveryMeta.nextAttemptAt = null; }
+  const payload = await (await generate()).json();
+  expect(payload.retryable).toBe(false); expect(payload.reason).toBe('GENERATION_BUDGET_EXCEEDED');
+  await generate(); expect(provider).toHaveBeenCalledTimes(12); expect(refund).not.toHaveBeenCalled();
+});
+
+it('expired batch lock resumes without repeating accepted chapters', async () => {
+  await generate(); docs[0].generationProgress.lockedAt = new Date(Date.now() - 120001);
+  docs[0].generationProgress.lockToken = 'dead-document';
+  expect((await generate()).status).toBe(202); expect(provider).toHaveBeenCalledTimes(8);
+});
+
+it('a validated stable cache resolves uncertain exhausted storage without another chapter call', async () => {
+  const { __masterLoveCodexTestUtils: utils } = await import('../../worker/routes/master-love-codex.js');
+  const { buildCodexEvidence } = await import('../../worker/lib/master-love-codex-evidence.js');
+  const { buildCodexStagingChapter } = await import('../../worker/lib/master-love-codex-quality.js');
+  const { calculateLifeBookAiSaju } = await import('../../worker/lib/life-book-ai-saju.js');
+  const { calculateZiweiAiChart } = await import('../../worker/lib/ziwei-ai-chart.js');
+  const birthInfo = { birthDate: '1990-05-12', birthTime: '09:30', gender: 'female', calendarType: 'solar' };
+  docs[0].sajuResult = calculateLifeBookAiSaju(birthInfo, { year: 2026 });
+  docs[0].ziweiChart = calculateZiweiAiChart({ birthInfo }, { year: 2026 });
+  const chapter = utils.MODES.solo.chapters[0], parsed = buildCodexStagingChapter(chapter, utils.MODES.solo.dnaMetrics);
+  let sentence = 0;
+  parsed.body = parsed.body.replace(/([^.!?。！？\n]+)([.!?。！？\n]|$)/g, (_all, text, separator) => `[mock ${sentence++}] ${text}${separator}`);
+  const contract = buildCodexEvidence({ chapter, saju: docs[0].sajuResult, ziweiChart: docs[0].ziweiChart });
+  parsed.evidence = contract.records.map(record => ({ evidenceId: record.id, subject: record.subject, system: record.system,
+    period: record.period, certainty: record.certainty, label: record.path, explanation: '모의 근거' }));
+  parsed.crossChecks = contract.crossChecks.map(record => ({ id: record.id, status: record.status, explanation: '모의 판정' }));
+  docs[0].deliveryMeta = { attempts: { [chapter.id]: 3 } };
+  const chapterSnapshotStore = { get: jest.fn(async () => ({ text: JSON.stringify({ parsed, chapter: { id: chapter.id, body: 'untrusted copy' } }) })) };
+  expect((await generate({ chapterSnapshotStore })).status).toBe(202);
+  expect(provider).toHaveBeenCalledTimes(4);
+  expect(provider.mock.calls.some(([, input]) => input.chapter.id === chapter.id)).toBe(false);
+  expect(docs[0].chapters[0].body).toBe(parsed.body.trim());
+  expect(docs[0].deliveryMeta.reviewRequired).not.toBe(true); expect(refund).not.toHaveBeenCalled();
+});
+
+for (const mode of ['solo', 'compat']) it(`${mode} completes actual route generation and new-document reading with staging-only fixtures`, async () => {
+  docs[0].mode = mode;
+  const env = { APP_ENV: 'staging', STAGING_LLM_MOCK_ENABLED: 'true', WORKERS_AI_ENABLED: 'false' };
+  const request = () => new Request('https://mock.test/api/master-love-codex/generate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sessionId: 'saved-codex' }) });
+  for (let wave = 0; wave < 5; wave++) expect((await route(request(), env)).status).toBe(wave === 4 ? 200 : 202);
+  const reopened = await route(new Request('https://mock.test/api/master-love-codex/session?sessionId=saved-codex'), env);
+  const payload = await reopened.json();
+  expect(payload.status).toBe('completed'); expect(payload.chapters).toHaveLength(20);
+  expect(provider).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+});
+
+it('public progress ignores duplicate IDs, apology text and stale numeric counters', async () => {
+  await generate(); const first = docs[0].chapters[0];
+  docs[0].chapters = [first];
+  docs[0].deliveryMeta.savedChapters = [first, first, { ...first, id: 'unknown' }, { ...docs[0].chapters[0], id: 'temperament', ok: false }];
+  docs[0].generationProgress.completed = 19;
+  const payload = await (await route(new Request('https://mock.test/api/master-love-codex/session?sessionId=saved-codex'), {})).json();
+  expect(payload.generationProgress).toEqual({ completed: 1, readable: 1, total: 20 }); expect(payload.chapters).toHaveLength(1);
 });

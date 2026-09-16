@@ -507,7 +507,7 @@ const COMPAT_FOCUS_LABELS = Object.freeze({
  */
 export function buildMasterLoveCodexCompatChapterPrompt({
   selfSaju, selfZiwei, partnerSaju, partnerZiwei, compatibility,
-  birthInfo, partnerInfo, chapter, memory = [],
+  birthInfo, partnerInfo, chapter, memory = [], evidenceProvided = false,
 }) {
   const min = chapter.minChars || 2500;
   const palaces = (chapter.ziweiPalaces || []).join(", ");
@@ -523,21 +523,22 @@ export function buildMasterLoveCodexCompatChapterPrompt({
     "",
     `[상담자] ${formatPersonLine(birthInfo, "상담자")}`,
     `[상대] ${formatPersonLine(partnerInfo, "상대")}`,
+    birthInfo?.birthTimeUnknown || partnerInfo?.birthTimeUnknown ? "[해석 한계] 생시 미상인 사람의 시주를 추정하지 마라. 해당 명반은 정오 가정이며 궁·주성의 해석은 잠정적이다. 해당 근거에서 한계를 알리고 사건 시점이나 배우자 성향을 확정하지 마라." : "",
     "",
     "[사주 명식 — 상담자]",
-    formatSajuForPrompt(selfSaju),
+    formatSajuForPrompt(selfSaju, evidenceProvided),
     "",
     `[사주 명식 — ${partnerLabel}]`,
-    formatSajuForPrompt(partnerSaju),
+    formatSajuForPrompt(partnerSaju, evidenceProvided),
     "",
     "[자미두수 명반 — 상담자]",
-    formatZiweiForCodexPrompt(selfZiwei),
+    evidenceProvided ? "해당 궁의 계산값·강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(selfZiwei),
     "",
     `[자미두수 명반 — ${partnerLabel}]`,
-    formatZiweiForCodexPrompt(partnerZiwei),
+    evidenceProvided ? "해당 궁의 계산값·강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(partnerZiwei),
     "",
     "[궁합 판정 — 위 네 자료에서 계산된 값]",
-    formatCompatibilityForPrompt(compatibility),
+    evidenceProvided ? `장별 pair 기록과 교차 판정을 사용한다. 유의: ${(compatibility?.uncertainty || []).join(" / ")}` : formatCompatibilityForPrompt(compatibility),
     "",
     memoryLines.length ? "[앞 장에서 이미 말한 것 — 반복하지 말고 이어서 쓸 것]" : "",
     ...memoryLines.map((line) => `- ${line}`),

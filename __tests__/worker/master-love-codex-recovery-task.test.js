@@ -15,10 +15,11 @@ const { ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK } = __masterLoveCodexRecoveryT
 
 function sessionModel(docs) {
   const query = {
-    find: jest.fn(() => query),
+    find: jest.fn(filter => { query.current = filter.status === "completed" ? [] : docs; return query; }),
     sort: jest.fn(() => query),
     limit: jest.fn(() => query),
-    lean: jest.fn(async () => docs),
+    lean: jest.fn(async () => query.current),
+    countDocuments: jest.fn(async () => 0),
   };
   return query;
 }
@@ -27,6 +28,8 @@ function harness(docs, overrides = {}) {
   const model = sessionModel(docs);
   const options = {
     connectDb: jest.fn(async () => {}),
+    bootstrapPaidCodexSessions: jest.fn(async () => []),
+    syncCodexExecution: jest.fn(async () => true),
     MasterLoveCodexSession: model,
     recoverCodexSession: jest.fn(async () => ({ session: {} })),
     acquireBatchLock: jest.fn(async (sessionId) => ({ ok: true, lockToken: `lock-${sessionId}`, doc: { id: sessionId } })),
@@ -52,6 +55,31 @@ describe("buildAbandonedFilter", () => {
 });
 
 describe("runMasterLoveCodexRecovery", () => {
+  test("브라우저가 없어도 진행된 세션을 순환하며 새 락으로 20장까지 완성한다", async () => {
+    const saved = { s1: 0, s2: 0 }, turns = [];
+    const { options } = harness([{ id: 's1', userId: 'u1' }, { id: 's2', userId: 'u2' }], {
+      runCodexWave: jest.fn(async (_env, { sessionId, userId }) => {
+        turns.push(sessionId); saved[sessionId] += 4;
+        return { outcome: saved[sessionId] === 20 ? 'completed' : 'committed', done: saved[sessionId] === 20,
+          session: { id: sessionId, userId, generationProgress: { completed: saved[sessionId] } } };
+      }),
+    });
+    const result = await runMasterLoveCodexRecovery({}, options);
+    expect(turns).toEqual(['s1', 's2', 's1', 's2', 's1', 's2', 's1', 's2', 's1', 's2']);
+    expect(options.acquireBatchLock).toHaveBeenCalledTimes(10);
+    expect(result.outcomes.filter(row => row.done)).toHaveLength(2);
+  });
+  test("4분 중 다음 78초 배치가 들어갈 수 없으면 다음 틱에 넘긴다", async () => {
+    const clock = jest.spyOn(Date, 'now'); let now = 1000000; clock.mockImplementation(() => now);
+    const { options } = harness([{ id: 's1', userId: 'u1' }], { now,
+      runCodexWave: jest.fn(async (_env, { sessionId, userId }) => {
+        now += 78000;
+        return { outcome: 'committed', session: { id: sessionId, userId, generationProgress: { completed: (now - 1000000) / 78000 * 4 } } };
+      }),
+    });
+    try { await runMasterLoveCodexRecovery({}, options); expect(options.runCodexWave).toHaveBeenCalledTimes(3); }
+    finally { clock.mockRestore(); }
+  });
   test("후보 세션마다 락을 잡고 웨이브를 정확히 한 번 돌린다", async () => {
     const { options } = harness([
       { id: "s1", userId: "u1" },

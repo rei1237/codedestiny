@@ -4,6 +4,8 @@ import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
 
 export interface LLMRequest {
+  /** A durable caller-owned retry budget can opt out of nested provider retries. */
+  maxProviderAttempts?: number;
   prompt: string;
   systemPrompt?: string;
   /**
@@ -1011,7 +1013,7 @@ async function callGeminiWithRetry(
   const effectiveDeadlineAt = Number.isFinite(deadlineAt)
     ? (deadlineAt as number)
     : Date.now() + resolveTimeoutMs(request.timeoutMs);
-  const maxAttempts = GEMINI_RETRY_BACKOFF_MS.length + 1;
+  const maxAttempts = Math.min(GEMINI_RETRY_BACKOFF_MS.length + 1, Math.max(1, Math.floor(request.maxProviderAttempts || GEMINI_RETRY_BACKOFF_MS.length + 1)));
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const remainingMs = effectiveDeadlineAt - Date.now();

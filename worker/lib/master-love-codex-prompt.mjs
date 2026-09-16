@@ -282,11 +282,15 @@ function distributionText(distribution) {
 }
 
 /** 사주 계산 결과(calculateLifeBookAiSaju)를 프롬프트용 텍스트로 정리 */
-export function formatSajuForPrompt(saju) {
+export function formatSajuForPrompt(saju, anchorsOnly = false) {
   const s = saju || {};
   const lines = [];
   lines.push(`- 사주 원국: 년 ${clean(s.yearPillar) || "-"} / 월 ${clean(s.monthPillar) || "-"} / 일 ${clean(s.dayPillar) || "-"} / 시 ${clean(s.hourPillar) || "(출생시간 미상)"}`);
   lines.push(`- 일간(日干): ${clean(s.dayMaster) || "-"} · 신강약: ${clean(s.strength) || "-"}`);
+  if (anchorsOnly) {
+    if (clean(s.calculationMeta?.uncertainty)) lines.push(`- 유의: ${clean(s.calculationMeta.uncertainty)}`);
+    return lines.join("\n");
+  }
   const elements = distributionText(s.fiveElements);
   if (elements) lines.push(`- 오행 분포: ${elements}`);
   const tenGods = distributionText(s.tenGods);
@@ -429,7 +433,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   };
 }
 
-export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice = "", memory = [] }) {
+export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice = "", memory = [], evidenceProvided = false }) {
   const min = chapter.minChars || 2400;
   const palaces = (chapter.ziweiPalaces || []).join(", ");
   const sajuFocus = (chapter.sajuFocus || []).join(", ");
@@ -446,10 +450,10 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
     toneNote ? `[상담자가 처음 밝힌 마음] ${toneNote}` : "",
     "",
     "[사주 명식]",
-    formatSajuForPrompt(saju),
+    formatSajuForPrompt(saju, evidenceProvided),
     "",
     "[자미두수 명반]",
-    formatZiweiForCodexPrompt(ziweiChart),
+    evidenceProvided ? "해당 궁의 계산값과 강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(ziweiChart),
     "",
     memoryLines.length ? "[앞 장에서 이미 말한 것 — 반복하지 말고 이어서 쓸 것]" : "",
     ...memoryLines.map((line) => `- ${line}`),

@@ -1,7 +1,8 @@
 import { connectDb } from "./db.js";
 import { MasterLoveCodexSession } from "./models.js";
 import { recoverCodexSession } from "./master-love-codex-session-access.js";
-import { acquireBatchLock, runCodexWave, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
+import { acquireBatchLock, runCodexWave, syncCodexExecution, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
+import { bootstrapPaidCodexSessions } from "./master-love-codex-paid-bootstrap.js";
 
 /**
  * 마스터 인연의 서 — 버려진 생성 세션의 **백스톱**.
@@ -11,8 +12,7 @@ import { acquireBatchLock, runCodexWave, __masterLoveCodexTestUtils } from "../r
  * 탭이 닫히거나 기기가 잠들면 세션은 미완인 채 남는다 — 결제는 이미 끝난 상태다.
  * 그 세션을 사람 손 없이 완주까지 밀어 올리는 것이 이 태스크다.
  *
- * 🔴 **주경로가 아니다.** 틱당 세션 3개 · 세션당 웨이브 1회라 20장 완주까지 최악 50분이 걸린다.
- *    사용자를 기다리게 하는 장치가 아니라, 아무도 안 보는 세션을 결국 완성시키는 장치다.
+ * 틱당 최대 3세션을 순환하며 4분 예산이 남으면 진행된 세션의 다음 웨이브도 실행한다.
  *
  * 🔴 **크론을 새로 만들지 않는다.** worker/wrangler.toml 의 crons 는 수정 금지 대상이라
  *    기존 10분 크론("*\/10 * * * *")의 태스크 목록에 얹혀 간다(worker/index.js). 선례는
@@ -55,10 +55,13 @@ export function buildAbandonedFilter(now) {
     //    (그쪽이 거절하는 것은 취소된 카드 결제뿐이다). 여기서 빼는 것이 유일한 방어다.
     "passRefund.refundedAt": { $exists: false },
     "billingRefund.refundedAt": { $exists: false },
+    "deliveryMeta.reviewRequired": { $ne: true },
+    $and: [{ $or: [{ "deliveryMeta.nextAttemptAt": { $exists: false } }, { "deliveryMeta.nextAttemptAt": null },
+      { "deliveryMeta.nextAttemptAt": { $lte: new Date(now) } }] }],
     $or: [
       { "generationProgress.lockedAt": { $exists: false } },
       { "generationProgress.lockedAt": null },
-      { "generationProgress.lockedAt": { $lt: new Date(now - WAVE_BUDGET_MS) } },
+      { "generationProgress.lockedAt": { $lt: new Date(now - __masterLoveCodexTestUtils.BATCH_LOCK_TTL_MS) } },
     ],
   };
 }
@@ -72,6 +75,12 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
   const accessFn = options.recoverCodexSession || recoverCodexSession;
 
   await (options.connectDb || connectDb)(env);
+  const bootstrapped = await (options.bootstrapPaidCodexSessions || bootstrapPaidCodexSessions)(env, { ...options, now, deadlineAt: deadline });
+  const unsynced = await SessionModel.find({ status: "completed", "deliveryMeta.executionSyncPending": true }).sort({ updatedAt: 1 }).limit(3).lean();
+  for (const doc of unsynced) {
+    const access = await accessFn({ userId: doc.userId, sessionId: doc.id });
+    if (access && !access.denied) await (options.syncCodexExecution || syncCodexExecution)(access.session);
+  }
   const candidates = await SessionModel
     .find(buildAbandonedFilter(now))
     .sort({ updatedAt: 1 }) // 가장 오래 방치된 것부터
@@ -79,9 +88,11 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
     .lean();
 
   const outcomes = [];
-  for (const candidate of candidates) {
+  const queue = candidates.map(candidate => ({ candidate, saved: Number(candidate.generationProgress?.completed || 0) }));
+  for (let turns = 0; queue.length && turns < 32; turns++) {
     // 남은 예산이 웨이브 하나를 못 담으면 다음 틱으로 넘긴다 — 잘린 웨이브는 락만 남긴다.
     if (Date.now() + WAVE_BUDGET_MS > deadline) break;
+    const { candidate, saved } = queue.shift();
 
     const sessionId = String(candidate.id || "");
     const userId = String(candidate.userId || "");
@@ -111,6 +122,8 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
         deadlineAt: Date.now() + WAVE_BUDGET_MS,
       });
       outcomes.push({ sessionId, outcome: wave.outcome, done: Boolean(wave.done) });
+      const progress = Number(wave.session?.generationProgress?.completed || 0);
+      if (wave.outcome === "committed" && !wave.done && progress > saved) queue.push({ candidate: wave.session, saved: progress });
     } catch (error) {
       // 세션 하나의 실패가 나머지 회수를 막지 않는다. 락은 runCodexWave 의 catch 가 푼다.
       console.error("[master-love-codex-recovery]", sessionId, String(error?.message || error).slice(0, 300));
@@ -118,8 +131,11 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
     }
   }
 
-  if (outcomes.length) console.log("[master-love-codex-recovery]", JSON.stringify(outcomes));
-  return { ok: true, scanned: candidates.length, outcomes };
+  const reviewNeeded = await SessionModel.countDocuments({ "deliveryMeta.reviewRequired": true, status: "generation_failed" });
+  const stalled = await SessionModel.countDocuments({ status: { $in: ["generating", "delivery_pending", "generation_failed"] },
+    updatedAt: { $lt: new Date(now - 1800000) }, "passRefund.refundedAt": { $exists: false }, "billingRefund.refundedAt": { $exists: false } });
+  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, outcomes, reviewNeeded, stalled }));
+  return { ok: true, scanned: candidates.length, bootstrapped, outcomes, reviewNeeded, stalled };
 }
 
 export const __masterLoveCodexRecoveryTestUtils = {

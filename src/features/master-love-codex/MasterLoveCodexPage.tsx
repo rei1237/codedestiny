@@ -497,6 +497,7 @@ export default function MasterLoveCodexPage() {
     // 결제 식별자는 이 시점의 상대 유무로 확정한다 — 렌더 시점 값에 의존하면 어긋날 수 있다.
     const gateBilling = masterLoveCodexBilling(partner ? "compat" : "solo", locale);
     const payload = {
+      locale,
       idempotencyKey,
       prologueChoice,
       birthInfo: {

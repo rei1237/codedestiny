@@ -42,7 +42,8 @@ export type CodexSessionPayload = {
   accessType?: string;
   mode?: string;
   chapters?: CodexChapter[];
-  generationProgress?: { completed: number; total: number };
+  generationProgress?: { completed: number; readable?: number; total: number };
+  retryAfterMs?: number;
   loveDna?: CodexLoveDna | null;
   totalCharCount?: number;
   totalChapters?: number;
@@ -53,22 +54,39 @@ export type CodexSessionPayload = {
 };
 
 export async function postCodexJson(url: string, body: Record<string, unknown>, idempotencyKey?: string) {
-  const response = await authFetch(url, {
+  return codexJson(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
     credentials: "include",
     body: JSON.stringify(body),
-  }, { retryOn401: false });
-  let data = (await response.json().catch(() => null)) as CodexSessionPayload | null;
-  // 🔴 엣지 컷(524)·게이트웨이 오류는 JSON 이 아니라 HTML 을 돌려준다. 예전처럼 {} 로 뭉개면
-  //    상태 코드까지 사라져 "일시적 지연"과 "확정 실패"를 구분할 수 없게 되고, 모든 실패가
-  //    같은 제네릭 문구 하나로 표면화된다. 본문이 없으면 상태 코드로 사유를 세운다.
-  if (!data) {
-    data = response.ok
-      ? { ok: false, reason: "SERVER_ERROR" }
-      : { ok: false, reason: response.status >= 500 ? "EDGE_TIMEOUT" : "SERVER_ERROR", retryable: response.status >= 500 };
-  }
-  return { status: response.status, data };
+  }, 95_000);
+}
+
+/** The deadline and AbortSignal cover headers AND the JSON response body. */
+export async function codexJson(url: string, init: RequestInit, timeoutMs: number) {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      (async () => {
+        const response = await authFetch(url, { ...init, signal: controller.signal }, { retryOn401: false, forceFresh: true });
+        let data = (await response.json().catch(error => {
+          if (controller.signal.aborted) throw error;
+          return null;
+        })) as CodexSessionPayload | null;
+        // Gateway HTML has no JSON; preserve its HTTP retry semantics.
+        if (!data) {
+          data = response.ok
+            ? { ok: false, reason: "SERVER_ERROR" }
+            : { ok: false, reason: response.status >= 500 ? "EDGE_TIMEOUT" : "SERVER_ERROR", retryable: response.status >= 500 };
+        }
+        return { status: response.status, data };
+      })(),
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(() => { controller.abort(); reject(new Error("CODEX_RESPONSE_TIMEOUT")); }, timeoutMs);
+      }),
+    ]);
+  } finally { if (timer !== undefined) clearTimeout(timer); }
 }
 
 export function mapCodexError(data: CodexSessionPayload | null, status: number, errorText: MasterLoveCodexErrorText) {
@@ -86,12 +104,10 @@ export function mapCodexError(data: CodexSessionPayload | null, status: number, 
 
 /** 세션 1회 조회. 백오프 중 크론(회수 태스크)이 밀어 놓은 진척을 흡수하는 데 쓴다. */
 export async function fetchCodexSession(sessionId: string) {
-  const response = await authFetch(
+  return codexJson(
     `/api/master-love-codex/session?sessionId=${encodeURIComponent(sessionId)}`,
-    { cache: "no-store", credentials: "include" },
+    { cache: "no-store", credentials: "include" }, 25_000,
   );
-  const data = (await response.json().catch(() => null)) as CodexSessionPayload | null;
-  return { status: response.status, data };
 }
 
 export type RunCodexBatchesOptions = {
@@ -125,6 +141,22 @@ export async function runCodexBatches({
 
   while (!(current.done || String(current.status) === "completed")) {
     if (shouldStop?.()) return current;
+    if (current.retryable === false) throw new Error(mapCodexError(current, 503, errorText));
+    if (Number(current.retryAfterMs) > 0) {
+      if (!stallStartedAt) stallStartedAt = Date.now();
+      if (Date.now() - stallStartedAt >= stallBudgetMs) throw new Error(mapCodexError(current, 503, errorText));
+      const delay = Math.min(8000, Number(current.retryAfterMs));
+      await new Promise(resolve => setTimeout(resolve, delay));
+      if (shouldStop?.()) return current;
+      const polled = await fetchCodexSession(sessionId).catch(() => ({ status: 503, data: null }));
+      if (shouldStop?.()) return current;
+      current = polled.data?.ok ? polled.data : { ...current, retryAfterMs: Math.max(0, Number(current.retryAfterMs) - delay) };
+      if (current.accessToken) token = current.accessToken;
+      const saved = current.generationProgress?.completed ?? current.chapters?.length ?? 0;
+      if (saved > written) { written = saved; stallStartedAt = 0; noProgress = 0; }
+      onProgress?.(current);
+      continue;
+    }
     if (batches >= MAX_BATCHES) throw new Error(errorText.GENERATION_BUDGET_EXCEEDED);
     const { status, data } = await postCodexJson("/api/master-love-codex/generate", { sessionId, accessToken: token })
       .catch(() => ({ status: 503, data: { ok: false, retryable: true, reason: "NETWORK_ERROR" } as CodexSessionPayload }));
@@ -135,9 +167,9 @@ export async function runCodexBatches({
       // 판정은 다른 유료 화면 10곳이 쓰는 공용 함수를 그대로 재사용한다(중복 구현 금지).
       if (!stallStartedAt) stallStartedAt = Date.now();
       const withinStallBudget = Date.now() - stallStartedAt < stallBudgetMs;
-      if (isRetriableResultPollFailure(status, data) && withinStallBudget) {
+      if (data?.retryable !== false && isRetriableResultPollFailure(status, data) && withinStallBudget) {
         retries += 1;
-        const delayMs = Math.min(8000, Math.round(1500 * 1.8 ** Math.min(retries - 1, 4)));
+        const delayMs = Math.min(8000, Number(data?.retryAfterMs) || Math.round(1500 * 1.8 ** Math.min(retries - 1, 4)));
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         // 🔴 백오프 뒤에 곧장 /generate 를 또 치지 않고 세션을 한 번 읽는다. 409
         //    GENERATION_IN_PROGRESS 는 서버 회수 크론이 락을 쥔 **정상 상태**이기도 해서,
@@ -147,15 +179,14 @@ export async function runCodexBatches({
         if (shouldStop?.()) return current;
         const chapters = Array.isArray(polled.data?.chapters) ? polled.data.chapters : [];
         const saved = Math.max(chapters.length, polled.data?.generationProgress?.completed || 0);
-        if (polled.data?.ok && (saved > written || polled.data.status === "completed" || polled.data.done)) {
-          written = saved;
+        if (polled.data?.ok) {
           current = polled.data;
           if (polled.data.accessToken) token = polled.data.accessToken;
-          retries = 0;
-          stallStartedAt = 0;
-          noProgress = 0;
+          if (saved > written || polled.data.status === "completed" || polled.data.done) {
+            written = saved; retries = 0; stallStartedAt = 0; noProgress = 0;
+          }
           onProgress?.(polled.data);
-        }
+        } else if (Number(data?.retryAfterMs) > delayMs) current = { ...current, retryAfterMs: Number(data.retryAfterMs) - delayMs };
         continue;
       }
       throw new Error(mapCodexError(data, status, errorText));

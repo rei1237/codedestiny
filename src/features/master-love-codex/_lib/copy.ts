@@ -208,7 +208,7 @@ export interface MasterLoveCodexCopy {
   resultIncompleteNotice: string;
   resultContinueWriting: string;
   /** 결과 화면이 스스로 남은 장을 이어쓰는 동안의 안내. 이 화면에 머무르면 완성된다는 뜻이다. */
-  resultResumingNotice: (written: number, total: number) => string;
+  resultResumingNotice: (written: number, total: number, readable?: number) => string;
   /** 이어쓰기가 확정 실패했을 때. 결제와 이미 쓰인 장이 보존된다는 것을 반드시 함께 말한다. */
   resultResumeFailedNotice: string;
   resultResumeRetry: string;
@@ -423,7 +423,7 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   resultBackToLanding: "Back to the codex",
   resultIncompleteNotice: "This codex has not been finished yet.",
   resultContinueWriting: "Continue writing",
-  resultResumingNotice: (written, total) => `Still being written — ${written} of ${total} chapters. Stay on this page and it will finish here.`,
+  resultResumingNotice: (written, total, readable = written) => `Writing continues · ${written}/${total} saved, ${readable} readable. You can return to this purchase after closing the page.`,
   resultResumeFailedNotice: "Writing stopped. Your payment and the chapters written so far are kept — you can pick up where it left off.",
   resultResumeRetry: "Resume writing",
   birthTimeUnknownShort: "Birth time unknown",
@@ -636,7 +636,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "인연의 서 화면으로",
     resultIncompleteNotice: "아직 다 쓰이지 않은 인연의 서입니다.",
     resultContinueWriting: "이어 쓰기",
-    resultResumingNotice: (written, total) => `지금 이 자리에서 이어 쓰고 있습니다 · ${written}/${total}장. 이 화면에 머물러 주시면 여기서 완성됩니다.`,
+    resultResumingNotice: (written, total, readable = written) => `이어 쓰는 중 · ${written}/${total}장 저장, ${readable}장 읽기 가능. 화면을 닫아도 서버가 이어 쓰며, 같은 구매본으로 돌아올 수 있습니다.`,
     resultResumeFailedNotice: "이어 쓰기가 멈췄습니다. 결제와 지금까지 쓰인 장은 그대로 보존되며, 멈춘 자리에서 다시 이어 쓸 수 있습니다.",
     resultResumeRetry: "이어 쓰기 다시 시도",
     birthTimeUnknownShort: "태어난 시각 모름",
@@ -847,7 +847,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "縁の書の画面へ",
     resultIncompleteNotice: "まだ書き終えていない縁の書です。",
     resultContinueWriting: "続きを書く",
-    resultResumingNotice: (written, total) => `今この場で書き続けています · ${written}/${total}章。この画面にとどまっていただければ、ここで書き上がります。`,
+    resultResumingNotice: (written, total, readable = written) => `執筆中 · ${written}/${total}章保存、${readable}章閲覧可能。画面を閉じてもサーバーで続行し、同じ購入分に戻れます。`,
     resultResumeFailedNotice: "書き続けるのが止まりました。お支払いとこれまでに書かれた章はそのまま保管されており、止まったところから再開できます。",
     resultResumeRetry: "続きを書き直す",
     birthTimeUnknownShort: "生まれた時刻は不明",
@@ -1058,7 +1058,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "返回情缘之书页面",
     resultIncompleteNotice: "这本情缘之书还没有写完。",
     resultContinueWriting: "继续书写",
-    resultResumingNotice: (written, total) => `正在此处继续书写 · 第 ${written}/${total} 章。请留在本页面，它会在这里写完。`,
+    resultResumingNotice: (written, total, readable = written) => `继续书写中 · 已保存 ${written}/${total} 章，可阅读 ${readable} 章。关闭页面后服务器会继续，可返回同一购买结果。`,
     resultResumeFailedNotice: "书写已中断。您的付款与已写成的章节都完整保留，可以从中断处继续。",
     resultResumeRetry: "重新继续书写",
     birthTimeUnknownShort: "出生时辰未知",
@@ -1269,7 +1269,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "返回情緣之書頁面",
     resultIncompleteNotice: "這本情緣之書還沒有寫完。",
     resultContinueWriting: "繼續書寫",
-    resultResumingNotice: (written, total) => `正在此處繼續書寫 · 第 ${written}/${total} 章。請留在本頁面，它會在這裡寫完。`,
+    resultResumingNotice: (written, total, readable = written) => `繼續書寫中 · 已儲存 ${written}/${total} 章，可閱讀 ${readable} 章。關閉頁面後伺服器會繼續，可返回同一購買結果。`,
     resultResumeFailedNotice: "書寫已中斷。您的付款與已寫成的章節都完整保留，可以從中斷處繼續。",
     resultResumeRetry: "重新繼續書寫",
     birthTimeUnknownShort: "出生時辰未知",

@@ -123,6 +123,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       taskType: normalizeTaskType(options),
       model: clean(options.model),
       timeoutMs: Number(options.timeoutMs || 0) || undefined,
+      maxProviderAttempts: Number(options.maxProviderAttempts) || undefined,
       responseMimeType: clean(options.responseMimeType) || undefined,
       // Gemini 구조화 출력(generationConfig.responseSchema). 🔴 이 화이트리스트는 명시한 키만
       // 넘기므로, 여기에 없으면 호출부가 아무리 넘겨도 바디에 안 실린다(조용히 사라진다).
