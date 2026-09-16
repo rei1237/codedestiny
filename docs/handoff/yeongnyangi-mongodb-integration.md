@@ -1,5 +1,5 @@
 ---
-status: released
+status: done
 updated: 2026-09-16
 next: 운영 릴리스와 비과금 smoke 완료. 실제 과금 LLM/PG 및 물리 기기 외부 결제 왕복은 실행하지 않았다. 운영 장애는 아래 복구 절차를 따른다.
 ---
