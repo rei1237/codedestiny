@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
 const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
@@ -230,9 +231,9 @@ export default function FortuneHome() {
             </span>
           </a>
           <nav className="desktop-nav" aria-label="주 메뉴">
-            <a href="#readings">운세 골라보기</a>
-            <button onClick={() => window.location.assign("/yeongnyangi/room/")}>영냥이의 방</button>
-            <a href="#recommendations">영냥이 추천</a>
+            <a href="#readings"><Image src="/assets/yeongnyangi/ui/nav-readings.webp" width={28} height={28} alt=""/><span>운세 골라보기</span></a>
+            <a href="/yeongnyangi/room/"><Image src="/assets/yeongnyangi/ui/nav-room.webp" width={28} height={28} alt=""/><span>영냥이의 방</span></a>
+            <a href="#recommendations"><Image src="/assets/yeongnyangi/ui/nav-recommendations.webp" width={28} height={28} alt=""/><span>영냥이 추천</span></a>
           </nav>
           <div className="header-actions">
             <button
