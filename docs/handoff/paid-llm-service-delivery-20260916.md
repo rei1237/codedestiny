@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-16
-next: 마스터 운영 코드 반영은 확인됐다. 초융합부터 상품별 A~F를 재현하고, 실결제·실기기·과금 LLM 확인은 별도 승인 단계로 남긴다.
+updated: 2026-09-17
+next: 초융합 3행은 mock A~F와 c83f71985 동일 SHA main CI를 완료했다. 심화 자미 PDF 4행부터 순서대로 검사한다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -18,8 +18,16 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 
 ## 다음 작업
 
+**2026-09-17 초융합 mock A~F 완료:** [행별 검증 기록](../verification/fusion-paid-delivery-20260917.md)을 추가했다. source `c2c4ce56f543fc785ca639b8c1784826478ce59c`와 결제 직후 입력 보관 후속 `c83f719855aa3f9ef316df024e004e5f69e4b4cc`를 main에 fast-forward하고 push했다. 부분 전달 lease·문서 종료 뒤 서버 복구·승인 후 첫 생성 전 bootstrap·출력 잘림·bfcache/화면 재개·Storage 차단·첫 stream 전 입력 유실을 재현/수정했다. 실제 계산 6체계/타로 6장, 실제 고객 화면 390/430/1280px 마지막 본문, 서버/공용 결제 왕복 및 새 문서 재열람을 mock으로 검사했다. 첫 최종 check:fast는 critical·88/88 gate·276 suite/3,873 Jest 통과. 마지막 입력 보관 수정까지 복귀 행동검사 33개와 추가 check:fast(276 suite/3,873 Jest, 186.216초)가 통과했다. [동일 SHA main CI](https://github.com/rei1237/codedestiny/actions/runs/35116997629)는 모든 lane·CI required success다. **초융합 외 나머지 71구매 키+후속3경로는 이번 개별 A~F 미실행.** root marketing 84개 dirty 항목과 diff hash가 main 반영 전후 같았으며 다른 워크트리는 보존했다.
+
+현재 안전 작업 디렉터리: `D:\Development\codedestiny-worktrees\paid-af-mock-20260916-20260916-235632` (동시 Claude 편집 때문에 생성). 단독/동시 편집 여부를 다시 확인한 뒤 적절한 체크아웃을 사용한다. 마지막 source SHA는 위 `c83f719855aa3f9ef316df024e004e5f69e4b4cc`다.
+
+```text
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-llm-service-delivery-20260916.md를 읽고, main·타 세션 변경과 c83f719855aa3f9ef316df024e004e5f69e4b4cc 및 main CI 35116997629를 확인하라. 초융합 mock 완료 기록을 재사용하고 심화 자미 PDF 4행의 A~F부터 실제 코드 mock으로 검사하라. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 말라.
+```
+
 1. **마스터 2상품의 실제 결제 전달 확인은 별도 단계.** 운영 코드 기준은 확인된 `77007dc4c`다. 이후 인수인계 문서만 바뀐 main SHA와의 차이로 코드 미반영을 오판하거나 재승격하지 않는다. 실제 PG/과금 LLM/운영 DB/실기기·고객 주문 복구는 각각 승인 범위 안에서만 확인한다. 승인 없는 단계는 미검증으로 남기고 다른 상품의 mock 점검은 계속한다. 입력 없는 과거 구매는 구매 권리 보존·재입력 후 결제 없는 복구를 유지한다.
-2. **[서비스별 재검증표](../verification/paid-llm-service-checklist-20260916.md)의 74구매 키+후속3경로를 순서대로.** 마스터2키를 제외한 구매72키는 이번 개별 E2E 미실행이다. 초융합→심화 자미 PDF→네오→나크샤트라→기타 장문→질문/찻집→타로·기타→손금→Code Destiny 영냥이28키. 후속3경로도 별도 완료한다.
+2. **[서비스별 재검증표](../verification/paid-llm-service-checklist-20260916.md)의 74구매 키+후속3경로를 순서대로.** 마스터2키와 초융합1키를 제외한 구매71키는 이번 개별 A~F 미실행이다. 초융합→심화 자미 PDF→네오→나크샤트라→기타 장문→질문/찻집→타로·기타→손금→Code Destiny 영냥이28키. 후속3경로도 별도 완료한다.
 3. **한 상품마다 A~F:** 실제 입력·계산→mock 결제/권한→생성→품질→저장 확인→완료 기록→새 문서 마지막 본문 재열람. 오류·지급 지연·모바일 복귀·문서 종료·저장 유실·동시 락을 주입한다. 재열람 LLM/결제/차감0회. 필요한 장만 재생성, 공유 재시도 상한·백오프·정체 집계. 상세 계약은 표를 따른다.
 4. 기존 [매트릭스](paid-llm-delivery-matrix-20260915.md)는 구현/mock 완료 기록이며 현재 실운영 보장이 아니다. 과거 미수정 기록만 보고 다시 구현하지 않는다. 현재 CTA→import→API→LLM을 대조해 신규 상품/변형을 추가하고, 비LLM·무료·관리자·비활성 UI는 구분한다.
 5. 결함을 재현한 상품만 최소 수정한다. 같은 결함의 공통 코드만 함께 수정한다. 가격·분량·계산·이용권/월정석/단건 정책을 유지한다. 영냥이는 통합 `worker/yeongnyangi/`의 기존 단건 전용 계약을 유지하며 별도 SoulCat 과거 검사로 완료 처리하지 않는다.

@@ -33,7 +33,7 @@
 |---:|---|---|---|---|---|
 | 1 | 마스터 인연의 서<br>`master-love-codex` | [정본](../../worker/routes/master-love-codex.js) · [기존 검사](../../__tests__/worker/master-love-codex-paid-delivery.test.js) | 개인 20장·사주/자미 근거 | 47서버·18복귀 재검사 통과 / 모의 20장·재열람 0회 | ☐ |
 | 2 | 마스터 인연의 서 · 궁합<br>`master-love-codex-compat` | [정본](../../worker/routes/master-love-codex.js) · [기존 검사](../../__tests__/worker/master-love-codex-paid-delivery.test.js) | 궁합 20장·두 사람 근거 | 47서버·18복귀 재검사 통과 / 모의 20장·재열람 0회 | ☐ |
-| 3 | 초융합 운세 상담 1회<br>`fusion-fortune-consultation` | [정본](../../worker/routes/fusion-fortune.js) · [기존 검사](../../__tests__/worker/fusion-paid-delivery-route.test.js) | 단계별 계산·정상 본문·저장 ID | 기존 회귀 있음 / 이번 개별 E2E 대기 | ☐ |
+| 3 | 초융합 운세 상담 1회<br>`fusion-fortune-consultation` | [정본](../../worker/routes/fusion-fortune.js) · [기존 검사](../../__tests__/worker/fusion-paid-delivery-route.test.js) | 단계별 계산·정상 본문·저장 ID | [A~F mock 기록](fusion-paid-delivery-20260917.md) / 실제 화면·서버 복구 / 3,873 Jest·33 Node / c83f71985 main CI required success / 실운영 미검증 | ☑ |
 | 4 | 심화 자미두수 PDF 심층 리포트 생성<br>`ziwei-deep-pdf` | [정본](../../worker/routes/ziwei-deep-report.js) · [기존 검사](../../__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js) | 필수 장 저장·완료 후 PDF | 기존 회귀 있음 / 이번 개별 E2E 대기 | ☐ |
 | 5 | 네오의 팩폭 작전실<br>`neo-operation-room-consultation` | [정본](../../worker/routes/neo-operation-room.js) · [기존 검사](../../__tests__/worker/neo-paid-delivery.test.js) | 1·2차 작전 분리·궁합 근거 | 기존 회귀 있음 / 이번 개별 E2E 대기 | ☐ |
 | 6 | 나크샤트라 결정판 전문가 심화 상담<br>`nakshatra-ai-consultation` | [정본](../../worker/routes/nakshatra-ai.js) · [기존 검사](../../__tests__/worker/nakshatra-paid-delivery.test.js) | 정상 부분·생시·취소 확인 | 기존 회귀 있음 / 이번 개별 E2E 대기 | ☐ |

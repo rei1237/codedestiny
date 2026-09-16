@@ -46,4 +46,4 @@ npm run check:fast
 
 동시 Claude 편집/기존 워크트리가 있어 안전 워크트리 `D:\Development\codedestiny-worktrees\paid-af-mock-20260916-20260916-235632`에서 작업했다. main의 marketing 변경과 다른 워크트리는 보존한다. KST 날짜 변경으로 드러난 사이트맵 drift는 공식 생성기로 갱신하고 별도 커밋 `fe38fdfb54cc2fe596cad5f746b4d0031927d168`으로 분리했다.
 
-최종 `check:fast` exit0: 자동 critical 승격, paid gate 88/88, lint/typecheck/Node/Worker dry-run/정적 가드 성공, Jest 276 suite·3,873/3,873 통과(162.212초). 관련 서버·월정석 5suite 192개와 추가 nextStage 3개, 복귀·화면 재개 Node 32개, 실제 화면 mock, 전후 문자/호출 비교가 통과했다. env parity의 기존 alias 설정 경고 8개는 통과와 구분하며 값은 출력하지 않았다. 검증 SHA·동일 SHA main CI는 push 후 아래에 갱신한다.
+source c83f71985의 추가 최종 `check:fast` 통과: 자동 critical 승격, paid gate 88/88, lint/typecheck/Node/Worker dry-run/정적 가드 성공, Jest 276 suite·3,873/3,873 통과(186.216초). 관련 서버·월정석 5suite 192개와 추가 nextStage 3개, 복귀·화면 재개 Node 33개, 실제 화면 mock, 전후 문자/호출 비교가 통과했다. env parity의 기존 alias 설정 경고 8개는 통과와 구분하며 값은 출력하지 않았다. 검증 SHA `c83f719855aa3f9ef316df024e004e5f69e4b4cc`는 main/origin main과 일치했다. [동일 SHA main CI 35116997629](https://github.com/rei1237/codedestiny/actions/runs/35116997629)의 모든 lane와 `CI required` success를 확인했다. 이전 서버 수정 SHA c2c4ce56f의 main CI 35116440067도 success다.
