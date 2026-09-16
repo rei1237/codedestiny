@@ -96,7 +96,7 @@ export const DAILY_HASHTAGS = ["오늘의운세", "무료운세", "코드데스�
 /** Threads 루트 글의 토픽 태그. 위 규칙 때문에 **1개뿐이다.** */
 export const THREADS_ROOT_HASHTAG = "오늘의운세";
 
-function isSwitchOn(env, key) {
+export function isSwitchOn(env, key) {
   const raw = String(getEnv(env, key) || "").trim().toLowerCase();
   return raw === "1" || raw === "true" || raw === "on" || raw === "yes";
 }
@@ -106,13 +106,33 @@ function isEnabled(env) {
 }
 
 /**
+ * Threads 발행 방식 — "split"(유형별 분할, threads-daily-jobs.js) · "chain"(켜짐 값: 07:00 체인) · "off".
+ * 별도 분할 스위치 변수를 두지 않고 SNS_THREADS_POST_ENABLED 의 값으로 가른다 — 워커 텍스트 바인딩
+ * 예산(128, 여유 2)이 이미 꽉 차 있다(scripts/lib/worker-binding-budget.mjs).
+ */
+export function getThreadsPostMode(env) {
+  if (String(getEnv(env, "SNS_THREADS_POST_ENABLED") || "").trim().toLowerCase() === "split") return "split";
+  return isSwitchOn(env, "SNS_THREADS_POST_ENABLED") ? "chain" : "off";
+}
+
+/**
  * Threads 를 돌려도 되는지. 못 돌리는 사유 문자열을 돌려주고, 돌려도 되면 null 이다.
  * 🔴 스위치와 토큰을 **둘 다** 요구한다 — 어느 하나만으로 공개 발행이 시작되면 안 된다.
  */
 export function getThreadsSkipReason(env) {
-  if (!isSwitchOn(env, "SNS_THREADS_POST_ENABLED")) return "threads_disabled";
+  if (getThreadsPostMode(env) === "off") return "threads_disabled";
   if (!getEnv(env, "THREADS_ACCESS_TOKEN")) return "missing_threads_token";
   return null;
+}
+
+/**
+ * 07:00 체인의 Threads 채널을 건너뛸 사유(없으면 null).
+ * 🔴 SNS_THREADS_POST_ENABLED="split" 이면(유형별 분할 발행, threads-daily-jobs.js) 이 체인은 Threads 에 올리지 않는다 —
+ * 둘 다 나가면 같은 날 운세 글이 두 벌이다. 텔레그램 채널은 이 스위치와 무관하다.
+ */
+export function getDailyChainThreadsSkipReason(env) {
+  if (getThreadsPostMode(env) === "split") return "threads_split_active";
+  return getThreadsSkipReason(env);
 }
 
 function isDuplicateKeyError(error) {
@@ -174,10 +194,10 @@ export function buildDailyPostText(env, now = Date.now()) {
  *   이 분기가 없으면 2026-09-03 처럼 잠금만 잡고 죽은 날이 영원히 unique 인덱스에 걸려
  *   `already_posted` 로 조용히 건너뛰어진다(관리자 수동 실행도 같은 이유로 막힌다).
  */
-export function buildReclaimFilter(keyHash, now) {
+export function buildReclaimFilter(keyHash, now, endpoint = SNS_POST_ENDPOINT) {
   return {
     userId: null,
-    endpoint: SNS_POST_ENDPOINT,
+    endpoint,
     keyHash,
     $and: [
       { $or: [{ "responseRef.ids": { $exists: false } }, { "responseRef.ids": { $size: 0 } }] },
@@ -212,11 +232,11 @@ export function buildReclaimFilter(keyHash, now) {
  * 그 한 줄이 없는 동안 **텔레그램·스레드 양 채널이 매일 stage=mark 로 죽었다**(2026-09-03~09-05, 발행 0건).
  * 같은 요구사항의 선례는 lib/rate-limit.js — 전수 가드는 verify:mongoose-update-pipeline.
  */
-async function markSendStarted(env, keyHash, now) {
+async function markSendStarted(env, keyHash, now, endpoint = SNS_POST_ENDPOINT) {
   await withMongoRetry(
     env,
     () => IdempotencyKey.updateOne(
-      { endpoint: SNS_POST_ENDPOINT, keyHash },
+      { endpoint, keyHash },
       [
         {
           $set: {
@@ -244,15 +264,17 @@ async function markSendStarted(env, keyHash, now) {
  * @param {Object} params.env withMongoRetry 용 워커 env
  * @param {number} params.now
  * @param {string} params.keyHash 채널별 잠금 키
+ * @param {string} [params.endpoint] 잠금 엔드포인트. 기본은 07:00 일일 발행(cron:sns-daily-post) —
+ *   Threads 유형별 발행(threads-daily-jobs.js)은 자기 엔드포인트를 넘겨 이 절차를 그대로 재사용한다.
  * @param {Function} params.send 발행 실행부. {ok, status, error?, permanent?, ref} 를 돌려주고 던지지 않는다.
  */
-async function runChannel({ env, now, keyHash, send }) {
+export async function runChannel({ env, now, keyHash, send, endpoint = SNS_POST_ENDPOINT }) {
   // 🔴 재시도 금지({retries:0}) — 1차 선점이 성공했는데 응답만 유실되면 2차가 같은 문서를 다시
   // processing 으로 만들고, 그 사이 표식이 없으므로 두 실행이 같은 날을 동시에 발행할 수 있다.
   const reclaimed = await withMongoRetry(
     env,
     () => IdempotencyKey.findOneAndUpdate(
-      buildReclaimFilter(keyHash, now),
+      buildReclaimFilter(keyHash, now, endpoint),
       { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
       { new: true },
     ),
@@ -267,7 +289,7 @@ async function runChannel({ env, now, keyHash, send }) {
       await withMongoRetry(
         env,
         () => IdempotencyKey.create({
-          endpoint: SNS_POST_ENDPOINT,
+          endpoint,
           keyHash,
           status: "processing",
           expiresAt: new Date(now + DEDUPE_TTL_MS),
@@ -280,7 +302,7 @@ async function runChannel({ env, now, keyHash, send }) {
         // 성공/진행 중과 구분해 남긴다(관리자 status 응답과 실행 요약 줄에 이 값이 그대로 보인다).
         const existing = await withMongoRetry(
           env,
-          () => IdempotencyKey.findOne({ endpoint: SNS_POST_ENDPOINT, keyHash }),
+          () => IdempotencyKey.findOne({ endpoint, keyHash }),
         ).catch(() => null);
         const partial = existing?.status === "failed";
         const posted = Array.isArray(existing?.responseRef?.ids) ? existing.responseRef.ids.length : 0;
@@ -299,7 +321,7 @@ async function runChannel({ env, now, keyHash, send }) {
   // buildReclaimFilter 분기 ②의 불변식이 성립한다. 이 쓰기가 실패하면 발행하지 않는다 —
   // 발행해 놓고 표식이 없으면 다음 회수가 같은 날을 한 번 더 내보낸다.
   try {
-    await markSendStarted(env, keyHash, now);
+    await markSendStarted(env, keyHash, now, endpoint);
   } catch (error) {
     const message = error?.message || String(error);
     console.error(`[CRON] SNS Daily Post: ${keyHash} 발행 표식을 남기지 못했다(${message}) — 발행을 건너뛴다.`);
@@ -316,7 +338,7 @@ async function runChannel({ env, now, keyHash, send }) {
     await withMongoRetry(
       env,
       () => IdempotencyKey.updateOne(
-        { endpoint: SNS_POST_ENDPOINT, keyHash },
+        { endpoint, keyHash },
         {
           $set: {
             status: "failed",
@@ -342,7 +364,7 @@ async function runChannel({ env, now, keyHash, send }) {
   await withMongoRetry(
     env,
     () => IdempotencyKey.updateOne(
-      { endpoint: SNS_POST_ENDPOINT, keyHash },
+      { endpoint, keyHash },
       { $set: { status: "success", responseRef: { at, ...(result.ref || {}) }, updatedAt: new Date(now) } },
     ),
   ).catch((error) => {
@@ -478,7 +500,7 @@ export async function runSnsDailyPostTask(env, options = {}) {
   }
 
   if (channel === "all" || channel === "threads") {
-    const skipReason = getThreadsSkipReason(env);
+    const skipReason = getDailyChainThreadsSkipReason(env);
     if (skipReason) {
       console.log(`[CRON] SNS Daily Post: Threads 를 건너뛴다 — ${skipReason}.`);
       channels.threads = { ok: true, skipped: skipReason };

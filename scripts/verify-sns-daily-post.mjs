@@ -82,6 +82,7 @@ const {
   runSnsDailyPostRecovery,
   buildReclaimFilter,
   getThreadsSkipReason,
+  getDailyChainThreadsSkipReason,
   DAILY_HASHTAGS,
   THREADS_ROOT_HASHTAG,
   WEEKDAY_PICKS,
@@ -546,11 +547,17 @@ function jsonResponse(body, status = 200) {
   // 태스크가 그 게이트를 실제로 거치는지 — 위 단위 검사만으로는 배선을 못 본다.
   const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
   assert.ok(
-    /const skipReason = getThreadsSkipReason\(env\);[\s\S]{0,400}?if \(skipReason\) \{[\s\S]{0,300}?channels\.threads = \{ ok: true, skipped: skipReason \}/.test(
+    /const skipReason = getDailyChainThreadsSkipReason\(env\);[\s\S]{0,400}?if \(skipReason\) \{[\s\S]{0,300}?channels\.threads = \{ ok: true, skipped: skipReason \}/.test(
       taskSource,
     ),
-    "태스크의 Threads 분기가 getThreadsSkipReason 게이트를 거치지 않는다(⑭)",
+    "태스크의 Threads 분기가 getDailyChainThreadsSkipReason 게이트를 거치지 않는다(⑭)",
   );
+  // 07:00 체인 게이트 = 분할 스위치 우선 + 기존 게이트 그대로. 분할이 켜지면 체인 Threads 는 멈추고(4분할 Job 이 대신),
+  // 꺼지면 기존 사유가 그대로 나온다 — 텔레그램은 이 게이트를 거치지 않는다.
+  const openThreads = { SNS_THREADS_POST_ENABLED: "1", ...withToken };
+  assert.equal(getDailyChainThreadsSkipReason(openThreads), null, "분할 스위치가 없는데 체인 Threads 가 멈췄다(⑭)");
+  assert.equal(getDailyChainThreadsSkipReason({ ...openThreads, SNS_THREADS_POST_ENABLED: "split" }), "threads_split_active", "분할 스위치가 켜졌는데 07:00 체인이 Threads 에 또 올린다(⑭)");
+  assert.equal(getDailyChainThreadsSkipReason({ SNS_THREADS_POST_ENABLED: "0" }), "threads_disabled", "꺼짐인데 기존 게이트 사유가 바뀌었다(⑭)");
 }
 
 /* ⑮ 답글 체인이 **직전 발행 글**에 이어 붙고, 글 N개가 요청 3N회다
