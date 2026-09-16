@@ -7,7 +7,7 @@ import { getOptionalUserFromRequest, requireAuth, resolvePaidRouteAuth } from ".
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildCanonicalSukuyoCompatibility } from "../lib/sukuyo-premium.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
-import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
+import { directionFromForwardDistance, judgeDayFortune, relationFromForwardDistance } from "../lib/sukuyo-relation-core.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
@@ -960,13 +960,9 @@ function normalizePastLifeRelation(raw, forwardDistance) {
   if (token.includes("안괴")) return "안괴";
   if (token.includes("성위") || token.includes("위성")) return "성위";
   if (token.includes("명")) return "명";
-  const d = ((Math.floor(Number(forwardDistance) || 0) % 27) + 27) % 27;
-  if (d === 0) return "명";
-  if (d === 9 || d === 18) return "업태";
-  if ([1, 8, 10, 17, 19, 26].includes(d)) return "영친";
-  if ([2, 7, 11, 16, 20, 25].includes(d)) return "우쇠";
-  if ([3, 6, 12, 15, 21, 24].includes(d)) return "안괴";
-  return "성위";
+  // 라벨이 없을 때만 거리로 되돌리며, 그 판정도 정본 표를 그대로 쓴다.
+  const derived = relationFromForwardDistance(forwardDistance);
+  return derived ? derived.relationType : "명";
 }
 
 function normalizePastLifeDistance(raw, relationType) {
@@ -978,12 +974,13 @@ function normalizePastLifeDistance(raw, relationType) {
   return "해당없음";
 }
 
+// 방향은 여기서 다시 판정하지 않는다. 정본(worker/lib/sukuyo-relation-core.js)이 자리에서
+// 파생한 값을 그대로 쓴다 — 예전에는 이 자리에 거리별 하드코딩 표가 있었고, 1단계에서
+// 자리 배정표를 전통 순서로 바로잡은 뒤에도 이 표만 남아 27거리 중 대부분이 정본과
+// 반대 방향을 냈다(그 값이 전생 리딩 본문과 LLM 후속 프롬프트에 그대로 실렸다).
 function normalizePastLifeDirection(forwardDistance) {
-  const d = ((Math.floor(Number(forwardDistance) || 0) % 27) + 27) % 27;
-  if (d === 0 || d === 9 || d === 18) return "상호작용";
-  if ([1, 2, 3, 4, 10, 11, 12, 13, 19, 20, 21, 22].includes(d)) return "상대가 나에게 작용";
-  if ([5, 6, 7, 8, 14, 15, 16, 17, 23, 24, 25, 26].includes(d)) return "내가 상대에게 작용";
-  return "해당없음";
+  const derived = directionFromForwardDistance(forwardDistance);
+  return derived ? derived.label : "해당없음";
 }
 
 function hashPastLifeSeed(seed) {
@@ -1157,11 +1154,13 @@ function buildPastLifeFollowupPrompt(result = {}) {
   const lines = [
     "당신은 숙요점 27숙과 인연의 결을 오래 상담해 온 숙요점 전문가입니다.",
     "전생을 실제 사실로 단정하지 말고, 오래된 인연처럼 느껴지는 감정 패턴과 현실에서 지켜야 할 경계를 중심으로 이어서 읽어 주세요.",
+    "관계명·자리·거리·방향은 엔진이 이미 확정한 값입니다. 거리나 숙 이름으로 다시 계산하거나 다른 관계로 바꾸지 말고, 아래 값을 그대로 전제해 문장만 이어 주세요.",
     "",
     "[두 사람의 달빛 자리]",
     `- 나: ${result.userName || "나"} · ${result.user宿 || "본명숙 미상"}`,
     `- 상대: ${result.partnerName || "상대"} · ${result.partner宿 || "상대 숙 미상"}`,
     `- 관계: ${result.relationType || "미상"} · ${result.distance || "거리 미상"} · ${result.direction || "방향 미상"}`,
+    `- 자리: 나=${result.myRole || "미상"} / 상대=${result.partnerRole || "미상"} (숙요 27수 자리 배정은 이미 확정된 값입니다)`,
     `- 목적: ${purposeLabel}`,
     "",
     "[이미 드러난 결]",
@@ -1196,7 +1195,11 @@ function buildSukuyoPastLifeResult({ body, self, partner, selfSukuyo, partnerSuk
   const forwardDistance = Number(compatibility.forwardDistance ?? compatibility.distanceMetrics?.forwardDistance ?? 0);
   const relationType = normalizePastLifeRelation(compatibility.relationType, forwardDistance);
   const distance = normalizePastLifeDistance(compatibility.distanceLabel, relationType);
-  const direction = normalizePastLifeDirection(forwardDistance);
+  // 자리·방향은 정본이 한 번 정한 값을 그대로 싣는다(무료 기본 궁합의 배지와 같은 기준).
+  const derivedDirection = directionFromForwardDistance(forwardDistance);
+  const direction = derivedDirection ? derivedDirection.label : "해당없음";
+  const myRole = derivedDirection ? derivedDirection.aRole : "";
+  const partnerRole = derivedDirection ? derivedDirection.bRole : "";
   const purpose = normalizePastLifePurpose(body?.purpose || body?.relationshipPurpose);
   const userName = clean(self?.name || body?.userName || "나");
   const partnerName = clean(partner?.name || body?.partnerName || "상대");
@@ -1216,6 +1219,8 @@ function buildSukuyoPastLifeResult({ body, self, partner, selfSukuyo, partnerSuk
     relationType,
     distance,
     direction,
+    myRole,
+    partnerRole,
     purpose,
     title: `${userName}님과 ${partnerName}님의 숙요 전생 인연 리딩`,
     subtitle: meta.subtitle,

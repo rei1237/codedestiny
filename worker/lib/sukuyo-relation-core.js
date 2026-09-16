@@ -350,6 +350,44 @@ const MANSION_DAY_ADVICE = {
   },
 };
 
+// 자리 → 관계 작용 방향의 정본.
+// 27수 고리는 대칭이 아니라서, 같은 관계라도 어느 자리에 섰는지가 방향을 정한다.
+// 내어주거나 흔드는 자리(榮·友·壞·成·業)에 서면 내가 작용하는 쪽이고, 받아들이는
+// 자리(親·衰·安·危·胎)에 서면 상대가 작용하는 쪽이다. 같은 자리(命)만 상호작용이다.
+// 클라 미러 js/saju-engine-tarot-sukuyo-quantum.js 의 SY_ROLE_DIRECTION 과
+// 글자까지 같아야 하며 verify:sukuyo-role-direction 11번 검사가 그 파리티를 문다.
+const SUKUYO_ROLE_DIRECTION = {
+  "영": "a-to-b", "우": "a-to-b", "괴": "a-to-b", "성": "a-to-b", "업": "a-to-b",
+  "친": "b-to-a", "쇠": "b-to-a", "안": "b-to-a", "위": "b-to-a", "태": "b-to-a",
+  "명": "mutual",
+};
+
+const SUKUYO_DIRECTION_LABEL = {
+  "a-to-b": "내가 상대에게 작용",
+  "b-to-a": "상대가 나에게 작용",
+  "mutual": "상호작용",
+};
+
+/**
+ * 순행 거리(0~26) → 나(a)가 상대(b)에게 갖는 작용 방향.
+ * 방향은 거리표에서 직접 읽지 않고 반드시 자리(aRole)에서 파생한다 — 거리별 방향표를
+ * 따로 들면 자리 배정이 바뀔 때 한쪽만 남아 반대 방향이 나온다(2026-09-16 회귀 원인).
+ * 반환: { code, label, aRole, bRole, relationType, relationTypeHan } 또는 null.
+ */
+function directionFromForwardDistance(forwardDistance) {
+  const relation = relationFromForwardDistance(forwardDistance);
+  if (!relation) return null;
+  const code = SUKUYO_ROLE_DIRECTION[relation.aRole] || "mutual";
+  return {
+    relationType: relation.relationType,
+    relationTypeHan: relation.relationTypeHan,
+    aRole: relation.aRole,
+    bRole: relation.bRole,
+    code,
+    label: SUKUYO_DIRECTION_LABEL[code],
+  };
+}
+
 /**
  * 특정 날짜의 수(dayMansionIndex)가 본명수(myMansionIndex)에게 갖는 그날의 길흉.
  * 두 인덱스 모두 0~26. 유효하지 않으면 null.
@@ -400,5 +438,8 @@ export {
   MANSION_DAY_ADVICE,
   normalizeIndex,
   relationFromForwardDistance,
+  directionFromForwardDistance,
+  SUKUYO_ROLE_DIRECTION,
+  SUKUYO_DIRECTION_LABEL,
   judgeDayFortune,
 };

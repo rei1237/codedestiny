@@ -18,6 +18,9 @@
  *     갈리며, 단정 어조가 섞여 있지 않은지. 화면 마커까지 함께 본다.
  * 10. 전생 서사 — 자리별 장면·흔적·과제가 27거리 전부에서 조립되고, 나/상대가 자리 짝대로
  *     갈리며, 화면에 실제로 실리는지. 되살린 archiveStory·mission 의 어조까지 함께 본다.
+ * 11. 방향 판정 단일 정본 — 정본의 자리→방향 표와 클라 SY_ROLE_DIRECTION 이 27거리 전부에서
+ *     같은 방향을 내고, 전생 리딩 라우트(worker/routes/sukuyo.js)가 거리별 방향표를 따로
+ *     들지 않는다. 이 표가 두 벌이면 자리 배정을 고쳐도 한쪽만 남아 방향이 반대로 나간다.
  *  8. 관계 판정 단일 payload — syBuildRelationDirection 이 27거리 전부에서 정본 자리·거리·
  *     방향·해설 키를 내고, A/B 를 바꾸면 자리와 방향이 함께 뒤집힌다. 화면이 이 payload 를
  *     실제로 싣고 있는지(상단 배지·판정 요약 마커)도 함께 본다.
@@ -30,6 +33,7 @@ import path from "node:path";
 import vm from "node:vm";
 import {
   SUKUYO_ROLE_PROFILES,
+  directionFromForwardDistance,
   relationFromForwardDistance,
 } from "../worker/lib/sukuyo-relation-core.js";
 import { buildSukuyoAiCompatibility } from "../worker/lib/sukuyo-ai-calculation.js";
@@ -557,6 +561,62 @@ check(
   clientSource.includes("syBuildPastLifeChapter(dirPayload)"),
   `${CLIENT} 의 결과 렌더러가 전생 서사를 조립하지 않습니다`,
 );
+
+// ── 11. 방향 판정 단일 정본 ─────────────────────────────────────────────────
+// 정본(자리→방향) 과 클라 payload 의 방향이 27거리 전부에서 같아야 하고, 소비처는
+// 거리에서 방향을 다시 계산하지 않아야 한다.
+if (clientRoles) {
+  const dirProblems = [];
+  for (let d = 0; d < 27; d += 1) {
+    const canon = directionFromForwardDistance(d);
+    const payload = clientRoles.syBuildRelationDirection(d);
+    if (!canon || !payload) {
+      dirProblems.push(`D=${d} 방향 판정 실패(canon=${!!canon}, client=${!!payload})`);
+      continue;
+    }
+    if (canon.code !== payload.direction.code) {
+      dirProblems.push(`D=${d} 방향 코드 불일치 — 정본 ${canon.code} vs 클라 ${payload.direction.code}`);
+    }
+    if (canon.label !== payload.direction.label) {
+      dirProblems.push(`D=${d} 방향 문구 불일치 — 정본 ${canon.label} vs 클라 ${payload.direction.label}`);
+    }
+    // 방향은 반드시 자리에서 파생한다 — 역전 시 mutual 이 아니면 방향도 뒤집혀야 한다.
+    const mirrored = directionFromForwardDistance((27 - d) % 27);
+    if (canon.code === "mutual") {
+      if (mirrored.code !== "mutual") dirProblems.push(`D=${d} 상호작용인데 역전이 상호작용이 아닙니다`);
+    } else if (mirrored.code === canon.code) {
+      dirProblems.push(`D=${d} A/B 를 바꿔도 방향이 그대로입니다(${canon.code})`);
+    }
+  }
+  check(dirProblems.length === 0, `방향 판정이 정본과 어긋납니다: ${dirProblems.join(" / ")}`);
+}
+
+{
+  const PASTLIFE_ROUTE = "worker/routes/sukuyo.js";
+  const pastLifeRouteSource = read(PASTLIFE_ROUTE);
+  check(
+    pastLifeRouteSource.includes("directionFromForwardDistance"),
+    `${PASTLIFE_ROUTE} 가 정본 directionFromForwardDistance 를 쓰지 않습니다 — 방향을 다시 판정하고 있습니다`,
+  );
+  // 거리 숫자 배열로 방향을 다시 가르는 표가 되살아나면 무는다.
+  const directionLabels = ["내가 상대에게 작용", "상대가 나에게 작용"];
+  const rebuilt = pastLifeRouteSource
+    .split(String.fromCharCode(10))
+    .filter((line) => directionLabels.some((label) => line.includes(label)) && /\[\s*\d+\s*,/.test(line));
+  // LLM 경계 — 전생 리딩 후속 프롬프트는 확정된 자리·방향을 싣고, 재계산을 금지해야 한다.
+  check(
+    pastLifeRouteSource.includes("다시 계산하거나 다른 관계로 바꾸지 말고"),
+    `${PASTLIFE_ROUTE} 의 전생 후속 프롬프트에 재계산 금지 규칙이 없습니다 — LLM 이 관계를 다시 판정할 수 있습니다`,
+  );
+  check(
+    pastLifeRouteSource.includes("result.myRole") && pastLifeRouteSource.includes("result.partnerRole"),
+    `${PASTLIFE_ROUTE} 의 전생 후속 프롬프트가 확정된 자리(役)를 싣지 않습니다`,
+  );
+  check(
+    rebuilt.length === 0,
+    `${PASTLIFE_ROUTE} 에 거리별 방향 하드코딩 표가 되살아났습니다: ${rebuilt.map((l) => l.trim().slice(0, 50)).join(" / ")}`,
+  );
+}
 
 if (failures.length) {
   console.error("[verify-sukuyo-role-direction] FAILED");
