@@ -3,9 +3,9 @@
 /**
  * 영냥이(SoulCat) 단건 결제 호스트.
  *
- * 흐름: SoulCat 이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
+ * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
  * 가리킨다 → 여기서 CD 결제창을 **단건(카드·카카오페이) 전용**으로 연다 → 결제가 끝나면 returnTo 로 돌아간다.
- * SoulCat 은 이후 `/api/yeongnyangi-entitlement` 로 증빙을 읽고 책을 만든다.
+ * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
  *
  * 🔴 단건 전용은 두 겹이다. ① 서버: `paymentScope:"direct_only"` 상품은 이용권·월정석 게이트가 402 로 거부
  *    (worker/payments/index.js). ② 이 호출부: `allowedPaymentModes:["direct"]` + 이용권 선검사 3종 off 로
@@ -14,7 +14,7 @@
  * 🔴 가격은 레지스트리(resolveServerFeaturePricing)에서만 온다. URL 의 금액을 믿지 않는다.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { runPaidAccessGate } from "@/app/_lib/billing-client";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
@@ -22,6 +22,7 @@ import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { products } from "@/worker/yeongnyangi/payments/catalog";
 import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
+import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
 import styles from "./checkout.module.css";
 
 const FEATURE_KEY_PATTERN = /^yeongnyangi-[a-z0-9-]+$/;
@@ -31,6 +32,7 @@ const RESUME_KIND = "yeongnyangi-checkout";
 
 
 type CheckoutParams = {
+  requestId: string;
   featureKey: string;
   returnTo: string;
 };
@@ -55,11 +57,13 @@ function resolveFeatureKey(raw: string | null): string {
 }
 
 function readParams(): CheckoutParams {
-  if (typeof window === "undefined") return { featureKey: "", returnTo: DEFAULT_RETURN_TO };
+  if (typeof window === "undefined") return { requestId: "", featureKey: "", returnTo: DEFAULT_RETURN_TO };
   const params = new URLSearchParams(window.location.search);
+  const requestId=/^[a-f0-9]{64}$/.test(params.get("requestId")||"") ? params.get("requestId")! : "";
   return {
+    requestId,
     featureKey: resolveFeatureKey(params.get("featureKey")),
-    returnTo: resolveReturnTo(params.get("returnTo")),
+    returnTo: requestId ? resultPath(requestId) : resolveReturnTo(params.get("returnTo")),
   };
 }
 
@@ -77,6 +81,9 @@ function formatKrw(amount: number): string {
 export default function CheckoutClient() {
   const [params] = useState<CheckoutParams>(() => readParams());
   const auth = useAuthStore();
+  const paymentLock=useRef(false);
+  const [available,setAvailable]=useState(false);
+  const [checked,setChecked]=useState(false);
   const [gate, setGate] = useState<GateState>({ phase: "idle" });
 
   const pricing = useMemo(() => {
@@ -108,43 +115,55 @@ export default function CheckoutClient() {
     redirectToLogin();
   }, [pricing, authSettled, signedIn]);
 
+  useEffect(()=>{
+    if(!signedIn||!params.requestId){setChecked(true);return;}
+    let active=true;
+    Promise.all([fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`),fortuneApi<{products:{cdFeatureKey:string;available:boolean}[]}>('products')]).then(([record,catalog])=>{
+      if(!active)return;
+      if(record.fortune.product.cdFeatureKey!==params.featureKey)throw new Error('선택한 상담과 생선이 달라요. 영냥이 방에서 다시 골라 주세요.');
+      if(record.fortune.paid){window.location.assign(params.returnTo);return;}
+      setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
+    }).catch(e=>{if(active)setGate({phase:'error',message:e.message});}).finally(()=>{if(active)setChecked(true);});
+    return ()=>{active=false;};
+  },[signedIn,params]);
+
   const startPayment = useCallback(async () => {
-    if (!pricing || gate.phase === "paying") return;
+    if (!pricing || !available || !params.requestId || paymentLock.current) return;
+    paymentLock.current=true;
     setGate({ phase: "paying" });
-    const requestId = `yn-${pricing.featureKey}-${Date.now()}`;
-    const result = await runPaidAccessGate({
-      featureKey: pricing.featureKey,
-      reason: "yeongnyangi-checkout",
-      requestId,
-      // 레지스트리 가격을 그대로 싣는다(게이트 가격 커버리지 검증기의 인라인 가격 요건).
-      cost: pricing.cost,
-      amountKRW: pricing.amountKRW,
-      // 단건 전용 — 이용권·월정석 카드와 이용권 선검사를 모두 끈다.
-      allowedPaymentModes: ["direct"],
-      disablePassFirst: true,
-      disablePassChoice: true,
-      skipPassProbe: true,
-      resume: buildResume({ returnTo: params.returnTo }),
-    });
-    if (result.ok) {
-      setGate({ phase: "paid" });
-      window.location.assign(params.returnTo);
-      return;
-    }
-    const code = String(result.error?.code || "").toUpperCase();
-    if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {
-      redirectToLogin();
-      return;
-    }
-    if (code === "PAYMENT_CANCELLED") {
-      setGate({ phase: "cancelled" });
-      return;
-    }
-    setGate({
-      phase: "error",
-      message: String(result.error?.message || result.message || "결제를 진행하지 못했어요. 잠시 후 다시 시도해 주세요."),
-    });
-  }, [pricing, gate.phase, buildResume, params.returnTo]);
+    try {
+      // Recover a webhook-confirmed payment before offering another payment window.
+      try {
+        const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}/activate`,{});
+        if(fortune.paid){window.location.assign(params.returnTo);return;}
+      } catch(error) {
+        if(!(error instanceof FortuneApiError && error.status===402))throw error;
+      }
+      const requestId = `yn-${params.requestId}`;
+      const result = await runPaidAccessGate({
+        featureKey: pricing.featureKey,
+        reason: "yeongnyangi-checkout",
+        requestId,
+        cost: pricing.cost,
+        amountKRW: pricing.amountKRW,
+        allowedPaymentModes: ["direct"],
+        disablePassFirst: true,
+        disablePassChoice: true,
+        skipPassProbe: true,
+        resume: buildResume({ returnTo: params.returnTo }),
+      });
+      const code = String(result.error?.code || "").toUpperCase();
+      if (result.ok || code==='FORTUNE_ALREADY_PAID') {
+        setGate({ phase: "paid" });window.location.assign(params.returnTo);return;
+      }
+      if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
+      if (code === "PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
+      setGate({phase:"error",message:String(result.error?.message || result.message || "결제를 진행하지 못했어요. 잠시 후 다시 시도해 주세요.")});
+    } catch(error) {
+      if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
+      setGate({phase:'error',message:error instanceof Error?error.message:'결제를 확인하지 못했어요. 다시 시도해 주세요.'});
+    } finally { paymentLock.current=false; }
+  }, [pricing, available, buildResume, params]);
 
   const product = products.find(item => item.cdFeatureKey === params.featureKey);
   return (
@@ -160,7 +179,7 @@ export default function CheckoutClient() {
         <div className={styles.paper}>
           <h1 id="checkout-title">영냥이에게 건네는 복채</h1>
           <p className={styles.intro}>고른 생선과 상담 내용을 확인해 줘.</p>
-          {!pricing || !product ? (
+          {!pricing || !product || !params.requestId ? (
             <div className={styles.notice}>
               <h2>생선을 다시 골라 주세요</h2>
               <p>선택한 상품을 확인하지 못했어요. 영냥이 방에서 상담을 다시 선택해 주세요.</p>
@@ -179,9 +198,9 @@ export default function CheckoutClient() {
               </dl>
               <p className={styles.policy}>영냥이 상담은 단건 결제로 이용해요.<br />이용권과 월정석은 적용되지 않아요.</p>
               <button type="button" onClick={() => { void startPayment(); }}
-                disabled={!authSettled || !signedIn || gate.phase === "paying" || gate.phase === "paid"}
+                disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
-                {!authSettled ? "로그인 상태 확인 중" : gate.phase === "paying" ? "결제창을 여는 중이에요"
+                {!authSettled ? "로그인 상태 확인 중" : !checked ? "상담 주문 확인 중" : !available ? "상담 준비 중" : gate.phase === "paying" ? "결제창을 여는 중이에요"
                   : gate.phase === "paid" ? "영냥이 방으로 돌아가는 중" : `${formatKrw(pricing.amountKRW)} 단건 결제하기`}
               </button>
               <p className={styles.security}>결제수단은 다음 화면에서 선택해 주세요.</p>

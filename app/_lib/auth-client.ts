@@ -534,6 +534,8 @@ function authRequestTimeoutMs(request: Request) {
   const otherRoute = /^\/api\/(?:destiny-compass-ai\/report(?:\/continue)?|pet-saju-ai\/(?:report|compat)|fortune-tea-house\/consult|tarot\/(?:oracle-consultation|ijik-reading|crystal-soul|mindscan|reading|love-reading|numerology-reading))$/.test(path);
   const additionalRoute = /^\/api\/(?:oracle\/geomancy|celestial-harmony|dream\/(?:psycho-analysis|dream-tarot|dream-prompt|prompt-maker|tarot-consult))$/.test(path);
   const honeyLetterRoute = /^\/api\/fortune-tea-house\/results\/(?:[^/]+\/)?honey-letter$/.test(path);
+  const yeongnyangiRoute = /^\/api\/yeongnyangi\/requests\/[a-f0-9]{64}\/generate$/.test(path);
+  if (yeongnyangiRoute) return 105000;
   return reportRoute || fortuneRoute || otherRoute || additionalRoute || honeyLetterRoute ? 95000 : AUTH_FETCH_TIMEOUT_MS;
 }
 
