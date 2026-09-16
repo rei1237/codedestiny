@@ -42,7 +42,7 @@ export const CREDENTIAL_CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
    상태를 들고 있으면 프로필 한도·카드 생성 가능 여부가 최대 TTL 만큼 어긋난다.
    🔴 새 접두사를 라우트에 쓰면 여기에도 넣어야 한다 — scripts/verify-credential-cache.mjs 가
    소스에서 전수로 찾아 미등록 접두사를 실패시킨다(손으로 쓴 목록이 가드가 되지 않도록). */
-export const CREDENTIAL_CACHE_PREFIXES = Object.freeze(["auth-me:v1", "profile-list:v1"]);
+export const CREDENTIAL_CACHE_PREFIXES = Object.freeze(["auth-me:v1", "profile-list:v1", "yeongnyangi-profile-list:v1"]);
 
 const NOT_CACHEABLE = "CREDENTIAL_CACHE_NOT_CACHEABLE";
 

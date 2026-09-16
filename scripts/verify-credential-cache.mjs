@@ -170,11 +170,12 @@ export function auditRouteWiring(authSource, profileSource) {
   if (!profileSource.includes("export async function handleProfileRoutes(request, env) {")) {
     fail("worker/routes/profile.js: handleProfileRoutes 진입점이 없다.");
   }
-  if (!profileSource.includes("async function handleProfileRoutesUncached(request, env) {")) {
+  const uncachedDeclaration = profileSource.match(/async function handleProfileRoutesUncached\(request, env(?:, yeongnyangi = false)?\) \{/);
+  if (!uncachedDeclaration) {
     fail("worker/routes/profile.js: 캐시 없는 본체(handleProfileRoutesUncached)가 없다 — 캐시가 인증 왕복 뒤로 밀렸다는 뜻이다.");
   }
   const wrapperAt = profileSource.indexOf("export async function handleProfileRoutes(request, env) {");
-  const bodyAt = profileSource.indexOf("async function handleProfileRoutesUncached(request, env) {");
+  const bodyAt = uncachedDeclaration?.index ?? -1;
   if (wrapperAt >= 0 && bodyAt >= 0 && wrapperAt > bodyAt) {
     fail("worker/routes/profile.js: 래퍼가 본체보다 뒤에 있다 — 진입 순서를 확인할 것.");
   }
@@ -231,9 +232,9 @@ function runSelfTest() {
     ["Set-Cookie 검사를 뺀다", (t) => t.replace(' || response.headers.has("set-cookie")', "")],
     ["stale 폴백을 되살린다", (t) => t.replace("staleTtlSeconds: CREDENTIAL_CACHE_TTL_SECONDS", "staleTtlSeconds: 900")],
     ["강제 새로고침이 자기 키만 지운다", (t) => t.replace("purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES)", "purgeCmsCache([key])")],
-    ["레지스트리를 비운다", (t) => t.replace(/Object\.freeze\(\["auth-me:v1", "profile-list:v1"\]\)/, "Object.freeze([])")],
-    ["레지스트리에서 프로필 접두사를 뺀다", (t) => t.replace(/Object\.freeze\(\["auth-me:v1", "profile-list:v1"\]\)/, 'Object.freeze(["auth-me:v1"])')],
-    ["아무도 안 쓰는 접두사를 레지스트리에 넣는다", (t) => t.replace(/Object\.freeze\(\["auth-me:v1", "profile-list:v1"\]\)/, 'Object.freeze(["auth-me:v1", "profile-list:v1", "ghost:v1"])')],
+    ["레지스트리를 비운다", (t) => t.replace(/(CREDENTIAL_CACHE_PREFIXES\s*=\s*)Object\.freeze\(\[[^\]]+\]\)/, "$1Object.freeze([])")],
+    ["레지스트리에서 프로필 접두사를 뺀다", (t) => t.replace(/"profile-list:v1",?\s*/, "")],
+    ["아무도 안 쓰는 접두사를 레지스트리에 넣는다", (t) => t.replace(/(CREDENTIAL_CACHE_PREFIXES\s*=\s*Object\.freeze\(\[)/, '$1"ghost:v1", ')],
   ];
 
   for (const [label, mutate] of moduleMutations) {
@@ -243,9 +244,9 @@ function runSelfTest() {
   }
 
   const routeMutations = [
-    ["프로필 캐시 래퍼를 없앤다", (a, p) => [a, p.replace("async function handleProfileRoutesUncached(request, env) {", "async function somethingElse(request, env) {")]],
+    ["프로필 캐시 래퍼를 없앤다", (a, p) => [a, p.replace(/async function handleProfileRoutesUncached\(request, env(?:, yeongnyangi = false)?\) \{/, "async function somethingElse(request, env) {")]],
     ["프로필 쓰기 purge 를 하나 없앤다", (a, p) => [a, p.replace("withProfileListPurge(request, handleDeleteProfile", "(handleDeleteProfile")]],
-    ["읽기 경로에 purge 를 붙인다", (a, p) => [a, p.replace("return await handleGetProfiles(auth, env);", "return await withProfileListPurge(request, handleGetProfiles(auth, env));")]],
+    ["읽기 경로에 purge 를 붙인다", (a, p) => [a, p.replace(/return await handleGetProfiles\(auth, env(?:, yeongnyangi)?\);/, "return await withProfileListPurge(request, handleGetProfiles(auth, env));")]],
     ["auth 가 인증 판정 없이 캐시한다", (a, p) => [a.replace("isCacheable: (body) => body.authenticated === true", "isCacheable: () => true"), p]],
   ];
 

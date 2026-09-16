@@ -15,6 +15,7 @@
  */
 
 import { jest } from "@jest/globals";
+import { createHttpError } from "../../worker/lib/http.js";
 
 const TEST_USER_ID = "507f1f77bcf86cd799439011";
 
@@ -27,6 +28,7 @@ const profileCardCountDocuments = jest.fn();
 const profileCardCreate = jest.fn();
 const userFindById = jest.fn();
 const userUpdateOne = jest.fn();
+const profileSecurity = jest.fn();
 
 /** mongoose 체이너(.select().lean()) 흉내 — 최종 값만 돌려준다. */
 function chain(value) {
@@ -38,7 +40,7 @@ function chain(value) {
   return node;
 }
 
-let handleProfileRoutes;
+let handleProfileRoutes, handleYeongnyangiProfileRoutes;
 
 beforeAll(async () => {
   await Promise.all([
@@ -61,13 +63,13 @@ beforeAll(async () => {
       restoreMonthlyCreditLot: jest.fn(),
     })),
     jest.unstable_mockModule("../../worker/lib/security/index.js", () => ({
-      enforceSensitiveEndpointSecurity: jest.fn(async () => ({ ok: true })),
+      enforceSensitiveEndpointSecurity: profileSecurity,
     })),
     jest.unstable_mockModule("../../worker/lib/access-state.js", () => ({
       invalidateAccessStateCacheForUser: jest.fn(),
     })),
   ]);
-  ({ handleProfileRoutes } = await import("../../worker/routes/profile.js"));
+  ({ handleProfileRoutes, handleYeongnyangiProfileRoutes } = await import("../../worker/routes/profile.js"));
 });
 
 const NEW_CARD = {
@@ -137,6 +139,7 @@ function duplicateKeyError() {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  profileSecurity.mockResolvedValue({ ok: true });
   withMongoRetry.mockImplementation((env, op) => op());
   requireUserFromRequest.mockResolvedValue({ userId: TEST_USER_ID, authUserDoc: null });
   userFindById.mockReturnValue(chain(newUserDoc()));
@@ -225,5 +228,65 @@ describe("POST /api/profile — 신규 회원 첫 카드", () => {
     // message 는 그대로 window.alert() 된다 — 영문 에러코드가 실리면 안 된다.
     expect(payload.message).not.toBe("PROFILE_CREATE_INTERNAL_ERROR");
     expect(payload.message).toMatch(/[가-힣]/);
+  });
+});
+
+describe("영냥이 전용 프로필 정책", () => {
+  function request(method = "POST", body = { profile: NEW_CARD }) {
+    return new Request("https://example.com/api/yeongnyangi/profiles", {
+      method, headers: { "Content-Type": "application/json" },
+      ...(method === "POST" ? { body: JSON.stringify(body) } : {}),
+    });
+  }
+  test("영냥이는 무료 등급의 개수 제한을 넘겨 등록하고 공용 기본 프로필은 바꾸지 않는다", async () => {
+    profileCardCountDocuments.mockResolvedValue(50);
+    userFindById.mockReturnValue(chain(newUserDoc({ destinyProfilesCurrentId: "old-profile" })));
+    const response = await handleYeongnyangiProfileRoutes(request(), {});
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ ok: true, canCreateMore: true, profile: { id: NEW_CARD.profileId } });
+    expect(profileCardCreate).toHaveBeenCalledWith(expect.objectContaining({ userId: TEST_USER_ID }));
+    expect(userUpdateOne).not.toHaveBeenCalled();
+  });
+  test("공용 API는 body의 영냥이 플래그와 무관하게 기존 생성 제한을 유지한다", async () => {
+    profileCardCountDocuments.mockResolvedValue(50);
+    const response = await callCreate({ profile: NEW_CARD, yeongnyangi: true, source: "yeongnyangi" });
+    expect(response.status).toBe(409);
+    expect((await response.json()).code).toBe("PROFILE_LIMIT_RECONCILE_REQUIRED");
+    expect(profileCardCreate).not.toHaveBeenCalled();
+  });
+  test("영냥이 목록은 소유 프로필 전체를 반환하고 GET에서 기본 프로필을 쓰지 않는다", async () => {
+    profileCardFind.mockReturnValue(chain([storedCard(), storedCard({ profileId: "second" })]));
+    const response = await handleYeongnyangiProfileRoutes(request("GET"), {});
+    expect((await response.json()).profiles).toHaveLength(2);
+    expect(profileCardFind).toHaveBeenCalledWith({ userId: TEST_USER_ID });
+    expect(userUpdateOne).not.toHaveBeenCalled();
+  });
+  test("영냥이의 같은 ID 재시도는 이미 생성된 소유 프로필을 반환한다", async () => {
+    profileCardCountDocuments.mockResolvedValue(50);
+    profileCardCreate.mockRejectedValue(duplicateKeyError());
+    profileCardFindOne.mockReturnValue(chain(storedCard()));
+    const response = await handleYeongnyangiProfileRoutes(request(), {});
+    expect(response.status).toBe(200);
+    expect((await response.json()).profile.id).toBe(NEW_CARD.profileId);
+    expect(profileCardFindOne).toHaveBeenCalledWith({ userId: TEST_USER_ID, profileId: NEW_CARD.profileId });
+  });
+  test("잘못된 출생정보는 개수 제한 해제와 무관하게 거절한다", async () => {
+    const response = await handleYeongnyangiProfileRoutes(request("POST", { profile: { birth: { year: 1990, month: 2, day: 31 } } }), {});
+    expect(response.status).toBe(400);
+    expect(profileCardCreate).not.toHaveBeenCalled();
+  });
+  test("인증 실패는 등록 전에 거절한다", async () => {
+    requireUserFromRequest.mockRejectedValue(createHttpError(401, "로그인이 필요합니다."));
+    expect((await handleYeongnyangiProfileRoutes(request(), {})).status).toBe(401);
+    expect(profileCardCreate).not.toHaveBeenCalled();
+  });
+  test("전용 핸들러를 공용 URL에 호출해도 정책을 우회하지 않는다", async () => {
+    expect((await handleYeongnyangiProfileRoutes(postRequest({ profile: NEW_CARD }), {})).status).toBe(404);
+    expect(profileCardCreate).not.toHaveBeenCalled();
+  });
+  test("요청 보안 거절은 영냥이 등록도 차단한다", async () => {
+    profileSecurity.mockResolvedValue({ ok: false, response: new Response('{}', { status: 403 }) });
+    expect((await handleYeongnyangiProfileRoutes(request(), {})).status).toBe(403);
+    expect(profileCardCreate).not.toHaveBeenCalled();
   });
 });

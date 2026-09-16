@@ -32,6 +32,10 @@ export async function handleYeongnyangiRoutes(request, env) {
     const url=new URL(request.url), method=request.method.toUpperCase();
     const path=url.pathname.replace(/^\/api\/yeongnyangi\/?/,'').replace(/\/$/,'');
     if(path==='products' && method==='GET') return json({ok:true,products:products.map(p=>({...p,available:providerReady(env)}))});
+    if(path==='profiles' && ['GET','POST'].includes(method)) {
+      const {handleYeongnyangiProfiles}=await import('./yeongnyangi-profiles.js');
+      return handleYeongnyangiProfiles(request,env);
+    }
     const auth=await requireUserFromRequest(request,env);
     if(method!=='GET') {
       const security=await enforceSensitiveEndpointSecurity({env,request,userId:auth.userId,endpoint:`yeongnyangi:${method}:${path}`,

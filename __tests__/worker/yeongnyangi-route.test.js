@@ -4,11 +4,13 @@ import {createHttpError,json} from '../../worker/lib/http.js';
 const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
 const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
 const attendance=jest.fn(),attend=jest.fn(),unlock=jest.fn(),freeRead=jest.fn(),freePrepare=jest.fn();
+const profilesHandler=jest.fn();
 const find=jest.fn(),select=jest.fn(),sort=jest.fn(),limit=jest.fn(),lean=jest.fn();
 const query={select,sort,limit,lean};
 jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:auth}));
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
 jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:security}));
+jest.unstable_mockModule('../../worker/routes/yeongnyangi-profiles.js',()=>({handleYeongnyangiProfiles:profilesHandler}));
 jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({products:[{id:'saju_mackerel',priceKRW:1000}]}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
   prepareFortune:prepare,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
@@ -31,12 +33,19 @@ function request(path,method='GET',body){
 }
 beforeEach(()=>{
   jest.clearAllMocks();auth.mockResolvedValue({userId});security.mockResolvedValue({ok:true});
+  profilesHandler.mockImplementation(async()=>json({ok:true,profiles:[],canCreateMore:true}));
   for(const fn of [prepare,activate,generate,read])fn.mockResolvedValue({id,state:'PAID'});
   attendance.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false});
   attend.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false,awarded:true});
   unlock.mockResolvedValue({day:'2026-09-16',balance:0,attended:true,unlocked:true,newlyUnlocked:true});
   freeRead.mockResolvedValue({result:null});freePrepare.mockResolvedValue({category:'basic',title:'오늘의 운세'});
   find.mockReturnValue(query);select.mockReturnValue(query);sort.mockReturnValue(query);limit.mockReturnValue(query);lean.mockResolvedValue([]);
+});
+
+test.each(['GET','POST'])('profile %s delegates once to the authenticated profile boundary',async method=>{
+ const req=request('profiles',method,method==='POST'?{profile:{}}:undefined);
+ expect((await handleYeongnyangiRoutes(req,env)).status).toBe(200);
+ expect(profilesHandler).toHaveBeenCalledWith(req,env);expect(auth).not.toHaveBeenCalled();
 });
 
 test('public catalogue reports provider availability without account or database access',async()=>{

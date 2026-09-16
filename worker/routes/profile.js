@@ -943,7 +943,7 @@ async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, re
   ).catch(() => {});
 }
 
-async function handleGetProfiles(auth, env) {
+async function handleGetProfiles(auth, env, yeongnyangi = false) {
   // 일시적 풀 초기화에도 프로필/구독 정보를 정확히 반환하도록 조회를 재시도로 감싼다.
   // 두 독립 조회(User.findById · listUserProfiles)는 서로 필요 없으므로 병렬로 시작해 Mongo 왕복 1회를 줄인다.
   const profilesPromise = withMongoRetry(env, () => listUserProfiles(auth.userId));
@@ -958,6 +958,11 @@ async function handleGetProfiles(auth, env) {
 
   const subscription = resolveSubscriptionPolicy(user);
   const profiles = await profilesPromise;
+  // 영냥이는 같은 소유 프로필을 사용하지만 이용권 개수·기본 프로필 변경 정책은 적용하지 않는다.
+  if (yeongnyangi) {
+    const currentId = resolveCurrentId(user.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
+    return json({ ok: true, profiles: markCurrentProfile(profiles, currentId), currentId, canCreateMore: true });
+  }
   const access = resolveSingleProfileAccess(user, profiles, subscription);
   const currentId = access.currentId;
 
@@ -1050,7 +1055,7 @@ async function handleGetCurrentProfile(auth, env) {
   });
 }
 
-async function handleCreateProfile(request, auth, env) {
+async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
   try {
     /* 🔴 두 조회는 서로 의존하지 않으므로 같은 admission 슬롯 안에서 병렬로 낸다
        (handleUpdateCurrent·handleGetProfileDetail 과 같은 패턴). withMongoRetry 는 호출마다 전역
@@ -1089,7 +1094,7 @@ async function handleCreateProfile(request, auth, env) {
     /* 선행 중복검사(ProfileCard.findOne)는 제거했다 — {userId, profileId} unique 인덱스와 아래
        11000 처리가 이미 같은 일을 하는데, 슬롯 하나와 왕복 한 번을 더 썼다. */
     const profilePolicySnapshot = buildProfilePolicySnapshot(user, { source: "profile_create" });
-    const createFitsLocalPolicy = canCreateProfileWithinSubscriptionLimit(subscription, count);
+    const createFitsLocalPolicy = yeongnyangi || canCreateProfileWithinSubscriptionLimit(subscription, count);
     let createPayment = null;
     if (!createFitsLocalPolicy && !hasProfileMutationPaymentContext(body)) {
       return json({
@@ -1151,7 +1156,7 @@ async function handleCreateProfile(request, auth, env) {
 
     const profile = toClientProfile(typeof created.toObject === "function" ? created.toObject() : created);
     const nextCurrentId = String(profile.id || "");
-    const shouldMoveCurrent = nextCurrentId !== String(user.destinyProfilesCurrentId || "");
+    const shouldMoveCurrent = !yeongnyangi && nextCurrentId !== String(user.destinyProfilesCurrentId || "");
 
     /* currentId 이동과 목록 재조회도 서로 의존하지 않는다 — 위 조회와 같은 이유로 슬롯 하나에 합친다. */
     const [, profiles] = await withMongoRetry(env, () => Promise.all([
@@ -1179,10 +1184,9 @@ async function handleCreateProfile(request, auth, env) {
       profile: { ...profile, isDefault: true, selected: true },
       profiles: markCurrentProfile(profiles, nextCurrentId),
       currentId: nextCurrentId,
-      subscription,
-      profilePolicySnapshot,
+      ...(yeongnyangi ? {} : { subscription, profilePolicySnapshot }),
       serverSyncedAt: new Date().toISOString(),
-      canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
+      canCreateMore: yeongnyangi || canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
     }, { status: replayedCreate ? 200 : 201 });
   } catch (error) {
     const status = Number(error?.status || 0);
@@ -1535,8 +1539,17 @@ const PROFILE_LIST_CACHE_PREFIX = "profile-list:v1";
 /** 쓰기 뒤에 자기 자격증명의 목록 캐시를 지운다. 카드 추가·삭제가 즉시 보여야 한다. */
 async function withProfileListPurge(request, work) {
   const response = await work;
-  await purgeCredentialCache(request, [PROFILE_LIST_CACHE_PREFIX]);
+  await purgeCredentialCache(request, [PROFILE_LIST_CACHE_PREFIX, "yeongnyangi-profile-list:v1"]);
   return response;
+}
+
+// 이 경로가 정책 범위를 결정한다. 클라이언트 body/header로 공용 API 한도를 해제할 수 없다.
+export async function handleYeongnyangiProfileRoutes(request, env) {
+  const url = new URL(request.url);
+  if (!/^\/api\/yeongnyangi\/profiles\/?$/.test(url.pathname)
+    || !["GET", "POST"].includes(request.method.toUpperCase())) return notFound();
+  url.pathname = "/api/profile";
+  return handleProfileRoutesUncached(new Request(url, request), env, true);
 }
 
 /* 🔴 캐시는 인증 왕복보다 **앞**이어야 한다.
@@ -1558,7 +1571,7 @@ export async function handleProfileRoutes(request, env) {
   return await handleProfileRoutesUncached(request, env);
 }
 
-async function handleProfileRoutesUncached(request, env) {
+async function handleProfileRoutesUncached(request, env, yeongnyangi = false) {
   // 503 진단용: 실패가 인증 왕복(auth)인지, DB 연결(connect)인지, 핸들러 READ인지
   // 구분하려고 단계마다 플래그를 갱신한다(handleRouteError가 이 필드를 로그에 남김).
   const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false, stage: "auth", userId: "" };
@@ -1580,8 +1593,8 @@ async function handleProfileRoutesUncached(request, env) {
     trace.dbConnected = true;
     trace.stage = "dispatch";
 
-    if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
-    if (method === "POST" && path === "/") return await withProfileListPurge(request, handleCreateProfile(request, auth, env));
+    if (method === "GET" && path === "/") return await handleGetProfiles(auth, env, yeongnyangi);
+    if (method === "POST" && path === "/") return await withProfileListPurge(request, handleCreateProfile(request, auth, env, yeongnyangi));
     if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth, env);
     if (method === "PATCH" && path === "/current") return await withProfileListPurge(request, handleUpdateCurrent(request, auth, env));
 
