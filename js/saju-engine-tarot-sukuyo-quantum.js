@@ -7689,6 +7689,15 @@ function syDistanceLabelByRule(shortest, relationType) {
   return '원거리';
 }
 
+// 화면용 거리 라벨(근거리·중거리·원거리)을 구간 코드로 되돌린다. 거리로 분기하는 곳은
+// 한글 라벨을 직접 비교하지 말고 이 함수를 거친다 — 라벨 문구가 바뀌어도 여기 한 곳만 고치면 된다.
+function syDistanceTierFromLabel(label) {
+  if (label === '근거리') return 'near';
+  if (label === '중거리') return 'middle';
+  if (label === '원거리') return 'far';
+  return '';
+}
+
 function syDistanceTier(shortest) {
   if (shortest === 0) return 'same';
   if (shortest <= 4) return 'near';
@@ -12596,9 +12605,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if (drift < 0 && drift > -3) drift = -3;
       var purposeDelta = (PURPOSE_ADJUST[purpose] || PURPOSE_ADJUST.general)[key] || 0;
       var distanceDelta = 0;
-      if (distance === '근거리') distanceDelta = key === 'attraction' ? 3 : (key === 'exhaustion' ? 2 : 0);
-      if (distance === '중거리') distanceDelta = (key === 'stability' || key === 'longevity') ? 2 : 0;
-      if (distance === '원거리') distanceDelta = key === 'stability' ? -2 : (key === 'exhaustion' ? -2 : (key === 'longevity' ? 1 : 0));
+      if (syDistanceTierFromLabel(distance) === 'near') distanceDelta = key === 'attraction' ? 3 : (key === 'exhaustion' ? 2 : 0);
+      if (syDistanceTierFromLabel(distance) === 'middle') distanceDelta = (key === 'stability' || key === 'longevity') ? 2 : 0;
+      if (syDistanceTierFromLabel(distance) === 'far') distanceDelta = key === 'stability' ? -2 : (key === 'exhaustion' ? -2 : (key === 'longevity' ? 1 : 0));
       return clamp(base + drift + purposeDelta + distanceDelta);
     }
     function buildScores(input, relationType, distance) {
@@ -12886,14 +12895,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       Object.keys(ranges).forEach(function(key) {
         scores[key] = scoreFromRange(ranges[key], seed, key);
       });
-      if (distance === '근거리') {
+      if (syDistanceTierFromLabel(distance) === 'near') {
         scores.attraction += 5;
         scores.repeatPattern += 4;
         scores.emotionalExhaustion += 3;
-      } else if (distance === '중거리') {
+      } else if (syDistanceTierFromLabel(distance) === 'middle') {
         scores.healingPotential += 4;
         scores.realityPotential += 3;
-      } else if (distance === '원거리') {
+      } else if (syDistanceTierFromLabel(distance) === 'far') {
         scores.pastLifeFeeling += 4;
         scores.unfinishedTask += 5;
       }
@@ -12979,9 +12988,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     function distanceReading(distance, relationType) {
       if (relationType === '명') return '명 관계는 거리보다 닮음의 울림이 먼저 드러납니다. 가까워질수록 상대의 모습 안에서 내 익숙한 반응을 보게 되므로, 같은 장면이 반복될 때 잠시 멈추는 힘이 필요합니다.';
       if (relationType === '업태') return '업태는 거리보다 미완의 약속감이 크게 작용합니다. 멀리 있어도 마음이 오래 남고, 가까이 있어도 현실의 약속이 흐리면 불안이 커질 수 있습니다.';
-      if (distance === '근거리') return '근거리는 체감이 빠르고 반응이 선명합니다. 좋을 때는 서로를 강하게 끌어당기지만, 감정이 오른 날에는 작은 말도 크게 남으니 속도를 낮추는 여백이 필요합니다.';
-      if (distance === '중거리') return '중거리는 조율의 여지가 살아 있는 거리입니다. 서로의 차이를 이해할 시간이 있으며, 약속과 표현을 차분히 맞추면 오래 갈 힘이 생깁니다.';
-      if (distance === '원거리') return '원거리는 쉽게 닿지 않는 여운을 남깁니다. 마음속에서는 오래된 인연처럼 크게 느껴질 수 있으나, 현실에서 확인되는 행동을 기준으로 삼아야 합니다.';
+      if (syDistanceTierFromLabel(distance) === 'near') return '근거리는 체감이 빠르고 반응이 선명합니다. 좋을 때는 서로를 강하게 끌어당기지만, 감정이 오른 날에는 작은 말도 크게 남으니 속도를 낮추는 여백이 필요합니다.';
+      if (syDistanceTierFromLabel(distance) === 'middle') return '중거리는 조율의 여지가 살아 있는 거리입니다. 서로의 차이를 이해할 시간이 있으며, 약속과 표현을 차분히 맞추면 오래 갈 힘이 생깁니다.';
+      if (syDistanceTierFromLabel(distance) === 'far') return '원거리는 쉽게 닿지 않는 여운을 남깁니다. 마음속에서는 오래된 인연처럼 크게 느껴질 수 있으나, 현실에서 확인되는 행동을 기준으로 삼아야 합니다.';
       return '이 관계는 거리의 이름보다 관계 유형의 결이 더 강하게 떠오릅니다. 서로에게 남는 감정의 흔적을 차분히 살피는 편이 좋습니다.';
     }
 
@@ -12997,7 +13006,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               : relationType === '업태'
                 ? '오래된 의미보다 지금 지켜지는 약속을 확인하는 리듬이 좋습니다.'
                 : '닮은 반응이 동시에 올라올 때 각자의 시간을 인정하는 리듬이 좋습니다.';
-      var distanceTail = distance === '근거리' ? ' 감정이 빨리 번질 수 있으니 연락 직후 바로 결론을 내리지 마세요.' : (distance === '원거리' ? ' 그리움이 커질수록 확인 가능한 약속을 작게 남기세요.' : ' 서로의 차이를 고칠 문제로 보지 말고 맞출 기준으로 보세요.');
+      var distanceTail = syDistanceTierFromLabel(distance) === 'near' ? ' 감정이 빨리 번질 수 있으니 연락 직후 바로 결론을 내리지 마세요.' : (syDistanceTierFromLabel(distance) === 'far' ? ' 그리움이 커질수록 확인 가능한 약속을 작게 남기세요.' : ' 서로의 차이를 고칠 문제로 보지 말고 맞출 기준으로 보세요.');
       var directionTail = direction === '상호작용' ? ' 두 사람 모두 흔적을 남기므로 책임도 함께 나누어야 합니다.' : (direction === '상대가 나에게 작용' ? ' 상대의 반응에 마음이 크게 움직일수록 내 생활 리듬을 먼저 지키세요.' : (direction === '내가 상대에게 작용' ? ' 내가 던지는 말과 태도가 오래 남을 수 있으니 부드러운 표현이 인연을 살립니다.' : ''));
       return base + distanceTail + directionTail;
     }
@@ -13730,9 +13739,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if (drift > 0 && drift < 3) drift = 3;
       if (drift < 0 && drift > -3) drift = -3;
       var distanceDelta = 0;
-      if (distance === '근거리' && (key === 'attraction' || key === 'exhaustion')) distanceDelta = 4;
-      if (distance === '중거리' && (key === 'stability' || key === 'longevity')) distanceDelta = 3;
-      if (distance === '원거리' && key === 'growth') distanceDelta = 4;
+      if (syDistanceTierFromLabel(distance) === 'near' && (key === 'attraction' || key === 'exhaustion')) distanceDelta = 4;
+      if (syDistanceTierFromLabel(distance) === 'middle' && (key === 'stability' || key === 'longevity')) distanceDelta = 3;
+      if (syDistanceTierFromLabel(distance) === 'far' && key === 'growth') distanceDelta = 4;
       var value = clamp(base + drift + distanceDelta);
       if (relationType === '안괴') {
         if (key === 'stability') value = Math.min(value, 55);
@@ -14355,9 +14364,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var key = String(ctx.relationKey || 'default');
     var copy = SY_PURPOSE_COMPAT_COPY[key] || SY_PURPOSE_COMPAT_COPY.default;
     var distanceKo = String(ctx.distanceKo || '중거리');
-    var distanceLine = distanceKo === '근거리'
+    var distanceLine = syDistanceTierFromLabel(distanceKo) === 'near'
       ? '근거리 흐름에서는 체감이 빠르므로 감정 확인과 회복 약속을 초반에 잡는 편이 좋습니다.'
-      : (distanceKo === '원거리'
+      : (syDistanceTierFromLabel(distanceKo) === 'far'
         ? '원거리 흐름에서는 각자의 세계를 존중하되, 연결 신호가 끊기지 않게 만드는 것이 핵심입니다.'
         : '중거리 흐름에서는 급하게 확정하기보다 안정적인 반복과 현실 조율이 관계를 깊게 만듭니다.');
 
@@ -14497,7 +14506,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var conflict = syCompatClamp(ctx.conflictRisk, 20, 99);
     var recovery = syCompatClamp(ctx.recoveryPotential, 20, 99);
     var longTerm = syCompatClamp(ctx.longTermPotential, 20, 99);
-    var distanceBias = distanceKo === '근거리' ? 4 : (distanceKo === '원거리' ? -3 : 1);
+    var distanceBias = syDistanceTierFromLabel(distanceKo) === 'near' ? 4 : (syDistanceTierFromLabel(distanceKo) === 'far' ? -3 : 1);
     var relationTiming = {
       ankai: '강하게 당겨지는 날일수록 결론을 늦추고, 감정의 파도가 가라앉은 뒤 약속을 정해야 합니다.',
       usei: '편안한 정서가 깊어지는 달입니다. 다만 익숙함 뒤에 숨은 서운함은 오래 묵히지 않는 편이 좋습니다.',
@@ -14674,9 +14683,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }
     };
     var style = styleMap[relationKey] || styleMap.default;
-    var distanceAction = distanceKo === '근거리'
+    var distanceAction = syDistanceTierFromLabel(distanceKo) === 'near'
       ? '가까운 만큼 즉시 반응하지 말고, 감정이 오른 날은 한 박자 쉬어가세요.'
-      : (distanceKo === '원거리'
+      : (syDistanceTierFromLabel(distanceKo) === 'far'
         ? '멀어질수록 상상으로 빈칸을 채우기 쉬우니, 일정과 연락 기준을 숫자로 정하세요.'
         : '적당한 거리의 장점이 있으니, 만남과 개인 시간을 번갈아 안정시키세요.');
     var talkMode = conversation >= 72 ? '대화 운이 열려 있으므로 핵심 문장을 짧게 던지면 상대가 받아들일 여지가 큽니다.' : '대화가 엇갈릴 수 있으니 감정 설명보다 확인 질문을 먼저 두는 편이 안전합니다.';
@@ -14797,15 +14806,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }
     };
     var profile = relationRisk[relationKey] || relationRisk.default;
-    var distancePressure = distanceKo === '근거리' ? 7 : (distanceKo === '원거리' ? 5 : 2);
+    var distancePressure = syDistanceTierFromLabel(distanceKo) === 'near' ? 7 : (syDistanceTierFromLabel(distanceKo) === 'far' ? 5 : 2);
     var riskScore = syCompatClamp(conflict * 0.42 + attraction * 0.2 + (100 - recovery) * 0.24 + (100 - stability) * 0.14 + distancePressure, 20, 99);
     var repairScore = syCompatClamp(recovery * 0.38 + conversation * 0.28 + stability * 0.22 + longTerm * 0.12, 20, 99);
     var boundaryScore = syCompatClamp(conflict * 0.35 + (100 - conversation) * 0.24 + attraction * 0.18 + (100 - stability) * 0.23, 20, 99);
     var riskBand = syRiskBand(riskScore);
     var repairBand = syIndicatorBand(repairScore);
-    var distanceHint = distanceKo === '근거리'
+    var distanceHint = syDistanceTierFromLabel(distanceKo) === 'near'
       ? '가까울수록 감정이 바로 튀어나오니, 즉답보다 호흡을 먼저 두세요.'
-      : (distanceKo === '원거리'
+      : (syDistanceTierFromLabel(distanceKo) === 'far'
         ? '멀수록 상상이 커지니, 연락 기준과 다음 만남 시점을 숫자로 정해야 합니다.'
         : '적당한 거리는 장점이지만, 애매함이 길어지면 마음의 방향이 흐려질 수 있습니다.');
     var redFlags = [
@@ -14829,7 +14838,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       },
       {
         title: _sajuQuantumText("sq_11812_prop_title"),
-        level: distanceKo === '원거리' ? '주의' : '관찰',
+        level: syDistanceTierFromLabel(distanceKo) === 'far' ? '주의' : '관찰',
         body: distanceHint,
         remedy: '다음 연락 시간, 다음 만남, 답이 늦을 때의 기준을 구체적으로 정하세요.'
       }
@@ -14898,7 +14907,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       marriage: relationKey === 'yeongchin' ? 8 : (relationKey === 'seongwi' ? 5 : (relationKey === 'ankai' ? -6 : 2)),
       reunion: relationKey === 'ankai' ? 7 : (relationKey === 'usei' ? 5 : 2),
       secret: relationKey === 'ankai' ? 8 : (relationKey === 'life' ? 5 : 0),
-      distance: distanceKo === '원거리' ? 5 : (distanceKo === '근거리' ? -2 : 2),
+      distance: syDistanceTierFromLabel(distanceKo) === 'far' ? 5 : (syDistanceTierFromLabel(distanceKo) === 'near' ? -2 : 2),
       business: relationKey === 'seongwi' ? 9 : (relationKey === 'yeongchin' ? 5 : (relationKey === 'ankai' ? -3 : 2))
     };
     function band(score) {
@@ -14949,7 +14958,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         score: conversation * 0.3 + recovery * 0.24 + longTerm * 0.22 + stability * 0.16 + emotional * 0.08 + relBoost.distance + jitter(10),
         body: '물리적 거리보다 연락 기준과 재접속 능력을 봅니다. 장거리는 마음의 크기보다 일정의 선명도가 중요합니다.',
         action: '다음 만남, 연락 시간, 답이 늦을 때의 기준을 숫자로 정하세요.',
-        caution: distanceKo === '원거리' ? '상상으로 빈칸을 채우지 말고 확인 가능한 약속을 늘리세요.' : '가까운 거리라도 개인 시간을 침범하면 관계가 답답해집니다.'
+        caution: syDistanceTierFromLabel(distanceKo) === 'far' ? '상상으로 빈칸을 채우지 말고 확인 가능한 약속을 늘리세요.' : '가까운 거리라도 개인 시간을 침범하면 관계가 답답해집니다.'
       },
       {
         key: 'business',
@@ -15017,7 +15026,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       summary: relationAdvice[relationKey] || relationAdvice.default,
       core: '핵심 운은 ' + (best ? best.title : _sajuQuantumText("sq_11999_prop_title")) + '에서 가장 잘 열리고, ' + (weakest ? weakest.title : '속도 조절') + '에서는 더 섬세한 합의가 필요합니다.',
       priority: attraction >= 78 && conflict >= 76 ? '끌림을 증명하려 하지 말고 관계의 안전장치를 먼저 세우세요.' : (recovery >= 72 ? '갈등을 피하기보다 회복 순서를 정할 때 관계가 강해집니다.' : '관계의 속도를 낮추고 작은 약속을 반복해 신뢰를 먼저 쌓으세요.'),
-      distanceNote: distanceKo === '원거리' ? '원거리 흐름은 약속의 구체성이 곧 애정의 체감입니다.' : (distanceKo === '근거리' ? '근거리 흐름은 가까운 만큼 감정 반응을 늦추는 기술이 필요합니다.' : '중거리 흐름은 개인 시간과 만남의 균형이 관계 품질을 좌우합니다.'),
+      distanceNote: syDistanceTierFromLabel(distanceKo) === 'far' ? '원거리 흐름은 약속의 구체성이 곧 애정의 체감입니다.' : (syDistanceTierFromLabel(distanceKo) === 'near' ? '근거리 흐름은 가까운 만큼 감정 반응을 늦추는 기술이 필요합니다.' : '중거리 흐름은 개인 시간과 만남의 균형이 관계 품질을 좌우합니다.'),
       riskNote: risk && risk.riskBand ? '현재 위험 압력은 ' + risk.riskBand + '로 읽힙니다.' : '위험 압력은 대화 방식에 따라 달라집니다.',
       sevenDays: sevenDays
     };
@@ -15824,7 +15833,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     for (var i = 0; i < 10; i++) {
       var y = startYear + i;
       var drift = ((seed >>> (i % 16)) % 17) - 8;
-      var distanceBias = distanceKo === '근거리' ? (i % 2 === 0 ? 5 : -2) : (distanceKo === '원거리' ? (i % 3 === 0 ? -4 : 4) : 1);
+      var distanceBias = syDistanceTierFromLabel(distanceKo) === 'near' ? (i % 2 === 0 ? 5 : -2) : (syDistanceTierFromLabel(distanceKo) === 'far' ? (i % 3 === 0 ? -4 : 4) : 1);
       var score = syCompatClamp(baseCompat * 0.22 + recovery * 0.2 + longTerm * 0.22 + stability * 0.16 + conversation * 0.12 + (100 - conflict) * 0.08 + drift + distanceBias, 20, 99);
       var phase = phaseNames[(i + relationKey.length + (seed % 5)) % phaseNames.length];
       var band = score >= 82 ? '강한 결속' : (score >= 68 ? '좋은 흐름' : (score >= 52 ? '조율 필요' : '신중한 해'));
@@ -15992,9 +16001,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var emotionalChemistry = syCompatClamp((temp * 0.55 + magnetism * 0.45), 25, 99);
     var communicationChemistry = syCompatClamp((baseCompat * 0.62 + 22), 20, 98);
-    var dailyLifeChemistry = syCompatClamp((baseCompat * 0.58 + (distanceKo === '근거리' ? 8 : (distanceKo === '원거리' ? -6 : 2))), 20, 97);
+    var dailyLifeChemistry = syCompatClamp((baseCompat * 0.58 + (syDistanceTierFromLabel(distanceKo) === 'near' ? 8 : (syDistanceTierFromLabel(distanceKo) === 'far' ? -6 : 2))), 20, 97);
     var physicalMagnetism = syCompatClamp((magnetism * 0.76 + temp * 0.24), 20, 99);
-    var conflictRisk = syCompatClamp((relationKey === 'ankai' ? 84 : relationKey === 'seongwi' ? 72 : relationKey === 'life' ? 68 : 56) + (distanceKo === '근거리' ? 6 : (distanceKo === '원거리' ? -4 : 1)), 20, 98);
+    var conflictRisk = syCompatClamp((relationKey === 'ankai' ? 84 : relationKey === 'seongwi' ? 72 : relationKey === 'life' ? 68 : 56) + (syDistanceTierFromLabel(distanceKo) === 'near' ? 6 : (syDistanceTierFromLabel(distanceKo) === 'far' ? -4 : 1)), 20, 98);
     var recoveryPotential = syCompatClamp((100 - conflictRisk) + (relationKey === 'yeongchin' ? 22 : relationKey === 'taegeuk' ? 12 : relationKey === 'ankai' ? 6 : 10), 20, 99);
     var longTermPotential = syCompatClamp((dailyLifeChemistry * 0.4 + communicationChemistry * 0.35 + recoveryPotential * 0.25), 20, 99);
 
@@ -17852,7 +17861,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">금지어<br><strong style="color:#fff7ed;">“넌 원래 그래”처럼 성격을 단정하는 말</strong></div>
                 <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">잘 먹히는 표현<br><strong style="color:#fff7ed;">“내가 원하는 건 OO야”처럼 구체적인 요청</strong></div>
                 <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">절대 금지 행동<br><strong style="color:#fff7ed;">감정 과열 직후 결론을 강요하는 것</strong></div>
-                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">추천 데이트<br><strong style="color:#fff7ed;">${enhanced.distanceKo === '근거리' ? '짧고 자주 만나는 산책형 데이트' : (enhanced.distanceKo === '중거리' ? '주간 루틴형 데이트' : '긴 호흡의 목적형 데이트')}</strong></div>
+                <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">추천 데이트<br><strong style="color:#fff7ed;">${syDistanceTierFromLabel(enhanced.distanceKo) === 'near' ? '짧고 자주 만나는 산책형 데이트' : (syDistanceTierFromLabel(enhanced.distanceKo) === 'middle' ? '주간 루틴형 데이트' : '긴 호흡의 목적형 데이트')}</strong></div>
                 <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">위기 패턴<br><strong style="color:#fff7ed;">답장 지연을 마음이 식은 신호로 해석하는 것</strong></div>
                 <div style="background:rgba(15,23,42,0.55);border:1px solid rgba(251,191,36,0.22);border-radius:10px;padding:9px;">회복법<br><strong style="color:#fff7ed;">24시간 안에 감정·사실·다음 행동을 짧게 정리하기</strong></div>
               </div>
