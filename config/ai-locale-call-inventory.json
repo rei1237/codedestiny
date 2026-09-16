@@ -13,17 +13,17 @@
     "file": "lib/llm-client.ts",
     "matches": [
       {
-        "line": 123,
+        "line": 125,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 835,
+        "line": 839,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 952,
+        "line": 956,
         "kind": "call",
         "symbol": "env.AI.run"
       }
@@ -360,6 +360,16 @@
     ]
   },
   {
+    "file": "worker/lib/threads-daily-providers/shared.js",
+    "matches": [
+      {
+        "line": 8,
+        "kind": "import-or-injected-call",
+        "symbol": "../gemini.js"
+      }
+    ]
+  },
+  {
     "file": "worker/routes/admin.js",
     "matches": [
       {
@@ -473,12 +483,12 @@
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 4078,
+        "line": 4072,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 5133,
+        "line": 5127,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -613,12 +623,12 @@
         "symbol": "../lib/structured-consultation.js"
       },
       {
-        "line": 676,
+        "line": 677,
         "kind": "call",
         "symbol": "callGeminiJsonWithRetry"
       },
       {
-        "line": 693,
+        "line": 698,
         "kind": "call",
         "symbol": "callGeminiText"
       }
@@ -798,12 +808,12 @@
     "file": "worker/routes/ziwei-deep-report.js",
     "matches": [
       {
-        "line": 37,
+        "line": 38,
         "kind": "import-or-injected-call",
         "symbol": "../lib/gemini.js"
       },
       {
-        "line": 253,
+        "line": 255,
         "kind": "call",
         "symbol": "callGeminiText"
       }
