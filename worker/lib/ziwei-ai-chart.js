@@ -14,7 +14,8 @@ const MAIN_STARS = ["자미", "천기", "태양", "무곡", "천동", "염정", 
 const ASSISTANT_STARS = ["문창", "문곡", "좌보", "우필", "천괴", "천월", "녹존", "천마", "함지", "천요"];
 const MALEFIC_STARS = ["경양", "타라", "화성", "영성", "지공", "지겁"];
 
-const FOUR_TRANSFORMATIONS = {
+// 천간 → 사화 표. Threads 자미두수 발행(유월·유일 사화)도 이 표를 그대로 import 한다 — 복제 금지.
+export const FOUR_TRANSFORMATIONS = {
   갑: { huaLu: "염정", huaQuan: "파군", huaKe: "무곡", huaJi: "태양" },
   을: { huaLu: "천기", huaQuan: "천량", huaKe: "자미", huaJi: "태음" },
   병: { huaLu: "천동", huaQuan: "천기", huaKe: "문창", huaJi: "염정" },
@@ -27,7 +28,7 @@ const FOUR_TRANSFORMATIONS = {
   계: { huaLu: "파군", huaQuan: "거문", huaKe: "태음", huaJi: "탐랑" },
 };
 
-const TRANSFORMATION_LABELS = {
+export const TRANSFORMATION_LABELS = {
   huaLu: "화록",
   huaQuan: "화권",
   huaKe: "화과",
