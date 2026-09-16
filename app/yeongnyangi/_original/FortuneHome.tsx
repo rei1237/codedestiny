@@ -352,6 +352,8 @@ export default function FortuneHome() {
               <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
               <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
               <a href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">{packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 상담 알아보기 →</a>
+              {" · "}
+              <a href="/yeongnyangi/1000-won-fortune/">천원사주 안내 보기</a>
             </aside>
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
               <div className="ggulggul-bridge__art">
