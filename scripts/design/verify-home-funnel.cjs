@@ -71,6 +71,8 @@ function contrast(foreground, background) {
         assert.ok(await page.locator('#tarotCollection.cd-mobile-collection-fullscreen').isVisible(), 'fullscreen collection remains visible outside home containment');
         await page.keyboard.press('Escape');
         assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'closing restores inline collection parent');
+        // The bottom-nav observer removes the fullscreen body class on the next frame.
+        await page.locator('#cdhCollections').waitFor({ state: 'hidden' });
         assert.equal(await page.locator('#cdhCollections').isVisible(), false, 'closing overlay restores folded home');
       }
       const layout = await page.evaluate(() => ({

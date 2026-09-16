@@ -1,0 +1,44 @@
+/* Reuse the former character island artwork; the home funnel keeps its controllers. */
+.cdh-character-scene {
+  align-self: center;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--cdh-line);
+  border-radius: var(--cd-r-section, 26px);
+  background: #100d26;
+  box-shadow: 0 22px 46px -24px rgba(60, 24, 48, .42);
+}
+.cdh-character-scene__art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+}
+.cdh-character-scene__signature {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cd-sp-md, 16px);
+  padding: var(--cd-sp-md, 16px);
+  background: var(--cdh-card);
+  color: var(--cdh-ink);
+}
+.cdh-character-scene__signature img {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+}
+.cdh-character-scene__signature p {
+  font-family: "CodeDestinySerifKR", var(--font-display);
+  font-size: var(--cd-t-body, .9rem);
+  line-height: 1.7;
+}
+@media (max-width: 960px) {
+  .cdh-character-scene { width: min(100%, 560px); justify-self: center; }
+}
+@media (max-width: 640px) {
+  .cdh-character-scene { order: -1; }
+  .cdh-character-scene__signature { padding: var(--cd-sp-sm, 10px); }
+}
