@@ -8,8 +8,7 @@
     "/insights/famous-saju/*",
     "/de-de/high-value*",
     "/es-es/high-value*",
-    "/yeongnyangi/free-fortune*",
-    "/yeongnyangi/1000-won-fortune*"
+    "/yeongnyangi/free-fortune*"
   ],
   "exclude": []
 }
