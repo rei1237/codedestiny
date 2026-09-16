@@ -4,6 +4,7 @@ import {ArrowLeft,ArrowRight,BookOpen,Moon,PawPrint,Sparkles,X} from 'lucide-rea
 import StoryPanel from './StoryPanel';
 import CatMotion from './CatMotion';
 import ServiceNavigation from './ServiceNavigation';
+import FreeFortune from '../_components/FreeFortune';
 import './original.css';
 import './room.css';
 
@@ -26,7 +27,7 @@ export default function Room(){
     <button className="room-resident" aria-label="영냥이 쓰다듬기" onClick={()=>setReaction(v=>!v)}><img src={asset(reaction?'prologue-cat':'hero-800')} width={480} height={480} alt="방석 위에서 이야기를 기다리는 영냥이"/></button><p className="room-presence-caption">거창한 고민이 아니어도 돼.</p>
    </section>
    <section className="room-conversation" id="room-conversation"><h2>그래서, 무슨 이야기야?</h2><p>궁금한 운세를 고르면, 네 프로필과 고민을 바탕으로 차근차근 읽어줄게.</p><a className="room-fortune-link" href="/yeongnyangi/fortune/">생선 상품과 상담 내용 살펴보기<ArrowRight size={16}/></a><a className="room-fortune-link" href="/yeongnyangi/library/">이미 결제한 상담 이어가기<BookOpen size={16}/></a></section>
-   <section className="room-conversation" id="daily"><h2>오늘의 흐름부터 가볍게 볼까?</h2><p>CODE DESTINY의 무료 운세를 같은 계정으로 함께 이용할 수 있어.</p><a className="room-fortune-link" href="/today/">오늘의 무료 운세 보기<ArrowRight size={16}/></a></section>
+   <FreeFortune/>
    <section className="room-stories" aria-labelledby="room-story-title"><div className="room-story-heading"><BookOpen size={19}/><h2 id="room-story-title">내 얘기도, 들어볼래?</h2></div><button ref={storyButton} className="room-prologue-entry" onClick={()=>{setStep(0);setStoryOpen(true);}}><img src={asset('story-mirror')} width={480} height={270} alt="" loading="lazy"/><span><strong>두 대통령의 운명을 맞힌 밤,<br/>나는 고양이가 됐다.</strong><span>영묘진인에서 영냥이로. 그날의 이야기.</span><b>프롤로그 보기 <ArrowRight size={16}/></b></span></button></section>
    <section className="room-small-moment" aria-label="영냥이의 작은 휴식"><CatMotion/><div><Sparkles size={18}/><h2>조금 쉬어도 괜찮아.</h2><p>답을 빨리 찾는 것보다,<br/>네 마음을 놓치지 않는 게 먼저야.</p></div></section>
   </div><footer className="room-footer"><PawPrint size={18}/>오늘도, 네 이야기에 작은 달빛 하나.</footer>

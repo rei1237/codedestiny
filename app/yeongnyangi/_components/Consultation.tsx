@@ -54,7 +54,7 @@ export default function Consultation(){
  }
  function chooseDomain(next:string){setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
  return <section className={styles.consultation}>
-  <header><p className={styles.eyebrow}>영냥이 개인 상담 · 단건 결제</p><h1>무엇부터 읽어볼까?</h1><p>운세를 고르고, 궁금한 이야기를 들려줘.</p></header>
+  <header><h1>무엇부터 읽어볼까?</h1><p>운세를 고르고, 궁금한 이야기를 들려줘. 영냥이 개인 상담은 선택한 상품을 단건 결제로 확인해.</p></header>
   <div className={styles.tabs} role="group" aria-label="운세 종류">{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{label}</button>)}</div>
   <p>{explanation[domain]}</p>
   <div className={styles.fishes} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>

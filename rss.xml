@@ -5,11 +5,19 @@
     <link>https://code-destiny.com/insights/</link>
     <description>사주·타로·자미두수·점성술 인사이트 업데이트 피드</description>
     <language>ko</language>
-    <lastBuildDate>Thu, 10 Sep 2026 16:11:52 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 16 Sep 2026 03:58:03 GMT</lastBuildDate>
     <docs>https://www.rssboard.org/rss-specification</docs>
     <generator>Code Destiny RSS Generator</generator>
     <ttl>60</ttl>
     <atom:link href="https://code-destiny.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>메이저 아르카나 22장 완전 해설 — 상징·이미지·의미의 통합 가이드</title>
+      <link>https://code-destiny.com/insights/tarot-major-arcana-22-complete-meanings/</link>
+      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-major-arcana-22-complete-meanings/</guid>
+      <description>라이더-웨이트-스미스 계열 메이저 아르카나 22장의 도상을 살펴보고, 정·역방향을 질문과 행동 선택에 연결하는 방법을 카드별로 정리했습니다.</description>
+      <category>타로 이론</category>
+      <pubDate>Mon, 14 Sep 2026 00:00:00 GMT</pubDate>
+    </item>
     <item>
       <title>출생시간을 모르면 사주를 못 보나? — 세 기둥으로 읽는 법</title>
       <link>https://code-destiny.com/insights/saju-without-birth-time-three-pillars-guide/</link>
@@ -137,14 +145,6 @@
       <description>일간은 사주 여덟 글자에서 &apos;나&apos;를 가리키는 한 글자입니다. 공개된 생년월일을 가진 인물 넷의 명식을 실제로 세워, 일간을 찾고 읽는 순서를 연습합니다.</description>
       <category>사주</category>
       <pubDate>Mon, 24 Aug 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>메이저 아르카나 22장 완전 해설 — 상징·이미지·의미의 통합 가이드</title>
-      <link>https://code-destiny.com/insights/tarot-major-arcana-22-complete-meanings/</link>
-      <guid isPermaLink="true">https://code-destiny.com/insights/tarot-major-arcana-22-complete-meanings/</guid>
-      <description>메이저 아르카나 22장은 0번 바보에서 21번 세계로 완성되는 &apos;바보의 여정&apos;입니다. 각 카드의 이미지 상징을 먼저 해부하고, 그 상징에서 흘러나오는 정방향·역방향 의미와 실전 상담 포인트를 카드별로 정리했습니다.</description>
-      <category>타로 이론</category>
-      <pubDate>Sat, 11 Jul 2026 00:00:00 GMT</pubDate>
     </item>
     <item>
       <title>타로 역방향 카드 해석 프레임워크 — 다섯 가지 패턴으로 정확하게 읽는 법</title>
