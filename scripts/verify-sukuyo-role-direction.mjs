@@ -14,6 +14,8 @@
  *  6. 화면 표시 — '공진자' 뭉개기가 사라졌고, 자리 방향 섹션 마커가 남아 있다.
  *  7. React 휠 파리티 — components/fortune/SukuyoWheel.tsx 의 relationFromDistance 도
  *     27거리 전부에서 정본 aRole 과 같은 자리를 낸다.
+ *  9. 관계 해설 14장 — 27거리 전부에서 본문이 채워지고, 나 중심/상대 중심이 자리 짝대로
+ *     갈리며, 단정 어조가 섞여 있지 않은지. 화면 마커까지 함께 본다.
  *  8. 관계 판정 단일 payload — syBuildRelationDirection 이 27거리 전부에서 정본 자리·거리·
  *     방향·해설 키를 내고, A/B 를 바꾸면 자리와 방향이 함께 뒤집힌다. 화면이 이 payload 를
  *     실제로 싣고 있는지(상단 배지·판정 요약 마커)도 함께 본다.
@@ -372,6 +374,97 @@ check(
 check(
   clientSource.includes("resolved.relationDirection = syBuildRelationDirection(D)"),
   `${CLIENT} 의 SukuyoCompatEngine.resolve 가 관계 판정 payload 를 싣지 않습니다`,
+);
+
+
+// ── 9. 관계 해설 14장 — 본문·시점 분리·어조 ────────────────────────────────
+if (clientRoles) {
+  const seats = clientRoles.SY_SEAT_CHAPTERS;
+  const CHAPTER_IDS = [
+    "essence", "role", "attraction", "emotionFlow", "overTime", "romance",
+    "longTerm", "conflict", "repair", "friendship", "work", "caution", "usage",
+  ];
+  const SEATS = ["명", "영", "친", "우", "쇠", "안", "괴", "성", "위", "업", "태"];
+  const BANNED = ["최악", "무조건", "반드시", "절대", "틀림없", "100%"];
+  const textProblems = [];
+
+  for (const seat of SEATS) {
+    const entry = seats && seats[seat];
+    if (!entry) {
+      textProblems.push(`자리 ${seat} 의 해설이 없습니다`);
+      continue;
+    }
+    for (const id of CHAPTER_IDS) {
+      const body = entry[id];
+      if (typeof body !== "string" || body.trim().length < 30) {
+        textProblems.push(`${seat}.${id} 본문이 비었거나 너무 짧습니다`);
+        continue;
+      }
+      for (const word of BANNED) {
+        if (body.includes(word)) textProblems.push(`${seat}.${id} 에 단정 어조 '${word}' 가 있습니다`);
+      }
+    }
+  }
+  check(textProblems.length === 0, `관계 해설 본문이 규칙을 벗어났습니다: ${textProblems.join(" / ")}`);
+
+  const buildProblems = [];
+  const seenKeys = new Set();
+  for (let d = 0; d < 27; d += 1) {
+    const payload = clientRoles.syBuildRelationDirection(d);
+    const built = payload ? clientRoles.syBuildRelationChapters(payload) : null;
+    if (!built) {
+      buildProblems.push(`D=${d} 챕터 조립 실패`);
+      continue;
+    }
+    seenKeys.add(built.interpretationKey);
+    if (built.interpretationKey !== payload.interpretationKey) {
+      buildProblems.push(`D=${d} 해설 키가 payload 와 다릅니다`);
+    }
+    if (built.chapters.length !== 14) {
+      buildProblems.push(`D=${d} 챕터가 14장이 아닙니다(${built.chapters.length})`);
+    }
+    for (const ch of built.chapters) {
+      const filled = ch.single ? ch.single : (ch.me && ch.other);
+      if (!filled) buildProblems.push(`D=${d} '${ch.title}' 본문이 비었습니다`);
+    }
+    // 나 중심 = 내 자리 본문, 상대 중심 = 상대 자리 본문. 자리가 다르면 두 본문도 달라야 한다.
+    const essence = built.chapters.find((c) => c.id === "essence");
+    if (essence) {
+      if (essence.me !== seats[payload.personARole].essence) {
+        buildProblems.push(`D=${d} 나 중심 본문이 내 자리(${payload.personARole}) 것이 아닙니다`);
+      }
+      if (essence.other !== seats[payload.personBRole].essence) {
+        buildProblems.push(`D=${d} 상대 중심 본문이 상대 자리(${payload.personBRole}) 것이 아닙니다`);
+      }
+      if (payload.personARole !== payload.personBRole && essence.me === essence.other) {
+        buildProblems.push(`D=${d} 자리가 다른데 나/상대 본문이 같습니다`);
+      }
+    }
+    if (built.tier.key !== payload.distance.tier) {
+      buildProblems.push(`D=${d} 거리 수식자가 payload 구간과 다릅니다`);
+    }
+    if (!built.tier.axes || built.tier.axes.length !== 5) {
+      buildProblems.push(`D=${d} 거리 수식자 축이 5개가 아닙니다`);
+    }
+    if (!built.synthesis || built.synthesis.length < 40) {
+      buildProblems.push(`D=${d} 종합 문단이 비었습니다`);
+    }
+  }
+  check(buildProblems.length === 0, `관계 해설 조립이 어긋납니다: ${buildProblems.join(" / ")}`);
+  // 27거리에서 실제로 나오는 해설 키는 25종이다(영친은 원거리가, 업태·명은 한 구간만 존재).
+  check(
+    seenKeys.size === 25,
+    `27거리에서 나온 해설 키가 25종이 아닙니다(${seenKeys.size}종) — 거리 구간 규칙이 바뀌었는지 확인하세요`,
+  );
+}
+
+check(
+  clientSource.includes("data-sy-relation-chapters="),
+  `${CLIENT} 에 관계 해설 14장 섹션 마커(data-sy-relation-chapters)가 없습니다`,
+);
+check(
+  clientSource.includes("syBuildRelationChapters(dirPayload)"),
+  `${CLIENT} 의 결과 렌더러가 관계 해설 챕터를 조립하지 않습니다`,
 );
 
 if (failures.length) {
