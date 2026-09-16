@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-16
-next: 통합 화면/API와 결제 의도 검사를 검증하고 main CI를 통과시킨 뒤, 기존 D1 데이터와 라우트 소유권을 확인하여 스테이징 전환 및 최종 출시 게이트를 진행한다. 실제 과금 LLM/PG 테스트는 실행하지 않는다.
+next: CI 메타데이터·상품 설명 보완 후 MongoDB 스테이징 트랜잭션 및 결과 복원을 검증하고, 무료/프롤로그 경로와 라우트를 정리해 스테이징 전환 및 최종 출시 게이트를 진행한다. 사용자가 기존 테스트 데이터 이관은 불필요하다고 지시했다. 실제 과금 LLM/PG 테스트는 실행하지 않는다.
 ---
 
 # 영냥이 CODE DESTINY 단일화
@@ -66,3 +66,10 @@ next: 통합 화면/API와 결제 의도 검사를 검증하고 main CI를 통�
 - Cloudflare 실제 읽기 확인: 독립 SoulCat Worker는 staging만 존재. staging 5개 세부 route는 아직 soulcat-service-staging 소유. production `/api/*`는 code-destiny-web 소유이고 SoulCat production Worker는 없음.
 - D1 읽기 확인: soulcat-fortune는 사용자/프로필/주문/결과 0건. soulcat-fortune-staging는 사용자 5, 프로필 11, 주문/결제/운명서 각 9, 챕터 333, 공유 2, 멸치 원장 1건. 고객 식별정보나 본문을 로그에 출력하지 않았다. 전환 전 보존 이관이 필요하며 삭제/쓰기/새 유료 호출은 수행하지 않았다.
 - Cloudflare 환경 파일 토큰은 API에서 401. 기존 Wrangler OAuth 세션으로 읽기 인벤토리를 정상 확인했다. 토큰 값은 출력하거나 문서에 기록하지 않았다.
+
+### 범위 정정 및 CI (2026-09-16, 최신)
+
+- 사용자가 기존 D1 기록은 모두 테스트 데이터이며 보존 이관이 필요 없다고 명시했다. **D1→Mongo 데이터 이관 작업은 하지 않는다.** 기존 자료가 출시 전환을 막는 조건도 아니다. 기존 리소스를 임의 삭제하지는 않았으며 새 운영 경로가 D1에 의존하지 않도록 전환한다.
+- main `086a085c8d2e0e440e27d40660c836dae1fa8265` 전달. PR CI `35040824480`에서 Critical checks, Typecheck/lint 통과. Build 실패는 영냥이 하위 페이지 description 누락, Static guards 실패는 yeongnyangi-fusion-all 전용 마케팅 카피 누락. 코드 보완 및 해당 검사 통과 후 재전달 진행 중.
+- 로컬 check:fast 최종 실행 exit 0. paid-gate 88개, 마지막 Jest 273스위트/3783테스트, Worker dry-run 빌드와 타입/lint/관련 정적 검사를 통과했다. 실제 LLM/PG 호출은 없음.
+- 실제 MongoDB `code_destiny_staging` 연결 및 ping 정상(읽기 전용). 기존 CD 사용자와 Payment 증빙을 찾았으며 실제 거래/환불이나 데이터 쓰기는 하지 않았다. 앞으로 기존 테스트 이관 없이 새 Mongo 상태 머신 자체의 스테이징 검증에 집중한다.
