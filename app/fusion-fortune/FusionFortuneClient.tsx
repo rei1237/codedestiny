@@ -2297,7 +2297,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   // 1단계만 있으면 2단계를 자동으로 이어 간다. 없으면(404) 기존 "이어서 받기" 흐름 그대로다.
   useEffect(() => {
     if (!pendingPaidRequest || loading || autoResumeRef.current || document.visibilityState === "hidden" || navigator.onLine === false) return;
-    const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() });
+    const stored = readFusionPaidRequest({ ownerId: currentFusionOwner() })
+      || (paidRequestIdRef.current ? { requestId: paidRequestIdRef.current, body: paidRequestBodyRef.current } : null);
     if (!stored?.requestId) return;
     autoResumeRef.current = true;
     const body = stored.body;
@@ -2321,8 +2322,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       setResumeEpoch(value => value + 1);
     };
     window.addEventListener("online", resume);
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
     document.addEventListener("visibilitychange", resume);
-    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    return () => { window.removeEventListener("online", resume); window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume); document.removeEventListener("visibilitychange", resume); };
   }, []);
 
   /** 저장된 결과를 연다. 이미 결제한 본인 결과라 추가 결제가 없다. */

@@ -1,7 +1,7 @@
 import { fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
 import { FusionFortuneGenerationAttempt } from "./models.js";
 import { countPaidReportBodyChars, PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
-import { mongoose } from "./db.js";
+import { mongoose, withMongoRetry } from "./db.js";
 import {
   buildFusionSectionGroupPrompt,
   buildFusionSectionPromptPrefix,
@@ -1081,6 +1081,7 @@ export async function generateFusionFortuneWithRealLLM({
       response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
     }
     if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
+    if (response.truncated === true) return { ok: false, group, issue: "output_truncated" };
     const parsed = parseFusionFortuneLLMResponse(response.text);
     if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
     // 🔴 검증·분량 계수보다 **먼저** 공백 런을 접는다. 안 접으면 공백만 9만 자인 본문이 그룹
@@ -1258,35 +1259,37 @@ export function createMemoryFusionFortuneStore(seed = {}) {
   };
 }
 
-export function createMongoFusionFortuneStore() {
+export function createMongoFusionFortuneStore(env = {}) {
   return {
     async reserve(userId, dateKey, requestId, now = new Date()) {
-      const leaseToken = crypto.randomUUID();
-      const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
-      const staleReservedBefore = new Date(now.getTime() - FUSION_RESERVATION_FRESHNESS_MS);
-      try {
-        // released(실패·중단)된 시도, 또는 신선도 창(FUSION_RESERVATION_FRESHNESS_MS)을 넘기고도
-        // "reserved"에 멈춘 시도는 같은 requestId 로 다시 연다. 후자는 플랫폼이 생성 도중 워커를
-        // 강제 종료해 release()가 호출되지 못한 경우다 — 결제 증빙이 requestId 에 묶여 있어,
-        // 여기서 계속 막으면 이미 결제한 사용자가 만료 TTL(10분)까지 결과를 받을 길이 사라진다.
-        const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
-          { requestId, userId: objectIdOrString(userId), $or: [{ status: "released" }, { status: "reserved", updatedAt: { $lt: staleReservedBefore } }] },
-          { $set: { status: "reserved", dateKey, expiresAt, leaseToken } },
-        ).lean();
-        if (!reopened) {
-          await FusionFortuneGenerationAttempt.create({ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt, leaseToken });
+      return withMongoRetry(env, async () => {
+        const leaseToken = crypto.randomUUID();
+        const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+        const staleReservedBefore = new Date(now.getTime() - FUSION_RESERVATION_FRESHNESS_MS);
+        try {
+          // released(실패·중단)된 시도, 또는 신선도 창(FUSION_RESERVATION_FRESHNESS_MS)을 넘기고도
+          // "reserved"에 멈춘 시도는 같은 requestId 로 다시 연다. 후자는 플랫폼이 생성 도중 워커를
+          // 강제 종료해 release()가 호출되지 못한 경우다 — 결제 증빙이 requestId 에 묶여 있어,
+          // 여기서 계속 막으면 이미 결제한 사용자가 만료 TTL(10분)까지 결과를 받을 길이 사라진다.
+          const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
+            { requestId, userId: objectIdOrString(userId), $or: [{ status: "released" }, { status: "reserved", updatedAt: { $lt: staleReservedBefore } }] },
+            { $set: { status: "reserved", dateKey, expiresAt, leaseToken } },
+          ).lean();
+          if (!reopened) {
+            await FusionFortuneGenerationAttempt.create({ requestId, userId: objectIdOrString(userId), dateKey, status: "reserved", expiresAt, leaseToken });
+          }
+          return { ok: true, userId: String(userId), dateKey, requestId, leaseToken };
+        } catch (error) {
+          if (Number(error?.code) === 11000) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
+          throw error;
         }
-        return { ok: true, userId: String(userId), dateKey, requestId, leaseToken };
-      } catch (error) {
-        if (Number(error?.code) === 11000) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
-        throw error;
-      }
+      }, { retries: 0 });
     },
     async release(reservation) {
-      await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), leaseToken: reservation.leaseToken, status: "reserved" }, { $set: { status: "released" } });
+      await withMongoRetry(env, () => FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), leaseToken: reservation.leaseToken, status: "reserved" }, { $set: { status: "released" } }), { retries: 0 });
     },
     async commit(reservation) {
-      const attempt = await FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), leaseToken: reservation.leaseToken, status: "reserved" }, { $set: { status: "completed" } });
+      const attempt = await withMongoRetry(env, () => FusionFortuneGenerationAttempt.updateOne({ requestId: reservation.requestId, userId: objectIdOrString(reservation.userId), leaseToken: reservation.leaseToken, status: "reserved" }, { $set: { status: "completed" } }), { retries: 0 });
       return Number(attempt.modifiedCount || 0) === 1 ? { committed: true } : null;
     },
   };
@@ -1391,7 +1394,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     generationSourceForLog = generated?.generationSource || "";
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
     if (generated?.deliverable === false && result) {
-      if (typeof onDelivery === "function") await onDelivery({ requestId: safeId, result, generationSource: generated?.generationSource || "gemini_partial", qualityTier: "partial", stage: stageNumber, status: "partial", nextStage: stageNumber });
+      if (typeof onDelivery === "function") await onDelivery({ requestId: safeId, lease: deliveryLease, result, generationSource: generated?.generationSource || "gemini_partial", qualityTier: "partial", stage: stageNumber, status: "partial", nextStage: stageNumber });
       await store.release(reservation, now).catch(() => {});
       return { ok: true, status: 202, requestId: safeId, stage: stageNumber, nextStage: stageNumber, stageStatus: "partial", result, retryable: true, qualityTier: "partial", generationSource: generated?.generationSource || "gemini_partial" };
     }

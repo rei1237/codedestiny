@@ -1,4 +1,4 @@
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
@@ -54,7 +54,7 @@ function disabledStatus() {
  * 🔴 proven === null 은 DB 장애로 "확인 못 함"이다. 402 로 내리면 3만원을 낸 사용자가
  * 결과를 못 받으므로 degraded 로 올려 503(재시도 가능)으로 만든다.
  */
-function buildFusionFortunePaidAccessResolver(env) {
+function buildFusionFortunePaidAccessResolver(env, requireExisting = false) {
   const coinPrice = Number(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]?.cost || 0);
   return async ({ userId, requestId }) => {
     if (!userId) return { ok: false };
@@ -64,6 +64,7 @@ function buildFusionFortunePaidAccessResolver(env) {
       featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY,
       coinPrice,
       requestId,
+      requireExisting,
     });
     logPerUsePaymentProof(FUSION_FORTUNE_PAID_FEATURE_KEY, proof);
     if (proof?.proven === true) return { ok: true };
@@ -176,6 +177,25 @@ async function loadFusionPriorConsultation({ userId, requestId }) {
     console.warn("[fusion-fortune-prior-load-failed]", { requestId: String(requestId || "").slice(0, 120), message: String(error?.message || "").slice(0, 200) });
     throw resultStorageUnavailable(requestId);
   }
+}
+
+/** A browser or scheduled recovery executes exactly one original paid stage. */
+export async function runFusionFortuneDeliveryStage(env, { userId, requestId, body, stage, prior, ctx = null, requireExisting = false }) {
+  let consultationId = "";
+  const result = await generateFusionFortuneRequest({
+    input: body, userId, requestId, dateKey: getFusionFortuneDateKey(),
+    store: createMongoFusionFortuneStore(env), resolvePaidAccess: buildFusionFortunePaidAccessResolver(env, requireExisting), env, ctx, stage,
+    priorResult: prior?.result || null, priorGenerationSource: prior?.generationSource || "", priorSnapshot: prior?.generationSnapshot || null,
+    onSnapshot: snapshot => withMongoRetry(env, () => saveFusionGenerationSnapshot({ ...snapshot, userId }), { retries: 0 }),
+    onReserved: () => withMongoRetry(env, () => claimFusionDeliveryLease({ userId, requestId }), { retries: 0 }),
+    onReleased: lease => withMongoRetry(env, () => releaseFusionDeliveryLease({ userId, requestId, lease }), { retries: 0 }),
+    onAttempt: (groupId, lease) => withMongoRetry(env, () => reserveFusionGroupAttempt({ userId, requestId, groupId, lease }), { retries: 0 }),
+    onCheckpoint: delivery => withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 }),
+    onDelivery: async delivery => {
+      consultationId = await withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 });
+    },
+  });
+  return { ...result, consultationId };
 }
 
 async function respondFusionConsultation(consultation) {
@@ -337,7 +357,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         userId: String(auth.userId),
         requestId: body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
         dateKey: getFusionFortuneDateKey(),
-        store: createMongoFusionFortuneStore(),
+        store: createMongoFusionFortuneStore(env),
         resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
         env,
         ctx,
@@ -440,43 +460,13 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       await connectDb(env);
       const requestId = String(body?.requestId || request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key") || "").slice(0, 120);
       // 한 요청에는 한 단계만 실행한다. 다음 단계도 같은 결제 요청 ID를 사용한다.
-      const requestedStage = Number(body?.stage);
-      const stages = [requestedStage === 2 ? 2 : 1];
-      let prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
+      const stage = Number(body?.stage) === 2 ? 2 : 1;
+      const prior = await loadFusionPriorConsultation({ userId: String(auth.userId), requestId });
       const completed = await replayCompletedFusion(prior);
       if (completed) return completed;
-      let result = null;
-      let consultationId = "";
-      for (const stage of stages) {
-        result = await generateFusionFortuneRequest({
-          input: body,
-          userId: String(auth.userId),
-          requestId,
-          dateKey: getFusionFortuneDateKey(),
-          store: createMongoFusionFortuneStore(),
-          resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
-          env,
-          ctx,
-          stage,
-          priorResult: prior?.result || null,
-          priorGenerationSource: prior?.generationSource || "",
-          priorSnapshot: prior?.generationSnapshot || null,
-          onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
-          onReserved: () => claimFusionDeliveryLease({ userId: String(auth.userId), requestId }),
-          onReleased: lease => releaseFusionDeliveryLease({ userId: String(auth.userId), requestId, lease }),
-          onAttempt: (groupId, lease) => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId, groupId, lease }),
-          onCheckpoint: async (delivery) => {
-            const id = await persistFusionDelivery({ userId: String(auth.userId), input: prior?.generationSnapshot?.input || body, delivery });
-            if (!id) throw new Error("FUSION_CHECKPOINT_SAVE_FAILED");
-          },
-          onDelivery: async (delivery) => {
-            consultationId = await persistFusionDelivery({ userId: String(auth.userId), input: prior?.generationSnapshot?.input || body, delivery });
-          },
-        });
-        if (!result?.ok) return respond(result);
-        prior = { result: result.result, generationSource: result.generationSource };
-      }
-      return json({ ...result, consultationId, nextStage: result.nextStage, status: result.stageStatus || "completed" }, { status: result.stageStatus === "partial" ? 202 : 200 });
+      const result = await runFusionFortuneDeliveryStage(env, { userId: String(auth.userId), requestId, body, stage, prior, ctx });
+      if (!result.ok) return respond(result);
+      return json({ ...result, status: result.stageStatus || "completed" }, { status: result.stageStatus === "partial" ? 202 : 200 });
     }
 
     if (method === "POST" && path === "/generate/stream") {

@@ -1,6 +1,9 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
-let docs, fault, lostConfirmation, route, generator, paymentChecks, revoked, store, accessType;
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+let docs, orders, missingEvidence, fault, lostConfirmation, route, generator, paymentChecks, revoked, store, accessType;
 const originalFetch = globalThis.fetch;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
@@ -15,7 +18,7 @@ function matches(doc, filter) {
       if ("$nin" in value) return !value.$nin.includes(get(doc, key));
       if ("$in" in value) return value.$in.includes(get(doc, key));
       if ("$exists" in value) return (get(doc, key) !== undefined) === value.$exists;
-      if ("$lt" in value) return get(doc, key) < value.$lt;
+      if ("$lt" in value) return get(doc, key) < value.$lt && (!("$gt" in value) || get(doc, key) > value.$gt);
       if ("$lte" in value) return get(doc, key) <= value.$lte;
       if ("$gt" in value) return get(doc, key) > value.$gt;
     }
@@ -29,7 +32,7 @@ const model = {
     if (docs.some(doc => doc.userId === fields.userId && doc.idempotencyKey === fields.idempotencyKey)) throw Object.assign(new Error("duplicate"), { code: 11000 });
     const doc = { ...clone(fields), createdAt: new Date(), updatedAt: new Date() }; docs.push(doc); return clone(doc);
   },
-  find: () => ({ sort() { return this; }, limit() { return this; }, select() { return this; }, lean: async () => [] }),
+  find: filter => ({ sort() { return this; }, limit() { return this; }, select() { return this; }, lean: async () => clone(docs.filter(doc=>matches(doc,filter))) }),
   findOneAndUpdate: (filter, update, options={}) => {
     if (fault === 'final-null' && update.$set?.status === 'completed') { fault=null; return query(null); }
     if (fault === 'final-confirm' && update.$set?.status === 'completed') fault='confirm';
@@ -55,11 +58,14 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js');
  const auth=await import('../../worker/lib/auth.js');
  const fusion=await import('../../worker/lib/fusion-fortune.js');
- jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,FusionFortuneConsultation:model}));
- jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{}}));
+ jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,FusionFortuneConsultation:model,Payment:{
+  find:filter=>({sort(){return this},limit(){return this},lean:async()=>clone(orders.filter(order=>matches(order,filter)))}),
+  updateOne:async(filter,update)=>{const order=orders.find(row=>matches(row,filter));if(order)assign(order,update.$set||{});return {matchedCount:order?1:0}},
+ }}));
+ jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,run)=>run()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireUserFromRequest:async()=>({userId:uid}),getOptionalUserFromRequest:async()=>({userId:uid})}));
  jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js',()=>({isPaidResultRevoked:async()=>revoked}));
- jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,args)=>{paymentChecks.push({...args,accessType});return {proven:true}},logPerUsePaymentProof:()=>{}}));
+ jest.unstable_mockModule('../../worker/lib/nakshatra-paid-access.js',()=>({verifyPerUsePayment:async(_env,args)=>{paymentChecks.push({...args,accessType});return {proven:!(missingEvidence&&args.requireExisting)}},logPerUsePaymentProof:()=>{}}));
  jest.unstable_mockModule('../../worker/lib/fusion-fortune.js',()=>({...fusion,createMongoFusionFortuneStore:()=>store,
    generateFusionFortuneRequest:args=>fusion.generateFusionFortuneRequest({...args,
      contextBuilder:async()=>({ok:true,context:{version:1,locale:'ko',systems:{saju:{dayMaster:'갑'}},tarotSpread:{cards:[]}}}),
@@ -69,8 +75,25 @@ beforeAll(async()=>{
  ({handleFusionFortuneRoutes:route}=await import('../../worker/routes/fusion-fortune.js'));
  store=fusion.createMemoryFusionFortuneStore();
 });
+
+for(const scenario of ['pending','refunded','gift','missing-input','mismatch','copied-owner','legacy-completed'])it(`approved-order bootstrap protects ${scenario}`,async()=>{
+ const now=Date.now(),requestId='bootstrap-original',featureKey='fusion-fortune-consultation',env={...ENV,PII_ENC_KEY:Buffer.alloc(32,7).toString('base64')};
+ const {prepareResumeContext}=await import('../../worker/payments/resume-context.js');
+ const paidResume=await prepareResumeContext({originPath:'/fusion-fortune/',resume:{kind:featureKey,args:{requestId:scenario==='mismatch'?'wrong-run':requestId,body:JSON.stringify({birthDate:'1995-04-18',birthTime:'08:30'})}}},{userId:scenario==='copied-owner'?'other-owner':uid,requestId,featureKey,env,now:now-600000});
+ const order={merchantUid:'protected-order',userId:uid,requestId,featureKey,status:scenario==='pending'?'pending':scenario==='refunded'?'refunded':'paid',purchaseType:scenario==='gift'?'GIFT':'SELF',paymentType:'digital_content',createdAt:new Date(now-600000),metadata:scenario==='missing-input'?{}:{paidResume}};
+ orders.push(order);
+ if(scenario==='legacy-completed')docs.push({id:'old-complete',userId:uid,idempotencyKey:requestId,status:'completed',result:{title:'legacy immutable report'}});
+ generator=()=>{throw Error('protected orders must not call a provider')};
+ const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+ await runFusionFortuneRecovery(env);
+ expect(paymentChecks).toHaveLength(0);
+ if(scenario==='legacy-completed')expect(docs[0].result.title).toBe('legacy immutable report');
+ else expect(docs).toHaveLength(0);
+ if(scenario==='missing-input')expect(order.metadata.fusionRecovery.status).toBe('input_required');
+ if(['mismatch','copied-owner'].includes(scenario))expect(order.metadata.fusionRecovery.status).toBe('recovery_pending');
+});
 afterAll(()=>{globalThis.fetch=originalFetch;jest.restoreAllMocks()});
-beforeEach(()=>{docs=[];fault=null;lostConfirmation=false;paymentChecks=[];revoked=false;store.attempts.clear();accessType='pass'});
+beforeEach(()=>{docs=[];orders=[];missingEvidence=false;fault=null;lostConfirmation=false;paymentChecks=[];revoked=false;store.attempts.clear();accessType='pass'});
 function request(stage=1){return new Request('https://example.test/api/fusion-fortune/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'paid-original',birthDate:'1995-04-18',birthTime:'08:30',stage})})}
 const sections=Object.fromEntries(['saju','ziwei','vedic','sukuyo','astrology','tarot'].map(key=>[`${key}Section`,{title:key,content:'계산 근거에 따른 생활 패턴을 설명합니다. '.repeat(240),keyPoints:[]} ]));
 for(const kind of ['pass','monthly','single'])describe(kind,()=>{
@@ -92,6 +115,11 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
   expect(paymentChecks.every(proof=>proof.requestId==='paid-original')).toBe(true);
   generator=()=>{throw Error('completed reports must never regenerate')};
   const replay=await route(request(),ENV);expect(replay.status).toBe(200);expect(paymentChecks).toHaveLength(3);
+  const savedBody=clone(docs[0].result);
+  const freshGet=await route(new Request('https://example.test/api/fusion-fortune/result?requestId=paid-original'),ENV);
+  expect(freshGet.status).toBe(200);expect((await freshGet.json()).consultation.result).toEqual(savedBody);expect(paymentChecks).toHaveLength(3);
+  docs.push({...clone(docs[0]),userId:'other-owner',id:'private-completed'});
+  expect((await route(new Request('https://example.test/api/fusion-fortune/result?id=private-completed'),ENV)).status).toBe(404);
  });
  for(const kind of['throw','null','confirm'])it(`storage ${kind} after generation returns 503 and retains payment identity`,async()=>{
   generator=async({onAttempt,onCheckpoint})=>{await onAttempt('saju');fault=kind;await onCheckpoint(sections);return {result:sections,deliverable:true}};
@@ -125,11 +153,102 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
   generator=async({priorResult})=>{expect(priorResult.deliveryRepairGroups).toHaveLength(3);return {result:{...sections,executiveSummary:'complete'},deliverable:true,qualityTier:'full'}};
   const final=await route(request(2),ENV);expect(final.status).toBe(200);expect(docs[0].result.deliveryRepairGroups).toBeUndefined();
  });
+ it('an expired generator cannot deliver partial output over a replacement lease',async()=>{
+  let replacement;
+  generator=async()=>{
+   docs[0].generationLease.expiresAt=new Date(0);
+   const {claimFusionDeliveryLease}=await import('../../worker/lib/fusion-fortune-consultation.js');
+   replacement=await claimFusionDeliveryLease({userId:uid,requestId:'paid-original'});
+   return {result:sections,deliverable:false,qualityTier:'partial'};
+  };
+  const response=await route(request(),ENV);
+  expect(response.status).toBe(503);
+  expect(docs[0].result).toEqual({});
+  expect(docs[0].generationLease.token).toBe(replacement.token);
+ });
+ it('the existing scheduled tick completes an abandoned paid stage without a browser',async()=>{
+  generator=async({stage})=>({result:stage===1?sections:{...sections,title:'server recovered'},deliverable:true,qualityTier:stage===1?'partial':'full'});
+  await route(request(),ENV);
+  docs[0].updatedAt=new Date(Date.now()-600000);
+  const ast=ts.createSourceFile('worker/index.js',readFileSync('worker/index.js','utf8'),ts.ScriptTarget.Latest,true);
+  let scheduled;
+  function visit(node){if(ts.isMethodDeclaration(node)&&node.name?.getText(ast)==='scheduled')scheduled=node;ts.forEachChild(node,visit)}
+  visit(ast);expect(scheduled).toBeDefined();
+  const pending=[];
+  const context=vm.createContext({console,Date,PAYMENT_RECONCILE_CRON:'*/10 * * * *',
+   __import:async spec=>spec==='./lib/fusion-fortune-recovery-task.js'
+    ? import('../../worker/lib/fusion-fortune-recovery-task.js')
+    : {runPaymentReconcileTask:async()=>{},runPaymentsV2Reconcile:async()=>{},runSnsDailyPostRecovery:async()=>{},runMasterLoveCodexRecovery:async()=>{}},
+  });
+  vm.runInContext(scheduled.getText(ast).replace(/^async scheduled/,'async function scheduled').replace(/\bimport\(/g,'__import('),context);
+  await context.scheduled({cron:'*/10 * * * *'},ENV,{waitUntil:promise=>pending.push(promise)});
+  await Promise.all(pending);
+  expect(docs[0].status).toBe('completed');
+  expect(docs[0].result.title).toBe('server recovered');
+  expect(paymentChecks.every(proof=>proof.requestId==='paid-original')).toBe(true);
+ });
+ it('server recovery honors nextStage=1 even when an incomplete expert checkpoint already has six bodies',async()=>{
+  generator=async()=>({result:sections,deliverable:false,qualityTier:'partial'});await route(request(),ENV);
+  docs[0].updatedAt=new Date(Date.now()-600000);
+  const stages=[];generator=async({stage})=>{stages.push(stage);return {result:sections,deliverable:true,qualityTier:'partial'}};
+  const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+  await runFusionFortuneRecovery(ENV);
+  expect(stages).toEqual([1]);expect(docs[0].status).toBe('partial');expect(docs[0].nextStage).toBe(2);
+ });
+ for(const scenario of ['revoked','live-lease','budget'])it(`server recovery respects ${scenario} before provider calls`,async()=>{
+  generator=async()=>({result:sections,deliverable:true,qualityTier:'partial'});
+  await route(request(),ENV);
+  docs[0].updatedAt=new Date(Date.now()-600000);
+  if(scenario==='revoked')revoked=true;
+  if(scenario==='live-lease')docs[0].generationLease={token:'active-browser',expiresAt:new Date(Date.now()+60000)};
+  if(scenario==='budget')docs[0].generationSnapshot.attempts={integration:3,action:3,verdict:3};
+  let calls=0;generator=async()=>{calls++;throw Error('provider must not run')};
+  const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+  const recovery=await runFusionFortuneRecovery(ENV);
+  expect(calls).toBe(0);expect(docs[0].status).toBe('partial');
+  if(scenario==='budget'){
+   expect(recovery.outcomes[0].outcome).toBe('budget_exhausted');
+   expect(docs[0].generationSnapshot.recovery.reviewRequired).toBe(true);
+   expect((await runFusionFortuneRecovery(ENV)).scanned).toBe(0);
+  }
+  if(scenario==='live-lease')expect(docs[0].generationLease.token).toBe('active-browser');
+  if(scenario==='revoked')expect(recovery.outcomes[0].outcome).toBe('RESULT_ACCESS_REVOKED');
+ });
  it('rejects refunded proof before providers',async()=>{revoked=true;generator=()=>{throw Error('provider must not run')};const response=await route(request(),ENV);expect(response.status).toBe(403);expect(paymentChecks).toHaveLength(0)});
+ it('automatic recovery cannot consume a new pass when the original payment evidence is absent',async()=>{
+  generator=async()=>({result:sections,deliverable:true,qualityTier:'partial'});await route(request(),ENV);
+  docs[0].updatedAt=new Date(Date.now()-600000);missingEvidence=true;
+  let calls=0;generator=async()=>{calls++;return {result:{...sections,title:'new pass was consumed'},deliverable:true,qualityTier:'full'}};
+  const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+  await runFusionFortuneRecovery(ENV);
+  expect(calls).toBe(0);expect(docs[0].status).toBe('partial');
+  expect(paymentChecks.at(-1).requireExisting).toBe(true);
+ });
  it('preserves pending output when revocation is detected just before completion',async()=>{
   generator=async()=>({result:sections,deliverable:true,qualityTier:'partial'});await route(request(),ENV);
   generator=async({onAttempt})=>{await onAttempt('fusion');revoked=true;return {result:{...sections,title:'보존 본문'},deliverable:true,qualityTier:'full'}};
   const response=await route(request(2),ENV);expect(response.status).toBe(403);expect(docs[0].status).toBe('delivery_pending');expect(docs[0].result.title).toBe('보존 본문');
   const read=await route(new Request('https://example.test/api/fusion-fortune/result?requestId=paid-original'),ENV);expect(read.status).toBe(403);
  });
+});
+
+it('recovers encrypted PG approval before the first generation request, with no return URL or browser storage',async()=>{
+ const now=Date.now(), requestId='approved-original', featureKey='fusion-fortune-consultation';
+ const env={...ENV,PII_ENC_KEY:Buffer.alloc(32,7).toString('base64')};
+ const body={birthDate:'1995-04-18',birthTime:'08:30',locale:'ko',concern:'original private question'};
+ const {prepareResumeContext}=await import('../../worker/payments/resume-context.js');
+ const paidResume=await prepareResumeContext({originPath:'/fusion-fortune/',resume:{kind:featureKey,args:{requestId,body:JSON.stringify(body)}}},{userId:uid,requestId,featureKey,env,now:now-600000});
+ orders.push({merchantUid:'approved-order',userId:uid,featureKey,requestId,status:'paid',paymentType:'digital_content',createdAt:new Date(now-600000),metadata:{paidResume}});
+ generator=async({stage})=>({result:stage===1?sections:{...sections,title:'approved recovered'},deliverable:true,qualityTier:stage===1?'partial':'full'});
+ const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+ await runFusionFortuneRecovery(env);
+ expect(docs).toHaveLength(1);
+ expect(docs[0].idempotencyKey).toBe(requestId);
+ expect(docs[0].generationSnapshot.input.concern).toBe(body.concern);
+ expect(docs[0].status).toBe('partial');
+ expect(paymentChecks.map(proof=>proof.requestId)).toEqual([requestId]);
+ docs[0].updatedAt=new Date(now-600000);
+ await runFusionFortuneRecovery(env);
+ expect(docs[0].status).toBe('completed');
+ expect(paymentChecks.map(proof=>proof.requestId)).toEqual([requestId,requestId]);
 });

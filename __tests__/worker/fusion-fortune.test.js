@@ -122,6 +122,48 @@ function fusionAdapters(calls) {
 }
 
 describe("Fusion Fortune per-use billing and mock generation", () => {
+  for (const status of [429, 503]) it(`provider ${status} keeps successful siblings and recovers only the rejected expert`, async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
+    const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find(row => row.id === options.logContext.sectionGroup);
+      return group.id === "saju" ? { ok: false, status, error: `PROVIDER_HTTP_${status}` } : { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)) };
+    });
+    const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
+    const first = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall });
+    expect(first.deliverable).toBe(false); expect(first.result.tarotSection.content).toBeTruthy();
+    expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "saju")).toHaveLength(2);
+    providerCall.mockClear(); providerCall.mockImplementation(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find(row => row.id === options.logContext.sectionGroup);
+      return { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)) };
+    });
+    const recovered = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall, priorResult: first.result });
+    expect(recovered.deliverable).toBe(true); expect(providerCall).toHaveBeenCalledTimes(1);
+    expect(providerCall.mock.calls[0][2].logContext.sectionGroup).toBe("saju");
+  });
+  it("valid JSON with a provider token-limit stop remains pending and retries only that expert", async () => {
+    const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
+    const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
+    const providerCall = jest.fn(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find(item => item.id === options.logContext.sectionGroup);
+      return { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)), truncated: group.id === "vedic", finishReason: group.id === "vedic" ? "MAX_TOKENS" : "STOP" };
+    });
+    const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only" };
+    const first = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall });
+    expect(first.deliverable).toBe(false);
+    expect(first.result.sajuSection.content).toBeTruthy();
+    expect(first.result.vedicSection?.content || "").toBe("");
+    expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "vedic")).toHaveLength(2);
+    providerCall.mockClear();
+    providerCall.mockImplementation(async (_env, _prompt, options) => {
+      const group = FUSION_SECTION_GROUP_SPECS.find(item => item.id === options.logContext.sectionGroup);
+      return { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)), truncated: false };
+    });
+    const recovered = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall, priorResult: first.result });
+    expect(recovered.deliverable).toBe(true);
+    expect(providerCall).toHaveBeenCalledTimes(1);
+    expect(providerCall.mock.calls[0][2].logContext.sectionGroup).toBe("vedic");
+  });
   it("keeps sibling checkpoints and propagates storage failure without repair calls", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
     const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });

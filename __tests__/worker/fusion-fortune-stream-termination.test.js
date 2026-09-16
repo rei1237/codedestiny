@@ -36,7 +36,7 @@ beforeAll(async () => {
   fusionConstants = actualFusion;
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/paid-result-revocation.js", () => ({ isPaidResultRevoked: async () => false })),
-    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...actualDb, connectDb: async () => {} })),
+    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...actualDb, connectDb: async () => {}, withMongoRetry: async (_env, run) => run() })),
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       ...actualAuth,
       requireUserFromRequest: async () => ({ userId: "user-1" }),

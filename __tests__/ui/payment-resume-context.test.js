@@ -5,6 +5,22 @@ const env = { PII_ENC_KEY: Buffer.alloc(32, 7).toString('base64') }; // syntheti
 const input = { originPath: '/fortune-tea-house', resume: { kind: 'fortune-tea-house', action: '', args: { question: 'private question', cards: '[1,4,7]' } } };
 const modulePromise = import('../../worker/payments/resume-context.js');
 
+test('초융합 승인 직후 문서 종료도 암호화된 원래 입력과 회차를 복구한다', async () => {
+  const { prepareResumeContext, readOrderResumeContext } = await modulePromise;
+  const requestId = 'fusion-original-paid-key', featureKey = 'fusion-fortune-consultation';
+  const body = { contextVersion: 2, birthDate: '1995-04-18', birthTime: '08:30', locale: 'ko', concern: '이직 준비 순서', stage: 1 };
+  const descriptor = { originPath: '/fusion-fortune/?keep=original', resume: { kind: featureKey, args: { requestId, body: JSON.stringify(body) } } };
+  const stored = await prepareResumeContext(descriptor, { userId: 'u', requestId, featureKey, env });
+  const order = { userId: 'u', merchantUid: 'fusion-owned-order', status: 'paid', featureKey, requestId, metadata: { paidResume: stored } };
+  const context = await readOrderResumeContext(order, env);
+  assert.equal(context.resume.kind, featureKey);
+  assert.equal(context.resume.args.requestId, requestId);
+  assert.deepEqual(JSON.parse(context.resume.args.body), body);
+  assert.equal(context.confirmBody.merchantUid, order.merchantUid);
+  assert.equal(context.confirmBody.requestId, requestId);
+  assert.equal(JSON.stringify(stored).includes(body.concern), false);
+});
+
 test('server context encrypts inputs and restores them without any browser storage', async () => {
   const { prepareResumeContext, readOrderResumeContext } = await modulePromise;
   const stored = await prepareResumeContext(input, { userId: 'u', requestId: 'r', featureKey: 'tea', env });

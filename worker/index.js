@@ -1937,6 +1937,11 @@ export default {
       ctx.waitUntil(runMasterLoveCodexRecovery(env).catch((error) => {
         console.error("[master-love-codex-recovery] task failed:", error?.message || error);
       }));
+      // 초융합의 다음 단계도 탭 종료 뒤 원래 구매·계산·공급자 예산으로 이어 간다.
+      const { runFusionFortuneRecovery } = await import("./lib/fusion-fortune-recovery-task.js");
+      ctx.waitUntil(runFusionFortuneRecovery(env).catch((error) => {
+        console.error("[fusion-fortune-recovery] task failed:", error?.message || error);
+      }));
       return;
     }
 

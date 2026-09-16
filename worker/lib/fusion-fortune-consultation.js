@@ -17,6 +17,7 @@ import { countFusionFortuneVisibleText } from "./fusion-fortune.js";
 // 200,000자 상한을 둔 것과 같은 이유로, 비정상적으로 커진 결과는 저장하지 않는다.
 // 저장 실패는 호출자가 재시도 가능한 저장 장애로 반환한다.
 export const FUSION_CONSULTATION_MAX_RESULT_CHARS = 200000;
+export const FUSION_GROUP_MAX_ATTEMPTS = 3;
 
 export function fusionConsultationPublicStatus(consultation) {
   return ["generating", "delivery_pending"].includes(consultation?.status) ? "partial" : consultation?.status || "completed";
@@ -177,10 +178,10 @@ export async function reserveFusionGroupAttempt({ userId, requestId, groupId, le
   const field = `generationSnapshot.attempts.${groupId}`;
   try {
     const reserved = await FusionFortuneConsultation.findOneAndUpdate({ userId: owner, idempotencyKey: key, status: { $ne: "completed" }, ...fusionLeaseFilter(lease),
-      "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: 3 } }] },
+      "generationSnapshot.context": { $exists: true }, $or: [{ [field]: { $exists: false } }, { [field]: { $lt: FUSION_GROUP_MAX_ATTEMPTS } }] },
       { $inc: { [field]: 1 } }, { new: true }).lean();
     const attempt = Number(reserved?.generationSnapshot?.attempts?.[groupId]);
-    if (!attempt || attempt > 3) throw resultStorageUnavailable(key);
+    if (!attempt || attempt > FUSION_GROUP_MAX_ATTEMPTS) throw resultStorageUnavailable(key);
     const confirmed = await FusionFortuneConsultation.findOne({ userId: owner, idempotencyKey: key }).lean();
     const confirmedAttempt = Number(confirmed?.generationSnapshot?.attempts?.[groupId]);
     if (!Number.isFinite(confirmedAttempt) || confirmedAttempt < attempt) throw resultStorageUnavailable(key);
