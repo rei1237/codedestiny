@@ -14,6 +14,9 @@ await context.addCookies([{name:'fortune_auth_role',value:'user',url:base}]);
 let profiles=[],row,paid=false,creates=0,generates=0,payments=0,failNext=false;
 const failures=[];
 await context.addInitScript(()=>{window._cdOpenPaidServiceGate=async options=>{
+ window.__qaPayAttempts=(window.__qaPayAttempts||0)+1;
+ if(window.__qaPayAttempts===1)return {ok:false,status:'failed',error:{code:'PAYMENT_CANCELLED'}};
+ if(window.__qaPayAttempts===2)return {ok:false,status:'failed',error:{code:'PAYMENT_FAILED',message:'모의 PG 결제 실패'}};
  const response=await fetch('/api/test-fixture-pg',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(options)});
  if(!response.ok)return {ok:false,status:'failed'};
  return {ok:true,status:'paid',payment:{status:'paid',paymentId:'fixture-pg'},consume:{ok:true,transactionId:'fixture-pg',featureKey:options.featureKey}};
@@ -73,6 +76,14 @@ try{
  await page.waitForURL('**/checkout/**',{timeout:120000});
  await page.getByRole('button',{name:/단건 결제하기/}).waitFor({timeout:120000});
  await page.screenshot({path:'build-cache/yeongnyangi-checkout-bound-390.png',fullPage:true});
+ await page.getByRole('button',{name:/단건 결제하기/}).click();
+ await page.getByText('결제를 취소했어요. 준비되면 다시 눌러 주세요.').waitFor();
+ await page.locator('[data-yeongnyangi-payment-host]').waitFor();
+ await page.getByRole('dialog').getByRole('button',{name:'닫기',exact:true}).click();
+ assert.equal(payments,0);assert.equal(creates,1);
+ await page.getByRole('button',{name:/단건 결제하기/}).click();
+ await page.getByRole('alert').waitFor();assert.equal(payments,0);
+ await page.getByRole('dialog').getByRole('button',{name:'닫기',exact:true}).click();
  await page.getByRole('button',{name:/단건 결제하기/}).click();
  await page.waitForURL('**/yeongnyangi/result/**',{timeout:120000});
  await page.getByRole('button',{name:'영냥이 상담 시작하기',exact:true}).waitFor({timeout:120000});

@@ -90,3 +90,11 @@ next: CI 메타데이터·상품 설명 보완 후 MongoDB 스테이징 트랜�
 - 전환 전 안정 쌍: production SHA78c4a554a34acd08b72b2eaffe667f54a559ce35, Pages d850fcfd-025e-4b7b-8275-cf60f46f2d7b, Worker382d5d35-171e-4493-b248-7a21a91a75ad. staging SHA319fba9491b4091266522329cdff461f5690bf34, Pages41cfe481-bd8f-433d-b2e3-32658c29f06a, Worker310dc0b8-07bc-4cfe-9bf6-6c4e03bb07ca. 아직 전환하지 않았음.
 
 - CI `35042458643`(aabba0c81) 전체 success: Static guards, Typecheck/lint, Pages/Worker build. 후속 retirement check:fast는 결제 88개 및 앞선 검사를 통과하고 폐쇄 endpoint의 잘못된 json 심볼 1건을 발견했다. 기존 jsonResponse로 수정 후 worker-no-undef, Worker dry-run, 영냥이 API/저장소/탈퇴 targeted 회귀 56개 PASS. 후속 커밋의 CI 전체 검증은 별도로 확인한다.
+
+### 스테이징 전환 및 실제 인증 확인
+
+- aabba0c81 release `35042487289` success, Pages/Worker SHA 일치 확인 후 구 SoulCat staging route 5개 제거. `soulcat-book-staging` 및 dlq 전달 pause, 구 Worker cron 비활성. D1 자체 삭제 없음. 전환 백업 `build-cache/yeongnyangi-cutover-1789521283739.json`.
+- staging 비과금 HTTP smoke: 메인/login/영냥이 5화면/checkout/health/payments config 200, 인증 없는 profile/requests 401, 구 무료/입문 링크302. 28상품 enabled이며 staging 제공자 잠금으로 available0(예상).
+- staging 배포 화면 fixture로 신규 프로필→모의PG→실패/재시도→완료→새로고침 PASS. 실제 staging Mongo의 별도 seed QA 계정으로 login200/me200/profile생성201·조회200/상담목록200/재로그인상태 조회200 PASS. 출생시간 미상 저장 확인. 기존 preview 자격증명 로그인은401이라 별도 계정으로 확인했으며 계정·프로필·refresh session 모두 정리. 실제 OAuth 신규가입 검증은 아님.
+- 70d7264bb main CI `35043261695` 전체 success(critical 포함). staging 릴리스 `35043285692` 진행 중.
+- 결제 처리 popup도 featureId가 yeongnyangi일 때만 고양이/보라색 배경으로 변경. 기존 전역 게이트의 닫기·취소·실패·검증 로직 유지. 브라우저에서 취소→닫기→PG모의실패→닫기→동일주문 재시도→완료·복원 PASS. 신규 UI 타입검사, paid-gate-ui, PortOne 회귀 PASS, lint 오류0.

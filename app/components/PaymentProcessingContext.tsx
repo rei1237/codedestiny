@@ -1064,6 +1064,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   }, [close, holdOpen, open, preload, release, update]);
 
   const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
+  const isYeongnyangi = state.featureId.startsWith("yeongnyangi-");
   const copy = resolvePaidGateCopy(state, locale);
   const gateUiCopy = PAID_GATE_UI_COPY[locale] || PAID_GATE_UI_COPY.ko;
   const gateMotionTone: LoadingMotionTone =
@@ -1088,10 +1089,13 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         >
           <div
             className="w-full overflow-y-auto rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6"
-            style={{ maxHeight: "min(88svh, 88dvh)", paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+            style={{ maxHeight: "min(88svh, 88dvh)", paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))", ...(isYeongnyangi ? { background: "linear-gradient(145deg, #302344, #1c152d)", borderColor: "#b99c6a", borderRadius: "28px 28px 0 0" } : {}) }}
           >
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
-            <PaymentPigVisual tone={gateMotionTone} />
+            {isYeongnyangi ? <div className="mb-4 flex flex-col items-center text-center" data-yeongnyangi-payment-host>
+              <img src="/assets/yeongnyangi/hero.webp" width={128} height={128} alt="" className="h-32 w-32 object-contain" />
+              <p className="mt-1 text-sm font-bold text-amber-100">영냥이가 네 상담을 챙기고 있어.</p>
+            </div> : <PaymentPigVisual tone={gateMotionTone} />}
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-cyan-200/80">{copy.label}</p>
