@@ -25,12 +25,13 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { ZiweiDeepReport, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
+import { verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -64,6 +65,7 @@ const MIN_DELIVERABLE_CHAPTERS = ZIWEI_DEEP_CHAPTERS.length;
 
 // `generating` 문서를 "아직 누가 만들고 있다"고 믿어 줄 창(자매 라우트와 동일한 완충).
 const GENERATING_FRESHNESS_MS = 150000;
+const CHAPTER_MAX_ATTEMPTS = 3;
 
 const MESSAGES = {
   loginRequired: "심화 자미두수 리포트를 생성하려면 로그인이 필요합니다.",
@@ -261,7 +263,9 @@ async function generateChapter(env, chart, birthInfo, chapter, consultation, loc
       fallbackMinChars: Math.round((chapter.minChars || 2200) * 0.4),
     });
     const body = clean(ai?.text || "");
-    if (ai?.ok && ai?.truncated !== true && countPaidReportBodyChars(body) >= chapter.minChars && !hasRepeatedReportPassage(body)) {
+    if (ai?.ok && ai.isMock !== true && !['staging-mock', 'mock', 'fallback'].includes(clean(ai.provider).toLowerCase())
+      && ai.truncated !== true && !/^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason))
+      && countPaidReportBodyChars(body) >= chapter.minChars && !hasRepeatedReportPassage(body)) {
       return { id: chapter.id, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini"), ok: true };
     }
     throw new Error("LLM_OUTPUT_TOO_SHORT");
@@ -349,15 +353,22 @@ async function startRefundableExecution(env, userId, sourceTransactionId, idempo
   return Boolean(result?.execution);
 }
 
-async function completeRefundableExecution(env, userId, idempotencyKey, reportId) {
-  await completeServiceExecution(env, userId, {
+async function completeRefundableExecution(env, userId, idempotencyKey, reportId, report) {
+  const result = await completeServiceExecution(env, userId, {
     executionKey: executionKeyOf(idempotencyKey),
     requestId: executionKeyOf(idempotencyKey),
     reportId,
+    result: {
+      userId: clean(userId), reportId, status: 'completed',
+      chapters: reusableDeepChapters(report).map(chapter => ({ id: chapter.id, title: chapter.title, content: chapter.body })),
+    },
     metadata: { serviceKey: SERVICE_KEY, featureKey: FEATURE_KEY, reportId },
   }).catch((error) => {
     console.warn("[ziwei-deep-report] execution guard complete failed", clean(error?.message || error, 300));
+    return null;
   });
+  // Some entitlement paths never opened a refundable execution. Preserve that contract.
+  return result?.ok === true || result?.status === 404;
 }
 
 async function refundExecution(env, userId, idempotencyKey, reportId, reasonMessage) {
@@ -397,7 +408,7 @@ async function loadStoredReport(env, userId, { idempotencyKey, reportId }) {
     const query = reportId
       ? { id: reportId, userId: clean(userId) }
       : { userId: clean(userId), idempotencyKey };
-    return await ZiweiDeepReport.findOne(query).lean();
+    return await withMongoRetry(env, () => ZiweiDeepReport.findOne(query).lean());
   } catch (error) {
     console.warn("[ziwei-deep-report] report load failed", clean(error?.message || error, 200));
     throw resultStorageUnavailable(reportId || idempotencyKey);
@@ -607,10 +618,10 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
   const sourceIds = ids.filter(id => /^[a-f0-9]{24}$/i.test(id)).map(id => ({ _id: id }));
   const refundMarkers = ["refundedForServiceExecution", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"];
   const blocked = await Promise.all([
-    PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
-    Payment.findOne({ userId: auth.userId, status: { $in: revoked }, $or: clauses }).lean(),
-    PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: [...clauses, ...sourceIds] }, { $or: refundMarkers.map(key => ({ [`metadata.${key}`]: true })) }] }).lean(),
-    MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: [...clauses, ...sourceIds, ...ids.map(id => ({ sourceId: id }))] }, { $or: refundMarkers.map(key => ({ [`metadata.${key}`]: true })) }] }).lean(),
+    withMongoRetry(env, () => PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean()),
+    withMongoRetry(env, () => Payment.findOne({ userId: auth.userId, status: { $in: revoked }, $or: clauses }).lean()),
+    withMongoRetry(env, () => PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: [...clauses, ...sourceIds] }, { $or: refundMarkers.map(key => ({ [`metadata.${key}`]: true })) }] }).lean()),
+    withMongoRetry(env, () => MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: [...clauses, ...sourceIds, ...ids.map(id => ({ sourceId: id }))] }, { $or: refundMarkers.map(key => ({ [`metadata.${key}`]: true })) }] }).lean()),
   ]);
   if (blocked.some(Boolean)) return { ok: false };
   if (isAdmin(auth)) return { ok: true, accessType: "admin", locale: normalized.locale };
@@ -638,29 +649,44 @@ function reusableDeepChapters(doc) {
 function isDeepChapterComplete(chapter, definition) {
   return chapter?.ok === true && countPaidReportBodyChars(chapter.body) >= definition.minChars && !hasRepeatedReportPassage(chapter.body);
 }
-async function saveDeepCheckpoint({ id, userId, lockToken, status = 'generating', values }) {
+async function saveDeepCheckpoint({ env, id, userId, lockToken, status = 'generating', values }) {
   try {
-    const saved = await ZiweiDeepReport.findOneAndUpdate({ id, userId: clean(userId), status, 'llmMeta.lockToken': lockToken }, { $set: values }, { new: true }).lean();
-    const confirmed = saved && await ZiweiDeepReport.findOne({ id, userId: clean(userId) }).lean();
+    const saved = await withMongoRetry(env, () => ZiweiDeepReport.findOneAndUpdate({ id, userId: clean(userId), status, 'llmMeta.lockToken': lockToken }, { $set: values }, { new: true }).lean(), { retries: 0 });
+    const confirmed = saved && await withMongoRetry(env, () => ZiweiDeepReport.findOne({ id, userId: clean(userId) }).lean());
     if (!confirmed || Object.entries(values).some(([key, value]) => JSON.stringify(key.split('.').reduce((at, part) => at?.[part], confirmed)) !== JSON.stringify(value))) throw resultStorageUnavailable(id);
     return confirmed;
   } catch { throw resultStorageUnavailable(id); }
 }
 async function finishDeepDelivery(env, auth, pending) {
-  const completed = await saveDeepCheckpoint({ id: pending.id, userId: auth.userId, lockToken: pending.llmMeta?.lockToken || '', status: 'delivery_pending', values: { status: 'completed', usageAppliedAt: new Date() } });
-  await completeRefundableExecution(env, auth.userId, pending.idempotencyKey, pending.id);
-  return completed;
+  const completed = await saveDeepCheckpoint({ env, id: pending.id, userId: auth.userId, lockToken: pending.llmMeta?.lockToken || '', status: 'delivery_pending', values: { status: 'completed', usageAppliedAt: new Date(), 'llmMeta.executionSyncPending': true } });
+  return syncDeepExecution(env, auth, completed);
+}
+
+async function syncDeepExecution(env, auth, completed) {
+  if (completed.llmMeta?.executionSyncPending !== true) return completed;
+  if (!(await completeRefundableExecution(env, auth.userId, completed.idempotencyKey, completed.id, completed))) throw resultStorageUnavailable(completed.id);
+  return saveDeepCheckpoint({ env, id: completed.id, userId: auth.userId, lockToken: completed.llmMeta?.lockToken || '', status: 'completed', values: { 'llmMeta.executionSyncPending': false } });
+}
+
+async function replayCompletedDeepReport(env, auth, completed) {
+  if (await withMongoRetry(env, () => isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, completed))) return json({ ok: false, reason: 'PAYMENT_REVOKED', retryable: false }, { status: 403 });
+  return json(publicStoredReport(await syncDeepExecution(env, auth, completed)));
 }
 
 async function handleGenerate(request, env) {
-  let body = await readJson(request);
+  const body = await readJson(request);
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return loginRequired();
+  return runZiweiDeepReportDeliveryBatch(request, env, body, auth);
+}
+
+/** The HTTP route and abandoned-purchase task share checkpoints, leases and attempts. */
+export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, { requireExisting = false } = {}) {
   await connectDb(env);
   if (body.resumeReportId) {
     const saved = await loadStoredReport(env, auth.userId, { reportId: clean(body.resumeReportId) });
     if (!saved) return notFound();
-    if (saved.status === 'completed') return json(publicStoredReport(saved));
+    if (saved.status === 'completed') return replayCompletedDeepReport(env, auth, saved);
     if (!saved.llmMeta?.resumeBody) return invalidInput('원래 상담 정보를 확인하지 못했습니다.', 409);
     body = { ...saved.llmMeta.resumeBody, idempotencyKey: saved.idempotencyKey, requestId: saved.idempotencyKey };
     delete body.accessToken;
@@ -676,9 +702,16 @@ async function handleGenerate(request, env) {
   normalized.locale = resolveAiLocaleFromRequest(request, body);
   let stored = await loadStoredReport(env, auth.userId, { idempotencyKey });
   if (stored && stored.inputHash !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
-  if (stored?.status === 'completed') return json(publicStoredReport(stored));
+  if (stored?.status === 'completed') return replayCompletedDeepReport(env, auth, stored);
   if (stored?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: MESSAGES.generationFailed }, { status: 409 });
-  const access = await resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey);
+  const resolveAccess = async () => {
+    if (!requireExisting) return resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey);
+    if (await withMongoRetry(env, () => isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, { ...body, idempotencyKey }))) return { ok: false };
+    const proof = await verifyPerUsePayment(env, { userId: auth.userId, featureKey: FEATURE_KEY, requestId: idempotencyKey, coinPrice: getPricing().coinPrice, requireExisting: true });
+    if (proof?.proven === null) throw resultStorageUnavailable(idempotencyKey);
+    return { ok: proof?.proven === true, accessType: stored?.accessType || 'paid' };
+  };
+  const access = await resolveAccess();
   if (!access.ok) return paymentVerifyFailed();
   const reportId = stored?.id || buildReportId(auth.userId, normalized.inputHash, idempotencyKey);
   normalized.locale = stored?.locale || normalized.locale;
@@ -689,40 +722,40 @@ async function handleGenerate(request, env) {
   catch { return json({ ok: false, reason: 'CALCULATION_FAILED', message: MESSAGES.calculationFailed }, { status: 422 }); }
   if (!stored) {
     try {
-      await ZiweiDeepReport.create({ id: reportId, userId: clean(auth.userId), idempotencyKey, inputHash: normalized.inputHash,
+      await withMongoRetry(env, () => ZiweiDeepReport.create({ id: reportId, userId: clean(auth.userId), idempotencyKey, inputHash: normalized.inputHash,
         locale: normalized.locale, birthInfo: normalized.birthInfo, focusArea: normalized.consultation.focusArea, topic: normalized.consultation.topic,
         userQuestion: normalized.consultation.question, ziweiChart: chart, chapters: [], status: 'partial', accessType: access.accessType,
-        llmMeta: { chartSnapshot: chart, resumeBody: { ...body, accessToken: undefined }, checkpoints: {}, attempts: {}, lockedAt: null, lockToken: '' } });
+        llmMeta: { chartSnapshot: chart, resumeBody: { ...body, accessToken: undefined }, checkpoints: {}, attempts: {}, lockedAt: null, lockToken: '' } }), { retries: 0 });
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(reportId);
       const duplicate = await loadStoredReport(env, auth.userId, { idempotencyKey });
       if (!duplicate) throw resultStorageUnavailable(reportId);
-      return json(publicStoredReport(duplicate), { status: duplicate.status === 'completed' ? 200 : 202 });
+      return duplicate.status === 'completed' ? replayCompletedDeepReport(env, auth, duplicate) : json(publicStoredReport(duplicate), { status: 202 });
     }
     await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body), idempotencyKey, reportId, getPricing());
   }
   const lockToken = sha256(`${reportId}|${Date.now()}|${Math.random()}`);
-  const claimed = await ZiweiDeepReport.findOneAndUpdate({ id: reportId, userId: clean(auth.userId), status: { $in: ['partial', 'generating'] },
+  const claimed = await withMongoRetry(env, () => ZiweiDeepReport.findOneAndUpdate({ id: reportId, userId: clean(auth.userId), status: { $in: ['partial', 'generating'] },
     $or: [{ 'llmMeta.lockedAt': null }, { 'llmMeta.lockedAt': { $exists: false } }, { 'llmMeta.lockedAt': { $lt: new Date(Date.now() - GENERATING_FRESHNESS_MS).toISOString() } }] },
     { $set: { status: 'generating', 'llmMeta.lockToken': lockToken, 'llmMeta.lockedAt': new Date().toISOString(),
-      'llmMeta.resumeBody': stored?.llmMeta?.resumeBody || { ...body, accessToken: undefined }, 'llmMeta.chartSnapshot': chart } }, { new: true }).lean().catch(() => { throw resultStorageUnavailable(reportId); });
+      'llmMeta.resumeBody': stored?.llmMeta?.resumeBody || { ...body, accessToken: undefined }, 'llmMeta.chartSnapshot': chart } }, { new: true }).lean(), { retries: 0 }).catch(() => { throw resultStorageUnavailable(reportId); });
   if (!claimed) {
     const current = await loadStoredReport(env, auth.userId, { reportId });
     if (!current) throw resultStorageUnavailable(reportId);
-    return json(publicStoredReport(current), { status: current.status === 'completed' ? 200 : 202 });
+    return current.status === 'completed' ? replayCompletedDeepReport(env, auth, current) : json(publicStoredReport(current), { status: 202 });
   }
   try {
     const chapters = reusableDeepChapters(claimed);
     const attempts = { ...(claimed.llmMeta?.attempts || {}) };
     const pending = ZIWEI_DEEP_CHAPTERS.filter(def => !isDeepChapterComplete(chapters.find(ch => ch.id === def.id), def));
-    if (pending.some(def => Number(attempts[def.id] || 0) >= 3)) throw Object.assign(new Error('챕터 생성 한도 안에서 필수 본문을 완성하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
+    if (pending.some(def => Number(attempts[def.id] || 0) >= CHAPTER_MAX_ATTEMPTS)) throw Object.assign(new Error('챕터 생성 한도 안에서 필수 본문을 완성하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
     const batch = pending.slice(0, CHAPTER_BATCH_SIZE);
     await runWithConcurrency(batch, CHAPTER_CONCURRENCY, async definition => {
       const attempt = Number(attempts[definition.id] || 0) + 1;
-      await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.attempts.${definition.id}`]: attempt } });
+      await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.attempts.${definition.id}`]: attempt } });
       const result = await generateChapter(env, chart, normalized.birthInfo, definition, normalized.consultation, normalized.locale, attempt);
       const checkpoint = chaptersForDb([{ ...result, order: ZIWEI_DEEP_CHAPTERS.findIndex(def => def.id === definition.id) }])[0];
-      await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.checkpoints.${definition.id}`]: checkpoint } });
+      await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { [`llmMeta.checkpoints.${definition.id}`]: checkpoint } });
     });
     stored = await loadStoredReport(env, auth.userId, { reportId });
     if (!stored) throw resultStorageUnavailable(reportId);
@@ -730,18 +763,18 @@ async function handleGenerate(request, env) {
     const valid = ZIWEI_DEEP_CHAPTERS.filter(def => isDeepChapterComplete(merged.find(ch => ch.id === def.id), def));
     const counts = accumulatedFromStored({ chapters: merged });
     const verdict = judgeDeliverable(counts.chars, valid.length);
-    const saved = await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { chapters: chaptersForDb(merged), status: verdict.ok ? 'delivery_pending' : 'partial' } });
+    const saved = await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { chapters: chaptersForDb(merged), status: verdict.ok ? 'delivery_pending' : 'partial' } });
     if (!verdict.ok) return json(publicStoredReport(saved), { status: 202 });
-    const freshAccess = await resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey).catch(() => { throw resultStorageUnavailable(reportId); });
+    const freshAccess = await resolveAccess().catch(() => { throw resultStorageUnavailable(reportId); });
     if (!freshAccess.ok) return paymentVerifyFailed();
     return json(publicStoredReport(await finishDeepDelivery(env, auth, saved)));
   } catch (error) {
     if (error?.code === 'RESULT_STORAGE_UNAVAILABLE') throw error;
-    await saveDeepCheckpoint({ id: reportId, userId: auth.userId, lockToken, values: { status: 'generation_failed', generationError: { code: clean(error.code || 'GENERATION_FAILED'), message: clean(error.message, 500) } } });
+    await saveDeepCheckpoint({ env, id: reportId, userId: auth.userId, lockToken, values: { status: 'generation_failed', generationError: { code: clean(error.code || 'GENERATION_FAILED'), message: clean(error.message, 500) } } });
     const refunded = await refundExecution(env, auth.userId, idempotencyKey, reportId, clean(error.message, 500));
     return json({ ok: false, reason: 'GENERATION_FAILED', refunded, message: refunded ? MESSAGES.generationFailed : '리포트를 완성하지 못했습니다. 저장된 내용은 보존됩니다.' }, { status: 503 });
   } finally {
-    await ZiweiDeepReport.updateOne({ id: reportId, userId: clean(auth.userId), 'llmMeta.lockToken': lockToken }, { $set: { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' } }).catch(() => {});
+    await withMongoRetry(env, () => ZiweiDeepReport.updateOne({ id: reportId, userId: clean(auth.userId), 'llmMeta.lockToken': lockToken }, { $set: { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' } }), { retries: 0 }).catch(() => {});
   }
 }
 
@@ -793,10 +826,7 @@ async function handleResult(request, env) {
       const busy = doc.llmMeta?.lockedAt && Date.now() - new Date(doc.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS;
       return json({ ...publicStoredReport(doc), status: busy ? "generating" : doc.status === "delivery_pending" ? "delivery_pending" : "partial" }, { status: 202 });
     }
-    if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
-      return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
-    }
-    return json(publicStoredReport(doc));
+    return replayCompletedDeepReport(env, auth, doc);
   } catch (error) {
     console.warn("[ziwei-deep-report] result", clean(error?.message || error, 200));
     return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: MESSAGES.dbDegraded }, { status: 503 });
@@ -836,6 +866,8 @@ export const __ziweiDeepReportTestUtils = {
   SERVICE_KEY,
   MIN_DELIVERABLE_CHARS,
   MIN_DELIVERABLE_CHAPTERS,
+  GENERATING_FRESHNESS_MS,
+  CHAPTER_MAX_ATTEMPTS,
   normalizeInput,
   getPricing,
   judgeDeliverable,
@@ -844,5 +876,7 @@ export const __ziweiDeepReportTestUtils = {
   mergeChapters,
   publicStoredReport,
   accumulatedFromStored,
+  reusableDeepChapters,
+  isDeepChapterComplete,
   resolveSourceTransactionId,
 };

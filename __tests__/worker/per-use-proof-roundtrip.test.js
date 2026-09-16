@@ -134,6 +134,15 @@ const proveFusion = () => verifyPerUsePayment({}, {
   requestId: REQUEST_ID,
 });
 
+test('자미두수 심층 월정석 writer는 원래 회차의 실제 증빙 reader로 반복 조회된다', async () => {
+  const featureKey = 'ziwei-deep-pdf', requestId = 'ziwei-original-purchase';
+  await runWriter({ product: { ...PRODUCT, productId: featureKey, featureKey }, purchaseId: requestId });
+  const proof = { userId: USER_ID, featureKey, coinPrice: 300, requestId, requireExisting: true };
+  await expect(verifyPerUsePayment({}, proof)).resolves.toMatchObject({ proven: true, source: 'monthly' });
+  await expect(verifyPerUsePayment({}, proof)).resolves.toMatchObject({ proven: true, source: 'monthly' });
+  expect(ledgerRows).toHaveLength(1); expect(ledgerRows[0].serviceKey).toBe(featureKey);
+});
+
 test('read-only result lookup requires an existing receipt and never buys pass coverage', async () => {
   const input = { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID, requireExisting: true };
   userDoc = { _id: USER_ID, role: 'user', passTier: 'family', isActive: true, expiresAt: '2099-01-01' };

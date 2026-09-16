@@ -357,7 +357,11 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   useEffect(() => {
     const resume = () => { if (!document.hidden) setResumeEpoch(value => value + 1); };
     document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume);
-    return () => { document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume); };
+    window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume);
+      window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
+    };
   }, []);
 
   function validate(): string {

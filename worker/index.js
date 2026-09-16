@@ -1942,6 +1942,10 @@ export default {
       ctx.waitUntil(runFusionFortuneRecovery(env).catch((error) => {
         console.error("[fusion-fortune-recovery] task failed:", error?.message || error);
       }));
+      const { runZiweiDeepReportRecovery } = await import("./lib/ziwei-deep-report-recovery-task.js");
+      ctx.waitUntil(runZiweiDeepReportRecovery(env).catch((error) => {
+        console.error("[ziwei-deep-report-recovery] task failed:", error?.message || error);
+      }));
       return;
     }
 
