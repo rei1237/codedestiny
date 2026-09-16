@@ -37,6 +37,8 @@ npm run check:fast -- --committed-head
 
 관련 서버 검사 180개와 이후 정체 집계 변경의 영향 검사 40개, 인연의 서 복귀·재구매 방지 검사 17개, 부분 결과 검사 5개, 공통 복귀 검사 22개와 실제 SDK 요청 조립 모의 검사 1개가 통과했다. `check:fast`에서 결제 검사 88개와 lint가 통과한 뒤 발견한 사이트맵 변경 시각 원장 누락을 해당 기능의 서명 한 필드로 갱신했다. 마케팅 미커밋 변경은 유지하고 마지막 커밋을 `--committed-head`로 검사한다.
 
+`check:fast -- --committed-head`는 exit 0이며 전체 Jest 276개 묶음·3,841개 테스트가 통과했다. 첫 push에서도 GitHub의 Critical checks와 Build Pages and Worker는 통과했다. 보완 커밋의 미러 신선도는 통과했으나, 동시 음악 작업에서 추가한 인수인계 문서의 필수 프론트매터가 누락되어 후속 CI가 실패했다. 음악 기능 코드는 보존하고 문서의 `status`·`updated`·`next`만 보완했다. 최종 main에서 전체 CI를 다시 실행해 나머지 가드를 확인한다.
+
 첫 push의 정적 미러 검사는 로더 캐시 키 관리 범위 중복으로 실패했다. 범위를 수정하고 정적 사본을 재생성했다. Windows에서 재생성 도중 `static-policy.css` 쓰기 `UNKNOWN` 오류가 두 번 발생했으며, 정책 페이지 생성과 `sync:public` 재실행은 성공했다. 로컬 `verify:public-mirror-fresh`는 무관한 마케팅 미커밋 변경 때문에 판정 불가로 중단하므로, 보완 커밋의 깨끗한 GitHub CI에서 신선도를 판정한다.
 
 ## 동일 입력의 모의 계측

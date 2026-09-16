@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-16
+next: 운영 승격 후 문서의 남은 과제를 확인하고 음악 페이지의 AFTER Lighthouse를 측정한다.
+---
+
 # /music/ 달빛 플레이리스트 성능 + 리디자인 (2026-09-16)
 
 브랜치 `wt/music-lounge-perf-20260916-182234` → main 직접 머지. 계획 정본은 세션 플랜(측정→구현→회귀→재측정→보고→커밋·push).
