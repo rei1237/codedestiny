@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-17
+next: 수비학 Personal Day의 공유 계산·today 입력·Threads provider를 mock으로 검증하는 2단계를 진행한다. 운영 승격은 별도 명시 승인 뒤에만 수행한다.
+---
+
 # Threads 오늘의 운세 유형별 분할 발행 — 인수인계 (2026-09-17)
 
 ## 현재 상태 (1단계 완료)
