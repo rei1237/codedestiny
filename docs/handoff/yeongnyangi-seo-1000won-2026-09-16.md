@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-16
-next: 천원사주 허브와 무료 랜딩 7곳의 허브 링크(P1)는 main 에 있고 운영 노출은 다음 승격부터다. 승격은 방 복구 세션의 릴리스 보류 해제와 영냥이 고등어 결제 정상 확인이 조건이고, 승격 뒤 네이버 수집 요청·GSC URL 검사가 남았다.
+next: 천원사주 허브와 무료 랜딩 7곳의 허브 링크는 운영(a3d1b471f, 2026-09-16 21:23 KST 승격)에 반영됐고 운영 HTML 로 확인했다. 남은 일은 사용자가 할 네이버 웹페이지 수집 요청·GSC URL 검사, 운영 고등어 실결제 확인(승인 절차대로)과 2주·4주 뒤 노출 기록이다.
 ---
 
 # 영냥이 검색 유입 P0 — 천원사주 허브
@@ -11,7 +11,7 @@ next: 천원사주 허브와 무료 랜딩 7곳의 허브 링크(P1)는 main 에
 
 ## 다음 세션 첫 문장
 
-"천원사주 허브(`/yeongnyangi/1000-won-fortune/`)와 무료 랜딩 7곳의 허브 한 줄 링크(`4b37b30be`)가 main 에 있다. 다음은 방 복구 세션의 릴리스 보류 해제와 영냥이 고등어 결제 정상 확인(`wt/yeongnyangi-mobile-payment` 세션이 검증 중) → 승격(사용자 1회 승인) → 네이버 웹페이지 수집 요청·GSC URL 검사다. 이 세 단계 전까지 이 축에서 코드로 할 일은 없다."
+"천원사주 허브(`/yeongnyangi/1000-won-fortune/`)와 무료 랜딩 7곳의 허브 링크는 운영 `a3d1b471f` 에 반영돼 있다(아래 '운영 반영 실측' 절). 남은 일은 사용자의 네이버 웹페이지 수집 요청·GSC URL 검사와 2주·4주 뒤 노출 기록이며, 이 축에서 코드로 할 일은 없다."
 
 ## 원래 요청
 
@@ -64,6 +64,14 @@ next: 천원사주 허브와 무료 랜딩 7곳의 허브 링크(P1)는 main 에
 - `[text-wrap:pretty]` 추가 뒤 `check:fast` 는 재실행하지 않았다(클래스 문자열 1개, sitemap 드리프트만 재확인).
 - 승격 전 상태(2026-09-16 19시 실측): `docs/handoff/yeongnyangi-room-restore.md` 는 "최종 승격 보류", `wt/yeongnyangi-mongo` 커밋 `07a63665e`·`7cbeb0885` 는 main 미포함. 모바일 결제 복귀 수정 `7ab9c152b` 는 main 에 머지됐고(`790ba49fe`), 그 워크트리에 `docs/yeongnyangi-mobile-payment-verification.md`·`scripts/lib/yeongnyangi-mobile-payment.mjs` 미커밋 수정이 남아 있다(결제 확인 축, 이 세션은 손대지 않음).
 
+## 운영 반영 실측 (2026-09-16 21시대)
+
+- 승격: 다른 세션이 Release 워크플로 `35094389411`(workflow_dispatch, `RELEASE_MODE: production`)로 `a3d1b471f` 를 올렸다. `verify-deployed-sha` 가 Pages·Worker 모두 `a3d1b471f319` PASS. 이 세션은 승격하지 않았다.
+- 포함 여부(`git merge-base --is-ancestor`): 허브 링크 `4b37b30be` 포함, 방 복구 UI `2ec297cb2` 포함. `wt/yeongnyangi-mongo` 의 `07a63665e`·`7cbeb0885` 는 `git cherry` 가 `-` 로 표시해 같은 패치가 `2ec297cb2`·`2a1ab3e85` 로 main 에 있다. 방 복구 인수인계(`yeongnyangi-room-restore.md`·`yeongnyangi-mongodb-integration.md`)의 "최종 승격 보류" 문구는 갱신되지 않은 채 남아 있다(그 축 문서라 이 세션은 손대지 않음).
+- 결제: `docs/yeongnyangi-mobile-payment-verification.md` 기준 비과금 검증(모바일 에뮬레이션 104개·28상품·Jest)과 운영 설정 API 읽기 확인까지 완료. **운영 실결제 승인·물리 기기 왕복은 미검증**이다.
+- 운영 HTML(curl 1회, 읽기 전용): 허브 200(끝 슬래시 없으면 308), title "천원사주 · 천원 사주풀이 | 사주보는 고양이 영냥이", canonical 허브 URL, robots `index, follow`, h1 1개, JSON-LD WebPage·BreadcrumbList·Service·FAQPage, "두 대통령" 0건, sitemap.xml 허브 1건. `/saju/` `/ziwei/` `/sukuyo/` `/tarot/` `/vedic/` `/astrology/` 는 각 `#체계` 앵커, `/today/` 는 허브 루트 링크 1종. robots.txt 는 `User-Agent: *` Allow `/`(전면 Disallow 는 CCBot 뿐).
+- 색인·수집(Yeti·Googlebot, Search Console 반영): **미검증** — 수집 요청 전이다.
+
 ## 결정 이유 (다음 세션이 되돌리지 않게)
 
 - **Service 에 Offer 없음**: `verify:paid-service-offer` 는 `buildKrwOffer(` 를 쓰는 파일에 큰따옴표 featureKey 리터럴과 `.github/workflows/paid-flow-gates.yml` 트리거 편입을 요구한다. 허브를 결제 게이트 트리거에 묶을 이유가 없어 Offer 를 빼고 가격은 본문 표로만 낸다.
@@ -83,7 +91,9 @@ next: 천원사주 허브와 무료 랜딩 7곳의 허브 링크(P1)는 main 에
 
 | 등급 | 일 | 비고 |
 | --- | --- | --- |
-| P0 | 운영 승격 + 수집 요청 | 사용자 1회 승인 |
+| ~~P0~~ | ~~운영 승격~~ | ✅ `a3d1b471f`(위 "운영 반영 실측" 절) |
+| P0 | 네이버 수집 요청·GSC URL 검사·리치 결과 테스트 | 사용자 수동("사용자 수동 작업" 2~3) |
+| P1 | 운영 고등어 실결제 확인 | 사용자 수동, 승인 절차대로 |
 | ~~P1~~ | ~~무료 랜딩 7곳 → 허브 앵커 한 줄 링크~~ | ✅ C5 `4b37b30be`(아래 "P1 후속" 절) |
 | P1 | 네이버 중복 제목 1,643·설명 1,642(`?v=` URL) | 별도 세션 |
 | P1 | `/fortune/tomorrow/*` 저CTR description | 별도 세션 |
