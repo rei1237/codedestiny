@@ -98,3 +98,8 @@ next: CI 메타데이터·상품 설명 보완 후 MongoDB 스테이징 트랜�
 - staging 배포 화면 fixture로 신규 프로필→모의PG→실패/재시도→완료→새로고침 PASS. 실제 staging Mongo의 별도 seed QA 계정으로 login200/me200/profile생성201·조회200/상담목록200/재로그인상태 조회200 PASS. 출생시간 미상 저장 확인. 기존 preview 자격증명 로그인은401이라 별도 계정으로 확인했으며 계정·프로필·refresh session 모두 정리. 실제 OAuth 신규가입 검증은 아님.
 - 70d7264bb main CI `35043261695` 전체 success(critical 포함). staging 릴리스 `35043285692` 진행 중.
 - 결제 처리 popup도 featureId가 yeongnyangi일 때만 고양이/보라색 배경으로 변경. 기존 전역 게이트의 닫기·취소·실패·검증 로직 유지. 브라우저에서 취소→닫기→PG모의실패→닫기→동일주문 재시도→완료·복원 PASS. 신규 UI 타입검사, paid-gate-ui, PortOne 회귀 PASS, lint 오류0.
+
+### 최종 배포 게이트 보완
+
+- 078729bf5 CI는 타입/빌드/critical 통과, static의 sitemap 소스 해시에서 실패해 46d051ade로 원장을 재생성했다.
+- 70d7264bb staging 릴리스는 preview smoke에서 홈 배너 CSS의 `/_soulcat/assets/room-780.webp` 404를 검출해 승격 전에 중단. 기존 aabba0c81 staging Pages/Worker 쌍 유지. 데스크톱 room-1440도 함께 내부 자산으로 고쳤다. `__tests__/ui/yeongnyangi-assets.test.mjs`로 원본 자산 존재와 독립 Worker 의존 금지 확인, mirrors 및 sitemap 재생성/검증 PASS.
