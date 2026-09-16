@@ -1,4 +1,5 @@
 "use client";
+import {BUSINESS_IDENTITY} from '@/lib/site-policy-config.js';
 import SessionControls from './SessionControls';
 import { useEffect, useState } from "react";
 import { Mail, MapPin, PawPrint, ShieldCheck, Sparkles } from "lucide-react";
@@ -45,11 +46,11 @@ export default function ServiceNavigation() {
     </div>
 
     <dl className="service-navigation__business" aria-label="사업자 정보">
-      <div><dt>상호</dt><dd>코드 데스티니 (Code Destiny) · 대표 박병하</dd></div>
-      <div><dt>사업자등록번호</dt><dd>372-23-02329</dd></div>
-      <div><dt>통신판매업 신고번호</dt><dd>제 2026-화성호-0264 호</dd></div>
-      <div><dt><MapPin size={14} aria-hidden="true" /> 주소</dt><dd>경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</dd></div>
-      <div><dt><Mail size={14} aria-hidden="true" /> 문의</dt><dd>050-6664-7398 · admin@code-destiny.com</dd></div>
+      <div><dt>상호</dt><dd>{BUSINESS_IDENTITY.companyName} · 대표 {BUSINESS_IDENTITY.representative}</dd></div>
+      <div><dt>사업자등록번호</dt><dd>{BUSINESS_IDENTITY.registrationNumber}</dd></div>
+      <div><dt>통신판매업 신고번호</dt><dd>{BUSINESS_IDENTITY.mailOrderNumber}</dd></div>
+      <div><dt><MapPin size={14} aria-hidden="true" /> 주소</dt><dd>{BUSINESS_IDENTITY.address}</dd></div>
+      <div><dt><Mail size={14} aria-hidden="true" /> 문의</dt><dd>{BUSINESS_IDENTITY.phone} · {BUSINESS_IDENTITY.email}</dd></div>
     </dl>
 
     <p className="service-navigation__fineprint">

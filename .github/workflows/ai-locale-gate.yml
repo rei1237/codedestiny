@@ -38,6 +38,7 @@ on:
       #    해도 걸리려면 트리거도 디렉터리 단위여야 한다.
       - "worker/lib/**"
       - "worker/routes/**"
+      - "worker/yeongnyangi/**"
       # ── 게이트 자신 ───────────────────────────────────────
       - "scripts/verify-ai-locale-pipeline.mjs"
       - ".github/workflows/ai-locale-gate.yml"
