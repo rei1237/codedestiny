@@ -32,6 +32,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
+import { useMusicProgressStore } from "./_stores/useMusicProgressStore";
 import styles from "./moon-music-player.module.css";
 
 type MusicPlayerExampleProps = {
@@ -1035,10 +1036,13 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     initialTrackId: initialSharedTrackId,
     onPreviewLimitReached: handlePreviewLimitReached,
   });
+  // 과도기: 진행률 store 를 페이지 최상위에서 구독한다(옛 UI 유지). 새 UI 에서는 ProgressBar 만 구독한다.
+  const progressCurrentTime = useMusicProgressStore((state) => state.currentTime);
+  const progressDuration = useMusicProgressStore((state) => state.duration);
   const setPlaybackState = useMusicPlaybackStore((state) => state.setPlaybackState);
   const selectTrack = player.selectTrack;
   const sharedTrackSyncAttemptsRef = useRef(0);
-  const rawProgressMax = player.duration || 0;
+  const rawProgressMax = progressDuration || 0;
   const [failedCoverIds, setFailedCoverIds] = useState<Record<string, boolean>>({});
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
@@ -1340,7 +1344,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     : rawProgressMax;
   const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying, copy);
   const progressPercent = progressMax > 0
-    ? Math.min(100, Math.max(0, (Math.min(player.currentTime, progressMax) / progressMax) * 100))
+    ? Math.min(100, Math.max(0, (Math.min(progressCurrentTime, progressMax) / progressMax) * 100))
     : 0;
 
   async function handleShareNowPlaying() {
@@ -1671,14 +1675,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                     data-playing={player.isPlaying ? "true" : "false"}
                     style={{ "--moon-progress": `${progressPercent}%` } as CSSProperties}
                   >
-                    <span>{formatTime(player.currentTime)}</span>
+                    <span>{formatTime(progressCurrentTime)}</span>
                     <input
                       className={styles.progressInput}
                       type="range"
                       min="0"
                       max={progressMax}
                       step="0.1"
-                      value={Math.min(player.currentTime, progressMax)}
+                      value={Math.min(progressCurrentTime, progressMax)}
                       onChange={(event) => player.seek(Number(event.currentTarget.value))}
                     />
                     <span>{formatTime(progressMax)}</span>
