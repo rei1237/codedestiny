@@ -1,6 +1,4 @@
-﻿import MusicRouteClient from "./MusicRouteClient";
-
-import { Suspense } from "react";
+﻿import MusicPlayerExample from "./MusicPlayerExample";
 
 const MUSIC_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -33,9 +31,5 @@ export const metadata = {
 };
 
 export default function MusicPage() {
-  return (
-    <Suspense fallback={null}>
-      <MusicRouteClient />
-    </Suspense>
-  );
+  return <MusicPlayerExample />;
 }

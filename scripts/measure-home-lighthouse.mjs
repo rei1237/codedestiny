@@ -51,7 +51,7 @@ const args = parseArgs(process.argv.slice(2));
 
 const server = await startStaticServer();
 const port = server.address().port;
-const targetUrl = args.url || `http://127.0.0.1:${port}/`;
+const targetUrl = args.url || `http://127.0.0.1:${port}${args.route}`;
 
 console.log(`[perf:home] serving ${path.relative(root, staticRoot) || "."} on :${port}`);
 console.log(`[perf:home] target ${targetUrl}`);
@@ -715,6 +715,8 @@ function parseArgs(argv) {
     runs,
     presets: presetRaw === "both" ? ["mobile", "desktop"] : [presetRaw],
     url: get("url"),
+    // --route=/music/ : 로컬 dist 서버의 다른 라우트를 잰다(기본 / 는 perf:home 동작 불변). --url 이 있으면 무시.
+    route: (() => { const r = get("route") || "/"; return r.startsWith("/") ? r : `/${r}`; })(),
     out: get("out"),
     label: (get("label") || "head").replace(/[^a-zA-Z0-9._-]/g, "-"),
   };

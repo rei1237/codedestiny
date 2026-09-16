@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Track } from "../_data/musicManifest";
+import { useMusicProgressStore } from "../_stores/useMusicProgressStore";
 
 export type RepeatMode = "off" | "one" | "all";
 export type MusicPlayerStatus = "idle" | "loading" | "canplay" | "playing" | "paused" | "error";
@@ -176,8 +177,17 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  // 진행률은 React state 가 아니라 zustand store 로 흘린다 — timeupdate(250ms) 마다
+  // 이 훅을 쓰는 컴포넌트 트리 전체가 리렌더되는 것을 막는다. 호출부 이름은 그대로 둔다.
+  const durationRef = useRef(0);
+  const setCurrentTime = useCallback((nextTime: number) => {
+    useMusicProgressStore.getState().setProgress(nextTime, durationRef.current);
+  }, []);
+  const setDuration = useCallback((nextDuration: number) => {
+    durationRef.current = nextDuration;
+    const progress = useMusicProgressStore.getState();
+    progress.setProgress(progress.currentTime, nextDuration);
+  }, []);
   const [volume, setVolumeState] = useState(() => clamp(options.initialVolume ?? 1, 0, 1));
   const [muted, setMuted] = useState(false);
   const [repeat, setRepeat] = useState<RepeatMode>(options.initialRepeat || "off");
@@ -777,8 +787,6 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     currentTrack,
     currentIndex,
     isPlaying,
-    currentTime,
-    duration,
     volume,
     muted,
     repeat,

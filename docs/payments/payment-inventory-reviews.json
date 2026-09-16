@@ -1,18 +1,18 @@
 {
   "sources": {
-    "app/music/MusicPlayerExample.tsx": {
-      "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
+    "app/music/_hooks/useMusicAccess.ts": {
+      "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
       "role": "entry",
-      "rationale": "app/music/page.tsx → MusicRouteClient.tsx의 dynamic import → 공용 플레이어. 다운로드 권한과 무료 재생을 분리하고 purchaseBusyRef로 중복 클릭을 막는다.",
+      "rationale": "app/music/page.tsx → MusicPlayerExample.tsx(얇은 오케스트레이터) → useMusicAccess 훅. 결제·접근 로직은 2026-09-16 리팩터에서 원문 그대로 이 훅으로 이동했다. 다운로드 권한과 무료 재생을 분리하고 purchaseBusyRef로 중복 클릭을 막는다.",
       "calls": [
         {
           "name": "usePaidResume",
-          "line": 1405,
+          "line": 276,
           "rationale": "music-track 핸들러가 trackId로 원래 곡을 선택하고 /api/music/access를 다시 읽는다. 다운로드 자동 실행은 하지 않는다."
         },
         {
           "name": "runBillingCoinGate",
-          "line": 1429,
+          "line": 304,
           "rationale": "선택 곡의 manifest featureKey/가격과 동일 requestId/idempotencyKey를 공용 결제 게이트에 전달한다."
         }
       ]
@@ -42,9 +42,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Code Destiny.mp3를 공용 policy가 music-track-0iid8cw로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -118,9 +118,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/정재의 사랑.mp3를 공용 policy가 music-track-0ilazad로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -194,9 +194,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/인성 과다 생각감옥.mp3를 공용 policy가 music-track-0jq2ufp로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -270,9 +270,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/합충형파해 Spicy Love.mp3를 공용 policy가 music-track-0vnz7dq로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -346,9 +346,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/MBTI 물어보지마.mp3를 공용 policy가 music-track-1q23bjj로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -422,9 +422,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/STAR-CROSSED.mp3를 공용 policy가 music-track-0irqqzv로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -498,9 +498,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/내 사랑의 총량.mp3를 공용 policy가 music-track-00109gq로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -574,9 +574,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/너는 나의 용신.mp3를 공용 policy가 music-track-153j9ja로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -650,9 +650,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/대운 업데이트!.mp3를 공용 policy가 music-track-185p3cb로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -726,9 +726,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/십성 로큰롤.mp3를 공용 policy가 music-track-1slcbt9로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -802,9 +802,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/안괴 안돼.mp3를 공용 policy가 music-track-021vir1로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -878,9 +878,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/운명에게 지지 않아.mp3를 공용 policy가 music-track-1racweq로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -954,9 +954,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/운명은 위대하다.mp3를 공용 policy가 music-track-1mevijc로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1030,9 +1030,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Gisin Out Yongsin In.mp3를 공용 policy가 music-track-0x4o1iz로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1106,9 +1106,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Moonlight Daydream.mp3를 공용 policy가 music-track-0sgghaf로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1182,9 +1182,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Mystery of Life_new.mp3를 공용 policy가 music-track-1bg4vro로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1258,9 +1258,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Star-ink Heartstorm.mp3를 공용 policy가 music-track-0apumk3로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1334,9 +1334,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/탐랑 플러팅 주의보.mp3를 공용 policy가 music-track-14x7v7n로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1410,9 +1410,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/원진귀문 러브 알고리즘.mp3를 공용 policy가 music-track-1901wrv로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1486,9 +1486,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/재회운아 도와줘.mp3를 공용 policy가 music-track-0yq98or로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1562,9 +1562,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/달빛 운명여행 main title.mp3를 공용 policy가 music-track-0rhpuvh로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1638,9 +1638,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/달빛 운명여행 remix ver.mp3를 공용 policy가 music-track-114pn8m로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1714,9 +1714,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/러브 포츈.mp3를 공용 policy가 music-track-0rrmq2p로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1790,9 +1790,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/별자리 지도 위에서.mp3를 공용 policy가 music-track-1nxf52j로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1866,9 +1866,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/숙요점 레슨.mp3를 공용 policy가 music-track-0pvbr32로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -1942,9 +1942,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/연이의 Moonlight Code.mp3를 공용 policy가 music-track-0lmjbpb로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2018,9 +2018,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/매력의 sign.mp3를 공용 policy가 music-track-1yq07md로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2094,9 +2094,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/비겁다자의 우정 지옥.mp3를 공용 policy가 music-track-1x0675y로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2170,9 +2170,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey neosongmini1/새벽 끝.mp3를 공용 policy가 music-track-0eapi07로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2246,9 +2246,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/식상 폭발 말빨천재.mp3를 공용 policy가 music-track-0ffuzr2로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2322,9 +2322,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/역마살 열차창.mp3를 공용 policy가 music-track-0q6vp1p로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2398,9 +2398,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/재성아 나 돈 좀 줘.mp3를 공용 policy가 music-track-0avmjiw로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2474,9 +2474,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/탐랑성 Danger.mp3를 공용 policy가 music-track-07pbkbm로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2550,9 +2550,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey yeonisongmini1/Flower pig 매력살.mp3를 공용 policy가 music-track-0zkt4rx로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2626,9 +2626,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/기신은 bye bye.mp3를 공용 policy가 music-track-0isq92d로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2702,9 +2702,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/달빛처럼 닿을게.mp3를 공용 policy가 music-track-094dmlf로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2778,9 +2778,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey yeonisongmini1/도화 화개 love charm.mp3를 공용 policy가 music-track-0czdzb8로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2854,9 +2854,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey yeonisongmini1/별빛 재판.mp3를 공용 policy가 music-track-0r4aw8u로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -2930,9 +2930,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey yeonisongmini1/손끝 숨결.mp3를 공용 policy가 music-track-1y9v014로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3006,9 +3006,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Flip the Card.mp3를 공용 policy가 music-track-0obaten로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3082,9 +3082,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/I am your fate.mp3를 공용 policy가 music-track-072swcf로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3158,9 +3158,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Karma, karma.mp3를 공용 policy가 music-track-0zhhu1v로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3234,9 +3234,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/LUCKY THIEF.mp3를 공용 policy가 music-track-0asttbt로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3310,9 +3310,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Synastry gravity.mp3를 공용 policy가 music-track-1iftcua로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3386,9 +3386,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/Zero hour, we don’t run.mp3를 공용 policy가 music-track-1499zaw로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3462,9 +3462,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/별빛 궤도속 fatal-sign.mp3를 공용 policy가 music-track-1at1qd3로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3538,9 +3538,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/별이 말해.mp3를 공용 policy가 music-track-193jfzt로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3614,9 +3614,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/오행 FLEX.mp3를 공용 policy가 music-track-0e7fexz로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3690,9 +3690,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/운세 soda pop.mp3를 공용 policy가 music-track-1sgb77n로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3766,9 +3766,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/자미제왕 컴백.mp3를 공용 policy가 music-track-11nq37f로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3842,9 +3842,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/천동성 힐링남.mp3를 공용 policy가 music-track-01k8ybi로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3918,9 +3918,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/편관의 궤도.mp3를 공용 policy가 music-track-0b7fje7로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -3994,9 +3994,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/11PM.mp3를 공용 policy가 music-track-18pxb9f로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4070,9 +4070,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/ANDROMEDA.mp3를 공용 policy가 music-track-06huh5x로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4146,9 +4146,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Burn My Fate.mp3를 공용 policy가 music-track-1hku1xb로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4222,9 +4222,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/CONSTELLATION.mp3를 공용 policy가 music-track-13jkchx로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4298,9 +4298,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Draw My Fate.mp3를 공용 policy가 music-track-1dg3bi4로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4374,9 +4374,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Fatal Code feat. yeoni.mp3를 공용 policy가 music-track-0pcs8k1로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4450,9 +4450,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Fate Rider.mp3를 공용 policy가 music-track-0jsn0l8로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4526,9 +4526,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Golden Kindness.mp3를 공용 policy가 music-track-0xq8suw로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4602,9 +4602,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/HEAVEN LIGHT.mp3를 공용 policy가 music-track-0dm3afl로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4678,9 +4678,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/LUCKY RUSH_Title.mp3를 공용 policy가 music-track-0fnetgx로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4754,9 +4754,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Milky Way Angle.mp3를 공용 policy가 music-track-1bpy10w로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4830,9 +4830,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/STARLINE.mp3를 공용 policy가 music-track-107m7ps로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4906,9 +4906,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Scarlet Orbit.mp3를 공용 policy가 music-track-1f6fa2s로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -4982,9 +4982,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/Starry Way.mp3를 공용 policy가 music-track-1shaemo로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5058,9 +5058,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/saju Destiny.mp3를 공용 policy가 music-track-1bhiilx로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5134,9 +5134,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/달의 인력.mp3를 공용 policy가 music-track-13qovd1로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5210,9 +5210,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/별이 될 거야.mp3를 공용 policy가 music-track-1guyqua로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5286,9 +5286,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/불꽃의 운명.mp3를 공용 policy가 music-track-187ofrg로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5362,9 +5362,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/은하수 아래.mp3를 공용 policy가 music-track-1fez1fi로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5438,9 +5438,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DEST1NOVA/DEST1NOVA 2집/은하수를 건너 니 곁으로 feat.yeoni.mp3를 공용 policy가 music-track-076eajz로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5514,9 +5514,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyWar/Dream.mp3를 공용 policy가 music-track-1wf11hl로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5590,9 +5590,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyWar/Moonlit Strategy Map.mp3를 공용 policy가 music-track-0x5wt6v로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5666,9 +5666,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyWar/Moonlit War Command Chamber.mp3를 공용 policy가 music-track-1dytok1로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5742,9 +5742,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyWar/The Moonlit War Room.mp3를 공용 policy가 music-track-0twyx28로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5818,9 +5818,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyWar/The war.mp3를 공용 policy가 music-track-02vxvur로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5894,9 +5894,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyWar/White Lion.mp3를 공용 policy가 music-track-1gf44yj로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -5970,9 +5970,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Devil’s draw.mp3를 공용 policy가 music-track-1x9pa6f로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6046,9 +6046,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Fate couture.mp3를 공용 policy가 music-track-02sbf3e로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6122,9 +6122,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Month by month.mp3를 공용 policy가 music-track-1udg252로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6198,9 +6198,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Reverse Card.mp3를 공용 policy가 music-track-0trlfaf로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6274,9 +6274,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Star line.mp3를 공용 policy가 music-track-0dsxhk7로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6350,9 +6350,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Starline Destiny.mp3를 공용 policy가 music-track-0qohk4z로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6426,9 +6426,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Velvet Tarot.mp3를 공용 policy가 music-track-10yqebd로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6502,9 +6502,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/Welcome to Code Destiny.mp3를 공용 policy가 music-track-10rvtvh로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6578,9 +6578,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/귀인 NPC Key.mp3를 공용 policy가 music-track-1sp8ngj로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6654,9 +6654,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/꽃과 칼 사이.mp3를 공용 policy가 music-track-1v6ysck로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6730,9 +6730,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/달의 궤도선.mp3를 공용 policy가 music-track-17wj8xb로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6806,9 +6806,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/럭키 컬러.mp3를 공용 policy가 music-track-0ce2xya로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6882,9 +6882,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/삼재 Escape.mp3를 공용 policy가 music-track-1lnkm5a로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -6958,9 +6958,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/원진 귀문 Gate.mp3를 공용 policy가 music-track-0vlb5mk로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7034,9 +7034,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/포카 달빛코드.mp3를 공용 policy가 music-track-0cjzd2g로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7110,9 +7110,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey lunabloom/형충파해 break.mp3를 공용 policy가 music-track-15c5o8i로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7186,9 +7186,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyCafe/Fortune Reveal.mp3를 공용 policy가 music-track-1036047로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7262,9 +7262,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyCafe/Gentle Oriental Girl.mp3를 공용 policy가 music-track-1w3j742로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7338,9 +7338,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyCafe/Kindness.mp3를 공용 policy가 music-track-1igmeeg로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7414,9 +7414,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyCafe/Moonlit Destiny Room.mp3를 공용 policy가 music-track-0346sla로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7490,9 +7490,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyCafe/Moonlit Tea House.mp3를 공용 policy가 music-track-1lzeb5b로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7566,9 +7566,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey DestinyCafe/Moonlight Tea.mp3를 공용 policy가 music-track-1pn5biu로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7642,9 +7642,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Crystal Garden.mp3를 공용 policy가 music-track-0vcbs5h로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7718,9 +7718,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Dawn in the Temple.mp3를 공용 policy가 music-track-0oit3e1로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7794,9 +7794,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Fire Festival.mp3를 공용 policy가 music-track-1edvdiq로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7870,9 +7870,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/First Light on Water.mp3를 공용 policy가 music-track-10xgcui로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -7946,9 +7946,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Flowing Light.mp3를 공용 policy가 music-track-1w2k9zi로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8022,9 +8022,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Focus Flow.mp3를 공용 policy가 music-track-0p1cxg2로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8098,9 +8098,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Inner Flame Awakening.mp3를 공용 policy가 music-track-097hzfg로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8174,9 +8174,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Midnight Pulse.mp3를 공용 policy가 music-track-08fncdv로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8250,9 +8250,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Moonlit Dawn.mp3를 공용 policy가 music-track-0umpx8a로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8326,9 +8326,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Moonlit Forest Temple.mp3를 공용 policy가 music-track-1kfr57e로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8402,9 +8402,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Moonlit Glass Box.mp3를 공용 policy가 music-track-0ugq4dl로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8478,9 +8478,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Moonlit River Return.mp3를 공용 policy가 music-track-1xuqmcg로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8554,9 +8554,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Moonlit Strategy Map.mp3를 공용 policy가 music-track-124n8z7로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8630,9 +8630,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Moonlit Temple Gate.mp3를 공용 policy가 music-track-00wpw50로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8706,9 +8706,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Rain Window Renewal.mp3를 공용 policy가 music-track-06frhvs로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8782,9 +8782,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Sacred Flame.mp3를 공용 policy가 music-track-1xdkkwl로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8858,9 +8858,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Starlight Drift.mp3를 공용 policy가 music-track-0li8zqh로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -8934,9 +8934,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Still Lake Dawn.mp3를 공용 policy가 music-track-0e4dnuf로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -9010,9 +9010,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Still Lake Mind.mp3를 공용 policy가 music-track-0s9kk61로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -9086,9 +9086,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Sunrise Drum Circle.mp3를 공용 policy가 music-track-08l1ird로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -9162,9 +9162,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/The Memory of Water.mp3를 공용 policy가 music-track-0gie7aq로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -9238,9 +9238,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/The Stars Remember Your Name.mp3를 공용 policy가 music-track-1nbo2n5로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
@@ -9314,9 +9314,9 @@
       "rationale": "manifest 확장 결과의 audioSourceKey Meditation/Zero Point.mp3를 공용 policy가 music-track-0y4fw2i로 매핑한다. 123개 모두 같은 플레이어·prepare/catalog·권한 reader·다운로드 route를 사용한다. 정적 코드 추적이며 실제 PG/기기 시험 완료를 의미하지 않는다.",
       "evidence": [
         {
-          "file": "app/music/MusicPlayerExample.tsx",
-          "sha256": "aad6a43ad76b606d0b38c8762b638017d210652656b0abd35739f31751f5a710",
-          "line": 1405
+          "file": "app/music/_hooks/useMusicAccess.ts",
+          "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+          "line": 276
         },
         {
           "file": "worker/routes/music.js",
