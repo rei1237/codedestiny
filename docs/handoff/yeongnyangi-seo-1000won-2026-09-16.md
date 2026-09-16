@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-16
-next: 천원사주 허브는 main 에 index 로 들어갔고 운영 노출은 다음 승격부터다. 승격 전 영냥이 고등어 결제 정상 확인이 조건이고, 승격 뒤 네이버 수집 요청·GSC URL 검사가 남았다.
+next: 천원사주 허브와 무료 랜딩 7곳의 허브 링크(P1)는 main 에 있고 운영 노출은 다음 승격부터다. 승격은 방 복구 세션의 릴리스 보류 해제와 영냥이 고등어 결제 정상 확인이 조건이고, 승격 뒤 네이버 수집 요청·GSC URL 검사가 남았다.
 ---
 
 # 영냥이 검색 유입 P0 — 천원사주 허브
@@ -11,7 +11,7 @@ next: 천원사주 허브는 main 에 index 로 들어갔고 운영 노출은 �
 
 ## 다음 세션 첫 문장
 
-"천원사주 허브(`/yeongnyangi/1000-won-fortune/`)가 main 에 index 로 들어갔다. 다음은 운영 승격 전 영냥이 고등어 결제 정상 확인 → 승격(사용자 1회 승인) → 네이버 웹페이지 수집 요청·GSC URL 검사이고, P1 은 무료 랜딩 7곳에서 허브 앵커로 가는 한 줄 링크다."
+"천원사주 허브(`/yeongnyangi/1000-won-fortune/`)와 무료 랜딩 7곳의 허브 한 줄 링크(`4b37b30be`)가 main 에 있다. 다음은 방 복구 세션의 릴리스 보류 해제와 영냥이 고등어 결제 정상 확인(`wt/yeongnyangi-mobile-payment` 세션이 검증 중) → 승격(사용자 1회 승인) → 네이버 웹페이지 수집 요청·GSC URL 검사다. 이 세 단계 전까지 이 축에서 코드로 할 일은 없다."
 
 ## 원래 요청
 
@@ -31,6 +31,7 @@ next: 천원사주 허브는 main 에 index 로 들어갔고 운영 노출은 �
 | C2 `0c256fc83` | `app/yeongnyangi/page.tsx` 자체 title·description·OG·twitter(noindex 유지) | 루트 OG 상속으로 복귀 |
 | C3 `837a9f6fb` | `app/yeongnyangi/_original/FortuneHome.tsx` 천원 섹션에 허브 링크 1개(CRLF 보존) | 링크만 제거 |
 | C4 | 전략 문서·의도맵 3행·이 인수인계 | 문서만 |
+| C5 `4b37b30be` | 무료 랜딩 7곳 → 허브 앵커 한 줄: `lib/seo-landing-pages.js` `yeongnyangiNextStep`·`nextStep` 7개, `SeoLandingTemplate.jsx` 면책 섹션 위 렌더, `app/today/TodayReadingGuide.jsx` 결과 목록 아래 렌더, sitemap 원장 | 링크 문단만 사라짐(선택 필드라 다른 랜딩 무영향) |
 
 롤백: 해당 커밋만 `git revert` → `npm run sitemap:generate` → `npm run verify:sitemap-drift`.
 
@@ -54,6 +55,15 @@ next: 천원사주 허브는 main 에 index 로 들어갔고 운영 노출은 �
 - 스테이징(라우팅 변경): `npm run verify:staging -- --sha=837a9f6fb…` PASS(Pages·Worker 837a9f6fb84a). curl: 허브 200(끝 슬래시 없으면 308), `/yeongnyangi/free-fortune/` 302→`/today/`, title·canonical·FAQPage·BreadcrumbList 렌더, h1 1개, "두 대통령" 0건, `/kkul-kkul-unse/` 허브 링크 1개, sitemap.xml 허브 1건, 영냥이 홈 og:title 교체 확인. 스테이징 robots 는 `noindex,nofollow`(스테이징 정상)
 - 운영 색인(Yeti·Googlebot 수집, sitemap 반영): **미검증** — 운영 승격 전이다.
 
+## P1 후속 — 무료 랜딩 7곳 → 허브 한 줄 (2026-09-16, C5)
+
+- 링크: `/saju/`→`#saju`, `/ziwei/`→`#ziwei`, `/sukuyo/`→`#sukuyo`, `/tarot/`→`#tarot`, `/vedic/`→`#vedic`, `/astrology/`→`#astrology`, `/today/`→허브 루트. 문장은 "무료 결과를 본 뒤 캐릭터 상담으로 이어 볼 수도 있습니다." + "사주보는 고양이 영냥이의 천원 ○○ 상담 안내"(가격 숫자 없음). title·h1·description 은 손대지 않았다.
+- 다국어 `app/[locale]/<체계>/` 는 `PublicFeatureIntroduction` 을 쓰므로 한국어 링크가 새지 않는다.
+- sitemap 원장 서명 17개가 굴렀다: 대상 7 + 같은 데이터·템플릿을 쓰는 형제 랜딩 10(`/compatibility/` `/dream/` `/love/` `/manse/` `/nakshatra/` `/physiognomy/` `/saju/compatibility/` `/sukuyo/compatibility/` `/tarot/mindscan/` `/tarot/reunion/`, 출력 무변화). 날짜 롤 0.
+- 검증: `npm run check:fast` exit 0(jest 274 스위트·3,807 테스트) · `verify:sitemap-drift` OK(1,265) · `verify-analytics-events` 통과 · 로컬 dev 서버 HTML 10곳 PASS(대상 7곳 허브 링크 정확히 1개·href 일치, 대조군 3곳 0개, h1 1개, title·description 에 "천원" 0건) · visual-checker: `/saju/`·`/today/` 데스크톱·모바일 PASS(대비 12.8:1 이상, 넘침 없음). 모바일 `/saju/` 에서 "안내" 한 단어가 혼자 남던 것은 템플릿 관례인 `[text-wrap:pretty]` 로 해소(360·390·414 PASS).
+- `[text-wrap:pretty]` 추가 뒤 `check:fast` 는 재실행하지 않았다(클래스 문자열 1개, sitemap 드리프트만 재확인).
+- 승격 전 상태(2026-09-16 19시 실측): `docs/handoff/yeongnyangi-room-restore.md` 는 "최종 승격 보류", `wt/yeongnyangi-mongo` 커밋 `07a63665e`·`7cbeb0885` 는 main 미포함. 모바일 결제 복귀 수정 `7ab9c152b` 는 main 에 머지됐고(`790ba49fe`), 그 워크트리에 `docs/yeongnyangi-mobile-payment-verification.md`·`scripts/lib/yeongnyangi-mobile-payment.mjs` 미커밋 수정이 남아 있다(결제 확인 축, 이 세션은 손대지 않음).
+
 ## 결정 이유 (다음 세션이 되돌리지 않게)
 
 - **Service 에 Offer 없음**: `verify:paid-service-offer` 는 `buildKrwOffer(` 를 쓰는 파일에 큰따옴표 featureKey 리터럴과 `.github/workflows/paid-flow-gates.yml` 트리거 편입을 요구한다. 허브를 결제 게이트 트리거에 묶을 이유가 없어 Offer 를 빼고 가격은 본문 표로만 낸다.
@@ -74,7 +84,7 @@ next: 천원사주 허브는 main 에 index 로 들어갔고 운영 노출은 �
 | 등급 | 일 | 비고 |
 | --- | --- | --- |
 | P0 | 운영 승격 + 수집 요청 | 사용자 1회 승인 |
-| P1 | 무료 랜딩 7곳 → 허브 앵커 한 줄 링크 | `lib/seo-landing-pages.js` 편집 세션 종료 후 |
+| ~~P1~~ | ~~무료 랜딩 7곳 → 허브 앵커 한 줄 링크~~ | ✅ C5 `4b37b30be`(아래 "P1 후속" 절) |
 | P1 | 네이버 중복 제목 1,643·설명 1,642(`?v=` URL) | 별도 세션 |
 | P1 | `/fortune/tomorrow/*` 저CTR description | 별도 세션 |
 | P2 | 영냥이 전용 OG 1200×630 | 자산 제작 |
