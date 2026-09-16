@@ -56,14 +56,13 @@ describe("judgeDayFortune 날짜별 길흉", () => {
     });
   });
 
-  test("영/친(영친 거리)은 길 이상, 영 자리는 대길", () => {
-    // d=8,17,26 → bRole 영 → great-auspicious
-    [8, 17, 26].forEach((d) => {
-      expect(core.judgeDayFortune(0, d).tier).toBe("great-auspicious");
-    });
-    // d=1,10,19 → bRole 친 → auspicious
+  test("영친 거리는 길 이상이고 영 자리가 대길", () => {
+    // 전통 삼구 순서상 +1 이 榮, +8 이 親 이다.
     [1, 10, 19].forEach((d) => {
-      expect(core.judgeDayFortune(0, d).tier).toBe("auspicious");
+      expect(core.judgeDayFortune(0, d).tier).toBe("great-auspicious"); // bRole 영
+    });
+    [8, 17, 26].forEach((d) => {
+      expect(core.judgeDayFortune(0, d).tier).toBe("auspicious"); // bRole 친
     });
   });
 
@@ -71,12 +70,12 @@ describe("judgeDayFortune 날짜별 길흉", () => {
     // 우쇠: bRole 쇠(흉) vs 우(길)
     expect(core.judgeDayFortune(0, 2).tier).toBe("caution"); // bRole 쇠
     expect(core.judgeDayFortune(0, 7).tier).toBe("auspicious"); // bRole 우
-    // 안괴: bRole 괴(흉) vs 안(길)
-    expect(core.judgeDayFortune(0, 3).tier).toBe("caution"); // bRole 괴
-    expect(core.judgeDayFortune(0, 6).tier).toBe("auspicious"); // bRole 안
-    // 성위: bRole 성(길) vs 위(흉)
-    expect(core.judgeDayFortune(0, 4).tier).toBe("auspicious"); // bRole 성
-    expect(core.judgeDayFortune(0, 5).tier).toBe("caution"); // bRole 위
+    // 안괴: +3 이 安(길), +6 이 壞(흉)
+    expect(core.judgeDayFortune(0, 3).tier).toBe("auspicious"); // bRole 안
+    expect(core.judgeDayFortune(0, 6).tier).toBe("caution"); // bRole 괴
+    // 성위: +4 가 危(흉), +5 가 成(길)
+    expect(core.judgeDayFortune(0, 4).tier).toBe("caution"); // bRole 위
+    expect(core.judgeDayFortune(0, 5).tier).toBe("auspicious"); // bRole 성
   });
 
   test("27일 전체가 5개 tier 중 하나로 결정론적으로 분류된다(평일 없음)", () => {
@@ -182,18 +181,101 @@ describe("자리(役) 방향성 — 같은 관계라도 두 사람의 자리는 
 
   test("안괴에서 누가 안이고 누가 괴인지가 거리로 확정된다", () => {
     const near = core.relationFromForwardDistance(3);
-    expect([near.aRole, near.bRole]).toEqual(["안", "괴"]);
+    expect([near.aRole, near.bRole]).toEqual(["괴", "안"]);
     const far = core.relationFromForwardDistance(6);
-    expect([far.aRole, far.bRole]).toEqual(["괴", "안"]);
+    expect([far.aRole, far.bRole]).toEqual(["안", "괴"]);
   });
 
   test("방향 해설이 두 자리의 체감·조언을 각각 싣는다", () => {
     const d = aiCalc.describeSukuyoDirectionalRelation(3, 24);
-    expect(d.aRole).toBe("안");
-    expect(d.bRole).toBe("괴");
+    expect(d.aRole).toBe("괴");
+    expect(d.bRole).toBe("안");
     expect(d.aRoleExperience.length).toBeGreaterThan(0);
     expect(d.bRoleExperience.length).toBeGreaterThan(0);
     expect(d.aRoleExperience).not.toBe(d.bRoleExperience);
     expect(d.aRoleAdvice).not.toBe(d.bRoleAdvice);
+  });
+});
+
+// 전통 삼구(三九)의 비법 순서 — 순행 d 칸에 놓인 "상대(b)의 자리".
+// 0命 1榮 2衰 3安 4危 5成 6壞 7友 8親 9業 … 18胎 (9칸 주기)
+const TRADITIONAL_B_ROLE = [
+  "명", "영", "쇠", "안", "위", "성", "괴", "우", "친",
+  "업", "영", "쇠", "안", "위", "성", "괴", "우", "친",
+  "태", "영", "쇠", "안", "위", "성", "괴", "우", "친",
+];
+const INVERSE_ROLE = {
+  명: "명", 영: "친", 친: "영", 우: "쇠", 쇠: "우",
+  안: "괴", 괴: "안", 성: "위", 위: "성", 업: "태", 태: "업",
+};
+const ROLE_TIER = {
+  명: "pivotal",
+  영: "great-auspicious",
+  친: "auspicious", 안: "auspicious", 우: "auspicious", 성: "auspicious",
+  쇠: "caution", 괴: "caution", 위: "caution",
+  업: "great-caution", 태: "great-caution",
+};
+
+describe("27×27 전 조합 자리 방향 전수 검증", () => {
+  test("bRole 이 27거리 전부에서 전통 삼구 순서와 일치한다", () => {
+    for (let d = 0; d < 27; d += 1) {
+      expect(core.relationFromForwardDistance(d).bRole).toBe(TRADITIONAL_B_ROLE[d]);
+    }
+  });
+
+  test("aRole 은 역거리의 자리이며 bRole 의 역전 짝이다", () => {
+    for (let d = 0; d < 27; d += 1) {
+      const rel = core.relationFromForwardDistance(d);
+      expect(rel.aRole).toBe(INVERSE_ROLE[rel.bRole]);
+      expect(rel.aRole).toBe(core.relationFromForwardDistance((27 - d) % 27).bRole);
+    }
+  });
+
+  test("729조합 전부가 관계·자리·거리라벨을 빠짐없이 낸다", () => {
+    for (let a = 0; a < 27; a += 1) {
+      for (let b = 0; b < 27; b += 1) {
+        const c = aiCalc.buildSukuyoAiCompatibility({ index: a }, { index: b });
+        expect(c).toBeTruthy();
+        expect(typeof c.relationType).toBe("string");
+        expect(c.relationType.length).toBeGreaterThan(0);
+        expect(INVERSE_ROLE[c.aRole]).toBe(c.bRole);
+        expect(typeof c.distanceLabel).toBe("string");
+        expect(c.distanceLabel.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  test("A/B 를 바꾸면 관계는 같고 자리만 정확히 역전된다", () => {
+    for (let a = 0; a < 27; a += 1) {
+      for (let b = 0; b < 27; b += 1) {
+        const ab = aiCalc.buildSukuyoAiCompatibility({ index: a }, { index: b });
+        const ba = aiCalc.buildSukuyoAiCompatibility({ index: b }, { index: a });
+        expect(ba.relationType).toBe(ab.relationType);
+        expect(ba.distanceLabel).toBe(ab.distanceLabel);
+        expect(ba.aRole).toBe(ab.bRole);
+        expect(ba.bRole).toBe(ab.aRole);
+      }
+    }
+  });
+
+  test("거리 라벨이 규칙대로 붙는다 — 동숙·특수관계·근·중·원", () => {
+    const labelAt = (d) => aiCalc.buildSukuyoAiCompatibility({ index: 0 }, { index: d }).distanceLabel;
+    expect(labelAt(0)).toBe("동숙");
+    expect(labelAt(9)).toBe("특수관계");
+    expect(labelAt(18)).toBe("특수관계");
+    for (let d = 1; d < 27; d += 1) {
+      if (d === 9 || d === 18) continue;
+      const shortest = Math.min(d, 27 - d);
+      const expected = shortest <= 4 ? "근거리" : shortest <= 10 ? "중거리" : "원거리";
+      expect(labelAt(d)).toBe(expected);
+    }
+  });
+
+  test("judgeDayFortune 이 27거리 전부에서 오늘의 수 자리대로 등급을 낸다", () => {
+    for (let d = 0; d < 27; d += 1) {
+      const day = core.judgeDayFortune(0, d);
+      expect(day.bRole).toBe(TRADITIONAL_B_ROLE[d]);
+      expect(day.tier).toBe(ROLE_TIER[TRADITIONAL_B_ROLE[d]]);
+    }
   });
 });

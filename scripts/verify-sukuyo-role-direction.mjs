@@ -12,6 +12,8 @@
  *     (CMS 프롬프트가 시스템 프롬프트를 통째로 갈아치워도 살아남는 자리여야 한다).
  *  5. 생성기 회귀 — 자리 별칭이 없는 구버전 payload 에서도 역할 흐름이 '미상'으로 죽지 않는다.
  *  6. 화면 표시 — '공진자' 뭉개기가 사라졌고, 자리 방향 섹션 마커가 남아 있다.
+ *  7. React 휠 파리티 — components/fortune/SukuyoWheel.tsx 의 relationFromDistance 도
+ *     27거리 전부에서 정본 aRole 과 같은 자리를 낸다.
  *
  *   node scripts/verify-sukuyo-role-direction.mjs
  */
@@ -36,6 +38,7 @@ const check = (condition, message) => {
 
 const CLIENT = "js/saju-engine-tarot-sukuyo-quantum.js";
 const ROUTE = "worker/routes/sukuyo-compatibility-ai.js";
+const REACT_WHEEL = "components/fortune/SukuyoWheel.tsx";
 
 const clientSource = read(CLIENT);
 const routeSource = read(ROUTE);
@@ -231,6 +234,54 @@ check(
   clientSource.includes("data-sy-role-direction"),
   `${CLIENT} 에 자리 방향 섹션 마커(data-sy-role-direction)가 없습니다 — 결과 화면이 자리를 안 보여 줍니다`,
 );
+
+// ── 7. React 휠(SukuyoWheel.tsx) 자리 파리티 ─────────────────────────────────
+{
+  const wheelSource = read(REACT_WHEEL);
+  const WHEEL_START = "function relationFromDistance(distance: number)";
+  const WHEEL_END = "function indexOfHanja(";
+  const start = wheelSource.indexOf(WHEEL_START);
+  const end = wheelSource.indexOf(WHEEL_END);
+  // 앵커가 사라지면 통과시키지 않는다(fail-closed).
+  check(start >= 0, `${REACT_WHEEL} 에서 '${WHEEL_START}' 를 찾지 못했습니다 — 자리 대조를 못 합니다`);
+  check(end > start, `${REACT_WHEEL} 에서 '${WHEEL_END}' 를 찾지 못했습니다 — 자리 대조를 못 합니다`);
+  if (start >= 0 && end > start) {
+    // TS 타입 주석만 걷어내면 그대로 평가 가능한 순수 함수다.
+    const block = wheelSource
+      .slice(start, end)
+      .replace("(distance: number): { short: string; color: string }", "(distance)");
+    const sandbox = {};
+    vm.createContext(sandbox);
+    let ok = true;
+    try {
+      vm.runInContext(`${block}
+this.relationFromDistance = relationFromDistance;`, sandbox, {
+        filename: REACT_WHEEL,
+      });
+    } catch (error) {
+      ok = false;
+      check(false, `${REACT_WHEEL} 자리 블록 평가 실패: ${error.message}`);
+    }
+    check(
+      !ok || typeof sandbox.relationFromDistance === "function",
+      `${REACT_WHEEL} 에서 relationFromDistance 를 꺼내지 못했습니다 — 정본 대조 불가`,
+    );
+    if (ok && typeof sandbox.relationFromDistance === "function") {
+      const mismatches = [];
+      for (let d = 0; d < 27; d += 1) {
+        const canon = relationFromForwardDistance(d);
+        const got = sandbox.relationFromDistance(d);
+        if (!got || got.short !== canon.aRole) {
+          mismatches.push(`D=${d} 정본 ${canon.aRole} vs 휠 ${got && got.short}`);
+        }
+      }
+      check(
+        mismatches.length === 0,
+        `${REACT_WHEEL} 자리가 정본과 어긋납니다: ${mismatches.join(" / ")}`,
+      );
+    }
+  }
+}
 
 if (failures.length) {
   console.error("[verify-sukuyo-role-direction] FAILED");

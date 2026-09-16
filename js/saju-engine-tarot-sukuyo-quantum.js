@@ -7581,20 +7581,23 @@ function syWheelMansion(index) {
 }
 
 function syWheelRelationFromDistance(distance) {
+  // 반환값은 "순행 d 칸 떨어진 상대에 대해 내가 선 자리"(정본 aRole)다.
+  // 정본 worker/lib/sukuyo-relation-core.js 의 relationFromForwardDistance 와 27거리 전부가
+  // 같아야 하며 verify:sukuyo-role-direction 1번 검사가 대조한다.
+  // 전통 삼구(三九) 순서 0命 1榮 2衰 3安 4危 5成 6壞 7友 8親 9業 … 18胎 는 상대 자리(bRole)이고,
+  // 내 자리는 그 역거리 27-d 의 자리다. 짝은 명↔명·영↔친·우↔쇠·안↔괴·성↔위·업↔태.
   var d = ((Number(distance) % 27) + 27) % 27;
   if (d === 0) return { short: '명', label: _sajuQuantumText("sq_6446_prop_label"), color: 'rgba(250,204,21,0.45)' };
-  if (d === 9) return { short: '업', label: _sajuQuantumText("sq_6447_prop_label"), color: 'rgba(248,113,113,0.45)' };
-  if (d === 18) return { short: '태', label: _sajuQuantumText("sq_6448_prop_label"), color: 'rgba(251,146,60,0.45)' };
-  if ([1, 10, 19].indexOf(d) >= 0) return { short: '영', label: _sajuQuantumText("sq_6449_prop_label"), color: 'rgba(16,185,129,0.42)' };
-  if ([8, 17, 26].indexOf(d) >= 0) return { short: '친', label: _sajuQuantumText("sq_6450_prop_label"), color: 'rgba(34,197,94,0.42)' };
+  if (d === 9) return { short: '태', label: _sajuQuantumText("sq_6448_prop_label"), color: 'rgba(251,146,60,0.45)' };
+  if (d === 18) return { short: '업', label: _sajuQuantumText("sq_6447_prop_label"), color: 'rgba(248,113,113,0.45)' };
+  if ([1, 10, 19].indexOf(d) >= 0) return { short: '친', label: _sajuQuantumText("sq_6450_prop_label"), color: 'rgba(34,197,94,0.42)' };
+  if ([8, 17, 26].indexOf(d) >= 0) return { short: '영', label: _sajuQuantumText("sq_6449_prop_label"), color: 'rgba(16,185,129,0.42)' };
   if ([2, 11, 20].indexOf(d) >= 0) return { short: '우', label: _sajuQuantumText("sq_6451_prop_label"), color: 'rgba(56,189,248,0.42)' };
   if ([7, 16, 25].indexOf(d) >= 0) return { short: '쇠', label: _sajuQuantumText("sq_6452_prop_label"), color: 'rgba(96,165,250,0.42)' };
-  if ([3, 12, 21].indexOf(d) >= 0) return { short: '안', label: _sajuQuantumText("sq_6453_prop_label"), color: 'rgba(244,114,182,0.42)' };
-  if ([6, 15, 24].indexOf(d) >= 0) return { short: '괴', label: _sajuQuantumText("sq_6454_prop_label"), color: 'rgba(239,68,68,0.42)' };
-  // 정본 worker/lib/sukuyo-relation-core.js 및 전통 순서(1榮 2友 3安 4危 5成 6壞 7衰 8親 9業)
-  // 기준으로 순행 +4/13/22 는 내가 危(위), +5/14/23 이 成(성)이다. 예전에는 두 줄이 뒤집혀 있었다.
-  if ([5, 14, 23].indexOf(d) >= 0) return { short: '성', label: _sajuQuantumText("sq_6455_prop_label"), color: 'rgba(167,139,250,0.42)' };
-  if ([4, 13, 22].indexOf(d) >= 0) return { short: '위', label: _sajuQuantumText("sq_6456_prop_label"), color: 'rgba(129,140,248,0.42)' };
+  if ([3, 12, 21].indexOf(d) >= 0) return { short: '괴', label: _sajuQuantumText("sq_6454_prop_label"), color: 'rgba(239,68,68,0.42)' };
+  if ([6, 15, 24].indexOf(d) >= 0) return { short: '안', label: _sajuQuantumText("sq_6453_prop_label"), color: 'rgba(244,114,182,0.42)' };
+  if ([4, 13, 22].indexOf(d) >= 0) return { short: '성', label: _sajuQuantumText("sq_6455_prop_label"), color: 'rgba(167,139,250,0.42)' };
+  if ([5, 14, 23].indexOf(d) >= 0) return { short: '위', label: _sajuQuantumText("sq_6456_prop_label"), color: 'rgba(129,140,248,0.42)' };
   return { short: '우', label: _sajuQuantumText("sq_6457_prop_label"), color: 'rgba(56,189,248,0.4)' };
 }
 
@@ -7607,8 +7610,8 @@ var SY_ROLE_PROFILE = {
   '태': { han: '胎', label: '태동자', icon: '🌱', meaning: '새 마음을 품고 시작하게 하는 자리', experience: '상대가 데려온 무게가 버겁다가도, 그 덕에 처음 해 보는 마음이 생깁니다.', advice: '상대의 속도에 끌려가지 말고, 새로 품은 마음 가운데 내가 이어갈 것만 골라 남기세요.' },
   '영': { han: '榮', label: '번영자', icon: '🌟', meaning: '상대를 빛나게 하고 베풀게 되는 자리', experience: '주고 싶은 마음이 먼저 나서서, 챙기고 나면 뿌듯한 만큼 허전함도 함께 옵니다.', advice: '베푸는 양을 줄일 필요는 없지만, 내가 무엇을 받고 싶은지도 같은 크기로 말해 두세요.' },
   '친': { han: '親', label: '친밀자', icon: '🤝', meaning: '가까이 기대며 마음을 붙이는 자리', experience: '이 사람 곁에서는 긴장이 풀려, 어리광에 가까운 모습까지 편하게 나옵니다.', advice: '편안함에 익숙해지기 전에, 받은 것을 말로 되돌려 주는 습관을 하나 만들어 두세요.' },
-  '우': { han: '友', label: '동반자', icon: '🧭', meaning: '곁을 지키는 동반의 자리', experience: '특별히 애쓰지 않아도 보폭이 맞아, 오래 함께 있어도 쉽게 지치지 않습니다.', advice: '편한 사이일수록 예의가 먼저 흐려지니, 부탁과 고마움은 매번 또렷하게 건네세요.' },
-  '쇠': { han: '衰', label: '소진자', icon: '🍂', meaning: '기운을 내어주다 쉽게 소모되는 자리', experience: '함께 있을 땐 좋은데, 헤어지고 나면 유독 기운이 빠져 있는 자신을 발견합니다.', advice: '관계가 나쁘다는 뜻이 아니라 회복할 시간이 필요하다는 신호이니, 만남 사이에 쉬는 간격을 두세요.' },
+  '우': { han: '友', label: '헌신자', icon: '🕯️', meaning: '관계를 잇기 위해 먼저 움직이는 자리', experience: '내가 먼저 연락하고 먼저 맞추는 쪽이 되어, 함께한 뒤에 유독 기운이 빠져 있곤 합니다.', advice: '상대가 무심해서가 아니라 서 있는 자리가 다른 것이니, 내어준 만큼 회복할 간격을 먼저 챙기세요.' },
+  '쇠': { han: '衰', label: '수신자', icon: '🍃', meaning: '상대가 내어주는 관심을 받아들이는 자리', experience: '크게 애쓰지 않아도 상대가 먼저 다가와 편안한데, 내 반응이 늘 한 박자 늦었다는 걸 뒤늦게 깨닫습니다.', advice: '받기만 했다고 자책하기보다, 고맙다는 말과 응답 속도 하나를 상대보다 먼저 앞당겨 보세요.' },
   '안': { han: '安', label: '안정자', icon: '🛡️', meaning: '안심과 편안함을 건네는 자리', experience: '내가 크게 애쓰지 않아도 상대가 놓여나는 게 보여, 자연스레 받쳐 주게 됩니다.', advice: '안정을 맡은 쪽이 먼저 지치기 쉬우니, 힘든 날은 숨기지 말고 그대로 알리세요.' },
   '괴': { han: '壞', label: '파괴자', icon: '⚔️', meaning: '흔들림과 변화를 일으키는 자리', experience: '나로서는 평소대로 했을 뿐인데, 상대의 균형이 크게 흔들리는 일이 반복됩니다.', advice: '흔드는 힘 자체가 잘못은 아니니, 큰 변화를 꺼낼 때는 미리 알리고 속도를 상대에게 맞추세요.' },
   '성': { han: '成', label: '성취자', icon: '🏹', meaning: '일을 이루도록 밀어주는 자리', experience: '내가 건넨 말과 손길이 상대의 일을 밀어 올리는 게 보여, 자꾸 더 나서게 됩니다.', advice: '밀어주는 힘이 강한 자리이니, 성과를 재촉하기 전에 상대가 감당할 수 있는 속도부터 물어보세요.' },

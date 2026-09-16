@@ -31,16 +31,19 @@ function segmentAngles(index: number) {
 }
 
 function relationFromDistance(distance: number): { short: string; color: string } {
+  // 반환값은 "순행 d 칸 떨어진 상대에 대해 내가 선 자리"(정본 aRole)다.
+  // worker/lib/sukuyo-relation-core.js 의 relationFromForwardDistance 와 27거리 전부가 같아야 하며
+  // verify-sukuyo-role-direction.mjs 가 대조한다.
   const d = ((distance % 27) + 27) % 27;
   if (d === 0) return { short: "명", color: "rgba(250,204,21,0.45)" };
-  if (d === 9) return { short: "업", color: "rgba(248,113,113,0.45)" };
-  if (d === 18) return { short: "태", color: "rgba(251,146,60,0.45)" };
-  if ([1, 10, 19].includes(d)) return { short: "영", color: "rgba(16,185,129,0.42)" };
-  if ([8, 17, 26].includes(d)) return { short: "친", color: "rgba(34,197,94,0.42)" };
+  if (d === 9) return { short: "태", color: "rgba(251,146,60,0.45)" };
+  if (d === 18) return { short: "업", color: "rgba(248,113,113,0.45)" };
+  if ([1, 10, 19].includes(d)) return { short: "친", color: "rgba(34,197,94,0.42)" };
+  if ([8, 17, 26].includes(d)) return { short: "영", color: "rgba(16,185,129,0.42)" };
   if ([2, 11, 20].includes(d)) return { short: "우", color: "rgba(56,189,248,0.42)" };
   if ([7, 16, 25].includes(d)) return { short: "쇠", color: "rgba(96,165,250,0.42)" };
-  if ([3, 12, 21].includes(d)) return { short: "안", color: "rgba(244,114,182,0.42)" };
-  if ([6, 15, 24].includes(d)) return { short: "괴", color: "rgba(239,68,68,0.42)" };
+  if ([3, 12, 21].includes(d)) return { short: "괴", color: "rgba(239,68,68,0.42)" };
+  if ([6, 15, 24].includes(d)) return { short: "안", color: "rgba(244,114,182,0.42)" };
   if ([4, 13, 22].includes(d)) return { short: "성", color: "rgba(167,139,250,0.42)" };
   if ([5, 14, 23].includes(d)) return { short: "위", color: "rgba(129,140,248,0.42)" };
   return { short: "우", color: "rgba(56,189,248,0.4)" };

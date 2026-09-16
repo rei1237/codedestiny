@@ -23,20 +23,27 @@ function normalizeIndex(index) {
 }
 
 // 27수 순행 거리(0~26) → 6종 관계와 방향별 역할(aRole=기준 자리, bRole=상대 자리).
+//
+// bRole 은 전통 삼구(三九)의 비법 순서에서 순행 d 칸에 놓인 자리 이름이다.
+//   d: 0命 1榮 2衰 3安 4危 5成 6壞 7友 8親 9業 … 18胎 (9칸 주기, 9→業·18→胎)
+// 즉 "상대(또는 오늘의 수)가 내 본명수에서 몇 칸 앞인가"가 곧 상대의 자리다.
+// aRole 은 그 역(逆) 거리 27-d 의 자리이며 짝은 명↔명·영↔친·우↔쇠·안↔괴·성↔위·업↔태.
+// judgeDayFortune 이 bRole 로 일진 길흉을 매기므로(榮成 대길 / 安友親 길 / 衰危壞 흉 /
+// 業胎 대흉) 이 순서가 틀어지면 궁합과 오늘의 운세가 동시에 뒤집힌다.
 function relationFromForwardDistance(forwardDistance) {
   const d = normalizeIndex(forwardDistance);
   if (d == null) return null;
   if (d === 0) return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
-  if (d === 9) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "업", bRole: "태" };
-  if (d === 18) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "태", bRole: "업" };
-  if ([1, 10, 19].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "영", bRole: "친" };
-  if ([8, 17, 26].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "친", bRole: "영" };
+  if (d === 9) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "태", bRole: "업" };
+  if (d === 18) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "업", bRole: "태" };
+  if ([1, 10, 19].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "친", bRole: "영" };
+  if ([8, 17, 26].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "영", bRole: "친" };
   if ([2, 11, 20].includes(d)) return { relationType: "우쇠", relationTypeHan: SUKUYO_RELATION_HAN["우쇠"], aRole: "우", bRole: "쇠" };
   if ([7, 16, 25].includes(d)) return { relationType: "우쇠", relationTypeHan: SUKUYO_RELATION_HAN["우쇠"], aRole: "쇠", bRole: "우" };
-  if ([3, 12, 21].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "안", bRole: "괴" };
-  if ([6, 15, 24].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "괴", bRole: "안" };
-  if ([4, 13, 22].includes(d)) return { relationType: "성위", relationTypeHan: SUKUYO_RELATION_HAN["성위"], aRole: "위", bRole: "성" };
-  if ([5, 14, 23].includes(d)) return { relationType: "성위", relationTypeHan: SUKUYO_RELATION_HAN["성위"], aRole: "성", bRole: "위" };
+  if ([3, 12, 21].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "괴", bRole: "안" };
+  if ([6, 15, 24].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "안", bRole: "괴" };
+  if ([4, 13, 22].includes(d)) return { relationType: "성위", relationTypeHan: SUKUYO_RELATION_HAN["성위"], aRole: "성", bRole: "위" };
+  if ([5, 14, 23].includes(d)) return { relationType: "성위", relationTypeHan: SUKUYO_RELATION_HAN["성위"], aRole: "위", bRole: "성" };
   return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
 }
 
@@ -78,15 +85,15 @@ const SUKUYO_ROLE_PROFILES = {
   },
   우: {
     han: "友",
-    meaning: "곁을 지키는 동반의 자리",
-    experience: "특별히 애쓰지 않아도 보폭이 맞아, 오래 함께 있어도 쉽게 지치지 않습니다.",
-    advice: "편한 사이일수록 예의가 먼저 흐려지니, 부탁과 고마움은 매번 또렷하게 건네세요.",
+    meaning: "관계를 잇기 위해 먼저 움직이는 자리",
+    experience: "내가 먼저 연락하고 먼저 맞추는 쪽이 되어, 함께한 뒤에 유독 기운이 빠져 있곤 합니다.",
+    advice: "상대가 무심해서가 아니라 서 있는 자리가 다른 것이니, 내어준 만큼 회복할 간격을 먼저 챙기세요.",
   },
   쇠: {
     han: "衰",
-    meaning: "기운을 내어주다 쉽게 소모되는 자리",
-    experience: "함께 있을 땐 좋은데, 헤어지고 나면 유독 기운이 빠져 있는 자신을 발견합니다.",
-    advice: "관계가 나쁘다는 뜻이 아니라 회복할 시간이 필요하다는 신호이니, 만남 사이에 쉬는 간격을 두세요.",
+    meaning: "상대가 내어주는 관심을 받아들이는 자리",
+    experience: "크게 애쓰지 않아도 상대가 먼저 다가와 편안한데, 내 반응이 늘 한 박자 늦었다는 걸 뒤늦게 깨닫습니다.",
+    advice: "받기만 했다고 자책하기보다, 고맙다는 말과 응답 속도 하나를 상대보다 먼저 앞당겨 보세요.",
   },
   안: {
     han: "安",
