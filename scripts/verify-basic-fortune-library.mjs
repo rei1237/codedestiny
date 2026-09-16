@@ -133,19 +133,41 @@ try {
       const stable = value => JSON.parse(JSON.stringify(value, (key, item) => key === 'generatedAt' || (type === 'sukuyo' && ['health','timing'].includes(key)) ? undefined : item));
       assert.deepEqual(stable(data), stable(previous), type + ': calculation result changed');
     }
-    if (type !== 'astro') await fs.writeFile(path.join(output, `${type}.html`), await page.locator('#' + ids[type]).innerHTML());
+    await fs.writeFile(path.join(output, `${type}.html`), await page.locator('#' + ids[type]).innerHTML());
     for (const width of [360, 390, 430, 768, 1280]) {
       await page.setViewportSize({ width, height: width >= 768 ? 1000 : 844 });
       await page.locator(`#${type}ModalSheet`).evaluate(el => { el.scrollTop = 0; });
-      if (type !== 'astro') await page.screenshot({ path: path.join(output, `${type}-${width}.png`) });
+      await page.screenshot({ path: path.join(output, `${type}-${width}.png`) });
       const metric = await page.locator(`#${type}ModalOverlay`).evaluate(el => ({ scrollWidth: el.scrollWidth, width: el.clientWidth, left: el.getBoundingClientRect().left, position: getComputedStyle(el).position, text: el.innerText.slice(0, 750) }));
       assert.ok(metric.scrollWidth <= metric.width + 1, `${type} overflow at ${width}`);
       results.push({ type, viewport: width, readyMs, ...metric });
     }
-    if (phase === 'after' && type !== 'astro') {
+    if (phase === 'after') {
       await page.setViewportSize({ width: 390, height: 844 });
       assert.equal(await page.locator(`[data-fortune-library="${type}"]`).count(), 1);
-      if (type === 'ziwei') {
+      if (type === 'astro') {
+        // The reading house lists the seven authored astrology articles and opens one inline.
+        assert.equal(await page.locator('#fr-astro-chart .astro-wheel-card').count(), 1);
+        assert.equal(await page.locator('#fr-astro-chart').evaluate(el => el.closest('details') === null), true);
+        assert.equal(await page.locator('.fr-astro-nav a').count(), 5);
+        const stories = page.locator('#fr-astro-articles .astro-house-story');
+        await stories.first().waitFor({ timeout: 15000 });
+        assert.equal(await stories.count(), 7);
+        // Paid entries must survive the move untouched: AI counsel plus both compatibility panels.
+        assert.equal(await page.locator('#fr-astro-consult #astroAiPromptSection').count(), 1);
+        assert.equal(await page.locator('#fr-astro-consult .astro-compat-panel').count(), 2);
+        assert.equal(await page.locator('#fr-astro-consult .astro-stellar-archive').count(), 1);
+        // No paid entry may end up inside a collapsed disclosure.
+        assert.equal(await page.locator('#astroAiPromptSection, .astro-compat-panel, .astro-stellar-archive').evaluateAll(els => els.some(el => el.closest('details:not([open])'))), false);
+        await stories.first().click();
+        await page.waitForFunction(() => {
+          const body = document.querySelector('.astro-house-article-body');
+          return body && body.textContent.trim().length > 200;
+        }, null, { timeout: 15000 });
+        assert.equal(await page.locator('.astro-house-article-body :is(script,img,iframe)').count(), 0);
+        await page.locator('#fr-astro-articles').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
+        await page.screenshot({ path: path.join(output, 'astro-articles-390.png') });
+      } else if (type === 'ziwei') {
         assert.equal(await page.locator('.fr-palace-choice').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart .zw-cell').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart').evaluate(el => el.closest('details') === null), true);
@@ -219,7 +241,9 @@ try {
   const states = [];
   const localizationAudit = [];
   if (phase === 'after') {
+    // History/keyboard checks below assert a history marker, which astro deliberately does not set.
     const opens = { sukuyo: 'openSukuyoModal', ziwei: 'openZiweiModal' };
+    const stateOpens = { ...opens, astro: 'openAstroModal' };
     for (const type of Object.keys(opens)) {
       await page.setViewportSize({ width: 390, height: 844 });
       await openBasicFortuneWithKeyboard(type);
@@ -293,14 +317,14 @@ try {
       states.push({ type, historyBackCloses: true, historyForwardRestores: true, historyDeduplicated: true, urlPreserved: true, scrollPreserved: true });
     }
     for (const locale of ['ko', 'en', 'ja', 'zh', 'zh-TW']) {
-      for (const type of Object.keys(opens)) {
+      for (const type of Object.keys(stateOpens)) {
         await page.evaluate(({ profile, locale, type, opens }) => {
           localStorage.setItem('cd_lang', locale); document.documentElement.lang = locale;
           const next = { ...profile, name: '서연 Alexandria 星月 '.repeat(8) };
           if (locale === 'ko') { next.birth = { ...profile.birth, hour: null }; next.location = {}; }
           const storage = window.DestinyProfileManager.storage; storage.save([next]); storage.setCurrent(next.id);
           window[opens[type]]();
-        }, { profile, locale, type, opens });
+        }, { profile, locale, type, opens: stateOpens });
         console.log('State check', locale, type);
         await page.waitForFunction(type => document.querySelector(`[data-fortune-library="${type}"] .fr-profile-name`)?.textContent.includes('Alexandria'), type);
         const report = page.locator(`[data-fortune-library="${type}"]`);
@@ -322,7 +346,12 @@ try {
               const parent = node.parentElement;
               const text = node.nodeValue.replace(/\s+/g, ' ').trim();
               if (!text || !/[가-힣]/.test(text) || !parent || parent.closest('.fr-profile-name, script, style, noscript')) continue;
-              const owner = parent.closest('#lunarNexusApp') ? 'renderSukuyo' : parent.closest('.zw-dashboard, #ziweiModalSection') ? 'renderZiwei' : 'presentation';
+              // Astrology prose is authored Korean-only by the engine; only the fr-* chrome is presentation.
+              const astroPresentation = parent.closest('.fr-profile, .fr-hero, .fr-astro-nav, .astro-house-journal') || parent.matches('.fr-heading');
+              const owner = parent.closest('#lunarNexusApp') ? 'renderSukuyo'
+                : parent.closest('.zw-dashboard, #ziweiModalSection') ? 'renderZiwei'
+                : parent.closest('#astroBodyWrap') && !astroPresentation ? 'renderAstro'
+                : 'presentation';
               owners[owner] = (owners[owner] || 0) + 1;
               const anchor = parent.closest('[id], [class]');
               const selector = anchor?.id ? `#${anchor.id}` : anchor?.classList?.length ? `.${Array.from(anchor.classList).slice(0, 2).join('.')}` : parent.tagName.toLowerCase();
@@ -336,6 +365,8 @@ try {
       }
     }
     await page.evaluate(() => { localStorage.setItem('cd_lang', 'ko'); window.DestinyProfileManager.storage.save([]); window.DestinyProfileManager.storage.setCurrent(''); });
+    // Astro is absent here on purpose: with _astroBirth already cached it re-renders the
+    // chart instead of the empty state, which is the engine's own pre-existing behaviour.
     for (const type of Object.keys(opens)) {
       await page.evaluate(({ type, opens }) => window[opens[type]](), { type, opens });
       await page.locator(`#${type}NoProfile`).waitFor({ state: 'visible' });

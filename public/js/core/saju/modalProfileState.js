@@ -299,6 +299,14 @@ function _renderAstroSection() {
   setTimeout(function () {
     var renderWithSwiss = function () {
       if (typeof renderAstroInsight === 'function') renderAstroInsight();
+      // Presentation only. If it fails the engine's own screen stays exactly as rendered.
+      try {
+        if (window.BasicFortunePresentation && typeof window.BasicFortunePresentation.astro === 'function') {
+          window.BasicFortunePresentation.astro(area);
+        }
+      } catch (e) {
+        console.warn('[Astro] 표현 계층 적용 실패:', e);
+      }
       _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
     };
     if (typeof window.__cdEnsureSwissEphLoaded === 'function') {

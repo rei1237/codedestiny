@@ -4,6 +4,7 @@
  */
 import "./design/build-home-funnel.mjs";
 import "./design/gen-yehwa-motifs.mjs";
+import "./build-astro-reading-library.mjs";
 import "./build-sukuyo-reading-library.mjs";
 import "./build-ziwei-reading-library.mjs";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";

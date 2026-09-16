@@ -1,4 +1,4 @@
-/* Owned only by the Sukuyo and Ziwei reports, never the shared mobile wrapper. */
+/* Owned only by the Sukuyo, Ziwei and Astrology reports, never the shared mobile wrapper. */
 .fr-overlay {
   --fr-bg: #101723;
   --fr-surface: #192331;
@@ -384,4 +384,97 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay .fr-ziwei-nav a { min-height:40px; font-size:12px; }
   #ziweiModalOverlay .zw-house-story h4 { font-size:19px; line-height:1.5; }
   #ziweiModalOverlay .zw-house-article-reader { padding-top:18px; }
+}
+
+/* Astrology birth-chart house: midnight indigo and silver. The legacy neon
+   stylesheets stay in place; everything here only outranks them inside this overlay. */
+#astroModalOverlay.fr-astro { --fr-bg:#0a0d1c; --fr-surface:#141a30; --fr-ink:#eef1f8; --fr-muted:#a8b0c8; --fr-accent:#cdd6e8; --fr-rule:#2b3350; }
+body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
+#astroModalOverlay :is(#astroCardWrap, .astro-card) { padding:0 !important; margin:0 !important; border:0 !important; background:none !important; box-shadow:none !important; max-width:none !important; }
+#astroModalOverlay #astroResult { background:none !important; border:0 !important; padding:0 !important; margin:0 auto !important; max-width:var(--cd-w-prose, 760px) !important; }
+#astroModalOverlay #astroBodyWrap.fr-report {
+  box-sizing:border-box; width:100%; min-width:0; padding:24px 20px 56px !important;
+  background:none !important; border:0 !important; border-radius:0 !important; box-shadow:none !important;
+  color:var(--fr-ink); font-family:'Noto Sans KR','Pretendard',sans-serif; font-size:16px; line-height:1.75;
+}
+#astroModalOverlay #astroBodyWrap.fr-report::before, #astroModalOverlay #astroBodyWrap.fr-report::after { display:none !important; }
+#astroModalOverlay .fr-profile { margin-bottom:12px; }
+#astroModalOverlay .fr-profile > .fr-caption { display:none; }
+#astroModalOverlay .fr-profile-name { margin:4px 0; font-size:15px; }
+/* The modal's own top nav already names the feature, and the ziwei reference has no
+   such band, so the card heading is a fourth repeat of the same words in one viewport. */
+#astroModalOverlay .astro-card > .astro-header { display:none !important; }
+/* Keep the wash even across the full width: the right half of the photo is light. */
+#astroModalOverlay .astro-house-hero { margin:0 !important; padding:26px !important; border:1px solid var(--fr-rule) !important; border-radius:14px !important; background:linear-gradient(100deg,rgba(10,13,28,.96),rgba(10,13,28,.82)),url('/images/feature-details/astrology-hero-v2.webp') center right/cover !important; }
+/* Zodiac glyphs ship as colour emoji and ignore `color`; force the text presentation. */
+#astroModalOverlay #astroBodyWrap { font-variant-emoji:text; }
+#astroModalOverlay .fr-title { font-size:32px !important; margin:8px 0 18px; }
+#astroModalOverlay .fr-emblem { opacity:.7; }
+#astroModalOverlay .fr-facts { grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:0; }
+#astroModalOverlay .fr-facts > div { display:block; }
+#astroModalOverlay .fr-facts dt { font-size:13px; letter-spacing:.04em; }
+#astroModalOverlay .fr-facts dd { margin:5px 0 4px; font-size:19px; font-family:'Gowun Batang','Gowun Dodum',serif; }
+#astroModalOverlay .fr-facts p { color:var(--fr-accent); font-size:13px; line-height:1.6; }
+#astroModalOverlay .fr-astro-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; padding:12px 0; margin:20px 0 24px; border-bottom:1px solid var(--fr-rule); }
+#astroModalOverlay .fr-astro-nav a { display:flex; align-items:center; justify-content:center; text-align:center; min-height:44px; color:var(--fr-accent); font-size:14px; text-decoration:none; }
+#astroModalOverlay .astro-house-section { scroll-margin-top:80px; margin-bottom:40px; }
+#astroModalOverlay .astro-house-section > .fr-heading { padding-bottom:12px; border-bottom:1px solid var(--fr-rule); }
+/* Flatten the neon card chrome so the report reads as one page, not stacked panels. */
+#astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-action-hub, .astro-wheel-card, .precision-insight-card, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero) { background:var(--fr-surface) !important; border:1px solid var(--fr-rule) !important; border-radius:12px !important; box-shadow:none !important; padding:20px !important; margin:0 0 18px !important; }
+#astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero)::before, #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero)::after { display:none !important; }
+#astroModalOverlay #astroBodyWrap .astro-stellar-archive__head :is(span,h3,p) { color:var(--fr-ink) !important; }
+#astroModalOverlay #astroBodyWrap .astro-stellar-archive__head span { color:var(--fr-accent) !important; }
+#astroModalOverlay #astroBodyWrap .astro-subhead { color:var(--fr-accent) !important; font-size:18px !important; font-weight:600 !important; }
+#astroModalOverlay #astroBodyWrap :is(.astro-desc p, .astro-desc li, .astro-core) { color:var(--fr-ink) !important; }
+#astroModalOverlay #astroBodyWrap :is(.astro-tag, .astro-wheel-summary span) { border:1px solid var(--fr-rule) !important; background:#1b2340 !important; color:var(--fr-accent) !important; }
+/* The wheel ships its own darker inner panels; stacked on the card they read as holes
+   punched through it, so the card face is the only surface inside the chart section. */
+#astroModalOverlay #astroBodyWrap :is(.astro-wheel-visual, .astro-wheel-table-wrap) { background:none !important; border-color:var(--fr-rule) !important; }
+#astroModalOverlay #astroBodyWrap .astro-big3-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+#astroModalOverlay #astroBodyWrap .astro-big3-card { min-width:0; background:#101632 !important; border:1px solid var(--fr-rule) !important; border-radius:10px !important; box-shadow:none !important; }
+#astroModalOverlay .astro-house-journal { border-top:1px solid var(--fr-rule); padding-top:30px; margin-top:40px; scroll-margin-top:24px; }
+#astroModalOverlay .astro-house-journal > .fr-caption { max-width:720px; }
+#astroModalOverlay .astro-house-search { display:block; max-width:380px; margin:20px 0; color:var(--fr-muted); font-size:14px; }
+#astroModalOverlay .astro-house-search input { display:block; width:100%; min-height:46px; margin-top:7px; padding:10px 12px; border:1px solid var(--fr-rule); border-radius:7px; color:var(--fr-ink); background:var(--fr-surface); font-size:16px; }
+#astroModalOverlay .astro-house-articles { display:grid; grid-template-columns:1fr; gap:0 32px; }
+#astroModalOverlay .astro-house-story { display:block; min-height:44px; padding:22px 0; border-bottom:1px solid var(--fr-rule); color:var(--fr-ink); text-decoration:none; overflow-wrap:anywhere; }
+#astroModalOverlay .astro-house-story h4 { margin:0 0 12px; color:var(--fr-ink); font:400 22px/1.6 var(--font-serif, Batang, serif); }
+#astroModalOverlay .astro-house-story p { margin:0; color:var(--fr-muted); font-size:14px; line-height:1.75; }
+#astroModalOverlay .astro-house-story:hover h4 { text-decoration:underline; text-underline-offset:6px; }
+#astroModalOverlay .astro-house-story:first-child::before { content:''; display:block; aspect-ratio:16 / 7; margin-bottom:18px; border-radius:8px; background:url('/feature-details/assets/astrology-960.webp') center/cover; }
+#astroModalOverlay .astro-house-article-reader { margin-top:24px; padding:24px 0; border-top:1px solid var(--fr-rule); }
+#astroModalOverlay .astro-house-article-reader > .fr-heading { margin-top:24px; }
+#astroModalOverlay .astro-house-article-reader button,
+#astroModalOverlay .astro-house-original { display:inline-flex; align-items:center; min-height:44px; margin:10px 0 14px; padding:10px 16px; border:1px solid var(--fr-rule); border-radius:7px; color:var(--fr-ink); background:var(--fr-surface); cursor:pointer; }
+#astroModalOverlay .astro-house-original { margin:10px 0 24px; color:var(--fr-accent); text-decoration:underline; text-underline-offset:4px; }
+#astroModalOverlay .astro-house-article-body { max-width:720px; margin:auto; overflow-wrap:anywhere; }
+#astroModalOverlay .astro-house-article-body :is(h2,h3,h4) { margin:36px 0 16px; color:var(--fr-ink); line-height:1.5; }
+#astroModalOverlay .astro-house-article-body :is(h2,h3) { font-family:var(--font-serif, Batang, serif); font-weight:400; }
+#astroModalOverlay .astro-house-article-body :is(p,li) { color:var(--fr-ink); line-height:1.9; }
+#astroModalOverlay .astro-house-article-body ul,
+#astroModalOverlay .astro-house-article-body ol { padding-left:22px; }
+#astroModalOverlay .astro-house-article-body table { display:block; max-width:100%; overflow-x:auto; border-collapse:collapse; }
+#astroModalOverlay .astro-house-article-body :is(td,th) { min-width:90px; padding:12px; border-bottom:1px solid var(--fr-rule); }
+@media (min-width:768px) {
+  #astroModalOverlay #astroBodyWrap.fr-report { padding:32px 36px 64px !important; }
+  #astroModalOverlay .astro-house-articles { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:600px) {
+  #astroModalOverlay #astroBodyWrap.fr-report { padding:14px 12px 40px !important; }
+  #astroModalOverlay .fr-profile .fr-brand { display:none; }
+  #astroModalOverlay .astro-house-hero { padding:16px !important; }
+  #astroModalOverlay .fr-title { font-size:24px !important; margin:4px 0 12px; }
+  /* Three columns cannot hold "천칭자리 (♎) 20° 36'" at 360px without ragged wrapping,
+     so fall back to the library's label/value rows. */
+  #astroModalOverlay .fr-facts { grid-template-columns:1fr; gap:12px; }
+  #astroModalOverlay .fr-facts > div { display:grid; grid-template-columns:62px 1fr; column-gap:12px; }
+  #astroModalOverlay .fr-facts dt { font-size:13px; align-self:baseline; }
+  #astroModalOverlay .fr-facts dd { margin:0; font-size:17px; }
+  #astroModalOverlay .fr-facts p { margin:4px 0 0; font-size:12px; }
+  #astroModalOverlay .fr-astro-nav { grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 8px; margin:14px 0 18px; padding:0 0 10px; }
+  #astroModalOverlay .fr-astro-nav a { min-height:40px; font-size:12px; }
+  #astroModalOverlay #astroBodyWrap :is(.astro-section, .astro-action-hub, .astro-wheel-card, .precision-insight-card, .astro-cosmic-restored, .astro-stellar-archive, .astro-restored-hero) { padding:14px !important; }
+  #astroModalOverlay #astroBodyWrap .astro-big3-grid { grid-template-columns:1fr; }
+  #astroModalOverlay .astro-house-story h4 { font-size:19px; line-height:1.5; }
+  #astroModalOverlay .astro-house-article-reader { padding-top:18px; }
 }
