@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-16
-next: 2단계 1~8번 완료. 후속 과제 6건 중 3건(대비 2건·죽은 코드 2개 모듈)도 처리했다. 남은 것은 '아직 남은 후속 과제' 3건이다.
+next: 2단계 1~8번 완료. 후속 과제 7건 중 4건(대비 2건·죽은 코드 2개 모듈·찻집 우쇠 문구/위성 키)을 처리했다. 남은 것은 '아직 남은 후속 과제' 3건이며 둘은 단독 세션, 하나는 승인이 필요하다.
 ---
 
 # 숙요점 자리(役) 방향 정본 교정 — 1·2단계 + 후속 과제 3건 완료
@@ -14,8 +14,8 @@ next: 2단계 1~8번 완료. 후속 과제 6건 중 3건(대비 2건·죽은 코
 전생 서사(SY_SEAT_PASTLIFE)가 자리별로 저작돼 있고, 워커 라우트도 정본 자리표에서 방향을
 끌어온다. verify-sukuyo-role-direction 의 9·10·11번 검사가 27거리 전부를 대조한다.
 실제 화면(390px, 4개 관계)도 열어 확인했다. 후속 세션에서 히어로·다이어그램 대비(팔레트
-6종 전수 실측)와 죽은 코드 2개 모듈 삭제까지 마쳤다. 남은 것은 아래쪽 '아직 남은 후속 과제'
-3건이며 셋 다 이번 축과 독립이다."
+6종 전수 실측)와 죽은 코드 2개 모듈 삭제, 찻집 궁합 우쇠 문구 정본화까지 마쳤다. 남은 것은
+아래쪽 '아직 남은 후속 과제' 3건이며 셋 다 이번 축과 독립이다."
 
 ## 1단계에서 무엇이 틀렸고 무엇을 고쳤나
 
@@ -203,17 +203,38 @@ D=13 성위/원거리. 전부 14장 + 전생 섹션이 나오고 가로 넘침 �
 `docs/payments/payment-*-inventory.json` 에 남은 경로 문자열은 `scripts/audit-payment-p0-inventory.mjs`
 **생성물**이라 손으로 고치지 않았다.
 
+### 완료 — 찻집 궁합 우쇠 문구 정본화 · 위성 키 삭제 (커밋 73463edb0)
+
+같은 관계 해설표가 **두 곳**에 글자까지 같게 있었다 —
+`src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts` 의 `RELATION_GUIDE` 와
+`worker/routes/fortune-tea-house.js` 의 `FORTUNE_TEA_SUKUYO_RELATION_GUIDE`. 둘 다 고쳤다.
+
+- 우쇠를 정본 `SUKUYO_ROLE_PROFILES` 에 맞춰 다시 썼다: 먼저 다가가는 자리(友)가
+  연락·조율을 도맡다 지치고, 받아들이는 자리(衰)는 편안함에 익숙해지기 쉽다. 이전 문안의
+  "비교·자존심·주도권 싸움" 은 정본에 없는 결이라 걷어냈다. 같은 화면의 자리 라벨은
+  이미 `describeSukuyoDirectionalRelation` 으로 정본에서 오고 있었다 — 해설만 어긋나 있었다.
+- 폐기 명칭 `위성` 키 삭제. 정본 `relationFromForwardDistance` 는 6번째 관계를 성위로만
+  내보내고 전수 테스트가 위성 부재를 단언한다. 레거시 토큰을 성위로 정규화하는
+  `worker/routes/sukuyo.js:961` · `fortune-tea-house.js:2206` 은 **살아 있는 정규화라 유지**했다.
+- 이 표들은 `verify:sukuyo-role-direction` 이 보지 않는다(가드 범위는 정본·클라 미러·휠·워커
+  라우트까지다). 찻집 문안을 또 고치면 직접 읽어 대조해야 한다.
+- 사이트맵 원장은 `/fortune-tea-house/` 서명 1건만 갱신됐다(어댑터가 그 라우트 import 클로저 안).
+
 ## 아직 남은 후속 과제
 
-- `src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts:65-78` —
-  폐기 명칭 `위성` 키가 `성위` 와 같은 내용으로 중복. :47-52 의 우쇠 설명
-  (주도권 싸움/경쟁심)이 정본의 우쇠와 결이 다르다. `buildConsultResult.ts:15` 가
-  실제로 쓰므로 죽은 코드가 아니다 — 문구를 고치면 찻집 궁합 화면이 함께 바뀐다.
 - 거리 판정이 한글 리터럴(`'근거리'`) 비교로 프론트 58곳에 흩어져 있어
   i18n 치환 시 깨질 구조. 단독 세션 권장.
 - `scripts/audit-payment-p0-inventory.mjs` 가 `package.json`·워크플로 어디에도 배선돼
   있지 않아 `docs/payments/payment-*-inventory.json` 이 트리와 어긋나도 아무도 알려주지 않는다.
-  이번 삭제와 무관하게 존재하는 구멍이다.
+  이번 삭제와 무관하게 존재하는 구멍이다. 🔴 배선은 새 CI 게이트 추가라 **사용자 승인 1회가
+  먼저** 필요하다 — 묻지 않고 붙이지 말 것.
+- (이번 세션에서 새로 확인) 폐기 명칭 `위성` 이 SEO·인사이트 문안에는 아직 남아 있다 —
+  `lib/seo-landing-pages.js:536,565`, `app/insights/InsightTopicArchive.jsx:63`. 판정 코드가
+  아니라 사람이 읽는 설명문이고, 고치면 사이트맵 원장이 함께 흔들리므로 SEO 축에서 다룬다.
+- (이번 세션에서 새로 확인) `worker/lib/sukuyo-ai-calculation.js:129-135` 의 relationType 분기
+  폴백은 **도달 불가**다(정본이 11개 자리 전부에 advice 를 주므로 앞의 자리 분기에서 끝난다).
+  그 안의 우쇠 문구도 옛 결이지만 화면에 나오지 않는다. 지우려면 구버전 payload 유입 경로가
+  정말 없는지부터 봐야 한다.
 
 ## 세션 중 확인한 하네스 함정
 
