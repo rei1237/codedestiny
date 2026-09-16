@@ -26,12 +26,12 @@ test('section dividers sit between the home sections', () => {
   assert.ok(count >= 5 && count <= 7, `expected 5~7 dividers, got ${count}`);
 });
 
-test('hero reuses a quiet garden motif without the retired visual stack', () => {
+test('hero restores the character island without the retired visual stack', () => {
   const html = read('index.html');
-  const garden = html.match(/<div class="cdh-garden">([\s\S]*?)<\/div>/)?.[1] || '';
-  for (const motif of ['cd-yehwa-spray', 'cdh-moon', 'cdh-peony']) {
-    assert.ok(garden.includes(`class="${motif}" aria-hidden="true"`), `${motif} must be decorative`);
-  }
+  const scene = html.match(/<div class="cdh-character-scene">([\s\S]*?)<\/div>/)?.[1] || '';
+  assert.match(scene, /class="cdh-character-scene__art"[^>]*alt=""/, 'the scene is decorative');
+  assert.match(scene, /srcset="[^"]*character-garden-480\.webp 480w, [^"]*character-garden-960\.webp 960w"/);
+  assert.doesNotMatch(scene, /class="(?:cd-yehwa-spray|cdh-moon|cdh-peony)"/, 'avoid layering motifs over the original art');
   assert.doesNotMatch(html, /class="moon-hero__(?:visual|zzz|ambient|picture--mascot)/);
   assert.doesNotMatch(read('styles/cosmic-main.css'), /\.moon-hero__(?:visual|zzz|picture--mascot)/);
 });
@@ -117,8 +117,7 @@ test('sprigs, concern seals and peonies are child spans on their hosts', () => {
   // 방식/가격 행 사이 거터에 미러 쌍이 떠서 "나눌 것 없는 자리의 구분선"으로 읽힌다(2026-09-03 시각 판정).
   // 문양은 필터 묶음(.fortune-gateway__filters)이 아니라 가격 행 안에 있어야 자리가 행 baseline 에 붙는다.
   assert.doesNotMatch(html, /<div class="fortune-gateway__filters"[^>]*>\s*<span class="cd-yehwa/, '문양은 필터 묶음이 아니라 가격 행 안에 둔다');
-  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 2, '가지 스프레이는 파인더 가격 행과 새 홈 정원에 하나씩 둔다');
-  assert.match(html, /<div class="cdh-garden">\s*(?:<span class="cdh-moon" aria-hidden="true"><\/span>)?\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '새 홈 장식은 정원 안에서만 재사용한다');
+  assert.equal((html.match(/class="cd-yehwa-spray"/g) || []).length, 1, '가지 스프레이는 파인더 가격 행에만 둔다');
   assert.match(html, /<div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기"[^>]*>\s*<span class="cd-yehwa-spray" aria-hidden="true"><\/span>/, '가격 행 첫 자식이 가지 스프레이가 아니다');
 
   // 고민 카드 6장 전부에 인장 span 이 있고 CSS 가 aria-expanded=true 인 카드에서만 켠다.
