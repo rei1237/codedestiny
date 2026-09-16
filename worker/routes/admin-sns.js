@@ -7,23 +7,41 @@
 //
 //   POST /api/admin/sns-daily-post/run?channel=all|telegram|threads
 //        — 태스크 1회 실행. 🔴 공개 채널에 실제 글이 나간다. 기본값은 all.
+//   POST /api/admin/sns-daily-post/run?channel=threads-job&type=saju|ziwei|vedic|numerology
+//        — Threads 유형별 Job 1회(threads-daily-jobs.js). 발행 창만 무시하고 분할 스위치·토큰·잠금은 그대로다.
 //   GET  /api/admin/sns-daily-post/status — 최근 잠금 문서(keyHash/channel/status/responseRef/updatedAt)
+//        + threadsJobs: 유형별 Job 잠금 문서(cron:sns-threads-daily)
 
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { IdempotencyKey } from "../lib/models.js";
 import { runSnsDailyPostTask } from "../lib/sns-daily-post-task.js";
+import { THREADS_DAILY_JOBS, THREADS_JOB_ENDPOINT, runThreadsDailyJobs } from "../lib/threads-daily-jobs.js";
 
 const SNS_POST_ENDPOINT = "cron:sns-daily-post";
 // 채널이 둘이라 하루에 문서가 최대 2건 생긴다 — 14일치를 보려면 28건이다.
 const STATUS_LIMIT = 28;
-const ALLOWED_CHANNELS = ["all", "telegram", "threads"];
+const ALLOWED_CHANNELS = ["all", "telegram", "threads", "threads-job"];
+const THREADS_JOB_TYPES = THREADS_DAILY_JOBS.map((job) => job.type);
+// 유형이 넷이라 하루 최대 4건 — 14일치 56건.
+const THREADS_JOB_STATUS_LIMIT = 56;
+
+async function handleThreadsJobRun(url, env) {
+  const type = String(url.searchParams.get("type") || "").toLowerCase();
+  if (!THREADS_JOB_TYPES.includes(type)) {
+    return json({ ok: false, error: "invalid_type", allowed: THREADS_JOB_TYPES }, { status: 400 });
+  }
+  const result = await runThreadsDailyJobs(env, { only: type, force: true });
+  return json({ channel: "threads-job", type, ...result }, { status: result.ok ? 200 : 502 });
+}
 
 async function handleRun(request, env) {
-  const channel = String(new URL(request.url).searchParams.get("channel") || "all").toLowerCase();
+  const url = new URL(request.url);
+  const channel = String(url.searchParams.get("channel") || "all").toLowerCase();
   if (!ALLOWED_CHANNELS.includes(channel)) {
     return json({ ok: false, error: "invalid_channel", allowed: ALLOWED_CHANNELS }, { status: 400 });
   }
+  if (channel === "threads-job") return await handleThreadsJobRun(url, env);
 
   try {
     return json(await runSnsDailyPostTask(env, { channel }), { status: 200 });
@@ -53,9 +71,29 @@ async function handleStatus(env) {
       .select({ keyHash: 1, status: 1, responseRef: 1, updatedAt: 1, createdAt: 1 })
       .lean(),
   );
+  const jobDocs = await withMongoRetry(env, () =>
+    IdempotencyKey.find({ userId: null, endpoint: THREADS_JOB_ENDPOINT })
+      .sort({ keyHash: -1 })
+      .limit(THREADS_JOB_STATUS_LIMIT)
+      .select({ keyHash: 1, status: 1, responseRef: 1, updatedAt: 1, createdAt: 1 })
+      .lean(),
+  );
   return json({
     ok: true,
     endpoint: SNS_POST_ENDPOINT,
+    threadsJobs: jobDocs.map((doc) => {
+      const keyHash = String(doc.keyHash || "");
+      const [dateKey, , type] = keyHash.split(":");
+      return {
+        keyHash,
+        dateKey,
+        type: type || null,
+        status: doc.status,
+        responseRef: doc.responseRef ?? null,
+        createdAt: doc.createdAt ?? null,
+        updatedAt: doc.updatedAt ?? null,
+      };
+    }),
     items: docs.map((doc) => {
       const keyHash = String(doc.keyHash || "");
       const [dateKey, suffix] = keyHash.split(":");

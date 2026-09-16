@@ -281,7 +281,12 @@ SNS_DAILY_POST_ENABLED = "1"
 # 🔴 이 스위치만으로는 발행되지 않는다 — THREADS_ACCESS_TOKEN 시크릿이 함께 있어야 한다.
 #    (스테이징에는 그 시크릿을 넣지 않아 값이 같아도 발행이 일어나지 않는다.)
 # 🔴 코드 기본값은 꺼짐이며 이 줄이 프로덕션의 실제 값이다 — 끄려면 "0" 으로 바꾼다.
-SNS_THREADS_POST_ENABLED = "1"
+# 2026-09-17: 값 "split" = Threads 유형별 분할 발행(worker/lib/threads-daily-jobs.js).
+#    07:00 체인의 Threads 채널은 threads_split_active 로 빠지고, 매 10분 크론이 사주 08:30·자미두수 12:00·
+#    베다 16:00(Asia/Seoul, 코드 기본값 — THREADS_*_TIME 으로 덮어쓸 수 있다)부터 60분 창 안에서 1건씩 발행한다.
+#    텔레그램은 무관하다. 🔴 원복은 "1"(07:00 체인). 별도 스위치 변수를 두지 않는 이유는
+#    워커 텍스트 바인딩 예산(128, 여유 2 유지)이 이미 꽉 차 있어서다 — scripts/lib/worker-binding-budget.mjs.
+SNS_THREADS_POST_ENABLED = "split"
 # Threads 문안을 AI 가 쓸지(worker/lib/threads-ai-writer.js). 2026-09-01 추가.
 # 🔴 십성·십이운성·신살·좋은 글자는 **언제나 정본 표가 계산한다** — 이 스위치는 그 사실을
 #    문장으로 옮기는 일만 모델에게 맡길지를 정한다. 꺼도 발행은 결정론 문안으로 그대로 나간다.

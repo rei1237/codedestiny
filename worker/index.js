@@ -1929,6 +1929,12 @@ export default {
       ctx.waitUntil(runSnsDailyPostRecovery(env).catch((error) => {
         console.error("[sns-daily-post-recovery] task failed:", error?.message || error);
       }));
+      // Threads 유형별 일일 발행(사주 08:30·자미두수 12:00·베다 16:00 KST). SNS_THREADS_POST_ENABLED 가
+      // "split" 이 아니거나 발행 창 밖이면 DB·네트워크 0회로 즉시 반환한다. 창 안의 틱이 곧 재시도다.
+      const { runThreadsDailyJobs } = await import("./lib/threads-daily-jobs.js");
+      ctx.waitUntil(runThreadsDailyJobs(env).catch((error) => {
+        console.error("[threads-daily-jobs] task failed:", error?.message || error);
+      }));
       // 🔴 마스터 인연의 서의 **버려진 세션 백스톱**. 20장 생성은 브라우저가 5~8왕복으로 미는데,
       // 결제 직후 PG 리다이렉트로 돌아온 탭이 잠들거나 닫히면 세션이 미완인 채 굳는다 — 돈은
       // 이미 나갔다. 결과 화면이 이어쓰기 주체가 된 뒤에도 "아무도 안 보는 세션"은 남으므로
