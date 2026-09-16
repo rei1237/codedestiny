@@ -768,6 +768,7 @@ jobs:
         run: |
           npm run verify:payment-service-boundary
           npm run verify:payment-choice-single-instance
+          npm run verify:payment-p0-inventory
           npm run verify:pass-check-retry
           npm run verify:payment-policy-md
           npm run verify:market-policy-registry
