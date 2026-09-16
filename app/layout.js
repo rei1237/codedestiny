@@ -5,7 +5,6 @@ import "../styles/mobile-bottom-nav.css";
 import "../styles/yehwa-motifs-nav.css";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
-import { Suspense } from "react";
 import Script from "next/script";
 import NavigationProvider from "./providers/NavigationProvider";
 import UserSessionProvider from "./providers/UserSessionProvider";
@@ -288,16 +287,18 @@ export default function RootLayout({ children }) {
         />
         <PaymentProcessingProvider>
           <UnlockProvider>
-            <Suspense>
-              <UserSessionProvider>
-                <NavigationProvider>
-                  <RuntimeClientGuards />
-                  <ShellHomeHardNavGuard />
-                  <ToastProvider />
-                  <AppChrome>{children}</AppChrome>
-                </NavigationProvider>
-              </UserSessionProvider>
-            </Suspense>
+            {/* 🔴 여기에 <Suspense> 를 두지 않는다. 프리렌더에서 멈추지 않아도 React 는 12.8KB 를 넘는
+                경계를 떼어 내보내므로, 본문 전체가 <div hidden id="S:0"> 로 나가 인라인 $RC 가 돌아야
+                보였다(JS 꺼지면 본문 0px, 노출 스로틀 최대 300ms). useSearchParams 가 필요한 라우트는
+                그 page 에서 자기 경계를 건다 — 빠뜨리면 next build 가 실패한다(fail-closed). */}
+            <UserSessionProvider>
+              <NavigationProvider>
+                <RuntimeClientGuards />
+                <ShellHomeHardNavGuard />
+                <ToastProvider />
+                <AppChrome>{children}</AppChrome>
+              </NavigationProvider>
+            </UserSessionProvider>
           </UnlockProvider>
         </PaymentProcessingProvider>
       </body>
