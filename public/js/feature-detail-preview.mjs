@@ -13,7 +13,9 @@ function ensureFeatureDetailStyles() {
     const style = existing || document.createElement('link');
     style.id = 'featureVisualDetailStyles';
     style.rel = 'stylesheet';
-    style.href = '/styles/feature-visual-detail.css';
+    // /styles/*.css 는 1년 immutable 로 나간다(_headers). 무버전 URL 이면 9/14 전 옛 시트가 굳어
+    // 새 상세창 버튼이 회색 네이티브 버튼으로 보였다. ?v= 는 sync:public 이 내용 해시로 다시 쓴다.
+    style.href = '/styles/feature-visual-detail.css?v=build-69a5aabc08ab';
     style.addEventListener('load', resolve, { once: true });
     style.addEventListener('error', () => {
       stylePromise = undefined;

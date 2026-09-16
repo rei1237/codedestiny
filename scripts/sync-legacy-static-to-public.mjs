@@ -451,6 +451,8 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   ["js", "app.js"],
   ["js", "core", "init.js"],
   ["js", "core", "bootstrapDestinyFlower.js"],
+  // 모듈 import 는 아니지만 /styles/*.css immutable 캐시를 타는 동적 스타일시트 URL 을 싣는다.
+  ["js", "feature-detail-preview.mjs"],
 ];
 
 // 로케일 랜딩 셸(/ja, /zh, /en)의 head 를 해당 언어로 현지화한다.
