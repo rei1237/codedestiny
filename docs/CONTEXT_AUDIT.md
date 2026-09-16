@@ -213,3 +213,7 @@ When a new stale reference or document conflict is found:
 
 ## 2026-09-08 사용자 전달 방식 변경 (역사 — 2026-09-12 절로 대체)
 PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트가 안전하게 머지한다. 스테이징에서 Pages·Worker 배포 SHA 및 읽기 전용 핵심 응답을 확인한다. 과거 사용자 수동 머지·머지 후 배포 미확인 조항보다 이 지시가 우선한다. 프로덕션 승격은 여전히 사용자의 명시적인 1회 승인 때만 진행한다. branch protection을 우회하지 않으며 실패·필수 승인 대기는 보고한다.
+
+## 2026-09-16 영냥이 통합 결정 변경
+
+사용자가 기존 SoulCat Worker/D1 하이브리드 유지 결정을 명시적으로 변경했다. CODE DESTINY 계정·프로필·MongoDB·기존 운세 엔진과 단건 PG를 공유하며 28개 전체 상품을 출시하는 범위다. 과거 `docs/handoff/yeongnyangi-integration.md`의 결정 대기/독립 S3·S4는 historical이다. 현재 근거와 미완료 항목은 `docs/handoff/yeongnyangi-mongodb-integration.md`로 이동한다. 스테이징 및 게이트 통과 후 운영 승격은 이번 요청에 포함되지만 실 유료 LLM·결제 테스트 승인은 포함되지 않는다.

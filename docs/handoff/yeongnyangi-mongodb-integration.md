@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-16
+next: 통합 화면/API와 결제 의도 검사를 검증하고 main CI를 통과시킨 뒤, 기존 D1 데이터와 라우트 소유권을 확인하여 스테이징 전환 및 최종 출시 게이트를 진행한다. 실제 과금 LLM/PG 테스트는 실행하지 않는다.
+---
+
 # 영냥이 CODE DESTINY 단일화
 
 ## 결정과 범위 (2026-09-15)
@@ -27,4 +33,36 @@
 
 ## 현재 상태
 
-분석 진행 중. 구현·테스트·배포 완료 아님. `docs/handoff/yeongnyangi-integration.md`의 S3/S4 독립 SoulCat 운영 배포 계획은 이번 결정으로 대체한다.
+**진행 중이며 출시 완료가 아니다.**
+
+- main 전달: `319fba9491b4091266522329cdff461f5690bf34`까지 push. 계산 계약·Mongo 저장소·checkout 자산 포함. 당시 새 API는 아직 Worker 라우터에 연결 전이었다.
+- 작업 워크트리: 출생시간 미상 보존 `a7753041d`, 공유 명리 공식 재사용 `83e47a8c0`, API·주문 결합 `4df462450`까지 커밋. 통합 UI 검증 후 main으로 전달 예정.
+- 계산: 기존 사주 화면 공식 추출 + 공유 `lib/saju/natal-power.js` 재사용, Worker 사주/자미/숙요/베다/서양/타로 엔진 사용. 28개 상품의 모든 챕터 요청에서 해당 체계 계산 근거만 전달하는 fixture 검증 통과. 실 LLM 품질 검증은 아님.
+- 저장소: 기존 User/ProfileCard/Payment + `yeongnyangi_requests`. 결제 소비와 상담 활성화는 Mongo 트랜잭션. userId ObjectId, requestId SHA256 문자열. PG 주문 requestId는 `yn-<상담 id>`. 챕터 lease·완료 CAS로 중복 저장 차단.
+- 새로운 UI는 CD 내부 `/yeongnyangi/`, `/fortune/`, `/result/`, `/library/`, `/room/` 하위 경로로 작성 중. 기존 assets를 재사용하며 실제 Cloudflare 라우트 소유권 전환은 아직 하지 않음.
+- checkout은 기존 단건 게이트를 사용하며 서버 준비 상태, 상담 ID, 결제 증빙을 확인. 서버 주문 생성도 상담 소유자·상품·금액·기존 결제를 검사하고 브라우저 임의 키를 상담 키로 정규화.
+- 프로필 시간 미상은 null + timeUnknown으로 저장/조회. 기존 자정은 00:00 유지. 부족한 출생지역/시간은 상담 스냅샷에 보완 가능.
+- 검증: Mongo 저장소 mock 11개, 영냥이 주문 의도 7개 + 기존 주문 테스트 31개, 프로필 회귀 18개 통과. 브라우저 fixture에서 프로필 생성→모의 PG→활성화→생성 실패/재시도→5챕터 완료→새로고침 통과, 28개 상품 표시/가격 선택 확인. 실 PG/실 LLM/실 Mongo E2E 증거가 아니다.
+- main CI `34986324562`는 명리 표 사본 미분류로 실패. 새 추출본에서 9개 공유 공식/표를 기존 natal-power import로 대체했고 명리 표 검사 29개와 엔진 계약 35개가 로컬 통과했다.
+- check:fast는 결제 게이트 내 Jest 3762개 중 Windows CRLF 정적 정규식 1개로 중단. 해당 변경 파일을 LF로 유지한 후 실패 스위트 39개 통과. 전체 게이트 성공으로 보고하지 않는다.
+- 실제 유료 호출/결제/환불, 운영 DB 변경, 프로덕션 승격 없음.
+
+### 출시까지 남은 일
+
+1. 새 변경 targeted 검증, CI 오류 해결 및 main 전달. 사용자 marketing 변경은 별개이며 보존한다.
+2. 실제 API mock 통합·인증 만료·모바일 callback·취소/실패 등 범위 보강. 브라우저 스크립트는 `scripts/verify-yeongnyangi-browser.mjs`이며 loopback에서만 실행, 모든 API/외부 네트워크를 fixture로 막는다.
+3. Mongo 인덱스 추가 배포/연결 증명, 탈퇴 정리 검증, 기존 D1의 결제·결과 데이터 보존/이관 및 이전 deep link/무료 서비스 경로 정리.
+4. Cloudflare의 기존 SoulCat route 소유권을 실제 확인하고 스테이징에 CODE DESTINY UI/API로 전환. 구 Worker/D1을 운영 의존성으로 남기지 않되 데이터 삭제는 하지 않는다.
+5. 스테이징 mock smoke, 운영 환경에 mock/test flag가 없고 28개 상품이 준비됐는지 확인. 현재 staging은 Gemini 키를 의도적으로 뺀 환경이므로 상품 준비 상태를 실 운영과 혼동하지 않는다.
+6. 모든 readiness gate 통과 이후만 production 승격, Pages/Worker SHA와 비과금 smoke 확인. 이전 배포 ID 보존 및 실패 시 복구.
+ `docs/handoff/yeongnyangi-integration.md`의 S3/S4 독립 SoulCat 운영 배포 계획은 이번 결정으로 대체한다.
+
+### 2026-09-16 추가 확인
+
+- 사용자 명시 지시: 영냥이 메인 디자인은 이전 디자인 그대로 유지한다. 원본 FortuneHome/CatMotion/카드/추천/하단 메뉴 및 글꼴·자산을 CD 내부로 복원했다. `.ynOriginal` 범위의 CSS로 다른 화면에 영향을 주지 않는다. 새 크림색 메인 제안은 폐기했다. 결제 화면 개선은 유지한다.
+- 기존 메인의 생선·추천 링크는 새 상담 화면의 fish/topic 선택으로 이어진다. 별도 세션을 만들지 않고 authFetch와 logoutWithServer를 사용한다. 기존 무료/프롤로그 경로의 실제 콘텐츠 복원은 아직 남아 있다.
+- API route mock 18개 및 탈퇴 회귀 27개 통과. 복원한 메인에서 쓰다듬기, 28개 상품 표시, 모의 결제→실패→재시도→결과 복원 fixture PASS. 타입 검사와 신규 UI lint 오류 없음.
+- 첫 check:fast 재검사는 paid-gate 88개와 npm test가 통과한 후 sitemap 날짜 변경에서 중단. sitemap 재생성과 drift 검사는 통과했으며 전체 게이트 재실행 중이다.
+- Cloudflare 실제 읽기 확인: 독립 SoulCat Worker는 staging만 존재. staging 5개 세부 route는 아직 soulcat-service-staging 소유. production `/api/*`는 code-destiny-web 소유이고 SoulCat production Worker는 없음.
+- D1 읽기 확인: soulcat-fortune는 사용자/프로필/주문/결과 0건. soulcat-fortune-staging는 사용자 5, 프로필 11, 주문/결제/운명서 각 9, 챕터 333, 공유 2, 멸치 원장 1건. 고객 식별정보나 본문을 로그에 출력하지 않았다. 전환 전 보존 이관이 필요하며 삭제/쓰기/새 유료 호출은 수행하지 않았다.
+- Cloudflare 환경 파일 토큰은 API에서 401. 기존 Wrangler OAuth 세션으로 읽기 인벤토리를 정상 확인했다. 토큰 값은 출력하거나 문서에 기록하지 않았다.

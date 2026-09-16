@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-15
-next: **결정 대기 — 영냥이 MongoDB 단일화(사용자 재결정 요청 2026-09-15).** 사용자가 "애초 목적과 달라져 따로 서버를 쓸 이유가 없다"며 결제 포함 Mongo 하나로 통합 가능 여부를 물었다 → 가능, 추천은 B안(CD 코드베이스 흡수). 아래 "남은 것" 의 "Mongo 단일화 평가". 다음 세션은 사용자가 A/B 를 고르면 M0 계획 문서부터(구현 전), 확정되면 "확정 사항" 하이브리드 조항을 CONTEXT_AUDIT 에 폐기 기록. 이 결정 전에는 S2 재생성·S3·S4 를 진행하지 않는다. S2 코드 수정은 끝남(SoulCat `45b1fb4`·`1f56d52` push, preview `8cf85bb5`, 스테이징 워커는 여전히 `57388f56` LLM OFF — 새 코드 미반영). 🔴 LLM OFF 상태에서 스테이징 보관함 "구매한 운명서 생성 이어가기" 를 누르면 `0e487ad1` 이 mock 본문으로 완료된다(`worker-entry.ts:59` dead 가드) — 누르지 말 것. 이전 기록 — 5단계 S2 재개 — 1차 시도(2026-09-15)는 결제·복귀·주문 PAID 까지 성공, 책 생성은 v4 고등어 챕터가 Gemini 출력 상한 4,096 에 잘려 `INCOMPLETE_PROVIDER_RESPONSE` 로 실패. 스테이징 실 LLM 은 꺼둠(워커 `57388f56`). 다음 세션은 SoulCat 출력 상한 수정 → 같은 결제 건 `retryBook` 재생성(새 결제 불요, 과금 LLM 재호출은 새 1회 승인). 절차는 "남은 것" 의 "S2 재개 절차". 이전 기록 — 5단계 S2 — 스테이징 실 LLM e2e 1회(A2 승인 필요: 과금 LLM 1회 + 스테이징 1,000원 테스트결제·취소). 절차는 아래 "5단계" 절 S2. S1 완료(2026-09-15): SoulCat `09f7954`(`codex/soulcat-staging-login-payment` == `origin/main`), 스테이징 워커 Version `09a0e59b`·Pages `01ace73d`(activation 없음, 28상품 전부 `available:false` 실측) — 2·3·4단계 코드도 스테이징에 실렸다. S3 전에 `wrangler.worker.jsonc` production D1 `database_id` 가 비어 있어 `deploy-production.mjs` 는 `Production isolation failed` 로 거부한다(의도). 이전 기록 — 5단계 운영 노출(RED, 1회 승인 필요 — SoulCat 워크트리 `C:\Users\user\Desktop\SoulCatProject-staging-login-payment`, `codex/soulcat-staging-login-payment` == `origin/main` `9d9247c`, 스테이징 워커는 아직 `498742e` — 2·3·4단계는 다음 `deploy-staging.mjs` 때 실린다). 4단계 탈퇴 연동은 완료(CD `c72551999`, SoulCat `9d9247c`). 5단계 체크리스트에 3단계 robots Sitemap 한 줄과 4단계 프로덕션 `SOULCAT_SERVICE` 바인딩이 묶여 있다. 보류: (a) 스테이징 e2e 1회와 2단계 실쿠키 프리필 확인은 사용자 요청 시에만; (b) 로컬 SoulCat main 워크트리(`C:\Users\user\Desktop\SoulCatProject`)는 그 세션이 정리 후 `git pull --ff-only`.
+status: done
+updated: 2026-09-16
+next: MongoDB 단일화와 28개 전체 상품 출시를 사용자가 확정했다. 현재 작업 정본은 docs/handoff/yeongnyangi-mongodb-integration.md. 아래 하이브리드 운영 유지 및 S3/S4 독립 배포 계획은 폐기된 과거 기록이다.
 ---
 
 # 영냥이(SoulCat) 편입 — 기존 MID·기존 계정으로 전 서비스 정상 동작시키기
