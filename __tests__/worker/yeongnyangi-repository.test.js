@@ -1,7 +1,7 @@
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
-let requests=[],payments=[],failWrite=false,tail=Promise.resolve();
+let requests=[],payments=[],failWrite=false,tail=Promise.resolve(),activeOperations=0;
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function matches(row,query) {
   return Object.entries(query).every(([key,want])=>{
@@ -50,15 +50,19 @@ function model(source,kind) {
 }
 const RequestModel=model(()=>requests,'request'), Payment=model(()=>payments,'payment');
 const txOptions={maxCommitTimeMS:12000};
-const startSession=async()=>({endSession:async()=>{},withTransaction:async(callback,options)=>{
+const startSession=async()=>{
+  expect(activeOperations).toBeGreaterThan(0);
+  return {endSession:async()=>{expect(activeOperations).toBeGreaterThan(0);},withTransaction:async(callback,options)=>{
   expect(options).toEqual(txOptions);
   const previous=tail;let release;tail=new Promise(r=>{release=r;});await previous;
   const backup=JSON.parse(JSON.stringify({requests,payments}));
   try{return await callback();}catch(error){requests=backup.requests;payments=backup.payments;throw error;}finally{release();}
-}});
+}};};
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   mongoose:{...mongoose,models:{YeongnyangiRequest:RequestModel},startSession},
-  connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn(),mongoTransactionOptions:()=>txOptions,
+  connectDb:async()=>{},withMongoRetry:async(_env,fn)=>{
+    activeOperations++;try{return await fn();}finally{activeOperations--;}
+  },mongoTransactionOptions:()=>txOptions,
   isTransientMongoError:()=>false,
 }));
 jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment}));

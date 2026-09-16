@@ -1,4 +1,4 @@
-import { connectDb, mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
+import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
 import { Payment } from '../lib/models.js';
 import { createHttpError } from '../lib/http.js';
 
@@ -14,14 +14,12 @@ export function ownerId(id) {
 }
 
 export async function readRequest(env, userId, requestId) {
-  await connectDb(env);
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOne({_id:requestId,userId:ownerId(userId)}).lean());
   if (!row) throw failure(404,'FORTUNE_NOT_FOUND');
   return row;
 }
 
 export async function createRequest(env, userId, id, values) {
-  await connectDb(env);
   const filter = {_id:id,userId:ownerId(userId)};
   // Deterministic _id uses Mongo's built-in unique index, including before optional listing indexes exist.
   let row;
@@ -38,28 +36,31 @@ export async function createRequest(env, userId, id, values) {
 }
 
 export async function attachPayment(env, userId, requestId, expectedCharge) {
-  await connectDb(env);
   const owner = ownerId(userId);
-  const session = await mongoose.startSession();
-  try {
-    let result;
-    await session.withTransaction(async () => {
-      const request = await YeongnyangiRequest.findOne({_id:requestId,userId:owner}).session(session).lean();
-      if (!request) throw failure(404,'FORTUNE_NOT_FOUND');
-      if (request.paymentId) { result=request; return; }
-      const proof = await Payment.findOneAndUpdate({
-        userId:owner,requestId:`yn-${requestId}`,featureKey:request.featureKey,paymentType:'digital_content',purchaseType:{$ne:'GIFT'},
-        paymentAmount:expectedCharge,status:{$in:paidStatuses},
-        $or:[{'metadata.consumedBy':{$exists:false}},{'metadata.consumedBy':null},{'metadata.consumedBy':''}],
-      }, {$set:{'metadata.consumedBy':requestId,'metadata.consumedScope':'yeongnyangi-integrated','metadata.consumedAt':new Date()}},
-      {new:true,session,sort:{createdAt:1}}).lean();
-      if (!proof) throw failure(402,'PAYMENT_REQUIRED');
-      result = await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,paymentId:null},
-        {$set:{paymentId:proof._id,state:'PAID'}},{new:true,session}).lean();
-      if (!result) throw failure(409,'PAYMENT_ATTACH_CONFLICT');
-    }, mongoTransactionOptions());
-    return result;
-  } finally { await session.endSession(); }
+  // Register the whole atomic operation with the shared connection guard. Otherwise
+  // another request can detach its connection while this session is still active.
+  return withMongoRetry(env, async () => {
+    const session = await mongoose.startSession();
+    try {
+      let result;
+      await session.withTransaction(async () => {
+        const request = await YeongnyangiRequest.findOne({_id:requestId,userId:owner}).session(session).lean();
+        if (!request) throw failure(404,'FORTUNE_NOT_FOUND');
+        if (request.paymentId) { result=request; return; }
+        const proof = await Payment.findOneAndUpdate({
+          userId:owner,requestId:`yn-${requestId}`,featureKey:request.featureKey,paymentType:'digital_content',purchaseType:{$ne:'GIFT'},
+          paymentAmount:expectedCharge,status:{$in:paidStatuses},
+          $or:[{'metadata.consumedBy':{$exists:false}},{'metadata.consumedBy':null},{'metadata.consumedBy':''}],
+        }, {$set:{'metadata.consumedBy':requestId,'metadata.consumedScope':'yeongnyangi-integrated','metadata.consumedAt':new Date()}},
+        {new:true,session,sort:{createdAt:1}}).lean();
+        if (!proof) throw failure(402,'PAYMENT_REQUIRED');
+        result = await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,paymentId:null},
+          {$set:{paymentId:proof._id,state:'PAID'}},{new:true,session}).lean();
+        if (!result) throw failure(409,'PAYMENT_ATTACH_CONFLICT');
+      }, mongoTransactionOptions());
+      return result;
+    } finally { await session.endSession(); }
+  });
 }
 
 export async function claimChapter(env, userId, requestId) {
