@@ -17917,15 +17917,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
-            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,28%,330px);gap:16px;align-items:center;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
+            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,28%,330px);gap:16px;align-items:center;background:linear-gradient(rgba(2,6,23,.52),rgba(2,6,23,.52)),radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
             '.sy-compat-moon-hero::before{content:"";position:absolute;right:-24px;top:-32px;width:142px;height:142px;border-radius:999px;background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.78),rgba(226,232,255,.24) 44%,rgba(167,139,250,.08) 70%,transparent 73%);opacity:.76;pointer-events:none}',
             '.sy-compat-moon-copy{position:relative;min-width:0}',
-            '.sy-compat-moon-kicker{font-size:.7rem;text-transform:uppercase;letter-spacing:2.5px;color:rgba(255,255,255,.68);margin-bottom:4px;font-weight:900}',
+            '.sy-compat-moon-kicker{font-size:.7rem;text-transform:uppercase;letter-spacing:2.5px;color:rgba(255,255,255,.92);margin-bottom:4px;font-weight:900}',
             '.sy-compat-moon-title{font-size:1.34rem;font-weight:900;color:#fff;margin-bottom:4px;line-height:1.24;text-shadow:0 0 18px rgba(255,255,255,.12)}',
-            '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.82);margin-bottom:10px}',
+            '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.9);margin-bottom:10px}',
             '.sy-compat-badges{display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem}',
             '.sy-compat-badges span{background:rgba(2,6,23,.62);border:1px solid rgba(255,255,255,.28);padding:4px 10px;border-radius:999px;color:#eef2ff;line-height:1.45}',
-            '.sy-compat-fate-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:150px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+            '.sy-compat-fate-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:150px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.42);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
             '.sy-compat-fate-svg{width:100%;height:auto;max-width:380px;display:block;margin:0 auto}',
             '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
             '.sy-compat-metric-card{background:radial-gradient(circle at 82% 8%,rgba(248,250,252,.12),transparent 30%),rgba(15,23,42,.62);border-radius:14px;padding:13px 10px;text-align:center;border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
@@ -18272,8 +18272,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.45)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
                     <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.45)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
                     <radialGradient id="fgCenterGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(239,68,68,0.22)"/><stop offset="100%" stop-color="rgba(239,68,68,0)"/></radialGradient>
-                    <linearGradient id="fgOrbMe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(254,243,199,0.3)"/><stop offset="100%" stop-color="rgba(251,191,36,0.18)"/></linearGradient>
-                    <linearGradient id="fgOrbPartner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(252,231,243,0.3)"/><stop offset="100%" stop-color="rgba(244,114,182,0.18)"/></linearGradient>
+                    <linearGradient id="fgOrbMe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(43,28,4,0.88)"/><stop offset="100%" stop-color="rgba(20,14,3,0.92)"/></linearGradient>
+                    <linearGradient id="fgOrbPartner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(46,10,28,0.88)"/><stop offset="100%" stop-color="rgba(22,6,14,0.92)"/></linearGradient>
                     <filter id="fgStarGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                     <filter id="fgThreadGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
