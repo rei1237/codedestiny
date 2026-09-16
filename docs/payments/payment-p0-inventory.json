@@ -1,5 +1,5 @@
 {
-  "base": "3d055ac2392901ee721ea0c8623076111ceb7b1c",
+  "base": "0a1e0763c78e230fd26cf76413b08334b3bda38b",
   "products": [
     {
       "productId": "vedic-ai-consultation",
@@ -2612,6 +2612,7 @@
       "passExcluded": false,
       "directOnly": false,
       "sources": [
+        "worker/lib/master-love-codex-paid-bootstrap.js",
         "app/master-love-codex/page.tsx",
         "index.html",
         "js/core/service-registry.js",
@@ -2661,6 +2662,7 @@
       "passExcluded": false,
       "directOnly": false,
       "sources": [
+        "worker/lib/master-love-codex-paid-bootstrap.js",
         "index.html",
         "js/core/service-registry.js",
         "lib/marketing/feature-marketing-copy.generated.json",
@@ -3819,6 +3821,27 @@
   ],
   "sources": [
     {
+      "file": "worker/lib/master-love-codex-paid-bootstrap.js",
+      "sha256": "cb4bfe59a3d78a974dfb2c7eb0af0c82844a6cd6e48e2a183b406d78a045a520",
+      "route": null,
+      "frontendType": null,
+      "features": [
+        {
+          "key": "master-love-codex",
+          "line": 11
+        },
+        {
+          "key": "master-love-codex-compat",
+          "line": 11
+        },
+        {
+          "key": "master-love-codex",
+          "line": 33
+        }
+      ],
+      "apiPaths": []
+    },
+    {
       "file": ".github/workflows/ai-locale-gate.yml",
       "sha256": "a4a7beb6e2c2007d92df2b1a6e65e018d4396c9bf7d71950ddb26e5ca474f764",
       "route": null,
@@ -4841,7 +4864,7 @@
     },
     {
       "file": "app/checkout/CheckoutClient.tsx",
-      "sha256": "dc96c9d6ced915ebb844e72e8bbf962e9b9de7683d851d9c1d8f13e2f478e293",
+      "sha256": "7576d513ad5460705475e57191d1f290ba6052a57dfdf9e9c05c3a132f926f82",
       "route": null,
       "frontendType": "React",
       "features": [],
@@ -5113,7 +5136,7 @@
     },
     {
       "file": "app/components/SeoLandingTemplate.jsx",
-      "sha256": "1e8ed636a364ae7aa7fcf0d149bbc8ebe3d77ddc3674f6d52b492ac1938992ac",
+      "sha256": "7d3ff2f968f5ec1e4a78cddf450200addad978dbf5be03dcfbc00be917f9637f",
       "route": null,
       "frontendType": "React",
       "features": [],
@@ -6363,7 +6386,7 @@
     },
     {
       "file": "app/master-love-codex/result/MasterLoveCodexResultClient.tsx",
-      "sha256": "25b95924c2544170b910b8e91129b495e8286f988f43485c31e5d516d616e136",
+      "sha256": "2edd03189cc7c1e36a1ad1a0ca396ea8a1767cbb09648820b4d5f6e8dc033507",
       "route": null,
       "frontendType": "React",
       "features": [],
@@ -6395,20 +6418,15 @@
     },
     {
       "file": "app/music/MusicPlayerExample.tsx",
-      "sha256": "805bad604bacb008c1b140521bf1463fd8b16bef5b13e88c4cf7aa5f499a11fc",
+      "sha256": "1cfbb761b8a967d0ac3a72865eb7e73fbfb579128988f0d43913907f871b2ad5",
       "route": null,
       "frontendType": "React",
       "features": [],
-      "apiPaths": [
-        {
-          "path": "/api/music/access",
-          "line": 968
-        }
-      ]
+      "apiPaths": []
     },
     {
-      "file": "app/music/MusicPlaylistPanel.tsx",
-      "sha256": "9190cbd3397aa2b2b54a4f1772f015874601a47ee3f8a34ceb838b5d80db4f79",
+      "file": "app/music/_components/NowPlaying.tsx",
+      "sha256": "db85ec4f3ba53c7f14d4ca8519715820ca1fd3ddd304c9011568f90fed1d44d7",
       "route": null,
       "frontendType": "React",
       "features": [],
@@ -6431,8 +6449,29 @@
       "apiPaths": []
     },
     {
+      "file": "app/music/_hooks/useMusicAccess.ts",
+      "sha256": "2efb7fad15e6a6075531badf5775b0caf55f3ac10fd33e55110b7ce5f9e6542e",
+      "route": null,
+      "frontendType": "React",
+      "features": [],
+      "apiPaths": [
+        {
+          "path": "/api/music/access",
+          "line": 146
+        }
+      ]
+    },
+    {
       "file": "app/music/_hooks/useMusicPlayer.ts",
-      "sha256": "a92686e7a0da5a0ecb7acb42268fe685af5645677d5f275b51bb07bfdf20a996",
+      "sha256": "03d912a414ea37eaf24a5714045f83cc07cd732d27c5553ddc2edadfc6074e7f",
+      "route": null,
+      "frontendType": "React",
+      "features": [],
+      "apiPaths": []
+    },
+    {
+      "file": "app/music/_lib/musicCopy.ts",
+      "sha256": "cce9f798d9d4a81ef583a46287d9759ba4b9acd65d8111072c216f66b9f228ac",
       "route": null,
       "frontendType": "React",
       "features": [],
@@ -7530,6 +7569,14 @@
       "apiPaths": []
     },
     {
+      "file": "app/yeongnyangi/1000-won-fortune/page.tsx",
+      "sha256": "90210ce4e17c1ff64cf2ba821c5ae24c2484ded2269ac278d46fdb06c96bed38",
+      "route": "/yeongnyangi/1000-won-fortune/",
+      "frontendType": "React",
+      "features": [],
+      "apiPaths": []
+    },
+    {
       "file": "app/yeongnyangi/_components/Consultation.tsx",
       "sha256": "59bf83dafac43c726d031a0299dd70c87a19810cb093d07cbf3c506ec03bde81",
       "route": null,
@@ -7579,7 +7626,7 @@
     },
     {
       "file": "app/yeongnyangi/_original/FortuneHome.tsx",
-      "sha256": "978fabb082d900d6a7349224d385256f78a76cd71e066ecbe0583b19f0f3917c",
+      "sha256": "7c5081005e7ac53e416b663165128f56978b5966fba1d1a0b437664d82c92d7b",
       "route": null,
       "frontendType": "React",
       "features": [],
@@ -7824,7 +7871,7 @@
     },
     {
       "file": "config/sitemap-lastmod.json",
-      "sha256": "051e098d5b7aef277b7f3abb7413e271fed2cf70d2909f0fe1a3232d8e3e218b",
+      "sha256": "6c28614aa0ee18261854a140839129a5527ddf9c3ead807991596631f0cfac59",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -8599,7 +8646,7 @@
     },
     {
       "file": "index.html",
-      "sha256": "87fb44f3b40f537a316929795a9886d87d9a8c5658ce66377436de32e657a706",
+      "sha256": "3d799931b65c8161b6c46e23d115e8422427b216c9cf355e264c2b67e60738ea",
       "route": "/",
       "frontendType": "static",
       "features": [
@@ -9954,7 +10001,7 @@
     },
     {
       "file": "js/core/index-inline-runtime.js",
-      "sha256": "78cd2c50e44720afc6e8d0d20ae220f443a1044b1a5ddd99201386ca42a86c31",
+      "sha256": "8a0b0daedade407b4dc0f111fc0e7f86569d230a606c93aff432fa2d2c0f9648",
       "route": null,
       "frontendType": null,
       "features": [
@@ -10426,7 +10473,7 @@
     },
     {
       "file": "js/core/uiBindings.js",
-      "sha256": "43d9a59584e8e5ab4a0be01873eaba961db7004b89b283ee7d87d264fe842a08",
+      "sha256": "f2adbbe3b4d891210dd8900a55e1f51d0ab91e0d27a5c72946bd1719eb823e59",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -10434,7 +10481,7 @@
     },
     {
       "file": "js/destiny-profile.js",
-      "sha256": "6a8a27d08528e92bc2fa36662495c346caefd8ff86c32cb95276aa9588c5ff6c",
+      "sha256": "55e81d32ab4c11c1f0a54d23a2d07743a36c52f2272e750b291d2c46fbd73509",
       "route": null,
       "frontendType": null,
       "features": [
@@ -10444,127 +10491,127 @@
         },
         {
           "key": "tarot-year-fortune",
-          "line": 4873
-        },
-        {
-          "key": "tarot-love-relationship",
-          "line": 4874
-        },
-        {
-          "key": "tarot-reunion-reading",
-          "line": 4875
-        },
-        {
-          "key": "openJuyukModal",
-          "line": 4876
-        },
-        {
-          "key": "openKemetModal",
-          "line": 4877
-        },
-        {
-          "key": "animal-totem-basic",
-          "line": 4878
-        },
-        {
-          "key": "animal-totem-deep",
-          "line": 4879
-        },
-        {
-          "key": "compat-astro-synastry",
-          "line": 4880
-        },
-        {
-          "key": "compat-astro-direct-synastry",
-          "line": 4881
-        },
-        {
-          "key": "compat-ziwei-compatibility",
-          "line": 4882
-        },
-        {
-          "key": "compat-saju-compatibility",
-          "line": 4883
-        },
-        {
-          "key": "compat-sukuyo-compatibility",
-          "line": 4884
-        },
-        {
-          "key": "compat-sukuyo-compatibility",
-          "line": 4885
-        },
-        {
-          "key": "profile-card-manage",
-          "line": 4886
-        },
-        {
-          "key": "profile-card-manage",
           "line": 4887
         },
         {
-          "key": "tarot-year-fortune",
-          "line": 4896
-        },
-        {
           "key": "tarot-love-relationship",
-          "line": 4897
+          "line": 4888
         },
         {
           "key": "tarot-reunion-reading",
-          "line": 4898
+          "line": 4889
         },
         {
           "key": "openJuyukModal",
-          "line": 4899
+          "line": 4890
         },
         {
           "key": "openKemetModal",
-          "line": 4900
-        },
-        {
-          "key": "animal-totem-deep",
-          "line": 4901
+          "line": 4891
         },
         {
           "key": "animal-totem-basic",
-          "line": 4902
+          "line": 4892
+        },
+        {
+          "key": "animal-totem-deep",
+          "line": 4893
         },
         {
           "key": "compat-astro-synastry",
-          "line": 4903
+          "line": 4894
         },
         {
           "key": "compat-astro-direct-synastry",
-          "line": 4904
+          "line": 4895
         },
         {
           "key": "compat-ziwei-compatibility",
-          "line": 4905
+          "line": 4896
         },
         {
           "key": "compat-saju-compatibility",
-          "line": 4906
+          "line": 4897
         },
         {
           "key": "compat-sukuyo-compatibility",
-          "line": 4907
+          "line": 4898
+        },
+        {
+          "key": "compat-sukuyo-compatibility",
+          "line": 4899
         },
         {
           "key": "profile-card-manage",
-          "line": 4908
+          "line": 4900
         },
         {
           "key": "profile-card-manage",
-          "line": 7709
+          "line": 4901
+        },
+        {
+          "key": "tarot-year-fortune",
+          "line": 4910
+        },
+        {
+          "key": "tarot-love-relationship",
+          "line": 4911
+        },
+        {
+          "key": "tarot-reunion-reading",
+          "line": 4912
         },
         {
           "key": "openJuyukModal",
-          "line": 11337
+          "line": 4913
         },
         {
           "key": "openKemetModal",
-          "line": 11341
+          "line": 4914
+        },
+        {
+          "key": "animal-totem-deep",
+          "line": 4915
+        },
+        {
+          "key": "animal-totem-basic",
+          "line": 4916
+        },
+        {
+          "key": "compat-astro-synastry",
+          "line": 4917
+        },
+        {
+          "key": "compat-astro-direct-synastry",
+          "line": 4918
+        },
+        {
+          "key": "compat-ziwei-compatibility",
+          "line": 4919
+        },
+        {
+          "key": "compat-saju-compatibility",
+          "line": 4920
+        },
+        {
+          "key": "compat-sukuyo-compatibility",
+          "line": 4921
+        },
+        {
+          "key": "profile-card-manage",
+          "line": 4922
+        },
+        {
+          "key": "profile-card-manage",
+          "line": 7723
+        },
+        {
+          "key": "openJuyukModal",
+          "line": 11351
+        },
+        {
+          "key": "openKemetModal",
+          "line": 11355
         }
       ],
       "apiPaths": [
@@ -10634,63 +10681,63 @@
         },
         {
           "path": "/api/payments/orders/",
-          "line": 4562
+          "line": 4576
         },
         {
           "path": "/api/payments/report-failure",
-          "line": 4597
+          "line": 4611
         },
         {
           "path": "/api/payments/subscription/confirm",
-          "line": 4639
+          "line": 4653
         },
         {
           "path": "/api/billing/confirm",
-          "line": 4639
+          "line": 4653
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 4671
+          "line": 4685
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 5050
+          "line": 5064
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 5126
+          "line": 5140
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 5155
+          "line": 5169
         },
         {
           "path": "/api/payments/config",
-          "line": 5552
+          "line": 5566
         },
         {
           "path": "/api/billing/confirm",
-          "line": 5742
+          "line": 5756
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 6260
+          "line": 6274
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 6563
+          "line": 6577
         },
         {
           "path": "/api/fortune/pig-coin/profile-subscription/status",
-          "line": 6791
+          "line": 6805
         },
         {
           "path": "/api/billing/balance",
-          "line": 12365
+          "line": 12379
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 13053
+          "line": 13067
         }
       ]
     },
@@ -11535,7 +11582,7 @@
     },
     {
       "file": "lib/llm-client.ts",
-      "sha256": "dff2ca79b66f282b451fb0c758fab219c894420c71b71350447ec3af7e88f238",
+      "sha256": "f83a02a2c569cd47f1921197d9d6aa48c74e8f2028a751c99eda6bda3a9fbb96",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -13350,7 +13397,7 @@
     },
     {
       "file": "lib/seo-landing-pages.js",
-      "sha256": "efe59b801fbf67ff7f0df23f40aed465a3a99557c3ef6154276703652ce8fbf6",
+      "sha256": "e720009a860b3cecbc52b1ea0999a65c04f00b4b70d8ed72f0859a0dede3f600",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -13635,7 +13682,7 @@
     },
     {
       "file": "public/_worker.js",
-      "sha256": "c840cef2d51e6249edcc4f3f34853a02bf92420a59b742bce04dc2f47edb0857",
+      "sha256": "f80d77068d12fe62827b880987b7d51d36c26b0bed2fcca3ce3bc8d99120a810",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -13769,7 +13816,7 @@
     },
     {
       "file": "public/en/index.html",
-      "sha256": "979d4bd5b32bde40f1f6e1f3ad76945ffc34f39ba9907de58473ab6662a30121",
+      "sha256": "b3bda431d328b510be7972340860f049b33f273ac8f5a93d9f81ecdb95f764a7",
       "route": "/en/",
       "frontendType": "static",
       "features": [
@@ -16550,7 +16597,7 @@
     },
     {
       "file": "public/index.html",
-      "sha256": "12f4c635fe539bea49819b3d12d08ad020ea9e90d8be52ac0343ee0f83e9f939",
+      "sha256": "9a6df867190af32f8ffd3c2a34e73da08fff9ebf35318ec7a468299cfc478c56",
       "route": "/",
       "frontendType": "static",
       "features": [
@@ -17748,7 +17795,7 @@
     },
     {
       "file": "public/ja/index.html",
-      "sha256": "8a1f1bb1beb0a54c200039640acca168beaa63c8163630959c9ce60de244f212",
+      "sha256": "bd9ad8197c316b5d895598cb733e58a724e7a29f8354cd57c28dea06d8e88213",
       "route": "/ja/",
       "frontendType": "static",
       "features": [
@@ -19103,7 +19150,7 @@
     },
     {
       "file": "public/js/core/index-inline-runtime.js",
-      "sha256": "78cd2c50e44720afc6e8d0d20ae220f443a1044b1a5ddd99201386ca42a86c31",
+      "sha256": "8a0b0daedade407b4dc0f111fc0e7f86569d230a606c93aff432fa2d2c0f9648",
       "route": null,
       "frontendType": null,
       "features": [
@@ -19575,7 +19622,7 @@
     },
     {
       "file": "public/js/core/uiBindings.js",
-      "sha256": "43d9a59584e8e5ab4a0be01873eaba961db7004b89b283ee7d87d264fe842a08",
+      "sha256": "f2adbbe3b4d891210dd8900a55e1f51d0ab91e0d27a5c72946bd1719eb823e59",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -19583,7 +19630,7 @@
     },
     {
       "file": "public/js/destiny-profile.js",
-      "sha256": "6a8a27d08528e92bc2fa36662495c346caefd8ff86c32cb95276aa9588c5ff6c",
+      "sha256": "55e81d32ab4c11c1f0a54d23a2d07743a36c52f2272e750b291d2c46fbd73509",
       "route": null,
       "frontendType": null,
       "features": [
@@ -19593,127 +19640,127 @@
         },
         {
           "key": "tarot-year-fortune",
-          "line": 4873
-        },
-        {
-          "key": "tarot-love-relationship",
-          "line": 4874
-        },
-        {
-          "key": "tarot-reunion-reading",
-          "line": 4875
-        },
-        {
-          "key": "openJuyukModal",
-          "line": 4876
-        },
-        {
-          "key": "openKemetModal",
-          "line": 4877
-        },
-        {
-          "key": "animal-totem-basic",
-          "line": 4878
-        },
-        {
-          "key": "animal-totem-deep",
-          "line": 4879
-        },
-        {
-          "key": "compat-astro-synastry",
-          "line": 4880
-        },
-        {
-          "key": "compat-astro-direct-synastry",
-          "line": 4881
-        },
-        {
-          "key": "compat-ziwei-compatibility",
-          "line": 4882
-        },
-        {
-          "key": "compat-saju-compatibility",
-          "line": 4883
-        },
-        {
-          "key": "compat-sukuyo-compatibility",
-          "line": 4884
-        },
-        {
-          "key": "compat-sukuyo-compatibility",
-          "line": 4885
-        },
-        {
-          "key": "profile-card-manage",
-          "line": 4886
-        },
-        {
-          "key": "profile-card-manage",
           "line": 4887
         },
         {
-          "key": "tarot-year-fortune",
-          "line": 4896
-        },
-        {
           "key": "tarot-love-relationship",
-          "line": 4897
+          "line": 4888
         },
         {
           "key": "tarot-reunion-reading",
-          "line": 4898
+          "line": 4889
         },
         {
           "key": "openJuyukModal",
-          "line": 4899
+          "line": 4890
         },
         {
           "key": "openKemetModal",
-          "line": 4900
-        },
-        {
-          "key": "animal-totem-deep",
-          "line": 4901
+          "line": 4891
         },
         {
           "key": "animal-totem-basic",
-          "line": 4902
+          "line": 4892
+        },
+        {
+          "key": "animal-totem-deep",
+          "line": 4893
         },
         {
           "key": "compat-astro-synastry",
-          "line": 4903
+          "line": 4894
         },
         {
           "key": "compat-astro-direct-synastry",
-          "line": 4904
+          "line": 4895
         },
         {
           "key": "compat-ziwei-compatibility",
-          "line": 4905
+          "line": 4896
         },
         {
           "key": "compat-saju-compatibility",
-          "line": 4906
+          "line": 4897
         },
         {
           "key": "compat-sukuyo-compatibility",
-          "line": 4907
+          "line": 4898
+        },
+        {
+          "key": "compat-sukuyo-compatibility",
+          "line": 4899
         },
         {
           "key": "profile-card-manage",
-          "line": 4908
+          "line": 4900
         },
         {
           "key": "profile-card-manage",
-          "line": 7709
+          "line": 4901
+        },
+        {
+          "key": "tarot-year-fortune",
+          "line": 4910
+        },
+        {
+          "key": "tarot-love-relationship",
+          "line": 4911
+        },
+        {
+          "key": "tarot-reunion-reading",
+          "line": 4912
         },
         {
           "key": "openJuyukModal",
-          "line": 11337
+          "line": 4913
         },
         {
           "key": "openKemetModal",
-          "line": 11341
+          "line": 4914
+        },
+        {
+          "key": "animal-totem-deep",
+          "line": 4915
+        },
+        {
+          "key": "animal-totem-basic",
+          "line": 4916
+        },
+        {
+          "key": "compat-astro-synastry",
+          "line": 4917
+        },
+        {
+          "key": "compat-astro-direct-synastry",
+          "line": 4918
+        },
+        {
+          "key": "compat-ziwei-compatibility",
+          "line": 4919
+        },
+        {
+          "key": "compat-saju-compatibility",
+          "line": 4920
+        },
+        {
+          "key": "compat-sukuyo-compatibility",
+          "line": 4921
+        },
+        {
+          "key": "profile-card-manage",
+          "line": 4922
+        },
+        {
+          "key": "profile-card-manage",
+          "line": 7723
+        },
+        {
+          "key": "openJuyukModal",
+          "line": 11351
+        },
+        {
+          "key": "openKemetModal",
+          "line": 11355
         }
       ],
       "apiPaths": [
@@ -19783,63 +19830,63 @@
         },
         {
           "path": "/api/payments/orders/",
-          "line": 4562
+          "line": 4576
         },
         {
           "path": "/api/payments/report-failure",
-          "line": 4597
+          "line": 4611
         },
         {
           "path": "/api/payments/subscription/confirm",
-          "line": 4639
+          "line": 4653
         },
         {
           "path": "/api/billing/confirm",
-          "line": 4639
+          "line": 4653
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 4671
+          "line": 4685
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 5050
+          "line": 5064
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 5126
+          "line": 5140
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 5155
+          "line": 5169
         },
         {
           "path": "/api/payments/config",
-          "line": 5552
+          "line": 5566
         },
         {
           "path": "/api/billing/confirm",
-          "line": 5742
+          "line": 5756
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 6260
+          "line": 6274
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 6563
+          "line": 6577
         },
         {
           "path": "/api/fortune/pig-coin/profile-subscription/status",
-          "line": 6791
+          "line": 6805
         },
         {
           "path": "/api/billing/balance",
-          "line": 12365
+          "line": 12379
         },
         {
           "path": "/api/billing/coin-gate",
-          "line": 13053
+          "line": 13067
         }
       ]
     },
@@ -20449,7 +20496,7 @@
     },
     {
       "file": "public/static/index.html",
-      "sha256": "12f4c635fe539bea49819b3d12d08ad020ea9e90d8be52ac0343ee0f83e9f939",
+      "sha256": "9a6df867190af32f8ffd3c2a34e73da08fff9ebf35318ec7a468299cfc478c56",
       "route": "/static/",
       "frontendType": "static",
       "features": [
@@ -21789,7 +21836,7 @@
     },
     {
       "file": "public/zh-tw/index.html",
-      "sha256": "3ce606a7645811da47d53c2785be9ab0f20a1aeba75d0f4492c26a8ba2dd2904",
+      "sha256": "806815d3547d17ac8c376f46cf0221e9fd8580849e47f11621ccc6e9ddd296d5",
       "route": "/zh-tw/",
       "frontendType": "static",
       "features": [
@@ -22987,7 +23034,7 @@
     },
     {
       "file": "public/zh/index.html",
-      "sha256": "16b879112d0f5fcffeb4f926fb04aa73ab5f7b1fdaa7de0e5faeac779b8ef89e",
+      "sha256": "eb1150e3e260ffb298a138ddb42c8c92cce5e4508e574deeddf2ea4f383445c9",
       "route": "/zh/",
       "frontendType": "static",
       "features": [
@@ -24361,7 +24408,7 @@
     },
     {
       "file": "src/features/master-love-codex/MasterLoveCodexPage.tsx",
-      "sha256": "7ea8888074e9128aa06973191ee46a7ce9b2896578717a3940427a69f44c37e8",
+      "sha256": "780a904a3a5f63b52eec4c241a99661adfe5784f2e12b8b219531c6fbc136ecc",
       "route": null,
       "frontendType": null,
       "features": [
@@ -24377,17 +24424,17 @@
         },
         {
           "path": "/api/payments/confirm",
-          "line": 435
+          "line": 438
         },
         {
           "path": "/api/master-love-codex/ensure-access",
-          "line": 546
+          "line": 550
         }
       ]
     },
     {
       "file": "src/features/master-love-codex/_lib/copy.ts",
-      "sha256": "92fe77e01c136a4296c8eb4efb3fabb5fc9cdeb3e8af4a680fe1216eaec1322b",
+      "sha256": "759d4e7d4c0f7bf45d13dd29b499adc630ccf4deaa36a67f6b5442eadf1de91e",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -24395,7 +24442,7 @@
     },
     {
       "file": "src/features/master-love-codex/_lib/runCodexBatches.ts",
-      "sha256": "6147d2dc9e2aee9b2200bb10d9ff01f8ae54c5f3bde1fcade91a25d0d59581b0",
+      "sha256": "6953b704800deb72aa188edad05184fb41d1dd035b8223430718b6e2d710b011",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -24694,7 +24741,7 @@
     },
     {
       "file": "worker/index.js",
-      "sha256": "ffa5745872d070c5b58ec080c12b3f70470abdbabc69f1cb5e6864e0f88660a0",
+      "sha256": "cfc82ea7a5c91f14bcc600fff073a237ca9a5d0695647576143c87443b5318b0",
       "route": null,
       "frontendType": null,
       "features": [
@@ -25395,7 +25442,7 @@
     },
     {
       "file": "worker/lib/gemini.js",
-      "sha256": "6714e9d600a3ab049764bc20b6cfa75d859e7d1957b901960958cb2a91f58129",
+      "sha256": "db2d8d064fe87e9faacf50fcb262ed7cf90ed6bdc16b939b519aec0882c42dc3",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -25584,7 +25631,7 @@
     },
     {
       "file": "worker/lib/llm-result-delivery.js",
-      "sha256": "ea5f6f7b3229f8063aacf14fa66792353fc21520dace6a48a23baf3981c9a5a8",
+      "sha256": "dcae3fec8efb008ee374b52ed09e8922c45a87c269c4ac01c49e10f3280a72d9",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -25600,7 +25647,7 @@
     },
     {
       "file": "worker/lib/master-love-codex-compat-prompt.mjs",
-      "sha256": "c458b55e8fe8c21391ed6775f7f34e46cb4afa7ee8d7bc1cbe8fd5b2912ad70b",
+      "sha256": "4b98f535fb934230d677e4dd5f9bed29eab6a2422e260f84933cc05aa557a58d",
       "route": null,
       "frontendType": null,
       "features": [
@@ -25613,7 +25660,7 @@
     },
     {
       "file": "worker/lib/master-love-codex-prompt.mjs",
-      "sha256": "3f2f99138ea23739956e87af7064624f22a504068d120c5addc3e67ac7e2f9b3",
+      "sha256": "cd8260a5da38b3242fe311b4f6a13be166e7eb54f21fc93cb2be342909b106fc",
       "route": null,
       "frontendType": null,
       "features": [
@@ -25626,7 +25673,7 @@
     },
     {
       "file": "worker/lib/master-love-codex-quality.js",
-      "sha256": "350ddc13ceaa8eb8145627ab0c6308fcd45a8dc214803f538a6428c9fa775c8c",
+      "sha256": "a986a22181fc041d0b88af63059474af4b00aea63ddfbf1b4c8026f91a991cd3",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -25634,7 +25681,7 @@
     },
     {
       "file": "worker/lib/master-love-codex-recovery-task.js",
-      "sha256": "00826d9c5bf785f5702e6d310559b324860e18654d6de96e708ddd90f7b6006d",
+      "sha256": "5a9be24dda04e174a77fb46736c040fec2c2439bd3ff9f5acc5f21365a3f81e9",
       "route": null,
       "frontendType": null,
       "features": [],
@@ -28638,7 +28685,7 @@
     },
     {
       "file": "worker/routes/astrology-ai.js",
-      "sha256": "bb80dbea2aeec1837650bd28fa7e356d797e2d8c28620de6ad5ae5abfd50a327",
+      "sha256": "d01c3749e381acbef99dfda5bedea4d0eba1d77c24676cefe037f7e13001aa40",
       "route": null,
       "frontendType": null,
       "features": [
@@ -28874,7 +28921,7 @@
     },
     {
       "file": "worker/routes/fortune.js",
-      "sha256": "62ad178ec5ea9d83cd32113a4f356d97c4ba2224e76766b521819a257c2bbe41",
+      "sha256": "7bdb6afb522b41f548f3e604d138c478224c80bb28d2fa25e65797fe9adb2a06",
       "route": null,
       "frontendType": null,
       "features": [
@@ -29055,7 +29102,7 @@
     },
     {
       "file": "worker/routes/karma-destiny-ai.js",
-      "sha256": "1f01693e7ea0a4d2315927bd898994145b6f27aa44697294c2fc7f37af2940a7",
+      "sha256": "95723cbaf1e76c11e9e79e610ec42342bae79470b922b7fc44ccd2b634085197",
       "route": null,
       "frontendType": null,
       "features": [
@@ -29073,7 +29120,7 @@
     },
     {
       "file": "worker/routes/life-book-ai.js",
-      "sha256": "0dbcbb7990b5e026224e41b6a6581cbb911f8b5e9dadaf748085080f94251c01",
+      "sha256": "a3a77bcf51321ef60679e574a59fe8b2751af34718d74a1818504b0be6e16ad1",
       "route": null,
       "frontendType": null,
       "features": [
@@ -29095,7 +29142,7 @@
     },
     {
       "file": "worker/routes/love-secret-ai.js",
-      "sha256": "d2a520004351daa01a2cbeb7a9111159ebe96d986064142d777515684ca4bdab",
+      "sha256": "41060eb290eb3724baba694a8b1006fe1680780b43f59695034759f8db544062",
       "route": null,
       "frontendType": null,
       "features": [
@@ -29113,23 +29160,23 @@
     },
     {
       "file": "worker/routes/master-love-codex.js",
-      "sha256": "ad51b5582905eda0144ee6a75a951fd5a351514f79287fbd6ea102d7757600cc",
+      "sha256": "de3de5a3dea56f69374a89a5c7c6ba3b1b2242f3a2af97f3e1eba9554c721b6c",
       "route": null,
       "frontendType": null,
       "features": [
         {
           "key": "master-love-codex",
-          "line": 69
+          "line": 70
         }
       ],
       "apiPaths": [
         {
           "path": "/api/billing/checkout",
-          "line": 330
+          "line": 331
         },
         {
           "path": "/api/billing/confirm",
-          "line": 331
+          "line": 332
         }
       ]
     },
@@ -29505,7 +29552,7 @@
     },
     {
       "file": "worker/routes/vedic-ai.js",
-      "sha256": "6ede2063535d55f586b63275e49d2f0f487b647cb8aefdbcaa1e509fc72143ae",
+      "sha256": "852369d903f4c63c28e3f2ed9eab69c1e69f03060deb9b362945458c69ab88c8",
       "route": null,
       "frontendType": null,
       "features": [
@@ -29560,7 +29607,7 @@
     },
     {
       "file": "worker/routes/ziwei-ai.js",
-      "sha256": "2e0f3724997dd7d1018f7f0ce724c3f71f3b22389bdeee07bf85a8ca46bbd847",
+      "sha256": "d63536ec42f9e227c54a5fbe4ec33ff2fd672c66f64e248f31fdf7e542e748f4",
       "route": null,
       "frontendType": null,
       "features": [
@@ -29618,7 +29665,7 @@
     },
     {
       "file": "worker/routes/ziwei-island-ai.js",
-      "sha256": "c202b5313d6ce000e598e9c11c09ba807b814880d65b2cf099b9099fc530b97a",
+      "sha256": "93aa820c38b58347cefbc9f5b5a495bf4b1a45db768b3f25c16b65fa4ba31be4",
       "route": null,
       "frontendType": null,
       "features": [
