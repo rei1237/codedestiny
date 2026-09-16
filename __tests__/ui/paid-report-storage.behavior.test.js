@@ -21,6 +21,7 @@ function fixture(mode, initialStatus = 'partial') {
   const ctx = vm.createContext({
     console: { warn() {} }, Date, JSON, Map,
     clean: v => String(v || '').trim(), connectDb: async () => {},
+    withMongoRetry: async (_env, work) => work(),
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     ZiweiDeepReport: {
       findOne: filter => ({ lean: async () => mode === 'read-null' ? null : (filter.userId === doc.userId ? structuredClone(doc) : null) }),

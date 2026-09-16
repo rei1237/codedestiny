@@ -254,55 +254,59 @@ export function readCurrentDestinyProfile(
   predicate: ProfilePredicate = hasAnyBirthDate,
 ): DestinyProfileCard | null {
   if (typeof window === "undefined") return null;
-  const scope = readProfileScope();
-  const loggedIn = isLoggedInProfileScope(scope);
+  try {
+    const scope = readProfileScope();
+    const loggedIn = isLoggedInProfileScope(scope);
 
-  const eventResolved = pickDestinyProfileFromPayload(eventProfile, "", predicate);
-  if (eventResolved) return eventResolved;
+    const eventResolved = pickDestinyProfileFromPayload(eventProfile, "", predicate);
+    if (eventResolved) return eventResolved;
 
-  if (!loggedIn) {
-    const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => unknown }).__cdGetCurrentDestinyProfile;
-    if (typeof getCurrent === "function") {
-      const current = pickDestinyProfileFromPayload(getCurrent(), "", predicate);
-      if (current) return current;
+    if (!loggedIn) {
+      const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => unknown }).__cdGetCurrentDestinyProfile;
+      if (typeof getCurrent === "function") {
+        const current = pickDestinyProfileFromPayload(getCurrent(), "", predicate);
+        if (current) return current;
+      }
+
+      const globalProfile = (window as unknown as { __cdCurrentDestinyProfile?: unknown }).__cdCurrentDestinyProfile;
+      const globalResolved = pickDestinyProfileFromPayload(globalProfile, "", predicate);
+      if (globalResolved) return globalResolved;
     }
 
-    const globalProfile = (window as unknown as { __cdCurrentDestinyProfile?: unknown }).__cdCurrentDestinyProfile;
-    const globalResolved = pickDestinyProfileFromPayload(globalProfile, "", predicate);
-    if (globalResolved) return globalResolved;
-  }
+    const activeCached = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, scopedActiveProfileCacheKey(scope)), "", predicate)
+      || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, scopedActiveProfileCacheKey(scope)), "", predicate);
+    if (activeCached) return activeCached;
 
-  const activeCached = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, scopedActiveProfileCacheKey(scope)), "", predicate)
-    || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, scopedActiveProfileCacheKey(scope)), "", predicate);
-  if (activeCached) return activeCached;
-
-  if (!loggedIn) {
-    for (const key of [GUEST_PROFILE_KEY, ...PROFILE_BRIDGE_KEYS]) {
-      const bridged = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), "", predicate)
-        || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), "", predicate);
-      if (bridged) return bridged;
+    if (!loggedIn) {
+      for (const key of [GUEST_PROFILE_KEY, ...PROFILE_BRIDGE_KEYS]) {
+        const bridged = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), "", predicate)
+          || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), "", predicate);
+        if (bridged) return bridged;
+      }
     }
+
+    const currentKeys = [
+      `${PROFILE_STORAGE_NS}.current::${scope}`,
+      ...(loggedIn ? [] : [`${PROFILE_STORAGE_NS}.current`]),
+    ];
+    const listKeys = [
+      `${PROFILE_STORAGE_NS}.list::${scope}`,
+      ...(loggedIn ? [] : [`${PROFILE_STORAGE_NS}.list`]),
+    ];
+    const currentId = currentKeys
+      .map((key) => String(window.localStorage.getItem(key) || window.sessionStorage.getItem(key) || "").trim())
+      .find(Boolean) || "";
+
+    for (const key of listKeys) {
+      const profile = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), currentId, predicate)
+        || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), currentId, predicate);
+      if (profile) return profile;
+    }
+
+    return null;
+  } catch {
+    return null; // Optional storage is unavailable; keep account isolation and manual input.
   }
-
-  const currentKeys = [
-    `${PROFILE_STORAGE_NS}.current::${scope}`,
-    ...(loggedIn ? [] : [`${PROFILE_STORAGE_NS}.current`]),
-  ];
-  const listKeys = [
-    `${PROFILE_STORAGE_NS}.list::${scope}`,
-    ...(loggedIn ? [] : [`${PROFILE_STORAGE_NS}.list`]),
-  ];
-  const currentId = currentKeys
-    .map((key) => String(window.localStorage.getItem(key) || window.sessionStorage.getItem(key) || "").trim())
-    .find(Boolean) || "";
-
-  for (const key of listKeys) {
-    const profile = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), currentId, predicate)
-      || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), currentId, predicate);
-    if (profile) return profile;
-  }
-
-  return null;
 }
 
 export function clearLegacyProfileSelectionKeys(deletedProfileId = "") {

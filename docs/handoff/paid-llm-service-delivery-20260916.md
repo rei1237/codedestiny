@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행은 mock A~F와 c83f71985 동일 SHA main CI를 완료했다. 심화 자미 PDF 4행부터 순서대로 검사한다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행은 동일 SHA main CI 완료. 심화 자미 PDF 4행은 mock A~F/PDF 검사를 마쳤으며 check:fast·commit/push·동일 SHA main CI를 끝낸 뒤 네오 5행으로 간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,8 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 심화 자미 PDF 4행 — mock 검증 후 전달 진행 중:** [행별 기록](../verification/ziwei-deep-paid-delivery-20260917.md). 원래 실행 완료 본문 누락·취소 구매 POST 재열람·화면 재개 이벤트·문서 종료 뒤 서버 실행 공백·완료 확인 유실·Storage 차단 화면 예외·공급자 완료 표시 7종을 재현/수정했다. 관련 Node 62/Jest 125, 실제 고객 390/430/1280px 및 단독 재개 이벤트/전체 Storage 차단 8case, PDF 버튼 다운로드 62페이지/15장 전체 본문 추출·렌더를 mock으로 검사했다. 호출 15→15·prompt 36,012→36,012자. 첫 check:fast는 결제 88/88 뒤 sitemap 원장 드리프트 exit1; 공식 생성으로 signature 35개만 갱신하고 check:fast critical·결제88/88·Node1,391·276 suite/3,874 Jest(exit0)를 완료했다. 마지막 공급자 완료 표시 보완 후 관련 Node62·flow 및 독립 고객 화면8case도 통과했다. 동시 세션의 layout/fortune-chat 및 인수인계 3개 파일(28b88e330/5aae0c6fd)을 안전 워크트리에 fast-forward로 보존/반영했고 고객 화면을 재검사했다. **동일 SHA main CI 전까지 4행 완료 체크는 보류한다.** 이후 구매70키+후속3경로는 개별 A~F 미실행이다.
 
 **2026-09-17 초융합 mock A~F 완료:** [행별 검증 기록](../verification/fusion-paid-delivery-20260917.md)을 추가했다. source `c2c4ce56f543fc785ca639b8c1784826478ce59c`와 결제 직후 입력 보관 후속 `c83f719855aa3f9ef316df024e004e5f69e4b4cc`를 main에 fast-forward하고 push했다. 부분 전달 lease·문서 종료 뒤 서버 복구·승인 후 첫 생성 전 bootstrap·출력 잘림·bfcache/화면 재개·Storage 차단·첫 stream 전 입력 유실을 재현/수정했다. 실제 계산 6체계/타로 6장, 실제 고객 화면 390/430/1280px 마지막 본문, 서버/공용 결제 왕복 및 새 문서 재열람을 mock으로 검사했다. 첫 최종 check:fast는 critical·88/88 gate·276 suite/3,873 Jest 통과. 마지막 입력 보관 수정까지 복귀 행동검사 33개와 추가 check:fast(276 suite/3,873 Jest, 186.216초)가 통과했다. [동일 SHA main CI](https://github.com/rei1237/codedestiny/actions/runs/35116997629)는 모든 lane·CI required success다. **초융합 외 나머지 71구매 키+후속3경로는 이번 개별 A~F 미실행.** root marketing 84개 dirty 항목과 diff hash가 main 반영 전후 같았으며 다른 워크트리는 보존했다.
 

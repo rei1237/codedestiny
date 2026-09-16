@@ -40,3 +40,4 @@ async function verifySdkReturn(featureKey, pathname) {
 
 test('mobile checkout sends the original page return URL and order identity to the SDK', () => verifySdkReturn('master-love-codex', '/master-love-codex'));
 test('초융합 SDK 요청은 원래 복귀 URL·상품·주문·회차를 유지한다', () => verifySdkReturn('fusion-fortune-consultation', '/fusion-fortune/'));
+test('자미두수 심층 SDK 요청은 실제 고객 페이지·상품·주문·회차를 유지한다', () => verifySdkReturn('ziwei-deep-pdf', '/ziwei/chart/'));
