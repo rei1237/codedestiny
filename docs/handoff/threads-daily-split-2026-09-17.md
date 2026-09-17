@@ -1,10 +1,19 @@
 ---
 status: active
 updated: 2026-09-17
-next: 3단계 운영 승격만 남았다. 사용자의 명시적 1회 승인이 있을 때만 승격하고, 승격 후 첫날 08:30·12:00·16:00·20:30 발행을 관리자 status 로 확인한다.
+next: 3단계 운영 승격 완료(2026-09-17 10:4x KST, 2430f228). 남은 일은 첫 온전한 날(09-18) 08:30·12:00·16:00·20:30 발행과 07:00 threads_split_active skip 을 관리자 status 로 확인하는 것뿐이다.
 ---
 
 # Threads 오늘의 운세 유형별 분할 발행 — 인수인계 (2026-09-17)
+
+## 3단계 — 운영 승격 (2026-09-17 완료)
+
+- 사용자 명시 승인 1회로 `workflow_dispatch mode=production` 실행: run 35171647118 success. 프로덕션 Pages·Worker 모두 `2430f228e093` PASS(`verify-deployed-sha`).
+- 승격 전 확인: main PR CI(12e62a0) success · `npm run verify:release` exit 0 · 스테이징 SHA PASS · 스테이징 `/today?tab=number` 실화면(모바일 390·데스크톱 1280, 비회원 폼 제출) 통과. 12e62a0→2430f228 사이 추가분은 문서 3개뿐.
+- 함께 나간 것: 이전 프로덕션 77007dc4c1c9 이후 37커밋(결제 퓨전·자미 복구, 루트 Suspense 제거, 상세창 CTA 등). 마이그레이션 없음.
+- **승격 당일(09-17)은 부분 운영**: 승격이 10:4x KST 라 07:00 체인은 기존 방식으로 이미 Threads 를 냈고, 08:30 사주 창은 닫혀 오늘 사주 분할 발행은 없다. 12:00 자미·16:00 베다·20:30 수비학부터 분할 발행.
+- 롤백: Actions → Release → `mode=rollback`(Pages/Worker ID), Threads 만 되돌리려면 `SNS_THREADS_POST_ENABLED = "1"` 커밋 후 재승격(1회 승인 필요).
+- 관리자 status 조회는 관리자 인증이 필요해 이번 세션에서 미실행 — **미검증**.
 
 ## 현재 상태 (1·2단계 완료)
 
@@ -14,7 +23,7 @@ next: 3단계 운영 승격만 남았다. 사용자의 명시적 1회 승인이 
   - 시각은 코드 기본값. `THREADS_SAJU_TIME` · `THREADS_ZIWEI_TIME` · `THREADS_VEDIC_TIME` · `THREADS_NUMEROLOGY_TIME` 은 덮어쓰기용 선택 변수(바인딩 예산을 먼저 확보할 것).
 - **수비학 게이트 결정**: 새 var 없이 코드 기본 켜짐(`defaultEnabled: true`, `isJobEnabled`). 급하게 수비학만 끄려면 `THREADS_NUMEROLOGY_ENABLED = "0"` 을 넣는다(그때 바인딩 1칸을 쓴다). 사주·자미·베다는 게이트 var 가 없다.
 - 텔레그램 07:00 발행은 무변경.
-- **운영 반영은 아직 안 됨.** 프로덕션 승격은 사용자의 명시적 1회 승인 때만. 승격하는 순간 07:00 Threads 체인이 멈추고 분할 발행이 시작된다.
+- 운영 반영 완료(위 3단계). 07:00 Threads 체인은 멈췄고 분할 발행이 켜져 있다.
 - 스테이징은 `crons = []` + Threads 토큰 없음 → 발행 0.
 
 ## 2단계 — 수비학 (완료 내용)
@@ -43,10 +52,12 @@ next: 3단계 운영 승격만 남았다. 사용자의 명시적 1회 승인이 
 
 ## 다음 세션
 
-1. **3단계 — 운영 승격**: 명시적 승인 1회 후에만. 승격 후 첫날 08:30·12:00·16:00·**20:30(수비학)** 발행과 07:00 Threads skip(`threads_split_active`), 텔레그램 정상 발행을 관리자 status 로 확인.
-2. `/today?tab=number` 는 브라우저 실화면 미검증 — 승격 전 스테이징에서 탭 4칸 줄바꿈(모바일 2열)·비회원 입력 폼을 한 번 눈으로 본다.
+1. 09-17 12:00·16:00·20:30, 09-18 전 슬롯 발행과 07:00 Threads skip(`threads_split_active`), 텔레그램 정상 발행을 관리자 `GET /api/admin/sns-daily-post/status` 로 확인(관리자 인증 필요 — 사용자 또는 관리자 세션).
+2. (완료) `/today?tab=number` 스테이징 실화면. 남은 사소한 점: 자리표시자 "YYYY-MM-DD" 대비 약 2.9:1, 보편일수≠개인일수인 생년월일로의 화면은 미확인.
 
 ## 범위 밖 결함 (보고만, 미수정)
+
+- `worker/wrangler.toml` `SNS_THREADS_POST_ENABLED` 주석이 사주·자미·베다 3개만 적고 수비학 20:30 을 빠뜨림(동작 무관).
 
 - `daily-fortune-task.js` `getTodayPillars` 연주가 입춘을 무시.
 - `numerology-tarot.mjs` `calculatePersonalDay` 가 UTC 기준(KST 00~09시 전날 값)이고 연도를 반영하지 않음 — 새 정본(`lib/numerology/personal-day.mjs`)과 값이 다를 수 있다.
