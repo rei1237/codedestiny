@@ -40,13 +40,11 @@ describe("legacy COIN removal regression guards", () => {
   test.each([
     ["worker/routes/billing.js", 'legacyCoinDisabled: true', "$inc: { points: -requiredCoins"],
     ["worker/routes/fortune.js", 'reason: "LEGACY_COIN_DISABLED"', "$inc: { points: -cost"],
-  ])("%s rejects legacy debit before the old mutation marker", (relativePath, guardMarker, mutationMarker) => {
+  ])("%s rejects legacy debit and no longer contains the removed mutation marker", (relativePath, guardMarker, mutationMarker) => {
     const source = read(relativePath);
-    const guardIndex = source.indexOf(guardMarker);
-    const mutationIndex = source.indexOf(mutationMarker);
 
-    expect(guardIndex).toBeGreaterThanOrEqual(0);
-    expect(mutationIndex).toBeGreaterThan(guardIndex);
+    expect(source).toContain(guardMarker);
+    expect(source).not.toContain(mutationMarker);
   });
 
   test("ziwei daehan compatibility route has no point debit dependency", () => {

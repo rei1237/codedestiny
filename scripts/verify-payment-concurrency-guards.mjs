@@ -18,11 +18,11 @@ const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8")
 const monthlyCreditStoreSource = readFileSync(resolve(root, "worker/lib/monthly-credit-store.js"), "utf8");
 const serviceExecutionTaskSource = readFileSync(resolve(root, "worker/lib/service-execution-task.js"), "utf8");
 
-// 멱등 마커를 직접 write하는 소스 전량 — payments.js는 이용권 월정석 구매 경로 제거 후
-// 해당 마커를 직접 write하지 않으므로 대상에서 제외한다.
+// 멱등 마커를 직접 write하는 소스 전량 — payments.js는 이용권 월정석 구매 경로 제거 후,
+// fortune.js는 pig-coin 차감 실행 코드(2026-09-17 죽은 코드로 삭제) 제거 후 해당 마커를
+// 직접 write하지 않으므로 각각 대상에서 제외한다.
 const MARKER_WRITE_SOURCES = {
   "billing.js": billingSource,
-  "fortune.js": fortuneSource,
   "monthly-credit-store.js": monthlyCreditStoreSource,
 };
 
@@ -103,21 +103,24 @@ assert.match(
 );
 
 // ── 시나리오 3: 트랜잭션 중간 실패 롤백 (F3) ──────────────────────────────────
-// 3a. 구현이 차감+이력을 트랜잭션으로 묶고 미지원 시 보상 saga 로 폴백하는지 소스로 확인.
-assert.match(
+// 3a. pig-coin 차감의 트랜잭션+보상 saga 구현 자체가 2026-09-17 죽은 코드로 삭제됐다
+//     (handlePigCoinConsume은 LEGACY_COIN_DISABLED 402로 항상 조기 반환해 차감 실행 코드가
+//     도달 불가능했다 — docs/handoff/pig-coin-dead-code-removal-2026-09-17.md). F3 결함은
+//     그 코드 경로 자체가 없어져 재발 여지가 없다 — 삭제됐다는 사실만 확인한다.
+assert.doesNotMatch(
   fortuneSource,
   /runCoinSpendWithTransaction[\s\S]*session\.withTransaction[\s\S]*PointHistory\.create\(\[buildCoinHistoryDoc/,
-  "pig-coin 차감은 차감+PointHistory 를 한 트랜잭션으로 묶어야 한다",
+  "pig-coin 차감의 트랜잭션 묶음 구현은 죽은 코드로 삭제되어 더 이상 존재하면 안 된다",
 );
-assert.match(
+assert.doesNotMatch(
   fortuneSource,
   /runCoinSpendWithCompensation[\s\S]*compensateCoinDeduct\(\)/,
-  "트랜잭션 미지원 환경에서는 보상 saga 로 차감을 되돌려야 한다",
+  "pig-coin 차감의 보상 saga 구현은 죽은 코드로 삭제되어 더 이상 존재하면 안 된다",
 );
-assert.match(
+assert.doesNotMatch(
   fortuneSource,
   /if \(!isTransactionUnsupported\(error\)\) throw error;\s*coinSpend = await runCoinSpendWithCompensation\(\);/,
-  "트랜잭션 미지원 오류에서만 보상 경로로 폴백해야 한다",
+  "pig-coin 차감의 보상 경로 폴백 분기는 죽은 코드로 삭제되어 더 이상 존재하면 안 된다",
 );
 
 // 3b. 보상 saga 불변식 자체를 인메모리 페이크로 시뮬레이션: 이력 기록이 실패하면 차감이 원복되고
@@ -230,16 +233,18 @@ assert.match(
 );
 
 // ── 시나리오 5: pig-coin 멱등성 키 결정성 (F4) ───────────────────────────────
-// requestId 부재 시에도 Date.now() 폴백 금지 — 동시 더블클릭이 서로 다른 키를 얻어 이중 차감되면 안 된다.
+// coinRequestId/coinRequestScope 를 만들던 코드 자체가 2026-09-17 죽은 코드로 삭제됐다.
+// 아래 doesNotMatch 는 계속 성립한다(패턴이 아예 없으므로 공허하게 참) — 두 번째는
+// "존재해야 한다"에서 "더 이상 존재하지 않아야 한다"로 뒤집는다.
 assert.doesNotMatch(
   fortuneSource,
   /coinRequestId = requestId \|\| `coin:[^`]*Date\.now\(\)/,
   "coinRequestId 는 Date.now() 로 폴백하면 안 된다(이중 차감 방지)",
 );
-assert.match(
+assert.doesNotMatch(
   fortuneSource,
   /const coinRequestScope = String\(\s*payloadHash \|\| `\$\{categoryKey\}:\$\{subFeatureKey\}:\$\{cost\}`/,
-  "coinRequestId 는 요청 내용으로만 파생한 결정적 스코프를 써야 한다",
+  "pig-coin 차감의 요청 스코프 계산은 죽은 코드로 삭제되어 더 이상 존재하면 안 된다",
 );
 
 // ── 시나리오 6: 월정석 원장 실패 롤백 안전성 (F5) ────────────────────────────

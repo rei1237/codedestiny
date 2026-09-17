@@ -88,10 +88,7 @@ describe("coin-gate 소비 위임 재시도 중첩 가드", () => {
     expect(fn).toMatch(/code === "COIN_GATE_CONSUME_TIMEOUT"/);
   });
 
-  test("재시도 루프 구조(최대 2회, 120ms 대기)는 그대로 유지된다", () => {
-    const fn = sliceFunction(billingSource, "async function consumeCoinWithRetry(");
-    expect(fn).toMatch(/const maxAttempts = 2;/);
-    expect(fn).toMatch(/attempt <= maxAttempts/);
-    expect(fn).toMatch(/await sleep\(120\);/);
+  test("consumeCoinWithRetry(죽은 코드를 감싸던 재시도 래퍼)는 삭제되어 더 이상 존재하지 않는다", () => {
+    expect(billingSource).not.toContain("async function consumeCoinWithRetry(");
   });
 });

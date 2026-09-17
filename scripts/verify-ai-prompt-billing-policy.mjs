@@ -104,7 +104,10 @@ const allPromptFeatures = [...promptFeatures, ...freePromptFeatures];
 const delegatedPaidAccessPromptFeatureCount = allPromptFeatures.length;
 
 assert.match(fortuneSource, /const forceDeduct = body\?\.forceDeduct === true/, "coin consume must require explicit forceDeduct");
-assert.match(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "coin consume must accept verified payment evidence");
+// pig-coin 차감 실행 코드는 2026-09-17 죽은 코드로 삭제됐다(handlePigCoinConsume은
+// LEGACY_COIN_DISABLED 402로 항상 조기 반환해 도달 불가능했다). coinRequestId 로 결제
+// 증거를 조회하던 이 호출도 함께 사라졌다.
+assert.doesNotMatch(fortuneSource, /findAIPromptPaymentEvidence\(\{[\s\S]*requestId: coinRequestId/, "죽은 코인 차감 코드는 삭제되어 coinRequestId 로 결제 증거를 조회하는 호출이 더 이상 없어야 한다");
 assert.match(fortuneSource, /findAIPromptDirectPaymentEvidence/, "AI prompt consume must verify direct single-payment evidence");
 assert.match(fortuneSource, /if \(isAIPromptPassAccessPayload\(body\)\) \{[\s\S]*canUseByPass\(passEntitlement, cost\)[\s\S]*source: "pass_payload"/, "AI prompt consume must verify server-side pass entitlement evidence");
 assert.match(fortuneSource, /findAIPromptMonthlyCreditEvidence/, "AI prompt consume must verify monthly-credit payment evidence");
@@ -129,9 +132,11 @@ assert.doesNotMatch(
   /path === "\/saju\/ai-prompt"[\s\S]{0,520}await connectDb\(env\);[\s\S]{0,180}handleSajuAIPrompt/,
   "saju prompt route must not fail on a pre-generation connectDb before paid evidence handling",
 );
-assert.match(fortuneSource, /points: \{ \$gte: cost \}/, "coin consume must check balance before deduction");
+// pig-coin 차감의 잔액 사전확인·이력 requestId 바인딩도 위와 같은 삭제로 함께 사라졌다.
+// kind: "deduct" 자체는 다른 살아있는 경로에도 쓰여 그 단언만 그대로 둔다.
+assert.doesNotMatch(fortuneSource, /points: \{ \$gte: cost \}/, "죽은 코인 차감 코드는 삭제되어 잔액 사전확인 필터가 더 이상 없어야 한다");
 assert.match(fortuneSource, /kind: "deduct"/, "coin consume must write deduct history");
-assert.match(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "deduct history must bind requestId");
+assert.doesNotMatch(fortuneSource, /metadata:\s*\{[\s\S]*requestId: coinRequestId/, "죽은 코인 차감 코드는 삭제되어 coinRequestId 를 이력에 바인딩하는 코드가 더 이상 없어야 한다");
 assert.match(fortuneSource, /accessGrant: body\?\.accessGrant/, "prompt routes must forward accessGrant evidence");
 assert.equal(
   (allPromptRouteSource.match(/requireExistingPaidAccess: true/g) || []).length,
