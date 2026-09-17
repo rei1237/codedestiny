@@ -62,4 +62,6 @@ npm run check:fast
 
 ## 전달
 
-커밋 `14e197394`(`fix(ziwei-ai): restore pageshow/focus resume listeners on paid consultation screen`)를 `app/ziwei-ai/ZiweiAiClient.tsx`·`__tests__/ui/ziwei-paid-resume.behavior.test.js` 2개 파일만 스테이징해 main에 직접 생성했다(동시 세션의 marketing 미커밋 변경은 건드리지 않음 — 커밋 전후 `git status`로 그대로 보존됨을 확인). 이어서 이 기록과 체크리스트 9행 갱신을 담은 문서 커밋을 추가한다. push는 안정화 시점에 묶어서 진행하며, main CI(`CI required`) 통과를 배포 확인 기준으로 삼는다.
+커밋 `14e197394`(`fix(ziwei-ai): restore pageshow/focus resume listeners on paid consultation screen`)를 `app/ziwei-ai/ZiweiAiClient.tsx`·`__tests__/ui/ziwei-paid-resume.behavior.test.js` 2개 파일만 스테이징해 main에 직접 생성했다(동시 세션의 marketing 미커밋 변경은 건드리지 않음 — 커밋 전후 `git status`로 그대로 보존됨을 확인). 이어서 이 기록과 체크리스트 9행 갱신을 담은 문서 커밋(`baabc088f`)을 추가하고 `git fetch`로 origin과 분기가 없음을 확인한 뒤 `main`에 push했다(`ccf4fb7d8..baabc088f`).
+
+push 직후 `baabc088f`의 GitHub CI를 실측했다: `paid-flow-gates`·`Critical checks`·`Build Pages and Worker`·`Typecheck and lint`를 포함해 대부분 통과했으나, **`CI required` 애그리게이트는 실패**로 떴다(https://github.com/rei1237/codedestiny/actions/runs/35188449265). 원인은 `Static guards` 잡 안의 단일 스텝 `Verify the tracked sitemap matches its sources`(`npm run verify:sitemap-drift`)로, 같은 잡의 나머지 수백 개 검사(자미두수·결제·재개 관련 정적 가드 포함)는 전부 통과했다. 실패 로그가 지목한 파일(`sitemap.xml`·`public/sitemap.xml`·`config/sitemap-lastmod.json`·`sitemap-ko.xml`·`public/sitemap-ko.xml`)은 위 "재검사 명령과 결과"에서 이미 로컬 `check:fast`로도 동일하게 확인한, **9행과 무관한 선행 드리프트**(원인 커밋 `246f34ad0`, 오늘 오전 numerology 작업)와 정확히 같다 — 이번 두 커밋이 새로 만든 실패가 아니라, 이미 그 전 커밋부터 CI에 존재하던 상태다. 코딩 원칙 14(범위 밖 결함은 보고만 한다)에 따라 이번 작업 범위에서 고치지 않았다.
