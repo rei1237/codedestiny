@@ -58,3 +58,7 @@ npm run check:fast -- --committed-head
 - 후속 읽기 전용 확인의 시작 운영 버전은 `a3d1b471f319`였으나 최종 조회는 Pages/Worker 모두 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. `verify:deployed-sha -- --sha=77007dc4c1c931ecc148ab73069bf437b78473e9 --attempts=1`는 최종 exit0이며 [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 배포·버전 검증도 success다. 이번 확인 세션이 배포를 실행한 것은 아니다.
 - 실제 PG, 실기기/카카오페이 앱 전환, 과금 LLM, 운영 DB·실고객 주문 완주는 별도 확인 대상이다. 운영 코드 반영을 실제 결제 전달 성공으로 확대하지 않는다. 다음 작업은 [서비스별 인수인계](../handoff/paid-llm-service-delivery-20260916.md)를 따른다.
 - 작업 전부터 존재한 마케팅 변경 및 동시 작업의 음악 기능 커밋은 보존한다.
+
+## 2026-09-17 정정 — 실출력 게이트가 근본 원인
+
+위의 mock 검증은 스테이징 `STAGING_LLM_MOCK_ENABLED=true` 경로만 확인했다. 운영의 실제 모델 출력은 근거 스키마·길이 게이트에서 100% 탈락해 결제 후 0/20장이었다(운영 읽기 전용 조회로 6세션 확인, 결제는 전부 환불). 수정·실호출 확인·운영 승격은 [인수인계](../handoff/2026-09-17-master-love-codex-real-gate.md)에 있다.
