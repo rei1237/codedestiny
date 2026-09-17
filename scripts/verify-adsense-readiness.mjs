@@ -1526,12 +1526,11 @@ function verifyNoInheritedHomeCanonical(baseDir) {
 //    따질 것 — 대개 정답은 목록 추가가 아니라 그 라우트가 title·description 을 선언하는 것이다.
 const rootMetadataAllowedRoutes = new Map([
   ["/", "홈 자신. 배포본에서는 정적 셸이 덮지만 out/ 에는 이 값이 남는다."],
-  // 아래 6개는 `public/_redirects` 가 엣지에서 301 로 잡아 HTML 이 브라우저·크롤러에
+  // 아래는 `public/_redirects` 가 엣지에서 301 로 잡아 HTML 이 브라우저·크롤러에
   // 절대 도달하지 않는다(2026-08-28 라이브 실측). 라우트 삭제는 절대규칙 6 위반이라
   // 산출물은 남겨 두고 문구만 채우지 않는다.
-  ["/en-us", "엣지 301 → / (도달 불가)"],
-  ["/ja-jp", "엣지 301 → / (도달 불가)"],
-  ["/zh-cn", "엣지 301 → / (도달 불가)"],
+  // (en-us/ja-jp/zh-cn 라우트는 2026-09-17 P3 로 삭제됨 — app/ 산출물 자체가
+  // 사라져 이 목록은 더 이상 필요 없다)
   ["/face-reading", "엣지 301 → /physiognomy/ (도달 불가)"],
   ["/sukyo", "엣지 301 → /sukuyo/ (도달 불가)"],
   ["/saju/animal-test", "엣지 301 → /saju/animal-destiny/ (도달 불가)"],
