@@ -43,6 +43,8 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/astrology/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/astrology/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/astrology/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/astrology/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/astrology/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/astrology/" />
@@ -1408,6 +1410,8 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/tarot/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/tarot/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/tarot/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/tarot/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/tarot/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/tarot/" />
@@ -1460,6 +1464,8 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/vedic/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/vedic/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/vedic/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/vedic/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/vedic/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/vedic/" />
