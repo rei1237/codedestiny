@@ -1,5 +1,5 @@
 ---
-status: resolved
+status: done
 updated: 2026-09-17
 next: 없음 — 4개 gap 허브 zh-TW 전부 완료. 후속 필요 시 "만약 GSC 접근이 생기면" 절 참고
 ---
