@@ -207,7 +207,7 @@ export default function MasterLoveCodexPage() {
     pendingResumeRef.current = null; lastTokenRef.current = ""; lastSessionRef.current = {};
     recoveredPurchaseRef.current = null; generationStartedRef.current = false;
     setChapters([]); setStoredSessions([]); setStoredPurchases([]); setPhase("landing");
-  });
+  }, { survivesAuthRestore: true });
 
   useEffect(() => {
     let active = true;
