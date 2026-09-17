@@ -32,7 +32,8 @@ next: 2단계 ②③ 는 main 에 들어갔다(머지 3471a307b) — 다음은 2
   - C2 `8b7e3bbc4` — 결제창 하단 로케일별 정책 링크 줄(70 files, 1600+/1269-).
   - C3 `3a4df4a0e` — 결제 문서 01·02·06·09 갱신 + 이 문서.
   - 머지 `3471a307b`(origin/main `fe4938f9c` 위). push: `fe4938f9c..3471a307b -> main`.
-  - 머지 충돌은 `config/sitemap-lastmod.json` 하나뿐이었다(양쪽이 원장 갱신). 손으로 합치지 않고 origin/main 판으로 되돌린 뒤 합친 트리에서 `npm run sitemap:generate` 로 다시 유도했다. 머지 직후 `npm run sync:public` 재실행 → 캐시 키 2개 회전(`index-inline-runtime.js`·`uiBindings.js`). 합친 트리에서 `npm run check:fast` exit 0(281 suites / 3958 tests).
+  - C4 `459a3eab4` — 머지가 낸 미러 회귀 수정(아래 "함정" 첫 항목). 머지 직후 `sync:public` 을 1회만 돌려 `Main drift watchdog` 이 깨졌고, 고정점까지 돌려 고쳤다.
+  - 머지 충돌은 `config/sitemap-lastmod.json` 하나뿐이었다(양쪽이 원장 갱신). 손으로 합치지 않고 origin/main 판으로 되돌린 뒤 합친 트리에서 `npm run sitemap:generate` 로 다시 유도했다. 합친 트리에서 `npm run check:fast` exit 0(281 suites / 3958 tests).
 - `FOREIGN_CARD_ENABLED` 는 이번에도 어디에도 설정하지 않았다(OFF). 카드 브랜드명·환불 응답기한 약속은 한 글자도 넣지 않았다 — 특약은 여전히 미승인이다.
 
 ## 무엇을 바꿨나
@@ -78,6 +79,9 @@ next: 2단계 ②③ 는 main 에 들어갔다(머지 3471a307b) — 다음은 2
 - **캐시 핀 회전이 계획에 없었는데 필요했다.** `js/core/checkout-entry.js` 나 `js/destiny-profile.js` 를 한 글자라도 고치면 정적 페이지 23개 + `app/layout.js` + `app/_lib/billing-client.ts` + `scripts/verify-paid-gate-ui-regression.mjs` 의 핀 리터럴이 전부 낡는다. 이번엔 26파일 73곳이었다. `index.html` 계열은 `sync:public` 이 관리하니 손대지 않는다.
   - 🔴 `PIN_GROUPS` 순서는 [destiny-profile, core] 이고 가드는 **첫 실패 그룹에서 던진다**. 그래서 1회차에 core 만, core 를 고친 2회차에 destiny-profile 이 나왔다. 두 그룹을 한 번에 유도해 한 번에 고치는 게 맞다(유도식: `sha1(rel + "\n" + normalizeForPin(content) + "\n---\n")` 앞 12자, 접두사 `build-`).
   - 🟠 (보고만) 이 가드에는 fail-open 이 있다. `index.html` 계열 중 하나라도 낡은 핀 값을 들고 있으면 그 값이 "sync 관리 대상"으로 분류되어, 같은 값을 쓰는 손관리 페이지 전부가 낡음 검사에서 빠진다.
+- 🔴 **머지 후 `sync:public` 은 한 번으로 안 끝난다 — 이번에 회귀를 냈다.** 캐시 키가 한 실행에 한 단계씩만 전파된다: 머지로 `uiBindings.js` 키가 돌면 그 실행은 `js/core/init.js` 까지만 다시 쓰고, `js/app.js` 는 *새* `init.js` 를 입력으로 본 **다음** 실행에서야 돈다. 1회만 돌리고 push 해서 `Main drift watchdog`(`verify:public-mirror-fresh`)이 `js/app.js`·`public/js/app.js` 로 물었다(머지 `3471a307b` → 수정 `459a3eab4`, 정적 셸·미러 9개). 1단계 인수인계에도 "4회째 변경 0"으로 남아 있던 성질이다.
+  - 고정점 판정은 `git status` 가 아니라 **"한 번 더 돌려도 새 변경이 없는가"** 다. 중간에 `git add` 하면 status 가 계속 같은 파일을 보여줘 수렴한 것처럼 안 보인다(한 번 헷갈렸다).
+  - `verify:public-mirror-fresh` 는 **깨끗한 트리를 전제**로 한다(스크립트 헤더 주석). 미커밋 변경이 있으면 방금 고친 파일까지 FAIL 로 나열한다 — 커밋한 뒤 판정할 것.
 - **핀을 회전하면 sitemap 원장이 드리프트한다.** `scripts/lib/sitemap-lastmod.mjs` 가 라우트의 import 폐포로 서명을 만드는데 `app/layout.js` 가 거의 모든 라우트의 폐포에 있다. 원인 추정 말고 `npm run sitemap:generate` 후 재생성본 커밋으로 끝낸다.
 - **CRLF 파일은 Edit/sed 가 줄바꿈을 떨군다.** 이번 대상 중 `lib/i18n/public-trust-copy.mjs` 와 `scripts/verify-payment-choice-parity.mjs` 가 CRLF다. node 로 읽어 `eol` 을 보존해 쓴다(스크립트는 세션 스크래치패드에 있었고 남기지 않았다).
 - **Bash 호출마다 cwd 가 `d:\Development\code-destiny` 로 되돌아간다.** 모든 명령을 `cd <워크트리> &&` 로 시작한다.
