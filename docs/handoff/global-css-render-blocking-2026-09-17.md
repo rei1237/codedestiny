@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: /saju/ LCP 분해 완료(7.7초는 Lantern 이 첫 페인트 전 JS 를 끌어온 값, 스로틀 실측은 약 2.7초·CSS 몫). 사용자가 수단을 고르면 파일럿 — 추천은 gtag 주입 지연
+next: 2-4 ① gtag 주입 지연 적용 완료(3절). 남은 후보는 ② ko 페이지 ko.json 요청 조사 — 사용자 선택 대기
 ---
 
 # 전역 렌더 차단: 루트 Suspense(완료) + 전역 Tailwind CSS(남음)
@@ -9,7 +9,7 @@ next: /saju/ LCP 분해 완료(7.7초는 Lantern 이 첫 페인트 전 JS 를 �
 출발점: `docs/handoff/music-lounge-perf-2026-09-16.md` 남은 과제 1번.
 
 ## 다음 세션 첫 문장
-"docs/handoff/global-css-render-blocking-2026-09-17.md 의 '2 /saju/ LCP 분해' 를 읽고, 사용자가 고른 수단(추천: ① gtag 주입을 load 이후로 지연)을 위험·검증·롤백부터 보고한 뒤 BEFORE/AFTER 를 Lighthouse 3회 + 스로틀 Playwright 3회로 잰다."
+"docs/handoff/global-css-render-blocking-2026-09-17.md 의 3절(gtag 지연 결과)과 2-4 를 읽고, 사용자가 ② ko.json 조사를 고르면 어느 컴포넌트가 ko 사전을 실제로 읽는지부터 실측한다."
 
 ## 1a 루트 Suspense 제거 — 완료 (`28b88e330`, push 됨)
 
@@ -159,7 +159,7 @@ Playwright + 시스템 Chrome, 412×823·DPR 1.75, CDP `Emulation.setCPUThrottli
 
 ### 2-4 다음 수단 (추천순, 사용자 결정 대기)
 
-1. **추천 — gtag 주입 지연**(`js/core/analytics.js:78-81` 가 afterInteractive 에서 바로 주입 → window load 이후 idle 로).
+1. ✅ **적용됨(3절) — gtag 주입 지연**(`js/core/analytics.js:78-81` 가 afterInteractive 에서 바로 주입 → window load 이후 idle 로).
    실측 대리값: 시뮬 −2.0초, 체감 노이즈 안. 결제 동결 밖, 파일 1개(+public 미러). 🔴 빠른 이탈 page_view 누락 가능 — GA 계측 정책 결정이 필요한 RED.
    주의: 차단은 지연의 대리값이다. 지연된 요청이 트레이스 첫 페인트(~1.24초) **뒤에** 시작해야 같은 효과가 난다.
 2. **ko 페이지의 ko.json 요청 제거 여부 조사** — `lib/i18n/useT.ts` `useDictionary` 가 ko 에서도 `loadDictionary` 를 부른다(LocaleRuntimeBridge 는 ko 에서 조기 반환).
@@ -170,3 +170,34 @@ Playwright + 시스템 Chrome, 412×823·DPR 1.75, CDP `Emulation.setCPUThrottli
 5. Next 청크 — 레이아웃 클라이언트 트리 축소가 필요한 범위 큰 작업 — 보류. 폰트·이미지 — 레버 없음.
 
 참고: 사이트는 CrUX 표본이 없어 CWV 가 랭킹 입력이 아니다 — 이 작업은 체감 과제로만 다룬다.
+
+## 3 gtag 주입 지연 — 적용 (2026-09-17)
+
+사용자 승인: 빠른 이탈(load 전 이탈) 방문의 page_view 누락을 감수한다.
+변경: `js/core/analytics.js` 가 `<script src=gtag/js>` 만 window load 뒤 `requestIdleCallback`(timeout 2000, 없으면 setTimeout 1)에 주입.
+dataLayer·consent default·config·cdTrack·위임 리스너는 종전대로 즉시 설치 — 대기 중 이벤트는 태그 로드 때 전송된다.
+정적 셸(index.html, defer)과 Next(`app/layout.js` afterInteractive) 둘 다 이 파일 하나라 함께 바뀐다.
+가드: `verify:analytics-events` ⑥-b(load 전 태그 0개·config 즉시·load 뒤 정확히 1개). HEAD 원본으로 바꾸면 실패함을 변이로 확인.
+미러: sync:public(public/js/core/analytics.js + 셸 7개 캐시 키). `app/layout.js` 의 `?v=20260814-ga4-v1` 는 안 바꿨다 — 옛 캐시 사본은 즉시 주입일 뿐 기능 차이 없음.
+
+측정(같은 로컬 dist, /saju/, analytics.js 만 대체 서빙 — dist 무수정, 스크래치 측정 복사본):
+
+Lighthouse mobile simulate 3회(옆 세션 가동 중, 관측 첫 페인트가 0.43–1.27초로 흔들림):
+
+| 회차 | 시뮬 LCP | 관측 LCP | gtag 요청 |
+|---|---|---|---|
+| BEFORE 1 · 2 · 3 | 7373 · 3933 · 4051 | 1250 · 429 · 515 | 469–751 · 551–806 · 616–890 |
+| AFTER 1 · 2 · 3 | 5724 · 6375 · 3681 | 1190 · 1268 · 681 | 1455–1758 · 1271–1509 · 1494–1765 |
+
+- AFTER 3회 모두 gtag 가 관측 LCP **뒤**에 시작 → Lantern LCP 선행 그래프에서 빠짐(메커니즘 확인).
+- 중앙값(4051 → 5724)은 관측 첫 페인트 편차가 지배해 비교 불가. 첫 페인트가 느린 회차끼리(관측 ≈1.2초) 7373 → 5724·6375(−1.0~−1.6초), 빠른 회차끼리 3933·4051 → 3681.
+
+스로틀 Playwright 3회(CPU 4x, 562.5ms/1474.56kbps, 412×823·DPR 1.75, GA 수집 차단):
+
+| | FCP | LCP | load | gtag 요청 시작(벽시계) |
+|---|---|---|---|---|
+| BEFORE 중앙값 | 2584 | 2584 | 5240 | ≈5.36초 |
+| AFTER 중앙값 | 2616 | 2616 | 5285 | ≈5.59초 |
+
+체감 차이 없음(노이즈). 스로틀 조건에서는 BEFORE 도 gtag 요청이 load 무렵에 나가므로 page_view 지연 폭은 약 0.2초 — 누락 증가는 주로 빠른 네트워크의 1초 미만 이탈이다.
+check:fast exit 0(jest 277 스위트/3880). 롤백: 이 커밋 `git revert` 후 sync:public.

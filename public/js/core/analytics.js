@@ -75,10 +75,31 @@
     return readConsent() === "accepted" ? "granted" : "denied";
   }
 
-  var script = document.createElement("script");
-  script.async = true;
-  script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(measurementId);
-  (document.head || document.documentElement).appendChild(script);
+  /*
+   * 🔴 gtag.js 는 window load 뒤 idle 에 주입한다. 바로 주입하면 첫 페인트 전에 171KB 가 끝나
+   * Lighthouse 시뮬 LCP 의 선행 조건이 된다(/saju/ 차단 실측 −2.0초,
+   * docs/handoff/global-css-render-blocking-2026-09-17.md 2-4). 아래 consent·config·이벤트는
+   * dataLayer 에 먼저 쌓였다가 태그가 뜨면 그대로 전송된다.
+   * 대가: load 전에 떠나는 방문은 page_view 가 남지 않는다 — 사용자 승인(2026-09-17).
+   */
+  function injectTag() {
+    var script = document.createElement("script");
+    script.async = true;
+    script.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(measurementId);
+    (document.head || document.documentElement).appendChild(script);
+  }
+  function injectWhenIdle() {
+    if (typeof global.requestIdleCallback === "function") {
+      global.requestIdleCallback(injectTag, { timeout: 2000 });
+    } else {
+      global.setTimeout(injectTag, 1);
+    }
+  }
+  if (document.readyState === "complete") {
+    injectWhenIdle();
+  } else {
+    global.addEventListener("load", injectWhenIdle, { once: true });
+  }
 
   // 🔴 동의 기본값은 config 보다 먼저 dataLayer 에 들어가야 한다. 순서가 뒤집히면 거부 상태에서도
   // 첫 요청에 쿠키가 써진다. denied 여도 계측이 꺼지는 것은 아니고, 쿠키 없는 익명 집계로 내려간다

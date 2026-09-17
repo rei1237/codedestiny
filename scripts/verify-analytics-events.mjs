@@ -219,6 +219,17 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   window.cdSyncConsent();
 }
 
+/* ⑥-b gtag.js 는 load 뒤에 주입한다 — 첫 페인트 전 선행 요청이 되면 시뮬 LCP 가 약 2초 늘어난다 */
+{
+  const { window, calls } = boot();
+  const tags = () => window.document.querySelectorAll('script[src*="googletagmanager"]').length;
+  assert.equal(window.document.readyState, "loading", "대조 조건이 깨졌다 — load 전 시점에서 재야 한다");
+  assert.equal(tags(), 0, "gtag.js 를 load 전에 주입했다 — LCP 선행 요청이 된다");
+  assert.ok(calls.some((c) => c[0] === "config"), "주입을 미뤄도 config 는 즉시 dataLayer 에 쌓여야 한다");
+  await new Promise((resolve) => window.addEventListener("load", () => setTimeout(resolve, 20), { once: true }));
+  assert.equal(tags(), 1, "load 뒤에 gtag.js 가 정확히 1회 주입되지 않았다");
+}
+
 /* ⑦ React 라우트 전환분: page_view 가 "경로가 바뀐 경우"로 좁혀져 있는가 */
 {
   const provider = fs.readFileSync(path.join(ROOT, "app/providers/NavigationProvider.tsx"), "utf8");
