@@ -90,9 +90,16 @@ next: P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭
       홈 `SoftwareApplication`+`AggregateRating` 런타임 주입, 커밋
       `948cc990b`. 남은 것은 배포 후 Google Rich Results Test 실측(선택,
       요청 시)뿐.
-- [ ] 원 요청 22개 항목 중 미착수: `SEO-KEYWORD-MAP.md`, `SEO-CHANGELOG.md`,
-      허브 콘텐츠 재작성, 내부링크 재설계, E-E-A-T 강화, 경쟁사 SERP 조사,
-      Core Web Vitals 실측.
+- [x] `SEO-KEYWORD-MAP.md` — P5로 완료(2026-09-18,
+      [docs/seo/SEO-KEYWORD-MAP.md](../seo/SEO-KEYWORD-MAP.md), 커밋
+      `31fb5365f`). 기존 `SEARCH_INTENT_MAP.md`/`YEONGNYANGI_SEARCH_
+      STRATEGY.md`의 실측 데이터는 인용만 하고, 두 문서가 다루지 않던
+      타로·관상·꿈해몽·연애운·궁합·오라클·프리미엄 리포트·나크샤트라·인사이트
+      허브를 현재 배포 title 기준 `[편집]` 태그로 정리. 새 검색량 수치는
+      만들지 않음.
+- [ ] 원 요청 22개 항목 중 미착수: `SEO-CHANGELOG.md`, 허브 콘텐츠 재작성,
+      내부링크 재설계, E-E-A-T 강화, 경쟁사 SERP 조사, Core Web Vitals
+      실측.
 
 ## 정본 예시
 
