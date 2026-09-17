@@ -93,6 +93,7 @@
 
 .section h2,
 .access h2,
+.faq h2,
 .faq summary {
   margin: 0;
   color: var(--fi-ink);
@@ -143,7 +144,14 @@
 
 .faq {
   grid-column: 1 / -1;
-  padding-block: 12px;
+}
+
+.faq details {
+  border-top: 1px solid var(--fi-line);
+}
+
+.faq details:first-of-type {
+  margin-top: 14px;
 }
 
 .faq summary {

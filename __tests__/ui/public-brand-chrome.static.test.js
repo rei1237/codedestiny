@@ -31,7 +31,8 @@ test("다국어 기능 소개는 꽃돼지 읽기 템플릿을 공유한다", ()
   assert.match(introduction, /PublicFeatureIntroduction\.module\.css/);
   assert.match(introduction, /\/icons\/app-logo-512\.webp/);
   assert.match(introduction, /className=\{styles\.content\}/);
-  assert.match(introduction, /<details className=\{styles\.faq\}>/);
+  assert.match(introduction, /<section className=\{styles\.faq\}>/);
+  assert.match(introduction, /faq\.map\(/);
 });
 
 test("다국어 공통 크롬은 URL 로케일과 정책 정본 경로를 공유한다", () => {

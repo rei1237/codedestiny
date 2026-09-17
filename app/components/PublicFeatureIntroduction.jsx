@@ -13,7 +13,7 @@ export function introductionMetadata(locale, topic) {
 export default function PublicFeatureIntroduction({ locale, topic }) {
   const copy = FEATURE_INTRODUCTIONS[topic][locale];
   const ui = INTRO_UI[locale];
-  const faq = [{ question: ui.question, answer: ui.answer }];
+  const faq = [...(copy.faqs || []), { question: ui.question, answer: ui.answer }];
   const graph = [
     buildBreadcrumbJsonLd([{ name: ui.home, path: `/${locale}/` }, { name: copy.heading, path: introductionRoutes(topic)[locale] }]),
     buildFaqPageJsonLd(faq),
@@ -37,13 +37,16 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
         <p>{ui.access}</p>
         <a className={styles.cta} href={ctaHref}>{ui.start}</a>
       </section>
-      <details className={styles.faq}>
-        <summary>{ui.faq} · {ui.question}</summary>
-        <div className={styles.faqBody}>
-          <p>{ui.answer}</p>
-          <p className={styles.caution}>{ui.caution}</p>
-        </div>
-      </details>
+      <section className={styles.faq}>
+        <h2>{ui.faq}</h2>
+        {faq.map(({ question, answer }) => <details key={question}>
+          <summary>{question}</summary>
+          <div className={styles.faqBody}>
+            <p>{answer}</p>
+          </div>
+        </details>)}
+        <p className={styles.caution}>{ui.caution}</p>
+      </section>
     </div>
     <nav className={styles.related} aria-label={ui.related}>
       {INTRO_TOPICS.filter(key => key !== topic && FEATURE_INTRODUCTIONS[key][locale]).map(key => <Link key={key} href={`/${locale}/${key}/`}>{FEATURE_INTRODUCTIONS[key][locale].heading}</Link>)}

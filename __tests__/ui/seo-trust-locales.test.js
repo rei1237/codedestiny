@@ -54,7 +54,12 @@ test("feature introductions contain substantial native copy and real reciprocal 
     for (const locale of INTRO_LOCALES) {
       const copy = FEATURE_INTRODUCTIONS[topic][locale];
       const ui = INTRO_UI[locale];
-      const body = [copy.heading, ...copy.sections.flat(), ui.access, ui.question, ui.answer, ui.caution].join(" ");
+      assert.ok(Array.isArray(copy.faqs) && copy.faqs.length >= 2 && copy.faqs.length <= 4, `${locale}/${topic}: faqs must have 2-4 topic-specific items`);
+      const faqText = copy.faqs.flatMap(({ question, answer }) => [question, answer]);
+      for (const [question, answer] of copy.faqs.map(({ question, answer }) => [question, answer])) {
+        assert.ok(question.length > 0 && answer.length > 20, `${locale}/${topic}: faq entry too short`);
+      }
+      const body = [copy.heading, ...copy.sections.flat(), ui.access, ui.question, ui.answer, ui.caution, ...faqText].join(" ");
       assert.doesNotMatch(body, /[가-힣]|Translation pending/);
       assert.ok(locale === "en" ? body.split(/\s+/).length >= 450 : body.length >= 800, `${locale}/${topic}: insufficient editorial detail`);
       assert.equal(introductionRoutes(topic)[locale], `/${locale}/${topic}/`);
