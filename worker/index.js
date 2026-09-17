@@ -1344,8 +1344,13 @@ export default {
         }
         // 웹훅은 서버-서버 경로라 legacyShape 이 필요 없다(PortOne 은 HTTP 상태만 본다).
         // 콘솔 Endpoint 얼라이어스(/api/webhooks/portone)는 위 :1267 블록이 같은 판정으로 처리한다.
+        // 🔴 완전일치가 아니라 끝 슬래시 허용 정규식이어야 한다. "===" 였을 때 POST
+        // /api/payments/webhook/ 가 이 훅을 비껴가 아래 :1388 폴스루(구 handlePaymentRoutes)로
+        // 떨어졌다 — 그 안의 getRoutePath(worker/lib/http.js)가 끝 슬래시를 지워 "/webhook"으로
+        // 인식해, routes/payments.js 의 구 handleWebhook(별도 verifyPortOneWebhookSignature 보유,
+        // 2026-09-06 컷오버 때 다른 4개 구 핸들러와 달리 안 지워짐)이 대신 실행됐다(실측).
         if (request.method === "POST"
-          && url.pathname === "/api/payments/webhook") {
+          && /^\/api\/payments\/webhook\/*$/.test(url.pathname)) {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }

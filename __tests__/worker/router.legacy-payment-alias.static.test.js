@@ -57,4 +57,16 @@ describe("레거시 결제 별칭이 V2 컷오버를 우회하지 않는다", ()
     expect(fallthroughAt).toBeGreaterThan(-1);
     expect(hookAt).toBeLessThan(fallthroughAt);
   });
+
+  // /api/payments/webhook 훅이 완전일치("===")였을 때, 끝 슬래시가 붙은 POST
+  // /api/payments/webhook/ 는 이 훅을 비껴가 구 핸들러 폴스루(:1388)로 떨어졌다. 그 안의
+  // getRoutePath(worker/lib/http.js)가 끝 슬래시를 지워 "/webhook"으로 인식해, routes/payments.js
+  // 의 구 handleWebhook(별도 verifyPortOneWebhookSignature 보유, 2026-09-06 컷오버 때 다른 4개
+  // 구 핸들러(prepare·subscription/prepare·subscription/confirm·confirm)와 달리 안 지워짐)이
+  // 대신 실행됐다 — 실측 확인(2026-09-17). 완전일치로 되돌아가는 회귀를 여기서 막는다.
+  const trailingSlashWebhookHook = /^\/api\/payments\/webhook\/*$/;
+  test("/api/payments/webhook 훅은 끝 슬래시를 허용한다(완전일치가 아니다)", () => {
+    expect(routerCode).toContain(`/${trailingSlashWebhookHook.source}/`);
+    expect(routerCode).not.toMatch(/url\.pathname === "\/api\/payments\/webhook"/);
+  });
 });
