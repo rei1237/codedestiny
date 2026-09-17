@@ -469,8 +469,16 @@ export default function NeoOperationRoomResultPage() {
   });
   useEffect(() => {
     const recover = () => { if (document.visibilityState !== "hidden" && navigator.onLine) setRecoveryEpoch(value => value + 1); };
-    window.addEventListener("online", recover); document.addEventListener("visibilitychange", recover);
-    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+    window.addEventListener("online", recover);
+    window.addEventListener("pageshow", recover);
+    window.addEventListener("focus", recover);
+    document.addEventListener("visibilitychange", recover);
+    return () => {
+      window.removeEventListener("online", recover);
+      window.removeEventListener("pageshow", recover);
+      window.removeEventListener("focus", recover);
+      document.removeEventListener("visibilitychange", recover);
+    };
   }, []);
   useEffect(() => {
     let cancelled = false;
