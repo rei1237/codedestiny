@@ -1471,8 +1471,16 @@ export default function NeoOperationRoomPage() {
       if (isCurrent() && response?.status === 202 && data?.sessionId) window.location.assign(`/neo-operation-room/result?attemptId=${encodeURIComponent(data.sessionId)}`);
     };
     void recover();
-    window.addEventListener("online", recover); document.addEventListener("visibilitychange", recover);
-    return () => { window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+    window.addEventListener("online", recover);
+    window.addEventListener("pageshow", recover);
+    window.addEventListener("focus", recover);
+    document.addEventListener("visibilitychange", recover);
+    return () => {
+      window.removeEventListener("online", recover);
+      window.removeEventListener("pageshow", recover);
+      window.removeEventListener("focus", recover);
+      document.removeEventListener("visibilitychange", recover);
+    };
   }, [captureOwner, recoveryEpoch]);
 
   const [refineError, setRefineError] = useState("");
