@@ -1439,7 +1439,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     return { outcome: "completed", session: current, done: true };
   } catch (error) {
     // 모델/저장 예외를 생성 실패 환불로 보내지 않는다.
-    console.warn("[master-love-codex] delivery", clean(error?.message, 160));    return { outcome: "storage_failed" };
+    console.warn("[master-love-codex] delivery", clean(error?.message, 160));
+    return { outcome: "storage_failed" };
   } finally {
     await MasterLoveCodexSession.updateOne(lockFilter, { $set: { "generationProgress.lockedAt": null, "generationProgress.lockToken": "" } }).catch(() => {});
   }
