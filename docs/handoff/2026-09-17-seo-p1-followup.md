@@ -85,9 +85,14 @@ next: P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭
       세 라우트를 "삭제 금지"로 보류한 적 있으나, 그건 당시 세션 범위(metadata
       정리) 밖이라 보류한 것이었고 이번은 사용자가 명시적으로 P3로 지정한
       별도 건.
+- [x] structured data 확장 — P4로 완료(2026-09-17,
+      [2026-09-17-seo-p4-structured-data.md](2026-09-17-seo-p4-structured-data.md)).
+      홈 `SoftwareApplication`+`AggregateRating` 런타임 주입, 커밋
+      `948cc990b`. 남은 것은 배포 후 Google Rich Results Test 실측(선택,
+      요청 시)뿐.
 - [ ] 원 요청 22개 항목 중 미착수: `SEO-KEYWORD-MAP.md`, `SEO-CHANGELOG.md`,
-      허브 콘텐츠 재작성, 내부링크 재설계, structured data 확장, E-E-A-T 강화,
-      경쟁사 SERP 조사, Core Web Vitals 실측.
+      허브 콘텐츠 재작성, 내부링크 재설계, E-E-A-T 강화, 경쟁사 SERP 조사,
+      Core Web Vitals 실측.
 
 ## 정본 예시
 
