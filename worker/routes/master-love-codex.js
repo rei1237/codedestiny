@@ -29,7 +29,7 @@ import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
-import { assertCodexChapterQuality, codexChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, codexChapterFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexStagingChapter, parseChapterJson } from "../lib/master-love-codex-quality.js";
 import { buildCodexEvidence, formatCodexEvidence, CODEX_EVIDENCE_VERSION } from "../lib/master-love-codex-evidence.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -744,7 +744,7 @@ function buildMemory(chapters = []) {
 function publicSession(doc) {
   const modeDef = resolveMode(doc?.mode);
   const saved = new Map([...(doc?.chapters || []), ...(doc?.deliveryMeta?.savedChapters || [])]
-    .filter(row => row.ok !== false && modeDef.chapters.some(spec => spec.id === row.id && row.body?.length >= codexChapterFloor(spec)))
+    .filter(row => row.ok !== false && modeDef.chapters.some(spec => spec.id === row.id && row.body?.length >= codexDedupedChapterFloor(spec)))
     .map(row => [row.id, row]));
   const readable = [];
   for (const spec of modeDef.chapters) { if (!saved.has(spec.id)) break; readable.push(saved.get(spec.id)); }
@@ -1309,7 +1309,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
   let current = doc;
   try {
     const byId = new Map([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
-      .filter(chapter => chapter.ok !== false && modeDef.chapters.some(spec => spec.id === chapter.id && chapter.body?.length >= codexChapterFloor(spec)))
+      .filter(chapter => chapter.ok !== false && modeDef.chapters.some(spec => spec.id === chapter.id && chapter.body?.length >= codexDedupedChapterFloor(spec)))
       .map(chapter => [chapter.id, chapter]));
     const snapshotStore = dependencies.chapterSnapshotStore || (!dependencies.generateChapter ? createLlmCacheStore(env) : null);
     const snapshotKey = chapter => `codex-chapter:${sha256(JSON.stringify([sessionId, doc.inputHash, modeDef.mode, chapter.id, CODEX_EVIDENCE_VERSION, doc.deliveryMeta?.locale || "ko", "chapter-v2"]))}`;
@@ -1327,7 +1327,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         const content = normalizeChapterContent(cached.parsed);
         const recovered = dedupeChapterAgainst({ id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
           body: content.body, content, provider: clean(cached.chapter.provider, 40), ok: true }, [...byId.values()]);
-        if (recovered.body.length < codexChapterFloor(chapter)
+        if (recovered.body.length < codexDedupedChapterFloor(chapter)
             || hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(recovered.body).join("\n"))) continue;
         byId.set(chapter.id, recovered);
         if (chapter.jsonMode) current.loveDna = normalizeLoveDna(cached.parsed, modeDef.dnaMetrics);
@@ -1367,9 +1367,10 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           const failures = { ...current.deliveryMeta?.failures };
           // Sentences an earlier chapter already delivered are cut, not failed: the book
           // stays free of repeats without spending another paid attempt on the chapter.
+          const rawChars = result?.status === "ok" ? Number(result.chapter?.body?.length || 0) : 0;
           if (result?.status === "ok" && result.chapter?.body) result = { ...result, chapter: dedupeChapterAgainst(result.chapter, [...byId.values()]) };
           const valid = result?.status === "ok" && result.chapter?.id === chapter.id && result.chapter.ok
-            && result.chapter.body?.length >= codexChapterFloor(chapter)
+            && rawChars >= codexChapterFloor(chapter) && result.chapter.body?.length >= codexDedupedChapterFloor(chapter)
             && !hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(result.chapter.body).join("\n"));
           if (valid) { byId.set(chapter.id, result.chapter); delete errors[chapter.id]; }
           else if (result?.status === "deferred" || result?.failure?.kind === "provider_rejected") {
@@ -1411,13 +1412,13 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     }
     const chapters = modeDef.chapters.map(chapter => byId.get(chapter.id));
     const body = chapters.map(chapter => chapter.body).join("\n");
-    if (chapters.some((row, index) => row.body.length < codexChapterFloor(modeDef.chapters[index])) || hasRepeatedReportPassage(body)) {
+    if (chapters.some((row, index) => row.body.length < codexDedupedChapterFloor(modeDef.chapters[index])) || hasRepeatedReportPassage(body)) {
       // Chapters saved under an older contract can still collide. Keep the earliest copy and
       // send a chapter that no longer meets the floor back to generation (attempt cap still ends it).
       const kept = [];
       for (const [index, row] of chapters.entries()) {
         const deduped = dedupeChapterAgainst(row, kept);
-        if (deduped.body.length >= codexChapterFloor(modeDef.chapters[index])) { kept.push(deduped); byId.set(row.id, deduped); } else byId.delete(row.id);
+        if (deduped.body.length >= codexDedupedChapterFloor(modeDef.chapters[index])) { kept.push(deduped); byId.set(row.id, deduped); } else byId.delete(row.id);
       }
       if (kept.length < chapters.length) {
         const readable = [];

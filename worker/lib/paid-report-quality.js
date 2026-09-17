@@ -20,11 +20,23 @@ export function countPaidReportBodyChars(text) {
   return Array.from(paidReportBody(text).replace(/\s/gu, "")).length;
 }
 
+/**
+ * Comparison key for one sentence inside a body line — the same inline cleanup paidReportBody
+ * applies, without its whole-line heading filter. Deduping must use this exact key, or a sentence
+ * the repeat check flags (e.g. one starting with "제1장에서") is never removed.
+ */
+export function reportSentenceKey(sentence) {
+  return String(sentence || "").normalize("NFC")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_`#>|~]/g, "")
+    .replace(/\s/gu, "");
+}
+
 export function hasRepeatedReportPassage(text) {
   const sentences = paidReportBody(text).split(/[.!?。？！\n]+/u);
   const seen = new Set();
   for (const sentence of sentences) {
-    const normalized = sentence.replace(/\s/gu, "").trim();
+    const normalized = reportSentenceKey(sentence);
     if (normalized.length < 24) continue;
     if (seen.has(normalized)) return true;
     seen.add(normalized);

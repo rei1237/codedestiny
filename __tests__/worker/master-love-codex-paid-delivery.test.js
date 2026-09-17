@@ -196,3 +196,27 @@ it('public progress ignores duplicate IDs, apology text and stale numeric counte
   const payload = await (await route(new Request('https://mock.test/api/master-love-codex/session?sessionId=saved-codex'), {})).json();
   expect(payload.generationProgress).toEqual({ completed: 1, readable: 1, total: 20 }); expect(payload.chapters).toHaveLength(1);
 });
+
+// Real chapters share chart facts. Dedupe must cut those repeats without failing the chapter.
+for (const [name, ratio, lead] of [
+  ['shared evidence sentences near the floor', 0.76, ''],
+  ['a repeated sentence that starts with a chapter reference', 1.1, '제1장에서 본 것처럼 일간은 관계의 속도를 먼저 살피는 편입니다.'],
+]) it(`completes the book when later chapters repeat ${name}`, async () => {
+  const { hasRepeatedReportPassage } = await import('../../worker/lib/paid-report-quality.js');
+  const shared = ['출생시각을 모르는 명반은 정오를 가정해 계산했으므로 시주에 기대는 해석은 참고로만 읽어 주세요.',
+    '일간과 배우자궁의 관계는 이 책 전체에서 같은 계산 결과를 바탕으로 다른 장면에 적용합니다.',
+    '점수는 해석을 돕는 지표일 뿐이며 관계의 성공 확률이나 심리검사 결과를 뜻하지 않습니다.'];
+  provider.mockImplementation(async (_env, { chapter }) => {
+    const target = Math.ceil((chapter.minChars || 2400) * ratio);
+    let body = lead ? `${lead} ${chapter.id} 장은 같은 근거를 이 장의 생활 장면으로 옮겨 다시 읽어 봅니다.\n` : `${shared.join('\n')}\n`;
+    for (let i = 0; body.length < target; i++) body += `${chapter.id}의 ${i}번째 고유 근거로 생활 장면과 대응을 구체적으로 정리합니다.\n`;
+    return { status: 'ok', chapter: { id: chapter.id, title: chapter.title, order: chapter.order, symbol: chapter.symbol, body, chars: body.length, ok: true } };
+  });
+  for (let wave = 0; wave < 8 && docs[0].status !== 'completed'; wave++) await generate();
+  expect(docs[0].deliveryMeta.reviewRequired).not.toBe(true);
+  expect(docs[0].status).toBe('completed');
+  expect(docs[0].chapters).toHaveLength(20);
+  expect(provider).toHaveBeenCalledTimes(20);
+  expect(hasRepeatedReportPassage(docs[0].chapters.map(row => row.body).join('\n'))).toBe(false);
+  expect(refund).not.toHaveBeenCalled();
+});

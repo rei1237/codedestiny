@@ -82,7 +82,7 @@ function fixture(accessType = 'pass') {
     },
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'hasRepeatedReportPassage']);
+  load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/routes/ziwei-deep-report.js', ['handleZiweiDeepReportRoutes', 'handleGenerate', 'runZiweiDeepReportDeliveryBatch', 'handleResult', 'loadStoredReport', 'buildReportId', 'chaptersForDb', 'mergeChapters', 'publicStoredReport', 'accumulatedFromStored', 'reusableDeepChapters', 'isDeepChapterComplete', 'saveDeepCheckpoint', 'finishDeepDelivery', 'syncDeepExecution', 'replayCompletedDeepReport', 'runWithConcurrency', 'judgeDeliverable']);
   const post = body => ctx.handleZiweiDeepReportRoutes(new Request('https://mock.test/api/ziwei-deep-report/generate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idempotencyKey: 'original-paid-key', ...body }) }), {});
   return { ctx, post, get doc() { return doc; }, get calls() { return calls; }, get starts() { return starts; }, get refunds() { return refunds; }, fault: value => { fault = value; }, owner: value => { owner = value; }, permitted: value => { permitted = value; }, revoked: value => { revoked = value; } };

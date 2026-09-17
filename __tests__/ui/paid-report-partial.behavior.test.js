@@ -84,7 +84,7 @@ for (const mode of ["solo", "compat"]) {
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
       saveCodexDelivery: save, resultStorageUnavailable: storageError,
       hasRepeatedReportPassage: () => false, dedupeChapterAgainst: chapter => chapter,
-      codexChapterFloor: spec => Math.ceil((spec.minChars || 2400) * 0.7), countPaidReportBodyChars: body => body.replace(/\s/g, "").length,
+      codexChapterFloor: spec => Math.ceil((spec.minChars || 2400) * 0.7), codexDedupedChapterFloor: spec => Math.ceil((spec.minChars || 2400) * 0.5), countPaidReportBodyChars: body => body.replace(/\s/g, "").length,
       MasterLoveCodexSession: model, CHAPTER_BATCH_SIZE: 3, CHAPTER_CONCURRENCY: 3,
       buildMemory: () => "", runWithConcurrency: (items, _count, fn) => Promise.all(items.map(fn)),
       recoverCodexSession: async () => ({ session: stored }),
