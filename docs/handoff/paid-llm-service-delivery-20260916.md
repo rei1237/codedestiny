@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행·심화 자미 PDF 4행은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 네오 5행부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행·심화 자미 PDF 4행·네오 5행(우선 5개 시나리오만, D 실화면·F 전후 diff는 미실행)은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 나크샤트라 6행부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,8 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 네오 5행 — 우선 5개 시나리오 mock 완료(부분):** [행별 기록](../verification/neo-operation-room-paid-delivery-20260917.md). 인수인계가 지정한 5개 우선 재현(승인 직후 첫 생성 전 종료·1묶음 저장 뒤 문서 종료·pageshow/bfcache/focus 단독 복귀·checkpoint/완료 확인 유실·정상 completed 대 취소 구매 GET/POST 대조) 중 pageshow/focus 복구 리스너 누락 1건을 재현·수정했다(`NeoOperationRoomPage.tsx`/`NeoOperationRoomResultPage.tsx`, 마스터·초융합과 동일 패턴). 나머지 4건은 기존 통과 테스트로 이미 올바름을 대조 확인했다(새 결함 없음). 신규 행동 검사(`__tests__/ui/neo-wake-recovery.behavior.test.js`) 2/2, 기존 neo-paid-resume 5/5(7/7), worker 76/76, typecheck 0, Node 1,399/1,399, Jest 276 suite·3,874/3,874, build:worker dry-run 0, verify:neo·verify:neo-output-safety 회귀 없음. source `8c9f49664`를 안전 워크트리에서 main에 병합(`2dc2ea9cc`)하고 그사이 origin에 먼저 올라온 문서 커밋(`506579901`)도 병합(`2e07bc0bb`)해 push했다. 이 SHA의 PR CI는 무관한 기존 `verify:sitemap-drift`로 실패했으나 이후 다른 세션 커밋에서 자연 해소됐고, 현재 main 최신 커밋(문서 커밋 `9f8865c52`)의 전 레인이 success임을 확인했다([CI 35169520076](https://github.com/rei1237/codedestiny/actions/runs/35169520076)). **D(실제 Playwright 화면 렌더 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에 만들지 않았다 — 남은 경계.** root marketing dirty 84개는 병합 전후 동일하게 보존했다.
 
 **2026-09-17 심화 자미 PDF 4행 — mock A~F·main CI 완료:** [행별 기록](../verification/ziwei-deep-paid-delivery-20260917.md). 실행 완료 본문 누락·취소 구매 POST 재열람·화면 재개·문서 종료 뒤 서버 실행·완료 확인 유실·Storage 예외·공급자 완료 표시 7종을 재현/수정했다. 관련 Node62/Jest125·실제 고객8case·PDF62페이지/15장 전체 본문 추출·렌더 통과. 호출15→15·prompt36,012→36,012자. source `acdf20c386004505e643fd3db7976f640b655fdf`를 main fast-forward/push했고 [동일 SHA main CI 35123293719](https://github.com/rei1237/codedestiny/actions/runs/35123293719)는 모든 lane·CI required·Node1,397/Jest3,874 성공이다. root dirty84개·파일별 SHA256도 반영 전후 같았다. 다른 세션의 layout/fortune-chat과 Threads 작업은 보존했다. Threads 추가 뒤 VM mock 누락을 재현해 Node62와 공식 check:fast critical·Node1,397/Jest3,874를 통과했다. 반영 직전 다른 세션이 같은 보완을 `851cbe758`로 전달해 이를 보존/rebase했다. 그 SHA CI의 새 Threads 문서 frontmatter 누락 1건만 별도로 보완했다. 전달 SHA `1a622b55595daa7ed5cf1323d49c6a5415dd55d0`의 [main CI 35125744683](https://github.com/rei1237/codedestiny/actions/runs/35125744683)는 Static·CI required success이며 문서 tier의 Type/Build/Critical은 skipped다. **4행을 mock 완료로 체크했다.** 네오부터 구매70키+후속3경로는 개별 A~F 미실행이다.
 
