@@ -8,6 +8,9 @@ const ast = ts.createSourceFile('client.tsx', source, ts.ScriptTarget.Latest, tr
 let fn;
 function visit(node) { if (ts.isFunctionDeclaration(node) && node.name?.text === 'pollZiweiResult') fn = node; ts.forEachChild(node, visit); }
 visit(ast);
+let resumeEffect;
+function visitResumeEffect(node) { if (ts.isCallExpression(node) && node.expression.getText(ast) === 'useEffect' && node.arguments[0]?.getText(ast).includes('setResumeEpoch(value => value + 1)')) resumeEffect = node.arguments[0]; ts.forEachChild(node, visitResumeEffect); }
+visitResumeEffect(ast);
 function fixture() {
   const posts = [], partials = []; let current = true, wave = 0;
   const ctx = vm.createContext({ exports: {}, RESULT_POLL_MAX_ATTEMPTS: 12, RESULT_POLL_BACKOFF_MS: [0], sleep: async () => {}, toText: value => String(value || ''), document: { visibilityState: 'visible' },
@@ -45,4 +48,13 @@ test('저장 및 조회 장애는 원래 서버 ID로 다시 요청한다', asyn
     return { status: calls === 3 ? 503 : 200, ok: calls !== 3, json: async () => calls === 3 ? ({ ok: false, retryable: true }) : ({ ok: true, consultation: { status: 'completed' } }) };
   };
   assert.equal((await f.ctx.pollZiweiResult('saved', f.isCurrent, f.onPartial)).consultation.status, 'completed'); assert.equal(calls, 5);
+});
+test('자미두수 화면은 pageshow와 focus만 발생해도 저장된 상담을 다시 조회한다', () => {
+  assert.ok(resumeEffect);
+  const handlers = new Map(), surface = name => ({ addEventListener: (key, fn) => handlers.set(name + key, fn), removeEventListener: key => handlers.delete(name + key) });
+  let epoch = 0;
+  const ctx = { window: surface('window:'), document: { ...surface('document:'), visibilityState: 'visible' }, setResumeEpoch: fn => { epoch = fn(epoch); } };
+  const cleanup = vm.runInNewContext('(' + resumeEffect.getText(ast) + ')()', ctx);
+  for (const key of ['window:pageshow', 'window:focus']) { assert.equal(typeof handlers.get(key), 'function', key); handlers.get(key)(); }
+  assert.equal(epoch, 2); cleanup(); assert.equal(handlers.size, 0);
 });
