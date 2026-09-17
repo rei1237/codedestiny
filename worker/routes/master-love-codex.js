@@ -1465,8 +1465,18 @@ async function handleSessions(request, env) {
   if (!auth) return loginRequired();
   await connectDb(env);
   const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] } })
-    .sort({ createdAt: -1 }).limit(20).select("id mode status createdAt").lean();
-  return json({ ok: true, sessions: docs.map(doc => ({ sessionId: doc.id, mode: sessionMode(doc), status: doc.status, createdAt: doc.createdAt })) });
+    .sort({ createdAt: -1 }).limit(20)
+    .select("id mode status createdAt birthInfo.name partnerInfo.name chapters.id chapters.ok deliveryMeta.savedChapters.id deliveryMeta.savedChapters.ok").lean();
+  // Library cards only: chapter ids (never bodies) give written/total without loading a book per row.
+  return json({ ok: true, sessions: docs.map(doc => {
+    const modeDef = resolveMode(sessionMode(doc));
+    const written = new Set([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
+      .filter(row => row?.ok !== false && modeDef.chapters.some(spec => spec.id === row?.id)).map(row => row.id));
+    const total = modeDef.chapters.length;
+    return { sessionId: doc.id, mode: sessionMode(doc), status: doc.status, createdAt: doc.createdAt,
+      name: clean(doc.birthInfo?.name, 40), partnerName: clean(doc.partnerInfo?.name, 40),
+      generationProgress: { completed: doc.status === "completed" ? total : Math.min(written.size, total), total } };
+  }) });
 }
 
 export async function handleMasterLoveCodexRoutes(request, env = {}, dependencies = {}) {

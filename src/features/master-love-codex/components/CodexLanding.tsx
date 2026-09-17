@@ -11,6 +11,7 @@
  *    거짓 가격이 되므로 두 상품을 나란히 세운다. 금액은 전부 PriceBadge(서버 조회)다.
  */
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Check, ChevronLeft, Home } from "lucide-react";
@@ -33,12 +34,14 @@ interface CodexLandingProps {
   /** 어느 상품 카드로 들어왔는지 — 입력 화면의 상대 정보 섹션이 미리 펼쳐진다 */
   onEnter: (intent?: MasterLoveCodexMode) => void;
   onReplayPrologue: () => void;
+  /** 결제한 책이 있을 때만 채워지는 내 서재 — 다시 찾아온 구매자가 스크롤 없이 책을 연다 */
+  library?: ReactNode;
 }
 
 /** 하단 고정 바는 추천 상품(궁합)의 금액을 든다 — 눌렀을 때 시작되는 상품과 반드시 같아야 한다. */
 const FLOATING_MODE: MasterLoveCodexMode = "compat";
 
-export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, onReplayPrologue }: CodexLandingProps) {
+export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, onReplayPrologue, library }: CodexLandingProps) {
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
   const heroSpecs = useCodexContentCopy("heroSpecs", CODEX_HERO_SPECS);
@@ -57,6 +60,8 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
           {copy.homeButton}
         </Link>
       </nav>
+
+      {library}
 
       {/* ── 히어로 ─────────────────────────────────────────────────────────── */}
       <div className="flex flex-col items-center justify-center pb-8 pt-14 text-center">

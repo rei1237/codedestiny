@@ -717,21 +717,138 @@
   .gaugeRing,
   .metricFill { transition: none; transform: none; }
 }
-.purchaseRecovery {
+/* 내 서재 — 결제한 책을 다시 펼치는 입구. 상품 카드와 같은 잉크 위 얇은 금테 문법. */
+.library {
+  padding-block: 28px 8px;
+  scroll-margin-top: 24px;
+}
+.libraryEyebrow {
+  font-family: var(--font-serif);
+  font-size: 0.75rem;
+  letter-spacing: 0.24em;
+  color: var(--codex-gold);
+}
+.libraryHeading {
+  margin-top: 10px;
+  font-family: var(--font-serif);
+  font-size: clamp(1.375rem, 4.4vw, 1.75rem);
+  line-height: 1.4;
+  color: var(--codex-ink-text);
+  word-break: keep-all;
+}
+.libraryDesc {
+  margin-top: 8px;
+  font-size: var(--codex-caption);
+  line-height: 1.7;
+  color: var(--codex-ink-text-muted);
+  word-break: keep-all;
+}
+.libraryList {
   display: grid;
-  gap: 0.75rem;
-  max-width: 48rem;
-  margin: 1rem auto;
-  padding: 1rem;
+  gap: 12px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
 }
-.purchaseRecovery button {
+.libraryCard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  padding: 18px 20px;
+  border: 1px solid var(--codex-rule);
+  border-radius: 3px;
+  background: var(--codex-surface);
+  transition: border-color var(--cd-dur-base, 220ms) ease;
+}
+.libraryCard:hover { border-color: var(--codex-gold-dim); }
+.libraryCardPending { border-color: var(--codex-gold-dim); }
+.libraryCardBody {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+.libraryEdition {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--codex-ink-text-muted);
+  overflow-wrap: anywhere;
+}
+.libraryBookTitle {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: var(--codex-ink-text);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.libraryStatus {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 2px 10px;
+  border: 1px solid var(--codex-surface-line);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--codex-silver);
+  font-variant-numeric: tabular-nums;
+}
+.libraryStatusActive { color: var(--codex-gold); border-color: var(--codex-gold-dim); }
+.libraryProgress {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: 2px;
+  margin-top: 4px;
+  background: var(--codex-rule);
+}
+.libraryProgress > span {
+  display: block;
+  height: 100%;
+  background: var(--codex-gold);
+}
+.libraryAction {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 144px;
   min-height: 44px;
-  padding: 0.75rem 1rem;
-  border: 1px solid currentColor;
-  border-radius: 0.75rem;
-  color: inherit;
+  padding: 0 20px;
+  border: 1px solid var(--codex-gold-dim);
+  border-radius: 999px;
   background: transparent;
-  text-align: left;
+  color: var(--codex-gold);
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
   cursor: pointer;
+  transition: border-color var(--cd-dur-base, 220ms) ease, background-color var(--cd-dur-base, 220ms) ease;
 }
-.purchaseRecovery button:disabled { opacity: 0.6; cursor: wait; }
+.libraryActionPrimary { background: rgba(232, 213, 163, 0.1); }
+.libraryAction:hover:not(:disabled) { border-color: var(--codex-gold); background: rgba(232, 213, 163, 0.16); }
+.libraryAction:focus-visible { outline: 2px solid var(--codex-gold); outline-offset: 3px; }
+.libraryAction:disabled { opacity: 0.55; cursor: wait; }
+.libraryError {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: #ffb4b4;
+}
+@media (max-width: 479px) {
+  .libraryAction { width: 100%; }
+  .libraryProgress { max-width: none; }
+}
+.readerLibraryLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+}
+

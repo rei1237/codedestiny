@@ -22,8 +22,10 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { Download, Library, Loader2 } from "lucide-react";
 import CodexShell from "./CodexShell";
+import { CODEX_LIBRARY_ANCHOR } from "./CodexLibrary";
 import CodexSpine from "./CodexSpine";
 import CodexActInterstitial from "./CodexActInterstitial";
 import ChapterSection, { type CodexChapterData } from "./CodexChapter";
@@ -313,6 +315,12 @@ export default function CodexReader({
           {error ? (
             <p role="alert" className="mt-5 text-[0.875rem]" style={{ color: "#ffb4b4" }}>{error}</p>
           ) : null}
+          <p className="mt-6">
+            <Link href={`/master-love-codex#${CODEX_LIBRARY_ANCHOR}`} className={`${styles.quiet} ${styles.readerLibraryLink}`}>
+              <Library className="h-3.5 w-3.5" aria-hidden="true" />
+              {copy.libraryNavLink}
+            </Link>
+          </p>
         </CodexReveal>
       </div>
 

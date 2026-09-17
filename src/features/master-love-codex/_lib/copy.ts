@@ -207,6 +207,17 @@ export interface MasterLoveCodexCopy {
   resultBackToLanding: string;
   resultIncompleteNotice: string;
   resultContinueWriting: string;
+  libraryEyebrow: string;
+  libraryTitle: string;
+  libraryDesc: string;
+  libraryNavLink: string;
+  libraryStatusCompleted: string;
+  libraryStatusWriting: (done: number, total: number) => string;
+  libraryStatusPaused: (done: number, total: number) => string;
+  libraryStatusPurchased: string;
+  libraryReadAgain: string;
+  libraryContinue: string;
+  libraryStart: string;
   /** 결과 화면이 스스로 남은 장을 이어쓰는 동안의 안내. 이 화면에 머무르면 완성된다는 뜻이다. */
   resultResumingNotice: (written: number, total: number, readable?: number) => string;
   /** 이어쓰기가 확정 실패했을 때. 결제와 이미 쓰인 장이 보존된다는 것을 반드시 함께 말한다. */
@@ -423,6 +434,17 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   resultBackToLanding: "Back to the codex",
   resultIncompleteNotice: "This codex has not been finished yet.",
   resultContinueWriting: "Continue writing",
+  libraryEyebrow: "My Library",
+  libraryTitle: "Your codex shelf",
+  libraryDesc: "Every codex you open stays here. Come back and read it again anytime.",
+  libraryNavLink: "My library",
+  libraryStatusCompleted: "Complete",
+  libraryStatusWriting: (done, total) => `Writing · ${done}/${total}`,
+  libraryStatusPaused: (done, total) => `Paused · ${done}/${total}`,
+  libraryStatusPurchased: "Paid · not started",
+  libraryReadAgain: "Read again",
+  libraryContinue: "Continue writing",
+  libraryStart: "Start writing",
   resultResumingNotice: (written, total, readable = written) => `Writing continues · ${written}/${total} saved, ${readable} readable. You can return to this purchase after closing the page.`,
   resultResumeFailedNotice: "Writing stopped. Your payment and the chapters written so far are kept — you can pick up where it left off.",
   resultResumeRetry: "Resume writing",
@@ -636,6 +658,17 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "인연의 서 화면으로",
     resultIncompleteNotice: "아직 다 쓰이지 않은 인연의 서입니다.",
     resultContinueWriting: "이어 쓰기",
+    libraryEyebrow: "내 서재",
+    libraryTitle: "내 인연의 서",
+    libraryDesc: "펼쳤던 책은 이곳에 보관됩니다. 언제든 다시 펼쳐 읽을 수 있습니다.",
+    libraryNavLink: "내 서재",
+    libraryStatusCompleted: "완성",
+    libraryStatusWriting: (done, total) => `집필 중 · ${done}/${total}장`,
+    libraryStatusPaused: (done, total) => `집필 멈춤 · ${done}/${total}장`,
+    libraryStatusPurchased: "결제 완료 · 집필 전",
+    libraryReadAgain: "다시 읽기",
+    libraryContinue: "이어서 집필",
+    libraryStart: "집필 시작",
     resultResumingNotice: (written, total, readable = written) => `이어 쓰는 중 · ${written}/${total}장 저장, ${readable}장 읽기 가능. 화면을 닫아도 서버가 이어 쓰며, 같은 구매본으로 돌아올 수 있습니다.`,
     resultResumeFailedNotice: "이어 쓰기가 멈췄습니다. 결제와 지금까지 쓰인 장은 그대로 보존되며, 멈춘 자리에서 다시 이어 쓸 수 있습니다.",
     resultResumeRetry: "이어 쓰기 다시 시도",
@@ -847,6 +880,17 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "縁の書の画面へ",
     resultIncompleteNotice: "まだ書き終えていない縁の書です。",
     resultContinueWriting: "続きを書く",
+    libraryEyebrow: "マイ書斎",
+    libraryTitle: "わたしの縁の書",
+    libraryDesc: "開いた書はここに保管されます。いつでも読み返せます。",
+    libraryNavLink: "マイ書斎",
+    libraryStatusCompleted: "完成",
+    libraryStatusWriting: (done, total) => `執筆中 · ${done}/${total}章`,
+    libraryStatusPaused: (done, total) => `執筆停止 · ${done}/${total}章`,
+    libraryStatusPurchased: "決済済み · 執筆前",
+    libraryReadAgain: "もう一度読む",
+    libraryContinue: "続きを執筆",
+    libraryStart: "執筆を始める",
     resultResumingNotice: (written, total, readable = written) => `執筆中 · ${written}/${total}章保存、${readable}章閲覧可能。画面を閉じてもサーバーで続行し、同じ購入分に戻れます。`,
     resultResumeFailedNotice: "書き続けるのが止まりました。お支払いとこれまでに書かれた章はそのまま保管されており、止まったところから再開できます。",
     resultResumeRetry: "続きを書き直す",
@@ -1058,6 +1102,17 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "返回情缘之书页面",
     resultIncompleteNotice: "这本情缘之书还没有写完。",
     resultContinueWriting: "继续书写",
+    libraryEyebrow: "我的书房",
+    libraryTitle: "我的情缘之书",
+    libraryDesc: "打开过的书都保存在这里，随时可以再次阅读。",
+    libraryNavLink: "我的书房",
+    libraryStatusCompleted: "已完成",
+    libraryStatusWriting: (done, total) => `撰写中 · ${done}/${total}章`,
+    libraryStatusPaused: (done, total) => `已暂停 · ${done}/${total}章`,
+    libraryStatusPurchased: "已付款 · 尚未开始",
+    libraryReadAgain: "再次阅读",
+    libraryContinue: "继续撰写",
+    libraryStart: "开始撰写",
     resultResumingNotice: (written, total, readable = written) => `继续书写中 · 已保存 ${written}/${total} 章，可阅读 ${readable} 章。关闭页面后服务器会继续，可返回同一购买结果。`,
     resultResumeFailedNotice: "书写已中断。您的付款与已写成的章节都完整保留，可以从中断处继续。",
     resultResumeRetry: "重新继续书写",
@@ -1269,6 +1324,17 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultBackToLanding: "返回情緣之書頁面",
     resultIncompleteNotice: "這本情緣之書還沒有寫完。",
     resultContinueWriting: "繼續書寫",
+    libraryEyebrow: "我的書房",
+    libraryTitle: "我的情緣之書",
+    libraryDesc: "打開過的書都保存在這裡，隨時可以再次閱讀。",
+    libraryNavLink: "我的書房",
+    libraryStatusCompleted: "已完成",
+    libraryStatusWriting: (done, total) => `撰寫中 · ${done}/${total}章`,
+    libraryStatusPaused: (done, total) => `已暫停 · ${done}/${total}章`,
+    libraryStatusPurchased: "已付款 · 尚未開始",
+    libraryReadAgain: "再次閱讀",
+    libraryContinue: "繼續撰寫",
+    libraryStart: "開始撰寫",
     resultResumingNotice: (written, total, readable = written) => `繼續書寫中 · 已儲存 ${written}/${total} 章，可閱讀 ${readable} 章。關閉頁面後伺服器會繼續，可返回同一購買結果。`,
     resultResumeFailedNotice: "書寫已中斷。您的付款與已寫成的章節都完整保留，可以從中斷處繼續。",
     resultResumeRetry: "重新繼續書寫",

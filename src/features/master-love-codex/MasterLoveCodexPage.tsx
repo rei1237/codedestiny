@@ -30,6 +30,7 @@ import {
 import { PriceBadge } from "@/app/components/PriceBadge";
 import CodexAmbience from "./components/CodexAmbience";
 import CodexLanding from "./components/CodexLanding";
+import CodexLibrary, { type CodexLibraryPurchase, type CodexLibrarySession } from "./components/CodexLibrary";
 import CodexPrologueScene from "./components/CodexPrologueScene";
 import CodexBirthGate, { EMPTY_CODEX_BIRTH, EMPTY_CODEX_PARTNER, type CodexBirthInput } from "./components/CodexBirthGate";
 import CodexFloatingCta from "./components/CodexFloatingCta";
@@ -196,8 +197,8 @@ export default function MasterLoveCodexPage() {
   // 결과 페이지로 이어쓰기를 넘겼는지. 넘긴 뒤에는 이 화면의 배치 루프가 더 돌면 안 된다.
   const handedOffRef = useRef(false);
   const [generationError, setGenerationError] = useState("");
-  const [storedSessions, setStoredSessions] = useState<Array<{ sessionId: string; mode: MasterLoveCodexMode; status: string }>>([]);
-  type RecoverablePurchase = { orderId: string; featureKey: string; requestId: string; status: string };
+  const [storedSessions, setStoredSessions] = useState<CodexLibrarySession[]>([]);
+  type RecoverablePurchase = CodexLibraryPurchase;
   const [storedPurchases, setStoredPurchases] = useState<RecoverablePurchase[]>([]);
   const recoveredPurchaseRef = useRef<RecoverablePurchase | null>(null);
   const [recovering, setRecovering] = useState(false);
@@ -650,18 +651,15 @@ export default function MasterLoveCodexPage() {
     return (
       <>
         {ambience}
-        {(storedSessions.length > 0 || storedPurchases.length > 0) && <nav className={codexStyles.purchaseRecovery} aria-label={copy.resumeButton}>
-          {storedPurchases.map(item => <button key={item.orderId} type="button" disabled={recovering}
-            onClick={() => { void recoverStoredPurchase(item); }}>
-            {masterLoveCodexBilling(item.featureKey.endsWith("-compat") ? "compat" : "solo", locale).title} · {copy.resumeButton}
-          </button>)}
-          {storedSessions.map(item => <button key={item.sessionId} type="button" disabled={recovering}
-            onClick={() => { void recoverStoredSession(item.sessionId); }}>
-            {masterLoveCodexBilling(item.mode, locale).title} · {item.status === "completed" ? copy.resumeButton : copy.retryButton}
-          </button>)}
-          {error && <p role="alert">{error}</p>}
-        </nav>}
         <CodexLanding
+          library={<CodexLibrary
+            sessions={storedSessions}
+            purchases={storedPurchases}
+            busy={recovering}
+            error={error}
+            onOpenSession={(sessionId) => { void recoverStoredSession(sessionId); }}
+            onStartPurchase={(purchase) => { void recoverStoredPurchase(purchase); }}
+          />}
           hasSeenPrologue={hasSeenPrologue}
           chapterCount={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
           onEnter={enterCodex}
