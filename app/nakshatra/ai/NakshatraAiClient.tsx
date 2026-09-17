@@ -270,7 +270,15 @@ export default function NakshatraAiClient() {
     void recover();
     window.addEventListener("online", recover);
     document.addEventListener("visibilitychange", recover);
-    return () => { busyRef.current = false; window.removeEventListener("online", recover); document.removeEventListener("visibilitychange", recover); };
+    window.addEventListener("pageshow", recover);
+    window.addEventListener("focus", recover);
+    return () => {
+      busyRef.current = false;
+      window.removeEventListener("online", recover);
+      document.removeEventListener("visibilitychange", recover);
+      window.removeEventListener("pageshow", recover);
+      window.removeEventListener("focus", recover);
+    };
   }, [captureOwner, pollResult, accountEpoch]);
 
   const startConsult = useCallback(async (payload: Record<string, unknown>, access: Record<string, unknown>) => {
