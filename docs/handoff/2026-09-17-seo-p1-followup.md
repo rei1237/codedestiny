@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: P1 전부 완료(zh-TW 4허브, compatibility 다국어화, 소개 페이지 FAQ 보강). 다음은 P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 택1
+next: P1 4건 작업 완료·push(zh-TW 4허브, compatibility 다국어화, 소개 페이지 FAQ 보강, sitemap 드리프트 정리). CI 초록 여부는 미확인 — gh run list부터 실측할 것
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -25,10 +25,16 @@ next: P1 전부 완료(zh-TW 4허브, compatibility 다국어화, 소개 페이�
       `docs/handoff/2026-09-17-zh-tw-priority-followup.md` 참고.
 - [x] **P1 — compatibility 다국어화**: `619d408db`(2026-09-17)로 completed·push됨.
       compatibility/saju-compatibility/sukuyo-compatibility 3종 × en/ja/zh/zh-TW.
-      ⚠️ 이 커밋이 verify-adsense-readiness.mjs 50자 하한을 어긴 description 6곳을
-      남겨 CI(Build Pages and Worker)가 실패 중이었음 — 다른 세션(code-destiny-74)이
-      최소 수정으로 진행 중이었고, 2026-09-17 기준 결과 미확인(다음 세션에서
-      `git log --oneline -5`로 반영 여부 먼저 확인할 것).
+      이 커밋이 verify-adsense-readiness.mjs 50자 하한을 어긴 description 6곳(zh/zh-TW,
+      34~43자)을 남겨 CI(PR CI → Static guards)가 실패했음. 다른 세션
+      (code-destiny-74)이 `6193d7206`(2026-09-17)으로 도입구를 붙여 56~59자로
+      보강했으나, 그 콘텐츠 변경이 sitemap lastmod 드리프트를 새로 만들어
+      "Verify the tracked sitemap matches its sources" 가드가 또 실패(`gh run
+      view 35206359699`로 실측 확인) → 이 세션이 `bd44f2854`(2026-09-17)로
+      `npm run sitemap:generate` 재실행해 드리프트 정리·push. **다음 세션 첫
+      할 일은 `bd44f2854` 기준 CI가 전부 초록인지 `gh run list --branch main
+      --limit 5`로 재확인하는 것** — 이 세션은 push까지만 하고 그 결과를
+      기다리지 못함.
 - [x] **P1 — 로케일 소개 페이지 콘텐츠 얕음**: `09259ed39`(2026-09-17)로 완료·push됨.
       `PublicFeatureIntroduction` 기반 11개 허브(saju/vedic/astrology/tarot/
       fortune-tea-house/destiny-compass/psychotest/sukuyo-compatibility-ai/
@@ -76,16 +82,17 @@ npm run check:fast   # 코드 수정 시
 zh-TW 4개 허브 배포 후 실제 트래픽 반응 — 이 세션에서는 배포 직후라 실측 불가,
 후속 확인은 GSC 접근이 생기는 시점에.
 
-CI(Build Pages and Worker)가 `619d408db`의 description 50자 미달로 실패 중이었고
-다른 세션(code-destiny-74)이 수정을 진행하고 있었음 — 이 세션 종료 시점에
-origin/main(`09259ed39`)에는 그 수정이 아직 반영되지 않음(fetch 확인 완료,
-2026-09-17). 다음 세션은 **첫 문장으로 `git fetch origin main && git log
---oneline origin/main -5`를 실행해 그 수정 커밋이 들어왔는지, CI가 녹색인지부터
-확인**한 뒤 P2/P3로 넘어갈 것.
+`bd44f2854`(sitemap 드리프트 정리) push 직후 CI 결과를 이 세션은 기다리지
+못함 — `619d408db`(compatibility 다국어화) 이후 이미 두 차례(description
+50자 미달 → sitemap 드리프트) 연쇄로 CI가 깨졌던 이력이 있으므로, 초록
+확정 전까지는 "해소됨"으로 단정하지 말 것.
 
 ## 다음 세션 첫 문장
 
-`git fetch origin main -q && git log --oneline origin/main -5` — 위 CI 수정
-반영 여부와 P1 3건(zh-TW, compatibility, 소개 FAQ) 모두 origin/main에 있는지
-확인 후, P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자에게
-우선순위 확인.
+`gh run list --branch main --limit 6` — `bd44f2854` 기준 PR CI(Static guards
+포함)가 전부 success 인지 실측 확인. 여전히 실패 중이면 `gh run view
+<run-id>`로 실패 스텝을 먼저 특정한 뒤 고칠 것(추측으로 고치지 말 것 —
+이번에 description 길이 수정이 sitemap 드리프트를 유발한 것처럼, 수정 하나가
+다른 가드를 깨뜨릴 수 있음). 초록 확인되면 P1 4건(zh-TW, compatibility,
+소개 FAQ, sitemap 정리) 모두 완료로 보고, P2(sitemap 중복 제출) 또는
+P3(죽은 리다이렉트 스텁 정리) 중 사용자에게 우선순위 확인.
