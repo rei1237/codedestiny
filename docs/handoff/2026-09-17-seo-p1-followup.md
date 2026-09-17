@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: zh-TW astrology/vedic/tarot 우선순위 — docs/handoff/2026-09-17-zh-tw-priority-followup.md 부터 읽을 것
+next: zh-TW 4개 허브 전부 완료. 다음은 P1 나머지(compatibility 다국어화, 소개 페이지 콘텐츠 보강) 중 택1
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -19,8 +19,9 @@ next: zh-TW astrology/vedic/tarot 우선순위 — docs/handoff/2026-09-17-zh-tw
 
 ## 남은 작업
 
-- [x] **P1 — zh-TW 번역 4개 허브 중 saju**: `ea3417fb6`(2026-09-17)로 완료·push됨.
-      astrology/vedic/tarot 3개는 트래픽 근거 부족으로 범위 밖 —
+- [x] **P1 — zh-TW 번역 4개 허브 전부(saju, vedic, astrology, tarot)**:
+      `ea3417fb6`, `70302613b`(2026-09-17)로 완료·push됨. 우선순위는 트래픽
+      근거 없이 사용자 지시로 순서 없이 전부 진행 —
       `docs/handoff/2026-09-17-zh-tw-priority-followup.md` 참고.
 - [ ] **P1 — compatibility 다국어화**: en/ja/zh/zh-TW 전부 없음(ko만 존재).
 - [ ] **P1 — 로케일 소개 페이지 콘텐츠 얕음**: `PublicFeatureIntroduction` 기반
@@ -56,5 +57,5 @@ npm run check:fast   # 코드 수정 시
 
 ## 모르는 것
 
-astrology/vedic/tarot zh-TW 순서(실제 검색량/트래픽 데이터 없음) —
-`docs/handoff/2026-09-17-zh-tw-priority-followup.md`로 이관.
+zh-TW 4개 허브 배포 후 실제 트래픽 반응 — 이 세션에서는 배포 직후라 실측 불가,
+후속 확인은 GSC 접근이 생기는 시점에.
