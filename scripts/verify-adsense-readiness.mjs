@@ -1354,9 +1354,11 @@ function verifyRobots(baseDir) {
     /user-agent:\s*mediapartners-google[\s\S]*?allow:\s*\/\s*(?:\r?\n|$)/i.test(robotsText),
     `${robotsPath}: Mediapartners-Google must explicitly allow /`,
   );
+  // 통합 sitemap.xml 선언은 2026-09-17(`579e154dd`)에 크롤러 중복 제출 해소를 위해
+  // 의도적으로 뺐다 — 로케일 5개(sitemap-ko/ja/en/zh/zh-tw.xml)가 정본 제출 경로다.
   assert(
-    /sitemap:\s*https:\/\/code-destiny\.com\/sitemap\.xml/i.test(robotsText),
-    `${robotsPath}: missing sitemap directive`,
+    /sitemap:\s*https:\/\/code-destiny\.com\/sitemap-[a-z-]+\.xml/i.test(robotsText),
+    `${robotsPath}: missing locale sitemap directive`,
   );
   // 🔴 User-agent 그룹 단위로 본다. 예전에는 파일 어디든 `Disallow: /` 가 있으면 실패시켰는데,
   // 그러면 학습 전용 크롤러(CCBot) 하나를 막는 것만으로 "사이트 전체 차단" 으로 오인한다.

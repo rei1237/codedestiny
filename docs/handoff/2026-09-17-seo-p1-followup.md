@@ -1,7 +1,8 @@
 ---
 status: active
 updated: 2026-09-17
-next: P1 4건 + P2(sitemap 중복 제출, `579e154dd`) 완료·push됨. 다음은 P3(죽은 리다이렉트 스텁 정리) 또는 원 요청 22개 중 미착수 항목 — 사용자 확인 후 착수
+next: P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭제, `a8909dcc1`)
+  완료·push됨. 다음은 원 요청 22개 중 미착수 항목 — 사용자 확인 후 착수
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -67,9 +68,21 @@ next: P1 4건 + P2(sitemap 중복 제출, `579e154dd`) 완료·push됨. 다음�
       `sitemap.xml` 선언만 제거, 로케일 5개(`sitemap-ko/ja/en/zh/zh-tw.xml`)는
       유지. `generate-sitemap.mjs`는 수정 없음(통합본 자체는 계속 생성, 크롤러
       광고만 중단). 상세: `docs/handoff/2026-09-17-seo-p2-sitemap-dedup.md`.
-- [ ] **P3 — 죽은 리다이렉트 스텁 정리**: `app/en-us/`, `app/ja-jp/`, `app/zh-cn/`
-      (옛 URL 스킴 호환용, sitemap 미참조 — 삭제 전 코딩 원칙 9 3면 확인).
-      다음 착수 후보 — 아직 조사 시작 전.
+- [x] **P3 — 죽은 리다이렉트 스텁 정리**: `a8909dcc1`(2026-09-17)로 완료·push됨.
+      `app/en-us/`, `app/ja-jp/`, `app/zh-cn/` 삭제. deletion-auditor로 코딩
+      원칙 9(소스·테스트·verify 3면) 확인 결과: import 0건, sitemap/robots
+      미참조, 실제 구URL→신URL 301은 `public/_redirects`(엣지)가 이미 전담—
+      Next.js 라우트는 도달 불가능한 죽은 코드였음. 같은 커밋에서 낡은 참조도
+      정리: `verify-adsense-readiness.mjs`의 `rootMetadataAllowedRoutes` 3개
+      엔트리 제거, `adsense-route-policy.js`의 `LOCALE_ROOT_PATHS` 3개 제거
+      (기본 deny 로 여전히 차단됨 — `verify-adsense-route-policy.mjs` 통과
+      확인). `check:fast` 전체 통과(jest 3881/3881). `public/_redirects`의
+      `/en-us`·`/ja-jp`·`/zh-cn` 301 규칙은 건드리지 않음(실제 리다이렉트
+      동작은 여기서만 나옴).
+      과거 이력: `docs/handoff/seo-naver-diagnostic-2026-08-16.md:329`가 같은
+      세 라우트를 "삭제 금지"로 보류한 적 있으나, 그건 당시 세션 범위(metadata
+      정리) 밖이라 보류한 것이었고 이번은 사용자가 명시적으로 P3로 지정한
+      별도 건.
 - [ ] 원 요청 22개 항목 중 미착수: `SEO-KEYWORD-MAP.md`, `SEO-CHANGELOG.md`,
       허브 콘텐츠 재작성, 내부링크 재설계, structured data 확장, E-E-A-T 강화,
       경쟁사 SERP 조사, Core Web Vitals 실측.
@@ -123,10 +136,37 @@ list`의 요약 상태만으로는 skipped/success를 구분하지 못했던 게
 ([[staging-verify-optional]] — push CI(`CI required`)까지만 확인하면 되고,
 스테이징 검증은 요청·인프라 변경·릴리스 때만).
 
+## P3 후속 — CI 빌드 실패 발견·수정 (2026-09-17, 별도 커밋)
+
+`a8909dcc1` push 후 `gh api check-runs`로 `Build Pages and Worker`가
+`failure`로 실측됨(P3 자체와 무관). 원인: P2(`579e154dd`)가 robots.txt에서
+통합 `sitemap.xml` 선언을 의도적으로 제거했는데(승인된 옵션 A,
+`docs/handoff/2026-09-17-seo-p2-sitemap-dedup.md` 참고),
+`scripts/verify-adsense-readiness.mjs`의 `verifyRobots`는 여전히 그 통합
+sitemap 지시줄을 요구하고 있었다 — postbuild 단계에서
+`Error: [adsense-readiness] out/robots.txt: missing sitemap directive`로
+빌드가 죽었다. P2 이후 커밋들이 전부 문서/설정 전용이라 build job이
+`skipped`로 빠지면서 이 회귀가 지금까지 CI에 한 번도 안 걸렸던 것 —
+`a8909dcc1`(app/ 라우트 삭제)이 P2 이후 처음으로 build job을 실제로 돌린
+커밋이라 여기서 처음 표면화됨.
+수정: 로케일 sitemap(`sitemap-<locale>.xml`) 패턴 매치로 단언 변경(정규식을
+`robots.txt`/`public/robots.txt` 실제 내용으로 직접 검증함). 로컬 풀빌드는
+다른 워크트리 세션의 dev 서버가 `.next`를 점유 중이라 차단돼 못 돌렸지만,
+기존(낡은) `out/`·`dist/` 산출물에 검증기를 직접 실행해 sitemap 단언이
+더 이상 실패하지 않음을 확인(다음 실패는 별개로, 로컬 `out/`에 삭제 전
+`en-us` 산출물이 남아있는 stale 캐시 문제일 뿐 — CI는 fresh build라
+해당 없음). 아직 push 전 — 다음 세션 또는 이 세션 마무리 시 커밋·push하고
+`gh api check-runs`로 `Build Pages and Worker` 성공 재확인 필요.
+
 ## 다음 세션 첫 문장
 
-P1 4건(zh-TW, compatibility, 소개 FAQ, sitemap 드리프트 정리) 모두 완료·`02cbb5127`
-기준 CI 초록 실측 확정(`gh api check-runs`로 `Build Pages and Worker`·
-`Static guards`·`CI required` 전부 success 개별 확인)됨을 전제로, P2(sitemap
-중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자에게 우선순위 확인 후
-착수.
+P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭제, `a8909dcc1`) 완료.
+`a8909dcc1` 직후 CI에서 `Build Pages and Worker` 실패 발견(P2의 robots.txt
+정책 변경과 verify-adsense-readiness.mjs 검증기 간 불일치, P3와 무관) —
+로케일 sitemap 패턴으로 단언 수정함(커밋 SHA는 이 문서 갱신 이후 확정, 위
+"P3 후속" 절 참고). 이 수정을 push한 뒘 `gh api check-runs`로
+`Build Pages and Worker`·`Typecheck and lint`·`Static guards` 전부
+success 개별 확인 필수(skipped 를 success 로 오인하지 말 것). 그 다음 사용자
+확인 후 원 요청 22개 중 미착수 항목(`SEO-KEYWORD-MAP.md`, `SEO-CHANGELOG.md`,
+허브 콘텐츠 재작성, 내부링크 재설계, structured data 확장, E-E-A-T 강화,
+경쟁사 SERP 조사, Core Web Vitals 실측) 중 우선순위 선택 후 착수.
