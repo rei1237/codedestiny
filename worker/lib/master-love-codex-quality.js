@@ -1,6 +1,6 @@
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { assertCodexEvidence } from "./master-love-codex-evidence.js";
-import { paidReportBody } from "./paid-report-quality.js";
+import { paidReportBody, reportSentenceKey } from "./paid-report-quality.js";
 
 /** Shared editorial contract for both books; calculations and pricing remain unchanged. */
 export function buildCodexEditorialContract(chapter, compatibility) {
@@ -64,20 +64,29 @@ export function codexChapterFloor(chapter) {
   return Math.ceil((Number(chapter?.minChars) || 2400) * 0.7);
 }
 
+/**
+ * Floor for a chapter after sentences shared with earlier chapters are cut. The model's own output
+ * must still clear codexChapterFloor; judging the cut body by that floor failed chapter 2 on every
+ * retry (shared chart facts) and closed the whole paid book after three waves (production, 2026-09-17).
+ */
+export function codexDedupedChapterFloor(chapter) {
+  return Math.ceil((Number(chapter?.minChars) || 2400) * 0.5);
+}
+
 /** Removes sentences already delivered earlier in the book (or earlier in this body). */
 export function dedupeCodexBody(body, priorBodies = []) {
-  const key = sentence => paidReportBody(sentence).replace(/\s/gu, "");
   const seen = new Set();
   for (const prior of priorBodies) {
     for (const sentence of paidReportBody(prior).split(/[.!?。？！\n]+/u)) {
-      const normalized = sentence.replace(/\s/gu, "");
+      const normalized = reportSentenceKey(sentence);
       if (normalized.length >= 24) seen.add(normalized);
     }
   }
   return String(body || "").split("\n").map(line => {
-    if (!key(line)) return line;
+    // Heading lines are skipped whole, exactly as hasRepeatedReportPassage skips them.
+    if (!paidReportBody(line).replace(/\s/gu, "")) return line;
     const kept = (line.match(/[^.!?。？！]+[.!?。？！]*/gu) || []).filter(sentence => {
-      const normalized = key(sentence).replace(/[.!?。？！]+$/u, "");
+      const normalized = reportSentenceKey(sentence).replace(/[.!?。？！]+$/u, "");
       if (normalized.length < 24) return true;
       if (seen.has(normalized)) return false;
       seen.add(normalized);

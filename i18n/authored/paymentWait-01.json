@@ -1,18 +1,18 @@
 {
   "_comment": "결제창에서 수단을 고른 뒤 뜨는 대기 화면의 '지금 무엇을 해야 하는지' 한 줄. 코드 정본은 js/core/checkout-entry.js 의 directPayMethodWaitText 이고 ko 값은 그 폴백과 글자까지 같아야 한다(verify:payment-copy-dictionary). 모바일은 PG 가 상위 프레임을 리다이렉트하거나 다른 앱으로 이탈해, 이 안내가 없으면 사용자가 '멈췄다'고 판단해 창을 닫는다 — 그 순간 결제는 승인되고 화면만 사라진다.",
   "payment.directModal.wait.card": {
-    "ko": "카드사 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
-    "en": "You'll return to this screen automatically once your card verification is complete.",
-    "ja": "カード会社の認証が完了すると、この画面に自動で戻ります。",
-    "zh-CN": "完成银行卡认证后将自动返回此页面。",
-    "zh-TW": "完成信用卡認證後將自動返回此頁面。",
-    "vi": "You'll return to this screen automatically once your card verification is complete.",
-    "hi": "You'll return to this screen automatically once your card verification is complete.",
-    "es": "You'll return to this screen automatically once your card verification is complete.",
-    "fr": "You'll return to this screen automatically once your card verification is complete.",
-    "de": "You'll return to this screen automatically once your card verification is complete.",
-    "nl": "You'll return to this screen automatically once your card verification is complete.",
-    "ms": "You'll return to this screen automatically once your card verification is complete."
+    "ko": "카드사·간편결제 앱에서 인증을 마친 뒤 이 브라우저로 돌아오면 자동으로 이어집니다.",
+    "en": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "ja": "カード会社・簡単決済アプリで認証を終えたら、このブラウザに戻ると自動で続きます。",
+    "zh-CN": "在银行卡或快捷支付应用中完成认证后，返回此浏览器即可自动继续。",
+    "zh-TW": "在信用卡或行動支付 App 中完成認證後，回到此瀏覽器即可自動繼續。",
+    "vi": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "hi": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "es": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "fr": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "de": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "nl": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
+    "ms": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically."
   },
   "payment.directModal.wait.transfer": {
     "ko": "출금 계좌 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",
@@ -29,18 +29,18 @@
     "ms": "You'll return to this screen automatically once your bank account verification is complete."
   },
   "payment.directModal.wait.kakaopay": {
-    "ko": "카카오톡으로 이동해 결제를 완료해 주세요. 끝나면 자동으로 돌아옵니다.",
-    "en": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "ja": "KakaoTalk に移動して決済を完了してください。終わると自動でこの画面に戻ります。",
-    "zh-CN": "请前往 KakaoTalk 完成支付，完成后将自动返回此页面。",
-    "zh-TW": "請前往 KakaoTalk 完成付款，完成後將自動返回此頁面。",
-    "vi": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "hi": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "es": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "fr": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "de": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "nl": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
-    "ms": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done."
+    "ko": "카카오톡에서 결제를 승인한 뒤, 이 브라우저로 돌아오면 자동으로 이어집니다.",
+    "en": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "ja": "カカオトークで決済を承認したら、このブラウザに戻ると自動で続きます。",
+    "zh-CN": "在 KakaoTalk 中批准付款后，返回此浏览器即可自动继续。",
+    "zh-TW": "在 KakaoTalk 中核准付款後，回到此瀏覽器即可自動繼續。",
+    "vi": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "hi": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "es": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "fr": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "de": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "nl": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
+    "ms": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically."
   },
   "payment.directModal.wait.mobile": {
     "ko": "휴대폰 본인 인증을 마치면 이 화면으로 자동으로 돌아옵니다.",

@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
 import { hasRepeatedReportPassage } from "../../worker/lib/paid-report-quality.js";
-import { assertCodexChapterQuality, codexChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexEditorialContract, buildCodexStagingChapter, parseChapterJson } from "../../worker/lib/master-love-codex-quality.js";
+import { assertCodexChapterQuality, codexChapterFloor, codexDedupedChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexEditorialContract, buildCodexStagingChapter, parseChapterJson } from "../../worker/lib/master-love-codex-quality.js";
 import { __masterLoveCodexTestUtils as utils } from "../../worker/routes/master-love-codex.js";
 
 const fixture = chapter => ({
@@ -57,6 +57,22 @@ test("sentences an earlier chapter already delivered are cut from the new chapte
   const deduped = dedupeCodexBody(`## 소제목\n${shared} ${fresh}\n\n${fresh}`, [`앞 장 원고입니다. ${shared}`]);
   expect(deduped).toBe(`## 소제목\n${fresh}`);
   expect(hasRepeatedReportPassage(`앞 장 원고입니다. ${shared}\n${deduped}`)).toBe(false);
+});
+
+test("a repeated sentence that starts with a chapter reference is cut, so the repeat check passes", () => {
+  const shared = "제1장에서 본 것처럼 일간은 관계의 속도를 먼저 살피는 편입니다.";
+  const fresh = "이번 장에서는 새로운 생활 장면을 바탕으로 선택 가능한 대응을 구체적으로 살펴봅니다.";
+  const prior = `앞 장 원고의 긴 문단이 이어집니다. ${shared} 그리고 다음 이야기로 넘어갑니다.`;
+  expect(hasRepeatedReportPassage(`${prior}\n${fresh} ${shared}`)).toBe(true);
+  const deduped = dedupeCodexBody(`${fresh} ${shared}`, [prior]);
+  expect(deduped).toBe(fresh);
+  expect(hasRepeatedReportPassage(`${prior}\n${deduped}`)).toBe(false);
+});
+
+test("the post-dedupe floor is half of minChars, below the raw output floor", () => {
+  const chapter = utils.resolveMode("solo").chapters[1];
+  expect(codexDedupedChapterFloor(chapter)).toBe(Math.ceil(chapter.minChars * 0.5));
+  expect(codexDedupedChapterFloor(chapter)).toBeLessThan(codexChapterFloor(chapter));
 });
 
 test("rejected cached response cannot make every purchased retry fail", async () => {

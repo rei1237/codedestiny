@@ -73,6 +73,47 @@ export function buildCodexStalledFilter(now) {
     $or: [{ "deliveryMeta.lastProgressAt": { $lt: cutoff } }, { "deliveryMeta.lastProgressAt": null, createdAt: { $lt: cutoff } }] };
 }
 
+/**
+ * 장 사이 중복 판정 불일치(2026-09-17 수정)로 3회를 소진해 닫힌 세션 후보.
+ * 🔴 소진된 장의 마지막 오류가 전부 LLM_OUTPUT_REPEATED 인 세션만 JS 에서 한 번 더 거른다 —
+ *    다른 원인으로 닫힌 세션은 사람 검토 대상 그대로 둔다. dedupeReopenedAt 이 1회 표식이다.
+ */
+export function buildDedupeReopenFilter() {
+  return {
+    status: "generation_failed",
+    "deliveryMeta.reviewRequired": true,
+    "deliveryMeta.reviewReason": "GENERATION_BUDGET_EXCEEDED",
+    "deliveryMeta.dedupeReopenedAt": { $exists: false },
+    "passRefund.refundedAt": { $exists: false },
+    "billingRefund.refundedAt": { $exists: false },
+  };
+}
+
+function closedByDedupeMismatch(doc) {
+  const ids = doc?.deliveryMeta?.exhaustedChapterIds;
+  return Array.isArray(ids) && ids.length > 0 && ids.every(id => doc.deliveryMeta?.errors?.[id]?.code === "LLM_OUTPUT_REPEATED");
+}
+
+async function reopenDedupeClosedSessions(SessionModel, now, syncFn) {
+  const docs = (await SessionModel.find(buildDedupeReopenFilter()).sort({ updatedAt: 1 }).limit(MAX_SESSIONS_PER_TICK).lean()) || [];
+  const reopened = [];
+  for (const doc of docs.filter(closedByDedupeMismatch)) {
+    const unset = { "deliveryMeta.reviewReason": "", "deliveryMeta.exhaustedChapterIds": "" };
+    for (const id of doc.deliveryMeta.exhaustedChapterIds) {
+      for (const field of ["attempts", "failures", "errors"]) unset[`deliveryMeta.${field}.${id}`] = "";
+    }
+    // 조건부 원자 갱신: 그 사이 환급·재개된 세션은 매치되지 않는다. updatedAt 을 두어 이번 틱에 바로 회수된다.
+    const saved = await SessionModel.updateOne({ ...buildDedupeReopenFilter(), id: doc.id, userId: doc.userId }, {
+      $set: { status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.dedupeReopenedAt": new Date(now), generationError: null },
+      $unset: unset,
+    }, { timestamps: false });
+    if (!saved?.modifiedCount) continue;
+    reopened.push(String(doc.id));
+    await syncFn({ ...doc, status: "generating", deliveryMeta: { ...doc.deliveryMeta, reviewRequired: false } });
+  }
+  return reopened;
+}
+
 export async function runMasterLoveCodexRecovery(env, options = {}) {
   const now = options.now || Date.now();
   const deadline = now + TASK_BUDGET_MS;
@@ -88,6 +129,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
     const access = await accessFn({ userId: doc.userId, sessionId: doc.id });
     if (access && !access.denied) await (options.syncCodexExecution || syncCodexExecution)(access.session);
   }
+  const reopened = await reopenDedupeClosedSessions(SessionModel, now, options.syncCodexExecution || syncCodexExecution);
   const candidates = await SessionModel
     .find(buildAbandonedFilter(now))
     .sort({ updatedAt: 1 }) // 가장 오래 방치된 것부터
@@ -140,10 +182,10 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
 
   const reviewNeeded = await SessionModel.countDocuments({ "deliveryMeta.reviewRequired": true, status: "generation_failed" });
   const stalled = await SessionModel.countDocuments(buildCodexStalledFilter(now));
-  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, outcomes, reviewNeeded, stalled }));
-  return { ok: true, scanned: candidates.length, bootstrapped, outcomes, reviewNeeded, stalled };
+  console.log("[master-love-codex-recovery]", JSON.stringify({ bootstrapped, reopened, outcomes, reviewNeeded, stalled }));
+  return { ok: true, scanned: candidates.length, bootstrapped, reopened, outcomes, reviewNeeded, stalled };
 }
 
 export const __masterLoveCodexRecoveryTestUtils = {
-  ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK, TASK_BUDGET_MS, WAVE_BUDGET_MS, buildAbandonedFilter,
+  ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK, TASK_BUDGET_MS, WAVE_BUDGET_MS, buildAbandonedFilter, buildDedupeReopenFilter,
 };
