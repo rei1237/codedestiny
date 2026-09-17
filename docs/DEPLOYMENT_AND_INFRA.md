@@ -249,6 +249,7 @@ Server/Worker secrets or vars:
 - `GOOGLE_GEMINI_API_KEY`
 - `WORKERS_AI_ENABLED`
 - `ADMIN_MONTHLY_CREDIT_GRANT_ENABLED`
+- `FOREIGN_CARD_ENABLED` — KG이니시스 해외 발급 카드 결제창 노출 플래그(`worker/payments/foreign-card-policy.js`). 문자열 `"1"` 만 켜지고 미설정·그 외 값은 꺼짐. wrangler toml vars 에 올리지 않는다(기본 꺼짐 유지, 켜기는 별도 승인).
 - `LLM_DRY_RUN`
 - `PDF_LLM_PROVIDER`
 - `WORKERS_AI_MODEL`
