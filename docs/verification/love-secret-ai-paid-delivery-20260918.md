@@ -60,4 +60,4 @@ npm run check:fast -- --skip-build
 
 ## 전달
 
-워크트리 `love-secret-mock-20260918-050418`에서 수정/신규 파일을 커밋한 뒤 main에 병합하고 push한다. CI(`CI required` aggregate)를 `gh api commits/<sha>/check-runs`로 확인한다. 실결제·운영 승격은 진행하지 않는다.
+워크트리 `love-secret-mock-20260918-050418`에서 15개 파일을 `d07fb209d`로 커밋했다. 이 워크트리 브랜치가 origin/main보다 3커밋(무관한 SEO/마케팅 세션의 P5 문서화 + 동일한 2026-09-18 사이트맵 날짜 창 롤오버) 뒤처져 있어 ff-only가 불가능했으므로 `git fetch origin main` 후 `git merge origin/main`으로 병합했다 — 13개 사이트맵 파일은 양쪽이 같은 날 독립적으로 재생성해 내용이 완전히 동일해 충돌 없이 자동 병합됐고(`config/sitemap-lastmod.json`만 자동 3-way 병합), `npm run sitemap:generate` 재실행으로 병합 후 드리프트 0을 재확인했다. 병합 커밋 `d3ba97b7e`를 `git push origin HEAD:main`으로 origin main에 fast-forward push했다(`013f527c1..d3ba97b7e`). 병합 직후 `npm run sync:public`을 재실행해 diff 0을 확인했다(정적 미러 재오염 없음). CI(`gh api commits/d3ba97b7e/check-runs`)는 push 직후 대부분 `queued` 상태였으나, 모든 체크런이 `completed`로 정착할 때까지 기다려 재확인한 결과 23개 중 `CI required` 포함 16개 success·7개 skipped(비동기 `Deploy staging` 중복 잡·조건부 `release`/`rollback` 매트릭스 등 비대상)·실패 0을 확인했다. 실결제·운영 DB 쓰기·운영 승격은 진행하지 않았다.
