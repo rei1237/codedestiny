@@ -2,7 +2,9 @@
 status: active
 updated: 2026-09-17
 next: P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭제, `a8909dcc1`)
-  완료·push됨. 다음은 원 요청 22개 중 미착수 항목 — 사용자 확인 후 착수
+  + CI 회귀 수정(`4a87c5985`) 완료·push, main tip `65708387b`(다른 세션의 후속
+  커밋 포함) 기준 CI 초록 개별 확정(`gh api check-runs`). 다음은 원 요청 22개
+  중 미착수 항목 — 사용자 확인 후 착수
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -155,18 +157,24 @@ sitemap 지시줄을 요구하고 있었다 — postbuild 단계에서
 기존(낡은) `out/`·`dist/` 산출물에 검증기를 직접 실행해 sitemap 단언이
 더 이상 실패하지 않음을 확인(다음 실패는 별개로, 로컬 `out/`에 삭제 전
 `en-us` 산출물이 남아있는 stale 캐시 문제일 뿐 — CI는 fresh build라
-해당 없음). 아직 push 전 — 다음 세션 또는 이 세션 마무리 시 커밋·push하고
-`gh api check-runs`로 `Build Pages and Worker` 성공 재확인 필요.
+해당 없음).
+
+`4a87c5985`(2026-09-17)로 커밋·push 완료. push 직후 `gh api check-runs`
+재조회 결과 `Build Pages and Worker: status=completed conclusion=success`
+확정(P2/P3 CI 회귀 완전 해소). 이후 다른 세션이 `65708387b`를 곧바로
+push해 동시성 그룹이 최신 커밋으로 넘어가며 내 커밋의 `gitleaks`·`AI locale
+pipeline invariants`·`Main drift` 등 일부 job이 `cancelled`로 표시됐으나,
+이는 최신 커밋으로 CI가 재실행됐다는 뜻일 뿐 내 변경의 실패가 아니다 —
+main tip `65708387b` 기준으로 재조회해 `CI required`·`Static guards`·
+`Build Pages and Worker`·`Typecheck and lint`·`Critical checks` 전부
+`status=completed conclusion=success` 개별 확정함(skipped 를 success 로
+오인했던 과거 실수 재발 방지를 위해 매번 `status`와 `conclusion` 둘 다 확인).
 
 ## 다음 세션 첫 문장
 
-P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭제, `a8909dcc1`) 완료.
-`a8909dcc1` 직후 CI에서 `Build Pages and Worker` 실패 발견(P2의 robots.txt
-정책 변경과 verify-adsense-readiness.mjs 검증기 간 불일치, P3와 무관) —
-로케일 sitemap 패턴으로 단언 수정함(커밋 SHA는 이 문서 갱신 이후 확정, 위
-"P3 후속" 절 참고). 이 수정을 push한 뒘 `gh api check-runs`로
-`Build Pages and Worker`·`Typecheck and lint`·`Static guards` 전부
-success 개별 확인 필수(skipped 를 success 로 오인하지 말 것). 그 다음 사용자
-확인 후 원 요청 22개 중 미착수 항목(`SEO-KEYWORD-MAP.md`, `SEO-CHANGELOG.md`,
-허브 콘텐츠 재작성, 내부링크 재설계, structured data 확장, E-E-A-T 강화,
-경쟁사 SERP 조사, Core Web Vitals 실측) 중 우선순위 선택 후 착수.
+P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭제, `a8909dcc1`) +
+CI 회귀 수정(`4a87c5985`) 전부 완료·push, main tip `65708387b` 기준 CI 초록
+개별 확정됨. 사용자 확인 후 원 요청 22개 중 미착수 항목(`SEO-KEYWORD-MAP.md`,
+`SEO-CHANGELOG.md`, 허브 콘텐츠 재작성, 내부링크 재설계, structured data
+확장, E-E-A-T 강화, 경쟁사 SERP 조사, Core Web Vitals 실측) 중 우선순위
+선택 후 착수.
