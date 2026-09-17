@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행·인생 총운 8행·자미두수 9행(5~9행은 부분/우선 시나리오만, 다섯 다 D 실화면·F 전후 diff는 미실행)은 mock A~F(경계 있음)·동일 SHA main CI 완료. 9행 작업 중 발견한 sitemap-drift CI 실패는 처음에 "9행과 무관한 선행 결함"으로 오판 보고했으나 실제로는 9행 자신의 `14e197394`가 원인이었다 — `867153e58`로 수정, `8463df7ed`로 오판을 정정했다(코딩 원칙 8 위반 사례, 상세는 아래 9행 항목). main·CI·동시 편집 상태를 다시 확인하고 점성술 전문가 상담 10행(`astrology-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행·인생 총운 8행·자미두수 9행·점성술 전문가 상담 10행(5~10행은 부분/우선 시나리오만, 여섯 다 D 실화면·F 전후 diff는 미실행)은 mock A~F(경계 있음)·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 베다점 전문가 상담 11행(`vedic-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,8 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 점성술 전문가 상담 10행 — mock 완료(경계 있음):** [행별 기록](../verification/astrology-ai-paid-delivery-20260917.md). 5~9행과 같은 클래스의 화면 재개 이벤트 배선 누락(`pageshow`·`focus` 미구독)을 시작 화면(`AstrologyAiClient.tsx` 수정 전 1586~1605행)과 결과 화면(`AstrologyAiResultClient.tsx` 수정 전 476~481행) 둘 다에서 재현·수정했다(+10/-2행, +9/-2행). 신규 UI 행동 검사(`astrology-ai-wake-recovery.behavior.test.js`)는 실제 `useEffect` 콜백 소스를 TypeScript AST로 직접 추출해 `vm` 샌드박스에서 실행하는 방식으로 작성했고, 수정 전 코드에서 2/2 정확히 실패(`window:pageshow handler must be registered`) 확인 후 수정 적용해 2/2 통과로 전환하는 변이 검증까지 마쳤다. 백엔드(`worker/routes/astrology-ai.js` 906~1928행 전체 정독)는 섹션 계약(6섹션×3400~5000자, 병렬 1차 생성+체크포인트+2차 부족분 재시도)·접근 판정·저장 확인·조회 취소 차단을 기존 워커 회귀 26/26 및 교차 상품 스위트와 1:1 대조해 신규 결함 없음을 확인했다(호출부 없는 `generateConsultation`(1259행) 미사용 함수 1건은 범위 밖으로 기록만). UI 6/6(신규2+기존4)·워커 26/26+교차상품 필터매칭 2/2·`sitemap:generate` 갱신 0건(`/astrology-ai/`는 `robots:noindex`라 애초 사이트맵 비대상)·`check:fast` RED 승격 전체 게이트(`test:jest` 277 suite·3,881/3,881) 전부 통과. 커밋 `d12980b05`를 워크트리(`astrology-ai-mock-20260917-160308`)에서 만든 뒤 `ListAgents`로 동시 세션(`code-destiny-a0`, 확인 시점 idle)을 확인하고 그 세션의 미푸시 문서 커밋 2개(`873bdf254`·`03a1c9b53`)를 보존하며 `git merge`로 병합(머지 커밋 `bf4996793`), 병합 후 `sitemap:generate` 재실행으로 드리프트 없음을 재확인한 뒤 push했다. push한 SHA(`bf499679381665d6e1933188b97d62634d8674d9`)의 [체크런](https://github.com/rei1237/codedestiny/commit/bf499679381665d6e1933188b97d62634d8674d9/checks)을 `gh api`로 직접 실측해 28개 중 `CI required`·`Critical checks`·`Build Pages and Worker`·`Typecheck and lint`·`Static guards`·`Main drift`·`gitleaks`·`Risk tier`·`AI locale pipeline invariants` 포함 16개 success·나머지 12개는 스테이징/릴리스/롤백 조건부 매트릭스 잡으로 skipped·실패 0을 확인했다(백그라운드 `Monitor` 폴링이 15분간 이벤트 0건으로 만료해 신뢰하지 않고 직접 조회로 대체). **D(실제 화면 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에도 만들지 않았다 — 5~9행과 동일한 남은 경계.**
 
 **2026-09-17 자미두수 9행 — mock 완료(경계 있음) + sitemap-drift 오진 정정:** [행별 기록](../verification/ziwei-ai-paid-delivery-20260917.md). 시작 전 "9행이 4행(`ziwei-deep-pdf`)과 화면을 공유한다"는 가정을 대조했으나 근거가 없었다 — 정본 파일(`worker/routes/ziwei-ai.js` vs `worker/routes/ziwei-deep-report.js`)·진입 화면(`/ziwei-ai/` vs `/ziwei/chart/`)·가격 레지스트리 항목이 모두 독립이라 두 상품은 애초에 별개였다(우연히 둘 다 300코인/30,000원일 뿐). 5~8행과 같은 종류의 화면 재개 이벤트 배선 누락(`pageshow`·`focus` 미구독)을 `ZiweiAiClient.tsx` 904~908행에서 재현·수정했다(형제 화면과 동일한 4개 이벤트로 확장, +4/-1행). 신규 UI 행동 검사 1건을 변이 검증(수정 되돌리기 → `AssertionError` 실패 확인 → 복원 → 5/5 재통과)까지 완료했고, 백엔드는 `worker/routes/ziwei-ai.js` 결제·생성·조회 경로 전체를 이번 세션에 처음 정독해 기존 워커 회귀 19/19가 실제 코드와 1:1 대응함을 확인했다(새 백엔드 결함 없음). UI 5/5(신규1)·워커 19/19·`test:jest` 277 suite·3,881/3,881, 커밋 `14e197394`.
 
@@ -54,9 +56,9 @@ D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-
 
 main 직접 편집, 마케팅 미커밋 변경 보존. 동시 편집의 두 번째 세션이면 [안전 워크트리 규칙](../../CLAUDE.md)을 따른다. 타 세션의 변경을 stage/reset/restore하지 않는다. 운영 승인·개발 경계는 [실행 계약](../../CLAUDE.md)이 정본이다.
 
-## 다음 상품 — 점성술 10행
+## 다음 상품 — 베다점 11행
 
-자미두수 9행까지 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/ziwei-ai-paid-delivery-20260917.md), sitemap-drift 오진 정정 포함). 다음은 점성술 전문가 상담 10행(`astrology-ai-consultation`)이다. 정본은 [`worker/routes/astrology-ai.js`](../../worker/routes/astrology-ai.js)(존재 확인), 화면은 [`app/astrology-ai/AstrologyAiClient.tsx`](../../app/astrology-ai/AstrologyAiClient.tsx)(존재 확인), 기존 검사는 [`__tests__/worker/astrology-paid-delivery.test.js`](../../__tests__/worker/astrology-paid-delivery.test.js)(존재 확인), 가격은 `worker/lib/paid-feature-registry.js:304`(300코인/30,000원, 존재 확인) — 이번 세션은 9행에 한정해 10행 코드 내부는 아직 읽지 않았으므로 파일 존재만 확인했을 뿐 결함 확정이나 완료 근거가 아니다. **10행에서도 `AstrologyAiClient.tsx`(또는 결과 화면)를 고치면 같은 커밋에 `npm run sitemap:generate`를 포함할 것** — 9행에서 이를 빠뜨려 CI가 별도로 잡아냈다(위 9행 항목 참고). 다음 세션은 10행 진입점부터 직접 대조한다.
+점성술 전문가 상담 10행까지 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/astrology-ai-paid-delivery-20260917.md)). 다음은 베다점 전문가 상담 11행(`vedic-ai-consultation`)이다. 정본은 [`worker/routes/vedic-ai.js`](../../worker/routes/vedic-ai.js)(존재 확인), 화면은 [`app/vedic-ai/VedicAiClient.tsx`](../../app/vedic-ai/VedicAiClient.tsx)(존재 확인, 결과 화면 `app/vedic-ai/result/VedicAiResultClient.tsx`·차트 시각화 `VedicChartVisuals.tsx`도 별도 존재), 기존 검사는 [`__tests__/worker/vedic-paid-delivery.test.js`](../../__tests__/worker/vedic-paid-delivery.test.js)(존재 확인), 가격은 `worker/lib/paid-feature-registry.js:213`(300코인/30,000원, 존재 확인) — 이번 세션은 10행에 한정해 11행 코드 내부는 아직 읽지 않았으므로 파일 존재만 확인했을 뿐 결함 확정이나 완료 근거가 아니다. **11행에서도 클라이언트 컴포넌트(`VedicAiClient.tsx`·`VedicAiResultClient.tsx`)를 고치면 같은 커밋에 `npm run sitemap:generate`를 포함할 것** — 단 `/vedic-ai/`가 10행(`/astrology-ai/`)처럼 `robots:noindex`라 애초 비대상인지는 아직 확인하지 않았으므로, 다음 세션이 `app/vedic-ai/page.tsx`를 먼저 읽어 판단한다. 다음 세션은 11행 진입점부터 직접 대조한다.
 
 ## 재검사 명령
 
