@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: P1 4건 완료·push·CI 초록 확정(zh-TW 4허브, compatibility 다국어화, 소개 페이지 FAQ 보강, sitemap 드리프트 정리). 다음은 P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자 확인 후 택1
+next: P1 4건 완료·push·CI 초록 실측 확정(`02cbb5127`, CI required success)까지 끝남. 다음은 P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자 확인 후 택1
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -25,16 +25,35 @@ next: P1 4건 완료·push·CI 초록 확정(zh-TW 4허브, compatibility 다국
       `docs/handoff/2026-09-17-zh-tw-priority-followup.md` 참고.
 - [x] **P1 — compatibility 다국어화**: `619d408db`(2026-09-17)로 completed·push됨.
       compatibility/saju-compatibility/sukuyo-compatibility 3종 × en/ja/zh/zh-TW.
-      이 커밋이 verify-adsense-readiness.mjs 50자 하한을 어긴 description 6곳(zh/zh-TW,
-      34~43자)을 남겨 CI(PR CI → Static guards)가 실패했음. 다른 세션
-      (code-destiny-74)이 `6193d7206`(2026-09-17)으로 도입구를 붙여 56~59자로
-      보강했으나, 그 콘텐츠 변경이 sitemap lastmod 드리프트를 새로 만들어
-      "Verify the tracked sitemap matches its sources" 가드가 또 실패(`gh run
-      view 35206359699`로 실측 확인) → 이 세션이 `bd44f2854`(2026-09-17)로
-      `npm run sitemap:generate` 재실행해 드리프트 정리·push. **다음 세션 첫
-      할 일은 `bd44f2854` 기준 CI가 전부 초록인지 `gh run list --branch main
-      --limit 5`로 재확인하는 것** — 이 세션은 push까지만 하고 그 결과를
-      기다리지 못함.
+      이후 연쇄적으로 CI 실패가 4단계로 이어졌다(전부 같은 커밋 `619d408db`가
+      신규 저작한 콘텐츠에 원인이 있었음, 실측으로 하나씩 확정):
+      1. description 50자 하한 미달(zh/zh-TW 6곳, 34~43자) → `6193d7206`
+         (code-destiny-74)이 도입구를 붙여 56~59자로 보강.
+      2. 그 콘텐츠 변경이 sitemap lastmod 드리프트를 유발 → `bd44f2854`가
+         `npm run sitemap:generate` 재실행해 정리.
+      3. `bd44f2854` 이후 handoff(`91326b771`)가 "CI 전부 success"라고 기록했으나
+         **이 기록은 부정확했다** — `gh api commits/{sha}/check-runs`로 직접
+         재조회한 결과 `Build Pages and Worker`는 success가 아니라 `skipped`
+         였다(이 커밋들이 문서/설정 전용이라 `.github/workflows/pr-ci.yml`의
+         `classify.outputs.runs_build`가 false였기 때문 — build 잡 자체가 안
+         돌았으므로 adsense-readiness 검사가 전혀 실행되지 않았는데, skipped를
+         success로 오인해 "초록 확정"이라고 잘못 기록한 것). 이 세션이
+         `sukuyo-compatibility.en.title`을 node로 직접 `serpTitleWidth`
+         (verify-adsense-readiness.mjs) 로직을 재현해 실측한 결과 71자로 여전히
+         `SERP_TITLE_WIDTH_LIMIT`(60)를 초과 상태임을 확인.
+      4. title을 60자로 축약하는 김에 `SERP_DESCRIPTION_WIDTH_LIMIT`(160)도
+         같은 방식으로 3허브×4로케일 전체 재검증한 결과
+         `saju-compatibility.en.description`(188)과
+         `sukuyo-compatibility.en.description`(176)도 초과 상태였음을 추가로
+         발견 — title만 고쳤다면 다음 CI에서 이 description 검사가 또 실패했을
+         것. 둘 다 141/157자로 축약(의미 보존).
+      → `02cbb5127`(2026-09-17, code-destiny-74)로 title/description 축약 +
+      `sitemap:generate` 재실행(콘텐츠 서명 변경으로 인한 드리프트 재발 방지,
+      같은 커밋에 반영)을 커밋·push. **이번엔 `gh api` 직접 재조회로
+      `Build Pages and Worker: success`, `Static guards: success`,
+      `CI required: success`까지 전부 실측 확정함** — skipped를 success로
+      오인했던 이전 실수를 반복하지 않도록 `status`와 `conclusion`을 모두
+      확인했다. 이 4단계 연쇄는 완전히 종료됨.
 - [x] **P1 — 로케일 소개 페이지 콘텐츠 얕음**: `09259ed39`(2026-09-17)로 완료·push됨.
       `PublicFeatureIntroduction` 기반 11개 허브(saju/vedic/astrology/tarot/
       fortune-tea-house/destiny-compass/psychotest/sukuyo-compatibility-ai/
@@ -82,17 +101,28 @@ npm run check:fast   # 코드 수정 시
 zh-TW 4개 허브 배포 후 실제 트래픽 반응 — 이 세션에서는 배포 직후라 실측 불가,
 후속 확인은 GSC 접근이 생기는 시점에.
 
-`63914e4e1`(최신 push) 기준 PR CI(Static guards·sitemap 가드 포함)는
-`gh run list`로 실측 확인 결과 **전부 success — CI 실제로 초록 확정됨**
-(2026-09-17). 단, 같은 시각 `workflow_dispatch`로 수동 트리거된 별개의
-"Release Cloudflare Pages and Worker" 실행(35207173873)이 "Deploy staging
-Pages and Worker at the exact SHA" 단계에서 실패 — 이건 push 트리거 CI가
-아니라 수동 스테이징 배포 인프라 실행이고 이 세션의 코드/콘텐츠 변경과는
-무관해 보임(원인 미조사, 배포 인프라 축이라 이 세션 범위 밖). 다음 세션이
-스테이징을 직접 다뤄야 하면 그때 조사할 것 — [[staging-verify-optional]].
+`02cbb5127`(최신 push, 2026-09-17) 기준 `gh api commits/{sha}/check-runs`
+직접 재조회 결과 `Build Pages and Worker`·`Static guards`·`CI required`
+전부 `status=completed conclusion=success` — **CI 실제로 초록 확정됨**.
+(정정: 이전 버전의 이 절은 `63914e4e1` 기준 "CI 전부 success"라고 적었으나
+부정확했다 — 그 시점엔 `Build Pages and Worker`가 `skipped`였다. `gh run
+list`의 요약 상태만으로는 skipped/success를 구분하지 못했던 게 원인으로
+보인다. 앞으로는 `gh api repos/rei1237/codedestiny/commits/{sha}/check-runs
+--jq '.check_runs[] | "\(.name): status=\(.status) conclusion=\(.conclusion)"'`
+로 개별 잡의 `conclusion`까지 직접 확인할 것 — 문서/설정 전용 커밋은
+`classify.outputs.runs_build=false`라 build 잡이 skipped로 "정상 완료"
+처리되므로, `CI required` aggregate가 초록이어도 build 잡이 실제로 돌았는지는
+별도로 확인해야 한다.)
+
+`Deploy staging`은 `02cbb5127` 체크런 조회 시점에 `in_progress`로 남아있었음
+— 비동기 스테이징 배포 축이라 이 세션은 완료를 기다리지 않았다
+([[staging-verify-optional]] — push CI(`CI required`)까지만 확인하면 되고,
+스테이징 검증은 요청·인프라 변경·릴리스 때만).
 
 ## 다음 세션 첫 문장
 
-P1 4건(zh-TW, compatibility, 소개 FAQ, sitemap 드리프트 정리) 모두 완료·CI
-초록 확정됨을 전제로, P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁
-정리) 중 사용자에게 우선순위 확인 후 착수.
+P1 4건(zh-TW, compatibility, 소개 FAQ, sitemap 드리프트 정리) 모두 완료·`02cbb5127`
+기준 CI 초록 실측 확정(`gh api check-runs`로 `Build Pages and Worker`·
+`Static guards`·`CI required` 전부 success 개별 확인)됨을 전제로, P2(sitemap
+중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자에게 우선순위 확인 후
+착수.
