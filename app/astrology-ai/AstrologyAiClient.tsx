@@ -1600,7 +1600,15 @@ export default function AstrologyAiClient() {
     void resume();
     window.addEventListener("online", resume);
     document.addEventListener("visibilitychange", resume);
-    return () => { alive = false; window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
+    return () => {
+      alive = false;
+      window.removeEventListener("online", resume);
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume);
+      window.removeEventListener("focus", resume);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeEpoch, captureOwner]);
   const captureLocaleScope = useLocaleRequestScope(() => {
