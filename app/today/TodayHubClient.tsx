@@ -25,6 +25,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { getApiUrl } from "@/app/_lib/api-config";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
+import { maskBirthDateInput } from "@/lib/birthDateInput";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 interface DetailItem {
@@ -62,12 +63,13 @@ interface HubResponse {
   systems: Partial<Record<TodaySystem, SystemCard | null>>;
 }
 
-type TodaySystem = "saju" | "sukuyo" | "vedic";
+type TodaySystem = "saju" | "sukuyo" | "vedic" | "number";
 
 const TAB_KEYS: readonly { key: TodaySystem; emoji: string }[] = [
   { key: "saju", emoji: "🎴" },
   { key: "sukuyo", emoji: "🌙" },
   { key: "vedic", emoji: "✨" },
+  { key: "number", emoji: "🔢" },
 ];
 
 type TodayHubCopy = {
@@ -100,11 +102,12 @@ type TodayHubCopy = {
 };
 
 const TODAY_HUB_COPY_EN: TodayHubCopy = {
-  tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Vedic" },
+  tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Vedic", number: "Numerology" },
   tabBlurb: {
     saju: "How today's heavenly-stem/earthly-branch day shapes your day master",
     sukuyo: "Where the 27 lunar mansions the Moon visits sit relative to your birth star",
     vedic: "Today's panchanga read from the Moon's real sidereal position",
+    number: "Today's Personal Day number, from your birth month and day plus today's date",
   },
   navAriaLabel: "Today's fortune navigation",
   backButtonLabel: "Back",
@@ -114,7 +117,7 @@ const TODAY_HUB_COPY_EN: TodayHubCopy = {
   scoreSuffix: (score) => `${score} pts`,
   cardDelayedFallback: (label) => `The ${label} calculation is briefly delayed. The other readings are still available, and refreshing will retry.`,
   heroTitle: "Today's Fortune",
-  heroLead: "Saju day pillar, the 27 Sukuyo mansions, and Vedic panchanga — three systems read today in their own way. Free, no sign-in needed.",
+  heroLead: "Saju day pillar, the 27 Sukuyo mansions, Vedic panchanga, and your numerology Personal Day — four systems read today in their own way. Free, no sign-in needed.",
   tabsAriaLabel: "Switch today's fortune system",
   failedMessage: "Couldn't calculate today's fortune. Please try again in a moment.",
   retryButton: "Try again",
@@ -138,11 +141,12 @@ const TODAY_HUB_COPY_EN: TodayHubCopy = {
 
 const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
   ko: {
-    tabLabel: { saju: "사주", sukuyo: "숙요점", vedic: "베다점" },
+    tabLabel: { saju: "사주", sukuyo: "숙요점", vedic: "베다점", number: "수비학" },
     tabBlurb: {
       saju: "오늘 일진의 천간·지지가 내 일간에 만드는 결",
       sukuyo: "달이 머무는 27수가 내 본명수에게 갖는 자리",
       vedic: "실제 달의 시데리얼 위치로 보는 오늘의 판창가",
+      number: "생월·생일과 오늘 날짜를 더한 내 개인일수(Personal Day)",
     },
     navAriaLabel: "오늘의 운세 내비게이션",
     backButtonLabel: "뒤로",
@@ -152,7 +156,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}점`,
     cardDelayedFallback: (label) => `${label} 계산이 잠시 지연되고 있습니다. 다른 점술은 그대로 보실 수 있고, 새로고침하면 다시 시도합니다.`,
     heroTitle: "오늘의 운세",
-    heroLead: "사주 일진, 숙요 27수, 베다 판창가 — 세 체계가 각자의 방식으로 오늘 하루를 읽습니다. 로그인 없이 무료입니다.",
+    heroLead: "사주 일진, 숙요 27수, 베다 판창가, 수비학 개인일수 — 네 체계가 각자의 방식으로 오늘 하루를 읽습니다. 로그인 없이 무료입니다.",
     tabsAriaLabel: "오늘의 운세 점술 전환",
     failedMessage: "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     retryButton: "다시 시도",
@@ -175,11 +179,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
   },
   en: TODAY_HUB_COPY_EN,
   ja: {
-    tabLabel: { saju: "四柱推命", sukuyo: "宿曜", vedic: "ヴェーダ占星術" },
+    tabLabel: { saju: "四柱推命", sukuyo: "宿曜", vedic: "ヴェーダ占星術", number: "数秘術" },
     tabBlurb: {
       saju: "今日の日柱の天干・地支が自分の日干に作る結び",
       sukuyo: "月が留まる27宿が自分の本命宿に対して持つ位置",
       vedic: "実際の月のサイデリアル位置から見る今日のパンチャーンガ",
+      number: "誕生月日と今日の日付を足したパーソナルデイ数",
     },
     navAriaLabel: "今日の運勢ナビゲーション",
     backButtonLabel: "戻る",
@@ -189,7 +194,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}点`,
     cardDelayedFallback: (label) => `${label}の計算が少し遅れています。他の占いはそのままご覧いただけます。更新すると再度お試しします。`,
     heroTitle: "今日の運勢",
-    heroLead: "四柱推命の日柱、宿曜27宿、ヴェーダのパンチャーンガ — 3つの体系がそれぞれの方法で今日を読みます。ログイン不要・無料です。",
+    heroLead: "四柱推命の日柱、宿曜27宿、ヴェーダのパンチャーンガ、数秘術のパーソナルデイ — 4つの体系がそれぞれの方法で今日を読みます。ログイン不要・無料です。",
     tabsAriaLabel: "今日の運勢の占術を切り替え",
     failedMessage: "今日の運勢を計算できませんでした。しばらくしてから再度お試しください。",
     retryButton: "再試行",
@@ -211,11 +216,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   "zh-CN": {
-    tabLabel: { saju: "四柱", sukuyo: "宿曜", vedic: "吠陀占星" },
+    tabLabel: { saju: "四柱", sukuyo: "宿曜", vedic: "吠陀占星", number: "数字命理" },
     tabBlurb: {
       saju: "今日日柱天干地支与您日干形成的关系",
       sukuyo: "月亮所在的27宿与您本命宿的相对位置",
       vedic: "根据月亮实际恒星位置解读的今日五要素",
+      number: "由出生月日与今日日期相加得出的个人日数",
     },
     navAriaLabel: "今日运势导航",
     backButtonLabel: "返回",
@@ -225,7 +231,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}分`,
     cardDelayedFallback: (label) => `${label}的计算暂时延迟。其他占卜仍可正常查看，刷新后将重新尝试。`,
     heroTitle: "今日运势",
-    heroLead: "四柱日柱、宿曜27宿、吠陀五要素——三种体系以各自的方式解读今天。无需登录，完全免费。",
+    heroLead: "四柱日柱、宿曜27宿、吠陀五要素、数字命理个人日——四种体系以各自的方式解读今天。无需登录，完全免费。",
     tabsAriaLabel: "切换今日运势占卜方式",
     failedMessage: "今日运势计算失败，请稍后重试。",
     retryButton: "重试",
@@ -247,11 +253,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   "zh-TW": {
-    tabLabel: { saju: "四柱", sukuyo: "宿曜", vedic: "吠陀占星" },
+    tabLabel: { saju: "四柱", sukuyo: "宿曜", vedic: "吠陀占星", number: "數字命理" },
     tabBlurb: {
       saju: "今日日柱天干地支與您日干形成的關係",
       sukuyo: "月亮所在的27宿與您本命宿的相對位置",
       vedic: "根據月亮實際恆星位置解讀的今日五要素",
+      number: "由出生月日與今日日期相加得出的個人日數",
     },
     navAriaLabel: "今日運勢導覽",
     backButtonLabel: "返回",
@@ -261,7 +268,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score}分`,
     cardDelayedFallback: (label) => `${label}的計算暫時延遲。其他占卜仍可正常查看，重新整理後將再次嘗試。`,
     heroTitle: "今日運勢",
-    heroLead: "四柱日柱、宿曜27宿、吠陀五要素——三種體系以各自的方式解讀今天。無需登入，完全免費。",
+    heroLead: "四柱日柱、宿曜27宿、吠陀五要素、數字命理個人日——四種體系以各自的方式解讀今天。無需登入，完全免費。",
     tabsAriaLabel: "切換今日運勢占卜方式",
     failedMessage: "今日運勢計算失敗，請稍後再試。",
     retryButton: "重試",
@@ -283,11 +290,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   vi: {
-    tabLabel: { saju: "Tứ Trụ", sukuyo: "Sukuyo", vedic: "Vệ Đà" },
+    tabLabel: { saju: "Tứ Trụ", sukuyo: "Sukuyo", vedic: "Vệ Đà", number: "Thần số học" },
     tabBlurb: {
       saju: "Thiên can địa chi của nhật trụ hôm nay tạo nên kết nối với nhật can của bạn",
       sukuyo: "Vị trí của 27 cung mà Mặt Trăng lưu trú so với sao bản mệnh của bạn",
       vedic: "Panchanga hôm nay đọc theo vị trí sao thực của Mặt Trăng",
+      number: "Con số Ngày cá nhân từ tháng, ngày sinh cộng với ngày hôm nay",
     },
     navAriaLabel: "Điều hướng vận mệnh hôm nay",
     backButtonLabel: "Quay lại",
@@ -297,7 +305,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} điểm`,
     cardDelayedFallback: (label) => `Việc tính toán ${label} đang tạm thời bị chậm. Các phương pháp khác vẫn xem được bình thường, hãy tải lại để thử lại.`,
     heroTitle: "Vận Mệnh Hôm Nay",
-    heroLead: "Nhật trụ Tứ Trụ, 27 cung Sukuyo, panchanga Vệ Đà — ba hệ thống đọc hôm nay theo cách riêng của mình. Miễn phí, không cần đăng nhập.",
+    heroLead: "Nhật trụ Tứ Trụ, 27 cung Sukuyo, panchanga Vệ Đà, Ngày cá nhân thần số học — bốn hệ thống đọc hôm nay theo cách riêng của mình. Miễn phí, không cần đăng nhập.",
     tabsAriaLabel: "Chuyển đổi phương pháp xem vận mệnh hôm nay",
     failedMessage: "Không thể tính toán vận mệnh hôm nay. Vui lòng thử lại sau một chút.",
     retryButton: "Thử lại",
@@ -319,11 +327,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   hi: {
-    tabLabel: { saju: "साजू", sukuyo: "सुक्योउ", vedic: "वैदिक" },
+    tabLabel: { saju: "साजू", sukuyo: "सुक्योउ", vedic: "वैदिक", number: "अंकशास्त्र" },
     tabBlurb: {
       saju: "आज के दिन-स्तंभ का स्वर्गीय तना-शाखा आपके दिन स्वामी से जो संबंध बनाता है",
       sukuyo: "चंद्रमा जिस 27वें भवन में ठहरता है उसका आपके जन्म नक्षत्र से संबंध",
       vedic: "चंद्रमा की वास्तविक नाक्षत्रिक स्थिति से आज का पंचांग",
+      number: "जन्म माह-तिथि और आज की तारीख़ जोड़कर बना आपका पर्सनल डे अंक",
     },
     navAriaLabel: "आज के भाग्य का नेविगेशन",
     backButtonLabel: "वापस",
@@ -333,7 +342,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} अंक`,
     cardDelayedFallback: (label) => `${label} की गणना में थोड़ी देरी हो रही है। अन्य ज्योतिष विधियाँ सामान्य रूप से देखी जा सकती हैं, रीफ्रेश करने पर फिर से प्रयास होगा।`,
     heroTitle: "आज का भाग्य",
-    heroLead: "साजू दिन-स्तंभ, सुक्योउ के 27 भवन, वैदिक पंचांग — तीनों प्रणालियाँ अपने-अपने तरीके से आज को पढ़ती हैं। लॉगिन की आवश्यकता नहीं, मुफ़्त।",
+    heroLead: "साजू दिन-स्तंभ, सुक्योउ के 27 भवन, वैदिक पंचांग, अंकशास्त्र का पर्सनल डे — चारों प्रणालियाँ अपने-अपने तरीके से आज को पढ़ती हैं। लॉगिन की आवश्यकता नहीं, मुफ़्त।",
     tabsAriaLabel: "आज के भाग्य की ज्योतिष विधि बदलें",
     failedMessage: "आज का भाग्य गणना नहीं हो सका। कृपया कुछ देर बाद फिर कोशिश करें।",
     retryButton: "फिर कोशिश करें",
@@ -355,11 +364,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   es: {
-    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Védica" },
+    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Védica", number: "Numerología" },
     tabBlurb: {
       saju: "Cómo el tronco celeste y la rama terrestre del día de hoy moldean tu amo del día",
       sukuyo: "Dónde se sitúan las 27 mansiones lunares de hoy respecto a tu estrella natal",
       vedic: "El panchanga de hoy según la posición sideral real de la Luna",
+      number: "Tu número de Día Personal: mes y día de nacimiento más la fecha de hoy",
     },
     navAriaLabel: "Navegación de la fortuna de hoy",
     backButtonLabel: "Atrás",
@@ -369,7 +379,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} pts`,
     cardDelayedFallback: (label) => `El cálculo de ${label} está momentáneamente retrasado. Las demás lecturas siguen disponibles; al actualizar se reintentará.`,
     heroTitle: "La Fortuna de Hoy",
-    heroLead: "El pilar del día Saju, las 27 mansiones Sukuyo y el panchanga védico: tres sistemas leen hoy a su manera. Gratis, sin necesidad de iniciar sesión.",
+    heroLead: "El pilar del día Saju, las 27 mansiones Sukuyo, el panchanga védico y tu Día Personal numerológico: cuatro sistemas leen hoy a su manera. Gratis, sin necesidad de iniciar sesión.",
     tabsAriaLabel: "Cambiar el sistema de la fortuna de hoy",
     failedMessage: "No se pudo calcular la fortuna de hoy. Inténtalo de nuevo en un momento.",
     retryButton: "Reintentar",
@@ -391,11 +401,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   fr: {
-    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Védique" },
+    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Védique", number: "Numérologie" },
     tabBlurb: {
       saju: "Comment le tronc céleste et la branche terrestre du jour façonnent votre maître du jour",
       sukuyo: "La position des 27 demeures lunaires d'aujourd'hui par rapport à votre étoile natale",
       vedic: "Le panchanga du jour lu selon la position sidérale réelle de la Lune",
+      number: "Votre nombre du Jour Personnel : mois et jour de naissance plus la date du jour",
     },
     navAriaLabel: "Navigation de la fortune du jour",
     backButtonLabel: "Retour",
@@ -405,7 +416,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} pts`,
     cardDelayedFallback: (label) => `Le calcul de ${label} est momentanément retardé. Les autres lectures restent disponibles ; actualisez pour réessayer.`,
     heroTitle: "La Fortune du Jour",
-    heroLead: "Le pilier du jour Saju, les 27 demeures Sukuyo, et le panchanga védique — trois systèmes lisent aujourd'hui à leur manière. Gratuit, sans connexion.",
+    heroLead: "Le pilier du jour Saju, les 27 demeures Sukuyo, le panchanga védique et votre Jour Personnel en numérologie — quatre systèmes lisent aujourd'hui à leur manière. Gratuit, sans connexion.",
     tabsAriaLabel: "Changer le système de la fortune du jour",
     failedMessage: "Impossible de calculer la fortune du jour. Réessayez dans un instant.",
     retryButton: "Réessayer",
@@ -427,11 +438,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   de: {
-    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Vedisch" },
+    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Vedisch", number: "Numerologie" },
     tabBlurb: {
       saju: "Wie der Himmelsstamm und Erdzweig des heutigen Tagespfeilers Ihren Tagesherrscher prägt",
       sukuyo: "Wo das heutige der 27 Mondhäuser im Verhältnis zu Ihrem Geburtsstern liegt",
       vedic: "Das heutige Panchanga anhand der tatsächlichen siderischen Position des Mondes",
+      number: "Ihre persönliche Tageszahl aus Geburtsmonat und -tag plus heutigem Datum",
     },
     navAriaLabel: "Navigation für das heutige Horoskop",
     backButtonLabel: "Zurück",
@@ -441,7 +453,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} Pkt.`,
     cardDelayedFallback: (label) => `Die Berechnung für ${label} verzögert sich kurz. Die anderen Lesungen sind weiterhin verfügbar; ein Neuladen versucht es erneut.`,
     heroTitle: "Das Horoskop von Heute",
-    heroLead: "Saju-Tagespfeiler, die 27 Sukuyo-Mondhäuser und das vedische Panchanga — drei Systeme lesen den heutigen Tag auf ihre eigene Weise. Kostenlos, keine Anmeldung nötig.",
+    heroLead: "Saju-Tagespfeiler, die 27 Sukuyo-Mondhäuser, das vedische Panchanga und Ihr numerologischer persönlicher Tag — vier Systeme lesen den heutigen Tag auf ihre eigene Weise. Kostenlos, keine Anmeldung nötig.",
     tabsAriaLabel: "Heutiges Horoskopsystem wechseln",
     failedMessage: "Das heutige Horoskop konnte nicht berechnet werden. Bitte versuchen Sie es gleich noch einmal.",
     retryButton: "Erneut versuchen",
@@ -463,11 +475,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   nl: {
-    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Vedisch" },
+    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Vedisch", number: "Numerologie" },
     tabBlurb: {
       saju: "Hoe de hemelse stam en aardse tak van de dagpilaar van vandaag uw dagheerser vormt",
       sukuyo: "Waar het maanhuis waar de Maan vandaag verblijft zich verhoudt tot uw geboortester",
       vedic: "De panchanga van vandaag gelezen uit de werkelijke siderische positie van de Maan",
+      number: "Je persoonlijke dagnummer uit geboortemaand en -dag plus de datum van vandaag",
     },
     navAriaLabel: "Navigatie voor de fortuin van vandaag",
     backButtonLabel: "Terug",
@@ -477,7 +490,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} pt`,
     cardDelayedFallback: (label) => `De berekening voor ${label} loopt even vertraging op. De andere lezingen blijven gewoon beschikbaar; verversen probeert het opnieuw.`,
     heroTitle: "De Fortuin van Vandaag",
-    heroLead: "Saju-dagpilaar, de 27 Sukuyo-maanhuizen en de Vedische panchanga — drie systemen lezen vandaag elk op hun eigen manier. Gratis, geen inloggen nodig.",
+    heroLead: "Saju-dagpilaar, de 27 Sukuyo-maanhuizen, de Vedische panchanga en je numerologische persoonlijke dag — vier systemen lezen vandaag elk op hun eigen manier. Gratis, geen inloggen nodig.",
     tabsAriaLabel: "Wissel van systeem voor de fortuin van vandaag",
     failedMessage: "Kon de fortuin van vandaag niet berekenen. Probeer het over een moment opnieuw.",
     retryButton: "Opnieuw proberen",
@@ -499,11 +512,12 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     ],
   },
   ms: {
-    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Veda" },
+    tabLabel: { saju: "Saju", sukuyo: "Sukuyo", vedic: "Veda", number: "Numerologi" },
     tabBlurb: {
       saju: "Bagaimana batang langit dan cabang bumi tiang hari ini membentuk penguasa hari anda",
       sukuyo: "Kedudukan salah satu daripada 27 rumah bulan hari ini berbanding bintang kelahiran anda",
       vedic: "Panchanga hari ini berdasarkan kedudukan sideral sebenar Bulan",
+      number: "Nombor Hari Peribadi daripada bulan dan hari lahir ditambah tarikh hari ini",
     },
     navAriaLabel: "Navigasi tuah hari ini",
     backButtonLabel: "Kembali",
@@ -513,7 +527,7 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
     scoreSuffix: (score) => `${score} mata`,
     cardDelayedFallback: (label) => `Pengiraan ${label} tertangguh sebentar. Tilikan lain masih boleh dilihat seperti biasa, muat semula untuk cuba lagi.`,
     heroTitle: "Tuah Hari Ini",
-    heroLead: "Tiang hari Saju, 27 rumah Sukuyo, panchanga Veda — tiga sistem membaca hari ini dengan cara masing-masing. Percuma, tanpa perlu log masuk.",
+    heroLead: "Tiang hari Saju, 27 rumah Sukuyo, panchanga Veda, Hari Peribadi numerologi — empat sistem membaca hari ini dengan cara masing-masing. Percuma, tanpa perlu log masuk.",
     tabsAriaLabel: "Tukar sistem tuah hari ini",
     failedMessage: "Tidak dapat mengira tuah hari ini. Sila cuba lagi sebentar lagi.",
     retryButton: "Cuba lagi",
@@ -533,6 +547,49 @@ const TODAY_HUB_COPY: Partial<Record<LoadingLocale, TodayHubCopy>> = {
       "Baca bintang kelahiran anda mengikut sistem Timur dan India.",
       "Lihat carta 12 rumah kelahiran anda, bukan sekadar hari ini.",
     ],
+  },
+};
+
+// 프로필 카드가 없는 방문자가 수비학 탭에서 생년월일만 넣는 폼. 저작 로케일만 두고 나머지는 영어로 떨어진다.
+type NumberGuestCopy = { lead: string; label: string; submit: string; busy: string; failed: string };
+
+const NUMBER_GUEST_COPY_EN: NumberGuestCopy = {
+  lead: "No profile card? Enter your birth date to see today's Personal Day number.",
+  label: "Birth date (solar calendar)",
+  submit: "Show my number",
+  busy: "Calculating...",
+  failed: "Couldn't calculate. Check the date and try again.",
+};
+
+const NUMBER_GUEST_COPY: Partial<Record<LoadingLocale, NumberGuestCopy>> = {
+  ko: {
+    lead: "프로필 카드가 없어도 생년월일만 넣으면 오늘 내 개인일수를 바로 계산합니다.",
+    label: "생년월일(양력)",
+    submit: "내 수 보기",
+    busy: "계산 중…",
+    failed: "계산하지 못했습니다. 날짜를 확인하고 다시 시도해 주세요.",
+  },
+  en: NUMBER_GUEST_COPY_EN,
+  ja: {
+    lead: "プロフィールカードがなくても、生年月日を入れるだけで今日のパーソナルデイ数を計算します。",
+    label: "生年月日（新暦）",
+    submit: "自分の数を見る",
+    busy: "計算中…",
+    failed: "計算できませんでした。日付を確認してもう一度お試しください。",
+  },
+  "zh-CN": {
+    lead: "没有档案卡也可以，输入出生日期即可算出今天的个人日数。",
+    label: "出生日期（公历）",
+    submit: "查看我的数字",
+    busy: "计算中…",
+    failed: "无法计算。请确认日期后重试。",
+  },
+  "zh-TW": {
+    lead: "沒有檔案卡也可以，輸入出生日期即可算出今天的個人日數。",
+    label: "出生日期（國曆）",
+    submit: "查看我的數字",
+    busy: "計算中…",
+    failed: "無法計算。請確認日期後重試。",
   },
 };
 
@@ -717,7 +774,7 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState<TodaySystem>("saju");
   const [reloadToken, setReloadToken] = useState(0);
-  // ?tab=saju|sukuyo|vedic — Threads 유형별 글이 해당 탭으로 바로 데려온다. 정적 셸이라 마운트 후에 읽는다.
+  // ?tab=saju|sukuyo|vedic|number — Threads 유형별 글이 해당 탭으로 바로 데려온다. 정적 셸이라 마운트 후에 읽는다.
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
     const match = TAB_KEYS.find((tab) => tab.key === requested);
@@ -757,6 +814,31 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
     };
     // seedVersion 은 프로필 카드가 뒤늦게 도착했을 때(로그인 사용자의 서버 동기화) 다시 계산하려고 둔다.
   }, [locale, now, query, seedVersion, reloadToken]);
+
+  // 프로필 카드가 없는 방문자의 수비학 입력. only=number 라 다른 점술은 이 입력으로 개인화되지 않고,
+  // 서버는 생년이 실린 요청을 공개 캐시에 올리지 않는다. 입력값은 이 화면 상태에만 두고 저장하지 않는다.
+  const guestCopy = NUMBER_GUEST_COPY[locale] || NUMBER_GUEST_COPY_EN;
+  const [guestBirth, setGuestBirth] = useState("");
+  const [guestCard, setGuestCard] = useState<SystemCard | null>(null);
+  const [guestState, setGuestState] = useState<"idle" | "busy" | "failed">("idle");
+  const submitGuestBirth = useCallback((event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(guestBirth) || guestState === "busy") return;
+    setGuestState("busy");
+    const params = new URLSearchParams({ detail: "1", locale, birth: guestBirth, only: "number" });
+    fetch(getApiUrl(`/api/fortune/today-hub?${params.toString()}`), { credentials: "omit", headers: { "x-code-destiny-locale": locale } })
+      .then((res) => {
+        if (!res.ok) throw new Error(`http_${res.status}`);
+        return res.json();
+      })
+      .then((payload: HubResponse) => {
+        const card = payload?.ok ? payload.systems.number : null;
+        if (!card) throw new Error("no_card");
+        setGuestCard(card);
+        setGuestState("idle");
+      })
+      .catch(() => setGuestState("failed"));
+  }, [guestBirth, guestState, locale]);
 
   // 탭 화살표 이동 — 홈 셸의 허브와 같은 WAI-ARIA roving tabindex 규칙.
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -801,6 +883,8 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
   }, [sharing, copy]);
 
   const personalized = Boolean(data?.personalized);
+  const showGuestForm = active === "number" && Boolean(data) && !personalized;
+  const panelCard = showGuestForm && guestCard ? guestCard : data?.systems[active];
   const activeTabKey = TAB_KEYS.find((tab) => tab.key === active) || TAB_KEYS[0];
   const activeTab = { ...activeTabKey, label: copy.tabLabel[activeTabKey.key], blurb: copy.tabBlurb[activeTabKey.key] };
 
@@ -830,7 +914,7 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
         </header>
 
         {/* 탭 */}
-        <div role="tablist" aria-label={copy.tabsAriaLabel} className="mt-8 grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-1.5">
+        <div role="tablist" aria-label={copy.tabsAriaLabel} className="mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5">
           {TAB_KEYS.map((tab) => {
             const selected = tab.key === active;
             return (
@@ -859,6 +943,37 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
         </div>
         <p className="mt-2.5 break-keep text-center text-xs leading-6 text-slate-400">{activeTab.blurb}</p>
 
+        {showGuestForm && (
+          <form onSubmit={submitGuestBirth} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <p className="break-keep text-sm leading-7 text-slate-200">{guestCopy.lead}</p>
+            <div className="mt-3 flex flex-wrap items-end gap-2">
+              <label className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-slate-400">
+                {guestCopy.label}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="bday"
+                  placeholder="YYYY-MM-DD"
+                  maxLength={10}
+                  required
+                  value={guestBirth}
+                  onChange={(event) => setGuestBirth(maskBirthDateInput(event.target.value))}
+                  className="min-h-11 rounded-xl border border-white/16 bg-white/[0.06] px-3 text-sm font-semibold text-slate-100 placeholder:text-slate-500"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={guestState === "busy"}
+                aria-busy={guestState === "busy"}
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-amber-400/40 bg-amber-400/10 px-5 text-sm font-bold text-amber-200 transition-colors hover:border-amber-400/70 hover:bg-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {guestState === "busy" ? guestCopy.busy : guestCopy.submit}
+              </button>
+            </div>
+            {guestState === "failed" && <p role="alert" className="mt-2 break-keep text-xs leading-6 text-rose-200">{guestCopy.failed}</p>}
+          </form>
+        )}
+
         {/* 결과 */}
         <div
           ref={panelRef}
@@ -882,7 +997,7 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
               </button>
             </div>
           ) : data ? (
-            <CardPanel card={data.systems[active]} tabLabel={activeTab.label} copy={copy} />
+            <CardPanel card={panelCard} tabLabel={activeTab.label} copy={copy} />
           ) : (
             <div aria-hidden="true" className="min-h-[16rem] rounded-3xl border border-white/8 bg-white/[0.03]" />
           )}
