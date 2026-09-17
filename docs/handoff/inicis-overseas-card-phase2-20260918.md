@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-09-18
-next: 이 워크트리(wt/inicis-overseas-card-p2-20260918-044006)는 아직 main 에 안 들어갔다 — 아래 "재개 절차"의 머지·push 를 먼저 끝내고, 그 다음 2단계 잔여(영문 결제정보 + 서버측 환불 동의 기록)를 새 세션에서 시작한다
+next: 2단계 ②③ 는 main 에 들어갔다(머지 3471a307b) — 다음은 2단계 잔여인 ① 영문 결제정보와 서버측 환불 동의 기록이며, 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
 ---
 
 # KG이니시스 해외카드 특약 대비 — 2단계 ②③ (결제창 정책 링크·영문 결제 문의 진입점)
@@ -27,10 +27,12 @@ next: 이 워크트리(wt/inicis-overseas-card-p2-20260918-044006)는 아직 mai
 
 ## 지금 상태
 
-- 워크트리 `D:\Development\codedestiny-worktrees\inicis-overseas-card-p2-20260918-044006`, 브랜치 `wt/inicis-overseas-card-p2-20260918-044006`, 베이스 `8ee6b4b88`.
-- 커밋 2개 + 이 문서 커밋. **아직 main 에 머지하지 않았고 push 하지 않았다.**
+- **2단계 ②③ 완료(2026-09-18).** 워크트리 `D:\Development\codedestiny-worktrees\inicis-overseas-card-p2-20260918-044006`(브랜치 `wt/inicis-overseas-card-p2-20260918-044006`, 베이스 `8ee6b4b88`)에서 구현·mock 검증하고 main 에 머지해 push 했다.
   - C1 `52b1e7c2e` — 영문·일문·중문 고객센터에 결제·환불 문의 항목 추가(17 files, 371+/368-).
   - C2 `8b7e3bbc4` — 결제창 하단 로케일별 정책 링크 줄(70 files, 1600+/1269-).
+  - C3 `3a4df4a0e` — 결제 문서 01·02·06·09 갱신 + 이 문서.
+  - 머지 `3471a307b`(origin/main `fe4938f9c` 위). push: `fe4938f9c..3471a307b -> main`.
+  - 머지 충돌은 `config/sitemap-lastmod.json` 하나뿐이었다(양쪽이 원장 갱신). 손으로 합치지 않고 origin/main 판으로 되돌린 뒤 합친 트리에서 `npm run sitemap:generate` 로 다시 유도했다. 머지 직후 `npm run sync:public` 재실행 → 캐시 키 2개 회전(`index-inline-runtime.js`·`uiBindings.js`). 합친 트리에서 `npm run check:fast` exit 0(281 suites / 3958 tests).
 - `FOREIGN_CARD_ENABLED` 는 이번에도 어디에도 설정하지 않았다(OFF). 카드 브랜드명·환불 응답기한 약속은 한 글자도 넣지 않았다 — 특약은 여전히 미승인이다.
 
 ## 무엇을 바꿨나
@@ -82,7 +84,7 @@ next: 이 워크트리(wt/inicis-overseas-card-p2-20260918-044006)는 아직 mai
 
 ## 남은 작업
 
-- [ ] **머지·push**(아래 재개 절차). 이번 세션은 워크트리에 커밋만 했다.
+- [x] 머지·push(`3471a307b`). 운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 하지 않았다.
 - [ ] 2단계 ① 영문 결제정보 — 이용권 모달 `app/points/PointsClient.tsx:4829-4874`, 영냥이 `app/checkout/CheckoutClient.tsx:194-226`, 선물 안내 `GIFT_GUIDANCE` 의 한국어 하드코딩. 7개 로케일 `payment.directModal` 영어화.
 - [ ] 서버측 환불 동의 기록 — 이용권 모달 체크박스는 클라이언트에서만 버튼을 잠근다(`app/points/PointsClient.tsx:4867`). 단건 결제창엔 체크박스 자체가 없다([05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §4).
 - [ ] 3단계(법무, LEGAL REVIEW REQUIRED)는 그대로 남아 있다.
@@ -107,16 +109,16 @@ next: 이 워크트리(wt/inicis-overseas-card-p2-20260918-044006)는 아직 mai
 
 ## 재개 절차
 
-머지는 **공유 체크아웃을 건드리지 않고** 워크트리에서 한다(옆 세션의 미커밋 작업 보호, 1단계와 같은 방식).
-
 ```powershell
-Set-Location 'D:\Development\codedestiny-worktrees\inicis-overseas-card-p2-20260918-044006'
-git fetch origin main
-git log --oneline origin/main -1
-# origin/main 을 detached 로 받아 --no-ff 머지 → 충돌 예상 지점은 정적 페이지 핀과 sitemap 원장뿐이다.
-# 핀은 합친 코어에서 다시 유도하고, 머지 직후 npm run sync:public 을 반드시 다시 돌린다(미러가 도로 낡는다).
-npm run check:fast
-git push origin HEAD:main
+Set-Location 'D:\Development\code-destiny'
+git branch --show-current
+git status --short
+git pull --ff-only
+powershell -File scripts/create-safe-worktree.ps1 -Slug inicis-overseas-card-p2-rest
 ```
 
-push 후 `CI required` 통과만 확인하고 끝낸다. 스테이징 화면 검증은 선택이고, 운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 **명시적 1회 승인** 없이는 하지 않는다.
+이 세션은 워크트리를 남겨 뒀다(`D:\Development\codedestiny-worktrees\inicis-overseas-card-p2-20260918-044006`). 다음 세션이 안 쓸 거면 `git worktree remove` 로 정리한다.
+
+쓰는 세션이 이미 둘 이상이면 공유 체크아웃 대신 워크트리에서 작업하고, 머지도 워크트리 안에서 한다 — 공유 체크아웃의 `reset --hard`·`stash`·`checkout --` 는 옆 세션의 미커밋 작업을 복구 불가로 지운다. 이번 머지도 그래서 워크트리에서 했다.
+
+운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 **명시적 1회 승인** 없이는 하지 않는다. 스테이징 화면 검증은 선택이다.
