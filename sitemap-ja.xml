@@ -53,6 +53,24 @@
     <priority>0.80</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/ja/compatibility/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/compatibility/" />
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/ja/contact/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/contact/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/contact/" />
@@ -1350,6 +1368,24 @@
     <priority>0.50</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/ja/saju-compatibility/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/saju/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/saju/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/compatibility/" />
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/ja/saju/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/saju/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/saju/" />
@@ -1379,6 +1415,24 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo-compatibility-ai/" />
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/ja/sukuyo-compatibility/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo/compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo-compatibility/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo/compatibility/" />
     <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>

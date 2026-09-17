@@ -41,10 +41,13 @@ test("public trust dictionaries are complete, native-language and contain visibl
 });
 
 test("feature introductions contain substantial native copy and real reciprocal routes", async () => {
-  const { FEATURE_INTRODUCTIONS, INTRO_UI, INTRO_LOCALES, INTRO_TOPICS, introductionRoutes } = await import("../../lib/i18n/feature-introductions.mjs");
+  const { FEATURE_INTRODUCTIONS, INTRO_UI, INTRO_LOCALES, INTRO_TOPICS, INTRO_KO_PATH_OVERRIDES, introductionRoutes } = await import("../../lib/i18n/feature-introductions.mjs");
   for (const topic of INTRO_TOPICS) {
+    // 대부분의 허브는 /<topic>/에 한국어 원본이 있지만, 기존 기능 아래 중첩된 허브(사주/숙요 궁합)는
+    // INTRO_KO_PATH_OVERRIDES에 실제 경로가 등록돼 있다 — 그 경로를 기준으로 파일 존재를 확인한다.
+    const koPath = INTRO_KO_PATH_OVERRIDES[topic] || `/${topic}/`;
     assert.ok(
-      ["page.js", "page.tsx"].some((file) => fs.existsSync(path.join(root, `app/${topic}`, file))),
+      ["page.js", "page.tsx"].some((file) => fs.existsSync(path.join(root, `app${koPath}`, file))),
       `${topic}: 한국어 원본 라우트가 없다`,
     );
     assert.ok(fs.existsSync(path.join(root, `app/[locale]/${topic}/page.js`)));
@@ -55,7 +58,7 @@ test("feature introductions contain substantial native copy and real reciprocal 
       assert.doesNotMatch(body, /[가-힣]|Translation pending/);
       assert.ok(locale === "en" ? body.split(/\s+/).length >= 450 : body.length >= 800, `${locale}/${topic}: insufficient editorial detail`);
       assert.equal(introductionRoutes(topic)[locale], `/${locale}/${topic}/`);
-      assert.equal(introductionRoutes(topic).ko, `/${topic}/`);
+      assert.equal(introductionRoutes(topic).ko, koPath);
     }
   }
 });
