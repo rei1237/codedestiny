@@ -1910,6 +1910,16 @@ export default function LoveSecretAiPage() {
     return () => { alive = false; };
   }, [captureDeliveryScope, discoveryEpoch]);
 
+  useEffect(() => {
+    const resume = () => { if (!document.hidden) setDiscoveryEpoch(value => value + 1); };
+    window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
+    window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
+    return () => {
+      window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
+    };
+  }, []);
+
   // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
   useEffect(() => {
     if (!profileSeed) return;

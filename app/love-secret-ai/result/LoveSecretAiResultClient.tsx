@@ -915,10 +915,12 @@ export default function LoveSecretAiResultClient() {
     void loadResult();
     const onVisible = () => { if (!document.hidden && alive && isCurrent()) setReloadEpoch(value => value + 1); };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", onVisible); window.addEventListener("focus", onVisible);
     return () => {
       alive = false;
       if (timer) window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", onVisible); window.removeEventListener("focus", onVisible);
     };
     // 마운트 시 1회만 로드한다; 로딩 중 로케일이 바뀌어도 진행 중인 폴링을 재시작하지 않는다
     // (copy.* 는 에러 메시지 문구일 뿐 재요청 트리거가 아니다).
