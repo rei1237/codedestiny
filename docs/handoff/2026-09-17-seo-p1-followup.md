@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: P1 4건 작업 완료·push(zh-TW 4허브, compatibility 다국어화, 소개 페이지 FAQ 보강, sitemap 드리프트 정리). CI 초록 여부는 미확인 — gh run list부터 실측할 것
+next: P1 4건 완료·push·CI 초록 확정(zh-TW 4허브, compatibility 다국어화, 소개 페이지 FAQ 보강, sitemap 드리프트 정리). 다음은 P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자 확인 후 택1
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -82,17 +82,17 @@ npm run check:fast   # 코드 수정 시
 zh-TW 4개 허브 배포 후 실제 트래픽 반응 — 이 세션에서는 배포 직후라 실측 불가,
 후속 확인은 GSC 접근이 생기는 시점에.
 
-`bd44f2854`(sitemap 드리프트 정리) push 직후 CI 결과를 이 세션은 기다리지
-못함 — `619d408db`(compatibility 다국어화) 이후 이미 두 차례(description
-50자 미달 → sitemap 드리프트) 연쇄로 CI가 깨졌던 이력이 있으므로, 초록
-확정 전까지는 "해소됨"으로 단정하지 말 것.
+`63914e4e1`(최신 push) 기준 PR CI(Static guards·sitemap 가드 포함)는
+`gh run list`로 실측 확인 결과 **전부 success — CI 실제로 초록 확정됨**
+(2026-09-17). 단, 같은 시각 `workflow_dispatch`로 수동 트리거된 별개의
+"Release Cloudflare Pages and Worker" 실행(35207173873)이 "Deploy staging
+Pages and Worker at the exact SHA" 단계에서 실패 — 이건 push 트리거 CI가
+아니라 수동 스테이징 배포 인프라 실행이고 이 세션의 코드/콘텐츠 변경과는
+무관해 보임(원인 미조사, 배포 인프라 축이라 이 세션 범위 밖). 다음 세션이
+스테이징을 직접 다뤄야 하면 그때 조사할 것 — [[staging-verify-optional]].
 
 ## 다음 세션 첫 문장
 
-`gh run list --branch main --limit 6` — `bd44f2854` 기준 PR CI(Static guards
-포함)가 전부 success 인지 실측 확인. 여전히 실패 중이면 `gh run view
-<run-id>`로 실패 스텝을 먼저 특정한 뒤 고칠 것(추측으로 고치지 말 것 —
-이번에 description 길이 수정이 sitemap 드리프트를 유발한 것처럼, 수정 하나가
-다른 가드를 깨뜨릴 수 있음). 초록 확인되면 P1 4건(zh-TW, compatibility,
-소개 FAQ, sitemap 정리) 모두 완료로 보고, P2(sitemap 중복 제출) 또는
-P3(죽은 리다이렉트 스텁 정리) 중 사용자에게 우선순위 확인.
+P1 4건(zh-TW, compatibility, 소개 FAQ, sitemap 드리프트 정리) 모두 완료·CI
+초록 확정됨을 전제로, P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁
+정리) 중 사용자에게 우선순위 확인 후 착수.
