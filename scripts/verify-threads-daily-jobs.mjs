@@ -13,9 +13,9 @@
  *   ③ 같은 날·같은 type 은 한 번만 발행(already_posted), 실패+발행 0건은 다음 틱에 재시도, 잠금 키는 type 별.
  *   ④ Job 격리 — 한 provider 가 던져도 다른 Job 은 발행된다. connectDb 실패는 due Job 만 실패로 남긴다.
  *   ⑤ facts 스냅샷(2026-09-17) — 사주 갑오일·정유월·병오년, 자미 핵심 별 염정·천동·천기,
- *      베다는 computeTodaySky(=today 허브와 같은 함수) 결과와 동일.
+ *      베다는 computeTodaySky(=today 허브와 같은 함수) 결과와 동일, 수비학 보편일수 9(2026→1, 1+9+17=27→9).
  *   ⑥ 게시물 길이 ≤ 480 — 366일 × (결정론 문안 / 최대 길이 모델 문안), CTA·링크·해시태그가 잘리지 않는다.
- *   ⑦ 모델 필드 검증 — 범용 문구·facts 밖 용어·궁 이름·다샤는 그 필드만 버리고 결정론 문안으로 간다.
+ *   ⑦ 모델 필드 검증 — 범용 문구·facts 밖 용어·궁 이름·다샤·facts 밖 숫자는 그 필드만 버리고 결정론 문안으로 간다.
  *   ⑧ SNS_THREADS_AI_ENABLED 꺼짐 → 모델 호출 0회.
  *   ⑨ 알림은 창의 마지막 틱 실패에서만, 수동 실행(force)은 알리지 않는다.
  *   ⑩ 분할 스위치 on → 07:00 체인의 Threads 는 threads_split_active, 텔레그램 경로는 이 스위치를 모른다.
@@ -41,6 +41,8 @@ const entry = [
   `export * as saju from ${abs("worker/lib/threads-daily-providers/saju.js")};`,
   `export * as ziwei from ${abs("worker/lib/threads-daily-providers/ziwei.js")};`,
   `export * as vedic from ${abs("worker/lib/threads-daily-providers/vedic.js")};`,
+  `export * as numerology from ${abs("worker/lib/threads-daily-providers/numerology.js")};`,
+  `export { calculateUniversalNumbers } from ${abs("lib/numerology/personal-day.mjs")};`,
   `export { computeTodaySky } from ${abs("worker/lib/today-sky.js")};`,
   `export { getDailyChainThreadsSkipReason, getThreadsSkipReason } from ${abs("worker/lib/sns-daily-post-task.js")};`,
   `export { threadsTextWeight } from ${abs("worker/lib/threads.js")};`,
@@ -80,7 +82,7 @@ try {
 } finally {
   fs.rmSync(bundleFile, { force: true });
 }
-const { jobs, shared, saju, ziwei, vedic, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, PALACE_FACET } = m;
+const { jobs, shared, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, PALACE_FACET } = m;
 
 let passed = 0;
 async function check(label, fn) {
@@ -205,12 +207,17 @@ await check("분할 스위치 꺼짐·토큰 없음·창 밖이면 connect 0회"
   const { options } = harness();
   assert.equal((await jobs.runThreadsDailyJobs({ ...BASE_ENV, SNS_THREADS_POST_ENABLED: "1" }, { ...options, now: SEP17(8, 30) })).skipped, "split_disabled");
 });
-await check("수비학은 스위치 꺼짐이면 job_disabled, 켜도 provider 가 없으면 provider_missing", async () => {
-  const { options, lock } = harness();
-  assert.equal((await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, now: SEP17(20, 30) })).jobs.numerology.skipped, "job_disabled");
-  const on = await jobs.runThreadsDailyJobs({ ...BASE_ENV, THREADS_NUMEROLOGY_ENABLED: "1" }, { ...options, now: SEP17(20, 30) });
-  assert.equal(on.jobs.numerology.skipped, "provider_missing");
+await check("수비학은 var 없이 기본 켜짐(20:30 발행), THREADS_NUMEROLOGY_ENABLED=\"0\" 일 때만 job_disabled", async () => {
+  const { options, lock, fetch } = harness();
+  const off = await jobs.runThreadsDailyJobs({ ...BASE_ENV, THREADS_NUMEROLOGY_ENABLED: "0" }, { ...options, now: SEP17(20, 30) });
+  assert.equal(off.jobs.numerology.skipped, "job_disabled");
   assert.equal(lock.calls.length, 0);
+  const on = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, now: SEP17(20, 30) });
+  assert.equal(on.jobs.numerology.ok, true, JSON.stringify(on.jobs.numerology));
+  assert.deepEqual(lock.calls.map((c) => c.keyHash), ["2026-09-17:threads:numerology"]);
+  assert.match(fetch.posted[0], /보편일수\(Universal Day\) 9/);
+  assert.equal(jobs.isJobEnabled({ THREADS_NUMEROLOGY_ENABLED: "1" }, jobs.THREADS_DAILY_JOBS[3]), true);
+  assert.equal(jobs.isJobEnabled({ THREADS_NUMEROLOGY_ENABLED: "off" }, jobs.THREADS_DAILY_JOBS[3]), false);
 });
 
 console.log("▶ ③ 중복 방지·재시도");
@@ -245,7 +252,7 @@ await check("실패(발행 0건)는 다음 틱에 재시도되고, 다른 type �
 });
 
 console.log("▶ ④ 격리");
-await check("사주 provider 가 던져도 자미·베다는 발행된다", async () => {
+await check("사주 provider 가 던져도 자미·베다·수비학은 발행된다", async () => {
   const { options, fetch } = harness();
   const providers = { ...jobs.DEFAULT_PROVIDERS, saju: { ...saju, buildFacts: () => { throw new Error("boom"); } } };
   const result = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, providers, force: true, now: SEP17(3, 0) });
@@ -253,7 +260,8 @@ await check("사주 provider 가 던져도 자미·베다는 발행된다", asyn
   assert.match(result.jobs.saju.error, /facts_threw: boom/);
   assert.equal(result.jobs.ziwei.ok, true);
   assert.equal(result.jobs.vedic.ok, true);
-  assert.equal(fetch.posted.length, 2);
+  assert.equal(result.jobs.numerology.ok, true);
+  assert.equal(fetch.posted.length, 3);
 });
 await check("facts 가 null 이면 facts_unavailable, connectDb 실패는 due Job 만 connect_db 실패", async () => {
   const { options } = harness();
@@ -297,16 +305,29 @@ await check("베다 — 주입 없이 computeTodaySky 경로와 같은 값, 서�
   assert.equal(viaEngine.basis, "서울 정오 기준");
   assert.equal(await vedic.buildFacts({}, SEP17(16, 0), { sky: { moonLon: 1, panchanga: null } }), null);
 });
+await check("수비학 — 보편일수 9(today 허브와 같은 계산), 개인 수 없음, 마스터 넘버 날 표시", async () => {
+  const facts = numerology.buildFacts({}, SEP17(20, 30));
+  assert.deepEqual([facts.universalYear, facts.universalMonth, facts.universalDay], [1, 1, 9]);
+  assert.deepEqual(calculateUniversalNumbers({ year: 2026, month: 9, day: 17 }), { universalYear: 1, universalMonth: 1, universalDay: 9 });
+  assert.equal(facts.calculation, "2026 → 10 → 1, 1 + 9 + 17 = 27 → 9");
+  assert.equal(facts.master, false);
+  const text = numerology.format(facts, (await numerology.writeCopy({}, facts)).copy, "https://x/today?tab=number");
+  assert.ok(!/개인일수|개인년수|타로/.test(text), "보편일수 글에 개인 수·타로가 섞였다");
+  // 2026-09-01: 1 + 9 + 1 = 11 → 마스터 넘버에서 멈춘다.
+  const master = numerology.buildFacts({}, kst(2026, 9, 1, 20, 30));
+  assert.equal(master.universalDay, 11);
+  assert.ok(numerology.format(master, (await numerology.writeCopy({}, master)).copy, "https://x/").includes("11(마스터 넘버)"));
+});
 
 console.log("▶ ⑥ 길이 ≤ 480, 유입 경로 보존");
-const LONGEST = { saju: { hook: 50, body: 140, tip: 55 }, ziwei: { hook: 45, body: 120, tip: 50 }, vedic: { hook: 45, body: 110, tip: 50 } };
+const LONGEST = { saju: { hook: 50, body: 140, tip: 55 }, ziwei: { hook: 45, body: 120, tip: 50 }, vedic: { hook: 45, body: 110, tip: 50 }, numerology: { hook: 45, body: 110, tip: 50 } };
 const maxGenerate = (type) => async () => ({
   ok: true,
   model: "stub-model",
   text: JSON.stringify(Object.fromEntries(Object.entries(LONGEST[type]).map(([key, n]) => [key, "가".repeat(n - 1) + "."]))),
 });
-await check("366일 × 3유형 × (결정론/최대 길이 모델 문안)", async () => {
-  const providers = { saju, ziwei, vedic };
+await check("366일 × 4유형 × (결정론/최대 길이 모델 문안)", async () => {
+  const providers = { saju, ziwei, vedic, numerology };
   let worst = 0;
   for (let i = 0; i < 366; i += 1) {
     const now = Date.UTC(2026, 0, 1, 3) + i * 86400000;
@@ -382,6 +403,20 @@ await check("베다 — 다샤·트랜짓은 금지어", async () => {
   assert.deepEqual(written.rejected, ["hook", "body"]);
   assert.equal(written.copy.tip, "짧은 산책으로 머리를 비워 보세요.");
 });
+await check("수비학 — facts 밖 숫자·개인 수·마스터 아닌 날의 마스터는 버린다", async () => {
+  const facts = numerology.buildFacts({}, SEP17(20, 30));
+  const env = { SNS_THREADS_AI_ENABLED: "1" };
+  const bad = await numerology.writeCopy(env, facts, {
+    generateImpl: fields({ hook: "오늘의 수는 7, 깊이 파고드는 날입니다.", body: "개인일수가 높아지는 흐름이라 마무리에 힘이 실립니다. 남은 일을 하나씩 정리해 보세요.", tip: "마스터 넘버의 날답게 크게 움직여 보세요." }),
+  });
+  assert.deepEqual(bad.rejected, ["hook", "body", "tip"]);
+  assert.equal(bad.model, null);
+  const good = await numerology.writeCopy(env, facts, {
+    generateImpl: fields({ hook: "날짜를 더하면 27, 줄이면 9가 되는 날입니다.", body: "한 흐름을 마무리하고 남은 것을 정리하는 힘이 앞에 섭니다. 붙잡고 있던 일을 하나 내려놓아 보세요.", tip: "미뤄 둔 정리 하나를 오늘 끝내 보세요." }),
+  });
+  assert.deepEqual(good.rejected, []);
+  assert.equal(good.copy.hook, "날짜를 더하면 27, 줄이면 9가 되는 날입니다.");
+});
 await check("JSON 이 아니거나 모델 실패면 결정론 문안 전체", async () => {
   const facts = saju.buildFacts({}, SEP17(8, 30));
   const bad = await saju.writeCopy({ SNS_THREADS_AI_ENABLED: "1" }, facts, { generateImpl: async () => ({ ok: true, text: "운세입니다" }) });
@@ -399,7 +434,7 @@ await check("SNS_THREADS_AI_ENABLED 꺼짐 → 모델 호출 0회, aiModel null"
   const { options } = harness();
   const result = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, generateImpl, force: true, now: SEP17(3, 0) });
   assert.equal(calls, 0);
-  for (const type of ["saju", "ziwei", "vedic"]) assert.equal(result.jobs[type].ref.aiModel, null);
+  for (const type of ["saju", "ziwei", "vedic", "numerology"]) assert.equal(result.jobs[type].ref.aiModel, null);
 });
 
 console.log("▶ ⑨ 알림");
@@ -451,7 +486,11 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
   assert.equal(prod.SNS_THREADS_POST_ENABLED, "split", "프로덕션 설정이 분할 발행으로 안 켜졌다");
   for (const key of vars.slice(1)) assert.equal(prod[key], undefined, `${key} 가 [vars] 에 들어갔다 — 바인딩 예산 초과`);
   assert.deepEqual(jobs.THREADS_DAILY_JOBS.map((job) => job.defaultTime), ["08:30", "12:00", "16:00", "20:30"]);
-  assert.equal(jobs.THREADS_DAILY_JOBS.find((job) => job.type === "numerology").enableVar, "THREADS_NUMEROLOGY_ENABLED", "2단계 전에 수비학 Job 이 기본으로 켜진다");
+  // 2단계부터 수비학은 코드 기본 켜짐 — 끄는 var 는 [vars] 에 없고(위 루프) 급할 때만 넣는다.
+  const numerologyJob = jobs.THREADS_DAILY_JOBS.find((job) => job.type === "numerology");
+  assert.equal(numerologyJob.defaultEnabled, true, "수비학 Job 이 기본으로 꺼져 있다");
+  assert.equal(jobs.isJobEnabled({}, numerologyJob), true);
+  assert.deepEqual(Object.keys(jobs.DEFAULT_PROVIDERS), jobs.THREADS_DAILY_JOBS.map((job) => job.type), "Job 과 provider 목록이 어긋났다");
 });
 
 console.log(`\nverify-threads-daily-jobs: ${passed}개 통과`);

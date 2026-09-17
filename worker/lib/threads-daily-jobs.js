@@ -1,4 +1,4 @@
-// Threads 유형별 일일 발행 Job — 사주 08:30 / 자미두수 12:00 / 베다 16:00 / (2단계) 수비학 20:30 KST.
+// Threads 유형별 일일 발행 Job — 사주 08:30 / 자미두수 12:00 / 베다 16:00 / 수비학 20:30 KST.
 //
 // 매 10분 크론(worker/index.js 의 PAYMENT_RECONCILE_CRON 분기)이 부른다. 워커 크론 구조는 그대로 두고
 // Job 마다 [설정 시각, +60분) 발행 창을 연다 — 창 안의 틱(최대 6회)이 곧 자동 재시도다.
@@ -21,6 +21,7 @@ import { buildUtmUrl } from "./threads-daily-providers/shared.js";
 import * as sajuProvider from "./threads-daily-providers/saju.js";
 import * as ziweiProvider from "./threads-daily-providers/ziwei.js";
 import * as vedicProvider from "./threads-daily-providers/vedic.js";
+import * as numerologyProvider from "./threads-daily-providers/numerology.js";
 
 export const THREADS_JOB_ENDPOINT = "cron:sns-threads-daily";
 
@@ -36,15 +37,24 @@ export const THREADS_DAILY_JOBS = Object.freeze([
   { type: "saju", name: "daily-saju", timeVar: "THREADS_SAJU_TIME", defaultTime: "08:30" },
   { type: "ziwei", name: "daily-ziwei", timeVar: "THREADS_ZIWEI_TIME", defaultTime: "12:00" },
   { type: "vedic", name: "daily-vedic", timeVar: "THREADS_VEDIC_TIME", defaultTime: "16:00" },
-  // 2단계(수비학 Personal Day) 전까지 provider 가 없다. 스위치를 켜도 provider_missing 으로 빠진다.
-  { type: "numerology", name: "daily-tarot-or-numerology", timeVar: "THREADS_NUMEROLOGY_TIME", defaultTime: "20:30", enableVar: "THREADS_NUMEROLOGY_ENABLED" },
+  // 수비학은 기본으로 켜진다. 워커 바인딩 예산(126/128) 때문에 켜는 var 를 두지 않고, 급할 때만
+  // THREADS_NUMEROLOGY_ENABLED="0" 을 넣어 이 Job 하나를 끈다(값이 비어 있으면 defaultEnabled).
+  { type: "numerology", name: "daily-tarot-or-numerology", timeVar: "THREADS_NUMEROLOGY_TIME", defaultTime: "20:30", enableVar: "THREADS_NUMEROLOGY_ENABLED", defaultEnabled: true },
 ]);
 
 export const DEFAULT_PROVIDERS = Object.freeze({
   saju: sajuProvider,
   ziwei: ziweiProvider,
   vedic: vedicProvider,
+  numerology: numerologyProvider,
 });
+
+/** enableVar 가 없으면 켜짐. 값이 비어 있으면 defaultEnabled, 값이 있으면 1/true/on/yes 만 켜짐. */
+export function isJobEnabled(env, job) {
+  if (!job.enableVar) return true;
+  if (!String(getEnv(env, job.enableVar) ?? "").trim()) return Boolean(job.defaultEnabled);
+  return isSwitchOn(env, job.enableVar);
+}
 
 /** "HH:MM" → KST 자정 기준 분. 형식이 틀리거나 23:00 이후면 null(해당 Job 만 건너뛴다). */
 export function parseJobTime(raw) {
@@ -159,7 +169,7 @@ export async function runThreadsDailyJobs(env, options = {}) {
     if (only && job.type !== only) continue;
     const schedule = { type: job.type, ...resolveJobSchedule(env, job) };
     schedules.push(schedule);
-    if (job.enableVar && !isSwitchOn(env, job.enableVar)) {
+    if (!isJobEnabled(env, job)) {
       jobs[job.type] = { ok: true, skipped: "job_disabled" };
       continue;
     }
