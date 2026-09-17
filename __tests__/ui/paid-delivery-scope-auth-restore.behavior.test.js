@@ -30,11 +30,11 @@ function mount(initial, options = { survivesAuthRestore: true }) {
   const { outputText } = ts.transpileModule(SOURCE, {
     compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
   });
-  const module = { exports: {} };
+  const sandboxModule = { exports: {} };
   const requireStub = name => (name === "react" ? react : name === "@/app/_lib/auth-store" ? store : assert.fail(name));
-  vm.runInNewContext(outputText, { module, exports: module.exports, require: requireStub, String });
+  vm.runInNewContext(outputText, { module: sandboxModule, exports: sandboxModule.exports, require: requireStub, String });
   let resets = 0;
-  const scope = module.exports.usePaidDeliveryScope(() => { resets += 1; }, options);
+  const scope = sandboxModule.exports.usePaidDeliveryScope(() => { resets += 1; }, options);
   return {
     scope,
     resets: () => resets,
