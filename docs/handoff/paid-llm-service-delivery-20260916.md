@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행·심화 자미 PDF 4행·네오 5행(우선 5개 시나리오만, D 실화면·F 전후 diff는 미실행)은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 나크샤트라 6행부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행(네오는 우선 5개 시나리오만, 둘 다 D 실화면·F 전후 diff는 미실행)은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 인생의 책 7행(`life-book-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,8 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 나크샤트라 6행 — mock A~F 완료(경계 있음):** [행별 기록](../verification/nakshatra-ai-paid-delivery-20260917.md). 마스터·초융합·자미 심층·네오와 같은 client-side 깨어남 복구 누락(`pageshow`/`focus` 미연결)을 나크샤트라 결과 화면(`app/nakshatra/ai/NakshatraAiClient.tsx`)에서 재현·수정했다(10행 diff, 커밋 `0ef57a367e66fec2b57849671f132c750468bffe`). 나머지 구매 재개·생성·장애·저장/권한 경로는 기존 `nakshatra-paid-delivery.test.js`(3-wave·6변형 저장 장애·체크포인트·동시 재시도 등)와 교차 상품 공유 검사 `paid-completed-result-access.test.js`로 대조 확인했다(신규 결함 없음). completed 문서의 POST 재생이 취소·환불 재확인을 건너뛰는 것은 버그가 아니라 기존 테스트(`'does not replace historical short completed results'`)가 명시적으로 보증하는 설계임을 확인했다. 신규 UI 행동 검사(`__tests__/ui/nakshatra-wake-recovery.behavior.test.js`) 1건(수정 전 재현 1/1 실패 → 수정 후 통과로 전환 측정), worker+교차상품 118/118, `verify:nakshatra-flow`/`verify:nakshatra-ai-flow`/`verify:nakshatra-premium` 전부 통과, `check:fast -- --committed-head`(base `755949af0`→head `0ef57a367`) 전체 파이프라인 — `run-paid-gate-suite` 88/88·lint 0·`verify:sitemap-drift` OK·typecheck 0·Node 1,400/1,400·Jest 277 suite·3,880/3,880 — 이 한 번에 막힘 없이 통과했다(네오를 막았던 sitemap-drift 이번엔 없음). 작업 중 다른 세션의 `perf(analytics)` 커밋(`aeeb9f714`)이 위에 이어져 두 커밋을 함께 push했다. main·origin 끝점 `aeeb9f714884771b81a82ace8d8a2f2f43740469`의 [CI](https://github.com/rei1237/codedestiny/actions/runs/35176230590)는 `CI required`·`Static guards` 포함 check-run 24개 전부 success 또는 skipped(실패 0)로 확인했다. **D(실제 Playwright 화면 렌더 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에도 만들지 않았다 — 네오와 동일한 남은 경계.**
 
 **2026-09-17 네오 5행 — 우선 5개 시나리오 mock 완료(부분):** [행별 기록](../verification/neo-operation-room-paid-delivery-20260917.md). 인수인계가 지정한 5개 우선 재현(승인 직후 첫 생성 전 종료·1묶음 저장 뒤 문서 종료·pageshow/bfcache/focus 단독 복귀·checkpoint/완료 확인 유실·정상 completed 대 취소 구매 GET/POST 대조) 중 pageshow/focus 복구 리스너 누락 1건을 재현·수정했다(`NeoOperationRoomPage.tsx`/`NeoOperationRoomResultPage.tsx`, 마스터·초융합과 동일 패턴). 나머지 4건은 기존 통과 테스트로 이미 올바름을 대조 확인했다(새 결함 없음). 신규 행동 검사(`__tests__/ui/neo-wake-recovery.behavior.test.js`) 2/2, 기존 neo-paid-resume 5/5(7/7), worker 76/76, typecheck 0, Node 1,399/1,399, Jest 276 suite·3,874/3,874, build:worker dry-run 0, verify:neo·verify:neo-output-safety 회귀 없음. source `8c9f49664`를 안전 워크트리에서 main에 병합(`2dc2ea9cc`)하고 그사이 origin에 먼저 올라온 문서 커밋(`506579901`)도 병합(`2e07bc0bb`)해 push했다. 이 SHA의 PR CI는 무관한 기존 `verify:sitemap-drift`로 실패했으나 이후 다른 세션 커밋에서 자연 해소됐고, 현재 main 최신 커밋(문서 커밋 `9f8865c52`)의 전 레인이 success임을 확인했다([CI 35169520076](https://github.com/rei1237/codedestiny/actions/runs/35169520076)). **D(실제 Playwright 화면 렌더 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에 만들지 않았다 — 남은 경계.** root marketing dirty 84개는 병합 전후 동일하게 보존했다.
 
@@ -42,15 +44,14 @@ D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-
 
 main 직접 편집, 마케팅 미커밋 변경 보존. 동시 편집의 두 번째 세션이면 [안전 워크트리 규칙](../../CLAUDE.md)을 따른다. 타 세션의 변경을 stage/reset/restore하지 않는다. 운영 승인·개발 경계는 [실행 계약](../../CLAUDE.md)이 정본이다.
 
-## 인수인계 후 첫 상품 — 네오 5행
+## 인수인계 후 첫 상품 — 인생의 책 7행
 
-사용자의 “너무 길어질 것 같으면 인수인계 문서를 남겨 달라”는 요청으로 이번 작업은 심화 자미 PDF 4행 전달까지 마무리하고 인계한다. 네오 코드는 관련 심볼만 읽었고, 개별 A~F·재현 검사·수정은 아직 실행하지 않았다. 아래 탐색 메모는 결함 확정이나 완료 근거가 아니다.
+사용자의 “너무 길어질 것 같으면 인수인계 문서를 남겨 달라”는 요청으로 이번 작업은 나크샤트라 6행 전달까지 마무리하고 인계한다. 인생의 책 코드는 관련 심볼만 가볍게 확인했고, 개별 A~F·재현 검사·수정은 아직 실행하지 않았다. 아래 탐색 메모는 결함 확정이나 완료 근거가 아니다.
 
-- 실제 화면: `app/neo-operation-room/NeoOperationRoomClient.tsx` → `src/features/neo-war-room/NeoOperationRoomPage.tsx`; 결과 wrapper → `src/features/neo-war-room/NeoOperationRoomResultPage.tsx`. 재개 공용 함수는 `src/features/neo-war-room/paid-delivery.ts`다.
-- 실제 API: `worker/routes/neo-operation-room.js`의 `handleStart`, `handleResult`, refine 경로. 1·2차 작전과 개인/궁합, 계산 체계별 입력·완료 계약을 분리해 검사한다. 현재 계산/프롬프트/분량/가격/공유 예산을 먼저 읽어 유지한다.
-- 우선 재현: 승인 후 첫 생성 전 종료, 첫 묶음 저장 뒤 문서 종료, pageshow/bfcache/focus 단독 복귀, checkpoint/완료 확인 유실, 정상 구 completed와 취소 구매의 GET/POST 대조. 읽은 코드의 online/visibilitychange 연결과 completed 빠른 반환을 테스트로 대조하고, 재현된 오류만 수정한다.
-- 기존 검사: `__tests__/worker/neo-paid-delivery.test.js`, `neo-operation-room.payment-flow.test.js`, `neo-operation-room.sections.test.js`, `neo-operation-room.compat.test.js`; UI `__tests__/ui/neo-paid-resume.behavior.test.js`. 계산 mock으로 통과한 기존 검사는 실제 계산 근거 검사로 부르지 않는다. 네오 실행 완료는 일반 검증 계약이므로 자미 PDF의 본문 누락 수정을 그대로 복제하지 않는다.
-- 실제 고객 화면은 mock 서버에서 새 context/document의 390/430/1280px 마지막 본문까지 검사한다. 화면 출력/권한/모델은 mock이며 API 외부 연결은 차단한다. 네오 이후 표의 각 구매 키와 후속 경로도 각각 같은 A~F·commit/push·동일 SHA main CI 순서를 따른다.
+- 실제 API: `worker/routes/life-book-ai.js`의 `handleEnsureAccess`(1880행, `/api/life-book-ai/prepare`), `handleResult`(2162행), `handleStart`(2272행, `/api/life-book-ai/generate`), 라우팅 진입 `handleLifeBookAiRoutes`(2869행). 같은 라우트 파일이 표 7행(인생의 책)과 8행(인생 총운, `life-fortune-ai-consultation`) 두 SKU를 함께 처리하므로 두 행을 같이 대조해야 한다.
+- 실제 화면: `app/life-book-ai/LifeBookAiClient.tsx`, `app/life-book-ai/page.tsx`, 결과 `app/life-book-ai/result/LifeBookAiResultClient.tsx`. pageshow/focus 복구 연결 여부는 아직 확인하지 않았다 — 마스터·초융합·자미·네오·나크샤트라에서 반복된 것과 같은 패턴인지 가장 먼저 대조한다.
+- 기존 검사: UI `__tests__/ui/life-book-paid-delivery.behavior.test.js`, `life-book-ux.static.test.js`; worker `__tests__/worker/life-book-ai.sections.test.js`. 표의 확인 포인트가 7행은 "장별 저장·deferred apply", 8행은 "총운 SKU·원래 분량·apply"로 다르므로 두 SKU의 저장/적용 계약 차이를 먼저 읽는다.
+- 우선 재현: 다른 상품과 동일하게 승인 후 첫 생성 전 종료, 부분 저장 뒤 문서 종료, pageshow/bfcache/focus 단독 복귀, checkpoint/완료 확인 유실, 정상 구 completed와 취소 구매의 GET/POST 대조부터 대조하고 재현된 오류만 수정한다.
 
 ## 재검사 명령
 
