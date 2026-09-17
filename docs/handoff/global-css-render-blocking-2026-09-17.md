@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 1b 는 saju 파일럿에서 회귀 실측으로 기각. /saju/ LCP 를 CSS·폰트·이미지·JS 몫으로 분해한 뒤 다음 수단을 고른다
+next: /saju/ LCP 분해 완료(7.7초는 Lantern 이 첫 페인트 전 JS 를 끌어온 값, 스로틀 실측은 약 2.7초·CSS 몫). 사용자가 수단을 고르면 파일럿 — 추천은 gtag 주입 지연
 ---
 
 # 전역 렌더 차단: 루트 Suspense(완료) + 전역 Tailwind CSS(남음)
@@ -9,7 +9,7 @@ next: 1b 는 saju 파일럿에서 회귀 실측으로 기각. /saju/ LCP 를 CSS
 출발점: `docs/handoff/music-lounge-perf-2026-09-16.md` 남은 과제 1번.
 
 ## 다음 세션 첫 문장
-"docs/handoff/global-css-render-blocking-2026-09-17.md 를 읽고, 1b(라우트 그룹별 Tailwind 분할)는 기각됐으니 /saju/ 모바일 LCP(약 7.7초)를 CSS·폰트·이미지·JS 몫으로 실측 분해해 다음 수단을 추천부터 보고한다. 코드는 아직 고치지 않는다."
+"docs/handoff/global-css-render-blocking-2026-09-17.md 의 '2 /saju/ LCP 분해' 를 읽고, 사용자가 고른 수단(추천: ① gtag 주입을 load 이후로 지연)을 위험·검증·롤백부터 보고한 뒤 BEFORE/AFTER 를 Lighthouse 3회 + 스로틀 Playwright 3회로 잰다."
 
 ## 1a 루트 Suspense 제거 — 완료 (`28b88e330`, push 됨)
 
@@ -99,3 +99,74 @@ saju 전용 클래스만 뒤 시트로 빼면, 전역에 남은 짝(`sm:w-auto`�
 라우트별 CSS 규칙 집합 대조(Next 최적화기가 선언이 같은 규칙을 다르게 묶어 `transform`/`filter` 묶음 49건은 의미 없는 차이), 승자 역전 정적 검사.
 빌드는 두 번 모두 1637/1637 생성 후 선행 결함 `verify:adsense-readiness`(날짜 의존)에서 멈췄다 — dist 는 CSS minify 전 단계, 비교 조건은 동일.
 로컬 `out/`·`.next/` 는 파일럿 빌드 산출물이다(dist 는 HEAD 빌드로 복원). 가드가 out/ 을 읽는 작업 전에는 다시 빌드할 것.
+
+## 2 /saju/ 모바일 LCP 분해 (2026-09-17, 코드 변경 없음)
+
+조건: 로컬 dist(1a `28b88e330` 반영, `S:0` 0개), LCP 요소는 두 조건 모두 `header > p.mt-7` 본문 텍스트(이미지 아님).
+옆 세션 `next dev` 2개 가동 중 — CPU 노이즈 있음. 모든 값은 3회 중앙값.
+
+### 2-1 Lighthouse 13.1 simulate (7.7초의 정체)
+
+Lantern LCP 는 **관측 LCP 시각 이전에 끝난 모든 요청 + 그 전에 실행된 스크립트**를 Slow 4G 로 재생한 값의 평균이다
+(`@paulirish/trace_engine/.../lantern/metrics/LargestContentfulPaint.js`: optimistic·pessimistic 모두 저우선순위 이미지만 뺀다).
+무스로틀 트레이스 회차에서 첫 페인트가 약 1.24초로 늦고, 그 전에 Next 청크 39개(br 527KB)·/js/core·gtag(171KB)·ko.json(132KB)이 다 끝나므로 전부 LCP 선행 조건이 된다.
+측정: Lighthouse `blockedUrlPatterns` 로 하나씩 막음(스크래치 `lh-ablate.mjs`, 서버는 perf:home 과 같은 dist 정적 서빙).
+
+| 막은 것 | 시뮬 LCP | 기준 대비 | 관측 FCP(트레이스) |
+|---|---|---|---|
+| 없음(기준) | 8175 | — | 1242 |
+| CSS 전부 | 3157 | −5.0초 | 157 (LCP 요소가 GlobalHeader 로 바뀜) |
+| JS 전부(+gtag) | 3489 | −4.7초 | 1157 |
+| Next 청크 `/_next/static/chunks/*` | 4287 | −3.9초 | 1269 |
+| `/js/core/*`(+analytics→gtag)·destiny-profile | 5963 | −2.2초 | 1236 |
+| gtag·GA 수집 | 6205 | −2.0초 | 1236 |
+| `/i18n/*`(ko.json 519KB, br 132KB) | 7504 | −0.7초 | 1237 |
+| gtag + i18n | 5642 | −2.5초 | 1234 |
+| gtag + i18n + /js/core·destiny-profile | 3308 | −4.9초 | 431 (3회 중 2회) |
+| 폰트 `*.woff2` | 11202 | 판정 불가 | 1222 — 차단된 실패 요청이 그래프를 왜곡 |
+
+값은 더해지지 않는다(가장 늦게 끝나는 노드가 LCP). 기준 3회는 4655·8175·8199 로 흔들렸다(4655 회차는 관측 LCP 가 2323 으로 늦음).
+
+### 2-2 스로틀 실측 (실사용 체감에 가까운 값)
+
+Playwright + 시스템 Chrome, 412×823·DPR 1.75, CDP `Emulation.setCPUThrottlingRate 4` + `Network.emulateNetworkConditions`
+(지연 562.5ms·다운 1474.56kbps — LH 모바일 값), 차단은 CDP `Network.setBlockedURLs`(스크래치 `lcp-ablate.mjs`).
+🔴 첫 시도는 프로브 서버가 요청마다 brotli q11 동기 압축 + Playwright `page.route` 가 모든 요청을 지연시켜 FCP≈DCL≈1.3초로 오염됐다 — 압축 캐시·CDP 차단으로 바꾼 뒤의 값만 쓴다.
+
+| 막은 것 | FCP | LCP |
+|---|---|---|
+| 없음(기준, 세트 3개) | 2660–2720 | 2660–2720 (세트 하나는 2296/3356) |
+| CSS 전부 | 1120 | 1260 (요소가 NAV 로 바뀜) |
+| Tailwind 시트 `8f2b1a38…` 만 | 1928 | 2536 (레이아웃 바뀜) |
+| @font-face 시트 `05b29…` 만 | 2676 | 2676 |
+| 폰트 · 이미지 · JS 전부 · Next 청크 · ko.json | 2724 · 2748 · 2724 · 2752 · 2772 | 차이 없음(노이즈) |
+| `/js/core/*`·destiny-profile | 2364 | 2364 (−350, 노이즈 경계) |
+| gtag·GA | 2508 | 2508 (−150, 노이즈 안) |
+
+무스로틀 Playwright 는 FCP=LCP≈300ms, 폰트·JS·이미지 차단해도 동일.
+스로틀 폭포(기준 1회): 문서 응답 끝 ~690 → CSS 4개 645→**1861**(Tailwind br 71KB 가 마지막) → FCP 2296.
+같은 구간에 `beforeInteractive` /js/core 6개(br 약 73KB, **High** 우선순위 프리로드)가 646→2261, Next 청크가 →3100 으로 대역폭을 나눠 쓴다.
+
+### 2-3 몫 요약
+
+| 몫 | Lighthouse 시뮬 LCP(7.7–8.2초) | 스로틀 실측(≈2.7초) |
+|---|---|---|
+| 문서 | 작음 | ~0.7초 |
+| CSS | 첫 페인트를 늦춰 JS 를 끌어들이는 **원인** | 다운로드 ~1.2초 + 처리 ~0.4–0.8초 — **대부분** |
+| JS | **결과로 대부분**(Next ~3.9 · core ~2.2 · gtag ~2.0 · ko.json ~0.7, 비가산) | 직접 영향 없음, 대역폭 경쟁만 |
+| 폰트 | 0 (swap, 텍스트가 기다리지 않음) | 0 |
+| 이미지 | 0 (LCP 가 텍스트) | 0 |
+
+### 2-4 다음 수단 (추천순, 사용자 결정 대기)
+
+1. **추천 — gtag 주입 지연**(`js/core/analytics.js:78-81` 가 afterInteractive 에서 바로 주입 → window load 이후 idle 로).
+   실측 대리값: 시뮬 −2.0초, 체감 노이즈 안. 결제 동결 밖, 파일 1개(+public 미러). 🔴 빠른 이탈 page_view 누락 가능 — GA 계측 정책 결정이 필요한 RED.
+   주의: 차단은 지연의 대리값이다. 지연된 요청이 트레이스 첫 페인트(~1.24초) **뒤에** 시작해야 같은 효과가 난다.
+2. **ko 페이지의 ko.json 요청 제거 여부 조사** — `lib/i18n/useT.ts` `useDictionary` 가 ko 에서도 `loadDictionary` 를 부른다(LocaleRuntimeBridge 는 ko 에서 조기 반환).
+   어느 컴포넌트가 ko 사전을 실제로 읽는지 확인 전. ①과 합치면 시뮬 −2.5초, 모바일 데이터 br 132KB 절약.
+3. `/js/core` beforeInteractive 6개 우선순위·시점 조정 — ①②와 합치면 시뮬 3.3초·트레이스 첫 페인트 431ms, 체감 −350ms(노이즈 경계).
+   결제 진입 런타임(`checkout-entry`·`access-store`·`pass-verdict`)이라 payment-freeze + paid-gate-auditor 가 필요한 대형 RED — 보류.
+4. CSS 자체(체감에 가장 큰 몫) — 1b 기각. 크리티컬 CSS 인라인·비동기 전체 시트는 캐스케이드·FOUC·CLS 대형 RED — 보류.
+5. Next 청크 — 레이아웃 클라이언트 트리 축소가 필요한 범위 큰 작업 — 보류. 폰트·이미지 — 레버 없음.
+
+참고: 사이트는 CrUX 표본이 없어 CWV 가 랭킹 입력이 아니다 — 이 작업은 체감 과제로만 다룬다.
