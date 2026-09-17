@@ -183,3 +183,41 @@ test('실제 클라이언트 생성 루프는 재개 ID를 재사용하고 완�
   for (const row of requests.slice(1)) { assert.equal(row.payload.resumeSessionId, 'server-session'); assert.equal(row.key, 'original-paid-request'); assert.deepEqual(Object.keys(row.access), []); }
   assert.equal(retryRef.current, null); assert.deepEqual(moves, ['original-paid-request']);
 });
+
+// 8행(인생 총운) 고유 분기: 위 테스트들은 전부 isLifeFortuneInput 을 false 로 고정 스텁해 이 게이트를 한 번도 타지 않는다.
+// 총운은 사주 결과가 구조적으로 불완전하면(대운·용신 등 근거 부족) LLM 생성 전에 결제를 되돌려야 한다(REASON_COPY.SAJU_CALCULATION_FAILED).
+function completeLifeFortuneSaju() {
+  return {
+    yearPillar: '갑자', monthPillar: '을축', dayPillar: '병인', hourPillar: '정묘', dayMaster: '丙',
+    pillarDetails: { year: {}, month: {}, day: {} }, fiveElements: {}, tenGods: {},
+    tenGodsByPillar: { month: { stemTenGod: '정관' } }, seasonalBalance: { monthBranch: '축' },
+    natalInteractions: {}, relationSummary: { mainPattern: 'mock' }, fortuneFacts: { readingBase: { dayMaster: '丙' } },
+    interpretationPlan: Array.from({ length: 10 }, (_, i) => ({ title: `chapter${i}` })),
+    majorLuck: { available: true, cycles: Array.from({ length: 10 }, (_, i) => ({ index: i })) },
+    yearlyLuck: Array.from({ length: 5 }, (_, i) => ({ year: 2026 + i })),
+    calculationMeta: { available: true },
+  };
+}
+test('총운: 사주 결과가 구조적으로 불완전하면 생성 전에 환불하고, 완전하면 생성에 들어간다', async () => {
+  const f = fixture();
+  Object.assign(f.ctx, {
+    normalizeConsultationInput: body => ({ ok: true, inputHash: body.inputHash || 'same-input',
+      input: { birthInfo: { name: 'mock', birthTimeUnknown: false }, consultationType: 'lifeFortune', topic: '총운' } }),
+  });
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['isLifeFortuneInput', 'hasRequiredLifeFortuneSaju']);
+
+  f.ctx.calculateLifeBookAiSaju = () => ({ ...completeLifeFortuneSaju(), majorLuck: { available: true, cycles: [] } });
+  const blocked = await f.post();
+  const blockedBody = await blocked.json();
+  assert.equal(blocked.status, 422, JSON.stringify(blockedBody));
+  assert.equal(blockedBody.reason, 'SAJU_CALCULATION_FAILED');
+  assert.equal(f.refunds, 1);
+  assert.equal(f.calls.length, 0, '생성 전 차단이므로 LLM 섹션 호출이 없어야 한다');
+  assert.equal(f.doc, null, '실패한 시도는 문서를 남기지 않는다(재시도가 새 시도로 취급됨)');
+
+  f.ctx.calculateLifeBookAiSaju = () => completeLifeFortuneSaju();
+  const passed = await f.post();
+  assert.equal(passed.status, 202, await passed.text());
+  assert.equal(f.calls.length, 4);
+  assert.equal(f.refunds, 1, '완전한 사주는 추가 환불을 유발하지 않는다');
+});

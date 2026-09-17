@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행(네오·나크샤트라·인생의 책은 우선 시나리오만, 셋 다 D 실화면·F 전후 diff는 미실행)은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 인생 총운 8행(`life-fortune-ai-consultation`)부터 상품별 A~F를 이어간다. 8행은 7행과 결과 화면(`LifeBookAiResultClient.tsx`)을 공유하므로 pageshow/focus 수정은 이미 반영돼 있다 — 8행 고유 계약(총운 SKU·원래 분량·apply)만 별도로 A~F 검사한다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행·인생 총운 8행(네오·나크샤트라·인생의 책·인생 총운은 부분/우선 시나리오만, 넷 다 D 실화면·F 전후 diff는 미실행)은 mock A~F(경계 있음)·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 자미두수 전문가 상담 9행(`ziwei-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,8 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 인생 총운 8행 — mock 완료(경계 있음):** [행별 기록](../verification/life-fortune-ai-paid-delivery-20260917.md). 7행과 같은 `worker/routes/life-book-ai.js`를 쓰지만 유일한 실제 `handleStart` 실행 테스트(`__tests__/ui/life-book-paid-delivery.behavior.test.js`)가 `isLifeFortuneInput`을 영구 `false`로 고정 스텁해, 총운 전용 사주 완전성 게이트(`hasRequiredLifeFortuneSaju`, 결제·환불이 걸린 RED 분기)가 이 테스트 파일이 존재한 이래 단 한 번도 실행된 적이 없었음을 발견했다 — "공유 컴포넌트라는 이유로 결함이 없다고 가정하지 않는다"는 인수인계 지시가 실제로 잡아낸 공백이다. 실제 `isLifeFortuneInput`·`hasRequiredLifeFortuneSaju` 함수를 로드해 (a) 구조 불완전 사주(`majorLuck.cycles` 빈 배열) 입력 시 422 `SAJU_CALCULATION_FAILED`·환불 1회·LLM 호출 0회·문서 잔존 0, (b) 완전한 사주 입력 시 정상 202 첫 웨이브(4/15장) 진행·추가 환불 없음을 새 테스트로 검증했다(`+38행`, 커밋 `f151ee39dd32c6a16499884cf63afebe7de7beb7`). 게이트 요구 필드를 실제 계산기(`worker/lib/life-book-ai-saju.js`)가 정상 입력에서 채우는지, 유일한 이론적 거짓-음성(성별 미상→`majorLuck.available:false`)을 `normalizeConsultationInput`의 총운 전용 `gender==="unknown"` 거부가 사전에 막는지 소스 대조로 확인했다(설계상 맞물림, 결함 아님). 장애·동시성 메커니즘(`reserveProviderCallOnce`·`runWithConcurrency`·`releaseSectionLock`·`saveLifeBookState`·`finishLifeBookDelivery`)은 grep으로 모드 분기 0건을 확인해 7행 커버리지가 8행에도 그대로 적용됨을 확인했다(재현 불필요). 저장·권한은 `isStoredPaidResultRevoked`가 저장 문서 자신의 featureKey로 판정해 모드 안전함과 교차 상품 `paid-completed-result-access.test.js`(96/96, 재실행 재확인)의 독립 등록을 확인했다. 가격/카드 노출 등 정적 계약은 기존 `verify-life-book-ai-flow.mjs` 재실행으로 재확인했다(신규 아님). UI 행동 검사 16/16(기존15 무회귀+신규1), 교차상품 96/96, `check:fast` RED 승격 전체 게이트 — `test:jest` 277 suite·3,880/3,880 포함 — 통과(종료 코드 0). <!-- SHA_CI_PLACEHOLDER --> **D(실제 화면 증거)와 F(총운 전용 전후 호출 diff)는 이번 차례에도 만들지 않았다 — 7행과 동일한 남은 경계.**
 
 **2026-09-17 인생의 책 7행 — mock 완료(경계 있음):** [행별 기록](../verification/life-book-paid-delivery-20260917.md). 마스터·초융합·자미 심층·네오·나크샤트라와 같은 client-side 깨어남 복구 누락(`pageshow`/`focus` 미연결)을 인생의 책 결과 화면(`app/life-book-ai/result/LifeBookAiResultClient.tsx`)에서 재현·수정했다(4행 diff, 커밋 `c7793e21905d46e114d93c4979a5c6d30072864e`). 이 결과 화면 컴포넌트는 8행(`life-fortune-ai-consultation`)과 공유되어 수정 혜택이 8행에도 그대로 적용되지만, 이번 완료 표시는 요청 범위인 7행에 한정했다. 시작 화면(`LifeBookAiClient.tsx`)은 애초에 pageshow/focus/online/visibilitychange 리스너가 없고, 생성 중 백그라운드 진입 시 결과 화면으로 능동 이관하는 설계(`document.hidden` 분기)임을 코드 대조로 확인했다 — 버그가 아니라 새 테스트를 만들지 않았다. 구매 재개/멱등(`findPaidPayment`/`resolveServerAccess`/`billingContractMatches`)과 GET 재확인 대 POST 재개의 비대칭(`isStoredPaidResultRevoked`는 GET `handleResult`에서만 호출, POST `resumeSessionId` 재개 경로는 재확인 안 함)은 기존 `life-book-paid-delivery.behavior.test.js`·교차 상품 `paid-completed-result-access.test.js`로 대조 확인했다(신규 결함 없음, 나크샤트라·네오와 동일 설계). 전용 크론 복구 태스크는 없고 클라이언트 자신의 `resumeSessionId` 재개(예산 캡 `resumeCallsRef.current>=12`)가 유일한 복구 경로임을 확인했다(네오·나크샤트라와 동일 무크론 전례). 신규 UI 행동 검사(`__tests__/ui/life-book-wake-recovery.behavior.test.js`) 1건을 `git stash`로 수정 전 코드를 임시 복원해 재현 1/1 실패(`window:pageshow` 핸들러 미등록) → 수정 후 통과로 전환 측정했고, 관련 UI 스위트 25/25·worker+교차상품 109/109(섹션 생성 13 + 교차 상품 접근 96) 통과(무회귀). `npm run check:fast`는 결제 인접 파일 수정으로 RED 자동 승격돼 전체 게이트로 실행됐고(590초 전경 제한을 넘겨 백그라운드 전환, 종료 코드 0) 저장 로그에 `verify:staging-llm-mock`부터 `test:jest`(277 suite·3,880/3,880)까지 통과가 남아 있다 — 그 앞 구간(lint·typecheck·test:node·paid-gate-suite·sitemap-drift)은 590초 전경 구간에서 실행돼 종료 코드 0으로 이어졌으나 백그라운드 로그엔 남지 않아 개별 수치는 인용하지 않았다. source `c7793e21905d46e114d93c4979a5c6d30072864e`를 직전 커밋 `0cbe50794`(다른 세션의 love-secret-ai 수정) 위에 별도 진행 없이 그대로 fast-forward push했다. main·origin 끝점(동일 SHA) [CI](https://github.com/rei1237/codedestiny/actions/runs/35179949320)는 체크런 21개 중 `CI required`·`Static guards`·`Typecheck and lint`·`gitleaks`·`Build Pages and Worker`·`Critical checks`·`Risk tier`·`Main drift`·`AI locale pipeline invariants` 등 13개 success·7개 skipped·실패 0을 확인했다(비동기 `Deploy staging` 1건은 확인 시점 진행 중이었고 대기 대상 아님). **D(실제 Playwright 화면 렌더 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에도 만들지 않았다 — 나크샤트라·네오와 동일한 남은 경계.** 8행(`life-fortune-ai-consultation`)은 다음 세션이 같은 컴포넌트의 수정을 전제로 8행 고유 계약만 A~F 검사하면 된다.
 
@@ -46,14 +48,9 @@ D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-
 
 main 직접 편집, 마케팅 미커밋 변경 보존. 동시 편집의 두 번째 세션이면 [안전 워크트리 규칙](../../CLAUDE.md)을 따른다. 타 세션의 변경을 stage/reset/restore하지 않는다. 운영 승인·개발 경계는 [실행 계약](../../CLAUDE.md)이 정본이다.
 
-## 인수인계 후 첫 상품 — 인생 총운 8행
+## 다음 상품 — 자미두수 9행
 
-인생의 책 7행은 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/life-book-paid-delivery-20260917.md)). 다음은 인생 총운 8행(`life-fortune-ai-consultation`)이다. 아래는 이번 세션이 7행 작업 중 확인한 사실만 옮긴 것이며, 8행 고유 계약의 결함 확정이나 완료 근거는 아니다.
-
-- 실제 API: 7행과 같은 `worker/routes/life-book-ai.js`(`handleEnsureAccess` 1880행·`handleResult` 2162행·`handleStart` 2272행·`handleLifeBookAiRoutes` 2869행)가 두 SKU를 함께 처리한다. 8행 고유 분기(총운 분량 계산·apply)가 이 파일 안에서 SKU 값으로 어떻게 갈리는지는 아직 세부 대조하지 않았다.
-- 실제 화면: 별도 라우트 없이 7행과 같은 결과 화면 `app/life-book-ai/result/LifeBookAiResultClient.tsx`를 공유함을 grep으로 확인했다 — 이번에 고친 pageshow/focus 복구(1490~1501행)가 8행에도 이미 적용돼 있으므로 다시 고치지 않는다.
-- 기존 검사: `__tests__/worker/paid-completed-result-access.test.js`(교차 상품 96/96)가 `life-fortune-ai-consultation`을 포함해 재열람·취소/환불 차단을 검사함을 확인했다(`__tests__/fixtures/paid-completed-result-access-fixtures.mjs:7`). `life-book-ai.sections.test.js`가 8행 고유 "총운 SKU·원래 분량·apply" 계약을 얼마나 커버하는지는 아직 읽지 않았다.
-- 우선 확인: 8행 고유 요청 경로(총운 파라미터)로 A(구매)·B(총운 분량 생성)·E(저장/apply)를 최소 1회 대조하고, 공유 컴포넌트라는 이유로 결함이 없다고 가정하지 않는다.
+인생 총운 8행까지 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/life-fortune-ai-paid-delivery-20260917.md)). 다음은 자미두수 전문가 상담 9행(`ziwei-ai-consultation`)이다. 정본은 [`worker/routes/ziwei-ai.js`](../../worker/routes/ziwei-ai.js), 기존 검사는 [`__tests__/worker/ziwei-paid-delivery.test.js`](../../__tests__/worker/ziwei-paid-delivery.test.js), 보존할 특성은 궁·사화·미완성 묶음(체크리스트 9행 원문) — 이번 세션은 8행에 한정해 9행 코드는 아직 읽지 않았으므로 아래는 체크리스트 표 원문을 옮긴 것일 뿐 결함 확정이나 완료 근거가 아니다. 다음 세션은 9행 진입점부터 직접 대조한다.
 
 ## 재검사 명령
 
