@@ -31,6 +31,7 @@ import { Payment } from "../lib/models.js";
 import { resolveConfirmedPaymentMethod } from "../lib/payment-method-label.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
+import { toForeignCardSnapshot } from "./foreign-card-policy.js";
 
 export const ORDER_STATUS = Object.freeze({
   PENDING: "PENDING",
@@ -95,7 +96,7 @@ export async function deriveOrderId(userId, idempotencyKey) {
 export async function createOrder(db, {
   userId, product, idempotencyKey, paymentType = "digital_content",
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
-  requestId = "", paidResume = null, env = {},
+  requestId = "", paidResume = null, env = {}, foreignCard = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -155,6 +156,8 @@ export async function createOrder(db, {
             profileId, contentKey, scope, returnPath,
             createdAt: now.toISOString(),
           },
+          // 해외 발급 카드 결제창 노출 판정(foreign-card-policy.js)을 주문 시점에 박는다. prepare 응답은 지금 판정과 좁혀 낸다.
+          foreignCard: foreignCard ? toForeignCardSnapshot(foreignCard, now) : null,
           createdAt: now,
           updatedAt: now,
         },

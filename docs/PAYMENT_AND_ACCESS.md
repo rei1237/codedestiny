@@ -231,6 +231,7 @@
 - Legal packs in `LEGAL_REVIEW_REQUIRED`, `DRAFT`, `MACHINE_TRANSLATED`, or other non-approved states must not be used for live overseas payment.
 - The current service product wording remains `이용권`, `월정석`, and `단건 결제`. Do not add user-facing claims for auto-renewal, free trials, subscription-cancellation rights, unlimited access, lifetime access, or guaranteed fortune/AI outcomes unless the product and legal review are separately approved.
 - IP country, Cloudflare country, and PG billing country can be used only as risk or reconciliation signals according to the registry priority; they must not silently override the user's explicit payment-country selection.
+- Overseas-issued card checkout (KG이니시스 해외카드 파라미터) is a server decision, closed by default: `worker/payments/foreign-card-policy.js` `canUseForeignCard` (flag `FOREIGN_CARD_ENABLED` exactly `"1"` → logged-in user → product table → `card_general` only; `billingCountry` is accepted but never used). `/prepare` and `/subscription/prepare` store the decision on the order once (`Payment.foreignCard`, `$setOnInsert`) and respond `order.foreignCard` narrowed by `narrowToOrderSnapshot`: an order created while closed stays `ORDER_SNAPSHOT_CLOSED`, and turning the flag off closes open orders immediately. `POST /orders` keeps `foreignCard: null` (closed).
 
 ## Mobile fortune entry read policy
 

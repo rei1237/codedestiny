@@ -43,6 +43,7 @@ import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } 
 import { consumePassForFeature } from "../lib/pass-consumption.js";
 import { sendPendingReceiptEmails } from "./receipt-email.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
+import { canUseForeignCard, narrowToOrderSnapshot } from "./foreign-card-policy.js";
 import {
   activatePassSubscription,
   buildPassConsumeMarker,
@@ -433,6 +434,9 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
   const purchaseType = body.purchaseType ?? "SELF";
   if (!["SELF", "GIFT"].includes(purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
+  // 해외 발급 카드 결제창 노출 판정(I/O 없음, foreign-card-policy.js). 선물은 membership_pass_gift 행을 탄다.
+  const foreignCardProduct = { type: purchaseType === "GIFT" ? "membership_pass_gift" : plan.productType, purchaseType, durationDays: plan.durationDays };
+  const foreignCard = canUseForeignCard({ user: { id: userId }, product: foreignCardProduct, billingCountry: null, paymentChannel: paymentMethod }, { env });
   const gifts = purchaseType === "GIFT" ? await import("./gifts.js") : null;
   if (gifts) {
     gifts.assertGiftPurchasesEnabled(env, request);
@@ -464,7 +468,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });
@@ -492,6 +496,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
       recurring: false,
       purchaseType,
       status: order.status,
+      foreignCard: narrowToOrderSnapshot(foreignCard, order.foreignCard),
     },
   }, { status: idempotent ? 200 : 201 });
 }
@@ -1055,6 +1060,9 @@ const ROUTES = {
         || headerKey
         || String(body.orderId || body.requestId || "").trim();
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
+      // 해외 발급 카드 결제창 노출 판정(I/O 없음). 결제수단은 클라이언트 신고값이라 판정은 "보내도 되는 상한"일 뿐이다.
+      const paymentMethod = String(body.paymentMethod || body.payMethod || "card_general");
+      const foreignCard = canUseForeignCard({ user: { id: userId }, product: { type: "digital_content" }, billingCountry: null, paymentChannel: paymentMethod }, { env });
 
       const { order, user } = await withDb(env, ctx, async (db) => {
         /* 🔴 사용자 조회와 주문 발급을 겹친다. 이 두 왕복은 서로를 기다릴 이유가 없다 — 사용자 문서는
@@ -1084,7 +1092,8 @@ const ROUTES = {
           contentKey: body.contentKey,
           scope: body.scope,
           returnPath: body.returnPath,
-          paymentMethod: String(body.paymentMethod || body.payMethod || "card_general"),
+          paymentMethod,
+          foreignCard,
         });
         return { order: created, user: await userPromise };
       });
@@ -1099,6 +1108,7 @@ const ROUTES = {
         customer,
         pricing: listedProduct.pricing || { ...listedProduct },
         body,
+        foreignCard: narrowToOrderSnapshot(foreignCard, order.foreignCard),
       });
       const envelope = legacyPrepareEnvelope(legacyOrder, { idempotent });
       if (legacyEnvelope === "billing-checkout") return json(legacyBillingCheckoutEnvelope(envelope));

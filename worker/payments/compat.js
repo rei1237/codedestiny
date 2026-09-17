@@ -91,7 +91,7 @@ export function legacyOrderDetailEnvelope(order) {
    customer 폰·이메일·이름, coinPrice·featureKey), dp 폴백(같은 집합의 부분), PointsClient(merchantUid·
    paymentAmount·productName·coinPrice·customer.phoneNumber). 나머지는 구 응답과의 키 패리티 유지용 —
    빠지면 "200 인데 화면만 비는" 부류가 되므로 **초집합**으로 항상 전부 내보낸다. */
-export function toLegacyPrepareOrder(order, { config = {}, customer = null, pricing = null, body = {} } = {}) {
+export function toLegacyPrepareOrder(order, { config = {}, customer = null, pricing = null, body = {}, foreignCard = null } = {}) {
   const amount = Number(order?.paymentAmount || 0);
   const coins = Number(order?.expectedChargedPoints ?? order?.coinPrice ?? 0);
   const snapshot = (order?.pricingSnapshot && typeof order.pricingSnapshot === "object") ? order.pricingSnapshot : {};
@@ -124,6 +124,8 @@ export function toLegacyPrepareOrder(order, { config = {}, customer = null, pric
     productName: String(body.productName || pricing?.label || order?.featureKey || "Code Destiny"),
     customer: customer && typeof customer === "object" ? customer : { fullName: "", email: "", phoneNumber: "" },
     pricing: pricing || snapshot || null,
+    // 해외 발급 카드 결제창 노출 판정(index.js /prepare 가 지금 판정과 주문 스냅숏을 좁힌 값). 클라이언트는 offered 가 true 일 때만 해외카드 파라미터를 붙인다.
+    foreignCard: { offered: foreignCard?.offered === true, reason: foreignCard?.reason, policyVersion: foreignCard?.policyVersion },
   };
 }
 
