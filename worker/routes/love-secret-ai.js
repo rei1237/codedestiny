@@ -960,15 +960,18 @@ async function generateFollowUp(env, consultation, message) {
     timeoutMs: 45000,
     fallbackToWorkersAI: false,
   });
-  if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`) || !clean(ai.text)) {
+  const provider = clean(ai?.provider);
+  const model = clean(ai?.model);
+  const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
+  if (!ai?.ok || ai.truncated || isMock || !clean(ai.text)) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
     error.code = "LLM_GENERATION_FAILED";
     throw error;
   }
   return {
     text: normalizeFollowUpResponse(ai.text),
-    provider: clean(ai.provider),
-    model: clean(ai.model),
+    provider,
+    model,
   };
 }
 
