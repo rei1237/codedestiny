@@ -68,29 +68,50 @@ export function formatCodexEvidence(contract) {
   ].join("\n");
 }
 
-export function assertCodexEvidence(parsed, contract) {
+const SYSTEM_ALIASES = { saju: "saju", "사주": "saju", "四柱": "saju", ziwei: "ziwei", "자미두수": "ziwei", "紫微斗數": "ziwei", "紫微斗数": "ziwei" };
+const nonEmpty = value => typeof value === "string" && value.trim().length > 0;
+
+// Measured 2026-09-17 (gemini-2.5-flash, production prompt): the model cites the right
+// records but spells the reference as `id` or `path`, and omits crossChecks. Facts are
+// therefore copied from the calculation record; the model only chooses and explains them.
+function findCodexRecord(item, contract, byId) {
+  const direct = byId.get(item?.evidenceId) || byId.get(item?.id);
+  if (direct) return direct;
+  const path = String(item?.path || item?.evidenceId || item?.id || "");
+  const system = SYSTEM_ALIASES[String(item?.system || "").trim()];
+  const matches = contract.records.filter(record => record.path === path
+    && (!item?.subject || record.subject === item.subject) && (!system || record.system === system));
+  return matches.length === 1 ? matches[0] : null;
+}
+
+/** Rewrites parsed.evidence / parsed.crossChecks in place to the calculation contract. */
+export function normalizeCodexEvidence(parsed, contract) {
   const byId = new Map(contract.records.map(record => [record.id, record]));
-  const cited = new Set();
-  for (const item of parsed.evidence || []) {
-    const record = byId.get(item.evidenceId);
-    if (!record || record.subject !== item.subject || record.system !== item.system || record.period !== item.period) throw new Error("LLM_EVIDENCE_INVALID");
-    // Do not inspect Korean words here: legitimate non-Korean explanations must
-    // satisfy the same machine-readable uncertainty contract.
-    if (record.certainty !== item.certainty) throw new Error("LLM_UNCERTAINTY_MISSING");
-    cited.add(record.id);
-  }
+  parsed.evidence = (Array.isArray(parsed.evidence) ? parsed.evidence : []).map(item => {
+    const record = findCodexRecord(item, contract, byId);
+    if (!record || !nonEmpty(item?.explanation)) return null;
+    const { evidenceId: _e, id: _i, path: _p, ...rest } = item;
+    return { ...rest, label: nonEmpty(item.label) ? item.label : record.path, evidenceId: record.id,
+      subject: record.subject, system: record.system, period: record.period, certainty: record.certainty };
+  }).filter(Boolean);
+  const checks = Array.isArray(parsed.crossChecks) ? parsed.crossChecks : [];
+  // Status is a calculated verdict; only an explanation the model actually wrote is shown.
+  parsed.crossChecks = contract.crossChecks.map(expected => {
+    const written = checks.find(actual => actual?.id === expected.id && nonEmpty(actual.explanation));
+    return written ? { id: expected.id, status: expected.status, explanation: written.explanation } : null;
+  }).filter(Boolean);
+  return parsed;
+}
+
+export function assertCodexEvidence(parsed, contract) {
+  normalizeCodexEvidence(parsed, contract);
+  const cited = new Set(parsed.evidence.map(item => item.evidenceId));
   for (const system of ["saju", "ziwei"]) {
     if (contract.records.some(record => record.system === system)
         && !contract.records.some(record => record.system === system && cited.has(record.id))) throw new Error("LLM_EVIDENCE_INCOMPLETE");
   }
   if (contract.records.some(record => record.subject === "partner")
       && !contract.records.some(record => record.subject === "partner" && cited.has(record.id))) throw new Error("LLM_PARTNER_EVIDENCE_MISSING");
-  const checks = parsed.crossChecks;
-  if (!Array.isArray(checks) || checks.length !== contract.crossChecks.length
-      || !contract.crossChecks.every(expected => checks.filter(actual => actual.id === expected.id
-        && actual.status === expected.status && typeof actual.explanation === "string" && actual.explanation.trim()).length === 1)) {
-    throw new Error("LLM_CROSS_VERDICT_INVALID");
-  }
   const sentences = String(parsed.body || "").split(/[.!?。！？\n]+/).map(text => text.replace(/\s+/g, "").trim()).filter(text => text.length >= 40);
   const counts = new Map();
   for (const sentence of sentences) {

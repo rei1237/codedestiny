@@ -1,5 +1,6 @@
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { assertCodexEvidence } from "./master-love-codex-evidence.js";
+import { paidReportBody } from "./paid-report-quality.js";
 
 /** Shared editorial contract for both books; calculations and pricing remain unchanged. */
 export function buildCodexEditorialContract(chapter, compatibility) {
@@ -54,10 +55,42 @@ export function buildCodexStagingChapter(chapter, metricDefs) {
 }
 
 /** Validate newly generated chapters only; never invalidate an older purchased book. */
+/**
+ * Acceptance floor for a delivered chapter. The prompt still asks for minChars + 500~900;
+ * measured gemini-2.5-flash chapters land at ~76–110% of minChars, so rejecting everything
+ * under 100% failed every paid book at 0/20 (production, 2026-09-16~17).
+ */
+export function codexChapterFloor(chapter) {
+  return Math.ceil((Number(chapter?.minChars) || 2400) * 0.7);
+}
+
+/** Removes sentences already delivered earlier in the book (or earlier in this body). */
+export function dedupeCodexBody(body, priorBodies = []) {
+  const key = sentence => paidReportBody(sentence).replace(/\s/gu, "");
+  const seen = new Set();
+  for (const prior of priorBodies) {
+    for (const sentence of paidReportBody(prior).split(/[.!?。？！\n]+/u)) {
+      const normalized = sentence.replace(/\s/gu, "");
+      if (normalized.length >= 24) seen.add(normalized);
+    }
+  }
+  return String(body || "").split("\n").map(line => {
+    if (!key(line)) return line;
+    const kept = (line.match(/[^.!?。？！]+[.!?。？！]*/gu) || []).filter(sentence => {
+      const normalized = key(sentence).replace(/[.!?。？！]+$/u, "");
+      if (normalized.length < 24) return true;
+      if (seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    }).join("").trim();
+    return kept ? line.slice(0, line.length - line.trimStart().length) + kept : null;
+  }).filter(line => line !== null).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export function assertCodexChapterQuality(parsed, chapter, metricDefs = [], evidenceContract = null) {
   const source = chapter.structured === false ? { body: parsed } : parsed;
   const body = typeof source?.body === "string" ? source.body.trim() : "";
-  if (body.length < (chapter.minChars || 2400)) throw new Error("LLM_OUTPUT_TOO_SHORT");
+  if (body.length < codexChapterFloor(chapter)) throw new Error("LLM_OUTPUT_TOO_SHORT");
   if (chapter.structured === false) return;
   if (evidenceContract) assertCodexEvidence(source, evidenceContract);
   const hasText = value => typeof value === "string" && value.trim().length > 0;

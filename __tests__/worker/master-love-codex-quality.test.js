@@ -1,6 +1,7 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
-import { assertCodexChapterQuality, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexEditorialContract, buildCodexStagingChapter, parseChapterJson } from "../../worker/lib/master-love-codex-quality.js";
+import { hasRepeatedReportPassage } from "../../worker/lib/paid-report-quality.js";
+import { assertCodexChapterQuality, codexChapterFloor, dedupeCodexBody, qualityCheckedCodexCache, generateCodexChapterResponse, buildCodexChapterMemory, buildCodexEditorialContract, buildCodexStagingChapter, parseChapterJson } from "../../worker/lib/master-love-codex-quality.js";
 import { __masterLoveCodexTestUtils as utils } from "../../worker/routes/master-love-codex.js";
 
 const fixture = chapter => ({
@@ -41,6 +42,22 @@ for (const mode of ["solo", "compat"]) {
     }
   });
 }
+
+test("a measured-length chapter (76% of minChars) is delivered, not failed at 0/20", () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const body = "가".repeat(Math.ceil(chapter.minChars * 0.76));
+  expect(codexChapterFloor(chapter)).toBe(Math.ceil(chapter.minChars * 0.7));
+  expect(() => assertCodexChapterQuality({ ...fixture(chapter), body }, chapter)).not.toThrow();
+  expect(() => assertCodexChapterQuality({ ...fixture(chapter), body: "가".repeat(codexChapterFloor(chapter) - 1) }, chapter)).toThrow("LLM_OUTPUT_TOO_SHORT");
+});
+
+test("sentences an earlier chapter already delivered are cut from the new chapter", () => {
+  const shared = "두 사람은 서로의 속도를 확인하는 대화를 통해 관계의 온도를 맞춰 갑니다.";
+  const fresh = "이번 장에서는 새로운 생활 장면을 바탕으로 선택 가능한 대응을 구체적으로 살펴봅니다.";
+  const deduped = dedupeCodexBody(`## 소제목\n${shared} ${fresh}\n\n${fresh}`, [`앞 장 원고입니다. ${shared}`]);
+  expect(deduped).toBe(`## 소제목\n${fresh}`);
+  expect(hasRepeatedReportPassage(`앞 장 원고입니다. ${shared}\n${deduped}`)).toBe(false);
+});
 
 test("rejected cached response cannot make every purchased retry fail", async () => {
   const chapter = utils.resolveMode("solo").chapters[0];

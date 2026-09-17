@@ -67,9 +67,17 @@ for (const [mode, chapters] of [["solo", MASTER_LOVE_CODEX_CHAPTERS], ["compat",
       evidenceId: record.id, subject: record.subject, system: record.system, period: record.period, certainty: record.certainty, explanation: "계산된 근거입니다",
     })), crossChecks: contract.crossChecks.map(record => ({ id: record.id, status: record.status, explanation: "각 체계의 방향을 구분합니다" })) };
     expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
-    expect(() => assertCodexEvidence({ ...parsed, evidence: [{ ...parsed.evidence[0], evidenceId: "invented" }] }, contract)).toThrow("LLM_EVIDENCE_INVALID");
-    expect(() => assertCodexEvidence({ ...parsed, evidence: [{ ...parsed.evidence[0], period: "2099" }] }, contract)).toThrow("LLM_EVIDENCE_INVALID");
-    expect(() => assertCodexEvidence({ ...parsed, crossChecks: [] }, contract)).toThrow("LLM_CROSS_VERDICT_INVALID");
+    // Invented references are dropped; a system left without any real citation still fails.
+    expect(() => assertCodexEvidence({ ...parsed, evidence: parsed.evidence.map(item => ({ ...item, evidenceId: "invented" })) }, contract)).toThrow("LLM_EVIDENCE_INCOMPLETE");
+    // Facts and verdicts always come from the calculation contract, never from the model.
+    const tampered = { ...parsed, evidence: parsed.evidence.map(item => ({ ...item, period: "2099" })),
+      crossChecks: parsed.crossChecks.map(item => ({ ...item, status: "agreement" })) };
+    expect(() => assertCodexEvidence(tampered, contract)).not.toThrow();
+    expect(tampered.evidence.map(item => item.period)).toEqual(contract.records.map(record => record.period));
+    expect(tampered.crossChecks.map(item => item.status)).toEqual(contract.crossChecks.map(record => record.status));
+    const unexplained = { ...parsed, crossChecks: [] };
+    expect(() => assertCodexEvidence(unexplained, contract)).not.toThrow();
+    expect(unexplained.crossChecks).toEqual([]);
     expect(() => assertCodexEvidence({ ...parsed, body: "제공된 근거를 설명하지 않고 누구에게나 해당되는 조언을 길게 반복해서 분량만 채우는 문장입니다. ".repeat(3) }, contract)).toThrow("LLM_OUTPUT_REPEATED");
   });
 }
@@ -84,5 +92,17 @@ test("unknown-time evidence keeps uncertainty without requiring Korean prose", (
   expect(contract.records.some(record => record.certainty === "provisional")).toBe(true);
   expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
   const certified = { ...parsed, evidence: parsed.evidence.map(item => ({ ...item, certainty: "calculated" })) };
-  expect(() => assertCodexEvidence(certified, contract)).toThrow("LLM_UNCERTAINTY_MISSING");
+  expect(() => assertCodexEvidence(certified, contract)).not.toThrow();
+  expect(certified.evidence.map(item => item.certainty)).toEqual(contract.records.map(record => record.certainty));
+});
+
+test("measured gemini evidence shapes (id / path aliases, no crossChecks) normalize to the contract", () => {
+  const chapter = MASTER_LOVE_CODEX_COMPAT_CHAPTERS[0];
+  const contract = buildCodexEvidence({ chapter, saju: selfSaju, ziweiChart: selfZiwei, partnerSaju, partnerZiweiChart, compatibility });
+  const parsed = { body: "두 사람의 기질 차이를 대화에서 확인합니다.", evidence: contract.records.map((record, index) => index % 2
+    ? { id: record.id, subject: record.subject, system: record.system, label: "근거", explanation: "계산된 근거입니다" }
+    : { path: record.path, subject: record.subject, system: record.system === "saju" ? "사주" : "자미두수", label: "근거", explanation: "계산된 근거입니다" }) };
+  expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
+  expect(parsed.evidence.map(item => item.evidenceId)).toEqual(contract.records.map(record => record.id));
+  expect(parsed.crossChecks).toEqual([]);
 });
