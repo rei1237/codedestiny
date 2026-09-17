@@ -52,6 +52,18 @@ describe("PAID 인데 권한이 없는 주문", () => {
     await regrantUnfulfilledOrders(db, { now: NOW, limit: 1, grant: async order => granted.push(order.merchantUid) });
     expect(granted).toEqual(["waiting"]);
   });
+  test("재지급이 실패할 때마다 metadata.fulfillmentAttempts 가 오른다 — 알림 본문의 실패 횟수, 재시도는 무제한 그대로", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [{ merchantUid: "cd1", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) }]);
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const fail = async () => { throw Object.assign(new Error("boom"), { code: "INTERNAL_ERROR" }); };
+    expect(await regrantUnfulfilledOrders(db, { grant: fail, now: NOW })).toMatchObject({ scanned: 1, failed: 1 });
+    expect(await regrantUnfulfilledOrders(db, { grant: fail, now: new Date(NOW.getTime() + 5 * 60_000) })).toMatchObject({ scanned: 1, failed: 1 });
+    errorSpy.mockRestore();
+    const row = db.rows.find((r) => r.merchantUid === "cd1");
+    expect(row.metadata.fulfillmentAttempts).toBe(2);
+    expect(row.metadata.fulfillmentLastError).toBe("INTERNAL_ERROR");
+  });
   test("🔴 다시 지급한다 — 돈은 받았는데 안 열리는 상태를 사람이 찾지 않아도 된다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [

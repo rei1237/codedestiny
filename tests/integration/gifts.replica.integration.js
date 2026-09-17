@@ -10,6 +10,7 @@ import { signAuthToken } from "../../worker/lib/auth.js";
 import { handleGiftRoute } from "../../worker/payments/gift-routes.js";
 import { refundGiftAsOperator } from "../../worker/payments/gift-refund.js";
 import { applyEntitlementUpdate } from "../../worker/routes/app-store.js";
+import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
 
 const uri = "mongodb://127.0.0.1:27029/gift_integration_test?replicaSet=gift-test";
 const purchaser = new mongoose.Types.ObjectId("64b000000000000000000001");
@@ -165,6 +166,16 @@ test("gift prepare bypasses buyer tier, binds intent and does not reuse SELF key
   expect((await res.json()).order.purchaseType).toBe("GIFT");
   expect((await post({ ...body, gift: { giftMessage: "changed" } })).status).toBe(409);
   expect(await Gift.countDocuments()).toBe(1);
+});
+test("gift prepare snapshots the foreign card decision from the membership_pass_gift row", async () => {
+  const auth = await signAuthToken({ _id: String(purchaser), email: "test@example.test", role: "user" }, env);
+  const post = (flagEnv, idempotencyKey) => handlePaymentsContext(new Request("https://code-destiny.com/api/payments/subscription/prepare", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://code-destiny.com", Authorization: `Bearer ${auth}` }, body: JSON.stringify({ tier: "standard", durationMonths: 1, purchaseType: "GIFT", idempotencyKey, gift: {} }) }), flagEnv, { withDb: (_e, _c, fn) => fn(db) });
+  const on = await post({ ...env, FOREIGN_CARD_ENABLED: "1" }, "foreign-card-on"); expect(on.status).toBe(201);
+  const order = (await on.json()).order;
+  expect(order.foreignCard).toEqual({ offered: true, reason: "ELIGIBLE", policyVersion: FOREIGN_CARD_POLICY_VERSION });
+  expect((await Payment.collection.findOne({ merchantUid: order.merchantUid })).foreignCard).toMatchObject({ offered: true, reason: "ELIGIBLE", policyVersion: FOREIGN_CARD_POLICY_VERSION, decidedAt: expect.any(Date) });
+  const off = await post(env, "foreign-card-off"); expect(off.status).toBe(201);
+  expect((await off.json()).order.foreignCard).toEqual({ offered: false, reason: "FLAG_OFF", policyVersion: FOREIGN_CARD_POLICY_VERSION });
 });
 
 test("login context stores only hashes and survives the OAuth round trip", async () => {

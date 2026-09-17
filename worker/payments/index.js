@@ -38,11 +38,13 @@ import { verifyPgPayment } from "./pg.js";
 import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
-import { runPaymentReconcile } from "./reconcile.js";
+import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
+import { createOperatorAlertSender } from "./fulfillment-alert.js";
 import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } from "./executions.js";
 import { consumePassForFeature } from "../lib/pass-consumption.js";
 import { sendPendingReceiptEmails } from "./receipt-email.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
+import { canUseForeignCard, narrowToOrderSnapshot } from "./foreign-card-policy.js";
 import {
   activatePassSubscription,
   buildPassConsumeMarker,
@@ -433,6 +435,9 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
   const purchaseType = body.purchaseType ?? "SELF";
   if (!["SELF", "GIFT"].includes(purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
+  // 해외 발급 카드 결제창 노출 판정(I/O 없음, foreign-card-policy.js). 선물은 membership_pass_gift 행을 탄다.
+  const foreignCardProduct = { type: purchaseType === "GIFT" ? "membership_pass_gift" : plan.productType, purchaseType, durationDays: plan.durationDays };
+  const foreignCard = canUseForeignCard({ user: { id: userId }, product: foreignCardProduct, billingCountry: null, paymentChannel: paymentMethod }, { env });
   const gifts = purchaseType === "GIFT" ? await import("./gifts.js") : null;
   if (gifts) {
     gifts.assertGiftPurchasesEnabled(env, request);
@@ -464,7 +469,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });
@@ -492,6 +497,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
       recurring: false,
       purchaseType,
       status: order.status,
+      foreignCard: narrowToOrderSnapshot(foreignCard, order.foreignCard),
     },
   }, { status: idempotent ? 200 : 201 });
 }
@@ -1055,6 +1061,9 @@ const ROUTES = {
         || headerKey
         || String(body.orderId || body.requestId || "").trim();
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
+      // 해외 발급 카드 결제창 노출 판정(I/O 없음). 결제수단은 클라이언트 신고값이라 판정은 "보내도 되는 상한"일 뿐이다.
+      const paymentMethod = String(body.paymentMethod || body.payMethod || "card_general");
+      const foreignCard = canUseForeignCard({ user: { id: userId }, product: { type: "digital_content" }, billingCountry: null, paymentChannel: paymentMethod }, { env });
 
       const { order, user } = await withDb(env, ctx, async (db) => {
         /* 🔴 사용자 조회와 주문 발급을 겹친다. 이 두 왕복은 서로를 기다릴 이유가 없다 — 사용자 문서는
@@ -1084,7 +1093,8 @@ const ROUTES = {
           contentKey: body.contentKey,
           scope: body.scope,
           returnPath: body.returnPath,
-          paymentMethod: String(body.paymentMethod || body.payMethod || "card_general"),
+          paymentMethod,
+          foreignCard,
         });
         return { order: created, user: await userPromise };
       });
@@ -1099,6 +1109,7 @@ const ROUTES = {
         customer,
         pricing: listedProduct.pricing || { ...listedProduct },
         body,
+        foreignCard: narrowToOrderSnapshot(foreignCard, order.foreignCard),
       });
       const envelope = legacyPrepareEnvelope(legacyOrder, { idempotent });
       if (legacyEnvelope === "billing-checkout") return json(legacyBillingCheckoutEnvelope(envelope));
@@ -1795,6 +1806,14 @@ export async function runPaymentsV2Reconcile(env) {
       } catch (error) {
         console.error("[payments-v2-reconcile] moonstone orphan sweep failed:", String(error?.message || error));
       }
+      /* 결제 후 미이행·PG 대조 실패 운영자 알림(reconcile.js alertPaymentAnomalies). 운영자 전용 채널만 쓰고
+         발송은 5초 상한, 표식은 전달 성공 후에만 찍는다. 실패해도 위 결과는 잃지 않는다(월정석 정리와 같은 규칙). */
+      let alerts = null;
+      try {
+        alerts = await alertPaymentAnomalies(db, { notify: createOperatorAlertSender(env) });
+      } catch (error) {
+        console.error("[payments-v2-reconcile] payment alert sweep failed:", String(error?.message || error));
+      }
       /* 구매 확인 메일(전자상거래법 제13조). 🔴 결제 경로가 아니라 여기서 보낸다 — 확정 경로에
          외부 HTTP(Resend)를 얹으면 메일이 느려질 때 그 지연이 결제창 하드 503 으로 나온다.
          같은 슬롯에서 이어 돌고, 실패해도 위 두 결과는 잃지 않는다(월정석 정리와 같은 규칙). */
@@ -1804,7 +1823,7 @@ export async function runPaymentsV2Reconcile(env) {
       } catch (error) {
         console.error("[payments-v2-reconcile] receipt email sweep failed:", String(error?.message || error));
       }
-      return { ...report, moonstone, receipts };
+      return { ...report, moonstone, alerts, receipts };
     });
     /* 웹훅 재생은 이벤트마다 PG 를 부르므로(슬롯 밖 fetch) 위 슬롯 바깥에서 따로 돈다.
        실패해도 위 결과는 잃지 않는다(월정석·메일과 같은 규칙). */

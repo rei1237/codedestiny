@@ -10,6 +10,9 @@
  *
  *   status === "paid"  ∧  paymentId === orderId  ∧  amount === 주문금액  ∧  currency === "KRW"
  *
+ * 응답에 storeId 가 **있으면** 우리 상점(PORTONE_STORE_ID)과도 같아야 한다(STORE_ID_MISMATCH). 없으면
+ * 대조를 건너뛰고 요약에 storeIdCheck: "absent" 로 남긴다 — 실제 응답 형식을 mock 으로 확인할 수 없어서다.
+ *
  * 하나라도 어긋나면 422 다 — 형식은 맞는데 사실이 다르다는 뜻이고, **자동 재시도 대상이 아니다.**
  * 특히 금액 불일치를 재시도 가능으로 두면 클라이언트가 조작한 금액을 반복 제출하게 된다.
  * 반대로 PG 에 **닿지 못한 것**은 사실 불일치가 아니라 의존 장애이므로 503 이다. 이 구분이
@@ -35,6 +38,13 @@ function summarize(pg) {
     paidAt: pg?.paid_at ? new Date(Number(pg.paid_at) * 1000) : null,
     receiptUrl: String(pg?.receipt_url || "") || null,
   };
+}
+
+/* 응답이 알려 준 storeId. 구 확정 경로(worker/routes/payments.js extractPortOneStoreId)와 같은 자리를 본다.
+   🔴 값은 시크릿 분류다 — 오류 meta·요약·로그에 싣지 않고 대조 결과만 남긴다. */
+function extractStoreId(pg) {
+  const raw = pg?.rawV2 && typeof pg.rawV2 === "object" ? pg.rawV2 : pg;
+  return String(raw?.storeId || raw?.store?.id || raw?.store?.storeId || pg?.storeId || "").trim();
 }
 
 /* PortOne 호출이 "닿지 못한" 것인지 판정한다. requestJson 은 타임아웃도 HTTP 오류도 전부
@@ -73,7 +83,7 @@ export function assertPgConfigured(env) {
  * @returns {Promise<{ pgTransactionId: string, paidAt: Date|null, method: string, summary: object }>}
  */
 export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps = {}) {
-  assertPgConfigured(env);
+  const config = assertPgConfigured(env);
   const fetchPayment = deps.fetchPayment || fetchPortOnePayment;
 
   let pg;
@@ -125,7 +135,14 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
     });
   }
 
-  const summary = summarize(pg);
+  // ⑤ 상점. 응답에 storeId 가 **있을 때만** 우리 상점과 댄다 — 다른 상점의 결제로 우리 주문을 확정하지 않는다.
+  //    구 경로(payments.js)는 없어도 불일치로 보지만, 여기서는 실제 응답 형식이 미확인이라 통과시키고 absent 로 남긴다.
+  const pgStoreId = extractStoreId(pg);
+  if (pgStoreId && pgStoreId !== String(config.portoneStoreId).trim()) {
+    throw paymentError("STORE_ID_MISMATCH", "결제 정보가 주문과 일치하지 않습니다.", { orderId });
+  }
+
+  const summary = { ...summarize(pg), storeIdCheck: pgStoreId ? "matched" : "absent" };
   return {
     pgTransactionId: summary.paymentId,
     paidAt: summary.paidAt,

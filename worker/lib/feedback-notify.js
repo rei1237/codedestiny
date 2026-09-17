@@ -178,3 +178,40 @@ export async function notifyNewFeedback(env, doc, { attachmentUrls = [] } = {}) 
   }
 }
 
+/**
+ * 운영자 알림(결제 미이행·PG 대조 실패, worker/payments/fulfillment-alert.js). 제보 알림과 같은 운영자 전용
+ * 채널 — 관리자 메일 + 선택적 Discord/Slack 웹훅 — 만 쓴다. 공개 채널은 이 목록에 없다.
+ *
+ * 🔴 전달 판정은 "ok 이면서 skipped 가 아닌 채널이 하나 이상"이다. sendAdminEmail 처럼 수신자 없음을
+ *    ok:true·skipped 로 돌려주는 채널을 그대로 세면 아무에게도 안 갔는데 전달로 오판한다.
+ *    설정된 채널이 0개면 { ok:false, error:"unconfigured" } 이고 fetch 는 한 번도 나가지 않는다.
+ * throw 하지 않는다(이 모듈 관례).
+ */
+export async function notifyOperators(env, { subject = "", text = "" } = {}) {
+  try {
+    const body = String(text || "");
+    const tasks = [];
+    const to = String(getEnv(env, "ADMIN_FEEDBACK_EMAIL") || "").trim();
+    if (to) {
+      tasks.push(sendEmail(env, {
+        to,
+        subject: String(subject || ""),
+        html: `<pre style="white-space:pre-wrap;word-break:break-word;font-size:13px;">${escapeHtml(body)}</pre>`,
+      }).then((result) => ({ channel: "email", ok: Boolean(result?.ok), status: result?.status, error: result?.error })));
+    }
+    for (const channel of WEBHOOK_CHANNELS) {
+      const url = String(getEnv(env, channel.envKey) || "").trim();
+      if (!url) continue;
+      tasks.push(postWebhook(url, channel.buildBody(body)).then((result) => ({ channel: channel.name, ...result })));
+    }
+    if (tasks.length === 0) return { ok: false, error: "unconfigured", results: [] };
+
+    const settled = await Promise.allSettled(tasks);
+    const results = settled.map((entry) => (entry.status === "fulfilled" ? entry.value : { ok: false, error: String(entry.reason?.message || "notify_failed") }));
+    const delivered = results.some((entry) => entry?.ok === true && !entry?.skipped);
+    return { ok: delivered, error: delivered ? "" : (results.find((entry) => entry?.error)?.error || "not_delivered"), results };
+  } catch (error) {
+    return { ok: false, error: String(error?.message || "notify_failed"), results: [] };
+  }
+}
+

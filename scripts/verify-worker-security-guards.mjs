@@ -68,6 +68,30 @@ assertBefore(payments, "const security = await enforcePaymentRouteSecurity(reque
 assertContains(billing, "enforceBillingRouteSecurity(request, env, path, method)", "billing security guard");
 assertBefore(billing, "const security = await enforceBillingRouteSecurity(request, env, path, method);", "if (method === \"GET\" && path === \"/features\")", "billing guard before dispatch");
 
+/* 🔴 비회원 차단 기준선(해외카드 1단계 C2). 구 결제 진입 handleCheckout 은 로그인 확인이 V2 위임보다
+   앞선다 — 순서가 뒤집히면 비회원 요청이 /api/payments/prepare 로 넘어간다. */
+const handleCheckoutStart = billing.indexOf("async function handleCheckout(request, env) {");
+assert.ok(handleCheckoutStart > 0, "billing handleCheckout: 선언을 못 읽었다");
+const handleCheckoutEnd = billing.indexOf("\n}", handleCheckoutStart);
+assert.ok(handleCheckoutEnd > handleCheckoutStart, "billing handleCheckout: 함수 끝을 못 읽었다");
+assertBefore(
+  billing.slice(handleCheckoutStart, handleCheckoutEnd),
+  "requireBillingAuth(",
+  "delegateToPayments(",
+  "billing handleCheckout: auth before payments delegation",
+);
+
+/* 해외카드 판정·결제창 파라미터는 V2(worker/payments/**)와 클라이언트 코어에만 둔다. 구 라우터 두 파일은
+   성장 상한(config/payment-freeze.json)에 걸려 있고, 여기에 생기면 판정을 우회하는 두 번째 경로가 된다. */
+[
+  ["worker/routes/billing.js", billing],
+  ["worker/routes/payments.js", payments],
+].forEach(([file, text]) => {
+  ["foreignCard", "global_visa3d", "P_RESERVED"].forEach((marker) => {
+    assertNotContains(text, marker, `${file} overseas card marker ${marker}`);
+  });
+});
+
 assertContains(profile, "enforceProfileRouteSecurity(request, env, auth, method, path)", "profile security guard");
 assertBefore(profile, "const auth = await requireUserFromRequest(request, env", "const security = await enforceProfileRouteSecurity(request, env, auth, method, path);", "profile auth before security guard");
 assertBefore(profile, "const security = await enforceProfileRouteSecurity(request, env, auth, method, path);", "await connectDb(env);", "profile guard before db mutation dispatch");

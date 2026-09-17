@@ -290,6 +290,71 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     expect((await response.json()).code).toBe("UNAUTHORIZED");
   });
 
+  /* 🔴 비회원 차단 기준선(해외카드 1단계 C2). 서버 판정을 얹기 전에 "로그인 없이는 결제 표면에 닿지
+     못한다"를 라우트 표 전수로 고정한다. 차단은 handlePaymentsContext 의 `auth === "required"` 비교
+     한 줄이라, 표에 오타가 들어가면 그 라우트는 조용히 익명이 된다. */
+  const REQUIRED_ROUTES = Object.entries(ROUTES).filter(([, r]) => r.auth === "required").map(([key]) => key).sort();
+  const FORGED_ENV = { ...AUTH_ENV, JWT_ACCESS_SECRET: "another-access-secret-value-9876543210" };
+
+  function routeRequest(key) {
+    const [method, pattern] = key.split(" ");
+    return { method, path: pattern.replace(":id", "cd1") };
+  }
+
+  async function forgedToken() {
+    const { signAuthToken } = await import("../../worker/lib/auth.js");
+    return signAuthToken({ _id: USER, email: "t@e.st", role: "user", name: "t" }, FORGED_ENV);
+  }
+
+  test("🔴 라우트 auth 는 none·required 뿐이고 required 는 13개 이상이다", () => {
+    expect([...new Set(Object.values(ROUTES).map((r) => r.auth))].sort()).toEqual(["none", "required"]);
+    expect(REQUIRED_ROUTES.length).toBeGreaterThanOrEqual(13);
+  });
+
+  test.each(REQUIRED_ROUTES)("🔴 %s — 토큰이 없으면 401 이고 Mongo 를 열지 않는다", async (key) => {
+    const { method, path } = routeRequest(key);
+    const db = makeFakePaymentDb();
+    const response = await call(path, { method, db });
+    expect(response.status).toBe(401);
+    expect((await response.json()).code).toBe("UNAUTHORIZED");
+    expect(db.ctx.ops).toBe(0);
+  });
+
+  test("다른 비밀키로 서명한 토큰은 그 키로는 유효하다 — 아래 401 이 서명 검사 때문임을 보장한다", async () => {
+    const { peekAccessTokenUserId } = await import("../../worker/lib/auth.js");
+    const request = new Request("https://x.test/api/payments/orders/cd1", {
+      headers: { Authorization: `Bearer ${await forgedToken()}` },
+    });
+    expect(await peekAccessTokenUserId(request, FORGED_ENV)).toBe(USER);
+    expect(await peekAccessTokenUserId(request, AUTH_ENV)).toBe("");
+  });
+
+  test.each(REQUIRED_ROUTES)("🔴 %s — 다른 비밀키로 서명한 토큰도 401 이고 Mongo 를 열지 않는다", async (key) => {
+    const { method, path } = routeRequest(key);
+    const db = makeFakePaymentDb();
+    const response = await call(path, { method, token: await forgedToken(), db });
+    expect(response.status).toBe(401);
+    expect((await response.json()).code).toBe("UNAUTHORIZED");
+    expect(db.ctx.ops).toBe(0);
+  });
+
+  // 선물은 라우트 표 밖(gift-routes.js)에서 스스로 막는다 — 로그인 없이 열리는 것은 /preview·/context 뿐이다.
+  test.each([
+    ["POST", "/gifts/claim"],
+    ["GET", "/gifts/sent"],
+    ["GET", "/gifts/received"],
+    ["GET", "/gifts/account"],
+    ["GET", "/gifts/g1"],
+    ["POST", "/gifts/g1/link"],
+    ["POST", "/gifts/g1/refund-request"],
+  ])("🔴 선물 %s %s — 로그인 없이는 401 이고 Mongo 를 열지 않는다", async (method, path) => {
+    const db = makeFakePaymentDb();
+    const response = await call(path, { method, body: method === "POST" ? {} : undefined, db });
+    expect(response.status).toBe(401);
+    expect((await response.json()).code).toBe("UNAUTHORIZED");
+    expect(db.ctx.ops).toBe(0);
+  });
+
   test("🔴 인증은 Mongo 를 읽지 않는다 — 주문 조회 1회가 전부다", async () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);

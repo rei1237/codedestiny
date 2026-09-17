@@ -13,6 +13,8 @@
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
+import { deriveOrderId } from "../../worker/payments/orders.js";
+import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -40,7 +42,7 @@ function seedUser(db) {
   });
 }
 
-async function postPrepare(db, body, { headers = {}, legacyEnvelope = "prepare", path = "/api/payments/prepare" } = {}) {
+async function postPrepare(db, body, { headers = {}, legacyEnvelope = "prepare", path = "/api/payments/prepare", env = ENV } = {}) {
   const request = new Request(`https://code-destiny.com${path}`, {
     method: "POST",
     headers: {
@@ -50,7 +52,7 @@ async function postPrepare(db, body, { headers = {}, legacyEnvelope = "prepare",
     },
     body: JSON.stringify(body),
   });
-  const response = await handlePaymentsContext(request, ENV, {
+  const response = await handlePaymentsContext(request, env, {
     prefix: "/api/payments",
     legacyEnvelope,
     withDb: (_env, _ctx, fn) => fn(db),
@@ -64,7 +66,7 @@ const LEGACY_PREPARE_ORDER_KEYS = [
   "merchantUid", "paymentAmount", "amountKRW", "amountKrw", "coinPrice", "costCoins",
   "membershipCreditCost", "featureKey", "accessType", "profileId", "profileCardId",
   "productType", "serviceType", "actionType", "idempotencyKey", "orderId",
-  "productName", "customer", "pricing",
+  "productName", "customer", "pricing", "foreignCard",
 ];
 
 test("PointsClient 형 바디(멱등키 없음): 201 + 소비 키 전부 + 클릭마다 새 주문", async () => {
@@ -243,4 +245,63 @@ test("모르는 상품: 404 PRODUCT_NOT_FOUND", async () => {
   const { response, payload } = await postPrepare(db, { featureKey: "no-such-feature-key-xyz" });
   expect(response.status).toBe(404);
   expect(payload.code).toBe("PRODUCT_NOT_FOUND");
+});
+
+/* 해외 발급 카드 결제창 노출 판정(해외카드 1단계 C4). 서버가 판정해 주문에 한 번 박고($setOnInsert),
+   응답은 지금 판정과 그 스냅숏을 좁혀 낸다. 클라이언트는 offered 가 true 일 때만 해외카드 파라미터를 붙인다. */
+const ON_ENV = { ...ENV, FOREIGN_CARD_ENABLED: "1" };
+const OPEN = { offered: true, reason: "ELIGIBLE", policyVersion: FOREIGN_CARD_POLICY_VERSION };
+const closed = (reason) => ({ offered: false, reason, policyVersion: FOREIGN_CARD_POLICY_VERSION });
+const contentBody = (overrides = {}) => ({ paymentType: "digital_content", featureKey: PRODUCT.featureKey, ...overrides });
+const storedForeignCard = (db, merchantUid) => db.rows.find((row) => row.merchantUid === merchantUid)?.foreignCard;
+
+test("🔴 해외카드 플래그 미설정: 응답은 FLAG_OFF 닫힘이고 주문 문서에도 같은 판정이 남는다", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  const { response, payload } = await postPrepare(db, contentBody({ idempotencyKey: "fc-off", paymentMethod: "card_general" }));
+  expect(response.status).toBe(201);
+  expect(payload.order.foreignCard).toEqual(closed("FLAG_OFF"));
+  expect(storedForeignCard(db, payload.order.merchantUid)).toEqual({ ...closed("FLAG_OFF"), decidedAt: expect.any(Date) });
+});
+
+test("🔴 해외카드 플래그 ON·일반 카드: offered + 주문 문서에 policyVersion·decidedAt (billing-checkout 봉투도 같다)", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  const { payload } = await postPrepare(db, contentBody({ idempotencyKey: "fc-on", paymentMethod: "card_general" }), { env: ON_ENV });
+  expect(payload.order.foreignCard).toEqual(OPEN);
+  expect(storedForeignCard(db, payload.order.merchantUid)).toEqual({ ...OPEN, decidedAt: expect.any(Date) });
+  const billing = await postPrepare(db, contentBody({ idempotencyKey: "fc-billing" }), { env: ON_ENV, legacyEnvelope: "billing-checkout" });
+  expect(billing.payload.data.order.foreignCard).toEqual(OPEN);
+});
+
+test("🔴 해외카드: 일반 카드가 아닌 결제수단은 ON 이어도 닫히고, 본문의 foreignCard·bypass·offered 위조는 무시한다", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  const forged = { foreignCard: OPEN, bypass: { inicis_v2: { P_RESERVED: ["global_visa3d=Y"] } }, offered: true };
+  for (const paymentMethod of ["transfer", "kakaopay"]) {
+    const { payload } = await postPrepare(db, contentBody({ idempotencyKey: `fc-${paymentMethod}`, paymentMethod, ...forged }), { env: ON_ENV });
+    expect(payload.order.foreignCard).toEqual(closed("CHANNEL_NOT_SUPPORTED"));
+    expect(storedForeignCard(db, payload.order.merchantUid)).toMatchObject(closed("CHANNEL_NOT_SUPPORTED"));
+  }
+  const { payload } = await postPrepare(db, contentBody({ idempotencyKey: "fc-forged-off", ...forged }));
+  expect(payload.order.foreignCard).toEqual(closed("FLAG_OFF"));
+  expect(storedForeignCard(db, payload.order.merchantUid)).toMatchObject(closed("FLAG_OFF"));
+});
+
+test("🔴 해외카드: 닫힌 채 만든 주문은 나중에 켜도 ORDER_SNAPSHOT_CLOSED, 열린 주문은 끄면 즉시 FLAG_OFF — 주문 id 는 판정과 무관", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  const createdClosed = await postPrepare(db, contentBody({ idempotencyKey: "fc-closed-then-on" }));
+  const turnedOn = await postPrepare(db, contentBody({ idempotencyKey: "fc-closed-then-on" }), { env: ON_ENV });
+  expect(turnedOn.payload.order.merchantUid).toBe(createdClosed.payload.order.merchantUid);
+  expect(turnedOn.payload.order.merchantUid).toBe(await deriveOrderId(USER, "fc-closed-then-on"));
+  expect(turnedOn.payload.order.foreignCard).toEqual(closed("ORDER_SNAPSHOT_CLOSED"));
+  expect(storedForeignCard(db, turnedOn.payload.order.merchantUid)).toMatchObject(closed("FLAG_OFF"));
+
+  const createdOpen = await postPrepare(db, contentBody({ idempotencyKey: "fc-open-then-off" }), { env: ON_ENV });
+  expect(createdOpen.payload.order.foreignCard).toEqual(OPEN);
+  const turnedOff = await postPrepare(db, contentBody({ idempotencyKey: "fc-open-then-off" }));
+  expect(turnedOff.payload.order.merchantUid).toBe(await deriveOrderId(USER, "fc-open-then-off"));
+  expect(turnedOff.payload.order.foreignCard).toEqual(closed("FLAG_OFF"));
+  expect(storedForeignCard(db, turnedOff.payload.order.merchantUid)).toMatchObject(OPEN); // 스냅숏은 덮어쓰지 않는다
 });

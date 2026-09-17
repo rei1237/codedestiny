@@ -98,6 +98,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   CLIENT_AMOUNT_MISMATCH: { status: 400 },
   CURRENCY_MISMATCH: { status: 422 },
   PAYMENT_ID_MISMATCH: { status: 422 },
+  // 응답 storeId 가 있을 때만 대조한다(pg.js ⑤). meta 에 storeId 값을 싣지 않는다 — 시크릿 분류.
+  STORE_ID_MISMATCH: { status: 422 },
   PG_PAYMENT_NOT_PAID: { status: 422 },
 
   // 500 — 우리 잘못. 재시도해도 같으므로 눈에 띄어야 한다.

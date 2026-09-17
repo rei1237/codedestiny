@@ -21,7 +21,9 @@
 //   ④ 환산 결과가 결제 요청 필드로 흘러가지 않는다 (totalAmount·paymentAmount·currency·amountKrw)
 //      — 검사 대상은 손으로 적지 않고 추적 파일 전수에서 **발견**한다
 //   ⑤ 승인 통화 단언(CURRENCY_KRW)이 살아 있다 — 다통화는 이 계약에 없다
-//   ⑥ 이 검사기가 읽는 파일이 전부 paid-flow-gates 트리거 경로에 있다
+//   ⑥ 해외카드 특약 승인 전에는 고지 문구(사전 전체 + ko 폴백)에 카드 브랜드명이 없다
+//      — 브랜드 나열은 "이 카드를 받는다" 로 읽힌다. 승인 뒤 문구를 다시 쓸 때 의도적으로 해제한다
+//   ⑦ 이 검사기가 읽는 파일이 전부 paid-flow-gates 트리거 경로에 있다
 //
 // 🔴 fail-closed: 검사 대상이 바닥 아래로 내려가면 실패한다. 함수 이름이 바뀌거나 정규식이
 //    깨져 "대상 0개" 가 되면 조용히 통과하는 것이 이 가드의 유일한 실패 모드다.
@@ -32,7 +34,7 @@
 // 실행: npm run verify:overseas-payment-notice
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
@@ -179,13 +181,74 @@ assert.ok(
   `${SERVER_CONFIG}: getPortOnePublicConfig 의 CURRENCY_KRW 가 사라졌습니다.`,
 );
 
-// ── 6) CI 트리거 커버리지 ────────────────────────────────────────────────────────────
+// ── 6) 특약 승인 전에는 고지에 카드 브랜드명이 없다 ──────────────────────────────────
+// KG이니시스 해외카드 특약은 아직 처리중(미승인)이다. 그런데 고지가 "International cards
+// (VISA · Mastercard · JCB · Diners) are accepted" 라고 단정한 채 운영에서 서빙됐다(2026-09-17 확인).
+// 브랜드 나열은 곧 "이 카드를 받는다" 는 약속이라 승인 전에는 기계적으로 막는다.
+// 🔴 승인 뒤 승인 범위 기준으로 문구를 다시 쓸 때 이 절을 **의도적으로** 해제한다
+//    (docs/handoff/inicis-overseas-card-phase1.md "플래그 ON 선결 조건").
+const NOTICE_KEY = "payment.overseas.chargedInKrw";
+const CARD_BRAND_PATTERN = /VISA|Mastercard|JCB|Diners/i;
+const DICTIONARY_DIR = "public/i18n";
+// 사전은 손으로 적지 않고 디렉터리에서 발견한다 — 로케일이 늘면 자동으로 검사 대상이 된다.
+const dictionaryFiles = readdirSync(resolve(root, DICTIONARY_DIR))
+  .filter((name) => name.endsWith(".json"))
+  .map((name) => `${DICTIONARY_DIR}/${name}`)
+  .sort();
+const MIN_DICTIONARIES = 12; // 2026-09-17 실측(ko + 비한국어 11)
+assert.ok(
+  dictionaryFiles.length >= MIN_DICTIONARIES,
+  `${DICTIONARY_DIR}: 사전이 ${dictionaryFiles.length}개입니다(최소 ${MIN_DICTIONARIES}) — `
+    + `경로가 바뀌었다면 이 검사가 대상 없이 통과할 뻔했습니다.`,
+);
+for (const rel of dictionaryFiles) {
+  const value = NOTICE_KEY.split(".").reduce((acc, part) => (acc == null ? undefined : acc[part]), JSON.parse(read(rel)));
+  assert.ok(
+    typeof value === "string" && value.trim() !== "",
+    `${rel}: ${NOTICE_KEY} 가 없습니다 — 그 로케일은 원화 청구 고지를 ko 폴백으로 봅니다.`,
+  );
+  assert.ok(
+    !CARD_BRAND_PATTERN.test(value),
+    `${rel}: ${NOTICE_KEY} 에 카드 브랜드명이 있습니다 — 특약 승인 전에는 해외 발급 카드 결제를 `
+      + `"준비 중" 으로만 적습니다.`,
+  );
+}
+
+// ko 폴백은 사전이 없을 때 그대로 화면에 뜬다. 이 키를 부르는 소스를 §4 의 추적 파일 전수에서 발견하고,
+// 추출 규칙이 없는 새 호출부는 미분류로 실패시킨다 — 조용히 검사 밖에 두지 않는다.
+const FALLBACK_EXTRACTORS = {
+  [CORE]: /checkoutText\(\s*"payment\.overseas\.chargedInKrw",\s*"([^"]*)"/g,
+  "app/points/PointsClient.tsx": /checkoutEntry\.text\(\s*"payment\.overseas\.chargedInKrw",\s*"([^"]*)"/g,
+};
+const noticeCallers = trackedSources.filter((rel) => read(rel).includes(NOTICE_KEY)).sort();
+assert.deepEqual(
+  noticeCallers,
+  Object.keys(FALLBACK_EXTRACTORS).sort(),
+  `${NOTICE_KEY} 를 부르는 소스가 추출 규칙과 다릅니다 — 새 호출부의 ko 폴백도 브랜드 검사를 받아야 합니다. `
+    + `FALLBACK_EXTRACTORS 에 등록하세요.`,
+);
+for (const [rel, pattern] of Object.entries(FALLBACK_EXTRACTORS)) {
+  const fallbacks = [...read(rel).matchAll(pattern)].map((match) => match[1]);
+  assert.equal(
+    fallbacks.length,
+    1,
+    `${rel}: ${NOTICE_KEY} ko 폴백을 ${fallbacks.length}개 찾았습니다(정확히 1) — `
+      + `추출 정규식이 깨졌거나 호출부가 늘었습니다.`,
+  );
+  assert.ok(
+    !CARD_BRAND_PATTERN.test(fallbacks[0]),
+    `${rel}: ${NOTICE_KEY} ko 폴백에 카드 브랜드명이 있습니다 — 특약 승인 전에는 "준비 중" 으로만 적습니다.`,
+  );
+}
+const BRAND_GUARDED_PATHS = [...dictionaryFiles, ...Object.keys(FALLBACK_EXTRACTORS)];
+
+// ── 7) CI 트리거 커버리지 ────────────────────────────────────────────────────────────
 // 🔴 검사기가 멀쩡한 것과 검사기가 **실행되는** 것은 다른 문제다.
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
 const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
-// 🔴 손배열이 아니라 §4 가 발견한 대상 전체 + 통화 단언 파일이다. 새 환산 호출부가 생기면
-//    그 파일도 자동으로 트리거 등재 대상이 된다.
-const READ_PATHS = [...new Set([...LEAK_SCAN_TARGETS, PG_VERIFIER, SERVER_CONFIG])];
+// 🔴 손배열이 아니라 §4 가 발견한 대상 전체 + 통화 단언 파일 + §6 브랜드 검사 대상이다.
+//    새 환산 호출부나 새 사전이 생기면 그 파일도 자동으로 트리거 등재 대상이 된다.
+const READ_PATHS = [...new Set([...LEAK_SCAN_TARGETS, PG_VERIFIER, SERVER_CONFIG, ...BRAND_GUARDED_PATHS])];
 for (const rel of READ_PATHS) {
   assert.ok(
     gateCoversAny(gatePatterns, rel),
@@ -198,5 +261,6 @@ console.log(
   `[verify-overseas-payment-notice] PASS `
     + `(${fxEntryCount} reference currencies, ${RENDERERS.length} renderers, `
     + `${PAYMENT_FIELDS.length} leak-guarded fields x ${LEAK_SCAN_TARGETS.length} discovered targets, `
+    + `${dictionaryFiles.length} notices + ${Object.keys(FALLBACK_EXTRACTORS).length} ko fallbacks brand-free, `
     + `${READ_PATHS.length} gate-triggered paths)`,
 );
