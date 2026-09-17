@@ -330,6 +330,11 @@
   /**
    * 이니시스 결제창에 넘길 bypass 파라미터.
    *
+   * 🔴 서버 판정이 열린 주문에만 준다(fail-closed). decision 은 prepare 응답의 order.foreignCard
+   *    (worker/payments/foreign-card-policy.js 판정을 주문 스냅숏과 좁힌 값)다. 판정 없음·닫힘·
+   *    truthy 위조(offered:"true"·1)와 무인자 호출은 undefined — PG 해외카드 특약 승인 전에는
+   *    global_visa3d=Y 를 보내지 않는다.
+   *
    * 🔴 `global_visa3d=Y` 는 **모바일 결제창 전용** 해외카드 노출 옵션이고
    *    bypass.inicis_v2.P_RESERVED 밖에는 실을 자리가 없다. 이걸 안 보내면 해외카드
    *    특약이 승인돼도 모바일 결제창에 해외카드 탭이 안 뜰 수 있다.
@@ -341,7 +346,8 @@
    *    미문서이고, 거절이라면 결제창이 아예 안 뜬다. 그 게이팅은 호출부에 있다
    *    (셸·독립은 directPayFields.channelKeyName 이 비어 있을 때만 부착).
    */
-  function portoneBypass() {
+  function portoneBypass(decision) {
+    if (!decision || decision.offered !== true) return undefined;
     return { inicis_v2: { P_RESERVED: ["global_visa3d=Y"] } };
   }
   /** 금액을 현재 로케일 자릿수 + 통화 문구로 그린다(정적 셸 formatWon 과 같은 계약). */

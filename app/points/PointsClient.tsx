@@ -87,6 +87,8 @@ type PrepareSubscriptionOrderResponse = {
     productType: "membership_pass";
     profileLimit: number;
     durationDays: number;
+    // 해외 발급 카드 결제창 노출 판정(worker/payments/foreign-card-policy.js). offered === true 일 때만 bypass 를 싣는다.
+    foreignCard?: { offered?: boolean; reason?: string; policyVersion?: string } | null;
   };
 };
 
@@ -4546,7 +4548,7 @@ export default function PointsPage() {
       if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;
       // 🔴 bypass 는 이니시스 전용 페이로드다. 전용 채널(카카오페이)에 실으면 그 PG 가 모르는 키라
       // 창이 안 열리거나 조용히 무시된다 — 셸·독립 정적과 같은 채널 게이팅을 쓴다.
-      const passBypass = directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass();
+      const passBypass = directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass(order.foreignCard);
       if (passBypass) requestData.bypass = passBypass;
 
       if (!isGift) savePendingSubscriptionOrder({

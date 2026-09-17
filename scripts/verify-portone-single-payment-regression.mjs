@@ -270,6 +270,19 @@ function runPgWindowLocaleTests() {
       `${label}: ${fnName} 은 모듈 미부착·예외에서 null 로 물러나야 한다 — 손으로 지어낸 bypass 를 PG 로 보내지 않는다`,
     );
   }
+  // 🔴 서버 판정을 정본에 그대로 넘겨야 한다. 인자를 떨구면 정본이 늘 닫힘으로 답해 열린 주문에도 해외카드가 조용히 안 열린다.
+  assertContains(indexSource, "function _cdPortoneBypass(decision) {", "index.html: _cdPortoneBypass 는 서버 판정(decision)을 받아야 한다");
+  assert.ok(
+    /api\.portoneBypass\(decision\)/.test(sliceFunctionBody(indexSource, "function _cdPortoneBypass(")),
+    "index.html: _cdPortoneBypass 는 api.portoneBypass(decision) 로 서버 판정을 넘겨야 한다",
+  );
+  // 🔴 dp(js/destiny-profile.js)는 무인자 호출 그대로다 — 정본이 무인자를 닫힘으로 답해 해외카드가 열리지 않는다.
+  //    dp 를 고치면 dp 핀(app/_lib/billing-client.ts 통파일 동결·verify-paid-gate-ui-regression.mjs)을 함께 돌려야 해서
+  //    플래그 ON 준비로 미뤘다(docs/payment/inicis-overseas-card/02-overseas-card-implementation.md). 그때 위 단언과 같은 꼴로 바꾼다.
+  assert.ok(
+    /api\.portoneBypass\(\)/.test(sliceFunctionBody(destinyProfileSource, "function _dpPortoneBypass(")),
+    "js/destiny-profile.js: _dpPortoneBypass 가 무인자 호출이 아닙니다 — 판정 전달은 dp 핀 회전과 함께 하고 이 단언도 바꾸세요",
+  );
 
   // ③ 정본이 PG 지원 밖 값을 낼 수 없어야 한다. 문자열 리터럴을 전수로 본다.
   const entrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
@@ -364,9 +377,15 @@ function runPgWindowLocaleTests() {
     }
   }
 
-  // ⑤ bypass 행위. 🔴 deepEqual 이 아니라 includes 로 본다 — 옵션 추가를 막지 않기 위해서다.
-  const bypass = checkoutEntryModule.portoneBypass();
-  assert.ok(bypass && typeof bypass === "object", "portoneBypass() 가 객체를 돌려주지 않습니다.");
+  // ⑤ bypass 행위. 🔴 서버 판정(order.foreignCard)이 열린 주문에만 값이 나온다(fail-closed) — 무인자·null·빈 객체·
+  //    닫힘·truthy 위조가 undefined 여야 PG 해외카드 특약 승인 전에 global_visa3d=Y 가 나가지 않는다.
+  assert.equal(checkoutEntryModule.portoneBypass(), undefined, "portoneBypass() 무인자가 undefined 가 아닙니다 — 판정을 넘기지 않는 호출부(js/destiny-profile.js·lib/payment/portone.ts)가 해외카드 파라미터를 싣습니다.");
+  for (const [label, decision] of [["null", null], ["{}", {}], ["{offered:false}", { offered: false }], ['{offered:"true"}', { offered: "true" }], ["{offered:1}", { offered: 1 }]]) {
+    assert.equal(checkoutEntryModule.portoneBypass(decision), undefined, `portoneBypass(${label}) 가 undefined 가 아닙니다 — 서버 판정이 열리지 않은 주문에 해외카드 파라미터가 실립니다.`);
+  }
+  // 🔴 deepEqual 이 아니라 includes 로 본다 — 옵션 추가를 막지 않기 위해서다.
+  const bypass = checkoutEntryModule.portoneBypass({ offered: true });
+  assert.ok(bypass && typeof bypass === "object", "portoneBypass({ offered: true }) 가 객체를 돌려주지 않습니다.");
   const reserved = bypass.inicis_v2 && bypass.inicis_v2.P_RESERVED;
   assert.ok(Array.isArray(reserved), "portoneBypass().inicis_v2.P_RESERVED 는 배열이어야 합니다 — 이니시스가 그 자리에 KEY=VALUE 목록을 받습니다.");
   assert.ok(
@@ -385,9 +404,9 @@ function runPgWindowLocaleTests() {
   //    방어가 조용히 사라지는 것을 막기 위해 '같은 표현식 안'을 고정한다.
   //    🔴 lib/payment/portone.ts 는 여기 없다 — 그 경로는 수단 선택이 없어 항상 이니시스 채널이다.
   for (const [label, source, marker] of [
-    ["index.html", indexSource, "directPayFields.channelKeyName ? null : _cdPortoneBypass()"],
+    ["index.html", indexSource, "directPayFields.channelKeyName ? null : _cdPortoneBypass(order && order.foreignCard)"],
     ["js/destiny-profile.js", destinyProfileSource, "directPayFields.channelKeyName ? null : _dpPortoneBypass()"],
-    ["app/points/PointsClient.tsx", pointsClientSource, "directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass()"],
+    ["app/points/PointsClient.tsx", pointsClientSource, "directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass(order.foreignCard)"],
   ]) {
     assertContains(
       source,

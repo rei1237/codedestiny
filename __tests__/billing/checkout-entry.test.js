@@ -518,22 +518,31 @@ describe("PG 결제창 언어 — 데스크톱에서만 중국어", () => {
   });
 });
 
-describe("이니시스 bypass — 해외카드 노출", () => {
+describe("이니시스 bypass — 서버 판정이 열린 주문에만", () => {
+  const OPEN = { offered: true, reason: "ELIGIBLE", policyVersion: "2026-09-17-v1" };
+
+  test("🔴 판정 없음·닫힘·truthy 위조 = undefined(승인 전 global_visa3d 미전송)", () => {
+    expect(checkoutEntry.portoneBypass()).toBeUndefined();
+    for (const decision of [undefined, null, {}, { offered: false, reason: "FLAG_OFF" }, { offered: "true" }, { offered: 1 }, "ELIGIBLE", true]) {
+      expect(checkoutEntry.portoneBypass(decision)).toBeUndefined();
+    }
+  });
+
   test("P_RESERVED 에 global_visa3d=Y 가 실린다", () => {
-    const reserved = checkoutEntry.portoneBypass().inicis_v2.P_RESERVED;
+    const reserved = checkoutEntry.portoneBypass(OPEN).inicis_v2.P_RESERVED;
     expect(Array.isArray(reserved)).toBe(true);
     expect(reserved).toContain("global_visa3d=Y");
   });
 
   test("P_RESERVED 원소는 전부 KEY=VALUE 꼴이다", () => {
-    for (const option of checkoutEntry.portoneBypass().inicis_v2.P_RESERVED) {
+    for (const option of checkoutEntry.portoneBypass(OPEN).inicis_v2.P_RESERVED) {
       expect(option).toMatch(/^[A-Za-z0-9_]+=[^=]*$/);
     }
   });
 
   test("🔴 호출마다 새 객체를 준다 — 호출부가 배열을 밀어 넣어도 다음 결제에 새지 않는다", () => {
-    const first = checkoutEntry.portoneBypass();
+    const first = checkoutEntry.portoneBypass(OPEN);
     first.inicis_v2.P_RESERVED.push("mutated=1");
-    expect(checkoutEntry.portoneBypass().inicis_v2.P_RESERVED).not.toContain("mutated=1");
+    expect(checkoutEntry.portoneBypass(OPEN).inicis_v2.P_RESERVED).not.toContain("mutated=1");
   });
 });
