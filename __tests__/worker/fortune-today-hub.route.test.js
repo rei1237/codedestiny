@@ -181,6 +181,33 @@ describe("today-hub 라우트", () => {
     expect(again.headers.get("X-CD-Cache")).toBe("hit");
   });
 
+  // 수비학은 날짜만으로 보편일수, 생년이 있으면 개인일수. 길흉 등급은 없다.
+  test("수비학 카드 — 공개는 보편일수, 개인은 개인일수, 둘 다 등급·점수 없음", async () => {
+    const open = await (await call("?detail=1")).json();
+    expectPublicCardShape(open.systems.number);
+    expect(open.systems.number.anchor).toContain("보편일수");
+    const mine = await (await call("?detail=1&birth=1990-12-25")).json();
+    expect(mine.systems.number.personalized).toBe(true);
+    expect(mine.systems.number.anchor).toContain("개인일수");
+    expect(mine.systems.number.score).toBeNull();
+    expect(mine.systems.number.sections.map((section) => section.key)).toEqual(["method", "flow", "cycle"]);
+  });
+
+  // 프로필 없는 방문자가 수비학 탭에 생년월일만 넣는 경로. 다른 점술을 그 입력으로 개인화하지 않고,
+  // birth 없는 only 는 무시해야 한 장짜리 응답이 공개 캐시 키에 굳지 않는다.
+  test("only=number 는 birth 가 있을 때만 수비학 한 장, 개인 응답이라 private", async () => {
+    const res = await call("?detail=1&birth=1990-12-25&only=number");
+    expect(res.headers.get("Cache-Control")).toContain("private");
+    const body = await res.json();
+    expect(Object.keys(body.systems)).toEqual(["number"]);
+    const ignored = await (await call("?only=number")).json();
+    expect(Object.keys(ignored.systems)).toEqual(["saju", "sukuyo", "vedic", "number"]);
+    // 음력 1990-11-10 = 양력 1990-12-26 — 양력 생월·생일로 계산한다.
+    const lunar = await (await call("?detail=1&birth=1990-11-10&cal=lunar&only=number")).json();
+    const solar = await (await call("?detail=1&birth=1990-12-26&only=number")).json();
+    expect(lunar.systems.number.sections).toEqual(solar.systems.number.sections);
+  });
+
   test("today-hub 외의 경로는 404 — 이 모듈은 한 라우트만 맡는다", async () => {
     const res = await handleFortuneTodayRoutes(new Request("https://code-destiny.com/api/fortune/check"), {});
     expect(res.status).toBe(404);

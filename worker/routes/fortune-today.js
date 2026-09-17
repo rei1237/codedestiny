@@ -1,11 +1,12 @@
 // 홈 "오늘의 운세" 허브 — GET /api/fortune/today-hub
 //
-// 프로필 카드의 생년 정보를 받아 사주·숙요점·베다점 **세 점술의 기존 엔진을 그대로 돌려**
+// 프로필 카드의 생년 정보를 받아 사주·숙요점·베다점·수비학 **네 점술의 기존 엔진을 그대로 돌려**
 // 오늘의 길흉을 낸다. 이 파일에는 점술 로직이 없다 — 배선만 한다.
 //
 //   사주   calculateLifeBookAiSaju(명식 정본) + judgeSajuDayFortune(일진 길흉)
 //   숙요점 Swiss 항성 달 황경 + buildSukuyoFromMoonLongitude + judgeDayFortune
 //   베다점 Swiss Ephemeris 시데리얼 달 + assembleTodayMoon(= /api/nakshatra/today 와 동일 경로)
+//   수비학 lib/numerology/personal-day.mjs(= Threads 20:30 수비학 글과 같은 계산)
 //
 // 무료·무인증이다. 결제 게이트도 로그인 요구도 걸지 않는다(홈 퍼널 최상단).
 // 개인 생년이 쿼리에 실리므로 응답은 private 캐시만 허용한다.
@@ -18,11 +19,14 @@
 //                birth 를 아예 안 준 것은 공개 모드이고, **형식이 틀린 것만** 400 이다.
 //   detail=1     각 점술의 sections(전문 상세)를 함께 싣는다. 플래그가 없으면 홈 카드용
 //                highlights(≤3)까지만 실어 홈 payload 를 가볍게 유지한다.
+//   only=number  birth 가 있을 때만 읽는다. /today 수비학 탭에서 프로필 없는 방문자가 생년월일만 넣었을 때
+//                수비학 카드 하나만 계산한다(사주·숙요·베다는 그 입력으로 개인화하지 않는다 — 생시·성별이 없다).
+//                birth 없는 요청에서는 무시한다: 공개 모드 캐시 키에 only 가 없어 한 장짜리 응답이 전체 키에 굳는다.
 
 // 🔴 음력일은 화면 표시 메타데이터에만 사용한다. 27수는 공통 Swiss 항성 달 황경으로 직접 결정한다.
 // 🔴 일주는 한국 음양력 코어에서 잡는다. 값은 안 움직인다 — 정오 일주는 lunar-javascript 와
 // 코어가 표본 7,224건(1950~2035)에서 전건 일치한다(실측 2026-08-27). 달력 축을 하나로 두는 것이 목적이다.
-import { BRANCH_HANJA, STEM_HANJA, ganji, solarToLunar } from "../../lib/korean-calendar/index.js";
+import { BRANCH_HANJA, STEM_HANJA, ganji, lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { judgeSajuDayFortune } from "../lib/saju-day-fortune.js";
@@ -35,6 +39,7 @@ import { readCmsThroughCache } from "../lib/cms-cache.js";
 import { buildTodaySajuDetail, buildTodaySajuPublic } from "../lib/today-saju-detail.js";
 import { buildTodaySukuyoDetail, buildTodaySukuyoPublic } from "../lib/today-sukuyo-detail.js";
 import { buildTodayVedicDetail, buildTodayVedicPublic } from "../lib/today-vedic-detail.js";
+import { buildTodayNumberDetail, buildTodayNumberPublic } from "../lib/today-number-detail.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 import { CROSSWALK_OFFSET } from "../../constants/nakshatra-crosswalk.js";
 
@@ -343,6 +348,26 @@ function buildVedic(sky, natalSukuyoName, wantDetail) {
   }), wantDetail);
 }
 
+// 수비학은 양력 날짜의 수를 쓴다. 음력 프로필은 양력으로 바꾼 생월·생일로 계산한다.
+function solarBirthMonthDay(input) {
+  if (input.calendarType === "solar") return { month: input.month, day: input.day };
+  const solar = lunarToSolar(input.year, input.month, input.day, input.calendarType === "lunar_leap");
+  return solar ? { month: solar.month, day: solar.day } : null;
+}
+
+function buildNumber(input, today, wantDetail) {
+  const base = { system: "number", label: "수비학", tier: null, tierLabel: null, score: null };
+  if (!input) {
+    const publicCard = buildTodayNumberPublic(today);
+    if (!publicCard) return null;
+    return withDepth({ ...base, anchor: publicCard.anchor, headline: publicCard.headline, body: publicCard.body, detail: "", personalized: false }, publicCard, wantDetail);
+  }
+  const birth = solarBirthMonthDay(input);
+  const card = birth ? buildTodayNumberDetail(birth, today) : null;
+  if (!card) return null;
+  return withDepth({ ...base, anchor: card.anchor, headline: card.headline, body: card.body, detail: card.detail, personalized: true }, card, wantDetail);
+}
+
 // 오늘 하늘(해·달의 시데리얼 황경 + 판창가 + 타라발라).
 // Swiss 가 죽어도 나머지 두 점술은 살려야 하므로 예외를 삼킨다.
 async function resolveTodaySky(env, today, natalIndex, requestUrl) {
@@ -366,7 +391,14 @@ async function resolveTodaySky(env, today, natalIndex, requestUrl) {
 
 // 세 체계가 모두 실패하면 null 을 돌려준다(호출부가 503 으로 바꾼다).
 // 🔴 실패를 payload 로 돌려주면 안 된다 — 공개 모드는 이 반환값을 30분 캐시하므로 실패가 굳는다.
-async function buildTodayHubPayload(request, env, input, wantDetail) {
+async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber = false) {
+  if (onlyNumber) {
+    const today = kstParts(new Date());
+    const number = buildNumber(input, today, wantDetail);
+    if (!number) return null;
+    return localizeTodayPayload({ ok: true, date: dateKey(today), personalized: true, systems: { number } }, requestLocale(request));
+  }
+
   // 숙요 본명수별 조언 표의 CMS 오버라이드를 judgeDayFortune 호출 전에 채운다.
   // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다(기본 숙요점과 같은 관례).
   await primeCmsRecords(env);
@@ -395,14 +427,22 @@ async function buildTodayHubPayload(request, env, input, wantDetail) {
     : null;
   const sukuyo = buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail);
   const vedic = buildVedic(sky, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "", wantDetail);
+  let number = null;
+  try {
+    number = buildNumber(input, today, wantDetail);
+  } catch (error) {
+    console.warn("[today-hub-number-skip]", String(error?.message || error).slice(0, 200));
+  }
 
+  // 수비학은 계산이 실패할 일이 거의 없어 "모두 실패" 판정에 넣지 않는다 — 넣으면 Swiss·사주가 다 죽어도
+  // 한 장짜리 응답이 공개 캐시에 30분 굳는다.
   if (!saju && !sukuyo && !vedic) return null;
 
   return localizeTodayPayload({
     ok: true,
     date: dateKey(today),
     personalized: Boolean(input),
-    systems: { saju, sukuyo, vedic },
+    systems: { saju, sukuyo, vedic, number },
   }, requestLocale(request));
 }
 
@@ -432,7 +472,8 @@ async function handleTodayHub(request, env) {
   //    남의 사주를 받는다. 캐시 분기는 input 이 없을 때 하나뿐이며 verify:public-api-edge-cache 가
   //    이 조건을 단언한다.
   if (input) {
-    const payload = await buildTodayHubPayload(request, env, input, wantDetail);
+    const onlyNumber = clean(url.searchParams.get("only")) === "number";
+    const payload = await buildTodayHubPayload(request, env, input, wantDetail, onlyNumber);
     if (!payload) return todayHubUnavailable(request);
     return json(payload, { headers: { "Cache-Control": "private, max-age=1800" } });
   }
