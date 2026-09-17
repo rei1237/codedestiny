@@ -259,6 +259,15 @@ declare const checkoutEntry: {
     escape?: (value: unknown) => string;
   }): string;
   /**
+   * 결제창 하단 정책 링크 줄(`이용약관 · 환불 · 개인정보 · 결제 문의`) `<p>` HTML.
+   * 해외 고지와 달리 한국어 화면에서도 그린다 — 전자상거래법 표시 의무는 로케일과 무관하다.
+   * 🔴 링크 URL 은 화면 언어를 따르며 코어 안의 표가 정본이다(클래식 스크립트라
+   *    `lib/i18n/routes.ts` 를 import 할 수 없다). 라우트가 바뀌면 둘 다 고친다.
+   */
+  buildPaymentPolicyLinksHtml(input: {
+    escape?: (value: unknown) => string;
+  }): string;
+  /**
    * 결제창의 추천 선택지와 카드 순서. 순수 함수이며 서버를 부르지 않는다 —
    * 표시 우선순위일 뿐 접근 권한 판정이 아니다(이용권 판정은 카드 클릭 시 서버가 한다).
    */

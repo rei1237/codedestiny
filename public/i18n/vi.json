@@ -1912,7 +1912,11 @@
         "signedOut": "Đăng nhập để xem số dư."
       },
       "legal": {
-        "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử. Hợp đồng do người chưa thành niên giao kết mà không có sự đồng ý của người đại diện theo pháp luật có thể bị chính người chưa thành niên hoặc người đại diện theo pháp luật hủy bỏ."
+        "provisionTiming": "Dịch vụ này được cung cấp ngay sau khi thanh toán hoàn tất. Việc sử dụng dịch vụ bắt đầu từ thời điểm thanh toán được xác nhận, và các nội dung đã được cung cấp có thể bị hạn chế quyền hủy bỏ theo Luật Thương mại điện tử. Hợp đồng do người chưa thành niên giao kết mà không có sự đồng ý của người đại diện theo pháp luật có thể bị chính người chưa thành niên hoặc người đại diện theo pháp luật hủy bỏ.",
+        "terms": "Terms of Service",
+        "refund": "Refund Policy",
+        "privacy": "Privacy Policy",
+        "support": "Payment help"
       },
       "passUpgradeTitle": "Nâng cấp vé",
       "recommendBadge": "Đề xuất",

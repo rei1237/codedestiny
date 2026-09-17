@@ -156,6 +156,11 @@ const BUILDER_MARKERS = [
   "cd-direct-payment-method-back",
   'data-pay-method="CARD"',
   'data-pay-step="back"',
+  // 결제창 하단 정책 링크 줄. [data-mode] 가 **아닌** 훅이어야 한다 — [data-mode] 는
+  // "누르면 모달을 닫는" 노드라, 결제 중 약관을 열면 결제창이 통째로 사라진다.
+  "data-policy-links",
+  // 정책 문서는 새 탭으로만 연다. 같은 탭으로 나가면 진행 중인 결제가 끊긴다.
+  'target="_blank" rel="noopener noreferrer"',
 ];
 
 // 각 렌더러가 자기 다이얼로그 템플릿에 직접 쓰는 것. 10개 파일 전수(미러 포함)로 본다.
@@ -247,7 +252,9 @@ const renderedSkeleton = (() => {
       // 렌더러 셋이 실제로 넘기는 형태 그대로 — 이 두 조각이 붙어야 쪼개진 마커가 재조립된다.
       monthly: card("monthly", { extraDataAttrs: " data-monthly-option", descAttr: " data-monthly-hint" }),
     },
-  }) + checkoutEntry.buildDirectPayMethodStepHtml({ escape });
+  }) + checkoutEntry.buildDirectPayMethodStepHtml({ escape })
+    // 정책 링크 줄도 같은 묶음으로 본다 — 렌더 결과로 봐야 링크 누락과 [data-mode] 혼입을 잡는다.
+    + checkoutEntry.buildPaymentPolicyLinksHtml({ escape });
 })();
 /**
  * 마커 전수 검사. 🔴 순수 함수로 둔 이유는 --self-test 가 **디스크를 건드리지 않고** 이 판정을
@@ -281,6 +288,52 @@ assertMarkersPresent(
   "공유 빌더가 방출해야 하는 뼈대",
 );
 
+// ── 2-a-2) 정책 링크 줄: 로케일별 URL 이 **실재하는 라우트**인가 ────────────────────
+//
+// 🔴 코어는 클래식 스크립트라 lib/i18n/routes.ts 를 import 할 수 없고, 그래서 URL 표를 자기
+// 안에 들고 있다(POLICY_LINKS_BY_LANG). 라우트가 바뀌면 코어만 조용히 낡는다 — 결제 임계
+// 화면에서 약관이 404 로 뜨는 형태다. 표를 여기에 다시 적으면 같이 고쳐 쓰는 이중 장부가
+// 되므로, 생성된 sitemap.xml(실제 라우트 목록)과 대조한다.
+// ko 는 접두사가 없고(/terms), 나머지는 파일명까지 다르다(/{locale}/terms-of-service).
+// zh-TW 문의처만 /en 인 것도 의도다 — /zh-tw/contact 라우트가 존재하지 않는다(번체 신뢰
+// 페이지가 없어서다). 그 라우트가 생기면 이 검사는 통과한 채로 남으니 표를 같이 고칠 것.
+{
+  const sitemapXml = read("sitemap.xml");
+  const escape = (value) => String(value === null || value === undefined ? "" : value);
+  const hadWindow = Object.prototype.hasOwnProperty.call(globalThis, "window");
+  const savedWindow = globalThis.window;
+  try {
+    for (const lang of ["ko", "en", "ja", "zh-CN", "zh-TW"]) {
+      // 코어의 currentLang() 은 window.cdGetCurrentLanguage() 하나만 본다. 표 전체를 돌려보는
+      // 유일한 방법이고, 안 돌리면 node 기본값(ko)만 검사하고 나머지 4개는 무검사로 남는다.
+      globalThis.window = { cdGetCurrentLanguage: () => lang };
+      const line = checkoutEntry.buildPaymentPolicyLinksHtml({ escape });
+      const hrefs = (line.match(/href="([^"]+)"/g) || []).map((raw) => raw.slice(6, -1));
+      assert.equal(
+        hrefs.length,
+        4,
+        `결제창 정책 링크(${lang})가 ${hrefs.length}개입니다 — 이용약관·환불·개인정보·결제 문의 4개여야 합니다.`,
+      );
+      assert.ok(
+        !line.includes("data-mode"),
+        `결제창 정책 링크(${lang})에 [data-mode] 가 붙었습니다 — 누르면 결제창이 닫힙니다.`,
+      );
+      for (const href of hrefs) {
+        const path = href.split("#")[0];
+        assert.ok(
+          sitemapXml.includes(`<loc>https://code-destiny.com${path}/</loc>`)
+          || sitemapXml.includes(`<loc>https://code-destiny.com${path}</loc>`),
+          `결제창 정책 링크(${lang}) ${href} 가 sitemap.xml 에 없습니다 — 존재하지 않는 라우트입니다.`
+          + " js/core/checkout-entry.js 의 POLICY_LINKS_BY_LANG 을 실제 라우트에 맞추세요.",
+        );
+      }
+    }
+  } finally {
+    if (hadWindow) globalThis.window = savedWindow;
+    else delete globalThis.window;
+  }
+}
+
 // ── 2-b) 각 렌더러 템플릿의 구조 마커 (미러 7개 포함 전수) ──────────────────────────
 for (const { rel, label } of RENDERERS) {
   const source = read(rel);
@@ -298,6 +351,16 @@ for (const { rel, label } of RENDERERS) {
   assert.ok(
     read(rel).includes("buildDirectPayMethodStepHtml"),
     `${label} ${rel}: 결제수단 2단계 패널을 공유 빌더(buildDirectPayMethodStepHtml)에 위임하지 않습니다.`,
+  );
+}
+
+// 🔴 정책 링크 줄도 정본이 하나다 — js/core/checkout-entry.js 의 buildPaymentPolicyLinksHtml.
+// 렌더러가 <a href="/terms"> 를 직접 적으면 로케일별 URL 표가 렌더러마다 갈라지고,
+// 미러 한 곳만 옛 경로로 남아 404 가 된다(그 형태를 리터럴 검사로는 볼 수 없다).
+for (const { rel, label } of RENDERERS) {
+  assert.ok(
+    read(rel).includes("buildPaymentPolicyLinksHtml"),
+    `${label} ${rel}: 결제창 정책 링크를 공유 빌더(buildPaymentPolicyLinksHtml)에 위임하지 않습니다.`,
   );
 }
 

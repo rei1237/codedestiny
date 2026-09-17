@@ -12597,6 +12597,12 @@
     var overseasNoticeHtml = (__dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildOverseasChargeNoticeHtml === 'function')
       ? __dpPaymentCardsApi.buildOverseasChargeNoticeHtml({ amountKrw: amountKrw, escape: esc })
       : '';
+    // 🔴 정책 링크 줄(이용약관·환불·개인정보·결제 문의). URL 표도 세 렌더러 공유 코어 하나가
+    // 소유한다(js/core/checkout-entry.js buildPaymentPolicyLinksHtml) — 해외 고지와 달리
+    // 한국어 화면에서도 그린다. 코어가 없으면 빈 문자열 → 종전 마크업 그대로다.
+    var policyLinksHtml = (__dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildPaymentPolicyLinksHtml === 'function')
+      ? __dpPaymentCardsApi.buildPaymentPolicyLinksHtml({ escape: esc })
+      : '';
     var directMethodStepHtml = (!directUsesAppStore
       && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
       ? __dpPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: esc })
@@ -12659,6 +12665,7 @@
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
           overseasNoticeHtml +
           '<p class="cd-direct-payment-legal">' + esc(_dpCheckoutText('payment.directModal.legal.provisionTiming', '본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다. 미성년자가 법정대리인의 동의 없이 체결한 계약은 미성년자 본인 또는 법정대리인이 취소할 수 있습니다.')) + '</p>' +
+          policyLinksHtml +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';
       var modalOpenedAt = Date.now();

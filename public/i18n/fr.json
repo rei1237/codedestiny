@@ -1912,7 +1912,11 @@
         "signedOut": "Connectez-vous pour voir votre solde."
       },
       "legal": {
-        "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique. Un contrat conclu par un mineur sans le consentement de son représentant légal peut être annulé par le mineur lui-même ou par son représentant légal."
+        "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique. Un contrat conclu par un mineur sans le consentement de son représentant légal peut être annulé par le mineur lui-même ou par son représentant légal.",
+        "terms": "Terms of Service",
+        "refund": "Refund Policy",
+        "privacy": "Privacy Policy",
+        "support": "Payment help"
       },
       "passUpgradeTitle": "Passer à un pass supérieur",
       "recommendBadge": "Recommandé",

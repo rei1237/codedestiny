@@ -137,6 +137,10 @@
       '.cd-direct-payment-balance-value.is-error{color:#FCA5A5}',
       '.cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}',
       '.cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}',
+      // 정책 링크 줄(data-policy-links). 본문과 같은 .cd-direct-payment-legal 을 쓰고 링크만
+      // 금색으로 들어올린다 — 결제 임계화면에서 눌러야 할 것이 어디인지 보여야 한다.
+      '.cd-direct-payment-legal a{color:rgba(232,200,138,.82);text-decoration:underline;text-underline-offset:2px}',
+      '.cd-direct-payment-legal a:hover{color:#E8C88A}',
       '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
       '.cd-direct-payment-cancel{border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
       '.cd-direct-payment-cancel:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
@@ -456,6 +460,67 @@
       ))
       + "</p>"
     );
+  }
+
+  // ── 결제창 정책 링크 ─────────────────────────────────────────────────────────────────
+  //
+  // 🔴 결제 임계화면에서 이용약관·환불(청약철회)·개인정보처리방침·결제 문의처에 **그 자리에서**
+  //    닿을 수 있어야 한다. 지금까지 결제창에는 provisionTiming 고지문만 있었고 링크가 없어
+  //    비한국어 사용자는 결제 문제를 들고 갈 곳을 찾지 못했다.
+  //
+  // 🔴 표를 이 파일에 두는 이유: 이 파일은 classic script(UMD)라 lib/i18n/routes.ts 를 import
+  //    할 수 없다. REFERENCE_FX_BY_LANG 과 같은 선례다. 대신 사본이 생기지 않도록 세 렌더러는
+  //    <a> 를 직접 적지 않고 아래 빌더 하나를 부른다(verify:payment-choice-parity 가 참조 강제).
+  //
+  // 🔴 값은 lib/i18n/routes.ts 의 I18N_POLICY_ROUTE_MAP 과 같아야 한다. 정책 URL 은 로케일
+  //    접두사만 다른 것이 아니다 — ko 는 /terms·/refund-policy·/privacy 이고 나머지는
+  //    /{locale}/terms-of-service·refund-policy·privacy-policy 다. 접두사만 붙이면 전부 404 다.
+  var POLICY_LINKS_BY_LANG = {
+    ko: { terms: "/terms", refund: "/refund-policy", privacy: "/privacy", support: "/contact#payment-help" },
+    en: { terms: "/en/terms-of-service", refund: "/en/refund-policy", privacy: "/en/privacy-policy", support: "/en/contact#payment-help" },
+    ja: { terms: "/ja/terms-of-service", refund: "/ja/refund-policy", privacy: "/ja/privacy-policy", support: "/ja/contact#payment-help" },
+    "zh-CN": { terms: "/zh/terms-of-service", refund: "/zh/refund-policy", privacy: "/zh/privacy-policy", support: "/zh/contact#payment-help" },
+    // 🔴 zh-TW 만 문의처가 /en 이다. 번체 신뢰 페이지가 없어(TRUST_LOCALES = ja·en·zh)
+    //    /zh-tw/contact 라우트 자체가 존재하지 않는다 — 적으면 결제 임계화면에서 404 다.
+    //    번체 contact 가 생기면 이 한 줄만 바꾼다.
+    "zh-TW": { terms: "/zh-tw/terms-of-service", refund: "/zh-tw/refund-policy", privacy: "/zh-tw/privacy-policy", support: "/en/contact#payment-help" },
+  };
+
+  /** 화면 언어의 정책 URL 묶음. 표에 없는 로케일은 영어를 쓴다(사전 폴백과 같은 규칙). */
+  function policyLinkTargets() {
+    var lang = currentLang();
+    if (POLICY_LINKS_BY_LANG[lang]) return POLICY_LINKS_BY_LANG[lang];
+    return isKoreanSurface() ? POLICY_LINKS_BY_LANG.ko : POLICY_LINKS_BY_LANG.en;
+  }
+
+  /**
+   * 결제창 하단 정책 링크 한 줄.
+   *
+   * 🔴 한국어 화면에서도 렌더된다 — buildOverseasChargeNoticeHtml 과 다른 점이다. 저쪽은
+   *    국내 사용자에게 자명한 원화 고지라 생략하지만, 약관·환불·문의처 표시는 국내 결제에도
+   *    요구된다.
+   * 🔴 data-mode 를 붙이지 않는다. 세 렌더러가 [data-mode] 를 "누르면 모달을 닫는" 노드로
+   *    일괄 처리하므로, 붙이면 약관을 누를 때 결제창이 닫힌다.
+   * 🔴 target="_blank" 다 — 같은 탭에서 떠나면 진행 중인 결제 요청이 죽는다.
+   */
+  function buildPaymentPolicyLinksHtml(input) {
+    var opts = input || {};
+    var escape = opts.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
+    var targets = policyLinkTargets();
+    var items = [
+      ["terms", checkoutText("payment.directModal.legal.terms", "이용약관")],
+      ["refund", checkoutText("payment.directModal.legal.refund", "환불·청약철회")],
+      ["privacy", checkoutText("payment.directModal.legal.privacy", "개인정보처리방침")],
+      ["support", checkoutText("payment.directModal.legal.support", "결제 문의")],
+    ];
+    var parts = [];
+    for (var i = 0; i < items.length; i += 1) {
+      parts.push(
+        '<a href="' + escape(targets[items[i][0]]) + '" target="_blank" rel="noopener noreferrer">'
+        + escape(items[i][1]) + "</a>",
+      );
+    }
+    return '<p class="cd-direct-payment-legal" data-policy-links>' + parts.join(" · ") + "</p>";
   }
 
   function runtimeWindow() {
@@ -1810,6 +1875,7 @@
     REFERENCE_FX_AS_OF: REFERENCE_FX_AS_OF,
     formatReferenceAmount: formatReferenceAmount,
     buildOverseasChargeNoticeHtml: buildOverseasChargeNoticeHtml,
+    buildPaymentPolicyLinksHtml: buildPaymentPolicyLinksHtml,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,

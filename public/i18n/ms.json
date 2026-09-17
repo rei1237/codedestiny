@@ -1912,7 +1912,11 @@
         "signedOut": "Log masuk untuk melihat baki anda."
       },
       "legal": {
-        "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan hak anda untuk menarik balik pembelian mungkin dihadkan bagi kandungan yang telah disediakan menurut Akta Perlindungan Pengguna dalam Perdagangan Elektronik Korea. Kontrak yang dimeterai oleh orang bawah umur tanpa persetujuan penjaga sahnya boleh dibatalkan oleh orang bawah umur itu sendiri atau oleh penjaga sahnya."
+        "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan hak anda untuk menarik balik pembelian mungkin dihadkan bagi kandungan yang telah disediakan menurut Akta Perlindungan Pengguna dalam Perdagangan Elektronik Korea. Kontrak yang dimeterai oleh orang bawah umur tanpa persetujuan penjaga sahnya boleh dibatalkan oleh orang bawah umur itu sendiri atau oleh penjaga sahnya.",
+        "terms": "Terms of Service",
+        "refund": "Refund Policy",
+        "privacy": "Privacy Policy",
+        "support": "Payment help"
       },
       "passUpgradeTitle": "Naik taraf pas",
       "recommendBadge": "Disyorkan",

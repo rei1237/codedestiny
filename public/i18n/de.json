@@ -1912,7 +1912,11 @@
         "signedOut": "Melde dich an, um dein Guthaben zu sehen."
       },
       "legal": {
-        "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein. Ein von einer minderjährigen Person ohne Zustimmung ihrer gesetzlichen Vertretung geschlossener Vertrag kann von der minderjährigen Person selbst oder von ihrer gesetzlichen Vertretung angefochten werden."
+        "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein. Ein von einer minderjährigen Person ohne Zustimmung ihrer gesetzlichen Vertretung geschlossener Vertrag kann von der minderjährigen Person selbst oder von ihrer gesetzlichen Vertretung angefochten werden.",
+        "terms": "Terms of Service",
+        "refund": "Refund Policy",
+        "privacy": "Privacy Policy",
+        "support": "Payment help"
       },
       "passUpgradeTitle": "Pass hochstufen",
       "recommendBadge": "Empfohlen",

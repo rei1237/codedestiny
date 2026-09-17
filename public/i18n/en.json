@@ -1912,7 +1912,11 @@
         "signedOut": "Sign in to check your balance."
       },
       "legal": {
-        "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and your right to withdraw the purchase may be restricted for content already provided, under Korea's Act on Consumer Protection in Electronic Commerce. A contract entered into by a minor without the consent of their legal guardian may be cancelled by the minor or by their legal guardian."
+        "provisionTiming": "This service is provided immediately upon payment completion. Service use begins at the time payment is confirmed, and your right to withdraw the purchase may be restricted for content already provided, under Korea's Act on Consumer Protection in Electronic Commerce. A contract entered into by a minor without the consent of their legal guardian may be cancelled by the minor or by their legal guardian.",
+        "terms": "Terms of Service",
+        "refund": "Refund Policy",
+        "privacy": "Privacy Policy",
+        "support": "Payment help"
       },
       "passUpgradeTitle": "Upgrade your pass",
       "recommendBadge": "Recommended",
