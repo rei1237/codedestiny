@@ -144,3 +144,38 @@ describe("runMasterLoveCodexRecovery", () => {
     expect(model.sort).toHaveBeenCalledWith({ updatedAt: 1 });
   });
 });
+
+describe("중복 판정 불일치로 닫힌 세션 1회 재개", () => {
+  const closed = (id, codes, extra = {}) => ({ id, userId: `u-${id}`, status: "generation_failed", ...extra,
+    deliveryMeta: { reviewRequired: true, reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: Object.keys(codes),
+      attempts: { c1: 1, ...Object.fromEntries(Object.keys(codes).map(k => [k, 3])) },
+      errors: Object.fromEntries(Object.entries(codes).map(([k, code]) => [k, { code }])) } });
+
+  test("소진된 장이 전부 LLM_OUTPUT_REPEATED 인 세션만 1회 표식과 함께 조건부로 연다", async () => {
+    const docs = [closed("s1", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_OUTPUT_REPEATED" }), closed("s2", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_QUALITY_FAILED" })];
+    const { model, options } = harness(docs);
+    model.updateOne = jest.fn(async () => ({ modifiedCount: 1 }));
+    const now = Date.UTC(2026, 8, 17);
+    const result = await runMasterLoveCodexRecovery({}, { ...options, now });
+
+    expect(result.reopened).toEqual(["s1"]);
+    expect(model.updateOne).toHaveBeenCalledTimes(1);
+    const [filter, update, opts] = model.updateOne.mock.calls[0];
+    // 🔴 환급·이미 재개된 세션은 원자 필터에서 빠진다.
+    expect(filter).toMatchObject({ id: "s1", userId: "u-s1", status: "generation_failed", "deliveryMeta.dedupeReopenedAt": { $exists: false },
+      "passRefund.refundedAt": { $exists: false }, "billingRefund.refundedAt": { $exists: false } });
+    expect(update.$set).toMatchObject({ status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.dedupeReopenedAt": new Date(now) });
+    expect(Object.keys(update.$unset).sort()).toEqual(["deliveryMeta.attempts.c2", "deliveryMeta.attempts.c3", "deliveryMeta.errors.c2", "deliveryMeta.errors.c3",
+      "deliveryMeta.exhaustedChapterIds", "deliveryMeta.failures.c2", "deliveryMeta.failures.c3", "deliveryMeta.reviewReason"]);
+    expect(opts).toEqual({ timestamps: false });
+    expect(options.syncCodexExecution).toHaveBeenCalledWith(expect.objectContaining({ id: "s1", status: "generating" }));
+  });
+
+  test("조건부 갱신이 매치되지 않으면(그 사이 환급·재개) 재개로 세지 않는다", async () => {
+    const { model, options } = harness([closed("s1", { c2: "LLM_OUTPUT_REPEATED" })]);
+    model.updateOne = jest.fn(async () => ({ modifiedCount: 0 }));
+    const result = await runMasterLoveCodexRecovery({}, options);
+    expect(result.reopened).toEqual([]);
+    expect(options.syncCodexExecution).not.toHaveBeenCalled();
+  });
+});
