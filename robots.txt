@@ -317,8 +317,6 @@ Disallow: /
 
 Host: code-destiny.com
 
-Sitemap: https://code-destiny.com/sitemap.xml
-
 Sitemap: https://code-destiny.com/sitemap-ko.xml
 Sitemap: https://code-destiny.com/sitemap-ja.xml
 Sitemap: https://code-destiny.com/sitemap-en.xml
