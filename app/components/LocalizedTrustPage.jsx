@@ -30,7 +30,7 @@ export default function LocalizedTrustPage({ locale, pageKey }) {
       </header>
       <div className="policy-doc__single"><div className="policy-doc__body"><div className="policy-embed-body">
         {pageKey === "contact" && <CommerceDisclosure locale={locale} />}
-        {copy.sections.map(([heading, body]) => <section className="policy-embed-section" key={heading}>
+        {copy.sections.map(([heading, body, id]) => <section className="policy-embed-section" key={heading} id={id}>
           <h2 className="policy-embed-heading">{heading}</h2><p>{body}</p>
         </section>)}
         <section className="policy-embed-section">

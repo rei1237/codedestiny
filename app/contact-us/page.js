@@ -77,7 +77,7 @@ export default function ContactUsPage() {
                 <li>
                   <strong>콘텐츠 정정 요청</strong> — 부정확한 설명, 과장 표현, 출처가 불명확한 내용. 확인 후 해당 문서를 수정하거나 보강하고, 수정 여부를 회신합니다. 제작·검수 기준은 <Link href="/editorial-policy">콘텐츠 제작 및 AI 활용 고지</Link>에 있습니다.
                 </li>
-                <li>
+                <li id="payment-help">
                   <strong>결제·환불 문의</strong> — 중복 결제, 결과 미제공, 청약철회. 환불 기준은 <Link href="/terms#refund-policy">이용약관의 환불 및 청약철회</Link>를 따릅니다.
                 </li>
                 <li>
