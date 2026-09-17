@@ -2176,7 +2176,7 @@
     },
     "overseas": {
       "approx": "khoảng {amount}",
-      "chargedInKrw": "Thanh toán được ủy quyền bằng Won Hàn Quốc (KRW). Chấp nhận thẻ quốc tế (VISA · Mastercard · JCB · Diners), và đơn vị phát hành thẻ của bạn áp dụng tỷ giá riêng."
+      "chargedInKrw": "Thanh toán được ủy quyền bằng Won Hàn Quốc (KRW). Thanh toán bằng thẻ phát hành ngoài Hàn Quốc đang được chuẩn bị và chưa được đảm bảo. Đơn vị phát hành thẻ của bạn áp dụng tỷ giá riêng."
     }
   },
   "auth": {

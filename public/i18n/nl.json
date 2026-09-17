@@ -2176,7 +2176,7 @@
     },
     "overseas": {
       "approx": "ca. {amount}",
-      "chargedInKrw": "De betaling wordt geautoriseerd in Koreaanse won (KRW). Internationale kaarten (VISA · Mastercard · JCB · Diners) worden geaccepteerd en uw kaartuitgever hanteert zijn eigen wisselkoers."
+      "chargedInKrw": "De betaling wordt geautoriseerd in Koreaanse won (KRW). Betalen met buiten Korea uitgegeven kaarten wordt voorbereid en is nog niet gegarandeerd. Uw kaartuitgever hanteert zijn eigen wisselkoers."
     }
   },
   "auth": {

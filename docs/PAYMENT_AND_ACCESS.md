@@ -50,6 +50,7 @@
 3. webhook signature는 `worker/routes/payments.js`의 표준 webhook signature 검증 로직을 탄다.
 4. 금액은 클라이언트 값을 신뢰하지 않고 server registry 또는 policy 상수와 대조한다.
 5. 멱등성은 `idempotencyKey`, `merchantUid`, `impUid`, request id 계열 필드로 방어한다.
+6. V2 확정(`worker/payments/pg.js` `verifyPgPayment`)은 PortOne 재조회 응답에 `storeId` 가 **있을 때만** `PORTONE_STORE_ID` 와 대조해 다르면 422 `STORE_ID_MISMATCH`(주문 FAILED, `failureStage:"pg-verify"`)로 막고, 없으면 통과시켜 `rawPortOne.storeIdCheck` 에 `"matched"`/`"absent"` 만 남긴다. storeId 값은 시크릿 분류라 오류·요약·로그에 싣지 않는다. 구 경로(`worker/routes/payments.js` `extractPortOneStoreId`)는 응답에 없어도 불일치로 본다.
 
 ## 결제 성공 후 권한 반영 흐름
 
@@ -91,6 +92,7 @@
 - 관리자 마케팅 지급은 결제가 아니며 이용권·단건 결제 정책을 우회하지 않는다. 동일 `idempotencyKey`는 계정별로 한 번만 지급되고, 지급분은 지급일 기준 30일 후 만료된다.
 - PortOne webhook 실패: signature, event id unique index, webhook event 저장 여부 확인.
 - pending 주문: reconcile cron 또는 `payment-reconcile-task` 경로 확인.
+- 결제 후 미이행·PG 대조 실패 운영자 알림(10분 크론 `runPaymentsV2Reconcile` → `worker/payments/reconcile.js` `alertPaymentAnomalies`, 본문·발송 `worker/payments/fulfillment-alert.js`): A 미지급 = `status:"paid"`·결제 30분+·권한 없음(재지급과 같은 `unfulfilledClause`), 24시간 간격 최대 7회 / B 대조 실패 = `failed`·`failureStage:"pg-verify"`·30일 내·`AMOUNT_MISMATCH`·`CURRENCY_MISMATCH`·`PAYMENT_ID_MISMATCH`·`STORE_ID_MISMATCH`, 주문당 1회. 채널은 운영자 전용 `worker/lib/feedback-notify.js` `notifyOperators`(관리자 메일·Discord·Slack 웹훅)뿐이며 공개 텔레그램 경로는 쓰지 않는다. 표식(`metadata.fulfillmentAlert`·`metadata.verifyAlert`)은 전달 성공 후에만 찍고, 채널 미설정이면 `[pay-alert] unconfigured` 로그만 남는다. 재지급 실패마다 `metadata.fulfillmentAttempts` +1(재시도는 무제한 유지). 알림일 뿐 지급·환불을 하지 않는다.
 
 ## 십이지신 천운 타로 결과 저장
 
@@ -231,6 +233,9 @@
 - Legal packs in `LEGAL_REVIEW_REQUIRED`, `DRAFT`, `MACHINE_TRANSLATED`, or other non-approved states must not be used for live overseas payment.
 - The current service product wording remains `이용권`, `월정석`, and `단건 결제`. Do not add user-facing claims for auto-renewal, free trials, subscription-cancellation rights, unlimited access, lifetime access, or guaranteed fortune/AI outcomes unless the product and legal review are separately approved.
 - IP country, Cloudflare country, and PG billing country can be used only as risk or reconciliation signals according to the registry priority; they must not silently override the user's explicit payment-country selection.
+- Overseas-issued card checkout (KG이니시스 해외카드 파라미터) is a server decision, closed by default: `worker/payments/foreign-card-policy.js` `canUseForeignCard` (flag `FOREIGN_CARD_ENABLED` exactly `"1"` → logged-in user → product table → `card_general` only; `billingCountry` is accepted but never used). `/prepare` and `/subscription/prepare` store the decision on the order once (`Payment.foreignCard`, `$setOnInsert`) and respond `order.foreignCard` narrowed by `narrowToOrderSnapshot`: an order created while closed stays `ORDER_SNAPSHOT_CLOSED`, and turning the flag off closes open orders immediately. `POST /orders` keeps `foreignCard: null` (closed).
+- The client attaches the Inicis overseas-card window parameter (`P_RESERVED: ["global_visa3d=Y"]`) only when that server decision is open: `js/core/checkout-entry.js` `portoneBypass(decision)` returns `undefined` unless `decision.offered === true` (no argument, `null`, `{}`, `"true"`, `1` → nothing sent). The static shell `_cdRunDirectKrwCheckout` and `/points` pass `order.foreignCard`; `js/destiny-profile.js` still calls it without an argument (always closed) until the flag-ON preparation rotates its cache pin through the payment-freeze procedure (`docs/payment/inicis-overseas-card/02-overseas-card-implementation.md`).
+- Application facts for the KG이니시스 overseas-card add-on (phase 1: architecture, policy, product scope, authentication, fulfillment evidence, support, personal data, test results, application answers) live in `docs/payment/inicis-overseas-card/` 01–09. They record verdicts (`OWNER INPUT REQUIRED`, `PG APPROVAL REQUIRED`, `LEGAL REVIEW REQUIRED`) and do not authorize turning on `FOREIGN_CARD_ENABLED`.
 
 ## Mobile fortune entry read policy
 

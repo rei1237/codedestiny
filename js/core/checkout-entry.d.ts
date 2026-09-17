@@ -233,9 +233,10 @@ declare const checkoutEntry: {
   pgWindowLocale(): "KO_KR" | "EN_US" | "ZH_CN";
   /**
    * 이니시스 결제창 bypass. P_RESERVED 의 global_visa3d=Y 가 모바일 해외카드 노출 옵션이다.
+   * 🔴 서버 판정(order.foreignCard)의 offered 가 true 일 때만 객체, 무인자·null·닫힘·위조는 undefined.
    * 🔴 이니시스 채널일 때만 부착한다 — 다른 채널에 실었을 때의 동작이 미문서다.
    */
-  portoneBypass(): { inicis_v2: { P_RESERVED: string[] } };
+  portoneBypass(decision?: { offered?: boolean } | null): { inicis_v2: { P_RESERVED: string[] } } | undefined;
   /** 금액을 현재 로케일 자릿수 + payment.currency.krw 문구로 그린다. */
   formatKrwAmount(value: number, fallbackText?: string): string;
   /**

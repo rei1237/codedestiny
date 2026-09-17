@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import { handlePaymentsContext, __paymentsContextTestUtils } from "../../worker/payments/index.js";
 import { __passesTestUtils, buildPassCustomerUid } from "../../worker/payments/passes.js";
+import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -64,7 +65,7 @@ function passBody(tier, overrides = {}) {
   };
 }
 
-async function post(db, path, body, { asUser = USER, headers = {} } = {}) {
+async function post(db, path, body, { asUser = USER, headers = {}, env = ENV } = {}) {
   const request = new Request(`https://code-destiny.com${path}`, {
     method: "POST",
     headers: {
@@ -74,7 +75,7 @@ async function post(db, path, body, { asUser = USER, headers = {} } = {}) {
     },
     body: JSON.stringify(body),
   });
-  const response = await handlePaymentsContext(request, ENV, {
+  const response = await handlePaymentsContext(request, env, {
     prefix: "/api/payments",
     withDb: (_env, _ctx, fn) => fn(db),
   });
@@ -585,5 +586,35 @@ describe("구 billing 재작성 승계 — 이용권형 바디 위임", () => {
     expect(response.status).toBe(201);
     expect(payload.order.merchantUid).toMatch(/^sub_s1m_/); // 회당 주문(cd…)이 아니라 이용권 주문
     expect(payload.order.customerUid).toBe(buildPassCustomerUid(USER));
+  });
+});
+
+describe("해외 발급 카드 판정 스냅숏 (해외카드 1단계 C4)", () => {
+  test("SELF 이용권 prepare: 응답과 주문 문서에 판정이 실린다 — 기본 FLAG_OFF, ON·일반 카드 offered, 다른 수단은 닫힘", async () => {
+    const db = makeFakePaymentDb();
+    seedUser(db);
+    const policyVersion = FOREIGN_CARD_POLICY_VERSION;
+    const stored = (order) => db.rows.find((row) => row.merchantUid === order.merchantUid).foreignCard;
+    const off = await prepareOrder(db, "standard", "sub-fc-off");
+    expect(off.foreignCard).toEqual({ offered: false, reason: "FLAG_OFF", policyVersion });
+    expect(stored(off)).toEqual({ offered: false, reason: "FLAG_OFF", policyVersion, decidedAt: expect.any(Date) });
+
+    const ON_ENV = { ...ENV, FOREIGN_CARD_ENABLED: "1" };
+    const on = await post(db, "/api/payments/subscription/prepare", passBody("standard"), { headers: { "Idempotency-Key": "sub-fc-on" }, env: ON_ENV });
+    expect(on.response.status).toBe(201);
+    expect(on.payload.order.foreignCard).toEqual({ offered: true, reason: "ELIGIBLE", policyVersion });
+    expect(stored(on.payload.order)).toEqual({ offered: true, reason: "ELIGIBLE", policyVersion, decidedAt: expect.any(Date) });
+
+    const transfer = await post(db, "/api/payments/subscription/prepare", passBody("standard", { paymentMethod: "transfer" }), { headers: { "Idempotency-Key": "sub-fc-transfer" }, env: ON_ENV });
+    expect(transfer.payload.order.foreignCard).toEqual({ offered: false, reason: "CHANNEL_NOT_SUPPORTED", policyVersion });
+
+    // 🔴 같은 키 재요청: 닫힌 채 만든 주문은 켜도 ORDER_SNAPSHOT_CLOSED, 열린 주문은 끄면 즉시 FLAG_OFF(스냅숏은 덮어쓰지 않는다).
+    const replayOn = await post(db, "/api/payments/subscription/prepare", passBody("standard"), { headers: { "Idempotency-Key": "sub-fc-off" }, env: ON_ENV });
+    expect(replayOn.payload.order.merchantUid).toBe(off.merchantUid);
+    expect(replayOn.payload.order.foreignCard).toEqual({ offered: false, reason: "ORDER_SNAPSHOT_CLOSED", policyVersion });
+    const replayOff = await post(db, "/api/payments/subscription/prepare", passBody("standard"), { headers: { "Idempotency-Key": "sub-fc-on" } });
+    expect(replayOff.payload.order.merchantUid).toBe(on.payload.order.merchantUid);
+    expect(replayOff.payload.order.foreignCard).toEqual({ offered: false, reason: "FLAG_OFF", policyVersion });
+    expect(stored(replayOff.payload.order)).toMatchObject({ offered: true, reason: "ELIGIBLE" });
   });
 });

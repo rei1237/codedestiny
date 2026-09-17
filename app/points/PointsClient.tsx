@@ -87,6 +87,8 @@ type PrepareSubscriptionOrderResponse = {
     productType: "membership_pass";
     profileLimit: number;
     durationDays: number;
+    // 해외 발급 카드 결제창 노출 판정(worker/payments/foreign-card-policy.js). offered === true 일 때만 bypass 를 싣는다.
+    foreignCard?: { offered?: boolean; reason?: string; policyVersion?: string } | null;
   };
 };
 
@@ -2687,7 +2689,7 @@ function useOverseasCharge(): OverseasCharge | null {
       if (checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 0 }) === "") return;
       const notice = checkoutEntry.text(
         "payment.overseas.chargedInKrw",
-        "결제는 원화(KRW)로 승인됩니다. 해외 카드(VISA · Mastercard · JCB · Diners)도 사용할 수 있으며, 환전은 카드사 환율로 이루어집니다.",
+        "결제는 원화(KRW)로 승인됩니다. 해외 발급 카드 결제는 준비 중이며 아직 이용이 보장되지 않습니다. 환전은 카드사 환율로 이루어집니다.",
       );
       setCharge(() => ({
         notice,
@@ -4546,7 +4548,7 @@ export default function PointsPage() {
       if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;
       // 🔴 bypass 는 이니시스 전용 페이로드다. 전용 채널(카카오페이)에 실으면 그 PG 가 모르는 키라
       // 창이 안 열리거나 조용히 무시된다 — 셸·독립 정적과 같은 채널 게이팅을 쓴다.
-      const passBypass = directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass();
+      const passBypass = directPayFields.channelKeyName ? null : checkoutEntry.portoneBypass(order.foreignCard);
       if (passBypass) requestData.bypass = passBypass;
 
       if (!isGift) savePendingSubscriptionOrder({
