@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-17
-next: 워크트리 inicis-overseas-card-p1 을 만들고 C1(P0 결제창 고지 문구)부터 C9(문서 01~09)까지 순서대로 구현·mock 검증·커밋한 뒤 main 에 머지하고 push 한다
+next: 1단계는 끝났다 — 다음은 별도 세션의 2단계(영문 결제정보·CS 진입점·정책 링크 UI)이며 이 문서의 "2·3단계로 넘기는 것"·"플래그 ON 선결 조건"과 docs/payment/inicis-overseas-card/02·09 부터 읽는다
 ---
 
 # KG이니시스 해외카드 특약 대비 — 1단계 구현 (C1~C9)
@@ -14,16 +14,20 @@ KG이니시스 해외카드 특약(기존 MID 추가형, 승인·정산 KRW) 심
 
 ## 지금 상태
 
-- 조사·설계·사용자 결정 D1~D4 가 끝났고, 아래 계획을 사용자가 승인했다(2026-09-17). **구현 코드는 0줄**이다. 이 문서를 추가한 커밋 말고는 바뀐 것이 없다.
-- 기준 SHA 는 `e0188231947d08037879c31f8a09d58d82a18500`(작성 시점 origin/main)이다. 계획 속 `파일:줄` 은 `02cbb5127` 에서 쟀고, 그 뒤 커밋 2개는 `docs/handoff` 만 바꿨다. 줄이 어긋나면 심볼로 다시 grep 한다. 이 문서를 추가한 커밋은 `git log -1 --format=%H -- docs/handoff/inicis-overseas-card-phase1.md` 로 찾는다.
-- 작성 시점 main 체크아웃에는 다른 세션의 미커밋 변경(`config/payment-freeze.json`, `marketing/*`)이 있었고, 다른 워크트리 4개도 떠 있었다. 그래서 구현은 워크트리에서 한다.
+- **1단계 완료(2026-09-17).** C1~C9 를 워크트리에서 구현·mock 검증·커밋하고 main 에 머지해 push 했다. `FOREIGN_CARD_ENABLED` 는 어디에도 설정하지 않았고(OFF) 운영 승격도 하지 않았다. 최종 판정은 **PG APPROVAL REQUIRED** 다([09 신청 사실](../payment/inicis-overseas-card/09-inicis-application-facts.md)).
+- 커밋: C1 `9dcbadb63` 결제창 고지 문구 · C2 `2f858e731` 비회원 차단 회귀 테스트 · C3 `5def9f385` 정책 모듈·env 계약 · C4 `db9a98d64` 서버 판정·주문 스냅숏 · C5 `111a4ed28` 클라이언트 fail-closed 게이트 · C6 `539da91b0` 주문 시점 정책 버전 · C7 `73215eb42` 미이행·대조 실패 알림 · C8 `af7bfaefc` storeId 대조 · C9 `f7aaf1db4` 문서 01~09. 머지는 `d822fd5db`(main `b6149bab1` 위 `--no-ff`)다.
+- 검증 출력·변이 4종 결과·NOT TESTED 목록은 [08 테스트 결과](../payment/inicis-overseas-card/08-test-results.md)에 있다. 머지 트리에서 `npm run check:fast` 는 exit 0 이었다(paid-gate-suite 통과 88 / 실패 0, jest 280 suites / 3954 tests).
+- 머지 방식: 공유 체크아웃(`D:\Development\code-destiny`)에 다른 세션의 미커밋 변경이 있어 그 체크아웃은 건드리지 않았다. 워크트리에서 origin/main 을 detached 로 받아 머지 커밋을 만들고 `git push origin HEAD:main` 했다. 충돌은 정적 페이지 24개의 `checkout-entry.js`·`pass-verdict.js` 핀과 sitemap 원장뿐이었다. 핀은 합친 코어에서 다시 유도했고 `sync:public` 도 다시 돌렸다(상세는 머지 커밋 메시지).
+- CI(`d822fd5db`): `CI required` success(PR CI 잡 6개 실패·스킵 0) · `Gift transaction integrity` · `Paid Flow Gates` · `Secret Scan` · `Business Identity Gate` · `AI Locale Gate` · 워치독 2종 모두 success. 스테이징 배포 워크플로도 success 였고, 스테이징 화면 검증은 하지 않았다(선택).
+- 공유 체크아웃의 미커밋 `config/payment-freeze.json`(F24, `worker/routes/billing.js` maxLines 6909→6350)과 같은 값이 C5 로 이미 main 에 들어갔다. 그 변경의 주인이 로컬 변경을 정리한 뒤 `git pull --ff-only` 해야 한다. 이 세션은 손대지 않았다.
 
 ## 남은 작업
 
-- [ ] C1~C9 를 순서대로 커밋 9개로 나눈다. 판정 기준은 세 가지다. 커밋마다 아래 계획 "검증 (전부 mock)" 의 명령이 통과한다. 변이 4종이 가드·테스트에서 실제로 실패한다. 문서 08 에 실제 실행 출력이 들어간다.
-- [ ] 머지 전 main 에서 `git status` 를 본다. `config/payment-freeze.json` 미커밋 변경(F24)이 남아 있으면 fast-forward 가 막힌다. 그 변경의 주인에게 커밋을 요청한다(공유 체크아웃에서 reset·stash·checkout 금지). 머지 후 `npm run sync:public` 을 다시 돌리고, 바뀐 것이 있으면 커밋한다.
-- [ ] push 한 뒤 `CI required` 통과까지 확인한다. 스테이징 검증은 선택이다. **운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 이번 범위가 아니다.**
-- 2단계(영문 결제정보·CS 진입점·정책 링크 UI)와 3단계(환불·개인정보 법무 대조, LEGAL REVIEW REQUIRED)는 별도 세션에서 한다.
+- [x] C1~C9 커밋 9개. 커밋마다 "검증 (전부 mock)" 명령이 통과했고, 변이 4종이 가드·테스트를 실제로 실패시켰고, 08 에 실제 실행 출력을 넣었다.
+- [x] 머지 전 main `git status` 확인. F24 가 남아 있어 공유 체크아웃 대신 워크트리에서 머지 커밋을 만들어 push 했다. 머지 후 `npm run sync:public` 재실행 결과(핀 갱신, 4회째 변경 0)는 머지 커밋에 들어 있다.
+- [x] push 후 `CI required` 통과 확인(위 CI 줄). 운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 하지 않았다.
+- 2단계(영문 결제정보·CS 진입점·정책 링크 UI)와 3단계(환불·개인정보 법무 대조, LEGAL REVIEW REQUIRED)는 별도 세션에서 한다(아래 "2·3단계로 넘기는 것"). 플래그 ON 은 "플래그 ON 선결 조건" 순서를 따른다.
+- "모르는 것"의 OWNER INPUT REQUIRED 항목은 그대로 남아 있다. 범위 밖 결함은 "범위 밖 결함 (보고만)" 절에 있으며 이번에 고치지 않았다.
 
 ## 재개 절차
 
