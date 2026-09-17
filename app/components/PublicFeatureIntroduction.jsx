@@ -46,7 +46,7 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
       </details>
     </div>
     <nav className={styles.related} aria-label={ui.related}>
-      {INTRO_TOPICS.filter(key => key !== topic).map(key => <Link key={key} href={`/${locale}/${key}/`}>{FEATURE_INTRODUCTIONS[key][locale].heading}</Link>)}
+      {INTRO_TOPICS.filter(key => key !== topic && FEATURE_INTRODUCTIONS[key][locale]).map(key => <Link key={key} href={`/${locale}/${key}/`}>{FEATURE_INTRODUCTIONS[key][locale].heading}</Link>)}
       <Link href={`/${locale}/contact/`}>{ui.contact}</Link>
     </nav>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c") }} />

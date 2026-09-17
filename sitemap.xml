@@ -58,7 +58,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/astrology/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
@@ -132,7 +132,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -228,7 +228,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/astrology/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -260,7 +260,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -308,7 +308,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune-tea-house/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -1507,7 +1507,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/psychotest/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -1538,10 +1538,12 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -1557,7 +1559,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo-compatibility-ai/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -1591,7 +1593,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/tarot/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -1643,7 +1645,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/vedic/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -1693,7 +1695,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune-tea-house/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -5455,7 +5457,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/astrology/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -5487,7 +5489,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -5535,7 +5537,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune-tea-house/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -6734,7 +6736,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/psychotest/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -6765,10 +6767,12 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -6784,7 +6788,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo-compatibility-ai/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -6818,7 +6822,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/tarot/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -6876,7 +6880,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/vedic/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -7204,7 +7208,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/psychotest/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -7247,10 +7251,12 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.98</priority>
   </url>
@@ -7662,7 +7668,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo-compatibility-ai/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.87</priority>
   </url>
@@ -7714,7 +7720,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/tarot/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.96</priority>
   </url>
@@ -7832,7 +7838,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/vedic/" />
-    <lastmod>2026-09-16</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
@@ -9086,6 +9092,24 @@
     <priority>0.50</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/zh-tw/saju/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/saju/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/saju/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/saju/" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/zh-tw/sukuyo/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo/" />
@@ -9203,7 +9227,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/astrology/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -9235,7 +9259,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -9283,7 +9307,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune-tea-house/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -10482,7 +10506,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/psychotest/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/psychotest/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -10513,10 +10537,12 @@
     <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju/" />
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -10532,7 +10558,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo-compatibility-ai/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -10566,7 +10592,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/tarot/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -10618,7 +10644,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/vedic/" />
-    <lastmod>2026-09-10</lastmod>
+    <lastmod>2026-09-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>

@@ -324,7 +324,9 @@ const localeHreflangAliases = {
 };
 
 const i18nRouteGroups = [
-  ...INTRO_TOPICS.map(topic => ({ paths: Object.fromEntries(Object.entries(introductionRoutes(topic)).filter(([lang]) => lang !== "x-default")), changefreq: "monthly", priority: 0.8 })),
+  // introductionRoutes()는 앱 라우트 세그먼트와 맞추려 소문자 "zh-tw" 키를 쓴다 —
+  // buildI18nAlternates()는 대문자 "zh-TW" 키만 인식하므로 여기서만 맞춰 바꾼다.
+  ...INTRO_TOPICS.map(topic => ({ paths: Object.fromEntries(Object.entries(introductionRoutes(topic)).filter(([lang]) => lang !== "x-default").map(([lang, p]) => [lang === "zh-tw" ? "zh-TW" : lang, p])), changefreq: "monthly", priority: 0.8 })),
   ...TRUST_KEYS.map(key => ({ paths: Object.fromEntries(Object.entries(trustRoutes(key)).filter(([lang]) => lang !== "x-default")), changefreq: "monthly", priority: 0.7 })),
   {
     paths: { ko: "/", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },

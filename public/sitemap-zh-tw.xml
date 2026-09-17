@@ -1220,6 +1220,24 @@
     <priority>0.50</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/zh-tw/saju/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/saju/" />
+    <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/saju/" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/saju/" />
+    <xhtml:link rel="alternate" hreflang="ja-JP" href="https://code-destiny.com/ja/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/saju/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/zh-tw/sukuyo/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/sukuyo/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/sukuyo/" />
