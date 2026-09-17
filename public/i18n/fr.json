@@ -2176,7 +2176,7 @@
     },
     "overseas": {
       "approx": "env. {amount}",
-      "chargedInKrw": "Le paiement est autorisé en wons coréens (KRW). Les cartes internationales (VISA · Mastercard · JCB · Diners) sont acceptées, et votre émetteur de carte applique son propre taux de change."
+      "chargedInKrw": "Le paiement est autorisé en wons coréens (KRW). Le paiement par carte émise hors de Corée est en cours de préparation et pas encore garanti. Votre émetteur de carte applique son propre taux de change."
     }
   },
   "auth": {

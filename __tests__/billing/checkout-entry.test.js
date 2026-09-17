@@ -390,12 +390,16 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
     expect(html).toContain(en.payment.overseas.chargedInKrw);
     expect(html).toContain("approx. $7.4");
     expect(html).not.toContain("원화");
+    expect(html).not.toMatch(/VISA|Mastercard|JCB|Diners/i);
   });
 
   test("조회기가 없으면 ko 폴백으로 안전하게 떨어진다", () => {
     setLocale("en");
     const html = checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 10000 });
     expect(html).toContain("원화(KRW)");
+    // 🔴 해외카드 특약 승인 전이다 — 해외 발급 카드는 "준비 중" 으로만 알리고, 받는다는 뜻의 브랜드 나열은 없다.
+    expect(html).toContain("준비 중");
+    expect(html).not.toMatch(/VISA|Mastercard|JCB|Diners/i);
   });
 
   test("🔴 고지 노드에 data-mode 를 붙이지 않는다 — 붙이면 누를 때 결제창이 닫힌다", () => {

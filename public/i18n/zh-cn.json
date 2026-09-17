@@ -2176,7 +2176,7 @@
     },
     "overseas": {
       "approx": "约 {amount}",
-      "chargedInKrw": "付款以韩元（KRW）授权。支持境外银行卡（VISA · Mastercard · JCB · Diners），汇率由发卡机构确定。"
+      "chargedInKrw": "付款以韩元（KRW）授权。境外发行银行卡付款功能正在准备中，暂不保证可用。汇率由发卡机构确定。"
     }
   },
   "auth": {

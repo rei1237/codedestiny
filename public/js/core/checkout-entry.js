@@ -446,7 +446,7 @@
       + approxHtml
       + escape(checkoutText(
         "payment.overseas.chargedInKrw",
-        "결제는 원화(KRW)로 승인됩니다. 해외 카드(VISA · Mastercard · JCB · Diners)도 사용할 수 있으며, 환전은 카드사 환율로 이루어집니다.",
+        "결제는 원화(KRW)로 승인됩니다. 해외 발급 카드 결제는 준비 중이며 아직 이용이 보장되지 않습니다. 환전은 카드사 환율로 이루어집니다.",
       ))
       + "</p>"
     );

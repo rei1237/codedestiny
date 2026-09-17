@@ -2176,7 +2176,7 @@
     },
     "overseas": {
       "approx": "kira-kira {amount}",
-      "chargedInKrw": "Pembayaran dibenarkan dalam Won Korea (KRW). Kad antarabangsa (VISA · Mastercard · JCB · Diners) diterima, dan pengeluar kad anda menggunakan kadar pertukaran sendiri."
+      "chargedInKrw": "Pembayaran dibenarkan dalam Won Korea (KRW). Pembayaran dengan kad yang dikeluarkan di luar Korea sedang disediakan dan belum dijamin. Pengeluar kad anda menggunakan kadar pertukaran sendiri."
     }
   },
   "auth": {
