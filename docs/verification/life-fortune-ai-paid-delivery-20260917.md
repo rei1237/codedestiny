@@ -53,6 +53,8 @@ npm run check:fast
 
 ## 전달
 
-커밋 `f151ee39dd32c6a16499884cf63afebe7de7beb7`(`test(life-book): cover life-fortune saju-completeness gate before generation`)를 `__tests__/ui/life-book-paid-delivery.behavior.test.js` 한 파일만 스테이징해 생성했다(동시 세션의 marketing 미커밋 변경은 건드리지 않음 — 이 커밋이 워크트리 `wt/life-fortune-af-mock-20260917-132205`에서 만들어진 이유이기도 하다).
+커밋 `f151ee39dd32c6a16499884cf63afebe7de7beb7`(`test(life-book): cover life-fortune saju-completeness gate before generation`)를 `__tests__/ui/life-book-paid-delivery.behavior.test.js` 한 파일만 스테이징해 생성했다(동시 세션의 marketing 미커밋 변경은 건드리지 않음 — 이 커밋이 워크트리 `wt/life-fortune-af-mock-20260917-132205`에서 만들어진 이유이기도 하다). 이어서 이 기록·체크리스트·인수인계 갱신을 담은 문서 커밋 `31ed6264a`를 같은 워크트리에서 추가했다.
 
-<!-- PUSH_CI_PLACEHOLDER -->
+병합 시점 `origin/main`이 다른 세션의 `c25e5bbb5`(`fix(payments): allow trailing slash on /api/payments/webhook V2 hook`, 무관한 파일)만큼 앞서 있어 fast-forward 대신 `git merge --no-ff`로 병합했다(머지 커밋 `e68a309c2ca877fbdf884b0f4f3a471a25acf414`). 병합이 건드린 파일은 의도한 4개(신규 테스트·행별 기록·체크리스트·인수인계)뿐이었고, 동시 세션의 marketing 미커밋 84개는 병합 전후 그대로 보존됨을 `git status`로 확인한 뒤 push했다.
+
+검증 SHA `e68a309c2ca877fbdf884b0f4f3a471a25acf414`의 [CI](https://github.com/rei1237/codedestiny/actions/runs/35183457403)는 체크런 21개 중 `CI required`·`Static guards`·`Typecheck and lint`·`Build Pages and Worker`·`Critical checks`·`gitleaks`·`Risk tier`·`Main drift`·`AI locale pipeline invariants`·`Resolve release necessity`·`Queue asynchronous staging release`·`Resolve staging watch scope` 등 13개 success·7개 skipped(비대상 잡)·실패 0을 확인했다. 비동기 `Deploy staging` 1건은 확인 시점 진행 중이었다 — main push 후 자동 배포이며 사용자 요청·릴리스 전 등 명시 조건이 아니므로 완료를 별도로 대기·확인하지 않았다(CLAUDE.md 전달 흐름 절 원칙).
