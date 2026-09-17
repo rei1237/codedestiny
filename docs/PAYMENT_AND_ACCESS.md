@@ -50,6 +50,7 @@
 3. webhook signature는 `worker/routes/payments.js`의 표준 webhook signature 검증 로직을 탄다.
 4. 금액은 클라이언트 값을 신뢰하지 않고 server registry 또는 policy 상수와 대조한다.
 5. 멱등성은 `idempotencyKey`, `merchantUid`, `impUid`, request id 계열 필드로 방어한다.
+6. V2 확정(`worker/payments/pg.js` `verifyPgPayment`)은 PortOne 재조회 응답에 `storeId` 가 **있을 때만** `PORTONE_STORE_ID` 와 대조해 다르면 422 `STORE_ID_MISMATCH`(주문 FAILED, `failureStage:"pg-verify"`)로 막고, 없으면 통과시켜 `rawPortOne.storeIdCheck` 에 `"matched"`/`"absent"` 만 남긴다. storeId 값은 시크릿 분류라 오류·요약·로그에 싣지 않는다. 구 경로(`worker/routes/payments.js` `extractPortOneStoreId`)는 응답에 없어도 불일치로 본다.
 
 ## 결제 성공 후 권한 반영 흐름
 

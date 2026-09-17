@@ -90,6 +90,33 @@ describe("pg: 네 가지 대조", () => {
   });
 });
 
+describe("pg: 상점(storeId) 대조 — 응답에 있을 때만", () => {
+  test("🔴 응답 storeId 가 우리 상점과 다르면 422 STORE_ID_MISMATCH 이고 오류에 storeId 값이 없다", async () => {
+    for (const reply of [
+      pgReply({ storeId: "store-other" }),
+      pgReply({ rawV2: { storeId: "store-other", customer: { phoneNumber: "010-1234-5678" } } }),
+      pgReply({ rawV2: { store: { id: "store-other" } } }),
+    ]) {
+      const error = await verifyPgPayment(ENV, OK, { fetchPayment: async () => reply }).then(() => null, (caught) => caught);
+      expect(error).toBeInstanceOf(PaymentError);
+      expect(error.code).toBe("STORE_ID_MISMATCH");
+      const contract = classify(error);
+      expect(contract.status).toBe(422);
+      expect(contract.retryable).toBe(false);
+      // 시크릿 분류 — 우리 값도 PG 값도 오류 어디에도 실리지 않는다.
+      expect(JSON.stringify({ message: error.message, meta: error.meta, contract })).not.toMatch(/store-abc|store-other/);
+    }
+  });
+
+  test("같으면 matched, 응답에 없으면 통과하고 absent — 요약에 값은 남지 않는다", async () => {
+    const matched = await verifyPgPayment(ENV, OK, { fetchPayment: async () => pgReply({ storeId: "store-abc" }) });
+    expect(matched.summary.storeIdCheck).toBe("matched");
+    const absent = await verifyPgPayment(ENV, OK, { fetchPayment: async () => pgReply() });
+    expect(absent.summary.storeIdCheck).toBe("absent");
+    expect(JSON.stringify([matched.summary, absent.summary])).not.toMatch(/store-abc/);
+  });
+});
+
 describe("pg: 닿지 못한 것과 사실이 다른 것을 가른다", () => {
   test("🔴 PG 에 닿지 못하면 503 PG_UNAVAILABLE", async () => {
     const timeout = new Error("PortOne payment lookup failed: request timed out after 8000ms");
@@ -133,7 +160,7 @@ describe("pg: PG 응답의 PII 는 저장 형태로 넘어가지 않는다", () 
     expect(result.summary.rawV2).toBeUndefined();
     // 대조·정산에 필요한 것은 남아 있어야 한다.
     expect(Object.keys(result.summary).sort()).toEqual(
-      ["amount", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status"],
+      ["amount", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
     );
   });
 });
