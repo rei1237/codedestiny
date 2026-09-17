@@ -3010,7 +3010,15 @@ export default function VedicAiClient() {
     void resume();
     window.addEventListener("online", resume);
     document.addEventListener("visibilitychange", resume);
-    return () => { cancelled = true; window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    window.addEventListener("pageshow", resume);
+    window.addEventListener("focus", resume);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", resume);
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume);
+      window.removeEventListener("focus", resume);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resumeEpoch, captureOwner]);
 
