@@ -17,11 +17,23 @@ import { Payment } from "../lib/models.js";
 import { REFUND_LOCK_TTL_MS, markOrderCancelled } from "./orders.js";
 import { RESUME_APPROVED_TTL_MS } from "./resume-context.js";
 import { listProducts } from "./catalog.js";
+import { buildPaymentAlert } from "./fulfillment-alert.js";
 
 const PAID_RAW_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 
 /** 결제창을 열고 이탈한 주문을 정리하기까지의 유예. PG 창이 열려 있을 수 있으므로 넉넉히 둔다. */
 export const PENDING_EXPIRY_MS = 30 * 60_000;
+
+/**
+ * "PAID 인데 권한이 없다" 조건. 재지급(regrantUnfulfilledOrders)과 미지급 알림(alertPaymentAnomalies)이
+ * 같은 정의를 쓴다 — 둘이 갈라지면 알림은 오는데 재지급은 안 도는(또는 그 반대) 주문이 생긴다.
+ */
+function unfulfilledClause() {
+  return { $or: [
+    { entitlementGrantedAt: null },
+    { paymentType: "digital_content", featureKey: { $in: listProducts().filter(p => p.billingType === "per_use").map(p => p.featureKey) }, "metadata.purchaseGrantVersion": { $ne: 1 } },
+  ] };
+}
 
 /**
  * PAID 인데 권한이 없는 주문을 찾아 다시 지급한다.
@@ -43,10 +55,7 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
     {
       status: "paid",
       $and: [
-        { $or: [
-          { entitlementGrantedAt: null },
-          { paymentType: "digital_content", featureKey: { $in: listProducts().filter(p => p.billingType === "per_use").map(p => p.featureKey) }, "metadata.purchaseGrantVersion": { $ne: 1 } },
-        ] },
+        unfulfilledClause(),
         { $or: [{ "metadata.fulfillmentRetryAt": { $exists: false } }, { "metadata.fulfillmentRetryAt": { $lte: now } }] },
       ],
       // 방금 확정된 주문은 건드리지 않는다 — 정상 흐름이 지급을 마무리하는 중일 수 있다.
@@ -72,6 +81,8 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
       failed += 1;
       await db.updateOne(Payment, { merchantUid: order.merchantUid, status: "paid" }, {
         $set: { "metadata.fulfillmentRetryAt": new Date(now.getTime() + 5 * 60_000), "metadata.fulfillmentLastError": String(error?.code || "GRANT_FAILED") },
+        // 실패 횟수(운영자 알림 본문의 "재지급 실패 N회"). 재시도는 여전히 무제한이다.
+        $inc: { "metadata.fulfillmentAttempts": 1 },
       }).catch(() => { console.error("[payments] regrant retry state unavailable", { orderId: String(order.merchantUid || "") }); });
     }
   }
@@ -171,4 +182,91 @@ export async function runPaymentReconcile(db, { grant, now = new Date(), limit =
   const gifts = await db.find(Gift, { status: "PAID", expiresAt: { $lte: now } }, { limit });
   for (const gift of gifts) await db.updateOne(Gift, { _id: gift._id, status: "PAID", expiresAt: { $lte: now } }, { $set: { status: "EXPIRED", updatedAt: now } });
   return { regrant, expired, locks, resumePrivacy, expiredGifts: gifts.length };
+}
+
+/** 결제 후 이만큼 지나도 권한이 없으면 알린다. 정상 확정과 재지급 몇 틱이 끝날 여유다. */
+const UNFULFILLED_ALERT_AFTER_MS = 30 * 60_000;
+/** 같은 미지급 주문을 다시 알리는 간격과 최대 횟수(하루 한 번, 7번까지). */
+const UNFULFILLED_REALERT_INTERVAL_MS = 24 * 60 * 60_000;
+const UNFULFILLED_ALERT_MAX_COUNT = 7;
+/** 대조 실패는 이 기간 안에 실패 확정된 주문만 본다 — 알림 도입 이전의 실패 주문을 한꺼번에 쏟지 않는다. */
+const VERIFY_ALERT_LOOKBACK_MS = 30 * 24 * 60 * 60_000;
+/** PG 가 말하는 사실과 주문이 어긋난 코드만(errors.js 422). PG_PAYMENT_NOT_PAID 는 돈이 나가지 않은 주문이라 뺀다. */
+const VERIFY_ALERT_CODES = Object.freeze(["AMOUNT_MISMATCH", "CURRENCY_MISMATCH", "PAYMENT_ID_MISMATCH", "STORE_ID_MISMATCH"]);
+
+/**
+ * 결제 후 미이행·PG 대조 실패를 운영자에게 알린다(해외카드 1단계 C7). 알림뿐이다 — 지급·환불은 하지 않는다.
+ *
+ *   A 미지급: paid · 결제 30분+ · 권한 없음(unfulfilledClause) · (미알림 또는 마지막 알림 24시간+ 이고 7회 미만)
+ *   B PG 대조 실패: failed · failureStage "pg-verify" · 30일 내 · VERIFY_ALERT_CODES · 주문당 1회
+ *
+ * @param {(message: {subject: string, text: string}) => Promise<{delivered: boolean}>} notify
+ *   발송기(fulfillment-alert.js createOperatorAlertSender). 채널을 아는 쪽이 넘긴다.
+ *
+ * 🔴 표식(metadata.fulfillmentAlert·metadata.verifyAlert)은 **전달 성공 후에만** 찍는다. 실패·타임아웃·채널
+ *    미설정이면 표식이 없어 다음 틱이 다시 보낸다 — 늦게 성공한 발송 때문에 두 번 가는 것은 허용한다
+ *    (receipt-email.js 와 같은 판단). 표식은 읽은 값에 건 CAS 라 겹친 틱이 횟수를 두 번 올리지 않는다.
+ */
+export async function alertPaymentAnomalies(db, { notify, now = new Date(), limit = 20 } = {}) {
+  const unfulfilled = await db.find(
+    Payment,
+    {
+      status: "paid",
+      paidAt: { $lte: new Date(now.getTime() - UNFULFILLED_ALERT_AFTER_MS) },
+      $and: [
+        unfulfilledClause(),
+        { $or: [
+          { "metadata.fulfillmentAlert": { $exists: false } },
+          {
+            "metadata.fulfillmentAlert.lastAlertedAt": { $lte: new Date(now.getTime() - UNFULFILLED_REALERT_INTERVAL_MS) },
+            "metadata.fulfillmentAlert.count": { $lt: UNFULFILLED_ALERT_MAX_COUNT },
+          },
+        ] },
+      ],
+    },
+    { limit, sort: { paidAt: 1 } },
+  );
+  const verifyFailures = await db.find(
+    Payment,
+    {
+      status: "failed",
+      failureStage: "pg-verify",
+      failureCode: { $in: VERIFY_ALERT_CODES },
+      updatedAt: { $gte: new Date(now.getTime() - VERIFY_ALERT_LOOKBACK_MS) },
+      "metadata.verifyAlert": { $exists: false },
+    },
+    { limit, sort: { updatedAt: 1 } },
+  );
+  const summary = { unfulfilled: unfulfilled.length, verifyFailures: verifyFailures.length, delivered: false, marked: 0 };
+  if (!unfulfilled.length && !verifyFailures.length) return summary;
+
+  const message = buildPaymentAlert({ unfulfilled, verifyFailures, now });
+  try {
+    summary.delivered = (await notify({ subject: message.subject, text: message.text }))?.delivered === true;
+  } catch {
+    summary.delivered = false;
+  }
+  if (!summary.delivered) return summary;
+
+  for (const order of message.included.unfulfilled) {
+    const previous = order?.metadata?.fulfillmentAlert;
+    const result = await db.updateOne(Payment, {
+      merchantUid: order.merchantUid,
+      status: "paid",
+      ...(previous ? { "metadata.fulfillmentAlert.count": previous.count } : { "metadata.fulfillmentAlert": { $exists: false } }),
+    }, {
+      $set: { "metadata.fulfillmentAlert.lastAlertedAt": now },
+      $inc: { "metadata.fulfillmentAlert.count": 1 },
+    });
+    summary.marked += Number(result?.modifiedCount || 0);
+  }
+  for (const order of message.included.verifyFailures) {
+    const result = await db.updateOne(Payment, {
+      merchantUid: order.merchantUid,
+      status: "failed",
+      "metadata.verifyAlert": { $exists: false },
+    }, { $set: { "metadata.verifyAlert.lastAlertedAt": now } });
+    summary.marked += Number(result?.modifiedCount || 0);
+  }
+  return summary;
 }

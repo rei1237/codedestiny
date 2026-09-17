@@ -91,6 +91,7 @@
 - 관리자 마케팅 지급은 결제가 아니며 이용권·단건 결제 정책을 우회하지 않는다. 동일 `idempotencyKey`는 계정별로 한 번만 지급되고, 지급분은 지급일 기준 30일 후 만료된다.
 - PortOne webhook 실패: signature, event id unique index, webhook event 저장 여부 확인.
 - pending 주문: reconcile cron 또는 `payment-reconcile-task` 경로 확인.
+- 결제 후 미이행·PG 대조 실패 운영자 알림(10분 크론 `runPaymentsV2Reconcile` → `worker/payments/reconcile.js` `alertPaymentAnomalies`, 본문·발송 `worker/payments/fulfillment-alert.js`): A 미지급 = `status:"paid"`·결제 30분+·권한 없음(재지급과 같은 `unfulfilledClause`), 24시간 간격 최대 7회 / B 대조 실패 = `failed`·`failureStage:"pg-verify"`·30일 내·`AMOUNT_MISMATCH`·`CURRENCY_MISMATCH`·`PAYMENT_ID_MISMATCH`·`STORE_ID_MISMATCH`, 주문당 1회. 채널은 운영자 전용 `worker/lib/feedback-notify.js` `notifyOperators`(관리자 메일·Discord·Slack 웹훅)뿐이며 공개 텔레그램 경로는 쓰지 않는다. 표식(`metadata.fulfillmentAlert`·`metadata.verifyAlert`)은 전달 성공 후에만 찍고, 채널 미설정이면 `[pay-alert] unconfigured` 로그만 남는다. 재지급 실패마다 `metadata.fulfillmentAttempts` +1(재시도는 무제한 유지). 알림일 뿐 지급·환불을 하지 않는다.
 
 ## 십이지신 천운 타로 결과 저장
 

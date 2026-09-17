@@ -38,7 +38,8 @@ import { verifyPgPayment } from "./pg.js";
 import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
-import { runPaymentReconcile } from "./reconcile.js";
+import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
+import { createOperatorAlertSender } from "./fulfillment-alert.js";
 import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } from "./executions.js";
 import { consumePassForFeature } from "../lib/pass-consumption.js";
 import { sendPendingReceiptEmails } from "./receipt-email.js";
@@ -1805,6 +1806,14 @@ export async function runPaymentsV2Reconcile(env) {
       } catch (error) {
         console.error("[payments-v2-reconcile] moonstone orphan sweep failed:", String(error?.message || error));
       }
+      /* 결제 후 미이행·PG 대조 실패 운영자 알림(reconcile.js alertPaymentAnomalies). 운영자 전용 채널만 쓰고
+         발송은 5초 상한, 표식은 전달 성공 후에만 찍는다. 실패해도 위 결과는 잃지 않는다(월정석 정리와 같은 규칙). */
+      let alerts = null;
+      try {
+        alerts = await alertPaymentAnomalies(db, { notify: createOperatorAlertSender(env) });
+      } catch (error) {
+        console.error("[payments-v2-reconcile] payment alert sweep failed:", String(error?.message || error));
+      }
       /* 구매 확인 메일(전자상거래법 제13조). 🔴 결제 경로가 아니라 여기서 보낸다 — 확정 경로에
          외부 HTTP(Resend)를 얹으면 메일이 느려질 때 그 지연이 결제창 하드 503 으로 나온다.
          같은 슬롯에서 이어 돌고, 실패해도 위 두 결과는 잃지 않는다(월정석 정리와 같은 규칙). */
@@ -1814,7 +1823,7 @@ export async function runPaymentsV2Reconcile(env) {
       } catch (error) {
         console.error("[payments-v2-reconcile] receipt email sweep failed:", String(error?.message || error));
       }
-      return { ...report, moonstone, receipts };
+      return { ...report, moonstone, alerts, receipts };
     });
     /* 웹훅 재생은 이벤트마다 PG 를 부르므로(슬롯 밖 fetch) 위 슬롯 바깥에서 따로 돈다.
        실패해도 위 결과는 잃지 않는다(월정석·메일과 같은 규칙). */
