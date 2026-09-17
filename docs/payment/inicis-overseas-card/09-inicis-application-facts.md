@@ -2,7 +2,7 @@
 
 현재 상태: 해외카드 신청서 13문항에 코드와 레포 기록으로 확인한 사실만 답했다. 특약은 2026-08-20 에 신청했고, 레포 최신 기록(2026-09-09) 기준 처리중이며 승인은 확인되지 않았다. `FOREIGN_CARD_ENABLED` 가 꺼져 있어 어느 주문에도 해외카드 결제창 파라미터를 싣지 않는다. 사업자 정보·MID 일치, 예상 해외 거래금액, 사고 담당자는 레포로 알 수 없어 **OWNER INPUT REQUIRED** 로 남겼다. 완료 보고가 아니다.
 
-- 측정일: 2026-09-17. 이 문서는 신청서를 쓸 때의 근거다. 승인 사실이 아니므로 화면·마케팅에 "해외카드 지원"으로 옮기지 않는다.
+- 측정일: 2026-09-17. 8번 문항(해외 고객 CS)은 2026-09-18 2단계 반영 후 재측정. 이 문서는 신청서를 쓸 때의 근거다. 승인 사실이 아니므로 화면·마케팅에 "해외카드 지원"으로 옮기지 않는다.
 - 시크릿·MID·사업자등록번호 **값**은 적지 않는다(위치만).
 - 관련 문서: [01 결제 구조](01-current-payment-architecture.md) · [02 해외카드 구현](02-overseas-card-implementation.md) · [03 상품 범위](03-overseas-card-product-scope.md) · [04 회원 인증](04-customer-authentication.md) · [05 이행·증빙](05-fulfillment-and-evidence.md) · [06 CS·사고 대응](06-customer-support-and-incident-response.md) · [07 개인정보](07-personal-data-inventory.md) · [08 테스트 결과](08-test-results.md)
 
@@ -28,7 +28,7 @@
 | 5 | 내·외국인 해외카드 구분 | 국적·IP·언어로 가르지 않는다. 서버가 주문마다 기능 플래그·로그인·상품 유형·결제수단으로 해외카드 결제창을 보여도 되는지 정하고, 판정이 없으면 파라미터를 싣지 않는다. 카드 발급국은 결제 전에 알 수 없다. 지금은 플래그가 꺼져 있어 전 주문 비노출 | READY | [02](02-overseas-card-implementation.md) §1·§2 |
 | 6 | 비회원 주문 차단 | 모든 주문 생성·결제 확정에 로그인이 필요하다. 비회원 주문 경로가 없다(로그인 없는 요청·위조 토큰은 401, 테스트 고정) | READY | [04](04-customer-authentication.md) §3 |
 | 7 | 회원 가입 인증 방식 | 이메일+비밀번호(이메일 소유 확인 없음, 국내 휴대폰 번호 필수) 또는 Google·Naver·Kakao 계정 로그인. **본인인증(휴대폰 본인확인·SMS 등) 절차는 없다** | READY | [04](04-customer-authentication.md) §1·§2 |
-| 8 | 해외 고객 CS | 이메일 문의 1채널. 영어·일본어·중국어 연락 페이지가 있으나 응답기한·언어 지원을 보장하지 않는다. 24시간·전화·채팅 상담은 없다 | NOT READY(영문 결제·환불 문의 진입점 2단계) | [06](06-customer-support-and-incident-response.md) §1 |
+| 8 | 해외 고객 CS | 이메일 문의 1채널. 영어·일본어·중국어 연락 페이지에 결제 문의 절(앵커 `#payment-help`)이 있고, 결제창 하단 링크가 화면 언어별로 그 절로 간다(번체는 영어 페이지로). 응답기한·언어 지원은 보장하지 않으며 24시간·전화·채팅 상담은 없다 | READY | [06](06-customer-support-and-incident-response.md) §1 |
 | 9 | 사고 대응 담당자 | 결제됨·미지급 30분 이상과 PG 대조 실패를 10분 주기 작업이 운영자 채널(관리자 메일·Discord·Slack 웹훅)로 알린다. 채널의 운영 설정 여부는 확인하지 않았고, 담당자·온콜 기록은 레포에 없다 | NOT READY(OWNER INPUT REQUIRED) | [05](05-fulfillment-and-evidence.md) §2, [06](06-customer-support-and-incident-response.md) §4 |
 | 10 | 실물 해외배송 | 없음(디지털 콘텐츠) | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 11 | 배송추적 | 해당 없음 | READY | [03](03-overseas-card-product-scope.md) §2 |
@@ -82,7 +82,7 @@
 
 - 운영에서 `FOREIGN_CARD_ENABLED` 를 켜는 일과 운영 승격은 1단계 범위가 아니다.
 - 켜기 전 조건 10개는 [02](02-overseas-card-implementation.md) §7 체크리스트가 정본이다. 첫 조건이 이 신청의 승인 확인이다.
-- 2단계(UI): 영문 결제 정보(이용권 모달·영냥이·선물 안내의 한국어 하드코딩, 7개 로케일 단건 결제창 영어), 결제창 약관·환불·개인정보 링크, 영문 결제·환불 문의 진입점, 서버측 환불 동의 기록.
+- 2단계(UI): ~~결제창 약관·환불·개인정보 링크~~·~~영문 결제 문의 진입점~~ 2026-09-18 완료([핸드오프](../../handoff/inicis-overseas-card-phase2-20260918.md)). 남은 것 — 영문 결제 정보(이용권 모달·영냥이·선물 안내의 한국어 하드코딩, 7개 로케일 단건 결제창 영어), 서버측 환불 동의 기록.
 - 3단계(법무): 처리방침 국외 이전·보호책임자·처리자 누락, 번역 법무 문서 시행일, 영문 환불정책, 이 문서 갱신 — LEGAL REVIEW REQUIRED.
 
 ## 8. 판정
@@ -90,7 +90,7 @@
 | 항목 | 상태 |
 |---|---|
 | 코드로 답한 문항(1·2·3·4·5·6·7·10·11) | READY |
-| 8 해외 고객 CS | NOT READY(2단계) |
+| 8 해외 고객 CS | READY(이메일 1채널 — 응답기한·언어 지원 보장 없음을 그대로 적는다) |
 | 9 사고 대응 담당자·알림 채널 운영 설정 | NOT READY(OWNER INPUT REQUIRED) |
 | 12 개인정보 처리방침 | NOT READY(LEGAL REVIEW REQUIRED) |
 | 13 예상 해외 거래금액 | NOT READY(OWNER INPUT REQUIRED) |

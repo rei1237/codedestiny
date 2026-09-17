@@ -1,8 +1,8 @@
 # 06. 해외 고객 CS·사고 대응
 
-현재 상태: 고객 문의 채널은 이메일 하나이고, 영어 연락 페이지는 응답기한·언어 지원을 약속하지 않는다. 결제 사고 감지는 1단계 C7 운영자 알림이 생겼지만 채널 운영 설정·담당자·온콜은 정해지지 않았다. 없는 CS 기능을 있다고 적지 않는다. 완료 보고가 아니다.
+현재 상태: 고객 문의 채널은 이메일 하나이고, 영어 연락 페이지는 응답기한·언어 지원을 약속하지 않는다. 결제 사고 감지는 1단계 C7 운영자 알림이 생겼지만 채널 운영 설정·담당자·온콜은 정해지지 않았다. 2단계에서 결제 문의 진입점(로케일별 연락 페이지의 `#payment-help` 절 + 결제창 하단 링크)이 생겼다 — **채널이 늘어난 것이 아니라 같은 이메일로 가는 길이 생긴 것이고, 응답기한·언어 지원 보장은 여전히 없다**. 없는 CS 기능을 있다고 적지 않는다. 완료 보고가 아니다.
 
-- 측정일: 2026-09-17.
+- 측정일: 2026-09-17. §1 은 2026-09-18 재측정(2단계 결제 문의 진입점).
 - 관련 문서: [05 이행·증빙](05-fulfillment-and-evidence.md) · [07 개인정보](07-personal-data-inventory.md) · [09 신청 사실](09-inicis-application-facts.md)
 
 ## 1. 문의 채널 — 이메일 하나
@@ -11,14 +11,16 @@
 
 | 진입점 | 언어 | 내용 | 근거 |
 |---|---|---|---|
-| `/contact-us` | 한국어(영어 한 줄 병기) | 메일 링크. "평균 회신 시간: 영업일 기준 1~3일 / Typical response time: 1-3 business days". 결제·환불 문의 유형(중복 결제·결과 미제공·청약철회) 안내 | `app/contact-us/page.js:61,81` |
-| `/en/contact`·`/ja/contact`·`/zh/contact` | 영어·일본어·중국어 | 같은 메일 주소. 구매 결과가 안 보일 때 보낼 정보 안내, 카드번호·보안코드를 보내지 말라는 안내. **"No new response-time or language-support guarantee is created by this page."** | `app/[locale]/contact/page.js`, `lib/i18n/public-trust-copy.mjs:2`(로케일 `ja`·`en`·`zh`), `:93-96`(영어 문구) |
+| `/contact-us` | 한국어(영어 한 줄 병기) | 메일 링크. "평균 회신 시간: 영업일 기준 1~3일 / Typical response time: 1-3 business days". 결제·환불 문의 유형(중복 결제·결과 미제공·청약철회) 안내. 이 항목에 앵커 `#payment-help` | `app/contact-us/page.js:61,80-81` |
+| `/en/contact`·`/ja/contact`·`/zh/contact` | 영어·일본어·중국어 | 같은 메일 주소. 구매 결과가 안 보일 때 보낼 정보 안내, 카드번호·보안코드를 보내지 말라는 안내. **"No new response-time or language-support guarantee is created by this page."** 2단계에서 결제 전용 절(앵커 `#payment-help`)을 3개 로케일에 추가 | `app/[locale]/contact/page.js`, `app/components/LocalizedTrustPage.jsx:33`(앵커 렌더), `lib/i18n/public-trust-copy.mjs:14,35`(ja), `:74,95`(en), `:134,155`(zh) |
+| 결제창 하단 링크(`#payment-help`) | 화면 언어(ko·en·ja·zh-CN·zh-TW) | 결제창 정책 링크 줄의 넷째 항목이 위 연락 페이지의 결제 문의 절로 새 탭으로 간다. 🔴 번체(zh-TW)만 `/en/contact#payment-help` 로 보낸다 — `/zh-tw/contact` 라우트가 없다 | `js/core/checkout-entry.js:478`(`POLICY_LINKS_BY_LANG`), `:506`(빌더), 렌더러 3종 `index.html:21771`·`js/destiny-profile.js:12603`·`app/_lib/billing-client.ts:1256`, 가드 `scripts/verify-payment-choice-parity.mjs`(sitemap 대조) |
 | `/feedback` | 로케일별 문구, 없으면 영어 | 로그인 필수. 결제 문제 카테고리(카드번호·CVC 입력 금지 경고). 접수 알림은 운영자 메일·Discord·Slack | `app/feedback/FeedbackClient.tsx:262` `LoginGate`, `app/feedback/_lib/categories.ts:85`, `app/feedback/_lib/copy.ts:294,2268-2269`, `worker/lib/feedback-notify.js` |
 
 없는 것 — 신청서·화면에 적지 않는다
 - 24시간 응대: 없음(`app/contact-us`·`app/[locale]/contact`·`lib/i18n/public-trust-copy.mjs`·`app/feedback` 에서 `24시간`·`24/7`·`24 hours` 검색 0건).
 - 전화 상담: 안내된 전화 상담 채널·운영시간 없음(같은 범위 `전화 상담`·`고객센터 전화` 0건). 사업자 정보 표시용 전화번호 필드(`BUSINESS_IDENTITY.phone`)는 있지만 상담 채널로 안내돼 있지 않다.
-- 영문 환불 전용 문의 진입점·영문 응답기한: 없음(2단계 UI 과제).
+- 영문 응답기한: 없음. 영어·일본어·중국어 페이지는 응답 시간을 적지 않고, 오히려 보장하지 않는다고 명시한다. 결제창 링크가 생겼다고 기한이 생긴 것이 아니다.
+- 영문 환불 **전용** 창구: 없음. 2단계 `#payment-help` 는 전용 채널이 아니라 같은 이메일로 가는 안내 절이다(환불 요청 접수 폼·전용 주소 없음).
 - 채팅·티켓 시스템: 없음(메일·제보 폼뿐).
 
 ## 2. 사고 감지·알림
@@ -61,7 +63,8 @@
 |---|---|
 | 이메일 문의 채널(한·영·일·중 페이지) | READY |
 | 영문 응답기한·언어 지원 약속 | NOT READY(약속 없음 — 없는 기능으로 표기) |
-| 영문 결제·환불 전용 진입점 | NOT READY(2단계) |
+| 영문 결제 문의 진입점(연락 페이지 절 + 결제창 링크) | READY(2단계 §1) |
+| 영문 환불 **전용** 창구(접수 폼·전용 주소) | NOT READY(없음 — 같은 이메일 1채널) |
 | 미이행·PG 대조 실패 알림 코드 | READY(C7) |
 | 알림 채널 운영 설정·담당자·온콜 | NOT READY(OWNER INPUT REQUIRED) |
 | 웹훅 반복 실패·환불 실패·크론 실패 알림 채널 | NOT READY(범위 밖 결함) |
