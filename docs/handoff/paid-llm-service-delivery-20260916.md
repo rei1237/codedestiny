@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행(네오는 우선 5개 시나리오만, 둘 다 D 실화면·F 전후 diff는 미실행)은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 인생의 책 7행(`life-book-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행(네오·나크샤트라·인생의 책은 우선 시나리오만, 셋 다 D 실화면·F 전후 diff는 미실행)은 mock A~F·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 인생 총운 8행(`life-fortune-ai-consultation`)부터 상품별 A~F를 이어간다. 8행은 7행과 결과 화면(`LifeBookAiResultClient.tsx`)을 공유하므로 pageshow/focus 수정은 이미 반영돼 있다 — 8행 고유 계약(총운 SKU·원래 분량·apply)만 별도로 A~F 검사한다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,8 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 인생의 책 7행 — mock 완료(경계 있음):** [행별 기록](../verification/life-book-paid-delivery-20260917.md). 마스터·초융합·자미 심층·네오·나크샤트라와 같은 client-side 깨어남 복구 누락(`pageshow`/`focus` 미연결)을 인생의 책 결과 화면(`app/life-book-ai/result/LifeBookAiResultClient.tsx`)에서 재현·수정했다(4행 diff, 커밋 `c7793e21905d46e114d93c4979a5c6d30072864e`). 이 결과 화면 컴포넌트는 8행(`life-fortune-ai-consultation`)과 공유되어 수정 혜택이 8행에도 그대로 적용되지만, 이번 완료 표시는 요청 범위인 7행에 한정했다. 시작 화면(`LifeBookAiClient.tsx`)은 애초에 pageshow/focus/online/visibilitychange 리스너가 없고, 생성 중 백그라운드 진입 시 결과 화면으로 능동 이관하는 설계(`document.hidden` 분기)임을 코드 대조로 확인했다 — 버그가 아니라 새 테스트를 만들지 않았다. 구매 재개/멱등(`findPaidPayment`/`resolveServerAccess`/`billingContractMatches`)과 GET 재확인 대 POST 재개의 비대칭(`isStoredPaidResultRevoked`는 GET `handleResult`에서만 호출, POST `resumeSessionId` 재개 경로는 재확인 안 함)은 기존 `life-book-paid-delivery.behavior.test.js`·교차 상품 `paid-completed-result-access.test.js`로 대조 확인했다(신규 결함 없음, 나크샤트라·네오와 동일 설계). 전용 크론 복구 태스크는 없고 클라이언트 자신의 `resumeSessionId` 재개(예산 캡 `resumeCallsRef.current>=12`)가 유일한 복구 경로임을 확인했다(네오·나크샤트라와 동일 무크론 전례). 신규 UI 행동 검사(`__tests__/ui/life-book-wake-recovery.behavior.test.js`) 1건을 `git stash`로 수정 전 코드를 임시 복원해 재현 1/1 실패(`window:pageshow` 핸들러 미등록) → 수정 후 통과로 전환 측정했고, 관련 UI 스위트 25/25·worker+교차상품 109/109(섹션 생성 13 + 교차 상품 접근 96) 통과(무회귀). `npm run check:fast`는 결제 인접 파일 수정으로 RED 자동 승격돼 전체 게이트로 실행됐고(590초 전경 제한을 넘겨 백그라운드 전환, 종료 코드 0) 저장 로그에 `verify:staging-llm-mock`부터 `test:jest`(277 suite·3,880/3,880)까지 통과가 남아 있다 — 그 앞 구간(lint·typecheck·test:node·paid-gate-suite·sitemap-drift)은 590초 전경 구간에서 실행돼 종료 코드 0으로 이어졌으나 백그라운드 로그엔 남지 않아 개별 수치는 인용하지 않았다. source `c7793e21905d46e114d93c4979a5c6d30072864e`를 직전 커밋 `0cbe50794`(다른 세션의 love-secret-ai 수정) 위에 별도 진행 없이 그대로 fast-forward push했다. main·origin 끝점(동일 SHA) [CI](https://github.com/rei1237/codedestiny/actions/runs/35179949320)는 체크런 21개 중 `CI required`·`Static guards`·`Typecheck and lint`·`gitleaks`·`Build Pages and Worker`·`Critical checks`·`Risk tier`·`Main drift`·`AI locale pipeline invariants` 등 13개 success·7개 skipped·실패 0을 확인했다(비동기 `Deploy staging` 1건은 확인 시점 진행 중이었고 대기 대상 아님). **D(실제 Playwright 화면 렌더 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에도 만들지 않았다 — 나크샤트라·네오와 동일한 남은 경계.** 8행(`life-fortune-ai-consultation`)은 다음 세션이 같은 컴포넌트의 수정을 전제로 8행 고유 계약만 A~F 검사하면 된다.
 
 **2026-09-17 나크샤트라 6행 — mock A~F 완료(경계 있음):** [행별 기록](../verification/nakshatra-ai-paid-delivery-20260917.md). 마스터·초융합·자미 심층·네오와 같은 client-side 깨어남 복구 누락(`pageshow`/`focus` 미연결)을 나크샤트라 결과 화면(`app/nakshatra/ai/NakshatraAiClient.tsx`)에서 재현·수정했다(10행 diff, 커밋 `0ef57a367e66fec2b57849671f132c750468bffe`). 나머지 구매 재개·생성·장애·저장/권한 경로는 기존 `nakshatra-paid-delivery.test.js`(3-wave·6변형 저장 장애·체크포인트·동시 재시도 등)와 교차 상품 공유 검사 `paid-completed-result-access.test.js`로 대조 확인했다(신규 결함 없음). completed 문서의 POST 재생이 취소·환불 재확인을 건너뛰는 것은 버그가 아니라 기존 테스트(`'does not replace historical short completed results'`)가 명시적으로 보증하는 설계임을 확인했다. 신규 UI 행동 검사(`__tests__/ui/nakshatra-wake-recovery.behavior.test.js`) 1건(수정 전 재현 1/1 실패 → 수정 후 통과로 전환 측정), worker+교차상품 118/118, `verify:nakshatra-flow`/`verify:nakshatra-ai-flow`/`verify:nakshatra-premium` 전부 통과, `check:fast -- --committed-head`(base `755949af0`→head `0ef57a367`) 전체 파이프라인 — `run-paid-gate-suite` 88/88·lint 0·`verify:sitemap-drift` OK·typecheck 0·Node 1,400/1,400·Jest 277 suite·3,880/3,880 — 이 한 번에 막힘 없이 통과했다(네오를 막았던 sitemap-drift 이번엔 없음). 작업 중 다른 세션의 `perf(analytics)` 커밋(`aeeb9f714`)이 위에 이어져 두 커밋을 함께 push했다. main·origin 끝점 `aeeb9f714884771b81a82ace8d8a2f2f43740469`의 [CI](https://github.com/rei1237/codedestiny/actions/runs/35176230590)는 `CI required`·`Static guards` 포함 check-run 24개 전부 success 또는 skipped(실패 0)로 확인했다. **D(실제 Playwright 화면 렌더 증거)와 F(전용 전후 diff 스크립트)는 이번 차례에도 만들지 않았다 — 네오와 동일한 남은 경계.**
 
@@ -44,14 +46,14 @@ D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-
 
 main 직접 편집, 마케팅 미커밋 변경 보존. 동시 편집의 두 번째 세션이면 [안전 워크트리 규칙](../../CLAUDE.md)을 따른다. 타 세션의 변경을 stage/reset/restore하지 않는다. 운영 승인·개발 경계는 [실행 계약](../../CLAUDE.md)이 정본이다.
 
-## 인수인계 후 첫 상품 — 인생의 책 7행
+## 인수인계 후 첫 상품 — 인생 총운 8행
 
-사용자의 “너무 길어질 것 같으면 인수인계 문서를 남겨 달라”는 요청으로 이번 작업은 나크샤트라 6행 전달까지 마무리하고 인계한다. 인생의 책 코드는 관련 심볼만 가볍게 확인했고, 개별 A~F·재현 검사·수정은 아직 실행하지 않았다. 아래 탐색 메모는 결함 확정이나 완료 근거가 아니다.
+인생의 책 7행은 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/life-book-paid-delivery-20260917.md)). 다음은 인생 총운 8행(`life-fortune-ai-consultation`)이다. 아래는 이번 세션이 7행 작업 중 확인한 사실만 옮긴 것이며, 8행 고유 계약의 결함 확정이나 완료 근거는 아니다.
 
-- 실제 API: `worker/routes/life-book-ai.js`의 `handleEnsureAccess`(1880행, `/api/life-book-ai/prepare`), `handleResult`(2162행), `handleStart`(2272행, `/api/life-book-ai/generate`), 라우팅 진입 `handleLifeBookAiRoutes`(2869행). 같은 라우트 파일이 표 7행(인생의 책)과 8행(인생 총운, `life-fortune-ai-consultation`) 두 SKU를 함께 처리하므로 두 행을 같이 대조해야 한다.
-- 실제 화면: `app/life-book-ai/LifeBookAiClient.tsx`, `app/life-book-ai/page.tsx`, 결과 `app/life-book-ai/result/LifeBookAiResultClient.tsx`. pageshow/focus 복구 연결 여부는 아직 확인하지 않았다 — 마스터·초융합·자미·네오·나크샤트라에서 반복된 것과 같은 패턴인지 가장 먼저 대조한다.
-- 기존 검사: UI `__tests__/ui/life-book-paid-delivery.behavior.test.js`, `life-book-ux.static.test.js`; worker `__tests__/worker/life-book-ai.sections.test.js`. 표의 확인 포인트가 7행은 "장별 저장·deferred apply", 8행은 "총운 SKU·원래 분량·apply"로 다르므로 두 SKU의 저장/적용 계약 차이를 먼저 읽는다.
-- 우선 재현: 다른 상품과 동일하게 승인 후 첫 생성 전 종료, 부분 저장 뒤 문서 종료, pageshow/bfcache/focus 단독 복귀, checkpoint/완료 확인 유실, 정상 구 completed와 취소 구매의 GET/POST 대조부터 대조하고 재현된 오류만 수정한다.
+- 실제 API: 7행과 같은 `worker/routes/life-book-ai.js`(`handleEnsureAccess` 1880행·`handleResult` 2162행·`handleStart` 2272행·`handleLifeBookAiRoutes` 2869행)가 두 SKU를 함께 처리한다. 8행 고유 분기(총운 분량 계산·apply)가 이 파일 안에서 SKU 값으로 어떻게 갈리는지는 아직 세부 대조하지 않았다.
+- 실제 화면: 별도 라우트 없이 7행과 같은 결과 화면 `app/life-book-ai/result/LifeBookAiResultClient.tsx`를 공유함을 grep으로 확인했다 — 이번에 고친 pageshow/focus 복구(1490~1501행)가 8행에도 이미 적용돼 있으므로 다시 고치지 않는다.
+- 기존 검사: `__tests__/worker/paid-completed-result-access.test.js`(교차 상품 96/96)가 `life-fortune-ai-consultation`을 포함해 재열람·취소/환불 차단을 검사함을 확인했다(`__tests__/fixtures/paid-completed-result-access-fixtures.mjs:7`). `life-book-ai.sections.test.js`가 8행 고유 "총운 SKU·원래 분량·apply" 계약을 얼마나 커버하는지는 아직 읽지 않았다.
+- 우선 확인: 8행 고유 요청 경로(총운 파라미터)로 A(구매)·B(총운 분량 생성)·E(저장/apply)를 최소 1회 대조하고, 공유 컴포넌트라는 이유로 결함이 없다고 가정하지 않는다.
 
 ## 재검사 명령
 
