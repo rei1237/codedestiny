@@ -35,6 +35,7 @@ import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
+import { ORDER_POLICY_VERSIONS } from "./policy-versions.js";
 // 🔴 세대 사다리는 카드 상품과 **같은 구현**을 쓴다. 두 벌을 두면 한쪽만 고쳐 상품별 멱등 계약이 갈린다.
 import { MAX_ORDER_GENERATIONS, generationKey, terminalGenerationKey } from "./orders.js";
 
@@ -129,6 +130,8 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           },
           // 해외 발급 카드 결제창 노출 판정(orders.js createOrder 와 같은 스냅숏).
           foreignCard: foreignCard ? toForeignCardSnapshot(foreignCard, now) : null,
+          // 주문 시점 게시 정책 버전(orders.js createOrder 와 같은 증빙, 동의 기록 아님).
+          policyVersions: { ...ORDER_POLICY_VERSIONS },
           createdAt: now,
           updatedAt: now,
         },

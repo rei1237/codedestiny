@@ -32,6 +32,7 @@ import { resolveConfirmedPaymentMethod } from "../lib/payment-method-label.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
+import { ORDER_POLICY_VERSIONS } from "./policy-versions.js";
 
 export const ORDER_STATUS = Object.freeze({
   PENDING: "PENDING",
@@ -158,6 +159,8 @@ export async function createOrder(db, {
           },
           // 해외 발급 카드 결제창 노출 판정(foreign-card-policy.js)을 주문 시점에 박는다. prepare 응답은 지금 판정과 좁혀 낸다.
           foreignCard: foreignCard ? toForeignCardSnapshot(foreignCard, now) : null,
+          // 주문 시점 게시 약관·개인정보처리방침 버전(policy-versions.js). 동의 기록이 아니다.
+          policyVersions: { ...ORDER_POLICY_VERSIONS },
           createdAt: now,
           updatedAt: now,
         },
