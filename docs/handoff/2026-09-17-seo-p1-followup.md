@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: P1 4건 완료·push·CI 초록 실측 확정(`02cbb5127`, CI required success)까지 끝남. 다음은 P2(sitemap 중복 제출) 또는 P3(죽은 리다이렉트 스텁 정리) 중 사용자 확인 후 택1
+next: P1 4건 + P2(sitemap 중복 제출, `579e154dd`) 완료·push됨. 다음은 P3(죽은 리다이렉트 스텁 정리) 또는 원 요청 22개 중 미착수 항목 — 사용자 확인 후 착수
 ---
 
 # SEO 개편 요청 — P1 이후 (P0는 완료)
@@ -62,10 +62,14 @@ next: P1 4건 완료·push·CI 초록 실측 확정(`02cbb5127`, CI required suc
       합쳐 페이지당 3개로 확장. 컴포넌트는 `<section className={styles.faq}>`
       안에서 여러 `<details>`를 렌더링하도록 구조 변경(`SeoLandingTemplate`
       수준의 섹션 재설계는 하지 않음 — 사용자가 "FAQ만 확장" 범위로 승인).
-- [ ] **P2 — sitemap 중복 제출**: `sitemap.xml`(통합, 1265) vs 로케일별 5개가 동시
-      제출됨. index로 바꿀지 통합본을 뺄지 결정 필요.
+- [x] **P2 — sitemap 중복 제출**: `579e154dd`(2026-09-17)로 완료·push됨. 옵션 A
+      채택 — `robots.txt`/`public/robots.txt`/`app/robots.ts` 3곳에서 통합
+      `sitemap.xml` 선언만 제거, 로케일 5개(`sitemap-ko/ja/en/zh/zh-tw.xml`)는
+      유지. `generate-sitemap.mjs`는 수정 없음(통합본 자체는 계속 생성, 크롤러
+      광고만 중단). 상세: `docs/handoff/2026-09-17-seo-p2-sitemap-dedup.md`.
 - [ ] **P3 — 죽은 리다이렉트 스텁 정리**: `app/en-us/`, `app/ja-jp/`, `app/zh-cn/`
       (옛 URL 스킴 호환용, sitemap 미참조 — 삭제 전 코딩 원칙 9 3면 확인).
+      다음 착수 후보 — 아직 조사 시작 전.
 - [ ] 원 요청 22개 항목 중 미착수: `SEO-KEYWORD-MAP.md`, `SEO-CHANGELOG.md`,
       허브 콘텐츠 재작성, 내부링크 재설계, structured data 확장, E-E-A-T 강화,
       경쟁사 SERP 조사, Core Web Vitals 실측.

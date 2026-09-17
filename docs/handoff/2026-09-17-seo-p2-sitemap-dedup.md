@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-17
-next: 조사 완료(실측: robots.txt 6곳이 통합+로케일5개 전부 선언, 진짜 파티션 중복 확인). 옵션 A(robots.txt에서 통합 sitemap.xml 선언 제거) 권장 — 사용자 확인 후 구현만 남음
+next: 완료. `579e154dd`(2026-09-17)로 옵션 A 구현·check:fast(277 suites/3881 tests)·verify:sitemap-drift 통과·push 완료. 후속은 배포 후 GSC 색인 변화 관찰(레포 밖, 별도 세션)뿐 — 코드 작업 없음
 ---
 
 # SEO 개편 — P2: sitemap 중복 제출
@@ -111,14 +111,14 @@ npm run verify:sitemap-drift   # sitemap 관련 수정 후 필수
   GSC 반영에 시간이 걸려 이번 세션 범위에서 검증 불가 — 배포 후 관찰
   필요.
 
-## 다음 세션 첫 문장
+## 완료 (2026-09-17)
 
-`git pull --ff-only && git log --oneline -3` 로 최신 상태 확인 후, 위
-"실측 결과"는 재조사 없이 신뢰하고 바로 사용자에게 옵션 A(권장)/B 중
-확인 요청 → 승인 시 `robots.txt`, `public/robots.txt`, `app/robots.ts`
-세 곳에서 `Sitemap: https://code-destiny.com/sitemap.xml` 줄만 제거(로케일
-5개 줄은 유지) → `npm run check:fast`로 검증 → 커밋(GREEN, robots.txt
-텍스트 변경이라 동작 경계는 "크롤러가 읽는 목록"에 한정) → push.
-`generate-sitemap.mjs`는 수정 불필요(통합본은 계속 생성해도 무방, 단지
-robots에서 광고만 안 하면 됨) — 코드 로직 변경 없이 텍스트 3곳만 고치는
-가장 작은 단위 커밋이 될 것.
+옵션 A 구현·push 완료(`579e154dd`). `robots.txt`, `public/robots.txt`,
+`app/robots.ts` 3곳에서 통합 `sitemap.xml` 선언 제거, 로케일 5개는 유지.
+`check:fast`(277 suites/3881 tests 전부 통과) + `verify:sitemap-drift`
+통과 확인 후 커밋·push. `generate-sitemap.mjs`는 수정 안 함(통합본은
+계속 생성, 크롤러 광고만 중단). 이 문서의 재조사는 불필요 — 남은 건
+"모르는 것" 절의 GSC 색인 변화 관찰뿐이며 이는 레포 밖 정보라 코드
+작업이 아니다. 다음 SEO 작업은
+[docs/handoff/2026-09-17-seo-p1-followup.md](2026-09-17-seo-p1-followup.md)의
+P3(죽은 리다이렉트 스텁 정리) 또는 원 요청 22개 중 미착수 항목 참고.
