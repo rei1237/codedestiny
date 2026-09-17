@@ -887,7 +887,11 @@ function KarmaDestinyResultInner() {
   useEffect(() => {
     const resume = () => { if (document.visibilityState !== "hidden") { transientFailuresRef.current = 0; generationStallRef.current.stalls = 0; setResumeEpoch(value => value + 1); } };
     window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
-    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
+    return () => {
+      window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
+    };
   }, []);
 
   const report = useMemo(() => normalizeReport(result), [result]);

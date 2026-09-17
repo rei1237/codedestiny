@@ -2299,7 +2299,11 @@ export default function KarmaDestinyAiPage() {
       } catch { /* The saved report remains available for the next lifecycle event. */ }
     };
     void restore(); window.addEventListener("online", restore); document.addEventListener("visibilitychange", restore);
-    return () => { window.removeEventListener("online", restore); document.removeEventListener("visibilitychange", restore); };
+    window.addEventListener("pageshow", restore); window.addEventListener("focus", restore);
+    return () => {
+      window.removeEventListener("online", restore); document.removeEventListener("visibilitychange", restore);
+      window.removeEventListener("pageshow", restore); window.removeEventListener("focus", restore);
+    };
   }, [recoveryEpoch, captureOwner]);
   useEffect(() => {
     if (!profileSeed) return;
