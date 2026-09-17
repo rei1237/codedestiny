@@ -1948,9 +1948,9 @@
       "passMonthlyExhausted": "Your pass allowance is fully used, so the pass has ended. Buying a new pass starts another 30 days; for now you can open this with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
-        "card": "You'll return to this screen automatically once your card verification is complete.",
+        "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
         "transfer": "You'll return to this screen automatically once your bank account verification is complete.",
-        "kakaopay": "Continue in KakaoTalk to finish the payment. You'll return here automatically when it's done.",
+        "kakaopay": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
         "mobile": "You'll return to this screen automatically once your mobile identity verification is complete.",
         "gift": "You'll return to this screen automatically once your gift certificate PIN is verified."
       }

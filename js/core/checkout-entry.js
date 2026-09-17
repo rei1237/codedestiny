@@ -853,9 +853,9 @@
    */
   function directPayMethodWaitText(id) {
     var key = normalizeDirectPayMethodId(id);
-    if (key === "CARD") return checkoutText("payment.directModal.wait.card", "카드사 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
+    if (key === "CARD") return checkoutText("payment.directModal.wait.card", "카드사·간편결제 앱에서 인증을 마친 뒤 이 브라우저로 돌아오면 자동으로 이어집니다.");
     if (key === "TRANSFER") return checkoutText("payment.directModal.wait.transfer", "출금 계좌 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
-    if (key === "KAKAOPAY") return checkoutText("payment.directModal.wait.kakaopay", "카카오톡으로 이동해 결제를 완료해 주세요. 끝나면 자동으로 돌아옵니다.");
+    if (key === "KAKAOPAY") return checkoutText("payment.directModal.wait.kakaopay", "카카오톡에서 결제를 승인한 뒤, 이 브라우저로 돌아오면 자동으로 이어집니다.");
     if (key === "MOBILE") return checkoutText("payment.directModal.wait.mobile", "휴대폰 본인 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");
     if (key === "GIFT_CULTURELAND" || key === "GIFT_BOOKNLIFE" || key === "GIFT_SMART_MUNSANG") {
       return checkoutText("payment.directModal.wait.gift", "상품권 핀번호 인증을 마치면 이 화면으로 자동으로 돌아옵니다.");

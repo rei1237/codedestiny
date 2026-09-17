@@ -1948,9 +1948,9 @@
       "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將重新開始 30 天，現在可以透過單次付款或月精石解鎖。",
       "passMonthlyRemaining": "通行證剩餘額度 {remaining} / {limit}",
       "wait": {
-        "card": "完成信用卡認證後將自動返回此頁面。",
+        "card": "在信用卡或行動支付 App 中完成認證後，回到此瀏覽器即可自動繼續。",
         "transfer": "完成付款帳戶認證後將自動返回此頁面。",
-        "kakaopay": "請前往 KakaoTalk 完成付款，完成後將自動返回此頁面。",
+        "kakaopay": "在 KakaoTalk 中核准付款後，回到此瀏覽器即可自動繼續。",
         "mobile": "完成手機實名認證後將自動返回此頁面。",
         "gift": "完成禮券 PIN 碼驗證後將自動返回此頁面。"
       }
