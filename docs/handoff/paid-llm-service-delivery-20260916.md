@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-17
-next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행·인생 총운 8행(네오·나크샤트라·인생의 책·인생 총운은 부분/우선 시나리오만, 넷 다 D 실화면·F 전후 diff는 미실행)은 mock A~F(경계 있음)·동일 SHA main CI 완료. main·CI·동시 편집 상태를 다시 확인하고 자미두수 전문가 상담 9행(`ziwei-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
+next: 초융합 3행·심화 자미 PDF 4행·네오 5행·나크샤트라 6행·인생의 책 7행·인생 총운 8행·자미두수 9행(5~9행은 부분/우선 시나리오만, 다섯 다 D 실화면·F 전후 diff는 미실행)은 mock A~F(경계 있음)·동일 SHA main CI 완료. 9행 작업 중 발견한 sitemap-drift CI 실패는 처음에 "9행과 무관한 선행 결함"으로 오판 보고했으나 실제로는 9행 자신의 `14e197394`가 원인이었다 — `867153e58`로 수정, `8463df7ed`로 오판을 정정했다(코딩 원칙 8 위반 사례, 상세는 아래 9행 항목). main·CI·동시 편집 상태를 다시 확인하고 점성술 전문가 상담 10행(`astrology-ai-consultation`)부터 상품별 A~F를 이어간다. 실결제·과금 LLM·운영 DB·운영 승격은 실행하지 않는다.
 ---
 
 # 유료 LLM 생성·결제 후 전달 인수인계
@@ -17,6 +17,12 @@ main 구현 기준 `77007dc4c1c931ecc148ab73069bf437b78473e9`. [전체 main CI](
 **운영 코드 반영 확인:** 시작 조회는 Pages/Worker 모두 `a3d1b471f319036deb416251a2116ef278097567`로 불일치였으나, 최종 읽기 전용 재조회에서 [Pages](https://code-destiny.com/version.json)와 [Worker](https://code-destiny.com/api/version)가 모두 수정본 `77007dc4c1c931ecc148ab73069bf437b78473e9`로 일치했다. [운영 릴리스 35105200682](https://github.com/rei1237/codedestiny/actions/runs/35105200682)의 정확한 SHA 배포·버전 검증도 success이며 staging job은 skipped다. 이번 세션이 배포한 것은 아니다. **코드 운영 반영과 모의 생성은 확인했으나 실 PG·실기기·청구 LLM·실고객 주문 완주 증거는 미검증**이다.
 
 ## 다음 작업
+
+**2026-09-17 자미두수 9행 — mock 완료(경계 있음) + sitemap-drift 오진 정정:** [행별 기록](../verification/ziwei-ai-paid-delivery-20260917.md). 시작 전 "9행이 4행(`ziwei-deep-pdf`)과 화면을 공유한다"는 가정을 대조했으나 근거가 없었다 — 정본 파일(`worker/routes/ziwei-ai.js` vs `worker/routes/ziwei-deep-report.js`)·진입 화면(`/ziwei-ai/` vs `/ziwei/chart/`)·가격 레지스트리 항목이 모두 독립이라 두 상품은 애초에 별개였다(우연히 둘 다 300코인/30,000원일 뿐). 5~8행과 같은 종류의 화면 재개 이벤트 배선 누락(`pageshow`·`focus` 미구독)을 `ZiweiAiClient.tsx` 904~908행에서 재현·수정했다(형제 화면과 동일한 4개 이벤트로 확장, +4/-1행). 신규 UI 행동 검사 1건을 변이 검증(수정 되돌리기 → `AssertionError` 실패 확인 → 복원 → 5/5 재통과)까지 완료했고, 백엔드는 `worker/routes/ziwei-ai.js` 결제·생성·조회 경로 전체를 이번 세션에 처음 정독해 기존 워커 회귀 19/19가 실제 코드와 1:1 대응함을 확인했다(새 백엔드 결함 없음). UI 5/5(신규1)·워커 19/19·`test:jest` 277 suite·3,881/3,881, 커밋 `14e197394`.
+
+🔴 **sitemap-drift CI 실패를 최초에 오진했다 — 실측 없이 부정 단언한 사례(코딩 원칙 8 위반).** push 직후 `CI required`가 `Static guards`의 `Verify the tracked sitemap matches its sources` 스텝에서 실패했고, 이를 "9행과 무관한 선행 드리프트"로 판단해 `git log -1 -- config/sitemap-lastmod.json`이 가리킨 `246f34ad0`(numerology 커밋)을 원인으로 지목·보고했다. 사용자가 "사전 결함을 복구해달라"고 요청해 실제로 `npm run sitemap:generate`를 돌려 diff를 뜬 결과 바뀐 항목은 `/ziwei-ai/` 서명 1개뿐이었고, `git show 246f34ad0:config/sitemap-lastmod.json`으로 그 시점 원장을 직접 열람하니 서명이 이미 정상이었다 — **실제 원인은 이번 행 자신의 `14e197394`**(`ZiweiAiClient.tsx` 콘텐츠 변경 후 같은 커밋에서 `sitemap:generate`를 안 돌림)였다. "원장을 마지막으로 건드린 커밋"은 원인 판정 근거가 못 되며, **재생성→diff가 유일하게 신뢰할 수 있는 진단법**이다. `867153e58`(`fix(sitemap): regenerate ziwei-ai lastmod after pageshow/focus edit`)로 5개 파일을 재생성·커밋해 바로잡고 `verify:sitemap-drift` 재실행으로 OK를 확인했으며, 잘못 보고했던 행별 기록 본문도 `8463df7ed`로 정정했다. 이 커밋의 CI는 `Static guards`(원인 스텝을 포함한 잡) success를 확인했고 `CI required` 애그리게이트는 확인 시점 기준 진행 중이었으나 실패한 체크런은 없었다.
+
+**교훈(일반화):** 5~9행 전부가 같은 클래스의 결함(화면 재개 이벤트 배선 누락)이었던 것처럼, **클라이언트 컴포넌트를 고치는 행은 그 커밋에 `npm run sitemap:generate`를 함께 담지 않으면 다음 행에서 CI가 그 드리프트를 대신 잡아낸다.** 10행부터도 화면 파일을 고치면 같은 커밋에 재생성을 포함할 것.
 
 **2026-09-17 인생 총운 8행 — mock 완료(경계 있음):** [행별 기록](../verification/life-fortune-ai-paid-delivery-20260917.md). 7행과 같은 `worker/routes/life-book-ai.js`를 쓰지만 유일한 실제 `handleStart` 실행 테스트(`__tests__/ui/life-book-paid-delivery.behavior.test.js`)가 `isLifeFortuneInput`을 영구 `false`로 고정 스텁해, 총운 전용 사주 완전성 게이트(`hasRequiredLifeFortuneSaju`, 결제·환불이 걸린 RED 분기)가 이 테스트 파일이 존재한 이래 단 한 번도 실행된 적이 없었음을 발견했다 — "공유 컴포넌트라는 이유로 결함이 없다고 가정하지 않는다"는 인수인계 지시가 실제로 잡아낸 공백이다. 실제 `isLifeFortuneInput`·`hasRequiredLifeFortuneSaju` 함수를 로드해 (a) 구조 불완전 사주(`majorLuck.cycles` 빈 배열) 입력 시 422 `SAJU_CALCULATION_FAILED`·환불 1회·LLM 호출 0회·문서 잔존 0, (b) 완전한 사주 입력 시 정상 202 첫 웨이브(4/15장) 진행·추가 환불 없음을 새 테스트로 검증했다(`+38행`, 커밋 `f151ee39dd32c6a16499884cf63afebe7de7beb7`). 게이트 요구 필드를 실제 계산기(`worker/lib/life-book-ai-saju.js`)가 정상 입력에서 채우는지, 유일한 이론적 거짓-음성(성별 미상→`majorLuck.available:false`)을 `normalizeConsultationInput`의 총운 전용 `gender==="unknown"` 거부가 사전에 막는지 소스 대조로 확인했다(설계상 맞물림, 결함 아님). 장애·동시성 메커니즘(`reserveProviderCallOnce`·`runWithConcurrency`·`releaseSectionLock`·`saveLifeBookState`·`finishLifeBookDelivery`)은 grep으로 모드 분기 0건을 확인해 7행 커버리지가 8행에도 그대로 적용됨을 확인했다(재현 불필요). 저장·권한은 `isStoredPaidResultRevoked`가 저장 문서 자신의 featureKey로 판정해 모드 안전함과 교차 상품 `paid-completed-result-access.test.js`(96/96, 재실행 재확인)의 독립 등록을 확인했다. 가격/카드 노출 등 정적 계약은 기존 `verify-life-book-ai-flow.mjs` 재실행으로 재확인했다(신규 아님). UI 행동 검사 16/16(기존15 무회귀+신규1), 교차상품 96/96, `check:fast` RED 승격 전체 게이트 — `test:jest` 277 suite·3,880/3,880 포함 — 통과(종료 코드 0). 문서 커밋 `31ed6264a`까지 워크트리에서 완료한 뒤 `origin/main`이 다른 세션의 무관한 `c25e5bbb5`(결제 웹훅 trailing slash 수정)만큼 앞서 있어 `git merge --no-ff`로 병합했다(머지 커밋 `e68a309c2ca877fbdf884b0f4f3a471a25acf414`, marketing 미커밋 84개 보존 확인 후 push). main·origin 끝점(동일 SHA) [CI](https://github.com/rei1237/codedestiny/actions/runs/35183457403)는 체크런 21개 중 `CI required` 포함 13개 success·7개 skipped(비동기 `Deploy staging` 등 비대상)·실패 0을 확인했다. **D(실제 화면 증거)와 F(총운 전용 전후 호출 diff)는 이번 차례에도 만들지 않았다 — 7행과 동일한 남은 경계.**
 
@@ -48,9 +54,9 @@ D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\paid-
 
 main 직접 편집, 마케팅 미커밋 변경 보존. 동시 편집의 두 번째 세션이면 [안전 워크트리 규칙](../../CLAUDE.md)을 따른다. 타 세션의 변경을 stage/reset/restore하지 않는다. 운영 승인·개발 경계는 [실행 계약](../../CLAUDE.md)이 정본이다.
 
-## 다음 상품 — 자미두수 9행
+## 다음 상품 — 점성술 10행
 
-인생 총운 8행까지 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/life-fortune-ai-paid-delivery-20260917.md)). 다음은 자미두수 전문가 상담 9행(`ziwei-ai-consultation`)이다. 정본은 [`worker/routes/ziwei-ai.js`](../../worker/routes/ziwei-ai.js), 기존 검사는 [`__tests__/worker/ziwei-paid-delivery.test.js`](../../__tests__/worker/ziwei-paid-delivery.test.js), 보존할 특성은 궁·사화·미완성 묶음(체크리스트 9행 원문) — 이번 세션은 8행에 한정해 9행 코드는 아직 읽지 않았으므로 아래는 체크리스트 표 원문을 옮긴 것일 뿐 결함 확정이나 완료 근거가 아니다. 다음 세션은 9행 진입점부터 직접 대조한다.
+자미두수 9행까지 mock A~F(경계 있음)로 완료했다([행별 기록](../verification/ziwei-ai-paid-delivery-20260917.md), sitemap-drift 오진 정정 포함). 다음은 점성술 전문가 상담 10행(`astrology-ai-consultation`)이다. 정본은 [`worker/routes/astrology-ai.js`](../../worker/routes/astrology-ai.js)(존재 확인), 화면은 [`app/astrology-ai/AstrologyAiClient.tsx`](../../app/astrology-ai/AstrologyAiClient.tsx)(존재 확인), 기존 검사는 [`__tests__/worker/astrology-paid-delivery.test.js`](../../__tests__/worker/astrology-paid-delivery.test.js)(존재 확인), 가격은 `worker/lib/paid-feature-registry.js:304`(300코인/30,000원, 존재 확인) — 이번 세션은 9행에 한정해 10행 코드 내부는 아직 읽지 않았으므로 파일 존재만 확인했을 뿐 결함 확정이나 완료 근거가 아니다. **10행에서도 `AstrologyAiClient.tsx`(또는 결과 화면)를 고치면 같은 커밋에 `npm run sitemap:generate`를 포함할 것** — 9행에서 이를 빠뜨려 CI가 별도로 잡아냈다(위 9행 항목 참고). 다음 세션은 10행 진입점부터 직접 대조한다.
 
 ## 재검사 명령
 
