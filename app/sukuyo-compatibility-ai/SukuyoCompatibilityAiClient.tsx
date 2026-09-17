@@ -1324,7 +1324,11 @@ export default function SukuyoCompatibilityAiClient() {
   useEffect(() => {
     const resume = () => { if (!document.hidden) setResumeEpoch(value => value + 1); };
     window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
-    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
+    return () => {
+      window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
+    };
   }, []);
 
   // 궁합 초대(?cp=) — 공유자(A)의 생일을 상대 칸(personB)에 자동 채움. base64url(JSON), share.js 인코드와 대칭.
