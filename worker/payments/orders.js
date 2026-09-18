@@ -32,7 +32,7 @@ import { resolveConfirmedPaymentMethod } from "../lib/payment-method-label.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
-import { ORDER_POLICY_VERSIONS } from "./policy-versions.js";
+import { ORDER_POLICY_VERSIONS, buildRefundConsentRecord } from "./policy-versions.js";
 
 export const ORDER_STATUS = Object.freeze({
   PENDING: "PENDING",
@@ -97,7 +97,7 @@ export async function deriveOrderId(userId, idempotencyKey) {
 export async function createOrder(db, {
   userId, product, idempotencyKey, paymentType = "digital_content",
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
-  requestId = "", paidResume = null, env = {}, foreignCard = null,
+  requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -161,6 +161,11 @@ export async function createOrder(db, {
           foreignCard: foreignCard ? toForeignCardSnapshot(foreignCard, now) : null,
           // 주문 시점 게시 약관·개인정보처리방침 버전(policy-versions.js). 동의 기록이 아니다.
           policyVersions: { ...ORDER_POLICY_VERSIONS },
+          // 주문 시점 환불·청약철회 동의 기록(단건 결제창). 동의가 없으면 null 이다 — 거절하지 않는
+          // 이유는 policy-versions.js buildRefundConsentRecord 머리주석(구버전 앱·옛 셸 보호).
+          // 🔴 $setOnInsert 다: 같은 키로 재전송해도 **첫 기록이 이긴다**(이용권 passes.js 와 같은 계약) —
+          // 증빙은 사용자가 처음 동의한 사실이고, 나중 요청이 그것을 덧쓰면 증빙이 아니게 된다.
+          refundConsent: buildRefundConsentRecord(refundConsent, { now, source: "direct_modal" }),
           createdAt: now,
           updatedAt: now,
         },
