@@ -1,5 +1,5 @@
 ---
-status: done (핵심 수정), partial (검증 2건 보류)
+status: active
 updated: 2026-09-18
 next: (선택) scripts/verify-yeongnyangi-browser.mjs 를 CI shadow 로 배선 + SoulCat 모드(requestId 없는 URL) 시나리오 추가 — scripts/lib/yeongnyangi-mobile-payment.mjs 421줄이 전부 64자리 requestId 존재를 전제해 스캐폴딩이 작다. 실측 브라우저 확인은 2026-09-18 재시도했으나 공유 dev 서버의 로그인 상태가 프로세스 전역이라(다른 세션과 충돌 위험) 보류 유지 — 하려면 격리 워크트리에서 전용 dev 서버로만.
 ---
