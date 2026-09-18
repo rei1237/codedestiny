@@ -96,8 +96,8 @@
 3. [ ] 승인 범위 기준으로 결제창 고지 문구 재작성 + C1 브랜드명 부재 가드 의도적 해제
 4. [ ] dp 핀 회전(동결 절차) 후 `js/destiny-profile.js` 가 `order.foreignCard` 를 넘기게 변경
 5. [ ] 국내 휴대폰 필수 해소 — PG 구매자 전화 필드 요건 확인 후 별도 RED 변경([04](04-customer-authentication.md))
-6. [ ] vedic·ziwei 생성 실패 환불·알림([05](05-fulfillment-and-evidence.md))
-7. [ ] D4 알림 채널 운영 설정 확인(`ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 중 1개 이상, [06](06-customer-support-and-incident-response.md))
+6. [x] vedic·ziwei 생성 실패 환불·알림 — 2026-09-18 `b0dccc540` 코드 배선 확인([05](05-fulfillment-and-evidence.md) §3)
+7. [x] D4 알림 채널 운영 설정 확인(`ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 중 1개 이상) — 2026-09-18 오너 확인, `ADMIN_FEEDBACK_EMAIL` 등록([06](06-customer-support-and-incident-response.md))
 8. [ ] V2 prepare·confirm 레이트리밋 결정
 9. [ ] 앱(Capacitor) 결제 경로에서 판정·파라미터 동작 확인
 10. [ ] 스테이징 확인(결제 완료 금지) 후 운영 반영 1회 승인
