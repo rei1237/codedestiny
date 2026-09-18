@@ -340,6 +340,8 @@ function consultBodyForMode(mode, attemptId) {
     body.birthTime = "12:00";
     body.gender = "female";
     body.calendarType = "solar";
+    // 화면이 계산해 보내는 명식 초안. 사주 상담은 이 근거 없이는 생성 단계로 넘어가지 않는다.
+    body.draftResult = { consultationMode: "saju", saju: { available: true } };
   }
   if (mode === "sukuyo") {
     body.sukuyo = {

@@ -255,3 +255,23 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     expect(next.generationCheckpoint.attempts['saju-section-0']).toBe(1);
   });
 });
+
+describe("운명 찻집 사주 — 명식 계산 근거", () => {
+  // 음력 작은달 30일처럼 양력 검사만 통과한 날짜는 명식 계산이 닫힌 채(available:false) 올라온다.
+  // 그 초안으로 상담문이 완성되면 일간·오행·대운 없는 리포트에 100코인이 청구된다.
+  test.each([
+    ["초안이 아예 없을 때", undefined],
+    ["명식이 닫힌 초안일 때", { consultationMode: "saju", saju: { available: false } }],
+  ])("%s 유료 사주 상담은 생성 전에 멈춘다", async (_label, draftResult) => {
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: "{}" }));
+
+    const { status, payload } = await postConsult({
+      ...consultBody({ attemptId: `saju-basis-${draftResult ? "closed" : "none"}` }),
+      draftResult,
+    });
+
+    expect({ status, ok: payload.ok }).toEqual({ status: 422, ok: false });
+    expect(payload.message).toContain("사주 명식");
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+  });
+});

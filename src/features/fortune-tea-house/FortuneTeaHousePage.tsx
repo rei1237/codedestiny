@@ -1087,6 +1087,12 @@ export default function FortuneTeaHousePage() {
         sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
       });
+      // 명식 계산이 닫힌 채로는 유료 사주 상담을 시작하지 않는다 — 결제창을 열기 전에 멈춘다.
+      // 양력 검사를 통과한 날짜도 음력에는 없을 수 있고(작은달 30일), 그때 sajuAdapter 는 조용히
+      // available:false 로 떨어진다. 그대로 보내면 일간·오행·대운 없는 상담문에 100코인이 청구된다.
+      if (nextQuestionInput.consultationMode === "saju" && localDraft.saju?.available !== true) {
+        throw new Error("입력하신 생년월일로는 사주 명식을 만들 수 없었어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
+      }
       localPreviewResult = localDraft;
       const requestPayload: FortuneTeaHouseConsultRequest = {
         consultationMode: nextQuestionInput.consultationMode,
