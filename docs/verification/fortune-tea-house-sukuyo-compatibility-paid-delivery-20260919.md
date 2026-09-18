@@ -114,14 +114,16 @@ fail-closed 2겹(원칙 10), 25·26행과 같은 자리.
 - **내 변경이 아니라는 근거(실측):** ① 직전 main tip `d6ad24bb8`(내 푸시 이전)의 `Main drift` 가 **동일한 7개 목록으로 이미 failure** 였다, ② 내 두 커밋의 변경 파일과 그 7개의 교집합은 `git diff --name-only d6ad24bb8..e87cc3248` 기준 **0건**이다. 후보 유래는 `9812d039f`(옆 세션의 자미 동물 패널 수정, `index.html`·`js/core/index-inline-runtime.js`·`js/saju-engine.js` + 미러 동시 수정)다
 - **고치지 않은 이유:** 공유 체크아웃에 옆 세션(`code-destiny-50`, 확인 시점 busy)의 미커밋 `index.html`·`js/**`·`public/**` 변경이 살아 있어 여기서 `npm run sync:public` 을 돌려 커밋하면 그 진행 중인 작업이 섞인다. 해당 세션에 원인·목록·재현 근거를 전달했고(다음 커밋에 `sync:public` 결과를 같은 커밋으로 담으면 해소), 이 행은 보고만 한다(원칙 14)
 
-### 후속 — `341b722e4` 에서도 같은 드리프트가 계속된다(미해소)
+### 후속 — 원인 규명과 해소(`44eac0f68`)
 
-옆 세션이 `64f55a98a`(ziwei 패널 스타일 + 미러 재생성)로 그 7개 파일을 전부 다시 커밋했지만 **드리프트는 닫히지 않았다**. `341b722e4` 의 `CI required` 도 failure다.
+옆 세션이 `64f55a98a`(ziwei 패널 스타일 + 미러 재생성)로 그 7개 파일을 전부 다시 커밋했지만 **그때는 닫히지 않았고**, 이후 소유 세션이 원인을 규명해 `44eac0f68` 에서 해소했다. 아래 앞 세 줄은 `341b722e4` 시점의 실측 기록이고, 마지막 줄이 확정된 원인과 해소다.
 
 - failure 는 여전히 `Static guards` · `Main drift` 둘뿐이고, **둘 다 `verify:public-mirror-fresh` 한 스텝에서만** 멈춘다. 목록은 `d6ad24bb8` 때와 **글자 그대로 동일한 7개**다
 - 27행에 닿는 레인은 전부 success: `Build Pages and Worker` · `paid-flow-gates` · `Typecheck and lint` · `gitleaks` · `scope` · `Risk tier` · `AI locale pipeline invariants` · `Registered business details are verbatim`. `Static guards` 안에서도 `verify-sukuyo-role-direction` 을 포함해 미러 검사 앞의 모든 가드가 OK 로 찍혔다
 - 교집합 재확인: 내 커밋 3개(`8deacfaad` = 워커·화면·테스트·sitemap, `e87cc3248`·`341b722e4` = `docs/**`)와 그 7개 파일의 교집합은 **여전히 0건**이다
-- 🔴 다음 세션 주의: **main 은 이 상속된 미러 드리프트 때문에 빨간 상태로 인계된다.** 27행 변경이 원인이 아니며, 소유자는 옆 세션이다. 관측 하나를 함께 넘겼다 — 검사기가 지목한 목록에 원본 `index.html` 자신이 들어 있다. `index.html` 은 `styles/*.css` 의 크리티컬 CSS 를 인라인으로 품으므로 `styles/basic-fortune-library.css` 를 고친 커밋은 `sync:public` 결과를 **같은 커밋에** 담아야 하고, 출력이 더 바뀌지 않는지(고정점) 한 번 더 확인해야 닫힌다
+- **원인은 미러 누락이 아니라 `sync:public` 이 1회로 수렴하지 않는 것이었다**(소유 세션 `code-destiny-50` 의 실측). `index.html` 이 물고 있는 `/js/core/index-inline-runtime.js?v=` 토큰이 **한 세대 낡은 채로** 커밋된다 — `341b722e4` 기준 박힌 값 `build-f3607e7cb0bd`, 그 커밋의 런타임 파일 실제 내용 해시 `build-2b5a643397bf`. `verify:public-mirror-fresh` 는 sync 를 한 번 돌려 바뀌는 파일을 세므로 그 한 줄 때문에 셸 7개를 전부 낡았다고 보고한다 — 목록이 "미러 누락"처럼 보인 이유다. 유래는 `9812d039f`(옆 세션), 전파가 `d6ad24bb8` → `8deacfaad` → `e87cc3248` → `64f55a98a` → `341b722e4` → `f48c83fec`, 해소는 `44eac0f68`(sync 2회차까지 수렴시켜 산출물을 같은 커밋에)다. 14개 커밋 훑기로 **내 커밋 3개가 원인이 아님이 재확인**됐다
+- **해소 확인(실측):** 그 수정이 포함된 `be930c4e1` 의 `Main drift` = **success**. 27행 전달은 빨간 main 을 남기지 않는다
+- 🔴 재발 방지: **`js/**` 를 고쳤으면 `sync:public` 을 두 번 돌리고 2회차 변경 0건을 확인한 뒤 커밋한다.** 기전·확인법은 [`basic-fortune-result-ui-2026-09-19.md`](../handoff/basic-fortune-result-ui-2026-09-19.md) §3 에 있다. CI 로그의 벤더 사본 2건(`js/vendor/sweph-wasm/**`)은 명시적 carve-out 이라 실패 원인이 아니다
 
 ## 범위 밖 관측 (보고만, 수정하지 않음)
 
