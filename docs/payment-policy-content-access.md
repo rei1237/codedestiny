@@ -28,7 +28,7 @@
   - 관상 심화: **오관·점 정밀 분석(`physiognomy-ogwan-mole-deep`, 50코인=5,000원)** — 기본 관상 리포트는 무료로 노출하되, 오관(五官) 5부위 정밀 확률·경합 분석과 피부·점(痣) 해석 섹션만 **블러+잠금 CTA**로 가려 회당 결제 시 열람. 관상 궁합(`physiognomy-compatibility`)·전생 관상 궁합(`physiognomy-pastlife-compatibility`, 각 50코인=5,000원)도 회당 결제. ⚠️ **오관·점 프리미엄과 전생 관상(궁합)은 가격이 같아도 `featureKey`가 다른 완전히 별개의 상품** — 하나의 결제로 묶이지 않음
   - 타로 전체: `tarot-year-fortune`, `tarot-love-relationship`, `tarot-reunion-reading` 등 `tarot-*`
   - AI 상담 전반: 인생의 책, 연애 비책, 신년운세, 운명 찻집, 팩폭 전략실(`life-book-ai`, `love-secret-ai`, `new-year-ai`, `fortune-tea-house`, `neo-operation-room` 등), 숙요점 궁합 AI 상담(`sukuyo-compatibility-ai`) — 위 이용권 커버 규칙 동일 적용
-  - **연이 운명 상담(`fortune-chat-consultation`, 50코인=5,000원)** — `/fortune-chat`. 하루 무료 3회를 소진한 뒤부터 회당 결제. 매 턴이 새로 생성되는 개인화 상담이라 B유형이다
+  - **연이 운명 상담(`fortune-chat-consultation`, 30코인=3,000원)** — `/fortune-chat`. 하루 무료 3회를 소진한 뒤부터 회당 결제. 매 턴이 새로 생성되는 개인화 상담이라 B유형이다
   - **초융합 심층 리딩(`fusion-fortune-consultation`, 300코인=30,000원)** — `/fusion-fortune`. 여섯 체계를 한 번에 엮어 20,000자 이상을 새로 쓴다. 🔴 30,000원이라 **family 이용권만 커버**된다(건당 상한이 없는 유일한 등급). 2026-08-24 이전에는 VVIP 도 '상담 포함횟수 3회'로 커버됐으나 그 제도가 폐지돼 VVIP 는 이제 미커버다 — VVIP 적용 범위 20,000원을 문자 그대로 지키기 위한 교환이었다. family 도 월 이용 한도 500,000원 안에서만 커버된다. 선착순 하루 100자리는 결제와 별개 장치이며, **마감 검사가 결제보다 먼저** 돌아야 한다(결제 후 마감은 자동 환불 경로가 없다)
   - ⚠️ 위 두 기능은 2026-08-08까지 전용 재화(대화권 / 초융합 상담권)로 굴러갔다. 그 재화는 폐지됐으니 되살리지 말 것 — 판매 라우트·잔액 컬렉션·전용 상점을 모두 제거했고 컬렉션 드롭 마이그레이션(`scripts/migrations/20260808-drop-legacy-consultation-currencies.mjs`)까지 준비돼 있다
   - 숙요점 기본 궁합(`compat-sukuyo-compatibility`, 50코인=5,000원, 2026-08-12 100코인=10,000원에서 인하): **콘텐츠는 잠금 UI 없이 노출**되지만 궁합 계산 실행 시마다 회당 결제(위 이용권 커버 규칙 적용). "비잠금"이 "무료"를 뜻하지 않음에 주의

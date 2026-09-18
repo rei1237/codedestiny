@@ -89,7 +89,7 @@ generate, and share endpoints with `ENABLE_GUARDIAN_FORTUNE_API=true` and
 고른 단일 카테고리만 provider에 전달한다.
 
 2026-08-08 전용 재화(대화권)를 폐지하고 표준 회당 결제로 옮겼다. 무료 3회 이후는
-`fortune-chat-consultation`(50코인 · 5,000원)이며 공용 결제 게이트를 그대로 탄다.
+`fortune-chat-consultation`(30코인 · 3,000원)이며 공용 결제 게이트를 그대로 탄다.
 `ENABLE_GUARDIAN_FORTUNE_CREDITS` 를 읽는 코드는 남아 있지 않다(수정 금지 파일인
 `worker/wrangler.toml` 에 선언만 남아 있어 별도 정리가 필요하다).
 

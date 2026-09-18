@@ -96,7 +96,7 @@
 - validator: 생시·출생지가 없을 때 시주·라그나·상승궁·하우스·신궁을 단정하지 않도록 보정하고, 상대 마음 확정·의료/법률/투자 단정·공포/결제 압박 표현을 완화한다.
 - 개인정보: raw input, raw prompt/response/context, user/guest/payment/usage 정보는 prompt·metric·share snapshot에 포함하지 않는다.
 - 검증: `__tests__/worker/guardian-fortune-llm.test.js`, `__tests__/worker/guardian-fortune-fallback.test.js`는 provider injection만 사용하며 실제 네트워크를 호출하지 않는다.
-- 결제: 무료 3회 이후 표준 회당 결제 `fortune-chat-consultation`(50코인 · 5,000원). 전용 대화권은 폐지됐고 공용 결제창(이용권·단건·월정석)을 그대로 탄다.
+- 결제: 무료 3회 이후 표준 회당 결제 `fortune-chat-consultation`(30코인 · 3,000원). 전용 대화권은 폐지됐고 공용 결제창(이용권·단건·월정석)을 그대로 탄다.
 
 ## 운명의 찻집
 

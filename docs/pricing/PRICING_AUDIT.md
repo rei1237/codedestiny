@@ -90,7 +90,7 @@
 | 반려동물 | `pet-saju-ai-consultation`(229, KRW5000) · `pet-compatibility-ai`(230, KRW5000) |
 | 찻집/꽃 | `fortune-tea-house-tarot-consultation`(201, KRW5000) |
 | 자미두수 | **`ziwei-island-deep-report`(288, KRW5000, unlock)** |
-| 상담 | `fortune-chat-consultation`(294, KRW5000) |
+| 상담 | `fortune-chat-consultation`(294, KRW3000) |
 | 최애운명 | (없음 — 전면 무료) |
 | 손금 | `palm-reading-ai-consult`(255, 레거시·호출 없음) |
 | 사주 카드 (전부 **unlock**) | `rpt_energyCoordCard`(318) · `rpt_villainCard`(319) · `rpt_secretHouseEntryCard`(320) · `fun.quantumLotto.ritualReport`(321) · `unlock.section_daewun`(327) · `unlock.section_summary`(328) · `unlock.section_compat`(329) · `unlock.travel_destiny`(334) · `unlock.health_report`(335) · `unlock.secret_house_episodes`(340) |
