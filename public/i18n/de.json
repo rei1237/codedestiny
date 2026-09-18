@@ -1913,6 +1913,7 @@
       },
       "legal": {
         "provisionTiming": "Dieser Dienst wird sofort nach Abschluss der Zahlung bereitgestellt. Die Nutzung des Dienstes beginnt, sobald die Zahlung bestätigt wurde. Für Inhalte, deren Bereitstellung begonnen hat, kann das Widerrufsrecht gemäß dem Gesetz über den elektronischen Geschäftsverkehr eingeschränkt sein. Ein von einer minderjährigen Person ohne Zustimmung ihrer gesetzlichen Vertretung geschlossener Vertrag kann von der minderjährigen Person selbst oder von ihrer gesetzlichen Vertretung angefochten werden.",
+        "refundConsent": "I understand that content purchased with this one-time payment opens immediately once payment is complete, and that refunds or withdrawal may be limited after viewing has begun.",
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",

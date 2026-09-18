@@ -1913,6 +1913,7 @@
       },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico. Un contrato celebrado por un menor sin el consentimiento de su representante legal puede ser anulado por el propio menor o por su representante legal.",
+        "refundConsent": "I understand that content purchased with this one-time payment opens immediately once payment is complete, and that refunds or withdrawal may be limited after viewing has begun.",
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",

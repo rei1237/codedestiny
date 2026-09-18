@@ -1913,6 +1913,7 @@
       },
       "legal": {
         "provisionTiming": "Ce service est fourni immédiatement après le paiement. L'utilisation du service commence dès la confirmation du paiement, et le droit de rétractation peut être limité pour le contenu déjà fourni, conformément à la loi sur le commerce électronique. Un contrat conclu par un mineur sans le consentement de son représentant légal peut être annulé par le mineur lui-même ou par son représentant légal.",
+        "refundConsent": "I understand that content purchased with this one-time payment opens immediately once payment is complete, and that refunds or withdrawal may be limited after viewing has begun.",
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",

@@ -1913,6 +1913,7 @@
       },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn. Een overeenkomst die door een minderjarige is gesloten zonder toestemming van diens wettelijke vertegenwoordiger, kan door de minderjarige zelf of door diens wettelijke vertegenwoordiger worden vernietigd.",
+        "refundConsent": "I understand that content purchased with this one-time payment opens immediately once payment is complete, and that refunds or withdrawal may be limited after viewing has begun.",
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",

@@ -462,7 +462,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1960190c3a56";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8e3d03673d64";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1303,6 +1303,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const directMethodStepHtml = canShowDirect && !directUsesAppStore
     ? checkoutEntry.buildDirectPayMethodStepHtml({ escape: escapePaymentText })
     : "";
+  // 🔴 단건 환불·청약철회 동의 줄. 마크업과 잠금 배선 모두 공유 코어 하나가 소유한다
+  // (js/core/checkout-entry.js buildRefundConsentCheckboxHtml / bindRefundConsentGate).
+  // 2단계와 같은 조건이다: PG 단건이 실제로 열릴 때만 그린다 — 앱스토어 결제는 스토어 환불
+  // 정책이 적용된다.
+  const refundConsentHtml = canShowDirect && !directUsesAppStore
+    ? checkoutEntry.buildRefundConsentCheckboxHtml({ escape: escapePaymentText })
+    : "";
   const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
   const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
   const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
@@ -1335,6 +1342,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         </div>
         ${passOutcomeNoteHtml}
         <div class="cd-direct-payment-note"><strong>${escapePaymentText(title)}</strong><span>${escapePaymentText(noteBasisText)}</span>${noteWithPassHtml}</div>
+        ${refundConsentHtml}
         <div class="cd-direct-payment-choice-grid" data-choice-step="options">
           ${paymentChoiceButtonsHtml}
         </div>
@@ -1614,6 +1622,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     checkoutEntry.sweepOrphanChoiceModals(modal);
     emitPaymentLoadingState(false);
     document.body.appendChild(modal);
+    // 🔴 환불 동의 잠금(셸·독립 정적과 같은 자리·같은 계약). 미체크 상태에서는
+    // [data-mode="direct"] 카드가 진짜 disabled 다 — 체크박스를 안 그렸으면 잠그지 않는다.
+    checkoutEntry.bindRefundConsentGate({ root: modal });
     // 전용 채널키가 없는 수단(스테이징 카카오페이 등)을 **주문을 만들기 전에** 타일에서 내린다.
     // 셸·독립 정적과 같은 계약이고, config 왕복은 페이지당 1회를 세 렌더러가 나눠 쓴다(원칙 6).
     // 모달 오픈은 막지 않는다 — 신호가 늦으면 그때 그 타일만 '준비 중'으로 바뀐다.
@@ -1641,7 +1652,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       hasPassHint: hasActivePassTier ? "active" : "unknown",
     });
     // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
-    (modal.querySelector<HTMLButtonElement>(".cd-direct-payment-option")
+    // 🔴 동의 체크박스가 있으면 그것이 첫 포커스다 — 미체크면 단건 카드가 disabled 라 포커스를
+    // 받지 못하고, 그러면 키보드 사용자는 모달 안에 걸 곳이 없다(셸과 같은 순서).
+    (modal.querySelector<HTMLInputElement>("[data-refund-consent-input]")
+      || modal.querySelector<HTMLButtonElement>(".cd-direct-payment-option:not([disabled])")
       || modal.querySelector<HTMLButtonElement>('[data-mode="direct"]'))?.focus();
     // 🔴 결제창은 열릴 때 월정석 잔량을 조회하지 않는다(자동 조회·잔여바 제거, 2026-08-12 — 셸 index.html 과
     // 같은 계약). 간헐 503/타임아웃의 원인이던 그 /api/billing/balance 왕복은 여기서 나가지 않는다 — 최종
