@@ -41,7 +41,7 @@ export default function Result(){
    <div id="reading-progress" className={styles.progress}><img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt="상담을 준비하는 영냥이"/>
     <div><p>{row.state==='COMPLETED'?'네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.':`${row.chapters.length} / ${row.manifest.length}개 챕터 저장됨`}</p>
      <progress value={row.chapters.length} max={row.manifest.length} aria-label="상담 생성 진행률"/>
-     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&<><p>결제가 확인됐어요. 창을 닫아도 저장된 챕터부터 이어갈 수 있어요.</p><button disabled={busy} onClick={()=>void generate(row.id)}>{busy?'영냥이가 차근차근 읽고 있어요':row.chapters.length?'남은 상담 이어가기':'영냥이 상담 시작하기'}</button></>}
+     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="alert">상담을 완료하지 못해 확인이 필요해요. 다시 결제하지 말고 상담 기록의 주문번호와 함께 문의해 주세요.</p>:<><p>결제가 확인됐어요. 창을 닫아도 저장된 챕터부터 이어갈 수 있어요.</p><button disabled={busy} onClick={()=>void generate(row.id)}>{busy?'영냥이가 차근차근 읽고 있어요':row.chapters.length?'남은 상담 이어가기':'영냥이 상담 시작하기'}</button></>)}
      {row.state==='REFUNDED'&&<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>}
      {!row.paid&&row.state!=='REFUNDED'&&<><p>아직 확인된 결제가 없어요. 결제를 마쳤다면 먼저 결제 상태를 다시 확인해 주세요.</p><button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a className={styles.button} href={checkoutPath(row)}>결제 내용 확인하기</a></>}
     </div>
