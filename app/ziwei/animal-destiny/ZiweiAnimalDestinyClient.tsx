@@ -178,7 +178,7 @@ export default function ZiweiAnimalDestinyClient() {
       <div className="relative mx-auto flex min-h-[100dvh] max-w-3xl items-center py-[calc(1rem+env(safe-area-inset-top))]">
         <div className="relative z-10 w-full rounded-xl border border-[var(--zw-rule)] bg-[var(--zw-surface)] p-5 sm:p-7 lg:p-8">
           <p className="text-xs font-semibold uppercase tracking-wide text-[var(--zw-gold)]">{copy.heroEyebrow}</p>
-          <h1 className="mt-3 text-2xl font-black text-[var(--zw-text)] md:text-3xl">{copy.heroTitle}</h1>
+          <h2 className="mt-3 text-2xl font-black text-[var(--zw-text)] md:text-3xl">{copy.heroTitle}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--zw-muted)]">{copy.heroSubtitle}</p>
 
           {error ? (

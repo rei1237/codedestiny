@@ -1,6 +1,6 @@
 # 05. 이행·증빙 — 결제 후 지급·미이행 감지·주문 기록
 
-현재 상태: 결제 확인 후 지급·재지급·중복 지급 방지는 기존에 있었고, 1단계에서 미이행·PG 대조 실패 운영자 알림(C7), 주문 시점 정책 버전(C6), 해외카드 판정 스냅숏(C4), 상점 대조 결과(C8)를 더했다. vedic·ziwei 생성 실패의 카드 환불은 없고, 알림 채널의 운영 설정은 확인하지 않았다. 완료 보고가 아니다.
+현재 상태: 결제 확인 후 지급·재지급·중복 지급 방지는 기존에 있었고, 1단계에서 미이행·PG 대조 실패 운영자 알림(C7), 주문 시점 정책 버전(C6), 해외카드 판정 스냅숏(C4), 상점 대조 결과(C8)를 더했다. vedic·ziwei 생성 실패의 카드 환불은 2026-09-18 커밋 `b0dccc540`으로 배선됐다(§3). 알림 채널 운영 설정·수신자는 2026-09-18 오너 확인으로 해소됐다([06](06-customer-support-and-incident-response.md) §2·§4). 완료 보고가 아니다.
 
 - 측정일: 2026-09-17. 줄 번호는 1단계 커밋 후 워크트리 기준이다.
 - 관련 문서: [03 상품 범위](03-overseas-card-product-scope.md) · [06 CS·사고 대응](06-customer-support-and-incident-response.md) · [08 테스트 결과](08-test-results.md)
@@ -32,18 +32,18 @@
 - 전달 판정 = "성공이면서 건너뛰지 않은 채널 1개 이상". 발송 5초 상한. 표식(`metadata.fulfillmentAlert`·`metadata.verifyAlert`)은 **전달 성공 후에만** CAS 로 찍는다 → 실패·타임아웃·미설정이면 다음 틱에 다시 보낸다.
 - 채널이 하나도 설정돼 있지 않으면 fetch 0회, `[pay-alert] unconfigured` 경고 로그만 남는다.
 - 🔴 알림일 뿐이다. 지급·환불을 하지 않는다(자동 환불 신설 없음).
-- 운영 설정 여부: 위 env 3종은 env 계약·`worker/wrangler.toml`·시크릿 동기화 목록에 없다. 이름만 확인했고 값은 보지 않았다 → **OWNER INPUT REQUIRED**(D4 채널·수신자 결정과 운영 설정 확인).
+- 운영 설정 여부: **READY(2026-09-18 오너 확인)** — `wrangler secret list`(프로덕션 워커 `code-destiny-web`) 실측상 `ADMIN_FEEDBACK_EMAIL` 등록됨, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 미등록. 수신 이메일은 `admin@code-destiny.com`(오너 답변 기준, 시크릿 값 자체는 코드로 재확인 불가). Discord·Slack 은 오너가 쓰지 않기로 한 결정이라 미등록이 결함이 아니다 — 근거 [06](06-customer-support-and-incident-response.md) §2·§4.
 
 ## 3. 상품별 생성 실패 처리
 
 | 상품 | 결제 후 생성이 실패하면 | 상태 | 근거 |
 |---|---|---|---|
-| astrology-ai | 카드 결제 자동 환불 | READY | `worker/routes/astrology-ai.js` `refundCardPaymentOnFailure` |
-| vedic-ai | `generation_failed` 저장, 선결제(월정석·이용권)만 복구. **카드 환불 분기 없음**. 같은 요청의 재요청은 409 `GENERATION_FAILED`. 안내 문구는 "차감된 내역이 있다면 자동으로 복구됩니다" | NOT READY | `worker/routes/vedic-ai.js:154,1521,1575-1577` `restorePrepaidAccessOnFailure` |
-| ziwei-ai | vedic 과 같은 구조(선결제만 복구, 카드 환불 없음) | NOT READY | `worker/routes/ziwei-ai.js:179,2455,2509-2512` |
+| astrology-ai | 카드 결제 자동 환불 | READY | `worker/routes/astrology-ai.js` `refundCardPaymentOnFailure`, 공유 테스트 `__tests__/worker/card-single-payment-auto-refund.test.js` |
+| vedic-ai | `generation_failed` 저장 + 선결제(월정석·이용권) 복구(`restorePrepaidAccessOnFailure`) + 카드 결제 자동 환불(`refundCardPaymentOnFailure`, 같은 요청의 재요청은 이제 무료 재시도가 아니라 환불로 닫힌다) | READY(코드 배선 확인, 전용 테스트 없음) | `worker/routes/vedic-ai.js:682,829,1609-1610` |
+| ziwei-ai | vedic 과 같은 구조(선결제 복구 + 카드 자동 환불) | READY(코드 배선 확인, 전용 테스트 없음) | `worker/routes/ziwei-ai.js:2076,2217,2543-2544` |
 | 그 밖 단건 | 구매권 유지 + 같은 requestId 재시도 | READY(재시도) | `worker/payments/executions.js` `USABLE_EXECUTION_STATUSES` |
 
-- vedic·ziwei 는 구매권이 `granted` 로 남아 "지급 완료"로 보이므로 C7 미지급 알림에도 잡히지 않는다. 카드 환불·알림 분기는 옆 세션 vedic 작업과 겹쳐 이번 범위 밖이며, 플래그 ON 선결 조건 6이다([02](02-overseas-card-implementation.md)).
+- vedic·ziwei 는 이제 생성 실패 시 `autoRefundSinglePaymentDeliveryFailure`가 PortOne 취소 + Payment `status:"cancelled"` 전환 + 콘텐츠 권한 회수까지 하므로, 애초에 "결제됨·미지급" 상태로 남지 않아 C7 대상에서 빠진다(알림이 필요 없다). 플래그 ON 선결 조건 6([02](02-overseas-card-implementation.md) §7)은 2026-09-18 `b0dccc540`으로 충족됐다. 남은 것은 astrology-ai·neo-operation-room 과 달리 이 두 라우트의 `refundCardPaymentOnFailure` 자체를 무는 전용 테스트가 없다는 점뿐이다(`__tests__/worker/card-single-payment-auto-refund.test.js`의 `ROUTES` 배열에 없음) — 범위 밖 후속 과제로 남긴다.
 
 ## 4. 주문에 남는 증빙
 
@@ -75,12 +75,12 @@
 |---|---|
 | 결제 확인 후 지급·무제한 재지급·중복 방지 | READY |
 | 미이행 30분+·PG 대조 실패 운영자 알림 코드 | READY(C7 테스트) |
-| 알림 채널 운영 설정·수신자 | NOT READY(OWNER INPUT REQUIRED) |
+| 알림 채널 운영 설정·수신자 | READY(2026-09-18 오너 확인) |
 | 주문 시점 스냅숏·정책 버전·상점 대조 결과 | READY(C4·C6·C8) |
 | 카드번호·CVC 미저장 | READY |
 | astrology 생성 실패 카드 환불 | READY |
-| vedic·ziwei 생성 실패 카드 환불·알림 | NOT READY |
+| vedic·ziwei 생성 실패 카드 환불·알림 | READY(2026-09-18 `b0dccc540`, 전용 테스트 없음) |
 | 서버측 환불 동의 기록 — 이용권 레일 | READY(2026-09-18) |
 | 서버측 환불 동의 기록 — 단건 레일 | READY(2026-09-18, `source="direct_modal"`) |
 
-**최종 판정: OWNER INPUT REQUIRED** — 감지·기록 코드는 준비됐다. 알림 채널 운영 설정과 수신자 확인, vedic·ziwei 카드 환불 결정이 남아 있다.
+**최종 판정: READY** — 감지·기록 코드, 알림 채널 운영 설정·수신자(2026-09-18 오너 확인), vedic·ziwei 카드 환불 배선(2026-09-18 `b0dccc540`)이 모두 갖춰졌다. 남은 것은 vedic·ziwei `refundCardPaymentOnFailure` 전용 테스트 부재뿐이며, 이는 이번 문서 범위 밖 후속 과제다.

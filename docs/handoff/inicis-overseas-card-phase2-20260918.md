@@ -1,7 +1,7 @@
 ---
 status: done
-updated: 2026-09-18
-next: 2단계 ②③④(이용권·단건 두 레일의 환불 동의)는 전부 main 에 들어갔다(머지 3471a307b · 58ce4f728 · 3차 세션) — 남은 것은 ① 영문 결제정보(이용권 모달 한국어 14문구 · app/checkout i18n 배선)와 3단계(법무)이며, 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
+updated: 2026-09-19
+next: 2단계 ①②③④ 전부 main 에 들어갔다 — ②③④(정책 링크·문의 진입점·환불 동의, 머지 3471a307b · 58ce4f728 · 3차 세션), ①(영문 결제정보 3축, 701a9d6e2 · 83fe0c05c · 4ee3e9c42, checkout-i18n-wiring-20260918.md). 03·05·09 오너 입력(선물 포함·vedic/ziwei 환불·사업자정보/MID 일치·예상거래금액)도 4차 세션(2026-09-18)이 해소하고 push 했다(80d30101e·90ec3670a·342373dd1·d1e323a8c) — 코드·문서 작업은 이걸로 끝이고 남은 것은 3단계(법무)와 PG 특약 승인, 둘 다 외부 승인 대기뿐이다. 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
 ---
 
 # KG이니시스 해외카드 특약 대비 — 2단계 ②③④ (결제창 정책 링크·영문 결제 문의 진입점·서버측 환불 동의)
@@ -155,16 +155,15 @@ C5 가 서버 절반이었다면 여기는 화면 절반 + 단건 레일 배선�
 
 - [x] 머지·push(`3471a307b` · `58ce4f728`). 운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 하지 않았다.
 - [x] 서버측 환불 동의 기록 — **이용권 레일**(C5 `8e7d94c31`).
-- [~] 2단계 ① 영문 결제정보 — **영냥이 `/checkout` 축은 끝났다**(`701a9d6e2`, [checkout-i18n-wiring-20260918.md](checkout-i18n-wiring-20260918.md)). 남은 축: 이용권 모달 `app/points/PointsClient.tsx:4823-4946` 의 한국어 14문구, 선물 안내 `GIFT_GUIDANCE`(`lib/payment/gift-policy.js:13`).
-  - 🔴 **"7개 로케일 `payment.directModal` 영어화"는 이미 끝나 있었다**(2차 세션 실측). `public/i18n/*.json` 12개를 전수 조사한 결과 비-ko 11개 로케일 전부 `payment.directModal` 47키에 한글 0자다. 이 항목은 남은 작업이 아니다.
-  - 🔴 `app/checkout/CheckoutClient.tsx` 는 233줄 중 한글 39줄이고 **i18n 배선이 아예 없다**(`useT` 계열 import 0건). 사전 키를 채우는 일이 아니라 배선부터 까는 일이다 — 여기가 ① 의 실제 무게중심이다.
+- [x] 2단계 ① 영문 결제정보 — **이 줄은 낡아 있었다.** 이 문서가 쓰인 뒤(13:24) 같은 날 두 커밋이 더 들어가 3축(`/checkout`·이용권 모달·`GIFT_GUIDANCE`) 전부 끝났는데, 이 마스터 문서만 갱신이 안 됐었다(5차 세션, 2026-09-19 실측 정정). 근거: `701a9d6e2`(13:24, `/checkout`) · `83fe0c05c`(14:28, 이용권 모달) · `4ee3e9c42`(15:54, `GIFT_GUIDANCE`) 셋 다 `git merge-base --is-ancestor <sha> HEAD` 로 확인, `POINTS_PAGE_COPY`(`PointsClient.tsx`)·`GIFT_GUIDANCE_BY_LOCALE`(`gift-policy.js`) 실재 코드도 grep 으로 재확인. 상세는 [checkout-i18n-wiring-20260918.md](checkout-i18n-wiring-20260918.md).
 - [x] 서버측 환불 동의 기록 — **단건 결제창**(C6 `567b9f6dd` · `e061e951f` · `41a8a1eca`). 아래 "C6" 절 참조. 예상대로 캐시 핀 회전이 딸려 왔다(2그룹 73곳).
 - [ ] 3단계(법무, LEGAL REVIEW REQUIRED)는 그대로 남아 있다.
 - [x] [06](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md) §4 담당자·온콜·개인정보 유출 대응 절차 — 이 문서와 별개 세션(2026-09-18)이 오너에게 직접 물어 해소하고 main 에 push 완료(READY). 아래 03·05·09 항목과 같은 "오너 Q&A" 패턴을 썼다.
-- [ ] **03·05·09 의 나머지 OWNER INPUT** — 06 과 같은 방식(오너에게 직접 질문)으로 풀어야 하는 순수 운영 결정이다. 코드 배선이 아니라 GREEN 문서 작업이라 워크트리 불필요, 공유 체크아웃 직접 가능.
-  - [03](../payment/inicis-overseas-card/03-overseas-card-product-scope.md): 선물을 해외카드 대상으로 신청할지(PG 위험 요인), 운영 `GIFTS_ENABLED` 활성 여부.
-  - [05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §6: vedic·ziwei AI 생성 실패 시 카드 환불 정책. 🔴 같은 표의 "알림 채널 운영 설정·수신자" 행은 이미 06 에서 해소된 사실(2026-09-18)을 반영 못한 stale 상태 — 오너에게 새로 물을 것 없이 06 §4 결과로 동기화만 하면 된다.
-  - [09](../payment/inicis-overseas-card/09-inicis-application-facts.md): 예상 해외 거래금액, 사업자 정보와 MID 일치 여부.
+- [x] **03·05·09 의 나머지 OWNER INPUT** — 06 과 같은 방식(오너에게 직접 질문)으로 4차 세션(2026-09-18, 워크트리 `inicis-overseas-card-p2-rest-20260918-223602`)이 풀고 push 했다(`80d30101e`·`90ec3670a`·`342373dd1`, 머지 `d1e323a8c`).
+  - [03](../payment/inicis-overseas-card/03-overseas-card-product-scope.md): 선물을 해외카드 대상에 포함(오너 확인, `80d30101e`). `GIFTS_ENABLED` 운영 전환 자체는 특약 승인 후 별개.
+  - [05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §6: vedic·ziwei AI 생성 실패 카드 환불 — 오너에게 물을 필요 없이 실측(`git log`/`git grep`)으로 끝났다. 같은 날 다른 세션이 이미 배선해 merge 한 `b0dccc540`(이 워크트리 베이스보다 먼저)을 발견해 "추가할지" 질문 대신 stale 문서(NOT READY)를 정정했다(`342373dd1`). 전용 테스트는 여전히 없음(범위 밖 — `__tests__/worker/card-single-payment-auto-refund.test.js` 의 `ROUTES` 가 astrology-ai·neo-operation-room 만 포함, vedic-ai/ziwei-ai 미포함).
+  - [09](../payment/inicis-overseas-card/09-inicis-application-facts.md): 예상 해외 거래금액(월 100만원 미만) · 사업자정보-MID 일치 확인(값 자체는 비밀정보라 문서에 안 적음) — 오너 확인(`90ec3670a`).
+  - 02 §8·05 §6·09 최종 판정 모두 `OWNER INPUT REQUIRED` 를 벗어났다. 남은 외부 블로커는 09 문항 12 법무 검토와 PG 특약 승인뿐.
 - 플래그 ON 은 [02](../payment/inicis-overseas-card/02-overseas-card-implementation.md) §7 체크리스트 10개 순서를 따른다. 이번 변경으로 체크리스트 항목이 켜지지는 않았다(§7 에 정책 링크 항목이 없다 — 표시 의무는 플래그와 독립이다).
 
 ## 갱신한 문서
@@ -195,6 +194,7 @@ C5 가 서버 절반이었다면 여기는 화면 절반 + 단건 레일 배선�
 - 🟡 **`refundConsent` 의 fail-open 전제를 지키는 가드가 없다.** phoneConsent 쪽은 `verify:payment-phone-consent` 가 3정본 + 7미러의 동의 줄을 지키는데, 이쪽엔 대응물이 없다. `PointsClient.tsx:4884/4917` 의 `disabled` 가 `aria-disabled` 로 퇴화해도 아무것도 안 울린다 — 같은 파일 `:4881` 이 "준비 중" 상태에 대해 이미 `aria-disabled` 패턴을 쓰고 있어 실수 유인이 크다. 앱 상점 레일이 이 엔드포인트를 쓰게 되는 경우도 같은 전제를 깬다.
 - 🟡 `startSubscriptionPrepare` 의 엔트리 재사용 키(`PointsClient.tsx:3166`)가 `planId`+`method` 뿐이고 `refundAgreed` 를 안 본다. 지금은 모달이 닫힐 때 ref 가 null 로 초기화되고(`:3198`) 동의 전 클릭이 불가라 도달 불가지만, 구조적으로 "동의 false 엔트리 재사용" 경로가 열려 있다. 결과가 안전 방향(기록 누락)이라 차단 사유는 아니었다.
 - 🟡 `app/points/PointsClient.tsx` 가 `scripts/lib/change-risk.mjs` 에서 `level=medium` · `deepRequired` 없음이다. `paid-flow-gates.yml:95` 트리거에는 있고 verify 8종이 이 파일을 열어 읽는데도 그렇다. 이번엔 `worker/payments/**` 가 deep 을 켜 줘서 가려졌지만, **PointsClient 단독 변경이면 standard 티어로 떨어진다**(`useCoinGate.ts` 와 같은 계열의 구멍).
+- 🟡 (4차 세션) vedic-ai·ziwei-ai 의 생성 실패 카드 자동환불(`refundCardPaymentOnFailure`, `b0dccc540`)에 전용 테스트가 없다. `__tests__/worker/card-single-payment-auto-refund.test.js` 의 `describe.each(ROUTES)` 가 astrology-ai·neo-operation-room 만 나열하고 vedic-ai/ziwei-ai 를 안 넣었다. 코드 배선은 실측 확인됐고([05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §3), 회귀를 잡을 테스트만 없는 상태다.
 
 ## 재개 절차
 

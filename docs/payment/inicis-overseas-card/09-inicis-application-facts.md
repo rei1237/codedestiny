@@ -1,8 +1,8 @@
 # 09. KG이니시스 해외카드 신청 사실 — 13문항 답·사업자 정보·예상 거래금액
 
-현재 상태: 해외카드 신청서 13문항에 코드와 레포 기록으로 확인한 사실만 답했다. 특약은 2026-08-20 에 신청했고, 레포 최신 기록(2026-09-09) 기준 처리중이며 승인은 확인되지 않았다. `FOREIGN_CARD_ENABLED` 가 꺼져 있어 어느 주문에도 해외카드 결제창 파라미터를 싣지 않는다. 사업자 정보·MID 일치, 예상 해외 거래금액은 레포로 알 수 없어 **OWNER INPUT REQUIRED** 로 남겼다. 완료 보고가 아니다.
+현재 상태: 해외카드 신청서 13문항에 코드와 레포 기록으로 확인한 사실만 답했다. 특약은 2026-08-20 에 신청했고, 레포 최신 기록(2026-09-09) 기준 처리중이며 승인은 확인되지 않았다. `FOREIGN_CARD_ENABLED` 가 꺼져 있어 어느 주문에도 해외카드 결제창 파라미터를 싣지 않는다. 사업자 정보·MID 일치, 예상 해외 거래금액은 레포로 알 수 없어 OWNER INPUT 이 필요했고 2026-09-18 오너 확인으로 모두 해소됐다. 남은 것은 문항 12 법무 검토와 특약 PG 승인뿐이다. 완료 보고가 아니다.
 
-- 측정일: 2026-09-17. 8번 문항(해외 고객 CS)은 2026-09-18 2단계 반영 후 재측정. 9번 문항(사고 대응 담당자)은 2026-09-18 오너 확인으로 재측정. 이 문서는 신청서를 쓸 때의 근거다. 승인 사실이 아니므로 화면·마케팅에 "해외카드 지원"으로 옮기지 않는다.
+- 측정일: 2026-09-17. 8번 문항(해외 고객 CS)은 2026-09-18 2단계 반영 후 재측정. 9번 문항(사고 대응 담당자), 13번 문항(예상 거래금액), 사업자 정보·MID 일치는 2026-09-18 오너 확인으로 재측정. 이 문서는 신청서를 쓸 때의 근거다. 승인 사실이 아니므로 화면·마케팅에 "해외카드 지원"으로 옮기지 않는다.
 - 시크릿·MID·사업자등록번호 **값**은 적지 않는다(위치만).
 - 관련 문서: [01 결제 구조](01-current-payment-architecture.md) · [02 해외카드 구현](02-overseas-card-implementation.md) · [03 상품 범위](03-overseas-card-product-scope.md) · [04 회원 인증](04-customer-authentication.md) · [05 이행·증빙](05-fulfillment-and-evidence.md) · [06 CS·사고 대응](06-customer-support-and-incident-response.md) · [07 개인정보](07-personal-data-inventory.md) · [08 테스트 결과](08-test-results.md)
 
@@ -33,7 +33,7 @@
 | 10 | 실물 해외배송 | 없음(디지털 콘텐츠) | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 11 | 배송추적 | 해당 없음 | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 12 | 개인정보 수집 범위 | 회원: 이름·이메일·휴대폰(암호화 저장)·출생 정보·성별·동의 기록·소셜 계정 식별자. PG 전달: 이름·이메일·국내 휴대폰 번호만(주소·국가 없음). 카드번호·CVC 는 저장하지 않는다. 1단계에서 수집 항목을 늘리지 않았다 | NOT READY(LEGAL REVIEW REQUIRED — 처리방침 국외 이전·보호책임자·처리자 목록) | [07](07-personal-data-inventory.md) |
-| 13 | 해외카드 예상 거래금액 | **UNKNOWN — OWNER INPUT REQUIRED** | NOT READY(OWNER INPUT REQUIRED) | §5 |
+| 13 | 해외카드 예상 거래금액 | **월 100만원 미만**(2026-09-18 오너 확인 — 범위 답변, 신청서 양식이 단일 수치를 요구하면 이 범위 안에서 오너가 값을 정한다) | READY | §5 |
 
 ## 3. 결제 URL — 운영만 적는다
 
@@ -47,14 +47,14 @@
 
 | 항목 | 레포 위치 | 상태 |
 |---|---|---|
-| 상호·대표자·사업자등록번호·통신판매업 신고번호·전화·이메일·주소 | `lib/site-policy-config.js:40` `BUSINESS_IDENTITY`(키 `companyName`·`representative`·`registrationNumber`·`mailOrderNumber`·`phone`·`email`·`address`). 사이트 푸터 공개값의 정본 | 신청서 값과 같은지 **OWNER INPUT REQUIRED** |
-| MID | 소스·`worker/wrangler.toml`·`worker/wrangler.staging.toml` 에 값이 없다. 워커 시크릿 env `MID` 로만 읽는다(`worker/lib/portone.js:14,116`) | 신청 대상 MID 확인 **OWNER INPUT REQUIRED** |
+| 상호·대표자·사업자등록번호·통신판매업 신고번호·전화·이메일·주소 | `lib/site-policy-config.js:40` `BUSINESS_IDENTITY`(키 `companyName`·`representative`·`registrationNumber`·`mailOrderNumber`·`phone`·`email`·`address`). 사이트 푸터 공개값의 정본 | 신청서 값과 일치 확인됨(2026-09-18 오너 확인, 값은 문서에 적지 않는다) — READY |
+| MID | 소스·`worker/wrangler.toml`·`worker/wrangler.staging.toml` 에 값이 없다. 워커 시크릿 env `MID` 로만 읽는다(`worker/lib/portone.js:14,116`) | 신청 대상 MID 일치 확인됨(2026-09-18 오너 확인, 값은 문서에 적지 않는다) — READY |
 | PortOne 상점·채널 | 시크릿 env `PORTONE_STORE_ID`·`PORTONE_CHANNEL_KEY` 로 읽는다(이름만 확인, 값 미출력) | 확인하지 않음 |
 | 통화 | KRW 고정. 확정 때 PortOne 재조회 통화가 KRW 가 아니면 422 `CURRENCY_MISMATCH` + 주문 실패 | READY — `worker/payments/pg.js:132`, `worker/payments/errors.js:99` |
 
-## 5. 예상 해외 거래금액 — UNKNOWN — OWNER INPUT REQUIRED
+## 5. 예상 해외 거래금액 — 월 100만원 미만(2026-09-18 오너 확인)
 
-추정할 근거 데이터가 레포와 코드에 없다. 숫자를 만들지 않는다.
+추정할 근거 데이터가 레포와 코드에 없어 숫자를 만들지 않고 운영자에게 물었다.
 
 | 확인한 곳 | 결과 | 근거 |
 |---|---|---|
@@ -64,7 +64,7 @@
 | 해외카드 판정 스냅숏(C4) | "해외카드 결제창을 보여도 되는가"만 남긴다. 플래그가 꺼져 있어 지금은 전부 닫힘 | `worker/payments/foreign-card-policy.js:69` `toForeignCardSnapshot` |
 | 결제 후 판별 | PortOne V2 카드 정보에 해외 발급 전용 필드가 없어, 승인 뒤에도 해외 발급 카드 거래만 골라 집계할 수 없다 | [02](02-overseas-card-implementation.md) §5 |
 
-- 운영자가 정할 것: 신청서에 적을 예상 거래금액과 그 산정 근거. 이 문서에는 운영자가 준 값만 적는다.
+- 운영자 답변(2026-09-18): 월 100만원 미만. 신청서 양식이 단일 수치를 요구하면 이 범위 안에서 운영자가 값을 정한다.
 
 ## 6. 신청서·화면에서 하지 않는 것
 
@@ -93,8 +93,8 @@
 | 8 해외 고객 CS | READY(이메일 1채널 — 응답기한·언어 지원 보장 없음을 그대로 적는다) |
 | 9 사고 대응 담당자·알림 채널 운영 설정 | READY — 알림 채널·담당자(오너 본인)·온콜(평일 업무시간, 당일 내 조치) 모두 2026-09-18 오너 확인 |
 | 12 개인정보 처리방침 | NOT READY(LEGAL REVIEW REQUIRED) |
-| 13 예상 해외 거래금액 | NOT READY(OWNER INPUT REQUIRED) |
-| 사업자 정보·MID 일치 | NOT READY(OWNER INPUT REQUIRED) |
+| 13 예상 해외 거래금액 | READY(2026-09-18 오너 확인 — 월 100만원 미만) |
+| 사업자 정보·MID 일치 | READY(2026-09-18 오너 확인 — 일치) |
 | 해외카드 특약 승인 | NOT READY(PG APPROVAL REQUIRED) |
 
-**최종 판정: OWNER INPUT REQUIRED** — 코드로 답할 수 있는 문항과 사고 담당자(문항 9)는 준비됐다. 예상 해외 거래금액·사업자 정보와 MID 일치는 아직 운영자가 채워야 한다. 해외카드 결제를 여는 것은 그 뒤 PG 승인과 [02](02-overseas-card-implementation.md) §7 체크리스트가 끝난 다음이다.
+**최종 판정: LEGAL REVIEW REQUIRED + PG APPROVAL REQUIRED** — 코드로 답할 수 있는 문항, 사고 담당자(문항 9), 예상 해외 거래금액(문항 13), 사업자 정보·MID 일치가 모두 2026-09-18 기준 준비됐다. 남은 것은 문항 12 개인정보 처리방침의 법무 검토([10](10-legal-review-questions.md))와 해외카드 특약 PG 승인 — 둘 다 운영자 입력이 아니라 외부 절차다. 해외카드 결제를 여는 것은 그 뒤 [02](02-overseas-card-implementation.md) §7 체크리스트가 끝난 다음이다.

@@ -3752,6 +3752,47 @@ async function vedicAiGeneratePrompt(){
 
 /* 🔴 resumeGate 가 있으면 게이트를 다시 타지 않는다 — 리다이렉트 복귀 재개 전용 진입이고,
    게이트를 타는 vedicAiGeneratePrompt 로 되돌리면 이미 낸 결제가 또 일어난다(배선 레시피 4번). */
+/* 🔴 워커는 상담을 10개 부분으로 나눠 만든다 — 첫 응답은 202(부분 생성)이고, 200(completed)이
+   나올 때까지 서버가 준 resumeBody 로 이어서 요청해야 한다. 202 를 성공으로 읽으면 결제는 확정된
+   채 3/10 만 적힌 본문이 '완성'으로 굳는다. 형제 상품은 js/saju-engine.js 의 _cdRetryTransientPost
+   가 같은 일을 하지만 이 페이지는 그 파일을 로드하지 않으므로 같은 의미를 여기 둔다(원칙 6).
+   initialBody 는 첫 POST 본문(문자열)이고, 이어받기부터는 서버가 준 resumeBody 만 보낸다. */
+async function vedicAiDeliverUntilSaved(headers, initialBody, state){
+  let resp=null,data={},requestBody=initialBody,attempt=1,waves=0,stalled=false;
+  while(true){
+    try{
+      resp=await fetch('/api/fortune/vedic/ai-prompt',{method:'POST',headers:headers,body:requestBody});
+      data=await resp.json().catch(function(){ return {}; });
+    }catch(fetchErr){
+      if(attempt<3){ attempt+=1; await new Promise(function(r){setTimeout(r,900*(attempt-1));}); continue; }
+      throw fetchErr;
+    }
+    if(resp.status===202&&data&&data.resumeBody){
+      // 한도(retryable:false)나 파도 상한에 걸리면 결제 권한을 남긴 실패로 떨어뜨려 무료 재시도를 연다.
+      if(data.retryable===false||++waves>=40){
+        data=Object.assign({},data,{ok:false,paymentRetainedForRetry:true,message:'저장된 상담을 보존했어요. 같은 상담으로 다시 확인해 주세요.'});
+        stalled=true;
+        break;
+      }
+      if(state){
+        const done=(data.completedParts&&data.completedParts.length)||0;
+        state.statusError=false;
+        state.statusMessage='저장된 부분을 이어서 상담 답변을 작성하고 있습니다. ('+done+'/'+(Number(data.totalParts)||10)+')';
+        vedicAiRefreshUi();
+      }
+      requestBody=JSON.stringify(data.resumeBody);
+      attempt=1;
+      await new Promise(function(r){setTimeout(r,Math.min(5000,Math.max(1000,Number(data.retryAfterMs)||1000)));});
+      continue;
+    }
+    const code=String(data&&data.code||'').toUpperCase();
+    const transient=resp.status===503||code==='SERVICE_TEMPORARILY_UNAVAILABLE'||code==='PAID_ACCESS_VERIFY_RETRYABLE'||code==='DB_DEGRADED';
+    if(transient&&attempt<3){ attempt+=1; await new Promise(function(r){setTimeout(r,900*(attempt-1));}); continue; }
+    break;
+  }
+  return { resp:resp, data:data, stalled:stalled };
+}
+
 async function vedicAiGeneratePromptCore(resumeGate, resumeRequestId){
   const state=vedicAiEnsureState();
   const qEl=document.getElementById('vedicAiQuestion');
@@ -3832,22 +3873,10 @@ async function vedicAiGeneratePromptCore(resumeGate, resumeRequestId){
       payment:gate.payment,
       _paymentContext:gate._paymentContext
     });
-    let resp=null,data={};
-    for(let attempt=1;attempt<=3;attempt++){
-      try{
-        resp=await fetch('/api/fortune/vedic/ai-prompt',{method:'POST',headers:headers,body:vedicAiBody});
-        data=await resp.json().catch(function(){ return {}; });
-      }catch(fetchErr){
-        if(attempt<3){ await new Promise(function(r){setTimeout(r,900*attempt);}); continue; }
-        throw fetchErr;
-      }
-      const _vCode=String(data&&data.code||'').toUpperCase();
-      const _vTransient=resp.status===503||_vCode==='SERVICE_TEMPORARILY_UNAVAILABLE'||_vCode==='PAID_ACCESS_VERIFY_RETRYABLE'||_vCode==='DB_DEGRADED';
-      if(_vTransient&&attempt<3){ await new Promise(function(r){setTimeout(r,900*attempt);}); continue; }
-      break;
-    }
+    const delivered=await vedicAiDeliverUntilSaved(headers,vedicAiBody,state);
+    const resp=delivered.resp,data=delivered.data,stalled=delivered.stalled;
 
-    if(!resp.ok){
+    if(stalled||!resp.ok){
       const code=String(data&&data.code||'').trim();
       // 결제는 확인됐는데 생성만 실패 — 서버가 환불하지 않았을 때만 증거를 보관해 무료 재시도를 연다.
       if(vedicAiShouldRetainEvidence(data)){
@@ -3985,6 +4014,85 @@ function runVedicAiResume(descriptor, grant){
     vedicAiRefreshUi();
     return vedicAiGeneratePromptCore(gate,requestId);
   }).then(function(ok){ return ok!==false; }).catch(function(){ return false; });
+}
+
+/* ── 생성 도중 화면이 잠들었다 돌아왔을 때의 복구 ──────────────────────────────
+   모바일에서 탭이 백그라운드로 내려가면 진행 중이던 fetch 가 끊긴다. 결제와 저장은 서버에 이미
+   남아 있으므로 전경으로 돌아올 때마다 저장본을 다시 조회해 화면에 되돌린다(202 면 이어받기).
+   형제 상품은 js/saju-engine.js 의 _cdMountQuestionRecovery 가 같은 일을 하지만 이 페이지는
+   그 파일을 로드하지 않는다. 결제 복귀(runVedicAiResume)와는 다른 축이다 — 그쪽은 결제창에서
+   돌아온 문서이고, 이쪽은 같은 문서가 잠들었다 깨어난 경우다. */
+async function vedicAiRecoverSavedConsultation(){
+  const state=vedicAiEnsureState();
+  if(state.inFlight) return false;
+  const headers=vedicPrashnaReadAuthHeaders();
+  if(!headers.Authorization) return false;
+  let resp=null,data={};
+  try{
+    resp=await fetch('/api/fortune/vedic/ai-result',{method:'GET',headers:headers,credentials:'include',cache:'no-store'});
+    data=await resp.json().catch(function(){ return {}; });
+  }catch(_){ return false; }
+  // 저장본이 없거나(404) 권한이 사라졌으면(401·403) 조용히 물러난다 — 빈 화면에 오류를 띄우지 않는다.
+  if(!resp||resp.status===404||resp.status===401||resp.status===403) return false;
+  let payload=data;
+  if(resp.status===202&&data&&data.resumeBody){
+    state.inFlight=true;
+    state.statusError=false;
+    vedicAiRefreshUi();
+    let followed=null;
+    try{
+      followed=await vedicAiDeliverUntilSaved(headers,JSON.stringify(data.resumeBody),state);
+    }catch(_){ followed=null; }
+    finally{ state.inFlight=false; }
+    if(!followed||followed.stalled||!followed.resp.ok){
+      state.statusError=true;
+      state.statusMessage='저장된 상담을 보존했어요. 같은 상담으로 다시 확인해 주세요.';
+      vedicAiRefreshUi();
+      return false;
+    }
+    payload=followed.data;
+  }else if(!resp.ok||payload.saved!==true){ return false; }
+  const resultText=String(payload&&payload.resultText||'').trim();
+  if(!resultText) return false;
+  if(!String(state.question||'').trim()&&payload.resumeInputs&&payload.resumeInputs.question){
+    state.question=String(payload.resumeInputs.question||'').slice(0,1000);
+    const qEl=document.getElementById('vedicAiQuestion');
+    if(qEl) qEl.value=state.question;
+  }
+  state.resultText=resultText;
+  state.prompt=String(payload&&payload.generatedPrompt||payload&&payload.prompt||'').trim();
+  state.questionType=String(payload&&payload.questionType||'general');
+  state.paidEvidence=null;
+  state.paidRequestId='';
+  state.statusError=false;
+  state.statusMessage='저장된 상담을 불러왔습니다.';
+  vedicAiRefreshUi();
+  return true;
+}
+
+function vedicAiMountWakeRecovery(){
+  let running=false,finished=false;
+  async function recover(){
+    if(running||finished) return;
+    if(document.visibilityState==='hidden') return;
+    running=true;
+    try{ finished=await vedicAiRecoverSavedConsultation()===true; }
+    catch(_){}
+    finally{ running=false; }
+  }
+  // pageshow 는 첫 진입 load 직후에도 오므로 실제 bfcache 복귀(persisted)일 때만 부른다.
+  // 나머지는 running/finished 가드가 있어 중복 호출돼도 안전하다.
+  function onPageShow(event){ if(event&&event.persisted!==true) return; return recover(); }
+  window.addEventListener('pageshow',onPageShow);
+  window.addEventListener('focus',recover);
+  window.addEventListener('online',recover);
+  document.addEventListener('visibilitychange',recover);
+  return function(){
+    window.removeEventListener('pageshow',onPageShow);
+    window.removeEventListener('focus',recover);
+    window.removeEventListener('online',recover);
+    document.removeEventListener('visibilitychange',recover);
+  };
 }
 
 async function vedicAiCopyPrompt(){
@@ -7716,6 +7824,9 @@ function runVedicBasicResume(args){
   try{ entry.registerPaidResumeHandler(VEDIC_COMPAT_RESUME_KIND,runVedicCompatResume); }catch(_){}
   try{ entry.registerPaidResumeHandler(VEDIC_BASIC_RESUME_KIND,runVedicBasicResume); }catch(_){}
 })();
+
+// 결제창 진입점 유무와 무관하게 달아야 한다 — 잠들었다 깨어난 탭은 결제창을 거치지 않는다.
+try{ vedicAiMountWakeRecovery(); }catch(_){}
 
 // 보유 여부를 미리 받아 두면 결과 첫 렌더부터 잠금 없이 나간다(입력 폼을 채우는 동안 끝난다).
 try{ refreshVedicBasicUnlockStatus(); }catch(_){}

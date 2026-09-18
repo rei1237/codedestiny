@@ -84,6 +84,18 @@ const CURATED_RELATED_PATHS: Record<string, readonly string[]> = {
   "/ziwei/animal-destiny": ["/ziwei", "/ziwei-ai", "/saju/animal-destiny"],
 };
 
+/**
+ * 정본에 프로필이 없는 목적지의 라벨.
+ *
+ * 위 표의 목적지는 라벨을 목적지 프로필의 title 에서 가져오지만, 몰입형 결과 화면은
+ * 랜딩 템플릿·클러스터 링크를 쓰지 않아 SEO_ROUTE_PROFILES 에 등록되지 않는다. 등록
+ * 대신 라벨만 여기 두는 이유는 위 🔴 주석과 같다 — 링크 하나를 살리려고 정본을 건드리면
+ * 이 작업 범위 밖의 페이지 문구까지 움직인다.
+ */
+const CURATED_LINK_LABELS: Record<string, string> = {
+  "/ziwei/animal-destiny": "자미두수 영혼 동물",
+};
+
 /* ServiceIntroSection(app/components/ServiceIntroSection.tsx)과 같은 토큰을 쓴다 — 그 패널
    바로 아래에 붙는 경우가 9개라, 색이 갈리면 두 블록이 서로 다른 페이지처럼 보인다.
    light 는 /yeon-star-hug 하나뿐이다(그 라우트만 크림색 배경 위에 흰 카드를 쌓는다). */
@@ -110,10 +122,11 @@ function resolveRelatedLinks(fromPath: string) {
   return [...curated, FUSION_PATH]
     .map((path) => {
       const profile = getSeoRouteProfile(path) as { path: string; title: string } | null;
+      const label = profile?.title || CURATED_LINK_LABELS[path];
       /* 목적지를 오타로 적으면 라벨이 조용히 비는 대신 빌드가 선다 — 이 컴포넌트가
          서버 렌더라 정적 export 단계에서 터진다. */
-      if (!profile) throw new Error(`ImmersiveRelatedLinks: ${fromPath} 의 관련 링크 목적지 ${path} 가 SEO_ROUTE_PROFILES 에 없다`);
-      return { href: profile.path, label: profile.title };
+      if (!label) throw new Error(`ImmersiveRelatedLinks: ${fromPath} 의 관련 링크 목적지 ${path} 가 SEO_ROUTE_PROFILES 에도 CURATED_LINK_LABELS 에도 없다`);
+      return { href: path, label };
     })
     .slice(0, RELATED_LINK_LIMIT);
 }
