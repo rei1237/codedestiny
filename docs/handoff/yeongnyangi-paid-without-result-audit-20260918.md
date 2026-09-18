@@ -1,10 +1,8 @@
 ---
-status: partial (진단 스크립트 작성 + 스테이징 검증 완료, 프로덕션 실행은 사용자 승인 대기)
+status: resolved (프로덕션 실측 완료 — 현재 PAID_WITHOUT_RESULT 0건. Result.tsx UI 갭은 별도 후속 결정 대기)
 updated: 2026-09-18
-next: 사용자가 승인하면 `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny` 를
-  실행해 실제 영향 고객 수를 확인한다. 0건이 아니면 구체적 requestId 확보 방법(현재 스크립트는
-  집계만 내고 ID/PII 는 출력하지 않는다)을 별도로 정하고 나서 `scripts/recover-yeongnyangi-request.mjs`
-  로 개별 복구한다.
+next: (선택, 후속) Result.tsx 가 GENERATION_REVIEW_REQUIRED 등 errorCode 별 안내를 구분해서
+  보여주도록 고치는 RED 작업 — 사용자가 아직 요청하지 않음, 요청 시 착수. 그 전까지는 재거론 안 함.
 ---
 
 # 영냥이 결제 후 결과 누락(PAID_WITHOUT_RESULT) 진단
@@ -68,19 +66,37 @@ Worker QA 재실행 필요" 라고 명시한 채 갱신 이력이 없었다(생�
   있어 유료 `yeongnyangi_requests` 자체가 거의 없음 — room-restore.md 에 이미 기록된 사실과
   일치, 새로운 사실 아님). **이 실행은 스크립트가 안전하게 연결·집계·종료함을 검증한 것이지,
   프로덕션의 실제 영향 고객 수를 알려주진 않는다.**
-- `npm run check:fast` 백그라운드 실행 중 — 결과는 다음 세션이 확인(타임아웃으로 background 로
-  넘어감, 이 문서 갱신 시점엔 미완료).
+- `npm run check:fast` 완료: exit 0, entry-encoding OK, jest 281 suites/3966 tests 전부 통과.
+- 커밋 `9faaad662` (push 완료, `origin/main` 반영).
 
-## 남은 일 (사용자 승인 필요)
+## 프로덕션 실측 결과 (2026-09-18, 사용자 승인 후 실행)
 
-1. **프로덕션 실행**: `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny`
-   — 읽기 전용이지만 실제 운영 결제 DB 접속이라 별도 승인을 받고 진행하기로 함(2026-09-18
-   사용자 선택: "배포 확인 → 스테이징 검증까지"만 승인, 운영 조회는 다음 결정).
-2. 1번 결과 `stuckCandidates`/`reviewRequiredNow` 가 0이 아니면: 그 요청들을 실제로 복구하려면
-   구체적 requestId 가 필요한데 현재 스크립트는 집계만 낸다. ID 확보 방법(제한된 개수만 별도
-   조회하는 후속 스크립트 등)은 그 시점에 다시 정한다.
-3. `Result.tsx` 의 UI 갭(재시도 버튼이 REVIEW_REQUIRED 상태에서 같은 제네릭 메시지를 무한
-   반복, `row.errorCode` 미노출, 운영자 알림 없음) — 근본 원인 수정은 이번 세션에서 사용자가
-   선택하지 않아 미착수. 후속 과제로만 보고.
-4. room-restore.md 의 "수정본 배포 후 Worker QA 재실행" 자체는 여전히 안 됨 — 필요하면 별도
+`node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny` 실행 결과:
+**결제된(`paymentId` 존재) 요청 0건, 따라서 PAID_WITHOUT_RESULT 0건.**
+
+결과가 너무 깔끔해서(0건) 쿼리 버그(필드명·컬렉션명 오류)가 아닌지 별도 1회성 스크립트로
+교차 검증함(커밋하지 않고 확인 후 삭제):
+- `yeongnyangi_requests` 컬렉션 전체 문서 수(필터 없음) = **1건뿐**. 그 1건도 `state:"CREATED"`,
+  `paymentId` 없음(미결제), `createdAt` 이 오늘(2026-09-18T06:51 UTC) — 즉 이 컬렉션 자체가
+  현재 거의 비어 있다. 필드명(`paymentId`)·컬렉션명(`yeongnyangi_requests`) 은 스키마
+  (`worker/lib/yeongnyangi-models.js`)와 정확히 일치함을 재확인 — 쿼리 로직 문제 아님.
+- 이 결과는 이 문서의 원 계기였던 SoulCat P0 회귀와 맞아떨어진다: `requestId` 렌더 게이트
+  버그가 2026-09-16(`3fb6ab057`)부터 오늘 수정(`6c5392d2a`, `45232820e`)까지 SoulCat 결제
+  버튼 자체를 100% 막고 있었다([checkout-soulcat-requestid-gate-p0-20260918.md](checkout-soulcat-requestid-gate-p0-20260918.md))
+  — 그 기간엔 애초에 결제가 발생할 수 없었으니 결제 후 결과 누락도 발생할 수 없다. 2026-09-16
+  이전 기록이 전혀 안 남아있는 것은 이 실측만으로는 "원래 트래픽이 거의 없었다"인지 다른
+  이유인지 단정할 수 없음 — 삭제·초기화 정황은 없고 이 세션에서 쓰기 연산은 전혀 하지 않았다.
+
+**결론: 지금 이 순간 기준으로 영냥이(CD 내부+SoulCat) 결제 후 결과 누락 고객은 없다.** 사용자
+원 질문("영냥이 상품들이 모두 제대로 결제 후 결과가 제공이 되어야해")에 대한 직접 답.
+
+## 남은 일 (선택, 후속 과제)
+
+1. `Result.tsx` 의 UI 갭(재시도 버튼이 REVIEW_REQUIRED 상태에서 같은 제네릭 메시지를 무한
+   반복, `row.errorCode` 미노출, 운영자 알림 없음) — 지금은 실제로 막힌 요청이 0건이라 긴급하진
+   않지만, 향후 트래픽이 늘면 같은 경로로 재발할 수 있는 구조적 갭. 근본 원인 수정은 사용자가
+   아직 선택하지 않아 미착수.
+2. room-restore.md 의 "수정본 배포 후 Worker QA 재실행" 자체는 여전히 안 됨 — 필요하면 별도
    요청.
+3. 지금은 0건이라 급하지 않지만, 향후 정기 확인이 필요해지면 이 스크립트를 크론·알림에
+   배선하는 것도 후속 후보(현재는 수동 실행 전용, 자동화 없음).
