@@ -258,7 +258,7 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 ### 9. 🔴 **[최우선 · 사용자 지목]** 자미두수 동물 패널이 `.fr-*` 리포트 디자인과 따로 논다
 
 > 2026-09-19 사용자 지적: *"🐶 내 영혼을 상징하는 자미두수 동물 등의 디자인이 기본 자미두수 명반과 안 맞는다"*
-> 앞선 Phase 1~4 는 이 패널을 **전혀 건드리지 않았다.** `basicFortunePresentation.js` 에 `zwLifeAnimalPanel`·`zw-detail-panel` 참조가 **0건**이다(전수 grep). 표현 계층이 이 패널의 존재를 모른다.
+> 앞선 Phase 1~4 는 이 패널의 **디자인을 전혀 건드리지 않았다.** `basicFortunePresentation.js` 에 `zwLifeAnimalPanel`·`zw-detail-panel` 참조가 **0건**이다(전수 grep) — 표현 계층은 이 패널을 이름으로 알지 못한다. 다만 `:644` 가 **남은 자식을 일괄로** `fr-ziwei-explore` 폴드에 옮기기 때문에 위치만 바뀌어 있다(아래 DOM 위치 참고). 즉 **옮기기만 했고 스타일은 엔진이 만든 그대로**다.
 
 **대상**: `#zwLifeAnimalPanel` — 기본(무료) 자미두수 결과 화면의 "내 영혼을 상징하는 자미두수 동물" 패널.
 
