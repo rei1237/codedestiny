@@ -201,7 +201,11 @@ export default function NamingAiResultClient() {
   useEffect(() => {
     const resume = () => { if (document.visibilityState !== "hidden" && navigator.onLine !== false) setRetryKey(key => key + 1); };
     window.addEventListener("online", resume); document.addEventListener("visibilitychange", resume);
-    return () => { window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume); };
+    window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
+    return () => {
+      window.removeEventListener("online", resume); document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
+    };
   }, []);
   useEffect(() => {
     if (!queryReady || !deliveryOwner) return;
