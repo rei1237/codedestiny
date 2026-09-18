@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { GIFT_GUIDANCE, GIFT_STATUS_LABELS } from "@/lib/payment/gift-policy.js";
+import { getGiftGuidance, GIFT_STATUS_LABELS } from "@/lib/payment/gift-policy.js";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { giftApi, GiftApiError, type GiftView } from "../gift-client";
 
 export default function ClaimPage() {
@@ -10,6 +11,12 @@ export default function ClaimPage() {
   const [account, setAccount] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const refreshLocale = () => setLang(getCurrentLoadingLocale());
+    window.addEventListener("cd:locale-ready", refreshLocale as EventListener);
+    return () => window.removeEventListener("cd:locale-ready", refreshLocale as EventListener);
+  }, []);
   const refresh = async () => {
     try {
       const data = await giftApi("/preview", token.current ? { token: token.current } : {});
@@ -48,6 +55,6 @@ export default function ClaimPage() {
     <div role="status" aria-live="polite">{notice && <p className="gift-notice">{notice}</p>}</div>
     {!gift && <button disabled={busy} onClick={() => void refresh()}>선물 다시 확인하기</button>}
     {gift?.status === "CLAIMED" && <a className="gift-button" href="/points/">이용권 확인하기</a>}
-    <details><summary>수령·이용·환불 안내</summary><p>{GIFT_GUIDANCE}</p></details>
+    <details><summary>수령·이용·환불 안내</summary><p>{getGiftGuidance(lang)}</p></details>
   </>;
 }

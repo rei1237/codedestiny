@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { GIFT_GUIDANCE } from "@/lib/payment/gift-policy.js";
+import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -4910,7 +4910,7 @@ export default function PointsPage() {
                   <label key={key} className="block text-sm">{label}<input maxLength={40} value={giftDraft[key]} onChange={e => { setGiftDraft({ ...giftDraft, [key]: e.target.value }); subscriptionPrepareRef.current = null; }} className="mt-1 block min-h-11 w-full rounded-lg border border-white/30 bg-slate-900 p-3 text-base text-white" /></label>
                 ))}
                 <label className="block text-sm">{copy.giftMessageLabel}<textarea maxLength={500} rows={3} value={giftDraft.giftMessage} onChange={e => { setGiftDraft({ ...giftDraft, giftMessage: e.target.value }); subscriptionPrepareRef.current = null; }} className="mt-1 block w-full rounded-lg border border-white/30 bg-slate-900 p-3 text-base text-white" /></label>
-                <details className="text-sm leading-relaxed"><summary className="min-h-11 cursor-pointer py-3">{copy.giftGuidanceSummaryLabel}</summary><p>{GIFT_GUIDANCE}</p></details>
+                <details className="text-sm leading-relaxed"><summary className="min-h-11 cursor-pointer py-3">{copy.giftGuidanceSummaryLabel}</summary><p>{getGiftGuidance(lang)}</p></details>
               </fieldset>
             )}
             <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-200/35 bg-amber-200/10 px-3.5 py-3 text-[12px] font-bold text-amber-100">
