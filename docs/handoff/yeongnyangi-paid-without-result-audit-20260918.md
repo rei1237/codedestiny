@@ -1,8 +1,8 @@
 ---
 status: done
 updated: 2026-09-18
-next: (선택, 후속) Result.tsx 가 GENERATION_REVIEW_REQUIRED 등 errorCode 별 안내를 구분해서
-  보여주도록 고치는 RED 작업 — 사용자가 아직 요청하지 않음, 요청 시 착수. 그 전까지는 재거론 안 함.
+next: (선택, 후속) room-restore.md 의 Worker QA 재실행, 감사 스크립트 크론·알림 배선 — 둘 다
+  사용자가 아직 요청하지 않음, 요청 시 착수. 그 전까지는 재거론 안 함.
 ---
 
 # 영냥이 결제 후 결과 누락(PAID_WITHOUT_RESULT) 진단
@@ -93,10 +93,10 @@ Worker QA 재실행 필요" 라고 명시한 채 갱신 이력이 없었다(생�
 
 ## 남은 일 (선택, 후속 과제)
 
-1. `Result.tsx` 의 UI 갭(재시도 버튼이 REVIEW_REQUIRED 상태에서 같은 제네릭 메시지를 무한
-   반복, `row.errorCode` 미노출, 운영자 알림 없음) — 지금은 실제로 막힌 요청이 0건이라 긴급하진
-   않지만, 향후 트래픽이 늘면 같은 경로로 재발할 수 있는 구조적 갭. 근본 원인 수정은 사용자가
-   아직 선택하지 않아 미착수.
+1. ~~`Result.tsx` 의 UI 갭~~ — **완료(2026-09-18, 커밋 `222ee79ec`)**. `row.errorCode ===
+   'GENERATION_REVIEW_REQUIRED'` 일 때 재시도 버튼 대신 서버(`worker/routes/yeongnyangi.js`)가
+   이미 쓰는 안내 문구를 최초 로드 시점에 바로 노출하도록 수정. 다른 errorCode(일시적 실패)는
+   기존 재시도 동작을 그대로 유지. 운영자 알림 배선은 별도(아래 3번)로 남아있음.
 2. room-restore.md 의 "수정본 배포 후 Worker QA 재실행" 자체는 여전히 안 됨 — 필요하면 별도
    요청.
 3. 지금은 0건이라 급하지 않지만, 향후 정기 확인이 필요해지면 이 스크립트를 크론·알림에
