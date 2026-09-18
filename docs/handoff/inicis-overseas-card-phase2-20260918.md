@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-09-18
-next: 2단계 ②③④(이용권 레일 환불 동의)는 main 에 들어갔다(머지 3471a307b · 58ce4f728) — 다음은 ① 영문 결제정보와 **단건 결제창** 환불 동의이며, 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
+next: 2단계 ②③④(이용권·단건 두 레일의 환불 동의)는 전부 main 에 들어갔다(머지 3471a307b · 58ce4f728 · 3차 세션) — 남은 것은 ① 영문 결제정보(이용권 모달 한국어 14문구 · app/checkout i18n 배선)와 3단계(법무)이며, 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
 ---
 
 # KG이니시스 해외카드 특약 대비 — 2단계 ②③④ (결제창 정책 링크·영문 결제 문의 진입점·서버측 환불 동의)
@@ -23,7 +23,7 @@ next: 2단계 ②③④(이용권 레일 환불 동의)는 main 에 들어갔다
 | ② 결제창 정책 링크 | 1차 · C2 | 완료 |
 | ③ 영문 결제 문의 진입점 | 1차 · C1 | 완료 |
 | ④ 서버측 환불 동의 — **이용권 레일** | 2차 · C5 | 완료 |
-| ④ 서버측 환불 동의 — **단건 결제창** | 안 함 | **다음 세션** (체크박스 자체가 없다) |
+| ④ 서버측 환불 동의 — **단건 결제창** | 3차 · C6 | 완료 |
 | ① 영문 결제정보(이용권 모달·영냥이·선물 안내 한국어 하드코딩) | 안 함 | **다음 세션** |
 
 ## 지금 상태
@@ -39,7 +39,12 @@ next: 2단계 ②③④(이용권 레일 환불 동의)는 main 에 들어갔다
   - C5 `8e7d94c31` — 이용권 주문에 `refundConsent` 기록(5 files, 79+/8-).
   - 머지 `58ce4f728`(main `15dd6f028` 위, FF). push: `15dd6f028..58ce4f728 -> main`.
   - 이번 머지는 충돌이 없었다. main 이 가져온 13파일과 내 5파일의 겹침이 0이었고(`git diff --name-only 32f8ede85..main` 으로 실측), 미러도 안 낡았다 — main 쪽 변경이 sitemap 원본·미러를 같은 커밋에 담아 왔기 때문이다. 그래도 머지 후 `sitemap:check` 를 한 번 돌려 확인했다(OK, URL 1281개).
-- `FOREIGN_CARD_ENABLED` 는 두 세션 모두 어디에도 설정하지 않았다(OFF). 카드 브랜드명·환불 응답기한 약속은 한 글자도 넣지 않았다 — 특약은 여전히 미승인이다.
+- **2단계 ④ 단건 레일 완료(2026-09-18, 3차 세션).** 워크트리 `D:\Development\codedestiny-worktrees\inicis-overseas-card-p2-direct-legal-20260918-160111`(브랜치 `wt/inicis-overseas-card-p2-direct-legal-20260918-160111`, 베이스 `2c7eaddff`).
+  - C6-1 `567b9f6dd` — 결제창 체크박스 + 렌더러 3종 위임 + 12로케일 + 캐시 핀 2그룹 회전(73곳) + 동결 매니페스트 + sitemap 원장(73 files).
+  - C6-2 `e061e951f` — `scripts/verify-payment-choice-parity.mjs`(CRLF) 에 동의 계약 4종.
+  - C6-3 `41a8a1eca` — 서버 `POST /prepare` 기록(`source: "direct_modal"`) + jest 1개.
+  - 워크트리에서 `npm run check:fast` exit 0(281 suites / 3960 tests).
+- `FOREIGN_CARD_ENABLED` 는 세 세션 모두 어디에도 설정하지 않았다(OFF). 카드 브랜드명·환불 응답기한 약속은 한 글자도 넣지 않았다 — 특약은 여전히 미승인이다.
 
 ## 무엇을 바꿨나
 
@@ -84,7 +89,28 @@ next: 2단계 ②③④(이용권 레일 환불 동의)는 main 에 들어갔다
 - 스키마는 안 고쳤다. `paymentSchema`(`worker/lib/models.js:296-369`)에 `refundConsent` 가 없어도 저장된다 — 결제 컨텍스트는 `worker/payments/db.js:111` 에서 **네이티브 드라이버**(`col(Model).findOneAndUpdate`)로 써서 mongoose strict 의 "미선언 필드를 조용히 버림"을 타지 않는다. 기존 `policyVersions`·`foreignCard` 가 같은 상태다(선례 일치).
 - 사용자 노출 문구는 **0건 추가**했다. 체크박스와 문구(`copy.refundAgreement`)는 이미 ko·en 으로 있었다.
 
+### C6 — 단건 결제창 환불 동의 (`567b9f6dd` · `e061e951f` · `41a8a1eca`)
+
+C5 가 서버 절반이었다면 여기는 화면 절반 + 단건 레일 배선이다. 계약은 이용권과 같다.
+
+- **정본은 `js/core/checkout-entry.js` 하나다**: `buildRefundConsentCheckboxHtml(마크업)` · `bindRefundConsentGate(잠금 배선)` · `refundConsentAgreed(요청 조립부용)`. 렌더러 3종(`index.html` · `js/destiny-profile.js` · `app/_lib/billing-client.ts`)은 전부 위임한다. 마크업을 렌더러마다 베끼면 그 자체가 회귀라, 가드가 10개 파일(미러 포함)에서 두 함수 이름을 전수 단언한다.
+- 🔴 **잠금은 `aria-disabled` 가 아니라 진짜 `disabled`** 다. 미동의면 `[data-mode="direct"]` 카드만 잠기고 이용권·월정석·취소는 그대로다(가드가 잠긴 `data-mode` 목록이 `["direct"]` 인지 확인한다). `aria-disabled` 로 바꾸면 클릭·키보드 활성화가 살아나 fail-open 의 근거가 사라진다.
+- 🔴 **체크박스·wrapper 에 `data-mode` 를 붙이지 않는다**(C2 와 같은 이유). 훅은 `data-refund-consent` · `data-refund-consent-input` 이다.
+- PG 단건 레일이 실제로 제공될 때만 그린다(`!directUsesAppStore`) — 스토어 결제는 스토어 환불정책 소관이다.
+- `index.html` 의 배선 호출은 **`_cdEndPreCheckoutWaitUiSuppression();` 뒤**에 둔다. `document.body.appendChild(modal);` 과 그 호출 사이에 한 줄이라도 끼우면 `verify-paid-gate-ui-regression.mjs` 의 300자 근접 검사가 깨진다(한 번 당했다).
+- 12로케일 `payment.directModal.legal.refundConsent`. 저작 en·ja·zh-CN·zh-TW, 나머지 7개는 영어 복사, ko 는 코어 폴백과 바이트 일치. 숫자 기한·카드 브랜드명은 넣지 않았다(특약 미승인 + `verify-payment-legal-copy.mjs` 금지).
+- 서버: `worker/payments/index.js` `POST /prepare` 가 `body.refundConsent === true` 만 동의로 보고 `createPayableOrder` 로 넘기며, `worker/payments/orders.js` `createOrder` 의 **`$setOnInsert` 안에만** `buildRefundConsentRecord(..., { source: "direct_modal" })` 를 넣는다. 없으면 `null`(이용권과 같은 fail-open).
+- 🔴 **실행 흐름 가드 2개가 깨진다** — `verify-checkout-pass-card` ⑬ 와 `verify-pg-window-no-conflict` ⑥ 은 jsdom 에서 단건 카드를 그냥 누른다. 이제 그 카드는 동의 전 잠겨 있으므로 두 가드가 실제 사용자처럼 체크박스를 먼저 켠다. 잠금 자체는 ⑬ 에 새 검사로 고정했다.
+- 캐시 핀 2그룹 회전: `js/destiny-profile.js` 25곳, 코어 그룹 48곳/24파일(`app/layout.js` · `scripts/verify-paid-gate-ui-regression.mjs` · `app/_lib/billing-client.ts` 포함). 핀 값은 가드가 알려준 기대값을 그대로 썼다. 동결 매니페스트는 `--update`(region 4 · file 3), `app/layout.js` 를 건드려 sitemap 원장도 재생성했다.
+
 ## 검증 (전부 mock, 실결제 없음)
+
+### C6 (3차 세션)
+
+- `node scripts/verify-payment-choice-parity.mjs` PASS(10 renderers, 20 builder + 14 renderer markers, 71 copy keys x 12 locales) · `--self-test` OK(음성 6건).
+- **변이 8종 전부 BITES**: 진짜 disabled → aria-disabled / 체크박스에 `data-mode` / 문구 키 삭제 / 열 때 체크 초기화 제거 / 단건 대신 모든 옵션 잠금 / 렌더러 3종에서 각각 위임 제거. 복원은 메모리 사본으로 했다(git 명령 금지 — 옆 세션 보호).
+- `verify-paid-gate-ui-regression` · `verify-payment-legal-copy`(기한 요약 0건) · `verify-payment-freeze --update` 후 PASS · `verify-checkout-pass-card` · `verify-pg-window-no-conflict` PASS.
+- `node scripts/run-mock-tests.mjs jest payments-v2.prepare-compat` 14 passed · `npx tsc --noEmit` exit 0 · `npm run check:fast` exit 0(281 suites / 3960 tests).
 
 ### C1~C4 (1차 세션)
 
@@ -127,7 +153,7 @@ next: 2단계 ②③④(이용권 레일 환불 동의)는 main 에 들어갔다
 - [~] 2단계 ① 영문 결제정보 — **영냥이 `/checkout` 축은 끝났다**(`701a9d6e2`, [checkout-i18n-wiring-20260918.md](checkout-i18n-wiring-20260918.md)). 남은 축: 이용권 모달 `app/points/PointsClient.tsx:4823-4946` 의 한국어 14문구, 선물 안내 `GIFT_GUIDANCE`(`lib/payment/gift-policy.js:13`).
   - 🔴 **"7개 로케일 `payment.directModal` 영어화"는 이미 끝나 있었다**(2차 세션 실측). `public/i18n/*.json` 12개를 전수 조사한 결과 비-ko 11개 로케일 전부 `payment.directModal` 47키에 한글 0자다. 이 항목은 남은 작업이 아니다.
   - 🔴 `app/checkout/CheckoutClient.tsx` 는 233줄 중 한글 39줄이고 **i18n 배선이 아예 없다**(`useT` 계열 import 0건). 사전 키를 채우는 일이 아니라 배선부터 까는 일이다 — 여기가 ① 의 실제 무게중심이다.
-- [ ] 서버측 환불 동의 기록 — **단건 결제창**. 이쪽은 체크박스 자체가 없어([05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §4) 서버만 고쳐선 기록할 게 없다. 필요한 것: `js/core/checkout-entry.js` 에 체크박스 + 렌더러 3종 반영 + 12개 로케일 라벨 + 가드. 🔴 **`checkout-entry.js` 를 건드리는 순간 위 캐시 핀 회전(26파일 73곳)이 딸려 온다** — 이용권 레일이 그걸 안 건드린 건 우연이 아니라 범위를 그렇게 잘랐기 때문이다. 서버 쪽은 이미 준비돼 있다: `buildRefundConsentRecord(agreed, { source })` 에 `source` 를 `"direct_modal"` 로 주면 된다.
+- [x] 서버측 환불 동의 기록 — **단건 결제창**(C6 `567b9f6dd` · `e061e951f` · `41a8a1eca`). 아래 "C6" 절 참조. 예상대로 캐시 핀 회전이 딸려 왔다(2그룹 73곳).
 - [ ] 3단계(법무, LEGAL REVIEW REQUIRED)는 그대로 남아 있다.
 - 플래그 ON 은 [02](../payment/inicis-overseas-card/02-overseas-card-implementation.md) §7 체크리스트 10개 순서를 따른다. 이번 변경으로 체크리스트 항목이 켜지지는 않았다(§7 에 정책 링크 항목이 없다 — 표시 의무는 플래그와 독립이다).
 

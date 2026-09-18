@@ -60,7 +60,7 @@
 
 없는 증빙
 - 서버측 환불 동의 기록 — **이용권 레일은 2026-09-18 부터 남는다.** 주문 문서 `refundConsent = { agreed, agreedAt, termsVersion, source: "pass_modal" }`(`worker/payments/policy-versions.js` `buildRefundConsentRecord`). `agreedAt` 은 **서버가 받은 시각**이고, `termsVersion` 은 환불정책이 약관 §12 라 약관 시행일이다. 🔴 동의가 없으면 거절이 아니라 `null` 이 남는다 — 400 으로 막으면 스토어의 구버전 앱이 결제를 통째로 못 하기 때문이고, 동의 전 결제 시작을 막는 것은 UI(`app/points/PointsClient.tsx:4884` `disabled`)다.
-  - **단건 결제창은 여전히 없다** — 체크박스 자체가 없어 기록할 값이 없다. 2단계 잔여 과제.
+  - **단건 결제창도 2026-09-18 부터 남는다** — `source: "direct_modal"`. 체크박스 정본은 `js/core/checkout-entry.js` `buildRefundConsentCheckboxHtml`/`bindRefundConsentGate` 하나이고 렌더러 3종이 위임한다. 여기서도 fail-open 이며, 그 근거인 화면 잠금은 미동의 시 `[data-mode="direct"]` 카드를 진짜 `disabled` 로 만드는 방식이다(`aria-disabled` 가 아니다).
 - 결제창에서 본 고지 문구 버전은 저장하지 않는다.
 
 ## 5. 카드번호·CVC
@@ -81,6 +81,6 @@
 | astrology 생성 실패 카드 환불 | READY |
 | vedic·ziwei 생성 실패 카드 환불·알림 | NOT READY |
 | 서버측 환불 동의 기록 — 이용권 레일 | READY(2026-09-18) |
-| 서버측 환불 동의 기록 — 단건 레일 | NOT READY(체크박스 없음, 2단계 잔여) |
+| 서버측 환불 동의 기록 — 단건 레일 | READY(2026-09-18, `source="direct_modal"`) |
 
 **최종 판정: OWNER INPUT REQUIRED** — 감지·기록 코드는 준비됐다. 알림 채널 운영 설정과 수신자 확인, vedic·ziwei 카드 환불 결정이 남아 있다.
