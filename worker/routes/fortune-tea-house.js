@@ -5393,6 +5393,20 @@ async function handleEnsureAccess(request, env) {
   });
 }
 
+// 유료 사주 상담은 클라이언트가 계산한 명식 위에서만 성립한다. 초안이 아예 없거나(직접 API 호출)
+// 음력 변환 실패로 명식이 닫힌 채 올라오면(sajuAdapter 의 3중 catch → available:false) 일간·오행·대운이
+// 전부 빠진 상담문이 100코인 완성본으로 나간다 — 품질 게이트는 "일간·오행·십성·대운" 을 낱말로만 보고
+// LLM 은 근거 없이도 그 낱말을 쓰므로 잡히지 않는다. 생성 전에 fail-closed 로 막는다(원칙 10).
+// 여기서 던지면 기존 생성 실패 경로가 실행 기록 정리와 deferred cancel(예약 해제)까지 이어서 돌려준다.
+function assertSajuCalculationBasis(consultRequest, draft) {
+  if (consultRequest?.consultationMode !== "saju") return;
+  if (draft?.saju?.available === true) return;
+  const error = new Error("생년월일로 사주 명식을 만들지 못했어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
+  error.status = 422;
+  error.code = "FORTUNE_TEA_HOUSE_SAJU_BASIS_MISSING";
+  throw error;
+}
+
 async function handleConsult(request, env, ctx = null) {
   if (!checkRateLimit(request)) {
     return json(
@@ -5460,6 +5474,7 @@ async function handleConsult(request, env, ctx = null) {
   const runGeneration = async () => {
   let generated;
   try {
+    assertSajuCalculationBasis(consultRequest, fallback);
     generated = generation?.pending || (access.auth?.userId && (hasGeminiKey(env) || generation?.checkpoint)
       ? await generateTeaCheckpoint(consultRequest,fallback,env,{auth:access.auth,resultId,lockToken:generation.lockToken,checkpoint:generation.checkpoint,body})
       : await generateConsultResult(consultRequest, fallback, env));
