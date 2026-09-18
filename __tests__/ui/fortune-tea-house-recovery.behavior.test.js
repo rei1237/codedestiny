@@ -17,6 +17,28 @@ function functionSource(name) {
   assert.ok(result, name);
   return ts.transpileModule(result, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 }
+function hookCallbackSource(name) {
+  let result;
+  function visit(node) {
+    if (ts.isVariableDeclaration(node) && node.name.getText(ast) === name && node.initializer
+      && ts.isCallExpression(node.initializer) && node.initializer.expression.getText(ast) === "useCallback") result = node.initializer.arguments[0].getText(ast);
+    ts.forEachChild(node, visit);
+  }
+  visit(ast);
+  assert.ok(result, name);
+  return ts.transpileModule(`var ${name} = ${result};`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
+}
+function effectSource(deps) {
+  let result;
+  function visit(node) {
+    if (ts.isCallExpression(node) && node.expression.getText(ast) === "useEffect"
+      && node.arguments[1]?.getText(ast) === deps) result = node.arguments[0].getText(ast);
+    ts.forEachChild(node, visit);
+  }
+  visit(ast);
+  assert.ok(result, deps);
+  return result;
+}
 function store() {
   const values = new Map();
   return { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
@@ -41,6 +63,7 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
     ...api, Error, AbortController, console, isSubmitting: false,
     submitLockRef: { current: false }, submitSucceededRef: { current: false },
     consultRunRef: { current: 0 }, unusedPaidAttemptRef: { current: saved },
+    pendingProbeRef: { current: false }, wakeBlockedRef: { current: false },
     selectedCup: cup, getAuthState: () => ({ user: { id: owner } }),
     toText: value => String(value || ""), asRecord: value => value || {},
     resolveFortuneTeaFeatureKey: () => "fortune-tea-house-saju-consultation",
@@ -74,6 +97,8 @@ function harness({ window = { localStorage: store(), sessionStorage: store() }, 
   };
   vm.createContext(state);
   vm.runInContext(functionSource("submitQuestion"), state);
+  // 마운트 복구 effect 가 이 probe 를 호출하므로 effect 를 실행하는 모든 테스트에 정의가 필요하다.
+  vm.runInContext(hookCallbackSource("probeFortuneTeaPending"), state);
   return { state, posts, api, window, submit: value => state.submitQuestion(value || input),
     succeed: () => { succeed = true; }, gateCalls: () => gateCalls, ensureCalls: () => ensureCalls };
 }
@@ -197,4 +222,92 @@ test('actual owner effect restores a server checkpoint without local storage or 
   assert.equal(h.state.unusedPaidAttemptRef.current.attemptId,'original');
   assert.deepEqual(h.state.unusedPaidAttemptRef.current.requestPayload,body);
   assert.equal(h.gateCalls(),0);assert.equal(h.posts.length,0);
+});
+
+const wakeBody = { ...input, attemptId: "original", requestId: "original", idempotencyKey: "original",
+  featureKey: "fortune-tea-house-tarot-consultation", selectedTeaCupId: cup.id, billingGate: { paymentId: "paid" } };
+function wakeHarness({ owner = "user-a", respond = () => ({ status: 204 }) } = {}) {
+  const h = harness({ owner });
+  const listeners = new Map();
+  const fetches = [];
+  const bind = target => Object.assign(target, {
+    addEventListener(type, fn) { listeners.set(type, [...(listeners.get(type) || []), fn]); },
+    removeEventListener(type, fn) { listeners.set(type, (listeners.get(type) || []).filter(item => item !== fn)); },
+  });
+  Object.assign(h.state, {
+    recoveryOwner: owner, recoveryOwnerRef: { current: owner },
+    setSelectedCup: value => { h.state.cup = value; }, setStage: value => { h.state.stage = value; },
+    getTeaHouseCupById: () => cup, navigator: { onLine: true },
+    document: bind({ visibilityState: "visible" }), window: bind({ ...h.state.window }),
+    authFetch: async () => { fetches.push(1); return respond(); },
+  });
+  vm.runInContext(functionSource("buildFortuneTeaQuestionInputFromRequestPayload"), h.state);
+  vm.runInContext(ts.transpileModule(`var __cleanup = (${effectSource("[recoveryOwner, probeFortuneTeaPending]")})();`,
+    { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, h.state);
+  return { ...h, fetches,
+    fire: (type, event) => (listeners.get(type) || []).forEach(fn => fn(event)),
+    listenerCount: () => [...listeners.values()].reduce((sum, list) => sum + list.length, 0),
+    cleanup: () => h.state.__cleanup(),
+    settle: () => new Promise(resolve => setImmediate(resolve)) };
+}
+
+test("깨어남 복구는 bfcache 복귀에서만 돌고 한 번의 복귀에 조회 한 번만 쓴다", async () => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const wake = wakeHarness({ respond: () => gate });
+  wake.fire("pageshow", { type: "pageshow", persisted: false });
+  assert.equal(wake.fetches.length, 0);
+  wake.fire("pageshow", { type: "pageshow", persisted: true });
+  assert.equal(wake.fetches.length, 1);
+  wake.fire("focus", { type: "focus" });
+  wake.fire("visibilitychange", { type: "visibilitychange" });
+  wake.fire("online", { type: "online" });
+  assert.equal(wake.fetches.length, 1);
+  release({ status: 202, json: async () => ({ requestPayload: wakeBody, completedSections: [{ key: "part", title: "저장한 장", body: "saved narrative" }] }) });
+  await wake.settle();
+  assert.equal(wake.state.stage, "questionInput");
+  assert.equal(wake.state.partial[0].body, "saved narrative");
+  assert.equal(wake.state.unusedPaidAttemptRef.current.attemptId, "original");
+  assert.deepEqual(wake.state.unusedPaidAttemptRef.current.requestPayload, wakeBody);
+  assert.equal(wake.gateCalls(), 0);
+  assert.equal(wake.posts.length, 0);
+  wake.cleanup();
+  wake.fire("focus", { type: "focus" });
+  assert.equal(wake.fetches.length, 1);
+});
+
+test("깨어남 복구는 진행 중인 유료 생성도 이미 열린 결과도 건드리지 않는다", async () => {
+  const wake = wakeHarness({ respond: () => ({ status: 202, json: async () => ({ requestPayload: wakeBody, completedSections: [] }) }) });
+  wake.state.submitLockRef.current = true;
+  wake.state.consultRunRef.current = 7;
+  wake.fire("focus", { type: "focus" });
+  await wake.settle();
+  assert.equal(wake.fetches.length, 0);
+  assert.equal(wake.state.consultRunRef.current, 7);
+  assert.equal(wake.state.stage, undefined);
+  wake.state.submitLockRef.current = false;
+  wake.state.wakeBlockedRef.current = true;
+  wake.fire("focus", { type: "focus" });
+  assert.equal(wake.fetches.length, 0);
+  wake.state.wakeBlockedRef.current = false;
+  wake.state.document.visibilityState = "hidden";
+  wake.fire("focus", { type: "focus" });
+  assert.equal(wake.fetches.length, 0);
+  wake.state.document.visibilityState = "visible";
+  wake.fire("focus", { type: "focus" });
+  await wake.settle();
+  assert.equal(wake.fetches.length, 1);
+  assert.equal(wake.state.consultRunRef.current, 7);
+  assert.equal(wake.state.stage, "questionInput");
+  const loggedOut = wakeHarness({ owner: "" });
+  assert.equal(loggedOut.listenerCount(), 0);
+  loggedOut.fire("focus", { type: "focus" });
+  assert.equal(loggedOut.fetches.length, 0);
+});
+
+test("마운트 복구와 깨어남 복구가 같은 probe 하나를 쓴다", () => {
+  const mount = effectSource("[recoveryOwner]");
+  assert.ok(!mount.includes("/api/fortune-tea-house/pending"));
+  assert.ok(mount.includes("probeFortuneTeaPending"));
+  assert.ok(effectSource("[recoveryOwner, probeFortuneTeaPending]").includes("probeFortuneTeaPending"));
 });

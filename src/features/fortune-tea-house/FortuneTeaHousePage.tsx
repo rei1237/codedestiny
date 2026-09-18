@@ -587,6 +587,41 @@ export default function FortuneTeaHousePage() {
     // Initialize the shared store so server-side recovery can run before submit.
     if (!getAuthState().authReady) void refreshAuth({ silent: true }).catch(() => {});
   }, []);
+  const pendingProbeRef = useRef(false);
+  // 결과가 열려 있으면 깨어남 복구가 화면을 되돌리지 않게 막는 표식(렌더마다 갱신).
+  const wakeBlockedRef = useRef(false);
+  /**
+   * 서버에 남은 진행 중 유료 상담을 되찾는다. 🔴 consultRunRef 를 절대 건드리지 않는다 —
+   * 올리면 폴링 취소 검사가 참이 되어 깨어난 탭이 살아 있는 유료 생성을 죽인다.
+   */
+  const probeFortuneTeaPending = useCallback(async (owner: string) => {
+    if (!owner || pendingProbeRef.current || submitLockRef.current) return;
+    pendingProbeRef.current = true;
+    try {
+      const response = await authFetch("/api/fortune-tea-house/pending", { method: "GET", cache: "no-store" }, { retryOn401: false });
+      if (response.status !== 202) return;
+      const payload = await response.json() as FortuneTeaHouseConsultApiResponse;
+      if (recoveryOwnerRef.current !== owner || submitLockRef.current || !payload.requestPayload) return;
+      const requestPayload = payload.requestPayload;
+      const input = buildFortuneTeaQuestionInputFromRequestPayload(requestPayload);
+      const cup = getTeaHouseCupById(toText(requestPayload.selectedTeaCupId));
+      if (!input || !cup) return;
+      const attemptId = toText(requestPayload.attemptId || requestPayload.requestId);
+      if (!attemptId) return;
+      const record: FortuneTeaRecovery = { ownerId: owner, attemptId, featureKey: toText(requestPayload.featureKey) || resolveFortuneTeaFeatureKey(input), billingGate: asRecord(requestPayload.billingGate), requestPayload, questionInput: input, cup };
+      unusedPaidAttemptRef.current = record;
+      saveFortuneTeaRecovery(record);
+      setSelectedCup(cup);
+      setQuestionInput(input);
+      setPartialSections(payload.completedSections || []);
+      setSubmitError("저장된 상담이 있어요. 같은 요청으로 이어서 확인할 수 있어요.");
+      setStage("questionInput");
+    } catch {
+      // 복구 조회 실패는 조용히 넘긴다. 사용자는 보던 화면을 그대로 쓴다.
+    } finally {
+      pendingProbeRef.current = false;
+    }
+  }, []);
   useEffect(() => {
     if (recoveryOwnerRef.current === recoveryOwner) return;
     const previousOwner = recoveryOwnerRef.current;
@@ -611,21 +646,35 @@ export default function FortuneTeaHousePage() {
       setSelectedCup(null);
       setSubmitError("");
       setStage("landing");
-      if(recoveryOwner){
-        const owner=recoveryOwner;
-        void authFetch("/api/fortune-tea-house/pending",{method:"GET",cache:"no-store"},{retryOn401:false}).then(async response=>{
-          if(response.status!==202)return;const payload=await response.json() as FortuneTeaHouseConsultApiResponse;
-          if(recoveryOwnerRef.current!==owner||submitLockRef.current||!payload.requestPayload)return;
-          const requestPayload=payload.requestPayload,input=buildFortuneTeaQuestionInputFromRequestPayload(requestPayload),cup=getTeaHouseCupById(toText(requestPayload.selectedTeaCupId));
-          if(!input||!cup)return;
-          const attemptId=toText(requestPayload.attemptId||requestPayload.requestId);if(!attemptId)return;
-          const record:FortuneTeaRecovery={ownerId:owner,attemptId,featureKey:toText(requestPayload.featureKey)||resolveFortuneTeaFeatureKey(input),billingGate:asRecord(requestPayload.billingGate),requestPayload,questionInput:input,cup};
-          unusedPaidAttemptRef.current=record;saveFortuneTeaRecovery(record);setSelectedCup(cup);setQuestionInput(input);setPartialSections(payload.completedSections||[]);
-          setSubmitError("저장된 상담이 있어요. 같은 요청으로 이어서 확인할 수 있어요.");setStage("questionInput");
-        }).catch(()=>{});
-      }
+      if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner);
     }
   }, [recoveryOwner]);
+
+  wakeBlockedRef.current = Boolean(consultResult);
+  // 백그라운드로 내려간 탭은 폴링(최대 약 263초)이 소진된 뒤 questionInput 으로 떨어진다.
+  // 서버는 아직 생성 중일 수 있으므로 탭이 깨어날 때 결제한 상담을 다시 찾아온다.
+  useEffect(() => {
+    if (!recoveryOwner) return;
+    const wake = (event?: Event) => {
+      // pageshow 는 새로고침 포함 모든 로드에서 발생한다. bfcache 복귀만 마운트 probe 와 구분된다.
+      if (event?.type === "pageshow" && (event as PageTransitionEvent).persisted !== true) return;
+      // 진행 중인 생성 보호는 probe 자신이 맡는다(마운트 경로와 같은 판정을 한 곳에서).
+      if (wakeBlockedRef.current) return;
+      if (document.visibilityState === "hidden" || navigator.onLine === false) return;
+      void probeFortuneTeaPending(recoveryOwner);
+    };
+    const onVisibility = () => { if (document.visibilityState === "visible") wake(); };
+    window.addEventListener("pageshow", wake);
+    window.addEventListener("focus", wake);
+    window.addEventListener("online", wake);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pageshow", wake);
+      window.removeEventListener("focus", wake);
+      window.removeEventListener("online", wake);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [recoveryOwner, probeFortuneTeaPending]);
 
   const loadingBgmIndexRef = useRef(0);
   const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
