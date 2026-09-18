@@ -57,7 +57,8 @@ powershell -File scripts/create-safe-worktree.ps1 -Slug inicis-overseas-card-p1
 ## 모르는 것 (추측해서 채우지 않는다 — OWNER INPUT REQUIRED)
 
 - ~~운영 워커 알림 채널 설정 여부~~ — **해소(2026-09-18)**. `wrangler secret list`(프로덕션 `code-destiny-web`) 실측: `ADMIN_FEEDBACK_EMAIL` 등록됨, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 미등록. 오너 확인: 수신 이메일은 `admin@code-destiny.com`, Discord·Slack 은 쓰지 않기로 한 결정(결함 아님). 상세: [06 §4](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md#4-담당자온콜).
-- **남음** — 결제 사고 1차 담당자·온콜 대응 시간·개인정보 유출 대응 절차(문서 06 §4 "남은 질문"에 오너가 답하면 바로 닫히는 형태로 질문·기록 위치를 정리해 뒀다), 해외카드 예상 거래금액(문서 09, 근거 데이터 없음), 신청서 사업자 정보와 `lib/site-policy-config.js` `BUSINESS_IDENTITY` 의 일치 여부, 운영 `GIFTS_ENABLED` 활성 여부를 모른다.
+- ~~결제 사고 1차 담당자·온콜 대응 시간·개인정보 유출 대응 절차~~ — **해소(2026-09-18)**. 담당자는 오너 본인, 평일 업무시간만 확인해 당일 내 조치(엄격한 SLA 아님). 개인정보 유출 대응 내부 절차는 없음으로 확인(범위 밖 결함, 법적 신고 의무는 별도 LEGAL REVIEW). 상세: [06 §4](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md#4-담당자온콜).
+- **남음** — 해외카드 예상 거래금액(문서 09, 근거 데이터 없음), 신청서 사업자 정보와 `lib/site-policy-config.js` `BUSINESS_IDENTITY` 의 일치 여부, 운영 `GIFTS_ENABLED` 활성 여부를 모른다.
 - KG이니시스 특약 승인 여부를 모른다. 이 계획은 "처리중(미승인)"(D2)을 전제로 한다. 승인 소식이 오면 계획의 "플래그 ON 선결 조건" 순서를 따른다.
 
 ## 검증
@@ -257,7 +258,7 @@ PG 승인 확인 → 운영 바인딩 1자리 확보(F9) → 승인 범위 기�
 | 6 비회원 주문 차단 | 모든 주문 생성·확정 JWT 필수, 게스트 경로 없음(실측). 회귀 테스트 없음. 탈퇴 계정 JWT 미검사(범위 밖) | 🟢 구현 / 🟠 증명 부재 | 라우트 전수 401 회귀 테스트 | `__tests__/worker/` 신규 1개 |
 | 7 가입 인증 방식 | 이메일+비밀번호(소유 확인 없음, 국내 휴대폰 필수) / Google·Naver·Kakao OAuth. 본인인증 없음 | 🟠 | "본인인증" 표현 없이 사실 기재 | 문서 04 |
 | 8 해외고객 CS | 이메일 1채널, `/en/contact` 있음, 영문 결제·환불 문의 진입점·응답기한 없음 | 🟠 | 2단계(UI). 이번엔 NOT READY 표기 | 문서 06 |
-| 9 사고대응 담당자 | 담당자·온콜 문서 없음. **결제 알림 0**, Sentry 없음 | 🔴 | 결제 후 미이행 감지·알림 + 담당자 OWNER INPUT | 크론 연결부, 알림 모듈, 문서 06 |
+| 9 사고대응 담당자 | 담당자·온콜 문서 없음. **결제 알림 0**, Sentry 없음 | 🔴 | 결제 후 미이행 감지·알림 완료(C7). 담당자·온콜은 2026-09-18 오너 확인으로 해소(오너 본인, 평일 업무시간, 당일 내 조치) — 상세 [06 §4](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md#4-담당자온콜) | 크론 연결부, 알림 모듈, 문서 06 |
 | 10 실물 해외배송 | 없음 | 🟢 | 배송 필드 만들지 않음 | 문서 03 |
 | 11 배송추적 | 해당 없음 | 🟢 | — | 문서 03 |
 | 12 개인정보 수집 범위 | 새 수집 없음. 결제 요청에 이름·이메일·국내번호만. 처리방침 국외이전·보호책임자 조항 없음, 영문판 낡음 | 🔴 방침 / 🟢 수집 | 인벤토리 문서 + LEGAL REVIEW REQUIRED(3단계) | 문서 07 |
@@ -294,7 +295,7 @@ PG 승인 확인 → 운영 바인딩 1자리 확보(F9) → 승인 범위 기�
 - **개인정보처리방침**: 한국어 정본 `app/privacy-policy/PrivacyPolicyContent.jsx`(시행 2026-08-25, 위탁 PortOne·KG이니시스 기재, 카드번호 미저장 명시). **국외이전·보호책임자 조항 없음**, 수탁사 누락(카카오페이·Cloudflare·MongoDB·LLM·Resend·GA). 영문판 `lib/legal/legalContent.ts:390-437` 은 시행일 2026-08-19 로 낡고 "mobile required at sign-up"(구 정책). 공개 법무 로케일 en/ja/zh/zh-TW 만.
 - **약관·환불**: 한국어 `app/terms-of-service/TermsContent.jsx` §12(7일 철회·제공 전 환불·제공 후 제한·미제공 시 환불·중복결제·3영업일). 영문 `legalContent.ts:87-161`, `app/[locale]/refund-policy/page.js`(약관 재사용, 기계번역 고지, `REFUND_JURISDICTION_NOTES` en/zh null). 영수증 메일 철회 안내 한국어뿐(`worker/payments/receipt-email.js:162`).
 - **CS**: 채널은 **이메일 하나**(`lib/site-policy-config.js` `SUPPORT_EMAIL`). `/contact-us` 는 mailto, 응답기한 "영업일 1~3일"은 한국어 페이지만, 결제·환불·미제공 문의 유형 없음. `/en/contact` 존재(:96 "No new response-time or language-support guarantee"). `/feedback` 로그인 필수·결제 문제 카테고리 있음·영어 UI 없음. 피드백 알림 Resend·Discord·Slack(`worker/lib/feedback-notify.js`).
-- **사고대응**: 담당자·온콜·유출 대응 문서 없음. 텔레그램(`worker/lib/telegram.js`, `worker/lib/cron-failure-alert.js`)은 크론·SNS 실패만. **결제 장애·웹훅 이상 알림 0건**(worker/payments grep).
+- **사고대응**: 담당자·온콜·유출 대응 문서 없음. 텔레그램(`worker/lib/telegram.js`, `worker/lib/cron-failure-alert.js`)은 크론·SNS 실패만. **결제 장애·웹훅 이상 알림 0건**(worker/payments grep). → 2026-09-18 오너 확인으로 담당자(오너 본인)·온콜(평일 업무시간, 당일 내 조치)·유출 대응 내부 절차(없음, 범위 밖 결함) 모두 해소. 상세 [06 §4](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md#4-담당자온콜).
 - **사업자 정보**: 정본 `lib/site-policy-config.js` `BUSINESS_IDENTITY`(푸터 공개값, CI 가드 `verify-business-identity`), 영문 푸터 `app/components/LocaleFooterHub.jsx` 노출. 문서 09 는 값을 옮겨 적지 않고 상수 위치 + "신청서 값과 일치 여부 OWNER 확인".
 - **해외 집계**: payment·User·funnel 에 locale/country 없음 → §31 해외 예상 거래액 근거 데이터 **없음**(OWNER INPUT REQUIRED). GA4 이벤트에도 locale 파라미터 없음.
 - 범위 밖 결함(보고만): 카카오 심사 문서와 코드 불일치, auth.js:5007-5015 주석 모순, 탈퇴 후 profileImage 등 잔존, 결제 실패·웹훅 로그 원시 IP/UA TTL 없음(`models.js:551-552,579-580`), 08-28 문서 §10 미성년자 결제 차단 P0 해소 미확인.
