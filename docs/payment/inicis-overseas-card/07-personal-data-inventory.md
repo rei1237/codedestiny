@@ -60,6 +60,7 @@
 
 - 광고 쿠키(Google AdSense)는 "4. 쿠키, 광고 식별자, Google AdSense 고지" 절에 있다(`:61`).
 - 위 후보가 위탁·제3자 제공·국외 이전 중 무엇에 해당하는지, 해외 고객에게 외국 개인정보 법이 적용되는지는 판단하지 않았다 → **LEGAL REVIEW REQUIRED**.
+- 개인정보 유출 대응 내부 절차(누가 무엇을 먼저 하는지): 없음(2026-09-18 오너 확인) — 범위 밖 결함. 법적 신고 의무 등 법 해석은 위 LEGAL REVIEW REQUIRED 범위(별도). 근거: [06](06-customer-support-and-incident-response.md) §4.
 
 ## 5. 해외 고객에게 보이는 문서
 

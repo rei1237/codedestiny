@@ -1,8 +1,8 @@
 # 09. KG이니시스 해외카드 신청 사실 — 13문항 답·사업자 정보·예상 거래금액
 
-현재 상태: 해외카드 신청서 13문항에 코드와 레포 기록으로 확인한 사실만 답했다. 특약은 2026-08-20 에 신청했고, 레포 최신 기록(2026-09-09) 기준 처리중이며 승인은 확인되지 않았다. `FOREIGN_CARD_ENABLED` 가 꺼져 있어 어느 주문에도 해외카드 결제창 파라미터를 싣지 않는다. 사업자 정보·MID 일치, 예상 해외 거래금액, 사고 담당자는 레포로 알 수 없어 **OWNER INPUT REQUIRED** 로 남겼다. 완료 보고가 아니다.
+현재 상태: 해외카드 신청서 13문항에 코드와 레포 기록으로 확인한 사실만 답했다. 특약은 2026-08-20 에 신청했고, 레포 최신 기록(2026-09-09) 기준 처리중이며 승인은 확인되지 않았다. `FOREIGN_CARD_ENABLED` 가 꺼져 있어 어느 주문에도 해외카드 결제창 파라미터를 싣지 않는다. 사업자 정보·MID 일치, 예상 해외 거래금액은 레포로 알 수 없어 **OWNER INPUT REQUIRED** 로 남겼다. 완료 보고가 아니다.
 
-- 측정일: 2026-09-17. 8번 문항(해외 고객 CS)은 2026-09-18 2단계 반영 후 재측정. 이 문서는 신청서를 쓸 때의 근거다. 승인 사실이 아니므로 화면·마케팅에 "해외카드 지원"으로 옮기지 않는다.
+- 측정일: 2026-09-17. 8번 문항(해외 고객 CS)은 2026-09-18 2단계 반영 후 재측정. 9번 문항(사고 대응 담당자)은 2026-09-18 오너 확인으로 재측정. 이 문서는 신청서를 쓸 때의 근거다. 승인 사실이 아니므로 화면·마케팅에 "해외카드 지원"으로 옮기지 않는다.
 - 시크릿·MID·사업자등록번호 **값**은 적지 않는다(위치만).
 - 관련 문서: [01 결제 구조](01-current-payment-architecture.md) · [02 해외카드 구현](02-overseas-card-implementation.md) · [03 상품 범위](03-overseas-card-product-scope.md) · [04 회원 인증](04-customer-authentication.md) · [05 이행·증빙](05-fulfillment-and-evidence.md) · [06 CS·사고 대응](06-customer-support-and-incident-response.md) · [07 개인정보](07-personal-data-inventory.md) · [08 테스트 결과](08-test-results.md)
 
@@ -29,7 +29,7 @@
 | 6 | 비회원 주문 차단 | 모든 주문 생성·결제 확정에 로그인이 필요하다. 비회원 주문 경로가 없다(로그인 없는 요청·위조 토큰은 401, 테스트 고정) | READY | [04](04-customer-authentication.md) §3 |
 | 7 | 회원 가입 인증 방식 | 이메일+비밀번호(이메일 소유 확인 없음, 국내 휴대폰 번호 필수) 또는 Google·Naver·Kakao 계정 로그인. **본인인증(휴대폰 본인확인·SMS 등) 절차는 없다** | READY | [04](04-customer-authentication.md) §1·§2 |
 | 8 | 해외 고객 CS | 이메일 문의 1채널. 영어·일본어·중국어 연락 페이지에 결제 문의 절(앵커 `#payment-help`)이 있고, 결제창 하단 링크가 화면 언어별로 그 절로 간다(번체는 영어 페이지로). 응답기한·언어 지원은 보장하지 않으며 24시간·전화·채팅 상담은 없다 | READY | [06](06-customer-support-and-incident-response.md) §1 |
-| 9 | 사고 대응 담당자 | 결제됨·미지급 30분 이상과 PG 대조 실패를 10분 주기 작업이 운영자 이메일(`admin@code-destiny.com`)로 알린다(Discord·Slack 은 오너가 쓰지 않기로 함, 2026-09-18 확인). 채널 자체는 등록·확인됐지만, 그 메일을 보고 조치할 담당자·온콜 기록은 레포에 없다 | NOT READY(OWNER INPUT REQUIRED) | [05](05-fulfillment-and-evidence.md) §2, [06](06-customer-support-and-incident-response.md) §4 |
+| 9 | 사고 대응 담당자 | 결제됨·미지급 30분 이상과 PG 대조 실패를 10분 주기 작업이 운영자 이메일(`admin@code-destiny.com`)로 알린다(Discord·Slack 은 오너가 쓰지 않기로 함). 담당자는 오너 본인이며 평일 업무시간에 확인해 당일 내 조치한다(2026-09-18 오너 확인, 엄격한 SLA 아님) | READY | [05](05-fulfillment-and-evidence.md) §2, [06](06-customer-support-and-incident-response.md) §4 |
 | 10 | 실물 해외배송 | 없음(디지털 콘텐츠) | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 11 | 배송추적 | 해당 없음 | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 12 | 개인정보 수집 범위 | 회원: 이름·이메일·휴대폰(암호화 저장)·출생 정보·성별·동의 기록·소셜 계정 식별자. PG 전달: 이름·이메일·국내 휴대폰 번호만(주소·국가 없음). 카드번호·CVC 는 저장하지 않는다. 1단계에서 수집 항목을 늘리지 않았다 | NOT READY(LEGAL REVIEW REQUIRED — 처리방침 국외 이전·보호책임자·처리자 목록) | [07](07-personal-data-inventory.md) |
@@ -91,10 +91,10 @@
 |---|---|
 | 코드로 답한 문항(1·2·3·4·5·6·7·10·11) | READY |
 | 8 해외 고객 CS | READY(이메일 1채널 — 응답기한·언어 지원 보장 없음을 그대로 적는다) |
-| 9 사고 대응 담당자·알림 채널 운영 설정 | 알림 채널은 READY(2026-09-18 확인), 담당자·온콜은 NOT READY(OWNER INPUT REQUIRED) |
+| 9 사고 대응 담당자·알림 채널 운영 설정 | READY — 알림 채널·담당자(오너 본인)·온콜(평일 업무시간, 당일 내 조치) 모두 2026-09-18 오너 확인 |
 | 12 개인정보 처리방침 | NOT READY(LEGAL REVIEW REQUIRED) |
 | 13 예상 해외 거래금액 | NOT READY(OWNER INPUT REQUIRED) |
 | 사업자 정보·MID 일치 | NOT READY(OWNER INPUT REQUIRED) |
 | 해외카드 특약 승인 | NOT READY(PG APPROVAL REQUIRED) |
 
-**최종 판정: OWNER INPUT REQUIRED** — 코드로 답할 수 있는 문항은 준비됐다. 예상 해외 거래금액·사업자 정보와 MID 일치·사고 담당자는 운영자가 채운다. 해외카드 결제를 여는 것은 그 뒤 PG 승인과 [02](02-overseas-card-implementation.md) §7 체크리스트가 끝난 다음이다.
+**최종 판정: OWNER INPUT REQUIRED** — 코드로 답할 수 있는 문항과 사고 담당자(문항 9)는 준비됐다. 예상 해외 거래금액·사업자 정보와 MID 일치는 아직 운영자가 채워야 한다. 해외카드 결제를 여는 것은 그 뒤 PG 승인과 [02](02-overseas-card-implementation.md) §7 체크리스트가 끝난 다음이다.
