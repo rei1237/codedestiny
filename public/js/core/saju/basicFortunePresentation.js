@@ -136,14 +136,38 @@
       if (data.guardian && data.guardian.name) badges.appendChild(node('span', '', data.guardian.name));
       hero.appendChild(badges);
     }
-    var reading = syReadingBody(data.traits, labels); reading.id = 'syHouseNatal';
+    var reading = syReadingBody(data.traits, labels, true); reading.id = 'syHouseNatal';
     if (hero) hero.after(reading); else root.appendChild(reading);
     // Move original nodes, never clone/rebuild controls or move them behind disclosures.
     var extras = Array.from(root.children).filter(function (el) {
       return !el.matches('.fr-profile,.fr-hero,.fr-reading,.sy-house-nav,.sy-house-banner,.sy-lunar-rim,style,script');
     });
     var toolsSection = node('section', 'sy-house-tools'); toolsSection.id = 'syHouseTools';
-    toolsSection.appendChild(heading(labels[2])); extras.forEach(function (el) { toolsSection.appendChild(el); }); root.appendChild(toolsSection);
+    toolsSection.appendChild(heading(labels[2]));
+    var deeperSection = node('section', 'sy-house-deeper'); deeperSection.id = 'syHouseDeeper';
+    deeperSection.appendChild(heading(labels[34])); deeperSection.appendChild(node('p', 'fr-caption', labels[35]));
+    // 결제 패널이 무료 결과 사이에 끼어 있으면 어디까지가 내 기본 결과인지 알 수 없다(§3). 표식은 추측하지
+    // 않고 카드에 실제로 박혀 있는 것을 쓴다 — 알려진 유료 카드 셀렉터에 가격·잠금 표시를 더해 본다.
+    // 모르는 카드는 유료 쪽으로 보낸다. 무료 구역에 결제 패널이 새는 쪽이 그 반대보다 나쁘다.
+    var paidSelector = '.sy-lunar-year-card,.sy-compat-card,.sy-past-life-card,.sy-bond-card,.sy-dogam-card,.sy-cta-card,#syNatureDeepDiveHost,#sySoloAiConsultCard';
+    var isPaid = function (el) {
+      if (el.matches(paidSelector) || el.querySelector(paidSelector)) return true;
+      if (el.classList.contains('is-locked') || el.querySelector('.is-locked')) return true;
+      return /[0-9][0-9,]*\s*원|잠금/.test(el.textContent || '');
+    };
+    var paidCount = 0;
+    // 노드를 옮기기만 한다. 다시 만들면 onclick·data-sy* 가 사라져 결제 흐름이 끊긴다
+    // (verify-sukuyo-reading-house.mjs:61 이 원본 컨트롤을 통째로 대조한다).
+    extras.forEach(function (el) { if (isPaid(el)) { paidCount++; deeperSection.appendChild(el); } else toolsSection.appendChild(el); });
+    root.appendChild(toolsSection);
+    if (paidCount) {
+      root.appendChild(deeperSection);
+      // 구역이 실제로 생겼을 때만 점프 버튼을 낸다 — 눌러도 갈 곳이 없는 버튼을 만들지 않는다(§3).
+      var deepButton = node('button', '', labels[34]); deepButton.type = 'button';
+      deepButton.addEventListener('click', function () { syReadingJump(deeperSection); });
+      // 이 구역은 명반·상세 바로 뒤에 온다. 내비 차례도 문서 차례와 같아야 길을 잃지 않는다.
+      nav.insertBefore(deepButton, nav.children[2] || null);
+    }
     root.appendChild(syMansionDirectory(data, labels));
     root.appendChild(syArticleLibrary(root, labels));
   }
@@ -151,11 +175,11 @@
     var lang = document.documentElement.lang || 'ko';
     try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
     var labels = {
-      ko: ['숙요점 메뉴','나의 숙','명반·상세','27숙 도감','숙요 읽을거리','달이 머문 자리, 나를 읽는 시간','타고난 마음의 결에서 관계의 리듬까지. 당신의 숙을 천천히 펼쳐보세요.','나의 숙 해석 읽기','성격과 내면','강점의 이면에 있는 마음','연애와 관계','인연을 이어가는 방식','일과 재물','능력이 살아나는 자리','돈을 대하는 습관','오늘의 작은 실천','스물일곱 숙의 이야기','숙 이름 찾기','예: 각, 角, 위','도감 해설 · 나의 본명숙과는 별도입니다.','내 본명숙 해설로 돌아가기','숙요를 더 깊이 읽는 시간','기존 숙요 글을 이 화면에서 이어 읽어보세요.','글 목록으로 돌아가기','원문 페이지 보기','불러오는 중입니다.','불러오지 못했어요. 다시 시도해 주세요.','다시 불러오기','찾는 항목이 없어요. 다른 검색어를 입력해 주세요.','글 제목 찾기','숙요점은 전통적인 상징을 통해 자신을 돌아보는 해석입니다. 같은 숙이라도 경험과 선택에 따라 삶의 모습은 달라집니다.','한국어 원문','회복과 생활 리듬','흐름을 활용하는 방법'],
-      en: ['Sukuyo navigation','My mansion','Chart & details','27 mansions','Reading room','Where the moon rests, a moment to understand yourself','Explore your temperament and the rhythms of your relationships.','Read my mansion','Temperament','The other side of a strength','Love & relationships','Building lasting connections','Work & money','Where your talents thrive','Money habits','A small step today','Stories of the 27 mansions','Find a mansion','Name or Chinese character','Reference reading — separate from your natal mansion.','Return to my natal reading','Read more about Sukuyo','Read existing Sukuyo articles here.','Back to articles','Open original article','Loading…','Unable to load. Please try again.','Retry','No matches. Try another search.','Find an article','A traditional symbolic reading for reflection. Experience and choices shape each person differently.','Korean original','Rest & daily rhythm','Working with your rhythm'],
-      ja: ['宿曜メニュー','本命宿','命盤・詳細','27宿図鑑','読みもの','月が宿る場所から、自分を知る時間へ','生まれ持つ気質から人間関係のリズムまで、ゆっくり読み解きます。','本命宿を読む','性格と内面','強みの裏にある心','恋愛と人間関係','縁を育てる方法','仕事とお金','才能を生かす場所','お金との付き合い方','今日の小さな一歩','二十七宿の物語','宿を検索','宿名・漢字','図鑑の解説です。本命宿の結果とは別です。','自分の本命宿に戻る','宿曜を深く読む','宿曜の記事をこの画面で読み続けられます。','記事一覧に戻る','元の記事を開く','読み込み中…','読み込めませんでした。もう一度お試しください。','再読み込み','見つかりません。別の語で検索してください。','記事を検索','伝統的な象徴を通じて自分を振り返る解釈です。同じ宿でも経験や選択によって異なります。','韓国語原文','休息と生活リズム','リズムの生かし方'],
-      zh: ['宿曜导航','我的本命宿','命盘与详情','二十七宿','宿曜阅读','月亮停留的地方，认识自己的时刻','从性情到关系节奏，慢慢读懂自己的本命宿。','阅读我的本命宿','性格与内心','优势背后的心情','恋爱与关系','维系关系的方式','工作与金钱','发挥才能的方向','金钱习惯','今天的小行动','二十七宿的故事','搜索宿名','宿名或汉字','图鉴解读，与您的本命宿结果分开。','返回我的本命宿','深入阅读宿曜','在这里继续阅读已有的宿曜文章。','返回文章列表','查看原文页面','正在加载…','加载失败，请重试。','重新加载','没有匹配项，请换个词搜索。','搜索文章标题','通过传统象征反思自身的解读。同一宿的人也会因经历和选择而不同。','韩语原文','休息与生活节奏','运用节奏的方法'],
-      'zh-TW': ['宿曜導覽','我的本命宿','命盤與詳情','二十七宿','宿曜閱讀','月亮停留的地方，認識自己的時刻','從性情到關係節奏，慢慢讀懂自己的本命宿。','閱讀我的本命宿','性格與內心','優勢背後的心情','戀愛與關係','維繫關係的方式','工作與金錢','發揮才能的方向','金錢習慣','今天的小行動','二十七宿的故事','搜尋宿名','宿名或漢字','圖鑑解讀，與您的本命宿結果分開。','返回我的本命宿','深入閱讀宿曜','在這裡繼續閱讀已有的宿曜文章。','返回文章列表','查看原文頁面','正在載入…','載入失敗，請重試。','重新載入','沒有符合項目，請換個詞搜尋。','搜尋文章標題','透過傳統象徵反思自身的解讀。同一宿的人也會因經歷和選擇而不同。','韓語原文','休息與生活節奏','運用節奏的方法']
+      ko: ['숙요점 메뉴','나의 숙','명반·상세','27숙 도감','숙요 읽을거리','달이 머문 자리, 나를 읽는 시간','타고난 마음의 결에서 관계의 리듬까지. 당신의 숙을 천천히 펼쳐보세요.','나의 숙 해석 읽기','성격과 내면','강점의 이면에 있는 마음','연애와 관계','인연을 이어가는 방식','일과 재물','능력이 살아나는 자리','돈을 대하는 습관','오늘의 작은 실천','스물일곱 숙의 이야기','숙 이름 찾기','예: 각, 角, 위','도감 해설 · 나의 본명숙과는 별도입니다.','내 본명숙 해설로 돌아가기','숙요를 더 깊이 읽는 시간','기존 숙요 글을 이 화면에서 이어 읽어보세요.','글 목록으로 돌아가기','원문 페이지 보기','불러오는 중입니다.','불러오지 못했어요. 다시 시도해 주세요.','다시 불러오기','찾는 항목이 없어요. 다른 검색어를 입력해 주세요.','글 제목 찾기','숙요점은 전통적인 상징을 통해 자신을 돌아보는 해석입니다. 같은 숙이라도 경험과 선택에 따라 삶의 모습은 달라집니다.','한국어 원문','회복과 생활 리듬','흐름을 활용하는 방법','더 깊은 리딩','유료 리딩과 상담입니다. 기본 결과는 위에서 모두 확인할 수 있어요.'],
+      en: ['Sukuyo navigation','My mansion','Chart & details','27 mansions','Reading room','Where the moon rests, a moment to understand yourself','Explore your temperament and the rhythms of your relationships.','Read my mansion','Temperament','The other side of a strength','Love & relationships','Building lasting connections','Work & money','Where your talents thrive','Money habits','A small step today','Stories of the 27 mansions','Find a mansion','Name or Chinese character','Reference reading — separate from your natal mansion.','Return to my natal reading','Read more about Sukuyo','Read existing Sukuyo articles here.','Back to articles','Open original article','Loading…','Unable to load. Please try again.','Retry','No matches. Try another search.','Find an article','A traditional symbolic reading for reflection. Experience and choices shape each person differently.','Korean original','Rest & daily rhythm','Working with your rhythm','Deeper readings','Paid readings and consultations. Your basic result is complete above.'],
+      ja: ['宿曜メニュー','本命宿','命盤・詳細','27宿図鑑','読みもの','月が宿る場所から、自分を知る時間へ','生まれ持つ気質から人間関係のリズムまで、ゆっくり読み解きます。','本命宿を読む','性格と内面','強みの裏にある心','恋愛と人間関係','縁を育てる方法','仕事とお金','才能を生かす場所','お金との付き合い方','今日の小さな一歩','二十七宿の物語','宿を検索','宿名・漢字','図鑑の解説です。本命宿の結果とは別です。','自分の本命宿に戻る','宿曜を深く読む','宿曜の記事をこの画面で読み続けられます。','記事一覧に戻る','元の記事を開く','読み込み中…','読み込めませんでした。もう一度お試しください。','再読み込み','見つかりません。別の語で検索してください。','記事を検索','伝統的な象徴を通じて自分を振り返る解釈です。同じ宿でも経験や選択によって異なります。','韓国語原文','休息と生活リズム','リズムの生かし方','さらに深い鑑定','有料の鑑定と相談です。基本の結果は上ですべてご覧いただけます。'],
+      zh: ['宿曜导航','我的本命宿','命盘与详情','二十七宿','宿曜阅读','月亮停留的地方，认识自己的时刻','从性情到关系节奏，慢慢读懂自己的本命宿。','阅读我的本命宿','性格与内心','优势背后的心情','恋爱与关系','维系关系的方式','工作与金钱','发挥才能的方向','金钱习惯','今天的小行动','二十七宿的故事','搜索宿名','宿名或汉字','图鉴解读，与您的本命宿结果分开。','返回我的本命宿','深入阅读宿曜','在这里继续阅读已有的宿曜文章。','返回文章列表','查看原文页面','正在加载…','加载失败，请重试。','重新加载','没有匹配项，请换个词搜索。','搜索文章标题','通过传统象征反思自身的解读。同一宿的人也会因经历和选择而不同。','韩语原文','休息与生活节奏','运用节奏的方法','更深入的解读','付费解读与咨询。基本结果已在上方全部呈现。'],
+      'zh-TW': ['宿曜導覽','我的本命宿','命盤與詳情','二十七宿','宿曜閱讀','月亮停留的地方，認識自己的時刻','從性情到關係節奏，慢慢讀懂自己的本命宿。','閱讀我的本命宿','性格與內心','優勢背後的心情','戀愛與關係','維繫關係的方式','工作與金錢','發揮才能的方向','金錢習慣','今天的小行動','二十七宿的故事','搜尋宿名','宿名或漢字','圖鑑解讀，與您的本命宿結果分開。','返回我的本命宿','深入閱讀宿曜','在這裡繼續閱讀已有的宿曜文章。','返回文章列表','查看原文頁面','正在載入…','載入失敗，請重試。','重新載入','沒有符合項目，請換個詞搜尋。','搜尋文章標題','透過傳統象徵反思自身的解讀。同一宿的人也會因經歷和選擇而不同。','韓語原文','休息與生活節奏','運用節奏的方法','更深入的解讀','付費解讀與諮詢。基本結果已在上方全部呈現。']
     };
     return labels[lang] || labels[lang.split('-')[0]] || labels.ko;
   }
@@ -163,14 +187,23 @@
     if (!target) return;
     target.tabIndex = -1; target.focus({ preventScroll: true }); target.scrollIntoView({ block: 'start', behavior: 'instant' });
   }
-  function syReadingBody(traits, labels) {
+  // collapsible 은 본명숙 결과에서만 켠다. 도감 리더는 사용자가 "이 숙을 읽겠다" 고 방금 누른
+  // 화면이라, 거기서 또 접으면 방금 요청한 글에 닿는 데 한 번 더 눌러야 한다.
+  function syReadingBody(traits, labels, collapsible) {
     var body = node('article', 'fr-reading sy-house-reading');
     // Paid deep-dive fields (hidden/karma/mantra/health/timing) stay in their original gated renderer.
-    [[8,'core'],[10,'love',11,'social'],[12,'work',14,'wealth'],[15,'advice']].forEach(function (entry) {
+    [[8,'core'],[10,'love',11,'social'],[12,'work',14,'wealth'],[15,'advice']].forEach(function (entry, order) {
       if (!traits || !traits[entry[1]]) return;
-      var section = node('section', 'fr-reading-item'); section.appendChild(heading(labels[entry[0]]));
-      var text = node('p', '', traits[entry[1]]); text.lang = 'ko'; section.appendChild(text);
-      if (entry[3] && traits[entry[3]]) { section.appendChild(node('h4','',labels[entry[2]])); var extra = node('p','',traits[entry[3]]); extra.lang='ko'; section.appendChild(extra); }
+      var section = node('section', 'fr-reading-item');
+      var parts = [];
+      var text = node('p', '', traits[entry[1]]); text.lang = 'ko'; parts.push(text);
+      if (entry[3] && traits[entry[3]]) { parts.push(node('h4','',labels[entry[2]])); var extra = node('p','',traits[entry[3]]); extra.lang='ko'; parts.push(extra); }
+      // 기질과 오늘의 실천은 펼친 채로 둔다. 연애·일 산문은 접어 첫 화면이 결론부터 보이게 한다(§3).
+      // 접기가 성사되지 않으면 산문을 버리지 않고 그대로 펼친다 — 내용이 사라지는 쪽이 더 나쁘다(§23).
+      if (!collapsible || (order !== 1 && order !== 2) || !foldIfContent(section, labels[entry[0]], parts)) {
+        section.appendChild(heading(labels[entry[0]]));
+        parts.forEach(function (part) { section.appendChild(part); });
+      }
       body.appendChild(section);
     });
     body.appendChild(node('p','fr-caption',labels[30])); return body;

@@ -66,6 +66,22 @@ try {
     return ['hidden','karma','mantra','health','timing'].some(key=>traits[key]&&text.includes(traits[key]));
   });
   assert.equal(privateCopyExposed,false,'Deep-dive prose stays in its existing gated renderer');
+  // 결제 패널이 무료 결과 사이에 끼면 어디까지가 내 기본 결과인지 알 수 없다. astro 화면이 이미
+  // 같은 규칙을 지키고 있다(verify-basic-fortune-library.mjs:181-186). 숙요점에도 같은 것을 세운다.
+  const paidLeak=await page.evaluate(()=>{
+    const free=document.getElementById('syHouseTools');const deep=document.getElementById('syHouseDeeper');
+    const label=el=>(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,40);
+    // 화면에 실제로 박혀 있는 표식으로만 판정한다 — 가격 문자열이나 잠금 상태.
+    const priced=el=>/[0-9][0-9,]*\s*원|잠금/.test(el.textContent||'')||!!el.querySelector('.is-locked')||el.classList.contains('is-locked');
+    return {
+      deeperExists:!!deep,
+      freeLeaks:free?Array.from(free.children).filter(priced).map(label):['#syHouseTools 자체가 없다'],
+      collapsedPaid:deep?Array.from(deep.children).filter(el=>el.closest('details:not([open])')).map(label):[],
+    };
+  });
+  assert.equal(paidLeak.deeperExists,true,'유료 구역(#syHouseDeeper)이 없다');
+  assert.deepEqual(paidLeak.freeLeaks,[],'무료 구역에 결제 패널이 남아 있다');
+  assert.deepEqual(paidLeak.collapsedPaid,[],'결제 패널이 접힌 서랍 안에 들어갔다');
   const originalData=await page.evaluate(()=>JSON.stringify({natal:window._syLastSukuyoBasicResult,wheel:window._syWheelState}));
   for(let index=0;index<27;index++){
     await page.locator('.sy-house-mansions button').nth(index).click();

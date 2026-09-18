@@ -196,12 +196,14 @@ body:has(#sukuyoModalOverlay.fr-sukuyo[aria-hidden="false"]) #cdMobileBottomNav 
 .fr-sukuyo .sy-house-reading h4 { color: var(--fr-accent); font-size: 17px; margin: 22px 0 10px; }
 .fr-sukuyo .sy-house-reading p { color: var(--fr-ink); margin: 0 0 14px; line-height: 1.9; }
 .fr-sukuyo .sy-house-reading .fr-caption { color: var(--fr-muted); font-size: 14px; }
-.fr-sukuyo :is(.sy-house-tools,.sy-house-directory,.sy-house-journal) { border-top: 1px solid var(--fr-rule); padding-top: 30px; margin-top: 40px; scroll-margin-top: 24px; }
-.fr-sukuyo .sy-house-tools > :is(.sy-card,div) { margin: 24px 0; }
-.fr-sukuyo .sy-house-tools .sy-card { border: 1px solid var(--fr-rule) !important; background: var(--fr-surface) !important; }
-.fr-sukuyo .sy-house-tools :is(.sy-canon-hero,.sy-canon-brief,.sy-narr-card) { background: var(--fr-surface); color: var(--fr-ink); border-color: var(--fr-rule); }
-.fr-sukuyo .sy-house-tools :is(.sy-canon-title,.sy-wheel-title,.sy-compat-title) { color: var(--fr-ink); background: none; -webkit-text-fill-color: currentColor; }
-.fr-sukuyo .sy-house-tools :is(.sy-canon-subtitle,.sy-wheel-caption) { color: var(--fr-muted); }
+.fr-sukuyo :is(.sy-house-tools,.sy-house-deeper,.sy-house-directory,.sy-house-journal) { border-top: 1px solid var(--fr-rule); padding-top: 30px; margin-top: 40px; scroll-margin-top: 24px; }
+/* 결제 패널을 유료 구역으로 옮겨도 카드 모양은 그대로여야 한다. 아래 규칙들은 원래 .sy-house-tools
+   안에서만 엔진 색을 리포트 토큰으로 눌러 주던 것이라, 옮긴 카드가 빠지면 엔진 색이 되살아난다. */
+.fr-sukuyo :is(.sy-house-tools,.sy-house-deeper) > :is(.sy-card,div) { margin: 24px 0; }
+.fr-sukuyo :is(.sy-house-tools,.sy-house-deeper) .sy-card { border: 1px solid var(--fr-rule) !important; background: var(--fr-surface) !important; }
+.fr-sukuyo :is(.sy-house-tools,.sy-house-deeper) :is(.sy-canon-hero,.sy-canon-brief,.sy-narr-card) { background: var(--fr-surface); color: var(--fr-ink); border-color: var(--fr-rule); }
+.fr-sukuyo :is(.sy-house-tools,.sy-house-deeper) :is(.sy-canon-title,.sy-wheel-title,.sy-compat-title) { color: var(--fr-ink); background: none; -webkit-text-fill-color: currentColor; }
+.fr-sukuyo :is(.sy-house-tools,.sy-house-deeper) :is(.sy-canon-subtitle,.sy-wheel-caption) { color: var(--fr-muted); }
 .fr-sukuyo .sy-house-search { display: block; font-size: 14px; color: var(--fr-muted); max-width: 360px; margin: 20px 0; }
 .fr-sukuyo .sy-house-search input { display: block; margin-top: 7px; width: 100%; min-height: 46px; border: 1px solid var(--fr-rule); border-radius: 7px; padding: 10px 12px; color: var(--fr-ink); background: var(--fr-surface); }
 .fr-sukuyo .sy-house-mansions { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 8px; margin: 22px 0; }
