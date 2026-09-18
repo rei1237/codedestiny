@@ -9,9 +9,9 @@ import {
 import { FEATURE_KEY_PRICE_TABLE, isPerUsePaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
 
 describe("Guardian Fortune credit retirement", () => {
-  it("prices the consultation at 50 coins (5,000 KRW) as a per-use feature", () => {
+  it("prices the consultation at 30 coins (3,000 KRW) as a per-use feature", () => {
     expect(GUARDIAN_FORTUNE_PAID_FEATURE_KEY).toBe("fortune-chat-consultation");
-    expect(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 50, amountKRW: 5000 });
+    expect(FEATURE_KEY_PRICE_TABLE[GUARDIAN_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 30, amountKRW: 3000 });
     expect(isPerUsePaidFeatureKey(GUARDIAN_FORTUNE_PAID_FEATURE_KEY)).toBe(true);
   });
 

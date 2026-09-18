@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * 연이 운명 상담(fortune-chat-consultation, 5,000원)과 초융합 운세
+ * 연이 운명 상담(fortune-chat-consultation, 현재 3,000원/30코인)과 초융합 운세
  * (fusion-fortune-consultation, 30,000원)는 전용 재화를 버리고 표준 회당 결제로 옮겼다.
  * 두 기능은 verifyPerUsePayment 를 **실제 차단**에 쓰는 첫 사례라, 증빙 5경로가 전부
  * 통과하는지와 DB 장애가 402 로 세탁되지 않는지를 여기서 못 박는다.
@@ -162,13 +162,15 @@ describe("이용권 커버 — 가격에 따라 등급이 갈린다", () => {
     profileSubscription: { tier, status: "active", expiresAt: "2099-01-01T00:00:00.000Z" },
   });
 
-  // 연이 상담 50코인(5,000원): 2026-08-24 부터 standard 적용 범위(50코인)와 정확히 같아 전 등급 커버.
+  // 50코인 경계값: standard 적용 범위(50코인)와 정확히 같아 전 등급 커버되는지 검증하는
+  // 경계 테스트다. 연이 상담 실제 가격(현재 30코인/3,000원)과는 별개로 50이라는 값 자체가
+  // standard 상한과 정확히 일치하는 경계 케이스를 의도적으로 고정한 것이므로 바꾸지 않는다.
   it.each([
     ["standard", true],
     ["premium", true],
     ["vvip", true],
     ["family", true],
-  ])("연이 상담 5,000원 — %s 이용권 커버=%s", async (tier, covered) => {
+  ])("50코인 경계값 — %s 이용권 커버=%s", async (tier, covered) => {
     userFindById.mockReturnValue(query(activePass(tier)));
     const proof = await verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID });
     expect(proof.proven).toBe(covered);

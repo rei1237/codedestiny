@@ -217,8 +217,8 @@ type Birth = { birthDate: string; birthTime: string; calendarType: "solar" | "lu
 
 /** 무료 소진 이후의 회당 결제. 가격 정본은 worker/lib/paid-feature-registry.js. */
 const PAID_FEATURE_KEY = "fortune-chat-consultation";
-const PAID_COIN_PRICE = 50;
-const PAID_AMOUNT_KRW = 5000;
+const PAID_COIN_PRICE = 30;
+const PAID_AMOUNT_KRW = 3000;
 /** 서버 검증 상한과 같은 값 — 넘겨 보내면 400 으로 되돌아온다. */
 const CONCERN_MAX_LENGTH = 120;
 
@@ -756,7 +756,7 @@ export default function FortuneChatClient() {
     <section className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
         <p className={styles.policy}>{usageLabel}</p>
-        {needsPayment && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="5,000원" prefix="1회 " className={styles.priceBadge} />}
+        {needsPayment && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="3,000원" prefix="1회 " className={styles.priceBadge} />}
       </div>
 
       <details className={styles.birthPanel} open={birthOpen} onToggle={(event) => setBirthOpen((event.currentTarget as HTMLDetailsElement).open)}>

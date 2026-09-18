@@ -91,7 +91,7 @@ test('the destiny gate leads to the conversational reading in every shell', () =
     // 가격과 무료 횟수를 카드에서 바로 읽을 수 있어야 한다.
     // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
     assert.match(gate, /<b[^>]*>회원가입 무료 1회<\/b>/, shell);
-    assert.match(gate, /이후 1회 5,000원/, shell);
+    assert.match(gate, /이후 1회 3,000원/, shell);
     // 계정 무료 3회는 총량이라 "매일" 로 약속하면 안 된다.
     assert.doesNotMatch(html, /매일 무료|하루 무료/, shell);
     // 다이얼로그를 열지 않으면서 aria-haspopup 을 달아 두면 스크린리더에 거짓말을 하게 된다.
