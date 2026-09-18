@@ -123,6 +123,43 @@ const ACCEPTED = new Map([
     },
   ],
 
+  [
+    "input|fixed-height",
+    {
+      why:
+        "환불·청약철회 동의 체크박스(data-refund-consent-input) — <input type=\"checkbox\"> 는 " +
+        "채움 여부만 그릴 뿐 글자를 담지 않으므로 로케일이 바뀌어도 16px 높이가 모자랄 일이 없다. " +
+        "동의 문구 자체는 이 input 밖의 형제 텍스트에 있다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /<input type="checkbox" data-refund-consent-input>/,
+        note: "동의 입력이 더 이상 checkbox 가 아니다 — 글자를 담는 입력이 되면 16px 고정 높이가 잘린다",
+      },
+    },
+  ],
+  [
+    "input|fixed-width",
+    {
+      why: "위와 같음 — 체크박스는 글자를 담지 않으므로 16px 너비가 좁을 일이 없다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /<input type="checkbox" data-refund-consent-input>/,
+        note: "동의 입력이 더 이상 checkbox 가 아니다 — 글자를 담는 입력이 되면 16px 고정 너비가 부족해진다",
+      },
+    },
+  ],
+  [
+    "input|flex-rigid",
+    {
+      why: "위와 같음 — 체크박스는 축소·확장될 글자가 없어 형제와 같이 밀려나도 안전하다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /<input type="checkbox" data-refund-consent-input>/,
+        note: "동의 입력이 더 이상 checkbox 가 아니다 — 글자를 담는 입력이 되면 flex:0 0 이 위험해진다",
+      },
+    },
+  ],
+
   // --- 탭바: nowrap 을 유지하고 문자열 길이로 푼 자리 ---
   [
     ".cd-mobile-bottom-nav__item|nowrap",
