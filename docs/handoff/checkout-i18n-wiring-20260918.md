@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-18
+next: 이용권 모달 14문구 영어화(app/points/PointsClient.tsx:4823-4946)부터 시작한다 — 폴백을 EN으로 할지 결정 필요.
+---
+
 # /checkout 다국어 배선 — 해외카드 2단계 ① 첫 축
 
 - 날짜: 2026-09-18
