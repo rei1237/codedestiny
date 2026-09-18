@@ -343,6 +343,11 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay #zwLifeAnimalPanel .zw-dp-subtitle { font-size:14px; color:var(--fr-muted); }
 #ziweiModalOverlay #zwLifeAnimalPanel .zw-rtitle { font-size:18px; color:var(--fr-accent); }
 #ziweiModalOverlay #zwLifeAnimalPanel .zw-rdesc { font-size:16px; line-height:1.75; color:var(--fr-ink); }
+/* 폴백(명궁이 공궁이라 동물을 못 고른 상태)은 엔진의 공용 .zw-report-section 을 함께 달고 나온다
+   (js/saju-engine.js:21262). 그 규칙이 border-left:3px solid #8A2BE2 · border-radius:10px ·
+   background:rgba(255,255,255,0.04) 라서 폴백만 보라색 좌측선으로 남는다. 여기서 같이 덮는다 —
+   공용 클래스 자체는 다른 패널도 쓰므로 건드리지 않고 이 패널 안에서만 무력화한다. */
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-empty { padding:16px; border:1px solid var(--fr-rule); border-radius:0; background:none; }
 #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero { padding:0; border:0; border-radius:0; background:none; }
 #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-title { font-size:14px; font-weight:700; color:var(--fr-muted); }
 #ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-name { margin-top:8px; font-size:20px; font-weight:700; color:var(--fr-accent); }
