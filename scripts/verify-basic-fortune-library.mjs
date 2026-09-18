@@ -134,7 +134,7 @@ try {
       assert.deepEqual(stable(data), stable(previous), type + ': calculation result changed');
     }
     await fs.writeFile(path.join(output, `${type}.html`), await page.locator('#' + ids[type]).innerHTML());
-    for (const width of [360, 390, 430, 768, 1280]) {
+    for (const width of [320, 360, 375, 390, 430, 768, 1280]) {
       await page.setViewportSize({ width, height: width >= 768 ? 1000 : 844 });
       await page.locator(`#${type}ModalSheet`).evaluate(el => { el.scrollTop = 0; });
       await page.screenshot({ path: path.join(output, `${type}-${width}.png`) });
@@ -207,6 +207,76 @@ try {
           await page.waitForTimeout(150);
           assert.ok(await factsHeight() > 0, `명반 근거 표가 ${mode} 뷰에서 사라졌다`);
         }
+        // 🟠 모바일 명반. 세로 목록 규칙(.zw-grid-wrap:not(.fr-ziwei-map) …)은 원래 .fr-overlay 로 시작해서
+        //    같은 파일의 #ziweiModalOverlay .zw-grid-wrap … ID 규칙에 특이도로 졌다 — !important 를 걸어도 진다.
+        //    즉 "작성되어 있는데 한 번도 적용되지 않는" 죽은 CSS 였다. 클래스 이름만 세는 검사로는 못 잡으므로
+        //    실제로 눌러서 배치가 바뀌는지 잰다(실측: 두 규칙 중 하나만 빼도 아래에서 걸린다).
+        const mapToggle = page.locator('#fr-ziwei-chart .fr-map-toggle');
+        assert.equal(await mapToggle.count(), 1, '명반 보기 전환 버튼이 없다');
+        assert.ok(await mapToggle.evaluate(el => el.getBoundingClientRect().height >= 44), '명반 전환 버튼 터치 타깃이 44px 미만');
+        const gridDisplay = () => page.locator('#fr-ziwei-chart .zw-grid').evaluate(el => getComputedStyle(el).display);
+        assert.equal(await gridDisplay(), 'flex', '390px 기본값이 세로 목록이 아니다(죽은 CSS 회귀)');
+        // 엔진은 지지(.zw-branch-name)·대한(.zw-dahan)을 셀 하단에 position:absolute 로 못박는다.
+        // 세로 목록은 height:auto 라서 하단 여백을 비워 두지 않으면 별 이름 행이 그 위로 흘러 내려와 글자가 겹친다
+        // (실측으로 확인된 결함). 클래스 존재 검사로는 절대 안 잡히므로 실제 좌표로 잰다.
+        const listOverlap = await page.locator('#fr-ziwei-chart .zw-grid').evaluate(el => {
+          const bad = [];
+          el.querySelectorAll('.zw-cell').forEach(cell => {
+            const tags = [...cell.querySelectorAll(':scope > .zw-branch-name, :scope > .zw-dahan')]
+              .map(n => ({ cls: n.className, r: n.getBoundingClientRect() })).filter(x => x.r.height > 0);
+            if (!tags.length) return;
+            // 흐름에 놓인 자식만 본다. 겹침의 상대는 이 라벨들이 아니라 그 위를 흐르는 본문이다.
+            const flow = [...cell.children]
+              .filter(n => !n.matches('.zw-branch-name,.zw-dahan'))
+              .map(n => n.getBoundingClientRect()).filter(r => r.height > 0);
+            if (!flow.length) return;
+            const flowBottom = Math.max(...flow.map(r => r.bottom));
+            tags.forEach(tag => {
+              if (tag.r.top < flowBottom - 0.5) {
+                const name = ((cell.querySelector('.zw-palace-name')||{}).textContent||'?').trim();
+                bad.push(`${name}/${tag.cls}(${Math.round(flowBottom - tag.r.top)}px 겹침)`);
+              }
+            });
+          });
+          return bad;
+        });
+        assert.deepEqual(listOverlap, [], '세로 목록에서 지지·대한 라벨이 별 이름과 겹친다: ' + listOverlap.join(', '));
+        // 목록은 명궁부터다. flex order 로 올리므로 DOM 순서가 아니라 실제 y 좌표로 확인한다.
+        const firstListCell = await page.locator('#fr-ziwei-chart .zw-grid').evaluate(el => [...el.querySelectorAll('.zw-cell')]
+          .map(c => ({ name: ((c.querySelector('.zw-palace-name')||{}).textContent||'').trim(), meng: c.classList.contains('zw-cell-meng'), y: c.getBoundingClientRect().top }))
+          .sort((a, b) => a.y - b.y)[0]);
+        assert.ok(firstListCell.meng, `세로 목록 첫 카드가 명궁이 아니다: ${firstListCell.name}`);
+        await mapToggle.click();
+        await page.waitForTimeout(200);
+        const mapMode = await page.locator('#fr-ziwei-chart .zw-grid-wrap').evaluate(el => ({
+          display: getComputedStyle(el.querySelector('.zw-grid')).display,
+          gridWidth: el.querySelector('.zw-grid').getBoundingClientRect().width,
+          overflowX: getComputedStyle(el).overflowX,
+          scrollable: el.scrollWidth > el.clientWidth,
+        }));
+        assert.equal(mapMode.display, 'grid', '지도 모드인데 4×4 격자가 아니다');
+        assert.ok(mapMode.gridWidth >= 600, `지도 모드 격자 폭이 ${Math.round(mapMode.gridWidth)}px 뿐이다`);
+        assert.equal(mapMode.overflowX, 'auto', '지도 모드에 가로 스크롤러가 없다(overflow:visible 회귀)');
+        assert.ok(mapMode.scrollable, '지도 모드인데 가로 스크롤이 생기지 않았다');
+        // 엔진은 이 안내를 calc(100vw - 42px) 로 재는데 리포트 안 스크롤러는 그보다 좁다.
+        // 덮어쓰지 않으면 마지막 글자가 스크롤러 경계에서 잘린다(실측).
+        const noteFit = await page.locator('#fr-ziwei-chart .zw-grid-wrap').evaluate(el => {
+          const n = el.querySelector('.zw-chart-mobile-note');
+          if (!n || getComputedStyle(n).display === 'none') return null;
+          const nr = n.getBoundingClientRect(), wr = el.getBoundingClientRect();
+          return { overflowPx: nr.right - (wr.left + el.clientLeft + el.clientWidth) };
+        });
+        assert.ok(noteFit, '지도 모드 안내 문구가 보이지 않는다');
+        assert.ok(noteFit.overflowPx <= 1, `안내 문구가 스크롤러 밖으로 ${Math.round(noteFit.overflowPx)}px 넘쳐 잘린다`);
+        await page.screenshot({ path: path.join(output, 'ziwei-390-map.png') });
+        // 스크롤은 .zw-grid-wrap 안에서만 일어나야 한다. 오버레이까지 넘치면 화면 전체가 흔들린다.
+        const mapOverlay = await page.locator('#ziweiModalOverlay').evaluate(el => ({ scrollWidth: el.scrollWidth, width: el.clientWidth }));
+        assert.ok(mapOverlay.scrollWidth <= mapOverlay.width + 1, '지도 모드가 오버레이를 가로로 넘치게 한다');
+        await mapToggle.click();
+        await page.waitForTimeout(200);
+        assert.equal(await gridDisplay(), 'flex', '세로 목록으로 되돌아가지 않는다');
+        assert.equal(await mapToggle.getAttribute('aria-pressed'), 'false', '되돌린 뒤 aria-pressed 가 남아 있다');
+        await page.screenshot({ path: path.join(output, 'ziwei-390-list.png') });
         assert.equal(await page.locator('.fr-palace-choice').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart .zw-cell').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart').evaluate(el => el.closest('details') === null), true);

@@ -553,6 +553,22 @@
     var chart = dashboard.querySelector('.zw-grid-wrap');
     var chartSection = node('section', 'fr-chart-section'); chartSection.id = 'fr-ziwei-chart';
     chartSection.appendChild(heading(t('allPalaces')));
+    // 좁은 화면에서 4×4 격자는 글자가 짓눌려 읽히지 않으므로 세로 목록이 기본이다. 이 버튼이 진짜 명반으로 되돌린다.
+    // 스타일(.fr-map-toggle, .fr-ziwei-map)은 basic-fortune-library.css 에 이미 있다 — 여기서는 스위치만 만든다.
+    // 버튼은 .zw-grid-wrap 바깥에 둔다. 지도 모드에서 그 래퍼가 가로 스크롤러가 되므로 안에 넣으면 버튼이 밀려나간다.
+    var mapToggle = node('button', 'fr-map-toggle', t('mapToggle'));
+    mapToggle.type = 'button';
+    mapToggle.setAttribute('aria-pressed', 'false');
+    if (!chart.id) chart.id = 'fr-ziwei-map-wrap';
+    mapToggle.setAttribute('aria-controls', chart.id);
+    mapToggle.addEventListener('click', function () {
+      var on = chart.classList.toggle('fr-ziwei-map');
+      mapToggle.setAttribute('aria-pressed', String(on));
+      mapToggle.textContent = on ? t('mapToggleOff') : t('mapToggle');
+      // 격자로 돌아오면 셀 중심 좌표가 바뀐다. 상세 뷰의 삼방사정 선은 엔진이 다시 그려야 맞는다.
+      if (on && typeof window._zwDrawTriad === 'function') requestAnimationFrame(function () { window._zwDrawTriad(); });
+    });
+    chartSection.appendChild(mapToggle);
     chartSection.appendChild(chart);
     dashboard.prepend(chartSection);
     chartSection.after(reading);
