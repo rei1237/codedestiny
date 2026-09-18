@@ -317,6 +317,7 @@
     "verify:ziwei-star-parity": "node scripts/verify-ziwei-star-parity.mjs",
     "verify:ziwei-borrowed-strength": "node scripts/verify-ziwei-borrowed-star-strength.mjs",
     "verify:ziwei-chart-detail-view": "node scripts/verify-ziwei-chart-detail-view.mjs",
+    "verify:sukuyo-reading-house": "node scripts/verify-sukuyo-reading-house.mjs",
     "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:profile-card-add-entry": "node scripts/verify-profile-card-add-entry.mjs",
