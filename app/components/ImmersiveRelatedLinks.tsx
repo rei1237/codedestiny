@@ -56,6 +56,7 @@ const ROUTE_DATES: Record<string, { datePublished: string; dateModified: string 
   "/yeon-star-hug": { datePublished: "2026-05-18", dateModified: "2026-09-06" },
   "/ziwei-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
   "/ziwei/chart": { datePublished: "2026-04-02", dateModified: "2026-09-06" },
+  "/ziwei/animal-destiny": { datePublished: "2026-09-18", dateModified: "2026-09-18" },
 };
 const FUSION_PATH = "/fusion-fortune";
 
@@ -79,7 +80,8 @@ const CURATED_RELATED_PATHS: Record<string, readonly string[]> = {
   "/saju/love-simulation": ["/love", "/saju/compatibility", "/compatibility"],
   "/tarot/prompt-maker": ["/tarot", "/tarot/mindscan", "/tarot/guide"],
   "/yeon-star-hug": ["/astrology", "/today", "/tarot"],
-  "/ziwei/chart": ["/ziwei", "/ziwei-ai", "/saju"],
+  "/ziwei/chart": ["/ziwei", "/ziwei-ai", "/ziwei/animal-destiny"],
+  "/ziwei/animal-destiny": ["/ziwei", "/ziwei-ai", "/saju/animal-destiny"],
 };
 
 /* ServiceIntroSection(app/components/ServiceIntroSection.tsx)과 같은 토큰을 쓴다 — 그 패널

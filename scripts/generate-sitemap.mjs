@@ -198,6 +198,7 @@ const coreRoutes = [
   { path: "/tarot/mindscan", changefreq: "weekly", priority: 0.94 },
   { path: "/ziwei", changefreq: "weekly", priority: 0.95 },
   { path: "/ziwei/chart", changefreq: "weekly", priority: 0.92 },
+  { path: "/ziwei/animal-destiny", changefreq: "weekly", priority: 0.87 },
   { path: "/astrology", changefreq: "weekly", priority: 0.95 },
   { path: "/astrology/cosmic", changefreq: "weekly", priority: 0.92 },
   { path: "/sukuyo", changefreq: "weekly", priority: 0.94 },

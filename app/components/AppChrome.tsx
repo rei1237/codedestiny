@@ -50,6 +50,7 @@ const CHROMELESS_ROUTES = [
   "/music",
   "/ziwei-ai",
   "/ziwei/chart",
+  "/ziwei/animal-destiny",
   "/fortune/prompt-hub",
   "/maya",
   "/fortune-tea-house",
