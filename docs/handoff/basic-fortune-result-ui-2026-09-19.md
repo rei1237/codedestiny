@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-19
-next: "기본 숙요점·기본 자미두수 결과 화면 개선은 Phase 1~4 가 전부 커밋·푸시됐고 main CI 도 07f8f1522 에서 복구됐다. 남은 것은 이 문서의 '남은 문제' 8건이며 서로 독립이라 아무거나 하나만 집어 시작해도 된다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다(이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다). 우선순위 추천은 2번(가드 CI 배선) — 이번 버그가 출시된 직접 원인이고 나머지 7건보다 재발 방지 효과가 크다."
+next: "🔴 사용자가 2026-09-19 에 직접 지목한 최우선 작업은 §2 의 9번 — 기본 자미두수 명반 안의 '내 영혼을 상징하는 자미두수 동물' 패널이 .fr-* 리포트 디자인과 따로 논다. 9번부터 읽고 시작할 것. 실측까지 끝나 있다: 패널 노드 154개 중 126개가 인라인 style 이라 클래스 CSS 로는 못 고치고, 본문이 11.06px(리포트는 16px)이며, 버튼 3개가 전부 같은 함수를 불러서 '다른 동물 보기'를 누르면 열려 있던 도감이 닫힌다. 그 외 남은 문제 1~8 은 서로 독립이라 아무거나 집어도 된다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다(이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다). 9번은 지금까지와 달리 엔진 파일 js/saju-engine.js 를 고치는 첫 작업이라 §2-9 의 '위험도' 절을 반드시 먼저 읽을 것."
 ---
 
 # 기본 숙요점 · 기본 자미두수 결과 화면 — 남은 문제 인수인계
@@ -89,7 +89,9 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 
 ## §2 남은 문제
 
-각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다. 추천 순서는 **2 → 1 → 3** 이고 나머지는 청소 성격이다.
+각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다.
+
+🔴 **9번이 최우선이다** — 사용자가 2026-09-19 에 스크린샷과 함께 직접 지목한 작업이고, 나머지 8건과 달리 "해도 되는 청소"가 아니라 **요청된 과제**다. 그 다음 추천 순서는 **2 → 1 → 3** 이고 나머지는 청소 성격이다.
 
 ---
 
@@ -250,6 +252,146 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 **무료 화면에는 상대방 입력 자체가 없다.** 개인화된 방향성을 무료로 옮기려면 결제 경계를 넘어야 하므로 하지 않는다. 궁합 화면의 방향 표시는 `verify:sukuyo-role-direction`(627줄)이 이미 지키고 있다.
 
 무료 화면이 지금 보여주는 건 일반 6유형 용어집(`relationMiniMap`)이다. **여기서 할 수 있는 것은 가독성·대비 개선과 안괴/우쇠 화살표 기호의 오독 방지뿐이다.**
+
+---
+
+### 9. 🔴 **[최우선 · 사용자 지목]** 자미두수 동물 패널이 `.fr-*` 리포트 디자인과 따로 논다
+
+> 2026-09-19 사용자 지적: *"🐶 내 영혼을 상징하는 자미두수 동물 등의 디자인이 기본 자미두수 명반과 안 맞는다"*
+> 앞선 Phase 1~4 는 이 패널을 **전혀 건드리지 않았다.** `basicFortunePresentation.js` 에 `zwLifeAnimalPanel`·`zw-detail-panel` 참조가 **0건**이다(전수 grep). 표현 계층이 이 패널의 존재를 모른다.
+
+**대상**: `#zwLifeAnimalPanel` — 기본(무료) 자미두수 결과 화면의 "내 영혼을 상징하는 자미두수 동물" 패널.
+
+#### 실측 (2026-09-19, Playwright 390×844, 계산된 스타일)
+
+**A. 팔레트가 리포트와 무관하다 — 이게 "안 맞는다"의 직접 원인**
+
+| | 리포트(`.fr-ziwei` 런타임 토큰) | 동물 패널(인라인 하드코딩) |
+|---|---|---|
+| 배경 | `--fr-bg: #0b121b` | `linear-gradient(145deg, rgba(24,24,62,.92), rgba(12,26,58,.92))` 남보라 |
+| 면 | `--fr-surface: #141e2b` | `rgba(15,23,42,.42)` · `rgba(12,74,110,.2)` · `rgba(76,29,149,.26)` |
+| 글자 | `--fr-ink: #f4efdf` | `#fef3c7` · `#dbeafe` · `#cbd5e1` · `#ede9fe` · `#bae6fd` |
+| 악센트 | `--fr-accent: #e0c58c` **금색 하나** | `#fcd34d` · `#c4b5fd` · `#bae6fd` **3계열** |
+
+리포트는 남색 바탕에 **금색 악센트 하나**로 통일돼 있는데, 패널은 호박·하늘·보라·슬레이트 **4계열**을 쓴다. 스크린샷의 주황/하늘/보라 버튼 3개가 바로 이것이다. 정상 경로에만 하드코딩 색상 **36개**가 있다.
+
+⚠️ **`styles/basic-fortune-library.css:18` 만 보고 판단하면 틀린다.** 그 줄은 `.fr-ziwei { --fr-bg:#f4f0e7; --fr-ink:#292d31; … }` 라 "밝은 한지색"처럼 보이지만, **[`:246` 의 `#ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }` 가 ID 특이도로 이긴다**](../../styles/basic-fortune-library.css#L246). 위 표의 값이 실제 런타임 값이다. 이 저장소는 특이도 싸움이 잦으니 **반드시 계산된 스타일로 확인**할 것.
+
+참고할 기준값: [`:283`](../../styles/basic-fortune-library.css#L283) `#ziweiModalOverlay .fr-chart-stars { color:#e0c58c; font-size:14px; line-height:1.45; }` — 리포트가 **금색 악센트를 14px 로 쓰는 본보기**다. 동물 패널의 보조 텍스트도 여기에 맞추면 된다.
+
+**B. 타이포 스케일이 리포트의 약 2/3**
+
+| | 리포트 | 패널 |
+|---|---|---|
+| 본문 | **16px** / line-height 28px | **11.06px** / 17.7px |
+| 버튼 | (`.fr-overlay` 규칙상 16px) | **10.5px** |
+| summary | — | 11.2 ~ 11.48px |
+
+원인: 인라인 `font-size:0.74rem ~ 0.95rem`. **루트 폰트가 14px** 라 `0.75rem = 10.5px` 다(소스만 보고 12px 로 추정하면 틀린다). `styles/basic-fortune-library.css` 의 `.fr-overlay :is(button, summary, input, select, textarea) { min-height:44px; font-size:16px }` 이 있지만 **인라인 스타일이 이겨서** `font-size` 는 무효다. 반면 `min-height` 는 인라인 경쟁자가 없어 적용돼 **48px 박스 안에 10.5px 글자**라는 기형이 된다.
+
+**C. 클래스 CSS 로는 고칠 수 없다 — 엔진 문자열을 고쳐야 한다**
+
+패널의 **DOM 노드 154개 중 126개(82%)가 인라인 `style=`** 를 갖는다. `basic-fortune-library.css` 에서 선택자로 덮으려면 속성마다 `!important` 가 필요하다. 지속 불가능하다. **정공법은 엔진의 `style="…"` 문자열을 `class="…"` 로 바꾸는 것**이다.
+
+**D. 🔴 버튼 3개가 전부 같은 동작이고, 2번째를 누르면 화면이 닫힌다 — 요청서 §3·§23 위반이 프로덕션에 살아 있다**
+
+`js/saju-engine.js:21303`·`:21304`·`:21305` 의 `onclick` 이 **문자열까지 완전히 동일**하다(실측 `identicalOnclick: true`):
+```js
+window._zwToggleAnimalCodex('zwLifeAnimalCodex')
+```
+그리고 [`_zwToggleAnimalCodex`](../../js/saju-engine.js#L22439)(`:22438-22452`)는 **토글**이다 — `detailsEl.open = !isOpen`.
+
+실제 클릭 시퀀스(실측):
+
+| 순서 | 누른 버튼 | 도감 상태 |
+|---|---|---|
+| 1 | `14주성 동물 도감 보기` | 닫힘 → **열림** |
+| 2 | `다른 동물 보기` | 열림 → **닫힘** ← 🔴 |
+| 3 | `내 안의 별동물 도감` | 닫힘 → **열림** |
+
+**사용자가 "다른 동물 보기"를 누르면 다른 동물이 나오기는커녕 방금 연 도감이 사라진다.** 세 버튼 모두 `aria-expanded`·`aria-controls` 가 **없다**(§22 위반).
+
+**E. 같은 라벨이 화면에 두 번 나온다**
+
+버튼 `:21303` `"14주성 동물 도감 보기"` 와 `<summary>` `:21308` `"14주성 동물 도감 보기"` 가 동시에 렌더된다. 스크린샷 맨 아래 `▶ 14주성 동물 도감 보기` 가 그 `<summary>` 다.
+
+**F. 로케일 체계 밖** — 전부 한국어 리터럴. `t()`/`labelKeys` 5로케일을 쓰지 않는다.
+
+**G. 🔴 마크업이 두 벌로 복제돼 있다 — 한쪽만 고치면 반쪽이 남는다**
+
+`_zwBuildLifeAnimalCards`([`:21214`](../../js/saju-engine.js#L21214)) 안에 거의 같은 UI 가 두 번 있다.
+
+| 경로 | 줄 | 인라인 `style=` | 하드코딩 색 |
+|---|---|---|---|
+| fallback | `:21214-21245` | 9 | 6 |
+| 정상 | `:21246-21312` | 42 | 36 |
+
+버튼 3개 블록도 `:21234-21236` 과 `:21303-21305` 두 곳에 있다. **두 경로를 모두 고칠 것.**
+
+#### DOM 위치 (실측) — 도달 깊이는 문제없다
+
+```
+#zwLifeAnimalPanel
+└ div.fr-disclosure-body
+  └ details#fr-ziwei-explore.fr-disclosure   ← Phase 1 이 만든 폴드(기본 닫힘)
+    └ div.zw-dashboard
+      └ div#ziweiModalSection.fr-report
+        └ … └ div#ziweiModalOverlay.fr-overlay.fr-ziwei
+```
+
+위에 닫힌 `<details>` 는 **1개뿐**이다. "더 살펴보기" 한 번만 열면 닿는다. 도달 깊이는 건드릴 필요 없다.
+
+#### 미확인 — 손대기 전에 반드시 확인할 것
+
+- **유료 경계에 걸리는지.** `_zwBuildLifeAnimalCards(palace)` 는 `js/saju-engine.js:22401` 에서 무료 렌더 경로에 직접 붙고 `window._currentZiweiData` 기반 로컬 계산이라 **무료로 보이지만 확정하지 않았다.** 커밋 전에 `paid-gate-auditor` 로 확인할 것.
+- **`.zw-detail-panel` 계열을 다른 패널도 공유한다.** 정의가 `js/saju-engine.js:18151-18226`·`19533`·`19659`·`19826` 네 곳(반응형 분기 포함)에 있다. 여기를 고치면 동물 패널 **밖의 패널도 같이 바뀐다** — `regression-scout` 로 영향 범위를 먼저 훑을 것.
+- **`verify-ziwei-chart-detail-view` 가 무엇을 단언하는지.** 엔진 마크업을 JSDOM 으로 검사하므로 문자열을 바꾸면 깨질 수 있다. **읽고 시작할 것.**
+
+#### 볼 곳
+
+- [js/saju-engine.js:21214-21312](../../js/saju-engine.js#L21214-L21312) — `_zwBuildLifeAnimalCards` 두 경로
+- [js/saju-engine.js:22438-22452](../../js/saju-engine.js#L22438-L22452) — `_zwToggleAnimalCodex` (토글 본체)
+- [js/saju-engine.js:21081](../../js/saju-engine.js#L21081) — `_zwBuildLifeAnimalCodex` (도감 본문, 14주성 전부 생성)
+- [js/saju-engine.js:18151-18226](../../js/saju-engine.js#L18151-L18226) — `.zw-detail-panel` / `.zw-dp-title` / `.zw-dp-subtitle` 인라인 CSS
+- [styles/basic-fortune-library.css:1-64](../../styles/basic-fortune-library.css#L1-L64) — `.fr-*` 토큰 (여기 값만 쓴다)
+- [styles/basic-fortune-library.css:100-103](../../styles/basic-fortune-library.css#L100-L103) — `.fr-ziwei .fr-palace-summary` 정규화. **이 저장소가 이미 쓰는 선례이므로 이 패턴을 그대로 따라가면 된다**
+- [js/core/saju/basicFortunePresentation.js:644](../../js/core/saju/basicFortunePresentation.js#L644) — 패널을 담는 `fr-ziwei-explore` 폴드
+
+#### 권장 접근 — 순서가 중요하다
+
+**1단계 · D 를 먼저 고친다(디자인보다 이게 실제 결함이다).** 선택지 둘:
+
+- **(a) 버튼 3개를 없애고 `<summary>` 하나만 남긴다.** `<details>`/`<summary>` 가 이미 같은 일을 네이티브로 하고 `aria-expanded` 도 공짜다. 최소 변경이고 §3("내용이 없다면 버튼 자체를 출력하지 않는다")의 정신에 정확히 맞는다. **추천.**
+- (b) 세 버튼에 각각 다른 동작을 준다 — "다른 동물 보기"가 실제로 다른 동물을 보여주게. `_zwBuildLifeAnimalCodex(primaryKey)` 가 14주성을 전부 만들고 있으므로 데이터는 있다. 다만 **컨트롤이 3개나 필요한 화면인지부터 따질 것.**
+
+🔴 **없는 데이터를 지어내지 말 것**(요청서 §4·§5). (b) 로 간다면 각 버튼이 보여줄 내용이 실제 코드에 있는지 먼저 확인한다.
+
+**2단계 · 인라인 스타일을 클래스로 옮긴다.** `styles/basic-fortune-library.css` 에 `.fr-*` 토큰을 쓰는 클래스를 만들고 엔진 문자열의 `style="…"` 을 `class="…"` 로 교체한다.
+- 색은 반드시 `var(--fr-accent)` / `var(--fr-surface)` / `var(--fr-ink)` / `var(--fr-muted)` / `var(--fr-rule)`. **새 hex 를 추가하지 않는다**(요청서 §14).
+- 폰트는 `rem` 을 버리고 리포트와 같은 px(본문 16px, 캡션 14px).
+- **두 경로(`:21214`, `:21246`) 모두** 고칠 것.
+
+**3단계 · 로케일.** 새 라벨은 `labelKeys` 5로케일 전부 작성. ⚠️ `scripts/verify-basic-fortune-library.mjs:487-490` 이 **비-ko 로케일에 한글이 섞이면 실패**시킨다.
+
+#### 검증
+
+```powershell
+node scripts/verify-basic-fortune-library.mjs      # 계산 불변(§20) + 접근성 + 가로 스크롤
+node scripts/verify-sukuyo-reading-house.mjs       # 숙요점 쪽 회귀 없는지
+npm run verify:ziwei-chart-detail-view             # 엔진 마크업 단언 — 2단계에서 깨지기 쉽다
+npm run sync:public                                 # js/** · styles/** 를 고쳤다면 필수. 2회 돌린다
+npm run check:fast
+```
+
+**수동 확인** — 요청서 §23: 패널의 **모든** 펼침 컨트롤을 하나씩 눌러 빈 상자·닫힘이 없는지 본다. 특히 `다른 동물 보기` 를 **연 상태에서** 눌러 볼 것(이번에 발견된 결함이 바로 그 경로다).
+
+실측 프로브를 다시 만들려면 §3 의 "스크래치패드가 프로젝트 `node_modules` 를 못 찾는다" 항목대로 `createRequire` 로 붙인다. `scripts/verify-basic-fortune-library.mjs:1-110` 의 라우트 목킹·프로필 주입을 그대로 복사하면 30줄로 끝난다.
+
+#### 위험도
+
+- **1단계(버튼 정리) 🟢 GREEN** — 중복 컨트롤 제거이고 계산·결제 경계를 건드리지 않는다.
+- **2단계(인라인→클래스) 🔴 RED** — **지금까지와 달리 엔진 파일 `js/saju-engine.js` 를 고치는 첫 작업**이다. Phase 1~4 는 Layer B(`basicFortunePresentation.js`)와 CSS 만 건드렸다. 엔진을 고치면 (1) `verify:ziwei-chart-detail-view` 가 마크업을 단언하므로 깨질 수 있고, (2) `js/**` 변경이라 **미러 7개 + 캐시 핀이 따라온다**. §0 의 "🔴 캐시 키를 손으로 찍지 않는다" 를 반드시 지킬 것 — 이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다.
+- 1단계와 2단계는 **별도 커밋**으로 나눈다(서로 무관한 변경을 한 커밋에 섞지 않는다).
 
 ---
 
