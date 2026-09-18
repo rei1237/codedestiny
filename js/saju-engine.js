@@ -7241,6 +7241,8 @@ function _cdMountQuestionRecovery(kind, options) {
     var source = event && event.detail && event.detail.source;
     if (source === 'subscription-sync' || source === 'membership-cache') return;
     stopped = true;
+    window.removeEventListener('pageshow', onPageShow);
+    window.removeEventListener('focus', recover);
     window.removeEventListener('online', recover);
     document.removeEventListener('visibilitychange', recover);
     window.removeEventListener('cd:auth-changed', stop);
@@ -7273,6 +7275,12 @@ function _cdMountQuestionRecovery(kind, options) {
     } catch (_) { if (active()) options.error('연결이 돌아오면 저장된 상담을 다시 확인합니다.'); }
     finally { running = false; if (active()) options.loading(false); }
   }
+  // pageshow 는 첫 진입 load 직후에도 발생해 아래 recover() 마운트 호출과 중복되므로,
+  // 실제 bfcache 복귀(event.persisted)일 때만 다시 부른다. focus/online/visibilitychange 는
+  // recover() 자체의 running/finished 가드가 있어 중복 호출돼도 안전하다.
+  function onPageShow(event) { if (event && event.persisted !== true) return; recover(); }
+  window.addEventListener('pageshow', onPageShow);
+  window.addEventListener('focus', recover);
   window.addEventListener('online', recover);
   document.addEventListener('visibilitychange', recover);
   window.addEventListener('cd:auth-changed', stop);
