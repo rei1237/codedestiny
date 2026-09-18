@@ -392,6 +392,19 @@ if (!routeSource) {
     /startServiceExecution\s*\(/.test(routeCode)
     && /completeServiceExecution\s*\(/.test(routeCode)
     && /failServiceExecution\s*\(/.test(routeCode));
+
+  // 🔴 배선돼 있다는 것과 제때 열린다는 것은 다르다. verifyPerUsePayment 는 조회 전용이 아니라
+  //    통과시키는 그 자리에서 차감하므로, 실행 기록이 그 뒤의 어느 실패보다 **앞서** 열리지
+  //    않으면 차트 계산·확정표 조립·저장 실패가 차감만 남기고 끝난다. 그때는 만료 스윕
+  //    (sweepStaleServiceExecutions)도 잠글 건이 없어 회수 경로 자체가 없다(2026-09-19 실측).
+  const openAt = startBody.indexOf("openRefundableExecution(");
+  const calcAt = startBody.indexOf("calculateHumanDesignChart(");
+  const basisAt = startBody.indexOf("buildHumanDesignFactSnapshot(");
+  const writeAt = startBody.indexOf("HumanDesignReport.updateOne(");
+  check("🔴 환불 가능 실행이 차트 계산·확정표 조립·저장보다 먼저 열린다 (차감 고아 방지)",
+    openAt > 0 && calcAt > openAt && basisAt > openAt && writeAt > openAt);
+  check("🔴 /start 의 계산 실패 두 창이 차감을 그 자리에서 되돌린다",
+    (startBody.match(/refundable\s*\)\s*await refundExecution\s*\(/g) || []).length === 2);
   check("읽을 수 있는 미완성 본문은 보존한다", /status: "partial"/.test(generateBody) && /hdSectionBody\(row\)\) >= 400/.test(generateBody));
   check("전달 하한 미달이면 환불한다", /REPORT_UNDELIVERABLE/.test(routeCode));
 
