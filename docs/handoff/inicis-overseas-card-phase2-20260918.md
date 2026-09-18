@@ -44,6 +44,8 @@ next: 2단계 ②③④(이용권·단건 두 레일의 환불 동의)는 전부
   - C6-2 `e061e951f` — `scripts/verify-payment-choice-parity.mjs`(CRLF) 에 동의 계약 4종.
   - C6-3 `41a8a1eca` — 서버 `POST /prepare` 기록(`source: "direct_modal"`) + jest 1개.
   - 워크트리에서 `npm run check:fast` exit 0(281 suites / 3960 tests).
+  - 머지 `317c0875a`(옆 세션의 `/checkout` 커밋 2개를 보존한 일반 머지). push: `90960c74d..317c0875a -> main`.
+  - 🔴 **머지 경쟁이 심했다.** 작업 중 origin/main 이 네 번 올라왔다(가격 개정·마케팅 카피 재생성·saju 재개·P9 문서·SoulCat 결제 폼 2건). 추격은 전부 **워크트리에서** 했다 — 공유 체크아웃에는 옆 세션의 미커밋 파일이 있어 그쪽에서 머지를 돌리면 autostash 가 걸린다(실제로 한 번 `fatal: stash failed` 를 봤다). 충돌은 매번 `config/sitemap-lastmod.json` 하나뿐이었고, origin 판으로 되돌린 뒤 `sitemap:generate` 로 다시 유도했다.
 - `FOREIGN_CARD_ENABLED` 는 세 세션 모두 어디에도 설정하지 않았다(OFF). 카드 브랜드명·환불 응답기한 약속은 한 글자도 넣지 않았다 — 특약은 여전히 미승인이다.
 
 ## 무엇을 바꿨나
@@ -142,6 +144,9 @@ C5 가 서버 절반이었다면 여기는 화면 절반 + 단건 레일 배선�
 - **CRLF 파일은 Edit/sed 가 줄바꿈을 떨군다.** 이번 대상 중 `lib/i18n/public-trust-copy.mjs` 와 `scripts/verify-payment-choice-parity.mjs` 가 CRLF다. node 로 읽어 `eol` 을 보존해 쓴다(스크립트는 세션 스크래치패드에 있었고 남기지 않았다).
 - **Bash 호출마다 cwd 가 `d:\Development\code-destiny` 로 되돌아간다.** 모든 명령을 `cd <워크트리> &&` 로 시작한다.
 - 🔴 **`npx --no-install jest <파일>` 은 여기서 안 돈다** — `SyntaxError: Cannot use import statement outside a module`. 이 레포 jest 는 ESM 플래그가 필요하고, 그걸 주입하는 건 공식 러너다: `node scripts/run-mock-tests.mjs jest <패턴...>`. 러너가 `NODE_OPTIONS=--experimental-vm-modules --require=mock-network-guard.cjs` 와 `CD_MOCK_TESTS=true` 를 같이 걸어 주므로, "검증은 전부 mock" 규칙도 이걸로 써야 지켜진다(맨 jest 로 돌리면 네트워크 가드가 빠진다).
+- 🔴 **단건 결제창 UI 를 바꾸면 jsdom 실행 가드 2개가 같이 깨진다**(3차 세션). `verify-checkout-pass-card` ⑬ 와 `verify-pg-window-no-conflict` ⑥ 은 단건 카드를 실제로 누른다. 잠금·게이트를 추가하면 그 가드들도 실제 사용자 순서를 따라야 한다. `check:fast` 안에서는 `run-paid-gate-suite` 가 "이 변경이 깨뜨렸다(merge-base 에서는 통과)"로 알려 준다.
+- 🟠 (보고만) **공유 체크아웃에서 `npm run sync:public` 이 `public/styles/static-policy.css` 를 392줄 삭제로 만든다.** 3차 세션에서 실측했고, 워크트리에서 같은 명령을 돌리면 재현되지 않았다(빌드 산출물 유무 차이로 보인다). 그 파일을 커밋하지 말고 `git show HEAD:<경로> > <경로>` 로 되돌린다 — `git checkout --` 은 옆 세션 보호 때문에 쓰지 않는다.
+- 🟠 (보고만) 공유 체크아웃 `.git/index.lock` 이 0바이트로 20분 넘게 남아 있어 머지가 막혔다(3차 세션). 실행 중인 git 이 없고 mtime 이 멈춘 것을 확인한 뒤에만 지운다.
 - **`$TMPDIR` 이 비어 있다.** heredoc 으로 `"$TMPDIR/patch.mjs"` 를 쓰면 `/patch.mjs` 가 되어 Permission denied → MODULE_NOT_FOUND 로 이어진다. 스크래치패드 경로를 변수에 직접 박는다.
 - 🔴 **인자를 하나 늘리면 호출부가 하나가 아니다.** `requestSubscriptionPrepare` 에 동의값을 더했더니 409 재발급 경로(`PointsClient.tsx:4458`)가 남아 있었고, 이걸 잡아 준 건 코드 읽기가 아니라 `tsc --noEmit` 의 `TS2554: Expected 4 arguments, but got 3` 였다. 타입 오류로 안 보였으면 "409 로 재시도된 주문만 동의 기록이 빈다"는 조용한 결함으로 남았을 것이다. 시그니처를 바꾸면 typecheck 를 호출부 전수 조사로 쓴다.
 - **`check:fast` 는 실패 단계에서 즉시 멈춘다**(`[check:changed] BLOCKED` 출력 후 exit 1). 그래서 `| tail` 로 잘라 봐도 "마지막 계획 단계가 출력에 있으면 완주"로 판정할 수 있다. 계획상 마지막 단계는 `npm run check:fast -- --plan` 으로 확인한다(이번엔 `test:jest`). 파이프가 exit code 를 가리므로 이 대조가 필요하다.
