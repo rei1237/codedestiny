@@ -1,8 +1,20 @@
 ---
-status: active
+status: done
 updated: 2026-09-18
-next: P7 착수 예정 — 항목은 이미 지정됨(경쟁사 SERP 조사). 새 세션에서 이 문서부터 읽고 바로 착수.
+next: P7 완료. 다음은 docs/handoff/2026-09-18-seo-p8-next-item.md 참고.
 ---
+
+## 완료 결과 (2026-09-18)
+
+네이버 SERP 직접 수집(`WebFetch`)이 환경 정책상 차단되어 v1 방법대로
+진행할 수 없었다. 사용자에게 보고하고, 사용자가 직접 확인한 자료 +
+AskUserQuestion 2회로 범위를 "문서화까지만, 검색의도 키워드 대폭 확장"으로
+재조정. 결과물: [docs/seo/COMPETITOR-SERP-AUDIT.md](../seo/COMPETITOR-SERP-AUDIT.md)
+(20개 감사 대상 키워드 + 수동 채움 템플릿 + 숙요 27수 쌍별 궁합 351개 +
+사주 십간 조합 95개 등 검색의도 확장). 천원사주 계열은 경쟁사가 아니라
+자사 브랜드임을 정정 반영. 페이지 title/meta 실제 반영은 하지 않음(다음
+단계 "허브 콘텐츠 재작성"으로 이연). `SEO-CHANGELOG.md`에 한 줄 추가.
+
 
 # SEO 개편 요청 — P7: 경쟁사 SERP 조사
 
