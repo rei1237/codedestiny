@@ -4,15 +4,15 @@
   if (window.BasicFortunePresentation) return;
   var styleVersion = document.currentScript ? new URL(document.currentScript.src, location.href).search : '';
   var copy = {
-    ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록', '명궁', '재백궁', '관록궁', '부부궁', '복덕궁', '자미두수 읽을거리', '기본 명반에서 확인한 구조를 기존 인사이트 글로 이어서 읽어보세요.', '글 제목 찾기', '불러오는 중입니다.', '글 목록을 불러오지 못했어요. 다시 시도해 주세요.', '찾는 글이 없어요. 다른 검색어를 입력해 주세요.', '읽을거리 목록으로 돌아가기', '원문 페이지 보기', '전통 해석 체계를 바탕으로 한 참고용 읽을거리입니다.', '점성술 읽을거리', '기본 출생차트에서 확인한 배치를 기존 인사이트 글로 이어서 읽어보세요.', '태양 별자리', '성장하며 향하는 중심 방향', '달 별자리', '마음이 안정되고 쉬는 방식', '상승궁', '처음 드러나는 인상과 대응'],
-    en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference', 'Life palace', 'Wealth palace', 'Career palace', 'Spouse palace', 'Wellbeing palace', 'Ziwei reading room', 'Continue from the chart into existing Ziwei insights.', 'Find an article', 'Loading articles…', 'Unable to load articles. Please try again.', 'No matching articles.', 'Back to the reading list', 'Open original article', 'Reference reading based on traditional interpretive frameworks.', 'Astrology reading room', 'Continue from your birth chart into existing astrology insights.', 'Sun sign', 'The direction you grow toward', 'Moon sign', 'How your feelings settle and rest', 'Ascendant', 'The impression you make first'],
-    ja: ['宿曜占', '西洋占星術', '紫微斗数', '基本の読み解き', '命盤', '詳しく読む', '次の物語へ', 'プロフィールの出生情報をもとにした基本分析', '私の星の記録', 'ここから読む', '全12宮と命盤', '本命宿を深く知る', '27宿の命盤と暦', '気質と選択', '人間関係', '恋愛', '仕事と才能', '心に留めたいこと', '基本分析', '命宮', '気質を読み解く中心', '身宮', '人生で力を注ぐ方向', '五行局', '命盤の流れを分ける基準', '宮を選ぶと下に解説が表示されます。', '惑星と人生の領域', '相談と相性を探る', '全体の解説と参考資料', '命宮', '財帛宮', '官禄宮', '夫妻宮', '福徳宮', '紫微斗数の読みもの', '命盤で確認した構造を、既存の紫微斗数インサイトへ続けて読めます。', '記事タイトルを検索', '読み込み中…', '記事を読み込めませんでした。もう一度お試しください。', '一致する記事がありません。', '読みもの一覧に戻る', '元の記事を開く', '伝統的な解釈体系にもとづく参考読みものです。', '西洋占星術の読みもの', '出生図で確認した配置を、既存の占星術インサイトへ続けて読めます。', '太陽星座', '成長しながら向かう中心の方向', '月星座', '感情が落ち着き、休まる方法', 'アセンダント', '最初に伝わる印象と対応'],
-    zh: ['宿曜占', '西洋占星', '紫微斗数', '核心解读', '星盘', '详细阅读', '继续探索', '根据个人出生资料解读的基础分析', '我的星辰记录', '从这里开始', '完整十二宫与命盘', '深入了解本命宿', '二十七宿与日历', '性情与选择', '人际关系', '爱情', '工作与才能', '值得记住的事', '基础分析', '命宫', '了解性情的核心', '身宫', '人生投入力量的方向', '五行局', '命盘周期的划分依据', '选择宫位后，可在下方阅读解读。', '行星与生活领域', '咨询与关系探索', '完整解读与参考资料', '命宫', '财帛宫', '官禄宫', '夫妻宫', '福德宫', '紫微斗数阅读', '从命盘中确认的结构继续阅读现有的紫微斗数文章。', '搜索文章标题', '正在加载…', '无法加载文章，请重试。', '没有匹配的文章。', '返回阅读列表', '查看原文页面', '基于传统解读体系的参考读物。', '西洋占星阅读', '从出生星盘中确认的配置继续阅读现有的占星文章。', '太阳星座', '成长过程中趋向的核心方向', '月亮星座', '内心安定与休息的方式', '上升星座', '最初展现的印象与应对'],
-    'zh-TW': ['宿曜占', '西洋占星', '紫微斗數', '核心解讀', '星盤', '詳細閱讀', '繼續探索', '根據個人出生資料解讀的基礎分析', '我的星辰記錄', '從這裡開始', '完整十二宮與命盤', '深入了解本命宿', '二十七宿與日曆', '性情與選擇', '人際關係', '愛情', '工作與才能', '值得記住的事', '基礎分析', '命宮', '了解性情的核心', '身宮', '人生投入力量的方向', '五行局', '命盤週期的劃分依據', '選擇宮位後，可在下方閱讀解讀。', '行星與生活領域', '諮詢與關係探索', '完整解讀與參考資料', '命宮', '財帛宮', '官祿宮', '夫妻宮', '福德宮', '紫微斗數閱讀', '從命盤中確認的結構繼續閱讀現有的紫微斗數文章。', '搜尋文章標題', '正在載入…', '無法載入文章，請重試。', '沒有符合的文章。', '返回閱讀列表', '查看原文頁面', '基於傳統解讀體系的參考讀物。', '西洋占星閱讀', '從出生星盤中確認的配置繼續閱讀現有的占星文章。', '太陽星座', '成長過程中趨向的核心方向', '月亮星座', '內心安定與休息的方式', '上升星座', '最初展現的印象與應對']
+    ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록', '명궁', '재백궁', '관록궁', '부부궁', '복덕궁', '자미두수 읽을거리', '기본 명반에서 확인한 구조를 기존 인사이트 글로 이어서 읽어보세요.', '글 제목 찾기', '불러오는 중입니다.', '글 목록을 불러오지 못했어요. 다시 시도해 주세요.', '찾는 글이 없어요. 다른 검색어를 입력해 주세요.', '읽을거리 목록으로 돌아가기', '원문 페이지 보기', '전통 해석 체계를 바탕으로 한 참고용 읽을거리입니다.', '점성술 읽을거리', '기본 출생차트에서 확인한 배치를 기존 인사이트 글로 이어서 읽어보세요.', '태양 별자리', '성장하며 향하는 중심 방향', '달 별자리', '마음이 안정되고 쉬는 방식', '상승궁', '처음 드러나는 인상과 대응', '명반 근거 표 · 삼방사정과 대한', '명반 격자로 보기', '세로 목록으로 보기'],
+    en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference', 'Life palace', 'Wealth palace', 'Career palace', 'Spouse palace', 'Wellbeing palace', 'Ziwei reading room', 'Continue from the chart into existing Ziwei insights.', 'Find an article', 'Loading articles…', 'Unable to load articles. Please try again.', 'No matching articles.', 'Back to the reading list', 'Open original article', 'Reference reading based on traditional interpretive frameworks.', 'Astrology reading room', 'Continue from your birth chart into existing astrology insights.', 'Sun sign', 'The direction you grow toward', 'Moon sign', 'How your feelings settle and rest', 'Ascendant', 'The impression you make first', 'Chart reference tables · triads and decades', 'View as chart grid', 'View as list'],
+    ja: ['宿曜占', '西洋占星術', '紫微斗数', '基本の読み解き', '命盤', '詳しく読む', '次の物語へ', 'プロフィールの出生情報をもとにした基本分析', '私の星の記録', 'ここから読む', '全12宮と命盤', '本命宿を深く知る', '27宿の命盤と暦', '気質と選択', '人間関係', '恋愛', '仕事と才能', '心に留めたいこと', '基本分析', '命宮', '気質を読み解く中心', '身宮', '人生で力を注ぐ方向', '五行局', '命盤の流れを分ける基準', '宮を選ぶと下に解説が表示されます。', '惑星と人生の領域', '相談と相性を探る', '全体の解説と参考資料', '命宮', '財帛宮', '官禄宮', '夫妻宮', '福徳宮', '紫微斗数の読みもの', '命盤で確認した構造を、既存の紫微斗数インサイトへ続けて読めます。', '記事タイトルを検索', '読み込み中…', '記事を読み込めませんでした。もう一度お試しください。', '一致する記事がありません。', '読みもの一覧に戻る', '元の記事を開く', '伝統的な解釈体系にもとづく参考読みものです。', '西洋占星術の読みもの', '出生図で確認した配置を、既存の占星術インサイトへ続けて読めます。', '太陽星座', '成長しながら向かう中心の方向', '月星座', '感情が落ち着き、休まる方法', 'アセンダント', '最初に伝わる印象と対応', '命盤の根拠表 · 三方四正と大限', '命盤の格子で見る', '縦のリストで見る'],
+    zh: ['宿曜占', '西洋占星', '紫微斗数', '核心解读', '星盘', '详细阅读', '继续探索', '根据个人出生资料解读的基础分析', '我的星辰记录', '从这里开始', '完整十二宫与命盘', '深入了解本命宿', '二十七宿与日历', '性情与选择', '人际关系', '爱情', '工作与才能', '值得记住的事', '基础分析', '命宫', '了解性情的核心', '身宫', '人生投入力量的方向', '五行局', '命盘周期的划分依据', '选择宫位后，可在下方阅读解读。', '行星与生活领域', '咨询与关系探索', '完整解读与参考资料', '命宫', '财帛宫', '官禄宫', '夫妻宫', '福德宫', '紫微斗数阅读', '从命盘中确认的结构继续阅读现有的紫微斗数文章。', '搜索文章标题', '正在加载…', '无法加载文章，请重试。', '没有匹配的文章。', '返回阅读列表', '查看原文页面', '基于传统解读体系的参考读物。', '西洋占星阅读', '从出生星盘中确认的配置继续阅读现有的占星文章。', '太阳星座', '成长过程中趋向的核心方向', '月亮星座', '内心安定与休息的方式', '上升星座', '最初展现的印象与应对', '命盘依据表 · 三方四正与大限', '以命盘格子查看', '以纵向列表查看'],
+    'zh-TW': ['宿曜占', '西洋占星', '紫微斗數', '核心解讀', '星盤', '詳細閱讀', '繼續探索', '根據個人出生資料解讀的基礎分析', '我的星辰記錄', '從這裡開始', '完整十二宮與命盤', '深入了解本命宿', '二十七宿與日曆', '性情與選擇', '人際關係', '愛情', '工作與才能', '值得記住的事', '基礎分析', '命宮', '了解性情的核心', '身宮', '人生投入力量的方向', '五行局', '命盤週期的劃分依據', '選擇宮位後，可在下方閱讀解讀。', '行星與生活領域', '諮詢與關係探索', '完整解讀與參考資料', '命宮', '財帛宮', '官祿宮', '夫妻宮', '福德宮', '紫微斗數閱讀', '從命盤中確認的結構繼續閱讀現有的紫微斗數文章。', '搜尋文章標題', '正在載入…', '無法載入文章，請重試。', '沒有符合的文章。', '返回閱讀列表', '查看原文頁面', '基於傳統解讀體系的參考讀物。', '西洋占星閱讀', '從出生星盤中確認的配置繼續閱讀現有的占星文章。', '太陽星座', '成長過程中趨向的核心方向', '月亮星座', '內心安定與休息的方式', '上升星座', '最初展現的印象與應對', '命盤依據表 · 三方四正與大限', '以命盤格子查看', '以縱向列表查看']
   };
   var articleRetryLabels = { ko: '다시 시도', en: 'Retry', ja: '再試行', zh: '重试', 'zh-TW': '重試' };
   Object.keys(copy).forEach(function (lang) { copy[lang].splice(40, 0, articleRetryLabels[lang] || articleRetryLabels.en); });
-  var labelKeys = ["sukuyo","astro","ziwei","keyReading","chart","readMore","explore","profileBasis","myRecord","startHere","allPalaces","mansionDetails","mansionChart","temperament","relationships","love","work","advice","basicReading","lifePalace","lifeMeaning","bodyPalace","bodyMeaning","bureau","bureauMeaning","selectPalace","planets","consultation","fullReading","palaceLife","palaceWealth","palaceCareer","palaceSpouse","palaceWellbeing","articleLibrary","articleLibraryDesc","articleSearch","articleLoading","articleError","articleRetry","articleEmpty","articleBack","articleOriginal","articleNote","astroLibrary","astroLibraryDesc","astroSun","astroSunMeaning","astroMoon","astroMoonMeaning","astroAsc","astroAscMeaning"];
+  var labelKeys = ["sukuyo","astro","ziwei","keyReading","chart","readMore","explore","profileBasis","myRecord","startHere","allPalaces","mansionDetails","mansionChart","temperament","relationships","love","work","advice","basicReading","lifePalace","lifeMeaning","bodyPalace","bodyMeaning","bureau","bureauMeaning","selectPalace","planets","consultation","fullReading","palaceLife","palaceWealth","palaceCareer","palaceSpouse","palaceWellbeing","articleLibrary","articleLibraryDesc","articleSearch","articleLoading","articleError","articleRetry","articleEmpty","articleBack","articleOriginal","articleNote","astroLibrary","astroLibraryDesc","astroSun","astroSunMeaning","astroMoon","astroMoonMeaning","astroAsc","astroAscMeaning","chartTables","mapToggle","mapToggleOff"];
   function t(key) {
     var index = typeof key === 'number' ? key : labelKeys.indexOf(key);
     var lang = document.documentElement.lang || 'ko';
@@ -50,6 +50,21 @@
     });
     parent.appendChild(details);
     return details;
+  }
+  // A disclosure whose body is empty or force-hidden looks broken: the chevron turns and nothing appears.
+  // Engine markup can carry its own display rules, so text alone is not proof that a node will render.
+  function willRender(el) {
+    if (!el || el.hidden) return false;
+    if (!(el.textContent || '').trim()) return false;
+    var view = el.ownerDocument && el.ownerDocument.defaultView;
+    if (!view) return true;
+    var css = view.getComputedStyle(el);
+    return css.display !== 'none' && css.visibility !== 'hidden';
+  }
+  function foldIfContent(parent, label, elements, id) {
+    var contents = elements.filter(Boolean);
+    if (!contents.some(willRender)) return null;
+    return fold(parent, label, contents, id);
   }
   function profileHeader(type) {
     var profile = typeof window.__cdGetCurrentDestinyProfile === 'function' ? window.__cdGetCurrentDestinyProfile() : null;
@@ -548,9 +563,16 @@
     hero.after(nav);
     var consult = dashboard.querySelector('#zwDeepAiPromptPanel');
     var factsTable = dashboard.querySelector('.zw-fact-tables');
-    if (factsTable) fold(dashboard, t('readMore'), [factsTable]);
-    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,#zwDeepAiPromptPanel'); });
-    if (extra.length) fold(dashboard, t('explore'), extra, 'fr-ziwei-explore');
+    if (factsTable) {
+      // The engine tags these tables detail-only so the 간소 chart stays sparse, then hides them with
+      // `.zw-dashboard:not([data-zw-view="detail"]) .zw-detail-only { display:none !important }`.
+      // Inside a disclosure the reader decides instead, so the chip's class has to come off first —
+      // otherwise the disclosure opens onto a node that engine rule is still hiding.
+      factsTable.classList.remove('zw-detail-only');
+      foldIfContent(dashboard, t('chartTables'), [factsTable]);
+    }
+    var extra = Array.from(dashboard.children).filter(function (el) { return !el.matches('.fr-reading,.fr-disclosure,.fr-chart-section,.zw-fact-tables,#zwDeepAiPromptPanel'); });
+    if (extra.length) foldIfContent(dashboard, t('explore'), extra, 'fr-ziwei-explore');
     var full = area.querySelector('#zwComprehensiveReport');
     if (full) {
       var flow = node('section', 'fr-flow-section'); flow.id = 'fr-ziwei-flow';
@@ -579,7 +601,7 @@
       preview.appendChild(node('p', 'fr-caption', '연도별 기회와 주의점, 시기별 행동 해석은 아래 리포트의 「대한 10년운」에서 이어집니다. 잠긴 항목은 기존 이용권·결제 안내를 확인한 뒤 열 수 있습니다.'));
       var continueLink = node('a', 'fr-flow-link', '대한 10년운 상세 안내'); continueLink.href = '#ziweiDecadeLuckGate'; preview.appendChild(continueLink);
       flow.appendChild(preview);
-      fold(flow, t('fullReading'), [full]);
+      foldIfContent(flow, t('fullReading'), [full]);
       area.appendChild(flow);
     }
     if (consult) area.appendChild(consult);
@@ -650,7 +672,7 @@
     var extra = Array.from(root.children).filter(function (el) {
       return !el.matches('.fr-profile,.fr-hero,.fr-astro-nav,.astro-house-section,style,script');
     });
-    if (extra.length) fold(root, t('explore'), extra, 'fr-astro-explore');
+    if (extra.length) foldIfContent(root, t('explore'), extra, 'fr-astro-explore');
     root.appendChild(astroArticleLibrary(root));
   }
   function init() {

@@ -145,6 +145,31 @@ try {
     if (phase === 'after') {
       await page.setViewportSize({ width: 390, height: 844 });
       assert.equal(await page.locator(`[data-fortune-library="${type}"]`).count(), 1);
+      // 🔴 2026-09-18 회귀: 표현 계층이 .zw-fact-tables 를 <details> 로 옮겼는데 그 노드는 여전히
+      //    엔진의 `.zw-dashboard:not([data-zw-view="detail"]) .zw-detail-only{display:none!important}`
+      //    에 걸려 있었다. 서랍은 열리고 셰브런은 돌지만 본문은 빈칸이었다. 마크업만 보는 가드는
+      //    이걸 못 잡는다 — 노드가 DOM 에 "있기" 때문이다. 그래서 실제로 열어 보고 높이를 잰다.
+      const hollowDisclosures = await page.locator(`#${ids[type]} details`).evaluateAll(list => list.map(details => {
+        const summary = details.querySelector(':scope > summary');
+        // 누를 수 있는 컨트롤만 본다. <details> 자체가 숨겨져 있으면(예: AI 상담 전의
+        // data-sy-ai-prompt-wrap 은 style="display:none") 사용자에게 누를 버튼이 없다.
+        if (!summary) return null;
+        const own = getComputedStyle(details);
+        if (own.display === 'none' || own.visibility === 'hidden') return null;
+        if (summary.getBoundingClientRect().height <= 0) return null;
+        const wasOpen = details.open;
+        details.open = true;
+        const shows = Array.from(details.children).some(child => {
+          if (child.tagName === 'SUMMARY') return false;
+          const css = getComputedStyle(child);
+          if (css.display === 'none' || css.visibility === 'hidden') return false;
+          if (child.getBoundingClientRect().height <= 0) return false;
+          return (child.textContent || '').trim().length > 0;
+        });
+        details.open = wasOpen;
+        return shows ? null : (details.querySelector(':scope > summary')?.textContent || '(summary 없음)').trim().slice(0, 60);
+      }).filter(Boolean));
+      assert.deepEqual(hollowDisclosures, [], `${type}: 펼쳤는데 아무것도 보이지 않는 서랍`);
       if (type === 'astro') {
         // The reading house lists the seven authored astrology articles and opens one inline.
         assert.equal(await page.locator('#fr-astro-chart .astro-wheel-card').count(), 1);
@@ -168,6 +193,20 @@ try {
         await page.locator('#fr-astro-articles').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
         await page.screenshot({ path: path.join(output, 'astro-articles-390.png') });
       } else if (type === 'ziwei') {
+        // 🔴 서랍을 없애 회피하는 것도 회귀다. 위의 hollowDisclosures 는 "빈 서랍" 만 잡고
+        //    "사라진 서랍" 은 못 잡는다(실측: 수정 라인을 빼면 foldIfContent 가 조용히 버린다).
+        //    그래서 여기서 존재 + 가시성을 함께 세운다.
+        const factsDrawer = page.locator("#ziweiModalSection details.fr-disclosure:has(.zw-fact-tables)");
+        assert.equal(await factsDrawer.count(), 1, "명반 근거 표 서랍이 없다");
+        await factsDrawer.locator("summary").first().click();
+        const factsHeight = () => page.locator("#ziweiModalSection .zw-fact-tables").evaluate(el => el.getBoundingClientRect().height);
+        assert.ok(await factsHeight() > 0, "명반 근거 표를 열었는데 보이지 않는다");
+        // 간소/상세 칩은 명반 밀도만 바꾼다. 어느 쪽으로 돌려도 서랍 내용은 계속 보여야 한다.
+        for (const mode of ["detail", "simple"]) {
+          await page.evaluate(m => window._zwSetChartView(m, { silent: true }), mode);
+          await page.waitForTimeout(150);
+          assert.ok(await factsHeight() > 0, `명반 근거 표가 ${mode} 뷰에서 사라졌다`);
+        }
         assert.equal(await page.locator('.fr-palace-choice').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart .zw-cell').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart').evaluate(el => el.closest('details') === null), true);
