@@ -160,6 +160,11 @@ C5 가 서버 절반이었다면 여기는 화면 절반 + 단건 레일 배선�
   - 🔴 `app/checkout/CheckoutClient.tsx` 는 233줄 중 한글 39줄이고 **i18n 배선이 아예 없다**(`useT` 계열 import 0건). 사전 키를 채우는 일이 아니라 배선부터 까는 일이다 — 여기가 ① 의 실제 무게중심이다.
 - [x] 서버측 환불 동의 기록 — **단건 결제창**(C6 `567b9f6dd` · `e061e951f` · `41a8a1eca`). 아래 "C6" 절 참조. 예상대로 캐시 핀 회전이 딸려 왔다(2그룹 73곳).
 - [ ] 3단계(법무, LEGAL REVIEW REQUIRED)는 그대로 남아 있다.
+- [x] [06](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md) §4 담당자·온콜·개인정보 유출 대응 절차 — 이 문서와 별개 세션(2026-09-18)이 오너에게 직접 물어 해소하고 main 에 push 완료(READY). 아래 03·05·09 항목과 같은 "오너 Q&A" 패턴을 썼다.
+- [ ] **03·05·09 의 나머지 OWNER INPUT** — 06 과 같은 방식(오너에게 직접 질문)으로 풀어야 하는 순수 운영 결정이다. 코드 배선이 아니라 GREEN 문서 작업이라 워크트리 불필요, 공유 체크아웃 직접 가능.
+  - [03](../payment/inicis-overseas-card/03-overseas-card-product-scope.md): 선물을 해외카드 대상으로 신청할지(PG 위험 요인), 운영 `GIFTS_ENABLED` 활성 여부.
+  - [05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §6: vedic·ziwei AI 생성 실패 시 카드 환불 정책. 🔴 같은 표의 "알림 채널 운영 설정·수신자" 행은 이미 06 에서 해소된 사실(2026-09-18)을 반영 못한 stale 상태 — 오너에게 새로 물을 것 없이 06 §4 결과로 동기화만 하면 된다.
+  - [09](../payment/inicis-overseas-card/09-inicis-application-facts.md): 예상 해외 거래금액, 사업자 정보와 MID 일치 여부.
 - 플래그 ON 은 [02](../payment/inicis-overseas-card/02-overseas-card-implementation.md) §7 체크리스트 10개 순서를 따른다. 이번 변경으로 체크리스트 항목이 켜지지는 않았다(§7 에 정책 링크 항목이 없다 — 표시 의무는 플래그와 독립이다).
 
 ## 갱신한 문서
