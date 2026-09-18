@@ -1,5 +1,5 @@
 ---
-status: resolved (프로덕션 실측 완료 — 현재 PAID_WITHOUT_RESULT 0건. Result.tsx UI 갭은 별도 후속 결정 대기)
+status: done
 updated: 2026-09-18
 next: (선택, 후속) Result.tsx 가 GENERATION_REVIEW_REQUIRED 등 errorCode 별 안내를 구분해서
   보여주도록 고치는 RED 작업 — 사용자가 아직 요청하지 않음, 요청 시 착수. 그 전까지는 재거론 안 함.
@@ -9,6 +9,7 @@ next: (선택, 후속) Result.tsx 가 GENERATION_REVIEW_REQUIRED 등 errorCode �
 
 - 날짜: 2026-09-18
 - 등급: RED (결제·DB)
+- 종결 사유: 프로덕션 실측 완료 — 현재 PAID_WITHOUT_RESULT 0건. Result.tsx UI 갭은 별도 후속 결정 대기.
 - 계기: `docs/handoff/checkout-soulcat-requestid-gate-p0-20260918.md` 의 "남은 일" 중
   "PAID_WITHOUT_RESULT 읽기 전용 Mongo 조회 — 필요 여부는 사용자가 다시 확인" 항목을 사용자가
   "영냥이 상품들이 모두 제대로 결제 후 결과가 제공이 되어야해" 로 재확인 요청.
