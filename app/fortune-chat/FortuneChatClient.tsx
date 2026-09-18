@@ -556,8 +556,16 @@ export default function FortuneChatClient() {
     const wake = () => { restoredTurnRef.current = ''; void recover(); };
     void recover();
     window.addEventListener('online', wake);
+    window.addEventListener('pageshow', wake);
+    window.addEventListener('focus', wake);
     document.addEventListener('visibilitychange', wake);
-    return () => { stopped = true; window.removeEventListener('online', wake); document.removeEventListener('visibilitychange', wake); };
+    return () => {
+      stopped = true;
+      window.removeEventListener('online', wake);
+      window.removeEventListener('pageshow', wake);
+      window.removeEventListener('focus', wake);
+      document.removeEventListener('visibilitychange', wake);
+    };
   }, [sessionId, apiBase]);
 
   /* 결제 후 자동 재개 — 결제창이 상위 프레임을 리다이렉트하면 send 의 await 가 죽어 상담이
