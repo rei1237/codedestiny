@@ -275,3 +275,57 @@ describe("운명 찻집 사주 — 명식 계산 근거", () => {
     expect(callGeminiTextMock).not.toHaveBeenCalled();
   });
 });
+
+describe("운명 찻집 사주 궁합 — 두 사람 명식 계산 근거", () => {
+  // 궁합은 화면이 궁합 폼의 '나' 값을 최상위 birthDate 로 복사해 보내므로 본인 명식은 draft.saju,
+  // 상대 명식은 draft.sajuCompatibility.partner.saju 로 올라온다. 상대가 닫히면 프롬프트에서
+  // partnerProfile 자체가 빠져 "두 사람의 결" 이 본인 명식 하나로 창작된다.
+  function compatConsultBody(attemptId, draftResult) {
+    return {
+      ...consultBody({ attemptId }),
+      consultationMode: "sajuCompatibility",
+      sajuCompatibility: {
+        user: { name: "나", birthDate: "1990-03-14", birthTime: "09:30", calendarType: "solar", gender: "여성" },
+        partner: { name: "상대", birthDate: "1992-08-08", birthTime: "14:00", calendarType: "solar", gender: "남성" },
+        relationshipType: "연인",
+        focus: "관계의 흐름",
+      },
+      draftResult,
+    };
+  }
+
+  function compatDraft({ user = true, partner = true }) {
+    return {
+      consultationMode: "sajuCompatibility",
+      saju: { available: user, pillars: { year: "경오", month: "기묘", day: "정축", hour: "을사" } },
+      sajuCompatibility: {
+        available: user && partner,
+        user: { name: "나", saju: { available: user, dayMaster: "정(화)" } },
+        partner: { name: "상대", saju: { available: partner, dayMaster: "병(화)" } },
+      },
+    };
+  }
+
+  test.each([
+    ["초안이 아예 없을 때", "none", undefined],
+    ["상대 명식이 닫혔을 때", "partner-closed", compatDraft({ partner: false })],
+    ["본인 명식이 닫혔을 때", "user-closed", compatDraft({ user: false })],
+  ])("%s 유료 사주 궁합 상담은 생성 전에 멈춘다", async (_label, attemptKey, draftResult) => {
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: "{}" }));
+
+    const { status, payload } = await postConsult(compatConsultBody(`saju-compat-basis-${attemptKey}`, draftResult));
+
+    expect({ status, ok: payload.ok }).toEqual({ status: 422, ok: false });
+    expect(payload.message).toContain("사주 명식");
+    expect(callGeminiTextMock).not.toHaveBeenCalled();
+  });
+
+  test("두 사람 명식이 모두 열린 궁합 초안은 그대로 생성으로 넘어간다", async () => {
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: "{}" }));
+
+    const { status } = await postConsult(compatConsultBody("saju-compat-basis-ok", compatDraft({})));
+
+    expect(status).not.toBe(422);
+    expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
+  });
+});

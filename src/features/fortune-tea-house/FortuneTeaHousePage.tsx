@@ -1093,6 +1093,14 @@ export default function FortuneTeaHousePage() {
       if (nextQuestionInput.consultationMode === "saju" && localDraft.saju?.available !== true) {
         throw new Error("입력하신 생년월일로는 사주 명식을 만들 수 없었어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
       }
+      // 궁합은 상대 명식까지 있어야 성립한다 — 한쪽이라도 닫히면 두 사람의 결을 대조할 근거가 없다.
+      // 본인 값은 궁합 폼에서 최상위 birthDate 로 복사돼 오므로 localDraft.saju 가 본인 명식이다.
+      if (nextQuestionInput.consultationMode === "sajuCompatibility"
+        && (localDraft.saju?.available !== true
+          || localDraft.sajuCompatibility?.user?.saju?.available !== true
+          || localDraft.sajuCompatibility?.partner?.saju?.available !== true)) {
+        throw new Error("입력하신 생년월일로는 두 사람의 사주 명식을 만들 수 없었어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
+      }
       localPreviewResult = localDraft;
       const requestPayload: FortuneTeaHouseConsultRequest = {
         consultationMode: nextQuestionInput.consultationMode,

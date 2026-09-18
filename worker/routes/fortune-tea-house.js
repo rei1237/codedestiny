@@ -5398,10 +5398,20 @@ async function handleEnsureAccess(request, env) {
 // 전부 빠진 상담문이 100코인 완성본으로 나간다 — 품질 게이트는 "일간·오행·십성·대운" 을 낱말로만 보고
 // LLM 은 근거 없이도 그 낱말을 쓰므로 잡히지 않는다. 생성 전에 fail-closed 로 막는다(원칙 10).
 // 여기서 던지면 기존 생성 실패 경로가 실행 기록 정리와 deferred cancel(예약 해제)까지 이어서 돌려준다.
+// 사주 궁합도 같은 결함을 공유한다. 화면이 궁합 폼의 '나' 값을 최상위 birthDate 로 복사해 보내므로
+// (QuestionInputScene buildInput) 본인 명식은 draft.saju, 상대 명식은 draft.sajuCompatibility.partner.saju 다.
+// 상대가 닫히면 buildSajuPersonProfile 이 partnerProfile 자체를 빼버려, "두 사람의 결" 이 본인 명식 하나로
+// 창작된 채 100코인이 청구된다 — 궁합은 두 명식이 모두 열렸을 때만 통과시킨다.
 function assertSajuCalculationBasis(consultRequest, draft) {
-  if (consultRequest?.consultationMode !== "saju") return;
-  if (draft?.saju?.available === true) return;
-  const error = new Error("생년월일로 사주 명식을 만들지 못했어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
+  const consultationMode = consultRequest?.consultationMode;
+  if (consultationMode !== "saju" && consultationMode !== "sajuCompatibility") return;
+  const compatReady = consultationMode !== "sajuCompatibility"
+    || (draft?.sajuCompatibility?.user?.saju?.available === true
+      && draft?.sajuCompatibility?.partner?.saju?.available === true);
+  if (draft?.saju?.available === true && compatReady) return;
+  const error = new Error(consultationMode === "sajuCompatibility"
+    ? "두 사람의 생년월일로 사주 명식을 만들지 못했어요. 음력·양력 선택과 날짜를 다시 확인해 주세요."
+    : "생년월일로 사주 명식을 만들지 못했어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
   error.status = 422;
   error.code = "FORTUNE_TEA_HOUSE_SAJU_BASIS_MISSING";
   throw error;
