@@ -110,7 +110,8 @@
 | 주문 스냅숏·prepare 응답 전달 | READY |
 | 판정 없으면 파라미터 미전송(정적 셸·/points) | READY |
 | 결제창 하단 정책 링크(이용약관·환불·개인정보·결제 문의, 화면 언어별 URL) | READY(2026-09-18 2단계, 렌더러 3종 공유 빌더 + sitemap 대조 가드) |
-| 결제창 환불 동의 체크박스·서버측 동의 기록 | NOT READY([05](05-fulfillment-and-evidence.md) §4, 2단계 잔여) |
+| 서버측 환불 동의 기록 — 이용권 레일 | READY(2026-09-18). 주문 문서 `refundConsent`. 🔴 동의가 없어도 **거절하지 않고** `null` 을 남긴다(구버전 앱 보호, phoneConsent 와 같은 판단) |
+| 결제창 환불 동의 체크박스·서버측 동의 기록 — 단건 레일 | NOT READY([05](05-fulfillment-and-evidence.md) §4, 2단계 잔여). 체크박스가 없어 기록할 값 자체가 없다 |
 | dp 코어 경로 판정 전달 | NOT READY(항상 닫힘, §7-4) |
 | 조작된 클라이언트 사전 차단·발급국 사후 판별 | NOT READY(구조상 불가, §5) |
 | 앱 경로 구분·V2 레이트리밋 | NOT READY |

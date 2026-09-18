@@ -52,8 +52,8 @@
 | 복귀·재개 | 단건 = 현재 URL + `portone_redirect=1`, 이용권 = `/points` + `portone_subscription_redirect=1`, 선물 = `/gift/complete?orderId=`. localStorage 재개 티켓 30분 + 서버 암호화 resume context | `js/core/checkout-entry.js`, `worker/payments/resume-context.js` |
 | 결제창 고지 | 비한국어 로케일에 원화 승인·환율 고지. 1단계 C1 이 "해외 카드 사용 가능" 단정을 "준비 중" 문구로 바꿨다 | `payment.overseas.chargedInKrw`(12개 사전), `scripts/verify-overseas-payment-notice.mjs` |
 | 해외카드 파라미터 | 1단계 C5 부터 서버 판정이 열린 주문에만 `P_RESERVED: ["global_visa3d=Y"]` 를 싣는다(판정 없으면 미전송) | `js/core/checkout-entry.js` `portoneBypass(decision)` |
-| 단건 결제창 | 상품·금액·비한국어 해외 고지·제공시점. 2단계에서 하단 정책 링크 줄(이용약관·환불·개인정보·결제 문의, 화면 언어별 URL·새 탭) 추가. **동의 체크박스는 여전히 없다**(서버측 환불 동의 기록과 함께 남은 과제) | `index.html`·`js/destiny-profile.js`·`app/_lib/billing-client.ts` 렌더러 3종, 빌더 `js/core/checkout-entry.js:506` |
-| 이용권 모달 | KRW·30일 안내·환불 동의 체크박스 필수(클라이언트 전용), 본문 한국어 하드코딩(2단계) | `app/points/PointsClient.tsx` |
+| 단건 결제창 | 상품·금액·비한국어 해외 고지·제공시점. 2단계에서 하단 정책 링크 줄(이용약관·환불·개인정보·결제 문의, 화면 언어별 URL·새 탭) 추가. **동의 체크박스는 여전히 없다** — 체크박스가 없으니 서버에 남길 동의도 없다(이용권 레일만 2단계에서 기록하게 됐다) | `index.html`·`js/destiny-profile.js`·`app/_lib/billing-client.ts` 렌더러 3종, 빌더 `js/core/checkout-entry.js:506` |
+| 이용권 모달 | KRW·30일 안내·환불 동의 체크박스 필수. 2단계에서 **서버 기록 추가** — 주문 문서 `refundConsent`(`agreed`·`agreedAt`·`termsVersion`·`source="pass_modal"`). 본문 한국어 하드코딩은 그대로(2단계 ① 잔여) | `app/points/PointsClient.tsx`, 기록 `worker/payments/policy-versions.js` `buildRefundConsentRecord` |
 
 ## 5. 동결·상한 (결제 코드 변경 규칙)
 
