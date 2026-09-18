@@ -10,6 +10,7 @@ import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, VedicAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -820,6 +821,38 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   return false;
 }
 
+// 카드 단건 결제로 연 상담이 실패했을 때의 자동 환불. 위 restorePrepaidAccessOnFailure 는
+// evidenceType coin·monthly_credit 만 처리해 카드(direct_payment)는 분기에 안 걸리고 조용히
+// 통과된다 — 그러면 카드는 과금만 되고 환불도 재시도 봉쇄도 없다. 정본 패턴은
+// worker/routes/astrology-ai.js refundCardPaymentOnFailure(PortOne 취소 + 콘텐츠 권한 회수 +
+// Payment 상태 기록). 환불하면 같은 결제 문서로의 무료 재시도가 닫힌다(astrology-ai 와 같은 트레이드오프).
+async function refundCardPaymentOnFailure(env, auth, access, error) {
+  if (access?.evidenceType !== "direct_payment") return { refunded: false, skipped: true, reason: "NOT_CARD_PAYMENT" };
+  const paymentDocId = clean(access.paymentDocId || access.evidenceId, 64);
+  if (!mongoose.Types.ObjectId.isValid(paymentDocId)) return { refunded: false, reason: "PAYMENT_MISSING" };
+
+  try {
+    const payment = await Payment.findOne({
+      _id: paymentDocId,
+      userId: objectId(auth.userId),
+      featureKey: FEATURE_KEY,
+      status: { $in: ["paid", "success", "fulfilled"] },
+    }).lean();
+    if (!payment) return { refunded: false, reason: "PAYMENT_NOT_FOUND" };
+
+    return await autoRefundSinglePaymentDeliveryFailure(
+      env,
+      payment,
+      clean(error?.code || "LLM_FAILED", 80),
+      clean(error?.message, 300) || MESSAGES.llmFailed,
+      "vedic_ai_generation",
+    );
+  } catch (refundError) {
+    logVedicAi("Card auto-refund failed", { message: clean(refundError?.message || refundError, 300) }, "warn");
+    return { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
+  }
+}
+
 function compactChartForPrompt(chart) {
   return {
     calculationConfig: chart.calculationConfig,
@@ -1574,6 +1607,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(error), { status: 503 });
     await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
     await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
+    await refundCardPaymentOnFailure(env, auth, access, error);
     return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");
   } finally {
     await VedicAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});

@@ -265,6 +265,9 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({
     callGeminiJsonWithRetry: (...args) => structuredLlmMock(...args),
   }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({
+    autoRefundSinglePaymentDeliveryFailure: jest.fn(async () => ({})),
+  }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({
     createLlmCacheStore: jest.fn(() => ({})),
   }));

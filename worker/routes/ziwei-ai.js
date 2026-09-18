@@ -11,6 +11,7 @@ import { MonthlyCreditLedger, Payment, PointHistory, PaidExecutionRecord, User, 
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -2207,6 +2208,38 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   return false;
 }
 
+// 카드 단건 결제로 연 상담이 실패했을 때의 자동 환불. 위 restorePrepaidAccessOnFailure 는
+// evidenceType coin·monthly_credit 만 처리해 카드는 분기에 안 걸리고 조용히 통과된다 — 과금만
+// 되고 환불도 재시도 봉쇄도 없다. 카드 판정은 :2503(완료 경로)과 같은 식별자(merchantUid ==
+// access.paymentId)를 쓴다 — verifyPaymentForStart 로 들어온 카드 access 에는 evidenceType 이
+// 아예 없어서 evidenceType 만으로는 못 가린다. 정본 패턴: worker/routes/astrology-ai.js
+// refundCardPaymentOnFailure. 환불하면 같은 결제 문서로의 무료 재시도가 닫힌다(같은 트레이드오프).
+async function refundCardPaymentOnFailure(env, auth, access, error) {
+  if (access?.accessType !== "paid" || !access?.paymentId || ["coin", "monthly_credit", "pass"].includes(access?.evidenceType)) {
+    return { refunded: false, skipped: true, reason: "NOT_CARD_PAYMENT" };
+  }
+  try {
+    const payment = await Payment.findOne({
+      userId: auth.userId,
+      merchantUid: access.paymentId,
+      featureKey: FEATURE_KEY,
+      status: { $in: ["paid", "success", "fulfilled"] },
+    }).lean();
+    if (!payment) return { refunded: false, reason: "PAYMENT_NOT_FOUND" };
+
+    return await autoRefundSinglePaymentDeliveryFailure(
+      env,
+      payment,
+      clean(error?.code || "LLM_GENERATION_FAILED", 80),
+      clean(error?.message, 300) || MESSAGES.llmFailed,
+      "ziwei_ai_generation",
+    );
+  } catch (refundError) {
+    logZiweiAi("Card auto-refund failed", { message: clean(refundError?.message || refundError, 300) }, "warn");
+    return { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
+  }
+}
+
 async function applyUsageOnce({ userId, sessionId, accessType, pricing, prepaid = false, requestId = "" }) {
   const existing = await ZiweiAiConsultation.findOne({ id: sessionId, userId: clean(userId) }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
@@ -2508,7 +2541,8 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
     await saveZiweiDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
     const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
-    logZiweiAi("Refund Or Restore", { route, requestId: idempotencyKey, restored });
+    const refund = await refundCardPaymentOnFailure(env, auth, access, error);
+    logZiweiAi("Refund Or Restore", { route, requestId: idempotencyKey, restored, refunded: refund.refunded === true });
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
   } finally {
     await ZiweiAiConsultation.updateOne({ ...owner, generationLease: lease }, { $set: { generationLease: "" } }).catch(() => {});

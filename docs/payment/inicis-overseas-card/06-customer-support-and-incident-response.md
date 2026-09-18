@@ -34,7 +34,7 @@
 | 일일 크론 실패 | 크론 | 텔레그램 — 대화방 미지정이라 공개 채널로 간다(범위 밖 결함) | `worker/lib/cron-failure-alert.js:56` |
 | 런타임 오류 | 워커 로그뿐 | **Sentry 등 오류 수집 없음**(`package.json`·`worker`·`app`·`lib` 에서 단어 `sentry` 0건) | — |
 
-- C7 채널(`ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL`)은 운영 설정 여부를 확인하지 않았다. 없으면 `[pay-alert] unconfigured` 로그만 남는다 → **OWNER INPUT REQUIRED**.
+- C7 채널(`ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL`)은 운영 설정 여부를 확인하지 않았다. 없으면 `[pay-alert] unconfigured` 로그만 남는다 → **OWNER INPUT REQUIRED**. 2026-09-18 오너 확인: 실제 설정 여부는 직접 모름, "아마 안 되어 있을 가능성이 높다"는 추정 답변만 받음 — Cloudflare 대시보드 미실측, 여전히 미확정.
 
 ## 3. 대응 수단
 
@@ -55,7 +55,7 @@
 | 결제 사고 1차 담당자 | **OWNER INPUT REQUIRED** — 레포 문서에 없음 |
 | 온콜·대응 시간 | **OWNER INPUT REQUIRED** — `docs` 에 온콜 문서 없음(`on-call`·`온콜` 검색 결과 1단계 인수인계 문서뿐) |
 | 개인정보 유출 대응 절차 | **OWNER INPUT REQUIRED** — 문서 없음. 법적 신고 기한 등은 [07](07-personal-data-inventory.md) LEGAL REVIEW |
-| C7 알림 수신자·채널(D4) | **OWNER INPUT REQUIRED** — 운영 값 확인 필요 |
+| C7 알림 수신자·채널(D4) | **OWNER INPUT REQUIRED** — 운영 값 확인 필요. 2026-09-18: 오너 추정상 미설정 가능성 높음(Cloudflare 대시보드 미실측, 확정 아님) |
 
 ## 5. 판정
 

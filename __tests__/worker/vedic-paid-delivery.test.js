@@ -66,6 +66,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/vedic-ai-chart.js", () => ({ calculateVedicAiChart: (...args) => chart(...args) }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
@@ -138,6 +139,25 @@ it("does not start another provider while a different database lease is fresh", 
   expect((await start()).status).toBe(202); expect(provider).toHaveBeenCalledTimes(1);
   docs[0].updatedAt = new Date(Date.now() - 125000);
   expect((await start()).status).toBe(202); expect(provider).toHaveBeenCalledTimes(2);
+});
+it("refunds the card payment once quality attempts are exhausted", async () => {
+  mode = "paid";
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  const response = await start();
+  expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: "LLM_FAILED" });
+  expect(refund).toHaveBeenCalledTimes(1);
+  expect(refund.mock.calls[0][1]).toMatchObject({ _id: uid, merchantUid: "payment" });
+  expect(refund.mock.calls[0][4]).toBe("vedic_ai_generation");
+  expect((await start()).status).toBe(409);
+});
+for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card refund once quality attempts are exhausted`, async () => {
+  mode = paid;
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503);
+  expect(refund).not.toHaveBeenCalled();
 });
 it("rechecks cancellation after generation and before completing delivery", async () => {
   for (let i = 0; i < 4; i++) await start();

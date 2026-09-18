@@ -69,6 +69,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({ calculateZiweiAiChart: (...args) => chart(...args), formatStarWithBrightness: value => value }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
@@ -138,6 +139,26 @@ it("missing calculated grounding repairs only its owning group", async () => {
   const saved = structuredClone(docs[0].llmMeta.groups.foundation); const base = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => { const value = await base(...args); const parsed = JSON.parse(value.text); const key = Object.keys(parsed.sections)[0]; parsed.sections[key].body += " 자미 명궁 형제궁 부부궁 자녀궁 재백궁 질액궁 천이궁 노복궁 관록궁을 근거로 지금 선택의 방향을 읽습니다."; return { ...value, text: JSON.stringify(parsed) }; });
   expect((await start()).status).toBe(200); expect(provider.mock.calls.at(-1)[2].logContext.sectionGroup).toBe("essence"); expect(docs[0].llmMeta.groups.foundation).toEqual(saved);
+});
+it("refunds the card payment once short groups exhaust their attempts", async () => {
+  mode = "paid";
+  provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
+  expect((await start()).status).toBe(202); expect((await start()).status).toBe(202);
+  const response = await start();
+  expect(response.status).toBe(503);
+  expect(await response.json()).toMatchObject({ reason: "LLM_ERROR" });
+  expect(docs[0].status).toBe("generation_failed");
+  expect(refund).toHaveBeenCalledTimes(1);
+  expect(refund.mock.calls[0][1]).toMatchObject({ _id: uid, merchantUid: "payment" });
+  expect(refund.mock.calls[0][4]).toBe("ziwei_ai_generation");
+  expect((await start()).status).toBe(409);
+});
+for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card refund once short groups exhaust their attempts`, async () => {
+  mode = paid;
+  provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
+  expect((await start()).status).toBe(202); expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503);
+  expect(refund).not.toHaveBeenCalled();
 });
 it("refund after provider response prevents completion and consumption", async () => {
   for (let i = 0; i < 5; i++) await start(); const base = provider.getMockImplementation();
