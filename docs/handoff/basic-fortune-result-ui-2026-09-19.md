@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-19
-next: "§2 의 **1번(verify:style-sync)은 2026-09-19 에 닫혔다 — 커밋 `cd5423896`**. 정본은 **생성 규칙**이었다: `public/styles/static-policy.css` 는 미러가 아니라 `build-static-policy-pages.mjs:50-54` 가 만드는 concat 생성물(컴파일 접두부 9,207B + root 9,711B = 18,918B, `mirror.endsWith(root)` 실측 true)이고, 바이트 비교 가드 쪽이 틀렸다. 가드를 '미러가 root 로 끝나고 더 길다' 단언으로 바꿨고 변이 4종으로 무는 것을 확인했다. 🔴 **CI 배선은 안 했다** — `verify-guard-wiring.mjs:141` 이 이 가드를 '수동 점검 도구'로 등록해 뒀고 게이트 승격은 사용자 승인 사항이다. 이제 통과하니 승격 여부를 **사용자에게 물어볼 것**. 다음 작업은 §2 의 남은 3~8 중 하나이고 **추천은 3번**(계산해 놓고 화면에 쓰지 않는 값들 — 🟢, 새 데이터 없이 화면을 풍부하게 만든다. 🔴 페이로드에 필드를 추가하지 말 것, DOM 에서 읽을 것). 아래는 이전 세션의 남은 주의사항이다. §2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. (1번 자리에 있던 '다음 작업' 권고는 위로 옮겼다.) 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
+next: "**2026-09-19: §2 의 3번과 5번을 닫았다.** 3번은 **할 일 없음**으로 닫았다 — 표의 7행 중 6행이 실측상 이미 다른 경로로 화면에 그려지고 있어서, 표면화하면 같은 값이 두세 번 나오거나 한 숫자에 두 어휘가 붙는다(§2-3 의 정정표가 근거). 진짜 안 그려지는 건 `sData.celebs` 하나뿐인데 실존 인물의 본명숙을 무료 화면에서 단언하는 문제라 **콘텐츠 판단으로 보류**했다. 덤으로 `syScoreBand()`(`:8993`)는 아무도 그리지 않는 값만 만드는 함수임을 확인했다(안 지웠다). 5번은 3면 grep 으로 **죽은 커스텀 속성 10개를 제거**하고 `--sy-gold` 는 **남겼다** — 🔴 그건 `styles/basic-fortune-library.css:174·190·211` 이 읽고, 커스텀 속성은 특정성이 아니라 **가장 가까운 조상**이 이기므로 엔진의 `.sy-container` 선언(`#f7d98a`)이 조상 `#sukuyoModalOverlay.fr-sukuyo`(`#ead089`)를 가린다. 지우면 3곳 색이 말없이 바뀐다. **후속 과제**: 그래서 CSS 쪽 `--sy-gold` 두 줄(`:155`·`:160`)은 지금 효과가 없고 neo-mode 금색 전환도 죽어 있다 — 어느 쪽을 정본으로 둘지는 색이 바뀌는 판단이라 미뤘다. 인라인 `<style>` 530줄 추출도 아직 남았다(옮길 때 🔴 엔진+CSS 한 커밋). **다음 작업은 §2 의 남은 6·7 중 하나이고 추천은 7번**(로딩 스켈레톤, 🟠 — `js/core/index-inline-runtime.js` 를 건드리므로 §3 의 sync 두 번 규칙이 바로 걸린다). 4·8 은 ⚪ 구현 금지 항목이다. 이하는 이전 세션의 주의사항이다. §2 의 **1번(verify:style-sync)은 2026-09-19 에 닫혔다 — 커밋 `cd5423896`**. 정본은 **생성 규칙**이었다: `public/styles/static-policy.css` 는 미러가 아니라 `build-static-policy-pages.mjs:50-54` 가 만드는 concat 생성물(컴파일 접두부 9,207B + root 9,711B = 18,918B, `mirror.endsWith(root)` 실측 true)이고, 바이트 비교 가드 쪽이 틀렸다. 가드를 '미러가 root 로 끝나고 더 길다' 단언으로 바꿨고 변이 4종으로 무는 것을 확인했다. 🔴 **CI 배선은 안 했다** — `verify-guard-wiring.mjs:141` 이 이 가드를 '수동 점검 도구'로 등록해 뒀고 게이트 승격은 사용자 승인 사항이다. 이제 통과하니 승격 여부를 **사용자에게 물어볼 것**. 다음 작업은 §2 의 남은 3~8 중 하나이고 **추천은 3번**(계산해 놓고 화면에 쓰지 않는 값들 — 🟢, 새 데이터 없이 화면을 풍부하게 만든다. 🔴 페이로드에 필드를 추가하지 말 것, DOM 에서 읽을 것). 아래는 이전 세션의 남은 주의사항이다. §2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. (1번 자리에 있던 '다음 작업' 권고는 위로 옮겼다.) 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
 ---
 
 # 기본 숙요점 · 기본 자미두수 결과 화면 — 남은 문제 인수인계
@@ -211,31 +211,25 @@ Error: ENOENT: no such file or directory, open
 
 ---
 
-### 3. 🟡 계산해 놓고 화면에 쓰지 않는 값들
+### 3. ✅ **닫음(2026-09-19) — 할 일 없음.** 계산해 놓고 화면에 쓰지 않는 값들
 
-`syBuildBasicReading()`([js/saju-engine-tarot-sukuyo-quantum.js:10037~](../../js/saju-engine-tarot-sukuyo-quantum.js)) 가 만들지만 아무도 읽지 않는 것들이다. **전부 이미 계산된 값이라 새 데이터를 지어내지 않고도 화면을 풍부하게 만들 수 있다.**
+**이 항목의 전제가 실측으로 틀렸다.** 아래 표의 7행 중 **6행은 이미 다른 경로로 화면에 그려지고 있다.** 그대로 "표면화"하면 같은 값이 화면에 두세 번 나오거나, 같은 숫자에 서로 다른 어휘가 붙는다.
 
-| 값 | 생성 위치 | 현재 운명 |
-|---|---|---|
-| `hero.title` | `:10107-10110` | 아무도 읽지 않음 (`hero.subtitle` 만 `:10380` 에서 쓰임) |
-| `hero.mansionLabel` | `:10110` | 아무도 읽지 않음 |
-| `summaryCards[0]` (`"나의 본명숙"`) | `:10113-10114` | **`:10375-10378` 에서 명시적으로 걸러짐** — `filter(cardItem => cardItem.label !== '나의 본명숙')` |
-| `summaryCards[*].tone` (점수 밴드) | `:10113~` | 마크업이 `label`/`value`/`note` 만 그려서 버려짐 |
-| `dailyPrescription.luckyColor` | `:10225` | 기본 화면 미사용 |
-| `icon` · `talent` | `:11352-11353` (`_syLastSukuyoBasicResult` 페이로드) | 저장만 되고 소비 0건. ⚠️ `talent` 는 **88~95 사이 점수**라 한 줄 요약으로 못 쓴다 |
-| `sData.celebs` | 엔진 | 기본 화면 미사용 |
+| 옛 주장 | 2026-09-19 실측 |
+|---|---|
+| `hero.title` 미사용 | 미사용은 맞지만 값이 `"나의 본명숙 리딩"`(`:376`)이고, 그 제목 자리는 하드코딩된 `<h4>월하의 기본 숙요점</h4>`(`:10411`)이 이미 차지했다 → 표면화하면 제목이 둘 |
+| `hero.mansionLabel` 미사용 | **같은 값**이 이미 필(`:10413` `sy-canon-pill`)과 kv(`:10436`)에 나온다 → 세 번째 사본 |
+| `summaryCards[0]` 이 걸러짐 | 필터가 옳다. `value` 가 `mansionLabel` 이라 위와 같은 중복 |
+| `summaryCards[*].tone` 버려짐 | 버려지는 건 맞지만 `tone` = `syScoreBand(daily.overall/relations/love)` 이고, 게이지가 **같은 세 점수**의 `syReferenceBand` 를 이미 그린다(`:11437-11447`) → 한 숫자에 두 어휘(`안정 상승` vs `안정`, `회복` vs `휴식`) |
+| `dailyPrescription.luckyColor` 미사용 | `ritual.color` 와 같은 값(`:10225`)이고 그건 이미 '행운 컬러'로 나온다(`:11459`) → 완전 중복 |
+| `icon` 소비 0건 | **페이로드 필드만** 그렇다. 원본 `sData.icon` 은 `.sy-intro-icon` 으로 이미 그려진다(`:11385`) |
+| `sData.celebs` 미사용 | ✅ **유일하게 진짜 안 그려지는 값** |
+
+**남은 하나 `celebs` 는 콘텐츠·제품 판단이라 보류했다.** 실존 인물의 본명숙을 무료 화면에서 단언하게 되므로 개발 판단으로 켤 일이 아니다. 켜고 싶으면 출처·표현 수위를 먼저 정할 것.
+
+**덤으로 찾은 것(고치지 않음)** — `syScoreBand()`(`:8993`)의 호출부는 위 `tone` 3곳뿐이다. 즉 이 함수는 **아무도 그리지 않는 값을 만들기 위해서만 존재한다.** 지우려면 §2-5 와 같은 3면 grep 을 먼저 할 것.
 
 **🔴 페이로드에 필드를 추가하지 말 것.** `verify-basic-fortune-library.mjs:131-134` 가 `window._syLastSukuyoBasicResult` 를 통째로 스냅샷 비교한다(`assert.deepEqual(stable(data), stable(previous))`). **필드가 하나만 늘어도 "calculation result changed" 로 실패한다.** 필요하면 페이로드 대신 **DOM 에서 읽어라** — Phase 4 가 그렇게 했다.
-
-**볼 곳** — [js/core/saju/basicFortunePresentation.js](../../js/core/saju/basicFortunePresentation.js) 의 `sukuyo()`
-
-**검증**
-```powershell
-node scripts/verify-basic-fortune-library.mjs   # :131-134 가 계산 불변을 문다
-node scripts/verify-sukuyo-reading-house.mjs
-```
-
-**위험도 🟢** — 표현 계층 안에서 끝나고, 계산 불변은 가드가 증명한다.
 
 ---
 
@@ -249,13 +243,37 @@ node scripts/verify-sukuyo-reading-house.mjs
 
 ---
 
-### 5. 🟡 숙요점 인라인 `<style>` 약 530줄 + 소비되지 않는 커스텀 속성 11개
+### 5. ✅ **절반 해결(2026-09-19)** 커스텀 속성 11개 → 죽은 10개 제거, `--sy-gold` 는 **살아 있었다**
 
-`js/saju-engine-tarot-sukuyo-quantum.js:10775-10777` 이 `<style id="sy-main-style">` 을 주입한다. `:10779` 가 `--sy-*` 커스텀 속성 11개를 선언하는데 **그 파일 안 소비 0건**이다.
+`js/saju-engine-tarot-sukuyo-quantum.js` 가 `<style id="sy-main-style">` 을 주입하고, 그 첫 규칙 `.sy-container { ... }` 가 `--sy-*` 11개를 선언했다.
 
-**미확인** — 다른 파일(별도 CSS, 다른 엔진)이 그 변수를 읽는지 전수 확인 안 했다. 🔴 **지우기 전에 `deletion-auditor` 또는 소스·테스트·`scripts/verify-*` 3면 grep**(CLAUDE.md 코딩 원칙 9). 미러(`public/js/**`)도 포함할 것.
+#### 3면 grep 결과 (소스 · `__tests__/` · `scripts/verify-*`, 미러 포함)
 
-**위험도 🟡** — 삭제는 되돌리기 쉽지만 3면 확인 전엔 하지 않는다.
+| | 소비처 |
+|---|---|
+| `--sy-night` `--sy-midnight` `--sy-moon` `--sy-moon-soft` `--sy-pearl` `--sy-orchid` `--sy-jade` `--sy-rose` `--sy-silver` `--sy-glass` | **0건** → 제거함 |
+| `--sy-gold` | **3건** — [styles/basic-fortune-library.css](../../styles/basic-fortune-library.css) `:174`(focus-visible outline) · `:190`(`.sy-intro-title`) · `:211`(`.sy-house-han`) |
+
+`__tests__/` · `scripts/` · `app/` · `src/` · `worker/` 면은 전부 0건이었다. `docs/design/sukuyo-reading-house/preview.css` 에도 `--sy-gold` 가 있지만 그건 자체 `:root` 를 쓰는 **독립 프리뷰 페이지**라 앱과 무관하다.
+
+#### 🔴 `--sy-gold` 를 지우면 조용히 색이 바뀐다 — 지우지 말 것
+
+같은 이름이 **두 곳에서** 선언돼 있다.
+
+- 조상: `#sukuyoModalOverlay.fr-sukuyo { --sy-gold: #ead089 }` (`basic-fortune-library.css:155`, neo-mode 는 `:160` 에서 `#e8d5a3`)
+- 그 안쪽 요소: `.sy-container { --sy-gold:#f7d98a }` (엔진)
+
+DOM 사슬은 `#sukuyoModalOverlay`(`.fr-sukuyo` 는 [basicFortunePresentation.js:801](../../js/core/saju/basicFortunePresentation.js) 의 `'fr-' + type` 조립) → `#lunarNexusApp`(= `.sy-container`, 엔진 `:11317`; Layer B 가 `:115` 에서 `.sy-reading-house` 추가) → 소비 셀렉터 3곳이다. **커스텀 속성은 특정성이 아니라 가장 가까운 조상이 이긴다.** 소비 셀렉터 입장에서 `.sy-container` 가 더 가까우므로 **현재 화면에 실제로 칠해지는 값은 엔진의 `#f7d98a`** 이고, 엔진 선언을 지우면 3곳이 말없이 `#ead089` 로 바뀐다.
+
+#### 후속 과제 (보고만, 고치지 않았다)
+
+바꿔 말하면 `basic-fortune-library.css:155`·`:160` 의 `--sy-gold` 선언은 **지금 가려져서 효과가 없다.** neo-mode 금색 전환(`#e8d5a3`)도 따라서 동작하지 않는다. 디자인 시스템 값을 살릴지(엔진 선언 제거) 엔진 값을 정본으로 둘지(CSS 쪽 두 줄 제거)는 **색이 바뀌는 판단**이라 이번 범위 밖으로 뒀다.
+
+#### 남은 것 — 인라인 `<style>` 약 530줄은 그대로다
+
+`<style id="sy-main-style">` 본문을 `styles/` 로 빼는 작업은 손대지 않았다. 🔴 옮길 때는 **엔진과 CSS 를 한 커밋에** 넣을 것 — `paid-flow-gates.yml` 트리거에 `styles/**` 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다.
+
+**검증** — `node scripts/verify-sukuyo-reading-house.mjs` 통과(`errors: []`, 27숙·26문서·`natalUnchanged: true`, 360/390/430/1280), `verify:runtime-cache-sync` · `verify:static-asset-cache-keys` 통과.
 
 ---
 
