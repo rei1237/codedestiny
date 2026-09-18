@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-18
-next: GIFT_GUIDANCE 다국어화(lib/payment/gift-policy.js:13)부터 시작한다 — 소비처 app/gift/claim/page.tsx:51, app/points/PointsClient.tsx:4862.
+next: 2단계 ① 3축(모두 완료) 밖 잔여 작업은 inicis-overseas-card-phase2-20260918.md 를 따른다 — 단건 레일 환불 동의(🔴 js/core/checkout-entry.js 캐시 핀 26파일 73곳 회전, 사용자가 범위에서 명시적으로 뺀 항목), 3단계 법무.
 ---
 
 # /checkout 다국어 배선 — 해외카드 2단계 ① 첫 축
@@ -106,9 +106,20 @@ next: GIFT_GUIDANCE 다국어화(lib/payment/gift-policy.js:13)부터 시작한�
       **이 변경과 무관한 환경 문제로 실패**(아래 "범위 밖 결함" 참고) — git stash 로 변경 전
       파일에서도 동일하게 재현되는 것을 확인해 원인이 이번 변경이 아님을 실측 확인함.
       `{GIFT_GUIDANCE}` 본문은 계획대로 건드리지 않음.
-- [ ] **`GIFT_GUIDANCE`** — `lib/payment/gift-policy.js:13` 의 한국어 장문 1건. 소비처 2곳:
-      `app/gift/claim/page.tsx:51`, `app/points/PointsClient.tsx:4862`. 서버 공용 모듈이라
-      로케일 인자를 받게 할지, 소비처에서 갈아끼울지가 설계 갈림길이다.
+- [x] **`GIFT_GUIDANCE`** — 완료. 커밋 `4ee3e9c42`. 설계 갈림길은 "공용 모듈이 로케일 인자를
+      받는다" 쪽으로 결정: `lib/payment/gift-policy.js`에 `GIFT_GUIDANCE_BY_LOCALE`(ko·en·ja·
+      zh-CN·zh-TW 저작, 나머지 en 폴백) + `getGiftGuidance(locale)` 추가. `GIFT_GUIDANCE` 상수는
+      그대로 두고 표의 `ko` 항목이 이를 참조 — 바이트 동일 유지, 정본 단일화.
+      소비처 2곳 교체: `app/points/PointsClient.tsx:4913`(기존 `lang` state 재사용),
+      `app/gift/claim/page.tsx:58`(로케일 감지가 전혀 없던 페이지에 `getCurrentLoadingLocale()`/
+      `cd:locale-ready` 배선을 PointsClient 패턴대로 신규 추가). 안내문 외 이 페이지의 나머지
+      하드코딩 한국어(제목·버튼·토스트·`toLocaleDateString("ko-KR")`)는 범위 밖 — 요청은
+      `GIFT_GUIDANCE` 한정이라 손대지 않음.
+      검증: `tsc --noEmit` 통과, `check:fast`(jest 281/3959 전원) 통과,
+      `verify-locale-table-coverage.mjs` 실행 결과에 `GIFT_GUIDANCE`/`gift-policy` 언급 0건 —
+      실패(+14089)는 위 "범위 밖 결함"에 이미 기록된 `.delivery-worktrees/`·`.codex-worktrees/`
+      잔재발 기존 노이즈이며 이번 표와 무관함을 실측 확인. git diff로 ko 값 무변경 확인 후
+      대상 3파일만 개별 `git add`.
 
 ## 이 문서 밖 (2단계·3단계 잔여)
 
@@ -124,6 +135,7 @@ git status                  # marketing/* 는 다른 세션 것 — 건드리지
 git pull --ff-only
 ```
 
-다음 세션 첫 문장: **"`docs/handoff/checkout-i18n-wiring-20260918.md` 를 읽고, 2단계 ① 의 마지막
-축인 `GIFT_GUIDANCE` 다국어화(`lib/payment/gift-policy.js:13`, 소비처
-`app/gift/claim/page.tsx:51` / `app/points/PointsClient.tsx:4862`)를 시작한다."**
+2단계 ① (영문 결제정보) 세 축 모두 완료 — `/checkout`, 이용권 모달, `GIFT_GUIDANCE`.
+
+다음 세션 첫 문장: **"`docs/handoff/inicis-overseas-card-phase2-20260918.md` 를 읽고, 2단계 ①
+밖의 남은 작업(단건 레일 환불 동의, 3단계 법무)을 시작한다."**
