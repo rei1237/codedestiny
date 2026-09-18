@@ -97,9 +97,14 @@ next: P1 4건 + P2(sitemap 중복 제출) + P3(죽은 리다이렉트 스텁 삭
       타로·관상·꿈해몽·연애운·궁합·오라클·프리미엄 리포트·나크샤트라·인사이트
       허브를 현재 배포 title 기준 `[편집]` 태그로 정리. 새 검색량 수치는
       만들지 않음.
-- [ ] 원 요청 22개 항목 중 미착수: `SEO-CHANGELOG.md`, 허브 콘텐츠 재작성,
-      내부링크 재설계, E-E-A-T 강화, 경쟁사 SERP 조사, Core Web Vitals
-      실측.
+- [x] `SEO-CHANGELOG.md` — P6로 완료(2026-09-18,
+      [2026-09-18-seo-p6-next-item.md](2026-09-18-seo-p6-next-item.md),
+      결과물 [docs/seo/SEO-CHANGELOG.md](../seo/SEO-CHANGELOG.md)).
+      `SEO_STATE.json.history[]`(지표 스냅샷)·`docs/handoff/*seo*.md`
+      시리즈(세션 상세 로그)와 겹치지 않게, 그 둘을 역연대순 한 줄 요약으로
+      큐레이션한 신규 문서. 앞으로 SEO 변경마다 한 줄씩 추가하는 관례 시작.
+- [ ] 원 요청 22개 항목 중 미착수: 허브 콘텐츠 재작성, 내부링크 재설계,
+      E-E-A-T 강화, 경쟁사 SERP 조사, Core Web Vitals 실측.
 
 ## 정본 예시
 
