@@ -22,6 +22,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { sliceFunction } from "./lib/js-source-slice.mjs";
+import { loadTsModule } from "./lib/load-ts-module.mjs";
 import { assertGlobSelfTest, gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
 import { createRequire } from "node:module";
 
@@ -331,6 +332,41 @@ assertMarkersPresent(
   } finally {
     if (hadWindow) globalThis.window = savedWindow;
     else delete globalThis.window;
+  }
+}
+
+// ── 2-a-3) /checkout(영냥이 단건 결제 화면)의 정책 링크도 실재 라우트인가 ──────────────
+//
+// 🔴 결제창과 **다른 정본**이다. 저쪽은 클래식 스크립트라 표를 손으로 들고 있지만, 이쪽은
+// TS 모듈이라 lib/i18n/routes.ts 를 직접 읽는다(app/checkout/checkout-copy.ts). 그래서 라우트
+// 이름이 바뀌어도 자동으로 따라간다 — 다만 **라우트가 사라지는** 경우는 못 잡는다. 결제 임계
+// 화면에서 약관이 404 로 뜨는 형태는 결제창과 똑같으므로 같은 방식으로 sitemap 과 대조한다.
+// zh-TW 문의처가 /en 으로 떨어지는 것도 결제창과 같은 이유다(/zh-tw/contact 라우트가 없다).
+{
+  const sitemapXml = read("sitemap.xml");
+  const { resolveCheckoutPolicyHrefs } = loadTsModule("app/checkout/checkout-copy.ts");
+  const langs = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"];
+  for (const lang of langs) {
+    const hrefs = resolveCheckoutPolicyHrefs(lang);
+    const keys = Object.keys(hrefs).sort();
+    assert.deepEqual(
+      keys,
+      ["refund", "support", "terms"],
+      `/checkout 정책 링크(${lang}) 묶음이 ${keys.join(",")} 입니다 — 이용약관·환불·문의 3개여야 합니다.`,
+    );
+    for (const [key, href] of Object.entries(hrefs)) {
+      const path = String(href).split("#")[0];
+      assert.ok(
+        sitemapXml.includes(`<loc>https://code-destiny.com${path}</loc>`)
+        || sitemapXml.includes(`<loc>https://code-destiny.com${path.replace(/\/$/, "")}</loc>`),
+        `/checkout 정책 링크(${lang}.${key}) ${href} 가 sitemap.xml 에 없습니다 — 존재하지 않는 라우트입니다.`
+        + " app/checkout/checkout-copy.ts 의 POLICY_LOCALE_BY_LANG 을 실제 라우트에 맞추세요.",
+      );
+    }
+    assert.ok(
+      !/[가-힣]/.test(JSON.stringify(hrefs)),
+      `/checkout 정책 링크(${lang}) 에 한글이 섞였습니다 — URL 은 라우트 표에서만 와야 합니다.`,
+    );
   }
 }
 

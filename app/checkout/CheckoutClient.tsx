@@ -12,6 +12,8 @@
  *    결제창에 이용권·월정석 카드를 그리지 않는다. 렌더러는 서버 hiddenMethods 를 읽지 않으므로 ②를 빼면 안 된다.
  * 🔴 featureKey 는 `yeongnyangi-` 접두만 받는다 — 이 페이지가 다른 상품의 우회 결제창이 되면 안 된다.
  * 🔴 가격은 레지스트리(resolveServerFeaturePricing)에서만 온다. URL 의 금액을 믿지 않는다.
+ * 🔴 화면 문구는 `checkout-copy.ts` 의 동기 표에서 온다. 사전(useT)으로 옮기면 첫 렌더가 비고, 그건
+ *    결제 임계 화면에서 번역 누락보다 나쁘다. 상품명·분석 깊이는 아직 카탈로그의 한국어 데이터다.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +24,8 @@ import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { products } from "@/worker/yeongnyangi/payments/catalog";
 import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCheckoutCopy, resolveCheckoutPolicyHrefs } from "./checkout-copy";
 import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
 import styles from "./checkout.module.css";
 
@@ -74,10 +78,6 @@ function redirectToLogin(): void {
   window.location.assign(`/login?next=${next}&returnTo=${next}&redirect=${next}`);
 }
 
-function formatKrw(amount: number): string {
-  return `${Math.max(0, Math.round(amount)).toLocaleString("ko-KR")}원`;
-}
-
 export default function CheckoutClient() {
   const [params] = useState<CheckoutParams>(() => readParams());
   const auth = useAuthStore();
@@ -85,6 +85,22 @@ export default function CheckoutClient() {
   const [available,setAvailable]=useState(false);
   const [checked,setChecked]=useState(false);
   const [gate, setGate] = useState<GateState>({ phase: "idle" });
+  const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  // 표는 모듈 상수라 같은 로케일이면 참조가 그대로다 — 아래 useEffect·useCallback 의존성에 넣어도 안전하다.
+  const copy = getCheckoutCopy(lang);
+  const intlLocale = INTL_LOCALE_BY_LOADING_LOCALE[lang] || INTL_LOCALE_BY_LOADING_LOCALE.ko;
+  const policyHrefs = useMemo(() => resolveCheckoutPolicyHrefs(lang), [lang]);
+  const formatKrw = useCallback(
+    (amount: number) => copy.won(Math.max(0, Math.round(amount)), intlLocale),
+    [copy, intlLocale],
+  );
+
+  useEffect(() => {
+    const sync = () => setLang(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    window.addEventListener("cd:locale-ready", sync);
+    return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
+  }, []);
 
   const pricing = useMemo(() => {
     if (!params.featureKey) return null;
@@ -108,12 +124,12 @@ export default function CheckoutClient() {
     // runtime confirms the original order and invokes the registered resume handler.
     let active = true;
     void loadPaidServiceRuntimeGate().then(runtime => {
-      if (!runtime && active) setGate({ phase: "error", message: "결제 상태 확인을 준비하지 못했어요. 새로고침해 주세요. 결제를 마쳤다면 다시 결제하지 마세요." });
+      if (!runtime && active) setGate({ phase: "error", message: copy.errResumePrepare });
     }).catch(() => {
-      if (active) setGate({ phase: "error", message: "결제 상태 확인을 준비하지 못했어요. 새로고침해 주세요. 결제를 마쳤다면 다시 결제하지 마세요." });
+      if (active) setGate({ phase: "error", message: copy.errResumePrepare });
     });
     return () => { active = false; };
-  }, [params.requestId]);
+  }, [params.requestId, copy]);
 
   useEffect(() => {
     try {
@@ -134,12 +150,12 @@ export default function CheckoutClient() {
     let active=true;
     Promise.all([fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`),fortuneApi<{products:{cdFeatureKey:string;available:boolean}[]}>('products')]).then(([record,catalog])=>{
       if(!active)return;
-      if(record.fortune.product.cdFeatureKey!==params.featureKey)throw new Error('선택한 상담과 생선이 달라요. 영냥이 방에서 다시 골라 주세요.');
+      if(record.fortune.product.cdFeatureKey!==params.featureKey)throw new Error(copy.errProductMismatch);
       if(record.fortune.paid){window.location.assign(params.returnTo);return;}
       setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
     }).catch(e=>{if(active)setGate({phase:'error',message:e.message});}).finally(()=>{if(active)setChecked(true);});
     return ()=>{active=false;};
-  },[signedIn,params]);
+  },[signedIn,params,copy]);
 
   const startPayment = useCallback(async () => {
     if (!pricing || !available || !params.requestId || paymentLock.current) return;
@@ -172,32 +188,32 @@ export default function CheckoutClient() {
       }
       if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
       if (code === "PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
-      setGate({phase:"error",message:String(result.error?.message || result.message || "결제를 진행하지 못했어요. 잠시 후 다시 시도해 주세요.")});
+      setGate({phase:"error",message:String(result.error?.message || result.message || copy.errPaymentFailed)});
     } catch(error) {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
-      setGate({phase:'error',message:error instanceof Error?error.message:'결제를 확인하지 못했어요. 다시 시도해 주세요.'});
+      setGate({phase:'error',message:error instanceof Error?error.message:copy.errPaymentUnknown});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params]);
+  }, [pricing, available, buildResume, params, copy]);
 
   const product = products.find(item => item.cdFeatureKey === params.featureKey);
   return (
     <main className={styles.page}>
-      <nav className={styles.nav} aria-label="결제 화면 이동">
-        <a href={params.returnTo}>← 영냥이 방</a><a href="/">CODE DESTINY</a>
+      <nav className={styles.nav} aria-label={copy.navAria}>
+        <a href={params.returnTo}>{copy.backToRoom}</a><a href="/">CODE DESTINY</a>
       </nav>
       <section className={styles.checkout} aria-labelledby="checkout-title">
         <div className={styles.host}>
-          <img src="/assets/yeongnyangi/hero.webp" alt="생선을 기다리는 영냥이" width={480} height={480} />
-          <p>생선은 내가 받을게.<br />네 이야기는 차근차근 살펴보자.</p>
+          <img src="/assets/yeongnyangi/hero.webp" alt={copy.heroAlt} width={480} height={480} />
+          <p>{copy.hostLine1}<br />{copy.hostLine2}</p>
         </div>
         <div className={styles.paper}>
-          <h1 id="checkout-title">영냥이에게 건네는 복채</h1>
-          <p className={styles.intro}>고른 생선과 상담 내용을 확인해 줘.</p>
+          <h1 id="checkout-title">{copy.title}</h1>
+          <p className={styles.intro}>{copy.intro}</p>
           {!pricing || !product || !params.requestId ? (
             <div className={styles.notice}>
-              <h2>생선을 다시 골라 주세요</h2>
-              <p>선택한 상품을 확인하지 못했어요. 영냥이 방에서 상담을 다시 선택해 주세요.</p>
-              <a href={DEFAULT_RETURN_TO}>영냥이 방으로 돌아가기</a>
+              <h2>{copy.noticeTitle}</h2>
+              <p>{copy.noticeBody}</p>
+              <a href={DEFAULT_RETURN_TO}>{copy.noticeLink}</a>
             </div>
           ) : (
             <>
@@ -206,24 +222,26 @@ export default function CheckoutClient() {
                 <div><h2>{product.name} · {product.fishName}</h2><p>{depthDescriptions[product.fishId]}</p></div>
               </div>
               <dl className={styles.receipt}>
-                <div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div>
-                <div><dt>결제 방식</dt><dd>단건 결제</dd></div>
-                <div className={styles.total}><dt>결제 금액</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
+                <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(product.chapterCount)}</dd></div>
+                <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
+                <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
               </dl>
-              <p className={styles.policy}>영냥이 상담은 단건 결제로 이용해요.<br />이용권과 월정석은 적용되지 않아요.</p>
+              <p className={styles.policy}>{copy.policyLine1}<br />{copy.policyLine2}</p>
               <button type="button" onClick={() => { void startPayment(); }}
                 disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
-                {!authSettled ? "로그인 상태 확인 중" : !checked ? "상담 주문 확인 중" : !available ? "상담 준비 중" : gate.phase === "paying" ? "결제창을 여는 중이에요"
-                  : gate.phase === "paid" ? "영냥이 방으로 돌아가는 중" : `${formatKrw(pricing.amountKRW)} 단건 결제하기`}
+                {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
+                  : gate.phase === "paid" ? copy.payReturning : copy.payAction(formatKrw(pricing.amountKRW))}
               </button>
-              <p className={styles.security}>결제수단은 다음 화면에서 선택해 주세요.</p>
+              <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
-                {gate.phase === "cancelled" ? <p>결제를 취소했어요. 준비되면 다시 눌러 주세요.</p> : null}
+                {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
                 {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
               </div>
-              <a href={params.returnTo} className={styles.back}>생선 다시 고르기</a>
-              <p className={styles.security}><a href="/terms/">이용약관</a> · <a href="/refund-policy/">환불 정책</a> · <a href="/contact/">문의하기</a></p>
+              <a href={params.returnTo} className={styles.back}>{copy.reselect}</a>
+              <p className={styles.security}>
+                <a href={policyHrefs.terms}>{copy.legalTerms}</a> · <a href={policyHrefs.refund}>{copy.legalRefund}</a> · <a href={policyHrefs.support}>{copy.legalSupport}</a>
+              </p>
             </>
           )}
         </div>
