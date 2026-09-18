@@ -244,6 +244,13 @@ body:has(#sukuyoModalOverlay.fr-sukuyo[aria-hidden="false"]) #cdMobileBottomNav 
 #ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }
 body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:none !important; }
 #ziweiModalOverlay #ziweiModalSection.fr-report { max-width:1100px !important; padding:20px 24px 64px !important; }
+/* 엔진 인라인 CSS 가 이 박스에 overflow-x 를 준다(js/saju-engine.js:17562 hidden, :19545 는 768px 이하에서 auto).
+   둘 다 짝 축을 auto 로 계산시켜 9천px 짜리 이 박스를 스크롤 컨테이너로 만든다. 그러면 sticky 내비가 실제로
+   스크롤되는 #ziweiModalSheet 이 아니라 이 박스에 붙어 함께 흘러내리고(실측 -3844px), scroll-spy 의
+   스크롤러 탐색도 여기서 멈춘다. clip 은 같은 가로 잘라내기를 하면서 짝 축을 visible 로 남긴다.
+   가로로는 아무것도 잃지 않는다 — 320·360·375·390·430·768·1280px 전부에서 scrollWidth == clientWidth 로
+   이 박스는 애초에 가로 스크롤한 적이 없다(실측). */
+#ziweiModalOverlay #ziweiModalSection { overflow-x: clip; overflow-y: visible; }
 #ziweiModalOverlay .fr-profile { margin-bottom:12px; }
 #ziweiModalOverlay .fr-profile > .fr-caption { display:none; }
 #ziweiModalOverlay .fr-profile-name { margin:4px 0; font-size:15px; }
@@ -254,6 +261,10 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay .fr-facts :is(dt,dd) { font-size:14px; margin:0; }
 #ziweiModalOverlay .fr-facts p { display:none; }
 #ziweiModalOverlay .fr-ziwei-nav { display:flex; flex-wrap:wrap; gap:4px 24px; padding:12px 0; margin-bottom:20px; border-bottom:1px solid var(--fr-rule); }
+/* 명궁 주성의 '핵심 힘' 한 구절. 히어로 배경은 우측이 그림이라 알약마다 바탕을 깔아야 대비가 보장된다
+   — 색은 :250 히어로 그라디언트가 이미 쓰는 잉크 그대로다. */
+#ziweiModalOverlay .fr-hero-keywords { display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
+#ziweiModalOverlay .fr-hero-keywords li { padding:7px 13px; border:1px solid rgba(223,199,141,.5); border-radius:999px; background:rgba(11,18,27,.72); color:var(--fr-ink); font-size:13px; line-height:1.55; }
 #ziweiModalOverlay .fr-ziwei-nav a { min-height:44px; display:flex; align-items:center; color:var(--fr-accent); font-size:14px; text-decoration:none; }
 #ziweiModalOverlay :is(.fr-chart-section,.fr-palace-reading,.fr-flow-section,#zwDeepAiPromptPanel) { scroll-margin-top:80px; margin-bottom:36px; }
 #ziweiModalOverlay .zw-grid-wrap { padding:10px !important; border:1px solid #6c5e42 !important; background:#101923 !important; box-shadow:none !important; border-radius:10px !important; overflow:visible !important; }
@@ -373,7 +384,15 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 }
 #ziweiModalOverlay .fr-ziwei-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
 #ziweiModalOverlay .fr-ziwei-nav a { justify-content:center; text-align:center; }
-#ziweiModalOverlay .zw-house-journal { border-top:1px solid var(--fr-rule); padding-top:30px; margin-top:40px; scroll-margin-top:24px; }
+/* 리포트가 길어서 구간 이동을 화면에 붙여 둔다. 한 줄로 서는 폭에서만 고정한다 — 600px 이하에서는
+   이 내비가 3열 2줄(약 84px, :403 기준)이라 고정하면 그만큼 본문을 계속 가린다. */
+@media (min-width:601px) {
+  #ziweiModalOverlay .fr-ziwei-nav { position:sticky; top:0; z-index:5; background:var(--fr-bg); }
+}
+/* 현재 구간 표시는 색 하나에 기대지 않는다. 굵기와 아래 선이 함께 바뀐다(§22). */
+#ziweiModalOverlay .fr-ziwei-nav a[aria-current="page"] { color:var(--fr-ink); font-weight:600; box-shadow:inset 0 -2px 0 var(--fr-accent); }
+/* 고정된 내비 높이만큼 앵커 착지점을 내린다. 위 :258 의 다른 구간들과 같은 값이다. */
+#ziweiModalOverlay .zw-house-journal { border-top:1px solid var(--fr-rule); padding-top:30px; margin-top:40px; scroll-margin-top:80px; }
 #ziweiModalOverlay .zw-house-journal > .fr-caption { max-width:720px; }
 #ziweiModalOverlay .zw-house-search { display:block; max-width:380px; margin:20px 0; color:var(--fr-muted); font-size:14px; }
 #ziweiModalOverlay .zw-house-search input { display:block; width:100%; min-height:46px; margin-top:7px; padding:10px 12px; border:1px solid var(--fr-rule); border-radius:7px; color:var(--fr-ink); background:var(--fr-surface); font-size:16px; }

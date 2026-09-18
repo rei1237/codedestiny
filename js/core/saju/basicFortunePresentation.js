@@ -522,6 +522,26 @@
       if (!compact.children.length) compact.appendChild(node('span', '', '공궁'));
       cell.querySelector('.zw-stars-wrap').before(compact);
     });
+    // 히어로 키워드(§3). 새 데이터를 만들지 않는다 — 명궁에 든 주성을 바로 위에서 만든 .fr-chart-stars 에서
+    // 읽어 이미 저작돼 있는 해설 사전의 '핵심 힘' 한 구절만 가져온다.
+    var mengCell = cells.find(function (cell) { return cell.querySelector('.zw-palace-name').textContent.trim() === '명궁'; });
+    if (mengCell) {
+      var keywords = node('ul', 'fr-hero-keywords');
+      // ' ↗' 는 위 루프가 차성(빌려온 별)에 붙인 표시다. 기준이 되는 힘은 직접 든 별이 먼저다.
+      var collectKeywords = function (borrowed) {
+        Array.from(mengCell.querySelectorAll('.fr-chart-stars span')).forEach(function (span) {
+          var text = span.textContent;
+          if ((text.indexOf('↗') >= 0) !== borrowed) return;
+          var key = Object.keys(ziweiStarGuides).find(function (star) { return text.indexOf(star) !== -1; });
+          if (key) keywords.appendChild(node('li', '', ziweiStarGuides[key][0]));
+        });
+      };
+      collectKeywords(false);
+      if (!keywords.children.length) collectKeywords(true);
+      // 명궁이 공궁이면 별이 없다. 그때는 궁 자체의 뜻을 적는다 — 빈 자리를 남기지 않는다(§11).
+      if (!keywords.children.length && ziweiPalaceGuides['명궁']) keywords.appendChild(node('li', '', ziweiPalaceGuides['명궁'][0]));
+      if (keywords.children.length) hero.appendChild(keywords);
+    }
     cells.map(function (cell) { var name = cell.querySelector('.zw-palace-name').textContent.trim(); return [name, { '명궁':'palaceLife','재백궁':'palaceWealth','관록궁':'palaceCareer','부부궁':'palaceSpouse','복덕궁':'palaceWellbeing' }[name]]; }).forEach(function (palace) {
       var cell = cells.find(function (el) { var label = el.querySelector('.zw-palace-name'); return label && label.textContent.trim() === palace[0]; });
       if (!cell) return;
@@ -631,6 +651,53 @@
     var ming = mingCell && choices.querySelector('[data-palace-index="' + mingCell.className.match(/\bzw-cell-(\d+)\b/)[1] + '"]');
     if (ming) ming.click();
     initialSelection = false;
+    // 지금 읽는 구간을 내비에 되돌려 준다. 의미는 색이 아니라 aria-current 가 진다(§22).
+    // 배선이 함수 끝에 있는 이유: 흐름·상담·아티클 섹션은 바로 위에서야 DOM 에 붙는다.
+    var spy = Array.from(nav.querySelectorAll('a')).map(function (link) {
+      return { link: link, section: document.getElementById(link.getAttribute('href').slice(1)) };
+    }).filter(function (item) { return item.section; });
+    // 아래 선택 규칙이 '마지막으로 지나온 구간'이라 순서가 곧 정답이다. 내비 순서를 믿지 않고 문서 순서로 세운다.
+    spy.sort(function (a, b) {
+      return (a.section.compareDocumentPosition(b.section) & Node.DOCUMENT_POSITION_FOLLOWING) ? -1 : 1;
+    });
+    if (spy.length) {
+      // 오버레이는 뷰포트가 아니라 자기 시트(#ziweiModalSheet) 안에서 스크롤한다. 어떤 조상이
+      // 실제 스크롤러인지 알아내는 데 기대지 않는다 — 보이는 영역은 고정된 내비 자신을 기준으로 잰다.
+      var pending = false;
+      var mark = function () {
+        pending = false;
+        // 내비가 상단에 붙어 있으므로 그 아래가 곧 지금 읽고 있는 영역의 시작이다.
+        var top = nav.getBoundingClientRect().bottom, bottom = window.innerHeight;
+        var current = null, seen = 0, nearest = null, nearestGap = Infinity;
+        spy.forEach(function (item) {
+          var rect = item.section.getBoundingClientRect();
+          // 화면에 가장 많이 걸쳐 있는 구간이 지금 읽는 구간이다. 구간 사이 여백에 기준선이 걸려도
+          // 위아래 중 실제로 보이는 쪽이 뽑히므로, 이미 지나간 구간을 가리키는 일이 없다.
+          var overlap = Math.min(rect.bottom, bottom) - Math.max(rect.top, top);
+          if (overlap > seen) { seen = overlap; current = item; }
+          var gap = rect.top > top ? rect.top - top : top - rect.bottom;
+          if (gap < nearestGap) { nearestGap = gap; nearest = item; }
+        });
+        // 어느 구간도 화면에 안 걸치면(여백이 화면보다 클 때) 기준선에 가장 가까운 구간을 가리킨다.
+        if (!current) current = nearest || spy[0];
+        spy.forEach(function (item) {
+          if (item === current) item.link.setAttribute('aria-current', 'page');
+          else item.link.removeAttribute('aria-current');
+        });
+      };
+      // 스크롤마다 재지 않는다 — 프레임당 한 번으로 묶는다.
+      var schedule = function () { if (!pending) { pending = true; requestAnimationFrame(mark); } };
+      // 모달을 다시 열면 ziwei() 가 다시 돈다. 이전 구독을 걷어내고 매달아 중복을 막는다.
+      if (window.__frZiweiSpy) {
+        document.removeEventListener('scroll', window.__frZiweiSpy, true);
+        window.removeEventListener('resize', window.__frZiweiSpy);
+      }
+      window.__frZiweiSpy = schedule;
+      // scroll 이벤트는 버블링하지 않는다. 캡처 단계로 받아야 시트에서 난 스크롤도 놓치지 않는다.
+      document.addEventListener('scroll', schedule, true);
+      window.addEventListener('resize', schedule, { passive: true });
+      mark();
+    }
   }
   // Astrology: the Swiss Ephemeris renderer owns every value. This only regroups its sections.
   function astro(area) {

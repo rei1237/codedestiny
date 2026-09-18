@@ -277,6 +277,48 @@ try {
         assert.equal(await gridDisplay(), 'flex', '세로 목록으로 되돌아가지 않는다');
         assert.equal(await mapToggle.getAttribute('aria-pressed'), 'false', '되돌린 뒤 aria-pressed 가 남아 있다');
         await page.screenshot({ path: path.join(output, 'ziwei-390-list.png') });
+        // 히어로 키워드(§3): 명궁 주성의 핵심 힘 한 구절. 사전에 없는 별이면 빈 알약이 남으므로 내용까지 본다.
+        const heroKeywords = await page.locator('#ziweiModalSection .fr-hero-keywords li').allTextContents();
+        assert.ok(heroKeywords.length >= 1, '히어로에 키워드 알약이 없다');
+        assert.deepEqual(heroKeywords.filter(text => text.trim().length < 4), [], '내용이 비어 있는 키워드 알약이 있다');
+        // 구간 내비 고정 + 현재 위치 표시. 한 줄로 서는 폭에서만 고정하므로 데스크톱에서 잰다.
+        await page.setViewportSize({ width: 1280, height: 1000 });
+        await page.locator('#ziweiModalSheet').evaluate(el => { el.scrollTop = 0; });
+        await page.waitForTimeout(250);
+        const navOffset = () => page.locator('#ziweiModalSheet').evaluate(el => {
+          const nav = el.querySelector('.fr-ziwei-nav');
+          return nav.getBoundingClientRect().top - el.getBoundingClientRect().top;
+        });
+        const restOffset = await navOffset();
+        assert.ok(restOffset > 40, `구간 내비가 처음부터 상단에 붙어 있다(${Math.round(restOffset)}px) — 측정이 무의미하다`);
+        await page.locator('#ziweiModalSheet').evaluate(el => { el.scrollTop = Math.round(el.scrollHeight * 0.45); });
+        await page.waitForTimeout(450);
+        const stuckOffset = await navOffset();
+        assert.ok(Math.abs(stuckOffset) <= 1.5, `구간 내비가 상단에 고정되지 않는다(${Math.round(stuckOffset)}px)`);
+        // 표시가 하나만 켜지는지, 그리고 그게 실제로 보고 있는 구간인지까지 본다.
+        const spyState = await page.locator('#ziweiModalSection .fr-ziwei-nav a').evaluateAll(list => {
+          const sheet = document.getElementById('ziweiModalSheet');
+          const s = sheet.getBoundingClientRect();
+          return list.map(a => {
+            const section = document.getElementById(a.getAttribute('href').slice(1));
+            const r = section && section.getBoundingClientRect();
+            return {
+              text: (a.textContent || '').trim(),
+              current: a.getAttribute('aria-current') === 'page',
+              top: r ? Math.round(r.top - s.top) : null,
+              bottom: r ? Math.round(r.bottom - s.top) : null,
+              visible: !!r && r.bottom > s.top && r.top < s.top + s.height * 0.6,
+            };
+          });
+        });
+        const layout = spyState.map(x => `${x.text}[${x.top}~${x.bottom}]${x.current ? '*' : ''}`).join(' ');
+        const currentLinks = spyState.filter(x => x.current);
+        assert.equal(currentLinks.length, 1, `현재 구간 표시가 ${currentLinks.length}개다(정확히 1개여야 한다) — ${layout}`);
+        assert.ok(currentLinks[0].visible, `현재 구간으로 표시된 「${currentLinks[0].text}」가 화면에 없다 — ${layout}`);
+        await page.screenshot({ path: path.join(output, 'ziwei-1280-sticky.png') });
+        await page.locator('#ziweiModalSheet').evaluate(el => { el.scrollTop = 0; });
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.waitForTimeout(200);
         assert.equal(await page.locator('.fr-palace-choice').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart .zw-cell').count(), 12);
         assert.equal(await page.locator('#fr-ziwei-chart').evaluate(el => el.closest('details') === null), true);
