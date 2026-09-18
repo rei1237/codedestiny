@@ -435,6 +435,9 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
   const { plan, paymentMethod, chargeKRW } = resolvePassRequest(env, body);
   const purchaseType = body.purchaseType ?? "SELF";
   if (!["SELF", "GIFT"].includes(purchaseType)) throw paymentError("INVALID_REQUEST", "구매 방식이 올바르지 않습니다.");
+  /* 결제 전 환불·청약철회 고지에 동의했는가. 🔴 === true 만 동의로 본다 — 없거나 다른 값이면
+     거절이 아니라 "동의 기록 없음"으로 남긴다(policy-versions.js buildRefundConsentRecord). */
+  const refundConsent = body.refundConsent === true;
   // 해외 발급 카드 결제창 노출 판정(I/O 없음, foreign-card-policy.js). 선물은 membership_pass_gift 행을 탄다.
   const foreignCardProduct = { type: purchaseType === "GIFT" ? "membership_pass_gift" : plan.productType, purchaseType, durationDays: plan.durationDays };
   const foreignCard = canUseForeignCard({ user: { id: userId }, product: foreignCardProduct, billingCountry: null, paymentChannel: paymentMethod }, { env });
@@ -469,7 +472,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
-    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard });
+    const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
     return { order: created, user: userDoc };
   });

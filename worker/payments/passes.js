@@ -35,7 +35,7 @@ import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
 import { toForeignCardSnapshot } from "./foreign-card-policy.js";
-import { ORDER_POLICY_VERSIONS } from "./policy-versions.js";
+import { ORDER_POLICY_VERSIONS, buildRefundConsentRecord } from "./policy-versions.js";
 // 🔴 세대 사다리는 카드 상품과 **같은 구현**을 쓴다. 두 벌을 두면 한쪽만 고쳐 상품별 멱등 계약이 갈린다.
 import { MAX_ORDER_GENERATIONS, generationKey, terminalGenerationKey } from "./orders.js";
 
@@ -91,7 +91,7 @@ export async function derivePassOrderId(userId, idempotencyKey, tier) {
  * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 옛 가격 주문을 조용히
  * 돌려주지 않는다. 그 409 를 흡수하는 것은 아래 createPayablePassOrder 다(호출부는 그쪽을 쓴다).
  */
-export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null, foreignCard = null }) {
+export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general", paidResume = null, purchaseType = "SELF", giftDraft = null, foreignCard = null, refundConsent = false }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
@@ -132,6 +132,9 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
           foreignCard: foreignCard ? toForeignCardSnapshot(foreignCard, now) : null,
           // 주문 시점 게시 정책 버전(orders.js createOrder 와 같은 증빙, 동의 기록 아님).
           policyVersions: { ...ORDER_POLICY_VERSIONS },
+          // 주문 시점 환불 동의 기록. 동의가 없으면 null 이다 — 거절하지 않는 이유는
+          // policy-versions.js buildRefundConsentRecord 머리주석(구버전 앱 보호).
+          refundConsent: buildRefundConsentRecord(refundConsent, { now, source: "pass_modal" }),
           createdAt: now,
           updatedAt: now,
         },

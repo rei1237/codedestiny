@@ -18,6 +18,7 @@ import { readFileSync } from "node:fs";
 import { handlePaymentsContext, __paymentsContextTestUtils } from "../../worker/payments/index.js";
 import { __passesTestUtils, buildPassCustomerUid } from "../../worker/payments/passes.js";
 import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
+import { ORDER_POLICY_VERSIONS } from "../../worker/payments/policy-versions.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -268,6 +269,32 @@ describe("prepare — 구 계약 승계", () => {
     expect(response.status).toBe(403);
     expect(payload.code).toBe("PURCHASE_POLICY_DENIED");
     expect(db.rows.some((r) => r.paymentType === "membership_pass")).toBe(false);
+  });
+
+  /* 환불·청약철회 동의는 주문에 남는다(제22조 입증책임). 🔴 **없다고 거절하지 않는다** — 400 으로
+     막으면 스토어에 남은 구버전 앱이 결제를 통째로 못 한다(phoneConsent 와 같은 판단). 동의 전
+     결제 시작을 막는 것은 UI 이고, 서버는 "동의 없이 만들어진 주문"을 그대로 보이게 남긴다. */
+  test("환불 동의를 보내면 주문에 기록하고, 안 보내도 거절하지 않는다(null 로 남긴다)", async () => {
+    const db = makeFakePaymentDb();
+    seedUser(db);
+
+    const agreed = await post(db, "/api/payments/subscription/prepare", passBody("standard", { refundConsent: true }), {
+      headers: { "Idempotency-Key": "sub-consent-yes" },
+    });
+    expect(agreed.response.status).toBe(201);
+    const agreedRow = db.rows.find((r) => r.merchantUid === agreed.payload.order.merchantUid);
+    expect(agreedRow.refundConsent).toMatchObject({
+      agreed: true,
+      termsVersion: ORDER_POLICY_VERSIONS.terms,
+      source: "pass_modal",
+    });
+    expect(agreedRow.refundConsent.agreedAt).toBeInstanceOf(Date);
+
+    const silent = await post(db, "/api/payments/subscription/prepare", passBody("standard"), {
+      headers: { "Idempotency-Key": "sub-consent-absent" },
+    });
+    expect(silent.response.status).toBe(201);
+    expect(db.rows.find((r) => r.merchantUid === silent.payload.order.merchantUid).refundConsent).toBeNull();
   });
 });
 

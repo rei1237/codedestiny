@@ -3125,6 +3125,7 @@ export default function PointsPage() {
     plan: SubscriptionPlan,
     idempotencyKey: string,
     method: string,
+    refundAgreed: boolean,
   ): Promise<SubscriptionPrepareAttempt> => {
     const flowerAdminToken = getFlowerAdminTokenClient();
     const response = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
@@ -3145,6 +3146,9 @@ export default function PointsPage() {
         productType: plan.productType,
         paymentMethod: method,
         purchaseType: giftDraft ? "GIFT" : "SELF",
+        // 결제 전 환불·청약철회 고지 동의. 서버가 주문에 기록한다(제22조 입증책임) —
+        // phoneConsent 와 같은 계약이고, 서버는 이 값이 없어도 거절하지 않는다.
+        refundConsent: refundAgreed === true,
         gift: giftDraft || undefined,
         paidResume: giftDraft ? undefined : checkoutEntry.peekCheckoutReturn()?.paidResume || undefined,
       }),
@@ -3158,7 +3162,7 @@ export default function PointsPage() {
 
   // 🔴 method 는 인자로 받는다. 예전에는 카드 고정 state 를 읽었지만, 이제 사용자가 결제 확인 모달에서
   // 수단을 고르고 같은 클릭에서 바로 여기까지 오므로 state 로 넘기면 그 tick 에서 옛 값을 읽는다.
-  const startSubscriptionPrepare = useCallback((plan: SubscriptionPlan, method: string): SubscriptionPrepareEntry => {
+  const startSubscriptionPrepare = useCallback((plan: SubscriptionPlan, method: string, refundAgreed: boolean): SubscriptionPrepareEntry => {
     const existing = subscriptionPrepareRef.current;
     if (existing && existing.planId === plan.planId && existing.method === method) return existing;
 
@@ -3170,7 +3174,7 @@ export default function PointsPage() {
       settled: false,
       promise: null as unknown as Promise<SubscriptionPrepareAttempt>,
     };
-    entry.promise = requestSubscriptionPrepare(plan, idempotencyKey, method)
+    entry.promise = requestSubscriptionPrepare(plan, idempotencyKey, method, refundAgreed)
       .catch((error: unknown) => ({
         status: 0,
         data: { message: getErrorMessage(error, "이용권 결제 준비에 실패했습니다.") },
@@ -4414,7 +4418,11 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     try {
-      const prepareEntry = startSubscriptionPrepare(plan, orderMethod);
+      /* 🔴 동의도 method 와 같이 **인자**로 넘긴다. requestSubscriptionPrepare 는 useCallback 이라
+         그 안에서 state 를 읽으면 deps 가 마지막으로 바뀐 렌더의 값(초기 false)을 읽는다.
+         handleSubscribe 는 일반 함수라 여기서는 현재 렌더 값이 신선하고, 이 줄은 모달을 닫는
+         아래 setPendingSubscriptionPaymentPlan(null) 보다 먼저 도는다(닫힐 때 동의가 false 로 리셋된다). */
+      const prepareEntry = startSubscriptionPrepare(plan, orderMethod, isSubscriptionRefundAgreed);
       // SDK 로드·config 조회는 prepare 결과와 아무 의존이 없다. 예전에는 prepare 뒤로 직렬화돼 있어
       // 결제창 오픈이 두 홉을 기다렸다 — 같은 클릭에서 함께 발사해 한 홉으로 접는다.
       // prepare 실패로 아래에서 조기 return 될 때 unhandled rejection 이 되지 않도록 catch 를 먼저 건다.
@@ -4451,6 +4459,9 @@ export default function PointsPage() {
             plan,
             `membership-retry-${plan.planId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
             orderMethod,
+            // 같은 구매 시도의 재발급이다 — 동의를 다시 받지 않았으므로 앞서 받은 동의가 그대로 따라간다.
+            // 안 넘기면 409 로 재시도된 주문만 동의 기록을 잃는다.
+            isSubscriptionRefundAgreed,
           );
           prepareStatus = retryAttempt.status;
           prepareData = retryAttempt.data;
