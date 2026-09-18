@@ -81,9 +81,9 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 ⚠️ `foldIfContent()` 에는 함정이 하나 있다. `syReadingBody(traits, labels, collapsible)` 의 **세 번째 인자**가 그것이다. 이 함수는 호출부가 둘인데 요구가 정반대다:
 
 - `basicFortunePresentation.js:139` — 본명숙 결과. 길어서 접어야 한다 → `true`
-- `basicFortunePresentation.js:222` — 27숙 도감 리더. 사용자가 "이 숙을 읽겠다"고 **방금 누른** 화면이라 여기서 또 접으면 방금 요청한 글에 닿는 데 한 번 더 눌러야 한다 → 인자 없음(펼친 채)
+- `basicFortunePresentation.js:224` — 27숙 도감 리더. 사용자가 "이 숙을 읽겠다"고 **방금 누른** 화면이라 여기서 또 접으면 방금 요청한 글에 닿는 데 한 번 더 눌러야 한다 → 인자 없음(펼친 채)
 
-처음에 이걸 구분 안 하고 둘 다 접었다가 `verify-sukuyo-reading-house.mjs:72` 의 `innerText().length > 400` 에 걸렸다. **Playwright 의 `innerText()` 는 렌더된 텍스트라 닫힌 `<details>` 는 `<summary>` 만 센다** — 이 가드가 그래서 물었다.
+(함수 정의는 `:192`.) 처음에 이걸 구분 안 하고 둘 다 접었다가 `verify-sukuyo-reading-house.mjs:88` 의 `innerText().length > 400` 에 걸렸다. **Playwright 의 `innerText()` 는 렌더된 텍스트라 닫힌 `<details>` 는 `<summary>` 만 센다** — 이 가드가 그래서 물었다.
 
 ---
 
@@ -133,8 +133,8 @@ git show origin/main:public/styles/static-policy.css | Measure-Object -Character
 
 | 가드 | 줄 수 | 무엇을 지키나 |
 |---|---|---|
-| `scripts/verify-basic-fortune-library.mjs` | 569 | §20 계산 불변(`:131-134` `assert.deepEqual(stable(data), stable(previous))`), 빈 서랍 금지(`:152-172`), 유료 경계(`:181-186`), 비-ko 로케일에 한글 혼입 금지(`:339`) |
-| `scripts/verify-sukuyo-reading-house.mjs` | 96 | 컨트롤/ID 보존(`:61-62`), 유료 산문 차단(`:63-68`), 27숙 전수 순회(`:70-74`), 360·390·430·1280 오버플로(`:83-89`), 유료 구역 경계(신규) |
+| `scripts/verify-basic-fortune-library.mjs` | 569 | §20 계산 불변(`:131-134` `assert.deepEqual(stable(data), stable(previous))`), 빈 서랍 금지(`:152-172`), 유료 경계(`:181-186`), 비-ko 로케일에 한글 혼입 금지(`:487-490`) |
+| `scripts/verify-sukuyo-reading-house.mjs` | 111 | 컨트롤/ID 보존(`:61-62`), 유료 산문 차단(`:63-68`), 유료 구역 경계(`:82-84`, 신규), 27숙 전수 순회 + 계산 불변(`:86-89`), 360·390·430·1280 오버플로(`:99-104`) |
 
 **확인된 것 (2026-09-19 실측)**
 ```
@@ -195,7 +195,7 @@ node scripts/verify-sukuyo-reading-house.mjs
 
 `'회복과 생활 리듬'`(32) · `'흐름을 활용하는 방법'`(33) 이 **5개 로케일 전부에** 작성돼 있는데 참조 0건이다. 유료 `health`/`timing` 형질용 라벨이다.
 
-🔴 `traits` 의 `hidden`·`karma`·`mantra`·`health`·`timing` 은 **결제 렌더러 소유**다. [js/core/saju/basicFortunePresentation.js:153](../../js/core/saju/basicFortunePresentation.js) 이 그렇게 명시하고 `verify-sukuyo-reading-house.mjs:63-68` 이 능동적으로 단언한다. **무료 화면에 올리면 가드가 물고, 물지 않더라도 유료 콘텐츠 무료 유출이다.**
+🔴 `traits` 의 `hidden`·`karma`·`mantra`·`health`·`timing` 은 **결제 렌더러 소유**다. [js/core/saju/basicFortunePresentation.js:194](../../js/core/saju/basicFortunePresentation.js) 가 주석으로 명시하고(`Paid deep-dive fields (hidden/karma/mantra/health/timing) stay in their original gated renderer.`) `verify-sukuyo-reading-house.mjs:63-68` 이 능동적으로 단언한다. **무료 화면에 올리면 가드가 물고, 물지 않더라도 유료 콘텐츠 무료 유출이다.**
 
 **기록만 하고 손대지 않는다.** 라벨을 지우는 것도 하지 말 것 — 유료 렌더러가 나중에 쓸 수 있다.
 
