@@ -1,5 +1,5 @@
 ---
-status: completed
+status: done
 updated: 2026-09-18
 next: P9 완료. 다음은 docs/handoff/2026-09-18-seo-p10-next-item.md 참고.
 ---
