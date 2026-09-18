@@ -56,8 +56,8 @@ powershell -File scripts/create-safe-worktree.ps1 -Slug inicis-overseas-card-p1
 
 ## 모르는 것 (추측해서 채우지 않는다 — OWNER INPUT REQUIRED)
 
-- 운영 워커의 `ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 설정 여부: 2026-09-18 `wrangler secret list`(프로덕션 `code-destiny-web`)로 실측 — `ADMIN_FEEDBACK_EMAIL` 등록됨, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 미등록. 이름만 확인했고 값은 출력하지 않았다. Discord·Slack 두 채널은 `[pay-alert] unconfigured` 로그만 남긴다.
-- 사고대응 담당자(문서 06), 해외카드 예상 거래금액(문서 09, 근거 데이터 없음), 신청서 사업자 정보와 `lib/site-policy-config.js` `BUSINESS_IDENTITY` 의 일치 여부, 운영 `GIFTS_ENABLED` 활성 여부를 모른다.
+- ~~운영 워커 알림 채널 설정 여부~~ — **해소(2026-09-18)**. `wrangler secret list`(프로덕션 `code-destiny-web`) 실측: `ADMIN_FEEDBACK_EMAIL` 등록됨, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 미등록. 오너 확인: 수신 이메일은 `admin@code-destiny.com`, Discord·Slack 은 쓰지 않기로 한 결정(결함 아님). 상세: [06 §4](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md#4-담당자온콜).
+- **남음** — 결제 사고 1차 담당자·온콜 대응 시간·개인정보 유출 대응 절차(문서 06 §4 "남은 질문"에 오너가 답하면 바로 닫히는 형태로 질문·기록 위치를 정리해 뒀다), 해외카드 예상 거래금액(문서 09, 근거 데이터 없음), 신청서 사업자 정보와 `lib/site-policy-config.js` `BUSINESS_IDENTITY` 의 일치 여부, 운영 `GIFTS_ENABLED` 활성 여부를 모른다.
 - KG이니시스 특약 승인 여부를 모른다. 이 계획은 "처리중(미승인)"(D2)을 전제로 한다. 승인 소식이 오면 계획의 "플래그 ON 선결 조건" 순서를 따른다.
 
 ## 검증

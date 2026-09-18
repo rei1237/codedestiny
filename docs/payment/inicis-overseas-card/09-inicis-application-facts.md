@@ -29,7 +29,7 @@
 | 6 | 비회원 주문 차단 | 모든 주문 생성·결제 확정에 로그인이 필요하다. 비회원 주문 경로가 없다(로그인 없는 요청·위조 토큰은 401, 테스트 고정) | READY | [04](04-customer-authentication.md) §3 |
 | 7 | 회원 가입 인증 방식 | 이메일+비밀번호(이메일 소유 확인 없음, 국내 휴대폰 번호 필수) 또는 Google·Naver·Kakao 계정 로그인. **본인인증(휴대폰 본인확인·SMS 등) 절차는 없다** | READY | [04](04-customer-authentication.md) §1·§2 |
 | 8 | 해외 고객 CS | 이메일 문의 1채널. 영어·일본어·중국어 연락 페이지에 결제 문의 절(앵커 `#payment-help`)이 있고, 결제창 하단 링크가 화면 언어별로 그 절로 간다(번체는 영어 페이지로). 응답기한·언어 지원은 보장하지 않으며 24시간·전화·채팅 상담은 없다 | READY | [06](06-customer-support-and-incident-response.md) §1 |
-| 9 | 사고 대응 담당자 | 결제됨·미지급 30분 이상과 PG 대조 실패를 10분 주기 작업이 운영자 채널(관리자 메일·Discord·Slack 웹훅)로 알린다. 채널의 운영 설정 여부는 확인하지 않았고, 담당자·온콜 기록은 레포에 없다 | NOT READY(OWNER INPUT REQUIRED) | [05](05-fulfillment-and-evidence.md) §2, [06](06-customer-support-and-incident-response.md) §4 |
+| 9 | 사고 대응 담당자 | 결제됨·미지급 30분 이상과 PG 대조 실패를 10분 주기 작업이 운영자 이메일(`admin@code-destiny.com`)로 알린다(Discord·Slack 은 오너가 쓰지 않기로 함, 2026-09-18 확인). 채널 자체는 등록·확인됐지만, 그 메일을 보고 조치할 담당자·온콜 기록은 레포에 없다 | NOT READY(OWNER INPUT REQUIRED) | [05](05-fulfillment-and-evidence.md) §2, [06](06-customer-support-and-incident-response.md) §4 |
 | 10 | 실물 해외배송 | 없음(디지털 콘텐츠) | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 11 | 배송추적 | 해당 없음 | READY | [03](03-overseas-card-product-scope.md) §2 |
 | 12 | 개인정보 수집 범위 | 회원: 이름·이메일·휴대폰(암호화 저장)·출생 정보·성별·동의 기록·소셜 계정 식별자. PG 전달: 이름·이메일·국내 휴대폰 번호만(주소·국가 없음). 카드번호·CVC 는 저장하지 않는다. 1단계에서 수집 항목을 늘리지 않았다 | NOT READY(LEGAL REVIEW REQUIRED — 처리방침 국외 이전·보호책임자·처리자 목록) | [07](07-personal-data-inventory.md) |
@@ -91,7 +91,7 @@
 |---|---|
 | 코드로 답한 문항(1·2·3·4·5·6·7·10·11) | READY |
 | 8 해외 고객 CS | READY(이메일 1채널 — 응답기한·언어 지원 보장 없음을 그대로 적는다) |
-| 9 사고 대응 담당자·알림 채널 운영 설정 | NOT READY(OWNER INPUT REQUIRED) |
+| 9 사고 대응 담당자·알림 채널 운영 설정 | 알림 채널은 READY(2026-09-18 확인), 담당자·온콜은 NOT READY(OWNER INPUT REQUIRED) |
 | 12 개인정보 처리방침 | NOT READY(LEGAL REVIEW REQUIRED) |
 | 13 예상 해외 거래금액 | NOT READY(OWNER INPUT REQUIRED) |
 | 사업자 정보·MID 일치 | NOT READY(OWNER INPUT REQUIRED) |
