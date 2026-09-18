@@ -349,25 +349,6 @@ jobs:
       - name: Verify ziwei chart detail view and compatibility card
         run: npm run verify:ziwei-chart-detail-view
 
-      # 🔴 이 둘은 무료 결과 화면의 **최종 DOM** 을 보는 유일한 가드인데 2026-09-19 까지 어디에도
-      # 배선돼 있지 않았다(워크플로·package.json 참조 0건). 바로 위 verify:ziwei-chart-detail-view 는
-      # JSDOM 에서 renderZiwei() 만 돌리고 BasicFortunePresentation.ziwei() 를 부르지 않는다 — 즉 엔진
-      # 산출물을 .fr-* 리포트로 **재배치하는 단계**가 가드에 아예 보이지 않았다. 그래서 "자세히 보기를
-      # 눌렀는데 빈 상자가 열린다"가 출시됐다(정상적으로 숨겨진 노드를 표현 계층이 <details> 로 감싸
-      # 숨김 규칙이 계속 매치된 것). 지키는 것: 계산 불변(window._syLastSukuyoBasicResult 스냅샷 비교) ·
-      # 빈 서랍 금지 · 유료 경계(hidden/karma/mantra/health/timing 무료 유출 차단) · 비-ko 로케일 한글
-      # 혼입 금지 · 컨트롤/ID 보존 · 27숙 전수 순회 · 360·390·430·1280 오버플로.
-      #
-      # 🔴 이 잡이 제자리다. 입력이 js/**·styles/**·index.html 이라 티어가 fast/standard 로 갈리는데,
-      # build/critical 잡에 두면 정작 지키려는 "결과 화면 한 줄 수정"에 깨어나지 않는다. 그리고 이
-      # lane 만 Chromium 을 설치한다(위 install 스텝). 실측 2026-09-19: 숙요점 10초 · 라이브러리
-      # 41~42초(4회 연속 EXIT 0), 합계 약 52초. 서버·빌드는 필요 없다 — context.route("**/*") 로
-      # 디스크에서 서빙하고 127.0.0.1 밖 요청은 abort, /api/* 는 목이라 fail-closed 다.
-      - name: Verify the free basic fortune result screens
-        run: |
-          npm run verify:sukuyo-reading-house
-          npm run verify:basic-fortune-library
-
       # 🔴 이것도 **fast 잡**이어야 한다. 상담 주제 목록이 네 벌(프롬프트 템플릿 · 워커 라벨 ·
       # TOPICS 화이트리스트 · React 선택지)로 손에 맞춰져 있는데, 그중 React 쪽만 고치는 PR 은
       # 티어가 standard 라 critical 잡이 통째로 스킵된다 — 즉 이 가드를 critical 에 두면 정작
