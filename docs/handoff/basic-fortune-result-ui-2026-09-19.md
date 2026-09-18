@@ -293,15 +293,15 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 
 패널의 **DOM 노드 154개 중 126개(82%)가 인라인 `style=`** 를 갖는다. `basic-fortune-library.css` 에서 선택자로 덮으려면 속성마다 `!important` 가 필요하다. 지속 불가능하다. **정공법은 엔진의 `style="…"` 문자열을 `class="…"` 로 바꾸는 것**이다.
 
-**D. 🔴 버튼 3개가 전부 같은 동작이고, 2번째를 누르면 화면이 닫힌다 — 요청서 §3·§23 위반이 프로덕션에 살아 있다**
+**D. ✅ 해결(2026-09-19 1단계) — 버튼 3개가 전부 같은 동작이고, 2번째를 누르면 화면이 닫혔다**
 
-`js/saju-engine.js:21303`·`:21304`·`:21305` 의 `onclick` 이 **문자열까지 완전히 동일**하다(실측 `identicalOnclick: true`):
+당시 실측: `js/saju-engine.js:21303`·`:21304`·`:21305` 의 `onclick` 이 **문자열까지 완전히 동일**했다(`identicalOnclick: true`):
 ```js
 window._zwToggleAnimalCodex('zwLifeAnimalCodex')
 ```
-그리고 [`_zwToggleAnimalCodex`](../../js/saju-engine.js#L22439)(`:22438-22452`)는 **토글**이다 — `detailsEl.open = !isOpen`.
+그리고 `_zwToggleAnimalCodex` 는 **토글**이었다 — `detailsEl.open = !isOpen`. 그래서 아래 시퀀스가 났다.
 
-실제 클릭 시퀀스(실측):
+실제 클릭 시퀀스(당시 실측):
 
 | 순서 | 누른 버튼 | 도감 상태 |
 |---|---|---|
@@ -309,24 +309,26 @@ window._zwToggleAnimalCodex('zwLifeAnimalCodex')
 | 2 | `다른 동물 보기` | 열림 → **닫힘** ← 🔴 |
 | 3 | `내 안의 별동물 도감` | 닫힘 → **열림** |
 
-**사용자가 "다른 동물 보기"를 누르면 다른 동물이 나오기는커녕 방금 연 도감이 사라진다.** 세 버튼 모두 `aria-expanded`·`aria-controls` 가 **없다**(§22 위반).
+**사용자가 "다른 동물 보기"를 누르면 다른 동물이 나오기는커녕 방금 연 도감이 사라졌다.** 세 버튼 모두 `aria-expanded`·`aria-controls` 가 없었다(§22 위반).
 
-**E. 같은 라벨이 화면에 두 번 나온다**
+**조치**: 버튼 3개를 fallback·정상 **두 경로에서 모두** 지우고, 그러면서 유일한 호출부를 잃은 `_zwToggleAnimalCodex` 본체도 지웠다(엔진 `-25줄`, 삽입 0줄). 도감 열기는 남은 `<details id="zwLifeAnimalCodex">` 의 `<summary>` 가 네이티브로 수행하므로 `aria-expanded` 는 브라우저가 관리한다. 삭제 3면 확인(소스·`__tests__/`·`scripts/verify-*`): `_zwToggleAnimalCodex` 참조 **0건**.
 
-버튼 `:21303` `"14주성 동물 도감 보기"` 와 `<summary>` `:21308` `"14주성 동물 도감 보기"` 가 동시에 렌더된다. 스크린샷 맨 아래 `▶ 14주성 동물 도감 보기` 가 그 `<summary>` 다.
+**E. ✅ 해결(D와 같은 커밋) — 같은 라벨이 화면에 두 번 나왔다**
+
+버튼 `"14주성 동물 도감 보기"` 와 `<summary>` `"14주성 동물 도감 보기"` 가 동시에 렌더됐다. 버튼을 지워 `<summary>` 하나만 남았다.
 
 **F. 로케일 체계 밖** — 전부 한국어 리터럴. `t()`/`labelKeys` 5로케일을 쓰지 않는다.
 
 **G. 🔴 마크업이 두 벌로 복제돼 있다 — 한쪽만 고치면 반쪽이 남는다**
 
-`_zwBuildLifeAnimalCards`([`:21214`](../../js/saju-engine.js#L21214)) 안에 거의 같은 UI 가 두 번 있다.
+`_zwBuildLifeAnimalCards`([`:21214`](../../js/saju-engine.js#L21214)) 안에 거의 같은 UI 가 두 번 있다. 아래 수치는 **1단계 버튼 삭제 전** 실측이다(삭제 후 fallback 5·정상 38).
 
 | 경로 | 줄 | 인라인 `style=` | 하드코딩 색 |
 |---|---|---|---|
 | fallback | `:21214-21245` | 9 | 6 |
 | 정상 | `:21246-21312` | 42 | 36 |
 
-버튼 3개 블록도 `:21234-21236` 과 `:21303-21305` 두 곳에 있다. **두 경로를 모두 고칠 것.**
+버튼 3개 블록은 `:21234-21236` 과 `:21303-21305` 두 곳에 있었고 1단계에서 **둘 다** 지웠다. 남은 인라인 `style=`(2단계 대상)도 **두 경로 모두** 고칠 것 — 삭제 후 패널 루트는 `:21221`(fallback)·`:21258`(정상)이다.
 
 #### DOM 위치 (실측) — 도달 깊이는 문제없다
 
@@ -343,14 +345,15 @@ window._zwToggleAnimalCodex('zwLifeAnimalCodex')
 
 #### 미확인 — 손대기 전에 반드시 확인할 것
 
-- **유료 경계에 걸리는지.** `_zwBuildLifeAnimalCards(palace)` 는 `js/saju-engine.js:22401` 에서 무료 렌더 경로에 직접 붙고 `window._currentZiweiData` 기반 로컬 계산이라 **무료로 보이지만 확정하지 않았다.** 커밋 전에 `paid-gate-auditor` 로 확인할 것.
+- ~~**유료 경계에 걸리는지.**~~ **확인 완료(2026-09-19, `paid-gate-auditor`)** — 무료 노출이 정책과 일치한다. 근거: `renderZiwei` 본문 전 구간(`17310-22460`)에 게이트 마커(`cd-section-gate`·`data-unlock-key`·`_cdCoinGatePerUse` 등) **0건**; `applySectionGates` 가 보는 id 3개(`index.html:29338`)와 `.zw-basic-paid-gate[data-unlock-key]` 모두 미해당; 자미두수 A유형 잠금 키 5개에 대응 항목 없음(`docs/payment-policy-content-access.md:15,46` — 명반 화면 자체는 C유형 무료); `premium_ziwei` 코인게이트는 2026-09-12 삭제됨(`worker/lib/paid-feature-registry.js:425-429`). 결제 동결(`config/payment-freeze.json`) 대상도 아니다(`verify-payment-freeze` 통과).
+- **🔴 CI 구멍(구조적)**: `paid-flow-gates.yml` 트리거에 `styles/**` 와 `public/js/saju-engine.js` 가 **없다**. `js/saju-engine.js`(`:156`)·`index.html`(`:177`) 은 있다. 따라서 **2단계 CSS 만 따로 커밋하면 결제 게이트가 잠든다** — CSS 는 엔진 변경과 같은 커밋에 묶을 것.
 - **`.zw-detail-panel` 계열을 다른 패널도 공유한다.** 정의가 `js/saju-engine.js:18151-18226`·`19533`·`19659`·`19826` 네 곳(반응형 분기 포함)에 있다. 여기를 고치면 동물 패널 **밖의 패널도 같이 바뀐다** — `regression-scout` 로 영향 범위를 먼저 훑을 것.
 - **`verify-ziwei-chart-detail-view` 가 무엇을 단언하는지.** 엔진 마크업을 JSDOM 으로 검사하므로 문자열을 바꾸면 깨질 수 있다. **읽고 시작할 것.**
 
 #### 볼 곳
 
 - [js/saju-engine.js:21214-21312](../../js/saju-engine.js#L21214-L21312) — `_zwBuildLifeAnimalCards` 두 경로
-- [js/saju-engine.js:22438-22452](../../js/saju-engine.js#L22438-L22452) — `_zwToggleAnimalCodex` (토글 본체)
+- ~~`_zwToggleAnimalCodex` (토글 본체)~~ — **1단계에서 삭제됐다. 존재하지 않는 심볼이니 찾지 말 것.**
 - [js/saju-engine.js:21081](../../js/saju-engine.js#L21081) — `_zwBuildLifeAnimalCodex` (도감 본문, 14주성 전부 생성)
 - [js/saju-engine.js:18151-18226](../../js/saju-engine.js#L18151-L18226) — `.zw-detail-panel` / `.zw-dp-title` / `.zw-dp-subtitle` 인라인 CSS
 - [styles/basic-fortune-library.css:1-64](../../styles/basic-fortune-library.css#L1-L64) — `.fr-*` 토큰 (여기 값만 쓴다)

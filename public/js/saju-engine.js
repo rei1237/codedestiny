@@ -21230,11 +21230,6 @@ function renderZiwei(p, natal, targetId) {
         + '  <div style="margin-top:8px;font-size:0.79rem;color:#cbd5e1;line-height:1.65">'
         + _zwPortfolioEscapeHtml(titleLine + ' 명반에서 주성이 확인되면 자동으로 동물 프로필을 연결합니다. ' + bridgeLine)
         + '  </div>'
-        + '  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
-        + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(250,204,21,0.55);background:rgba(120,53,15,0.3);color:#fef3c7;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">14주성 동물 도감 보기</button>'
-        + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(125,211,252,0.45);background:rgba(12,74,110,0.28);color:#dbeafe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">다른 동물 보기</button>'
-        + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(196,181,253,0.45);background:rgba(76,29,149,0.32);color:#ede9fe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">내 안의 별동물 도감</button>'
-        + '  </div>'
         + '  <details id="zwLifeAnimalCodex" style="margin-top:10px;border:1px solid rgba(196,181,253,0.3);border-radius:11px;background:rgba(15,23,42,0.42);padding:10px">'
         + '    <summary style="cursor:pointer;color:#fcd34d;font-size:0.82rem;font-weight:800">14주성 동물 도감 보기</summary>'
         + '    <div style="margin-top:9px">' + _zwBuildLifeAnimalCodex('') + '</div>'
@@ -21298,11 +21293,6 @@ function renderZiwei(p, natal, targetId) {
       + '  </div>'
       + '  <div style="margin-top:9px;font-size:0.79rem;color:#cbd5e1;line-height:1.7">'
       + _zwPortfolioEscapeHtml(titleLine + ' 이 별을 동물 상징으로 바꾸면, 당신의 자미두수 동물은 ' + primary.animal + '입니다. ' + bridgeLine)
-      + '  </div>'
-      + '  <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">'
-      + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(250,204,21,0.55);background:rgba(120,53,15,0.3);color:#fef3c7;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">14주성 동물 도감 보기</button>'
-      + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(125,211,252,0.45);background:rgba(12,74,110,0.28);color:#dbeafe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">다른 동물 보기</button>'
-      + '    <button type="button" onclick="window._zwToggleAnimalCodex(\'zwLifeAnimalCodex\')" style="border:1px solid rgba(196,181,253,0.45);background:rgba(76,29,149,0.32);color:#ede9fe;border-radius:999px;padding:6px 10px;font-size:0.75rem;font-weight:700;cursor:pointer">내 안의 별동물 도감</button>'
       + '  </div>'
       + '  <details id="zwLifeAnimalCodex" style="margin-top:10px;border:1px solid rgba(196,181,253,0.3);border-radius:11px;background:rgba(15,23,42,0.42);padding:10px">'
       + '    <summary style="cursor:pointer;color:#fcd34d;font-size:0.82rem;font-weight:800">14주성 동물 도감 보기</summary>'
@@ -22434,21 +22424,6 @@ function renderZiwei(p, natal, targetId) {
         }
       }
     });
-  }
-  if (!window._zwToggleAnimalCodex) {
-    window._zwToggleAnimalCodex = function(detailsId) {
-      var detailsEl = document.getElementById(detailsId || 'zwLifeAnimalCodex');
-      if (!detailsEl) return;
-      var isOpen = !!detailsEl.open;
-      detailsEl.open = !isOpen;
-      if (!isOpen) {
-        setTimeout(function() {
-          if (detailsEl && typeof detailsEl.scrollIntoView === 'function') {
-            detailsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 50);
-      }
-    };
   }
   _zwInitDeepAiPromptPanel('zwDeepAiPromptPanel', palace);
 
