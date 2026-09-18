@@ -536,6 +536,20 @@ function TeaHouseHistoryLoadingDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+// 서버는 27숙 천문 계산에 넘기기 전 생년월일을 양력 왕복(Date.UTC)과 1900~2100 범위로만 읽는다
+// (worker/routes/fortune-tea-house.js parseFortuneTeaSukuyoBirthDate). 그 형태가 아니면 본명숙 계산이
+// 조용히 닫히므로, 200코인을 쓰기 전에 같은 규칙으로 되돌린다.
+function isServerReadableSukuyoBirthDate(value?: string) {
+  const match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (year < 1900 || year > 2100) return false;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
 export default function FortuneTeaHousePage() {
   const authState = useAuthStore();
   const recoveryOwner = toText(authState.user?.id || authState.user?.userId || authState.user?._id || authState.user?.uid);
@@ -1100,6 +1114,13 @@ export default function FortuneTeaHousePage() {
           || localDraft.sajuCompatibility?.user?.saju?.available !== true
           || localDraft.sajuCompatibility?.partner?.saju?.available !== true)) {
         throw new Error("입력하신 생년월일로는 두 사람의 사주 명식을 만들 수 없었어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
+      }
+      // 숙요점 본명숙은 서버의 천문 계산으로만 열린다 — 화면은 그 계산이 읽을 수 있는 날짜인지만
+      // 결제 전에 확인한다. 닫힌 채 보내면 근거 없는 상담문에 200코인이 청구된다.
+      if (nextQuestionInput.consultationMode === "sukuyo"
+        && (!isServerReadableSukuyoBirthDate(nextQuestionInput.sukuyo?.user?.birthDate)
+          || !isServerReadableSukuyoBirthDate(nextQuestionInput.sukuyo?.partner?.birthDate))) {
+        throw new Error("입력하신 생년월일로는 두 사람의 27숙 본명숙을 계산할 수 없었어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
       }
       localPreviewResult = localDraft;
       const requestPayload: FortuneTeaHouseConsultRequest = {

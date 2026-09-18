@@ -1048,3 +1048,26 @@ test('sukuyo completes saved groups while preserving calculated relationship fac
   expect(response.payload.result.sukuyoCompatibility.scores).toEqual(facts.scores);
   expect(callGeminiTextMock).toHaveBeenCalledTimes(8);
 });
+
+async function sukuyoConsultResponse(attemptId, mutate) {
+  const body = consultBodyForMode('sukuyo', attemptId);
+  mutate?.(body);
+  return readJson(await handleFortuneTeaHouseRoutes(new Request('https://example.com/api/fortune-tea-house/consult', {method: 'POST', headers: {'content-type':'application/json', 'cf-connecting-ip': attemptId}, body: JSON.stringify(body)}), {NODE_ENV:'test', GEMINIF_API_KEY:'mock-key'}));
+}
+
+test('sukuyo consult stops before generation when the 27-sukuyo calculation is closed', async () => {
+  // 양력 왕복을 통과하지 못하는 날짜는 prepareFortuneTeaSukuyoAstronomy 가 조용히 건너뛰어 초안이 닫힌다.
+  const invalid = await sukuyoConsultResponse('sukuyo-basis-invalid', body => { body.sukuyo.user.birthDate = '1991-02-31'; });
+  const missing = await sukuyoConsultResponse('sukuyo-basis-missing', body => { body.sukuyo.partner.birthDate = ''; });
+  expect([invalid.status, missing.status]).toEqual([422, 422]);
+  expect(callGeminiTextMock).not.toHaveBeenCalled();
+});
+
+test('sukuyo consult ignores an available flag forged on the client draft', async () => {
+  const forged = await sukuyoConsultResponse('sukuyo-basis-forged', body => {
+    body.sukuyo.user.birthDate = '1991-02-31';
+    body.draftResult = { consultationMode: 'sukuyo', sukuyoCompatibility: { available: true, user: { name: '나', sukuyoName: '익숙' }, partner: { name: '상대', sukuyoName: '각숙' }, relationType: '명', scores: { total: 100 } } };
+  });
+  expect(forged.status).toBe(422);
+  expect(callGeminiTextMock).not.toHaveBeenCalled();
+});

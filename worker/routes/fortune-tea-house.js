@@ -2685,6 +2685,9 @@ function mergeFortuneTeaSukuyoCompatibility(fallbackCompatibility, candidateComp
   const merged = {
     ...fallbackCompatibility,
     ...candidate,
+    // available 은 서버의 27숙 계산만이 세운다. 초안에서 온 값을 그대로 받으면 닫힌 계산 위에
+    // available:true 를 얹은 요청이 값 대조 게이트(3362행)를 건너뛴 채 통과한다.
+    available: fallbackCompatibility.available === true,
   };
   if (!fallbackCompatibility.available) return merged;
   return {
@@ -5421,6 +5424,25 @@ function assertSajuCalculationBasis(consultRequest, draft) {
   throw error;
 }
 
+// 숙요점 궁합은 사주 계열이 아니라 assertSajuCalculationBasis 가 5410행에서 그대로 빠져나간다.
+// 그런데 숙요의 값 대조 게이트 — 본명숙·관계·점수 동일성, 8,000자 하한, 앵커 포함 검사(3362~3406행) —
+// 는 fallback.sukuyoCompatibility.available 이 거짓이면 블록째 건너뛴다. 실측 결과 27숙 계산이 닫힌
+// 요청도 200 으로 완주해 completed 로 저장됐고(초안 available:false, LLM 8회), 전달된 본문의
+// 제목·요약·강점·주의는 전부 계산 근거 없는 LLM 창작이었다 — 200코인/₩20,000 짜리 상담문이다.
+// 계산이 닫히는 경로는 실재한다: parseFortuneTeaSukuyoBirthDate 가 양력 왕복으로만 날짜를 보므로
+// 음력 2월 29·30일 같은 실재 음력 생일이 조용히 걸러지고(1940~2010 음력 25,169일 중 92일, 0.37%)
+// prepareFortuneTeaSukuyoAstronomy 가 727행에서 continue 로 건너뛴다.
+// 가드는 게이트가 보는 것과 같은 값(available)을 본다 — 게이트가 도는 초안만 생성으로 넘긴다.
+// 이 값을 초안으로 위조하지 못하게 막는 쪽은 mergeFortuneTeaSukuyoCompatibility 의 available 고정이다.
+function assertSukuyoCalculationBasis(consultRequest, draft) {
+  if (consultRequest?.consultationMode !== "sukuyo") return;
+  if (draft?.sukuyoCompatibility?.available === true) return;
+  const error = new Error("두 사람의 생년월일로 27숙 본명숙을 계산하지 못했어요. 음력·양력 선택과 날짜를 다시 확인해 주세요.");
+  error.status = 422;
+  error.code = "FORTUNE_TEA_HOUSE_SUKUYO_BASIS_MISSING";
+  throw error;
+}
+
 async function handleConsult(request, env, ctx = null) {
   if (!checkRateLimit(request)) {
     return json(
@@ -5489,6 +5511,7 @@ async function handleConsult(request, env, ctx = null) {
   let generated;
   try {
     assertSajuCalculationBasis(consultRequest, fallback);
+    assertSukuyoCalculationBasis(consultRequest, fallback);
     generated = generation?.pending || (access.auth?.userId && (hasGeminiKey(env) || generation?.checkpoint)
       ? await generateTeaCheckpoint(consultRequest,fallback,env,{auth:access.auth,resultId,lockToken:generation.lockToken,checkpoint:generation.checkpoint,body})
       : await generateConsultResult(consultRequest, fallback, env));
