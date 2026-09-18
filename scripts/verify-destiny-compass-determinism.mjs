@@ -136,6 +136,37 @@ check(
   "collectEvidence는 체계당 evidence[0]만 담아야 한다 — 전체를 평탄화하면 /narrate 근거가 사주로 쏠린다",
 );
 
+// ── 10) 유료 전달: 계산 근거 fail-closed + 차감·되돌릴 자리 순서 ──
+// 어댑터 예외는 directionScore 가 조용히 흡수한다(`catch { c = null }`). 그러면 그 체계가
+// evidencePack 에서 빠지는데, 체계 섹션은 확정값 블록 없이도 프롬프트가 나가 모델이 명반을 창작한다.
+// 품질 게이트는 방향·항로 라벨이 늘 허용 목록에 있어 이를 잡지 못한다(2026-09-19 실측: 200 completed).
+const route = stripComments(read("worker/routes/destiny-compass-ai.js"));
+const reportContract = stripComments(read("worker/lib/destiny-compass-report-contract.js"));
+
+check(
+  /export function missingSectionSystems\([\s\S]{0,400}COMPASS_SECTIONS\.filter\(\(s\) => s\.system/.test(reportContract),
+  "missingSectionSystems 는 요청이 신고한 field.sources 가 아니라 COMPASS_SECTIONS 의 고정 목록과 대조해야 한다",
+);
+check(
+  /missingSectionSystems\(current\.evidencePack\)/.test(route) && /if \(missingSystems\.length\)/.test(route),
+  "라우트는 전달 진입에서 missingSectionSystems 로 체계 근거 누락을 막아야 한다(fail-closed)",
+);
+check(
+  /missingSystems[\s\S]{0,600}reason: "CALCULATION_INCOMPLETE"[\s\S]{0,120}status: 422/.test(route),
+  "체계 근거가 비면 생성 전에 422 CALCULATION_INCOMPLETE 로 끊어야 한다",
+);
+
+// 차감은 프론트 공용 게이트가 POST 전에 끝낸다. 되돌릴 기록이 저장보다 뒤에 열리면
+// 저장 실패 창이 기록 0건으로 끝나고, 만료 스윕도 잠글 건이 없어 차감이 고아가 된다.
+const startAt = route.indexOf("await startRefundableExecution(env, auth, access, input, reportId)");
+const seedWriteAt = route.indexOf("$setOnInsert: seed");
+check(startAt > 0 && seedWriteAt > 0 && startAt < seedWriteAt,
+  "startRefundableExecution 은 결과 저장($setOnInsert)보다 먼저 호출돼야 한다 — 저장 실패 창의 차감을 스윕이 회수할 수 있어야 한다");
+check(
+  !/\$setOnInsert: seed[\s\S]{0,900}await startRefundableExecution/.test(route),
+  "저장 뒤에 실행 기록을 여는 호출이 남아 있으면 안 된다(중복 기록·순서 역전)",
+);
+
 if (failures.length) {
   console.error("❌ verify:destiny-compass FAIL");
   failures.forEach((f) => console.error("   - " + f));

@@ -73,7 +73,10 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/destiny-compass-report-contract.js',()=>({...contract,buildCompassSectionPrompt:({spec})=>spec.key,validateCompassSection:()=>[],buildAllowedLabels:()=>[],buildCompassBasisPayload:()=>({}),computeSystemStars:()=>[],resolveGrounds:()=>[],splitGroundsLine:text=>({body:text,evidenceIds:[]})}));
  ({handleDestinyCompassAiRoutes:route}=await import('../../worker/routes/destiny-compass-ai.js'));
 });
-const requestInput=()=>({idempotencyKey:'original-request',requestId:'original-request',transactionId:'original-receipt',question:'생활의 선택',emotion:'calm',field:{seed:'sensitive-seed',primary:{key:'career',score:60,band:'steady'},directions:[]},evidencePack:{systems:[{system:'saju',items:[{id:'saju.dayMaster',term:'일간',detail:'갑'}]}]}});
+const requestInput=()=>({idempotencyKey:'original-request',requestId:'original-request',transactionId:'original-receipt',question:'생활의 선택',emotion:'calm',field:{seed:'sensitive-seed',primary:{key:'career',score:60,band:'steady'},directions:[]},evidencePack:{systems:[{system:'saju',items:[{id:'saju.dayMaster',term:'일간',detail:'갑'}]},
+  // 체계 섹션(사주·자미·숙요·타로)의 근거는 다 있어야 한다 — 하나라도 비면 라우트가 생성 전에 끊는다.
+  {system:'ziwei',items:[{id:'ziwei.ming',term:'명궁',detail:'자미'}]},{system:'sukuyo',items:[{id:'sukuyo.mansion',term:'본명숙',detail:'각수'}]},
+  {system:'tarot',items:[{id:'tarot.card',term:'태양',detail:'정위'}]},{system:'vedic',items:[{id:'vedic.vara',term:'바라',detail:'수요일'}]}]}});
 beforeEach(()=>{owner=uid;fault=null;lostConfirmation=false;revokedSource=-1;refund=jest.fn(async()=>({ok:true}));complete=jest.fn(async()=>({}));access=jest.fn(async()=>({ok:true,accessType:'pass',matchedTransactionId:'original-receipt'}));
  docs=[{id:'saved-compass',userId:uid,idempotencyKey:'original-request',status:'generating',lock:null,sections:[],llmMeta:{attempts:{},failures:{}},...requestInput()}];
  provider=jest.fn(async(_env,key,options)=>{expect(options.timeoutMs).toBe(42000);expect(options.fallbackToWorkersAI).toBe(false);const spec=specs.find(row=>row.key===key);let text='';for(let i=0;text.replace(/\s/g,'').length<spec.minChars+100;i++)text+=`${key}의 ${i}번째 계산 근거와 생활 선택을 살펴보며 반대 조건과 구체적인 행동을 함께 설명합니다.\n`;return{ok:true,text}});

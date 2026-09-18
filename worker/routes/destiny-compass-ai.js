@@ -39,6 +39,7 @@ import {
   compassFallbackMinChars,
   computeSystemStars,
   getCompassSection,
+  missingSectionSystems,
   resolveGrounds,
   splitGroundsLine,
   trimToLastSentence,
@@ -341,6 +342,15 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
   try {
     if (!current.field || !current.evidencePack) return json({ ok: false, reason: "CALCULATION_INCOMPLETE" }, { status: 422 });
     const input = { idempotencyKey: current.idempotencyKey, question: current.question, emotion: current.emotion, field: current.field, evidencePack: current.evidencePack };
+    // 체계 섹션의 확정값이 비었으면 그 섹션은 창작으로만 채워진다 — 결제된 리포트를 그렇게 내보내지 않는다.
+    const missingSystems = missingSectionSystems(current.evidencePack);
+    if (missingSystems.length) {
+      const detail = { reason: "CALCULATION_INCOMPLETE", missingSystems };
+      current = await saveCompassDelivery(env, filter, { status: "generation_failed", generationError: detail }, reportId);
+      const refunded = await refundExecution(env, auth, input, reportId, `계산 근거 누락(${missingSystems.join(", ")})`);
+      if (refunded) await saveCompassDelivery(env, filter, { generationError: { ...detail, refunded: true } }, reportId);
+      return json({ ok: false, reason: "CALCULATION_INCOMPLETE", missingSystems, refunded, resultId: reportId }, { status: 422 });
+    }
     const context = buildContext(input);
     const saved = new Map((current.sections || []).filter(row => row.status === "ok" && countPaidReportBodyChars(row.body) >= getCompassSection(row.key)?.minChars).map(row => [row.key, row]));
     const missing = COMPASS_SECTIONS.filter(spec => !saved.has(spec.key));
@@ -545,19 +555,23 @@ async function handleReport(request, env) {
   const { access } = await resolveAccess(request, env, body, "/api/destiny-compass-ai/report");
   const reportId = `dcdr_${buildHashes(input).seedHash}_${hash36(input.idempotencyKey)}`;
   const context = buildContext(input);
+  // 🔴 되돌릴 자리를 저장보다 먼저 연다. 차감은 프론트 게이트가 이미 끝냈으므로, 아래 저장이 실패하면
+  // 기록이 없는 채로 코인만 사라진다 — 기록이 없으면 만료 스윕(sweepStaleServiceExecutions)도 회수하지 못한다.
+  await startRefundableExecution(env, auth, access, input, reportId);
   // Store normalized interpretation inputs and a hashed seed before any provider call.
   const seed = { id: reportId, userId: String(auth.userId), idempotencyKey: input.idempotencyKey, inputHash: buildInputHash(input), seedHash: buildHashes(input).seedHash,
     question: input.question, emotion: input.emotion, field: { ...input.field, seed: buildHashes(input).seedHash }, evidencePack: input.evidencePack,
     basis: context.basisPayload, systemConfidence: context.systemConfidence, sections: [], status: "generating", accessType: clean(access.accessType, 40), lock: null,
     llmMeta: { locale: resolveAiLocaleFromRequest(request, body), requestId: clean(body.requestId || input.idempotencyKey, 180), transactionId: clean(access.matchedTransactionId || body.transactionId || body.purchaseId, 180), attempts: {}, failures: {} } };
   let saved;
+  // 저장 실패 창에서는 즉시 환불하지 않는다. 문서가 실제로 만들어졌을 수 있어(확인만 실패) 환불하면
+  // 결제 없이 읽히는 리포트가 남는다 — 위에서 연 기록을 만료 스윕이 되돌린다.
   try {
     const write = await DestinyCompassReport.updateOne({ userId: String(auth.userId), idempotencyKey: input.idempotencyKey }, { $setOnInsert: seed }, { upsert: true });
     if (!write || !(write.matchedCount || write.upsertedCount)) throw resultStorageUnavailable(reportId);
     saved = await loadStoredReport(env, auth.userId, { reportId });
     if (!saved?.field || saved.idempotencyKey !== input.idempotencyKey) throw resultStorageUnavailable(reportId);
   } catch { throw resultStorageUnavailable(reportId); }
-  await startRefundableExecution(env, auth, access, input, reportId);
   return runCompassDelivery(env, auth, saved);
 }
 
