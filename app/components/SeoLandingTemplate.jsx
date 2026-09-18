@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Compass } from "lucide-react";
 import DeferredShareWidget from "./DeferredShareWidget";
+import ContentIntegrityNote from "./ContentIntegrityNote";
 import {
   buildBreadcrumbJsonLd,
   buildFaqPageJsonLd,
@@ -401,6 +402,8 @@ export default function SeoLandingTemplate({ page }) {
             {disclaimer}
           </p>
         </section>
+
+        <ContentIntegrityNote tone="dark" contentPath={page?.path || ""} />
 
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
