@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-09-19
-next: 2단계 ②③④(이용권·단건 두 레일의 환불 동의)는 전부 main 에 들어갔다(머지 3471a307b · 58ce4f728 · 3차 세션). 03·05·09 오너 입력(선물 포함·vedic/ziwei 환불·사업자정보/MID 일치·예상거래금액)도 4차 세션(2026-09-18)이 해소하고 push 했다(80d30101e·90ec3670a·342373dd1·d1e323a8c) — 남은 것은 ① 영문 결제정보(이용권 모달 한국어 14문구 · app/checkout i18n 배선)와 3단계(법무)뿐이며, 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
+next: 2단계 ①②③④ 전부 main 에 들어갔다 — ②③④(정책 링크·문의 진입점·환불 동의, 머지 3471a307b · 58ce4f728 · 3차 세션), ①(영문 결제정보 3축, 701a9d6e2 · 83fe0c05c · 4ee3e9c42, checkout-i18n-wiring-20260918.md). 03·05·09 오너 입력(선물 포함·vedic/ziwei 환불·사업자정보/MID 일치·예상거래금액)도 4차 세션(2026-09-18)이 해소하고 push 했다(80d30101e·90ec3670a·342373dd1·d1e323a8c) — 코드·문서 작업은 이걸로 끝이고 남은 것은 3단계(법무)와 PG 특약 승인, 둘 다 외부 승인 대기뿐이다. 아래 "남은 작업"·"함정"과 docs/payment/inicis-overseas-card/01·02 부터 읽는다
 ---
 
 # KG이니시스 해외카드 특약 대비 — 2단계 ②③④ (결제창 정책 링크·영문 결제 문의 진입점·서버측 환불 동의)
@@ -155,9 +155,7 @@ C5 가 서버 절반이었다면 여기는 화면 절반 + 단건 레일 배선�
 
 - [x] 머지·push(`3471a307b` · `58ce4f728`). 운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 하지 않았다.
 - [x] 서버측 환불 동의 기록 — **이용권 레일**(C5 `8e7d94c31`).
-- [~] 2단계 ① 영문 결제정보 — **영냥이 `/checkout` 축은 끝났다**(`701a9d6e2`, [checkout-i18n-wiring-20260918.md](checkout-i18n-wiring-20260918.md)). 남은 축: 이용권 모달 `app/points/PointsClient.tsx:4823-4946` 의 한국어 14문구, 선물 안내 `GIFT_GUIDANCE`(`lib/payment/gift-policy.js:13`).
-  - 🔴 **"7개 로케일 `payment.directModal` 영어화"는 이미 끝나 있었다**(2차 세션 실측). `public/i18n/*.json` 12개를 전수 조사한 결과 비-ko 11개 로케일 전부 `payment.directModal` 47키에 한글 0자다. 이 항목은 남은 작업이 아니다.
-  - 🔴 `app/checkout/CheckoutClient.tsx` 는 233줄 중 한글 39줄이고 **i18n 배선이 아예 없다**(`useT` 계열 import 0건). 사전 키를 채우는 일이 아니라 배선부터 까는 일이다 — 여기가 ① 의 실제 무게중심이다.
+- [x] 2단계 ① 영문 결제정보 — **이 줄은 낡아 있었다.** 이 문서가 쓰인 뒤(13:24) 같은 날 두 커밋이 더 들어가 3축(`/checkout`·이용권 모달·`GIFT_GUIDANCE`) 전부 끝났는데, 이 마스터 문서만 갱신이 안 됐었다(5차 세션, 2026-09-19 실측 정정). 근거: `701a9d6e2`(13:24, `/checkout`) · `83fe0c05c`(14:28, 이용권 모달) · `4ee3e9c42`(15:54, `GIFT_GUIDANCE`) 셋 다 `git merge-base --is-ancestor <sha> HEAD` 로 확인, `POINTS_PAGE_COPY`(`PointsClient.tsx`)·`GIFT_GUIDANCE_BY_LOCALE`(`gift-policy.js`) 실재 코드도 grep 으로 재확인. 상세는 [checkout-i18n-wiring-20260918.md](checkout-i18n-wiring-20260918.md).
 - [x] 서버측 환불 동의 기록 — **단건 결제창**(C6 `567b9f6dd` · `e061e951f` · `41a8a1eca`). 아래 "C6" 절 참조. 예상대로 캐시 핀 회전이 딸려 왔다(2그룹 73곳).
 - [ ] 3단계(법무, LEGAL REVIEW REQUIRED)는 그대로 남아 있다.
 - [x] [06](../payment/inicis-overseas-card/06-customer-support-and-incident-response.md) §4 담당자·온콜·개인정보 유출 대응 절차 — 이 문서와 별개 세션(2026-09-18)이 오너에게 직접 물어 해소하고 main 에 push 완료(READY). 아래 03·05·09 항목과 같은 "오너 Q&A" 패턴을 썼다.
