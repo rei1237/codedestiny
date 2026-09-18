@@ -324,6 +324,51 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay #zwDeepAiPromptPanel :is(textarea,select) { width:100%; padding:12px; border:1px solid #657286; border-radius:6px; background:#0b121b; color:var(--fr-ink); font-size:16px !important; }
 #ziweiModalOverlay .fr-consult-example { display:block; padding:12px; text-align:left; border:1px solid var(--fr-rule); background:#202c38; color:var(--fr-ink); border-radius:6px; margin:10px 0; }
 #ziweiModalOverlay :is(.zw-detail-panel,.zw-report-section) { box-shadow:none !important; }
+/* #zwLifeAnimalPanel(내 영혼을 상징하는 자미두수 동물) 정규화. 이 패널은 노드 154개 중 126개가 인라인
+   style= 이라 클래스 CSS 로 덮을 수 없었고(본문 11.06px, 리포트는 16px), 엔진의 보라 그라데이션을 그대로
+   써서 .fr-* 리포트 안에서 혼자 떠 있었다. 2026-09-19 에 엔진이 그 인라인을 zwla-* 클래스로 옮겼으므로
+   여기서 !important 없이 ID 2개 특이도로 이긴다(엔진의 .zw-detail-panel 계열에 !important 는 없다 — 실측).
+   🔴 값은 --fr-* 토큰과 px 만 쓴다. 새 hex 를 적으면 리포트 팔레트가 다시 갈라진다.
+   선례: 같은 파일 #zwDetailPanel(:96) · #zwDeepAiPromptPanel(:323) 도 패널별 ID 정규화다.
+   2026-09-19 시각 검수 반영(390px 계산된 스타일 실측):
+   (1) 행간은 리포트 본문과 같은 1.75(16px -> 28px)로 맞춘다. 1.8~1.9 는 같은 글에서 리포트보다 혼자 길어진다.
+   (2) .zwla-hero 는 이름·요약만 담는 카드가 아니라 패널 본문 전체를 감싸는 래퍼다(실측: note·fold·grid·
+       narrative·tamagotchi 가 모두 그 자식). 여기에 패딩·테두리를 주면 24+20+16 = 3중 들여쓰기가 되어
+       390px 에서 한 줄에 한글 11~12자만 들어갔다. 그래서 래퍼로만 두고 안쪽 상자들이 리듬을 만든다.
+   (3) 그리드는 minmax(min(240px,100%),1fr). 그냥 240px 로 두면 부모(225px)보다 넓어 셀이 삐져나온다. */
+#ziweiModalOverlay #zwLifeAnimalPanel { padding:24px; border:1px solid var(--fr-rule); border-radius:0; background:var(--fr-surface); color:var(--fr-ink); backdrop-filter:none; -webkit-backdrop-filter:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel::before { display:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zw-dp-header { border-bottom:1px solid var(--fr-rule); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zw-dp-title { font-size:22px; font-weight:700; color:var(--fr-accent); text-shadow:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zw-dp-subtitle { font-size:14px; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zw-rtitle { font-size:18px; color:var(--fr-accent); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zw-rdesc { font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero { padding:0; border:0; border-radius:0; background:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-title { font-size:14px; font-weight:700; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-name { margin-top:8px; font-size:20px; font-weight:700; color:var(--fr-accent); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-archetype { margin-top:6px; font-size:14px; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-hero-summary { margin-top:12px; font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay #zwLifeAnimalPanel :is(.zwla-hero-star,.zwla-hero-pair) { margin-top:8px; font-size:14px; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-note { margin-top:16px; padding:16px; border:1px solid var(--fr-rule); border-radius:0; background:none; font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-note b { color:var(--fr-accent); }
+#ziweiModalOverlay #zwLifeAnimalPanel :is(.zwla-fold,.zwla-codex-fold) { margin-top:20px; padding:16px 0 0; border:0; border-top:1px solid var(--fr-rule); border-radius:0; background:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel :is(.zwla-fold-summary,.zwla-codex-summary) { font-size:16px; font-weight:700; color:var(--fr-accent); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-grid { margin-top:16px; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:20px; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-cell { font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-cell-label { display:block; font-size:14px; font-weight:700; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-cell br { display:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-narrative { margin-top:20px; padding:16px 0 0; border:0; border-top:1px solid var(--fr-rule); border-radius:0; background:none; font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-tamagotchi { margin-top:16px; padding:16px; border:1px solid var(--fr-rule); border-radius:0; background:none; font-size:16px; line-height:1.75; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-bridge { margin-top:20px; font-size:16px; line-height:1.75; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-body { margin-top:16px; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-grid { grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:12px; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card { padding:16px; border:1px solid var(--fr-rule); border-radius:0; background:none; box-shadow:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card.is-selected { border:1px solid var(--fr-accent); box-shadow:none; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-summary { font-size:16px; font-weight:700; color:var(--fr-ink); flex-wrap:wrap; }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-archetype { font-size:14px; font-weight:400; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-body { margin-top:12px; font-size:16px; line-height:1.75; color:var(--fr-ink); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-keywords { font-size:14px; font-weight:700; color:var(--fr-muted); }
+#ziweiModalOverlay #zwLifeAnimalPanel .zwla-codex-card-text { margin-top:8px; }
 #ziweiModalOverlay .fr-radar { max-width:380px; margin:24px auto; }
 #ziweiModalOverlay .fr-radar figcaption { font-size:18px; color:var(--fr-accent); text-align:center; }
 #ziweiModalOverlay .fr-radar svg { display:block; width:100%; height:auto; }

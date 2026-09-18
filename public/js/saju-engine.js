@@ -18232,6 +18232,44 @@ function renderZiwei(p, natal, targetId) {
     .zw-rtitle { font-size: 0.95rem; font-weight: 800; color: #C084FC; margin-bottom: 5px; display:flex; align-items:center; gap:6px; }
     .zw-rdesc { font-size: 0.85rem; line-height: 1.6; color: #CBD5E1; }
 
+    /* #zwLifeAnimalPanel(명궁 동물) 전용. 예전에 인라인 style= 로 찍혀 있던 값을 그대로 옮긴 기본 스킨.
+       .fr-* 리포트 안에서는 styles/basic-fortune-library.css 의
+       '#ziweiModalOverlay #zwLifeAnimalPanel ...' 규칙이 ID 2개 특이도로 이 값을 덮는다.
+       이 블록이 남아 있어야 리포트 정규화가 !important 0개로 이긴다(덮을 대상이 있어야 한다).
+       엔진을 모달 밖에서 렌더하는 코드가 생겨도 패널이 무스타일로 떨어지지 않게 하는 보험이기도 하다.
+       (renderZiwei 의 targetId 기본값 'ziweiSection' 은 실제로 죽은 폴백이다 — 셸에 그 id 가 없다.)
+       🔴 여기에 인라인 style 을 다시 늘리지 말 것 — 그러면 리포트 쪽에서 속성마다 !important 가 필요해진다. */
+    .zwla-hero { border: 1px solid rgba(250,204,21,0.42); background: linear-gradient(145deg,rgba(24,24,62,0.92),rgba(12,26,58,0.92)); border-radius: 14px; padding: 12px; }
+    .zwla-hero-title { font-size: 0.95rem; color: #fef3c7; font-weight: 900; }
+    .zwla-hero-name { margin-top: 4px; font-size: 0.88rem; color: #f8fafc; font-weight: 800; }
+    .zwla-hero-archetype { margin-top: 3px; font-size: 0.76rem; color: #c4b5fd; }
+    .zwla-hero-summary { margin-top: 7px; font-size: 0.79rem; color: #dbeafe; line-height: 1.6; }
+    .zwla-hero-star { margin-top: 7px; font-size: 0.74rem; color: #fcd34d; }
+    .zwla-hero-pair { margin-top: 6px; font-size: 0.75rem; color: #e2e8f0; }
+    .zwla-note { margin-top: 8px; padding: 8px; border-radius: 9px; font-size: 0.78rem; }
+    .zwla-note-combo { border: 1px solid rgba(52,211,153,0.35); background: rgba(6,78,59,0.22); color: #d1fae5; }
+    .zwla-note-fallback { border: 1px solid rgba(251,191,36,0.38); background: rgba(120,53,15,0.24); color: #fde68a; font-size: 0.77rem; }
+    .zwla-fold { margin-top: 9px; border: 1px solid rgba(196,181,253,0.32); border-radius: 10px; background: rgba(15,23,42,0.55); padding: 9px; }
+    .zwla-fold-summary { cursor: pointer; color: #bae6fd; font-size: 0.8rem; font-weight: 800; }
+    .zwla-grid { margin-top: 9px; display: grid; grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); gap: 8px; }
+    .zwla-cell { font-size: 0.78rem; color: #cbd5e1; line-height: 1.62; }
+    .zwla-cell-label { color: #fcd34d; }
+    .zwla-narrative { margin-top: 10px; padding: 9px; border-radius: 9px; border: 1px solid rgba(125,211,252,0.32); background: rgba(12,74,110,0.2); font-size: 0.79rem; line-height: 1.68; color: #e0f2fe; }
+    .zwla-tamagotchi { margin-top: 8px; padding: 8px; border-radius: 9px; background: rgba(76,29,149,0.26); border: 1px solid rgba(196,181,253,0.35); font-size: 0.78rem; color: #ede9fe; }
+    .zwla-bridge { margin-top: 9px; font-size: 0.79rem; color: #cbd5e1; line-height: 1.7; }
+    .zwla-empty { border-left-color: #64748b; }
+    .zwla-codex-fold { margin-top: 10px; border: 1px solid rgba(196,181,253,0.3); border-radius: 11px; background: rgba(15,23,42,0.42); padding: 10px; }
+    .zwla-codex-summary { cursor: pointer; color: #fcd34d; font-size: 0.82rem; font-weight: 800; }
+    .zwla-codex-body { margin-top: 9px; }
+    .zwla-codex-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 8px; }
+    .zwla-codex-card { border: 1px solid rgba(148,163,184,0.24); border-radius: 10px; background: rgba(15,23,42,0.52); padding: 8px; }
+    .zwla-codex-card.is-selected { border: 1.5px solid rgba(250,204,21,0.72); box-shadow: 0 0 18px rgba(250,204,21,0.25); }
+    .zwla-codex-card-summary { cursor: pointer; list-style: none; font-size: 0.8rem; color: #f8fafc; font-weight: 800; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .zwla-codex-card-archetype { font-size: 0.68rem; color: #c4b5fd; }
+    .zwla-codex-card-body { margin-top: 7px; font-size: 0.75rem; color: #cbd5e1; line-height: 1.55; }
+    .zwla-codex-card-keywords { color: #fcd34d; font-weight: 700; }
+    .zwla-codex-card-text { margin-top: 5px; }
+
     .badge-good { background: rgba(129,212,250,0.2); color: #81D4FA; padding: 2px 7px; border-radius: 4px; font-size:0.75rem; }
     .badge-bad { background: rgba(255,82,82,0.2); color: #FF5252; padding: 2px 7px; border-radius: 4px; font-size:0.75rem; }
 
@@ -21079,22 +21117,20 @@ function renderZiwei(p, natal, targetId) {
   }
 
   function _zwBuildLifeAnimalCodex(primaryKey) {
-    return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px">'
+    return '<div class="zwla-codex-grid">'
       + ZW_LIFE_ANIMAL_ORDER.map(function(hanKey) {
         var item = ZW_LIFE_ANIMAL_MAP[hanKey];
         if (!item) return '';
         var selected = primaryKey === hanKey;
-        var border = selected ? '1.5px solid rgba(250,204,21,0.72)' : '1px solid rgba(148,163,184,0.24)';
-        var glow = selected ? 'box-shadow:0 0 18px rgba(250,204,21,0.25)' : '';
         return ''
-          + '<details style="border:' + border + ';' + glow + ';border-radius:10px;background:rgba(15,23,42,0.52);padding:8px">'
-          + '<summary style="cursor:pointer;list-style:none;font-size:0.8rem;color:#f8fafc;font-weight:800;display:flex;align-items:center;justify-content:space-between;gap:8px">'
+          + '<details class="zwla-codex-card' + (selected ? ' is-selected' : '') + '">'
+          + '<summary class="zwla-codex-card-summary">'
           + '<span>' + item.emoji + ' ' + _zwPortfolioEscapeHtml(item.animal) + ' · ' + _zwPortfolioEscapeHtml(item.koreanName) + '</span>'
-          + '<span style="font-size:0.68rem;color:#c4b5fd">' + _zwPortfolioEscapeHtml(item.archetype) + '</span>'
+          + '<span class="zwla-codex-card-archetype">' + _zwPortfolioEscapeHtml(item.archetype) + '</span>'
           + '</summary>'
-          + '<div style="margin-top:7px;font-size:0.75rem;color:#cbd5e1;line-height:1.55">'
-          + '<div style="color:#fcd34d;font-weight:700">키워드: ' + _zwPortfolioEscapeHtml((item.keywords || []).slice(0, 4).join(' · ')) + '</div>'
-          + '<div style="margin-top:5px">' + _zwPortfolioEscapeHtml(item.summary) + '</div>'
+          + '<div class="zwla-codex-card-body">'
+          + '<div class="zwla-codex-card-keywords">키워드: ' + _zwPortfolioEscapeHtml((item.keywords || []).slice(0, 4).join(' · ')) + '</div>'
+          + '<div class="zwla-codex-card-text">' + _zwPortfolioEscapeHtml(item.summary) + '</div>'
           + '</div>'
           + '</details>';
       }).join('')
@@ -21223,16 +21259,16 @@ function renderZiwei(p, natal, targetId) {
         + '    <div class="zw-dp-title">🌠 나의 명궁 동물</div>'
         + '    <div class="zw-dp-subtitle">명궁 주성으로 보는 나의 상징 동물</div>'
         + '  </div>'
-        + '  <div class="zw-report-section" style="border-left-color:#64748b">'
+        + '  <div class="zw-report-section zwla-empty">'
         + '    <div class="zw-rtitle">🌫️ 숨은 동물 카드</div>'
         + '    <div class="zw-rdesc">명궁 주성을 확인할 수 없어 동물 상징을 계산하지 못했습니다. 공궁(空宮)인 경우에는 삼방사정에서 들어오는 별의 기운을 함께 확인해 주세요.</div>'
         + '  </div>'
-        + '  <div style="margin-top:8px;font-size:0.79rem;color:#cbd5e1;line-height:1.65">'
+        + '  <div class="zwla-bridge">'
         + _zwPortfolioEscapeHtml(titleLine + ' 명반에서 주성이 확인되면 자동으로 동물 프로필을 연결합니다. ' + bridgeLine)
         + '  </div>'
-        + '  <details id="zwLifeAnimalCodex" style="margin-top:10px;border:1px solid rgba(196,181,253,0.3);border-radius:11px;background:rgba(15,23,42,0.42);padding:10px">'
-        + '    <summary style="cursor:pointer;color:#fcd34d;font-size:0.82rem;font-weight:800">14주성 동물 도감 보기</summary>'
-        + '    <div style="margin-top:9px">' + _zwBuildLifeAnimalCodex('') + '</div>'
+        + '  <details id="zwLifeAnimalCodex" class="zwla-codex-fold">'
+        + '    <summary class="zwla-codex-summary">14주성 동물 도감 보기</summary>'
+        + '    <div class="zwla-codex-body">' + _zwBuildLifeAnimalCodex('') + '</div>'
         + '  </details>'
         + '</div>';
     }
@@ -21244,12 +21280,12 @@ function renderZiwei(p, natal, targetId) {
       ? ('대표 동물: ' + primary.emoji + ' ' + primary.animal + ' · 보조 동물: ' + secondary.emoji + ' ' + secondary.animal)
       : ('대표 동물: ' + primary.emoji + ' ' + primary.animal);
     var comboLine = secondary && resolved.comboText
-      ? ('<div style="margin-top:8px;padding:8px;border-radius:9px;border:1px solid rgba(52,211,153,0.35);background:rgba(6,78,59,0.22);font-size:0.78rem;color:#d1fae5">'
+      ? ('<div class="zwla-note zwla-note-combo">'
         + '<b>주성 조합 해석</b>: ' + _zwPortfolioEscapeHtml(resolved.comboText)
         + '</div>')
       : '';
     var fallbackLine = resolved.fallbackNote
-      ? ('<div style="margin-top:8px;padding:8px;border-radius:9px;border:1px solid rgba(251,191,36,0.38);background:rgba(120,53,15,0.24);font-size:0.77rem;color:#fde68a">'
+      ? ('<div class="zwla-note zwla-note-fallback">'
         + _zwPortfolioEscapeHtml(resolved.fallbackNote)
         + '</div>')
       : '';
@@ -21260,43 +21296,43 @@ function renderZiwei(p, natal, targetId) {
       + '    <div class="zw-dp-title">' + primary.emoji + ' 내 영혼을 상징하는 자미두수 동물</div>'
       + '    <div class="zw-dp-subtitle">명궁 주성으로 보는 나의 상징 동물 · 14주성 동물 프로필</div>'
       + '  </div>'
-      + '  <div style="border:1px solid rgba(250,204,21,0.42);background:linear-gradient(145deg,rgba(24,24,62,0.92),rgba(12,26,58,0.92));border-radius:14px;padding:12px">'
-      + '    <div style="font-size:0.95rem;color:#fef3c7;font-weight:900">' + primary.emoji + ' 나의 명궁 동물</div>'
-      + '    <div style="margin-top:4px;font-size:0.88rem;color:#f8fafc;font-weight:800">' + _zwPortfolioEscapeHtml(primary.animal) + ' · ' + _zwPortfolioEscapeHtml(primary.koreanName) + '</div>'
-      + '    <div style="margin-top:3px;font-size:0.76rem;color:#c4b5fd">' + _zwPortfolioEscapeHtml(primary.archetype) + ' / ' + _zwPortfolioEscapeHtml((primary.keywords || []).slice(0, 5).join(' · ')) + '</div>'
-      + '    <div style="margin-top:7px;font-size:0.79rem;color:#dbeafe;line-height:1.6">당신의 명궁 동물은 ' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '입니다. ' + _zwPortfolioEscapeHtml(primary.summary) + '</div>'
-      + '    <div style="margin-top:7px;font-size:0.74rem;color:#fcd34d">주성: ' + _zwPortfolioEscapeHtml(primary.koreanName) + (secondary ? (' + ' + _zwPortfolioEscapeHtml(secondary.koreanName)) : '') + '</div>'
-      + '    <div style="margin-top:6px;font-size:0.75rem;color:#e2e8f0">' + _zwPortfolioEscapeHtml(pairLine) + '</div>'
+      + '  <div class="zwla-hero">'
+      + '    <div class="zwla-hero-title">' + primary.emoji + ' 나의 명궁 동물</div>'
+      + '    <div class="zwla-hero-name">' + _zwPortfolioEscapeHtml(primary.animal) + ' · ' + _zwPortfolioEscapeHtml(primary.koreanName) + '</div>'
+      + '    <div class="zwla-hero-archetype">' + _zwPortfolioEscapeHtml(primary.archetype) + ' / ' + _zwPortfolioEscapeHtml((primary.keywords || []).slice(0, 5).join(' · ')) + '</div>'
+      + '    <div class="zwla-hero-summary">당신의 명궁 동물은 ' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '입니다. ' + _zwPortfolioEscapeHtml(primary.summary) + '</div>'
+      + '    <div class="zwla-hero-star">주성: ' + _zwPortfolioEscapeHtml(primary.koreanName) + (secondary ? (' + ' + _zwPortfolioEscapeHtml(secondary.koreanName)) : '') + '</div>'
+      + '    <div class="zwla-hero-pair">' + _zwPortfolioEscapeHtml(pairLine) + '</div>'
       + comboLine
       + fallbackLine
-      + '    <details style="margin-top:9px;border:1px solid rgba(196,181,253,0.32);border-radius:10px;background:rgba(15,23,42,0.55);padding:9px">'
-      + '      <summary style="cursor:pointer;color:#bae6fd;font-size:0.8rem;font-weight:800">자세히 보기</summary>'
-      + '      <div style="margin-top:9px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px">'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">대표 동물</b><br>' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">명궁 주성</b><br>' + _zwPortfolioEscapeHtml(primary.koreanName + (secondary ? (' + ' + secondary.koreanName) : '')) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">한 줄 요약</b><br>' + _zwPortfolioEscapeHtml(insight.oneLine) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">성격 핵심</b><br>' + _zwPortfolioEscapeHtml(insight.personalityCore) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">강점</b><br>' + _zwPortfolioEscapeHtml(insight.strengths) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">약점</b><br>' + _zwPortfolioEscapeHtml(insight.weaknesses) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">관계 스타일</b><br>' + _zwPortfolioEscapeHtml(insight.relationStyle) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">일/재물 스타일</b><br>' + _zwPortfolioEscapeHtml(insight.workMoneyStyle) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">오늘의 활용법</b><br>' + _zwPortfolioEscapeHtml(insight.todayTip) + '</div>'
-      + '        <div style="font-size:0.78rem;color:#cbd5e1;line-height:1.62"><b style="color:#fcd34d">주의할 점</b><br>' + _zwPortfolioEscapeHtml(insight.caution) + '</div>'
+      + '    <details class="zwla-fold">'
+      + '      <summary class="zwla-fold-summary">자세히 보기</summary>'
+      + '      <div class="zwla-grid">'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">대표 동물</b><br>' + primary.emoji + ' ' + _zwPortfolioEscapeHtml(primary.animal) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">명궁 주성</b><br>' + _zwPortfolioEscapeHtml(primary.koreanName + (secondary ? (' + ' + secondary.koreanName) : '')) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">한 줄 요약</b><br>' + _zwPortfolioEscapeHtml(insight.oneLine) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">성격 핵심</b><br>' + _zwPortfolioEscapeHtml(insight.personalityCore) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">강점</b><br>' + _zwPortfolioEscapeHtml(insight.strengths) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">약점</b><br>' + _zwPortfolioEscapeHtml(insight.weaknesses) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">관계 스타일</b><br>' + _zwPortfolioEscapeHtml(insight.relationStyle) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">일/재물 스타일</b><br>' + _zwPortfolioEscapeHtml(insight.workMoneyStyle) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">오늘의 활용법</b><br>' + _zwPortfolioEscapeHtml(insight.todayTip) + '</div>'
+      + '        <div class="zwla-cell"><b class="zwla-cell-label">주의할 점</b><br>' + _zwPortfolioEscapeHtml(insight.caution) + '</div>'
       + '      </div>'
-      + '      <div style="margin-top:10px;padding:9px;border-radius:9px;border:1px solid rgba(125,211,252,0.32);background:rgba(12,74,110,0.2);font-size:0.79rem;line-height:1.68;color:#e0f2fe">'
+      + '      <div class="zwla-narrative">'
       + _zwPortfolioEscapeHtml(insight.longNarrative)
       + '      </div>'
-      + '      <div style="margin-top:8px;padding:8px;border-radius:9px;background:rgba(76,29,149,0.26);border:1px solid rgba(196,181,253,0.35);font-size:0.78rem;color:#ede9fe">'
+      + '      <div class="zwla-tamagotchi">'
       + '다마고치식 한마디: “' + _zwPortfolioEscapeHtml(insight.tamagotchiLine) + '”'
       + '      </div>'
       + '    </details>'
       + '  </div>'
-      + '  <div style="margin-top:9px;font-size:0.79rem;color:#cbd5e1;line-height:1.7">'
+      + '  <div class="zwla-bridge">'
       + _zwPortfolioEscapeHtml(titleLine + ' 이 별을 동물 상징으로 바꾸면, 당신의 자미두수 동물은 ' + primary.animal + '입니다. ' + bridgeLine)
       + '  </div>'
-      + '  <details id="zwLifeAnimalCodex" style="margin-top:10px;border:1px solid rgba(196,181,253,0.3);border-radius:11px;background:rgba(15,23,42,0.42);padding:10px">'
-      + '    <summary style="cursor:pointer;color:#fcd34d;font-size:0.82rem;font-weight:800">14주성 동물 도감 보기</summary>'
-      + '    <div style="margin-top:9px">' + _zwBuildLifeAnimalCodex(resolved.primaryKey) + '</div>'
+      + '  <details id="zwLifeAnimalCodex" class="zwla-codex-fold">'
+      + '    <summary class="zwla-codex-summary">14주성 동물 도감 보기</summary>'
+      + '    <div class="zwla-codex-body">' + _zwBuildLifeAnimalCodex(resolved.primaryKey) + '</div>'
       + '  </details>'
       + '</div>';
   }
