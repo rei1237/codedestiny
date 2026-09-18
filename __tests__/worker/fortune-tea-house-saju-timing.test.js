@@ -294,12 +294,12 @@ describe("운명 찻집 사주 궁합 — 두 사람 명식 계산 근거", () =
     };
   }
 
-  function compatDraft({ user = true, partner = true }) {
+  function compatDraft({ user = true, partner = true, block = user && partner }) {
     return {
       consultationMode: "sajuCompatibility",
       saju: { available: user, pillars: { year: "경오", month: "기묘", day: "정축", hour: "을사" } },
       sajuCompatibility: {
-        available: user && partner,
+        available: block,
         user: { name: "나", saju: { available: user, dayMaster: "정(화)" } },
         partner: { name: "상대", saju: { available: partner, dayMaster: "병(화)" } },
       },
@@ -310,6 +310,9 @@ describe("운명 찻집 사주 궁합 — 두 사람 명식 계산 근거", () =
     ["초안이 아예 없을 때", "none", undefined],
     ["상대 명식이 닫혔을 때", "partner-closed", compatDraft({ partner: false })],
     ["본인 명식이 닫혔을 때", "user-closed", compatDraft({ user: false })],
+    // 두 명식은 채워 놓고 궁합 블록만 닫은 위조 페이로드 — 이게 통과하면 상대 이름·일간을 본문에서
+    // 대조하는 유일한 값 게이트(라우트 3434행)가 통째로 꺼진 채 생성된다.
+    ["궁합 블록만 닫혔을 때", "block-closed", compatDraft({ block: false })],
   ])("%s 유료 사주 궁합 상담은 생성 전에 멈춘다", async (_label, attemptKey, draftResult) => {
     callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: "{}" }));
 

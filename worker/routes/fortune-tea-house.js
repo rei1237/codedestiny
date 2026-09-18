@@ -5401,12 +5401,16 @@ async function handleEnsureAccess(request, env) {
 // 사주 궁합도 같은 결함을 공유한다. 화면이 궁합 폼의 '나' 값을 최상위 birthDate 로 복사해 보내므로
 // (QuestionInputScene buildInput) 본인 명식은 draft.saju, 상대 명식은 draft.sajuCompatibility.partner.saju 다.
 // 상대가 닫히면 buildSajuPersonProfile 이 partnerProfile 자체를 빼버려, "두 사람의 결" 이 본인 명식 하나로
-// 창작된 채 100코인이 청구된다 — 궁합은 두 명식이 모두 열렸을 때만 통과시킨다.
+// 창작된 채 200코인이 청구된다 — 궁합은 두 명식이 모두 열렸을 때만 통과시킨다.
+// available 플래그까지 함께 보는 이유: 궁합의 유일한 값 대조 게이트(상대 이름·일간이 본문에 실제로
+// 나오는지, 3434행)가 sajuCompatibility.available 이 거짓이면 통째로 건너뛴다. 클라 어댑터는 두 명식이
+// 모두 열렸을 때만 available:true 를 세우므로(sajuCompatibilityAdapter 168·190행) 조이는 쪽이 정상 계약이다.
 function assertSajuCalculationBasis(consultRequest, draft) {
   const consultationMode = consultRequest?.consultationMode;
   if (consultationMode !== "saju" && consultationMode !== "sajuCompatibility") return;
   const compatReady = consultationMode !== "sajuCompatibility"
-    || (draft?.sajuCompatibility?.user?.saju?.available === true
+    || (draft?.sajuCompatibility?.available === true
+      && draft?.sajuCompatibility?.user?.saju?.available === true
       && draft?.sajuCompatibility?.partner?.saju?.available === true);
   if (draft?.saju?.available === true && compatReady) return;
   const error = new Error(consultationMode === "sajuCompatibility"
