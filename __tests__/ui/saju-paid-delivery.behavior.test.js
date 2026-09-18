@@ -62,6 +62,32 @@ test('storage failure retains original pending job and allows another same-job r
   h.close();
 });
 
+test('pageshow bfcache restore resumes the pending job without a click, but a fresh pageshow does not', async () => {
+  const h = setup();
+  h.bind();
+  assert.equal(h.posts.length, 0);
+  const fresh = new h.w.Event('pageshow');
+  fresh.persisted = false;
+  h.w.dispatchEvent(fresh);
+  await tick();
+  assert.equal(h.posts.length, 0, '새로고침(persisted:false) pageshow는 자동으로 이어받기를 시작하면 안 된다');
+  const restored = new h.w.Event('pageshow');
+  restored.persisted = true;
+  h.w.dispatchEvent(restored);
+  await tick();
+  assert.deepEqual(h.posts, [{ resumeJobId: 'job' }]);
+  h.close();
+});
+
+test('window focus after backgrounding resumes the pending job without a click', async () => {
+  const h = setup();
+  h.bind();
+  h.w.dispatchEvent(new h.w.Event('focus'));
+  await tick();
+  assert.deepEqual(h.posts, [{ resumeJobId: 'job' }]);
+  h.close();
+});
+
 test('account change discards in-flight result and isolates local recovery keys', async () => {
   const h = setup(); let release;
   h.respond(() => new Promise(resolve => { release = resolve; }));

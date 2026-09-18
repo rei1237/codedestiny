@@ -8474,6 +8474,19 @@ function _bindSajuQuestionPromptCard(rootEl) {
     _sajuPromptSetStatus(statusEl, '이전에 진행하던 상담문을 이어서 불러오고 있어요.', 'info');
     pollPendingJob(job, true);
   }
+  // pageshow(bfcache 복귀)·focus·online·visibilitychange 로 화면이 다시 활성화되면 대기 작업을
+  // 능동 재확인한다(뒤로 가기·새로고침 없이 복구). 🔴 pageshow는 매 새로고침에도 발생하므로
+  // persisted(진짜 bfcache 복귀)로만 좁힌다 — 아니면 마운트 시 복원(버튼 노출 후 클릭 대기, 위)의
+  // "눌러서 이어보기" 계약이 새로고침마다 자동 이어받기로 깨진다.
+  function resumeOnWake(event) {
+    if (event && event.type === 'pageshow' && !event.persisted) return;
+    if (!activePendingJob || isLoading) return;
+    resumePendingJob();
+  }
+  window.addEventListener('pageshow', resumeOnWake);
+  window.addEventListener('focus', resumeOnWake);
+  window.addEventListener('online', resumeOnWake);
+  document.addEventListener('visibilitychange', function() { if (!document.hidden) resumeOnWake(); });
 
   inputEl.addEventListener('input', function() {
     // 결제 후 생성 실패 → "추가 결제 없이 다시 생성" 상태에서 오타 수정 등 사소한 편집만 해도
