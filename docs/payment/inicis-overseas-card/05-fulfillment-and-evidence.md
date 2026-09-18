@@ -1,6 +1,6 @@
 # 05. 이행·증빙 — 결제 후 지급·미이행 감지·주문 기록
 
-현재 상태: 결제 확인 후 지급·재지급·중복 지급 방지는 기존에 있었고, 1단계에서 미이행·PG 대조 실패 운영자 알림(C7), 주문 시점 정책 버전(C6), 해외카드 판정 스냅숏(C4), 상점 대조 결과(C8)를 더했다. vedic·ziwei 생성 실패의 카드 환불은 없고, 알림 채널의 운영 설정은 확인하지 않았다. 완료 보고가 아니다.
+현재 상태: 결제 확인 후 지급·재지급·중복 지급 방지는 기존에 있었고, 1단계에서 미이행·PG 대조 실패 운영자 알림(C7), 주문 시점 정책 버전(C6), 해외카드 판정 스냅숏(C4), 상점 대조 결과(C8)를 더했다. vedic·ziwei 생성 실패의 카드 환불은 없다. 알림 채널 운영 설정·수신자는 2026-09-18 오너 확인으로 해소됐다([06](06-customer-support-and-incident-response.md) §2·§4). 완료 보고가 아니다.
 
 - 측정일: 2026-09-17. 줄 번호는 1단계 커밋 후 워크트리 기준이다.
 - 관련 문서: [03 상품 범위](03-overseas-card-product-scope.md) · [06 CS·사고 대응](06-customer-support-and-incident-response.md) · [08 테스트 결과](08-test-results.md)
@@ -32,7 +32,7 @@
 - 전달 판정 = "성공이면서 건너뛰지 않은 채널 1개 이상". 발송 5초 상한. 표식(`metadata.fulfillmentAlert`·`metadata.verifyAlert`)은 **전달 성공 후에만** CAS 로 찍는다 → 실패·타임아웃·미설정이면 다음 틱에 다시 보낸다.
 - 채널이 하나도 설정돼 있지 않으면 fetch 0회, `[pay-alert] unconfigured` 경고 로그만 남는다.
 - 🔴 알림일 뿐이다. 지급·환불을 하지 않는다(자동 환불 신설 없음).
-- 운영 설정 여부: 위 env 3종은 env 계약·`worker/wrangler.toml`·시크릿 동기화 목록에 없다. 이름만 확인했고 값은 보지 않았다 → **OWNER INPUT REQUIRED**(D4 채널·수신자 결정과 운영 설정 확인).
+- 운영 설정 여부: **READY(2026-09-18 오너 확인)** — `wrangler secret list`(프로덕션 워커 `code-destiny-web`) 실측상 `ADMIN_FEEDBACK_EMAIL` 등록됨, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 미등록. 수신 이메일은 `admin@code-destiny.com`(오너 답변 기준, 시크릿 값 자체는 코드로 재확인 불가). Discord·Slack 은 오너가 쓰지 않기로 한 결정이라 미등록이 결함이 아니다 — 근거 [06](06-customer-support-and-incident-response.md) §2·§4.
 
 ## 3. 상품별 생성 실패 처리
 
@@ -75,7 +75,7 @@
 |---|---|
 | 결제 확인 후 지급·무제한 재지급·중복 방지 | READY |
 | 미이행 30분+·PG 대조 실패 운영자 알림 코드 | READY(C7 테스트) |
-| 알림 채널 운영 설정·수신자 | NOT READY(OWNER INPUT REQUIRED) |
+| 알림 채널 운영 설정·수신자 | READY(2026-09-18 오너 확인) |
 | 주문 시점 스냅숏·정책 버전·상점 대조 결과 | READY(C4·C6·C8) |
 | 카드번호·CVC 미저장 | READY |
 | astrology 생성 실패 카드 환불 | READY |
@@ -83,4 +83,4 @@
 | 서버측 환불 동의 기록 — 이용권 레일 | READY(2026-09-18) |
 | 서버측 환불 동의 기록 — 단건 레일 | READY(2026-09-18, `source="direct_modal"`) |
 
-**최종 판정: OWNER INPUT REQUIRED** — 감지·기록 코드는 준비됐다. 알림 채널 운영 설정과 수신자 확인, vedic·ziwei 카드 환불 결정이 남아 있다.
+**최종 판정: OWNER INPUT REQUIRED(축소)** — 감지·기록 코드는 준비됐고 알림 채널 운영 설정·수신자는 2026-09-18 오너 확인으로 해소됐다. 남은 것은 vedic·ziwei 생성 실패 시 카드 환불 여부뿐이다.
