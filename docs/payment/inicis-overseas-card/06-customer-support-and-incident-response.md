@@ -34,7 +34,7 @@
 | 일일 크론 실패 | 크론 | 텔레그램 — 대화방 미지정이라 공개 채널로 간다(범위 밖 결함) | `worker/lib/cron-failure-alert.js:56` |
 | 런타임 오류 | 워커 로그뿐 | **Sentry 등 오류 수집 없음**(`package.json`·`worker`·`app`·`lib` 에서 단어 `sentry` 0건) | — |
 
-- C7 채널(`ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL`) 운영 설정: 2026-09-18 `wrangler secret list`(프로덕션 워커 `code-destiny-web`)로 실측 — `ADMIN_FEEDBACK_EMAIL` 은 **등록됨**, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 은 **미등록**. 즉 이메일 알림은 살아있고 Discord·Slack 두 채널만 `[pay-alert] unconfigured` 로 빠진다. 시크릿 이름 존재만 확인한 것이며 값(메일 주소·웹훅 URL)의 유효성은 확인 불가(시크릿은 값 조회가 막혀 있음).
+- C7 채널(`ADMIN_FEEDBACK_EMAIL`·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL`) 운영 설정: 2026-09-18 `wrangler secret list`(프로덕션 워커 `code-destiny-web`)로 실측 — `ADMIN_FEEDBACK_EMAIL` 은 **등록됨**, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 은 **미등록**. 즉 이메일 알림은 살아있고 Discord·Slack 두 채널만 `[pay-alert] unconfigured` 로 빠진다. 시크릿 이름 존재만 확인한 것이며 값(메일 주소·웹훅 URL)의 유효성은 확인 불가(시크릿은 값 조회가 막혀 있음). 2026-09-18 오너 확인: 운영 수신 이메일은 `admin@code-destiny.com`(`lib/site-policy-config.js:5,46` `SUPPORT_EMAIL`·`BUSINESS_IDENTITY.email` 과 동일 주소 — `ADMIN_FEEDBACK_EMAIL` 값 자체는 시크릿이라 코드로 재확인 불가, 오너 답변 기준). Discord·Slack 은 애초에 쓰지 않는다는 오너 결정이며 결함이 아니다.
 
 ## 3. 대응 수단
 
@@ -55,7 +55,7 @@
 | 결제 사고 1차 담당자 | **OWNER INPUT REQUIRED** — 레포 문서에 없음 |
 | 온콜·대응 시간 | **OWNER INPUT REQUIRED** — `docs` 에 온콜 문서 없음(`on-call`·`온콜` 검색 결과 1단계 인수인계 문서뿐) |
 | 개인정보 유출 대응 절차 | **OWNER INPUT REQUIRED** — 문서 없음. 법적 신고 기한 등은 [07](07-personal-data-inventory.md) LEGAL REVIEW |
-| C7 알림 수신자·채널(D4) | 부분 READY — 2026-09-18 `wrangler secret list` 실측: 이메일 등록됨, Discord·Slack 미등록. 수신자가 실제로 메일을 확인하는지·Discord/Slack 을 추가할지는 여전히 **OWNER INPUT REQUIRED** |
+| C7 알림 수신자·채널(D4) | READY — 2026-09-18 오너 확인: 수신 이메일 `admin@code-destiny.com`(`wrangler secret list` 실측상 `ADMIN_FEEDBACK_EMAIL` 등록됨과 정합). Discord·Slack 은 오너가 쓰지 않기로 결정, 미등록은 의도된 상태 |
 
 ## 5. 판정
 
@@ -66,8 +66,8 @@
 | 영문 결제 문의 진입점(연락 페이지 절 + 결제창 링크) | READY(2단계 §1) |
 | 영문 환불 **전용** 창구(접수 폼·전용 주소) | NOT READY(없음 — 같은 이메일 1채널) |
 | 미이행·PG 대조 실패 알림 코드 | READY(C7) |
-| 알림 채널 운영 설정·담당자·온콜 | 알림 채널(이메일)은 READY, Discord·Slack·담당자·온콜은 NOT READY(OWNER INPUT REQUIRED) |
+| 알림 채널 운영 설정·담당자·온콜 | 알림 채널(이메일 `admin@code-destiny.com`, Discord·Slack 은 오너가 안 씀 — 의도된 상태)은 READY, 담당자·온콜은 NOT READY(OWNER INPUT REQUIRED) |
 | 웹훅 반복 실패·환불 실패·크론 실패 알림 채널 | NOT READY(범위 밖 결함) |
 | 오류 수집(Sentry 등) | NOT READY(없음) |
 
-**최종 판정: OWNER INPUT REQUIRED** — 담당자·온콜·알림 채널 운영 설정은 운영자가 정한다. 신청서에는 "이메일 문의, 응답기한 보장 없음(한국어 페이지 기준 영업일 1~3일 안내)"처럼 있는 것만 적는다.
+**최종 판정: OWNER INPUT REQUIRED** — 알림 채널(이메일 `admin@code-destiny.com`, Discord·Slack 미사용)은 2026-09-18 오너 확인으로 해소. 결제 사고 1차 담당자·온콜·개인정보 유출 대응 절차는 아직 정해지지 않았다. 신청서에는 "이메일 문의, 응답기한 보장 없음(한국어 페이지 기준 영업일 1~3일 안내)"처럼 있는 것만 적는다.

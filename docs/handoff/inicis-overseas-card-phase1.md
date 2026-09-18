@@ -104,7 +104,7 @@ KG이니시스 해외카드 특약(기존 MID 추가형, 승인·정산 KRW)은 
 - D2 특약 **아직 처리중(미승인)** → 프로덕션 플래그 OFF 유지, "accepted" 고지를 "being prepared" 로, `global_visa3d` 도 승인 전까지 미전송.
 - D3 (정정 반영) **이용권·선물도 해외카드 대상에 포함.** 처음엔 "전부 제외"를 골랐으나 곧바로 "이용권하고 선물은 있어야" 로 정정했다. 해석: 사이트 판매 유지는 원래 전제이고, 정정 내용은 해외카드 결제 대상에 넣는 것이다. 대상 = 단건 디지털 콘텐츠 + 이용권 4등급(**30일 고정** — `worker/payments/index.js:292-297` 가 30일 외 요청 거부, 자동갱신 없음) + 선물(이용권 4등급만). 자격은 상품별 정책 표 한 줄로 끌 수 있게 둔다. 심사 문서에는 제공기간(이용권 30일)과 선물 수령기한(결제 +1년, `worker/payments/gifts.js:39-42`)을 사실대로 적고, "선불·양도 가능 상품(선물)"이라는 PG 위험 요인을 숨기지 않는다. (정정: 초기 메모의 "30일·1년형"은 틀림 — 현재 판매는 30일만.)
 
-- D4 **결제 알림 채널 = 기존 제보 알림 채널 재사용**(09-17 선택). `ADMIN_FEEDBACK_EMAIL`(Resend)·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 을 읽는다 → 새 env 이름 0개, 바인딩 한도(F9) 무관. 공개 `TELEGRAM_CHAT_ID` 금지. 운영 값: 2026-09-18 `wrangler secret list` 실측으로 `ADMIN_FEEDBACK_EMAIL` 은 등록 확인, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 은 미등록(없으면 `[pay-alert] unconfigured` 로그만, 켜려면 값 1개 = 바인딩 1자리). Discord·Slack 추가 여부·이메일 수신자 실제 확인은 여전히 **OWNER INPUT REQUIRED**.
+- D4 **결제 알림 채널 = 기존 제보 알림 채널 재사용**(09-17 선택). `ADMIN_FEEDBACK_EMAIL`(Resend)·`FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 을 읽는다 → 새 env 이름 0개, 바인딩 한도(F9) 무관. 공개 `TELEGRAM_CHAT_ID` 금지. 운영 값: 2026-09-18 `wrangler secret list` 실측으로 `ADMIN_FEEDBACK_EMAIL` 은 등록 확인, `FEEDBACK_DISCORD_WEBHOOK_URL`·`FEEDBACK_SLACK_WEBHOOK_URL` 은 미등록(없으면 `[pay-alert] unconfigured` 로그만, 켜려면 값 1개 = 바인딩 1자리). 2026-09-18 오너 확인: 수신 이메일 `admin@code-destiny.com`(`lib/site-policy-config.js` `SUPPORT_EMAIL`·`BUSINESS_IDENTITY.email` 과 동일), Discord·Slack 은 오너가 쓰지 않기로 함(의도된 상태, 결함 아님) → D4 알림 채널 항목 해소.
 
 ## 최종 구현 계획 — 1단계 (C1~C9)
 
@@ -221,10 +221,10 @@ KG이니시스 해외카드 특약(기존 MID 추가형, 승인·정산 KRW)은 
 
 ### 문서 계획 (`docs/payment/inicis-overseas-card/`)
 - 형식: H1 + "현재 상태: … 완료 보고가 아니다"(`docs/payments/payment-p0-incident-20260909.md:3` 관례). 본문 항목 상태는 READY / NOT READY, 최종 판정은 READY · OWNER INPUT REQUIRED · PG APPROVAL REQUIRED · LEGAL REVIEW REQUIRED. 시크릿·MID·사업자번호 **값** 금지(상수 위치만, `lib/site-policy-config.js` BUSINESS_IDENTITY).
-- `01-current-payment-architecture` 부록 A·B 사실 · `02-overseas-card-implementation` 정책 표·판정 흐름·강제선·한계·플래그 ON 선결 조건 · `03-overseas-card-product-scope` 자격 표·가격 통계(부록 D)·30일·선물 1년·실물/배송 없음 · `04-customer-authentication` 이메일+비번·OAuth 필드·**본인인증 없음**·C2 테스트 근거·국내 휴대폰 필수 NOT READY · `05-fulfillment-and-evidence` PAID≠지급·재지급·C7 알림·스냅숏/정책 버전/storeIdCheck·카드번호·CVC 미저장·상품별 생성 실패 처리(2026-09-18 vedic·ziwei 카드 자동환불 배선 완료, C7 알림 채널 운영 설정은 오너 미확인·추정 미설정) · `06-customer-support-and-incident-response` 이메일 1채널·없는 24시간/전화 미기재·D4 채널과 담당자 OWNER INPUT·Sentry 없음 · `07-personal-data-inventory` 수집 항목·PG 전송·로그 마스킹·방침 공백 LEGAL REVIEW REQUIRED · `08-test-results` 명령·출력·NOT TESTED · `09-inicis-application-facts` 13문항 답·운영 URL 만·스테이징 제출 금지·예상 거래액 `UNKNOWN — OWNER INPUT REQUIRED`.
+- `01-current-payment-architecture` 부록 A·B 사실 · `02-overseas-card-implementation` 정책 표·판정 흐름·강제선·한계·플래그 ON 선결 조건 · `03-overseas-card-product-scope` 자격 표·가격 통계(부록 D)·30일·선물 1년·실물/배송 없음 · `04-customer-authentication` 이메일+비번·OAuth 필드·**본인인증 없음**·C2 테스트 근거·국내 휴대폰 필수 NOT READY · `05-fulfillment-and-evidence` PAID≠지급·재지급·C7 알림·스냅숏/정책 버전/storeIdCheck·카드번호·CVC 미저장·상품별 생성 실패 처리(2026-09-18 vedic·ziwei 카드 자동환불 배선 완료, C7 알림 채널 운영 설정은 오너 확인으로 해소 — 이메일 `admin@code-destiny.com`, Discord·Slack 미사용) · `06-customer-support-and-incident-response` 이메일 1채널·없는 24시간/전화 미기재·담당자·온콜 OWNER INPUT·Sentry 없음 · `07-personal-data-inventory` 수집 항목·PG 전송·로그 마스킹·방침 공백 LEGAL REVIEW REQUIRED · `08-test-results` 명령·출력·NOT TESTED · `09-inicis-application-facts` 13문항 답·운영 URL 만·스테이징 제출 금지·예상 거래액 `UNKNOWN — OWNER INPUT REQUIRED`.
 
 ### 플래그 ON 선결 조건 (문서 02·09 체크리스트)
-PG 승인 확인 → 운영 바인딩 1자리 확보(F9) → 승인 범위 기준 고지 문구 재작성 + C1 브랜드 부재 가드 해제 → dp 핀 회전(동결 절차) → 국내 휴대폰 필수 해소(PG 필드 요건 확인) → ~~vedic·ziwei 생성 실패 환불/알림~~(완료, 2026-09-18) → D4 알림 채널 운영 설정: 2026-09-18 `wrangler secret list` 실측으로 이메일은 등록 확인·Discord·Slack 은 미등록(수신자 실확인·Discord·Slack 추가는 여전히 OWNER INPUT REQUIRED) → V2 레이트리밋 결정 → 앱(Capacitor) 결제 경로에서 판정·파라미터 동작 확인(선물은 `X-CD-App` 차단 `gifts.js:57`, 해외카드 판정엔 앱 구분 없음) → 스테이징 확인 후 운영 1회 승인.
+PG 승인 확인 → 운영 바인딩 1자리 확보(F9) → 승인 범위 기준 고지 문구 재작성 + C1 브랜드 부재 가드 해제 → dp 핀 회전(동결 절차) → 국내 휴대폰 필수 해소(PG 필드 요건 확인) → ~~vedic·ziwei 생성 실패 환불/알림~~(완료, 2026-09-18) → ~~D4 알림 채널 운영 설정 확인~~(완료, 2026-09-18: 이메일 `admin@code-destiny.com`, Discord·Slack 미사용은 오너 결정) → V2 레이트리밋 결정 → 앱(Capacitor) 결제 경로에서 판정·파라미터 동작 확인(선물은 `X-CD-App` 차단 `gifts.js:57`, 해외카드 판정엔 앱 구분 없음) → 스테이징 확인 후 운영 1회 승인.
 
 ### 2·3단계로 넘기는 것
 - 2단계(UI): 결제창 약관·환불·개인정보 링크와 영문 결제 문의 진입점은 2026-09-18 에 완료했다([2단계 인수인계](inicis-overseas-card-phase2-20260918.md)). **남은 것** — 영문 결제정보(이용권 모달 `PointsClient.tsx:4829-4874`·영냥이 `CheckoutClient.tsx:194-226`·선물 안내 한국어 하드코딩, 7개 로케일 `payment.directModal` 영어), 서버측 환불 동의 기록.
@@ -264,7 +264,7 @@ PG 승인 확인 → 운영 바인딩 1자리 확보(F9) → 승인 범위 기�
 | 13 해외카드 예상 거래금액 | 국가·로케일 저장 없음 → 근거 데이터 없음 | 🟢(정직 표기) | OWNER INPUT REQUIRED | 문서 09 |
 | P0 결제창 고지 | 승인 전인데 11개 로케일이 "International cards … are accepted" 단정, 운영 서빙 중 | 🔴 | "준비 중" 문구로 교체 | `public/i18n/*.json` 11개 + ko 폴백 2곳 |
 | 국내 휴대폰 필수 | 국내 번호 없는 해외 고객은 첫 카드결제 전 모달에서 막힘 | 🔴 | 이번 범위 밖(PG 필드 요건 확인 필요한 별도 RED) — NOT READY 표기 | 문서 04·09 |
-| 결제 후 미이행 | 지급 실패 = `GRANT_PENDING`+크론 재지급(알림 없음). vedic·ziwei 생성 실패는 2026-09-18부로 카드 자동환불 배선 완료(astrology 와 동일 패턴) | 🔴 | C7 감지·알림(자동 환불 신설 없음)은 여전히 과제. C7 알림 채널 운영 설정은 2026-09-18 `wrangler secret list` 실측으로 이메일 등록·Discord·Slack 미등록 확인(수신자 실확인·Discord·Slack 추가는 OWNER INPUT REQUIRED) | `reconcile.js`·`fulfillment-alert.js`·`feedback-notify.js`, 문서 05·06 |
+| 결제 후 미이행 | 지급 실패 = `GRANT_PENDING`+크론 재지급(알림 없음). vedic·ziwei 생성 실패는 2026-09-18부로 카드 자동환불 배선 완료(astrology 와 동일 패턴) | 🔴 | C7 감지·알림(자동 환불 신설 없음)은 여전히 과제. C7 알림 채널 운영 설정은 2026-09-18 오너 확인으로 해소(이메일 `admin@code-destiny.com`, Discord·Slack 은 미사용) | `reconcile.js`·`fulfillment-alert.js`·`feedback-notify.js`, 문서 05·06 |
 | 사기 방지 | V2 prepare·confirm 레이트리밋·반복 실패 탐지 없음 | 🟠 | 이번 범위 밖 — 문서 NOT READY + 플래그 ON 선결 조건 | 문서 02·05 |
 | 통화·MID | KRW 고정 + 확정 시 KRW 대조, MID·키는 시크릿(하드코딩 없음) | 🟢 | 유지 | 문서 02·09 |
 
