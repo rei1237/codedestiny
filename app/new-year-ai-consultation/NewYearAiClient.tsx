@@ -1745,7 +1745,11 @@ export default function NewYearAiConsultationPage() {
   useEffect(() => {
     const resume = () => { if (!document.hidden) setReloadEpoch(value => value + 1); };
     document.addEventListener("visibilitychange", resume); window.addEventListener("online", resume);
-    return () => { document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume); };
+    window.addEventListener("pageshow", resume); window.addEventListener("focus", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume); window.removeEventListener("online", resume);
+      window.removeEventListener("pageshow", resume); window.removeEventListener("focus", resume);
+    };
   }, []);
 
   const statusText = useMemo(() => {
