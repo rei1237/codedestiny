@@ -2,7 +2,7 @@
 
 대상은 재검증표 25행(`fortune-tea-house-saju-consultation`, 100코인 / ₩10,000, [`worker/lib/paid-feature-registry.js`](../../worker/lib/paid-feature-registry.js) 243행)이다. 정본은 [`worker/routes/fortune-tea-house.js`](../../worker/routes/fortune-tea-house.js), 화면은 [`src/features/fortune-tea-house/FortuneTeaHousePage.tsx`](../../src/features/fortune-tea-house/FortuneTeaHousePage.tsx)로 23·24행과 같은 라우트다. 깨어남 복구(D축)는 23행 수정을 코드 변경 없이 상속하고, 이번에는 **타로와 갈리는 지점 = 명식(命式) 계산 근거**를 독립 실측했다.
 
-**결론: B축에서 신규 결함 1건을 재현·수정했다.** 유료 사주 상담이 명식이 전혀 없는 상태로 200 완성본까지 나가고 100코인이 확정되는 경로가 살아 있었다. 서버·화면 양쪽에 fail-closed 가드를 넣고 회귀 2건을 추가했다. 커밋 `40a6373d1`.
+**결론: B축에서 신규 결함 1건을 재현·수정했다.** 유료 사주 상담이 명식이 전혀 없는 상태로 200 완성본까지 나가고 100코인이 확정되는 경로가 살아 있었다. 서버·화면 양쪽에 fail-closed 가드를 넣고 회귀 2건을 추가했다. 커밋 `40a6373d1`(문서 `377b37599`), main 머지 `bee8f8c7e` 의 `CI required` success.
 
 ## 축별 판정
 
