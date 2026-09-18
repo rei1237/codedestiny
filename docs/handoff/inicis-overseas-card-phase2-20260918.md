@@ -124,7 +124,7 @@ next: 2단계 ②③④(이용권 레일 환불 동의)는 main 에 들어갔다
 
 - [x] 머지·push(`3471a307b` · `58ce4f728`). 운영 승격과 `FOREIGN_CARD_ENABLED` 켜기는 하지 않았다.
 - [x] 서버측 환불 동의 기록 — **이용권 레일**(C5 `8e7d94c31`).
-- [ ] 2단계 ① 영문 결제정보 — 이용권 모달 `app/points/PointsClient.tsx:4829-4874`, 영냥이 `app/checkout/CheckoutClient.tsx:194-226`, 선물 안내 `GIFT_GUIDANCE` 의 한국어 하드코딩.
+- [~] 2단계 ① 영문 결제정보 — **영냥이 `/checkout` 축은 끝났다**(`701a9d6e2`, [checkout-i18n-wiring-20260918.md](checkout-i18n-wiring-20260918.md)). 남은 축: 이용권 모달 `app/points/PointsClient.tsx:4823-4946` 의 한국어 14문구, 선물 안내 `GIFT_GUIDANCE`(`lib/payment/gift-policy.js:13`).
   - 🔴 **"7개 로케일 `payment.directModal` 영어화"는 이미 끝나 있었다**(2차 세션 실측). `public/i18n/*.json` 12개를 전수 조사한 결과 비-ko 11개 로케일 전부 `payment.directModal` 47키에 한글 0자다. 이 항목은 남은 작업이 아니다.
   - 🔴 `app/checkout/CheckoutClient.tsx` 는 233줄 중 한글 39줄이고 **i18n 배선이 아예 없다**(`useT` 계열 import 0건). 사전 키를 채우는 일이 아니라 배선부터 까는 일이다 — 여기가 ① 의 실제 무게중심이다.
 - [ ] 서버측 환불 동의 기록 — **단건 결제창**. 이쪽은 체크박스 자체가 없어([05](../payment/inicis-overseas-card/05-fulfillment-and-evidence.md) §4) 서버만 고쳐선 기록할 게 없다. 필요한 것: `js/core/checkout-entry.js` 에 체크박스 + 렌더러 3종 반영 + 12개 로케일 라벨 + 가드. 🔴 **`checkout-entry.js` 를 건드리는 순간 위 캐시 핀 회전(26파일 73곳)이 딸려 온다** — 이용권 레일이 그걸 안 건드린 건 우연이 아니라 범위를 그렇게 잘랐기 때문이다. 서버 쪽은 이미 준비돼 있다: `buildRefundConsentRecord(agreed, { source })` 에 `source` 를 `"direct_modal"` 로 주면 된다.
