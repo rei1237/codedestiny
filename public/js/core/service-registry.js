@@ -94,7 +94,7 @@ window.__cdServiceRegistry = [
     desc: "연이·네오와 나누는 운명 대화",
     href: "/fortune-chat/",
     featureKey: "fortune-chat-consultation",
-    price: "5,000원",
+    price: "3,000원",
     purposes: ["love", "self", "life", "etc"],
     methods: ["ai"],
     keys: "상담 채팅 대화 연이 네오 고민 무료상담",
