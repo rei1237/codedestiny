@@ -11,11 +11,11 @@
 | 축 | 판정 | 실측 근거 |
 |---|---|---|
 | A 구매 | 기존 코드 정상 | 스프레드는 클라이언트가 고르지만 featureKey 는 **서버가 요청 모양에서 도출**한다 — `expectedFortuneTeaHouseFeatureKey`(1071~1078행)가 `normalizeTarotSpread(consultRequest.tarotSpread) === "five"` 일 때만 `tarotFive` 를 돌려주고, `resolveFortuneTeaHouseFeatureKey`(1080~1089행)는 본문·`payment`·`_paymentContext` 어디서 온 명시 키든 도출값과 다르면 **빈 문자열로 떨어뜨려 fail-closed 거부**한다. 가격표 정본은 [`consultPricing.ts`](../../src/features/fortune-tea-house/data/consultPricing.ts) 17행(`tarotFive`) ↔ 레지스트리 242행(100코인·₩10,000)로 일치, 허용 키 배열 482행에 등재 |
-| B 생성 | 기존 코드 정상 | 카드 수가 실제로 다르게 흐른다: [`tarotAdapter.ts`](../../src/features/fortune-tea-house/lib/tarotAdapter.ts) 17~23행 5자리표(현재·상대/상황·장애·가능성·조언) → `pickSpreadCards`(126~139행)가 **중복 없는 5장**을 뽑고, 워커 품질 게이트(3271~3294행)가 카드별 필수 항목을 **실제 카드 수만큼** 검사한다. 체크포인트 분할도 카드당 그룹이라 5카드는 1,500자/장(4168~4169행), POST 당 최대 4그룹(4201행)이므로 5카드는 **2회 POST 로 완주**한다(3카드는 1회). 20,000자 본문 하한(4236행)은 스프레드 무관 공통 |
+| B 생성 | 기존 코드 정상 | 카드 수가 실제로 다르게 흐른다: [`tarotAdapter.ts`](../../src/features/fortune-tea-house/lib/tarotAdapter.ts) 17~23행 5자리표(현재·상대/상황·장애·가능성·조언) → `pickSpreadCards`(126~139행)가 **중복 없는 5장**을 뽑고, 워커 품질 게이트(3271~3294행)가 카드별 필수 항목을 **실제 카드 수만큼** 검사한다. 체크포인트 분할은 카드당 그룹 + 공통 그룹이라 5카드는 1,500자/장(4168~4169행), POST 당 최대 4그룹(4201행)이다. ⚠️ **2026-09-19 정정(25행 작업 중 실측)**: 여기 처음 적었던 "5카드 2회 POST, 3카드 1회" 는 카드 그룹만 세고 공통 그룹을 빠뜨린 값이었다. 실측은 **3카드 = 3회 POST / LLM 9회**, **5카드 = 3회 POST / LLM 11회** 다(사주는 4회 / 16회). 20,000자 본문 하한(4236행)은 스프레드 무관 공통 |
 | C 장애 | 구조적으로 무결함 | 23행과 동일한 **후불 과금**이다. 사용 확정 `apply`(5534행)는 생성·저장이 모두 성공한 뒤에만 돌고, 키·가격을 서버 도출 `access.featureKey`/`access.pricing` 으로 넘긴다 — 즉 100코인 상품은 100코인으로만 확정된다. 예약 해제 `cancel`(5477~5482행)도 같은 `access.featureKey` 를 쓴다. 전량 실패 시 `apply` 자체가 없으므로 21·22행의 이용권 환불 누락이 성립하지 않는다 |
 | D 전달 | 23행 수정 상속(코드 변경 없음) | `probeFortuneTeaPending`·깨어남 effect(597·649·655~677행)는 스프레드 분기가 없다. 복구 시 스프레드가 살아남는 것도 실측했다 — `/pending` 이 `requestPayload: state.requestBody`(4749~4767행)를 돌려주고 `buildFortuneTeaQuestionInputFromRequestPayload`(295~315행)가 `tarotSpread: payload.tarotSpread` 를 복원하므로, 깨어난 탭의 다음 제출은 다시 5카드 = 100코인 경로로 간다(3카드로 강등되지 않는다) |
 | E 저장·권한 | 기존 코드 정상 | `saveFortuneTeaHouseResult`(4648~4677행)가 `featureKey: cleanText(result.featureKey, 160)` 를 최상위에 박고, 열람 취소 판정(4794행)이 그 값으로 `isStoredPaidResultRevoked` 를 탄다. 교차상품 fixture [`paid-completed-result-access-fixtures.mjs`](../../__tests__/fixtures/paid-completed-result-access-fixtures.mjs) 19행에 이 키가 등록돼 있고 해당 스위트가 통과한다 |
-| F 예산 | 기존 코드 정상 | 23행과 동일 경로 — `/pending`·`/results/:id` GET 에 LLM 호출이 없고, 같은 `attemptId` 재POST 는 `cached: true`(5432~5445행)로 돌아온다. 5카드가 2회 POST 를 쓰는 것은 **재과금이 아니다**: 1차는 202 부분 응답이고 `apply` 는 마지막 성공 저장 뒤 1회뿐이다 |
+| F 예산 | 기존 코드 정상 | 23행과 동일 경로 — `/pending`·`/results/:id` GET 에 LLM 호출이 없고, 같은 `attemptId` 재POST 는 `cached: true`(5432~5445행)로 돌아온다. 5카드가 여러 회 POST(실측 3회, 위 정정 참조)를 쓰는 것은 **재과금이 아니다**: 앞선 회차는 202 부분 응답이고 `apply` 는 마지막 성공 저장 뒤 1회뿐이다 |
 | 🟡 "품질 게이트 전량 모킹" 함정(8·14행 패턴) | **해당 없음** | 23행과 같은 스위트가 실제 `handleFortuneTeaHouseRoutes` 에 POST 하고 모킹은 인프라 경계뿐임을 재확인 |
 
 ## 가드 변이 검증 — 프리미엄 분리가 실제로 무는가
@@ -45,5 +45,5 @@
 
 ## 남은 위험
 
-- **D 실화면 증거 없음(경계).** 5카드 2회 POST(202 → 200) 를 실제 브라우저에서 눈으로 확인하지 않았다. 워커·화면 테스트 대조까지만이다.
+- **D 실화면 증거 없음(경계).** 5카드 3회 POST(202×2 → 200) 를 실제 브라우저에서 눈으로 확인하지 않았다. 워커·화면 테스트 대조까지만이다.
 - 위 관측 1·2는 신규 과제로 남는다. 3·4는 현재 사용자 영향 0으로 판정했다.
