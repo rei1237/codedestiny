@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-19
-next: "사용자가 지목했던 §2 의 9번(자미두수 동물 패널 디자인)은 2026-09-19 에 끝났다 — 커밋 3개(1단계 9812d039f 버튼 정리, 2단계 64f55a98a 엔진 인라인 style → zwla-* 클래스 + 리포트 정규화 CSS, 3번째 44eac0f68 공궁 폴백 팔레트 + 캐시 토큰 수렴). 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 다음 작업은 §2 의 남은 1~8 중 하나이고 추천 순서는 2 → 1 → 3 이다. 🔴 2번(Playwright 가드 2개가 CI 에 배선되어 있지 않다)을 먼저 권한다 — 이번에 고친 동물 패널도 그 가드가 배선되어 있었다면 출시 전에 잡혔고, 2단계에서 스타일을 verify 로 못 지키는 구멍이 그대로 남아 있다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다(이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다). 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
+next: "§2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. 다음 작업은 §2 의 남은 1 · 3~8 중 하나이고 추천 순서는 1 → 3 이다. 1번(verify:style-sync 가 빨간데 CI 가 영영 못 잡는다)을 권한다 — origin/main 자체가 깨진 선행 결함이고, 미러가 원본의 두 배라 '바이트 비교 가드 vs 생성 규칙' 중 어느 쪽이 정본인지부터 확정해야 한다. 🔴 1번도 CI 배선이 얽히면 사용자 승인이 필요하다(CLAUDE.md, ci-gates-scope). 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
 ---
 
 # 기본 숙요점 · 기본 자미두수 결과 화면 — 남은 문제 인수인계
@@ -74,6 +74,8 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 | `9812d039f` | §2-9 **1단계** — 동물 패널의 동일 동작 버튼 3개 제거(삭제 25줄 / 추가 0줄) | `git revert 9812d039f` |
 | `64f55a98a` | §2-9 **2단계** — 동물 패널을 `.fr-*` 팔레트·타이포로 정규화(인라인 `style=` 50개 → `zwla-*` 클래스 + 리포트 정규화 CSS 45줄, 생성물 11개 포함) | `git revert 64f55a98a` 뒤 `npm run sync:public` 재실행 |
 | `44eac0f68` | §2-9 **폴백 정리 + 캐시 토큰 수렴** — 공궁 폴백(`.zwla-empty`)의 보라색 좌측선 제거(CSS 5줄) + `sync:public` 2회차 산출물로 아래의 낡은 런타임 토큰 해소 | `git revert 44eac0f68` 뒤 `npm run sync:public` **두 번** |
+| `e1164da53` → `efe722321` | §2-2 **실패 사례** — 가드 2개를 배선했다가 `verify-basic-fortune-library.mjs` 가 러너에서 ENOENT 로 죽어 즉시 revert. 기전은 §2-2 와 §3 | 이미 되돌아감 |
+| `4106e2f31` | §2-2 **배선** — `verify:sukuyo-reading-house` npm 스크립트 + `guards` 잡 스텝 1개(러너 10초). 라이브러리 가드는 주석으로 제외 근거를 남기고 뺐다 | `git revert 4106e2f31` (CI 스텝만 사라진다) |
 
 각 커밋은 단독으로 되돌려도 다른 기능이 흔들리지 않게 잘라 놓았다.
 
@@ -147,39 +149,45 @@ git show origin/main:public/styles/static-policy.css | Measure-Object -Character
 
 ---
 
-### 2. 🟠 Playwright 가드 2개가 CI 에 배선되어 있지 않다 — 이번 버그가 출시된 직접 원인
+### 2. ✅ **절반 해결(2026-09-19)** Playwright 가드 — 숙요점은 배선했고 라이브러리는 **구조상 배선 불가**
 
-**증상** — 아래 두 가드는 **무료 결과 화면의 최종 DOM 을 보는 유일한 도구**인데 아무도 돌리지 않는다.
+원래 증상 — 아래 두 가드는 **무료 결과 화면의 최종 DOM 을 보는 유일한 도구**인데 아무도 돌리지 않았다(`grep -rnE "verify-sukuyo-reading-house|verify-basic-fortune-library" .github/workflows/ package.json` → 참조 0건). `verify:ziwei-chart-detail-view` 는 CI 에 있지만 **JSDOM 에서 `renderZiwei()` 만 돌리고 `BasicFortunePresentation.ziwei()` 를 호출하지 않는다.** 그래서 "정상적으로 숨겨진 노드"가 "사용자가 누르는 빈 서랍"으로 바뀌는 **재배치 단계가 가드에 아예 보이지 않았다.** 이게 §1 의 버그가 출시된 이유다.
 
-| 가드 | 줄 수 | 무엇을 지키나 |
-|---|---|---|
-| `scripts/verify-basic-fortune-library.mjs` | 569 | §20 계산 불변(`:131-134` `assert.deepEqual(stable(data), stable(previous))`), 빈 서랍 금지(`:152-172`), 유료 경계(`:181-186`), 비-ko 로케일에 한글 혼입 금지(`:487-490`) |
-| `scripts/verify-sukuyo-reading-house.mjs` | 111 | 컨트롤/ID 보존(`:61-62`), 유료 산문 차단(`:63-68`), 유료 구역 경계(`:82-84`, 신규), 27숙 전수 순회 + 계산 불변(`:86-89`), 360·390·430·1280 오버플로(`:99-104`) |
+| 가드 | 줄 수 | 무엇을 지키나 | 지금 상태 |
+|---|---|---|---|
+| `scripts/verify-sukuyo-reading-house.mjs` | 111 | 컨트롤/ID 보존(`:61-62`), 유료 산문 차단(`:63-68`), 유료 구역 경계(`:82-84`), 27숙 전수 순회 + 계산 불변(`:86-89`), 360·390·430·1280 오버플로(`:99-104`) | ✅ **`guards` 잡에 배선됨** (`4106e2f31`) |
+| `scripts/verify-basic-fortune-library.mjs` | 569 | §20 계산 불변(`:131-134`), 빈 서랍 금지(`:152-172`), 유료 경계(`:181-186`), 비-ko 로케일 한글 혼입 금지(`:487-490`) | ❌ **배선 불가** — 아래 참조 |
 
-**확인된 것 (2026-09-19 실측)**
+**한 것 (2026-09-19, 사용자 승인 후)**
+- `package.json` 에 `verify:sukuyo-reading-house` 추가, `.github/workflows/pr-ci.yml` 의 `guards` 잡(`Static guards`) `verify:ziwei-chart-detail-view` 바로 뒤에 스텝 1개 추가.
+- 🔴 **`guards` 잡이 제자리다.** 입력이 `js/**`·`styles/**`·`index.html` 이라 티어가 fast/standard 로 갈리는데 `build`/`critical` 잡에 두면 정작 지키려는 "결과 화면 한 줄 수정"에 깨어나지 않는다. 그리고 **Chromium 을 설치하는 lane 이 여기뿐이다**(`pr-ci.yml:208`).
+- **무는 가드인지 확인했다**(원칙 10): `js/core/saju/basicFortunePresentation.js:147` 의 `#syHouseDeeper` id 를 변이시키자 가드가 `:82` 에서 **EXIT 1** 로 실패했고, 소스는 바이트 동일 복원(`git status` 0건).
+
+**해소된 '미확인' 2건 (실측)**
+- 러너에 Playwright Chromium 이 **이미 설치된다** — `guards` 잡의 기존 install 스텝(`pr-ci.yml:208`). 새 스텝 불필요.
+- 실행 시간 **러너 10초**(로컬도 10초). 서버·빌드 불필요 — `context.route('**/*')` 로 디스크에서 서빙하고 `127.0.0.1` 밖 요청은 abort, `/api/*` 는 목이라 fail-closed.
+
+#### 🔴 `verify-basic-fortune-library.mjs` 를 CI 에 넣지 말 것 — 게이트가 아니라 A/B 세션 도구다
+
+처음엔 둘 다 배선했다가(`e1164da53`) main 이 레드가 나서 즉시 되돌렸다(`efe722321`). 원인:
+
 ```
-grep -rnE "verify-sukuyo-reading-house|verify-basic-fortune-library" .github/workflows/ package.json
-→ 참조 0건
-```
-npm 스크립트도 없어서 **`node scripts/….mjs` 로 직접 돌려야만** 실행된다.
-
-`verify:ziwei-chart-detail-view` 는 CI 에 있지만 **JSDOM 에서 `renderZiwei()` 만 돌리고 `BasicFortunePresentation.ziwei()` 를 호출하지 않는다.** 그래서 "정상적으로 숨겨진 노드"가 "사용자가 누르는 빈 서랍"으로 바뀌는 **재배치 단계가 가드에 아예 보이지 않았다.** 이게 §1 의 버그가 출시된 이유다.
-
-**미확인**
-- CI 러너에 Playwright 브라우저가 설치돼 있는지. 없으면 `npx playwright install chromium` 스텝이 필요하고 러너 시간이 늘어난다.
-- 두 가드의 실행 시간(로컬 기준 숙요점 가드는 수십 초). CI 예산에 맞는지.
-
-**검증 (지금 당장 돌려볼 수 있다)**
-```powershell
-node scripts/verify-sukuyo-reading-house.mjs
-node scripts/verify-basic-fortune-library.mjs
-```
-2026-09-19 `07f8f1522` 기준 숙요점 가드 실측 결과:
-```json
-{"originalControlsPreserved":true,"mansions":27,"articles":26,"natalUnchanged":true,"viewports":[360,390,430,1280],"errors":[]}
+Error: ENOENT: no such file or directory, open
+  '.../.impeccable/basic-fortune/before/sukuyo-data.json'
+  at scripts/verify-basic-fortune-library.mjs:131
 ```
 
-**위험도 🔴 (CI 변경)** — 🔴 **CI 게이트 추가는 지시 없이 하지 않는다**(CLAUDE.md, ci-gates-scope). **사용자에게 먼저 제안하고 승인을 받을 것.** 승인 전까지는 "돌려보고 결과 보고"까지만 한다.
+이 스크립트는 **2-phase 도구**다. `--baseline` 으로 돌리면 `git diff --name-only origin/main` 의 변경 파일들을 `git show origin/main:<file>` 로 되돌려 서빙해서 `.impeccable/basic-fortune/before/` 를 만들고, 인자 없이 돌리면 `after` 를 만들어 **before 와 `assert.deepEqual`** 한다(`:131-134`). 즉 "이번 세션의 내 변경이 계산을 바꿨나"를 보는 도구지 "이 커밋이 옳은가"를 보는 게이트가 아니다.
+
+로컬 6/6 이 통과하고 러너만 죽은 이유: `.impeccable/` 이 **`.git/info/exclude:30`** 에 있다. 커밋되는 `.gitignore` 가 아니라 **이 체크아웃에만 있는 로컬 exclude** 라서, 앞선 세션이 만든 `before/` 가 내 디스크에만 남아 있었다.
+
+🔴 **앞에 `--baseline` 패스를 덧대도 안 된다.** main push 체크아웃에서는 `git diff --name-only origin/main` 이 **비어 있어** baseline 이 after 와 **같은 코드**가 된다 — 계산 불변 단언이 자기 자신과 비교하며 공회전하는 **fail-open 게이트**가 된다(원칙 10 "도는 가드 ≠ 무는 가드"). 같은 이유를 `pr-ci.yml` 주석에도 남겼다.
+
+**배선하려면 스크립트 동작을 바꿔야 한다 — 그건 별도 승인이 필요한 결정이다.** 두 갈래:
+1. 계산 결과 픽스처를 레포에 커밋하고 그것을 baseline 으로 삼는다(운세 엔진이 바뀔 때마다 픽스처 갱신 필요).
+2. CI 모드를 만들어 **계산 불변 비교만 건너뛰고** 나머지 단언(빈 서랍·유료 경계·로케일)만 돌린다. 가장 값비싼 단언을 버리는 셈이라 득실을 따져야 한다.
+
+당분간은 §5 대로 **손으로 돌린다**(`node scripts/verify-basic-fortune-library.mjs`, 로컬 41~42초).
 
 ---
 
@@ -570,6 +578,16 @@ page.waitForFunction: Timeout 30000ms exceeded.
 
 `:535` 는 **렌더 실패를 목으로 강제한 경로 다음**의 모달 닫기다. 히스토리 상태 경합이라 닫힘 조건이 그 판에서만 늦는다. **재실행하면 EXIT 0, `"errors": []`** 로 붙는다(그렇게 확인했다). 그러니 이 스택이면 CSS·마크업 변경을 되돌리기 전에 **한 번 더 돌려 볼 것** — 이번에 패널 안으로 스코프된 CSS 규칙이 원인인지 30분 의심했는데 아니었다. 계속 재현되면 그때 `closeModalAndWait` 의 대기 조건을 보라.
 
+### 🔴 로컬에서 6/6 통과한 가드가 러너에서 죽는다 — `.git/info/exclude` 를 볼 것
+
+`verify-basic-fortune-library.mjs` 를 CI 에 배선했다가 러너에서만 ENOENT 로 죽었다(§2-2). 원인은 **이 스크립트가 읽는 `.impeccable/basic-fortune/before/` 가 커밋되는 산출물이 아니라 앞선 세션이 로컬에 남긴 것**이었고, 그게 `git status` 에 안 보인 이유는 `.gitignore` 가 아니라 **`.git/info/exclude:30`** 이었다. `.git/info/exclude` 는 **이 체크아웃에만 있고 클론·러너에는 따라가지 않는다.**
+
+**교훈** — 가드를 CI 에 배선하기 전에 "이 스크립트가 **읽는** 파일이 무엇이고 그게 **커밋돼 있는가**"를 먼저 본다. 로컬 통과 횟수는 증거가 아니다. 확인 명령:
+```bash
+cat .git/info/exclude          # 러너에 없는 로컬 전용 제외 목록
+git check-ignore -v <경로>      # .gitignore 인지 info/exclude 인지 구분해 준다
+```
+
 ### 도는 가드 ≠ 무는 가드
 
 새 단언을 넣었으면 **변이를 넣어 실제로 실패하는지** 확인한다(CLAUDE.md 원칙 10). Phase 4 에서 처음 만든 변이 하나는 **가드 구멍이 아니라 변이 자체가 틀려서** 안 물었다 — `isPaid()` 의 셀렉터 분기만 바꿨는데 가격·잠금 폴백 분기가 여전히 정답을 내서 동작이 안 변했다. 그때 **매직 넘버 하한(`paidPresent >= 5`)도 함께 버렸다** — 엔진 소유 콘텐츠 개수에 가드를 거는 건 깨지기 쉽다.
@@ -592,11 +610,13 @@ page.waitForFunction: Timeout 30000ms exceeded.
 ## §5 검증 명령 모음
 
 ```powershell
-# 계산 불변 + 빈 서랍 금지 + 유료 경계 (CI 미배선 — 직접 돌릴 것)
-node scripts/verify-basic-fortune-library.mjs
-node scripts/verify-sukuyo-reading-house.mjs
+# 🔴 CI 미배선 — 직접 돌릴 것. A/B 세션 도구라 게이트가 될 수 없다(§2-2). 로컬 41~42초.
+#    "내 이번 변경이 계산을 바꿨나"를 보려면 변경 전에 --baseline 을 먼저 돌려 둬야 한다.
+node scripts/verify-basic-fortune-library.mjs --baseline   # 변경 전
+node scripts/verify-basic-fortune-library.mjs              # 변경 후
 
 # CI 에 있는 것들
+npm run verify:sukuyo-reading-house               # 2026-09-19 배선 (guards 잡, 러너 10초)
 npm run verify:ziwei-chart-detail-view
 npm run verify:sukuyo-role-direction
 npm run verify:sitemap-drift
