@@ -18,6 +18,12 @@ SEO 관련 변경(구조화 데이터·sitemap·메타·콘텐츠·인프라 등
 
 ## 로그 (역연대순)
 
+- 2026-09-18: `COMPETITOR-SERP-AUDIT.md` 신규 작성 — 원 요청 22개 중 P7 항목.
+  네이버 직접 접근 차단으로 실측 순위 데이터는 수동 채움 템플릿으로 남기고,
+  검색의도 기반 키워드(숙요 27수 쌍별 궁합 351개·사주 십간 조합 95개 포함)를
+  전수 생성. 페이지 title/meta 반영은 다음 단계(허브 콘텐츠 재작성)로 이연.
+  ([2026-09-18-seo-p7-next-item.md](../handoff/2026-09-18-seo-p7-next-item.md),
+  [COMPETITOR-SERP-AUDIT.md](COMPETITOR-SERP-AUDIT.md))
 - 2026-09-18: `SEO-CHANGELOG.md`(이 문서) 신규 작성 — 원 요청 22개 중 P6 항목.
   ([2026-09-18-seo-p6-next-item.md](../handoff/2026-09-18-seo-p6-next-item.md))
 - 2026-09-18: `SEO-KEYWORD-MAP.md` 신규 작성 — 원 요청 22개 중 P5 항목
