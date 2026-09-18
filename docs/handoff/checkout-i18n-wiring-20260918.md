@@ -1,17 +1,20 @@
 # /checkout 다국어 배선 — 해외카드 2단계 ① 첫 축
 
-- 날짜: 2026-09-18
+- 날짜: 2026-09-18 (1차 축), 이용권 모달 축 추가 완료
 - 등급: RED (결제 화면)
-- 커밋: `701a9d6e2` (main 에 직접, push 완료 — 스테이징까지. 프로덕션 승격 승인 없음)
+- 커밋: `701a9d6e2` (/checkout, 1차 축), `83fe0c05c` (이용권 모달, 2차 축) — 둘 다 main 에 직접,
+  push 완료(스테이징까지). 프로덕션 승격 승인 없음
 - 선행 문서: [inicis-overseas-card-phase2-20260918.md](inicis-overseas-card-phase2-20260918.md)
 
 ## 왜
 
-2단계 ①(영문 결제정보)의 세 축 중 **영냥이 단건 결제 화면**만 잘라 끝냈다. `/checkout` 은
-i18n 배선이 **아예 없어서**(`useT` 계열 import 0건) 12개 로케일 전부가 한국어 결제 화면을 봤다.
-해외카드 특약을 켜는 순간 이 화면이 해외 사용자의 결제 임계 화면이 된다.
+2단계 ①(영문 결제정보)은 세 축으로 나뉜다: **영냥이 단건 결제 화면**(`/checkout`), **이용권
+모달**, **`GIFT_GUIDANCE`**. `/checkout` 은 i18n 배선이 **아예 없어서**(`useT` 계열 import 0건)
+12개 로케일 전부가 한국어 결제 화면을 봤다. 해외카드 특약을 켜는 순간 이 화면이 해외 사용자의
+결제 임계 화면이 된다.
 
-나머지 두 축(이용권 모달 14문구, `GIFT_GUIDANCE`)은 **손대지 않았다** — 한 세션에 한 작업.
+첫 두 축(`/checkout`, 이용권 모달)은 완료했다. 마지막 축(`GIFT_GUIDANCE`)은 **아직 손대지
+않았다** — 한 세션에 한 작업.
 
 ## 무엇을 바꿨나 (4파일)
 
@@ -75,15 +78,28 @@ i18n 배선이 **아예 없어서**(`useT` 계열 import 0건) 12개 로케일 �
   `--list | grep -i checkout` 은 0건 — 이번 표는 갭에 기여하지 않는다. CI 는 fresh clone 이라
   영향 없다. 고치려면 그 두 디렉터리를 지우거나 가드에 제외를 넣어야 하는데, 둘 다 다른 축이다.
 - `scripts/verify-yeongnyangi-browser.mjs` 미배선 (위 🔴 참조).
+- `scripts/verify-gift-checkout.mjs`(미배선, `package.json`/`.github` 전수 grep 0건)를
+  `MOCK_DEV_PORT=18290 npm run dev` 로 띄운 서버에 대해 실행하면 첫 스텝(`getByRole('button',
+  { name: '선물하기' })`)에서 90초 타임아웃으로 실패한다. 원인은 mock dev 서버가
+  `/api/me/access-state/`, `/api/profile/` 를 501(`MOCK_ROUTE_NOT_IMPLEMENTED`)로 응답하고
+  `/points` 화면이 그 상태에서 스켈레톤 로딩에 멈춰 있는 것 — 이번 커밋(`83fe0c05c`)과 무관하다.
+  `git stash`로 변경 전 파일로 되돌려 동일한 디버그 스크립트를 돌려도 **같은 501 시퀀스와 같은
+  멈춤**이 재현됨을 실측 확인(재현 스크립트는 검증 후 삭제, 남기지 않음). 이 스크립트가 마지막으로
+  실제 통과한 시점은 이번 세션 범위 밖이라 불명 — 다음에 이 가드를 쓰려면 mock-api 쪽에
+  `access-state`/`profile` 라우트를 추가하거나 스크립트를 그에 맞게 갱신해야 한다.
 
 ## 남은 작업 — 2단계 ① 의 나머지 두 축
 
-- [ ] **이용권 모달 영어화** — `app/points/PointsClient.tsx:4823-4946`, 사용자 노출 한국어
-      **14개**(`달빛 이용권 결제 방식 선택`, `30일 이용권 조건`, `운명의 선물 준비하기`,
-      `콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.` 등). 이쪽은 배선이 **이미 있다** —
-      표 `POINTS_PAGE_COPY`(:824)를 :3012 에서 `POINTS_PAGE_COPY[lang] || POINTS_PAGE_COPY.ko`
-      로 읽는다. 키를 더하고 참조를 바꾸는 일이라 `/checkout` 보다 가볍다.
-      🔴 다만 폴백이 `|| ko` 라 누락 시 한국어가 샌다 — `/checkout` 처럼 EN 폴백으로 갈지 결정 필요.
+- [x] **이용권 모달 영어화** — 완료. 커밋 `83fe0c05c`. `app/points/PointsClient.tsx`의
+      `POINTS_PAGE_COPY` 표(:824)에 17키 추가(en/ja/zh-CN/zh-TW 저작, 나머지 7개는 EN 상속),
+      `pendingSubscriptionPaymentPlan` 모달의 한국어 리터럴 17개를 `copy.xxx` 참조로 교체.
+      폴백은 `/checkout` 관례에 맞춰 `POINTS_PAGE_COPY[lang] || POINTS_PAGE_COPY.ko` →
+      `|| POINTS_PAGE_COPY.en` 으로 변경(사용자 승인). ko 값은 기존 리터럴과 바이트 동일하게 유지.
+      검증: `tsc --noEmit` 통과, `check:fast`(jest 281 스위트/3959 테스트 전원) 통과,
+      `verify-billing-pass-policy.mjs` 통과. `verify-gift-checkout.mjs`는 실행 시도했으나
+      **이 변경과 무관한 환경 문제로 실패**(아래 "범위 밖 결함" 참고) — git stash 로 변경 전
+      파일에서도 동일하게 재현되는 것을 확인해 원인이 이번 변경이 아님을 실측 확인함.
+      `{GIFT_GUIDANCE}` 본문은 계획대로 건드리지 않음.
 - [ ] **`GIFT_GUIDANCE`** — `lib/payment/gift-policy.js:13` 의 한국어 장문 1건. 소비처 2곳:
       `app/gift/claim/page.tsx:51`, `app/points/PointsClient.tsx:4862`. 서버 공용 모듈이라
       로케일 인자를 받게 할지, 소비처에서 갈아끼울지가 설계 갈림길이다.
@@ -102,5 +118,6 @@ git status                  # marketing/* 는 다른 세션 것 — 건드리지
 git pull --ff-only
 ```
 
-다음 세션 첫 문장: **"`docs/handoff/checkout-i18n-wiring-20260918.md` 를 읽고, 2단계 ① 의 남은
-축인 이용권 모달 14문구 영어화(`app/points/PointsClient.tsx:4823-4946`)를 시작한다."**
+다음 세션 첫 문장: **"`docs/handoff/checkout-i18n-wiring-20260918.md` 를 읽고, 2단계 ① 의 마지막
+축인 `GIFT_GUIDANCE` 다국어화(`lib/payment/gift-policy.js:13`, 소비처
+`app/gift/claim/page.tsx:51` / `app/points/PointsClient.tsx:4862`)를 시작한다."**
