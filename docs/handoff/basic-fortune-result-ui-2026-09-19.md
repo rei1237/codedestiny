@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-19
-next: "🔴 사용자가 2026-09-19 에 직접 지목한 최우선 작업은 §2 의 9번 — 기본 자미두수 명반 안의 '내 영혼을 상징하는 자미두수 동물' 패널이 .fr-* 리포트 디자인과 따로 논다. 9번부터 읽고 시작할 것. 실측까지 끝나 있다: 패널 노드 154개 중 126개가 인라인 style 이라 클래스 CSS 로는 못 고치고, 본문이 11.06px(리포트는 16px)이며, 버튼 3개가 전부 같은 함수를 불러서 '다른 동물 보기'를 누르면 열려 있던 도감이 닫힌다. 그 외 남은 문제 1~8 은 서로 독립이라 아무거나 집어도 된다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다(이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다). 9번은 지금까지와 달리 엔진 파일 js/saju-engine.js 를 고치는 첫 작업이라 §2-9 의 '위험도' 절을 반드시 먼저 읽을 것."
+next: "사용자가 지목했던 §2 의 9번(자미두수 동물 패널 디자인)은 2026-09-19 에 끝났다 — 커밋 3개(1단계 9812d039f 버튼 정리, 2단계 64f55a98a 엔진 인라인 style → zwla-* 클래스 + 리포트 정규화 CSS, 3번째 44eac0f68 공궁 폴백 팔레트 + 캐시 토큰 수렴). 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 다음 작업은 §2 의 남은 1~8 중 하나이고 추천 순서는 2 → 1 → 3 이다. 🔴 2번(Playwright 가드 2개가 CI 에 배선되어 있지 않다)을 먼저 권한다 — 이번에 고친 동물 패널도 그 가드가 배선되어 있었다면 출시 전에 잡혔고, 2단계에서 스타일을 verify 로 못 지키는 구멍이 그대로 남아 있다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다(이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다). 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
 ---
 
 # 기본 숙요점 · 기본 자미두수 결과 화면 — 남은 문제 인수인계
@@ -34,6 +34,8 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 2026-09-19 에 실제로 이걸 어겼다. `73c53b0b0` 에서 `js/app.js` 를 손으로 재스탬프했더니 `js/app.js` 자신의 해시가 `65e5d07d1989 → 40d99f5bb8e7` 로 바뀌었고, `index.html` 의 핀은 옛 해시에 남아 **main 이 레드**가 됐다(`Main drift watchdog`·`PR CI` 의 `verify:public-mirror-fresh`). `07f8f1522` 에서 생성기를 돌려 7개 파일(`index.html` + `public/{,en/,ja/,zh/,zh-tw/,static/}index.html`)을 맞춰 복구했다.
 
 **규칙: 소스를 고쳤으면 커밋 직전 마지막 단계로 `npm run sync:public` 을 돌리고 그 산출물을 같은 커밋에 담는다.** 머지 직후에도 다시 돌린다(머지가 소스 해시를 바꾸므로).
+
+🔴 **`js/**` 를 고쳤으면 `sync:public` 을 두 번 돌린다.** 한 번은 고정점이 아니다 — `index.html` 이 물고 있는 `js/core/index-inline-runtime.js` 의 토큰이 **한 세대 낡은 채로** 커밋된다. 2026-09-19 에 `9812d039f`·`64f55a98a` 가 연달아 이걸 밟아 main 이 레드였다. 기전과 확인법은 §3 의 "`sync:public` 한 번은 고정점이 아니다".
 
 ### 미러 규율
 
@@ -69,8 +71,24 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 | `cb32d27bc` | 자미두수 히어로 키워드 · 고정 섹션 내비 · scroll-spy | 독립 |
 | `b32dc8d13` | 숙요점 무료/유료 구역 분리 + 본명숙 산문 접기 (18파일) | 독립 |
 | `07f8f1522` | 위 §0 의 캐시 핀 복구 | 되돌리면 main 이 다시 레드 |
+| `9812d039f` | §2-9 **1단계** — 동물 패널의 동일 동작 버튼 3개 제거(삭제 25줄 / 추가 0줄) | `git revert 9812d039f` |
+| `64f55a98a` | §2-9 **2단계** — 동물 패널을 `.fr-*` 팔레트·타이포로 정규화(인라인 `style=` 50개 → `zwla-*` 클래스 + 리포트 정규화 CSS 45줄, 생성물 11개 포함) | `git revert 64f55a98a` 뒤 `npm run sync:public` 재실행 |
+| `44eac0f68` | §2-9 **폴백 정리 + 캐시 토큰 수렴** — 공궁 폴백(`.zwla-empty`)의 보라색 좌측선 제거(CSS 5줄) + `sync:public` 2회차 산출물로 아래의 낡은 런타임 토큰 해소 | `git revert 44eac0f68` 뒤 `npm run sync:public` **두 번** |
 
 각 커밋은 단독으로 되돌려도 다른 기능이 흔들리지 않게 잘라 놓았다.
+
+🔴 **`9812d039f` 이 main CI 를 레드로 만든 원인은 "셸 미러를 빠뜨려서"가 아니었다 — 이 문서에 처음 그렇게 적었지만 실측으로 틀렸다.** 그 커밋은 셸 미러 7개를 **모두 담았다**(`git show --stat 9812d039f` = 12파일, `index.html` + `public/{,static/,en/,ja/,zh/,zh-tw/}index.html` + 엔진·런타임 양쪽 포함). 진짜 원인은 **`sync:public` 한 번이 고정점이 아니라는 것**이다(§3 의 "`sync:public` 한 번은 고정점이 아니다" 항목이 기전을 적어 뒀다). `index.html` 에 박힌 `/js/core/index-inline-runtime.js?v=` 토큰이 **한 세대 낡은 값**으로 남아 커밋된 런타임 파일의 내용 해시와 어긋났고, `verify:public-mirror-fresh` 는 그 한 줄 때문에 셸 7개 전부를 "낡았다"로 물었다. 커밋별 실측:
+
+| 커밋 | `index.html` 에 박힌 토큰 | 런타임 파일의 실제 내용 해시 | 판정 |
+|---|---|---|---|
+| `a9dfd1cfc` 및 그 이전 6개 | `build-dcd945172362` | `build-dcd945172362` | ✅ OK |
+| `9812d039f` (1단계) | `build-dcd945172362` | `build-0776962d3763` | 🔴 **여기서 들어왔다** |
+| `d6ad24bb8` · `8deacfaad` · `e87cc3248` | 위와 동일 | 위와 동일 | 🔴 전파(옆 세션 커밋은 원인이 아니다) |
+| `64f55a98a` (2단계) | `build-f3607e7cb0bd` | `build-2b5a643397bf` | 🔴 **다시 한 세대 뒤** |
+| `341b722e4` · `f48c83fec` | 위와 동일 | 위와 동일 | 🔴 전파 |
+| `44eac0f68` (3번째) | `build-2b5a643397bf` | `build-2b5a643397bf` | ✅ 해소 |
+
+재측정 방법은 스크래치 `token-history.mjs` 와 같다 — 커밋마다 `git show <sha>:js/core/index-inline-runtime.js` 를 `normalizeOwnReferenceForHash`(자기 참조만 `__CACHE_KEY__` 로, CRLF→LF) 로 정규화해 sha256 앞 12자리를 구하고, 같은 커밋의 `index.html` 에 박힌 값과 비교하면 된다. 교훈은 §0 규칙에 한 줄을 더한다 — **`js/**` 를 고쳤으면 `sync:public` 을 두 번 돌리고 2회차 변경이 0건인지 확인한 뒤 커밋한다.**
 
 ### 참고로 알아 둘 근본 원인 하나
 
@@ -91,7 +109,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 
 각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다.
 
-🔴 **9번이 최우선이다** — 사용자가 2026-09-19 에 스크린샷과 함께 직접 지목한 작업이고, 나머지 8건과 달리 "해도 되는 청소"가 아니라 **요청된 과제**다. 그 다음 추천 순서는 **2 → 1 → 3** 이고 나머지는 청소 성격이다.
+✅ **9번(사용자 지목 최우선)은 2026-09-19 에 끝났다.** 남은 것은 1~8 이고 추천 순서는 **2 → 1 → 3**, 나머지는 청소 성격이다. 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
 
 ---
 
@@ -255,7 +273,9 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 
 ---
 
-### 9. 🔴 **[최우선 · 사용자 지목]** 자미두수 동물 패널이 `.fr-*` 리포트 디자인과 따로 논다
+### 9. ✅ **해결(2026-09-19)** 자미두수 동물 패널이 `.fr-*` 리포트 디자인과 따로 논다
+
+> ✅ **1단계·2단계 모두 완료.** 커밋 2개 — 1단계 `9812d039f`(버튼 정리) · 2단계 `64f55a98a`(팔레트·타이포 정규화). 실측으로 확인된 결과: 인라인 style 노드 **122 → 0**, 본문 중위 **10.92px → 16px**, 14px 미만 텍스트 노드 **74 → 0**, 배경 `#141e2b`·테두리 `#394351`·본문 `#f4efdf`·제목 `#e0c58c`·radius `0`·backdrop `none`, 도감 카드 14장 유지(정보 손실 0), 동일 동작 버튼 3개 제거. 아래 A~G 는 **무엇을 어떻게 고쳤는지의 기록**이고, 남아 있는 범위 밖 결함은 각 절의 🔴 표시를 볼 것.
 
 > 2026-09-19 사용자 지적: *"🐶 내 영혼을 상징하는 자미두수 동물 등의 디자인이 기본 자미두수 명반과 안 맞는다"*
 > 앞선 Phase 1~4 는 이 패널의 **디자인을 전혀 건드리지 않았다.** `basicFortunePresentation.js` 에 `zwLifeAnimalPanel`·`zw-detail-panel` 참조가 **0건**이다(전수 grep) — 표현 계층은 이 패널을 이름으로 알지 못한다. 다만 `:644` 가 **남은 자식을 일괄로** `fr-ziwei-explore` 폴드에 옮기기 때문에 위치만 바뀌어 있다(아래 DOM 위치 참고). 즉 **옮기기만 했고 스타일은 엔진이 만든 그대로**다.
@@ -264,7 +284,7 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 
 #### 실측 (2026-09-19, Playwright 390×844, 계산된 스타일)
 
-**A. 팔레트가 리포트와 무관하다 — 이게 "안 맞는다"의 직접 원인**
+**A. ✅ 해결(2026-09-19 2단계) — 팔레트가 리포트와 무관했다. 이게 "안 맞는다"의 직접 원인이었다**
 
 | | 리포트(`.fr-ziwei` 런타임 토큰) | 동물 패널(인라인 하드코딩) |
 |---|---|---|
@@ -273,13 +293,32 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 | 글자 | `--fr-ink: #f4efdf` | `#fef3c7` · `#dbeafe` · `#cbd5e1` · `#ede9fe` · `#bae6fd` |
 | 악센트 | `--fr-accent: #e0c58c` **금색 하나** | `#fcd34d` · `#c4b5fd` · `#bae6fd` **3계열** |
 
-리포트는 남색 바탕에 **금색 악센트 하나**로 통일돼 있는데, 패널은 호박·하늘·보라·슬레이트 **4계열**을 쓴다. 스크린샷의 주황/하늘/보라 버튼 3개가 바로 이것이다. 정상 경로에만 하드코딩 색상 **36개**가 있다.
+리포트는 남색 바탕에 **금색 악센트 하나**로 통일돼 있는데, 패널은 호박·하늘·보라·슬레이트 **4계열**을 썼다. 스크린샷의 주황/하늘/보라 버튼 3개가 바로 이것이다(1단계에서 삭제됨). 정상 경로에만 하드코딩 색상 **36개**가 있었다.
+
+**조치(2단계)**: 리포트 안에서의 계산된 값이 전부 `--fr-*` 토큰으로 바뀌었다. 실측(Playwright 390·1280, 계산된 스타일):
+
+| | 2단계 전 | 2단계 후 |
+|---|---|---|
+| 배경 | 보라 radial-gradient | `rgb(20,30,43)` = `#141e2b` = `--fr-surface` |
+| 테두리 | `rgba(167,139,250,0.38)` | `rgb(57,67,81)` = `#394351` = `--fr-rule` |
+| 글자 | `#cbd5e1` 등 5계열 | `rgb(244,239,223)` = `#f4efdf` = `--fr-ink` |
+| 제목 | `#fde68a` | `rgb(224,197,140)` = `#e0c58c` = `--fr-accent` |
+| 모서리 | 12px · 16px | `0px` |
+| backdrop | `blur(15px)` | `none` |
+
+`visual-checker` 가 후속 캡처의 **262,710 픽셀을 전수 검사해 팔레트 밖 픽셀 0개(0.0000%)** 로 판정했다. ⚠️ 그 이미지에 `#76bad3` 같은 파란 픽셀이 보이지만 **서브픽셀 안티에일리어싱 프린지**다(짝 픽셀이 R 채널을 공유하고 G·B 는 배경값). "남은 파랑"으로 오판하지 말 것.
+
+2차 검수(채널별 5토큰 보간, 총 2,857,704 픽셀)도 같은 결론이다: 이탈률 0.0203% / 0.0014% / 0.0682%, 그리고 **이탈 픽셀이 전부 이모지 글리프(🦅🦉🐗 …) 좌표의 소형 클러스터 14개 안에 갇혀 있고 이모지 밖 이탈은 0픽셀**이다. 즉 컬러 이모지는 팔레트 밖일 수밖에 없고 그것 말고는 보라·파랑 잔재가 없다. 대비도 같이 쟀다 — 본문 **14.60:1**, 보조 **9.71:1**, 악센트 **10.03:1** 로 전부 WCAG AAA, 도감 선택 표시(accent 테두리 vs rule 테두리)는 **5.98:1** 로 1.4.11(3:1) 통과. 참고로 `--fr-rule` vs `--fr-surface` 는 **1.68:1** 이라 카드 경계선이 옅다 — 장식 경계라 기준 대상은 아니지만, 경계를 더 세우고 싶으면 여기가 손댈 곳이다(리포트 전역 토큰이라 이 패널만의 문제가 아니다).
+
+🔴 **예전 색은 지운 것이 아니라 옮겼다.** 엔진 인라인 `<style>` 의 `.zwla-*` 기본 스킨([`js/saju-engine.js:18235-18269`](../../js/saju-engine.js#L18235-L18269), 30규칙 · hex 20 + rgba 19)이 예전 인라인 값을 **그대로** 들고 있다. 리포트 안에서만 `#ziweiModalOverlay #zwLifeAnimalPanel` 이 ID 2개 특이도로 덮는다.
+
+⚠️ **정정(실측)**: 이 기본 스킨의 명분을 처음에 *"`renderZiwei` 의 `targetId` 기본값 `'ziweiSection'` 단독 렌더 경로를 보존한다"* 로 적었는데, **그 경로는 지금 살아 있지 않다.** 전수 grep 결과 `'ziweiSection'` 을 엘리먼트 id 로 쓰는 곳은 [`js/saju-engine.js:22444`](../../js/saju-engine.js#L22444) 의 `document.getElementById(targetId || 'ziweiSection')` **한 곳뿐**이고, `index.html`·`app/**`·`src/**` 에 `id="ziweiSection"` 은 **0건**이다(나머지 `ziweiSection` 히트는 전부 융합운세 LLM 섹션 키라 무관하다). 실제 호출부는 `js/core/saju/modalProfileState.js:259,279` 둘 다 `'ziweiModalSection'` 을 넘긴다. 그러니 저 기본값은 **죽은 폴백**이고 `if(sec)` 에서 조용히 빠진다. 그래도 기본 스킨은 남겨 두는 게 맞다 — 이유는 두 개다: (1) 값이 엔진 쪽에 있어야 리포트 정규화가 `!important` **0개**로 이긴다(값을 지웠다면 덮을 대상이 없어 특이도 싸움이 아니라 재작성이 된다), (2) 엔진을 모달 밖에서 렌더하는 코드가 생기면 패널이 **무스타일**로 나오는 것을 막는다. 즉 보험이지, 지금 도는 경로는 아니다.
 
 ⚠️ **`styles/basic-fortune-library.css:18` 만 보고 판단하면 틀린다.** 그 줄은 `.fr-ziwei { --fr-bg:#f4f0e7; --fr-ink:#292d31; … }` 라 "밝은 한지색"처럼 보이지만, **[`:246` 의 `#ziweiModalOverlay.fr-ziwei { --fr-bg:#0b121b; --fr-surface:#141e2b; --fr-ink:#f4efdf; --fr-muted:#bdc6cf; --fr-accent:#e0c58c; --fr-rule:#394351; }` 가 ID 특이도로 이긴다**](../../styles/basic-fortune-library.css#L246). 위 표의 값이 실제 런타임 값이다. 이 저장소는 특이도 싸움이 잦으니 **반드시 계산된 스타일로 확인**할 것.
 
 참고할 기준값: [`:283`](../../styles/basic-fortune-library.css#L283) `#ziweiModalOverlay .fr-chart-stars { color:#e0c58c; font-size:14px; line-height:1.45; }` — 리포트가 **금색 악센트를 14px 로 쓰는 본보기**다. 동물 패널의 보조 텍스트도 여기에 맞추면 된다.
 
-**B. 타이포 스케일이 리포트의 약 2/3**
+**B. ✅ 해결(2단계) — 타이포 스케일이 리포트의 약 2/3 였다**
 
 | | 리포트 | 패널 |
 |---|---|---|
@@ -287,11 +326,21 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 | 버튼 | (`.fr-overlay` 규칙상 16px) | **10.5px** |
 | summary | — | 11.2 ~ 11.48px |
 
-원인: 인라인 `font-size:0.74rem ~ 0.95rem`. **루트 폰트가 14px** 라 `0.75rem = 10.5px` 다(소스만 보고 12px 로 추정하면 틀린다). `styles/basic-fortune-library.css` 의 `.fr-overlay :is(button, summary, input, select, textarea) { min-height:44px; font-size:16px }` 이 있지만 **인라인 스타일이 이겨서** `font-size` 는 무효다. 반면 `min-height` 는 인라인 경쟁자가 없어 적용돼 **48px 박스 안에 10.5px 글자**라는 기형이 된다.
+원인: 인라인 `font-size:0.74rem ~ 0.95rem`. **루트 폰트가 14px** 라 `0.75rem = 10.5px` 다(소스만 보고 12px 로 추정하면 틀린다). `styles/basic-fortune-library.css` 의 `.fr-overlay :is(button, summary, input, select, textarea) { min-height:44px; font-size:16px }` 이 있지만 **인라인 스타일이 이겨서** `font-size` 는 무효였다. 반면 `min-height` 는 인라인 경쟁자가 없어 적용돼 **48px 박스 안에 10.5px 글자**라는 기형이 됐다.
 
-**C. 클래스 CSS 로는 고칠 수 없다 — 엔진 문자열을 고쳐야 한다**
+**조치(2단계)**: 실측 — 최소 본문 `10.36px → 14px`, 중위 `10.92px → 16px`, **14px 미만 텍스트 노드 74개 → 0개**. 본문 행간은 리포트와 **정확히 같은 28px**(16px × 1.75)로 맞췄다.
 
-패널의 **DOM 노드 154개 중 126개(82%)가 인라인 `style=`** 를 갖는다. `basic-fortune-library.css` 에서 선택자로 덮으려면 속성마다 `!important` 가 필요하다. 지속 불가능하다. **정공법은 엔진의 `style="…"` 문자열을 `class="…"` 로 바꾸는 것**이다.
+🔴 **행간을 1.8~1.9 로 두면 안 된다.** 2단계 1차 구현이 `line-height:1.8`(본문)·`1.9`(narrative·bridge)였는데, `visual-checker` 가 행 피치 30~31px 을 잡아냈다 — 같은 글이 리포트보다 혼자 길어진다. 리포트 본문은 16px/28px = **1.75** 다. 2차에서 전부 1.75 로 통일했다.
+
+캡션 14px 단계는 실재한다(실측 8곳): `.zw-dp-subtitle` · `.zwla-hero-title` · `.zwla-hero-archetype` · `.zwla-hero-star` · `.zwla-hero-pair` · `.zwla-cell-label` · `.zwla-codex-card-archetype` · `.zwla-codex-card-keywords`. 1차 시각 검수가 "14px 단계가 없다"고 판정했지만 그건 **캡처가 잘려 본문 구간만 보였기 때문**이다 — 크롭 범위를 확인하지 않고 부재를 단언하지 말 것.
+
+**C. ✅ 해결(2단계) — 클래스 CSS 로는 고칠 수 없었다. 엔진 문자열을 고쳤다**
+
+패널의 **DOM 노드 154개 중 126개(82%)가 인라인 `style=`** 였다. `basic-fortune-library.css` 에서 선택자로 덮으려면 속성마다 `!important` 가 필요했다. 그래서 **엔진의 `style="…"` 문자열을 `class="…"` 로 바꿨다**.
+
+**조치(2단계)**: 두 빌더 모두 인라인 `style=` **0개**가 됐다(실측: `_zwBuildLifeAnimalCards` [`:21248-21336`](../../js/saju-engine.js#L21248-L21336) 89줄 — `style=` 0 · hex 0 · rgba 0 / `_zwBuildLifeAnimalCodex` [`:21117-21136`](../../js/saju-engine.js#L21117-L21136) 20줄 — 0 · 0 · 0). 실제 렌더 기준 **인라인 스타일 노드 122개 → 0개**.
+
+그래서 `styles/basic-fortune-library.css` 의 정규화 블록에 **`!important` 가 한 개도 없다.** `#ziweiModalOverlay #zwLifeAnimalPanel`(ID 2개)이 엔진의 `.zw-detail-panel`·`.zwla-*`(클래스 1개)를 특이도로 이기기 때문이다 — 엔진 쪽 해당 선택자들의 박스 속성에 `!important` 가 없음을 전수 확인했다(있는 것은 reduced-motion 블록의 `transition`·`transform` 뿐).
 
 **D. ✅ 해결(2026-09-19 1단계) — 버튼 3개가 전부 같은 동작이고, 2번째를 누르면 화면이 닫혔다**
 
@@ -319,16 +368,16 @@ window._zwToggleAnimalCodex('zwLifeAnimalCodex')
 
 **F. 로케일 체계 밖** — 전부 한국어 리터럴. `t()`/`labelKeys` 5로케일을 쓰지 않는다.
 
-**G. 🔴 마크업이 두 벌로 복제돼 있다 — 한쪽만 고치면 반쪽이 남는다**
+**G. 🔴 마크업이 두 벌로 복제돼 있다 — 한쪽만 고치면 반쪽이 남는다 (구조는 그대로 남아 있으니 다음 사람도 주의)**
 
-`_zwBuildLifeAnimalCards`([`:21214`](../../js/saju-engine.js#L21214)) 안에 거의 같은 UI 가 두 번 있다. 아래 수치는 **1단계 버튼 삭제 전** 실측이다(삭제 후 fallback 5·정상 38).
+`_zwBuildLifeAnimalCards`([`:21248`](../../js/saju-engine.js#L21248)) 안에 거의 같은 UI 가 두 번 있다. **복제 자체는 2단계에서 없애지 않았다**(요청 범위 밖) — 앞으로도 이 패널을 고칠 때는 **fallback·정상 두 경로를 모두** 고쳐야 한다.
 
-| 경로 | 줄 | 인라인 `style=` | 하드코딩 색 |
-|---|---|---|---|
-| fallback | `:21214-21245` | 9 | 6 |
-| 정상 | `:21246-21312` | 42 | 36 |
+| 경로 | 인라인 `style=` (1단계 전) | (1단계 후) | (2단계 후) | 하드코딩 색 (2단계 후) |
+|---|---|---|---|---|
+| fallback | 9 | 5 | **0** | 0 |
+| 정상 | 42 | 38 | **0** | 0 |
 
-버튼 3개 블록은 `:21234-21236` 과 `:21303-21305` 두 곳에 있었고 1단계에서 **둘 다** 지웠다. 남은 인라인 `style=`(2단계 대상)도 **두 경로 모두** 고칠 것 — 삭제 후 패널 루트는 `:21221`(fallback)·`:21258`(정상)이다.
+버튼 3개 블록은 두 곳에 있었고 1단계에서 **둘 다** 지웠다. 2단계는 남은 인라인 `style=` 을 두 경로 모두 `zwla-*` 클래스로 옮겨 **양쪽 0개**가 됐다. 색은 엔진 기본 스킨([`:18235-18269`](../../js/saju-engine.js#L18235-L18269))으로 이동했다(위 A 의 🔴 참고).
 
 #### DOM 위치 (실측) — 도달 깊이는 문제없다
 
@@ -352,53 +401,128 @@ window._zwToggleAnimalCodex('zwLifeAnimalCodex')
 
 #### 볼 곳
 
-- [js/saju-engine.js:21214-21312](../../js/saju-engine.js#L21214-L21312) — `_zwBuildLifeAnimalCards` 두 경로
+- [js/saju-engine.js:21248-21336](../../js/saju-engine.js#L21248-L21336) — `_zwBuildLifeAnimalCards` 두 경로 (2단계 후 줄번호)
 - ~~`_zwToggleAnimalCodex` (토글 본체)~~ — **1단계에서 삭제됐다. 존재하지 않는 심볼이니 찾지 말 것.**
-- [js/saju-engine.js:21081](../../js/saju-engine.js#L21081) — `_zwBuildLifeAnimalCodex` (도감 본문, 14주성 전부 생성)
-- [js/saju-engine.js:18151-18226](../../js/saju-engine.js#L18151-L18226) — `.zw-detail-panel` / `.zw-dp-title` / `.zw-dp-subtitle` 인라인 CSS
+- [js/saju-engine.js:21117-21136](../../js/saju-engine.js#L21117-L21136) — `_zwBuildLifeAnimalCodex` (도감 본문, 14주성 전부 생성)
+- [js/saju-engine.js:18151-18233](../../js/saju-engine.js#L18151-L18233) — `.zw-detail-panel` / `.zw-dp-title` / `.zw-dp-subtitle` 인라인 CSS. **공유 자산이라 2단계에서 건드리지 않았다.**
+- [js/saju-engine.js:18235-18269](../../js/saju-engine.js#L18235-L18269) — 2단계가 새로 넣은 `.zwla-*` 기본 스킨(단독 렌더 경로 보존용). 🔴 여기에 인라인 `style=` 을 다시 늘리면 리포트 쪽에서 속성마다 `!important` 가 필요해진다
+- [styles/basic-fortune-library.css:327-371](../../styles/basic-fortune-library.css#L327-L371) — 2단계가 넣은 `#ziweiModalOverlay #zwLifeAnimalPanel` 정규화 블록(`!important` 0개). 블록 머리 주석에 **왜 그 값인지**가 적혀 있다
 - [styles/basic-fortune-library.css:1-64](../../styles/basic-fortune-library.css#L1-L64) — `.fr-*` 토큰 (여기 값만 쓴다)
 - [styles/basic-fortune-library.css:100-103](../../styles/basic-fortune-library.css#L100-L103) — `.fr-ziwei .fr-palace-summary` 정규화. **이 저장소가 이미 쓰는 선례이므로 이 패턴을 그대로 따라가면 된다**
 - [js/core/saju/basicFortunePresentation.js:644](../../js/core/saju/basicFortunePresentation.js#L644) — 패널을 담는 `fr-ziwei-explore` 폴드
 
 #### 권장 접근 — 순서가 중요하다
 
-**1단계 · D 를 먼저 고친다(디자인보다 이게 실제 결함이다).** 선택지 둘:
+**1단계 · ✅ 완료 (`9812d039f`). (a) 를 택했다.** 버튼 3개를 지우고 `<summary>` 하나만 남겼다 — 삭제 25줄 / 추가 0줄. `<details>`/`<summary>` 가 같은 일을 네이티브로 하고 `aria-expanded` 도 공짜다. 죽은 `window._zwToggleAnimalCodex` 본체까지 같이 지웠다(전수 grep 으로 호출부 0 확인).
 
-- **(a) 버튼 3개를 없애고 `<summary>` 하나만 남긴다.** `<details>`/`<summary>` 가 이미 같은 일을 네이티브로 하고 `aria-expanded` 도 공짜다. 최소 변경이고 §3("내용이 없다면 버튼 자체를 출력하지 않는다")의 정신에 정확히 맞는다. **추천.**
-- (b) 세 버튼에 각각 다른 동작을 준다 — "다른 동물 보기"가 실제로 다른 동물을 보여주게. `_zwBuildLifeAnimalCodex(primaryKey)` 가 14주성을 전부 만들고 있으므로 데이터는 있다. 다만 **컨트롤이 3개나 필요한 화면인지부터 따질 것.**
+(b) 는 버리지 않고 **기각**했다: 세 버튼에 각각 다른 동작을 주는 안. `_zwBuildLifeAnimalCodex(primaryKey)` 가 14주성을 전부 만들므로 데이터는 있지만, 한 패널에 컨트롤 3개가 필요한 화면이 아니었다. 나중에 "다른 동물 보기"를 **정말** 만들 거라면 여기서부터 시작할 것.
 
-🔴 **없는 데이터를 지어내지 말 것**(요청서 §4·§5). (b) 로 간다면 각 버튼이 보여줄 내용이 실제 코드에 있는지 먼저 확인한다.
+🔴 **없는 데이터를 지어내지 말 것**(요청서 §4·§5). (b) 로 되돌아간다면 각 버튼이 보여줄 내용이 실제 코드에 있는지 먼저 확인한다.
 
-**2단계 · 인라인 스타일을 클래스로 옮긴다.** `styles/basic-fortune-library.css` 에 `.fr-*` 토큰을 쓰는 클래스를 만들고 엔진 문자열의 `style="…"` 을 `class="…"` 로 교체한다.
-- 색은 반드시 `var(--fr-accent)` / `var(--fr-surface)` / `var(--fr-ink)` / `var(--fr-muted)` / `var(--fr-rule)`. **새 hex 를 추가하지 않는다**(요청서 §14).
-- 폰트는 `rem` 을 버리고 리포트와 같은 px(본문 16px, 캡션 14px).
-- **두 경로(`:21214`, `:21246`) 모두** 고칠 것.
+**2단계 · ✅ 완료. 인라인 스타일을 클래스로 옮겼다.** 실제로 쓴 방법은 **두 층으로 나누는 것**이었다 — 이게 이 작업의 핵심이고, 비슷한 패널을 또 고칠 때 그대로 쓰면 된다.
+
+1. **엔진 인라인 `<style>` 에 `zwla-*` 기본 스킨을 넣는다**([`:18235-18269`](../../js/saju-engine.js#L18235-L18269)). 값은 **예전 인라인 값 그대로**. 이게 있어야 2번이 `!important` 0개로 이긴다(덮을 대상이 있으니 특이도만 올리면 된다). 엔진을 모달 밖에서 렌더하는 코드가 생겨도 무스타일이 되지 않는다. ⚠️ 이걸 *"단독 렌더 경로 보존"* 이라고 적었다가 정정했다 — 위 A 절의 ⚠️ 를 볼 것(`id="ziweiSection"` 은 실제로 0건이라 그 경로는 죽어 있다).
+2. **`styles/basic-fortune-library.css` 에서 `#ziweiModalOverlay #zwLifeAnimalPanel` 로 리포트용 값만 덮는다**([`:327-371`](../../styles/basic-fortune-library.css#L327-L371)). ID 2개 특이도라 `!important` 가 **0개**다.
+
+지킨 규칙:
+- 색은 `var(--fr-accent)` / `var(--fr-surface)` / `var(--fr-ink)` / `var(--fr-muted)` / `var(--fr-rule)` 만. **정규화 블록에 새 hex 0개**(요청서 §14).
+- 폰트는 `rem` 을 버리고 리포트와 같은 px(본문 16px, 캡션 14px), 행간은 **1.75**(= 28px).
+- **두 경로 모두** 고쳤다(인라인 `style=` fallback 0 · 정상 0).
+- 화면에 보이는 라벨 문자열은 **한 글자도 바꾸지 않았다** — 바꾸면 3단계(5로케일)가 딸려오고 `verify-basic-fortune-library.mjs:487-490` 의 비-ko 한글 가드에 걸린다.
+
+🔴 **여기서 실제로 두 번 틀렸으니 다음 사람은 먼저 읽을 것**:
+- **그리드 최소폭.** `minmax(240px,1fr)` 로 두면 부모가 225px 일 때 셀이 267px 로 삐져나온다. `minmax(min(240px,100%),1fr)` 로 쓴다.
+- **`.zwla-hero` 는 카드가 아니라 래퍼다.** 실측하면 `note`·`fold`·`grid`·`narrative`·`tamagotchi` 가 전부 그 자식이다. 여기에 `padding:20px; border:1px` 을 주면 패널 24 + 래퍼 20 + 인용상자 16 = **3중 들여쓰기**가 되어 390px 에서 한 줄에 한글 11~12자만 들어간다. 클래스 이름이 `hero` 라고 히어로 카드라고 **가정하지 말고** 자식 구조를 실측할 것.
 
 **3단계 · 로케일.** 새 라벨은 `labelKeys` 5로케일 전부 작성. ⚠️ `scripts/verify-basic-fortune-library.mjs:487-490` 이 **비-ko 로케일에 한글이 섞이면 실패**시킨다.
 
 #### 검증
 
+2단계에서 **실제로 돌린 것과 결과**(이 순서대로 돌리면 된다):
+
 ```powershell
-node scripts/verify-basic-fortune-library.mjs      # 계산 불변(§20) + 접근성 + 가로 스크롤
-node scripts/verify-sukuyo-reading-house.mjs       # 숙요점 쪽 회귀 없는지
-npm run verify:ziwei-chart-detail-view             # 엔진 마크업 단언 — 2단계에서 깨지기 쉽다
-npm run sync:public                                 # js/** · styles/** 를 고쳤다면 필수. 2회 돌린다
-npm run check:fast
+node scripts/verify-basic-fortune-library.mjs      # EXIT 0, "errors": []  ← CSS 손본 뒤 다시 돌릴 것
+node scripts/verify-sukuyo-reading-house.mjs       # 숙요점 회귀 없는지(엔진은 다른 파일이지만 셸 index.html 을 공유한다)
+npm run verify:ziwei-chart-detail-view             # ok 48 checks — 엔진 마크업 단언, 2단계에서 깨지기 쉽다
+npm run sync:public                                 # 🔴 커밋 직전 마지막. 소스를 또 고쳤으면 반드시 다시
+npm run sync:public                                 # 🔴 js/** 를 고쳤으면 2회차까지 — 1회는 고정점이 아니다(§3)
+npm run check:fast                                  # EXIT 0 (verify:entry-encoding + jest 281 suites / 3977 tests)
+npm run verify:runtime-cache-sync                   # 셸들의 런타임/엔진 토큰이 한 값인지 (OK build-2b5a643397bf)
+npm run verify:static-asset-cache-keys              # 루트 bare 자산 4종·참조 34건 (PASS)
 ```
+
+🔴 `npm run check:fast` 는 `verify:public-mirror-fresh` 와 위의 자미두수 Playwright 가드를 **포함하지 않는다**(`--profile=fast --skip-build` 는 entry-encoding + jest 만 돈다). 미러 신선도와 화면 가드는 **손으로 돌려야 한다** — 이걸 몰라서 CI 에서 처음 터지면 원인 찾는 데 시간이 걸린다.
+
+🔴 그런데 `verify:public-mirror-fresh` 는 **이 공유 체크아웃에서는 영영 초록이 안 된다.** fail-closed 설계라 작업 트리에 커밋되지 않은 변경이 하나라도 있으면 *"판정 불가는 통과가 아니다"* 로 EXIT 1 을 낸다 — 옆 세션의 미커밋 파일이 항상 있으므로 그렇다. 대신 **이 가드가 보는 것을 직접 재라**: (1) `js/saju-engine.js` ↔ `public/js/saju-engine.js`, `styles/*.css` ↔ `public/styles/*.css` 의 sha256 이 같은지, (2) 셸 9개의 `git diff -U0` 변경 줄 중 `?v=`·`v=build-`·`h<12자리hex>` 가 아닌 줄이 **0** 인지. 2단계에서 둘 다 확인했다(각각 IDENTICAL, nonToken=0).
+
+🔴 **그 두 가지로는 부족하다 — 이번에 그래서 main 이 레드였다.** 둘 다 초록인데도 `index.html` 의 토큰 1개가 한 세대 낡아 있었다(§1 의 표). 대체 측정을 **하나 더** 해야 한다: (3) `index.html` 의 `?v=` 참조 **전부**를 자산 내용 해시로 다시 계산해 박힌 값과 비교(2026-09-19 기준 67개 전부 일치, 스크래치 `token-audit.mjs`). 사실상 같은 판정을 명령 두 줄로 얻는 방법이 `verify:runtime-cache-sync` + `verify:static-asset-cache-keys` 다 — **둘 다 공유 체크아웃에서 돈다**(더러운 트리를 요구하지 않는다). 다만 `runtime-cache-sync` 는 "모든 셸이 같은 값을 쓰는가"를 보고 "그 값이 실제 파일 해시인가"는 보지 않으므로, `js/**` 를 고친 커밋에서는 **sync 2회차까지 돌린 뒤** 이 둘을 돌리는 것이 안전하다.
 
 **수동 확인** — 요청서 §23: 패널의 **모든** 펼침 컨트롤을 하나씩 눌러 빈 상자·닫힘이 없는지 본다. 특히 `다른 동물 보기` 를 **연 상태에서** 눌러 볼 것(이번에 발견된 결함이 바로 그 경로다).
 
 실측 프로브를 다시 만들려면 §3 의 "스크래치패드가 프로젝트 `node_modules` 를 못 찾는다" 항목대로 `createRequire` 로 붙인다. `scripts/verify-basic-fortune-library.mjs:1-110` 의 라우트 목킹·프로필 주입을 그대로 복사하면 30줄로 끝난다.
 
+#### 🔴 스크린샷 판정의 함정 — 이번에 2건이 오탐이었다
+
+2단계를 `visual-checker` 로 두 번 검수했다. 색·행간·격자 넘침 지적은 **맞았고 그대로 고쳤다**(1.8/1.9 → 1.75, `.zwla-hero` 패딩 제거, `minmax(min(240px,100%),1fr)`). 그런데 **픽셀에서 되짚어 만든 수치 2건은 틀렸다.** 픽셀은 박스를 보지 못하기 때문이다 — 같은 실수를 반복하지 않으려면 아래 두 개를 기억할 것.
+
+| 스크린샷 판정 | 실제 계산된 스타일 | 왜 어긋났나 |
+|---|---|---|
+| 폴드 트리거 터치 타깃 **28px** → "44px 권고 미달, 패딩을 주라" | **48px** (`min-height:48px`, 실측 `.zwla-fold-summary`·`.zwla-codex-summary`·`.zwla-codex-card-summary` 전부 `h=48`) | 잉크 상·하단에서 하프리딩을 빼 **라인박스**를 복원했는데, `min-height` 로 늘어난 박스는 잉크에 흔적을 남기지 않는다. `.fr-overlay :is(button,summary,input,select,textarea) { min-height }`([`styles/basic-fortune-library.css:36`](../../styles/basic-fortune-library.css#L36))가 이미 보장하고 있었고 `#ziweiModalOverlay` 는 `fr-overlay` 를 달고 있다(실측 `class="… fr-overlay fr-ziwei"`). **패딩을 더했다면 48 → 64px 로 혼자 커졌을 것이다.** |
+| `.zwla-note` 가 **10~11자/행** → "본문보다 밀도가 높다" | 측정폭 **233px ≈ 14.6자/행** (본문 `.zwla-narrative` 는 267px ≈ 16.7자). 콜아웃이 34px 안쪽으로 들어간 정상 값 | 텍스트 **노드 조각**의 `getClientRects()` 폭을 행 폭으로 읽었다. `<b>` 앞뒤로 텍스트 노드가 갈라지면 한 행이 조각 여러 개로 잡혀 폭이 실제보다 짧게 나온다(실측: rect 4개 ↔ 렌더된 행 3개). |
+
+**교훈**: 스크린샷은 "보이는 것"(색·행간·넘침·잘림)에는 강하지만 **박스 모델 수치(터치 타깃·측정폭·패딩)를 되짚는 데는 약하다.** 그런 지적이 오면 고치기 전에 `getComputedStyle` + `getBoundingClientRect` 로 한 번 더 재라 — 이번엔 그래서 불필요한 CSS 2줄을 안 넣었다. 프로브: 스크래치패드 `probe-touch.mjs`(레포에 두지 않았다).
+
+**남은 판정불가 3건**은 `#ziweiModalOverlay` 가 패널을 약 843 CSS px 로 클리핑해서 생긴 촬영 한계다(`'14주성 동물 도감 보기'` 트리거, 격자 7~10번 칸, 도감 카드 10~14번). 다시 찍으려면 캡처 직전 오버레이에 `overflow:visible; max-height:none` 을 임시로 주고 찍는다. 다만 **같은 것을 DOM 수치로는 이미 확인했다**(도감 카드 14장, `childWiderThanParent: 0`, `panelScrollW 315 < docW 390`).
+
 #### 위험도
 
-- **1단계(버튼 정리) 🟢 GREEN** — 중복 컨트롤 제거이고 계산·결제 경계를 건드리지 않는다.
-- **2단계(인라인→클래스) 🔴 RED** — **지금까지와 달리 엔진 파일 `js/saju-engine.js` 를 고치는 첫 작업**이다. Phase 1~4 는 Layer B(`basicFortunePresentation.js`)와 CSS 만 건드렸다. 엔진을 고치면 (1) `verify:ziwei-chart-detail-view` 가 마크업을 단언하므로 깨질 수 있고, (2) `js/**` 변경이라 **미러 7개 + 캐시 핀이 따라온다**. §0 의 "🔴 캐시 키를 손으로 찍지 않는다" 를 반드시 지킬 것 — 이 규칙을 어겨서 2026-09-19 에 main 이 한 번 레드가 됐다.
-- 1단계와 2단계는 **별도 커밋**으로 나눈다(서로 무관한 변경을 한 커밋에 섞지 않는다).
+- **1단계(버튼 정리) 🟢 GREEN** — 중복 컨트롤 제거이고 계산·결제 경계를 건드리지 않는다. ✅ 완료.
+- **2단계(인라인→클래스) 🔴 RED** — **엔진 파일 `js/saju-engine.js` 를 고치는 첫 작업**이었다. Phase 1~4 는 Layer B(`basicFortunePresentation.js`)와 CSS 만 건드렸다. ✅ 완료, 회귀 없음. 실제로 확인된 것:
+  - `verify:ziwei-chart-detail-view` **ok 48 checks** — 마크업 단언은 깨지지 않았다(이 가드는 `zwla-*` 클래스명을 보지 않는다).
+  - `js/**` 변경이라 **생성물 11개**가 따라왔다: `public/js/saju-engine.js` · `public/styles/basic-fortune-library.css` · `index.html` · `public/index.html` · `public/static/index.html` · `public/{en,ja,zh,zh-tw}/index.html` · `js/core/index-inline-runtime.js` · `public/js/core/index-inline-runtime.js`. **셸 9개는 `?v=` 토큰 줄만 바뀐다(비-토큰 변경 줄 0)** — 그 외 줄이 바뀌었으면 손으로 찍은 것이니 되돌릴 것.
+  - 🔴 캐시 키는 `npm run sync:public` 으로만 찍었다. 이번에 돈 것은 전역 결정적 키(`7b48b7b84466 → 0776962d3763`, `js/core/index-inline-runtime.js` 에 붙는다)와 자산별 해시 1개다.
+- 1단계와 2단계는 **별도 커밋**으로 나눴다(서로 무관한 변경을 한 커밋에 섞지 않는다).
+- 🔴 **CSS 를 따로 커밋하지 말 것.** `paid-flow-gates.yml` 트리거에 `styles/**` 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다(위 "미확인" 절 참고). 2단계는 엔진과 CSS 를 **한 커밋**에 담았다.
+- **3번째 커밋 `44eac0f68` 🟢 GREEN** — 공궁 폴백만 남아 있던 보라색 좌측선을 패널 안으로 스코프해 덮었고(CSS 5줄), 같은 커밋에 `sync:public` **2회차** 산출물을 담아 §1 의 낡은 런타임 토큰을 닫았다. 폴백은 엔진의 공용 `.zw-report-section` 을 함께 달고 나오므로(`js/saju-engine.js:21262`) 공용 클래스를 건드리지 않고 `#ziweiModalOverlay #zwLifeAnimalPanel .zwla-empty` 로만 무력화했다. 실측 전/후: `border-left 3px rgb(138,43,226)` → 4면 `1px rgb(57,67,81)`, `border-radius 10px` → `0`, 배경 `rgba(255,255,255,0.04)` → 투명, `padding 14px` → `16px`.
+
+#### 후속 과제 — 이번 범위 밖에서 확인한 것들 (보고만, 고치지 않았다)
+
+CLAUDE.md 원칙 14 대로 **보고만** 한다. 전부 실측 근거가 있다.
+
+| 항목 | 실측 근거 | 판단 |
+|---|---|---|
+| 🟡 공용 `.zw-report-section` 이 리포트 팔레트 밖이다 | [`js/saju-engine.js:18230`](../../js/saju-engine.js#L18230) = `background: rgba(255,255,255,0.04); border-radius:10px; padding:14px; border-left:3px solid #8A2BE2`. 리포트 안에서 같은 클래스만 단 노드를 주입해 재니 그 값이 그대로 계산됐다(스크래치 `probe-empty.mjs` 의 `bareShared` 행) | 동물 패널 안에서는 `.zwla-empty` 로 덮었지만 **이 클래스를 쓰는 다른 패널은 여전히 보라색**이다. 다음에 다른 패널을 정규화할 때 같은 2층 전략으로 처리할 것 — 🔴 공용 규칙 자체를 고치면 리포트 밖 렌더까지 바뀐다 |
+| 🟡 죽은 코드 2개 | `_zwBuildBasicCanonicalCards` [`:21383`](../../js/saju-engine.js#L21383) 과 그 안의 `#zwBasicCanonicalPanel` [`:21435`](../../js/saju-engine.js#L21435) — `js/**`·`index.html`·`styles/**` 전수 grep 에서 **정의·문자열 자기 자신 외 참조 0건** | 지우는 것은 별건 변경이다. 지우기 전 `deletion-auditor` 로 `__tests__/`·`scripts/verify-*` 3면 확인 |
+| 🟠 `paid-flow-gates.yml` 트리거 구멍 | 그 파일에 `styles/` 문자열이 **0건**, `public/js/saju-engine.js` 도 **0건**. `js/saju-engine.js`·`index.html`·`public/*/index.html` 은 있다. `styles/**` 를 트리거로 가진 워크플로는 `pr-ci.yml` **하나뿐** | CSS 단독 커밋이 결제 게이트를 잠재운다. 트리거 추가는 CI 변경이라 🔴 RED — 별건으로 다룰 것 |
+| 🟡 `_zwBuildLifeAnimalCards` 마크업 중복 | 같은 카드 골격을 분기별로 반복한다(아래 G 절) | 이번엔 클래스만 바꾸고 구조는 그대로 뒀다. 구조 정리는 `verify:ziwei-chart-detail-view` 48 단언과 함께 다뤄야 한다 |
+| ⚪ "`독수리이`" 조사 오류는 **존재하지 않는다** | `grep -c '독수리이' js/saju-engine.js` = **0** | 옛 기록에 그런 지적이 있어도 그 리터럴로는 없다. 다시 찾지 말 것 |
 
 ---
 
 ## §3 함정 모음 — 여기서 시간을 잃는다
+
+### 🔴 `sync:public` 한 번은 고정점이 아니다 — `js/**` 를 고쳤으면 두 번 돌린다
+
+이번에 main 을 이틀 가까이 레드로 둔 원인이다(§1 의 표). `verify-public-mirror-fresh.mjs:18` 주석은 *"sync:public 이 멱등이라는 것은 실측으로 확인했다(2026-08-21: 연속 두 번 실행 시 2회차 변경 0건)"* 라고 적혀 있지만, **그 측정은 `js/**` 가 안 바뀐 상태에서 한 것이다.** `js/**` 를 고치면 한 번으로 수렴하지 않는다.
+
+기전(실측으로 확인):
+
+1. `index.html` 은 `/js/core/index-inline-runtime.js?v=<런타임 파일 내용 해시>` 를 물고 있다([`scripts/lib/asset-cache-keys.mjs:131`](../../scripts/lib/asset-cache-keys.mjs#L131) 의 `keyForRepoRel`).
+2. 그 런타임 파일 **안에도** `saju-engine.js?v=…` 같은 다른 자산 참조가 있고, `sync` 는 한 패스 안에서 그것들도 다시 찍는다(로그: `Restamped index-inline-runtime.js cache keys` / `Updated root index-inline-runtime.js cache keys`).
+3. 자기 참조만 자리표시자로 바꾸는 정규화(같은 파일 `:82`)는 **다른 자산을 가리키는 참조는 해시에 그대로 넣는다** — 의도된 설계다(그래야 CDN 이 옛 바이트를 계속 서빙하지 않는다).
+4. 따라서 엔진을 고치면 → 런타임 파일 내용이 바뀌고 → 런타임 파일의 해시도 바뀌는데, **`index.html` 에 그 해시를 찍는 일은 이미 그 패스에서 지나가 버렸다.** 다음 실행에서야 따라온다.
+
+즉 `js/**` 를 고친 커밋은 **한 번만 돌리면 `index.html` 의 토큰 1개가 항상 한 세대 낡는다.** CI 의 `verify:public-mirror-fresh` 는 sync 를 한 번 돌려 바뀌는 파일을 세므로, 그 한 줄 때문에 **셸 7개 전부**를 "낡았다"로 보고한다. 로그만 보면 미러를 안 담은 것처럼 보이지만 원인은 전혀 다르다 — 그래서 두 번 잘못 짚었다.
+
+```powershell
+npm run sync:public; echo "EXIT=$LASTEXITCODE"   # 1회차
+npm run sync:public; echo "EXIT=$LASTEXITCODE"   # 2회차 — 여기서 변경이 더 나오면 1회차는 미완이었다는 뜻
+git status --porcelain                            # 2회차 뒤 새로 더러워진 파일이 없어야 한다
+```
+
+**커밋 전 직접 확인**(공유 체크아웃에서는 `verify:public-mirror-fresh` 를 못 돌리므로): `index.html` 의 `?v=` 참조 전부를 자산 내용 해시로 다시 계산해 박힌 값과 비교한다. 2026-09-19 기준 참조 67개 전부 일치해야 한다(스크래치 `token-audit.mjs`). 한 개라도 어긋나면 **sync 를 한 번 더 돌리라는 신호**다.
+
+🟡 범위 밖 후속 과제: 생성기가 `index.html` 의 자산 토큰을 **런타임 파일 재작성 뒤에** 찍도록 순서를 바꾸면(또는 수렴까지 루프를 돌면) 이 함정 자체가 없어진다. `verify:public-mirror-fresh` 가 sync 를 **두 번** 돌려 판정하게 하는 것도 같은 값이다 — 지금은 사람이 기억해야 하는 규칙이라 또 낡는다.
 
 ### `sync:public` 이 윈도우 파일 락으로 죽는다
 
@@ -434,6 +558,18 @@ const require = createRequire('D:/Development/code-destiny/package.json');
 const { chromium } = require('playwright');
 ```
 
+### `verify-basic-fortune-library.mjs` 가 간헐적으로 타임아웃한다 (가드 결함 아님)
+
+2026-09-19 에 1회 봤다. 실패 지점은 항상 같다:
+
+```
+page.waitForFunction: Timeout 30000ms exceeded.
+    at closeModalAndWait (scripts/verify-basic-fortune-library.mjs:67:16)
+    at scripts/verify-basic-fortune-library.mjs:535:5
+```
+
+`:535` 는 **렌더 실패를 목으로 강제한 경로 다음**의 모달 닫기다. 히스토리 상태 경합이라 닫힘 조건이 그 판에서만 늦는다. **재실행하면 EXIT 0, `"errors": []`** 로 붙는다(그렇게 확인했다). 그러니 이 스택이면 CSS·마크업 변경을 되돌리기 전에 **한 번 더 돌려 볼 것** — 이번에 패널 안으로 스코프된 CSS 규칙이 원인인지 30분 의심했는데 아니었다. 계속 재현되면 그때 `closeModalAndWait` 의 대기 조건을 보라.
+
 ### 도는 가드 ≠ 무는 가드
 
 새 단언을 넣었으면 **변이를 넣어 실제로 실패하는지** 확인한다(CLAUDE.md 원칙 10). Phase 4 에서 처음 만든 변이 하나는 **가드 구멍이 아니라 변이 자체가 틀려서** 안 물었다 — `isPaid()` 의 셀렉터 분기만 바꿨는데 가격·잠금 폴백 분기가 여전히 정답을 내서 동작이 안 변했다. 그때 **매직 넘버 하한(`paidPresent >= 5`)도 함께 버렸다** — 엔진 소유 콘텐츠 개수에 가드를 거는 건 깨지기 쉽다.
@@ -468,7 +604,10 @@ npm run check:ui
 
 # 미러 (styles/** · js/** 를 고쳤다면 필수)
 npm run sync:public; echo "EXIT=$LASTEXITCODE"
+npm run sync:public; echo "EXIT=$LASTEXITCODE"   # 🔴 js/** 를 고쳤으면 2회차까지 (§3 고정점)
 npm run verify:style-sync
+npm run verify:runtime-cache-sync                 # 셸들의 런타임·엔진 토큰 일치
+npm run verify:static-asset-cache-keys            # 루트 bare 자산 해시 일치
 
 # 변경 기반 일괄 검사
 npm run check:fast
@@ -480,6 +619,7 @@ git status --porcelain | grep -v '^??' | sed 's/^...//' | sort > before.txt
 npm run sync:public
 git status --porcelain | grep -v '^??' | sed 's/^...//' | sort > after.txt
 comm -13 before.txt after.txt    # 새로 더러워진 = 낡았던 미러
+npm run sync:public              # 🔴 한 번 더 — comm 이 다시 비어야 고정점이다(§3)
 ```
 
 **손 확인** (CLAUDE.md 코딩 원칙 16 — 실제 화면 검증):
