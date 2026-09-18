@@ -197,8 +197,10 @@ async function openRefundableExecution(env, userId, requestId, reportId, transac
   // 관리자 통과는 차감이 없으므로 되돌릴 것도 없다. 이용권 통과는 passRefund 가 있으면
   // monthlySpendCoin 을 실제로 차감했다는 뜻이라 되돌릴 것이 있다(2026-09-12 실사고 수정).
   const hasPassRefund = Number(passRefund?.cost) > 0 && Boolean(passRefund?.cycleKey);
-  if (!transactionId && !hasPassRefund) return;
-  await startServiceExecution(env, userId, {
+  if (!transactionId && !hasPassRefund) return false;
+  // 🔴 되돌릴 자리가 실제로 열렸는지 호출부에 알린다 — 열리지 않았는데 환불을 걸면
+  //    없는 실행 건을 닫으려다 실패 로그만 남는다.
+  return await startServiceExecution(env, userId, {
     executionKey: executionKeyOf(requestId),
     requestId: executionKeyOf(requestId),
     featureKey: FEATURE_KEY,
@@ -208,8 +210,9 @@ async function openRefundableExecution(env, userId, requestId, reportId, transac
     reportType: "humanDesignPremiumReport",
     idempotencyKey: requestId,
     metadata: { featureKey: FEATURE_KEY, reportId, ...(hasPassRefund ? { passRefund } : {}) },
-  }).catch((error) => {
+  }).then(() => true).catch((error) => {
     console.warn("[human-design-report] execution open failed", clean(error?.message || error, 200));
+    return false;
   });
 }
 
@@ -384,6 +387,14 @@ async function handleStart(request, env) {
     );
   }
 
+  // 🔴 증빙이 통과한 이 지점에서 차감은 **이미 끝나 있다** — verifyPerUsePayment 는 조회 전용이
+  //    아니라 코인·월정석을 그 자리에서 차감하고, 이용권 통과도 monthlySpendCoin 을 깎는다.
+  //    아래의 차트 계산·확정표 조립·저장은 모두 실패할 수 있으므로 되돌릴 자리를 **여기서** 연다.
+  //    실행 기록보다 뒤에서 실패하면 sweepStaleServiceExecutions(service-execution-task.js)도
+  //    잠글 건이 없어 그냥 지나치고, 차감은 회수 경로 없이 고아로 남는다(2026-09-19 실측).
+  const reportId = `${FEATURE_KEY}:${auth.userId}:${inputHash}:${locale}`;
+  const refundable = await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120), proof.passRefund);
+
   // 🔴 클라이언트가 보낸 차트를 믿지 않는다 — 믿으면 결제 없이도 리포트를 받을 수 있다.
   let calculation = archived?.calculation || null;
   if (!calculation) {
@@ -394,6 +405,7 @@ async function handleStart(request, env) {
       });
     } catch (error) {
       console.error("[human-design-report] calculation failed", clean(error?.message || error, 300));
+      if (refundable) await refundExecution(env, auth.userId, requestId, reportId, "chart calculation unavailable");
       return json({ ok: false, retryable: true, reason: "EPHEMERIS_UNAVAILABLE", message: MESSAGES.ephemeris }, { status: 502 });
     }
   }
@@ -406,10 +418,10 @@ async function handleStart(request, env) {
   } catch (error) {
     // fail-closed — 계산 결과가 온전하지 않으면 모델에게 넘기지 않는다.
     console.error("[human-design-report] basis refused", clean(error?.message || error, 200));
+    if (refundable) await refundExecution(env, auth.userId, requestId, reportId, "calculation basis incomplete");
     return json({ ok: false, reason: "CALCULATION_INCOMPLETE", message: MESSAGES.failed }, { status: 500 });
   }
 
-  const reportId = `${FEATURE_KEY}:${auth.userId}:${inputHash}:${locale}`;
   const doc = {
     id: reportId,
     userId: auth.userId,
@@ -483,7 +495,9 @@ async function handleStart(request, env) {
   const saved = await findReport(env, auth.userId, { id: reportId });
   if (!saved || saved.status !== "generating" || saved.billingRequestId !== requestId || !saved.basis?.snapshot) throw resultStorageUnavailable(reportId);
   } catch { throw resultStorageUnavailable(reportId); }
-  await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120), proof.passRefund);
+  // 🔴 저장 실패 창은 여기서 즉시 환불하지 않는다 — 쓰기가 들어갔는지 확인할 수 없는 창이라
+  //    (재읽기 실패 포함) 환불과 동시에 문서가 살아 있으면 무료 리포트가 된다. 대신 실행 기록이
+  //    위에서 이미 열려 있으므로, 완주하지 못하면 만료 스윕이 되돌린다.
 
   return json(
     {
