@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-19
-next: "§2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. 다음 작업은 §2 의 남은 1 · 3~8 중 하나이고 추천 순서는 1 → 3 이다. 1번(verify:style-sync 가 빨간데 CI 가 영영 못 잡는다)을 권한다 — origin/main 자체가 깨진 선행 결함이고, 미러가 원본의 두 배라 '바이트 비교 가드 vs 생성 규칙' 중 어느 쪽이 정본인지부터 확정해야 한다. 🔴 1번도 CI 배선이 얽히면 사용자 승인이 필요하다(CLAUDE.md, ci-gates-scope). 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
+next: "§2 의 **1번(verify:style-sync)은 2026-09-19 에 닫혔다 — 커밋 `cd5423896`**. 정본은 **생성 규칙**이었다: `public/styles/static-policy.css` 는 미러가 아니라 `build-static-policy-pages.mjs:50-54` 가 만드는 concat 생성물(컴파일 접두부 9,207B + root 9,711B = 18,918B, `mirror.endsWith(root)` 실측 true)이고, 바이트 비교 가드 쪽이 틀렸다. 가드를 '미러가 root 로 끝나고 더 길다' 단언으로 바꿨고 변이 4종으로 무는 것을 확인했다. 🔴 **CI 배선은 안 했다** — `verify-guard-wiring.mjs:141` 이 이 가드를 '수동 점검 도구'로 등록해 뒀고 게이트 승격은 사용자 승인 사항이다. 이제 통과하니 승격 여부를 **사용자에게 물어볼 것**. 다음 작업은 §2 의 남은 3~8 중 하나이고 **추천은 3번**(계산해 놓고 화면에 쓰지 않는 값들 — 🟢, 새 데이터 없이 화면을 풍부하게 만든다. 🔴 페이로드에 필드를 추가하지 말 것, DOM 에서 읽을 것). 아래는 이전 세션의 남은 주의사항이다. §2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. (1번 자리에 있던 '다음 작업' 권고는 위로 옮겼다.) 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
 ---
 
 # 기본 숙요점 · 기본 자미두수 결과 화면 — 남은 문제 인수인계
@@ -76,6 +76,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 | `44eac0f68` | §2-9 **폴백 정리 + 캐시 토큰 수렴** — 공궁 폴백(`.zwla-empty`)의 보라색 좌측선 제거(CSS 5줄) + `sync:public` 2회차 산출물로 아래의 낡은 런타임 토큰 해소 | `git revert 44eac0f68` 뒤 `npm run sync:public` **두 번** |
 | `e1164da53` → `efe722321` | §2-2 **실패 사례** — 가드 2개를 배선했다가 `verify-basic-fortune-library.mjs` 가 러너에서 ENOENT 로 죽어 즉시 revert. 기전은 §2-2 와 §3 | 이미 되돌아감 |
 | `4106e2f31` | §2-2 **배선** — `verify:sukuyo-reading-house` npm 스크립트 + `guards` 잡 스텝 1개(러너 10초). 라이브러리 가드는 주석으로 제외 근거를 남기고 뺐다 | `git revert 4106e2f31` (CI 스텝만 사라진다) |
+| `cd5423896` | §2-1 **해결** — `verify:style-sync` 가 `static-policy.css` 를 생성물로 인식하게 한다(가드 1파일, +26/-1). CSS·생성물·CI 는 건드리지 않았다 | `git revert cd5423896` (가드가 다시 영구 레드) |
 
 각 커밋은 단독으로 되돌려도 다른 기능이 흔들리지 않게 잘라 놓았다.
 
@@ -111,41 +112,60 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 
 각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다.
 
-✅ **9번(사용자 지목 최우선)은 2026-09-19 에 끝났다.** 남은 것은 1~8 이고 추천 순서는 **2 → 1 → 3**, 나머지는 청소 성격이다. 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
+✅ **1 · 2 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가). **남은 것은 3~8 이고 추천은 3번**이다. 나머지는 청소 성격이다. 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
 
 ---
 
-### 1. 🟠 `verify:style-sync` 가 빨간데 CI 가 영영 못 잡는다
+### 1. ✅ **해결(2026-09-19)** `verify:style-sync` 가 빨간데 CI 가 영영 못 잡는다
 
-**증상**
+> ✅ 커밋 `cd5423896` 한 개. **정본은 생성 규칙이었고, 바이트 비교 가드가 틀렸다.** CSS 파일도 생성물도 고치지 않았고 가드만 고쳤다. CI 배선은 하지 않았다(아래 참고).
+
+**원래 증상**
 ```
 [verify-style-sync] content mismatch: styles/static-policy.css != public/styles/static-policy.css
 [verify-style-sync] FAILED: style source/mirror parity is broken.
 ```
 
-**확인된 것 (2026-09-19 실측)**
-- root `styles/static-policy.css` = **9,711 바이트**, 미러 `public/styles/static-policy.css` = **18,918 바이트**.
-- 두 파일 모두 **`origin/main` 커밋본과 바이트 동일**하다. 즉 내 작업 트리의 오염이 아니라 **origin/main 자체가 이 상태**다. 선행 결함이다.
-- `grep -rn "style-sync" .github/workflows/` → **참조 0건**. 이 가드는 CI 에서 한 번도 돌지 않는다. 그래서 main 이 green 인 채로 이 불일치가 유지된다.
+#### 정본 판정 — **생성 규칙이 이긴다** (2026-09-19 실측)
 
-**미확인**
-- 어느 쪽이 정본인지. 미러가 두 배인 걸 보면 `sync:public` 의 **연결(concatenate) 단계**가 root 원본에 무언가를 덧붙여 미러를 만드는 것으로 보이는데(`[static-policies] generated 6 pages from current content` 로그가 근처에서 나온다), 그렇다면 **바이트 비교 가드와 생성 규칙이 서로 모순**이다. 생성기 쪽을 읽어서 확정해야 한다.
-- 이 불일치가 **언제부터** 인지. `git log --follow` 로 추적 필요.
+`public/styles/static-policy.css` 는 **미러가 아니라 생성물**이다. [scripts/design/build-static-policy-pages.mjs:50-54](../../scripts/design/build-static-policy-pages.mjs#L50-L54) 가 이렇게 쓴다:
 
-**볼 곳**
-- [scripts/verify-style-sync.mjs](../../scripts/verify-style-sync.mjs) — 바이트 비교 로직
-- [scripts/sync-legacy-static-to-public.mjs](../../scripts/sync-legacy-static-to-public.mjs) — `static-policy` 를 생성하는 단계
-- `styles/static-policy.css` · `public/styles/static-policy.css`
-
-**검증**
-```powershell
-npm run verify:style-sync
-git log --oneline --follow -- styles/static-policy.css | head
-git show origin/main:public/styles/static-policy.css | Measure-Object -Character
+```js
+const styles = (fs.existsSync(compiledCssPath) ? fs.readFileSync(compiledCssPath, 'utf8') + '\n' : '')
+  + fs.readFileSync('styles/static-policy.css', 'utf8');
+fs.writeFileSync('public/styles/static-policy.css', styles);
 ```
 
-**위험도 🟠** — 고치는 방향에 따라 갈린다. 가드의 예외 목록에 넣는 건 GREEN, 생성 규칙을 바꾸는 건 배포 산출물이 바뀌므로 RED.
-🔴 **CI 게이트 추가는 지시 없이 하지 않는다**(CLAUDE.md). 배선하려면 사용자에게 먼저 물을 것.
+바이트로 확인했다 — 미러 18,918B = **컴파일 접두부 9,207B + root 9,711B**, 그리고 `mirror.endsWith(root) === true`. 접두부는 `/* app/components/PolicyGuide.module.css */` 로 시작하는 esbuild `local-css` 산출물(`build-cache/static-policies/pages.css`)이다.
+
+[scripts/sync-legacy-static-to-public.mjs:1252](../../scripts/sync-legacy-static-to-public.mjs#L1252) 의 주석이 순서를 못박는다 — *"Generate policy documents **after** root assets are mirrored so their compiled stylesheet is not overwritten."* 즉 `sync:public` 은 (1) root→미러 **복사**로 둘을 잠깐 같게 만들었다가 (2) 마지막에 concat 으로 **덮어쓴다.** **바이트 동일은 목표 상태가 아니라 동기화 도중의 깨진 중간 상태다.** §3 에 적힌 "sync 가 미러를 18,918 → 9,711 로 잘라 놓고 죽었다" 사고가 바로 (1)에서 멈춘 것이다.
+
+결론: 이 파일에 대해 **바이트 비교는 구조적으로 영영 실패한다.** 가드의 면제 3종(`globals.css` 오버라이드 · pointer `@import` · `@tailwind` 소스) 어디에도 해당하지 않아 매번 물었다.
+
+#### 한 것
+
+가드에 `concatGeneratedMirrors = new Set(["static-policy.css"])` 를 두고, **바이트 비교를 건너뛰는 대신** "미러가 root 원본으로 끝나고 그보다 길다"를 단언한다.
+
+**🔴 건너뛰지 않은 이유** — 그냥 면제하면 이 파일의 미러 신선도를 아무도 안 본다(`verify:public-mirror-fresh` 는 `styles/` 를 아예 보지 않는다 — 전수 grep 0건). `endsWith` + 길이 단언은 실제 실패 모드 둘을 그대로 문다. **변이로 확인했다**(원칙 10, 추적 파일 미변경 · 스크래치 사본에서):
+
+| 변이 | 결과 |
+|---|---|
+| 변이 없음(정상) | `exit 0` |
+| 미러를 root 로 잘라 놓음(= sync 중단 사고 재현) | **`exit 1`** |
+| root 를 고치고 미러를 재생성하지 않음(= 낡은 미러) | **`exit 1`** |
+| 원복 | `exit 0` |
+
+목록에 없는 CSS 는 종전대로 바이트 비교라 **새 생성물이 조용히 통과하지 않는다**(fail-closed, 원칙 10).
+
+**검증** — `node scripts/verify-style-sync.mjs` → `OK: checked 27 mirrored CSS files, matched 27, generated=1/1`. `npm run check:fast` 통과(jest 282 suites / 3982 tests).
+
+#### 🔴 남은 것 — CI 배선은 **하지 않았다**
+
+`grep -rn "style-sync" .github/workflows/` 참조 0건은 사고가 아니라 **등록된 설계**다. [scripts/verify-guard-wiring.mjs:141](../../scripts/verify-guard-wiring.mjs#L141) 이 `verify:style-sync` 를 `UNWIRED_BY_DESIGN` 의 *"리포트·감사 도구. 사람이 읽으라고 만든 것이지 통과/실패를 가르지 않는다"* 버킷에 `"스타일 미러 수동 점검 도구"` 사유로 올려 뒀다. 그래서 이제 **초록이지만 여전히 아무것도 막지 않는다.**
+
+배선하려면 (a) 그 버킷에서 내리고 (b) 워크플로에 스텝을 넣어야 하는데, **게이트 추가는 사용자 승인 사항이다**(CLAUDE.md, `ci-gates-scope`). 이제는 통과하는 가드라 승격 후보로서의 조건은 갖췄다 — 물어볼 것.
+
+**언제부터였나** — `ffcc3626a` 까지는 둘 다 6,636B 로 동일했고, `1bf10bec6`(*feat(ui): unify public pages with flower pig (#1843)*, 2026-09-09)에서 미러에 440줄이 들어오며 갈라졌다. 즉 app/** CSS 모듈이 정책 페이지에 들어온 시점이다.
 
 ---
 
