@@ -48,7 +48,7 @@
 <!-- 앱(Capacitor) 판별 정본. checkout-entry 와 셸 인라인이 진입 분기에서 읽으므로 그보다 먼저 둔다.
      🔴 defer 금지 — 아래 부팅 게이트(cd-early-runtime-class-hoist)가 파싱 시점에 isApp() 을 부른다. -->
       <script src="/js/core/app-context.js?v=build-bcd47d1d364b"></script>
-      <script src="/js/core/checkout-entry.js?v=build-ab6a0b8151da" defer></script>
+      <script src="/js/core/checkout-entry.js?v=build-5061691e7f06" defer></script>
 <!-- GA4 측정 ID. 값을 채우면 그 즉시 계측이 켜지고, 비어 있으면 analytics.js 가 통째로 no-op 이다
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
@@ -945,7 +945,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="10년 경력 명리학자 박병하가 운영하는 무료 사주, 꿀꿀운세. 생년월일만 넣으면 무료 사주팔자·만세력·오늘의 운세·타로·궁합에 자미두수·숙요점·베다점까지 한자리에서 보고, 일간의 강약과 용신을 잡아 대운·세운의 흐름으로 재물운·연애운을 읽습니다.">
 <meta property="og:url" content="https://code-destiny.com/">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f8f2982c6712">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c0116e5b32f3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
@@ -954,7 +954,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="무료 사주·타로·궁합·자미두수 운세 | 꿀꿀운세 CODE DESTINY">
 <meta name="twitter:description" content="10년 경력 명리학자 박병하가 운영하는 무료 사주, 꿀꿀운세. 무료 사주팔자·만세력·오늘의 운세·타로·궁합에 자미두수·숙요점·베다점까지, 일간의 강약과 용신을 잡아 대운·세운으로 재물운·연애운을 읽습니다.">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f8f2982c6712">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c0116e5b32f3">
 <meta name="twitter:image:alt" content="꿀꿀 운세 HONEY FORTUNE — 꽃돼지 연이 카메오와 서비스 소개가 담긴 CODE DESTINY 명함 카드">
 <script type="application/ld+json">
 {
@@ -16875,7 +16875,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-f8f2982c6712" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-c0116e5b32f3" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -20527,7 +20527,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-86ecffcb812f" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-1653bb101a91" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4bc5b80fb7f9" data-marker="fortune-gateway-v1"></script>
@@ -20543,7 +20543,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-28208b3a26fe" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-34cd92afe060" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-dd282ed418b1" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-a2fe793e0b11"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
@@ -20669,7 +20669,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-f8f2982c6712',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-c0116e5b32f3',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -21292,6 +21292,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     if (!api || typeof api.resolveDirectPayFields !== 'function') return fallback;
     try { return api.resolveDirectPayFields(configPayMethod) || fallback; } catch (_payMethodError) { return fallback; }
   }
+  // 🔴 단건 환불·청약철회 동의 여부. 판정 정본은 공유 코어(refundConsentAgreed)이며 폴백은 false 다 —
+  // 서버는 동의 없는 주문을 거절하지 않고 '동의 기록 없음'으로 남기므로, 모듈이 안 붙었을 때
+  // 손으로 true 를 지어내는 것보다 기록을 비우는 쪽이 안전하다.
+  function _cdRefundConsentAgreed() {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.refundConsentAgreed !== 'function') return false;
+    try { return api.refundConsentAgreed() === true; } catch (_refundConsentError) { return false; }
+  }
   // 🔴 결제창 단일 인스턴스 정본도 /js/core/checkout-entry.js 하나다(React·독립 정적과 공유).
   // 셸은 ① 새 결제창을 붙이기 직전에 남의 고아 노드를 걷어내고 ② 자기 모달을 거기 등록해 다른 두
   // 런타임이 볼 수 있게 한다. 셸 안에 또 다른 락을 만들지 않는다(중첩 금지).
@@ -21766,6 +21774,14 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       && __cdPaymentCardsApi && typeof __cdPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
       ? __cdPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: escapeHtml })
       : '';
+    // 🔴 단건 환불·청약철회 동의 줄. 마크업과 잠금 배선 모두 공유 코어 하나가 소유한다
+    // (js/core/checkout-entry.js buildRefundConsentCheckboxHtml / bindRefundConsentGate).
+    // 2단계와 같은 조건이다: PG 단건이 실제로 열릴 때만 그린다 — 앱스토어 결제는 스토어 환불
+    // 정책이 적용되고, 코어가 없으면 빈 문자열 → 잠금도 없음 → 종전 동작 그대로다.
+    var refundConsentHtml = (allowDirectChoice && !directUsesAppStore
+      && __cdPaymentCardsApi && typeof __cdPaymentCardsApi.buildRefundConsentCheckboxHtml === 'function')
+      ? __cdPaymentCardsApi.buildRefundConsentCheckboxHtml({ escape: escapeHtml })
+      : '';
     // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
     // 기존 .cd-direct-payment-sub 스타일을 그대로 상속하므로 CSS 추가는 없다.
     var passOutcomeNote = String(opts.passOutcomeNote || '').trim();
@@ -21803,6 +21819,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           '</div>' +
           passOutcomeNoteHtml +
           '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(_cdPaymentI18n('payment.directModal.note.basis', '결제 금액 {amount}', { amount: directPaymentBasisLabel })) + '</span>' + (allowPassChoice ? '<span>' + escapeHtml(_cdPaymentI18n('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' : '<span>' + escapeHtml(_cdPaymentI18n('payment.directModal.note.directOnly', '이 콘텐츠는 카드 결제로 열려요.')) + '</span>') + '</div>' +
+          refundConsentHtml +
           '<div class="cd-direct-payment-choice-grid" data-choice-step="options">' +
           orderedChoiceCardsHtml +
           '</div>' +
@@ -22194,8 +22211,19 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       _cdWarmDirectPayMethodTiles(modal);
       // 선택 모달이 DOM에 붙은 뒤 전환 억제를 해제한다.
       _cdEndPreCheckoutWaitUiSuppression();
+      // 🔴 환불 동의 잠금. 미체크 상태에서는 [data-mode="direct"] 카드가 진짜 disabled 다 —
+      // 공유 코어가 없거나 체크박스를 안 그렸으면 아무것도 잠그지 않는다(종전 동작).
+      // 🔴 appendChild 와 _cdEndPreCheckoutWaitUiSuppression() **사이**에는 끼우지 않는다 —
+      // verify-paid-gate-ui-regression 이 그 두 줄의 근접(300자)을 리터럴로 고정한다.
+      if (__cdPaymentCardsApi && typeof __cdPaymentCardsApi.bindRefundConsentGate === 'function') {
+        __cdPaymentCardsApi.bindRefundConsentGate({ root: modal });
+      }
       // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 카드). 하드코딩된 direct 포커스 대체.
-      var first = modal.querySelector('.cd-direct-payment-option:not([disabled])') || modal.querySelector('[data-mode="direct"]');
+      // 🔴 동의 체크박스가 있으면 그것이 첫 포커스다 — 미체크면 단건 카드가 disabled 라
+      // 포커스를 받지 못하고, 그러면 키보드 사용자는 모달 안에 걸 곳이 없다.
+      var first = modal.querySelector('[data-refund-consent-input]')
+        || modal.querySelector('.cd-direct-payment-option:not([disabled])')
+        || modal.querySelector('[data-mode="direct"]');
       if (first && typeof first.focus === 'function') first.focus();
       // 🔴 결제창은 열릴 때 월정석 잔량을 조회하지 않는다(자동 조회·잔여바 제거, 2026-08-12). 간헐
       // 503/타임아웃의 원인이던 그 /api/billing/balance 왕복은 여기서 나가지 않는다 — 최종 판정은 어차피
@@ -23161,6 +23189,9 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
       // 🔴 주문에 기록되는 결제수단 코드. 고른 카드가 자기 코드를 선언했으면 그것을 쓴다 —
       // 카카오페이를 card_general 로 기록하면 결제내역·환불 화면이 "카드 결제"로 뜬다.
       paymentMethod: _cdResolveDirectPayFields('').orderMethod || 'card_general',
+      // 🔴 결제 전 환불·청약철회 고지 동의 증빙(전자상거래법 17·22조). 서버가 주문에 기록한다
+      // (worker/payments/orders.js refundConsent, source "direct_modal").
+      refundConsent: _cdRefundConsentAgreed(),
       requestId: String(opts.requestId || '').trim()
     }, opts.checkoutPayload || {});
     // 🔴 결제 시도별 키(opts.idempotencyKey)를 requestId 보다 먼저 본다. requestId 는 게이트 재제안
@@ -33612,7 +33643,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-c63f87a37894" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-4b732eefb1fd"></script>
+<script type="module" src="/js/app.js?v=build-018fe7734683"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -34036,7 +34067,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-f8f2982c6712',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-c0116e5b32f3',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34081,7 +34112,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-f8f2982c6712'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-c0116e5b32f3'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},

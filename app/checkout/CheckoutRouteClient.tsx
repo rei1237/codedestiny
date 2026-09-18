@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { refreshAuth } from "@/app/_lib/auth-store";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getCheckoutCopy } from "./checkout-copy";
 import styles from "./checkout.module.css";
@@ -12,6 +13,13 @@ const CheckoutClient = dynamic(() => import("./CheckoutClient"), {
 });
 
 export default function CheckoutRouteClient() {
+  // CheckoutClient 는 next/dynamic 청크라 다운로드 후에야 마운트된다 — 그 안의 refreshAuth() 를
+  // 기다리면 청크 로드 → 인증 확인이 직렬이 된다. 청크 로드와 병렬로 여기서 먼저 시작해 둔다
+  // (refreshAuth 는 인플라이트 요청을 병합하므로 CheckoutClient 마운트 시 재호출해도 안전하다).
+  useEffect(() => {
+    void refreshAuth();
+  }, []);
+
   return <CheckoutClient />;
 }
 

@@ -268,6 +268,25 @@ declare const checkoutEntry: {
     escape?: (value: unknown) => string;
   }): string;
   /**
+   * 단건 결제 환불·청약철회 동의 체크박스 `<label>` HTML(카드 그리드 **위**에 놓는다).
+   * 🔴 `data-mode` 를 갖지 않는다 — 세 렌더러가 `[data-mode]` 를 "누르면 모달을 닫는" 노드로
+   *    일괄 처리하므로, 붙이면 동의하려다 결제창이 닫힌다.
+   */
+  buildRefundConsentCheckboxHtml(input: {
+    escape?: (value: unknown) => string;
+  }): string;
+  /**
+   * 체크박스 ↔ 단건 카드 잠금 배선. 결제창을 DOM 에 붙인 직후 한 번 부른다.
+   * 미체크면 `[data-mode="direct"]` 카드가 **진짜 disabled** 다(aria-disabled 가 아니다).
+   * 체크박스가 없으면 아무것도 잠그지 않고 false 를 돌려준다(종전 동작).
+   */
+  bindRefundConsentGate(input: { root?: Element | null }): boolean;
+  /**
+   * 지금 단건 환불 동의 상태. checkout 요청 본문의 `refundConsent` 정본이며,
+   * 서버는 동의 없는 주문을 거절하지 않고 '동의 기록 없음'으로 남긴다.
+   */
+  refundConsentAgreed(): boolean;
+  /**
    * 결제창의 추천 선택지와 카드 순서. 순수 함수이며 서버를 부르지 않는다 —
    * 표시 우선순위일 뿐 접근 권한 판정이 아니다(이용권 판정은 카드 클릭 시 서버가 한다).
    */

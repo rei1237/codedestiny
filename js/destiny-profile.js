@@ -2964,6 +2964,14 @@
     if (!api || typeof api.resolveDirectPayFields !== 'function') return fallback;
     try { return api.resolveDirectPayFields(configPayMethod) || fallback; } catch (_payMethodError) { return fallback; }
   }
+  // 🔴 단건 환불·청약철회 동의 여부(셸 _cdRefundConsentAgreed 와 같은 계약). 판정 정본은 공유
+  // 코어이고 폴백은 false 다 — 서버는 동의 없는 주문을 거절하지 않고 '기록 없음'으로 남기므로,
+  // 모듈이 안 붙었을 때 true 를 지어내는 것보다 비우는 쪽이 안전하다.
+  function _dpRefundConsentAgreed() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.refundConsentAgreed !== 'function') return false;
+    try { return api.refundConsentAgreed() === true; } catch (_refundConsentError) { return false; }
+  }
   // 서버 결제 config 의 채널키 유무를 수단 표에 곱한다(정본 setDirectPayMethodAvailability).
   // 🔴 모르면 막지 않는다 — config 가 아직/영영 안 오면 종전대로 전부 열려 있다.
   function _dpApplyDirectPayMethodAvailability(config) {
@@ -4079,6 +4087,9 @@
       coinPriceBasis: coinPrice,
       // 🔴 셸(index.html)과 같은 규칙. 고른 카드가 자기 주문 기록 코드를 선언했으면 그것을 쓴다.
       paymentMethod: _dpResolveDirectPayFields('').orderMethod || 'card_general',
+      // 🔴 결제 전 환불·청약철회 고지 동의 증빙(전자상거래법 17·22조). 서버가 주문에 기록한다
+      // (worker/payments/orders.js refundConsent, source "direct_modal").
+      refundConsent: _dpRefundConsentAgreed(),
       requestId: String(opts.requestId || '').trim(),
     }, opts.checkoutPayload || {});
 
@@ -12607,6 +12618,14 @@
       && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
       ? __dpPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: esc })
       : '';
+    // 🔴 단건 환불·청약철회 동의 줄. 마크업과 잠금 배선 모두 공유 코어 하나가 소유한다
+    // (js/core/checkout-entry.js buildRefundConsentCheckboxHtml / bindRefundConsentGate).
+    // 2단계와 같은 조건이다: PG 단건일 때만 그린다 — 앱스토어 결제는 스토어 환불 정책이
+    // 적용되고, 코어가 없으면 빈 문자열 → 잠금도 없음 → 종전 동작 그대로다.
+    var refundConsentHtml = (!directUsesAppStore
+      && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildRefundConsentCheckboxHtml === 'function')
+      ? __dpPaymentCardsApi.buildRefundConsentCheckboxHtml({ escape: esc })
+      : '';
     // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
     // 계약·클래스는 셸 index.html 의 passOutcomeNote 와 같고, CSS 는 공유 코어
     // (js/core/checkout-entry.js '.cd-direct-payment-sub--reason')가 이미 갖고 있어 추가가 없다.
@@ -12657,6 +12676,7 @@
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: _dpCheckoutFormatKrw(amountKrw) })) + '</span>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
           '</div>' +
+          refundConsentHtml +
           '<div class="cd-direct-payment-choice-grid" data-choice-step="options">' +
             orderedChoiceCardsHtml +
           '</div>' +
@@ -12892,6 +12912,11 @@
       // 이전 결제 시도가 남긴 결제수단 선택은 여기서 비운다(셸과 같은 계약 + checkout-entry TTL 이중 방어).
       _dpClearSelectedDirectPayMethod();
       document.body.appendChild(root);
+      // 🔴 환불 동의 잠금(셸과 같은 자리·같은 계약). 미체크 상태에서는 [data-mode="direct"] 카드가
+      // 진짜 disabled 다 — 코어가 없거나 체크박스를 안 그렸으면 아무것도 잠그지 않는다.
+      if (__dpPaymentCardsApi && typeof __dpPaymentCardsApi.bindRefundConsentGate === 'function') {
+        __dpPaymentCardsApi.bindRefundConsentGate({ root: root });
+      }
       // 전용 채널키가 없는 수단을 **주문을 만들기 전에** 타일에서 내린다(셸과 같은 자리·같은 계약).
       _dpWarmDirectPayMethodTiles(root);
       choiceLockToken = _dpAcquireChoiceLock(root);

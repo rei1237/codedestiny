@@ -15,6 +15,7 @@ import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
 import { deriveOrderId } from "../../worker/payments/orders.js";
 import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
+import { ORDER_POLICY_VERSIONS } from "../../worker/payments/policy-versions.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -245,6 +246,33 @@ test("모르는 상품: 404 PRODUCT_NOT_FOUND", async () => {
   const { response, payload } = await postPrepare(db, { featureKey: "no-such-feature-key-xyz" });
   expect(response.status).toBe(404);
   expect(payload.code).toBe("PRODUCT_NOT_FOUND");
+});
+
+/* 환불·청약철회 동의는 단건 주문에도 남는다(전자상거래법 제22조 입증책임). 🔴 **없다고 거절하지
+   않는다** — 400 으로 막으면 스토어에 남은 구버전 앱·낡은 정적 셸이 단건 결제를 통째로 못 한다
+   (이용권 prepare 와 같은 판단). 동의 전 결제 시작을 막는 것은 결제창 UI(bindRefundConsentGate)
+   이고, 서버는 "동의 없이 만들어진 주문"을 그대로 보이게 남긴다. */
+test("환불 동의를 보내면 단건 주문에 기록하고, 안 보내도 거절하지 않는다(null 로 남긴다)", async () => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+
+  const agreed = await postPrepare(db, {
+    paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "consent-yes", refundConsent: true,
+  });
+  expect(agreed.response.status).toBe(201);
+  const agreedRow = db.rows.find((r) => r.merchantUid === agreed.payload.order.merchantUid);
+  expect(agreedRow.refundConsent).toMatchObject({
+    agreed: true,
+    termsVersion: ORDER_POLICY_VERSIONS.terms,
+    source: "direct_modal", // 이용권은 pass_modal — 어느 결제창에서 받은 동의인지 남긴다
+  });
+  expect(agreedRow.refundConsent.agreedAt).toBeInstanceOf(Date);
+
+  const silent = await postPrepare(db, {
+    paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "consent-absent",
+  });
+  expect(silent.response.status).toBe(201);
+  expect(db.rows.find((r) => r.merchantUid === silent.payload.order.merchantUid).refundConsent).toBeNull();
 });
 
 /* 해외 발급 카드 결제창 노출 판정(해외카드 1단계 C4). 서버가 판정해 주문에 한 번 박고($setOnInsert),

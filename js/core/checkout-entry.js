@@ -141,6 +141,12 @@
       // 금색으로 들어올린다 — 결제 임계화면에서 눌러야 할 것이 어디인지 보여야 한다.
       '.cd-direct-payment-legal a{color:rgba(232,200,138,.82);text-decoration:underline;text-underline-offset:2px}',
       '.cd-direct-payment-legal a:hover{color:#E8C88A}',
+      // 단건 결제 환불·청약철회 동의 체크박스(data-refund-consent). 카드 그리드 **위**에 놓여
+      // 체크 전에는 단건 카드가 진짜 disabled 다 — 이용권 모달(app/points/PointsClient.tsx)의
+      // 동의 줄과 같은 계약이고 시각 언어도 그쪽(금색 테두리 + 옅은 금색 배경)을 따른다.
+      '.cd-direct-payment-consent{display:flex;align-items:flex-start;gap:8px;margin:0 0 9px;padding:11px 13px;border:1px solid rgba(232,200,138,.35);border-radius:14px;background:rgba(232,200,138,.1);color:#F0DFB8;font-size:12px;font-weight:700;line-height:1.5;cursor:pointer;word-break:keep-all}',
+      '.cd-direct-payment-consent input{flex:0 0 auto;width:16px;height:16px;margin:2px 0 0;accent-color:#E8C88A;cursor:pointer}',
+      '.cd-direct-payment-consent input:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
       '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
       '.cd-direct-payment-cancel{border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
       '.cd-direct-payment-cancel:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
@@ -521,6 +527,90 @@
       );
     }
     return '<p class="cd-direct-payment-legal" data-policy-links>' + parts.join(" · ") + "</p>";
+  }
+
+  // ── 단건 결제 환불·청약철회 동의 ─────────────────────────────────────────────────────
+  //
+  // 🔴 전자상거래법 제17조 청약철회 제한을 **결제 전에** 고지하고 동의받았다는 증빙이고, 다투는
+  //    자리는 제22조(사업자 입증책임)다. 서버 기록은 worker/payments/orders.js 의 createOrder 가
+  //    `refundConsent`(policy-versions.js buildRefundConsentRecord, source "direct_modal")로 남긴다.
+  //    이용권 레일이 먼저 같은 계약을 갖췄고(source "pass_modal"), 여기가 남은 절반이다.
+  // 🔴 서버는 동의 없는 주문을 거절하지 않는다(fail-open — 구버전 앱 보호). 그 근거를 지키는 것이
+  //    이 UI 다: 체크 전에는 단건 카드가 **진짜 disabled** 여야 한다(aria-disabled 가 아니다).
+  //    그래서 마크업 빌더와 잠금 배선을 둘 다 여기 하나에 두고 세 렌더러가 부른다.
+  // 🔴 data-mode 를 붙이지 않는다 — 세 렌더러가 [data-mode] 를 "누르면 모달을 닫는" 노드로
+  //    일괄 처리하므로, 체크박스나 그 래퍼에 붙이면 동의하려다 결제창이 닫힌다.
+  var REFUND_CONSENT_KEY = "__cdDirectRefundConsent";
+  var REFUND_CONSENT_TTL_MS = 600000;
+
+  /**
+   * 단건 결제 동의 체크박스 한 줄. 카드 그리드 **위**에 놓는다 — 잠기는 대상(단건 카드)이
+   * 바로 아래에 보여야 "왜 안 눌리는지"가 설명된다.
+   */
+  function buildRefundConsentCheckboxHtml(input) {
+    var opts = input || {};
+    var escape = opts.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
+    return (
+      '<label class="cd-direct-payment-consent" data-refund-consent>'
+      + '<input type="checkbox" data-refund-consent-input>'
+      + "<span>" + escape(checkoutText(
+        "payment.directModal.legal.refundConsent",
+        "단건 결제한 콘텐츠는 결제 완료 즉시 열리며, 열람이 시작된 뒤에는 환불·청약철회가 제한될 수 있음을 확인했습니다.",
+      )) + "</span></label>"
+    );
+  }
+
+  /** 지금 동의 상태. TTL 이 지났으면 false — 결제창을 오래 열어 둔 채 보낸 주문에 동의를 붙이지 않는다. */
+  function refundConsentAgreed() {
+    var win = runtimeWindow();
+    if (!win) return false;
+    var record = win[REFUND_CONSENT_KEY];
+    if (!record || record.agreed !== true) return false;
+    if (Date.now() - Number(record.at || 0) > REFUND_CONSENT_TTL_MS) {
+      win[REFUND_CONSENT_KEY] = null;
+      return false;
+    }
+    return true;
+  }
+
+  function setRefundConsentAgreed(agreed) {
+    var win = runtimeWindow();
+    if (!win) return false;
+    win[REFUND_CONSENT_KEY] = agreed === true ? { agreed: true, at: Date.now() } : null;
+    return agreed === true;
+  }
+
+  /**
+   * 체크박스 ↔ 단건 카드 잠금 배선. 세 렌더러가 결제창을 DOM 에 붙인 직후 한 번 부른다.
+   *
+   * 🔴 잠그는 것은 `[data-mode="direct"]` **하나뿐**이다. 이용권·월정석 카드와 취소는 환불 동의와
+   *    무관하고(이용권은 자기 모달에서 따로 동의를 받는다), 여기서 같이 잠그면 결제 없이 열리는
+   *    경로까지 막는다.
+   * 🔴 `disabled` 속성으로 잠근다. aria-disabled 는 클릭·키보드 활성화를 막지 않아 동의 없는
+   *    주문이 그대로 나간다 — 그러면 서버 fail-open 의 근거가 사라진다.
+   * 🔴 체크박스가 없는 렌더(코어가 없거나 단건이 불가한 경우)에서는 아무것도 잠그지 않는다 —
+   *    종전 동작 그대로다.
+   */
+  function bindRefundConsentGate(input) {
+    var opts = input || {};
+    var root = opts.root;
+    if (!root || typeof root.querySelector !== "function") return false;
+    var box = root.querySelector("[data-refund-consent-input]");
+    var card = root.querySelector('[data-mode="direct"]');
+    setRefundConsentAgreed(false);
+    if (!box) return false;
+    box.checked = false;
+    var apply = function () {
+      var agreed = box.checked === true;
+      setRefundConsentAgreed(agreed);
+      if (!card) return;
+      card.disabled = !agreed;
+      if (agreed) card.classList.remove("is-disabled");
+      else card.classList.add("is-disabled");
+    };
+    apply();
+    box.addEventListener("change", apply);
+    return true;
   }
 
   function runtimeWindow() {
@@ -1876,6 +1966,9 @@
     formatReferenceAmount: formatReferenceAmount,
     buildOverseasChargeNoticeHtml: buildOverseasChargeNoticeHtml,
     buildPaymentPolicyLinksHtml: buildPaymentPolicyLinksHtml,
+    buildRefundConsentCheckboxHtml: buildRefundConsentCheckboxHtml,
+    bindRefundConsentGate: bindRefundConsentGate,
+    refundConsentAgreed: refundConsentAgreed,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,

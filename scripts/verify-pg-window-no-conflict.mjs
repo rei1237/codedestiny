@@ -313,6 +313,12 @@ await check("결제수단을 고르는 순간 결제창 노드가 모두 잠긴�
   const direct = window.document.querySelector('[data-mode="direct"]');
   if (!direct) throw new Error("단건 카드가 렌더되지 않았다");
   const stepOneCards = Array.from(window.document.querySelectorAll("[data-mode]"));
+  // 단건 카드는 환불·청약철회 동의 전에는 진짜 disabled 다 — 실제 사용자처럼 먼저 동의한다.
+  // (잠금 자체는 verify-checkout-pass-card ⑬ 이 고정한다.)
+  const consent = window.document.querySelector("[data-refund-consent-input]");
+  if (!consent) throw new Error("단건 환불·청약철회 동의 체크박스가 없다");
+  consent.checked = true;
+  consent.dispatchEvent(new window.Event("change", { bubbles: true }));
   direct.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   await flush(10);
   const methodStep = window.document.querySelector('[data-choice-step="methods"]');

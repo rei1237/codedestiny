@@ -1,11 +1,17 @@
 "use client";
 
 /**
- * 영냥이(SoulCat) 단건 결제 호스트.
+ * 영냥이(SoulCat) 단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
  *
  * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
  * 가리킨다 → 여기서 CD 결제창을 **단건(카드·카카오페이) 전용**으로 연다 → 결제가 끝나면 returnTo 로 돌아간다.
  * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
+ *
+ * 이 페이지는 두 진입점을 공유한다 — `isSoulCatMode = !params.requestId`로 분기한다.
+ * - **SoulCat 모드**(`requestId` 없음, featureKey+returnTo만 옴): 위 흐름 그대로. 가용성 확인·웹훅
+ *   선확인을 스킵한다(SoulCat 쪽에 대응하는 CD 상담 레코드가 없어 조회 자체가 불가능하기 때문).
+ * - **CD 내부 모드**(`requestId`=64자리 상담 id): CD 자체 영냥이 상품이 결제 전 만들어 둔 상담
+ *   레코드의 id로 이 페이지를 연다 — `available`/웹훅 선확인이 그 레코드를 직접 조회한다.
  *
  * 🔴 단건 전용은 두 겹이다. ① 서버: `paymentScope:"direct_only"` 상품은 이용권·월정석 게이트가 402 로 거부
  *    (worker/payments/index.js). ② 이 호출부: `allowedPaymentModes:["direct"]` + 이용권 선검사 3종 off 로
@@ -78,8 +84,15 @@ function redirectToLogin(): void {
   window.location.assign(`/login?next=${next}&returnTo=${next}&redirect=${next}`);
 }
 
+/** SoulCat 모드(requestId 없음)의 결정론적 requestId 재료. 서버 idempotency 키는 120자 상한만 있고
+ * charset 제약은 없다 — 이 정리는 가독성용이지 정확성 요건이 아니다. */
+function stableSlug(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "default";
+}
+
 export default function CheckoutClient() {
   const [params] = useState<CheckoutParams>(() => readParams());
+  const isSoulCatMode = !params.requestId;
   const auth = useAuthStore();
   const paymentLock=useRef(false);
   const [available,setAvailable]=useState(false);
@@ -119,7 +132,7 @@ export default function CheckoutClient() {
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
-    if (!params.requestId || !["portone_redirect", "paymentId", "payment_id", "imp_uid"].some(key => query.has(key))) return;
+    if (!["portone_redirect", "paymentId", "payment_id", "imp_uid"].some(key => query.has(key))) return;
     // A PG return cannot wait for the provider's idle prewarm. Loading the shared
     // runtime confirms the original order and invokes the registered resume handler.
     let active = true;
@@ -129,7 +142,7 @@ export default function CheckoutClient() {
       if (active) setGate({ phase: "error", message: copy.errResumePrepare });
     });
     return () => { active = false; };
-  }, [params.requestId, copy]);
+  }, [copy]);
 
   useEffect(() => {
     try {
@@ -146,6 +159,7 @@ export default function CheckoutClient() {
   }, [pricing, authSettled, signedIn]);
 
   useEffect(()=>{
+    if(isSoulCatMode){setAvailable(true);setChecked(true);return;}
     if(!signedIn||!params.requestId){setChecked(true);return;}
     let active=true;
     Promise.all([fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`),fortuneApi<{products:{cdFeatureKey:string;available:boolean}[]}>('products')]).then(([record,catalog])=>{
@@ -155,21 +169,25 @@ export default function CheckoutClient() {
       setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
     }).catch(e=>{if(active)setGate({phase:'error',message:e.message});}).finally(()=>{if(active)setChecked(true);});
     return ()=>{active=false;};
-  },[signedIn,params,copy]);
+  },[isSoulCatMode,signedIn,params,copy]);
 
   const startPayment = useCallback(async () => {
-    if (!pricing || !available || !params.requestId || paymentLock.current) return;
+    if (!pricing || !available || paymentLock.current) return;
     paymentLock.current=true;
     setGate({ phase: "paying" });
     try {
-      // Recover a webhook-confirmed payment before offering another payment window.
-      try {
-        const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}/activate`,{});
-        if(fortune.paid){window.location.assign(params.returnTo);return;}
-      } catch(error) {
-        if(!(error instanceof FortuneApiError && error.status===402))throw error;
+      if (!isSoulCatMode) {
+        // Recover a webhook-confirmed payment before offering another payment window.
+        try {
+          const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}/activate`,{});
+          if(fortune.paid){window.location.assign(params.returnTo);return;}
+        } catch(error) {
+          if(!(error instanceof FortuneApiError && error.status===402))throw error;
+        }
       }
-      const requestId = `yn-${params.requestId}`;
+      const requestId = isSoulCatMode
+        ? `yn-soulcat-${params.featureKey}-${stableSlug(params.returnTo)}`
+        : `yn-${params.requestId}`;
       const result = await runPaidAccessGate({
         featureKey: pricing.featureKey,
         reason: "yeongnyangi-checkout",
@@ -193,7 +211,7 @@ export default function CheckoutClient() {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
       setGate({phase:'error',message:error instanceof Error?error.message:copy.errPaymentUnknown});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params, copy]);
+  }, [pricing, available, buildResume, params, copy, isSoulCatMode]);
 
   const product = products.find(item => item.cdFeatureKey === params.featureKey);
   return (
@@ -209,7 +227,7 @@ export default function CheckoutClient() {
         <div className={styles.paper}>
           <h1 id="checkout-title">{copy.title}</h1>
           <p className={styles.intro}>{copy.intro}</p>
-          {!pricing || !product || !params.requestId ? (
+          {!pricing || !product ? (
             <div className={styles.notice}>
               <h2>{copy.noticeTitle}</h2>
               <p>{copy.noticeBody}</p>

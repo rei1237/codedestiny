@@ -162,6 +162,10 @@ const BUILDER_MARKERS = [
   "data-policy-links",
   // 정책 문서는 새 탭으로만 연다. 같은 탭으로 나가면 진행 중인 결제가 끊긴다.
   'target="_blank" rel="noopener noreferrer"',
+  // 단건 환불·청약철회 동의 체크박스. [data-mode] 가 **아닌** 훅이어야 한다 — [data-mode] 는
+  // 누르면 모달을 닫는 노드라, 동의하려고 누르면 결제창이 사라진다.
+  "data-refund-consent",
+  "data-refund-consent-input",
 ];
 
 // 각 렌더러가 자기 다이얼로그 템플릿에 직접 쓰는 것. 10개 파일 전수(미러 포함)로 본다.
@@ -255,7 +259,9 @@ const renderedSkeleton = (() => {
     },
   }) + checkoutEntry.buildDirectPayMethodStepHtml({ escape })
     // 정책 링크 줄도 같은 묶음으로 본다 — 렌더 결과로 봐야 링크 누락과 [data-mode] 혼입을 잡는다.
-    + checkoutEntry.buildPaymentPolicyLinksHtml({ escape });
+    + checkoutEntry.buildPaymentPolicyLinksHtml({ escape })
+    // 단건 환불 동의 줄도 같은 이유로 렌더 결과로 본다.
+    + checkoutEntry.buildRefundConsentCheckboxHtml({ escape });
 })();
 /**
  * 마커 전수 검사. 🔴 순수 함수로 둔 이유는 --self-test 가 **디스크를 건드리지 않고** 이 판정을
@@ -288,6 +294,64 @@ assertMarkersPresent(
   BUILDER_MARKERS,
   "공유 빌더가 방출해야 하는 뼈대",
 );
+
+// ── 2-a-1) 단건 환불·청약철회 동의: 잠금이 **진짜 disabled** 인가 ──────────────────
+//
+// 🔴 이 체크박스의 존재 이유는 서버 fail-open 이다 — worker/payments/index.js 의 prepare 는
+// 동의 없는 주문을 거절하지 않고 "동의 기록 없음"으로 남긴다(구버전 앱 보호). 그 설계가
+// 성립하려면 **화면에서** 미동의 결제가 불가능해야 한다. aria-disabled 로 바뀌는 순간
+// 클릭·키보드 활성화가 그대로 살아나므로, 여기서는 표시가 아니라 동작을 본다.
+// 🔴 DOM 스텁으로 실제 배선을 돌린다. 마커 grep 은 "체크박스가 있다"까지만 말해 준다.
+{
+  const hadWindow = Object.prototype.hasOwnProperty.call(globalThis, "window");
+  const savedWindow = globalThis.window;
+  try {
+    globalThis.window = {};
+    const escape = (value) => String(value === null || value === undefined ? "" : value);
+    const consentLine = checkoutEntry.buildRefundConsentCheckboxHtml({ escape });
+    assert.ok(
+      !consentLine.includes("data-mode"),
+      "단건 환불 동의 줄에 [data-mode] 가 붙었습니다 — 동의하려고 누르면 결제창이 닫힙니다.",
+    );
+    const changeHandlers = [];
+    const box = {
+      checked: true, // 잠금 배선이 열 때 반드시 **비워야** 한다(이전 결제 시도의 잔상 금지).
+      addEventListener: (type, fn) => { if (type === "change") changeHandlers.push(fn); },
+    };
+    // 🔴 setAttribute 도 받아 준다 — aria-disabled 로 갈아탄 변이가 TypeError 가 아니라
+    // 아래 disabled 단언에 걸려야 메시지가 원인을 말해 준다.
+    const card = { disabled: false, attrs: {}, setAttribute(name, value) { this.attrs[name] = value; }, classList: { add() {}, remove() {} } };
+    const root = {
+      querySelector: (selector) => {
+        if (selector.includes("data-refund-consent-input")) return box;
+        if (selector.includes('data-mode="direct"')) return card;
+        return null;
+      },
+    };
+    assert.ok(checkoutEntry.bindRefundConsentGate({ root }), "환불 동의 잠금 배선이 붙지 않았습니다.");
+    assert.equal(box.checked, false, "결제창을 열 때 동의 체크가 남아 있습니다 — 매번 새로 받아야 하는 동의입니다.");
+    assert.equal(
+      card.disabled,
+      true,
+      '미동의 상태인데 [data-mode="direct"] 카드가 disabled 가 아닙니다 — aria-disabled 는 클릭·키보드 활성화를 막지 못합니다.',
+    );
+    assert.equal(checkoutEntry.refundConsentAgreed(), false, "미동의인데 refundConsentAgreed() 가 true 입니다.");
+    box.checked = true;
+    for (const fn of changeHandlers) fn();
+    assert.equal(card.disabled, false, "동의했는데 단건 카드가 잠긴 채입니다.");
+    assert.equal(checkoutEntry.refundConsentAgreed(), true, "동의했는데 refundConsentAgreed() 가 false 입니다 — 주문에 기록이 안 남습니다.");
+    // 체크박스를 안 그린 화면(앱스토어 결제·구버전 코어)에서는 아무것도 잠그지 않는다.
+    assert.equal(
+      checkoutEntry.bindRefundConsentGate({ root: { querySelector: () => null } }),
+      false,
+      "체크박스가 없는 결제창에서 잠금 배선이 붙었다고 답했습니다.",
+    );
+    assert.equal(checkoutEntry.refundConsentAgreed(), false, "결제창을 다시 열었는데 이전 동의가 남아 있습니다.");
+  } finally {
+    if (hadWindow) globalThis.window = savedWindow;
+    else delete globalThis.window;
+  }
+}
 
 // ── 2-a-2) 정책 링크 줄: 로케일별 URL 이 **실재하는 라우트**인가 ────────────────────
 //
@@ -398,6 +462,19 @@ for (const { rel, label } of RENDERERS) {
     read(rel).includes("buildPaymentPolicyLinksHtml"),
     `${label} ${rel}: 결제창 정책 링크를 공유 빌더(buildPaymentPolicyLinksHtml)에 위임하지 않습니다.`,
   );
+}
+
+// 🔴 단건 환불 동의도 정본이 하나다 — 마크업(buildRefundConsentCheckboxHtml)과 잠금 배선
+// (bindRefundConsentGate) 둘 다 위임해야 한다. 마크업만 베껴 가면 체크박스는 보이는데
+// 단건 카드가 안 잠기고, 그러면 서버 fail-open 의 근거가 그 렌더러에서만 사라진다.
+for (const { rel, label } of RENDERERS) {
+  const source = read(rel);
+  for (const fn of ["buildRefundConsentCheckboxHtml", "bindRefundConsentGate"]) {
+    assert.ok(
+      source.includes(fn),
+      `${label} ${rel}: 단건 환불 동의를 공유 코어(${fn})에 위임하지 않습니다.`,
+    );
+  }
 }
 
 // 세 렌더러가 **모두** 써야 하는 키. 조건 분기와 무관하게 항상 렌더되는 문구다.
@@ -624,6 +701,13 @@ assert.deepEqual(
   "js/core/checkout-entry.js: 결제수단 2단계 문구 키 집합이 계약과 다릅니다."
     + " 키를 늘렸다면 CORE_METHOD_KEYS 에도 등록하세요(12로케일 검사가 그 목록을 탑니다).",
 );
+// 🔴 빌더가 사라지면 이 키도 coreCopy 에서 사라지고, 아래 12로케일 검사는 대상 하나가
+//    줄어든 채 그대로 통과한다(= fail-open). 존재를 여기서 못박는다.
+assert.ok(
+  coreCopy.has("payment.directModal.legal.refundConsent"),
+  "js/core/checkout-entry.js: 단건 환불·청약철회 동의 문구 키(payment.directModal.legal.refundConsent)가 없습니다.",
+);
+
 for (const [key, fallback] of coreCopy) {
   usedKeys.add(key);
   assert.equal(

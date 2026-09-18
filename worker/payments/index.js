@@ -1066,6 +1066,10 @@ const ROUTES = {
       if (!idempotencyKey) idempotencyKey = `legacy-${crypto.randomUUID()}`;
       // 해외 발급 카드 결제창 노출 판정(I/O 없음). 결제수단은 클라이언트 신고값이라 판정은 "보내도 되는 상한"일 뿐이다.
       const paymentMethod = String(body.paymentMethod || body.payMethod || "card_general");
+      /* 결제 전 환불·청약철회 고지에 동의했는가(단건 결제창). 🔴 handlePassPrepare 와 **같은 계약**이다:
+         === true 만 동의로 보고, 없거나 다른 값이면 거절이 아니라 "동의 기록 없음"으로 남긴다
+         (policy-versions.js buildRefundConsentRecord 머리주석 — 구버전 앱·옛 셸 보호). */
+      const refundConsent = body.refundConsent === true;
       const foreignCard = canUseForeignCard({ user: { id: userId }, product: { type: "digital_content" }, billingCountry: null, paymentChannel: paymentMethod }, { env });
 
       const { order, user } = await withDb(env, ctx, async (db) => {
@@ -1098,6 +1102,7 @@ const ROUTES = {
           returnPath: body.returnPath,
           paymentMethod,
           foreignCard,
+          refundConsent,
         });
         return { order: created, user: await userPromise };
       });

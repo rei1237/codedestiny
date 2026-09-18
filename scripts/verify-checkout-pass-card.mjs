@@ -961,6 +961,21 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
     }
   });
 
+  // 🔴 단건 카드는 환불·청약철회 동의 전에는 **진짜 disabled** 다(코어 bindRefundConsentGate).
+  // 서버 prepare 가 동의 없는 주문을 거절하지 않는(구버전 앱 보호) 설계의 근거가 이 잠금이다.
+  check("🔴 동의 전에는 단건 카드가 진짜 잠긴다(표시가 아니라 동작) — 동의하면 열린다", () => {
+    const box = q("[data-refund-consent-input]");
+    assert.ok(box, "단건 환불·청약철회 동의 체크박스가 결제창에 없다");
+    assert.equal(findCard(window, "direct").hasAttribute("disabled"), true, "동의 전인데 단건 카드가 열려 있다");
+    const locked = Array.from(window.document.querySelectorAll("[data-mode]"))
+      .filter((node) => node.hasAttribute("disabled"))
+      .map((node) => node.getAttribute("data-mode"));
+    assert.deepEqual(locked, ["direct"], `동의 잠금이 단건 말고 다른 옵션까지 잠갔다: ${locked.join(",")}`);
+    box.checked = true;
+    box.dispatchEvent(new window.Event("change", { bubbles: true }));
+    assert.equal(findCard(window, "direct").hasAttribute("disabled"), false, "동의했는데 단건 카드가 잠긴 채다");
+  });
+
   clickNode('[data-mode="direct"]');
   await flush();
   check("단건 카드는 창을 닫지 않고 2단계로 전환한다", () => {

@@ -1913,6 +1913,7 @@
       },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan hak anda untuk menarik balik pembelian mungkin dihadkan bagi kandungan yang telah disediakan menurut Akta Perlindungan Pengguna dalam Perdagangan Elektronik Korea. Kontrak yang dimeterai oleh orang bawah umur tanpa persetujuan penjaga sahnya boleh dibatalkan oleh orang bawah umur itu sendiri atau oleh penjaga sahnya.",
+        "refundConsent": "I understand that content purchased with this one-time payment opens immediately once payment is complete, and that refunds or withdrawal may be limited after viewing has begun.",
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",
