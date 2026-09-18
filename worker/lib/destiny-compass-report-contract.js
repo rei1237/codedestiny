@@ -113,6 +113,22 @@ export function getCompassSection(key) {
   return COMPASS_SECTIONS.find((s) => s.key === key) || null;
 }
 
+/**
+ * 체계에 묶인 섹션(사주·자미·숙요·타로)은 그 체계의 확정값이 팩에 있어야 한다.
+ * 🔴 fail-closed: 버킷이 비면 그 섹션 프롬프트에는 확정값 블록이 아예 실리지 않는데도
+ * "명궁 주성 → 삼방사정 회조" 같은 지시는 그대로 나가 모델이 명반을 창작한다. 품질 게이트는
+ * 방향·항로 라벨(직장·커리어/재물/30일…)이 늘 허용 목록에 있어 이 창작을 잡지 못한다.
+ * 어댑터가 던지면 collectDeepEvidence 가 그 체계를 조용히 빼므로, 요청이 신고한 sources 가 아니라
+ * 섹션이 요구하는 고정 목록과 대조한다.
+ * @returns {string[]} 근거가 없는 체계 키 목록(없으면 빈 배열)
+ */
+export function missingSectionSystems(evidencePack) {
+  const present = new Set(
+    (evidencePack?.systems || []).filter((b) => b?.system && (b.items || []).length).map((b) => b.system),
+  );
+  return [...new Set(COMPASS_SECTIONS.filter((s) => s.system && !present.has(s.system)).map((s) => s.system))];
+}
+
 /** 폴백(Workers AI)이 이 길이에 못 미치면 호출을 실패로 돌린다 — 관례: 최소 분량 × 0.4. */
 export function compassFallbackMinChars(spec) {
   return Math.round((Number(spec?.minChars) || 0) * 0.4);
