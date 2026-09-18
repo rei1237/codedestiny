@@ -100,3 +100,21 @@ npm run check:fast   # 2차 — 전부 통과
 `git fetch origin main` + `git rev-parse`로 origin/main이 여전히 `a3e6651ec`(로컬 HEAD와 동일)임을 확인해 동시 편집이 아님을 배제한 뒤, `git log --oneline -- docs/handoff/2026-09-18-seo-p9-next-item.md`로 도입 커밋 `f5914285d`를 찾고 `git merge-base --is-ancestor f5914285d 6b76c2f5a`·`git merge-base --is-ancestor f5914285d 0c9d11ae5`를 각각 실행해 둘 다 `yes`(exit 0)를 확인했다 — **이 결함은 18행이 시작하기 전부터 있던, 18행과 무관한 선행 결함**이다(16행이 겪은 것과 동일한 클래스: 다른 세션의 handoff 문서가 `status` 계약을 어겨 `Static guards`/`CI required`를 막음). 문서 본문이 "P9 완료"·다음 P10 문서로의 포인터로 이미 종료 상태를 서술하고 있어 16행 전례와 같은 논리로 `status: completed` → `status: done`(허용값이자 문서 의미와 일치)으로 교체하는 트리비얼 GREEN 수정을 적용했다. 이 파일 1개만 담아 커밋 `90960c74d`를 만들고, `git fetch origin main`으로 동시 편집이 없음을 재확인한 뒤 `git push origin HEAD:main`으로 push했다(`a3e6651ec..90960c74d`).
 
 **최종 재확인:** `gh api repos/rei1237/codedestiny/commits/90960c74d/check-runs`를 전수 대기·조회한 결과 `CI required`·`Static guards`·`Main drift`·`gitleaks`·`Risk tier` 등 10개 success, `Typecheck and lint`·`Build Pages and Worker`·`Critical checks` 등 14개는 이 커밋이 문서 전용이라 조건부 스킵, 비동기 `Deploy staging` 1건만 조회 시점에 `in_progress`였으나 CLAUDE.md 정책상("스테이징은 main push마다 비동기로 배포된다... push마다 대기·확인하지 않는다") 대기 대상이 아니다. **실패 0건.**
+
+이후 origin/main이 결제 체크아웃 기능 브랜치(`wt/inicis-overseas-card-p2-direct-legal-20260918-160111`)의 대규모 동시 작업(74개 파일 — 결제 체크아웃·`config/sitemap-lastmod.json`·다수 정적 미러·i18n JSON 등)으로 전진했다. `git diff --stat 90960c74d 317c0875a -- <18행 문서 3개 경로>`로 겹치는 경로가 없음을 먼저 확인한 뒤 `git merge origin/main`으로 병합했다(충돌 0건, 'ort' 전략). 병합에 RED 등급 결제 파일이 포함돼 안전장치로 `npm run sync:public`을 재실행(드리프트 없음, `git status --short` 빈 결과)하고 `npm run check:fast`를 다시 돌려 281 suite·3,960 test 전부 통과를 확인한 뒤 병합 커밋 `a73f3928a`를 push했다(`317c0875a..a73f3928a`).
+
+**재확인 결과 `Static guards`·`CI required`가 다시 failure였다.** `gh api repos/rei1237/codedestiny/commits/a73f3928a.../check-runs`로 실패한 잡 ID(`105547283964`)를 특정한 뒤 `gh run view --job=105547283964 --log-failed`로 로그 전문을 읽었다:
+
+```
+로케일 텍스트 팽창에 취약한 지점이 있습니다:
+
+  - js/core/checkout-entry.js: 127행 [input] 'fixed-height' 미분류 — 세로 고정 — 2줄이 되면 잘린다.
+  - js/core/checkout-entry.js: 127행 [input] 'fixed-width' 미분류 — 가로 고정 — 넓어질 수 없다.
+  - js/core/checkout-entry.js: 127행 [input] 'flex-rigid' 미분류 — 축소·확장 불가 — 형제와 같이 밀려난다.
+```
+
+`Static guards`의 `verify:locale-text-fit` 스텝이었다 — 병합 브랜치가 새로 추가한 [`js/core/checkout-entry.js`](../../js/core/checkout-entry.js)가 원인이라 18행 자신의 작업과는 무관했다. `git fetch origin main`으로 origin/main 최신 tip(`686c98ddf`, 같은 결제 세션이 그 사이 두 차례 더 병합)을 확인하고 그 tip의 `Static guards` 잡도 동일한 실패를 그대로 재현하는지 직접 재조회해 확정했다(같은 결함이 병합 이전부터 있었고 그 세션이 아직 고치지 않은 상태임을 실측으로 증명, 16행·`seo-p9`와 동일한 확인 방법론).
+
+`grep -n '<input' js/core/checkout-entry.js`로 파일 안의 유일한 `<input>`이 `<input type="checkbox" data-refund-consent-input>`(환불·청약철회 동의 체크박스)임을 확인했고, 이를 스타일링하는 CSS 규칙(`.cd-direct-payment-consent input{flex:0 0 auto;width:16px;height:16px;...}`)이 세 위험(고정폭·고정높이·flex-rigid) 모두의 근원임을 로컬 재현(`node scripts/verify-locale-text-fit.mjs`)으로 확인했다. 체크박스는 채움 여부만 그릴 뿐 글자를 담지 않으므로 로케일 팽창과 무관한 안전한 케이스로 판단해, 결제 파일(`js/core/checkout-entry.js`)은 그대로 두고 가드 스크립트 [`scripts/verify-locale-text-fit.mjs`](../../scripts/verify-locale-text-fit.mjs)의 `ACCEPTED`에 `input|fixed-height`·`input|fixed-width`·`input|flex-rigid` 3건을 한국어 사유와 전제조건(`needs`: 해당 input이 계속 `type="checkbox"`인지 검사, 기존 결제창 예외 2건과 동일한 패턴)과 함께 등재했다. 로컬 재확인: 가드 재실행 통과(`Locale text fit OK — 위험 선언 47건 분류 완료`), `npm run check:fast` 281/281 suite·3,960/3,960 test 통과. `git fetch origin main`으로 동시 편집이 없음을 재확인한 뒤 이 파일 1개만 담은 커밋 `2f9047061`을 push했다(`686c98ddf..2f9047061`).
+
+**최종 재확인(2회차):** `gh api repos/rei1237/codedestiny/commits/2f9047061/check-runs`를 전수 대기·조회한 결과 `CI required`·`Static guards`·`Main drift`·`gitleaks`·`Typecheck and lint`·`Build Pages and Worker`·`Deploy staging`·`Risk tier`·`AI locale pipeline invariants` 포함 전부 success, 나머지는 스킵. **실패 0건.**
