@@ -92,6 +92,10 @@ npm run check:fast
 
 `npx jest` 는 쓰지 않았다(러너 전용 가드가 뚫린다). 전부 `scripts/run-mock-tests.mjs` 경유.
 
+## main CI
+
+커밋 `2d058a988`(코드) + `f9e1db7e0`·`dffa73938`(문서), main 머지 `e156a795f`. 🟡 **`e156a795f` 의 `CI required` 는 failure 로 보이지만 코드 실패가 아니다** — 2분 뒤 문서 push(`dffa73938`)가 같은 concurrency 그룹의 앞 런을 취소해 `Build Pages and Worker`·`gitleaks` 가 **cancelled** 로 끝났다(그 SHA 에서 `Critical checks`·`Static guards`·`Typecheck and lint`·`Main drift`·`Risk tier` 는 success). 내 커밋을 조상으로 갖는 후속 코드 커밋 `cc771aba4` 에서 `Build Pages and Worker`·`gitleaks`·`Static guards`·`paid-flow-gates`·`CI required` 전부 success 이고, 현재 main tip `1e5ee9fc2` 도 `CI required` success 다.
+
 ## 범위 밖 관측 (보고만)
 
 - 🔴 **(a) `scoreBoundary` 가 신살을 못 읽는다 — 점수·등급이 실제로 어긋난다.** [routes:75-78](../../worker/routes/relationship-boundary-test.js#L75) 은 `chart.shinsal["도화"]` / `["홍염"]` 을 찾지만 실제 명식의 모양은 `shinsal.byName["도화살"]` · `shinsal.intensity.dohwa` 다. 그래서 +20·+12 가산이 **한 번도 발화하지 않는다**. 실제 명식 1,152개(6년 × 6월 × 4일 × 4시 × 2성별, 계산 실패 0건) 전수 실측:
