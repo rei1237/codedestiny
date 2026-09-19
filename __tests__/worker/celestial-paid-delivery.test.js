@@ -22,6 +22,8 @@ const model={
  updateOne:async(filter,update)=>{const doc=docs.find(doc=>matches(doc,filter));if(doc)patch(doc,update.$set||{});return {modifiedCount:doc?1:0};},
 };
 function prose(id,field,count=14){return Array.from({length:count},(_,n)=>`${id} ${field} ${n}번째 카드의 상징을 실제 생활 속에서 받아들이는 조건과 서로 다른 반응을 살펴봅니다. ${id} ${field} ${n}번째 선택을 단정하기보다 대화를 통해 판단할 근거를 확인합니다.`).join('\n');}
+// 본문은 계산된 카드·행성을 실제로 인용해야 통과한다(prompt의 cards= 줄이 유일한 출처).
+function drawn(prompt,id){const found=prompt.match(new RegExp(`\\[${Number(id)+1}\\] ([^-]+) - ([^/|]+) / `));return `${found[1].trim()} 자리에서 ${found[2].trim()} 카드가 열립니다. `;}
 beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
@@ -43,8 +45,8 @@ beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;c
    value.closingFortune=Object.fromEntries(['overall','love','work','money','health'].map(field=>[field,prose(id,'closing'+field,6)]));
    for(const field of ['planetHighlights','practices','ritualPlan'])value[field]=Array.from({length:3},(_,i)=>prose(id,field+i,1));
   }else{
-   const evidence=JSON.parse(prompt.match(/대신 다음 단일 객체만 출력하세요\. (\{.*\})\./)[1]).evidence;
-   value={evidence,...Object.fromEntries(['cardMeaning','planetMeaning','archetypeReading','consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'].map(field=>[field,prose(id,field)]))};
+   const evidence=JSON.parse(prompt.match(/대신 다음 단일 객체만 출력하세요\. (\{.*\})\./)[1]).evidence,cite=drawn(prompt,id);
+   value={evidence,...Object.fromEntries(['cardMeaning','planetMeaning','archetypeReading','consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'].map(field=>[field,cite+prose(id,field)]))};
   }
   return {ok:true,provider:'gemini',text:JSON.stringify(value)};
  });

@@ -22,6 +22,11 @@ export function celestialDeliveryComplete(delivery) {
 function validateCard(value, card) {
   if (!value || value.evidence?.planetId !== card.planetId || value.evidence?.cardNameKo !== card.cardNameKo || value.evidence?.orientation !== card.orientation) return null;
   if (!CARD_FIELDS.every(field=>enough(value[field], CELESTIAL_CARD_BODY_FIELDS.includes(field) ? 500 : 40))) return null;
+  // evidence는 프롬프트가 실어 보낸 값이라 그대로 되돌려주기만 해도 통과한다.
+  // 저장되는 본문이 실제로 뽑힌 카드와 행성을 말하는지 계산값과 직접 대조한다.
+  const anchors = [card.cardNameKo, card.planetKo].map(anchor=>String(anchor||"").trim());
+  const body = CELESTIAL_CARD_BODY_FIELDS.map(field=>String(value[field])).join("\n");
+  if (!anchors.every(anchor=>anchor && body.includes(anchor))) return null;
   return Object.fromEntries(CARD_FIELDS.map(field=>[field,value[field]]));
 }
 function validateSummary(value) {
