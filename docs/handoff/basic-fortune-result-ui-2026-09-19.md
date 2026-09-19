@@ -669,7 +669,7 @@ CLAUDE.md 원칙 14 대로 보고만 한다. 전부 Playwright 실측이다.
 
 | 항목 | 실측 근거 | 판단 |
 |---|---|---|
-| 🟡 점성술 로딩 상태만 맨 텍스트로 남았다 | [`js/core/saju/modalProfileState.js:296`](../../js/core/saju/modalProfileState.js) 의 `'✦ 코즈믹 차트를 계산하는 중...'` — 인라인 스타일 텍스트. 실측 `readyMs` 894~1,632ms 로 숙요점보다 길 수도 있다 | **의도적으로 제외했다.** 이 문자열은 i18n 원장에 있다 — `i18n/authored/shellRuntime-11.json` 의 `shellRuntime.s109`(12개 로케일) + `i18n/pending/shellRuntime.ko.json:111`. 숙요점·자미두수 문자열은 i18n 참조가 **0건**이라 안전했지만 이건 키를 고아로 만들 수 있다. 손대려면 로케일 축을 함께 다룰 것 |
+| ✅ **해결(2026-09-19, `6ad52e5f1`)** 점성술 로딩 상태만 맨 텍스트로 남았다 | [`js/core/saju/modalProfileState.js:296`](../../js/core/saju/modalProfileState.js) 을 형제 2곳과 같은 `.fr-state fr-state--loading` 으로 교체했다 | **i18n 걱정은 근거가 없었다.** 런타임 번역은 한국어 원문 역인덱스로 텍스트 노드를 대조한다([scripts/i18n-extract-runtime-ui.mjs](../../scripts/i18n-extract-runtime-ui.mjs)) — 리터럴을 그대로 두고 래퍼만 바꾸면 추출 결과가 바이트 동일해 `shellRuntime.s109` 는 살아 있다. 추출기는 돌리지 않았다. CSS 도 안 건드렸다 |
 | ✅ **해결(2026-09-19, `cc771aba4`)** 자미두수 로딩 중에 액션 버튼이 이미 눌리는 것처럼 보인다 | 로딩 상태 스크린샷에 "카카오톡 공유"·"← 돌아가기" 가 이미 렌더돼 있다. `#ziweiModalCard` 안 `.modal-result-actions` 는 결과와 무관하게 마크업에 있다([index.html:18472](../../index.html)) | **"무엇이 공유되는지" 를 실측했고 실제 오작동이었다** — 아래 참조 |
 | 🟡 숙요점은 로딩 상태가 **두 개** 공존한다 | 스켈레톤 아래에 27숙 달력 위젯이 이미 완전히 렌더되고, 그 안에 자체 로딩 문구 "달빛을 불러오고 있습니다." 가 따로 돈다 | 두 위젯의 로딩 수명이 독립이라 한쪽만 스켈레톤을 얻었다. 통합하려면 달력 위젯의 렌더 시점을 바꿔야 해서 범위 밖 |
 
@@ -689,10 +689,23 @@ CLAUDE.md 원칙 14 대로 보고만 한다. 전부 Playwright 실측이다.
 
 | 핸들러 | 새는 문구 | 비고 |
 |---|---|---|
-| `shareAstroKakao`([js/share.js](../../js/share.js)) | `#astroResult` 의 '✦ 코즈믹 차트를 계산하는 중...' | 같은 구조. 위 §2-11 의 1번(점성술 스켈레톤)을 할 때 같이 닫으면 자연스럽다 |
-| `shareSukuyoKakao`([js/share.js](../../js/share.js)) | `#sukuyoSection` 의 "태어난 날의 숙을 읽고 있어요." | 구조화된 `_syLastSukuyoBasicResult` 가 비면 `innerText` 로 **폴백**하는 경로라 로딩 중에 반드시 걸린다 |
+| ✅ `shareAstroKakao`([js/share.js](../../js/share.js)) | `#astroResult` 의 '✦ 코즈믹 차트를 계산하는 중...' | **해결(`6ad52e5f1`)**. 1번과 같은 커밋에서 `.fr-state` 술어로 막았다 |
+| ✅ `shareSukuyoKakao`([js/share.js](../../js/share.js)) | `#sukuyoSection` 의 "태어난 날의 숙을 읽고 있어요." | **해결(`6ad52e5f1`)**. 구조화된 `_syLastSukuyoBasicResult` 폴백보다 앞에 가드를 뒀다 |
 
-둘 다 `.fr-state` 술어가 그대로 통한다(숙요점은 `modalProfileState.js:192`·`saju-engine-tarot-sukuyo-quantum.js:11344` 가 같은 클래스를 쓴다). 점성술만 인라인 스타일 텍스트라 술어를 따로 잡아야 한다 — 1번을 하며 `.fr-state` 로 바꾸면 그때 함께 해결된다.
+둘 다 `.fr-state` 술어가 그대로 통했다. 점성술은 1번에서 로딩 마크업을 `.fr-state` 로 바꾸면서 술어가 성립했다.
+
+🔴 **`verify-basic-fortune-library.mjs` 의 공유 단언이 이 가드에 걸려 깨졌다** — `shares.length === 3`(`:563`)이 2로 떨어졌다. 픽스처가 프로필 저장 뒤 astro 모달을 **한 번도 열지 않아** 빈 `#astroResult` 를 공유하고 있었기 때문이다(가드의 오탐이 아니라 픽스처가 실제 사용 경로를 안 밟고 있었다). 숙요점·자미두수처럼 결과를 그려 둔 뒤 부르도록 픽스처를 맞췄다. 🔴 이 스크립트는 여전히 **CI 에 배선하지 않는다**(§2-2).
+
+**실측(Playwright 390×844)** — 로딩 `.fr-state fr-state--loading`, `role=status`/`aria-live=polite`, `::after` 7겹 286px, 렌더 후 `.fr-state` 잔여 **0**, `pageErrors` **0**, 가로 오버플로 없음. 로딩 중 `shareAstroKakao` → 공유 **0건** + 안내 토스트 1건, 결과 후 → 공유 1건. 변이 검증 12/12(가드만 지운 변이본에서 원결함 재현).
+
+🔴 **로딩 프레임은 `openAstroModal` 로는 못 잡는다** — 끝에서 `rerenderAstroFromCurrentBirth()` 가 dispatch 직후 `renderAstroInsightCounselV20260613()` 로 `#astroResult` 를 **동기 덮어쓴다**([index-inline-runtime.js:8900](../../js/core/index-inline-runtime.js) → [saju-engine.js:14151](../../js/saju-engine.js), `innerHTML` 세터에 스택을 붙여 실측). `_astroBirth` 를 미리 비워도 `dispatch` 가 다시 채우고, `window.renderAstroInsight` 스텁도 먹지 않는다. **모달을 정상으로 열어 둔 뒤 `_ModalProfileState.dispatch(profile, 'astro')` 로 다시 태우는 것**이 로딩을 재현하는 방법이다(프로필 전환 때 실제로 도는 경로다). 여기서 세 번 헛짚었다.
+
+#### 🟡 이번에 새로 확인한 범위 밖 결함 2건 (보고만)
+
+| 항목 | 근거 | 판단 |
+|---|---|---|
+| 🟡 점성술 **실패** 상태는 이 공유 가드에 안 걸린다 | `renderAstroSwissUnavailable`([js/saju-engine.js:14151](../../js/saju-engine.js) 계열)·`_astroCounselRenderError` 는 `.fr-state` 가 아니라 자체 다크 마크업이다 | **실패 문구는 여전히 공유문에 실릴 수 있다.** 자미두수는 폴백도 `.fr-state`(modalProfileState.js:242)라 이미 막혀 있다 — 점성술 실패 마크업을 `.fr-state` 계열로 정규화하는 건 별건 |
+| 🟡 점성술도 로딩 중에 공유 버튼이 이미 노출된다 | 로딩 스크린샷 y≈510~565 에 "카카오톡 공유 / 돌아가기" | 자미두수에서 본 것과 같은 구조(`.modal-result-actions` 가 결과와 무관하게 마크업에 있다). 이제 **누르면 가드가 막고 안내 토스트가 뜬다** — 발송 사고는 없지만 버튼이 활성처럼 보이는 것 자체는 남았다 |
 
 추가로 ⚪ **대비를 WCAG 3:1 까지 올리려면 `--fr-rule` 자체를 바꿔야 한다** — 그건 리포트 전역 토큰이라 스켈레톤 하나 때문에 바꿀 수 없다. 현재 2.18 · 2.24 · 1.88:1 은 `::after`/`content:''` 라 aria 트리 밖이고 WCAG 대상이 아니다(장식).
 
