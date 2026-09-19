@@ -752,12 +752,43 @@ function expectedChapters(doc) {
   return pinned.length ? pinned : specs;
 }
 
+/** 기대 목록 기준으로 검증·저장이 끝난 장. 목차·진행률·크론 재개가 같은 규칙을 봐야 한다. */
+function savedChapterRows(doc, expected) {
+  return new Map([...(doc?.chapters || []), ...(doc?.deliveryMeta?.savedChapters || [])]
+    .filter(row => row?.ok !== false && expected.some(spec => spec.id === row.id && row.body?.length >= codexDedupedChapterFloor(spec)))
+    .map(row => [row.id, row]));
+}
+
+/**
+ * 아직 본문이 없는 장을 "시도 가능"과 "시도 소진"으로 가른다.
+ *
+ * 🔴 이 판정이 두 벌이 되면 화면과 DB 가 갈라진다 — 웨이브·조회·크론 재개가 같은 함수를 본다.
+ */
+function splitPendingChapters(expected, readyIds, attempts = {}) {
+  const pending = expected.filter(spec => !readyIds.has(spec.id));
+  return {
+    pending,
+    actionable: pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT),
+    exhausted: pending.filter(spec => Number(attempts[spec.id] || 0) >= CHAPTER_ATTEMPT_LIMIT),
+  };
+}
+
+/**
+ * 크론·복구가 쓰는 세션 진단. **LLM 을 부르지 않는다** — 저장된 문서만 읽는다.
+ *
+ * 기대 목록은 세션에 고정된 매니페스트(없으면 구매 당시 모드 표)이고, 지금 저장된 장 수로
+ * 원래 구성을 역산하지 않는다.
+ */
+export function diagnoseCodexSession(doc) {
+  const expected = expectedChapters(doc);
+  const saved = savedChapterRows(doc, expected);
+  return { expected, saved, ...splitPendingChapters(expected, new Set(saved.keys()), doc?.deliveryMeta?.attempts) };
+}
+
 function publicSession(doc) {
   const modeDef = resolveMode(doc?.mode);
   const expected = expectedChapters(doc);
-  const saved = new Map([...(doc?.chapters || []), ...(doc?.deliveryMeta?.savedChapters || [])]
-    .filter(row => row.ok !== false && expected.some(spec => spec.id === row.id && row.body?.length >= codexDedupedChapterFloor(spec)))
-    .map(row => [row.id, row]));
+  const saved = savedChapterRows(doc, expected);
   // 🔴 "1장부터 끊기지 않는 앞 구간"만 내보내면 2장이 막힌 책은 3장 이후가 저장돼도 사라진다
   //    (2026-09-19 장애의 원인 B). 검증·저장된 장은 중간에 구멍이 있어도 전부 order 순으로
   //    내보낸다 — 목차·탭은 outline 이 채우므로 희소 목록이 안전하다.
@@ -770,9 +801,7 @@ function publicSession(doc) {
   const attempts = doc?.deliveryMeta?.attempts || {};
   const errors = doc?.deliveryMeta?.errors || {};
   const readyIds = new Set(chapters.map(row => row.id));
-  const pending = expected.filter(spec => !readyIds.has(spec.id));
-  const blocked = pending.filter(spec => Number(attempts[spec.id] || 0) >= CHAPTER_ATTEMPT_LIMIT);
-  const actionable = pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT);
+  const { pending, actionable, exhausted: blocked } = splitPendingChapters(expected, readyIds, attempts);
   // 락이 살아 있는 동안에만 저장된 step 을 믿는다. 끊긴 웨이브의 낡은 단계가 남지 않는다.
   const lockAlive = new Date(doc?.generationProgress?.lockedAt || 0).getTime() > Date.now() - BATCH_LOCK_TTL_MS;
   const storedStep = clean(doc?.generationProgress?.step);
@@ -1397,10 +1426,9 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     }
     const attempts = { ...doc.deliveryMeta?.attempts };
     const errors = { ...doc.deliveryMeta?.errors };
-    const pending = expected.filter(chapter => !byId.has(chapter.id));
-    const exhausted = pending.filter(chapter => Number(attempts[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT);
     // 시도 가능한 장만 후보다 — 막힌 장이 웨이브 슬롯을 계속 물고 가지 않는다.
-    const actionable = pending.filter(chapter => Number(attempts[chapter.id] || 0) < CHAPTER_ATTEMPT_LIMIT);
+    // 판정은 조회·크론과 같은 함수를 쓴다(화면과 DB 가 갈라지지 않게).
+    const { actionable, exhausted } = splitPendingChapters(expected, new Set(byId.keys()), attempts);
     const missing = actionable.slice(0, CHAPTER_BATCH_SIZE);
     // 🔴 미완 장 **전부**가 소진됐을 때만 세션을 닫는다. 한 장의 소진으로 닫으면 클라이언트
     //    (retryable:false)·크론(reviewRequired 제외)·락이 모두 건너뛰어 나머지 장이 영구 정지한다.

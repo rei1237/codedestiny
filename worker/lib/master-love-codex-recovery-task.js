@@ -1,7 +1,7 @@
 import { connectDb } from "./db.js";
 import { MasterLoveCodexSession } from "./models.js";
 import { recoverCodexSession } from "./master-love-codex-session-access.js";
-import { acquireBatchLock, runCodexWave, syncCodexExecution, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
+import { acquireBatchLock, runCodexWave, syncCodexExecution, diagnoseCodexSession, __masterLoveCodexTestUtils } from "../routes/master-love-codex.js";
 import { bootstrapPaidCodexSessions } from "./master-love-codex-paid-bootstrap.js";
 
 /**
@@ -74,16 +74,17 @@ export function buildCodexStalledFilter(now) {
 }
 
 /**
- * 장 사이 중복 판정 불일치(2026-09-17 수정)로 3회를 소진해 닫힌 세션 후보.
- * 🔴 소진된 장의 마지막 오류가 전부 LLM_OUTPUT_REPEATED 인 세션만 JS 에서 한 번 더 거른다 —
- *    다른 원인으로 닫힌 세션은 사람 검토 대상 그대로 둔다. dedupeReopenedAt 이 1회 표식이다.
+ * 시도를 소진해 닫힌(reviewRequired) 세션 후보. 재개 사유는 JS 에서 두 갈래로 가른다.
+ *
+ * 🔴 두 표식을 따로 둔다 — 세션 하나가 각 사유로 **한 번씩만** 재개된다. 표식이 하나면
+ *    두 사유가 서로의 1회를 잡아먹어, 정작 필요한 재개가 조용히 건너뛰어진다.
  */
-export function buildDedupeReopenFilter() {
+export function buildCodexReopenFilter(marker = "dedupeReopenedAt") {
   return {
     status: "generation_failed",
     "deliveryMeta.reviewRequired": true,
     "deliveryMeta.reviewReason": "GENERATION_BUDGET_EXCEEDED",
-    "deliveryMeta.dedupeReopenedAt": { $exists: false },
+    [`deliveryMeta.${marker}`]: { $exists: false },
     "passRefund.refundedAt": { $exists: false },
     "billingRefund.refundedAt": { $exists: false },
   };
@@ -94,21 +95,59 @@ function closedByDedupeMismatch(doc) {
   return Array.isArray(ids) && ids.length > 0 && ids.every(id => doc.deliveryMeta?.errors?.[id]?.code === "LLM_OUTPUT_REPEATED");
 }
 
-async function reopenDedupeClosedSessions(SessionModel, now, syncFn) {
-  const docs = (await SessionModel.find(buildDedupeReopenFilter()).sort({ updatedAt: 1 }).limit(MAX_SESSIONS_PER_TICK).lean()) || [];
-  const reopened = [];
-  for (const doc of docs.filter(closedByDedupeMismatch)) {
+/**
+ * 재개 계획을 세운다. **LLM 을 부르지 않고 저장된 문서만 읽는다.**
+ *
+ * 1. `dedupe_mismatch` — 소진된 장이 전부 LLM_OUTPUT_REPEATED 로 닫힌 세션(2026-09-17 수정
+ *    이전의 판정 키 불일치). 그 장들의 시도 기록만 지워 한 번 더 기회를 준다. **먼저 본다** —
+ *    이 갈래가 소진된 장까지 되살리므로, 한 번의 재개로 남은 장과 막힌 장이 함께 풀린다.
+ * 2. `stale_close` — 아직 시도 가능한 장이 남아 있는데 닫힌 세션. 2026-09-19 이전 규칙은
+ *    한 장이 3회를 소진하면 세션 전체를 닫았다(나머지 19장은 영영 시도되지 않았다). 이미
+ *    그렇게 닫힌 운영 세션이 남아 있으므로 크론이 되살린다. **시도 기록은 지우지 않는다** —
+ *    소진된 장은 소진된 채 두고, 남은 장만 쓰게 한다(불필요한 과금 호출 0).
+ *
+ * 둘 다 아니면 사람 검토 대상 그대로 둔다. 표식이 갈래별로 따로이므로 한 세션이 각 사유로
+ * 한 번씩만 열리고, 두 번째 닫힘 뒤에는 사람이 본다.
+ */
+export function planCodexReopen(doc, diagnose) {
+  const meta = doc?.deliveryMeta || {};
+  // 🔴 닫힌 세션만 연다. DB 필터에만 의존하면 살아 있는 세션을 "재개"하면서 락·진행 상태를
+  //    건드릴 수 있다 — 판정은 호출부가 아니라 이 함수가 갖는다(fail-closed).
+  if (doc?.status !== "generation_failed" || meta.reviewRequired !== true) return null;
+  if (closedByDedupeMismatch(doc) && !meta.dedupeReopenedAt) {
     const unset = { "deliveryMeta.reviewReason": "", "deliveryMeta.exhaustedChapterIds": "" };
-    for (const id of doc.deliveryMeta.exhaustedChapterIds) {
+    for (const id of meta.exhaustedChapterIds) {
       for (const field of ["attempts", "failures", "errors"]) unset[`deliveryMeta.${field}.${id}`] = "";
     }
-    // 조건부 원자 갱신: 그 사이 환급·재개된 세션은 매치되지 않는다. updatedAt 을 두어 이번 틱에 바로 회수된다.
-    const saved = await SessionModel.updateOne({ ...buildDedupeReopenFilter(), id: doc.id, userId: doc.userId }, {
-      $set: { status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.dedupeReopenedAt": new Date(now), generationError: null },
-      $unset: unset,
+    return { marker: "dedupeReopenedAt", reason: "dedupe_mismatch", unset };
+  }
+  if (!meta.codexReopenedAt && diagnose(doc).actionable.length) {
+    return { marker: "codexReopenedAt", reason: "stale_close", unset: { "deliveryMeta.reviewReason": "" } };
+  }
+  return null;
+}
+
+async function reopenClosedSessions(SessionModel, now, syncFn, diagnose) {
+  const docs = (await SessionModel.find({
+    status: "generation_failed",
+    "deliveryMeta.reviewRequired": true,
+    "deliveryMeta.reviewReason": "GENERATION_BUDGET_EXCEEDED",
+    "passRefund.refundedAt": { $exists: false },
+    "billingRefund.refundedAt": { $exists: false },
+    $or: [{ "deliveryMeta.codexReopenedAt": { $exists: false } }, { "deliveryMeta.dedupeReopenedAt": { $exists: false } }],
+  }).sort({ updatedAt: 1 }).limit(MAX_SESSIONS_PER_TICK).lean()) || [];
+  const reopened = [];
+  for (const doc of docs) {
+    const plan = planCodexReopen(doc, diagnose);
+    if (!plan) continue;
+    // 조건부 원자 갱신: 그 사이 환급·재개된 세션은 매치되지 않는다(표식이 그 조건이다).
+    // updatedAt 을 두어 이번 틱에 바로 회수된다.
+    const saved = await SessionModel.updateOne({ ...buildCodexReopenFilter(plan.marker), id: doc.id, userId: doc.userId }, {
+      $set: { status: "generating", "deliveryMeta.reviewRequired": false, [`deliveryMeta.${plan.marker}`]: new Date(now), generationError: null },
+      $unset: plan.unset,
     }, { timestamps: false });
     if (!saved?.modifiedCount) continue;
-    reopened.push(String(doc.id));
+    reopened.push(`${doc.id}:${plan.reason}`);
     await syncFn({ ...doc, status: "generating", deliveryMeta: { ...doc.deliveryMeta, reviewRequired: false } });
   }
   return reopened;
@@ -129,7 +168,9 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
     const access = await accessFn({ userId: doc.userId, sessionId: doc.id });
     if (access && !access.denied) await (options.syncCodexExecution || syncCodexExecution)(access.session);
   }
-  const reopened = await reopenDedupeClosedSessions(SessionModel, now, options.syncCodexExecution || syncCodexExecution);
+  const reopened = await reopenClosedSessions(
+    SessionModel, now, options.syncCodexExecution || syncCodexExecution, options.diagnoseCodexSession || diagnoseCodexSession,
+  );
   const candidates = await SessionModel
     .find(buildAbandonedFilter(now))
     .sort({ updatedAt: 1 }) // 가장 오래 방치된 것부터
@@ -187,5 +228,6 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
 }
 
 export const __masterLoveCodexRecoveryTestUtils = {
-  ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK, TASK_BUDGET_MS, WAVE_BUDGET_MS, buildAbandonedFilter, buildDedupeReopenFilter,
+  ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK, TASK_BUDGET_MS, WAVE_BUDGET_MS,
+  buildAbandonedFilter, buildCodexReopenFilter, planCodexReopen,
 };

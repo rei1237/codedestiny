@@ -11,8 +11,10 @@ import {
   buildCodexStalledFilter,
   __masterLoveCodexRecoveryTestUtils,
 } from "../../worker/lib/master-love-codex-recovery-task.js";
+import { __masterLoveCodexTestUtils } from "../../worker/routes/master-love-codex.js";
 
 const { ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK } = __masterLoveCodexRecoveryTestUtils;
+const { MODES } = __masterLoveCodexTestUtils;
 
 function sessionModel(docs) {
   const query = {
@@ -151,14 +153,13 @@ describe("중복 판정 불일치로 닫힌 세션 1회 재개", () => {
       attempts: { c1: 1, ...Object.fromEntries(Object.keys(codes).map(k => [k, 3])) },
       errors: Object.fromEntries(Object.entries(codes).map(([k, code]) => [k, { code }])) } });
 
-  test("소진된 장이 전부 LLM_OUTPUT_REPEATED 인 세션만 1회 표식과 함께 조건부로 연다", async () => {
-    const docs = [closed("s1", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_OUTPUT_REPEATED" }), closed("s2", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_QUALITY_FAILED" })];
-    const { model, options } = harness(docs);
+  test("소진된 장이 전부 LLM_OUTPUT_REPEATED 면 시도 기록까지 지우고 1회 표식과 함께 연다", async () => {
+    const { model, options } = harness([closed("s1", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_OUTPUT_REPEATED" })]);
     model.updateOne = jest.fn(async () => ({ modifiedCount: 1 }));
     const now = Date.UTC(2026, 8, 17);
     const result = await runMasterLoveCodexRecovery({}, { ...options, now });
 
-    expect(result.reopened).toEqual(["s1"]);
+    expect(result.reopened).toEqual(["s1:dedupe_mismatch"]);
     expect(model.updateOne).toHaveBeenCalledTimes(1);
     const [filter, update, opts] = model.updateOne.mock.calls[0];
     // 🔴 환급·이미 재개된 세션은 원자 필터에서 빠진다.
@@ -169,6 +170,32 @@ describe("중복 판정 불일치로 닫힌 세션 1회 재개", () => {
       "deliveryMeta.exhaustedChapterIds", "deliveryMeta.failures.c2", "deliveryMeta.failures.c3", "deliveryMeta.reviewReason"]);
     expect(opts).toEqual({ timestamps: false });
     expect(options.syncCodexExecution).toHaveBeenCalledWith(expect.objectContaining({ id: "s1", status: "generating" }));
+  });
+
+  // 🔴 2026-09-19: 한 장의 소진이 나머지 19장을 막지 않게 바뀌면서(요구 ⑤), 예전 구조가 닫아 둔
+  //    세션 — 시도 가능한 장이 남았는데 generation_failed 인 세션 — 도 코드가 스스로 1회 연다(요구 ⑦).
+  //    dedupe 갈래와 달리 시도 기록은 남긴다: 진짜로 품질에서 소진된 장은 계속 막아 둬야 한다.
+  test("오류 코드가 섞였으면 시도 기록은 남긴 채 남은 장만 다시 연다", async () => {
+    const { model, options } = harness([closed("s2", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_QUALITY_FAILED" })]);
+    model.updateOne = jest.fn(async () => ({ modifiedCount: 1 }));
+    const now = Date.UTC(2026, 8, 19);
+    const result = await runMasterLoveCodexRecovery({}, { ...options, now });
+
+    expect(result.reopened).toEqual(["s2:stale_close"]);
+    const [filter, update] = model.updateOne.mock.calls[0];
+    expect(filter).toMatchObject({ id: "s2", userId: "u-s2", "deliveryMeta.codexReopenedAt": { $exists: false } });
+    expect(update.$set).toMatchObject({ status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.codexReopenedAt": new Date(now) });
+    expect(Object.keys(update.$unset)).toEqual(["deliveryMeta.reviewReason"]);
+  });
+
+  test("시도 가능한 장이 하나도 남지 않은 세션은 다시 열지 않는다", async () => {
+    const exhausted = Object.fromEntries(MODES.solo.chapters.map(spec => [spec.id, "LLM_QUALITY_FAILED"]));
+    const { model, options } = harness([closed("s3", exhausted)]);
+    model.updateOne = jest.fn(async () => ({ modifiedCount: 1 }));
+    const result = await runMasterLoveCodexRecovery({}, options);
+
+    expect(result.reopened).toEqual([]);
+    expect(model.updateOne).not.toHaveBeenCalled();
   });
 
   test("조건부 갱신이 매치되지 않으면(그 사이 환급·재개) 재개로 세지 않는다", async () => {
