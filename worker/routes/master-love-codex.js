@@ -551,23 +551,6 @@ async function withDeadline(promise, deadlineAt) {
   }
 }
 
-/**
- * 이번 배치에서 실제로 저장할 장을 고른다.
- *
- * 챕터는 반드시 연속이어야 한다(`startIndex = chapters.length` 가 진행 위치의 정본이므로
- * 중간에 구멍이 나면 그 뒤 장이 영영 다른 번호로 밀린다). 그래서 예산 초과로 못 쓴 장이
- * 나오면 그 지점에서 자르고 앞쪽 연속분만 커밋한다. 버려진 장은 다음 /generate 가 다시
- * 쓰는데, 챕터 캐시가 결정론(30일 TTL)이라 재생성은 대개 캐시 히트다.
- */
-function planBatchCommit(results = []) {
-  const committed = [];
-  for (const result of results) {
-    if (!result || result.status !== "ok") break;
-    committed.push(result);
-  }
-  return committed;
-}
-
 function fallbackChapterBody(chapter, birthInfo) {
   return [
     `● ${clean(chapter.title).replace(/^제\d+장 · /, "")}`,
@@ -1602,7 +1585,8 @@ export const __masterLoveCodexTestUtils = {
   normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
   resolveMode, tokenMatchesMode, buildCharts,
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
-  withDeadline, planBatchCommit, acquireBatchLock, runCodexWave,
+  withDeadline, acquireBatchLock, runCodexWave,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
+  CHAPTER_ATTEMPT_LIMIT, CHAPTER_TIMEOUT_MS, CHAPTER_BATCH_SIZE, CHAPTER_CONCURRENCY,
   passRefundFor, refundSessionPassIfNeeded, refundSessionBillingIfNeeded, BILLING_REFUND_AFTER_MS,
 };

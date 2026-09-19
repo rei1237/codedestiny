@@ -8,7 +8,7 @@
  * 무엇을 지키는가
  *  1. 배치 예산이 엣지 컷(100초) 안쪽이고, 락 TTL 이 그 예산과 한 세트일 것
  *  2. withDeadline 이 예산을 넘긴 대기를 deferred 로 끊고, 진 프라미스의 거부를 흘리지 않을 것
- *  3. planBatchCommit 이 '선두 연속분만' 커밋할 것 (챕터 번호에 구멍이 나면 안 된다)
+ *  3. 장별 재시도 상한이 유한하고, 한 웨이브가 예산 안에 들어올 것 (영구 실패 무한 재시도 금지)
  *
  * 배경: CHAPTER_TIMEOUT_MS 는 Gemini fetch 하나만 묶는다. 그 뒤 Workers AI 폴백 체인은
  *       타임아웃이 없어(lib/llm-client.ts callCloudflareWorkersAI), 예산이 없으면 배치가
@@ -21,8 +21,9 @@ function assert(condition, message) {
 }
 
 const {
-  withDeadline, planBatchCommit,
+  withDeadline, MODES,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
+  CHAPTER_ATTEMPT_LIMIT, CHAPTER_TIMEOUT_MS, CHAPTER_BATCH_SIZE, CHAPTER_CONCURRENCY,
 } = (await import("../worker/routes/master-love-codex.js")).__masterLoveCodexTestUtils;
 
 // ── 1. 상수 불변식 ───────────────────────────────────────────────────────────
@@ -82,39 +83,34 @@ assert(
   assert(!raced.deferred, "withDeadline: 예산 안 거부를 deferred 로 표시하면 안 됩니다");
 }
 
-// ── 3. planBatchCommit ───────────────────────────────────────────────────────
-const chapterOf = (order) => ({ id: `ch${order}`, order });
-const resultOf = (status, order) => ({ status, chapter: status === "deferred" ? null : chapterOf(order), loveDna: null });
-
-{
-  const committed = planBatchCommit([resultOf("ok", 1), resultOf("ok", 2), resultOf("ok", 3), resultOf("ok", 4)]);
-  assert(committed.length === 4, `전부 성공하면 4장 모두 커밋해야 합니다 (현재 ${committed.length})`);
-}
-{
-  // 🔴 뒤쪽 성공분(4)을 주워 담으면 챕터 번호에 구멍이 난다. startIndex 는 chapters.length 이므로
-  //    구멍이 생기면 그 뒤 장이 영영 다른 번호로 밀린다.
-  const committed = planBatchCommit([resultOf("ok", 1), resultOf("ok", 2), resultOf("deferred"), resultOf("ok", 4)]);
-  assert(committed.length === 2, `deferred 앞까지만 커밋해야 합니다 (현재 ${committed.length})`);
+// ── 3. 장별 재시도 상한 ───────────────────────────────────────────────────────
+// 🔴 2026-09-19: 한 장의 소진이 세션 전체를 닫던 구조를 걷어내면서, 상한의 단위가
+//    "세션당"에서 "장당"으로 바뀌었다(장 하나가 막혀도 나머지 장은 계속 시도된다).
+//    그래서 최악의 경우 호출 수가 N x 상한이 된다 — 그 곱이 유한하고 작아야 한다.
+//    커밋 순서(구멍이 있어도 유효한 전체를 저장·노출) 쪽은 verify:master-love-codex-flow 와
+//    __tests__/worker/master-love-codex-paid-delivery.test.js 가 맡는다(여기서 중복하지 않는다).
+assert(
+  Number.isInteger(CHAPTER_ATTEMPT_LIMIT) && CHAPTER_ATTEMPT_LIMIT >= 2 && CHAPTER_ATTEMPT_LIMIT <= 4,
+  `장별 시도 상한(${CHAPTER_ATTEMPT_LIMIT})은 2~4 의 유한한 정수여야 합니다 — 영구 실패를 무한 재시도하면 예산이 아니라 사고입니다`,
+);
+for (const [mode, def] of Object.entries(MODES)) {
+  const worstCalls = def.chapters.length * CHAPTER_ATTEMPT_LIMIT;
   assert(
-    committed.every((entry) => entry.status !== "deferred"),
-    "커밋 목록에 deferred 가 섞이면 사과문조차 없는 빈 장이 저장됩니다",
+    worstCalls <= 80,
+    `${mode}: 전면 장애 시 최악 호출 수(${def.chapters.length}장 x ${CHAPTER_ATTEMPT_LIMIT}회 = ${worstCalls})가 상한을 넘습니다`,
   );
 }
-{
-  // 오류 안내문은 구매한 분석 결과가 아니다. 실패한 장부터 같은 회차로 재시도한다.
-  const committed = planBatchCommit([resultOf("ok", 1), resultOf("fallback", 2), resultOf("ok", 3)]);
-  assert(committed.length === 1, `실패한 장 앞의 정상 결과만 보존해야 합니다 (현재 ${committed.length})`);
-  assert(committed.every(entry => entry.status === "ok"), "오류 안내문을 결과 완료로 계산하면 안 됩니다");
-  assert(planBatchCommit([resultOf("fallback", 1)]).length === 0, "첫 장 생성 실패는 재시도 대상이며 소비 완료가 아닙니다");
-}
-{
-  const committed = planBatchCommit([resultOf("deferred"), resultOf("ok", 2)]);
-  assert(committed.length === 0, "첫 장부터 예산을 넘겼으면 아무것도 커밋하지 않아야 합니다(→ retryable 503)");
-}
-{
-  assert(planBatchCommit([]).length === 0, "빈 배치는 빈 커밋이어야 합니다");
-  assert(planBatchCommit([null, resultOf("ok", 2)]).length === 0, "비정상 항목은 그 지점에서 잘라야 합니다");
-}
+
+// ── 4. 웨이브 하나가 예산 안에 들어오는지 ────────────────────────────────────
+assert(
+  CHAPTER_TIMEOUT_MS + CHAPTER_MIN_BUDGET_MS <= BATCH_BUDGET_MS,
+  `장 타임아웃(${CHAPTER_TIMEOUT_MS}ms) + 최소 예산(${CHAPTER_MIN_BUDGET_MS}ms)이 배치 예산(${BATCH_BUDGET_MS}ms)을 넘으면 웨이브가 엣지에 잘립니다`,
+);
+assert(
+  // 둘 다 undefined 여도 통과하지 않게 정수 검사를 함께 둔다(fail-closed, 코딩 원칙 10).
+  Number.isInteger(CHAPTER_BATCH_SIZE) && CHAPTER_BATCH_SIZE > 0 && CHAPTER_BATCH_SIZE === CHAPTER_CONCURRENCY,
+  `웨이브 크기(${CHAPTER_BATCH_SIZE})와 동시 실행 수(${CHAPTER_CONCURRENCY})가 다르거나 정수가 아니면 한 웨이브가 예산을 직렬로 초과합니다`,
+);
 
 if (failures.length) {
   console.error("[verify-master-love-codex-batch-budget] FAILED");

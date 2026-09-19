@@ -47,11 +47,6 @@ test("DB outage propagates instead of presenting a new payment", async () => {
   db.MasterLoveCodexSession.findOne.mockImplementation(() => ({ lean: async () => { throw new Error("DB unavailable"); } }));
   await expect(recoverCodexSession({ userId, sessionId: session.id }, db)).rejects.toThrow("DB unavailable");
 });
-import { __masterLoveCodexTestUtils } from "../../worker/routes/master-love-codex.js";
-
-test("a failed LLM chapter cannot complete or consume the purchased report", () => {
-  const ok = { status: "ok", chapter: { id: "1", ok: true } };
-  const fallback = { status: "fallback", chapter: { id: "2", ok: false } };
-  expect(__masterLoveCodexTestUtils.planBatchCommit([ok, fallback, ok])).toEqual([ok]);
-  expect(__masterLoveCodexTestUtils.planBatchCommit([fallback])).toEqual([]);
-});
+// "실패한 장은 완료로 계산되지도 구매본을 소비하지도 않는다"는 계약은 죽은 순수 함수
+// (planBatchCommit) 대신 실제 웨이브를 돌리는 master-love-codex-paid-delivery.test.js 가 지킨다
+// — 거기서는 실패한 장이 chapters 에 실리지 않고 환불도 일어나지 않는 것을 함께 확인한다.
