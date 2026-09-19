@@ -77,6 +77,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 | `e1164da53` → `efe722321` | §2-2 **실패 사례** — 가드 2개를 배선했다가 `verify-basic-fortune-library.mjs` 가 러너에서 ENOENT 로 죽어 즉시 revert. 기전은 §2-2 와 §3 | 이미 되돌아감 |
 | `4106e2f31` | §2-2 **배선** — `verify:sukuyo-reading-house` npm 스크립트 + `guards` 잡 스텝 1개(러너 10초). 라이브러리 가드는 주석으로 제외 근거를 남기고 뺐다 | `git revert 4106e2f31` (CI 스텝만 사라진다) |
 | `cd5423896` | §2-1 **해결** — `verify:style-sync` 가 `static-policy.css` 를 생성물로 인식하게 한다(가드 1파일, +26/-1). CSS·생성물·CI 는 건드리지 않았다 | `git revert cd5423896` (가드가 다시 영구 레드) |
+| `ccf196e2b` | §2-7 **해결** — 로딩 스켈레톤(CSS `::after` 배경 레이어 7장 + 세 곳에 클래스 1개, 23파일 중 20개가 생성 미러) | `git revert ccf196e2b` 뒤 `npm run sync:public` **두 번** |
 
 각 커밋은 단독으로 되돌려도 다른 기능이 흔들리지 않게 잘라 놓았다.
 
@@ -112,7 +113,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 
 각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다.
 
-✅ **1 · 2 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가). **남은 것은 3~8 이고 추천은 3번**이다. 나머지는 청소 성격이다. 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
+✅ **1 · 2 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가). **남은 것은 6번 하나이고, 2026-09-19 에 10 · 11 번이 새로 추가됐다**(3 · 5 · 7 번도 같은 날 닫혔다. 4 · 8 은 ⚪ 구현 금지). 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
 
 ---
 
@@ -293,19 +294,27 @@ git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 
 ---
 
-### 7. 🟡 §18 로딩 스켈레톤 — 모달 열림 경로가 Layer B 밖이다
+### 7. ✅ **해결(2026-09-19, `ccf196e2b`)** §18 로딩 스켈레톤 — 전제가 틀렸다, 모달 열림 경로를 건드릴 필요가 없었다
 
-**증상** — 결과가 뜨기 전 맨 텍스트 상태가 노출된다.
+**증상** — 결과가 뜨기 전 맨 텍스트 상태가 노출된다. 실측 `readyMs`: 숙요점 **약 1,174ms** / 자미두수 **1,385~1,692ms** / 점성술 **894~1,632ms**.
 
-**확인된 것** — 모달을 여는 코드는 [js/core/index-inline-runtime.js:8798](../../js/core/index-inline-runtime.js) 이고 **Layer B 밖**이다. 그래서 `basicFortunePresentation.js` 만 고쳐서는 스켈레톤을 못 넣는다.
+**🔴 정정** — 이 항목은 "모달을 여는 코드가 `index-inline-runtime.js:8798` 이라 Layer B 밖이다" 를 전제로 `index-inline-runtime.js` 수정을 요구했다. **틀렸다.** 고쳐야 할 것은 모달 열림 경로가 아니라 **로딩 마크업이 실제로 칠해지는 자리**이고, 그건 세 곳이다:
 
-실측 `readyMs`: 숙요점 **약 1,174ms** / 자미두수 **1,385~1,692ms** / 점성술 **894~1,632ms**. 스켈레톤을 넣을 만한 길이이긴 하다.
+- [js/core/saju/modalProfileState.js:192](../../js/core/saju/modalProfileState.js) — `_renderSukuyoSection`
+- [js/core/saju/modalProfileState.js:235](../../js/core/saju/modalProfileState.js) — `_renderZiweiSection`
+- [js/saju-engine-tarot-sukuyo-quantum.js:11344](../../js/saju-engine-tarot-sukuyo-quantum.js) — `renderSukuyo` 안 천문 비동기 대기
 
-**미확인** — `index-inline-runtime.js` 를 고치면 인라인 스크립트 해시 청크와 CSP 에 영향이 있는지. 이 파일은 `sync:public` 이 캐시 키를 다시 찍는 대상이기도 하다(위 로그의 `Rewrote root asset refs in 2 file(s)`).
+그래서 `index-inline-runtime.js` 는 **손대지 않았고**, 미확인으로 남아 있던 CSP 인라인 해시 위험도 발생하지 않았다.
 
-**⚠️ 인위적 지연은 넣지 않는다.** `.fr-overlay *` 가 이미 애니메이션을 끄므로 스켈레톤도 애니메이션 없이 CSS 로만.
+**구현** — JS 델타는 세 곳에 클래스 `fr-state--loading` 한 개씩. 나머지는 [styles/basic-fortune-library.css:55](../../styles/basic-fortune-library.css) 의 `.fr-overlay .fr-state--loading::after` 한 블록이다.
 
-**위험도 🟠** — 정적 셸 런타임을 건드리므로 GREEN 이 아니다.
+- 인위적 지연 없음. 애니메이션 없음(`.fr-overlay *` 가 이미 끈다).
+- 바는 **DOM 노드가 아니라 `::after` 의 background 레이어 7장**이다. 노드를 만들지 않으므로 Layer B 재배치와 가드의 컨트롤·ID 스냅샷 대상이 늘지 않는다.
+- 새 hex 없이 토큰만. 줄은 `--fr-rule`, 카드는 `--fr-surface` 면 + `--fr-rule` 1px 테두리.
+  🔴 **`--fr-surface` 면만 두면 안 된다** — 배경 대비가 숙요점 1.13 · neo 1.07 · 자미두수 1.12:1 이라 사실상 안 보인다(실측). 테두리를 겹쳐 2.18 · 2.24 · 1.88:1 로 올렸다. 상태 문구 쪽은 17.05 · 16.35:1.
+- 렌더 후 `.fr-state--loading` 잔여 0, `pageErrors` 0, `docScrollW` 390/360(오버플로 없음).
+
+**🔴 이 작업에서 새로 드러난 캐시 키 구멍 (별도 항목 10 참조)** — `basic-fortune-library.css` 의 `?v=` 는 CSS 자신의 해시가 아니라 `basicFortunePresentation.js` 의 자산별 해시를 빌려 쓴다. 그래서 **CSS 만 고친 커밋은 URL 을 회전시키지 못하고**, `/styles/*.css` 는 `immutable, max-age=31536000` 이다. 이번 커밋은 그 파일에 결합을 기록하는 주석을 넣어 키를 돌렸다.
 
 ---
 
@@ -545,6 +554,44 @@ CLAUDE.md 원칙 14 대로 **보고만** 한다. 전부 실측 근거가 있다.
 
 ---
 
+### 10. 🟠 `styles/*.css` 는 **자기 내용으로 캐시 키가 돌지 않는다** — CSS 단독 커밋은 기존 방문자에게 도달하지 않는다
+
+2026-09-19 §2-7 작업 중 실측으로 드러났다. 위 §2-9 의 "`paid-flow-gates.yml` 트리거 구멍" 과는 **다른 문제**다(그건 CI 가 안 깨어나는 것, 이건 배포돼도 사용자에게 안 가는 것).
+
+**경로** — `basic-fortune-library.css` 는 `<link>` 를 런타임에 만들고, 그 `?v=` 로 **자기 해시가 아니라 스크립트 자신의 키**를 쓴다:
+
+```js
+// js/core/saju/basicFortunePresentation.js:5
+var styleVersion = document.currentScript ? new URL(document.currentScript.src, location.href).search : '';
+// :801  link.href = '/styles/basic-fortune-library.css' + styleVersion;
+```
+
+자산별 키는 **그 파일 내용의 sha256 앞 12자**다([`scripts/lib/asset-cache-keys.mjs:134`](../../scripts/lib/asset-cache-keys.mjs#L134)). 그래서 CSS 만 바뀌면 `basicFortunePresentation.js` 의 키가 그대로고 → CSS URL 도 그대로다.
+
+그리고 [`public/_headers:336`](../../public/_headers#L336) 은 `/styles/*.css` 를 `max-age=31536000, immutable` 로 준다. 같은 헤더 블록의 주석은 *"그 키는 index.html+js/**+styles/** 내용 해시라 파일이 바뀌면 URL 이 바뀐다"* 라고 적혀 있는데, **2026-09-12 에 전역 키가 자산별 키로 바뀌면서 이 문장이 낡았다**(`asset-cache-keys.mjs` 헤더 주석이 그 전환을 기록한다). 주석만 믿지 말 것.
+
+**실측 사례** — `44eac0f68` 은 `styles/basic-fortune-library.css` 5줄만 바꾼 CSS 단독 커밋이다. 어떤 `?v=` 도 돌지 않았다.
+
+**당장의 대처(이번 커밋이 한 것)** — CSS 를 고칠 때 `basicFortunePresentation.js` 를 같은 커밋에 포함시켜 키를 돌린다. 이번엔 그 결합을 기록하는 주석을 `:5` 위에 넣었다.
+
+**근본 해법(별건, 🔴 RED)** — 런타임 `<link>` 의 버전을 CSS 자신의 내용 해시로 바꿔야 한다. `restampAssetCacheRefs` 는 소스의 리터럴 `?v=` 만 다시 쓰므로 런타임 조립 href 를 보지 못한다. 자리표시자 토큰을 소스에 박고 `sync:public` 이 치환하는 형태가 가장 가까운 기존 패턴이다. 캐시 키 파이프라인 변경이라 **RED**.
+
+---
+
+### 11. 🟡 §2-7 작업 중 확인한 범위 밖 결함 3건 (보고만, 고치지 않았다)
+
+CLAUDE.md 원칙 14 대로 보고만 한다. 전부 Playwright 실측이다.
+
+| 항목 | 실측 근거 | 판단 |
+|---|---|---|
+| 🟡 점성술 로딩 상태만 맨 텍스트로 남았다 | [`js/core/saju/modalProfileState.js:296`](../../js/core/saju/modalProfileState.js) 의 `'✦ 코즈믹 차트를 계산하는 중...'` — 인라인 스타일 텍스트. 실측 `readyMs` 894~1,632ms 로 숙요점보다 길 수도 있다 | **의도적으로 제외했다.** 이 문자열은 i18n 원장에 있다 — `i18n/authored/shellRuntime-11.json` 의 `shellRuntime.s109`(12개 로케일) + `i18n/pending/shellRuntime.ko.json:111`. 숙요점·자미두수 문자열은 i18n 참조가 **0건**이라 안전했지만 이건 키를 고아로 만들 수 있다. 손대려면 로케일 축을 함께 다룰 것 |
+| 🟡 자미두수 로딩 중에 액션 버튼이 이미 눌리는 것처럼 보인다 | 로딩 상태 스크린샷에 "카카오톡 공유"·"← 돌아가기" 가 이미 렌더돼 있다. `#ziweiModalCard` 안 `.modal-result-actions` 는 결과와 무관하게 마크업에 있다([index.html:18472](../../index.html)) | 결과가 없는 동안 공유를 누르면 무엇이 공유되는지 미확인. 스켈레톤과 별개 축이라 안 건드렸다 |
+| 🟡 숙요점은 로딩 상태가 **두 개** 공존한다 | 스켈레톤 아래에 27숙 달력 위젯이 이미 완전히 렌더되고, 그 안에 자체 로딩 문구 "달빛을 불러오고 있습니다." 가 따로 돈다 | 두 위젯의 로딩 수명이 독립이라 한쪽만 스켈레톤을 얻었다. 통합하려면 달력 위젯의 렌더 시점을 바꿔야 해서 범위 밖 |
+
+추가로 ⚪ **대비를 WCAG 3:1 까지 올리려면 `--fr-rule` 자체를 바꿔야 한다** — 그건 리포트 전역 토큰이라 스켈레톤 하나 때문에 바꿀 수 없다. 현재 2.18 · 2.24 · 1.88:1 은 `::after`/`content:''` 라 aria 트리 밖이고 WCAG 대상이 아니다(장식).
+
+---
+
 ## §3 함정 모음 — 여기서 시간을 잃는다
 
 ### 🔴 `sync:public` 한 번은 고정점이 아니다 — `js/**` 를 고쳤으면 두 번 돌린다
@@ -588,6 +635,14 @@ npm run sync:public; echo "EXIT=$LASTEXITCODE"
 3. 몇 초 더 기다려도 그대로다.
 
 셋 다 만족할 때만 제거하고, 제거 후 **인덱스가 온전한지**(더러운 파일 수가 전후 동일) 와 `git fsck --connectivity-only` 로 확인한다.
+
+2026-09-19 에 한 번 더 걸렸고, 더 빠른 4번째 판정을 얻었다 — **살아 있는 `git.exe` 의 커맨드라인을 전부 본다**:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "Name = 'git.exe'" | Select-Object ProcessId, CommandLine | Format-Table -AutoSize -Wrap
+```
+
+이 레포에는 `git fsmonitor--daemon run --detach` 가 **상시 10~15개** 떠 있다(세션마다 하나씩 쌓인다). 이건 인덱스를 쓰지 않으므로 락 주인이 아니다. 목록에 `fsmonitor--daemon` **외의** git 명령이 하나도 없으면 그 락은 고아다. 실측 당시 15개 전부가 데몬이었고 락은 0바이트·12분 경과였다.
 
 ### 더러운 트리에서 rebase 가 막히면 merge 를 쓴다
 

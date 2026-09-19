@@ -11341,7 +11341,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             if (_syRenderSeq !== window.__sySukuyoRenderSeq) return; // 그 사이 더 새 렌더가 있었다
             renderSukuyo(p, natal, bazi, next, canonicalPayload, sourceProfile);
         });
-        area.innerHTML = '<div class="fr-state" role="status" aria-live="polite">태어난 날의 숙을 읽고 있어요.</div>';
+        area.innerHTML = '<div class="fr-state fr-state--loading" role="status" aria-live="polite">태어난 날의 숙을 읽고 있어요.</div>';
         return;
     }
 
