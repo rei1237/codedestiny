@@ -1952,9 +1952,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-20810a8873ee'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-20810a8873ee'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-20810a8873ee'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5f29f46c2ce1'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5f29f46c2ce1'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5f29f46c2ce1'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2259,7 +2259,7 @@ function __cdEnsureSajuCoreLoaded() {
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-fb2e9b548419',
     '/js/core/saju/basicFortunePresentation.js?v=build-9b4395fc8c93',
-    '/js/core/saju/modalProfileState.js?v=build-6adc26d3cf0c',
+    '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-20bed9814e5d',
     '/js/saju-engine-continuation.js?v=build-54afcda10bd4',
     '/js/entertain-engine.js?v=build-d8ac3bc18d96',
@@ -8325,7 +8325,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderAstroSection !== 'function'
   ) {
     tasks.push(presentationReady.then(function () {
-      return __cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-6adc26d3cf0c');
+      return __cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63');
     }));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());

@@ -550,6 +550,17 @@ try {
     await page.locator('#sukuyoSection .fr-profile').waitFor({ state: 'visible' });
     await closeModalAndWait('sukuyo');
     states.push({ loading: true });
+    // 공유 미리보기는 섹션 본문을 그대로 싣는다. 결과 전 공유가 로딩 문구를 내보내던 결함을
+    // 막은 뒤로(js/share.js) 점성술도 숙요점·자미두수처럼 결과를 그려 둔 상태에서 불러야
+    // 이 단언이 실제 사용 경로를 검사한다. 예전 픽스처는 프로필 저장 뒤 astro 모달을 한 번도
+    // 열지 않아 #astroResult 가 빈 채로 공유되고 있었다.
+    await page.evaluate(() => window.openAstroModal());
+    await page.waitForFunction(() => {
+      const area = document.getElementById('astroResult');
+      return !!area && area.querySelectorAll('.fr-state').length === 0 && area.innerHTML.length > 20000;
+    }, null, { timeout: 30000 });
+    await closeModalAndWait('astro');
+    states.push({ astroReadyForShare: true });
     await page.evaluate(async () => {
       await window.__cdLoadScriptOnce('/js/share.js');
       window.__mockShares = [];

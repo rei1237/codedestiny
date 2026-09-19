@@ -293,7 +293,7 @@ function _renderAstroSection() {
   if (noP) noP.style.display = 'none';
   wrap.style.display = 'block';
   area.innerHTML =
-    '<div style="text-align:center;padding:50px 20px;color:#d1c4e9;font-family:\"Gowun Dodum\",serif;letter-spacing:1px;">✦ 코즈믹 차트를 계산하는 중...</div>';
+    '<div class="fr-state fr-state--loading" role="status" aria-live="polite">✦ 코즈믹 차트를 계산하는 중...</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('astroModalOverlay', 'astroModalSheet', 'astroResult');
   setTimeout(function () {

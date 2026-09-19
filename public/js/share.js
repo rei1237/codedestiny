@@ -594,6 +594,16 @@ function shareTarotKakao(){
   },'tarot');
 }
 function shareAstroKakao() {
+  // 차트가 아직 없으면(로딩 상태) 공유를 막는다. 아래 preview 는 섹션의 innerText 를
+  // 그대로 싣기 때문에, 그냥 두면 '✦ 코즈믹 차트를 계산하는 중...' 같은 상태 문구가
+  // 결과 본문 자리에 담겨 나간다(shareZiweiKakao 와 같은 구조의 결함이었다).
+  // .fr-state 는 로딩 상태에만 쓰이고 renderAstroInsight 출력에는 없다.
+  // shareWithReward 안에서 return 하면 완료 토스트가 그대로 떠서 바깥에 둔다.
+  var astroSection = document.getElementById('astroResult');
+  if (!astroSection || astroSection.querySelector('.fr-state')) {
+    if (typeof showToast === 'function') showToast('코즈믹 차트가 아직 준비되지 않았어요. 잠시 후 다시 공유해 주세요');
+    return;
+  }
   shareWithReward(function() {
     var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
       ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
@@ -625,6 +635,16 @@ function _trimShareText(raw, maxLen) {
 }
 
 function shareSukuyoKakao() {
+  // 숙(宿)이 아직 없으면(로딩 상태) 공유를 막는다. 아래 preview 는 구조화된
+  // _syLastSukuyoBasicResult 가 비면 섹션 innerText 로 폴백하므로, 그냥 두면
+  // '태어난 날의 숙을 읽고 있어요.' 가 결과 본문 자리에 담겨 나간다.
+  // .fr-state 는 로딩 상태에만 쓰이고 renderSukuyo 결과 출력에는 없다.
+  // shareWithReward 안에서 return 하면 완료 토스트가 그대로 떠서 바깥에 둔다.
+  var sukuyoResultSection = document.getElementById('sukuyoSection');
+  if (!sukuyoResultSection || sukuyoResultSection.querySelector('.fr-state')) {
+    if (typeof showToast === 'function') showToast('숙요점 결과가 아직 준비되지 않았어요. 잠시 후 다시 공유해 주세요');
+    return;
+  }
   shareWithReward(function() {
     var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
       ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
