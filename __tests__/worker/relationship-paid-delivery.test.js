@@ -42,7 +42,9 @@ beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;l
   expect(options.timeoutMs).toBe(45000);expect(options.attempts).toBe(1);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash[":\s]+([a-f0-9]{64})/)[1];
   const part=prompt.match(/이번 호출은 (\d+)장 중 (\d)\/2/);
-  return {ok:true,provider:'gemini',text:JSON.stringify(part?{evidenceHash,body:prose(part[1]+'-'+part[2])}:{evidenceHash,character:{title:'대화를 이어 가는 사람',caption:'계산된 근거와 관계의 조건을 살펴봅니다.'},summary:'사주의 근거를 바탕으로 선택 조건을 살펴봅니다.',finalMessage:'상대를 단정하지 말고 함께 대화해 보세요.'})};
+  // 본문은 프롬프트가 실어 보낸 확정 점수를 그대로 인용한다(장 앞부분은 인용이 통과 조건이다).
+  const score=prompt.match(/\[확정 점수\] (\d{1,3})\/100/)[1];
+  return {ok:true,provider:'gemini',text:JSON.stringify(part?{evidenceHash,body:`확정 점수 ${score}점을 기준으로 읽습니다. `+prose(part[1]+'-'+part[2])}:{evidenceHash,character:{title:'대화를 이어 가는 사람',caption:'계산된 근거와 관계의 조건을 살펴봅니다.'},summary:'사주의 근거를 바탕으로 선택 조건을 살펴봅니다.',finalMessage:'상대를 단정하지 말고 함께 대화해 보세요.'})};
  });
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
