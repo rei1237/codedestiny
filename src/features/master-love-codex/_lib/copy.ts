@@ -230,13 +230,22 @@ export interface MasterLoveCodexCopy {
   monthlyCreditUsedNote: string;
 
   sealAriaLabel: string;
-  continueDestinyButton: string;
   narratorReadingAlt: string;
   narratorClosingAlt: string;
 
   bgmOnAriaLabel: string;
   bgmOffAriaLabel: string;
   actNotReadySuffix: string;
+  /** 아직 쓰이지 않은 장의 자리 — 서버 outline[].state 를 그대로 문구로 옮긴다 */
+  chapterPendingTitle: (order: number) => string;
+  chapterStatePending: string;
+  chapterStateWriting: string;
+  chapterStateRetrying: string;
+  chapterStateBlocked: string;
+  chapterPendingNote: string;
+  chapterBlockedNote: string;
+  /** 미완성 표지 — "전 N장 중 K장". 부분 결과를 완성 분량처럼 적지 않는다 */
+  coverChapterProgressSuffix: (ready: number, total: number, chars: number) => string;
   actNavAriaLabel: string;
   readerContentsTitle: string;
   readerBeginButton: string;
@@ -453,13 +462,21 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   monthlyCreditUsedNote: "Paid with monthly credit",
 
   sealAriaLabel: "Seal",
-  continueDestinyButton: "Open the map of your destiny",
   narratorReadingAlt: "The love master reading a book",
   narratorClosingAlt: "The love master closing the codex",
 
   bgmOnAriaLabel: "Turn off Codex background music",
   bgmOffAriaLabel: "Turn on Codex background music",
   actNotReadySuffix: " (not yet written)",
+  chapterPendingTitle: (order) => `Chapter ${order}`,
+  chapterStatePending: "Not yet written",
+  chapterStateWriting: "Being written",
+  chapterStateRetrying: "Retrying",
+  chapterStateBlocked: "Needs another look",
+  chapterPendingNote: "This chapter has not been written yet. Stay on this page and the codex keeps writing itself.",
+  chapterBlockedNote: "This chapter needs another look. The chapters already written and your purchase stay exactly as they are.",
+  coverChapterProgressSuffix: (ready, total, chars) =>
+    `${ready} of ${total} chapters · ${chars.toLocaleString("en-US")} characters`,
   actNavAriaLabel: "Jump to act",
   readerContentsTitle: "Contents",
   readerBeginButton: "Start reading",
@@ -661,7 +678,9 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     libraryEyebrow: "내 서재",
     libraryTitle: "내 인연의 서",
     libraryDesc: "펼쳤던 책은 이곳에 보관됩니다. 언제든 다시 펼쳐 읽을 수 있습니다.",
-    libraryNavLink: "내 서재",
+    // 🔴 하단 이동 버튼의 라벨은 '보관함' 하나로 통일한다. 리더 아래 링크와 봉인 화면 CTA 가
+    //    같은 키를 보므로 두 곳이 갈라지지 않는다.
+    libraryNavLink: "보관함",
     libraryStatusCompleted: "완성",
     libraryStatusWriting: (done, total) => `집필 중 · ${done}/${total}장`,
     libraryStatusPaused: (done, total) => `집필 멈춤 · ${done}/${total}장`,
@@ -677,13 +696,21 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     monthlyCreditUsedNote: "월정석 사용",
 
     sealAriaLabel: "봉인",
-    continueDestinyButton: "운명의 지도 열기",
     narratorReadingAlt: "책을 읽고 있는 연애 고수",
     narratorClosingAlt: "코덱스를 덮는 연애 고수",
 
     bgmOnAriaLabel: "인연의 서 배경 음악 끄기",
     bgmOffAriaLabel: "인연의 서 배경 음악 켜기",
     actNotReadySuffix: " (아직 쓰이지 않음)",
+    chapterPendingTitle: (order) => `제${order}장`,
+    chapterStatePending: "작성 대기",
+    chapterStateWriting: "작성 중",
+    chapterStateRetrying: "재시도 중",
+    chapterStateBlocked: "확인 필요",
+    chapterPendingNote: "이 장은 아직 쓰이지 않았습니다. 이 화면에 머무르면 이어서 쓰입니다.",
+    chapterBlockedNote: "이 장은 다시 확인이 필요합니다. 이미 쓰인 장과 결제 내역은 그대로 보관됩니다.",
+    coverChapterProgressSuffix: (ready, total, chars) =>
+      `전 ${total}장 중 ${ready}장 · ${chars.toLocaleString("ko-KR")}자`,
     actNavAriaLabel: "막 이동",
     readerContentsTitle: "목차",
     readerBeginButton: "상담 읽기",
@@ -899,13 +926,21 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     monthlyCreditUsedNote: "月定石を使用",
 
     sealAriaLabel: "封印",
-    continueDestinyButton: "運命の地図を開く",
     narratorReadingAlt: "本を読んでいる恋愛の達人",
     narratorClosingAlt: "コーデックスを閉じる恋愛の達人",
 
     bgmOnAriaLabel: "縁の書のBGMをオフにする",
     bgmOffAriaLabel: "縁の書のBGMをオンにする",
     actNotReadySuffix: "（まだ書かれていません）",
+    chapterPendingTitle: (order) => `第${order}章`,
+    chapterStatePending: "作成待ち",
+    chapterStateWriting: "作成中",
+    chapterStateRetrying: "再試行中",
+    chapterStateBlocked: "要確認",
+    chapterPendingNote: "この章はまだ書かれていません。この画面にとどまると続けて書かれます。",
+    chapterBlockedNote: "この章はもう一度確認が必要です。すでに書かれた章とお支払い内容はそのまま保存されています。",
+    coverChapterProgressSuffix: (ready, total, chars) =>
+      `全${total}章中${ready}章 · ${chars.toLocaleString("ja-JP")}字`,
     actNavAriaLabel: "幕へ移動",
     readerContentsTitle: "目次",
     readerBeginButton: "相談を読む",
@@ -1121,13 +1156,21 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     monthlyCreditUsedNote: "已使用月石",
 
     sealAriaLabel: "封印",
-    continueDestinyButton: "打开命运地图",
     narratorReadingAlt: "正在读书的恋爱高人",
     narratorClosingAlt: "合上情缘之书的恋爱高人",
 
     bgmOnAriaLabel: "关闭情缘之书背景音乐",
     bgmOffAriaLabel: "开启情缘之书背景音乐",
     actNotReadySuffix: "（尚未写成）",
+    chapterPendingTitle: (order) => `第${order}章`,
+    chapterStatePending: "等待撰写",
+    chapterStateWriting: "撰写中",
+    chapterStateRetrying: "重试中",
+    chapterStateBlocked: "需要复查",
+    chapterPendingNote: "本章尚未写成。留在此页面就会继续写下去。",
+    chapterBlockedNote: "本章需要再次确认。已写成的章节与付款记录都按原样保存。",
+    coverChapterProgressSuffix: (ready, total, chars) =>
+      `共${total}章中的${ready}章 · ${chars.toLocaleString("zh-CN")}字`,
     actNavAriaLabel: "跳转到幕",
     readerContentsTitle: "目录",
     readerBeginButton: "开始阅读",
@@ -1343,13 +1386,21 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     monthlyCreditUsedNote: "已使用月石",
 
     sealAriaLabel: "封印",
-    continueDestinyButton: "打開命運地圖",
     narratorReadingAlt: "正在讀書的戀愛高人",
     narratorClosingAlt: "合上情緣之書的戀愛高人",
 
     bgmOnAriaLabel: "關閉情緣之書背景音樂",
     bgmOffAriaLabel: "開啟情緣之書背景音樂",
     actNotReadySuffix: "（尚未寫成）",
+    chapterPendingTitle: (order) => `第${order}章`,
+    chapterStatePending: "等待撰寫",
+    chapterStateWriting: "撰寫中",
+    chapterStateRetrying: "重試中",
+    chapterStateBlocked: "需要複查",
+    chapterPendingNote: "本章尚未寫成。留在此頁面就會繼續寫下去。",
+    chapterBlockedNote: "本章需要再次確認。已寫成的章節與付款紀錄都按原樣保存。",
+    coverChapterProgressSuffix: (ready, total, chars) =>
+      `共${total}章中的${ready}章 · ${chars.toLocaleString("zh-TW")}字`,
     actNavAriaLabel: "跳轉到幕",
     readerContentsTitle: "目錄",
     readerBeginButton: "開始閱讀",
@@ -1399,4 +1450,17 @@ export function useMasterLoveCodexLocale(): LoadingLocale {
 export function useMasterLoveCodexCopy(): MasterLoveCodexCopy {
   const locale = useMasterLoveCodexLocale();
   return getMasterLoveCodexCopy(locale);
+}
+
+/**
+ * 장 상태(서버 outline[].state) → 화면 문구.
+ *
+ * 목차(CodexSpine)와 본문 자리표시자(CodexReader)가 **같은 표**를 본다. 두 벌이 되면
+ * 목차는 "작성 중"인데 본문은 "작성 대기"라고 적는 화면이 나온다.
+ */
+export function codexChapterStateLabel(copy: MasterLoveCodexCopy, state: string): string {
+  if (state === "writing") return copy.chapterStateWriting;
+  if (state === "retrying") return copy.chapterStateRetrying;
+  if (state === "blocked") return copy.chapterStateBlocked;
+  return copy.chapterStatePending;
 }

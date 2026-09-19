@@ -10,6 +10,7 @@
 import Link from "next/link";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CodexReveal from "./CodexReveal";
+import { CODEX_LIBRARY_ANCHOR } from "./CodexLibrary";
 import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
@@ -41,11 +42,16 @@ export default function CodexSeal({ forceVisible = false }: CodexSealProps) {
             className={styles.numeral}
             style={{ fontSize: "0.75rem", letterSpacing: "0.28em", color: "var(--codex-ink-text-muted)" }}
           >
-            CONTINUE YOUR DESTINY
+            YOUR CODEX LIBRARY
           </p>
           <div className="mt-7">
-            <Link href="/destiny-island.html" className={styles.cta}>
-              {copy.continueDestinyButton}
+            {/*
+              다 읽은 책은 다른 상품이 아니라 **자기 보관함**으로 돌아간다. 보관함은 라우트가
+              아니라 랜딩 단계에서만 렌더되는 섹션이라 목적지가 `/master-love-codex#앵커` 다
+              (MasterLoveCodexPage 의 phase === "landing" 분기). 없는 경로를 만들지 않는다.
+            */}
+            <Link href={`/master-love-codex#${CODEX_LIBRARY_ANCHOR}`} className={styles.cta}>
+              {copy.libraryNavLink}
             </Link>
           </div>
         </CodexReveal>

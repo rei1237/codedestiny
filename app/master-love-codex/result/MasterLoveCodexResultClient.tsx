@@ -21,6 +21,7 @@ import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/feature
 import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
 import CodexGenerating from "@/src/features/master-love-codex/components/CodexGenerating";
 import { masterLoveCodexBgmTracks } from "@/src/features/master-love-codex/data/assets";
+import { type CodexOutlineEntry } from "@/src/features/master-love-codex/data/acts";
 import { getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexCopy } from "@/src/features/master-love-codex/_lib/copy";
 import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 import { masterLoveCodexBilling } from "@/src/features/master-love-codex/constants";
@@ -39,6 +40,12 @@ type SessionState = {
   /** paid / pass / monthly_credit / admin — 리포트 표식의 금액 표기를 가른다 */
   accessType?: string;
   chapters: CodexChapter[];
+  /**
+   * 서버가 주는 **기대 장 목록**(publicSession 의 outline). 받은 장이 아니라 이쪽이
+   * 목차·막 이동·장 수 표기의 정본이다. 🔴 여기서 복사를 빠뜨리면 리더가 다시 "받은 장 =
+   * 전체 구성" 으로 되돌아가 1장짜리 책이 완성본처럼 보인다.
+   */
+  outline?: CodexOutlineEntry[];
   loveDna: CodexLoveDna | null;
   totalCharCount: number;
   generationProgress?: { completed: number; readable?: number; total: number };
@@ -127,6 +134,7 @@ export default function MasterLoveCodexResultClient() {
         mode: payload.mode === "compat" ? "compat" : "solo",
         accessType: String(payload.accessType || ""),
         chapters: Array.isArray(payload.chapters) ? payload.chapters : [],
+        outline: Array.isArray(payload.outline) ? payload.outline : undefined,
         loveDna: payload.loveDna || null,
         totalCharCount: Number(payload.totalCharCount || 0),
         generationProgress: payload.generationProgress,
@@ -322,6 +330,8 @@ export default function MasterLoveCodexResultClient() {
       <CodexReader
         completed={session.status === "completed"}
         chapters={session.chapters}
+        outline={session.outline}
+        totalChapters={session.generationProgress?.total}
         loveDna={session.loveDna}
         name={session.birthInfo?.name || ""}
         birthLine={buildBirthLine(session.birthInfo, copy)}

@@ -12,17 +12,22 @@ import { useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import CodexAmbience from "./CodexAmbience";
 import { masterLoveCodexBgmTracks } from "../data/assets";
-import { useMasterLoveCodexCopy } from "../_lib/copy";
+import { codexChapterStateLabel, useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexSpineProps {
   /** 현재 읽고 있는 막 (1~5) */
   activeOrder: number;
-  /** 아직 생성되지 않은 막은 비활성 */
+  /**
+   * 본문이 실제로 도착한 막. 🔴 **비활성 조건이 아니다** — 막 이동은 항상 열려 있고
+   * (앵커는 자리표시자에도 있다) 여기서는 색과 보조 문구만 가른다. 생성 진행 상태를
+   * 구매 잠금처럼 보이게 한 것이 이번 장애의 화면 쪽 얼굴이었다.
+   */
   availableOrders: number[];
   /** 막 제목 세트 — 궁합판은 관계 축 제목을 쓴다 */
   mode?: CodexActMode;
-  chapters: Array<{ order: number; title: string }>;
+  /** 기대 장 전체(받은 것 + 아직 안 쓰인 것). 목차는 구매한 구성 전부를 보여 준다. */
+  chapters: Array<{ order: number; title: string; state?: string }>;
 }
 
 export default function CodexSpine({ activeOrder, availableOrders, mode = "solo", chapters }: CodexSpineProps) {
@@ -52,7 +57,6 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
               <button
                 type="button"
                 onClick={() => goToAct(act.order)}
-                disabled={!isReady}
                 aria-current={isActive ? "step" : undefined}
                 aria-label={`${copy.actAriaLabel(act.numeral, act.title)}${isReady ? "" : copy.actNotReadySuffix}`}
                 className={styles.actButton}
@@ -90,7 +94,11 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
       }}>
         <summary><span>{copy.readerContentsTitle}</span><span>{chapters.length}<ChevronDown size={16} aria-hidden="true" /></span></summary>
         <ol>
-          {chapters.map(chapter => (
+          {chapters.map(chapter => {
+            // 아직 안 쓰인 장도 목차에 남긴다 — 구매한 구성이 목차의 정본이다. 대신 사유를
+            // 붙여서, 비어 있는 것이 "권한 없음"이 아니라 "아직 쓰는 중"임을 알린다.
+            const pending = Boolean(chapter.state) && chapter.state !== "ready";
+            return (
             <li key={chapter.order}>
               <a href={`#${CODEX_CHAPTER_ANCHOR_PREFIX}${chapter.order}`} onClick={event => {
                 const target = document.getElementById(`${CODEX_CHAPTER_ANCHOR_PREFIX}${chapter.order}`);
@@ -101,10 +109,12 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
                 target.scrollIntoView({ block: "start", behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
               }}>
                 <span>{String(chapter.order).padStart(2, "0")}</span>
-                {chapter.title.replace(/^제\s*\d+\s*장\s*·\s*/, "")}
+                {(chapter.title || copy.chapterPendingTitle(chapter.order)).replace(/^제\s*\d+\s*장\s*·\s*/, "")}
+                {pending ? <em style={{ fontStyle: "normal", opacity: 0.62 }}> · {codexChapterStateLabel(copy, String(chapter.state))}</em> : null}
               </a>
             </li>
-          ))}
+            );
+          })}
         </ol>
       </details>
       <CodexAmbience track={masterLoveCodexBgmTracks.reading} inline />

@@ -17,6 +17,7 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import type { MasterLoveCodexErrorText } from "./copy";
 import type { CodexChapter, CodexLoveDna } from "../components/CodexReader";
+import type { CodexOutlineEntry } from "../data/acts";
 
 // 서버가 예산을 넘기면 4장이 아니라 1~3장만 커밋하고 돌아온다(worker/routes/master-love-codex.js).
 // 그래서 왕복 수는 20/4=5 회로 고정되지 않는다 — 최악(장당 1회)까지 여유를 둔 터미널 가드다.
@@ -42,6 +43,11 @@ export type CodexSessionPayload = {
   accessType?: string;
   mode?: string;
   chapters?: CodexChapter[];
+  /**
+   * 기대 장 목록. 본문(`chapters`)과 달리 **아직 안 쓰인 장까지** 들어 있어, 화면이 구매한
+   * 구성 전부를 그릴 수 있게 한다. 구버전 응답에는 없으므로 선택 필드다.
+   */
+  outline?: CodexOutlineEntry[];
   generationProgress?: { completed: number; readable?: number; total: number };
   retryAfterMs?: number;
   loveDna?: CodexLoveDna | null;

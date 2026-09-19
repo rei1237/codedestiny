@@ -28,7 +28,7 @@ import CodexShell from "./CodexShell";
 import { CODEX_LIBRARY_ANCHOR } from "./CodexLibrary";
 import CodexSpine from "./CodexSpine";
 import CodexActInterstitial from "./CodexActInterstitial";
-import ChapterSection, { type CodexChapterData } from "./CodexChapter";
+import ChapterSection, { stripChapterPrefix, type CodexChapterData } from "./CodexChapter";
 import CodexLoveDnaPanel, { type CodexLoveDna, type CodexLoveDnaMetric } from "./CodexLoveDna";
 import CodexScoreOverview from "./CodexScoreOverview";
 import CodexReportOutro from "./CodexReportOutro";
@@ -36,9 +36,16 @@ import CodexReportStamp from "./CodexReportStamp";
 import CodexSeal from "./CodexSeal";
 import CodexReveal from "./CodexReveal";
 import { getNarratorAsset } from "../data/assets";
-import { CODEX_CHAPTER_ANCHOR_PREFIX, groupByAct, type CodexActMode } from "../data/acts";
-import { masterLoveCodexBilling } from "../constants";
-import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
+import {
+  CODEX_CHAPTER_ANCHOR_PREFIX,
+  groupByAct,
+  mergeCodexOutline,
+  type CodexActMode,
+  type CodexOutlineEntry,
+  type CodexOutlineRow,
+} from "../data/acts";
+import { masterLoveCodexBilling, MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "../constants";
+import { codexChapterStateLabel, useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number };
@@ -46,6 +53,13 @@ export type { CodexLoveDna, CodexLoveDnaMetric };
 
 interface CodexReaderProps {
   chapters: CodexChapter[];
+  /**
+   * 서버가 주는 기대 장 목록(publicSession 의 `outline`). 받은 장이 아니라 **구매한 구성**이
+   * 목차·상단 막 이동·장 수 표기의 정본이다. 없으면 기대 장 수만큼 자리만 만든다.
+   */
+  outline?: CodexOutlineEntry[] | null;
+  /** 기대 장 수 N. 서버 진행 상태(generationProgress.total)를 그대로 받는다 */
+  totalChapters?: number;
   loveDna: CodexLoveDna | null;
   name: string;
   birthLine: string;
@@ -65,8 +79,50 @@ function safeFilePart(value: string, fallback: string) {
 const DECRYPT_LINES = ["Decrypting", "Reading Destiny", "Synchronizing"] as const;
 const DECRYPT_MS = 2000;
 
+/**
+ * 아직 쓰이지 않은 장의 자리.
+ *
+ * 🔴 `data-codex-pdf-page` 를 붙이지 않는다 — 붙이면 소장본 PDF 에 빈 장이 끼어든다.
+ *    앵커 id 와 tabIndex 는 **유지한다**: 목차·이전/다음 이동이 걸릴 실제 대상이 필요하다.
+ *    비어 있는 이유를 함께 적어, 생성 중인 상태가 구매 잠금처럼 읽히지 않게 한다.
+ */
+function ChapterPlaceholder({ row }: { row: CodexOutlineRow<CodexChapterData> }) {
+  const copy = useMasterLoveCodexCopy();
+  return (
+    <article
+      id={`${CODEX_CHAPTER_ANCHOR_PREFIX}${row.order}`}
+      data-codex-chapter={row.order}
+      data-codex-chapter-state={row.state}
+      tabIndex={-1}
+      className={styles.section}
+    >
+      <div className={styles.measure}>
+        <p
+          className={styles.numeral}
+          style={{ fontSize: "clamp(2.75rem, 9vw, 4rem)", lineHeight: 1, color: "rgba(185,173,153,.3)" }}
+          aria-hidden="true"
+        >
+          {String(row.order).padStart(2, "0")}
+        </p>
+        <h2 className={`${styles.chapterTitle} mt-3`} style={{ color: "var(--codex-ink-text-muted)" }}>
+          <span className="sr-only">{copy.chapterOrderSrLabel(row.order)}</span>
+          {stripChapterPrefix(row.title) || copy.chapterPendingTitle(row.order)}
+        </h2>
+        <hr className={`${styles.rule} ${styles.ruleShort} mt-6 !ml-0`} />
+        <p className="mt-8 text-[0.8125rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }} role="status">
+          <span style={{ color: "var(--codex-gold-dim)" }}>{codexChapterStateLabel(copy, row.state)}</span>
+          {" · "}
+          {row.state === "blocked" ? copy.chapterBlockedNote : copy.chapterPendingNote}
+        </p>
+      </div>
+    </article>
+  );
+}
+
 export default function CodexReader({
   chapters,
+  outline,
+  totalChapters,
   loveDna,
   name,
   birthLine,
@@ -95,8 +151,26 @@ export default function CodexReader({
     () => chapters.slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0)),
     [chapters],
   );
-  const groups = useMemo(() => groupByAct(ordered, mode), [ordered, mode]);
-  const availableActs = useMemo(() => groups.map((group) => group.act.order), [groups]);
+  /**
+   * 🔴 화면의 정본은 **기대 장 목록**이다. 받은 장으로 목차를 만들면 2장이 늦게 온 책이
+   *    "1장짜리 완성본"으로 보인다 — 이번 장애의 화면 쪽 얼굴이 정확히 이것이었다.
+   */
+  const rows = useMemo(
+    () => mergeCodexOutline(outline, ordered, Number(totalChapters) || MASTER_LOVE_CODEX_TOTAL_CHAPTERS),
+    [outline, ordered, totalChapters],
+  );
+  const readyCount = useMemo(() => rows.filter((row) => row.state === "ready").length, [rows]);
+  /**
+   * 봉인·마무리·PDF 는 `completed` 플래그가 아니라 **실제로 전 장을 들고 있을 때만** 연다.
+   * 잘못 completed 로 닫힌 예전 결과(1장짜리)가 봉인 화면을 띄우던 경로를 fail-closed 로 막는다.
+   */
+  const sealed = completed && rows.length > 0 && readyCount === rows.length;
+  const groups = useMemo(() => groupByAct(rows, mode, { keepEmpty: true }), [rows, mode]);
+  // 색·보조 문구 전용. 막 이동 자체는 항상 열려 있다(CodexSpine 의 availableOrders 주석 참조).
+  const availableActs = useMemo(
+    () => groups.filter((group) => group.chapters.some((row) => row.state === "ready")).map((group) => group.act.order),
+    [groups],
+  );
 
   // 진입 연출 — 2초간 해독하는 척한 뒤 본문을 연다.
   useEffect(() => {
@@ -176,7 +250,8 @@ export default function CodexReader({
 
   const handlePdfDownload = useCallback(async () => {
     if (pdfLoading) return;
-    if (!completed) return;
+    // 미완성 책을 PDF 로 굽지 않는다 — 소장본에 빈 장이 들어간다.
+    if (!sealed) return;
     setPdfLoading(true);
     setError("");
     // 아직 스크롤로 도달하지 않은 장은 opacity 0 이라 그대로 찍으면 백지가 된다.
@@ -192,7 +267,7 @@ export default function CodexReader({
         backgroundColor: "#0a0818",
         cover: {
           title: copy.possessiveBookTitle(safeFilePart(name, copy.pdfNameFallback), bookTitle),
-          subtitle: copy.pdfCoverSubtitle(ordered.length, loveDna?.typeName),
+          subtitle: copy.pdfCoverSubtitle(rows.length, loveDna?.typeName),
           name: birthLine,
           date: today,
         },
@@ -203,7 +278,7 @@ export default function CodexReader({
       setIsExporting(false);
       setPdfLoading(false);
     }
-  }, [completed, birthLine, bookTitle, loveDna?.typeName, name, ordered.length, pdfLoading, copy]);
+  }, [sealed, birthLine, bookTitle, loveDna?.typeName, name, rows.length, pdfLoading, copy]);
 
   if (!decrypted) {
     return (
@@ -229,7 +304,12 @@ export default function CodexReader({
 
   return (
     <CodexShell motes={false} ariaLabel={copy.readerAriaLabel(bookTitle)}>
-      <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} chapters={ordered} />
+      <CodexSpine
+        activeOrder={activeAct}
+        availableOrders={availableActs}
+        mode={mode}
+        chapters={rows.map((row) => ({ order: row.order, title: row.title, state: row.state }))}
+      />
 
       {showResume ? (
         <aside className={styles.resumePrompt} aria-label={copy.resumePromptAriaLabel}>
@@ -272,7 +352,10 @@ export default function CodexReader({
               </p>
               {ordered[0] ? <a className={`${styles.cta} mt-6`} href={`#${CODEX_CHAPTER_ANCHOR_PREFIX}${ordered[0].order}`}>{copy.readerBeginButton}</a> : null}
               <p className={`${styles.numeral} mt-2 text-[0.8125rem]`} style={{ color: "var(--codex-ink-text-muted)" }}>
-                {copy.coverChapterCountSuffix(ordered.length, totalCharCount)}
+                {/* 부분 결과를 완성 분량처럼 적지 않는다 — 다 쓰이기 전에는 "N장 중 K장" */}
+                {sealed
+                  ? copy.coverChapterCountSuffix(rows.length, totalCharCount)
+                  : copy.coverChapterProgressSuffix(readyCount, rows.length, totalCharCount)}
               </p>
             </CodexReveal>
           </div>
@@ -287,19 +370,21 @@ export default function CodexReader({
             <div data-codex-act-mark={group.act.order}>
               <CodexActInterstitial act={group.act} forceVisible={isExporting} />
             </div>
-            {group.chapters.map((chapter) => (
-              <ChapterSection key={chapter.id} chapter={chapter} forceVisible={isExporting} />
-            ))}
+            {group.chapters.map((row) => (row.state === "ready" && row.chapter ? (
+              <ChapterSection key={row.id} chapter={row.chapter} forceVisible={isExporting} />
+            ) : (
+              <ChapterPlaceholder key={row.id} row={row} />
+            )))}
           </div>
         ))}
 
         {loveDna ? <CodexLoveDnaPanel loveDna={loveDna} forceVisible={isExporting} /> : null}
 
         {/* 마무리 카드 — 문서 div 안 마지막. 아래 CodexSeal 은 다음 화면 CTA 라 밖에 둔다 */}
-        {completed && <CodexReportOutro
+        {sealed && <CodexReportOutro
           mode={mode}
           accessType={accessType}
-          chapterCount={ordered.length}
+          chapterCount={rows.length}
           totalCharCount={totalCharCount}
           forceVisible={isExporting}
         />}
@@ -308,7 +393,7 @@ export default function CodexReader({
       {/* 소장 */}
       <div className={`${styles.measure} pb-4 text-center`}>
         <CodexReveal forceVisible={isExporting}>
-          <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading || !completed} className={styles.cta}>
+          <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading || !sealed} className={styles.cta}>
             {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
             {pdfLoading ? copy.pdfBindingLabel : copy.pdfDownloadButton}
           </button>
@@ -324,11 +409,25 @@ export default function CodexReader({
         </CodexReveal>
       </div>
 
-      <CodexSeal forceVisible={isExporting} />
+      {/*
+        🔴 "이 책이 끝났다" 는 화면은 **전 장이 실제로 도착했을 때만** 연다. 1장만 온 책
+           아래에 봉인 화면이 뜨던 것이 이번 장애에서 사용자가 본 마지막 장면이었다.
+      */}
+      {sealed ? <CodexSeal forceVisible={isExporting} /> : null}
 
+      {/*
+        세션 식별자는 문의·내부 상태 확인에 필요하므로 지우지 않는다. 대신 자간을 줄이고
+        어디서든 끊기게 해 좁은 화면에서 가로로 넘치지 않게 한다(padding 단축형을 쓰면
+        pb-14 를 덮어쓴다 — paddingInline 만 준다).
+      */}
       <p
         className={`${styles.numeral} pb-14 text-center text-[0.6875rem]`}
-        style={{ color: "rgba(185,173,153,.5)", letterSpacing: "0.16em" }}
+        style={{
+          color: "rgba(185,173,153,.5)",
+          letterSpacing: "0.08em",
+          paddingInline: "1.25rem",
+          overflowWrap: "anywhere",
+        }}
       >
         {sessionId}
       </p>

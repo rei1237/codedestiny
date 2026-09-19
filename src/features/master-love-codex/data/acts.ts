@@ -135,17 +135,88 @@ export function actForChapter(order: number, mode: CodexActMode = "solo"): Codex
   return acts.find((act) => order >= act.from && order <= act.to) || acts[acts.length - 1];
 }
 
-/** 화면에 보이는 장 목록을 막 단위로 묶는다. 서버가 아직 다 안 준 장은 자연히 빠진다. */
+/**
+ * 화면에 보이는 장 목록을 막 단위로 묶는다.
+ *
+ * 기본값은 빈 막을 버린다(진입 화면의 미리보기처럼 받은 것만 보여 주는 자리). 리더는
+ * `keepEmpty` 로 **다섯 막 전부**를 받는다 — 생성 진행 상태가 구매 잠금처럼 보이면 안 된다.
+ */
 export function groupByAct<T extends { order: number }>(
   chapters: T[],
   mode: CodexActMode = "solo",
+  options: { keepEmpty?: boolean } = {},
 ): { act: CodexAct; chapters: T[] }[] {
   return actsForMode(mode)
     .map((act) => ({
       act,
       chapters: chapters.filter((chapter) => chapter.order >= act.from && chapter.order <= act.to),
     }))
-    .filter((group) => group.chapters.length > 0);
+    .filter((group) => options.keepEmpty || group.chapters.length > 0);
+}
+
+/** 서버 `outline[].state` 와 같은 어휘. ready 만 본문이 있다. */
+export type CodexChapterState = "ready" | "pending" | "writing" | "retrying" | "blocked";
+
+/** 서버가 내려주는 목차 한 줄 (worker/routes/master-love-codex.js publicSession). */
+export interface CodexOutlineEntry {
+  id?: string;
+  order: number;
+  title?: string;
+  symbol?: string;
+  state?: string;
+}
+
+export interface CodexOutlineRow<T> {
+  id: string;
+  order: number;
+  title: string;
+  symbol?: string;
+  state: CodexChapterState;
+  /** state === "ready" 일 때만 본문이 있다 */
+  chapter: T | null;
+}
+
+const PENDING_STATES = new Set(["pending", "writing", "retrying", "blocked"]);
+
+/**
+ * 서버 목차와 실제로 받은 장을 합쳐 **기대 장 수만큼의 행**을 만든다.
+ *
+ * 🔴 받은 장 수로 전체 구성을 역산하지 않는다. 목차가 아예 없는 응답(낡은 캐시·구버전)
+ *    에서도 `total` 만큼 자리를 만들어, 1장만 온 책이 "1장짜리 완성본"으로 보이지 않게 한다.
+ * 🔴 서버가 ready 라고 해도 본문이 실제로 없으면 열지 않는다(fail-closed) — 목차만 있고
+ *    본문이 비어 있는 상태가 예전 장애의 모습이었다.
+ */
+export function mergeCodexOutline<T extends { id?: string; order: number; title?: string; symbol?: string }>(
+  outline: CodexOutlineEntry[] | null | undefined,
+  chapters: T[],
+  total: number,
+): CodexOutlineRow<T>[] {
+  const byOrder = new Map<number, T>();
+  for (const chapter of Array.isArray(chapters) ? chapters : []) {
+    const order = Number(chapter?.order || 0);
+    if (order > 0 && !byOrder.has(order)) byOrder.set(order, chapter);
+  }
+  const entries = new Map<number, CodexOutlineEntry>();
+  for (const entry of Array.isArray(outline) ? outline : []) {
+    const order = Number(entry?.order || 0);
+    if (order > 0 && !entries.has(order)) entries.set(order, entry);
+  }
+  const highest = Math.max(Number(total) || 0, ...entries.keys(), ...byOrder.keys(), 0);
+  const rows: CodexOutlineRow<T>[] = [];
+  for (let order = 1; order <= highest; order += 1) {
+    const entry = entries.get(order);
+    const chapter = byOrder.get(order) || null;
+    const declared = String(entry?.state || "");
+    rows.push({
+      id: String(chapter?.id || entry?.id || order),
+      order,
+      title: String(chapter?.title || entry?.title || ""),
+      symbol: chapter?.symbol || entry?.symbol,
+      state: chapter ? "ready" : PENDING_STATES.has(declared) ? (declared as CodexChapterState) : "pending",
+      chapter,
+    });
+  }
+  return rows;
 }
 
 export const CODEX_ACT_ANCHOR_PREFIX = "codex-act-";

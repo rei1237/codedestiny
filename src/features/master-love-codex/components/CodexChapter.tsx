@@ -58,7 +58,7 @@ function normalizeHeadings(body: string): string {
  *    출력 언어가 바뀌면 그 접두 자체가 나오지 않아 아무것도 걷어내지 않는 것이 정상이다.
  *    로케일별 접두를 흉내 내면 오히려 제목 앞머리를 잘라먹는다.
  */
-function stripChapterPrefix(title: string): string {
+export function stripChapterPrefix(title: string): string {
   return String(title || "").replace(/^제\s*\d+\s*장\s*·\s*/, "");
 }
 
