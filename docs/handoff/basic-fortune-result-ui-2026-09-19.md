@@ -569,7 +569,66 @@ CLAUDE.md 원칙 14 대로 **보고만** 한다. 전부 실측 근거가 있다.
 
 ---
 
-### 10. 🟠 `styles/*.css` 는 **자기 내용으로 캐시 키가 돌지 않는다** — CSS 단독 커밋은 기존 방문자에게 도달하지 않는다
+### 10. ✅ **해결(2026-09-19)** `basic-fortune-library.css` 가 자기 내용으로 캐시 키를 돌리지 않았다
+
+> ✅ **"RED · 파이프라인 변경 필요" 라는 이 항목의 원래 판정은 틀렸다.** 레포에 이미 같은 문제를 푼 선례가 있었고, 고친 것은 소스 2파일뿐이다(`js/core/saju/basicFortunePresentation.js` 의 href 리터럴화 + `scripts/sync-legacy-static-to-public.mjs` 의 허용목록 1줄). 캐시 키 로직은 **한 줄도 건드리지 않았다.**
+
+#### 정본 판정 — 선례가 이미 있었다
+
+[`scripts/sync-legacy-static-to-public.mjs:454-455`](../../scripts/sync-legacy-static-to-public.mjs#L454-L455) 의 주석이 `MODULE_IMPORT_CACHE_KEY_FILES` 에 `js/feature-detail-preview.mjs` 를 올려 둔 이유를 적어 뒀다 — *"모듈 import 는 아니지만 `/styles/*.css` immutable 캐시를 타는 동적 스타일시트 URL 을 싣는다."* 그 파일([`:16-18`](../../js/feature-detail-preview.mjs#L16-L18))은 href 를 **리터럴로 박고** sync 가 내용 해시로 다시 쓰게 한다:
+
+```js
+// /styles/*.css 는 1년 immutable 로 나간다(_headers). 무버전 URL 이면 9/14 전 옛 시트가 굳어
+// 새 상세창 버튼이 회색 네이티브 버튼으로 보였다. ?v= 는 sync:public 이 내용 해시로 다시 쓴다.
+style.href = '/styles/feature-visual-detail.css?v=build-c247f733a183';
+```
+
+즉 **같은 문제를 같은 저장소가 이미 풀어 뒀다.** `restampAssetCacheRefs` 는 소스의 리터럴 `?v=` 를 자산별 내용 해시로 다시 쓰고(`.css` 는 `MUST_RESOLVE_EXTENSIONS` 소속), 루프는 루트(`:1068-1077`)와 미러(`:975-984`) **양쪽**에 있다. 새 자리표시자 메커니즘을 만들 필요가 없었다.
+
+#### 한 것
+
+1. `basicFortunePresentation.js` 에서 `styleVersion`(= `document.currentScript` 의 `?v=` 를 빌려 쓰던 변수)을 **지우고** href 를 리터럴 `'/styles/basic-fortune-library.css?v=build-6c37a7fc62b7'` 로 바꿨다. 소비처가 그 두 곳뿐이라 변수가 통째로 사라졌다.
+2. 그 파일을 `MODULE_IMPORT_CACHE_KEY_FILES` 에 등록했다(1줄).
+
+#### 무는지 변이로 확인했다 (원칙 10)
+
+파이프라인을 직접 호출해 잰 값이다(손으로 해시를 다시 구현하지 않았다). CSS 에 주석 한 줄을 붙였다가 **바이트 동일 원복**했고 추적 파일은 변경 0건이다.
+
+| | 결과 |
+|---|---|
+| 소스에 박힌 값 | `build-6c37a7fc62b7` |
+| 파이프라인이 계산한 값 | `build-6c37a7fc62b7` (**일치**) |
+| CSS 를 1줄 변이시킨 뒤 | `build-16c7248ecac0` (**회전함**) |
+
+**변이 전에는 이 회전이 일어나지 않았다** — 그게 이 항목의 증상이었다.
+
+#### 🔴 `sync:public` 은 여기서 **5회**를 돌렸다
+
+§3 의 "두 번" 규칙으로 부족했다. 실측 경과:
+
+| 회차 | 결과 |
+|---|---|
+| 1 | **EXIT 1** — 윈도우 파일 락(errno `-4094`)으로 `public/styles/static-policy.css` 를 18,918 → **9,711 로 잘라 놓고** 죽었다(§3 에 기록된 그 사고) |
+| 2 | EXIT 0 — 미러 18,918 복구. 사실상 1회차 완주 |
+| 3 | EXIT 0 — `js/app.js`·`public/js/app.js` 가 **새로** 따라왔다(연쇄) |
+| 4 | EXIT 0 — 새로 더러워진 파일 0 |
+| 5 | EXIT 0 — `git diff` 내용 해시 **동일**(진짜 고정점) |
+
+교훈 둘: (a) "2회" 는 최소치이지 상한이 아니다. **`git diff` 의 내용 해시가 같아질 때까지** 돌려야 하며 파일 목록 비교로는 부족하다(4회차는 목록이 같았지만 5회차에서야 내용이 멈췄다). (b) `EXIT` 를 매번 확인할 것 — 1회차 실패를 못 보고 넘어갔으면 잘린 CSS 를 커밋할 뻔했다.
+
+#### 검증
+
+`index.html` + 이 파일의 `?v=` 참조 **87건 전수 재계산 → 불일치 0**(내용 해시 검증 81 · fallback 6). `verify:runtime-cache-sync` OK, `verify:static-asset-cache-keys` PASS(자산 4종·참조 34건), `check:fast` 통과(jest 283 suites / 3986 tests), `verify-sukuyo-reading-house` `errors: []`(27숙·`natalUnchanged: true`), `verify-basic-fortune-library` EXIT 0 `errors: []`. 생성물 11개는 **토큰 아닌 변경 줄 0**(전수 확인).
+
+🔴 시트가 실제로 로드되는지는 `verify-basic-fortune-library.mjs:108` 의 계산된 스타일 단언(`overlay.display !== 'none'`, 실측 `position: "fixed"`)으로 확인했다 — URL 만 바꾸는 변경에서 가장 무서운 실패 모드가 "404 라서 무스타일"이므로 여기를 봐야 한다.
+
+#### 남은 것 — 같은 구멍이 다른 CSS 에도 있는지는 안 봤다
+
+이번에 고친 것은 `basic-fortune-library.css` **하나**다. 런타임에 `<link>` 를 조립하는 다른 코드가 같은 방식으로 키를 빌려 쓰고 있을 수 있다. 찾으려면 `createElement('link')` 근처의 href 조립을 훑고, 리터럴 `?v=` 없이 `/styles/` 를 가리키는 것을 고르면 된다.
+
+---
+
+### 10-과거기록. 🟠 원래 증상 (위에서 해결됨)
 
 2026-09-19 §2-7 작업 중 실측으로 드러났다. 위 §2-9 의 "`paid-flow-gates.yml` 트리거 구멍" 과는 **다른 문제**다(그건 CI 가 안 깨어나는 것, 이건 배포돼도 사용자에게 안 가는 것).
 
@@ -587,9 +646,9 @@ var styleVersion = document.currentScript ? new URL(document.currentScript.src, 
 
 **실측 사례** — `44eac0f68` 은 `styles/basic-fortune-library.css` 5줄만 바꾼 CSS 단독 커밋이다. 어떤 `?v=` 도 돌지 않았다.
 
-**당장의 대처(이번 커밋이 한 것)** — CSS 를 고칠 때 `basicFortunePresentation.js` 를 같은 커밋에 포함시켜 키를 돌린다. 이번엔 그 결합을 기록하는 주석을 `:5` 위에 넣었다.
+**당시의 대처** — CSS 를 고칠 때 `basicFortunePresentation.js` 를 같은 커밋에 포함시켜 키를 돌린다는 주석을 `:5` 위에 넣었다. ⚠️ **이 주석은 이제 없다** — 위 해결이 `styleVersion` 을 통째로 지우면서 같이 사라졌고, 새 주석이 href 자리에 들어갔다. **더 이상 CSS 와 JS 를 한 커밋에 묶을 필요가 없다.**
 
-**근본 해법(별건, 🔴 RED)** — 런타임 `<link>` 의 버전을 CSS 자신의 내용 해시로 바꿔야 한다. `restampAssetCacheRefs` 는 소스의 리터럴 `?v=` 만 다시 쓰므로 런타임 조립 href 를 보지 못한다. 자리표시자 토큰을 소스에 박고 `sync:public` 이 치환하는 형태가 가장 가까운 기존 패턴이다. 캐시 키 파이프라인 변경이라 **RED**.
+**당시 적어 둔 "근본 해법(별건, 🔴 RED)"** — *"자리표시자 토큰을 소스에 박고 `sync:public` 이 치환하는 형태가 가장 가까운 기존 패턴이다. 캐시 키 파이프라인 변경이라 RED."* 🔴 **뒷문장이 틀렸다.** 그 "가장 가까운 기존 패턴" 은 가설이 아니라 **이미 배선돼 도는 메커니즘**이었고(`MODULE_IMPORT_CACHE_KEY_FILES` + `feature-detail-preview.mjs` 선례), 파이프라인은 한 줄도 바뀌지 않았다. **교훈: "기존 패턴과 비슷하다" 까지 알아냈으면 그 패턴이 이미 도는지를 먼저 확인할 것** — RED 로 올려 두고 미뤘다가 실제로는 소스 2파일 변경이었다.
 
 ---
 

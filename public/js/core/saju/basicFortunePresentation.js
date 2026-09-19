@@ -2,12 +2,6 @@
 (function () {
   'use strict';
   if (window.BasicFortunePresentation) return;
-  /* 🔴 basic-fortune-library.css 는 자기 내용 해시가 아니라 **이 스크립트의 캐시 키**를 빌려 쓴다
-     (아래 init() 의 link.href). 자산별 키는 파일 내용 sha256 이므로(scripts/lib/asset-cache-keys.mjs)
-     CSS 만 고친 커밋은 URL 을 회전시키지 못하고, `/styles/*.css` 는 immutable·max-age=1년이다
-     (public/_headers). 실측: 44eac0f68 은 CSS 단독 커밋이라 기존 방문자에게 도달하지 못했다.
-     CSS 를 고칠 때는 이 파일도 같은 커밋에 넣어 키를 돌려야 한다. */
-  var styleVersion = document.currentScript ? new URL(document.currentScript.src, location.href).search : '';
   var copy = {
     ko: ['숙요점', '점성술', '자미두수', '핵심 해석', '차트', '자세히 읽기', '다음 이야기', '출생 프로필로 읽는 기본 분석', '나의 운명 기록', '먼저 읽어보세요', '전체 12궁과 명반', '나의 숙을 더 깊이 이해하기', '27숙 명반과 달력', '성향과 선택', '인간관계', '사랑', '일과 재능', '기억할 한 가지', '기본 분석', '명궁', '나의 성향을 읽는 중심', '신궁', '삶에서 힘을 쓰는 방향', '오행국', '명반의 흐름을 나누는 기준', '궁을 선택하면 아래에서 해석을 읽을 수 있어요.', '행성과 삶의 영역', '상담과 관계 탐색', '전체 해석과 참고 기록', '명궁', '재백궁', '관록궁', '부부궁', '복덕궁', '자미두수 읽을거리', '기본 명반에서 확인한 구조를 기존 인사이트 글로 이어서 읽어보세요.', '글 제목 찾기', '불러오는 중입니다.', '글 목록을 불러오지 못했어요. 다시 시도해 주세요.', '찾는 글이 없어요. 다른 검색어를 입력해 주세요.', '읽을거리 목록으로 돌아가기', '원문 페이지 보기', '전통 해석 체계를 바탕으로 한 참고용 읽을거리입니다.', '점성술 읽을거리', '기본 출생차트에서 확인한 배치를 기존 인사이트 글로 이어서 읽어보세요.', '태양 별자리', '성장하며 향하는 중심 방향', '달 별자리', '마음이 안정되고 쉬는 방식', '상승궁', '처음 드러나는 인상과 대응', '명반 근거 표 · 삼방사정과 대한', '명반 격자로 보기', '세로 목록으로 보기'],
     en: ['Sukuyo', 'Astrology', 'Ziwei', 'Key reading', 'Chart', 'Read more', 'Explore next', 'A basic reading based on your birth profile', 'My celestial record', 'Start here', 'All 12 palaces and chart', 'Understanding your mansion', '27 mansions and calendar', 'Temperament and choices', 'Relationships', 'Love', 'Work and talents', 'Keep in mind', 'Basic reading', 'Life palace', 'The centre of your temperament', 'Body palace', 'Where you direct your energy', 'Element bureau', 'The cycle used by this chart', 'Select a palace to read its interpretation below.', 'Planets and life areas', 'Consultation and relationships', 'Full reading and reference', 'Life palace', 'Wealth palace', 'Career palace', 'Spouse palace', 'Wellbeing palace', 'Ziwei reading room', 'Continue from the chart into existing Ziwei insights.', 'Find an article', 'Loading articles…', 'Unable to load articles. Please try again.', 'No matching articles.', 'Back to the reading list', 'Open original article', 'Reference reading based on traditional interpretive frameworks.', 'Astrology reading room', 'Continue from your birth chart into existing astrology insights.', 'Sun sign', 'The direction you grow toward', 'Moon sign', 'How your feelings settle and rest', 'Ascendant', 'The impression you make first', 'Chart reference tables · triads and decades', 'View as chart grid', 'View as list'],
@@ -798,7 +792,12 @@
   }
   function init() {
     if (!document.getElementById('basicFortuneLibraryStyle')) {
-      var link = document.createElement('link'); link.id = 'basicFortuneLibraryStyle'; link.rel = 'stylesheet'; link.href = '/styles/basic-fortune-library.css' + styleVersion; document.head.appendChild(link);
+      var link = document.createElement('link'); link.id = 'basicFortuneLibraryStyle'; link.rel = 'stylesheet';
+      // /styles/*.css 는 1년 immutable 로 나간다(public/_headers). 예전에는 이 href 가 스크립트 자신의
+      // ?v= 를 빌려 써서 CSS 만 고친 커밋이 URL 을 못 돌렸다(실측: 44eac0f68 은 기존 방문자에게 도달하지
+      // 못했다). 리터럴로 박아 두면 sync:public 이 CSS 자신의 내용 해시로 다시 쓴다 — 손으로 찍지 말 것.
+      // 이 파일은 그래서 sync-legacy-static-to-public.mjs 의 MODULE_IMPORT_CACHE_KEY_FILES 에 등록돼 있다.
+      link.href = '/styles/basic-fortune-library.css?v=build-6c37a7fc62b7'; document.head.appendChild(link);
     }
     ['sukuyo', 'ziwei', 'astro'].forEach(function (type) {
       var overlay = document.getElementById(type + 'ModalOverlay');
