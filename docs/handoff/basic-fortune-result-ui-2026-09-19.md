@@ -113,7 +113,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 
 각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다.
 
-✅ **1 · 2 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가). **남은 것은 6번 하나이고, 2026-09-19 에 10 · 11 번이 새로 추가됐다**(3 · 5 · 7 번도 같은 날 닫혔다. 4 · 8 은 ⚪ 구현 금지). 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
+✅ **1 · 2 · 3 · 5 · 6 · 7 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가. 3번은 '할 일 없음'). **남은 것은 10번 하나**이고 그 근본 해법은 🔴 RED 라 사용자 승인이 필요하다. **11번은 보고 전용**이라 할 일이 없다. 4 · 8 은 ⚪ 구현 금지. 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
 
 ---
 
@@ -278,19 +278,34 @@ DOM 사슬은 `#sukuyoModalOverlay`(`.fr-sukuyo` 는 [basicFortunePresentation.j
 
 ---
 
-### 6. 🟡 `app/components/ZiweiChartPage.tsx` 가 고아다
+### 6. ✅ **해결(2026-09-19)** `app/components/ZiweiChartPage.tsx` 는 고아가 맞았고 삭제했다
 
-**확인된 것 (2026-09-19 실측)**
+> ✅ 파일 1개 삭제(-65줄). 3면 감사(`deletion-auditor`)가 **삭제 안전**으로 판정했고 실측으로 확인했다.
+
+**원래 확인된 것**
 ```
 git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 → app/components/ZiweiChartPage.tsx:29:export default function ZiweiChartPage() {
 → app/ziwei/chart/page.tsx:66:export default function ZiweiChartPage() {
 ```
-`app/components/` 쪽은 **자기 정의 한 줄뿐, 임포트하는 곳이 없다.** `app/ziwei/chart/page.tsx` 의 동명 함수는 **별개 구현**이다(같은 이름일 뿐).
 
-**미확인** — 문자열 참조·동적 import·테스트 픽스처. 🔴 **"임포터 0" 은 죽음의 증거가 아니다**(CLAUDE.md 원칙 9). 삭제 전 3면 확인.
+#### 3면 확인 결과 (소스 · `__tests__/` · `scripts/verify-*`, `public/` 미러 169개 · `.github/workflows/` · 빌드 설정 포함)
 
-**위험도 🟡**
+임포트·문자열·동적 경로·워크플로 `paths:` 참조가 **전 면에서 0건**. `dist/`·`out/` 에 `ZIWEI_CHART_PAGE_COPY` **0건** — 번들에 들어간 적이 없다. `app/components/` 는 라우트 디렉터리가 아니므로 Next 가 컴파일조차 하지 않았다.
+
+내용은 `"use client"` **SEO 랜딩 스텁**이었다 — 12로케일 카피 표 + 정적 `<main>` + 링크 2개. 로직·엔진·결제·게이트 호출 0. `app/ziwei/chart/page.tsx` 와의 겹침은 **이름뿐**이고(그쪽은 `generateMetadata` + FAQ JSON-LD + `ZiweiChartClientLoader` 서버 컴포넌트), 문구·마크업을 한 줄도 공유하지 않는다. 같이 고아가 되는 하위 모듈도 없다 — 유일한 로컬 의존 `@/constants/loadingMessages` 는 소비자가 158개 더 있다.
+
+#### `app/` 를 훑는 가드 4개 — 전부 "검사 대상이 하나 줄 뿐"
+
+| 가드 | 영향 |
+|---|---|
+| `scripts/lib/sitemap-lastmod.mjs:218` · `scripts/lib/live-route-matcher.mjs:22` | `PAGE_FILE_RE` 만 수집. page 가 아니고 임포터 0이라 어떤 라우트의 서명 그래프에도 없다 → **사이트맵 원장 드리프트 없음** |
+| `scripts/verify-payment-service-boundary.mjs:38` | app 전체 walk, 결제 임포트 금지 검사. 대상 감소는 무해 |
+| `__tests__/ui/paid-result-locale-copy.test.js:214,247` | app/ 를 walk 해 로케일 카피 표 패리티 검사. `ZIWEI_CHART_PAGE_COPY` 가 그 대상이었다. 하한은 `checked >= 10` 이고 레포 실제 표 수가 훨씬 많아 닿지 않는다 |
+
+**검증** — `node --test __tests__/ui/paid-result-locale-copy.test.js` (4/4 통과, 하한 여유 실측), `npm run typecheck` (`tsc --noEmit` EXIT 0), `npm run check:fast` (jest 283 suites / 3986 tests 통과).
+
+🔴 **`check:fast` 는 삭제를 RED 로 자동 승격하지 않았다** — entry-encoding + jest 만 돌았다. CLAUDE.md 는 "위험 변경은 자동 승격되며 typecheck는 전체 incremental 1회"라고 적지만 **파일 삭제에서는 그 승격이 걸리지 않았다**(실측). TS/TSX 를 지울 땐 `npm run typecheck` 를 **손으로** 돌릴 것.
 
 ---
 
