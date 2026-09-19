@@ -42,6 +42,30 @@
 .fr-overlay .fr-profile-notice { margin: 14px 0 0; padding: 12px; background: var(--fr-surface); color: var(--fr-ink); border-radius: 8px; font-size: 14px; }
 .fr-overlay .fr-state { padding: 48px 24px; min-height: 180px; font-size: 16px; color: var(--fr-ink); }
 .fr-overlay .fr-state button { background: var(--fr-surface) !important; color: var(--fr-ink) !important; border: 1px solid var(--fr-rule) !important; }
+/* 로딩 스켈레톤. 결과가 뜨기 전 1.2~1.7초 동안 맨 텍스트 한 줄만 있던 자리를 리포트의 골격으로 채운다.
+   🔴 애니메이션 없음 — 위 `.fr-overlay *` 가 이미 animation 을 끄고, 인위적 지연도 넣지 않는다.
+   🔴 바는 DOM 노드가 아니라 ::after 의 background 레이어다. 노드를 만들지 않으므로 Layer B 재배치
+   (basicFortunePresentation.js)나 가드의 컨트롤/ID 스냅샷 대상이 늘어나지 않는다.
+   색은 새 hex 없이 토큰만 쓴다 — 줄은 --fr-rule, 카드 덩어리는 --fr-surface 면 + --fr-rule 1px 테두리
+   (마지막 두 레이어가 그 짝이다. 먼저 적힌 레이어가 위에 깔리므로 면이 테두리를 1px 남기고 덮는다).
+   🔴 카드를 --fr-surface 면만으로 두면 안 된다: 배경 대비가 숙요점 1.13 · neo 1.07 · 자미두수 1.12:1 이라
+   사실상 안 보인다(실측, 시각 검수에서도 "한계선"으로 잡혔다). --fr-rule 은 같은 순서로 2.18 · 2.24 ·
+   1.88:1 이다 — 콘텐츠로 오인되지 않을 만큼 옅으면서 골격이 읽힌다. 상태 문구 쪽은 17.05 · 16.35:1 이라
+   문구가 8배 두드러진다. 바는 장식이고 aria 트리에 없어(::after, content:'') WCAG 대상이 아니다. */
+.fr-overlay .fr-state--loading::after {
+  content: ''; display: block; margin-top: 28px; height: 286px; max-width: 560px;
+  background-repeat: no-repeat;
+  background-image:
+    linear-gradient(var(--fr-rule), var(--fr-rule)),
+    linear-gradient(var(--fr-rule), var(--fr-rule)),
+    linear-gradient(var(--fr-rule), var(--fr-rule)),
+    linear-gradient(var(--fr-rule), var(--fr-rule)),
+    linear-gradient(var(--fr-rule), var(--fr-rule)),
+    linear-gradient(var(--fr-surface), var(--fr-surface)),
+    linear-gradient(var(--fr-rule), var(--fr-rule));
+  background-size: 128px 12px, 78% 34px, 100% 14px, 92% 14px, 58% 14px, calc(100% - 2px) 94px, 100% 96px;
+  background-position: 0 0, 0 32px, 0 94px, 0 120px, 0 146px, 1px 191px, 0 190px;
+}
 .fr-overlay :is(#sukuyoNoProfile,#ziweiNoProfile) { color: var(--fr-ink) !important; background: var(--fr-surface) !important; box-shadow: none !important; }
 .fr-overlay :is(#sukuyoNoProfile,#ziweiNoProfile) :is(h3,p,button) { color: var(--fr-ink) !important; }
 .fr-overlay .fr-emblem { width: 64px; height: 64px; float: right; margin: 0 0 12px 16px; stroke: var(--fr-accent); fill: none; stroke-width: 1; opacity: .8; }

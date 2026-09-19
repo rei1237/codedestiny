@@ -189,7 +189,7 @@ function _renderSukuyoSection(profile) {
   if (noP) noP.style.display = 'none';
   card.style.display = 'block';
   area.innerHTML =
-    '<div class="fr-state" role="status" aria-live="polite">태어난 날의 숙을 읽고 있어요.</div>';
+    '<div class="fr-state fr-state--loading" role="status" aria-live="polite">태어난 날의 숙을 읽고 있어요.</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('sukuyoModalOverlay', 'sukuyoModalSheet', 'sukuyoSection');
   setTimeout(function () {
@@ -232,7 +232,7 @@ function _renderZiweiSection() {
   if (noP) noP.style.display = 'none';
   card.style.display = 'block';
   area.innerHTML =
-    '<div class="fr-state" role="status" aria-live="polite">당신의 명반을 펼치고 있어요.</div>';
+    '<div class="fr-state fr-state--loading" role="status" aria-live="polite">당신의 명반을 펼치고 있어요.</div>';
   if (sheet) sheet.scrollTop = 0;
   _cdModalHardResetTop('ziweiModalOverlay', 'ziweiModalSheet', 'ziweiModalSection');
 
