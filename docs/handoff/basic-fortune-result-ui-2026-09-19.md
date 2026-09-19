@@ -671,7 +671,7 @@ CLAUDE.md 원칙 14 대로 보고만 한다. 전부 Playwright 실측이다.
 |---|---|---|
 | ✅ **해결(2026-09-19, `6ad52e5f1`)** 점성술 로딩 상태만 맨 텍스트로 남았다 | [`js/core/saju/modalProfileState.js:296`](../../js/core/saju/modalProfileState.js) 을 형제 2곳과 같은 `.fr-state fr-state--loading` 으로 교체했다 | **i18n 걱정은 근거가 없었다.** 런타임 번역은 한국어 원문 역인덱스로 텍스트 노드를 대조한다([scripts/i18n-extract-runtime-ui.mjs](../../scripts/i18n-extract-runtime-ui.mjs)) — 리터럴을 그대로 두고 래퍼만 바꾸면 추출 결과가 바이트 동일해 `shellRuntime.s109` 는 살아 있다. 추출기는 돌리지 않았다. CSS 도 안 건드렸다 |
 | ✅ **해결(2026-09-19, `cc771aba4`)** 자미두수 로딩 중에 액션 버튼이 이미 눌리는 것처럼 보인다 | 로딩 상태 스크린샷에 "카카오톡 공유"·"← 돌아가기" 가 이미 렌더돼 있다. `#ziweiModalCard` 안 `.modal-result-actions` 는 결과와 무관하게 마크업에 있다([index.html:18472](../../index.html)) | **"무엇이 공유되는지" 를 실측했고 실제 오작동이었다** — 아래 참조 |
-| 🟡 숙요점은 로딩 상태가 **두 개** 공존한다 | 스켈레톤 아래에 27숙 달력 위젯이 이미 완전히 렌더되고, 그 안에 자체 로딩 문구 "달빛을 불러오고 있습니다." 가 따로 돈다 | 두 위젯의 로딩 수명이 독립이라 한쪽만 스켈레톤을 얻었다. 통합하려면 달력 위젯의 렌더 시점을 바꿔야 해서 범위 밖 |
+| ✅ **해결(2026-09-19, `4429c3b36`)** 숙요점은 로딩 상태가 **두 개** 공존했다 | 스켈레톤 아래에 27숙 달력 위젯이 이미 완전히 렌더되고, 그 안에 자체 로딩 문구 "달빛을 불러오고 있습니다." 가 따로 돌았다 | 두 위젯의 로딩 수명이 독립이라 한쪽만 스켈레톤을 얻었던 것 — 아래 참조 |
 
 #### 2번 상세 — 결과 없이 누른 공유는 로딩 문구를 카카오톡으로 내보냈다 (해결)
 
@@ -682,6 +682,14 @@ CLAUDE.md 원칙 14 대로 보고만 한다. 전부 Playwright 실측이다.
 **가드 술어**: `#ziweiModalSection` 안의 `.fr-state` 존재. `.fr-state` 는 로딩·실패에만 쓰이고 명반 정본 `renderZiwei`([js/saju-engine.js:17310](../../js/saju-engine.js))의 출력에는 0건이다(`grep -c fr-state js/saju-engine.js` = 0).
 
 🔴 **가드는 `shareWithReward` 바깥에 둬야 한다** — 콜백 안에서 `return` 하면 공유는 막히지만 "공유가 완료되었습니다" 토스트가 700ms 뒤 그대로 뜬다.
+
+#### 3번 상세 — 이중 로딩은 트리거가 두 개였다 (해결)
+
+`index.html` 의 인라인 달력 IIFE 안에 `primeSukuyoCalendar()` 라는 별도 트리거가 있었다: `MutationObserver` 로 `#sukuyoModalOverlay` 가 `display:flex` 가 되는 순간(=본명숙 본문이 그려지기 훨씬 전)을 잡아 `loadMonth(false)` 를 선제 호출했다. 그런데 정본 트리거는 이미 있었다 — `renderSukuyo()`([js/saju-engine-tarot-sukuyo-quantum.js:11709](../../js/saju-engine-tarot-sukuyo-quantum.js))가 `area.innerHTML = html` 로 본문을 다 그린 **직후** `window.__cdRefreshSukuyoCalendarPanel(true)` 를 호출하고 있었다. 두 트리거가 독립이라 달력이 본문 스켈레톤이 떠 있는 동안 이미 자체 로딩 문구를 그리고 있었던 것.
+
+**수정**: `primeSukuyoCalendar`/`sukuyoCalendarPrimed`/`watchSukuyoOverlay` 와 그 `DOMContentLoaded` 등록을 전부 제거했다. 남은 유일한 트리거는 `renderSukuyo()` 안의 `__cdRefreshSukuyoCalendarPanel(true)` 호출이며, `openSukuyoModal()`([js/core/index-inline-runtime.js](../../js/core/index-inline-runtime.js))이 오버레이를 연 직후 동기로 `_ModalProfileState.dispatch(profile, 'sukuyo')` 를 부르므로 프로필이 있으면 항상 실행된다.
+
+**실측**: Playwright 로 `/api/sukuyo/calendar/` 를 250ms 지연시키고 900ms 동안 15ms 간격 샘플링 — 수정 후 `overlapFound: false`(스켈레톤이 t≈250ms 에 사라지고 달력 로딩 문구가 t≈277ms 에 뜬다, 순차). `git stash` 로 수정을 되돌리면 같은 테스트가 `overlapFound: true`(t≈0.2ms)로 원래 결함을 잡아낸다 — 변이 테스트로 검증기 자체가 무는 것을 확인했다. `scripts/verify-sukuyo-reading-house.mjs` 회귀 없음, `check:fast` 88항목 + jest 3999건 전부 통과.
 
 **변이로 확인했다(원칙 10)** — 함수를 소스에서 떼어 스텁 위에서 3방향으로 돌렸다: 로딩 중 → 공유 0건·완료 토스트 0건, 결과 있음 → 명반 본문 정상 공유, **가드만 지운 변이본 → 로딩 문구가 다시 공유문에 실림**(원결함 재현).
 
