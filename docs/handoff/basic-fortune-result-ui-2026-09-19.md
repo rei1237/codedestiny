@@ -80,6 +80,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 | `ccf196e2b` | §2-7 **해결** — 로딩 스켈레톤(CSS `::after` 배경 레이어 7장 + 세 곳에 클래스 1개, 23파일 중 20개가 생성 미러) | `git revert ccf196e2b` 뒤 `npm run sync:public` **두 번** |
 | `74947782e` | §2-6 **해결** — 임포터 0 인 SEO 랜딩 스텁 `app/components/ZiweiChartPage.tsx` 삭제(-65줄). 3면 감사 통과 | `git revert 74947782e` (파일이 돌아온다) |
 | `113a0dfb8` | §2-10 **해결** — CSS 가 자기 내용 해시로 캐시 키를 돌린다(소스 2파일 + 생성물 16개). 파이프라인 로직 무변경 | `git revert 113a0dfb8` 뒤 `npm run sync:public` 을 **수렴까지** |
+| `6c4d2b59c` | §2-1 **승격**(사용자 승인) — `verify:style-sync` 를 `pr-ci.yml` `guards` lane 의 차단 게이트로. `UNWIRED_BY_DESIGN` 에서 내렸다(261/63 → 262/62) | `git revert 6c4d2b59c` (스텝과 버킷 항목이 함께 돌아간다) |
 
 각 커밋은 단독으로 되돌려도 다른 기능이 흔들리지 않게 잘라 놓았다.
 
