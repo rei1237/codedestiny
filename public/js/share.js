@@ -663,6 +663,16 @@ function shareSukuyoKakao() {
 }
 
 function shareZiweiKakao() {
+  // 명반이 아직 없으면(로딩·실패 상태) 공유를 막는다. 아래 preview 는 섹션의
+  // innerText 를 그대로 싣기 때문에, 그냥 두면 '당신의 명반을 펼치고 있어요.'
+  // 같은 상태 문구가 결과 본문 자리에 담겨 나간다.
+  // .fr-state 는 로딩/실패 상태에만 쓰이고 renderZiwei 출력에는 없다.
+  // shareWithReward 안에서 return 하면 완료 토스트가 그대로 떠서 바깥에 둔다.
+  var ziweiSection = document.getElementById('ziweiModalSection');
+  if (!ziweiSection || ziweiSection.querySelector('.fr-state')) {
+    if (typeof showToast === 'function') showToast('명반이 아직 준비되지 않았어요. 잠시 후 다시 공유해 주세요');
+    return;
+  }
   shareWithReward(function() {
     var name = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
       ? ((window.DestinyProfileManager.storage.current() || {}).name || '나')
