@@ -670,8 +670,29 @@ CLAUDE.md 원칙 14 대로 보고만 한다. 전부 Playwright 실측이다.
 | 항목 | 실측 근거 | 판단 |
 |---|---|---|
 | 🟡 점성술 로딩 상태만 맨 텍스트로 남았다 | [`js/core/saju/modalProfileState.js:296`](../../js/core/saju/modalProfileState.js) 의 `'✦ 코즈믹 차트를 계산하는 중...'` — 인라인 스타일 텍스트. 실측 `readyMs` 894~1,632ms 로 숙요점보다 길 수도 있다 | **의도적으로 제외했다.** 이 문자열은 i18n 원장에 있다 — `i18n/authored/shellRuntime-11.json` 의 `shellRuntime.s109`(12개 로케일) + `i18n/pending/shellRuntime.ko.json:111`. 숙요점·자미두수 문자열은 i18n 참조가 **0건**이라 안전했지만 이건 키를 고아로 만들 수 있다. 손대려면 로케일 축을 함께 다룰 것 |
-| 🟡 자미두수 로딩 중에 액션 버튼이 이미 눌리는 것처럼 보인다 | 로딩 상태 스크린샷에 "카카오톡 공유"·"← 돌아가기" 가 이미 렌더돼 있다. `#ziweiModalCard` 안 `.modal-result-actions` 는 결과와 무관하게 마크업에 있다([index.html:18472](../../index.html)) | 결과가 없는 동안 공유를 누르면 무엇이 공유되는지 미확인. 스켈레톤과 별개 축이라 안 건드렸다 |
+| ✅ **해결(2026-09-19, `cc771aba4`)** 자미두수 로딩 중에 액션 버튼이 이미 눌리는 것처럼 보인다 | 로딩 상태 스크린샷에 "카카오톡 공유"·"← 돌아가기" 가 이미 렌더돼 있다. `#ziweiModalCard` 안 `.modal-result-actions` 는 결과와 무관하게 마크업에 있다([index.html:18472](../../index.html)) | **"무엇이 공유되는지" 를 실측했고 실제 오작동이었다** — 아래 참조 |
 | 🟡 숙요점은 로딩 상태가 **두 개** 공존한다 | 스켈레톤 아래에 27숙 달력 위젯이 이미 완전히 렌더되고, 그 안에 자체 로딩 문구 "달빛을 불러오고 있습니다." 가 따로 돈다 | 두 위젯의 로딩 수명이 독립이라 한쪽만 스켈레톤을 얻었다. 통합하려면 달력 위젯의 렌더 시점을 바꿔야 해서 범위 밖 |
+
+#### 2번 상세 — 결과 없이 누른 공유는 로딩 문구를 카카오톡으로 내보냈다 (해결)
+
+`shareZiweiKakao`([js/share.js](../../js/share.js))는 `#ziweiModalSection` 의 `innerText` 를 가드 없이 미리보기로 실었다. 그 영역은 결과 전에 로딩 문구(`modalProfileState.js:235` 의 "당신의 명반을 펼치고 있어요.")를, 실패 시 폴백("명반을 펼치지 못했어요.")을 담는다. 즉 **로딩 중 공유를 누르면 명반 대신 상태 문구가 본문 자리에 담겨 실제로 발송됐다.**
+
+🔴 **보상 축은 없다** — `shareWithReward`([js/share-reward.js:82](../../js/share-reward.js))는 보상이 폐지돼 토스트만 띄운다. 이용권·결제 접점 없음. 옛 기록이 "보상"을 이유로 이 축을 RED 로 올려 뒀다면 그 근거는 사라졌다.
+
+**가드 술어**: `#ziweiModalSection` 안의 `.fr-state` 존재. `.fr-state` 는 로딩·실패에만 쓰이고 명반 정본 `renderZiwei`([js/saju-engine.js:17310](../../js/saju-engine.js))의 출력에는 0건이다(`grep -c fr-state js/saju-engine.js` = 0).
+
+🔴 **가드는 `shareWithReward` 바깥에 둬야 한다** — 콜백 안에서 `return` 하면 공유는 막히지만 "공유가 완료되었습니다" 토스트가 700ms 뒤 그대로 뜬다.
+
+**변이로 확인했다(원칙 10)** — 함수를 소스에서 떼어 스텁 위에서 3방향으로 돌렸다: 로딩 중 → 공유 0건·완료 토스트 0건, 결과 있음 → 명반 본문 정상 공유, **가드만 지운 변이본 → 로딩 문구가 다시 공유문에 실림**(원결함 재현).
+
+#### 🟡 같은 구멍이 형제 핸들러 2곳에 그대로 있다 (범위 밖, 보고만)
+
+| 핸들러 | 새는 문구 | 비고 |
+|---|---|---|
+| `shareAstroKakao`([js/share.js](../../js/share.js)) | `#astroResult` 의 '✦ 코즈믹 차트를 계산하는 중...' | 같은 구조. 위 §2-11 의 1번(점성술 스켈레톤)을 할 때 같이 닫으면 자연스럽다 |
+| `shareSukuyoKakao`([js/share.js](../../js/share.js)) | `#sukuyoSection` 의 "태어난 날의 숙을 읽고 있어요." | 구조화된 `_syLastSukuyoBasicResult` 가 비면 `innerText` 로 **폴백**하는 경로라 로딩 중에 반드시 걸린다 |
+
+둘 다 `.fr-state` 술어가 그대로 통한다(숙요점은 `modalProfileState.js:192`·`saju-engine-tarot-sukuyo-quantum.js:11344` 가 같은 클래스를 쓴다). 점성술만 인라인 스타일 텍스트라 술어를 따로 잡아야 한다 — 1번을 하며 `.fr-state` 로 바꾸면 그때 함께 해결된다.
 
 추가로 ⚪ **대비를 WCAG 3:1 까지 올리려면 `--fr-rule` 자체를 바꿔야 한다** — 그건 리포트 전역 토큰이라 스켈레톤 하나 때문에 바꿀 수 없다. 현재 2.18 · 2.24 · 1.88:1 은 `::after`/`content:''` 라 aria 트리 밖이고 WCAG 대상이 아니다(장식).
 
@@ -710,6 +731,10 @@ errno `-4094` (UNKNOWN) 로 중간에 터진 적이 2회 있다. 한 번은 `pub
 ```powershell
 npm run sync:public; echo "EXIT=$LASTEXITCODE"
 ```
+
+**2026-09-19 3회차 — 같은 파일을 더 심하게 날렸고, 하마터면 못 볼 뻔했다.** 이번엔 `public/styles/static-policy.css` 가 470줄 → 3줄로(392줄 삭제) 잘렸다. 🔴 **놓칠 뻔한 이유는 `| tail` 이다** — `npm run sync:public 2>&1 | tail -5` 로 돌리면 파이프가 exit code 를 가려서 `EXIT` 이 tail 의 0 이 된다. 위 PowerShell 형태를 쓰거나 bash 에서는 파이프 없이 `npm run sync:public > log 2>&1; echo "exit=$?"` 로 돌릴 것. 실패는 **간헐적**이라 같은 명령이 바로 다음 실행에서 exit 0 으로 통과한다 — 그래서 "한 번 됐으니 됐다" 가 아니라 **매 실행의 exit code 를 본다.**
+
+**복구(커밋 전이면 간단하다)**: `git restore public/styles/static-policy.css` — 잘린 산출물만 되돌린다. 🔴 공유 체크아웃이므로 경로를 반드시 명시한다. 되돌린 뒤 정상 종료(exit 0)한 `sync:public` 을 한 번 더 돌려 **드리프트 0** 을 확인하는 것이 미러 수렴의 증거다(`verify:public-mirror-fresh` 는 트리가 더러우면 fail-closed 라 판정 자체를 못 한다).
 
 ### `.git/index.lock` 이 남아 커밋을 막는다
 
