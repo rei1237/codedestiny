@@ -23,7 +23,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { buildSystemPrompt, getPalaceConfig, isValidPalace } from "../lib/island/consult/palace-prompts.js";
-import { palaceParts, palaceEvidence, palacePartPrompt, validPalacePart, palaceResult } from "../lib/island/consult/palace-delivery.js";
+import { palaceParts, palaceEvidence, palaceAnchorStars, palacePartPrompt, validPalacePart, palaceResult } from "../lib/island/consult/palace-delivery.js";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
 
 // ── 상품 상수(ziwei-ai와 유일하게 다른 부분) ──
@@ -46,6 +46,7 @@ const MESSAGES = Object.freeze({
   birthTimeMissing: "자미두수는 출생시간이 중요해요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.",
   palaceRequired: "어느 궁의 상담인지 선택해 주세요.",
   calculationFailed: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
+  calculationIncomplete: "이 궁의 명반 근거가 완성되지 않아 상담을 시작하지 않았어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
   serverFailed: "상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 });
@@ -153,6 +154,7 @@ function loginRequired() { return json({ ok: false, reason: "LOGIN_REQUIRED", me
 function serverError(message = MESSAGES.serverFailed, status = 500) { return json({ ok: false, reason: "SERVER_ERROR", message }, { status }); }
 function paymentVerifyFailed() { return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED", message: MESSAGES.paymentVerifyFailed }, { status: 402 }); }
 function calculationFailed() { return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 }); }
+function calculationIncomplete() { return json({ ok: false, retryable: false, reason: "CALCULATION_INCOMPLETE", message: MESSAGES.calculationIncomplete }, { status: 422 }); }
 
 function getPricing() {
   const resolved = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
@@ -685,6 +687,13 @@ async function handleStart(request, env) {
       try { chart = calculateZiweiAiChart(input, { year: new Date().getFullYear() }); }
       catch (error) { await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error }); return calculationFailed(); }
     }
+    // 대조 기준은 요청이 신고한 값이 아니라 계산된(또는 저장된) 명반이다. 인용할 주성도 삼방사정 주성도
+    // 없으면 품질 게이트가 확정값을 한 줄도 대조할 수 없으므로, 제공자를 부르기 전에 닫고 선차감을 되돌린다.
+    const anchors = palaceAnchorStars(input.palaceKey, chart);
+    if (!anchors.length) {
+      await restorePrepaidAccessOnFailure({ userId, access, idempotencyKey, pricing, error: new Error("palace basis incomplete") });
+      return calculationIncomplete();
+    }
     const owner = { id: resultId, userId, serviceType: FEATURE_KEY };
     if (!doc) {
       try {
@@ -726,7 +735,7 @@ async function handleStart(request, env) {
         } catch { return; }
         // Serialize the writes, not the provider calls; each finished part becomes durable immediately.
         const persist = async () => {
-          if (!validPalacePart(value, part, evidence, meta.parts)) {
+          if (!validPalacePart(value, part, evidence, meta.parts, anchors)) {
             meta = { ...meta, invalidAttempts: { ...meta.invalidAttempts, [part.id]: (meta.invalidAttempts[part.id] || 0) + 1 } };
             doc = await saveIsland(filter, { llmMeta: meta });
             return;
