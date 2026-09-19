@@ -87,7 +87,7 @@ npm run test:jest -- __tests__/worker/relationship-score-basis.test.js \
   __tests__/worker/relationship-boundary-test.route.test.js
   → 3 suites / 38 tests passed
 npm run check:fast
-  → exit 0
+  → exit 0 (test:jest 286 suites / 3,999 tests passed)
 ```
 
 `npx jest` 는 쓰지 않았다(러너 전용 가드가 뚫린다). 전부 `scripts/run-mock-tests.mjs` 경유.
