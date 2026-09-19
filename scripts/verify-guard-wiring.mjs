@@ -138,7 +138,6 @@ const UNWIRED_BY_DESIGN = [
   ["verify:mobile-runtime-readiness", "모바일 런타임 준비도 리포트 — 수동"],
   ["verify:insights-famous-coverage", "콘텐츠 커버리지 리포트 — 수동"],
   ["verify:seo-entity-registry", "SEO 엔티티 리포트 — 수동"],
-  ["verify:style-sync", "스타일 미러 수동 점검 도구"],
   ["verify:cachebust-merge", "캐시버스트 병합 수동 점검 도구"],
 
   // ── 배선 후보이나 미승인. 게이트 추가는 사용자 승인 사항이라 임의로 넣지 않는다.
