@@ -244,6 +244,14 @@ export interface MasterLoveCodexCopy {
   chapterStateBlocked: string;
   chapterPendingNote: string;
   chapterBlockedNote: string;
+  /**
+   * 작업 단계 — 서버 generationProgress.step 을 그대로 옮긴다. 장 상태(위)와 겹치는 단어는
+   * 같은 키를 재사용하고, 여기에는 작업 단위에만 있는 단계를 둔다.
+   */
+  stepPreparing: string;
+  stepValidating: string;
+  stepSaving: string;
+  stepFinalizing: string;
   /** 미완성 표지 — "전 N장 중 K장". 부분 결과를 완성 분량처럼 적지 않는다 */
   coverChapterProgressSuffix: (ready: number, total: number, chars: number) => string;
   actNavAriaLabel: string;
@@ -475,6 +483,10 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   chapterStateBlocked: "Needs another look",
   chapterPendingNote: "This chapter has not been written yet. Stay on this page and the codex keeps writing itself.",
   chapterBlockedNote: "This chapter needs another look. The chapters already written and your purchase stay exactly as they are.",
+  stepPreparing: "Checking the table of contents",
+  stepValidating: "Verifying",
+  stepSaving: "Saving",
+  stepFinalizing: "Final check",
   coverChapterProgressSuffix: (ready, total, chars) =>
     `${ready} of ${total} chapters · ${chars.toLocaleString("en-US")} characters`,
   actNavAriaLabel: "Jump to act",
@@ -709,6 +721,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     chapterStateBlocked: "확인 필요",
     chapterPendingNote: "이 장은 아직 쓰이지 않았습니다. 이 화면에 머무르면 이어서 쓰입니다.",
     chapterBlockedNote: "이 장은 다시 확인이 필요합니다. 이미 쓰인 장과 결제 내역은 그대로 보관됩니다.",
+    stepPreparing: "구성 확인 중",
+    stepValidating: "검증 중",
+    stepSaving: "저장 중",
+    stepFinalizing: "최종 확인 중",
     coverChapterProgressSuffix: (ready, total, chars) =>
       `전 ${total}장 중 ${ready}장 · ${chars.toLocaleString("ko-KR")}자`,
     actNavAriaLabel: "막 이동",
@@ -939,6 +955,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     chapterStateBlocked: "要確認",
     chapterPendingNote: "この章はまだ書かれていません。この画面にとどまると続けて書かれます。",
     chapterBlockedNote: "この章はもう一度確認が必要です。すでに書かれた章とお支払い内容はそのまま保存されています。",
+    stepPreparing: "構成を確認中",
+    stepValidating: "検証中",
+    stepSaving: "保存中",
+    stepFinalizing: "最終確認中",
     coverChapterProgressSuffix: (ready, total, chars) =>
       `全${total}章中${ready}章 · ${chars.toLocaleString("ja-JP")}字`,
     actNavAriaLabel: "幕へ移動",
@@ -1169,6 +1189,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     chapterStateBlocked: "需要复查",
     chapterPendingNote: "本章尚未写成。留在此页面就会继续写下去。",
     chapterBlockedNote: "本章需要再次确认。已写成的章节与付款记录都按原样保存。",
+    stepPreparing: "确认目录中",
+    stepValidating: "校验中",
+    stepSaving: "保存中",
+    stepFinalizing: "最终确认中",
     coverChapterProgressSuffix: (ready, total, chars) =>
       `共${total}章中的${ready}章 · ${chars.toLocaleString("zh-CN")}字`,
     actNavAriaLabel: "跳转到幕",
@@ -1399,6 +1423,10 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     chapterStateBlocked: "需要複查",
     chapterPendingNote: "本章尚未寫成。留在此頁面就會繼續寫下去。",
     chapterBlockedNote: "本章需要再次確認。已寫成的章節與付款紀錄都按原樣保存。",
+    stepPreparing: "確認目錄中",
+    stepValidating: "校驗中",
+    stepSaving: "保存中",
+    stepFinalizing: "最終確認中",
     coverChapterProgressSuffix: (ready, total, chars) =>
       `共${total}章中的${ready}章 · ${chars.toLocaleString("zh-TW")}字`,
     actNavAriaLabel: "跳轉到幕",
@@ -1463,4 +1491,23 @@ export function codexChapterStateLabel(copy: MasterLoveCodexCopy, state: string)
   if (state === "retrying") return copy.chapterStateRetrying;
   if (state === "blocked") return copy.chapterStateBlocked;
   return copy.chapterStatePending;
+}
+
+/**
+ * 작업 단계(서버 generationProgress.step) → 화면 문구.
+ *
+ * 🔴 모르는 단계·빈 값은 '구성 확인 중'으로 떨어뜨린다(fail-closed). 화면이 스스로 단계를
+ *    추측하면 그것이 2026-09-19 의 "4.2초마다 도는 가짜 상태 문구"로 되돌아간다.
+ * 🔴 "complete" 도 여기서는 '최종 확인 중'이다. 이 함수를 보는 화면은 아직 생성 화면이고,
+ *    완료 확정은 status === "completed" 로 리더가 열릴 때 비로소 사실이 된다.
+ */
+export function codexStepLabel(copy: MasterLoveCodexCopy, step: string): string {
+  if (step === "writing") return copy.chapterStateWriting;
+  if (step === "validating") return copy.stepValidating;
+  if (step === "saving") return copy.stepSaving;
+  if (step === "retrying") return copy.chapterStateRetrying;
+  if (step === "finalizing" || step === "complete") return copy.stepFinalizing;
+  if (step === "failed") return copy.chapterStateBlocked;
+  if (step === "pending") return copy.chapterStatePending;
+  return copy.stepPreparing;
 }

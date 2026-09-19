@@ -31,6 +31,29 @@ export const MAX_NO_PROGRESS_BATCHES = 3;
 //    서버 배치 락 TTL(120초)보다 길어야 엣지 컷 뒤 남은 락이 풀릴 때까지 버틴다.
 export const GENERATION_STALL_BUDGET_MS = 240_000;
 
+/**
+ * 서버가 내구 상태에서 유도한 진행 상황(worker/routes/master-love-codex.js publicSession).
+ *
+ * 🔴 화면이 이 값을 다시 계산하지 않는다. `percent` 는 서버가 `(K + F) / (N + 1)` 로 준 값이고,
+ *    전 장이 저장돼도 완료 확정 전에는 100 이 되지 않는다. 프런트에서 클램프·보간·예상 시간으로
+ *    앞질러 그리면 "1장만 있는 책이 100%" 가 다시 만들어진다.
+ * 구버전 응답에는 `validated` 이후 필드가 없다 — 그때는 없는 대로 두고 추측하지 않는다.
+ */
+export type CodexGenerationProgress = {
+  completed: number;
+  readable?: number;
+  total: number;
+  /** 검증·저장까지 끝난 고유 장 수(K) */
+  validated?: number;
+  /** 최종 확정까지 끝났을 때만 1(F) */
+  finalized?: number;
+  percent?: number;
+  /** pending | writing | validating | saving | retrying | finalizing | failed | complete */
+  step?: string;
+  currentChapter?: { id?: string; order?: number; symbol?: string; title?: string } | null;
+  blockedChapterIds?: string[];
+};
+
 export type CodexSessionPayload = {
   ok?: boolean;
   reason?: string;
@@ -48,7 +71,7 @@ export type CodexSessionPayload = {
    * 구성 전부를 그릴 수 있게 한다. 구버전 응답에는 없으므로 선택 필드다.
    */
   outline?: CodexOutlineEntry[];
-  generationProgress?: { completed: number; readable?: number; total: number };
+  generationProgress?: CodexGenerationProgress;
   retryAfterMs?: number;
   loveDna?: CodexLoveDna | null;
   totalCharCount?: number;
@@ -56,6 +79,8 @@ export type CodexSessionPayload = {
   birthInfo?: Record<string, unknown> | null;
   partnerInfo?: unknown;
   done?: boolean;
+  /** 문서가 마지막으로 바뀐 시각 — 늦게 도착한 옛 응답이 새 상태를 되돌리지 않게 비교한다 */
+  updatedAt?: string | null;
   paymentPayload?: Record<string, unknown>;
 };
 

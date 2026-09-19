@@ -179,12 +179,17 @@ test("초기 조회 장애 뒤 같은 구매본을 다시 읽으면 오류가 �
   const context = vm.createContext({ useCallback: fn => fn, captureOwner: () => () => true,
     window: { location: { search: "?sessionId=paid-book" } }, URLSearchParams,
     copy: { resultUnstableRefreshError: "temporary", errorText: ERROR_TEXT },
-    setError: value => { error = value; }, setLoading() {}, setSession: value => { stored = value; },
+    setError: value => { error = value; }, setLoading() {},
+    // loadSession 은 낡은 응답을 가리려고 함수형 업데이터로 부른다 — React 처럼 이전 값을 먹인다.
+    setSession: value => { stored = typeof value === "function" ? value(stored) : value; },
     isRetriableResultPollFailure: status => status === 503,
     fetchCodexSession: async () => (++attempt === 1
       ? { status: 503, data: { ok: false } }
       : { status: 200, data: { ok: true, sessionId: "paid-book", status: "generating", accessToken: "token", chapters: [] } }),
   });
+  // 낡은 응답 판정도 같은 소스에서 뽑아 붙인다 — 목으로 흉내 내면 판정이 두 벌이 된다.
+  vm.runInContext(extract(RESULT_CLIENT, "isStaleCodexUpdate"), context);
+  context.isStaleCodexUpdate = context.run;
   vm.runInContext(extract(RESULT_CLIENT, "loadSession"), context);
   await context.run(); assert.equal(error, "temporary");
   await context.run(); assert.equal(error, ""); assert.equal(stored.sessionId, "paid-book");

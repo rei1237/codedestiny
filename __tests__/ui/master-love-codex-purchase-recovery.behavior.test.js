@@ -84,7 +84,7 @@ test("redirect start failure retries the same paid run without a session or a se
 
 test("저장된 세션은 첫 LLM 응답을 기다리지 않고 결과 화면으로 이동한다", async () => {
   const { state, events } = fixture();
-  Object.assign(state, { useCallback: fn => fn, setGenerationError() {}, setChapters() {},
+  Object.assign(state, { useCallback: fn => fn, setGenerationError() {}, setChapters() {}, setCodexProgress() {},
     generationStartedRef: { current: false }, sessionIdRef: { current: "" },
     lastTokenRef: { current: "" }, lastSessionRef: { current: {} }, handedOffRef: { current: false },
     router: { replace: url => events.push(["navigate", url]) },

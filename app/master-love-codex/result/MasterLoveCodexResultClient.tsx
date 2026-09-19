@@ -14,7 +14,7 @@ import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 // 🔴 이어쓰기 루프의 정본. 진입 화면(MasterLoveCodexPage)과 **같은 함수**를 쓴다 — 여기에
 //    사본을 만들면 두 화면의 재시도·정체 예산이 갈라진다.
-import { runCodexBatches, fetchCodexSession } from "@/src/features/master-love-codex/_lib/runCodexBatches";
+import { runCodexBatches, fetchCodexSession, type CodexGenerationProgress } from "@/src/features/master-love-codex/_lib/runCodexBatches";
 import { MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "@/src/features/master-love-codex/constants";
 import CodexAmbience from "@/src/features/master-love-codex/components/CodexAmbience";
 import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
@@ -22,7 +22,7 @@ import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
 import CodexGenerating from "@/src/features/master-love-codex/components/CodexGenerating";
 import { masterLoveCodexBgmTracks } from "@/src/features/master-love-codex/data/assets";
 import { type CodexOutlineEntry } from "@/src/features/master-love-codex/data/acts";
-import { getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexCopy } from "@/src/features/master-love-codex/_lib/copy";
+import { codexStepLabel, getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexCopy } from "@/src/features/master-love-codex/_lib/copy";
 import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 import { masterLoveCodexBilling } from "@/src/features/master-love-codex/constants";
 
@@ -48,7 +48,9 @@ type SessionState = {
   outline?: CodexOutlineEntry[];
   loveDna: CodexLoveDna | null;
   totalCharCount: number;
-  generationProgress?: { completed: number; readable?: number; total: number };
+  generationProgress?: CodexGenerationProgress;
+  /** 서버 문서의 마지막 변경 시각 — 늦게 도착한 옛 응답을 가려낸다 */
+  updatedAt?: string;
   retryable?: boolean;
   retryAfterMs?: number;
   message?: string;
@@ -61,6 +63,26 @@ type SessionState = {
     calendarType?: string;
   } | null;
 };
+
+/**
+ * 늦게 도착한 옛 응답인가.
+ *
+ * 이 화면은 `/session` 조회와 `/generate` 이어쓰기를 **동시에** 돌린다. 먼저 떠난 요청이 나중에
+ * 도착하는 일이 실제로 일어나고, 그때 옛 응답을 그대로 반영하면 쌓이던 장·진행률이 뒤로 간다.
+ * 계정 전환 직후 다른 세션의 응답이 들어오는 경로도 같이 막는다.
+ */
+export function isStaleCodexUpdate(
+  current: { sessionId: string; updatedAt?: string } | null,
+  sessionId: string,
+  updatedAt?: string | null,
+): boolean {
+  if (!current) return false;
+  if (current.sessionId && sessionId && current.sessionId !== sessionId) return true;
+  const incoming = Date.parse(String(updatedAt || ""));
+  const seen = Date.parse(String(current.updatedAt || ""));
+  // 한쪽이라도 시각이 없으면 비교할 근거가 없다 — 막지 않는다(새 응답을 버리는 쪽이 더 위험하다).
+  return Number.isFinite(incoming) && Number.isFinite(seen) && incoming < seen;
+}
 
 function buildBirthLine(birthInfo: SessionState["birthInfo"], copy: MasterLoveCodexCopy) {
   if (!birthInfo) return "";
@@ -138,10 +160,11 @@ export default function MasterLoveCodexResultClient() {
         loveDna: payload.loveDna || null,
         totalCharCount: Number(payload.totalCharCount || 0),
         generationProgress: payload.generationProgress,
+        updatedAt: payload.updatedAt ? String(payload.updatedAt) : undefined,
         retryable: payload.retryable, retryAfterMs: payload.retryAfterMs, message: payload.message,
         birthInfo: payload.birthInfo || null,
       };
-      setSession(latest);
+      setSession((current) => (isStaleCodexUpdate(current, latest.sessionId, latest.updatedAt) ? current : latest));
       return latest;
     } catch {
       if (isCurrent()) setError(copy.errorText.NETWORK_ERROR);
@@ -187,16 +210,24 @@ export default function MasterLoveCodexResultClient() {
         shouldStop: () => stoppedRef.current || !isCurrent() || document.hidden || !navigator.onLine,
         onProgress: (next) => {
           if (!isCurrent()) return;
-          setSession((current) => (current ? {
-            ...current,
-            status: String(next.status || current.status),
-            accessToken: String(next.accessToken || current.accessToken || ""),
-            chapters: Array.isArray(next.chapters) ? next.chapters : current.chapters,
-            loveDna: next.loveDna ?? current.loveDna,
-            totalCharCount: Number(next.totalCharCount ?? current.totalCharCount),
-            generationProgress: next.generationProgress ?? current.generationProgress,
-            retryable: next.retryable, retryAfterMs: next.retryAfterMs, message: next.message,
-          } : current));
+          setSession((current) => {
+            if (!current) return current;
+            const nextUpdatedAt = next.updatedAt ? String(next.updatedAt) : undefined;
+            if (isStaleCodexUpdate(current, String(next.sessionId || current.sessionId), nextUpdatedAt)) return current;
+            return {
+              ...current,
+              status: String(next.status || current.status),
+              accessToken: String(next.accessToken || current.accessToken || ""),
+              chapters: Array.isArray(next.chapters) ? next.chapters : current.chapters,
+              // 🔴 목차도 함께 갱신한다 — 빠뜨리면 이어쓰는 동안 장 상태가 첫 조회 시점에 멈춘다.
+              outline: Array.isArray(next.outline) ? next.outline : current.outline,
+              loveDna: next.loveDna ?? current.loveDna,
+              totalCharCount: Number(next.totalCharCount ?? current.totalCharCount),
+              generationProgress: next.generationProgress ?? current.generationProgress,
+              updatedAt: nextUpdatedAt ?? current.updatedAt,
+              retryable: next.retryable, retryAfterMs: next.retryAfterMs, message: next.message,
+            };
+          });
         },
       });
       // 마지막 배치 응답에는 loveDna·글자수 같은 마무리 필드가 아직 없을 수 있다. 완성본을 한 번 다시 읽는다.
@@ -280,9 +311,21 @@ export default function MasterLoveCodexResultClient() {
     );
   }
 
+  // 🔴 진행 표시의 정본은 서버 generationProgress 다. 1장이 도착해 화면이 리더로 바뀐 뒤에도
+  //    완료가 확정될 때까지 K / N · 단계 · 퍼센트를 계속 싣는다 — 예전에는 리더로 바뀌는 순간
+  //    진행 표시가 사라져서, 아직 쓰이는 중인 책이 완성본처럼 보였다(2026-09-19).
+  const progress = session.generationProgress || null;
+  const progressReady = Math.max(0, Number(progress?.validated ?? progress?.completed ?? session.chapters.length) || 0);
+  const progressTotal = Math.max(0, Number(progress?.total ?? MASTER_LOVE_CODEX_TOTAL_CHAPTERS) || 0);
+  // 서버가 percent 를 주지 않으면 만들어 내지 않는다 — null 이면 단계 문구만 '구성 확인 중'으로 둔다.
+  const rawProgressPercent = Number(progress?.percent);
+  const progressPercent = Number.isFinite(rawProgressPercent) ? Math.min(100, Math.max(0, Math.round(rawProgressPercent))) : null;
+  const progressStepLabel = codexStepLabel(copy, progressPercent === null ? "" : String(progress?.step || ""));
+
   if (!session.chapters.length && session.status !== "completed") {
     return <>{ambience}<CodexShell ariaLabel={copy.generatingAriaLabel(Boolean(resumeError))}>
       <CodexGenerating completed={session.generationProgress?.completed || 0} total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
+        progress={session.generationProgress}
         latestTitles={[]} name={session.birthInfo?.name || ""} mode={session.mode} accessType={session.accessType}
         error={resumeError || (!resuming ? copy.resultIncompleteNotice : "")} onRetry={retryResume} />
     </CodexShell></>;
@@ -324,6 +367,16 @@ export default function MasterLoveCodexResultClient() {
                 </Link>
               </>
             )}
+          </p>
+          {/* 어느 갈래든 서버가 본 실제 진행을 함께 싣는다 — 멈춤·이어쓰기 안내만 뜨고 어디까지
+              됐는지는 알 수 없던 자리다. 숫자·단계·퍼센트는 전부 서버 값이다. */}
+          <p
+            className={`${styles.measure} ${styles.numeral} mt-2 text-center text-[0.8125rem] leading-7`}
+            style={{ letterSpacing: "0.12em", color: "#e8d5a3" }}
+            aria-live="polite"
+          >
+            {progressReady} / {progressTotal} · {progressStepLabel}
+            {progressPercent === null ? null : <> · {progressPercent}%</>}
           </p>
         </div>
       ) : null}

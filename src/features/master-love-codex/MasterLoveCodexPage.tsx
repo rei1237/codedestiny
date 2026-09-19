@@ -52,6 +52,7 @@ import {
   runCodexBatches,
   postCodexJson as postJson,
   mapCodexError as mapError,
+  type CodexGenerationProgress,
   type CodexSessionPayload,
 } from "./_lib/runCodexBatches";
 import codexStyles from "./styles/codex.module.css";
@@ -176,6 +177,9 @@ export default function MasterLoveCodexPage() {
   const activeBilling = masterLoveCodexBilling(activeMode, locale);
   const [error, setError] = useState("");
   const [chapters, setChapters] = useState<CodexChapter[]>([]);
+  // 🔴 진행률·단계의 정본은 서버 generationProgress 다. 이 화면이 받은 장 수로 퍼센트를
+  //    만들어 내면 결과 화면과 다른 숫자가 뜬다 — /start 와 onProgress 가 주는 값만 쓴다.
+  const [codexProgress, setCodexProgress] = useState<CodexGenerationProgress | null>(null);
   // 이용권/월정석으로 통과했는지 — 진행 화면 배지가 금액 대신 그 사실을 말하게 한다
   // (결제하지 않은 금액을 청구받은 것처럼 보이면 안 된다).
   const [accessType, setAccessType] = useState("");
@@ -207,7 +211,7 @@ export default function MasterLoveCodexPage() {
     idempotencyRef.current = ""; sessionIdRef.current = ""; chargedRef.current = false;
     pendingResumeRef.current = null; lastTokenRef.current = ""; lastSessionRef.current = {};
     recoveredPurchaseRef.current = null; generationStartedRef.current = false;
-    setChapters([]); setStoredSessions([]); setStoredPurchases([]); setPhase("landing");
+    setChapters([]); setCodexProgress(null); setStoredSessions([]); setStoredPurchases([]); setPhase("landing");
   }, { survivesAuthRestore: true });
 
   useEffect(() => {
@@ -302,6 +306,9 @@ export default function MasterLoveCodexPage() {
     lastTokenRef.current = startToken;
     lastSessionRef.current = seed;
     handedOffRef.current = false;
+    // 진행 상태의 단일 소유자 — /start 씨앗이든 이어쓰기 응답이든 이 루프만 게이지를 채운다.
+    // 씨앗에 없으면 null 로 둔다(서버가 말하기 전에는 '구성 확인 중', 퍼센트 없음).
+    setCodexProgress(seed?.generationProgress || null);
 
     // 읽기는 몰입 전용 라우트에서 한다 — 그쪽은 사이트맵에 없어 서버 렌더 설명 하한(1,800자)
     // 대상이 아니고, 따라서 코덱스 아래에 아무 설명도 남지 않는다.
@@ -326,6 +333,7 @@ export default function MasterLoveCodexPage() {
       shouldStop: () => handedOffRef.current || !isCurrent(),
       onProgress: (session) => {
         setChapters(Array.isArray(session.chapters) ? session.chapters : []);
+        if (session.generationProgress) setCodexProgress(session.generationProgress);
         if (session.accessToken) lastTokenRef.current = session.accessToken;
         lastSessionRef.current = session;
         // 🔴 완주가 아니라 **첫 진척**에서 넘긴다. 20장 완주는 5~10분이라 PG 리다이렉트로 돌아온
@@ -696,6 +704,7 @@ export default function MasterLoveCodexPage() {
           <CodexGenerating
             completed={chapters.length}
             total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
+            progress={codexProgress}
             latestTitles={chapters.map((chapter) => chapter.title)}
             name={birth.name}
             mode={activeMode}
