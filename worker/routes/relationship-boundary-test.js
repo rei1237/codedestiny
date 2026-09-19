@@ -214,7 +214,8 @@ async function handleStart(request, env) {
       const saju = calculateLoveSecretAiSaju(input.normalized), boundary = scoreBoundary(saju);
       return {
         fields: { ...boundary, character: fallback(boundary).character, sajuFacts: { dayMaster: saju.myChart?.dayMaster, dayPillar: saju.myChart?.dayPillar } },
-        meta: { facts: saju, titles: SECTION_TITLES, framePrompt: prompt(saju, boundary, input.targetInfo.gender), sectionPrompts: SECTION_SPECS.map((_, i) => buildSectionPrompt(saju, boundary, input.targetInfo.gender, i)) },
+        // scoreAnchor 는 품질 게이트가 본문을 대조할 계산값이다. 프롬프트에 실리는 확정 점수와 같은 출처다.
+        meta: { facts: saju, titles: SECTION_TITLES, scoreAnchor: { score: boundary.score, grade: boundary.grade }, framePrompt: prompt(saju, boundary, input.targetInfo.gender), sectionPrompts: SECTION_SPECS.map((_, i) => buildSectionPrompt(saju, boundary, input.targetInfo.gender, i)) },
       };
     },
     open: (...args) => openRefundableExecution(env, ...args),
