@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-19
-next: "**2026-09-19: §2 의 3번과 5번을 닫았다.** 3번은 **할 일 없음**으로 닫았다 — 표의 7행 중 6행이 실측상 이미 다른 경로로 화면에 그려지고 있어서, 표면화하면 같은 값이 두세 번 나오거나 한 숫자에 두 어휘가 붙는다(§2-3 의 정정표가 근거). 진짜 안 그려지는 건 `sData.celebs` 하나뿐인데 실존 인물의 본명숙을 무료 화면에서 단언하는 문제라 **콘텐츠 판단으로 보류**했다. 덤으로 `syScoreBand()`(`:8993`)는 아무도 그리지 않는 값만 만드는 함수임을 확인했다(안 지웠다). 5번은 3면 grep 으로 **죽은 커스텀 속성 10개를 제거**하고 `--sy-gold` 는 **남겼다** — 🔴 그건 `styles/basic-fortune-library.css:174·190·211` 이 읽고, 커스텀 속성은 특정성이 아니라 **가장 가까운 조상**이 이기므로 엔진의 `.sy-container` 선언(`#f7d98a`)이 조상 `#sukuyoModalOverlay.fr-sukuyo`(`#ead089`)를 가린다. 지우면 3곳 색이 말없이 바뀐다. **후속 과제**: 그래서 CSS 쪽 `--sy-gold` 두 줄(`:155`·`:160`)은 지금 효과가 없고 neo-mode 금색 전환도 죽어 있다 — 어느 쪽을 정본으로 둘지는 색이 바뀌는 판단이라 미뤘다. 인라인 `<style>` 530줄 추출도 아직 남았다(옮길 때 🔴 엔진+CSS 한 커밋). **다음 작업은 §2 의 남은 6·7 중 하나이고 추천은 7번**(로딩 스켈레톤, 🟠 — `js/core/index-inline-runtime.js` 를 건드리므로 §3 의 sync 두 번 규칙이 바로 걸린다). 4·8 은 ⚪ 구현 금지 항목이다. 이하는 이전 세션의 주의사항이다. §2 의 **1번(verify:style-sync)은 2026-09-19 에 닫혔다 — 커밋 `cd5423896`**. 정본은 **생성 규칙**이었다: `public/styles/static-policy.css` 는 미러가 아니라 `build-static-policy-pages.mjs:50-54` 가 만드는 concat 생성물(컴파일 접두부 9,207B + root 9,711B = 18,918B, `mirror.endsWith(root)` 실측 true)이고, 바이트 비교 가드 쪽이 틀렸다. 가드를 '미러가 root 로 끝나고 더 길다' 단언으로 바꿨고 변이 4종으로 무는 것을 확인했다. 🔴 **CI 배선은 안 했다** — `verify-guard-wiring.mjs:141` 이 이 가드를 '수동 점검 도구'로 등록해 뒀고 게이트 승격은 사용자 승인 사항이다. 이제 통과하니 승격 여부를 **사용자에게 물어볼 것**. 다음 작업은 §2 의 남은 3~8 중 하나이고 **추천은 3번**(계산해 놓고 화면에 쓰지 않는 값들 — 🟢, 새 데이터 없이 화면을 풍부하게 만든다. 🔴 페이로드에 필드를 추가하지 말 것, DOM 에서 읽을 것). 아래는 이전 세션의 남은 주의사항이다. §2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. (1번 자리에 있던 '다음 작업' 권고는 위로 옮겼다.) 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
+next: "**2026-09-19: §2 가 전부 닫혔다 — 이 문서에서 더 할 구현은 없다.** 마지막 세션이 6번과 10번을 닫았다. **6번**(커밋 `74947782e`): `app/components/ZiweiChartPage.tsx` 는 임포터 0 인 SEO 랜딩 스텁이었고 소스·`__tests__/`·`scripts/verify-*`·`public/` 미러 169개·`.github/workflows/`·빌드 설정 3면 감사 + `dist`/`out` 에 `ZIWEI_CHART_PAGE_COPY` 가 0건(한 번도 번들된 적 없음)임을 확인하고 지웠다. `app/` 를 훑는 가드 4개는 스캔 대상이 하나 줄 뿐 하한선에 걸리지 않는다. 🔴 **이때 `check:fast` 가 파일 삭제를 RED 로 자동 승격하지 않았다** — `verify:entry-encoding` + jest 만 돌았다. CLAUDE.md 의 '위험 변경은 자동 승격' 과 어긋나므로 삭제·리네임 때는 `npm run typecheck` 를 **손으로** 돌 것(§2-6 에 기록). **10번**(커밋 `113a0dfb8`): 이 문서가 '근본 해법은 새 플레이스홀더 기전이 필요한 🔴 RED' 라고 적어 둔 것은 **틀렸다**. 기전은 이미 있고 이미 배포되고 있었다 — `sync-legacy-static-to-public.mjs` 의 `MODULE_IMPORT_CACHE_KEY_FILES` 에 파일을 등록하고 href 에 리터럴 `?v=build-...` 를 박으면 `sync:public` 이 CSS **자신의** 내용 해시로 다시 쓴다. 선례는 `js/feature-detail-preview.mjs:16-18` 이며 그 파일의 리터럴을 파이프라인으로 재계산하니 정확히 일치했다. 그래서 실제 수정은 소스 2파일·파이프라인 로직 무변경이었고, 변이 테스트로 CSS 한 줄 변경이 키를 `build-6c37a7fc62b7 → build-16c7248ecac0` 로 **돌리는 것**을 확인했다(고치기 전에는 안 돌았다). 🔴 이때 `sync:public` 이 **다섯 번** 돌아야 고정점에 도달했다 — §3 의 '두 번' 규칙은 하한이다. 수렴 판정은 파일 **목록**이 아니라 `git diff | sha256sum` **내용 해시**로 할 것(목록 비교는 오탐을 준다). 남은 것은 ⚪ 4·8(구현 금지 판정)과 **11번(보고 전용)** 뿐이다 — 11번 세 건은 CLAUDE.md 원칙 14 에 따라 고치지 않고 적어만 둔 범위 밖 결함이고, 손대려면 각각 **새 세션에서 새 범위로** 시작해야 한다(로딩 문구는 i18n 축, 자미두수 액션 버튼은 결제 동선 축, 숙요 이중 로딩은 달력 위젯 렌더 시점 축이라 이 문서의 Layer B 계약 안에서 못 끝낸다). 이하는 계속 유효한 주의사항이다. 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — `js/**` 를 고치면 수렴까지 반복해야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다. 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 `.git/info/exclude` 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 §0 '시작 전 5분': (1) 정적 셸 `index.html` + `js/**` 바닐라가 무료 결과를 그리고 `app/**` Next.js 는 SEO 랜딩뿐이며, (2) `styles/**`·`js/**` 를 고치면 `public/` 미러를 같은 커밋에 넣어야 하고, (3) **캐시 키를 손으로 찍지 않는다 — 반드시 `npm run sync:public` 으로만**. 엔진 파일 `js/saju-engine.js` 의 마크업·인라인 `<style>` 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 `paid-flow-gates.yml` 트리거에 `styles/**` 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로. 🔴 §2-1 의 `verify:style-sync` 는 이제 통과하지만 `verify-guard-wiring.mjs:141` 이 '수동 점검 도구' 로 등록해 둬서 **CI 배선은 안 돼 있다** — 게이트 승격은 사용자 승인 사항이니 물어볼 것. 아래는 이전 세션들의 기록이다. **2026-09-19: §2 의 3번과 5번을 닫았다.** 3번은 **할 일 없음**으로 닫았다 — 표의 7행 중 6행이 실측상 이미 다른 경로로 화면에 그려지고 있어서, 표면화하면 같은 값이 두세 번 나오거나 한 숫자에 두 어휘가 붙는다(§2-3 의 정정표가 근거). 진짜 안 그려지는 건 `sData.celebs` 하나뿐인데 실존 인물의 본명숙을 무료 화면에서 단언하는 문제라 **콘텐츠 판단으로 보류**했다. 덤으로 `syScoreBand()`(`:8993`)는 아무도 그리지 않는 값만 만드는 함수임을 확인했다(안 지웠다). 5번은 3면 grep 으로 **죽은 커스텀 속성 10개를 제거**하고 `--sy-gold` 는 **남겼다** — 🔴 그건 `styles/basic-fortune-library.css:174·190·211` 이 읽고, 커스텀 속성은 특정성이 아니라 **가장 가까운 조상**이 이기므로 엔진의 `.sy-container` 선언(`#f7d98a`)이 조상 `#sukuyoModalOverlay.fr-sukuyo`(`#ead089`)를 가린다. 지우면 3곳 색이 말없이 바뀐다. **후속 과제**: 그래서 CSS 쪽 `--sy-gold` 두 줄(`:155`·`:160`)은 지금 효과가 없고 neo-mode 금색 전환도 죽어 있다 — 어느 쪽을 정본으로 둘지는 색이 바뀌는 판단이라 미뤘다. 인라인 `<style>` 530줄 추출도 아직 남았다(옮길 때 🔴 엔진+CSS 한 커밋). (당시 권고였던 '다음 작업 6·7' 은 6·7 모두 닫혀 **무효**다. 4·8 은 ⚪ 구현 금지 항목이다.) 이하는 이전 세션의 주의사항이다. §2 의 **1번(verify:style-sync)은 2026-09-19 에 닫혔다 — 커밋 `cd5423896`**. 정본은 **생성 규칙**이었다: `public/styles/static-policy.css` 는 미러가 아니라 `build-static-policy-pages.mjs:50-54` 가 만드는 concat 생성물(컴파일 접두부 9,207B + root 9,711B = 18,918B, `mirror.endsWith(root)` 실측 true)이고, 바이트 비교 가드 쪽이 틀렸다. 가드를 '미러가 root 로 끝나고 더 길다' 단언으로 바꿨고 변이 4종으로 무는 것을 확인했다. 🔴 **CI 배선은 안 했다** — `verify-guard-wiring.mjs:141` 이 이 가드를 '수동 점검 도구'로 등록해 뒀고 게이트 승격은 사용자 승인 사항이다. 이제 통과하니 승격 여부를 **사용자에게 물어볼 것**. (당시 권고였던 '다음 작업 3~8' 도 전부 닫혀 **무효**다.) §2 의 9번(자미두수 동물 패널)과 2번(Playwright 가드 CI 배선)은 2026-09-19 에 닫혔다 — 9번은 커밋 3개(9812d039f · 64f55a98a · 44eac0f68), 2번은 4106e2f31 이다. 🔴 2번은 **절반만** 배선됐다: verify:sukuyo-reading-house 는 guards 잡에 들어갔고(러너 10초, 변이 테스트로 무는 것 확인), 짝인 verify-basic-fortune-library.mjs 는 **구조상 CI 게이트가 될 수 없다** — 그것은 --baseline 으로 origin/main 판을 서빙해 before 를 만들고 비교하는 A/B 세션 도구라, main push 체크아웃에서는 before 가 없어 죽고(e1164da53 → efe722321 revert) --baseline 을 덧대도 자기 자신과 비교하는 fail-open 이 된다. 배선하려면 스크립트 동작을 바꿔야 하고 그건 별도 승인 사안이다. 상세는 §2-2. (1번 자리에 있던 '다음 작업' 권고는 위로 옮겼다.) 🔴 시작 전에 §3 의 'sync:public 한 번은 고정점이 아니다' 를 읽을 것 — js/** 를 고치면 sync 를 두 번 돌려야 하고, 이것을 몰라서 2026-09-19 에 main 이 이틀 가까이 레드였다(§1 의 커밋별 토큰 표가 근거이며, '미러를 빠뜨렸다'는 이 문서의 옛 진단은 실측으로 틀렸다). 🔴 가드를 새로 CI 에 배선할 일이 생기면 §3 의 '로컬에서 6/6 통과한 가드가 러너에서 죽는다' 를 먼저 읽을 것 — 그 스크립트가 **읽는** 파일이 커밋돼 있는지 .git/info/exclude 까지 확인한다. 로컬 통과 횟수는 증거가 아니다. 🔴 먼저 §0 '시작 전 5분'을 읽을 것 — 이 저장소는 (1) 정적 셸 index.html + js/** 바닐라가 무료 결과를 그리고 app/** Next.js 는 SEO 랜딩뿐이며, (2) styles/**·js/** 를 고치면 public/ 미러를 같은 커밋에 넣어야 하고, (3) 캐시 키를 손으로 찍으면 안 되고 반드시 npm run sync:public 으로만 찍는다. 엔진 파일 js/saju-engine.js 의 마크업·인라인 <style> 을 또 고칠 일이 생기면 §2-9 의 '권장 접근 2단계'(2층 CSS 전략)와 그 안의 🔴 '여기서 실제로 두 번 틀렸다' 를 반드시 먼저 읽을 것. 🔴 paid-flow-gates.yml 트리거에 styles/** 가 없어서 CSS 단독 커밋은 결제 게이트를 잠재운다 — 엔진과 CSS 는 한 커밋으로."
 ---
 
 # 기본 숙요점 · 기본 자미두수 결과 화면 — 남은 문제 인수인계
@@ -78,6 +78,8 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 | `4106e2f31` | §2-2 **배선** — `verify:sukuyo-reading-house` npm 스크립트 + `guards` 잡 스텝 1개(러너 10초). 라이브러리 가드는 주석으로 제외 근거를 남기고 뺐다 | `git revert 4106e2f31` (CI 스텝만 사라진다) |
 | `cd5423896` | §2-1 **해결** — `verify:style-sync` 가 `static-policy.css` 를 생성물로 인식하게 한다(가드 1파일, +26/-1). CSS·생성물·CI 는 건드리지 않았다 | `git revert cd5423896` (가드가 다시 영구 레드) |
 | `ccf196e2b` | §2-7 **해결** — 로딩 스켈레톤(CSS `::after` 배경 레이어 7장 + 세 곳에 클래스 1개, 23파일 중 20개가 생성 미러) | `git revert ccf196e2b` 뒤 `npm run sync:public` **두 번** |
+| `74947782e` | §2-6 **해결** — 임포터 0 인 SEO 랜딩 스텁 `app/components/ZiweiChartPage.tsx` 삭제(-65줄). 3면 감사 통과 | `git revert 74947782e` (파일이 돌아온다) |
+| `113a0dfb8` | §2-10 **해결** — CSS 가 자기 내용 해시로 캐시 키를 돌린다(소스 2파일 + 생성물 16개). 파이프라인 로직 무변경 | `git revert 113a0dfb8` 뒤 `npm run sync:public` 을 **수렴까지** |
 
 각 커밋은 단독으로 되돌려도 다른 기능이 흔들리지 않게 잘라 놓았다.
 
@@ -113,7 +115,7 @@ Layer B 가 엔진 산출물을 재배치할 때 **`appendChild` 로 같은 노�
 
 각 항목은 서로 독립이다. 아무거나 하나만 집어서 해도 된다.
 
-✅ **1 · 2 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가). **남은 것은 6번 하나이고, 2026-09-19 에 10 · 11 번이 새로 추가됐다**(3 · 5 · 7 번도 같은 날 닫혔다. 4 · 8 은 ⚪ 구현 금지). 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
+✅ **1 · 2 · 3 · 5 · 6 · 7 · 9 번은 2026-09-19 에 닫혔다**(2번은 절반 — 라이브러리 가드는 구조상 배선 불가. 3번은 '할 일 없음'). **남은 것은 10번 하나**이고 그 근본 해법은 🔴 RED 라 사용자 승인이 필요하다. **11번은 보고 전용**이라 할 일이 없다. 4 · 8 은 ⚪ 구현 금지. 9번 절은 지우지 않고 남겨 뒀다 — 엔진 파일을 고치는 방법(2층 CSS 전략)과 거기서 실제로 틀린 두 가지가 적혀 있어서, 앞으로 엔진 마크업을 또 고칠 사람이 읽어야 한다.
 
 ---
 
@@ -278,19 +280,34 @@ DOM 사슬은 `#sukuyoModalOverlay`(`.fr-sukuyo` 는 [basicFortunePresentation.j
 
 ---
 
-### 6. 🟡 `app/components/ZiweiChartPage.tsx` 가 고아다
+### 6. ✅ **해결(2026-09-19)** `app/components/ZiweiChartPage.tsx` 는 고아가 맞았고 삭제했다
 
-**확인된 것 (2026-09-19 실측)**
+> ✅ 파일 1개 삭제(-65줄). 3면 감사(`deletion-auditor`)가 **삭제 안전**으로 판정했고 실측으로 확인했다.
+
+**원래 확인된 것**
 ```
 git grep -n "ZiweiChartPage" -- '*.ts' '*.tsx' '*.js' '*.mjs'
 → app/components/ZiweiChartPage.tsx:29:export default function ZiweiChartPage() {
 → app/ziwei/chart/page.tsx:66:export default function ZiweiChartPage() {
 ```
-`app/components/` 쪽은 **자기 정의 한 줄뿐, 임포트하는 곳이 없다.** `app/ziwei/chart/page.tsx` 의 동명 함수는 **별개 구현**이다(같은 이름일 뿐).
 
-**미확인** — 문자열 참조·동적 import·테스트 픽스처. 🔴 **"임포터 0" 은 죽음의 증거가 아니다**(CLAUDE.md 원칙 9). 삭제 전 3면 확인.
+#### 3면 확인 결과 (소스 · `__tests__/` · `scripts/verify-*`, `public/` 미러 169개 · `.github/workflows/` · 빌드 설정 포함)
 
-**위험도 🟡**
+임포트·문자열·동적 경로·워크플로 `paths:` 참조가 **전 면에서 0건**. `dist/`·`out/` 에 `ZIWEI_CHART_PAGE_COPY` **0건** — 번들에 들어간 적이 없다. `app/components/` 는 라우트 디렉터리가 아니므로 Next 가 컴파일조차 하지 않았다.
+
+내용은 `"use client"` **SEO 랜딩 스텁**이었다 — 12로케일 카피 표 + 정적 `<main>` + 링크 2개. 로직·엔진·결제·게이트 호출 0. `app/ziwei/chart/page.tsx` 와의 겹침은 **이름뿐**이고(그쪽은 `generateMetadata` + FAQ JSON-LD + `ZiweiChartClientLoader` 서버 컴포넌트), 문구·마크업을 한 줄도 공유하지 않는다. 같이 고아가 되는 하위 모듈도 없다 — 유일한 로컬 의존 `@/constants/loadingMessages` 는 소비자가 158개 더 있다.
+
+#### `app/` 를 훑는 가드 4개 — 전부 "검사 대상이 하나 줄 뿐"
+
+| 가드 | 영향 |
+|---|---|
+| `scripts/lib/sitemap-lastmod.mjs:218` · `scripts/lib/live-route-matcher.mjs:22` | `PAGE_FILE_RE` 만 수집. page 가 아니고 임포터 0이라 어떤 라우트의 서명 그래프에도 없다 → **사이트맵 원장 드리프트 없음** |
+| `scripts/verify-payment-service-boundary.mjs:38` | app 전체 walk, 결제 임포트 금지 검사. 대상 감소는 무해 |
+| `__tests__/ui/paid-result-locale-copy.test.js:214,247` | app/ 를 walk 해 로케일 카피 표 패리티 검사. `ZIWEI_CHART_PAGE_COPY` 가 그 대상이었다. 하한은 `checked >= 10` 이고 레포 실제 표 수가 훨씬 많아 닿지 않는다 |
+
+**검증** — `node --test __tests__/ui/paid-result-locale-copy.test.js` (4/4 통과, 하한 여유 실측), `npm run typecheck` (`tsc --noEmit` EXIT 0), `npm run check:fast` (jest 283 suites / 3986 tests 통과).
+
+🔴 **`check:fast` 는 삭제를 RED 로 자동 승격하지 않았다** — entry-encoding + jest 만 돌았다. CLAUDE.md 는 "위험 변경은 자동 승격되며 typecheck는 전체 incremental 1회"라고 적지만 **파일 삭제에서는 그 승격이 걸리지 않았다**(실측). TS/TSX 를 지울 땐 `npm run typecheck` 를 **손으로** 돌릴 것.
 
 ---
 
@@ -554,7 +571,66 @@ CLAUDE.md 원칙 14 대로 **보고만** 한다. 전부 실측 근거가 있다.
 
 ---
 
-### 10. 🟠 `styles/*.css` 는 **자기 내용으로 캐시 키가 돌지 않는다** — CSS 단독 커밋은 기존 방문자에게 도달하지 않는다
+### 10. ✅ **해결(2026-09-19)** `basic-fortune-library.css` 가 자기 내용으로 캐시 키를 돌리지 않았다
+
+> ✅ **"RED · 파이프라인 변경 필요" 라는 이 항목의 원래 판정은 틀렸다.** 레포에 이미 같은 문제를 푼 선례가 있었고, 고친 것은 소스 2파일뿐이다(`js/core/saju/basicFortunePresentation.js` 의 href 리터럴화 + `scripts/sync-legacy-static-to-public.mjs` 의 허용목록 1줄). 캐시 키 로직은 **한 줄도 건드리지 않았다.**
+
+#### 정본 판정 — 선례가 이미 있었다
+
+[`scripts/sync-legacy-static-to-public.mjs:454-455`](../../scripts/sync-legacy-static-to-public.mjs#L454-L455) 의 주석이 `MODULE_IMPORT_CACHE_KEY_FILES` 에 `js/feature-detail-preview.mjs` 를 올려 둔 이유를 적어 뒀다 — *"모듈 import 는 아니지만 `/styles/*.css` immutable 캐시를 타는 동적 스타일시트 URL 을 싣는다."* 그 파일([`:16-18`](../../js/feature-detail-preview.mjs#L16-L18))은 href 를 **리터럴로 박고** sync 가 내용 해시로 다시 쓰게 한다:
+
+```js
+// /styles/*.css 는 1년 immutable 로 나간다(_headers). 무버전 URL 이면 9/14 전 옛 시트가 굳어
+// 새 상세창 버튼이 회색 네이티브 버튼으로 보였다. ?v= 는 sync:public 이 내용 해시로 다시 쓴다.
+style.href = '/styles/feature-visual-detail.css?v=build-c247f733a183';
+```
+
+즉 **같은 문제를 같은 저장소가 이미 풀어 뒀다.** `restampAssetCacheRefs` 는 소스의 리터럴 `?v=` 를 자산별 내용 해시로 다시 쓰고(`.css` 는 `MUST_RESOLVE_EXTENSIONS` 소속), 루프는 루트(`:1068-1077`)와 미러(`:975-984`) **양쪽**에 있다. 새 자리표시자 메커니즘을 만들 필요가 없었다.
+
+#### 한 것
+
+1. `basicFortunePresentation.js` 에서 `styleVersion`(= `document.currentScript` 의 `?v=` 를 빌려 쓰던 변수)을 **지우고** href 를 리터럴 `'/styles/basic-fortune-library.css?v=build-6c37a7fc62b7'` 로 바꿨다. 소비처가 그 두 곳뿐이라 변수가 통째로 사라졌다.
+2. 그 파일을 `MODULE_IMPORT_CACHE_KEY_FILES` 에 등록했다(1줄).
+
+#### 무는지 변이로 확인했다 (원칙 10)
+
+파이프라인을 직접 호출해 잰 값이다(손으로 해시를 다시 구현하지 않았다). CSS 에 주석 한 줄을 붙였다가 **바이트 동일 원복**했고 추적 파일은 변경 0건이다.
+
+| | 결과 |
+|---|---|
+| 소스에 박힌 값 | `build-6c37a7fc62b7` |
+| 파이프라인이 계산한 값 | `build-6c37a7fc62b7` (**일치**) |
+| CSS 를 1줄 변이시킨 뒤 | `build-16c7248ecac0` (**회전함**) |
+
+**변이 전에는 이 회전이 일어나지 않았다** — 그게 이 항목의 증상이었다.
+
+#### 🔴 `sync:public` 은 여기서 **5회**를 돌렸다
+
+§3 의 "두 번" 규칙으로 부족했다. 실측 경과:
+
+| 회차 | 결과 |
+|---|---|
+| 1 | **EXIT 1** — 윈도우 파일 락(errno `-4094`)으로 `public/styles/static-policy.css` 를 18,918 → **9,711 로 잘라 놓고** 죽었다(§3 에 기록된 그 사고) |
+| 2 | EXIT 0 — 미러 18,918 복구. 사실상 1회차 완주 |
+| 3 | EXIT 0 — `js/app.js`·`public/js/app.js` 가 **새로** 따라왔다(연쇄) |
+| 4 | EXIT 0 — 새로 더러워진 파일 0 |
+| 5 | EXIT 0 — `git diff` 내용 해시 **동일**(진짜 고정점) |
+
+교훈 둘: (a) "2회" 는 최소치이지 상한이 아니다. **`git diff` 의 내용 해시가 같아질 때까지** 돌려야 하며 파일 목록 비교로는 부족하다(4회차는 목록이 같았지만 5회차에서야 내용이 멈췄다). (b) `EXIT` 를 매번 확인할 것 — 1회차 실패를 못 보고 넘어갔으면 잘린 CSS 를 커밋할 뻔했다.
+
+#### 검증
+
+`index.html` + 이 파일의 `?v=` 참조 **87건 전수 재계산 → 불일치 0**(내용 해시 검증 81 · fallback 6). `verify:runtime-cache-sync` OK, `verify:static-asset-cache-keys` PASS(자산 4종·참조 34건), `check:fast` 통과(jest 283 suites / 3986 tests), `verify-sukuyo-reading-house` `errors: []`(27숙·`natalUnchanged: true`), `verify-basic-fortune-library` EXIT 0 `errors: []`. 생성물 11개는 **토큰 아닌 변경 줄 0**(전수 확인).
+
+🔴 시트가 실제로 로드되는지는 `verify-basic-fortune-library.mjs:108` 의 계산된 스타일 단언(`overlay.display !== 'none'`, 실측 `position: "fixed"`)으로 확인했다 — URL 만 바꾸는 변경에서 가장 무서운 실패 모드가 "404 라서 무스타일"이므로 여기를 봐야 한다.
+
+#### 남은 것 — 같은 구멍이 다른 CSS 에도 있는지는 안 봤다
+
+이번에 고친 것은 `basic-fortune-library.css` **하나**다. 런타임에 `<link>` 를 조립하는 다른 코드가 같은 방식으로 키를 빌려 쓰고 있을 수 있다. 찾으려면 `createElement('link')` 근처의 href 조립을 훑고, 리터럴 `?v=` 없이 `/styles/` 를 가리키는 것을 고르면 된다.
+
+---
+
+### 10-과거기록. 🟠 원래 증상 (위에서 해결됨)
 
 2026-09-19 §2-7 작업 중 실측으로 드러났다. 위 §2-9 의 "`paid-flow-gates.yml` 트리거 구멍" 과는 **다른 문제**다(그건 CI 가 안 깨어나는 것, 이건 배포돼도 사용자에게 안 가는 것).
 
@@ -572,9 +648,9 @@ var styleVersion = document.currentScript ? new URL(document.currentScript.src, 
 
 **실측 사례** — `44eac0f68` 은 `styles/basic-fortune-library.css` 5줄만 바꾼 CSS 단독 커밋이다. 어떤 `?v=` 도 돌지 않았다.
 
-**당장의 대처(이번 커밋이 한 것)** — CSS 를 고칠 때 `basicFortunePresentation.js` 를 같은 커밋에 포함시켜 키를 돌린다. 이번엔 그 결합을 기록하는 주석을 `:5` 위에 넣었다.
+**당시의 대처** — CSS 를 고칠 때 `basicFortunePresentation.js` 를 같은 커밋에 포함시켜 키를 돌린다는 주석을 `:5` 위에 넣었다. ⚠️ **이 주석은 이제 없다** — 위 해결이 `styleVersion` 을 통째로 지우면서 같이 사라졌고, 새 주석이 href 자리에 들어갔다. **더 이상 CSS 와 JS 를 한 커밋에 묶을 필요가 없다.**
 
-**근본 해법(별건, 🔴 RED)** — 런타임 `<link>` 의 버전을 CSS 자신의 내용 해시로 바꿔야 한다. `restampAssetCacheRefs` 는 소스의 리터럴 `?v=` 만 다시 쓰므로 런타임 조립 href 를 보지 못한다. 자리표시자 토큰을 소스에 박고 `sync:public` 이 치환하는 형태가 가장 가까운 기존 패턴이다. 캐시 키 파이프라인 변경이라 **RED**.
+**당시 적어 둔 "근본 해법(별건, 🔴 RED)"** — *"자리표시자 토큰을 소스에 박고 `sync:public` 이 치환하는 형태가 가장 가까운 기존 패턴이다. 캐시 키 파이프라인 변경이라 RED."* 🔴 **뒷문장이 틀렸다.** 그 "가장 가까운 기존 패턴" 은 가설이 아니라 **이미 배선돼 도는 메커니즘**이었고(`MODULE_IMPORT_CACHE_KEY_FILES` + `feature-detail-preview.mjs` 선례), 파이프라인은 한 줄도 바뀌지 않았다. **교훈: "기존 패턴과 비슷하다" 까지 알아냈으면 그 패턴이 이미 도는지를 먼저 확인할 것** — RED 로 올려 두고 미뤘다가 실제로는 소스 2파일 변경이었다.
 
 ---
 
