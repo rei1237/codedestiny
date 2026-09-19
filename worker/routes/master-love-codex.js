@@ -109,6 +109,18 @@ const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청 = 1 동시성 웨�
 const CHAPTER_TIMEOUT_MS = 45000;
 
 /**
+ * 장 하나에 허용하는 확정 시도 횟수. 넘긴 장은 더 이상 후보가 아니다(`blocked`).
+ *
+ * 🔴 **한 장이 여기에 걸려도 나머지 장의 생성은 계속된다.** 소진이 세션 전체를 닫던 구조가
+ *    2026-09-19 "1장만 보이는" 장애의 원인 A 였다 — 2장 하나 때문에 나머지 19장이 영영
+ *    시도되지 않았다. 세션을 닫는 것은 "미완 장 전부가 소진됐을 때"뿐이다.
+ */
+const CHAPTER_ATTEMPT_LIMIT = 3;
+
+/** 서버가 내구 상태로 확인할 수 있는 처리 단계. 게이지 문구의 정본이다. */
+const CODEX_STEPS = Object.freeze(["pending", "writing", "validating", "saving", "retrying", "finalizing", "failed", "complete"]);
+
+/**
  * 🔴 배치 1회의 벽시계 상한. 이 예산이 없으면 요청이 엣지 컷(100초)에 잘려
  *    JSON 대신 게이트웨이 HTML 이 나가고, 클라이언트는 원인을 잃은 채 "생성 실패"만 본다.
  *
@@ -741,18 +753,59 @@ function buildMemory(chapters = []) {
   return buildCodexChapterMemory(chapters);
 }
 
+/**
+ * 이 세션이 약속한 장 목록 — 생성·진행률·목차·완료 판정이 함께 보는 단일 정본.
+ *
+ * 🔴 저장된 매니페스트가 있으면 그것이 정본이다. 생성 도중 상품 구성이 바뀌어도 이미 결제된
+ *    책의 구성은 변하지 않는다. 매니페스트가 없는 기존 세션은 구매 당시 모드 표로 폴백한다.
+ * 🔴 **어느 경로에서도 "지금 저장된 장 수"로 전체 구성을 역산하지 않는다.**
+ */
+function expectedChapters(doc) {
+  const specs = resolveMode(doc?.mode).chapters;
+  const ids = doc?.deliveryMeta?.manifest?.chapterIds;
+  if (!Array.isArray(ids) || !ids.length) return specs;
+  const byId = new Map(specs.map(spec => [spec.id, spec]));
+  const pinned = ids.map(id => byId.get(clean(id))).filter(Boolean);
+  return pinned.length ? pinned : specs;
+}
+
 function publicSession(doc) {
   const modeDef = resolveMode(doc?.mode);
+  const expected = expectedChapters(doc);
   const saved = new Map([...(doc?.chapters || []), ...(doc?.deliveryMeta?.savedChapters || [])]
-    .filter(row => row.ok !== false && modeDef.chapters.some(spec => spec.id === row.id && row.body?.length >= codexDedupedChapterFloor(spec)))
+    .filter(row => row.ok !== false && expected.some(spec => spec.id === row.id && row.body?.length >= codexDedupedChapterFloor(spec)))
     .map(row => [row.id, row]));
-  const readable = [];
-  for (const spec of modeDef.chapters) { if (!saved.has(spec.id)) break; readable.push(saved.get(spec.id)); }
-  const chapters = (doc?.status === "completed" ? (doc?.chapters || []) : readable)
+  // 🔴 "1장부터 끊기지 않는 앞 구간"만 내보내면 2장이 막힌 책은 3장 이후가 저장돼도 사라진다
+  //    (2026-09-19 장애의 원인 B). 검증·저장된 장은 중간에 구멍이 있어도 전부 order 순으로
+  //    내보낸다 — 목차·탭은 outline 이 채우므로 희소 목록이 안전하다.
+  // 완료 세션은 저장된 본문을 그대로 쓴다: 옛 계약으로 전달된 책을 지금의 하한으로 잘라내지 않는다.
+  const chapters = (doc?.status === "completed" ? (doc?.chapters || []) : [...saved.values()])
     .slice()
     .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
     .map(({ id, order, symbol, title, body, content, chars, ok }) => ({ id, order, symbol, title, body, content, chars, ok }));
   const retryAfterMs = Math.max(0, new Date(doc?.deliveryMeta?.nextAttemptAt || 0).getTime() - Date.now());
+  const attempts = doc?.deliveryMeta?.attempts || {};
+  const errors = doc?.deliveryMeta?.errors || {};
+  const readyIds = new Set(chapters.map(row => row.id));
+  const pending = expected.filter(spec => !readyIds.has(spec.id));
+  const blocked = pending.filter(spec => Number(attempts[spec.id] || 0) >= CHAPTER_ATTEMPT_LIMIT);
+  const actionable = pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT);
+  // 락이 살아 있는 동안에만 저장된 step 을 믿는다. 끊긴 웨이브의 낡은 단계가 남지 않는다.
+  const lockAlive = new Date(doc?.generationProgress?.lockedAt || 0).getTime() > Date.now() - BATCH_LOCK_TTL_MS;
+  const storedStep = clean(doc?.generationProgress?.step);
+  const writingIds = new Set(lockAlive ? actionable.slice(0, CHAPTER_BATCH_SIZE).map(spec => spec.id) : []);
+  const done = doc?.status === "completed";
+  // K = 검증·저장된 고유 장 수, F = 최종 확정까지 끝난 경우에만 1. 재시도·호출 시작은 K 에 넣지 않는다.
+  const validated = readyIds.size;
+  const finalized = done ? 1 : 0;
+  const step = done ? "complete"
+    : doc?.deliveryMeta?.reviewRequired ? "failed"
+    : lockAlive && CODEX_STEPS.includes(storedStep) ? storedStep
+    : !pending.length ? "finalizing"
+    : !actionable.length ? "failed"
+    : Object.keys(errors).length ? "retrying"
+    : "pending";
+  const current = actionable[0] || null;
   return {
     ok: true,
     sessionId: clean(doc?.id),
@@ -771,12 +824,30 @@ function publicSession(doc) {
     partnerZiweiChart: doc?.partnerZiweiChart || null,
     compatibility: doc?.compatibility || null,
     chapters,
-    generationProgress: { completed: doc?.status === "completed" ? chapters.length : saved.size, readable: chapters.length, total: modeDef.chapters.length },
+    generationProgress: {
+      completed: validated, readable: chapters.length, total: expected.length,
+      validated, finalized,
+      // 전 장이 저장돼도 완료 확정(F) 전에는 100% 가 되지 않는다. N+1 의 마지막 1 이 그 확정 몫이다.
+      percent: done ? 100 : Math.floor((100 * (validated + finalized)) / (expected.length + 1)),
+      step,
+      currentChapter: current ? { id: current.id, order: current.order, symbol: current.symbol, title: current.title } : null,
+      blockedChapterIds: blocked.map(spec => spec.id),
+    },
+    // 목차·탭이 참조하는 전 장 목록. 본문은 state:"ready" 인 장만 chapters 에 있다.
+    // 🔴 오류 코드·본문은 싣지 않는다(고객 화면에 내부 진단값을 노출하지 않는다).
+    outline: expected.map(spec => ({
+      id: spec.id, order: spec.order, symbol: spec.symbol, title: spec.title,
+      state: readyIds.has(spec.id) ? "ready"
+        : blocked.includes(spec) ? "blocked"
+        : writingIds.has(spec.id) ? "writing"
+        : errors[spec.id] ? "retrying"
+        : "pending",
+    })),
     retryAfterMs,
     retryable: doc?.deliveryMeta?.reviewRequired ? false : true,
     ...(doc?.deliveryMeta?.reviewRequired ? { reason: "GENERATION_BUDGET_EXCEEDED", message: "구매한 회차와 저장된 장은 보존되어 있습니다. 이어쓰기 상태의 확인이 필요합니다." } : {}),
     loveDna: doc?.loveDna || null,
-    totalChapters: modeDef.chapters.length,
+    totalChapters: expected.length,
     totalCharCount: Number(doc?.totalCharCount || 0),
     createdAt: doc?.createdAt || null,
     updatedAt: doc?.updatedAt || null,
@@ -1031,7 +1102,11 @@ export async function startCodexSession(request, env, auth, body) {
     idempotencyKey,
     inputHash: normalized.inputHash,
     status: "generating",
-    deliveryMeta: { locale: resolveAiLocaleFromRequest(request, body) },
+    // 🔴 구매 시점의 장 구성을 세션에 **1회** 고정한다($setOnInsert 이므로 재요청이 덮지 않는다).
+    //    이후 상품 구성이 바뀌어도 진행 중인 이 책의 기대 장 수·순서는 변하지 않는다.
+    deliveryMeta: { locale: resolveAiLocaleFromRequest(request, body),
+      manifest: { mode: normalized.mode, chapterIds: resolveMode(normalized.mode).chapters.map(spec => spec.id),
+        version: resolveMode(normalized.mode).cacheKeyExtra } },
     passRefund: access.passRefund || null,
   } }, { upsert: true, new: true }).lean().catch(() => { throw resultStorageUnavailable(sessionId); });
 
@@ -1081,7 +1156,8 @@ export async function acquireBatchLock(sessionId, userId) {
     },
     // Legacy sessions store generationProgress:null. A dotted $set cannot create
     // a child of null (Mongo code 28), so initialize the lock object atomically.
-    { $set: { status: "generating", generationProgress: { lockedAt: new Date(now), lockToken } } },
+    // step 은 락이 살아 있는 동안만 유효하다(publicSession 이 TTL 로 검증한다).
+    { $set: { status: "generating", generationProgress: { lockedAt: new Date(now), lockToken, step: "writing" } } },
     { new: true },
   ).lean();
   return updated ? { ok: true, lockToken, doc: updated } : { ok: false };
@@ -1306,16 +1382,19 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
   const ownerId = clean(userId);
   const lockFilter = { id: sessionId, userId: ownerId, "generationProgress.lockToken": lockToken, status: { $ne: "completed" } };
   const modeDef = resolveMode(doc.mode);
+  // 이 세션이 약속한 장 목록(매니페스트 우선). 생성 대상·완료 판정 모두 이 목록만 본다.
+  const expected = expectedChapters(doc);
+  const chapterFloor = new Map(expected.map(spec => [spec.id, codexDedupedChapterFloor(spec)]));
   let current = doc;
   try {
     const byId = new Map([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
-      .filter(chapter => chapter.ok !== false && modeDef.chapters.some(spec => spec.id === chapter.id && chapter.body?.length >= codexDedupedChapterFloor(spec)))
+      .filter(chapter => chapter.ok !== false && expected.some(spec => spec.id === chapter.id && chapter.body?.length >= chapterFloor.get(spec.id)))
       .map(chapter => [chapter.id, chapter]));
     const snapshotStore = dependencies.chapterSnapshotStore || (!dependencies.generateChapter ? createLlmCacheStore(env) : null);
     const snapshotKey = chapter => `codex-chapter:${sha256(JSON.stringify([sessionId, doc.inputHash, modeDef.mode, chapter.id, CODEX_EVIDENCE_VERSION, doc.deliveryMeta?.locale || "ko", "chapter-v2"]))}`;
     // Read committed storage first (the lock document), then a stable validated cache.
     // Even an exhausted uncertain reservation may already have a completed checkpoint.
-    if (snapshotStore) for (const chapter of modeDef.chapters.filter(spec => !byId.has(spec.id) && Number(doc.deliveryMeta?.attempts?.[spec.id]) > 0)) {
+    if (snapshotStore) for (const chapter of expected.filter(spec => !byId.has(spec.id) && Number(doc.deliveryMeta?.attempts?.[spec.id]) > 0)) {
       const restored = await withDeadline(snapshotStore.get(snapshotKey(chapter)), deadlineAt);
       if (restored.deferred) break;
       try {
@@ -1327,22 +1406,28 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         const content = normalizeChapterContent(cached.parsed);
         const recovered = dedupeChapterAgainst({ id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
           body: content.body, content, provider: clean(cached.chapter.provider, 40), ok: true }, [...byId.values()]);
-        if (recovered.body.length < codexDedupedChapterFloor(chapter)
+        if (recovered.body.length < chapterFloor.get(chapter.id)
             || hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(recovered.body).join("\n"))) continue;
         byId.set(chapter.id, recovered);
         if (chapter.jsonMode) current.loveDna = normalizeLoveDna(cached.parsed, modeDef.dnaMetrics);
       } catch { /* Invalid caches never become purchased chapters. */ }
     }
-    const missing = modeDef.chapters.filter(chapter => !byId.has(chapter.id)).slice(0, CHAPTER_BATCH_SIZE);
     const attempts = { ...doc.deliveryMeta?.attempts };
     const errors = { ...doc.deliveryMeta?.errors };
-    const exhausted = modeDef.chapters.filter(chapter => !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= 3);
-    if (exhausted.length) {
+    const pending = expected.filter(chapter => !byId.has(chapter.id));
+    const exhausted = pending.filter(chapter => Number(attempts[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT);
+    // 시도 가능한 장만 후보다 — 막힌 장이 웨이브 슬롯을 계속 물고 가지 않는다.
+    const actionable = pending.filter(chapter => Number(attempts[chapter.id] || 0) < CHAPTER_ATTEMPT_LIMIT);
+    const missing = actionable.slice(0, CHAPTER_BATCH_SIZE);
+    // 🔴 미완 장 **전부**가 소진됐을 때만 세션을 닫는다. 한 장의 소진으로 닫으면 클라이언트
+    //    (retryable:false)·크론(reviewRequired 제외)·락이 모두 건너뛰어 나머지 장이 영구 정지한다.
+    if (!actionable.length && exhausted.length) {
       const reason = "SERVICE_GENERATION_FAILED";
       current = await saveCodexDelivery(lockFilter, { status: "generation_failed", deliveryMeta: { ...current.deliveryMeta, reviewRequired: true,
-        reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: exhausted.map(row => row.id), savedChapters: [...byId.values()] }, generationError: { code: reason, at: new Date() } }, sessionId);
+        reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: exhausted.map(row => row.id), savedChapters: [...byId.values()] },
+        generationError: { code: reason, at: new Date() }, generationProgress: { ...current.generationProgress, step: "failed" } }, sessionId);
       // Uncertain calls/storage are never definitive manuscript failures or refund evidence.
-      if (exhausted.every(chapter => Number(doc.deliveryMeta?.failures?.[chapter.id] || 0) >= 3)) {
+      if (exhausted.every(chapter => Number(doc.deliveryMeta?.failures?.[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT)) {
         await refundSessionPassIfNeeded(sessionId, ownerId, current, [...byId.values()], dependencies);
         await refundSessionBillingIfNeeded(env, sessionId, ownerId, current, [...byId.values()], dependencies);
       }
@@ -1351,7 +1436,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     }
     if (missing.length) {
       missing.forEach(chapter => { attempts[chapter.id] = Number(attempts[chapter.id] || 0) + 1; });
-      current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, attempts } }, sessionId);
+      current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, attempts },
+        generationProgress: { ...current.generationProgress, step: "writing" } }, sessionId);
       const memory = buildMemory([...byId.values()]);
       let unavailable = false;
       let queue = Promise.resolve();
@@ -1370,7 +1456,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           const rawChars = result?.status === "ok" ? Number(result.chapter?.body?.length || 0) : 0;
           if (result?.status === "ok" && result.chapter?.body) result = { ...result, chapter: dedupeChapterAgainst(result.chapter, [...byId.values()]) };
           const valid = result?.status === "ok" && result.chapter?.id === chapter.id && result.chapter.ok
-            && rawChars >= codexChapterFloor(chapter) && result.chapter.body?.length >= codexDedupedChapterFloor(chapter)
+            && rawChars >= codexChapterFloor(chapter) && result.chapter.body?.length >= chapterFloor.get(chapter.id)
             && !hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(result.chapter.body).join("\n"));
           if (valid) { byId.set(chapter.id, result.chapter); delete errors[chapter.id]; }
           else if (result?.status === "deferred" || result?.failure?.kind === "provider_rejected") {
@@ -1382,13 +1468,12 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           else failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
           if (!valid) errors[chapter.id] = { code: result?.failure?.code || (result?.status === "deferred" ? "CALL_DEFERRED" : result?.status === "ok" ? "LLM_OUTPUT_REPEATED" : "LLM_QUALITY_FAILED"),
             kind: result?.failure?.kind || (result?.status === "deferred" ? "deferred" : "quality"), at: new Date() };
-          const savedChapters = modeDef.chapters.map(spec => byId.get(spec.id)).filter(Boolean);
-          const chapters = [];
-          for (const spec of modeDef.chapters) { if (!byId.has(spec.id)) break; chapters.push(byId.get(spec.id)); }
+          // 검증을 통과한 장은 앞 장의 성패와 무관하게 **개별로** 저장·노출된다.
+          const savedChapters = expected.map(spec => byId.get(spec.id)).filter(Boolean);
           const fields = { deliveryMeta: { ...current.deliveryMeta, savedChapters, attempts, failures, errors,
-            lastProgressAt: valid ? new Date() : current.deliveryMeta?.lastProgressAt || doc.createdAt || null }, chapters,
-            totalCharCount: chapters.reduce((sum, row) => sum + Number(row.chars || row.body.length), 0),
-            generationProgress: { ...current.generationProgress, completed: savedChapters.length, total: modeDef.chapters.length },
+            lastProgressAt: valid ? new Date() : current.deliveryMeta?.lastProgressAt || doc.createdAt || null }, chapters: savedChapters,
+            totalCharCount: savedChapters.reduce((sum, row) => sum + Number(row.chars || row.body.length), 0),
+            generationProgress: { ...current.generationProgress, completed: savedChapters.length, total: expected.length, step: "saving" },
             ...(result?.loveDna && valid ? { loveDna: result.loveDna } : current.loveDna ? { loveDna: current.loveDna } : {}),
           };
           current = await saveCodexDelivery(lockFilter, fields, sessionId);
@@ -1400,42 +1485,42 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         const outages = Number(current.deliveryMeta?.outages || 0) + 1;
         const retryAfterMs = Math.min(600000, 30000 * 2 ** Math.min(outages - 1, 5));
         current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, outages,
-          nextAttemptAt: new Date(Date.now() + retryAfterMs) }, generationError: { code: "LLM_PROVIDER_UNAVAILABLE", at: new Date() } }, sessionId);
+          nextAttemptAt: new Date(Date.now() + retryAfterMs) }, generationError: { code: "LLM_PROVIDER_UNAVAILABLE", at: new Date() },
+          generationProgress: { ...current.generationProgress, step: "retrying" } }, sessionId);
         return { outcome: "stalled", reason: "LLM_PROVIDER_UNAVAILABLE", retryAfterMs, session: current };
       }
     }
-    if (modeDef.chapters.some(chapter => !byId.has(chapter.id))) {
+    if (expected.some(chapter => !byId.has(chapter.id))) {
       if (current.deliveryMeta?.outages) current = await saveCodexDelivery(lockFilter, {
         deliveryMeta: { ...current.deliveryMeta, outages: 0, nextAttemptAt: null }, generationError: null,
       }, sessionId);
       return { outcome: "committed", session: current, done: false };
     }
-    const chapters = modeDef.chapters.map(chapter => byId.get(chapter.id));
+    const chapters = expected.map(chapter => byId.get(chapter.id));
     const body = chapters.map(chapter => chapter.body).join("\n");
-    if (chapters.some((row, index) => row.body.length < codexDedupedChapterFloor(modeDef.chapters[index])) || hasRepeatedReportPassage(body)) {
+    if (chapters.some(row => row.body.length < chapterFloor.get(row.id)) || hasRepeatedReportPassage(body)) {
       // Chapters saved under an older contract can still collide. Keep the earliest copy and
       // send a chapter that no longer meets the floor back to generation (attempt cap still ends it).
       const kept = [];
-      for (const [index, row] of chapters.entries()) {
+      for (const row of chapters) {
         const deduped = dedupeChapterAgainst(row, kept);
-        if (deduped.body.length >= codexDedupedChapterFloor(modeDef.chapters[index])) { kept.push(deduped); byId.set(row.id, deduped); } else byId.delete(row.id);
+        if (deduped.body.length >= chapterFloor.get(row.id)) { kept.push(deduped); byId.set(row.id, deduped); } else byId.delete(row.id);
       }
       if (kept.length < chapters.length) {
-        const readable = [];
-        for (const spec of modeDef.chapters) { if (!byId.has(spec.id)) break; readable.push(byId.get(spec.id)); }
-        current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, savedChapters: kept }, chapters: readable,
-          generationProgress: { ...current.generationProgress, completed: kept.length, total: modeDef.chapters.length } }, sessionId);
+        current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, savedChapters: kept }, chapters: kept,
+          generationProgress: { ...current.generationProgress, completed: kept.length, total: expected.length, step: "validating" } }, sessionId);
         return { outcome: "committed", session: current, done: false };
       }
       chapters.splice(0, chapters.length, ...kept);
     }
-    if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters }, sessionId);
+    if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters,
+      generationProgress: { ...current.generationProgress, step: "finalizing" } }, sessionId);
     const authorized = await recoverCodexSession({ userId: ownerId, sessionId });
     if (!authorized || authorized.denied) return { outcome: "denied" };
     current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
       loveDna: current.loveDna || null, totalCharCount: chapters.reduce((sum, row) => sum + row.body.length, 0),
       deliveryMeta: { ...current.deliveryMeta, reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true, lastProgressAt: new Date() },
-      generationProgress: { completed: chapters.length, total: chapters.length, lockedAt: null, lockToken: "" } }, sessionId);
+      generationProgress: { completed: chapters.length, total: chapters.length, step: "complete", lockedAt: null, lockToken: "" } }, sessionId);
     await syncCodexExecution(current);
     return { outcome: "completed", session: current, done: true };
   } catch (error) {
@@ -1468,13 +1553,14 @@ async function handleSessions(request, env) {
   await connectDb(env);
   const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] } })
     .sort({ createdAt: -1 }).limit(20)
-    .select("id mode status createdAt birthInfo.name partnerInfo.name chapters.id chapters.ok deliveryMeta.savedChapters.id deliveryMeta.savedChapters.ok").lean();
+    .select("id mode status createdAt birthInfo.name partnerInfo.name chapters.id chapters.ok deliveryMeta.savedChapters.id deliveryMeta.savedChapters.ok deliveryMeta.manifest").lean();
   // Library cards only: chapter ids (never bodies) give written/total without loading a book per row.
   return json({ ok: true, sessions: docs.map(doc => {
-    const modeDef = resolveMode(sessionMode(doc));
+    // 서재 카드의 전체 장 수도 세션에 고정된 구성에서 온다(결과 화면과 같은 정본).
+    const expected = expectedChapters({ ...doc, mode: sessionMode(doc) });
     const written = new Set([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
-      .filter(row => row?.ok !== false && modeDef.chapters.some(spec => spec.id === row?.id)).map(row => row.id));
-    const total = modeDef.chapters.length;
+      .filter(row => row?.ok !== false && expected.some(spec => spec.id === row?.id)).map(row => row.id));
+    const total = expected.length;
     return { sessionId: doc.id, mode: sessionMode(doc), status: doc.status, createdAt: doc.createdAt,
       name: clean(doc.birthInfo?.name, 40), partnerName: clean(doc.partnerInfo?.name, 40),
       generationProgress: { completed: doc.status === "completed" ? total : Math.min(written.size, total), total } };

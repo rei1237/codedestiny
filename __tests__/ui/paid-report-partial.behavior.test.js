@@ -82,13 +82,14 @@ for (const mode of ["solo", "compat"]) {
       sha256: value => value, syncCodexExecution: async () => true,
       CODEX_EVIDENCE_VERSION: "test-evidence",
       clean: value => String(value || ""), resolveMode: () => ({ mode, chapters }),
+      // 기대 목록의 정본은 세션에 고정된 manifest 이고, 없으면 모드 구성으로 폴백한다.
+      expectedChapters: () => chapters, CHAPTER_ATTEMPT_LIMIT: 3,
       saveCodexDelivery: save, resultStorageUnavailable: storageError,
       hasRepeatedReportPassage: () => false, dedupeChapterAgainst: chapter => chapter,
       codexChapterFloor: spec => Math.ceil((spec.minChars || 2400) * 0.7), codexDedupedChapterFloor: spec => Math.ceil((spec.minChars || 2400) * 0.5), countPaidReportBodyChars: body => body.replace(/\s/g, "").length,
       MasterLoveCodexSession: model, CHAPTER_BATCH_SIZE: 3, CHAPTER_CONCURRENCY: 3,
       buildMemory: () => "", runWithConcurrency: (items, _count, fn) => Promise.all(items.map(fn)),
       recoverCodexSession: async () => ({ session: stored }),
-      planBatchCommit: results => results.slice(0, results.findIndex(item => item.status !== "ok") < 0 ? results.length : results.findIndex(item => item.status !== "ok")),
       refundSessionPassIfNeeded: async () => {}, refundSessionBillingIfNeeded: async () => {},
       console: { error() {}, warn() {} },
     });

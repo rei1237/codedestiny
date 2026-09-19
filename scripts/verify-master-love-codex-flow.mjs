@@ -395,9 +395,18 @@ assert(
   /deadlineAt,?\n/.test(routeSource) && /generateChapter\(env, \{/.test(routeSource),
   `${routeFile}: /generate 는 배치 예산(deadlineAt)을 generateChapter 에 넘겨야 합니다`,
 );
+// 🔴 2026-09-19: "1장부터 끊기지 않는 앞 구간"만 저장·노출하면, 중간 한 장이 막힌 책은 뒤쪽
+//    장이 전부 저장돼 있어도 API 가 1장만 준다 — 그게 "결제했는데 1장만 보인다"의 정체였다.
+//    절단 패턴(기대 목록을 돌다 구멍에서 break)이 되살아나지 않게 소스에서 막는다.
 assert(
-  routeSource.includes("planBatchCommit"),
-  `${routeFile}: 예산 초과로 못 쓴 장은 저장하지 말고 앞쪽 연속분만 커밋해야 합니다(planBatchCommit)`,
+  !/if \(!(byId|saved)\.has\(spec\.id\)\) break;/.test(routeSource),
+  `${routeFile}: 검증·저장된 장은 중간에 구멍이 있어도 전부 저장·노출해야 합니다(앞 구간 절단 금지)`,
+);
+// 🔴 한 장의 시도 소진으로 세션을 닫으면 클라이언트·크론·락이 모두 그 세션을 건너뛰어
+//    나머지 장이 영구 정지한다. 닫는 조건은 "미완 장 전부가 소진됐을 때"뿐이다.
+assert(
+  routeSource.includes("CHAPTER_ATTEMPT_LIMIT") && /!actionable\.length && exhausted\.length/.test(routeSource),
+  `${routeFile}: 시도 가능한 장이 남아 있으면 세션을 닫지 말아야 합니다(actionable 판정)`,
 );
 assert(
   routeSource.includes("SERVICE_GENERATION_FAILED") && routeSource.includes("RESULT_STORAGE_UNAVAILABLE"),
