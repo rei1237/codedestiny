@@ -1452,6 +1452,11 @@
       "pass": "利用券",
       "login": "ログイン",
       "account": "アカウント"
+    },
+    "reformActions": {
+      "consult": "Yeongnyangiの相談を見る",
+      "free": "無料占いを見る",
+      "library": "購入した相談を見る"
     }
   },
   "terms": {

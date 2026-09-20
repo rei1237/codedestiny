@@ -1452,6 +1452,11 @@
       "pass": "Gói sử dụng",
       "login": "Đăng nhập",
       "account": "Tài khoản của tôi"
+    },
+    "reformActions": {
+      "consult": "Tìm hiểu tư vấn Yeongnyangi",
+      "free": "Xem vận mệnh miễn phí",
+      "library": "Xem tư vấn đã mua"
     }
   },
   "terms": {

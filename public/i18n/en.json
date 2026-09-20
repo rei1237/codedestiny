@@ -1452,6 +1452,11 @@
       "pass": "Passes",
       "login": "Log in",
       "account": "My account"
+    },
+    "reformActions": {
+      "consult": "Explore Yeongnyangi readings",
+      "free": "Free fortune readings",
+      "library": "My purchased readings"
     }
   },
   "terms": {

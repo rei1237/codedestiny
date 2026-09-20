@@ -1452,6 +1452,11 @@
       "pass": "使用券",
       "login": "登入",
       "account": "我的帳戶"
+    },
+    "reformActions": {
+      "consult": "了解Yeongnyangi諮詢",
+      "free": "查看免費運勢",
+      "library": "查看已購諮詢"
     }
   },
   "terms": {

@@ -40,5 +40,47 @@
     "de": "Beginnen Sie mit einer kostenlosen Deutung. Bei persönlichen Fragen hilft Yeongnyangi, die Katze, die Saju deutet.",
     "nl": "Begin met een gratis duiding van de grote lijnen. Voor een persoonlijke vraag kun je terecht bij Yeongnyangi, de kat die saju leest.",
     "ms": "Mulakan dengan bacaan nasib percuma. Untuk soalan peribadi, berbual dengan Yeongnyangi, kucing yang membaca saju."
+  },
+  "home.reformActions.consult": {
+    "ko": "영냥이 상담 알아보기",
+    "en": "Explore Yeongnyangi readings",
+    "ja": "Yeongnyangiの相談を見る",
+    "zh-CN": "了解Yeongnyangi咨询",
+    "zh-TW": "了解Yeongnyangi諮詢",
+    "vi": "Tìm hiểu tư vấn Yeongnyangi",
+    "hi": "Yeongnyangi की रीडिंग जानें",
+    "es": "Conoce las consultas de Yeongnyangi",
+    "fr": "Découvrir les consultations Yeongnyangi",
+    "de": "Yeongnyangi-Beratungen entdecken",
+    "nl": "Ontdek consulten met Yeongnyangi",
+    "ms": "Kenali konsultasi Yeongnyangi"
+  },
+  "home.reformActions.free": {
+    "ko": "무료 운세 보기",
+    "en": "Free fortune readings",
+    "ja": "無料占いを見る",
+    "zh-CN": "查看免费运势",
+    "zh-TW": "查看免費運勢",
+    "vi": "Xem vận mệnh miễn phí",
+    "hi": "निःशुल्क रीडिंग देखें",
+    "es": "Lecturas gratuitas",
+    "fr": "Lectures gratuites",
+    "de": "Kostenlose Deutungen",
+    "nl": "Gratis duidingen",
+    "ms": "Bacaan nasib percuma"
+  },
+  "home.reformActions.library": {
+    "ko": "구매한 상담 보기",
+    "en": "My purchased readings",
+    "ja": "購入した相談を見る",
+    "zh-CN": "查看已购咨询",
+    "zh-TW": "查看已購諮詢",
+    "vi": "Xem tư vấn đã mua",
+    "hi": "खरीदी गई रीडिंग देखें",
+    "es": "Mis consultas compradas",
+    "fr": "Mes consultations achetées",
+    "de": "Meine gekauften Beratungen",
+    "nl": "Mijn gekochte consulten",
+    "ms": "Lihat konsultasi dibeli"
   }
 }
