@@ -256,11 +256,11 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         inputEdited.current = false;
         setEditAll(false);
         applyProfile(profile);
-      })}>{locale === "ko" ? "저장된 프로필 불러오기" : "Load saved profile"}</button>
+      })}>{pick(UI_TEXT.loadSavedProfile, locale)}</button>
       {seed?.birthDate && !editAll && <div className={styles.help}>
-        <p>{locale === 'ko' ? '저장된 정보로 시작합니다. 필요한 항목만 보완해 주세요.' : 'Using saved details. Complete only the missing fields.'}</p>
-        <p>{birthDate} · {birthTime || (locale === 'ko' ? '시각 보완 필요' : 'Time required')} · {calendar === 'solar' ? pick(UI_TEXT.solar, locale) : calendar === 'lunar-leap' ? pick(UI_TEXT.lunarLeap, locale) : pick(UI_TEXT.lunar, locale)} · {timezone}</p>
-        <button type="button" className={styles.choice} onClick={() => setEditAll(true)}>{locale === 'ko' ? '이번 입력 수정하기' : 'Edit this chart’s details'}</button>
+        <p>{pick(UI_TEXT.savedProfileSummary, locale)}</p>
+        <p>{birthDate} · {birthTime || (pick(UI_TEXT.timeRequired, locale))} · {calendar === 'solar' ? pick(UI_TEXT.solar, locale) : calendar === 'lunar-leap' ? pick(UI_TEXT.lunarLeap, locale) : pick(UI_TEXT.lunar, locale)} · {timezone}</p>
+        <button type="button" className={styles.choice} onClick={() => setEditAll(true)}>{pick(UI_TEXT.editChartDetails, locale)}</button>
       </div>}
       {(editAll || !seed?.birthDate) && <>
       <label className={styles.label} htmlFor="hd-birth-date">{pick(UI_TEXT.birthDate, locale)}</label>
@@ -319,7 +319,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
       </div>
       </>}
 
-      <p className={styles.help}>{locale === "ko" ? "이곳에서 고친 정보는 이번 차트에만 사용해요. 저장 프로필은 변경되지 않아요." : "Changes here apply to this chart only. Your saved profile stays unchanged."}</p>
+      <p className={styles.help}>{pick(UI_TEXT.temporaryProfileHelp, locale)}</p>
 
       <button
         type="button"
@@ -356,7 +356,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
               <h1 id="hd-hero-heading" className={styles.title}>{pick(UI_TEXT.tagline, locale)}</h1>
               <p className={styles.lede}>{pick(UI_TEXT.subtitle, locale)}</p>
               {birthForm}
-              <Link className={styles.help} href="/human-design/guide/">{locale === "ko" ? "휴먼 디자인의 계산 기준과 이용 안내" : "How Human Design works"}</Link>
+              <Link className={styles.help} href="/human-design/guide/">{pick(UI_TEXT.publicGuide, locale)}</Link>
             </div>
             <div className={styles.heroGraph}>
               <BodyGraph chart={null} locale={locale} selection={null} onSelect={() => {}} />

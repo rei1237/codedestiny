@@ -41,6 +41,12 @@ export function resolveHumanDesignLocale(value: string | null | undefined): Loca
 }
 
 export const UI_TEXT = {
+  loadSavedProfile: { ko: "저장된 프로필 불러오기", en: "Load saved profile", ja: "保存したプロフィールを読み込む", "zh-CN": "载入已保存的资料", "zh-TW": "載入已儲存的資料" },
+  savedProfileSummary: { ko: "저장된 정보로 시작합니다. 필요한 항목만 보완해 주세요.", en: "Using saved details. Complete only the missing fields.", ja: "保存した情報で始めます。不足している項目だけ入力してください。", "zh-CN": "使用已保存的信息，只需补全缺少的项目。", "zh-TW": "使用已儲存的資訊，只需補全缺少的項目。" },
+  timeRequired: { ko: "시각 보완 필요", en: "Time required", ja: "出生時刻を入力してください", "zh-CN": "请补充出生时间", "zh-TW": "請補充出生時間" },
+  editChartDetails: { ko: "이번 입력 수정하기", en: "Edit this chart’s details", ja: "今回の入力を変更する", "zh-CN": "修改本次输入", "zh-TW": "修改本次輸入" },
+  temporaryProfileHelp: { ko: "이곳에서 고친 정보는 이번 차트에만 사용해요. 저장 프로필은 변경되지 않아요.", en: "Changes here apply to this chart only. Your saved profile stays unchanged.", ja: "ここでの変更は今回のチャートだけに使います。保存したプロフィールは変更されません。", "zh-CN": "此处的修改仅用于本次图表，不会更改已保存的资料。", "zh-TW": "此處的修改僅用於本次圖表，不會更改已儲存的資料。" },
+  publicGuide: { ko: "휴먼 디자인의 계산 기준과 이용 안내", en: "How Human Design works", ja: "ヒューマンデザインの計算基準と使い方", "zh-CN": "人类图计算依据与使用指南", "zh-TW": "人類圖計算依據與使用指南" },
   title: { ko: "휴먼 디자인", en: "Human Design", ja: "ヒューマンデザイン", "zh-CN": "人类图", "zh-TW": "人類圖" },
   tagline: { ko: "나를 설계한 에너지 지도", en: "The energy map that designed you", ja: "あなたを設計したエネルギーの地図", "zh-CN": "设计出你的能量地图", "zh-TW": "設計出你的能量地圖" },
   subtitle: {
