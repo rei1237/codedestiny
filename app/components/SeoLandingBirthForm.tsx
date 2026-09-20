@@ -3,7 +3,7 @@
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState } from "react";
 import { validateBirthDateWithAge } from "@/lib/birthDateInput";
-import { readCurrentDestinyProfile, publishDestinyProfileBridge, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
+import { readCurrentDestinyProfile, publishDestinyProfileBridge, applyDestinyProfileBirthEdit } from "@/app/_lib/profile-card-storage";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -18,6 +18,8 @@ interface SeoLandingBirthFormCopy {
   calendarTypeLabel: string;
   calendarSolar: string;
   calendarLunar: string;
+  calendarLeap: string;
+  temporaryEdit: string;
   invalidBirthDate: string;
   loadFromProfileCardAria: string;
   loadFromProfileCardLabel: string;
@@ -34,6 +36,8 @@ const SEO_LANDING_BIRTH_FORM_COPY_KO: SeoLandingBirthFormCopy = {
   calendarTypeLabel: "양력 / 음력",
   calendarSolar: "양력",
   calendarLunar: "음력",
+  calendarLeap: "음력 윤달",
+  temporaryEdit: "이 입력은 이번 운세에 사용합니다. 저장된 프로필을 바꾸려면 프로필 관리에서 수정해 주세요.",
   invalidBirthDate: "올바른 생년월일을 입력해주세요.",
   loadFromProfileCardAria: "저장된 프로필 카드에서 생년 정보 불러오기",
   loadFromProfileCardLabel: "프로필 카드에서 불러오기",
@@ -50,6 +54,8 @@ const SEO_LANDING_BIRTH_FORM_COPY_EN: SeoLandingBirthFormCopy = {
   calendarTypeLabel: "Solar / Lunar",
   calendarSolar: "Solar",
   calendarLunar: "Lunar",
+  calendarLeap: "Lunar leap month",
+  temporaryEdit: "These details are for this reading. Edit your saved profile in profile settings.",
   invalidBirthDate: "Please enter a valid date of birth.",
   loadFromProfileCardAria: "Load birth details from your saved profile card",
   loadFromProfileCardLabel: "Load from profile card",
@@ -122,7 +128,7 @@ function applySeed(prev: FormState, seed: ReturnType<typeof useAiProfileSeed>["s
     birthTime: prev.birthTime || seed.birthTime || "",
     birthTimeUnknown: prev.birthTime ? prev.birthTimeUnknown : Boolean(seed.birthTimeUnknown),
     gender: prev.gender || seed.gender || "",
-    calendarType: prev.calendarType !== "solar" ? prev.calendarType : seed.calendarType || "solar",
+    calendarType: prev.calendarType !== "solar" ? prev.calendarType : seed.isLeapMonth ? "lunar_leap" : seed.calendarType || "solar",
   };
 }
 
@@ -150,7 +156,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
 
   useEffect(() => {
     if (!seed) return;
-    setForm((prev) => (touchedRef.current ? prev : applySeed(prev, seed)));
+    setForm((prev) => (touchedRef.current ? prev : applySeed(EMPTY_FORM, seed)));
     // seedVersion 만 본다 — seed 객체는 매번 새 참조라 의존성에 넣으면 루프가 된다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
@@ -165,7 +171,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
     void reload().then((next) => {
       if (!next) return;
       touchedRef.current = false;
-      setForm((prev) => applySeed(prev, next));
+      setForm(applySeed(EMPTY_FORM, next));
     });
   }
 
@@ -181,14 +187,12 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
     // 기존 카드 위에 덮어쓴다 — 카드가 있으면 그 id 가 보존되므로
     // publishDestinyProfileBridge 가 활성 카드 id 를 빈 값으로 지우지 않는다.
     const existing = readCurrentDestinyProfile() || {};
-    const card: DestinyProfileCard = {
-      ...existing,
-      birthDate: check.isValid ? form.birthDate : existing.birthDate,
-      ...(showTime && !form.birthTimeUnknown && form.birthTime ? { birthTime: form.birthTime } : {}),
-      ...(showTime ? { timeUnknown: form.birthTimeUnknown, birthTimeUnknown: form.birthTimeUnknown } : {}),
+    const card = applyDestinyProfileBirthEdit(existing, {
+      birthDate: form.birthDate,
+      ...(showTime ? { birthTime: form.birthTime, timeUnknown: form.birthTimeUnknown } : {}),
       ...(showGender && form.gender ? { gender: form.gender } : {}),
-      ...(showCalendar ? { calType: form.calendarType, calendarType: form.calendarType } : {}),
-    };
+      ...(showCalendar ? { calendarType: form.calendarType } : {}),
+    });
     publishDestinyProfileBridge(card);
 
     const target = new URL(submitHref, window.location.origin);
@@ -289,11 +293,13 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
             >
               <option value="solar">{copy.calendarSolar}</option>
               <option value="lunar">{copy.calendarLunar}</option>
+              <option value="lunar_leap">{copy.calendarLeap}</option>
             </select>
           </div>
         )}
       </div>
 
+      <p className="mt-3 text-sm text-[#c3bde2]">{copy.temporaryEdit}</p>
       {error && (
         <p role="alert" className="mt-3 break-keep text-[0.85rem] leading-6 text-[#f6b8c8]">
           {error}

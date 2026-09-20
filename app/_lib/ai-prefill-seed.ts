@@ -1,12 +1,14 @@
 ﻿import { readCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 
 export type AiPrefillSeed = {
+  profileId?: string;
   name?: string;
   gender?: string;
   birthDate?: string;
   birthTime?: string;
   birthTimeUnknown?: boolean;
   calendarType?: "solar" | "lunar";
+  isLeapMonth?: boolean;
   timezone?: string;
   city?: string;
   country?: string;
@@ -56,7 +58,7 @@ function toBool(value: unknown): boolean | undefined {
 function toCalendarType(value: unknown): "solar" | "lunar" | undefined {
   const raw = trimValue(value).toLowerCase();
   if (!raw) return undefined;
-  if (["lunar", "lun", "luna", "음력"].includes(raw)) return "lunar";
+  if (["lunar", "lunar_leap", "lunar-leap", "lun", "luna", "음력"].includes(raw)) return "lunar";
   if (["solar", "sol", "solaris", "양력"].includes(raw)) return "solar";
   return undefined;
 }
@@ -106,21 +108,22 @@ export function seedFromDestinyProfile(profile: DestinyProfileCard | null | unde
   const name = trimValue(profile.name);
   const birthDate = trimValue(profile.birthDate);
   const directBirthTime = formatHourMinute(profile.birthTime);
-  const hour = formatHourMinute(profile.birthHour);
-  const minute = formatHourMinute(profile.birthMinute);
-  const calendarType = toCalendarType(profile.calType ?? profile.calendarType);
+  const hour = profile.birth?.hour ?? profile.birthHour;
+  const minute = profile.birth?.minute ?? profile.birthMinute;
+  const rawCalendar = profile.calType ?? profile.calendarType ?? profile.birth?.calType;
+  const calendarType = toCalendarType(rawCalendar);
   const birthTimeUnknown = toBool(profile.timeUnknown ?? profile.birthTimeUnknown ?? profile.noBirthTime ?? profile.birth?.timeUnknown);
 
   if (name) seed.name = name;
+  seed.profileId = trimValue(profile.profileId || profile.id) || undefined;
   if (birthDate) seed.birthDate = birthDate;
   if (calendarType) seed.calendarType = calendarType;
+  seed.isLeapMonth = calendarType === "lunar" && (["lunar_leap", "lunar-leap"].includes(trimValue(rawCalendar)) || profile.isLeapMonth === true);
   if (birthTimeUnknown !== undefined) seed.birthTimeUnknown = birthTimeUnknown;
   if (!birthTimeUnknown && directBirthTime) {
     seed.birthTime = directBirthTime;
-  } else if (!birthTimeUnknown && (hour || minute)) {
-    const hh = hour || "00";
-    const mm = minute || "00";
-    seed.birthTime = `${hh.padStart(2, "0")}:${mm.padStart(2, "0")}`;
+  } else if (!birthTimeUnknown && hour !== null && hour !== undefined && hour !== "") {
+    seed.birthTime = `${String(hour).padStart(2, "0")}:${String(minute ?? 0).padStart(2, "0")}`;
   }
 
   const gender = normalizeGender(profile.gender);
@@ -149,4 +152,3 @@ export function seedFromDestinyProfile(profile: DestinyProfileCard | null | unde
 
   return seed;
 }
-

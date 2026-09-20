@@ -19,6 +19,7 @@ export type DestinyProfileCard = {
   birthMinute?: number | string | null;
   calType?: string;
   calendarType?: string;
+  isLeapMonth?: boolean;
   timeUnknown?: boolean;
   birthTimeUnknown?: boolean;
   noBirthTime?: boolean;
@@ -127,6 +128,33 @@ export function normalizeDestinyProfileCard(profile: DestinyProfileCard | null |
       day: parts.day,
     },
   };
+}
+
+/** Apply an explicit form edit to all legacy representations without changing the saved server profile. */
+export function applyDestinyProfileBirthEdit(profile: DestinyProfileCard, patch: {
+  birthDate: string; birthTime?: string; timeUnknown?: boolean; calendarType?: string; gender?: string;
+}): DestinyProfileCard {
+  const parts = parseProfileBirthDateText(patch.birthDate);
+  if (!parts) return profile;
+  const birth = { ...profile.birth, ...parts };
+  const next: DestinyProfileCard = { ...profile, birth, birthDate: patch.birthDate,
+    birthIso: patch.birthDate, birthDateDigits: patch.birthDate.replace(/\D/g, ""),
+    birthYear: parts.year, birthMonth: parts.month, birthDay: parts.day };
+  if (patch.calendarType !== undefined) {
+    next.calType = next.calendarType = birth.calType = patch.calendarType;
+    next.isLeapMonth = ["lunar_leap", "lunar-leap"].includes(patch.calendarType);
+  }
+  if (patch.gender !== undefined) next.gender = patch.gender;
+  if (patch.timeUnknown !== undefined || patch.birthTime !== undefined) {
+    const unknown = patch.timeUnknown === true;
+    const time = unknown ? "" : patch.birthTime ?? profile.birthTime ?? "";
+    const [hour, minute] = time.split(":").map(Number);
+    next.birthTime = time;
+    next.timeUnknown = next.birthTimeUnknown = next.noBirthTime = birth.timeUnknown = unknown;
+    next.birthHour = birth.hour = time && !unknown ? hour : null;
+    next.birthMinute = birth.minute = time && !unknown ? minute : null;
+  }
+  return next;
 }
 
 function hasAnyBirthDate(profile: DestinyProfileCard): boolean {
