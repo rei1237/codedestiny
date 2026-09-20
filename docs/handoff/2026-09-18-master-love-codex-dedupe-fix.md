@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-18
-next: "①운영에서 인연의 서 세션이 실제로 20장까지 완주하는지 확인한다(운영 DB 읽기 전용 조회는 사용자에게 횟수를 정확히 승인받은 뒤). 닫혀 있던 세션은 10분 크론이 1회 자동 재개하므로 status·deliveryMeta.dedupeReopenedAt·generationProgress.completed만 본다. ②결과 화면 하단 CodexSeal의 '운명의 지도 열기'(/destiny-island.html)를 '내 서재' 이동으로 교체한다(이전 인수인계 작업 2, 미착수). ③카카오페이 대기 문구 변경을 사용자가 모바일 실기기에서 확인한다."
+updated: 2026-09-20
+next: "인연의 서 항목(작업 1·2)은 [2026-09-19-master-love-codex-partial-chapters.md](2026-09-19-master-love-codex-partial-chapters.md) 로 닫혔다 — 앞구간 절단과 한 장 소진 영구 정지를 수정해 운영(bd144f4e64a4)까지 승격했다. 여기 남은 것은 **③카카오페이 대기 문구 변경을 사용자가 모바일 실기기에서 확인** 하나다."
 ---
 
 # 인연의 서 2장 이후 미생성 수정 · 카카오페이 대기 안내 정정 인수인계
