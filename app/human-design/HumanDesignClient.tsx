@@ -118,6 +118,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editAll, setEditAll] = useState(false);
   const [chart, setChart] = useState<HdChart | null>(null);
   const [pipeline, setPipeline] = useState<HdPipelineStage[]>([]);
   const [reused, setReused] = useState(false);
@@ -136,7 +137,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
   // Profile changes replace the whole untouched draft. A late hydrate cannot erase an edit.
   useEffect(() => {
-    if (inputEdited.current || chart) return;
+    if (inputEdited.current || chart) { setEditAll(true); return; }
     applyProfile(seed);
   }, [seed, chart, applyProfile]);
 
@@ -253,11 +254,20 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
       <button type="button" className={styles.choice} onClick={() => void reload().then(profile => {
         if (!profile) return;
         inputEdited.current = false;
+        setEditAll(false);
         applyProfile(profile);
       })}>{locale === "ko" ? "저장된 프로필 불러오기" : "Load saved profile"}</button>
+      {seed?.birthDate && !editAll && <div className={styles.help}>
+        <p>{locale === 'ko' ? '저장된 정보로 시작합니다. 필요한 항목만 보완해 주세요.' : 'Using saved details. Complete only the missing fields.'}</p>
+        <p>{birthDate} · {birthTime || (locale === 'ko' ? '시각 보완 필요' : 'Time required')} · {calendar === 'solar' ? pick(UI_TEXT.solar, locale) : calendar === 'lunar-leap' ? pick(UI_TEXT.lunarLeap, locale) : pick(UI_TEXT.lunar, locale)} · {timezone}</p>
+        <button type="button" className={styles.choice} onClick={() => setEditAll(true)}>{locale === 'ko' ? '이번 입력 수정하기' : 'Edit this chart’s details'}</button>
+      </div>}
+      {(editAll || !seed?.birthDate) && <>
       <label className={styles.label} htmlFor="hd-birth-date">{pick(UI_TEXT.birthDate, locale)}</label>
       <input id="hd-birth-date" className={styles.input} {...birthDateTextInputProps(birthDate, value => { inputEdited.current = true; setBirthDate(value); })} />
+      </>}
 
+      {(editAll || !seed?.birthTime || seed?.birthTimeUnknown) && <>
       <label className={styles.label} htmlFor="hd-birth-time">{pick(UI_TEXT.birthTime, locale)}</label>
       <input
         id="hd-birth-time"
@@ -270,7 +280,9 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         onChange={(event) => { inputEdited.current = true; setBirthTime(normalizeTimeInput(event.target.value)); }}
       />
       <p className={styles.help}>{pick(UI_TEXT.timeHelp, locale)}</p>
+      </>}
 
+      {(editAll || !seed?.timezone) && <>
       <label className={styles.label} htmlFor="hd-timezone">{pick(UI_TEXT.timezone, locale)}</label>
       <input
         id="hd-timezone"
@@ -284,7 +296,9 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         {TIMEZONE_PRESETS.map((zone) => <option key={zone} value={zone} />)}
       </datalist>
       <p className={styles.help}>{pick(UI_TEXT.timezoneHelp, locale)}</p>
+      </>}
 
+      {(editAll || !seed?.calendarType) && <>
       <span className={styles.label}>{pick(UI_TEXT.calendar, locale)}</span>
       <div className={styles.choiceRow}>
         {([
@@ -303,6 +317,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
           </button>
         ))}
       </div>
+      </>}
 
       <p className={styles.help}>{locale === "ko" ? "이곳에서 고친 정보는 이번 차트에만 사용해요. 저장 프로필은 변경되지 않아요." : "Changes here apply to this chart only. Your saved profile stays unchanged."}</p>
 

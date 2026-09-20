@@ -34,3 +34,15 @@ test('both leap-month encodings and nested calendar retain lunar leap informatio
   }
   assert.equal(seed.seedFromDestinyProfile({calType:'solar',isLeapMonth:true}).isLeapMonth,false);
 });
+test('a landing draft is account-bound, short-lived and consumed without changing saved profiles',()=>{
+  const key='cd:seo-landing-entry:v1', entries=new Map();let writes=0;
+  profile.window={sessionStorage:{getItem:k=>entries.get(k)||null,removeItem:k=>entries.delete(k)},localStorage:{setItem(){writes++;}}};
+  profile.readDestinyProfileAccountId=()=> 'owner';
+  const put=(patch={})=>entries.set(key,JSON.stringify({path:'/ziwei/chart',accountId:'owner',createdAt:Date.now(),profile:{id:'saved',birthDate:'2001-03-04'},...patch}));
+  put();assert.equal(profile.consumeSeoLandingProfile('/human-design/'),null);
+  assert.equal(profile.consumeSeoLandingProfile('/ziwei/chart/').birthDate,'2001-03-04');
+  assert.equal(profile.consumeSeoLandingProfile('/ziwei/chart/'),null);
+  put({accountId:'another-owner'});assert.equal(profile.consumeSeoLandingProfile('/ziwei/chart/'),null);
+  put({createdAt:Date.now()-11*60*1000});assert.equal(profile.consumeSeoLandingProfile('/ziwei/chart/'),null);
+  assert.equal(writes,0);
+});

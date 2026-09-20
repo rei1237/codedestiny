@@ -27,6 +27,7 @@ import {
   isDestinyProfileStorageKey,
   readCurrentDestinyProfile,
   resolveDestinyProfileBirthParts,
+  consumeSeoLandingProfile,
   type DestinyProfileCard,
 } from "../_lib/profile-card-storage";
 import {
@@ -134,7 +135,7 @@ function normalizeZiweiProfileGender(profile: DestinyProfileCard | null): ZiweiG
 
 function normalizeZiweiProfileCalendarType(profile: DestinyProfileCard | null): FormState["calendarType"] {
   const raw = String(profile?.birth?.calType || profile?.calType || profile?.calendarType || "solar").trim().toLowerCase();
-  return raw === "lunar" ? "lunar" : "solar";
+  return /^lunar(?:[_-]leap)?$/.test(raw) ? "lunar" : "solar";
 }
 
 function isUnknownProfileTime(value: unknown): boolean {
@@ -202,6 +203,7 @@ function buildZiweiProfileSeed(eventProfile?: unknown): ZiweiProfileSeed | null 
   const time = resolveZiweiProfileTime(profile);
   const gender = normalizeZiweiProfileGender(profile);
   const calendarType = normalizeZiweiProfileCalendarType(profile);
+  const isLeapMonth = calendarType === 'lunar' && (profile.isLeapMonth === true || /lunar[_-]leap/.test(String(profile.birth?.calType || profile.calType || profile.calendarType || '')));
   const profileId = String(profile.id || profile.profileId || "").trim();
   const name = String(profile.name || "").trim();
   const birthDate = `${String(birth.year).padStart(4, "0")}-${pad2(birth.month)}-${pad2(birth.day)}`;
@@ -218,7 +220,7 @@ function buildZiweiProfileSeed(eventProfile?: unknown): ZiweiProfileSeed | null 
     unknownHour: time.unknownHour,
     gender,
     calendarType,
-    isLeapMonth: false,
+    isLeapMonth,
     birthPlace: birthPlace || getAdvancedZiweiCopy(getCurrentLoadingLocale()).defaultBirthPlaceValue,
     timezone: timezone || "Asia/Seoul",
   };
@@ -235,6 +237,7 @@ function buildZiweiProfileSeed(eventProfile?: unknown): ZiweiProfileSeed | null 
       time.hasProfileHour ? pad2(Number(time.birthMinute)) : "",
       gender,
       calendarType,
+      isLeapMonth ? 'leap' : 'regular',
       birthPlace,
       timezone,
       time.unknownHour ? "unknown" : "known",
@@ -360,6 +363,7 @@ export default function AdvancedZiweiSectionV2({
   }));
 
   const currentProfileFingerprintRef = useRef("");
+  const landingDraftRef = useRef<DestinyProfileCard | null | undefined>(undefined);
 
   // 심화 자미두수 명반은 무료 열람 — 영구 해금 잠금 모델 제거. 유료 요소는 전문가 상담/PDF의 회당 결제로 통일.
 
@@ -667,7 +671,8 @@ export default function AdvancedZiweiSectionV2({
   }, []);
 
   useEffect(() => {
-    applyCurrentProfileSeed();
+    if (landingDraftRef.current === undefined) landingDraftRef.current = consumeSeoLandingProfile('/ziwei/chart/');
+    applyCurrentProfileSeed(landingDraftRef.current || undefined);
   }, [applyCurrentProfileSeed]);
 
   useEffect(() => {

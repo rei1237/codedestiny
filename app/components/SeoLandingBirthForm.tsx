@@ -3,7 +3,7 @@
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState } from "react";
 import { validateBirthDateWithAge } from "@/lib/birthDateInput";
-import { readCurrentDestinyProfile, publishDestinyProfileBridge, applyDestinyProfileBirthEdit } from "@/app/_lib/profile-card-storage";
+import { readCurrentDestinyProfile, readDestinyProfileAccountId, applyDestinyProfileBirthEdit } from "@/app/_lib/profile-card-storage";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -20,6 +20,8 @@ interface SeoLandingBirthFormCopy {
   calendarLunar: string;
   calendarLeap: string;
   temporaryEdit: string;
+  savedDetails: string;
+  editDetails: string;
   invalidBirthDate: string;
   loadFromProfileCardAria: string;
   loadFromProfileCardLabel: string;
@@ -38,6 +40,8 @@ const SEO_LANDING_BIRTH_FORM_COPY_KO: SeoLandingBirthFormCopy = {
   calendarLunar: "음력",
   calendarLeap: "음력 윤달",
   temporaryEdit: "이 입력은 이번 운세에 사용합니다. 저장된 프로필을 바꾸려면 프로필 관리에서 수정해 주세요.",
+  savedDetails: "저장된 정보로 시작합니다. 필요한 항목만 보완해 주세요.",
+  editDetails: "이번 입력 수정하기",
   invalidBirthDate: "올바른 생년월일을 입력해주세요.",
   loadFromProfileCardAria: "저장된 프로필 카드에서 생년 정보 불러오기",
   loadFromProfileCardLabel: "프로필 카드에서 불러오기",
@@ -56,6 +60,8 @@ const SEO_LANDING_BIRTH_FORM_COPY_EN: SeoLandingBirthFormCopy = {
   calendarLunar: "Lunar",
   calendarLeap: "Lunar leap month",
   temporaryEdit: "These details are for this reading. Edit your saved profile in profile settings.",
+  savedDetails: "Using your saved details. Complete only the missing fields.",
+  editDetails: "Edit this reading's details",
   invalidBirthDate: "Please enter a valid date of birth.",
   loadFromProfileCardAria: "Load birth details from your saved profile card",
   loadFromProfileCardLabel: "Load from profile card",
@@ -152,9 +158,11 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   const { seed, seedVersion, reload } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [error, setError] = useState("");
+  const [editAll, setEditAll] = useState(false);
   const touchedRef = useRef(false);
 
   useEffect(() => {
+    if (touchedRef.current) setEditAll(true);
     setForm((prev) => (touchedRef.current ? prev : seed ? applySeed(EMPTY_FORM, seed) : EMPTY_FORM));
     // seedVersion 만 본다 — seed 객체는 매번 새 참조라 의존성에 넣으면 루프가 된다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -170,6 +178,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
     void reload().then((next) => {
       if (!next) return;
       touchedRef.current = false;
+      setEditAll(false);
       setForm(applySeed(EMPTY_FORM, next));
     });
   }
@@ -183,8 +192,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
       return;
     }
 
-    // 기존 카드 위에 덮어쓴다 — 카드가 있으면 그 id 가 보존되므로
-    // publishDestinyProfileBridge 가 활성 카드 id 를 빈 값으로 지우지 않는다.
+    // 이번 이동의 입력만 만든다. 저장 프로필 및 영구 활성 캐시는 수정하지 않는다.
     const existing = readCurrentDestinyProfile() || {};
     const card = applyDestinyProfileBirthEdit(existing, {
       birthDate: form.birthDate,
@@ -192,15 +200,14 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
       ...(showGender && form.gender ? { gender: form.gender } : {}),
       ...(showCalendar ? { calendarType: form.calendarType } : {}),
     });
-    publishDestinyProfileBridge(card);
 
     const target = new URL(submitHref, window.location.origin);
     const action = target.searchParams.get("action");
-    if (action && (target.pathname === "/" || target.pathname === "/index.html")) {
+    if ((action && (target.pathname === "/" || target.pathname === "/index.html")) || target.pathname.replace(/\/$/, "") === "/ziwei/chart") {
       try {
         window.sessionStorage.setItem(
           SEO_LANDING_ENTRY_HANDOFF_KEY,
-          JSON.stringify({ action, profile: card, createdAt: Date.now() }),
+          JSON.stringify({ action, path: target.pathname, accountId: readDestinyProfileAccountId(), profile: card, createdAt: Date.now() }),
         );
       } catch {
         // 세션 저장이 막힌 환경에서도 기존 이동 경로는 유지한다.
@@ -218,9 +225,13 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
       className="mt-9 rounded-2xl border border-[#d5c8df] bg-white p-5 sm:p-6"
     >
       <p className="text-[0.95rem] font-semibold text-[#292431]">{heading}</p>
+      {seed?.birthDate && !editAll && <div className="mt-4 text-sm text-[#51475c]">
+        <p>{copy.savedDetails}</p><p className="mt-2 font-semibold">{form.birthDate} · {form.calendarType === 'solar' ? copy.calendarSolar : form.calendarType === 'lunar_leap' ? copy.calendarLeap : copy.calendarLunar}{showTime && ` · ${form.birthTimeUnknown ? copy.birthTimeUnknownLabel : form.birthTime || '—'}`}</p>
+        <button type="button" onClick={() => setEditAll(true)} className="min-h-11 text-[#6f3fa6] underline underline-offset-4">{copy.editDetails}</button>
+      </div>}
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div>
+        {(editAll || !seed?.birthDate) && <div>
           <label htmlFor="cd-landing-birthdate" className={LABEL_CLASS}>
             {copy.birthDateLabel}
           </label>
@@ -231,9 +242,9 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
             {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => update({ birthDate: nextBirthDate }))}
             className={`mt-1.5 ${INPUT_CLASS}`}
           />
-        </div>
+        </div>}
 
-        {showTime && (
+        {showTime && (editAll || (!seed?.birthTime && !seed?.birthTimeUnknown)) && (
           <div>
             <label htmlFor="cd-landing-birthtime" className={LABEL_CLASS}>
               {copy.birthTimeLabel}
@@ -259,7 +270,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
           </div>
         )}
 
-        {showGender && (
+        {showGender && (editAll || !seed?.gender) && (
           <div>
             <label htmlFor="cd-landing-gender" className={LABEL_CLASS}>
               {copy.genderLabel}
@@ -278,7 +289,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
           </div>
         )}
 
-        {showCalendar && (
+        {showCalendar && (editAll || !seed?.calendarType) && (
           <div>
             <label htmlFor="cd-landing-caltype" className={LABEL_CLASS}>
               {copy.calendarTypeLabel}

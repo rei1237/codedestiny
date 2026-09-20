@@ -337,6 +337,20 @@ export function readCurrentDestinyProfile(
   }
 }
 
+/** One navigation draft, separate from saved profiles and the active-profile cache. */
+export function consumeSeoLandingProfile(pathname: string): DestinyProfileCard | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const key = "cd:seo-landing-entry:v1";
+    const draft = JSON.parse(window.sessionStorage.getItem(key) || "null");
+    if (!draft || String(draft.path || "").replace(/\/$/, "") !== pathname.replace(/\/$/, "")) return null;
+    window.sessionStorage.removeItem(key);
+    const age = Date.now() - Number(draft.createdAt);
+    if (!Number.isFinite(age) || age < 0 || age > 10 * 60 * 1000 || draft.accountId !== readDestinyProfileAccountId()) return null;
+    return normalizeDestinyProfileCard(draft.profile);
+  } catch { return null; }
+}
+
 export function clearLegacyProfileSelectionKeys(deletedProfileId = "") {
   if (typeof window === "undefined") return;
   const stores = [window.localStorage, window.sessionStorage];

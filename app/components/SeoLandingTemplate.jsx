@@ -128,10 +128,9 @@ function buildRelatedServices(page, topicClusterLinks) {
     }));
 }
 
-/* 포커스 링은 골드 하나로 통일한다. 강조색(트와일라잇 바이올렛)은 CTA 가 이미 쓰고 있어
-   포커스까지 같은 색을 주면 "지금 어디에 포커스가 있는가"가 배경 속으로 묻힌다. */
+/* 밝은 지면에서 식별 가능한 보라색 포커스. 버튼 바깥 offset으로 배경과 구분한다. */
 const FOCUS_RING =
-  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e8d5a3]";
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#6f3fa6]";
 
 /** 브랜드 락업의 달 마크. 장식이라 접근성 트리에서 빼고, 텍스트 분량 계산에도 잡히지 않는다. */
 function MoonMark() {
