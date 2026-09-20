@@ -335,6 +335,7 @@
     "verify:saju-ai-consultation-recovery": "node scripts/verify-saju-ai-consultation-recovery.mjs",
     "verify:saju-ai-section-plan": "node scripts/verify-saju-ai-section-plan.mjs",
     "verify:master-love-codex-flow": "node scripts/verify-master-love-codex-flow.mjs",
+    "verify:master-love-codex-live": "node scripts/verify-master-love-codex-live.mjs",
     "verify:master-love-codex-budget": "node scripts/verify-master-love-codex-batch-budget.mjs",
     "verify:nakshatra-flow": "node scripts/verify-nakshatra-flow.mjs",
     "verify:nakshatra-ai-flow": "node scripts/verify-nakshatra-ai-flow.mjs",
