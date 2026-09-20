@@ -179,21 +179,14 @@ test("generate-sitemap 이 KST 날짜를 실제로 원장에 넘긴다", () => {
   );
 });
 
-test("IndexNow 델타가 UTC·KST 두 날짜를 모두 신선으로 본다", () => {
-  const source = readSource(INDEXNOW);
-  assert.match(
-    source,
-    /import \{ kstYmdToday \} from "\.\/lib\/fortune-date\.mjs";/,
-    "indexnow-submit.mjs 가 kstYmdToday 를 가져오지 않습니다.",
-  );
-  assert.match(
-    source,
-    /const freshDates = new Set\(\[today, volatileToday\]\);/,
-    "델타 기준 날짜 집합이 UTC·KST 두 값을 담고 있지 않습니다.",
-  );
-  assert.match(
-    source,
-    /entries\.filter\(\(entry\) => freshDates\.has\(entry\.lastmod\)\)/,
-    "델타 필터가 freshDates 를 쓰지 않습니다 — 운세 URL 이 통보 대상에서 빠집니다.",
-  );
+test("IndexNow는 UTC·KST 날짜와 지연 배포 모두 마지막 제출 이후 변경으로 선택한다", async () => {
+  const { buildSubmissionState, selectSubmissionDelta } = await import(pathToFileURL(path.join(root, "scripts/lib/indexnow-delta.mjs")).href);
+  const host = "code-destiny.com";
+  const paths = ["/fortune/today/aries/", "/saju/"];
+  const state = dates => buildSubmissionState(paths.map((p, i) => ({ loc: `https://${host}${p}`, lastmod: dates[i] })), {}, host);
+  const previous = state(["2026-08-27", "2026-08-26"]);
+  const deployed = state(["2026-08-28", "2026-08-27"]);
+  assert.deepEqual(selectSubmissionDelta(deployed, previous), paths.map(p => `https://${host}${p}`));
+  assert.deepEqual(selectSubmissionDelta(deployed, deployed), []);
+  assert.match(readSource(INDEXNOW), /selectSubmissionDelta\(current, previous, extra\)/);
 });

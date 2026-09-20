@@ -140,7 +140,7 @@ test('실제 scheduled tick은 첫 네 장 저장 후 닫힌 문서를 원래 �
         load(ctx, 'worker/lib/ziwei-deep-report-recovery-task.js', ['buildAbandonedZiweiDeepFilter', 'bootstrapApprovedZiweiDeepOrders', 'runZiweiDeepReportRecovery']);
         return { runZiweiDeepReportRecovery: ctx.runZiweiDeepReportRecovery };
       }
-      return { runPaymentReconcileTask: async () => {}, runPaymentsV2Reconcile: async () => {}, runSnsDailyPostRecovery: async () => {}, runThreadsDailyJobs: async () => {}, runMasterLoveCodexRecovery: async () => {}, runFusionFortuneRecovery: async () => {} };
+      return { runYeongnyangiRecovery: async () => {}, runPaymentReconcileTask: async () => {}, runPaymentsV2Reconcile: async () => {}, runSnsDailyPostRecovery: async () => {}, runThreadsDailyJobs: async () => {}, runMasterLoveCodexRecovery: async () => {}, runFusionFortuneRecovery: async () => {} };
     },
   });
   const ast = ts.createSourceFile('worker/index.js', fs.readFileSync('worker/index.js', 'utf8'), ts.ScriptTarget.Latest, true);
