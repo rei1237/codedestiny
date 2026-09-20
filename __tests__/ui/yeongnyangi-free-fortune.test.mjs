@@ -14,6 +14,13 @@ test('room restores all sixteen anchovy fortunes without a provider call',()=>{
   assert.doesNotMatch(service,/CodeDestinyProvider|GEMINI|LLM/);
 });
 
+test('main Yeongnyangi free CTA opens the native sixteen-fortune room',()=>{
+  const shell=read('index.html');
+  const entry=shell.match(/<div class="cd-soulcat-entry__actions">[\s\S]*?<\/div>/)?.[0]||'';
+  assert.match(entry,/href="\/yeongnyangi\/room\/\?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=free#daily"/);
+  assert.doesNotMatch(entry,/href="\/today\//);
+});
+
 test('room keeps original artwork and restores its purple selection surface',()=>{
   const room=read('app/yeongnyangi/_original/Room.tsx');
   const free=read('app/yeongnyangi/_components/FreeFortune.tsx');
