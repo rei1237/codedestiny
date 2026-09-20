@@ -47,6 +47,7 @@ const DEFAULT_RELATED_LABELS = {
   "/love": "연애운 보기",
   "/ziwei": "자미두수 12궁 명반",
   "/astrology": "점성술 출생차트",
+  "/human-design/guide": "휴먼 디자인 계산과 이용 안내",
   "/sukuyo": "숙요점 27숙 궁합",
   "/vedic": "베다 점성술",
   "/dream": "무료 꿈해몽",
