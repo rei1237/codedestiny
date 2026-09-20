@@ -2186,10 +2186,9 @@ async function handleResult(request, env) {
   if (!sessionId) {
     const rows = await SukuyoCompatibilityAiConsultation.find({
       userId: auth.userId,
-      // 시드(generating)와 실패본은 messages 가 비어 있어 목록에서 빈 줄로 보인다.
-      // $nin 은 필드가 없는 문서도 매칭하므로 status 가 없던 옛 문서는 그대로 남는다 —
-      // 🔴 여기를 status: "completed" 양성 매칭으로 바꾸면 기존 사용자의 목록이 통째로 사라진다.
-      status: { $nin: ["generating", "partial", "generation_failed", "delivery_pending"] },
+      // Preserve pre-status completed manuscripts, but never admit unknown/failed states or empty seeds.
+      $or: [{ status: "completed" }, { status: { $exists: false },
+        messages: { $elemMatch: { role: "assistant", content: { $type: "string", $regex: "\\S" } } } }],
     })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.

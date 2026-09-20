@@ -55,6 +55,20 @@ const selfZiwei = ziwei(person);
 const partnerSaju = chart({ ...person, birthDate: "1991-11-03" });
 const partnerZiweiChart = ziwei({ ...person, birthDate: "1991-11-03" });
 const compatibility = buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partnerSaju, partnerZiwei: partnerZiweiChart });
+test.each([["self", "self"], ["other", "partner"]])("compat %s accepts only its intended person's evidence", (id, subject) => {
+  const chapter = MASTER_LOVE_CODEX_COMPAT_CHAPTERS.find(row => row.id === id);
+  const contract = buildCodexEvidence({ chapter, saju: selfSaju, ziweiChart: selfZiwei, partnerSaju, partnerZiweiChart, compatibility });
+  expect([...new Set(contract.records.map(row => row.subject))]).toEqual([subject]);
+  const parsed = { body: "이 사람의 관계 기질을 설명합니다.", evidence: contract.records.map(row => ({ evidenceId: row.id, explanation: "계산된 근거의 해설" })) };
+  expect(() => assertCodexEvidence(parsed, contract)).not.toThrow();
+  expect(contract.crossChecks.every(row => row.status === "pending")).toBe(true);
+});
+
+test("pair chapters still reject missing partner evidence", () => {
+  const contract = buildCodexEvidence({ chapter: MASTER_LOVE_CODEX_COMPAT_CHAPTERS[0], saju: selfSaju, ziweiChart: selfZiwei, partnerSaju, partnerZiweiChart, compatibility });
+  const parsed = { body: "두 사람의 기질", evidence: contract.records.filter(row => row.subject === "self").map(row => ({ evidenceId: row.id, explanation: "근거" })) };
+  expect(() => assertCodexEvidence(parsed, contract)).toThrow("LLM_PARTNER_EVIDENCE_MISSING");
+});
 for (const [mode, chapters] of [["solo", MASTER_LOVE_CODEX_CHAPTERS], ["compat", MASTER_LOVE_CODEX_COMPAT_CHAPTERS]]) {
   test.each(chapters)(`${mode} $id has bounded, attributable evidence and immutable verdicts`, chapter => {
     const input = { chapter, saju: selfSaju, ziweiChart: selfZiwei,

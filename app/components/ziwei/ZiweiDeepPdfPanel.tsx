@@ -344,7 +344,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     const isCurrent = captureDeliveryScope();
     void (async () => {
       if (busyRef.current) return;
-      const response = await authFetch("/api/ziwei-deep-report/result").catch(() => null);
+      const response = await authFetch("/api/ziwei-deep-report/result?pending=1").catch(() => null);
       if (!response?.ok || disposed || !isCurrent()) return;
       const data = await response.json().catch(() => ({})) as ApiResult;
       const pending = data.reports?.find(row => ["generating", "partial", "delivery_pending"].includes(row.status));

@@ -246,6 +246,36 @@ const actTabs = () => [...host.querySelectorAll("nav ol li button")];
 const tocLinks = () => [...host.querySelectorAll("details ol li a")];
 const anchorOf = (order) => dom.window.document.getElementById(`${CODEX_CHAPTER_ANCHOR_PREFIX}${order}`);
 
+test("library renders only completed books and keeps paid recovery outside its archive", () => {
+  Object.assign(copy, { libraryTitle: "보관함", libraryDesc: "완성된 책만 보관됩니다", libraryContinue: "이어서 집필하기",
+    libraryReadAgain: "다시 읽기", libraryStart: "집필 시작", libraryStatusPurchased: "구매 완료", libraryStatusCompleted: "완성",
+    possessiveBookTitle: name => `${name}의 책` });
+  Object.assign(ctx, { useEffect: React.useEffect, useMasterLoveCodexLocale: () => "ko", BookOpen: () => null, Feather: () => null,
+    masterLoveCodexBilling: () => ({ title: "인연의 서" }) });
+  install(ctx, LIBRARY, ["CodexLibrary"]);
+  if (root) act(() => root.unmount());
+  if (host) host.remove();
+  host = dom.window.document.createElement("div"); dom.window.document.body.appendChild(host); root = createRoot(host);
+  const opened = [], started = [];
+  act(() => root.render(React.createElement(ctx.CodexLibrary, {
+    sessions: [
+      { sessionId: "finished", name: "완성본", status: "completed", mode: "solo", generationProgress: { completed: 20, total: 20 } },
+      { sessionId: "incomplete", name: "미완성본", status: "generating", mode: "solo", generationProgress: { completed: 19, total: 20 } },
+      { sessionId: "false-completion", name: "거짓 완료", status: "completed", mode: "solo", generationProgress: { completed: 1, total: 20 } },
+    ], pendingSessionId: "paid-pending", purchases: [{ orderId: "paid-order", featureKey: "master-love-codex", requestId: "paid-key" }],
+    busy: false, error: "", onOpenSession: id => opened.push(id), onStartPurchase: purchase => started.push(purchase.requestId),
+  })));
+  const archive = host.querySelector(`#${CODEX_LIBRARY_ANCHOR}`);
+  assert.equal(archive.querySelectorAll('li').length, 1);
+  assert.ok(!archive.textContent.includes('미완성본'));
+  assert.ok(!archive.textContent.includes('거짓 완료'));
+  click(archive.querySelector('button'));
+  const recovery = host.querySelector('[aria-labelledby="codex-recovery-title"]');
+  recovery.querySelectorAll('button').forEach(click);
+  assert.deepEqual(opened, ['finished', 'paid-pending']);
+  assert.deepEqual(started, ['paid-key']);
+});
+
 // ── L ────────────────────────────────────────────────────────────────────────────
 test("L — 1장만 도착한 책에서도 막 탭 5개가 전부 눌리고 그 막으로 간다", () => {
   renderReader({ outline: outlineOf(20), chapters: [chapterAt(1)], total: 20 });

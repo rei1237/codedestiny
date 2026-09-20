@@ -53,6 +53,7 @@ export const MASTER_LOVE_CODEX_COMPAT_CHAPTERS = Object.freeze([
   },
   {
     id: "self", order: 2, symbol: "己",
+    evidenceSubjects: ["self"],
     title: "제2장 · 당신이라는 사람 — 관계 속의 나",
     scope:
       "상담자 본인의 연애 기질을 먼저 세운다. 궁합을 보러 왔지만 판단의 기준점은 자기 자신이다. "
@@ -64,6 +65,7 @@ export const MASTER_LOVE_CODEX_COMPAT_CHAPTERS = Object.freeze([
   },
   {
     id: "other", order: 3, symbol: "彼",
+    evidenceSubjects: ["partner"],
     title: "제3장 · 상대라는 사람 — 그 사람의 결",
     scope:
       "상대의 기질을 상대 명식·명반 근거로 읽는다. 상대를 평가하거나 험담하지 않고, "
@@ -510,35 +512,35 @@ export function buildMasterLoveCodexCompatChapterPrompt({
   birthInfo, partnerInfo, chapter, memory = [], evidenceProvided = false,
 }) {
   const min = chapter.minChars || 2500;
+  const subjects = chapter.evidenceSubjects || ["self", "partner"];
+  const individual = subjects.length === 1;
   const palaces = (chapter.ziweiPalaces || []).join(", ");
   const sajuFocus = (chapter.sajuFocus || []).join(", ");
-  const compatFocus = (chapter.compatFocus || []).map((key) => COMPAT_FOCUS_LABELS[key] || key).join(", ");
+  const compatFocus = (individual ? [] : chapter.compatFocus || []).map((key) => COMPAT_FOCUS_LABELS[key] || key).join(", ");
   const avoidList = (chapter.avoid || []).join(" / ");
   const memoryLines = (memory || []).map((line) => clean(line, 200)).filter(Boolean).slice(-8);
   const partnerLabel = clean(asObject(partnerInfo).name) || "상대";
 
   const body = [
     buildMasterLoveCodexCompatSystemGuide(),
-    buildCodexEditorialContract(chapter, compatibility),
+    buildCodexEditorialContract(chapter, chapter.evidenceSubjects ? null : compatibility),
     "",
     `[상담자] ${formatPersonLine(birthInfo, "상담자")}`,
     `[상대] ${formatPersonLine(partnerInfo, "상대")}`,
     birthInfo?.birthTimeUnknown || partnerInfo?.birthTimeUnknown ? "[해석 한계] 생시 미상인 사람의 시주를 추정하지 마라. 해당 명반은 정오 가정이며 궁·주성의 해석은 잠정적이다. 해당 근거에서 한계를 알리고 사건 시점이나 배우자 성향을 확정하지 마라." : "",
     "",
-    "[사주 명식 — 상담자]",
+    ...(subjects.includes("self") ? ["[사주 명식 — 상담자]",
     formatSajuForPrompt(selfSaju, evidenceProvided),
-    "",
-    `[사주 명식 — ${partnerLabel}]`,
-    formatSajuForPrompt(partnerSaju, evidenceProvided),
-    "",
     "[자미두수 명반 — 상담자]",
-    evidenceProvided ? "해당 궁의 계산값·강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(selfZiwei),
-    "",
+    evidenceProvided ? "해당 궁의 계산값·강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(selfZiwei)] : []),
+    ...(subjects.includes("partner") ? [`[사주 명식 — ${partnerLabel}]`,
+    formatSajuForPrompt(partnerSaju, evidenceProvided),
     `[자미두수 명반 — ${partnerLabel}]`,
-    evidenceProvided ? "해당 궁의 계산값·강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(partnerZiwei),
-    "",
-    "[궁합 판정 — 위 네 자료에서 계산된 값]",
-    evidenceProvided ? `장별 pair 기록과 교차 판정을 사용한다. 유의: ${(compatibility?.uncertainty || []).join(" / ")}` : formatCompatibilityForPrompt(compatibility),
+    evidenceProvided ? "해당 궁의 계산값·강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(partnerZiwei)] : []),
+    ...(individual ? ["이번 장은 한 사람의 기질만 다룬다. 두 사람의 궁합 판정은 다른 장에서 설명한다."] : [
+      "[궁합 판정 — 위 네 자료에서 계산된 값]",
+      evidenceProvided ? `장별 pair 기록과 교차 판정을 사용한다. 유의: ${(compatibility?.uncertainty || []).join(" / ")}` : formatCompatibilityForPrompt(compatibility),
+    ]),
     "",
     memoryLines.length ? "[앞 장에서 이미 말한 것 — 반복하지 말고 이어서 쓸 것]" : "",
     ...memoryLines.map((line) => `- ${line}`),

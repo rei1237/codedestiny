@@ -1562,20 +1562,27 @@ async function handleSessions(request, env) {
   const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   await connectDb(env);
-  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending", "generation_failed", "completed"] } })
+  const docs = await MasterLoveCodexSession.find({ userId: clean(auth.userId), status: "completed" })
     .sort({ createdAt: -1 }).limit(20)
-    .select("id mode status createdAt birthInfo.name partnerInfo.name chapters.id chapters.ok deliveryMeta.savedChapters.id deliveryMeta.savedChapters.ok deliveryMeta.manifest").lean();
-  // Library cards only: chapter ids (never bodies) give written/total without loading a book per row.
-  return json({ ok: true, sessions: docs.map(doc => {
+    .select("id mode status createdAt birthInfo.name partnerInfo.name chapters.id chapters.ok chapters.chars deliveryMeta.manifest").lean();
+  const pending = await MasterLoveCodexSession.findOne({ userId: clean(auth.userId), status: { $in: ["generating", "delivery_pending"] }, "deliveryMeta.reviewRequired": { $ne: true } })
+    .sort({ createdAt: -1 }).select("id").lean();
+  const recovery = pending ? await recoverCodexSession({ userId: auth.userId, sessionId: pending.id }) : null;
+  // Library cards read chapter IDs and stored lengths, never the report bodies.
+  return json({ ok: true, pendingSessionId: recovery && !recovery.denied ? pending.id : "", sessions: docs.filter(isCodexArchiveComplete).map(doc => {
     // 서재 카드의 전체 장 수도 세션에 고정된 구성에서 온다(결과 화면과 같은 정본).
     const expected = expectedChapters({ ...doc, mode: sessionMode(doc) });
-    const written = new Set([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
-      .filter(row => row?.ok !== false && expected.some(spec => spec.id === row?.id)).map(row => row.id));
     const total = expected.length;
     return { sessionId: doc.id, mode: sessionMode(doc), status: doc.status, createdAt: doc.createdAt,
       name: clean(doc.birthInfo?.name, 40), partnerName: clean(doc.partnerInfo?.name, 40),
-      generationProgress: { completed: doc.status === "completed" ? total : Math.min(written.size, total), total } };
+      generationProgress: { completed: total, total } };
   }) });
+}
+
+export function isCodexArchiveComplete(doc) {
+  if (doc?.status !== "completed") return false;
+  return expectedChapters({ ...doc, mode: sessionMode(doc) }).every(spec => (doc.chapters || []).some(row =>
+    row.id === spec.id && row.ok !== false && Number(row.chars ?? row.body?.length) >= codexDedupedChapterFloor(spec)));
 }
 
 export async function handleMasterLoveCodexRoutes(request, env = {}, dependencies = {}) {

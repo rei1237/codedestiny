@@ -202,6 +202,7 @@ export default function MasterLoveCodexPage() {
   const handedOffRef = useRef(false);
   const [generationError, setGenerationError] = useState("");
   const [storedSessions, setStoredSessions] = useState<CodexLibrarySession[]>([]);
+  const [pendingSessionId, setPendingSessionId] = useState("");
   type RecoverablePurchase = CodexLibraryPurchase;
   const [storedPurchases, setStoredPurchases] = useState<RecoverablePurchase[]>([]);
   const recoveredPurchaseRef = useRef<RecoverablePurchase | null>(null);
@@ -211,7 +212,7 @@ export default function MasterLoveCodexPage() {
     idempotencyRef.current = ""; sessionIdRef.current = ""; chargedRef.current = false;
     pendingResumeRef.current = null; lastTokenRef.current = ""; lastSessionRef.current = {};
     recoveredPurchaseRef.current = null; generationStartedRef.current = false;
-    setChapters([]); setCodexProgress(null); setStoredSessions([]); setStoredPurchases([]); setPhase("landing");
+    setChapters([]); setCodexProgress(null); setStoredSessions([]); setPendingSessionId(""); setStoredPurchases([]); setPhase("landing");
   }, { survivesAuthRestore: true });
 
   useEffect(() => {
@@ -223,7 +224,10 @@ export default function MasterLoveCodexPage() {
         .then(async response => {
           if (!response.ok) return;
           const data = await response.json();
-          if (active && current === generation && Array.isArray(data.sessions)) setStoredSessions(data.sessions);
+          if (active && current === generation && Array.isArray(data.sessions)) {
+            setStoredSessions(data.sessions);
+            setPendingSessionId(toText(data.pendingSessionId));
+          }
         }).catch(() => { /* Existing purchase is checked again on explicit recovery. */ });
       void authFetch("/api/payments/recoveries?featureKeys=master-love-codex,master-love-codex-compat", { cache: "no-store" })
         .then(async response => {
@@ -234,6 +238,7 @@ export default function MasterLoveCodexPage() {
     };
     const onAuthChanged = () => {
       setStoredSessions([]);
+      setPendingSessionId("");
       setStoredPurchases([]);
       if (!busyRef.current) {
         recoveredPurchaseRef.current = null;
@@ -662,6 +667,7 @@ export default function MasterLoveCodexPage() {
         <CodexLanding
           library={<CodexLibrary
             sessions={storedSessions}
+            pendingSessionId={pendingSessionId}
             purchases={storedPurchases}
             busy={recovering}
             error={error}

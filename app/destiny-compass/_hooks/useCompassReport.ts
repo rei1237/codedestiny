@@ -386,7 +386,7 @@ export function useCompassReport(
         try { payloadRef.current = JSON.parse(localStorage.getItem(key + ":request") || "null"); } catch { /* storage may be unavailable */ }
         let reportId = savedReportId || cached?.reportId || reportIdRef.current;
         if (!reportId) {
-          const response = await authFetch("/api/destiny-compass-ai/result", { method: "GET" });
+          const response = await authFetch("/api/destiny-compass-ai/result?pending=1", { method: "GET" });
           const data = await response.json();
           if (!isCurrent()) return;
           reportId = data.reports?.find((row: { question?: string; status?: string }) => row.question === question && ["generating", "partial", "delivery_pending"].includes(String(row.status)))?.reportId || "";

@@ -27,6 +27,7 @@ export type CodexLibraryPurchase = { orderId: string; featureKey: string; reques
 
 interface CodexLibraryProps {
   sessions: CodexLibrarySession[];
+  pendingSessionId?: string;
   purchases: CodexLibraryPurchase[];
   busy: boolean;
   error: string;
@@ -36,17 +37,21 @@ interface CodexLibraryProps {
 
 export const CODEX_LIBRARY_ANCHOR = "codex-library";
 
-export default function CodexLibrary({ sessions, purchases, busy, error, onOpenSession, onStartPurchase }: CodexLibraryProps) {
+export default function CodexLibrary({ sessions, pendingSessionId = "", purchases, busy, error, onOpenSession, onStartPurchase }: CodexLibraryProps) {
   const copy = useMasterLoveCodexCopy();
   const locale = useMasterLoveCodexLocale();
-  const hasBooks = sessions.length > 0 || purchases.length > 0;
+  const completedSessions = sessions.filter(session => session.status === "completed"
+    && Number(session.generationProgress?.completed) === Number(session.generationProgress?.total)
+    && Number(session.generationProgress?.total) > 0);
+  const hasRecovery = Boolean(pendingSessionId) || purchases.length > 0;
+  const hasBooks = completedSessions.length > 0;
   // 결과 화면의 "내 서재" 링크로 왔을 때 — 목록은 비동기로 도착해 브라우저의 해시 스크롤이 먼저 끝나 버린다.
   useEffect(() => {
     if (hasBooks && window.location.hash === `#${CODEX_LIBRARY_ANCHOR}`) {
       document.getElementById(CODEX_LIBRARY_ANCHOR)?.scrollIntoView({ block: "start" });
     }
   }, [hasBooks]);
-  if (!hasBooks) return null;
+  if (!hasBooks && !hasRecovery && !error) return null;
 
   const formatDate = (value?: string) => {
     const date = value ? new Date(value) : null;
@@ -59,13 +64,16 @@ export default function CodexLibrary({ sessions, purchases, busy, error, onOpenS
   };
 
   return (
-    <section id={CODEX_LIBRARY_ANCHOR} className={styles.library} aria-labelledby="codex-library-title">
+    <>
+    {hasRecovery ? <section className={styles.library} aria-labelledby="codex-recovery-title">
       <div className={styles.measure}>
-        <p className={styles.libraryEyebrow}>{copy.libraryEyebrow}</p>
-        <h2 id="codex-library-title" className={styles.libraryHeading}>{copy.libraryTitle}</h2>
-        <p className={styles.libraryDesc}>{copy.libraryDesc}</p>
-
+        <h2 id="codex-recovery-title" className={styles.libraryHeading}>{copy.libraryContinue}</h2>
         <ul className={styles.libraryList}>
+          {pendingSessionId ? <li className={styles.libraryCard}>
+            <button type="button" className={styles.libraryAction} disabled={busy} onClick={() => onOpenSession(pendingSessionId)}>
+              <Feather className="h-4 w-4" aria-hidden="true" />{copy.libraryContinue}
+            </button>
+          </li> : null}
           {purchases.map((purchase) => {
             const edition = masterLoveCodexBilling(purchase.featureKey.endsWith("-compat") ? "compat" : "solo", locale).title;
             return (
@@ -81,39 +89,35 @@ export default function CodexLibrary({ sessions, purchases, busy, error, onOpenS
               </li>
             );
           })}
-
-          {sessions.map((session) => {
+        </ul>
+      </div>
+    </section> : null}
+    <section id={CODEX_LIBRARY_ANCHOR} className={styles.library} aria-labelledby="codex-library-title">
+      <div className={styles.measure}>
+        <h2 id="codex-library-title" className={styles.libraryHeading}>{copy.libraryTitle}</h2>
+        <p className={styles.libraryDesc}>{copy.libraryDesc}</p>
+        <ul className={styles.libraryList}>
+          {completedSessions.map((session) => {
             const edition = masterLoveCodexBilling(session.mode, locale).title;
-            const total = session.generationProgress?.total || 20;
-            const completed = session.status === "completed";
-            const done = completed ? total : Math.min(session.generationProgress?.completed || 0, total);
             const title = session.mode === "compat" && session.name && session.partnerName
               ? `${session.name} × ${session.partnerName}`
               : session.name ? copy.possessiveBookTitle(session.name, edition) : edition;
             const date = formatDate(session.createdAt);
-            const status = completed
-              ? copy.libraryStatusCompleted
-              : session.status === "generation_failed" ? copy.libraryStatusPaused(done, total) : copy.libraryStatusWriting(done, total);
             return (
               <li key={session.sessionId} className={styles.libraryCard}>
                 <div className={styles.libraryCardBody}>
                   <p className={styles.libraryEdition}>{date ? `${edition} · ${date}` : edition}</p>
                   <h3 className={styles.libraryBookTitle}>{title}</h3>
-                  <span className={`${styles.libraryStatus} ${completed ? "" : styles.libraryStatusActive}`}>{status}</span>
-                  {!completed ? (
-                    <span className={styles.libraryProgress} aria-hidden="true">
-                      <span style={{ width: `${Math.round((done / total) * 100)}%` }} />
-                    </span>
-                  ) : null}
+                  <span className={styles.libraryStatus}>{copy.libraryStatusCompleted}</span>
                 </div>
                 <button
                   type="button"
-                  className={`${styles.libraryAction} ${completed ? styles.libraryActionPrimary : ""}`}
+                  className={`${styles.libraryAction} ${styles.libraryActionPrimary}`}
                   disabled={busy}
                   onClick={() => onOpenSession(session.sessionId)}
                 >
-                  {completed ? <BookOpen className="h-4 w-4" aria-hidden="true" /> : <Feather className="h-4 w-4" aria-hidden="true" />}
-                  {completed ? copy.libraryReadAgain : copy.libraryContinue}
+                  <BookOpen className="h-4 w-4" aria-hidden="true" />
+                  {copy.libraryReadAgain}
                 </button>
               </li>
             );
@@ -122,5 +126,6 @@ export default function CodexLibrary({ sessions, purchases, busy, error, onOpenS
         {error ? <p role="alert" className={styles.libraryError}>{error}</p> : null}
       </div>
     </section>
+    </>
   );
 }

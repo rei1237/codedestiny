@@ -281,7 +281,15 @@ test("목록은 진행 중 ID를 별도로 제공하고 과거 완료 목록을 
   mockSectionsResolvedImmediately(); await runWave();
   const response = await handleSukuyoCompatibilityAiRoutes(new Request("https://mock.test/api/sukuyo-compatibility-ai/result"), ENV);
   expect(response.status).toBe(200); expect((await response.json()).pendingSessionId).toBe(store.docs[0]._id);
-  expect(findCallArgs[0].status.$nin).toContain("partial");
+  const { default: sift } = await import("sift");
+  const visible = sift(findCallArgs[0]);
+  const userId = findCallArgs[0].userId;
+  expect(visible({ userId, status: "completed" })).toBe(true);
+  expect(visible({ userId, messages: [{ role: "assistant", content: "과거 완성 본문" }] })).toBe(true);
+  expect(visible({ userId, messages: [] })).toBe(false);
+  for (const status of ["partial", "generating", "delivery_pending", "generation_failed", "refunded", "unknown"]) {
+    expect(visible({ userId, status, messages: [{ role: "assistant", content: "미완성 본문" }] })).toBe(false);
+  }
 });
 
 for (const mode of ["subscription", "paid"]) test(`${mode}: 원래 차감 증빙과 다섯 요청으로 완료한다`, async () => {

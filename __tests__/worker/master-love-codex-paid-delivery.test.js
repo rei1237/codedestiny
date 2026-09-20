@@ -2,6 +2,18 @@
 import { jest } from '@jest/globals';
 let docs, fault, lostConfirmation, route, provider, refund, owner, blocked, fetchBlock, revokedSource;
 const uid='64b7f2a1c3d4e5f601234567';
+it('archive requires all distinct purchased chapters, not just a completed status or count', async () => {
+  const { isCodexArchiveComplete, __masterLoveCodexTestUtils: utils } = await import('../../worker/routes/master-love-codex.js');
+  for (const mode of ['solo', 'compat']) {
+    const chapters = utils.MODES[mode].chapters.map(spec => ({ id: spec.id, chars: spec.minChars, ok: true }));
+    const doc = { mode, status: 'completed', chapters };
+    expect(isCodexArchiveComplete(doc)).toBe(true);
+    expect(isCodexArchiveComplete({ ...doc, status: 'generating' })).toBe(false);
+    expect(isCodexArchiveComplete({ ...doc, chapters: chapters.slice(1) })).toBe(false);
+    expect(isCodexArchiveComplete({ ...doc, chapters: chapters.map(() => chapters[0]) })).toBe(false);
+    expect(isCodexArchiveComplete({ ...doc, chapters: chapters.map((row, i) => i ? row : { ...row, chars: 0 }) })).toBe(false);
+  }
+});
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -77,6 +89,26 @@ beforeEach(()=>{
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 async function generate(extra = {}){return route(new Request('https://mock.test/api/master-love-codex/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'saved-codex'})}),{},{generateChapter:provider,refundPassCoverage:refund,runCoinRefund:refund,runMonthlyCreditRefund:refund,runPaymentCancel:refund,...extra})}
+it('repairs the measured 19/20 compat book with one self chapter and no duplicate payment or chapters', async () => {
+  const { __masterLoveCodexTestUtils: utils, diagnoseCodexSession, isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
+  const { planCodexReopen } = await import('../../worker/lib/master-love-codex-recovery-task.js');
+  const chapters = [];
+  for (const chapter of utils.MODES.compat.chapters.filter(row => row.id !== 'self')) chapters.push((await provider({}, { chapter })).chapter);
+  provider.mockClear();
+  Object.assign(docs[0], { mode: 'compat', status: 'generation_failed', chapters,
+    deliveryMeta: { savedChapters: chapters, attempts: { self: 3 }, failures: { self: 3 }, reviewRequired: true,
+      errors: { self: { code: 'LLM_PARTNER_EVIDENCE_MISSING' } }, reviewReason: 'GENERATION_BUDGET_EXCEEDED' } });
+  const originalBodies = chapters.map(row => row.body);
+  const plan = planCodexReopen(docs[0], diagnoseCodexSession);
+  assign(docs[0], { ...plan.set, status: 'generating', 'deliveryMeta.reviewRequired': false, 'deliveryMeta.evidenceScopeReopenedAt': new Date() });
+  expect((await generate()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(1);
+  expect(provider.mock.calls[0][1].chapter.id).toBe('self');
+  expect(docs[0].chapters.filter(row => row.id !== 'self').map(row => row.body)).toEqual(originalBodies);
+  expect(isCodexArchiveComplete(docs[0])).toBe(true);
+  expect(docs[0].paymentId).toBe('original-payment');
+  expect(refund).not.toHaveBeenCalled();
+});
 for(const accessType of ['pass','monthly_credit','paid'])it(`${accessType} completes five bounded waves with original evidence`,async()=>{docs[0].accessType=accessType;for(let i=0;i<5;i++)expect((await generate()).status).toBe(i<4?202:200);expect(provider).toHaveBeenCalledTimes(20);expect(docs[0].status).toBe('completed');expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(20);expect(refund).not.toHaveBeenCalled()});
 for(const status of ['delivery_pending','completed'])for(const kind of ['throw','null','confirm'])it(`${status} ${kind} preserves generated book`,async()=>{for(let i=0;i<4;i++)await generate();fault={status,kind};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true,resultId:'saved-codex'});expect(refund).not.toHaveBeenCalled();expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(20)});
 it('saves siblings after the first chapter fails',async()=>{provider.mockImplementationOnce(async()=>({status:'fallback'}));expect((await generate()).status).toBe(202);expect(docs[0].chapters).toHaveLength(3);expect(docs[0].deliveryMeta.savedChapters).toHaveLength(3);for(let i=0;i<5;i++)await generate();expect(provider).toHaveBeenCalledTimes(21);expect(docs[0].chapters).toHaveLength(20);expect(refund).not.toHaveBeenCalled()});

@@ -9,12 +9,36 @@ import {
   runMasterLoveCodexRecovery,
   buildAbandonedFilter,
   buildCodexStalledFilter,
+  planCodexReopen,
   __masterLoveCodexRecoveryTestUtils,
 } from "../../worker/lib/master-love-codex-recovery-task.js";
 import { __masterLoveCodexTestUtils } from "../../worker/routes/master-love-codex.js";
 
 const { ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK } = __masterLoveCodexRecoveryTestUtils;
 const { MODES } = __masterLoveCodexTestUtils;
+
+test("known self evidence mismatch restores one attempt once, preserving every other chapter", () => {
+  const doc = { mode: "compat", status: "generation_failed", deliveryMeta: {
+    reviewRequired: true, errors: { self: { code: "LLM_PARTNER_EVIDENCE_MISSING" } }, attempts: { self: 3, other: 1 },
+  } };
+  const plan = planCodexReopen(doc, () => ({ actionable: [] }));
+  expect(plan.set).toEqual({ "deliveryMeta.attempts.self": 2, "deliveryMeta.failures.self": 2 });
+  expect(Object.keys(plan.unset)).not.toContain("deliveryMeta.attempts.other");
+  expect(doc.deliveryMeta.attempts).toEqual({ self: 3, other: 1 });
+  doc.deliveryMeta.evidenceScopeReopenedAt = new Date();
+  expect(planCodexReopen(doc, () => ({ actionable: [] }))).toBeNull();
+});
+
+test("refund-confirmed closed sessions are never reopened or synced as generating", async () => {
+  const doc = { id: "refunded", userId: "owner", mode: "compat", status: "generation_failed", deliveryMeta: {
+    reviewRequired: true, reviewReason: "GENERATION_BUDGET_EXCEEDED", errors: { self: { code: "LLM_PARTNER_EVIDENCE_MISSING" } },
+  } };
+  const { options, model } = harness([doc], { recoverCodexSession: jest.fn(async () => ({ denied: true, reason: "PURCHASE_REFUNDED" })) });
+  await runMasterLoveCodexRecovery({}, options);
+  expect(options.runCodexWave).not.toHaveBeenCalled();
+  expect(options.syncCodexExecution).not.toHaveBeenCalled();
+  expect(model.updateOne.mock.calls.every(([, update]) => update.$set.status === "generation_failed")).toBe(true);
+});
 
 function sessionModel(docs) {
   const query = {
@@ -23,6 +47,7 @@ function sessionModel(docs) {
     limit: jest.fn(() => query),
     lean: jest.fn(async () => query.current),
     countDocuments: jest.fn(async () => 0),
+    updateOne: jest.fn(async () => ({ modifiedCount: 1 })),
   };
   return query;
 }
@@ -121,6 +146,9 @@ describe("runMasterLoveCodexRecovery", () => {
     expect(options.acquireBatchLock).not.toHaveBeenCalled();
     expect(options.runCodexWave).not.toHaveBeenCalled();
     expect(result.outcomes).toEqual([{ sessionId: "s1", outcome: "denied" }]);
+    expect(options.MasterLoveCodexSession.updateOne).toHaveBeenCalledWith(expect.objectContaining({ id: "s1", userId: "u1" }), {
+      $set: expect.objectContaining({ status: "generation_failed", deliveryMeta: expect.objectContaining({ reviewRequired: true, reviewReason: "PURCHASE_REFUNDED" }) }),
+    });
   });
 
   test("한 세션이 던져도 나머지 회수가 계속된다", async () => {

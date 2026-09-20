@@ -646,7 +646,7 @@ async function handleResult(request, env) {
   else {
     await connectDb(env);
     const list = await withMongoRetry(env, () => HumanDesignReport
-      .find({ userId: auth.userId })
+      .find({ userId: auth.userId, status: "completed" })
       .sort({ createdAt: -1 })
       .limit(20)
       .select("id locale status totalChars createdAt")

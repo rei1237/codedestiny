@@ -1,5 +1,5 @@
 // Calculation facts only. The model explains these records; it cannot create them.
-export const CODEX_EVIDENCE_VERSION = "codex-evidence-v3";
+export const CODEX_EVIDENCE_VERSION = "codex-evidence-v4";
 
 const SAJU_FIELDS = [
   [/일간|기질|전체/, "dayMaster"], [/월지|전체/, "monthPillar"],
@@ -19,6 +19,7 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
     if (present(value)) records.push({ id: `${subject}.${system}.${path}`, subject, system, path, value, certainty, period });
   };
   for (const [subject, s, z] of [["self", saju, ziweiChart], ["partner", partnerSaju, partnerZiweiChart]]) {
+    if (chapter.evidenceSubjects && !chapter.evidenceSubjects.includes(subject)) continue;
     if (!s && !z) continue;
     for (const [pattern, key] of SAJU_FIELDS) {
       if (!pattern.test(focus)) continue;
@@ -35,7 +36,8 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
         z?.uncertainty?.birthTimeUnknown ? "provisional" : "calculated");
     }
   }
-  for (const key of chapter.compatFocus || []) {
+  const individual = chapter.evidenceSubjects?.length === 1;
+  for (const key of individual ? [] : chapter.compatFocus || []) {
     if (key === "cross") continue;
     for (const system of ["saju", "ziwei"]) {
       add("pair", system, key, compatibility?.[system]?.[key],
@@ -43,7 +45,7 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
     }
   }
   const unique = [...new Map(records.map(record => [record.id, record])).values()];
-  const axes = [
+  const axes = individual ? [] : [
     ...(compatibility?.cross?.convergence || []).map(axis => ({ ...axis, status: "agreement" })),
     ...(compatibility?.cross?.divergence || []).map(axis => ({ ...axis, status: "conflict" })),
     ...(compatibility?.cross?.pending || []).map(axis => ({ ...axis, status: "pending" })),
@@ -65,6 +67,7 @@ export function formatCodexEvidence(contract) {
     "핵심 해석 → 사주 근거 → 자미두수 근거 → 일치·상충·판단 보류의 이유 → 행동 순서로 전개한다.",
     "월운 등 목록에 없는 시기 자료, 없는 별·사화·합충을 만들지 않는다. element-count-balance는 수량 보완 지표이며 확정 용신이 아니다.",
     "궁합 pair 근거와 개인 self/partner 원국 근거를 구분한다. 점수는 성공 확률이나 적중률이 아니다.",
+    `이 장에서 인용할 인물 범위: ${[...new Set(contract.records.map(record => record.subject))].join(", ")}. 각 인물의 근거를 최소 하나 인용하고, 범위 밖 인물의 해석을 요구하지 않는다.`,
   ].join("\n");
 }
 

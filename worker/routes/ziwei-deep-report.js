@@ -792,8 +792,9 @@ async function handleResult(request, env) {
   try {
     await connectDb(env);
     if (!reportId) {
+      const pendingOnly = new URL(request.url).searchParams.get("pending") === "1";
       const rows = await ZiweiDeepReport
-        .find({ userId: clean(auth.userId) }, { id: 1, birthInfo: 1, topic: 1, userQuestion: 1, locale: 1, status: 1, createdAt: 1, updatedAt: 1 })
+        .find({ userId: clean(auth.userId), status: pendingOnly ? { $in: ["generating", "partial", "delivery_pending"] } : "completed" }, { id: 1, birthInfo: 1, topic: 1, userQuestion: 1, locale: 1, status: 1, createdAt: 1, updatedAt: 1 })
         .sort({ createdAt: -1 })
         .limit(20)
         .lean();

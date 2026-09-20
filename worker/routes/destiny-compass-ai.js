@@ -610,8 +610,9 @@ async function handleResult(request, env) {
   try {
     await connectDb(env);
     if (!id) {
+      const pendingOnly = new URL(request.url).searchParams.get("pending") === "1";
       const rows = await DestinyCompassReport
-        .find({ userId: String(auth.userId) }, { id: 1, question: 1, status: 1, createdAt: 1, systemConfidence: 1 })
+        .find({ userId: String(auth.userId), status: pendingOnly ? { $in: ["generating", "partial", "delivery_pending"] } : "completed" }, { id: 1, question: 1, status: 1, createdAt: 1, systemConfidence: 1 })
         .sort({ createdAt: -1 })
         .limit(20)
         .lean();

@@ -155,7 +155,7 @@ check("병합 가시 텍스트 ≤ 상한", visible <= FUSION_FORTUNE_LENGTH.tot
   FusionFortuneConsultation.find = filter => { listFilter = filter; return { select(projection) { listProjection = projection; return this; }, sort() { return this; }, limit() { return this; }, lean: async () => [] }; };
   try { await listFusionFortuneConsultations({ userId: "mock-owner" }); }
   finally { FusionFortuneConsultation.find = originalFind; }
-  check("목록은 본인의 완료 및 미완료 결과", listFilter.userId === "mock-owner" && ["partial", "delivery_pending", "completed"].every(value => listFilter.status.$in.includes(value)));
+  check("보관함 목록은 본인의 완성본만 조회", listFilter.userId === "mock-owner" && listFilter.status === "completed");
   check("목록에 비공개 snapshot 미노출", !listProjection.includes("generationSnapshot") && !listProjection.includes("result"));
 
   check("모델 status enum 에 partial/저장 대기", ["partial", "delivery_pending", "completed"].every(value => FusionFortuneConsultation.schema.path("status").enumValues.includes(value)));

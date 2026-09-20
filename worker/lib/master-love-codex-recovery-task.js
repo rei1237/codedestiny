@@ -114,6 +114,15 @@ export function planCodexReopen(doc, diagnose) {
   // 🔴 닫힌 세션만 연다. DB 필터에만 의존하면 살아 있는 세션을 "재개"하면서 락·진행 상태를
   //    건드릴 수 있다 — 판정은 호출부가 아니라 이 함수가 갖는다(fail-closed).
   if (doc?.status !== "generation_failed" || meta.reviewRequired !== true) return null;
+  // The self chapter explicitly forbids partner interpretation. v3 nevertheless required it.
+  // Restore exactly one reservation for this known contract defect, never the whole book.
+  if (doc.mode === "compat" && !meta.evidenceScopeReopenedAt
+      && meta.errors?.self?.code === "LLM_PARTNER_EVIDENCE_MISSING") {
+    return { marker: "evidenceScopeReopenedAt", reason: "evidence_scope_mismatch",
+      set: { "deliveryMeta.attempts.self": __masterLoveCodexTestUtils.CHAPTER_ATTEMPT_LIMIT - 1,
+        "deliveryMeta.failures.self": __masterLoveCodexTestUtils.CHAPTER_ATTEMPT_LIMIT - 1 },
+      unset: { "deliveryMeta.reviewReason": "", "deliveryMeta.exhaustedChapterIds": "", "deliveryMeta.errors.self": "" } };
+  }
   if (closedByDedupeMismatch(doc) && !meta.dedupeReopenedAt) {
     const unset = { "deliveryMeta.reviewReason": "", "deliveryMeta.exhaustedChapterIds": "" };
     for (const id of meta.exhaustedChapterIds) {
@@ -127,23 +136,36 @@ export function planCodexReopen(doc, diagnose) {
   return null;
 }
 
-async function reopenClosedSessions(SessionModel, now, syncFn, diagnose) {
+async function markRevokedSession(SessionModel, doc, access, now) {
+  if (access?.reason !== "PURCHASE_REFUNDED") return;
+  // Persist only a terminal generation state; never issue another refund or alter purchase records.
+  await SessionModel.updateOne({ id: doc.id, userId: doc.userId, ...(doc.updatedAt ? { updatedAt: doc.updatedAt } : {}),
+    status: { $in: ["generating", "delivery_pending", "generation_failed"] } }, {
+    $set: { status: "generation_failed", deliveryMeta: { ...doc.deliveryMeta, reviewRequired: true,
+      reviewReason: "PURCHASE_REFUNDED" }, generationError: { code: "PURCHASE_REFUNDED", at: new Date(now) } },
+  });
+}
+
+async function reopenClosedSessions(SessionModel, now, syncFn, diagnose, accessFn) {
   const docs = (await SessionModel.find({
     status: "generation_failed",
     "deliveryMeta.reviewRequired": true,
     "deliveryMeta.reviewReason": "GENERATION_BUDGET_EXCEEDED",
     "passRefund.refundedAt": { $exists: false },
     "billingRefund.refundedAt": { $exists: false },
-    $or: [{ "deliveryMeta.codexReopenedAt": { $exists: false } }, { "deliveryMeta.dedupeReopenedAt": { $exists: false } }],
+    $or: [{ "deliveryMeta.codexReopenedAt": { $exists: false } }, { "deliveryMeta.dedupeReopenedAt": { $exists: false } },
+      { mode: "compat", "deliveryMeta.evidenceScopeReopenedAt": { $exists: false }, "deliveryMeta.errors.self.code": "LLM_PARTNER_EVIDENCE_MISSING" }],
   }).sort({ updatedAt: 1 }).limit(MAX_SESSIONS_PER_TICK).lean()) || [];
   const reopened = [];
   for (const doc of docs) {
+    const access = await accessFn({ userId: doc.userId, sessionId: doc.id });
+    if (!access || access.denied) { await markRevokedSession(SessionModel, doc, access, now); continue; }
     const plan = planCodexReopen(doc, diagnose);
     if (!plan) continue;
     // 조건부 원자 갱신: 그 사이 환급·재개된 세션은 매치되지 않는다(표식이 그 조건이다).
     // updatedAt 을 두어 이번 틱에 바로 회수된다.
     const saved = await SessionModel.updateOne({ ...buildCodexReopenFilter(plan.marker), id: doc.id, userId: doc.userId }, {
-      $set: { status: "generating", "deliveryMeta.reviewRequired": false, [`deliveryMeta.${plan.marker}`]: new Date(now), generationError: null },
+      $set: { status: "generating", "deliveryMeta.reviewRequired": false, [`deliveryMeta.${plan.marker}`]: new Date(now), generationError: null, ...plan.set },
       $unset: plan.unset,
     }, { timestamps: false });
     if (!saved?.modifiedCount) continue;
@@ -169,7 +191,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
     if (access && !access.denied) await (options.syncCodexExecution || syncCodexExecution)(access.session);
   }
   const reopened = await reopenClosedSessions(
-    SessionModel, now, options.syncCodexExecution || syncCodexExecution, options.diagnoseCodexSession || diagnoseCodexSession,
+    SessionModel, now, options.syncCodexExecution || syncCodexExecution, options.diagnoseCodexSession || diagnoseCodexSession, accessFn,
   );
   const candidates = await SessionModel
     .find(buildAbandonedFilter(now))
@@ -192,6 +214,7 @@ export async function runMasterLoveCodexRecovery(env, options = {}) {
       // 생성 비용을 쓰기 **전에** 접근 권한을 본다(환불·불일치 세션을 걸러낸다).
       const access = await accessFn({ userId, sessionId });
       if (!access || access.denied) {
+        await markRevokedSession(SessionModel, candidate, access, now);
         outcomes.push({ sessionId, outcome: "denied" });
         continue;
       }
