@@ -9,9 +9,7 @@ const robotsPath = resolve(rootDir, "robots.txt");
 const headersPath = resolve(rootDir, "public", "_headers");
 
 const LIVE_ORIGIN = "https://code-destiny.com";
-const LIVE_SITEMAP_URL = `${LIVE_ORIGIN}/sitemap.xml`;
 const LIVE_ROBOTS_URL = `${LIVE_ORIGIN}/robots.txt`;
-const LIVE_INSIGHTS_SITEMAP_URL = `${LIVE_ORIGIN}/sitemap-insights.xml`;
 
 const ACTION_ROUTE_PATTERNS = [
   /^\/api(?:\/|$)/,
@@ -192,13 +190,21 @@ async function fetchWithFallback(url) {
 }
 
 async function assertLiveSitemap(localUrls) {
-  const liveSitemapRes = await fetch(LIVE_SITEMAP_URL, { method: "GET", redirect: "follow" });
-  if (liveSitemapRes.status !== 200) {
-    fail(`live sitemap is not 200: ${liveSitemapRes.status}`);
+  const liveRobotsRes = await fetch(LIVE_ROBOTS_URL, { signal: AbortSignal.timeout(30000) });
+  if (liveRobotsRes.status !== 200) fail(`live robots.txt is not 200: ${liveRobotsRes.status}`);
+  const robots = await liveRobotsRes.text();
+  const declarations = [...robots.matchAll(/^Sitemap:\s*(\S+)/gim)].map(match => match[1]);
+  if (!declarations.length) fail("live robots.txt has no sitemap declarations");
+  const liveSet = new Set();
+  for (const declared of declarations) {
+    if (new URL(declared).origin !== LIVE_ORIGIN) fail("live robots sitemap must use the production host");
+    const response = await fetch(declared, { signal: AbortSignal.timeout(30000) });
+    if (response.status !== 200) fail(`declared sitemap is not 200: ${declared}`);
+    const xml = await response.text();
+    if (!xml.includes('<urlset')) fail(`expected language URL sitemap: ${declared}`);
+    for (const url of parseSitemapUrls(xml)) liveSet.add(url);
   }
-
-  const liveSitemapXml = await liveSitemapRes.text();
-  const liveUrls = parseSitemapUrls(liveSitemapXml);
+  const liveUrls = [...liveSet];
   const onlyLocal = localUrls.filter((url) => !liveUrls.includes(url));
   const onlyLive = liveUrls.filter((url) => !localUrls.includes(url));
   const hasDrift = liveUrls.length !== localUrls.length || onlyLocal.length > 0 || onlyLive.length > 0;
@@ -223,20 +229,7 @@ async function assertLiveSitemap(localUrls) {
     fail(`live sitemap contains non-200 URLs: ${badResults.slice(0, 10).map((item) => `${item.url} -> ${item.finalStatus}`).join(", ")}`);
   }
 
-  const liveRobotsRes = await fetch(LIVE_ROBOTS_URL, { method: "GET", redirect: "follow" });
-  if (liveRobotsRes.status !== 200) {
-    fail(`live robots.txt is not 200: ${liveRobotsRes.status}`);
-  }
-
-  const liveRobotsText = await liveRobotsRes.text();
-  if (!/Sitemap:\s*https:\/\/code-destiny\.com\/sitemap\.xml/i.test(liveRobotsText)) {
-    fail("live robots.txt does not point to https://code-destiny.com/sitemap.xml");
-  }
-
-  const insightsRes = await fetch(LIVE_INSIGHTS_SITEMAP_URL, { method: "HEAD", redirect: "follow" });
-  console.log(`[verify:sitemap] live sitemap OK (${results.length} URLs, all 200)`);
-  console.log("[verify:sitemap] live robots sitemap directive OK");
-  console.log(`[verify:sitemap] live sitemap-insights.xml status: ${insightsRes.status}`);
+  console.log(`[verify:sitemap] ${declarations.length} declared sitemaps; ${results.length} live URLs, all 200`);
 
   if (hasDrift) {
     fail(

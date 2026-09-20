@@ -12,16 +12,16 @@
  *    (2026-08-16 실측: sitemap.xml 429 URL vs seo-site-urls 경로 문자열 95개) 사이트맵이 일부러
  *    제외한 noindex URL 을 검색엔진에 제출하게 된다. 색인 품질을 고치려다 정반대가 된다.
  *
- * 🔴 델타(= lastmod 가 오늘인 URL)만 보낸다. 전량 제출을 반복하면 Bing·Naver 가 스팸으로
- *    취급해 신호 자체가 죽는다. 이게 가능한 건 config/sitemap-lastmod.json 원장(#723) 덕분이다 —
- *    그 전에는 429개 중 315개가 매 빌드 오늘 날짜였으므로 "델타" 가 사실상 전량이었다.
+ * 성공한 마지막 제출의 사이트맵·콘텐츠 서명과 비교한다. 실패하면 체크포인트를 이동하지 않는다.
+ * 지연 배포, 같은 날 수정, 삭제, 재실행도 같은 규칙으로 처리한다.
  *
  * 🔴 키는 여기에 복제하지 않는다. lib/indexnow.ts 를 **파일로 읽어** 뽑고, 키 파일과 일치하는지
  *    확인한다. 복제하면 키 회전 시 한쪽만 바뀌어 조용히 403 이 난다.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { kstYmdToday } from "./lib/fortune-date.mjs";
+import { tmpdir } from "node:os";
+import { buildSubmissionState, selectSubmissionDelta } from "./lib/indexnow-delta.mjs";
 
 const rootDir = process.cwd();
 const dryRun = process.argv.includes("--dry-run");
@@ -73,10 +73,10 @@ function readSitemapEntries() {
   }
   const xml = readFileSync(sitemapPath, "utf8");
   const entries = [];
-  const entryRe = /<loc>([^<]+)<\/loc>[\s\S]*?<lastmod>([^<]+)<\/lastmod>/g;
-  let match;
-  while ((match = entryRe.exec(xml)) !== null) {
-    entries.push({ loc: match[1].trim(), lastmod: match[2].trim() });
+  for (const match of xml.matchAll(/<url>[\s\S]*?<\/url>/g)) {
+    const loc = /<loc>([^<]+)<\/loc>/.exec(match[0])?.[1]?.trim();
+    const lastmod = /<lastmod>([^<]+)<\/lastmod>/.exec(match[0])?.[1]?.trim() || "";
+    if (loc) entries.push({loc, lastmod});
   }
   if (entries.length === 0) {
     throw new Error("[indexnow] sitemap.xml 에서 URL 을 하나도 읽지 못했습니다.");
@@ -90,7 +90,7 @@ async function main() {
   //    워크플로가 이 스텝을 스테이징 잡에 넣지 않는 것이 1차 방어이고, 이것이 2차 방어다 —
   //    잡을 하나 더 만들 때 실수로 복사해 오는 것을 여기서 끝낸다.
   const deployTarget = String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase();
-  if (deployTarget && deployTarget !== "production") {
+  if (!dryRun && deployTarget !== "production") {
     console.error(`[indexnow] CD_DEPLOY_TARGET=${deployTarget} 에서는 제출하지 않습니다. 프로덕션 릴리스에서만 돕니다.`);
     process.exit(1);
   }
@@ -98,28 +98,17 @@ async function main() {
   const contract = readIndexNowContract();
   const entries = readSitemapEntries();
 
-  // 🔴 generate-sitemap.mjs 와 **같은 두 규칙**을 써야 델타가 맞는다. 그쪽은 일반 라우트에
-  // UTC(`today`)를, 매일 갱신되는 운세 라우트에 KST(`volatileToday`)를 쓴다. 여기서 UTC 하나만
-  // 보면 발행 빌드(00:20 KST = 15:20 UTC 전날) 때 운세 URL 50개가 통째로 델타에서 빠져
-  // **매일 바뀌는 바로 그 페이지들만** IndexNow 통보를 못 받는다.
-  const today = new Date().toISOString().slice(0, 10);
-  const volatileToday = kstYmdToday();
-  const freshDates = new Set([today, volatileToday]);
-  const changed = entries.filter((entry) => freshDates.has(entry.lastmod)).map((entry) => entry.loc);
-
-  const extra = String(process.env.INDEXNOW_EXTRA_URLS || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  const urls = [...new Set([...changed, ...extra])];
-
-  console.log(
-    `[indexnow] sitemap ${entries.length} URL · lastmod∈{${[...freshDates].join(", ")}} 델타 ${changed.length}건${extra.length ? ` · 추가 ${extra.length}건` : ""}`,
-  );
+  const statePath = process.env.INDEXNOW_STATE_PATH || resolve(tmpdir(), "code-destiny-indexnow-submitted.json");
+  const previous = existsSync(statePath) ? JSON.parse(readFileSync(statePath, "utf8")) : null;
+  const ledger = JSON.parse(readFileSync(resolve(rootDir, "config/sitemap-lastmod.json"), "utf8"));
+  const current = buildSubmissionState(entries, ledger, contract.host);
+  const extra = String(process.env.INDEXNOW_EXTRA_URLS || "").split(",").map(value => value.trim()).filter(Boolean);
+  const urls = selectSubmissionDelta(current, previous, extra);
+  console.log(`[indexnow] sitemap ${entries.length} URLs; changes/removals ${urls.length}; checkpoint ${previous ? "restored" : "initial"}`);
 
   if (urls.length === 0) {
     // 아무것도 안 바뀐 배포다. 실패가 아니다.
+    if (!dryRun) writeFileSync(statePath, JSON.stringify(current));
     console.log("[indexnow] 제출할 변경이 없습니다. 건너뜁니다.");
     return;
   }
@@ -136,6 +125,7 @@ async function main() {
     const chunk = urls.slice(index, index + BATCH_SIZE);
     const response = await fetch(contract.endpoint, {
       method: "POST",
+      signal: AbortSignal.timeout(30000),
       headers: { "Content-Type": "application/json; charset=utf-8" },
       body: JSON.stringify({
         host: contract.host,
@@ -150,6 +140,7 @@ async function main() {
     if (!response.ok) process.exit(1);
   }
 
+  writeFileSync(statePath, JSON.stringify(current));
   console.log(`[indexnow] OK — ${urls.length}건 제출 완료.`);
 }
 
