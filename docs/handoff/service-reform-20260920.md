@@ -20,10 +20,12 @@
 - 초기 CI에서 발견한 새 cron import mock 2곳, 새 문구의 기존 5/12개 언어 사전 누락, 독립 페이지 결제 스크립트 캐시 핀, 공개 안내 제목 길이, Windows 미러 ignore 드리프트를 수정.
 - 수정 후 관련 node 69/69, 초융합 복구 Jest 59/59, payment-choice-parity 및 self-test, verify:ai-consultation-flows 통과. sitemap 재생성 후 KST 5/5 통과.
 - sync:public 최종 실행 성공. 로컬 전체 public-mirror-fresh는 다른 세션 marketing 변경이 있어 CI의 깨끗한 체크아웃에서 판정한다. 최초 check:fast 실패를 전체 통과로 기록하지 않는다.
-- 최종 GitHub CI 확인 중. main push 후 `CI required`와 Paid Flow Gates, Main drift watchdog 결과로 전달 완료를 판단한다.
+- 첫 main CI 실패 후 수정 검증에서 타입/린트·다국어·랜딩·미러 검사가 통과했다. 결제 런타임 캐시 핀 변경에 따른 payment-freeze의 billing-client 해시 1건을 추가 갱신했다. 서버 결제 정책은 이 핀 변경의 대상이 아니다.
+- 전달 기준: 최종 커밋의 GitHub `CI required`와 Paid Flow Gates, Main drift watchdog 통과. 실제 최종 결과는 작업 답변의 커밋 SHA 및 CI 링크와 함께 확인한다.
 
 ## 화면 검증과 검토
 - mock 로컬에서 모바일 360/390/430px 홈·휴먼 디자인 가로 넘침 없음. 홈 주요 동작 48px, 입력 48px/제출 52px. 휴먼 디자인 공개 안내 모바일 본문 확인.
+- 데스크톱 1365px에서도 주요 3개 동작 48px, 가로 넘침 없음. 무료 운세 버튼이 실제 입력 화면으로 진입함을 확인.
 - 홈 테마 전환 후 영냥이 이미지 유지. 이전 돼지 이미지로 덮어쓰는 기존 런타임 충돌 수정.
 - 자정·윤달 입력 보존과 mock 차트 오류/재시도 화면 확인. mock API의 차트 미지원 응답을 실제 계산 성공으로 주장하지 않는다. 저장 프로필 접힘 동작은 소스/회귀 검사 근거이며 모든 계정 상태를 브라우저로 검증한 것은 아니다.
 - impeccable finish-review의 임시 편집 저장오염·금색 focus·전체 필드 반복 3개 지적 수정, 소스 재검토에서 해소 확인.
