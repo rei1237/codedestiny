@@ -98,7 +98,7 @@ export const siteSeo = {
   defaultTitle: "꿀꿀 운세 | 영냥이 사주 상담·무료 사주·타로",
   titleTemplate: "%s",
   defaultDescription:
-    "꿀꿀 운세(꿀꿀운세)는 명리학자 박병하·네오가 운영합니다. 사주·자미두수·숙요점·타로의 무료 기본 결과를 확인하고, 대표 콘텐츠 영냥이에서 질문에 맞춘 유료 상담을 선택하세요.",
+    "꿀꿀 운세(꿀꿀운세)는 명리학자 박병하·네오가 운영합니다. 사주·자미두수·숙요점·타로의 무료 결과와 영냥이의 질문별 유료 상담을 만나보세요.",
   defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
   twitterCard: "summary_large_image",
   organization: {
