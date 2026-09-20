@@ -126,7 +126,11 @@ const copy = {
   libraryNavLink: "보관함",
 };
 
-const stub = (tag, extra = {}) => ({ children }) => React.createElement(tag, extra, children);
+const stub = (tag, extra = {}) => {
+  function Stub({ children }) { return React.createElement(tag, extra, children); }
+  Stub.displayName = `Stub(${tag})`;
+  return Stub;
+};
 const ctx = vm.createContext({
   React,
   useRef: React.useRef,
