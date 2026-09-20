@@ -11,6 +11,8 @@ import {
 } from "../../lib/structured-data";
 import { getSeoRouteProfile, getTopicClusterLinks } from "../../lib/seo/entity-registry.mjs";
 import SeoLandingBirthForm from "./SeoLandingBirthForm";
+import { SEO_SERVICE_SCOPES } from "../../lib/seo-service-scope";
+import { SEO_READING_EXAMPLES } from "../../lib/seo-reading-examples";
 
 const DEFAULT_FAQS = [
   {
@@ -152,11 +154,11 @@ function SectionHead({ id, title, label }) {
     <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-[rgba(232,213,163,0.18)] pb-4">
       <h2
         id={id}
-        className="font-[family-name:var(--font-serif)] text-[clamp(1.4rem,3.2vw,1.9rem)] font-bold tracking-[-0.01em] text-[#f4eeff]"
+        className="font-[family-name:var(--font-serif)] text-[clamp(1.4rem,3.2vw,1.9rem)] font-bold tracking-[-0.01em] text-[#292431]"
       >
         {title}
       </h2>
-      {label ? <span className="text-[0.78rem] text-[rgba(200,170,255,0.78)]">{label}</span> : null}
+      {label ? <span className="text-[0.78rem] text-[#62556c]">{label}</span> : null}
     </div>
   );
 }
@@ -208,18 +210,11 @@ export default function SeoLandingTemplate({ page }) {
   const faqJsonLd = buildFaqPageJsonLd(faqs);
 
   return (
-    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#0a0818] px-4 pb-16 pt-6 text-[#f4eeff] md:px-6 md:pb-24 md:pt-10">
-      {/* 바닥은 거의 평평한 미드나잇 잉크. 상단 한 곳만 은은히 들어올린다 —
-          채도 높은 보라 그라디언트 배경은 PRODUCT.md 가 명시적으로 거부하는 타로 사이트 클리셰다. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[560px] bg-[radial-gradient(120%_100%_at_50%_-24%,#13102a_0%,#0a0818_70%)]"
-      />
-
+    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#faf7f2] px-4 pb-16 pt-6 text-[#292431] md:px-6 md:pb-24 md:pt-10">
       <div className="mx-auto w-full max-w-5xl">
         <nav
           aria-label="Breadcrumb"
-          className="-my-2 flex flex-wrap items-center gap-x-2 text-[0.8rem] text-[rgba(200,170,255,0.78)]"
+          className="-my-2 flex flex-wrap items-center gap-x-2 text-[0.8rem] text-[#62556c]"
         >
           {breadcrumb.map((item, index) => (
             <Fragment key={item.path}>
@@ -230,7 +225,7 @@ export default function SeoLandingTemplate({ page }) {
               ) : null}
               <Link
                 href={item.path}
-                className={`inline-flex min-h-11 items-center rounded-[4px] py-2 underline-offset-4 transition-colors duration-200 hover:text-[#e8d5a3] hover:underline ${FOCUS_RING}`}
+                className={`inline-flex min-h-11 items-center rounded-[4px] py-2 underline-offset-4 transition-colors duration-200 hover:text-[#6f3fa6] hover:underline ${FOCUS_RING}`}
               >
                 {item.name}
               </Link>
@@ -239,14 +234,14 @@ export default function SeoLandingTemplate({ page }) {
         </nav>
 
         <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[rgba(232,213,163,0.18)] pb-[clamp(2.5rem,6vw,4rem)]">
-          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[#e8d5a3]">
+          <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[#6f3fa6]">
             <MoonMark />
             <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">Code Destiny</span>
           </p>
-          <h1 className="mt-5 max-w-[20ch] break-keep font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)] font-bold leading-[1.16] tracking-[-0.02em] text-[#f4eeff] [text-wrap:balance]">
+          <h1 className="mt-5 max-w-[20ch] break-keep font-[family-name:var(--font-serif)] text-[clamp(2.15rem,6vw,4rem)] font-bold leading-[1.16] tracking-[-0.02em] text-[#292431] [text-wrap:balance]">
             {page.h1}
           </h1>
-          <p className="mt-7 max-w-[62ch] break-keep text-[1.02rem] leading-[1.9] text-[rgba(244,238,255,0.88)] [text-wrap:pretty]">
+          <p className="mt-7 max-w-[62ch] break-keep text-[1.02rem] leading-[1.9] text-[#51475c] [text-wrap:pretty]">
             {page.intro || page.description}
           </p>
           {/* 생년 입력이 있는 허브는 CTA 링크 대신 폼이 그 자리를 맡는다 — 검색으로 들어온
@@ -263,7 +258,7 @@ export default function SeoLandingTemplate({ page }) {
               <div className="mt-5">
                 <Link
                   href={guideHref}
-                  className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[rgba(232,213,163,0.5)] px-7 text-[0.94rem] font-semibold text-[#e8d5a3] transition-[background-color,border-color] duration-200 ease-out hover:border-[rgba(232,213,163,0.72)] hover:bg-[rgba(232,213,163,0.08)] ${FOCUS_RING}`}
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[rgba(232,213,163,0.5)] px-7 text-[0.94rem] font-semibold text-[#6f3fa6] transition-[background-color,border-color] duration-200 ease-out hover:border-[rgba(232,213,163,0.72)] hover:bg-[rgba(232,213,163,0.08)] ${FOCUS_RING}`}
                 >
                   <BookOpenText className="h-4 w-4" aria-hidden="true" />
                   {guideLabel}
@@ -274,14 +269,15 @@ export default function SeoLandingTemplate({ page }) {
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
               href={page.ctaHref || "/"}
-              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#c4b5fd] px-7 text-[0.94rem] font-semibold text-[#0a0818] transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[#d6cbff] hover:shadow-[0_0_34px_rgba(196,181,253,0.3)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
+              data-cd-cross-sell={page?.path || ""}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#6f3fa6] px-7 text-[0.94rem] font-semibold text-white transition-[background-color,box-shadow,transform] duration-200 ease-out hover:bg-[#593184] hover:shadow-[0_0_34px_rgba(196,181,253,0.3)] motion-safe:hover:-translate-y-0.5 ${FOCUS_RING}`}
             >
               <Compass className="h-4 w-4" aria-hidden="true" />
               {page.ctaLabel || copy.defaultCta}
             </Link>
             <Link
               href={guideHref}
-              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[rgba(232,213,163,0.5)] px-7 text-[0.94rem] font-semibold text-[#e8d5a3] transition-[background-color,border-color] duration-200 ease-out hover:border-[rgba(232,213,163,0.72)] hover:bg-[rgba(232,213,163,0.08)] ${FOCUS_RING}`}
+              className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[rgba(232,213,163,0.5)] px-7 text-[0.94rem] font-semibold text-[#6f3fa6] transition-[background-color,border-color] duration-200 ease-out hover:border-[rgba(232,213,163,0.72)] hover:bg-[rgba(232,213,163,0.08)] ${FOCUS_RING}`}
             >
               <BookOpenText className="h-4 w-4" aria-hidden="true" />
               {guideLabel}
@@ -304,10 +300,10 @@ export default function SeoLandingTemplate({ page }) {
                       className="absolute bottom-0 left-4 top-9 w-px -translate-x-1/2 bg-[rgba(232,213,163,0.2)]"
                     />
                   ) : null}
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(232,213,163,0.5)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[#e8d5a3]">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[rgba(232,213,163,0.5)] font-[family-name:var(--font-serif)] text-[0.88rem] font-bold text-[#6f3fa6]">
                     {index + 1}
                   </span>
-                  <p className="min-w-0 break-keep pt-[0.3rem] text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+                  <p className="min-w-0 break-keep pt-[0.3rem] text-[0.95rem] leading-[1.85] text-[#51475c]">
                     {item}
                   </p>
                 </li>
@@ -317,11 +313,11 @@ export default function SeoLandingTemplate({ page }) {
 
           <section aria-labelledby="seoLandingResults">
             <SectionHead id="seoLandingResults" title={copy.cards.result} />
-            <ul className="mt-3 divide-y divide-[rgba(244,238,255,0.09)]">
+            <ul className="mt-3 divide-y divide-[#ddd2e5]">
               {resultItems.map((item) => (
                 <li key={item} className="flex gap-3 py-4">
                   <span aria-hidden="true" className="mt-[0.66rem] h-1 w-1 shrink-0 rounded-full bg-[#e8d5a3]" />
-                  <span className="min-w-0 break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+                  <span className="min-w-0 break-keep text-[0.95rem] leading-[1.85] text-[#51475c]">
                     {item}
                   </span>
                 </li>
@@ -340,7 +336,7 @@ export default function SeoLandingTemplate({ page }) {
             {(Array.isArray(section.paragraphs) ? section.paragraphs : []).map((paragraph) => (
               <p
                 key={paragraph}
-                className="mt-6 max-w-[68ch] break-keep text-[0.98rem] leading-[1.9] text-[rgba(244,238,255,0.86)] [text-wrap:pretty]"
+                className="mt-6 max-w-[68ch] break-keep text-[0.98rem] leading-[1.9] text-[#51475c] [text-wrap:pretty]"
               >
                 {paragraph}
               </p>
@@ -356,20 +352,20 @@ export default function SeoLandingTemplate({ page }) {
           >
             <SectionHead id={`seoLandingLinkGroup${groupIndex}`} title={group.heading} label={group.label} />
             {group.lede ? (
-              <p className="mt-5 max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+              <p className="mt-5 max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[#51475c]">
                 {group.lede}
               </p>
             ) : null}
             <ul className="mt-4 grid gap-x-8 sm:grid-cols-2 md:grid-cols-3">
               {group.links.map((link) => (
-                <li key={link.href} className="border-b border-[rgba(244,238,255,0.09)]">
+                <li key={link.href} className="border-b border-[#ddd2e5]">
                   <Link
                     href={link.href}
-                    className={`group flex min-h-11 items-center justify-between gap-3 py-2.5 text-[0.92rem] text-[#f4eeff] transition-colors duration-200 hover:text-[#e8d5a3] ${FOCUS_RING}`}
+                    className={`group flex min-h-11 items-center justify-between gap-3 py-2.5 text-[0.92rem] text-[#292431] transition-colors duration-200 hover:text-[#6f3fa6] ${FOCUS_RING}`}
                   >
                     <span className="min-w-0 break-keep">{link.label}</span>
                     <ArrowRight
-                      className="h-3.5 w-3.5 shrink-0 text-[rgba(232,213,163,0.62)] transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
+                      className="h-3.5 w-3.5 shrink-0 text-[#6f3fa6] transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
                       aria-hidden="true"
                     />
                   </Link>
@@ -379,12 +375,33 @@ export default function SeoLandingTemplate({ page }) {
           </section>
         ))}
 
+        {SEO_READING_EXAMPLES[page?.path] ? (
+          <section aria-labelledby="reading-example" className="mt-12 max-w-[68ch] space-y-4 leading-relaxed text-[#51475c]">
+            <h2 id="reading-example" className="text-xl font-bold text-[#292431]">입력에서 해석까지, 이렇게 읽습니다</h2>
+            <p>서비스 설명을 위한 가상 입력과 편집 예시입니다. 실제 고객 사례나 AI 상담 결과 원문이 아닙니다.</p>
+            <dl className="space-y-4">
+              {[['입력', 'input'], ['계산 근거', 'fact'], ['해석 예시', 'interpretation'], ['현실적인 행동 제안', 'action']].map(([label, key]) => <div key={key}><dt className="font-semibold text-[#292431]">{label}</dt><dd className="mt-1">{SEO_READING_EXAMPLES[page.path][key]}</dd></div>)}
+            </dl>
+          </section>
+        ) : null}
+        {SEO_SERVICE_SCOPES[page?.path] ? (
+          <section aria-labelledby="service-scope" className="mt-10 max-w-[68ch] space-y-3 text-[#292431]" data-cd-cross-sell={page.path}>
+            <h2 id="service-scope" className="text-xl font-bold">무료 결과와 유료 상담의 범위</h2>
+            <p><strong>무료로 확인하는 내용</strong> · {SEO_SERVICE_SCOPES[page.path].free}</p>
+            <p><strong>유료로 추가되는 내용</strong> · {SEO_SERVICE_SCOPES[page.path].paid}</p>
+            <p><strong>필요한 입력</strong> · {SEO_SERVICE_SCOPES[page.path].input}</p>
+            <p>계산 엔진이 명식·별자리·카드의 근거를 만들고, AI는 선택한 상담의 해설을 작성합니다. 결과는 미래를 확정하지 않으며 입력의 정확도에 영향을 받습니다.</p>
+            <p><Link href={SEO_SERVICE_SCOPES[page.path].basis} className="underline underline-offset-4">계산·해석 기준</Link>{" · "}<Link href="/about/#author" className="underline underline-offset-4">운영자 박병하·네오의 공개 활동</Link></p>
+            <p>결제 조건과 제공 범위는 선택한 상품에서 확인하세요. 영냥이 상담은 <Link href="/yeongnyangi/library/" className="underline underline-offset-4">내 상담 기록</Link>에서 다시 열 수 있습니다.</p>
+          </section>
+        ) : null}
         {nextStep ? (
-          <p className="mt-[clamp(2.5rem,5vw,3.5rem)] max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)] [text-wrap:pretty]">
+          <p className="mt-[clamp(2.5rem,5vw,3.5rem)] max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[#51475c] [text-wrap:pretty]">
             {nextStep.lead}{" "}
             <Link
               href={nextStep.href}
-              className={`rounded-[4px] font-semibold text-[#e8d5a3] underline underline-offset-4 transition-colors duration-200 hover:text-[#f4eeff] ${FOCUS_RING}`}
+              data-cd-cross-sell={page?.path || ""}
+              className={`rounded-[4px] font-semibold text-[#6f3fa6] underline underline-offset-4 transition-colors duration-200 hover:text-[#292431] ${FOCUS_RING}`}
             >
               {nextStep.label}
             </Link>
@@ -394,21 +411,21 @@ export default function SeoLandingTemplate({ page }) {
         <section aria-labelledby="seoLandingDisclaimer" className="mt-[clamp(2.5rem,5vw,3.5rem)]">
           <h2
             id="seoLandingDisclaimer"
-            className="font-[family-name:var(--font-serif)] text-[0.98rem] font-bold text-[#e8d5a3]"
+            className="font-[family-name:var(--font-serif)] text-[0.98rem] font-bold text-[#6f3fa6]"
           >
             {copy.cards.disclaimer}
           </h2>
-          <p className="mt-2 max-w-[68ch] break-keep text-[0.89rem] leading-[1.85] text-[rgba(200,170,255,0.78)]">
+          <p className="mt-2 max-w-[68ch] break-keep text-[0.89rem] leading-[1.85] text-[#62556c]">
             {disclaimer}
           </p>
         </section>
 
-        <ContentIntegrityNote tone="dark" contentPath={page?.path || ""} />
+        <ContentIntegrityNote tone="light" contentPath={page?.path || ""} />
 
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
           {topicProfile?.topicSummary ? (
-            <p className="mt-5 max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[rgba(244,238,255,0.86)]">
+            <p className="mt-5 max-w-[68ch] break-keep text-[0.95rem] leading-[1.85] text-[#51475c]">
               {topicProfile.topicSummary}
             </p>
           ) : null}
@@ -416,14 +433,14 @@ export default function SeoLandingTemplate({ page }) {
               js/core/analytics.js 의 위임 리스너가 cross_sell_click 을 쏜다. */}
           <ul className="mt-6 grid gap-x-12 sm:grid-cols-2" data-cd-cross-sell={page?.path || ""}>
             {relatedServices.map((item) => (
-              <li key={item.href} className="border-b border-[rgba(244,238,255,0.09)]">
+              <li key={item.href} className="border-b border-[#ddd2e5]">
                 <Link
                   href={item.href}
-                  className={`group flex min-h-[3.75rem] items-center justify-between gap-4 py-4 text-[0.95rem] font-semibold text-[#f4eeff] transition-colors duration-200 hover:text-[#e8d5a3] ${FOCUS_RING}`}
+                  className={`group flex min-h-[3.75rem] items-center justify-between gap-4 py-4 text-[0.95rem] font-semibold text-[#292431] transition-colors duration-200 hover:text-[#6f3fa6] ${FOCUS_RING}`}
                 >
                   <span className="min-w-0 break-keep">{item.label}</span>
                   <ArrowRight
-                    className="h-4 w-4 shrink-0 text-[rgba(232,213,163,0.62)] transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
+                    className="h-4 w-4 shrink-0 text-[#6f3fa6] transition-transform duration-200 ease-out motion-safe:group-hover:translate-x-1"
                     aria-hidden="true"
                   />
                 </Link>
@@ -436,19 +453,19 @@ export default function SeoLandingTemplate({ page }) {
           <SectionHead id="seoLandingFaq" title={copy.faqTitle} label={copy.faqKicker} />
           <div className="mt-2">
             {faqs.map((faq) => (
-              <details key={faq.question} className="group border-b border-[rgba(244,238,255,0.09)]">
+              <details key={faq.question} className="group border-b border-[#ddd2e5]">
                 <summary
-                  className={`flex cursor-pointer list-none items-start justify-between gap-5 py-5 text-[0.98rem] font-semibold text-[#f4eeff] transition-colors duration-200 hover:text-[#e8d5a3] [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
+                  className={`flex cursor-pointer list-none items-start justify-between gap-5 py-5 text-[0.98rem] font-semibold text-[#292431] transition-colors duration-200 hover:text-[#6f3fa6] [&::-webkit-details-marker]:hidden ${FOCUS_RING}`}
                 >
                   <span className="min-w-0 break-keep">{faq.question}</span>
                   <span
                     aria-hidden="true"
-                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[#e8d5a3] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
+                    className="mt-[0.1rem] shrink-0 text-[1.05rem] leading-none text-[#6f3fa6] transition-transform duration-200 ease-out group-open:rotate-45 motion-reduce:transition-none"
                   >
                     +
                   </span>
                 </summary>
-                <p className="max-w-[68ch] break-keep pb-6 text-[0.93rem] leading-[1.9] text-[rgba(244,238,255,0.86)]">
+                <p className="max-w-[68ch] break-keep pb-6 text-[0.93rem] leading-[1.9] text-[#51475c]">
                   {faq.answer}
                 </p>
               </details>

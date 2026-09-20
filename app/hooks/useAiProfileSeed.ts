@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { readAiProfileSeed, seedFromDestinyProfile, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { fetchCurrentDestinyProfile, isDestinyProfileStorageKey } from "@/app/_lib/profile-card-storage";
 
@@ -23,17 +23,20 @@ export function useAiProfileSeed(): {
 } {
   const [seed, setSeed] = useState<AiPrefillSeed | null>(null);
   const [seedVersion, setSeedVersion] = useState(0);
+  const revision = useRef(0);
 
   const publishSeed = useCallback((next: AiPrefillSeed | null): AiPrefillSeed | null => {
-    if (!hasSeedContent(next)) return null;
-    setSeed(next);
+    const value = hasSeedContent(next) ? next : null;
+    setSeed(value);
     setSeedVersion((version) => version + 1);
-    return next;
+    return value;
   }, []);
 
   const reload = useCallback(async () => {
+    const requestRevision = ++revision.current;
     try {
       const profile = await fetchCurrentDestinyProfile();
+      if (requestRevision !== revision.current) return null;
       return publishSeed(seedFromDestinyProfile(profile));
     } catch {
       return null;
@@ -48,8 +51,9 @@ export function useAiProfileSeed(): {
     publishSeed(localSeed);
 
     const hydrateFromApi = () => {
+      const requestRevision = ++revision.current;
       void fetchCurrentDestinyProfile().then((profile) => {
-        if (cancelled || !profile) return;
+        if (cancelled || requestRevision !== revision.current) return;
         publishSeed(seedFromDestinyProfile(profile));
       }).catch(() => {});
     };
@@ -75,6 +79,7 @@ export function useAiProfileSeed(): {
     window.addEventListener("storage", handleProfileStorage);
     return () => {
       cancelled = true;
+      revision.current++;
       document.removeEventListener("destinyProfileChanged", handleProfileChanged);
       window.removeEventListener("storage", handleProfileStorage);
     };

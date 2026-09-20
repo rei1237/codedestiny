@@ -18,10 +18,11 @@
 //    진입 시점에 보여 줄 실제 차트가 없고, 남의 샘플 차트를 채워 넣으면 결제 전 화면이
 //    AdSense 렌더 텍스트 게이트 대상이 되면서 "남의 결과"를 내 결과처럼 보이게 한다.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 // 🔴 일시 503(Mongo 블립)을 실패로 굳히지 않는 공용 재시도·백오프 배관. 이름은 "paid" 지만
 //    실제로는 인증 POST + 백오프라 무료 요청에도 그대로 맞다. 두 번째 재시도 계층을 새로
@@ -107,7 +108,8 @@ function useHumanDesignLocale(override?: Locale): Locale {
 
 export default function HumanDesignClient({ locale: localeOverride }: { locale?: Locale } = {}) {
   const locale = useHumanDesignLocale(localeOverride);
-  const { seed } = useAiProfileSeed();
+  const { seed, reload } = useAiProfileSeed();
+  const inputEdited = useRef(false);
 
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -125,14 +127,18 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
   // AI 해석 — 차트와 같은 1회 결제로 열린다(별도 결제 키 없음).
   const [interpretation, setInterpretation] = useState<HdInterpretation | null>(null);
 
-  // 프로필 카드 자동 프리필 — 사용자가 이미 넣은 값은 덮지 않는다(빈 값만 채운다).
+  const applyProfile = useCallback((profile: AiPrefillSeed | null) => {
+    setBirthDate(profile?.birthDate || "");
+    setBirthTime(profile?.birthTimeUnknown ? "" : profile?.birthTime || "");
+    setTimezone(profile?.timezone || "Asia/Seoul");
+    setCalendar(profile?.calendarType === "lunar" ? (profile.isLeapMonth ? "lunar-leap" : "lunar") : "solar");
+  }, []);
+
+  // Profile changes replace the whole untouched draft. A late hydrate cannot erase an edit.
   useEffect(() => {
-    if (!seed) return;
-    setBirthDate((current) => current || seed.birthDate || "");
-    setBirthTime((current) => current || seed.birthTime || "");
-    setTimezone((current) => (current && current !== "Asia/Seoul" ? current : (seed.timezone || current || "Asia/Seoul")));
-    setCalendar((current) => (current !== "solar" ? current : (seed.calendarType === "lunar" ? "lunar" : "solar")));
-  }, [seed]);
+    if (inputEdited.current || chart) return;
+    applyProfile(seed);
+  }, [seed, chart, applyProfile]);
 
   // 로딩 중 경과 시간은 **실제로 흐른 시간**이다. 가짜 퍼센트를 만들지 않는다.
   useEffect(() => {
@@ -244,8 +250,13 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
   const birthForm = (
     <div className={styles.formFields}>
+      <button type="button" className={styles.choice} onClick={() => void reload().then(profile => {
+        if (!profile) return;
+        inputEdited.current = false;
+        applyProfile(profile);
+      })}>{locale === "ko" ? "저장된 프로필 불러오기" : "Load saved profile"}</button>
       <label className={styles.label} htmlFor="hd-birth-date">{pick(UI_TEXT.birthDate, locale)}</label>
-      <input id="hd-birth-date" className={styles.input} {...birthDateTextInputProps(birthDate, setBirthDate)} />
+      <input id="hd-birth-date" className={styles.input} {...birthDateTextInputProps(birthDate, value => { inputEdited.current = true; setBirthDate(value); })} />
 
       <label className={styles.label} htmlFor="hd-birth-time">{pick(UI_TEXT.birthTime, locale)}</label>
       <input
@@ -256,7 +267,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         maxLength={5}
         placeholder="HH:MM"
         value={birthTime}
-        onChange={(event) => setBirthTime(normalizeTimeInput(event.target.value))}
+        onChange={(event) => { inputEdited.current = true; setBirthTime(normalizeTimeInput(event.target.value)); }}
       />
       <p className={styles.help}>{pick(UI_TEXT.timeHelp, locale)}</p>
 
@@ -266,7 +277,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         className={styles.input}
         list="hd-timezone-options"
         value={timezone}
-        onChange={(event) => setTimezone(event.target.value)}
+        onChange={(event) => { inputEdited.current = true; setTimezone(event.target.value); }}
         autoComplete="off"
       />
       <datalist id="hd-timezone-options">
@@ -286,12 +297,14 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             type="button"
             className={`${styles.choice} ${calendar === value ? styles.choiceOn : ""}`}
             aria-pressed={calendar === value}
-            onClick={() => setCalendar(value)}
+            onClick={() => { inputEdited.current = true; setCalendar(value); }}
           >
             {label}
           </button>
         ))}
       </div>
+
+      <p className={styles.help}>{locale === "ko" ? "이곳에서 고친 정보는 이번 차트에만 사용해요. 저장 프로필은 변경되지 않아요." : "Changes here apply to this chart only. Your saved profile stays unchanged."}</p>
 
       <button
         type="button"
@@ -309,8 +322,6 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
 
   return (
     <main className={styles.shell}>
-      {/* 깊이감 — 클릭을 받지 않는 순수 장식 레이어. */}
-      <div className={styles.aurora} aria-hidden="true" />
 
       <div className={styles.topbar}>
         <Link href="/" className={styles.exit}>
@@ -326,16 +337,15 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
       <div className={styles.inner}>
         {!chart && !loading && (
           <section className={styles.hero} aria-labelledby="hd-hero-heading">
-            <div className={styles.heroGraph}>
-              <BodyGraph chart={null} locale={locale} selection={null} onSelect={() => {}} />
-              <p className={styles.heroGhostNote}>{pick(UI_TEXT.ghostCaption, locale)}</p>
-            </div>
-
             <div className={styles.heroPanel}>
-              <p className={styles.eyebrow}>HUMAN DESIGN</p>
               <h1 id="hd-hero-heading" className={styles.title}>{pick(UI_TEXT.tagline, locale)}</h1>
               <p className={styles.lede}>{pick(UI_TEXT.subtitle, locale)}</p>
               {birthForm}
+              <Link className={styles.help} href="/human-design/guide/">{locale === "ko" ? "휴먼 디자인의 계산 기준과 이용 안내" : "How Human Design works"}</Link>
+            </div>
+            <div className={styles.heroGraph}>
+              <BodyGraph chart={null} locale={locale} selection={null} onSelect={() => {}} />
+              <p className={styles.heroGhostNote}>{pick(UI_TEXT.ghostCaption, locale)}</p>
             </div>
           </section>
         )}

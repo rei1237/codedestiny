@@ -7,6 +7,7 @@ import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {siteSeo} from '@/lib/seo/siteSeo';
 import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import styles from './page.module.css';
+import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 
 // 천원사주 허브. 영냥이 고등어 상담의 검색 착륙 페이지다(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md).
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
@@ -126,6 +127,16 @@ export default function Page(){
      <tr><th scope="row">다시 보기</th><td>입력 정보로 다시 계산</td><td>내 상담 기록에서 다시 열기</td></tr>
     </tbody>
    </table></div>
+  </section>
+
+  <section aria-labelledby="example">
+   <h2 id="example">계산 근거에서 생활 조언까지</h2>
+   <p>가상 입력으로 만든 편집 예시이며 실제 고객이나 AI 상담 원문이 아니에요. 상담에서는 선택한 상품의 챕터와 질문에 맞춰 해설이 달라져요.</p>
+   <p><strong>입력</strong> · {SEO_READING_EXAMPLES['/saju'].input}</p>
+   <p><strong>계산 근거</strong> · {SEO_READING_EXAMPLES['/saju'].fact}</p>
+   <p><strong>해석 예시</strong> · {SEO_READING_EXAMPLES['/saju'].interpretation}</p>
+   <p><strong>생활 속 행동</strong> · {SEO_READING_EXAMPLES['/saju'].action}</p>
+   <p><a href="/about/#author">운영자 박병하·네오의 공개 분석 기록</a> · <a href="/methodology/">계산과 해석 기준</a></p>
   </section>
 
   <section aria-labelledby="how">

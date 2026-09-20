@@ -13,20 +13,20 @@
  */
 
 .shell {
-  --hd-bg: #07061a;
-  --hd-bg-glow: #140f33;
-  --hd-panel: #13102a;
-  --hd-panel-raised: #191534;
-  --hd-panel-soft: rgba(255, 255, 255, 0.05);
-  --hd-border: rgba(196, 181, 253, 0.22);
-  --hd-border-strong: rgba(196, 181, 253, 0.46);
-  --hd-ink: #f5f3ff;
-  --hd-ink-dim: #c3bde2;
-  --hd-accent: #c4b5fd;
-  --hd-accent-warm: #e8d5a3;
-  --hd-design: #f0a860;
-  --hd-mixed: #7dd3fc;
-  --hd-danger: #ffb4b4;
+  --hd-bg: #faf7f2;
+  --hd-bg-glow: #f0eaf5;
+  --hd-panel: #ffffff;
+  --hd-panel-raised: #f6f1fa;
+  --hd-panel-soft: #f1ebf6;
+  --hd-border: #d5c8df;
+  --hd-border-strong: #9275ae;
+  --hd-ink: #292431;
+  --hd-ink-dim: #62556c;
+  --hd-accent: #6f3fa6;
+  --hd-accent-warm: #725324;
+  --hd-design: #96511c;
+  --hd-mixed: #176783;
+  --hd-danger: #a72b45;
 
   position: relative;
   isolation: isolate;
@@ -38,19 +38,6 @@
   font-family: var(--font-body);
   /* 확대한 차트나 도킹 패널이 가로 스크롤을 만들지 않게 한다. */
   overflow-x: clip;
-}
-
-/* 깊이감 레이어. 고정 배경이라 스크롤 중에 다시 그리지 않는다. */
-.aurora {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(72% 44% at 50% -6%, rgba(124, 92, 240, 0.28) 0%, transparent 64%),
-    radial-gradient(46% 32% at 8% 24%, rgba(125, 211, 252, 0.1) 0%, transparent 70%),
-    radial-gradient(52% 38% at 96% 62%, rgba(232, 213, 163, 0.09) 0%, transparent 72%),
-    var(--hd-bg);
 }
 
 /* ── 상단바 — 이탈 수단은 여기 하나 ────────────────────── */
@@ -66,7 +53,7 @@
   max-width: 1240px;
   margin: 0 auto;
   padding: max(0.5rem, env(safe-area-inset-top)) 0 0.5rem;
-  background: linear-gradient(180deg, rgba(7, 6, 26, 0.94) 62%, rgba(7, 6, 26, 0));
+  background: var(--hd-bg);
 }
 
 .exit,
@@ -78,7 +65,7 @@
   padding: 0 0.875rem;
   border-radius: 999px;
   border: 1px solid var(--hd-border);
-  background: rgba(19, 16, 42, 0.72);
+  background: var(--hd-panel);
   color: var(--hd-ink-dim);
   font-size: 0.875rem;
   text-decoration: none;
@@ -122,7 +109,7 @@
 /* 🔴 차트가 쓸 수 있는 높이를 여기서 정하고, 폭은 BodyGraph 가 비율로 따라간다.
    max-height 로 부모를 자르면 SVG 는 그대로 넘쳐 아래 글자를 덮는다(실측 결함). */
 .heroGraph {
-  --hd-stage-height: 46dvh;
+  --hd-stage-height: min(54dvh, 460px);
 
   display: flex;
   flex-direction: column;
@@ -133,7 +120,7 @@
 
 @media (min-width: 900px) {
   .heroGraph {
-    --hd-stage-height: calc(100dvh - 11rem);
+    --hd-stage-height: min(76dvh, 680px);
   }
 }
 
@@ -163,7 +150,7 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(1.875rem, 4.6vw, 2.75rem);
   font-weight: 800;
   line-height: 1.2;
@@ -192,11 +179,13 @@
   padding: 1.125rem;
   border-radius: 18px;
   border: 1px solid var(--hd-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
-  backdrop-filter: blur(8px);
+  background: var(--hd-panel);
+
 }
 
-.label {
+label.label {
+  min-height: 0;
+  line-height: 1.5;
   margin-top: 0.5rem;
   font-size: 0.8125rem;
   font-weight: 600;
@@ -210,13 +199,13 @@
   padding: 0 0.875rem;
   border-radius: 10px;
   border: 1px solid var(--hd-border);
-  background: rgba(7, 6, 26, 0.55);
+  background: var(--hd-panel);
   color: var(--hd-ink);
   width: 100%;
 }
 
 .input::placeholder {
-  color: rgba(195, 189, 226, 0.6);
+  color: var(--hd-ink-dim);
 }
 
 .input:focus-visible {
@@ -255,17 +244,14 @@
   font-weight: 600;
 }
 
-/* 🔴 그라디언트 양 끝 모두에서 잉크가 4.5:1 을 넘어야 한다 — 어두운 끝만 보고 고르면
-   버튼 왼쪽 절반의 글자가 읽히지 않는다. 실측(2026-08-23): #8b72f3 위 5.24:1,
-   #a78bfa 위 6.98:1. 대비를 맞추려고 색 계열을 바꾸지 않고 명도만 올렸다
-   (직전 값 #7c5cf0 는 4.20:1 로 미달이었다). */
+/* 보라색 바탕과 흰 버튼 글자를 함께 고정한다. */
 .cta {
   margin-top: 1rem;
   min-height: 52px;
   border-radius: 12px;
   border: none;
-  background: linear-gradient(100deg, #8b72f3, #a78bfa);
-  color: #120c26;
+  background: var(--hd-accent);
+  color: #ffffff;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -373,7 +359,7 @@
 
 .coreType {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(2rem, 5.4vw, 3rem);
   font-weight: 800;
   line-height: 1.1;
@@ -393,7 +379,7 @@
   padding: 0.75rem 0.875rem;
   border-radius: 14px;
   border: 1px solid var(--hd-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.014));
+  background: linear-gradient(180deg, #f1ebf6, rgba(255, 255, 255, 0.014));
 }
 
 .coreLabel {
@@ -417,7 +403,7 @@
 
 /* 숫자(프로파일·채널 번호)는 표시용 서체 + 고정폭 숫자로 또렷하게. */
 .coreNumeral {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
@@ -438,7 +424,7 @@
 }
 
 .tally strong {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.5rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -532,7 +518,7 @@
 
 .blockLead {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.375rem;
   font-weight: 700;
   line-height: 1.3;
@@ -682,7 +668,7 @@
   border: 1px solid var(--hd-border);
   background: rgba(255, 255, 255, 0.04);
   color: var(--hd-ink);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -772,7 +758,7 @@
 }
 
 .activationCell {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--hd-ink);
@@ -817,7 +803,7 @@
 
 .readingSectionTitle {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.0625rem;
   font-weight: 700;
   color: var(--hd-ink);
@@ -848,7 +834,7 @@
 
 .reportCtaTitle {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.1875rem;
   color: var(--hd-ink);
 }
@@ -867,9 +853,9 @@
   /* 🔴 그라디언트 대비는 **가장 어두운 지점**에서 잰다 — 평균으로 재면 통과처럼 보인다.
      값은 이 기능이 이미 실측해 둔 .cta(human-design.module.css)와 같은 쌍을 쓴다.
      같은 화면 흐름에서 버튼 색을 두 번 정하지 않는다. (#7c5cf0 은 4.34:1 로 미달이었다.) */
-  background: linear-gradient(135deg, #8b72f3, #a78bfa);
-  color: #120c26;
-  font-family: var(--font-display);
+  background: var(--hd-accent);
+  color: #ffffff;
+  font-family: var(--font-body);
   font-size: 0.9375rem;
   font-weight: 700;
   text-decoration: none;
@@ -919,3 +905,7 @@
     animation: none;
   }
 }
+
+.shell :focus-visible { outline: 2px solid var(--hd-accent); outline-offset: 3px; }
+.shell ::selection { background: #e5d6f3; color: #292431; }
+.input { caret-color: var(--hd-accent); }

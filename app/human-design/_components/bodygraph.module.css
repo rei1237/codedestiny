@@ -13,22 +13,22 @@
  */
 
 .wrap {
-  --hd-surface: #0b0a18;
+  --hd-surface: #ffffff;
   --hd-surface-soft: rgba(255, 255, 255, 0.04);
-  --hd-ink: #f3f1ff;
-  --hd-ink-dim: #b9b3d8;
-  --hd-idle: rgba(190, 184, 224, 0.22);
-  --hd-personality: #c4b5fd;
-  --hd-design: #f0a860;
-  --hd-mixed: #7dd3fc;
+  --hd-ink: #292431;
+  --hd-ink-dim: #62556c;
+  --hd-idle: #c2b7cf;
+  --hd-personality: #6f3fa6;
+  --hd-design: #96511c;
+  --hd-mixed: #176783;
   --hd-defined-core: rgba(167, 139, 250, 0.32);
   --hd-defined-edge: rgba(124, 92, 240, 0.13);
-  --hd-defined-stroke: #c4b5fd;
+  --hd-defined-stroke: #6f3fa6;
   --hd-undefined-core: rgba(255, 255, 255, 0.055);
   --hd-undefined-edge: rgba(255, 255, 255, 0.02);
-  --hd-undefined-stroke: rgba(190, 184, 224, 0.4);
-  --hd-focus: #ffe6a8;
-  --hd-panel: rgba(18, 15, 40, 0.82);
+  --hd-undefined-stroke: #a99bb7;
+  --hd-focus: #915010;
+  --hd-panel: #ffffff;
   --hd-border: rgba(196, 181, 253, 0.26);
 
   margin: 0;
@@ -94,7 +94,7 @@
 }
 
 .numbersToggle {
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 0.75rem;
   border-radius: 999px;
   border: 1px solid var(--hd-border);

@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { build } from 'esbuild';
+import { SEO_EXAMPLE_BIRTH } from '../lib/seo-reading-examples.js';
 
 // Compile the actual TypeScript adapters without introducing a second test runtime.
 const require = createRequire(import.meta.url);
@@ -27,11 +28,21 @@ const { domains, products, readingManifest, analyze, StructuredChapterProvider, 
 const contexts={};
 const birth = { birthDate: '1997-02-10', birthTime: '14:30', calendarType: 'solar', gender: 'female',
   birthPlace: { latitude: 37.5665, longitude: 126.978, timezone: 'Asia/Seoul' } };
+assert.deepEqual(SEO_EXAMPLE_BIRTH, birth);
 let checks = 0;
 for (const [id, engine] of Object.entries(domains)) {
   const input = engine.validateInput({personA: birth, personB: {...birth, birthDate:'1992-06-12'}, question:'관계와 일을 알고 싶어요.'});
   const context = engine.buildContext(await engine.calculate(input, {asOf:'2026-09-15T00:00:00Z'}));
   contexts[id]=context;
+  // Public fictional reading examples must remain tied to the real calculation.
+  const fact = label => context.facts.find(item => item.label === label)?.value;
+  if (id === 'saju') assert.deepEqual(fact('pillars'), {year:'丁丑',month:'壬寅',day:'癸未',hour:'己未'});
+  if (id === 'ziwei') {
+    assert.equal(fact('bodyPalace'), '복덕궁');
+    assert.deepEqual(fact('palaces').find(p => p.name === '명궁').mainStars, ['천량']);
+    assert.equal(fact('palaces').find(p => p.name === '명궁').earthlyBranch, '미');
+  }
+  if (id === 'sukuyo') assert.equal(fact('personA').nameHan, '婁');
   assert.equal(context.domain, id);
   assert.ok(context.facts.length > 0);
   assert.ok(context.facts.every(f => f.id.startsWith(`${id}.`)));

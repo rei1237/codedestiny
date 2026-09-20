@@ -117,8 +117,8 @@ const EMPTY_FORM: FormState = {
 const SEO_LANDING_ENTRY_HANDOFF_KEY = "cd:seo-landing-entry:v1";
 
 const INPUT_CLASS =
-  "min-h-12 w-full rounded-xl border border-[rgba(232,213,163,0.28)] bg-[#13102a] px-4 text-[1rem] text-[#f4eeff] placeholder:text-[rgba(244,238,255,0.4)] focus:border-[rgba(196,181,253,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(196,181,253,0.35)]";
-const LABEL_CLASS = "block text-[0.82rem] font-semibold text-[rgba(232,213,163,0.9)]";
+  "min-h-12 w-full rounded-xl border border-[#d5c8df] bg-white px-4 text-[1rem] text-[#292431] placeholder:text-[#62556c] focus:border-[rgba(196,181,253,0.7)] focus:outline-none focus:ring-2 focus:ring-[rgba(196,181,253,0.35)]";
+const LABEL_CLASS = "block [&[for]]:min-h-0 text-[0.82rem] font-semibold text-[#51475c]";
 
 /** 빈 칸만 채운다. 사용자가 이미 넣은 값은 건드리지 않는다. */
 function applySeed(prev: FormState, seed: ReturnType<typeof useAiProfileSeed>["seed"]): FormState {
@@ -155,8 +155,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   const touchedRef = useRef(false);
 
   useEffect(() => {
-    if (!seed) return;
-    setForm((prev) => (touchedRef.current ? prev : applySeed(EMPTY_FORM, seed)));
+    setForm((prev) => (touchedRef.current ? prev : seed ? applySeed(EMPTY_FORM, seed) : EMPTY_FORM));
     // seedVersion 만 본다 — seed 객체는 매번 새 참조라 의존성에 넣으면 루프가 된다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
@@ -216,9 +215,9 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-9 rounded-2xl border border-[rgba(232,213,163,0.22)] bg-[rgba(19,16,42,0.6)] p-5 sm:p-6"
+      className="mt-9 rounded-2xl border border-[#d5c8df] bg-white p-5 sm:p-6"
     >
-      <p className="text-[0.95rem] font-semibold text-[#f4eeff]">{heading}</p>
+      <p className="text-[0.95rem] font-semibold text-[#292431]">{heading}</p>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
@@ -248,12 +247,12 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
               onChange={(event) => update({ birthTime: event.target.value })}
               className={`mt-1.5 ${INPUT_CLASS} disabled:opacity-50`}
             />
-            <label className="mt-2 flex min-h-11 items-center gap-2 text-[0.82rem] text-[rgba(244,238,255,0.75)]">
+            <label className="mt-2 flex min-h-11 items-center gap-2 text-[0.82rem] text-[#51475c]">
               <input
                 type="checkbox"
                 checked={form.birthTimeUnknown}
                 onChange={(event) => update({ birthTimeUnknown: event.target.checked, birthTime: "" })}
-                className="h-4 w-4 rounded border-[rgba(232,213,163,0.4)] bg-[#13102a]"
+                className="h-4 w-4 rounded border-[rgba(232,213,163,0.4)] bg-white"
               />
               {copy.birthTimeUnknownLabel}
             </label>
@@ -299,9 +298,9 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         )}
       </div>
 
-      <p className="mt-3 text-sm text-[#c3bde2]">{copy.temporaryEdit}</p>
+      <p className="mt-3 text-sm text-[#62556c]">{copy.temporaryEdit}</p>
       {error && (
-        <p role="alert" className="mt-3 break-keep text-[0.85rem] leading-6 text-[#f6b8c8]">
+        <p role="alert" className="mt-3 break-keep text-[0.85rem] leading-6 text-[#a72b45]">
           {error}
         </p>
       )}
@@ -310,7 +309,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         <button
           type="submit"
           aria-label={submitLabel}
-          className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#c4b5fd] px-7 text-[0.94rem] font-semibold text-[#0a0818] transition-colors duration-200 ease-out hover:bg-[#d6cbff]"
+          className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#6f3fa6] px-7 text-[0.94rem] font-semibold text-white transition-colors duration-200 ease-out hover:bg-[#593184]"
         >
           {submitLabel}
         </button>
@@ -319,7 +318,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
             type="button"
             onClick={loadFromProfileCard}
             aria-label={copy.loadFromProfileCardAria}
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(232,213,163,0.45)] px-5 text-[0.88rem] font-semibold text-[#e8d5a3] transition-colors duration-200 ease-out hover:bg-[rgba(232,213,163,0.08)]"
+            className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#9275ae] px-5 text-[0.88rem] font-semibold text-[#6f3fa6] transition-colors duration-200 ease-out hover:bg-[rgba(232,213,163,0.08)]"
           >
             {copy.loadFromProfileCardLabel}
           </button>
