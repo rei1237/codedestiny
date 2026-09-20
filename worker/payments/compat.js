@@ -173,6 +173,7 @@ export function legacyConfirmEnvelope(order, { granted = false, replayed = false
       code: "GRANT_PENDING",
       recoveryRequired: true,
       status: "paid",
+      payment: { merchantUid, status: "paid", paymentAmount: Number(order?.paymentAmount || 0) },
       merchantUid,
       featureKey,
       message: "결제는 완료됐어요. 콘텐츠 준비를 마무리하는 중이니 다시 결제하지 말아 주세요.",

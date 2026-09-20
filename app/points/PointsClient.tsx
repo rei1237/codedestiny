@@ -1,6 +1,7 @@
 "use client";
 
 import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
+import { trackConfirmedPurchase } from "@/lib/analytics";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -3856,6 +3857,7 @@ export default function PointsPage() {
           throw error;
         }
         // HTTP 성공과 이용권 지급 완료는 다르다. 원 주문과 복귀 티켓은 지급 확인까지 보존한다.
+        trackConfirmedPurchase(data);
         assertSubscriptionGrantReady(data);
         // 🔴 복귀 예약보다 **먼저** 서버 스냅샷을 무효화한다 — scheduleCheckoutReturn 은 복귀 티켓이
         //    없으면 곧바로 false 로 빠지므로(일반 /points 구매), 거기에 얹으면 그 경로가 통째로 빈다.

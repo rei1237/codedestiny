@@ -9,6 +9,7 @@ import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,t
 import ProfilePicker from './ProfilePicker';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
 import styles from '../yeongnyangi.module.css';
+import {trackEvent} from '@/lib/analytics';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 export default function Consultation(){
  const [domain,setDomain]=useState('saju'),[productId,setProductId]=useState('saju_mackerel');
@@ -59,6 +60,7 @@ export default function Consultation(){
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
    const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{birthDetails:{birthTime:extraTime,birthPlace},productId,profileId,topicId,question,timeUnknown,...(partnerId?{partnerProfileId:partnerId}:{})});
+   trackEvent('consultation_start',{item_id:productId,service:'yeongnyangi'});
    window.location.assign(data.fortune.paid?resultPath(data.fortune.id):checkoutPath(data.fortune));
   }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요.');}
   finally{lock.current=false;setBusy(false);}

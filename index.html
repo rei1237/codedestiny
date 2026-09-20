@@ -23694,6 +23694,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     // 이중결제가 된다. 서버 안내("다시 결제하지 마세요")를 그대로 전하고 복귀 티켓은 유지한다
     // (모바일 리다이렉트 복귀·새로고침이 멱등 confirm 으로 마무리를 재시도할 수 있다).
     // 코드가 재제안 목록에 없으므로 결제창도 다시 열리지 않는다(_cdShouldReofferPaymentChoice).
+    if (typeof window.cdTrackConfirmedPurchase === 'function') window.cdTrackConfirmedPurchase(confirmRes.payload);
     var _cdConfirmPendingCode = String((confirmRes.payload && (confirmRes.payload.code || (confirmRes.payload.error && confirmRes.payload.error.code))) || '').toUpperCase();
     if (_cdConfirmPendingCode === 'PENDING_CONFIRMATION' || _cdConfirmPendingCode === 'GRANT_PENDING' || (confirmRes.payload && confirmRes.payload.recoveryRequired === true)) {
       var _cdConfirmPendingError = new Error(String((confirmRes.payload && confirmRes.payload.message) || '결제는 완료됐어요. 콘텐츠 준비가 끝나는 대로 자동으로 열립니다. 다시 결제하지 말아 주세요.'));

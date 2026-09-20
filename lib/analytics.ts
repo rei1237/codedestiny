@@ -12,7 +12,17 @@
 declare global {
   interface Window {
     cdTrack?: (eventName: string, params?: Record<string, unknown>) => void;
+    cdTrackConfirmedPurchase?: (payload: unknown) => boolean;
+    cdTrackFortuneDelivery?: (record: unknown) => void;
   }
+}
+
+export function trackFortuneDelivery(record: unknown): void {
+  if (typeof window !== "undefined") window.cdTrackFortuneDelivery?.(record);
+}
+
+export function trackConfirmedPurchase(payload: unknown): void {
+  if (typeof window !== "undefined") window.cdTrackConfirmedPurchase?.(payload);
 }
 
 export function trackEvent(eventName: string, params?: Record<string, unknown>): void {

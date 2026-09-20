@@ -109,7 +109,7 @@
   // 그건 이 변경의 범위가 아니다(선언하지 않으면 종전과 같다).
   gtag("consent", "default", { analytics_storage: analyticsStorageState() });
   gtag("js", new Date());
-  gtag("config", measurementId);
+  gtag("config", measurementId, {page_location: global.location.origin + global.location.pathname});
 
   /**
    * 이벤트 전송. 실패해도 절대 던지지 않는다 — 계측이 기능을 깨뜨려선 안 된다.
@@ -119,10 +119,60 @@
   global.cdTrack = function cdTrack(eventName, params) {
     if (!eventName) return;
     try {
-      global.gtag("event", String(eventName), params || {});
+      var safeParams = Object.assign({}, params || {});
+      if (eventName === 'page_view') safeParams.page_location = global.location.origin + global.location.pathname;
+      global.gtag("event", String(eventName), safeParams);
     } catch (_sendError) {
       /* 계측 실패는 무시한다 */
     }
+  };
+
+  var purchaseEvents = Object.create(null);
+  // Browser-observed server state; no profile, question, result text or request ID is sent.
+  global.cdTrackFortuneDelivery = function (record) {
+    if (!record || record.paid !== true || record.state !== 'COMPLETED' || !/^[a-f0-9]{64}$/.test(record.id || '')) return;
+    var item = String(record.productId || 'fortune');
+    if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) return;
+    ['fortune_completed', 'fortune_first_open'].forEach(function (eventName) {
+      var key = 'cd:delivery:' + eventName + ':' + record.id;
+      var persisted = readConsent() === 'accepted';
+      var seen = purchaseEvents[key];
+      if (persisted) { try { seen = seen || global.localStorage.getItem(key); } catch (_) {} }
+      if (seen) return;
+      global.cdTrack(eventName, {item_id:item,observation:'browser_server_response'});
+      purchaseEvents[key] = true;
+      if (persisted) { try { global.localStorage.setItem(key, '1'); } catch (_) {} }
+    });
+  };
+  // Call only with a successful server confirmation, never the PG popup callback.
+  global.cdTrackConfirmedPurchase = function (payload) {
+    try {
+      var payment = payload && (payload.payment || payload.order);
+      if (!payment || !/^(paid|success|fulfilled)$/i.test(String(payment.status || ''))) return false;
+      var id = String(payment.merchantUid || payment.orderId || '');
+      var value = Number(payment.paymentAmount == null ? payment.amountKRW : payment.paymentAmount);
+      var item = String(payload.featureKey || payment.featureKey || payment.productId || payment.paymentType || 'fortune');
+      if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) item = 'fortune';
+      if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id) || !Number.isFinite(value) || value <= 0) return false;
+      var key = 'cd:purchase:' + id;
+      var persisted = readConsent() === 'accepted';
+      var seen = purchaseEvents[key];
+      if (persisted) { try { seen = seen || global.localStorage.getItem(key); } catch (_) {} }
+      if (!seen) {
+        global.cdTrack('purchase', {transaction_id:id,value:value,currency:'KRW',items:[{item_id:item,price:value,quantity:1}]});
+        purchaseEvents[key] = true;
+        if (persisted) { try { global.localStorage.setItem(key, '1'); } catch (_) {} }
+      }
+      var granted = !/^(GRANT_PENDING|PENDING_CONFIRMATION)$/.test(String(payload.code || '').toUpperCase()) && payload.activationPending !== true && payload.recoveryRequired !== true && payment.entitlementGranted !== false;
+      var grantSeen = purchaseEvents[key + ':grant'];
+      if (persisted) { try { grantSeen = grantSeen || global.localStorage.getItem(key + ':grant'); } catch (_) {} }
+      if (granted && !grantSeen) {
+        global.cdTrack('entitlement_granted', {transaction_id:id,item_id:item});
+        purchaseEvents[key + ':grant'] = true;
+        if (persisted) { try { global.localStorage.setItem(key + ':grant', '1'); } catch (_) {} }
+      }
+      return true;
+    } catch (_) { return false; }
   };
 
   /**
@@ -166,7 +216,7 @@
       if (container) {
         global.cdTrack("cross_sell_click", {
           from_service: String(container.getAttribute("data-cd-cross-sell") || ""),
-          to_service: String(anchor.getAttribute("href") || "")
+          to_service: new URL(anchor.getAttribute("href"), global.location.href).pathname
         });
       }
     } catch (_crossSellError) {

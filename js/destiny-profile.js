@@ -4663,6 +4663,7 @@
       }));
       var confirmRes = await _dpPaymentFetchJson(isPassReturn ? '/api/payments/subscription/confirm' : '/api/billing/confirm', { method: 'POST', body: dpResumeBody }, { retryOn401: true, refreshOn401: true });
       var resumePayload = (confirmRes && confirmRes.payload && typeof confirmRes.payload === 'object') ? confirmRes.payload : {};
+      if (confirmRes.ok && typeof window.cdTrackConfirmedPurchase === 'function') window.cdTrackConfirmedPurchase(resumePayload);
       /* 🔴 PENDING 은 실패가 아니다(셸 index.html 의 confirm 판정 순서와 같다). 서버는 지급 지연을
          200 + code:'GRANT_PENDING' + recoveryRequired:true 로 준다(worker/payments/compat.js) —
          이걸 "결제 완료"로 표시하면 열람 권한이 없는데 완료 안내가 뜨고, 실패로 닫으면 사용자가
@@ -5799,6 +5800,7 @@
       // \uB2E8\uAC74 \uACB0\uC81C \uC644\uB8CC \uD504\uB808\uC784(\uC81C\uBAA9 "\uACB0\uC81C \uC644\uB8CC"\u00B7\uC2A4\uD53C\uB108 off) \uD45C\uC2DC \uD6C4 ~1.2s \uC790\uB3D9 \uB2EB\uD798. \uC774\uD6C4 \uCF58\uD150\uCE20 \uC0DD\uC131\uC740 \uBCD1\uB82C \uC9C4\uD589.
       _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
       await _dpWaitForPaymentOverlayPaint();
+      if (typeof window.cdTrackConfirmedPurchase === 'function') window.cdTrackConfirmedPurchase(confirmRes.payload);
       return confirmRes.payload;
     };
   }
