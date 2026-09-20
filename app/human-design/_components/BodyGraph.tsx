@@ -318,6 +318,12 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
           {/* 배경 입자 — 깊이감만 담당하고 클릭을 받지 않는다. */}
           <rect className={styles.grain} x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={`url(#${grainId})`} />
 
+          {/* 참조 차트처럼 센터의 위치를 몸 안에서 읽을 수 있게 하는 비정보성 실루엣. */}
+          <path
+            className={styles.silhouette}
+            d="M270 0C231 0 207 34 207 78C207 111 223 136 239 151L228 184C176 190 126 220 105 273L28 612C18 661 49 716 102 759C150 798 174 878 186 1000H354C366 878 390 798 438 759C491 716 522 661 512 612L435 273C414 220 364 190 312 184L301 151C317 136 333 111 333 78C333 34 309 0 270 0Z"
+          />
+
           {/* 채널 — 센터보다 먼저 그려 도형 뒤로 보낸다 */}
           <g className={styles.channels}>
             {CHANNEL_PATH_LIST.map((path, index) => {
@@ -366,7 +372,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
                   style={{ ["--hd-order" as string]: index }}
                   data-center={shape.center}
                   points={shape.polygon}
-                  fill={`url(#${isDefined ? definedFillId : undefinedFillId})`}
+                  fill={isDefined ? "var(--hd-center-fill)" : `url(#${undefinedFillId})`}
                   role={ghost ? undefined : "button"}
                   tabIndex={ghost ? -1 : 0}
                   aria-label={ghost ? undefined : `${label} · ${isDefined ? pick(UI_TEXT.defined, locale) : pick(UI_TEXT.undefined, locale)}`}

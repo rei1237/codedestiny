@@ -6,11 +6,11 @@
  */
 
 .layer {
-  --hd-surface: #13102a;
-  --hd-border: rgba(196, 181, 253, 0.28);
-  --hd-ink: #f3f1ff;
-  --hd-ink-dim: #c2bce0;
-  --hd-accent: #c4b5fd;
+  --hd-surface: #ffffff;
+  --hd-border: #ded9d6;
+  --hd-ink: #2c2026;
+  --hd-ink-dim: #6e5d65;
+  --hd-accent: #ad315c;
 
   position: fixed;
   inset: 0;
@@ -24,8 +24,7 @@
   inset: 0;
   border: none;
   padding: 0;
-  background: rgba(6, 5, 18, 0.62);
-  backdrop-filter: blur(2px);
+  background: rgba(44, 32, 38, 0.34);
   cursor: pointer;
   pointer-events: auto;
   animation: hdScrimIn 200ms ease-out both;
@@ -61,7 +60,7 @@
   width: 40px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(196, 181, 253, 0.4);
+  background: #c9bfc3;
   flex: 0 0 auto;
 }
 
@@ -81,7 +80,7 @@
     border-radius: 18px 0 0 18px;
     border-right: none;
     padding: 1.25rem;
-    box-shadow: -18px 0 48px rgba(4, 3, 14, 0.5);
+    box-shadow: -18px 0 48px rgba(70, 39, 52, 0.16);
     animation: hdSheetIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
@@ -213,8 +212,8 @@
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--hd-ink);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #f9f5f4;
+  border: 1px solid var(--hd-border);
   border-radius: 8px;
   padding: 0.25rem 0.5rem;
 }
@@ -222,7 +221,7 @@
 .note {
   margin: 0;
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--hd-border);
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--hd-ink-dim);

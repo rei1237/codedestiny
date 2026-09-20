@@ -19,6 +19,7 @@
 //    AdSense 렌더 텍스트 게이트 대상이 되면서 "남의 결과"를 내 결과처럼 보이게 한다.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -335,6 +336,41 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
     </div>
   );
 
+  const activationRail = (layer: "personality" | "design") => {
+    if (!chart) return null;
+    const label = layer === "personality" ? pick(UI_TEXT.personality, locale) : pick(UI_TEXT.design, locale);
+
+    return (
+      <section
+        className={`${styles.chartRail} ${layer === "personality" ? styles.chartRailPersonality : styles.chartRailDesign}`}
+        aria-label={label}
+      >
+        <h2 className={styles.chartRailHeading}>{label}</h2>
+        <ul className={styles.chartRailList}>
+          {chart.layers[layer].map((activation) => {
+            const planet = PLANET_COPY[activation.planet as keyof typeof PLANET_COPY];
+            const planetLabel = pick(planet, locale);
+            return (
+              <li key={`board-${layer}-${activation.planet}`}>
+                <button
+                  type="button"
+                  className={styles.chartRailRow}
+                  data-active={selection?.kind === "planet" && selection.planet === activation.planet && selection.layer === layer ? "true" : undefined}
+                  onClick={() => setSelection({ kind: "planet", planet: activation.planet, layer })}
+                  aria-label={`${planetLabel} ${activation.gate}.${activation.line}`}
+                >
+                  <span className={styles.chartRailGlyph} aria-hidden="true">{planet?.glyph || "•"}</span>
+                  <span className={styles.chartRailCell}>{activation.gate}.{activation.line}</span>
+                  <span className={styles.chartRailName}>{planetLabel}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    );
+  };
+
   return (
     <main className={styles.shell}>
 
@@ -342,6 +378,10 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
         <Link href="/" className={styles.exit}>
           <span aria-hidden="true">←</span> {pick(UI_TEXT.exit, locale)}
         </Link>
+        <div className={styles.topbarBrand}>
+          <Image className={styles.topbarMark} src="/icons/app-logo-512.webp" alt="" width={36} height={36} />
+          <strong>{pick(UI_TEXT.title, locale)}</strong>
+        </div>
         {chart && (
           <button type="button" className={styles.restart} onClick={restart}>
             {pick(UI_TEXT.restart, locale)}
@@ -380,20 +420,32 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
           <>
             {reused && <p className={styles.reused}>{pick(UI_TEXT.reusedNotice, locale)}</p>}
 
-            {/* 🔴 차트는 섹션 안이 아니라 **바깥 열**에 둔다. 넓은 화면에서 sticky 로 붙여 두면
-                아래 단계들을 읽는 내내 차트가 화면에 남아, 목록에서 누른 것이 차트 어디인지
-                바로 보인다. 섹션 안에 넣으면 그 섹션을 지나는 순간 차트가 사라진다. */}
             <div className={styles.result}>
-              <div className={styles.resultGraph}>
-                <BodyGraph chart={chart} locale={locale} selection={selection} onSelect={setSelection} />
-              </div>
-
-              <div className={styles.resultFlow}>
-              {/* ① 마이 디자인 — 진입 즉시 정체 핵심만. 설명은 아래 단계로 미룬다. */}
-              <section className={styles.core} id="hd-my-design" aria-labelledby="hd-core-heading">
-                <p className={styles.eyebrow}>{pick(UI_TEXT.sectionMyDesign, locale)}</p>
-                <h1 id="hd-core-heading" className={styles.coreType}>{pick(typeCopy?.name, locale)}</h1>
-                <dl className={styles.coreGrid}>
+              <div className={styles.chartBoard}>
+                {/* 참조 차트의 좌측 속성 패널. 결과값과 입력값만 재배치하며 계산 계약은 건드리지 않는다. */}
+                <section className={styles.core} id="hd-my-design" aria-labelledby="hd-core-heading">
+                  <div className={styles.coreHeadingRow}>
+                    <Image className={styles.coreMark} src="/icons/app-logo-512.webp" alt="" width={44} height={44} />
+                    <div>
+                      <p className={styles.corePanelTitle}>{pick(UI_TEXT.sectionMyDesign, locale)}</p>
+                      <h1 id="hd-core-heading" className={styles.coreType}>{pick(typeCopy?.name, locale)}</h1>
+                    </div>
+                  </div>
+                  <dl className={styles.birthGrid}>
+                    <div>
+                      <dt>{pick(UI_TEXT.birthDate, locale)}</dt>
+                      <dd>{birthDate}</dd>
+                    </div>
+                    <div>
+                      <dt>{pick(UI_TEXT.birthTime, locale)}</dt>
+                      <dd>{birthTime}</dd>
+                    </div>
+                    <div className={styles.birthGridWide}>
+                      <dt>{pick(UI_TEXT.timezone, locale)}</dt>
+                      <dd>{timezone}</dd>
+                    </div>
+                  </dl>
+                  <dl className={styles.coreGrid}>
                   <div className={styles.coreCell}>
                     <dt className={styles.coreLabel}>{pick(UI_TEXT.sectionStrategy, locale)}</dt>
                     <dd className={styles.coreValue}>
@@ -414,29 +466,46 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
                       {pick(DEFINITION_COPY[chart.definition as keyof typeof DEFINITION_COPY], locale)}
                     </dd>
                   </div>
-                </dl>
+                  <div className={styles.coreCell}>
+                    <dt className={styles.coreLabel}>{pick(UI_TEXT.signature, locale)}</dt>
+                    <dd className={styles.coreValue}>{pick(SIGNATURE_COPY[chart.signature as keyof typeof SIGNATURE_COPY], locale)}</dd>
+                  </div>
+                  <div className={styles.coreCell}>
+                    <dt className={styles.coreLabel}>{pick(UI_TEXT.notSelf, locale)}</dt>
+                    <dd className={styles.coreValue}>{pick(NOT_SELF_COPY[chart.notSelfTheme as keyof typeof NOT_SELF_COPY], locale)}</dd>
+                  </div>
+                  </dl>
 
-                <ul className={styles.tally}>
-                  <li><strong>{chart.definedCenters.length}</strong><span>/9 {pick(UI_TEXT.definedCenters, locale)}</span></li>
-                  <li><strong>{chart.channels.length}</strong><span>/36 {pick(UI_TEXT.activeChannels, locale)}</span></li>
-                  <li><strong>{chart.activeGates.length}</strong><span>/64 {pick(UI_TEXT.activeGates, locale)}</span></li>
-                </ul>
+                  <ul className={styles.tally}>
+                    <li><strong>{chart.definedCenters.length}</strong><span>/9 {pick(UI_TEXT.definedCenters, locale)}</span></li>
+                    <li><strong>{chart.channels.length}</strong><span>/36 {pick(UI_TEXT.activeChannels, locale)}</span></li>
+                    <li><strong>{chart.activeGates.length}</strong><span>/64 {pick(UI_TEXT.activeGates, locale)}</span></li>
+                  </ul>
 
-                <div className={styles.legend}>
-                  <span className={styles.legendItem}>
-                    <i className={`${styles.swatch} ${styles.swatchPersonality}`} aria-hidden="true" />
-                    {pick(UI_TEXT.personality, locale)}
-                  </span>
-                  <span className={styles.legendItem}>
-                    <i className={`${styles.swatch} ${styles.swatchDesign}`} aria-hidden="true" />
-                    {pick(UI_TEXT.design, locale)}
-                  </span>
-                  <span className={styles.legendItem}>
-                    <i className={`${styles.swatch} ${styles.swatchMixed}`} aria-hidden="true" />
-                    {pick(UI_TEXT.bothLayers, locale)}
-                  </span>
+                  <div className={styles.legend}>
+                    <span className={styles.legendItem}>
+                      <i className={`${styles.swatch} ${styles.swatchPersonality}`} aria-hidden="true" />
+                      {pick(UI_TEXT.personality, locale)}
+                    </span>
+                    <span className={styles.legendItem}>
+                      <i className={`${styles.swatch} ${styles.swatchDesign}`} aria-hidden="true" />
+                      {pick(UI_TEXT.design, locale)}
+                    </span>
+                    <span className={styles.legendItem}>
+                      <i className={`${styles.swatch} ${styles.swatchMixed}`} aria-hidden="true" />
+                      {pick(UI_TEXT.bothLayers, locale)}
+                    </span>
+                  </div>
+                </section>
+
+                <div className={styles.designRail} id="hd-planets">{activationRail("design")}</div>
+                <div className={styles.resultGraph}>
+                  <BodyGraph chart={chart} locale={locale} selection={selection} onSelect={setSelection} />
                 </div>
-              </section>
+                <div className={styles.personalityRail}>{activationRail("personality")}</div>
+              </div>
+
+              <div className={styles.resultFlow}>
 
             <nav className={styles.jump} aria-label={pick(UI_TEXT.sectionNav, locale)}>
               {SECTION_ORDER.filter((section) => section.id !== "hd-reading" || interpretation).map((section) => (
@@ -574,41 +643,6 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
                   >
                     {gate}
                   </button>
-                ))}
-              </div>
-            </section>
-
-            {/* ⑨ 행성 활성 */}
-            <section className={styles.block} id="hd-planets">
-              <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionPlanets, locale)}</h2>
-              <div className={styles.tables}>
-                {(["personality", "design"] as const).map((layer) => (
-                  <div className={styles.table} key={layer}>
-                    <h3 className={styles.tableHeading}>
-                      <i className={`${styles.swatch} ${layer === "personality" ? styles.swatchPersonality : styles.swatchDesign}`} aria-hidden="true" />
-                      {layer === "personality" ? pick(UI_TEXT.personality, locale) : pick(UI_TEXT.design, locale)}
-                    </h3>
-                    <ul className={styles.activationList}>
-                      {chart.layers[layer].map((activation) => (
-                        <li key={`${layer}-${activation.planet}`}>
-                          <button
-                            type="button"
-                            className={styles.activationRow}
-                            data-active={selection?.kind === "planet" && selection.planet === activation.planet && selection.layer === layer ? "true" : undefined}
-                            onClick={() => setSelection({ kind: "planet", planet: activation.planet, layer })}
-                          >
-                            <span className={styles.activationGlyph} aria-hidden="true">
-                              {PLANET_COPY[activation.planet as keyof typeof PLANET_COPY]?.glyph || "•"}
-                            </span>
-                            <span className={styles.activationName}>
-                              {pick(PLANET_COPY[activation.planet as keyof typeof PLANET_COPY], locale)}
-                            </span>
-                            <span className={styles.activationCell}>{activation.gate}.{activation.line}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 ))}
               </div>
             </section>

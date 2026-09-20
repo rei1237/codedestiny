@@ -22,13 +22,13 @@
   padding: 1.75rem 1.25rem 2rem;
   border: 1px solid var(--hd-border);
   border-radius: 24px;
-  /* 브러시드 메탈 + 스페이스 글래스. 위에서 빛을 받고 아래로 가라앉는 한 장. */
+  /* 밝은 종이 위에서 계산선이 흐르는 한 장. */
   background:
-    linear-gradient(163deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.015) 42%, rgba(0, 0, 0, 0.2) 100%),
+    linear-gradient(163deg, #ffffff 0%, #fff8f7 58%, #f8f2ef 100%),
     var(--hd-panel);
   box-shadow:
-    0 26px 72px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    0 26px 72px rgba(70, 39, 52, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 /* ── 배경 에너지 필드 ─────────────────────────────────── */
@@ -49,15 +49,15 @@
 
 .nebula {
   background:
-    radial-gradient(38% 46% at 24% 30%, rgba(124, 92, 240, 0.3) 0%, transparent 68%),
-    radial-gradient(30% 34% at 78% 66%, rgba(125, 211, 252, 0.16) 0%, transparent 70%);
+    radial-gradient(38% 46% at 24% 30%, rgba(244, 190, 209, 0.32) 0%, transparent 68%),
+    radial-gradient(30% 34% at 78% 66%, rgba(234, 208, 137, 0.22) 0%, transparent 70%);
   animation: hdNebulaDrift 44s ease-in-out infinite alternate;
 }
 
 .nebulaB {
   background:
-    radial-gradient(34% 40% at 68% 22%, rgba(232, 213, 163, 0.14) 0%, transparent 72%),
-    radial-gradient(40% 44% at 16% 78%, rgba(167, 139, 250, 0.16) 0%, transparent 70%);
+    radial-gradient(34% 40% at 68% 22%, rgba(234, 208, 137, 0.24) 0%, transparent 72%),
+    radial-gradient(40% 44% at 16% 78%, rgba(173, 49, 92, 0.12) 0%, transparent 70%);
   animation: hdNebulaDrift 58s ease-in-out infinite alternate-reverse;
 }
 
@@ -66,12 +66,12 @@
   position: absolute;
   inset: -12%;
   background-image:
-    radial-gradient(1.4px 1.4px at 18% 22%, rgba(255, 255, 255, 0.72), transparent 100%),
-    radial-gradient(1.1px 1.1px at 62% 12%, rgba(232, 213, 163, 0.6), transparent 100%),
-    radial-gradient(1.6px 1.6px at 84% 48%, rgba(255, 255, 255, 0.55), transparent 100%),
-    radial-gradient(1px 1px at 34% 72%, rgba(196, 181, 253, 0.62), transparent 100%),
-    radial-gradient(1.2px 1.2px at 8% 58%, rgba(255, 255, 255, 0.45), transparent 100%),
-    radial-gradient(1px 1px at 72% 88%, rgba(255, 255, 255, 0.5), transparent 100%);
+    radial-gradient(1.4px 1.4px at 18% 22%, rgba(173, 49, 92, 0.28), transparent 100%),
+    radial-gradient(1.1px 1.1px at 62% 12%, rgba(128, 93, 32, 0.26), transparent 100%),
+    radial-gradient(1.6px 1.6px at 84% 48%, rgba(173, 49, 92, 0.2), transparent 100%),
+    radial-gradient(1px 1px at 34% 72%, rgba(173, 49, 92, 0.24), transparent 100%),
+    radial-gradient(1.2px 1.2px at 8% 58%, rgba(128, 93, 32, 0.2), transparent 100%),
+    radial-gradient(1px 1px at 72% 88%, rgba(173, 49, 92, 0.18), transparent 100%);
   background-size: 260px 240px;
   animation: hdStarDrift 90s linear infinite;
 }
@@ -83,7 +83,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.34;
+  opacity: 0.2;
   animation: hdWireBreathe 26s ease-in-out infinite alternate;
   /* 가장자리에서 녹아 사라지게 — 패널 테두리에 선이 잘려 붙는 인상을 지운다. */
   -webkit-mask-image: radial-gradient(72% 82% at 50% 50%, #000 24%, transparent 82%);
@@ -135,7 +135,7 @@
   inset: -70% -35%;
   z-index: -1;
   border-radius: 50%;
-  background: radial-gradient(50% 60% at 50% 50%, rgba(232, 213, 163, 0.3) 0%, transparent 72%);
+  background: radial-gradient(50% 60% at 50% 50%, rgba(234, 208, 137, 0.36) 0%, transparent 72%);
   animation: hdGoldBreathe 3.2s ease-in-out infinite;
 }
 
@@ -177,7 +177,7 @@
   width: 2px;
   height: calc(100% + var(--hd-gap) - var(--hd-mark) - 8px);
   border-radius: 2px;
-  background: linear-gradient(to bottom, rgba(196, 181, 253, 0.42), rgba(196, 181, 253, 0.16));
+  background: linear-gradient(to bottom, rgba(173, 49, 92, 0.36), rgba(173, 49, 92, 0.1));
 }
 
 /* 순회 펄스 — 같은 자리에 겹쳐 두고 위에서 아래로 차오른다. 지연이 노드마다 밀려 1→8 로 흐른다. */
@@ -190,7 +190,7 @@
   width: 3px;
   height: calc(100% + var(--hd-gap) - var(--hd-mark) - 8px);
   border-radius: 3px;
-  background: linear-gradient(to bottom, rgba(232, 213, 163, 0.95), rgba(196, 181, 253, 0.7));
+  background: linear-gradient(to bottom, rgba(128, 93, 32, 0.78), rgba(173, 49, 92, 0.56));
   transform-origin: top center;
   transform: scaleY(0);
   opacity: 0;
@@ -214,8 +214,8 @@
   border-radius: 50%;
   background: radial-gradient(
     50% 50% at 50% 50%,
-    rgba(232, 213, 163, 0.34) 0%,
-    rgba(196, 181, 253, 0.16) 52%,
+    rgba(234, 208, 137, 0.4) 0%,
+    rgba(244, 190, 209, 0.22) 52%,
     transparent 74%
   );
   opacity: 0.45;
@@ -231,8 +231,8 @@
   background: conic-gradient(
     from 0deg,
     transparent 0deg 210deg,
-    rgba(232, 213, 163, 0.62) 300deg,
-    rgba(196, 181, 253, 0.28) 340deg,
+    rgba(128, 93, 32, 0.54) 300deg,
+    rgba(173, 49, 92, 0.34) 340deg,
     transparent 360deg
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
@@ -249,8 +249,8 @@
   inset: 6px;
   border-radius: 50%;
   border: 1px solid var(--hd-border-strong);
-  background: linear-gradient(158deg, rgba(35, 30, 70, 0.96) 0%, rgba(10, 8, 26, 0.98) 100%);
-  box-shadow: inset 0 0 14px rgba(196, 181, 253, 0.24);
+  background: linear-gradient(158deg, #ffffff 0%, #f7ecef 100%);
+  box-shadow: inset 0 0 14px rgba(173, 49, 92, 0.1);
 }
 
 /* 팔괘 — 휴먼 디자인 64게이트가 곧 주역 64괘라 8단계에 팔괘가 그대로 맞는다. */
@@ -314,13 +314,13 @@
     top: calc((var(--hd-mark) / 2) - 1px);
     width: calc(100% + var(--hd-gap) - var(--hd-mark) - 8px);
     height: 2px;
-    background: linear-gradient(to right, rgba(196, 181, 253, 0.42), rgba(196, 181, 253, 0.16));
+    background: linear-gradient(to right, rgba(173, 49, 92, 0.36), rgba(173, 49, 92, 0.1));
   }
 
   .node:not(:last-child)::before {
     top: calc((var(--hd-mark) / 2) - 1.5px);
     height: 3px;
-    background: linear-gradient(to right, rgba(232, 213, 163, 0.95), rgba(196, 181, 253, 0.7));
+    background: linear-gradient(to right, rgba(128, 93, 32, 0.78), rgba(173, 49, 92, 0.56));
     transform-origin: left center;
     transform: scaleX(0);
     animation-name: hdChannelFlowX;
