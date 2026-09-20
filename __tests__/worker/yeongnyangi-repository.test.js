@@ -132,3 +132,25 @@ test('a refund after activation stops further generation',async()=>{
   await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
   expect((await repo.readRequest({},owner,'id')).state).toBe('REFUNDED');
 });
+
+test.each(['refunded','cancelled'])('refund %s during generation prevents the final chapter commit',async status=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const claim=await repo.claimChapter({},owner,'id');
+  payments[0].status=status;
+  expect(await repo.finishChapter({},owner,'id',claim.token,0,{summary:'late'},1)).toBeNull();
+  await repo.failChapter({},owner,'id',claim.token,'GENERATION_LEASE_LOST');
+  const row=await repo.readRequest({},owner,'id');
+  expect(row.state).toBe('REFUNDED');expect(row.chapters).toHaveLength(0);
+});
+
+test('refund in progress suspends generation without discarding earlier chapters',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const first=await repo.claimChapter({},owner,'id');
+  await repo.finishChapter({},owner,'id',first.token,0,{summary:'saved'},2);
+  const next=await repo.claimChapter({},owner,'id');
+  payments[0].metadata.yeongnyangiRefundPending=true;
+  expect(await repo.finishChapter({},owner,'id',next.token,1,{summary:'late'},2)).toBeNull();
+  expect(requests[0].state).toBe('FORTUNE_FAILED');expect(requests[0].chapters).toHaveLength(1);
+  await expect(repo.readRequest({},owner,'id')).rejects.toMatchObject({status:409});
+  await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+});

@@ -13,7 +13,7 @@ let revokeMembershipPassGrant;
 
 beforeAll(async () => {
   await Promise.all([
-    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ mongoose: { Types: { ObjectId: { isValid: () => true } } } })),
+    jest.unstable_mockModule("../../worker/lib/db.js", () => ({ mongoose: { Types: { ObjectId: { isValid: () => true } } }, withMongoRetry: async (_env, fn) => fn() })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       CONTENT_ENTITLEMENT_STATUSES: { REFUNDED: "REFUNDED", CANCELLED: "CANCELLED" },
       Payment: {}, User: { findById: userFindById, updateOne: userUpdateOne }, PointHistory: {}, MonthlyCreditLedger: {},

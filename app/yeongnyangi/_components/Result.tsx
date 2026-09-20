@@ -11,7 +11,7 @@ export default function Result(){
    while(mounted.current){
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/generate`,{});
     if(!mounted.current)break;setRow(fortune);
-    if(fortune.state==='COMPLETED')break;
+    if(fortune.state==='COMPLETED'||fortune.state==='REFUNDED'||!fortune.paid)break;
     if(fortune.state==='FORTUNE_FAILED')throw new Error('상담을 잠시 멈췄어요. 저장된 내용부터 다시 이어갈 수 있어요.');
     if(fortune.state==='GENERATING')await new Promise(r=>setTimeout(r,3000));
    }
@@ -29,7 +29,10 @@ export default function Result(){
      try{fortune=(await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune;}
      catch(e){if(!(e instanceof FortuneApiError&&e.status===402))throw e;}
     }
-    if(mounted.current)setRow(fortune);
+    if(mounted.current){
+     setRow(fortune);
+     if(fortune.paid&&['PAID','GENERATING','FORTUNE_FAILED'].includes(fortune.state)&&!['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(fortune.errorCode||''))void generate(id);
+    }
    }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(e instanceof Error?e.message:'상담을 찾지 못했어요.');}
   })();
   return ()=>{mounted.current=false;};

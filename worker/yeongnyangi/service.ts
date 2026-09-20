@@ -93,5 +93,5 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 export function presentFortune(row: any) {
   return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
     paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:row.snapshot.manifest,
-    chapters:row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
+    chapters:row.state==='REFUNDED'?[]:row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

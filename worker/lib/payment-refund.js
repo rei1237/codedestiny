@@ -7,7 +7,7 @@
 //
 // 운영 정책: KG이니시스 PG사 관리자 페이지에서 직접 취소하지 말고 포트원 대시보드 또는 이 서버 API를
 // 통해서만 취소 상태를 동기화한다.
-import { mongoose } from "./db.js";
+import { mongoose, withMongoRetry } from "./db.js";
 import {
   CONTENT_ENTITLEMENT_STATUSES,
   MonthlyCreditLedger,
@@ -261,6 +261,13 @@ export async function refundPaymentAsOperator({
   // 🔴 cancelPortOnePayment 는 PG 거절 시 throw 한다(예: 이미 카드사에서 취소된 건 → PG_PROVIDER).
   // 그대로 두면 관리자 화면이 500 과 스택을 받아 무엇이 문제인지 알 수 없다. 구조화된 오류로 바꾼다.
   let cancelResult = null;
+  // A PG timeout is ambiguous. Suspend this consultation before requesting a
+  // refund; only reconciliation/operator resolution may resume a suspended order.
+  if (String(payment.featureKey || "").startsWith("yeongnyangi-")) {
+    await withMongoRetry(env, () => Payment.updateOne({_id:payment._id}, {
+      $set:{"metadata.yeongnyangiRefundPending":true},
+    }));
+  }
   try {
     cancelResult = await cancelPortOnePayment(env, {
       impUid: payment.impUid || undefined,

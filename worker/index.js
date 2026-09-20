@@ -1957,6 +1957,10 @@ export default {
       ctx.waitUntil(runZiweiDeepReportRecovery(env).catch((error) => {
         console.error("[ziwei-deep-report-recovery] task failed:", error?.message || error);
       }));
+      const { runYeongnyangiRecovery } = await import("./yeongnyangi/recovery.js");
+      ctx.waitUntil(runYeongnyangiRecovery(env).catch((error) => {
+        console.error("[yeongnyangi-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
+      }));
       return;
     }
 

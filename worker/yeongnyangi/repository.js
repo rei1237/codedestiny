@@ -16,6 +16,18 @@ export function ownerId(id) {
 export async function readRequest(env, userId, requestId) {
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOne({_id:requestId,userId:ownerId(userId)}).lean());
   if (!row) throw failure(404,'FORTUNE_NOT_FOUND');
+  if (row.paymentId && row.state !== 'REFUNDED') {
+    const payment = await withMongoRetry(env, () => Payment.findOne({_id:row.paymentId,userId:ownerId(userId)}).select('status metadata refundLock').lean());
+    const refunded = payment && ['refunded','cancelled'].includes(payment.status);
+    if (refunded) {
+      const patch={state:'REFUNDED',leaseToken:'',leaseUntil:null,errorCode:'PAYMENT_NOT_ACTIVE'};
+      await withMongoRetry(env,()=>YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),paymentId:row.paymentId},{$set:patch}));
+      return {...row,...patch};
+    }
+    if (!payment || !paidStatuses.includes(payment.status) || payment.refundLock || payment.metadata?.unlockRevoked || payment.metadata?.yeongnyangiRefundPending) {
+      throw failure(409,'PAYMENT_NOT_ACTIVE');
+    }
+  }
   return row;
 }
 
@@ -66,9 +78,9 @@ export async function attachPayment(env, userId, requestId, expectedCharge) {
 export async function claimChapter(env, userId, requestId) {
   const current = await readRequest(env,userId,requestId);
   if (!current.paymentId) throw failure(402,'PAYMENT_REQUIRED');
-  const proof = await withMongoRetry(env, () => Payment.findOne({_id:current.paymentId,userId:ownerId(userId),'metadata.consumedBy':requestId}).select('_id status').lean());
-  if (!proof || !paidStatuses.includes(proof.status)) {
-    if(proof && ['refunded','cancelled'].includes(proof.status)) await withMongoRetry(env,()=>YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),paymentId:current.paymentId},{$set:{state:'REFUNDED'}}));
+  const proof = await withMongoRetry(env, () => Payment.findOne({_id:current.paymentId,userId:ownerId(userId),'metadata.consumedBy':requestId}).select('_id status metadata refundLock').lean());
+  if (!proof || !paidStatuses.includes(proof.status) || proof.refundLock || proof.metadata?.unlockRevoked || proof.metadata?.yeongnyangiRefundPending) {
+    if(proof && ['refunded','cancelled'].includes(proof.status)) await withMongoRetry(env,()=>YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),paymentId:current.paymentId},{$set:{state:'REFUNDED',leaseToken:'',leaseUntil:null}}));
     throw failure(409,'PAYMENT_NOT_ACTIVE');
   }
   if (current.state === 'COMPLETED') return {row:current,token:null};
@@ -81,13 +93,38 @@ export async function claimChapter(env, userId, requestId) {
 }
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
-  return withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
-    _id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING', [`chapters.${ordinal}`]:{$exists:false},
-  }, {$push:{chapters:body},$set:{completedChapters:ordinal+1,state:ordinal+1===total?'COMPLETED':'PAID',leaseToken:'',leaseUntil:null,
-    ...(ordinal+1===total?{completedAt:new Date()}:{}),errorCode:''}}, {new:true}).lean());
+  return withMongoRetry(env, async () => {
+    const session = await mongoose.startSession();
+    try {
+      let result = null;
+      await session.withTransaction(async () => {
+        const filter = {_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING', [`chapters.${ordinal}`]:{$exists:false}};
+        const request = await YeongnyangiRequest.findOne(filter).session(session).lean();
+        if (!request) return;
+        // Write the payment in the same transaction: a read alone allows a refund to
+        // commit between validation and chapter storage (snapshot write skew).
+        const proof = await Payment.findOneAndUpdate({
+          _id:request.paymentId,userId:ownerId(userId),'metadata.consumedBy':requestId,
+          status:{$in:paidStatuses},refundLock:null,'metadata.unlockRevoked':{$ne:true},
+          'metadata.yeongnyangiRefundPending':{$ne:true},
+        }, {$set:{'metadata.yeongnyangiChapterCommit':`${token}:${ordinal}`}}, {new:true,session}).lean();
+        if (!proof) {
+          const payment = await Payment.findOne({_id:request.paymentId,userId:ownerId(userId)}).session(session).lean();
+          const refunded = payment && ['refunded','cancelled'].includes(payment.status);
+          await YeongnyangiRequest.updateOne(filter, {$set:{state:refunded?'REFUNDED':'FORTUNE_FAILED',
+            leaseToken:'',leaseUntil:null,errorCode:'PAYMENT_NOT_ACTIVE'}}, {session});
+          return;
+        }
+        result = await YeongnyangiRequest.findOneAndUpdate(filter,
+          {$push:{chapters:body},$set:{completedChapters:ordinal+1,state:ordinal+1===total?'COMPLETED':'PAID',leaseToken:'',leaseUntil:null,
+            ...(ordinal+1===total?{completedAt:new Date()}:{}),errorCode:''}}, {new:true,session}).lean();
+      }, mongoTransactionOptions());
+      return result;
+    } finally { await session.endSession(); }
+  });
 }
 
 export async function failChapter(env, userId, requestId, token, code) {
-  return withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token},
+  return withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
     {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:String(code).slice(0,80)}}));
 }
