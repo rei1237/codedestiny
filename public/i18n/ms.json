@@ -1452,6 +1452,11 @@
       "pass": "Pas",
       "login": "Log masuk",
       "account": "Akaun saya"
+    },
+    "reformActions": {
+      "consult": "Kenali konsultasi Yeongnyangi",
+      "free": "Bacaan nasib percuma",
+      "library": "Lihat konsultasi dibeli"
     }
   },
   "terms": {

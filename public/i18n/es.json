@@ -1452,6 +1452,11 @@
       "pass": "Pases",
       "login": "Iniciar sesión",
       "account": "Mi cuenta"
+    },
+    "reformActions": {
+      "consult": "Conoce las consultas de Yeongnyangi",
+      "free": "Lecturas gratuitas",
+      "library": "Mis consultas compradas"
     }
   },
   "terms": {

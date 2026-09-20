@@ -1452,6 +1452,11 @@
       "pass": "Pässe",
       "login": "Anmelden",
       "account": "Mein Konto"
+    },
+    "reformActions": {
+      "consult": "Yeongnyangi-Beratungen entdecken",
+      "free": "Kostenlose Deutungen",
+      "library": "Meine gekauften Beratungen"
     }
   },
   "terms": {

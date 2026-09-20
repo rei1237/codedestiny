@@ -1452,6 +1452,11 @@
       "pass": "Passen",
       "login": "Inloggen",
       "account": "Mijn account"
+    },
+    "reformActions": {
+      "consult": "Ontdek consulten met Yeongnyangi",
+      "free": "Gratis duidingen",
+      "library": "Mijn gekochte consulten"
     }
   },
   "terms": {

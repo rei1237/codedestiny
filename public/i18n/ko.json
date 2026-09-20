@@ -1299,6 +1299,11 @@
       "pass": "이용권",
       "login": "로그인",
       "account": "내 계정"
+    },
+    "reformActions": {
+      "consult": "영냥이 상담 알아보기",
+      "free": "무료 운세 보기",
+      "library": "구매한 상담 보기"
     }
   },
   "footer": {

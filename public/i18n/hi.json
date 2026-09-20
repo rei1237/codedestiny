@@ -1452,6 +1452,11 @@
       "pass": "पास",
       "login": "लॉग इन करें",
       "account": "मेरा खाता"
+    },
+    "reformActions": {
+      "consult": "Yeongnyangi की रीडिंग जानें",
+      "free": "निःशुल्क रीडिंग देखें",
+      "library": "खरीदी गई रीडिंग देखें"
     }
   },
   "terms": {
