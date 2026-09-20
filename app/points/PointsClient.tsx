@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
 
@@ -151,6 +151,9 @@ type MonthlyCreditLedgerItem = {
 };
 
 type ConfirmSubscriptionResponse = {
+  code?: string;
+  activationPending?: boolean;
+  pollUrl?: string;
   purchaseType?: "SELF" | "GIFT";
   giftId?: string;
   message?: string;
@@ -365,6 +368,15 @@ function getPaymentErrorStatus(error: unknown): number | null {
 
 function isUncertainSubscriptionConfirmError(error: unknown): boolean {
   return isUncertainPaymentConfirmError(error);
+}
+
+function assertSubscriptionGrantReady(data: ConfirmSubscriptionResponse): void {
+  if (data.code === "GRANT_PENDING" || data.activationPending === true) {
+    throw Object.assign(new Error("결제는 확인되었으며 이용권 지급을 확인하고 있어요."), {
+      status: 425,
+      code: "GRANT_PENDING",
+    });
+  }
 }
 
 function isUncertainPaymentConfirmError(error: unknown): boolean {
@@ -3843,6 +3855,8 @@ export default function PointsPage() {
           (error as Error & { status?: number }).status = response.status;
           throw error;
         }
+        // HTTP 성공과 이용권 지급 완료는 다르다. 원 주문과 복귀 티켓은 지급 확인까지 보존한다.
+        assertSubscriptionGrantReady(data);
         // 🔴 복귀 예약보다 **먼저** 서버 스냅샷을 무효화한다 — scheduleCheckoutReturn 은 복귀 티켓이
         //    없으면 곧바로 false 로 빠지므로(일반 /points 구매), 거기에 얹으면 그 경로가 통째로 빈다.
         refreshUserAccessAfterPayment().catch(() => {});
@@ -3864,19 +3878,25 @@ export default function PointsPage() {
     [apiBase, scheduleCheckoutReturn],
   );
 
-  const markSubscriptionPaymentUnknown = useCallback(() => {
+  const markSubscriptionPaymentUnknown = useCallback((error?: unknown) => {
+    const grantPending = !!error && typeof error === "object" && "code" in error && error.code === "GRANT_PENDING";
+    const backup = optimisticPassBackupRef.current;
+    if (backup) {
+      setSubscription(backup);
+      optimisticPassBackupRef.current = null;
+    }
     const pendingPayload = pendingSubscriptionConfirmRef.current?.payload;
     const merchantUid = pendingPayload?.merchantUid || "";
     const orderHint = merchantUid ? `\n주문번호 끝자리 ${merchantUid.slice(-4)}` : "";
     setProcessingStage(
       withSubscriptionMethod(
         pendingPayload?.paymentMethod,
-        `결제 결과를 확인하는 데 시간이 걸리고 있어요.\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
+        `${grantPending ? "결제는 확인되었으며 이용권 지급을 확인하고 있어요." : "결제 결과를 확인하는 데 시간이 걸리고 있어요."}\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
       ),
       "subscription",
     );
     setProcessingAction({
-      label: "결제 상태 다시 확인",
+      label: grantPending ? "이용권 지급 다시 확인" : "결제 상태 다시 확인",
       onClick: () => { void subscriptionStatusCheckHandlerRef.current?.(); },
     });
   }, [setProcessingAction, setProcessingStage]);
@@ -3908,7 +3928,7 @@ export default function PointsPage() {
       setIsProcessing(false);
     } catch (error: unknown) {
       if (isUncertainSubscriptionConfirmError(error)) {
-        markSubscriptionPaymentUnknown();
+        markSubscriptionPaymentUnknown(error);
       } else {
         pendingSubscriptionConfirmRef.current = null;
         discardPendingSubscriptionPass();
@@ -4300,7 +4320,7 @@ export default function PointsPage() {
         })
         .catch((error) => {
           if (isUncertainSubscriptionConfirmError(error)) {
-            markSubscriptionPaymentUnknown();
+            markSubscriptionPaymentUnknown(error);
             return;
           }
           pendingSubscriptionConfirmRef.current = null;
@@ -4705,7 +4725,7 @@ export default function PointsPage() {
         setTimeout(() => setShowStarBurst(false), 1200);
       } catch (error: unknown) {
         if (isUncertainSubscriptionConfirmError(error)) {
-          markSubscriptionPaymentUnknown();
+          markSubscriptionPaymentUnknown(error);
           return;
         }
         pendingSubscriptionConfirmRef.current = null;
