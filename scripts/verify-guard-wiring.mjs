@@ -120,6 +120,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:test-account-payment-flow", "테스트 계정 실결제 — 사용자 승인 후 수동"],
   ["verify:test-account-all-paid-services", "테스트 계정 실결제 — 사용자 승인 후 수동"],
   ["verify:fusion-fortune-live", "🔴 초융합 Gemini 실호출(--live) — 사용자 1회 한정 승인 후 수동. 플래그 없이 돌리면 계획만 찍는다"],
+  ["verify:master-love-codex-live", "🔴 인연의 서 Gemini 실호출(--live) — 사용자가 승인한 호출 수 안에서만 수동. 플래그 없이 돌리면 계획만 찍고, code_destiny_staging 외 DB 는 거부한다"],
   ["verify:inicis-local-auth", "로컬 인증 서버 필요"],
   ["verify:play-console-products", "Google Play API 실요청 — 자격증명 필요"],
   ["verify:app-store-pricing", "스토어 가격표 대조 — 릴리스 전 수동"],
