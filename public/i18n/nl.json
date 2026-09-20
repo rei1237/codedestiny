@@ -1431,10 +1431,10 @@
       "consultNavAria": "Bekijk aanbevolen readings"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune met Yeongnyangi",
+      "title": "Kkulkkul Fortune met bloemenbiggetje Yeoni",
       "fusion": "Verken je vragen stap voor stap",
       "intro": "Een zachte richting voor vandaag",
-      "lead": "Begin met een gratis duiding van de grote lijnen. Voor een persoonlijke vraag kun je terecht bij Yeongnyangi, de kat die saju leest.",
+      "lead": "Begin met een gratis duiding en vind samen met bloemenbiggetje Yeoni een richting die bij je gevoel past.",
       "start": "Bekijk mijn gratis lezing",
       "question": "Welke vraag houdt je bezig?",
       "deeper": "Als je een uitgebreider antwoord zoekt",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Ontdek consulten met Yeongnyangi",
       "free": "Gratis duidingen",
-      "library": "Mijn gekochte consulten"
+      "library": "Mijn gekochte consulten",
+      "yeoni": "Mijn duiding met Yeoni",
+      "browse": "Alle duidingen bekijken"
     }
   },
   "terms": {

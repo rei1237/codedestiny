@@ -1431,10 +1431,10 @@
       "consultNavAria": "Voir les lectures proposées"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune avec Yeongnyangi",
+      "title": "Kkulkkul Fortune avec Yeoni, la petite truie fleurie",
       "fusion": "Explorez vos préoccupations pas à pas",
       "intro": "Un repère bienveillant pour votre journée",
-      "lead": "Découvrez les grandes tendances avec une lecture gratuite. Pour une question personnelle, consultez Yeongnyangi, le chat qui interprète le saju.",
+      "lead": "Commencez par une lecture gratuite, puis trouvez avec Yeoni, la petite truie fleurie, une direction qui vous ressemble.",
       "start": "Voir ma lecture gratuite",
       "question": "Quelle question vous préoccupe ?",
       "deeper": "Pour une réponse plus approfondie",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Découvrir les consultations Yeongnyangi",
       "free": "Lectures gratuites",
-      "library": "Mes consultations achetées"
+      "library": "Mes consultations achetées",
+      "yeoni": "Voir mon destin avec Yeoni",
+      "browse": "Explorer toutes les lectures"
     }
   },
   "terms": {

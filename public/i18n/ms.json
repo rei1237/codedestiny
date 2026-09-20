@@ -1431,10 +1431,10 @@
       "consultNavAria": "Lihat bacaan pilihan"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune bersama Yeongnyangi",
+      "title": "Kkulkkul Fortune bersama Yeoni si anak babi bunga",
       "fusion": "Fahami persoalan anda selangkah demi selangkah",
       "intro": "Panduan lembut untuk hari anda",
-      "lead": "Mulakan dengan bacaan nasib percuma. Untuk soalan peribadi, berbual dengan Yeongnyangi, kucing yang membaca saju.",
+      "lead": "Mulakan dengan bacaan nasib percuma, kemudian cari arah yang sesuai dengan hati anda bersama Yeoni si anak babi bunga.",
       "start": "Lihat bacaan percuma saya",
       "question": "Apakah yang ingin anda ketahui?",
       "deeper": "Apabila anda perlukan jawapan lebih mendalam",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Kenali konsultasi Yeongnyangi",
       "free": "Bacaan nasib percuma",
-      "library": "Lihat konsultasi dibeli"
+      "library": "Lihat konsultasi dibeli",
+      "yeoni": "Lihat nasib bersama Yeoni",
+      "browse": "Teroka semua bacaan"
     }
   },
   "terms": {

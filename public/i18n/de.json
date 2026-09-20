@@ -1431,10 +1431,10 @@
       "consultNavAria": "Empfohlene Deutungen ansehen"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune mit Yeongnyangi",
+      "title": "Kkulkkul Fortune mit Blumenferkel Yeoni",
       "fusion": "Ihre Fragen Schritt für Schritt betrachten",
       "intro": "Ein sanfter Impuls für deinen Tag",
-      "lead": "Beginnen Sie mit einer kostenlosen Deutung. Bei persönlichen Fragen hilft Yeongnyangi, die Katze, die Saju deutet.",
+      "lead": "Beginnen Sie mit einer kostenlosen Deutung und finden Sie mit Blumenferkel Yeoni eine Richtung, die zu Ihrem Herzen passt.",
       "start": "Meine Deutung kostenlos ansehen",
       "question": "Welche Frage beschäftigt dich?",
       "deeper": "Wenn du eine ausführlichere Antwort suchst",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Yeongnyangi-Beratungen entdecken",
       "free": "Kostenlose Deutungen",
-      "library": "Meine gekauften Beratungen"
+      "library": "Meine gekauften Beratungen",
+      "yeoni": "Schicksal mit Yeoni deuten",
+      "browse": "Alle Deutungen entdecken"
     }
   },
   "terms": {

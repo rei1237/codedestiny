@@ -1431,10 +1431,10 @@
       "consultNavAria": "Explore featured readings"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune with Yeongnyangi",
+      "title": "Kkulkkul Fortune with Flower Pig Yeoni",
       "fusion": "Explore what is on your mind, step by step",
       "intro": "A little direction for what is on your mind",
-      "lead": "Start with a free fortune reading. For a personal question, talk with Yeongnyangi, the saju-reading cat.",
+      "lead": "Start with a free fortune reading, then find a direction that fits your heart with Flower Pig Yeoni.",
       "start": "Try my free reading",
       "question": "What would you like to explore?",
       "deeper": "When you want a deeper reading",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Explore Yeongnyangi readings",
       "free": "Free fortune readings",
-      "library": "My purchased readings"
+      "library": "My purchased readings",
+      "yeoni": "Read your fortune with Yeoni",
+      "browse": "Explore all readings"
     }
   },
   "terms": {

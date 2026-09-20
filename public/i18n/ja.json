@@ -1431,10 +1431,10 @@
       "consultNavAria": "おすすめの相談を見る"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune、Yeongnyangiと",
+      "title": "Kkulkkul Fortune、花飾りの子ぶたYeoniと",
       "fusion": "今の悩みをひとつずつ",
       "intro": "今の気持ちに、やさしい道しるべを",
-      "lead": "無料占いで基本の流れを確認し、質問があれば四柱推命を読む猫Yeongnyangiに相談してみてください。",
+      "lead": "無料占いで今日の流れを確かめ、花飾りの子ぶたYeoniと今の気持ちに合う方向を見つけてみましょう。",
       "start": "無料の運勢を見てみる",
       "question": "今、何が気になりますか？",
       "deeper": "もう少し深く知りたいときに",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Yeongnyangiの相談を見る",
       "free": "無料占いを見る",
-      "library": "購入した相談を見る"
+      "library": "購入した相談を見る",
+      "yeoni": "Yeoniと運勢を見る",
+      "browse": "すべての占いを見る"
     }
   },
   "terms": {

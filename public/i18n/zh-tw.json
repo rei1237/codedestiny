@@ -1431,10 +1431,10 @@
       "consultNavAria": "查看推薦諮詢"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune，與Yeongnyangi一起",
+      "title": "Kkulkkul Fortune，與花豬 Yeoni 一起",
       "fusion": "一步步梳理眼前的煩惱",
       "intro": "為此刻的心事，找一個溫柔的方向",
-      "lead": "先透過免費運勢了解基本走向。有問題時，可以向解讀四柱命理的貓咪Yeongnyangi諮詢。",
+      "lead": "先透過免費運勢看看今天的走向，再和花豬 Yeoni 一起找到適合當下心境的方向。",
       "start": "查看我的免費運勢",
       "question": "現在，你想了解什麼？",
       "deeper": "想要更深入的解讀時",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "了解Yeongnyangi諮詢",
       "free": "查看免費運勢",
-      "library": "查看已購諮詢"
+      "library": "查看已購諮詢",
+      "yeoni": "與 Yeoni 看運勢",
+      "browse": "瀏覽全部運勢"
     }
   },
   "terms": {

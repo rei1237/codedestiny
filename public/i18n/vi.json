@@ -1431,10 +1431,10 @@
       "consultNavAria": "Xem tư vấn đề xuất"
     },
     "searchEntry": {
-      "title": "Kkulkkul Fortune cùng Yeongnyangi",
+      "title": "Kkulkkul Fortune cùng chú heo hoa Yeoni",
       "fusion": "Từng bước gỡ rối những điều bạn băn khoăn",
       "intro": "Một gợi ý dịu dàng cho ngày hôm nay",
-      "lead": "Xem vận trình cơ bản miễn phí. Nếu có câu hỏi riêng, hãy trò chuyện với Yeongnyangi, chú mèo luận tứ trụ.",
+      "lead": "Bắt đầu với vận mệnh miễn phí, rồi cùng chú heo hoa Yeoni tìm hướng đi phù hợp với lòng bạn.",
       "start": "Xem luận giải miễn phí của tôi",
       "question": "Bạn đang muốn biết điều gì?",
       "deeper": "Khi bạn cần một lời giải sâu hơn",
@@ -1456,7 +1456,9 @@
     "reformActions": {
       "consult": "Tìm hiểu tư vấn Yeongnyangi",
       "free": "Xem vận mệnh miễn phí",
-      "library": "Xem tư vấn đã mua"
+      "library": "Xem tư vấn đã mua",
+      "yeoni": "Xem vận mệnh cùng Yeoni",
+      "browse": "Khám phá mọi vận mệnh"
     }
   },
   "terms": {

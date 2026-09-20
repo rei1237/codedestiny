@@ -95,10 +95,10 @@ export const siteSeo = {
   siteUrl: "https://code-destiny.com",
   defaultLocale: "ko",
   supportedLocales: ["ko"],
-  defaultTitle: "꿀꿀 운세 | 영냥이 사주 상담·무료 사주·타로",
+  defaultTitle: "꿀꿀 운세 | 꽃돼지 연이와 보는 무료 사주·타로",
   titleTemplate: "%s",
   defaultDescription:
-    "꿀꿀 운세(꿀꿀운세)는 명리학자 박병하·네오가 운영합니다. 사주·자미두수·숙요점·타로의 무료 결과와 영냥이의 질문별 유료 상담을 만나보세요.",
+    "꿀꿀 운세는 꽃돼지 연이와 함께 사주·자미두수·숙요점·베다점·점성술·타로의 흐름을 살펴보는 운세 서비스입니다.",
   defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
   twitterCard: "summary_large_image",
   organization: {
