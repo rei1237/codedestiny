@@ -1256,7 +1256,7 @@ function applyPwaThemeAssets(isNeo) {
 }
 
 function syncThemeLogoSources(reason) {
-  var pigLogo = document.getElementById('honeypigLogo');
+  var pigLogo = document.querySelector('#honeypigLogo:not([data-character="yeongnyangi"])');
   var neoLogo = document.getElementById('neoLogo');
   logThemeLogoSync(reason, 'before', pigLogo, neoLogo);
 

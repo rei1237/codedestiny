@@ -2,17 +2,15 @@
 /**
  * llms.txt 생성기 (https://llmstxt.org).
  *
- * ChatGPT·Claude·Perplexity 같은 비Google 엔진이 사이트를 설명할 때 참조하는 컨텍스트 파일이다.
- * 🔴 Google 을 위한 작업이 아니다 — Google 은 "AI Overviews·AI Mode 에 별도 파일이 필요 없다"고
- * 명시했다. 그래도 손해가 없고, 사주·자미두수·숙요점처럼 **용어 자체가 설명을 요구하는 도메인**은
- * 기계가 읽을 수 있는 정의가 있어야 인용 후보가 된다.
+ * 공개 서비스 정보를 정리하는 선택적 안내 파일입니다. 검색 순위·AI 인용이나 추천을 보장하지 않습니다.
+ * 검색 노출의 기반은 색인 가능한 본문과 링크, 접근 허용, 정확한 서비스 설명입니다.
  *
  * 🔴 손으로 쓰지 않는다. 문구는 lib/seo/entity-registry.mjs 에서 **파생**한다 —
  *    그 레지스트리가 브랜드 별칭·허브 의도의 정본이고 verify:seo-entity-registry 가 지킨다.
  *    여기에 설명을 다시 적으면 두 벌이 되어 조용히 갈라진다(CLAUDE.md 원칙 10).
  *
- * 🔴 가격을 적지 않는다. 이 레포의 재화 구조는 이용권·월정석·코인이고 코인은 폐지된 개념이라
- *    사용자에게 KRW 환산으로만 보여야 한다(docs/context/payment-gating.md). 금액을 문서에 박으면
+ * 🔴 가격을 적지 않는다. 결제 안내는 이용권·월정석·단건 결제를 유지한다.
+ *    금액은 기존 가격 레지스트리에서 읽는다. 금액을 문서에 박으면
  *    실제 가격과 갈라지는 순간 잘못된 정보를 AI 에게 먹인다. 라이브 페이지로 링크만 한다.
  *
  * 🔴 사이트맵에 넣지 않는다 — verify-adsense-readiness 가 사이트맵 라우트에 HTML 산출물과
@@ -20,7 +18,7 @@
  *
  * 출력은 robots.txt·ads.txt 와 같은 패턴으로 **루트 + public/ 양쪽**에 쓴다.
  */
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -47,7 +45,7 @@ const SECTIONS = [
   },
   {
     heading: "통합 리포트",
-    paths: ["/fusion-fortune"],
+    paths: ["/yeongnyangi/1000-won-fortune", "/fusion-fortune", "/human-design/guide"],
   },
   {
     heading: "읽을거리와 방법론",
@@ -79,11 +77,13 @@ lines.push("");
 // 첫 문단은 자립형 정의다 — AI 는 페이지가 아니라 구절을 뽑아 간다.
 lines.push(
   "> 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 " +
-    "운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 결과 문장은 AI 가 생성합니다.",
+    "운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 무료 기본 결과와 선택형 유료 AI 상담의 범위는 각 안내 페이지에서 구분합니다.",
 );
 lines.push("");
 lines.push(`- 사이트: ${siteBaseUrl}/`);
 lines.push(`- 다른 이름: ${aliasLine}`);
+lines.push(`- 운영자: 박병하(네오). 공개 분석 활동: https://blog.naver.com/neosaju · 소개: ${siteBaseUrl}/about/#author`);
+lines.push(`- 공식 서비스 블로그: https://blog.naver.com/goodbyejieun`);
 lines.push(`- 캐릭터 브랜드: ${SEO_BRAND_ENTITY.characterBrand}`);
 lines.push(`- 언어: 한국어(기본), 일본어 \`/ja/\`, 중국어 간체 \`/zh/\`, 중국어 번체 \`/zh-tw/\`, 영어 \`/en/\``);
 lines.push("");
@@ -132,7 +132,9 @@ lines.push("");
 const body = `${lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd()}\n`;
 
 for (const target of [resolve(rootDir, "llms.txt"), resolve(rootDir, "public", "llms.txt")]) {
-  writeFileSync(target, body, "utf8");
+  if (process.argv.includes("--check")) {
+    if (readFileSync(target, "utf8") !== body) throw new Error(`[llms.txt] stale: ${target}`);
+  } else writeFileSync(target, body, "utf8");
 }
 
 console.log(`[llms.txt] Generated ${body.length} chars -> llms.txt, public/llms.txt`);

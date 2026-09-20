@@ -24,7 +24,7 @@ export const SITE_AUTHOR = {
   jobTitle: "명리학자",
   description: "10년 경력의 명리학자. Code Destiny 가 공개하는 사주·운세 콘텐츠의 최종 검수 책임자입니다.",
   knowsAbout: ["사주", "명리학", "만세력", "자미두수", "숙요점"],
-  sameAs: [] as string[],
+  sameAs: ["https://blog.naver.com/neosaju"] as string[],
 } as const;
 
 /**
@@ -36,6 +36,7 @@ export function buildAuthorPersonJsonLd() {
     "@type": "Person",
     "@id": `${siteSeo.siteUrl}/#author`,
     name: SITE_AUTHOR.name,
+    alternateName: "네오",
     jobTitle: SITE_AUTHOR.jobTitle,
     description: SITE_AUTHOR.description,
     knowsAbout: SITE_AUTHOR.knowsAbout,

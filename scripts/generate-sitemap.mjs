@@ -177,6 +177,7 @@ const coreRoutes = [
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.85 },
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 영냥이 고등어(1,000원) 상담만 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
+  { path: "/human-design/guide", changefreq: "monthly", priority: 0.7 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },

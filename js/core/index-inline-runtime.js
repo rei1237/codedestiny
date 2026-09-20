@@ -1952,9 +1952,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5f29f46c2ce1'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5f29f46c2ce1'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-5f29f46c2ce1'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-1acff9ff508f'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-1acff9ff508f'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-1acff9ff508f'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2287,7 +2287,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-1653bb101a91')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-d409d6e8ab5d')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;

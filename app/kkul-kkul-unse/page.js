@@ -18,7 +18,7 @@ const SEO = {
 };
 
 const BRAND_ALIAS_SENTENCE =
-  "CODE DESTINY는 CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY로도 표기되는 같은 공식 서비스입니다.";
+  "꿀꿀 운세는 꿀꿀운세로 붙여 쓰기도 하는 한국어 서비스명입니다. Code Destiny는 영문 플랫폼 이름이며, 사주보는 고양이 영냥이는 대표 상담 콘텐츠입니다. 기존 꽃돼지 캐릭터와 운세 서비스도 같은 사이트에서 계속 이용할 수 있습니다.";
 
 const FUSION_FORTUNE_SUMMARY =
   "초융합 운세는 사주, 자미두수, 숙요점, 베다 점성술(Jyotish), 서양 점성술, 타로처럼 서로 다른 체계의 관점을 AI가 교차해 하나의 자기성찰 리포트로 정리하는 CODE DESTINY의 대표 해석 방법론입니다.";

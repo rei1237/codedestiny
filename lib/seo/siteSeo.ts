@@ -63,7 +63,7 @@ export const siteSeo = {
    * 사이트 이름을 채택하므로, 갈린 동안에는 어느 이름도 잡히지 않았다 — "꿀꿀 운세"로 검색해도
    * 이 사이트가 나오지 않던 상태의 원인이다. 가드: `__tests__/ui/site-name-signals.static.test.js`
    */
-  siteName: "Code Destiny",
+  siteName: "꿀꿀 운세",
   /**
    * `WebSite` 엔티티의 이름 = 서비스 브랜드.
    *
@@ -95,10 +95,10 @@ export const siteSeo = {
   siteUrl: "https://code-destiny.com",
   defaultLocale: "ko",
   supportedLocales: ["ko"],
-  defaultTitle: "무료 사주팔자 · 타로 · 오늘의 운세 | Code Destiny",
+  defaultTitle: "꿀꿀 운세 | 영냥이 사주 상담·무료 사주·타로",
   titleTemplate: "%s",
   defaultDescription:
-    "Code Destiny는 무료 사주팔자, 만세력, 타로, 오늘의 운세, 궁합, 자미두수, 점성술, 숙요점 해석을 한곳에서 제공하는 한국어 운세 플랫폼입니다.",
+    "꿀꿀 운세(꿀꿀운세)는 명리학자 박병하·네오가 운영합니다. 사주·자미두수·숙요점·타로의 무료 기본 결과를 확인하고, 대표 콘텐츠 영냥이에서 질문에 맞춘 유료 상담을 선택하세요.",
   defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
   twitterCard: "summary_large_image",
   organization: {
