@@ -1952,9 +1952,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-1acff9ff508f'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-1acff9ff508f'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-1acff9ff508f'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-3dee06af4e48'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-3dee06af4e48'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-3dee06af4e48'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};

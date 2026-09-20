@@ -241,7 +241,7 @@ test("the preview smoke only forgives 404s that cannot be app defects", () => {
     "같은 출처의 앱 자산 404 를 여전히 무시합니다",
   );
   assert.equal(ignorable(line(`https://${previewHost}/styles/core-ui.css?v=build-abc`)), false, "같은 출처 CSS 404 를 무시합니다");
-  assert.equal(ignorable(line(`https://${previewHost}/icons/neo.webp`)), false, "같은 출처 이미지 404 를 무시합니다");
+  assert.equal(ignorable(line(`https://${previewHost}/icons/yeongnyangi.webp`)), false, "같은 출처 이미지 404 를 무시합니다");
 
   // 프리뷰에서 404 가 정상인 셋.
   assert.equal(ignorable(line(`https://${previewHost}/cdn-cgi/rum?`)), true, "Cloudflare RUM 404 를 실패로 봅니다");

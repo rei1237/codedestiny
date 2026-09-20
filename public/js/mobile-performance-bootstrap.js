@@ -233,8 +233,8 @@ function __applyResponsiveSrcsetHints(img) {
       width: 130,
       height: 130
     },
-    '/icons/neo.webp': {
-      srcset: '/icons/neo-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/neo-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/neo.webp?v=20260511-mobile-logo-fix4 512w',
+    '/icons/yeongnyangi.webp': {
+      srcset: '/icons/yeongnyangi-96.webp?v=20260920-yeongnyangi-v1 96w, /icons/yeongnyangi-130.webp?v=20260920-yeongnyangi-v1 130w, /icons/yeongnyangi.webp?v=20260920-yeongnyangi-v1 512w',
       sizes: '(max-width: 768px) 88px, 130px',
       width: 130,
       height: 130
@@ -273,9 +273,9 @@ function __applyResponsiveSrcsetHints(img) {
   }
 
   if ((cls.indexOf('neo-logo-icon') !== -1 || id === 'neoLogo') && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', srcsetHints['/icons/neo.webp'].srcset);
-    img.setAttribute('sizes', srcsetHints['/icons/neo.webp'].sizes);
-    byPath = srcsetHints['/icons/neo.webp'];
+    img.setAttribute('srcset', srcsetHints['/icons/yeongnyangi.webp'].srcset);
+    img.setAttribute('sizes', srcsetHints['/icons/yeongnyangi.webp'].sizes);
+    byPath = srcsetHints['/icons/yeongnyangi.webp'];
   }
 
   if (id === 'dfStudioImage' && !img.getAttribute('srcset')) {

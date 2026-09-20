@@ -1136,15 +1136,15 @@ if (typeof window !== 'undefined') {
 var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
 var THEME_MODE_STATE_META_KEY = 'fortuneThemeModeStateMetaV1';
 var THEME_MODE_STATE_SCHEMA = '20260511-theme-state-v2';
-var THEME_LOGO_REV = '20260511-mobile-logo-fix4';
+var THEME_LOGO_REV = '20260920-yeongnyangi-v1';
 // 🔴 로고만 맨 URL 을 쓴다(`?v=` 금지). head 의 preload·부트게이트·히어로·결제 오버레이 CSS 배경이
 //    전부 `/icons/app-logo-512.webp` 를 공유하는데 여기만 키를 붙이면 같은 파일이 두 번 내려온다.
 //    커밋 5c7abb303 이 정리한 "네 소비자가 맨 URL 하나를 공유한다" 계약. THEME_LOGO_REV 는
 //    매니페스트·네오 아이콘에는 그대로 쓴다(그쪽은 preload 와 URL 을 공유하지 않는다).
 var PIG_LOGO_URL = '/icons/app-logo-512.webp';
 var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
-var NEO_LOGO_URL = '/icons/neo.webp?v=' + THEME_LOGO_REV;
-var NEO_LOGO_SRCSET = '/icons/neo-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/neo-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + NEO_LOGO_URL + ' 512w';
+var NEO_LOGO_URL = '/icons/yeongnyangi.webp?v=' + THEME_LOGO_REV;
+var NEO_LOGO_SRCSET = '/icons/yeongnyangi-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/yeongnyangi-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + NEO_LOGO_URL + ' 512w';
 
 function ensureThemeModeStateSchema() {
   try {
@@ -1256,7 +1256,7 @@ function applyPwaThemeAssets(isNeo) {
 }
 
 function syncThemeLogoSources(reason) {
-  var pigLogo = document.querySelector('#honeypigLogo:not([data-character="yeongnyangi"])');
+  var pigLogo = document.querySelector('#honeypigLogo:not([data-character="yeoni"])');
   var neoLogo = document.getElementById('neoLogo');
   logThemeLogoSync(reason, 'before', pigLogo, neoLogo);
 

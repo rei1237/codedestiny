@@ -22,8 +22,8 @@
       srcset: '/icons/app-logo-512.webp 512w',
       sizes: '(max-width: 360px) 78px, (max-width: 768px) 88px, 130px'
     },
-    '/icons/neo.webp': {
-      srcset: '/icons/neo-96.webp?v=20260511-mobile-logo-fix4 96w, /icons/neo-130.webp?v=20260511-mobile-logo-fix4 130w, /icons/neo.webp?v=20260511-mobile-logo-fix4 512w',
+    '/icons/yeongnyangi.webp': {
+      srcset: '/icons/yeongnyangi-96.webp?v=20260920-yeongnyangi-v1 96w, /icons/yeongnyangi-130.webp?v=20260920-yeongnyangi-v1 130w, /icons/yeongnyangi.webp?v=20260920-yeongnyangi-v1 512w',
       sizes: '(max-width: 768px) 88px, 130px'
     },
     '/fuctionassets/flower.webp': {
@@ -128,8 +128,8 @@
       img.setAttribute('sizes', SRCSET_HINTS['/icons/app-logo-512.webp'].sizes);
     }
     if ((img.id === 'neoLogo' || (img.className || '').indexOf('neo-logo-icon') !== -1) && !img.getAttribute('srcset')) {
-      img.setAttribute('srcset', SRCSET_HINTS['/icons/neo.webp'].srcset);
-      img.setAttribute('sizes', SRCSET_HINTS['/icons/neo.webp'].sizes);
+      img.setAttribute('srcset', SRCSET_HINTS['/icons/yeongnyangi.webp'].srcset);
+      img.setAttribute('sizes', SRCSET_HINTS['/icons/yeongnyangi.webp'].sizes);
     }
 
     if (img.id === 'dfStudioImage' && !img.getAttribute('srcset')) {
