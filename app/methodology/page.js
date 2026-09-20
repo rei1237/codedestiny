@@ -18,6 +18,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     relatedAria: "방법론 관련 링크",
     faq: "자주 묻는 질문",
     insightGuide: "운세 인사이트 가이드",
+    humanDesignGuide: "휴먼 디자인 계산과 이용 안내",
     disclaimer: "면책 고지",
     contact: "문의하기",
     sections: [
@@ -67,6 +68,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     relatedAria: "Methodology related links",
     faq: "FAQ",
     insightGuide: "Fortune Insight Guide",
+    humanDesignGuide: "Human Design calculation and usage guide",
     disclaimer: "Disclaimer",
     contact: "Contact",
     sections: [
@@ -85,6 +87,7 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
     relatedAria: "方法論関連リンク",
     faq: "よくある質問",
     insightGuide: "運勢インサイトガイド",
+    humanDesignGuide: "ヒューマンデザインの計算と使い方",
     disclaimer: "免責事項",
     contact: "お問い合わせ",
     sections: [
@@ -138,6 +141,7 @@ export default function MethodologyPage() {
       <nav className="cd-chip-wrap" aria-label={methodologyCopy.relatedAria}>
         <Link href="/faq" className="cd-chip">{methodologyCopy.faq}</Link>
         <Link href="/guides" className="cd-chip">{methodologyCopy.insightGuide}</Link>
+        <Link href="/human-design/guide/" className="cd-chip">{methodologyCopy.humanDesignGuide}</Link>
         <Link href="/disclaimer" className="cd-chip">{methodologyCopy.disclaimer}</Link>
         <Link href="/contact" className="cd-chip">{methodologyCopy.contact}</Link>
       </nav>
