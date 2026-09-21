@@ -192,3 +192,17 @@ node scripts/seo-public-smoke.mjs
 정책 판단 참고: [Google 색인 보고서](https://support.google.com/webmasters/answer/7440203), [중복 URL 정규화](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls). 모든 발견 URL의 색인이 목표는 아니며 의도된 제외와 기술적 차단을 구분한다.
 
 - Naver 콘텐츠 확산(9/21 갱신): dcinside.com 연결 페이지 156, naver.com 79. 원문 URL/편집 인용 여부는 보고서에 없으므로 신규 획득 링크나 고품질 referring domains로 집계하지 않는다. GSC의 두 도메인과 서로 다른 검색엔진 관측 범위다.
+
+## 2026-09-21 Google 저노출 집중 개선
+
+- 같은 날 GSC 직접 조치·보안 문제는 모두 `감지된 문제 없음`. 이는 알고리즘상 품질 평가나 모든 색인 문제의 부재를 뜻하지 않는다.
+- 검색어 `숙요점`을 실제 필터하고 페이지 탭 확인: 속성 1클릭/8노출/12.5%/23위. `/sukuyo/` 1/5, friendship-teamwork-guide 0/2, insights 허브·sukuyo 입문·oracle/sukuyo 각 0/1. 집계 기간 6/19–9/18. 페이지별 노출의 합계는 속성 집계와 다르며, 8회 표본으로 키워드 잠식을 확정하지 않는다.
+- **확인한 품질 결함:** 공개 `/js/core/sukuyo-astronomy.js`는 `geocentric-sidereal-moon-longitude-lahiri`를 사용하지만 `/sukuyo/`와 `/insights/sukuyo-27-mansions/`는 음력 날짜표 안내를 제공했다. 코어는 9/10 변경됐고 설명 문서가 뒤따르지 못했다. 기술적 색인 허용만 확인하던 검사가 잡지 못한 제품·콘텐츠 불일치다.
+- 현행 계산기를 고치지 않고 기존 안내 8개를 수정했다: 숙요 랜딩, 숙요 guide, 숙요/베다 비교, 숙요 입문, 궁합 가이드, 27숙, 본명숙/월명숙, 숙요/사주 비교. 입력 시각·시간대, 라히리 항성황경, 날짜표 방식과의 차이를 명시했다. 27숙에는 0도→묘숙/20도→필숙의 배정 예시를 추가하고 실제 생일 사례가 아님을 밝혔다. 본문 예시와 현행 코어를 연결한 회귀 검사 3개 통과.
+- 대표 랜딩의 앞쪽 관련 링크에 27숙 계산 안내와 숙요/베다 비교 자료를 넣었다. 기존 서버 렌더링 링크 구조를 재사용했다. 신규 URL·라우팅·광고 허용·계산·가격·결제·인증 변경 없음.
+- 변경된 5개 인사이트 원고에 실제 수정일을 기록하고 해당 AI 검토 hash를 갱신했다. `humanReview: unconfirmed`, `adsAllowed: false` 유지. 전문가 검수나 AdSense 승인으로 승격하지 않는다.
+- 아직 수정하지 않은 숙요 연애·결혼 원고의 유형별 빈도/안정성 주장은 다음 검수 대상이다. 한계 문단이 있다는 이유만으로 본문의 단정을 정당화하지 않는다.
+- 일본 검색 표본에서는 [大久保 계산 도구](https://www.senjutsu.jp/labo/shukuyo-calc), [omajinai 계산 안내](https://omajinai.co.jp/shukuyo/), [digtools](https://tools.digrart.jp/shukuyo-calculator/)처럼 입력→계산 방법→관계/자료 연결을 제공하는 페이지가 발견됐다. 위치·로그인 조건을 통제한 Google 순위 측정은 아니며, 이들의 정확성·효과를 검증한 것은 아니다. 날짜표 방식과 이 서비스 구현을 혼동하지 않는 설명이 차별화 자료의 출발점이다.
+- 평가 기준: 운영 반영일을 확인한 다음 28일 동안 같은 핵심 URL 집단의 노출·비브랜드 검색어·클릭·색인을 비교한다. 아직 운영 배포하지 않아 성과 측정 시작일은 null. 새 날짜별 URL 수와 핵심 가이드의 실적을 합쳐 개선 효과로 보고하지 않는다.
+
+이번 단계는 Google의 [사람에게 유용한 콘텐츠 평가 기준](https://developers.google.com/search/docs/fundamentals/creating-helpful-content)에 맞춰 검증 가능한 제품 설명을 강화한다. 검색 노출 증가나 AdSense 승인을 보장하지 않는다.

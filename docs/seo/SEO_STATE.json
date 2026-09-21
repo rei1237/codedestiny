@@ -536,7 +536,8 @@
     "언어별 사이트맵을 누락으로 오판하는 일일 검사 수정. 실제 선언 5개 fetch 및 통합 sitemap 1283개 URL 포함 여부 검증.",
     "GSC 3개월/28일 실측 및 색인 13개 사유 갱신, 이전 관측 전체 보존.",
     "KR/JP 기존 후보 5개 본문 재검토. 확인 불가 평점은 올리지 않고 발송 0건 유지.",
-    "영어·일본어·간체·번체 운세 근거의 달 위상을 단일 번역으로 수정. gibbous와 quarter 구분, 계산값 및 한국어 원본 유지."
+    "영어·일본어·간체·번체 운세 근거의 달 위상을 단일 번역으로 수정. gibbous와 quarter 구분, 계산값 및 한국어 원본 유지.",
+    "Google 핵심 숙요 페이지 및 기존 안내 8곳의 오래된 계산 설명을 현행 달 황경 코어와 대조·수정. 검산 예시, 시간 미상 한계, 내부 링크 보강."
   ],
   "adsense": {
     "status": "needs-attention",
@@ -565,6 +566,7 @@
     "observedAt": "2026-09-21"
   },
   "nextActions": [
+    "숙요 계산 안내 수정의 운영 반영 후 28일 동일 페이지 집단 비교. 배포 전 수치를 개선 후 성과로 집계하지 않음.",
     "다음 색인 보고서에서 날짜별/다국어 미색인 표본을 동일 경로로 비교. 30일 만료 URL과 안정된 핵심 문서 구분.",
     "네이버 내일 전갈자리(70/26225, CTR 0.3%) 등 낮은 CTR 페이지의 검색어 필터 근거를 확보한 후 제목/도입부 개선. 별도 검색어 집계로 원인을 단정하지 않음.",
     "AdSense 저가치 콘텐츠 검수와 인증 CMP 게시/실제 동의 흐름 확인. 이번 번역 수정은 승인 준비 완료나 운영 반영 증거가 아님."
@@ -1114,5 +1116,84 @@
       "indexedPages": null,
       "note": "Search Advisor가 로그인 화면으로 이동. 이전 데이터는 history에 보존."
     }
-  ]
+  ],
+  "googleOptimization": {
+    "observedAt": "2026-09-21",
+    "period": {
+      "start": "2026-06-19",
+      "end": "2026-09-18",
+      "searchType": "web",
+      "country": "all",
+      "device": "all"
+    },
+    "manualActions": "no issues detected",
+    "securityIssues": "no issues detected",
+    "queryPageObservation": {
+      "query": "숙요점",
+      "match": "exact",
+      "property": {
+        "clicks": 1,
+        "impressions": 8,
+        "ctr": 12.5,
+        "position": 23
+      },
+      "pages": [
+        {
+          "page": "/sukuyo/",
+          "clicks": 1,
+          "impressions": 5
+        },
+        {
+          "page": "/insights/sukuyo-friendship-teamwork-guide/",
+          "clicks": 0,
+          "impressions": 2
+        },
+        {
+          "page": "/insights/",
+          "clicks": 0,
+          "impressions": 1
+        },
+        {
+          "page": "/insights/sukuyo/",
+          "clicks": 0,
+          "impressions": 1
+        },
+        {
+          "page": "/oracle/sukuyo/",
+          "clicks": 0,
+          "impressions": 1
+        }
+      ],
+      "note": "실제 검색어 필터 후 페이지 표 조회. 페이지별 노출 합계는 속성 노출과 같지 않을 수 있음. 8회로 키워드 잠식/제재 원인 단정 불가."
+    },
+    "confirmedProblem": "공개 숙요 JS는 항성 달 황경을 사용하지만 공개 랜딩과 27숙 글은 음력 날짜표라고 안내. 코드와 본문 간 불일치 확인.",
+    "changedPages": [
+      "/sukuyo/",
+      "/sukuyo/guide/",
+      "/compare/sukuyo-vs-vedic/",
+      "/insights/sukuyo-what-is/",
+      "/insights/sukuyo-compatibility-guide/",
+      "/insights/sukuyo-27-mansions/",
+      "/insights/sukuyo-bonmyeongsuk-vs-wolmyeongsuk/",
+      "/insights/sukuyo-vs-saju-compatibility/"
+    ],
+    "monitoring": {
+      "baselineObservedAt": "2026-09-21",
+      "baselineEnd": "2026-09-18",
+      "productionReleasedAt": null,
+      "postReleaseWindowDays": 28,
+      "metrics": [
+        "page impressions",
+        "non-brand query impressions",
+        "clicks",
+        "indexed state"
+      ],
+      "note": "배포 완료일이 아직 없으므로 개선 후 기간을 시작하지 않음. 동일 필터/기간 비교 및 신규 URL 집단과 분리."
+    },
+    "remaining": [
+      "숙요 연애·결혼 글의 유형별 빈도/안정성 일반화는 후속 독립 가치 검수 대상. 이번 수정으로 전체 원고 감수 완료를 주장하지 않음.",
+      "색인 292개가 모든 검색어에 경쟁력이 있다는 뜻은 아님. 노출 부족의 단일 원인은 미확정.",
+      "한국어 계산 설명의 정합성을 먼저 수정. 해외 모든 안내와 전체 실행 경로 전수 검증은 미완료."
+    ]
+  }
 }
