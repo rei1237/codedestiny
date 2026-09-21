@@ -10,12 +10,13 @@ next: constants/nakshatra-fusion.js의 27개 융합 해설이 현행 CROSSWALK_O
 
 ### 9/21 P1: 숙요 연애·결혼 주장과 나크샤트라 대응 설명 검증 완료
 
-- 구현 커밋: `50e6b41f8` (`fix(seo): qualify sukuyo and nakshatra claims`). 기준 커밋 `5817e5149` 이후 변경을 보존했고 기존 `D:\wt\seo-20260921-121321`에서 작업했다. main의 마케팅 미커밋 파일은 수정·스테이징하지 않았다.
+- 구현 커밋: `50e6b41f8` (`fix(seo): qualify sukuyo and nakshatra claims`), 검색 제목 폭 보정 커밋: `b2ee962c7` (`fix(seo): keep nakshatra title within budget`). 기준 커밋 `5817e5149` 이후 변경을 보존했고 기존 `D:\wt\seo-20260921-121321`에서 작업했다. main의 마케팅 미커밋 파일은 수정·스테이징하지 않았다.
 - 숙요 연애·결혼: 영친·업태·안괴·명·성위·우쇠의 전통 상징을 재회 빈도·끌림 강도·갈등 빈도·결혼 지속성 관찰값처럼 말하던 표현을 제거했다. 본문·검색 제목·메타·생성 읽기 자료를 실제 대화·동의·행동 기록과 대조하는 안내로 맞췄다.
 - 나크샤트라: 중국 28수와 인도 나크샤트라를 역사적으로 완전히 같은 체계 또는 27:27 고정 번역표라고 설명하지 않는다. 역사적 관련성과 서비스 내부의 공통 항성 달 황경 27등분·`CROSSWALK_OFFSET=11` 인덱스 정렬을 구분했다. 랜딩의 하드코딩 대응표를 현행 `NAKSHATRA_CROSSWALK` 정본에서 렌더하도록 바꿨다.
 - 출처: 중국 28수와 인도 나크샤트라가 기능적으로 대응하지만 실제 체계는 다르다는 학술 논문([Religions 14(10), 1276](https://doi.org/10.3390/rel14101276))과, 중국 28수·숙요경 계열 27수의 차이 및 우수(牛宿) 생략을 설명하는 [일본 국립천문대 역Wiki](https://eco.mtk.nao.ac.jp/koyomi/wiki/C6F3BDBDC8ACBDC9.html)를 공개 설명에 연결했다.
 - 편집 경계: AI 편집 검토 해시를 새 원고에 맞춰 갱신했지만 `humanReview: unconfirmed`, `adsAllowed: false`는 유지했다. 결제·가격·인증·API·DB·계산 코어는 변경하지 않았다.
-- 로컬 검증: `npm run check:fast -- --plan`, `npm run check:fast` exit 0. Jest 288 suites/4,039 tests, Node 1,516 tests, paid-gate 88/88, Worker dry-run, lint, typecheck, sitemap 1,283 URL, `verify:nakshatra-flow`, 편집 원고 무결성 검사가 통과했다. 실결제·실 LLM·운영 DB·운영 배포는 실행하지 않았다.
+- 로컬 검증: `npm run check:fast -- --plan`, `npm run check:fast` exit 0. 보정 후 Jest 288 suites/4,039 tests, Node 1,517 tests, paid-gate 88/88, Worker dry-run, lint, typecheck, sitemap 1,283 URL, `verify:nakshatra-flow`, 편집 원고 무결성 검사가 통과했다. 실결제·실 LLM·운영 DB·운영 배포는 실행하지 않았다.
+- 전달 완료: `b2ee962c7`까지 main fast-forward·push 완료. 첫 CI는 나크샤트라 문서 제목 표시 폭 61로 실패했고 검색 전용 제목을 60 이하로 줄인 뒤 회귀 검사를 추가했다. [main CI 35595822967](https://github.com/rei1237/codedestiny/actions/runs/35595822967)의 `Build Pages and Worker`, `Static guards`, `Critical checks`, `Typecheck and lint`, `CI required`가 모두 성공했다. 통합 전후 main 상태 및 `marketing/**` diff 해시가 동일함을 확인했다.
 - 남은 위험: `constants/nakshatra-fusion.js`의 융합 제목·서술은 과거 대표 별 대응(예: 각수=Chitra)을 담고 있어 현행 서비스 계산 정렬(각수=Uttara Phalguni)과 의미가 어긋날 가능성이 있다. 이번 공개 SEO 설명 수정과 분리해 27개를 전수 대조해야 한다.
 
 ### 9/21 후속 작업: 핵심 12개 조사와 P0 수정 완료
