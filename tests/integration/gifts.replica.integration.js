@@ -33,11 +33,11 @@ beforeEach(async () => {
 afterAll(async () => { await mongoose.connection.dropDatabase(); await mongoose.disconnect(); });
 // Historical purchase fixture. New sales stay closed; exercise the real resume path.
 async function createPassOrder(connection, input) {
-  const { userId, plan, idempotencyKey, purchaseType, giftDraft } = input;
+  const { userId, plan, idempotencyKey, purchaseType, giftDraft, foreignCard = null } = input;
   await Payment.collection.insertOne({ userId, merchantUid: await derivePassOrderId(userId, idempotencyKey, plan.tier),
     idempotencyKey, paymentType: "membership_pass", purchaseType, paymentAmount: plan.wonPrice,
     expectedChargedPoints: 0, chargedPoints: 0, paymentMethod: "card_general", status: "pending", orderState: "PENDING",
-    source: "prepare", subscriptionTier: plan.tier, productId: plan.planId, confirmAttempts: 0,
+    foreignCard, source: "prepare", subscriptionTier: plan.tier, productId: plan.planId, confirmAttempts: 0,
     metadata: { giftDraft, planId: plan.planId, durationMonths: 1, durationDays: 30, productType: "membership_pass", currency: "KRW",
       ...(plan.passPolicyVersion !== "legacy" ? { passPolicyVersion: plan.passPolicyVersion } : {}) }, createdAt: now, updatedAt: now });
   return resumePassOrder(connection, input);
@@ -174,14 +174,21 @@ test("gift prepare bypasses buyer tier, binds intent and does not reuse SELF key
   const auth = await signAuthToken({ _id: String(purchaser), email: "test@example.test", role: "user" }, env);
   const post = body => handlePaymentsContext(new Request("https://code-destiny.com/api/payments/subscription/prepare", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://code-destiny.com", Authorization: `Bearer ${auth}` }, body: JSON.stringify(body) }), env, { withDb: (_e, _c, fn) => fn(db) });
   const body = { tier: "standard", durationMonths: 1, purchaseType: "GIFT", idempotencyKey: "bound", gift: { giftMessage: "hello" } };
+  const oldPlan = resolvePassPlan("standard", 1);
+  await createPassOrder(db, { userId: purchaser, plan: oldPlan, idempotencyKey: body.idempotencyKey, purchaseType: "GIFT", giftDraft: giftDraftFor(body.gift, oldPlan) });
   const res = await post(body); expect(res.status).toBe(201);
   expect((await res.json()).order.purchaseType).toBe("GIFT");
   expect((await post({ ...body, gift: { giftMessage: "changed" } })).status).toBe(409);
   expect(await Gift.countDocuments()).toBe(1);
 });
-test("gift prepare snapshots the foreign card decision from the membership_pass_gift row", async () => {
+test("gift prepare preserves the historical foreign card decision", async () => {
   const auth = await signAuthToken({ _id: String(purchaser), email: "test@example.test", role: "user" }, env);
   const post = (flagEnv, idempotencyKey) => handlePaymentsContext(new Request("https://code-destiny.com/api/payments/subscription/prepare", { method: "POST", headers: { "Content-Type": "application/json", Origin: "https://code-destiny.com", Authorization: `Bearer ${auth}` }, body: JSON.stringify({ tier: "standard", durationMonths: 1, purchaseType: "GIFT", idempotencyKey, gift: {} }) }), flagEnv, { withDb: (_e, _c, fn) => fn(db) });
+  const oldPlan = resolvePassPlan("standard", 1);
+  for (const [key, offered, reason] of [["foreign-card-on", true, "ELIGIBLE"], ["foreign-card-off", false, "FLAG_OFF"]]) {
+    await createPassOrder(db, { userId: purchaser, plan: oldPlan, idempotencyKey: key, purchaseType: "GIFT", giftDraft: giftDraftFor({}, oldPlan),
+      foreignCard: { offered, reason, policyVersion: FOREIGN_CARD_POLICY_VERSION, decidedAt: now } });
+  }
   const on = await post({ ...env, FOREIGN_CARD_ENABLED: "1" }, "foreign-card-on"); expect(on.status).toBe(201);
   const order = (await on.json()).order;
   expect(order.foreignCard).toEqual({ offered: true, reason: "ELIGIBLE", policyVersion: FOREIGN_CARD_POLICY_VERSION });
@@ -268,7 +275,7 @@ test("new VVIP gift keeps its policy and budget after transactional claim", asyn
 test("new gift waits for old policy expiry without consuming the gift", async () => {
   const { gift, tokenHash } = await paidGift("vvip", "current");
   await User.collection.updateOne({ _id: receiver }, { $set: { profileSubscription: { tier: "vvip", expiresAt: new Date(now.getTime() + day) } } });
-  await expect(claimGift(db, { tokenHash, userId: receiver, now })).rejects.toMatchObject({ code: "PASS_POLICY_CONFLICT" });
+  await expect(claimGift(db, { tokenHash, userId: receiver, now })).rejects.toMatchObject({ code: "GIFT_TIER_CONFLICT" });
   expect((await Gift.findById(gift._id).lean()).status).toBe("PAID");
   expect(await GiftGrant.countDocuments()).toBe(0);
   await User.collection.updateOne({ _id: receiver }, { $set: { "profileSubscription.expiresAt": new Date(now.getTime() - day) } });

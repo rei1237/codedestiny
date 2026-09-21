@@ -488,7 +488,10 @@
       "petSajuAria": "AI 반려동물 사주 시작",
       "petSajuAlt": "AI 반려동물 사주 대표 이미지",
       "promptMakerPrice": "카드 수에 따라 3,000~10,000원",
-      "unlock5000": "🔒 해금 5,000원"
+      "unlock5000": "🔒 해금 5,000원",
+      "sajuGuardianPricePrice5000": "영구 해금 5,000원",
+      "price5000Price3000": "1회 3,000원",
+      "price10000Price5000": "1회 5,000원"
     },
     "destinyFlowerStudio": {
       "closeAria": "운명의 꽃 아틀리에 닫기",
@@ -4151,7 +4154,8 @@
         "k18zdwwf": "무료 공개",
         "kk0w8v": "팩폭 전략소",
         "k1bs96nr": "네오가 냉정하게 짚어주는 선택의 작전 브리핑",
-        "n30000": "30,000원"
+        "n30000": "30,000원",
+        "n20000Price10000": "10,000원~"
       }
     },
     "cdSigCardBody": {

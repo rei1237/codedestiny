@@ -595,7 +595,10 @@
       "petSajuAria": "Abrir Saju de mascotas IA",
       "petSajuAlt": "Imagen de Saju de mascotas IA",
       "promptMakerPrice": "3000-10 000 KRW según el número de cartas",
-      "unlock5000": "Desbloquear KRW 5,000"
+      "unlock5000": "Desbloquear KRW 5,000",
+      "sajuGuardianPricePrice5000": "Desbloqueo permanente KRW 5 000",
+      "price5000Price3000": "Una vez 3,000 KRW",
+      "price10000Price5000": "Una vez 5.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
@@ -6481,7 +6484,8 @@
         "k18zdwwf": "Lectura gratuita",
         "kk0w8v": "La Sala de Estrategia Sin Rodeos",
         "k1bs96nr": "El informe de operaciones de Neo, frío y directo, sobre la decisión que tienes delante",
-        "n30000": "₩30.000"
+        "n30000": "₩30.000",
+        "n20000Price10000": "Desde ₩10.000"
       }
     },
     "cdSigCardBody": {

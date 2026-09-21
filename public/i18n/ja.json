@@ -595,7 +595,10 @@
       "petSajuAria": "AIペット四柱推命を開く",
       "petSajuAlt": "AIペット四柱推命のイメージ",
       "promptMakerPrice": "枚数により 3,000~10,000ウォン",
-      "unlock5000": "5,000 ウォンのロックを解除"
+      "unlock5000": "5,000 ウォンのロックを解除",
+      "sajuGuardianPricePrice5000": "永久ロック解除 KRW 5,000",
+      "price5000Price3000": "1回 3,000ウォン",
+      "price10000Price5000": "1回 5,000ウォン"
     },
     "destinyFlowerStudio": {
       "closeAria": "運命の花アトリエを閉じる",
@@ -6481,7 +6484,8 @@
         "k18zdwwf": "無料公開",
         "kk0w8v": "辛口戦略室",
         "k1bs96nr": "Neo が冷静に突く、選択のための作戦ブリーフィング",
-        "n30000": "30,000ウォン"
+        "n30000": "30,000ウォン",
+        "n20000Price10000": "10,000ウォン〜"
       }
     },
     "cdSigCardBody": {
