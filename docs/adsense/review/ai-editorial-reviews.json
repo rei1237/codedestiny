@@ -181,13 +181,13 @@
   },
   {
     "slug": "sukuyo-love",
-    "title": "숙요점 연애 궁합 완전 가이드 — 6유형으로 보는 연애의 전개와 대처법",
-    "manuscriptSha256": "f4fe73cc80eef15853edc4f5cc0468bfe9228ecf1d3461e7fccf5978d21ae3c3",
+    "title": "숙요점 연애 궁합 가이드 — 6유형을 실제 대화와 대조하는 법",
+    "manuscriptSha256": "6c7a7727bb062f529ad7bac6822c268521eb799c6447f51ba9f734334a2abbed",
     "status": "ai-edited",
     "reviewer": "OpenAI Codex (AI)",
-    "reviewedAt": "2026-09-09",
-    "finding": "안괴 끌림 최강·업태 재회 빈발이라는 미확인 빈도 주장 제거. 거절·차단의 경계 명시",
-    "limits": "커플 추적 연구를 수행하지 않음",
+    "reviewedAt": "2026-09-21",
+    "finding": "6유형별 재회 빈도·끌림 강도·갈등 빈도·장기 안정성으로 읽힐 표현 제거. 전통 상징을 실제 대화·동의·행동 기록과 대조하도록 수정",
+    "limits": "커플 추적 연구나 유형별 빈도·지속성 검증을 수행하지 않음",
     "humanReview": "unconfirmed",
     "adsAllowed": false
   },
