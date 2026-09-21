@@ -116,7 +116,7 @@ assert.match(source, /plfLongWaitTimer = setTimeout/, '30초 지연 안내가 �
 assert.match(source, /plfVeryLongWaitTimer = setTimeout/, '60초 지연 안내 + 재시도 노출이 있어야 한다');
 
 // ── 3. 결제 계약: 궁합은 유료로 남는다 ──
-assert.match(registry, /"physiognomy-pastlife-compatibility":\s*\{\s*cost:\s*50/, '전생 궁합 가격표 등록(50코인=5,000원)');
+assert.match(registry, /"physiognomy-pastlife-compatibility":\s*\{\s*cost:\s*30/, '승인된 전생 궁합 가격표 등록(3,000원)');
 assert.match(registry, /PER_USE_PAID_FEATURE_KEY_LIST[\s\S]*?"physiognomy-pastlife-compatibility"/, '전생 궁합 회당결제 목록 등록');
 assert.match(source, /featureKey:\s*['"]physiognomy-pastlife-compatibility['"]/, '전생 궁합은 공용 결제 게이트에 canonical featureKey 를 넘겨야 함');
 assert.match(source, /window\._cdCoinGatePerUse\(/, '전생 궁합은 공용 게이트(_cdCoinGatePerUse)를 경유해야 함 — 커스텀 체크아웃 금지');
