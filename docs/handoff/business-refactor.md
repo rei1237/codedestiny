@@ -9,8 +9,8 @@ next: "신규 이용권은 판매 보류. 상품별 최대 원가·Google 조건
 
 ## 2026-09-21 최신 main 전달 — 이전 기록보다 우선
 
-- 코드 SHA `9e19f9945b40d3c4b9dd6a96f63c2957cbf0fecb` main push 완료. [해당 코드 CI](https://github.com/rei1237/codedestiny/actions/runs/35604260753)의 최종 결론을 정본으로 사용한다. 문서 후속 커밋은 이 코드 위에 쌓인다.
-- 영냥이 root를 최종 Pages 조립까지 보존했다. `/ggulggul/` 사이트맵·lastmod·옛 만세력 리다이렉트 충돌과 footer 신뢰 링크를 수정했다. 두 조립 스크립트를 실제 실행하는 임시 파일 fixture 검사 통과.
+- 코드 SHA `2e1c312467b2bebf585801d6018e9fc8b9b9e941` main push 완료. [해당 코드 CI](https://github.com/rei1237/codedestiny/actions/runs/35605281297)의 최종 결론을 정본으로 사용한다. 문서 후속 커밋은 이 코드 위에 쌓인다.
+- 영냥이 root를 최종 Pages 조립까지 보존했다. `/ggulggul/` 사이트맵·lastmod·옛 만세력 리다이렉트 충돌과 footer 신뢰 링크를 수정했다. 새 홈의 펼침형 탐색 메뉴에 기존 공통 공개 허브 링크를 재사용해 콘텐츠 이동 경로를 보존했다. 두 조립 스크립트를 실제 실행하는 임시 파일 fixture 검사 통과.
 - 개별 화면·최소 결제 증빙·질문형 AI·저장 메타데이터의 가격 조회를 정본에 연결했다. 찻집 5종 화면/서버/문서와 다국어 안내를 동기화했다. 저장된 주문·결과를 일괄 수정하거나 운영 DB에 쓰지 않았다.
 - 최초 `check:fast` 통과 후 회귀는 해당 검사로 재현해 수정했다. 후속 Jest 전체 4,048개 통과/옛 가격 기대 1개 실패 → 수정 후 해당 묶음 18개 통과. Node 전체의 옛 차감액 기대 2개 → 수정 후 해당 묶음 19개 통과. 로케일 복귀24개, 상품 안내21개, 홈 조립1개 통과. 정식 최종 전달 판정은 위 main CI다.
 - [결제·Worker 검사 실행](https://github.com/rei1237/codedestiny/actions/runs/35603177847)의 `Critical checks` job 성공 확인. 실행 전체는 이후 수정한 UI 기대값/홈 신뢰 링크로 실패했으므로 전체 성공으로 인용하지 않는다.
