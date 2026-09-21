@@ -16,7 +16,8 @@ next: 12개 랜딩 관측표를 기준으로 숙요 연애·결혼 글과 나크
 - P0: 숙요 궁합의 ‘무료’ 안내를 실제 유료 레지스트리·게이트와 일치시켰다. 무료 1인 본명숙·공개 안내와 별도 유료 기본/정밀 궁합을 구분했다. 가격·결제 로직 변경 없음.
 - P1: 궁합 페이지의 1인 소개·입력폼 상속을 제거하고 2인 안내·계산 예시·FAQ를 구성했다. 동일 관계/반대 역할 설명을 실제 코어와 맞췄고, 본명숙 허브의 빈도·강도 단정을 정리했다. 관련 링크 세 목적지의 모호한 이름도 수정했다.
 - 검증: `npm run check:fast -- --plan`, `npm run check:fast` exit 0(Jest 288 suites/4,039 tests), 신규 scope/계산 예시 테스트 2/2, sitemap 1,283 URL 유지, `verify:doc-freshness`, `verify:seo-entity-registry` 통과. SSR FAQ 5개와 JSON-LD 답변 일치, 360/390/430/1280px 가로 넘침 0. SSR 미리보기는 외부·API·스크립트를 차단했으며 실결제·LLM 동작 검증이 아니다.
-- 이 문서 커밋과 함께 main fast-forward·push 후 최종 SHA의 `CI required`를 확인한다. 전달 결과는 해당 main 커밋의 GitHub Actions가 정본이다. 운영 배포·광고 활성화·AdSense 재신청은 하지 않는다.
+- 전달 완료: `8fa480791dd1a95aa0c869a889a168f1174d7619`까지 main fast-forward·push 완료. [main CI 35589770641](https://github.com/rei1237/codedestiny/actions/runs/35589770641)의 `CI required` 포함 모든 필수 잡 성공. 통합 전후 마케팅 미커밋 diff·status 동일 확인. 이 줄은 해당 코드·관측 전달의 완료 기록이며 후속 문서 커밋 자체의 CI와 구분한다.
+- 운영 배포·유료 LLM·광고 활성화·AdSense 재신청은 미실행. 로컬 검사 서버는 종료했다. SEO 워크트리는 기존 삭제 제한에 따라 디스크에 보존하며 미전달 구현 변경은 없다.
 
 아래는 이전 인수인계의 기준과 잔여 범위다. 관측·수정이 겹치면 위 후속 기록과 12개 대조표를 우선한다.
 

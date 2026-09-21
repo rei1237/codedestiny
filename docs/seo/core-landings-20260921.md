@@ -61,6 +61,6 @@
 - `npm run sitemap:generate`: 1,283 URL 유지, 공유 SEO 소스 변경으로 lastmod 원장 signature 18개 갱신. 날짜나 URL을 임의 증설하지 않았다.
 - 로컬 Next SSR: HTTP 200, title·본문·FAQPage 5개 답변의 일치 확인. 외부 요청·API·스크립트를 CSP로 막은 SSR 미리보기에서 360/390/430/1280px 가로 넘침 0, 390px 주 CTA 높이 48px. 외부 로고·폰트와 클라이언트 동작의 검증은 아니다.
 - `impeccable detect`를 변경 UI 두 파일에 실행했다. 출력 없음. 기계 검사만으로 디자인·기능의 완전성을 주장하지 않는다.
-- `check:fast -- --plan`은 공유 소스를 critical로 자동 승격했다. 실행은 exit 0으로 완료했고 Jest 288 suites / 4,039 tests가 통과했다. 구현 커밋은 `fc3f86a39`이며 최종 main CI는 push 뒤 확인한다. 로컬 전체 검사를 별도로 반복하지 않는다.
+- `check:fast -- --plan`은 공유 소스를 critical로 자동 승격했다. 실행은 exit 0으로 완료했고 Jest 288 suites / 4,039 tests가 통과했다. 구현 커밋은 `fc3f86a39`, 관측 문서 포함 전달 커밋은 `8fa480791dd1a95aa0c869a889a168f1174d7619`이며 [main CI](https://github.com/rei1237/codedestiny/actions/runs/35589770641)의 `CI required` 포함 전체 필수 잡이 성공했다. 로컬 전체 검사를 별도로 반복하지 않았다.
 - 운영 배포·실 LLM·결제·운영 DB 쓰기·광고 활성화·AdSense 재신청은 실행하지 않았다. 기존 `humanReview: unconfirmed`, `adsAllowed: false` 유지.
 - 다음 P1은 숙요 연애·결혼 글의 실증 근거 없는 빈도/안정성 표현, 나크샤트라 체계 대응 설명, 가이드의 계산 예시 보강이다. 운영 반영 이후 같은 URL군의 28일 실적을 비교해야 하며, 반영 전 날짜를 성과 비교 시작일로 삼지 않는다.
