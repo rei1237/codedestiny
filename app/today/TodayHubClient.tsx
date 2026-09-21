@@ -1030,7 +1030,7 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
         {locale === "ko" && dailyTarotCards && <DailyTarot cards={dailyTarotCards}/>}
         {children}
 
-        {locale !== "ko" && <><h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>
+        <h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>
         <p className="mt-1 break-keep text-sm leading-7 text-slate-400">
           {copy.deeperLead}
         </p>
@@ -1050,7 +1050,7 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
           ))}
         </div>
 
-        <FusionCrossSell fromPath="/today" tone="neo" /></>}
+        {locale !== "ko" && <FusionCrossSell fromPath="/today" tone="neo" />}
       </div>
     </main>
   );

@@ -52,3 +52,6 @@ fe1d0235c0c3ddf9f47cd5c94178694e1799541c main push 완료. 동시 main 변경과
 - [코드 CI](https://github.com/rei1237/codedestiny/actions/runs/35562505911)
 - [결제 가드](https://github.com/rei1237/codedestiny/actions/runs/35562505885)
 링크 생성 확인 시 실행 중이었으며 최종 상태는 링크의 해당 SHA로 확인한다. 자동 스테이징과 프로덕션 승격은 별개다.
+
+## CI에서 발견해 수정한 회귀
+fe1d0235c 빌드는 /sukuyo/calendar 고아 URL 검사에서 실패. TodayHubClient의 한국어 전문 도구 링크를 유료 추천과 함께 숨긴 것이 원인. 무료 전문 도구 3개 링크를 복원하고 FusionCrossSell만 한국어에서 숨기도록 수정했다. 따라서 이전 실패 CI를 최종 통과로 인용하지 않는다.
