@@ -1,7 +1,7 @@
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
-let requests=[],payments=[],failWrite=false,tail=Promise.resolve(),activeOperations=0;
+let requests=[],payments=[],failWrite=false,failFinalRead=false,failFinalComplete=false,tail=Promise.resolve(),activeOperations=0;
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function matches(row,query) {
   return Object.entries(query).every(([key,want])=>{
@@ -30,9 +30,13 @@ function query(fn) {
 }
 function model(source,kind) {
   return {
-    findOne:filter=>query(()=>source().find(row=>matches(row,filter))||null),
+    findOne:filter=>query(()=>{
+      if(kind==='request'&&failFinalRead&&filter.leaseToken&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
+      return source().find(row=>matches(row,filter))||null;
+    }),
     findOneAndUpdate:(filter,update,options={})=>query(()=>{
       if(kind==='request'&&failWrite&&update.$set?.paymentId)throw new Error('write failed');
+      if(kind==='request'&&failFinalComplete&&update.$set?.state==='COMPLETED'){failFinalComplete=false;throw new Error('completion write failed');}
       let row=source().find(row=>matches(row,filter));
       if(!row&&options.upsert){row={...filter,...update.$setOnInsert};source().push(row);}
       if(!row)return null;
@@ -71,7 +75,7 @@ beforeAll(async()=>{repo=await import('../../worker/yeongnyangi/repository.js');
 const values={profileId:'p1',productId:'saju_mackerel',featureKey:'yeongnyangi-saju-mackerel',amountKRW:1000,fingerprint:'fixed',snapshot:{manifest:[{},{}]}};
 beforeEach(()=>{
   requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
-  failWrite=false;tail=Promise.resolve();
+  failWrite=false;failFinalRead=false;failFinalComplete=false;tail=Promise.resolve();
 });
 test('same intent is restored; altered payload conflicts',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.createRequest({},owner,'id',values);
@@ -118,6 +122,19 @@ test('duplicate generation claims and late completions cannot append twice',asyn
   await repo.finishChapter({},owner,'id',retry.token,1,{summary:'second'},2);
   const restored=await repo.readRequest({},owner,'id');
   expect(restored.state).toBe('COMPLETED');expect(restored.chapters).toHaveLength(2);
+});
+
+test.each(['reread','completion'])('last checkpoint survives %s failure and completes without another provider claim',async fault=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  const claim=await repo.claimChapter({},owner,'id');
+  // Use a one-chapter manifest to exercise the exact final checkpoint order.
+  requests[0].snapshot={...requests[0].snapshot,manifest:[{}]};
+  if(fault==='reread')failFinalRead=true;else failFinalComplete=true;
+  await expect(repo.finishChapter({},owner,'id',claim.token,0,{summary:'durable'},1)).rejects.toThrow();
+  expect(requests[0]).toMatchObject({state:'GENERATING',completedChapters:1});expect(requests[0].chapters).toEqual([{summary:'durable'}]);
+  await repo.failChapter({},owner,'id',claim.token,'RESULT_STORAGE_UNAVAILABLE');
+  const resumed=await repo.claimChapter({},owner,'id');
+  expect(resumed.token).toBeNull();expect(resumed.row.state).toBe('COMPLETED');expect(resumed.row.chapters).toEqual([{summary:'durable'}]);
 });
 
 test('a paid order for another consultation never unlocks this request',async()=>{

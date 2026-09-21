@@ -84,12 +84,35 @@ export async function claimChapter(env, userId, requestId) {
     throw failure(409,'PAYMENT_NOT_ACTIVE');
   }
   if (current.state === 'COMPLETED') return {row:current,token:null};
+  // A response can be lost after the last checkpoint is durable but before its
+  // completion marker is committed. Re-read that stored result instead of
+  // calling the provider for a non-existent next chapter.
+  const total=current.snapshot?.manifest?.length || 0;
+  if (total && current.chapters.length >= total) {
+    const completed=await completeStoredRequest(env,userId,requestId,total);
+    return {row:completed || current,token:null};
+  }
   const token=crypto.randomUUID(), now=new Date();
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
     _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
   },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+180000),errorCode:''},$inc:{attempts:1}}, {new:true}).lean());
   return row ? {row,token} : {row:current,token:null};
+}
+
+async function completeStoredRequest(env, userId, requestId, total, token = '') {
+  const owner=ownerId(userId);
+  // Completion is deliberately a second write: a durable checkpoint must be
+  // read back and checked before it is exposed as a completed paid result.
+  const stored=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({
+    _id:requestId,userId:owner,state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},completedChapters:total,
+    [`chapters.${total-1}`]:{$exists:true},
+  }).lean());
+  if (!stored || !Array.isArray(stored.chapters) || stored.chapters.length !== total) return null;
+  const filter={_id:requestId,userId:owner,state:token?'GENERATING':{$in:['PAID','FORTUNE_FAILED']},completedChapters:total,
+    [`chapters.${total-1}`]:{$exists:true},...(token?{leaseToken:token}:{})};
+  return withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(filter,
+    {$set:{state:'COMPLETED',leaseToken:'',leaseUntil:null,completedAt:new Date(),errorCode:''}},{new:true}).lean());
 }
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
@@ -115,11 +138,20 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
             leaseToken:'',leaseUntil:null,errorCode:'PAYMENT_NOT_ACTIVE'}}, {session});
           return;
         }
+        const isLast=ordinal+1===total;
         result = await YeongnyangiRequest.findOneAndUpdate(filter,
-          {$push:{chapters:body},$set:{completedChapters:ordinal+1,state:ordinal+1===total?'COMPLETED':'PAID',leaseToken:'',leaseUntil:null,
-            ...(ordinal+1===total?{completedAt:new Date()}:{}),errorCode:''}}, {new:true,session}).lean();
+          {$push:{chapters:body},$set:{completedChapters:ordinal+1,
+            // Keep the last chapter's lease until the saved document has been
+            // read back. A late writer must not race the completion marker.
+            ...(isLast?{}:{state:'PAID',leaseToken:'',leaseUntil:null}),errorCode:''}}, {new:true,session}).lean();
       }, mongoTransactionOptions());
-      return result;
+      if (!result || ordinal+1!==total) return result;
+      const stored=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({
+        _id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token,completedChapters:total,
+        [`chapters.${ordinal}`]:{$exists:true},
+      }).lean());
+      if (!stored || JSON.stringify(stored.chapters[ordinal])!==JSON.stringify(body)) return null;
+      return completeStoredRequest(env,userId,requestId,total,token);
     } finally { await session.endSession(); }
   });
 }

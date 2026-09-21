@@ -50,6 +50,16 @@ test.each([1,4,7,10,14])('card count %s preserves canonical positions and tier o
  mode='single';expect((await post(body)).status).toBe(202);const data=await (await finish()).json();expect(data.status).toBe('completed');expect(data.consultation.positionReadings).toHaveLength(count);expect(data.consultation.positionReadings.every((row,i)=>row.headline===body.cards[i].positionLabel&&row.positionAdvice&&row.reading)).toBe(true);
  expect(proofs.every(proof=>proof.requestId===body.requestId&&proof.featureKey===docs[0].featureKey)).toBe(true);
 });
+test.each([[8,'tarot-prompt-maker-deep'],[10,'tarot-prompt-maker-deep'],[11,'tarot-prompt-maker-master'],[14,'tarot-prompt-maker-master']])('paid boundary %s selects only %s and preserves every submitted position',async(count,featureKey)=>{
+ const body={...original(),requestId:`boundary-${count}`,cards:Array.from({length:count},(_,i)=>({cardId:`M${String(i).padStart(2,'0')}`,orientation:i%2?'reversed':'upright',positionLabel:`경계 위치 ${i+1}`}))};
+ mode='single';expect((await post(body)).status).toBe(202);
+ const {FEATURE_KEY_PRICE_TABLE}=await import('../../worker/lib/paid-feature-registry.js');
+ expect(proofs).toHaveLength(1);expect(proofs[0]).toMatchObject({requestId:body.requestId,featureKey,coinPrice:FEATURE_KEY_PRICE_TABLE[featureKey].cost});
+ const completed=await finish();expect(completed.status).toBe(200);const data=await completed.json();
+ expect(data.consultation.positionReadings).toHaveLength(count);
+ expect(data.consultation.positionReadings.map(row=>row.headline)).toEqual(body.cards.map(card=>card.positionLabel));
+ const providerCalls=provider.mock.calls.length;expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(providerCalls);
+});
 test('invalid card is rejected before payment, provider and storage',async()=>{expect((await post({...original(),cards:[{cardId:'INVALID'}]})).status).toBe(400);expect(docs).toHaveLength(0);expect(proofs).toHaveLength(0);expect(provider).not.toHaveBeenCalled();});
 test('unavailable payment lookup is 503 and never generates',async()=>{mode='unavailable';expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();});
 
