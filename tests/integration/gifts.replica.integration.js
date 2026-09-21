@@ -3,7 +3,8 @@ import { mongoose } from "../../worker/lib/db.js";
 import { Gift, GiftGrant, GiftClaimContext } from "../../worker/lib/gift-models.js";
 import { Payment, User } from "../../worker/lib/models.js";
 import { __paymentDbTestUtils } from "../../worker/payments/db.js";
-import { createPassOrder, resolvePassPlan, activatePassSubscription } from "../../worker/payments/passes.js";
+import { createPassOrder as resumePassOrder, derivePassOrderId, resolvePassPlan, activatePassSubscription } from "../../worker/payments/passes.js";
+import { currentPassPlan } from "../../lib/payment/pass-policy.js";
 import { giftDraftFor, ensureGiftForOrder, issueGiftLink, hashGiftToken, claimGift, assertGiftIndexes, settleGiftCancellation } from "../../worker/payments/gifts.js";
 import { __paymentsContextTestUtils, handlePaymentsContext } from "../../worker/payments/index.js";
 import { signAuthToken } from "../../worker/lib/auth.js";
@@ -30,8 +31,19 @@ beforeEach(async () => {
   await User.collection.insertMany([purchaser, receiver, other].map(_id => ({ _id, email: `${_id}@example.test`, name: "test", phoneNumber: "01012345678", profileSubscription: { tier: "free", expiresAt: null } })));
 });
 afterAll(async () => { await mongoose.connection.dropDatabase(); await mongoose.disconnect(); });
-async function paidGift(tier = "standard") {
-  const plan = resolvePassPlan(tier, 1);
+// Historical purchase fixture. New sales stay closed; exercise the real resume path.
+async function createPassOrder(connection, input) {
+  const { userId, plan, idempotencyKey, purchaseType, giftDraft } = input;
+  await Payment.collection.insertOne({ userId, merchantUid: await derivePassOrderId(userId, idempotencyKey, plan.tier),
+    idempotencyKey, paymentType: "membership_pass", purchaseType, paymentAmount: plan.wonPrice,
+    expectedChargedPoints: 0, chargedPoints: 0, paymentMethod: "card_general", status: "pending", orderState: "PENDING",
+    source: "prepare", subscriptionTier: plan.tier, productId: plan.planId, confirmAttempts: 0,
+    metadata: { giftDraft, planId: plan.planId, durationMonths: 1, durationDays: 30, productType: "membership_pass", currency: "KRW",
+      ...(plan.passPolicyVersion !== "legacy" ? { passPolicyVersion: plan.passPolicyVersion } : {}) }, createdAt: now, updatedAt: now });
+  return resumePassOrder(connection, input);
+}
+async function paidGift(tier = "standard", policy = "legacy") {
+  const plan = policy === "legacy" ? resolvePassPlan(tier, 1) : currentPassPlan(tier);
   let order = await createPassOrder(db, { userId: purchaser, plan, idempotencyKey: crypto.randomUUID(), purchaseType: "GIFT", giftDraft: giftDraftFor({}, plan) });
   await Payment.collection.updateOne({ _id: order._id }, { $set: { status: "paid", paidAt: now } });
   order = await Payment.collection.findOne({ _id: order._id });
@@ -241,4 +253,25 @@ test("commit response uncertainty retries without a second entitlement", async (
   await mongoose.connection.db.admin().command({ configureFailPoint: "failCommand", mode: { times: 1 }, data: { failCommands: ["commitTransaction"], closeConnection: true } });
   const r = await claimGift(db, { tokenHash: g.tokenHash, userId: receiver });
   expect(r.gift.status).toBe("CLAIMED"); expect(await GiftGrant.countDocuments()).toBe(1);
+});
+
+
+test("new VVIP gift keeps its policy and budget after transactional claim", async () => {
+  const { tokenHash } = await paidGift("vvip", "current");
+  await claimGift(db, { tokenHash, userId: receiver, now });
+  const sub = (await User.findById(receiver).lean()).profileSubscription;
+  expect(sub.passPolicyVersion).toBe("flower-20260921");
+  expect(sub.monthlyLimitCoin).toBe(900);
+  expect(sub.monthlySpendCoin).toBe(0);
+});
+
+test("new gift waits for old policy expiry without consuming the gift", async () => {
+  const { gift, tokenHash } = await paidGift("vvip", "current");
+  await User.collection.updateOne({ _id: receiver }, { $set: { profileSubscription: { tier: "vvip", expiresAt: new Date(now.getTime() + day) } } });
+  await expect(claimGift(db, { tokenHash, userId: receiver, now })).rejects.toMatchObject({ code: "PASS_POLICY_CONFLICT" });
+  expect((await Gift.findById(gift._id).lean()).status).toBe("PAID");
+  expect(await GiftGrant.countDocuments()).toBe(0);
+  await User.collection.updateOne({ _id: receiver }, { $set: { "profileSubscription.expiresAt": new Date(now.getTime() - day) } });
+  await claimGift(db, { tokenHash, userId: receiver, now });
+  expect((await User.findById(receiver).lean()).profileSubscription.monthlyLimitCoin).toBe(900);
 });
