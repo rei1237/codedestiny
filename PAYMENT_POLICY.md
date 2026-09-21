@@ -33,34 +33,36 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 
 ## 운명 찻집 상담 가격표 (정본)
 
+2026-09-21 사용자 승인: 운명 찻집 5종을 모두 5,000원으로 통일한다. 기존 주문의 결제액·환불 기준은 변경하지 않는다. 상세 변경 정책은 [신규 가격 정책](docs/pass-pricing-20260921.md)을 따른다.
+
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
 | 타로 상담 (3카드) | `fortune-tea-house-tarot-consultation` | 5,000원 | 50 | 단건 · 3카드 스프레드 |
-| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 10,000원 | 100 | 단건 · 5카드 스프레드 |
-| 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 10,000원 | 100 | 단건 |
-| 사주 궁합 상담 | `fortune-tea-house-saju-compatibility-consultation` | 20,000원 | 200 | 단건 · 본인+상대 두 명식 |
-| 숙요점 궁합 상담 | `fortune-tea-house-sukuyo-compatibility-consultation` | 20,000원 | 200 | 단건 |
+| 타로 프리미엄 상담 (5카드) | `fortune-tea-house-tarot-five-consultation` | 5,000원 | 50 | 단건 · 5카드 스프레드 |
+| 단독 사주 상담 | `fortune-tea-house-saju-consultation` | 5,000원 | 50 | 단건 |
+| 사주 궁합 상담 | `fortune-tea-house-saju-compatibility-consultation` | 5,000원 | 50 | 단건 · 본인+상대 두 명식 |
+| 숙요점 궁합 상담 | `fortune-tea-house-sukuyo-compatibility-consultation` | 5,000원 | 50 | 단건 |
 
 ## 분리 원칙
 
-- **타로 3카드(5,000원)** 와 **타로 5카드 프리미엄(10,000원)** 은 **별도 featureKey**다. 두 상품은
+- **타로 3카드(5,000원)** 와 **타로 5카드 프리미엄(5,000원)** 은 **별도 featureKey**다. 두 상품은
   해석 품질(카드별 상세 해석·카드 간 상호작용·종합 해석·마음의 향)이 동일하고, **카드 장수와 그에 따른
   분량·깊이만** 다르다. 서버는 요청의 `tarotSpread` 값에서 featureKey를 결정하며, 클라이언트가 보낸
   featureKey가 스프레드와 불일치하면 **거부한다**(금액 조작 차단).
-- **단독 사주 상담(10,000원)** 과 **사주 궁합 상담(20,000원)** 은 서로 **별도 featureKey**로 분리되어
+- **단독 사주 상담(5,000원)** 과 **사주 궁합 상담(5,000원)** 은 서로 **별도 featureKey**로 분리되어
   있어 한쪽 가격/로직 변경이 다른 쪽에 영향을 주지 않는다.
-- **사주 궁합 상담** 과 **숙요점 궁합 상담** 역시 **별도 featureKey**다. 둘 다 20,000원(cost 200)이지만
+- **사주 궁합 상담** 과 **숙요점 궁합 상담** 역시 **별도 featureKey**다. 둘 다 5,000원(cost 50)이지만
   결제·접근 판정은 각자의 키로 독립적으로 이루어진다.
 
-## 이번 정책 대상 아님 (현행 유지)
+## 기존 궁합 허브 가격
 
-아래 레거시 compat-hub 키들은 이 정책의 대상이 아니며 **현행 가격을 그대로 유지**한다.
+2026-09-21 승인된 꽃돼지 일반 상품 인하에 따라 기존 5,000원 compat-hub 두 상품은 3,000원으로 조정한다. 기존 30,000원 전문가 상담은 유지한다.
 `verify:payment-policy-md`는 이 키들이 실수로 변경되지 않았는지 함께 방어한다(가드).
 
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
-| 레거시 사주 궁합 | `compat-saju-compatibility` | 5,000원 | 50 | 현행 유지 · 운명 찻집과 무관 |
-| 레거시 숙요점 궁합 | `compat-sukuyo-compatibility` | 5,000원 | 50 | 현행 유지 · 운명 찻집과 무관 |
+| 레거시 사주 궁합 | `compat-saju-compatibility` | 3,000원 | 30 | 승인 인하 · 운명 찻집과 무관 |
+| 레거시 숙요점 궁합 | `compat-sukuyo-compatibility` | 3,000원 | 30 | 승인 인하 · 운명 찻집과 무관 |
 | 숙요점 궁합 AI | `sukuyo-compatibility-ai` | 30,000원 | 300 | 현행 유지 · 운명 찻집과 무관 |
 
 > **2026-08-12 — `compat-sukuyo-compatibility` 10,000원(100) → 5,000원(50)**

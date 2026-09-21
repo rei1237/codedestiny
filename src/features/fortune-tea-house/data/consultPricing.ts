@@ -1,6 +1,6 @@
 import type { FortuneTeaHouseConsultMode, FortuneTeaTarotSpread } from "./consult";
 
-// 타로는 스프레드(3카드/5카드)에 따라 가격과 featureKey가 갈린다. 나머지 상담은 모드 단위.
+// 타로는 스프레드(3카드/5카드)에 따라 featureKey가 갈리며 가격은 모두 5,000원이다. 나머지 상담은 모드 단위.
 export type FortuneTeaHousePriceKey = FortuneTeaHouseConsultMode | "sajuCompatibility" | "tarotFive";
 
 export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
@@ -15,23 +15,23 @@ export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
   },
   tarotFive: {
     featureKey: "fortune-tea-house-tarot-five-consultation",
-    amountKRW: 10000,
-    label: "10,000원",
+    amountKRW: 5000,
+    label: "5,000원",
   },
   saju: {
     featureKey: "fortune-tea-house-saju-consultation",
-    amountKRW: 10000,
-    label: "10,000원",
+    amountKRW: 5000,
+    label: "5,000원",
   },
   sajuCompatibility: {
     featureKey: "fortune-tea-house-saju-compatibility-consultation",
-    amountKRW: 20000,
-    label: "20,000원",
+    amountKRW: 5000,
+    label: "5,000원",
   },
   sukuyo: {
     featureKey: "fortune-tea-house-sukuyo-compatibility-consultation",
-    amountKRW: 20000,
-    label: "20,000원",
+    amountKRW: 5000,
+    label: "5,000원",
   },
 };
 
