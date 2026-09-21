@@ -55,3 +55,5 @@ fe1d0235c0c3ddf9f47cd5c94178694e1799541c main push 완료. 동시 main 변경과
 
 ## CI에서 발견해 수정한 회귀
 fe1d0235c 빌드는 /sukuyo/calendar 고아 URL 검사에서 실패. TodayHubClient의 한국어 전문 도구 링크를 유료 추천과 함께 숨긴 것이 원인. 무료 전문 도구 3개 링크를 복원하고 FusionCrossSell만 한국어에서 숨기도록 수정했다. 따라서 이전 실패 CI를 최종 통과로 인용하지 않는다.
+
+최신 코드 전달: 8760d5258212d7e725166fd63e8fe75cfa7ce38d. [회귀 수정 후 CI](https://github.com/rei1237/codedestiny/actions/runs/35562836889). 사주아이/청월당 공식 주체·제한된 모바일 DOM 관찰을 마스터에 추가했다.
