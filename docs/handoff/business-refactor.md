@@ -1,11 +1,20 @@
 ---
 status: active
 updated: 2026-09-22
-next: "구현 커밋 4f7830d62의 main CI를 확인한 뒤, 실정산·입력 토큰 상한·Play 신규 SKU 근거를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
+next: "실정산·상품별 Workers AI·저장·지원·환불 실원가와 Play 신규 SKU 근거를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
 ---
 # 사업 리팩토링 인수인계
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
+
+## 2026-09-22 Gemini 입력 토큰 하드 상한
+
+- 코드 커밋 `f37a0762f`: Gemini 생성 전에 공식 `models.countTokens`로 전체 `GenerateContentRequest`를 검사하고 공급자 시도당 50,000토큰을 초과하면 호출을 차단한다. 상한은 환경값으로 올릴 수 없다.
+- 공통 `lib/llm-client.ts`, 컨텍스트 캐시 생성, 직접 REST 경로 love-reading·mindscan·oracle을 같은 정본 `lib/gemini-input-token-limit.mjs`에 연결했다. 계산 실패 시 Gemini 생성은 보내지 않고 공통 클라이언트의 기존 Workers AI 폴백 계약만 유지한다.
+- 계획표의 `inputTokenCapProvenInCode`를 `true`로 바꿨지만 이는 Gemini 입력 원가 상한만 입증한다. Workers AI·저장·지원·환불 원가는 실측하지 않았고 evidence 객체도 비어 있으므로 판매 승인 근거가 아니다.
+- 판매 감사 결과 웹 3종은 `SETTLEMENT_EVIDENCE_MISSING`, Play 3종은 `APP_SKU_NOT_VERIFIED`로 계속 차단된다. 기존 주문 확정·선물 수령·복원 경로는 변경하지 않았다.
+- 로컬 검증은 mock 전용이다. `npm run check:fast` 통과: paid suite 88/88, Node 1,529/1,529, Jest 289 suites·4,057 tests, lint·typecheck·Worker dry-run·사이트맵 1,284 URL 통과. `node scripts/audit-pass-profitability.mjs`의 차단 6건/비정상 종료는 예상 결과다.
+- 실 LLM·실PG·운영 DB 쓰기·운영 승격은 수행하지 않았다. main의 `marketing/**` 미커밋 변경과 기존 worktree는 보존했다. 최종 전달 판정은 이 문서 커밋까지 main에 반영한 뒤 해당 SHA의 CI 성공으로 한다.
 
 ## 2026-09-22 비용 상한 기반 이용권 재설계
 
