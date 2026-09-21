@@ -267,7 +267,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "태양궁, 달궁, 상승궁과 하우스 구조를 중심으로 성향과 시기 흐름을 읽는 서양 점성술 분석 서비스입니다.",
       "heroImageAlt": "서양 점성술 차트 분석 대표 이미지",
       "tags": ["점성술", "태양궁", "달궁", "상승궁", "하우스"],
-      "highlights": ["기본 차트 무료", "궁합 5,000원", "심화 해석 가능"],
+      "highlights": ["기본 차트 무료", "궁합 3,000원", "심화 해석 가능"],
       "howItWorks": [
         {
           "title": "출생 정보 입력",
@@ -351,7 +351,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "사용자의 질문을 카테고리로 분석하고 상황에 맞는 스프레드를 추천한 뒤, 직접 뽑은 카드를 바탕으로 AI가 실제 상담 결과를 작성합니다. 상담에 쓰인 Oracle Prompt 원문도 함께 열람할 수 있습니다.",
       "heroImageAlt": "타로 오라클 상담 대표 이미지",
       "tags": ["타로", "AI 상담", "스프레드", "전문가 리딩"],
-      "highlights": ["질문 자동 분류", "77개 스프레드 라이브러리", "카드 수에 따라 회당 3,000~10,000원 · 실제 AI 상담"],
+      "highlights": ["질문 자동 분류", "77개 스프레드 라이브러리", "카드 수에 따라 회당 3,000~5,000원 · 실제 AI 상담"],
       "howItWorks": [
         {
           "title": "질문 입력",
@@ -380,7 +380,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "포지션별 해석과 행동 조언을 담은 실제 상담 결과, 그리고 상담에 쓰인 Oracle Prompt 원문"
         }
       ],
-      "priceLabel": "3,000원~10,000원",
+      "priceLabel": "3,000원~5,000원",
       "seo": {
         "title": "타로 오라클 상담 | Code Destiny",
         "description": "질문 기반 스프레드 선택과 카드 드로우로 실제 AI 타로 상담을 받는 타로 오라클 상담 소개 페이지입니다.",
@@ -688,7 +688,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "명식과 지금의 질문으로 읽는 나의 인생 서사",
       "description": "생년월일, 성별, 출생시간, 상담 주제를 바탕으로 삶의 흐름과 반복 패턴을 따뜻한 1:1 상담처럼 풀어드립니다.",
       "heroImageAlt": "인생의 책 전문가 상담 대표 이미지",
-      "priceLabel": "20,000원",
+      "priceLabel": "10,000원",
       "tags": ["전문가 상담", "명리학", "인생 서사"],
       "highlights": ["명식 기반 상담", "삶의 핵심 주제", "추가 질문 대화"],
       "howItWorks": [
@@ -804,7 +804,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "시기별 주의 구간과 기회 구간"
         }
       ],
-      "priceLabel": "3,000원~10,000원",
+      "priceLabel": "3,000원~5,000원",
       "seo": {
         "title": "스톤헨지 룬점 소개 | Code Destiny",
         "description": "고대 룬 상징으로 선택과 시기를 해석하는 스톤헨지 룬 오라클 소개 페이지입니다.",
@@ -847,7 +847,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "오늘 시도하면 좋은 루틴"
         }
       ],
-      "priceLabel": "3,000원~5,000원",
+      "priceLabel": "3,000원",
       "seo": {
         "title": "애니멀 토템 소개 | Code Destiny",
         "description": "수호 동물 상징으로 현재 흐름을 읽는 애니멀 토템 서비스 소개 페이지입니다.",
@@ -1146,7 +1146,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
-      "priceLabel": "KRW 3,000~10,000",
+      "priceLabel": "KRW 3,000~5,000",
       "seo": {
         "title": "Tarot Oracle Consultation | Code Destiny",
         "description": "Get a real AI tarot consultation by choosing a question-matched spread and drawing your own cards.",
@@ -1453,7 +1453,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 20,000",
+      "priceLabel": "KRW 10,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -1539,7 +1539,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Ancient rune symbols open a compact oracle reading for the question in front of you.",
       "description": "Ancient rune symbols open a compact oracle reading for the question in front of you.",
       "heroImageAlt": "Stonehenge Rune Oracle symbolic preview",
-      "priceLabel": "KRW 3,000~10,000",
+      "priceLabel": "KRW 3,000~5,000",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -1582,7 +1582,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A guardian-animal message that reflects the current state of your heart and path.",
       "description": "A guardian-animal message that reflects the current state of your heart and path.",
       "heroImageAlt": "Animal Totem symbolic preview",
-      "priceLabel": "KRW 3,000~5,000",
+      "priceLabel": "KRW 3,000",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -1881,7 +1881,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "質問をカテゴリ分析し、状況に合ったスプレッドを提案したうえで、実際に引いたカードをもとにAIが本物の相談結果を作成します。相談に使われたOracle Promptの原文もあわせて確認できます。",
       "heroImageAlt": "タロットオラクル相談の象徴イメージ",
       "tags": ["タロット", "AI相談", "スプレッド", "専門家リーディング"],
-      "highlights": ["質問の自動分類", "77種のスプレッドライブラリ", "1回3,000~10,000ウォン(枚数別)・実際のAI相談"],
+      "highlights": ["質問の自動分類", "77種のスプレッドライブラリ", "1回3,000~5,000ウォン(枚数別)・実際のAI相談"],
       "howItWorks": [
         {
           "title": "質問を入力",
@@ -1911,7 +1911,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
-      "priceLabel": "3,000~10,000ウォン",
+      "priceLabel": "3,000~5,000ウォン",
       "seo": {
         "title": "タロットオラクル相談 | Code Destiny",
         "description": "質問に合わせたスプレッド選択とカードドローで、実際のAIタロット相談を受けられるタロットオラクル相談の紹介ページです。",
@@ -2218,7 +2218,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 20,000",
+      "priceLabel": "KRW 10,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -2304,7 +2304,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "古代ルーンの象徴が、今の問いに短く深い答えを開きます。",
       "description": "古代ルーンの象徴が、今の問いに短く深い答えを開きます。",
       "heroImageAlt": "ストーンヘンジ ルーン神託の象徴イメージ",
-      "priceLabel": "3,000~10,000ウォン",
+      "priceLabel": "3,000~5,000ウォン",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
@@ -2347,7 +2347,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "守護動物のメッセージが今の心と道筋を映します。",
       "description": "守護動物のメッセージが今の心と道筋を映します。",
       "heroImageAlt": "アニマルトーテムの象徴イメージ",
-      "priceLabel": "3,000~5,000ウォン",
+      "priceLabel": "3,000ウォン",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
@@ -2646,7 +2646,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "系统会分析你的问题类别，推荐合适的牌阵，在你抽牌后由AI根据牌位与正逆位撰写真实的咨询结果。咨询所使用的Oracle Prompt原文也会同时提供查看。",
       "heroImageAlt": "塔罗神谕咨询象征图像",
       "tags": ["塔罗", "AI咨询", "牌阵", "专家解读"],
-      "highlights": ["自动问题分类", "77种牌阵资料库", "每次3,000~10,000韩元(按牌数) · 真实AI咨询"],
+      "highlights": ["自动问题分类", "77种牌阵资料库", "每次3,000~5,000韩元(按牌数) · 真实AI咨询"],
       "howItWorks": [
         {
           "title": "输入问题",
@@ -2676,7 +2676,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
-      "priceLabel": "3,000~10,000韩元",
+      "priceLabel": "3,000~5,000韩元",
       "seo": {
         "title": "塔罗神谕咨询 | Code Destiny",
         "description": "通过问题匹配的牌阵选择与亲自抽牌，获得真实AI塔罗咨询的塔罗神谕咨询介绍页面。",
@@ -2983,7 +2983,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 20,000",
+      "priceLabel": "KRW 10,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -3069,7 +3069,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "古老卢恩符号为眼前的问题开启简洁而深刻的答案。",
       "description": "古老卢恩符号为眼前的问题开启简洁而深刻的答案。",
       "heroImageAlt": "巨石阵卢恩神谕象征图像",
-      "priceLabel": "3,000~10,000韩元",
+      "priceLabel": "3,000~5,000韩元",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
@@ -3112,7 +3112,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "守护动物讯息映照此刻的心境与道路。",
       "description": "守护动物讯息映照此刻的心境与道路。",
       "heroImageAlt": "动物图腾象征图像",
-      "priceLabel": "3,000~5,000韩元",
+      "priceLabel": "3,000韩元",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
@@ -3411,7 +3411,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "系統會分析你的問題類別，推薦合適的牌陣，在你抽牌後由AI根據牌位與正逆位撰寫真實的諮詢結果。諮詢所使用的Oracle Prompt原文也會同時提供查看。",
       "heroImageAlt": "塔羅神諭諮詢象徵圖像",
       "tags": ["塔羅", "AI諮詢", "牌陣", "專家解讀"],
-      "highlights": ["自動問題分類", "77種牌陣資料庫", "每次3,000~10,000韓元(依牌數) · 真實AI諮詢"],
+      "highlights": ["自動問題分類", "77種牌陣資料庫", "每次3,000~5,000韓元(依牌數) · 真實AI諮詢"],
       "howItWorks": [
         {
           "title": "輸入問題",
@@ -3441,7 +3441,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
-      "priceLabel": "3,000~10,000韓元",
+      "priceLabel": "3,000~5,000韓元",
       "seo": {
         "title": "塔羅神諭諮詢 | Code Destiny",
         "description": "透過問題匹配的牌陣選擇與親自抽牌，獲得真實AI塔羅諮詢的塔羅神諭諮詢介紹頁面。",
@@ -3748,7 +3748,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
       "heroImageAlt": "Life Book Expert Consultation representative image",
-      "priceLabel": "KRW 20,000",
+      "priceLabel": "KRW 10,000",
       "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
@@ -3834,7 +3834,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "古老盧恩符號為眼前的問題開啟簡潔而深刻的答案。",
       "description": "古老盧恩符號為眼前的問題開啟簡潔而深刻的答案。",
       "heroImageAlt": "巨石陣盧恩神諭象徵圖像",
-      "priceLabel": "3,000~10,000韓元",
+      "priceLabel": "3,000~5,000韓元",
       "tags": ["Runes", "Oracle", "Stonehenge"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
@@ -3877,7 +3877,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "守護動物訊息映照此刻的心境與道路。",
       "description": "守護動物訊息映照此刻的心境與道路。",
       "heroImageAlt": "動物圖騰象徵圖像",
-      "priceLabel": "3,000~5,000韓元",
+      "priceLabel": "3,000韓元",
       "tags": ["Animal Totem", "Guardian Message", "Oracle"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
