@@ -42,6 +42,7 @@
   if (!/^G-[A-Z0-9]+$/i.test(measurementId)) {
     global.cdTrack = noop;
     global.cdSyncConsent = noop;
+    if (global.cdAnalyticsReady) global.cdAnalyticsReady();
     return;
   }
 
@@ -131,7 +132,7 @@
   // Browser-observed server state; no profile, question, result text or request ID is sent.
   global.cdTrackFortuneDelivery = function (record) {
     if (!record || record.paid !== true || record.state !== 'COMPLETED' || !/^[a-f0-9]{64}$/.test(record.id || '')) return;
-    var item = String(record.productId || 'fortune');
+    var item = String(record.product && record.product.cdFeatureKey || 'yeongnyangi-' + String(record.productId || 'fortune').replace(/_/g, '-'));
     if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) return;
     ['fortune_completed', 'fortune_first_open'].forEach(function (eventName) {
       var key = 'cd:delivery:' + eventName + ':' + record.id;
@@ -139,9 +140,25 @@
       var seen = purchaseEvents[key];
       if (persisted) { try { seen = seen || global.localStorage.getItem(key); } catch (_) {} }
       if (seen) return;
-      global.cdTrack(eventName, {item_id:item,observation:'browser_server_response'});
+      global.cdTrack(eventName, {item_id:item,observation:'browser_server_response',metric_version:2});
       purchaseEvents[key] = true;
       if (persisted) { try { global.localStorage.setItem(key, '1'); } catch (_) {} }
+    });
+  };
+  // A browser render is not proof of server persistence or an account-wide first read.
+  global.cdTrackFortuneView = function (record, source) {
+    if (!record || record.paid !== true || record.state === 'REFUNDED' ||
+        !/^[a-f0-9]{64}$/.test(record.id || '') || !Array.isArray(record.chapters) || !record.chapters.length) return;
+    var item = String(record.product && record.product.cdFeatureKey || 'yeongnyangi-' + String(record.productId || '').replace(/_/g, '-'));
+    if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) return;
+    var complete = record.state === 'COMPLETED';
+    var key = 'view:' + record.id + ':' + complete;
+    if (purchaseEvents[key]) return;
+    purchaseEvents[key] = true;
+    global.cdTrack('fortune_result_view', {
+      item_id:item, result_state:complete ? 'complete' : 'partial',
+      entry_source:source === 'library' ? 'library' : 'direct',
+      observation:'browser_render',metric_version:2
     });
   };
   // Call only with a successful server confirmation, never the PG popup callback.
@@ -206,6 +223,10 @@
       return;
     }
     if (!anchor) return;
+    var businessEntry = anchor.getAttribute('data-cd-business-entry');
+    if (businessEntry === 'paid' || businessEntry === 'daily') {
+      global.cdTrack('home_business_entry', { destination: businessEntry });
+    }
 
     /*
      * 크로스셀 클릭. 정본 렌더러 app/components/SeoLandingTemplate.jsx 는 서버 컴포넌트라 onClick 을
@@ -283,4 +304,5 @@
   } catch (_retentionError) {
     /* 저장소가 막혀 있으면(사파리 비공개 등) 조용히 포기한다 */
   }
+  if (global.cdAnalyticsReady) global.cdAnalyticsReady();
 })();

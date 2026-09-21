@@ -6,6 +6,18 @@ next: "배포 4주 뒤 §4 베이스라인 표를 실측으로 채운다 — 그
 
 # 애널리틱스 KPI 정의
 
+## 2026-09-21 사업 리팩토링 기준 (아래 과거 정의보다 우선)
+
+- 구매 원장은 서버 주문이다. 브라우저 `purchase`는 승인 응답 관찰이며 PG 콜백만으로 전송하지 않는다. `purchase_complete` 과거 건수와 더하지 않는다.
+- 영냥이 상품 선택 확정 `view_item`, 버튼 클릭 `purchase_attempt`, 요청 생성 성공 `consultation_start`를 구분한다. item_id는 canonical 구매 키다.
+- `fortune_completed`와 `fortune_first_open`은 호환용 **브라우저 최초 관찰**이다. 계정 전체의 최초 열람이나 실제 저장 완료의 원장이 아니다. v2부터 `metric_version:2`로 분리한다.
+- `fortune_result_view`: 실제 렌더된 paid 챕터에만 발생. result_state=partial/complete, entry_source=direct/library, observation=browser_render. 각 상태를 문서 생명주기 내 중복 제거한다. 보관함 링크 클릭 자체를 열람으로 세지 않는다.
+- 실제 전달률은 동일 승인 코호트의 주문→요청 연결, COMPLETED·manifest 전체 저장·completedAt을 대조한다. 미연결·부분·환불·테스트·미분류를 별도 집계한다. 0개 분모는 0%가 아니라 N/A다.
+- 공개 이벤트에는 프로필·생년월일·질문·결과 본문·상담 ID를 보내지 않는다. 인증 토큰을 URL/이벤트에 넣지 않는다. 기존 동의 정책과 브라우저 중복 제거의 기기별 한계를 유지한다.
+- 8/24~9/20 생성 주문 중 현재 paid 5건과 GA4 구매 0은 승인일 코호트나 적격 고객 매출이 아니다. 테스트 제외·PG 대조·보고 시간대 대조 전 숫자를 전환율로 만들지 않는다.
+
+실측과 미확인 항목은 [사업 마스터](business-refactor.md)에 기록한다.
+
 작성 2026-08-30 · 근거 브랜치 `worktree-analytics-kpi-0830`
 
 감사 [code-destiny-audit.md](code-destiny-audit.md) 요청 18 의 나머지 절반이다. **이벤트는 갖춰져 있었는데

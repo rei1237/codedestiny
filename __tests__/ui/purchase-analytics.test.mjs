@@ -48,3 +48,37 @@ test('only completed paid reports emit anonymous delivery and first-open events 
   assert.equal(w.dataLayer.at(-1)[2].page_location,'https://code-destiny.com/points/');
   dom.window.close();
 });
+
+test('partial render, completion and library entry remain separate observations',()=>{
+  const dom=boot(),w=dom.window;
+  const row={id:'b'.repeat(64),productId:'saju_mackerel',paid:true,state:'GENERATING',chapters:[{text:'private'}]};
+  w.cdTrackFortuneView({...row,chapters:[]},'library');
+  w.cdTrackFortuneView({...row,state:'REFUNDED'},'library');
+  w.cdTrackFortuneView(row,'library');w.cdTrackFortuneView(row,'library');
+  w.cdTrackFortuneView({...row,state:'COMPLETED'},'library');
+  const views=w.dataLayer.filter(event=>event[1]==='fortune_result_view').map(event=>event[2]);
+  assert.equal(views.length,2);
+  assert.deepEqual(Array.from(views,view=>view.result_state),['partial','complete']);
+  assert.equal(views[0].item_id,'yeongnyangi-saju-mackerel');
+  assert.equal(views[0].entry_source,'library');
+  assert.equal(JSON.stringify(views).includes('private'),false);
+  assert.equal(JSON.stringify(views).includes(row.id),false);
+  assert.equal(w.dataLayer.filter(event=>event[1]==='fortune_completed').length,0);
+  dom.window.close();
+});
+
+
+test('React initial events wait for the existing analytics installation', async()=>{
+ const {transform}=await import('esbuild');
+ const wrapper=await transform(readFileSync(new URL('../../lib/analytics.ts',import.meta.url),'utf8'),{loader:'ts',format:'iife',globalName:'reactAnalytics'});
+ const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url:'https://code-destiny.com/today/',runScripts:'outside-only'});
+ const w=dom.window;w.eval(wrapper.code);
+ w.reactAnalytics.trackEvent('view_item',{item_id:'yeongnyangi-saju-mackerel'});
+ w.reactAnalytics.trackEvent('daily_tarot_reopen',{complete:true});
+ assert.equal(w.dataLayer,undefined);
+ w.eval(source);w.cdAnalyticsReady();
+ const events=w.dataLayer.filter(row=>row[0]==='event');
+ assert.equal(events.filter(row=>row[1]==='view_item').length,1);
+ assert.equal(events.filter(row=>row[1]==='daily_tarot_reopen').length,1);
+ dom.window.close();
+});

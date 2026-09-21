@@ -2,11 +2,11 @@
 import {useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
 import styles from '../yeongnyangi.module.css';
-import {trackFortuneDelivery} from '@/lib/analytics';
+import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
 export default function Result(){
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),mounted=useRef(true);
- useEffect(()=>{if(row)trackFortuneDelivery(row);},[row]);
+ useEffect(()=>{if(row){trackFortuneDelivery(row);trackFortuneView(row,new URLSearchParams(window.location.search).get('source')||'direct');}},[row]);
  async function generate(id:string){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try{

@@ -11,24 +11,39 @@
 
 declare global {
   interface Window {
+    cdAnalyticsReady?: () => void;
     cdTrack?: (eventName: string, params?: Record<string, unknown>) => void;
     cdTrackConfirmedPurchase?: (payload: unknown) => boolean;
     cdTrackFortuneDelivery?: (record: unknown) => void;
+    cdTrackFortuneView?: (record: unknown, source: string) => void;
   }
 }
 
-export function trackFortuneDelivery(record: unknown): void {
-  if (typeof window !== "undefined") window.cdTrackFortuneDelivery?.(record);
-}
-
-export function trackConfirmedPurchase(payload: unknown): void {
-  if (typeof window !== "undefined") window.cdTrackConfirmedPurchase?.(payload);
-}
-
-export function trackEvent(eventName: string, params?: Record<string, unknown>): void {
+// afterInteractive 설치 전의 첫 상세·복원 이벤트만 잠시 보관한다.
+// 태그 초기화와 동의 판정은 기존 analytics.js 한 곳에서 수행한다.
+const pending: Array<() => void> = [];
+let expiry: ReturnType<typeof setTimeout> | undefined;
+function whenReady(send: () => void): void {
   if (typeof window === "undefined") return;
-  // analytics.js 는 afterInteractive 로 붙으므로 이른 호출에는 아직 없을 수 있다.
-  // 그 창에서 유실되는 이벤트는 버린다 — 큐를 두면 순서가 뒤엉키고 관리 지점만 늘어난다.
-  if (typeof window.cdTrack !== "function") return;
-  window.cdTrack(eventName, params || {});
+  if (window.cdTrack) { send(); return; }
+  if (pending.length >= 32) return;
+  pending.push(send);
+  if (!expiry) expiry = setTimeout(() => { pending.length = 0; expiry = undefined; }, 30000);
+  window.cdAnalyticsReady = () => {
+    if (expiry) clearTimeout(expiry);
+    expiry = undefined;
+    pending.splice(0).forEach(deliver => deliver());
+  };
+}
+export function trackFortuneDelivery(record: unknown): void {
+  whenReady(() => window.cdTrackFortuneDelivery?.(record));
+}
+export function trackFortuneView(record: unknown, source: string): void {
+  whenReady(() => window.cdTrackFortuneView?.(record, source));
+}
+export function trackConfirmedPurchase(payload: unknown): void {
+  whenReady(() => window.cdTrackConfirmedPurchase?.(payload));
+}
+export function trackEvent(eventName: string, params?: Record<string, unknown>): void {
+  whenReady(() => window.cdTrack?.(eventName, params || {}));
 }

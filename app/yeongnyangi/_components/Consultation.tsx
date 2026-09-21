@@ -21,7 +21,13 @@ export default function Consultation(){
  const [extraTime,setExtraTime]=useState(''),[extraPlace,setExtraPlace]=useState('');
  const selectedProfile=profiles.find(p=>(p.profileId||p.id)===profileId);
  const lock=useRef(false);
+ const viewedProduct=useRef('');
  const product=products.find(p=>p.id===productId)!;
+ useEffect(()=>{
+  if(!ready||viewedProduct.current===product.id)return;
+  viewedProduct.current=product.id;
+  trackEvent('view_item',{currency:product.currency,value:product.priceKRW,items:[{item_id:product.cdFeatureKey,item_name:product.name,price:product.priceKRW}],service:'yeongnyangi'});
+ },[ready,product]);
  const choices=products.filter(p=>domain==='fusion'?p.readingKind!=='single':p.readingKind==='single'&&p.domain===domain);
  const tarotOnly=product.domain==='tarot'&&product.readingKind==='single';
  const premium=['flounder','tuna'].includes(product.fishId);
@@ -48,7 +54,9 @@ export default function Consultation(){
   return ()=>{cancelled=true;};
  },[]);
  async function prepare(){
-  if(lock.current)return;if(guest){loginForCurrentPage();return;}
+  if(lock.current)return;
+  trackEvent('purchase_attempt',{item_id:product.cdFeatureKey,value:product.priceKRW,currency:product.currency,login_required:guest,service:'yeongnyangi'});
+  if(guest){loginForCurrentPage();return;}
   if(missing.length){setError(missing.join(' '));return;}
   lock.current=true;setBusy(true);setError('');
   try{
@@ -60,7 +68,7 @@ export default function Consultation(){
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
    const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{birthDetails:{birthTime:extraTime,birthPlace},productId,profileId,topicId,question,timeUnknown,...(partnerId?{partnerProfileId:partnerId}:{})});
-   trackEvent('consultation_start',{item_id:productId,service:'yeongnyangi'});
+   trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
    window.location.assign(data.fortune.paid?resultPath(data.fortune.id):checkoutPath(data.fortune));
   }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요.');}
   finally{lock.current=false;setBusy(false);}
