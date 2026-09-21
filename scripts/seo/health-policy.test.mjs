@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { inspectPage, robotsAllows } from './health-policy.mjs';
+import { inspectPage, robotsAllows, sitemapDirectives } from './health-policy.mjs';
+test('locale sitemap declarations are accepted; comments and substring mentions are not', () => {
+  assert.deepEqual(sitemapDirectives('# Sitemap: https://example.com/sitemap.xml\nSitemap: https://example.com/sitemap-ko.xml\nsitemap: https://example.com/sitemap-ja.xml # locale\nSitemap: https://example.com/sitemap-ko.xml'),
+    ['https://example.com/sitemap-ko.xml', 'https://example.com/sitemap-ja.xml']);
+  assert.deepEqual(sitemapDirectives('Allow: /sitemap.xml\nSitemap: /relative.xml'), []);
+});
 const url = 'https://code-destiny.com/saju/';
 const html = `<html><head><title>Saju</title><link href='${url}' rel='canonical'><meta content='Guide' name='description'></head></html>`;
 test('200 is insufficient: header and meta noindex are detected', () => {

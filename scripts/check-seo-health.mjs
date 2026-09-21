@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 import { mkdir, writeFile } from 'node:fs/promises';
-import { inspectPage, robotsAllows } from './seo/health-policy.mjs';
+import { inspectPage, robotsAllows, sitemapDirectives } from './seo/health-policy.mjs';
 
 const BASE = (process.env.SITE_URL || 'https://code-destiny.com').replace(/\/$/, '');
 const targets = ['/', '/saju/', '/manse/', '/ziwei/', '/sukuyo/', '/vedic/', '/astrology/',
@@ -23,7 +23,25 @@ if (robots.status !== 200 || !/^User-agent:/im.test(robots.html)) issues.push('r
 if (sitemap.status !== 200 || !/<urlset\b/.test(sitemap.html)) issues.push('sitemap missing or invalid');
 const urls = [...sitemap.html.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)].map(m => m[1].trim());
 if (!urls.length || new Set(urls).size !== urls.length) issues.push('empty or duplicate sitemap URLs');
-if (!robots.html.includes(`${BASE}/sitemap.xml`)) issues.push('robots sitemap directive missing');
+const declaredSitemaps = sitemapDirectives(robots.html);
+if (!declaredSitemaps.length) issues.push('robots sitemap directive missing');
+const declaredUrls = new Set();
+for (const url of declaredSitemaps) {
+  const parsed = new URL(url);
+  if (parsed.origin !== BASE || parsed.search || parsed.hash) {
+    issues.push(`unexpected declared sitemap URL: ${url}`);
+    continue;
+  }
+  const entry = url === sitemap.url ? sitemap : await get(parsed.pathname);
+  if (entry.status !== 200 || !/<urlset\b/.test(entry.html)) {
+    issues.push(`declared sitemap missing or invalid: ${url}`);
+    continue;
+  }
+  for (const match of entry.html.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)) declaredUrls.add(match[1].trim());
+}
+for (const url of urls) {
+  if (!declaredUrls.has(url)) issues.push(`URL absent from declared sitemaps: ${url}`);
+}
 for (const path of targets) {
   const row = await get(path);
   row.indexable = urls.includes(row.url);
@@ -41,7 +59,7 @@ for (const url of urls) {
   } catch { issues.push(`invalid sitemap URL: ${url}`); }
 }
 const report = { checkedAt: new Date().toISOString(), base: BASE, sitemapCount: urls.length,
-  coverage: 'critical landing sample plus robots checks for every sitemap URL', rows, issues };
+  coverage: 'critical landing sample plus robots and declared sitemap coverage for every sitemap URL', declaredSitemaps, rows, issues };
 await mkdir('seo-qa/operations', { recursive: true });
 await writeFile('seo-qa/operations/health.json', JSON.stringify(report, null, 2) + '\n');
 console.log(`[seo-health] ${rows.length} landings, ${urls.length} sitemap URLs, ${issues.length} issues`);

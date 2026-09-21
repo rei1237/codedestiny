@@ -1,28 +1,34 @@
 {
-  "observedAt": "2026-09-14",
-  "observationNote": "2026-09-14 KST 로그인 UI 실측. GSC 실적 기간과 색인 보고서 갱신일은 다름. 네이버 축약 수치를 정확한 정수로 환산하지 않음.",
+  "observedAt": "2026-09-21",
+  "observationNote": "GSC 로그인 UI 실측. 3개월과 28일 기간을 분리하고 Query/Page 표본을 결합하지 않음. Naver 로그인 필요. 관측 시각 KST 11:43–11:50.",
   "period": {
-    "start": "2026-06-12",
-    "end": "2026-09-11",
+    "start": "2026-06-19",
+    "end": "2026-09-18",
     "searchType": "web",
     "country": "all",
     "device": "all"
   },
   "metrics": {
-    "organicClicks": 31,
-    "impressions": 377,
-    "ctr": 8.2,
-    "averagePosition": 25.1,
-    "indexedPages": 276,
+    "organicClicks": 30,
+    "impressions": 356,
+    "ctr": 8.4,
+    "averagePosition": 25.4,
+    "indexedPages": 292,
     "newReferringDomains": null,
     "relevantReferringDomains": null
   },
   "gscRows": [
     {
       "query": "사주",
-      "clicks": 2,
-      "impressions": 2,
-      "position": 19
+      "clicks": 3,
+      "impressions": 4,
+      "position": 18.5
+    },
+    {
+      "query": "숙요점",
+      "clicks": 1,
+      "impressions": 8,
+      "position": 23
     },
     {
       "query": "만세력 사주",
@@ -31,22 +37,10 @@
       "position": 51
     },
     {
-      "query": "숙요점",
-      "clicks": 0,
-      "impressions": 7,
-      "position": 24.6
-    },
-    {
       "query": "만세력",
       "clicks": 0,
       "impressions": 5,
       "position": 19.6
-    },
-    {
-      "query": "숙요 궁합",
-      "clicks": 0,
-      "impressions": 4,
-      "position": 28.8
     },
     {
       "query": "算命学 忌神 無料",
@@ -79,73 +73,79 @@
       "position": 22.7
     },
     {
-      "page": "https://code-destiny.com/",
-      "clicks": 22,
-      "impressions": 181,
-      "position": 30.5
+      "query": "숙요 궁합",
+      "clicks": 0,
+      "impressions": 3,
+      "position": 29.3
     },
     {
-      "page": "https://code-destiny.com/manse/",
+      "page": "/",
+      "clicks": 20,
+      "impressions": 163,
+      "position": 32.5
+    },
+    {
+      "page": "/manse/",
       "clicks": 4,
-      "impressions": 23,
-      "position": 21.8
+      "impressions": 24,
+      "position": 23.9
     },
     {
-      "page": "https://code-destiny.com/sukuyo/",
-      "clicks": 1,
-      "impressions": 11,
-      "position": 10.4
+      "page": "/sukuyo/",
+      "clicks": 2,
+      "impressions": 12,
+      "position": 10.5
     },
     {
-      "page": "https://code-destiny.com/insights/sukuyo/",
+      "page": "/insights/sukuyo/",
       "clicks": 1,
       "impressions": 11,
       "position": 14.9
     },
     {
-      "page": "https://code-destiny.com/insights/sukuyo-love/",
+      "page": "/insights/sukuyo-love/",
       "clicks": 1,
       "impressions": 8,
       "position": 9
     },
     {
-      "page": "https://code-destiny.com/insights/sukuyo-compatibility-simple-checklist/",
+      "page": "/insights/sukuyo-compatibility-simple-checklist/",
       "clicks": 1,
       "impressions": 8,
       "position": 9.4
     },
     {
-      "page": "https://code-destiny.com/insights/sukuyo-27-mansions/",
+      "page": "/insights/sukuyo-27-mansions/",
       "clicks": 1,
-      "impressions": 1,
-      "position": 6
+      "impressions": 2,
+      "position": 5.5
     },
     {
-      "page": "https://code-destiny.com/about/",
-      "clicks": 0,
-      "impressions": 13,
-      "position": 6.5
-    },
-    {
-      "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+      "page": "/insights/astrology-synastry-compatibility-fun-guide/",
       "clicks": 0,
       "impressions": 13,
       "position": 14
     },
     {
-      "page": "https://code-destiny.com/ja/",
+      "page": "/ja/",
       "clicks": 0,
       "impressions": 12,
       "position": 48.3
+    },
+    {
+      "page": "/insights/sukuyo-marriage/",
+      "clicks": 0,
+      "impressions": 11,
+      "position": 10
     }
   ],
-  "gscCoverage": "UI 검색어 67행 중 10개, 페이지 115행 중 10개 표본. Query/Page 별도 집계이며 교차표가 아님. 익명 검색어 미포함.",
+  "gscCoverage": "검색어 65행 중 10개, 페이지 110행 중 10개. 별도 집계, 교차표 아님. 실적 UI 갱신 5.5~6시간 전. 익명 검색어 미포함.",
   "countries": [
     {
       "country": "KR",
-      "clicks": 30,
-      "impressions": 299,
-      "position": 25.2
+      "clicks": 29,
+      "impressions": 287,
+      "position": 25.6
     },
     {
       "country": "GB",
@@ -156,28 +156,28 @@
     {
       "country": "US",
       "clicks": 0,
-      "impressions": 33,
-      "position": 12.3
+      "impressions": 29,
+      "position": 9
     },
     {
       "country": "JP",
       "clicks": 0,
-      "impressions": 15,
-      "position": 41.1
+      "impressions": 14,
+      "position": 42.1
     }
   ],
   "devices": [
     {
       "device": "mobile",
-      "clicks": 22,
-      "impressions": 196,
-      "position": 21.1
+      "clicks": 24,
+      "impressions": 192,
+      "position": 21
     },
     {
       "device": "desktop",
-      "clicks": 9,
-      "impressions": 180,
-      "position": 29.1
+      "clicks": 6,
+      "impressions": 163,
+      "position": 30.2
     },
     {
       "device": "tablet",
@@ -187,129 +187,105 @@
     }
   ],
   "indexing": {
-    "updatedAt": "2026-09-04",
-    "excluded": 1822,
-    "crawledNotIndexed": 382,
-    "discoveredNotIndexed": 229,
-    "differentGoogleCanonical": 4,
-    "notFound": 765,
-    "redirect": 280,
+    "observedAt": "2026-09-21",
+    "updatedAt": "2026-09-18",
+    "excluded": 2633,
+    "crawledNotIndexed": 389,
+    "discoveredNotIndexed": 1023,
+    "differentGoogleCanonical": 3,
+    "notFound": 764,
+    "redirect": 292,
     "noindex": 105,
-    "alternateCanonical": 24,
+    "alternateCanonical": 25,
     "robots": 18,
     "forbidden": 5,
-    "duplicateWithoutCanonical": 5,
+    "duplicateWithoutCanonical": 4,
     "other4xx": 2,
     "serverError": 2,
     "unauthorized": 1,
-    "observedAt": "2026-09-14",
-    "note": "최종 갱신은 여전히 2026-09-04. 13개 사유 중 첫 10개 재확인; crawled/discovered/Google canonical 3개는 동일 갱신일의 이전 표본 유지."
-  },
-  "naver": {
-    "updatedAt": "2026-09-13",
-    "period": "UI 최근 30일",
-    "clicksDisplay": "1.4천",
-    "impressionsDisplay": "13.7만",
-    "ctrDisplay": "1%",
-    "indexedDisplay": "4.4백",
-    "duplicateTitles": 1643,
-    "duplicateDescriptions": 1642,
-    "missingDescriptions": 11,
-    "multipleTitles": 1,
-    "multipleH1": 22,
-    "missingAlt": 13,
-    "canonicalDuplicateSample": "https://code-destiny.com/about/?v=be05e84c8550",
-    "topPages": [
-      {
-        "page": "/vedic/",
-        "clicks": 78,
-        "impressions": 1687
-      },
-      {
-        "page": "/fortune/tomorrow/ox/",
-        "clicks": 71,
-        "impressions": 5092
-      },
-      {
-        "page": "/fortune/tomorrow/rat/",
-        "clicks": 59,
-        "impressions": 2056
-      },
-      {
-        "page": "/fortune/tomorrow/scorpio/",
-        "clicks": 57,
-        "impressions": 12168
-      },
-      {
-        "page": "/fortune/tomorrow/pig/",
-        "clicks": 57,
-        "impressions": 2079
-      },
-      {
-        "page": "/fortune/tomorrow/virgo/",
-        "clicks": 53,
-        "impressions": 7258
-      },
-      {
-        "page": "/fortune/tomorrow/libra/",
-        "clicks": 51,
-        "impressions": 6271
-      },
-      {
-        "page": "/sukuyo/",
-        "clicks": 48,
-        "impressions": 1551
-      },
-      {
-        "page": "/naming-ai/",
-        "clicks": 43,
-        "impressions": 1319
-      },
-      {
-        "page": "/fortune/tomorrow/monkey/",
-        "clicks": 43,
-        "impressions": 1001
-      }
+    "note": "13개 사유 전부 UI 확인. 이전 9/4 보고서보다 discovered +794; 원인은 미확정, 신규 발견과 품질 문제를 단정하지 않음.",
+    "discoveredSamples": [
+      "/astrology/guide/",
+      "/calendar/guide/",
+      "/compare/fortune-apps/",
+      "/compare/saju-vs-ziwei/",
+      "/compare/sukuyo-vs-vedic/",
+      "/contact/",
+      "/destiny-compass/",
+      "/editorial-policy/",
+      "/en/astrology/",
+      "/en/compatibility/"
     ],
-    "observedAt": "2026-09-14",
-    "diagnosisUpdatedAt": "2026-09-12",
-    "noindex": 898,
-    "redirect": 42,
-    "inaccessible": 8,
-    "topQueries": [
+    "sampleHttpChecks": [
       {
-        "query": "숙요점 사이트",
-        "clicks": 21,
-        "impressions": 724
+        "path": "/astrology/guide/",
+        "status": 200,
+        "issues": []
       },
       {
-        "query": "숙요점",
-        "clicks": 20,
-        "impressions": 591
+        "path": "/calendar/guide/",
+        "status": 200,
+        "issues": []
       },
       {
-        "query": "인도 점성술",
-        "clicks": 20,
-        "impressions": 355
+        "path": "/compare/fortune-apps/",
+        "status": 200,
+        "issues": []
       },
       {
-        "query": "무료작명사이트",
-        "clicks": 15,
-        "impressions": 101
+        "path": "/compare/saju-vs-ziwei/",
+        "status": 200,
+        "issues": []
       },
       {
-        "query": "꿀꿀운세",
-        "clicks": 13,
-        "impressions": 40
+        "path": "/compare/sukuyo-vs-vedic/",
+        "status": 200,
+        "issues": []
+      },
+      {
+        "path": "/contact/",
+        "status": 200,
+        "issues": []
+      },
+      {
+        "path": "/destiny-compass/",
+        "status": 200,
+        "issues": []
+      },
+      {
+        "path": "/editorial-policy/",
+        "status": 200,
+        "issues": []
+      },
+      {
+        "path": "/en/astrology/",
+        "status": 200,
+        "issues": []
+      },
+      {
+        "path": "/en/compatibility/",
+        "status": 200,
+        "issues": []
       }
     ]
+  },
+  "naver": {
+    "observedAt": "2026-09-21",
+    "status": "login-required",
+    "updatedAt": null,
+    "period": null,
+    "clicks": null,
+    "impressions": null,
+    "ctr": null,
+    "indexedPages": null,
+    "note": "Search Advisor가 로그인 화면으로 이동. 이전 데이터는 history에 보존."
   },
   "acquiredLinks": [],
   "existingGscLinkDomains": [
     "x.com",
     "xploredomains.com"
   ],
-  "linkNote": "2026-09-14 GSC 외부 링크 표본 2개(x.com, xploredomains.com) 재확인. 신규 획득 확인 없음. 전체 인터넷 링크 수가 아님.",
+  "linkNote": "2026-09-21 GSC 외부 링크 2개, x.com/xploredomains.com 각 1개 재확인. 전체 웹 링크 수가 아니며 신규 획득 미확인. 내부 링크 표본 총 2479개.",
   "keywords": [
     "코드데스티니",
     "CODE DESTINY",
@@ -335,17 +311,20 @@
     "재물운"
   ],
   "improvements": [
-    "GSC 3개월/28일과 네이버 실적·진단을 구분해 갱신; 이전 관측 보존",
-    "계정 관측일뿐 아니라 데이터 기간도 오래되면 자동 Quick Win 추천 보류",
-    "기존 후보 5개 본문 재검수와 공식 문의 경로 보완; 발송 0건",
-    "현재 main·targeted 검사·CI 절차로 운영 문서와 예약 지침 수정"
+    "언어별 사이트맵을 누락으로 오판하는 일일 검사 수정. 실제 선언 5개 fetch 및 통합 sitemap 1283개 URL 포함 여부 검증.",
+    "GSC 3개월/28일 실측 및 색인 13개 사유 갱신, 이전 관측 전체 보존.",
+    "KR/JP 기존 후보 5개 본문 재검토. 확인 불가 평점은 올리지 않고 발송 0건 유지."
   ],
   "adsense": {
     "status": "needs-attention",
     "reason": "가치가 별로 없는 콘텐츠",
     "accountUpdatedAt": "2026-08-29",
     "accountAdsTxt": "찾을 수 없음",
-    "publicAdsTxt": "200; publisher record matches",
+    "publicAdsTxt": {
+      "observedAt": "2026-09-21",
+      "status": 200,
+      "publisherMatches": true
+    },
     "risks": [
       "실제 거절 사유는 low value content; 특정 URL을 Google이 지목한 것은 아님",
       "다국어 전체 실행 상태와 광고 노출 상태의 모바일 UX 확인 필요",
@@ -359,15 +338,15 @@
       "details": "docs/seo/GROWTH_OPERATIONS.md",
       "observedAt": "2026-09-08"
     },
-    "observedAt": "2026-09-14"
+    "observedAt": "2026-09-21"
   },
   "nextActions": [
-    "GSC 숙요점→/sukuyo/ 28일 4노출·15.8위 확인. 다른 숙요 관계 검색어의 Query–Page 매칭과 표본 누적 후 기존 글 개선",
-    "네이버 내일 전갈자리·처녀자리·천칭자리의 낮은 CTR과 날짜별 검색 의도 대조",
-    "일본어 비교 자료와 후보별 편집 적합성 확인; CMP 게시·광고 실동작 검증 전 재신청 보류"
+    "발견됨 미색인 1023개 중 핵심 가이드/비교 페이지의 URL 검사와 내부 링크 경로를 우선 조사.",
+    "Naver 로그인 복구 후 최신 실적·진단 갱신.",
+    "숙요/시너스트리 기존 글의 독립 가치와 AdSense 콘텐츠 검수 계속. 현재 검색 표본은 2~13회로 수량 목적의 제목 변경 보류."
   ],
   "lastMonthlyAudit": "2026-09-08",
-  "lastWeeklyCycle": "2026-09-14",
+  "lastWeeklyCycle": "2026-09-21",
   "outreachRegistry": "docs/seo/outreach/candidates.json",
   "productionObservedSha": "06b0ad911b575abad74e049e4fdef36041fb376b",
   "automation": {
@@ -436,62 +415,467 @@
         "일본어·영어·중국어 홈의 신규 문구 번역과 일본어·중국어 제목 줄바꿈 보정",
         "일본어 베다 소개와 한국어 출생시각 FAQ의 입력 조건 설명 보완"
       ]
+    },
+    {
+      "observedAt": "2026-09-14",
+      "observationNote": "2026-09-14 KST 로그인 UI 실측. GSC 실적 기간과 색인 보고서 갱신일은 다름. 네이버 축약 수치를 정확한 정수로 환산하지 않음.",
+      "period": {
+        "start": "2026-06-12",
+        "end": "2026-09-11",
+        "searchType": "web",
+        "country": "all",
+        "device": "all"
+      },
+      "metrics": {
+        "organicClicks": 31,
+        "impressions": 377,
+        "ctr": 8.2,
+        "averagePosition": 25.1,
+        "indexedPages": 276,
+        "newReferringDomains": null,
+        "relevantReferringDomains": null
+      },
+      "gscRows": [
+        {
+          "query": "사주",
+          "clicks": 2,
+          "impressions": 2,
+          "position": 19
+        },
+        {
+          "query": "만세력 사주",
+          "clicks": 1,
+          "impressions": 1,
+          "position": 51
+        },
+        {
+          "query": "숙요점",
+          "clicks": 0,
+          "impressions": 7,
+          "position": 24.6
+        },
+        {
+          "query": "만세력",
+          "clicks": 0,
+          "impressions": 5,
+          "position": 19.6
+        },
+        {
+          "query": "숙요 궁합",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 28.8
+        },
+        {
+          "query": "算命学 忌神 無料",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 88.8
+        },
+        {
+          "query": "점성술",
+          "clicks": 0,
+          "impressions": 4,
+          "position": 89.3
+        },
+        {
+          "query": "숙요점 업태",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 8
+        },
+        {
+          "query": "숙요점 영친",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 8.7
+        },
+        {
+          "query": "숙요점 사이트",
+          "clicks": 0,
+          "impressions": 3,
+          "position": 22.7
+        },
+        {
+          "page": "https://code-destiny.com/",
+          "clicks": 22,
+          "impressions": 181,
+          "position": 30.5
+        },
+        {
+          "page": "https://code-destiny.com/manse/",
+          "clicks": 4,
+          "impressions": 23,
+          "position": 21.8
+        },
+        {
+          "page": "https://code-destiny.com/sukuyo/",
+          "clicks": 1,
+          "impressions": 11,
+          "position": 10.4
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo/",
+          "clicks": 1,
+          "impressions": 11,
+          "position": 14.9
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-love/",
+          "clicks": 1,
+          "impressions": 8,
+          "position": 9
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-compatibility-simple-checklist/",
+          "clicks": 1,
+          "impressions": 8,
+          "position": 9.4
+        },
+        {
+          "page": "https://code-destiny.com/insights/sukuyo-27-mansions/",
+          "clicks": 1,
+          "impressions": 1,
+          "position": 6
+        },
+        {
+          "page": "https://code-destiny.com/about/",
+          "clicks": 0,
+          "impressions": 13,
+          "position": 6.5
+        },
+        {
+          "page": "https://code-destiny.com/insights/astrology-synastry-compatibility-fun-guide/",
+          "clicks": 0,
+          "impressions": 13,
+          "position": 14
+        },
+        {
+          "page": "https://code-destiny.com/ja/",
+          "clicks": 0,
+          "impressions": 12,
+          "position": 48.3
+        }
+      ],
+      "gscCoverage": "UI 검색어 67행 중 10개, 페이지 115행 중 10개 표본. Query/Page 별도 집계이며 교차표가 아님. 익명 검색어 미포함.",
+      "countries": [
+        {
+          "country": "KR",
+          "clicks": 30,
+          "impressions": 299,
+          "position": 25.2
+        },
+        {
+          "country": "GB",
+          "clicks": 1,
+          "impressions": 2,
+          "position": 4
+        },
+        {
+          "country": "US",
+          "clicks": 0,
+          "impressions": 33,
+          "position": 12.3
+        },
+        {
+          "country": "JP",
+          "clicks": 0,
+          "impressions": 15,
+          "position": 41.1
+        }
+      ],
+      "devices": [
+        {
+          "device": "mobile",
+          "clicks": 22,
+          "impressions": 196,
+          "position": 21.1
+        },
+        {
+          "device": "desktop",
+          "clicks": 9,
+          "impressions": 180,
+          "position": 29.1
+        },
+        {
+          "device": "tablet",
+          "clicks": 0,
+          "impressions": 1,
+          "position": 99
+        }
+      ],
+      "indexing": {
+        "updatedAt": "2026-09-04",
+        "excluded": 1822,
+        "crawledNotIndexed": 382,
+        "discoveredNotIndexed": 229,
+        "differentGoogleCanonical": 4,
+        "notFound": 765,
+        "redirect": 280,
+        "noindex": 105,
+        "alternateCanonical": 24,
+        "robots": 18,
+        "forbidden": 5,
+        "duplicateWithoutCanonical": 5,
+        "other4xx": 2,
+        "serverError": 2,
+        "unauthorized": 1,
+        "observedAt": "2026-09-14",
+        "note": "최종 갱신은 여전히 2026-09-04. 13개 사유 중 첫 10개 재확인; crawled/discovered/Google canonical 3개는 동일 갱신일의 이전 표본 유지."
+      },
+      "naver": {
+        "updatedAt": "2026-09-13",
+        "period": "UI 최근 30일",
+        "clicksDisplay": "1.4천",
+        "impressionsDisplay": "13.7만",
+        "ctrDisplay": "1%",
+        "indexedDisplay": "4.4백",
+        "duplicateTitles": 1643,
+        "duplicateDescriptions": 1642,
+        "missingDescriptions": 11,
+        "multipleTitles": 1,
+        "multipleH1": 22,
+        "missingAlt": 13,
+        "canonicalDuplicateSample": "https://code-destiny.com/about/?v=be05e84c8550",
+        "topPages": [
+          {
+            "page": "/vedic/",
+            "clicks": 78,
+            "impressions": 1687
+          },
+          {
+            "page": "/fortune/tomorrow/ox/",
+            "clicks": 71,
+            "impressions": 5092
+          },
+          {
+            "page": "/fortune/tomorrow/rat/",
+            "clicks": 59,
+            "impressions": 2056
+          },
+          {
+            "page": "/fortune/tomorrow/scorpio/",
+            "clicks": 57,
+            "impressions": 12168
+          },
+          {
+            "page": "/fortune/tomorrow/pig/",
+            "clicks": 57,
+            "impressions": 2079
+          },
+          {
+            "page": "/fortune/tomorrow/virgo/",
+            "clicks": 53,
+            "impressions": 7258
+          },
+          {
+            "page": "/fortune/tomorrow/libra/",
+            "clicks": 51,
+            "impressions": 6271
+          },
+          {
+            "page": "/sukuyo/",
+            "clicks": 48,
+            "impressions": 1551
+          },
+          {
+            "page": "/naming-ai/",
+            "clicks": 43,
+            "impressions": 1319
+          },
+          {
+            "page": "/fortune/tomorrow/monkey/",
+            "clicks": 43,
+            "impressions": 1001
+          }
+        ],
+        "observedAt": "2026-09-14",
+        "diagnosisUpdatedAt": "2026-09-12",
+        "noindex": 898,
+        "redirect": 42,
+        "inaccessible": 8,
+        "topQueries": [
+          {
+            "query": "숙요점 사이트",
+            "clicks": 21,
+            "impressions": 724
+          },
+          {
+            "query": "숙요점",
+            "clicks": 20,
+            "impressions": 591
+          },
+          {
+            "query": "인도 점성술",
+            "clicks": 20,
+            "impressions": 355
+          },
+          {
+            "query": "무료작명사이트",
+            "clicks": 15,
+            "impressions": 101
+          },
+          {
+            "query": "꿀꿀운세",
+            "clicks": 13,
+            "impressions": 40
+          }
+        ]
+      },
+      "acquiredLinks": [],
+      "existingGscLinkDomains": [
+        "x.com",
+        "xploredomains.com"
+      ],
+      "linkNote": "2026-09-14 GSC 외부 링크 표본 2개(x.com, xploredomains.com) 재확인. 신규 획득 확인 없음. 전체 인터넷 링크 수가 아님.",
+      "keywords": [
+        "코드데스티니",
+        "CODE DESTINY",
+        "초융합운세",
+        "초융합 사주",
+        "꿀꿀운세",
+        "꿀꿀만세력",
+        "꽃돼지 사주",
+        "사주",
+        "무료 사주",
+        "만세력",
+        "자미두수",
+        "자미두수 무료",
+        "숙요점",
+        "숙요점 궁합",
+        "베다점",
+        "베다 점성술",
+        "나크샤트라",
+        "점성술",
+        "오늘의 운세",
+        "궁합",
+        "연애운",
+        "재물운"
+      ],
+      "improvements": [
+        "GSC 3개월/28일과 네이버 실적·진단을 구분해 갱신; 이전 관측 보존",
+        "계정 관측일뿐 아니라 데이터 기간도 오래되면 자동 Quick Win 추천 보류",
+        "기존 후보 5개 본문 재검수와 공식 문의 경로 보완; 발송 0건",
+        "현재 main·targeted 검사·CI 절차로 운영 문서와 예약 지침 수정"
+      ],
+      "adsense": {
+        "status": "needs-attention",
+        "reason": "가치가 별로 없는 콘텐츠",
+        "accountUpdatedAt": "2026-08-29",
+        "accountAdsTxt": "찾을 수 없음",
+        "publicAdsTxt": "200; publisher record matches",
+        "risks": [
+          "실제 거절 사유는 low value content; 특정 URL을 Google이 지목한 것은 아님",
+          "다국어 전체 실행 상태와 광고 노출 상태의 모바일 UX 확인 필요",
+          "인증 CMP 게시 및 EEA/UK/CH 실제 동의 흐름 확인 필요",
+          "공개 ads.txt 정상과 계정 과거 미발견 상태가 다름"
+        ],
+        "readinessScore": {
+          "score": 63,
+          "max": 100,
+          "basis": "보수적 내부 평가; 승인 확률이 아님; 미배포 수정으로 가산하지 않음",
+          "details": "docs/seo/GROWTH_OPERATIONS.md",
+          "observedAt": "2026-09-08"
+        },
+        "observedAt": "2026-09-14"
+      },
+      "nextActions": [
+        "GSC 숙요점→/sukuyo/ 28일 4노출·15.8위 확인. 다른 숙요 관계 검색어의 Query–Page 매칭과 표본 누적 후 기존 글 개선",
+        "네이버 내일 전갈자리·처녀자리·천칭자리의 낮은 CTR과 날짜별 검색 의도 대조",
+        "일본어 비교 자료와 후보별 편집 적합성 확인; CMP 게시·광고 실동작 검증 전 재신청 보류"
+      ],
+      "lastMonthlyAudit": "2026-09-08",
+      "lastWeeklyCycle": "2026-09-14",
+      "outreachRegistry": "docs/seo/outreach/candidates.json",
+      "productionObservedSha": "06b0ad911b575abad74e049e4fdef36041fb376b",
+      "automation": {
+        "heartbeatId": "code-destiny-seo-growth",
+        "nextWeeklyKst": "2026-09-21 09:20",
+        "githubWorkflow": "seo-operations.yml",
+        "githubActivation": "active; scheduled run 34789606575 succeeded 2026-09-14 KST"
+      },
+      "recent28Days": {
+        "observedAt": "2026-09-14",
+        "period": {
+          "start": "2026-08-15",
+          "end": "2026-09-11"
+        },
+        "organicClicks": 8,
+        "impressions": 115,
+        "ctr": 7,
+        "averagePosition": 27,
+        "comparison": {
+          "period": {
+            "start": "2026-07-18",
+            "end": "2026-08-14"
+          },
+          "organicClicks": 9,
+          "impressions": 135,
+          "ctr": 6.7,
+          "averagePosition": 24.6,
+          "note": "GSC 최근28일/이전기간 비교 UI 실측, 웹·국가전체·기기전체. 기간은 비교 대화상자 확인; 차트 접근성 날짜 라벨에는 Invalid Date 오류가 있었음."
+        },
+        "queryPages": [
+          {
+            "query": "숙요점",
+            "page": "https://code-destiny.com/sukuyo/",
+            "clicks": 0,
+            "impressions": 4,
+            "position": 15.8,
+            "evidence": "검색어 셀로 필터 후 페이지 표 1행 및 요약순위 확인",
+            "lowSample": true
+          }
+        ],
+        "pageComparison": [
+          {
+            "page": "/manse/",
+            "clicks": 3,
+            "previousClicks": 0,
+            "impressions": 17,
+            "previousImpressions": 2
+          },
+          {
+            "page": "/sukuyo/",
+            "clicks": 1,
+            "previousClicks": 0,
+            "impressions": 10,
+            "previousImpressions": 1
+          }
+        ]
+      },
+      "lastHealthCheck": {
+        "observedAt": "2026-09-14",
+        "landings": 19,
+        "sitemapUrls": 1264,
+        "issues": 0,
+        "workflowRun": "https://github.com/rei1237/codedestiny/actions/runs/34789606575"
+      }
     }
   ],
   "recent28Days": {
-    "observedAt": "2026-09-14",
+    "observedAt": "2026-09-21",
     "period": {
-      "start": "2026-08-15",
-      "end": "2026-09-11"
+      "start": "2026-08-22",
+      "end": "2026-09-18"
     },
     "organicClicks": 8,
-    "impressions": 115,
-    "ctr": 7,
-    "averagePosition": 27,
-    "comparison": {
-      "period": {
-        "start": "2026-07-18",
-        "end": "2026-08-14"
-      },
-      "organicClicks": 9,
-      "impressions": 135,
-      "ctr": 6.7,
-      "averagePosition": 24.6,
-      "note": "GSC 최근28일/이전기간 비교 UI 실측, 웹·국가전체·기기전체. 기간은 비교 대화상자 확인; 차트 접근성 날짜 라벨에는 Invalid Date 오류가 있었음."
-    },
-    "queryPages": [
-      {
-        "query": "숙요점",
-        "page": "https://code-destiny.com/sukuyo/",
-        "clicks": 0,
-        "impressions": 4,
-        "position": 15.8,
-        "evidence": "검색어 셀로 필터 후 페이지 표 1행 및 요약순위 확인",
-        "lowSample": true
-      }
-    ],
-    "pageComparison": [
-      {
-        "page": "/manse/",
-        "clicks": 3,
-        "previousClicks": 0,
-        "impressions": 17,
-        "previousImpressions": 2
-      },
-      {
-        "page": "/sukuyo/",
-        "clicks": 1,
-        "previousClicks": 0,
-        "impressions": 10,
-        "previousImpressions": 1
-      }
-    ]
+    "impressions": 102,
+    "ctr": 7.8,
+    "averagePosition": 26.1,
+    "queryPages": [],
+    "comparison": null,
+    "note": "이전 28일 직접 비교 미실시. 이전 주 관측은 history에 보존."
   },
   "lastHealthCheck": {
-    "observedAt": "2026-09-14",
+    "observedAt": "2026-09-21",
     "landings": 19,
-    "sitemapUrls": 1264,
+    "sitemapUrls": 1283,
     "issues": 0,
-    "workflowRun": "https://github.com/rei1237/codedestiny/actions/runs/34789606575"
-  }
+    "note": "공개 HTTP 점검. 언어별 사이트맵 5개 선언/전체 URL coverage 정상. 기존 경고는 검사기 오탐."
+  },
+  "weeklyLimitations": [
+    "신규 콘텐츠 및 기존 글 수정 없음: 이번 실행은 최신 계정 관측과 검사기 오탐 수정 우선.",
+    "월간 감사는 9/8 수행으로 이번 주 재실행하지 않음. AdSense 계정은 9/21 재관측했으나 8/29 저가치 콘텐츠 거절 상태 그대로. 광고 활성화·재신청 없음.",
+    "broken-link 대체 제안 새로 확정하지 않음."
+  ]
 }

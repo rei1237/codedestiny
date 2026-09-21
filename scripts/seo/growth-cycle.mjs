@@ -44,7 +44,8 @@ export async function run() {
   const report = { generatedAt: new Date().toISOString(), observedAt: state.observedAt,
     ...evidence, period: state.period, recent28Days: state.recent28Days ?? null,
     metrics: state.metrics, opportunities,
-    acquiredLinks: state.acquiredLinks, nextActions: state.nextActions, sends: 0 };
+    acquiredLinks: state.acquiredLinks, nextActions: state.nextActions,
+    limitations: state.weeklyLimitations ?? [], sends: 0 };
   const m = state.metrics;
   const display = value => value == null ? '미확인' : String(value);
   const lines = ['# SEO WEEKLY REPORT', '', `데이터 관측: ${state.observedAt} (집계 기간 ${state.period.start}–${state.period.end}; 주간 수치로 환산하지 않음)`,
@@ -61,7 +62,9 @@ export async function run() {
     '', '## 획득된 링크',
     ...(state.acquiredLinks?.length ? state.acquiredLinks.map(link => `- ${link.url} → ${link.asset} (관측 ${link.observedAt})`)
       : ['- 신규 획득 확인 없음. 기존 GSC 표본과 신규 획득을 구분.']), '',
-    '## AdSense 위험요소', ...state.adsense.risks.map(x => `- ${x}`), '', '## 다음 주 우선순위',
+    '## AdSense 위험요소', `계정 관측일: ${state.adsense.observedAt ?? '미확인'} (이번 주 재관측 여부와 구분)`,
+    ...state.adsense.risks.map(x => `- ${x}`), '',
+    '## 이번 실행의 범위와 남은 확인', ...report.limitations.map(x => `- ${x}`), '', '## 다음 주 우선순위',
     ...state.nextActions.map((x, i) => `${i + 1}. ${x}`), ''];
   await mkdir('seo-qa/operations', { recursive: true });
   await writeFile('seo-qa/operations/weekly.json', JSON.stringify(report, null, 2) + '\n');

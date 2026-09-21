@@ -1,4 +1,10 @@
 // Head metadata probe; the existing build audit remains responsible for full HTML.
+export function sitemapDirectives(text) {
+  return [...new Set(text.split(/\r?\n/).map(line =>
+    line.replace(/#.*/, '').trim().match(/^sitemap:\s*(https?:\/\/\S+)$/i)?.[1]
+  ).filter(Boolean))];
+}
+
 export function attributes(tag) {
   return Object.fromEntries([...tag.matchAll(/\s([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)]
     .map(m => [m[1].toLowerCase(), m[2] ?? m[3] ?? m[4]]));
