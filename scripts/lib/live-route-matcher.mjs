@@ -42,6 +42,8 @@ function readLocaleSegments(rootDir) {
 
 function collectStaticHtmlRoutes(rootDir) {
   const routes = new Set();
+  // The flower shell is emitted under public by sync:public, not an App Router page.
+  if (existsSync(resolve(rootDir, "public/ggulggul/index.html"))) routes.add("/ggulggul");
 
   for (const name of readdirSync(rootDir)) {
     if (name.endsWith(".html") && name !== "index.html") routes.add(`/${name.slice(0, -5)}`);

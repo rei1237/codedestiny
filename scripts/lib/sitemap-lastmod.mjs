@@ -62,7 +62,7 @@ const TYPE_ONLY_IMPORT_RE = /\b(?:import|export)\s+type\b[\s\S]*?\bfrom\s*["'][^
  * applyLocaleSeoMeta 로 head 를 갈아 끼운 것이 /ja·/zh·/zh-tw·/en 의 실체다.
  * app 페이지 파일만 해싱하면 셸 본문이 통째로 바뀌어도 서명이 그대로다.
  */
-const SHELL_BACKED_PAGES = new Set(["app/page.js", "app/[locale]/page.js"]);
+const SHELL_BACKED_PAGES = new Set(["app/[locale]/page.js"]);
 
 /**
  * App Router 페이지가 **아예 없고** 정적 셸 하나가 본문 전부인 라우트.
@@ -77,6 +77,7 @@ const SHELL_BACKED_PAGES = new Set(["app/page.js", "app/[locale]/page.js"]);
  * (셸을 다시 만들지 않은 것 자체는 `verify:fortune-hub-shell` 가 따로 막는다).
  */
 const STANDALONE_SHELL_ROUTES = new Map([
+  ["/ggulggul", ["index.html", "scripts/sync-legacy-static-to-public.mjs"]],
   [
     "/fortune",
     [
