@@ -175,6 +175,7 @@ const HOME_PUBLIC_ARCHIVES = [
   })),
   { href: "/insights/famous-saju/", text: "유명인 사주" },
   { href: "/human-design/", text: "휴먼디자인 알아보기" },
+  { href: "/psychotest/", text: "심리테스트 모아보기" },
 ];
 
 const PASS_GUIDE = [
