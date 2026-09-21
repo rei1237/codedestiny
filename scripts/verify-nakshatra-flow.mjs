@@ -22,7 +22,7 @@ const entry = [
   `export { assembleNatalCodex, assembleTodayMoon, buildUnifiedView, judgeTaraBala } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-codex.js"))};`,
   `export { NAKSHATRA_ATTRIBUTES, getNakshatraAttributes } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-attributes.js"))};`,
   `export { NAKSHATRA_CROSSWALK, CROSSWALK_ANCHORS, CROSSWALK_OFFSET, crosswalkFromSukuyo, crosswalkFromNakshatra } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-crosswalk.js"))};`,
-  `export { FUSION_ENTRIES, getFusionBySukuyo } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-fusion.js"))};`,
+  `export { FUSION_ENTRIES, getFusionBySukuyo, getFusionByNakshatra } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-fusion.js"))};`,
   `export { computeAshtakuta, ashtakutaFromMoon } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ashtakuta.js"))};`,
   `export { assembleNakshatraCompat } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-compat.js"))};`,
   `export { getSukuyoByIndex } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
@@ -45,7 +45,7 @@ const {
   NAKSHATRA_ATTRIBUTES, getNakshatraAttributes,
   NAKSHATRA_CROSSWALK, CROSSWALK_ANCHORS, CROSSWALK_OFFSET,
   crosswalkFromSukuyo, crosswalkFromNakshatra,
-  FUSION_ENTRIES, getFusionBySukuyo,
+  FUSION_ENTRIES, getFusionBySukuyo, getFusionByNakshatra,
   computeAshtakuta, ashtakutaFromMoon, assembleNakshatraCompat, getSukuyoByIndex,
 } = m;
 
@@ -181,13 +181,32 @@ section("타라 발라 · 오늘의 달");
 // 8) 전 27수 융합·크로스워크 정합
 section("전 27수 융합·크로스워크 정합");
 {
-  let allOk = true;
-  for (let s = 0; s < 27; s += 1) {
-    const n = (s + CROSSWALK_OFFSET) % 27;
-    const u = buildUnifiedView(s, n);
-    if (!u.fusionReading || !u.convergence || u.crosswalk.match !== true) allOk = false;
+  let allOk = true; let actualCalculationOk = true;
+  for (let n = 0; n < 27; n += 1) {
+    const moonLon = (n + 0.5) * (360 / 27);
+    const codex = assembleNatalCodex({
+      moonLon, birthUtc: FIXED_BIRTH_UTC,
+      lunar: { month: 1, day: 17, isLeap: false }, timeUnknown: false, now: FIXED_NOW,
+    });
+    const cross = crosswalkFromNakshatra(n);
+    const fusion = getFusionBySukuyo(cross.sukuyoIdx);
+    const reverse = getFusionByNakshatra(n);
+    if (
+      codex.india.index !== n
+      || codex.dongyang.index !== cross.sukuyoIdx
+      || codex.unified.crosswalk.match !== true
+    ) actualCalculationOk = false;
+    if (
+      !fusion.fusionTitle.includes(cross.nakshatraEn)
+      || !fusion.fusionTitle.includes(`(${cross.sukuyoHan})`)
+      || !fusion.convergence.includes(cross.nakshatraKo)
+      || !fusion.divergence.includes(cross.nakshatraKo)
+      || reverse?.sukuyoIdx !== cross.sukuyoIdx
+      || codex.unified.fusionTitle !== fusion.fusionTitle
+    ) allOk = false;
   }
-  ok(allOk, "27수 전부: 정합 시 융합 서술 존재 + match=true");
+  ok(actualCalculationOk, "27개 실제 황경 중간값: 숙요·나크샤트라 계산이 CROSSWALK_OFFSET 정렬과 일치");
+  ok(allOk, "27개 제목·해설·정/역방향 조회가 실제 계산 이름과 일치");
 }
 
 // 9) 나디 정통 배정 (9/9/9 그룹) — 교정 검증
@@ -243,8 +262,8 @@ section("동서 통합 궁합 조립");
   ok(compat.personA.nakIndex === 13 && compat.personA.sukuyoIndex === 2, "A: Chitra(13)/저(2)");
 }
 
-// 12) 전문가톤 3관점 심화 (Phase 3)
-section("전문가톤 3관점 심화(숙요/베다 전문가 + 융합 심화)");
+// 12) 전문가톤 3관점 심화
+section("전문가톤 3관점 심화(숙요/베다 전문가 + 융합 해설)");
 {
   let eastOk = true, indiaOk = true, deepOk = true;
   for (let i = 0; i < 27; i += 1) {
@@ -257,8 +276,7 @@ section("전문가톤 3관점 심화(숙요/베다 전문가 + 융합 심화)");
   ok(eastOk, "27 숙요(宿曜) 전문가 해설 존재 + 최소 길이");
   ok(indiaOk, "27 베다(Jyotish) 전문가 해설 존재 + 최소 길이");
   ok(deepOk, "27 심화 융합(convergence/divergence/fusionReading) 길이 충족");
-  // FUSION_DEEP 오버라이드 확인: 각(0) convergence에 '비슈와카르마'(심화본 특유) 포함
-  ok(getFusionBySukuyo(0).convergence.includes("비슈와카르마"), "심화본(FUSION_DEEP) 오버라이드 반영");
+  ok(getFusionBySukuyo(0).convergence.includes("우타라 팔구니"), "각수 융합 해설이 현행 크로스워크 이름 반영");
   // 결정론·의료·투자 금지어 스캔
   const FORBIDDEN = [/질병/, /진단/, /투자/, /주식/, /할 것이다/, /틀림없이/, /반드시 낫/];
   const hits = new Set();

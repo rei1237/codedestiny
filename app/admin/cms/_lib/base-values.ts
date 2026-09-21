@@ -185,10 +185,11 @@ const loaders: Record<string, Loader> = {
 
   "vedic-nakshatra": async () => {
     const prose = await import("@/constants/nakshatra-expert-prose");
+    const fusion = await import("@/constants/nakshatra-fusion");
     return [
       asRecordEntry("eastern", "숙요 대가 해설", "27수", prose.__cmsNakshatraDefaults.eastern),
       asRecordEntry("indian", "베다 대가 해설", "27수", prose.__cmsNakshatraDefaults.indian),
-      asRecordEntry("fusion", "융합 심화 리딩", "27수 × 3필드", prose.__cmsNakshatraDefaults.fusion),
+      asRecordEntry("fusion", "융합 심화 리딩", "27수 × 3필드", fusion.FUSION_CMS_DEFAULTS),
     ];
   },
 

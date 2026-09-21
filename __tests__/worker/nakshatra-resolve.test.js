@@ -62,7 +62,7 @@ describe("크로스워크 (동양 27宿 ↔ 인도 27 Nakshatra)", () => {
     expect(sukSeen.size).toBe(27);
   });
 
-  test("결정성 앵커(角=Chitra, 亢=Swati, 心=Jyeshtha, 昴=Krittika, 畢=Rohini)", () => {
+  test("결정성 앵커(角=Uttara Phalguni, 亢=Hasta, 心=Vishakha, 昴=Ashwini, 畢=Bharani)", () => {
     CROSSWALK_ANCHORS.forEach((anchor) => {
       const entry = NAKSHATRA_CROSSWALK.find((e) => e.sukuyoHan === anchor.sukuyoHan);
       expect(entry).toBeTruthy();
@@ -114,7 +114,7 @@ describe("natal 3-뷰 조립", () => {
     expect(codex.dongyang.nameHan).toBe("氐");
     expect(codex.dongyang.fourSymbol).toBe("청룡");
     expect(codex.dongyang.sevenLuminary).toBeTruthy();
-    // 통합 뷰 — 각↔Chitra 정합
+    // 통합 뷰 — 저↔Chitra 정합
     expect(codex.unified.crosswalk.match).toBe(true);
     expect(codex.unified.boundaryNote).toBeNull();
     expect(codex.unified.fusionReading.length).toBeGreaterThan(10);

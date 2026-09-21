@@ -4,10 +4,11 @@
 // (정통 지식의 깊이를 갖추되 대가가 다정하게 짚어주는 상담체). 전문용어는 짧게 풀이.
 //   - EASTERN_EXPERT[sukuyoIdx]   : 숙요점(宿曜) 대가 해설 — 방위·사신·칠요·격각 기질
 //   - INDIAN_EXPERT[nakshatraIdx] : 베다(Jyotish) 대가 해설 — 지배성·샥티·주신·가나·나디·파다·동기
-//   - FUSION_DEEP[sukuyoIdx]      : 통합 심화(convergence/divergence/fusionReading) — 두 전문가를 잇는다
+//   - FUSION_DEEP[sukuyoIdx]      : 기존 CMS 오버라이드 호환 입력
 //
 // 규칙: 결정론 금지("~할 것이다"→"~한 경향/~해보세요"), 의료·투자 표현 금지, 기계적 추상 금지.
-// 병합: constants/nakshatra-attributes.js(indianExpert)·nakshatra-fusion.js(easternExpert+FUSION_DEEP)가 소비.
+// 병합: constants/nakshatra-attributes.js가 전문가 원고를 소비한다. 융합 원고의 새 정본은
+// constants/nakshatra-fusion.js이며, 기존 CMS 값은 현행 크로스워크 이름을 담은 경우에만 반영한다.
 
 // ── 숙요점(宿曜) 대가 해설 — sukuyoIdx 0(각)…26(진) ──────────────────────────
 import { cmsRecord, cmsRecordFlat } from "../lib/cms/build-text";
@@ -73,7 +74,7 @@ const INDIAN_EXPERT_DEFAULT = {
   26: "레바티는 수성이 지배하고 여행의 신 푸샨이 주신입니다. 샥티는 '길을 지켜 완성하는 힘' — 물고기를 상징 삼는 양육과 귀환의 마지막 별이에요. 데바 기질에 목샤의 동기가 흘러, 길 잃은 이를 데려다주는 따뜻함으로 여정을 매듭짓습니다.",
 };
 
-// ── 통합 심화 — 두 전문가를 잇는다 (sukuyoIdx 0…26) ─────────────────────────
+// ── 이전 CMS 기본값(과거 대응) — 런타임 정본 아님, 정렬 가드의 마이그레이션 입력 ─────────
 // convergence: 두 전통의 공명 / divergence: 긴장과 그 의미 / fusionReading: 통합 조언
 const FUSION_DEEP_DEFAULT = {
   0: {
