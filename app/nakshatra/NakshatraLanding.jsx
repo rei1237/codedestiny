@@ -4,6 +4,7 @@ import NakshatraFormClient from "./NakshatraFormClient";
 import { Taegeuk, Yantra, Spark, CornerMark } from "./NakshatraSymbols";
 import styles from "./nakshatra.module.css";
 import { SUKUYO_MANSIONS } from "../../worker/lib/sukuyo-premium.js";
+import { NAKSHATRA_CROSSWALK } from "../../constants/nakshatra-crosswalk.js";
 import {
   buildBreadcrumbJsonLd,
   buildFaqPageJsonLd,
@@ -22,10 +23,6 @@ const RELATED_LABELS = {
 
 const FUSION_IMAGE =
   "https://assets.code-destiny.com/%EC%88%99%EC%9A%94%EC%A0%90x%EB%B2%A0%EB%8B%A4%EC%A0%90.webp";
-
-// 27수 ↔ 27 나크샤트라 대응(牛/Abhijit 제외). 결정성 정렬 오프셋.
-const HANGUL = ["角","亢","氐","房","心","尾","箕","斗","女","虛","危","室","壁","奎","婁","胃","昴","畢","觜","參","井","鬼","柳","星","張","翼","軫"];
-const NAKSHATRA = ["Chitra","Swati","Vishakha","Anuradha","Jyeshtha","Mula","P.Ashadha","U.Ashadha","Shravana","Dhanishta","Shatabhisha","P.Bhadra","U.Bhadra","Revati","Ashwini","Bharani","Krittika","Rohini","Mrigashira","Ardra","Punarvasu","Pushya","Ashlesha","Magha","P.Phalguni","U.Phalguni","Hasta"];
 
 const PERSPECTIVES = [
   { cls: "perspEast", title: "동양 · 숙요점", sub: "27수 · 칠요 · 사신" },
@@ -46,7 +43,8 @@ export default function NakshatraLanding({ page }) {
   const resultItems = Array.isArray(page?.resultItems) ? page.resultItems : [];
   const faqs = Array.isArray(page?.faqs) ? page.faqs : [];
   const headline = splitHeadline(page?.h1);
-  const marquee = [...HANGUL.map((h, i) => ({ h, n: NAKSHATRA[i] })), ...HANGUL.map((h, i) => ({ h, n: NAKSHATRA[i] }))];
+  const crosswalk = NAKSHATRA_CROSSWALK.map((entry) => ({ h: entry.sukuyoHan, n: entry.nakshatraEn }));
+  const marquee = [...crosswalk, ...crosswalk];
 
   const related = (Array.isArray(page?.relatedServices) ? page.relatedServices : [])
     .filter((href) => href && href !== page?.path)
@@ -77,7 +75,7 @@ export default function NakshatraLanding({ page }) {
       <header className={styles.hero}>
         <div className={`${styles.wrap} ${styles.heroGrid}`}>
           <div>
-            <span className={styles.kicker}><Spark className="spark" /> 동양 27宿 × 인도 27 Nakshatra</span>
+            <span className={styles.kicker}><Spark className="spark" /> 동양 27宿 · 인도 27 Nakshatra</span>
             <h1 className={styles.title}>
               {headline.lead}
               {headline.accent && <span className={styles.accent}>{headline.accent}</span>}
@@ -97,7 +95,7 @@ export default function NakshatraLanding({ page }) {
             </div>
 
             <a href="#nakshatra-form" className={styles.heroCta}>
-              <Spark className="spark" /> {page?.ctaLabel || "내 별의 두 이름 확인하기"}
+              <Spark className="spark" /> {page?.ctaLabel || "내 달 좌표의 두 해석 확인하기"}
             </a>
           </div>
 
@@ -239,9 +237,13 @@ export default function NakshatraLanding({ page }) {
             <h2>27수 도감 — 별 하나하나의 두 이름</h2>
           </div>
           <p className={styles.lead}>
-            같은 하늘을 동양은 숙요 27수로, 인도는 27 나크샤트라로 나눴습니다. 두 체계는 대표 별을
-            기준으로 이어지므로, 한 자리를 방위·사신·칠요와 지배성·주신·샥티라는 두 언어로 겹쳐
-            읽을 수 있습니다. 아래에서 각 별의 통합 해설을 확인해 보세요.
+            숙요와 나크샤트라는 달의 길을 나누어 읽는 역사적 접점이 있지만, 이름과 경계가 같은 단일
+            체계는 아닙니다. 아래 표는 같은 항성 달 황경을 현재 서비스의 두 계산 배열에 적용한 결과를
+            고정 오프셋으로 정렬합니다. 역사 문헌의 대표 별 대응표와 구분해 비교해 보세요.
+          </p>
+          <p className={styles.lead}>
+            근거는 <a href="https://doi.org/10.3390/rel14101276">중국 월수와 인도 나크샤트라 비교 연구</a>와{" "}
+            <a href="https://eco.mtk.nao.ac.jp/koyomi/wiki/C6F3BDBDC8ACBDC9.html">일본 국립천문대의 27수·28수 해설</a>을 참고했습니다.
           </p>
           <div className={styles.relatedGrid}>
             {SUKUYO_MANSIONS.map((mansion, index) => (
@@ -261,7 +263,7 @@ export default function NakshatraLanding({ page }) {
           <Taegeuk />
           <Yantra style={{ color: "var(--gold)" }} />
         </span>
-        <span>나크샤트라 결정판 · 동양과 인도, 하나의 하늘 두 개의 언어</span>
+        <span>나크샤트라 결정판 · 같은 달 좌표를 두 체계로 비교하는 읽기</span>
       </div>
 
       {jsonLd.map((data, index) => (

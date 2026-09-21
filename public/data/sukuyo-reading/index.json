@@ -21,6 +21,20 @@
     "body": "sukuyo-27-mansions-eb6c069f2695.json"
   },
   {
+    "slug": "sukuyo-love",
+    "title": "숙요점 연애 궁합 가이드 — 6유형을 실제 대화와 대조하는 법",
+    "description": "숙요점 연애 궁합은 관계의 미래나 유형별 빈도를 예측하지 않습니다. 영친·업태·안괴·명·성위·우쇠 6유형의 전통 상징을 실제 대화·동의·행동 기록과 대조하는 방법을 정리했습니다.",
+    "href": "/insights/sukuyo-love/",
+    "body": "sukuyo-love-c7462a180923.json"
+  },
+  {
+    "slug": "sukuyo-marriage",
+    "title": "숙요점 결혼 궁합 가이드 — 6유형을 결혼 전 대화로 바꾸는 체크리스트",
+    "description": "숙요점 6유형은 결혼의 장기 안정성을 예측하지 않습니다. 영친·업태·안괴·명·성위·우쇠의 전통 상징을 재정·가사·가족·갈등 회복 대화로 바꾸는 방법을 정리했습니다.",
+    "href": "/insights/sukuyo-marriage/",
+    "body": "sukuyo-marriage-1a6f83ac18bd.json"
+  },
+  {
     "slug": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
     "title": "본명숙과 월명숙: 이름보다 계산 기준을 먼저 확인하세요",
     "description": "본명숙의 현재 달 황경 계산과 월명숙이라는 명칭을 구분합니다. 월명숙을 사회적 성격으로 단정하지 않고, 출처·계산법·궁합 기준을 확인하는 방법을 설명합니다.",
@@ -35,6 +49,13 @@
     "body": "sukuyo-vs-saju-compatibility-bfc307c16a4f.json"
   },
   {
+    "slug": "nakshatra-what-is",
+    "title": "나크샤트라란? 27개 달 구간의 계산과 숙요 비교",
+    "description": "나크샤트라는 항성 황도를 27개 구간으로 나누는 베다 점성술 체계입니다. 현대 계산 구간, 잔마 나크샤트라와 다샤, 27·28수의 역사, 숙요와 비교할 때의 한계를 정리했습니다.",
+    "href": "/insights/nakshatra-what-is/",
+    "body": "nakshatra-what-is-5dd6fb0c0f20.json"
+  },
+  {
     "slug": "sukuyo-antai",
     "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
     "description": "숙요점에서 업(業)과 태(胎)라는 관계 표지를 어떻게 읽는지, 거리 분류와 방향성을 실제 관계의 대화·경계 질문에 연결해 정리했습니다.",
@@ -47,13 +68,6 @@
     "description": "숙요점의 안(安)·괴(壞) 관계 표지를 결과 예측이 아닌 대화와 경계의 질문으로 읽는 법을 정리했습니다. 연애·가족·일과 거리 분류의 한계도 함께 설명합니다.",
     "href": "/insights/sukuyo-ankai/",
     "body": "sukuyo-ankai-85416236c8fb.json"
-  },
-  {
-    "slug": "sukuyo-love",
-    "title": "숙요점 연애 궁합 완전 가이드 — 6유형으로 보는 연애의 전개와 대처법",
-    "description": "숙요점 연애 궁합은 좋고 나쁨을 가리는 점수가 아니라 이 연애가 어떤 방식으로 굴러가는지 보여주는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형이 연애에서 각각 어떻게 드러나는지, 단계별 활용법과 함께 정리했습니다.",
-    "href": "/insights/sukuyo-love/",
-    "body": "sukuyo-love-25131f544fe7.json"
   },
   {
     "slug": "sukuyo-myeongseong",
@@ -166,19 +180,5 @@
     "description": "27숙 수호동물은 원전(나크샤트라·숙요경·이십팔수·숙요도)에 명시되지 않은 후대의 상징 해석입니다. 인도 나크샤트라 요니 체계와 한국식 동물 상징표를 함께 비교하고, 무엇이 역사적 근거가 있고 무엇이 없는지 정리했습니다.",
     "href": "/insights/sukuyo-27-guardian-animals-origin-guide/",
     "body": "sukuyo-27-guardian-animals-origin-guide-89a157fcd696.json"
-  },
-  {
-    "slug": "sukuyo-marriage",
-    "title": "숙요점 결혼 궁합 완전 가이드 — 6유형으로 보는 결혼 생활의 패턴과 체크리스트",
-    "description": "숙요점 결혼 궁합은 설렘이 아닌 장기 안정성을 봅니다. 영친·업태·안괴·명·성위·우쇠 6유형별 결혼 생활 패턴과 결혼 전 점검할 체크리스트를 정리했습니다.",
-    "href": "/insights/sukuyo-marriage/",
-    "body": "sukuyo-marriage-e56c9900f787.json"
-  },
-  {
-    "slug": "nakshatra-what-is",
-    "title": "나크샤트라란? 27수로 읽는 나만의 달 별자리",
-    "description": "나크샤트라(달의 별자리 27수)는 열두 별자리 위에 얹힌 더 정교한 눈금으로, 같은 달별자리라도 사람마다 기질이 달라지는 이유를 설명합니다. 잔마 나크샤트라의 의미, 다샤 계산법, 전통 궁합 매칭까지 베다점성술의 핵심을 정리했습니다.",
-    "href": "/insights/nakshatra-what-is/",
-    "body": "nakshatra-what-is-d414182fb174.json"
   }
 ]
