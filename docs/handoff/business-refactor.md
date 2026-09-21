@@ -1,11 +1,55 @@
 ---
 status: active
 updated: 2026-09-21
-next: "신규 이용권은 판매 보류. 상품별 최대 원가·Google 조건·비용 증가를 검증한 뒤 신규 가격과 한도를 확정한다"
+next: "최신 main CI 확인 후 공식 단가와 코드상 최대 호출 비용으로 3종 이용권 가격·한도를 재설계한다. 월매출 약5만원·Gemini 약1만원(개발 포함)을 반영한다"
 ---
 # 사업 리팩토링 인수인계
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
+
+## 마지막 사용자 요청과 재개 지점 — 반드시 이 절부터 읽기
+
+사용자가 컨텍스트·토큰 비용을 줄이기 위해 이 시점의 인수인계를 명시 요청했다. 아래 완료 작업을 반복하지 않는다. **가격 재설계는 아직 끝나지 않았다. 신규 이용권을 판매 보류했다는 사실만으로 사용자의 최종 요청을 완료 처리하지 않는다.**
+
+### 최신 비용 정보와 의도
+
+- 사용자 제공: 현재 월 주문은 거의 없으며 월매출 약 **50,000원**, Gemini 월 청구 약 **10,000원**. Gemini 금액에는 개발 중 호출이 섞여 있다. 50,000원은 주문 건수가 아니다. 객단가/주문 수/상품별 원가로 임의 환산하지 않는다.
+- 앞서 제공: PG 수수료 5% 이하(수수료 부가세 포함 여부 미확인), Cloudflare 기본 $5, MongoDB M10 월 약100,000원 예산. 유지비가 더 증가할 가능성이 높으므로 이를 반영하라는 요청.
+- 사용자 원문 의도: "원가는 니가 검색해보고 가장 긴 상담이더라도 충분히 손익 분기를 넘도록 가격을 세팅해야해". 공식 공급자 단가를 직접 조사하고, 코드의 챕터 수·입출력/thinking 토큰 상한·재시도·재개·fallback 호출을 추적해 보수적 비용을 계산한 다음 **신규 이용권 판매가와 누적 한도를 실제로 조정**한다. 평균 사용량이나 개발비 포함 청구액을 근거로 흑자라고 단정하지 않는다.
+- 현재 서버 기준 예산108,000원/월(USD1600 가정)은 매출50,000원보다 크다. 가격만으로 판매량과 무관한 사업 전체 흑자를 보장할 수 없다. 상품/이용권 단위 공헌이익과 월 고정비 회수에 필요한 판매량을 구분한다. 실제 송장·정산 검증이 없는 값은 시나리오/상한 추정으로 명시한다.
+- 기존 9,900/29,900/59,900원, 누적20,000/50,000/90,000원은 **후속 요청 이전 후보안**이다. 최종 확정 가격으로 고집하지 않는다. 최소3종, 최상위3만원 상품 포함, 30일 비자동갱신, 꽃돼지 전용, 영냥이 단건 유지, 기존 구매권 보호 조건은 계속 적용한다.
+- 현재 내부 게이트는 변동원가2배·고정비5배 스트레스 후 공헌이익률40% 이상 및 검토된 최소판매량으로 고정비 배분 후 양수. 실원가 evidence는 비어 있고 3종×웹/Play 모두 판매 차단. 추정 보고서를 실측 evidence로 넣어 차단을 풀지 않는다.
+
+### 첫 번째 다음 행동과 조사 시작점
+
+1. **먼저 CI 상태 확인**: 코드 SHA `a8476628ba7afbf5ad86a0c8fafb33bef6941a09`, [CI 35607421867](https://github.com/rei1237/codedestiny/actions/runs/35607421867). Pages/Worker 빌드·타입/린트·내부 링크 검사는 성공. 첫 실행 정적 검사에서 `verify-rpt-preview-cta-flow.mjs`의 `CDP event timeout: Page.loadEventFired`가 발생해 `gh run rerun 35607421867 --failed`를 1회 실행했다. 인수인계 작성 시 재실행 진행 중이다. 직전 `ce573bbc0`의 정적 검사는 성공했다. 재실행이 실패하면 로그로 원인을 확인하며 무조건 재시도하거나 검사 기준을 낮추지 않는다. 문서 후속 커밋의 main CI도 확인한다.
+2. `docs/pass-pricing-20260921.md`, `lib/payment/pass-policy.js`, `lib/payment/pass-economics.mjs`, `worker/lib/pass-sale-policy.js`를 읽고 기존 계산/게이트를 재사용한다. `scripts/report-pass-economics.mjs`에 새 매출 시나리오를 반영하고 코드 근거가 있는 상담 비용 상한 보고서를 만든다. 단순 가격표 재작성만 하지 않는다.
+3. 원가 조사 시작점: `worker/lib/paid-feature-registry.js`의 `cost: 300`/`amountKRW: 30000`, `worker/lib/pass-cost-catalog.js`의 전체 코스/reason. 초융합만이 최장/최고 원가라고 가정하지 않는다. `worker/lib/fusion-fortune-prompt.js`(목표30,000~60,000자), `worker/lib/love-secret-ai-prompt.js`, `worker/lib/ziwei-deep-report-prompt.mjs`, `worker/lib/master-love-codex-compat-prompt.mjs`, 나크샤트라 VVIP 등 호출부를 추적한다. `lib/llm-client.ts`는 `maxOutputTokens: normalized.maxTokens`, `thinkingConfig`를 사용하며 기본모델 gemini-2.5-flash. 실제 env 모델 변경 가능성도 표기한다. 타임아웃은 과금 상한이 아니며 재개 요청이 누적 호출을 무제한 허용하면 유한 원가가 입증된 것으로 보지 않는다.
+4. 각 SKU/코스의 input/output/thinking/call/retry 상한, 저가 반복 조합, Google 수수료, PG, 변동 저장·지원·환불 충당, 고정비 증가를 계산한다. 지원비 등의 비공개 실제값은 가정과 근거를 분리한다. 품질/기존 구매권을 임의 축소하지 않는다. 승인 없는 유료 테스트로 비용 자료를 만들지 않는다.
+5. 계산 결과에 따라 3종 가격·한도를 정본에서 조정하고 웹/앱/선물/표시/테스트를 동기화한다. VVIP가3만원 상품을 커버해야 한다는 요구는 유지하되, 이전의3회/9만원 한도를 확정 요구로 오해하지 말고 손익에 맞게 검토한다. 확인되지 않은 무손실 보장은 금지한다. 이후 아래 실환경/카카오/브라우저 공백을 이어간다.
+
+### 방금 확인한 공식 자료
+
+2026-09-21 검색 확인. 실제 결제/LLM 호출 없이 읽기만 했다.
+- [Gemini 가격](https://ai.google.dev/gemini-api/docs/pricing): 2.5 Flash 텍스트 입력 $0.30/100만, 출력(thinking 포함) $2.50/100만. 기존 `config/llm-tariffs-20260921.json` 재사용. 캐시/도구/다른 모델 요금은 별도.
+- [Gemini 2.5 Flash 모델 한도](https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash): 모델 최대 입력1,048,576·출력65,536. **이 값 전체를 모든 실제 호출의 토큰 사용량으로 단정하지 않는다.** 코드의 더 낮은 요청 상한과 실제 프롬프트 크기를 확인한다.
+- [thinking 과금](https://ai.google.dev/gemini-api/docs/generate-content/thinking): 출력과 thinking 합산. 토큰 통계 필드 중복 집계 여부 확인.
+- [Play 수수료](https://support.google.com/googleplay/android-developer/answer/112622?hl=en-GB), [변경 요율 설명](https://support.google.com/googleplay/android-developer/answer/16954621?hl=en): 2026년 지역·신규설치·프로그램별 변경이 있으므로 한국 계정에15%를 일괄 적용하지 않는다. 지금 문서의15/30%는 비교 시나리오이며 계약 확정치가 아니다. 공식 본문의 해당 지역 적용 조건을 다시 읽는다.
+
+### 작업 위치와 완료 검증
+
+- 사용자 재개 디렉터리: `D:/Development/code-destiny` (main). 동시 `marketing/**` 미커밋 변경은 보존했다.
+- 실제 이번 작업 checkout: `D:/Development/codedestiny-worktrees/yeongnyangi-business-v2-20260921-200128`, branch `wt/yeongnyangi-business-v2-20260921-200128`. 모든 코드 변경은 main에 ff merge/push했다. 이어서 편집할 때 동시 세션이면 이 worktree를 재사용/최신 main 반영하고 중복 worktree를 만들지 않는다.
+- `node_modules`는 main을 가리키는 junction. 재귀삭제 금지. `.env`는 hardlink일 수 있으므로 내용을 수정하지 않는다. worktree는 다음 작업을 위해 남겼다. 로컬 mock dev25540/25541은 중지했다. 활성 유료 호출/배포 프로세스 없음.
+- 최신 홈 수정: 공통 SEO 링크를 펼침형 탐색에 재사용하고 홈 전용 자료실에 날짜별·일간별 월간·유명인 사주·휴먼디자인·심리테스트 허브를 복원. 공통/다국어 푸터는 확장하지 않았다. 내부 링크 검사의 예외/상한을 느슨하게 하지 않았다. Pages/Worker 최종 조립은 영냥이 root를 보존한다.
+- 후속 검증: 로케일 푸터8개, sitemap1284 URL, 모바일 진입/가격/하단탭 정합 통과. 전생 궁합 가격 기대값3천원 정정 후 관련12개 운세 검사 명령 모두 통과. 모바일 가격 불일치0. UI1524 테스트 단계 CI 통과. 최종 main CI는 위 실행을 조회한다.
+- 이용권 비용 계산2개 테스트 통과. `node scripts/audit-pass-profitability.mjs`는6개 판매차단/종료2가 **예상 결과**다. 이전 선물 replica CI33개·결제/Worker critical 성공 기록은 아래 보존했다.
+- 실 PG·유료 LLM·운영 DB 쓰기·운영 승격은 승인받지 않았고 수행하지 않았다. 카카오 소개만 저장됐으며 채널 이름/아바타는 아래 제약으로 미완료다.
+
+재개 문장(아래 코드 SHA 이후 문서 전용 커밋은 `git log -1`로 확인):
+```text
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\business-refactor.md의 첫 절부터 읽고 이어가라. 마지막 코드 전달 커밋 a8476628ba7afbf5ad86a0c8fafb33bef6941a09와 CI 35607421867의 재실행 및 최신 main CI부터 확인하라. 완료 작업을 반복하지 말고 월매출 약5만원·Gemini 약1만원(개발 포함), PG5%이하·CF$5·Mongo월10만원 및 비용 증가를 반영하라. 공식 단가와 코드상 최장 상담·재시도·최대 소진 조합의 비용 상한을 계산해 꽃돼지 전용3종 이용권 가격과 한도를 조정하고, 최상위3만원 상품 커버·기존 구매권을 보존하라. 추정을 실측으로 둔갑시키지 말고 운영 승격·실PG·유료LLM·운영DB 쓰기는 별도 승인으로 남겨라. 동시 marketing 변경을 보존하고 기존 worktree를 확인해 재사용하라.
+```
 
 ## 2026-09-21 최신 main 전달 — 이전 기록보다 우선
 
