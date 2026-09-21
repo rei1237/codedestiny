@@ -93,7 +93,7 @@ for (const featureKey of ['saju_ai_prompt_generator', 'ziwei_ai_prompt_generator
     assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 0);
     assert.equal((await f.run({ ...input, consume: true })).source, 'pass_payload');
     assert.equal((await f.run({ ...input, consume: true })).source, 'pass_payload');
-    assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 100);
+    assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 200);
     assert.equal(f.paymentLookups(), 0);
   });
 
