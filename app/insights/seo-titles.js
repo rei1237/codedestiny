@@ -39,6 +39,7 @@ export const INSIGHT_SEO_TITLES = {
   "middle-east-divination-traditions-deep-guide": "중동 점복 전통 — 지오맨시·커피점·해몽",
   "midnight-birth-day-pillar": "자정 출생과 일주: 23시·자정 경계 비교",
   "money-luck-habits-and-saju-finance-rules": "재물운 습관과 사주 재정 규칙 가이드",
+  "nakshatra-what-is": "나크샤트라란? 27구간 계산과 숙요 비교",
   "new-moon-full-moon-fortune-routine": "신월·보름달 운세 루틴 — 달의 흐름 따라",
   "new-year-fortune-framework": "신년운세 완전 가이드 — 1년을 설계하는 법",
   "relationship-luck-and-communication-rules": "숙요점 관계운과 소통 규칙 실전 가이드",

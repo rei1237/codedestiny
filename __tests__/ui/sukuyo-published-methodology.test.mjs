@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {build} from 'esbuild';
-const bundle=await build({stdin:{contents:'export { INSIGHT_SEED_ARTICLES } from "./app/insights/seed-articles.js"; export { buildSukuyoFromMoonLongitude } from "./worker/lib/sukuyo-coordinate.js"; export { NAKSHATRA_CROSSWALK } from "./constants/nakshatra-crosswalk.js";',resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'esm'});
-const {INSIGHT_SEED_ARTICLES,buildSukuyoFromMoonLongitude,NAKSHATRA_CROSSWALK}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+const bundle=await build({stdin:{contents:'export { INSIGHT_SEED_ARTICLES } from "./app/insights/seed-articles.js"; export { INSIGHT_SEO_TITLES } from "./app/insights/seo-titles.js"; export { buildSukuyoFromMoonLongitude } from "./worker/lib/sukuyo-coordinate.js"; export { NAKSHATRA_CROSSWALK } from "./constants/nakshatra-crosswalk.js";',resolveDir:process.cwd()},bundle:true,write:false,platform:'node',format:'esm'});
+const {INSIGHT_SEED_ARTICLES,INSIGHT_SEO_TITLES,buildSukuyoFromMoonLongitude,NAKSHATRA_CROSSWALK}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
 const body=slug=>INSIGHT_SEED_ARTICLES.find(a=>a.slug===slug).contentHtml;
 test('공개 27숙 계산 예시는 현행 계산 코어의 이름 배정과 일치한다',()=>{
   const text=body('sukuyo-27-mansions');
@@ -58,4 +58,10 @@ test('나크샤트라 설명 글은 공개 출처와 시간 미상 한계를 함
   assert.match(text,/eco\.mtk\.nao\.ac\.jp/);
   assert.match(text,/역사 문헌의 대표 별 대응표와 서비스의 계산 인덱스 정렬은 목적이 다르므로/);
   assert.match(text,/시각을 모르면 화면에 안내한 기본 시각을 적용하고 파다를 표시하지 않습니다/);
+});
+test('나크샤트라 검색 제목은 H1을 줄이지 않고 표시 폭 한도를 지킨다',()=>{
+  const searchTitle=`${INSIGHT_SEO_TITLES['nakshatra-what-is']} | 운세 인사이트`;
+  const width=[...searchTitle].reduce((sum,char)=>sum+(/[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA000-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE6F\uFF00-\uFF60\uFFE0-\uFFE6]/u.test(char)?2:1),0);
+  assert.equal(INSIGHT_SEED_ARTICLES.find((article)=>article.slug==='nakshatra-what-is').title,'나크샤트라란? 27개 달 구간의 계산과 숙요 비교');
+  assert.ok(width<=60,`${searchTitle}: ${width}`);
 });
