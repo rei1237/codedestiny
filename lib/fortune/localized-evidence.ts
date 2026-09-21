@@ -81,8 +81,26 @@ export function resolveFortuneMarked(marked: MarkedText | undefined, fallback: s
   return formatFortuneEvidence(resolveKey(dictionary, marked.key, locale, marked.vars), locale);
 }
 
+// The generator's Korean aliases group gibbous and quarter phases together.
+// Use the precise English phase identifier for display, without changing source data.
+const moonPhases = [
+  ["New moon", "新月", "新月", "新月"],
+  ["Waxing crescent", "満ちていく三日月", "盈眉月", "盈眉月"],
+  ["First quarter", "上弦の月", "上弦月", "上弦月"],
+  ["Waxing gibbous", "満月に向かう月（上弦後）", "盈凸月", "盈凸月"],
+  ["Full moon", "満月", "满月", "滿月"],
+  ["Waning gibbous", "欠けていく月（下弦前）", "亏凸月", "虧凸月"],
+  ["Last quarter", "下弦の月", "下弦月", "下弦月"],
+  ["Waning crescent", "欠けていく三日月", "残月", "殘月"],
+] as const;
+
 export function formatFortuneEvidence(value: string, locale: FortuneLocale): string {
   if (locale === "ko") return value;
+  const phase = value.match(/^(New moon|Waxing crescent|First quarter|Waxing gibbous|Full moon|Waning gibbous|Last quarter|Waning crescent)(?:\s*\/\s*[가-힣]+)?$/);
+  if (phase) {
+    const row = moonPhases.find(([name]) => name === phase[1]);
+    if (row) return row[columns[locale] - 1];
+  }
   let text = value;
   const weekday = (index: number) => new Intl.DateTimeFormat(locale, { weekday: "short", timeZone: "UTC" }).format(new Date(Date.UTC(2026, 8, 13 + index)));
   text = text.replace(/([일월화수목금토])요일/g, (_, day) => weekday("일월화수목금토".indexOf(day)))
