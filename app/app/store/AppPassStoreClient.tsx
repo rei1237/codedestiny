@@ -1,6 +1,6 @@
 "use client";
 
-import { currentPassPlan } from "@/lib/payment/pass-policy.js";
+import { CURRENT_PASS_POLICY_VERSION, currentPassPlan } from "@/lib/payment/pass-policy.js";
 import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
@@ -74,7 +74,7 @@ export default function AppPassStoreClient() {
     const coverageByTier: Record<string, number | null> = {};
     await Promise.all(passPlans.map(async (plan) => {
       try {
-        const response = await authFetch(`/api/app-store/products?passTier=${plan.passTier}&passPolicyVersion=flower-20260921`, { method: "GET" });
+        const response = await authFetch(`/api/app-store/products?passTier=${plan.passTier}&passPolicyVersion=${CURRENT_PASS_POLICY_VERSION}`, { method: "GET" });
         const payload = await response.json().catch(() => ({}));
         coverageByTier[plan.passTier] = response.ok && payload?.ok
           ? (payload?.data?.product?.coverageKRW ?? null)

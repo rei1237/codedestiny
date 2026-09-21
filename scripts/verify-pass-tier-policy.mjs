@@ -40,6 +40,12 @@ import { evaluatePassCoverage, describePassEligibility } from "../worker/payment
 import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
 import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
+import {
+  CURRENT_PASS_PLANS,
+  CURRENT_PASS_POLICY_VERSION,
+  PRIOR_PASS_PLANS,
+  PRIOR_PASS_POLICY_VERSION,
+} from "../lib/payment/pass-policy.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
@@ -206,7 +212,19 @@ function extractAll(label, source, patternFor) {
 
 // 사본 1 — 앱 SKU 테이블(모듈이라 직접 읽는다)
 const allAppPasses = listAppPassProducts();
-check("신규 앱 이용권 SKU 3개와 기존 4개 보존", allAppPasses.length === 7);
+check("신규 v3 3개·직전 v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 10, `실제=${allAppPasses.length}`);
+for (const [version, plans] of [
+  [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
+]) {
+  const versioned = allAppPasses.filter(pass => pass.passPolicyVersion === version);
+  check(`앱 이용권 ${version} 3개`, versioned.length === 3, `실제=${versioned.length}`);
+  for (const pass of versioned) {
+    const expected = plans[pass.passTier];
+    check(`앱 SKU ${pass.productId}: 버전 가격`, pass.amountKRW === expected?.wonPrice, `실제=${pass.amountKRW} 기대=${expected?.wonPrice}`);
+    check(`앱 SKU ${pass.productId}: 버전 건당 상한`, pass.coinLimit === expected?.maxCoveredCoin, `실제=${pass.coinLimit} 기대=${expected?.maxCoveredCoin}`);
+  }
+}
 const appPasses = allAppPasses.filter(pass => !pass.passPolicyVersion || pass.passPolicyVersion === "legacy");
 check("앱 이용권 SKU 4개", appPasses.length === 4, `실제=${appPasses.length}`);
 for (const pass of appPasses) {

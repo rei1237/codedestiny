@@ -15,7 +15,7 @@
  * import 한다(2026-08-12 에 4중 미러를 정리했다). 유일하게 남은 사본은 import 가 불가능한 정적 셸
  * 인라인(`index.html` goldenPackages)이고, payments.subscription-purchase.test.js 가 셸과 대조한다.
  */
-import { CURRENT_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
+import { CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { assertPassSaleAllowed } from "../lib/pass-sale-policy.js";
 import { Payment, PointHistory, User } from "../lib/models.js";
 import { createHash } from "node:crypto";
@@ -50,6 +50,7 @@ export function resolvePassPlan(tierInput, durationMonthsInput, policyVersion = 
   if (!tier || !PASS_MONTHLY_WON[tier]) return null;
   if (durationMonths !== 1) return null; // 30일 단품만 판다(구 카탈로그와 동일)
   if (policyVersion === CURRENT_PASS_POLICY_VERSION) return currentPassPlan(tier);
+  if (policyVersion === PRIOR_PASS_POLICY_VERSION) return priorPassPlan(tier);
   if (policyVersion !== LEGACY_PASS_POLICY_VERSION) return null;
   const policy = HONEY_PASS_POLICY[tier];
   return Object.freeze({

@@ -266,7 +266,12 @@
     if (normalizeDate(sub.premiumUseCycleKey) !== expiresAt) return NaN;
     var spend = numberOrNaN(sub.monthlySpendCoin);
     if (!Number.isFinite(spend)) return NaN;
-    var baseLimit = sub.passPolicyVersion === "flower-20260921" ? ({ standard: 200, premium: 500, vvip: 900 }[tier] || 0) : sub.passPolicyVersion && sub.passPolicyVersion !== "legacy" ? 0 : monthlyLimitForTier(tier);
+    var policyMonthlyLimits = {
+      "flower-cost-20260921": { standard: 30, premium: 100, vvip: 300 },
+      "flower-20260921": { standard: 200, premium: 500, vvip: 900 }
+    };
+    var policyMonthlyLimit = policyMonthlyLimits[sub.passPolicyVersion];
+    var baseLimit = policyMonthlyLimit ? (policyMonthlyLimit[tier] || 0) : sub.passPolicyVersion && sub.passPolicyVersion !== "legacy" ? 0 : monthlyLimitForTier(tier);
     if (!(baseLimit > 0)) return NaN;
     var storedLimit = numberOrNaN(sub.monthlyLimitCoin);
     var limitCoin = Number.isFinite(storedLimit) && storedLimit > baseLimit ? storedLimit : baseLimit;
@@ -476,7 +481,12 @@
       return result;
     }
     if (snapshot.state !== "active") return result;
-    var limit = snapshot.passPolicyVersion === "flower-20260921" ? ({ standard: 50, premium: 100, vvip: 300 }[snapshot.tier] || 0) : snapshot.passPolicyVersion && snapshot.passPolicyVersion !== "legacy" ? 0 : passLimitForTier(snapshot.tier);
+    var policyCoverageLimits = {
+      "flower-cost-20260921": { standard: 30, premium: 100, vvip: 300 },
+      "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
+    };
+    var policyCoverageLimit = policyCoverageLimits[snapshot.passPolicyVersion];
+    var limit = policyCoverageLimit ? (policyCoverageLimit[snapshot.tier] || 0) : snapshot.passPolicyVersion && snapshot.passPolicyVersion !== "legacy" ? 0 : passLimitForTier(snapshot.tier);
     result.passLimit = limit;
     result.hasActivePass = true;
     if (!(limit > 0)) return result;

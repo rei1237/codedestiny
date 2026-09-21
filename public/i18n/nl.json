@@ -821,23 +821,23 @@
       "chipShareReward": "Losse betaling buiten het bereik",
       "plansAria": "Overzichtskaarten voor het passplan",
       "standardName": "Standaardhoning 30 dagen",
-      "standardPrice": "30 dagen · KRW 9.900",
-      "standardLine": "Content tot KRW 5.000",
-      "standardBenefit1": "Tot KRW 30.000 per maand",
+      "standardPrice": "30 dagen · KRW 89.000",
+      "standardLine": "Content tot KRW 3.000",
+      "standardBenefit1": "Tot KRW 3.000 per maand",
       "standardBenefit2": "Maximaal 3 profielen",
       "standardCta": "Bekijk standaard",
       "recommendedAria": "Aanbevolen plan",
       "recommendedBadge": "Aanbevolen",
       "premiumName": "Premium Honing 30 dagen",
-      "premiumPrice": "30 dagen · KRW 29.900",
+      "premiumPrice": "30 dagen · KRW 269.000",
       "premiumLine": "Content tot KRW 10.000",
-      "premiumBenefit1": "Tot KRW 100.000 per maand",
+      "premiumBenefit1": "Tot KRW 10.000 per maand",
       "premiumBenefit2": "Maximaal 7 profielen",
       "premiumCta": "Bekijk het aanbevolen abonnement",
       "vvipName": "VVIP Honingpot 30 dagen",
-      "vvipPrice": "30 dagen · KRW 59.000",
-      "vvipLine": "Content tot KRW 20.000",
-      "vvipBenefit1": "Tot KRW 200.000 per maand",
+      "vvipPrice": "30 dagen · KRW 879.000",
+      "vvipLine": "Content tot KRW 30.000",
+      "vvipBenefit1": "Tot KRW 30.000 per maand",
       "vvipBenefit2": "Maximaal 15 profielen",
       "vvipCta": "Bekijk VVIP-voordelen",
       "familyName": "Code Destiny Familie 30 dagen",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "Standaardhoning 30 dagen",
-          "desc": "30 dagen · Content tot KRW 5.000 · Tot KRW 30.000 per maand · Maximaal 3 profielen"
+          "desc": "30 dagen · Content tot KRW 3.000 · Tot KRW 3.000 per maand · Maximaal 3 profielen"
         },
         "premium": {
           "name": "Premiumhoning 30 dagen",
-          "desc": "30 dagen · Content tot KRW 10.000 · Tot KRW 100.000 per maand · Maximaal 7 profielen"
+          "desc": "30 dagen · Content tot KRW 10.000 · Tot KRW 10.000 per maand · Maximaal 7 profielen"
         },
         "vvip": {
           "name": "VVIP Honingpot 30 dagen",
-          "desc": "30 dagen · Content tot KRW 20.000 · Tot KRW 200.000 per maand · Maximaal 15 profielen"
+          "desc": "30 dagen · Content tot KRW 30.000 · Tot KRW 30.000 per maand · Maximaal 15 profielen"
         },
         "family": {
           "name": "Code Destiny Familie 30 dagen",

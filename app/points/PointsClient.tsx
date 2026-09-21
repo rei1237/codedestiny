@@ -14,7 +14,12 @@ import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
-import { currentPassPlan } from "@/lib/payment/pass-policy.js";
+import {
+  CURRENT_PASS_POLICY_VERSION,
+  PRIOR_PASS_POLICY_VERSION,
+  currentPassPlan,
+  priorPassPlan,
+} from "@/lib/payment/pass-policy.js";
 import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
@@ -358,6 +363,7 @@ type PendingSubscriptionOrder = {
   customerUid: string;
   tier: "standard" | "premium" | "vvip" | "family";
   planId?: string;
+  passPolicyVersion?: string;
   durationMonths?: number;
   paymentMethod: string;
 };
@@ -737,8 +743,13 @@ function getSubscriptionTierRank(tier: SubscriptionTier | string | null | undefi
   return SUBSCRIPTION_TIER_RANK[normalized] ?? 0;
 }
 
-function getSubscriptionPolicyFreeLimit(tier: SubscriptionTier | string | null | undefined) {
+function getSubscriptionPolicyFreeLimit(
+  tier: SubscriptionTier | string | null | undefined,
+  policyVersion = "legacy",
+) {
   const normalized = normalizeSubscriptionTier(tier);
+  if (policyVersion === CURRENT_PASS_POLICY_VERSION) return currentPassPlan(normalized)?.maxCoveredCoin || 0;
+  if (policyVersion === PRIOR_PASS_POLICY_VERSION) return priorPassPlan(normalized)?.maxCoveredCoin || 0;
   if (normalized === "family") return 999999999;
   if (normalized === "vvip") return 100;
   if (normalized === "premium") return 50;
@@ -1492,14 +1503,15 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
   const rawPlanId = value.planId ?? value.plan ?? nested.planId ?? nested.plan;
   const durationMonths = normalizeSubscriptionDurationMonths(value.durationMonths ?? nested.durationMonths, rawPlanId);
   const cancelRequestedAt = normalizeSubscriptionDate(value.cancelRequestedAt ?? nested.cancelRequestedAt);
-  const policyFreeLimit = isActive ? getSubscriptionPolicyFreeLimit(tier) : 0;
+  const normalizedPolicyVersion = String(value.passPolicyVersion || nested.passPolicyVersion || "legacy");
+  const policyFreeLimit = isActive ? getSubscriptionPolicyFreeLimit(tier, normalizedPolicyVersion) : 0;
   const normalizedFreeLimit = Number.isFinite(freeLimit) && freeLimit > 0 ? Math.floor(freeLimit) : policyFreeLimit;
 
   return {
     tier,
     source: normalizeSubscriptionSource(value.source ?? nested.source),
     isActive,
-    passPolicyVersion: String(value.passPolicyVersion || nested.passPolicyVersion || "legacy"),
+    passPolicyVersion: normalizedPolicyVersion,
     startedAt,
     expiresAt,
     profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : getSubscriptionPolicyProfileLimit(tier),
@@ -1520,7 +1532,7 @@ function normalizeFirstSubscription(value: unknown): SubscriptionStatus | null {
 }
 
 function mergeSubscriptionState(prev: SubscriptionStatus, next: SubscriptionStatus): SubscriptionStatus {
-  const policyFreeLimit = next.isActive ? getSubscriptionPolicyFreeLimit(next.tier) : 0;
+  const policyFreeLimit = next.isActive ? getSubscriptionPolicyFreeLimit(next.tier, next.passPolicyVersion) : 0;
   const normalizedFreeLimit = typeof next.freeLimit === "number" && next.freeLimit > 0
     ? next.freeLimit
     : policyFreeLimit;
@@ -2098,7 +2110,7 @@ function SubscriptionSection({
           const isHighlighted = highlightedPlan === plan.tier;
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
-          const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== "flower-20260921");
+          const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== CURRENT_PASS_POLICY_VERSION);
           return (
             <div
               key={plan.id}
@@ -2834,7 +2846,7 @@ function MoonlightShopPlans({
           const isHighlighted = highlightedPlan === plan.tier;
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
-          const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== "flower-20260921");
+          const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== CURRENT_PASS_POLICY_VERSION);
           const features = plan.features.slice(0, 3).map((feature) => copy.planFeatures[plan.tier]?.[feature] || feature);
 
           return (
@@ -3218,6 +3230,7 @@ export default function PointsPage() {
       body: JSON.stringify({
         tier: plan.tier,
         planId: plan.planId,
+        passPolicyVersion: CURRENT_PASS_POLICY_VERSION,
         durationMonths: plan.durationMonths,
         durationDays: 30,
         amount: plan.wonPrice,
@@ -3444,7 +3457,7 @@ export default function PointsPage() {
           tier: sub.tier || "free",
           isActive: !!sub.isActive,
           profileLimit: sub.profileLimit ?? 1,
-          freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier)) : 0,
+          freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier, sub.passPolicyVersion)) : 0,
           startedAt: sub.startedAt || null,
           durationMonths: sub.durationMonths,
           expiresAt: sub.expiresAt || null,
@@ -3454,7 +3467,7 @@ export default function PointsPage() {
         tier: sub.tier || "free",
         isActive: !!sub.isActive,
         profileLimit: sub.profileLimit ?? 1,
-        freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier)) : 0,
+        freeLimit: sub.isActive ? (sub.freeLimit ?? getSubscriptionPolicyFreeLimit(sub.tier, sub.passPolicyVersion)) : 0,
         startedAt: sub.startedAt || null,
         durationMonths: sub.durationMonths,
         expiresAt: sub.expiresAt || null,
@@ -4318,7 +4331,10 @@ export default function PointsPage() {
               lowBalanceWarning: false,
               cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
               cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-              freeLimit: getSubscriptionPolicyFreeLimit(data.subscription?.tier || pendingSub?.tier),
+              freeLimit: getSubscriptionPolicyFreeLimit(
+                data.subscription?.tier || pendingSub?.tier,
+                data.subscription?.passPolicyVersion || pendingSub?.passPolicyVersion,
+              ),
             };
             setSubscription((prev) => mergeSubscriptionState(prev, newSub));
             persistSubscriptionCache(newSub);
@@ -4727,7 +4743,10 @@ export default function PointsPage() {
             lowBalanceWarning: false,
             cancelAtPeriodEnd: !!confirmData.subscription?.cancelAtPeriodEnd,
             cancelRequestedAt: confirmData.subscription?.cancelRequestedAt || null,
-            freeLimit: getSubscriptionPolicyFreeLimit(confirmData.subscription?.tier || plan.tier),
+            freeLimit: getSubscriptionPolicyFreeLimit(
+              confirmData.subscription?.tier || plan.tier,
+              confirmData.subscription?.passPolicyVersion || CURRENT_PASS_POLICY_VERSION,
+            ),
           };
           setSubscription((prev) => mergeSubscriptionState(prev, newSub));
           persistSubscriptionCache(newSub);
@@ -4835,7 +4854,12 @@ export default function PointsPage() {
           lowBalanceWarning: false,
           cancelAtPeriodEnd: !!data.subscription?.cancelAtPeriodEnd,
           cancelRequestedAt: data.subscription?.cancelRequestedAt || null,
-          freeLimit: data.subscription?.isActive ? getSubscriptionPolicyFreeLimit(data.subscription?.tier || subscription.tier) : 0,
+          freeLimit: data.subscription?.isActive
+            ? getSubscriptionPolicyFreeLimit(
+              data.subscription?.tier || subscription.tier,
+              data.subscription?.passPolicyVersion || subscription.passPolicyVersion,
+            )
+            : 0,
         };
         setSubscription((prev) => mergeSubscriptionState(prev, { ...newSub, lowBalanceWarning: prev.lowBalanceWarning }));
         persistSubscriptionCache(newSub);

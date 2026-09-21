@@ -821,23 +821,23 @@
       "chipShareReward": "范围外单次付费",
       "plansAria": "通过计划摘要卡",
       "standardName": "标准蜂蜜 30 天",
-      "standardPrice": "30 天 · 9,900 韩元",
-      "standardLine": "5,000韩元级内容",
-      "standardBenefit1": "每月最多30,000韩元",
+      "standardPrice": "30 天 · 89,000 韩元",
+      "standardLine": "3,000韩元级内容",
+      "standardBenefit1": "每月最多3,000韩元",
       "standardBenefit2": "最多 3 个配置文件",
       "standardCta": "查看标准",
       "recommendedAria": "推荐计划",
       "recommendedBadge": "推荐",
       "premiumName": "优质蜂蜜 30 天",
-      "premiumPrice": "30 天 · 29,900 韩元",
+      "premiumPrice": "30 天 · 269,000 韩元",
       "premiumLine": "10,000韩元级内容",
-      "premiumBenefit1": "每月最多100,000韩元",
+      "premiumBenefit1": "每月最多 10,000韩元",
       "premiumBenefit2": "最多 7 个配置文件",
       "premiumCta": "查看推荐计划",
       "vvipName": "VVIP 蜂蜜罐 30 天",
-      "vvipPrice": "30 天 · 59,000 韩元",
-      "vvipLine": "20,000韩元级内容",
-      "vvipBenefit1": "每月最多200,000韩元",
+      "vvipPrice": "30 天 · 879,000 韩元",
+      "vvipLine": "30,000韩元级内容",
+      "vvipBenefit1": "每月最多 30,000韩元",
       "vvipBenefit2": "最多 15 个配置文件",
       "vvipCta": "查看 VVIP 福利",
       "familyName": "代码命运家庭 30 天",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "标准蜂蜜30天",
-          "desc": "30天 · 5,000韩元级内容 · 每月最多30,000韩元 · 最多 3 个配置文件"
+          "desc": "30天 · 3,000韩元级内容 · 每月最多3,000韩元 · 最多 3 个配置文件"
         },
         "premium": {
           "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韩元级内容 · 每月最多100,000韩元 · 最多 7 个配置文件"
+          "desc": "30天 · 10,000韩元级内容 · 每月最多 10,000韩元 · 最多 7 个配置文件"
         },
         "vvip": {
           "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 20,000韩元级内容 · 每月最多200,000韩元 · 最多 15 个配置文件"
+          "desc": "30天 · 30,000韩元级内容 · 每月最多 30,000韩元 · 最多 15 个配置文件"
         },
         "family": {
           "name": "Code Destiny Family 30天",

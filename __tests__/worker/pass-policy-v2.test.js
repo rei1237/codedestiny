@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { currentPassPlan, isPassPolicyMix, CURRENT_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
+import { currentPassPlan, priorPassPlan, isPassPolicyMix, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
 import { auditPassProfitability } from "../../lib/payment/pass-profitability.js";
 import { auditPassSale, auditPassSaleEvidence, assertPassSaleAllowed } from "../../worker/lib/pass-sale-policy.js";
 import { resolvePassPolicy, resolveMonthlyPassLimitCoin, buildPassCycleFields, canUseByPass, isPassBudgetExhausted } from "../../worker/lib/profile-limits.js";
@@ -21,14 +21,16 @@ describe("versioned flower passes", () => {
     expect(resolvePassPolicy({}, "family").monthlyCoveredCoin).toBe(5000);
     expect(resolvePassPolicy({ passPolicyVersion: "unknown" }, "vvip")).toBeNull();
   });
-  test("new VVIP covers 30,000 and has exactly 90,000 base budget", () => {
+  test("new VVIP covers one 30,000 product and prior v2 values remain readable", () => {
     const plan = currentPassPlan("vvip");
-    expect(plan.wonPrice).toBe(59900);
+    expect(plan.wonPrice).toBe(879000);
     expect(canUseByPass({ ...plan, isActive: true }, 300)).toBe(true);
     expect(canUseByPass({ ...plan, isActive: true }, 301)).toBe(false);
-    expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(900);
-    expect(isPassBudgetExhausted("vvip", 900, 900, plan)).toBe(true);
-    expect(buildPassCycleFields({ tier: "vvip", expiresAt, now, passPolicyVersion: CURRENT_PASS_POLICY_VERSION }).monthlyLimitCoin).toBe(900);
+    expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(300);
+    expect(isPassBudgetExhausted("vvip", 300, 300, plan)).toBe(true);
+    expect(buildPassCycleFields({ tier: "vvip", expiresAt, now, passPolicyVersion: CURRENT_PASS_POLICY_VERSION }).monthlyLimitCoin).toBe(300);
+    expect(resolvePassPlan("vvip", 1, PRIOR_PASS_POLICY_VERSION)).toEqual(priorPassPlan("vvip"));
+    expect(resolvePassPolicy({ tier: "vvip", passPolicyVersion: PRIOR_PASS_POLICY_VERSION }).monthlyCoveredCoin).toBe(900);
   });
   test("active different policies cannot be stacked, expired ones can switch", () => {
     expect(isPassPolicyMix({ tier: "vvip", expiresAt }, currentPassPlan("vvip"), now)).toBe(true);
@@ -74,7 +76,7 @@ test("public offers expose exactly three closed offers and cost coverage include
   const response = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers") });
   const body = await response.json();
   expect(body.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 9900, false], ["premium", 29900, false], ["vvip", 59900, false],
+    ["standard", 89000, false], ["premium", 269000, false], ["vvip", 879000, false],
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);
@@ -82,20 +84,18 @@ test("public offers expose exactly three closed offers and cost coverage include
   expect(catalog.some(p => p.featureKey === "fusion-fortune-consultation" && p.priceKRW === 30000)).toBe(true);
 });
 
-test("VVIP consumes three 30,000 readings exactly, preserves gift version, and excludes Yeongnyangi", async () => {
+test("VVIP consumes one 30,000 reading exactly, preserves gift version, and excludes Yeongnyangi", async () => {
   const plan = currentPassPlan("vvip");
   expect(giftDraftFor({}, plan).productSnapshot.passPolicyVersion).toBe(CURRENT_PASS_POLICY_VERSION);
   const user = { _id: "64b000000000000000000001", profileSubscription: {
     ...plan, isActive: true, expiresAt, premiumUseCycleKey: expiresAt, monthlySpendCoin: 0,
   } };
   const db = makeFakePaymentDb(); db.rows.push(user);
-  for (let i = 0; i < 3; i += 1) {
-    const coverage = evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 300 });
-    expect(coverage.covered).toBe(true);
-    expect(coverage.budgetCoin).toBe(900);
-    expect(await consumePassCoverage(db, { userId: user._id, coverage, marker: `reading-${i}`, now })).toBeTruthy();
-    expect(user.profileSubscription.monthlySpendCoin).toBe((i + 1) * 300);
-  }
+  const coverage = evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 300 });
+  expect(coverage.covered).toBe(true);
+  expect(coverage.budgetCoin).toBe(300);
+  expect(await consumePassCoverage(db, { userId: user._id, coverage, marker: "reading-0", now })).toBeTruthy();
+  expect(user.profileSubscription.monthlySpendCoin).toBe(300);
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(false);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription,
@@ -103,14 +103,14 @@ test("VVIP consumes three 30,000 readings exactly, preserves gift version, and e
 });
 
 test("cost audit uses the most expensive repeatable combination, not the largest ticket", () => {
-  const plan = currentPassPlan("standard");
+  const plan = currentPassPlan("premium");
   const products = [{ featureKey: "a", priceKRW: 3000 }, { featureKey: "b", priceKRW: 5000 }];
-  const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["test-fixture"], priceKRW: 9900,
-    netRevenueKRW: 9000, paymentFeeKRW: 300, monthlyLimitCoin: 200, maxCoveredCoin: 50,
+  const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["test-fixture"], priceKRW: plan.wonPrice,
+    netRevenueKRW: 244545, paymentFeeKRW: 300, monthlyLimitCoin: 100, maxCoveredCoin: 100,
     products: { a: { priceKRW: 3000, maxCostKRW: 1000, sourceRefs: ["fixture"] }, b: { priceKRW: 5000, maxCostKRW: 1200, sourceRefs: ["fixture"] } } };
   const result = auditPassProfitability(plan, products, evidence);
-  expect(result.worstCostKRW).toBe(6500); // 5 * 3,000 + 1 * 5,000, plus the payment fee
-  expect(result.eligible).toBe(false);
+  expect(result.worstCostKRW).toBe(3300); // 3 * 3,000 is costlier than 2 * 5,000, plus the payment fee
+  expect(result.eligible).toBe(true);
   expect(auditPassProfitability(plan, [...products, { featureKey: "missing", priceKRW: 5000 }], evidence).eligible).toBe(false);
 });
 
@@ -119,13 +119,13 @@ test("real sale admission requires growth reserves and enough contribution to co
   const plan = currentPassPlan("standard");
   const products = Object.fromEntries(listPassCostProducts(plan).map(p => [p.featureKey, { priceKRW: p.priceKRW, maxCostKRW: 50, sourceRefs: ["fixture-only"] }]));
   const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["fixture-only"], priceKRW: plan.wonPrice,
-    maxCoveredCoin: plan.maxCoveredCoin, monthlyLimitCoin: plan.monthlyLimitCoin, netRevenueKRW: 9000, paymentFeeKRW: 544.5, products,
+    maxCoveredCoin: plan.maxCoveredCoin, monthlyLimitCoin: plan.monthlyLimitCoin, netRevenueKRW: 80909.09, paymentFeeKRW: 4895, products,
     financials: { channel: "web", basis: "reviewed", reviewedAt: now.toISOString(), sourceRefs: ["fixture-only"], vatRate: 0.1,
       feeRate: 0.055, feeBasis: "gross", fixedMonthlyKRW: 108000, minimumMonthlySales: 100 },
     stress: { sourceRefs: ["fixture-only"], productCostMultiplier: 2, fixedMonthlyKRW: 540000 } };
   expect(auditPassSaleEvidence("standard", "web", evidence).eligible).toBe(true);
   expect(auditPassSaleEvidence("standard", "web", { ...evidence, stress: undefined }).reason).toBe("COST_GROWTH_REVIEW_MISSING");
   expect(auditPassSaleEvidence("standard", "web", { ...evidence, financials: { ...evidence.financials, minimumMonthlySales: 1 } }).reason).toBe("FIXED_COST_NOT_COVERED");
-  const expensive = Object.fromEntries(Object.entries(products).map(([key, row]) => [key, { ...row, maxCostKRW: 1000 }]));
+  const expensive = Object.fromEntries(Object.entries(products).map(([key, row]) => [key, { ...row, maxCostKRW: 30000 }]));
   expect(auditPassSaleEvidence("standard", "web", { ...evidence, products: expensive }).eligible).toBe(false);
 });

@@ -35,7 +35,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
-import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
+import { CURRENT_PASS_PLANS } from "../lib/payment/pass-policy.js";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const read = (rel) => readFileSync(resolve(root, rel), "utf8");
@@ -215,15 +215,18 @@ assert.ok(
     + "data-cd-trans 마크업 추출 정규식이 깨졌습니다.",
 );
 
-// ── 4) ④ 이용권 가격 정본이 사전에 실제로 나타나는지 ─────────────────────────────
+// ── 4) ④ 현재 신규 이용권 가격 정본이 사전에 실제로 나타나는지 ──────────────────
+// PASS_MONTHLY_WON 은 버전 없는 과거 구매를 해석하는 legacy 정본이다. 신규 화면은
+// CURRENT_PASS_PLANS 만 광고하며, 직전 v2와 legacy 가격을 현재 사전에 남기지 않는다.
 const allAmounts = new Set();
 for (const perLocale of byKey.values()) {
   for (const amount of [...perLocale.values()][0].amounts) allAmounts.add(amount);
 }
-for (const [tier, won] of Object.entries(PASS_MONTHLY_WON)) {
+for (const [tier, plan] of Object.entries(CURRENT_PASS_PLANS)) {
+  const won = plan.wonPrice;
   if (!allAmounts.has(won)) {
     failures.push(
-      `이용권 ${tier} 가격 ${won.toLocaleString("ko-KR")}원(lib/payment/pass-pricing.js)이 사전 어디에도 없습니다 `
+      `현재 이용권 ${tier} 가격 ${won.toLocaleString("ko-KR")}원(lib/payment/pass-policy.js)이 사전 어디에도 없습니다 `
         + "— 정본만 바꾸고 public/i18n 12벌을 두고 왔습니다.",
     );
   }
@@ -239,7 +242,7 @@ assert.equal(
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
 const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
 const gateCovers = (rel) => gateCoversAny(gatePatterns, rel);
-const READ_PATHS = [SHELL, "lib/payment/pass-pricing.js", ...locales.map((l) => `${I18N_DIR}/${l}.json`)];
+const READ_PATHS = [SHELL, "lib/payment/pass-policy.js", ...locales.map((l) => `${I18N_DIR}/${l}.json`)];
 for (const rel of READ_PATHS) {
   assert.ok(
     gateCovers(rel),
@@ -252,5 +255,5 @@ console.log(
     + `(${byKey.size} price keys x ${locales.length} locales, `
     + `${comparedWithShell} shell markup comparisons, `
     + `per-locale min ${Math.min(...locales.filter((l) => l !== "ko").map((l) => perLocaleCount[l]))}, `
-    + `${Object.keys(PASS_MONTHLY_WON).length} pass tiers, ${READ_PATHS.length} gate-triggered paths)`,
+    + `${Object.keys(CURRENT_PASS_PLANS).length} current pass tiers, ${READ_PATHS.length} gate-triggered paths)`,
 );

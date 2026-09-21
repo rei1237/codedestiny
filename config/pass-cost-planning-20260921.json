@@ -1,0 +1,138 @@
+{
+  "basis": "code-derived-planning-scenario-not-sale-evidence",
+  "reviewedAt": "2026-09-21",
+  "sourceRefs": [
+    "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+    "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+    "https://developers.cloudflare.com/workers/platform/pricing/",
+    "https://www.mongodb.com/pricing",
+    "https://support.google.com/googleplay/android-developer/answer/112622"
+  ],
+  "assumptions": {
+    "usdKrw": 1600,
+    "inputTokensPerProviderAttempt": 50000,
+    "providerAttemptsPerLogicalCall": 3,
+    "inputTokenCapProvenInCode": false,
+    "geminiInputUsdPerMillion": 0.3,
+    "geminiOutputUsdPerMillion": 2.5,
+    "thinkingBudget": 0,
+    "nonTokenVariableCostMultiplier": 1.3,
+    "productCostStressMultiplier": 2,
+    "fixedMonthlyKRW": 108000,
+    "fixedCostStressMonthlyKRW": 540000,
+    "currentMonthlyRevenueKRW": 50000,
+    "currentGeminiInvoiceKRW": 10000,
+    "currentGeminiInvoiceIncludesDevelopment": true
+  },
+  "runtimeBudgets": [
+    {
+      "id": "tarot-mindscan",
+      "featurePriceKRW": 3000,
+      "parts": 19,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 9500,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/lib/mindscan-delivery.js",
+        "worker/lib/paid-narrative-delivery.js",
+        "lib/llm-client.ts"
+      ]
+    },
+    {
+      "id": "tarot-love-relationship",
+      "featurePriceKRW": 3000,
+      "parts": 21,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 9500,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/lib/love-tarot-delivery.js",
+        "worker/lib/paid-narrative-delivery.js",
+        "lib/llm-client.ts"
+      ]
+    },
+    {
+      "id": "life-book-ai-consultation",
+      "featurePriceKRW": 10000,
+      "parts": 15,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerFullPartSet": 88000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/life-book-ai.js",
+        "lib/llm-client.ts"
+      ]
+    },
+    {
+      "id": "life-fortune-ai-consultation",
+      "featurePriceKRW": 30000,
+      "parts": 15,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerFullPartSet": 134000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/life-book-ai.js",
+        "lib/llm-client.ts"
+      ]
+    },
+    {
+      "id": "nakshatra-ai-consultation",
+      "featurePriceKRW": 30000,
+      "parts": 9,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 10000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/nakshatra-ai.js",
+        "worker/lib/nakshatra-ai-prompt.js",
+        "lib/llm-client.ts"
+      ]
+    },
+    {
+      "id": "ziwei-deep-pdf",
+      "featurePriceKRW": 30000,
+      "parts": 15,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 9000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/ziwei-deep-report.js",
+        "worker/lib/ziwei-deep-report-prompt.mjs",
+        "lib/llm-client.ts"
+      ]
+    },
+    {
+      "id": "master-love-codex-compat",
+      "featurePriceKRW": 30000,
+      "parts": 20,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 8000,
+      "providerAttemptsPerLogicalCall": 1,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/master-love-codex.js",
+        "worker/lib/master-love-codex-compat-prompt.mjs"
+      ]
+    },
+    {
+      "id": "fusion-fortune-consultation",
+      "featurePriceKRW": 30000,
+      "parts": 9,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 16384,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/lib/fusion-fortune.js",
+        "worker/lib/fusion-fortune-consultation.js",
+        "worker/lib/fusion-fortune-prompt.js"
+      ]
+    }
+  ]
+}

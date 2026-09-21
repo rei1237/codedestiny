@@ -1,252 +1,337 @@
 {
-  "basis": "scenario-not-invoice",
+  "basis": "code-derived-planning-scenario-not-sale-evidence",
+  "reviewedAt": "2026-09-21",
+  "sourceRefs": [
+    "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+    "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+    "https://developers.cloudflare.com/workers/platform/pricing/",
+    "https://www.mongodb.com/pricing",
+    "https://support.google.com/googleplay/android-developer/answer/112622"
+  ],
   "assumptions": {
     "usdKrw": 1600,
+    "inputTokensPerProviderAttempt": 50000,
+    "providerAttemptsPerLogicalCall": 3,
+    "inputTokenCapProvenInCode": false,
+    "geminiInputUsdPerMillion": 0.3,
+    "geminiOutputUsdPerMillion": 2.5,
+    "thinkingBudget": 0,
+    "nonTokenVariableCostMultiplier": 1.3,
+    "productCostStressMultiplier": 2,
     "fixedMonthlyKRW": 108000,
+    "fixedCostStressMonthlyKRW": 540000,
+    "currentMonthlyRevenueKRW": 50000,
+    "currentGeminiInvoiceKRW": 10000,
+    "currentGeminiInvoiceIncludesDevelopment": true,
     "pgIncludesFeeVat": true,
     "playFeeChargedOnGrossConservatively": true,
-    "actualGenerationCost": null,
-    "fxStress": {
-      "usdKrw": 2000,
-      "usdCostMultiplierVersusBase": 1.25,
-      "serverBaseKRW": 110000
-    }
+    "actualGenerationCost": null
   },
+  "pricingDriver": "tarot-love-relationship",
+  "runtimeRows": [
+    {
+      "id": "tarot-mindscan",
+      "featurePriceKRW": 3000,
+      "parts": 19,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 9500,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/lib/mindscan-delivery.js",
+        "worker/lib/paid-narrative-delivery.js",
+        "lib/llm-client.ts"
+      ],
+      "logicalCalls": 57,
+      "providerAttempts": 171,
+      "inputTokens": 8550000,
+      "outputTokens": 541500,
+      "geminiTokenCostKRW": 6270,
+      "planningVariableCostKRW": 8200
+    },
+    {
+      "id": "tarot-love-relationship",
+      "featurePriceKRW": 3000,
+      "parts": 21,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 9500,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/lib/love-tarot-delivery.js",
+        "worker/lib/paid-narrative-delivery.js",
+        "lib/llm-client.ts"
+      ],
+      "logicalCalls": 63,
+      "providerAttempts": 189,
+      "inputTokens": 9450000,
+      "outputTokens": 598500,
+      "geminiTokenCostKRW": 6930,
+      "planningVariableCostKRW": 9100
+    },
+    {
+      "id": "life-book-ai-consultation",
+      "featurePriceKRW": 10000,
+      "parts": 15,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerFullPartSet": 88000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/life-book-ai.js",
+        "lib/llm-client.ts"
+      ],
+      "logicalCalls": 45,
+      "providerAttempts": 135,
+      "inputTokens": 6750000,
+      "outputTokens": 264000,
+      "geminiTokenCostKRW": 4296,
+      "planningVariableCostKRW": 5600
+    },
+    {
+      "id": "life-fortune-ai-consultation",
+      "featurePriceKRW": 30000,
+      "parts": 15,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerFullPartSet": 134000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/life-book-ai.js",
+        "lib/llm-client.ts"
+      ],
+      "logicalCalls": 45,
+      "providerAttempts": 135,
+      "inputTokens": 6750000,
+      "outputTokens": 402000,
+      "geminiTokenCostKRW": 4848,
+      "planningVariableCostKRW": 6400
+    },
+    {
+      "id": "nakshatra-ai-consultation",
+      "featurePriceKRW": 30000,
+      "parts": 9,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 10000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/nakshatra-ai.js",
+        "worker/lib/nakshatra-ai-prompt.js",
+        "lib/llm-client.ts"
+      ],
+      "logicalCalls": 27,
+      "providerAttempts": 81,
+      "inputTokens": 4050000,
+      "outputTokens": 270000,
+      "geminiTokenCostKRW": 3024,
+      "planningVariableCostKRW": 4000
+    },
+    {
+      "id": "ziwei-deep-pdf",
+      "featurePriceKRW": 30000,
+      "parts": 15,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 9000,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/ziwei-deep-report.js",
+        "worker/lib/ziwei-deep-report-prompt.mjs",
+        "lib/llm-client.ts"
+      ],
+      "logicalCalls": 45,
+      "providerAttempts": 135,
+      "inputTokens": 6750000,
+      "outputTokens": 405000,
+      "geminiTokenCostKRW": 4860,
+      "planningVariableCostKRW": 6400
+    },
+    {
+      "id": "master-love-codex-compat",
+      "featurePriceKRW": 30000,
+      "parts": 20,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 8000,
+      "providerAttemptsPerLogicalCall": 1,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/routes/master-love-codex.js",
+        "worker/lib/master-love-codex-compat-prompt.mjs"
+      ],
+      "logicalCalls": 60,
+      "providerAttempts": 60,
+      "inputTokens": 3000000,
+      "outputTokens": 480000,
+      "geminiTokenCostKRW": 3360,
+      "planningVariableCostKRW": 4400
+    },
+    {
+      "id": "fusion-fortune-consultation",
+      "featurePriceKRW": 30000,
+      "parts": 9,
+      "durableAttemptsPerPart": 3,
+      "maxOutputTokensPerLogicalCall": 16384,
+      "providerAttemptsPerLogicalCall": 3,
+      "fallbackProviderCostIncluded": false,
+      "codeRefs": [
+        "worker/lib/fusion-fortune.js",
+        "worker/lib/fusion-fortune-consultation.js",
+        "worker/lib/fusion-fortune-prompt.js"
+      ],
+      "logicalCalls": 27,
+      "providerAttempts": 81,
+      "inputTokens": 4050000,
+      "outputTokens": 442368,
+      "geminiTokenCostKRW": 3714,
+      "planningVariableCostKRW": 4900
+    }
+  ],
   "saleApproval": false,
   "rows": [
     {
       "tier": "standard",
       "channel": "webPgVatSeparate",
-      "priceKRW": 9900,
-      "allowanceKRW": 20000,
-      "maximumAllProductCostKRW": 4855,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 30,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 60
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 90
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 150
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 2427
+      "priceKRW": 89000,
+      "allowanceKRW": 3000,
+      "maximumAllProductCostKRW": 43650,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 1,
+      "planningVariableCostKRW": 9100,
+      "stressedProductCostKRW": 18200,
+      "stressedContributionKRW": 57814,
+      "stressedContributionMargin": 0.7145561797752809,
+      "minimumPriceForTargetKRW": 37200,
+      "fixedCostBreakEvenSales": 10,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "premium",
       "channel": "webPgVatSeparate",
-      "priceKRW": 29900,
-      "allowanceKRW": 50000,
-      "maximumAllProductCostKRW": 14664,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 10,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 20
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 30
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 50
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 7332
+      "priceKRW": 269000,
+      "allowanceKRW": 10000,
+      "maximumAllProductCostKRW": 131932,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 3,
+      "planningVariableCostKRW": 27300,
+      "stressedProductCostKRW": 54600,
+      "stressedContributionKRW": 175150,
+      "stressedContributionMargin": 0.716228624535316,
+      "minimumPriceForTargetKRW": 111400,
+      "fixedCostBreakEvenSales": 4,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "vvip",
       "channel": "webPgVatSeparate",
-      "priceKRW": 59900,
-      "allowanceKRW": 90000,
-      "maximumAllProductCostKRW": 29378,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 5,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 10
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 15
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 25
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 14689
+      "priceKRW": 879000,
+      "allowanceKRW": 30000,
+      "maximumAllProductCostKRW": 431109,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 10,
+      "planningVariableCostKRW": 91000,
+      "stressedProductCostKRW": 182000,
+      "stressedContributionKRW": 568745,
+      "stressedContributionMargin": 0.7117411831626849,
+      "minimumPriceForTargetKRW": 371100,
+      "fixedCostBreakEvenSales": 1,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "standard",
       "channel": "googlePlay15",
-      "priceKRW": 9900,
-      "allowanceKRW": 20000,
-      "maximumAllProductCostKRW": 3915,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 30,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 60
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 90
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 150
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 1957
+      "priceKRW": 89000,
+      "allowanceKRW": 3000,
+      "maximumAllProductCostKRW": 35195,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 1,
+      "planningVariableCostKRW": 9100,
+      "stressedProductCostKRW": 18200,
+      "stressedContributionKRW": 49359,
+      "stressedContributionMargin": 0.6100561797752808,
+      "minimumPriceForTargetKRW": 46100,
+      "fixedCostBreakEvenSales": 11,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "premium",
       "channel": "googlePlay15",
-      "priceKRW": 29900,
-      "allowanceKRW": 50000,
-      "maximumAllProductCostKRW": 11824,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 10,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 20
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 30
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 50
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 5912
+      "priceKRW": 269000,
+      "allowanceKRW": 10000,
+      "maximumAllProductCostKRW": 106377,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 3,
+      "planningVariableCostKRW": 27300,
+      "stressedProductCostKRW": 54600,
+      "stressedContributionKRW": 149595,
+      "stressedContributionMargin": 0.611728624535316,
+      "minimumPriceForTargetKRW": 138100,
+      "fixedCostBreakEvenSales": 4,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "vvip",
       "channel": "googlePlay15",
-      "priceKRW": 59900,
-      "allowanceKRW": 90000,
-      "maximumAllProductCostKRW": 23687,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 5,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 10
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 15
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 25
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 11843
+      "priceKRW": 879000,
+      "allowanceKRW": 30000,
+      "maximumAllProductCostKRW": 347604,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 10,
+      "planningVariableCostKRW": 91000,
+      "stressedProductCostKRW": 182000,
+      "stressedContributionKRW": 485240,
+      "stressedContributionMargin": 0.6072411831626848,
+      "minimumPriceForTargetKRW": 460300,
+      "fixedCostBreakEvenSales": 2,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "standard",
       "channel": "googlePlay30",
-      "priceKRW": 9900,
-      "allowanceKRW": 20000,
-      "maximumAllProductCostKRW": 2430,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 30,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 60
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 90
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 150
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 1215
+      "priceKRW": 89000,
+      "allowanceKRW": 3000,
+      "maximumAllProductCostKRW": 21845,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 1,
+      "planningVariableCostKRW": 9100,
+      "stressedProductCostKRW": 18200,
+      "stressedContributionKRW": 36009,
+      "stressedContributionMargin": 0.44505617977528084,
+      "minimumPriceForTargetKRW": 74200,
+      "fixedCostBreakEvenSales": 15,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "premium",
       "channel": "googlePlay30",
-      "priceKRW": 29900,
-      "allowanceKRW": 50000,
-      "maximumAllProductCostKRW": 7339,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 10,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 20
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 30
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 50
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 3669
+      "priceKRW": 269000,
+      "allowanceKRW": 10000,
+      "maximumAllProductCostKRW": 66027,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 3,
+      "planningVariableCostKRW": 27300,
+      "stressedProductCostKRW": 54600,
+      "stressedContributionKRW": 109245,
+      "stressedContributionMargin": 0.446728624535316,
+      "minimumPriceForTargetKRW": 222500,
+      "fixedCostBreakEvenSales": 5,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     },
     {
       "tier": "vvip",
       "channel": "googlePlay30",
-      "priceKRW": 59900,
-      "allowanceKRW": 90000,
-      "maximumAllProductCostKRW": 14702,
-      "breakEvenSalesOnlyIf40PercentMarginVerified": 5,
-      "serverGrowth": [
-        {
-          "multiplier": 2,
-          "fixedMonthlyKRW": 216000,
-          "breakEvenSales": 10
-        },
-        {
-          "multiplier": 3,
-          "fixedMonthlyKRW": 324000,
-          "breakEvenSales": 15
-        },
-        {
-          "multiplier": 5,
-          "fixedMonthlyKRW": 540000,
-          "breakEvenSales": 25
-        }
-      ],
-      "baseProductCostCeilingWithDoubleCostReserveKRW": 7351
+      "priceKRW": 879000,
+      "allowanceKRW": 30000,
+      "maximumAllProductCostKRW": 215754,
+      "pricingDriver": "tarot-love-relationship",
+      "pricingDriverRepeats": 10,
+      "planningVariableCostKRW": 91000,
+      "stressedProductCostKRW": 182000,
+      "stressedContributionKRW": 353390,
+      "stressedContributionMargin": 0.44224118316268485,
+      "minimumPriceForTargetKRW": 741500,
+      "fixedCostBreakEvenSales": 2,
+      "coversFixedCostAtCurrentMonthlyRevenue": false
     }
   ]
 }

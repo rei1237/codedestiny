@@ -1,4 +1,4 @@
-import { CURRENT_PASS_PLANS, currentPassPlan } from "../../lib/payment/pass-policy.js";
+import { CURRENT_PASS_PLANS, PRIOR_PASS_PLANS, currentPassPlan, priorPassPlan } from "../../lib/payment/pass-policy.js";
 // 앱(Google Play) 전용 가격표 정본.
 //
 // 웹 가격(worker/lib/paid-feature-registry.js)은 절대 건드리지 않는다.
@@ -14,9 +14,8 @@ import { CURRENT_PASS_PLANS, currentPassPlan } from "../../lib/payment/pass-poli
 // scripts/verify-app-store-pricing.mjs가 오차 0으로 단언한다.
 //
 // ⚠️ 이 파일은 워커뿐 아니라 **클라이언트 번들에도 들어간다**(app/_lib/billing-client.ts 등이
-//    앱 표시 금액을 계산하려고 import한다). 따라서 여기에 worker 전용 모듈(db.js, models.js,
-//    env.js …)을 import하면 웹 빌드가 깨진다. **import 없는 순수 테이블로 유지할 것.**
-//    코인 한도 같은 외부 값은 import하지 말고 인자로 받는다.
+//    앱 표시 금액을 계산하려고 import한다). 따라서 worker 전용 모듈(db.js, models.js,
+//    env.js …)은 import하지 않는다. 브라우저 안전한 순수 정책 모듈만 참조한다.
 //
 // 정합성은 scripts/verify-app-store-pricing.mjs가 레지스트리 가격 종류와 전수 대조한다.
 
@@ -72,6 +71,7 @@ const CONTENT_TIER_TABLE = Object.freeze([
 // 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
 const PASS_TIER_TABLE = Object.freeze([
   ...Object.keys(CURRENT_PASS_PLANS).map(tier => { const p = currentPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
+  ...Object.keys(PRIOR_PASS_PLANS).map(tier => { const p = priorPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 9900, webAmountKRW: 9900, coinLimit: 50 },
   { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 29900, webAmountKRW: 29900, coinLimit: 100 },
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 59000, webAmountKRW: 59000, coinLimit: 200 },

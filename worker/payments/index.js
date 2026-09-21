@@ -19,7 +19,12 @@
  * 로그가 잡는다.
  */
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
-import { isPassPolicyMix } from "../../lib/payment/pass-policy.js";
+import {
+  CURRENT_PASS_POLICY_VERSION,
+  isPassPolicyMix,
+  LEGACY_PASS_POLICY_VERSION,
+  PRIOR_PASS_POLICY_VERSION,
+} from "../../lib/payment/pass-policy.js";
 import { getRequestMeta, json } from "../lib/http.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
@@ -299,7 +304,13 @@ function resolvePassRequest(env, body = {}) {
   if (durationMonths !== 1 || durationDays !== 30) {
     throw paymentError("INVALID_SUBSCRIPTION_DURATION", "이용권 기간이 올바르지 않습니다.");
   }
-  const plan = resolvePassPlan(body?.tier || body?.passTier || body?.subscriptionTier, durationMonths, body.passPolicyVersion || (String(body.planId || "").endsWith("_v2") ? "flower-20260921" : "legacy"));
+  const planIdHint = String(body.planId || "");
+  const inferredPolicyVersion = planIdHint.endsWith("_v3")
+    ? CURRENT_PASS_POLICY_VERSION
+    : planIdHint.endsWith("_v2")
+      ? PRIOR_PASS_POLICY_VERSION
+      : LEGACY_PASS_POLICY_VERSION;
+  const plan = resolvePassPlan(body?.tier || body?.passTier || body?.subscriptionTier, durationMonths, body.passPolicyVersion || inferredPolicyVersion);
   if (!plan) throw paymentError("INVALID_SUBSCRIPTION_TIER", "이용권 등급이 올바르지 않습니다.");
   const planId = String(body?.planId || "").trim().toLowerCase();
   const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
