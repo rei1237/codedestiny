@@ -2,6 +2,9 @@ import { withLLMCache } from "./llm-cache.ts";
 import type { LLMCacheConfig } from "./llm-cache.ts";
 import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
 import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
+import {
+  assertGeminiInputTokenLimit,
+} from "./gemini-input-token-limit.mjs";
 
 export interface LLMRequest {
   /** A durable caller-owned retry budget can opt out of nested provider retries. */
@@ -691,6 +694,17 @@ export async function createGeminiContextCache(
     Number(input?.timeoutMs) > 0 ? Number(input.timeoutMs) : GEMINI_CONTEXT_CACHE_TIMEOUT_MS,
   );
   try {
+    // 캐시 생성도 공급자에 입력을 보내 저장 비용을 만들 수 있다. 생성 호출과 같은 상한을 먼저
+    // 확인하고, 계산 실패/초과 시 캐시만 포기한다. 뒤의 callLLM은 전체 프롬프트를 다시 검사한다.
+    await assertGeminiInputTokenLimit({
+      apiKey,
+      model,
+      generateContentRequest: {
+        contents: [{ role: "user", parts: [{ text: prefix }] }],
+        ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
+      },
+      timeoutMs: Number(input?.timeoutMs) > 0 ? Number(input.timeoutMs) : GEMINI_CONTEXT_CACHE_TIMEOUT_MS,
+    });
     const url = new URL(`${GEMINI_API_BASE}/cachedContents`);
     url.searchParams.set("key", apiKey);
     const response = await fetch(url.toString(), {
@@ -780,6 +794,25 @@ function canUseGeminiContextCache(
   if (!normalized.prompt.startsWith(cache.prefix)) return false;
   // 캐시에 구운 systemInstruction 과 지금 보내려는 systemPrompt 가 다르면 지시가 뒤바뀐다.
   return String(normalized.systemPrompt || "") === String(cache.systemPrompt || "");
+}
+
+function buildGeminiGenerateContentRequest(normalized: ReturnType<typeof normalizeRequest>) {
+  const parts = Array.isArray(normalized.geminiParts) && normalized.geminiParts.length
+    ? normalized.geminiParts
+    : [{ text: normalized.prompt }];
+  return {
+    contents: [{ role: "user", parts }],
+    generationConfig: {
+      maxOutputTokens: normalized.maxTokens,
+      temperature: normalized.temperature,
+      ...(normalized.responseMimeType ? { responseMimeType: normalized.responseMimeType } : {}),
+      ...(normalized.responseSchema ? { responseSchema: normalized.responseSchema } : {}),
+      thinkingConfig: { thinkingBudget: resolveThinkingBudget(normalized.thinkingBudget) },
+    },
+    ...(normalized.systemPrompt ? {
+      systemInstruction: { parts: [{ text: normalized.systemPrompt }] },
+    } : {}),
+  };
 }
 
 async function callGeminiPrimary(
@@ -1043,11 +1076,37 @@ async function callLLMUncached(
   // 한도에 걸리고, 그 경우 앱 자체 에러 응답도 환불 처리도 돌지 못한 채 연결이 끊긴다.
   const deadlineAt = Date.now() + resolveTimeoutMs(request.timeoutMs);
 
+  // 생성·재시도보다 먼저 공급자 tokenizer로 Gemini 입력 상한을 확정한다.
+  // 계산 실패 시 Gemini 생성은 막고, 기존 Workers AI 폴백의 가용성 계약만 유지한다.
+  const normalized = normalizeRequest(request);
+  const apiKey = getGeminiApiKey(env);
   let geminiError: unknown;
-  try {
-    return await callGeminiWithRetry(request, env, deadlineAt);
-  } catch (error) {
-    geminiError = error;
+  let geminiInputVerified = false;
+  if (!apiKey) {
+    geminiError = new Error("Gemini API key is not configured.");
+  } else {
+    try {
+      await assertGeminiInputTokenLimit({
+        apiKey,
+        model: requestModel,
+        generateContentRequest: buildGeminiGenerateContentRequest(normalized),
+        timeoutMs: Math.max(1, deadlineAt - Date.now()),
+      });
+      geminiInputVerified = true;
+    } catch (error) {
+      // 실제로 상한을 넘은 입력은 다른 공급자로 우회하지 않는다. tokenizer 자체가 일시적으로
+      // 실패한 경우에는 Gemini 생성을 막되 기존 Workers AI 폴백 계약은 유지한다.
+      if (String((error as { code?: string })?.code || "") === "LLM_INPUT_TOKEN_LIMIT_EXCEEDED") throw error;
+      geminiError = error;
+    }
+  }
+
+  if (geminiInputVerified) {
+    try {
+      return await callGeminiWithRetry(request, env, deadlineAt);
+    } catch (error) {
+      geminiError = error;
+    }
   }
 
   // 강등 사다리의 중간 단계: Gemini(캐시) → Gemini(무캐시) → Workers AI.
@@ -1055,7 +1114,7 @@ async function callLLMUncached(
   //    Workers AI 로 떨어진다. 폴백은 목표 분량의 60~77%만 쓰고 멈추므로 유료 라우트의
   //    fallbackMinChars 게이트에 걸려 상담 전체가 실패한다. 같은 deadlineAt 을 쓰므로
   //    예산이 남아 있지 않으면 이 시도는 즉시 실패하고 벽시계를 늘리지 않는다.
-  if (request.geminiCachedContent) {
+  if (request.geminiCachedContent && geminiInputVerified) {
     const withoutContextCache: LLMRequest = { ...request };
     delete withoutContextCache.geminiCachedContent;
     console.warn("[llm context_cache] reference failed; retrying without the cache.", {

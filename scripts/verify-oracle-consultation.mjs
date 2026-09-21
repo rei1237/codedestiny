@@ -41,11 +41,17 @@ function check(label, condition, detail = "") {
 
 function mockFetch(handler) {
   const calls = [];
+  const countCalls = [];
   const impl = async (url, init) => {
+    if (String(url).includes(":countTokens")) {
+      countCalls.push({ url, init });
+      return jsonResponse({ totalTokens: 1200 });
+    }
     calls.push({ url, init });
     return handler(calls.length);
   };
   impl.calls = calls;
+  impl.countCalls = countCalls;
   return impl;
 }
 

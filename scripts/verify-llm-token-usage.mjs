@@ -37,10 +37,9 @@ async function captureLogs(run) {
 const realFetch = globalThis.fetch;
 
 function stubGemini(payload) {
-  globalThis.fetch = async () => new Response(JSON.stringify(payload), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  globalThis.fetch = async (url) => new Response(JSON.stringify(
+    String(url).includes(":countTokens") ? { totalTokens: 1200 } : payload,
+  ), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
 // ── 1. Gemini usageMetadata 파싱 ──────────────────────────────────────────────
@@ -105,6 +104,7 @@ assert(fallbackLogs.length === 1 && fallbackLogs[0]?.provider === "cloudflare", 
       const href = String(url);
       const method = String(init?.method || "GET").toUpperCase();
       const body = JSON.parse(String(init?.body || "{}"));
+      if (href.includes(":countTokens")) return ok({ totalTokens: 1200 });
       requests.push({ href, method, body });
       return handler({ href, method, body }, requests.length - 1);
     };

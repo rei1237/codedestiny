@@ -21,7 +21,7 @@ test("current pass prices cover the code-derived Play 30% stress scenario withou
     ],
   );
   assert.equal(planningReport.pricingDriver, "tarot-love-relationship");
-  assert.equal(planningReport.assumptions.inputTokenCapProvenInCode, false);
+  assert.equal(planningReport.assumptions.inputTokenCapProvenInCode, true);
   assert.equal(planningReport.saleApproval, false);
   const playRows = planningReport.rows.filter(({ channel }) => channel === "googlePlay30");
   assert.deepEqual(playRows.map(({ pricingDriverRepeats }) => pricingDriverRepeats), [1, 3, 10]);

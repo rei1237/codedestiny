@@ -88,11 +88,17 @@ function buildLlmReadingFixture() {
 
 function mockFetch(handler) {
   const calls = [];
+  const countCalls = [];
   const impl = async (url, init) => {
+    if (String(url).includes(":countTokens")) {
+      countCalls.push({ url, init });
+      return jsonResponse({ totalTokens: 1200 });
+    }
     calls.push({ url, init });
     return handler(calls.length);
   };
   impl.calls = calls;
+  impl.countCalls = countCalls;
   return impl;
 }
 
@@ -131,6 +137,7 @@ async function runMockSuite() {
   check("프롬프트에 insightSeeds 포함", promptText.includes("insightSeeds"));
   check("responseMimeType=application/json", requestBody?.generationConfig?.responseMimeType === "application/json");
   check("모델 gemini-2.5-flash 사용", String(okFetch.calls[0]?.url || "").includes("gemini-2.5-flash"));
+  check("생성 전 countTokens 1회", okFetch.countCalls.length === 1, `countCalls=${okFetch.countCalls.length}`);
   check("프롬프트에 말·행동·침묵·속도 분리 규칙", promptText.includes("말·행동·침묵·관계 거리·다가갈 속도"));
   check("프롬프트에 보조 카드 역할 규칙", promptText.includes("보조 카드는 메인 카드의 반복이 아니라"));
   check("프롬프트에 확정 표현 금지", promptText.includes("100%") && promptText.includes("운명이다"));

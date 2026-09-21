@@ -55,6 +55,7 @@ globalThis.fetch = async (url, init) => {
   const href = String(url);
   const method = String(init?.method || "GET").toUpperCase();
   const body = JSON.parse(String(init?.body || "{}"));
+  if (href.includes(":countTokens")) return jsonResponse({ totalTokens: 3000 });
   if (href.includes("/cachedContents")) {
     cacheCalls.push({ url: href, method, body });
     await new Promise((resolve) => { setTimeout(resolve, FETCH_DELAY_MS); });

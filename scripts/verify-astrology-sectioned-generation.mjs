@@ -109,7 +109,13 @@ let calls = [];
 
 function installStub(textForSection) {
   calls = [];
-  globalThis.fetch = async (_url, options) => {
+  globalThis.fetch = async (url, options) => {
+    if (String(url).includes(":countTokens")) {
+      return new Response(JSON.stringify({ totalTokens: 3000 }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     const body = JSON.parse(options.body);
     const prompt = body.contents[0].parts.map((p) => p.text || "").join("");
     const marker = prompt.match(/\[이번에 쓸 부분\]\s*(.+)/);

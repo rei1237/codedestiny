@@ -99,6 +99,9 @@ let cacheCreateOk = true;
 globalThis.fetch = async (url, init = {}) => {
   const href = String(url);
   const method = String(init.method || "GET").toUpperCase();
+  if (href.includes(":countTokens")) {
+    return new Response(JSON.stringify({ totalTokens: 3000 }), { status: 200, headers: { "Content-Type": "application/json" } });
+  }
   fetchCalls.push({ href, method });
   if (!href.includes("cachedContents")) throw new Error(`예상 못 한 네트워크 호출: ${href}`);
   if (method === "DELETE") return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });

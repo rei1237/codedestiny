@@ -3,6 +3,8 @@
   "reviewedAt": "2026-09-21",
   "sourceRefs": [
     "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+    "https://ai.google.dev/api/tokens",
+    "https://ai.google.dev/gemini-api/docs/billing",
     "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
     "https://developers.cloudflare.com/workers/platform/pricing/",
     "https://www.mongodb.com/pricing",
@@ -12,7 +14,7 @@
     "usdKrw": 1600,
     "inputTokensPerProviderAttempt": 50000,
     "providerAttemptsPerLogicalCall": 3,
-    "inputTokenCapProvenInCode": false,
+    "inputTokenCapProvenInCode": true,
     "geminiInputUsdPerMillion": 0.3,
     "geminiOutputUsdPerMillion": 2.5,
     "thinkingBudget": 0,
