@@ -1,4 +1,5 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 
 // 리포트 생성 · 재열람 배관.
 //
@@ -34,8 +35,8 @@ import type {
 } from "./types";
 
 const FEATURE_KEY = "human-design-report";
-const COIN_PRICE = 100;
-const AMOUNT_KRW = 10000;
+const COIN_PRICE = lookupServerCoinPrice("human-design-report")!;
+const AMOUNT_KRW = COIN_PRICE * 100;
 
 /** 🔴 sessionStorage 가 아니다 — 세션이 끝났다고 결제한 문서를 잃으면 안 된다(요구 31). */
 const REPORT_ID_STORAGE_KEY = "cd_hd_report_id_v1";

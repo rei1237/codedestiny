@@ -1,9 +1,10 @@
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import tzLookup from "tz-lookup";
 import { getSwissVedicPlanets } from "./swiss-ephemeris.js";
 import { buildVedicLocalChartJson } from "./vedic-premium-generator.js";
 
 export const VEDIC_PRASHNA_PROMPT_FEATURE_KEY = "vedic_prashna_prompt";
-export const VEDIC_PRASHNA_PROMPT_PRICE = 50;
+export const VEDIC_PRASHNA_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(VEDIC_PRASHNA_PROMPT_FEATURE_KEY)].cost;
 export const VEDIC_PRASHNA_PROMPT_AMOUNT_KRW = 5000;
 export const VEDIC_PRASHNA_PROMPT_PRODUCT_CODE = "PRASHNA_PROMPT_1";
 export const VEDIC_PRASHNA_PROMPT_PRODUCT_NAME = "프라슈나 프롬프트";

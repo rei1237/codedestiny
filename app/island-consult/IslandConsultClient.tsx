@@ -1,4 +1,6 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -30,9 +32,9 @@ import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consu
 // ── 상품 상수(레지스트리 ziwei-island-palace-consult와 일치) ──
 const FEATURE_KEY = "ziwei-island-palace-consult";
 const FEATURE_REASON = "운명의 섬 12궁 심층 상담";
-const FEATURE_COST = 200;
-const FEATURE_AMOUNT_KRW = 20000;
-const FEATURE_MEMBERSHIP_CREDIT_COST = 2000;
+const FEATURE_COST = lookupServerCoinPrice(FEATURE_KEY)!;
+const FEATURE_AMOUNT_KRW = FEATURE_COST * 100;
+const FEATURE_MEMBERSHIP_CREDIT_COST = FEATURE_COST * 10;
 const PREPARE = "/api/ziwei-island-ai/prepare";
 const GENERATE = "/api/ziwei-island-ai/generate";
 const RESULT = "/api/ziwei-island-ai/result";
@@ -42,8 +44,8 @@ const RESULT = "/api/ziwei-island-ai/result";
 // 명반에서 정밀 판독한 고정 콘텐츠"다. 그래서 회당 결제가 아니라 1회 해금이다.
 const REPORT_FEATURE_KEY = "ziwei-island-deep-report";
 const REPORT_REASON = "운명의 섬 12궁 심층 리포트";
-const REPORT_COIN_PRICE = 50;
-const REPORT_AMOUNT_KRW = 5000;
+const REPORT_COIN_PRICE = lookupServerCoinPrice(REPORT_FEATURE_KEY)!;
+const REPORT_AMOUNT_KRW = REPORT_COIN_PRICE * 100;
 const REPORT_ENDPOINT = "/api/ziwei-island-report";
 
 type ReportSection = { key: string; title: string; body: string };
@@ -918,7 +920,7 @@ export default function IslandConsultClient() {
           onClick={unlockReport}
           disabled={isPaying || reportLoading || !birthComplete || (!reportConfirmedLocked && unlockStatus === "loading")}
         >
-          {reportLoading ? "리포트를 여는 중…" : isPaying ? "결제 확인 중…" : "🗺️ 심층 리포트 열기 · 5,000원"}
+          {reportLoading ? "리포트를 여는 중…" : isPaying ? "결제 확인 중…" : `🗺️ 심층 리포트 열기 · ${REPORT_AMOUNT_KRW.toLocaleString("ko-KR")}원`}
         </button>
         <p className="ic-note">이용권이 있으면 결제 없이 바로 열려요.</p>
       </section>
@@ -1010,7 +1012,7 @@ export default function IslandConsultClient() {
           )}
           <label className="ic-field"><span>이 궁에 묻고 싶은 것 (선택)</span><textarea value={form.question} maxLength={400} rows={2} placeholder={`${palace.name}과 관련해 지금 가장 궁금한 점을 적어주세요`} onChange={(e) => setForm({ ...form, question: e.target.value })} /></label>
           {error && <p className="ic-err" role="alert">{error}</p>}
-          <button type="submit" className="ic-primary" disabled={isPaying}>🔮 {palace.name} 심층 상담 시작 · 20,000원</button>
+          <button type="submit" className="ic-primary" disabled={isPaying}>🔮 {palace.name} 심층 상담 시작 · {FEATURE_AMOUNT_KRW.toLocaleString("ko-KR")}원</button>
           <p className="ic-note">이용권·월정석이 있으면 자동으로 먼저 적용돼요. 생성에 실패하면 자동 환불됩니다.</p>
           </form>
           <ExpertStickyCta theme="island" targetId="island-consultation-form" label="이 궁 상담 시작" price={<PriceBadge featureKey={FEATURE_KEY} prefix="상담 이용 가격 " />} />

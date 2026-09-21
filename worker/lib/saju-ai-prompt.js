@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import { PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "./analysis-basis-contract.js";
@@ -20,7 +21,7 @@ import {
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
-export const SAJU_AI_PROMPT_PRICE = 200;
+export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
 export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v7";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 

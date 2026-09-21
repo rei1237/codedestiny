@@ -1,4 +1,6 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 /**
  * STEP 8·11 삶의 항로 — DirectionField.timeline(30일/90일/1년/3년 · weather/momentum)을
  * 항해 메타포로 연출(연이 내레이션). 읽기 전용 소비, 추가 계산 없음.
@@ -34,7 +36,7 @@ export function LifeVoyage({
   autoRevealed?: boolean;
 }) {
   const copy = useDestinyCompassCopy();
-  const priceLabel = formatKrwFromCoins(100, detectLocale());
+  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-life-voyage")!, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [revealed, setRevealed] = useState(autoRevealed);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +47,8 @@ export function LifeVoyage({
     setError(null);
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-life-voyage",
-      coinPrice: 100,
-      amountKRW: 10000,
+      coinPrice: lookupServerCoinPrice("destiny-compass-life-voyage")!,
+      amountKRW: lookupServerCoinPrice("destiny-compass-life-voyage")! * 100,
       reason: copy.lifeVoyageGateReason,
       requestId: makeGateRequestId("destiny-compass-life-voyage"),
       resume: buildResume?.(),

@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import {
   classifyQuestionToSukuyoDomain,
@@ -11,7 +12,7 @@ import {
 const DEFAULT_TEXT = "미상";
 
 export const SUKUYO_AI_PROMPT_FEATURE_KEY = "sukuyo_ai_prompt_generator";
-export const SUKUYO_AI_PROMPT_PRICE = 100;
+export const SUKUYO_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SUKUYO_AI_PROMPT_FEATURE_KEY)].cost;
 export { classifyQuestionToSukuyoDomain, getSukuyoPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({

@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
@@ -835,7 +836,7 @@ async function writeArchivedReport(env, userId, reportSignature, payload, access
       reportId,
       sessionId,
       featureKey: FPTI_FEATURE_KEY,
-      cost: 200,
+      cost: FEATURE_KEY_PRICE_TABLE[FPTI_FEATURE_KEY].cost,
       sourceTransactionId: clean(access?.matchedTransactionId || access?.entitlementId || ""),
       status: "success",
       premiumStatus: "completed",

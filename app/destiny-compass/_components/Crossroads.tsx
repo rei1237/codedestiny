@@ -1,4 +1,6 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 /**
  * STEP 7 운명의 갈림길 — 두 선택지(A/B)의 기운을 결정론 비교(computeCrossroad).
  * 정답 단정이 아니라 '두 길의 기운' 비교 연출 + 꽃돼지 해설.
@@ -30,7 +32,7 @@ export function Crossroads({
   resumed?: { a: string; b: string } | null;
 }) {
   const copy = useDestinyCompassCopy();
-  const priceLabel = formatKrwFromCoins(100, detectLocale());
+  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-crossroads")!, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [a, setA] = useState(resumed?.a || "");
   const [b, setB] = useState(resumed?.b || "");
@@ -49,8 +51,8 @@ export function Crossroads({
     setError(null);
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-crossroads",
-      coinPrice: 100,
-      amountKRW: 10000,
+      coinPrice: lookupServerCoinPrice("destiny-compass-crossroads")!,
+      amountKRW: lookupServerCoinPrice("destiny-compass-crossroads")! * 100,
       reason: copy.crossroadsGateReason,
       requestId: makeGateRequestId("destiny-compass-crossroads"),
       // 🔴 비교 대상 두 줄을 서술자에 실어야 한다 — 복귀 문서의 입력칸은 비어 있어

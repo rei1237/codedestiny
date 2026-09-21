@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { runCelestialDelivery, restoreCelestialDelivery } from "../lib/celestial-delivery-store.js";
 import { requireAuth } from "../lib/auth.js";
@@ -22,7 +23,7 @@ import {
 
 const CELESTIAL_FEATURE_KEY = "tarot-celestial-harmony";
 const CELESTIAL_REPORT_TYPE = "celestialHarmony";
-const CELESTIAL_COST = 100;
+const CELESTIAL_COST = FEATURE_KEY_PRICE_TABLE["tarot-celestial-harmony"].cost;
 const CELESTIAL_RESULT_VERSION = "20260605-worker-llm-v1";
 
 function text(value) {

@@ -66,7 +66,7 @@ const PHY_MIN_ANALYSIS_MS = 3200;
 let compatMode = false;        // 궁합 모드 활성화 여부
 let firstAnalysisResult = null; // 첫 번째 사람 분석 결과 저장
 let secondAnalysisResult = null; // 두 번째 사람 분석 결과 저장
-let ogwanMoleUnlocked = false;   // 오관·점 프리미엄(회당 5,000원) 잠금 해제 여부 — 새 분석마다 리셋
+let ogwanMoleUnlocked = false;   // 오관·점 프리미엄(회당 3,000원) 잠금 해제 여부 — 새 분석마다 리셋
 
 // ── 결제 후 자동 재개 ──────────────────────────────────────────────────────
 // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트한다 — _cdCoinGatePerUse 의 onGranted 클로저가
@@ -834,7 +834,7 @@ const appHtml = `
 
         <button class="action-btn" style="width: 100%; margin-top: 15px; background: #FEE500; color: #3B1E08; border: none; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);" onclick="sharePhysiognomyKakao()">💬 카카오톡으로 관상 결과 공유하기</button>
         <button class="action-btn" id="pastLifeBridgeBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #13102a 0%, #2e2560 100%); color:#f4eeff; border:1px solid rgba(196,181,253,0.46); box-shadow:0 0 30px -8px rgba(156,135,212,0.45); padding:14px 14px 11px; font-size:1.02rem; flex-direction:column; align-items:center; gap:5px;" onclick="openPastLifeFaceFromPhysiognomy()"><span>🌘 이 얼굴의 전생 관상 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(232,213,163,0.92); color:#0a0818; border-radius:20px; padding:3px 12px;">무료 · 사진 다시 안 올려도 됩니다</span></button>
-        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 5,000원 결제</span></button>
+        <button class="action-btn" id="compatStartBtn" style="width: 100%; margin-top: 10px; display:none; background: linear-gradient(135deg, #f472b6 0%, #e11d48 100%); color: #fff; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.4); padding:14px 14px 10px; font-size:1.05rem; flex-direction:column; align-items:center; gap:5px;" onclick="startCompatMode()"><span>💕 상대방과 관상 궁합 보기</span><span style="font-size:0.78rem; font-weight:700; background:rgba(255,255,255,0.22); border-radius:20px; padding:3px 12px; letter-spacing:0.02em;">🐷 3,000원 결제</span></button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #e2e8f0; color: #475569; box-shadow: none; padding:12px;" onclick="resetPhysiognomyApp()"> 다른 사진으로 분석하기</button>
         <button class="action-btn" style="width: 100%; margin-top: 10px; background: #fff; color: #475569; border: 1px solid #cbd5e1; box-shadow: none; padding:12px;" onclick="closePhysiognomyApp()"> 메인 화면으로 돌아가기</button>
       </div>
@@ -1663,14 +1663,14 @@ function renderCategoryNav(sections) {
   setActiveSectionChip(0);
 }
 
-// 오관·점(痣) 섹션은 프리미엄(회당 5,000원). 미해금 시 본문을 블러+CTA로 대체한다.
+// 오관·점(痣) 섹션은 프리미엄(회당 3,000원). 미해금 시 본문을 블러+CTA로 대체한다.
 function isPremiumOgwanMoleSection(title) {
   const t = String(title || '');
   return t.includes('오관') || t.includes('점(痣)') || t.includes('피부와 점');
 }
 
 // 🔴 잠긴 섹션의 본문을 여기에 넣지 말 것. 예전에는 계산이 끝난 section.body 를 그대로 blur div
-// 안에 넣어서, 개발자도구로 blur 클래스만 지우면 5,000원 정밀 분석이 전부 보였다. 블러 층은 잠금
+// 안에 넣어서, 개발자도구로 blur 클래스만 지우면 3,000원 정밀 분석이 전부 보였다. 블러 층은 잠금
 // 카드의 배경 질감일 뿐이므로 내용이 없는 스켈레톤으로 채운다.
 function buildLockedSectionHtml() {
   return `
@@ -1680,7 +1680,7 @@ function buildLockedSectionHtml() {
         <div class="phy-premium-lock-icon">🔒</div>
         <div class="phy-premium-lock-title">정밀 분석 잠금</div>
         <div class="phy-premium-lock-desc">오관(五官) 5부위 정밀 확률·경합 분석과 피부·점(痣) 해석 전체를 열람합니다.</div>
-        <button type="button" class="phy-premium-cta" aria-label="오관·점 정밀 분석을 5,000원에 열람">🔓 5,000원에 정밀 분석 보기</button>
+        <button type="button" class="phy-premium-cta" aria-label="오관·점 정밀 분석을 3,000원에 열람">🔓 3,000원에 정밀 분석 보기</button>
         <div class="phy-premium-lock-note">기본 관상 리포트와는 별개인 프리미엄 심화 분석입니다.</div>
       </div>
     </div>`;
@@ -1704,7 +1704,7 @@ function triggerOgwanMoleUnlock() {
     return;
   }
   savePhyResumeSnapshot();
-  window._cdCoinGatePerUse(50, '오관·점 정밀 분석', function () {
+  window._cdCoinGatePerUse(30, '오관·점 정밀 분석', function () {
     applyOgwanMoleUnlock();
   }, null, {
     featureKey: 'physiognomy-ogwan-mole-deep',
@@ -2552,7 +2552,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
       return;
     }
 
-    // ── 관상 궁합 5,000원 게이트 (공통 게이트 경유) ──
+    // ── 관상 궁합 3,000원 게이트 (공통 게이트 경유) ──
     (function () {
       if (typeof window._cdCoinGatePerUse !== 'function') {
         window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
@@ -2561,7 +2561,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
 
       const compatRequestId = 'physiognomy-compatibility:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       savePhyResumeSnapshot();
-      window._cdCoinGatePerUse(50, '관상 궁합 분석', function () {
+      window._cdCoinGatePerUse(30, '관상 궁합 분석', function () {
         // 결제 확인 성공 → 궁합 모드 시작
         beginPhysiognomyCompatibility();
       }, null, {

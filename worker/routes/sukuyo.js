@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { primeCmsRecords } from "../lib/cms-records.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
@@ -25,8 +26,8 @@ const SUKYO_COMPAT_AI_TITLE = "숙요점 궁합 전문가 상담";
 const SUKYO_COMPAT_AI_ROUTE = "/api/sukuyo/compatibility-ai-consultation";
 const SUKYO_COMPAT_AI_AMOUNT_KRW = 30000;
 const SUKYO_COMPAT_AI_PRICE_COINS = 300;
-const SUKYO_YEARLY_FORTUNE_PRICE_KRW = 10000;
-const SUKYO_YEARLY_FORTUNE_PRICE_COINS = 100;
+const SUKYO_YEARLY_FORTUNE_PRICE_KRW = FEATURE_KEY_PRICE_TABLE["sukyo_yearly_fortune_unlock"].cost * 100;
+const SUKYO_YEARLY_FORTUNE_PRICE_COINS = FEATURE_KEY_PRICE_TABLE["sukyo_yearly_fortune_unlock"].cost;
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
 const sukuyoPdfGenerationLocks = new Map();
@@ -1469,7 +1470,7 @@ async function handleSukuyoPastLifeReading(request, env) {
         code: access?.code || "PAYMENT_REQUIRED",
         message: access?.message || "숙요 전생 인연 리딩 해금이 필요합니다.",
       },
-      pricing: { featureKey: SUKYO_PAST_LIFE_FEATURE_KEY, coinPrice: 100, krwEquivalent: 10000 },
+      pricing: { featureKey: SUKYO_PAST_LIFE_FEATURE_KEY, coinPrice: FEATURE_KEY_PRICE_TABLE[SUKYO_PAST_LIFE_FEATURE_KEY].cost, krwEquivalent: FEATURE_KEY_PRICE_TABLE[SUKYO_PAST_LIFE_FEATURE_KEY].cost * 100 },
     }, { status: Number(access?.status) || 402 });
   }
 

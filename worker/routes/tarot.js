@@ -52,12 +52,12 @@ const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
 //    (lib/tarot/oracle-consultation-pricing.mjs). 여기에 상수를 되살리지 말 것 —
 //    되살리는 순간 ₩3,000 티어로 결제하고 14장을 제출하는 경로가 열린다.
 const IJIK_READING_FEATURE_KEY = "tarot-ijik";
-const IJIK_READING_MIN_COST = 50;
+const IJIK_READING_MIN_COST = FEATURE_KEY_PRICE_TABLE[IJIK_READING_FEATURE_KEY].cost;
 const IJIK_READING_CARD_COUNT = 7;
 const CRYSTAL_SOUL_FEATURE_KEY = "tarot-crystal-soul-reading";
-const CRYSTAL_SOUL_MIN_COST = 50;
+const CRYSTAL_SOUL_MIN_COST = FEATURE_KEY_PRICE_TABLE[CRYSTAL_SOUL_FEATURE_KEY].cost;
 const MINDSCAN_FEATURE_KEY = "tarot-mindscan";
-const MINDSCAN_MIN_COST = 50;
+const MINDSCAN_MIN_COST = FEATURE_KEY_PRICE_TABLE[MINDSCAN_FEATURE_KEY].cost;
 const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
 const YEAR_TAROT_PROFILE_PREFIX = "year:";
 const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
@@ -198,8 +198,8 @@ async function saveYearTarotResult({ env, auth, decision, payload, year, request
         $set: {
           status: "completed",
           accessMethod: yearAccessMethod(decision),
-          amountCoins: 100,
-          amountKRW: 10000,
+          amountCoins: FEATURE_KEY_PRICE_TABLE[YEAR_TAROT_FEATURE_KEY].cost,
+          amountKRW: FEATURE_KEY_PRICE_TABLE[YEAR_TAROT_FEATURE_KEY].cost * 100,
           consumedAt: new Date(),
           completedAt: new Date(),
           resultId,

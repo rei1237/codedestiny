@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import {
   classifyQuestionToZiweiDomain,
@@ -9,7 +10,7 @@ import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.j
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const ZIWEI_AI_PROMPT_FEATURE_KEY = "ziwei_ai_prompt_generator";
-export const ZIWEI_AI_PROMPT_PRICE = 100;
+export const ZIWEI_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(ZIWEI_AI_PROMPT_FEATURE_KEY)].cost;
 export { classifyQuestionToZiweiDomain, getZiweiPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({

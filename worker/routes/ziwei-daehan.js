@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { json, methodNotAllowed, notFound, readJson, getRoutePath } from "../lib/http.js";
@@ -5,7 +6,7 @@ import { User } from "../lib/models.js";
 import { hasUnlockedContent } from "../lib/content-unlocks.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 
-const DAEHAN_COST = 100;
+const DAEHAN_COST = FEATURE_KEY_PRICE_TABLE["ziwei_decade_luck"].cost;
 const DAEHAN_SERVICE_KEY = "ziwei";
 const DAEHAN_FEATURE_KEY = "ziwei_decade_luck";
 const DAEHAN_CONTENT_KEY = "ziwei.decadeLuck";

@@ -316,8 +316,8 @@ if (!routeSource) {
 
   check("라우트 상수가 레지스트리와 같다",
     /FEATURE_KEY = "human-design-report"/.test(routeCode)
-    && /COIN_PRICE = 100\b/.test(routeCode)
-    && /AMOUNT_KRW = 10000\b/.test(routeCode));
+    && /COIN_PRICE = FEATURE_KEY_PRICE_TABLE\["human-design-report"\]\.cost/.test(routeCode)
+    && /AMOUNT_KRW = COIN_PRICE \* 100/.test(routeCode));
 
   check("세 엔드포인트가 배선돼 있다",
     /path === "\/start"/.test(routeCode) && /path === "\/generate"/.test(routeCode) && /path === "\/result"/.test(routeCode));

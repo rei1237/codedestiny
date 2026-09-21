@@ -1,9 +1,11 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 /**
  * 운명의 나침반 결과 — ①~⑨ 프리미엄 리포트(다크 코스믹).
  *
  * 무료: ① 좌표 ② 흐름 ⑧ 종합 조언(단문) ⑨ 나침반 + 레이더·행운
- * 유료(destiny-compass-deep-report, 회당 10,000원): ③ 원인(체계별) ④ 변화 ⑤ 기회 ⑥ 피할 선택 ⑦ 행동
+ * 유료(destiny-compass-deep-report, 회당 5,000원): ③ 원인(체계별) ④ 변화 ⑤ 기회 ⑥ 피할 선택 ⑦ 행동
  *
  * 도착 즉시 렌더 — 웨이브 A(체계별 5섹션)가 먼저 도착해 ③이 채워지고, 그 뒤 B가 ④~⑦·⑧장문을 채운다.
  * 섹션 하나가 실패해도 리포트 전체를 막지 않는다.
@@ -88,7 +90,7 @@ export function CompassReport({
   const dest = regionByKey(DIRECTION_TO_REGION[field.primary.key]);
   const destLabel = dest ? copy.regionLabel[dest.key as keyof typeof copy.regionLabel] : undefined;
   const activeSystems = useMemo(() => new Set<SystemKey>(field.sources), [field.sources]);
-  const priceLabel = formatKrwFromCoins(100, detectLocale());
+  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-deep-report")!, detectLocale());
 
   // 세션 캐시 복원(같은 탭에서 결과를 오가도 재결제하지 않는다)
   useEffect(() => {

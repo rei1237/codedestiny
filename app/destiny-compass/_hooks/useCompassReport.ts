@@ -1,4 +1,6 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 /**
  * 심층 리포트 호출 — 결제 게이트 → 웨이브 A(체계별 5) → 웨이브 B(종합 5).
  *
@@ -27,8 +29,8 @@ import { useDestinyCompassCopy } from "../_lib/copy";
 
 const FEATURE_KEY = "destiny-compass-deep-report";
 /** 워커 정본(paid-feature-registry.js)과 같은 값이어야 한다 — 불일치는 fail-closed 로 차단된다. */
-const COIN_PRICE = 100;
-const AMOUNT_KRW = 10000;
+const COIN_PRICE = lookupServerCoinPrice("destiny-compass-deep-report")!;
+const AMOUNT_KRW = COIN_PRICE * 100;
 
 /** 웨이브 A 는 인증·결제 왕복이 앞에 붙는다. 서버 예산(58s/72s)보다 넉넉히. */
 const WAVE_A_TIMEOUT_MS = 95000;

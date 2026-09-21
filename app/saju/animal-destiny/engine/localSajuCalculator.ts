@@ -1,3 +1,4 @@
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { lunarToSolar } from "@/lib/korean-calendar";
 import { nodeTerms } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
@@ -4825,7 +4826,7 @@ function renderFinalReportMarkdown(title: string, sections: Array<Record<string,
 }
 
 const QUANTUM_MYEONGRI_ENGINE_VERSION = "QUANTUM_MYEONGRI_ENGINE_V2";
-const QUANTUM_MYEONGRI_PRICE_COINS = 100;
+const QUANTUM_MYEONGRI_PRICE_COINS = lookupServerCoinPrice("rpt_quantumCard")!;
 
 function formatInputDate(input: LocalSajuInput): string {
   return `${input.year}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`;

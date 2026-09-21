@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 운명의 지도 — 심층 리포트(유료, 회당 결제). 9섹션을 두 웨이브로 나눠 '동기' 생성한다.
 //
 // ⚠ ctx.waitUntil + /result 폴링으로 되돌리지 말 것. 9850c890 에서 형제 라우트 전부가
@@ -49,7 +50,7 @@ import {
 const FEATURE_KEY = "destiny-compass-deep-report";
 const REPORT_TYPE = "destinyCompassDeepReport";
 const SERVICE_KEY = "destiny-compass";
-const REPORT_COST = 100;
+const REPORT_COST = FEATURE_KEY_PRICE_TABLE["destiny-compass-deep-report"].cost;
 const CONTINUATION_TYPE = "destiny-compass-report-continuation";
 
 /** 섹션 하나에 허용하는 LLM 대기. 웨이브 예산 안에서 다시 깎인다. */

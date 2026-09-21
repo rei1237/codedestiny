@@ -1,4 +1,6 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 
 import { cmsRecord } from "@/lib/cms/build-text";
 
@@ -168,7 +170,7 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다.",
   "오늘의 개운 의식",
   "해금",
-  "10,000원 영구 해금",
+  "5,000원 영구 해금",
   "좌표",
   "일주·월지·시지 세우기",
   "오행 수호 인장 열기",
@@ -179,7 +181,7 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "색·문장·의식",
   "실행 리딩",
   "관계·일·재물",
-  "🔒 10,000원으로 영구 해금하기",
+  "🔒 5,000원으로 영구 해금하기",
   "메인으로 돌아가기",
   "가디언 인장을 여는 데 실패했어요.",
   "입력값을 확인한 뒤 다시 소환해 주세요.",
@@ -190,7 +192,7 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "사주 가디언 소환진",
   "수호 인장",
   "사주 가디언 소환진",
-  "🔒 10,000원 영구 해금 · 60갑자 수호 인장",
+  "🔒 5,000원 영구 해금 · 60갑자 수호 인장",
   "일주·월지·시지·오행",
   "의 결을 맞춰",
   "당신에게 필요한 수호 인장과 7일 의식을 엽니다.",
@@ -203,7 +205,7 @@ const SAJU_GUARDIAN_TEXT_KEYS_COPY = [
   "월지와 시지로 현실 배경과 행동 리듬 보강",
   "관계·일·재물·오늘의 개운 의식까지 정리",
   "사주 가디언 소환진 구성",
-  "10,000원 수호 인장 구성",
+  "5,000원 수호 인장 구성",
   "1. 일주를 중심으로 수호 인장의 뿌리를 세웁니다",
   "나를 대표하는 일주를 먼저 세우면, 그 안의 천간과 지지가 중심을 지키는 결로 드러납니다. 이 축에서 수호 인장의 이름과 첫 문장이 열립니다.",
   "2. 오행의 생극으로 수호력과 약점을 함께 봅니다",
@@ -340,7 +342,7 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "관계, 일, 재물, 오늘의 개운 의식, 7일 미션까지 바로 쓸 수 있는 문장으로 맺힙니다.": "It closes with practical language for relationships, work, money, today’s luck ritual, and a seven-day mission.",
     "오늘의 개운 의식": "Today’s Luck Ritual",
     "해금": "Unlock",
-    "10,000원 영구 해금": "Permanent unlock for KRW 10,000",
+    "5,000원 영구 해금": "Permanent unlock for KRW 5,000",
     "좌표": "Coordinates",
     "일주·월지·시지 세우기": "Set day, month, and hour branches",
     "오행 수호 인장 열기": "Open five-element guardian seal",
@@ -351,7 +353,7 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "색·문장·의식": "Color, phrase, ritual",
     "실행 리딩": "Action Reading",
     "관계·일·재물": "Relationships, work, money",
-    "🔒 10,000원으로 영구 해금하기": "🔒 Permanently unlock for KRW 10,000",
+    "🔒 5,000원으로 영구 해금하기": "🔒 Permanently unlock for KRW 5,000",
     "메인으로 돌아가기": "Back to Home",
     "가디언 인장을 여는 데 실패했어요.": "We could not open the guardian seal.",
     "입력값을 확인한 뒤 다시 소환해 주세요.": "Please check your input and summon it again.",
@@ -359,7 +361,7 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "일주의 문을 열고 가디언 인장을 세우는 중...": "Opening the day-pillar gate and raising your guardian seal...",
     "✨ 60갑자와 오행의 결을 맞추고 있어요 ✨": "✨ Aligning the sixty stem-branch cycle with the five elements ✨",
     "생년월일은 저장하지 않고 기기에서 바로 계산합니다": "Your birth date is calculated on this device and is not stored.",
-    "🔒 10,000원 영구 해금 · 60갑자 수호 인장": "🔒 KRW 10,000 permanent unlock · Sixty-cycle guardian seal",
+    "🔒 5,000원 영구 해금 · 60갑자 수호 인장": "🔒 KRW 5,000 permanent unlock · Sixty-cycle guardian seal",
     "일주·월지·시지·오행": "day pillar, month branch, hour branch, and five elements",
     "의 결을 맞춰": "",
     "당신에게 필요한 수호 인장과 7일 의식을 엽니다.": "Open the guardian seal and seven-day ritual you need now.",
@@ -372,7 +374,7 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "월지와 시지로 현실 배경과 행동 리듬 보강": "Add real-life background and action rhythm through month and hour branches",
     "관계·일·재물·오늘의 개운 의식까지 정리": "Organize relationships, work, money, and today’s luck ritual",
     "사주 가디언 소환진 구성": "Saju Guardian Circle contents",
-    "10,000원 수호 인장 구성": "KRW 10,000 guardian seal package",
+    "5,000원 수호 인장 구성": "KRW 5,000 guardian seal package",
     "1. 일주를 중심으로 수호 인장의 뿌리를 세웁니다": "1. The guardian seal begins from your day pillar.",
     "나를 대표하는 일주를 먼저 세우면, 그 안의 천간과 지지가 중심을 지키는 결로 드러납니다. 이 축에서 수호 인장의 이름과 첫 문장이 열립니다.": "When the day pillar that represents you is set first, its heavenly stem and earthly branch reveal the texture that protects your center. From this axis, the name and first sentence of your guardian seal open.",
     "2. 오행의 생극으로 수호력과 약점을 함께 봅니다": "2. The five-element cycle shows both protection and weak points.",
@@ -734,8 +736,8 @@ async function verifyGuardianUnlockAccess(resume?: PaidResumeDescriptor) {
         subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
         featureKey: SAJU_GUARDIAN_FEATURE_KEY,
         paymentMode: "MEMBERSHIP_PASS",
-        cost: 100,
-        coinPrice: 100,
+        cost: lookupServerCoinPrice(SAJU_GUARDIAN_FEATURE_KEY)!,
+        coinPrice: lookupServerCoinPrice(SAJU_GUARDIAN_FEATURE_KEY)!,
         reason,
         requestId: `guardian-access:${Date.now().toString(36)}`,
       });
@@ -1160,7 +1162,7 @@ const SAJU_GUARDIAN_VALUE_SECTIONS_COPY = [
 ] as const;
 
 const GUARDIAN_FLOW_STEPS_COPY = [
-  { step: "01", label: "해금", title: "10,000원 영구 해금", icon: "🔒" },
+  { step: "01", label: "해금", title: "5,000원 영구 해금", icon: "🔒" },
   { step: "02", label: "좌표", title: "일주·월지·시지 세우기", icon: "🗝️" },
   { step: "03", label: "인장", title: "오행 수호 인장 열기", icon: "🔮" },
   { step: "04", label: "리딩", title: "7일 수호 미션 받기", icon: "💌" },
@@ -2204,7 +2206,7 @@ export default function SajuGuardianPage() {
               href="/index.html?action=openSajuGuardianPage"
               className="mt-5 inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 px-5 py-4 text-sm font-black text-white shadow-xl shadow-pink-200/60 transition-transform active:scale-[0.98]"
             >
-              {tx("🔒 10,000원으로 영구 해금하기")}
+              {tx("🔒 5,000원으로 영구 해금하기")}
             </a>
             <a
               href="/"
@@ -2297,7 +2299,7 @@ export default function SajuGuardianPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 text-center">
               <span className="inline-block bg-white/90 backdrop-blur-sm text-slate-800 font-bold text-sm rounded-full px-4 py-1.5 shadow-sm">
-                {tx("🔒 10,000원 영구 해금 · 60갑자 수호 인장")}
+                {tx("🔒 5,000원 영구 해금 · 60갑자 수호 인장")}
               </span>
             </div>
           </div>
@@ -2355,7 +2357,7 @@ export default function SajuGuardianPage() {
           </div>
 
           <section className="bg-white/70 backdrop-blur-sm rounded-3xl p-5 border border-white/60 shadow-md space-y-3" aria-label={tx("사주 가디언 소환진 구성")}>
-            <h2 className="text-sm font-black text-slate-700 tracking-wide">{tx("10,000원 수호 인장 구성")}</h2>
+            <h2 className="text-sm font-black text-slate-700 tracking-wide">{tx("5,000원 수호 인장 구성")}</h2>
             {SAJU_GUARDIAN_VALUE_SECTIONS_COPY.map((section) => (
               <article key={section.title} className="rounded-2xl border border-pink-100 bg-white/70 p-3.5">
                 <h3 className="text-sm font-bold text-pink-600 leading-relaxed">{tx(section.title)}</h3>

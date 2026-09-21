@@ -33,7 +33,7 @@ export const REPORT_TEXT = {
     en: "The chart stays free. The report is a personal analysis document written only from this calculation — read it on the web, with PDF saving available for supported scripts.", ja: "チャートはこれからも無料です。レポートはこの計算だけを根拠に書く個人分析の文書で、ウェブで読み、対応する文字ではPDFでも保存できます。", "zh-CN": "图一直是免费的。报告是只依据这份计算写成的个人分析文件，可在网页阅读；PDF 保存将在字体支持后提供。", "zh-TW": "圖一直是免費的。報告是只依據這份計算寫成的個人分析文件，可在網頁閱讀；PDF 儲存將在字體支援後提供。",
   },
   lockedContents: { ko: "리포트 목차", en: "Report contents", ja: "レポートの目次", "zh-CN": "报告目录", "zh-TW": "報告目錄" },
-  buy: { ko: "리포트 만들기 · ₩10,000", en: "Create the report · ₩10,000", ja: "レポートを作る · ₩10,000", "zh-CN": "生成报告 · ₩10,000", "zh-TW": "產生報告 · ₩10,000" },
+  buy: { ko: "리포트 만들기 · ₩5,000", en: "Create the report · ₩5,000", ja: "レポートを作る · ₩5,000", "zh-CN": "生成报告 · ₩5,000", "zh-TW": "產生報告 · ₩5,000" },
   buying: { ko: "결제창 여는 중…", en: "Opening checkout…", ja: "決済画面を開いています…", "zh-CN": "正在打开结账…", "zh-TW": "正在開啟結帳…" },
 
   generating: { ko: "리포트를 쓰는 중", en: "Writing your report", ja: "レポートを書いています", "zh-CN": "正在撰写你的报告", "zh-TW": "正在撰寫你的報告" },

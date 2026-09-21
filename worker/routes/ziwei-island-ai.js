@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 운명의 섬 12궁 심층 유료 상담 (₩20,000) — 독립 신규 상품.
 // 결제/게이트/환불 배선은 검증된 worker/routes/ziwei-ai.js에서 "상수만 바꿔" 그대로 복제했다.
 // (기존 ziwei-ai 상품/라우트는 무수정 — 회귀 0). 상담 내용만 궁별 프롬프트(palace-prompts)로 대체.
@@ -32,8 +33,8 @@ const FEATURE_KEY = "ziwei-island-palace-consult";
 const ACCESS_TOKEN_TYPE = "ziwei-island-access";
 const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "운명의 섬 12궁 심층 상담";
-const COIN_PRICE = 200;
-const AMOUNT_KRW = 20000;
+const COIN_PRICE = FEATURE_KEY_PRICE_TABLE["ziwei-island-palace-consult"].cost;
+const AMOUNT_KRW = COIN_PRICE * 100;
 const PALACE_CONSULT_MAX_OUTPUT_TOKENS = 10000;
 
 const GEMINI_ENV_KEYS = ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];

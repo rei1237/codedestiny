@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
 import {
   classifyQuestionToAstrologyDomain,
@@ -7,7 +8,7 @@ import {
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const ASTROLOGY_AI_PROMPT_FEATURE_KEY = "astrology_ai_prompt_generator";
-export const ASTROLOGY_AI_PROMPT_PRICE = 100;
+export const ASTROLOGY_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(ASTROLOGY_AI_PROMPT_FEATURE_KEY)].cost;
 export { classifyQuestionToAstrologyDomain, getAstrologyPromptTemplate };
 
 const QUESTION_TYPE_RULES = Object.freeze({

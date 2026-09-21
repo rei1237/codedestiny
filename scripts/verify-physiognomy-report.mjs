@@ -47,7 +47,7 @@ for (const f of ['browSlant: browSlant', 'BROW_TYPES_JSON', 'let bestBrow', 'EAR
 for (const [icon, part] of [['🌙','미상\\(눈썹\\)'],['👁️','안상\\(눈\\)'],['👃','비상\\(코\\)'],['👄','구상\\(입\\)'],['👂','이상\\(귀\\)']]) {
   assert.match(engine, new RegExp(`renderOgwanLi\\('${icon}', '${part}'`), `오관 렌더: ${part}`);
 }
-assert.match(registry, /"physiognomy-ogwan-mole-deep":\s*\{\s*cost:\s*50/, '오관·점 프리미엄 가격표 등록');
+assert.match(registry, /"physiognomy-ogwan-mole-deep":\s*\{\s*cost:\s*30/, '오관·점 프리미엄 가격표 등록');
 assert.match(registry, /PER_USE_PAID_FEATURE_KEY_LIST[\s\S]*?"physiognomy-ogwan-mole-deep"/, '오관·점 회당결제 목록 등록');
 assert.match(ui, /featureKey: 'physiognomy-ogwan-mole-deep'/, '프론트 게이트 featureKey 배선');
 

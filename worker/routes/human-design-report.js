@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 휴먼 디자인 프리미엄 리포트 — 회당 결제(human-design-report, 100코인 = ₩10,000).
 //
 //   POST /api/human-design-report/start     결제 확인 + 차트 준비 + 문서 생성. 🔴 LLM 을 부르지 않는다
@@ -66,8 +67,8 @@ import {
 // 레지스트리(worker/lib/paid-feature-registry.js)와 일치해야 한다.
 // 🔴 scripts/verify-human-design-report.mjs 가 이 셋의 정합성을 강제한다.
 const FEATURE_KEY = "human-design-report";
-const COIN_PRICE = 100;
-const AMOUNT_KRW = 10000;
+const COIN_PRICE = FEATURE_KEY_PRICE_TABLE["human-design-report"].cost;
+const AMOUNT_KRW = COIN_PRICE * 100;
 
 const CHART_ARCHIVE_ID_PREFIX = "human-design-chart";
 

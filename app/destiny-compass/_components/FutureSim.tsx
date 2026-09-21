@@ -1,4 +1,6 @@
 "use client";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+
 /**
  * STEP 8 미래 시뮬레이션 — 지도 경로 위 시점 마커(현재/30일/90일/1년)를 눌러 구간 이야기를 본다.
  * DirectionField.timeline(이미 계산된 결정론 데이터) 읽기 전용. 회당 결제(심화 3프리뷰 중 1). 추가 계산 없음.
@@ -43,7 +45,7 @@ export function FutureSim({
   autoRevealed?: boolean;
 }) {
   const copy = useDestinyCompassCopy();
-  const priceLabel = formatKrwFromCoins(100, detectLocale());
+  const priceLabel = formatKrwFromCoins(lookupServerCoinPrice("destiny-compass-future-sim")!, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [revealed, setRevealed] = useState(autoRevealed);
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +56,8 @@ export function FutureSim({
     setError(null);
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-future-sim",
-      coinPrice: 100,
-      amountKRW: 10000,
+      coinPrice: lookupServerCoinPrice("destiny-compass-future-sim")!,
+      amountKRW: lookupServerCoinPrice("destiny-compass-future-sim")! * 100,
       reason: copy.futureSimGateReason,
       requestId: makeGateRequestId("destiny-compass-future-sim"),
       resume: buildResume?.(),

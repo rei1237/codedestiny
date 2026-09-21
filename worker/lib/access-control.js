@@ -4,7 +4,7 @@ import {
   findActivePaidContentUnlock,
   upsertPaidContentUnlock,
 } from "./content-unlocks.js";
-import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
@@ -167,19 +167,19 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "tarot-celestial-harmony",
         reason: "셀레스티얼 하모니 타로 리딩",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["tarot-celestial-harmony"].cost,
         windowMinutes: 120,
       },
       {
         featureKey: "premium-celestial-harmony-report",
         reason: "셀레스티얼 하모니 타로 리딩",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["tarot-celestial-harmony"].cost,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "셀레스티얼 하모니 타로 리딩",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["tarot-celestial-harmony"].cost,
         windowMinutes: 120,
       },
     ];
@@ -189,7 +189,7 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     return [{
       featureKey: "premium-sibyl-dominator",
       reason: "시빌라 도미네이터 리포트",
-      minCost: 100,
+      minCost: FEATURE_KEY_PRICE_TABLE["premium-sibyl-dominator"].cost,
       windowMinutes: 45,
     }];
   }
@@ -199,13 +199,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "geomancy",
         reason: "지오맨시 오라클 리딩",
-        minCost: 50,
+        minCost: FEATURE_KEY_PRICE_TABLE["geomancy"].cost,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "지오맨시 오라클 리딩",
-        minCost: 50,
+        minCost: FEATURE_KEY_PRICE_TABLE["geomancy"].cost,
         windowMinutes: 120,
       },
     ];
@@ -233,13 +233,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "destiny-compass-deep-report",
         reason: "운명의 지도 심층 리포트",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["destiny-compass-deep-report"].cost,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "운명의 지도 심층 리포트",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["destiny-compass-deep-report"].cost,
         windowMinutes: 120,
       },
     ];
@@ -250,13 +250,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "pet-saju-ai-consultation",
         reason: "반려동물 사주 AI 심층 리포트",
-        minCost: 50,
+        minCost: FEATURE_KEY_PRICE_TABLE["pet-saju-ai-consultation"].cost,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "반려동물 사주 AI 심층 리포트",
-        minCost: 50,
+        minCost: FEATURE_KEY_PRICE_TABLE["pet-saju-ai-consultation"].cost,
         windowMinutes: 120,
       },
     ];
@@ -267,13 +267,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "pet-compatibility-ai",
         reason: "반려동물 궁합 분석",
-        minCost: 50,
+        minCost: FEATURE_KEY_PRICE_TABLE["pet-compatibility-ai"].cost,
         windowMinutes: 120,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "반려동물 궁합 분석",
-        minCost: 50,
+        minCost: FEATURE_KEY_PRICE_TABLE["pet-compatibility-ai"].cost,
         windowMinutes: 120,
       },
     ];
@@ -284,13 +284,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "sukuyo-past-life-reading",
         reason: "숙요 인연 레이더",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["sukuyo-past-life-reading"].cost,
         windowMinutes: 240,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "숙요 인연 레이더",
-        minCost: 100,
+        minCost: FEATURE_KEY_PRICE_TABLE["sukuyo-past-life-reading"].cost,
         windowMinutes: 240,
       },
     ];
@@ -301,13 +301,13 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
       {
         featureKey: "premium-fpti-report",
         reason: "FPTI 프리미엄 리포트 생성",
-        minCost: 200,
+        minCost: FEATURE_KEY_PRICE_TABLE["premium-fpti-report"].cost,
         windowMinutes: 45,
       },
       {
         featureKey: "coin-gate-per-use",
         reason: "FPTI 프리미엄 리포트 생성",
-        minCost: 200,
+        minCost: FEATURE_KEY_PRICE_TABLE["premium-fpti-report"].cost,
         windowMinutes: 45,
       },
     ];

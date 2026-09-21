@@ -1,3 +1,4 @@
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 운명의 섬 12궁 심층 리포트 (₩5,000) — 정적 결정론 콘텐츠 배달 라우트.
 //
 // 이 라우트는 "이미 해금된 사용자에게 본문을 준다"만 한다.
@@ -19,8 +20,8 @@ import { fnv1a32 } from "../lib/island/island-weights.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
 const FEATURE_KEY = "ziwei-island-deep-report";
-const COIN_PRICE = 50;
-const AMOUNT_KRW = 5000;
+const COIN_PRICE = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY].cost;
+const AMOUNT_KRW = COIN_PRICE * 100;
 const ORDER_NAME = "운명의 섬 12궁 심층 리포트";
 
 const MESSAGES = Object.freeze({

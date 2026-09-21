@@ -243,9 +243,11 @@ test('astrology does not retry or open an old generation after locale change', a
 
 const compassFile = 'app/destiny-compass/_hooks/useCompassReport.ts';
 test('compass preserves original paid request and stops stale locale delivery', async () => {
+  const { FEATURE_KEY_PRICE_TABLE } = await import('../../worker/lib/paid-feature-registry.js');
   const response = deferred(), requests = [], cache = new Map();
   const storage = { getItem: key => cache.get(key), setItem: (key, value) => cache.set(key, value), removeItem: key => cache.delete(key) };
   const f = fixture({
+    lookupServerCoinPrice: key => FEATURE_KEY_PRICE_TABLE[key]?.cost,
     sessionStorage: storage, localStorage: storage, document: { hidden: false, addEventListener() {}, removeEventListener() {} }, navigator: { onLine: true },
     getAuthState: () => ({ user: { id: 'owner' } }), usePaidDeliveryScope: () => () => () => true,
     AI_LOCALE_HEADER: 'x-code-destiny-locale',
