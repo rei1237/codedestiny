@@ -93,7 +93,7 @@ for (const featureKey of ['saju_ai_prompt_generator', 'ziwei_ai_prompt_generator
     assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 0);
     assert.equal((await f.run({ ...input, consume: true })).source, 'pass_payload');
     assert.equal((await f.run({ ...input, consume: true })).source, 'pass_payload');
-    assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 200);
+    assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 100);
     assert.equal(f.paymentLookups(), 0);
   });
 
@@ -206,7 +206,7 @@ test('궁성 맞춤 AI 실제 라우트: 누락 카운터 이용권 재개 → m
   assert.equal((await response.json()).resultText, 'generated ziwei result');
   assert.equal(generated, 1);
   assert.equal(f.paymentLookups(), 0);
-  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 100);
+  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 50);
 });
 
 test('명식 사주 AI 실제 라우트: 누락 카운터 이용권 재개 → 저장된 결과 응답, LLM 재호출 없음', async () => {
@@ -215,7 +215,7 @@ test('명식 사주 AI 실제 라우트: 누락 카운터 이용권 재개 → �
   assert.equal((await response.json()).resultText, 'stored saju result');
   assert.equal(generated, 0);
   assert.equal(f.paymentLookups(), 0);
-  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 200);
+  assert.equal(f.db.rows[0].profileSubscription.monthlySpendCoin, 100);
 });
 
 for (const priorStatus of [null, 'generation_failed', 'generating']) {
