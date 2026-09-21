@@ -19,6 +19,7 @@
 // 서버 렌더 해설(TodaySystemPrimer + TodayReadingGuide)이다 — 아래 카드는 한 글자도 안 센다.
 
 import Link from "next/link";
+import DailyTarot, {type DailyTarotCard} from "./DailyTarot";
 import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -754,14 +755,17 @@ function CardPanel({ card, tabLabel, copy }: { card: SystemCard | null | undefin
           </ul>
         )}
       </div>
-      {(card.sections || []).map((section) => (
-        <SectionBlock key={section.key} section={section} />
-      ))}
+      {Boolean(card.sections?.length) && <details className="rounded-2xl border border-white/15 p-4">
+        <summary className="cursor-pointer text-sm font-bold text-slate-100">{tabLabel} · {card.label}</summary>
+        <div className="mt-4 space-y-4">{(card.sections || []).map((section) => (
+          <SectionBlock key={section.key} section={section} />
+        ))}</div>
+      </details>}
     </div>
   );
 }
 
-export default function TodayHubClient({ children }: { children?: ReactNode }) {
+export default function TodayHubClient({ children, dailyTarotCards }: { children?: ReactNode; dailyTarotCards?: DailyTarotCard[] }) {
   const { copy, locale } = useTodayHubCopy();
   const { seed, seedVersion } = useAiProfileSeed();
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
@@ -904,13 +908,11 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
         </div>
 
         <header className="mt-8 text-center sm:mt-12">
-          <p className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/15 px-4 py-1.5 text-xs font-bold tracking-wider text-amber-300 backdrop-blur-md">
-            ✨ CODE : DESTINY DAILY ORACLE
-          </p>
-          <h1 className="mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl">{copy.heroTitle}</h1>
+          <h1 className="mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl">{locale === "ko" ? "연이와 오늘을 펼쳐요" : copy.heroTitle}</h1>
           <p className="mx-auto mt-4 max-w-2xl break-keep text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
-            {copy.heroLead}
+            {locale === "ko" ? "오늘의 운세로 흐름을 살피고, 세 장의 카드에서 마음에 남는 실천 하나를 찾아보세요. 무료로, 로그인 없이 시작할 수 있어요." : copy.heroLead}
           </p>
+          {locale === "ko" && dailyTarotCards && <a href="#daily-tarot" className="mt-5 inline-flex min-h-12 items-center rounded-full bg-rose-200 px-6 py-3 font-bold text-rose-950 hover:bg-rose-100">오늘의 세 장 펼치기</a>}
         </header>
 
         {/* 탭 */}
@@ -1025,9 +1027,10 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
           </button>
         </div>
 
+        {locale === "ko" && dailyTarotCards && <DailyTarot cards={dailyTarotCards}/>}
         {children}
 
-        <h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>
+        {locale !== "ko" && <><h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>
         <p className="mt-1 break-keep text-sm leading-7 text-slate-400">
           {copy.deeperLead}
         </p>
@@ -1047,7 +1050,7 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
           ))}
         </div>
 
-        <FusionCrossSell fromPath="/today" tone="neo" />
+        <FusionCrossSell fromPath="/today" tone="neo" /></>}
       </div>
     </main>
   );

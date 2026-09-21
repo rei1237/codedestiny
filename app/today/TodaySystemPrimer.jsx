@@ -52,7 +52,7 @@ export default function TodaySystemPrimer() {
         세 체계는 오늘을 어떻게 읽는가
       </h2>
       <p className="mt-3 max-w-[62ch] break-keep text-sm leading-7 text-slate-300">
-        위의 세 탭은 같은 하루를 서로 다른 방식으로 읽습니다. 사주는 육십갑자로, 숙요점은 달이 머무는 27수로, 베다점은
+        사주·숙요·베다는 같은 하루를 서로 다른 방식으로 읽습니다. 사주는 육십갑자로, 숙요점은 달이 머무는 27수로, 베다점은
         실제 천체 위치로 계산합니다. 세 결과가 엇갈리는 날은 판단이 갈리는 날이라고 보시면 됩니다. 아래는 각 항목이
         무엇을 뜻하는지에 대한 설명입니다.
       </p>
@@ -76,7 +76,7 @@ export default function TodaySystemPrimer() {
       </div>
 
       <p className="mt-8 max-w-[62ch] break-keep text-xs leading-6 text-slate-500">
-        이 화면의 모든 판정은 규칙과 천문 계산으로만 만들어집니다. 생성형 AI가 문장을 지어내지 않으며, 같은 날 같은
+        위 세 체계의 운세는 규칙과 천문 계산으로 만들어집니다. 생성형 AI가 문장을 지어내지 않으며, 같은 날 같은
         생년월일이면 언제 보아도 같은 결과가 나옵니다.
       </p>
     </section>
