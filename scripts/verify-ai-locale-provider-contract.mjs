@@ -19,7 +19,10 @@ try {
     const directive = buildOutputLanguageDirective(locale);
     assert.ok(directive.includes('ENTIRE response'));
     let geminiBody;
-    globalThis.fetch = async (_url, init) => {
+    globalThis.fetch = async (url, init) => {
+      if (String(url).includes(':countTokens')) {
+        return new Response(JSON.stringify({ totalTokens: 1200 }), { status: 200 });
+      }
       geminiBody = JSON.parse(init.body);
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify({ summary: AI_LOCALE_LABEL[locale] }) }] }, finishReason: 'STOP' }] }), { status: 200 });
     };
@@ -28,7 +31,10 @@ try {
     assert.ok(geminiBody.systemInstruction.parts.some(part => part.text.includes(directive)));
     assert.equal(JSON.parse(response.text).summary, AI_LOCALE_LABEL[locale]);
     let attempts = 0;
-    globalThis.fetch = async (_url, init) => {
+    globalThis.fetch = async (url, init) => {
+      if (String(url).includes(':countTokens')) {
+        return new Response(JSON.stringify({ totalTokens: 1200 }), { status: 200 });
+      }
       const sent = JSON.parse(init.body);
       assert.ok(sent.systemInstruction.parts.some(part => part.text.includes(directive)));
       attempts += 1;
