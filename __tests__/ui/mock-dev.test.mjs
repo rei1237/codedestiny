@@ -75,6 +75,7 @@ test('mock Next rewrites intercept app API routes and CSP blocks remote browser 
     const config = createConfig('phase-development-server');
     assert.deepEqual((await config.rewrites()).beforeFiles, [
       ...staticPolicyRewrites(),
+      { source: "/ggulggul", destination: "/ggulggul/index.html" },
       { source: '/api/:path*', destination: 'http://127.0.0.1:18790/api/:path*' },
     ]);
     const csp = (await config.headers())[0].headers[0].value;

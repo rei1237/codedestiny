@@ -1,3 +1,7 @@
+import { jest } from "@jest/globals";
+// Historical order lifecycle fixtures predate the sales cutoff; isolate only new-sale admission.
+// pass-policy-v2.test.js tests closed sales and legacy recovery with the real gate.
+jest.unstable_mockModule("../../worker/lib/pass-sale-policy.js", () => ({ assertPassSaleAllowed: jest.fn(), listCurrentPassOffers: () => [] }));
 /**
  * @jest-environment node
  *
@@ -15,7 +19,7 @@
  * 🔴 지급은 금액을 읽지 않는다 — 청구가를 낮춰도 featureKey·subscriptionTier·기간이 그대로여야
  * 한다. 아래 "지급 불변" 단언이 그 축이다. PG·DB 는 전부 가짜 — 실결제·실 DB 없음.
  */
-import { handlePaymentsContext } from "../../worker/payments/index.js";
+let handlePaymentsContext;
 import { resolveChargeAmountKRW, resolveTestChargeAmountKRW } from "../../worker/lib/portone.js";
 import { applyTestChargeAmount } from "../../worker/lib/billing-policy.js";
 import { listProducts } from "../../worker/payments/catalog.js";
@@ -258,4 +262,8 @@ describe("이용권(POST /subscription/prepare)", () => {
       expect(staging.payload.order[key]).toEqual(prod.payload.order[key]);
     }
   });
+});
+
+beforeAll(async () => {
+  ({ handlePaymentsContext } = await import("../../worker/payments/index.js"));
 });

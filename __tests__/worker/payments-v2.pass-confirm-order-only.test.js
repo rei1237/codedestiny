@@ -1,3 +1,7 @@
+import { jest } from "@jest/globals";
+// Historical order lifecycle fixtures predate the sales cutoff; isolate only new-sale admission.
+// pass-policy-v2.test.js tests closed sales and legacy recovery with the real gate.
+jest.unstable_mockModule("../../worker/lib/pass-sale-policy.js", () => ({ assertPassSaleAllowed: jest.fn(), listCurrentPassOffers: () => [] }));
 /**
  * @jest-environment node
  *
@@ -16,8 +20,8 @@
  *
  * PG 는 전부 모킹 — 실결제·실 DB 없음.
  */
-import { handlePaymentsContext } from "../../worker/payments/index.js";
-import { __passesTestUtils } from "../../worker/payments/passes.js";
+let handlePaymentsContext;
+let __passesTestUtils;
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -172,4 +176,9 @@ describe("이용권 confirm — 주문번호 단독", () => {
 
     expect(response.status).toBe(403);
   });
+});
+
+beforeAll(async () => {
+  ({ handlePaymentsContext } = await import("../../worker/payments/index.js"));
+  ({ __passesTestUtils } = await import("../../worker/payments/passes.js"));
 });

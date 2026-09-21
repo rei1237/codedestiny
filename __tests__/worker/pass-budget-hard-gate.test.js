@@ -109,9 +109,9 @@ describe("레거시 이용권 카운터 복구 — 실제 문제 기능", () => 
   });
 
   test.each([
-    ["standard", "ziwei_ai_prompt_generator"],
-    ["premium", "saju_ai_prompt_generator"],
-    ["premium", "master-love-codex"],
+    ["standard", "saju_ai_prompt_generator"],
+    ["premium", "master-love-codex-compat"],
+    ["premium", "ziwei-ai-consultation"],
     ["vvip", "master-love-codex-compat"],
     ["vvip", "ziwei-ai-consultation"],
   ])("%s 이용권은 %s 가격을 커버하지 않으면 기존 결제 선택으로 인계한다", async (tier, requestedFeatureKey) => {

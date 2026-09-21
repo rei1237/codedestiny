@@ -4,7 +4,7 @@ import {
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
 import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
-import { KRW_PER_COIN, PASS_LIMITS, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
+import { KRW_PER_COIN, resolvePassPolicy, normalizePassTier, resolveMonthlyPassLimitCoin } from "./profile-limits.js";
 import {
   ACCESS_STATE_STALE_TTL_MS,
   ACCESS_STATE_TTL_MS,
@@ -67,7 +67,7 @@ function buildPassUsage(profileSubscription = {}, rawTier = "") {
   const usedCoin = String(profileSubscription?.premiumUseCycleKey || "") === cycleKey
     ? Math.max(0, Math.floor(Number(profileSubscription?.monthlySpendCoin || 0)))
     : 0;
-  const perItemCoin = Math.max(0, Math.floor(Number(PASS_LIMITS[tier] || 0)));
+  const perItemCoin = Math.max(0, Math.floor(Number(resolvePassPolicy(profileSubscription, tier)?.maxCoveredCoin || 0)));
   return {
     tier,
     limitKRW: limitCoin * KRW_PER_COIN,
@@ -238,6 +238,7 @@ export function buildAccessState({
   const entitlementSnapshot = {
     userId: normalizeUserId(userId),
     tier: hasActivePass ? tier : "free",
+    passPolicyVersion: entitlement.passPolicyVersion || "legacy",
     activePasses,
     passUsage,
     unlockedFeatureIds,
@@ -267,6 +268,7 @@ export function buildAccessState({
   return {
     userId: normalizeUserId(userId),
     hasActivePass,
+    passPolicyVersion: entitlement.passPolicyVersion || "legacy",
     passType: hasActivePass ? tier : undefined,
     activeUntil: normalizeIsoDate(activeUntil),
     coinBalance: Math.max(0, Math.floor(Number(user?.points || 0))),

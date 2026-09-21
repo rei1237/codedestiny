@@ -13,11 +13,12 @@
  *   node scripts/report-llm-token-usage.mjs llm.log --json   # 기계 판독용
  *
  * 🔴 로그 형식을 바꾸면(emitTokenUsageLog) 이 파서도 함께 고쳐야 한다.
- * 🔴 lib/llm-client.ts 를 안 거치는 경로는 여기 안 잡힌다:
- *    lib/tarot/mindscan-reading.mjs · lib/tarot/love-reading-llm.mjs
+ * 독립 타로 경로도 lib/tarot/token-usage.mjs 로 같은 마커를 남긴다.
+ * --prices tariffs.json: provider/model 별 검토한 단가로 집계. 누락 모델은 비용 미확정.
  */
 
 import { readFileSync } from "node:fs";
+import { costUsageByModel } from "../lib/payment/llm-cost-report.mjs";
 
 // gemini-2.5-flash 기준 USD/1M tokens. 다른 모델을 쓰면 --in/--out 으로 덮어쓴다.
 const DEFAULT_INPUT_USD_PER_M = 0.3;
@@ -30,6 +31,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--json") args.json = true;
+    else if (arg === "--prices") args.prices = argv[++i];
     else if (arg === "--in") args.inputUsd = Number(argv[++i]) || DEFAULT_INPUT_USD_PER_M;
     else if (arg === "--out") args.outputUsd = Number(argv[++i]) || DEFAULT_OUTPUT_USD_PER_M;
     else if (!arg.startsWith("--")) args.file = arg;
@@ -228,11 +230,19 @@ function render(list, inputUsd, outputUsd) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   const rows = collect(readInput(args.file));
-  const list = aggregate(rows, args.inputUsd, args.outputUsd);
-  if (args.json) {
-    console.log(JSON.stringify({ rows: rows.length, services: list }, null, 2));
+  if (args.prices) {
+    const services = costUsageByModel(rows, JSON.parse(readFileSync(args.prices, "utf8")));
+    const complete = services.length > 0 && services.every(row => row.complete);
+    console.log(JSON.stringify({ rows: rows.length, complete, services, saleApproval: false }, null, 2));
+    process.exitCode = complete ? 0 : 2;
     return;
   }
+  const list = aggregate(rows, args.inputUsd, args.outputUsd);
+  if (args.json) {
+    console.log(JSON.stringify({ rows: rows.length, costBasis: "single-rate estimate; not sales evidence", services: list }, null, 2));
+    return;
+  }
+  console.log("단일 단가 추정입니다. 판매 심사용 모델별 단가는 --prices 파일로 제공하세요.");
   render(list, args.inputUsd, args.outputUsd);
 }
 

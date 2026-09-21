@@ -190,6 +190,7 @@ const coreRoutes = [
   // 약속해 "없는 콘텐츠를 약속하는 페이지"가 됐다. 라우트 자체의 noindex 는 app/reviews/page.tsx
   // 의 metadata.robots 에 있고, 광고 대상 제외는 app/components/adsense-route-policy.js 에 있다.
   // 리뷰가 실제로 쌓이면 세 곳을 함께 되돌릴 것.
+  { path: "/ggulggul", changefreq: "weekly", priority: 0.9 },
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/fortune/date", changefreq: "daily", priority: 0.86 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },

@@ -15,11 +15,14 @@
  * import 한다(2026-08-12 에 4중 미러를 정리했다). 유일하게 남은 사본은 import 가 불가능한 정적 셸
  * 인라인(`index.html` goldenPackages)이고, payments.subscription-purchase.test.js 가 셸과 대조한다.
  */
+import { CURRENT_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
+import { assertPassSaleAllowed } from "../lib/pass-sale-policy.js";
 import { Payment, PointHistory, User } from "../lib/models.js";
 import { createHash } from "node:crypto";
 import {
   FAMILY_PASS_MAX_COVERED_COIN,
   HONEY_PASS_POLICY,
+  resolvePassPolicy,
   KRW_PER_COIN,
   PASS_LIMITS,
   PASS_TIER_RANK,
@@ -41,14 +44,17 @@ import { MAX_ORDER_GENERATIONS, generationKey, terminalGenerationKey } from "./o
 
 const PASS_PRODUCT_TYPE = "membership_pass";
 
-export function resolvePassPlan(tierInput, durationMonthsInput) {
+export function resolvePassPlan(tierInput, durationMonthsInput, policyVersion = LEGACY_PASS_POLICY_VERSION) {
   const tier = normalizePassTier(tierInput);
   const durationMonths = Number(durationMonthsInput || 1);
   if (!tier || !PASS_MONTHLY_WON[tier]) return null;
   if (durationMonths !== 1) return null; // 30일 단품만 판다(구 카탈로그와 동일)
+  if (policyVersion === CURRENT_PASS_POLICY_VERSION) return currentPassPlan(tier);
+  if (policyVersion !== LEGACY_PASS_POLICY_VERSION) return null;
   const policy = HONEY_PASS_POLICY[tier];
   return Object.freeze({
     tier,
+    passPolicyVersion: LEGACY_PASS_POLICY_VERSION,
     planId: `${tier}_1m`,
     durationMonths: 1,
     durationDays: 30,
@@ -96,6 +102,8 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
   const now = new Date();
+  const pending = await db.findOne(Payment, { userId: uid, idempotencyKey: String(idempotencyKey).trim(), paymentType: PASS_PRODUCT_TYPE });
+  if (!pending) assertPassSaleAllowed(plan);
 
   let result = null;
   try {
@@ -123,6 +131,7 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
             ...(paidResume ? { paidResume } : {}),
             ...(giftDraft ? { giftDraft } : {}),
             planId: plan.planId,
+            passPolicyVersion: passPolicyVersion(plan),
             durationMonths: plan.durationMonths,
             durationDays: plan.durationDays,
             productType: plan.productType,
@@ -176,7 +185,8 @@ function isPayablePassOrder(order) {
 /** 의도가 달라졌는가. 이용권은 가격 승계(reprice)를 하지 않는다 — 다른 플랜은 다른 주문이다. */
 function hasPassDrift(order, plan) {
   return Number(order?.paymentAmount) !== Number(plan.wonPrice)
-    || String(order?.subscriptionTier || "") !== plan.tier;
+    || String(order?.subscriptionTier || "") !== plan.tier
+    || passPolicyVersion(order) !== passPolicyVersion(plan);
 }
 
 /**
@@ -253,11 +263,13 @@ export async function activatePassSubscription(db, {
   }
   // 사이클 3필드(키·사용액·한도). 같은 등급 연장이면 한도가 이전 한도 + 30일치로 쌓이고
   // 사용액은 유지된다 — 기간만 늘고 한도는 30일치 그대로였던 결함의 정정(2026-09-05).
-  const cycle = buildPassCycleFields({ priorSubscription: prior, tier: plan.tier, expiresAt, now });
+  if (isPassPolicyMix(prior, plan, now)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 이용해 주세요.");
+  const cycle = buildPassCycleFields({ priorSubscription: prior, tier: plan.tier, expiresAt, now, passPolicyVersion: passPolicyVersion(plan) });
   const update = {
     "profileSubscription.tier": plan.tier,
     "profileSubscription.passTier": plan.tier,
     "profileSubscription.planId": plan.planId,
+    "profileSubscription.passPolicyVersion": passPolicyVersion(plan),
     "profileSubscription.durationMonths": plan.durationMonths,
     "profileSubscription.productType": PASS_PRODUCT_TYPE,
     "profileSubscription.profileLimit": plan.profileLimit,
@@ -343,6 +355,7 @@ export function presentPassSubscription(profileSubscription, plan, { customerUid
   const expiresAt = sub.expiresAt ? new Date(sub.expiresAt).toISOString() : null;
   return {
     tier: sub.tier || plan?.tier || "free",
+    passPolicyVersion: passPolicyVersion(sub),
     source: "pass",
     isActive: Boolean(expiresAt && new Date(expiresAt).getTime() > Date.now()),
     startedAt: sub.startedAt ? new Date(sub.startedAt).toISOString() : null,
@@ -403,7 +416,7 @@ export function evaluatePassCoverage({ user, entitlement, coinCost }) {
   if (!entitlement?.isActive || !tier) return { covered: false, reason: "no_active_pass" };
   if (!Number.isFinite(cost) || cost <= 0) return { covered: false, reason: "invalid_price", tier };
 
-  const perItemLimit = Math.max(0, Math.floor(Number(PASS_LIMITS[tier] || 0)));
+  const perItemLimit = Math.max(0, Math.floor(Number(resolvePassPolicy(sub, tier)?.maxCoveredCoin || 0)));
   const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
   // 같은 등급 연장이면 한도가 쌓여 있으므로 등급 기본값이 아니라 저장된 한도를 본다.
   const budgetCoin = resolveMonthlyPassLimitCoin(sub, tier, cycleKey);
@@ -464,7 +477,7 @@ export function describePassEligibility({ user, entitlement, product } = {}) {
   const canonicalPriceKRW = Math.max(0, Math.floor(Number(product?.priceKRW || 0)));
   const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
 
-  const perItemLimitCoin = tier ? Number(PASS_LIMITS[tier] || 0) : 0;
+  const perItemLimitCoin = tier ? Number(resolvePassPolicy(user?.profileSubscription, tier)?.maxCoveredCoin || 0) : 0;
   const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {};
   const monthlyLimitCoin = resolveMonthlyPassLimitCoin(sub, tier, cycleKey);
   const usedCoin = cycleKey && String(sub.premiumUseCycleKey || "") === cycleKey
@@ -634,7 +647,7 @@ async function applyBudgetExhaustionTermination(db, { userId, coverage, updated,
   if (!coverage?.budgetApplies) return updated;
   const sub = updated?.profileSubscription && typeof updated.profileSubscription === "object" ? updated.profileSubscription : null;
   if (!sub) return updated;
-  if (!isPassBudgetExhausted(coverage.tier, sub.monthlySpendCoin, coverage.budgetCoin)) return updated;
+  if (!isPassBudgetExhausted(coverage.tier, sub.monthlySpendCoin, coverage.budgetCoin, sub)) return updated;
   const terminated = await terminatePassOnBudgetExhaustion(db, {
     userId, cycleKey: coverage.cycleKey, previousExpiresAt: sub.expiresAt, now,
   });

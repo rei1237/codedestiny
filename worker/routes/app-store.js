@@ -1,3 +1,4 @@
+import { currentPassPlan, passPolicyVersion, isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { getEnv } from "../lib/env.js";
 import { Payment, User } from "../lib/models.js";
@@ -232,7 +233,8 @@ function resolveProduct(pricing, env, body = {}) {
 /** 이용권(30일, 자동갱신 없음, 사용 횟수 제한 없음)은 Play `subs`가 아니라 `inapp`으로 등록한다. */
 function resolveAppPassPurchaseProduct(body = {}) {
   const passTier = cleanText(body.passTier || body.subscriptionTier).toLowerCase();
-  const pass = resolveAppPassProduct(passTier);
+  const version = findAppStoreProductById(cleanText(body.productId))?.passPolicyVersion || body.passPolicyVersion || "legacy";
+  const pass = resolveAppPassProduct(passTier, version);
   if (!pass) {
     const error = new Error("Google Play pass product is not registered for this tier.");
     error.code = "APP_STORE_PASS_TIER_UNKNOWN";
@@ -241,11 +243,12 @@ function resolveAppPassPurchaseProduct(body = {}) {
   }
   // 커버 한도는 웹 정본(PASS_LIMITS, 코인)에서 읽고 앱 확정가로 환산해 내려준다 —
   // 클라이언트가 코인×100(웹가)으로 계산하면 앱 결제창 금액과 어긋난다.
-  const coinLimit = Number(PASS_LIMITS[pass.passTier] || 0);
+  const coinLimit = pass.coinLimit === null ? 999999999 : Number(pass.coinLimit || 0);
   const isUnlimited = coinLimit >= 999999999;
   return {
     provider: "GOOGLE_PLAY",
     kind: "pass",
+    passPolicyVersion: pass.passPolicyVersion || "legacy",
     productId: pass.productId,
     productType: "inapp",
     featureKey: `app-pass-${pass.passTier}`,
@@ -312,7 +315,7 @@ async function resolveProductByProductId(env, body = {}, auth = null) {
 
   const knownProduct = findAppStoreProductById(requestedProductId);
   if (knownProduct?.kind === "pass") {
-    const product = resolveAppPassPurchaseProduct({ passTier: knownProduct.passTier });
+    const product = resolveAppPassPurchaseProduct({ passTier: knownProduct.passTier, productId: knownProduct.productId });
     return { pricing: buildPassPricingShape(knownProduct), product, intent: null };
   }
 
@@ -510,13 +513,13 @@ async function handleProducts(request, env) {
   // 이용권 스토어는 featureKey가 아니라 passTier로 조회한다.
   const passTier = cleanText(url.searchParams.get("passTier"));
   if (passTier) {
-    const pass = resolveAppPassProduct(passTier);
+    const pass = resolveAppPassProduct(passTier, url.searchParams.get("passPolicyVersion") || "legacy");
     if (!pass) return json({ ok: false, code: "APP_STORE_PASS_TIER_UNKNOWN", message: "Unknown pass tier." }, { status: 400 });
     return json({
       ok: true,
       data: {
         provider: "GOOGLE_PLAY",
-        product: resolveAppPassPurchaseProduct({ passTier }),
+        product: resolveAppPassPurchaseProduct({ passTier, productId: pass.productId }),
         pricing: buildPassPricingShape(pass),
       },
     });
@@ -610,6 +613,11 @@ async function handleGoogleIntent(request, env) {
   const product = isPassPurchase
     ? resolveAppPassPurchaseProduct({ ...body, passTier: body.passTier || knownPass?.passTier })
     : resolveProduct(resolvePricing(body), env, body);
+
+  if (isPassPurchase) {
+    const { assertPassSaleAllowed } = await import("../lib/pass-sale-policy.js");
+    assertPassSaleAllowed({ ...currentPassPlan(product.passTier), passPolicyVersion: product.passPolicyVersion }, "googlePlay");
+  }
 
   if (product.freeInApp) {
     return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
@@ -773,15 +781,17 @@ function buildEntitlementUpdate({ product, googlePurchase, now, priorSubscriptio
     // 같은 등급을 활성 중에 다시 사면 기간이 이어붙고 한도도 함께 쌓인다 — 웹 카드 결제와
     // 정확히 같은 규칙이다(profile-limits.js computePassExpiry · buildPassCycleFields).
     // 예전에는 만료를 now+30일로 덮어써 남은 기간이 사라졌다(2026-09-05 정정).
+    if (isPassPolicyMix(priorSubscription || {}, product, now)) throw Object.assign(new Error("현재 이용권이 종료된 후 수령해 주세요."), { code: "PASS_POLICY_CONFLICT", status: 409 });
     const transition = evaluatePassTierTransition(priorSubscription, passTier, now);
     const expiresAt = googlePurchase?.expiryTimeMillis
       ? new Date(Number(googlePurchase.expiryTimeMillis))
       : computePassExpiry({ transition, paidAt: now, now, durationDays: APP_PASS_DURATION_DAYS });
-    const cycle = buildPassCycleFields({ priorSubscription, tier: passTier, expiresAt, now });
+    const cycle = buildPassCycleFields({ priorSubscription, tier: passTier, expiresAt, now, passPolicyVersion: passPolicyVersion(product) });
     update.$set = {
       "profileSubscription.tier": passTier,
       "profileSubscription.source": "card",
       "profileSubscription.planId": product.productId,
+      "profileSubscription.passPolicyVersion": passPolicyVersion(product),
       "profileSubscription.productType": "membership_pass",
       "profileSubscription.passTier": passTier,
       "profileSubscription.startedAt": now,
@@ -834,7 +844,7 @@ async function handleGoogleVerify(request, env) {
   const knownPass = findAppStoreProductById(cleanText(body.productId));
   const isPassPurchase = Boolean(cleanText(body.passTier)) || knownPass?.kind === "pass";
   const pricing = isPassPurchase
-    ? buildPassPricingShape(resolveAppPassProduct(cleanText(body.passTier || knownPass?.passTier)) || {})
+    ? buildPassPricingShape(resolveAppPassProduct(cleanText(body.passTier || knownPass?.passTier), knownPass?.passPolicyVersion || "legacy") || {})
     : resolvePricing(body);
   const product = isPassPurchase
     ? resolveAppPassPurchaseProduct({ ...body, passTier: body.passTier || knownPass?.passTier })

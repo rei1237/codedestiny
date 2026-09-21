@@ -1365,7 +1365,7 @@ export default {
         }
         // 결제 공개 설정 컷오버 — Mongo 0회 무인증 조회. 봉투는 구 handlePaymentConfig 와 동일.
         if (request.method === "GET"
-          && url.pathname === "/api/payments/config") {
+          && (url.pathname === "/api/payments/config" || url.pathname === "/api/payments/pass-offers")) {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }

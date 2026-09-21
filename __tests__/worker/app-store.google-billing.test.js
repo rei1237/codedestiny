@@ -35,6 +35,7 @@ class FakeObjectId {
 
 const mockConnectDb = jest.fn(async () => undefined);
 jest.unstable_mockModule("../../worker/lib/db.js", () => ({
+  isTransientMongoError: () => false,
   connectDb: mockConnectDb,
   mongoose: { Types: { ObjectId: FakeObjectId } },
 }));

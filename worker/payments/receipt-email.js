@@ -98,7 +98,7 @@ export function formatKstDateTime(value) {
 export function resolveOrderProductName(order) {
   if (order?.purchaseType === "GIFT") return `${order.metadata?.giftDraft?.productSnapshot?.name || "이용권"} 선물`;
   if (String(order?.paymentType || "") === "membership_pass") {
-    const plan = resolvePassPlan(order?.subscriptionTier, Number(order?.metadata?.durationMonths || 1));
+    const plan = resolvePassPlan(order?.subscriptionTier, Number(order?.metadata?.durationMonths || 1), order?.metadata?.passPolicyVersion || "legacy");
     if (plan?.name) return plan.name;
     return String(order?.subscriptionTier || "이용권");
   }

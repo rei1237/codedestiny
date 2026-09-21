@@ -134,7 +134,7 @@ export default function NakshatraCompatClient() {
     // 결제에 쓴 requestId 를 그대로 들고 간다 — 서버가 이 값으로 차감·결제 기록을 되찾는다.
     const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const gate = await ensurePaidAccess({
-      featureKey: FEATURE_KEY, cost: 100, amountKRW: 10000, reason: copy.compatReason, requestId,
+      featureKey: FEATURE_KEY, cost: 50, amountKRW: 5000, reason: copy.compatReason, requestId,
       resume: buildResume({ a: packPaidResumeArg(payload(a)), b: packPaidResumeArg(payload(b)), requestId }),
     });
     if (!gate || !gate.ok) { setError((gate && gate.message) || copy.compatGateFailedError); return; }

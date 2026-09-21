@@ -994,6 +994,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     console.log("[sync-legacy-static-to-public] Rebuilt public/index.html from canonical root shell");
   }
 
+  const flowerDir = resolve(publicDir, "ggulggul");
+  mkdirSync(flowerDir, { recursive: true });
+  const flowerHtml = baseIndexHtml.replace(/(<link[^>]+rel=["']canonical["'][^>]+href=["'])https:\/\/code-destiny\.com\/?(["'])/i, "$1https://code-destiny.com/ggulggul/$2");
+  writeFileSyncWithRetry(resolve(flowerDir, "index.html"), Buffer.from(flowerHtml, "utf8"));
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
   // Existing standalone alias must receive the same payment runtime cache pins.

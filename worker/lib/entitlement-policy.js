@@ -1,6 +1,7 @@
 import {
   canUseByPass,
   HONEY_PASS_POLICY,
+  resolvePassPolicy,
   normalizePassTier,
   PASS_LIMITS,
   resolveMonthlySpendQuota,
@@ -163,7 +164,8 @@ function activeCandidate(source = {}, sourceName = "legacy") {
     || source.valid === true
     || ACTIVE_STATUSES.has(status);
   const active = !explicitlyInactive && (expiresAt ? expiresAt.getTime() > Date.now() : explicitlyActive);
-  const policy = HONEY_PASS_POLICY[tier] || {};
+  const policy = resolvePassPolicy(source, tier);
+  if (!policy) return null;
 
   return {
     tier,
@@ -172,7 +174,8 @@ function activeCandidate(source = {}, sourceName = "legacy") {
     source: sourceName,
     legacy: sourceName !== "profileSubscription",
     conflict: false,
-    maxCoveredCoin: Number(PASS_LIMITS[tier] || 0),
+    maxCoveredCoin: Number(policy.maxCoveredCoin || 0),
+    passPolicyVersion: source.passPolicyVersion || "legacy",
     maxProfiles: Number(policy.maxProfiles ?? 1),
     profileLimit: Number(policy.maxProfiles ?? 1),
     startedAt: validDate(source.startedAt || source.firstSubAt || source.validFrom)?.toISOString() || null,

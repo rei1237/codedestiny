@@ -252,8 +252,8 @@ describe("러브 코드 영구 해금", () => {
     expect(product).toMatchObject({
       productId: LOVE_CODE_PRODUCT_ID,
       featureKey: LOVE_CODE_FEATURE_KEY,
-      priceKRW: 10000,
-      priceCoins: 100,
+      priceKRW: 5000,
+      priceCoins: 50,
       billingType: "unlock",
     });
     expect(LEGACY_LOVE_CODE_FEATURE_KEYS).toContain("openLoveSimulation");

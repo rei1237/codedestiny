@@ -281,7 +281,7 @@ async function runMockSuite() {
   for (const tier of ORACLE_CONSULTATION_TIERS) {
     const tierCost = Number(FEATURE_KEY_PRICE_TABLE[tier.featureKey]?.cost);
     check(`${tier.featureKey} 가 레지스트리 가격표에 있다`, Number.isFinite(tierCost) && tierCost > 0, `cost=${tierCost}`);
-    check(`${tier.featureKey} 가 앞 티어보다 비싸다`, tierCost > previousTierCost, `cost=${tierCost} 앞=${previousTierCost}`);
+    check(`${tier.featureKey} 가 앞 티어보다 저렴하지 않다`, tierCost >= previousTierCost, `cost=${tierCost} 앞=${previousTierCost}`);
     previousTierCost = tierCost;
   }
 

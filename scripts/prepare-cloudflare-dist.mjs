@@ -13,8 +13,8 @@ const candidates = [generatedOutDir, resolve(rootDir, ".open-next", "assets")];
 
 const sourceDir = candidates.find((dirPath) => existsSync(dirPath));
 const staticShellRouteHtmlFiles = new Set([
-  "index.html",
   "static/index.html",
+  "ggulggul/index.html",
   "en/index.html",
   "ja/index.html",
   "zh/index.html",

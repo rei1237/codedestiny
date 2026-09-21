@@ -19,7 +19,7 @@ import { verifyPerUsePayment, logPerUsePaymentProof } from "../lib/nakshatra-pai
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
 const COMPAT_FEATURE_KEY = "nakshatra-compat";
-const COMPAT_COIN_PRICE = 100;
+const COMPAT_COIN_PRICE = 50;
 
 // ── I/O 배선 ─────────────────────────────────────────────────────────────────
 

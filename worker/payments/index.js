@@ -18,6 +18,8 @@
  * 정확히 한 줄을 남긴다. mongoOps 가 그 줄에 실리므로 왕복 예산 회귀는 코드 리뷰가 아니라
  * 로그가 잡는다.
  */
+import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
+import { isPassPolicyMix } from "../../lib/payment/pass-policy.js";
 import { getRequestMeta, json } from "../lib/http.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
@@ -297,7 +299,7 @@ function resolvePassRequest(env, body = {}) {
   if (durationMonths !== 1 || durationDays !== 30) {
     throw paymentError("INVALID_SUBSCRIPTION_DURATION", "이용권 기간이 올바르지 않습니다.");
   }
-  const plan = resolvePassPlan(body?.tier || body?.passTier || body?.subscriptionTier, durationMonths);
+  const plan = resolvePassPlan(body?.tier || body?.passTier || body?.subscriptionTier, durationMonths, body.passPolicyVersion || (String(body.planId || "").endsWith("_v2") ? "flower-20260921" : "legacy"));
   if (!plan) throw paymentError("INVALID_SUBSCRIPTION_TIER", "이용권 등급이 올바르지 않습니다.");
   const planId = String(body?.planId || "").trim().toLowerCase();
   const productType = String(body?.productType || "membership_pass").trim().toLowerCase();
@@ -471,6 +473,7 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
     /* 🔴 enforcePassPurchasePolicy 에는 위에서 **정가 plan** 을 넘겼다 — 패밀리 등급의 상위상품
        구매 차단처럼 구매 정책은 상품 가치 기준이어야 하고, 청구가로 판정하면 스테이징에서만
        정책이 달라진다. 주문에 실리는 금액만 청구가로 바꾼다. */
+    if (!gifts && isPassPolicyMix(userDoc?.profileSubscription || {}, plan)) throw paymentError("PASS_POLICY_CONFLICT", "현재 이용권이 종료된 후 새 이용권을 구매해 주세요.");
     const chargePlan = chargeKRW === Number(plan.wonPrice) ? plan : { ...plan, wonPrice: chargeKRW };
     const created = await createPayablePassOrder(db, { userId, plan: chargePlan, idempotencyKey, paymentMethod, paidResume, purchaseType, giftDraft, foreignCard, refundConsent });
     if (gifts) await gifts.ensureGiftForOrder(db, created);
@@ -548,6 +551,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
       const resolved = resolvePassRequest(env, {
         ...body,
         tier: String(order.subscriptionTier || ""),
+        passPolicyVersion: order?.metadata?.passPolicyVersion || "legacy",
         paymentMethod: String(body.paymentMethod || "").trim()
           || (String(order.paymentMethod || "") !== "unknown" ? String(order.paymentMethod || "") : "")
           || undefined,
@@ -556,7 +560,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
       paymentMethod = resolved.paymentMethod;
       ctx.productId = plan.planId;
     }
-    if (String(order.subscriptionTier || "") !== plan.tier) {
+    if (String(order.subscriptionTier || "") !== plan.tier || (order?.metadata?.passPolicyVersion || "legacy") !== (plan.passPolicyVersion || "legacy")) {
       throw paymentError("SUBSCRIPTION_PLAN_MISMATCH", "이용권 주문의 등급이 일치하지 않습니다.");
     }
     const userDoc = await db.findOne(User, { _id: toObjectId(userId) });
@@ -768,7 +772,7 @@ function isPerUseFeatureKey(featureKey) {
  * 쪽이 더 큰 사고다. 주문은 paid+미지급으로 남아 reconcile 로그에 계속 드러난다(사람이 환불 판단).
  */
 async function grantPassOrderEntitlement(db, order) {
-  const plan = resolvePassPlan(order.subscriptionTier, Number(order?.metadata?.durationMonths || 1));
+  const plan = resolvePassPlan(order.subscriptionTier, Number(order?.metadata?.durationMonths || 1), order?.metadata?.passPolicyVersion || "legacy");
   const orderId = String(order.merchantUid || "");
   // 🔴 false 반환은 던지지 않으므로 여기서 로그하지 않으면 '돈은 받았는데 지급 안 됨'이 로그 0줄로 남는다.
   if (!plan) {
@@ -909,6 +913,10 @@ const ROUTES = {
         });
       });
     },
+  },
+  "GET /pass-offers": {
+    auth: "none",
+    async handle({ request }) { return json({ ok: true, offers: listCurrentPassOffers(new URL(request.url).searchParams.get("channel") === "googlePlay" ? "googlePlay" : "web") }, { headers: { "Cache-Control": "no-store" } }); },
   },
   "GET /features": {
     auth: "none",
@@ -1465,6 +1473,7 @@ const ROUTES = {
         outcome.coverage.tier,
         outcome.user?.profileSubscription?.monthlySpendCoin,
         outcome.coverage.budgetCoin,
+        outcome.user?.profileSubscription,
       );
       const envelope = legacyPassCheckEnvelope({
         product, requestId, profileId, unlock, premiumAccessToken, passEnded,

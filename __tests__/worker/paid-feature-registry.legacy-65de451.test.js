@@ -24,16 +24,16 @@ beforeAll(async () => {
  *    키는 human-design-chart 선례대로 남긴다.
  */
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
-  "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
-  "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 100, reason: "Destiny flower atelier full unlock", forceDeduct: true },
-  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 30, reason: "Section daewun unlock", forceDeduct: true },
+  "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock", forceDeduct: true },
+  "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "Destiny flower atelier full unlock", forceDeduct: true },
+  "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 50, reason: "Olympus profile unlock", forceDeduct: true },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock", forceDeduct: true },
-  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 50, reason: "Travel destiny unlock", forceDeduct: true },
-  "unlock.health_report": { featureKey: "healthReport", cost: 50, reason: "Health report unlock", forceDeduct: true },
+  "unlock.travel_destiny": { featureKey: "travelDestiny", cost: 30, reason: "Travel destiny unlock", forceDeduct: true },
+  "unlock.health_report": { featureKey: "healthReport", cost: 30, reason: "Health report unlock", forceDeduct: true },
   "unlock.saju_diary": { featureKey: "sajuDiary", cost: 100, reason: "Saju diary unlock", forceDeduct: true },
-  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 50, reason: "Secret house episodes unlock", forceDeduct: true },
+  "unlock.secret_house_episodes": { featureKey: "secretHouseEpisodes", cost: 30, reason: "Secret house episodes unlock", forceDeduct: true },
   "unlock.premium_divination_pack": { featureKey: "premiumDivinationPack", cost: 300, reason: "Premium divination pack unlock", forceDeduct: true },
 });
 

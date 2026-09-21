@@ -594,7 +594,8 @@
       "petSajuDesc": "Ngũ hành và hợp mệnh",
       "petSajuAria": "Mở Tứ trụ thú cưng AI",
       "petSajuAlt": "Ảnh bìa Tứ trụ thú cưng AI",
-      "promptMakerPrice": "3.000-10.000 KRW theo số lá bài"
+      "promptMakerPrice": "3.000-10.000 KRW theo số lá bài",
+      "unlock5000": "Mở khóa 5.000 KRW"
     },
     "destinyFlowerStudio": {
       "closeAria": "Đóng Xưởng Hoa Định Mệnh",
@@ -14306,7 +14307,7 @@
         },
         "1": {
           "title": "Choose a 3-card or 5-card spread",
-          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (7,000 KRW)."
+          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (5,000 KRW)."
         },
         "2": {
           "title": "A reading built around your question",

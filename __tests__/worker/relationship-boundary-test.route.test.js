@@ -48,9 +48,9 @@ describe("relationship boundary test", () => {
     expect(value).toContain("에필로그: 현실적인 선택");
   });
 
-  it("exposes the fixed 10,000 won common payment payload", () => {
+  it("exposes the fixed 5,000 won common payment payload", () => {
     expect(__relationshipBoundaryTestTestUtils.paymentPayload("rbt-test-request-0002")).toMatchObject({
-      featureKey: "relationship-boundary-test", amountKRW: 10000,
+      featureKey: "relationship-boundary-test", amountKRW: 5000,
       allowedPaymentModes: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
     });
   });

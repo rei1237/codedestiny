@@ -1,0 +1,252 @@
+{
+  "basis": "scenario-not-invoice",
+  "assumptions": {
+    "usdKrw": 1600,
+    "fixedMonthlyKRW": 108000,
+    "pgIncludesFeeVat": true,
+    "playFeeChargedOnGrossConservatively": true,
+    "actualGenerationCost": null,
+    "fxStress": {
+      "usdKrw": 2000,
+      "usdCostMultiplierVersusBase": 1.25,
+      "serverBaseKRW": 110000
+    }
+  },
+  "saleApproval": false,
+  "rows": [
+    {
+      "tier": "standard",
+      "channel": "webPgVatSeparate",
+      "priceKRW": 9900,
+      "allowanceKRW": 20000,
+      "maximumAllProductCostKRW": 4855,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 30,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 60
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 90
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 150
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 2427
+    },
+    {
+      "tier": "premium",
+      "channel": "webPgVatSeparate",
+      "priceKRW": 29900,
+      "allowanceKRW": 50000,
+      "maximumAllProductCostKRW": 14664,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 10,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 20
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 30
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 50
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 7332
+    },
+    {
+      "tier": "vvip",
+      "channel": "webPgVatSeparate",
+      "priceKRW": 59900,
+      "allowanceKRW": 90000,
+      "maximumAllProductCostKRW": 29378,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 5,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 10
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 15
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 25
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 14689
+    },
+    {
+      "tier": "standard",
+      "channel": "googlePlay15",
+      "priceKRW": 9900,
+      "allowanceKRW": 20000,
+      "maximumAllProductCostKRW": 3915,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 30,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 60
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 90
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 150
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 1957
+    },
+    {
+      "tier": "premium",
+      "channel": "googlePlay15",
+      "priceKRW": 29900,
+      "allowanceKRW": 50000,
+      "maximumAllProductCostKRW": 11824,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 10,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 20
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 30
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 50
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 5912
+    },
+    {
+      "tier": "vvip",
+      "channel": "googlePlay15",
+      "priceKRW": 59900,
+      "allowanceKRW": 90000,
+      "maximumAllProductCostKRW": 23687,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 5,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 10
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 15
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 25
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 11843
+    },
+    {
+      "tier": "standard",
+      "channel": "googlePlay30",
+      "priceKRW": 9900,
+      "allowanceKRW": 20000,
+      "maximumAllProductCostKRW": 2430,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 30,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 60
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 90
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 150
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 1215
+    },
+    {
+      "tier": "premium",
+      "channel": "googlePlay30",
+      "priceKRW": 29900,
+      "allowanceKRW": 50000,
+      "maximumAllProductCostKRW": 7339,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 10,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 20
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 30
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 50
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 3669
+    },
+    {
+      "tier": "vvip",
+      "channel": "googlePlay30",
+      "priceKRW": 59900,
+      "allowanceKRW": 90000,
+      "maximumAllProductCostKRW": 14702,
+      "breakEvenSalesOnlyIf40PercentMarginVerified": 5,
+      "serverGrowth": [
+        {
+          "multiplier": 2,
+          "fixedMonthlyKRW": 216000,
+          "breakEvenSales": 10
+        },
+        {
+          "multiplier": 3,
+          "fixedMonthlyKRW": 324000,
+          "breakEvenSales": 15
+        },
+        {
+          "multiplier": 5,
+          "fixedMonthlyKRW": 540000,
+          "breakEvenSales": 25
+        }
+      ],
+      "baseProductCostCeilingWithDoubleCostReserveKRW": 7351
+    }
+  ]
+}

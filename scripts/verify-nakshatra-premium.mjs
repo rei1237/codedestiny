@@ -412,7 +412,7 @@ console.log("\n[7] 라우트 계약 — 결제 게이팅 원칙 준수");
 console.log("\n[8] 레지스트리 정합 — 가격·과금유형");
 {
   const routeSource = readFileSync(path.join(repoRoot, "worker/routes/nakshatra-premium.js"), "utf8");
-  for (const [key, coin, krw] of [["nakshatra-lord-report", 100, 10000], ["nakshatra-dasha-map", 100, 10000]]) {
+  for (const [key, coin, krw] of [["nakshatra-lord-report", 50, 5000], ["nakshatra-dasha-map", 50, 5000]]) {
     check(`${key} 가 UNLOCK(영구해금) 유형으로 등록돼 있다`, isUnlockPaidFeatureKey(key));
     const product = UNLOCK_PRODUCT_BY_FEATURE_KEY[key];
     check(`${key} 레지스트리 코인가 ${coin} (unlock accessModel, no forceDeduct)`,
@@ -463,8 +463,8 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
     /GenderPrompt/.test(stripComments(dashaClient)));
 
   for (const [relative, featureKey, coin, krw] of [
-    ["app/nakshatra/lord-report/LordReportClient.tsx", "nakshatra-lord-report", 100, 10000],
-    ["app/nakshatra/dasha-map/DashaMapClient.tsx", "nakshatra-dasha-map", 100, 10000],
+    ["app/nakshatra/lord-report/LordReportClient.tsx", "nakshatra-lord-report", 50, 5000],
+    ["app/nakshatra/dasha-map/DashaMapClient.tsx", "nakshatra-dasha-map", 50, 5000],
   ]) {
     let source = "";
     try { source = readFileSync(path.join(repoRoot, relative), "utf8"); } catch { /* 아래에서 실패 처리 */ }
@@ -483,9 +483,9 @@ console.log("\n[9] 프론트 계약 — 결제·잠금 판정의 단일 정본")
   check("택일 화면: 공용 게이트(useCoinGate) 사용", /useCoinGate/.test(muhurtaCode));
   check("택일 화면: 🔴 회당 결제이므로 forceDeduct 를 주지 않는다", !/forceDeduct/.test(muhurtaCode));
   check("택일 화면: paymentMode 를 강제하지 않는다", !/paymentMode/.test(muhurtaCode));
-  check("택일 화면: featureKey nakshatra-muhurta · 50코인 · 5,000원",
+  check("택일 화면: featureKey nakshatra-muhurta · 30코인 · 3,000원",
     /FEATURE_KEY = "nakshatra-muhurta"/.test(muhurtaCode)
-    && /COIN_PRICE = 50/.test(muhurtaCode) && /AMOUNT_KRW = 5000/.test(muhurtaCode));
+    && /COIN_PRICE = 30/.test(muhurtaCode) && /AMOUNT_KRW = 3000/.test(muhurtaCode));
   // 본문 요청은 결제 성공 뒤에만 — 게이트 실패는 그 앞에서 early-return 한다.
   check("택일 화면: 결제 성공 뒤에만 본문을 요청한다",
     /if \(!gate\.ok\)[\s\S]{0,400}return;[\s\S]{0,400}fetchReport\(/.test(muhurtaCode));
@@ -565,9 +565,9 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
   check("택일·VVIP 라우트가 결제 증빙을 확인한다", /observePerUsePayment\(env, auth, "muhurta"/.test(premium) && /observePerUsePayment\(env, auth, "vvip-codex"/.test(premium));
   check("compat 라우트가 결제 증빙을 확인한다", /verifyPerUsePayment\(env, \{/.test(compat) && /COMPAT_FEATURE_KEY/.test(compat));
   check("회당결제 상품 코인가가 레지스트리와 일치(이용권 커버 판정 근거)",
-    /featureKey: "nakshatra-muhurta", coinPrice: 50/.test(premium)
+    /featureKey: "nakshatra-muhurta", coinPrice: 30/.test(premium)
     && /featureKey: "nakshatra-vvip-codex", coinPrice: 300/.test(premium)
-    && /COMPAT_COIN_PRICE = 100/.test(compat));
+    && /COMPAT_COIN_PRICE = 50/.test(compat));
 
   // 1단계는 관측 전용 — 차단 스위치가 꺼져 있어야 한다. 2단계에서 true 로 바꾸면서 이 단언도 뒤집는다.
   check("🔴 1단계: 차단 스위치가 꺼져 있다(PER_USE_ENFORCE = false)", /PER_USE_ENFORCE = false/.test(premium));

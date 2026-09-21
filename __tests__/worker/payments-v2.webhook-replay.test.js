@@ -1,3 +1,7 @@
+import { jest } from "@jest/globals";
+// Historical order lifecycle fixtures predate the sales cutoff; isolate only new-sale admission.
+// pass-policy-v2.test.js tests closed sales and legacy recovery with the real gate.
+jest.unstable_mockModule("../../worker/lib/pass-sale-policy.js", () => ({ assertPassSaleAllowed: jest.fn(), listCurrentPassOffers: () => [] }));
 /**
  * @jest-environment node
  *
@@ -10,9 +14,9 @@
  * 손대지 않는다 (c) 실패 사유에 PortOne 의 말이 남고 다음 틱이 다시 잡는다 (d) PAID 재생은 PG 를 안 부른다.
  * PG 는 전부 주입 — 실결제·실 DB 없음.
  */
-import { handlePaymentsContext, replayWebhookEvents } from "../../worker/payments/index.js";
-import { WEBHOOK_STALE_PROCESSING_MS } from "../../worker/payments/webhook.js";
-import { __passesTestUtils } from "../../worker/payments/passes.js";
+let handlePaymentsContext,replayWebhookEvents;
+let WEBHOOK_STALE_PROCESSING_MS;
+let __passesTestUtils;
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "64b000000000000000000001";
@@ -159,4 +163,10 @@ describe("실패한 Transaction.Paid 이벤트의 재생", () => {
     expect(event.status).toBe("failed");
     expect(event.lastError).toContain("ORDER_NOT_FOUND");
   });
+});
+
+beforeAll(async () => {
+  ({ handlePaymentsContext, replayWebhookEvents } = await import("../../worker/payments/index.js"));
+  ({ WEBHOOK_STALE_PROCESSING_MS } = await import("../../worker/payments/webhook.js"));
+  ({ __passesTestUtils } = await import("../../worker/payments/passes.js"));
 });

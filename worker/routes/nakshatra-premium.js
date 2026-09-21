@@ -31,14 +31,14 @@ import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 const PRODUCTS = Object.freeze({
   "lord-report": Object.freeze({
     featureKey: "nakshatra-lord-report",
-    coinPrice: 100,
-    amountKRW: 10000,
+    coinPrice: 50,
+    amountKRW: 5000,
     orderName: "나크샤트라 지배성 심화 리포트",
   }),
   "dasha-map": Object.freeze({
     featureKey: "nakshatra-dasha-map",
-    coinPrice: 100,
-    amountKRW: 10000,
+    coinPrice: 50,
+    amountKRW: 5000,
     orderName: "나크샤트라 다샤 인생지도",
   }),
 });
@@ -232,7 +232,7 @@ const MUHURTA_MAX_DAYS = 60;
 
 // 회당 결제 상품 — 레지스트리 등록값과 일치해야 한다(이용권 커버 판정에 코인가가 필요).
 const PER_USE_PRODUCTS = Object.freeze({
-  muhurta: Object.freeze({ featureKey: "nakshatra-muhurta", coinPrice: 50 }),
+  muhurta: Object.freeze({ featureKey: "nakshatra-muhurta", coinPrice: 30 }),
   "vvip-codex": Object.freeze({ featureKey: "nakshatra-vvip-codex", coinPrice: 300 }),
 });
 

@@ -102,7 +102,7 @@ assert.match(route, /AUTH_TEMPORARILY_UNAVAILABLE/, 'worker/routes/palm.js: 인�
 
 // ── 8. 결제: 단일 SKU, 가격 정합 ──
 const generalCost = Number(paidRegistry.match(/"palm-reading-general":\s*\{\s*cost:\s*(\d+)/)[1]);
-assert.equal(generalCost, 100, 'palm-reading-general 은 100코인(10,000원)이어야 함');
+assert.equal(generalCost, 50, 'palm-reading-general 은 50코인(5,000원)이어야 함');
 // billing-feature-registry 는 가격을 재기입하지 않고 paid-feature-registry 에서 파생한다.
 // 리터럴이 되살아나면 두 표가 조용히 갈라지므로 소스에서 먼저 막고, 실제 해석값으로 한 번 더 본다.
 assert.doesNotMatch(

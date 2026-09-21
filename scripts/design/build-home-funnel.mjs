@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
 import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
+import { CURRENT_PASS_PLANS } from '../../lib/payment/pass-policy.js';
 
 const original = readFileSync('index.html', 'utf8');
 const doc = parse(original, { sourceCodeLocationInfo: true });
@@ -42,6 +43,27 @@ const nodes = {
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
+const won = value => Number(value).toLocaleString('ko-KR') + '원';
+vars.pass = `<section class="membership-recap-cta" aria-label="꽃돼지 서비스 전용 이용권" data-design-marker="moonlight-pass-banner-v20260626">
+  <span class="membership-recap-cta__eyebrow">꽃돼지 서비스 전용</span>
+  <div class="membership-recap-cta__content">
+    <div class="membership-recap-cta__copy">
+      <h3 class="membership-recap-cta__title">반복 상담을 위한 30일 이용권</h3>
+      <p class="membership-recap-cta__desc">신규 이용권은 판매 준비 중입니다. 아래 가격과 한도는 검토 중인 안이며, 판매 시작 시 확정 조건을 안내합니다. 영냥이는 단건 결제로 이용해 주세요.</p>
+      <p class="membership-recap-cta__desc">자동갱신 없이 실제 상담 가격만큼 한도를 사용합니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
+    </div>
+    <ul class="membership-recap-cta__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `
+      <li class="membership-recap-cta__tier"><a class="membership-recap-cta__tier-link" href="/points/?source=flower-membership&amp;plan=${plan.tier}">
+        <span class="membership-recap-cta__tier-name">${plan.name}</span>
+        <strong class="membership-recap-cta__tier-price">30일 · ${won(plan.wonPrice)}</strong>
+        <span class="membership-recap-cta__tier-line">건당 ${won(plan.maxCoveredCoin * 100)} 이하</span>
+        <span class="membership-recap-cta__tier-benefit">누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
+        <span class="membership-recap-cta__tier-benefit">프로필 최대 ${plan.profileLimit}개</span>
+      </a></li>`).join('')}
+    </ul>
+    <a class="membership-recap-cta__btn" href="/points/?source=flower-membership">이용권 3종 확인하기</a>
+  </div>
+</section>`;
 vars.representativePrice = Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW).toLocaleString('ko-KR') + '원';
 const records = JSON.parse(readFileSync('lib/brand/prediction-records.json','utf8'));
 vars.predictionRecords = records.map(record => '<li><a href="'+record.url+'" target="_blank" rel="noopener noreferrer">'+record.date+' · '+record.title+'</a></li>').join('');

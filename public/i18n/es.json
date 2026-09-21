@@ -594,7 +594,8 @@
       "petSajuDesc": "Cinco elementos y compatibilidad",
       "petSajuAria": "Abrir Saju de mascotas IA",
       "petSajuAlt": "Imagen de Saju de mascotas IA",
-      "promptMakerPrice": "3000-10 000 KRW según el número de cartas"
+      "promptMakerPrice": "3000-10 000 KRW según el número de cartas",
+      "unlock5000": "Desbloquear KRW 5,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
@@ -14306,7 +14307,7 @@
         },
         "1": {
           "title": "Choose a 3-card or 5-card spread",
-          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (7,000 KRW)."
+          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (5,000 KRW)."
         },
         "2": {
           "title": "A reading built around your question",

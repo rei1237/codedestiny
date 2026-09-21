@@ -1,5 +1,7 @@
 "use client";
 
+import { currentPassPlan } from "@/lib/payment/pass-policy.js";
+import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -15,7 +17,6 @@ import {
 } from "@/app/app/_lib/native-billing";
 import { useAppShellCopy, type AppShellCopy, type PassTier } from "@/app/app/_lib/copy";
 // 🔴 순수 상수 테이블이라 클라이언트 번들에 안전하게 들어간다(worker 전용 모듈을 import 하지 않는다).
-import { MONTHLY_PASS_LIMITS_KRW } from "@/worker/lib/profile-limits";
 
 type PassPlan = {
   passTier: PassTier;
@@ -40,12 +41,11 @@ function buildPassPlans(copy: AppShellCopy): PassPlan[] {
   ];
 }
 
-function buildBenefits(copy: AppShellCopy, plan: PassPlan, coverageKRW: number | null): string[] {
-  const monthlyCapKRW = Number(MONTHLY_PASS_LIMITS_KRW[plan.passTier] || 0);
+function buildBenefits(copy: AppShellCopy, plan: PassPlan, _coverageKRW: number | null): string[] {
+  const monthlyCapKRW = Number(currentPassPlan(plan.passTier)?.monthlyLimitCoin || 0) * 100;
   return [
-    coverageKRW
-      ? copy.benefitCoverageFree(`${coverageKRW.toLocaleString("ko-KR")}원`)
-      : copy.benefitAllFree,
+    "꽃돼지 서비스 전용 · 영냥이 제외",
+    copy.benefitCoverageFree(`${((currentPassPlan(plan.passTier)?.maxCoveredCoin || 0) * 100).toLocaleString("ko-KR")}원`),
     copy.benefitMonthlyCap(`${monthlyCapKRW.toLocaleString("ko-KR")}원`),
     plan.profileLabel,
     copy.benefit30Days,
@@ -56,7 +56,8 @@ type PurchaseState = { tier: string; phase: "idle" | "purchasing" | "verifying" 
 
 export default function AppPassStoreClient() {
   const copy = useAppShellCopy();
-  const passPlans = useMemo(() => buildPassPlans(copy), [copy]);
+  const passPlans = useMemo(() => buildPassPlans(copy).filter(p => p.passTier !== "family").map(p => ({ ...p, title: currentPassPlan(p.passTier)!.name, productId: currentPassPlan(p.passTier)!.appProductId })), [copy]);
+  const saleReady = usePassSaleAvailability("googlePlay");
   const [products, setProducts] = useState<Record<string, AppProductDetails>>({});
   const [coverage, setCoverage] = useState<Record<string, number | null>>({});
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -73,7 +74,7 @@ export default function AppPassStoreClient() {
     const coverageByTier: Record<string, number | null> = {};
     await Promise.all(passPlans.map(async (plan) => {
       try {
-        const response = await authFetch(`/api/app-store/products?passTier=${plan.passTier}`, { method: "GET" });
+        const response = await authFetch(`/api/app-store/products?passTier=${plan.passTier}&passPolicyVersion=flower-20260921`, { method: "GET" });
         const payload = await response.json().catch(() => ({}));
         coverageByTier[plan.passTier] = response.ok && payload?.ok
           ? (payload?.data?.product?.coverageKRW ?? null)
@@ -161,7 +162,7 @@ export default function AppPassStoreClient() {
       const intentResponse = await authFetch("/api/app-store/google/intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passTier: plan.passTier }),
+        body: JSON.stringify({ passTier: plan.passTier, productId: plan.productId }),
       });
       const intentPayload = await intentResponse.json().catch(() => ({}));
       if (!intentResponse.ok || !intentPayload?.ok) {
@@ -250,7 +251,7 @@ export default function AppPassStoreClient() {
         : passPlans.map((plan, index) => {
           const detail = products[plan.productId];
           const busy = purchase.tier === plan.passTier;
-          const disabled = purchase.phase !== "idle" || !detail;
+          const disabled = purchase.phase !== "idle" || !detail || !saleReady[plan.passTier];
           return (
             <article
               key={plan.passTier}
@@ -298,7 +299,7 @@ export default function AppPassStoreClient() {
                   style={{ background: "var(--cd-app-gold)", color: "var(--cd-app-on-gold)" }}
                 >
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-                  {busy ? (purchase.phase === "verifying" ? copy.verifyingButton : copy.purchasingButton) : copy.buyButton}
+                  {!saleReady[plan.passTier] ? "판매 준비 중" : busy ? (purchase.phase === "verifying" ? copy.verifyingButton : copy.purchasingButton) : copy.buyButton}
                 </button>
               </div>
             </article>

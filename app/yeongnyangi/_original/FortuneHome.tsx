@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import predictionRecords from "@/lib/brand/prediction-records.json";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
 const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
@@ -348,6 +349,10 @@ export default function FortuneHome() {
               />
             </button>
 
+            <details className="starter-invitation">
+              <summary>실제 10년 경력 · 대통령 운세 예측 기록 보기</summary>
+              <ul>{predictionRecords.map(record => <li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer">{record.date} · {record.title}</a></li>)}</ul>
+            </details>
             <aside className="starter-invitation">
               <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
               <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
@@ -370,11 +375,11 @@ export default function FortuneHome() {
                 <span>Code Destiny 연결</span>
                 <h2 id="ggulggul-title">꽃돼지 연이의 꿀꿀 운세도 함께 볼 수 있어.</h2>
                 <p>
-                  영냥이의 깊은 상담과 꿀꿀 운세의 가벼운 오늘 흐름을 같은 Code Destiny 계정 흐름으로 이어갈게.
+                  영냥이 상담은 1,000~30,000원 단건 결제로, 꽃돼지 전문 상담은 단건 결제와 꽃돼지 전용 이용권으로 만나봐.
                 </p>
                 <div>
-                  <a className="outlined-cta" href="/">
-                    연결 안내 보기 <ArrowRight size={17} />
+                  <a className="outlined-cta" href="/points/">
+                    꽃돼지 이용권 알아보기 <ArrowRight size={17} />
                   </a>
                   <a className="text-link" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
                     꿀꿀 운세로 이동 <ChevronRight size={15} />

@@ -1,0 +1,738 @@
+[
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "physiognomy-compatibility",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "physiognomy-pastlife-compatibility",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "physiognomy-ogwan-mole-deep",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-year-fortune",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-love-relationship",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-reunion-reading",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-myeongri-three-card",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-mindscan",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-celestial-harmony",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-crystal-soul-reading",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-prompt-maker-standard",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-prompt-maker-deep",
+    "before": 7000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-prompt-maker-master",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tarot-ijik",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "royal-tea-oracle",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "cosmic-soul-meditation",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "fortune-tea-house-tarot-five-consultation",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "fortune-tea-house-saju-consultation",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "fortune-tea-house-saju-compatibility-consultation",
+    "before": 20000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "fortune-tea-house-sukuyo-compatibility-consultation",
+    "before": 20000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukuyo-symbolic-comparison",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukuyo-extreme-t-relationship",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukuyo-relationship-encyclopedia",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukuyo-nature-deep-dive",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukuyo-past-life-reading",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukyo_yearly_fortune_unlock",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "compat-astro-synastry",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "compat-astro-direct-synastry",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "compat-ziwei-compatibility",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "compat-saju-compatibility",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "compat-sukuyo-compatibility",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "vedic-compatibility-per-use",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "nakshatra-compat",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "nakshatra-muhurta",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "human-design-report",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "destiny-compass-crossroads",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "destiny-compass-life-voyage",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "destiny-compass-future-sim",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "destiny-compass-deep-report",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "pet-saju-ai-consultation",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "pet-compatibility-ai",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "openGeomancyOracle",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "love-code",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "geomancy",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "stonehengeRunes",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "stonehenge-runes-triad",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "stonehenge-runes-deep",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "stonehenge-runes-yearly",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "animal-totem-deep",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "animal-destiny-unlock",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "saju-guardian-unlock",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "destiny_meeting_place",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "premiumTarot",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "palm-reading-general",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "life-book-ai-consultation",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "saju_ai_question_prompt",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei_ai_prompt_generator",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astrology_ai_prompt_generator",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "vedic_ai_prompt_generator",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "sukuyo_ai_prompt_generator",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "vedic_prashna_prompt",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_career_talent_deep",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_talent_attraction_deep",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_relationship_deep",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_growth_shadow_deep",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_basic_deep_pack",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_stellar_career_room",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_stellar_talent_room",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_stellar_relationship_room",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_stellar_growth_room",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_monthly_transit",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "astro_yearly_transit",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "relationship-boundary-test",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "master-love-codex",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei-island-palace-consult",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei-island-deep-report",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "premium-sibyl-dominator",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei_decade_luck",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei_love_deep",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei_twelve_palaces",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei_symbolic_layer",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "ziwei_life_yearly_flow",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "premium-fpti-report",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "tetogen_deep_report",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "premium-sukuyo-compat-extra",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "rpt_quantumCard",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "rpt_healthReportCard",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "rpt_energyCoordCard",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "rpt_villainCard",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "rpt_secretHouseEntryCard",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_PRICE_TABLE",
+    "key": "fun.quantumLotto.ritualReport",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.love-code",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.section_daewun",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.section_summary",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.section_compat",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.flower_fc",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.olympus_fc",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.travel_destiny",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.health_report",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.saju_guardian",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.tetogen_deep_report",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.secret_house_episodes",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.ziwei_decade_luck",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.ziwei_love_deep",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.ziwei_twelve_palaces",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.ziwei_symbolic_layer",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.ziwei_life_yearly_flow",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.nakshatra_lord_report",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "PIG_COIN_UNLOCK_PRODUCTS",
+    "key": "unlock.nakshatra_dasha_map",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_REASON_COSTS",
+    "key": "neville-meditation",
+    "reason": "openNevilleMeditationPage 60분 코스",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "FEATURE_KEY_REASON_COSTS",
+    "key": "cosmic-soul-meditation",
+    "reason": "openCosmicSoulMeditation 30분 코스",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "FEATURE_KEY_REASON_COSTS",
+    "key": "cosmic-soul-meditation",
+    "reason": "openCosmicSoulMeditation 60분 코스",
+    "before": 20000,
+    "after": 10000
+  },
+  {
+    "table": "FEATURE_KEY_REASON_COSTS",
+    "key": "yoga-guru-per-use",
+    "reason": "openYogaGuru 60분 코스",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "십이운성 동물점 해금",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "사주 가디언 소환진 해금",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "시빌라 도미네이터 리포트",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "점성술 셜럭 시나스트리 궁합",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "점성술 직접 입력 시나스트리 궁합",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "자미두수 궁합 분석",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "사주 궁합 분석",
+    "before": 5000,
+    "after": 3000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "숙요점 유명인 궁합",
+    "before": 10000,
+    "after": 5000
+  },
+  {
+    "table": "COIN_GATE_PER_USE_REASON_COSTS",
+    "key": "숙요점 궁합 분석",
+    "before": 5000,
+    "after": 3000
+  }
+]

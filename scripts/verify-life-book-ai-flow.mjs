@@ -421,7 +421,7 @@ includes("worker/lib/life-book-ai-saju.js", saju, "getYun");
   const lifeBook = FEATURE_KEY_PRICE_TABLE["life-book-ai-consultation"];
   const lifeFortune = FEATURE_KEY_PRICE_TABLE["life-fortune-ai-consultation"];
   assert(FRONTEND_PAID_FEATURE_KEYS.includes("life-fortune-ai-consultation"), "life-fortune-ai-consultation must be exposed to the frontend gate");
-  assert(lifeBook?.cost === 200 && lifeBook?.amountKRW === 20000, "life-book-ai-consultation must stay at 200 coins / 20,000 KRW");
+  assert(lifeBook?.cost === 100 && lifeBook?.amountKRW === 10000, "life-book-ai-consultation must use 100 coins / 10,000 KRW");
   assert(lifeFortune?.cost === 300 && lifeFortune?.amountKRW === 30000, "life-fortune-ai-consultation must be 300 coins / 30,000 KRW");
   assert(isPerUsePaidFeatureKey("life-fortune-ai-consultation") === true, "life-fortune-ai-consultation must be registered as a per-use paid feature");
 }

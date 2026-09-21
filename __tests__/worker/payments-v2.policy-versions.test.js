@@ -1,3 +1,7 @@
+import { jest } from "@jest/globals";
+// Historical order lifecycle fixtures predate the sales cutoff; isolate only new-sale admission.
+// pass-policy-v2.test.js tests closed sales and legacy recovery with the real gate.
+jest.unstable_mockModule("../../worker/lib/pass-sale-policy.js", () => ({ assertPassSaleAllowed: jest.fn(), listCurrentPassOffers: () => [] }));
 /**
  * @jest-environment node
  *
@@ -6,8 +10,8 @@
  */
 import { readFileSync } from "node:fs";
 import { ORDER_POLICY_VERSIONS } from "../../worker/payments/policy-versions.js";
-import { createOrder } from "../../worker/payments/orders.js";
-import { createPassOrder, resolvePassPlan } from "../../worker/payments/passes.js";
+let createOrder;
+let createPassOrder,resolvePassPlan;
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "507f1f77bcf86cd799439011";
@@ -37,4 +41,9 @@ test("단건 주문·이용권 주문이 생성 시점 정책 버전을 남긴�
     const stored = db.rows.find((row) => row.merchantUid === created.merchantUid);
     expect(stored.policyVersions).toEqual({ terms: ORDER_POLICY_VERSIONS.terms, privacy: ORDER_POLICY_VERSIONS.privacy });
   }
+});
+
+beforeAll(async () => {
+  ({ createOrder } = await import("../../worker/payments/orders.js"));
+  ({ createPassOrder, resolvePassPlan } = await import("../../worker/payments/passes.js"));
 });

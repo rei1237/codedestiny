@@ -48,6 +48,7 @@ import {
   COIN_GATE_PER_USE_REASON_COSTS,
 } from "../worker/lib/paid-feature-registry.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
+import { CURRENT_PASS_PLANS } from "../lib/payment/pass-policy.js";
 import { MUSIC_TRACK_UNLOCK_PRICE_KRW } from "../lib/music-access-policy.js";
 import { PASS_LIMITS_KRW, MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
 import { KRW_PER_COIN as COIN_TO_KRW, MEMBERSHIP_CREDIT_PER_COIN } from "../worker/lib/billing-policy.js";
@@ -70,6 +71,9 @@ for (const table of Object.values(FEATURE_KEY_REASON_COSTS)) for (const entry of
 for (const coins of Object.values(COIN_GATE_PER_USE_REASON_COSTS)) add(Number(coins) * COIN_TO_KRW);
 add(MUSIC_TRACK_UNLOCK_PRICE_KRW);
 for (const won of Object.values(PASS_MONTHLY_WON)) add(won);
+for (const plan of Object.values(CURRENT_PASS_PLANS)) {
+  add(plan.wonPrice); add(plan.maxCoveredCoin * 100); add(plan.monthlyLimitCoin * 100);
+}
 for (const won of Object.values(PASS_LIMITS_KRW)) add(won);
 for (const won of Object.values(MONTHLY_PASS_LIMITS_KRW)) add(won);
 

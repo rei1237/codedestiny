@@ -54,6 +54,7 @@ describe("라우트 표", () => {
       "GET /orders/:id",
       "GET /orders/:id/resume",
       "GET /orders/:id/status",
+      "GET /pass-offers",
       "GET /recoveries",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
       "POST /coin-gate/moonstone",
@@ -83,7 +84,7 @@ describe("라우트 표", () => {
 
   test("🔴 카탈로그·결제 설정·webhook 만 신원을 보지 않는다", () => {
     const anonymous = Object.entries(ROUTES).filter(([, r]) => r.auth === "none").map(([k]) => k).sort();
-    expect(anonymous).toEqual(["GET /config", "GET /features", "POST /webhook"]);
+    expect(anonymous).toEqual(["GET /config", "GET /features", "GET /pass-offers", "POST /webhook"]);
   });
 
   test("🔴 webhook 만 원문 본문을 읽는다 — 재직렬화하면 서명이 깨진다", () => {
@@ -431,7 +432,7 @@ describe("전 경로 — 실행기를 주입해 Mongo 없이 돌린다", () => {
     expect(db.ctx.ops).toBe(1);
     const payload = await response.json();
     // 위 PRODUCT 스텁이 아니라 paid-feature-registry 의 실제 가격이 나온다.
-    expect(payload.amountKRW).toBe(20000);
+    expect(payload.amountKRW).toBe(10000);
     expect(payload.order.status).toBe("PENDING");
   });
 

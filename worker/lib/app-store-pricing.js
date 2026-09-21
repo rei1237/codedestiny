@@ -1,3 +1,4 @@
+import { CURRENT_PASS_PLANS, currentPassPlan } from "../../lib/payment/pass-policy.js";
 // 앱(Google Play) 전용 가격표 정본.
 //
 // 웹 가격(worker/lib/paid-feature-registry.js)은 절대 건드리지 않는다.
@@ -70,6 +71,7 @@ const CONTENT_TIER_TABLE = Object.freeze([
 // 동일하다(canUseByPass 가 코인으로 판정하므로). 월 이용 한도는 앱 SKU 필드로는 노출하지
 // 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
 const PASS_TIER_TABLE = Object.freeze([
+  ...Object.keys(CURRENT_PASS_PLANS).map(tier => { const p = currentPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 9900, webAmountKRW: 9900, coinLimit: 50 },
   { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 29900, webAmountKRW: 29900, coinLimit: 100 },
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 59000, webAmountKRW: 59000, coinLimit: 200 },
@@ -114,9 +116,9 @@ export function resolveAppContentTier(coinPrice) {
   return CONTENT_TIER_BY_COIN_PRICE.get(toCoinPrice(coinPrice)) || null;
 }
 
-export function resolveAppPassProduct(passTier) {
+export function resolveAppPassProduct(passTier, policyVersion = "legacy") {
   const tier = String(passTier || "").trim().toLowerCase();
-  return PASS_TIER_TABLE.find((row) => row.passTier === tier) || null;
+  return PASS_TIER_TABLE.find((row) => row.passTier === tier && (row.passPolicyVersion || "legacy") === policyVersion) || null;
 }
 
 /**

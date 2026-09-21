@@ -205,7 +205,9 @@ function extractAll(label, source, patternFor) {
 }
 
 // 사본 1 — 앱 SKU 테이블(모듈이라 직접 읽는다)
-const appPasses = listAppPassProducts();
+const allAppPasses = listAppPassProducts();
+check("신규 앱 이용권 SKU 3개와 기존 4개 보존", allAppPasses.length === 7);
+const appPasses = allAppPasses.filter(pass => !pass.passPolicyVersion || pass.passPolicyVersion === "legacy");
 check("앱 이용권 SKU 4개", appPasses.length === 4, `실제=${appPasses.length}`);
 for (const pass of appPasses) {
   const webLimit = PASS_LIMITS[pass.passTier];

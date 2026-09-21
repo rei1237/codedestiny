@@ -23,7 +23,7 @@ check("registry canonicalizes every legacy Love Code key", () => {
   const product = catalog.resolveProduct({ featureKey: "loveSimulation" });
   assert.deepEqual(
     { productId: product.productId, featureKey: product.featureKey, billingType: product.billingType, priceKRW: product.priceKRW },
-    { productId: "unlock.love-code", featureKey: "love-code", billingType: "unlock", priceKRW: 10000 },
+    { productId: "unlock.love-code", featureKey: "love-code", billingType: "unlock", priceKRW: 5000 },
   );
 });
 

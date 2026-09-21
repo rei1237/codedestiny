@@ -111,8 +111,8 @@ check("🔴 폴백 수용 문턱이 전 유닛에서 최소 분량의 40% 다 (�
 // 결제 정합성
 const entry = registry.FEATURE_KEY_PRICE_TABLE["human-design-report"];
 check("유료 레지스트리에 human-design-report 가 있다", Boolean(entry));
-check("레지스트리 가격이 100코인 / ₩10,000 다",
-  Number(entry?.cost) === 100 && Number(entry?.amountKRW) === 10000, JSON.stringify(entry || {}));
+check("레지스트리 가격이 50코인 / ₩5,000 다",
+  Number(entry?.cost) === 50 && Number(entry?.amountKRW) === 5000, JSON.stringify(entry || {}));
 check("회당 결제로 등록돼 있다", registry.isPerUsePaidFeatureKey("human-design-report"));
 check("🔴 영구 해금이 아니다 (1회 결제로 모든 출생 데이터가 열리는 것을 막는다)",
   !registry.isUnlockPaidFeatureKey("human-design-report"));

@@ -1,0 +1,11 @@
+{
+  "gemini/gemini-2.5-flash": {
+    "reviewedAt": "2026-09-21",
+    "sourceRefs": ["https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash"],
+    "inputUsdPerMillion": 0.3,
+    "cachedInputUsdPerMillion": 0.03,
+    "outputUsdPerMillion": 2.5,
+    "thinkingIncludedInOutput": false,
+    "scope": "Standard text/image/video tokens only. candidatesTokenCount excludes thoughtsTokenCount. Cache storage, grounding, FX and non-token charges are separate. Not sale evidence."
+  }
+}

@@ -1,3 +1,7 @@
+import { jest } from "@jest/globals";
+// Historical order lifecycle fixtures predate the sales cutoff; isolate only new-sale admission.
+// pass-policy-v2.test.js tests closed sales and legacy recovery with the real gate.
+jest.unstable_mockModule("../../worker/lib/pass-sale-policy.js", () => ({ assertPassSaleAllowed: jest.fn(), listCurrentPassOffers: () => [] }));
 /**
  * @jest-environment node
  *
@@ -15,8 +19,8 @@
  *   · 구 billing 재작성 승계: 이용권형 바디가 제네릭 /prepare 로 와도 이용권 경로로 위임된다
  */
 import { readFileSync } from "node:fs";
-import { handlePaymentsContext, __paymentsContextTestUtils } from "../../worker/payments/index.js";
-import { __passesTestUtils, buildPassCustomerUid } from "../../worker/payments/passes.js";
+let handlePaymentsContext,__paymentsContextTestUtils;
+let __passesTestUtils,buildPassCustomerUid;
 import { FOREIGN_CARD_POLICY_VERSION } from "../../worker/payments/foreign-card-policy.js";
 import { ORDER_POLICY_VERSIONS } from "../../worker/payments/policy-versions.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
@@ -644,4 +648,9 @@ describe("해외 발급 카드 판정 스냅숏 (해외카드 1단계 C4)", () =
     expect(replayOff.payload.order.foreignCard).toEqual({ offered: false, reason: "FLAG_OFF", policyVersion });
     expect(stored(replayOff.payload.order)).toMatchObject({ offered: true, reason: "ELIGIBLE" });
   });
+});
+
+beforeAll(async () => {
+  ({ handlePaymentsContext, __paymentsContextTestUtils } = await import("../../worker/payments/index.js"));
+  ({ __passesTestUtils, buildPassCustomerUid } = await import("../../worker/payments/passes.js"));
 });

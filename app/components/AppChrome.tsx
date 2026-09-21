@@ -217,7 +217,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const isImmersiveFortuneRoute = IMMERSIVE_FORTUNE_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const hideChrome = isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const hideChrome = pathname === "/" || isAuthRoute || isImmersiveFortuneRoute || CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const selfManagedNav = FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
   const showFeatureNav = !isAuthRoute && !isImmersiveFortuneRoute && pathname !== HOME_ROUTE && !selfManagedNav && (
     hideChrome

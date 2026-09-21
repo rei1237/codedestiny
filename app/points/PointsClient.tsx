@@ -14,6 +14,8 @@ import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+import { currentPassPlan } from "@/lib/payment/pass-policy.js";
+import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
@@ -239,6 +241,7 @@ type PointHistoryEntry = {
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip" | "family";
 
 type SubscriptionStatus = {
+  passPolicyVersion?: string;
   tier:               SubscriptionTier;
   source?:            "card" | "pass" | "monthly_credit";
   isActive:           boolean;
@@ -697,7 +700,7 @@ const SUBSCRIPTION_BASE_PLANS = [
   },
 ] as const;
 
-const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((base) =>
+const LEGACY_SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((base) =>
   SUBSCRIPTION_DURATION_OPTIONS.map((duration) => ({
     ...base,
     id: `${base.tier}_${duration.months}m`,
@@ -712,6 +715,14 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((
     ),
   }))
 );
+
+const SUBSCRIPTION_PLANS: SubscriptionPlan[] = LEGACY_SUBSCRIPTION_PLANS.filter(p => p.tier !== "family").map(p => {
+  const next = currentPassPlan(p.tier)!;
+  return { ...p, id: next.planId, planId: next.planId, wonPrice: next.wonPrice, baseWonPrice: next.wonPrice,
+    freeUpTo: next.maxCoveredCoin, features: ["꽃돼지 서비스 전용 · 영냥이 제외",
+      `30일 최대 ${(next.monthlyLimitCoin * 100).toLocaleString("ko-KR")}원 상당`,
+      `프로필 최대 ${next.profileLimit}개`, "30일 이용 · 자동갱신 없음"] };
+});
 
 const SUBSCRIPTION_TIER_RANK: Record<SubscriptionTier, number> = {
   free: 0,
@@ -1488,6 +1499,7 @@ function normalizeSubscriptionStatusFromPayload(value: unknown): SubscriptionSta
     tier,
     source: normalizeSubscriptionSource(value.source ?? nested.source),
     isActive,
+    passPolicyVersion: String(value.passPolicyVersion || nested.passPolicyVersion || "legacy"),
     startedAt,
     expiresAt,
     profileLimit: Number.isFinite(profileLimit) && profileLimit >= 0 ? Math.floor(profileLimit) : getSubscriptionPolicyProfileLimit(tier),
@@ -1883,6 +1895,7 @@ function SubscriptionSection({
   copy: PointsPageCopy;
   formatLocale: string;
 }) {
+  const saleReady = usePassSaleAvailability();
   type PlanThemeKey = "amber" | "rose" | "purple";
   const planThemeMap: Record<PlanThemeKey, {
     card: string; label: string; badge: string; freeTag: string; btn: string; icon: string;
@@ -1974,8 +1987,8 @@ function SubscriptionSection({
           </p>
           <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 5,000원/10,000원/20,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 허용된 기능 접근 권한으로만 이용되며, 더 높은 상품의 결제 수단이 아닙니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 5,000원/10,000원/30,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Family 신규 판매는 종료됩니다. 기존 이용권과 선물은 구매 당시 조건을 유지합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
@@ -2076,15 +2089,16 @@ function SubscriptionSection({
       </div>
       )}
 
+      <p className="px-5 pb-4 text-sm">꽃돼지 서비스 전용입니다. 영냥이는 단건 결제로 이용해 주세요. 새 이용권의 가격·한도는 검토 중인 안으로, 판매 시작 시 확정 조건을 안내합니다. 기존 이용권과 선물은 구매 당시 조건을 유지합니다.</p>
       {/* 플랜 카드 */}
-      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-3">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
           const isHighlighted = highlightedPlan === plan.tier;
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
-          const ctaDisabled = isProcessing || lowerTierBlocked;
+          const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== "flower-20260921");
           return (
             <div
               key={plan.id}
@@ -2112,7 +2126,7 @@ function SubscriptionSection({
 
               {/* 플랜 아이콘 & 이름 */}
               <p className="text-xl leading-none">{theme.icon}</p>
-              <p className={`mt-2 text-[12px] font-black uppercase tracking-wider ${theme.label}`}>{copy.planTitles[plan.tier]}</p>
+              <p className={`mt-2 text-[12px] font-black uppercase tracking-wider ${theme.label}`}>{currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]}</p>
 
               {/* 가격 */}
               <p className="mt-2 flex flex-wrap items-center gap-1 text-[17px] font-black leading-snug text-white">
@@ -2176,7 +2190,7 @@ function SubscriptionSection({
                     : `bg-gradient-to-r ${theme.btn}`,
                 ].join(" ")}
               >
-                {isCurrentActive
+                {!saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive
                   ? copy.extendPass
                   : lowerTierBlocked
                     ? copy.lowerTierBlocked
@@ -2188,7 +2202,7 @@ function SubscriptionSection({
                 <ShopPigImage className="h-4 w-4 object-contain" />
                 {GIFT_PROMO_LINE}
               </p>
-              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
+              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing || !saleReady[plan.tier]} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
 
               {lowerTierBlocked && (
                 <p className="mt-2 text-[11px] font-semibold text-violet-700">
@@ -2789,6 +2803,7 @@ function MoonlightShopPlans({
   copy: PointsPageCopy;
   formatLocale: string;
 }) {
+  const saleReady = usePassSaleAvailability();
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
   const overseasCharge = useOverseasCharge();
 
@@ -2797,7 +2812,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
-          <h2 className="mt-2 text-2xl font-black text-white">판매 중인 달빛 이용권</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">꽃돼지 전용 이용권 3종</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2819,18 +2834,18 @@ function MoonlightShopPlans({
           const isHighlighted = highlightedPlan === plan.tier;
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
-          const ctaDisabled = isProcessing || lowerTierBlocked;
+          const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== "flower-20260921");
           const features = plan.features.slice(0, 3).map((feature) => copy.planFeatures[plan.tier]?.[feature] || feature);
 
           return (
             <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
               <div className="grid gap-4 sm:grid-cols-[82px_1fr_auto] sm:items-center">
                 <div className="flex h-20 w-20 items-center justify-center rounded-[20px] border border-[color:var(--moon-rim)] bg-[rgba(8,9,26,0.42)]">
-                  <MoonIcon phase={getMoonlightPlanPhase(plan)} className="h-16 w-16" title={copy.planTitles[plan.tier]} />
+                  <MoonIcon phase={getMoonlightPlanPhase(plan)} className="h-16 w-16" title={currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]} />
                 </div>
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-black text-white">{copy.planTitles[plan.tier]}</h3>
+                    <h3 className="text-lg font-black text-white">{currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]}</h3>
                     {plan.badge && !isCurrentActive ? (
                       <span className="rounded-full bg-[rgba(129,140,248,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-family)]">
                         {copy.planBadges[plan.badge] || plan.badge}
@@ -2863,13 +2878,13 @@ function MoonlightShopPlans({
                     disabled={ctaDisabled}
                     className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
-                    {isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
+                    {!saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
                   </button>
               <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]">
                 <ShopPigImage className="h-4 w-4 object-contain" />
                 {GIFT_PROMO_LINE}
               </p>
-              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
+              <button type="button" onClick={() => onGift(plan)} disabled={isProcessing || !saleReady[plan.tier]} className="mt-1 min-h-11 w-full rounded-xl border border-current px-3 py-2 text-sm font-bold disabled:opacity-50">🎁 선물하기</button>
                   {lowerTierBlocked ? (
                     <p className="text-right text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
                   ) : null}
@@ -3030,7 +3045,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)도 이용권 기간 안에서 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
+      꽃돼지 서비스 전용 이용권입니다. 영냥이는 단건 결제로 이용해 주세요. 신규 가격과 한도는 검토 중이며 판매 시작 시 확정 조건을 안내합니다. Family 신규 판매는 종료되며 기존 구매와 선물은 원래 조건을 유지합니다.
     </section>
   );
 }
@@ -5182,7 +5197,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 3만원 이상 상담(초융합 포함)도 이용권 기간 안에서 포함하며, 이용권은 원화 단건 결제로만 구매할 수 있습니다.
+          꽃돼지 서비스 전용 이용권입니다. 영냥이는 단건 결제로 이용해 주세요. 신규 가격과 한도는 검토 중이며 판매 시작 시 확정 조건을 안내합니다. Family 신규 판매는 종료되며 기존 구매와 선물은 원래 조건을 유지합니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">

@@ -233,8 +233,9 @@ function createNextConfig(phase) {
       ];
       // beforeFiles also intercepts existing app/api routes (which can use live DB).
       return mockDev
-        ? { beforeFiles: [...staticPolicyRewrites(), ...apiRewrites], afterFiles: [], fallback: [] }
-        : { beforeFiles: staticPolicyRewrites(), afterFiles: apiRewrites, fallback: [] };
+        ? { beforeFiles: [...staticPolicyRewrites(),
+          { source: "/ggulggul", destination: "/ggulggul/index.html" }, ...apiRewrites], afterFiles: [], fallback: [] }
+        : { beforeFiles: [...staticPolicyRewrites(), { source: "/ggulggul", destination: "/ggulggul/index.html" }], afterFiles: apiRewrites, fallback: [] };
     };
   }
 

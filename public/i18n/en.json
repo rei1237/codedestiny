@@ -594,7 +594,8 @@
       "petSajuDesc": "Five elements & pet compatibility",
       "petSajuAria": "Open AI Pet Saju",
       "petSajuAlt": "AI Pet Saju cover image",
-      "promptMakerPrice": "KRW 3,000-10,000 by card count"
+      "promptMakerPrice": "KRW 3,000-10,000 by card count",
+      "unlock5000": "Unlock KRW 5,000"
     },
     "destinyFlowerStudio": {
       "closeAria": "Close Destiny Flower Atelier",
@@ -14306,7 +14307,7 @@
         },
         "1": {
           "title": "Choose a 3-card or 5-card spread",
-          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (7,000 KRW)."
+          "detail": "Pick the quick 3-card spread (5,000 KRW) for the essentials, or the deeper 5-card spread (5,000 KRW)."
         },
         "2": {
           "title": "A reading built around your question",

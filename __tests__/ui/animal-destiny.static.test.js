@@ -64,9 +64,9 @@ test("animal data order contains 12 unique ids", () => {
   }
 });
 
-test("unlock pricing is registered as 100 coins in worker registry", () => {
+test("unlock pricing is registered as 50 coins in worker registry", () => {
   const src = read("worker/lib/paid-feature-registry.js");
-  assert.ok(src.includes('"animal-destiny-unlock": { cost: 100'), "가격 정본에서 100코인이 사라졌다");
+  assert.ok(src.includes('"animal-destiny-unlock": { cost: 50'), "가격 정본에서 50코인이 사라졌다");
   // "unlock.animal_destiny" 별칭 키는 제거됐다 — 레포 전체에서 참조가 0건이고, 클라이언트는
   // featureKey("animal-destiny-unlock")를 직접 쓴다(js/core/saju/reportDashboard.js lockKey).
   // 대신 영구 해금으로 등록돼 있는지를 본다. 그게 이 기능의 실제 과금 계약이다.

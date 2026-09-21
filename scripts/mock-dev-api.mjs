@@ -55,6 +55,10 @@ export function createMockApiServer() {
       }
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
+      if (route === 'GET /api/payments/pass-offers') {
+        const { listCurrentPassOffers } = await import('../worker/lib/pass-sale-policy.js');
+        return send(200, { ok: true, offers: listCurrentPassOffers(url.searchParams.get('channel') === 'googlePlay' ? 'googlePlay' : 'web') });
+      }
       if (route === 'GET /api/health') return send(200, { ok: true, mode: 'mock' });
       if (route === 'POST /api/auth/login') loggedIn = true;
       if (route === 'POST /api/auth/logout') { loggedIn = false; return send(200, { ok: true }); }

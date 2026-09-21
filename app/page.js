@@ -5,7 +5,8 @@ import {
   buildWebPageJsonLd,
 } from "../lib/structured-data";
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
-import HomeRedirectToStatic from "./HomeRedirectToStatic";
+import YeongnyangiHome from "./yeongnyangi/_components/Home";
+import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import styles from "./home-cosmic.module.css";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
@@ -55,14 +56,14 @@ function homePageText(key) {
 
 const sourcePage = publicSeoPages.home;
 const HOME_SEO = {
-  title: "꿀꿀 운세 | 무료 사주팔자·타로·궁합 — Code Destiny",
+  title: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
   description:
-    "꿀꿀 운세(구 꿀꿀 만세력) — 생년월일 하나로 무료 사주팔자, 타로, 궁합, 자미두수, 신년운세까지. 코드 데스티니(Code Destiny).",
-  ogTitle: "꿀꿀 운세 | 무료 사주·타로·궁합 — Code Destiny",
+    "영냥이와 함께 사주, 타로, 궁합의 흐름을 살펴보세요. 무료 운세부터 1,000~30,000원 단건 상담, 꽃돼지 전문 상담까지 CODE DESTINY에서 만나보세요.",
+  ogTitle: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
   ogDescription:
-    "꿀꿀 운세 — 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 재밌고 정확하게 보는 코드 데스티니 공식 서비스.",
+    "영냥이의 사주·타로·궁합과 꽃돼지 전문 상담을 만나는 CODE DESTINY 공식 서비스.",
   url: "https://code-destiny.com/",
-  image: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
+  image: "https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png",
 };
 
 const page = {
@@ -101,8 +102,8 @@ export const metadata = {
     images: [
       {
         url: HOME_SEO.image,
-        width: 1200,
-        height: 630,
+        width: 800,
+        height: 800,
         alt: HOME_SEO.ogTitle,
       },
     ],
@@ -229,26 +230,21 @@ export default function HomePage() {
     path: page.path,
   });
 
-  // 🔴 아래 섹션 마크업을 지우지 말 것.
-  // 홈("/")은 정적 메인 셸이 담당하고 이 React 화면은 사용자에게 노출되지 않는다
-  // (HomeRedirectToStatic 이 정적 홈으로 되돌린다. 소개 콘텐츠는 /about 으로 합쳤다).
-  // 그런데 배포 게이트 scripts/verify-adsense-readiness.mjs 는 out·dist 양쪽을 검사하고,
-  // "/" 는 AdSense 비대상이면서 색인 대상이라 렌더 텍스트 1,800자 하한이 걸린다
-  // (verifyBlockedIndexableSitemapRouteQuality). 현재 out/index.html 실측 3,145자 —
-  // 이 섹션들을 줄이면 빌드가 실패해 배포 자체가 막힌다.
+  // 영냥이가 메인을 담당하고, 기존 서비스 안내는 펼쳐 읽을 수 있다.
+  // 결제 복귀와 이전 공유 링크만 꽃돼지 정적 셸로 이어진다.
   return (
     <>
-      {/* 되돌림 오버레이는 main 밖에 둔다. main(.pageWrap)이 `isolation: isolate` 로 자체
-          스택 컨텍스트를 만들어, 그 안에서는 z-index 를 아무리 올려도 레이아웃의 글로벌
-          헤더·푸터·하단 네비를 덮지 못한다(= React 화면이 그대로 비친다). */}
-      <HomeRedirectToStatic />
-      <main className={styles.pageWrap}>
+      <LegacyHomeEntry />
+      <YeongnyangiHome />
+      <details className={styles.pageWrap}>
+      <summary>CODE DESTINY 서비스와 이용 안내</summary>
+      <section>
       <div className={styles.starLayer} aria-hidden />
 
       <section className={styles.heroSection} aria-labelledby="reactHomeHeroTitle">
         <div className={styles.heroCopy}>
           <p className={styles.heroKicker}>Code Destiny / 꿀꿀 운세</p>
-          <h1 id="reactHomeHeroTitle" className={styles.heroTitle}>{page.h1}</h1>
+          <h2 id="reactHomeHeroTitle" className={styles.heroTitle}>꽃돼지 운세와 CODE DESTINY 안내</h2>
           <p className={styles.heroLead}>
             꿀꿀 만세력으로 시작한 흐름 위에 사주, 타로, 자미두수, 궁합, 신년운세가 한곳에 모입니다.
             생년월일 하나로 오늘 당신에게 열린 운의 결을 차분히 살펴보세요.
@@ -352,7 +348,8 @@ export default function HomePage() {
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
-      </main>
+      </section>
+      </details>
     </>
   );
 }

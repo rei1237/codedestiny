@@ -46,7 +46,7 @@ const { FEATURE_KEY_PRICE_TABLE, getPaidFeatureBillingType, PAID_FEATURE_BILLING
 
 // 개인판(solo) / 궁합판(compat) 두 SKU. 궁합은 상대 명식·명반까지 4장을 근거로 삼아 상위 가격이다.
 const SKUS = [
-  { key: FEATURE_KEY, cost: 200, amountKRW: 20000, label: "개인판" },
+  { key: FEATURE_KEY, cost: 100, amountKRW: 10000, label: "개인판" },
   { key: COMPAT_FEATURE_KEY, cost: 300, amountKRW: 30000, label: "궁합판" },
 ];
 
@@ -257,7 +257,7 @@ const {
 } = await import("../worker/lib/master-love-codex-compat-prompt.mjs");
 
 const CHAPTER_SETS = [
-  { label: "개인판", chapters: MASTER_LOVE_CODEX_CHAPTERS, meta: MASTER_LOVE_CODEX_META, plan: getMasterLoveCodexPlan(), costCoins: 200 },
+  { label: "개인판", chapters: MASTER_LOVE_CODEX_CHAPTERS, meta: MASTER_LOVE_CODEX_META, plan: getMasterLoveCodexPlan(), costCoins: 100 },
   { label: "궁합판", chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS, meta: MASTER_LOVE_CODEX_COMPAT_META, plan: getMasterLoveCodexCompatPlan(), costCoins: 300 },
 ];
 

@@ -130,7 +130,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(50);
+    expect(priced.cost).toBe(30);
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
@@ -145,7 +145,7 @@ describe("Fortune coin access guard", () => {
 
     expect(priced.ok).toBe(true);
     expect(priced.featureKey).toBe("neville-meditation");
-    expect(priced.cost).toBe(50);
+    expect(priced.cost).toBe(30);
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
@@ -162,7 +162,7 @@ describe("Fortune coin access guard", () => {
     expect(priced.featureKey).toBe("cosmic-soul-meditation");
     // 60분 코스 200코인(20,000원). requestedCost 를 무시하고 서버 표를 쓴다는 것이 이 테스트의 요점이라,
     // 표가 표시가와 어긋나면 그 어긋난 금액이 그대로 차감된다(2026-05-30~2026-08-17 절반 차감).
-    expect(priced.cost).toBe(200);
+    expect(priced.cost).toBe(100);
     expect(priced.pricingSource).toBe("feature-reason");
   });
 
@@ -176,7 +176,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(50);
+    expect(priced.cost).toBe(30);
     expect(priced.featureKey).toBe("animal-totem-deep");
   });
 
@@ -218,7 +218,7 @@ describe("Fortune coin access guard", () => {
     });
 
     expect(priced.ok).toBe(true);
-    expect(priced.cost).toBe(100);
+    expect(priced.cost).toBe(50);
     expect(priced.pricingSource).toBe("unlock-feature");
   });
 

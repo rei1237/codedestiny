@@ -3,6 +3,7 @@
 // billing-feature-registry.js)이 이미 있어서 import 경로는 그대로 살려 둔다.
 // billing-policy.js 는 import·env·전역이 없는 순수 상수 모듈이라 클라이언트 번들
 // (app/app/store/AppPassStoreClient.tsx 가 이 파일을 import 한다)에 들어가도 안전하다.
+import { CURRENT_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
 import { KRW_PER_COIN } from "./billing-policy.js";
 
 export { KRW_PER_COIN };
@@ -109,6 +110,17 @@ export const PASS_LIMITS = Object.freeze({
   [PASS_TIERS.FAMILY]: FAMILY_PASS_MAX_COVERED_COIN,
 });
 
+export function resolvePassPolicy(subscription = {}, tierInput) {
+  const tier = normalizePassTier(tierInput || subscription?.passTier || subscription?.tier);
+  const version = passPolicyVersion(subscription);
+  if (version === CURRENT_PASS_POLICY_VERSION) {
+    const plan = currentPassPlan(tier);
+    return plan ? { ...HONEY_PASS_POLICY[tier], maxCoveredCoin: plan.maxCoveredCoin,
+      monthlyCoveredCoin: plan.monthlyLimitCoin, maxProfiles: plan.profileLimit, passPolicyVersion: version } : null;
+  }
+  return version === LEGACY_PASS_POLICY_VERSION ? HONEY_PASS_POLICY[tier] || null : null;
+}
+
 export const PASS_LIMITS_KRW = Object.freeze({
   [PASS_TIERS.STANDARD]: PASS_LIMITS[PASS_TIERS.STANDARD] * KRW_PER_COIN,
   [PASS_TIERS.PREMIUM]: PASS_LIMITS[PASS_TIERS.PREMIUM] * KRW_PER_COIN,
@@ -148,7 +160,7 @@ export const MONTHLY_PASS_LIMITS_KRW = Object.freeze({
  */
 export function resolveMonthlyPassLimitCoin(profileSubscription, tierInput, cycleKey) {
   const tier = normalizePassTier(tierInput);
-  const baseCoin = tier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0))) : 0;
+  const baseCoin = tier ? Math.max(0, Math.floor(Number(resolvePassPolicy(profileSubscription, tier)?.monthlyCoveredCoin || 0))) : 0;
   if (!(baseCoin > 0)) return 0;
   const storedKey = String(profileSubscription?.premiumUseCycleKey || "");
   if (!cycleKey || storedKey !== cycleKey) return baseCoin;
@@ -216,9 +228,9 @@ export function computePassExpiry({ transition, paidAt, now = new Date(), durati
  * 그 암묵 리셋이 통하지 않으므로(키가 어긋나면 한도도 기본값으로 떨어진다) 활성화가
  * 키를 **명시적으로** 적어야 한다.
  */
-export function buildPassCycleFields({ priorSubscription, tier: tierInput, expiresAt, now = new Date() } = {}) {
+export function buildPassCycleFields({ priorSubscription, tier: tierInput, expiresAt, now = new Date(), passPolicyVersion: policyVersion = LEGACY_PASS_POLICY_VERSION } = {}) {
   const tier = normalizePassTier(tierInput);
-  const baseCoin = tier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0))) : 0;
+  const baseCoin = tier ? Math.max(0, Math.floor(Number(resolvePassPolicy({ passPolicyVersion: policyVersion }, tier)?.monthlyCoveredCoin || 0))) : 0;
   const nextExpiresAt = expiresAt ? new Date(expiresAt) : null;
   const cycleKey = nextExpiresAt && Number.isFinite(nextExpiresAt.getTime()) ? nextExpiresAt.toISOString() : "";
   if (!cycleKey || !(baseCoin > 0)) {
@@ -256,7 +268,7 @@ export function buildPassCycleFields({ priorSubscription, tier: tierInput, expir
 export function buildPassRewindCycleFields({ subscription, rewoundExpiresAt, tier: tierInput } = {}) {
   const sub = subscription && typeof subscription === "object" ? subscription : {};
   const tier = normalizePassTier(tierInput || sub.passTier || sub.tier);
-  const baseCoin = tier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0))) : 0;
+  const baseCoin = tier ? Math.max(0, Math.floor(Number(resolvePassPolicy(sub, tier)?.monthlyCoveredCoin || 0))) : 0;
   const rewound = rewoundExpiresAt ? new Date(rewoundExpiresAt) : null;
   const current = sub.expiresAt ? new Date(sub.expiresAt) : null;
   const currentKey = current && Number.isFinite(current.getTime()) ? current.toISOString() : "";
@@ -312,16 +324,16 @@ export const MIN_PASS_COVERABLE_COIN = 30; // 3,000원
  * 이 등급의 월 한도가 소진됐는가(= 잔여로 열 수 있는 유료 항목이 없는가).
  * 판정과 소비 양쪽이 같은 답을 내야 하므로 여기 하나만 쓴다.
  */
-export function isPassBudgetExhausted(tier, usedCoin, limitCoin) {
+export function isPassBudgetExhausted(tier, usedCoin, limitCoin, subscription = {}) {
   const normalizedTier = normalizePassTier(tier);
-  const baseCoin = normalizedTier ? Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[normalizedTier] || 0))) : 0;
+  const baseCoin = normalizedTier ? Math.max(0, Math.floor(Number(resolvePassPolicy(subscription, normalizedTier)?.monthlyCoveredCoin || 0))) : 0;
   // 재구매로 쌓인 한도(resolveMonthlyPassLimitCoin)를 넘겨받으면 그것이 이번 사이클의 예산이다.
   // 넘기지 않거나 기본 한도보다 작으면 등급 기본값을 쓴다 — 종료를 **앞당기는** 방향으로는 안 움직인다.
   const overrideCoin = Math.floor(Number(limitCoin));
   const budgetCoin = Number.isFinite(overrideCoin) && overrideCoin > baseCoin ? overrideCoin : baseCoin;
   if (budgetCoin <= 0) return false; // 한도를 못 세는 상태는 종료시키지 않는다.
   const used = Math.max(0, Math.floor(Number(usedCoin || 0)));
-  const perItemLimit = Math.max(0, Math.floor(Number(PASS_LIMITS[normalizedTier] || 0)));
+  const perItemLimit = Math.max(0, Math.floor(Number(resolvePassPolicy(subscription, normalizedTier)?.maxCoveredCoin || 0)));
   // 건당 상한이 최저가보다 낮은 등급이 생기면 그 등급은 애초에 최저가 상품도 못 연다.
   const threshold = Math.max(1, Math.min(MIN_PASS_COVERABLE_COIN, perItemLimit || MIN_PASS_COVERABLE_COIN));
   return budgetCoin - used < threshold;
@@ -586,11 +598,13 @@ export function normalizeHoneyPassEntitlement(userOrSubscription = {}) {
     const isActive = !explicitInactive && (expiresAt ? dateActive : explicitActive);
     if (!isActive) continue;
 
-    const policy = HONEY_PASS_POLICY[tier];
+    const policy = resolvePassPolicy(source, tier);
+    if (!policy) continue;
 
     const candidate = {
       tier,
       passTier: policy.passTier,
+      passPolicyVersion: passPolicyVersion(source),
       passLabel: policy.label,
       passColorTone: PASS_TIER_UI[policy.passTier] || null,
       label: policy.label,
@@ -759,8 +773,9 @@ export function canUseByPass(activePass, coinCost) {
   if (!activePass || activePass.isActive !== true) return false;
   if (expiresAt && Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() < Date.now()) return false;
   const passTier = normalizePassTier(activePass.passTier || activePass.tier);
+  if (!resolvePassPolicy(activePass, passTier)) return false;
   if (passTier === PASS_TIERS.FAMILY) return Number.isFinite(price) && price >= 0;
-  const limit = PASS_LIMITS[passTier] || Number(activePass.maxCoveredCoin || 0);
+  const limit = resolvePassPolicy(activePass, passTier)?.maxCoveredCoin || 0;
   return Boolean(
     Number.isFinite(price)
       && price > 0

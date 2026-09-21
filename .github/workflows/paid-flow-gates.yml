@@ -181,6 +181,14 @@ on:
       - "public/zh/index.html"
       - "public/zh-tw/index.html"
       - "public/static/index.html"
+      - "public/ggulggul/index.html"
+      - "lib/payment/pass-policy.js"
+      - "lib/payment/pass-profitability.js"
+      - "lib/payment/pass-economics.mjs"
+      - "lib/payment/pass-cost-evidence.js"
+      - "worker/lib/pass-sale-policy.js"
+      - "worker/lib/pass-cost-catalog.js"
+      - "app/hooks/usePassSaleAvailability.ts"
       # ── 결제창 문구 사전 ───────────────────────────────────
       # 🔴 verify:payment-choice-parity 는 결제창 키 39개가 12개 로케일 전부에 값이 있는지,
       #    그리고 각 렌더러의 ko 폴백이 ko.json 과 같은지를 이 파일들을 **열어서** 단언한다.

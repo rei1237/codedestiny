@@ -65,6 +65,7 @@ import {
   isPassBudgetExhausted,
   normalizePassTier,
   PASS_LIMITS,
+  resolvePassPolicy,
   HONEY_PASS_POLICY,
   resolveMonthlySpendQuota,
   resolvePremiumQuota,
@@ -603,12 +604,12 @@ function isPassExcludedPricing(pricing = {}) {
   return PASS_EXCLUDED_FEATURE_KEYS.has(String(pricing?.featureKey || "").trim()) || isDirectOnlyPricing(pricing);
 }
 
-function resolvePassPolicyForTier(tierRaw) {
+function resolvePassPolicyForTier(tierRaw, subscription = {}) {
   const tier = normalizePassTier(tierRaw);
   if (!tier) return null;
   return {
     tier,
-    maxCoinLimit: Number(PASS_LIMITS[tier] || 0),
+    maxCoinLimit: Number(resolvePassPolicy(subscription, tier)?.maxCoveredCoin || 0),
   };
 }
 
@@ -645,7 +646,7 @@ function resolveTierPassUsageSnapshot(profileSubscription = {}, entitlement = {}
       || profileSubscription?.passTier
       || profileSubscription?.tier,
   );
-  const policy = resolvePassPolicyForTier(tier);
+  const policy = resolvePassPolicyForTier(tier, profileSubscription);
   if (!policy) return null;
   if (policy.tier === "family") {
     return {
@@ -701,7 +702,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     .lean();
   const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   const usage = resolveTierPassUsageSnapshot(user?.profileSubscription || {}, entitlement);
-  const policy = resolvePassPolicyForTier(usage?.tier);
+  const policy = resolvePassPolicyForTier(usage?.tier, user?.profileSubscription);
 
   // 멱등: 이미 이 마커로 통과한 요청이면 재기록 없이 같은 결과를 되돌린다(추가 왕복 없음).
   if (
@@ -944,6 +945,7 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
     usage.tier,
     updatedUser?.profileSubscription?.monthlySpendCoin,
     monthlyQuota.limitCoin,
+    updatedUser?.profileSubscription,
   )) {
     const terminationSet = {};
     const fields = buildPassTerminationFields({

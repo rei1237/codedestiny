@@ -222,6 +222,7 @@
         userId: uid,
         state: state,
         tier: state === "active" ? tier : "free",
+        passPolicyVersion: text(parsed.passPolicyVersion) || "legacy",
         expiresAt: state === "active" ? expiresAt : null,
         checkedAt: checkedAt,
         purchaseVersion: text(parsed.purchaseVersion),
@@ -265,7 +266,7 @@
     if (normalizeDate(sub.premiumUseCycleKey) !== expiresAt) return NaN;
     var spend = numberOrNaN(sub.monthlySpendCoin);
     if (!Number.isFinite(spend)) return NaN;
-    var baseLimit = monthlyLimitForTier(tier);
+    var baseLimit = sub.passPolicyVersion === "flower-20260921" ? ({ standard: 200, premium: 500, vvip: 900 }[tier] || 0) : sub.passPolicyVersion && sub.passPolicyVersion !== "legacy" ? 0 : monthlyLimitForTier(tier);
     if (!(baseLimit > 0)) return NaN;
     var storedLimit = numberOrNaN(sub.monthlyLimitCoin);
     var limitCoin = Number.isFinite(storedLimit) && storedLimit > baseLimit ? storedLimit : baseLimit;
@@ -342,6 +343,7 @@
       userId: normalizeUserId(userId),
       state: state,
       tier: state === "active" ? tier : "free",
+      passPolicyVersion: text(data.passPolicyVersion || (data.profileSubscription || {}).passPolicyVersion || nested.passPolicyVersion || membership.passPolicyVersion) || "legacy",
       expiresAt: state === "active" ? expiresAt : null,
       checkedAt: Date.now(),
       purchaseVersion: text(
@@ -377,6 +379,7 @@
         if (
           prior && prior.state === "active"
           && prior.tier === snapshot.tier
+          && prior.passPolicyVersion === (snapshot.passPolicyVersion || "legacy")
           && (!snapshot.expiresAt || prior.expiresAt === snapshot.expiresAt)
           && Number.isFinite(prior.monthlySpendRemainingCoin)
           && Number.isFinite(prior.monthlyCheckedAt)
@@ -390,6 +393,7 @@
         userId: uid,
         state: snapshot.state,
         tier: snapshot.tier,
+        passPolicyVersion: snapshot.passPolicyVersion || "legacy",
         expiresAt: snapshot.expiresAt || null,
         checkedAt: Number(snapshot.checkedAt) || Date.now(),
         purchaseVersion: text(snapshot.purchaseVersion),
@@ -472,7 +476,7 @@
       return result;
     }
     if (snapshot.state !== "active") return result;
-    var limit = passLimitForTier(snapshot.tier);
+    var limit = snapshot.passPolicyVersion === "flower-20260921" ? ({ standard: 50, premium: 100, vvip: 300 }[snapshot.tier] || 0) : snapshot.passPolicyVersion && snapshot.passPolicyVersion !== "legacy" ? 0 : passLimitForTier(snapshot.tier);
     result.passLimit = limit;
     result.hasActivePass = true;
     if (!(limit > 0)) return result;

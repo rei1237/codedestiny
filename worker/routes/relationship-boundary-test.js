@@ -16,8 +16,8 @@ import { runRelationshipDelivery, findRelationshipResult, relationshipPending, r
 const FEATURE_KEY = "relationship-boundary-test";
 const SERVICE_KEY = "relationship-boundary-test";
 const ORDER_NAME = "그 사람의 바람끼 테스트";
-const COST = 100;
-const AMOUNT_KRW = 10000;
+const COST = 50;
+const AMOUNT_KRW = 5000;
 
 const clean = (value, max = 0) => {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();

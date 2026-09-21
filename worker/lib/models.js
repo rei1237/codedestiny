@@ -131,6 +131,7 @@ const userSchema = new mongoose.Schema({
     tier: { type: String, enum: ["free", "standard", "premium", "vvip", "family"], default: "free" },
     source: { type: String, enum: ["coin", "card", "pass", "event"], default: "coin" },
     planId: { type: String, default: "", trim: true },
+    passPolicyVersion: { type: String, default: "legacy", trim: true },
     productType: { type: String, default: "", trim: true },
     durationMonths: { type: Number, default: 0, min: 0 },
     profileLimit: { type: Number, default: 1, min: 0 },
