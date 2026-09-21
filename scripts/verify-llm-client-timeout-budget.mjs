@@ -35,6 +35,7 @@ function instantFailFetch(status) {
   return {
     calls,
     fetch: async (url, init) => {
+      if (String(url).includes(":countTokens")) return fakeResponse(200, { totalTokens: 1200 });
       calls.push({ url, init });
       return fakeResponse(status, { error: { message: `boom ${status}` } });
     },
@@ -47,6 +48,7 @@ function instantOkFetch(text) {
   return {
     calls,
     fetch: async (url, init) => {
+      if (String(url).includes(":countTokens")) return fakeResponse(200, { totalTokens: 1200 });
       calls.push({ url, init });
       return fakeResponse(200, geminiOkBody(text));
     },
@@ -63,6 +65,9 @@ function hangingUntilAbortFetch() {
   return {
     calls,
     fetch: (url, init) => {
+      if (String(url).includes(":countTokens")) {
+        return Promise.resolve(fakeResponse(200, { totalTokens: 1200 }));
+      }
       calls.push({ url, init });
       return new Promise((_, reject) => {
         const signal = init?.signal;
@@ -215,7 +220,9 @@ await isolated(async () => {
 });
 
 await isolated(async () => {
-  globalThis.fetch = async () => fakeResponse(200, { candidates: [{ content: { parts: [
+  globalThis.fetch = async (url) => fakeResponse(200, String(url).includes(":countTokens")
+    ? { totalTokens: 1200 }
+    : { candidates: [{ content: { parts: [
     { thought: true, text: "내부 해석 계획" }, { text: '{"body":"완성된 원고"}' },
   ] }, finishReason: "STOP" }] });
   const result = await callLLM({ prompt: "thought parts fixture", timeoutMs: 1000, fallbackToWorkersAI: false });
