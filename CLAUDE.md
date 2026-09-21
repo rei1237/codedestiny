@@ -64,7 +64,7 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 - 검색·삭제: [search-discipline](docs/context/search-discipline.md)
 - 명령·예외: [reference-basics](docs/context/reference-basics.md)
 
-홈 정본은 index.html, public 미러는 sync:public으로 생성한다.
+영냥이 홈 `/` 정본은 app/page.js와 영냥이 컴포넌트다. 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. Pages 준비 단계에서 영냥이 루트를 정적 셸로 덮어쓰지 않는다.
 결제 진입은 로컬 스냅샷, 서버 이용권 판정은 결제창에서. 단건은 사용자의 선택 후에만.
 이용권·월정석·단건 결제 용어와 정책을 유지한다. 동결 파일 변경은 payment-freeze 절차를 따른다.
 Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.

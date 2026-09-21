@@ -82,8 +82,7 @@
 /stories/code-destiny/*           /stories/            301
 
 # ── 브랜드/핵심 서비스 별칭 ───────────────────────────────────────────────
-/ggulggul                      /manse/                   301
-/ggulggul/*                    /manse/                   301
+# /ggulggul/ is now the flower service home, served from its own static HTML.
 /ggulggul-manse                /manse/                   301
 /ggulggul-manse/*              /manse/                   301
 /code-destiny                  /                         301

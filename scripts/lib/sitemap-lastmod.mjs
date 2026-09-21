@@ -54,28 +54,10 @@ const SPECIFIER_PATTERNS = [
 // 의존으로 따라가면 타입 선언만 공유한 정적 허브까지 운세 데이터의 휘발성을 상속한다.
 const TYPE_ONLY_IMPORT_RE = /\b(?:import|export)\s+type\b[\s\S]*?\bfrom\s*["'][^"']+["']\s*;?/g;
 
-/**
- * 정적 셸(index.html)이 본문인 라우트.
- *
- * CLAUDE.md: "홈 `/` 은 정적 셸 index.html 의 승격본이다 — 홈 콘텐츠·메타는 app/page.js 가 아니라
- * 정적 셸에 둔다." 로케일 루트도 같다 — sync-legacy-static-to-public.mjs 가 index.html 을 복제하고
- * applyLocaleSeoMeta 로 head 를 갈아 끼운 것이 /ja·/zh·/zh-tw·/en 의 실체다.
- * app 페이지 파일만 해싱하면 셸 본문이 통째로 바뀌어도 서명이 그대로다.
- */
+/** Locale roots still render the legacy shell; / now renders the Yeongnyangi App Router page. */
 const SHELL_BACKED_PAGES = new Set(["app/[locale]/page.js"]);
 
-/**
- * App Router 페이지가 **아예 없고** 정적 셸 하나가 본문 전부인 라우트.
- *
- * `/` 와는 다르다 — 홈은 `app/page.js` 가 존재하고 셸이 그것을 덮는 구조라 위
- * `SHELL_BACKED_PAGES` 로 다룬다. `/fortune` 은 라우트 자체가 없고 `fortune/index.html`
- * 이 곧 페이지다. 그래서 `matchAppPage` 가 해석에 실패하고 fail-closed 로 빌드를 세운다.
- *
- * 🔴 셸 파일만 해싱하면 안 된다. 이 셸은 `scripts/build-fortune-hub-shell.mjs` 가
- * `lib/fortune/{sign-profiles,periods}` 에서 생성한 산출물이라, 소스가 바뀌었는데 셸을
- * 다시 만들지 않은 상태에서는 lastmod 가 조용히 멈춘다. 생성기와 그 입력을 함께 넣는다
- * (셸을 다시 만들지 않은 것 자체는 `verify:fortune-hub-shell` 가 따로 막는다).
- */
+/** Generated static routes without an App Router page: hash their source and generator inputs. */
 const STANDALONE_SHELL_ROUTES = new Map([
   ["/ggulggul", ["index.html", "scripts/sync-legacy-static-to-public.mjs"]],
   [
