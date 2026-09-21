@@ -116,7 +116,7 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
 }
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
-  return withMongoRetry(env, async () => {
+  const result=await withMongoRetry(env, async () => {
     const session = await mongoose.startSession();
     try {
       let result = null;
@@ -145,15 +145,16 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
             // read back. A late writer must not race the completion marker.
             ...(isLast?{}:{state:'PAID',leaseToken:'',leaseUntil:null}),errorCode:''}}, {new:true,session}).lean();
       }, mongoTransactionOptions());
-      if (!result || ordinal+1!==total) return result;
-      const stored=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({
-        _id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token,completedChapters:total,
-        [`chapters.${ordinal}`]:{$exists:true},
-      }).lean());
-      if (!stored || JSON.stringify(stored.chapters[ordinal])!==JSON.stringify(body)) return null;
-      return completeStoredRequest(env,userId,requestId,total,token);
+      return result;
     } finally { await session.endSession(); }
   });
+  if (!result || ordinal+1!==total) return result;
+  const stored=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({
+    _id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token,completedChapters:total,
+    [`chapters.${ordinal}`]:{$exists:true},
+  }).lean());
+  if (!stored || JSON.stringify(stored.chapters[ordinal])!==JSON.stringify(body)) return null;
+  return completeStoredRequest(env,userId,requestId,total,token);
 }
 
 export async function failChapter(env, userId, requestId, token, code) {
