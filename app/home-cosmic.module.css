@@ -485,3 +485,14 @@
     transform: none;
   }
 }
+.discoveryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 24px;
+  padding-block: 24px;
+}
+
+.discoveryGrid h2 { font-size: 1rem; }
+.discoveryGrid ul { margin: 12px 0 0; padding-inline-start: 20px; }
+.discoveryGrid li { margin-block: 8px; overflow-wrap: anywhere; }
+.discoveryGrid a { color: inherit; text-underline-offset: 3px; }

@@ -7,6 +7,7 @@ import {
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
 import YeongnyangiHome from "./yeongnyangi/_components/Home";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
+import { SEO_LINK_GROUPS } from "./components/SiteFooterHub";
 import styles from "./home-cosmic.module.css";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
@@ -238,6 +239,14 @@ export default function HomePage() {
       <YeongnyangiHome />
       <details className={styles.pageWrap}>
       <summary>CODE DESTINY 서비스와 이용 안내</summary>
+      <nav className={styles.discoveryGrid} aria-label="운세와 읽을거리 전체 탐색">
+        {SEO_LINK_GROUPS.map((group) => (
+          <section key={group.title}>
+            <h2>{group.title}</h2>
+            <ul>{group.links.map((link) => <li key={link.href}><Link href={link.href}>{link.text}</Link></li>)}</ul>
+          </section>
+        ))}
+      </nav>
       <section>
       <div className={styles.starLayer} aria-hidden />
 
