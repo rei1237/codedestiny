@@ -8,6 +8,7 @@ import { buildMusicPublicUrl } from "../lib/r2-public-url";
 import YeongnyangiHome from "./yeongnyangi/_components/Home";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { SEO_LINK_GROUPS } from "./components/SiteFooterHub";
+import { ILGAN_MONTHLY_MONTHS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import styles from "./home-cosmic.module.css";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
@@ -167,6 +168,15 @@ const SERVICE_LINKS = [
   },
 ];
 
+const HOME_PUBLIC_ARCHIVES = [
+  { href: "/fortune/date/", text: "날짜별 띠 운세" },
+  ...Object.entries(ILGAN_MONTHLY_MONTHS).map(([month, info]) => ({
+    href: `/saju/monthly/${month}/`, text: `${info.label} 일간별 운세`,
+  })),
+  { href: "/insights/famous-saju/", text: "유명인 사주" },
+  { href: "/human-design/", text: "휴먼디자인 알아보기" },
+];
+
 const PASS_GUIDE = [
   {
     title: homePageText("homePage.title.008"),
@@ -240,6 +250,10 @@ export default function HomePage() {
       <details className={styles.pageWrap}>
       <summary>CODE DESTINY 서비스와 이용 안내</summary>
       <nav className={styles.discoveryGrid} aria-label="운세와 읽을거리 전체 탐색">
+        <section>
+          <h2>운세 자료실</h2>
+          <ul>{HOME_PUBLIC_ARCHIVES.map((link) => <li key={link.href}><Link href={link.href}>{link.text}</Link></li>)}</ul>
+        </section>
         {SEO_LINK_GROUPS.map((group) => (
           <section key={group.title}>
             <h2>{group.title}</h2>

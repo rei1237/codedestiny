@@ -3,7 +3,6 @@ import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 import { IS_APP_BUILD } from "../../lib/app-build-target";
-import { ILGAN_MONTHLY_MONTHS } from "../../lib/saju/ilgan-monthly-registry.mjs";
 
 const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
   ko: {
@@ -68,10 +67,6 @@ export const SEO_LINK_GROUPS = [
       { href: "/fortune/tomorrow/", text: "내일의 별자리·띠 운세" },
       { href: "/fortune/weekly/", text: "이번 주 별자리·띠 운세" },
       { href: "/fortune/monthly/", text: "이번 달 별자리·띠 운세" },
-      { href: "/fortune/date/", text: "날짜별 띠 운세" },
-      ...Object.entries(ILGAN_MONTHLY_MONTHS).map(([month, info]) => ({
-        href: `/saju/monthly/${month}/`, text: `${info.label} 일간별 운세`,
-      })),
       { href: "/compatibility/", text: "사주 궁합 분석하기" },
       { href: "/premium/", text: "프리미엄 운세 리포트" },
       { href: "/saju/basic/", text: "사주 만세력 기본 해석" },
@@ -119,7 +114,6 @@ export const SEO_LINK_GROUPS = [
       { href: "/sukuyo/", text: "무료 숙요점 27수 궁합 보기" },
       { href: "/vedic/", text: "무료 베다 점성술(베다점) 운세" },
       { href: "/nakshatra/", text: "숙요점 × 베다 점성술 통합 별자리" },
-      { href: "/human-design/", text: "휴먼디자인 알아보기" },
       { href: "/dream/", text: "꿈해몽 무료 해석" },
       { href: "/oracle/hwatu-life/", text: "화투 인생 패 테스트" },
       // /ifa-oracle.html 이 아니라 랜딩을 가리킨다 — 정본이 2026-08-24 에 /oracle/ifa 로
@@ -145,7 +139,6 @@ export const SEO_LINK_GROUPS = [
     title: siteFooterHubText("siteFooter.004"),
     links: [
       { href: "/insights/", text: "운명 인사이트 허브" },
-      { href: "/insights/famous-saju/", text: "유명인 사주" },
       { href: "/guides/", text: "하이밸류 아카이브" },
       { href: "/guides/complete-guide-to-saju/", text: "사주 완전 가이드" },
       { href: "/guides/how-tarot-actually-works/", text: "타로 리딩 구조 이해" },
