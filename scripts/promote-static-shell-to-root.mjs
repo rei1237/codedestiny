@@ -11,12 +11,11 @@ const generatedSitemapPath = resolve(rootDir, "out", "sitemap.xml");
 const generatedRobotsPath = resolve(rootDir, "out", "robots.txt");
 const generatedOutDir = resolve(rootDir, "out");
 const nextServerAppDir = resolve(rootDir, ".next", "server", "app");
-const distIndexPath = resolve(rootDir, "dist", "index.html");
 const distSitemapPath = resolve(rootDir, "dist", "sitemap.xml");
 const distRobotsPath = resolve(rootDir, "dist", "robots.txt");
 const distStaticIndexPath = resolve(rootDir, "dist", "static", "index.html");
 const staticShellRouteHtmlFiles = new Set([
-  "index.html",
+  "ggulggul/index.html",
   "static/index.html",
   "en/index.html",
   "ja/index.html",
@@ -234,8 +233,6 @@ if (existsSync(publicDir)) {
     console.log(`[promote-static-shell] robots: ${generatedRobotsPath} -> ${distRobotsPath}`);
   }
 }
-
-writeHtml(publicIndexPath, distIndexPath, "root");
 
 if (existsSync(publicStaticIndexPath)) {
   writeHtml(publicStaticIndexPath, distStaticIndexPath, "legacy static", { allowStaticSelfRedirect: true, noindex: true });
