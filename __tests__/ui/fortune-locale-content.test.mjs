@@ -80,3 +80,26 @@ test("계산 근거의 절기와 날짜가 간체/번체 로케일을 섞지 않
   assert.match(monthly, /White Dew.*Autumn Equinox/);
   assert.doesNotMatch(monthly, korean);
 });
+
+test("달 위상은 정밀한 원본 식별자를 한 번만 번역한다", () => {
+  const cases = [
+    ["New moon / 신월", "New moon", "新月", "新月", "新月"],
+    ["Waxing crescent / 초현", "Waxing crescent", "満ちていく三日月", "盈眉月", "盈眉月"],
+    ["First quarter / 상현", "First quarter", "上弦の月", "上弦月", "上弦月"],
+    ["Waxing gibbous / 상현", "Waxing gibbous", "満月に向かう月（上弦後）", "盈凸月", "盈凸月"],
+    ["Full moon / 보름", "Full moon", "満月", "满月", "滿月"],
+    ["Waning gibbous / 하현", "Waning gibbous", "欠けていく月（下弦前）", "亏凸月", "虧凸月"],
+    ["Last quarter / 하현", "Last quarter", "下弦の月", "下弦月", "下弦月"],
+    ["Waning crescent / 그믐", "Waning crescent", "欠けていく三日月", "残月", "殘月"],
+  ];
+  for (const [source, ...expected] of cases) {
+    ["en", "ja", "zh-CN", "zh-TW"].forEach((locale, index) => {
+      assert.equal(formatFortuneEvidence(source, locale), expected[index]);
+      assert.equal(formatFortuneEvidence(source.split(" / ")[0], locale), expected[index]);
+    });
+    assert.equal(formatFortuneEvidence(source, "ko"), source);
+  }
+  assert.equal(formatFortuneEvidence("Moon phase unavailable", "ja"), "Moon phase unavailable");
+  assert.equal(formatFortuneEvidence("Waxing gibbous / 123.45°", "ja"), "Waxing gibbous / 123.45°");
+  assert.equal(formatFortuneEvidence("A Full moon reading", "ja"), "A Full moon reading");
+});

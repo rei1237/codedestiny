@@ -169,3 +169,26 @@ node scripts/seo-public-smoke.mjs
 최종 통합 로컬 검증: check:fast의 Node 958개와 Jest 218 suites/2,422 tests, build:cf, 정적 HTML 805개·사이트맵 488개 감사, 48개 mock 브라우저 표본이 통과했다. Linux CI에서 발견한 검색 제외 목록 드리프트도 LF 정규화 후 재생성했다. CI의 최종 판정은 PR #1841 최신 HEAD를 확인한다.
 
 계정 원본과 산출물은 관측 시점의 증거이며 이후 수치·정책·운영 상태가 바뀔 수 있다.
+
+## 2026-09-21 로그인 복구 후 추가 조사
+
+### 관측과 판단
+
+- Naver 실적 갱신 9/20, UI 최근 30일 PC+모바일: 클릭 **1.9천**, 노출 **25.1만**, CTR **0.7%**. 반올림 총계는 정확한 정수로 변환하지 않았다. 검색어와 페이지 상위 10행을 각각 SEO_STATE.json에 보존했다.
+- Naver 진단 갱신 9/19: 색인 표시 8.2백, 중복 제목 1,519(9/12: 1,643), 중복 설명 1,339(이전 1,642), 설명 누락 11, 복수 H1 19, alt 누락 20. 감소는 관측 사실이며 특정 코드 수정의 효과라고 단정하지 않는다.
+- 중복 제목 표본: TCI 29개는 모두 v 쿼리, About 13개는 정본 1개와 v 쿼리 12개. 현재 TCI 쿼리 주소는 HTTP 200, clean canonical, noindex/follow였다. 기존 버전 쿼리 정리 코드와 결제 재개용 파라미터 보존 규칙을 유지한다.
+- 설명 누락 11개는 주로 6~7월 진단이다. 현재 destiny-poker와 ifa-oracle은 description이 있다. 나머지 9개(codedestiny-novel, destiny-island, neville-meditation, fortune-teller-fish, celestial-harmony, geomancy-oracle-v4, emoi_omikuji_v2, yoga-guru, vedic-astrology)는 noindex/nofollow 기능 화면이다. 진단의 vedic 입력 쿼리 값은 개인 입력을 포함하여 저장하지 않았다. 진단 숫자만을 위해 검색 제외를 해제하지 않는다.
+- Google 발견 후 미색인 1,023개 중 UI 최대 표본 **1,000개** 확인. 날짜별 경로 355개(허브 포함), 다국어 운세 381개(en94/ja94/zh99/zh-tw94), 나크샤트라 codex26개. 23개는 미관측이다. 날짜별 경로는 9/11, 다국어 경로는 9/14에 추가됐다. 신규 URL 대량 발견이 증가 배경이라는 추론을 뒷받침하지만, 과거 229개 전체 URL 목록이 없어 증가분의 완전한 원인 분석은 아니다.
+- 제출된 통합 sitemap은 성공, 마지막 읽기 **9/21**, 발견 1,283페이지다. `/compare/sukuyo-vs-vedic/` 저장 URL 검사는 Google에 알려지지 않은 URL로 표시됐지만, 같은 날 12:07 KST 실시간 검사는 색인 가능·breadcrumb 유효였다. 공개 HTTP 200, index/follow, 정규 주소, `/insights/`의 실제 내부 링크도 확인했다. 보고서 간 상태 차이를 기록하고 색인 요청은 제출하지 않았다.
+- 날짜별 운세는 의도된 최근 30일 보관이다. `/fortune/date/2026-08-21/dog/`는 현재 404, `/fortune/date/2026-09-18/dog/`는 200. 하루 12개 날짜별 URL이 바뀌는 구조에서 Google 수집 전 만료될 위험은 남는다. 날짜 검색어의 Naver 실제 클릭도 있어 근거 없이 전체 noindex나 최신 날짜로 일괄 redirect하지 않았다.
+
+### 실제 수정과 남은 우선순위
+
+- P1: 영어·일본어·중국어 간체/번체 운세 근거에서 `Waxing gibbous / First quarter`처럼 서로 다른 위상이 함께 표시됐다. 원본의 정밀한 영어 위상 식별자 8종을 한 번만 번역하도록 공통 formatter를 수정했다. 계산·점수·한국어 원본과 결제/인증/광고 설정은 유지했다.
+- AdSense 관점에서는 다국어 본문의 영어 잔존과 사실적 표시 불일치 한 가지를 해결했다. 네 언어 본문 표본에서 한국어 잔존이 없었다는 사실이 전체 사이트의 번역·독립 가치 검수 완료를 의미하지 않는다. 기존 low value content 상태와 9/8 내부 점수 63/100을 그대로 유지한다.
+- P1 다음 기회: Naver 내일 전갈자리 70클릭/26,225노출(0.3%), 처녀자리77/14,359(0.5%), 천칭자리64/12,753(0.5%). 검색어와 페이지는 별도 집계이므로 실제 검색어 필터로 확인 후 제목/도입부를 개선한다.
+- P0 잔여: 콘텐츠 독립 가치·인증 CMP 게시·지역별 동의 흐름. 광고 활성화, 운영 배포, AdSense 재신청은 이번에 하지 않는다.
+
+정책 판단 참고: [Google 색인 보고서](https://support.google.com/webmasters/answer/7440203), [중복 URL 정규화](https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls). 모든 발견 URL의 색인이 목표는 아니며 의도된 제외와 기술적 차단을 구분한다.
+
+- Naver 콘텐츠 확산(9/21 갱신): dcinside.com 연결 페이지 156, naver.com 79. 원문 URL/편집 인용 여부는 보고서에 없으므로 신규 획득 링크나 고품질 referring domains로 집계하지 않는다. GSC의 두 도메인과 서로 다른 검색엔진 관측 범위다.
