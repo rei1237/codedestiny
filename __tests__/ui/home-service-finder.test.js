@@ -194,18 +194,18 @@ test("범위 가격 항목은 걸치는 가격대 칩에 모두 나온다", asyn
     return hit;
   };
 
-  // 애니멀 토템 3,000원~5,000원 → 3천원대 · 5천원대 둘 다
-  assert.ok(inChip("mid", "애니멀 토템"), "3,000원~5,000원 항목이 3천원대에서 빠졌다");
-  assert.ok(inChip("high", "애니멀 토템"), "3,000원~5,000원 항목이 5천원대에서 빠졌다 — 시작가 버킷에 갇혔다");
-
-  // 운명의 찻집 5,000원~20,000원 → 5천원대 · 1만원대 · 프리미엄
-  assert.ok(inChip("high", "운명의 찻집"), "5,000원~20,000원 항목이 5천원대에서 빠졌다");
-  assert.ok(inChip("premium", "운명의 찻집"), "5,000원~20,000원 항목이 1만원대에서 빠졌다 — 시작가 버킷에 갇혔다");
-  assert.ok(inChip("vvip", "운명의 찻집"), "5,000원~20,000원 항목이 프리미엄에서 빠졌다");
-
-  // 단일 가격은 자기 버킷에만 있어야 한다 — 범위 판정이 전 구간을 열어 버리면 여기서 걸린다.
-  assert.ok(inChip("vvip", "마스터 인연의 서"), "20,000원~30,000원 항목이 프리미엄에서 빠졌다");
-  assert.ok(!inChip("mid", "마스터 인연의 서"), "20,000원~30,000원 항목이 3천원대에 섞였다");
+  // 새 가격의 범위 상품도 시작가와 상한 가격대에 모두 나타난다.
+  assert.ok(inChip("mid", "스톤헨지 룬"), "3,000원~5,000원 항목이 3천원대에서 빠졌다");
+  assert.ok(inChip("high", "스톤헨지 룬"), "3,000원~5,000원 항목이 5천원대에서 빠졌다");
+  assert.ok(inChip("premium", "마스터 인연의 서"), "10,000원~30,000원 항목이 1만원대에서 빠졌다");
+  assert.ok(inChip("vvip", "마스터 인연의 서"), "10,000원~30,000원 항목이 프리미엄에서 빠졌다");
+  assert.ok(!inChip("mid", "마스터 인연의 서"), "범위 밖의 3천원대에 섞였다");
+  // 찻집은 전 상품 5,000원 단일 가격이므로 예전 상한 버킷에 남으면 안 된다.
+  assert.ok(inChip("high", "운명의 찻집"));
+  assert.ok(!inChip("premium", "운명의 찻집"));
+  assert.ok(!inChip("vvip", "운명의 찻집"));
+  assert.ok(inChip("mid", "애니멀 토템"));
+  assert.ok(!inChip("high", "애니멀 토템"));
 });
 
 // 회귀 배경(2026-09-03 실측): 결과 카드의 가격·CTA 노드가 className 없이 생성돼
@@ -237,7 +237,7 @@ test("표시 가격은 레지스트리 값을 그대로 쓴다", async () => {
   const cards = Array.from(panel.querySelectorAll(".fortune-gateway__rec"));
   const codex = cards.find((c) => c.textContent.includes("마스터 인연의 서"));
   assert.ok(codex, "궁합 결과에 마스터 인연의 서가 없다");
-  assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /20,000원/);
+  assert.match(codex.querySelector(".fortune-gateway__rec-foot i").textContent, /10,000원/);
 });
 
 // 회귀 배경: 입력·칩 선택 전에는 `panel.hidden = true` 로 아무것도 렌더하지 않아, 홈에서 가장 강한
