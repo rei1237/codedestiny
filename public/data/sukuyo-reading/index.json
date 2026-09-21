@@ -1,5 +1,40 @@
 [
   {
+    "slug": "sukuyo-what-is",
+    "title": "숙요점이란? 달이 머문 별자리로 읽는 나의 운명 — 입문 완전 가이드",
+    "description": "숙요점은 태어난 날 달이 머문 별자리로 나를 읽는 동양의 점술입니다. 28수·27숙의 구조부터 본명숙 찾는 법, 사주와의 차이, 오늘의 달자리 활용법까지 입문자를 위해 정리했습니다.",
+    "href": "/insights/sukuyo-what-is/",
+    "body": "sukuyo-what-is-9314da52ed66.json"
+  },
+  {
+    "slug": "sukuyo-compatibility-guide",
+    "title": "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서",
+    "description": "숙요점 궁합은 좋고 나쁨을 가리는 도구가 아니라 관계의 성격과 방향을 이해하는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형의 핵심 특징과 연애·결혼 궁합에서 진짜 중요한 것을 정리했습니다.",
+    "href": "/insights/sukuyo-compatibility-guide/",
+    "body": "sukuyo-compatibility-guide-9605628d05db.json"
+  },
+  {
+    "slug": "sukuyo-27-mansions",
+    "title": "27숙 이름과 본명숙 계산: 날짜표와 달의 위치 구분하기",
+    "description": "27숙의 이름과 Code Destiny의 달 황경 계산을 설명합니다. 13도 20분 구간, 이름 배열, 출생시간 미상과 음력 날짜표 방식의 차이를 예시로 확인하세요.",
+    "href": "/insights/sukuyo-27-mansions/",
+    "body": "sukuyo-27-mansions-eb6c069f2695.json"
+  },
+  {
+    "slug": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
+    "title": "본명숙과 월명숙: 이름보다 계산 기준을 먼저 확인하세요",
+    "description": "본명숙의 현재 달 황경 계산과 월명숙이라는 명칭을 구분합니다. 월명숙을 사회적 성격으로 단정하지 않고, 출처·계산법·궁합 기준을 확인하는 방법을 설명합니다.",
+    "href": "/insights/sukuyo-bonmyeongsuk-vs-wolmyeongsuk/",
+    "body": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk-b173665192bf.json"
+  },
+  {
+    "slug": "sukuyo-vs-saju-compatibility",
+    "title": "숙요점과 사주 궁합: 같은 질문을 다른 기준으로 읽는 법",
+    "description": "숙요의 본명숙 관계와 사주의 일간·오행 관계를 비교합니다. 두 결과를 점수로 합치지 않고 계산 설정, 갈등 상황, 실제 대화로 확인하는 방법을 정리했습니다.",
+    "href": "/insights/sukuyo-vs-saju-compatibility/",
+    "body": "sukuyo-vs-saju-compatibility-bfc307c16a4f.json"
+  },
+  {
     "slug": "sukuyo-antai",
     "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
     "description": "숙요점에서 업(業)과 태(胎)라는 관계 표지를 어떻게 읽는지, 거리 분류와 방향성을 실제 관계의 대화·경계 질문에 연결해 정리했습니다.",
@@ -14,39 +49,11 @@
     "body": "sukuyo-ankai-85416236c8fb.json"
   },
   {
-    "slug": "sukuyo-compatibility-guide",
-    "title": "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서",
-    "description": "숙요점 궁합은 좋고 나쁨을 가리는 도구가 아니라 관계의 성격과 방향을 이해하는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형의 핵심 특징과 연애·결혼 궁합에서 진짜 중요한 것을 정리했습니다.",
-    "href": "/insights/sukuyo-compatibility-guide/",
-    "body": "sukuyo-compatibility-guide-a46329eadfba.json"
-  },
-  {
-    "slug": "sukuyo-27-mansions",
-    "title": "27숙 이름과 본명숙 계산: 날짜표와 달의 위치 구분하기",
-    "description": "27숙의 이름과 상징을 한눈에 보고, Code Destiny의 음력 날짜표로 본명숙을 구하는 방법을 확인합니다. 베다 나크샤트라와의 차이 및 해석의 한계도 설명합니다.",
-    "href": "/insights/sukuyo-27-mansions/",
-    "body": "sukuyo-27-mansions-bd1b4028088c.json"
-  },
-  {
     "slug": "sukuyo-love",
     "title": "숙요점 연애 궁합 완전 가이드 — 6유형으로 보는 연애의 전개와 대처법",
     "description": "숙요점 연애 궁합은 좋고 나쁨을 가리는 점수가 아니라 이 연애가 어떤 방식으로 굴러가는지 보여주는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형이 연애에서 각각 어떻게 드러나는지, 단계별 활용법과 함께 정리했습니다.",
     "href": "/insights/sukuyo-love/",
     "body": "sukuyo-love-25131f544fe7.json"
-  },
-  {
-    "slug": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
-    "title": "본명숙과 월명숙: 이름보다 계산 기준을 먼저 확인하세요",
-    "description": "본명숙의 음력 날짜표 계산과 월명숙이라는 명칭을 구분합니다. 월명숙을 사회적 성격으로 단정하지 않고, 출처·계산법·궁합 기준을 확인하는 방법을 설명합니다.",
-    "href": "/insights/sukuyo-bonmyeongsuk-vs-wolmyeongsuk/",
-    "body": "sukuyo-bonmyeongsuk-vs-wolmyeongsuk-6b09c0c035d4.json"
-  },
-  {
-    "slug": "sukuyo-vs-saju-compatibility",
-    "title": "숙요점과 사주 궁합: 같은 질문을 다른 기준으로 읽는 법",
-    "description": "숙요의 본명숙 관계와 사주의 일간·오행 관계를 비교합니다. 두 결과를 점수로 합치지 않고 계산 설정, 갈등 상황, 실제 대화로 확인하는 방법을 정리했습니다.",
-    "href": "/insights/sukuyo-vs-saju-compatibility/",
-    "body": "sukuyo-vs-saju-compatibility-e2efb6d47cd4.json"
   },
   {
     "slug": "sukuyo-myeongseong",
@@ -117,13 +124,6 @@
     "description": "숙요점에서 말하는 관계운은 운이 좋고 나쁨을 의미하지 않습니다. 관계운을 구성하는 요소와 이를 높이는 생활 습관, 관계 관리의 5가지 핵심 원칙을 정리했습니다.",
     "href": "/insights/relationship-luck-and-communication-rules/",
     "body": "relationship-luck-and-communication-rules-2049480e5efb.json"
-  },
-  {
-    "slug": "sukuyo-what-is",
-    "title": "숙요점이란? 달이 머문 별자리로 읽는 나의 운명 — 입문 완전 가이드",
-    "description": "숙요점은 태어난 날 달이 머문 별자리로 나를 읽는 동양의 점술입니다. 28수·27숙의 구조부터 본명숙 찾는 법, 사주와의 차이, 오늘의 달자리 활용법까지 입문자를 위해 정리했습니다.",
-    "href": "/insights/sukuyo-what-is/",
-    "body": "sukuyo-what-is-d742aa2a027a.json"
   },
   {
     "slug": "sukuyo-eishin",
