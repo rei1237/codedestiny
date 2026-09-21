@@ -1434,7 +1434,7 @@
       "title": "Kkulkkul Fortune con Yeoni, la cerdita de las flores",
       "fusion": "Explora tus inquietudes paso a paso",
       "intro": "Una orientación amable para tu día",
-      "lead": "Empieza con una lectura gratuita y encuentra junto a Yeoni, la cerdita de las flores, una dirección acorde con lo que sientes.",
+      "lead": "Fortuna diaria gratis con Yeoni. Explorar el Saju de Yeongnyangi.",
       "start": "Ver mi lectura gratuita",
       "question": "¿Qué te gustaría saber?",
       "deeper": "Cuando necesitas una respuesta más profunda",
@@ -1444,7 +1444,7 @@
       "findConcern": "Buscar por inquietud",
       "gardenFirst": "Donde florece tu historia",
       "gardenSecond": "Un jardín a la luz de la luna",
-      "reviewed": "Dirigido por un especialista en Saju con 10 años de experiencia",
+      "reviewed": "10 años de Saju · predicciones acertadas sobre dos presidentes",
       "perspectives": "Compara perspectivas de seis tradiciones",
       "startFree": "Empieza gratis",
       "explore": "Explora más",
@@ -1459,6 +1459,10 @@
       "library": "Mis consultas compradas",
       "yeoni": "Ver mi fortuna con Yeoni",
       "browse": "Explorar todas las lecturas"
+    },
+    "business": {
+      "paid": "Explorar el Saju de Yeongnyangi",
+      "daily": "Fortuna diaria gratis con Yeoni"
     }
   },
   "terms": {
@@ -6016,9 +6020,9 @@
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
-        "k153vbx2": "Una consulta de Cuatro Pilares (BaZi) que lee con calma el tejido del amor",
+        "k153vbx2": "¿Dónde empiezan tus patrones de pareja?",
         "k1s2fcm4": "Consulta de IA de la Biblia del Amor",
-        "ko82iqm": "Entrelazando el pilar del día, la rama terrestre del día y el palacio de la relación con el flujo del ciclo anual, analizamos con elegancia tus sentimientos y decisiones actuales.",
+        "ko82iqm": "La IA interpreta tu carta Saju para explorar la distancia emocional, la comunicación y posibles acciones.",
         "ku5mrxy": "Consulta experta: el manual del amor"
       }
     },

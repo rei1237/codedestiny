@@ -9,6 +9,7 @@ import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,t
 import ProfilePicker from './ProfilePicker';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
 import styles from '../yeongnyangi.module.css';
+import predictionRecords from '@/lib/brand/prediction-records.json';
 import {trackEvent} from '@/lib/analytics';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 export default function Consultation(){
@@ -88,6 +89,7 @@ export default function Consultation(){
     <h2>네 이야기에,<br/>작은 달빛 하나.</h2><p>한 번에 답을 찾으려 하지 않아도 돼.<br/>함께 살펴볼 흐름부터 골라보자.</p>
     <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{product.name} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>단건 결제</dt><dd>{product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>계산은 운세 체계가,<br/>해설은 영냥이가 함께해.</p>
+    <details className={styles.predictionRecords}><summary>두 대통령 적중 기록 원문 보기</summary><p>10년 경력 명리학자가 남긴 공개 해석 기록. 블로그 게시일과 원문을 직접 살펴보세요.</p><ul>{predictionRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer">{record.date} · {record.title}</a></li>)}</ul></details>
    </aside>
    <div className={`${styles.form} ${styles.consultationForm}`}>
    {tarotOnly?<section className={styles.questionIntro}><h2>카드에 물어볼 이야기</h2><p>타로 상담에는 출생정보가 필요하지 않아. 질문과 카드의 상징으로 함께 읽어볼게.</p>{guest&&<p>상담을 이어가려면 먼저 로그인해 주세요.</p>}</section>:<>

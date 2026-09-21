@@ -46,4 +46,3 @@ export default function TarotCardBack({ selected = false, hovered = false, order
     </div>
   );
 }
-

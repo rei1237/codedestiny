@@ -53,7 +53,7 @@
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
       <script>window.__CD_GA_ID = "";</script>
-      <script src="/js/core/analytics.js?v=build-8e319111f0c8" defer></script>
+      <script src="/js/core/analytics.js?v=build-847224b9d851" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -945,7 +945,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。">
 <meta property="og:url" content="https://code-destiny.com/zh-tw/">
 <meta property="og:locale" content="zh_TW">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-fd12ceffa978">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-baca226574a2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
@@ -954,7 +954,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CODE DESTINY | 免費四柱八字·塔羅·紫微斗數·合婚 — 運勢">
 <meta name="twitter:description" content="透過四柱命理、紫微斗數、宿曜占星術與塔羅認識自己的行為和關係。閱讀公開解說，了解AI解讀的用途與局限，並在各功能頁面確認使用條件。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-fd12ceffa978">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-baca226574a2">
 <meta name="twitter:image:alt" content="蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡">
 <script type="application/ld+json">
 {
@@ -2139,8 +2139,8 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
   #sibylModal.sb-open .sb-panel{transform:translateY(0)}
   #sibylModal .sb-hidden{display:none}
   </style>
-  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-4f52d55ee20f" data-cd-mobile-delay="1" media="print">
-  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-4f52d55ee20f"></noscript>
+  <link data-cd-noncritical-style-src="/styles/love-secret.css?v=build-45ec8c95aaab" data-cd-mobile-delay="1" media="print">
+  <noscript><link rel="stylesheet" href="/styles/love-secret.css?v=build-45ec8c95aaab"></noscript>
 
   <link data-cd-noncritical-style-src="/css/entertain-system.css" data-cd-mobile-delay="1" media="print">
   <noscript><link rel="stylesheet" href="/css/entertain-system.css"></noscript>
@@ -5467,6 +5467,8 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
   word-break: normal;
   overflow-wrap: anywhere;
 }
+
+.cdh-prediction-records{grid-column:1/-1;font-size:13px;line-height:1.8;color:#63394e;max-width:65ch}.cdh-prediction-records summary{cursor:pointer;padding:12px 0;font-weight:700}.cdh-prediction-records a{text-decoration:underline;text-underline-offset:3px}.cdh-prediction-records ul{padding-left:20px}
 </style>
 </head>
 <body>
@@ -9266,6 +9268,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   <header class="cdh-top" aria-label="공통 헤더">
     <a href="/" class="cdh-brand"><span aria-hidden="true">月花</span><span>꿀꿀 운세<small>CODE DESTINY</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
+      <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.reformActions.browse">모든 운세 둘러보기</a>
       <a href="/points/" data-cd-trans="home.funnelCopy.pass">이용권</a>
       <a class="cdh-login" href="/login/" data-cd-trans="home.funnelCopy.login">로그인</a>
       <details class="cdh-account"><summary data-cd-trans="home.funnelCopy.account">내 계정</summary><div id="cdhAccountSlot"></div></details>
@@ -9275,12 +9278,11 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   </header>
   <section class="cdh-hero" aria-labelledby="cdhTitle">
     <div class="cdh-copy">
-      <p class="cdh-intro" data-cd-trans="home.searchEntry.intro">오늘의 마음에, 다정한 방향 하나</p>
       <h1 id="cdhTitle"><span data-cd-trans="home.searchEntry.title">꿀꿀 운세, 꽃돼지 연이와</span><br><em data-cd-trans="home.searchEntry.fusion">지금의 고민을 차근차근</em></h1>
-      <p class="cdh-lead" data-cd-trans="home.searchEntry.lead">무료 운세로 오늘의 흐름을 확인하고, 꽃돼지 연이와 내 마음에 맞는 방향을 찾아보세요.</p>
+      <p class="cdh-lead" data-cd-trans="home.searchEntry.lead">연이와 오늘의 운세와 세 장의 카드를 무료로 펼쳐보세요. 나의 기질과 반복되는 고민은 영냥이의 사주 해석으로 더 깊이 살펴봐요.</p>
       <div class="cdh-actions">
-        <a class="cdh-primary" href="#destinyCardForm" data-cdh-free><span data-cd-trans="home.reformActions.yeoni">꽃돼지 연이와 운세 보기</span> <span aria-hidden="true">↗</span></a>
-        <a class="cdh-secondary" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.reformActions.browse">모든 운세 둘러보기</a>
+        <a class="cdh-primary" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-business-entry="paid"><span data-cd-trans="home.business.paid">영냥이 사주 살펴보기</span> <span data-cd-price="yeongnyangi-saju-mackerel">1,000원</span> <span aria-hidden="true">↗</span></a>
+        <a class="cdh-secondary" href="/today/#daily-tarot" data-cd-business-entry="daily" data-cd-trans="home.business.daily">연이와 무료 세 장 펼치기</a>
       </div>
     </div>
     <div class="cdh-garden">
@@ -9288,7 +9290,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       <img id="honeypigLogo" data-character="yeoni" data-lcp-candidate="1" src="/icons/app-logo-512.webp" alt="연꽃을 단 꽃돼지 연이" width="512" height="512" fetchpriority="high" decoding="async">
       <p><span data-cd-trans="home.funnelCopy.gardenFirst">당신의 이야기가</span><br><span data-cd-trans="home.funnelCopy.gardenSecond">꽃피는 달빛 정원</span></p>
     </div>
-    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 운영</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
+    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 · 두 대통령 운세 적중</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
+    <details class="cdh-prediction-records" lang="ko"><summary>두 대통령 적중 기록 원문 보기</summary><p>운영자의 공개 사주 해석 기록입니다. 표시된 날짜는 블로그 게시일입니다.</p><ul><li><a href="https://blog.naver.com/neosaju/222876455500" target="_blank" rel="noopener noreferrer">2022-09-16 · 대통령 윤석열 사주 분석</a></li><li><a href="https://blog.naver.com/neosaju/223444062729" target="_blank" rel="noopener noreferrer">2024-05-12 · 2025년, 윤석열 대통령 탄핵 가능성에 대해서</a></li><li><a href="https://blog.naver.com/neosaju/223459696339" target="_blank" rel="noopener noreferrer">2024-05-27 · 만약 이재명이 대통령이 된다면 일반적인 방법으로는 불가하다.</a></li></ul></details>
   </section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
@@ -16875,7 +16878,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-fd12ceffa978" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-baca226574a2" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -19898,8 +19901,8 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             </div>
             <div class="lovebible-tile__body">
               <h2 class="lovebible-tile__title" data-cd-trans="shell.lovebibleTileInner.lovebibleTileBody.ku5mrxy">연애 비책 전문가 상담</h2>
-              <p class="lovebible-tile__subtitle" data-cd-trans="shell.lovebibleTileInner.lovebibleTileBody.k153vbx2">사랑의 결을 차분히 읽는 명리 상담</p>
-              <p class="lovebible-tile__desc" data-cd-trans="shell.lovebibleTileInner.lovebibleTileBody.ko82iqm">일간·일지·관계궁과 세운의 흐름을 엮어, 지금의 마음과 선택을 품격 있게 짚어드립니다.</p>
+              <p class="lovebible-tile__subtitle" data-cd-trans="shell.lovebibleTileInner.lovebibleTileBody.k153vbx2">반복되는 연애 패턴, 어디서 시작될까요?</p>
+              <p class="lovebible-tile__desc" data-cd-trans="shell.lovebibleTileInner.lovebibleTileBody.ko82iqm">내 명식의 관계 단서를 바탕으로 AI가 마음의 거리와 대화, 지금 해볼 행동을 풀어드려요.</p>
               <div class="lovebible-tile__features">
                 <span class="ls-feat" data-cd-trans data-key="loveSecretAi.features.tendency">감정 온도</span>
                 <span class="ls-feat" data-cd-trans data-key="loveSecretAi.features.charm">관계 리듬</span>
@@ -20654,7 +20657,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-fd12ceffa978',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-baca226574a2',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -34053,7 +34056,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-fd12ceffa978',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-baca226574a2',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34098,7 +34101,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-fd12ceffa978'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-baca226574a2'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 5,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},
@@ -37935,7 +37938,7 @@ function updateBadge() {
     '/premium-unlock':{featureId:'life-fortune-ai-consultation',category:'인생 명리',badge:'전문가 상담형',headline:'삶, 일, 재물, 관계의 큰 흐름을 명식 근거로 끝까지 짚어드립니다.',subheadline:'인생의 책이 이야기라면 인생 총운은 진단입니다. 열 장 전부에 일간·용신·십성·대운의 근거를 붙여 3만 자 분량으로 풀어냅니다.',painPoints:['지금이 밀어붙일 때인지 버틸 때인지 모를 때','강점과 리스크를 근거까지 함께 보고 싶을 때','대운·세운이 바뀌는 시기를 정확히 알고 싶을 때'],feats:['생년월일시로 사주 원국을 계산해 열 개 장과 명식 깊은 판독 4편을 작성','장마다 참조한 명식 요소(일간·용신·십성·대운)를 근거로 명시','대운의 현재 구간과 가까운 5년 세운을 각각 별도 장으로 분리','결과 화면에서 PDF 로 저장해 다시 열람'],unlockBenefits:['타고난 명식의 중심 · 성격과 마음의 결','재능과 일의 방향 · 재물과 생활 기반','사랑과 인연의 흐름 · 관계와 가족의 장','건강과 생활 리듬','대운으로 보는 큰 전환 · 가까운 세운의 흐름','앞으로 열릴 선택 + 명식 깊은 판독 4편'],previewText:'덕담 대신 근거를 붙입니다. 열 개 장 문장마다 어떤 명식 요소에서 나온 판단인지 함께 적습니다.',recommendedFor:['덕담이 아니라 근거 있는 진단을 원하는 분','일·재물·관계·건강을 어떤 순서로 조율할지 정해야 하는 분','가까운 5년의 기회와 주의 시기를 미리 잡아두고 싶은 분'],trustNotes:['생년월일시 입력 후 이용권·월정석·단건결제를 확인합니다.','상담 결과는 참고용입니다.','서버 등록 가격을 따릅니다.'],ctaLabel:'인생 총운 펼치기',reportScale:{chapters:10,minWords:30000},answersQuestions:['지금 밀어붙여도 되는 시기인가요?','내 재물 흐름에서 먼저 막아야 할 곳은 어디인가요?','앞으로 5년 중 언제가 전환점인가요?'],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'10개 장 + 명식 깊은 판독 4편'},{axis:'분량',premium:'본문 합계 30,000자 이상'},{axis:'근거',free:'없음',premium:'장마다 일간·용신·십성·대운 근거 명시'}]},faq:[{q:'인생의 책과 무엇이 다른가요?',a:'인생의 책은 서사형 리포트이고 인생 총운은 진단형입니다. 총운은 분량이 3배이며 문장마다 명식 근거를 붙입니다.'},{q:'생성에 얼마나 걸리나요?',a:'분량이 커서 약 3분 정도 걸립니다. 화면을 닫지 말고 기다려 주세요.'},{q:'PDF 로 저장되나요?',a:'결과 화면에서 PDF 로 저장할 수 있습니다.'}],ctaNote:'생년월일시를 입력하면 이용권·월정석·단건결제 순서로 확인합니다.',receives:[{icon:'📖',title:'10개 장 인생 총운',detail:'일간·용신·십성·대운 근거를 붙여 열 개 장으로 삶 전체를 진단합니다.'},{icon:'🔍',title:'명식 깊은 판독 4편',detail:'열 개 장에 더해 명식을 더 깊이 들여다보는 판독 4편을 함께 받습니다.'},{icon:'📈',title:'대운·세운 시기 흐름',detail:'지금의 대운 구간과 가까운 5년 세운의 흐름을 각각 장으로 나눠 짚습니다.'},{icon:'🧾',title:'문장마다 명식 근거 표기',detail:'장마다 어떤 명식 요소에서 나온 판단인지 근거를 함께 적습니다.'},{icon:'📄',title:'PDF 저장',detail:'결과 화면에서 PDF로 저장해 나중에 다시 확인할 수 있습니다.'}],outline:[{title:'타고난 명식의 중심 · 성격과 마음의 결',detail:'일간과 오행을 근거로 타고난 중심 성향을 먼저 짚습니다.'},{title:'재능과 일의 방향 · 재물과 생활 기반',detail:'일과 돈에서 명식이 가리키는 방향을 정리합니다.'},{title:'사랑과 인연의 흐름 · 관계와 가족의 장',detail:'인연과 가족 관계에서 반복되는 결을 짚습니다.'},{title:'건강과 생활 리듬',detail:'몸과 생활 리듬이 무너지는 지점과 회복 방식을 봅니다.'},{title:'대운의 큰 전환 · 가까운 세운 · 명식 깊은 판독 4편',detail:'앞으로 5년의 전환 시기와 추가 판독 4편으로 마무리합니다.'}]},
     'life-fortune-ai-consultation':{inherit:'/premium-unlock'},
     'life-book-ai-consultation':{inherit:'/life-book-ai'},
-    '/love-secret-ai':{featureId:'love-secret-ai-consultation',category:'연애 명리',badge:'전문가 상담형',headline:'연애를 여섯 부, 스물여덟 개 섹션으로 나눠 사주 명식으로 읽습니다.',subheadline:'연애운과 성향부터 궁합·갈등·시기·실천까지, 항목을 나눠 각각 따로 씁니다. 상대 생년 정보를 넣으면 궁합 항목이 함께 계산됩니다.',painPoints:['상대의 진심이 도무지 잡히지 않을 때','밀당의 타이밍을 번번이 놓칠 때','이 인연을 붙잡아야 할지 놓아야 할지 확신이 없을 때'],feats:['내 명식으로 연애 성향·장점·약점·애착 방식을 항목별로 해석','상대 생년 정보를 입력하면 궁합·이상형·감정 거리감까지 함께 계산','올해 연애운과 계산된 일진으로 고른 좋은 날짜를 함께 제시','재회 조건·바람기·자기 보호처럼 민감한 주제도 별도 섹션으로 분리'],unlockBenefits:['핵심 연애운과 질문의 답','나의 연애 성향 — 장점·약점·심리','상대·궁합·이상형','갈등·바람기·재회·자기 보호','대운·올해·좋은 날짜·결혼운','썸 전략·대화·매력·실천'],previewText:'연애 비책은 한 편의 총평이 아니라, 위 여섯 부를 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.',recommendedFor:['상대의 진심을 확인할 방법이 없어 지쳐가는 분','고백이나 재회의 타이밍을 이제는 정해야 하는 분','붙잡을지 놓을지 스스로 결론이 서지 않는 분'],trustNotes:['상대의 마음이나 결과를 보장하지 않습니다.','전문가 상담 결과는 참고용입니다.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.'],ctaLabel:'사랑의 속마음 열람하기',reportScale:{sections:28,minWords:18000},answersQuestions:['그 사람은 지금 어떤 마음일까요?','내가 반복하는 연애 패턴은 뭘까요?','이 관계를 이어가도 될까요?'],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'6부 28개 섹션으로 나뉜 관계 분석'},{axis:'관점',free:'나만',premium:'나와 상대, 두 사람 사이의 거리까지'},{axis:'조언',free:'일반론',premium:'지금 건넬 말과 아낄 말'}]},faq:[{q:'상대 정보가 필요한가요?',a:'상대 정보가 있으면 관계 해석이 훨씬 구체적으로 나옵니다. 없어도 내 연애 패턴 분석은 가능합니다.'},{q:'상대 마음을 확정해 주나요?',a:'아니요. 지금 흐르는 분위기와 가까워지는 힘·멀어지는 힘을 함께 보여드립니다.'},{q:'결과가 아프면 어떡하죠?',a:'듣기 좋은 말로 덮지 않습니다. 대신 무엇을 바꾸면 달라지는지까지 함께 적습니다.'}],ctaNote:'결제 후 관계 분석 전체가 열립니다.',receives:[{icon:'💌',title:'6부 28개 섹션 상담',detail:'연애 성향부터 궁합·갈등·시기·실천까지 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.'},{icon:'💑',title:'상대 궁합까지 계산',detail:'상대 생년 정보를 넣으면 궁합·이상형·감정 거리감까지 함께 봅니다.'},{icon:'📅',title:'올해 연애운과 좋은 날짜',detail:'계산된 일진에서 고른 좋은 날짜와 올해 연애운의 흐름을 짚습니다.'},{icon:'🗓️',title:'7일 실천 가이드',detail:'오늘부터 실행할 수 있는 연애 비책과 7일 치 하루 단위 가이드를 받습니다.'},{icon:'📄',title:'PDF 저장',detail:'완성된 상담 결과를 PDF로 저장할 수 있습니다.'}],outline:[{title:'핵심 연애운과 질문의 답',detail:'지금 관계의 자리와 자유 질문의 답부터 먼저 짚습니다.'},{title:'나의 연애 성향 — 장점·약점·심리',detail:'일간과 십성으로 애착과 표현 방식을 나눠 봅니다.'},{title:'상대·궁합·이상형',detail:'상대의 기운과 끌림의 조건, 이상형을 함께 읽습니다.'},{title:'갈등·바람기·재회·자기 보호',detail:'민감한 주제도 각각 별도 섹션으로 나눠 다룹니다.'},{title:'대운·올해·좋은 날짜·결혼운',detail:'시기별 흐름과 계산된 좋은 날짜, 결혼운을 짚습니다.'},{title:'썸 전략·대화·매력·실천',detail:'지금 바로 쓸 수 있는 대화 문장과 7일 실천 가이드로 마무리합니다.'}],outlineImage:'/images/feature-details/love-secret-ai-hero-v2.webp'},
+    '/love-secret-ai':{featureId:'love-secret-ai-consultation',category:'연애 명리',badge:'전문가 상담형',headline:'연애를 여섯 부, 스물여덟 개 섹션으로 나눠 사주 명식으로 읽습니다.',subheadline:'연애운과 성향부터 궁합·갈등·시기·실천까지, 항목을 나눠 각각 따로 씁니다. 상대 생년 정보를 넣으면 궁합 항목이 함께 계산됩니다.',painPoints:['상대의 진심이 도무지 잡히지 않을 때','밀당의 타이밍을 번번이 놓칠 때','이 인연을 붙잡아야 할지 놓아야 할지 확신이 없을 때'],feats:['내 명식으로 연애 성향·장점·약점·애착 방식을 항목별로 해석','상대 생년 정보를 입력하면 궁합·이상형·감정 거리감까지 함께 계산','올해 연애운과 계산된 일진으로 고른 좋은 날짜를 함께 제시','재회 조건·바람기·자기 보호처럼 민감한 주제도 별도 섹션으로 분리'],unlockBenefits:['핵심 연애운과 질문의 답','나의 연애 성향 — 장점·약점·심리','상대·궁합·이상형','갈등·바람기·재회·자기 보호','대운·올해·좋은 날짜·결혼운','썸 전략·대화·매력·실천'],previewText:'연애 비책은 한 편의 총평이 아니라, 위 여섯 부를 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.',recommendedFor:['상대의 진심을 확인할 방법이 없어 지쳐가는 분','고백이나 재회의 타이밍을 이제는 정해야 하는 분','붙잡을지 놓을지 스스로 결론이 서지 않는 분'],trustNotes:['상대의 마음이나 결과를 보장하지 않습니다.','전문가 상담 결과는 참고용입니다.','이용권·월정석·단건결제 정책은 기존 기준을 따릅니다.'],ctaLabel:'사랑의 속마음 열람하기',reportScale:{sections:28,minWords:18000},answersQuestions:['그 사람은 지금 어떤 마음일까요?','내가 반복하는 연애 패턴은 뭘까요?','이 관계를 이어가도 될까요?'],valueCompare:{rows:[{axis:'구성',free:'성향 요약',premium:'6부 28개 섹션으로 나뉜 관계 분석'},{axis:'관점',free:'나만',premium:'나와 상대, 두 사람 사이의 거리까지'},{axis:'조언',free:'일반론',premium:'지금 건넬 말과 아낄 말'}]},faq:[{q:'상대 정보가 필요한가요?',a:'상대 정보가 있으면 관계 해석이 훨씬 구체적으로 나옵니다. 없어도 내 연애 패턴 분석은 가능합니다.'},{q:'상대 마음을 확정해 주나요?',a:'아니요. 지금 흐르는 분위기와 가까워지는 힘·멀어지는 힘을 함께 보여드립니다.'},{q:'결과가 아프면 어떡하죠?',a:'듣기 좋은 말로 덮지 않습니다. 대신 무엇을 바꾸면 달라지는지까지 함께 적습니다.'}],ctaNote:'결제 후 관계 분석 전체가 열립니다.',receives:[{icon:'💌',title:'6부 28개 섹션 상담',detail:'연애 성향부터 궁합·갈등·시기·실천까지 스물여덟 개 섹션으로 나눠 각각 따로 씁니다.'},{icon:'💑',title:'상대 궁합까지 계산',detail:'상대 생년 정보를 넣으면 궁합·이상형·감정 거리감까지 함께 봅니다.'},{icon:'📅',title:'올해 연애운과 좋은 날짜',detail:'계산된 일진에서 고른 좋은 날짜와 올해 연애운의 흐름을 짚습니다.'},{icon:'🗓️',title:'7일 실천 가이드',detail:'오늘부터 실행할 수 있는 연애 비책과 7일 치 하루 단위 가이드를 받습니다.'},{icon:'📄',title:'PDF 저장',detail:'완성된 상담 결과를 PDF로 저장할 수 있습니다.'}],outline:[{title:'핵심 연애운과 질문의 답',detail:'지금 관계의 자리와 자유 질문의 답부터 먼저 짚습니다.'},{title:'나의 연애 성향 — 장점·약점·심리',detail:'일간과 십성으로 애착과 표현 방식을 나눠 봅니다.'},{title:'상대·궁합·이상형',detail:'상대의 기운과 끌림의 조건, 이상형을 함께 읽습니다.'},{title:'갈등·바람기·재회·자기 보호',detail:'민감한 주제도 각각 별도 섹션으로 나눠 다룹니다.'},{title:'대운·올해·좋은 날짜·결혼운',detail:'시기별 흐름과 계산된 좋은 날짜, 결혼운을 짚습니다.'},{title:'썸 전략·대화·매력·실천',detail:'지금 바로 쓸 수 있는 대화 문장과 7일 실천 가이드로 마무리합니다.'}],outlineImage:'/feature-details/assets/love-secret-ai-960.webp'},
     'love-secret-ai-consultation':{inherit:'/love-secret-ai'},
     '/fusion-fortune':{featureId:'fusion-fortune-consultation',category:'초융합',badge:'전문가 상담형',headline:'여섯 체계가 같은 곳을 가리키는 지점과, 서로 엇갈리는 지점을 함께 봅니다.',subheadline:'사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽은 뒤, 겹치는 신호는 우선순위로 엇갈리는 신호는 상황별 선택지로 묶어 하나의 상담으로 잇습니다.',painPoints:['체계마다 말이 달라서 무엇을 믿어야 할지 모르겠을 때','여기저기서 본 해석이 조각조각 남아 정리가 안 될 때','큰 결정을 앞두고 한 번은 제대로 정리하고 싶을 때'],feats:['사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 해석','여섯 체계를 교차 검증해 겹치는 신호와 엇갈리는 신호를 나눠 정리','서버가 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽음','앞으로 12개월 시기 라인과 현실 행동 지침을 마지막에 배치'],unlockBenefits:['여섯 체계를 각각 전문가 깊이로 읽은 본문 20,000자 이상','두 체계 이상이 함께 가리키는 신호를 정리한 교차 검증','체계별 신호 강도 레이더와 앞으로 12개월 시기 라인','시기별로 준비·시험·정리할 일을 나눈 행동 지침'],previewText:'초융합은 여섯 개의 운세를 나란히 늘어놓지 않습니다. 서로 무엇을 함께 말하고 어디서 갈라지는지를 먼저 정리한 뒤, 그 위에서 지금의 선택을 봅니다.',recommendedFor:['이직·이사·결혼처럼 되돌리기 어려운 결정을 앞둔 분','여러 곳에서 본 해석이 서로 달라 혼란스러운 분','한 해의 흐름을 한 번에 정리해 두고 싶은 분'],analysisSteps:[{label:'사주 — 기질과 계절의 흐름'},{label:'자미두수 — 삶의 무대와 역할'},{label:'베다점 — 무의식의 리듬'},{label:'숙요점 — 관계의 거리'},{label:'점성술 — 표현과 책임'},{label:'타로 — 지금의 선택'},{label:'융합 — 교차 검증과 시기·행동'}],trustNotes:['서버가 계산한 값에 없는 별·궁·카드·시기는 만들지 않습니다.','타인의 마음이나 결과를 확정하지 않습니다.','생성이 실패하면 같은 요청으로 다시 시도할 때 추가 결제가 없습니다.','이용권·월정석·단건결제 판단은 기존 결제 정책을 그대로 따릅니다.'],ctaLabel:'초융합 리딩 열기',reportScale:{sections:9,minWords:20000},answersQuestions:['여러 운세가 서로 다른 말을 하는데 무엇을 따라야 할까요?','올해 남은 기간에 무엇을 준비해야 할까요?','지금 이 결정을 밀어붙여도 될까요?'],valueCompare:{rows:[{axis:'체계 수',free:'한 번에 하나',premium:'여섯 체계를 한 상담 안에서'},{axis:'교차 검증',free:'없음',premium:'겹치는 신호와 엇갈리는 신호를 나눠 정리'},{axis:'시기',free:'오늘 중심',premium:'앞으로 12개월 시기 라인'},{axis:'분량',free:'요약 수준',premium:'본문 20,000자 이상'}]},faq:[{q:'다른 운세를 이미 봤는데도 의미가 있나요?',a:'있습니다. 초융합의 값은 체계 하나하나가 아니라 그 사이의 관계에 있습니다. 어디가 겹치고 어디가 갈라지는지는 따로 본 해석에서는 나오지 않습니다.'},{q:'태어난 시간을 모르면 어떻게 되나요?',a:'생시가 없으면 시주·라그나·상승궁·하우스처럼 시간에 의존하는 값은 단정하지 않고, 확인 가능한 범위와 해석의 한계를 결과에 먼저 밝힙니다.'},{q:'이용권으로 볼 수 있나요?',a:'family 이용권은 커버됩니다. 그 외 등급은 금액 상한을 넘어 단건결제나 월정석으로 진행됩니다.'},{q:'결과가 나오는 데 얼마나 걸리나요?',a:'여섯 체계 계산과 본문 작성이 순서대로 진행되며, 진행 상황이 화면에 단계별로 표시됩니다. 분량이 길어 잠시 기다리셔야 합니다.'}],ctaNote:'결제 후 여섯 체계 본문과 지표가 함께 열립니다.',receives:[{icon:'🔮',title:'여섯 체계 심층 리딩',detail:'사주·자미두수·베다점·숙요점·점성술·타로를 각 전통의 언어로 따로 읽습니다.'},{icon:'🧩',title:'교차 검증 결과',detail:'여섯 체계 중 겹치는 신호와 엇갈리는 신호를 나눠 정리해 드립니다.'},{icon:'🃏',title:'그 자리에서 뽑는 타로 카드',detail:'서버가 그 자리에서 뽑은 여섯 장의 카드를 타로 섹션에서 함께 읽습니다.'},{icon:'🗓️',title:'12개월 시기 라인',detail:'앞으로 12개월의 흐름과 시기별 행동 지침을 마지막에 정리합니다.'},{icon:'📄',title:'PDF 저장과 다시 보기',detail:'완성된 상담은 계정에 저장돼 언제든 다시 열고 PDF로 내려받을 수 있습니다.'}],outline:[{title:'사주 — 기질과 계절의 흐름',detail:'타고난 기질과 계절의 균형을 먼저 짚습니다.'},{title:'자미두수 — 삶의 무대와 역할',detail:'삶에서 맡는 무대와 역할을 읽습니다.'},{title:'베다점·숙요점 — 무의식의 리듬과 관계의 거리',detail:'무의식의 흐름과 사람 사이 거리감을 짚습니다.'},{title:'점성술·타로 — 표현과 책임, 지금의 선택',detail:'지금 드러나는 감정과 눈앞의 선택지를 봅니다.'},{title:'융합 — 교차 검증과 12개월 시기·행동 지침',detail:'여섯 체계를 모아 겹치는 신호와 앞으로의 행동을 정리합니다.'}],outlineImage:'/images/feature-details/fusion-fortune-hero-v2.webp'},
     'fusion-fortune-consultation':{inherit:'/fusion-fortune'},

@@ -1434,7 +1434,7 @@
       "title": "Kkulkkul Fortune avec Yeoni, la petite truie fleurie",
       "fusion": "Explorez vos préoccupations pas à pas",
       "intro": "Un repère bienveillant pour votre journée",
-      "lead": "Commencez par une lecture gratuite, puis trouvez avec Yeoni, la petite truie fleurie, une direction qui vous ressemble.",
+      "lead": "Fortune du jour gratuite avec Yeoni. Découvrir le Saju de Yeongnyangi.",
       "start": "Voir ma lecture gratuite",
       "question": "Quelle question vous préoccupe ?",
       "deeper": "Pour une réponse plus approfondie",
@@ -1444,7 +1444,7 @@
       "findConcern": "Chercher par préoccupation",
       "gardenFirst": "Là où votre histoire s’épanouit",
       "gardenSecond": "Un jardin au clair de lune",
-      "reviewed": "Géré par un praticien du Saju avec 10 ans d’expérience",
+      "reviewed": "10 ans de Saju · prédictions justes sur deux présidents",
       "perspectives": "Comparez les perspectives de six traditions",
       "startFree": "Commencer gratuitement",
       "explore": "Découvrir davantage",
@@ -1459,6 +1459,10 @@
       "library": "Mes consultations achetées",
       "yeoni": "Voir mon destin avec Yeoni",
       "browse": "Explorer toutes les lectures"
+    },
+    "business": {
+      "paid": "Découvrir le Saju de Yeongnyangi",
+      "daily": "Fortune du jour gratuite avec Yeoni"
     }
   },
   "terms": {
@@ -6016,9 +6020,9 @@
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
-        "k153vbx2": "Une lecture des Quatre Piliers (BaZi) qui interprète calmement la trame de l'amour",
+        "k153vbx2": "D’où viennent vos schémas amoureux récurrents ?",
         "k1s2fcm4": "Lecture IA du Guide Amoureux",
-        "ko82iqm": "Nous relions le Maître du Jour, la Branche Terrestre du Jour, le Palais des Relations et le flux du cycle annuel pour interpréter avec élégance vos sentiments et vos choix actuels.",
+        "ko82iqm": "L’IA explore votre thème Saju pour éclairer la distance émotionnelle, le dialogue et des actions possibles.",
         "ku5mrxy": "Consultation experte : le manuel de l'amour"
       }
     },

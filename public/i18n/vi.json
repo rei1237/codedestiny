@@ -1434,7 +1434,7 @@
       "title": "Kkulkkul Fortune cùng chú heo hoa Yeoni",
       "fusion": "Từng bước gỡ rối những điều bạn băn khoăn",
       "intro": "Một gợi ý dịu dàng cho ngày hôm nay",
-      "lead": "Bắt đầu với vận mệnh miễn phí, rồi cùng chú heo hoa Yeoni tìm hướng đi phù hợp với lòng bạn.",
+      "lead": "Vận hôm nay miễn phí cùng Yeoni. Xem luận Tứ trụ của Yeongnyangi.",
       "start": "Xem luận giải miễn phí của tôi",
       "question": "Bạn đang muốn biết điều gì?",
       "deeper": "Khi bạn cần một lời giải sâu hơn",
@@ -1444,7 +1444,7 @@
       "findConcern": "Tìm theo điều bạn quan tâm",
       "gardenFirst": "Nơi câu chuyện của bạn nở hoa",
       "gardenSecond": "Khu vườn dưới ánh trăng",
-      "reviewed": "Do chuyên gia Saju với 10 năm kinh nghiệm điều hành",
+      "reviewed": "10 năm luận Tứ trụ · dự đoán đúng vận số hai tổng thống",
       "perspectives": "So sánh góc nhìn từ sáu truyền thống",
       "startFree": "Bắt đầu miễn phí",
       "explore": "Khám phá thêm",
@@ -1459,6 +1459,10 @@
       "library": "Xem tư vấn đã mua",
       "yeoni": "Xem vận mệnh cùng Yeoni",
       "browse": "Khám phá mọi vận mệnh"
+    },
+    "business": {
+      "paid": "Xem luận Tứ trụ của Yeongnyangi",
+      "daily": "Vận hôm nay miễn phí cùng Yeoni"
     }
   },
   "terms": {
@@ -6016,9 +6020,9 @@
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
-        "k153vbx2": "Tư vấn Tứ Trụ đọc dòng chảy tình yêu một cách nhẹ nhàng",
+        "k153vbx2": "Những khuôn mẫu tình cảm lặp lại bắt đầu từ đâu?",
         "k1s2fcm4": "Tư vấn AI Bí quyết Tình yêu",
-        "ko82iqm": "Kết nối Nhật Can, Nhật Chi, cung phu thê và dòng chảy lưu niên, chúng tôi sẽ chỉ ra tâm tư và lựa chọn hiện tại của bạn một cách trang trọng.",
+        "ko82iqm": "AI dựa trên lá số Tứ trụ để gợi mở khoảng cách cảm xúc, giao tiếp và hành động có thể thử.",
         "ku5mrxy": "Tư vấn chuyên sâu: Bí Kíp Tình Duyên"
       }
     },

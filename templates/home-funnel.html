@@ -3,6 +3,7 @@
   <header class="cdh-top" aria-label="공통 헤더">
     <a href="/" class="cdh-brand"><span aria-hidden="true">月花</span><span>꿀꿀 운세<small>CODE DESTINY</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
+      <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.reformActions.browse">모든 운세 둘러보기</a>
       <a href="/points/" data-cd-trans="home.funnelCopy.pass">이용권</a>
       <a class="cdh-login" href="/login/" data-cd-trans="home.funnelCopy.login">로그인</a>
       <details class="cdh-account"><summary data-cd-trans="home.funnelCopy.account">내 계정</summary><div id="cdhAccountSlot"></div></details>
@@ -12,12 +13,11 @@
   </header>
   <section class="cdh-hero" aria-labelledby="cdhTitle">
     <div class="cdh-copy">
-      <p class="cdh-intro" data-cd-trans="home.searchEntry.intro">오늘의 마음에, 다정한 방향 하나</p>
       <h1 id="cdhTitle"><span data-cd-trans="home.searchEntry.title">꿀꿀 운세, 꽃돼지 연이와</span><br><em data-cd-trans="home.searchEntry.fusion">지금의 고민을 차근차근</em></h1>
-      <p class="cdh-lead" data-cd-trans="home.searchEntry.lead">무료 운세로 오늘의 흐름을 확인하고, 꽃돼지 연이와 내 마음에 맞는 방향을 찾아보세요.</p>
+      <p class="cdh-lead" data-cd-trans="home.searchEntry.lead">연이와 오늘의 운세와 세 장의 카드를 무료로 펼쳐보세요. 나의 기질과 반복되는 고민은 영냥이의 사주 해석으로 더 깊이 살펴봐요.</p>
       <div class="cdh-actions">
-        <a class="cdh-primary" href="#destinyCardForm" data-cdh-free><span data-cd-trans="home.reformActions.yeoni">꽃돼지 연이와 운세 보기</span> <span aria-hidden="true">↗</span></a>
-        <a class="cdh-secondary" href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.reformActions.browse">모든 운세 둘러보기</a>
+        <a class="cdh-primary" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-business-entry="paid"><span data-cd-trans="home.business.paid">영냥이 사주 살펴보기</span> <span data-cd-price="yeongnyangi-saju-mackerel">{{representativePrice}}</span> <span aria-hidden="true">↗</span></a>
+        <a class="cdh-secondary" href="/today/#daily-tarot" data-cd-business-entry="daily" data-cd-trans="home.business.daily">연이와 무료 세 장 펼치기</a>
       </div>
     </div>
     <div class="cdh-garden">
@@ -25,7 +25,8 @@
       <img id="honeypigLogo" data-character="yeoni" data-lcp-candidate="1" src="/icons/app-logo-512.webp" alt="연꽃을 단 꽃돼지 연이" width="512" height="512" fetchpriority="high" decoding="async">
       <p><span data-cd-trans="home.funnelCopy.gardenFirst">당신의 이야기가</span><br><span data-cd-trans="home.funnelCopy.gardenSecond">꽃피는 달빛 정원</span></p>
     </div>
-    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 운영</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
+    <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 · 두 대통령 운세 적중</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
+    <details class="cdh-prediction-records" lang="ko"><summary>두 대통령 적중 기록 원문 보기</summary><p>운영자의 공개 사주 해석 기록입니다. 표시된 날짜는 블로그 게시일입니다.</p><ul>{{predictionRecords}}</ul></details>
   </section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">

@@ -46,3 +46,5 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
   word-break: normal;
   overflow-wrap: anywhere;
 }
+
+.cdh-prediction-records{grid-column:1/-1;font-size:13px;line-height:1.8;color:#63394e;max-width:65ch}.cdh-prediction-records summary{cursor:pointer;padding:12px 0;font-weight:700}.cdh-prediction-records a{text-decoration:underline;text-underline-offset:3px}.cdh-prediction-records ul{padding-left:20px}

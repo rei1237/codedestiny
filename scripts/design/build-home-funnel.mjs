@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
+import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
 
 const original = readFileSync('index.html', 'utf8');
 const doc = parse(original, { sourceCodeLocationInfo: true });
@@ -41,6 +42,9 @@ const nodes = {
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
+vars.representativePrice = Number(FEATURE_KEY_PRICE_TABLE['yeongnyangi-saju-mackerel'].amountKRW).toLocaleString('ko-KR') + '원';
+const records = JSON.parse(readFileSync('lib/brand/prediction-records.json','utf8'));
+vars.predictionRecords = records.map(record => '<li><a href="'+record.url+'" target="_blank" rel="noopener noreferrer">'+record.date+' · '+record.title+'</a></li>').join('');
 const template = readFileSync('templates/home-funnel.html', 'utf8');
 const homeHtml = template.replace(/\{\{(\w+)\}\}/g, (_token, key) => {
   if (!(key in vars)) throw new Error(`Unknown home funnel template token: ${key}`);

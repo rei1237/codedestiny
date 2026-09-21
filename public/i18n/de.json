@@ -1434,7 +1434,7 @@
       "title": "Kkulkkul Fortune mit Blumenferkel Yeoni",
       "fusion": "Ihre Fragen Schritt für Schritt betrachten",
       "intro": "Ein sanfter Impuls für deinen Tag",
-      "lead": "Beginnen Sie mit einer kostenlosen Deutung und finden Sie mit Blumenferkel Yeoni eine Richtung, die zu Ihrem Herzen passt.",
+      "lead": "Kostenloses Tagesorakel mit Yeoni. Yeongnyangis Saju entdecken.",
       "start": "Meine Deutung kostenlos ansehen",
       "question": "Welche Frage beschäftigt dich?",
       "deeper": "Wenn du eine ausführlichere Antwort suchst",
@@ -1444,7 +1444,7 @@
       "findConcern": "Nach Anliegen suchen",
       "gardenFirst": "Wo deine Geschichte aufblüht",
       "gardenSecond": "Ein Garten im Mondlicht",
-      "reviewed": "Betrieben von einem Saju-Praktiker mit 10 Jahren Erfahrung",
+      "reviewed": "10 Jahre Saju · zutreffende Deutungen für zwei Präsidenten",
       "perspectives": "Perspektiven aus sechs Traditionen vergleichen",
       "startFree": "Kostenlos beginnen",
       "explore": "Mehr entdecken",
@@ -1459,6 +1459,10 @@
       "library": "Meine gekauften Beratungen",
       "yeoni": "Schicksal mit Yeoni deuten",
       "browse": "Alle Deutungen entdecken"
+    },
+    "business": {
+      "paid": "Yeongnyangis Saju entdecken",
+      "daily": "Kostenloses Tagesorakel mit Yeoni"
     }
   },
   "terms": {
@@ -6016,9 +6020,9 @@
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
-        "k153vbx2": "Vier Säulen (BaZi) Beratung, die die Struktur der Liebe ruhig liest",
+        "k153vbx2": "Wo beginnen deine wiederkehrenden Beziehungsmuster?",
         "k1s2fcm4": "Liebesgeheimnisse KI-Beratung",
-        "ko82iqm": "Wir verknüpfen den Tagesstamm, den Tageszweig, den Beziehungspalast und den Fluss des Jahreszyklus, um Ihre aktuellen Gefühle und Entscheidungen stilvoll zu interpretieren.",
+        "ko82iqm": "Die KI betrachtet Beziehungshinweise im Saju für emotionale Nähe, Gespräche und mögliche Schritte.",
         "ku5mrxy": "Expertenberatung: das Liebes-Playbook"
       }
     },

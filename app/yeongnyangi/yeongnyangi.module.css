@@ -476,3 +476,5 @@
     transition: none !important;
   }
 }
+
+.predictionRecords{margin-top:20px;font-size:13px;line-height:1.8;text-align:left}.predictionRecords summary{cursor:pointer;padding:12px 0;font-weight:700}.predictionRecords a{text-decoration:underline;text-underline-offset:3px}.predictionRecords ul{padding-left:18px}

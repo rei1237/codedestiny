@@ -1434,7 +1434,7 @@
       "title": "Kkulkkul Fortune with Flower Pig Yeoni",
       "fusion": "Explore what is on your mind, step by step",
       "intro": "A little direction for what is on your mind",
-      "lead": "Start with a free fortune reading, then find a direction that fits your heart with Flower Pig Yeoni.",
+      "lead": "Free daily fortune with Yeoni. Explore Yeongnyangi’s Saju.",
       "start": "Try my free reading",
       "question": "What would you like to explore?",
       "deeper": "When you want a deeper reading",
@@ -1444,7 +1444,7 @@
       "findConcern": "Find by concern",
       "gardenFirst": "Where your story blooms",
       "gardenSecond": "A garden in the moonlight",
-      "reviewed": "Operated by a Saju practitioner with 10 years of experience",
+      "reviewed": "10 years in Saju · predicted the fortunes of two presidents",
       "perspectives": "Compare perspectives across six traditions",
       "startFree": "Start for free",
       "explore": "Explore more",
@@ -1459,6 +1459,10 @@
       "library": "My purchased readings",
       "yeoni": "Read your fortune with Yeoni",
       "browse": "Explore all readings"
+    },
+    "business": {
+      "paid": "Explore Yeongnyangi’s Saju",
+      "daily": "Free daily fortune with Yeoni"
     }
   },
   "terms": {
@@ -6016,9 +6020,9 @@
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
-        "k153vbx2": "Four Pillars (BaZi) Consult, calmly reading the fabric of love",
+        "k153vbx2": "Where do your recurring relationship patterns begin?",
         "k1s2fcm4": "Love Secrets AI Consult",
-        "ko82iqm": "We weave together your day master, day branch, relationship palace, and the flow of the annual luck cycle to elegantly pinpoint your current feelings and choices.",
+        "ko82iqm": "AI uses relationship clues in your Saju chart to explore emotional distance, communication and actions to try.",
         "ku5mrxy": "Expert Reading: The Love Playbook"
       }
     },
