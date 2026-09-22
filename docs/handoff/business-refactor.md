@@ -7,17 +7,16 @@ next: "Play 적용 수수료·v3 SKU와 상품별 유료 상담·저장·지원�
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
 
-## 2026-09-22 Workers AI 상한·정산·Play 증거 추가
+## 2026-09-22 Workers AI 상한과 외부 원가 증거
 
-- Gemini 50,000토큰 상한은 반복하지 않았다. Workers AI에 모델 공통 count API가 없는 조건을 반영해, `lib/workers-ai-input-token-limit.mjs`가 실제 메시지의 UTF-8 바이트 수+1,024를 보수 토큰 상한으로 삼고 `env.AI.run()` 전에 50,000 초과를 차단한다. 공급자 `usage`가 있으면 실제 토큰을 보존하고, 없을 때만 입력 보수 상한·출력 추정을 남긴다.
-- 공식 Workers AI 단가와 기본 GLM 4.7 Flash→Llama 3.3 70B 두 모델이 모두 최대 입출력 비용을 만들 수 있는 폴백 체인을 계획 원가에 포함했다. 최대 소진 조합인 `tarot-love-relationship`의 1건 계획 변동원가는 9,100원에서 14,700원으로 늘었다.
-- 현재 89,000/269,000/879,000원은 Play 15% 계획에서는 내부 40% 기준을 넘지만 Play 30% 스트레스에서는 약 30%에 그친다. 30% 조건의 산출 최소가는 119,800/359,400/1,197,800원이며, 실제 Play 적용 요율을 확인하기 전에 현재가를 확정가로 쓰지 않는다.
-- PortOne 관리자에서 2026-09 정산일 기준 총 22건·52,700원, 정산 완료 18건·순정산 51,598원, PG 수수료 1,001원·부가세 101원을 읽기 전용으로 확인했다. 다만 v3 이용권 거래가 아니므로 웹 3종의 `SETTLEMENT_EVIDENCE_MISSING`을 해제하지 않았다.
-- Google Play Console의 `com.codedestiny.app` 일회성 상품은 18개였고 예전 `cd_pass_*_30d`는 있지만 `cd_pass_*_30d_v3`는 없었다. 상품을 만들거나 활성화하지 않았고, Play 3종의 `APP_SKU_NOT_VERIFIED`를 그대로 유지했다.
-- Cloudflare GraphQL Analytics 최근 30일 계정 전체는 GLM 4.7 Flash 1,025 Neuron, 일별 무료분 차감 후 추정 초과분 $0이었다. 이는 청구서·실정산이 아니고 실제 유료 상담 폴백 표본도 아니므로 원가 evidence에 넣지 않았다.
-- `lib/payment/pass-cost-evidence.js`는 빈 객체를 유지했다. 실 PG·유료 LLM·운영 DB 쓰기·운영 승격 없이 읽기 전용 증거만 보강했고, main의 동시 `marketing/**`·기존 worktree를 보존했다. 새 이용권 3종×웹/Play 6건은 계속 차단 상태다.
-- 로컬 `npm run check:fast` 최종 통과: paid suite 88/88, Node 1,529/1,529, Jest 289 suites·4,057 tests, lint·typecheck·Worker dry-run·사이트맵 1,284 URL 통과. `node scripts/audit-pass-profitability.mjs`의 6건 차단·종료 2는 예상 결과다.
-- 세부 근거와 재현 명령은 `docs/verification/pass-sale-readiness-20260922.md`, 가격 계획은 `docs/pass-pricing-20260921.md`를 정본으로 삼는다. 최종 커밋·main CI는 이 절의 후속 전달 기록으로 남긴다.
+- 코드 커밋 `4f45e0890`: `lib/workers-ai-input-token-limit.mjs`에서 Workers AI 공급자 시도당 입력을 불변 50,000토큰으로 제한했다. Cloudflare에는 생성 전 countTokens API가 없으므로 UTF-8 바이트 수+채팅 예약분을 실제 토큰 수의 보수적 상계로 쓴다. 기본 GLM/Llama 모델은 공식 컨텍스트 131,072/24,000에서 요청 출력과 예약분을 뺀 값이 더 작으면 그 한도를 적용한다.
+- 공통 `lib/llm-client.ts`의 유일한 `env.AI.run` 직전에 검사한다. 초과 mock은 `env.AI.run` 0회를 단언하며, Gemini 50,000토큰 상한 구현은 반복하거나 변경하지 않았다. Workers AI 응답이 공식 `usage.prompt_tokens`·`completion_tokens`를 주면 실측값을 로그에 보존하고, 없을 때만 `estimated=true` 문자수 추정으로 내린다.
+- 2026-09-22 로그인된 계정을 읽기 전용으로 확인했다. 포트원 9월 누계는 거래 52,700원, 정산 51,598원, PG 수수료 1,001원+부가세 101원으로 일치했다. Cloudflare 최근 1개월 Workers AI는 1.03k neurons, 입력 10.94k·출력 26.52k였고 9월 청구 가능 사용량은 포함 한도 안의 $0.00, 최근 Workers Paid 청구서는 $5.00이었다.
+- Play Console의 `com.codedestiny.app`은 임시·내부 테스트, 프로덕션 비활성이다. 일회성 제품 18개에 구 `cd_pass_*_30d`와 Family는 있으나 신규 `cd_pass_standard_30d_v3`, `premium`, `vvip`는 없다. 따라서 Play 3종은 `APP_SKU_NOT_VERIFIED`를 유지한다. SKU를 만들거나 게시하지 않았다.
+- 공식 GLM/Llama 단가와 Gemini 허용 재시도 뒤 두 폴백 모델이 모두 최대 비용을 만들 수 있는 계획을 추가했다. 최대 소진 조합의 1건 계획 변동원가는 9,100원→14,700원이며, 현재 89,000/269,000/879,000원은 Play 30% 스트레스의 40% 기준에 미달한다. 해당 기준 최소 계획가는 119,800/359,400/1,197,800원이다.
+- 집계 정본은 `docs/verification/pass-external-cost-evidence-20260922.json`, 세부 재현은 `docs/verification/pass-sale-readiness-20260922.md`, 공식 단가는 `config/llm-tariffs-20260921.json`이다. 계정 전체 집계는 상품별 LLM·재시도·저장·지원·환불 실원가가 아니므로 `lib/payment/pass-cost-evidence.js`는 비워 두고 웹 3종 `SETTLEMENT_EVIDENCE_MISSING`, Play 3종 `APP_SKU_NOT_VERIFIED` 판매 차단을 유지한다.
+- 실PG·유료 LLM·운영 DB 쓰기·운영 승격은 수행하지 않았다. 기존 주문·선물·복원과 main의 `marketing/**`, 기존 worktree는 건드리지 않았다.
+- 병합 전 로컬 `npm run check:fast` 최종 통과: paid suite 88/88, Node 1,529/1,529, Jest 289 suites·4,057 tests, lint·typecheck·Worker dry-run·사이트맵 1,284 URL. `node scripts/audit-pass-profitability.mjs`의 6건 차단·종료 2는 예상 결과다. 최종 병합본은 타겟 검증과 main CI로 판정한다.
 
 ## 2026-09-22 Gemini 입력 토큰 하드 상한
 

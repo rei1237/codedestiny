@@ -28,9 +28,9 @@ Play Console의 패키지 `com.codedestiny.app`을 읽기 전용으로 확인했
 ## Workers AI 상한·사용량·계획 원가
 
 - 공식 단가: GLM 4.7 Flash는 입력 $0.0605/백만·출력 $0.40/백만, 컨텍스트 131,072토큰. Llama 3.3 70B fp8-fast는 입력 $0.293/백만·출력 $2.253/백만, 컨텍스트 24,000토큰.
-- `lib/workers-ai-input-token-limit.mjs`가 직렬화된 메시지의 UTF-8 바이트 수에 채팅 템플릿 여유 1,024를 더해 공급자 시도당 50,000토큰 상한을 보수적으로 강제한다. 초과 시 `env.AI.run` 호출 전 실패한다.
+- `lib/workers-ai-input-token-limit.mjs`가 메시지 content의 UTF-8 바이트 수에 채팅 템플릿 여유 512를 더해 공급자 시도당 50,000토큰 상한을 보수적으로 강제한다. 기본 GLM/Llama는 요청 출력을 제외한 컨텍스트 한도가 더 작으면 그 값을 쓰고, 초과 시 `env.AI.run` 호출 전 실패한다.
 - Workers AI 응답에 공식 `usage`가 있으면 실제 prompt/completion 토큰을 로그에 보존한다. 없는 모델만 입력 상한·출력 문자수 추정으로 표시한다.
-- 읽기 전용 GraphQL Analytics 조회 `node scripts/check-workers-ai-quota.mjs --days=30`: 2026-08-24 이후 GLM 1,025 Neuron(2026-08-25)만 관찰됐고 일별 무료분 초과 추정은 0 Neuron/$0였다. Analytics는 청구서가 아니며 유료 상담 폴백 표본도 아니다.
+- 인증 대시보드 최근 1개월은 1.03k Neuron·입력 10.94k·출력 26.52k, 9월 청구 가능 사용량은 $0.00, 최근 Workers Paid 청구서는 $5.00였다. 별도 읽기 전용 GraphQL 재현 `node scripts/check-workers-ai-quota.mjs --days=30`은 UTC 2026-08-24 이후 GLM 1,025 Neuron·일별 무료분 초과 추정 $0을 보였다. 시간 경계가 다른 계정 집계이며 유료 상담 폴백 표본은 아니다.
 - 최악 계획은 Gemini 허용 재시도 후 Workers AI 두 모델이 모두 입력·출력 과금을 만들 수 있다고 보고 합산한다. `tarot-love-relationship` 1건의 계획 변동원가는 9,100원에서 14,700원으로 증가했다.
 
 ## 판매 판정
@@ -39,6 +39,8 @@ Play Console의 패키지 `com.codedestiny.app`을 읽기 전용으로 확인했
 - Play 30% 시나리오는 현재 v3 가격에서 약 30%로 기준 미달이다. 40% 기준 최소 계획가는 119,800원/359,400원/1,197,800원이다.
 - 실제 Play 적용 수수료, 신규 SKU의 KRW 가격·지역·활성 상태, 상품별 유료 상담 실사용량, 저장·지원·환불 원가, Cloudflare 청구서는 아직 없다.
 - 따라서 `PASS_COST_EVIDENCE`는 비워 두고 웹·Play 신규 이용권 판매 차단을 유지한다. 기존 주문 확정·선물 수령·복원은 변경하지 않는다.
+
+계정 집계의 기계 가독 정본은 `docs/verification/pass-external-cost-evidence-20260922.json`이다.
 
 공식 출처:
 - https://developers.cloudflare.com/workers-ai/platform/pricing/

@@ -458,6 +458,35 @@ function extractGeminiUsage(payload: GeminiPayload): LLMUsage | undefined {
   };
 }
 
+function extractWorkersAiUsage(result: unknown): LLMUsage | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const payload = result as {
+    usage?: Record<string, unknown>;
+    result?: { usage?: Record<string, unknown> };
+  };
+  const usage = payload.usage || payload.result?.usage;
+  if (!usage) return undefined;
+
+  const inputTokens = toTokenCount(
+    usage.prompt_tokens ?? usage.promptTokens ?? usage.input_tokens ?? usage.inputTokens,
+  );
+  const outputTokens = toTokenCount(
+    usage.completion_tokens ?? usage.completionTokens ?? usage.output_tokens ?? usage.outputTokens,
+  );
+  if (!inputTokens && !outputTokens) return undefined;
+
+  const cachedInputTokens = toTokenCount(
+    usage.cached_tokens
+      ?? usage.cachedTokens
+      ?? (usage.prompt_tokens_details as Record<string, unknown> | undefined)?.cached_tokens,
+  );
+  return {
+    inputTokens,
+    outputTokens,
+    ...(cachedInputTokens ? { cachedInputTokens: Math.min(inputTokens, cachedInputTokens) } : {}),
+  };
+}
+
 /**
  * 라우트별 토큰 사용량을 한 줄 구조화 로그로 남긴다.
  * scripts/report-llm-token-usage.mjs 가 이 줄을 파싱해 기능별 집계표를 만든다.
@@ -533,21 +562,6 @@ function extractWorkersAiFinishReason(result: unknown): string {
     choices?: Array<{ finish_reason?: string }>;
   };
   return String(payload.choices?.[0]?.finish_reason || payload.finish_reason || "").trim();
-}
-
-function extractWorkersAiUsage(result: unknown): LLMUsage | undefined {
-  if (!result || typeof result !== "object") return undefined;
-  const usage = (result as {
-    usage?: {
-      prompt_tokens?: number;
-      input_tokens?: number;
-      completion_tokens?: number;
-      output_tokens?: number;
-    };
-  }).usage;
-  const inputTokens = toTokenCount(usage?.prompt_tokens ?? usage?.input_tokens);
-  const outputTokens = toTokenCount(usage?.completion_tokens ?? usage?.output_tokens);
-  return inputTokens > 0 ? { inputTokens, outputTokens } : undefined;
 }
 
 function extractWorkersAiText(result: unknown): string {
@@ -982,10 +996,6 @@ async function callCloudflareWorkersAI(
       : []),
     { role: "user", content: normalized.prompt },
   ];
-  // Workers AI에는 모델 공통 countTokens API가 없다. 실제 메시지를 UTF-8 바이트 상한으로
-  // 검사해 어떤 모델·env 오버라이드도 공급자 시도당 50,000 입력 토큰을 넘지 못하게 한다.
-  // 계산 실패/초과를 휴리스틱으로 통과시키지 않는다.
-  const inputTokensUpperBound = assertWorkersAiInputTokenLimit(messages);
 
   const failures: string[] = [];
   // 🔴 폴백 체인에도 시간 상한을 준다. 이게 없던 동안 한 호출의 실제 상한은 "timeoutMs"가 아니라
@@ -1006,6 +1016,13 @@ async function callCloudflareWorkersAI(
       continue;
     }
     try {
+      // Cloudflare는 생성 전 countTokens API를 제공하지 않는다. UTF-8 바이트 기반 상계와
+      // 모델별 컨텍스트 창으로 입력 원가·크기를 env.AI.run 전에 fail-closed 한다.
+      assertWorkersAiInputTokenLimit({
+        model,
+        messages,
+        maxOutputTokens: normalized.maxTokens,
+      });
       emitProviderCallLog("cloudflare", model, normalized, env);
       const result = await raceWithDeadline(
         Promise.resolve(env.AI.run(model, buildWorkersAiInput(model, normalized, messages))),
@@ -1017,13 +1034,13 @@ async function callCloudflareWorkersAI(
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
       const finishReason = extractWorkersAiFinishReason(result);
 
-      // 공식 usage가 있으면 실제 토큰을 보존한다. 없는 모델만 입력은 호출 전 보수 상한,
-      // 출력은 문자수 추정으로 남겨 실제값과 추정값을 섞지 않는다.
+      // Workers AI 가 공식 usage 를 주면 실측값을 보존한다. 모델/응답 형식에 따라 usage 가
+      // 없을 때만 문자수 휴리스틱으로 내려가며, 원가 집계는 estimated=true 를 확정 원가로 쓰지 않는다.
       const usage = extractWorkersAiUsage(result) || {
-        inputTokens: inputTokensUpperBound,
+        inputTokens: estimateTokens(normalized.systemPrompt || "") + estimateTokens(normalized.prompt),
         outputTokens: estimateTokens(text),
         estimated: true,
-      };
+      } satisfies LLMUsage;
       emitTokenUsageLog("cloudflare", model, normalized, usage, env);
 
       return {

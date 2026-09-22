@@ -7,5 +7,29 @@
     "outputUsdPerMillion": 2.5,
     "thinkingIncludedInOutput": false,
     "scope": "Standard text/image/video tokens only. candidatesTokenCount excludes thoughtsTokenCount. Cache storage, grounding, FX and non-token charges are separate. Not sale evidence."
+  },
+  "cloudflare/@cf/zai-org/glm-4.7-flash": {
+    "reviewedAt": "2026-09-22",
+    "sourceRefs": [
+      "https://developers.cloudflare.com/workers-ai/models/glm-4.7-flash/",
+      "https://developers.cloudflare.com/workers-ai/platform/pricing/"
+    ],
+    "inputUsdPerMillion": 0.0605,
+    "cachedInputUsdPerMillion": 0.0605,
+    "outputUsdPerMillion": 0.4,
+    "thinkingIncludedInOutput": true,
+    "scope": "Cloudflare Workers AI token tariff. No separate cache discount is assumed. Account-wide included usage, neuron charges, storage, FX and non-token charges are separate. Not sale evidence."
+  },
+  "cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast": {
+    "reviewedAt": "2026-09-22",
+    "sourceRefs": [
+      "https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/",
+      "https://developers.cloudflare.com/workers-ai/platform/pricing/"
+    ],
+    "inputUsdPerMillion": 0.293,
+    "cachedInputUsdPerMillion": 0.293,
+    "outputUsdPerMillion": 2.253,
+    "thinkingIncludedInOutput": true,
+    "scope": "Cloudflare Workers AI token tariff. No separate cache discount is assumed. Account-wide included usage, neuron charges, storage, FX and non-token charges are separate. Not sale evidence."
   }
 }

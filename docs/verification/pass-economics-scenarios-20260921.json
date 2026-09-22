@@ -19,6 +19,9 @@
     "inputTokenCapProvenInCode": true,
     "workersAiInputTokenHardLimit": 50000,
     "workersAiInputTokenCapProvenInCode": true,
+    "workersAiInputTokensPerProviderAttempt": 50000,
+    "workersAiProviderUsageCapturedWhenPresent": true,
+    "workersAiFallbackCostIncluded": true,
     "workersAiFallbackModels": [
       {
         "model": "@cf/zai-org/glm-4.7-flash",

@@ -1,0 +1,78 @@
+{
+  "basis": "authenticated-dashboard-review-not-sale-evidence",
+  "reviewedAt": "2026-09-22",
+  "saleApproval": false,
+  "portOneSettlement": {
+    "period": "2026-09-01/2026-09-30",
+    "observedThrough": "2026-09-22",
+    "currency": "KRW",
+    "transactionCount": 22,
+    "settledTransactionCount": 18,
+    "grossTransactionAmount": 52700,
+    "settledAmount": 51598,
+    "pgFee": 1001,
+    "pgFeeVat": 101,
+    "deductionFromGross": 1102,
+    "deductionRateOnGross": 0.0209108159,
+    "reconciles": true,
+    "sourceRefs": [
+      "PortOne authenticated console > PG settlement > daily summary > September 2026"
+    ],
+    "limits": [
+      "Month-to-date aggregate is not a contract rate or a new-pass settlement.",
+      "The dashboard aggregate is not attributed to individual products or production-only customers."
+    ]
+  },
+  "cloudflare": {
+    "workersAiUsage": {
+      "period": "2026-08-23T16:00:17+09:00/2026-09-22T16:00:17+09:00",
+      "neurons": 1030,
+      "inputTokens": 10940,
+      "outputTokens": 26520,
+      "sourceRefs": [
+        "Cloudflare authenticated dashboard > Workers AI > Cost Metrics > Last 1 month"
+      ]
+    },
+    "billing": {
+      "period": "2026-08-30/2026-09-22",
+      "billableUsageUsd": 0,
+      "projectedCycleUsageUsd": 0,
+      "latestWorkersPaidInvoiceDate": "2026-08-30",
+      "latestWorkersPaidInvoiceUsd": 5,
+      "sourceRefs": [
+        "Cloudflare authenticated dashboard > Billing > Billable usage > September 2026",
+        "Cloudflare authenticated dashboard > Billing > Invoices and documents"
+      ]
+    },
+    "limits": [
+      "Included-tier billing of USD 0 does not prove a zero marginal cost after the allowance is exhausted.",
+      "Account totals are not attributed to Code Destiny products, retries, storage, support, or refunds."
+    ]
+  },
+  "googlePlay": {
+    "packageName": "com.codedestiny.app",
+    "appState": "draft-internal-testing-production-inactive",
+    "oneTimeProductCount": 18,
+    "legacyPassProductIdsObserved": [
+      "cd_pass_standard_30d",
+      "cd_pass_premium_30d",
+      "cd_pass_vvip_30d",
+      "cd_pass_family_30d"
+    ],
+    "requiredV3ProductIdsAbsent": [
+      "cd_pass_standard_30d_v3",
+      "cd_pass_premium_30d_v3",
+      "cd_pass_vvip_30d_v3"
+    ],
+    "sourceRefs": [
+      "Google Play Console authenticated app > Monetize with Play > Products > One-time products"
+    ],
+    "saleEvidenceStatus": "APP_SKU_NOT_VERIFIED"
+  },
+  "remainingEvidence": [
+    "Product-attributed provider usage and retry costs",
+    "MongoDB storage and backup invoice attribution",
+    "Support labor and refund reserve basis",
+    "Reviewed Google Play service fee program and active v3 one-time product prices"
+  ]
+}

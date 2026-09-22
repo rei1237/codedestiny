@@ -17,7 +17,7 @@
 재현 명령은 `node scripts/report-pass-economics.mjs --write`, 입력은 `config/pass-cost-planning-20260921.json`, 결과는 `docs/verification/pass-economics-scenarios-20260921.json`이다. 이는 판매 증거가 아니라 코드에서 확인한 호출 구조를 공급자 단가에 대입한 계획 시나리오다.
 
 - Gemini 2.5 Flash Standard 공식 단가: 입력 $0.30/100만, 출력과 thinking $2.50/100만. 확인한 장문 경로는 thinkingBudget 0이지만 실제 배포 모델 환경값은 별도 확인이 필요하다.
-- 입력 토큰: `lib/gemini-input-token-limit.mjs`가 공급자의 비과금 `countTokens` 응답을 생성 전에 확인해 Gemini 시도 1회당 50,000토큰을 초과하면 모든 공급자 호출을 차단한다. `lib/workers-ai-input-token-limit.mjs`는 모델 공통 count API가 없는 Workers AI 메시지를 UTF-8 바이트 수+채팅 템플릿 여유 1,024로 보수 계산해 같은 50,000토큰 상한을 `env.AI.run` 전에 강제한다. 두 상한 모두 환경값으로 올릴 수 없다.
+- 입력 토큰: `lib/gemini-input-token-limit.mjs`가 공급자의 비과금 `countTokens` 응답을 생성 전에 확인해 Gemini 시도 1회당 50,000토큰을 초과하면 모든 공급자 호출을 차단한다. `lib/workers-ai-input-token-limit.mjs`는 모델 공통 count API가 없는 Workers AI content를 UTF-8 바이트 수+채팅 템플릿 여유 512로 보수 계산해 `env.AI.run` 전에 50,000토큰 상한을 강제한다. 기본 GLM/Llama는 공식 컨텍스트 창에서 요청 출력·예약분을 뺀 값이 더 작으면 그 상한을 쓴다. 두 공급자 상한 모두 환경값으로 올릴 수 없다.
 - 출력·재시도: 각 경로의 부분 수, 부분별 최대 출력 토큰, 저장형 재시도 상한, 공통 공급자 재시도 상한을 곱했다. 성공 출력은 논리 호출당 한 번만 최대치로 잡고, 공급자 재시도는 입력 비용에 반영했다.
 - Workers AI: Gemini 허용 재시도 뒤 GLM 4.7 Flash와 Llama 3.3 70B가 모두 최대 입력·출력 비용을 만들 수 있는 체인을 합산한다. GLM은 입력 $0.0605/100만·출력 $0.40/100만, Llama는 입력 $0.293/100만·출력 $2.253/100만이다. 실제 환경 오버라이드 모델은 별도 확인 대상이다.
 - 저장·지원·환불 등 미확정 변동비는 전체 공급자 토큰 계산에 30% 충당을 더했다. 실제 비용 근거가 아니며 부족하면 상향한다.
@@ -45,7 +45,7 @@
 
 ## 판매 차단과 원가 검증
 
-PortOne의 2026-09 실정산 집계는 읽기 전용으로 확인했지만 신규 v3 이용권 표본이 아니고, 상품별 실원가·Play 신규 SKU·적용 수수료 증거가 없어 **새 이용권 3종 모두 웹·앱 판매 차단**이다. 상세 관찰은 `docs/verification/pass-sale-readiness-20260922.md`. `lib/payment/pass-cost-evidence.js`의 빈 객체를 mock·추정 단가·부분 정산으로 채우지 않는다. GET `/api/payments/pass-offers`가 화면과 신규 주문의 공통 판매 상태를 제공한다. Play는 웹과 별도 증거와 `verifiedProductId`가 필요하다. 기존 주문 확정·선물 수령·복원에는 신규 판매 차단을 적용하지 않는다.
+PortOne의 2026-09 실정산 집계와 Cloudflare 청구·Workers AI 계정 집계를 읽기 전용으로 확인했지만 신규 v3 이용권·상품별 유료 상담 표본이 아니다. 상품별 실원가·Play 신규 SKU·적용 수수료 증거가 없어 **새 이용권 3종 모두 웹·앱 판매 차단**이다. 외부 집계 정본은 `docs/verification/pass-external-cost-evidence-20260922.json`, 상세 관찰과 재현 명령은 `docs/verification/pass-sale-readiness-20260922.md`. `lib/payment/pass-cost-evidence.js`의 빈 객체를 mock·추정 단가·부분 정산으로 채우지 않는다. GET `/api/payments/pass-offers`가 화면과 신규 주문의 공통 판매 상태를 제공한다. Play는 웹과 별도 증거와 `verifiedProductId`가 필요하다. 기존 주문 확정·선물 수령·복원에는 신규 판매 차단을 적용하지 않는다.
 
 `node scripts/audit-pass-profitability.mjs [evidence.json]`은 읽기 전용이다. 차단된 항목이 있으면 종료 코드 2다. 각 등급/채널별 증거 형태:
 
@@ -66,7 +66,7 @@ PortOne의 2026-09 실정산 집계는 읽기 전용으로 확인했지만 신�
 
 ## 토큰 집계와 남은 실측
 
-Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·시스템 지시·멀티모달을 계산한다. 공식 billing FAQ상 이 요청은 과금되지 않고 추론 쿼터에도 포함되지 않는다. 코드 검증은 mock 응답으로만 수행하며 실제 공급자 호출은 하지 않는다. 상한 검사가 일시적으로 실패하면 Gemini 생성 요청은 보내지 않는다. Workers AI는 공급자 usage가 있으면 실제 prompt/completion 토큰을 기록하고, 없을 때만 입력 보수 상한·출력 추정을 기록한다. 최근 30일 GraphQL Analytics는 1,025 Neuron/$0 초과분이었지만 청구서와 유료 상담 폴백 표본이 아니므로 판매 승인 원가 증거가 아니다.
+Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·시스템 지시·멀티모달을 계산한다. 공식 billing FAQ상 이 요청은 과금되지 않고 추론 쿼터에도 포함되지 않는다. 코드 검증은 mock 응답으로만 수행하며 실제 공급자 호출은 하지 않는다. 상한 검사가 일시적으로 실패하면 Gemini 생성 요청은 보내지 않는다. Workers AI는 공급자 usage가 있으면 실제 prompt/completion 토큰을 기록하고, 없을 때만 `estimated=true` 문자수 추정을 남긴다. 인증 대시보드 최근 1개월은 1.03k Neuron·입력 10.94k·출력 26.52k, 9월 청구 가능 사용량은 $0.00, 최근 Workers Paid 청구서는 $5.00였다. 별도 GraphQL UTC 30일 재현은 1,025 Neuron·일별 무료분 초과 추정 $0으로 동일한 규모를 보였다. 둘 다 계정 집계이지 상품별 유료 상담 폴백 실원가가 아니므로 판매 승인 evidence로 쓰지 않는다.
 
 `node scripts/report-llm-token-usage.mjs llm.log --prices tariffs.json`으로 provider/model별 단가를 적용한다. 미등록 모델·추정 토큰은 비용 `null`, `complete:false`다. 캐시 입력·thinking 토큰을 별도로 반영한다. 단가 파일 키는 `gemini/실제모델명` 등이며 값은 `reviewedAt`, `sourceRefs`, `inputUsdPerMillion`, `cachedInputUsdPerMillion`, `outputUsdPerMillion`, `thinkingIncludedInOutput`을 포함한다. 실제 모델 청구 방식에 맞게 thinking 중복 여부를 확인한다. 파일에 실제 공급자 단가와 적용일·출처를 기록한다. 확인한 Flash Standard 단가는 `config/llm-tariffs-20260921.json`에 있다. candidatesTokenCount와 thoughtsTokenCount를 별도로 기록하므로 이 파일의 thinkingIncludedInOutput은 false다. 캐시 보관료·검색·그 외 모델과 요금제는 이 파일로 계산하지 않는다.
 
