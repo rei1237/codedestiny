@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
+import SpiritResult from './SpiritResult';
 import styles from '../yeongnyangi.module.css';
 import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
 export default function Result(){
@@ -44,6 +45,13 @@ export default function Result(){
   },5000);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
+ if(row?.consultation?.spirit)return <section className={styles.reader}>
+  <SpiritResult row={row}/>
+  {row.state==='REFUNDED'?<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>:!row.paid?<><p>결제 확인이 필요해요. 이미 결제했다면 먼저 상태를 다시 확인해 주세요.</p><button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a href={checkoutPath(row)}>결제 내용 확인하기</a></>:row.state!=='COMPLETED'&&<>
+    {row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">자동 복구가 멈췄어요. 저장된 내용은 유지돼요.</p><button disabled={busy} onClick={()=>void generate(row.id)}>기존 상담 복구하기</button></>:row.errorCode==='GENERATION_REVIEW_REQUIRED'||row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">상담 확인이 필요해요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.</p>:<p>서버에서 남은 이야기만 자동으로 이어가요. 창을 닫아도 내 상담 기록에서 확인할 수 있어요.</p>}
+  </>}
+  {error&&<p role="alert">{error} 결제한 상담은 다시 결제하지 마세요.</p>}<p className={styles.orderId}>상담 주문번호: {row.id}</p>
+ </section>;
  return <section className={styles.reader}>
   <p className={styles.eyebrow}>영냥이의 상담 두루마리</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:'상담 결과'}</h1>
   {!row&&!error&&<p role="status">저장된 상담을 불러오고 있어요.</p>}

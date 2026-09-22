@@ -1,0 +1,52 @@
+import '../../scripts/lib/mock-network-guard.cjs';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+const require=createRequire(import.meta.url),Module=require('node:module');
+globalThis.__spiritTest={rows:new Map(),calls:0};
+const replacements={
+  'worker/lib/models.js':`export const ProfileCard={findOne:()=>({lean:async()=>({updatedAt:null,birth:{year:1997,month:2,day:10,timeUnknown:true,calType:'solar'},gender:'F'})})};`,
+  'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
+  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__spiritTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>globalThis.__spiritTest.rows.get(id);export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__spiritTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
+  'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
+  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__spiritTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
+};
+const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const loaded=new Module(path.resolve('spirit-service-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
+const {prepareFortune,presentFortune,generateNextChapter}=loaded.exports;
+const body={mode:'spirit-v1',productId:'saju_mackerel',profileId:'self',question:'재회할까요? 연락을 기다려도 될까요?',timezone:'Asia/Seoul',topicId:'relationship',spirit:{relationship:'헤어진 사이',topic:'space',situation:'차단한 상황'}};
+const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
+test('actual service snapshots server time/input/real calculation, deduplicates prepares, and preserves paid result on replay',async()=>{
+  const before=Date.now();
+  const a=await prepareFortune(env,'owner',body),b=await prepareFortune(env,'owner',body);
+  assert.equal(a._id,b._id);assert.equal(globalThis.__spiritTest.rows.size,1);
+  assert.ok(Date.parse(a.snapshot.analysis.consultation.spirit.askedAt)>=before);
+  assert.equal(a.snapshot.normalized.saju.personA.birthTime,undefined);
+  assert.equal(a.snapshot.analysis.consultation.question,body.question);
+  assert.equal(a.snapshot.analysis.consultation.spirit.boundary,true);
+  assert.equal(a.snapshot.manifest.length,5);assert.ok(a.amountKRW>0);
+  a.paymentId='original-payment';a.state='COMPLETED';a.chapters=[{summary:'saved',sources:['saju.fiveElements']}];
+  const replay=await prepareFortune(env,'owner',body);
+  assert.equal(replay.paymentId,'original-payment');assert.equal(replay.chapters[0].summary,'saved');
+  assert.equal(globalThis.__spiritTest.calls,0);
+  const publicRow=presentFortune(replay);
+  assert.equal(publicRow.manifest[0].factSelectors,undefined);assert.deepEqual(publicRow.chapters[0].sources,[]);
+  assert.equal(publicRow.snapshot,undefined);
+});
+test('changed situation has a different immutable intent; standard consultation remains distinct',async()=>{
+  const first=await prepareFortune(env,'owner',body);
+  const changed=await prepareFortune(env,'owner',{...body,spirit:{...body.spirit,situation:'대화가 가능한 상황'}});
+  assert.notEqual(first._id,changed._id);
+  const {mode,spirit,...regular}=body;
+  const standard=await prepareFortune(env,'owner',regular);
+  assert.equal(standard.snapshot.analysis.consultation.spirit,undefined);
+  assert.equal(standard.featureKey,first.featureKey);assert.equal(standard.amountKRW,first.amountKRW);
+});
+test('lifetime generation cap rejects extra recovery allowance before any provider call',async()=>{
+  const row=await prepareFortune(env,'owner',body);
+  globalThis.__spiritTest.claim={...row,attempts:16,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
+  await assert.rejects(generateNextChapter(env,'owner',row._id),/GENERATION_REVIEW_REQUIRED/);
+  assert.equal(globalThis.__spiritTest.calls,0);
+});
