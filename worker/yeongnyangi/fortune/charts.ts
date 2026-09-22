@@ -1,3 +1,4 @@
+import { getTarotCardImageUrl } from '../../../src/features/fortune-tea-house/lib/tarotCardImageMap';
 import type {DomainContext,DomainId} from './shared/contracts';
 
 export interface ChartView {
@@ -39,7 +40,7 @@ export function chartView(c: DomainContext, source = "local"): ChartView {
     c.facts.map((x) => [x.label, x.value]),
   ) as Record<string, any>;
   const groups: ChartView["groups"] = [];
-  if(c.domain==='tarot'){for(const card of f.cards||[])groups.push({label:card.positionLabel||({self_view_of_other:'내가 바라보는 상대',other_view_of_relationship:'관계에 대한 상대의 시선 · 상징',other_feeling_toward_me:'상대 감정의 가능성 · 상징',other_romantic_will:'다가올 의지의 가능성',core_block:'관계의 핵심 장애물',short_term_outcome:'가까운 선택의 방향',current:'현재의 상황',inner:'내면의 마음',obstacle:'장애물',external:'주변의 영향',choice:'선택의 갈림길',action:'행동의 방향',cause:'원인',process:'과정',outcome:'결과'} as Record<string,string>)[card.positionKey]||card.positionKey,image:card.imageUrl?.replace(/\.jpe?g$/i,'.webp'),reversed:card.orientation==='reversed',items:[{label:'카드',value:card.nameKr||card.nameKo||card.name},{label:'방향',value:card.orientation==='reversed'?'역방향':'정방향'}]});source='기존 타로 카드·스프레드 · 서버에서 확정한 배열';}
+  if(c.domain==='tarot'){for(const card of f.cards||[])groups.push({label:card.positionLabel||({self_view_of_other:'내가 바라보는 상대',other_view_of_relationship:'관계에 대한 상대의 시선 · 상징',other_feeling_toward_me:'상대 감정의 가능성 · 상징',other_romantic_will:'다가올 의지의 가능성',core_block:'관계의 핵심 장애물',short_term_outcome:'가까운 선택의 방향',current:'현재의 상황',inner:'내면의 마음',obstacle:'장애물',external:'주변의 영향',choice:'선택의 갈림길',action:'행동의 방향',cause:'원인',process:'과정',outcome:'결과'} as Record<string,string>)[card.positionKey]||card.positionKey,image:getTarotCardImageUrl(card) || undefined,reversed:card.orientation==='reversed',items:[{label:'카드',value:card.nameKr||card.nameKo||card.name},{label:'방향',value:card.orientation==='reversed'?'역방향':'정방향'}]});source='기존 타로 카드·스프레드 · 서버에서 확정한 배열';}
   else if (c.domain === "saju") {
     ["year", "month", "day", "hour"].forEach((key, i) =>
       groups.push({
