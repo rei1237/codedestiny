@@ -45,7 +45,7 @@
 
 ## 판매 차단과 원가 검증
 
-PortOne의 2026-09 실정산 집계와 Cloudflare 청구·Workers AI 계정 집계를 읽기 전용으로 확인했지만 신규 v3 이용권·상품별 유료 상담 표본이 아니다. 상품별 실원가·Play 신규 SKU·적용 수수료 증거가 없어 **새 이용권 3종 모두 웹·앱 판매 차단**이다. 외부 집계 정본은 `docs/verification/pass-external-cost-evidence-20260922.json`, 상세 관찰과 재현 명령은 `docs/verification/pass-sale-readiness-20260922.md`. `lib/payment/pass-cost-evidence.js`의 빈 객체를 mock·추정 단가·부분 정산으로 채우지 않는다. GET `/api/payments/pass-offers`가 화면과 신규 주문의 공통 판매 상태를 제공한다. Play는 웹과 별도 증거와 `verifiedProductId`가 필요하다. 기존 주문 확정·선물 수령·복원에는 신규 판매 차단을 적용하지 않는다.
+PortOne의 2026-09 실정산 집계, Cloudflare Workers Paid 청구·계정 집계, Play 계정의 15% 서비스 수수료 프로그램 가입을 읽기 전용으로 확인했다. 그러나 신규 v3 이용권·상품별 유료 상담 표본과 Play 실정산이 아니므로 **새 이용권 3종 모두 웹·앱 판매 차단**이다. 외부 집계 정본은 `docs/verification/pass-external-cost-evidence-20260922.json`, 상세 관찰과 재현 명령은 `docs/verification/pass-sale-readiness-20260922.md`. `lib/payment/pass-cost-evidence.js`의 빈 객체를 mock·추정 단가·부분 정산으로 채우지 않는다. GET `/api/payments/pass-offers`가 화면과 신규 주문의 공통 판매 상태를 제공한다. Play는 웹과 별도 증거와 `verifiedProductId`가 필요하다. 기존 주문 확정·선물 수령·복원에는 신규 판매 차단을 적용하지 않는다.
 
 `node scripts/audit-pass-profitability.mjs [evidence.json]`은 읽기 전용이다. 차단된 항목이 있으면 종료 코드 2다. 각 등급/채널별 증거 형태:
 
@@ -66,11 +66,11 @@ PortOne의 2026-09 실정산 집계와 Cloudflare 청구·Workers AI 계정 집�
 
 ## 토큰 집계와 남은 실측
 
-Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·시스템 지시·멀티모달을 계산한다. 공식 billing FAQ상 이 요청은 과금되지 않고 추론 쿼터에도 포함되지 않는다. 코드 검증은 mock 응답으로만 수행하며 실제 공급자 호출은 하지 않는다. 상한 검사가 일시적으로 실패하면 Gemini 생성 요청은 보내지 않는다. Workers AI는 공급자 usage가 있으면 실제 prompt/completion 토큰을 기록하고, 없을 때만 `estimated=true` 문자수 추정을 남긴다. 인증 대시보드 최근 1개월은 1.03k Neuron·입력 10.94k·출력 26.52k, 9월 청구 가능 사용량은 $0.00, 최근 Workers Paid 청구서는 $5.00였다. 별도 GraphQL UTC 30일 재현은 1,025 Neuron·일별 무료분 초과 추정 $0으로 동일한 규모를 보였다. 둘 다 계정 집계이지 상품별 유료 상담 폴백 실원가가 아니므로 판매 승인 evidence로 쓰지 않는다.
+Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·시스템 지시·멀티모달을 계산한다. 공식 billing FAQ상 이 요청은 과금되지 않고 추론 쿼터에도 포함되지 않는다. 코드 검증은 mock 응답으로만 수행하며 실제 공급자 호출은 하지 않는다. 상한 검사가 일시적으로 실패하면 Gemini 생성 요청은 보내지 않는다. Workers AI는 공급자 usage가 있으면 실제 prompt/completion 토큰을 기록하고, 없을 때만 `estimated=true` 문자수 추정을 남긴다. 인증 대시보드 최근 1개월은 1.03k Neuron·입력 10.94k·출력 26.52k, 9월 청구 가능 사용량은 $0.00, 최근 Workers Paid 청구서는 `IN-77252831` $5.00였다. 별도 GraphQL UTC 30일 재현은 1,025 Neuron·일별 무료분 초과 추정 $0으로 동일한 규모를 보였다. 최근 7일 운영 로그의 `[llm token_usage]` 일치 이벤트도 0건이므로 어느 값도 상품별 유료 상담 폴백 실원가나 0원 비용 증거로 쓰지 않는다.
 
 `node scripts/report-llm-token-usage.mjs llm.log --prices tariffs.json`으로 provider/model별 단가를 적용한다. 미등록 모델·추정 토큰은 비용 `null`, `complete:false`다. 캐시 입력·thinking 토큰을 별도로 반영한다. 단가 파일 키는 `gemini/실제모델명` 등이며 값은 `reviewedAt`, `sourceRefs`, `inputUsdPerMillion`, `cachedInputUsdPerMillion`, `outputUsdPerMillion`, `thinkingIncludedInOutput`을 포함한다. 실제 모델 청구 방식에 맞게 thinking 중복 여부를 확인한다. 파일에 실제 공급자 단가와 적용일·출처를 기록한다. 확인한 Flash Standard 단가는 `config/llm-tariffs-20260921.json`에 있다. candidatesTokenCount와 thoughtsTokenCount를 별도로 기록하므로 이 파일의 thinkingIncludedInOutput은 false다. 캐시 보관료·검색·그 외 모델과 요금제는 이 파일로 계산하지 않는다.
 
-기존 단일 단가 모드는 추정 비교용이며 판매 증거가 아니다. 공통 LLM 클라이언트를 거치지 않던 MindScan·love-reading에도 토큰 로그를 추가했다. 요청 내용·개인정보는 새 로그에 넣지 않는다. 이력 전체의 원가가 소급 수집된 것은 아니다. 로그 유실, 타임아웃 과금, unlabeled serviceId, 공통 love-reading 경로의 실제 SKU 연결, USD→KRW 환산 근거, 저장·지원·환불 원가는 별도 실측이 필요하다. 관측 합계가 곧 허용 재시도 전체의 상한이라는 가정도 금지한다.
+기존 단일 단가 모드는 추정 비교용이며 판매 증거가 아니다. 공통 LLM 클라이언트를 거치지 않던 MindScan·love-reading에도 토큰 로그를 추가했다. 공통 클라이언트는 상품/라우트 `serviceId`, 유료 요청 `requestId`, 이용권·단건 접근 유형 `billingAccess`를 기록하며 비용 보고서는 귀속 누락 호출 수를 별도로 낸다. 요청 내용·개인정보는 새 로그에 넣지 않는다. 이력 전체의 원가가 소급 수집된 것은 아니다. 로그 유실, 타임아웃 과금, 일부 직접 경로의 귀속 누락, USD→KRW 환산 근거, 저장·지원·환불 원가는 별도 실측이 필요하다. 관측 합계가 곧 허용 재시도 전체의 상한이라는 가정도 금지한다.
 
 ## 운영 적용 조건
 
@@ -86,7 +86,7 @@ Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·
 
 - PG 수수료 5% 이하: 사용자 제공. 부가세 포함 여부가 미확인이므로 계산은 결제 총액의 5.5%를 사용한다. 포트원·부가서비스·건당 최소 수수료가 있다면 별도 추가한다.
 - Cloudflare 기본 $5, MongoDB M10 월 100,000원 예산: 사용자 제공. 실제 송장이 아니다. 환율 1,600원/USD는 현재 환율 주장이 아닌 스트레스 가정이다. 합계 108,000원/월, 증가 시 216,000원/월도 비교한다. 추가 백업·트래픽·스토리지·이메일·지원 인건비·광고비·환차 비용이 포함됐다고 가정하지 않는다.
-- Google Play 15% 프로그램 가입 미확인. 30일 비자동갱신 상품에 자동갱신 구독 15%를 적용하지 않는다. 한국 적용 약관·계정 프로그램·앱 출시일 규정을 재확인한다. 15%/30%를 모두 계산하며 미확인 상태는 30% 시나리오로 검토한다. 계산은 보수적으로 결제 총액에 수수료를 적용한다. 실제 정산의 세금 제외 기준이 확인되면 net 기준으로 계산한다. Play Billing에 웹 PG 수수료를 중복 합산하지 않는다. 한국 대체결제는 Google 수수료 감면분과 PG 비용을 함께 계산해야 하므로 별도 검토한다.
+- Google Play 계정의 15% 서비스 수수료 프로그램 가입은 2026-09-22 확인했다. 공식 정책상 연간 첫 100만 USD 매출은 15%, 초과분은 30%이며 한국 대체결제는 해당 수수료에서 4%p 감면된다. 다만 v3 SKU가 없고 실정산도 없으므로 15%를 판매 확정 수수료로 고정하지 않는다. 15%/30%를 모두 계산하고, 계산은 보수적으로 결제 총액에 수수료를 적용한다. 실제 정산의 세금 제외 기준이 확인되면 net 기준으로 계산한다. Play Billing에 웹 PG 수수료를 중복 합산하지 않는다. 한국 대체결제는 Google 수수료 감면분과 PG 비용을 함께 계산해야 하므로 별도 검토한다.
 - 세금 제외 매출은 국내 VAT 10%를 가정한 판매가/1.1. 사업자의 실제 세무·정산 조건을 검증해야 한다.
 
 `node scripts/report-pass-economics.mjs`의 재현 가능한 시나리오는 `docs/verification/pass-economics-scenarios-20260921.json`이다. 현재 실제 생성 원가는 null, saleApproval은 false다.

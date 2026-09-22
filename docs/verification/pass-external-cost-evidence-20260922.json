@@ -38,10 +38,28 @@
       "billableUsageUsd": 0,
       "projectedCycleUsageUsd": 0,
       "latestWorkersPaidInvoiceDate": "2026-08-30",
+      "latestWorkersPaidInvoiceNumber": "IN-77252831",
       "latestWorkersPaidInvoiceUsd": 5,
+      "workersPaidSubscriptionState": "active-renews-2026-09-30",
+      "observedBillableProducts": [
+        "R2 storage and operations",
+        "Workers requests and CPU",
+        "D1 storage and rows",
+        "Queues"
+      ],
       "sourceRefs": [
         "Cloudflare authenticated dashboard > Billing > Billable usage > September 2026",
-        "Cloudflare authenticated dashboard > Billing > Invoices and documents"
+        "Cloudflare authenticated dashboard > Billing > Invoices and documents",
+        "Cloudflare authenticated dashboard > Billing > Subscriptions"
+      ]
+    },
+    "productAttribution": {
+      "period": "2026-09-15/2026-09-22",
+      "workersLogQuery": "[llm token_usage]",
+      "matchingEvents": 0,
+      "saleEvidenceStatus": "NO_RETAINED_PRODUCT_ATTRIBUTED_SAMPLES",
+      "sourceRefs": [
+        "Cloudflare authenticated dashboard > Workers > code-destiny-web > Observability > Logs > Last 7 days"
       ]
     },
     "limits": [
@@ -64,6 +82,16 @@
       "cd_pass_premium_30d_v3",
       "cd_pass_vvip_30d_v3"
     ],
+    "serviceFeeProgram": {
+      "program": "15-percent-service-fee",
+      "enrollmentState": "enrolled",
+      "reviewedAt": "2026-09-22",
+      "scopeLimit": "The enrolled tier does not prove the realized fee basis for an inactive v3 SKU or a future settlement.",
+      "sourceRefs": [
+        "Google Play Console authenticated account > Associated developer accounts > Registered programs and services",
+        "https://support.google.com/googleplay/android-developer/answer/112622?hl=ko"
+      ]
+    },
     "sourceRefs": [
       "Google Play Console authenticated app > Monetize with Play > Products > One-time products"
     ],
@@ -73,6 +101,6 @@
     "Product-attributed provider usage and retry costs",
     "MongoDB storage and backup invoice attribution",
     "Support labor and refund reserve basis",
-    "Reviewed Google Play service fee program and active v3 one-time product prices"
+    "Active v3 one-time product prices, country availability, and realized Google Play settlement evidence"
   ]
 }

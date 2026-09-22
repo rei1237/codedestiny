@@ -54,7 +54,7 @@ stubGemini({
   },
 });
 const { value: geminiResult, lines: geminiLogs } = await captureLogs(() => callLLM(
-  { prompt: "안녕", maxTokens: 33000, taskType: "fortune", logContext: { serviceId: "astrology-ai" } },
+  { prompt: "안녕", maxTokens: 33000, taskType: "fortune", logContext: { serviceId: "astrology-ai", requestId: "paid-r1", access: "pass" } },
   { GEMINIF_API_KEY: "test-key" },
 ));
 const logs = geminiLogs;
@@ -66,10 +66,11 @@ assert(geminiResult.usage?.cachedInputTokens === 1024, `캐시 입력 토큰 파
 assert(!geminiResult.usage?.estimated, "실제 사용량이 있는데 estimated 로 표시됐다");
 
 assert(logs.length === 1, `token_usage 로그가 1줄이어야 하는데 ${logs.length}줄`);
-for (const field of ["provider", "model", "serviceId", "inputTokens", "outputTokens", "cachedInputTokens", "thinkingTokens", "maxTokens"]) {
+for (const field of ["provider", "model", "serviceId", "requestId", "billingAccess", "inputTokens", "outputTokens", "cachedInputTokens", "thinkingTokens", "maxTokens"]) {
   assert(field in (logs[0] || {}), `token_usage 로그에 ${field} 필드가 없다 — 집계 스크립트가 이 필드를 읽는다`);
 }
 assert(logs[0]?.serviceId === "astrology-ai", "logContext.serviceId 가 로그에 실리지 않았다");
+assert(logs[0]?.requestId === "paid-r1" && logs[0]?.billingAccess === "pass", "상품 요청·결제 유형 귀속 필드가 로그에 실리지 않았다");
 
 // ── 2. usageMetadata 가 없으면 추정치로 채우고 estimated 를 세운다 ─────────────
 stubGemini({ candidates: [{ content: { parts: [{ text: "가".repeat(500) }] }, finishReason: "STOP" }] });
@@ -234,7 +235,7 @@ globalThis.fetch = realFetch;
 const { execFileSync } = await import("node:child_process");
 const sample = `[llm token_usage] ${JSON.stringify({
   action: "token_usage", provider: "gemini", model: "gemini-2.5-flash", taskType: "fortune",
-  serviceId: "astrology-ai", requestId: "r1", inputTokens: 8200, outputTokens: 32100,
+  serviceId: "astrology-ai", requestId: "r1", billingAccess: "pass", inputTokens: 8200, outputTokens: 32100,
   cachedInputTokens: 0, thinkingTokens: 0, maxTokens: 33000, estimated: false,
 })}`;
 const report = execFileSync(process.execPath, ["scripts/report-llm-token-usage.mjs", "--json"], {
@@ -245,6 +246,20 @@ const parsed = JSON.parse(report);
 assert(parsed.rows === 1, `집계 스크립트가 로그를 파싱하지 못했다 (rows=${parsed.rows})`);
 assert(parsed.services?.[0]?.serviceId === "astrology-ai", "집계 결과의 serviceId 가 틀렸다");
 assert(parsed.services?.[0]?.avgOutput === 32100, "집계 결과의 출력 토큰이 틀렸다");
+assert(parsed.services?.[0]?.observedRequests === 1, "요청 단위 실원가 귀속이 틀렸다");
+assert(parsed.services?.[0]?.unattributedCalls === 0, "귀속 누락 호출을 0건으로 집계하지 못했다");
+assert(parsed.services?.[0]?.billingAccesses?.includes("pass"), "이용권 접근 유형이 집계에서 사라졌다");
+
+const pricedReport = execFileSync(process.execPath, [
+  "scripts/report-llm-token-usage.mjs",
+  "--prices",
+  "config/llm-tariffs-20260921.json",
+], { input: sample, encoding: "utf8" });
+const priced = JSON.parse(pricedReport);
+assert(priced.complete === true, "검토 단가가 있는 실측 로그의 비용 계산이 complete 여야 한다");
+assert(priced.attributionComplete === true, "상품 요청·결제 유형 귀속 완료 판정이 틀렸다");
+assert(priced.services?.[0]?.observedRequests === 1, "단가 적용 보고서에서 요청 귀속이 사라졌다");
+assert(priced.saleApproval === false, "토큰 보고서만으로 판매 승인이 열리면 안 된다");
 
 if (failures.length) {
   console.error("[verify:llm-token-usage] FAIL");
