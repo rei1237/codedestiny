@@ -506,6 +506,7 @@
 .resultSharing[open] > summary::after { content:'접기'; }
 .shareEditor { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.75fr); gap:32px; padding-top:16px; }
 .shareForm { min-width:0; }
+.shareShorten { display:block; margin-top:12px; min-height:44px; padding:8px 12px; font:inherit; }
 .shareForm h2 { font-size:1.4rem; margin:0 0 12px; text-wrap:balance; }
 .shareForm > label { display:block; margin:20px 0 8px; font-weight:700; }
 .shareForm select,.shareForm textarea { display:block; width:100%; min-height:48px; padding:12px; border:1px solid var(--yn-line); border-radius:10px; background:var(--yn-night); color:var(--yn-ivory); font:inherit; line-height:1.7; }

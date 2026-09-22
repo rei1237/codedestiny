@@ -2,18 +2,23 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {Copy,Download,MessageCircle,Share2} from 'lucide-react';
 import {prepareKakao,shareThrough} from '@/js/share-service.mjs';
+import {trackEvent} from '@/lib/analytics';
 import type {FortuneRecord} from '../_lib/api';
-import {consultationShareUrl,consultationShareImage,shareChoices,shareLimit,shareMessage,shorten,renderShareCard} from '../_lib/result-share';
+import type {FreeReading} from '@/worker/yeongnyangi/fortune/free/categories';
+import {resultShareUrl,consultationShareImage,shareChoices,freeShareChoices,shareLimit,shareMessage,shorten,renderShareCard} from '../_lib/result-share';
 import styles from '../yeongnyangi.module.css';
 
-export default function ResultSharing({row}:{row:FortuneRecord}){
- const choices=useMemo(()=>shareChoices(row),[row]);
+export default function ResultSharing({row,reading}:{row:FortuneRecord;reading?:never}|{reading:FreeReading;row?:never}){
+ const choices=useMemo(()=>row?shareChoices(row):freeShareChoices(reading),[row,reading]);
  const [open,setOpen]=useState(false),[choice,setChoice]=useState(choices[0]?.id||'');
  const selected=choices.find(c=>c.id===choice)||choices[0];
  const [text,setText]=useState(()=>shorten(selected?.text||'',shareLimit)),[includeQuestion,setIncludeQuestion]=useState(false);
  const [notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[card,setCard]=useState<{url:string;blob:Blob}|null>(null),[imageError,setImageError]=useState(false);
  const lock=useRef(false),manual=useRef<HTMLTextAreaElement>(null);
- const asOf=row.consultation?.asOf;
+ const asOf=row?.consultation?.asOf||reading?.day;
+ const consultationShareUrl=resultShareUrl(row);
+ const source=row?'paid':'daily';
+ const record=(channel:string,outcome:string)=>trackEvent('fortune_share_action',{content_type:'yeongnyangi',source,channel,outcome});
  const sharedText=[includeQuestion&&selected?.question?`내 질문\n${selected.question}`:'',text.trim()].filter(Boolean).join('\n\n');
  const message=shareMessage(sharedText,asOf);
  const kakaoText=shorten(text.replace(/\s+/g,' '),95);
@@ -25,34 +30,36 @@ export default function ResultSharing({row}:{row:FortuneRecord}){
   return ()=>{cancelled=true;clearTimeout(timer);if(url)URL.revokeObjectURL(url);};
  },[open,sharedText,asOf]);
  if(!choices.length)return null;
- async function copy(){try{await navigator.clipboard.writeText(`${message}\n\n${consultationShareUrl}`);setNotice('상담 문구를 복사했어. 원하는 대화방에 붙여 넣어줘.');}catch{setNotice('아래 공유 문구를 길게 눌러 복사해줘.');const details=manual.current?.closest('details');if(details)details.open=true;manual.current?.focus();manual.current?.select();}}
- function download(){if(!card)return;const link=document.createElement('a');link.href=card.url;link.download='영냥이-상담-한장.png';link.click();setNotice('이미지를 저장했어. 대화방에서 사진으로 첨부해줘.');}
+ async function copy(){try{await navigator.clipboard.writeText(`${message}\n\n${consultationShareUrl}`);record('copy','copied');setNotice('상담 문구를 복사했어. 원하는 대화방에 붙여 넣어줘.');}catch{record('copy','manual');setNotice('아래 공유 문구를 길게 눌러 복사해줘.');const details=manual.current?.closest('details');if(details)details.open=true;manual.current?.focus();manual.current?.select();}}
+ function download(){if(!card)return;const link=document.createElement('a');link.href=card.url;link.download='영냥이-상담-한장.png';link.click();record('image','download_requested');setNotice('이미지 저장을 요청했어. 저장한 사진과 문구의 링크를 함께 보내면 친구도 자기 상담을 시작할 수 있어.');}
  async function share(channel:'kakao'|'native'|'image'){
   if(lock.current)return;lock.current=true;setBusy(true);setNotice('');
   try{
    if(channel==='image'){
     if(!card)return;
     const file=new File([card.blob],'영냥이-상담-한장.png',{type:'image/png'});
-    if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'영냥이 상담 한 장'});setNotice('공유 창에서 선택한 동작을 마쳤어.');}
+    if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'영냥이 상담 한 장',text:'나는 이런 흐름이래. 너는 어때?',url:resultShareUrl(row,'image')});record('image','shared');setNotice('공유 창에서 선택한 동작을 마쳤어.');}
     else download();
     return;
    }
-   const outcome=await shareThrough(channel,{title:'영냥이가 읽어준 내 이야기',text:channel==='kakao'?kakaoText:message,url:consultationShareUrl,image:consultationShareImage});
+   const outcome=await shareThrough(channel,{title:'나는 이런 흐름이래. 너는 어때? · 영냥이',text:channel==='kakao'?kakaoText:message,url:resultShareUrl(row,channel),image:consultationShareImage});
+   record(channel,outcome.status);
    if(outcome.status==='opened')setNotice('카카오톡에서 보낼 친구나 단톡방을 골라줘.');
    else if(outcome.status==='shared')setNotice('공유 창에서 선택한 동작을 마쳤어.');
    else if(outcome.status==='cancelled')setNotice('공유를 취소했어. 상담은 그대로 남아 있어.');
    else {await copy();setNotice('공유 창을 열지 못했어. 아래 문구를 복사하거나 이미지를 저장해 대화방에 보내줘.');}
-  }catch(e){setNotice(e instanceof Error&&e.name==='AbortError'?'공유를 취소했어. 상담은 그대로 남아 있어.':'공유 창을 열지 못했어. 문구 복사나 이미지 저장으로 다시 시도해줘.');}
+  }catch(e){record(channel,e instanceof Error&&e.name==='AbortError'?'cancelled':'failed');setNotice(e instanceof Error&&e.name==='AbortError'?'공유를 취소했어. 상담은 그대로 남아 있어.':'공유 창을 열지 못했어. 문구 복사나 이미지 저장으로 다시 시도해줘.');}
   finally{lock.current=false;setBusy(false);}
  }
- return <details className={styles.resultSharing} onToggle={e=>setOpen(e.currentTarget.open)}>
+ return <details className={styles.resultSharing} data-consultation-sharing onToggle={e=>{setOpen(e.currentTarget.open);if(e.currentTarget.open)record('editor','opened');}}>
   <summary><Share2 size={20} aria-hidden="true"/> 마음에 남은 상담 공유하기</summary>
   {open&&<div className={styles.shareEditor}>
    <div className={styles.shareForm}>
-    <h2>친구에게 건네는 상담 한 장</h2><p>보내고 싶은 이야기만 골라 다듬어줘. 링크는 영냥이 상담 시작 화면으로 이어져.</p>
+    <h2>나는 이런 흐름이래. 너는 어때?</h2><p>친구와 비교하고 싶은 이야기만 골라줘. {row?'링크는 같은 종류의 상담 시작 화면으로 이어져.':'링크는 영냥이의 무료 운세로 이어져.'} 내 상담 전체는 공개되지 않아.</p>
     <label htmlFor="share-story">공유할 이야기</label><select id="share-story" value={choice} onChange={e=>{setChoice(e.target.value);setIncludeQuestion(false);setText(shorten(choices.find(c=>c.id===e.target.value)?.text||'',shareLimit));setNotice('');}}>{choices.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
-    <label htmlFor="share-message">보낼 문구</label><textarea id="share-message" value={text} maxLength={shareLimit} rows={7} onChange={e=>setText(e.target.value)}/>
+    <label htmlFor="share-message">보낼 문구</label><textarea id="share-message" value={text} maxLength={shareLimit} rows={4} onChange={e=>setText(e.target.value)}/>
     <small>{Array.from(text).length} / {shareLimit}자 · 보내기 전에 개인적인 내용이 있는지 확인해줘.</small>
+    <button className={styles.shareShorten} type="button" disabled={busy||Array.from(text).length<=180} onClick={()=>setText(shorten(text,180))}>단톡방용 180자로 줄이기</button>
     {selected.question&&<label className={styles.shareQuestion}><input type="checkbox" checked={includeQuestion} onChange={e=>setIncludeQuestion(e.target.checked)}/> 원문 질문도 이미지·문구에 포함하기</label>}
     <p className={styles.kakaoExcerpt}>카카오톡 카드 미리보기: {kakaoText||'보낼 문구를 입력해줘.'}</p>
     <div className={styles.shareActions}>

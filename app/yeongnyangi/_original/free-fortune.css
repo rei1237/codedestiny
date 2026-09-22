@@ -1,4 +1,9 @@
 .ynOriginal .room-daily.free-fortune {
+  --yn-night:#261834;
+  --yn-ivory:#fff3e2;
+  --yn-muted:#dfcce7;
+  --yn-gold:#e9c78d;
+  --yn-line:#897095;
   scroll-margin-top: 20px;
   color: #fff3e2;
   max-width: 940px;
@@ -294,11 +299,11 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
-.ynOriginal .free-fortune details {
+.ynOriginal .free-fortune details:not([data-consultation-sharing]) {
   border-top: 1px solid #72567f;
   padding: 18px 0;
 }
-.ynOriginal .free-fortune summary {
+.ynOriginal .free-fortune details:not([data-consultation-sharing]) > summary {
   cursor: pointer;
   min-height: 32px;
   color: #f0d19e;

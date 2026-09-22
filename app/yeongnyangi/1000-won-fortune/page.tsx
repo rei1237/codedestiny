@@ -8,6 +8,8 @@ import {siteSeo} from '@/lib/seo/siteSeo';
 import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import styles from './page.module.css';
 import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
+import FounderTrust from '@/app/components/FounderTrust';
+import {founder} from '@/lib/brand/founder';
 
 // 천원사주 허브. 영냥이 고등어 상담의 검색 착륙 페이지다(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md).
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
@@ -16,8 +18,8 @@ import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 // 🔴 무료 키워드는 꿀꿀 운세 랜딩(/saju/ 등)의 몫이다. 제목·H1·설명에 "무료"를 넣지 않는다.
 const PATH='/yeongnyangi/1000-won-fortune/';
 const PAGE_URL=`https://code-destiny.com${PATH}`;
-// og-yeongnyangi.jpg 는 사이트 화면 캡처라 공유 카드로 쓰지 않는다 — 영냥이 전용 카드가 생기기 전까지 사이트 공용 카드.
-const OG_IMAGE='https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba';
+// Use the existing Yeongnyangi portrait, matching the home social preview.
+const OG_IMAGE='https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png';
 const DOMAINS:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
 const TIERS=['mackerel','salmon','flounder','tuna'] as const;
 const won=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
@@ -53,7 +55,7 @@ const FAQS=[
 ];
 
 const TITLE='천원사주 · 천원 사주풀이 | 사주보는 고양이 영냥이';
-const DESCRIPTION=`천원사주·천원운세를 사주보는 고양이 영냥이와 봐요. 사주·자미두수·숙요점·베다점·점성술·타로 고등어 상담 ${PRICE} 단건 결제, 결과는 다시 볼 수 있어요.`;
+const DESCRIPTION=`${founder.credential}. 영냥이 천원사주·타로 ${PRICE} 단건 상담. 공개 분석 기록, 상담 예시와 가격을 확인하고 시작하세요.`;
 const OG_TITLE='천원사주 · 천원운세 | 사주보는 고양이 영냥이';
 
 export const metadata:Metadata={
@@ -63,7 +65,7 @@ export const metadata:Metadata={
  keywords:['천원사주','천원 사주풀이','천원운세','1000원 사주','사주보는 고양이','영냥이'],
  alternates:{canonical:PAGE_URL},
  robots:{index:true,follow:true,googleBot:{index:true,follow:true,'max-image-preview':'large','max-snippet':-1,'max-video-preview':-1}},
- openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[{url:OG_IMAGE,width:1200,height:630,alt:siteSeo.brandName}]},
+ openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[{url:OG_IMAGE,width:800,height:800,alt:'사주보는 고양이 영냥이'}]},
  twitter:{card:'summary_large_image',title:OG_TITLE,description:DESCRIPTION,images:[OG_IMAGE]},
 };
 
@@ -90,6 +92,7 @@ export default function Page(){
    <img src="/assets/yeongnyangi/hero.webp" width={480} height={480} alt="생선을 기다리며 사주를 봐 주는 고양이 영냥이" fetchPriority="high"/>
   </section>
 
+  <FounderTrust/>
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세란</h2>
    <p>천원 사주, 1,000원 사주, 천원운세로 찾는 상담은 영냥이에서 모두 고등어 상담 하나를 가리켜요. 한 번 결제하면 한 번의 상담 결과를 받는 단건 결제이고, 구독이나 자동 결제가 아니에요.</p>

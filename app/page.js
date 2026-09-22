@@ -10,6 +10,7 @@ import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { SEO_LINK_GROUPS } from "./components/SiteFooterHub";
 import { ILGAN_MONTHLY_MONTHS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import styles from "./home-cosmic.module.css";
+import { founder } from "../lib/brand/founder";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -60,10 +61,10 @@ const sourcePage = publicSeoPages.home;
 const HOME_SEO = {
   title: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
   description:
-    "사주보는 고양이 영냥이에게 궁금한 이야기를 들려주세요. 질문에 맞춘 해석과 시기, 실천 조언을 살펴보고 저장된 상담을 다시 읽을 수 있어요.",
+    `${founder.credential}. 영냥이와 사주·타로·궁합의 흐름을 읽고, 상담 예시와 공개 분석 기록을 먼저 확인하세요.`,
   ogTitle: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
   ogDescription:
-    "사주보는 고양이 영냥이와 질문 중심 상담을 시작하세요. 사주·타로·궁합의 흐름을 근거와 함께 살펴봅니다.",
+    `${founder.credential}. 사주보는 고양이 영냥이에게 내 고민을 들려주세요.`,
   url: "https://code-destiny.com/",
   image: "https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png",
 };

@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
-import predictionRecords from "@/lib/brand/prediction-records.json";
+import FounderTrust from "@/app/components/FounderTrust";
+import {founder} from "@/lib/brand/founder";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
 const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
@@ -270,11 +271,11 @@ export default function FortuneHome() {
                 <br />
                 <span>영냥이에게 물어봐.</span>
               </h1>
-              <p>달빛이 머무는 작은 점술방</p>
+              <p>{founder.credential}</p>
               <div className="desktop-intro">
-                모습은 고양이, 실력은 여전하지.
+                대통령 운세의 2025년을 미리 짚은 공개 기록.
                 <br />
-                복잡한 마음은 잠깐 내려놓고 들어와.
+                이제, 네 고민의 흐름을 함께 읽어볼게.
               </div>
             </div>
             <div className="cat-stage">
@@ -321,7 +322,8 @@ export default function FortuneHome() {
                 <span>영냥이에게 상담하기</span>
                 <ArrowRight size={21} />
               </button>
-              <p>상담 주제를 고르고, 궁금한 이야기를 들려줘.</p>
+              <p>{packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 · 주제와 가격을 확인한 뒤 시작해.</p>
+              <a className="hero-proof-link" href="#founder-records">상담사 경력과 공개 예측 기록 보기</a>
             </div>
           </section>
               <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
@@ -356,16 +358,14 @@ export default function FortuneHome() {
               />
             </button>
 
-            <details className="starter-invitation">
-              <summary>실제 10년 경력 · 대통령 운세 예측 기록 보기</summary>
-              <ul>{predictionRecords.map(record => <li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer">{record.date} · {record.title}</a></li>)}</ul>
-            </details>
+            <FounderTrust/>
             <aside className="starter-invitation">
               <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
               <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
               <a href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">{packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 상담 알아보기 →</a>
               {" · "}
               <a href="/yeongnyangi/1000-won-fortune/">천원사주 안내 보기</a>
+              {" · "}<a href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 읽기</a>
             </aside>
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
               <div className="ggulggul-bridge__art">
