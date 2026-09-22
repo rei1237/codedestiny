@@ -39,7 +39,7 @@
   };
 
   function norm(value) {
-    return String(value || "").toLowerCase().replace(/\s+/g, " ").trim();
+    return String(value || "").toLowerCase().replace(/\s+/g, "");
   }
 
   var BUCKET_ORDER = ["free", "low", "mid", "high", "premium", "vvip"];
@@ -186,6 +186,12 @@
     if (!featureImageIndex) {
       featureImageIndex = {};
       var nodes = Array.prototype.slice.call(document.querySelectorAll(TILE_KEY_SELECTOR));
+      // 모바일은 결과 페이지도 통째로 분리한다. 검색 이미지를 위해 다시 마운트하지 않는다.
+      var lazyMount = window.__cdMobileHomeLazyMount;
+      var resultPage = lazyMount && lazyMount.peek ? lazyMount.peek("resultPage") : null;
+      if (resultPage && !resultPage.isConnected) {
+        nodes.push.apply(nodes, resultPage.querySelectorAll(TILE_KEY_SELECTOR));
+      }
       lazyCollectionCards().forEach(function (card) {
         if (card.matches(TILE_KEY_SELECTOR)) nodes.push(card);
         nodes.push.apply(nodes, card.querySelectorAll(TILE_KEY_SELECTOR));

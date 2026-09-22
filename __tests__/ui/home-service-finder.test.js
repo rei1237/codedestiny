@@ -305,6 +305,32 @@ test("결과 카드 이미지는 같은 기능의 홈 타일에서 빌리고, �
   assert.equal(img.getAttribute("src"), "/images/home/finder-moon.svg", "R2 도 실패했는데 달 이미지로 떨어지지 않았다");
 });
 
+test("상품명은 띄어쓰기와 관계없이 검색되며 고민·가격 필터를 함께 유지한다", async () => {
+  const { doc, window } = await boot();
+  for (const [name, purpose, bucket] of [["인생의 책", "life", "premium"], ["연애 비책", "love", "vvip"]]) {
+    doc.querySelector(`[data-purpose="${purpose}"]`).click();
+    doc.querySelector(`[data-price="${bucket}"]`).click();
+    for (const query of [name, name.replace(/\s/g, ""), name.split("").join(" ")]) {
+      assert.deepEqual(await search(window, doc, query), [name]);
+    }
+    doc.querySelector('[data-cd-finder-reset]').click();
+  }
+  window.close();
+});
+
+test("모바일의 분리된 결과 페이지에서도 원본 이미지를 읽고 마운트하지 않는다", async () => {
+  const { doc, window } = await boot();
+  const result = doc.createElement("article");
+  result.innerHTML = sliceById(shell, "resultPage");
+  window.__cdMobileHomeLazyMount = { peek: (id) => id === "resultPage" ? result : null };
+  for (const [name, slug] of [["인생의 책", "life-book-ai"], ["연애 비책", "love-secret-ai"]]) {
+    assert.deepEqual(await search(window, doc, name), [name]);
+    assert.equal(doc.querySelector('#fortuneGatewayRecs img').getAttribute('src'), `/feature-details/assets/${slug}-320.webp`);
+    assert.equal(result.isConnected, false);
+  }
+  window.close();
+});
+
 test("연애 비책·인생의 책·신년운세는 각 서비스 전용 이미지를 쓴다", async () => {
   const expected = new Map([
     ["연애 비책", ["love-secret-ai-consultation", "/feature-details/assets/love-secret-ai-320.webp"]],

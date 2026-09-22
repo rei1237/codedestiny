@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-23
-next: "전체 목표를 유지하며 두 상품의 홈 목록→상세 진입을 확인하고, 다른 전문가 상담 UI·결과 공유와 구매/SEO 후속을 진행한다."
+next: "홈 검색→상세→입력 동선 검증을 바탕으로 마스터 인연의 서 등 다른 전문가 상담 UI·결과 공유와 구매/SEO 후속을 진행한다. 전체 목표는 미완료다."
 ---
 
 # 경쟁사 대비 전환·신뢰·SEO·상담 공유 후속 작업
@@ -18,7 +18,19 @@ next: "전체 목표를 유지하며 두 상품의 홈 목록→상세 진입을
 | 모든 결과의 공유/바이럴 | 영냥이와 찻집·네오, 책/편지 이미지의 일부 개선. 기능 키별 적용표는 docs/consultation-sharing-coverage-20260923.md | 미연결 상담군 어댑터, 이름 숨김/문구 편집/미리보기, 수신 페이지와 실기기 카카오 확인. 모든 결과 적용 완료 아님 |
 | SEO | 홈/영냥이 문구·OG·메타 개선, 기존 12개 랜딩 조사 인수인계 | docs/handoff/google-seo-rebuild-20260921.md의 남은 항목과 실제 배포 후 동일 URL 측정. 순위/색인/수익 성과 미검증 |
 
-## 최신 재개 위치 — 상세·예시·제작자 근거
+## 최신 재개 위치 — 실제 홈 검색·필터 → 상세 → 입력
+
+- 시작 기준은 사용자 전달 커밋 `1da42df3bb76156a520ce483f24843eb1ad61f16`이다. main의 동시 `marketing/**` 변경을 보존하기 위해 `D:\Development\codedestiny-worktrees\premium-finder-20260923-030414`에서 격리했다. 전달 후에는 원본 main에서 재개한다.
+- 실제 `/ggulggul/` 셸의 검색 펼치기에서 두 상품을 찾고, 가격·고민·AI 방식 필터를 조합해 상세와 상담 입력으로 들어가는 경로를 검증했다. 인생의 책은 10,000원/1만원대, 연애 비책은 30,000원/프리미엄(`vvip`)이며 가격 정책은 그대로다. 루트 `/` 영냥이 홈과 이 셸을 혼동하지 않는다.
+- 재현한 결함: `연애비책` 검색 0건, 모바일에서 두 상품이 공통 달 이미지로 표시됨, 데스크톱 상세 닫기 1회에 뒤로가기 2회로 이전 페이지까지 이탈함.
+- `home-service-finder.js`는 검색어·색인의 공백을 같은 방식으로 정규화하고, 모바일 lazy mount의 읽기용 `peek`로 DOM 밖 `resultPage`의 원본 이미지를 읽는다. 결과 페이지를 강제 마운트하거나 이미지 경로를 registry에 복제하지 않았다. DOM 스크래핑 검색 범위를 유지했다.
+- `service-registry.js`의 두 이미지 대체 설명을 실제 책·편지로 맞췄다. `index.html`은 lazy mount 조회와 닫기 버튼의 중복 `pointerup`/`touchend` 연결 제거만 변경했다. 네이티브 click이 터치·마우스·키보드를 처리하며 기존 상세/가격/상담 CTA를 재사용한다. public 미러는 `sync:public` 생성물이다.
+- `scripts/verify-premium-finder.mjs`: 실제 셸·실제 입력 route, 360/390/430/1280 light와 390 dark × 두 상품 **10/10**. 공백 유무 검색·고민/가격/방식 조합·빈 결과/검색 지우기·원본 이미지·상세 네오 원문 3개·닫기/포커스/조건 유지·Escape·상담 입력 200을 확인했다. 모바일에서는 실제 touch를 사용했다. fixture 카드나 강제 노출로 대체하지 않았다.
+- Node targeted 27/27, 가격 registry 57개 대조, payment-freeze, mobile lazy mount, mobile-detail-nonintrusive, hero-contrast 통과. 첫 `check:fast`는 paid gate 88/88와 lint 뒤 sitemap 소스 서명 드리프트에서 중단했다. 정본 생성으로 5개 셸 경로의 서명만 갱신한 뒤 최종 `check:fast` exit 0, Jest 290 suites/4078 tests 통과를 확인했다. 공식 전달은 이 변경을 담은 main HEAD의 `CI required` 결과로 판정하며, 앞선 커밋의 CI를 대신 쓰지 않는다.
+- 증거 보존: `D:\Development\code-destiny\build-cache\premium-finder-20260923\`. mock 네트워크 차단과 공개 서체 로컬 캐시를 사용했다. 유료 생성·결제 요청 0회. 운영 배포·실제 전환 성과·실기기 카카오 전송 증거는 아니다.
+- 이번 완료 범위는 두 상품의 홈 검색/필터→상세→입력이다. 위의 구매 전환·SEO·네오 신뢰·다른 전문가 상담 UI·모든 결과 공유 목표를 축소하거나 완료 처리하지 않는다. 다음은 적용표의 마스터 인연의 서/카르마/서양점성/베다 등 미연결 상담군과 저장된 요약 공유 어댑터다. 활동명·원문·게시일은 다시 묻지 않는다.
+
+## 이전 재개 위치 — 상세·예시·제작자 근거
 
 - 기준 main: `7770a50dee60618eeb6d4d1ef1ff21f5bf7ed8be`, 공식 CI 35758957280 success 확인. 이전 진입/입력 작업은 전달 완료다.
 - 이번 작업은 `D:\Development\codedestiny-worktrees\premium-detail-20260923-20260923-022104`, `wt/premium-detail-20260923-20260923-022104`에서 격리했다. main의 marketing/** 변경을 보존한다. 워크트리 배수 뒤 다음 세션은 main에서 시작한다.
