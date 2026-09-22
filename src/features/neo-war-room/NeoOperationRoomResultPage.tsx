@@ -12,6 +12,8 @@ import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { neoShareChoices } from "@/lib/consultation-sharing";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/components/fortune/result-character-breaks";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -850,6 +852,9 @@ export default function NeoOperationRoomResultPage() {
               locale={dialogueLocale}
               badgeIndex={badgeAward.currentBadgeIndex}
             />
+            {!isGenerating && !isFailed ? (
+              <ConsultationShare key={`${session.id || session.sessionId}-${Boolean(session.refinedOrder)}`} brand="neo" choices={neoShareChoices(session)} />
+            ) : null}
             {briefing ? (
               <InitialBriefingDocument
                 briefing={briefing}
