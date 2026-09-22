@@ -49,7 +49,7 @@ vars.pass = `<section class="membership-recap-cta" aria-label="꽃돼지 서비�
   <div class="membership-recap-cta__content">
     <div class="membership-recap-cta__copy">
       <h3 class="membership-recap-cta__title">반복 상담을 위한 30일 이용권</h3>
-      <p class="membership-recap-cta__desc">신규 이용권은 판매 준비 중입니다. 아래 가격과 한도는 검토 중인 안이며, 판매 시작 시 확정 조건을 안내합니다. 영냥이는 단건 결제로 이용해 주세요.</p>
+      <p class="membership-recap-cta__desc">자주 보는 꽃돼지 운세를 30일 이용권으로 이용할 수 있습니다. 영냥이는 단건 결제로 이용해 주세요.</p>
       <p class="membership-recap-cta__desc">자동갱신 없이 실제 상담 가격만큼 한도를 사용합니다. 기존에 구매한 이용권은 구매 당시 조건을 유지합니다.</p>
     </div>
     <ul class="membership-recap-cta__tiers" role="list">${Object.values(CURRENT_PASS_PLANS).map(plan => `

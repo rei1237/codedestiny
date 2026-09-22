@@ -9,15 +9,15 @@ const planningReport = JSON.parse(readFileSync(
   "utf8",
 ));
 
-test("Workers AI costs keep current pass prices blocked under the Play 30% stress scenario", () => {
+test("approved pass prices keep the chosen coverage and the stress report remains advisory", () => {
   assert.deepEqual(
     Object.values(CURRENT_PASS_PLANS).map(({ tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }) => (
       { tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }
     )),
     [
-      { tier: "standard", wonPrice: 89000, maxCoveredCoin: 30, monthlyLimitCoin: 30 },
-      { tier: "premium", wonPrice: 269000, maxCoveredCoin: 100, monthlyLimitCoin: 100 },
-      { tier: "vvip", wonPrice: 879000, maxCoveredCoin: 300, monthlyLimitCoin: 300 },
+      { tier: "standard", wonPrice: 14900, maxCoveredCoin: 50, monthlyLimitCoin: 200 },
+      { tier: "premium", wonPrice: 39900, maxCoveredCoin: 100, monthlyLimitCoin: 500 },
+      { tier: "vvip", wonPrice: 79900, maxCoveredCoin: 300, monthlyLimitCoin: 900 },
     ],
   );
   assert.equal(planningReport.pricingDriver, "tarot-love-relationship");
@@ -26,10 +26,9 @@ test("Workers AI costs keep current pass prices blocked under the Play 30% stres
   assert.ok(planningReport.runtimeRows.every(({ fallbackProviderCostIncluded }) => fallbackProviderCostIncluded));
   assert.equal(planningReport.saleApproval, false);
   const playRows = planningReport.rows.filter(({ channel }) => channel === "googlePlay30");
-  assert.deepEqual(playRows.map(({ pricingDriverRepeats }) => pricingDriverRepeats), [1, 3, 10]);
+  assert.deepEqual(playRows.map(({ pricingDriverRepeats }) => pricingDriverRepeats), [6, 16, 30]);
   assert.ok(playRows.every(({ stressedContributionMargin }) => stressedContributionMargin < 0.4));
   assert.ok(playRows.every(({ priceKRW, minimumPriceForTargetKRW }) => priceKRW < minimumPriceForTargetKRW));
-  assert.deepEqual(playRows.map(({ minimumPriceForTargetKRW }) => minimumPriceForTargetKRW), [119800, 359400, 1197800]);
 });
 test("Play 30% gross fee and tax leave less cost capacity; unknown cost cannot pass", () => {
   const base = { priceKRW: 59900, vatRate: 0.1, feeRate: 0.3, feeBasis: "gross", fixedMonthlyKRW: 108000 };

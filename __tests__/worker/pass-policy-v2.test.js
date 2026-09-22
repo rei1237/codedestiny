@@ -23,12 +23,12 @@ describe("versioned flower passes", () => {
   });
   test("new VVIP covers one 30,000 product and prior v2 values remain readable", () => {
     const plan = currentPassPlan("vvip");
-    expect(plan.wonPrice).toBe(879000);
+    expect(plan.wonPrice).toBe(79900);
     expect(canUseByPass({ ...plan, isActive: true }, 300)).toBe(true);
     expect(canUseByPass({ ...plan, isActive: true }, 301)).toBe(false);
-    expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(300);
-    expect(isPassBudgetExhausted("vvip", 300, 300, plan)).toBe(true);
-    expect(buildPassCycleFields({ tier: "vvip", expiresAt, now, passPolicyVersion: CURRENT_PASS_POLICY_VERSION }).monthlyLimitCoin).toBe(300);
+    expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(900);
+    expect(isPassBudgetExhausted("vvip", 900, 900, plan)).toBe(true);
+    expect(buildPassCycleFields({ tier: "vvip", expiresAt, now, passPolicyVersion: CURRENT_PASS_POLICY_VERSION }).monthlyLimitCoin).toBe(900);
     expect(resolvePassPlan("vvip", 1, PRIOR_PASS_POLICY_VERSION)).toEqual(priorPassPlan("vvip"));
     expect(resolvePassPolicy({ tier: "vvip", passPolicyVersion: PRIOR_PASS_POLICY_VERSION }).monthlyCoveredCoin).toBe(900);
   });
@@ -36,10 +36,12 @@ describe("versioned flower passes", () => {
     expect(isPassPolicyMix({ tier: "vvip", expiresAt }, currentPassPlan("vvip"), now)).toBe(true);
     expect(isPassPolicyMix({ tier: "vvip", expiresAt: "2026-09-01" }, currentPassPlan("vvip"), now)).toBe(false);
   });
-  test("unverified cost evidence cannot open any new sales", () => {
+  test("approved web prices open web sales while Play remains closed without verified SKUs", () => {
     for (const tier of ["standard", "premium", "vvip"]) {
-      expect(auditPassSale(tier).eligible).toBe(false);
-      expect(() => assertPassSaleAllowed(currentPassPlan(tier))).toThrow();
+      expect(auditPassSale(tier, "web")).toEqual({ eligible: true, reason: "APPROVED_WEB_PRICE_POLICY" });
+      expect(auditPassSale(tier, "googlePlay").eligible).toBe(false);
+      expect(() => assertPassSaleAllowed(currentPassPlan(tier), "web")).not.toThrow();
+      expect(() => assertPassSaleAllowed(currentPassPlan(tier), "googlePlay")).toThrow();
     }
     expect(() => assertPassSaleAllowed({ tier: "family" })).toThrow();
   });
@@ -52,13 +54,15 @@ describe("versioned flower passes", () => {
   });
 });
 
-test("real admission rejects new orders but preserves a pre-cutover pending order and its old budget", async () => {
+test("real admission accepts the approved web plan and preserves a pre-cutover pending order and its old budget", async () => {
   const userId = "64b000000000000000000001";
   const db = makeFakePaymentDb();
-  for (const plan of [resolvePassPlan("family", 1), resolvePassPlan("vvip", 1), currentPassPlan("vvip")]) {
+  for (const plan of [resolvePassPlan("family", 1), resolvePassPlan("vvip", 1)]) {
     await expect(createPassOrder(db, { userId, idempotencyKey: plan.planId, plan })).rejects.toThrow();
   }
-  expect(db.rows).toHaveLength(0);
+  const current = currentPassPlan("vvip");
+  const currentOrder = await createPassOrder(db, { userId, idempotencyKey: current.planId, plan: current });
+  expect(currentOrder.paymentAmount).toBe(79900);
   const legacy = resolvePassPlan("vvip", 1);
   db.rows.push({ userId, merchantUid: "historical-vvip", idempotencyKey: "old-pending", paymentType: "membership_pass",
     subscriptionTier: "vvip", paymentAmount: 59000, status: "pending", metadata: { durationMonths: 1 } });
@@ -72,11 +76,16 @@ test("real admission rejects new orders but preserves a pre-cutover pending orde
   expect(resolvePassPolicy(user.profileSubscription).maxCoveredCoin).toBe(200);
 });
 
-test("public offers expose exactly three closed offers and cost coverage includes reason variants", async () => {
+test("public offers expose three approved web offers and cost coverage includes reason variants", async () => {
   const response = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers") });
   const body = await response.json();
   expect(body.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 89000, false], ["premium", 269000, false], ["vvip", 879000, false],
+    ["standard", 14900, true], ["premium", 39900, true], ["vvip", 79900, true],
+  ]);
+  const playResponse = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers?channel=googlePlay") });
+  const playBody = await playResponse.json();
+  expect(playBody.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
+    ["standard", 14900, false], ["premium", 39900, false], ["vvip", 79900, false],
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);
@@ -93,10 +102,10 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and excl
   const db = makeFakePaymentDb(); db.rows.push(user);
   const coverage = evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 300 });
   expect(coverage.covered).toBe(true);
-  expect(coverage.budgetCoin).toBe(300);
+  expect(coverage.budgetCoin).toBe(900);
   expect(await consumePassCoverage(db, { userId: user._id, coverage, marker: "reading-0", now })).toBeTruthy();
   expect(user.profileSubscription.monthlySpendCoin).toBe(300);
-  expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(false);
+  expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription,
     product: resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" }) }).eligible).toBe(false);
@@ -106,10 +115,10 @@ test("cost audit uses the most expensive repeatable combination, not the largest
   const plan = currentPassPlan("premium");
   const products = [{ featureKey: "a", priceKRW: 3000 }, { featureKey: "b", priceKRW: 5000 }];
   const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["test-fixture"], priceKRW: plan.wonPrice,
-    netRevenueKRW: 244545, paymentFeeKRW: 300, monthlyLimitCoin: 100, maxCoveredCoin: 100,
+    netRevenueKRW: 34078, paymentFeeKRW: 300, monthlyLimitCoin: 500, maxCoveredCoin: 100,
     products: { a: { priceKRW: 3000, maxCostKRW: 1000, sourceRefs: ["fixture"] }, b: { priceKRW: 5000, maxCostKRW: 1200, sourceRefs: ["fixture"] } } };
   const result = auditPassProfitability(plan, products, evidence);
-  expect(result.worstCostKRW).toBe(3300); // 3 * 3,000 is costlier than 2 * 5,000, plus the payment fee
+  expect(result.worstCostKRW).toBe(16500); // 15 * 3,000 + 1 * 5,000 is the costliest full-budget mix, plus the payment fee
   expect(result.eligible).toBe(true);
   expect(auditPassProfitability(plan, [...products, { featureKey: "missing", priceKRW: 5000 }], evidence).eligible).toBe(false);
 });
@@ -119,7 +128,7 @@ test("real sale admission requires growth reserves and enough contribution to co
   const plan = currentPassPlan("standard");
   const products = Object.fromEntries(listPassCostProducts(plan).map(p => [p.featureKey, { priceKRW: p.priceKRW, maxCostKRW: 50, sourceRefs: ["fixture-only"] }]));
   const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["fixture-only"], priceKRW: plan.wonPrice,
-    maxCoveredCoin: plan.maxCoveredCoin, monthlyLimitCoin: plan.monthlyLimitCoin, netRevenueKRW: 80909.09, paymentFeeKRW: 4895, products,
+    maxCoveredCoin: plan.maxCoveredCoin, monthlyLimitCoin: plan.monthlyLimitCoin, netRevenueKRW: 13545.45, paymentFeeKRW: 819.5, products,
     financials: { channel: "web", basis: "reviewed", reviewedAt: now.toISOString(), sourceRefs: ["fixture-only"], vatRate: 0.1,
       feeRate: 0.055, feeBasis: "gross", fixedMonthlyKRW: 108000, minimumMonthlySales: 100 },
     stress: { sourceRefs: ["fixture-only"], productCostMultiplier: 2, fixedMonthlyKRW: 540000 } };

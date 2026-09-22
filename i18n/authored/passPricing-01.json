@@ -1,0 +1,44 @@
+{
+  "home.passMini.standardPrice": {
+    "ko": "30일 · 14,900원",
+    "en": "30 days · KRW 14,900",
+    "ja": "30日間 · 14,900ウォン",
+    "zh-CN": "30 天 · 14,900 韩元",
+    "zh-TW": "30 天 · 14,900 韓元",
+    "vi": "30 ngày · 14.900 KRW",
+    "hi": "30 दिन · KRW 14,900",
+    "es": "30 días · KRW 14.900",
+    "fr": "30 jours · 14 900 KRW",
+    "de": "30 Tage · 14.900 KRW",
+    "nl": "30 dagen · KRW 14.900",
+    "ms": "30 hari · KRW 14,900"
+  },
+  "home.passMini.premiumPrice": {
+    "ko": "30일 · 39,900원",
+    "en": "30 days · KRW 39,900",
+    "ja": "30日間 · 39,900ウォン",
+    "zh-CN": "30 天 · 39,900 韩元",
+    "zh-TW": "30 天 · 39,900 韓元",
+    "vi": "30 ngày · 39.900 KRW",
+    "hi": "30 दिन · KRW 39,900",
+    "es": "30 días · KRW 39.900",
+    "fr": "30 jours · 39 900 KRW",
+    "de": "30 Tage · 39.900 KRW",
+    "nl": "30 dagen · KRW 39.900",
+    "ms": "30 hari · KRW 39,900"
+  },
+  "home.passMini.vvipPrice": {
+    "ko": "30일 · 79,900원",
+    "en": "30 days · KRW 79,900",
+    "ja": "30日間 · 79,900ウォン",
+    "zh-CN": "30 天 · 79,900 韩元",
+    "zh-TW": "30 天 · 79,900 韓元",
+    "vi": "30 ngày · 79.900 KRW",
+    "hi": "30 दिन · KRW 79,900",
+    "es": "30 días · KRW 79.900",
+    "fr": "30 jours · 79 900 KRW",
+    "de": "30 Tage · 79.900 KRW",
+    "nl": "30 dagen · KRW 79.900",
+    "ms": "30 hari · KRW 79,900"
+  }
+}

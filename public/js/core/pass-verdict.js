@@ -267,7 +267,7 @@
     var spend = numberOrNaN(sub.monthlySpendCoin);
     if (!Number.isFinite(spend)) return NaN;
     var policyMonthlyLimits = {
-      "flower-cost-20260921": { standard: 30, premium: 100, vvip: 300 },
+      "flower-cost-20260921": { standard: 200, premium: 500, vvip: 900 },
       "flower-20260921": { standard: 200, premium: 500, vvip: 900 }
     };
     var policyMonthlyLimit = policyMonthlyLimits[sub.passPolicyVersion];
@@ -482,7 +482,7 @@
     }
     if (snapshot.state !== "active") return result;
     var policyCoverageLimits = {
-      "flower-cost-20260921": { standard: 30, premium: 100, vvip: 300 },
+      "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300 },
       "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
     };
     var policyCoverageLimit = policyCoverageLimits[snapshot.passPolicyVersion];

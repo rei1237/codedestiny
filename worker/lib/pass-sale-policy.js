@@ -1,4 +1,4 @@
-import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION, currentPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
+import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_WEB_SALE_ENABLED, currentPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
 import { PASS_COST_EVIDENCE } from "../../lib/payment/pass-cost-evidence.js";
 import { auditPassProfitability } from "../../lib/payment/pass-profitability.js";
 import { listPassCostProducts } from "./pass-cost-catalog.js";
@@ -29,6 +29,9 @@ export function auditPassSaleEvidence(tier, channel, evidence) {
 }
 
 export function auditPassSale(tier, channel = "web") {
+  if (channel === "web" && CURRENT_PASS_WEB_SALE_ENABLED && currentPassPlan(tier)) {
+    return { eligible: true, reason: "APPROVED_WEB_PRICE_POLICY" };
+  }
   return auditPassSaleEvidence(tier, channel, PASS_COST_EVIDENCE[tier]?.[channel]);
 }
 

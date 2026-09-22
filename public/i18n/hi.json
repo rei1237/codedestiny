@@ -821,23 +821,23 @@
       "chipShareReward": "दायरे के बाहर एकल भुगतान",
       "plansAria": "योजना सारांश कार्ड पास करें",
       "standardName": "मानक शहद 30 दिन",
-      "standardPrice": "30 दिन · KRW 89,000",
-      "standardLine": "KRW 3,000 तक की सामग्री",
-      "standardBenefit1": "हर महीने KRW 3,000 तक",
+      "standardPrice": "30 दिन · KRW 14,900",
+      "standardLine": "KRW 5,000 तक की सामग्री",
+      "standardBenefit1": "हर महीने KRW 20,000 तक",
       "standardBenefit2": "3 प्रोफ़ाइल तक",
       "standardCta": "मानक देखें",
       "recommendedAria": "अनुशंसित योजना",
       "recommendedBadge": "अनुशंसित",
       "premiumName": "प्रीमियम शहद 30 दिन",
-      "premiumPrice": "30 दिन · KRW 269,000",
+      "premiumPrice": "30 दिन · KRW 39,900",
       "premiumLine": "KRW 10,000 तक की सामग्री",
-      "premiumBenefit1": "हर महीने KRW 10,000 तक",
+      "premiumBenefit1": "हर महीने KRW 50,000 तक",
       "premiumBenefit2": "7 प्रोफ़ाइल तक",
       "premiumCta": "अनुशंसित योजना देखें",
       "vvipName": "वीवीआईपी हनी जार 30 दिन",
-      "vvipPrice": "30 दिन · KRW 879,000",
+      "vvipPrice": "30 दिन · KRW 79,900",
       "vvipLine": "KRW 30,000 तक की सामग्री",
-      "vvipBenefit1": "हर महीने KRW 30,000 तक",
+      "vvipBenefit1": "हर महीने KRW 90,000 तक",
       "vvipBenefit2": "15 प्रोफ़ाइल तक",
       "vvipCta": "वीवीआईपी लाभ देखें",
       "familyName": "कोड डेस्टिनी फ़ैमिली 30 दिन",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "मानक शहद 30 दिन",
-          "desc": "30 दिन · KRW 3,000 तक की सामग्री · हर महीने KRW 3,000 तक · 3 प्रोफ़ाइल तक"
+          "desc": "30 दिन · KRW 5,000 तक की सामग्री · हर महीने KRW 20,000 तक · 3 प्रोफ़ाइल तक"
         },
         "premium": {
           "name": "प्रीमियम शहद 30 दिन",
-          "desc": "30 दिन · KRW 10,000 तक की सामग्री · हर महीने KRW 10,000 तक · 7 प्रोफ़ाइल तक"
+          "desc": "30 दिन · KRW 10,000 तक की सामग्री · हर महीने KRW 50,000 तक · 7 प्रोफ़ाइल तक"
         },
         "vvip": {
           "name": "वीवीआईपी हनी जार 30 दिन",
-          "desc": "30 दिन · KRW 30,000 तक की सामग्री · हर महीने KRW 30,000 तक · 15 प्रोफ़ाइल तक"
+          "desc": "30 दिन · KRW 30,000 तक की सामग्री · हर महीने KRW 90,000 तक · 15 प्रोफ़ाइल तक"
         },
         "family": {
           "name": "कोड डेस्टिनी फ़ैमिली 30 दिन",

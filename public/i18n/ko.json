@@ -704,23 +704,23 @@
       "chipShareReward": "범위 밖 단건결제",
       "plansAria": "이용권 플랜 요약 카드",
       "standardName": "스탠다드 꿀 30일",
-      "standardPrice": "30일 · 89,000원",
-      "standardLine": "3천원급 콘텐츠까지",
-      "standardBenefit1": "월 최대 3천원 상당",
+      "standardPrice": "30일 · 14,900원",
+      "standardLine": "5천원급 콘텐츠까지",
+      "standardBenefit1": "월 최대 2만원 상당",
       "standardBenefit2": "프로필 최대 3개",
       "standardCta": "스탠다드 보기",
       "recommendedAria": "추천 플랜",
       "recommendedBadge": "추천",
       "premiumName": "프리미엄 꿀 30일",
-      "premiumPrice": "30일 · 269,000원",
+      "premiumPrice": "30일 · 39,900원",
       "premiumLine": "1만원급 콘텐츠까지",
-      "premiumBenefit1": "월 최대 1만원 상당",
+      "premiumBenefit1": "월 최대 5만원 상당",
       "premiumBenefit2": "프로필 최대 7개",
       "premiumCta": "추천 플랜 보기",
       "vvipName": "VVIP 꿀단지 30일",
-      "vvipPrice": "30일 · 879,000원",
+      "vvipPrice": "30일 · 79,900원",
       "vvipLine": "3만원급 콘텐츠까지",
-      "vvipBenefit1": "월 최대 3만원 상당",
+      "vvipBenefit1": "월 최대 9만원 상당",
       "vvipBenefit2": "프로필 최대 15개",
       "vvipCta": "VVIP 혜택 보기",
       "familyName": "Code Destiny Family 30일",
@@ -1678,13 +1678,13 @@
       "monthlyButtonShort": "월정석 {credits} 필요 · 잔량 부족",
       "packages": {
         "standard": {
-          "desc": "30일 · 3천원급 콘텐츠까지 · 월 최대 3천원 상당 · 프로필 최대 3개"
+          "desc": "30일 · 5천원급 콘텐츠까지 · 월 최대 2만원 상당 · 프로필 최대 3개"
         },
         "premium": {
-          "desc": "30일 · 1만원급 콘텐츠까지 · 월 최대 1만원 상당 · 프로필 최대 7개"
+          "desc": "30일 · 1만원급 콘텐츠까지 · 월 최대 5만원 상당 · 프로필 최대 7개"
         },
         "vvip": {
-          "desc": "30일 · 3만원급 콘텐츠까지 · 월 최대 3만원 상당 · 프로필 최대 15개"
+          "desc": "30일 · 3만원급 콘텐츠까지 · 월 최대 9만원 상당 · 프로필 최대 15개"
         },
         "family": {
           "desc": "30일 · 이용권 대상 전체 · 월 최대 50만원 상당 · 프로필 무제한"

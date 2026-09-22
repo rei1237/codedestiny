@@ -821,23 +821,23 @@
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
       "standardName": "Mật ong chuẩn 30 ngày",
-      "standardPrice": "30 ngày · 89.000 KRW",
-      "standardLine": "Nội dung đến khoảng 3.000 KRW",
-      "standardBenefit1": "Tối đa 3.000 KRW mỗi tháng",
+      "standardPrice": "30 ngày · 14.900 KRW",
+      "standardLine": "Nội dung đến khoảng 5.000 KRW",
+      "standardBenefit1": "Tối đa 20.000 KRW mỗi tháng",
       "standardBenefit2": "Tối đa 3 hồ sơ",
       "standardCta": "Xem tiêu chuẩn",
       "recommendedAria": "Gói đề xuất",
       "recommendedBadge": "Được đề xuất",
       "premiumName": "Mật ong cao cấp 30 ngày",
-      "premiumPrice": "30 ngày · 269.000 KRW",
+      "premiumPrice": "30 ngày · 39.900 KRW",
       "premiumLine": "Nội dung đến khoảng 10.000 KRW",
-      "premiumBenefit1": "Tối đa 10.000 KRW mỗi tháng",
+      "premiumBenefit1": "Tối đa 50.000 KRW mỗi tháng",
       "premiumBenefit2": "Tối đa 7 hồ sơ",
       "premiumCta": "Xem gói đề xuất",
       "vvipName": "Hũ mật ong VVIP 30 ngày",
-      "vvipPrice": "30 ngày · 879.000 KRW",
+      "vvipPrice": "30 ngày · 79.900 KRW",
       "vvipLine": "Nội dung đến khoảng 30.000 KRW",
-      "vvipBenefit1": "Tối đa 30.000 KRW mỗi tháng",
+      "vvipBenefit1": "Tối đa 90.000 KRW mỗi tháng",
       "vvipBenefit2": "Tối đa 15 hồ sơ",
       "vvipCta": "Xem lợi ích VVIP",
       "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "Mật Ong Tiêu Chuẩn 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 3.000 KRW · Tối đa 3.000 KRW mỗi tháng · Tối đa 3 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW mỗi tháng · Tối đa 3 hồ sơ"
         },
         "premium": {
           "name": "Mật Ong Cao Cấp 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 10.000 KRW mỗi tháng · Tối đa 7 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 50.000 KRW mỗi tháng · Tối đa 7 hồ sơ"
         },
         "vvip": {
           "name": "Hũ Mật Ong VVIP 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 30.000 KRW mỗi tháng · Tối đa 15 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 90.000 KRW mỗi tháng · Tối đa 15 hồ sơ"
         },
         "family": {
           "name": "Mã Định Mệnh Gia Đình 30 Ngày",

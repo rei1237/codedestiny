@@ -821,23 +821,23 @@
       "chipShareReward": "Paiement à l'unité hors du forfait",
       "plansAria": "Cartes récapitulatives du plan Pass",
       "standardName": "Miel Standard 30 jours",
-      "standardPrice": "30 jours · 89 000 KRW",
-      "standardLine": "Contenus jusqu'à 3 000 KRW",
-      "standardBenefit1": "Jusqu'à 3 000 KRW par mois",
+      "standardPrice": "30 jours · 14 900 KRW",
+      "standardLine": "Contenus jusqu'à 5 000 KRW",
+      "standardBenefit1": "Jusqu'à 20 000 KRW par mois",
       "standardBenefit2": "Jusqu'à 3 profils",
       "standardCta": "Afficher la norme",
       "recommendedAria": "Forfait recommandé",
       "recommendedBadge": "Recommandé",
       "premiumName": "Miel Premium 30 jours",
-      "premiumPrice": "30 jours · 269 000 KRW",
+      "premiumPrice": "30 jours · 39 900 KRW",
       "premiumLine": "Contenus jusqu'à 10 000 KRW",
-      "premiumBenefit1": "Jusqu'à 10 000 KRW par mois",
+      "premiumBenefit1": "Jusqu'à 50 000 KRW par mois",
       "premiumBenefit2": "Jusqu'à 7 profils",
       "premiumCta": "Afficher le plan recommandé",
       "vvipName": "Pot de Miel VVIP 30 jours",
-      "vvipPrice": "30 jours · 879 000 KRW",
+      "vvipPrice": "30 jours · 79 900 KRW",
       "vvipLine": "Contenus jusqu'à 30 000 KRW",
-      "vvipBenefit1": "Jusqu'à 30 000 KRW par mois",
+      "vvipBenefit1": "Jusqu'à 90 000 KRW par mois",
       "vvipBenefit2": "Jusqu'à 15 profils",
       "vvipCta": "Afficher les avantages VVIP",
       "familyName": "Code Destin Famille 30 jours",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "Miel standard 30 jours",
-          "desc": "30 jours · Contenus jusqu'à 3 000 KRW · Jusqu'à 3 000 KRW par mois · Jusqu'à 3 profils"
+          "desc": "30 jours · Contenus jusqu'à 5 000 KRW · Jusqu'à 20 000 KRW par mois · Jusqu'à 3 profils"
         },
         "premium": {
           "name": "Miel Premium 30 Jours",
-          "desc": "30 jours · Contenus jusqu'à 10 000 KRW · Jusqu'à 10 000 KRW par mois · Jusqu'à 7 profils"
+          "desc": "30 jours · Contenus jusqu'à 10 000 KRW · Jusqu'à 50 000 KRW par mois · Jusqu'à 7 profils"
         },
         "vvip": {
           "name": "Pot de miel VVIP 30 jours",
-          "desc": "30 jours · Contenus jusqu'à 30 000 KRW · Jusqu'à 30 000 KRW par mois · Jusqu'à 15 profils"
+          "desc": "30 jours · Contenus jusqu'à 30 000 KRW · Jusqu'à 90 000 KRW par mois · Jusqu'à 15 profils"
         },
         "family": {
           "name": "Code Destiny Famille 30 jours",

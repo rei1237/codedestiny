@@ -821,23 +821,23 @@
       "chipShareReward": "範圍外單次付費",
       "plansAria": "透過計畫摘要卡",
       "standardName": "標準蜂蜜 30 天",
-      "standardPrice": "30 天 · 89,000 韓元",
-      "standardLine": "3,000韓元級內容",
-      "standardBenefit1": "每月最多3,000韓元",
+      "standardPrice": "30 天 · 14,900 韓元",
+      "standardLine": "5,000韓元級內容",
+      "standardBenefit1": "每月最多20,000韓元",
       "standardBenefit2": "最多 3 個設定檔",
       "standardCta": "查看標準",
       "recommendedAria": "推薦計劃",
       "recommendedBadge": "推薦",
       "premiumName": "優質蜂蜜 30 天",
-      "premiumPrice": "30 天 · 269,000 韓元",
+      "premiumPrice": "30 天 · 39,900 韓元",
       "premiumLine": "10,000韓元級內容",
-      "premiumBenefit1": "每月最多 10,000韓元",
+      "premiumBenefit1": "每月最多 50,000韓元",
       "premiumBenefit2": "最多 7 個設定檔",
       "premiumCta": "查看推薦計劃",
       "vvipName": "VVIP 蜂蜜罐 30 天",
-      "vvipPrice": "30 天 · 879,000 韓元",
+      "vvipPrice": "30 天 · 79,900 韓元",
       "vvipLine": "30,000韓元級內容",
-      "vvipBenefit1": "每月最多 30,000韓元",
+      "vvipBenefit1": "每月最多 90,000韓元",
       "vvipBenefit2": "最多 15 個設定檔",
       "vvipCta": "查看 VVIP 福利",
       "familyName": "代碼命運家庭 30 天",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "标准蜂蜜30天",
-          "desc": "30天 · 3,000韓元級內容 · 每月最多3,000韓元 · 最多 3 個設定檔"
+          "desc": "30天 · 5,000韓元級內容 · 每月最多20,000韓元 · 最多 3 個設定檔"
         },
         "premium": {
           "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韓元級內容 · 每月最多 10,000韓元 · 最多 7 個設定檔"
+          "desc": "30天 · 10,000韓元級內容 · 每月最多 50,000韓元 · 最多 7 個設定檔"
         },
         "vvip": {
           "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 30,000韓元級內容 · 每月最多 30,000韓元 · 最多 15 個設定檔"
+          "desc": "30天 · 30,000韓元級內容 · 每月最多 90,000韓元 · 最多 15 個設定檔"
         },
         "family": {
           "name": "Code Destiny Family 30天",
