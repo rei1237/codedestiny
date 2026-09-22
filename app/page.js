@@ -60,10 +60,10 @@ const sourcePage = publicSeoPages.home;
 const HOME_SEO = {
   title: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
   description:
-    "영냥이와 함께 사주, 타로, 궁합의 흐름을 살펴보세요. 무료 운세부터 1,000~30,000원 단건 상담, 꽃돼지 전문 상담까지 CODE DESTINY에서 만나보세요.",
+    "사주보는 고양이 영냥이에게 궁금한 이야기를 들려주세요. 질문에 맞춘 해석과 시기, 실천 조언을 살펴보고 저장된 상담을 다시 읽을 수 있어요.",
   ogTitle: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
   ogDescription:
-    "영냥이의 사주·타로·궁합과 꽃돼지 전문 상담을 만나는 CODE DESTINY 공식 서비스.",
+    "사주보는 고양이 영냥이와 질문 중심 상담을 시작하세요. 사주·타로·궁합의 흐름을 근거와 함께 살펴봅니다.",
   url: "https://code-destiny.com/",
   image: "https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png",
 };
@@ -72,7 +72,7 @@ const page = {
   ...sourcePage,
   title: HOME_SEO.title,
   description: HOME_SEO.description,
-  h1: "꿀꿀 운세 — 무료 사주·타로·궁합 통합 플랫폼",
+  h1: "사주보는 고양이 영냥이",
 };
 
 export const metadata = {
