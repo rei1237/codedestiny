@@ -49,7 +49,7 @@ test('actual LLM adapter gets structured evidence, input context and one provide
 });
 test('unsupported location, mind, timing, spiritual and contact claims never pass the save validator',()=>{
   assert.doesNotThrow(()=>validateSpiritChapter(safe(),context,spirit));
-  for(const text of ['호라리 하우스로 봤어.','그 사람은 집 북쪽 방에 있다.','상대는 다른 사람을 사랑하고 있어.','그 사람은 조용한 곳에 머무는 분위기야.','신령이 직접 알려주었어.','액운을 막으려면 추가 결제가 필요해.','3일 뒤 연락이 올 거야.','다음 달에 재회해.','올해 봄에는 연락할 거야.','SNS로 찾아보자.','그 사람을 찾아가 봐.']){
+  for(const text of ['호라리 하우스로 봤어.','그 사람은 집 북쪽 방에 있다.','상대는 다른 사람을 사랑하고 있어.','그 사람은 조용한 곳에 머무는 분위기야.','신령이 직접 알려주었어.','액운을 막으려면 추가 결제가 필요해.','3일 뒤 연락이 올 거야.','다음 달에 재회해.','올해 봄에는 연락할 거야.','한 달 뒤 재회할 수 있어.','조만간 연락이 올 것 같아.','그의 곁에 다른 이성이 있어.','근처 공원에서 쉬고 있어.','SNS로 찾아보자.','그 사람을 찾아가 봐.']){
     assert.throws(()=>validateSpiritChapter({...safe(),summary:`${pattern}. ${text}`},context,spirit),undefined,text);
   }
   assert.throws(()=>validateSpiritChapter({...safe(),summary:'좋은 기운이 너를 기다리고 있어.'},context,spirit),/SPIRIT_EVIDENCE_MISSING/);

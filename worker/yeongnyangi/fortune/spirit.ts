@@ -81,8 +81,9 @@ export function validateSpiritChapter(body:ChapterBody,context:DomainContext,spi
   if(/주소|좌표|건물|업소|북쪽|남쪽|동쪽|서쪽|지도|이동\s*경로|SNS|인스타|신령|신께서|영적\s*능력|추가\s*결제|액운|100%|반드시|무조건|분명하다|확실하다|틀림없|외도|바람을|거짓말|속마음/.test(prose)||
     /(?:상대|그\s*사람|그는|그녀).{0,40}(?:있[다어습]|머물|머무|생각|마음|좋아|사랑|그리워|원하|원해|느끼|숨기|연락할|돌아올)/.test(prose)||
     /(?:집|방|직장|회사|카페|호텔|모텔|술집|밖|실내|실외|익숙한\s*곳|조용한\s*곳|닫힌\s*공간).{0,20}(?:있|머무|머물|보여|떠오|기운|분위기)/.test(prose)||
+    /(?:곁에|옆에|주변에).{0,30}(?:이성|사람|누군가|있)|(?:공원|거리|도서관|사무실|숙소|식당|침실|거실).{0,20}(?:쉬|있|머무|머물|기운|분위기)/.test(prose)||
     /(?:찾아가|찾아보|방문해|추적|확인하러|연락해|연락하자|메시지를?\s*보내|지인에게\s*물어)/.test(prose)||
-    /\d+\s*(?:년|월|일|주|개월)|내일|모레|다음\s*(?:주|달|해)|이번\s*(?:주|달)|곧\s*(?:연락|재회)|올해|내년|상반기|하반기|봄|여름|가을|겨울/.test(prose))throw new FortuneError('UNSUPPORTED_SPIRIT_CLAIM');
+    /\d+\s*(?:년|월|일|주|개월)|내일|모레|조만간|머지않아|며칠|몇\s*(?:주|달|개월)|(?:한|두|세|네|다섯)\s*(?:주|달|개월)\s*(?:뒤|후|안|내)|곧.{0,15}(?:연락|재회|돌아)|다음\s*(?:주|달|해)|이번\s*(?:주|달)|곧\s*(?:연락|재회)|올해|내년|상반기|하반기|봄|여름|가을|겨울/.test(prose))throw new FortuneError('UNSUPPORTED_SPIRIT_CLAIM');
   const evidence=spiritEvidence(context).facts[0].value as {patterns:{strength:string;shadow:string;action:string}[]};
   if(!evidence.patterns.some(p=>Object.values(p).some(s=>prose.includes(s))))throw new FortuneError('SPIRIT_EVIDENCE_MISSING');
   if(body.questionAnswers?.some(a=>!evidence.patterns.some(p=>Object.values(p).some(s=>a.reason.includes(s)))))throw new FortuneError('SPIRIT_ANSWER_EVIDENCE_MISSING');
