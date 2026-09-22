@@ -496,8 +496,8 @@
 @media(max-width:600px) { .spiritIntro { flex-direction:column; align-items:flex-start; gap:16px; } .spiritIntro img { width:124px; align-self:center; } }
 
 .spirit progress { width:100%; accent-color:var(--yn-gold); }
-.readingLoading { display:flex; align-items:center; gap:24px; padding:24px; margin:24px 0; background:var(--yn-ivory); color:var(--yn-night); border-radius:20px; }
-.readingLoading img { flex:none; width:140px; height:auto; border-radius:12px; }
+.readingLoading { display:flex; align-items:center; justify-content:center; gap:24px; padding:12px 0; margin:24px 0; color:var(--yn-ivory); }
+.readingLoading img { flex:none; width:140px; height:auto; }
 .readingLoading p { margin:8px 0; }
 .readingLoading .loadingTitle { font-size:1.25rem; font-weight:700; text-wrap:balance; }
 .resultSharing { margin:32px 0; padding:20px 24px; border:1px solid var(--yn-line); border-radius:16px; }
@@ -522,7 +522,7 @@
 .sharePreview figcaption { margin-top:12px; }
 .shareForm details summary { cursor:pointer; min-height:48px; padding:12px 0; }
 @media(max-width:767px) {
- .readingLoading { flex-direction:column; gap:8px; padding:20px; text-align:center; }
+ .readingLoading { flex-direction:column; gap:8px; padding:8px 0; text-align:center; }
  .readingLoading img { width:126px; }
  .resultSharing { padding:16px; }
  .shareEditor { grid-template-columns:minmax(0,1fr); gap:24px; }
