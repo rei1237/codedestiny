@@ -124,6 +124,20 @@
       "cd_pass_premium_30d_v3",
       "cd_pass_vvip_30d_v3"
     ],
+    "readOnlyRecheck": {
+      "reviewedAt": "2026-09-22",
+      "observations": [
+        "The app remained draft with internal testing and production inactive.",
+        "The one-time product table contained 18 products and only the four legacy cd_pass_*_30d pass IDs.",
+        "No v3 product ID, regional KRW price, purchase option, or v3 settlement could be observed."
+      ],
+      "actionsNotPerformed": [
+        "Create product",
+        "Enter price",
+        "Activate product",
+        "Change legacy product availability"
+      ]
+    },
     "serviceFeeProgram": {
       "program": "15-percent-service-fee-tier",
       "enrollmentStatus": "enrolled",

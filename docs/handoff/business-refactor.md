@@ -7,6 +7,15 @@ next: "Play v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가�
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
 
+## 2026-09-22 v3 SKU·계정 집계 재확인 — 판매 차단 유지
+
+- 최신 main은 사용자 지정 전달 커밋 `2a2b55422efbc2ebd0f0fffcd197da6940fc2417`의 후속이며, 해당 CI `35710088725` 성공 기록을 전제로 이어갔다. 다른 세션의 `marketing/**` 미커밋 변경은 보존했다.
+- Play Console을 읽기 전용으로 다시 확인했다. `com.codedestiny.app`은 임시·내부 테스트, 프로덕션 비활성이다. 일회성 제품은 18개이고 구 `cd_pass_standard_30d`·`premium`·`vvip`·`family` 4종만 있으며, `cd_pass_standard_30d_v3`·`premium`·`vvip`는 없다. 상품 생성·가격 입력·활성화·구 SKU 변경을 하지 않았으므로 Play 3종은 계속 `APP_SKU_NOT_VERIFIED`다.
+- PortOne 거래일 화면의 전체 수치는 43건·62,600원·PG 수수료 1,159원+부가세117원이었다. 기존 일자별 정산 완료 18건 집계(52,700원·51,598원·1,001원+101원)와 기준이 다르며, 둘 다 v3 판매 또는 상품별 원가 증거가 아니다.
+- `node scripts/check-workers-ai-quota.mjs --days=30` 읽기 전용 재현은 GLM 1,025 Neuron, 일별 무료분 초과 0·$0.0000 추정을 냈다. 계정 전체 Analytics일 뿐 상품·재시도·Mongo 저장/백업/트래픽·지원 시간·환불 회수불가 비용을 귀속하지 못하므로 `PASS_COST_EVIDENCE`에 넣지 않았다.
+- `node scripts/audit-pass-profitability.mjs`는 웹 3종 `SETTLEMENT_EVIDENCE_MISSING`, Play 3종 `APP_SKU_NOT_VERIFIED`로 예상 종료2를 유지했다. `node --test __tests__/ui/pass-economics.test.mjs` 3/3과 `node scripts/verify-llm-token-usage.mjs`도 통과했다. 실PG·유료 LLM·운영 DB 쓰기·환불·운영 승격은 수행하지 않았다.
+- 다음 원가 증거는 승인된 운영 반영 후에만 새 `serviceId`·`requestId`·`billingAccess`가 모두 있는 로그, Mongo 상품별 바이트/백업/트래픽 청구, 지원 시간×검토 인건비, 상품별 환불·회수불가 공급자 비용을 같은 기간으로 모아야 한다. 그 전에는 판매 차단을 풀지 않는다.
+
 ## 2026-09-22 Play 수수료·Cloudflare 귀속 근거 추가
 
 - 구현 커밋 `4d3f68c11`: 공통 LLM 상품 요청 귀속과 비용 보고서, Play·Cloudflare 외부 근거 문서를 함께 갱신했다.
