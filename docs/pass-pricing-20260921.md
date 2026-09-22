@@ -17,9 +17,9 @@
 재현 명령은 `node scripts/report-pass-economics.mjs --write`, 입력은 `config/pass-cost-planning-20260921.json`, 결과는 `docs/verification/pass-economics-scenarios-20260921.json`이다. 이는 판매 증거가 아니라 코드에서 확인한 호출 구조를 공급자 단가에 대입한 계획 시나리오다.
 
 - Gemini 2.5 Flash Standard 공식 단가: 입력 $0.30/100만, 출력과 thinking $2.50/100만. 확인한 장문 경로는 thinkingBudget 0이지만 실제 배포 모델 환경값은 별도 확인이 필요하다.
-- 입력 토큰: `lib/gemini-input-token-limit.mjs`가 공급자의 비과금 `countTokens` 응답을 생성 전에 확인해 Gemini 시도 1회당 50,000토큰을 초과하면 모든 공급자 호출을 차단한다. 계산 실패 시 Gemini 생성은 막되 기존 Workers AI 폴백은 유지한다. Workers AI 실원가는 아직 계획 원가에 포함하지 않았으므로 판매 차단 근거로 남는다. 공통 클라이언트와 직접 Gemini 경로 3개를 같은 정본에 연결했다.
+- 입력 토큰: `lib/gemini-input-token-limit.mjs`가 공급자의 비과금 `countTokens` 응답을 생성 전에 확인해 Gemini 시도 1회당 50,000토큰을 초과하면 모든 공급자 호출을 차단한다. 계산 실패 시 Gemini 생성은 막되 기존 Workers AI 폴백은 유지한다. Workers AI는 생성 전 전용 tokenizer API가 없으므로 `lib/workers-ai-input-token-limit.mjs`에서 UTF-8 바이트 수+채팅 예약분을 실제 토큰 수의 보수적 상계로 사용한다. 공급자 시도당 불변 50,000토큰과 기본 모델 컨텍스트 131,072/24,000에서 출력 예약분을 뺀 값 중 낮은 한도를 `env.AI.run` 전에 적용한다.
 - 출력·재시도: 각 경로의 부분 수, 부분별 최대 출력 토큰, 저장형 재시도 상한, 공통 공급자 재시도 상한을 곱했다. 성공 출력은 논리 호출당 한 번만 최대치로 잡고, 공급자 재시도는 입력 비용에 반영했다.
-- 저장·지원·환불·Workers AI 등 미확정 변동비는 Gemini 토큰 계산에 30% 충당을 더했다. 실제 비용 근거가 아니며 부족하면 상향한다.
+- 저장·지원·환불·Workers AI 등 미확정 변동비는 Gemini 토큰 계산에 30% 충당을 더했다. Workers AI 입력 상한은 코드로 입증했고 응답의 공식 `usage`가 있으면 실측 토큰으로 기록하지만, 경로별 실제 폴백 횟수·상품 귀속과 저장·지원·환불 비용은 아직 계획 원가에 포함하지 않았다. 실제 비용 근거가 아니며 부족하면 상향한다.
 - 가장 긴 30,000원 상품보다 3,000원 `tarot-love-relationship` 반복이 더 비싼 최대 소진 조합이다. 21부분 × 부분별 3회 × 공급자 최대 3회이며, 계획 변동원가 9,100원/건이다. 이 상품을 월 한도 안에서 1/3/10회 반복하는 조합이 각 등급 가격을 결정했다.
 - 변동원가 2배와 Play 30% 시나리오에서 40% 공헌이익을 위한 산출 최소가는 74,200/222,500/741,500원이다. 재설계가는 여기에 약 20%의 미확정 여유를 더한 89,000/269,000/879,000원이다.
 
@@ -34,7 +34,7 @@
 | 마스터 연애 궁합 | 60 | 60 | 3,000,000 | 480,000 | 3,360원 | 4,400원 |
 | 초융합 상담 | 27 | 81 | 4,050,000 | 442,368 | 3,714원 | 4,900원 |
 
-계획 입력 토큰은 코드가 강제하는 공급자 시도당 50,000토큰 상한이다. 다만 표의 30% 충당은 저장·지원·환불·Workers AI 실원가를 실측한 값이 아니므로, 위 표만 실제 최대 과금액이나 판매 승인 증거로 쓰지 않는다.
+계획 입력 토큰은 코드가 강제하는 Gemini 및 Workers AI 공급자 시도당 50,000토큰 상한이다. 다만 표는 Gemini 토큰비만 계산하며 Workers AI 폴백 체인의 실제 모델별 usage와 저장·지원·환불 실원가를 합산하지 않았다. 30% 충당도 실측값이 아니므로 위 표만 실제 최대 과금액이나 판매 승인 증거로 쓰지 않는다.
 
 이 가격은 상품 단위 손실 방지용 계획가다. 월매출 약 50,000원은 어느 등급 판매가에도 못 미치며, 기준 고정비 108,000원 및 5배 스트레스 540,000원을 회수하지 못한다. Play 30% 시나리오의 스트레스 공헌이익으로 540,000원을 회수하려면 월 15/5/2개가 필요하다. 이는 판매 보장이 아니며, 실제 판매량이 없으면 전체 사업 손익분기는 성립하지 않는다.
 
@@ -44,7 +44,7 @@
 
 ## 판매 차단과 원가 검증
 
-현재 실정산·상품별 실원가·Play 신규 SKU 증거가 없어 **새 이용권 3종 모두 웹·앱 판매 차단**이다. `lib/payment/pass-cost-evidence.js`의 빈 객체를 mock이나 추정 단가로 채우지 않는다. GET `/api/payments/pass-offers`가 화면과 신규 주문의 공통 판매 상태를 제공한다. Play는 웹과 별도 증거와 `verifiedProductId`가 필요하다. 기존 주문 확정·선물 수령·복원에는 신규 판매 차단을 적용하지 않는다.
+2026-09-22 읽기 전용 계정 검토에서 포트원 9월 누계 정산과 Cloudflare 최근 1개월 사용량은 확인했지만 상품별 귀속이 아니며, Play Console에는 구 `*_30d` 이용권만 있고 신규 `*_30d_v3` 3종은 없었다. 상세 집계와 한계는 `docs/verification/pass-external-cost-evidence-20260922.json`에 있다. 따라서 상품별 LLM·저장·지원·환불 실원가와 Play 신규 SKU 증거가 없어 **새 이용권 3종 모두 웹·앱 판매 차단**이다. `lib/payment/pass-cost-evidence.js`의 빈 객체를 계정 전체 집계·mock·추정 단가로 채우지 않는다. GET `/api/payments/pass-offers`가 화면과 신규 주문의 공통 판매 상태를 제공한다. Play는 웹과 별도 증거와 `verifiedProductId`가 필요하다. 기존 주문 확정·선물 수령·복원에는 신규 판매 차단을 적용하지 않는다.
 
 `node scripts/audit-pass-profitability.mjs [evidence.json]`은 읽기 전용이다. 차단된 항목이 있으면 종료 코드 2다. 각 등급/채널별 증거 형태:
 
@@ -67,9 +67,9 @@
 
 Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·시스템 지시·멀티모달을 계산한다. 공식 billing FAQ상 이 요청은 과금되지 않고 추론 쿼터에도 포함되지 않는다. 코드 검증은 mock 응답으로만 수행하며 실제 공급자 호출은 하지 않는다. 상한 검사가 일시적으로 실패하면 Gemini 생성 요청은 보내지 않는다. 기존 가용성 계약에 따라 Workers AI 폴백은 가능하지만 그 비용은 아직 판매 승인 원가 증거가 아니다.
 
-`node scripts/report-llm-token-usage.mjs llm.log --prices tariffs.json`으로 provider/model별 단가를 적용한다. 미등록 모델·추정 토큰은 비용 `null`, `complete:false`다. 캐시 입력·thinking 토큰을 별도로 반영한다. 단가 파일 키는 `gemini/실제모델명` 등이며 값은 `reviewedAt`, `sourceRefs`, `inputUsdPerMillion`, `cachedInputUsdPerMillion`, `outputUsdPerMillion`, `thinkingIncludedInOutput`을 포함한다. 실제 모델 청구 방식에 맞게 thinking 중복 여부를 확인한다. 파일에 실제 공급자 단가와 적용일·출처를 기록한다. 확인한 Flash Standard 단가는 `config/llm-tariffs-20260921.json`에 있다. candidatesTokenCount와 thoughtsTokenCount를 별도로 기록하므로 이 파일의 thinkingIncludedInOutput은 false다. 캐시 보관료·검색·그 외 모델과 요금제는 이 파일로 계산하지 않는다.
+`node scripts/report-llm-token-usage.mjs llm.log --prices tariffs.json`으로 provider/model별 단가를 적용한다. 미등록 모델·추정 토큰은 비용 `null`, `complete:false`다. 캐시 입력·thinking 토큰을 별도로 반영한다. 단가 파일 키는 `provider/실제모델명`이며 값은 `reviewedAt`, `sourceRefs`, `inputUsdPerMillion`, `cachedInputUsdPerMillion`, `outputUsdPerMillion`, `thinkingIncludedInOutput`을 포함한다. 실제 모델 청구 방식에 맞게 thinking 중복 여부를 확인한다. `config/llm-tariffs-20260921.json`에는 Gemini 2.5 Flash와 Workers AI 기본 GLM/Llama의 공식 단가·출처가 있다. Workers AI 응답의 공식 usage가 있으면 실측값, 없으면 `estimated=true`라 확정 원가에서 제외한다. 캐시 보관료·검색·포함 한도 이후 neuron 비용·그 외 모델과 요금제는 이 파일만으로 계산하지 않는다.
 
-기존 단일 단가 모드는 추정 비교용이며 판매 증거가 아니다. 공통 LLM 클라이언트를 거치지 않던 MindScan·love-reading에도 토큰 로그를 추가했다. 요청 내용·개인정보는 새 로그에 넣지 않는다. 이력 전체의 원가가 소급 수집된 것은 아니다. 로그 유실, 타임아웃 과금, unlabeled serviceId, 공통 love-reading 경로의 실제 SKU 연결, USD→KRW 환산 근거, 저장·지원·환불 원가는 별도 실측이 필요하다. 관측 합계가 곧 허용 재시도 전체의 상한이라는 가정도 금지한다.
+기존 단일 단가 모드는 추정 비교용이며 판매 증거가 아니다. 공통 LLM 클라이언트를 거치지 않던 MindScan·love-reading에도 토큰 로그를 추가했다. 요청 내용·개인정보는 새 로그에 넣지 않는다. 이력 전체의 원가가 소급 수집된 것은 아니다. 2026-09-22 Cloudflare 계정의 최근 1개월 집계는 1.03k neurons, 입력 10.94k·출력 26.52k였고 해당 9월 청구 가능 사용량은 포함 한도 안의 $0.00이었다. 이는 계정 전체 관측값으로 상품별 실원가나 무료 한도 소진 후 한계비용이 아니다. 로그 유실, 타임아웃 과금, unlabeled serviceId, 공통 love-reading 경로의 실제 SKU 연결, USD→KRW 환산 근거, 저장·지원·환불 원가는 별도 실측이 필요하다. 관측 합계가 곧 허용 재시도 전체의 상한이라는 가정도 금지한다.
 
 ## 운영 적용 조건
 
@@ -106,6 +106,7 @@ Gemini 공식 `models.countTokens`는 생성 전 입력 검사용이며 입력·
 
 공식 단가 확인 (2026-09-21 열람):
 - Gemini 2.5 Flash Standard: 텍스트 입력 $0.30/100만 토큰, 출력·thinking $2.50/100만 토큰, 캐시 입력 $0.03. 캐시 보관료/검색 도구는 별도다. 코드 기본 모델은 lib/llm-client.ts의 gemini-2.5-flash이며 환경 설정의 실제 모델과 대조해야 한다. https://ai.google.dev/gemini-api/docs/pricing
+- Workers AI 기본 1차 GLM 4.7 Flash: 컨텍스트 131,072, 입력 $0.0605/100만·출력 $0.40/100만. 기본 2차 Llama 3.3 70B FP8 Fast: 컨텍스트 24,000, 입력 $0.293/100만·출력 $2.253/100만. 계정은 최근 1개월 포함 한도 안이었지만 무료 할당 초과분은 공식 단가가 적용된다. https://developers.cloudflare.com/workers-ai/platform/pricing/
 - Play 수수료 및 한국 대체결제: https://support.google.com/googleplay/android-developer/answer/112622
 - Workers 기본료 및 요청/CPU 초과: https://developers.cloudflare.com/workers/platform/pricing/
 - Atlas는 클러스터·지역·스토리지·백업 등에 따라 다르므로 M10이라는 이름만으로 실제 요금을 확정할 수 없다: https://www.mongodb.com/docs/atlas/billing/cluster-configuration-costs/

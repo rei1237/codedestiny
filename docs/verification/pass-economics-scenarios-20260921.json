@@ -1,11 +1,14 @@
 {
   "basis": "code-derived-planning-scenario-not-sale-evidence",
-  "reviewedAt": "2026-09-21",
+  "reviewedAt": "2026-09-22",
   "sourceRefs": [
     "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
     "https://ai.google.dev/api/tokens",
     "https://ai.google.dev/gemini-api/docs/billing",
     "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
+    "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+    "https://developers.cloudflare.com/workers-ai/models/glm-4.7-flash/",
+    "https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/",
     "https://developers.cloudflare.com/workers/platform/pricing/",
     "https://www.mongodb.com/pricing",
     "https://support.google.com/googleplay/android-developer/answer/112622"
@@ -15,6 +18,10 @@
     "inputTokensPerProviderAttempt": 50000,
     "providerAttemptsPerLogicalCall": 3,
     "inputTokenCapProvenInCode": true,
+    "workersAiInputTokenCapProvenInCode": true,
+    "workersAiInputTokensPerProviderAttempt": 50000,
+    "workersAiProviderUsageCapturedWhenPresent": true,
+    "workersAiFallbackCostIncluded": false,
     "geminiInputUsdPerMillion": 0.3,
     "geminiOutputUsdPerMillion": 2.5,
     "thinkingBudget": 0,

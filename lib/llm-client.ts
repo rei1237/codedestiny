@@ -5,6 +5,9 @@ import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
 import {
   assertGeminiInputTokenLimit,
 } from "./gemini-input-token-limit.mjs";
+import {
+  assertWorkersAiInputTokenLimit,
+} from "./workers-ai-input-token-limit.mjs";
 
 export interface LLMRequest {
   /** A durable caller-owned retry budget can opt out of nested provider retries. */
@@ -452,6 +455,35 @@ function extractGeminiUsage(payload: GeminiPayload): LLMUsage | undefined {
     outputTokens,
     ...(cachedInputTokens ? { cachedInputTokens } : {}),
     ...(thinkingTokens ? { thinkingTokens } : {}),
+  };
+}
+
+function extractWorkersAiUsage(result: unknown): LLMUsage | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const payload = result as {
+    usage?: Record<string, unknown>;
+    result?: { usage?: Record<string, unknown> };
+  };
+  const usage = payload.usage || payload.result?.usage;
+  if (!usage) return undefined;
+
+  const inputTokens = toTokenCount(
+    usage.prompt_tokens ?? usage.promptTokens ?? usage.input_tokens ?? usage.inputTokens,
+  );
+  const outputTokens = toTokenCount(
+    usage.completion_tokens ?? usage.completionTokens ?? usage.output_tokens ?? usage.outputTokens,
+  );
+  if (!inputTokens && !outputTokens) return undefined;
+
+  const cachedInputTokens = toTokenCount(
+    usage.cached_tokens
+      ?? usage.cachedTokens
+      ?? (usage.prompt_tokens_details as Record<string, unknown> | undefined)?.cached_tokens,
+  );
+  return {
+    inputTokens,
+    outputTokens,
+    ...(cachedInputTokens ? { cachedInputTokens: Math.min(inputTokens, cachedInputTokens) } : {}),
   };
 }
 
@@ -984,6 +1016,13 @@ async function callCloudflareWorkersAI(
       continue;
     }
     try {
+      // Cloudflare는 생성 전 countTokens API를 제공하지 않는다. UTF-8 바이트 기반 상계와
+      // 모델별 컨텍스트 창으로 입력 원가·크기를 env.AI.run 전에 fail-closed 한다.
+      assertWorkersAiInputTokenLimit({
+        model,
+        messages,
+        maxOutputTokens: normalized.maxTokens,
+      });
       emitProviderCallLog("cloudflare", model, normalized, env);
       const result = await raceWithDeadline(
         Promise.resolve(env.AI.run(model, buildWorkersAiInput(model, normalized, messages))),
@@ -995,12 +1034,13 @@ async function callCloudflareWorkersAI(
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
       const finishReason = extractWorkersAiFinishReason(result);
 
-      // Workers AI 는 사용량 필드를 안 주는 모델이 있어 문자수 기반 추정으로 통일한다.
-      const usage: LLMUsage = {
+      // Workers AI 가 공식 usage 를 주면 실측값을 보존한다. 모델/응답 형식에 따라 usage 가
+      // 없을 때만 문자수 휴리스틱으로 내려가며, 원가 집계는 estimated=true 를 확정 원가로 쓰지 않는다.
+      const usage = extractWorkersAiUsage(result) || {
         inputTokens: estimateTokens(normalized.systemPrompt || "") + estimateTokens(normalized.prompt),
         outputTokens: estimateTokens(text),
         estimated: true,
-      };
+      } satisfies LLMUsage;
       emitTokenUsageLog("cloudflare", model, normalized, usage, env);
 
       return {

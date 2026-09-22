@@ -16,6 +16,7 @@
 
 import { callLLM } from "../lib/llm-client.ts";
 import { callGeminiText } from "../worker/lib/gemini.js";
+import { WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from "../lib/workers-ai-input-token-limit.mjs";
 
 // Gemini 를 확실히 실패시켜(키 없음) 폴백만 타게 한다 — fetch 가 나가지 않는다.
 delete process.env.GEMINIF_API_KEY;
@@ -51,10 +52,14 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
 {
   const { env, calls } = stubEnv(() => ({
     choices: [{ message: { content: "글렘 응답 본문" } }],
+    usage: { prompt_tokens: 1234, completion_tokens: 567 },
   }));
   const result = await callLLM({ prompt: "테스트" }, env);
   assert(result.text === "글렘 응답 본문", "OpenAI 형 choices[0].message.content 를 읽지 못했다");
   assert(result.provider === "cloudflare", "폴백 응답의 provider 가 cloudflare 여야 한다");
+  assert(result.usage?.inputTokens === 1234, "Workers AI prompt_tokens 실측값을 보존해야 한다");
+  assert(result.usage?.outputTokens === 567, "Workers AI completion_tokens 실측값을 보존해야 한다");
+  assert(result.usage?.estimated !== true, "공식 Workers AI usage 를 추정치로 표시하면 안 된다");
   assert(
     calls[0]?.model === "@cf/zai-org/glm-4.7-flash",
     `체인 1차가 glm-4.7-flash 여야 한다 (실제: ${calls[0]?.model})`,
@@ -66,6 +71,7 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   const { env } = stubEnv(() => ({ response: "라마 응답 본문" }));
   const result = await callLLM({ prompt: "테스트" }, env);
   assert(result.text === "라마 응답 본문", "기존 response 필드 파싱이 깨졌다");
+  assert(result.usage?.estimated === true, "usage 없는 Workers AI 응답은 추정치로 표시해야 한다");
 }
 
 // (3) 1차가 폐기(5028)돼도 2차가 받아야 한다. 체인이 존재하는 이유 그 자체.
@@ -255,10 +261,27 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   assert(empty.text === "빈값 본문", "빈 문자열이 차단으로 해석됐다");
 }
 
+// (14) 🔴 입력 상한을 넘으면 env.AI.run 전에 끊어야 한다. 에러만 던지고 이미 과금 호출을
+//      보냈다면 원가 상한이 아니므로 호출 횟수 0을 함께 단언한다.
+{
+  const { env, calls } = stubEnv(() => ({ response: "여기 오면 안 된다" }));
+  let message = "";
+  try {
+    await callLLM({ prompt: "a".repeat(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT) }, env);
+  } catch (error) {
+    message = String(error?.message || "");
+  }
+  assert(calls.length === 0, `Workers AI 입력 상한 초과인데 env.AI.run 이 ${calls.length}회 호출됐다`);
+  assert(
+    message.includes("Workers AI input token limit exceeded"),
+    `입력 상한 차단 사유가 실패 메시지에 남아야 한다 (실제: ${message})`,
+  );
+}
+
 if (failures.length) {
   console.error("❌ Workers AI 폴백 가드 실패:");
   for (const failure of failures) console.error(`  - ${failure}`);
   process.exit(1);
 }
 
-console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한·분량 게이트·실호출 차단 스위치)");
+console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간·입력 상한·분량 게이트·실호출 차단 스위치)");
