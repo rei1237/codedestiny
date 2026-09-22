@@ -37,11 +37,50 @@
       "period": "2026-08-30/2026-09-22",
       "billableUsageUsd": 0,
       "projectedCycleUsageUsd": 0,
-      "latestWorkersPaidInvoiceDate": "2026-08-30",
-      "latestWorkersPaidInvoiceUsd": 5,
+      "latestWorkersPaidInvoice": {
+        "issueDate": "2026-08-30",
+        "servicePeriod": "2026-08-30/2026-09-29",
+        "product": "Workers Paid",
+        "quantity": 1,
+        "unitPriceUsd": 5,
+        "subtotalUsd": 5,
+        "totalUsd": 5,
+        "amountDueUsd": 5,
+        "taxLineObserved": false,
+        "sourcePdfSha256": "24010e2c890229e1e57e699e802e38652cc3dece73df4e500b19fb709e6191a2",
+        "sourcePdfStoredInRepository": false
+      },
       "sourceRefs": [
         "Cloudflare authenticated dashboard > Billing > Billable usage > September 2026",
-        "Cloudflare authenticated dashboard > Billing > Invoices and documents"
+        "Cloudflare authenticated dashboard > Billing > Invoices and documents",
+        "Cloudflare authenticated invoice PDF issued 2026-08-30"
+      ]
+    },
+    "workersLogs": {
+      "query": "[llm token_usage]",
+      "period": "last-7-days-reviewed-2026-09-22",
+      "matchingSuccessEventsShown": 70,
+      "resultsMayBeIncomplete": true,
+      "bulkExportStatus": "dashboard-download-failed",
+      "sampledEvent": {
+        "observedAt": "2026-09-20T16:18:02.375+09:00",
+        "route": "/api/master-love-codex/generate",
+        "provider": "gemini",
+        "model": "gemini-2.5-flash",
+        "taskType": "fortune",
+        "serviceId": "",
+        "inputTokens": 14917,
+        "cachedInputTokens": 1018,
+        "outputTokens": 3540,
+        "thinkingTokens": 0,
+        "maxTokens": 8000,
+        "estimated": false
+      },
+      "saleEvidenceUsable": false,
+      "limits": [
+        "Only one visible event was copied after the bulk download failed.",
+        "The dashboard warned that the matching result set may be incomplete.",
+        "The sampled event had a blank serviceId and cannot prove whole-product, retry, storage, support or refund cost."
       ]
     },
     "limits": [
@@ -64,8 +103,23 @@
       "cd_pass_premium_30d_v3",
       "cd_pass_vvip_30d_v3"
     ],
+    "serviceFeeProgram": {
+      "enrollmentStatus": "enrolled",
+      "program": "15-percent-service-fee-tier",
+      "feeRateForFirstAnnualRevenue": 0.15,
+      "firstAnnualRevenueUsd": 1000000,
+      "feeRateAboveThreshold": 0.3,
+      "basis": "authenticated-account-program-and-official-terms",
+      "limits": [
+        "Enrollment does not create, price or activate any v3 product.",
+        "The observed draft app has no production sales evidence.",
+        "The 30 percent scenario remains the internal stress test above the annual threshold or if program conditions change."
+      ]
+    },
     "sourceRefs": [
-      "Google Play Console authenticated app > Monetize with Play > Products > One-time products"
+      "Google Play Console authenticated app > Monetize with Play > Products > One-time products",
+      "Google Play Console authenticated developer account > Associated developer accounts > Enrolled programs and services",
+      "https://support.google.com/googleplay/android-developer/answer/112622"
     ],
     "saleEvidenceStatus": "APP_SKU_NOT_VERIFIED"
   },
@@ -73,6 +127,6 @@
     "Product-attributed provider usage and retry costs",
     "MongoDB storage and backup invoice attribution",
     "Support labor and refund reserve basis",
-    "Reviewed Google Play service fee program and active v3 one-time product prices"
+    "Active v3 one-time product IDs, KRW prices, countries and purchase-option state"
   ]
 }
