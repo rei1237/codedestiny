@@ -1,10 +1,20 @@
 ---
 status: active
 updated: 2026-09-23
-next: "홈 검색→상세→입력 동선 검증을 바탕으로 마스터 인연의 서 등 다른 전문가 상담 UI·결과 공유와 구매/SEO 후속을 진행한다. 전체 목표는 미완료다."
+next: "저장 결과 공유의 남은 상담군과 인생의 책·연애 비책 이름 숨김/미리보기, 구매 전 결과 예시, 핵심 SEO 허브 연결을 이어간다. 전체 목표는 미완료다."
 ---
 
 # 경쟁사 대비 전환·신뢰·SEO·상담 공유 후속 작업
+
+## 2026-09-23 최신 재개 위치 — 마스터 mock, 서양점성·베다 공유, 설명 랜딩
+
+- 시작 main `d316858d61adc07d4ca8f69164dae10507c59497`의 CI 통과를 사용자에게 전달받았다. 원본 `D:\Development\code-destiny`의 동시 `marketing/**` 미커밋 작업을 보존하기 위해 `D:\Development\codedestiny-worktrees\consultation-followup-20260923-20260923-043439`에서 격리했다. 다음 세션은 main 최신 상태와 marketing 변경부터 확인한다.
+- 마스터 인연의 서 mock `Unsealing` 고착을 실제 개발 브라우저에서 재현했다. StrictMode effect 재설치 시 이전 owner scope의 조회 응답을 버리면서 같은 Promise를 재사용한 것이 원인이다. 계정 epoch와 요청 유효성을 함께 보아 재조회한다. 완료 20장 × 390/1280px에서 공유 편집기, 부분 19장에서 공유 숨김을 mock으로 확인했다.
+- 서양점성·베다는 저장 식별자와 완료 상태를 확인해 assistant 본문의 요약 문장만 공용 편집기에 연결했다. 베다 구조화 JSON과 구형 일반 문장 스키마를 분리하고 잘린 JSON은 숨긴다. 두 결과 × 390/1280px에서 문구 편집·이미지 미리보기·PDF 밖 배치·가로 넘침·실패 숨김을 확인했다. 단위 11개와 리더 회귀 14개가 통과했다. 실기기 카카오 수신·운영 저장본 재열람은 별도다.
+- `/astrology/cosmic/`·`/vedic/jyotish/`의 기존 기본 차트 CTA를 유지하면서 전문가 상담으로 가는 본문 링크를 추가했다. 390/1280px 실제 클릭 이동을 확인했다. `/vedic-ai/`의 설명·FAQ에서 `결과` 오기를 바로잡았다. 가격 숫자·이용권·월정석·단건 결제 조건, 결제·생성·DB·권한 로직은 변경하지 않았다.
+- mock 검사: `node scripts/verify-master-love-codex-sharing.mjs`, `node scripts/verify-astrology-vedic-sharing.mjs` (`CONSULTATION_TEST_BASE=http://127.0.0.1:24322`). 기본 `npm run dev`가 만든 mock 서버를 사용하며 외부 API는 차단했다. 원본 캡처는 워크트리 `build-cache/consultation-followup-20260923/`에 있다.
+- 첫 `npm run check:fast`는 유료 mock 88/88과 lint 뒤 `config/sitemap-lastmod.json`의 정본 서명 드리프트에서 중단했다. 설명 랜딩 변경 후 `npm run sitemap:generate`를 실행해 변경된 4개 서명을 갱신했다. 최종 `check:fast`는 exit 0(유료 mock 88/88, Jest 290 suites/4078 tests)으로 끝났다. 공식 전달은 이번 변경이 포함된 main의 `CI required` 결과로 확인한다. 기존 통과 커밋의 CI를 이번 변경 증거로 쓰지 않는다.
+- 전체 목표는 여전히 진행 중이다. 다음은 적용표의 다른 개별 상담 결과, 인생의 책·연애 비책 공유 편집/이름 숨김, 구매 전 결과 예시, SEO 핵심 허브→설명 글→도구 연결과 운영 적용 후 동일 URL 측정이다. 운영 승격·실결제·유료 LLM·운영 DB 쓰기·메시지 발송은 이 작업 범위 밖이다.
 
 ## 최우선: 전체 목표를 축소하지 않는다
 
