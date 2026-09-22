@@ -481,3 +481,36 @@
 }
 
 .predictionRecords{margin-top:20px;font-size:13px;line-height:1.8;text-align:left}.predictionRecords summary{cursor:pointer;padding:12px 0;font-weight:700}.predictionRecords a{text-decoration:underline;text-underline-offset:3px}.predictionRecords ul{padding-left:18px}
+
+.readingLoading { display:flex; align-items:center; gap:24px; padding:24px; margin:24px 0; background:var(--yn-ivory); color:var(--yn-night); border-radius:20px; }
+.readingLoading img { flex:none; width:140px; height:auto; border-radius:12px; }
+.readingLoading p { margin:8px 0; }
+.readingLoading .loadingTitle { font-size:1.25rem; font-weight:700; text-wrap:balance; }
+.resultSharing { margin:32px 0; padding:20px 24px; border:1px solid var(--yn-line); border-radius:16px; }
+.resultSharing > summary { display:flex; align-items:center; gap:10px; cursor:pointer; min-height:48px; font-weight:700; color:var(--yn-gold); }
+.resultSharing > summary::after { content:'열기'; font-size:.875rem; margin-left:auto; }
+.resultSharing[open] > summary::after { content:'접기'; }
+.shareEditor { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.75fr); gap:32px; padding-top:16px; }
+.shareForm { min-width:0; }
+.shareForm h2 { font-size:1.4rem; margin:0 0 12px; text-wrap:balance; }
+.shareForm > label { display:block; margin:20px 0 8px; font-weight:700; }
+.shareForm select,.shareForm textarea { display:block; width:100%; min-height:48px; padding:12px; border:1px solid var(--yn-line); border-radius:10px; background:var(--yn-night); color:var(--yn-ivory); font:inherit; line-height:1.7; }
+.shareForm textarea { resize:vertical; }
+.shareForm small,.sharePreview figcaption { color:var(--yn-muted); font-size:.875rem; }
+.shareForm .shareQuestion { display:flex; gap:10px; align-items:center; min-height:48px; font-size:.95rem; }
+.shareQuestion input { width:20px; height:20px; accent-color:var(--yn-gold); flex:none; }
+.kakaoExcerpt { font-size:.9rem; color:var(--yn-muted); overflow-wrap:anywhere; }
+.shareActions { display:flex; flex-wrap:wrap; gap:10px; margin:20px 0; }
+.shareActions button { display:flex; align-items:center; justify-content:center; gap:8px; flex:1 1 130px; padding:12px; }
+.shareActions button:first-child { flex-basis:100%; background:var(--yn-gold); color:var(--yn-night); }
+.sharePreview { margin:0; align-self:start; }
+.sharePreview img { display:block; width:100%; height:auto; border-radius:12px; }
+.sharePreview figcaption { margin-top:12px; }
+.shareForm details summary { cursor:pointer; min-height:48px; padding:12px 0; }
+@media(max-width:767px) {
+ .readingLoading { flex-direction:column; gap:8px; padding:20px; text-align:center; }
+ .readingLoading img { width:126px; }
+ .resultSharing { padding:16px; }
+ .shareEditor { grid-template-columns:minmax(0,1fr); gap:24px; }
+ .sharePreview { width:min(100%,380px); justify-self:center; }
+}
