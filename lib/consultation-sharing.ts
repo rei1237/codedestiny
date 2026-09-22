@@ -14,6 +14,13 @@ export const consultationShareBrands = {
     image: '/neo-operation-room/lion-seal-loading.webp',
     background: '#211831', ink: '#f6efdf', accent: '#ddba76',
   },
+  codex: {
+    title: '마스터 인연의 서',
+    invitation: '관계를 돌아보며 마음에 남은 한 문장을 나눌게.',
+    path: '/master-love-codex/',
+    image: '/feature-details/assets/master-love-codex-og.webp',
+    background: '#171320', ink: '#f6efdf', accent: '#d7bb81',
+  },
 } as const;
 
 export type ConsultationShareBrand = keyof typeof consultationShareBrands;
@@ -60,6 +67,20 @@ export function neoShareChoices(session: {
     { id: 'verdict', label: '네오의 최종 판단', text: session.refinedOrder?.verdict?.statement },
     { id: 'frontline', label: '지금 내 판세', text: session.initialBriefing?.frontlineSummary },
     { id: 'action', label: '첫 번째 작전', text: session.initialBriefing?.actionOrders?.[0] },
+  ]);
+}
+
+export function masterLoveCodexShareChoices(session: {
+  sessionId?: string; status?: string;
+  chapters?: Array<{ content?: { keySentence?: string; insight?: string; actions?: string[] } }>;
+}, completeChapterCount: number): ConsultationShareChoice[] {
+  if (!session.sessionId || session.status !== 'completed' ||
+      completeChapterCount <= 0 || session.chapters?.length !== completeChapterCount) return [];
+  const content = session.chapters?.map(chapter => chapter.content).filter(Boolean) || [];
+  return availableChoices([
+    { id: 'sentence', label: '인연의 서에서 남은 한 문장', text: content.find(chapter => chapter?.keySentence?.trim())?.keySentence },
+    { id: 'action', label: '관계에서 해볼 작은 행동', text: content.flatMap(chapter => chapter?.actions || []).find(action => typeof action === 'string' && action.trim()) },
+    { id: 'insight', label: '관계를 바라보는 시선', text: content.find(chapter => chapter?.insight?.trim())?.insight },
   ]);
 }
 

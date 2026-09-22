@@ -47,6 +47,8 @@ import {
 import { masterLoveCodexBilling, MASTER_LOVE_CODEX_TOTAL_CHAPTERS } from "../constants";
 import { codexChapterStateLabel, useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { masterLoveCodexShareChoices } from "@/lib/consultation-sharing";
 
 export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number };
 export type { CodexLoveDna, CodexLoveDnaMetric };
@@ -165,6 +167,7 @@ export default function CodexReader({
    * 잘못 completed 로 닫힌 예전 결과(1장짜리)가 봉인 화면을 띄우던 경로를 fail-closed 로 막는다.
    */
   const sealed = completed && rows.length > 0 && readyCount === rows.length;
+  const shareChoices = sealed ? masterLoveCodexShareChoices({ sessionId, status: "completed", chapters: ordered }, rows.length) : [];
   const groups = useMemo(() => groupByAct(rows, mode, { keepEmpty: true }), [rows, mode]);
   // 색·보조 문구 전용. 막 이동 자체는 항상 열려 있다(CodexSpine 의 availableOrders 주석 참조).
   const availableActs = useMemo(
@@ -408,6 +411,12 @@ export default function CodexReader({
           </p>
         </CodexReveal>
       </div>
+
+      {shareChoices.length > 0 ? (
+        <div className={`${styles.measure} pb-10`}>
+          <ConsultationShare brand="codex" choices={shareChoices} />
+        </div>
+      ) : null}
 
       {/*
         🔴 "이 책이 끝났다" 는 화면은 **전 장이 실제로 도착했을 때만** 연다. 1장만 온 책
