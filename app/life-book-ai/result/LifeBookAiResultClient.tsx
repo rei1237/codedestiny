@@ -1635,9 +1635,9 @@ function LifeBookResultContent() {
       <main className="grid min-h-screen place-items-center bg-[#050407] px-4 text-amber-50">
         <div className="max-w-md rounded-3xl border border-rose-200/25 bg-rose-950/30 p-7 text-center shadow-2xl backdrop-blur-xl">
           <AlertCircle className="mx-auto h-9 w-9 text-rose-200" aria-hidden="true" />
-          <h1 className="mt-4 text-2xl font-black">{copy.cannotOpenResult}</h1>
+          <h1 className="mt-4 text-2xl font-semibold">{copy.cannotOpenResult}</h1>
           <p className="mt-3 text-sm leading-6 text-rose-100">{error}</p>
-          <Link href="/life-book-ai" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-black text-[#171007]">
+          <Link href="/life-book-ai" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             {copy.newBookCta}
           </Link>
@@ -1651,7 +1651,7 @@ function LifeBookResultContent() {
       <main className="grid min-h-screen place-items-center bg-[#050407] px-4 text-amber-50">
         <div className="max-w-lg rounded-3xl border border-amber-200/20 bg-amber-50/10 p-8 text-center shadow-2xl backdrop-blur-xl">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-200" aria-hidden="true" />
-          <h1 className="mt-5 text-2xl font-black">{copy.writingHeadline}</h1>
+          <h1 className="mt-5 text-2xl font-semibold">{copy.writingHeadline}</h1>
           <p className="mt-3 text-sm leading-7 text-[#eadbb9]">
             {copy.writingBody}
           </p>
@@ -1664,7 +1664,7 @@ function LifeBookResultContent() {
   }
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#060912] text-amber-50 [font-family:var(--font-body)]">
+    <main className={styles.readingRoom}>
       <BookOpenCover
         attemptId={attemptId}
         title={report.title}
@@ -1675,14 +1675,10 @@ function LifeBookResultContent() {
       <div className="fixed inset-x-0 top-0 z-50 h-1 bg-black/40" aria-hidden="true">
         <div className="h-full bg-gradient-to-r from-[#b47b25] via-[#f2d07a] to-[#fff3b0] transition-[width] duration-150" style={{ width: `${readProgress}%` }} />
       </div>
-      <div className="fixed right-3 top-2 z-50 rounded-full border border-amber-200/25 bg-black/55 px-2.5 py-0.5 text-[11px] font-black text-amber-100" aria-label={copy.progressAriaLabel(readProgress)}>
+      <div className="fixed right-3 top-2 z-50 rounded-full border border-amber-200/25 bg-black/55 px-2.5 py-0.5 text-[11px] font-semibold text-amber-100" aria-label={copy.progressAriaLabel(readProgress)}>
         {readProgress}%
       </div>
-      {/* 밤하늘 아래 놓인 양장본 — 바깥 배경만 남색 계열로 두고 금박 글로우를 얹는다. */}
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(244,198,98,0.20),transparent_36%),radial-gradient(circle_at_18%_28%,rgba(87,101,190,0.22),transparent_32%),linear-gradient(135deg,#0a0f24,#131a38_46%,#060912)]" />
-      <div className="pointer-events-none fixed inset-0 opacity-35 [background-image:radial-gradient(rgba(250,226,169,.58)_1px,transparent_1px),radial-gradient(rgba(255,255,255,.14)_1px,transparent_1px)] [background-position:0_0,38px_46px] [background-size:96px_96px,138px_138px]" />
-
-      <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <section className={styles.readingShell}>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <Link href="/life-book-ai" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/20 bg-black/20 px-4 text-sm font-bold text-amber-50 transition hover:bg-amber-50/10">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -1702,17 +1698,16 @@ function LifeBookResultContent() {
         </div>
         {pdfError && <div className="mb-4 rounded-2xl border border-rose-200/25 bg-rose-950/30 px-4 py-3 text-sm font-bold text-rose-100">{pdfError}</div>}
 
-        <article id="life-book-result-document" className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
-          <header data-life-book-pdf-page className={`relative overflow-hidden rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7 ${styles.leatherTexture}`}>
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#b47b25] via-[#f2d07a] to-[#b47b25]" aria-hidden="true" />
-            <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
-              <BookOpen className="h-4 w-4" aria-hidden="true" />
-              {copy.reportKicker}
-            </p>
-            <h1 ref={documentHeadingRef} tabIndex={-1} className={`mt-5 text-3xl font-black leading-tight text-amber-50 outline-none sm:text-5xl ${styles.chapterTitle}`}>{report.title}</h1>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-[#eadbb9]">{report.subtitle}</p>
-            <p className="mt-4 text-sm font-black tracking-[0.22em] text-amber-100">主人公 · {userName}</p>
-            <dl className="mt-5 grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+        <article id="life-book-result-document" className={styles.document}>
+          <header data-life-book-pdf-page className={styles.reportCover}>
+            <div className={styles.coverIntroduction}>
+              <h1 ref={documentHeadingRef} tabIndex={-1} className={styles.coverTitle}>{report.title}</h1>
+              <p className={styles.coverSubtitle}>{report.subtitle}</p>
+              <p className={styles.coverSignature}>{userName} · Code Destiny</p>
+            </div>
+            <div className={styles.coverDetails}>
+            <p className={styles.coverStatement}>{toText(report.coreSummary?.oneLine)}</p>
+            <dl className={styles.coverFacts}>
               {[
                 [copy.fieldName, userName],
                 [copy.fieldBirthDate, birth.birthDate || copy.notEntered],
@@ -1724,22 +1719,23 @@ function LifeBookResultContent() {
                 [copy.fieldFocusArea, result?.topic || copy.focusAreaDefault],
               ].map(([label, value], index) => (
                 <div key={`${label}-${index}`}>
-                  <dt className="text-[11px] font-bold uppercase tracking-[0.08em] text-amber-200/70">{label}</dt>
-                  <dd className="mt-0.5 text-sm font-semibold text-amber-50">{value}</dd>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
                 </div>
               ))}
             </dl>
+            </div>
           </header>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[300px_1fr]">
-            <aside className={`h-fit rounded-3xl border border-amber-200/20 bg-[#100a08]/75 p-4 lg:sticky lg:top-6 ${styles.leatherTexture}`}>
+            <aside className={styles.contentsPage}>
               <details className={styles.tocAccordion} open>
                 <summary>
-                  <span className="flex items-center gap-2 text-sm font-black text-amber-200">
+                  <span className="flex items-center gap-2 text-sm font-semibold">
                     <ScrollText className="h-4 w-4" aria-hidden="true" />
                     {copy.tocLabel}
                   </span>
-                  <ChevronDown className={`h-4 w-4 text-amber-200/70 ${styles.tocChevron}`} aria-hidden="true" />
+                  <ChevronDown className={`h-4 w-4 ${styles.tocChevron}`} aria-hidden="true" />
                 </summary>
                 <div className={styles.tocAccordionBody}>
                   <nav className={styles.tocList} aria-label={copy.tocNavAriaLabel}>
@@ -1774,23 +1770,23 @@ function LifeBookResultContent() {
             </aside>
 
             <section className="grid gap-4">
-              <section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 ${styles.leatherTexture}`}>
+              <section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-5 ${styles.leatherTexture}`}>
                 <div className="flex items-center gap-2 text-amber-200">
                   <ScrollText className="h-5 w-5" aria-hidden="true" />
-                  <h2 className="text-xl font-black">{copy.basicChartHeading}</h2>
+                  <h2 className="text-xl font-semibold">{copy.basicChartHeading}</h2>
                 </div>
                 <SajuPillarTable className="mt-4 sm:grid-cols-4" pillars={pillarRows} />
                 <p className="mt-3 text-xs font-bold text-amber-200">{copy.dayMasterPrefix}{dayMasterValue}</p>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
-                    <h3 className="text-sm font-black text-amber-200">{copy.fiveElementHeading}</h3>
+                    <h3 className="text-sm font-semibold text-amber-200">{copy.fiveElementHeading}</h3>
                     {hasFiveElements ? (
                       <div className="mt-3 grid gap-2">
                         {elementDistribution.map((entry) => {
                           const token = FIVE_ELEMENT_TOKENS[entry.element];
                           return (
                             <div key={entry.element} className={styles.elementBarRow}>
-                              <span className="text-sm font-black" style={{ color: token.color }}>{token.hanja}</span>
+                              <span className="text-sm font-semibold" style={{ color: token.color }}>{token.hanja}</span>
                               <div className={styles.elementBarTrack}>
                                 <div
                                   className={styles.elementBarFill}
@@ -1813,7 +1809,7 @@ function LifeBookResultContent() {
                     ) : <p className="mt-3 text-sm text-[#eadbb9]">{copy.fiveElementLimited}</p>}
                   </div>
                   <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
-                    <h3 className="text-sm font-black text-amber-200">{copy.tenGodHeading}</h3>
+                    <h3 className="text-sm font-semibold text-amber-200">{copy.tenGodHeading}</h3>
                     {hasTenGods ? (
                       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {TEN_GOD_GROUPS.map((group) => {
@@ -1848,7 +1844,7 @@ function LifeBookResultContent() {
               {report.coreSummary && (
                 <section data-life-book-pdf-page className={`rounded-3xl p-5 ${styles.paperPage} ${styles.paperTexture}`}>
                   <p className={`text-xs font-bold uppercase tracking-[0.18em] ${styles.paperAccent}`}>Core Summary</p>
-                  <h2 className={`mt-2 text-2xl font-black ${styles.chapterTitle}`}>{report.coreSummary.oneLine || copy.coreSummaryHeadlineDefault}</h2>
+                  <h2 className={`mt-2 text-2xl font-semibold ${styles.chapterTitle}`}>{report.coreSummary.oneLine || copy.coreSummaryHeadlineDefault}</h2>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <div className={`rounded-2xl border p-3 text-sm ${styles.paperMuted} ${styles.paperDivider}`}>{report.coreSummary.lifeTheme || copy.coreSummaryThemeDefault}</div>
                     <div className={`rounded-2xl border p-3 text-sm ${styles.paperMuted} ${styles.paperDivider}`}>{copy.coreSummaryStrongPrefix}{report.coreSummary.strongestElement || copy.coreSummaryStrongDefault}</div>
@@ -1867,7 +1863,7 @@ function LifeBookResultContent() {
                       <section id={`chapter-${index + 1}`} data-life-book-pdf-page className={`scroll-mt-6 rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
                         <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b pb-4" style={{ borderColor: "rgba(43,28,16,0.16)" }}>
                           <span className={styles.chapterNumeral} aria-hidden="true">{toRoman(chapter.chapterNumber || index + 1)}</span>
-                          <h2 className={`text-2xl font-black leading-snug ${styles.chapterTitle}`}>{chapter.title}</h2>
+                          <h2 className={`text-2xl font-semibold leading-snug ${styles.chapterTitle}`}>{chapter.title}</h2>
                         </div>
                         {chapter.summary && (
                           <p className={`mb-4 rounded-2xl border px-4 py-3 text-sm font-semibold leading-6 ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.05)" }}>
@@ -1908,12 +1904,12 @@ function LifeBookResultContent() {
                 <section data-life-book-pdf-page className={`rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
                   <div className={`flex items-center gap-2 ${styles.paperAccent}`}>
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
-                    <h2 className={`text-xl font-black ${styles.chapterTitle}`}>{copy.deepReadingHeading}</h2>
+                    <h2 className={`text-xl font-semibold ${styles.chapterTitle}`}>{copy.deepReadingHeading}</h2>
                   </div>
                   <div className="mt-4 grid gap-5">
                     {report.expertReadings.map((reading, index) => (
                       <div key={`${reading.title || "reading"}-${index}`} className={`rounded-2xl border p-4 ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.04)" }}>
-                        <h3 className={`text-lg font-black ${styles.chapterTitle}`}>{reading.title || copy.deepReadingFallbackTitle(index + 1)}</h3>
+                        <h3 className={`text-lg font-semibold ${styles.chapterTitle}`}>{reading.title || copy.deepReadingFallbackTitle(index + 1)}</h3>
                         <AiResultProse value={reading.content} className="mt-3" />
                         {Array.isArray(reading.guidance) && reading.guidance.length > 0 && (
                           <div className="mt-4 grid gap-2">
@@ -1935,19 +1931,19 @@ function LifeBookResultContent() {
                 <section data-life-book-pdf-page className={`rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
                   <div className={`flex items-center gap-2 ${styles.paperAccent}`}>
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
-                    <h2 className={`text-xl font-black ${styles.chapterTitle}`}>{copy.finalMessageHeading}</h2>
+                    <h2 className={`text-xl font-semibold ${styles.chapterTitle}`}>{copy.finalMessageHeading}</h2>
                   </div>
                   <AiResultProse value={report.finalMessage} className="mt-3" />
                 </section>
               )}
 
-              <section className={`rounded-3xl border border-amber-200/20 bg-[#100a08]/70 p-6 text-center ${styles.leatherTexture}`}>
-                <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-200">{copy.finalChapterEyebrow}</p>
+              <section className={`rounded-3xl border border-amber-200/20 bg-[#1c3028] p-6 text-center ${styles.leatherTexture}`}>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-200">{copy.finalChapterEyebrow}</p>
                 <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-[#eadbb9]">
                   {copy.finalChapterBody(userName)}
                 </p>
                 <div className="mt-5 flex flex-col items-center gap-3">
-                  <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#f2d07a] to-[#b47b25] px-7 text-[15px] font-black text-[#171007] shadow-lg shadow-black/30 transition hover:-translate-y-0.5 disabled:opacity-60">
+                  <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#f2d07a] to-[#b47b25] px-7 text-[15px] font-semibold text-[#171007] shadow-lg shadow-black/30 transition hover:-translate-y-0.5 disabled:opacity-60">
                     {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
                     {copy.sealBookButton}
                   </button>
@@ -1964,11 +1960,11 @@ function LifeBookResultContent() {
             backdrop-filter 는 html-to-image 가 재현하지 못하므로 단색·그라디언트만 쓴다. */}
         <div className={styles.shareCardHost} aria-hidden="true">
           <div id="life-book-share-card" className={styles.shareCard}>
-            <p className={styles.shareKicker}>{copy.shareKicker}</p>
             <p className={styles.shareTitle}>{report.title}</p>
             <p className={styles.shareSubtitle}>{report.subtitle}</p>
             <p className={styles.shareLine}>{toText(report.coreSummary?.oneLine)}</p>
-            <p className={styles.shareOwner}>主人公 · {userName}</p>
+            <p className={styles.shareOwner}>{userName} · Code Destiny</p>
+            <p className={styles.shareAddress}>code-destiny.com/life-book-ai</p>
           </div>
         </div>
 

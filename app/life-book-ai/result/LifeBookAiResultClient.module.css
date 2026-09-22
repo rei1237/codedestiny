@@ -1,6 +1,36 @@
-/* 인생의 책 결과화면 전용 — "가죽 표지 + 종이 내지" 물성 대비.
-   표지(다크 브라운/블랙: 헤더·목차·기본 명식·CTA)는 Tailwind 유틸리티로 이미 처리되어 있고,
-   여기서는 Tailwind로 표현하기 어려운 구조적 효과(그레인 텍스처, 드롭캡, 목차 리더선, 책갈피, 반응형 아코디언)만 다룬다. */
+/* 인생의 책: 짙은 녹색 제본, 따뜻한 종이, 실제 장 순서를 따르는 독서 화면. */
+.readingRoom {
+  min-height: 100vh;
+  overflow: hidden;
+  background: #152721;
+  color: #f5f0e5;
+  font-family: var(--font-body);
+  --cd-prose-font-family: var(--font-premium);
+}
+.readingRoom ::selection { background: #d3bd83; color: #152721; }
+.readingShell { position: relative; width: min(100%, 1240px); margin: auto; padding: 84px 24px 116px; }
+.document { min-width: 0; }
+.reportCover {
+  display: grid; grid-template-columns: minmax(0, 420px) minmax(240px, 1fr);
+  align-items: center; gap: clamp(32px, 6vw, 88px); padding: 24px 24px 56px;
+}
+.coverIntroduction { min-width: 0; aspect-ratio: 3 / 4; padding: 17% 13% 12% 17%; text-align: center; background: #233b32 url('/images/expert-consulting/life-book-cover-20260923.webp') center / 100% 100% no-repeat; border-radius: 4px 12px 12px 4px; box-shadow: 12px 22px 42px rgba(5, 13, 9, .34); }
+.coverTitle:focus { outline: none; }
+.coverTitle { margin: 0; color: #faf6eb; font: 600 clamp(32px, 3.4vw, 46px)/1.4 var(--font-premium); letter-spacing: -.025em; word-break: keep-all; outline-offset: 8px; }
+.coverSubtitle { margin-top: 20px; font-size: 14px; line-height: 1.8; color: #ebe2c8; word-break: keep-all; }
+.coverStatement { max-width: 29ch; font: 400 clamp(23px, 2.5vw, 30px)/1.8 var(--font-premium); color: #f4eddb; word-break: keep-all; }
+.coverSignature { margin-top: 28px; font-size: 12px; color: #ebe2c8; }
+.coverDetails { min-width: 0; }
+.coverFacts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: end; gap: 24px 20px; margin-top: 32px; border-top: 1px solid #718072; padding-top: 28px; }
+.coverFacts dt { color: #bbc8b8; font-size: 12px; line-height: 1.5; }
+.coverFacts dd { margin-top: 6px; color: #faf6eb; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .readingShell { padding: 80px 16px 116px; }
+  .reportCover { grid-template-columns: 1fr; gap: 40px; padding: 8px 8px 40px; }
+  .coverIntroduction { width: min(100%, 360px); margin: auto; }
+  .coverStatement { margin-top: 0; }
+  .coverFacts { gap: 20px; }
+}
 
 @property --grain-opacity {
   syntax: "<number>";
@@ -31,7 +61,7 @@
 }
 
 .paperTexture::before {
-  opacity: 0.1;
+  opacity: 0.025;
   mix-blend-mode: multiply;
 }
 
@@ -43,10 +73,12 @@
 
 /* ── 종이 내지(세피아) — 해석(AI 상담문) 전용 표면 ───────────── */
 .paperPage {
-  background: linear-gradient(178deg, #f6ecd6 0%, #efe1c2 100%);
-  color: #2b1c10;
-  border: 1px solid rgba(43, 28, 16, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.6), 0 10px 26px rgba(20, 12, 4, 0.28);
+  background: #faf7ef;
+  color: #302d26;
+  border: 1px solid #d7d0bf;
+  border-radius: 4px;
+  padding: clamp(24px, 4vw, 48px);
+  box-shadow: 0 8px 24px rgba(8, 20, 14, 0.12);
 }
 
 .paperPage :global(.prose) {
@@ -66,15 +98,7 @@
 }
 
 /* 챕터 오프닝 첫 문단 드롭캡 — 첫 블록이 일반 문단(p)일 때만 자연스럽게 적용된다 */
-.chapterProse :global(p:first-of-type)::first-letter {
-  float: left;
-  font-family: var(--font-display, serif);
-  font-size: 3.6em;
-  line-height: 0.82;
-  padding: 0.03em 0.09em 0 0;
-  color: #8a5a2b;
-  font-weight: 700;
-}
+.chapterProse { max-width: 70ch; font-size: 17px; line-height: 1.95; }
 
 @media (prefers-reduced-motion: no-preference) {
   .chapterProse :global(p:first-of-type)::first-letter {
@@ -92,7 +116,9 @@
 }
 
 .chapterTitle {
-  font-family: var(--font-display, serif);
+  font-family: var(--font-premium, serif);
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 /* ── 목차 — 실제 책 차례처럼: 점선 리더 + 책갈피 인디케이터 ───── */
@@ -108,18 +134,19 @@
   align-items: baseline;
   gap: 8px;
   padding: 10px 10px 10px 14px;
-  border-radius: 10px;
+  min-height: 44px;
+  border-radius: 2px;
   text-align: left;
-  color: #f4dfbd;
+  color: #3e463a;
   transition: background-color 150ms ease;
 }
 
 .tocRow:hover {
-  background: rgba(250, 232, 189, 0.06);
+  background: #e9e4d6;
 }
 
 .tocRow[data-active="true"] {
-  background: rgba(250, 232, 189, 0.09);
+  background: #e9e4d6;
 }
 
 .tocRow[data-active="true"]::before {
@@ -138,12 +165,13 @@
   flex-shrink: 0;
   font-size: 0.72rem;
   font-weight: 800;
-  color: #e8c374;
+  color: #716346;
   font-variant-numeric: tabular-nums;
 }
 
 .tocTitle {
-  flex-shrink: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 0.85rem;
   font-weight: 700;
 }
@@ -152,7 +180,7 @@
   flex: 1;
   align-self: center;
   min-width: 12px;
-  border-bottom: 1px dotted rgba(232, 195, 116, 0.4);
+  border-bottom: 1px dotted #b8b09c;
   transform: translateY(-2px);
 }
 
@@ -180,8 +208,12 @@
 .tocAccordionBody {
   margin-top: 16px;
 }
+.contentsPage { height: fit-content; background: #f1ecdf; color: #3e463a; border: 1px solid #cbc5b6; border-radius: 3px 12px 12px 3px; padding: 24px 16px; box-shadow: inset -8px 0 16px rgba(74, 58, 37, .04); }
+.contentsPage summary { min-height: 44px; }
+.contentsPage button:focus-visible { outline: 2px solid #395a43; outline-offset: 2px; }
 
 @media (min-width: 1024px) {
+  .contentsPage { position: sticky; top: 72px; }
   .tocAccordion summary {
     display: none;
   }
@@ -264,6 +296,7 @@
 
 /* ── 3D 책 넘김. 공용 PagedResultViewer 에는 prop 만 넘기고 CSS 는 여기서만 얹는다. ── */
 .bookStage {
+  scroll-margin-top: 80px;
   perspective: 1600px;
 }
 
@@ -332,48 +365,43 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 18px;
+  justify-content: flex-start;
   width: 1080px;
-  height: 1080px;
-  padding: 96px;
+  height: 1440px;
+  padding: 148px 132px 64px 152px;
   text-align: center;
-  background: linear-gradient(150deg, #0a0f24, #1b120b 58%, #120b06);
-  border: 6px solid #b47b25;
-}
-
-.shareKicker {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: 0.4em;
-  color: #f0d79a;
+  background: #233b32 url('/images/expert-consulting/life-book-cover-20260923.webp') center / 100% 100%;
+  box-sizing: border-box;
+  border: 0;
 }
 
 .shareTitle {
-  font-family: var(--font-display, serif);
+  font-family: var(--font-premium, serif);
   font-size: 76px;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1.2;
-  color: #fff6e2;
+  color: #faf6eb;
 }
 
 .shareSubtitle {
-  font-size: 30px;
+  margin-top: 32px;
+  max-width: 760px;
+  font-size: 28px;
   line-height: 1.6;
-  color: #e5d2ad;
+  color: #d2d9cc;
 }
 
 .shareLine {
-  margin-top: 12px;
-  font-size: 34px;
-  line-height: 1.6;
-  color: #f6e2b6;
+  margin-top: 44px;
+  font: 400 36px/1.7 var(--font-premium, serif);
+  color: #faf6eb;
+  word-break: keep-all;
 }
 
 .shareOwner {
-  margin-top: 24px;
+  margin-top: 32px;
   font-size: 26px;
-  font-weight: 800;
-  letter-spacing: 0.3em;
-  color: #f0d79a;
+  font-weight: 400;
+  color: #d2d9cc;
 }
+.shareAddress { margin-top: 14px; font-size: 20px; color: #e1d4b8; }

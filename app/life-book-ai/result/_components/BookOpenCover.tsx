@@ -1,6 +1,5 @@
 "use client";
 
-import { BookOpen } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./book-open-cover.module.css";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -115,13 +114,10 @@ export default function BookOpenCover({ attemptId, title, subtitle, ownerName, o
   return (
     <div className={styles.stage} data-phase={phase} role="presentation">
       <div className={styles.cover}>
-        <div className={styles.spine} aria-hidden="true" />
         <div className={styles.plate}>
-          <BookOpen className={styles.emblem} aria-hidden="true" />
-          <p className={styles.kicker}>{copy.kicker}</p>
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.subtitle}>{subtitle}</p>
-          <p className={styles.owner}>主人公 · {ownerName}</p>
+          <p className={styles.owner}>{ownerName} · Code Destiny</p>
         </div>
       </div>
       <button ref={skipRef} type="button" onClick={finish} className={styles.skip} aria-label={copy.skipAriaLabel}>

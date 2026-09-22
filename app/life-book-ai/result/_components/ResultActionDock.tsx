@@ -343,9 +343,9 @@ export default function ResultActionDock({
     try {
       const dataUrl = await captureShareCard(shareCardId);
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], `${fileName}.png`, { type: "image/png" });
+      const file = new File([blob], "life-book-cover.png", { type: "image/png" });
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: copy.shareTitle, text: copy.shareText, files: [file] });
+        await navigator.share({ title: copy.shareTitle, text: copy.shareText, url: "https://code-destiny.com/life-book-ai/", files: [file] });
         setMessage(copy.shareSuccess);
         return;
       }
@@ -356,8 +356,8 @@ export default function ResultActionDock({
       link.click();
       URL.revokeObjectURL(fallbackUrl);
       setMessage(copy.shareFallbackSuccess);
-    } catch {
-      setMessage(copy.shareError);
+    } catch (error) {
+      if (!(error instanceof Error && error.name === "AbortError")) setMessage(copy.shareError);
     } finally {
       setBusy("");
     }

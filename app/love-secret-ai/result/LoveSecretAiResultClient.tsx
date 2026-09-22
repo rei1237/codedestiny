@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Clock,
   Compass,
+  Download,
   Flame,
   Heart,
   ListChecks,
@@ -1004,9 +1005,12 @@ export default function LoveSecretAiResultClient() {
     }
   }
 
+  const isShareReady = Boolean(consultation && !loading && !pending && !error && consultation.saved !== false
+    && (!consultation.status || consultation.status === "completed"));
+
   async function handleShareCard() {
     const node = shareRef.current;
-    if (!node || shareLoading) return;
+    if (!node || shareLoading || !isShareReady) return;
     setShareLoading(true);
     setActionError("");
     try {
@@ -1040,9 +1044,9 @@ export default function LoveSecretAiResultClient() {
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
       if (!blob) throw new Error("capture failed");
       const fileName = `love-secret-${safeFilePart(myName)}.png`;
-      const file = new File([blob], fileName, { type: "image/png" });
+      const file = new File([blob], "love-secret-card.png", { type: "image/png" });
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: summaryTitle });
+        await navigator.share({ files: [file], title: summaryTitle, url: "https://code-destiny.com/love-secret-ai/" });
         return;
       }
       const url = URL.createObjectURL(blob);
@@ -1054,19 +1058,17 @@ export default function LoveSecretAiResultClient() {
       } finally {
         URL.revokeObjectURL(url);
       }
-    } catch (_) {
-      setActionError(copy.shareImageError);
+    } catch (error) {
+      if (!(error instanceof Error && error.name === "AbortError")) setActionError(copy.shareImageError);
     } finally {
       setShareLoading(false);
     }
   }
 
   return (
-    <main className={`${theme.theme} relative min-h-screen overflow-hidden text-[var(--ls-text)] [font-family:var(--font-body)]`}>
+    <main className={`${theme.theme} ${theme.reportTheme} relative min-h-screen overflow-hidden text-[var(--ls-text)] [font-family:var(--font-body)]`}>
       <div ref={progressRef} className={styles.scrollProgress} aria-hidden="true" />
       <div className={`${theme.pageBg} pointer-events-none fixed inset-0`} aria-hidden="true" />
-      <div className={`${theme.pageGlow} pointer-events-none fixed inset-0`} aria-hidden="true" />
-      <div className={`${styles.petals} pointer-events-none fixed inset-0`} aria-hidden="true" />
 
       {consultation && (
         <LoveSecretShareCard
@@ -1081,7 +1083,7 @@ export default function LoveSecretAiResultClient() {
         />
       )}
 
-      <section className="relative mx-auto w-full max-w-5xl px-4 pb-12 pt-16 sm:px-6 sm:pt-14 lg:px-8">
+      <section className={styles.readingShell}>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <a
             href="/love-secret-ai/"
@@ -1096,7 +1098,7 @@ export default function LoveSecretAiResultClient() {
               <button
                 type="button"
                 onClick={() => void handleShareCard()}
-                disabled={shareLoading}
+                disabled={shareLoading || !isShareReady}
                 aria-label={copy.shareCardAria}
                 className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
               >
@@ -1235,20 +1237,18 @@ function LoveSecretResultPageContent({
     <div
       id="love-secret-result-document"
       data-ls-export={expandForExport ? "true" : "false"}
-      className={`${styles.resultDocument} relative rounded-[32px] border border-[var(--ls-line)] bg-[var(--ls-bg-0)] p-4 sm:p-6`}
+      className={styles.resultDocument}
     >
-      <div className={`${styles.petals} pointer-events-none absolute inset-0 rounded-[32px]`} aria-hidden="true" />
       <div className="relative">
-        <header className={`${styles.card} ${styles.cardSummary} overflow-hidden text-center`}>
-          <p className="text-[3.2rem] leading-none" aria-hidden="true">💖</p>
-          <h1 className="mt-5 break-keep text-[clamp(1.9rem,5.4vw,3rem)] font-black leading-[1.15] text-[var(--ls-text)] [font-family:var(--font-display)] [text-wrap:balance]">
+        <header className={styles.cardSummary}>
+          <h1 className={styles.reportTitle}>
             {summaryTitle}
           </h1>
           <p className="mt-3 text-sm font-bold text-[var(--ls-accent)]">
             {copy.todayStrategySubtitle}
           </p>
-          <figure className={`${styles.accentQuote} mx-auto mt-7 max-w-2xl text-left`}>
-            <blockquote className="whitespace-pre-wrap pl-4 text-lg italic leading-9 text-[var(--ls-text)] [font-family:var(--font-premium)] sm:text-xl">
+          <figure className={styles.accentQuote}>
+            <blockquote>
               {oneLine}
             </blockquote>
           </figure>
@@ -1257,13 +1257,13 @@ function LoveSecretResultPageContent({
           )}
 
           {consultation.keywords?.length ? (
-            <div className="mt-6 flex flex-wrap justify-center gap-2.5" aria-label={copy.keywordsAria}>
+            <div className={styles.keywords} aria-label={copy.keywordsAria}>
               {consultation.keywords.map((keyword, index) => {
                 const Icon = keywordIcon(keyword);
                 return (
                   <span
                     key={`${index}-${toText(keyword).slice(0, 16)}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] px-3.5 py-1.5 text-sm font-bold text-[var(--ls-accent)]"
+                    className={styles.keyword}
                   >
                     <Icon className="h-4 w-4" aria-hidden="true" />
                     {toText(keyword)}
@@ -1486,16 +1486,16 @@ function LoveSecretLuckyDates({ calendar }: { calendar: NonNullable<SajuSummary[
 function LoveSecretConnectionCard({ myName, partnerName, topic, generatedAt }: { myName: string; partnerName: string; topic: string; generatedAt: string }) {
   const copy = useLoveSecretResultCopy();
   return (
-    <div className="relative mt-7 overflow-hidden rounded-[26px] border border-[var(--ls-line)] bg-[var(--ls-surface-2)] p-5 sm:p-7">
-      <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-7">
+    <div className={styles.connection}>
+      <div className={styles.connectionNames}>
         <ConnectionName role={copy.myNameFallback} name={myName} className="sm:text-right" />
-        <span className="grid shrink-0 place-items-center" aria-hidden="true">
-          <Heart className={`${styles.connectionHeart} h-9 w-9 fill-[var(--ls-rose)] text-[var(--ls-rose)]`} />
-        </span>
+        <span className={styles.connectionLine} aria-hidden="true" />
         <ConnectionName role={copy.partnerRoleLabel} name={partnerName} className="sm:text-left" />
       </div>
-      <p className="mt-5 text-center text-sm font-semibold text-[var(--ls-text-muted)] sm:text-base">{topic}</p>
-      <p className="mt-1.5 text-center text-xs text-[var(--ls-text-muted)]">{generatedAt}</p>
+      <div className={styles.connectionContext}>
+        <p>{topic}</p>
+        <p>{generatedAt}</p>
+      </div>
     </div>
   );
 }
@@ -1590,12 +1590,12 @@ function SajuChartCard({ label, chart }: { label: string; chart?: SajuChartSumma
 
 function LoveSecretResultSection({ index, section }: { index: number; section: ResultSection }) {
   return (
-    <article className="rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[rgba(244,190,209,0.28)] to-[rgba(236,208,141,0.18)] text-sm font-black text-[var(--ls-accent)] ring-1 ring-[var(--ls-line-control)]">
+    <article className={styles.letterChapter}>
+      <div className={styles.letterChapterHeading}>
+        <span>
           {String(index + 1).padStart(2, "0")}
         </span>
-        <h3 className="text-xl font-black text-[var(--ls-text)] [text-wrap:balance]">{section.title}</h3>
+        <h3>{section.title}</h3>
       </div>
       <AiResultProse value={section.body} className={`${styles.chapterProse} text-[var(--ls-text-muted)]`} />
     </article>
@@ -1609,9 +1609,9 @@ function LoveSecretPdfButton({ loading, onClick }: { loading: boolean; onClick: 
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="inline-flex min-h-11 items-center gap-2 rounded-full bg-gradient-to-r from-[#f6d9c4] via-[#eeb0a0] to-[#e0a5ab] px-5 text-sm font-black text-[#3a1424] shadow-[0_0_24px_-6px_rgba(238,176,160,0.55)] transition hover:shadow-[0_0_30px_-4px_rgba(238,176,160,0.8)] disabled:cursor-not-allowed disabled:opacity-60"
+      className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--ls-accent)] px-5 text-sm font-semibold text-[var(--ls-accent-ink)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60`}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Heart className="h-4 w-4 fill-current" aria-hidden="true" />}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
       {loading ? copy.pdfPreparing : copy.pdfSaveCta}
     </button>
   );
