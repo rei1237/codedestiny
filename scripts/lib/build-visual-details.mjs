@@ -90,6 +90,8 @@ const GENERATED_ASSET_PATTERN = /^(.+)-(?:\d+|og)\.webp$/;
 export function buildVisualDetails(html, book) {
   const legacy = extractObjectLiteral(html, 'D');
   const verified = extractObjectLiteral(html, 'FEATURE_VISUAL_DETAILS');
+  const founder = loadTsModule('lib/brand/founder.ts').founder;
+  const predictionRecords = JSON.parse(fs.readFileSync(path.join(root, 'lib/brand/prediction-records.json'), 'utf8'));
   const context = { window: {} };
   vm.runInNewContext(fs.readFileSync(path.join(root, 'js/core/service-registry.js'), 'utf8'), context);
   const react = loadTsModule('app/_lib/serviceFeatureRegistry.ts').SERVICE_FEATURES;
@@ -151,6 +153,9 @@ export function buildVisualDetails(html, book) {
       ...verified[record.slug],
     };
     const final = items[record.slug];
+    if (['book', 'letter'].includes(final.material)) {
+      final.founder = { ...founder, records: predictionRecords };
+    }
     // These inline wrappers are source evidence, never browser asset requests.
     if (['destiny-flower', 'astrology-flower', 'ziwei-flower', 'sukuyo-flower'].includes(record.slug)) {
       final.evidence = [...new Set(['js/core/index-inline-runtime.js', ...final.evidence])];
@@ -213,25 +218,42 @@ export async function writeVisualDetails(html, book) {
         const publicRoot = path.resolve(root, 'public') + path.sep;
         if (!source.startsWith(publicRoot)) throw new Error('Image outside public');
         const meta = await sharp(source).metadata();
+        if (['book', 'letter'].includes(item.material)) {
+          item.imageWidth = meta.width;
+          item.imageHeight = meta.height;
+        }
+        const resizeOptions = ['book', 'letter'].includes(item.material)
+          ? { fit: 'contain', background: item.material === 'book' ? '#152721' : '#f6f2ed' }
+          : { fit: 'cover' };
         const stem = heroUsers.get(imagePath) > 1 ? sharedAssetStem(imagePath) : slug;
         item.heroVariants = [];
         for (const width of [...new Set([Math.min(480, meta.width), Math.min(960, meta.width)])]) {
           const name = `${stem}-${width}.webp`;
           if (!writtenAssets.has(name)) {
-            await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }).toFile(path.join(directory, 'assets', name));
+            await sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: ['book', 'letter'].includes(item.material) ? 70 : 78 }).toFile(path.join(directory, 'assets', name));
             writtenAssets.add(name);
           }
           item.heroVariants.push({ src: `/feature-details/assets/${name}`, width });
         }
         item.image = item.heroVariants[item.heroVariants.length - 1].src;
         const cardName = `${stem}-320.webp`;
-        await sharp(source).resize(320, 180, { fit: 'cover' }).webp({ quality: 76 }).toFile(path.join(directory, 'assets', cardName));
+        await sharp(source).resize(320, 180, resizeOptions).webp({ quality: 76 }).toFile(path.join(directory, 'assets', cardName));
         writtenAssets.add(cardName);
         item.cardImage = `/feature-details/assets/${cardName}`;
         const ogName = `${stem}-og.webp`;
-        await sharp(source).resize(1200, 630, { fit: 'cover' }).webp({ quality: 78 }).toFile(path.join(directory, 'assets', ogName));
+        await sharp(source).resize(1200, 630, resizeOptions).webp({ quality: 78 }).toFile(path.join(directory, 'assets', ogName));
         writtenAssets.add(ogName);
         item.ogImage = `/feature-details/assets/${ogName}`;
+        if (['book', 'letter'].includes(item.material)) {
+          const provenance = JSON.parse(fs.readFileSync(`${source}.json`, 'utf8'));
+          for (const asset of [...item.heroVariants.map(variant => path.basename(variant.src)), cardName, ogName]) {
+            writeJsonAtomic(path.join(directory, 'assets', `${asset}.json`), {
+              prompt: provenance.prompt,
+              origin: imagePath,
+              transformation: asset === cardName || asset === ogName ? 'Proportional resize with solid padding; no crop.' : 'Proportional WebP resize; no crop.',
+            }, 2);
+          }
+        }
         data.index.find(entry => entry.slug === slug).image = item.image;
         data.index.find(entry => entry.slug === slug).cardImage = item.cardImage;
       }

@@ -77,15 +77,15 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   assert.match(authored.music.image, /music-hero-v2\.webp$/);
 
   const upgraded = {
-    'life-book-ai': '/images/feature-details/fortune-chat-hero-v2.webp',
-    'love-secret-ai': '/images/feature-details/love-secret-ai-hero-v3.png',
+    'life-book-ai': '/images/expert-consulting/life-book-cover-20260923.webp',
+    'love-secret-ai': '/images/expert-consulting/love-letter-paper-20260923.webp',
     'new-year-ai': '/images/feature-details/new-year-ai-hero-v3.png',
   };
   for (const [slug, image] of Object.entries(upgraded)) {
     const detail = authored[slug];
     assert.equal(detail.image, image, `${slug}: authored hero does not match the approved slot`);
     assert.ok(detail.contents.length >= 5 && detail.contents.every(item => item.detail), `${slug}: outline is incomplete`);
-    assert.ok(detail.storySections?.length, `${slug}: supporting editorial art is not reused`);
+    assert.ok(detail.storySections?.length, `${slug}: supporting editorial story is missing`);
     assert.equal(detail.journey?.questions?.length, 3, `${slug}: journey questions are incomplete`);
     assert.equal(detail.journey?.faq?.length, 3, `${slug}: FAQ is incomplete`);
     assert.ok(detail.method?.title && detail.method?.text && detail.method?.inputs?.length, `${slug}: method is incomplete`);
@@ -170,14 +170,36 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
     const html = renderFeatureDetailPanels(detail, { conversionPrompt: true });
     assert.match(html, /data-purchase-stage="awareness"/);
     assert.match(html, /data-feature-conversion-request/);
-    assert.doesNotMatch(html, /onclick=|href="(?:https?:|javascript:|\/checkout|\/payment)/);
-    for (const link of html.matchAll(/href="([^"]+)"/g)) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
+    assert.doesNotMatch(html, /onclick=|href="(?:javascript:|\/checkout|\/payment)/);
+    const founderLinks = new Set(detail.founder ? ['/about/#author', ...JSON.parse(fs.readFileSync('lib/brand/prediction-records.json', 'utf8')).map(record => record.url)] : []);
+    for (const link of html.matchAll(/href="([^"]+)"/g)) {
+      if (!founderLinks.has(link[1])) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
+    }
     assert.doesNotMatch(renderFeatureDetailPanels(detail), /data-feature-conversion-request/);
     assert.doesNotMatch(html, /featureEditorial|핵심 흐름 미리보기/);
   }
   const html = renderFeatureDetailPanels({ verification: 'verified', journey: { questions: ['<img src=x onerror=x>'], trustNotes: ['<script>'], faq: [{ q: '<iframe>', a: '<svg onload=x>' }] }, panels: [] }, { conversionPrompt: true });
   assert.doesNotMatch(html, /<img|<script|<iframe|<svg/);
   assert.match(html, /&lt;svg onload=x&gt;/);
+});
+
+test('premium introductions reuse founder evidence and contain complete portrait artwork', async () => {
+  const { loadTsModule } = await import('../../scripts/lib/load-ts-module.mjs');
+  const founder = loadTsModule('lib/brand/founder.ts').founder;
+  const records = JSON.parse(fs.readFileSync('lib/brand/prediction-records.json', 'utf8'));
+  for (const [slug, material] of [['life-book-ai', 'book'], ['love-secret-ai', 'letter']]) {
+    const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
+    assert.equal(detail.material, material);
+    assert.deepEqual(detail.founder, { ...founder, records });
+    const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
+    const portrait = fragment.querySelector('.fortuneObject img');
+    assert.ok(Number(portrait.getAttribute('height')) > Number(portrait.getAttribute('width')));
+    assert.equal(fragment.querySelector('.fortuneObject figcaption').textContent, detail.title);
+    assert.equal(fragment.querySelectorAll('.fortuneFounder time').length, records.length);
+    for (const link of fragment.querySelectorAll('.fortuneFounder a[target]')) assert.equal(link.rel, 'noopener noreferrer');
+  }
+  const unsafe = renderFeatureDetailPanels({ verification: 'verified', founder: { credential: '<img>', records: [{ url: 'javascript:alert(1)', title: '<script>' }] } });
+  assert.doesNotMatch(unsafe, /javascript:|<img>|<script>/);
 });
 
 test('detail loader deduplicates per feature and retries failed fetches', async () => {

@@ -1610,8 +1610,8 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
-      "imageAlt": "달빛 장미 정원에서 인연의 실이 이어진 연애 비책서를 펼치는 사람",
-      "theme": "rose",
+      "imageAlt": "아이보리 편지지와 와인색 밀랍으로 봉인한 연애 비책",
+      "theme": "burgundy",
       "edition": "6부 28개 섹션 · 궁합과 시기 · 7일 실천 비책",
       "benefits": [
         "나의 애착과 표현",
@@ -1654,12 +1654,10 @@
         ],
         "text": "호감을 느끼는 순간과 신뢰가 자라는 속도는 다를 수 있어요. 빠르게 친해진 관계일수록, 서로 편안하게 지키는 작은 약속이 중요해집니다.",
         "action": "함께 지킬 수 있는 작은 약속부터 정해보세요.",
-        "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
+        "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 내용은 입력한 정보와 질문에 따라 달라집니다."
       },
       "storySections": [
         {
-          "image": "/images/feature-details/love-secret-ai-hero-v2.webp",
-          "alt": "달빛 아래 인연의 궤적이 이어진 연애 비책서",
           "title": "끌림과 오래 함께할 조건은 같은 말이 아닙니다",
           "text": "마음이 빠르게 움직일수록, 서로의 속도와 경계를 확인하는 일이 관계를 더 오래 지켜줍니다."
         }
@@ -1701,6 +1699,32 @@
           "궁금한 관계 질문"
         ]
       },
+      "material": "letter",
+      "founder": {
+        "credential": "10년 경력 운세 상담사·명리학자가 만든 서비스",
+        "headline": "대통령의 변화가 오기 전, 2025년을 짚은 기록.",
+        "description": "명리학자 네오는 2022년과 2024년 공개 글에서 윤석열의 운세 변화와 이재명의 대통령 가능성을 다뤘습니다. 어떤 시기를 어떻게 읽었는지, 게시일과 원문으로 확인해 보세요.",
+        "method": "현장 상담 경험을 서비스에 담았습니다. 각 체계의 계산 결과를 바탕으로 AI가 해설하며, 상담사가 결과마다 직접 답하는 방식은 아닙니다.",
+        "records": [
+          {
+            "date": "2022-09-16",
+            "title": "대통령 윤석열 사주 분석",
+            "url": "https://blog.naver.com/neosaju/222876455500"
+          },
+          {
+            "date": "2024-05-12",
+            "title": "2025년, 윤석열 대통령 탄핵 가능성에 대해서",
+            "url": "https://blog.naver.com/neosaju/223444062729"
+          },
+          {
+            "date": "2024-05-27",
+            "title": "만약 이재명이 대통령이 된다면 일반적인 방법으로는 불가하다.",
+            "url": "https://blog.naver.com/neosaju/223459696339"
+          }
+        ]
+      },
+      "imageWidth": 1122,
+      "imageHeight": 1402,
       "heroVariants": [
         {
           "src": "/feature-details/assets/love-secret-ai-480.webp",
@@ -2727,8 +2751,8 @@
         "scripts/test-mobile-platform-journeys.mjs"
       ],
       "verification": "verified",
-      "imageAlt": "달빛 아래 인생의 책을 함께 펼쳐 읽는 상담 장면",
-      "theme": "navy",
+      "imageAlt": "녹색 천으로 제본한 인생의 책 표지",
+      "theme": "emerald",
       "edition": "10장 인생 서사 · 명식 깊은 판독 4편 · 마지막 문장",
       "benefits": [
         "타고난 기질",
@@ -2771,12 +2795,10 @@
         ],
         "text": "지나온 선택을 실패와 성공으로만 나누면 보이지 않는 것이 있습니다. 그때 지키려 했던 마음과 지금 달라진 기준을 함께 놓아보세요.",
         "action": "과거의 선택 하나를 지금의 시선으로 다시 적어보세요.",
-        "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
+        "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 내용은 입력한 정보와 질문에 따라 달라집니다."
       },
       "storySections": [
         {
-          "image": "/images/feature-details/life-book-ai-hero-v2.webp",
-          "alt": "달빛 아래 펼쳐진 인생의 책과 별의 궤적",
           "title": "흩어진 장면에도 이어지는 문장이 있습니다",
           "text": "한때의 선택만 떼어 판단하기보다, 그 선택들이 어떤 흐름을 만들었는지 차례로 읽어보세요."
         }
@@ -2817,6 +2839,32 @@
           "궁금한 주제"
         ]
       },
+      "material": "book",
+      "founder": {
+        "credential": "10년 경력 운세 상담사·명리학자가 만든 서비스",
+        "headline": "대통령의 변화가 오기 전, 2025년을 짚은 기록.",
+        "description": "명리학자 네오는 2022년과 2024년 공개 글에서 윤석열의 운세 변화와 이재명의 대통령 가능성을 다뤘습니다. 어떤 시기를 어떻게 읽었는지, 게시일과 원문으로 확인해 보세요.",
+        "method": "현장 상담 경험을 서비스에 담았습니다. 각 체계의 계산 결과를 바탕으로 AI가 해설하며, 상담사가 결과마다 직접 답하는 방식은 아닙니다.",
+        "records": [
+          {
+            "date": "2022-09-16",
+            "title": "대통령 윤석열 사주 분석",
+            "url": "https://blog.naver.com/neosaju/222876455500"
+          },
+          {
+            "date": "2024-05-12",
+            "title": "2025년, 윤석열 대통령 탄핵 가능성에 대해서",
+            "url": "https://blog.naver.com/neosaju/223444062729"
+          },
+          {
+            "date": "2024-05-27",
+            "title": "만약 이재명이 대통령이 된다면 일반적인 방법으로는 불가하다.",
+            "url": "https://blog.naver.com/neosaju/223459696339"
+          }
+        ]
+      },
+      "imageWidth": 1086,
+      "imageHeight": 1448,
       "heroVariants": [
         {
           "src": "/feature-details/assets/life-book-ai-480.webp",
