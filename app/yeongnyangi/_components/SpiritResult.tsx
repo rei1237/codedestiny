@@ -3,6 +3,7 @@ import {SKY_IMAGE,skyModes,skyShare} from '@/worker/yeongnyangi/fortune/question
 import {useState} from 'react';
 import {SPIRIT_IMAGE,SPIRIT_TITLE,SPIRIT_NOTICE,buildSpiritShare} from '@/worker/yeongnyangi/fortune/spirit-contract';
 import type {FortuneRecord} from '../_lib/api';
+import {resultShareUrl} from '../_lib/result-share';
 import styles from '../yeongnyangi.module.css';
 export default function SpiritResult({row}:{row:FortuneRecord}){
   const [message,setMessage]=useState('');
@@ -11,8 +12,8 @@ export default function SpiritResult({row}:{row:FortuneRecord}){
   async function share(){
     // Only an allowlisted reflection key enters the anonymous summary:
     // no question, name, birth information, result id, or private URL can escape.
-    const spiritShare=sky?skyShare(sky.mode,sky.shareKey):buildSpiritShare(spirit?.shareKey);
-    try{if(navigator.share)await navigator.share(spiritShare);else {await navigator.clipboard.writeText(`${spiritShare.title}\n${spiritShare.text}`);setMessage('익명 소개를 복사했어요.');}}catch{setMessage('공유를 마치지 못했어요. 다시 시도할 수 있어요.');}
+    const spiritShare={...(sky?skyShare(sky.mode,sky.shareKey):buildSpiritShare(spirit?.shareKey)),url:resultShareUrl(row,typeof navigator.share==='function'?'native':'copy')};
+    try{if(navigator.share){await navigator.share(spiritShare);setMessage('공유 창에서 선택한 동작을 마쳤어요.');}else {await navigator.clipboard.writeText(`${spiritShare.title}\n${spiritShare.text}\n${spiritShare.url}`);setMessage('익명 소개를 복사했어요.');}}catch(error){setMessage(error instanceof Error&&error.name==='AbortError'?'공유를 취소했어요.':'공유를 마치지 못했어요. 아래 상담 공유에서 문구를 복사할 수 있어요.');}
   }
   if(!spirit)return null;
   return <div className={styles.spirit}>

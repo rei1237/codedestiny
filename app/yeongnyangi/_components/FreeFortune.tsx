@@ -10,12 +10,14 @@ import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import ProfilePicker from './ProfilePicker';
 import {useProfiles} from '../_lib/use-profiles';
 import '../_original/free-fortune.css';
+import ResultSharing from './ResultSharing';
 
 function Reading({reading}:{reading:FreeReading}){
  return <article className="free-reading">
   <div className="free-reading-heading"><div><p>{reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
   {reading.charts?.map(chart=><details className="free-chart" key={chart.domain}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
   <div className="free-summary"><strong>짧게 말하면</strong><p>{reading.summary}</p></div>
+  <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
   <h4>영냥이가 조금 더 풀어줄게.</h4><div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
   <details className="free-evidence"><summary>어떤 근거로 읽었을까?</summary><dl>{reading.basis.map((basis,index)=><div key={index}><dt>{basis.label}</dt><dd>{basis.value}</dd></div>)}</dl>{reading.limitations.map((item,index)=><p key={index}>{item}</p>)}</details>
   <FreePromptContinuation prompt={reading.prompt}/>
