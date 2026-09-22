@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-23T00:00:00+09:00",
+  "title": "Design System: Code Destiny Premium Consultation",
+  "extensions": {
+    "colorMeta": {
+      "book-accent": { "role": "primary", "displayName": "제본 골드" },
+      "book-background": { "role": "neutral", "displayName": "숲색 독서 공간" },
+      "letter-accent": { "role": "primary", "displayName": "편지 와인" },
+      "letter-surface": { "role": "neutral", "displayName": "편지 면지" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "소개 제목", "purpose": "두 상품의 구매 전 소개 제목; 전역 한국어 명조 스택을 사용한다." },
+      "cover-title": { "displayName": "표지 제목", "purpose": "래스터와 분리한 HTML 제목." }
+    },
+    "shadows": [
+      { "name": "letter-ambient-light", "value": "0 12px 32px -20px rgba(72, 33, 49, .2)", "purpose": "reportTheme 밝은 표면의 기존 ambient shadow." },
+      { "name": "letter-ambient-dark", "value": "0 12px 32px -20px rgba(0, 0, 0, .3)", "purpose": "reportTheme 어두운 표면의 기존 ambient shadow." }
+    ],
+    "motion": [
+      { "name": "letter-ease", "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "기존 단계 전환과 진행 레일; reduced-motion에서는 animation/transition을 끈다." }
+    ],
+    "breakpoints": [
+      { "name": "entry-stack", "value": "700px" },
+      { "name": "letter-form-stack", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "책 입력 시작",
+      "kind": "button",
+      "refersTo": "button-book-start",
+      "description": "책 소개에서 입력으로 이동하는 버튼. 전역 서체만 상속하고 지역 색에는 실제 값 폴백을 둔다.",
+      "html": "<button class=\"ds-book-start\">정보 입력하기</button>",
+      "css": ".ds-book-start{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 24px;border:1px solid #eddbaf;border-radius:6px;background:#eddbaf;color:#20362a;font-family:var(--font-body);font-size:16px;font-weight:600;text-underline-offset:4px}.ds-book-start:hover{text-decoration:underline}.ds-book-start:focus-visible{outline:2px solid #f6ecd7;outline-offset:5px}.ds-book-start:disabled{cursor:wait;opacity:.65}"
+    },
+    {
+      "name": "편지 입력 시작",
+      "kind": "button",
+      "refersTo": "button-letter-start",
+      "description": "편지 소개에서 기존 첫 입력으로 이동하는 버튼.",
+      "html": "<button class=\"ds-letter-start\">정보 입력하기</button>",
+      "css": ".ds-letter-start{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:12px 24px;border:1px solid #763d53;border-radius:6px;background:#763d53;color:#fffcf8;font-family:var(--font-body);font-size:16px;font-weight:600;text-underline-offset:4px}.ds-letter-start:hover{text-decoration:underline}.ds-letter-start:focus-visible{outline:2px solid #35262c;outline-offset:5px}.ds-letter-start:disabled{cursor:wait;opacity:.65}"
+    },
+    {
+      "name": "편지 입력 필드",
+      "kind": "input",
+      "refersTo": "letter-input",
+      "description": "이름·생일·시간이 공유하는 밝은 reportTheme 입력 예시.",
+      "html": "<label for=\"ds-name\">이름 또는 별명</label><input id=\"ds-name\" class=\"ds-letter-input\" placeholder=\"이름 입력\" />",
+      "css": ".ds-letter-input{display:block;min-height:48px;border-radius:16px;border:1px solid #a7828e;background:#f7f0ed;padding:0 16px;color:#35262c;font-family:var(--font-body);font-size:16px;outline:none}.ds-letter-input::placeholder{color:#71545f}.ds-letter-input:focus-visible{box-shadow:0 0 0 2px #f6f2ed,0 0 0 4px #763d53}.ds-letter-input:disabled{opacity:.55}"
+    },
+    {
+      "name": "관계 선택",
+      "kind": "chip",
+      "refersTo": "letter-choice",
+      "description": "기존 관계 선택의 비선택·선택 상태.",
+      "html": "<button class=\"ds-choice\" aria-pressed=\"false\">관심 있는 사이</button><button class=\"ds-choice\" aria-pressed=\"true\">연애 중</button>",
+      "css": ".ds-choice{min-height:44px;border-radius:9999px;border:1px solid #a7828e;padding:0 16px;background:#f7f0ed;color:#35262c;font-family:var(--font-body);font-size:14px;font-weight:600}.ds-choice:hover{background:#efe5e1}.ds-choice[aria-pressed=true]{border-color:#763d53;background:#763d53;color:#fffcf8}.ds-choice:focus-visible{outline:none;box-shadow:0 0 0 2px #f6f2ed,0 0 0 4px #763d53}.ds-choice:disabled{opacity:.55}"
+    },
+    {
+      "name": "단계 이동",
+      "kind": "nav",
+      "description": "기존 편지 입력의 이전·다음 행동; 실제 단계 상태는 앱에서 제어한다.",
+      "html": "<nav aria-label=\"입력 단계\" class=\"ds-steps\"><button class=\"ds-prev\">이전</button><button class=\"ds-next\">다음</button></nav>",
+      "css": ".ds-steps{display:flex;gap:12px}.ds-prev,.ds-next{min-height:48px;border-radius:16px;padding:0 16px;font-family:var(--font-body);font-size:14px;font-weight:600}.ds-prev{border:1px solid #a7828e;color:#35262c;background:transparent}.ds-next{flex:1;border:0;padding:0 20px;background:#763d53;color:#fffcf8}.ds-prev:hover{background:#efe5e1}.ds-next:hover{transform:translateY(-2px)}.ds-prev:focus-visible,.ds-next:focus-visible{outline:none;box-shadow:0 0 0 2px #f6f2ed,0 0 0 4px #763d53}.ds-prev:disabled{cursor:not-allowed;opacity:.45}.ds-next:disabled{cursor:not-allowed;opacity:.55}"
+    },
+    {
+      "name": "책 입력 표면",
+      "kind": "card",
+      "description": "작은 모서리와 얇은 선으로 구분한 책 폼 표면.",
+      "html": "<section class=\"ds-book-form\">상담에 필요한 정보를 입력해 주세요.</section>",
+      "css": ".ds-book-form{border:1px solid #536656;border-radius:6px;background:#20362a;color:#f6ecd7;padding:24px;font-family:var(--font-body);font-size:16px}@media(max-width:700px){.ds-book-form{padding:20px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "나만의 책과 비밀 편지",
+    "overview": "인생의 책은 짙은 녹색 천 제본과 금박 문양, 연애 비책은 아이보리 종이와 봉투·와인색 봉인으로 개인적인 기록물의 감각을 만든다. 구매 전에는 받을 결과물의 재질과 상담 범위를 먼저 보여주고, 결과에서는 같은 에셋과 한국어 명조가 긴 해설의 읽기 흐름을 잇는다.",
+    "keyCharacteristics": ["실제 책·편지 래스터와 별도 HTML 텍스트.", "한국어 명조 제목과 읽기 쉬운 본문·입력 레이블.", "표면·잉크·강조색이 함께 바뀌는 연애 비책 테마.", "소개 CTA에서 입력으로 이어지는 모바일 동선."],
+    "rules": [
+      { "name": "The Paired Surface Rule", "body": "테마를 바꿀 때 표면·주 잉크·보조 잉크·강조색·입력 경계를 함께 바꾼다. 밝은 래스터 편지지 위의 텍스트는 어두운 잉크를 유지한다.", "section": "colors" },
+      { "name": "The Live Text Rule", "body": "제목·설명·가격을 이미지에 굽지 않는다. 실제 텍스트와 기존 번역 사전을 유지한다.", "section": "typography" }
+    ],
+    "dos": ["**Do** 같은 책·편지 에셋을 구매 전과 결과에 연결하고 실제 HTML 텍스트를 유지한다.", "**Do** 한국어 명조 로드, 작은 화면의 폼 폭, 키보드 포커스와 밝고 어두운 테마를 함께 확인한다.", "**Do** 가격은 PriceBadge와 기존 registry에서 읽고 이용권·월정석·단건 결제 의미를 유지한다."],
+    "donts": ["**Don't** 이번 두 상품의 지역 세계를 전역 캐릭터나 다른 전문가 상담에 덮어쓴다.", "**Don't** 래스터에 제목·가격을 굽거나 소개 이미지를 임의 크롭한다.", "**Don't** 새 혜택·보장 문구·결제 행동을 디자인 개선에 섞는다.", "**Don't** 단발성 장식·기존 영문 eyebrow·범위 밖 잔존 요소를 새 화면의 규칙으로 복제한다."]
+  }
+}

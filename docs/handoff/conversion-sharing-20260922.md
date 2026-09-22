@@ -1,10 +1,24 @@
 ---
 status: active
 updated: 2026-09-23
-next: "책·편지 UI 후속 커밋의 main CI를 확인하고 구매 전 상세/예시, 다른 전문가 상담 UI와 공유를 확장한다."
+next: "구매 전 책·편지 UI의 main CI를 확인하고 상세 팝업/예시, 다른 전문가 상담 UI와 공유를 확장한다."
 ---
 
 # 경쟁사 대비 전환·신뢰·SEO·상담 공유 후속 작업
+
+## 최신 재개 위치 — 구매 전 화면 확장
+
+앞선 결과 화면 개선에 이어 두 상품의 실제 진입/입력 화면을 같은 책·편지로 맞췄다. 코드 정본은 app/life-book-ai/LifeBookAiClient.tsx, app/love-secret-ai/LoveSecretAiClient.tsx와 각 스타일, 공용 PremiumConsultationIntro.module.css다. 기존 생성 WebP를 재사용했고 새 에셋은 만들지 않았다. 이 절을 아래의 이전 구매 전 작업 예정 기록보다 우선한다.
+
+- 첫 화면에서 결과물 형태·상담 범위·registry 가격·폼 이동 CTA를 보여준다. 리포트 모드 변경 시 기존 가격 소스를 유지한다.
+- 연애 비책은 소개 카드와 고정 CTA를 입력 grid 밖으로 옮겨 실제 폼이 넓은 열, 안내가 좁은 열에 놓이게 했다. 입력 상태와 핸들러는 보존했다.
+- 인생의 책 폼 제목/설명은 첫 행 전체 폭을 쓰고 프로필 버튼과 상태는 다음 행에 둔다. AppChrome 뒤로가기의 잘못된 Tailwind opacity 문법을 고쳐 밝은 종이 위에서도 대비를 확보했다. 두 상품 copy hook과 useServerPrice의 최초 가격 형식은 SSR과 첫 client render가 같은 locale을 사용하며 금액 계산은 바꾸지 않았다.
+- mock 진입 검사 12/12와 가격 회귀 9/9, overseas-payment-notice를 통과했다. check:fast는 exit 0(290 suites / 4078 tests)이지만 이후 위 검수 수정이 있어 최종 파일 전체의 단독 증거로 삼지 않는다. 최종 변경 lint는 오류 0/기존 경고 1, incremental typecheck는 exit 0이다. 공식 판정은 아래 전달 커밋의 main CI다.
+- 최종 화면 24장과 결과 JSON/로그는 원본 D:\Development\code-destiny\build-cache\premium-entry-20260923\에 보존한다. 운영 배포와 전환율 상승은 검증하지 않았다.
+- 비교 기준은 dcdd7feef4cac886972ce9777b1372257a1cad28. 작업용 격리는 D:\Development\codedestiny-worktrees\premium-entry-20260923-013207, branch wt/premium-entry-20260923-013207. 다음 세션은 main의 최신 상태를 먼저 확인하며 이미 배수된 워크트리의 존재를 가정하지 않는다.
+- scripts/verify-premium-consultation-entry.mjs가 360/390/430/1280, dark 및 영어 화면의 이미지 비율·가격·키보드 폼 이동·입력 폭·모드/단계 전환·유료 API 미호출을 mock으로 검사한다. 공개 서체 캐시 build-cache/premium-fonts가 필요하다. 최종 결과는 디자인 문서와 build-cache/premium-entry/results.json을 확인한다.
+- 검증된 코드 커밋은 `981fadf0f3ce05ab6dfc1a767350826da6921d0b` (`feat: align premium consultation entry with report design`)이다. 이 문서 정리 커밋까지 묶어 main에 push하며 실제 전달 판정은 그 main HEAD의 CI required를 확인한다. 앞선 결과 UI의 CI를 이 변경의 증거로 쓰지 않는다. 두 상품 구매 전·입력 범위 독립 마감 판정은 ship이며 전체 상담군 완료를 뜻하지 않는다.
+- 다음은 생성 정본을 통한 상세 팝업/결과 예시의 시각적 일치, 구매 전 제작자 근거 연결, 마스터 연애 등 다른 전문가 상담의 디자인과 요약 공유다. 사용자 요청 전체는 아직 완료가 아니다.
 
 ## 최신 재개 위치 — 2026-09-23
 
@@ -108,5 +122,5 @@ next: "책·편지 UI 후속 커밋의 main CI를 확인하고 구매 전 상세
 ## 복사해서 재개
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 읽어라. 기준 커밋 fc12eb6a5fd99a4931d93037ddd6e7ac8d0f1690 및 이후 인수인계 문서 커밋의 main CI를 확인하고 다른 세션의 미커밋 변경을 보존하라. docs/premium-consultation-design-20260923.md의 실제 책·비밀 편지 방향을 유지하고 두 상품의 구매 전 상세/예시, 다른 전문가 상담 UI와 저장된 결과 공유 어댑터를 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 읽어라. 마지막 구현 커밋 981fadf0f3ce05ab6dfc1a767350826da6921d0b 및 이후 인수인계 문서 커밋의 main CI를 확인하고 다른 세션의 미커밋 변경을 보존하라. docs/premium-consultation-design-20260923.md의 실제 책·비밀 편지 방향을 유지하고 이미 완료한 두 상품 진입/입력 화면을 재작업하지 말고 상세 팝업과 결과 예시의 시각적 일치부터 진행한 뒤 다른 전문가 상담 UI와 저장된 결과 공유 어댑터를 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
 ```
