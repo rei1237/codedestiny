@@ -26,9 +26,9 @@ describe("versioned flower passes", () => {
     expect(plan.wonPrice).toBe(79900);
     expect(canUseByPass({ ...plan, isActive: true }, 300)).toBe(true);
     expect(canUseByPass({ ...plan, isActive: true }, 301)).toBe(false);
-    expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(900);
-    expect(isPassBudgetExhausted("vvip", 900, 900, plan)).toBe(true);
-    expect(buildPassCycleFields({ tier: "vvip", expiresAt, now, passPolicyVersion: CURRENT_PASS_POLICY_VERSION }).monthlyLimitCoin).toBe(900);
+    expect(resolveMonthlyPassLimitCoin(plan, "vvip", "")).toBe(2000);
+    expect(isPassBudgetExhausted("vvip", 2000, 2000, plan)).toBe(true);
+    expect(buildPassCycleFields({ tier: "vvip", expiresAt, now, passPolicyVersion: CURRENT_PASS_POLICY_VERSION }).monthlyLimitCoin).toBe(2000);
     expect(resolvePassPlan("vvip", 1, PRIOR_PASS_POLICY_VERSION)).toEqual(priorPassPlan("vvip"));
     expect(resolvePassPolicy({ tier: "vvip", passPolicyVersion: PRIOR_PASS_POLICY_VERSION }).monthlyCoveredCoin).toBe(900);
   });
@@ -102,7 +102,7 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and excl
   const db = makeFakePaymentDb(); db.rows.push(user);
   const coverage = evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 300 });
   expect(coverage.covered).toBe(true);
-  expect(coverage.budgetCoin).toBe(900);
+  expect(coverage.budgetCoin).toBe(2000);
   expect(await consumePassCoverage(db, { userId: user._id, coverage, marker: "reading-0", now })).toBeTruthy();
   expect(user.profileSubscription.monthlySpendCoin).toBe(300);
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
@@ -115,11 +115,12 @@ test("cost audit uses the most expensive repeatable combination, not the largest
   const plan = currentPassPlan("premium");
   const products = [{ featureKey: "a", priceKRW: 3000 }, { featureKey: "b", priceKRW: 5000 }];
   const evidence = { reviewedAt: now.toISOString(), sourceRefs: ["test-fixture"], priceKRW: plan.wonPrice,
-    netRevenueKRW: 34078, paymentFeeKRW: 300, monthlyLimitCoin: 500, maxCoveredCoin: 100,
+    netRevenueKRW: 34078, paymentFeeKRW: 300, monthlyLimitCoin: 1000, maxCoveredCoin: 100,
     products: { a: { priceKRW: 3000, maxCostKRW: 1000, sourceRefs: ["fixture"] }, b: { priceKRW: 5000, maxCostKRW: 1200, sourceRefs: ["fixture"] } } };
   const result = auditPassProfitability(plan, products, evidence);
-  expect(result.worstCostKRW).toBe(16500); // 15 * 3,000 + 1 * 5,000 is the costliest full-budget mix, plus the payment fee
-  expect(result.eligible).toBe(true);
+  expect(result.worstCostKRW).toBe(33300); // 33 * 1,000 is the costliest full-budget mix, plus the payment fee
+  expect(result.eligible).toBe(false);
+  expect(result.reason).toBe("MARGIN_BELOW_TARGET");
   expect(auditPassProfitability(plan, [...products, { featureKey: "missing", priceKRW: 5000 }], evidence).eligible).toBe(false);
 });
 

@@ -823,7 +823,7 @@
       "standardName": "Standard Honey 30 days",
       "standardPrice": "30 days · KRW 14,900",
       "standardLine": "Content up to KRW 5,000",
-      "standardBenefit1": "Up to KRW 20,000 worth per month",
+      "standardBenefit1": "Up to KRW 40,000 worth per month",
       "standardBenefit2": "Up to 3 profiles",
       "standardCta": "View Standard",
       "recommendedAria": "Recommended plan",
@@ -831,13 +831,13 @@
       "premiumName": "Premium Honey 30 days",
       "premiumPrice": "30 days · KRW 39,900",
       "premiumLine": "Content up to KRW 10,000",
-      "premiumBenefit1": "Up to KRW 50,000 worth per month",
+      "premiumBenefit1": "Up to KRW 100,000 worth per month",
       "premiumBenefit2": "Up to 7 profiles",
       "premiumCta": "View recommended plan",
       "vvipName": "VVIP Honey Jar 30 days",
       "vvipPrice": "30 days · KRW 79,900",
       "vvipLine": "Content up to KRW 30,000",
-      "vvipBenefit1": "Up to KRW 90,000 worth per month",
+      "vvipBenefit1": "Up to KRW 200,000 worth per month",
       "vvipBenefit2": "Up to 15 profiles",
       "vvipCta": "View VVIP benefits",
       "familyName": "Code Destiny Family 30 days",
@@ -2168,15 +2168,15 @@
       "packages": {
         "standard": {
           "name": "Standard Honey 30 Days",
-          "desc": "30 days · Content up to KRW 5,000 · Up to KRW 20,000 worth per month · Up to 3 profiles"
+          "desc": "30 days · Content up to KRW 5,000 · Up to KRW 40,000 worth per month · Up to 3 profiles"
         },
         "premium": {
           "name": "Premium Honey 30 Days",
-          "desc": "30 days · Content up to KRW 10,000 · Up to KRW 50,000 worth per month · Up to 7 profiles"
+          "desc": "30 days · Content up to KRW 10,000 · Up to KRW 100,000 worth per month · Up to 7 profiles"
         },
         "vvip": {
           "name": "VVIP Honey Jar 30 Days",
-          "desc": "30 days · Content up to KRW 30,000 · Up to KRW 90,000 worth per month · Up to 15 profiles"
+          "desc": "30 days · Content up to KRW 30,000 · Up to KRW 200,000 worth per month · Up to 15 profiles"
         },
         "family": {
           "name": "Code Destiny Family 30 Days",

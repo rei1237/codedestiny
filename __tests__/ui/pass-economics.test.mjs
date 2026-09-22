@@ -15,9 +15,9 @@ test("approved pass prices keep the chosen coverage and the stress report remain
       { tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }
     )),
     [
-      { tier: "standard", wonPrice: 14900, maxCoveredCoin: 50, monthlyLimitCoin: 200 },
-      { tier: "premium", wonPrice: 39900, maxCoveredCoin: 100, monthlyLimitCoin: 500 },
-      { tier: "vvip", wonPrice: 79900, maxCoveredCoin: 300, monthlyLimitCoin: 900 },
+      { tier: "standard", wonPrice: 14900, maxCoveredCoin: 50, monthlyLimitCoin: 400 },
+      { tier: "premium", wonPrice: 39900, maxCoveredCoin: 100, monthlyLimitCoin: 1000 },
+      { tier: "vvip", wonPrice: 79900, maxCoveredCoin: 300, monthlyLimitCoin: 2000 },
     ],
   );
   assert.equal(planningReport.pricingDriver, "tarot-love-relationship");
@@ -26,7 +26,7 @@ test("approved pass prices keep the chosen coverage and the stress report remain
   assert.ok(planningReport.runtimeRows.every(({ fallbackProviderCostIncluded }) => fallbackProviderCostIncluded));
   assert.equal(planningReport.saleApproval, false);
   const playRows = planningReport.rows.filter(({ channel }) => channel === "googlePlay30");
-  assert.deepEqual(playRows.map(({ pricingDriverRepeats }) => pricingDriverRepeats), [6, 16, 30]);
+  assert.deepEqual(playRows.map(({ pricingDriverRepeats }) => pricingDriverRepeats), [13, 33, 66]);
   assert.ok(playRows.every(({ stressedContributionMargin }) => stressedContributionMargin < 0.4));
   assert.ok(playRows.every(({ priceKRW, minimumPriceForTargetKRW }) => priceKRW < minimumPriceForTargetKRW));
 });

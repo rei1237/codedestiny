@@ -267,7 +267,7 @@
     var spend = numberOrNaN(sub.monthlySpendCoin);
     if (!Number.isFinite(spend)) return NaN;
     var policyMonthlyLimits = {
-      "flower-cost-20260921": { standard: 200, premium: 500, vvip: 900 },
+      "flower-cost-20260921": { standard: 400, premium: 1000, vvip: 2000 },
       "flower-20260921": { standard: 200, premium: 500, vvip: 900 }
     };
     var policyMonthlyLimit = policyMonthlyLimits[sub.passPolicyVersion];
