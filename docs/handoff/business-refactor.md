@@ -7,6 +7,15 @@ next: "Play 적용 수수료·v3 SKU와 상품별 유료 상담·저장·지원�
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
 
+## 2026-09-22 Play 수수료·Cloudflare 귀속 근거 추가
+
+- Play Console 계정의 `등록한 프로그램 및 서비스`에서 15% 서비스 수수료 프로그램 가입을 읽기 전용으로 확인했다. 공식 정책상 연간 첫 100만 USD 매출 구간에 15%가 적용되지만, `com.codedestiny.app`에는 v3 SKU가 여전히 없고 프로덕션도 비활성이므로 실제 v3 정산 수수료 증거는 아니다. 상품 생성·가격 입력·활성화는 하지 않았다.
+- Cloudflare의 최근 Workers Paid 청구서는 2026-08-30 `IN-77252831` $5.00이며 구독은 활성 상태다. 9월 Billable usage는 R2·Workers·D1·Queues가 포함 한도 안의 $0.00였지만 계정·제품군 집계일 뿐 Code Destiny 상품 SKU 귀속 청구가 아니다.
+- 운영 Worker `code-destiny-web`의 최근 7일 로그에서 `[llm token_usage]`를 조회한 결과가 0건이어서, 상품별 유료 상담의 보존된 실사용 표본은 확보하지 못했다. 0건을 비용 0원으로 해석하지 않는다.
+- 공통 LLM 계측에 `serviceId`·`requestId`·`billingAccess`를 묶고, 비용 보고서에 고유 요청 수·접근 유형·귀속 누락 수·요청당 평균/최대 비용을 추가했다. 프롬프트·개인정보는 기록하지 않으며 보고서는 계속 `saleApproval:false`다. 운영 반영 전 과거 비용은 소급되지 않는다.
+- MongoDB 저장·백업·트래픽의 상품 귀속 청구, 상품별 지원 시간·검토 인건비, 상품별 환불 금액·회수 불가 공급자 비용은 미확보다. `lib/payment/pass-cost-evidence.js`는 빈 객체로 유지하고 웹 `SETTLEMENT_EVIDENCE_MISSING`, Play `APP_SKU_NOT_VERIFIED` 차단을 풀지 않는다.
+- 실PG·유료 LLM·운영 DB 쓰기·환불·운영 승격은 수행하지 않았다. main의 `marketing/**` 미커밋 변경과 기존 worktree를 보존한다.
+
 ## 2026-09-22 영냥이 공개 분석 근거 보강
 
 - 사용자 제공 네이버 원문을 브라우저에서 읽기 전용 확인했다. `223442610559`는 2024-05-10 「가수 휘성 사주 re;」로 다음 해를 고비로 언급한 공개 분석이고, `224032671570`는 2025-10-05 대통령·유명인·기업인 관련 과거 글 링크를 모은 작성자 색인이다.
