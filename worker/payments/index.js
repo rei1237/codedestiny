@@ -734,6 +734,10 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
   if (begun.settled) {
     if (!begun.granted) begun.granted = await withDb(env, ctx, db => grantOrderEntitlement(db, begun.order));
     if (afterSettle) await withDb(env, ctx, (db) => afterSettle(db, begun));
+    if(env.YEONGNYANGI_QUEUE && /^yn-[a-f0-9]{64}$/.test(begun.order?.requestId || '')) {
+      const {enqueuePaidConsultation}=await import('../yeongnyangi/queue.js');
+      await enqueuePaidConsultation(env,begun.order);
+    }
     return begun;
   }
 
@@ -752,11 +756,16 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
     throw error;
   }
 
-  return withDb(env, ctx, async (db) => {
+  const settled = await withDb(env, ctx, async (db) => {
     const result = await settleVerifiedOrder(db, ctx, { order: begun.order, pg });
     if (afterSettle) await afterSettle(db, result);
     return result;
   });
+  if(env.YEONGNYANGI_QUEUE && /^yn-[a-f0-9]{64}$/.test(settled.order?.requestId || '')) {
+    const {enqueuePaidConsultation}=await import('../yeongnyangi/queue.js');
+    await enqueuePaidConsultation(env,settled.order);
+  }
+  return settled;
 }
 
 /**

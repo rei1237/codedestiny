@@ -265,9 +265,9 @@ export default function FortuneHome() {
             </picture>
             <div className="hero-copy">
               <h1 id="hero-title">
-                네 운명의 이야기,
+                사주보는 고양이,
                 <br />
-                <span>내가 읽어줄게.</span>
+                <span>영냥이에게 물어봐.</span>
               </h1>
               <p>달빛이 머무는 작은 점술방</p>
               <div className="desktop-intro">
@@ -314,15 +314,20 @@ export default function FortuneHome() {
             <div className="hero-action">
               <button
                 className="primary-cta"
-                onClick={() => window.location.assign("/yeongnyangi/room/#daily")}
+                onClick={() => window.location.assign("/yeongnyangi/fortune/?domain=saju&fish=mackerel")}
               >
                 <PawPrint size={21} />
-                <span>무료 운세 보기</span>
+                <span>영냥이에게 상담하기</span>
                 <ArrowRight size={21} />
               </button>
-              <p>CODE DESTINY 무료 운세로 오늘의 흐름부터</p>
+              <p>상담 주제를 고르고, 궁금한 이야기를 들려줘.</p>
             </div>
           </section>
+              <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
+                <a href="/yeongnyangi/room/#daily">무료 운세</a>
+                <a href="/yeongnyangi/library/">내 상담 기록</a>
+                <a href="/ggulggul/">다른 운세 둘러보기</a>
+              </nav>
 
           <div className="main-content">
             <button

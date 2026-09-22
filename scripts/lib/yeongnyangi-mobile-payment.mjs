@@ -11,7 +11,7 @@ const config={configured:true,serverVerificationConfigured:true,inicisConfigured
 const resultPath=id=>`/yeongnyangi/result/?id=${id}`;
 const checkoutPath=row=>`/checkout/?featureKey=${row.product.cdFeatureKey}&requestId=${row.id}&returnTo=${encodeURIComponent(resultPath(row.id))}`;
 
-async function fixtures(browser,base,product,width=390){
+export async function fixtures(browser,base,product,width=390){
  const mobile=devices[browser.browserType().name()==='webkit'?'iPhone 13':'Pixel 7'];
  const context=await browser.newContext({viewport:{width,height:844},screen:{width,height:844},isMobile:true,hasTouch:true,userAgent:mobile.userAgent,serviceWorkers:'block'});
  context.setDefaultTimeout(30000);context.setDefaultNavigationTimeout(120000);
@@ -113,7 +113,7 @@ async function fixtures(browser,base,product,width=390){
    return send({ok:true,fortune:row});
   }
   if(path==='/api/yeongnyangi/requests'){
-   if(request.method()==='POST'){state.creates++;assert.equal(input.productId,product.id);row.profileId=input.profileId;return send({ok:true,fortune:row},201);}
+   if(request.method()==='POST'){state.creates++;state.requestInput=input;assert.equal(input.productId,product.id);row.profileId=input.profileId;row.consultation=state.prepareConsultation?.(input,row);return send({ok:true,fortune:row},201);}
    return send({ok:true,fortunes:[row],nextCursor:null});
   }
   if(/^\/api\/yeongnyangi\/requests\/[a-f0-9]{64}$/.test(path))return send({ok:false,code:'FORTUNE_NOT_FOUND',message:'QA 다른 소유자 또는 없는 상담'},404);
@@ -124,18 +124,26 @@ async function fixtures(browser,base,product,width=390){
    row.paid=true;row.state='PAID';return send({ok:true,fortune:row});
   }
   if(path===`/api/yeongnyangi/requests/${row.id}/generate`){
-   state.generates++;
    if(row.state==='REFUNDED')return send({code:'PAYMENT_NOT_ACTIVE'},409);
-   if(state.generate503>0&&row.chapters.length>=state.generationBoundary){state.generate503--;row.state='FORTUNE_FAILED';return send({code:'FORTUNE_PROVIDER_FAILED',message:'QA 생성 중단'},503);}
-   if(state.holdGeneration&&row.chapters.length>=state.generationBoundary){row.state='GENERATING';return send({ok:true,fortune:row});}
    assert.equal(row.paid,true);
-   if(row.state!=='COMPLETED')row.chapters.push({summary:`QA 챕터 ${row.chapters.length+1}`,analysis:['QA fixture 본문'],example:'QA 사례',advice:'QA 조언',persona:'QA 메시지'});
-   row.state=row.chapters.length===row.manifest.length?'COMPLETED':'PAID';return send({ok:true,fortune:row});
+   if(row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'){row.errorCode='';row.state='PAID';}
+   return send({ok:true,fortune:row},202);
   }
   state.unknown.push(`${request.method()} ${path}`);
   return send({ok:false,code:'QA_UNEXPECTED_API'},501);
  });
  state.products=[product];
+ // A fixture server worker advances independently from browser HTTP requests.
+ // The real queue/repository completion and retry rules are covered in worker tests.
+ const worker=setInterval(()=>{
+  if(!row.paid||['COMPLETED','REFUNDED'].includes(row.state)||row.errorCode==='AUTOMATIC_RECOVERY_STOPPED')return;
+  if(state.generate503>0&&row.chapters.length>=state.generationBoundary){state.generate503--;row.state='FORTUNE_FAILED';row.errorCode='AUTOMATIC_RECOVERY_STOPPED';return;}
+  if(state.holdGeneration&&row.chapters.length>=state.generationBoundary){row.state='GENERATING';return;}
+  state.generates++;
+  row.chapters.push({summary:`QA 챕터 ${row.chapters.length+1}`,analysis:['QA fixture 본문'],example:'QA 사례',advice:'QA 조언',persona:'QA 메시지',questionAnswers:row.chapters.length===0?row.consultation?.questions?.map(q=>({questionId:q.id,answer:'선택의 기준을 먼저 정리해 보는 편이 좋아요.',reason:'오행의 분포와 월령에 따른 균형을 살펴봐요.',timing:'2026년 9~12월은 실천과 점검 기간이며 사건 예측은 아니에요.',action:'가능한 선택지를 적고 작게 시도해 보세요.'})):undefined});
+  row.state=row.chapters.length===row.manifest.length?'COMPLETED':'PAID';
+ },100);
+ context.on('close',()=>clearInterval(worker));
  return {context,page,state,row};
 }
 
@@ -192,10 +200,10 @@ async function waitResult(f){
 }
 
 async function complete(f,{resume=false}={}){
- if(resume&&f.row.state!=='COMPLETED')await f.page.getByRole('button',{name:/영냥이 상담 시작하기|남은 상담 이어가기/,exact:true}).click();
+ if(resume&&f.row.state!=='COMPLETED')await f.page.getByRole('button',{name:'기존 상담 복구하기',exact:true}).click();
  await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
  assert.equal(f.row.chapters.length,f.row.manifest.length);
- assert.ok(f.state.generates>=f.row.manifest.length,'Paid return must automatically request every missing chapter');
+ assert.equal(f.state.generates,f.row.manifest.length,'Server worker must generate every missing chapter exactly once');
  const before=f.state.generates;
  await f.page.waitForLoadState('load');
  await settleApiFixture(f);
@@ -271,7 +279,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
     }
     await check(browser,`${engine.name()}-home-profile-catalog`,products[0],390,async f=>{
      f.state.profiles=[];
-     await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{name:/네 운명의 이야기/}).waitFor();
+     await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{name:/사주보는 고양이/}).waitFor();
      assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(24, 19, 43)');
      await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건…',{exact:true}).waitFor();
      await f.page.waitForLoadState('load');

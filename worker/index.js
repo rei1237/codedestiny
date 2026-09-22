@@ -1909,6 +1909,10 @@ export default {
   // 🔴 크론이 둘이므로 event.cron 으로 반드시 분기한다. 분기 없이 두면 일일 태스크(운세 발송·구독 정산 등)가
   // 10분마다 돌아 중복 지급이 난다. 알 수 없는 cron 값은 일일 세트로 폴백한다(스케줄을 추가했는데
   // 분기를 빠뜨렸을 때 태스크가 통째로 멈추는 것보다 낫다).
+  async queue(batch, env) {
+    const { consumeConsultationQueue } = await import('./yeongnyangi/queue.js');
+    await consumeConsultationQueue(batch, env);
+  },
   async scheduled(event, env, ctx) {
     const cron = String(event?.cron || "").trim();
 

@@ -39,5 +39,5 @@ test('tick reserves provider and commit time before starting another chapter',as
   expect(generate).toHaveBeenCalledTimes(1);
 });
 test('review-required and payment-suspended requests are excluded',()=>{
-  expect(abandonedRequestFilter(Date.now()).errorCode.$nin).toEqual(['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE']);
+  expect(abandonedRequestFilter(Date.now()).errorCode.$nin).toEqual(['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']);
 });

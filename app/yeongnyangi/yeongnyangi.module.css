@@ -258,6 +258,9 @@
 .guideCat { display:block; width:126px; height:126px; object-fit:contain; border-radius:24px; background:#fff3e2; margin:0 0 22px; }
 .consultationGuide h2 { font-size:clamp(1.4rem,2.3vw,1.85rem); line-height:1.6; color:var(--yn-ivory); margin:0 0 16px; letter-spacing:-.025em; }
 .consultationGuide > p { color:#c7b5ce; font-size:.9rem; line-height:1.9; }
+.questionContext { margin:24px 0; padding:20px 0; border-block:1px solid #72567f; line-height:1.8; overflow-wrap:anywhere; }
+.questionContext h2 { margin:0 0 12px; }
+.questionContext p { margin:8px 0; }
 .consultationSummary { padding:20px 0 8px; margin:24px 0 0; border-top:1px solid #72567f; }
 .consultationSummary > div { margin-bottom:18px; }
 .consultationSummary dt { color:#c7b5ce; font-size:.78rem; margin-bottom:5px; }

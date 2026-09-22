@@ -30,6 +30,7 @@ export interface ChapterSpec {
   ordinal: number;
 }
 export interface ChapterBody {
+  questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string }[];
   blocks?: { title: string; paragraphs: string[] }[];
   summary: string;
   analysis: string[];
@@ -48,6 +49,7 @@ export interface Signal {
   label: string;
 }
 export interface MasterAnalysis {
+  consultation?: import('./consultation').Consultation;
   readingMode?: string;
   topicId?:string;
   question?:string;
