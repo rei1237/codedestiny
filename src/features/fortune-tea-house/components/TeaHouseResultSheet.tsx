@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { getAuthState, useAuthStore } from "@/app/_lib/auth-store";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { teaHouseShareChoices } from "@/lib/consultation-sharing";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
@@ -1107,6 +1109,8 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
         ) : null}
+
+        <ConsultationShare key={rawResult.resultId} brand="tea" choices={teaHouseShareChoices(rawResult)} />
 
         <div className={`${styles.resultActions} ${resultActionUi}`}>
           <TeaHouseButton onClick={onRestart}>{copy.kp3udmzq}</TeaHouseButton>

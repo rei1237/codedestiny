@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-22
-next: "운명의 찻집·네오 완료 결과의 공유 요약 어댑터부터 구현하고, 상담군별 검증 표를 채운다."
+updated: 2026-09-23
+next: "찻집·네오 후속 커밋의 main CI를 확인하고 기존 셸 및 개별 AI 결과의 공유 어댑터를 확장한다."
 ---
 
 # 경쟁사 대비 전환·신뢰·SEO·상담 공유 후속 작업
@@ -43,9 +43,15 @@ next: "운명의 찻집·네오 완료 결과의 공유 요약 어댑터부터 �
 - Impeccable 변경 UI 기계 탐지 결과 `[]`. 사이트 전체 WCAG 점수나 성능 실측은 아님.
 - 실제 고객 전환율·검색 순위·매출·수신자 반응·카카오 실기기 전송은 미측정. 운영 반영 전 코드 전달이며 실결제·LLM·운영 쓰기·SNS 게시 0회.
 
+## 2026-09-23 후속: 찻집·네오 공유
+
+찻집과 네오에 `components/fortune/ConsultationShare.tsx`를 연결했다. 공유 상태·허용 필드·공개 URL·기능 키·검증 범위 정본은 `docs/consultation-sharing-coverage-20260923.md`다. 찻집 정본 5개 상품과 네오 4개 명리 체계에 요약 선택·편집·문구/카카오/이미지 공유를 추가했다. 완료 전·실패·pending 수정본을 공유하지 않는다. 결제·생성·저장·보상·PDF 권한은 변경하지 않았다.
+
+아래 찻집·네오 행은 처음 조사할 때의 위치 기록이다. 두 기능의 공유 UI를 다시 만들지 말고 새 적용표부터 읽어라. 다음 구현은 **기존 셸 공유 호출부와 개별 AI 결과의 저장된 요약 어댑터**다. main CI는 후속 커밋 SHA로 직접 조회하고, 앞선 영냥이 커밋의 초록 CI를 후속 변경의 증거로 쓰지 않는다.
+
 ## 다음 구현 순서: 기존 상담군 공유
 
-첫 단위는 **운명의 찻집 + 네오의 요약 공유**로 잡는다. 기존 결과/결제 상태는 건드리지 말고 완료된 결과 표시 위치에 얇은 공유 어댑터를 붙인다. `js/share-service.mjs`의 채널·취소·실패 동작을 재사용한다. 개인 결과 주소를 `ShareWidget`에 넘겨 noindex를 풀지 않는다.
+찻집·네오 다음 단위에서도 기존 결과/결제 상태를 유지하고 완료된 결과 표시 위치에 얇은 공유 어댑터를 붙인다. `ConsultationShare`와 `js/share-service.mjs`의 채널·취소·실패 동작을 재사용한다. 개인 결과 주소를 `ShareWidget`에 넘겨 noindex를 풀지 않는다.
 
 | 대상 | 확인한 위치·상태 | 다음 행동 |
 |---|---|---|
@@ -88,5 +94,5 @@ next: "운명의 찻집·네오 완료 결과의 공유 요약 어댑터부터 �
 ## 복사해서 재개
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\conversion-sharing-plan-20260922.md를 읽어라. main의 74413af4c3bf1228f4b86f10ae5c1a9ce2e6f6d2 포함 여부와 다른 세션의 미커밋 변경을 확인하고 보존하라. 찻집·네오 완료 결과의 요약 공유 어댑터 구현부터 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 읽어라. 기준 커밋 209816684c7398925d057ba5ad722c47e0a14e1d 이후의 찻집·네오 공유 커밋과 main CI를 확인하고 다른 세션의 미커밋 변경을 보존하라. 기존 셸 공유 호출부와 개별 AI 결과의 저장된 요약 어댑터 구현부터 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
 ```
