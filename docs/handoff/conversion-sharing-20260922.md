@@ -12,9 +12,10 @@ next: "책·편지 UI 후속 커밋의 main CI를 확인하고 구매 전 상세
 
 - 앞선 찻집·네오 구현 f828f33f55f11067467781a4552d905f6dcbd4dc의 빌드/타입/critical 잡은 성공했으나, KST 자정의 날짜 URL 교체와 찻집 소스 서명 때문에 sitemap guard가 실패했다.
 - 생성 정본을 그대로 실행해 a967b1f14bbcab8c68737bd23005e796966c9479로 갱신했고 main push 및 CI 35747813782 성공을 확인했다. 날짜만 갱신된 원장 376개와 찻집 서명 1개다. 사이트맵 정책을 바꾸지 않았다.
-- 현재 새 작업은 D:\Development\codedestiny-worktrees\cs2-20260922-235536, wt/cs2-20260922-235536. main의 marketing/** 변경을 보존한다. 사용 전 git status와 main 최신 SHA를 확인한다.
+- 작업은 D:\Development\codedestiny-worktrees\cs2-20260922-235536, wt/cs2-20260922-235536에서 격리했다. main의 marketing/** 변경을 보존했다. 다음 세션은 원본 main에서 시작하고 동시 편집 중이면 새 safe worktree를 만든다. 로컬 QA 서버 14123은 종료했다.
 - 인생의 책/연애 비책의 실제 결과 UI·공유 카드·공개 URL·취소·미저장 공유 방지, 생성 WebP 2개와 출처 sidecar, scripts/verify-book-card-sharing.mjs를 구현했다.
-- 최종 해당 커밋과 CI는 main log에서 feat: give premium reports book and letter designs 이후를 확인한다. 문서 기준 SHA a967b1f14bbcab8c68737bd23005e796966c9479의 성공을 후속 구현의 CI로 오해하지 않는다.
+- 코드 커밋 78015f852는 다른 세션의 pass 변경을 보존한 병합 fc12eb6a5fd99a4931d93037ddd6e7ac8d0f1690으로 main push했다. 해당 공식 CI 35752264003의 CI required success를 확인했다. Build Pages and Worker, Typecheck and lint, Static guards 모두 success이며 Critical checks는 변경 티어 판정에 따라 skipped다. 앞선 커밋의 CI를 이 구현의 증거로 오해하지 않는다.
+- mock 브라우저 35/35와 최종 360px 봉인 겹침 수정 캡처, 독립 마감 ship 판정을 확보했다. D:\Development\code-destiny\build-cache\premium-consultation-20260923\에 증거, build-cache\premium-fonts\에 로컬 검증용 공개 서체 캐시가 있다.
 - 다음은 두 상품의 **구매 전 상세/예시 → 실제 책·편지 결과의 일치**, 이름 숨김/문구 편집/미리보기, 다른 전문가 상담 UI와 결과별 공유 어댑터다. 기능 목록과 완료 기준은 두 적용표/디자인 문서에 있다.
 - 브랜드·네오 활동명·3개 예측 원문·게시일을 다시 묻지 않는다. 가격/권한/실과금/운영 배포 경계와 다른 세션의 변경을 보존한다.
 - 구 워크트리 conversion-sharing-20260922-230110의 긴 경로 삭제가 자동 승인 검토에서 거절된 이력이 있다. 우회 삭제하지 않는다. 이 현재 작업의 전달과 별개다.
@@ -107,5 +108,5 @@ next: "책·편지 UI 후속 커밋의 main CI를 확인하고 구매 전 상세
 ## 복사해서 재개
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 읽어라. 기준 커밋 a967b1f14bbcab8c68737bd23005e796966c9479 이후의 feat: give premium reports book and letter designs 커밋과 main CI를 확인하고 다른 세션의 미커밋 변경을 보존하라. docs/premium-consultation-design-20260923.md의 실제 책·비밀 편지 방향을 유지하고 두 상품의 구매 전 상세/예시, 다른 전문가 상담 UI와 저장된 결과 공유 어댑터를 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 읽어라. 기준 커밋 fc12eb6a5fd99a4931d93037ddd6e7ac8d0f1690 및 이후 인수인계 문서 커밋의 main CI를 확인하고 다른 세션의 미커밋 변경을 보존하라. docs/premium-consultation-design-20260923.md의 실제 책·비밀 편지 방향을 유지하고 두 상품의 구매 전 상세/예시, 다른 전문가 상담 UI와 저장된 결과 공유 어댑터를 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
 ```

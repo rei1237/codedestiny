@@ -43,6 +43,17 @@ next: "인생의 책·연애 비책 결과 화면의 검증과 CI를 마치고, 
 | 작명·휴먼디자인·손금 | 기존 개별 결과 Client | 이름·바디그래프·손금 관찰이 중심인 상담별 기록. 동일한 장식 카드로 복제하지 않음 |
 | 나크샤트라·초융합·자미두수·전문가 프레임 | 기존 공유 적용표 파일 목록 | 체계별 결과 구조·차트·요약을 먼저 읽고 개선. 아직 구현/검증 완료 아님 |
 
+## 구매 전 화면·나머지 상담의 구체적 재개 위치
+
+- 인생의 책 구매 전: app/life-book-ai/LifeBookAiClient.tsx 1748 부근. 갈색 별무늬 배경, reading-room 사진과 베일, 영문 배지, Ready Check가 남아 있다. 실제 책 표지를 먼저 보여주고 기존 heroTitle/heroDescription·구성·입력 준비 안내를 주변에 배치한다. form submit, 프로필 채우기, mode와 가격 데이터는 유지한다. 모바일에서 표지 때문에 입력 진입이 지나치게 밀리지 않도록 기존 폼 이동 동선을 확인한다.
+- 연애 비책 구매 전: app/love-secret-ai/LoveSecretAiClient.tsx의 LoveSecretHero(2488 부근). reading-room 배경·하트 아이콘·둥근 약속 배지가 남아 있다. 실제 봉투/편지의 시각 언어로 교체하되 onStart/busy와 기존 소개·제공 범위는 유지한다. 결과 전용 reportTheme을 전체 입력 화면에 무조건 붙이지 말고 입력 대비와 모든 상태를 검토한다.
+- 상세 팝업: public/feature-details/*.json과 lib/marketing/feature-visual-details.generated.json은 생성물이다. scripts/lib/build-visual-details.mjs는 index.html의 FEATURE_VISUAL_DETAILS와 D, app/_lib/serviceFeatureRegistry.ts를 읽는다. 정본을 수정하고 기존 생성 파이프라인을 사용한다. 표지 세로 에셋을 기존 가로 상품 포스터에 그대로 크롭해서 제목을 자르지 않는다.
+- 마스터 연애의 실제 독서 UI는 route Client가 아니라 src/features/master-love-codex/components/CodexReader.tsx, CodexShell.tsx, styles/codex.module.css다. route가 전달하는 completed/sessionId와 부분 생성 재개 안내를 보존한다.
+- 카르마는 app/karma-destiny-ai/result/_components/ResultStyles.tsx가 실제 스타일을 소유한다. html2canvas가 backdrop-filter를 지원하지 않는다는 기존 PDF 계약을 읽고 결과/PDF 모두 검사한다. 헤더의 전체 복사는 짧은 요약 공유와 다르다.
+- 서양 점성술 결과는 RESULT_PANEL_CLASS와 실제 AstrologyChartWheel이 함께 쓰인다. 실제 천궁도를 중심으로 읽기 순서를 잡고 장식 이미지로 계산 차트를 대체하지 않는다.
+
+위 항목은 소스 조사와 다음 구현 계획이다. 아직 디자인 적용 또는 브라우저 검증을 완료한 항목이 아니다.
+
 ## 생성 에셋과 출처
 
 built-in image_gen 사용. 원본은 아래 Codex 생성 폴더에 보존했으며, 프로젝트에는 WebP 형식으로 저장했다. 외부 스톡·실제 상담사가 작성한 문서의 사진이 아니다.
@@ -67,6 +78,6 @@ Create one production UI artwork, portrait 4:5: a private love letter as beautif
 
 - mock 브라우저 기능 검사 35/35 통과. 이후 편지의 360px 봉인 겹침은 모바일 내부 여백만 조정하고 해당 화면을 다시 캡처했다.
 - 독립 마감 검토: 종이 이미지 비율, 장별 편지 내지, 한글 서체·어두운 테마, 내비게이션과 스크롤 위치, 최종 360px 봉인 겹침 모두 해결 판정. 이번 두 결과 화면 범위의 disposition은 ship이다. 다른 전문가 상담 또는 전환율 검증을 뜻하지 않는다.
-- check:fast 전체 실행은 종료 코드 0이었다. 다만 실행 도중 사용자의 새 시각 방향에 따른 수정이 이어졌으므로 최종 파일 집합의 단독 증거로 사용하지 않는다. 이후 변경 파일 lint(기존 경고만), typecheck, hero-contrast, mobile-detail-nonintrusive, sitemap-drift, handoff-contract, doc-freshness가 통과했다. 최종 공식 증거는 후속 main CI다.
+- check:fast 전체 실행은 종료 코드 0이었다. 다만 실행 도중 사용자의 새 시각 방향에 따른 수정이 이어졌으므로 최종 파일 집합의 단독 증거로 사용하지 않는다. 이후 변경 파일 lint(기존 경고만), typecheck, hero-contrast, mobile-detail-nonintrusive, sitemap-drift, handoff-contract, doc-freshness가 통과했다. 최종 코드 fc12eb6a5fd99a4931d93037ddd6e7ac8d0f1690의 main CI 35752264003에서 CI required success를 확인했다. 빌드·타입/린트·정적 가드가 성공했고 Critical checks는 변경 티어에 따라 skipped였다.
 - 스크린샷·로그는 원본 main의 build-cache/premium-consultation-20260923/에 보존한다. 서체 캐시는 원본 main의 build-cache/premium-fonts/에 보존한다.
 - 실결제·유료 LLM·운영 DB 쓰기·실제 카카오/단톡방 전송·운영 승격은 하지 않았다. 결과 카드의 소유자 이름 숨김/편집과 구매 전 화면·다른 상담 UI는 후속 범위다.
