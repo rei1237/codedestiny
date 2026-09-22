@@ -20,6 +20,15 @@ test("codex rejects unsupported calendar inputs before normalizing them", () => 
   }
 });
 
+test.each(["solo", "compat"])("%s chapters attach a product and chapter key to provider usage logs", mode => {
+  const modeDef = utils.resolveMode(mode);
+  const chapter = modeDef.chapters[0];
+  expect(utils.buildChapterLogContext(modeDef, chapter)).toEqual({
+    serviceId: modeDef.featureKey,
+    sectionGroup: chapter.id,
+  });
+});
+
 for (const mode of ["solo", "compat"]) {
   const def = utils.resolveMode(mode);
   test(`${mode} staging book keeps the complete result contract with explicit fixture labels`, () => {

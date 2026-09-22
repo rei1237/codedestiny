@@ -636,6 +636,13 @@ function normalizeChapterContent(parsed, fallbackBody = "") {
   };
 }
 
+function buildChapterLogContext(modeDef, chapter) {
+  return {
+    serviceId: modeDef.featureKey,
+    sectionGroup: clean(chapter?.id, 80),
+  };
+}
+
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
   birthInfo, partnerInfo, chapter, prologueChoice, memory, previousError = "", snapshotKey, deadlineAt = Infinity,
@@ -647,6 +654,7 @@ async function generateChapter(env, {
   const timeoutMs = Math.min(CHAPTER_TIMEOUT_MS, remainingMs);
 
   const modeDef = resolveMode(mode);
+  const logContext = buildChapterLogContext(modeDef, chapter);
   if (isStagingLlmMockEnabled(env)) {
     const parsed = buildCodexStagingChapter(chapter, modeDef.dnaMetrics);
     assertCodexChapterQuality(parsed, chapter, modeDef.dnaMetrics);
@@ -671,7 +679,7 @@ async function generateChapter(env, {
       const raced = await withDeadline(generateCodexChapterResponse(
         (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
         { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1, previousError,
-          options: { temperature: 0.6, timeoutMs, cache, fallbackToWorkersAI: false } },
+          options: { temperature: 0.6, timeoutMs, cache, fallbackToWorkersAI: false, logContext } },
       ), deadlineAt);
       if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
       if (raced.error) throw raced.error;
@@ -697,6 +705,7 @@ async function generateChapter(env, {
       fallbackToWorkersAI: false,
       timeoutMs,
       cache,
+      logContext,
     }), deadlineAt);
     if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
     if (raced.error) throw raced.error;
@@ -1618,7 +1627,7 @@ export async function handleMasterLoveCodexRoutes(request, env = {}, dependencie
 export const __masterLoveCodexTestUtils = {
   FEATURE_KEY, COMPAT_FEATURE_KEY, SERVICE_KEY, MODES,
   normalizeInput, getPricing, buildBillingGatePayload, normalizeLoveDna,
-  resolveMode, tokenMatchesMode, buildCharts,
+  resolveMode, tokenMatchesMode, buildCharts, buildChapterLogContext,
   // 배치 시간 예산 — 검증 스크립트가 LLM 호출 없이 순수 함수로 확인한다.
   withDeadline, acquireBatchLock, runCodexWave,
   BATCH_BUDGET_MS, BATCH_LOCK_TTL_MS, CHAPTER_MIN_BUDGET_MS, EDGE_RESPONSE_DEADLINE_MS,
