@@ -1,4 +1,6 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
+import ServiceIntroSection from "../../components/ServiceIntroSection";
+import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const VEDIC_JYOTISH_TEXT_TRANSLATIONS = {
@@ -554,5 +556,13 @@ const SERVICE = {
 };
 
 export default function VedicJyotishLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return <>
+    <FeatureLandingPage service={SERVICE} />
+    <ServiceIntroSection label="조티쉬 차트 다음 단계">
+      <h2>차트의 시기를 내 질문에 연결해 보기</h2>
+      <p>조티쉬 차트에서 라시·나크샤트라·다샤를 확인했다면, 베다점 전문가 상담에서 이 지표가 지금의 고민에 어떻게 이어지는지 읽어 볼 수 있습니다. 서양 점성술의 천궁도와 체계를 섞지 않고 베다점의 기준으로 해설합니다.</p>
+      <p>상담 범위와 이용 가격을 확인한 뒤 직접 시작할 수 있습니다. 완료된 해설은 본인 계정에서 다시 열람할 수 있습니다.</p>
+      <p><Link href="/vedic-ai/" className="inline-flex min-h-11 items-center rounded-lg border border-amber-200/50 px-4 font-semibold text-amber-100 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-100">베다점 상담 살펴보기</Link></p>
+    </ServiceIntroSection>
+  </>;
 }

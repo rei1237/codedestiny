@@ -1,4 +1,6 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
+import ServiceIntroSection from "../../components/ServiceIntroSection";
+import Link from "next/link";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 
 const ASTRO_COSMIC_TEXT_TRANSLATIONS = {
@@ -546,5 +548,13 @@ export const metadata = withUniqueRouteMetadata("/astrology/cosmic", {
 });
 
 export default function AstroCosmicLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return <>
+    <FeatureLandingPage service={SERVICE} />
+    <ServiceIntroSection label="코즈믹 차트 다음 단계">
+      <h2>차트에서 찾은 질문을 더 깊이 읽고 싶다면</h2>
+      <p>코즈믹 차트는 태양·달·상승궁을 살펴보는 출발점입니다. 서양 점성술 전문가 상담에서는 저장된 출생 천궁도와 장별 해설을 함께 읽고, 지금의 질문에 맞춘 선택 기준을 정리할 수 있습니다.</p>
+      <p>상담 내용과 이용 가격을 확인한 뒤 직접 시작할 수 있습니다. 완료된 결과는 본인 계정에서 다시 열람할 수 있습니다.</p>
+      <p><Link href="/astrology-ai/" className="inline-flex min-h-11 items-center rounded-lg border border-amber-200/50 px-4 font-semibold text-amber-100 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-100">서양 점성술 상담 살펴보기</Link></p>
+    </ServiceIntroSection>
+  </>;
 }
