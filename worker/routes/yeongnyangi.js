@@ -9,6 +9,9 @@ import { enqueueConsultation } from '../yeongnyangi/queue.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  SPIRIT_INPUT_REQUIRED:'질문, 관계와 상담 주제를 확인해 주세요.',
+  SPIRIT_PRODUCT_REQUIRED:'영감 상담은 기존 사주 고등어 상담으로 이용할 수 있어요.',
+  SPIRIT_EVIDENCE_UNAVAILABLE:'이번 정보로는 해석 근거를 확인하지 못했어요. 출생정보를 확인해 주세요.',
   "BIRTH_TIME_REQUIRED": "이 운세에는 출생시간이 필요해요. 프로필의 시간을 확인해 주세요.",
   "BIRTH_PLACE_REQUIRED": "이 운세에는 출생지역이 필요해요. 도시와 국가를 입력해 주세요.",
   "PREMIUM_BIRTH_REQUIRED": "선택한 깊이의 상담에는 출생시간, 성별, 출생지역이 모두 필요해요.",

@@ -39,6 +39,7 @@ export interface FortuneResult {
   cautions: string[];
 }
 export interface FortuneLLMRequest {
+  maxProviderAttempts?: number;
   maxOutputTokens?: number;
   system: string;
   domainRules: string;

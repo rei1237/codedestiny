@@ -3,6 +3,7 @@ import { FortuneError } from './shared/contracts';
 import { topicLabel } from './topics';
 
 export interface Consultation {
+  spirit?: import('./spirit-contract').SpiritPublic;
   version: 1;
   topicId: string;
   topicLabel: string;
