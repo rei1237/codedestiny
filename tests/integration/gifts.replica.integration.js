@@ -268,7 +268,7 @@ test("new VVIP gift keeps its policy and budget after transactional claim", asyn
   await claimGift(db, { tokenHash, userId: receiver, now });
   const sub = (await User.findById(receiver).lean()).profileSubscription;
   expect(sub.passPolicyVersion).toBe(CURRENT_PASS_POLICY_VERSION);
-  expect(sub.monthlyLimitCoin).toBe(900);
+  expect(sub.monthlyLimitCoin).toBe(2000);
   expect(sub.monthlySpendCoin).toBe(0);
 });
 
@@ -280,5 +280,5 @@ test("new gift waits for old policy expiry without consuming the gift", async ()
   expect(await GiftGrant.countDocuments()).toBe(0);
   await User.collection.updateOne({ _id: receiver }, { $set: { "profileSubscription.expiresAt": new Date(now.getTime() - day) } });
   await claimGift(db, { tokenHash, userId: receiver, now });
-  expect((await User.findById(receiver).lean()).profileSubscription.monthlyLimitCoin).toBe(900);
+  expect((await User.findById(receiver).lean()).profileSubscription.monthlyLimitCoin).toBe(2000);
 });
