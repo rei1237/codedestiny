@@ -1,0 +1,154 @@
+.bookPage {
+  --pe-ink: #f6ecd7;
+  --pe-muted: #d3c7aa;
+  --pe-line: #536656;
+  --pe-accent: #eddbaf;
+  --pe-accent-ink: #20362a;
+  min-height: 100vh;
+  background: #152721;
+  color: var(--pe-ink);
+  font-family: var(--font-body);
+}
+.letterPage {
+  --pe-ink: var(--ls-text);
+  --pe-muted: var(--ls-text-muted);
+  --pe-line: var(--ls-line-control);
+  --pe-accent: var(--ls-accent);
+  --pe-accent-ink: var(--ls-accent-ink);
+}
+.shell {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 88px 32px 112px;
+}
+.hero {
+  display: grid;
+  grid-template-columns: minmax(260px, 390px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 5vw, 80px);
+  padding-bottom: 48px;
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--pe-line);
+}
+.bookObject, .letterObject {
+  margin: 0;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  text-align: center;
+  font-family: var(--font-serif);
+}
+.bookObject {
+  aspect-ratio: 3 / 4;
+  padding: 18% 14% 10% 18%;
+  background-image: url('/images/expert-consulting/life-book-cover-20260923.webp');
+  color: #f6e6b6;
+}
+.letterObject {
+  aspect-ratio: 4 / 5;
+  padding: 19% 17% 22% 13%;
+  background-image: url('/images/expert-consulting/love-letter-paper-20260923.webp');
+  color: #51303e;
+}
+.coverTitle {
+  margin: 0;
+  font-size: clamp(24px, 2.7vw, 38px);
+  font-weight: 700;
+  line-height: 1.55;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.coverSubtitle {
+  margin: 20px 0 0;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.9;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.heroCopy h2 {
+  margin: 0;
+  max-width: 18ch;
+  color: var(--pe-ink);
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 3.4vw, 46px);
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.description {
+  max-width: 42em;
+  margin: 20px 0 0;
+  color: var(--pe-muted);
+  font-size: 16px;
+  line-height: 1.9;
+  word-break: keep-all;
+}
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 24px 0 0;
+  padding: 0;
+  color: var(--pe-muted);
+  list-style: none;
+  font-size: 14px;
+  line-height: 1.7;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  margin-top: 32px;
+}
+.start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 1px solid var(--pe-accent);
+  border-radius: 6px;
+  background: var(--pe-accent);
+  color: var(--pe-accent-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  text-underline-offset: 4px;
+}
+.start:hover { text-decoration: underline; }
+.start:disabled { cursor: wait; opacity: .65; }
+.start:focus-visible { outline: 2px solid var(--pe-ink); outline-offset: 5px; }
+.price { color: var(--pe-muted); font-size: 14px; line-height: 1.8; }
+.bookPage::selection { background: #eddbaf; color: #20362a; }
+.formLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); gap: 32px; align-items: start; }
+.preparation { border-top: 1px solid var(--pe-line); padding-top: 24px; }
+.preparation h2 { font-family: var(--font-serif); font-size: 24px; line-height: 1.6; }
+.preparation dl { margin-top: 24px; }
+.preparation dl div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--pe-line); font-size: 14px; line-height: 1.7; }
+.preparation dt { color: var(--pe-muted); }
+.preparation dd { margin: 0; overflow-wrap: anywhere; }
+.bookForm { scroll-margin-top: 88px; border: 1px solid var(--pe-line); border-radius: 6px; background: #20362a; padding: 24px; }
+@media (max-width: 700px) {
+  .shell { padding: 80px 20px 112px; }
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-bottom: 32px; margin-bottom: 32px; }
+  .bookObject, .letterObject { width: 220px; justify-self: center; }
+  .bookObject { padding: 38px 30px 24px 38px; }
+  .letterObject { padding: 48px 38px 55px 29px; }
+  .coverTitle { font-size: 23px; }
+  .coverSubtitle { font-size: 12px; margin-top: 12px; }
+  .heroCopy h2 { font-size: 28px; max-width: none; }
+  .description { margin-top: 12px; font-size: 15px; }
+  .topics { margin-top: 18px; font-size: 13px; gap: 6px 16px; }
+  .actions { margin-top: 24px; gap: 12px; }
+  .start { width: 100%; }
+  .formLayout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .preparation { order: 2; }
+  .bookForm { padding: 20px; }
+}

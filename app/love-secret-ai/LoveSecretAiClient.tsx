@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import { authFetch } from "@/app/_lib/auth-client";
 import theme from "./love-secret-theme.module.css";
 import styles from "./LoveSecretAiClient.module.css";
+import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
 import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -1481,11 +1482,13 @@ function getLoveSecretClientCopy(locale: LoadingLocale): LoveSecretClientCopy {
 }
 
 function useLoveSecretClientCopy(): LoveSecretClientCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  // Match the server's Korean snapshot; resolve the browser locale after hydration.
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
+    sync();
     return () => {
       window.removeEventListener("languagechange", sync);
       window.removeEventListener("cd:locale-ready", sync);
@@ -2288,14 +2291,12 @@ export default function LoveSecretAiPage() {
 
   return (
     <main
-      className={`${theme.theme} relative min-h-screen overflow-hidden text-[var(--ls-text)] [font-family:var(--font-body)]`}
+      className={`${theme.theme} ${theme.reportTheme} ${intro.letterPage} relative min-h-screen overflow-hidden text-[var(--ls-text)] [font-family:var(--font-body)]`}
       data-cd-marker="love-secret-ai-page-v20260627"
     >
       <div className={`pointer-events-none fixed inset-0 ${theme.pageBg}`} aria-hidden="true" />
-      <div className={`pointer-events-none fixed inset-0 ${theme.pageGlow}`} aria-hidden="true" />
-      <div className={`pointer-events-none fixed inset-0 ${styles.petalTexture}`} aria-hidden="true" />
 
-      <section className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-10 pt-16 sm:px-6 sm:pt-14 lg:px-8">
+      <section className={`${intro.shell} flex flex-col gap-6`}>
         <LoveSecretHero onStart={focusFirstStepField} busy={busy} />
 
         <LoveSecretProgressRail
@@ -2304,12 +2305,12 @@ export default function LoveSecretAiPage() {
           percent={stepPercent}
         />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <ExpertValueCards theme="love" points={[{ title: "내 마음의 속도", description: "지금 관계에서 내가 먼저 반응하는 지점과 원하는 거리를 살핍니다." }, { title: "상대와의 결", description: "상대의 마음을 단정하지 않고 관계의 패턴과 흐름으로 읽습니다." }, { title: "다음 대화", description: "불안을 키우기보다 지금 선택할 수 있는 대화와 간격을 정리합니다." }]} />
-          <form onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className="min-w-0">
+        <div className={styles.formLayout}>
+          <form onSubmit={handleSubmit} id={FORM_ANCHOR_ID} className={styles.entryForm}>
             <div
               key={busy ? "busy" : activeStep.id}
-              className={`${styles.stepEnter} rounded-[28px] border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 shadow-[var(--ls-glow)] sm:p-7`}
+              className={`${styles.stepEnter} rounded-lg border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 sm:p-7`}
             >
               {busy ? (
                 <LoveSecretGeneratingCard phase={phase} text={phaseText} progress={progress} progressIndex={progressIndex} />
@@ -2320,10 +2321,10 @@ export default function LoveSecretAiPage() {
                       <activeStep.Icon className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black tracking-[0.14em] text-[var(--ls-accent)]">
+                      <p className="text-xs font-semibold tracking-[0.14em] text-[var(--ls-accent)]">
                         STEP {step + 1} / {STEPS.length}
                       </p>
-                      <h2 className="mt-1 break-keep text-xl font-black text-[var(--ls-text)] [font-family:var(--font-display)] sm:text-2xl">
+                      <h2 className="mt-1 break-keep text-xl font-semibold text-[var(--ls-text)] [font-family:var(--font-serif)] sm:text-2xl">
                         {copy.stepTitle[activeStep.id]}
                       </h2>
                       <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{copy.stepHelper[activeStep.id]}</p>
@@ -2426,7 +2427,7 @@ export default function LoveSecretAiPage() {
                 {step < LAST_STEP ? (
                   <button
                     type="button"
-                    className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
+                    className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-semibold text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
                     onClick={goNext}
                     disabled={busy}
                   >
@@ -2436,7 +2437,7 @@ export default function LoveSecretAiPage() {
                 ) : (
                   <button
                     type="submit"
-                    className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
+                    className={`${theme.focusRing} inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[image:var(--ls-cta)] px-5 text-sm font-semibold text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-55`}
                     disabled={busy}
                   >
                     {busy
@@ -2457,7 +2458,6 @@ export default function LoveSecretAiPage() {
               )}
             </div>
           </form>
-          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} label="연애 비책 펼치기" price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
 
           <aside className="space-y-5">
             <LoveSecretPromiseCard />
@@ -2469,7 +2469,7 @@ export default function LoveSecretAiPage() {
                     href={resultUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className={`${theme.focusRing} mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[image:var(--ls-cta)] px-4 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5`}
+                    className={`${theme.focusRing} mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-[image:var(--ls-cta)] px-4 text-sm font-semibold text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5`}
                   >
                     {copy.openResultNewWindowCta}
                   </a>
@@ -2478,6 +2478,7 @@ export default function LoveSecretAiPage() {
             )}
           </aside>
         </div>
+          <ExpertStickyCta theme="love" targetId={FORM_ANCHOR_ID} label="연애 비책 펼치기" price={<PriceBadge featureKey="love-secret-ai-consultation" prefix="상담 이용 가격 " />} />
       </section>
     </main>
   );
@@ -2486,55 +2487,24 @@ export default function LoveSecretAiPage() {
 function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean }) {
   const copy = useLoveSecretClientCopy();
   return (
-    <header
-      className={`${styles.heroCard} relative overflow-hidden rounded-[32px] border border-[var(--ls-line)] bg-[var(--ls-surface)] px-6 py-10 sm:px-10 sm:py-14`}
-    >
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-cover bg-right opacity-60"
-        style={{ backgroundImage: "url('/fuctionassets/love-secret-reading-room-v1.webp')" }}
-      />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[image:var(--ls-hero-veil)]" />
-      {/* 하트 타일 텍스처(styles.petalTexture)를 여기 얹지 않는다 — 히어로는 이미 사진이
-          질감을 담당하고, 사진 위에 패턴을 깔면 포장지처럼 보인다. 페이지 전역 텍스처는
-          평평한 배경을 맡는 788행 하나로 충분하다. */}
-      {/* 왼쪽 정렬 고정(mx-auto 금지): 베일이 좌측에 무겁게 깔리므로 가운데 정렬하면
-          넓은 화면에서 글이 옅어진 우측으로 밀려 대비가 무너진다. 사진은 오른쪽에 남겨 둔다. */}
-      <div className={`${theme.onDark} relative z-10 flex max-w-2xl flex-col items-start text-left`}>
-        <span className={`${styles.heroRing} relative grid h-16 w-16 place-items-center rounded-full bg-[var(--ls-surface-sunken)]`}>
-          <Heart className={`${styles.heroHeart} h-8 w-8 fill-[var(--ls-accent)] text-[var(--ls-accent)]`} aria-hidden="true" />
-        </span>
-        {/* 서체는 --font-display(픽셀 계열)가 아니라 DESIGN.md 의 brand-serif 역할(--font-serif).
-            사진·밀랍 인장의 고전적인 화면에 픽셀 디스플레이체가 얹히면 결이 어긋난다.
-            한글 명조 미러는 700 만 있으므로(globals.css 345행) font-black 이 아니라 font-bold 다. */}
-        <h2 className="mt-8 text-balance break-keep text-[clamp(2.2rem,7vw,3.6rem)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ls-text)] [font-family:var(--font-serif)]">
-          {copy.heroTitle}
-        </h2>
-        <p className="mt-3 text-balance break-keep text-lg font-bold leading-8 text-[var(--ls-accent)] sm:text-xl">
-          {copy.heroSubtitle}
-        </p>
-        <p className="mt-5 max-w-xl text-pretty break-keep text-[0.95rem] leading-7 text-[var(--ls-text-muted)]">
-          {copy.heroDescription}
-        </p>
-        <button
-          type="button"
-          onClick={onStart}
-          disabled={busy}
-          className={`${theme.focusRing} mt-10 inline-flex min-h-12 items-center gap-2 rounded-full bg-[image:var(--ls-cta)] px-7 text-sm font-black text-[var(--ls-cta-ink)] shadow-[var(--ls-glow)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 disabled:translate-y-0 disabled:opacity-55 motion-reduce:transition-none motion-reduce:hover:translate-y-0`}
-        >
-          <Heart className="h-4 w-4 fill-current" aria-hidden="true" />
-          {copy.heroStartCta}
-        </button>
-        <ul className="mt-8 flex flex-wrap justify-start gap-2">
-          {copy.heroPromises.map((item) => (
-            <li
-              key={item}
-              className="rounded-full border border-[var(--ls-line)] bg-[var(--ls-surface-2)] px-3.5 py-1.5 text-xs font-bold text-[var(--ls-text-muted)]"
-            >
-              {item}
-            </li>
-          ))}
+    <header className={intro.hero}>
+      <div className={intro.letterObject} aria-hidden="true">
+        <p className={intro.coverTitle}>{copy.heroTitle}</p>
+        <p className={intro.coverSubtitle}>{copy.heroSubtitle}</p>
+      </div>
+      <div className={intro.heroCopy}>
+        <h2>{copy.heroTitle}</h2>
+        <p className={intro.description}>{copy.heroDescription}</p>
+        <ul className={intro.topics}>
+          {copy.heroPromises.map((item) => <li key={item}>{item}</li>)}
         </ul>
+        <div className={intro.actions}>
+          <button type="button" onClick={onStart} disabled={busy} className={intro.start}>
+            <MessageCircleHeart className="h-5 w-5" aria-hidden="true" />
+            {copy.heroStartCta}
+          </button>
+          <PriceBadge featureKey="love-secret-ai-consultation" prefix={copy.priceLabelPrefix} className={intro.price} />
+        </div>
       </div>
     </header>
   );
@@ -2544,7 +2514,7 @@ function LoveSecretProgressRail({ mode, label, percent }: { mode: "form" | "gene
   const copy = useLoveSecretClientCopy();
   return (
     <div className="rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface)] px-4 py-3">
-      <div className="flex items-center justify-between gap-3 text-xs font-black">
+      <div className="flex items-center justify-between gap-3 text-xs font-semibold">
         <span className="min-w-0 truncate text-[var(--ls-text)]">{label}</span>
         <span className="shrink-0 text-[var(--ls-accent)]">{percent}%</span>
       </div>
@@ -2581,7 +2551,7 @@ function LoveSecretStatusPicker({
           onClick={() => onChange(itemValue)}
           className={cx(
             theme.focusRing,
-            "min-h-11 rounded-full border px-4 text-sm font-black transition disabled:opacity-55",
+            "min-h-11 rounded-full border px-4 text-sm font-semibold transition disabled:opacity-55",
             value === itemValue
               ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
               : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]",
@@ -2640,7 +2610,7 @@ function PersonFields({
                 onClick={() => onChange("gender", option)}
                 className={cx(
                   theme.focusRing,
-                  "min-h-11 rounded-2xl border px-3 text-sm font-black transition disabled:opacity-55",
+                  "min-h-11 rounded-2xl border px-3 text-sm font-semibold transition disabled:opacity-55",
                   value.gender === option
                     ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
                     : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]",
@@ -2665,7 +2635,7 @@ function PersonFields({
                 onClick={() => onChange("calendarType", option)}
                 className={cx(
                   theme.focusRing,
-                  "min-h-11 rounded-2xl border text-sm font-black transition disabled:opacity-55",
+                  "min-h-11 rounded-2xl border text-sm font-semibold transition disabled:opacity-55",
                   value.calendarType === option
                     ? "border-[var(--ls-accent)] bg-[var(--ls-accent)] text-[var(--ls-accent-ink)]"
                     : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] text-[var(--ls-text)] hover:bg-[var(--ls-surface-sunken)]",
@@ -2751,7 +2721,7 @@ function LoveSecretTopicSelector({
                   : "border-[var(--ls-line-control)] bg-[var(--ls-surface-2)] hover:bg-[var(--ls-surface-sunken)]",
               )}
             >
-              <span className="block text-sm font-black text-[var(--ls-text)]">{copy.focusLabel[itemValue]}</span>
+              <span className="block text-sm font-semibold text-[var(--ls-text)]">{copy.focusLabel[itemValue]}</span>
               <span className="mt-2 block text-xs leading-5 text-[var(--ls-text-muted)]">{copy.focusHint[itemValue]}</span>
             </button>
           ))}
@@ -2790,7 +2760,7 @@ function LoveSecretReadyCard({ form, topic }: { form: ConsultationForm; topic: s
     <section className="rounded-3xl border border-[var(--ls-gold)] bg-[var(--ls-surface-sunken)] p-5">
       <div className="flex items-center gap-2 text-[var(--ls-accent)]">
         <Sparkles className="h-4 w-4" aria-hidden="true" />
-        <h3 className="text-base font-black text-[var(--ls-text)]">{copy.readyCardHeading}</h3>
+        <h3 className="text-base font-semibold text-[var(--ls-text)]">{copy.readyCardHeading}</h3>
       </div>
       <div className="mt-4 grid gap-2.5 text-sm leading-6">
         <InfoLine title={copy.myInfoLabel} value={mySummary} />
@@ -2804,7 +2774,7 @@ function LoveSecretReadyCard({ form, topic }: { form: ConsultationForm; topic: s
 function InfoLine({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-2xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-3">
-      <p className="text-xs font-black text-[var(--ls-accent)]">{title}</p>
+      <p className="text-xs font-semibold text-[var(--ls-accent)]">{title}</p>
       <p className="mt-1 break-words text-sm font-bold text-[var(--ls-text)]">{value}</p>
     </div>
   );
@@ -2816,7 +2786,7 @@ function LoveSecretPromiseCard() {
     <section className="rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-5 shadow-[var(--ls-glow)]">
       <div className="flex items-center gap-2 text-[var(--ls-accent)]">
         <Moon className="h-4 w-4" aria-hidden="true" />
-        <h2 className="text-base font-black text-[var(--ls-text)]">{copy.promiseCardHeading}</h2>
+        <h2 className="text-base font-semibold text-[var(--ls-text)]">{copy.promiseCardHeading}</h2>
       </div>
       <ul className="mt-4 grid gap-2">
         {copy.analysisItems.map((item) => (
@@ -2850,7 +2820,7 @@ function LoveSecretGeneratingCard({ phase, text, progress, progressIndex }: { ph
             : <Clock3 className="h-5 w-5" aria-hidden="true" />}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="break-keep text-lg font-black text-[var(--ls-text)] [font-family:var(--font-display)]">
+          <h3 className="break-keep text-lg font-semibold text-[var(--ls-text)] [font-family:var(--font-serif)]">
             {copy.generatingCardHeading}
           </h3>
           <p className="mt-1.5 text-sm leading-6 text-[var(--ls-text-muted)]">{text}</p>

@@ -11,10 +11,10 @@ import {
   Loader2,
   Moon,
   Sparkles,
-  Stars,
   UserRound,
   WalletCards,
 } from "lucide-react";
+import intro from "@/app/components/expert-consulting/PremiumConsultationIntro.module.css";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import { toDisplayText } from "@/lib/llm-text";
@@ -1176,11 +1176,13 @@ function getLifeBookClientCopy(locale: LoadingLocale): LifeBookCopy {
 }
 
 function useLifeBookClientCopy(): LifeBookCopy {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  // Match the server's Korean snapshot; resolve the browser locale after hydration.
+  const [locale, setLocale] = useState<LoadingLocale>("ko");
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
     window.addEventListener("languagechange", sync);
     window.addEventListener("cd:locale-ready", sync);
+    sync();
     return () => {
       window.removeEventListener("languagechange", sync);
       window.removeEventListener("cd:locale-ready", sync);
@@ -1746,72 +1748,47 @@ export default function LifeBookAiClient() {
   }, [status, activeStep]);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#050407] text-amber-50 [font-family:var(--font-body)]">
-      <section className="relative min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_10%,rgba(244,198,98,0.26),transparent_32%),radial-gradient(circle_at_16%_26%,rgba(120,43,38,0.20),transparent_30%),linear-gradient(135deg,#1b120b,#2a1a10_44%,#050407)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(250,226,169,.62)_1px,transparent_1px),radial-gradient(rgba(255,255,255,.16)_1px,transparent_1px)] [background-position:0_0,38px_46px] [background-size:96px_96px,138px_138px]" />
-
-        <div className="relative mx-auto grid w-full max-w-7xl gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-          {/* 상단 패딩: 전역 고정 "홈" 칩(left-3 / 124x44)이 이 카드 좌상단을 덮어 eyebrow 가 읽히지 않았다.
-              모바일에서만 그 높이(+안전영역)만큼 비운다. 높이는 100vh 대신 dvh 로 — 주소창 노출 시 잘림 방지. */}
-          <aside className="relative isolate flex min-h-[calc(100dvh-48px)] flex-col justify-between overflow-hidden rounded-3xl border border-amber-200/20 bg-white/[0.08] p-5 pt-[calc(64px+env(safe-area-inset-top,0px))] shadow-2xl shadow-black/35 backdrop-blur-xl sm:p-7 sm:pt-7">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 z-0 bg-cover bg-[70%_center] opacity-55"
-              style={{ backgroundImage: "url('/fuctionassets/life-book-reading-room-v1.webp')" }}
-            />
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(180deg,rgba(5,8,14,.86)_0%,rgba(5,8,14,.7)_42%,rgba(5,8,14,.96)_100%)]" />
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/25 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
-                <Stars className="h-4 w-4" aria-hidden="true" />
-                Book of Life · AI Destiny Reading
-              </div>
-              <h2 className="mt-5 max-w-[12ch] text-4xl font-black leading-tight tracking-normal text-amber-50 sm:text-5xl">
-                {copy.heroTitle}
-              </h2>
-              <p className="mt-4 max-w-xl text-base leading-7 text-[#f0dec0]">
-                {copy.heroDescription}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                {copy.heroBadges.map((badge) => (
-                  <span key={badge} className="rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold text-amber-100">
-                    {badge}
-                  </span>
-                ))}
-              </div>
+    <main className={intro.bookPage}>
+      <section className={intro.shell}>
+        <header className={intro.hero}>
+          <div className={intro.bookObject} aria-hidden="true">
+            <p className={intro.coverTitle}>{copy.modeOptions[form.mode].label}</p>
+            <p className={intro.coverSubtitle}>Code Destiny</p>
+          </div>
+          <div className={intro.heroCopy}>
+            <h2>{copy.heroTitle}</h2>
+            <p className={intro.description}>{copy.heroDescription}</p>
+            <ul className={intro.topics}>
+              {copy.heroBadges.map((badge) => <li key={badge}>{badge}</li>)}
+            </ul>
+            <div className={intro.actions}>
+              <a href="#life-book-form" className={intro.start}>
+                <BookOpen className="h-5 w-5" aria-hidden="true" />
+                {copy.openCta(form.mode)}
+              </a>
+              <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode]} prefix={copy.priceLabelPrefix} className={intro.price} />
             </div>
-
-            <div className="relative z-10 mt-8 rounded-3xl border border-amber-200/20 bg-[#100a08cc] p-4 shadow-inner shadow-amber-200/10">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Ready Check</p>
-                  <h2 className="mt-1 text-xl font-black text-amber-50">{copy.readyCheckHeading}</h2>
-                </div>
-                {isReadyToGenerate && <CheckCircle2 className="h-6 w-6 shrink-0 text-amber-200" aria-hidden="true" />}
-              </div>
-              <div className="mt-4 grid gap-2 text-sm text-[#eadbb9]">
-                <span className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3">{copy.nameLabel} {form.name.trim() || copy.notYetFilled}</span>
-                <span className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3">{copy.birthDateLabel} {form.birthDate || copy.notYetFilled}</span>
-                <span className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3">{copy.focusAreaLabel} {copy.focusLabel[form.focusArea]}</span>
-              </div>
-              <div className="mt-4 grid gap-2">
-                {copy.previewChapters.slice(0, 4).map((chapter, index) => (
-                  <div key={chapter} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] px-4 py-3 text-sm font-bold text-[#f5dfb7]">
-                    <span className="mr-2 text-amber-200">{String(index + 1).padStart(2, "0")}</span>
-                    {chapter}
-                  </div>
-                ))}
-              </div>
+          </div>
+        </header>
+        <div className={intro.formLayout}>
+          <aside className={intro.preparation}>
+            <div className="flex items-start justify-between gap-3">
+              <h2>{copy.readyCheckHeading}</h2>
+              {isReadyToGenerate && <CheckCircle2 className="h-6 w-6 shrink-0 text-amber-200" aria-hidden="true" />}
             </div>
+            <dl>
+              <div><dt>{copy.nameLabel}</dt><dd>{form.name.trim() || copy.notYetFilled}</dd></div>
+              <div><dt>{copy.birthDateLabel}</dt><dd>{form.birthDate || copy.notYetFilled}</dd></div>
+              <div><dt>{copy.focusAreaLabel}</dt><dd>{copy.focusLabel[form.focusArea]}</dd></div>
+            </dl>
           </aside>
 
           <section className="grid content-start gap-4">
             <ExpertValueCards theme="lifeBook" points={[{ title: "타고난 기질", description: "생년월일과 질문을 바탕으로 반복되는 선택의 결을 정리합니다." }, { title: "삶의 장면", description: "일·관계·회복의 흐름을 한 권의 목차처럼 연결해 봅니다." }, { title: "다음 장면", description: "지금 할 수 있는 작고 현실적인 다음 선택을 남깁니다." }]} />
-            <form id="life-book-form" onSubmit={submit} className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl sm:p-5">
+            <form id="life-book-form" onSubmit={submit} className={intro.bookForm}>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Golden Life Book</p>
-                  <h2 className="mt-1 text-2xl font-black text-amber-50">{copy.formHeading}</h2>
+                <div className="min-w-0 basis-full">
+                  <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.formHeading}</h2>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-[#e7d2b5]">
                     {copy.formDescription}
                   </p>
@@ -1838,9 +1815,9 @@ export default function LifeBookAiClient() {
                     role="radio"
                     aria-checked={form.mode === value}
                     onClick={() => updateField("mode", value)}
-                    className={`rounded-2xl border px-4 py-3 text-left transition ${form.mode === value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#0b1020cc] hover:border-amber-200/45"}`}
+                    className={`rounded-2xl border px-4 py-3 text-left transition ${form.mode === value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#14271e] hover:border-amber-200/45"}`}
                   >
-                    <span className={`block text-sm font-black ${form.mode === value ? "text-amber-100" : "text-[#f4dfbd]"}`}>{copy.modeOptions[value].label}</span>
+                    <span className={`block text-sm font-semibold ${form.mode === value ? "text-amber-100" : "text-[#f4dfbd]"}`}>{copy.modeOptions[value].label}</span>
                     <span className="mt-1 block text-xs leading-5 text-[#e7d2b5]">{copy.modeOptions[value].desc}</span>
                   </button>
                 ))}
@@ -1849,7 +1826,7 @@ export default function LifeBookAiClient() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><UserRound className="h-4 w-4" aria-hidden="true" /> {copy.nameOrNicknameLabel}</span>
-                  <input value={form.name} onChange={(event) => updateField("name", event.target.value)} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" placeholder={copy.namePlaceholder} />
+                  <input value={form.name} onChange={(event) => updateField("name", event.target.value)} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" placeholder={copy.namePlaceholder} />
                 </label>
 
                 <div className="grid gap-2 text-sm font-bold">
@@ -1860,7 +1837,7 @@ export default function LifeBookAiClient() {
                       ["male", copy.genderMale],
                       ["unknown", copy.genderUnknown],
                     ] as const).map(([value, label]) => (
-                      <button key={value} type="button" onClick={() => updateField("gender", value)} className={`min-h-11 rounded-full border px-3 text-sm font-black transition ${form.gender === value ? "border-amber-200 bg-amber-200 text-[#160e08]" : "border-amber-100/15 bg-[#0b1020cc] text-[#f4dfbd] hover:border-amber-200/45"}`}>
+                      <button key={value} type="button" onClick={() => updateField("gender", value)} className={`min-h-11 rounded-full border px-3 text-sm font-semibold transition ${form.gender === value ? "border-amber-200 bg-amber-200 text-[#160e08]" : "border-amber-100/15 bg-[#14271e] text-[#f4dfbd] hover:border-amber-200/45"}`}>
                         {label}
                       </button>
                     ))}
@@ -1871,17 +1848,17 @@ export default function LifeBookAiClient() {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><CalendarDays className="h-4 w-4" aria-hidden="true" /> {copy.birthDateFieldLabel}</span>
-                  <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => updateField("birthDate", nextBirthDate))} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" />
+                  <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => updateField("birthDate", nextBirthDate))} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" />
                 </label>
 
                 <div className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><Moon className="h-4 w-4" aria-hidden="true" /> {copy.calendarFieldLabel}</span>
-                  <div className="grid grid-cols-2 rounded-full border border-amber-100/15 bg-[#0b1020cc] p-1">
+                  <div className="grid grid-cols-2 rounded-full border border-amber-100/15 bg-[#14271e] p-1">
                     {([
                       ["solar", copy.solarLabel],
                       ["lunar", copy.lunarLabel],
                     ] as const).map(([value, label]) => (
-                      <button key={value} type="button" onClick={() => updateField("calendarType", value)} className={`min-h-11 rounded-full text-sm font-black transition ${form.calendarType === value ? "bg-amber-200 text-[#160e08]" : "text-[#f4dfbd] hover:bg-amber-50/10"}`}>
+                      <button key={value} type="button" onClick={() => updateField("calendarType", value)} className={`min-h-11 rounded-full text-sm font-semibold transition ${form.calendarType === value ? "bg-amber-200 text-[#160e08]" : "text-[#f4dfbd] hover:bg-amber-50/10"}`}>
                         {label}
                       </button>
                     ))}
@@ -1892,9 +1869,9 @@ export default function LifeBookAiClient() {
               <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
                 <label className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><Clock3 className="h-4 w-4" aria-hidden="true" /> {copy.birthTimeFieldLabel}</span>
-                  <input type="time" value={form.birthTime} onChange={(event) => updateField("birthTime", event.target.value)} disabled={form.birthTimeUnknown} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
+                  <input type="time" value={form.birthTime} onChange={(event) => updateField("birthTime", event.target.value)} disabled={form.birthTimeUnknown} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#14271e] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33] disabled:opacity-50" />
                 </label>
-                <label className="flex min-h-11 items-center gap-3 rounded-full border border-amber-100/15 bg-[#0b1020cc] px-4 text-sm font-bold text-[#eadfc9]">
+                <label className="flex min-h-11 items-center gap-3 rounded-full border border-amber-100/15 bg-[#14271e] px-4 text-sm font-bold text-[#eadfc9]">
                   <input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => updateField("birthTimeUnknown", event.target.checked)} className="h-4 w-4 accent-[#e7bd62]" />
                   {copy.birthTimeUnknownLabel}
                 </label>
@@ -1905,7 +1882,7 @@ export default function LifeBookAiClient() {
                 <div className="grid gap-2 sm:grid-cols-2">
                   {FOCUS_AREA_VALUES.map((value) => (
                     <button key={value} type="button" onClick={() => updateField("focusArea", value)} className={`rounded-2xl border p-3 text-left transition hover:-translate-y-0.5 ${form.focusArea === value ? "border-amber-200/55 bg-amber-100/15 shadow-lg shadow-amber-200/10" : "border-amber-100/15 bg-[#0b1020aa]"}`}>
-                      <span className="block text-sm font-black text-amber-50">{copy.focusLabel[value]}</span>
+                      <span className="block text-sm font-semibold text-amber-50">{copy.focusLabel[value]}</span>
                       <span className="mt-1 block text-xs leading-5 text-[#d8c6a7]">{copy.focusHint[value]}</span>
                     </button>
                   ))}
@@ -1915,7 +1892,7 @@ export default function LifeBookAiClient() {
               <div className="mt-4 flex items-center justify-end">
                 <PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix={copy.priceLabelPrefix} />
               </div>
-              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-black text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-semibold text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
                 {isBusy ? copy.openingCta : copy.openCta(form.mode || "lifeBook")}
               </button>
@@ -1928,7 +1905,7 @@ export default function LifeBookAiClient() {
                 >
                   {error ? (
                     <>
-                      <p className="font-black text-[#ffd8de]">{FAILURE_COPY.headline}</p>
+                      <p className="font-semibold text-[#ffd8de]">{FAILURE_COPY.headline}</p>
                       <p className="mt-1 leading-6">{error}</p>
                       {refunded && <p className="mt-1 leading-6 text-[#fecdd3]/85">{FAILURE_COPY.refunded}</p>}
                       <button
@@ -1936,7 +1913,7 @@ export default function LifeBookAiClient() {
                         onClick={() => void handleRetry()}
                         disabled={isBusy}
                         aria-label={copy.retryGenerationAria}
-                        className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#fecdd3]/40 bg-[#fecdd3]/10 px-5 font-black text-[#ffe4e8] transition hover:bg-[#fecdd3]/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#fecdd3]/40 bg-[#fecdd3]/10 px-5 font-semibold text-[#ffe4e8] transition hover:bg-[#fecdd3]/20 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <Sparkles className="h-4 w-4" aria-hidden="true" />
                         {copy.retryStoryLabel}
@@ -1949,11 +1926,10 @@ export default function LifeBookAiClient() {
             <ExpertStickyCta theme="lifeBook" targetId="life-book-form" label="인생의 책 펼치기" price={<PriceBadge featureKey={MODE_FEATURE_KEY[form.mode || "lifeBook"]} prefix="상담 이용 가격 " />} />
 
             {!isBusy && status !== "completed" && (
-              <section className="rounded-3xl border border-amber-200/20 bg-white/[0.08] p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
+              <section className="rounded-lg border border-amber-200/20 bg-[#20362a] p-4 shadow-2xl shadow-black/20  sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Table of Contents</p>
-                    <h2 className="mt-1 text-2xl font-black text-amber-50">{copy.nextChapterWaitingHeading}</h2>
+                    <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.nextChapterWaitingHeading}</h2>
                   </div>
                   {isReadyToGenerate && <CheckCircle2 className="h-6 w-6 text-amber-200" aria-hidden="true" />}
                 </div>
@@ -1976,7 +1952,7 @@ export default function LifeBookAiClient() {
                   ))}
                 </div>
 
-                <button type="button" onClick={() => void submit()} disabled={!isReadyToGenerate || isBusy} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-amber-200/35 bg-amber-50/10 px-5 font-black text-amber-50 transition hover:-translate-y-0.5 hover:bg-amber-100/20 disabled:cursor-not-allowed disabled:opacity-50">
+                <button type="button" onClick={() => void submit()} disabled={!isReadyToGenerate || isBusy} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-amber-200/35 bg-amber-50/10 px-5 font-semibold text-amber-50 transition hover:-translate-y-0.5 hover:bg-amber-100/20 disabled:cursor-not-allowed disabled:opacity-50">
                   <Sparkles className="h-5 w-5" aria-hidden="true" />
                   {copy.generateCta}
                 </button>
@@ -1984,9 +1960,9 @@ export default function LifeBookAiClient() {
             )}
 
             {isBusy && (
-              <section className="rounded-3xl border border-amber-200/20 bg-white/[0.08] p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-5">
+              <section className="rounded-lg border border-amber-200/20 bg-[#20362a] p-4 shadow-2xl shadow-black/20  sm:p-5">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Writing in Progress</p>
-                <h2 className="mt-1 text-2xl font-black text-amber-50">{copy.writingHeading}</h2>
+                <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.writingHeading}</h2>
                 <p className="mt-2 text-sm leading-6 text-[#e7d2b5]">
                   {copy.writingDescription}
                 </p>
@@ -2028,17 +2004,17 @@ export default function LifeBookAiClient() {
             )}
 
             {status === "completed" && resultUrl && (
-              <section className="rounded-3xl border border-amber-200/25 bg-amber-50/10 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <section className="rounded-lg border border-amber-200/25 bg-amber-50/10 p-5 shadow-2xl shadow-black/20 ">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Completed</p>
-                <h2 className="mt-1 text-2xl font-black text-amber-50">{copy.completedHeading}</h2>
+                <h2 className="mt-1 text-2xl font-semibold text-amber-50">{copy.completedHeading}</h2>
                 <p className="mt-2 text-sm leading-6 text-[#e7d2b5]">
                   {copy.completedDescription}
                 </p>
-                <a href={resultUrl} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-black text-[#171007] transition hover:-translate-y-0.5">
+                <a href={resultUrl} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007] transition hover:-translate-y-0.5">
                   <BookOpen className="h-4 w-4" aria-hidden="true" />
                   {copy.openResultCta}
                 </a>
-                <a href={resultUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 px-5 text-sm font-black text-amber-100 transition hover:bg-amber-50/10">
+                <a href={resultUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 px-5 text-sm font-semibold text-amber-100 transition hover:bg-amber-50/10">
                   <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   {copy.openNewTabCta}
                 </a>

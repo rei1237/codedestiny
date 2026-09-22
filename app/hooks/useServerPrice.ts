@@ -179,7 +179,9 @@ export function appendReferenceApprox(
 export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const key = priceCacheKey(input);
   const hasQuery = Boolean(input.featureKey || input.subFeatureKey || input.categoryKey);
-  // 🔴 재실행 트리거 전용 — 값은 아래 getCurrentLoadingLocale() 이 그대로 읽는다.
+  // 첫 표시에는 서버와 브라우저가 공유하는 경로 로케일을 사용한다.
+  // 쿼리/저장 언어를 첫 렌더에서 읽으면 가격 문자열까지 hydration이 어긋난다.
+  // 마운트 후 effect는 아래 getCurrentLoadingLocale()로 런타임 선택을 반영한다.
   //    useLocale 이 cd:locale-ready 를 구독하는데, LocaleRuntimeBridge 는 그 이벤트를
   //    window.cdGetCurrentLanguage 를 심은 **뒤에** 쏜다(LocaleRuntimeBridge.tsx:140→34).
   //    이 구독이 없으면 개산가가 영원히 안 붙는다 — 그 브리지는 dynamic import 라
@@ -197,7 +199,7 @@ export function useServerPrice(input: ServerPriceInput): ServerPriceState {
   const fallback = hasQuery ? "" : resolveFallbackLabel(input);
 
   const [state, setState] = useState<ServerPriceState>(() => cached
-    ? { label: formatResolvedPrice(cached, getCurrentLoadingLocale()), amountKRW: cached.amountKRW, loading: false, source: "registry" }
+    ? { label: formatResolvedPrice(cached, locale), amountKRW: cached.amountKRW, loading: false, source: "registry" }
     : { label: fallback, amountKRW: 0, loading: false, source: "fallback" });
 
   useEffect(() => {

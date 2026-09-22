@@ -196,7 +196,7 @@ function FeatureBackHomeNav() {
       <button
         type="button"
         onClick={goBack}
-        className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/18 bg-slate-950/62 text-white shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+        className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/[.18] bg-slate-950/[.62] text-white shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:bg-slate-900/[.82] focus:outline-none focus:ring-2 focus:ring-amber-200/60"
         aria-label={copy.back}
       >
         <ArrowLeft className="h-5 w-5" aria-hidden="true" />
