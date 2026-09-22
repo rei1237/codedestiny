@@ -8,6 +8,12 @@ colors:
   book-line: "#536656"
   book-accent: "#eddbaf"
   book-surface: "#20362a"
+  book-detail-paper: "#f6f1e6"
+  book-detail-muted: "#52624d"
+  book-detail-accent: "#285640"
+  book-detail-tint: "#e5e9dc"
+  book-detail-line: "#c9cbb7"
+  sample-paper: "#fffdf8"
   letter-background: "#f6f2ed"
   letter-surface: "#fffcf8"
   letter-input: "#f7f0ed"
@@ -44,6 +50,10 @@ typography:
     fontFamily: "var(--font-body)"
     fontSize: "14px"
     lineHeight: 1.7
+  sample-body:
+    fontFamily: "var(--font-serif, Georgia, serif)"
+    fontSize: "18px"
+    lineHeight: 2
 rounded:
   entry: "6px"
   field: "16px"
@@ -89,7 +99,7 @@ components:
 
 인생의 책은 짙은 녹색 천 제본과 금박 문양, 연애 비책은 아이보리 종이와 봉투·와인색 봉인으로 개인적인 기록물의 감각을 만든다. 구매 전에는 받을 결과물의 재질과 상담 범위를 먼저 보여주고, 결과에서는 같은 에셋과 한국어 명조가 긴 해설의 읽기 흐름을 잇는다.
 
-이 정본은 두 상품의 구매 전 소개·입력과 기존 결과의 시각적 연속성에만 적용한다. 전역 DESIGN.md, 영냥이·연이 정체성, 다른 전문가 상담군을 대체하지 않는다. 확정된 [Direction contract와 자산 출처](../../premium-consultation-design-20260923.md)를 구현 이후 기록한 scan 문서다. 원본 이미지를 새로 생성하거나 기존 결과 화면을 이번 입력 확장에 맞춰 재작성하지 않았다.
+이 정본은 두 상품의 구매 전 소개·입력, 상세 소개·팝업 공용 패널과 기존 결과의 시각적 연속성에만 적용한다. 전역 DESIGN.md, 영냥이·연이 정체성, 다른 전문가 상담군을 대체하지 않는다. 확정된 [Direction contract와 자산 출처](../../premium-consultation-design-20260923.md)를 구현 이후 기록한 scan 문서다. 원본 이미지를 새로 생성하거나 기존 결과 화면을 이번 확장에 맞춰 재작성하지 않았다.
 
 **Key Characteristics:**
 - 실제 책·편지 래스터와 별도 HTML 텍스트.
@@ -108,6 +118,7 @@ components:
 ### Neutral
 - **숲색 독서 공간**: `book-background`는 구매 전과 결과 독서 공간을 연결한다. 소개의 주·보조 잉크와 경계는 `book-ink`, `book-muted`, `book-line`이다.
 - **편지 면지와 잉크**: `letter-*` 표면·잉크·경계는 입력과 결과가 공유하는 reportTheme에서 가져온다. `letter-dark-*`는 같은 역할의 어두운 테마 쌍이다.
+- **책 내지와 편지 면지의 상세 패널**: 책 상세의 읽기 영역은 `book-detail-*`와 `book-surface` 잉크를 사용한다. 상세 편지는 기존 밝은 `letter-*`를 재사용한다. 두 상품 예시 내지의 `sample-paper`는 밝은 종이와 어두운 잉크의 고정 쌍이다. 이 상세 패널을 입력의 어두운 테마로 임의 치환하지 않는다.
 
 **The Paired Surface Rule.** 테마를 바꿀 때 표면·주 잉크·보조 잉크·강조색·입력 경계를 함께 바꾼다. 밝은 래스터 편지지 위의 텍스트는 어두운 잉크를 유지한다.
 
@@ -134,6 +145,8 @@ components:
 
 소개 CTA의 목적지는 기존 입력 영역이다. 폼의 스크롤 여백 (88px)으로 전역 내비게이션 아래에 입력 시작점을 둔다. 결과의 독서 컨테이너·내지·목차·페이지 이동은 기존 결과 구현을 따른다.
 
+상세 소개 페이지와 기존 팝업의 공용 패널은 최대 (880px) 안에서 같은 원본 비율의 표지와 HTML 제목을 쓴다. 표지 최대 폭은 (280px), (699px) 이하에서는 (190px)다. 상세의 두 열은 모바일에서 단일 열이 된다. 이 값은 입력 소개의 (220px) 표지와 구분한다. 일자가 있는 원문 링크는 데스크톱에서 일자·제목·원문 보기 순으로, 모바일에서는 일자를 별도 행으로 보여준다.
+
 ## Elevation & Depth
 
 주된 깊이는 래스터의 천·종이·봉인과 표면 대비에서 나온다. 입력의 모든 블록에 그림자를 덧대지 않는다. 편지의 고정 행동 영역과 결과 영역은 기존 reportTheme의 약한 ambient shadow를 공유한다. 라이트/다크 shadow와 포커스 링의 정확한 CSS는 sidecar에 기록한다. 기존 결과의 책 표지와 내지 그림자는 해당 결과 모듈의 소재 표현이며 공통 입력 그림자로 승격하지 않는다.
@@ -155,6 +168,11 @@ components:
 
 ### Cards / Containers
 책 폼은 얇은 선과 어두운 표면으로 구분한다. 편지 폼은 기존 reportTheme의 표면·경계를 사용한다. 결과 내지와 장별 해설은 기존 독서 컴포넌트에 맡긴다.
+
+### Detail preview / Source records
+상세 결과 예시는 두 상품 모두 그림자 없는 사각 종이 내지와 `sample-body` 명조 본문으로 읽는다. 내부 여백은 데스크톱 (36px 30px), 모바일 (28px 20px)다. 실제 개인 결과와 혼동하지 않도록 예시 안내를 유지한다. 상세 행동 버튼은 기존 가격·이용 방식에 연결하고 두 재질에서 평면 색과 작은 `entry` 모서리를 공유한다.
+
+네오 경력·날짜가 있는 세 원문 링크·AI 해석 방식은 기존 founder/records 정본에서 가져온다. 경력과 원문을 새 광고 배지로 꾸미지 않고 명조 소제목과 구분선이 있는 목록으로 보여준다. 링크 터치 높이는 최소 (44px)다. 팝업의 닫기·포커스·이력·결제 제어 소유권은 기존 호스트에 남긴다.
 
 ### Navigation
 연애 비책의 이전/다음 단계는 최소 높이 (48px)의 기존 고정 행동 영역을 유지한다. 첫 단계의 이전 버튼만 disabled다. 전역 뒤로가기는 밝은 바탕 위에서도 읽히는 대비의 배경과 잉크를 유지한다. 단계 전환·진행 레일의 기존 transform 모션과 reduced-motion 대응은 보존한다.

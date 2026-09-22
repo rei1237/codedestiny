@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-23
-next: "구매 전 소개·입력 확장의 main CI를 확인하고, 상세 팝업과 다른 전문가 상담군을 같은 품질로 순차 확장한다."
+next: "상세 소개·팝업 공용 패널 확장의 main CI를 확인하고, 홈 목록의 실제 팝업 진입·닫기·포커스와 다른 전문가 상담군을 이어서 검증한다."
 ---
 
 # 전문가 상담 UI 개선
@@ -30,9 +30,18 @@ next: "구매 전 소개·입력 확장의 main CI를 확인하고, 상세 팝�
 - FORM: 이미 사용자가 지정한 실제 책/비밀 편지 세계를 구매 전에도 유지한다. 연애 비책은 입력 폼을 넓은 열에 두고 안내를 좁은 열에 둔다. 모든 상태·기존 번역·가격 registry를 유지한다.
 - FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance.
 
-기존 라스터를 재사용한 확장 작업이며 새로운 생성 에셋은 없다. 결과 화면은 이번 입력 화면 확장으로 다시 수정하지 않는다. 다른 상담/상세 팝업은 별도 후속이다.
+기존 라스터를 재사용한 확장 작업이며 새로운 생성 에셋은 없다. 결과 화면은 이번 입력 화면 확장으로 다시 수정하지 않는다. 상세 소개·팝업 공용 패널은 아래 후속 확장에서 구현했고 다른 상담은 남아 있다.
 
 ## 적용 경계
+
+### 상세 팝업·소개 페이지 확장
+
+- THESIS: 목록에서 본 책·편지와 실제 상담 진입·결과물이 하나의 상품으로 이어지게 한다. Persuade 화면이다.
+- OWN-WORLD: 기존 녹색 제본/아이보리 봉인 편지를 재사용한다. 실물은 원본 비율, 제목은 HTML, 결과 예시는 읽기 좋은 종이 내지로 표현한다.
+- STORY: 표지와 상담 가치 → 제공 구성 → 풀이 예시 → 네오의 경력과 날짜가 있는 예측 원문 → 계산·해석 방식과 FAQ. 기존 가격·시작 동선은 호스트가 소유한다.
+- FIRST VIEWPORT: 넓은 화면은 실물과 설명을 나란히, 작은 화면은 190px 실물과 소개를 세로로 배치한다. 카드/OG 이미지도 표지를 자르지 않는다.
+- FORM: 공용 렌더러의 book/letter 변형만 추가한다. 정적 팝업과 React 상세가 같은 생성 데이터를 쓰며 다른 상담의 이미지/결제 동작을 바꾸지 않는다.
+- 신뢰 문구와 세 원문 링크는 lib/brand/founder.ts, lib/brand/prediction-records.json에서 생성한다. 이번 UI에는 매 상담 직접 검수나 예측 정확도 보장을 추가하지 않는다.
 
 - 인생의 책: 결과 표지, 장별 내지, 목차, 첫 열람 표지 애니메이션, 공유 표지를 같은 책으로 연결한다.
 - 연애 비책: 결과 첫 장과 공유 카드에 같은 편지지를 사용한다. 반복 하트 배경·이모지·밀랍을 흉내 낸 CSS 장식을 제거한다. 서명/프로필은 실제 저장된 값이다.
@@ -46,7 +55,7 @@ next: "구매 전 소개·입력 확장의 main CI를 확인하고, 상세 팝�
 
 | 대상 | 실제 결과 진입 | 방향·다음 작업 |
 |---|---|---|
-| 인생의 책·연애 비책 상세 팝업 | feature-detail 정본 | 상품 Client 구매 전 소개·입력은 완료. 상세 팝업의 예시·제공 범위·가격 시각적 일치는 후속이며 과장된 리뷰·새 혜택 금지 |
+| 인생의 책·연애 비책 상세 팝업 | feature-detail 정본 | 상세 소개·기존 팝업 공용 패널 구현 완료. 홈 목록에서 실제 팝업 진입·닫기·포커스 검증은 후속. 과장된 리뷰·새 혜택 금지 |
 | 마스터 연애 | app/master-love-codex/result/MasterLoveCodexResultClient.tsx | 관계 전략 보고서. 챕터 구조·단계별 조언, 저장 완료 후 공유 |
 | 카르마 | app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx | 성찰 기록. 정원 자산·반복 패턴·실행 노트, 완료/부분 결과 구분 |
 | 서양 점성술 | app/astrology-ai/result/AstrologyAiResultClient.tsx | 천문 지도와 해설 기록. 실제 차트와 문장의 위계, 저장 요약 공유 |
@@ -63,7 +72,7 @@ next: "구매 전 소개·입력 확장의 main CI를 확인하고, 상세 팝�
 - 카르마는 app/karma-destiny-ai/result/_components/ResultStyles.tsx가 실제 스타일을 소유한다. html2canvas가 backdrop-filter를 지원하지 않는다는 기존 PDF 계약을 읽고 결과/PDF 모두 검사한다. 헤더의 전체 복사는 짧은 요약 공유와 다르다.
 - 서양 점성술 결과는 RESULT_PANEL_CLASS와 실제 AstrologyChartWheel이 함께 쓰인다. 실제 천궁도를 중심으로 읽기 순서를 잡고 장식 이미지로 계산 차트를 대체하지 않는다.
 
-위 두 구매 전 Client는 구현·mock 브라우저 검증을 완료했다. 상세 팝업과 다른 전문가 상담군은 소스 조사와 다음 구현 계획이며 아직 디자인 적용 또는 브라우저 검증 완료가 아니다.
+위 두 구매 전 Client와 상세 소개·팝업 공용 패널은 구현과 각 아래 명시한 브라우저 검증을 완료했다. 홈 목록에서 팝업을 여는 실제 사용자 동선과 다른 전문가 상담군은 후속이다.
 
 ## 생성 에셋과 출처
 
@@ -91,7 +100,7 @@ Create one production UI artwork, portrait 4:5: a private love letter as beautif
 - 독립 마감 검토: 종이 이미지 비율, 장별 편지 내지, 한글 서체·어두운 테마, 내비게이션과 스크롤 위치, 최종 360px 봉인 겹침 모두 해결 판정. 이번 두 결과 화면 범위의 disposition은 ship이다. 다른 전문가 상담 또는 전환율 검증을 뜻하지 않는다.
 - check:fast 전체 실행은 종료 코드 0이었다. 다만 실행 도중 사용자의 새 시각 방향에 따른 수정이 이어졌으므로 최종 파일 집합의 단독 증거로 사용하지 않는다. 이후 변경 파일 lint(기존 경고만), typecheck, hero-contrast, mobile-detail-nonintrusive, sitemap-drift, handoff-contract, doc-freshness가 통과했다. 최종 코드 fc12eb6a5fd99a4931d93037ddd6e7ac8d0f1690의 main CI 35752264003에서 CI required success를 확인했다. 빌드·타입/린트·정적 가드가 성공했고 Critical checks는 변경 티어에 따라 skipped였다.
 - 스크린샷·로그는 원본 main의 build-cache/premium-consultation-20260923/에 보존한다. 서체 캐시는 원본 main의 build-cache/premium-fonts/에 보존한다.
-- 실결제·유료 LLM·운영 DB 쓰기·실제 카카오/단톡방 전송·운영 승격은 하지 않았다. 결과 카드의 소유자 이름 숨김/편집, 상세 팝업과 다른 상담 UI는 후속 범위다.
+- 실결제·유료 LLM·운영 DB 쓰기·실제 카카오/단톡방 전송·운영 승격은 하지 않았다. 결과 카드의 소유자 이름 숨김/편집, 홈 목록의 실제 팝업 동선 검증과 다른 상담 UI는 후속 범위다.
 
 ## 구매 전 소개·입력 확장 검증
 
@@ -100,3 +109,10 @@ Create one production UI artwork, portrait 4:5: a private love letter as beautif
 - 영어 SSR 초기값과 hydration 일치를 개선했고 console hydration 오류는 0이었다. 전역 뒤로가기 배경의 opacity를 바로잡아 대비를 확보했으며 책 입력 제목의 폭과 편지 폼의 넓은 열을 교정했다.
 - 마지막 캡처는 `caret: 'initial'`로 Playwright의 캡처 중 DOM 변경을 피했다. 독립 finish 검토는 최종 수정 해결 후 이번 두 상품 구매 전·입력 범위의 disposition을 `ship`으로 판정했다. 실제 전환율이나 운영 배포 검증을 뜻하지 않는다.
 - 증거 보존: `D:\Development\code-destiny\build-cache\premium-entry-20260923\premium-entry\`. 새 생성 에셋은 없으며 위 두 이미지의 원본·프롬프트를 그대로 재사용했다.
+
+## 상세 소개·팝업 공용 패널 확장 검증
+
+- `/features/`의 두 상품 소개와 기존 팝업 템플릿이 같은 렌더러를 사용한다. 원본 비율 표지·HTML 제목, 종이 예시, 네오 경력·날짜 있는 세 원문·AI 해석 방식을 연결했다. 경력과 기록은 기존 founder.ts/records.json 정본에서 가져왔다.
+- 브라우저 14/14 통과는 실제 소개 페이지 10개 사례와 mock 팝업 컴포넌트 4개 사례다. 홈 목록→팝업의 실제 진입·닫기·포커스는 미검증이며 인수인계의 후속으로 남긴다.
+- `npm run check:fast`: 290 suites / 4078 tests 성공. 공용 detail 검사 16 tests와 최종 lint 성공. 독립 full review disposition은 이 구현·검증 범위에서 `ship`이다. main CI·운영 배포 증거를 대체하지 않는다.
+- 위 이미지 원본 2개와 프롬프트를 재사용했다. 반응형 파생 WebP 8개에 출처를 포함했으며 새 이미지 생성은 없다. 가격·결제·인증·저장·결과 공유 정책을 변경하지 않았다.

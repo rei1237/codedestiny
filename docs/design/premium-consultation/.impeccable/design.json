@@ -22,10 +22,18 @@
     ],
     "breakpoints": [
       { "name": "entry-stack", "value": "700px" },
-      { "name": "letter-form-stack", "value": "900px" }
+      { "name": "letter-form-stack", "value": "900px" },
+      { "name": "detail-stack", "value": "699px" }
     ]
   },
   "components": [
+    {
+      "name": "상세 결과 예시 내지",
+      "kind": "card",
+      "description": "두 상품 상세 공용 렌더러의 평면 종이 내지. 실제 개인 결과가 아닌 예시임을 별도로 안내한다.",
+      "html": "<section class=\"ds-detail-sample\"><p>풀이 형식을 보여주는 예시입니다. 실제 내용은 입력한 정보에 따라 달라집니다.</p></section>",
+      "css": ".ds-detail-sample{background:#fffdf8;color:#35262c;border:1px solid #e0d3cc;border-radius:0;box-shadow:none;padding:36px 30px}.ds-detail-sample p{font-family:var(--font-serif,Georgia,serif);font-size:18px;line-height:2;word-break:keep-all;margin:0}@media(max-width:699px){.ds-detail-sample{padding:28px 20px}}"
+    },
     {
       "name": "책 입력 시작",
       "kind": "button",

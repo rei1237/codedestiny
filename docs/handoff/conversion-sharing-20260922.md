@@ -1,10 +1,35 @@
 ---
 status: active
 updated: 2026-09-23
-next: "구매 전 책·편지 UI의 main CI를 확인하고 상세 팝업/예시, 다른 전문가 상담 UI와 공유를 확장한다."
+next: "전체 목표를 유지하며 두 상품의 홈 목록→상세 진입을 확인하고, 다른 전문가 상담 UI·결과 공유와 구매/SEO 후속을 진행한다."
 ---
 
 # 경쟁사 대비 전환·신뢰·SEO·상담 공유 후속 작업
+
+## 최우선: 전체 목표를 축소하지 않는다
+
+사용자는 2026-09-23에 컨텍스트가 길어지면 인수인계를 남기되 **진행 중인 목표가 가장 중요하다**고 재차 지시했다. 책·편지 UI 일부 개선, 테스트 통과, 인수인계 작성만으로 전체 목표를 완료 처리하지 않는다. 아래의 구현 상태와 운영 성과를 구분하고, 원래 요구 전부를 이어간다.
+
+| 목표 | 지금 확보한 근거 | 아직 필요한 작업 |
+|---|---|---|
+| 경쟁사 대비 구매 전환 | docs/conversion-sharing-plan-20260922.md의 비교·우선순위, 홈 가격/예시/신뢰 개선, 책·편지 진입·상세 개선 | 첫 방문→상품 발견→상세→가격→저장 결과 재열람 동선별 확인. 실제 전환 성과는 미검증 |
+| 네오 강점 강화 | 10년 경력·공개 예측 세 원문의 정본, 홈/영냥이 랜딩, 두 상품 상세에 날짜·원문 링크 연결 | 다른 고가 상담의 구매 전에도 적절히 재사용. 활동명·기존 링크·게시일을 다시 묻지 않는다 |
+| 고가 상담 UI | 인생의 책/연애 비책 결과·진입·입력, 이번 상세 페이지/팝업 표시 | 마스터 연애·카르마·서양점성·베다 및 나머지 상담군. 이름만 바꾼 동일 장식으로 복제하지 않는다 |
+| 모든 결과의 공유/바이럴 | 영냥이와 찻집·네오, 책/편지 이미지의 일부 개선. 기능 키별 적용표는 docs/consultation-sharing-coverage-20260923.md | 미연결 상담군 어댑터, 이름 숨김/문구 편집/미리보기, 수신 페이지와 실기기 카카오 확인. 모든 결과 적용 완료 아님 |
+| SEO | 홈/영냥이 문구·OG·메타 개선, 기존 12개 랜딩 조사 인수인계 | docs/handoff/google-seo-rebuild-20260921.md의 남은 항목과 실제 배포 후 동일 URL 측정. 순위/색인/수익 성과 미검증 |
+
+## 최신 재개 위치 — 상세·예시·제작자 근거
+
+- 기준 main: `7770a50dee60618eeb6d4d1ef1ff21f5bf7ed8be`, 공식 CI 35758957280 success 확인. 이전 진입/입력 작업은 전달 완료다.
+- 이번 작업은 `D:\Development\codedestiny-worktrees\premium-detail-20260923-20260923-022104`, `wt/premium-detail-20260923-20260923-022104`에서 격리했다. main의 marketing/** 변경을 보존한다. 워크트리 배수 뒤 다음 세션은 main에서 시작한다.
+- index.html의 FEATURE_VISUAL_DETAILS 정본에 두 상품의 book/letter 재질을 지정했다. 공용 renderer·CSS가 같은 실물과 HTML 제목, 종이 결과 예시를 그린다. 기존 서사 문구는 유지하고 이전 달빛/장미 이미지만 교체했다.
+- generator가 기존 founder.ts/prediction-records.json을 읽어 경력·예측 원문을 연결하고, 카드/OG 파생 이미지는 자르지 않고 여백을 둔다. 원본 프롬프트와 파생 출처 sidecar 8개를 보존했다. 새 이미지 생성은 없다.
+- 실제 standalone 10개(두 상품×360/390/430/1280 light, 390 dark) 및 실제 팝업 템플릿/모듈의 mock 컴포넌트 4개(두 상품×390/1280)가 통과했다. 원본 CTA로 1회 위임·가격·비율·출처를 확인했다. **팝업 컴포넌트 검사는 홈 목록→팝업 실사용 진입, 닫기/포커스 복원, 실제 결제 검증이 아니다.**
+- 조사에서 /app는 이 두 상품을 노출하지 않고, /ggulggul의 기존 타일은 resultPage 안에 있다. 모바일 모든 운세→VVIP를 열어도 기존 .lifebook-tile/.lovebible-tile을 선택하지 못했다. 강제 표시로 성공을 만들지 않았다. 다음 첫 작업은 실제 노출/진입 경로를 파악하고 상품 발견 문제를 개선하는 것이다. 이 관찰만으로 운영 전체에서 접근 불가라고 단정하지 않는다.
+- 테스트: scripts/verify-premium-detail.mjs, __tests__/ui/feature-visual-details.test.mjs와 feature-detail-preview.test.mjs. 검사 서버는 mock API base이고 외부 API/과금 동작은 차단한다. 개발에 없는 version.json은 404 mock으로 유지해 Next locale catch-all 컴파일 경쟁을 피한다. 실제 상세 route의 200 검사는 유지한다.
+- 구현 커밋: `65ab0d083ef585ee1bf1e3498f96c5947e3f3a93` (`feat: connect premium product details with founder evidence`). 이 문서 정리까지 묶어 main에 push하며 그 HEAD의 CI required로 전달을 확정한다. 독립 마감 판정은 위 14개 화면/컴포넌트 범위에서 ship이다.
+- check:fast 첫 실행은 sitemap 서명 드리프트에서 중단됐다. 정본 생성 후 재실행은 exit 0, 290 suites/4078 tests 통과. 공용 상세 단위 검사 16/16, 최종 변경 lint, sitemap-drift, handoff-contract, doc-freshness 통과. detector의 단일 primary는 버튼 chevron의 2px 선을 카드 측면 장식으로 인식한 것이며, 글자 크기 advisory는 지역 디자인 범위와 실제 캡처로 검토했다.
+- 원본 증거 보존 위치: D:\Development\code-destiny\build-cache\premium-detail-20260923\. main-ci.json은 해당 전달의 실제 완료 결과로 저장한다. 운영 승격은 하지 않는다.
 
 ## 최신 재개 위치 — 구매 전 화면 확장
 
@@ -122,5 +147,5 @@ next: "구매 전 책·편지 UI의 main CI를 확인하고 상세 팝업/예시
 ## 복사해서 재개
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 읽어라. 마지막 구현 커밋 981fadf0f3ce05ab6dfc1a767350826da6921d0b 및 이후 인수인계 문서 커밋의 main CI를 확인하고 다른 세션의 미커밋 변경을 보존하라. docs/premium-consultation-design-20260923.md의 실제 책·비밀 편지 방향을 유지하고 이미 완료한 두 상품 진입/입력 화면을 재작업하지 말고 상세 팝업과 결과 예시의 시각적 일치부터 진행한 뒤 다른 전문가 상담 UI와 저장된 결과 공유 어댑터를 이어가라. 네오 활동명·기존 대통령 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 읽어라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md를 먼저 읽어라. 마지막 구현 커밋 65ab0d083ef585ee1bf1e3498f96c5947e3f3a93 및 이후 인수인계 문서 커밋의 main CI를 확인하고 다른 세션의 변경을 보존하라. 전체 목표는 경쟁사 대비 구매 전환/SEO/UI 보완, 네오의 경력·예측 기록 강화, 모든 상담 결과의 공유·바이럴 개선이며 일부 UI로 축소하지 말라. 첫 작업은 책/연애 비책의 실제 홈 노출→상세 진입을 확인하고 개선하는 것이다. 이어서 마스터 연애 등 다른 전문가 상담 UI·공유 어댑터와 SEO 후속을 진행하라. docs/conversion-sharing-plan-20260922.md, docs/consultation-sharing-coverage-20260923.md, docs/premium-consultation-design-20260923.md, docs/handoff/google-seo-rebuild-20260921.md를 해당 범위에서 읽어라. 네오 이름·기존 예측 링크·게시일은 다시 묻지 말고 정본과 원문을 확인하라. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 mock 검증하고, 작은 커밋 단위로 main push와 CI까지 진행하라.
 ```
