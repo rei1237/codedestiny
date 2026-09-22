@@ -1,7 +1,7 @@
 import { getBillingFeaturePricing } from '../../lib/billing-feature-registry.js';
-import {READING_VERSION,readingChapterCount} from '../fortune/reading-policy';
+import {READING_V5_VERSION,readingChapterCount} from '../fortune/reading-policy';
 import {DomainId,FishId,PackageId,FortuneError} from '../fortune/shared/contracts';
-export const MANIFEST_VERSION=READING_VERSION;
+export const MANIFEST_VERSION=READING_V5_VERSION;
 export const packages={
  mackerel:{name:'고등어'},salmon:{name:'연어'},flounder:{name:'광어'},tuna:{name:'참치'},
  assorted:{name:'생선 모둠 세트'},omakase:{name:'생선 오마카세'},

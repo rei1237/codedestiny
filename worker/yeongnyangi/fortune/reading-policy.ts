@@ -1,6 +1,8 @@
 import type { DomainId, PackageId } from './shared/contracts';
 
 export const READING_VERSION = 'destiny-book-v4';
+export const READING_V5_VERSION = 'destiny-book-v5';
+export const isStructuredReading = (version?: string) => version === READING_VERSION || version === READING_V5_VERSION;
 export const PROMPT_VERSION = 'chapter-v4';
 export const readingPolicies = {
   mackerel: { minimum: 3000, target: [3200, 4000], outputTokens: 8192, depth: ['핵심 결론', '계산 근거와 이유', '생활 사례', '첫 행동'] },
@@ -25,3 +27,13 @@ export function readingChapterCount(domain: DomainId, tier: PackageId): number {
   const index = ['mackerel', 'salmon', 'flounder', 'tuna'].indexOf(tier);
   return (domain === 'tarot' ? [4, 5, 6, 8] : domain === 'sukuyo' ? [4, 6, 8, 10] : [4, 6, 8, 12])[index];
 }
+
+// Purchase snapshots retain their own version and quotas.
+export const v5ReadingPolicies = {
+  ...readingPolicies,
+  tuna: {...readingPolicies.tuna, minimum:32000, target:[36000,44000]},
+  assorted: {...readingPolicies.assorted, minimum:48000, target:[55000,65000]},
+  omakase: {...readingPolicies.omakase, minimum:80000, target:[90000,110000]},
+} as const;
+export const policyForReading = (tier: PackageId, version?: string) =>
+  version === READING_V5_VERSION ? v5ReadingPolicies[tier] : readingPolicies[tier];

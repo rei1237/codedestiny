@@ -2,7 +2,7 @@ import {type ChapterRequest,type FortuneChapterProvider,validateChapter} from '.
 import {FortuneError} from '../../worker/yeongnyangi/fortune/shared/contracts';
 import {type ChapterBody} from '../../worker/yeongnyangi/fortune/book-contracts';
 import {selectChapterFacts} from '../../worker/yeongnyangi/fortune/chapter-facts';
-import {READING_VERSION} from '../../worker/yeongnyangi/fortune/reading-policy';
+import {READING_VERSION,READING_V5_VERSION} from '../../worker/yeongnyangi/fortune/reading-policy';
 export class MockChapterProvider implements FortuneChapterProvider {
   readonly receipt = { provider: "mock", model: "chapter-fixture-v2" };
   constructor(private failAt?: string) {}
@@ -12,6 +12,7 @@ export class MockChapterProvider implements FortuneChapterProvider {
     const facts = Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap(
       (c) => selectChapterFacts(c,input.chapter,input.analysis.topicId),
     );
+    if(c.version===READING_V5_VERSION)return mockReadingV5(input,facts.map(f=>f.id));
     if(c.version===READING_VERSION)return mockReading(input,facts.map(f=>f.id));
     const f = facts[c.ordinal % facts.length];
     return validateChapter(
@@ -50,4 +51,23 @@ function mockReading(input:ChapterRequest,sources:string[]):ChapterBody {
  for(const section of blocks)if(!section.paragraphs.length)section.paragraphs.push(`${c.title}에서 ${section.title}을 확인합니다. ${section.title} 구간은 ${situation}을 다루는 모의 검증 자료이며, 근거를 실제 개인의 경험으로 바꾸지 않습니다.`);
  const value:ChapterBody={summary:`${c.title} · 모의 상담 구성 확인`,analysis:[],blocks,example:`${c.title}의 사례: ${scenes[c.ordinal%scenes.length]}에 무엇을 확인할지 적어 보는 가상 연습입니다.`,advice:`${c.title}의 실행: 판단에 필요한 정보와 확인할 질문을 나누고, 이번 장의 선택 기준을 한 문장으로 기록합니다.`,highlights:[c.title],sources:sources.slice(0,2),persona:'이 화면은 모의 상담이야. 실제 해석과는 구분해서 살펴봐.',topics:[c.title]};
  return validateChapter(value,input);
+}
+
+// Deterministic structural fixture. Deliberately not evidence of live prose quality.
+export function mockReadingV5(input:ChapterRequest,sources:string[]):ChapterBody {
+ const c=input.chapter;
+ sources=[...new Set([...sources.slice(0,2),...new Map(sources.map(id=>[id.split('.')[0],id])).values()])];
+ let seed=Array.from(c.id+c.title).reduce((n,v)=>(Math.imul(n,31)+v.charCodeAt(0))>>>0,17);
+ const words=['대화','관찰','기대','선택','휴식','배움','속도','표현','책임','환경','질문','여유','균형','기록','변화','관계','역할','집중','경험','일상','계획','기준','마음','시간','거리','기회','이유','행동','공간','방향'];
+ const next=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return words[seed>>>16&31]||'점검';};
+ const blocks=c.sections!.map(section=>{
+  const paragraphs:string[]=[];
+  let length=0;
+  while(length<section.targetChars[0]){
+   const text=`${section.title}의 분량 검증용 모의 자료입니다. `+Array.from({length:15},()=>`${next()}와 ${next()}를 살펴보고 ${next()}의 조건을 기록합니다.`).join(' ');
+   paragraphs.push(text);length+=Array.from(text).length;
+  }
+  return {id:section.id,title:section.title,paragraphs,sources};
+ });
+ return validateChapter({summary:`${c.title} · 모의 상담 구성 확인`,analysis:[],blocks,example:'',advice:'',highlights:[c.title],sources,persona:'검증용 이야기야. 실제 상담 결과와는 구분해서 살펴봐.',topics:[c.title]},input);
 }

@@ -1,6 +1,6 @@
 import {DomainContext} from './shared/contracts';
 import {ChapterSpec} from './book-contracts';
-import {READING_VERSION} from './reading-policy';
+import {isStructuredReading} from './reading-policy';
 
 export function relationshipSignals(value:unknown) {
  const data=value as {byName?:Record<string,{present?:boolean;hits?:unknown[];state?:string}>};
@@ -55,7 +55,7 @@ const filters:Record<string,RegExp>={
  luck:/Luck|Timeline|dasha|transit|timing|year|decade|cards|reading/i,
 };
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
- if(chapter.version===READING_VERSION)return selectedFacts(context,chapter);
+ if(isStructuredReading(chapter.version))return selectedFacts(context,chapter);
  const pattern=filters[topic];
  let facts=pattern?context.facts.filter(f=>pattern.test(f.label)||/pillars|dayMaster|lagna|ascendant|spread/i.test(f.label)):context.facts;
  if(!facts.length)facts=context.facts;

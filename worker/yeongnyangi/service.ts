@@ -1,3 +1,5 @@
+import {readingCharts} from './fortune/reading-presentation';
+import { READING_VERSION } from './fortune/reading-policy';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
 import {validateSkyInput,skyMoment,calculateQuestionSky} from './fortune/question-sky';
 import {skyModes,skyTopics,SKY_IMAGE,SKY_TIMING} from './fortune/question-sky-contract';
@@ -72,7 +74,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   for(const system of product.systems) contexts[system]=domains[system].buildContext(await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
-  let manifest=readingManifest(product,analysis.topicId,raw.readingMode);
+  let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(spiritInput)manifest=spiritManifest(manifest);
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest);
   // Questions are answered before the fixed outline, without reducing paid depth.
@@ -81,7 +83,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   manifest[0].systems=product.systems;
   manifest[0].factSelectors=questionFactSelectors(product.systems,analysis.question || '',analysis.topicId || 'general');
   manifest[0].periodScope='저장된 상담의 기준일과 요청 기간을 다룬다. 해당 기간의 계산 근거가 없으면 실천·점검 기간으로 명시한다.';
-  manifest[0].requiredSections=[...(manifest[0].requiredSections || []),'관련 시기'];
+  if(!manifest[0].sections)manifest[0].requiredSections=[...(manifest[0].requiredSections || []),'관련 시기'];
   if(spiritInput){
     spiritEvidence(contexts.saju!);
     analysis.consultation.spirit=spiritPublic(spiritInput,now.toISOString(),contexts.saju);
@@ -111,7 +113,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   const context=calculated.context;
   calculated.publicData.evidenceVersion='question-sky-flounder-2';
   context.facts.push({id:`${context.domain}.question-calculation`,label:'프라슈나 계산 근거',value:{method:'Lahiri sidereal / Whole Sign',chart:calculated.chart,judgements:calculated.audit,limits:['위계는 본궁·고양·손상·추락만 산출','실제 감정·소재지·사건 시기의 관측 아님']}});
-  const manifest=skyManifest(readingManifest(product),context);
+  const manifest=skyManifest(readingManifest(product,'general','personal',READING_VERSION),context);
   const consultation=createConsultation(input.question,input.topic,clock,manifest);
   consultation.questionSky=calculated.publicData;
   consultation.topicLabel=skyTopics[input.topic];
@@ -159,6 +161,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 export function presentFortune(row: any) {
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
+    charts:!symbolic && row.paymentId && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
     paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};

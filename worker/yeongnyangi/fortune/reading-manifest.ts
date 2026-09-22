@@ -1,7 +1,8 @@
+import { withReadingSections } from './reading-sections';
 import type { Product } from '../payments/catalog';
 import type { ChapterSpec, Theme } from './book-contracts';
 import type { DomainId } from './shared/contracts';
-import { readingPolicies, READING_VERSION } from './reading-policy';
+import { policyForReading, READING_V5_VERSION } from './reading-policy';
 import { topicCatalog, topicLabel, type TopicId } from './topics';
 
 type Row = { key: string; title: string; theme: Theme; systems: DomainId[]; part: string };
@@ -54,7 +55,7 @@ export function questionFactSelectors(systems:DomainId[],question:string,topicId
   ...(/work|직업|취업|이직|직장|사업|창업|일자리/.test(text)?['talent','career']:[])];
  return Object.fromEntries(systems.map(d=>[d,[...new Set([...groups[d].base,...keys.flatMap(k=>groups[d][k] || []),...(groups[d].year || [])])]]));
 }
-export function readingManifest(p:Product,topicId='general',readingMode='personal'):ChapterSpec[]{
+export function readingManifest(p:Product,topicId='general',readingMode='personal',version=p.manifestVersion):ChapterSpec[]{
  let rows:Row[];
  if(p.readingKind==='single'){
  const name=p.domain==='sukuyo'&&readingMode!=='personal'?'sukuyo_pair':p.domain;
@@ -69,15 +70,16 @@ export function readingManifest(p:Product,topicId='general',readingMode='persona
   const tag=(r:Row):Row=>({...r,title:`${label} · ${r.title}`});
   rows=p.domain==='tarot'?rows.map((r,i)=>i===0?tag(r):r):rows.map(r=>[1,2].includes(rank(r))?tag(r):r);
  }
- const policy=readingPolicies[p.fishId];
+ const policy=policyForReading(p.fishId,version);
  const weights=rows.map(r=>r.key==='action'?.85:['useful','current','next','overlap','transform','division','triad','tension'].includes(r.key)?1.15:1);const sum=weights.reduce((a,b)=>a+b,0);
  return rows.map((r,i)=>{
  const systems=r.key==='useful'?['saju'] as DomainId[]:r.systems;
  const factSelectors=Object.fromEntries(systems.map(d=>{const g=groups[d];const key=g[r.key]?r.key:aliases[r.key]||r.key;const selected=g[key]||g[r.theme==='wealth'?'money':r.theme==='career'?'talent':r.theme==='love'?'love':r.theme==='relations'?'relations':'self']||[];return [d,[...new Set([...g.base,...selected])]];}));
- return {...r,systems,id:`${p.fishId}-${String(i+1).padStart(2,'0')}`,ordinal:i,version:READING_VERSION,tier:p.fishId,
+ const chapter:ChapterSpec = {...r,systems,id:`${p.fishId}-${String(i+1).padStart(2,'0')}`,ordinal:i,version,tier:p.fishId,
  focus:`${r.title}에서 사용자가 이해해야 할 원인과 선택 조건은 무엇인가? 상담 주제 '${label||topicId}'와 관련된 상황을 우선하되 이 장의 질문을 벗어나지 않는다.`,
  excludes:rows.filter(x=>x.key!==r.key).map(x=>x.title),factSelectors,
  minimumChars:Math.ceil(policy.minimum*weights[i]/sum),targetChars:[Math.ceil(policy.target[0]*weights[i]/sum),Math.ceil(policy.target[1]*weights[i]/sum)],requiredSections:[...policy.depth],outputTokens:policy.outputTokens,
  periodScope:r.theme==='timing'?'제공된 날짜와 기간만 인용한다. 현재·다음은 저장된 계산 시점을 기준으로 구분한다.':'출생 성향 또는 질문 당시의 상징이다. 계산하지 않은 미래 시기를 만들지 않는다.'};
+ return version===READING_V5_VERSION?withReadingSections(chapter):chapter;
  });
 }

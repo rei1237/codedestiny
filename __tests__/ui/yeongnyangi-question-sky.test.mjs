@@ -75,7 +75,7 @@ test('both real local Swiss engines respond to question time/place without natal
 for(const advanced of [false,true])test(`actual provider validates ${advanced?'eight-chapter flounder':'legacy five-chapter'} evidence and every question`,async()=>{
   const {context}=api.projectQuestionChart(chart,{...input,mode:advanced?'prashna-v1':'horary-v1'});
   if(advanced)context.facts.push({id:'vedic.question-calculation',label:'프라슈나 계산 근거',value:{chart}});
-  const manifest=api.skyManifest(api.readingManifest(api.getProduct(advanced?'saju_flounder':'saju_mackerel')),context);
+  const manifest=api.skyManifest(api.readingManifest(api.getProduct(advanced?'saju_flounder':'saju_mackerel'),'general','personal','destiny-book-v4'),context);
   const sky={...input,evidenceVersion:advanced?'question-sky-flounder-2':undefined,askedAt:'2026-09-21T01:00:00Z',space:'상징',timing:api.SKY_TIMING};
   const consultation={...api.createConsultation(input.question,'space',api.consultationClock('Asia/Seoul',now),manifest),questionSky:sky};
   const analysis={contexts:{[context.domain]:context},signals:[],themes:[],question:input.question,consultation};

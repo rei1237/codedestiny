@@ -9,7 +9,16 @@ export type Theme =
   | "timing"
   | "cross"
   | "action";
+export interface ReadingSectionSpec {
+  id: string;
+  title: string;
+  role: 'interpretation' | 'example' | 'action';
+  instruction: string;
+  minimumChars: number;
+  targetChars: [number, number];
+}
 export interface ChapterSpec {
+  sections?: ReadingSectionSpec[];
   version?: string;
   key?: string;
   tier?: import('./shared/contracts').PackageId;
@@ -31,7 +40,7 @@ export interface ChapterSpec {
 }
 export interface ChapterBody {
   questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string }[];
-  blocks?: { title: string; paragraphs: string[] }[];
+  blocks?: { id?: string; title: string; paragraphs: string[]; sources?: string[] }[];
   summary: string;
   analysis: string[];
   example: string;

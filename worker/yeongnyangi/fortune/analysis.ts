@@ -56,8 +56,8 @@ export function analyze(
             {
               재백궁: "wealth",
               관록궁: "career",
-              부처궁: "love",
-              교우궁: "relations",
+              부부궁: "love",
+              노복궁: "relations",
             } as Record<string, Theme>
           )[p.name];
           if (!theme) continue;

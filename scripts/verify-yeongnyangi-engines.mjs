@@ -73,7 +73,7 @@ for (const product of products) {
     const fixture=await new MockChapterProvider().generateChapter(input);
     // Uniqueness fixture, not prose-quality evidence. The legacy fixture cycles 12 scenes;
     // a 28-chapter product correctly rejects that cycle as duplicate output.
-    fixture.example=`모의 저장 검사: ${createHash('sha512').update(product.id+chapter.id).digest('hex')}`;
+    if(!chapter.sections)fixture.example=`모의 저장 검사: ${createHash('sha512').update(product.id+chapter.id).digest('hex')}`;
     const adapter=new StructuredChapterProvider({generate:async request=>{
       assert.ok(request.calculatedData.facts.length>0, `${product.id}/${chapter.id} has evidence`);
       assert.ok(request.calculatedData.facts.every(f=>product.systems.includes(f.id.split('.')[0])),product.id);
