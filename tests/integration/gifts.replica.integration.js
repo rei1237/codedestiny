@@ -4,7 +4,7 @@ import { Gift, GiftGrant, GiftClaimContext } from "../../worker/lib/gift-models.
 import { Payment, User } from "../../worker/lib/models.js";
 import { __paymentDbTestUtils } from "../../worker/payments/db.js";
 import { createPassOrder as resumePassOrder, derivePassOrderId, resolvePassPlan, activatePassSubscription } from "../../worker/payments/passes.js";
-import { currentPassPlan } from "../../lib/payment/pass-policy.js";
+import { CURRENT_PASS_POLICY_VERSION, currentPassPlan } from "../../lib/payment/pass-policy.js";
 import { giftDraftFor, ensureGiftForOrder, issueGiftLink, hashGiftToken, claimGift, assertGiftIndexes, settleGiftCancellation } from "../../worker/payments/gifts.js";
 import { __paymentsContextTestUtils, handlePaymentsContext } from "../../worker/payments/index.js";
 import { signAuthToken } from "../../worker/lib/auth.js";
@@ -267,7 +267,7 @@ test("new VVIP gift keeps its policy and budget after transactional claim", asyn
   const { tokenHash } = await paidGift("vvip", "current");
   await claimGift(db, { tokenHash, userId: receiver, now });
   const sub = (await User.findById(receiver).lean()).profileSubscription;
-  expect(sub.passPolicyVersion).toBe("flower-20260921");
+  expect(sub.passPolicyVersion).toBe(CURRENT_PASS_POLICY_VERSION);
   expect(sub.monthlyLimitCoin).toBe(900);
   expect(sub.monthlySpendCoin).toBe(0);
 });
