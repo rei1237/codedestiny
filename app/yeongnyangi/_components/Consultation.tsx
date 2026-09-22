@@ -1,4 +1,5 @@
 "use client";
+import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {useEffect,useRef,useState} from 'react';
 import {authFetch} from '@/app/_lib/auth-client';
 import {ArrowRight,Moon,Sparkles} from 'lucide-react';
@@ -20,6 +21,7 @@ export default function Consultation(){
  const [partnerId,setPartnerId]=useState(''),[timeUnknown,setTimeUnknown]=useState(false);
  const [topicId,setTopicId]=useState('general'),[question,setQuestion]=useState(''),[error,setError]=useState('');
  const [busy,setBusy]=useState(false),[ready,setReady]=useState(false);
+ const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
  const [extraTime,setExtraTime]=useState(''),[extraPlace,setExtraPlace]=useState('');
  const selectedProfile=profiles.find(p=>(p.profileId||p.id)===profileId);
  const lock=useRef(false);
@@ -38,9 +40,9 @@ export default function Consultation(){
  const missing=!tarotOnly&&!guest?[
   ...(!selectedProfile?['함께 읽을 프로필을 골라 주세요.']:[]),
   ...(selectedProfile&&needsTime&&(timeUnknown||(selectedProfile.birth?.timeUnknown&&!extraTime))?['선택한 상담에는 출생시간이 필요해요. 시간을 보완하거나 다른 상담을 골라 주세요.']:[]),
-  ...(selectedProfile&&needsPlace&&!selectedProfile.location?.label&&!extraPlace.trim()?['선택한 상담에는 출생지역이 필요해요. 도시와 국가를 입력해 주세요.']:[]),
+  ...(selectedProfile&&needsPlace&&!selectedProfile.location?.label&&!extraPlace.trim()&&!currentLocation?['선택한 상담에는 출생지역이 필요해요. 도시와 국가를 입력해 주세요.']:[]),
  ]:[];
- useEffect(()=>{setExtraTime('');setExtraPlace('');setTimeUnknown(false);setError('');},[profileId]);
+ useEffect(()=>{setExtraTime('');setExtraPlace('');setCurrentLocation(null);setTimeUnknown(false);setError('');},[profileId]);
  useEffect(()=>{if(partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
@@ -75,8 +77,8 @@ export default function Consultation(){
   if(missing.length){setError(missing.join(' '));return;}
   lock.current=true;setBusy(true);setError('');
   try{
-   let birthPlace;
-   if(extraPlace.trim()&&!selectedProfile?.location?.label){
+   let birthPlace=currentLocation?{name:currentLocation.name,latitude:currentLocation.latitude,longitude:currentLocation.longitude,timezone:currentLocation.timezone}:undefined;
+   if(!currentLocation&&extraPlace.trim()&&!selectedProfile?.location?.label){
     const response=await authFetch(`/api/geocode?place=${encodeURIComponent(extraPlace)}`);
     const found=await response.json();
     if(!response.ok||found.fallback)throw new Error('출생지역을 찾지 못했어요. 도시와 국가를 함께 입력해 주세요.');
@@ -113,7 +115,7 @@ export default function Consultation(){
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
     <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> 이번 상담에서 출생시간을 미상으로 보기</label>
     {selectedProfile?.birth?.timeUnknown&&<label>출생시간 보완 (선택)<input type="time" value={extraTime} onChange={e=>setExtraTime(e.target.value)}/></label>}
-    {selectedProfile&&!selectedProfile.location?.label&&<label>이 상담에 필요한 출생지역<input value={extraPlace} onChange={e=>setExtraPlace(e.target.value)} placeholder="도시와 국가" maxLength={120}/></label>}
+    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">확인한 현재 위치를 이 상담의 출생 장소로 사용할게요. {currentLocation.timezone}</p>}<label>이 상담에 필요한 출생지역<input value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder="도시와 국가" maxLength={120}/></label></>}
     {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>보완한 정보는 이번 상담 기록에 함께 저장해요.</p>}
     {domain==='sukuyo'&&<label>궁합 상대 (선택)<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">내 본명숙만 보기</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
     </div>}

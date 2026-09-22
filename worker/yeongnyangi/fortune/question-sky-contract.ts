@@ -24,6 +24,7 @@ export const questionCities=[
   {id:'london',name:'런던',latitude:51.5074,longitude:-.1278},
   {id:'sydney',name:'시드니',latitude:-33.8688,longitude:151.2093},
 ] as const;
-export interface SkyInput {mode:SkyMode;question:string;topic:keyof typeof skyTopics;relationship:string;situation:string;boundary:boolean;cityId:string;localTime:string}
-export interface SkyPublic {mode:SkyMode;askedAt:string;receivedAt:string;localTime:string;cityName:string;timezone:string;relationship:string;situation:string;boundary:boolean;space:string;timing:string;notice:string;shareKey:string}
+export interface QuestionLocation {latitude:number;longitude:number;source:"geolocation"|"city-search";accuracy?:number;name?:string}
+export interface SkyInput {location?:QuestionLocation;mode:SkyMode;question:string;topic:keyof typeof skyTopics;relationship:string;situation:string;boundary:boolean;cityId:string;localTime:string}
+export interface SkyPublic {evidenceVersion?:string;mode:SkyMode;askedAt:string;receivedAt:string;localTime:string;cityName:string;timezone:string;relationship:string;situation:string;boundary:boolean;space:string;timing:string;notice:string;shareKey:string}
 export function skyShare(mode:SkyMode,key:string){return {title:skyModes[mode],text:({moving:'변화를 서두르기보다 지금 할 수 있는 선택 하나를 정리해 봐.',steady:'지킬 기준과 바꿀 기준을 나누며 나의 속도를 돌아봐.',mixed:'여러 흐름이 함께 보여. 한 방향으로 단정하기보다 선택의 여지를 남겨 봐.'}[key]||'나의 선택과 인연의 경계를 돌아보는 상징 풀이.')+' '+SPIRIT_NOTICE};}

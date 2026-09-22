@@ -1,5 +1,6 @@
 "use client";
 
+import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
@@ -2278,7 +2279,7 @@ export async function pollVedicResult(sessionId: string, isCurrent = () => true,
 function validateForm(form: FormState, copy: VedicAiCopy) {
   if (!form.birthDate || !form.gender || !form.calendarType) return copy.errorText.INPUT_MISSING;
   if (!form.birthTimeUnknown && !form.birthTime) return copy.errorText.BIRTH_TIME_MISSING;
-  if (!form.birthPlace.trim()) return copy.errorText.BIRTH_PLACE_INVALID;
+  if (!form.birthPlace.trim() || !form.latitude.trim() || !form.longitude.trim() || !Number.isFinite(Number(form.latitude)) || !Number.isFinite(Number(form.longitude))) return copy.errorText.BIRTH_PLACE_INVALID;
   if (form.focusArea === "custom" && form.question.trim().length < 2) return copy.errorText.CUSTOM_QUESTION_MISSING;
   return "";
 }
@@ -3051,7 +3052,8 @@ export default function VedicAiClient() {
   function applyPreset(value: string) {
     const preset = PLACE_PRESETS.find((place) => place.label === value);
     if (!preset) {
-      updateForm({ birthPlace: value });
+      updateForm({ birthPlace: value,latitude:"",longitude:"" });
+      setGeocode({lat:"",lng:"",name:"",fallback:false});
       return;
     }
     updateForm({
@@ -3065,7 +3067,7 @@ export default function VedicAiClient() {
 
   async function handlePlaceBlur() {
     const place = form.birthPlace.trim();
-    if (!place || PLACE_PRESETS.some((preset) => preset.label === place) || geocoding) return;
+    if (!place || (geocode.name===place&&!geocode.fallback) || PLACE_PRESETS.some((preset) => preset.label === place) || geocoding) return;
 
     setGeocoding(true);
     try {
@@ -3073,7 +3075,7 @@ export default function VedicAiClient() {
       const data = await response.json().catch(() => ({}));
       const lat = toText(data.lat);
       const lng = toText(data.lng);
-      if (!lat || !lng) return;
+      if (!response.ok || data.fallback || !lat || !lng) throw new Error("LOCATION_UNAVAILABLE");
 
       const name = toText(data.name) || place;
       updateForm({
@@ -3084,9 +3086,9 @@ export default function VedicAiClient() {
       setGeocode({ lat, lng, name, fallback: data.fallback === true });
       setNotice(data.fallback === true ? copy.geocodeFallbackNotice : "");
     } catch {
-      setNotice(copy.geocodeErrorNotice);
-      updateForm({ latitude: "37.5665", longitude: "126.9780", timezone: form.timezone || "Asia/Seoul" });
-      setGeocode({ lat: "37.5665", lng: "126.9780", name: copy.geocodeFallbackName, fallback: true });
+      setNotice("출생지를 확인하지 못했어요. 현재 위치를 사용하거나 도시와 국가를 다시 입력해 주세요.");
+      updateForm({ latitude: "", longitude: "" });
+      setGeocode({ lat: "", lng: "", name: "", fallback: false });
     } finally {
       setGeocoding(false);
     }
@@ -3415,6 +3417,10 @@ export default function VedicAiClient() {
                 {geocoding ? copy.geoCheckingLabel : geocode.name ? copy.geoConfirmedLabel(geocode.name.slice(0, 42)) : copy.geoHintLabel}
               </small>
             </label>
+            <CurrentLocationButton disabled={busy||geocoding} onLocation={place=>{
+              updateForm({birthPlace:place.name,latitude:String(place.latitude),longitude:String(place.longitude),timezone:place.timezone});
+              setGeocode({lat:String(place.latitude),lng:String(place.longitude),name:place.name,fallback:false});setNotice('확인한 현재 위치를 출생 장소로 적용했어요.');
+            }}/>
             <label>
               <span>{copy.focusAreaLabel}</span>
               <select value={form.focusArea} onChange={(event) => updateForm({ focusArea: event.target.value as FocusArea })} disabled={busy}>

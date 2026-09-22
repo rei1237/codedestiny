@@ -1,5 +1,6 @@
 "use client";
 
+import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { useLocaleRequestScope, type LocaleRequestScope } from "@/app/hooks/useLocaleRequestScope";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
@@ -2059,6 +2060,7 @@ export default function AstrologyAiClient() {
                 </div>
 
                 <div className="grid gap-4">
+                  <CurrentLocationButton disabled={busy} onLocation={place=>patchForm({placeKey:'custom',city:place.name,country:'',latitude:String(place.latitude),longitude:String(place.longitude),timezone:place.timezone})}/>
                   <label className={LABEL_CLASS}>
                     {copy.quickSelectLabel}
                     <select className={SELECT_CLASS} value={form.placeKey} onChange={(event) => handlePresetChange(event.target.value)}>

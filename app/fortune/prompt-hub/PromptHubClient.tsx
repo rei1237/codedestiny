@@ -1,5 +1,8 @@
 "use client";
 
+import CurrentLocationButton from '@/app/components/CurrentLocationButton';
+import {withContinuation} from '@/lib/fortune/prompt-continuation';
+import {buildHoraryPrompt} from './horary-prompt';
 import { Bookmark, BookmarkCheck, Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -1634,6 +1637,7 @@ function formatDraftValue(value: ToolDraftValue | undefined) {
  */
 async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<string> {
   const birth = {
+    birthCoordinates: draft.locationSource==='geolocation'&&draft.locationPlace===draft.birthPlace?{lat:Number(draft.locationLatitude),lon:Number(draft.locationLongitude),name:String(draft.birthPlace)}:undefined,
     birthDate: formatDraftValue(draft.birthDate),
     calendarType: formatDraftValue(draft.calendarType),
     leapMonth: draft.leapMonth === true,
@@ -1641,7 +1645,7 @@ async function buildComputedFactsFor(toolId: ToolId, draft: ToolDraft): Promise<
     birthTimeUnknown: draft.birthTimeUnknown === true,
     birthPlace: formatDraftValue(draft.birthPlace),
     gender: formatDraftValue(draft.gender),
-    birthTimezone: BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.birthTimezone)] || "Asia/Seoul",
+    birthTimezone: draft.locationSource==='geolocation'&&draft.locationPlace===draft.birthPlace?String(draft.locationTimezone):BIRTH_TIMEZONE_BY_LABEL[formatDraftValue(draft.birthTimezone)] || formatDraftValue(draft.birthTimezone) || "Asia/Seoul",
   };
   const systems = Array.isArray(draft.systems) ? draft.systems : [];
   const needsSukuyoAstronomy = toolId === "sukuyo" || (toolId === "comprehensive" && systems.includes("숙요점"));
@@ -1813,8 +1817,9 @@ async function copyTextToClipboard(text: string) {
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
-    document.execCommand("copy");
-    document.body.removeChild(textarea);
+    let copied=false;
+    try{copied=document.execCommand("copy");}finally{document.body.removeChild(textarea);}
+    if(!copied)throw new Error("COPY_FAILED");
   }
 }
 
@@ -1823,6 +1828,8 @@ export default function ComprehensivePromptHubPage() {
   const copy = getPromptHubCopy(locale);
   const tx = useCallback((value: string | undefined) => translatePromptHubText(value, locale), [locale]);
   const [activeToolId, setActiveToolId] = useState<ToolId>("comprehensive");
+  const [generationError,setGenerationError]=useState('');
+  const [continuationCopyError,setContinuationCopyError]=useState('');
   const [draftsByToolId, setDraftsByToolId] = useState<Record<ToolId, ToolDraft>>(getInitialDraftsByToolId);
   const [resultsByToolId, setResultsByToolId] = useState<Record<ToolId, { prompt: string; generatedAt: string } | null>>(
     () =>
@@ -1848,7 +1855,6 @@ export default function ComprehensivePromptHubPage() {
   const [copiedToolId, setCopiedToolId] = useState<ToolId | null>(null);
   // 생성이 서버 왕복을 타는 동안 제출 버튼을 잠그는 표시용 상태(실제 인플라이트 판정은 generatingRef).
   const [isGenerating, setIsGenerating] = useState(false);
-  const [chatGptPopupBlockedToolId, setChatGptPopupBlockedToolId] = useState<ToolId | null>(null);
   const [heroImageError, setHeroImageError] = useState(false);
   // 좁은 화면에서는 히어로 우상단에 띄우고, lg 부터는 오른쪽 열 안에 흐름 요소로 놓는다.
   // 같은 URL 이라 브라우저는 한 번만 내려받는다.
@@ -2074,10 +2080,11 @@ export default function ComprehensivePromptHubPage() {
    * (state 를 읽으면 방금 복원한 값이 아니라 이전 draft 를 집는다).
    */
   async function runPromptGeneration(toolId: ToolId, draft: ToolDraft) {
+    setGenerationError('');
     const config = toolConfigById[toolId];
-    const computedFacts = await buildComputedFactsFor(config.id, draft);
+    const computedFacts = config.id==='horary'?await buildHoraryPrompt(draft):await buildComputedFactsFor(config.id, draft);
     const entry = {
-      prompt: buildStructuredFortunePrompt(config, draft, computedFacts),
+      prompt: withContinuation(config.id==='horary'?computedFacts:buildStructuredFortunePrompt(config, draft, computedFacts)),
       // 재개 흐름은 마운트 시점 클로저로 이 함수를 붙잡으므로 locale 을 ref 로 읽는다.
       // state 를 그대로 쓰면 로케일이 늦게 확정된 화면에서 시각만 다른 언어로 찍힌다.
       generatedAt: new Intl.DateTimeFormat(getPromptHubDateLocale(localeRef.current), {
@@ -2133,6 +2140,8 @@ export default function ComprehensivePromptHubPage() {
       }
       gateIntentRef.current = "generate";
       setLoginGateOpen(true);
+    } catch(error) {
+      setGenerationError(error instanceof Error?error.message:'프롬프트를 만들지 못했어요. 입력을 확인해 주세요.');
     } finally {
       generatingRef.current = false;
       setIsGenerating(false);
@@ -2230,24 +2239,9 @@ export default function ComprehensivePromptHubPage() {
       setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: true }));
       return;
     }
-    await copyTextToClipboard(currentResult.prompt);
+    try{await copyTextToClipboard(withContinuation(currentResult.prompt));setContinuationCopyError('');}catch{setContinuationCopyError('자동 복사를 하지 못했어요. 아래 프롬프트를 직접 선택해 복사해 주세요.');setExpandedResultsByToolId(prev=>({...prev,[activeToolId]:true}));return;}
     setCopiedToolId(activeToolId);
     window.setTimeout(() => setCopiedToolId(null), 1600);
-  }
-
-  async function openCurrentToolPromptInAi(url: string) {
-    if (!currentResult?.prompt) {
-      setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: true }));
-      return;
-    }
-    const opened = window.open(url, "_blank", "noopener,noreferrer");
-    if (!opened) {
-      setChatGptPopupBlockedToolId(activeToolId);
-      window.setTimeout(() => setChatGptPopupBlockedToolId(null), 3200);
-      return;
-    }
-    setChatGptPopupBlockedToolId(null);
-    await copyCurrentToolPrompt();
   }
 
   function toggleCurrentResultExpanded() {
@@ -2303,12 +2297,14 @@ export default function ComprehensivePromptHubPage() {
               <select
                 id={inputId}
                 value={String(value || field.options?.[0] || "")}
+                disabled={field.id==='birthTimezone'&&currentDraft.locationSource==='geolocation'&&currentDraft.locationPlace===currentDraft.birthPlace}
                 onChange={(event) => updateCurrentDraft(field.id, event.target.value)}
                 aria-invalid={hasError}
                 aria-describedby={`${inputId}-hint`}
                 className={inputClass}
                 style={inputStyle}
               >
+                {field.id==='birthTimezone'&&String(value).includes('/')&&!(field.options||[]).includes(String(value))&&<option value={String(value)}>{String(value)} · 위치로 확인</option>}
                 {(field.options || []).map((option) => (
                   <option key={option} value={option}>
                     {tx(option)}
@@ -2355,6 +2351,9 @@ export default function ComprehensivePromptHubPage() {
             )}
           </label>
         )}
+        {((field.id==='birthPlace'&&['astrology','vedic','comprehensive'].includes(activeToolId))||field.id==='questionPlace')&&<CurrentLocationButton key={activeToolId} purpose={field.id==='birthPlace'?'birth':'question'} onLocation={place=>{
+          setDraftsByToolId(prev=>({...prev,[activeToolId]:{...prev[activeToolId],[field.id]:place.name,locationPlace:place.name,locationSource:place.source,locationLatitude:String(place.latitude),locationLongitude:String(place.longitude),locationAccuracy:String(place.accuracy),locationTimezone:place.timezone,...(field.id==='birthPlace'?{birthTimezone:place.timezone}:{})}}));
+        }}/>}
         <div id={`${inputId}-hint`} className="mt-1.5 min-h-[18px] text-xs font-medium leading-5 text-[color:var(--ink-3)]">
           {hasError ? (
             <span className="font-bold text-[color:var(--danger-ink)]">{copy.requiredInputMessage.replace("{label}", tx(field.label))}</span>
@@ -2381,6 +2380,7 @@ export default function ComprehensivePromptHubPage() {
         } as React.CSSProperties
       }
     >
+      {generationError&&<p role="alert">{generationError}</p>}
       <style>{`
         .prompt-hub-root {
           font-family: "SUIT", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
@@ -2964,16 +2964,17 @@ export default function ComprehensivePromptHubPage() {
                       </span>
                       {copiedToolId === activeToolId ? copy.copyDone : copy.copyPrompt}
                     </button>
+                    <p>프롬프트를 복사하고 원하는 AI에 붙여넣어 주세요. 답변을 받은 뒤 같은 대화에서 후속 질문을 이어갈 수 있어요. 정보는 자동 전송되지 않으며 외부 AI의 이용 조건은 해당 서비스에서 확인해 주세요.</p>
+                    {continuationCopyError&&<p role="alert">{continuationCopyError}</p>}
                     {AI_TARGETS.map((target) => (
-                      <button
+                      <a
                         key={target.id}
-                        type="button"
-                        onClick={() => openCurrentToolPromptInAi(target.url)}
+                        href={target.url} target="_blank" rel="noopener noreferrer"
                         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--tool-accent)] px-3 text-sm font-black text-[color:var(--tool-accent-strong)] transition hover:bg-[color:var(--tool-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                       >
                         <ExternalLink size={16} />
-                        {target.label}
-                      </button>
+                        {target.label} 열기
+                      </a>
                     ))}
                     <button
                       type="button"
@@ -3007,11 +3008,7 @@ export default function ComprehensivePromptHubPage() {
                       {isCurrentResultExpanded ? copy.collapse : copy.expandAll}
                     </button>
                   </div>
-                  {chatGptPopupBlockedToolId === activeToolId ? (
-                    <p role="alert" className="mt-2 text-xs font-bold text-[color:var(--danger-ink)]">
-                      {copy.chatGptPopupBlocked}
-                    </p>
-                  ) : null}
+
                   {saveFailedToolId === activeToolId ? (
                     <p role="alert" className="mt-2 text-xs font-bold text-[color:var(--danger-ink)]">
                       {copy.library.saveFailed}
@@ -3034,7 +3031,7 @@ export default function ComprehensivePromptHubPage() {
                         isCurrentResultExpanded ? "" : "max-h-[46svh] overflow-hidden"
                       }`}
                     >
-                      {currentResult.prompt}
+                      {withContinuation(currentResult.prompt)}
                     </pre>
                     {isCurrentResultExpanded ? null : (
                       <button

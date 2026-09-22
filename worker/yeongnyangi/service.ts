@@ -95,8 +95,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
 }
 
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){
+  if(body.mode==='horary-v1')throw new FortuneError('HORARY_FREE_PROMPT_REQUIRED');
   const input=validateSkyInput(body);
-  const fingerprint=await digest({input,version:'question-sky-1'});
+  const fingerprint=await digest({input,version:'question-sky-flounder-2'});
   const id=await digest({userId,fingerprint});
   await connectDb(env);
   // Existing paid or partial snapshots always win, even when a provider is down
@@ -105,9 +106,11 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
   const moment=skyMoment(input);
   const calculated=await calculateQuestionSky(env,input,moment);
-  const product=getProduct('saju_mackerel');
+  const product=getProduct('saju_flounder');
   const clock=consultationClock(moment.timezone,moment.date);
   const context=calculated.context;
+  calculated.publicData.evidenceVersion='question-sky-flounder-2';
+  context.facts.push({id:`${context.domain}.question-calculation`,label:'프라슈나 계산 근거',value:{method:'Lahiri sidereal / Whole Sign',chart:calculated.chart,judgements:calculated.audit,limits:['위계는 본궁·고양·손상·추락만 산출','실제 감정·소재지·사건 시기의 관측 아님']}});
   const manifest=skyManifest(readingManifest(product),context);
   const consultation=createConsultation(input.question,input.topic,clock,manifest);
   consultation.questionSky=calculated.publicData;
@@ -115,7 +118,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   consultation.period={kind:'default',label:SKY_TIMING};
   const analysis={contexts:{[context.domain]:context},signals:[],themes:[],question:input.question,topicId:input.topic,asOf:clock.asOf,consultation};
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
-  // Price/feature/receipt remain the existing five-chapter product contract.
+  // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
     snapshot:{product,analysis,manifest,input,questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }

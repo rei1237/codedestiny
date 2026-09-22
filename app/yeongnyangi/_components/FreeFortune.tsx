@@ -1,7 +1,9 @@
 "use client";
+import FreePromptContinuation from '@/app/components/FreePromptContinuation';
+import QuestionSkyConsultation from './QuestionSkyConsultation';
 import Image from "next/image";
 import {useEffect,useRef,useState,type FormEvent} from 'react';
-import {ArrowRight,BookOpen,Check,Copy,Gift} from 'lucide-react';
+import {ArrowRight,BookOpen,Check,Gift} from 'lucide-react';
 import {freeCategories,birthCategories,type AttendanceState,type FreeReading} from '@/worker/yeongnyangi/fortune/free/categories';
 import {fortuneApi,loginForCurrentPage} from '../_lib/api';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
@@ -10,14 +12,13 @@ import {useProfiles} from '../_lib/use-profiles';
 import '../_original/free-fortune.css';
 
 function Reading({reading}:{reading:FreeReading}){
- const [copied,setCopied]=useState(false),[copyError,setCopyError]=useState('');
  return <article className="free-reading">
   <div className="free-reading-heading"><div><p>{reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
   {reading.charts?.map(chart=><details className="free-chart" key={chart.domain}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
   <div className="free-summary"><strong>짧게 말하면</strong><p>{reading.summary}</p></div>
   <h4>영냥이가 조금 더 풀어줄게.</h4><div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
   <details className="free-evidence"><summary>어떤 근거로 읽었을까?</summary><dl>{reading.basis.map((basis,index)=><div key={index}><dt>{basis.label}</dt><dd>{basis.value}</dd></div>)}</dl>{reading.limitations.map((item,index)=><p key={index}>{item}</p>)}</details>
-  <details className="free-prompt"><summary>이 운세의 전문가 프롬프트</summary><p>계산값과 전용 해석 규칙을 담았어. 원하는 상담 도구에 직접 붙여넣을 수 있지만, 자동 전송되지는 않아.</p><pre tabIndex={0} aria-label="복사할 상담 프롬프트">{reading.prompt}</pre><button type="button" onClick={async()=>{try{await navigator.clipboard.writeText(reading.prompt);setCopied(true);setCopyError('');}catch{setCopyError('위 문장을 직접 선택해 복사해 주세요.');}}}>{copied?<Check size={17}/>:<Copy size={17}/>} {copied?'복사했어':'프롬프트 복사하기'}</button>{copyError&&<p role="alert">{copyError}</p>}</details>
+  <FreePromptContinuation prompt={reading.prompt}/>
  </article>;
 }
 
@@ -48,7 +49,7 @@ export default function FreeFortune(){
   window.addEventListener('cd:auth-changed',auth);window.addEventListener('storage',storage);
   const tick=setInterval(()=>{const day=new Date(Date.now()+9*3600000).toISOString().slice(0,10);if(currentDay.current&&currentDay.current!==day){version.current++;clearReactionTimers();setReading(null);setNotice('');setReaction('idle');refresh().catch(fail);}},15000);
   return()=>{active=false;version.current++;attendanceVersion.current++;clearInterval(tick);clearReactionTimers();window.removeEventListener('cd:auth-changed',auth);window.removeEventListener('storage',storage);};},[]);
- useEffect(()=>{const v=++version.current;setReading(null);setError('');setDraft({question:''});if(!state?.unlocked)return;fortuneApi<{result:FreeReading|null}>(`free/reading?category=${encodeURIComponent(category)}`).then(data=>{if(v===version.current)setReading(data.result);}).catch(reason=>{if(v===version.current)fail(reason);});},[category,state?.day,state?.unlocked]);
+ useEffect(()=>{const v=++version.current;setReading(null);setError('');setDraft({question:''});if(category==='horary'||!state?.unlocked)return;fortuneApi<{result:FreeReading|null}>(`free/reading?category=${encodeURIComponent(category)}`).then(data=>{if(v===version.current)setReading(data.result);}).catch(reason=>{if(v===version.current)fail(reason);});},[category,state?.day,state?.unlocked]);
  async function action(kind:'attendance'|'free/unlock'){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');clearReactionTimers();setReaction('idle');
   const v=attendanceVersion.current,account=readDestinyProfileAccountId();
@@ -76,7 +77,7 @@ export default function FreeFortune(){
   {error&&<div className="free-error" role="alert"><p>{error}</p>{!guest&&<button type="button" disabled={busy} onClick={()=>refresh().then(()=>setError('')).catch(fail)}>상태 다시 확인</button>}</div>}
   <ProfilePicker state={profileState}/>
   <div className="free-categories" role="group" aria-label="무료 운세 16종">{freeCategories.map(item=><button type="button" key={item.id} aria-pressed={category===item.id} onClick={()=>setCategory(item.id)}>{item.label.replace(' 프롬프트','')}</button>)}</div>
-  {!state?.unlocked?<div className="free-locked"><h3>{config.label}</h3><p>{config.description}</p><p>출석 멸치로 오늘의 이야기를 열어줘. 금액을 결제하거나 AI를 호출하는 과정은 없어.</p></div>:<>
+  {category==='horary'?<QuestionSkyConsultation mode="horary-v1"/>:!state?.unlocked?<div className="free-locked"><h3>{config.label}</h3><p>{config.description}</p><p>출석 멸치로 오늘의 이야기를 열어줘. 금액을 결제하거나 AI를 호출하는 과정은 없어.</p></div>:<>
    {birthCategories.has(config.id)&&<p className="free-policy">이미 읽은 운세는 그날 처음 확인한 프로필과 질문으로 유지돼.</p>}
    {reading?<Reading reading={reading}/>:<form onSubmit={read} className="free-question"><h3>{config.label}</h3><p>{config.description}</p><label>궁금한 이야기<textarea rows={3} value={draft.question||''} onChange={event=>setDraft({...draft,question:event.target.value})} maxLength={900} placeholder="오늘 내가 살펴볼 선택은 무엇일까?"/></label>{extra.length>0&&<details><summary>이 분야의 질문 단서 더하기</summary>{extra.map(field=><label key={field.id}>{field.label}<input value={draft[field.id]||''} onChange={event=>setDraft({...draft,[field.id]:event.target.value})} maxLength={500} placeholder={field.placeholder}/></label>)}</details>}{birthCategories.has(config.id)&&!profileId&&<p>본인 프로필을 선택하거나 새로 만들어 줘.</p>}<button className="free-primary" disabled={busy||(birthCategories.has(config.id)&&!profileId)}>{busy?'이야기를 정리하고 있어':'오늘의 이야기 읽기'}<ArrowRight size={17}/></button><small>한 번 읽은 이야기는 오늘 동안 그대로 보관돼. 다시 읽어도 멸치를 더 쓰지 않아.</small></form>}
   </>}

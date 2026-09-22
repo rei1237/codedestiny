@@ -1,4 +1,5 @@
 "use client";
+import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {useRef,useState,type FormEvent} from 'react';
 import {birthDateTextInputProps} from '@/lib/birthDateInputProps';
 import {authFetch} from '@/app/_lib/auth-client';
@@ -7,7 +8,8 @@ import {invalidateProfileCache} from '@/app/_lib/user-session-cache';
 import {loginForCurrentPage} from '../_lib/api';
 import styles from './profiles.module.css';
 export default function ProfileForm({onSaved}:{onSaved:(profile:DestinyProfileCard)=>void}) {
- const [birthDate,setBirthDate]=useState('');
+ const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
+ const [birthDate,setBirthDate]=useState(''),[place,setPlace]=useState('');
  const [unknown,setUnknown]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const profileId=useRef(''),lock=useRef(false);
  async function save(event:FormEvent<HTMLFormElement>){
@@ -17,8 +19,8 @@ export default function ProfileForm({onSaved}:{onSaved:(profile:DestinyProfileCa
   const form=new FormData(event.currentTarget);setBusy(true);setError('');
   try{
    const place=String(form.get('place')||'').trim();
-   let location;
-   if(place){
+   let location=currentLocation?{label:currentLocation.name,tz:currentLocation.timezone,lat:currentLocation.latitude,lng:currentLocation.longitude}:undefined;
+   if(place&&!currentLocation){
     const response=await authFetch(`/api/geocode?place=${encodeURIComponent(place)}`);
     const found=await response.json();
     if(!response.ok||found.fallback||!Number.isFinite(found.lat)||!Number.isFinite(found.lng))throw new Error('출생지역을 찾지 못했어요. 도시와 국가 이름을 함께 입력해 주세요.');
@@ -44,7 +46,8 @@ export default function ProfileForm({onSaved}:{onSaved:(profile:DestinyProfileCa
   <label>출생시간<input name="time" type="time" required={!unknown} disabled={unknown} /></label>
   <label><input type="checkbox" checked={unknown} onChange={e=>setUnknown(e.target.checked)} /> 출생시간을 몰라요</label>
   <p>시간을 모르면 사주 고등어·연어 상담을 이용할 수 있어요. 시주와 시간에 따른 분석은 제외해요.</p>
-  <label>출생지역<input name="place" placeholder="예: 대한민국 부산" maxLength={120} /></label>
+  <label>출생지역<input name="place" value={place} onChange={e=>{setPlace(e.target.value);setCurrentLocation(null);}} placeholder="예: 대한민국 부산" maxLength={120} /></label>
+  <CurrentLocationButton disabled={busy} onLocation={value=>{setCurrentLocation(value);setPlace(value.name);}}/>{currentLocation&&<p role="status">확인한 현재 위치를 출생 장소로 사용할게요. {currentLocation.timezone}</p>}
   <p>숙요·베다·서양 점성술과 깊은 분석에는 출생지역이 필요해요.</p>
   <button disabled={busy} type="submit">{busy?'프로필 저장 중':'프로필 저장하기'}</button>
   {error&&<p role="alert">{error}</p>}

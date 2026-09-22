@@ -13,12 +13,16 @@ const browser=await chromium.launch({headless:true}),results=[];
 try{
  for(const mode of ['prashna-v1','horary-v1'])for(const width of [390,1280]){
   const title=skyModes[mode],routeMode=mode==='prashna-v1'?'spirit':'horary';
-  const product=getProduct('saju_mackerel'),f=await fixtures(browser,base,product,width);
+  const product=getProduct('saju_flounder'),f=await fixtures(browser,base,product,width);
   f.page.on('pageerror',error=>console.error(error.stack));
   f.state.holdGeneration=true;f.state.generationBoundary=0;
   f.row.manifest=skyManifest(readingManifest(product),{domain:mode==='prashna-v1'?'vedic':'astrology',facts:[{id:'question',label:'질문의 결',value:'mock'}]});
   await f.context.addInitScript(()=>{Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{window.__anonymousShare=data;}});});
   try{
+   let horaryCalls=0;
+   await f.context.grantPermissions(['geolocation'],{origin:base});await f.context.setGeolocation({latitude:37.5665,longitude:126.978,accuracy:20});
+   await f.page.route('**/api/yeongnyangi/location',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,location:{latitude:37.5665,longitude:126.978,accuracy:20,source:'geolocation',name:'동의한 현재 위치',timezone:'Asia/Seoul'}})}));
+   await f.page.route('**/api/yeongnyangi/free/horary',route=>{horaryCalls++;return route.fulfill({contentType:'application/json',body:JSON.stringify({ok:true,result:{basis:[{label:'계산 방식',value:'Regiomontanus · 전통 7행성'}],prompt:'[확정 계산 데이터] 모의 천문 차트. [질문] 재회와 연락의 조건을 알려줘.'}})});});
    f.state.prepareConsultation=(input,row)=>({...createConsultation(input.question,input.questionSky.topic,consultationClock('Asia/Seoul'),row.manifest),questionSky:{...input.questionSky,mode,askedAt:'2026-09-21T01:00:00Z',receivedAt:new Date().toISOString(),cityName:'서울',timezone:'Asia/Seoul',space:'일과 정돈을 연상시키는 자리의 상징이야. 실제 소재지를 알아낸 뜻은 아니야.',timing:SKY_TIMING,notice:SPIRIT_NOTICE,shareKey:'steady'},topicLabel:'공간의 기운'});
    if(mode==='prashna-v1'){
     await f.page.goto(base+'/');
@@ -44,16 +48,28 @@ try{
    await f.page.getByLabel('이미 알고 있는 상황 (선택)').fill('연락이 끊겼어요.');
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await f.page.screenshot({path:`${output}/input-${mode}-${width}.png`,fullPage:true});
+   await f.page.getByRole('button',{name:'현재 위치 가져오기',exact:true}).click();
+   await f.page.getByRole('button',{name:'질문 당시 장소가 맞아요 · 적용',exact:true}).click();
+   if(mode==='horary-v1'){
+    await f.page.getByRole('button',{name:'무료 호라리 프롬프트 만들기',exact:true}).click();
+    await f.page.getByRole('heading',{name:'이어서 상담하기',exact:true}).waitFor();
+    assert.equal(horaryCalls,1);assert.equal(f.state.creates,0);assert.equal(f.state.generates,0);assert.equal(f.state.sdk.length,0);
+    assert.equal(await f.page.getByRole('link',{name:'ChatGPT 열기',exact:true}).getAttribute('href'),'https://chatgpt.com/');
+    await f.page.getByRole('button',{name:'상담 프롬프트 복사하기',exact:true}).focus();await f.page.keyboard.press('Enter');
+    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await f.page.screenshot({path:`${output}/free-horary-${width}.png`,fullPage:true});
+    results.push({mode,width,status:'PASS',free:true,locationConsent:true,realLlmCalls:0,realPgCalls:0});continue;
+   }
    await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
    await f.page.waitForURL('**/checkout/**');
-   assert.equal(f.state.creates,1);assert.equal(f.state.requestInput.mode,mode);assert.equal(f.state.requestInput.questionSky.boundary,true);assert.equal(f.state.requestInput.profileId,undefined);
+   assert.equal(f.state.creates,1);assert.equal(f.state.requestInput.mode,mode);assert.equal(f.state.requestInput.productId,'saju_flounder');assert.equal(f.state.requestInput.questionSky.location.source,'geolocation');assert.equal(f.state.requestInput.questionSky.boundary,true);assert.equal(f.state.requestInput.profileId,undefined);
    assert.equal(f.state.requestInput.partnerProfileId,undefined);
    f.row.product={...product,name:title,image:SKY_IMAGE};f.row.paid=true;f.row.state='PAID';
    const chapters=f.row.manifest.map((c,i)=>({summary:`${i+1}번째 모의 해석: 확인한 사실과 추측을 나누어 보자.`,analysis:[],example:'보내지 않을 글에 내 감정을 적어보는 가상의 연습이야.',advice:'지금은 나의 일상을 돌보고 경계를 존중하자.',persona:'알 수 없는 마음 앞에서도 네 하루는 소중하다냥.',blocks:[{title:'모의 화면 검증',paragraphs:['계산 해석의 적중을 검증하는 내용이 아니라 화면의 읽기 흐름을 확인하는 mock 자료입니다.']}],questionAnswers:i===0?f.row.consultation.questions.map(q=>({questionId:q.id,answer:'지금 할 수 있는 선택에 집중해 보자.',reason:'나의 반복되는 선택을 참고해서 살펴보자.',timing:SKY_TIMING,action:'추측보다 나의 일상을 돌아보자.'})):[]}));
    f.row.chapters=chapters.slice(0,2);
    await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id);
-   await f.page.getByText(/2\/5 저장됨/).waitFor();
-   await f.page.reload();await f.page.getByText(/2\/5 저장됨/).waitFor();
+   await f.page.getByText(/2\/8 저장됨/).waitFor();
+   await f.page.reload();await f.page.getByText(/2\/8 저장됨/).waitFor();
    assert.equal(f.state.generates,0,'reload must not generate another paid result');
    f.row.chapters=chapters;f.row.state='COMPLETED';
    await f.page.getByRole('heading',{name:'영냥이의 마무리',exact:true}).waitFor();

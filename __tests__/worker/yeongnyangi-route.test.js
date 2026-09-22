@@ -4,6 +4,9 @@ import {createHttpError,json} from '../../worker/lib/http.js';
 const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
 const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
 const attendance=jest.fn(),attend=jest.fn(),unlock=jest.fn(),freeRead=jest.fn(),freePrepare=jest.fn();
+const horary=jest.fn(),location=jest.fn();
+jest.unstable_mockModule('../../worker/yeongnyangi/fortune/free/horary.ts',()=>({prepareHoraryPrompt:horary}));
+jest.unstable_mockModule('../../worker/yeongnyangi/fortune/question-sky.ts',()=>({resolveCurrentLocation:location}));
 const profilesHandler=jest.fn();
 const find=jest.fn(),select=jest.fn(),sort=jest.fn(),limit=jest.fn(),lean=jest.fn();
 const query={select,sort,limit,lean};
@@ -111,4 +114,17 @@ test.each(['attendance','free/unlock','free/reading'])('security rejection preve
   security.mockResolvedValue({ok:false,response:json({code:'INVALID_ORIGIN'},{status:403})});
   expect((await handleYeongnyangiRoutes(request(path,'POST',{}),env)).status).toBe(403);
   expect(attend).not.toHaveBeenCalled();expect(unlock).not.toHaveBeenCalled();expect(freePrepare).not.toHaveBeenCalled();
+});
+
+test.each(['free/horary','location'])('%s is free without auth, payment, provider or result DB access',async path=>{
+ horary.mockResolvedValue({category:'horary',prompt:'calculated'});location.mockReturnValue({timezone:'Asia/Seoul'});
+ const response=await handleYeongnyangiRoutes(request(path,'POST',{}),{});
+ expect(response.status).toBe(200);expect(response.headers.get('Cache-Control')).toContain('no-store');
+ expect(auth).not.toHaveBeenCalled();expect(prepare).not.toHaveBeenCalled();expect(activate).not.toHaveBeenCalled();expect(generate).not.toHaveBeenCalled();expect(find).not.toHaveBeenCalled();expect(freePrepare).not.toHaveBeenCalled();
+ expect(security).toHaveBeenCalled();
+});
+test.each(['free/horary','location'])('%s observes security rejection before calculation',async path=>{
+ security.mockResolvedValue({ok:false,response:json({code:'RATE_LIMIT_EXCEEDED'},{status:429})});
+ expect((await handleYeongnyangiRoutes(request(path,'POST',{}),{})).status).toBe(429);
+ expect(horary).not.toHaveBeenCalled();expect(location).not.toHaveBeenCalled();
 });

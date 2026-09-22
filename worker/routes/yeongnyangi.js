@@ -1,3 +1,5 @@
+import {prepareHoraryPrompt} from '../yeongnyangi/fortune/free/horary.ts';
+import {resolveCurrentLocation} from '../yeongnyangi/fortune/question-sky.ts';
 import { requireUserFromRequest } from '../lib/auth.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { json, readJson, createHttpError, handleRouteError, notFound } from '../lib/http.js';
@@ -9,6 +11,8 @@ import { enqueueConsultation } from '../yeongnyangi/queue.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  HORARY_FREE_PROMPT_REQUIRED:'호라리는 무료 프롬프트 화면에서 이용해 주세요.',
+  QUESTION_LOCATION_REQUIRED:'위치 사용에 동의하거나 질문 당시 도시를 선택해 주세요.',
   QUESTION_SKY_INPUT:'5자 이상 질문(최대 8개), 주제와 질문자 도시를 확인해 주세요.',
   QUESTION_TIME_REQUIRED:'질문이 떠오른 날짜와 시각을 정확히 입력해 주세요.',
   QUESTION_TIME_AMBIGUOUS:'이 도시에서는 서머타임 전환으로 해당 시각을 하나로 확정할 수 없어요. 다른 명확한 질문 시각으로 상담해 주세요.',
@@ -41,6 +45,12 @@ export async function handleYeongnyangiRoutes(request, env) {
     const url=new URL(request.url), method=request.method.toUpperCase();
     const path=url.pathname.replace(/^\/api\/yeongnyangi\/?/,'').replace(/\/$/,'');
     if(path==='products' && method==='GET') return json({ok:true,products:products.map(p=>({...p,available:providerReady(env)}))});
+    if(['free/horary','location'].includes(path)&&method==='POST'){
+      const security=await enforceSensitiveEndpointSecurity({env,request,endpoint:`yeongnyangi:${path}`,allowedMethods:['POST'],requireJson:true,rateLimit:{limit:15,windowSeconds:60},maxPayloadBytes:12000});
+      if(!security.ok)return security.response;
+      const body=await readJson(request);
+      return json({ok:true,...(path==='location'?{location:resolveCurrentLocation(body)}:{result:await prepareHoraryPrompt(env,body)})},{headers:{'Cache-Control':'no-store'}});
+    }
     if(path==='profiles' && ['GET','POST'].includes(method)) {
       const {handleYeongnyangiProfiles}=await import('./yeongnyangi-profiles.js');
       return handleYeongnyangiProfiles(request,env);

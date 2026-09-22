@@ -44,6 +44,7 @@ export async function getFreeReading(env:Record<string,unknown>,userId:string,ca
 }
 
 export async function prepareFreeReading(env:Record<string,unknown>,userId:string,body:any,now=new Date()){
+  if(body?.category==='horary')throw new FortuneError('HORARY_FREE_PROMPT_REQUIRED');
   const category=String(body?.category||''),config=categoryConfig(category),{day}=await requireDailyPass(env,userId,now);
   const draft=normalizeDraft(category,body?.draft),profileId=typeof body?.profileId==='string'?body.profileId:'';
   let profile:any=null;

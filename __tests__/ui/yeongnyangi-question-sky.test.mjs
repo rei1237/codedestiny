@@ -5,7 +5,7 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
-const bundle=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/question-sky';export * from './worker/yeongnyangi/fortune/question-sky-reading';export * from './worker/yeongnyangi/fortune/question-sky-contract';export * from './worker/yeongnyangi/fortune/consultation';export {getProduct} from './worker/yeongnyangi/payments/catalog';export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest';export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const bundle=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/free/horary';export * from './worker/yeongnyangi/fortune/question-sky';export * from './worker/yeongnyangi/fortune/question-sky-reading';export * from './worker/yeongnyangi/fortune/question-sky-contract';export * from './worker/yeongnyangi/fortune/consultation';export {getProduct} from './worker/yeongnyangi/payments/catalog';export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest';export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const loaded=new Module(path.resolve('question-sky-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const api=loaded.exports;
 const input={mode:'horary-v1',question:'그 사람과 재회할까요?\n연락을 기다려도 될까요?',topic:'space',relationship:'헤어진 사이',situation:'차단한 상황',boundary:true,cityId:'seoul',localTime:'2026-09-21T10:00'};
@@ -72,20 +72,21 @@ test('both real local Swiss engines respond to question time/place without natal
   assert.notDeepEqual(movedPrashna.raw.ascendant,prashna.raw.ascendant);
   assert.notDeepEqual(laterPrashna.raw.ascendant,prashna.raw.ascendant);
 });
-test('actual provider receives only projected evidence, checks every question and rejects unsafe output',async()=>{
-  const {context}=api.projectQuestionChart(chart,input);
-  const manifest=api.skyManifest(api.readingManifest(api.getProduct('saju_mackerel')),context);
-  const sky={...input,askedAt:'2026-09-21T01:00:00Z',space:'상징',timing:api.SKY_TIMING};
+for(const advanced of [false,true])test(`actual provider validates ${advanced?'eight-chapter flounder':'legacy five-chapter'} evidence and every question`,async()=>{
+  const {context}=api.projectQuestionChart(chart,{...input,mode:advanced?'prashna-v1':'horary-v1'});
+  if(advanced)context.facts.push({id:'vedic.question-calculation',label:'프라슈나 계산 근거',value:{chart}});
+  const manifest=api.skyManifest(api.readingManifest(api.getProduct(advanced?'saju_flounder':'saju_mackerel')),context);
+  const sky={...input,evidenceVersion:advanced?'question-sky-flounder-2':undefined,askedAt:'2026-09-21T01:00:00Z',space:'상징',timing:api.SKY_TIMING};
   const consultation={...api.createConsultation(input.question,'space',api.consultationClock('Asia/Seoul',now),manifest),questionSky:sky};
-  const analysis={contexts:{astrology:context},signals:[],themes:[],question:input.question,consultation};
+  const analysis={contexts:{[context.domain]:context},signals:[],themes:[],question:input.question,consultation};
   let request;
   await new api.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'mock'};}}).generateChapter({chapter:manifest[0],analysis,previous:[]});
   assert.equal(request.maxProviderAttempts,1);assert.ok(request.maxOutputTokens<=16384);
-  assert.ok(!JSON.stringify(request.calculatedData).includes('longitude'));
+  assert.equal(JSON.stringify(request.calculatedData).includes('longitude'),advanced);
   assert.equal(JSON.parse(request.domainRules).domain,undefined);
   const previous=[];
   for(const chapter of manifest){
-    const body=await new api.MockChapterProvider().generateChapter({chapter,analysis:{...analysis,consultation:undefined},previous});
+    const body=await new api.MockChapterProvider().generateChapter({chapter:advanced?{...chapter,requiredSections:[...chapter.requiredSections,'판단을 바꿀 단서','선택의 비용','실행 후 관찰']}:chapter,analysis:{...analysis,consultation:undefined},previous});
     const pattern=context.facts[0].value.patterns[0].resource;
     body.blocks[0].paragraphs[0]=pattern+'. '+body.blocks[0].paragraphs[0];
     body.advice+=' 나의 경계를 존중하자.';
@@ -93,11 +94,32 @@ test('actual provider receives only projected evidence, checks every question an
     assert.doesNotThrow(()=>api.validateChapter(body,{chapter,analysis,previous}));
     if(chapter.ordinal===0){
       assert.throws(()=>api.validateChapter({...body,questionAnswers:body.questionAnswers.slice(1)},{chapter,analysis,previous}),/QUESTION_ANSWER_INCOMPLETE/);
-      for(const unsafe of ['호라리 차트로 봤어.','그 사람은 집 북쪽 방에 있다.','상대는 다른 사람을 사랑하고 있어.','신령이 알려줬어.','다음 달에 재회할 거야.','3일 뒤 연락이 올 거야.','SNS로 찾아보자.'])assert.throws(()=>api.validateSkyChapter({...body,summary:unsafe},context,sky));
+      for(const unsafe of [...(advanced?[]:['호라리 차트로 봤어.']),'그 사람은 집 북쪽 방에 있다.','상대는 다른 사람을 사랑하고 있어.','신령이 알려줬어.','다음 달에 재회할 거야.','3일 뒤 연락이 올 거야.','SNS로 찾아보자.'])assert.throws(()=>api.validateSkyChapter({...body,summary:unsafe},context,sky));
       assert.throws(()=>api.validateSkyChapter({...body,questionAnswers:[{...body.questionAnswers[0],reason:'근거 없는 낙관적인 대답이야.'},body.questionAnswers[1]]},context,sky),/SPIRIT_ANSWER_EVIDENCE_MISSING/);
     }
     previous.push(body);
   }
-  assert.equal(previous.length,5);
+  assert.equal(previous.length,advanced?8:5);
   assert.ok(!JSON.stringify(api.skyShare('prashna-v1','secret name')).includes('secret name'));
+});
+
+test('free horary exports computed coordinates, timezone, traditional chart and continuation without a provider',async()=>{
+ const payload={question:input.question,questionSky:{...input,cityId:'',location:{source:'geolocation',latitude:51.5074,longitude:-.1278,accuracy:25}}};
+ const result=await api.prepareHoraryPrompt({},payload,now);
+ assert.equal(result.kind,'calculated');assert.match(result.prompt,/Regiomontanus/);assert.match(result.prompt,/Europe\/London/);
+ for(const field of ['ascendant','cusps','essentialCondition','mutualReception','moonBeforeSignExit','houseCandidates','accuracy'])assert.ok(result.prompt.includes(field));
+ assert.match(result.prompt,/미산출/);assert.match(result.prompt,/이어서 상담하기/);assert.match(result.prompt,/먼저 확인 질문/);
+ assert.ok(!('priceKRW' in result));
+ const changed=await api.prepareHoraryPrompt({}, {...payload,questionSky:{...payload.questionSky,location:{source:'geolocation',latitude:37.5665,longitude:126.978,accuracy:20}}},now);
+ assert.notEqual(changed.prompt,result.prompt);
+ for(const location of [{source:'geolocation',latitude:91,longitude:0,accuracy:1},{source:'geolocation',latitude:1,longitude:1,accuracy:-1},{source:'ip',latitude:1,longitude:1,accuracy:1}])await assert.rejects(api.prepareHoraryPrompt({}, {...payload,questionSky:{...payload.questionSky,location}},now),/QUESTION_LOCATION_REQUIRED/);
+});
+test('new prashna product is flounder and all eight chapters have distinct complete sections',()=>{
+ const value=api.validateSkyInput({mode:'prashna-v1',productId:'saju_flounder',question:input.question,questionSky:input});
+ assert.equal(value.mode,'prashna-v1');
+ assert.throws(()=>api.validateSkyInput({mode:'prashna-v1',productId:'saju_mackerel',question:input.question,questionSky:input}),/INVALID_READING_MODE/);
+ const context=api.projectQuestionChart(chart,value).context,product=api.getProduct('saju_flounder');
+ const manifest=api.skyManifest(api.readingManifest(product),context);
+ assert.equal(product.priceKRW,5000);assert.equal(manifest.length,8);assert.equal(new Set(manifest.map(c=>c.title)).size,8);
+ assert.ok(manifest.every(c=>c.minimumChars>0&&c.focus&&c.requiredSections.length===2));
 });

@@ -1,0 +1,8 @@
+.control { margin-block: 1rem; line-height: 1.65; overflow-wrap: anywhere; }
+.control p { margin-block: .65rem; max-width: 68ch; }
+.control button, .control a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; margin: .25rem .5rem .25rem 0; padding: .5rem .85rem; border: 1px solid currentColor; border-radius: .65rem; color: inherit; background: transparent; font: inherit; font-weight: 600; cursor: pointer; text-decoration: none; }
+.control button:hover, .control a:hover { text-decoration: underline; text-underline-offset: .2em; }
+.control button:focus-visible, .control a:focus-visible, .control summary:focus-visible, .control pre:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.control button:disabled { opacity: .55; cursor: wait; }
+.control summary { min-height: 44px; padding-block: .6rem; cursor: pointer; }
+.control pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 24rem; overflow: auto; padding: .75rem; border: 1px solid currentColor; border-radius: .5rem; font: inherit; user-select: text; }

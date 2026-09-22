@@ -1,3 +1,4 @@
+import {withContinuation} from '../../../../lib/fortune/prompt-continuation';
 import {freeCategories,type FreeReading} from './categories';
 import {domains} from '../index';
 import {chartView} from '../charts';
@@ -154,5 +155,5 @@ export async function calculateFree(category:string,input:FortuneInput,draft:Rec
  }
  const promptDraft={...draft,question:input.question,...(p?{birthDate:p.birthDate,birthTime:p.birthTime||'모름',birthPlace:p.birthPlace?.name||'',birthTimezone:p.birthPlace?.timezone||'Asia/Seoul',calendarType:'양력',gender:p.gender==='female'?'여성':'남성'}:{})};
  if(!prompt)prompt=specializedPrompt(category,promptDraft,basis,limitations);
- return {category,day,title:config.label,kind,summary:paragraphs.slice(0,2).join(' '),paragraphs,basis,limitations,charts,prompt,version:FREE_VERSION};
+ return {category,day,title:config.label,kind,summary:paragraphs.slice(0,2).join(' '),paragraphs,basis,limitations,charts,prompt:withContinuation(prompt),version:FREE_VERSION};
 }

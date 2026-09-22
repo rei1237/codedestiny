@@ -29,18 +29,28 @@ export function resolveQuestionTime(local:string,timezone:string,now=new Date())
   return new Date(candidates[0]);
 }
 export function validateSkyInput(body:any):SkyInput{
-  if(!Object.hasOwn(skyModes,body.mode)||body.productId!=='saju_mackerel'||body.partnerProfileId)throw new FortuneError('INVALID_READING_MODE');
+  if(!Object.hasOwn(skyModes,body.mode)||body.productId!==(body.mode==='prashna-v1'?'saju_flounder':'saju_mackerel')||body.partnerProfileId)throw new FortuneError('INVALID_READING_MODE');
   const text=(v:unknown,max:number,required=false)=>{if(typeof v!=='string'||v.length>max||(required&&!v.trim()))throw new FortuneError('QUESTION_SKY_INPUT');return v.trim();};
   const v=body.questionSky||{};
-  if(!Object.hasOwn(skyTopics,v.topic)||!questionCities.some(c=>c.id===v.cityId))throw new FortuneError('QUESTION_SKY_INPUT');
+  if(!Object.hasOwn(skyTopics,v.topic)||(!v.location&&!questionCities.some(c=>c.id===v.cityId)))throw new FortuneError('QUESTION_SKY_INPUT');
+  const location=v.location===undefined?undefined:validateQuestionLocation(v.location);
   const question=text(body.question,1000,true);
   if(question.length<5||question.split(/\n+|(?<=[?？])\s*/u).filter(s=>s.trim()).length>8)throw new FortuneError('QUESTION_SKY_INPUT');
   const situation=text(v.situation??'',600);
-  return {mode:body.mode,question,topic:v.topic,cityId:v.cityId,localTime:text(v.localTime,16,true),relationship:text(v.relationship??'',80),situation,
+  return {mode:body.mode,question,location,topic:v.topic,cityId:location?'':v.cityId,localTime:text(v.localTime,16,true),relationship:text(v.relationship??'',80),situation,
     boundary:v.boundary===true||/차단|거부|연락하지\s*말|찾아오지\s*말/.test(question+' '+situation)};
 }
+export function validateQuestionLocation(value:any){
+  if(!value||!['geolocation','city-search'].includes(value.source)||!finite(value.latitude)||!finite(value.longitude)||Math.abs(value.latitude)>90||Math.abs(value.longitude)>180||(value.source==='geolocation'&&(!finite(value.accuracy)||value.accuracy<0)))throw new FortuneError('QUESTION_LOCATION_REQUIRED');
+  return {latitude:value.latitude,longitude:value.longitude,source:value.source as 'geolocation'|'city-search',accuracy:value.source==='geolocation'?value.accuracy:undefined,name:value.source==='city-search'&&typeof value.name==='string'?value.name.slice(0,120):undefined};
+}
+export function resolveCurrentLocation(value:unknown){
+  const location=validateQuestionLocation(value);
+  return {...location,name:'동의한 현재 위치',timezone:tzLookup(location.latitude,location.longitude)};
+}
 export function skyMoment(input:SkyInput,now=new Date()){
-  const city=questionCities.find(c=>c.id===input.cityId)!;
+  const city=input.location?{...validateQuestionLocation(input.location),id:'current',name:input.location.name||'질문자가 확인한 현재 위치'}:questionCities.find(c=>c.id===input.cityId);
+  if(!city)throw new FortuneError('QUESTION_LOCATION_REQUIRED');
   const timezone=tzLookup(city.latitude,city.longitude);
   return {city,timezone,date:resolveQuestionTime(input.localTime,timezone,now),receivedAt:now.toISOString()};
 }
@@ -138,7 +148,7 @@ export function projectQuestionChart(chart:SkyChart,input:SkyInput,moonMotion:{s
     ...(moonMotion.state==='void-before-exit'?['가까운 연결 신호가 적어 억지로 사건의 진전을 약속하지 않기']:[]),
     ...(moonMotion.state==='unknown'?['가까운 움직임을 확정할 자료가 부족함']:[]),
   ]:[];
-  const context:DomainContext={domain,engineVersion:input.mode+'-question-evidence-v1',calculatedAt:'',facts:[...facts,{id:`${domain}.question-space`,label:'자리의 상',value:space},{id:`${domain}.question-cautions`,label:'해석의 여지',value:cautions.length?cautions:['도움과 부담을 함께 고려하고 실제 상황을 우선하기']}],limitations:[SKY_TIMING,'천문 계산과 전통 상징의 연결은 실제 위치나 생각의 관측이 아니다.','도시 중심을 사용하므로 경계 부근 해석은 제한적이다.']};
+  const context:DomainContext={domain,engineVersion:input.mode+'-question-evidence-v1',calculatedAt:'',facts:[...facts,{id:`${domain}.question-space`,label:'자리의 상',value:space},{id:`${domain}.question-cautions`,label:'해석의 여지',value:cautions.length?cautions:['도움과 부담을 함께 고려하고 실제 상황을 우선하기']}],limitations:[SKY_TIMING,'천문 계산과 전통 상징의 연결은 실제 위치나 생각의 관측이 아니다.',input.location?.source==='geolocation'?`브라우저 위치 정확도 약 ${Math.round(input.location.accuracy!)}m. 질문 당시 장소인지 사용자 확인 필요.`:'도시 중심을 사용하므로 경계 부근 해석은 제한적이다.']};
   return {context,audit,space,shareKey:sign(target.longitude)%3===0?'moving':sign(target.longitude)%3===1?'steady':'mixed'};
 }
 export async function calculateQuestionSky(env:Record<string,unknown>,input:SkyInput,moment:ReturnType<typeof skyMoment>){
@@ -166,5 +176,5 @@ export async function calculateQuestionSky(env:Record<string,unknown>,input:SkyI
   const projection=projectQuestionChart(chart,input,moonMotion);
   projection.context.calculatedAt=date.toISOString();
   const publicData:SkyPublic={mode:input.mode,askedAt:date.toISOString(),receivedAt,localTime:input.localTime,cityName:city.name,timezone,relationship:input.relationship,situation:input.situation,boundary:input.boundary,space:projection.space,timing:SKY_TIMING,notice:SPIRIT_NOTICE,shareKey:projection.shareKey};
-  return {...projection,publicData,raw,moonMotion};
+  return {...projection,publicData,raw,moonMotion,chart};
 }

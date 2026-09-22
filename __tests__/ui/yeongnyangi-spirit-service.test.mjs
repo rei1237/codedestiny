@@ -51,14 +51,17 @@ test('lifetime generation cap rejects extra recovery allowance before any provid
   assert.equal(globalThis.__spiritTest.calls,0);
 });
 
-for(const mode of ['prashna-v1','horary-v1'])test(mode+' uses question moment without a profile and preserves duplicate/paid/partial/refunded requests',async()=>{
+for(const mode of ['prashna-v1'])test(mode+' uses question moment without a profile and preserves duplicate/paid/partial/refunded requests',async()=>{
   const localTime=new Date(Date.now()-86400000).toISOString().slice(0,16);
-  const questionBody={mode,productId:'saju_mackerel',question:'그 사람과 재회할까요? 연락을 기다릴까요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',situation:'연락이 끊겼어요',cityId:'seoul',localTime,boundary:true}};
+  const questionBody={mode,productId:'saju_flounder',question:'그 사람과 재회할까요? 연락을 기다릴까요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',situation:'연락이 끊겼어요',cityId:'seoul',localTime,boundary:true}};
   const [a,b]=await Promise.all([prepareFortune(env,'sky-owner',questionBody),prepareFortune(env,'sky-owner',questionBody)]);
-  assert.equal(a._id,b._id);assert.equal(a.profileId,'question-sky');assert.equal(a.snapshot.manifest.length,5);
+  assert.equal(a._id,b._id);assert.equal(a.profileId,'question-sky');assert.equal(a.snapshot.manifest.length,8);
   assert.ok(a.snapshot.calculation.audit.length>0);assert.equal(a.snapshot.input.localTime,localTime);
   assert.equal(a.snapshot.analysis.consultation.questionSky.situation,'연락이 끊겼어요');
-  assert.equal(a.amountKRW,(await prepareFortune(env,'owner',body)).amountKRW);
+  assert.equal(a.amountKRW,5000);assert.equal(a.featureKey,'yeongnyangi-saju-flounder');
+  assert.ok(a.snapshot.manifest.every(c=>c.title&&c.focus&&c.requiredSections.length===2));
+  assert.ok(a.snapshot.analysis.contexts.vedic.facts.some(f=>f.label==='프라슈나 계산 근거'));
+  assert.equal((await prepareFortune(env,'owner',body)).amountKRW,1000);
   a.paymentId='original-payment';a.state='GENERATING';a.chapters=[{summary:'saved chapter',sources:['private-calculation']}];
   const replay=await prepareFortune({},'sky-owner',questionBody);
   assert.equal(replay.paymentId,'original-payment');assert.equal(replay.chapters.length,1);
@@ -66,7 +69,16 @@ for(const mode of ['prashna-v1','horary-v1'])test(mode+' uses question moment wi
   const publicRow=presentFortune(replay);
   assert.equal(publicRow.snapshot,undefined);assert.equal(publicRow.manifest[0].factSelectors,undefined);assert.deepEqual(publicRow.chapters[0].sources,[]);
   a.state='REFUNDED';assert.equal(presentFortune(await prepareFortune({},'sky-owner',questionBody)).chapters.length,0);
-  globalThis.__spiritTest.claim={...a,attempts:16,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
+  globalThis.__spiritTest.claim={...a,attempts:25,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
   await assert.rejects(generateNextChapter(env,'sky-owner',a._id),/GENERATION_REVIEW_REQUIRED/);
   assert.equal(globalThis.__spiritTest.calls,0);
+});
+
+test('new horary purchase is refused before DB/provider and old saved horary remains readable',async()=>{
+ const before=globalThis.__spiritTest.rows.size;
+ await assert.rejects(prepareFortune(env,'owner',{mode:'horary-v1',productId:'saju_mackerel'}),/HORARY_FREE_PROMPT_REQUIRED/);
+ assert.equal(globalThis.__spiritTest.rows.size,before);assert.equal(globalThis.__spiritTest.calls,0);
+ const row=await prepareFortune(env,'owner',body);
+ const legacy={...row,paymentId:'legacy-horary',snapshot:{...row.snapshot,analysis:{...row.snapshot.analysis,consultation:{questionSky:{mode:'horary-v1'}}}}};
+ const result=presentFortune(legacy);assert.equal(result.paid,true);assert.equal(result.product.priceKRW,1000);
 });

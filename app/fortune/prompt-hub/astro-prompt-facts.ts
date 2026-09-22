@@ -15,6 +15,7 @@ import { getZodiacFromBirthDate } from "@/lib/yeon/zodiac";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
 
 export type AstroFactsInput = {
+  birthCoordinates?: {lat:number;lon:number;name:string};
   birthDate: string;
   calendarType?: string;
   leapMonth?: boolean;
@@ -140,6 +141,12 @@ async function resolveCoordinates(place: string): Promise<Coordinates | null> {
   return { lat, lon, name: text(payload.name) || place };
 }
 
+async function coordinatesForInput(input:AstroFactsInput):Promise<Coordinates|null>{
+ const value=input.birthCoordinates;
+ if(value){return Number.isFinite(value.lat)&&Math.abs(value.lat)<=90&&Number.isFinite(value.lon)&&Math.abs(value.lon)<=180?value:null;}
+ return resolveCoordinates(text(input.birthPlace));
+}
+
 /** 좌표·시각이 모두 있을 때만 부른다. 실패는 전부 null(예외를 위로 던지지 않는다). */
 async function fetchChart(
   solar: { year: number; month: number; day: number },
@@ -190,7 +197,7 @@ export async function buildAstrologyPromptFacts(input: AstroFactsInput, options:
     const hm = input.birthTimeUnknown ? null : parseHm(input.birthTime);
     const lines: string[] = ["[점성술 차트 산출 데이터]", ...commonBirthLines(input, solar, hm)];
 
-    const coords = hm ? await resolveCoordinates(text(input.birthPlace)) : null;
+    const coords = hm ? await coordinatesForInput(input) : null;
     const chart = coords && hm ? await fetchChart(solar, hm, coords, resolveBirthTimezone(input)) : null;
 
     if (!chart) {
@@ -275,7 +282,7 @@ export async function buildVedicPromptFacts(input: AstroFactsInput): Promise<str
     if (!solar) return "";
 
     const hm = input.birthTimeUnknown ? null : parseHm(input.birthTime);
-    const coords = await resolveCoordinates(text(input.birthPlace));
+    const coords = await coordinatesForInput(input);
     const { offsetHours } = wallClockToUtcMillis(
       { year: solar.year, month: solar.month, day: solar.day, hour: hm?.hour ?? 12, minute: hm?.minute ?? 0 },
       resolveBirthTimezone(input),
