@@ -185,6 +185,7 @@ export default function ResultStyles() {
           min-width: 0;
           padding-bottom: 40px;
         }
+        .kdai-share { grid-column: 2; min-width: 0; padding-bottom: 40px; }
 
         /* ── 목차 레일 ──────────────────────────────────────────────────── */
         .kdai-toc {
@@ -581,6 +582,7 @@ export default function ResultStyles() {
         @media (max-width: 960px) {
           .kdai-result-page { --kdo-tabbar-h: 58px; }
           .kdo-observatory { grid-template-columns: minmax(0, 1fr); }
+          .kdai-share { grid-column: 1; padding-bottom: calc(var(--kdo-tabbar-h) + 24px + env(safe-area-inset-bottom, 0px)); }
           .kdai-toc {
             position: fixed;
             /* 하단 탭 바에 가리지 않도록 띄운다 */

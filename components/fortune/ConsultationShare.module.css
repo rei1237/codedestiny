@@ -22,6 +22,14 @@
   --share-accent: #f4bed1;
   --share-line: #895569;
 }
+.root[data-consultation-share="karma"] {
+  --share-surface: #17272d;
+  --share-field: #101c24;
+  --share-ink: #f2f1e9;
+  --share-muted: #d2e0d9;
+  --share-accent: #bdd4b7;
+  --share-line: #688179;
+}
 .root summary { min-height: 48px; cursor: pointer; font-weight: 700; line-height: 1.6; }
 .root > summary { display: flex; align-items: center; gap: 10px; }
 .root summary svg { flex-shrink: 0; }

@@ -21,6 +21,13 @@ export const consultationShareBrands = {
     image: '/feature-details/assets/master-love-codex-og.webp',
     background: '#171320', ink: '#f6efdf', accent: '#d7bb81',
   },
+  karma: {
+    title: '운명의 업 리포트',
+    invitation: '반복되는 흐름을 돌아보며 남긴 한 문장이야.',
+    path: '/karma-destiny-ai/',
+    image: '/images/expert-consulting/karma-pattern-garden.webp',
+    background: '#101a2b', ink: '#f2f1e9', accent: '#bdd4b7',
+  },
 } as const;
 
 export type ConsultationShareBrand = keyof typeof consultationShareBrands;
@@ -81,6 +88,19 @@ export function masterLoveCodexShareChoices(session: {
     { id: 'sentence', label: '인연의 서에서 남은 한 문장', text: content.find(chapter => chapter?.keySentence?.trim())?.keySentence },
     { id: 'action', label: '관계에서 해볼 작은 행동', text: content.flatMap(chapter => chapter?.actions || []).find(action => typeof action === 'string' && action.trim()) },
     { id: 'insight', label: '관계를 바라보는 시선', text: content.find(chapter => chapter?.insight?.trim())?.insight },
+  ]);
+}
+
+export function karmaShareChoices(result: {
+  reportId?: string; sessionId?: string; status?: string;
+  summaryCards?: { repeatingPattern?: string; currentTask?: string } | null;
+  chapters?: Array<{ summary?: string }>;
+} | null): ConsultationShareChoice[] {
+  if (!result || !(result.reportId || result.sessionId) || result.status !== 'completed') return [];
+  return availableChoices([
+    { id: 'pattern', label: '내가 알아차린 반복', text: result.summaryCards?.repeatingPattern },
+    { id: 'task', label: '지금 해볼 작은 선택', text: result.summaryCards?.currentTask },
+    { id: 'chapter', label: '리포트에서 남은 요약', text: result.chapters?.find(chapter => chapter.summary?.trim())?.summary },
   ]);
 }
 

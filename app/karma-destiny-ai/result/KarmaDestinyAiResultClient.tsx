@@ -8,6 +8,8 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState }
 import { ArrowLeft, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { karmaShareChoices } from "@/lib/consultation-sharing";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildKarmaDestinyPreviewPayload } from "@/lib/dev-preview/fixtures/karma-destiny";
 import EvidenceDisclosure from "./_components/EvidenceDisclosure";
@@ -1144,6 +1146,7 @@ function KarmaDestinyResultInner() {
 
   const isGenerating = ["generating", "partial", "delivery_pending"].includes(result?.status || "");
   const isCompleted = result?.status === "completed";
+  const shareChoices = isCompleted ? karmaShareChoices(result) : [];
   const summaryMode = density === "summary" && !exporting;
 
   // 탭은 실제로 마운트된 섹션에서만 만든다. 렌더되지 않는 단으로 가는 탭이 있으면 안 된다.
@@ -1448,6 +1451,12 @@ function KarmaDestinyResultInner() {
               {copy.disclaimer}
             </footer>
           </section>
+
+          {shareChoices.length > 0 && (
+            <div className="kdai-share">
+              <ConsultationShare brand="karma" choices={shareChoices} />
+            </div>
+          )}
 
           <SectionTabs tabs={sectionTabs} activeId={activeSectionId} progress={readProgress} variant="mobile" />
         </div>

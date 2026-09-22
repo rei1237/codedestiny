@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 const output = await build({ entryPoints: ['lib/consultation-sharing.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
-const { teaHouseShareChoices, neoShareChoices, masterLoveCodexShareChoices, consultationInvitationUrl, trimShareText } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
+const { teaHouseShareChoices, neoShareChoices, masterLoveCodexShareChoices, karmaShareChoices, consultationInvitationUrl, trimShareText } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
 const tea = { resultId: 'PRIVATE_ID', questionSummary: 'PRIVATE_QUESTION', birthDate: 'PRIVATE_BIRTH', synthesis: { summary: '내 속도를 지켜도 괜찮아요.' }, actionPrescription: '오늘 한 가지를 적어보세요.', closingLine: '조금씩 나아가요.' };
 const neo = { sessionId: 'PRIVATE_ID', status: 'completed', question: 'PRIVATE_QUESTION', initialBriefing: { frontlineSummary: '먼저 기준을 세워라.', actionOrders: ['작은 실행부터 시작해라.'] }, pendingRefinedOrder: { thisWeekFirstStep: 'PRIVATE_PENDING' } };
 
@@ -53,8 +53,21 @@ test('Codex shares saved editorial excerpts only after every chapter is present'
   assert.deepEqual(masterLoveCodexShareChoices({ ...result, status: 'partial' }, 2), []);
   assert.deepEqual(masterLoveCodexShareChoices({ ...result, sessionId: undefined }, 2), []);
 });
+
+test('Karma shares saved v1 and v2 summaries only for completed reports', () => {
+  for (const schemaVersion of [1, 2]) {
+    const result = { reportId: 'PRIVATE_ID', status: 'completed', schemaVersion, userInput: { question: 'PRIVATE_QUESTION', birthDate: 'PRIVATE_BIRTH' },
+      summaryCards: { repeatingPattern: '같은 기대를 되풀이하는 흐름을 살펴보세요.', currentTask: '오늘 한 가지 기준을 정해 보세요.' },
+      chapters: [{ summary: '선택의 속도를 조절해 보세요.' }] };
+    const choices = karmaShareChoices(result);
+    assert.deepEqual(choices.map(choice => choice.id), ['pattern', 'task', 'chapter']);
+    assert.doesNotMatch(JSON.stringify(choices), /PRIVATE_/);
+    assert.deepEqual(karmaShareChoices({ ...result, status: 'partial' }), []);
+    assert.deepEqual(karmaShareChoices({ ...result, reportId: undefined }), []);
+  }
+});
 test('invitation links contain only a public service and allowlisted attribution', () => {
-  for (const [brand, path] of [['tea', '/fortune-tea-house/'], ['neo', '/neo-operation-room/'], ['codex', '/master-love-codex/']]) {
+  for (const [brand, path] of [['tea', '/fortune-tea-house/'], ['neo', '/neo-operation-room/'], ['codex', '/master-love-codex/'], ['karma', '/karma-destiny-ai/']]) {
     for (const channel of ['copy', 'kakao', 'native', 'image', 'PRIVATE_QUERY']) {
       const url = new URL(consultationInvitationUrl(brand, channel));
       assert.equal(url.origin, 'https://code-destiny.com'); assert.equal(url.pathname, path);
