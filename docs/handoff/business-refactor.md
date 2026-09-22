@@ -9,6 +9,7 @@ next: "Play 적용 수수료·v3 SKU와 상품별 유료 상담·저장·지원�
 
 ## 2026-09-22 Play 수수료·Cloudflare 귀속 근거 추가
 
+- 구현 커밋 `4d3f68c11`: 공통 LLM 상품 요청 귀속과 비용 보고서, Play·Cloudflare 외부 근거 문서를 함께 갱신했다.
 - Play Console 계정의 `등록한 프로그램 및 서비스`에서 15% 서비스 수수료 프로그램 가입을 읽기 전용으로 확인했다. 공식 정책상 연간 첫 100만 USD 매출 구간에 15%가 적용되지만, `com.codedestiny.app`에는 v3 SKU가 여전히 없고 프로덕션도 비활성이므로 실제 v3 정산 수수료 증거는 아니다. 상품 생성·가격 입력·활성화는 하지 않았다.
 - Cloudflare의 최근 Workers Paid 청구서는 2026-08-30 `IN-77252831` $5.00이며 구독은 활성 상태다. 9월 Billable usage는 R2·Workers·D1·Queues가 포함 한도 안의 $0.00였지만 계정·제품군 집계일 뿐 Code Destiny 상품 SKU 귀속 청구가 아니다.
 - 운영 Worker `code-destiny-web`의 최근 7일 로그에서 `[llm token_usage]`를 조회한 결과가 0건이어서, 상품별 유료 상담의 보존된 실사용 표본은 확보하지 못했다. 0건을 비용 0원으로 해석하지 않는다.
