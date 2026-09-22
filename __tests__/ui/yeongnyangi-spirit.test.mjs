@@ -75,4 +75,3 @@ test('anonymous share has no input or private result URL',()=>{
   assert.doesNotMatch(buildSpiritShare('private name 1990').text,/private name|1990/);
   assert.doesNotMatch(JSON.stringify(spiritShare),/1997|q1|id=|507f|재회할까요/);
 });
-

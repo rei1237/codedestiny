@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-22
-next: "Play 적용 수수료·v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가 및 Cloudflare 청구서를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
+next: "Play v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
 ---
 # 사업 리팩토링 인수인계
 
@@ -11,11 +11,13 @@ next: "Play 적용 수수료·v3 SKU와 상품별 유료 상담·저장·지원�
 
 - 구현 커밋 `4d3f68c11`: 공통 LLM 상품 요청 귀속과 비용 보고서, Play·Cloudflare 외부 근거 문서를 함께 갱신했다.
 - Play Console 계정의 `등록한 프로그램 및 서비스`에서 15% 서비스 수수료 프로그램 가입을 읽기 전용으로 확인했다. 공식 정책상 연간 첫 100만 USD 매출 구간에 15%가 적용되지만, `com.codedestiny.app`에는 v3 SKU가 여전히 없고 프로덕션도 비활성이므로 실제 v3 정산 수수료 증거는 아니다. 상품 생성·가격 입력·활성화는 하지 않았다.
-- Cloudflare의 최근 Workers Paid 청구서는 2026-08-30 `IN-77252831` $5.00이며 구독은 활성 상태다. 9월 Billable usage는 R2·Workers·D1·Queues가 포함 한도 안의 $0.00였지만 계정·제품군 집계일 뿐 Code Destiny 상품 SKU 귀속 청구가 아니다.
-- 운영 Worker `code-destiny-web`의 최근 7일 로그에서 `[llm token_usage]`를 조회한 결과가 0건이어서, 상품별 유료 상담의 보존된 실사용 표본은 확보하지 못했다. 0건을 비용 0원으로 해석하지 않는다.
+- Cloudflare 최신 청구서 원문은 2026-08-30 발행, 2026-08-30~09-29 `Workers Paid` 1개 × $5.00이다. 소계·합계·청구액은 모두 $5.00이고 별도 세금 행은 없다. PDF SHA-256은 `24010e2c890229e1e57e699e802e38652cc3dece73df4e500b19fb709e6191a2`; 개인정보가 포함된 원문은 저장소에 넣지 않았다. 9월 Billable usage는 R2·Workers·D1·Queues가 포함 한도 안의 $0.00였지만 상품 SKU 귀속 청구가 아니다.
+- 운영 Worker의 최근 7일 `[llm token_usage]` 조회는 먼저 0건, 후속 동일 표식 검색에서는 성공 70건을 표시했다. 후속 결과에는 고용량 불완전 경고가 있었고 JSON 다운로드도 실패했다. 복사 가능한 마스터 연애 코덱스 1건은 입력 14,917·캐시 입력 1,018·출력 3,540토큰이었으나 `serviceId`가 비어 있어 어느 조회도 상품 원가 증거로 쓰지 않는다.
 - 공통 LLM 계측에 `serviceId`·`requestId`·`billingAccess`를 묶고, 비용 보고서에 고유 요청 수·접근 유형·귀속 누락 수·요청당 평균/최대 비용을 추가했다. 프롬프트·개인정보는 기록하지 않으며 보고서는 계속 `saleApproval:false`다. 운영 반영 전 과거 비용은 소급되지 않는다.
+- 마스터 연애 코덱스의 구조화·비구조화 생성 호출에는 상품 키와 장 키를 명시해 공통 계측의 빈 `serviceId`를 막았다. Gemini·Workers AI 50,000토큰 상한은 변경하지 않았다.
 - MongoDB 저장·백업·트래픽의 상품 귀속 청구, 상품별 지원 시간·검토 인건비, 상품별 환불 금액·회수 불가 공급자 비용은 미확보다. `lib/payment/pass-cost-evidence.js`는 빈 객체로 유지하고 웹 `SETTLEMENT_EVIDENCE_MISSING`, Play `APP_SKU_NOT_VERIFIED` 차단을 풀지 않는다.
 - 실PG·유료 LLM·운영 DB 쓰기·환불·운영 승격은 수행하지 않았다. main의 `marketing/**` 미커밋 변경과 기존 worktree를 보존한다.
+- 최신 main 통합 검증: 마스터 연애 코덱스 66/66, paid suite 88/88, Node 1,561/1,561, Jest 290 suites·4,073 tests, LLM 사용량 보고·lint·typecheck·Worker dry-run·사이트맵 1,284 URL 통과. `verify:handoff-contract` 176문서 통과. 판매 감사는 웹 3건 `SETTLEMENT_EVIDENCE_MISSING`·Play 3건 `APP_SKU_NOT_VERIFIED`로 예상 종료 2다.
 
 ## 2026-09-22 영냥이 공개 분석 근거 보강
 
