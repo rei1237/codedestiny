@@ -1,10 +1,11 @@
 "use client";
+import ReadingIdentity,{readingFeatures} from './ReadingIdentity';
 import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {useEffect,useRef,useState} from 'react';
 import {authFetch} from '@/app/_lib/auth-client';
 import {ArrowRight,Moon,Sparkles} from 'lucide-react';
 import {products,systemNames,type Product} from '@/worker/yeongnyangi/payments/catalog';
-import {depthDescriptions} from '@/worker/yeongnyangi/fortune/reading-policy';
+import {depthDescriptions,policyForReading} from '@/worker/yeongnyangi/fortune/reading-policy';
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,type FortuneRecord} from '../_lib/api';
 import ProfilePicker from './ProfilePicker';
@@ -97,15 +98,16 @@ export default function Consultation(){
   <header className={styles.consultationHeader}><div><h1>무엇부터 읽어볼까?</h1><p>말이 조금 엉켜도 괜찮아.<br/>궁금한 운세를 고르고, 네 이야기를 들려줘.</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
   <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>영냥 신점</strong><br/>질문이 떠오른 순간의 기운과 선택 살펴보기</span></a>
   <div className={styles.tabs} role="group" aria-label="운세 종류">{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{label}</button>)}</div>
+  <ReadingIdentity product={product} compact/>
   <p className={styles.systemDescription}>{explanation[domain]}</p>
   <div className={styles.fishes} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
-   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?item.name:item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span><small>{depthDescriptions[item.fishId]}</small>
+   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?item.name:item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span><small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small><small>{depthDescriptions[item.fishId]}</small>
   </button>)}</div>
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label="선택한 상담 요약">
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="반갑게 맞이하는 영냥이"/>
     <h2>네 이야기에,<br/>작은 달빛 하나.</h2><p>한 번에 답을 찾으려 하지 않아도 돼.<br/>함께 살펴볼 흐름부터 골라보자.</p>
-    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{product.name} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>단건 결제</dt><dd>{product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{product.name} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>단건 결제</dt><dd>{product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>계산은 운세 체계가,<br/>해설은 영냥이가 함께해.</p>
     <details className={styles.predictionRecords}><summary>두 대통령 적중 기록 원문 보기</summary><p>10년 경력 명리학자가 남긴 공개 해석 기록. 블로그 게시일과 원문을 직접 살펴보세요.</p><ul>{predictionRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer">{record.date} · {record.title}</a></li>)}</ul></details>
    </aside>

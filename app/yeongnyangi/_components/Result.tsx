@@ -1,6 +1,8 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
+import ReadingBook from './ReadingBook';
+import ReadingIdentity from './ReadingIdentity';
 import SpiritResult from './SpiritResult';
 import styles from '../yeongnyangi.module.css';
 import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
@@ -56,9 +58,10 @@ export default function Result(){
  </section>;
  return <section className={styles.reader}>
   <p className={styles.eyebrow}>영냥이의 상담 두루마리</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:'상담 결과'}</h1>
+  {row&&<ReadingIdentity product={row.product}/>}
   {!row&&!error&&<ReadingLoading/>}
   {row&&<>
-   {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}
+   {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading product={row.product} stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}
    <section className={styles.questionContext} aria-label="이번 상담의 주제와 질문">
     <h2>{row.consultation?.topicLabel || '이번 상담'}</h2>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>입력한 질문 없이 선택한 주제의 흐름을 살펴보는 상담이에요.</p>}
@@ -74,13 +77,7 @@ export default function Result(){
     </div>
    </div>
    {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
-   <nav aria-label="상담 목차" className={styles.contents}><h2>목차</h2>{row.manifest.map((chapter,index)=><a key={chapter.id} href={index<row.chapters.length?`#chapter-${chapter.id}`:'#reading-progress'} aria-disabled={index>=row.chapters.length}>{index+1}. {chapter.title}{index>=row.chapters.length?' · 준비 중':''}</a>)}</nav>
-   {row.chapters.map((chapter,index)=><article key={row.manifest[index].id} id={`chapter-${row.manifest[index].id}`} className={styles.chapter}>
-    <p className={styles.eyebrow}>{index+1}번째 이야기</p><h2>{row.manifest[index].title}</h2><p className={styles.summary}>{chapter.summary}</p>
-    {chapter.questionAnswers?.map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || '질문에 대한 답변'}</h3><p className={styles.summary}>{answer.answer}</p><h4>해석의 근거</h4><p>{answer.reason}</p><h4>관련 시기</h4><p>{answer.timing}</p><h4>실천 조언</h4><p>{answer.action}</p></section>)}
-    {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={b}><h3>{block.title}</h3>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
-    <h3>생활 속에서는</h3><p>{chapter.example}</p><h3>지금 해볼 일</h3><p>{chapter.advice}</p><blockquote>{chapter.persona}</blockquote>
-   </article>)}
+   <ReadingBook row={row}/>
   </>}
   {error&&<p role="alert">{error} 결제가 확인된 상담은 다시 결제하지 마세요.</p>}
   {row&&<p className={styles.orderId}>상담 주문번호: {row.id}</p>}
