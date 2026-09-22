@@ -1,3 +1,5 @@
+> 기존 `spirit-v1` 구매 결과의 문서입니다. 2026-09-22 이후 새 영냥 신점·호라리 상담은 [질문 순간 계산 문서](yeongnyangi-question-sky.md)를 따릅니다. 기존 결과의 복구 계약은 유지됩니다.
+
 # 영냥이의 영감 구현 범위
 
 진입: `/yeongnyangi/fortune/?mode=spirit` (일반 상담 화면의 영감 링크).

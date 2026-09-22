@@ -946,8 +946,8 @@ function calcPlanetsByMap(swe, jd, iflag, map) {
   return out;
 }
 
-function calcAscMc(swe, jd, iflag, lat, lon) {
-  const houses = swe.swe_houses_ex(jd, iflag, lat, lon, "P");
+function calcAscMc(swe, jd, iflag, lat, lon, system = "P") {
+  const houses = swe.swe_houses_ex(jd, iflag, lat, lon, system);
   const asc = nd(houses?.ascmc?.[0]);
   const mc = nd(houses?.ascmc?.[1]);
   const houseCusps = extractHouseCusps(houses);
@@ -978,7 +978,11 @@ export async function getSwissWesternChart(env, payload, options = {}) {
   const input = normalizeChartInput(payload);
   validateChartInput(input);
 
-  const external = await getExternalWesternChart(env, input, options);
+  // The external adapter currently guarantees Placidus only. Question charts
+  // requesting Regiomontanus must never silently receive another house system.
+  const regiomontanus = options.houseSystem === "regiomontanus";
+  if (regiomontanus && Math.abs(input.lat) >= 66) throw toStatusError(400, "HOUSE_SYSTEM_UNAVAILABLE");
+  const external = regiomontanus ? null : await getExternalWesternChart(env, input, options);
   if (external) {
     return external;
   }
@@ -990,7 +994,7 @@ export async function getSwissWesternChart(env, payload, options = {}) {
     const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
 
     const rawPlanets = calcPlanetsByMap(swe, jd, iflag, WESTERN_PLANETS);
-    const { asc, mc, houseCusps } = calcAscMc(swe, jd, iflag, input.lat, input.lon);
+    const { asc, mc, houseCusps } = calcAscMc(swe, jd, iflag, input.lat, input.lon, regiomontanus ? "R" : "P");
 
     const planets = {};
     for (const [name] of WESTERN_PLANETS) {
@@ -1013,14 +1017,14 @@ export async function getSwissWesternChart(env, payload, options = {}) {
       northNode: { ...signInfo(trueNodeLon, asc), house: locateHouseByCusps(trueNodeLon, houseCusps) },
       southNode: { ...signInfo(trueNodeLon + 180, asc), house: locateHouseByCusps(trueNodeLon + 180, houseCusps) },
       houseCusps,
-      houseSystem: "placidus",
+      houseSystem: regiomontanus ? "regiomontanus" : "placidus",
       aspects,
       source: "swiss-wasm-local",
       engineQuality: "swiss",
       fallbackUsed: false,
     };
   } catch (error) {
-    if (requiresStrictSwissWestern(env, options)) {
+    if (regiomontanus || requiresStrictSwissWestern(env, options)) {
       try {
         console.error("[astro-western-strict-failed]", JSON.stringify({
           reason: summarizeSwissInitError(error),

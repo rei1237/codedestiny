@@ -9,6 +9,11 @@ import { enqueueConsultation } from '../yeongnyangi/queue.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  QUESTION_SKY_INPUT:'5자 이상 질문(최대 8개), 주제와 질문자 도시를 확인해 주세요.',
+  QUESTION_TIME_REQUIRED:'질문이 떠오른 날짜와 시각을 정확히 입력해 주세요.',
+  QUESTION_TIME_AMBIGUOUS:'이 도시에서는 서머타임 전환으로 해당 시각을 하나로 확정할 수 없어요. 다른 명확한 질문 시각으로 상담해 주세요.',
+  QUESTION_TIME_RANGE:'질문 시각은 최근 5년 이내이며 미래가 아니어야 해요.',
+  QUESTION_CALCULATION_UNAVAILABLE:'질문 순간의 계산을 확인하지 못했어요. 결제 전 다시 시도해 주세요.',
   SPIRIT_INPUT_REQUIRED:'질문, 관계와 상담 주제를 확인해 주세요.',
   SPIRIT_PRODUCT_REQUIRED:'영감 상담은 기존 사주 고등어 상담으로 이용할 수 있어요.',
   SPIRIT_EVIDENCE_UNAVAILABLE:'이번 정보로는 해석 근거를 확인하지 못했어요. 출생정보를 확인해 주세요.',

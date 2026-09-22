@@ -1,4 +1,7 @@
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
+import {validateSkyInput,skyMoment,calculateQuestionSky} from './fortune/question-sky';
+import {skyModes,skyTopics,SKY_IMAGE,SKY_TIMING} from './fortune/question-sky-contract';
+import {skyManifest} from './fortune/question-sky-reading';
 import {SPIRIT_MODE,SPIRIT_TITLE,SPIRIT_IMAGE,spiritTopics} from './fortune/spirit-contract';
 import { ProfileCard } from '../lib/models.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
@@ -36,6 +39,7 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any) {
   const product=getProduct(body.productId);
+  if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
   if (!providerReady(env)) throw new FortuneError('LLM_NOT_CONFIGURED',503);
@@ -90,6 +94,32 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     amountKRW:product.priceKRW,fingerprint,snapshot:{product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
 }
 
+async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){
+  const input=validateSkyInput(body);
+  const fingerprint=await digest({input,version:'question-sky-1'});
+  const id=await digest({userId,fingerprint});
+  await connectDb(env);
+  // Existing paid or partial snapshots always win, even when a provider is down
+  // or a later version changes the interpretation. Never recalculate a purchase.
+  try{return await readRequest(env,userId,id);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
+  if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
+  const moment=skyMoment(input);
+  const calculated=await calculateQuestionSky(env,input,moment);
+  const product=getProduct('saju_mackerel');
+  const clock=consultationClock(moment.timezone,moment.date);
+  const context=calculated.context;
+  const manifest=skyManifest(readingManifest(product),context);
+  const consultation=createConsultation(input.question,input.topic,clock,manifest);
+  consultation.questionSky=calculated.publicData;
+  consultation.topicLabel=skyTopics[input.topic];
+  consultation.period={kind:'default',label:SKY_TIMING};
+  const analysis={contexts:{[context.domain]:context},signals:[],themes:[],question:input.question,topicId:input.topic,asOf:clock.asOf,consultation};
+  product.name=skyModes[input.mode];product.image=SKY_IMAGE;
+  // Price/feature/receipt remain the existing five-chapter product contract.
+  return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
+    snapshot:{product,analysis,manifest,input,questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+}
+
 export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string) {
   const request=await readRequest(env,userId,requestId);
   const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW));
@@ -104,7 +134,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const ordinal=row.chapters.length;
   const startedAt=Date.now();let stage='provider';
   try {
-    if(row.attempts>row.snapshot.manifest.length*3+(row.snapshot.analysis.consultation?.spirit?0:(row.additionalAttempts || 0))) throw new FortuneError('GENERATION_REVIEW_REQUIRED',409);
+    if(row.attempts>row.snapshot.manifest.length*3+(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky?0:(row.additionalAttempts || 0))) throw new FortuneError('GENERATION_REVIEW_REQUIRED',409);
     if((row.chapterAttempts?.[ordinal] || 1)>3) throw new FortuneError('AUTOMATIC_RECOVERY_STOPPED',409);
     const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
@@ -124,8 +154,9 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 }
 
 export function presentFortune(row: any) {
+  const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
-    paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:row.snapshot.analysis.consultation?.spirit ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
+    paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:row.snapshot.analysis.consultation?.spirit ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

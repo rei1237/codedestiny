@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import QuestionSkyEntry from "../_components/QuestionSkyEntry";
 import predictionRecords from "@/lib/brand/prediction-records.json";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
@@ -330,6 +331,7 @@ export default function FortuneHome() {
               </nav>
 
           <div className="main-content">
+            <QuestionSkyEntry/>
             <button
               className="prologue-banner"
               onClick={() => window.location.assign("/yeongnyangi/room/")}

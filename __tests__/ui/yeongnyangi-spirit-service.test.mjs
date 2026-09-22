@@ -9,7 +9,7 @@ globalThis.__spiritTest={rows:new Map(),calls:0};
 const replacements={
   'worker/lib/models.js':`export const ProfileCard={findOne:()=>({lean:async()=>({updatedAt:null,birth:{year:1997,month:2,day:10,timeUnknown:true,calType:'solar'},gender:'F'})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
-  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__spiritTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>globalThis.__spiritTest.rows.get(id);export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__spiritTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
+  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__spiritTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__spiritTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__spiritTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__spiritTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
@@ -48,5 +48,25 @@ test('lifetime generation cap rejects extra recovery allowance before any provid
   const row=await prepareFortune(env,'owner',body);
   globalThis.__spiritTest.claim={...row,attempts:16,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
   await assert.rejects(generateNextChapter(env,'owner',row._id),/GENERATION_REVIEW_REQUIRED/);
+  assert.equal(globalThis.__spiritTest.calls,0);
+});
+
+for(const mode of ['prashna-v1','horary-v1'])test(mode+' uses question moment without a profile and preserves duplicate/paid/partial/refunded requests',async()=>{
+  const localTime=new Date(Date.now()-86400000).toISOString().slice(0,16);
+  const questionBody={mode,productId:'saju_mackerel',question:'그 사람과 재회할까요? 연락을 기다릴까요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',situation:'연락이 끊겼어요',cityId:'seoul',localTime,boundary:true}};
+  const [a,b]=await Promise.all([prepareFortune(env,'sky-owner',questionBody),prepareFortune(env,'sky-owner',questionBody)]);
+  assert.equal(a._id,b._id);assert.equal(a.profileId,'question-sky');assert.equal(a.snapshot.manifest.length,5);
+  assert.ok(a.snapshot.calculation.audit.length>0);assert.equal(a.snapshot.input.localTime,localTime);
+  assert.equal(a.snapshot.analysis.consultation.questionSky.situation,'연락이 끊겼어요');
+  assert.equal(a.amountKRW,(await prepareFortune(env,'owner',body)).amountKRW);
+  a.paymentId='original-payment';a.state='GENERATING';a.chapters=[{summary:'saved chapter',sources:['private-calculation']}];
+  const replay=await prepareFortune({},'sky-owner',questionBody);
+  assert.equal(replay.paymentId,'original-payment');assert.equal(replay.chapters.length,1);
+  assert.equal(replay.snapshot,a.snapshot); // No provider or recalculation on recovery.
+  const publicRow=presentFortune(replay);
+  assert.equal(publicRow.snapshot,undefined);assert.equal(publicRow.manifest[0].factSelectors,undefined);assert.deepEqual(publicRow.chapters[0].sources,[]);
+  a.state='REFUNDED';assert.equal(presentFortune(await prepareFortune({},'sky-owner',questionBody)).chapters.length,0);
+  globalThis.__spiritTest.claim={...a,attempts:16,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
+  await assert.rejects(generateNextChapter(env,'sky-owner',a._id),/GENERATION_REVIEW_REQUIRED/);
   assert.equal(globalThis.__spiritTest.calls,0);
 });

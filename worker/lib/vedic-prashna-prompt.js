@@ -225,7 +225,13 @@ export function classifyPrashnaQuestion(question) {
 }
 
 export async function createPrashnaSnapshot(input = {}) {
-  const question = validateQuestion(input.question);
+  return createPrashnaCalculationSnapshot({ ...input, question: validateQuestion(input.question) });
+}
+
+// Calculation moment shared by validated consultation flows. The standalone
+// prompt keeps its stricter single-question policy in createPrashnaSnapshot.
+export async function createPrashnaCalculationSnapshot(input = {}) {
+  const question = clean(input.question);
   const { latitude, longitude } = validateCoordinates(input.latitude, input.longitude);
   let timezone = "";
   try {

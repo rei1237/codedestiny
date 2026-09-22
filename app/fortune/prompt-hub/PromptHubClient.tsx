@@ -2880,6 +2880,7 @@ export default function ComprehensivePromptHubPage() {
                 }}
               >
                 <div className="grid gap-4 sm:grid-cols-2">
+                  {currentTool.id==='horary'&&<p><a href="/yeongnyangi/fortune/?mode=horary">질문 순간을 실제로 계산하는 영냥 호라리 상담 →</a></p>}
                   {currentTool.fields.filter((field) => !field.advanced).map(renderToolField)}
                 </div>
 

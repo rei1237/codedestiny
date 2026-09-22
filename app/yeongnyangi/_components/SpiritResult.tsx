@@ -1,21 +1,24 @@
 "use client";
+import {SKY_IMAGE,skyModes,skyShare} from '@/worker/yeongnyangi/fortune/question-sky-contract';
 import {useState} from 'react';
 import {SPIRIT_IMAGE,SPIRIT_TITLE,SPIRIT_NOTICE,buildSpiritShare} from '@/worker/yeongnyangi/fortune/spirit-contract';
 import type {FortuneRecord} from '../_lib/api';
 import styles from '../yeongnyangi.module.css';
 export default function SpiritResult({row}:{row:FortuneRecord}){
   const [message,setMessage]=useState('');
-  const spirit=row.consultation?.spirit;
+  const sky=row.consultation?.questionSky;
+  const spirit=sky||row.consultation?.spirit;
   async function share(){
     // Only an allowlisted reflection key enters the anonymous summary:
     // no question, name, birth information, result id, or private URL can escape.
-    const spiritShare=buildSpiritShare(spirit?.shareKey);
+    const spiritShare=sky?skyShare(sky.mode,sky.shareKey):buildSpiritShare(spirit?.shareKey);
     try{if(navigator.share)await navigator.share(spiritShare);else {await navigator.clipboard.writeText(`${spiritShare.title}\n${spiritShare.text}`);setMessage('익명 소개를 복사했어요.');}}catch{setMessage('공유를 마치지 못했어요. 다시 시도할 수 있어요.');}
   }
   if(!spirit)return null;
   return <div className={styles.spirit}>
-    <header className={styles.spiritIntro}><img src={SPIRIT_IMAGE} width={303} height={320} alt="작은 북을 든 영냥이"/><div><h1>{SPIRIT_TITLE}</h1><p>{row.chapters[0]?.summary||'질문의 결을 살피는 중'}</p></div></header>
+    <header className={styles.spiritIntro}><img src={sky?SKY_IMAGE:SPIRIT_IMAGE} width={303} height={320} alt="질문의 결을 읽는 영냥이"/><div><h1>{sky?skyModes[sky.mode]:SPIRIT_TITLE}</h1><p>{row.chapters[0]?.summary||'질문의 결을 살피는 중'}</p></div></header>
     <p>상담 기준: {new Date(spirit.askedAt).toLocaleString('ko-KR',{timeZone:row.consultation?.timezone||'Asia/Seoul'})} · {row.consultation?.timezone}</p>
+    {sky&&<p>질문자 지역: {sky.cityName} · 도시 중심 기준의 상징 풀이</p>}
     <p>{row.consultation?.topicLabel} · {spirit.relationship}</p>
     {row.state!=='REFUNDED'&&<>
       <p role="status">{row.state==='COMPLETED'?'모든 이야기의 저장을 확인했어.':row.chapters.length===row.manifest.length?'저장된 이야기를 최종 확인하는 중':row.chapters.length<2?'질문의 결을 살피는 중':'인연의 흐름을 정리하는 중'} · {row.chapters.length}/{row.manifest.length} 저장됨</p>
@@ -31,6 +34,6 @@ export default function SpiritResult({row}:{row:FortuneRecord}){
       </article>)}
       {row.state==='COMPLETED'&&<section className={styles.chapter}><h2>영냥이의 마무리</h2><p>{row.chapters.at(-1)?.persona}</p><button onClick={()=>void share()}>익명 요약 공유하기</button>{message&&<p role="status">{message}</p>}</section>}
     </>}
-    <p>{SPIRIT_NOTICE}</p><nav className={styles.spiritLinks} aria-label="다음 상담"><a href="/yeongnyangi/library/">내 상담 기록</a><a href="/yeongnyangi/fortune/?mode=spirit">새 상담 시작하기</a></nav>
+    <p>{SPIRIT_NOTICE}</p><nav className={styles.spiritLinks} aria-label="다음 상담"><a href="/yeongnyangi/library/">내 상담 기록</a><a href={sky?.mode==='horary-v1'?'/yeongnyangi/fortune/?mode=horary':'/yeongnyangi/fortune/?mode=spirit'}>새 상담 시작하기</a></nav>
   </div>;
 }
