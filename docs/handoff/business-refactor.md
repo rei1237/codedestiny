@@ -1,11 +1,23 @@
 ---
 status: active
 updated: 2026-09-22
-next: "실정산·상품별 Workers AI·저장·지원·환불 실원가와 Play 신규 SKU 근거를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
+next: "Play 적용 수수료·v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가 및 Cloudflare 청구서를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
 ---
 # 사업 리팩토링 인수인계
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
+
+## 2026-09-22 Workers AI 상한·정산·Play 증거 추가
+
+- Gemini 50,000토큰 상한은 반복하지 않았다. Workers AI에 모델 공통 count API가 없는 조건을 반영해, `lib/workers-ai-input-token-limit.mjs`가 실제 메시지의 UTF-8 바이트 수+1,024를 보수 토큰 상한으로 삼고 `env.AI.run()` 전에 50,000 초과를 차단한다. 공급자 `usage`가 있으면 실제 토큰을 보존하고, 없을 때만 입력 보수 상한·출력 추정을 남긴다.
+- 공식 Workers AI 단가와 기본 GLM 4.7 Flash→Llama 3.3 70B 두 모델이 모두 최대 입출력 비용을 만들 수 있는 폴백 체인을 계획 원가에 포함했다. 최대 소진 조합인 `tarot-love-relationship`의 1건 계획 변동원가는 9,100원에서 14,700원으로 늘었다.
+- 현재 89,000/269,000/879,000원은 Play 15% 계획에서는 내부 40% 기준을 넘지만 Play 30% 스트레스에서는 약 30%에 그친다. 30% 조건의 산출 최소가는 119,800/359,400/1,197,800원이며, 실제 Play 적용 요율을 확인하기 전에 현재가를 확정가로 쓰지 않는다.
+- PortOne 관리자에서 2026-09 정산일 기준 총 22건·52,700원, 정산 완료 18건·순정산 51,598원, PG 수수료 1,001원·부가세 101원을 읽기 전용으로 확인했다. 다만 v3 이용권 거래가 아니므로 웹 3종의 `SETTLEMENT_EVIDENCE_MISSING`을 해제하지 않았다.
+- Google Play Console의 `com.codedestiny.app` 일회성 상품은 18개였고 예전 `cd_pass_*_30d`는 있지만 `cd_pass_*_30d_v3`는 없었다. 상품을 만들거나 활성화하지 않았고, Play 3종의 `APP_SKU_NOT_VERIFIED`를 그대로 유지했다.
+- Cloudflare GraphQL Analytics 최근 30일 계정 전체는 GLM 4.7 Flash 1,025 Neuron, 일별 무료분 차감 후 추정 초과분 $0이었다. 이는 청구서·실정산이 아니고 실제 유료 상담 폴백 표본도 아니므로 원가 evidence에 넣지 않았다.
+- `lib/payment/pass-cost-evidence.js`는 빈 객체를 유지했다. 실 PG·유료 LLM·운영 DB 쓰기·운영 승격 없이 읽기 전용 증거만 보강했고, main의 동시 `marketing/**`·기존 worktree를 보존했다. 새 이용권 3종×웹/Play 6건은 계속 차단 상태다.
+- 로컬 `npm run check:fast` 최종 통과: paid suite 88/88, Node 1,529/1,529, Jest 289 suites·4,057 tests, lint·typecheck·Worker dry-run·사이트맵 1,284 URL 통과. `node scripts/audit-pass-profitability.mjs`의 6건 차단·종료 2는 예상 결과다.
+- 세부 근거와 재현 명령은 `docs/verification/pass-sale-readiness-20260922.md`, 가격 계획은 `docs/pass-pricing-20260921.md`를 정본으로 삼는다. 최종 커밋·main CI는 이 절의 후속 전달 기록으로 남긴다.
 
 ## 2026-09-22 Gemini 입력 토큰 하드 상한
 

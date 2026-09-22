@@ -9,7 +9,7 @@ const planningReport = JSON.parse(readFileSync(
   "utf8",
 ));
 
-test("current pass prices cover the code-derived Play 30% stress scenario without opening sales", () => {
+test("Workers AI costs keep current pass prices blocked under the Play 30% stress scenario", () => {
   assert.deepEqual(
     Object.values(CURRENT_PASS_PLANS).map(({ tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }) => (
       { tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }
@@ -22,11 +22,14 @@ test("current pass prices cover the code-derived Play 30% stress scenario withou
   );
   assert.equal(planningReport.pricingDriver, "tarot-love-relationship");
   assert.equal(planningReport.assumptions.inputTokenCapProvenInCode, true);
+  assert.equal(planningReport.assumptions.workersAiInputTokenCapProvenInCode, true);
+  assert.ok(planningReport.runtimeRows.every(({ fallbackProviderCostIncluded }) => fallbackProviderCostIncluded));
   assert.equal(planningReport.saleApproval, false);
   const playRows = planningReport.rows.filter(({ channel }) => channel === "googlePlay30");
   assert.deepEqual(playRows.map(({ pricingDriverRepeats }) => pricingDriverRepeats), [1, 3, 10]);
-  assert.ok(playRows.every(({ stressedContributionMargin }) => stressedContributionMargin >= 0.4));
-  assert.ok(playRows.every(({ priceKRW, minimumPriceForTargetKRW }) => priceKRW >= minimumPriceForTargetKRW));
+  assert.ok(playRows.every(({ stressedContributionMargin }) => stressedContributionMargin < 0.4));
+  assert.ok(playRows.every(({ priceKRW, minimumPriceForTargetKRW }) => priceKRW < minimumPriceForTargetKRW));
+  assert.deepEqual(playRows.map(({ minimumPriceForTargetKRW }) => minimumPriceForTargetKRW), [119800, 359400, 1197800]);
 });
 test("Play 30% gross fee and tax leave less cost capacity; unknown cost cannot pass", () => {
   const base = { priceKRW: 59900, vatRate: 0.1, feeRate: 0.3, feeBasis: "gross", fixedMonthlyKRW: 108000 };

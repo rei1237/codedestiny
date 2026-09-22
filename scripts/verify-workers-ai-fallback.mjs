@@ -16,6 +16,10 @@
 
 import { callLLM } from "../lib/llm-client.ts";
 import { callGeminiText } from "../worker/lib/gemini.js";
+import {
+  WORKERS_AI_INPUT_TOKEN_HARD_LIMIT,
+  assertWorkersAiInputTokenLimit,
+} from "../lib/workers-ai-input-token-limit.mjs";
 
 // Gemini 를 확실히 실패시켜(키 없음) 폴백만 타게 한다 — fetch 가 나가지 않는다.
 delete process.env.GEMINIF_API_KEY;
@@ -51,6 +55,7 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
 {
   const { env, calls } = stubEnv(() => ({
     choices: [{ message: { content: "글렘 응답 본문" } }],
+    usage: { prompt_tokens: 321, completion_tokens: 45 },
   }));
   const result = await callLLM({ prompt: "테스트" }, env);
   assert(result.text === "글렘 응답 본문", "OpenAI 형 choices[0].message.content 를 읽지 못했다");
@@ -59,6 +64,9 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
     calls[0]?.model === "@cf/zai-org/glm-4.7-flash",
     `체인 1차가 glm-4.7-flash 여야 한다 (실제: ${calls[0]?.model})`,
   );
+  assert(result.usage?.inputTokens === 321, `Workers AI 실제 입력 토큰을 보존해야 한다 (실제: ${result.usage?.inputTokens})`);
+  assert(result.usage?.outputTokens === 45, `Workers AI 실제 출력 토큰을 보존해야 한다 (실제: ${result.usage?.outputTokens})`);
+  assert(result.usage?.estimated !== true, "Workers AI 실제 usage를 추정치로 표시하면 안 된다");
 }
 
 // (2) 기존 `{ response }` 형(@cf/meta/*)도 그대로 읽어야 한다 — 종전 동작 보존.
@@ -255,10 +263,27 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   assert(empty.text === "빈값 본문", "빈 문자열이 차단으로 해석됐다");
 }
 
+// (14) 🔴 Workers AI 입력은 공급자 호출 전에 하드 상한으로 막아야 한다.
+//      모델 체인이 두 개여도 첫 호출 전 차단되어야 원가 상한이 유한하다.
+{
+  const exact = assertWorkersAiInputTokenLimit([{ role: "user", content: "짧은 입력" }]);
+  assert(exact < WORKERS_AI_INPUT_TOKEN_HARD_LIMIT, "정상 입력이 Workers AI 상한에 잘못 걸렸다");
+
+  const { env, calls } = stubEnv(() => ({ response: "여기 오면 안 된다" }));
+  let message = "";
+  try {
+    await callLLM({ prompt: "가".repeat(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT) }, env);
+  } catch (error) {
+    message = String(error?.message || "");
+  }
+  assert(calls.length === 0, `Workers AI 입력 초과인데 env.AI.run 이 ${calls.length}회 호출됐다`);
+  assert(message.includes("Workers AI input token limit exceeded"), `입력 차단 사유가 없다 (실제: ${message})`);
+}
+
 if (failures.length) {
   console.error("❌ Workers AI 폴백 가드 실패:");
   for (const failure of failures) console.error(`  - ${failure}`);
   process.exit(1);
 }
 
-console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한·분량 게이트·실호출 차단 스위치)");
+console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간·입력 상한·분량 게이트·실호출 차단 스위치)");

@@ -5,6 +5,9 @@ import { isStagingLlmMockEnabled } from "../worker/lib/staging-llm-mock.js";
 import {
   assertGeminiInputTokenLimit,
 } from "./gemini-input-token-limit.mjs";
+import {
+  assertWorkersAiInputTokenLimit,
+} from "./workers-ai-input-token-limit.mjs";
 
 export interface LLMRequest {
   /** A durable caller-owned retry budget can opt out of nested provider retries. */
@@ -532,6 +535,21 @@ function extractWorkersAiFinishReason(result: unknown): string {
   return String(payload.choices?.[0]?.finish_reason || payload.finish_reason || "").trim();
 }
 
+function extractWorkersAiUsage(result: unknown): LLMUsage | undefined {
+  if (!result || typeof result !== "object") return undefined;
+  const usage = (result as {
+    usage?: {
+      prompt_tokens?: number;
+      input_tokens?: number;
+      completion_tokens?: number;
+      output_tokens?: number;
+    };
+  }).usage;
+  const inputTokens = toTokenCount(usage?.prompt_tokens ?? usage?.input_tokens);
+  const outputTokens = toTokenCount(usage?.completion_tokens ?? usage?.output_tokens);
+  return inputTokens > 0 ? { inputTokens, outputTokens } : undefined;
+}
+
 function extractWorkersAiText(result: unknown): string {
   if (!result) return "";
   if (typeof result === "string") return result.trim();
@@ -964,6 +982,10 @@ async function callCloudflareWorkersAI(
       : []),
     { role: "user", content: normalized.prompt },
   ];
+  // Workers AI에는 모델 공통 countTokens API가 없다. 실제 메시지를 UTF-8 바이트 상한으로
+  // 검사해 어떤 모델·env 오버라이드도 공급자 시도당 50,000 입력 토큰을 넘지 못하게 한다.
+  // 계산 실패/초과를 휴리스틱으로 통과시키지 않는다.
+  const inputTokensUpperBound = assertWorkersAiInputTokenLimit(messages);
 
   const failures: string[] = [];
   // 🔴 폴백 체인에도 시간 상한을 준다. 이게 없던 동안 한 호출의 실제 상한은 "timeoutMs"가 아니라
@@ -995,9 +1017,10 @@ async function callCloudflareWorkersAI(
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
       const finishReason = extractWorkersAiFinishReason(result);
 
-      // Workers AI 는 사용량 필드를 안 주는 모델이 있어 문자수 기반 추정으로 통일한다.
-      const usage: LLMUsage = {
-        inputTokens: estimateTokens(normalized.systemPrompt || "") + estimateTokens(normalized.prompt),
+      // 공식 usage가 있으면 실제 토큰을 보존한다. 없는 모델만 입력은 호출 전 보수 상한,
+      // 출력은 문자수 추정으로 남겨 실제값과 추정값을 섞지 않는다.
+      const usage = extractWorkersAiUsage(result) || {
+        inputTokens: inputTokensUpperBound,
         outputTokens: estimateTokens(text),
         estimated: true,
       };

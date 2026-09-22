@@ -15,9 +15,16 @@ const runtimeRows = planning.runtimeBudgets.map((runtime) => {
   const inputTokens = providerAttempts * assumptions.inputTokensPerProviderAttempt;
   const geminiTokenCostKRW = (inputTokens * assumptions.geminiInputUsdPerMillion
     + outputTokens * assumptions.geminiOutputUsdPerMillion) / 1_000_000 * assumptions.usdKrw;
-  const planningVariableCostKRW = Math.ceil(geminiTokenCostKRW * assumptions.nonTokenVariableCostMultiplier / 100) * 100;
+  const workersAiInputTokens = logicalCalls * assumptions.workersAiInputTokenHardLimit;
+  const workersAiChainCostKRW = assumptions.workersAiFallbackModels.reduce((sum, model) => sum
+    + (workersAiInputTokens * model.inputUsdPerMillion + outputTokens * model.outputUsdPerMillion)
+      / 1_000_000 * assumptions.usdKrw, 0);
+  const maximumProviderCostKRW = geminiTokenCostKRW + workersAiChainCostKRW;
+  const planningVariableCostKRW = Math.ceil(maximumProviderCostKRW * assumptions.nonTokenVariableCostMultiplier / 100) * 100;
   return { ...runtime, logicalCalls, providerAttempts, inputTokens, outputTokens,
-    geminiTokenCostKRW: Math.ceil(geminiTokenCostKRW), planningVariableCostKRW };
+    geminiTokenCostKRW: Math.ceil(geminiTokenCostKRW), workersAiInputTokens,
+    workersAiChainCostKRW: Math.ceil(workersAiChainCostKRW), maximumProviderCostKRW: Math.ceil(maximumProviderCostKRW),
+    planningVariableCostKRW };
 });
 const pricingDriver = runtimeRows.reduce((worst, row) => !worst || row.planningVariableCostKRW / row.featurePriceKRW > worst.planningVariableCostKRW / worst.featurePriceKRW ? row : worst, null);
 

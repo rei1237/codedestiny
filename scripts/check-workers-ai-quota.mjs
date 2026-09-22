@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Workers AI 무료 할당의 **오늘 실제 소비량**을 Cloudflare 에서 읽어 온다.
+ * Workers AI 무료 할당의 **선택 기간 실제 소비량**을 Cloudflare 에서 읽어 온다.
  *
  * 왜 필요한가: `i18n/.translate-cache/neuron-ledger.json` 은 **이 스크립트가 쓴 것만** 센다.
  * 같은 계정의 프로덕션 폴백(`lib/llm-client.ts` → `env.AI.run`)이 쓴 양은 원장에 안 잡히므로,
@@ -9,7 +9,7 @@
  *
  * 🔴 이 스크립트는 **조회 전용**이다. 모델을 부르지 않으므로 Neuron 을 쓰지 않는다.
  *
- * 사용법: node scripts/check-workers-ai-quota.mjs
+ * 사용법: node scripts/check-workers-ai-quota.mjs [--days=30]
  */
 import { loadLocalEnvFiles, WORKERS_AI_DAILY_FREE_NEURONS } from "./lib/workers-ai-rest.mjs";
 
@@ -38,14 +38,19 @@ if (!accountId || !tokens.length) {
   process.exit(1);
 }
 
-/** 오늘(UTC) 00:00 부터. Cloudflare 의 할당 리셋 기준과 같다. */
-const since = `${new Date().toISOString().slice(0, 10)}T00:00:00Z`;
+const daysArg = process.argv.find((value) => value.startsWith("--days="));
+const days = Math.max(1, Math.min(90, Math.floor(Number(daysArg?.slice(7)) || 1)));
+/** Cloudflare 무료 할당의 UTC 일 경계에 맞춘 조회 시작일. */
+const sinceDate = new Date();
+sinceDate.setUTCHours(0, 0, 0, 0);
+sinceDate.setUTCDate(sinceDate.getUTCDate() - (days - 1));
+const since = sinceDate.toISOString();
 const query = `query Usage($accountTag: String!, $since: Time!) {
   viewer {
     accounts(filter: { accountTag: $accountTag }) {
       aiInferenceAdaptiveGroups(limit: 1000, filter: { datetime_geq: $since }) {
         sum { totalNeurons }
-        dimensions { modelId }
+        dimensions { date modelId }
       }
     }
   }
@@ -74,17 +79,20 @@ for (const token of tokens) {
   }
 
   const total = groups.reduce((sum, g) => sum + Number(g?.sum?.totalNeurons || 0), 0);
-  console.log(`[quota] 오늘(UTC ${since.slice(0, 10)}) 계정 전체 소비: ${total.toFixed(0)} / 무료 ${WORKERS_AI_DAILY_FREE_NEURONS} Neuron`);
+  console.log(`[quota] UTC ${since.slice(0, 10)}부터 ${days}일 계정 전체 소비: ${total.toFixed(0)} Neuron`);
   for (const g of groups) {
     const n = Number(g?.sum?.totalNeurons || 0);
-    if (n > 0) console.log(`[quota]   ${String(g?.dimensions?.modelId || "?").padEnd(44)} ${n.toFixed(0)}`);
+    if (n > 0) console.log(`[quota]   ${String(g?.dimensions?.date || "?")} ${String(g?.dimensions?.modelId || "?").padEnd(44)} ${n.toFixed(0)}`);
   }
-  const remaining = WORKERS_AI_DAILY_FREE_NEURONS - total;
-  console.log(
-    remaining > 0
-      ? `[quota] 남은 무료분 ${remaining.toFixed(0)} Neuron`
-      : `[quota] 🔴 무료 할당을 ${(-remaining).toFixed(0)} Neuron 초과했습니다 — Paid 플랜이면 초과분이 청구됩니다.`,
-  );
+  const byDay = new Map();
+  for (const g of groups) {
+    const date = String(g?.dimensions?.date || "unknown");
+    byDay.set(date, Number(byDay.get(date) || 0) + Number(g?.sum?.totalNeurons || 0));
+  }
+  const billableNeurons = [...byDay.values()].reduce((sum, value) => sum + Math.max(0, value - WORKERS_AI_DAILY_FREE_NEURONS), 0);
+  const estimatedUsd = billableNeurons * 0.011 / 1000;
+  console.log(`[quota] 일별 무료분 차감 후 추정 초과분: ${billableNeurons.toFixed(0)} Neuron / $${estimatedUsd.toFixed(4)}`);
+  console.log("[quota] GraphQL Analytics 추정이며 청구서 실정산 증거가 아닙니다.");
   reported = true;
   break;
 }

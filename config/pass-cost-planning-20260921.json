@@ -1,12 +1,14 @@
 {
   "basis": "code-derived-planning-scenario-not-sale-evidence",
-  "reviewedAt": "2026-09-21",
+  "reviewedAt": "2026-09-22",
   "sourceRefs": [
     "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
     "https://ai.google.dev/api/tokens",
     "https://ai.google.dev/gemini-api/docs/billing",
     "https://ai.google.dev/gemini-api/docs/generate-content/thinking",
-    "https://developers.cloudflare.com/workers/platform/pricing/",
+    "https://developers.cloudflare.com/workers-ai/platform/pricing/",
+    "https://developers.cloudflare.com/workers-ai/models/glm-4.7-flash/",
+    "https://developers.cloudflare.com/workers-ai/models/llama-3.3-70b-instruct-fp8-fast/",
     "https://www.mongodb.com/pricing",
     "https://support.google.com/googleplay/android-developer/answer/112622"
   ],
@@ -15,6 +17,20 @@
     "inputTokensPerProviderAttempt": 50000,
     "providerAttemptsPerLogicalCall": 3,
     "inputTokenCapProvenInCode": true,
+    "workersAiInputTokenHardLimit": 50000,
+    "workersAiInputTokenCapProvenInCode": true,
+    "workersAiFallbackModels": [
+      {
+        "model": "@cf/zai-org/glm-4.7-flash",
+        "inputUsdPerMillion": 0.0605,
+        "outputUsdPerMillion": 0.4
+      },
+      {
+        "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        "inputUsdPerMillion": 0.293,
+        "outputUsdPerMillion": 2.253
+      }
+    ],
     "geminiInputUsdPerMillion": 0.3,
     "geminiOutputUsdPerMillion": 2.5,
     "thinkingBudget": 0,
@@ -34,7 +50,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 9500,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/lib/mindscan-delivery.js",
         "worker/lib/paid-narrative-delivery.js",
@@ -48,7 +64,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 9500,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/lib/love-tarot-delivery.js",
         "worker/lib/paid-narrative-delivery.js",
@@ -62,7 +78,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerFullPartSet": 88000,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/routes/life-book-ai.js",
         "lib/llm-client.ts"
@@ -75,7 +91,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerFullPartSet": 134000,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/routes/life-book-ai.js",
         "lib/llm-client.ts"
@@ -88,7 +104,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 10000,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/routes/nakshatra-ai.js",
         "worker/lib/nakshatra-ai-prompt.js",
@@ -102,7 +118,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 9000,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/routes/ziwei-deep-report.js",
         "worker/lib/ziwei-deep-report-prompt.mjs",
@@ -116,7 +132,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 8000,
       "providerAttemptsPerLogicalCall": 1,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/routes/master-love-codex.js",
         "worker/lib/master-love-codex-compat-prompt.mjs"
@@ -129,7 +145,7 @@
       "durableAttemptsPerPart": 3,
       "maxOutputTokensPerLogicalCall": 16384,
       "providerAttemptsPerLogicalCall": 3,
-      "fallbackProviderCostIncluded": false,
+      "fallbackProviderCostIncluded": true,
       "codeRefs": [
         "worker/lib/fusion-fortune.js",
         "worker/lib/fusion-fortune-consultation.js",
