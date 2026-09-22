@@ -20,7 +20,7 @@ jest.unstable_mockModule('../../worker/yeongnyangi/free-service.ts',()=>({
   attendanceStatus:attendance,attend,unlockToday:unlock,getFreeReading:freeRead,prepareFreeReading:freePrepare,
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
-  readRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},
+  readRequest:read,resumeRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},
 }));
 let handleYeongnyangiRoutes;
 beforeAll(async()=>{({handleYeongnyangiRoutes}=await import('../../worker/routes/yeongnyangi.js'));});
@@ -76,8 +76,9 @@ test('payload owner is ignored; authenticated owner is passed to the service',as
   expect(response.status).toBe(201);expect(prepare).toHaveBeenCalledWith(env,userId,body);
 });
 test.each(['activate','generate'])('repeat %s requests target the same owned consultation',async action=>{
-  for(let i=0;i<2;i++)expect((await handleYeongnyangiRoutes(request(`requests/${id}/${action}`,'POST',{}),env)).status).toBe(200);
-  expect(action==='activate'?activate:generate).toHaveBeenNthCalledWith(2,env,userId,id);
+  for(let i=0;i<2;i++)expect((await handleYeongnyangiRoutes(request(`requests/${id}/${action}`,'POST',{}),env)).status).toBe(action==='generate'?202:200);
+  expect(action==='activate'?activate:read).toHaveBeenNthCalledWith(2,env,userId,id);
+  expect(generate).not.toHaveBeenCalled();
 });
 test('list uses owner filter, bounded projection and stable pagination',async()=>{
   const stamp='2026-09-16T00:00:00.000Z';

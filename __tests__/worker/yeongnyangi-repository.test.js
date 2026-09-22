@@ -6,10 +6,14 @@ const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function matches(row,query) {
   return Object.entries(query).every(([key,want])=>{
     if(key==='$or') return want.some(q=>matches(row,q));
+    if(key==='$and') return want.every(q=>matches(row,q));
     const value=get(row,key);
     if(want && typeof want==='object' && !(want instanceof Date) && !(want instanceof mongoose.Types.ObjectId)) {
       return Object.entries(want).every(([op,target])=>{
         if(op==='$in')return target.includes(value);
+        if(op==='$nin')return !target.includes(value);
+        if(op==='$gte')return value>=target;
+        if(op==='$size')return Array.isArray(value)&&value.length===target;
         if(op==='$ne')return String(value)!==String(target);
         if(op==='$exists')return (value!==undefined)===target;
         if(op==='$lte')return value<=target;
@@ -31,7 +35,7 @@ function query(fn) {
 function model(source,kind) {
   return {
     findOne:filter=>query(()=>{
-      if(kind==='request'&&failFinalRead&&filter.leaseToken&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
+      if(kind==='request'&&failFinalRead&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
       return source().find(row=>matches(row,filter))||null;
     }),
     findOneAndUpdate:(filter,update,options={})=>query(()=>{
@@ -118,10 +122,60 @@ test('duplicate generation claims and late completions cannot append twice',asyn
   const next=await repo.claimChapter({},owner,'id');
   await repo.failChapter({},owner,'id',next.token,'PROVIDER_FAILED');
   expect((await repo.attachPayment({},owner,'id',1000)).state).toBe('FORTUNE_FAILED');
+  expect((await repo.claimChapter({},owner,'id')).token).toBeNull();
+  requests[0].nextAttemptAt=new Date(Date.now()-1);
   const retry=await repo.claimChapter({},owner,'id');
   await repo.finishChapter({},owner,'id',retry.token,1,{summary:'second'},2);
   const restored=await repo.readRequest({},owner,'id');
   expect(restored.state).toBe('COMPLETED');expect(restored.chapters).toHaveLength(2);
+});
+
+test('all 28 chapters finish in queue without browser calls and replay cannot regenerate',async()=>{
+  const id='a'.repeat(64);payments[0].requestId=`yn-${id}`;
+  const manifest=Array.from({length:28},(_,i)=>({id:`chapter-${i}`}));
+  await repo.createRequest({},owner,id,{...values,snapshot:{manifest}});
+  const pending=[id], provider=jest.fn(async ordinal=>({summary:`saved chapter ${ordinal}`}));
+  const {consumeConsultationQueue}=await import('../../worker/yeongnyangi/queue.js');
+  const service={activateFortune:async()=>repo.attachPayment({},owner,id,1000),generateNextChapter:async()=>{
+    const {row,token}=await repo.claimChapter({},owner,id);
+    if(!token)return row;
+    return repo.finishChapter({},owner,id,token,row.chapters.length,await provider(row.chapters.length),28);
+  }};
+  const deps={service,read:async()=>repo.readRequest({},owner,id),enqueue:async(_env,row)=>{pending.push(row._id);return true;}};
+  while(pending.length){const requestId=pending.shift();const message={body:{requestId},ack:jest.fn(),retry:jest.fn()};await consumeConsultationQueue({messages:[message]},{},deps);expect(message.retry).not.toHaveBeenCalled();}
+  expect(provider).toHaveBeenCalledTimes(28);expect(requests[0].state).toBe('COMPLETED');expect(payments).toHaveLength(1);
+  await consumeConsultationQueue({messages:[{body:{requestId:id},ack:jest.fn(),retry:jest.fn()}]},{},deps);
+  expect(provider).toHaveBeenCalledTimes(28);expect((await repo.readRequest({},owner,id)).chapters).toHaveLength(28);
+});
+
+test('three chapter failures stop automatically; explicit resume preserves total budget and payment',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  for(let attempt=1;attempt<=3;attempt++){
+    requests[0].nextAttemptAt=null;
+    const claim=await repo.claimChapter({},owner,'id');
+    await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',attempt);
+    if(attempt<3)expect(requests[0].nextAttemptAt.getTime()-Date.now()).toBeGreaterThan(attempt===1?29000:119000);
+  }
+  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
+  await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  const resumed=await repo.resumeRequest({},owner,'id');expect(resumed.attempts).toBe(3);expect(resumed.paymentId).toBe('pay1');
+  expect(resumed.chapterAttempts[0]).toBe(0);expect(resumed.state).toBe('PAID');
+});
+
+test('expired final lease can finalize a saved checkpoint without another provider claim',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  requests[0].snapshot={manifest:[{}]};const claim=await repo.claimChapter({},owner,'id');
+  failFinalRead=true;await expect(repo.finishChapter({},owner,'id',claim.token,0,{summary:'stored'},1)).rejects.toThrow();
+  requests[0].leaseUntil=new Date(Date.now()-1);
+  const resumed=await repo.claimChapter({},owner,'id');expect(resumed.token).toBeNull();expect(resumed.row.state).toBe('COMPLETED');expect(resumed.row.attempts).toBe(1);
+});
+
+test('duplicate explicit recovery returns the same paid request without losing the response',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  requests[0].errorCode='AUTOMATIC_RECOVERY_STOPPED';requests[0].state='FORTUNE_FAILED';requests[0].attempts=3;
+  const rows=await Promise.all([repo.resumeRequest({},owner,'id'),repo.resumeRequest({},owner,'id')]);
+  for(const row of rows){expect(row.state).toBe('PAID');expect(row.paymentId).toBe('pay1');expect(row.attempts).toBe(3);}
+  expect(payments).toHaveLength(1);
 });
 
 test.each(['reread','completion'])('last checkpoint survives %s failure and completes without another provider claim',async fault=>{

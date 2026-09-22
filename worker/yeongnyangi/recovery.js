@@ -2,6 +2,7 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { Payment } from '../lib/models.js';
 import { YeongnyangiRequest } from './repository.js';
 import { activateFortune, generateNextChapter, providerReady } from './service';
+import { enqueueConsultation } from './queue.js';
 
 const ABANDONED_MS = 5 * 60 * 1000;
 const BUDGET_MS = 4 * 60 * 1000;
@@ -11,7 +12,7 @@ const MAX_REQUESTS = 3;
 export function abandonedRequestFilter(now) {
   return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},paymentId:{$ne:null},
     updatedAt:{$lt:new Date(now-ABANDONED_MS)},
-    errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE']},
+    errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
     $or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]};
 }
 
@@ -48,6 +49,7 @@ export async function runYeongnyangiRecovery(env, options = {}) {
   while(pending.length && clock()+CHAPTER_RESERVE_MS<=deadline){
     const candidate=pending.shift();
     try{
+      if(env.YEONGNYANGI_QUEUE){await (options.enqueue || enqueueConsultation)(env,candidate);outcomes.push({outcome:'queued'});continue;}
       const row=await generate(env,String(candidate.userId),String(candidate._id));
       outcomes.push({outcome:row.state});
       // A held lease or failed attempt waits for a future tick; never spin on it.

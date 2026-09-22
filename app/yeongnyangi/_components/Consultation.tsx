@@ -12,6 +12,7 @@ import styles from '../yeongnyangi.module.css';
 import predictionRecords from '@/lib/brand/prediction-records.json';
 import {trackEvent} from '@/lib/analytics';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
+const loginDraftKey='yeongnyangi:consultation-login-draft';
 export default function Consultation(){
  const [domain,setDomain]=useState('saju'),[productId,setProductId]=useState('saju_mackerel');
  const [available,setAvailable]=useState<Product[]>([]),[catalogError,setCatalogError]=useState('');
@@ -47,6 +48,15 @@ export default function Consultation(){
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const requestedTopic=params.get('topic');
   if(requestedTopic && Object.hasOwn(topicCatalog,requestedTopic))setTopicId(requestedTopic);
+  try{
+   const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');
+   if(draft&&draft.path===window.location.pathname+window.location.search&&Date.now()-draft.savedAt<3600000){
+    const savedProduct=products.find(p=>p.id===draft.productId);
+    if(savedProduct){setProductId(savedProduct.id);setDomain(savedProduct.readingKind==='single'?savedProduct.domain:'fusion');}
+    if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
+    if(typeof draft.question==='string')setQuestion(draft.question.slice(0,1000));
+   }
+  }catch{/* Login still works when browser storage is unavailable. */}
   let cancelled=false;
   fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(catalog=>{
    if(cancelled)return;
@@ -54,10 +64,14 @@ export default function Consultation(){
   }).catch(e=>{if(!cancelled)setCatalogError(e.message);}).finally(()=>{if(!cancelled)setReady(true);});
   return ()=>{cancelled=true;};
  },[]);
+ function loginWithDraft(){
+  try{sessionStorage.setItem(loginDraftKey,JSON.stringify({path:window.location.pathname+window.location.search,productId,topicId,question,savedAt:Date.now()}));}catch{/* Optional pre-login draft only; paid input is stored on the server. */}
+  loginForCurrentPage();
+ }
  async function prepare(){
   if(lock.current)return;
   trackEvent('purchase_attempt',{item_id:product.cdFeatureKey,value:product.priceKRW,currency:product.currency,login_required:guest,service:'yeongnyangi'});
-  if(guest){loginForCurrentPage();return;}
+  if(guest){loginWithDraft();return;}
   if(missing.length){setError(missing.join(' '));return;}
   lock.current=true;setBusy(true);setError('');
   try{
@@ -68,10 +82,11 @@ export default function Consultation(){
     if(!response.ok||found.fallback)throw new Error('출생지역을 찾지 못했어요. 도시와 국가를 함께 입력해 주세요.');
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
-   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{birthDetails:{birthTime:extraTime,birthPlace},productId,profileId,topicId,question,timeUnknown,...(partnerId?{partnerProfileId:partnerId}:{})});
+   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{birthDetails:{birthTime:extraTime,birthPlace},productId,profileId,topicId,question,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(partnerId?{partnerProfileId:partnerId}:{})});
+   try{sessionStorage.removeItem(loginDraftKey);}catch{/* The server snapshot now owns the consultation input. */}
    trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
    window.location.assign(data.fortune.paid?resultPath(data.fortune.id):checkoutPath(data.fortune));
-  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요.');}
+  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요.');}
   finally{lock.current=false;setBusy(false);}
  }
  function chooseDomain(next:string){setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
@@ -103,8 +118,8 @@ export default function Consultation(){
     </div>}
    </>}
    <section className={styles.questionSection} aria-label="상담 주제와 질문"><h2>궁금한 이야기를 들려줘.</h2><p>길게 쓰지 않아도 괜찮아. 지금 마음에 걸리는 것부터 남겨줘.</p>
-   <label>상담 주제<select value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">전체 흐름</option>{Object.entries(topicCatalog).map(([id,topic])=><option value={id} key={id}>{topic.label}</option>)}</select></label>
-   <label>영냥이에게 궁금한 이야기<textarea rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="지금 가장 궁금한 고민을 들려줘. 떠오르는 질문이 없으면 전체 흐름부터 볼게."/></label>
+   <label htmlFor="consultation-topic">상담 주제</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">전체 흐름</option>{Object.entries(topicCatalog).map(([id,topic])=><option value={id} key={id}>{topic.label}</option>)}</select>
+   <label htmlFor="consultation-question">영냥이에게 궁금한 이야기</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="지금 가장 궁금한 고민을 들려줘. 떠오르는 질문이 없으면 전체 흐름부터 볼게."/>
    </section>
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>
    <p>선택한 운세의 계산 결과를 바탕으로 AI가 해설해요. 선택을 돕는 참고 자료이며 미래를 확정하지 않아요.</p>

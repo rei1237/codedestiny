@@ -46,6 +46,8 @@ const STRUCTURAL_KEYS = new Set([
  * (같다 = 스테이징이 프로덕션 자원을 가리키고 있다는 뜻이다.)
  */
 const MUST_DIFFER_KEYS = new Set([
+  'queues.producers.YEONGNYANGI_QUEUE.queue',
+  'queues.consumers.consultation.queue',
   "name",
   "routes",
   "triggers.crons",
@@ -239,7 +241,7 @@ function flatten(text) {
 
   for (const [name, entries] of Object.entries(arrays)) {
     for (const entry of entries) {
-      const binding = entry.binding;
+      const binding = entry.binding || (name==='queues.consumers' && /^yeongnyangi-consultation-(production|staging)$/.test(entry.queue) ? 'consultation' : null);
       if (!binding) throw new Error(`[[${name}]] entry without a binding`);
       for (const [child, childValue] of Object.entries(entry)) {
         flat.set(`${name}.${binding}.${child}`, childValue);

@@ -15,7 +15,11 @@ export class CodeDestinyProvider implements LLMProvider {
       systemPrompt:request.system,responseMimeType:'application/json',fallbackToWorkersAI:false,
       taskType:'yeongnyangi-chapter',
     });
-    if (!response.ok || response.isMock || response.truncated || !response.text) throw new FortuneError('FORTUNE_PROVIDER_FAILED',502);
+    if (response.truncated || /^(MAX_TOKENS|LENGTH)$/.test(response.finishReason || '')) throw new FortuneError('FORTUNE_OUTPUT_TRUNCATED',502);
+    if (!response.ok || response.isMock || !response.text) {
+      const code='error' in response ? String(response.error) : '';
+      throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502);
+    }
     return {result:response.text,provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash'};
   }
 }

@@ -3,8 +3,9 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { json, readJson, createHttpError, handleRouteError, notFound } from '../lib/http.js';
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
-import { activateFortune, generateNextChapter, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
-import { readRequest, ownerId, YeongnyangiRequest } from '../yeongnyangi/repository.js';
+import { activateFortune, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
+import { readRequest, resumeRequest, ownerId, YeongnyangiRequest } from '../yeongnyangi/repository.js';
+import { enqueueConsultation } from '../yeongnyangi/queue.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
@@ -75,7 +76,11 @@ export async function handleYeongnyangiRoutes(request, env) {
     const [,id,action]=match;
     if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readRequest(env,auth.userId,id))});
     if(action==='activate' && method==='POST') return json({ok:true,fortune:presentFortune(await activateFortune(env,auth.userId,id))});
-    if(action==='generate' && method==='POST') return json({ok:true,fortune:presentFortune(await generateNextChapter(env,auth.userId,id))});
+    if(action==='generate' && method==='POST') {
+      const row=await resumeRequest(env,auth.userId,id);
+      await enqueueConsultation(env,row);
+      return json({ok:true,fortune:presentFortune(row)},{status:202});
+    }
     return notFound();
   } catch(error) {
     if(error?.code && error?.status && !error.payload) {

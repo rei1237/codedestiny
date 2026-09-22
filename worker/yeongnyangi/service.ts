@@ -5,7 +5,9 @@ import { resolveChargeAmountKRW } from '../lib/portone.js';
 import { domains } from './fortune';
 import { getProduct } from './payments/catalog';
 import { analyze } from './fortune/analysis';
-import { readingManifest } from './fortune/reading-manifest';
+import { readingManifest, questionFactSelectors } from './fortune/reading-manifest';
+import { consultationClock, createConsultation } from './fortune/consultation';
+import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider, validateChapter } from './providers/chapter';
@@ -53,21 +55,32 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     if(input.personA && ['flounder','tuna'].includes(product.fishId) &&
       (!input.personA.birthTime || !input.personA.birthPlace || !input.personA.gender)) throw new FortuneError('PREMIUM_BIRTH_REQUIRED');
   }
-  const date=new Date(Date.now()+9*60*60*1000).toISOString().slice(0,10);
-  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date});
+  const clock=consultationClock(body.timezone);
+  const date=clock.asOf;
+  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1});
   const id=await digest({userId,fingerprint});
   // Deterministic intent also survives losing all browser storage and returning with the same inputs.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   for(const system of product.systems) contexts[system]=domains[system].buildContext(await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   const manifest=readingManifest(product,analysis.topicId,raw.readingMode);
+  analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest);
+  // Questions are answered before the fixed outline, without reducing paid depth.
+  manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
+  manifest[0].excludes=[];
+  manifest[0].systems=product.systems;
+  manifest[0].factSelectors=questionFactSelectors(product.systems,analysis.question || '',analysis.topicId || 'general');
+  manifest[0].periodScope='저장된 상담의 기준일과 요청 기간을 다룬다. 해당 기간의 계산 근거가 없으면 실천·점검 기간으로 명시한다.';
+  manifest[0].requiredSections=[...(manifest[0].requiredSections || []),'관련 시기'];
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,snapshot:{product,analysis,manifest,profileUpdatedAt:profile.updatedAt}});
 }
 
 export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string) {
   const request=await readRequest(env,userId,requestId);
-  return attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW));
+  const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW));
+  await enqueueConsultation(env,row);
+  return row;
 }
 
 export async function generateNextChapter(env: Record<string, unknown>, userId: string, requestId: string) {
@@ -75,17 +88,23 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const {row,token}=await claimChapter(env,userId,requestId);
   if(!token) return row;
   const ordinal=row.chapters.length;
+  const startedAt=Date.now();let stage='provider';
   try {
     if(row.attempts>row.snapshot.manifest.length*3+(row.additionalAttempts || 0)) throw new FortuneError('GENERATION_REVIEW_REQUIRED',409);
+    if((row.chapterAttempts?.[ordinal] || 1)>3) throw new FortuneError('AUTOMATIC_RECOVERY_STOPPED',409);
     const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(new CodeDestinyProvider(env));
-    const result=validateChapter(await provider.generateChapter(input),input);
+    const generated=await provider.generateChapter(input);
+    stage='quality';
+    const result=validateChapter(generated,input);
+    stage='storage';
     const completed=await finishChapter(env,userId,requestId,token,ordinal,result,row.snapshot.manifest.length);
     if(!completed) throw new FortuneError('GENERATION_LEASE_LOST',409);
     return completed;
   } catch(error) {
-    await failChapter(env,userId,requestId,token,error instanceof FortuneError?error.code:'GENERATION_FAILED');
+    console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code:error instanceof FortuneError?error.code:'GENERATION_FAILED'}));
+    await failChapter(env,userId,requestId,token,error instanceof FortuneError?error.code:'GENERATION_FAILED',row.chapterAttempts?.[ordinal] || 1);
     throw error;
   }
 }
@@ -93,5 +112,6 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 export function presentFortune(row: any) {
   return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
     paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:row.snapshot.manifest,
+    consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }
