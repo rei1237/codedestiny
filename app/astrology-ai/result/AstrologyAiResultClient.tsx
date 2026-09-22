@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { astrologyShareChoices } from "@/lib/consultation-sharing";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -557,6 +559,7 @@ export default function AstrologyAiResultClient() {
   const highlights = consultation?.chartHighlights || {};
   const assistantContent = consultation?.messages?.find((message) => message.role === "assistant")?.content?.trim() || "";
   const sections = useMemo(() => splitSections(assistantContent), [assistantContent]);
+  const shareChoices = astrologyShareChoices(consultation);
   const rawChart = useMemo(() => toRawWesternChart(chart), [chart]);
   const userName = toText(birth.name) || "당신";
   const birthTime = birth.birthTimeUnknown ? "출생시간 미상" : toText(birth.birthTime) || "출생시간 미입력";
@@ -807,6 +810,11 @@ export default function AstrologyAiResultClient() {
                 </section>
               )}
             </aside>
+          </div>
+        )}
+        {!loading && shareChoices.length > 0 && (
+          <div className="mt-6 max-w-3xl">
+            <ConsultationShare brand="astrology" choices={shareChoices} />
           </div>
         )}
       </section>

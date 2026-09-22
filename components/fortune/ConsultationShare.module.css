@@ -30,6 +30,22 @@
   --share-accent: #bdd4b7;
   --share-line: #688179;
 }
+.root[data-consultation-share="astrology"] {
+  --share-surface: #10172b;
+  --share-field: #0a1021;
+  --share-ink: #f4f0e8;
+  --share-muted: #d5d4e1;
+  --share-accent: #e4c985;
+  --share-line: #747184;
+}
+.root[data-consultation-share="vedic"] {
+  --share-surface: #151b2c;
+  --share-field: #0f1525;
+  --share-ink: #f5eee1;
+  --share-muted: #d7d4cb;
+  --share-accent: #d9bb83;
+  --share-line: #756b72;
+}
 .root summary { min-height: 48px; cursor: pointer; font-weight: 700; line-height: 1.6; }
 .root > summary { display: flex; align-items: center; gap: 10px; }
 .root summary svg { flex-shrink: 0; }

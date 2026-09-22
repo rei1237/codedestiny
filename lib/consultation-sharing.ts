@@ -28,6 +28,20 @@ export const consultationShareBrands = {
     image: '/images/expert-consulting/karma-pattern-garden.webp',
     background: '#101a2b', ink: '#f2f1e9', accent: '#bdd4b7',
   },
+  astrology: {
+    title: '서양 점성술 상담',
+    invitation: '내 별자리 해설에서 남은 한 문장을 나눌게.',
+    path: '/astrology-ai/',
+    image: '/feature-details/assets/astrology-ai-og.webp',
+    background: '#10172b', ink: '#f4f0e8', accent: '#e4c985',
+  },
+  vedic: {
+    title: '베다점 상담',
+    invitation: '내 별의 지도에서 남은 한 문장을 나눌게.',
+    path: '/vedic-ai/',
+    image: '/feature-details/assets/vedic-ai-og.webp',
+    background: '#151b2c', ink: '#f5eee1', accent: '#d9bb83',
+  },
 } as const;
 
 export type ConsultationShareBrand = keyof typeof consultationShareBrands;
@@ -101,6 +115,58 @@ export function karmaShareChoices(result: {
     { id: 'pattern', label: '내가 알아차린 반복', text: result.summaryCards?.repeatingPattern },
     { id: 'task', label: '지금 해볼 작은 선택', text: result.summaryCards?.currentTask },
     { id: 'chapter', label: '리포트에서 남은 요약', text: result.chapters?.find(chapter => chapter.summary?.trim())?.summary },
+  ]);
+}
+
+function shareExcerpt(value: unknown): string {
+  if (typeof value !== 'string') return '';
+  const paragraph = value.replace(/\r\n/g, '\n').split(/\n\s*\n/)
+    .map(part => part.replace(/^\s*(?:#{1,4}\s+[^\n]+|\*\*[^\n]+\*\*)\s*\n/, '').trim())
+    .find(Boolean);
+  return trimShareText(paragraph || '');
+}
+
+export function astrologyShareChoices(result: {
+  id?: string; sessionId?: string; status?: string;
+  messages?: Array<{ role?: string; content?: string }>;
+} | null): ConsultationShareChoice[] {
+  if (!result || !(result.id || result.sessionId) || result.status !== 'completed') return [];
+  const content = result.messages?.find(message => message.role === 'assistant')?.content || '';
+  if (!content.trim() || /^\s*[\[{]/.test(content)) return [];
+  const paragraphs = content.replace(/\r\n/g, '\n').split(/\n\s*\n/)
+    .filter(part => !/^\s*(?:#{1,4}\s+[^\n]+|\*\*[^\n]+\*\*)\s*$/.test(part))
+    .map(shareExcerpt).filter(Boolean);
+  return availableChoices([
+    { id: 'opening', label: '별자리 상담에서 남은 문장', text: paragraphs[0] },
+    { id: 'closing', label: '마지막 선택 조언', text: paragraphs.length > 1 ? paragraphs.at(-1) : undefined },
+  ]);
+}
+
+export function vedicShareChoices(result: {
+  id?: string; status?: string;
+  messages?: Array<{ role?: string; content?: string }>;
+} | null): ConsultationShareChoice[] {
+  if (!result?.id || result.status !== 'completed') return [];
+  const content = result.messages?.find(message => message.role === 'assistant')?.content?.trim() || '';
+  if (!content) return [];
+  let sections: Record<string, { body?: string }>;
+  try {
+    const parsed = JSON.parse(content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, ''));
+    if (!parsed || typeof parsed !== 'object' || !parsed.sections || typeof parsed.sections !== 'object') return [];
+    sections = parsed.sections;
+  } catch {
+    if (/^(?:\{|\[|```\s*json)/i.test(content)) return [];
+    const paragraphs = content.replace(/\r\n/g, '\n').split(/\n\s*\n/)
+      .filter(part => !/^\s*(?:#{1,4}\s+[^\n]+|\*\*[^\n]+\*\*)\s*$/.test(part))
+      .map(shareExcerpt).filter(Boolean);
+    return availableChoices([
+      { id: 'pattern', label: '베다점에서 읽은 나의 흐름', text: paragraphs[0] },
+      { id: 'timing', label: '마지막 선택 조언', text: paragraphs.length > 1 ? paragraphs.at(-1) : undefined },
+    ]);
+  }
+  return availableChoices([
+    { id: 'pattern', label: '베다점에서 읽은 나의 흐름', text: shareExcerpt(sections.karma_origin?.body) },
+    { id: 'timing', label: '지금의 시기와 작은 실천', text: shareExcerpt(sections.dasha_upaya?.body) },
   ]);
 }
 

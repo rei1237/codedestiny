@@ -1905,6 +1905,11 @@
   padding-top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
 }
 
+.resultShare {
+  width: min(100%, 52rem);
+  margin: 1.6rem auto 0;
+}
+
 .resultFooter {
   display: grid;
   justify-items: center;

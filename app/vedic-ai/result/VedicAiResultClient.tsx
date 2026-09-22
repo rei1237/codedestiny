@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ArrowLeft, Home, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { vedicShareChoices } from "@/lib/consultation-sharing";
 import { toDisplayText } from "@/lib/llm-text";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
@@ -195,6 +197,7 @@ export default function VedicAiResultClient() {
 
   const { consultation } = view;
   const chart = consultation.vedicChart || {};
+  const shareChoices = vedicShareChoices(consultation);
 
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
@@ -230,6 +233,12 @@ export default function VedicAiResultClient() {
             );
           })}
         </div>
+
+        {shareChoices.length > 0 && (
+          <div className={styles.resultShare}>
+            <ConsultationShare brand="vedic" choices={shareChoices} />
+          </div>
+        )}
 
         <footer className={styles.resultFooter}>
           <span className={styles.resultFooterRule} aria-hidden="true" />
