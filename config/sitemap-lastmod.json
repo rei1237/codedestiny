@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "5a56e6abc8758476",
+      "signature": "e38f21158543839a",
       "lastmod": "2026-09-22"
     },
     "/about/": {
@@ -2155,7 +2155,7 @@
       "lastmod": "2026-09-21"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "517b94fe5a2e4e01",
+      "signature": "c76c39a99af20a98",
       "lastmod": "2026-09-22"
     },
     "/zh-tw/": {
