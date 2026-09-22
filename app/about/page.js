@@ -105,12 +105,15 @@ export default function AboutPage() {
         </p>
         <p>박병하는 ‘네오’라는 이름으로 사주 분석 글을 공개해 왔습니다. <a href="https://blog.naver.com/neosaju" rel="noopener noreferrer">네오의 기존 사주 블로그</a>는 운영자의 분석 활동 기록이고, <a href="https://blog.naver.com/goodbyejieun" rel="noopener noreferrer">꿀꿀 운세 공식 블로그</a>는 서비스 소식과 이용 안내 채널입니다.</p>
         <h3>날짜와 원문으로 확인하는 공개 분석 기록</h3>
+        <p>대통령 사례뿐 아니라 공개 시점이 남아 있는 유명인 분석과 작성자가 정리한 원문 색인도 함께 제공합니다. 요약만 믿기보다 게시일과 당시 표현을 원문에서 직접 확인해 주세요.</p>
         <ul>
           <li><a href="https://blog.naver.com/neosaju/222876455500">2022년 9월 16일 · 윤석열 사주 분석 원문</a></li>
           <li><a href="https://blog.naver.com/neosaju/223444062729">2024년 5월 12일 · 윤석열 운의 흐름 분석 원문</a></li>
           <li><a href="https://blog.naver.com/neosaju/223459696339">2024년 5월 27일 · 이재명 사주 분석 원문</a></li>
+          <li><a href="https://blog.naver.com/neosaju/223442610559">2024년 5월 10일 · 휘성 사주 분석 원문</a></li>
+          <li><a href="https://blog.naver.com/neosaju/224032671570">2025년 10월 5일 · 작성자가 정리한 공개 분석 원문 모음</a></li>
         </ul>
-        <p>공개 분석은 당시 글의 조건과 표현을 함께 읽어 판단할 수 있도록 원문으로 연결합니다. 개별 사례가 모든 예측의 정확도나 앞으로의 적중을 보장하지는 않습니다. 꿀꿀 운세는 이런 해석 경험을 바탕으로 계산 근거와 생활 속 선택지를 설명합니다.</p>
+        <p>마지막 링크는 작성자가 과거 사례를 모아 둔 색인이며, 독립 기관이 산정한 적중률 자료는 아닙니다. 공개 분석은 당시 글의 조건과 표현을 함께 읽어 판단할 수 있도록 원문으로 연결합니다. 개별 사례가 모든 예측의 정확도나 앞으로의 적중을 보장하지는 않습니다. 꿀꿀 운세는 이런 해석 경험을 바탕으로 계산 근거와 생활 속 선택지를 설명합니다.</p>
         <p>
           {aboutPageText("editorial.process")}
         </p>
