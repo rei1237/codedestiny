@@ -213,7 +213,7 @@ test("헤더가 도착해도 JSON 본문이 멈추면 예산 안에 취소한다
 
 test("복귀 이벤트가 겹쳐도 최신 저장 상태를 한 번 읽고 같은 구매본에 합류한다", async () => {
   let release, reads = 0, resumed = 0;
-  const context = vm.createContext({ useCallback: fn => fn, loadInFlightRef: { current: null }, recoveryInFlightRef: { current: false },
+  const context = vm.createContext({ useCallback: fn => fn, accountEpoch: 0, captureOwner: () => () => true, loadInFlightRef: { current: null }, recoveryInFlightRef: { current: false },
     runningRef: { current: false }, stoppedRef: { current: false }, resumeStartedForRef: { current: "" },
     document: { hidden: false }, navigator: { onLine: true },
     loadSession: () => { reads++; return new Promise(resolve => { release = resolve; }); }, resume: async latest => { assert.equal(latest.accessToken, "fresh"); resumed++; },
@@ -223,4 +223,49 @@ test("복귀 이벤트가 겹쳐도 최신 저장 상태를 한 번 읽고 같�
   const active = context.run(); const duplicate = context.run();
   release({ sessionId: "same-book", status: "generating", accessToken: "fresh" });
   await Promise.all([active, duplicate]); assert.equal(reads, 1); assert.equal(resumed, 1);
+});
+
+test("계정 복원 중 이전 조회가 늦게 등록돼도 새 계정 저장본을 다시 읽는다", async () => {
+  let releaseOld, releaseNew, reads = 0;
+  const inFlight = { current: null };
+  const makeLoad = epoch => {
+    const context = vm.createContext({ useCallback: fn => fn, accountEpoch: epoch, captureOwner: () => () => true, loadInFlightRef: inFlight,
+      loadSession: () => { reads++; return new Promise(resolve => { if (reads === 1) releaseOld = resolve; else releaseNew = resolve; }); },
+    });
+    vm.runInContext(extract(RESULT_CLIENT, "load"), context);
+    return context.run;
+  };
+  const oldLoad = makeLoad(0);
+  const pendingOld = oldLoad();
+  inFlight.current = null; // usePaidDeliveryScope 콜백이 이전 계정 조회를 무효화한다.
+  const newLoad = makeLoad(1);
+  const pendingNew = newLoad();
+  assert.equal(reads, 2);
+  releaseOld({ sessionId: "old" });
+  await pendingOld;
+  assert.equal(inFlight.current?.epoch, 1);
+  releaseNew({ sessionId: "new" });
+  assert.equal((await pendingNew).sessionId, "new");
+});
+
+test("StrictMode 재설치 때 무효가 된 첫 조회를 재사용하지 않는다", async () => {
+  let valid = true, reads = 0, releaseOld, releaseNew;
+  const inFlight = { current: null };
+  const context = vm.createContext({ useCallback: fn => fn, accountEpoch: 0, loadInFlightRef: inFlight,
+    captureOwner: () => { const startedValid = valid; return () => startedValid && valid; },
+    loadSession: () => { reads++; return new Promise(resolve => { if (reads === 1) releaseOld = resolve; else releaseNew = resolve; }); },
+  });
+  vm.runInContext(extract(RESULT_CLIENT, "load"), context);
+  const old = context.run();
+  valid = false; // 첫 effect 정리로 기존 owner scope 무효화
+  const freshContext = vm.createContext({ ...context, useCallback: fn => fn, accountEpoch: 0, loadInFlightRef: inFlight,
+    captureOwner: () => () => true,
+    loadSession: context.loadSession,
+  });
+  vm.runInContext(extract(RESULT_CLIENT, "load"), freshContext);
+  const fresh = freshContext.run();
+  assert.equal(reads, 2);
+  releaseOld(undefined); await old;
+  releaseNew({ sessionId: "saved-book" });
+  assert.equal((await fresh).sessionId, "saved-book");
 });

@@ -111,12 +111,15 @@ export default function MasterLoveCodexResultClient() {
   /** 화면을 떠나면 루프를 멈춘다 — 언마운트 뒤 setState 와 유령 /generate 왕복을 남기지 않는다. */
   const stoppedRef = useRef(false);
   const runningRef = useRef(false);
-  const loadInFlightRef = useRef<Promise<SessionState | undefined> | null>(null);
+  const loadInFlightRef = useRef<{ epoch: number; isCurrent: () => boolean; promise: Promise<SessionState | undefined> } | null>(null);
   const recoveryInFlightRef = useRef(false);
   const [accountEpoch, setAccountEpoch] = useState(0);
   const captureOwner = usePaidDeliveryScope(() => {
     stoppedRef.current = true; resumeStartedForRef.current = "";
     runningRef.current = false;
+    // 이전 소유자의 조회가 끝나기 전에도 새 소유자의 저장본을 다시 읽어야 한다.
+    // 오래된 요청은 captureOwner 가 버리고, finally 의 동일성 검사는 새 요청을 보존한다.
+    loadInFlightRef.current = null;
     setSession(null); setError(""); setResumeError(""); setResuming(false); setLoading(true);
     setAccountEpoch(value => value + 1);
   });
@@ -174,12 +177,15 @@ export default function MasterLoveCodexResultClient() {
   }, [captureOwner, copy]);
 
   const load = useCallback(async () => {
-    if (loadInFlightRef.current) return loadInFlightRef.current;
+    if (loadInFlightRef.current?.epoch === accountEpoch && loadInFlightRef.current.isCurrent()) return loadInFlightRef.current.promise;
+    // 개발 StrictMode 는 effect 를 정리한 직후 다시 설치한다. 그 사이 첫 조회의
+    // owner scope 는 무효가 되므로, 같은 계정 번호여도 그 Promise 를 재사용하지 않는다.
+    const isCurrent = captureOwner();
     const pending = loadSession();
-    loadInFlightRef.current = pending;
+    loadInFlightRef.current = { epoch: accountEpoch, isCurrent, promise: pending };
     try { return await pending; }
-    finally { if (loadInFlightRef.current === pending) loadInFlightRef.current = null; }
-  }, [loadSession]);
+    finally { if (loadInFlightRef.current?.promise === pending) loadInFlightRef.current = null; }
+  }, [loadSession, captureOwner, accountEpoch]);
 
   useEffect(() => { void load(); }, [load, accountEpoch]);
   useEffect(() => () => { stoppedRef.current = true; }, []);
