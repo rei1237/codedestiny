@@ -12,6 +12,7 @@ export class CodeDestinyProvider implements LLMProvider {
     const cap=Math.max(request.maxOutputTokens || 8192,tokensRequiredForChars(4000));
     const response=await callGeminiText(this.env, JSON.stringify(messages(request)), {
       maxOutputTokens:cap,thinkingBudget:1024,timeoutMs:90000,
+      ...(request.maxProviderAttempts?{maxProviderAttempts:request.maxProviderAttempts}:{}),
       systemPrompt:request.system,responseMimeType:'application/json',fallbackToWorkersAI:false,
       taskType:'yeongnyangi-chapter',
     });

@@ -7,16 +7,17 @@ next: "Play v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가�
 
 정본: [사업 마스터](../business-refactor.md), [계측](../analytics-kpi.md).
 
-## 2026-09-22 Play 수수료 등록과 Cloudflare 청구서 원문
+## 2026-09-22 Play 수수료·Cloudflare 귀속 근거 추가
 
-- Play Console의 연결된 개발자 계정을 읽기 전용으로 확인해 `15% 서비스 수수료` 프로그램 등록 상태를 확보했다. 공식 약관상 연간 첫 100만 USD 수익은 15%, 초과분은 30%다. 신규 v3 일회성 제품 3종은 여전히 없으므로 `APP_SKU_NOT_VERIFIED`를 유지하며 상품을 만들거나 활성화하지 않았다.
-- Cloudflare 최신 청구서 원문은 2026-08-30 발행, 2026-08-30~09-29 `Workers Paid` 1개 × $5.00이다. 소계·합계·청구액은 모두 $5.00이고 별도 세금 행은 없다. PDF SHA-256은 `24010e2c890229e1e57e699e802e38652cc3dece73df4e500b19fb709e6191a2`; 개인정보가 포함된 원문은 저장소에 넣지 않았다.
-- 운영 Workers Logs 최근 7일 검색은 성공 70건을 표시했지만 불완전 경고와 JSON 다운로드 실패가 있었다. 복사 가능한 마스터 연애 코덱스 1건은 입력 14,917·캐시 입력 1,018·출력 3,540토큰이었으나 `serviceId`가 비어 상품 원가로 귀속할 수 없었다.
-- `worker/routes/master-love-codex.js`의 구조화·비구조화 생성 호출에 개인정보 없는 상품 키와 장 키를 붙여 이후 비용 귀속을 가능하게 했다. 이 코드는 운영 승격 전이며 기존 로그를 소급 보완하지 않는다. Gemini·Workers AI 50,000토큰 상한은 변경하지 않았다.
-- `docs/verification/pass-external-cost-evidence-20260922.json`, `docs/verification/pass-sale-readiness-20260922.md`, 가격 정책과 사업 마스터를 갱신했다. `lib/payment/pass-cost-evidence.js`는 비워 두었고 웹 3종 `SETTLEMENT_EVIDENCE_MISSING`, Play 3종 `APP_SKU_NOT_VERIFIED` 판매 차단을 유지한다.
-- 남은 판매 전 근거는 v3 SKU의 KRW 가격·국가·활성 구매 옵션과 상품별 LLM·재시도·저장·지원·환불 실원가다. 15% 등록과 $5 기본료를 상품별 원가 증거로 확대하지 않는다.
-- 실PG·유료 LLM·운영 DB 쓰기·운영 승격은 수행하지 않았고 기존 주문·선물·복원, main의 `marketing/**`, 기존 worktree를 건드리지 않았다.
-- 검증: 외부 근거 JSON 파싱, 마스터 연애 코덱스 품질 66/66, `verify:handoff-contract` 176문서 통과. `npm run check:fast`는 paid suite 88/88, Node 1,547/1,547, Jest 290 suites·4,073 tests, lint·typecheck·Worker dry-run·사이트맵 1,284 URL을 통과했다. 판매 감사는 웹 3건 `SETTLEMENT_EVIDENCE_MISSING`·Play 3건 `APP_SKU_NOT_VERIFIED`로 예상 종료 2다.
+- 구현 커밋 `4d3f68c11`: 공통 LLM 상품 요청 귀속과 비용 보고서, Play·Cloudflare 외부 근거 문서를 함께 갱신했다.
+- Play Console 계정의 `등록한 프로그램 및 서비스`에서 15% 서비스 수수료 프로그램 가입을 읽기 전용으로 확인했다. 공식 정책상 연간 첫 100만 USD 매출 구간에 15%가 적용되지만, `com.codedestiny.app`에는 v3 SKU가 여전히 없고 프로덕션도 비활성이므로 실제 v3 정산 수수료 증거는 아니다. 상품 생성·가격 입력·활성화는 하지 않았다.
+- Cloudflare 최신 청구서 원문은 2026-08-30 발행, 2026-08-30~09-29 `Workers Paid` 1개 × $5.00이다. 소계·합계·청구액은 모두 $5.00이고 별도 세금 행은 없다. PDF SHA-256은 `24010e2c890229e1e57e699e802e38652cc3dece73df4e500b19fb709e6191a2`; 개인정보가 포함된 원문은 저장소에 넣지 않았다. 9월 Billable usage는 R2·Workers·D1·Queues가 포함 한도 안의 $0.00였지만 상품 SKU 귀속 청구가 아니다.
+- 운영 Worker의 최근 7일 `[llm token_usage]` 조회는 먼저 0건, 후속 동일 표식 검색에서는 성공 70건을 표시했다. 후속 결과에는 고용량 불완전 경고가 있었고 JSON 다운로드도 실패했다. 복사 가능한 마스터 연애 코덱스 1건은 입력 14,917·캐시 입력 1,018·출력 3,540토큰이었으나 `serviceId`가 비어 있어 어느 조회도 상품 원가 증거로 쓰지 않는다.
+- 공통 LLM 계측에 `serviceId`·`requestId`·`billingAccess`를 묶고, 비용 보고서에 고유 요청 수·접근 유형·귀속 누락 수·요청당 평균/최대 비용을 추가했다. 프롬프트·개인정보는 기록하지 않으며 보고서는 계속 `saleApproval:false`다. 운영 반영 전 과거 비용은 소급되지 않는다.
+- 마스터 연애 코덱스의 구조화·비구조화 생성 호출에는 상품 키와 장 키를 명시해 공통 계측의 빈 `serviceId`를 막았다. Gemini·Workers AI 50,000토큰 상한은 변경하지 않았다.
+- MongoDB 저장·백업·트래픽의 상품 귀속 청구, 상품별 지원 시간·검토 인건비, 상품별 환불 금액·회수 불가 공급자 비용은 미확보다. `lib/payment/pass-cost-evidence.js`는 빈 객체로 유지하고 웹 `SETTLEMENT_EVIDENCE_MISSING`, Play `APP_SKU_NOT_VERIFIED` 차단을 풀지 않는다.
+- 실PG·유료 LLM·운영 DB 쓰기·환불·운영 승격은 수행하지 않았다. main의 `marketing/**` 미커밋 변경과 기존 worktree를 보존한다.
+- 최신 main 통합 검증: 마스터 연애 코덱스 66/66, paid suite 88/88, Node 1,561/1,561, Jest 290 suites·4,073 tests, LLM 사용량 보고·lint·typecheck·Worker dry-run·사이트맵 1,284 URL 통과. `verify:handoff-contract` 176문서 통과. 판매 감사는 웹 3건 `SETTLEMENT_EVIDENCE_MISSING`·Play 3건 `APP_SKU_NOT_VERIFIED`로 예상 종료 2다.
 
 ## 2026-09-22 영냥이 공개 분석 근거 보강
 

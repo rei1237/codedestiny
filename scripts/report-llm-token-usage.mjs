@@ -82,6 +82,8 @@ function collect(text) {
         // serviceId 는 라우트가 logContext 로 넘길 때만 있다. 없으면 taskType 으로라도 갈라
         // "어느 종류가 큰지"는 보이게 한다(라벨 없는 라우트는 후속으로 logContext 를 붙인다).
         serviceId: readField(chunk, "serviceId") || `(unlabeled:${readField(chunk, "taskType") || "general"})`,
+        requestId: readField(chunk, "requestId"),
+        billingAccess: readField(chunk, "billingAccess"),
         taskType: readField(chunk, "taskType") || "general",
         provider: readField(chunk, "provider") || "gemini",
         model: readField(chunk, "model") || "",
@@ -112,6 +114,10 @@ function aggregate(rows, inputUsd, outputUsd) {
         estimatedCalls: 0,
         truncationRisk: 0,
         models: new Set(),
+        requestIds: new Set(),
+        billingAccesses: new Set(),
+        unattributedCalls: 0,
+        costByRequest: new Map(),
       };
       byService.set(row.serviceId, acc);
     }
@@ -124,18 +130,40 @@ function aggregate(rows, inputUsd, outputUsd) {
     // 출력이 상한의 95% 이상이면 잘렸을 가능성이 높다 — 재생성 루프의 선행 지표.
     if (row.maxTokens > 0 && row.outputTokens >= row.maxTokens * 0.95) acc.truncationRisk += 1;
     if (row.model) acc.models.add(row.model);
+    if (row.billingAccess) acc.billingAccesses.add(row.billingAccess);
+    if (row.requestId) {
+      acc.requestIds.add(row.requestId);
+      const billedInput = Math.max(0, row.inputTokens - row.cachedInputTokens);
+      const rowCostUsd = (billedInput * inputUsd + row.outputTokens * outputUsd) / 1_000_000;
+      acc.costByRequest.set(row.requestId, (acc.costByRequest.get(row.requestId) || 0) + rowCostUsd);
+    } else {
+      acc.unattributedCalls += 1;
+    }
   }
 
   const list = [...byService.values()].map((acc) => {
     const billedInput = Math.max(0, acc.inputTokens - acc.cachedInputTokens);
     const costUsd = (billedInput * inputUsd + acc.outputTokens * outputUsd) / 1_000_000;
+    const requestCosts = [...acc.costByRequest.values()];
     return {
-      ...acc,
+      serviceId: acc.serviceId,
+      calls: acc.calls,
+      inputTokens: acc.inputTokens,
+      outputTokens: acc.outputTokens,
+      cachedInputTokens: acc.cachedInputTokens,
+      thinkingTokens: acc.thinkingTokens,
+      estimatedCalls: acc.estimatedCalls,
+      truncationRisk: acc.truncationRisk,
       models: [...acc.models],
+      observedRequests: acc.requestIds.size,
+      billingAccesses: [...acc.billingAccesses].sort(),
+      unattributedCalls: acc.unattributedCalls,
       avgInput: Math.round(acc.inputTokens / acc.calls),
       avgOutput: Math.round(acc.outputTokens / acc.calls),
       costUsd,
       costPerCallUsd: costUsd / acc.calls,
+      avgCostPerObservedRequestUsd: requestCosts.length ? requestCosts.reduce((sum, value) => sum + value, 0) / requestCosts.length : null,
+      maxCostPerObservedRequestUsd: requestCosts.length ? Math.max(...requestCosts) : null,
     };
   });
   list.sort((a, b) => b.costUsd - a.costUsd);
@@ -233,7 +261,8 @@ function main() {
   if (args.prices) {
     const services = costUsageByModel(rows, JSON.parse(readFileSync(args.prices, "utf8")));
     const complete = services.length > 0 && services.every(row => row.complete);
-    console.log(JSON.stringify({ rows: rows.length, complete, services, saleApproval: false }, null, 2));
+    const attributionComplete = rows.length > 0 && rows.every(row => row.requestId && row.billingAccess && !row.serviceId.startsWith("(unlabeled:"));
+    console.log(JSON.stringify({ rows: rows.length, complete, attributionComplete, services, saleApproval: false }, null, 2));
     process.exitCode = complete ? 0 : 2;
     return;
   }

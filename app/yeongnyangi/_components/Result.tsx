@@ -1,8 +1,11 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
+import SpiritResult from './SpiritResult';
 import styles from '../yeongnyangi.module.css';
 import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
+import ReadingLoading from './ReadingLoading';
+import ResultSharing from './ResultSharing';
 export default function Result(){
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),mounted=useRef(true);
@@ -44,10 +47,18 @@ export default function Result(){
   },5000);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
+ if(row?.consultation?.spirit)return <section className={styles.reader}>
+  <SpiritResult row={row}/>
+  {row.state==='REFUNDED'?<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>:!row.paid?<><p>결제 확인이 필요해요. 이미 결제했다면 먼저 상태를 다시 확인해 주세요.</p><button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a href={checkoutPath(row)}>결제 내용 확인하기</a></>:row.state!=='COMPLETED'&&<>
+    {row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">자동 복구가 멈췄어요. 저장된 내용은 유지돼요.</p><button disabled={busy} onClick={()=>void generate(row.id)}>기존 상담 복구하기</button></>:row.errorCode==='GENERATION_REVIEW_REQUIRED'||row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">상담 확인이 필요해요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.</p>:<p>서버에서 남은 이야기만 자동으로 이어가요. 창을 닫아도 내 상담 기록에서 확인할 수 있어요.</p>}
+  </>}
+  {error&&<p role="alert">{error} 결제한 상담은 다시 결제하지 마세요.</p>}<p className={styles.orderId}>상담 주문번호: {row.id}</p>
+ </section>;
  return <section className={styles.reader}>
   <p className={styles.eyebrow}>영냥이의 상담 두루마리</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:'상담 결과'}</h1>
-  {!row&&!error&&<p role="status">저장된 상담을 불러오고 있어요.</p>}
+  {!row&&!error&&<ReadingLoading/>}
   {row&&<>
+   {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}
    <section className={styles.questionContext} aria-label="이번 상담의 주제와 질문">
     <h2>{row.consultation?.topicLabel || '이번 상담'}</h2>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>입력한 질문 없이 선택한 주제의 흐름을 살펴보는 상담이에요.</p>}
@@ -62,6 +73,7 @@ export default function Result(){
      {!row.paid&&row.state!=='REFUNDED'&&<><p>아직 확인된 결제가 없어요. 결제를 마쳤다면 먼저 결제 상태를 다시 확인해 주세요.</p><button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a className={styles.button} href={checkoutPath(row)}>결제 내용 확인하기</a></>}
     </div>
    </div>
+   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
    <nav aria-label="상담 목차" className={styles.contents}><h2>목차</h2>{row.manifest.map((chapter,index)=><a key={chapter.id} href={index<row.chapters.length?`#chapter-${chapter.id}`:'#reading-progress'} aria-disabled={index>=row.chapters.length}>{index+1}. {chapter.title}{index>=row.chapters.length?' · 준비 중':''}</a>)}</nav>
    {row.chapters.map((chapter,index)=><article key={row.manifest[index].id} id={`chapter-${row.manifest[index].id}`} className={styles.chapter}>
     <p className={styles.eyebrow}>{index+1}번째 이야기</p><h2>{row.manifest[index].title}</h2><p className={styles.summary}>{chapter.summary}</p>

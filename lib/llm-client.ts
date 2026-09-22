@@ -47,6 +47,8 @@ export interface LLMRequest {
     serviceId?: string;
     serviceType?: string;
     featureKey?: string;
+    route?: string;
+    access?: string;
     userIdHash?: string;
     profileIdPresent?: boolean;
     idempotencyKeyHash?: string;
@@ -418,7 +420,8 @@ function emitProviderCallLog(provider: LLMResponse["provider"], model: string, r
     model: cleanLogValue(model, 120),
     taskType: cleanLogValue(request.taskType || "general", 40),
     requestId: cleanLogValue(context.requestId, 180),
-    serviceId: cleanLogValue(context.serviceId || context.serviceType || context.featureKey, 80),
+    serviceId: cleanLogValue(context.serviceId || context.serviceType || context.featureKey || context.route, 140),
+    billingAccess: cleanLogValue(context.access, 40),
     userIdHash: cleanLogValue(context.userIdHash, 64),
     profileIdPresent: Boolean(context.profileIdPresent),
     idempotencyKeyHash: cleanLogValue(context.idempotencyKeyHash, 64),
@@ -507,8 +510,9 @@ function emitTokenUsageLog(
     provider,
     model: cleanLogValue(model, 120),
     taskType: cleanLogValue(request.taskType || "general", 40),
-    serviceId: cleanLogValue(context.serviceId || context.serviceType || context.featureKey, 80),
+    serviceId: cleanLogValue(context.serviceId || context.serviceType || context.featureKey || context.route, 140),
     requestId: cleanLogValue(context.requestId, 180),
+    billingAccess: cleanLogValue(context.access, 40),
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
     cachedInputTokens: usage.cachedInputTokens || 0,
