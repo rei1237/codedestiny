@@ -537,6 +537,13 @@
 .skyEntry b { font-size:14px; color:#6b4778; }
 .skyEntry .skyWestern { display:block; text-align:center; padding:12px 0 2px; font-size:13px; color:#684f70; }
 
+.consultationRoom .fusionChoices { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.consultationRoom .fusionChoices button { display:grid; grid-template-columns:80px minmax(0,1fr); gap:6px 14px; align-content:start; }
+.fusionChoices img { grid-row:1/span 3; width:80px; height:80px; align-self:center; }
+.fusionChoices strong { font-size:1rem; word-break:keep-all; overflow-wrap:anywhere; }
+.fusionChoices small { font-size:14px; }
+@media(max-width:767px) { .consultationRoom .fusionChoices { grid-template-columns:minmax(0,1fr); } }
+
 /* Paid-result recovery keeps the same cat, colors and reading surface. */
 .readerGreeting { display:flex; align-items:center; gap:8px; color:var(--yn-gold); font-weight:700; }
 .recoveryNotice { display:flex; align-items:center; gap:24px; margin:28px 0; padding:28px; background:#30203f; border:1px solid #a18aaf; border-radius:28px; box-shadow:0 12px 28px #120b1d40; }
