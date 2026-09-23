@@ -1,4 +1,5 @@
 import { connectDb, withMongoRetry } from '../lib/db.js';
+import { isDbUnavailableError } from '../lib/http.js';
 import { Payment } from '../lib/models.js';
 import { YeongnyangiRequest } from './repository.js';
 import { activateFortune, generateNextChapter, providerReady } from './service';
@@ -8,6 +9,8 @@ const ABANDONED_MS = 5 * 60 * 1000;
 const BUDGET_MS = 4 * 60 * 1000;
 const CHAPTER_RESERVE_MS = 105000; // existing 90s provider deadline + DB commit
 const MAX_REQUESTS = 3;
+const TRANSIENT_HOLD_MS = 5 * 60 * 1000; // lands on the next ten-minute tick
+const PERMANENT_HOLD_MS = 24 * 60 * 60 * 1000;
 
 export function abandonedRequestFilter(now) {
   return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:'FAMILY',passEvidenceId:{$ne:null}}],
@@ -35,9 +38,10 @@ export async function runYeongnyangiRecovery(env, options = {}) {
     if(clock()+CHAPTER_RESERVE_MS>deadline)break;
     try{await activate(env,String(order.userId),order.requestId.slice(3));}
     catch(error){
-      // A malformed historical order must not starve later paid orders each tick.
+      // A malformed historical order must not starve later paid orders each tick,
+      // but a DB blip must not delay a paid result by a whole day.
       await withMongoRetry(env,()=>Payment.updateOne({_id:order._id},{$set:{
-        'metadata.yeongnyangiRecoveryAfter':new Date(now+24*60*60*1000),
+        'metadata.yeongnyangiRecoveryAfter':new Date(now+(isDbUnavailableError(error)?TRANSIENT_HOLD_MS:PERMANENT_HOLD_MS)),
         'metadata.yeongnyangiRecoveryCode':String(error?.code || 'ACTIVATION_PENDING').slice(0,80),
       }}));
       outcomes.push({outcome:'activation_pending'});

@@ -2,7 +2,8 @@ import {jest} from '@jest/globals';
 let orders=[],candidates=[];
 const chain=(rows)=>({sort:()=>chain(rows),limit:()=>chain(rows),lean:async()=>rows});
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
-jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment:{find:()=>chain(orders),updateOne:async()=>({modifiedCount:1})}}));
+const updateOne=jest.fn(async()=>({modifiedCount:1}));
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment:{find:()=>chain(orders),updateOne}}));
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({YeongnyangiRequest:{find:()=>chain(candidates)}}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service',()=>({providerReady:()=>false,activateFortune:jest.fn(),generateNextChapter:jest.fn()}));
 let runYeongnyangiRecovery,abandonedRequestFilter;
@@ -18,6 +19,14 @@ test('approved order missing browser return reuses its original intent',async()=
   const activate=jest.fn().mockResolvedValue({});
   await runYeongnyangiRecovery({},{providerReady:()=>true,activate});
   expect(activate).toHaveBeenCalledWith({},'owner','a'.repeat(64));
+});
+test('DB blip retries next tick; a permanent activation error waits a day',async()=>{
+  orders=[{_id:'blip',userId:'owner',requestId:`yn-${'a'.repeat(64)}`},{_id:'bad',userId:'owner',requestId:`yn-${'b'.repeat(64)}`}];
+  const blip=Object.assign(new Error('Transaction aborted'),{name:'MongoServerError'}),bad=Object.assign(new Error('price changed'),{code:'PRICE_CHANGED'});
+  const activate=jest.fn().mockRejectedValueOnce(blip).mockRejectedValueOnce(bad);updateOne.mockClear();
+  await runYeongnyangiRecovery({},{providerReady:()=>true,activate,clock:()=>1000});
+  const hold=id=>updateOne.mock.calls.find(([q])=>q._id===id)[1].$set['metadata.yeongnyangiRecoveryAfter'].getTime()-1000;
+  expect(hold('blip')).toBe(5*60*1000);expect(hold('bad')).toBe(24*60*60*1000);
 });
 test('saved partial chapters resume and stop at completion',async()=>{
   candidates=[{_id:'id',userId:'owner',chapters:[{}]}];
