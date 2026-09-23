@@ -9,6 +9,15 @@
   var doc = document.documentElement;
   var lastFilter = null;
   var finderDisclosure = document.getElementById('cdhFinderDisclosure');
+  var more = document.getElementById('cdhMore');
+  var bubble = home.querySelector('[data-cdh-bubble]');
+  var bubbleIndex = 0;
+  var bubbleLines = bubble ? [
+    bubble.textContent,
+    '오늘 마음은 어떤 색이에요?',
+    '타로 세 장부터 가볍게 펼쳐 봐요!',
+    '고민은 천천히, 끝까지 들을게요.'
+  ] : [];
   var collectionToggle = document.getElementById('cdHomeExpandToggle');
   if (collectionToggle) collectionToggle.setAttribute('aria-controls', 'cdhCollections');
   if (finderDisclosure) finderDisclosure.addEventListener('toggle', function () {
@@ -66,6 +75,12 @@
     var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
     // 검색 섹션(#cdFinder)은 홈 안에 있다. 홈을 숨기면 해시 진입이 빈 화면이 된다.
     home.hidden = false;
+    var folded = document.getElementById(isFinder ? 'cdFinder' : hash);
+    // "더 둘러보기" 접힘 안의 앵커(#cdhFeatured 등)로 들어오면 접힘을 열고 대상으로 이동한다.
+    if (more && folded && more.contains(folded) && !more.open) {
+      more.open = true;
+      if (!isFinder) requestAnimationFrame(function () { folded.scrollIntoView({ block: 'start' }); });
+    }
     if (isFinder) {
       doc.classList.remove('cdh-input-open');
       if (finderDisclosure) finderDisclosure.open = true;
@@ -114,6 +129,10 @@
       home.hidden = false;
       services.hidden = false;
       if (location.hash.indexOf('services') !== -1) history.replaceState(null, '', location.pathname + location.search);
+    }
+    if (bubble && target.closest('[data-cdh-bubble], #honeypigLogo')) {
+      bubbleIndex = (bubbleIndex + 1) % bubbleLines.length;
+      bubble.textContent = bubbleLines[bubbleIndex];
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();

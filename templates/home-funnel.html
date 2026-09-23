@@ -14,23 +14,34 @@
   <section class="cdh-hero" aria-labelledby="cdhTitle">
     <div class="cdh-copy">
       <h1 id="cdhTitle"><span data-cd-trans="home.searchEntry.title">꿀꿀 운세, 꽃돼지 연이와</span><br><em data-cd-trans="home.searchEntry.fusion">지금의 고민을 차근차근</em></h1>
-      <p class="cdh-lead" data-cd-trans="home.searchEntry.lead">연이와 오늘의 운세와 세 장의 카드를 무료로 펼쳐보세요. 나의 기질과 반복되는 고민은 영냥이의 사주 해석으로 더 깊이 살펴봐요.</p>
+      <p class="cdh-lead">오늘의 운세와 타로 세 장, 연이와 무료로 시작해요.</p>
       <div class="cdh-actions">
-        <a class="cdh-primary" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-business-entry="paid"><span data-cd-trans="home.business.paid">영냥이 사주 살펴보기</span> <span data-cd-price="yeongnyangi-saju-mackerel">{{representativePrice}}</span> <span aria-hidden="true">↗</span></a>
-        <a class="cdh-secondary" href="/today/#daily-tarot" data-cd-business-entry="daily" data-cd-trans="home.business.daily">연이와 무료 세 장 펼치기</a>
+        <a class="cdh-primary" href="/today/#daily-tarot" data-cd-business-entry="daily" data-cd-trans="home.business.daily">연이와 무료 세 장 펼치기</a>
+        <a class="cdh-textlink" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-business-entry="paid"><span data-cd-trans="home.business.paid">영냥이 사주 살펴보기</span> <span data-cd-price="yeongnyangi-saju-mackerel">{{representativePrice}}</span> <span aria-hidden="true">↗</span></a>
       </div>
     </div>
     <div class="cdh-garden">
       <span class="cdh-moon" aria-hidden="true"></span><span class="cd-yehwa-spray" aria-hidden="true"></span><span class="cdh-peony" aria-hidden="true"></span>
       <img id="honeypigLogo" data-character="yeoni" data-lcp-candidate="1" src="/icons/app-logo-512.webp" alt="연꽃을 단 꽃돼지 연이" width="512" height="512" fetchpriority="high" decoding="async">
-      <p><span data-cd-trans="home.funnelCopy.gardenFirst">당신의 이야기가</span><br><span data-cd-trans="home.funnelCopy.gardenSecond">꽃피는 달빛 정원</span></p>
+      <button type="button" class="cdh-bubble" data-cdh-bubble aria-live="polite" aria-label="연이에게 한마디 더 듣기">안녕하세요! 꽃돼지 연이예요.</button>
     </div>
     <ul class="cdh-trust"><li data-cd-trans="home.funnelCopy.reviewed">10년 경력 명리학자 · 두 대통령 운세 적중</li><li data-cd-trans="home.funnelCopy.perspectives">여섯 운세 체계 관점 비교</li><li data-cd-trans="home.funnelCopy.startFree">무료 시작 가능</li></ul>
     <details class="cdh-prediction-records" lang="ko"><summary>두 대통령 적중 기록 원문 보기</summary><p>운영자의 공개 사주 해석 기록입니다. 표시된 날짜는 블로그 게시일입니다.</p><ul>{{predictionRecords}}</ul></details>
   </section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
-    <div class="cdh-slot" id="cdhQuickSlot">{{quick}}</div>
+    <div class="cdh-slot" id="cdhQuickSlot"><p class="cdh-says"><img src="/images/fortune-chat/persona/yeoni-greet.webp" alt="" width="264" height="372" loading="lazy" decoding="async"><span><b>연이</b>어떤 운세부터 볼까요? 하나만 골라도 충분해요.</span></p>{{quick}}</div>
+    <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
+    <details class="cdh-more" id="cdhMore">
+      <summary class="cdh-more__summary">
+        <img src="/images/fortune-chat/persona/yeoni-read.webp" alt="" width="264" height="372" loading="lazy" decoding="async">
+        <span class="cdh-more__copy"><strong>연이의 정원 더 둘러보기</strong><small>영냥이 · 오늘의 운세 · 고민으로 찾기 · 전체 검색 · 이야기와 음악</small></span>
+        <svg class="cdh-more__arrow" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </summary>
+      <div class="cdh-more__body">
+    <div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
+    <div class="cdh-slot" id="cdhDiarySlot">{{diary}}</div>
+    <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
     <section class="cdh cdh-services cdh-services--inline cdh-services--luxe" id="cdhServices" aria-labelledby="cdhServicesTitle">
       <span class="cd-yehwa-vine cdh-services__vine" aria-hidden="true"></span>
       <details id="cdhFinderDisclosure" class="cdh-finder-disclosure">
@@ -44,13 +55,9 @@
         <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" class="cdh-catalog-link">컬렉션 전체 둘러보기 <span aria-hidden="true">↗</span></a>
       </details>
     </section>
-    <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot">{{feedback}}</div>
     <div class="cdh-slot" id="cdhCollectionToggleSlot">{{homeMore}}
       <div id="cdhCollections" data-cd-home-secondary></div>
     </div>
-    <div class="cdh-slot" id="cdhTodaySlot">{{today}}</div>
-    <div class="cdh-slot" id="cdhDiarySlot">{{diary}}</div>
-    <div class="cdh-slot" id="cdhConcern" tabindex="-1"><div id="cdhConcernSlot">{{concern}}</div></div>
     <div class="cdh-slot" id="cdhGatewaySlot">{{gateway}}</div>
     <div class="cdh-slot" id="cdhFeatured"><span class="cd-yehwa-peony cdh-featured-flower" aria-hidden="true"></span><div id="cdhSignatureSlot">{{signature}}</div></div>
     <div class="cdh-slot" id="cdhExpertsSlot">{{experts}}</div>
@@ -63,12 +70,14 @@
       </div>
       <div class="cdh-share__controls" id="cdhShareControls"></div>
     </section>
-    <div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">{{pass}}</div></div>
     <section class="cdh-explore" aria-labelledby="cdhExploreTitle">
       <div class="cdh-section-head"><p class="cdh-intro">MORE TO EXPLORE</p><h2 id="cdhExploreTitle" data-cd-trans="home.funnelCopy.explore">더 둘러보기</h2><p class="cdh-lead" data-cd-trans="home.funnelCopy.exploreLead">이야기와 음악으로 운명의 여운을 이어가세요.</p></div>
       <div class="cdh-explore-grid"><div id="cdhStorySlot">{{story}}</div><div id="cdhMusicSlot">{{music}}</div></div>
     </section>
     <div class="cdh-slot" id="cdhReviewsSlot">{{reviews}}</div>
+      </div>
+    </details>
+    <div class="cdh-slot cdh-slot--feedback" id="cdhFeedbackSlot">{{feedback}}</div>
     <div class="cdh-slot cdh-slot--guide" id="cdhGuideSlot">{{guide}}</div>
   </div>
 </div>

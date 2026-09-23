@@ -52,6 +52,11 @@ function contrast(foreground, background) {
       await page.waitForTimeout(250);
       assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'search starts folded');
       assert.equal(await page.locator('#cdhCollections').isVisible(), false, 'collections start folded');
+      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'secondary garden starts folded');
+      assert.equal(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), false, 'diary waits behind one tap');
+      assert.ok(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), 'pass stays in the primary flow');
+      assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'slim bug report row stays in the primary flow');
+      await page.locator('#cdhMore > summary').click();
       assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
       assert.ok(await page.locator('#cdhExpertsSlot #cdAiFeatures').isVisible(), 'experts restored');
       await page.locator('#cdHomeExpandToggle').click();
@@ -83,7 +88,7 @@ function contrast(foreground, background) {
         feedback: Boolean(document.querySelector('#cdhFeedbackSlot #cdFeedbackGate')),
         feedbackCta: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__cta[href="/feedback/"]')),
         feedbackReward: Boolean(document.querySelector('#cdhFeedbackSlot .cd-feedback__reward strong')),
-        moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .membership-recap-cta')),
+        moved: Boolean(document.querySelector('#cdhQuickSlot #cdQuickServices') && document.querySelector('#cdhPassSlot .cdh-pass')),
         shareEvent: Boolean(document.querySelector('#cdhShareControls #dpKakaoReferralShareBtn') && document.querySelector('#cdhShareControls #dpKakaoReferralNote')),
         profileCardOnHome: Boolean(document.querySelector('#cdHomeFunnel #dpMasterCard')),
       }));
@@ -107,16 +112,22 @@ function contrast(foreground, background) {
         }));
         assert.ok(contrast(colors.title, colors.background) >= 4.5, `${width}px ${mode} gateway title contrast`);
         assert.ok(contrast(colors.lead, colors.background) >= 4.5, `${width}px ${mode} gateway lead contrast`);
-        if (mode === 'neo') {
-          const passColors = await page.locator('#cdhPass').evaluate((host) => ({
-            title: getComputedStyle(host.querySelector('.membership-recap-cta__title')).color,
-            desc: getComputedStyle(host.querySelector('.membership-recap-cta__desc')).color,
-            button: getComputedStyle(host.querySelector('.membership-recap-cta__btn')).color,
-          }));
-          assert.equal(passColors.title, 'rgb(255, 247, 218)', `${width}px Neo pass title is readable`);
-          assert.equal(passColors.desc, 'rgb(231, 222, 247)', `${width}px Neo pass description is readable`);
-          assert.equal(passColors.button, 'rgb(36, 21, 63)', `${width}px Neo pass CTA is readable`);
-        }
+        const passColors = await page.locator('#cdhPass').evaluate((host) => {
+          const style = (selector) => getComputedStyle(host.querySelector(selector));
+          return {
+            title: style('.cdh-pass__title').color,
+            price: style('.cdh-pass__tier-price').color,
+            tierLine: style('.cdh-pass__tier-line').color,
+            tierBg: style('.cdh-pass__tier-link').backgroundColor,
+            button: style('.cdh-pass__btn').color,
+            buttonBg: style('.cdh-pass__btn').backgroundColor,
+            background: getComputedStyle(document.body).backgroundColor,
+          };
+        });
+        assert.ok(contrast(passColors.title, passColors.background) >= 4.5, `${width}px ${mode} pass title contrast`);
+        assert.ok(contrast(passColors.price, passColors.tierBg) >= 4.5, `${width}px ${mode} pass price contrast`);
+        assert.ok(contrast(passColors.tierLine, passColors.tierBg) >= 4.5, `${width}px ${mode} pass tier detail contrast`);
+        assert.ok(contrast(passColors.button, passColors.buttonBg) >= 4.5, `${width}px ${mode} pass CTA contrast`);
         await page.screenshot({ path: path.join(out, `home-${mode}-${width}.png`), fullPage: true });
       }
 
@@ -163,6 +174,13 @@ function contrast(foreground, background) {
       results.push({ width, layout, search: true, contrast: true, errors });
       await page.close();
     }
+
+    const deepLink = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+    await deepLink.goto(origin + '/static/index.html#cdhFeatured', { waitUntil: 'domcontentloaded' });
+    await deepLink.waitForFunction(() => document.getElementById('cdhMore')?.open === true, null, { timeout: 10000 });
+    assert.ok(await deepLink.locator('#cdhFeatured').isVisible(), 'bottom-nav anchor opens the folded garden');
+    results.push({ deepLinkOpensFold: true });
+    await deepLink.close();
 
     const member = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     let profiles = [];
