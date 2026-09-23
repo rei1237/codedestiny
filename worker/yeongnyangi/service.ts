@@ -147,15 +147,13 @@ export async function activateFortune(env: Record<string, unknown>, userId: stri
   return row;
 }
 
-export async function generateNextChapter(env: Record<string, unknown>, userId: string, requestId: string) {
+export async function generateNextChapter(env: Record<string, unknown>, userId: string, requestId: string, source: 'queue'|'scheduled' = 'queue') {
   if (!providerReady(env)) throw new FortuneError('LLM_NOT_CONFIGURED',503);
-  const {row,token}=await claimChapter(env,userId,requestId);
+  const {row,token}=await claimChapter(env,userId,requestId,source);
   if(!token) return row;
   const ordinal=row.chapters.length;
   const startedAt=Date.now();let stage='provider';
   try {
-    if(row.attempts>row.snapshot.manifest.length*3+(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky?0:(row.additionalAttempts || 0))) throw new FortuneError('GENERATION_REVIEW_REQUIRED',409);
-    if((row.chapterAttempts?.[ordinal] || 1)>3) throw new FortuneError('AUTOMATIC_RECOVERY_STOPPED',409);
     const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(new CodeDestinyProvider(env));
@@ -167,9 +165,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     if(!completed) throw new FortuneError('GENERATION_LEASE_LOST',409);
     return completed;
   } catch(error) {
-    const code=error instanceof FortuneError?error.code:'GENERATION_FAILED';
+    const code=error instanceof FortuneError?error.code:stage==='storage'?'RESULT_STORAGE_UNAVAILABLE':'GENERATION_FAILED';
     console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code}));
-    try { await failChapter(env,userId,requestId,token,code,row.chapterAttempts?.[ordinal] || 1,stage); }
+    const allowedAttempts=3+Number(row.manualRecoveryGrants?.[ordinal] || 0);
+    try { await failChapter(env,userId,requestId,token,code,row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }
@@ -177,9 +176,13 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 
 export function presentFortune(row: any) {
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
+  const complete=row.state==='COMPLETED',blocked=row.state==='REFUNDED'||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED'].includes(row.errorCode);
+  const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
+    providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked,
+    canRetryNow:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED',nextAction:complete?'reread':blocked?'support':row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?'retry':'wait'};
   return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && row.paymentId && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
     paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,recovery,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

@@ -54,7 +54,7 @@ try{
    const applied=JSON.parse(execFileSync(process.execPath,[...args,'--apply'],{encoding:'utf8'}).trim().split('\n').at(-1));
    assert.equal(applied.applied,true);
    const recovered=await readRequest(env,userId,id);
-   assert.equal(recovered.additionalAttempts,3);assert.equal(recovered.recoveryAudit.length,1);
+   assert.equal(recovered.manualRecoveryGrants[1],2);assert.equal(recovered.recoveryAudit.length,1);
    assert.equal(recovered.chapters.length,1);assert.equal(String(recovered.paymentId),String(paymentIds[i]));
   }
   const retry=await claimChapter(env,userId,id);

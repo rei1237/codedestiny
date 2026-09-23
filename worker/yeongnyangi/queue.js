@@ -56,7 +56,7 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
       if (terminal(row)) { message.ack(); continue; }
       const due = Math.max(new Date(row.nextAttemptAt || 0).getTime(), new Date(row.leaseUntil || 0).getTime());
       if (due > Date.now()) { message.retry({delaySeconds:Math.max(1,Math.ceil((due-Date.now())/1000))}); continue; }
-      row = await service.generateNextChapter(env,String(row.userId),id);
+      row = await service.generateNextChapter(env,String(row.userId),id,'queue');
       if (!terminal(row)) {
         // Requeue after *every* saved chapter. No single invocation owns a book.
         if (!await enqueue(env,row)) { message.retry({delaySeconds:30}); continue; }

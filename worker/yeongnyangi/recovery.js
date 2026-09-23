@@ -50,7 +50,7 @@ export async function runYeongnyangiRecovery(env, options = {}) {
     const candidate=pending.shift();
     try{
       if(env.YEONGNYANGI_QUEUE){await (options.enqueue || enqueueConsultation)(env,candidate);outcomes.push({outcome:'queued'});continue;}
-      const row=await generate(env,String(candidate.userId),String(candidate._id));
+      const row=await generate(env,String(candidate.userId),String(candidate._id),'scheduled');
       outcomes.push({outcome:row.state});
       // A held lease or failed attempt waits for a future tick; never spin on it.
       if(row.state==='PAID' && row.chapters.length>candidate.chapters.length)pending.push(row);

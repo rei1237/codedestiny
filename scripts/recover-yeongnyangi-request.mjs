@@ -18,13 +18,17 @@ try{
  if(!row||row.state!=='FORTUNE_FAILED'||row.errorCode!==(resumeStop?'AUTOMATIC_RECOVERY_STOPPED':'GENERATION_REVIEW_REQUIRED')||!row.paymentId)throw Error('Only paid requests held for generation review can be recovered');
  const payment=await Payment.findOne({_id:row.paymentId,userId:row.userId,'metadata.consumedBy':id,status:{$in:['paid','success','fulfilled']},refundLock:null,'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true}}).select('_id').lean();
  if(!payment)throw Error('Payment is no longer active');
- // The rejected review attempt was counted but made no provider call. Preserve the counter and audit.
- if(resumeStop && row.attempts>=row.snapshot.manifest.length*3+(row.additionalAttempts||0))throw Error('Lifetime attempt budget exhausted');
- const increase=resumeStop?0:Math.max(0,row.attempts-row.snapshot.manifest.length*3-(row.additionalAttempts||0))+allowance;
- const output={database,requestId:id,completedChapters:row.chapters.length,attempts:row.attempts,additionalCallsAllowed:resumeStop?0:allowance,applied:false};
+ // Preserve every counted attempt. Recovery grants add only the reviewed number
+ // of calls for the current missing chapter and never reset its history.
+ const ordinal=row.chapters.length,grantKey=`manualRecoveryGrants.${ordinal}`;
+ const previousGrant=Math.max(0,Number(row.manualRecoveryGrants?.[ordinal] || 0));
+ if(resumeStop&&previousGrant>=2)throw Error('User recovery limit exhausted; inspect as GENERATION_REVIEW_REQUIRED');
+ const increase=resumeStop?1:allowance;
+ const output={database,requestId:id,completedChapters:ordinal,attempts:row.attempts,additionalCallsAllowed:increase,applied:false};
  if(args.includes('--apply')){
-  const result=await YeongnyangiRequest.updateOne({_id:id,state:row.state,errorCode:row.errorCode,attempts:row.attempts,additionalAttempts:row.additionalAttempts||0},
-   {$inc:{additionalAttempts:increase},$set:{errorCode:'',state:'PAID',...(resumeStop?{nextAttemptAt:null,queuedUntil:null,[`chapterAttempts.${row.chapters.length}`]:0}:{})},$push:{recoveryAudit:{at:new Date(),reason,allowance:resumeStop?0:allowance,previousAttempts:row.attempts}}});
+  const grantMatch=previousGrant?{[grantKey]:previousGrant}:{[grantKey]:{$in:[null,0]}};
+  const result=await YeongnyangiRequest.updateOne({_id:id,state:row.state,errorCode:row.errorCode,attempts:row.attempts,...grantMatch},
+   {$inc:{[grantKey]:increase},$set:{errorCode:'',state:'PAID',nextAttemptAt:null,queuedUntil:null},$push:{recoveryAudit:{kind:'operator_retry_approved',source:'operator',chapter:ordinal,at:new Date(),reason,allowance:increase,previousAttempts:row.attempts}}});
   if(result.modifiedCount!==1)throw Error('Request changed; inspect again before recovery');
   output.applied=true;
  }

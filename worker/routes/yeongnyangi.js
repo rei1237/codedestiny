@@ -108,7 +108,7 @@ export async function handleYeongnyangiRoutes(request, env) {
     if(action==='activate' && method==='POST') return json({ok:true,fortune:presentFortune(await activateFortune(env,auth.userId,id))});
     if(action==='generate' && method==='POST') {
       const row=await retryFortune(env,auth.userId,id);
-      return json({ok:true,fortune:presentFortune(row)},{status:202});
+      return json({ok:true,fortune:presentFortune(row)},{status:row.state==='COMPLETED'?200:202});
     }
     return notFound();
   } catch(error) {

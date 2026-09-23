@@ -25,6 +25,7 @@ test('saved partial chapters resume and stop at completion',async()=>{
     .mockResolvedValueOnce({chapters:[{},{},{}],state:'COMPLETED'});
   await runYeongnyangiRecovery({},{providerReady:()=>true,generate});
   expect(generate).toHaveBeenCalledTimes(2);
+  expect(generate).toHaveBeenNthCalledWith(1,{},'owner','id','scheduled');
 });
 test.each(['GENERATING','FORTUNE_FAILED','REFUNDED'])('state %s is never spun or retried in the same tick',async state=>{
   candidates=[{_id:'id',userId:'owner',chapters:[]}];

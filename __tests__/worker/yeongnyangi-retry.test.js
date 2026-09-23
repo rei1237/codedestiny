@@ -32,6 +32,15 @@ test('dispatch failure is not accepted',async()=>{
  enqueue.mockResolvedValue(false);
  await expect(retryFortune(env,'owner',id)).rejects.toMatchObject({status:503});
 });
+test('a concurrent transition to review-required is returned as a permanent failure',async()=>{
+ resume.mockResolvedValue({...row(),state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+ await expect(retryFortune(env,'owner',id)).rejects.toMatchObject({status:409,payload:{code:'GENERATION_REVIEW_REQUIRED'}});
+ expect(enqueue).not.toHaveBeenCalled();
+});
+test('a concurrent completion rereads without queueing or charging',async()=>{
+ resume.mockResolvedValue({...row(),state:'COMPLETED',errorCode:''});
+ expect((await retryFortune(env,'owner',id)).state).toBe('COMPLETED');expect(enqueue).not.toHaveBeenCalled();expect(attach).not.toHaveBeenCalled();
+});
 test('foreign or missing result cannot attach or resume',async()=>{
  read.mockRejectedValue({status:404});
  await expect(retryFortune(env,'foreign',id)).rejects.toMatchObject({status:404});expect(attach).not.toHaveBeenCalled();expect(resume).not.toHaveBeenCalled();
