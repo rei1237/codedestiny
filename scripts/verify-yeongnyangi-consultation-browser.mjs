@@ -10,7 +10,8 @@ const {products}=await import('data:text/javascript;base64,'+Buffer.from(bundle.
 const user={id:'507f1f77bcf86cd799439011',_id:'507f1f77bcf86cd799439011',name:'검증 사용자',email:'qa@example.invalid',role:'user'};
 const profiles=['self','partner'].map((id,i)=>({profileId:id,id,name:i?'상대 프로필':'내 프로필',gender:'F',birth:{year:1994+i*3,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}}));
 const browser=await chromium.launch({headless:true});const context=await browser.newContext();
-const errors=[];let posted;let libraryCalls=0,failLibrary=false,holdLibrary=false,held=false;
+const errors=[];let posted;let successfulPrepare=false;let libraryCalls=0,failLibrary=false,holdLibrary=false,held=false;
+const attempts=new Set();
 await context.addInitScript(user=>{localStorage.setItem('fortune_auth_user',JSON.stringify(user));},user);
 await context.route('**/*',async route=>{
  const url=new URL(route.request().url());
@@ -19,7 +20,7 @@ await context.route('**/*',async route=>{
   if(url.pathname.endsWith('/profiles'))data={ok:true,profiles,currentId:'self'};
   else if(url.pathname.endsWith('/products'))data={ok:true,products:products.map(p=>({...p,available:true}))};
   else if(url.pathname==='/api/yeongnyangi/requests'){
-   if(route.request().method()==='POST'){posted=route.request().postDataJSON();status=503;data={code:'FIXTURE_PREPARED',message:'검증 완료',retryable:false};}
+   if(route.request().method()==='POST'){posted=route.request().postDataJSON();status=successfulPrepare?201:503;data=successfulPrepare?{fortune:{id:'a'.repeat(64),paid:false,product:products.find(p=>p.id===posted.productId)}}:{code:'FIXTURE_PREPARED',message:'검증 완료',retryable:false};}
    else {libraryCalls++;if(holdLibrary){holdLibrary=false;held=true;await new Promise(resolve=>setTimeout(resolve,400));return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fortunes:[{id:'old',product:products[0],createdAt:'2026-09-23',kindLabel:'이전 계정 기록',state:'COMPLETED'}],nextCursor:null})}).catch(()=>{});}if(failLibrary){status=503;data={code:'SERVICE_UNAVAILABLE',retryable:true};}else data={fortunes:Array.from({length:url.searchParams.has('cursor')?1:30},(_,i)=>({id:(url.searchParams.has('cursor')?'f':i.toString(16)).padStart(64,'0'),product:products[0],createdAt:'2026-09-23',state:'COMPLETED',paid:true,completedChapters:5})),nextCursor:url.searchParams.has('cursor')?null:'next'};}
   }
   return route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
@@ -39,6 +40,10 @@ try{
   await page.getByLabel('궁합 상대 (필수)').selectOption('partner');
   await page.getByRole('button',{name:'결제 내용 확인하기'}).click();
   await page.getByText('검증 완료',{exact:true}).waitFor();assert.equal(posted.consultationKind,'compatibility');assert.equal(posted.partnerProfileId,'partner');assert.equal(posted.question,'');
+  const attempt=posted.consultationAttemptId;
+  assert.match(attempt,/^[a-f0-9-]{36}$/);assert.ok(!attempts.has(attempt));attempts.add(attempt);
+  await page.getByRole('button',{name:'결제 내용 확인하기'}).click();
+  await page.getByText('검증 완료',{exact:true}).waitFor();assert.equal(posted.consultationAttemptId,attempt);
   await page.getByRole('button',{name:'대운 현재 대운과 다음 전환'}).click();
   assert.equal(await page.getByRole('group',{name:'생선 상품'}).getByRole('button').count(),1);
   await page.getByRole('button',{name:'무엇이든 물어보기 선택한 운세로 궁금한 이야기 살펴보기'}).click();
@@ -48,6 +53,12 @@ try{
   await page.screenshot({path:`.codex-consultation-shots/ask-${width}.png`,fullPage:true});
  }
  for(const [domain,label] of [['sukuyo','본명숙'],['vedic','베다 차트'],['astrology','출생 차트'],['ziwei','명반 해석'],['tarot','지금의 선택'],['fusion','종합 해석']]){await page.goto(base+`/yeongnyangi/fortune/?domain=${domain}`,{waitUntil:'domcontentloaded'});await page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:new RegExp(label)}).waitFor();assert.equal(await page.locator('#consultation-question').count(),domain==='tarot'?1:0);}
+ successfulPrepare=true;
+ await page.goto(base+'/yeongnyangi/fortune/',{waitUntil:'domcontentloaded'});
+ await page.getByRole('button',{name:'결제 내용 확인하기'}).click();await page.waitForURL('**/checkout/**');
+ const completedAttempt=posted.consultationAttemptId;
+ await page.goBack();await page.getByRole('button',{name:'결제 내용 확인하기'}).click();await page.waitForURL('**/checkout/**');
+ assert.notEqual(posted.consultationAttemptId,completedAttempt,'returning to the form starts a new consultation');
  await page.goto(base+'/yeongnyangi/library/',{waitUntil:'domcontentloaded'});
  await page.getByRole('button',{name:'이전 상담 더 보기'}).waitFor();
  const initialCalls=libraryCalls;

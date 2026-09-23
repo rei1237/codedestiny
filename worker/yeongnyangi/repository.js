@@ -143,6 +143,36 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
   return row || readRequest(env,userId,requestId);
 }
 
+async function reconcileAttemptLimit(env,userId,current) {
+  const requestId=String(current._id),total=current.snapshot?.manifest?.length || 0;
+  if(!['PAID','FORTUNE_FAILED','GENERATING'].includes(current.state)||!total||current.chapters.length>=total||
+    ['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(current.errorCode)||
+    new Date(current.leaseUntil || 0).getTime()>Date.now()||new Date(current.nextAttemptAt || 0).getTime()>Date.now())return current;
+  const ordinal=current.chapters.length;
+  const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
+  const manualGrants=Number(current.manualRecoveryGrants?.[ordinal] || 0);
+  const totalGrants=Object.values(current.manualRecoveryGrants || {}).reduce((sum,value)=>sum+Math.max(0,Number(value)||0),0);
+  const exhausted=chapterAttempts>=AUTOMATIC_CHAPTER_ATTEMPTS+manualGrants?'AUTOMATIC_RECOVERY_STOPPED'
+    :Number(current.attempts || 0)>=total*AUTOMATIC_CHAPTER_ATTEMPTS+totalGrants?'GENERATION_REVIEW_REQUIRED':'';
+  if(exhausted){
+    // A terminated Worker may never reach failChapter. Persist the exhausted
+    // state so library recovery can grant a retry instead of showing an endless wait.
+    const now=new Date();
+    const stopped=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({
+      _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
+      chapters:{$size:ordinal},attempts:current.attempts,leaseToken:current.leaseToken,
+      errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','PAYMENT_NOT_ACTIVE']},
+      $and:[manualGrants?{[`manualRecoveryGrants.${ordinal}`]:manualGrants}:{$or:[{[`manualRecoveryGrants.${ordinal}`]:{$exists:false}},{[`manualRecoveryGrants.${ordinal}`]:0}]}],
+      $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
+    },{$set:{state:'FORTUNE_FAILED',errorCode:exhausted,leaseToken:'',leaseUntil:null,nextAttemptAt:null,queuedUntil:null},
+      $push:{recoveryAudit:{kind:exhausted==='AUTOMATIC_RECOVERY_STOPPED'?'automatic_recovery_stopped':'review_required',source:'generation',chapter:ordinal,at:now,code:'ATTEMPT_LIMIT_REACHED'}}},{new:true}).lean());
+    if(!stopped)return readRequest(env,userId,requestId);
+    if(exhausted==='GENERATION_REVIEW_REQUIRED')await refundTerminalFamilyQuota(env,userId,requestId);
+    return stopped;
+  }
+  return current;
+}
+
 export async function claimChapter(env, userId, requestId, source = 'queue') {
   const current = await readRequest(env,userId,requestId);
   const accessMethod=requestAccessMethod(current);
@@ -166,12 +196,12 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
   }
   if (['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(current.errorCode)) throw failure(409,current.errorCode);
   if (new Date(current.nextAttemptAt || 0).getTime()>Date.now()) return {row:current,token:null};
+  if (new Date(current.leaseUntil || 0).getTime()>Date.now()) return {row:current,token:null};
+  const reconciled=await reconcileAttemptLimit(env,userId,current);
+  if(['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED'].includes(reconciled.errorCode))throw failure(409,reconciled.errorCode);
+  if(reconciled!==current)return {row:reconciled,token:null};
   const ordinal=current.chapters.length;
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
-  const manualGrants=Number(current.manualRecoveryGrants?.[ordinal] || 0);
-  if(chapterAttempts>=AUTOMATIC_CHAPTER_ATTEMPTS+manualGrants)throw failure(409,'AUTOMATIC_RECOVERY_STOPPED');
-  const totalGrants=Object.values(current.manualRecoveryGrants || {}).reduce((sum,value)=>sum+Math.max(0,Number(value)||0),0);
-  if(Number(current.attempts || 0)>=total*AUTOMATIC_CHAPTER_ATTEMPTS+totalGrants)throw failure(409,'GENERATION_REVIEW_REQUIRED');
   const token=crypto.randomUUID(), now=new Date();
   const attemptKey=`chapterAttempts.${ordinal}`;
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
@@ -262,7 +292,7 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
           {$push:{chapters:body},$set:{completedChapters:ordinal+1,
             // Keep the last chapter's lease until the saved document has been
             // read back. A late writer must not race the completion marker.
-            ...(isLast?{}:{state:'PAID',leaseToken:'',leaseUntil:null}),errorCode:'',nextAttemptAt:null}}, {new:true,session}).lean();
+            ...(isLast?{}:{state:'PAID',leaseToken:'',leaseUntil:null}),errorCode:'',lastFailure:null,nextAttemptAt:null}}, {new:true,session}).lean();
       }, mongoTransactionOptions());
       return result;
     } finally { await session.endSession(); }
@@ -316,7 +346,7 @@ export async function failChapter(env, userId, requestId, token, code, attempt =
 }
 
 export async function resumeRequest(env,userId,requestId) {
-  const row=await readRequest(env,userId,requestId);
+  const row=await reconcileAttemptLimit(env,userId,await readRequest(env,userId,requestId));
   if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED') return row;
   const ordinal=row.chapters.length,grantKey=`manualRecoveryGrants.${ordinal}`;
   const grants=Number(row.manualRecoveryGrants?.[ordinal] || 0),now=new Date();

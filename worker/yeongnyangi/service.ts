@@ -30,6 +30,11 @@ async function digest(value: unknown) {
   const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value)));
   return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 }
+function consultationAttempt(body: any) {
+  if(body.consultationAttemptId===undefined)return {};
+  if(typeof body.consultationAttemptId!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(body.consultationAttemptId))throw new FortuneError('INVALID_CONSULTATION_ATTEMPT');
+  return {consultationAttemptId:body.consultationAttemptId};
+}
 function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = {}) {
   const b=profile.birth || {}, place=profile.location || {};
   timeUnknown = timeUnknown || (b.timeUnknown === true && !supplement.birthTime);
@@ -43,6 +48,7 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 }
 
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any) {
+  const attempt=consultationAttempt(body);
   const product=getProduct(body.productId);
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
@@ -81,8 +87,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
   const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
-  const id=await digest({userId,fingerprint});
-  // Deterministic intent also survives losing all browser storage and returning with the same inputs.
+  const id=await digest({userId,fingerprint,...attempt});
+  // A new form starts a separate purchase; retries in that form keep the same intent.
+  // Clients without an attempt retain their original deterministic recovery identity.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   for(const system of product.systems) contexts[system]=domains[system].buildContext(await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
@@ -117,7 +124,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   const input=validateSkyInput(body);
   const product=getProduct('saju_flounder');
   const fingerprint=await digest({input,priceKRW:product.priceKRW,version:'question-sky-flounder-2'});
-  const id=await digest({userId,fingerprint});
+  const id=await digest({userId,fingerprint,...consultationAttempt(body)});
   await connectDb(env);
   // Existing paid or partial snapshots always win, even when a provider is down
   // or a later version changes the interpretation. Never recalculate a purchase.
@@ -157,7 +164,9 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const ordinal=row.chapters.length;
   const startedAt=Date.now();let stage='provider';
   try {
-    const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters};
+    const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
+      ? {code:row.lastFailure.code}:undefined;
+    const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(new CodeDestinyProvider(env));
     const generated=await provider.generateChapter(input);
