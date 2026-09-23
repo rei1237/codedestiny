@@ -18,7 +18,7 @@ try{
  await User.create({_id:owner,email,name:'영냥이 Edge QA',passwordHash:await hashPassword(password),role:'user',status:'active',localAuth:{enabled:true,activatedAt:new Date()}});
  await ProfileCard.create({userId:owner,profileId,name:'영냥이 무료운세 QA',gender:'F',birth:{year:1992,month:5,day:18,hour:9,minute:30,timeUnknown:false,calType:'solar'},location:{label:'서울',tz:'Asia/Seoul',lng:126.978,lat:37.5665}});
  const product=(await api('/api/yeongnyangi/products')).body.products.find(p=>p.id==='saju_mackerel');assert.equal(product.priceKRW,1000);
- for(let i=0;i<ids.length;i++)await YeongnyangiRequest.create({_id:ids[i],userId:i===2?foreignOwner:owner,profileId:run,productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint:ids[i],state:'CREATED',snapshot:{product,manifest:[],analysis:{}},chapters:[]});
+ for(let i=0;i<ids.length;i++)await YeongnyangiRequest.create({_id:ids[i],userId:i===2?foreignOwner:owner,profileId:run,productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint:ids[i],state:'CREATED',snapshot:{product,manifest:[],analysis:{topicId:'general'}},chapters:[]});
  for(let i=0;i<2;i++)await Payment.create({_id:proofs[i],userId:owner,merchantUid:`qa-edge-${run}-${i}`,requestId:`yn-${ids[i]}`,featureKey:product.cdFeatureKey,paymentType:'digital_content',accessType:'single_purchase',paymentAmount:i===0?1000:999,chargedPoints:0,status:'paid',source:'system',metadata:{stagingQaRun:run},entitlementGrantedAt:new Date(),receiptEmailSentAt:new Date()});
  assert.equal((await api('/api/auth/login',{email,password})).status,200);assert.ok(cookie);
  assert.equal((await api(`/api/yeongnyangi/requests/${ids[0]}`)).body.fortune.state,'CREATED');
