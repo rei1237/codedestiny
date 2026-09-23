@@ -5,6 +5,7 @@ import {
   PAID_COMPLETED_RESULT_ACCESS_FIXTURES,
   PAID_COMPLETED_RESULT_PRODUCT_KEYS,
 } from "../fixtures/paid-completed-result-access-fixtures.mjs";
+import { matches } from "../fixtures/fake-payment-db.mjs";
 
 let revokedStore = -1;
 let observed = [];
@@ -79,6 +80,31 @@ test("부분 취소는 권한 자동 회수 전까지 과거 결과를 오차단
       }),
     ]),
   }));
+});
+
+test("결제 없이 만료된 주문은 옵트인한 호출에서만 회수 판정에서 빠진다", async () => {
+  const featureKey = "ziwei-ai-consultation";
+  const record = { status: "completed", id: "saved:expired", idempotencyKey: "k" };
+  const expired = { userId: "owner", featureKey, idempotencyKey: "k", status: "cancelled", orderState: "CANCELLED", failureCode: "ORDER_EXPIRED" };
+  const paidAt = new Date("2026-09-24T00:00:00Z");
+  const stillRevoked = [
+    { ...expired, failureCode: "PG_CANCELLED" },
+    { ...expired, paidAt },
+    { ...expired, status: "refunded", orderState: "REFUNDED", failureCode: "", paidAt },
+  ];
+  const paymentFilter = async (options) => {
+    observed = [];
+    await isStoredPaidResultRevoked("owner", featureKey, record, options);
+    return observed.find(({ name }) => name === "payment").filter;
+  };
+  const strict = await paymentFilter();
+  const lenient = await paymentFilter({ ignoreNeverPaidExpiry: true });
+  expect(matches(expired, strict)).toBe(true);
+  expect(matches(expired, lenient)).toBe(false);
+  for (const doc of stillRevoked) {
+    expect(matches(doc, strict)).toBe(true);
+    expect(matches(doc, lenient)).toBe(true);
+  }
 });
 
 test("식별자가 없던 구버전 completed 저장본에는 새 증빙 문턱을 소급하지 않는다", async () => {

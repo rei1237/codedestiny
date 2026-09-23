@@ -37,7 +37,7 @@ import { buildZiweiPersonalityContextLines } from "../lib/ziwei-personality-cont
 
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
-import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { isStoredPaidResultRevoked, neverPaidExpiredOrder } from "../lib/paid-result-revocation.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -2439,9 +2439,11 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   const clauses = billingTokenClauses(tokens);
   const metadataIds = [...pointHistoryTokenClauses(tokens), ...tokens.map(sourceId => ({ sourceId }))];
   const markers = ["refundedForServiceExecution", "coinRefundedForUnlockFailure", "monthlyCreditRefundedForServiceExecution", "refundedForUnlockFailure", "monthlyCreditRefundedForUnlockFailure", "monthlyCreditRefundedForLedgerFailure"].map(key => ({ [`metadata.${key}`]: true }));
+  // 같은 탭 재결제는 요청 키 K 를 그대로 쓰고 새 회차(K#1)로 결제한다. 결제창만 열고 떠나 만료된 옛 회차가
+  // K 를 들고 있다고 막으면 "결제됐는데 402" 가 된다(2026-09-24). 환불·PG 취소는 그대로 막는다.
   const blocked = await Promise.all([
     PaidExecutionRecord.findOne({ userId: clean(auth.userId), featureId: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
-    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: clauses }).lean(),
+    Payment.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, status: { $in: revoked }, $or: clauses, $nor: [neverPaidExpiredOrder()] }).lean(),
     PointHistory.findOne({ userId: auth.userId, featureKey: FEATURE_KEY, $and: [{ $or: metadataIds }, { $or: markers }] }).lean(),
     MonthlyCreditLedger.findOne({ userId: auth.userId, $and: [{ $or: [{ serviceKey: FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] }, { $or: metadataIds }, { $or: markers }] }).lean(),
   ]);
@@ -2603,7 +2605,7 @@ async function handleResult(request, env) {
   if (consultation.status !== "completed") {
     return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
   }
-  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
+  if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation, { ignoreNeverPaidExpiry: true })) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json(publicConsultation(consultation));
