@@ -44,10 +44,10 @@ test('changed situation has a different immutable intent; standard consultation 
   assert.equal(standard.snapshot.analysis.consultation.spirit,undefined);
   assert.equal(standard.featureKey,first.featureKey);assert.equal(standard.amountKRW,first.amountKRW);
 });
-test('lifetime generation cap rejects extra recovery allowance before any provider call',async()=>{
+test('invalid stored manifest fails closed before any provider call',async()=>{
   const row=await prepareFortune(env,'owner',body);
-  globalThis.__spiritTest.claim={...row,attempts:16,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
-  await assert.rejects(generateNextChapter(env,'owner',row._id),/GENERATION_REVIEW_REQUIRED/);
+  globalThis.__spiritTest.claim={...row,snapshot:{...row.snapshot,manifest:[]},chapters:[],chapterAttempts:{0:1}};
+  await assert.rejects(generateNextChapter(env,'owner',row._id),/INVALID_MANIFEST/);
   assert.equal(globalThis.__spiritTest.calls,0);
 });
 
@@ -69,8 +69,8 @@ for(const mode of ['prashna-v1'])test(mode+' uses question moment without a prof
   const publicRow=presentFortune(replay);
   assert.equal(publicRow.snapshot,undefined);assert.equal(publicRow.manifest[0].factSelectors,undefined);assert.deepEqual(publicRow.chapters[0].sources,[]);
   a.state='REFUNDED';assert.equal(presentFortune(await prepareFortune({},'sky-owner',questionBody)).chapters.length,0);
-  globalThis.__spiritTest.claim={...a,attempts:25,additionalAttempts:100,chapters:[],chapterAttempts:{0:1}};
-  await assert.rejects(generateNextChapter(env,'sky-owner',a._id),/GENERATION_REVIEW_REQUIRED/);
+  globalThis.__spiritTest.claim={...a,snapshot:{...a.snapshot,manifest:[]},chapters:[],chapterAttempts:{0:1}};
+  await assert.rejects(generateNextChapter(env,'sky-owner',a._id),/INVALID_MANIFEST/);
   assert.equal(globalThis.__spiritTest.calls,0);
 });
 

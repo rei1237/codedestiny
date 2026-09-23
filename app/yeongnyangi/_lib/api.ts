@@ -1,7 +1,8 @@
 import {authFetch} from '@/app/_lib/auth-client';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
-export type FortuneRecord={charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;errorCode?:string;createdAt:string;completedAt?:string};
+export type FortuneRecovery={requestId:string;savedChapters:number;totalChapters:number;providerNeeded:boolean;retryable:boolean;canRetryNow:boolean;nextAction:'reread'|'wait'|'retry'|'support'};
+export type FortuneRecord={charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;recovery?:FortuneRecovery;errorCode?:string;createdAt:string;completedAt?:string};
 export type FortuneSummary=Pick<FortuneRecord,'id'|'product'|'state'|'paid'|'createdAt'> & {completedChapters:number;consultationKind?:string;kindLabel?:string};
 export type FortunePage={fortunes:FortuneSummary[];nextCursor:string|null};
 export class FortuneApiError extends Error {

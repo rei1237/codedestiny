@@ -1,7 +1,7 @@
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
-let requests=[],payments=[],evidences=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,tail=Promise.resolve(),activeOperations=0;
+let requests=[],payments=[],evidences=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
 const consumePass=jest.fn(),refundPass=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function matches(row,query) {
@@ -37,6 +37,7 @@ function model(source,kind) {
   return {
     findOne:filter=>query(()=>{
       if(kind==='request'&&failFinalRead&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
+      if(kind==='request'&&refundBeforeFinalization&&filter.completedChapters!==undefined){refundBeforeFinalization=false;payments[0].status='refunded';}
       return source().find(row=>matches(row,filter))||null;
     }),
     findOneAndUpdate:(filter,update,options={})=>query(()=>{
@@ -52,7 +53,10 @@ function model(source,kind) {
     }),
     updateOne:(filter,update)=>query(()=>{
       const row=source().find(r=>matches(r,filter));
-      if(row)for(const [key,value] of Object.entries(update.$set||{}))set(row,key,value);
+      if(row){
+        for(const [key,value] of Object.entries(update.$set||{}))set(row,key,value);
+        for(const [key,value] of Object.entries(update.$push||{}))(row[key]??=[]).push(value);
+      }
       return {modifiedCount:row?1:0};
     }),
   };
@@ -85,7 +89,7 @@ const values={profileId:'p1',productId:'saju_mackerel',featureKey:'yeongnyangi-s
 beforeEach(()=>{
   requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
   evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();
-  failWrite=false;failFinalRead=false;failFinalComplete=false;tail=Promise.resolve();
+  failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
 test('Family access consumes once, persists proof, and remains readable after pass expiry',async()=>{
   payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true,expiresAt:'2026-10-23T00:00:00.000Z'}};
@@ -101,15 +105,15 @@ test('Family access consumes once, persists proof, and remains readable after pa
   expect((await repo.readRequest({},owner,'id')).accessMethod).toBe('FAMILY');
 });
 
-test('Family terminal failure with no chapter restores quota, but a partial result does not',async()=>{
+test('Family confirmed terminal failure with no chapter restores quota, but a partial result does not',async()=>{
   requests.push({_id:'empty',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',passCycleKey:'cycle',passCoinCost:10,completedChapters:0,chapters:[],leaseToken:'lease'});
   evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'empty',accessMethod:'FAMILY'}});
   refundPass.mockResolvedValue({refunded:true});
-  await repo.failChapter({},owner,'empty','lease','FORTUNE_PROVIDER_FAILED',3,'provider');
+  await repo.failChapter({},owner,'empty','lease','GENERATION_REVIEW_REQUIRED',1,'provider');
   expect(refundPass).toHaveBeenCalledWith(expect.objectContaining({cycleKey:'cycle',cost:10,refundId:'yeongnyangi:empty'}));
   expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED'});
   requests.push({_id:'partial',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439098',passCycleKey:'cycle',passCoinCost:10,completedChapters:1,chapters:[{}],leaseToken:'lease2'});
-  await repo.failChapter({},owner,'partial','lease2','FORTUNE_PROVIDER_FAILED',3,'provider');
+  await repo.failChapter({},owner,'partial','lease2','GENERATION_REVIEW_REQUIRED',1,'provider');
   expect(refundPass).toHaveBeenCalledTimes(1);
   expect(requests[1].state).toBe('FORTUNE_FAILED');
 });
@@ -199,7 +203,15 @@ test('three chapter failures stop automatically; explicit resume preserves total
   expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
   await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
   const resumed=await repo.resumeRequest({},owner,'id');expect(resumed.attempts).toBe(3);expect(resumed.paymentId).toBe('pay1');
-  expect(resumed.chapterAttempts[0]).toBe(0);expect(resumed.state).toBe('PAID');
+  expect(resumed.chapterAttempts[0]).toBe(3);expect(resumed.manualRecoveryGrants[0]).toBe(1);expect(resumed.state).toBe('PAID');
+  let claim=await repo.claimChapter({},owner,'id','queue');
+  await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',4,'provider',4);
+  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
+  await repo.resumeRequest({},owner,'id');expect(requests[0].manualRecoveryGrants[0]).toBe(2);
+  claim=await repo.claimChapter({},owner,'id','queue');
+  await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',5,'provider',5);
+  await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409,payload:{code:'GENERATION_REVIEW_REQUIRED'}});
+  expect(requests[0]).toMatchObject({attempts:5,state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
 });
 
 test('expired final lease can finalize a saved checkpoint without another provider claim',async()=>{
@@ -215,7 +227,17 @@ test('duplicate explicit recovery returns the same paid request without losing t
   requests[0].errorCode='AUTOMATIC_RECOVERY_STOPPED';requests[0].state='FORTUNE_FAILED';requests[0].attempts=3;
   const rows=await Promise.all([repo.resumeRequest({},owner,'id'),repo.resumeRequest({},owner,'id')]);
   for(const row of rows){expect(row.state).toBe('PAID');expect(row.paymentId).toBe('pay1');expect(row.attempts).toBe(3);}
+  expect(requests[0].manualRecoveryGrants[0]).toBe(1);
+  expect(requests[0].recoveryAudit.filter(event=>event.kind==='manual_retry_requested')).toHaveLength(1);
   expect(payments).toHaveLength(1);
+});
+
+test('refund after final checkpoint but before completion cannot expose a completed result',async()=>{
+  await repo.createRequest({},owner,'id',{...values,snapshot:{manifest:[{}]}});await repo.attachPayment({},owner,'id',1000);
+  const claim=await repo.claimChapter({},owner,'id','queue');refundBeforeFinalization=true;
+  const result=await repo.finishChapter({},owner,'id',claim.token,0,{summary:'durable'},1);
+  expect(result).toMatchObject({state:'REFUNDED',errorCode:'PAYMENT_NOT_ACTIVE'});
+  expect(requests[0].chapters).toEqual([{summary:'durable'}]);expect(requests[0].state).not.toBe('COMPLETED');
 });
 
 test.each(['reread','completion'])('last checkpoint survives %s failure and completes without another provider claim',async fault=>{

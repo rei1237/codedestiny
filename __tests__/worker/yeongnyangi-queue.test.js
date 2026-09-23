@@ -33,6 +33,7 @@ test('failure after checkpoint registration retries delivery without losing save
  const r={...row(),chapters:[{summary:'saved'}]},m=message();
  const generateNextChapter=jest.fn().mockResolvedValue(r);
  await consumeConsultationQueue({messages:[m]},{},{read:async()=>r,service:{generateNextChapter},enqueue:async()=>false});
+ expect(generateNextChapter).toHaveBeenCalledWith({},'owner',id,'queue');
  expect(m.ack).not.toHaveBeenCalled();expect(m.retry).toHaveBeenCalled();expect(r.chapters).toHaveLength(1);
 });
 test.each(['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'])('terminal error %s does not restart automatically',async errorCode=>{

@@ -17,6 +17,10 @@ function RecoveryNotice({message,busy,onRetry}:{message:string;busy:boolean;onRe
   </div>
  </div>;
 }
+function sameRequest(fortune:FortuneRecord,id:string){
+ if(fortune.id!==id||(fortune.recovery?.requestId&&fortune.recovery.requestId!==id))throw new FortuneApiError('RECOVERY_ID_MISMATCH','원래 상담과 복구 응답이 일치하지 않아요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.',409,false);
+ return fortune;
+}
 export default function Result(){
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),mounted=useRef(true);
@@ -27,7 +31,7 @@ export default function Result(){
   if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/generate`,{});
-    if(mounted.current)setRow(fortune);
+    if(mounted.current)setRow(sameRequest(fortune,id));
   }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(e instanceof Error?e.message:'상담을 이어가지 못했어요.');}
   finally{lock.current=false;if(mounted.current)setBusy(false);}
  }
@@ -39,9 +43,9 @@ export default function Result(){
   let cancelled=false,timer:ReturnType<typeof setTimeout>|undefined;
   async function load(attempt=0){
    try{
-    let {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}`);
+    let {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}`);fortune=sameRequest(fortune,id);
     if(!fortune.paid && fortune.state!=='REFUNDED'){
-     try{fortune=(await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune;}
+     try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
      catch(e){if(!(e instanceof FortuneApiError&&e.status===402))throw e;}
     }
     if(!cancelled){setRow(fortune);setError('');}
@@ -61,7 +65,7 @@ export default function Result(){
   const timer=setTimeout(async()=>{
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
-    if(!cancelled){setRow(fortune);setError('');}
+    if(!cancelled){setRow(sameRequest(fortune,row.id));setError('');}
    }catch(e){if(!cancelled){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError('진행 상태를 확인하지 못했어요. 연결되면 다시 확인할게요.');setRow({...row});}}}
   },5000);
   return ()=>{cancelled=true;clearTimeout(timer);};

@@ -12,7 +12,7 @@
 
 - 메시지에는 `requestId`만 포함한다. 원문 질문·출생정보·토큰은 큐와 로그에 넣지 않는다.
 - 배치 1, 동시 소비자 2. 챕터별 90초 provider 제한과 DB 저장 여유를 유지한다.
-- 챕터 호출은 자동 3회까지, 30초·120초 대기. 메시지 재전달과 수동 복구도 상담 총 호출 예산을 초기화하지 않는다.
+- 챕터 호출은 자동 3회까지, 30초·120초 대기한다. 사용자 명시 복구는 현재 미생성 챕터에 1회씩 최대 2회만 추가하며, 기존 시도 횟수는 초기화하지 않는다. 따라서 provider 호출 상한은 챕터당 5회다.
 - 큐 재전달은 최대 5회다. 이후에도 DB의 미완료 주문이 주기 복구의 근거이며, 자동 중단된 상담은 재등록하지 않는다.
 - 중복 메시지·결제 콜백·새로고침은 동일 주문·챕터 잠금을 사용한다. 저장된 챕터를 덮어쓰지 않는다.
 - 큐가 생성된 뒤에만 실제 연결·재전달·최장 상담의 완료 시간·실기기 이탈을 검증한다. 현재 mock 결과를 운영 검증으로 취급하지 않는다.
@@ -21,9 +21,11 @@
 
 `[yeongnyangi-queue]`의 상담 ID·저장 챕터 수·오류 코드와 `[yeongnyangi-recovery]`의 집계만 사용한다. `AUTOMATIC_RECOVERY_STOPPED`는 사용자 복구 가능 상태이고 `GENERATION_REVIEW_REQUIRED`는 총 예산 소진으로 추가 확인이 필요한 상태다. 2026-09-23 운영 로그에서 결과 조회 MongoDB operation timeout 및 첫 챕터 quality 단계 INVALID_EVIDENCE 3회를 확인했다. 근거 스키마를 Gemini responseSchema에 전달하고, 유효한 소절 인용의 합집합을 결과 인용 목록으로 정규화한다. 알 수 없는 인용은 계속 거부한다. 마지막 실패의 code/stage/at는 lastFailure로 보존한다.
 
+상태 전이는 `CREATED → PAID → GENERATING → PAID(다음 챕터)`를 반복하고, 마지막 챕터의 저장본·결제 증명을 같은 트랜잭션에서 다시 읽은 뒤에만 `COMPLETED`로 닫는다. 일시 실패는 `FORTUNE_FAILED`에서 backoff 후 재개하고, 자동 3회 소진은 `AUTOMATIC_RECOVERY_STOPPED`, 사용자 추가 2회 소진·불변 manifest 오류·저장 내용 검수 실패는 `GENERATION_REVIEW_REQUIRED`로 보낸다. 환불·취소·권한 중지는 `REFUNDED` 또는 `PAYMENT_NOT_ACTIVE`로 차단한다. 큐 claim은 `queue`/`scheduled`, 명시 복구는 `user`, 운영자 승인은 `operator`로 `recoveryAudit`에 구분한다.
+
 ## 수동 복구
 
-결제·환불 상태를 확인한 자동 중단 건만 `scripts/recover-yeongnyangi-request.mjs --db <database> --request <id> --resume-stop --reason <incident>`로 사전 점검한다. 승인된 적용에만 `--apply`를 추가한다. 이 모드는 상담 총 호출 한도를 늘리지 않으며, HTTP/LLM/PG를 직접 호출하지 않는다. 이후 운영 큐 또는 기존 복구 tick이 원래 스냅샷에서 이어간다.
+결제·환불 상태를 확인한 자동 중단 건만 `scripts/recover-yeongnyangi-request.mjs --db <database> --request <id> --resume-stop --reason <incident>`로 사전 점검한다. 승인된 적용에만 `--apply`를 추가한다. 이 모드는 현재 챕터에 사용자 복구와 같은 1회만 추가하고 기존 시도 횟수를 보존하며, HTTP/LLM/PG를 직접 호출하지 않는다. `GENERATION_REVIEW_REQUIRED`는 원인을 확인한 뒤 `--attempts 1..5`로 명시한 횟수만 추가한다. 이후 운영 큐 또는 기존 복구 tick이 원래 스냅샷에서 이어간다.
 
 UI의 다시 불러오기는 읽기 오류를 재조회한다. 상담 이어가기는 기존 생성 API로 동일 상담을 재개하며 큐 등록 실패는 503과 Retry-After를 반환한다. 읽기 작업만 공유 DB 재시도 장치의 timeout/admission 복구를 사용하고 쓰기 작업에는 이를 확장하지 않는다.
 

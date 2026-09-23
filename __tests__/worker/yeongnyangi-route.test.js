@@ -142,6 +142,12 @@ test('retry uses the authenticated owner and original consultation',async()=>{
  const response=await handleYeongnyangiRoutes(request(`requests/${id}/generate`,'POST',{userId:'foreign'}),env);
  expect(response.status).toBe(202);expect(generate).toHaveBeenCalledWith(env,userId,id);
 });
+test('completed reread returns 200 and the same request without another payment route',async()=>{
+ generate.mockResolvedValue({id,state:'COMPLETED'});
+ const response=await handleYeongnyangiRoutes(request(`requests/${id}/generate`,'POST',{}),env);
+ expect(response.status).toBe(200);expect(await response.json()).toMatchObject({fortune:{id,state:'COMPLETED'}});
+ expect(activate).not.toHaveBeenCalled();
+});
 
  test.each([0,30])('list with %i rows has no next cursor and contains only summaries',async count=>{
   lean.mockResolvedValue(Array.from({length:count},(_,i)=>({_id:String(i).padStart(64,'0'),snapshot:{product:{id:'saju_mackerel'},analysis:{consultation:{consultationKind:'personal',kindLabel:'사주 해석'}}},createdAt:'2026-09-23',state:'COMPLETED',completedChapters:5})));

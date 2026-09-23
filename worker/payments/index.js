@@ -35,7 +35,7 @@ import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credenti
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import { Payment, User } from "../lib/models.js";
 import { prepareResumeContext, readOrderResumeContext } from "./resume-context.js";
-import { getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
+import { fetchPortOnePayment, getPortOnePublicConfig, resolveChargeAmountKRW } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { classify, contractFor, paymentError, responseHeadersFor } from "./errors.js";
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
@@ -206,6 +206,64 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
     return { event: "cancelled", refunded, revoked, reviewRequired: !revoked };
   }
   return { ignored: true, status };
+}
+
+/* 🔴 KG이니시스 보안 권고(2026-09-18) 대응: 실패·전액취소 이벤트는 서명만 믿고 적용하지 않는다.
+   환불·권한 회수는 되돌리기 어려우므로, Paid 가 confirmOrder 로 재조회하듯 PortOne 에 다시 물어
+   그 사실이 이벤트와 맞을 때만 적용한다(포트원 웹훅 가이드의 "수신 후 결제 조회" 권장).
+   부분취소는 원래 검토 마커만 남기므로 재조회하지 않는다. */
+const REQUERY_EVENT_TYPES = new Set(["transaction.failed", "transaction.cancelled"]);
+
+/** PG 조회 결과가 이 이벤트를 뒷받침하는가. 부분취소(PARTIAL_CANCELLED)는 전액취소로 인정하지 않는다. */
+function pgConfirmsNonPaidEvent(eventType, pg, orderId) {
+  if (String(pg?.paymentId || "") !== String(orderId)) return false;
+  const type = String(eventType || "").trim().toLowerCase();
+  const normalized = String(pg?.status || "").toLowerCase();
+  if (type === "transaction.failed") return normalized !== "paid";
+  if (type === "transaction.cancelled") {
+    const raw = String(pg?.rawV2?.status || "").toUpperCase();
+    return raw ? raw === "CANCELLED" || raw === "CANCELED" : normalized === "cancelled";
+  }
+  return false;
+}
+
+/** 슬롯 밖에서 PG 를 조회하고, 새 슬롯에서 적용·처리 완료를 기록한다(슬롯 안 fetch 금지 원칙). */
+async function applyNonPaidEventAfterRequery(env, ctx, event, { withDb, fetchPayment = fetchPortOnePayment }) {
+  const failEvent = (error) => withDb(env, ctx, (db) => markEventFailed(db, { eventId: event.eventId, reason: describeEventFailure(error) }));
+  let pg;
+  try {
+    pg = await fetchPayment(env, event.paymentId);
+  } catch (error) {
+    // 조회 실패는 사실 불일치가 아니다 — 실패로 남기고 503 으로 PortOne 재전송을 받는다.
+    const unavailable = paymentError("PG_UNAVAILABLE", "결제사 응답이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", {
+      orderId: event.paymentId,
+      reason: String(error?.message || "").slice(0, 160),
+    });
+    await failEvent(unavailable);
+    throw unavailable;
+  }
+
+  const confirmed = pgConfirmsNonPaidEvent(event.eventType, pg, event.paymentId);
+  if (!confirmed) {
+    // 위조·지연 이벤트이거나 PG 상태가 이미 바뀐 경우다. 재전송해도 결과가 같으므로 200 으로 끝낸다.
+    logPayment({
+      requestId: ctx.requestId, route: ctx.route, orderId: event.paymentId,
+      paymentStatus: "webhook_pg_status_mismatch", errorCode: "PG_STATUS_MISMATCH",
+    });
+  }
+  try {
+    const outcome = await withDb(env, ctx, async (db) => {
+      const applied = confirmed
+        ? await applyNonPaidPgEvent(db, { eventType: event.eventType, orderId: event.paymentId })
+        : { ignored: true, reason: "PG_STATUS_MISMATCH", pgStatus: String(pg?.status || "") };
+      await markEventProcessed(db, { eventId: event.eventId });
+      return applied;
+    });
+    return json({ ok: true, ...outcome });
+  } catch (error) {
+    await failEvent(error);
+    throw error;
+  }
 }
 
 /**
@@ -1579,7 +1637,7 @@ const ROUTES = {
     auth: "none",
     // 🔴 본문을 **원문 그대로** 읽어야 한다. JSON 파싱 후 재직렬화하면 서명이 깨진다.
     rawBody: true,
-    async handle({ env, ctx, rawBody, request, withDb }) {
+    async handle({ env, ctx, rawBody, request, withDb, pgDeps }) {
       /* 첫 슬롯에서 이벤트 청구·비-Paid 처리·확정 판정까지 함께 끝낸다. 확정 판정을 여기서 같이
          내려 두면(begun) confirmOrder 가 판정 슬롯을 따로 잡지 않아, 카드 결제마다 오는 웹훅이
          결제 레인에서 쓰는 슬롯이 둘로 유지된다. */
@@ -1592,6 +1650,10 @@ const ROUTES = {
         if (!event.claimed) return { ...event, outcome: { duplicate: true } };
 
         if (event.eventType && !/paid/i.test(event.eventType)) {
+          // 실패·전액취소는 주문이 있으면 PG 재조회 뒤 적용한다(applyNonPaidEventAfterRequery, 슬롯 밖 조회).
+          const requery = REQUERY_EVENT_TYPES.has(String(event.eventType).trim().toLowerCase())
+            && await findOrder(db, { orderId: event.paymentId });
+          if (requery) return { ...event, requery: true };
           // 비-Paid 이벤트(실패·취소·부분취소)는 위 applyNonPaidPgEvent 가 구 웹훅 시맨틱을 승계한다.
           // 그 밖의 타입(가상계좌 등 카드 전용 서비스의 미지원 계열)은 받았다는 사실만 남긴다.
           const applied = await applyNonPaidPgEvent(db, { eventType: event.eventType, orderId: event.paymentId });
@@ -1602,6 +1664,7 @@ const ROUTES = {
         return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId }) };
       });
       if (accepted.outcome) return json({ ok: true, ...accepted.outcome });
+      if (accepted.requery) return applyNonPaidEventAfterRequery(env, ctx, accepted, { withDb, fetchPayment: pgDeps?.fetchPayment });
 
       try {
         await confirmOrder(env, ctx, { orderId: accepted.paymentId }, {
@@ -1701,6 +1764,7 @@ export async function handlePaymentsContext(request, env, options = {}) {
 
     const response = await matched.route.handle({
       request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape, legacyEnvelope,
+      pgDeps: options.pgDeps || {},
     });
     status = response.status;
     /* 🔴 정상 응답에도 서버 시간을 실어 보낸다. 예전엔 Server-Timing 이 오류 경로에만 붙어서

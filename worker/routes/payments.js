@@ -727,18 +727,31 @@ function buildSinglePaymentId(userId) {
   return `cd-single-${userTag}-${Date.now()}-${randomAsciiToken(8)}`;
 }
 
+/* 🔴 결과는 buildSinglePaymentRedirectUrl 에서 new URL(path, 자사 origin) 으로 PG redirectUrl 이 된다.
+   "//" 만 막으면 "/\evil.com"·"/<TAB>/evil.com" 이 WHATWG URL 파서에서 외부 호스트로 해석되고,
+   절대 URL 의 pathname("https://a//evil.com" → "//evil.com")도 같은 구멍으로 샌다(2026-09-23 실측).
+   규칙은 app/_lib/auth-return.js sanitizeAuthReturnPath 와 같다: 백슬래시·제어문자 거부 + origin 재확인. */
 function sanitizeReturnPath(value) {
   const raw = String(value || "/").trim();
   if (!raw) return "/";
-  try {
-    if (/^https?:\/\//i.test(raw)) {
+  let candidate = raw;
+  if (/^https?:\/\//i.test(raw)) {
+    try {
       const parsed = new URL(raw);
-      return `${parsed.pathname || "/"}${parsed.search || ""}${parsed.hash || ""}`.slice(0, 700);
+      candidate = `${parsed.pathname || "/"}${parsed.search || ""}${parsed.hash || ""}`;
+    } catch (_) {
+      return "/";
     }
-  } catch (_) {}
-  if (!raw.startsWith("/")) return "/";
-  if (raw.startsWith("//")) return "/";
-  return raw.slice(0, 700);
+  }
+  if (!candidate.startsWith("/") || candidate.startsWith("//")) return "/";
+  if (candidate.includes("\\") || /[\u0000-\u001f\u007f]/.test(candidate)) return "/";
+  try {
+    const base = "https://code-destiny.invalid";
+    if (new URL(candidate, base).origin !== base) return "/";
+  } catch (_) {
+    return "/";
+  }
+  return candidate.slice(0, 700);
 }
 
 function trimUtf8Bytes(value, maxBytes) {
@@ -3636,6 +3649,8 @@ export async function handlePaymentRoutes(request, env, ctx) {
 }
 
 export const __paymentsTestUtils = {
+  sanitizeReturnPath,
+  buildSinglePaymentRedirectUrl,
   handleSinglePaymentStart,
   handleSinglePaymentComplete,
   handleWebhook,
