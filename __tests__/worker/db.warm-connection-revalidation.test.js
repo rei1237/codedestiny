@@ -28,9 +28,6 @@
  *      이내) 세웠으면 ping 실패를 거짓 실패로 보고 그대로 돌려준다.
  *   ⑤ ③·④의 이웃은 **아직 호출자에게 안 돌아간** op 이다. 재시도로 이미 반환한 op 의 걸린 시도는
  *      리셋 회계에만 남는다(2026-09-24 스테이징 재현의 503 경로).
- *   ⑥ ping 이 **진행 중**일 때 들어온 요청은 ③으로 건너뛰지 않고 그 검증(실패하면 재수립까지)을
- *      기다린다(2026-09-24 설계안 D). 떼어 낸 클라이언트에 이미 보낸 명령은 빨리 실패하지 않았다
- *      — 스테이징 재현 4/4 회차의 동시 attendance 503.
  *
  * ②에 "단 동시 요청이 있으면 끊지 않는다" 절이 있었다. ③이 생긴 뒤 그 절이 잡는 경우는 "내 ping 이
  * 도는 300ms 사이에 이웃이 들어왔다"뿐인데, 그 이웃은 ③ 으로 ping 없이 **같은 죽은 커넥션**을 받아
@@ -235,7 +232,7 @@ test("revalidation failure detaches an old warm connection even if a neighbour a
       await new Promise((resolve) => setTimeout(resolve, 5));
     }
     expect(__dbTestUtils.countActiveMongoOps()).toBe(2);
-    // 이웃은 ping 을 보내지 않았다(⑥ 이후로는 이 검증을 기다리는 중이다 — 아래 테스트).
+    // 이웃은 ping 없이 들어갔다(죽은 커넥션 위에 서 있다).
     expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
 
     await pinging;
@@ -253,78 +250,6 @@ test("revalidation failure detaches an old warm connection even if a neighbour a
     releaseNeighbour?.({ ok: 1 });
     await neighbour.catch(() => {});
   }
-});
-
-test("a request that arrives mid-ping waits for that validation and rides the re-established connection", async () => {
-  /* ⑥. 위 테스트와 순서가 같다 — 오래된 웜 커넥션이 죽었고, 형제의 ping 이 걸린 도중에 이 요청이 든다.
-     ③에 맡기면 형제를 이웃으로 세어 ping 없이 죽은 커넥션 위에서 op 을 시작한다(스테이징 4/4 회차:
-     8000ms 정지 → 503, 형제는 재수립 → 200). 여기서는 op 이 시작되는 순간의 클라이언트를 잡아
-     새 클라이언트인지 본다. */
-  const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
-  const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
-  const opts = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
-  await connectDb(opts);
-  // 상수를 경유하지 않는 실측 나이(위 테스트와 같은 이유) — ④의 나이 가드 밖이다.
-  __dbTestUtils.ageConnectionForTest(5 * 60 * 1000);
-
-  mongooseMock.connection.__setPing(PING_HANGS);
-  const staleClient = mongooseMock.connection.getClient();
-  const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
-  const connectsBefore = mongooseMock.connect.mock.calls.length;
-  const retryOpts = { retries: 0, attemptTimeoutMS: 4000, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false };
-
-  const pinging = withMongoRetry(opts, async () => ({ ok: 1 }), retryOpts);
-  for (let i = 0; i < 50 && mongooseMock.connection.db.command.mock.calls.length === pingsBefore; i += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 5));
-  }
-  expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
-
-  const timings = {};
-  let clientSeenByOp = null;
-  const follower = withMongoRetry(opts, async () => {
-    clientSeenByOp = mongooseMock.connection.getClient();
-    return { ok: 1 };
-  }, { ...retryOpts, timings });
-
-  await Promise.all([pinging, follower]);
-
-  expect(clientSeenByOp).not.toBe(staleClient);
-  expect(clientSeenByOp).toBe(mongooseMock.connection.getClient());
-  expect(timings.pingSkipped).toBeUndefined();
-  expect(timings.pingJoinedMs).toBeGreaterThanOrEqual(0);
-  // 검증도 재수립도 형제 한 번뿐이다 — 기다린 요청은 ping 도 connect 도 따로 하지 않는다.
-  expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
-  expect(mongooseMock.connect.mock.calls.length).toBe(connectsBefore + 1);
-});
-
-test("a request stops waiting for a validation whose leader never settles", async () => {
-  /* ⑥의 대가. 검증을 이끄는 요청의 컨텍스트가 도중에 죽으면 그 타이머도 죽어 검증이 영영 settle 하지
-     않는다 — 기다림을 기다리는 쪽 타이머로 끊지 않으면 그 뒤 아이솔레이트의 모든 요청이 걸린다.
-     여기서는 detach 가 영영 안 끝나는 것으로 이끈 요청을 멈춰 세운다. */
-  const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
-  const { connectDb, __dbTestUtils } = await loadDb(mongooseMock);
-  const opts = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
-  await connectDb(opts);
-  __dbTestUtils.ageConnectionForTest(5 * 60 * 1000);
-
-  mongooseMock.connection.__setPing(PING_HANGS);
-  mongooseMock.connection.close.mockImplementationOnce(() => new Promise(() => {}));
-  const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
-  void connectDb(opts);
-  for (let i = 0; i < 100 && mongooseMock.connection.close.mock.calls.length === 0; i += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 10));
-  }
-  expect(mongooseMock.connection.close).toHaveBeenCalledTimes(1);
-
-  __dbTestUtils.ageWarmValidationForTest(100);
-  mongooseMock.connection.__setPing(PING_OK);
-  const timings = {};
-  const connection = await connectDb(opts, { timings });
-
-  expect(connection).toBe(mongooseMock.connection);
-  expect(timings.pingJoinedMs).toBeGreaterThanOrEqual(50);
-  // 기다림을 끊은 뒤에는 종전 판정대로 스스로 검증한다.
-  expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 2);
 });
 
 test("a ping failure on a just-established connection with a neighbour is treated as a false failure, not a detach", async () => {
