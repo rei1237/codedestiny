@@ -207,6 +207,15 @@ section("전 27수 융합·크로스워크 정합");
   }
   ok(actualCalculationOk, "27개 실제 황경 중간값: 숙요·나크샤트라 계산이 CROSSWALK_OFFSET 정렬과 일치");
   ok(allOk, "27개 제목·해설·정/역방향 조회가 실제 계산 이름과 일치");
+  // 통합 주제(titleLead) 뒤 조사가 받침과 맞는지 — 받침 없는 제목에 '이'/'이라는'이 붙던 결함 회귀 방지.
+  const particleOk = FUSION_ENTRIES.every((f) => {
+    const lead = f.fusionTitle.split(" — ")[0];
+    const code = lead.charCodeAt(lead.length - 1) - 0xac00;
+    const batchim = code >= 0 && code < 11172 && code % 28 !== 0;
+    return f.convergence.includes(`'${lead}'${batchim ? "이라는" : "라는"} `)
+      && f.fusionReading.includes(`${lead}${batchim ? "이" : "가"} 중요하게`);
+  });
+  ok(particleOk, "27개 통합 주제 조사(이/가·이라는/라는)가 받침과 일치");
 }
 
 // 9) 나디 정통 배정 (9/9/9 그룹) — 교정 검증

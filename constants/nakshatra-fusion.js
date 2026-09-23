@@ -21,7 +21,7 @@ const FUSION_DRAFTS = [
   { sukuyoIdx: 5, titleLead: "돌파를 우정으로 묶는 힘", easternKeywords: ["돌파", "투지", "혁신"], guidance: "무엇을 바꿀지와 누구와 함께할지를 같이 정하면 변화가 오래갑니다." },
   { sukuyoIdx: 6, titleLead: "멀리 가되 중심을 지키는 힘", easternKeywords: ["자유", "탐색", "확장"], guidance: "멀리 가되 끝까지 보호할 사람이나 원칙 하나는 분명히 해두세요." },
   { sukuyoIdx: 7, titleLead: "길의 뿌리를 다시 찾는 지혜", easternKeywords: ["지식", "방향", "교육"], guidance: "조언하기 전에 왜 이 길을 택했는지부터 다시 묻고 문제의 뿌리로 돌아가세요." },
-  { sukuyoIdx: 8, titleLead: "귀 기울여 설득하는 완성", easternKeywords: ["정제", "완성", "세밀"], guidance: "무엇이 필요한지 먼저 듣고, 오늘은 다듬은 하나를 끝내 세상에 건네보세요." },
+  { sukuyoIdx: 8, titleLead: "가려내어 북돋는 완성", easternKeywords: ["정제", "완성", "세밀"], guidance: "키질하듯 남길 것과 덜어낼 것을 먼저 가르고, 오늘은 다듬은 하나를 끝내 세상에 건네보세요." },
   { sukuyoIdx: 9, titleLead: "비움에서 시작되는 인내", easternKeywords: ["철학", "내면", "성찰"], guidance: "성찰 뒤에는 작은 책임 하나를 꾸준히 이어가며 생각을 현실에 내려놓으세요." },
   { sukuyoIdx: 10, titleLead: "벼랑에서 배우는 경청", easternKeywords: ["위기", "전환", "용기"], guidance: "해결을 서두르기 전에 상황의 신호를 듣고 바꿀 수 있는 한 가지부터 움직이세요." },
   { sukuyoIdx: 11, titleLead: "새 판에 울리는 리듬", easternKeywords: ["창업", "시작", "개척"], guidance: "시작의 불꽃을 반복 가능한 리듬과 자원 계획으로 묶어 창 하나를 끝까지 운영해보세요." },
@@ -42,7 +42,15 @@ const FUSION_DRAFTS = [
   { sukuyoIdx: 26, titleLead: "손으로 매듭짓는 기쁨", easternKeywords: ["정리", "종결", "전환"], guidance: "손에 쥔 하나를 끝내고 그 성과를 함께 나누어 마무리를 다음 기쁨으로 연결하세요." },
 ];
 
+// titleLead 끝 글자의 받침에 따라 조사를 고른다(받침 없는 제목에 '이'가 붙던 4건: 저·심·두·삼).
+function hasFinalConsonant(text) {
+  const code = String(text).charCodeAt(String(text).length - 1) - 0xac00;
+  return code >= 0 && code < 11172 && code % 28 !== 0;
+}
+
 function buildFusionEntry(draft) {
+  const subject = hasFinalConsonant(draft.titleLead) ? "이" : "가";
+  const copula = hasFinalConsonant(draft.titleLead) ? "이라는" : "라는";
   const crosswalk = crosswalkFromSukuyo(draft.sukuyoIdx);
   const nakshatra = crosswalk ? getNakshatraAttributes(crosswalk.nakshatraIdx) : null;
   if (!crosswalk || !nakshatra) return { ...draft };
@@ -53,9 +61,9 @@ function buildFusionEntry(draft) {
     sukuyoIdx: draft.sukuyoIdx,
     fusionTitle: `${draft.titleLead} — ${crosswalk.sukuyoKo}수(${crosswalk.sukuyoHan}) · ${nakshatra.nameKo}(${nakshatra.nameEn})`,
     easternKeywords: draft.easternKeywords,
-    convergence: `숙요의 ${crosswalk.sukuyoKo}수는 ${easternTheme}의 생활 패턴을 중심으로 읽습니다. 같은 달 황경을 서비스 계산 정렬로 읽은 인도의 ${nakshatra.nameKo}는 ${nakshatra.deityRole}의 상징을 통해 ${indianTheme}의 결을 보여줍니다. 두 관점은 '${draft.titleLead}'이라는 통합 주제로 만나지만, 역사적으로 같은 별이라는 뜻은 아닙니다.`,
+    convergence: `숙요의 ${crosswalk.sukuyoKo}수는 ${easternTheme}의 생활 패턴을 중심으로 읽습니다. 같은 달 황경을 서비스 계산 정렬로 읽은 인도의 ${nakshatra.nameKo}는 ${nakshatra.deityRole}의 상징을 통해 ${indianTheme}의 결을 보여줍니다. 두 관점은 '${draft.titleLead}'${copula} 통합 주제로 만나지만, 역사적으로 같은 별이라는 뜻은 아닙니다.`,
     divergence: `${crosswalk.sukuyoKo}수 해설은 동양 숙요의 ${easternTheme}에 무게를 두고, ${nakshatra.nameKo} 해설은 ${nakshatra.symbol}의 상징과 '${nakshatra.shakti}'에 무게를 둡니다. 두 체계의 용어를 서로 바꾸어 쓰지 말고, 공명하는 지점과 다른 지점을 함께 살필 때 해석이 한쪽으로 치우치지 않습니다.`,
-    fusionReading: `당신에게는 ${draft.titleLead}이 중요하게 드러납니다. ${draft.guidance} 두 관점은 가능성과 패턴을 살피는 참고이며, 실제 선택과 경험을 함께 확인할 때 더 선명해집니다.`,
+    fusionReading: `당신에게는 ${draft.titleLead}${subject} 중요하게 드러납니다. ${draft.guidance} 두 관점은 가능성과 패턴을 살피는 참고이며, 실제 선택과 경험을 함께 확인할 때 더 선명해집니다.`,
   };
 }
 
