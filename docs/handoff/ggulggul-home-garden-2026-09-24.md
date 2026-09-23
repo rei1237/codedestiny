@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: [data-cdh-free] 무료 사주 인라인 폼 진입점을 어디에 다시 둘지 정하고, 새 ko 문구 4개 로케일 번역을 붙인다
+next: 두 후속 과제(무료 진입점·번역)는 끝났다. 남은 것은 verify-mobile-cdp-smoke 의 옛 히어로 CTA 계약 갱신과 영냥이 밴드 유입 관찰이다
 ---
 # 꿀꿀 운세 홈 "연이의 꽃정원" 개편 (2026-09-24)
 
@@ -20,16 +20,19 @@ next: [data-cdh-free] 무료 사주 인라인 폼 진입점을 어디에 다시 
 - `verify-home-funnel.cjs`: 접힘 초기 상태, 이용권 대비(두 테마), 딥링크로 접힘이 열리는지를 단언한다.
 - 다이어리 순서 가드(`luck-sync-diary-planner`)에 맞춰 다이어리는 오늘의 운세 바로 뒤에 둔다.
 
+## 후속 세션에서 끝낸 것 (2026-09-24)
+- 무료 사주 인라인 폼 진입점(`ef0810191`): 사용자 결정에 따라 퀵 서비스 사주 카드에 `data-cdh-free`를 달았다. 카드는 원래 `data-action="cdOneStepFreeSajuEntry"`라 공용 디스패처가 실행한다. `home-funnel.js`의 캡처 핸들러는 `data-action`이 있으면 건너뛴다(두 번 호출 방지, 실측 1회). `verify-mobile-runtime-readiness.mjs`의 단언은 "히어로 주 CTA 존재" 하나와 "무료 진입점 존재" 하나로 나눴다. `seo-search-browser-check.mjs` 로케이터도 함께 바꿨다. `verify-home-funnel.cjs`는 member 단계까지 exit 0이다.
+- 새 ko 문구 번역(`a01e000fb`): `i18n/authored/shellCopy-10.json`에 `home.gardenCopy.*` 17키를 넣었고, `shellCopy-09`의 `home.searchEntry.lead`는 새 문구로 갱신했다. 말풍선은 줄을 바꿀 때 `data-cd-trans`와 `data-cd-origin-text`를 같이 옮긴다. 그래서 언어를 전환하면 지금 보이는 줄이 번역되거나 복원된다(en→ko→ja 실측). `.cdh-says span`은 `.cdh-says>span`으로 좁혔다. 이렇게 해야 이름·대사를 감싼 안쪽 span이 말풍선 배경을 받지 않는다. 사전이 바뀌면 앱 라우트 서명도 바뀌므로 sitemap 원장·xml을 같이 커밋했다.
+
 ## 기존 결함 (보고만, 미수정)
-- `[data-cdh-free]` 마크업이 3a12b5a3a 이후 없다. 그래서 두 곳이 실패한다.
-  - `verify-home-funnel.cjs`의 member 단계가 타임아웃으로 실패한다.
-  - `verify-mobile-runtime-readiness.mjs:53`이 실패한다.
-  - 무료 사주 인라인 폼 진입점을 어디에 다시 둘지 결정이 필요하다.
+- `verify-mobile-cdp-smoke`는 아직 옛 계약을 단언한다. 히어로 주 CTA가 `.cdh-copy [data-cdh-free]`이고, 페이지 안 앵커로 이동한다는 계약이다. 지금 히어로 주 CTA는 `/today/#daily-tarot`이고 무료 진입점은 퀵 서비스 사주 카드다. 스모크를 새 계약으로 고쳐야 한다.
+- `verify-mobile-runtime-readiness.mjs`에서 이번 변경과 무관한 3건이 실패한다: 하단 탭 메인 슬롯, 퀵 카테고리, 결제 시트. 변경 전 HEAD 스크립트로 돌려도 같은 3건이 실패한다.
+- /en/·/ja/ 홈에 기존 한국어 리프가 남아 있다. 이용권 등급명·등급 줄·가격(원), 히어로 연이 alt("연꽃을 단 꽃돼지 연이"), 접힘 안의 적중 기록·공유 카드·일간/띠 링크, 헤더 aria-label이다. 모두 개편 전부터 한국어였다(범위 밖).
 - neo 테마에서 연이 틀이 원형이 아니라 16px 라운드 사각형이다(`html.neo-mode #honeypigLogo{border-radius:16px!important}`). 의도된 규칙인지 확인이 필요하다.
 - neo 테마의 "두 대통령 적중 기록 원문 보기" summary 대비가 약 1.85:1이다.
 - neo 테마 1280px에서 하단 떠 있는 탭바 아이콘 색(112,68,92)이 배경 대비 약 2.34:1이다(시각 판정, 이번 변경과 닿는 CSS 없음).
 - `npm run sync:public`이 윈도우에서 가끔 EPERM/UNKNOWN(파일 잠금)으로 실패한다. 재실행하면 수렴한다.
 
 ## 후속 과제
-- 새 ko 문구(말풍선 4줄, 이용권 요약, 더 둘러보기 요약)는 i18n 키가 없다. 4개 저작 로케일 번역이 필요하다.
+- `verify-mobile-cdp-smoke` 히어로 CTA 계약 갱신(위 결함 첫 줄).
 - 영냥이 밴드 노출이 줄었다. 영냥이 유입 지표를 1~2주 관찰하고, 필요하면 이용권 뒤로 꺼낸다.
