@@ -8,6 +8,7 @@ next: "기존 셸·나크샤트라·손금·초융합·자미두수 등 미연�
 
 ## 2026-09-23 이번 전달 — 프리미엄 공유 편집·3개 상담 어댑터·SEO 경로
 
+- 공식 CI의 `Verify guide feature CTA`가 동적 `/features/[slug]` 경로를 고정 파일 경로로만 검사해 실패했다. 실제 두 예시 URL은 로컬에서 200을 확인했고, 가드를 동적 라우트와 카탈로그의 `verified` slug를 함께 확인하도록 수정해 `npm run verify:guide-feature-cta`가 통과했다. 수정 커밋 `af754eb30d7de6d4fb0ac2123c12ae227c5637ee`의 [CI required 35825404381](https://github.com/rei1237/codedestiny/actions/runs/35825404381)를 최종 판정으로 확인한다.
 - 구현 커밋 `c5fef4086dfe4318f1510946d890a700c3db67f1`, `c329c49abcb33496167fe3b363df9bfbfdb31b3b`, `145b673ed503eb6e974ee9bf53dface9e76d89bf`. `main`의 동시 `marketing/**` 미커밋 변경을 보존하기 위해 `D:\Development\codedestiny-worktrees\conversion-sharing-followup-20260923-141314`에서 검증했다. 동시 main 변경 두 차례를 병합한 `95c158ddee9f2f54edd65e8fc389de446b18ba98`을 main에 push했다. 이 SHA의 [CI required 35824801672](https://github.com/rei1237/codedestiny/actions/runs/35824801672)를 최종 확인한다.
 - 인생의 책·연애 비책: 이름 기본 숨김, 저장 요약 선택·90자 편집·실제 책/편지 이미지 미리보기, 공개 상담 링크, 이미지 저장·공유·문구 복사. 기존 버튼은 전송 전에 편집기를 연다. 개인 결과 주소·출생정보·이름 포함 파일명을 전송하지 않는다. 완료·저장 상태만 공유하며 mock 35/35와 이미지 두 종류를 확인했다. 기존 정적 계약 9/9도 새 구조에 맞춰 통과했다.
 - 작명·운명 나침반·휴먼디자인의 저장 완료 해석을 공용 `ConsultationShare`로 연결했다. 나침반 질문 원문의 자동 공유를 제거했다. 어댑터 단위 14/14, 타입 검사 통과. 이 셋의 실제 결과 화면·운영 저장본·실기기 전송은 아직 미검증이다. 기능 키별 범위는 `docs/consultation-sharing-coverage-20260923.md`를 따른다.
@@ -15,6 +16,7 @@ next: "기존 셸·나크샤트라·손금·초융합·자미두수 등 미연�
 - `npm run check:fast -- --plan`은 critical. 첫 `check:fast`는 제거된 카드 DOM을 찾던 정적 검사 1개 때문에 중단됐다. 검사를 새 공유 카드로 옮긴 뒤 최종 `check:fast`는 exit 0: 유료 mock 88/88, Jest 290 suites/4078 tests, Node·lint·typecheck·사이트맵 검사 통과. 이후 실화면에서 공유 버튼 대비와 스크롤 위치를 바로잡고 프리미엄 공유 편집기의 390px 화면을 재확인했다. 공식 전달 근거는 최종 main SHA의 `CI required`로 확인해야 한다.
 - 아직 남은 범위: 기존 셸 사주·타로·점성술·숙요·자미두수, 나크샤트라/로드·궁합, 손금·초융합·자미두수·전문가 프레임의 저장본 공유 전수; 상담별 실화면 mock 및 카카오 실기기 수신; 첫 방문→예시→가격→결과 재열람 구매 동선; 12개 동일 URL군의 운영 반영 후 28일 측정. 전체 목표를 완료로 세지 않는다. 실결제·유료 LLM·운영 DB 쓰기·SNS 발송·운영 승격은 0회다.
 - 이번 나크샤트라 조사에서는 무료 결과가 세션 저장소를 쓰고, 로드 유료 리포트가 해금 후 재조회 훅을 거친다는 차이를 확인했다. 저장 완료 판정과 재열람 범위를 별도로 확정하기 전에는 이를 공유 완료로 세지 않는다.
+- 첫 작업 워크트리 `D:\Development\codedestiny-worktrees\conversion-sharing-followup-20260923-141314`는 Git 등록 해제 후 긴 파일명 때문에 디렉터리가 일부 남았다. 공유 `node_modules`·서체 정션은 먼저 분리했으나 잔여 디렉터리 재귀 삭제가 자동 정책 검토에서 차단됐다. 우회 삭제하지 말고 별도 정리 대상으로 둔다.
 
 ## 2026-09-23 최신 재개 위치 — 마스터 mock, 서양점성·베다 공유, 설명 랜딩
 
@@ -183,5 +185,5 @@ next: "기존 셸·나크샤트라·손금·초융합·자미두수 등 미연�
 ## 복사해서 재개
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 먼저 읽어라. 책·편지 공유 편집, 작명·운명 나침반·휴먼디자인 저장 해석 공유, 핵심 SEO 허브→가이드→구매 전 예시 연결은 코드 전달 SHA 95c158ddee9f2f54edd65e8fc389de446b18ba98에 있다. 최신 main과 이 SHA의 CI를 확인하고 동시 marketing 변경을 보존하라. 이어서 기존 셸·나크샤트라·손금·초융합·자미두수·전문가 상담의 저장 완료 결과 공유 범위와 실화면 mock을 확인하고, 첫 방문→예시→가격→저장 결과 재열람 동선 및 12개 핵심 랜딩 측정을 계속하라. 모든 상담 적용과 전환·SEO 성과는 아직 완료가 아니다. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 작은 단위로 검증·main push·CI 확인을 진행하라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\conversion-sharing-20260922.md와 D:\Development\code-destiny\docs\consultation-sharing-coverage-20260923.md를 먼저 읽어라. 책·편지 공유 편집, 작명·운명 나침반·휴먼디자인 저장 해석 공유, 핵심 SEO 허브→가이드→구매 전 예시 연결은 코드 전달 SHA 95c158ddee9f2f54edd65e8fc389de446b18ba98에 있다. 동적 기능 예시 CTA 가드 수정 SHA af754eb30d7de6d4fb0ac2123c12ae227c5637ee 이후 최신 main과 CI를 확인하고 동시 marketing 변경을 보존하라. 이어서 기존 셸·나크샤트라·손금·초융합·자미두수·전문가 상담의 저장 완료 결과 공유 범위와 실화면 mock을 확인하고, 첫 방문→예시→가격→저장 결과 재열람 동선 및 12개 핵심 랜딩 측정을 계속하라. 모든 상담 적용과 전환·SEO 성과는 아직 완료가 아니다. 실결제·유료 LLM·운영 DB 쓰기·메시지 발송·운영 승격 없이 작은 단위로 검증·main push·CI 확인을 진행하라.
 ```
