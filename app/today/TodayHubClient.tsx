@@ -19,6 +19,7 @@
 // 서버 렌더 해설(TodaySystemPrimer + TodayReadingGuide)이다 — 아래 카드는 한 글자도 안 센다.
 
 import Link from "next/link";
+import Image from "next/image";
 import DailyTarot, {type DailyTarotCard} from "./DailyTarot";
 import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
@@ -65,6 +66,9 @@ interface HubResponse {
 }
 
 type TodaySystem = "saju" | "sukuyo" | "vedic" | "number";
+type DetailLoadState = "idle" | "loading" | "failed" | "loaded";
+
+const TODAY_LOADING_IMAGE = "/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp";
 
 const TAB_KEYS: readonly { key: TodaySystem; emoji: string }[] = [
   { key: "saju", emoji: "🎴" },
@@ -612,6 +616,78 @@ function useTodayHubCopy(): { copy: TodayHubCopy; locale: LoadingLocale } {
   return { copy: getTodayHubCopy(locale), locale };
 }
 
+type TodayLoadingCopy = {
+  title: string;
+  lead: string;
+  imageAlt: string;
+  detailSummary: (label: string) => string;
+  detailLoading: string;
+  detailFailed: string;
+};
+
+const TODAY_LOADING_COPY_EN: TodayLoadingCopy = {
+  title: "Yeoni is warming today's flow.",
+  lead: "Saju, Sukuyo, Vedic astrology, and numerology are opening in order.",
+  imageAlt: "Flower pig Yeoni guiding today's fortune",
+  detailSummary: (label) => `Open ${label} details`,
+  detailLoading: "Loading the detailed flow...",
+  detailFailed: "The details are taking longer than usual. Close and open this section to try again.",
+};
+
+const TODAY_LOADING_COPY: Partial<Record<LoadingLocale, TodayLoadingCopy>> = {
+  ko: {
+    title: "연이가 오늘의 흐름을 데우고 있어요.",
+    lead: "사주·숙요·베다·수비학을 차례로 펼치는 중이에요.",
+    imageAlt: "오늘의 운세를 안내하는 꽃돼지 연이",
+    detailSummary: (label) => `${label} 상세 흐름 보기`,
+    detailLoading: "상세 흐름을 불러오는 중이에요.",
+    detailFailed: "상세 흐름이 조금 늦어지고 있어요. 닫았다 다시 열면 한 번 더 불러옵니다.",
+  },
+  en: TODAY_LOADING_COPY_EN,
+  ja: {
+    title: "ヨニが今日の流れを温めています。",
+    lead: "四柱推命・宿曜・ヴェーダ・数秘術を順番に開いています。",
+    imageAlt: "今日の運勢を案内する花豚ヨニ",
+    detailSummary: (label) => `${label}の詳細を見る`,
+    detailLoading: "詳しい流れを読み込んでいます。",
+    detailFailed: "詳細の読み込みが少し遅れています。閉じてもう一度開くと再試行します。",
+  },
+  "zh-CN": {
+    title: "Yeoni 正在温热今天的气流。",
+    lead: "四柱、宿曜、吠陀占星和数字命理正在依次展开。",
+    imageAlt: "正在引导今日运势的花猪 Yeoni",
+    detailSummary: (label) => `查看${label}详情`,
+    detailLoading: "正在加载详细走势。",
+    detailFailed: "详细内容稍有延迟。关闭后再次展开即可重试。",
+  },
+  "zh-TW": {
+    title: "Yeoni 正在溫熱今天的氣流。",
+    lead: "四柱、宿曜、吠陀占星與數字命理正在依序展開。",
+    imageAlt: "正在引導今日運勢的花豬 Yeoni",
+    detailSummary: (label) => `查看${label}詳情`,
+    detailLoading: "正在載入詳細走勢。",
+    detailFailed: "詳細內容稍有延遲。關閉後再次展開即可重試。",
+  },
+};
+
+function getTodayLoadingCopy(locale: LoadingLocale): TodayLoadingCopy {
+  return TODAY_LOADING_COPY[locale] || TODAY_LOADING_COPY_EN;
+}
+
+function mergeHubDetail(current: HubResponse | null, detail: HubResponse): HubResponse {
+  if (!current) return detail;
+  const systems: Partial<Record<TodaySystem, SystemCard | null>> = { ...current.systems };
+  for (const tab of TAB_KEYS) {
+    const detailCard = detail.systems[tab.key];
+    if (!detailCard) continue;
+    const currentCard = systems[tab.key];
+    systems[tab.key] = currentCard
+      ? { ...currentCard, sections: detailCard.sections || currentCard.sections }
+      : detailCard;
+  }
+  return { ...current, systems };
+}
+
 // 셸 렌더러(index.html)와 같은 등급→톤 매핑. 두 화면이 다른 색으로 같은 등급을 말하면 안 된다.
 const TIER_TONE: Record<string, "good" | "pivot" | "warn"> = {
   "great-auspicious": "good",
@@ -672,6 +748,43 @@ function TopNav({ copy }: { copy: TodayHubCopy }) {
   );
 }
 
+function TodayLoadingPanel({ locale }: { locale: LoadingLocale }) {
+  const loadingCopy = getTodayLoadingCopy(locale);
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      className="relative min-h-[18rem] overflow-hidden rounded-3xl border border-rose-200/20 bg-[linear-gradient(135deg,rgba(58,14,40,.74),rgba(20,10,31,.92))] p-5 text-rose-50 shadow-[0_18px_48px_rgba(0,0,0,.32)] sm:min-h-[17rem] sm:p-6"
+    >
+      <div aria-hidden="true" className="absolute inset-x-8 top-6 h-20 rounded-full bg-rose-200/10 blur-3xl" />
+      <div className="relative flex min-h-[14rem] flex-col items-center justify-center gap-4 text-center sm:flex-row sm:justify-start sm:text-left">
+        <div className="relative h-28 w-28 shrink-0 sm:h-36 sm:w-36">
+          <div aria-hidden="true" className="absolute inset-4 rounded-full bg-rose-200/20 blur-2xl" />
+          <Image
+            src={TODAY_LOADING_IMAGE}
+            alt={loadingCopy.imageAlt}
+            width={256}
+            height={256}
+            priority
+            className="relative h-full w-full object-contain drop-shadow-[0_14px_22px_rgba(0,0,0,.28)]"
+            sizes="(max-width: 640px) 112px, 144px"
+          />
+        </div>
+        <div className="max-w-md">
+          <p className="break-keep text-lg font-black leading-8 text-white sm:text-xl">{loadingCopy.title}</p>
+          <p className="mt-2 break-keep text-sm leading-7 text-rose-100/90">{loadingCopy.lead}</p>
+          <div aria-hidden="true" className="mt-4 flex justify-center gap-2 sm:justify-start">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-rose-200" />
+            <span className="h-2 w-2 animate-pulse rounded-full bg-amber-200 [animation-delay:120ms]" />
+            <span className="h-2 w-2 animate-pulse rounded-full bg-rose-100 [animation-delay:240ms]" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VerdictBadge({ card, copy }: { card: SystemCard; copy: TodayHubCopy }) {
   if (!card.tierLabel || card.score == null) {
     return (
@@ -722,7 +835,21 @@ function SectionBlock({ section }: { section: DetailSection }) {
   );
 }
 
-function CardPanel({ card, tabLabel, copy }: { card: SystemCard | null | undefined; tabLabel: string; copy: TodayHubCopy }) {
+function CardPanel({
+  card,
+  tabLabel,
+  copy,
+  locale,
+  detailState,
+  onDetailsOpen,
+}: {
+  card: SystemCard | null | undefined;
+  tabLabel: string;
+  copy: TodayHubCopy;
+  locale: LoadingLocale;
+  detailState: DetailLoadState;
+  onDetailsOpen?: (system: TodaySystem) => void;
+}) {
   if (!card) {
     return (
       <p className="break-keep rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-sm leading-7 text-slate-300">
@@ -730,6 +857,8 @@ function CardPanel({ card, tabLabel, copy }: { card: SystemCard | null | undefin
       </p>
     );
   }
+  const loadingCopy = getTodayLoadingCopy(locale);
+  const hasSections = Boolean(card.sections?.length);
   return (
     <div className="space-y-4">
       <div className="rounded-3xl border border-white/12 bg-white/[0.05] p-5 sm:p-6">
@@ -755,12 +884,29 @@ function CardPanel({ card, tabLabel, copy }: { card: SystemCard | null | undefin
           </ul>
         )}
       </div>
-      {Boolean(card.sections?.length) && <details className="rounded-2xl border border-white/15 p-4">
-        <summary className="cursor-pointer text-sm font-bold text-slate-100">{tabLabel} · {card.label}</summary>
-        <div className="mt-4 space-y-4">{(card.sections || []).map((section) => (
-          <SectionBlock key={section.key} section={section} />
-        ))}</div>
-      </details>}
+      <details
+        className="rounded-2xl border border-white/15 bg-white/[0.025] p-4"
+        onToggle={(event) => {
+          if (event.currentTarget.open && !hasSections) onDetailsOpen?.(card.system);
+        }}
+      >
+        <summary className="cursor-pointer break-keep text-sm font-bold text-slate-100">
+          {loadingCopy.detailSummary(tabLabel)}
+        </summary>
+        {hasSections ? (
+          <div className="mt-4 space-y-4">{(card.sections || []).map((section) => (
+            <SectionBlock key={section.key} section={section} />
+          ))}</div>
+        ) : detailState === "failed" ? (
+          <p role="alert" className="mt-4 break-keep rounded-xl border border-rose-200/20 bg-rose-400/10 px-4 py-3 text-sm leading-7 text-rose-50">
+            {loadingCopy.detailFailed}
+          </p>
+        ) : (
+          <p role="status" aria-live="polite" className="mt-4 break-keep rounded-xl border border-amber-200/20 bg-amber-400/10 px-4 py-3 text-sm leading-7 text-amber-50">
+            {loadingCopy.detailLoading}
+          </p>
+        )}
+      </details>
     </div>
   );
 }
@@ -785,8 +931,8 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
     if (match) setActive(match.key);
   }, []);
 
-  const query = useMemo(() => {
-    const params = new URLSearchParams({ detail: "1", locale });
+  const summaryQuery = useMemo(() => {
+    const params = new URLSearchParams({ locale });
     if (seed?.birthDate) {
       params.set("birth", seed.birthDate);
       if (seed.birthTime && !seed.birthTimeUnknown) params.set("time", seed.birthTime);
@@ -796,28 +942,50 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
     return params.toString();
   }, [locale, seed?.birthDate, seed?.birthTime, seed?.birthTimeUnknown, seed?.calendarType, seed?.gender]);
 
+  const [detailState, setDetailState] = useState<Partial<Record<TodaySystem, DetailLoadState>>>({});
+  const requestSeq = useRef(0);
+  const detailControllers = useRef<Partial<Record<TodaySystem, AbortController>>>({});
+  useEffect(() => {
+    return () => {
+      requestSeq.current++;
+      Object.values(detailControllers.current).forEach((item) => item?.abort());
+      detailControllers.current = {};
+    };
+  }, []);
+
   useEffect(() => {
     if (!now) return undefined;
-    let active2 = true;
+    const seq = ++requestSeq.current;
+    const controller = new AbortController();
     setFailed(false);
-    fetch(getApiUrl(`/api/fortune/today-hub?${query}`), { credentials: "omit", headers: { "x-code-destiny-locale": locale } })
+    setData(null);
+    setDetailState({});
+    setGuestCard(null);
+    Object.values(detailControllers.current).forEach((item) => item?.abort());
+    detailControllers.current = {};
+    fetch(getApiUrl(`/api/fortune/today-hub?${summaryQuery}`), {
+      credentials: "omit",
+      headers: { "x-code-destiny-locale": locale },
+      signal: controller.signal,
+    })
       .then((res) => {
         if (!res.ok) throw new Error(`http_${res.status}`);
         return res.json();
       })
       .then((payload: HubResponse) => {
-        if (!active2) return;
+        if (seq !== requestSeq.current) return;
         if (!payload?.ok) throw new Error("not_ok");
         setData(payload);
       })
-      .catch(() => {
-        if (active2) setFailed(true);
+      .catch((error) => {
+        if (error?.name === "AbortError" || seq !== requestSeq.current) return;
+        setFailed(true);
       });
     return () => {
-      active2 = false;
+      controller.abort();
     };
     // seedVersion 은 프로필 카드가 뒤늦게 도착했을 때(로그인 사용자의 서버 동기화) 다시 계산하려고 둔다.
-  }, [locale, now, query, seedVersion, reloadToken]);
+  }, [locale, now, summaryQuery, seedVersion, reloadToken]);
 
   // 프로필 카드가 없는 방문자의 수비학 입력. only=number 라 다른 점술은 이 입력으로 개인화되지 않고,
   // 서버는 생년이 실린 요청을 공개 캐시에 올리지 않는다. 입력값은 이 화면 상태에만 두고 저장하지 않는다.
@@ -843,6 +1011,43 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
       })
       .catch(() => setGuestState("failed"));
   }, [guestBirth, guestState, locale]);
+
+  const loadDetails = useCallback((system: TodaySystem) => {
+    const card = data?.systems[system];
+    if (!card || card.sections?.length || detailState[system] === "loading" || detailState[system] === "loaded") return;
+    const seq = requestSeq.current;
+    detailControllers.current[system]?.abort();
+    const controller = new AbortController();
+    detailControllers.current[system] = controller;
+    setDetailState((current) => ({ ...current, [system]: "loading" }));
+
+    const params = new URLSearchParams(summaryQuery);
+    params.set("detail", "1");
+    fetch(getApiUrl(`/api/fortune/today-hub?${params.toString()}`), {
+      credentials: "omit",
+      headers: { "x-code-destiny-locale": locale },
+      signal: controller.signal,
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`http_${res.status}`);
+        return res.json();
+      })
+      .then((payload: HubResponse) => {
+        if (seq !== requestSeq.current) return;
+        if (!payload?.ok) throw new Error("not_ok");
+        const detailedCard = payload.systems[system];
+        if (!detailedCard?.sections?.length) throw new Error("no_sections");
+        setData((current) => mergeHubDetail(current, payload));
+        setDetailState((current) => ({ ...current, [system]: "loaded" }));
+      })
+      .catch((error) => {
+        if (error?.name === "AbortError" || seq !== requestSeq.current) return;
+        setDetailState((current) => ({ ...current, [system]: "failed" }));
+      })
+      .finally(() => {
+        if (detailControllers.current[system] === controller) delete detailControllers.current[system];
+      });
+  }, [data, detailState, locale, summaryQuery]);
 
   // 탭 화살표 이동 — 홈 셸의 허브와 같은 WAI-ARIA roving tabindex 규칙.
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -888,12 +1093,13 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
 
   const personalized = Boolean(data?.personalized);
   const showGuestForm = active === "number" && Boolean(data) && !personalized;
-  const panelCard = showGuestForm && guestCard ? guestCard : data?.systems[active];
+  const panelCardIsGuest = showGuestForm && Boolean(guestCard);
+  const panelCard = panelCardIsGuest && guestCard ? guestCard : data?.systems[active];
   const activeTabKey = TAB_KEYS.find((tab) => tab.key === active) || TAB_KEYS[0];
   const activeTab = { ...activeTabKey, label: copy.tabLabel[activeTabKey.key], blurb: copy.tabBlurb[activeTabKey.key] };
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#070A11] pb-28 text-slate-100 selection:bg-purple-500 selection:text-white">
+    <main className="relative min-h-[100dvh] bg-[#070A11] pb-28 text-slate-100">
       <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[600px] w-[1100px] -translate-x-1/2 bg-gradient-to-b from-purple-900/25 via-indigo-900/15 to-transparent opacity-80 blur-3xl" />
         <div className="absolute right-0 top-[500px] h-[600px] w-[600px] rounded-full bg-amber-500/10 blur-3xl" />
@@ -999,9 +1205,16 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
               </button>
             </div>
           ) : data ? (
-            <CardPanel card={panelCard} tabLabel={activeTab.label} copy={copy} />
+            <CardPanel
+              card={panelCard}
+              tabLabel={activeTab.label}
+              copy={copy}
+              locale={locale}
+              detailState={panelCardIsGuest ? "loaded" : detailState[active] || "idle"}
+              onDetailsOpen={panelCardIsGuest ? undefined : loadDetails}
+            />
           ) : (
-            <div aria-hidden="true" className="min-h-[16rem] rounded-3xl border border-white/8 bg-white/[0.03]" />
+            <TodayLoadingPanel locale={locale} />
           )}
         </div>
 
