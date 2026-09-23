@@ -119,7 +119,7 @@ test('new prashna product is flounder and all eight chapters have distinct compl
  assert.equal(value.mode,'prashna-v1');
  assert.throws(()=>api.validateSkyInput({mode:'prashna-v1',productId:'saju_mackerel',question:input.question,questionSky:input}),/INVALID_READING_MODE/);
  const context=api.projectQuestionChart(chart,value).context,product=api.getProduct('saju_flounder');
- const manifest=api.skyManifest(api.readingManifest(product),context);
+ const manifest=api.skyManifest(api.readingManifest(product,'general','personal','destiny-book-v4'),context);
  assert.equal(product.priceKRW,5000);assert.equal(manifest.length,8);assert.equal(new Set(manifest.map(c=>c.title)).size,8);
  assert.ok(manifest.every(c=>c.minimumChars>0&&c.focus&&c.requiredSections.length===2));
 });

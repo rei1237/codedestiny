@@ -1,8 +1,9 @@
+import {readingManifestV6} from './reading-v6';
 import type {Product} from '../payments/catalog';
 import {FortuneError} from './shared/contracts';
 import {readingManifest, questionFactSelectors} from './reading-manifest';
 import {withReadingSections} from './reading-sections';
-import {READING_V5_VERSION} from './reading-policy';
+import {READING_V5_VERSION,READING_V6_VERSION} from './reading-policy';
 
 export type ConsultationKind = {id:string;label:string;description:string;topic:string;partner?:boolean;professional?:boolean;question?:boolean};
 const ask:ConsultationKind={id:'ask',label:'무엇이든 물어보기',description:'선택한 운세로 궁금한 이야기 살펴보기',topic:'general',question:true};
@@ -35,6 +36,7 @@ const focusedTitles:Record<string,string[]>={
  money:['수입과 자원의 바탕','일과 재물의 연결','쌓고 지키는 습관','지출이 늘어나는 조건','안정과 확장의 선택','협력과 책임','반복되는 판단 패턴','부담을 줄이는 방법','다른 선택의 가능성','해석의 한계','현실에서 점검할 기준'],
 };
 export function consultationManifest(p:Product,k?:ConsultationKind,topic='general'){
+ if(p.manifestVersion===READING_V6_VERSION)return readingManifestV6(p,k?.id==='ask'?topic:k?.topic||topic,k?.partner?'compatibility':'personal',k);
  const rows=readingManifest(p,k?.id==='ask'?topic:k?.topic||topic,k?.partner?'compatibility':'personal');
  if(!k||k.id==='personal'||k.id==='ask'||p.domain==='tarot')return rows;
  const titles=focusedTitles[k.id];

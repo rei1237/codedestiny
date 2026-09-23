@@ -130,22 +130,22 @@ test('duplicate generation claims and late completions cannot append twice',asyn
   expect(restored.state).toBe('COMPLETED');expect(restored.chapters).toHaveLength(2);
 });
 
-test('all 28 chapters finish in queue without browser calls and replay cannot regenerate',async()=>{
+test.each([15,28])('all %i chapters finish in queue without browser calls and replay cannot regenerate',async(total)=>{
   const id='a'.repeat(64);payments[0].requestId=`yn-${id}`;
-  const manifest=Array.from({length:28},(_,i)=>({id:`chapter-${i}`}));
+  const manifest=Array.from({length:total},(_,i)=>({id:`chapter-${i}`}));
   await repo.createRequest({},owner,id,{...values,snapshot:{manifest}});
   const pending=[id], provider=jest.fn(async ordinal=>({summary:`saved chapter ${ordinal}`}));
   const {consumeConsultationQueue}=await import('../../worker/yeongnyangi/queue.js');
   const service={activateFortune:async()=>repo.attachPayment({},owner,id,1000),generateNextChapter:async()=>{
     const {row,token}=await repo.claimChapter({},owner,id);
     if(!token)return row;
-    return repo.finishChapter({},owner,id,token,row.chapters.length,await provider(row.chapters.length),28);
+    return repo.finishChapter({},owner,id,token,row.chapters.length,await provider(row.chapters.length),total);
   }};
   const deps={service,read:async()=>repo.readRequest({},owner,id),enqueue:async(_env,row)=>{pending.push(row._id);return true;}};
   while(pending.length){const requestId=pending.shift();const message={body:{requestId},ack:jest.fn(),retry:jest.fn()};await consumeConsultationQueue({messages:[message]},{},deps);expect(message.retry).not.toHaveBeenCalled();}
-  expect(provider).toHaveBeenCalledTimes(28);expect(requests[0].state).toBe('COMPLETED');expect(payments).toHaveLength(1);
+  expect(provider).toHaveBeenCalledTimes(total);expect(requests[0].state).toBe('COMPLETED');expect(payments).toHaveLength(1);
   await consumeConsultationQueue({messages:[{body:{requestId:id},ack:jest.fn(),retry:jest.fn()}]},{},deps);
-  expect(provider).toHaveBeenCalledTimes(28);expect((await repo.readRequest({},owner,id)).chapters).toHaveLength(28);
+  expect(provider).toHaveBeenCalledTimes(total);expect((await repo.readRequest({},owner,id)).chapters).toHaveLength(total);
 });
 
 test('three chapter failures stop automatically; explicit resume preserves total budget and payment',async()=>{

@@ -1,6 +1,6 @@
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
 import {readingCharts} from './fortune/reading-presentation';
-import { READING_VERSION } from './fortune/reading-policy';
+import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './fortune/reading-policy';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
 import {validateSkyInput,skyMoment,calculateQuestionSky} from './fortune/question-sky';
 import {skyModes,skyTopics,SKY_IMAGE,SKY_TIMING} from './fortune/question-sky-contract';
@@ -45,6 +45,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
+  if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
@@ -77,7 +78,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
+  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
   const id=await digest({userId,fingerprint});
   // Deterministic intent also survives losing all browser storage and returning with the same inputs.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
@@ -122,6 +123,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   const moment=skyMoment(input);
   const calculated=await calculateQuestionSky(env,input,moment);
   const product=getProduct('saju_flounder');
+  product.manifestVersion=READING_V5_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);
   const clock=consultationClock(moment.timezone,moment.date);
   const context=calculated.context;
   calculated.publicData.evidenceVersion='question-sky-flounder-2';

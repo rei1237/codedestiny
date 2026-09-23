@@ -2,7 +2,9 @@ import type { DomainId, PackageId } from './shared/contracts';
 
 export const READING_VERSION = 'destiny-book-v4';
 export const READING_V5_VERSION = 'destiny-book-v5';
-export const isStructuredReading = (version?: string) => version === READING_VERSION || version === READING_V5_VERSION;
+export const READING_V6_VERSION = 'destiny-book-v6';
+export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION;
+export const isStructuredReading = (version?: string) => version === READING_VERSION || hasReadingSections(version);
 export const PROMPT_VERSION = 'chapter-v4';
 export const readingPolicies = {
   mackerel: { minimum: 3000, target: [3200, 4000], outputTokens: 8192, depth: ['핵심 결론', '계산 근거와 이유', '생활 사례', '첫 행동'] },
@@ -20,7 +22,8 @@ export const depthDescriptions: Record<PackageId, string> = {
   assorted: '두 체계의 근거와 차이를 살피는 전문 상담',
   omakase: '여섯 체계로 읽는 분야별 심층 상담과 실행 계획',
 };
-export function readingChapterCount(domain: DomainId, tier: PackageId): number {
+export function readingChapterCount(domain: DomainId, tier: PackageId, version = READING_V5_VERSION): number {
+  if (version === READING_V6_VERSION) return {mackerel:5,salmon:8,flounder:11,tuna:15,assorted:18,omakase:28}[tier];
   if (domain === 'saju' && tier === 'mackerel') return 5;
   if (tier === 'assorted') return 18;
   if (tier === 'omakase') return 28;
@@ -35,5 +38,12 @@ export const v5ReadingPolicies = {
   assorted: {...readingPolicies.assorted, minimum:48000, target:[55000,65000]},
   omakase: {...readingPolicies.omakase, minimum:80000, target:[90000,110000]},
 } as const;
+export const v6ReadingPolicies = {
+  ...v5ReadingPolicies,
+  mackerel: {...readingPolicies.mackerel, minimum:5000, target:[6000,7000]},
+  salmon: {...readingPolicies.salmon, minimum:10000, target:[12000,14000]},
+  flounder: {...readingPolicies.flounder, minimum:18000, target:[21000,25000]},
+  tuna: {...v5ReadingPolicies.tuna, minimum:40000, target:[45000,52000]},
+} as const;
 export const policyForReading = (tier: PackageId, version?: string) =>
-  version === READING_V5_VERSION ? v5ReadingPolicies[tier] : readingPolicies[tier];
+  version === READING_V6_VERSION ? v6ReadingPolicies[tier] : version === READING_V5_VERSION ? v5ReadingPolicies[tier] : readingPolicies[tier];

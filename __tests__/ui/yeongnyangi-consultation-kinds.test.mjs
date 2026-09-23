@@ -65,6 +65,26 @@ test('old requests retain legacy shape and question behavior',async()=>{
  assert.equal(row.snapshot.analysis.consultation.question,'기존 질문');
 });
 
+test('v6 intent cannot reuse a paid v5 snapshot and old reads retain their purchased depth',async()=>{
+ const product=products.find(p=>p.id===body.productId),current=structuredClone(product);
+ let legacy;
+ try{
+  product.manifestVersion='destiny-book-v5';
+  legacy=await prepareFortune(env,'version-owner',{...body,consultationKind:'personal'});
+  legacy.snapshot=structuredClone(legacy.snapshot);
+  legacy.paymentId='legacy-paid';legacy.state='COMPLETED';legacy.chapters=[{summary:'saved v5 prose'}];
+ }finally{Object.assign(product,current);}
+ const before=structuredClone(legacy);
+ const fresh=await prepareFortune(env,'version-owner',{...body,consultationKind:'personal'});
+ assert.notEqual(fresh._id,legacy._id);
+ assert.equal(fresh.snapshot.product.manifestVersion,'destiny-book-v6');
+ assert.equal(fresh.snapshot.manifest[0].version,'destiny-book-v6');
+ assert.deepEqual(legacy,before);
+ assert.equal(presentFortune(legacy).manifest[0].version,'destiny-book-v5');
+ assert.equal(presentFortune(legacy).chapters[0].summary,'saved v5 prose');
+ assert.equal(globalThis.__kindTest.calls,0);
+});
+
 test('new paid compatibility and timing chapters satisfy existing v5 quality and source validation',async()=>{
  for(const [consultationKind,productId,partnerProfileId] of [['compatibility','saju_mackerel','partner'],['timing','saju_tuna',undefined]]){
   const row=await prepareFortune(env,'owner',{...body,consultationKind,productId,partnerProfileId});

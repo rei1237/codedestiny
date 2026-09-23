@@ -1,8 +1,9 @@
+import {readingManifestV6} from './reading-v6';
 import { withReadingSections } from './reading-sections';
 import type { Product } from '../payments/catalog';
 import type { ChapterSpec, Theme } from './book-contracts';
 import type { DomainId } from './shared/contracts';
-import { policyForReading, READING_V5_VERSION } from './reading-policy';
+import { policyForReading, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './reading-policy';
 import { topicCatalog, topicLabel, type TopicId } from './topics';
 
 type Row = { key: string; title: string; theme: Theme; systems: DomainId[]; part: string };
@@ -56,10 +57,11 @@ export function questionFactSelectors(systems:DomainId[],question:string,topicId
  return Object.fromEntries(systems.map(d=>[d,[...new Set([...groups[d].base,...keys.flatMap(k=>groups[d][k] || []),...(groups[d].year || [])])]]));
 }
 export function readingManifest(p:Product,topicId='general',readingMode='personal',version=p.manifestVersion):ChapterSpec[]{
+ if(version===READING_V6_VERSION)return readingManifestV6(p,topicId,readingMode);
  let rows:Row[];
  if(p.readingKind==='single'){
  const name=p.domain==='sukuyo'&&readingMode!=='personal'?'sukuyo_pair':p.domain;
- rows=[...parse(outlines[name],p.systems).slice(0,p.chapterCount-1),...parse('action:지금의 선택과 실행 계획',p.systems)];
+ rows=[...parse(outlines[name],p.systems).slice(0,(version===p.manifestVersion?p.chapterCount:readingChapterCount(p.domain,p.fishId,version))-1),...parse('action:지금의 선택과 실행 계획',p.systems)];
  }else rows=p.readingKind==='pair'?parse(pairs[p.domain],p.systems,'서로 다른 관점으로 읽는 나'):combinedRows();
  const label=topicLabel(topicId);
  if(label&&p.readingKind==='single'){

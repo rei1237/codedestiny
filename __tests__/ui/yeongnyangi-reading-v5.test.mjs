@@ -4,8 +4,9 @@ import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {validateReadingQuality,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {analyze} from './worker/yeongnyangi/fortune/analysis'; export {TAROT_CARDS} from './lib/tarot/tarot-cards.mjs'; export {getTarotCardImageUrl} from './src/features/fortune-tea-house/lib/tarotCardImageMap'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,format:'esm',platform:'node',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const legacyProducts=m.products.map(p=>({...p,manifestVersion:m.READING_V5_VERSION,chapterCount:m.readingChapterCount(p.domain,p.fishId,m.READING_V5_VERSION)}));
 const context={domain:'saju',engineVersion:'fixture',calculatedAt:'2026-09-22',limitations:[],facts:[{id:'saju.pillars',label:'pillars',value:{day:'甲子'}},{id:'saju.dayMaster',label:'dayMaster',value:'甲'}]};
-const product=m.products.find(p=>p.id==='saju_tuna');
+const product=legacyProducts.find(p=>p.id==='saju_tuna');
 const chapter=m.readingManifest(product)[0];
 const input={chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous:[]};
 const good=await new m.MockChapterProvider().generateChapter(input);
@@ -20,7 +21,7 @@ test('the citation index includes valid block references without accepting inven
 
 test('28 products preserve counts and have funded, distinct v5 section quotas',()=>{
  assert.equal(m.products.length,28);
- for(const p of m.products){
+ for(const p of legacyProducts){
   const chapters=m.readingManifest(p),policy=m.v5ReadingPolicies[p.fishId];
   assert.equal(chapters.length,p.chapterCount,p.id);
   assert.ok(chapters.reduce((n,c)=>n+c.minimumChars,0)>=policy.minimum,p.id);
@@ -77,7 +78,8 @@ test('presentation excludes raw birth data and does not recalculate missing lega
 
 test('all 78 saved tarot cards reuse the Tea House images without changing order or orientation',()=>{
  const cards=m.TAROT_CARDS.map((card,i)=>({...card,cardId:card.code,orientation:i%2?'reversed':'upright',imageUrl:'/old-deck.jpg'}));
- const context={domain:'tarot',facts:[{id:'tarot.cards',label:'cards',value:cards}],limitations:[]};
+ const legacyProducts=m.products.map(p=>({...p,manifestVersion:m.READING_V5_VERSION,chapterCount:m.readingChapterCount(p.domain,p.fishId,m.READING_V5_VERSION)}));
+const context={domain:'tarot',facts:[{id:'tarot.cards',label:'cards',value:cards}],limitations:[]};
  const result=m.readingCharts({contexts:{tarot:context}},[])[0].groups;
  assert.equal(result.length,78);
  const images=new Set();

@@ -1,6 +1,6 @@
 import {DomainContext} from './shared/contracts';
 import {ChapterSpec} from './book-contracts';
-import {isStructuredReading} from './reading-policy';
+import {isStructuredReading,READING_V6_VERSION} from './reading-policy';
 
 export function relationshipSignals(value:unknown) {
  const data=value as {byName?:Record<string,{present?:boolean;hits?:unknown[];state?:string}>};
@@ -37,7 +37,9 @@ function selectedFacts(context:DomainContext,chapter:ChapterSpec) {
   }
   if(f.label==='majorLuck'&&context.domain==='saju'&&value&&typeof value==='object'){
    const data=value as {currentCycle?:{index:number};cycles?:{index:number}[];direction?:string};
-   value=chapter.key==='next'?{direction:data.direction,cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{direction:data.direction,currentCycle:data.currentCycle};
+   const next=chapter.key==='next'||chapter.version===READING_V6_VERSION&&chapter.key==='preparation';
+   const compare=chapter.version===READING_V6_VERSION&&['alternatives','limits'].includes(chapter.key||'');
+   value=next||compare?{direction:data.direction,...(compare?{currentCycle:data.currentCycle}:{}),cycles:data.currentCycle?data.cycles?.filter(c=>c.index>data.currentCycle!.index).slice(0,1):[],limitation:data.currentCycle?undefined:'현재 주기를 확인할 수 없어 다음 전환을 특정하지 않는다.'}:{direction:data.direction,currentCycle:data.currentCycle};
   }
   if(f.label==='yearlyLuck'&&context.domain==='saju'&&Array.isArray(value))value=value.slice(0,1);
   if(f.label==='shinsal')value={signals:relationshipSignals(value),limitation:'매력·교류의 단서이며 실제 외도 여부나 확률이 아니다. 자료 없음은 낮은 위험을 뜻하지 않는다.'};

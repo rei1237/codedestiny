@@ -1,6 +1,6 @@
 import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
-import {READING_V5_VERSION,isStructuredReading,PROMPT_VERSION,readingPolicies} from '../fortune/reading-policy';
+import {READING_V6_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
 import {validateReadingQuality} from '../fortune/reading-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {assertProfessionalProse, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames} from '../fortune/consultation';
@@ -57,8 +57,8 @@ export function validateChapter(
   if (
     !v ||
     !text(v.summary) ||
-    (input.chapter.version===READING_V5_VERSION?v.example!=='':!text(v.example)) ||
-    (input.chapter.version===READING_V5_VERSION?v.advice!=='':!text(v.advice)) ||
+    (hasReadingSections(input.chapter.version)?v.example!=='':!text(v.example)) ||
+    (hasReadingSections(input.chapter.version)?v.advice!=='':!text(v.advice)) ||
     !text(v.persona) ||
     !Array.isArray(v.analysis) ||
     (!isStructuredReading(input.chapter.version) && v.analysis.length < 1) ||
@@ -82,7 +82,7 @@ export function validateChapter(
   )
     throw new FortuneError("INVALID_EVIDENCE");
 
-  if(input.chapter.version===READING_V5_VERSION && Array.isArray(v.blocks)){
+  if(hasReadingSections(input.chapter.version) && Array.isArray(v.blocks)){
     const cited=v.blocks.flatMap(b=>Array.isArray(b?.sources)?b.sources:[]);
     if(cited.some(id=>!allowed.has(id)))throw new FortuneError('INVALID_EVIDENCE');
     // The top-level list is an index of actual, validated block citations.
@@ -99,7 +99,7 @@ export function validateChapter(
   if(input.analysis.consultation?.spirit)validateSpiritChapter(v,input.analysis.contexts.saju!,input.analysis.consultation.spirit);
   if(input.analysis.consultation?.questionSky)validateSkyChapter(v,Object.values(input.analysis.contexts)[0],input.analysis.consultation.questionSky);
   validateReadingQuality(v,input.chapter,input.previous);
-  if(input.chapter.version===READING_V5_VERSION){
+  if(hasReadingSections(input.chapter.version)){
     const evidence=v.blocks?.find(b=>b.id==='evidence');
     const domains=new Set([...allowed].map(id=>id.split('.')[0]));
     if(!evidence?.sources || [...domains].some(domain=>!evidence.sources!.some(id=>id.startsWith(domain+'.'))))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
@@ -198,7 +198,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
     const questionCount=assignedQuestions.length;
     const baseTokens=isStructuredReading(input.chapter.version)&&input.chapter.tier?Math.max(input.chapter.outputTokens??0,readingPolicies[input.chapter.tier].outputTokens):input.chapter.outputTokens;
     const v5Tokens=Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*480));
-    if(input.chapter.version===READING_V5_VERSION && v5Tokens>24576)throw new FortuneError('CHAPTER_OUTPUT_BUDGET_EXCEEDED',503);
+    if(hasReadingSections(input.chapter.version) && v5Tokens>24576)throw new FortuneError('CHAPTER_OUTPUT_BUDGET_EXCEEDED',503);
     if (JSON.stringify(facts).length > 180000)
       throw new FortuneError("CHAPTER_CONTEXT_TOO_LARGE", 503);
     const response = await this.provider.generate({
@@ -213,14 +213,14 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         timeContract: 'consultation.asOf와 timezone이 상담 기준이다. period.label에 명시한 기간을 우선하되 제공된 계산 근거에 그 기간이 없으면 예측 불가와 실천·점검 범위를 설명한다. 출생 성향을 월운이나 사건 날짜로 바꾸지 않는다. 다른 챕터에서도 질문과 관련된 이유·시기·선택을 연결하되 앞선 답변을 반복하지 않는다.',
         evidencePresentation: 'sources에만 내부 근거 ID를 넣는다. 모든 사용자용 문장에는 내부 ID·객체 경로·영문 JSON 키를 쓰지 않는다. professionalEvidenceNames의 전문 용어로 실제 명식의 관계를 설명하고 바로 쉬운 뜻을 붙인다. 사주 이외의 체계는 해당 체계의 전문 용어를 유지한다.',
         sectionContract: input.chapter.sections,
-        depth: input.chapter.requiredSections?.join(' → ') || depth,
+        depth: input.chapter.version===READING_V6_VERSION?policyForReading(input.chapter.tier!,READING_V6_VERSION).depth.join(' → '):input.chapter.requiredSections?.join(' → ') || depth,
         lengthContract: isStructuredReading(input.chapter.version)?{minimum:input.chapter.minimumChars,target:input.chapter.targetChars,unit:'공백 포함 실제 해설 본문. 제목·목차·요약·배지·출처·반복 안내 제외. 분량을 반복으로 채우지 않는다.'}:undefined,
         correction: input.repair,
         excludedSubjects: input.chapter.excludes,
         paidScope: isStructuredReading(input.chapter.version)&&!['tuna','assorted','omakase'].includes(tier)?'용신·희신·대운·마하다샤·안타르다샤·삼방사정 전문 해석 금지. 명식의 일반 해석만 한다.':undefined,
         evidenceLimit: '자료 부족은 낮은 위험이나 좋은 운이 아니다. 없는 시기와 사실은 만들지 않는다. 질병·장기 이상·음식의 치료 효능을 명식으로 판단하지 않는다.',
         citationContract: '최상위 sources에는 모든 blocks[].sources의 합집합을 빠짐없이 넣는다. sources는 CALCULATED_DATA.facts의 id를 그대로 사용한다. label이나 새 ID를 만들지 않는다.',
-        blockContract: input.chapter.version===READING_V5_VERSION?'sections의 각 ID에 대응하는 blocks를 순서대로 생성한다. title은 자연스러운 한국어 소제목. paragraphs는 각각 500자 이하, 보통 150~350자. 본문은 blocks에만 쓰고 analysis는 빈 배열, example과 advice는 빈 문자열이다. 각 block의 sources에 실제 사용한 제공 근거 ID를 넣는다. evidence 소절에는 근거가 제공된 각 체계의 출처를 포함하고 광어 이상은 가능하면 서로 다른 근거 2개 이상을 연결한다. 소절별 minimumChars와 역할을 충족한다.':isStructuredReading(input.chapter.version)?'blocks는 requiredSections의 모든 제목을 그대로 사용하고 문단당 500자 이하의 짧은 해설 문단을 담는다. analysis는 빈 배열. example과 advice는 blocks를 반복하지 않는 사례와 실행이다.':undefined,
+        blockContract: hasReadingSections(input.chapter.version)?'sections의 각 ID에 대응하는 blocks를 순서대로 생성한다. title은 자연스러운 한국어 소제목. paragraphs는 각각 500자 이하, 보통 150~350자. 본문은 blocks에만 쓰고 analysis는 빈 배열, example과 advice는 빈 문자열이다. 각 block의 sources에 실제 사용한 제공 근거 ID를 넣는다. evidence 소절에는 근거가 제공된 각 체계의 출처를 포함하고 광어 이상은 가능하면 서로 다른 근거 2개 이상을 연결한다. 소절별 minimumChars와 역할을 충족한다.':isStructuredReading(input.chapter.version)?'blocks는 requiredSections의 모든 제목을 그대로 사용하고 문단당 500자 이하의 짧은 해설 문단을 담는다. analysis는 빈 배열. example과 advice는 blocks를 반복하지 않는 사례와 실행이다.':undefined,
         narrativeTask: !isStructuredReading(input.chapter.version)&&tier==='mackerel'?[
           '첫인상만 다룬다. 말이나 일을 시작하기 전에 무엇을 관찰하는 사람인지 한 가지 장면으로 보여준다. 책임 분배 조언은 하지 않는다.',
           '내면의 선택 기준만 다룬다. 두 선택지 사이에서 마음이 움직이는 기준과 그 반대 가능성을 설명한다. 첫인상과 책임 분배를 재설명하지 않는다.',
@@ -256,16 +256,16 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       }),
       calculatedData: facts,
       userQuestion: input.analysis.question||"",
-      outputSchema: {...schema,required:[...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[])],properties:{...schema.properties,...(input.chapter.version===READING_V5_VERSION?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action'],properties:{...Object.fromEntries(['answer','reason','timing','action'].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})}}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:facts.facts.map(f=>f.id)}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),sources:{
+      outputSchema: {...schema,required:[...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[])],properties:{...schema.properties,...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action'],properties:{...Object.fromEntries(['answer','reason','timing','action'].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})}}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:facts.facts.map(f=>f.id)}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),sources:{
         type:'array',minItems:1,
         description:'해석에 실제 사용한 FortuneFact.id만 그대로 선택한다. 괄호, 설명, 번역을 덧붙이지 않는다.',
         items:{type:'string',enum:facts.facts.map(f=>f.id)},
       }}},
       sectionTitles: [input.chapter.title],
-      promptVersion: input.chapter.version===READING_V5_VERSION?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2",
+      promptVersion: input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2",
       // Books keep their purchase-time manifest; a later cap increase must still reach retries of those chapters.
       ...(spirit||sky?{maxProviderAttempts:1}:{}),
-      maxOutputTokens:input.chapter.version===READING_V5_VERSION?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*480))):baseTokens,
+      maxOutputTokens:hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*480))):baseTokens,
     });
     this.receipt = { provider: response.provider, model: response.model };
     let candidate:any=response.result;

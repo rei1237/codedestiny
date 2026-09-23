@@ -1,6 +1,6 @@
 import type { ChapterBody, ChapterSpec } from './book-contracts';
 import { FortuneError } from './shared/contracts';
-import { READING_V5_VERSION, isStructuredReading } from './reading-policy';
+import { hasReadingSections, isStructuredReading } from './reading-policy';
 
 const normalize=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
 function nearDuplicate(a:string,b:string,cache:Map<string,Set<string>>){
@@ -18,7 +18,7 @@ export function bodyCharacterCount(body:ChapterBody):number {
 }
 export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[]){
  if(!isStructuredReading(chapter.version))return;
- const v5=chapter.version===READING_V5_VERSION;
+ const v5=hasReadingSections(chapter.version);
  if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?500:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS');
  if(v5){
   if(!chapter.sections?.length || body.analysis.length || body.example || body.advice)throw new FortuneError('INVALID_CHAPTER_BLOCKS');

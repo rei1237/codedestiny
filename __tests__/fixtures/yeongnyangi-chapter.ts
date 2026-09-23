@@ -2,7 +2,7 @@ import {type ChapterRequest,type FortuneChapterProvider,validateChapter} from '.
 import {FortuneError} from '../../worker/yeongnyangi/fortune/shared/contracts';
 import {type ChapterBody} from '../../worker/yeongnyangi/fortune/book-contracts';
 import {selectChapterFacts} from '../../worker/yeongnyangi/fortune/chapter-facts';
-import {READING_VERSION,READING_V5_VERSION} from '../../worker/yeongnyangi/fortune/reading-policy';
+import {READING_VERSION,hasReadingSections} from '../../worker/yeongnyangi/fortune/reading-policy';
 export class MockChapterProvider implements FortuneChapterProvider {
   readonly receipt = { provider: "mock", model: "chapter-fixture-v2" };
   constructor(private failAt?: string) {}
@@ -12,7 +12,7 @@ export class MockChapterProvider implements FortuneChapterProvider {
     const facts = Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap(
       (c) => selectChapterFacts(c,input.chapter,input.analysis.topicId),
     );
-    if(c.version===READING_V5_VERSION)return mockReadingV5(input,facts.map(f=>f.id));
+    if(hasReadingSections(c.version))return mockReadingV5(input,facts.map(f=>f.id));
     if(c.version===READING_VERSION)return mockReading(input,facts.map(f=>f.id));
     const f = facts[c.ordinal % facts.length];
     return validateChapter(
