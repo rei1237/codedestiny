@@ -48,11 +48,17 @@ export default function Result(){
   async function load(attempt=0){
    try{
     let {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}`);fortune=sameRequest(fortune,id);
+    let notice='';
     if(!fortune.paid && fortune.state!=='REFUNDED'){
+     // 이미 읽은 상담은 결제 연결(activate) 실패로 버리지 않는다. 일시 오류는 아래 결제 대기 폴링이 다시 시도하고,
+     // 기다려도 바뀌지 않는 답(가격 변경 등)만 안내한다.
      try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
-     catch(e){if(!(e instanceof FortuneApiError&&e.status===402))throw e;}
+     catch(e){
+      if(e instanceof FortuneApiError&&(e.status===401||e.code==='RECOVERY_ID_MISMATCH'))throw e;
+      if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=e.message;
+     }
     }
-    if(!cancelled){setRow(fortune);setError('');}
+    if(!cancelled){setRow(fortune);setError(notice);}
    }catch(e){
     if(cancelled)return;
     if(e instanceof FortuneApiError&&e.status===401){loginForCurrentPage();return;}

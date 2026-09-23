@@ -20,16 +20,23 @@ createRoot(document.getElementById('root')).render(<main className={styles.page}
   b.onResolve({filter:/^\.\/(ReadingBook|ReadingIdentity|SpiritResult|ReadingLoading|ResultSharing)$/},()=>({path:'child',namespace:'fixture'}));
   b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>({loader:'js',contents:path==='api'?`
 export class FortuneApiError extends Error {constructor(code,message,status){super(message);this.code=code;this.status=status;this.retryable=true;this.retryAfterSeconds=0;}}
-window.calls={read:0,generate:0,payments:1,provider:0};
+window.calls={read:0,generate:0,payments:1,provider:0};window.activateCalls=0;
+const activateCase=new URLSearchParams(location.search).get('case')==='activate';
 const id='a'.repeat(64),manifest=[{id:'first'},{id:'second'},{id:'third'}],stored={summary:'이미 저장된 첫 장'};
 const row={id,paid:true,state:'FORTUNE_FAILED',errorCode:'AUTOMATIC_RECOVERY_STOPPED',product:{name:'사주',fishName:'고등어'},chapters:[stored],manifest,recovery:{requestId:id,savedChapters:1,totalChapters:3,providerNeeded:true,retryable:true,canRetryNow:true,nextAction:'retry'}};
 export async function fortuneApi(path){
+ if(activateCase){
+  // 결제 직후: 상담은 읽히지만 결제 연결(activate) 첫 시도가 일시 DB 오류로 실패한다.
+  if(path.endsWith('/activate')){window.activateCalls++;if(window.activateCalls===1)throw new FortuneApiError('SERVICE_UNAVAILABLE','영냥이 서버에 잠시 연결하지 못했어요.',503);
+   return {fortune:{...row,state:'COMPLETED',errorCode:'',chapters:[stored,{summary:'둘째 장'},{summary:'셋째 장'}],recovery:{...row.recovery,savedChapters:3,providerNeeded:false,retryable:false,canRetryNow:false,nextAction:'reread'}}};}
+  window.calls.read++;return {fortune:{...row,paid:false,state:'CREATED',errorCode:'',chapters:[],recovery:{...row.recovery,savedChapters:0}}};
+ }
  if(path.endsWith('/generate')){window.calls.generate++;window.calls.provider+=2;await new Promise(r=>setTimeout(r,150));const fortune={...row,state:'COMPLETED',errorCode:'',chapters:[stored,{summary:'둘째 장'},{summary:'셋째 장'}],recovery:{...row.recovery,savedChapters:3,providerNeeded:false,retryable:false,canRetryNow:false,nextAction:'reread'}};window.completed=fortune;return {fortune};}
- window.calls.read++;if(window.calls.read===1)throw new FortuneApiError('SERVICE_UNAVAILABLE','상담 기록에 잠시 연결하지 못했어요.',503);
+ window.calls.read++;if(window.calls.read===1)throw new FortuneApiError('SERVICE_UNAVAILABLE','영냥이 서버에 잠시 연결하지 못했어요.',503);
  return {fortune:row};
 }
 export function loginForCurrentPage(){throw Error('unexpected login');}
-export function checkoutPath(){throw Error('paid retry must not enter checkout');}
+export function checkoutPath(){if(activateCase)return '#checkout';throw Error('paid retry must not enter checkout');}
 `:path==='analytics'?'export function trackFortuneDelivery(){} export function trackFortuneView(){}':path==='style'?'export default {};':'export default function Child(){return null;}'}));
  }}]});
 const js=bundle.outputFiles.find(f=>f.path.endsWith('.js')).text;
@@ -65,5 +72,17 @@ try{
   await page.screenshot({path:'build-cache/yeongnyangi-retry/recovered-'+width+'.png'});
   await page.close();
  }
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  await page.goto('http://127.0.0.1:'+server.address().port+'/?case=activate&id='+'a'.repeat(64));
+  await page.getByText('결제가 확인되면 이 화면이 자동으로 바뀌어요.').waitFor();
+  assert.equal(await page.getByRole('button',{name:'다시 불러오기',exact:true}).count(),0,'activate 실패가 읽은 상담을 가리면 안 된다');
+  assert.equal(await page.getByText('영냥이 서버에 잠시 연결하지 못했어요.').count(),0,'일시 오류는 결제 대기 폴링이 흡수한다');
+  await page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor({timeout:15000});
+  assert.deepEqual(await page.evaluate(()=>[window.calls,window.activateCalls]),[{read:1,generate:0,payments:1,provider:0},2]);
+  await page.close();
+ }
+ console.log('PASS: activate 503 right after payment keeps the read consultation; payment poll attaches it; real calls=0');
  console.log('PASS: one payment, partial saved chapter reused, two missing provider calls, duplicate click suppressed, same request completed; 390/1280px; real calls=0');
 }finally{await browser.close();await new Promise(r=>server.close(r));}
