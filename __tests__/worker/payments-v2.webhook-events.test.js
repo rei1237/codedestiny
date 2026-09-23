@@ -20,7 +20,11 @@ const PAID_STATUS = __ordersTestUtils.PAID_RAW_STATUSES[0];
 let eventSeq = 0;
 
 /* 실패·전액취소는 PG 재조회 뒤 적용된다 — 기본 mock 은 이벤트와 같은 사실을 답한다. */
-const PG_STATUS_BY_TYPE = { "Transaction.Failed": "failed", "Transaction.Cancelled": "cancelled" };
+const PG_STATUS_BY_TYPE = {
+  "Transaction.Failed": "failed",
+  "Transaction.Cancelled": "cancelled",
+  "Transaction.PartialCancelled": "cancelled",
+};
 
 async function postWebhook(db, body, { fetchPayment } = {}) {
   const rawBody = JSON.stringify(body);
@@ -264,6 +268,29 @@ describe("🔴 비-Paid 이벤트 PG 재조회(KG이니시스 보안 권고 2026
     });
     expect(payload).toMatchObject({ ignored: true, reason: "PG_STATUS_MISMATCH" });
     expect(order.status).toBe(PAID_STATUS);
+  });
+
+  test("위조 PartialCancelled: PG 가 여전히 PAID 면 검토 마커를 남기지 않는다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date(), entitlementGrantedAt: new Date() });
+    const { response, payload } = await postWebhook(db, { type: "Transaction.PartialCancelled", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async (_env, paymentId) => ({ paymentId, status: "paid", rawV2: { status: "PAID" } }),
+    });
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, ignored: true, reason: "PG_STATUS_MISMATCH" });
+    expect(order.status).toBe(PAID_STATUS);
+    expect(order.failureCode).toBeUndefined();
+    expect(db.rows.find((r) => r.eventId).status).toBe("processed");
+  });
+
+  test("PartialCancelled 는 PG 원본이 PARTIAL_CANCELLED 일 때 검토 마커를 남긴다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date() });
+    const { payload } = await postWebhook(db, { type: "Transaction.PartialCancelled", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async (_env, paymentId) => ({ paymentId, status: "cancelled", rawV2: { status: "PARTIAL_CANCELLED" } }),
+    });
+    expect(payload).toMatchObject({ ok: true, event: "partial-cancelled", reviewRequired: true });
+    expect(order.failureCode).toBe("partial_cancel_admin_review");
   });
 
   test("PG 가 다른 결제를 돌려주면 적용하지 않는다", async () => {

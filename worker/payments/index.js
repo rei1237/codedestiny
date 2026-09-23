@@ -211,18 +211,23 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
 /* 🔴 KG이니시스 보안 권고(2026-09-18) 대응: 실패·전액취소 이벤트는 서명만 믿고 적용하지 않는다.
    환불·권한 회수는 되돌리기 어려우므로, Paid 가 confirmOrder 로 재조회하듯 PortOne 에 다시 물어
    그 사실이 이벤트와 맞을 때만 적용한다(포트원 웹훅 가이드의 "수신 후 결제 조회" 권장).
-   부분취소는 원래 검토 마커만 남기므로 재조회하지 않는다. */
-const REQUERY_EVENT_TYPES = new Set(["transaction.failed", "transaction.cancelled"]);
+   부분취소도 재조회한다(2026-09-24 W7) — 일반 주문엔 검토 마커뿐이지만 선물 주문은 상태를 바꾸고,
+   위조 마커는 관리자 판단을 흐린다. */
+const REQUERY_EVENT_TYPES = new Set(["transaction.failed", "transaction.cancelled", "transaction.partialcancelled"]);
 
-/** PG 조회 결과가 이 이벤트를 뒷받침하는가. 부분취소(PARTIAL_CANCELLED)는 전액취소로 인정하지 않는다. */
+/** PG 조회 결과가 이 이벤트를 뒷받침하는가. 부분취소(PARTIAL_CANCELLED)는 전액취소로 인정하지 않는다.
+ *  부분취소 이벤트는 PG 가 PARTIAL_CANCELLED 일 때만 — 전액취소 뒤 늦게 온 부분취소는 전액취소 이벤트 몫이다. */
 function pgConfirmsNonPaidEvent(eventType, pg, orderId) {
   if (String(pg?.paymentId || "") !== String(orderId)) return false;
   const type = String(eventType || "").trim().toLowerCase();
   const normalized = String(pg?.status || "").toLowerCase();
+  const raw = String(pg?.rawV2?.status || "").toUpperCase();
   if (type === "transaction.failed") return normalized !== "paid";
   if (type === "transaction.cancelled") {
-    const raw = String(pg?.rawV2?.status || "").toUpperCase();
     return raw ? raw === "CANCELLED" || raw === "CANCELED" : normalized === "cancelled";
+  }
+  if (type === "transaction.partialcancelled") {
+    return raw ? raw === "PARTIAL_CANCELLED" : normalized === "cancelled";
   }
   return false;
 }
