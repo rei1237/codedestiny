@@ -12,6 +12,7 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { compassShareChoices } from "@/lib/consultation-sharing";
 import { ReportActions } from "./ReportActions";
 import { CompassHero, ConfidenceMeta, coordinateLine } from "./CompassHero";
 import { CompassInsightCards } from "./CompassInsightCards";
@@ -420,8 +421,8 @@ export function CompassReport({
           <ReportActions
             targetRef={shellRef}
             coordinate={coordinate}
-            question={question}
             reportId={report.reportId}
+            shareChoices={compassShareChoices(report)}
           />
           <button type="button" className={styles.resultCtaGhost} onClick={onRestart}>
             {copy.restartButton}

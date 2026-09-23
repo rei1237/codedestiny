@@ -10,6 +10,8 @@
  */
 import { useCallback, useRef, useState } from "react";
 import DeferredShareWidget from "@/app/components/DeferredShareWidget";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import type { ConsultationShareChoice } from "@/lib/consultation-sharing";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE } from "@/constants/loadingMessages";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
@@ -18,12 +20,12 @@ interface ReportActionsProps {
   /** 캡처 대상 컨테이너(리포트 셸) */
   targetRef: React.RefObject<HTMLElement>;
   coordinate: string;
-  question?: string;
   /** 저장본 재열람 링크에 쓰는 id. 없으면 공유는 기능 페이지로 보낸다. */
   reportId?: string;
+  shareChoices?: ConsultationShareChoice[];
 }
 
-export function ReportActions({ targetRef, coordinate, question, reportId }: ReportActionsProps) {
+export function ReportActions({ targetRef, coordinate, reportId, shareChoices = [] }: ReportActionsProps) {
   const copy = useDestinyCompassCopy();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -64,13 +66,12 @@ export function ReportActions({ targetRef, coordinate, question, reportId }: Rep
         {busy ? copy.pdfButtonBusy : copy.pdfButtonIdle}
       </button>
       <div className={styles.reportShare}>
-        <DeferredShareWidget
+        {reportId && shareChoices.length ? <ConsultationShare brand="compass" choices={shareChoices} /> : !reportId ? <DeferredShareWidget
           title={copy.shareTitle(coordinate)}
-          description={question ? copy.shareDescriptionWithQuestion(question) : copy.shareDescriptionDefault}
+          description={copy.shareDescriptionDefault}
           path="/destiny-compass"
           contentType="result"
-          contentId={reportId || undefined}
-        />
+        /> : null}
       </div>
       {notice && (
         <div className={styles.toast} role="status">{notice}</div>

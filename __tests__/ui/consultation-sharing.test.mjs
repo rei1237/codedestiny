@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
 const output = await build({ entryPoints: ['lib/consultation-sharing.ts'], bundle: true, platform: 'node', format: 'esm', write: false });
-const { teaHouseShareChoices, neoShareChoices, masterLoveCodexShareChoices, karmaShareChoices, astrologyShareChoices, vedicShareChoices, consultationInvitationUrl, trimShareText } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
+const { teaHouseShareChoices, neoShareChoices, masterLoveCodexShareChoices, karmaShareChoices, namingShareChoices, compassShareChoices, humanDesignShareChoices, astrologyShareChoices, vedicShareChoices, consultationInvitationUrl, trimShareText } = await import('data:text/javascript;base64,' + Buffer.from(output.outputFiles[0].text).toString('base64'));
 const tea = { resultId: 'PRIVATE_ID', questionSummary: 'PRIVATE_QUESTION', birthDate: 'PRIVATE_BIRTH', synthesis: { summary: '내 속도를 지켜도 괜찮아요.' }, actionPrescription: '오늘 한 가지를 적어보세요.', closingLine: '조금씩 나아가요.' };
 const neo = { sessionId: 'PRIVATE_ID', status: 'completed', question: 'PRIVATE_QUESTION', initialBriefing: { frontlineSummary: '먼저 기준을 세워라.', actionOrders: ['작은 실행부터 시작해라.'] }, pendingRefinedOrder: { thisWeekFirstStep: 'PRIVATE_PENDING' } };
 
@@ -66,6 +66,35 @@ test('Karma shares saved v1 and v2 summaries only for completed reports', () => 
     assert.deepEqual(karmaShareChoices({ ...result, reportId: undefined }), []);
   }
 });
+test('Naming shares saved interpretation without adding input identity or candidate names', () => {
+  const result = { status: 'completed', saved: true, inputSnapshot: { familyName: 'PRIVATE_NAME', birthDate: 'PRIVATE_BIRTH' },
+    finalPick: { name: 'PRIVATE_CANDIDATE', reason: '차분하게 균형을 잡는 뜻입니다.' },
+    sajuSnapshot: { recommendedNameElements: '목의 유연함을 보완합니다.' }, nameCards: [{ meaning: '신뢰를 쌓는 사람' }] };
+  const choices = namingShareChoices(result, 'PRIVATE_EXECUTION');
+  assert.deepEqual(choices.map(choice => choice.id), ['reason', 'balance', 'meaning']);
+  assert.doesNotMatch(JSON.stringify(choices), /PRIVATE_/);
+  assert.deepEqual(namingShareChoices({ ...result, status: 'partial' }, 'id'), []);
+  assert.deepEqual(namingShareChoices({ ...result, saved: false }, 'id'), []);
+  assert.deepEqual(namingShareChoices(result, ''), []);
+});
+test('Compass shares stored synthesis only after the final wave', () => {
+  const report = { reportId: 'PRIVATE_ID', phase: 'done', question: 'PRIVATE_QUESTION', sections: {
+    cross_synthesis: { body: '지금은 속도를 조절할 때입니다.\n\n다음 흐름을 지켜보세요.' },
+    action_plan: { body: '이번 주에는 한 가지를 정해 반복하세요.' },
+  } };
+  assert.deepEqual(compassShareChoices(report).map(choice => choice.id), ['direction', 'action']);
+  assert.doesNotMatch(JSON.stringify(compassShareChoices(report)), /PRIVATE_/);
+  assert.deepEqual(compassShareChoices({ ...report, phase: 'waveB' }), []);
+  assert.deepEqual(compassShareChoices({ ...report, reportId: '' }), []);
+});
+test('Human Design shares saved key points without the private chart or birth input', () => {
+  const doc = { reportId: 'PRIVATE_ID', status: 'completed', chart: { name: 'PRIVATE_NAME' },
+    sections: [{ keyPoints: ['내 리듬을 살펴보세요.', '결정 전에 휴식 시간을 두세요.'] }] };
+  assert.deepEqual(humanDesignShareChoices(doc).map(choice => choice.id), ['insight', 'action']);
+  assert.doesNotMatch(JSON.stringify(humanDesignShareChoices(doc)), /PRIVATE_/);
+  assert.deepEqual(humanDesignShareChoices({ ...doc, status: 'partial' }), []);
+  assert.deepEqual(humanDesignShareChoices({ ...doc, reportId: '' }), []);
+});
 test('Western astrology shares stored explanation excerpts only after completion', () => {
   const result = { id: 'PRIVATE_ID', status: 'completed', userQuestion: 'PRIVATE_QUESTION', birthInfo: { name: 'PRIVATE_NAME' }, messages: [
     { role: 'user', content: 'PRIVATE_QUESTION' },
@@ -97,7 +126,7 @@ test('Vedic shares only validated stored reading sections, not chart identity or
   assert.deepEqual(legacy.map(choice => choice.id), ['pattern', 'timing']);
 });
 test('invitation links contain only a public service and allowlisted attribution', () => {
-  for (const [brand, path] of [['tea', '/fortune-tea-house/'], ['neo', '/neo-operation-room/'], ['codex', '/master-love-codex/'], ['karma', '/karma-destiny-ai/'], ['astrology', '/astrology-ai/'], ['vedic', '/vedic-ai/']]) {
+  for (const [brand, path] of [['tea', '/fortune-tea-house/'], ['neo', '/neo-operation-room/'], ['codex', '/master-love-codex/'], ['karma', '/karma-destiny-ai/'], ['astrology', '/astrology-ai/'], ['vedic', '/vedic-ai/'], ['naming', '/naming-ai/'], ['compass', '/destiny-compass/'], ['humanDesign', '/human-design/']]) {
     for (const channel of ['copy', 'kakao', 'native', 'image', 'PRIVATE_QUERY']) {
       const url = new URL(consultationInvitationUrl(brand, channel));
       assert.equal(url.origin, 'https://code-destiny.com'); assert.equal(url.pathname, path);

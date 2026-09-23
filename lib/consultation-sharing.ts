@@ -42,6 +42,27 @@ export const consultationShareBrands = {
     image: '/feature-details/assets/vedic-ai-og.webp',
     background: '#151b2c', ink: '#f5eee1', accent: '#d9bb83',
   },
+  naming: {
+    title: '작명 상담',
+    invitation: '이름을 고르며 마음에 남은 해석을 나눌게.',
+    path: '/naming-ai/',
+    image: '/feature-details/assets/naming-ai-og.webp',
+    background: '#15112c', ink: '#f4eeff', accent: '#d9c5ef',
+  },
+  compass: {
+    title: '운명 나침반',
+    invitation: '나침반에서 마음에 남은 방향을 나눌게.',
+    path: '/destiny-compass/',
+    image: '/feature-details/assets/destiny-compass-og.webp',
+    background: '#111526', ink: '#f6f0e4', accent: '#d8c6a6',
+  },
+  humanDesign: {
+    title: '휴먼디자인 리포트',
+    invitation: '내 설계도에서 마음에 남은 문장을 나눌게.',
+    path: '/human-design/',
+    image: '/feature-details/assets/human-design-og.webp',
+    background: '#171b29', ink: '#f5f0e6', accent: '#c6c7a5',
+  },
 } as const;
 
 export type ConsultationShareBrand = keyof typeof consultationShareBrands;
@@ -115,6 +136,43 @@ export function karmaShareChoices(result: {
     { id: 'pattern', label: '내가 알아차린 반복', text: result.summaryCards?.repeatingPattern },
     { id: 'task', label: '지금 해볼 작은 선택', text: result.summaryCards?.currentTask },
     { id: 'chapter', label: '리포트에서 남은 요약', text: result.chapters?.find(chapter => chapter.summary?.trim())?.summary },
+  ]);
+}
+
+export function namingShareChoices(result: {
+  status?: string; saved?: boolean;
+  finalPick?: { reason?: string } | null;
+  sajuSnapshot?: { recommendedNameElements?: string } | null;
+  nameCards?: Array<{ meaning?: string; summary?: string }>;
+} | null, executionId: string): ConsultationShareChoice[] {
+  if (!result || !executionId || result.status !== 'completed' || result.saved === false) return [];
+  return availableChoices([
+    { id: 'reason', label: '이름을 고른 이유', text: result.finalPick?.reason },
+    { id: 'balance', label: '이름에 담은 균형', text: result.sajuSnapshot?.recommendedNameElements },
+    { id: 'meaning', label: '이름의 의미', text: result.nameCards?.find(card => card.meaning?.trim())?.meaning },
+  ]);
+}
+
+export function compassShareChoices(report: {
+  reportId?: string; phase?: string;
+  sections?: { cross_synthesis?: { body?: string }; action_plan?: { body?: string } };
+}): ConsultationShareChoice[] {
+  if (!report.reportId || report.phase !== 'done') return [];
+  return availableChoices([
+    { id: 'direction', label: '지금의 방향', text: shareExcerpt(report.sections?.cross_synthesis?.body) },
+    { id: 'action', label: '다음 실천', text: shareExcerpt(report.sections?.action_plan?.body) },
+  ]);
+}
+
+export function humanDesignShareChoices(doc: {
+  reportId?: string; status?: string;
+  sections?: Array<{ keyPoints?: string[] }>;
+} | null): ConsultationShareChoice[] {
+  if (!doc?.reportId || doc.status !== 'completed') return [];
+  const points = doc.sections?.flatMap(section => section.keyPoints || []).filter(point => typeof point === 'string' && point.trim()) || [];
+  return availableChoices([
+    { id: 'insight', label: '설계도에서 남은 해석', text: points[0] },
+    { id: 'action', label: '이어 읽을 실천', text: points[1] },
   ]);
 }
 

@@ -15,6 +15,8 @@ import { parseAssistantSections, toDisplayText } from "@/lib/llm-text";
 import { currentNamingResultCopy } from "./resultCopy";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import ConsultationShare from "@/components/fortune/ConsultationShare";
+import { namingShareChoices } from "@/lib/consultation-sharing";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 
 type DesiredNameCandidate = { hangul?: string; hanjaCandidates?: string[]; note?: string };
@@ -661,6 +663,9 @@ export default function NamingAiResultClient() {
               </section>
             )}
           </div>
+        )}
+        {!loading && !pending && !error && result && (
+          <ConsultationShare brand="naming" choices={namingShareChoices(result, executionId)} />
         )}
       </section>
     </main>
