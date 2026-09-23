@@ -1,3 +1,8 @@
+---
+status: active
+updated: 2026-09-24
+next: [data-cdh-free] 무료 사주 인라인 폼 진입점을 어디에 다시 둘지 정하고, 새 ko 문구 4개 로케일 번역을 붙인다
+---
 # 꿀꿀 운세 홈 "연이의 꽃정원" 개편 (2026-09-24)
 
 다음 세션 첫 문장: "docs/handoff/ggulggul-home-garden-2026-09-24.md 를 읽고 남은 후속 과제부터 이어가 줘."
