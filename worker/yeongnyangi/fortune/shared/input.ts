@@ -101,8 +101,8 @@ export function validateInput(value: unknown, domain: DomainId): FortuneInput {
   return {
     topicId,
     personA: profile(v.personA, domain),
-    ...(domain === 'sukuyo' ? { readingMode: v.readingMode === 'personal' ? 'personal' as const : 'compatibility' as const } : {}),
-    ...(domain === "sukuyo" && v.readingMode !== 'personal' ? { personB: profile(v.personB, domain) } : {}),
+    ...((domain === 'sukuyo'||domain === 'saju'&&v.readingMode==='compatibility') ? { readingMode: v.readingMode === 'personal' ? 'personal' as const : 'compatibility' as const } : {}),
+    ...((domain === "sukuyo"||domain === "saju") && (domain==='sukuyo'?v.readingMode !== 'personal':v.readingMode==='compatibility') ? { personB: profile(v.personB, domain) } : {}),
     question: question.trim(),
   };
 }

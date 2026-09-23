@@ -35,6 +35,7 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
     if(d==='saju'){
       for(const [key,label] of Object.entries({year:'년주',month:'월주',day:'일주',hour:'시주'}))add('pillars',label,[{label:'천간·지지',value:text(f.pillars?.[key])},{label:'천간 십성',value:text(f.tenGodsByPillar?.[key]?.stemTenGod)}]);
       add('fiveElements','오행 분포 · 월령 가중치 포함',Object.entries(f.fiveElements?.counts || f.fiveElements || {}).filter(([,v])=>typeof v==='number').map(([k,v])=>({label:text(k),value:text(v)})));
+      if(f.partnerChart){for(const [key,label] of Object.entries({year:'상대 년주',month:'상대 월주',day:'상대 일주',hour:'상대 시주'}))add('partnerChart',label,[{label:'천간·지지',value:text(f.partnerChart.pillars?.[key])}]);}
     }else if(d==='ziwei'){
       for(const p of f.palaces || [])add('palaces',`${p.name}${p.name===f.bodyPalace?' · 신궁':''}`,[{label:'주성',value:text(p.mainStars)},{label:'보조성',value:text(p.assistantStars)},{label:'긴장 요소',value:text(p.maleficStars)}],{},p.name);
     }else if(d==='sukuyo'){

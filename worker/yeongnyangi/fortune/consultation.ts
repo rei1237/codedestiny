@@ -3,6 +3,9 @@ import { FortuneError } from './shared/contracts';
 import { topicLabel } from './topics';
 
 export interface Consultation {
+  consultationKind?: string;
+  kindVersion?: 1;
+  kindLabel?: string;
   questionSky?: import('./question-sky-contract').SkyPublic;
   spirit?: import('./spirit-contract').SpiritPublic;
   version: 1;

@@ -297,6 +297,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      assert.equal(displayed,28);
      await f.page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:systemNames.saju,exact:true}).click();
      await f.page.getByRole('group',{name:'저장한 프로필'}).getByRole('button',{name:/QA 고객/}).click();
+     await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
      await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
      await f.page.waitForURL('**/checkout/**');assert.equal(new URL(f.page.url()).searchParams.get('requestId'),f.row.id);assert.equal(f.state.creates,1);
      await f.page.waitForLoadState('load');
@@ -393,13 +394,13 @@ export async function verifyMobilePayments({base,products,systemNames}){
       await waitResult(f);
       if(scenario==='handler-delay')assert.ok(f.state.assetDelays>0);
       if(scenario==='read-503'){
-       assert.equal(f.row.paid,true);f.state.read503=1;
+       assert.equal(f.row.paid,true);f.state.read503=100;
        const failed=f.page.waitForResponse(r=>new URL(r.url()).pathname===`/api/yeongnyangi/requests/${f.row.id}`&&r.status()===503);
        await f.page.reload({waitUntil:'domcontentloaded'});await failed;await f.page.locator('p[role="alert"]').waitFor();
        assert.equal(f.state.sdk.length,1);assert.equal(f.state.orders.size,1);
        await f.page.waitForLoadState('load');
        const restored=f.page.waitForResponse(r=>new URL(r.url()).pathname===`/api/yeongnyangi/requests/${f.row.id}`&&r.status()===200);
-       await f.page.reload({waitUntil:'domcontentloaded'});await restored;await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
+       f.state.read503=0;await restored;await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
       }
       if(scenario==='generation-failure'){
        await f.page.locator('p[role="alert"]').waitFor();assert.equal(f.row.paid,true);assert.equal(f.state.sdk.length,1);assert.equal(f.row.chapters.length,1);

@@ -9,7 +9,8 @@ jest.unstable_mockModule('../../worker/yeongnyangi/fortune/free/horary.ts',()=>(
 jest.unstable_mockModule('../../worker/yeongnyangi/fortune/question-sky.ts',()=>({resolveCurrentLocation:location}));
 const profilesHandler=jest.fn();
 const find=jest.fn(),select=jest.fn(),sort=jest.fn(),limit=jest.fn(),lean=jest.fn();
-const query={select,sort,limit,lean};
+const maxTimeMS=jest.fn();
+const query={select,sort,limit,maxTimeMS,lean};
 jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:auth}));
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
 jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:security}));
@@ -43,7 +44,7 @@ beforeEach(()=>{
   attend.mockResolvedValue({day:'2026-09-16',balance:1,attended:true,unlocked:false,awarded:true});
   unlock.mockResolvedValue({day:'2026-09-16',balance:0,attended:true,unlocked:true,newlyUnlocked:true});
   freeRead.mockResolvedValue({result:null});freePrepare.mockResolvedValue({category:'basic',title:'오늘의 운세'});
-  find.mockReturnValue(query);select.mockReturnValue(query);sort.mockReturnValue(query);limit.mockReturnValue(query);lean.mockResolvedValue([]);
+  maxTimeMS.mockReturnValue(query);find.mockReturnValue(query);select.mockReturnValue(query);sort.mockReturnValue(query);limit.mockReturnValue(query);lean.mockResolvedValue([]);
 });
 
 test.each(['GET','POST'])('profile %s delegates once to the authenticated profile boundary',async method=>{
@@ -90,7 +91,8 @@ test('list uses owner filter, bounded projection and stable pagination',async()=
   const response=await handleYeongnyangiRoutes(request(`requests?cursor=${stamp}_${id}`),env);
   const body=await response.json();expect(body.fortunes).toHaveLength(30);expect(body.nextCursor).toBe(`${stamp}_${id}`);
   expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,$or:expect.any(Array)}));
-  expect(limit).toHaveBeenCalledWith(31);expect(select.mock.calls[0][0]).not.toMatch(/chapters|analysis/);
+  expect(limit).toHaveBeenCalledWith(31);expect(select.mock.calls[0][0].split(' ')).not.toEqual(expect.arrayContaining(['chapters','snapshot.analysis']));
+  expect(maxTimeMS).toHaveBeenCalledWith(4000);expect(response.headers.get('Server-Timing')).toMatch(/auth;dur=.*db;dur=.*query;dur=/);
 });
 test('invalid cursor does not run a database query',async()=>{
   expect((await handleYeongnyangiRoutes(request('requests?cursor=bad'),env)).status).toBe(400);expect(find).not.toHaveBeenCalled();
@@ -140,3 +142,10 @@ test('retry uses the authenticated owner and original consultation',async()=>{
  const response=await handleYeongnyangiRoutes(request(`requests/${id}/generate`,'POST',{userId:'foreign'}),env);
  expect(response.status).toBe(202);expect(generate).toHaveBeenCalledWith(env,userId,id);
 });
+
+ test.each([0,30])('list with %i rows has no next cursor and contains only summaries',async count=>{
+  lean.mockResolvedValue(Array.from({length:count},(_,i)=>({_id:String(i).padStart(64,'0'),snapshot:{product:{id:'saju_mackerel'},analysis:{consultation:{consultationKind:'personal',kindLabel:'사주 해석'}}},createdAt:'2026-09-23',state:'COMPLETED',completedChapters:5})));
+  const response=await handleYeongnyangiRoutes(request('requests'),env);const body=await response.json();
+  expect(body.fortunes).toHaveLength(count);expect(body.nextCursor).toBeNull();
+  if(count){expect(body.fortunes[0].kindLabel).toBe('사주 해석');expect(body.fortunes[0].chapters).toBeUndefined();expect(body.fortunes[0].snapshot).toBeUndefined();}
+ });

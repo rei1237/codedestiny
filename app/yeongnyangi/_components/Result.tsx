@@ -81,8 +81,8 @@ export default function Result(){
   {row&&<>
    {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading product={row.product} stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}
    <section className={styles.questionContext} aria-label="이번 상담의 주제와 질문">
-    <h2>{row.consultation?.topicLabel || '이번 상담'}</h2>
-    {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>입력한 질문 없이 선택한 주제의 흐름을 살펴보는 상담이에요.</p>}
+    <h2>{row.consultation?.kindLabel || row.consultation?.topicLabel || '이번 상담'}</h2>
+    {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>선택한 상담의 계산 근거와 흐름을 살펴보는 기록이에요.</p>}
     {row.consultation?.asOf&&<p>상담 기준: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
     {row.consultation?.period&&<p>분석 범위: {row.consultation.period.label}. 시기 근거가 없는 부분은 실천·점검 기간으로 안내해요.</p>}
    </section>

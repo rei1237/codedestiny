@@ -25,9 +25,20 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
         "출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.",
       );
     if(r.jong.confirmationRequired)limitations.push('종격은 기존 엔진이 찾은 후보입니다. 기존 서비스의 생활 이력 확인을 거치지 않은 용신·종격 해석은 조건부입니다.');
+    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},options) : undefined;
+    const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
     return context(
       "saju",
       {
+        ...(partnerFacts?{
+          partnerChart:Object.fromEntries(Object.entries(partnerFacts).filter(([key])=>['pillars','dayMaster','fiveElements','tenGods','tenGodsByPillar','natalInteractions','seasonalBalance'].includes(key))),
+          relationshipComparison:{
+            selfDayMaster:r.dayMaster,partnerDayMaster:partnerFacts.dayMaster,
+            selfElements:r.fiveElements,partnerElements:partnerFacts.fiveElements,
+            selfTenGods:r.tenGods,partnerTenGods:partnerFacts.tenGods,
+            limitation:'두 명식의 기질·오행·십성 비교입니다. 명식 간 합충 점수나 실제 관계의 성공 확률을 계산한 값이 아닙니다.',
+          },
+        }:{}),
         pillars: {
           year: r.yearPillar,
           month: r.monthPillar,
@@ -51,7 +62,7 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
         monthlyLuck: input.personA!.birthTime ? r.monthlyLuck : null,
         calculationMeta: r.calculationMeta,
       },
-      limitations,
+      [...limitations,...(partner?.limitations.map(value=>`상대: ${value}`)||[])],
     );
   },
 );

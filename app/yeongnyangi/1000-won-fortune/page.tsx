@@ -97,7 +97,7 @@ export default function Page(){
    <h2 id="what">천원사주·천원운세란</h2>
    <p>천원 사주, 1,000원 사주, 천원운세로 찾는 상담은 영냥이에서 모두 고등어 상담 하나를 가리켜요. 한 번 결제하면 한 번의 상담 결과를 받는 단건 결제이고, 구독이나 자동 결제가 아니에요.</p>
    <p>고등어 상담은 천원 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 전체 분량 기준은 {mackerelPolicy.minimum.toLocaleString('ko-KR')}자 이상이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
-   <p>상담 주제는 전체 흐름 외에 {TOPICS} 중에서 고를 수 있고, 궁금한 질문을 1,000자까지 남길 수 있어요. 주제를 고르면 그 주제와 가까운 챕터가 앞쪽으로 옮겨져요.</p>
+   <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>
 
   <section aria-labelledby="systems">
@@ -125,7 +125,7 @@ export default function Page(){
     <tbody>
      <tr><th scope="row">비용</th><td>무료</td><td>{PRICE} 단건 결제</td></tr>
      <tr><th scope="row">결과 형태</th><td>계산 결과와 기본 풀이</td><td>{chapterRange(mackerels)} 챕터로 나눈 상담 글</td></tr>
-     <tr><th scope="row">주제·질문 반영</th><td>페이지마다 정해진 항목</td><td>상담 주제 선택과 질문 입력</td></tr>
+     <tr><th scope="row">주제·질문 반영</th><td>페이지마다 정해진 항목</td><td>운세별 전용 상담 또는 무엇이든 물어보기</td></tr>
      <tr><th scope="row">로그인</th><td>필요 없음</td><td>CODE DESTINY 계정 필요</td></tr>
      <tr><th scope="row">다시 보기</th><td>입력 정보로 다시 계산</td><td>내 상담 기록에서 다시 열기</td></tr>
     </tbody>
@@ -147,7 +147,7 @@ export default function Page(){
    <ol className={styles.steps}>
     <li><strong>운세 체계 고르기</strong> 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 중 하나를 고르고 고등어를 선택해요.</li>
     <li><strong>프로필 고르기</strong> CODE DESTINY 계정으로 로그인한 뒤 생년월일이 담긴 프로필을 골라요. 타로는 이 단계가 없어요.</li>
-    <li><strong>주제와 질문 남기기</strong> 상담 주제를 고르고, 지금 마음에 걸리는 질문을 적어요. 질문을 비워 두면 전체 흐름부터 읽어요.</li>
+    <li><strong>상담 종류 확인하기</strong> 선택한 상담의 목차를 확인해요. 무엇이든 물어보기와 타로에서는 궁금한 질문을 남겨요.</li>
     <li><strong>결제 내용 확인</strong> 결제창에서 상품과 {PRICE} 금액을 확인한 뒤, 카드·카카오페이 등 원하는 결제수단을 골라 단건 결제해요.</li>
     <li><strong>상담 읽기</strong> 결제가 끝나면 상담 결과 화면으로 돌아와요. 이후에는 <a href="/yeongnyangi/library/">내 상담</a>에서 다시 열 수 있어요.</li>
    </ol>

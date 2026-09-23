@@ -1,3 +1,4 @@
+import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
 import {readingCharts} from './fortune/reading-presentation';
 import { READING_VERSION } from './fortune/reading-policy';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
@@ -44,15 +45,23 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
   if(body.mode && body.mode!==SPIRIT_MODE)throw new FortuneError('INVALID_READING_MODE');
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
+  const kind=resolveConsultationKind(product,body.consultationKind);
+  if(kind){
+    if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
+    if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');
+    body={...body,topicId:kind.id==='ask'?body.topicId:kind.topic,question:kind.question?body.question:''};
+    if(kind.question&&!(typeof body.question==='string'&&body.question.trim()))throw new FortuneError('QUESTION_REQUIRED');
+  }
   if (!providerReady(env)) throw new FortuneError('LLM_NOT_CONFIGURED',503);
   if (product.domain==='tarot' && product.readingKind==='single') body={...body,profileId:'tarot-question'};
   if (typeof body.profileId !== 'string' || !body.profileId || body.profileId.length>80) throw new FortuneError('PROFILE_REQUIRED');
   await connectDb(env);
   const profile=body.profileId==='tarot-question' && product.domain==='tarot' ? {updatedAt:null} : await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.profileId}).lean());
   if (!profile) throw new FortuneError('PROFILE_NOT_FOUND',404);
-  if(body.partnerProfileId && (product.domain!=='sukuyo'||product.readingKind!=='single')) throw new FortuneError('PARTNER_NOT_SUPPORTED');
+  if(body.partnerProfileId && (!['sukuyo',...(kind?.partner?['saju']:[])].includes(product.domain)||product.readingKind!=='single')) throw new FortuneError('PARTNER_NOT_SUPPORTED');
   let partner;
   if (body.partnerProfileId) {
+    if(body.partnerProfileId===body.profileId)throw new FortuneError('DISTINCT_PARTNER_REQUIRED');
     if(typeof body.partnerProfileId!=='string'||body.partnerProfileId.length>80) throw new FortuneError('INVALID_PROFILE');
     partner=await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.partnerProfileId}).lean());
     if(!partner) throw new FortuneError('PROFILE_NOT_FOUND',404);
@@ -62,21 +71,24 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     question:body.question,topicId:body.topicId,readingMode:partner?'compatibility':'personal'};
   const normalized=Object.fromEntries(product.systems.map(id=>[id,domains[id].validateInput(raw)]));
   for(const input of Object.values(normalized)) {
-    if(input.personA && ['flounder','tuna'].includes(product.fishId) &&
-      (!input.personA.birthTime || !input.personA.birthPlace || !input.personA.gender)) throw new FortuneError('PREMIUM_BIRTH_REQUIRED');
+    for(const person of [input.personA,input.personB])if(person && ['flounder','tuna'].includes(product.fishId) &&
+      (!person.birthTime || !person.birthPlace || !person.gender)) throw new FortuneError('PREMIUM_BIRTH_REQUIRED');
   }
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
+  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
   const id=await digest({userId,fingerprint});
   // Deterministic intent also survives losing all browser storage and returning with the same inputs.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   for(const system of product.systems) contexts[system]=domains[system].buildContext(await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
+  if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
   if(spiritInput)manifest=spiritManifest(manifest);
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest);
+  if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?'저장된 계산 기준의 현재 시기와 다음 전환':'출생 성향과 선택한 상담의 조건'};}
+  if(!kind||kind.question){
   // Questions are answered before the fixed outline, without reducing paid depth.
   manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
   manifest[0].excludes=[];
@@ -84,6 +96,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   manifest[0].factSelectors=questionFactSelectors(product.systems,analysis.question || '',analysis.topicId || 'general');
   manifest[0].periodScope='저장된 상담의 기준일과 요청 기간을 다룬다. 해당 기간의 계산 근거가 없으면 실천·점검 기간으로 명시한다.';
   if(!manifest[0].sections)manifest[0].requiredSections=[...(manifest[0].requiredSections || []),'관련 시기'];
+  }
   if(spiritInput){
     spiritEvidence(contexts.saju!);
     analysis.consultation.spirit=spiritPublic(spiritInput,now.toISOString(),contexts.saju);

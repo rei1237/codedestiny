@@ -2,11 +2,27 @@ import {authFetch} from '@/app/_lib/auth-client';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
 export type FortuneRecord={charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;errorCode?:string;createdAt:string;completedAt?:string};
+export type FortuneSummary=Pick<FortuneRecord,'id'|'product'|'state'|'paid'|'createdAt'> & {completedChapters:number;consultationKind?:string;kindLabel?:string};
+export type FortunePage={fortunes:FortuneSummary[];nextCursor:string|null};
 export class FortuneApiError extends Error {
  constructor(public code:string,message:string,public status:number,public retryable=false,public retryAfterSeconds=0){super(message);}
 }
-export async function fortuneApi<T>(path:string,body?:object):Promise<T> {
- const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})},{forceFresh:true});
+export async function fortuneApi<T>(path:string,body?:object,options:{signal?:AbortSignal;timeoutMs?:number}={}):Promise<T> {
+ const controller=new AbortController();
+ const abort=()=>controller.abort(options.signal?.reason);
+ if(options.signal?.aborted)abort();else options.signal?.addEventListener('abort',abort,{once:true});
+ let expired=false;
+ const timer=setTimeout(()=>{expired=true;controller.abort();},options.timeoutMs??(body?100000:25000));
+ let rejectAbort:()=>void=()=>{};
+ const cancelled=new Promise<never>((_,reject)=>{
+  rejectAbort=()=>reject(expired?new FortuneApiError('REQUEST_TIMEOUT','응답이 늦어지고 있어요. 같은 상담에서 다시 확인해 주세요.',504,true):new DOMException('Request cancelled','AbortError'));
+  controller.signal.addEventListener('abort',rejectAbort,{once:true});
+  if(controller.signal.aborted)rejectAbort();
+ });
+ try{return await Promise.race([read(),cancelled]);}
+ finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);controller.signal.removeEventListener('abort',rejectAbort);}
+ async function read():Promise<T>{
+ const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
  const payload=await response.json();
  if(!response.ok){
   const code=payload.error?.code||payload.code||'REQUEST_FAILED';
@@ -14,6 +30,7 @@ export async function fortuneApi<T>(path:string,body?:object):Promise<T> {
   throw new FortuneApiError(code,message,response.status,payload.retryable??[429,502,503,504].includes(response.status),Math.min(60,Math.max(0,Number(response.headers.get('Retry-After')||payload.retryAfterSeconds)||0)));
  }
  return payload;
+ }
 }
 export function loginForCurrentPage(){
  const next=encodeURIComponent(window.location.pathname+window.location.search);
