@@ -71,8 +71,15 @@ test('provider schema binds answers to this chapter and forbids repeating first-
    const expected=consultation.questions.filter(q=>q.chapterId===chapter.id);
    await provider.generateChapter({chapter,analysis:{consultation,question:consultation.question,topicId:'general',contexts:{saju:{domain:'saju',engineVersion:'mock',calculatedAt:clock.asOf,limitations:[],facts:[{id:'saju.fiveElements',label:'fiveElements',value:{목:2}}]}},themes:[]},previous:[]});
    const schema=prompt.outputSchema.properties.questionAnswers;
-   assert.equal(schema.minItems,expected.length);assert.equal(schema.maxItems,expected.length);
-   assert.deepEqual(schema.items.properties.questionId.enum,expected.length?expected.map(q=>q.id):undefined);
+   if(expected.length){
+    assert.equal(schema.minItems,expected.length);assert.equal(schema.maxItems,expected.length);
+    assert.deepEqual(schema.items.properties.questionId.enum,expected.map(q=>q.id));
+   }else{
+    assert.equal(schema,undefined);assert.equal(prompt.outputSchema.required.includes('questionAnswers'),false);
+    assert.match(JSON.parse(prompt.domainRules).answerSlots,/필드를 출력하지 않는다/);
+    assert.doesNotThrow(()=>validateConsultationAnswers({},chapter,consultation));
+    assert.throws(()=>validateConsultationAnswers({questionAnswers:[answer('q1')]},chapter,consultation));
+   }
    assert.deepEqual(JSON.parse(prompt.domainRules).assignedQuestions,expected);
    assert.deepEqual(JSON.parse(prompt.domainRules).consultation,consultation);
   }
