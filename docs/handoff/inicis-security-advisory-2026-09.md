@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-23
-next: "사람이 '남은 일' 2·3번 mongosh 집계를 돌리고(운영 읽기 권한 필요), 4~6번 포트원·이니시스 확인과 7번 Atlas Network Access 확인을 한다. 코드 작업은 3번 결과가 나온 뒤 엄격 모드 검토뿐이다."
+next: "사람이 '남은 일' 2·3번 mongosh 집계를 돌리고(운영 읽기 권한 필요), 4번 포트원 문의·5번 콘솔 웹훅 URL 대조·6번 이니시스 확인과 7번 Atlas Network Access 확인을 한다. 워커 쪽 웹훅 키는 확인 완료. 코드 작업은 3번 결과가 나온 뒤 엄격 모드 검토뿐이다."
 ---
 
 # KG이니시스 가맹점 보안 권고(2026-09-18) 적용 — 인수인계
@@ -56,6 +56,9 @@ next: "사람이 '남은 일' 2·3번 mongosh 집계를 돌리고(운영 읽기 
 4. 포트원 문의: V2 KG이니시스 채널에서 `P_CHKFAKE`/`signature` 검증과 IDC centerCd 승인 URL 검증을 포트원이 수행하는가? 권고 메일 대응 공지가 있는가?
    - 문의 초안: "V2 KG이니시스 채널 결제에서, 이니시스가 2026-09-18 가맹점에 권고한 ① 인증 결과 위변조 검증(P_CHKFAKE / signature)과 ② IDC(centerCd)별 승인 URL 검증을 포트원이 연동 구간에서 수행하고 있는지, 가맹점 측 추가 조치가 필요한지 확인 부탁드립니다. 저희는 브라우저 SDK 결제 후 서버에서 결제 단건 조회 API로 금액·상점·채널을 대조하고 있습니다."
 5. 포트원 콘솔: 운영·스테이징 웹훅 시크릿과 웹훅 URL 이 등록돼 있는지.
+   - **워커 쪽은 확인 완료**(2026-09-23, 값 출력 없이 이름·판정만): 운영 `/api/health?refresh=1` → `keyHealth.ok: true`, `brokenFeatures: []` 라서 `PORTONE_WEBHOOK_SECRET`·`PORTONE_WEBHOOK_URL` 을 포함한 `payments-core` 키가 전부 실값이다(`worker/lib/key-health.js`). 스테이징 워커 `wrangler secret list --name code-destiny-web-staging` 에도 두 이름이 있다.
+   - 스테이징 `/api/health` 는 `payments-core`·`admin-gate` 가 broken 이다. `admin-gate` 는 의도된 부재(`FLOWER_ADMIN_SECRET` 미설정). `payments-core` 는 시크릿 이름 목록상 `INIAPI_IV` 계열이 없다 — 포트원 V2 경로와 무관한 구 이니시스 키로 보이나 **미확인**(범위 밖, 보고만).
+   - 남은 것은 **포트원 콘솔에서 두 환경의 웹훅 URL 이 실제로 이 워커를 가리키고 시크릿이 같은 값인지**뿐이다. 사람이 콘솔에서 본다(또는 운영 Mongo 의 웹훅 이벤트 수신 기록으로 간접 확인 — 2번과 같은 읽기 권한 필요).
 6. 이니시스 가맹점 관리자: 포트원 연동 MID 가 권고 대상인 "직접 연동"으로 분류되는지.
 7. ~~`server/.env` `MONGO_URI` 템플릿 여부~~ 판정 완료(2026-09-23, 값 출력 없이 구조만 검사). 42a28e593 에 추가되고 ab1bfa7d1 에서 추적 해제된 파일이다.
    - 비밀번호 자리는 Atlas 템플릿 토큰(`<…password…>` 꺾쇠 형태)이다 → **비밀번호 유출 아님, 교체 불필요**. 같은 파일의 `JWT_SECRET`·`PORTONE_API_KEY`·`PORTONE_API_SECRET` 도 placeholder 문구(your/replace 류)다.
