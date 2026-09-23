@@ -14,6 +14,7 @@ const VEDIC_GUIDE_TEXT_TRANSLATIONS = {
     access: "무료와 유료 범위",
     flow: "해석 흐름",
     resultItems: "결과에서 확인할 수 있는 항목",
+    calculation: "계산 예시 — 사이더리얼 좌표에서 나크샤트라·다샤까지",
     sample: "짧은 예시 리딩",
     caution: "해석 시 주의할 점",
   },
@@ -48,6 +49,17 @@ const resultItems = [
   "현실 판단과 함께 확인해야 할 주의사항",
 ];
 
+// 가상 입력(lib/seo-reading-examples.js 의 SEO_EXAMPLE_BIRTH)으로 세운 차트. 황경·라그나·나크샤트라·다샤는
+// __tests__/ui/core-landing-calculation-examples.test.mjs 가 베다 엔진 결과와 맞춰 본다.
+const calculationSteps = [
+  "좌표 — 이 날의 라히리 아야남샤는 약 23.82도입니다. 계절 기준인 트로피컬 황경에서 이 값을 빼면 베다 점성술이 쓰는 사이더리얼 황경이 됩니다.",
+  "라그나 — 태어난 순간 동쪽 지평선의 지점은 쌍둥이자리 14.49도(나크샤트라 아르드라)입니다. 서양 차트의 상승점 게자리 8.31도가 앞 별자리로 넘어간 결과입니다.",
+  "행성 배치 — 쌍둥이자리를 1하우스로 두는 홀 사인 방식에서 태양은 염소자리 27.71도로 8하우스, 달은 물고기자리 4.35도로 10하우스에 놓입니다.",
+  "나크샤트라 — 달의 황경 334.35도는 우타라 바드라파다(333.33~346.67도)의 첫 파다이고, 이 나크샤트라의 지배 행성은 토성입니다.",
+  "다샤 — 첫 다샤는 토성이며, 달이 구간을 약 1.02도만 지났으므로 19년 가운데 약 17.55년이 남습니다. 토성 다샤는 2014년 8월 31일에 끝나고 수성 다샤가 2031년 8월 31일까지 이어집니다.",
+  "요가 — 물고기자리의 달과 처녀자리의 화성이 서로 일곱 번째 자리에서 마주 보아 찬드라 망갈라 요가가 성립합니다. 조합의 이름일 뿐 재물이나 사건을 확정하는 판정은 아닙니다.",
+];
+
 const faqItems = [
   {
     question: "베다 점성술은 서양 점성술과 무엇이 다른가요?",
@@ -64,9 +76,14 @@ const faqItems = [
     answer:
       "다샤는 불운을 확정하지 않습니다. 그 시기에 어떤 행성의 주제가 강해지는지 알려 주는 흐름이므로, 현실적인 준비와 균형 잡힌 생활 리듬을 함께 보는 것이 좋습니다.",
   },
+  {
+    question: "서양 차트와 태양 별자리가 다르게 나오는 이유는 무엇인가요?",
+    answer:
+      "베다 점성술은 세차 운동만큼 기준점을 뒤로 물린 사이더리얼 황도대를 쓰기 때문입니다. 지금은 두 황도대가 약 23.8도 벌어져 있어, 서양 차트에서 별자리 안 23.8도보다 앞에 있던 행성만 베다 차트에서 앞 별자리로 넘어갑니다. 예를 들어 1997년 2월 10일 오후 2시 30분 서울 출생이라면 물병자리 21.52도의 태양은 염소자리 27.71도가 되고, 물고기자리 28.17도의 달은 물고기자리에 남습니다.",
+  },
 ];
 
-// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 본문을 마지막으로 고친 날(계산 예시·정의 문단).
 // 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
 const GUIDE_ARTICLE = {
   path: "/vedic/guide",
@@ -74,7 +91,7 @@ const GUIDE_ARTICLE = {
   description:
     "베다 점성술의 라시 차트, 라그나, 나크샤트라, 다샤 흐름을 어떻게 읽는지와 입력값, 샘플 리딩, 주의사항을 안내합니다.",
   datePublished: "2026-06-21",
-  dateModified: "2026-09-06",
+  dateModified: "2026-09-24",
 };
 
 const guideJsonLd = JSON.stringify({
@@ -102,7 +119,7 @@ export default function VedicGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">베다 점성술 기본 구조</h1>
         <p className="cd-main-intro">
-          베다 점성술은 인도 전통의 별자리 해석 체계로, 라그나와 달, 나크샤트라, 다샤의 흐름을 통해 삶의 방향과 마음의 리듬을 살핍니다. Code Destiny는 이 오래된 언어를 현실 판단과 함께 참고할 수 있는 상담형 해석으로 풀어냅니다.
+          베다 점성술(조티쉬)은 태어난 순간의 하늘을 실제 별자리 위치에 맞춘 사이더리얼 황도대에 옮기고, 동쪽 지평선의 라그나를 1하우스로 삼아 행성을 배치한 뒤, 달이 머문 나크샤트라와 그 지배 행성에서 시작하는 다샤로 시기를 읽는 인도 전통의 별자리 해석 체계입니다. Code Destiny는 이 오래된 언어를 현실 판단과 함께 참고할 수 있는 상담형 해석으로 풀어냅니다.
         </p>
       </header>
 
@@ -159,6 +176,18 @@ export default function VedicGuidePage() {
             <li key={item}>{item}</li>
           ))}
         </ul>
+      </section>
+
+      <section className="cd-card">
+        <h2>{vedicGuideText("calculation")}</h2>
+        <p>
+          실제 고객 사례가 아니라 계산 순서를 보여 주려고 고른 가상 입력입니다. 1997년 2월 10일 오후 2시 30분, 서울 출생으로 두고 베다 차트를 세워 보겠습니다. 이 차트의 좋고 나쁨을 판정하는 예시가 아닙니다.
+        </p>
+        <ol className="mt-[14px] max-w-[66ch] list-decimal pl-[1.2em]">
+          {calculationSteps.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
       </section>
 
       <section className="cd-card">
