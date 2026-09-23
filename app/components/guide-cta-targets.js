@@ -35,6 +35,8 @@ export const GUIDE_CTA_TARGETS = {
     secondary: [
       { href: "/saju/basic", label: "기본 사주 해석" },
       { href: "/compatibility", label: "궁합 보기" },
+      { href: "/features/life-book-ai/", label: "인생의 책 구성과 풀이 예시" },
+      { href: "/features/love-secret-ai/", label: "연애 비책 구성과 풀이 예시" },
     ],
   },
   "/saju/ten-gods": {
@@ -111,7 +113,7 @@ export const GUIDE_CTA_TARGETS = {
     heading: "내 출생차트를 그려 보세요",
     body: "하우스와 사인, 행성의 배치는 자기 차트를 펼쳐 놓고 읽을 때 비로소 연결됩니다.",
     primary: { href: "/?action=openAstroModal", label: "무료로 출생차트 보기", note: "무료 · 가입 없이" },
-    secondary: [{ href: "/astrology/cosmic", label: "코스믹 리딩" }],
+    secondary: [{ href: "/astrology/cosmic", label: "코스믹 리딩" }, { href: "/astrology-ai", label: "점성술 상담 구성 보기" }],
   },
   "/vedic/guide": {
     from: "vedic-guide",
@@ -119,7 +121,7 @@ export const GUIDE_CTA_TARGETS = {
     heading: "내 나크샤트라부터 짚어 보세요",
     body: "라그나와 다샤를 읽기 전에, 달이 머문 27개 별자리 중 내 자리를 먼저 확인합니다.",
     primary: { href: "/nakshatra/calc", label: "내 나크샤트라 보기", note: "무료 · 가입 없이" },
-    secondary: [{ href: "/vedic/jyotish", label: "죠티시 리딩" }],
+    secondary: [{ href: "/vedic/jyotish", label: "죠티시 리딩" }, { href: "/vedic-ai", label: "베다 상담 구성 보기" }],
   },
   "/tarot/guide": {
     from: "tarot-guide",
