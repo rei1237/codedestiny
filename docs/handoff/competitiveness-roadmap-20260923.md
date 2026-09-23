@@ -15,11 +15,11 @@ next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그�
 ## 지금 상태
 
 - 운영 `11d0be467`(run 35860013925, 2026-09-23 12:22:00Z 시작·12:33:08Z 완료). S0 착수 시 main은 11커밋 앞섰다(`git log --oneline 11d0be467..origin/main`). 🔴 그중 결제 변경 `bc2c873d0`(패밀리 이용권·융합 가격 재개)·`9b7affb12`(홈 레지스트리 융합 가격 동기화)는 **다음 승격 요청에 따로 적는다.**
-- S0 진행 중 — 이 문서 + 홈 정본 문서 드리프트 정정.
-- 🔴 **보류한 정정**(인이시스 세션이 같은 파일을 쓰는 중) — `docs/handoff/inicis-security-advisory-2026-09.md`:
-  - 43줄 "(12:22 KST = 03:22Z)" → "(2026-09-23 12:22:00Z 시작·12:33:08Z 완료 = 21:22–21:33 KST, run 35860013925)"
-  - 48줄 `ISODate("2026-09-23T03:22:00Z")` → `ISODate("2026-09-23T12:33:08Z")`. 52줄(`2026-09-16`)은 그대로.
-  - 이유: 지금 값이면 승격 전 약 9시간의 결제가 "absent"로 잡힌다. 그 세션이 끝났거나 U4 집계를 돌리기 전에 반영한다.
+- S0 완료(2026-09-24) — 로드맵 `96d346da9`, 홈 정본 드리프트 정정 `2b005068f`(문서 8개 + `docs/CONTEXT_AUDIT.md` 2026-09-24 항목). 인이시스 문서 시각 정정만 아래처럼 보류.
+- 🔴 **보류한 정정**(인이시스 세션이 같은 파일을 쓰는 중 — 마지막 커밋 `be8211a8b`, 2026-09-24 00:19 KST) — `docs/handoff/inicis-security-advisory-2026-09.md`. 줄 번호는 `be8211a8b` 기준이며 그 세션이 고치면 움직이므로 문구로 찾는다:
+  - 48줄 "(12:22 KST = 03:22Z)" → "(2026-09-23 12:22:00Z 시작·12:33:08Z 완료 = 21:22–21:33 KST, run 35860013925)"
+  - 54줄 `ISODate("2026-09-23T03:22:00Z")` → `ISODate("2026-09-23T12:33:08Z")`. 58줄(`2026-09-16`)은 그대로.
+  - 이유: 지금 값이면 승격 전 약 9시간의 결제가 "absent"로 잡힌다. `be8211a8b`의 실측(승격 뒤 확정 1건, channel matched)에는 영향이 드러나지 않았지만, 그 문서가 "확정 20건 이상이면 다시 집계"라고 적어 두었으므로 재집계(U4) 전에 반영한다.
 - 🔴 **기한 09-26**: `docs/CURRENT_DEV_BASELINE.md`의 `Last curated: 2026-09-12`는 09-27에 15일이 되어 `verify:doc-freshness`(14일 한도)가 실패한다. `.github/workflows/pr-ci.yml`은 fast가 아닌 tier마다 이 검사를 돌린다 → 표 A의 BL.
 
 ## 로드맵 — 1 세션 = 1행
@@ -31,7 +31,7 @@ next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그�
 
 | # | 작업 | 등급·권장 | 핵심 파일·재사용 | 완료 기준 | 상태 |
 |---|---|---|---|---|---|
-| S0 | 로드맵 정본 + 홈 정본 문서 드리프트 정정(+`CONTEXT_AUDIT`) | GREEN · Opus/medium | `ARCHITECTURE.md`, `docs/CURRENT_DEV_BASELINE.md`, `docs/CONTEXT_AUDIT.md` | CI green | 진행 중 |
+| S0 | 로드맵 정본 + 홈 정본 문서 드리프트 정정(+`CONTEXT_AUDIT`) | GREEN · Opus/medium | `ARCHITECTURE.md`, `docs/CURRENT_DEV_BASELINE.md`, `docs/CONTEXT_AUDIT.md` 외 문서 5개 | CI green | 완료 `96d346da9`·`2b005068f`(인이시스 정정 보류) |
 | BL | `CURRENT_DEV_BASELINE.md` 큐레이션 — 낡은 항목 정리 후 `Last curated` 갱신. **09-26까지** | GREEN · Sonnet/medium | `scripts/verify-doc-freshness.mjs` | `npm run verify:doc-freshness` OK | 대기 |
 | S1 | 측정 정합: GA4 구매 0 vs DB 5 원인(시간대·필터·테스트 주문·전송 조건) → 결제 완료 이벤트 정합 + 소셜 링크 UTM 규칙 | RED(결제 인접) · Opus/high | `docs/analytics-kpi.md` 11·43줄(기존 발사 지점 — 새 이벤트를 만들기 전에 재사용) | mock 결제 1회에 구매 이벤트 1건·중복 0 | 대기 |
 
@@ -184,6 +184,8 @@ sitemap 1,284 URL:
 
 - 이번 기준선은 UA 위장·미국 출구 측정이다. 한국 TTFB·CWV는 없다.
 - 홈 측정 도구는 기본값 `/`(이제 React 홈)에서 셸 요소를 기다린다 — S10 전까지 `--url` 필수.
+- 홈 `/`에는 운세 입문 콘텐츠 섹션(`.cd-home-guide`)이 없다 — 정적 셸 8벌에만 있어 지금은 `/ggulggul/`·로케일 셸에서 보인다(2026-09-24 실측). 홈 콘텐츠·AdSense 품질 판단은 `app/page.js` 기준으로 한다(S2·S3 입력).
+- 홈 `/`의 canonical은 `app/page.js` metadata가 낸다(운영 확인). hreflang HTML 태그는 0개라 사이트맵 alternate가 유일한 전달 수단이다(S2에서 확인). `app/layout.js` 97줄 등 코드 주석 5곳은 아직 `/`를 정적 셸로 설명한다 — 목록은 `docs/CONTEXT_AUDIT.md` 2026-09-24 항목(S2에서 정리).
 - 쓰는 세션이 둘 이상이면 워크트리(`scripts/create-safe-worktree.ps1`). `marketing/**` 미커밋은 다른 세션 소유라 스테이징하지 않는다.
 - push ≠ 배포. 새 CI 게이트는 사용자 지시 없이 추가하지 않는다(U6).
 - 가짜 후기·통계 금지. "두 대통령 적중"은 유지하고 "모든 예측 적중·유일·정확한 날짜"는 쓰지 않는다. `humanReview`·`adsAllowed`는 임의로 승격하지 않는다.
