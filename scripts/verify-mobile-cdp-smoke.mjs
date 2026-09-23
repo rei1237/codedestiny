@@ -67,8 +67,12 @@ try {
     }))()`, "desktop bridge state");
     assert(desktopState.viewport.width === 1440 && desktopState.viewport.height === 900, "desktop viewport is 1440x900", desktopState);
     assert(!desktopState.bridgeReady && !desktopState.touchBridgeBound && !desktopState.fallbackBound && !desktopState.touchStyleInjected, "desktop does not initialize the mobile touch bridge or its global capture handlers", desktopState);
-    assert(desktopState.bottomNavDisplay === "none", "desktop keeps the mobile bottom nav out of layout", desktopState);
+    // 08-20(9f7648605) 홈 재구성부터 하단 탭은 데스크탑에도 상시 노출한다(좌상단 홈 버튼 대신). 브리지 격리는 위 단언이 지킨다.
+    assert(desktopState.bottomNavDisplay !== "none", "desktop shows the bottom nav since the 08-20 home rebuild", desktopState);
 
+    // 08-20(467d0cc53)부터 카테고리 컬렉션은 데스크탑에서도 "모두 펼치기" 뒤에, 09-24부터는 정원 접힘 안에 있다.
+    // 접힘은 의도된 설계이므로 먼저 마우스 클릭으로 연다(터치 탭은 데스크탑 계약을 흐린다).
+    await expandHomeFolds(cdp, clickSelector);
     const selector = '.fc-toggle-btn[data-target="tarotCollection"]';
     const probeReady = await evaluate(cdp, `(() => {
       const target = document.querySelector(${JSON.stringify(selector)});
@@ -1333,7 +1337,7 @@ async function dismissCookieConsent(cdp) {
 // <details id="cdhMore"> 안으로 옮겼다. 닫힌 details 안의 토글은 좌표 히트 테스트에 걸리지 않아
 // tapSelector 가 가림으로 실패한다(실측). 가드를 낮추지 않고 사용자와 같은 경로 —
 // 정원 summary 탭 → 모두 펼치기 탭 — 로 연다. 정원이 없는 옛 셸은 두 번째 단계만 탄다.
-async function expandHomeFolds(cdp) {
+async function expandHomeFolds(cdp, press = tapSelector) {
   await dismissCookieConsent(cdp);
   const gardenClosed = await evaluate(
     cdp,
@@ -1341,10 +1345,10 @@ async function expandHomeFolds(cdp) {
     "garden fold state",
   );
   if (gardenClosed) {
-    await tapSelector(cdp, "#cdhMore > summary");
+    await press(cdp, "#cdhMore > summary");
     await delay(300);
   }
-  await tapSelector(cdp, "#cdHomeExpandToggle");
+  await press(cdp, "#cdHomeExpandToggle");
   await delay(400);
 }
 
