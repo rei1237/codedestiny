@@ -1,4 +1,5 @@
 "use client";
+import {consultationTitle,fusionDescription} from '../_lib/consultation-copy';
 import ReadingIdentity,{readingFeatures} from './ReadingIdentity';
 import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {useEffect,useRef,useState} from 'react';
@@ -47,7 +48,7 @@ export default function Consultation(){
  useEffect(()=>{if(partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
-  const selected=products.find(p=>p.id===params.get('product'))||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
+  const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const requestedTopic=params.get('topic');
   if(requestedTopic && Object.hasOwn(topicCatalog,requestedTopic))setTopicId(requestedTopic);
@@ -99,15 +100,16 @@ export default function Consultation(){
   <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>영냥 신점</strong><br/>질문이 떠오른 순간의 기운과 선택 살펴보기</span></a>
   <div className={styles.tabs} role="group" aria-label="운세 종류">{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{label}</button>)}</div>
   <ReadingIdentity product={product} compact/>
-  <p className={styles.systemDescription}>{explanation[domain]}</p>
-  <div className={styles.fishes} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
-   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?item.name:item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span><small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small><small>{depthDescriptions[item.fishId]}</small>
+  <p className={styles.systemDescription}>{fusionDescription(product)||explanation[domain]}</p>
+  <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
+   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
   </button>)}</div>
+  {domain==='fusion'&&<p className={styles.systemDescription}>각 체계는 고유한 기준으로 계산해. 같은 흐름과 다른 해석을 나란히 읽고, 네가 선택할 수 있는 행동으로 정리해줄게. 결제 후 창을 닫아도 내 상담 기록에서 이어 읽을 수 있어.</p>}
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label="선택한 상담 요약">
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="반갑게 맞이하는 영냥이"/>
     <h2>네 이야기에,<br/>작은 달빛 하나.</h2><p>한 번에 답을 찾으려 하지 않아도 돼.<br/>함께 살펴볼 흐름부터 골라보자.</p>
-    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{product.name} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>단건 결제</dt><dd>{product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{consultationTitle(product)} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>단건 결제</dt><dd>{product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>계산은 운세 체계가,<br/>해설은 영냥이가 함께해.</p>
     <details className={styles.predictionRecords}><summary>두 대통령 적중 기록 원문 보기</summary><p>10년 경력 명리학자가 남긴 공개 해석 기록. 블로그 게시일과 원문을 직접 살펴보세요.</p><ul>{predictionRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer">{record.date} · {record.title}</a></li>)}</ul></details>
    </aside>
@@ -132,7 +134,7 @@ export default function Consultation(){
    <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?'상담 준비 중':guest?'로그인하고 상담 이어가기':'결제 내용 확인하기'}<ArrowRight size={18} aria-hidden="true"/></button>
    {!ready&&<p role="status">상담 상품을 확인하고 있어요. 프로필과 질문은 먼저 고를 수 있어요.</p>}
    {catalogError&&<p role="alert">{catalogError}</p>}
-   {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.</p>}
+   {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>지금은 상담 연결을 확인하고 있어. 결제는 진행되지 않아. 잠시 후 다시 확인해줘.</p>}
    {error&&<p role="alert">{error}</p>}
    </div>
    </div>

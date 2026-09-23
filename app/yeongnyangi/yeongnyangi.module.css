@@ -536,3 +536,10 @@
 .skyEntry span span { display:block; font-size:14px; line-height:1.6; margin:6px 0; word-break:keep-all; }
 .skyEntry b { font-size:14px; color:#6b4778; }
 .skyEntry .skyWestern { display:block; text-align:center; padding:12px 0 2px; font-size:13px; color:#684f70; }
+
+.consultationRoom .fusionChoices { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.consultationRoom .fusionChoices button { display:grid; grid-template-columns:80px minmax(0,1fr); gap:6px 14px; align-content:start; }
+.fusionChoices img { grid-row:1/span 3; width:80px; height:80px; align-self:center; }
+.fusionChoices strong { font-size:1rem; word-break:keep-all; overflow-wrap:anywhere; }
+.fusionChoices small { font-size:14px; }
+@media(max-width:767px) { .consultationRoom .fusionChoices { grid-template-columns:minmax(0,1fr); } }
