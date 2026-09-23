@@ -578,6 +578,38 @@ describe("single payment entitlement consistency", () => {
     }), { returnDocument: "after" });
   });
 
+  test.each([["paid"], ["pending"], ["fulfilled"]])("🔴 V2 주문(cd+hex38, status %s)은 구 단건 complete 가 받지 않는다 — PortOne 조회·지급·상태 쓰기 0", async (status) => {
+    // V2 주문이 여기서 확정되면 레거시 지급이 V2 지급과 겹치고 fulfilled 로 닫혀 레거시 본인 환불 대상이 된다.
+    const v2OrderId = `cd${"7e".repeat(19)}`;
+    Payment.findOne = jest.fn(() => queryResult({
+      ...order,
+      _id: "payment-doc-v2-001",
+      merchantUid: v2OrderId,
+      status,
+      orderState: status === "paid" ? "PAID_VERIFIED" : "PENDING",
+    }));
+    Payment.findOneAndUpdate = jest.fn();
+    Payment.findByIdAndUpdate = jest.fn();
+    ContentEntitlement.findOneAndUpdate = jest.fn();
+    User.updateOne = jest.fn();
+    global.fetch = jest.fn();
+
+    const request = new Request("https://example.com/api/payments/single/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paymentId: v2OrderId }),
+    });
+    const parsed = await readResponse(await testUtils.handleSinglePaymentComplete(request, env, auth));
+
+    expect(parsed.status).toBe(409);
+    expect(parsed.payload.ok).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(Payment.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(Payment.findByIdAndUpdate).not.toHaveBeenCalled();
+    expect(ContentEntitlement.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(User.updateOne).not.toHaveBeenCalled();
+  });
+
   test("full cancellation webhook revokes entitlement and paid feature access", async () => {
     Payment.findOne = jest.fn().mockReturnValue(queryResult({
       ...order,

@@ -15,6 +15,7 @@ const paymentFindOneAndUpdate = jest.fn();
 const paymentFindByIdAndUpdate = jest.fn();
 const fetchPortOnePayment = jest.fn();
 const settleOrderFromReconcile = jest.fn();
+const settleSinglePaymentForReconcile = jest.fn();
 
 let reconcilePendingPayments;
 
@@ -52,6 +53,7 @@ beforeAll(async () => {
       revokeSinglePaymentContentAccess: jest.fn(async () => ({ unlockRevoked: false })),
     })),
     jest.unstable_mockModule("../../worker/payments/index.js", () => ({ settleOrderFromReconcile })),
+    jest.unstable_mockModule("../../worker/routes/payments.js", () => ({ settleSinglePaymentForReconcile })),
   ]);
   ({ reconcilePendingPayments } = await import("../../worker/lib/payment-reconcile-task.js"));
 });
@@ -61,6 +63,7 @@ beforeEach(() => {
   paymentFindOneAndUpdate.mockImplementation(() => ({ lean: async () => ({ status: "pending" }) }));
   paymentFindByIdAndUpdate.mockImplementation(() => ({ catch: async () => undefined }));
   settleOrderFromReconcile.mockResolvedValue({ ok: true, replayed: false, granted: true });
+  settleSinglePaymentForReconcile.mockResolvedValue({ ok: true });
 });
 
 function setCalls() {
@@ -128,6 +131,36 @@ test("🔴 후보 쿼리는 pending/processing 에 더해 failed+PG_PAYMENT_NOT_
   ]);
   expect(filter.$and[1].$or).toHaveLength(2);
   expect(filter.createdAt).toBeDefined();
+});
+
+test("🔴 V2 단건 PENDING 주문(cd+hex38)은 레거시 settle 이 아니라 V2 확정 경로로 정산된다", async () => {
+  // 레거시 settle 로 가면 채널 대조·V2 지급 기록·영냥이 enqueue 없이 fulfilled 로 닫힌다(2026-09-24).
+  const orderId = `cd${"a1".repeat(19)}`;
+  paymentFind.mockReturnValue(fakeQuery([candidate({
+    _id: "id-single-v2", merchantUid: orderId, impUid: orderId, paymentType: "digital_content", accessType: "single_purchase",
+  })]));
+  const pg = { status: "PAID", amount: { total: 3900 }, method: { type: "PaymentMethodCard" } };
+  fetchPortOnePayment.mockResolvedValue(pg);
+
+  const summary = await reconcilePendingPayments({}, { timeBudgetMs: 25000 });
+
+  expect(settleOrderFromReconcile).toHaveBeenCalledWith({}, { orderId, pgPayment: pg });
+  expect(settleSinglePaymentForReconcile).not.toHaveBeenCalled();
+  expect(summary.settled).toBe(1);
+});
+
+test("레거시 단건(하이픈 ID)은 orderState PENDING 이어도 종전대로 레거시 settle 로 간다", async () => {
+  paymentFind.mockReturnValue(fakeQuery([candidate({
+    _id: "id-single-legacy", merchantUid: "cd-single-legacy-1", impUid: "cd-single-legacy-1",
+    paymentType: "digital_content", accessType: "single_purchase",
+  })]));
+  fetchPortOnePayment.mockResolvedValue({ status: "PAID" });
+
+  const summary = await reconcilePendingPayments({}, { timeBudgetMs: 25000 });
+
+  expect(settleSinglePaymentForReconcile).toHaveBeenCalledWith({}, expect.objectContaining({ paymentId: "cd-single-legacy-1" }));
+  expect(settleOrderFromReconcile).not.toHaveBeenCalled();
+  expect(summary.settled).toBe(1);
 });
 
 test("orderState 가 없는 구 주문(비-단건)은 종전대로 검토 마커만 남긴다", async () => {

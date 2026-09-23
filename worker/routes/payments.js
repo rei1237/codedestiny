@@ -57,6 +57,7 @@ const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
+import { isV2OrderId } from "../payments/order-id.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
@@ -1335,7 +1336,9 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     return json({ ok: false, message: "Only your own payment can be completed.", code: "FORBIDDEN_PAYMENT_OWNER" }, { status: 403 });
   }
 
-  if (order.status === "success" || order.status === "fulfilled") {
+  // 🔴 V2 주문(worker/payments/order-id.js)은 V2 확정 경로만 정산한다. 아래 멱등 재지급 블록도 건너뛰고 409 로 닫는다 —
+  // 여기서 받으면 레거시 지급·해금 기록·orderState 가 V2 지급과 겹친다(2026-09-24).
+  if (!isV2OrderId(paymentId) && (order.status === "success" || order.status === "fulfilled")) {
     const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
     let entitlement;
     try {
@@ -1375,7 +1378,7 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     });
   }
 
-  if (order.status === "failed" || order.status === "cancelled" || order.status === "refunded") {
+  if (isV2OrderId(paymentId) || order.status === "failed" || order.status === "cancelled" || order.status === "refunded") {
     return json({
       ok: false,
       idempotent: true,
