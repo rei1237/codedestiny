@@ -52,6 +52,7 @@ export function validateConsultationAnswers(body: ChapterBody, chapter: ChapterS
   if (answers.length !== expected.length || new Set(answers.map(a => a.questionId)).size !== answers.length ||
     expected.some(q => !answers.some(a => a.questionId === q.id)) || answers.some(a =>
       !a || ![a.answer, a.reason, a.timing, a.action].every(s => typeof s === 'string' && s.trim().length >= 10 && s.length <= 2000 && !/<\/?[a-z][^>]*>/i.test(s)))) {
+    console.warn('[yeongnyangi-answer-validation]',JSON.stringify({chapter:chapter.ordinal,expectedCount:expected.length,actualCount:Array.isArray(answers)?answers.length:null}));
     throw new FortuneError('QUESTION_ANSWER_INCOMPLETE');
   }
 }
