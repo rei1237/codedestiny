@@ -27,7 +27,7 @@ export async function fortuneApi<T>(path:string,body?:object,options:{signal?:Ab
  const payload=await response.json();
  if(!response.ok){
   const code=payload.error?.code||payload.code||'REQUEST_FAILED';
-  const message=['DATABASE_TEMPORARILY_UNAVAILABLE','DATABASE_CONFIG_INVALID','SERVICE_UNAVAILABLE'].includes(code)?'상담 기록에 잠시 연결하지 못했어요. 잠시 후 다시 불러와 주세요.':payload.message||payload.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+  const message=['DATABASE_TEMPORARILY_UNAVAILABLE','DATABASE_CONFIG_INVALID','SERVICE_UNAVAILABLE'].includes(code)?'영냥이 서버에 잠시 연결하지 못했어요. 결제한 상담은 그대로 있어요. 잠시 후 다시 불러와 주세요.':payload.message||payload.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
   throw new FortuneApiError(code,message,response.status,payload.retryable??[429,502,503,504].includes(response.status),Math.min(60,Math.max(0,Number(response.headers.get('Retry-After')||payload.retryAfterSeconds)||0)));
  }
  return payload;
