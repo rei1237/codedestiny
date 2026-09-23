@@ -1,12 +1,12 @@
 ---
 status: active
 updated: 2026-09-24
-next: "U6(영냥이 브라우저 섀도 CI) 배선부터 한다. 그다음 계측(report-pg-window-latency) → 후보 ①② 순. 결제 단계 변경(⑤⑥)은 RED 라 위험·검증·롤백을 먼저 보고한다."
+next: "U6 배선 완료(섀도 관측 중). 계측(report-pg-window-latency)부터 한다 → 후보 ①② 순. 결제 단계 변경(⑤⑥)은 RED 라 위험·검증·롤백을 먼저 보고한다."
 ---
 
 # 영냥이 유료 흐름 속도 개선 — 인수인계
 
-다음 세션 첫 문장: "docs/handoff/yeongnyangi-paid-flow-speed-2026-09-24.md 를 읽고 '1단계 U6 배선'부터 해."
+다음 세션 첫 문장: "docs/handoff/yeongnyangi-paid-flow-speed-2026-09-24.md 를 읽고 '후보 0 계측'부터 해."
 
 ## 요구(사용자 원문, 2026-09-24)
 > 영냥이 유료 서비스는 결제 관련해서 너무 단계가 느리고 로그인 확인이라든지 너무 느린데 이 과정을 빠르게 가능해주면 좋겠다.
@@ -18,6 +18,8 @@ next: "U6(영냥이 브라우저 섀도 CI) 배선부터 한다. 그다음 계�
 - 현재 상태(실측): CI·`package.json` 어디에도 배선돼 있지 않다. 루프백 목 서버 또는 `--build-static` 이 있어야 돈다.
 - 섀도 = 실패해도 `CI required` 를 막지 않는다. 기존 검사 삭제 금지, 10회 push 비교 전까지 섀도 유지(CLAUDE.md 탐색·검증 절).
 - 실PG·유료 LLM 호출 0 이어야 한다. `verify-pg-window-live-e2e.mjs` 는 실PG 라 쓰지 않는다.
+- **완료(2026-09-24)**: `.github/workflows/yeongnyangi-browser-shadow.yml`. main push 중 클라이언트 결제·로그인 경로(영냥이·checkout·billing-client·재개 훅·user-session-cache·auth-client·카탈로그·검사 자신)만 트리거. `--build-static` → loopback python 서버 → 전체 매트릭스. 요약은 잡 Summary, 리포트·실패 스크린샷은 아티팩트(14일). `CI required` 밖·workflow_run 소비자 0 이라 비차단이며 continue-on-error 로 결론을 덮지 않는다. package.json 은 건드리지 않았다.
+- 관측 기록: 결제 경로 push 10회의 결론을 여기 적는다(차단 승격은 오탐 0 + 사용자 승인). 첫 런은 배선 커밋 자체다.
 
 ## 지연 지도(HEAD 7d1989347 기준 코드 조사 — 시간 값은 추정, 실측 아님)
 - 첫 장까지 전체 페이지 이동: 데스크톱 2회, 모바일 3회.
