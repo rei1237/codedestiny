@@ -2258,7 +2258,7 @@ function __cdEnsureSajuCoreLoaded() {
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-fb2e9b548419',
-    '/js/core/saju/basicFortunePresentation.js?v=build-9b4395fc8c93',
+    '/js/core/saju/basicFortunePresentation.js?v=build-b1550726867a',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-20bed9814e5d',
     '/js/saju-engine-continuation.js?v=build-54afcda10bd4',
@@ -8316,7 +8316,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-9b4395fc8c93');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-b1550726867a');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||
