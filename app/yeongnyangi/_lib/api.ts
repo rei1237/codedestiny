@@ -3,12 +3,16 @@ import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
 export type FortuneRecord={charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;errorCode?:string;createdAt:string;completedAt?:string};
 export class FortuneApiError extends Error {
- constructor(public code:string,message:string,public status:number){super(message);}
+ constructor(public code:string,message:string,public status:number,public retryable=false,public retryAfterSeconds=0){super(message);}
 }
 export async function fortuneApi<T>(path:string,body?:object):Promise<T> {
  const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})},{forceFresh:true});
  const payload=await response.json();
- if(!response.ok)throw new FortuneApiError(payload.code||payload.error?.code||'REQUEST_FAILED',payload.message||payload.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',response.status);
+ if(!response.ok){
+  const code=payload.error?.code||payload.code||'REQUEST_FAILED';
+  const message=['DATABASE_TEMPORARILY_UNAVAILABLE','DATABASE_CONFIG_INVALID','SERVICE_UNAVAILABLE'].includes(code)?'상담 기록에 잠시 연결하지 못했어요. 잠시 후 다시 불러와 주세요.':payload.message||payload.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
+  throw new FortuneApiError(code,message,response.status,payload.retryable??[429,502,503,504].includes(response.status),Math.min(60,Math.max(0,Number(response.headers.get('Retry-After')||payload.retryAfterSeconds)||0)));
+ }
  return payload;
 }
 export function loginForCurrentPage(){

@@ -4,8 +4,8 @@ import {readFileSync} from 'node:fs';
 import {queueConfig} from '../../scripts/prepare-yeongnyangi-queue-config.mjs';
 import {compareConfigs,parseToml} from '../../scripts/verify-worker-config-parity.mjs';
 test('offline queue config preserves environment isolation and bounds consumer execution',()=>{
- const prod=queueConfig('production',readFileSync('worker/wrangler.toml','utf8'));
- const stage=queueConfig('staging',readFileSync('worker/wrangler.staging.toml','utf8'));
+ const prod=queueConfig('production',readFileSync('worker/wrangler.toml','utf8').split('# Paid consultation chapters')[0]);
+ const stage=queueConfig('staging',readFileSync('worker/wrangler.staging.toml','utf8').split('# Paid consultation chapters')[0]);
  assert.deepEqual(compareConfigs(prod,stage),[]);
  const p=parseToml(prod),s=parseToml(stage);
  assert.equal(p.arrays['queues.producers'][0].binding,'YEONGNYANGI_QUEUE');
@@ -15,4 +15,10 @@ test('offline queue config preserves environment isolation and bounds consumer e
  assert.equal(p.arrays['queues.consumers'][0].max_concurrency,2);
  assert.throws(()=>queueConfig('production',prod));
  assert.ok(compareConfigs(prod,stage.replaceAll('yeongnyangi-consultation-staging','yeongnyangi-consultation-production')).length>0);
+});
+
+test('release configs include isolated immediate consultation queues',()=>{
+ const prod=readFileSync('worker/wrangler.toml','utf8'),stage=readFileSync('worker/wrangler.staging.toml','utf8');
+ assert.deepEqual(compareConfigs(prod,stage),[]);
+ for(const source of [prod,stage])assert.equal(parseToml(source).arrays['queues.producers'][0].binding,'YEONGNYANGI_QUEUE');
 });

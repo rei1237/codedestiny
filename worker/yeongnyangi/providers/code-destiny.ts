@@ -4,6 +4,13 @@ import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortu
 import { messages } from '../fortune/shared/prompt';
 import { getEnv } from '../../lib/env.js';
 
+// Gemini's responseSchema uses the OpenAPI subset, not JSON Schema.
+function providerSchema(value: any): any {
+  if(Array.isArray(value))return value.map(providerSchema);
+  if(!value || typeof value!=='object')return value;
+  return Object.fromEntries(Object.entries(value).filter(([key])=>key!=='additionalProperties').map(([key,item])=>[key,providerSchema(item)]));
+}
+
 export class CodeDestinyProvider implements LLMProvider {
   constructor(private env: Record<string, unknown>) {}
   async generate(request: FortuneLLMRequest) {
@@ -13,7 +20,7 @@ export class CodeDestinyProvider implements LLMProvider {
     const response=await callGeminiText(this.env, JSON.stringify(messages(request)), {
       maxOutputTokens:cap,thinkingBudget:1024,timeoutMs:90000,
       ...(request.maxProviderAttempts?{maxProviderAttempts:request.maxProviderAttempts}:{}),
-      systemPrompt:request.system,responseMimeType:'application/json',fallbackToWorkersAI:false,
+      systemPrompt:request.system,responseMimeType:'application/json',responseSchema:providerSchema(request.outputSchema),fallbackToWorkersAI:false,
       taskType:'yeongnyangi-chapter',
     });
     if (response.truncated || /^(MAX_TOKENS|LENGTH)$/.test(response.finishReason || '')) throw new FortuneError('FORTUNE_OUTPUT_TRUNCATED',502);

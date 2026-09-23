@@ -21,7 +21,12 @@ export async function enqueueConsultation(env, row) {
     _id:row._id, state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},
     $or:[{queuedUntil:null},{queuedUntil:{$lte:now}},{queuedChapter:{$ne:row.chapters.length}}],
   }, {$set:{queuedChapter:row.chapters.length,queuedUntil:new Date(now.getTime()+180000)}}, {new:true}).lean());
-  if (!claimed) return false;
+  if (!claimed) {
+    const pending=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({
+      _id:row._id,queuedChapter:row.chapters.length,queuedUntil:{$gt:now},
+    }).select('_id').lean());
+    return Boolean(pending);
+  }
   try {
     const delaySeconds = Math.max(0, Math.ceil((new Date(row.nextAttemptAt || 0).getTime()-now.getTime())/1000));
     await env.YEONGNYANGI_QUEUE.send({requestId:String(row._id)}, {delaySeconds});
@@ -58,9 +63,11 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
       }
       message.ack();
     } catch (error) {
-      const row = await read(id);
+      let row;
+      try { row = await read(id); }
+      catch { message.retry({delaySeconds:30}); continue; }
       console.warn('[yeongnyangi-queue]',JSON.stringify({requestId:id,chapter:row?.chapters?.length || 0,outcome:String(error?.code || 'GENERATION_FAILED')}));
-      if (terminal(row) || ['PAYMENT_REQUIRED','PAYMENT_NOT_ACTIVE','FORTUNE_NOT_FOUND'].includes(error?.code)) message.ack();
+      if (terminal(row) || ['PAYMENT_REQUIRED','PAYMENT_NOT_ACTIVE','FORTUNE_NOT_FOUND'].includes(error?.code || error?.payload?.code)) message.ack();
       else message.retry({delaySeconds:Math.max(30,Math.ceil((new Date(row?.nextAttemptAt || 0).getTime()-Date.now())/1000))});
     }
   }
