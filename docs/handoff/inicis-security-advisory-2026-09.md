@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-23
-next: "스테이징 검증(verify:staging) 후 운영 승격 1회 승인을 받고, 포트원·이니시스 문의 항목을 확인한다."
+next: "운영 승격 1회 승인을 받은 뒤 승격하고, 포트원·이니시스 문의 항목을 확인한다."
 ---
 
 # KG이니시스 가맹점 보안 권고(2026-09-18) 적용 — 인수인계
@@ -36,7 +36,7 @@ next: "스테이징 검증(verify:staging) 후 운영 승격 1회 승인을 받�
 - 구 `/api/payments/single/*` 삭제: 프런트 호출 0건이지만, 삭제는 규칙 6에 따라 별도 변경으로 다룬다.
 
 ## 남은 일 / 미확인(완료로 표시하지 말 것)
-1. 스테이징 검증(`npm run verify:staging -- --sha=<SHA>`)과 운영 승격(명시적 1회 승인 필요).
+1. 운영 승격은 명시적 1회 승인이 필요하다. main CI(`PR CI`·`Paid Flow Gates`·`Gift transaction integrity`·`Secret Scan`)는 통과했다. 스테이징 `verify:staging --sha=34c97868a…` 는 Pages·Worker 모두 PASS 다(2026-09-23).
 2. 운영 결제 성공률과 결제→결과 제공 지표: 이 세션에서는 조회하지 않았으므로 미확인이다.
 3. 운영 로그의 `channelCheck`/`storeIdCheck` absent 비율을 실측한 뒤 엄격 모드 전환을 검토한다.
 4. 포트원 문의: V2 KG이니시스 채널에서 `P_CHKFAKE`/`signature` 검증과 IDC centerCd 승인 URL 검증을 포트원이 수행하는가? 권고 메일 대응 공지가 있는가?
