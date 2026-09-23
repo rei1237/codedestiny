@@ -16,7 +16,8 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
-import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
+import { getPortOnePublicConfig } from "../lib/portone.js";
+import { verifyPgPayment } from "../payments/pg.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
@@ -933,16 +934,6 @@ async function createOrReusePaymentPayload({ env, auth, user, pricing, idempoten
   };
 }
 
-function extractPortOneStoreId(payment = {}) {
-  const raw = payment?.rawV2 && typeof payment.rawV2 === "object" ? payment.rawV2 : payment;
-  return clean(raw?.storeId || raw?.store?.id || raw?.store?.storeId);
-}
-
-function isKrwCurrency(value) {
-  const currency = clean(value).toUpperCase();
-  return currency === "KRW" || currency === "CURRENCY_KRW";
-}
-
 async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inputHash, pricing }) {
   const normalizedPaymentId = clean(paymentId, 160);
   if (!normalizedPaymentId) return { ok: false };
@@ -957,42 +948,46 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
   if (!order) return { ok: false };
   if (clean(order?.pricingSnapshot?.inputHash) !== inputHash || clean(order.idempotencyKey) !== idempotencyKey) return { ok: false };
 
-  if (["paid", "success", "fulfilled"].includes(clean(order.status).toLowerCase())) {
+  // 🔴 확정된 주문도 verifyPgPayment 를 통과한 흔적(rawPortOne.channelCheck — 이 검증기와 V2 확정이 남기며 "absent" 도 포함)이 있을 때만 재조회를 건너뛴다.
+  // 구 확정 경로(/api/payments/single/complete·재조정 크론의 레거시 정산)가 닫은 주문은 흔적이 없어 시작·폴링마다 재조회한다 — L1 이전 주문은 채널 대조도 없었다(2026-09-24).
+  const alreadyPaid = ["paid", "success", "fulfilled"].includes(clean(order.status).toLowerCase());
+  if (alreadyPaid && order.rawPortOne?.channelCheck) {
     return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
   }
 
-  let portOnePayment = null;
+  // 조회·대조는 V2 확정 경로와 같은 verifyPgPayment 한 벌로 한다(paymentId·paid·amount.total·KRW·상점·채널).
+  let verified;
   try {
-    portOnePayment = await fetchPortOnePayment(env, normalizedPaymentId);
+    verified = await verifyPgPayment(env, {
+      orderId: normalizedPaymentId,
+      expectedAmountKRW: alreadyPaid ? (Number(order.paymentAmount) || pricing.amountKRW) : pricing.amountKRW,
+    });
   } catch (error) {
     // 🔴 예전에는 여기서 아무 흔적 없이 { ok:false } 만 돌려줬다. 2026-07 PortOne 401 장애 때
     // 카드는 승인됐는데 주문은 pending 인 채 실패 사유가 어디에도 안 남아 원인 추적이 막혔다.
-    // 동작은 그대로 두고 실패 사유만 주문에 남긴다.
-    console.error("[ziwei-ai] PortOne payment lookup failed", normalizedPaymentId, error?.message || error);
-    await Payment.findByIdAndUpdate(order._id, {
-      $set: {
-        failureCode: "portone_fetch_failed",
-        failureMessage: String(error?.message || "PortOne payment lookup failed.").slice(0, 300),
-        failureStage: "ziwei_ai_portone_fetch",
-        lastErrorAt: new Date(),
-      },
-    }).catch(() => {});
+    // 동작은 그대로 두고 조회 실패 사유만 주문에 남긴다.
+    // 🔴 대조 불일치(채널·금액·상태 등)는 로그만 남긴다. 예전 검증기도 쓰지 않았고, 쓰면 대기 주문에 붙은
+    //    관리자 검토 표시(PG 부분취소 웹훅의 partial_cancel_admin_review)를 덮는다(2026-09-24 감사).
+    //    조회 실패도 대기 주문에만 정확 일치 CAS 로 쓴다 — 취소·환불 주문의 검토 표시를 덮지 않게(실패 보고 W3 와 같은 불변식).
+    const lookupFailed = error?.name !== "PaymentError" || error.code === "PG_UNAVAILABLE" || error.code === "PG_NOT_CONFIGURED";
+    console.error("[ziwei-ai] PortOne payment verify failed", normalizedPaymentId, lookupFailed ? "portone_fetch_failed" : String(error.code).toLowerCase(), error?.message || error);
+    if (lookupFailed) {
+      await Payment.findOneAndUpdate({ _id: order._id, status: "pending" }, {
+        $set: {
+          failureCode: "portone_fetch_failed",
+          failureMessage: String(error?.meta?.reason || error?.message || "PortOne payment lookup failed.").slice(0, 300),
+          failureStage: "ziwei_ai_portone_fetch",
+          lastErrorAt: new Date(),
+        },
+      }).catch(() => {});
+    }
     return { ok: false };
   }
 
-  const config = getPortOnePublicConfig(env);
-  const portOneStoreId = extractPortOneStoreId(portOnePayment);
-  const amount = Number(portOnePayment?.amount || 0);
-  const status = clean(portOnePayment?.status).toLowerCase();
-  if (clean(portOnePayment?.paymentId || portOnePayment?.id) !== normalizedPaymentId) return { ok: false };
-  if (config.storeId && portOneStoreId && portOneStoreId !== config.storeId) return { ok: false };
-  if (amount !== pricing.amountKRW) return { ok: false };
-  if (!isKrwCurrency(portOnePayment?.currency)) return { ok: false };
-  if (status !== "paid") return { ok: false };
+  // 확정된 주문의 상태·영수증(rawPortOne)은 덮지 않는다.
+  if (alreadyPaid) return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
 
-  const paidAt = portOnePayment?.paid_at
-    ? new Date(Number(portOnePayment.paid_at) * 1000)
-    : new Date();
+  const paidAt = verified.paidAt || new Date();
 
   await Payment.findByIdAndUpdate(order._id, {
     $set: {
@@ -1007,7 +1002,7 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
       orderState: "PAID_VERIFIED",
       paidAt,
       source: "confirm",
-      rawPortOne: portOnePayment,
+      rawPortOne: verified.summary, // 요약본(channelCheck 포함) — customer(PII)는 pg.js 가 떨어뜨렸다
       failureCode: null,
       failureMessage: null,
       failureStage: null,
@@ -2667,6 +2662,7 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
 export const __ziweiAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
+  verifyPaymentForStart,
   normalizeConsultationInput,
   buildFirstPrompt,
   buildSystemPrompt,

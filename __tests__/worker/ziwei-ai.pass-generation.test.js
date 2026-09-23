@@ -258,6 +258,8 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({
     fetchPortOnePayment: (...args) => fetchPortOnePaymentMock(...args),
     getPortOnePublicConfig: (...args) => getPortOnePublicConfigMock(...args),
+    // pg.js(verifyPgPayment)가 설정을 먼저 읽는다 — 설정은 통과시켜야 아래 "PG 조회 0회" 단언이 헛돌지 않는다.
+    getPortOneConfig: () => ({ portoneApiSecret: "test-secret", portoneStoreId: "store-test" }),
   }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({
     callGeminiText: (...args) => proseLlmMock(...args),
