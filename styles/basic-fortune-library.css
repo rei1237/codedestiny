@@ -593,3 +593,15 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #astroModalOverlay .astro-house-story h4 { font-size:19px; line-height:1.5; }
   #astroModalOverlay .astro-house-article-reader { padding-top:18px; }
 }
+/* 모바일 조작 하한(44px 탭 · 12px 라벨 · 탭 한 줄). 색·서체·배치는 바꾸지 않는다.
+   숙요 기본 요약 탭 3개는 라벨 합(≈343px)이 360px 본문(278px)을 넘어 2줄로 꺾였다 — 한 줄 레일로 두고,
+   더 좁으면 가로로 민다. 자미 흐름 탭 4개도 3+1 로 꺾였으므로 2×2 로 고르게 나눈다.
+   자미 간소/상세 칩은 엔진이 런타임에 주입하는 #ziweiModalSection 규칙(34px·9.8px)을 이겨야 해서 ID 를 둘 건다. */
+@media (max-width:600px) {
+  #sukuyoModalOverlay .sy-canon-tabs { flex-wrap:nowrap; overflow-x:auto; overscroll-behavior-inline:contain; scrollbar-width:none; }
+  #sukuyoModalOverlay .sy-canon-tabs::-webkit-scrollbar { display:none; }
+  #sukuyoModalOverlay .sy-canon-tab { flex:1 0 auto; white-space:nowrap; font-size:14px; padding:8px 7px; min-height:44px; }
+  #ziweiModalOverlay .fr-flow-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  #ziweiModalOverlay #ziweiModalSection .zw-view-toggle-label { font-size:12px; }
+  #ziweiModalOverlay #ziweiModalSection .zw-view-chip { min-height:44px; font-size:13px; }
+}

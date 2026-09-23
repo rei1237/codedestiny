@@ -1851,7 +1851,7 @@ a[href].btn,
   #ziweiModalNavBar .modal-nav-home,
   #astroNavBar .modal-nav-home {
     justify-self: start;
-    font-size: 0.78rem;
+    font-size: 0.86rem;
     padding: 8px 2px;
     gap: 3px;
   }
@@ -1859,7 +1859,7 @@ a[href].btn,
   #ziweiModalNavBar .modal-nav-close,
   #astroNavBar .modal-nav-close {
     justify-self: end;
-    font-size: 0.66rem;
+    font-size: 0.86rem;
     padding: 8px 8px;
   }
   #sukuyoNavBar .modal-nav-title,
@@ -1870,7 +1870,8 @@ a[href].btn,
     text-overflow: ellipsis;
     white-space: nowrap;
     text-align: center;
-    font-size: 0.68rem;
+    /* 0.86rem = 12px(루트 14px). 이보다 작으면 모바일에서 제목·닫기가 판독 하한 아래로 떨어진다(실측 8.7px). */
+    font-size: 0.86rem;
     letter-spacing: 1.1px;
   }
   /* 시트: absolute 분리 대신 flex 스크롤로 통일 (iOS/Android 스크롤 중단 방지) */
@@ -1901,20 +1902,20 @@ a[href].btn,
     #sukuyoNavBar .modal-nav-home,
     #ziweiModalNavBar .modal-nav-home,
     #astroNavBar .modal-nav-home {
-      font-size: 0.72rem;
+      font-size: 0.86rem;
       padding: 8px 0;
       gap: 2px;
     }
     #sukuyoNavBar .modal-nav-close,
     #ziweiModalNavBar .modal-nav-close,
     #astroNavBar .modal-nav-close {
-      font-size: 0.62rem;
+      font-size: 0.86rem;
       padding: 8px 6px;
     }
     #sukuyoNavBar .modal-nav-title,
     #ziweiModalNavBar .modal-nav-title,
     #astroNavBar .modal-nav-title {
-      font-size: 0.62rem;
+      font-size: 0.86rem;
       letter-spacing: 0.7px;
     }
   }
