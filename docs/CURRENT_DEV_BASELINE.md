@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-09-12`
+Last curated: `2026-09-24`
 
 ## Curation Rules
 
@@ -15,6 +15,7 @@ Last curated: `2026-09-12`
 
 - Rule source of truth: `CLAUDE.md` + `docs/context/*.md` (`AGENTS.md` 는 거기로 보내는 Codex 진입점일 뿐이다 — 2026-08-28)
 - Current working summary: `docs/CURRENT_DEV_BASELINE.md`
+- Active roadmap (session order): `docs/handoff/competitiveness-roadmap-20260923.md`
 - Project operating context: `CLAUDE.md`
 - Conflict and exception log: `docs/CONTEXT_AUDIT.md`
 - Structure references: `docs/SERVICE_STRUCTURE.md`, `docs/FEATURE_MAP.md`, `docs/ROUTE_MAP.md`
@@ -52,7 +53,7 @@ Last curated: `2026-09-12`
 - `main` 직접 push 는 이제 허용된다(룰셋 `main-protection` 에서 `pull_request`·`required_status_checks` 제거, `deletion`·`non_fast_forward` 유지). 로컬 프로덕션 배포는 여전히 `production-deploy-guard.mjs` 가 막는다 — 로컬에 남는 것은 `deploy:check`(업로드 없음)·`deploy:preview`(흐름 밖 도구)·`deploy:smoke` 뿐이다.
 - 안전장치는 격리가 아니라 **작은 커밋과 빠른 롤백**이다. 커밋은 복구 지점, push 는 배포 지점. 회귀는 덧대지 말고 되돌린다(미커밋은 `git reset --hard HEAD`, 나쁜 커밋은 그 커밋만).
 - main CI 강도는 변경 경로가 정한다(`fast` / `standard` / `critical`). 판정 정본은 `scripts/lib/change-risk.mjs` 하나이며, `deepRequired`(인증·결제·DB 스키마·배포 파이프라인)는 `level` 과 무관하게 전체 회귀를 강제한다.
-- 여러 세션이 같은 main 체크아웃을 공유하므로 **한 번에 한 세션**이 원칙이다. 내 것이 아닌 미커밋 변경은 보존하고 커밋에 섞지 않는다.
+- 여러 세션이 같은 main 체크아웃을 공유하므로 **쓰는 세션은 한 번에 하나**다. 둘 이상이면 두 번째부터 워크트리(`scripts/create-safe-worktree.ps1`)에서 일하고 main 에 직접 합친다. 내 것이 아닌 미커밋 변경은 보존하고 커밋에 섞지 않는다.
 
 ### 6. SEO 와 서비스 안정성 (2026-08-14 — 새 우선 축)
 
@@ -60,8 +61,8 @@ Last curated: `2026-09-12`
 
 **SEO — 자동으로 지켜지는 것과 아닌 것**
 
-- 지금 CI 에서 **자동으로 도는 SEO 게이트는 넷**이다(2026-08-30 재실측 — `grep -rn "seo\|sitemap\|adsense" .github/workflows/*.yml` + `scripts/run-postbuild.mjs`): `verify-adsense-readiness`(postbuild, 라우트별 렌더 텍스트 분량 미달 시 빌드 실패 — 2026-08-30 부터 사이트맵 라우트의 유입 링크까지 본다) · `verify:sitemap`(`cloudflare-pages-deploy.yml`) · `verify:sitemap-drift`·`verify:seo-heading-integrity`(둘 다 `pr-ci.yml`, 머지 전에 돈다). 예전 서술의 "둘뿐"은 2026-08-15 기준이라 폐기했다.
-- `seo:check`(프로덕션 URL 200 확인) · `seo:audit`(메타·canonical 리포트) · `verify:seo-entity-registry` 는 **어느 워크플로에도 배선돼 있지 않다.** 마지막 것은 `scripts/verify-guard-wiring.mjs` 에서 "수동"으로 선언돼 있다. 배선 여부는 게이트 추가이므로 사용자 승인 사항이다.
+- 🔴 **SEO 게이트 목록의 정본은 워크플로 파일이다 — 여기서 개수를 세지 않는다**(예전 "둘뿐"·"넷"이 매번 낡았다). 2026-09-24 기준 push 를 막는 것: `pr-ci.yml`(main push 마다 — `verify:sitemap-drift`·`verify:seo-heading-integrity`·`verify:internal-link-depth`·`verify:editor-notes` 등) · postbuild 의 `verify-adsense-readiness`(라우트별 렌더 텍스트 분량 + 사이트맵 라우트의 유입 링크) · 배포 워크플로의 `verify:sitemap`. 다시 셀 때: `grep -n -i -E "adsense|sitemap|seo" .github/workflows/*.yml scripts/run-postbuild.mjs`.
+- `seo:check`(프로덕션 URL 200 확인, 매일) · `seo:audit --crawl-sitemap`(매월)은 2026-09-08(`6f6493c91`)부터 `seo-operations.yml` 예약 실행이다 — push 를 막지 않는 운영 감시다. `verify:seo-entity-registry` 는 아직 어느 워크플로에도 없고 `scripts/verify-guard-wiring.mjs` 에서 "수동"으로 선언돼 있다. 배선은 게이트 추가이므로 사용자 승인 사항이다.
 - **`scripts/seo-audit.mjs` 의 색인 대상 정본은 배열이 아니라 사이트맵이다** (2026-08-14 에 전환됨, 2026-08-15 재확인). 예전에는 하드코딩 목록이 판정을 지배해 **이슈 11건 중 10건이 거짓**이었고, 그래서 목록을 고치는 대신 사이트맵에서 유도하도록 바꿨다. 남은 `seedIndexablePaths`(`:26~`)는 **판정 기준이 아니라** ①사이트맵을 못 읽었을 때의 폴백 ②사이트맵과 어긋나면 이슈로 신고해 목록이 다시 썩지 않게 하는 장치다. 🔴 그 seed 를 "색인 대상 정본"으로 다시 취급하지 말 것.
 - 라우트를 추가할 때는 `canLoadAdsense()` 기준 게재 가능 여부에 따라 sitemap self-canonical 정합과 최소 렌더 텍스트 분량이 배포를 막는다는 점을 먼저 본다(CLAUDE.md "SEO 콘텐츠 게이트" 절).
 
@@ -81,19 +82,15 @@ Last curated: `2026-09-12`
 - 계측은 이미 있다 — `lib/llm-client.ts` 의 `[llm token_usage]` 로그를 `scripts/report-llm-token-usage.mjs` 가 라우트별로 집계한다(`cacheHit`·`duplicateBlocked`·`providerCallCount`·`cachedContentTokenCount` 포함). **전후 동일 방식 재실행이 이 스크립트의 설계 용도다.**
 - 🔴 **캐시를 새로 배선할 때는 `cache.minChars` 를 함께 준다.** `withLLMCache` 의 저장 조건은 `!truncated` 뿐이라, 잘리지 않았지만 분량 미달인 응답이 TTL 30일 동안 굳는다. 실패 후 재생성이 같은 키에서 같은 미달을 다시 받는다. 직전 시도가 실패였으면 `skipRead` 도 함께(쓰기는 유지 — 성공한 재생성이 스스로 덮어쓴다).
 - 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
-- 🟡 **넘긴 작업 2건 — 둘 다 미해결이다.**
-  - 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요하다 → [`docs/handoff/sukuyo-duplicate-generation-window.md`](handoff/sukuyo-duplicate-generation-window.md)
-  - 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자, 그중 `earthStorageOpenings` 하나가 9,853자). 사주 5그룹에 `evidenceRefs` 선언이 없어 새 설계가 필요하고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [`docs/handoff/llm-prompt-json-slicing.md`](handoff/llm-prompt-json-slicing.md)
-- 🟡 **남은 개별 항목**(각각 작고 서로 무관해 골라서 하면 된다) → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md)
-  - ~~모델 오버라이드 무효 버그(`lib/llm-client.ts:159-170`)~~ — **2026-08-19 조치 완료**(`resolveGeminiEndpoint` 가 `apiEndpoint` 없이도 해석된 `model` 로 URL 조립).
-  - 나머지: sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
-- 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts:456` + `:139-145`, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
+- 숙요 궁합의 서버측 중복 생성 창은 2026-08-15 #652(`eab74c949`)로 닫혔다(`generationLease` + 낡은 `generating` 판정, `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`). 그 인수인계 문서의 `status: active` 는 낡은 표기다.
+- 🟡 **차단**: 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자). 사주 5그룹에 `evidenceRefs` 선언이 없어 명리 도메인 설계 결정이 먼저이고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [`docs/handoff/llm-prompt-json-slicing.md`](handoff/llm-prompt-json-slicing.md)
+- 🟡 **남은 개별 항목**은 로드맵 S18 이 맡는다 → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md): sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
+- 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts` 의 `resolveThinkingBudget` — 미지정 = 0, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
 
-### 8. 검색 유입 · AdSense · 첫인상 (2026-08-30 — 현재 최우선 축)
+### 8. 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용 (2026-09-23 — 현재 최우선 축)
 
-- 계획과 진행 상태의 정본은 [`docs/handoff/growth-plan-2026-08-30.md`](handoff/growth-plan-2026-08-30.md) 하나다 — 여기에 단계별 상세를 복제하지 않는다.
-- 2026-08-30 에 머지된 기능 PR 은 대부분 이 축이다(1단계 = 브랜드 신호 · 유료 랜딩 가시 본문 · 인사이트 허브 목차 · 사이트맵 인바운드 가드). 🔴 어디까지 머지·승격됐는지는 여기서 세지 말고 그 핸드오프의 "진행" 절을 볼 것 — 두 곳에 적으면 반드시 어긋난다.
-- 🔴 **이 작업 기간에는 사용자가 PR 머지마다 프로덕션 승격을 위임했다**(핸드오프 "사용자 결정" 절). 그 위임은 이 축의 PR 에 한정이며, 상시 위임이 아니다.
+- 세션 순서와 진행 상태의 정본은 [`docs/handoff/competitiveness-roadmap-20260923.md`](handoff/competitiveness-roadmap-20260923.md) 하나다(1 세션 = 1행) — 여기에 행별 상세를 복제하지 않는다. 병목은 전환율이 아니라 **모수**라서 전환 UI 는 실제 결함 제거만 한다.
+- 2026-08-30 성장 계획([`docs/handoff/growth-plan-2026-08-30.md`](handoff/growth-plan-2026-08-30.md))은 선행 기록이다. 그 기간의 "PR 머지마다 프로덕션 승격 위임"은 PR 폐지(2026-09-12)로 대상이 없어졌다 — 운영 승격은 명시적인 1회 승인 때만 한다.
 
 ## Working Rules For Current Tasks
 
