@@ -21,18 +21,20 @@ try{
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await f.page.screenshot({path:`build-cache/yeongnyangi-consultation-ui/home-${width}.png`});
    await cta.click();await f.page.waitForURL('**/yeongnyangi/fortune/**');
+   // The default kind is 사주 해석; only 무엇이든 물어보기 shows the topic and question fields.
+   await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
    await f.page.getByLabel('상담 주제',{exact:true}).selectOption('love');
    const question='2027년 3~5월에 사업을 시작해도 될까요?\n이직 준비는 어떻게 할까요?';
    await f.page.getByLabel('영냥이에게 궁금한 이야기',{exact:true}).fill(question);
    // A same-route pre-login draft is restored before the server snapshot exists.
-   await f.page.evaluate(q=>sessionStorage.setItem('yeongnyangi:consultation-login-draft',JSON.stringify({path:location.pathname+location.search,productId:'saju_mackerel',topicId:'love',question:q,savedAt:Date.now()})),question);
+   await f.page.evaluate(q=>sessionStorage.setItem('yeongnyangi:consultation-login-draft',JSON.stringify({path:location.pathname+location.search,productId:'saju_mackerel',consultationKind:'ask',topicId:'love',question:q,savedAt:Date.now()})),question);
    await f.page.reload();
    await f.page.getByLabel('영냥이에게 궁금한 이야기',{exact:true}).waitFor();
    await f.page.waitForFunction(q=>document.querySelector('textarea')?.value===q,question);
    assert.equal(await f.page.getByLabel('상담 주제',{exact:true}).inputValue(),'love');
    const submit=f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true});await submit.click();
    await f.page.waitForURL('**/checkout/**');
-   assert.equal(f.state.requestInput.question,question);assert.equal(f.state.requestInput.topicId,'love');assert.ok(f.state.requestInput.timezone);
+   assert.equal(f.state.requestInput.question,question);assert.equal(f.state.requestInput.topicId,'love');assert.equal(f.state.requestInput.consultationKind,'ask');assert.ok(f.state.requestInput.timezone);
    assert.equal(await f.page.evaluate(()=>sessionStorage.getItem('yeongnyangi:consultation-login-draft')),null);
    const original=structuredClone(f.row.consultation);
    // Transport-only paid fixture; real PG/LLM calls are blocked.
