@@ -29,25 +29,27 @@ import {
 } from "../worker/lib/paid-feature-registry.js";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
-const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
-const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
+// Windows 체크아웃은 eol=lf 파일도 CRLF 로 남을 수 있다 — 단언은 논리 줄(LF) 기준이므로 읽을 때 정규화한다.
+const readSource = (path) => readFileSync(path, "utf8").replace(/\r\n/g, "\n");
+const billingSource = readSource(resolve(root, "worker/routes/billing.js"));
+const paymentsSource = readSource(resolve(root, "worker/routes/payments.js"));
 // 단건 카드 확정의 정본은 2026-09-06 부터 V2 다 — 구 payments.js handleConfirm 은 그날 지웠다.
 // 그래서 "카드로 산 것을 카드로 표기한다" 단언은 이 파일을 봐야 한다.
-const paymentsV2CompatSource = readFileSync(resolve(root, "worker/payments/compat.js"), "utf8");
-const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
-const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+const paymentsV2CompatSource = readSource(resolve(root, "worker/payments/compat.js"));
+const fortuneSource = readSource(resolve(root, "worker/routes/fortune.js"));
+const indexSource = readSource(resolve(root, "index.html"));
 // 결제 선택창 CSS 규칙(PAYMENT_CHOICE_CSS_RULES)과 카드 마크업 조립(buildPaymentChoiceCardsHtml) 정본
 // (2026-08-21 부터 js/core/checkout-entry.js) — 모달 치수·카드 뼈대 단언은 이 파일을 봐야 한다.
-const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
-const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
-const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
-const tarotPromptMakerSource = readFileSync(resolve(root, "app/tarot/prompt-maker/page.tsx"), "utf8");
+const checkoutEntrySource = readSource(resolve(root, "js/core/checkout-entry.js"));
+const destinyProfileSource = readSource(resolve(root, "js/destiny-profile.js"));
+const billingClientSource = readSource(resolve(root, "app/_lib/billing-client.ts"));
+const tarotPromptMakerSource = readSource(resolve(root, "app/tarot/prompt-maker/page.tsx"));
 const pointsSourcePath = existsSync(resolve(root, "app/points/PointsClient.tsx"))
   ? "app/points/PointsClient.tsx"
   : "app/points/page.tsx";
-const pointsSource = readFileSync(resolve(root, pointsSourcePath), "utf8");
-const statusCardSource = readFileSync(resolve(root, "app/points/SubscriptionStatusCard.tsx"), "utf8");
-const headersSource = readFileSync(resolve(root, "_headers"), "utf8");
+const pointsSource = readSource(resolve(root, pointsSourcePath));
+const statusCardSource = readSource(resolve(root, "app/points/SubscriptionStatusCard.tsx"));
+const headersSource = readSource(resolve(root, "_headers"));
 
 function futureDate(days = 30) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
@@ -916,7 +918,7 @@ for (const shellPath of [
   "public/ja/index.html",
   "public/zh/index.html",
 ]) {
-  const shellSource = readFileSync(resolve(root, shellPath), "utf8");
+  const shellSource = readSource(resolve(root, shellPath));
   assertContains(
     shellSource,
     'data-action="confirmGoldenCharge"',
