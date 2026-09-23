@@ -9,6 +9,7 @@ import styles from '../yeongnyangi.module.css';
 import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
 import ReadingLoading from './ReadingLoading';
 import ResultSharing from './ResultSharing';
+import FishReceipt from './FishReceipt';
 function RecoveryNotice({message,busy,onRetry}:{message:string;busy:boolean;onRetry:()=>void}){
  return <div className={styles.recoveryNotice}>
   <img src="/assets/yeongnyangi/original/signup.webp" width={116} height={116} alt="두루마리를 다시 챙기는 영냥이"/>
@@ -71,6 +72,7 @@ export default function Result(){
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
+  {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   <SpiritResult row={row}/>
   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
   {row.state==='REFUNDED'?<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>:!row.paid?<><p>결제 확인이 필요해요. 이미 결제했다면 먼저 상태를 다시 확인해 주세요.</p><button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a href={checkoutPath(row)}>결제 내용 확인하기</a></>:row.state!=='COMPLETED'&&<>
@@ -81,6 +83,7 @@ export default function Result(){
  return <section className={styles.reader}>
   <p className={styles.readerGreeting}><PawPrint size={19} aria-hidden="true"/> 영냥이가 차곡차곡 담은 이야기</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:'상담 결과'}</h1>
   {row&&<ReadingIdentity product={row.product}/>}
+  {row?.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   {!row&&!error&&<ReadingLoading/>}
   {row&&<>
    {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading product={row.product} stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}

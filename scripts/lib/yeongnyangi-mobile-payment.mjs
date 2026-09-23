@@ -196,7 +196,19 @@ async function waitResult(f){
  await f.page.waitForURL('**/yeongnyangi/result/**',{waitUntil:'domcontentloaded',timeout:15000});
  assert.equal(new URL(f.page.url()).searchParams.get('id'),f.row.id);
  await f.page.getByRole('heading',{name:`${f.row.product.name} · ${f.row.product.fishName}`,exact:true}).waitFor();
+ const reaction=f.page.getByRole('status',{name:`${f.row.product.fishName} 수령 리액션`,exact:true});
+ if(f.row.state==='REFUNDED')assert.equal(await reaction.count(),0,'Refunded consultations must not thank the customer for a fish');
+ else {
+  await reaction.waitFor();
+  assert.equal(await reaction.getAttribute('data-fish-reaction'),f.row.product.fishId);
+  await expectReactionAsset(reaction,f.row.product.reactionAsset);
+ }
  assert.ok(f.state.confirm>0,'Return must execute shared server payment confirmation');
+}
+
+async function expectReactionAsset(reaction,expected){
+ const source=await reaction.locator('img').getAttribute('src');
+ assert.equal(new URL(source,'http://fixture.invalid').pathname,expected,'Paid result must show the selected fish reaction asset');
 }
 
 async function complete(f,{resume=false}={}){

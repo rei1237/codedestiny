@@ -4,8 +4,6 @@ import {consultationTitle,fusionDescription} from '../_lib/consultation-copy';
 import {useEffect,useState} from 'react';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 
-const reactions:Record<string,[string,string]>={mackerel:['어? 고등어잖아! 눈이 번쩍 뜨인다냥.','고등어 잘 받았다냥. 네 핵심부터 야무지게 읽어줄게.'],salmon:['연어라니, 입꼬리가 자꾸 올라간다냥.','부드러운 연어 고맙다냥. 네 이야기도 찬찬히 풀어볼게.'],flounder:['광어 앞에서는 앞발부터 들린다냥!','광어 잘 받았다냥! 네 선택의 흐름까지 꼼꼼히 보자.'],tuna:['참치는… 살짝 안아봐도 되냥?','참치 품에 안고 힘냈다냥. 긴 이야기는 목차부터 천천히 읽어봐.'],assorted:['이것도 저것도? 어디부터 볼지 행복한 고민이다냥!','모둠 잘 받았다냥! 두 체계의 공통점과 다른 점을 나란히 펼쳐볼게.'],omakase:['잠깐, 이게 전부 내 거라고?! 앞발이 가만히 안 있는다냥!','오마카세라니, 냐아앙! 고맙다냥! 여섯 시선을 모은 네 운명서를 펼쳐볼게!']};
-export function FishReaction({product,paid=false}:{product:Product;paid?:boolean}) {return <aside className={`fish-reaction ${paid?'fish-thanks':''} ${paid&&product.fishId==='omakase'?'omakase-burst':''}`} aria-live="polite"><img src={product.reactionAsset} width={300} height={300} alt={`${product.fishName}에 기뻐하는 영냥이`}/><div><small>{paid?'구매 확인 · 영냥이의 감사 인사':'생선을 고르는 중 · 영냥이의 기대'}</small><p>{reactions[product.fishId]?.[paid?1:0]}</p></div></aside>;}
 export default function FishCatalog({fusionOnly=false,layout='grid'}:{fusionOnly?:boolean;layout?:'grid'|'list'}) {
  const [products,setProducts]=useState<(Product&{available:boolean})[]>([]),[failed,setFailed]=useState(false),[loading,setLoading]=useState(true),[attempt,setAttempt]=useState(0);
  useEffect(()=>{
