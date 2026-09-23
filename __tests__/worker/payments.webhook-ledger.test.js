@@ -610,6 +610,75 @@ describe("single payment entitlement consistency", () => {
     expect(User.updateOne).not.toHaveBeenCalled();
   });
 
+  function mockLegacyCompleteLookup(channel) {
+    let paymentFindOneCall = 0;
+    Payment.findOne = jest.fn(() => {
+      paymentFindOneCall += 1;
+      return queryResult(paymentFindOneCall === 1 ? accountScopedOrder : null);
+    });
+    Payment.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...accountScopedOrder,
+      status: "processing",
+      orderState: "PAID_VERIFIED",
+      paidAt: new Date("2026-06-30T00:00:00.000Z"),
+    }));
+    Payment.findById = jest.fn().mockReturnValue(queryResult({ ...accountScopedOrder, status: "processing" }));
+    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(queryResult({ ...accountScopedOrder, status: "fulfilled", orderState: "UNLOCKED" }));
+    ContentEntitlement.findOne = jest.fn().mockReturnValue(queryResult(null));
+    ContentEntitlement.findOneAndUpdate = jest.fn().mockReturnValue(queryResult({
+      _id: "ent-music-001",
+      profileId: "__user__",
+      scope: "USER",
+      contentKey: "music-track-0rhpuvh",
+    }));
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn(async () => new Response(JSON.stringify({
+      payment: {
+        paymentId: "pay_music_001",
+        status: "PAID",
+        storeId: "store_test_001",
+        channel,
+        amount: { total: 1000, currency: "KRW" },
+        paidAt: "2026-06-30T00:00:00.000Z",
+      },
+    }), { status: 200, headers: { "content-type": "application/json" } }));
+    return new Request("https://example.com/api/payments/single/complete", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ paymentId: "pay_music_001" }),
+    });
+  }
+
+  test("🔴 구 단건 complete 는 우리가 열지 않은 채널(channel.key) 결제로 주문을 확정하지 않는다 — 400·지급 0·키 값 로그 0", async () => {
+    const request = mockLegacyCompleteLookup({ key: "channel-foreign-test", type: "TEST" });
+    const parsed = await readResponse(await testUtils.handleSinglePaymentComplete(request, env, auth));
+
+    expect(parsed.status).toBe(400);
+    expect(parsed.payload.code).toBe("CHANNEL_MISMATCH");
+    expect(Payment.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(ContentEntitlement.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(User.updateOne).not.toHaveBeenCalled();
+    expect(Payment.findByIdAndUpdate).toHaveBeenCalledWith(accountScopedOrder._id, expect.objectContaining({
+      $set: expect.objectContaining({ status: "failed", failureCode: "channel_mismatch" }),
+    }));
+    expect(PaymentFailureLog.create).toHaveBeenCalledWith(expect.objectContaining({ code: "channel_mismatch", status: 400 }));
+    expect(JSON.stringify(PaymentFailureLog.create.mock.calls)).not.toContain("channel-foreign-test");
+  });
+
+  test.each([
+    ["이니시스 채널", {}, { key: "channel-test-key" }],
+    ["카카오페이 채널", { PORTONE_KAKAOPAY_CHANNEL_KEY: "channel-kakaopay-test" }, { key: "channel-kakaopay-test" }],
+    ["channel.key 없는 응답", {}, undefined],
+  ])("구 단건 complete 는 %s 결제를 그대로 확정한다", async (_label, envPatch, channel) => {
+    const request = mockLegacyCompleteLookup(channel);
+    const parsed = await readResponse(await testUtils.handleSinglePaymentComplete(request, { ...env, ...envPatch }, auth));
+
+    expect(parsed.status).toBe(200);
+    expect(parsed.payload.ok).toBe(true);
+    expect(User.updateOne).toHaveBeenCalled();
+  });
+
   function buildReportFailureRequest(body) {
     return new Request("https://example.com/api/payments/report-failure", {
       method: "POST",

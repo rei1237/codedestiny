@@ -1000,6 +1000,12 @@ function extractPortOneStoreId(portOnePayment = {}) {
   ).trim();
 }
 
+/* 응답이 알려 준 채널키(SelectedChannel.key) — V2 확정(worker/payments/pg.js extractChannelKey)과 같은 자리. 값은 로그에 싣지 않는다. */
+function extractPortOneChannelKey(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  return String(raw?.channel?.key || "").trim();
+}
+
 function isPortOnePendingStatus(status) {
   const normalized = String(status || "").trim().toLowerCase();
   return ["ready", "pay_pending", "virtual_account_issued", "pending"].includes(normalized);
@@ -1471,6 +1477,34 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
       payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
     });
     return json({ ok: false, message: "Payment store verification failed.", code: "STORE_ID_MISMATCH" }, { status: 400 });
+  }
+
+  // 🔴 채널도 V2 확정(pg.js ⑥)과 같은 기준 — 응답에 channel.key 가 있을 때만 우리가 연 채널(이니시스·카카오페이) 중 하나여야 한다.
+  // 이 라우트는 직접 호출로 닿으므로 같은 상점의 다른 채널(테스트 채널 등) 결제로 주문을 확정하지 못하게 막는다(2026-09-24 L1).
+  const portOneChannelKey = extractPortOneChannelKey(portOnePayment);
+  const allowedChannelKeys = [config.channelKey, config.kakaopayChannelKey].map((key) => String(key || "").trim()).filter(Boolean);
+  if (portOneChannelKey && !allowedChannelKeys.includes(portOneChannelKey)) {
+    await markPaymentFailure(order, {
+      status: "failed",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.VERIFY_FAILED,
+      paymentMethod: order.paymentMethod,
+      failureCode: "channel_mismatch",
+      failureMessage: "PortOne channel does not match configured channels.",
+      failureStage: "single_channel_validate",
+      incrementAttempt: true,
+    });
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_channel_validate",
+      code: "channel_mismatch",
+      message: "PortOne channel does not match configured channels.",
+      status: 400,
+      payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
+    });
+    return json({ ok: false, message: "Payment channel verification failed.", code: "CHANNEL_MISMATCH" }, { status: 400 });
   }
 
   if (!Number.isInteger(portOneAmount) || portOneAmount !== expectedAmount) {
