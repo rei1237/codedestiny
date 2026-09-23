@@ -23,6 +23,14 @@ test("구매 성공 꼬리가 복귀 티켓을 소비하고 원래 화면으로 
   assert.match(client, /if \(!scheduleCheckoutReturn\(plan\.title\)\) \{\s*setMessage\(copy\.purchaseAppliedMessage\(plan\.title\)\);/);
 });
 
+test("저장된 복귀 URL 은 같은 사이트(origin)일 때만 따라간다 — 안내·이동보다 먼저 막는다", () => {
+  const originGuard = client.search(/if \(destination\.origin !== window\.location\.origin\) return false;/);
+  assert.ok(originGuard >= 0, "복귀 URL origin 비교가 없다");
+  assert.match(client, /destination = new URL\(returnUrl, window\.location\.origin\)/, "복귀 URL 을 현재 origin 기준으로 해석하지 않는다");
+  assert.ok(originGuard < client.indexOf("copy.purchaseReturningMessage("), "origin 비교가 복귀 안내보다 뒤에 있다");
+  assert.ok(originGuard < client.indexOf("window.location.assign(returnUrl)"), "origin 비교가 이동보다 뒤에 있다");
+});
+
 test("구매 성공 뒤 access 스냅샷을 강제 갱신하고 떠나기 전 이용권 스냅샷을 예열한다", () => {
   assert.match(client, /refreshUserAccessAfterPayment\(\)\.catch\(/, "refreshUserAccessAfterPayment 호출이 없다");
   assert.match(client, /\/api\/subscription\/status/, "이용권 스냅샷 예열 요청이 없다");
