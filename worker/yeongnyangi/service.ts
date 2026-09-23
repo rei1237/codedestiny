@@ -152,8 +152,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     if(!completed) throw new FortuneError('GENERATION_LEASE_LOST',409);
     return completed;
   } catch(error) {
-    console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code:error instanceof FortuneError?error.code:'GENERATION_FAILED'}));
-    await failChapter(env,userId,requestId,token,error instanceof FortuneError?error.code:'GENERATION_FAILED',row.chapterAttempts?.[ordinal] || 1);
+    const code=error instanceof FortuneError?error.code:'GENERATION_FAILED';
+    console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code}));
+    try { await failChapter(env,userId,requestId,token,code,row.chapterAttempts?.[ordinal] || 1,stage); }
+    catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }
 }

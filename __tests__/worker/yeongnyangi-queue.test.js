@@ -1,8 +1,8 @@
 import {jest} from '@jest/globals';
 const id='b'.repeat(64);
-const update=jest.fn(),claim=jest.fn();
+const update=jest.fn(),claim=jest.fn(),findOne=jest.fn();
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
-jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({YeongnyangiRequest:{findOneAndUpdate:claim,updateOne:update}}));
+jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({YeongnyangiRequest:{findOneAndUpdate:claim,updateOne:update,findOne}}));
 let consumeConsultationQueue,enqueueConsultation,enqueuePaidConsultation;
 beforeAll(async()=>{({consumeConsultationQueue,enqueueConsultation,enqueuePaidConsultation}=await import('../../worker/yeongnyangi/queue.js'));});
 const message=()=>({body:{requestId:id},ack:jest.fn(),retry:jest.fn()});
@@ -39,4 +39,19 @@ test.each(['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NO
  const r={...row(),errorCode},m=message(),generateNextChapter=jest.fn();
  await consumeConsultationQueue({messages:[m]},{},{read:async()=>r,service:{generateNextChapter}});
  expect(generateNextChapter).not.toHaveBeenCalled();expect(m.ack).toHaveBeenCalled();
+});
+
+test('an existing dispatch is accepted only when a matching live marker exists',async()=>{
+ claim.mockReturnValue({lean:async()=>null});
+ const send=jest.fn();
+ for(const pending of [{_id:id},null]){
+  findOne.mockReturnValue({select:()=>({lean:async()=>pending})});
+  expect(await enqueueConsultation({YEONGNYANGI_QUEUE:{send}},row())).toBe(Boolean(pending));
+ }
+ expect(send).not.toHaveBeenCalled();
+});
+test('database failure during failure handling retries instead of losing the message',async()=>{
+ const m=message(),read=jest.fn().mockRejectedValue(new Error('DB unavailable'));
+ await consumeConsultationQueue({messages:[m]},{},{read,service:{}});
+ expect(m.retry).toHaveBeenCalledWith({delaySeconds:30});expect(m.ack).not.toHaveBeenCalled();
 });

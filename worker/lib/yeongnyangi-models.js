@@ -26,6 +26,7 @@ const schema = new mongoose.Schema({
   additionalAttempts: { type: Number, default: 0 },
   recoveryAudit: { type: [mongoose.Schema.Types.Mixed], default: [] },
   errorCode: { type: String, default: '' },
+  lastFailure: { code: String, stage: String, at: Date },
   completedAt: { type: Date, default: null },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });
 schema.index({ userId: 1, createdAt: -1, _id: -1 });

@@ -329,3 +329,16 @@ crons = ["0 22 * * *", "*/10 * * * *"]
 #    이 이 파일 기준으로 버전 설정을 올리므로, 블록이 없던 동안의 승격이 대시보드 토글을 되돌렸을
 #    수 있다. 이 줄이 들어간 뒤로는 그 경로 자체가 사라진다.
 enabled = true
+
+# Paid consultation chapters are dispatched immediately after payment confirmation.
+[[queues.producers]]
+binding = "YEONGNYANGI_QUEUE"
+queue = "yeongnyangi-consultation-production"
+
+[[queues.consumers]]
+queue = "yeongnyangi-consultation-production"
+max_batch_size = 1
+max_batch_timeout = 1
+max_concurrency = 2
+max_retries = 5
+retry_delay = 30

@@ -48,7 +48,7 @@ export function validateChapter(
       throw new FortuneError("INVALID_CHAPTER");
     }
   }
-  const v = value as ChapterBody;
+  let v = value as ChapterBody;
   const text = (s: unknown) =>
     typeof s === "string" &&
     s.trim().length > 0 &&
@@ -81,6 +81,14 @@ export function validateChapter(
     v.sources.some((s) => !allowed.has(s))
   )
     throw new FortuneError("INVALID_EVIDENCE");
+
+  if(input.chapter.version===READING_V5_VERSION && Array.isArray(v.blocks)){
+    const cited=v.blocks.flatMap(b=>Array.isArray(b?.sources)?b.sources:[]);
+    if(cited.some(id=>!allowed.has(id)))throw new FortuneError('INVALID_EVIDENCE');
+    // The top-level list is an index of actual, validated block citations.
+    // Never invent references or discard an unknown ID to make a result pass.
+    v={...v,sources:[...new Set([...v.sources,...cited])]};
+  }
 
   if (
     input.previous.some(
@@ -208,6 +216,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         excludedSubjects: input.chapter.excludes,
         paidScope: isStructuredReading(input.chapter.version)&&!['tuna','assorted','omakase'].includes(tier)?'용신·희신·대운·마하다샤·안타르다샤·삼방사정 전문 해석 금지. 명식의 일반 해석만 한다.':undefined,
         evidenceLimit: '자료 부족은 낮은 위험이나 좋은 운이 아니다. 없는 시기와 사실은 만들지 않는다. 질병·장기 이상·음식의 치료 효능을 명식으로 판단하지 않는다.',
+        citationContract: '최상위 sources에는 모든 blocks[].sources의 합집합을 빠짐없이 넣는다. sources는 CALCULATED_DATA.facts의 id를 그대로 사용한다. label이나 새 ID를 만들지 않는다.',
         blockContract: input.chapter.version===READING_V5_VERSION?'sections의 각 ID에 대응하는 blocks를 순서대로 생성한다. title은 자연스러운 한국어 소제목. paragraphs는 각각 500자 이하, 보통 150~350자. 본문은 blocks에만 쓰고 analysis는 빈 배열, example과 advice는 빈 문자열이다. 각 block의 sources에 실제 사용한 제공 근거 ID를 넣는다. evidence 소절에는 근거가 제공된 각 체계의 출처를 포함하고 광어 이상은 가능하면 서로 다른 근거 2개 이상을 연결한다. 소절별 minimumChars와 역할을 충족한다.':isStructuredReading(input.chapter.version)?'blocks는 requiredSections의 모든 제목을 그대로 사용하고 문단당 500자 이하의 짧은 해설 문단을 담는다. analysis는 빈 배열. example과 advice는 blocks를 반복하지 않는 사례와 실행이다.':undefined,
         narrativeTask: !isStructuredReading(input.chapter.version)&&tier==='mackerel'?[
           '첫인상만 다룬다. 말이나 일을 시작하기 전에 무엇을 관찰하는 사람인지 한 가지 장면으로 보여준다. 책임 분배 조언은 하지 않는다.',

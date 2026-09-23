@@ -536,3 +536,18 @@
 .skyEntry span span { display:block; font-size:14px; line-height:1.6; margin:6px 0; word-break:keep-all; }
 .skyEntry b { font-size:14px; color:#6b4778; }
 .skyEntry .skyWestern { display:block; text-align:center; padding:12px 0 2px; font-size:13px; color:#684f70; }
+
+/* Paid-result recovery keeps the same cat, colors and reading surface. */
+.readerGreeting { display:flex; align-items:center; gap:8px; color:var(--yn-gold); font-weight:700; }
+.recoveryNotice { display:flex; align-items:center; gap:24px; margin:28px 0; padding:28px; background:#30203f; border:1px solid #a18aaf; border-radius:28px; box-shadow:0 12px 28px #120b1d40; }
+.recoveryNotice > img { flex:0 0 116px; width:116px; height:116px; object-fit:contain; }
+.recoveryNotice h2 { margin:0 0 12px; color:#fff2d7; font-size:1.3rem; text-wrap:balance; }
+.reader .recoveryNotice [role="alert"] { margin:0; padding:0; border:0; background:transparent; color:#f5e9ff; }
+.recoveryHint { color:#ddcfe7; font-size:.94rem; line-height:1.7; }
+.page .retryButton { min-height:48px; padding:13px 22px; border:1px solid #f0d6a0; border-radius:999px; color:#352044; background:#f4ddb0; box-shadow:0 4px 0 #9b7255; gap:10px; }
+.page .retryButton:hover:not(:disabled) { background:#fff0ce; border-color:#fff0ce; transform:translateY(-2px); }
+.page .retryButton:active:not(:disabled) { transform:translateY(2px); box-shadow:0 2px 0 #9b7255; }
+.page .retryButton:focus-visible { outline:3px solid #d1a9ff; outline-offset:4px; }
+.page .retryButton:disabled { opacity:.75; box-shadow:none; }
+@media(max-width:600px) { .recoveryNotice { flex-direction:column; align-items:flex-start; gap:12px; padding:22px; } .recoveryNotice > img { align-self:center; flex-basis:auto; } .page .recoveryNotice .retryButton { width:100%; } }
+@media(prefers-reduced-motion:reduce) { .page .retryButton { transition:none; transform:none; } }

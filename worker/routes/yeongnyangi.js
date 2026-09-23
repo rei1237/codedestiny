@@ -1,3 +1,4 @@
+import {retryFortune} from '../yeongnyangi/retry.js';
 import {prepareHoraryPrompt} from '../yeongnyangi/fortune/free/horary.ts';
 import {resolveCurrentLocation} from '../yeongnyangi/fortune/question-sky.ts';
 import { requireUserFromRequest } from '../lib/auth.js';
@@ -6,11 +7,12 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { activateFortune, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
-import { readRequest, resumeRequest, ownerId, YeongnyangiRequest } from '../yeongnyangi/repository.js';
-import { enqueueConsultation } from '../yeongnyangi/queue.js';
+import { readRequest, ownerId, YeongnyangiRequest } from '../yeongnyangi/repository.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
+  GENERATION_QUEUE_UNAVAILABLE:'상담 재개를 접수하지 못했어요. 잠시 후 같은 상담에서 다시 시도해 주세요.',
+  PAYMENT_NOT_ACTIVE:'결제 또는 환불 상태 확인이 필요해요. 다시 결제하지 말고 결제 내역을 확인해 주세요.',
   HORARY_FREE_PROMPT_REQUIRED:'호라리는 무료 프롬프트 화면에서 이용해 주세요.',
   QUESTION_LOCATION_REQUIRED:'위치 사용에 동의하거나 질문 당시 도시를 선택해 주세요.',
   QUESTION_SKY_INPUT:'5자 이상 질문(최대 8개), 주제와 질문자 도시를 확인해 주세요.',
@@ -95,12 +97,14 @@ export async function handleYeongnyangiRoutes(request, env) {
     if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readRequest(env,auth.userId,id))});
     if(action==='activate' && method==='POST') return json({ok:true,fortune:presentFortune(await activateFortune(env,auth.userId,id))});
     if(action==='generate' && method==='POST') {
-      const row=await resumeRequest(env,auth.userId,id);
-      await enqueueConsultation(env,row);
+      const row=await retryFortune(env,auth.userId,id);
       return json({ok:true,fortune:presentFortune(row)},{status:202});
     }
     return notFound();
   } catch(error) {
+    const code=error?.code || error?.payload?.code;
+    if(code==='GENERATION_QUEUE_UNAVAILABLE')return json({ok:false,code,message:messages[code],retryable:true,retryAfterSeconds:30},{status:503,headers:{'Retry-After':'30'}});
+    if(code && messages[code] && error?.status)return handleRouteError(createHttpError(error.status,messages[code],{...error.payload,code}),{request,env});
     if(error?.code && error?.status && !error.payload) {
       return handleRouteError(createHttpError(error.status,messages[error.code] || '영냥이가 상담을 이어가지 못했어요. 잠시 후 다시 확인해 주세요.',{code:error.code}),{request,env});
     }

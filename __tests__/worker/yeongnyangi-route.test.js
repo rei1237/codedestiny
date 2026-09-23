@@ -25,6 +25,7 @@ jest.unstable_mockModule('../../worker/yeongnyangi/free-service.ts',()=>({
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
   readRequest:read,resumeRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},
 }));
+jest.unstable_mockModule('../../worker/yeongnyangi/retry.js',()=>({retryFortune:generate}));
 let handleYeongnyangiRoutes;
 beforeAll(async()=>{({handleYeongnyangiRoutes}=await import('../../worker/routes/yeongnyangi.js'));});
 const env={GEMINIF_API_KEY:'fixture-not-called'};
@@ -80,8 +81,8 @@ test('payload owner is ignored; authenticated owner is passed to the service',as
 });
 test.each(['activate','generate'])('repeat %s requests target the same owned consultation',async action=>{
   for(let i=0;i<2;i++)expect((await handleYeongnyangiRoutes(request(`requests/${id}/${action}`,'POST',{}),env)).status).toBe(action==='generate'?202:200);
-  expect(action==='activate'?activate:read).toHaveBeenNthCalledWith(2,env,userId,id);
-  expect(generate).not.toHaveBeenCalled();
+  expect(action==='activate'?activate:generate).toHaveBeenNthCalledWith(2,env,userId,id);
+  if(action==='activate')expect(generate).not.toHaveBeenCalled();
 });
 test('list uses owner filter, bounded projection and stable pagination',async()=>{
   const stamp='2026-09-16T00:00:00.000Z';
@@ -127,4 +128,15 @@ test.each(['free/horary','location'])('%s observes security rejection before cal
  security.mockResolvedValue({ok:false,response:json({code:'RATE_LIMIT_EXCEEDED'},{status:429})});
  expect((await handleYeongnyangiRoutes(request(path,'POST',{}),{})).status).toBe(429);
  expect(horary).not.toHaveBeenCalled();expect(location).not.toHaveBeenCalled();
+});
+
+test('retry dispatch failure returns actionable 503 rather than accepted',async()=>{
+ generate.mockRejectedValue(Object.assign(new Error('queue unavailable'),{status:503,code:'GENERATION_QUEUE_UNAVAILABLE'}));
+ const response=await handleYeongnyangiRoutes(request(`requests/${id}/generate`,'POST',{}),env);
+ expect(response.status).toBe(503);expect(response.headers.get('Retry-After')).toBe('30');
+ expect(await response.json()).toMatchObject({retryable:true,retryAfterSeconds:30});
+});
+test('retry uses the authenticated owner and original consultation',async()=>{
+ const response=await handleYeongnyangiRoutes(request(`requests/${id}/generate`,'POST',{userId:'foreign'}),env);
+ expect(response.status).toBe(202);expect(generate).toHaveBeenCalledWith(env,userId,id);
 });
