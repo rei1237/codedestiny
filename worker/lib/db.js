@@ -284,10 +284,35 @@ function diffMongoCounters(before) {
     const change = mongoOpCounters[key] - (before[key] || 0);
     if (change) delta[key] = change;
   }
-  if (mongoOpCounters.lastCheckOutFailReason) {
+  // 사유는 이 시도 안에서 체크아웃이 실제로 실패했을 때만 붙인다. 아이솔레이트 전역의 '마지막'
+  // 사유라 예전 실패(웜 커넥션 분리 때의 poolClosed 등)가 계속 남는데, 무조건 붙였더니
+  // checkOutFailed 증분 0 인 시도가 poolClosed 로 읽혀 원인을 오진했다(2026-09-23 영냥이 503).
+  if (delta.checkOutFailed > 0 && mongoOpCounters.lastCheckOutFailReason) {
     delta.lastCheckOutFailReason = mongoOpCounters.lastCheckOutFailReason;
   }
   return delta;
+}
+
+// 응답을 못 받은 명령과 그 커넥션(2026-09-24). 카운터 증분만으로는 "명령이 나갔는데 답이 없다"까지만
+// 보이고, **어느 소켓**에서 멈췄는지는 안 보인다. 가설은 "옆 요청이 연 소켓을 이 요청이 빌려 썼고,
+// 옆 요청이 끝나며 그 소켓의 I/O 가 죽었다"이다(위 connectDb 의 요청 컨텍스트 주석). [db-op-timeout] 의
+// pending[].conn 을 [db-conn-open] 줄과 맞추면 그 소켓을 연 요청이 tail 에서 나온다.
+// 끝내 응답이 안 오는 명령은 지워지지 않으므로 상한을 두고 가장 오래된 것부터 버린다.
+const MONGO_TRACKED_ENTRIES_LIMIT = 100;
+const pendingMongoCommands = new Map();
+const mongoConnectionOpenedAt = new Map();
+
+function rememberBounded(map, key, value) {
+  if (map.size >= MONGO_TRACKED_ENTRIES_LIMIT) map.delete(map.keys().next().value);
+  map.set(key, value);
+}
+
+function describePendingMongoCommands() {
+  const now = Date.now();
+  return [...pendingMongoCommands.values()].slice(-6).map((entry) => {
+    const openedAt = mongoConnectionOpenedAt.get(entry.conn);
+    return { cmd: entry.cmd, conn: entry.conn, ageMs: now - entry.at, connAgeMs: openedAt ? now - openedAt : null };
+  });
 }
 
 function instrumentMongoClient(client) {
@@ -295,6 +320,18 @@ function instrumentMongoClient(client) {
   if (instrumentedMongoClients.has(client)) return;
   instrumentedMongoClients.add(client);
   try {
+    // connectionId 는 풀마다 1 부터 다시 세므로 클라이언트 태그를 붙여 구분한다. 명령 이벤트의 address 는
+    // 소켓 원격 주소라 풀 이벤트의 host 와 맞지 않아 키로 쓰지 않는다. 난수는 요청 처리 중에만 허용되므로
+    // 모듈 최상위가 아니라 여기서 만든다.
+    const clientTag = Math.random().toString(36).slice(2, 6);
+    const connKey = (event) => `${clientTag}#${event?.connectionId}`;
+    const commandKey = (event) => `${clientTag}:${event?.requestId}`;
+    client.on("connectionCreated", (event) => {
+      const conn = connKey(event);
+      rememberBounded(mongoConnectionOpenedAt, conn, Date.now());
+      // 드라이버는 이 이벤트 직후 같은 흐름에서 소켓을 연다. 그래서 이 줄이 찍힌 tail 요청 = 소켓을 연 요청이다.
+      console.log("[db-conn-open]", JSON.stringify({ conn }));
+    });
     client.on("connectionCheckOutStarted", () => { mongoOpCounters.checkOutStarted += 1; });
     client.on("connectionCheckedOut", (event) => {
       mongoOpCounters.checkedOut += 1;
@@ -306,13 +343,24 @@ function instrumentMongoClient(client) {
       mongoOpCounters.lastCheckOutFailReason = String(event?.reason || "unknown").slice(0, 40);
     });
     client.on("connectionPoolCleared", () => { mongoOpCounters.poolCleared += 1; });
-    client.on("commandStarted", () => { mongoOpCounters.commandStarted += 1; });
+    client.on("commandStarted", (event) => {
+      mongoOpCounters.commandStarted += 1;
+      rememberBounded(pendingMongoCommands, commandKey(event), {
+        cmd: String(event?.commandName || "unknown").slice(0, 24),
+        conn: connKey(event),
+        at: Date.now(),
+      });
+    });
     client.on("commandSucceeded", (event) => {
       mongoOpCounters.commandSucceeded += 1;
+      pendingMongoCommands.delete(commandKey(event));
       const took = Number(event?.duration || 0);
       if (took > mongoOpCounters.maxCommandMs) mongoOpCounters.maxCommandMs = took;
     });
-    client.on("commandFailed", () => { mongoOpCounters.commandFailed += 1; });
+    client.on("commandFailed", (event) => {
+      mongoOpCounters.commandFailed += 1;
+      pendingMongoCommands.delete(commandKey(event));
+    });
   } catch (e) {
     // 계측 실패가 DB 접근을 막아서는 안 된다.
   }
@@ -939,6 +987,13 @@ export async function connectDb(env = {}, options = {}) {
         // 만든 뒤 SRV DNS 를 비동기로 풀기 때문에, 여기서 걸면 topology 가 열리기 전 구간
         // (= SRV+TXT 조회)이 그대로 잡힌다. 한 틱이라도 늦추면 그 구간을 놓친다.
         connectPhases = observeConnectPhases(connectStartedAt);
+        // 드라이버는 connect 안에서 ping 을 보내며 첫 풀 소켓을 연다. 성공 뒤에 계측을 걸면 그 소켓의
+        // [db-conn-open] 이 빠지므로 같은 동기 지점에서 건다(아래 성공 후 호출은 WeakSet 가드로 무시된다).
+        try {
+          instrumentMongoClient(mongoose.connection.getClient?.());
+        } catch (e) {
+          // 계측 실패는 무시한다.
+        }
 
         // 핸드셰이크 실비용을 남긴다 — op-타임아웃이 '쿼리가 느린' 것인지 '연결 수립이 느린' 것인지
         // 구분할 유일한 근거다(2026-08-01 조사에서 이 값이 없어 한참 헤맸다).
@@ -1496,6 +1551,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           //   checkedOut 증가 없음     → 풀에서 커넥션을 못 받음(포화 또는 요청간 I/O 격리)
           //   commandStarted 만 증가   → 명령은 나갔는데 서버 응답이 안 옴(Atlas 지연)
           //   증분이 전부 0            → 명령이 아예 나가지 않음(요청간 I/O 격리 유력)
+          // pending 은 아직 응답이 없는 명령과 그 커넥션이다. conn 을 [db-conn-open] 과 맞춰 소켓을 연 요청을 찾는다.
           try {
             console.log("[db-op-timeout]", JSON.stringify({
               attempt: attempt + 1,
@@ -1504,6 +1560,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
               opMs: connectFinishedAt ? Date.now() - connectFinishedAt : null,
               inFlightOps: countActiveMongoOps(),
               delta: diffMongoCounters(countersAtStart),
+              pending: describePendingMongoCommands(),
             }));
           } catch (e) {
             // 계측 실패가 에러 처리를 막아서는 안 된다.

@@ -11,6 +11,7 @@
  */
 
 import { jest } from "@jest/globals";
+import { EventEmitter } from "node:events";
 
 const pendingResolvers = [];
 const HANG_FOREVER = () => new Promise((resolve) => {
@@ -70,4 +71,85 @@ test("op-타임아웃 시 [db-op-timeout] 진단 로그를 남긴다", async () 
   // 드라이버 이벤트 계측이 실제로 연결에 붙었는지(붙지 않으면 delta 가 영원히 비어 진단이 죽는다).
   expect(client.on).toHaveBeenCalled();
   expect(mongooseMock.disconnect).toHaveBeenCalledTimes(1);
+}, ATTEMPT_TIMEOUT_FLOOR_MS + 10000);
+
+function buildEmittingMongoose() {
+  const client = new EventEmitter();
+  const connection = {
+    readyState: 0,
+    db: { command: jest.fn(async () => ({ ok: 1 })) },
+    getClient: () => client,
+  };
+  const mongooseMock = {
+    connection,
+    connect: jest.fn(async () => {
+      connection.readyState = 1;
+      return connection;
+    }),
+    disconnect: jest.fn(async () => {
+      connection.readyState = 0;
+    }),
+  };
+  return { client, mongooseMock };
+}
+
+async function loadDb(mongooseMock) {
+  delete globalThis.__mongoOperationAdmission;
+  delete globalThis.__mongoPaymentAdmission;
+  jest.resetModules();
+  jest.unstable_mockModule("mongoose", () => ({ default: mongooseMock }));
+  return import("../../worker/lib/db.js");
+}
+
+async function captureOpTimeout(withMongoRetry, op) {
+  const logs = [];
+  const originalLog = console.log;
+  console.log = (...args) => { logs.push(args.map(String).join(" ")); };
+  try {
+    await expect(withMongoRetry(ENV, op)).rejects.toThrow(/operation timed out/i);
+  } finally {
+    console.log = originalLog;
+  }
+  const line = logs.find((l) => l.includes("[db-op-timeout]"));
+  return { logs, payload: JSON.parse(line.slice(line.indexOf("{"))) };
+}
+
+// 2026-09-23 영냥이 503: 이 시도엔 checkOutFailed 가 없었는데 예전 실패의 poolClosed 가 붙어 오진했다.
+test("시도 밖의 체크아웃 실패 사유는 붙이지 않고, 걸린 명령의 커넥션과 그 소켓을 연 로그를 남긴다", async () => {
+  const { client, mongooseMock } = buildEmittingMongoose();
+  const { withMongoRetry } = await loadDb(mongooseMock);
+  const originalLog = console.log;
+  console.log = () => {};
+  try {
+    // 앞선 요청이 웜 커넥션 분리로 poolClosed 체크아웃 실패를 남기고 정상 종료했다.
+    await withMongoRetry(ENV, async () => {
+      client.emit("connectionCheckOutFailed", { reason: "poolClosed" });
+      return "ok";
+    });
+  } finally {
+    console.log = originalLog;
+  }
+
+  const { logs, payload } = await captureOpTimeout(withMongoRetry, () => {
+    client.emit("connectionCreated", { connectionId: 7 });
+    client.emit("commandStarted", { requestId: 41, connectionId: 7, commandName: "update" });
+    return HANG_FOREVER();
+  });
+
+  expect(payload.delta).not.toHaveProperty("lastCheckOutFailReason");
+  expect(payload.pending).toEqual([expect.objectContaining({ cmd: "update", conn: expect.stringMatching(/#7$/) })]);
+  const openLine = logs.find((l) => l.includes("[db-conn-open]"));
+  expect(JSON.parse(openLine.slice(openLine.indexOf("{"))).conn).toBe(payload.pending[0].conn);
+}, ATTEMPT_TIMEOUT_FLOOR_MS + 10000);
+
+test("시도 안에서 체크아웃이 실패했으면 그 사유를 붙인다", async () => {
+  const { client, mongooseMock } = buildEmittingMongoose();
+  const { withMongoRetry } = await loadDb(mongooseMock);
+
+  const { payload } = await captureOpTimeout(withMongoRetry, () => {
+    client.emit("connectionCheckOutFailed", { reason: "timeout" });
+    return HANG_FOREVER();
+  });
+
+  expect(payload.delta).toMatchObject({ checkOutFailed: 1, lastCheckOutFailReason: "timeout" });
 }, ATTEMPT_TIMEOUT_FLOOR_MS + 10000);
