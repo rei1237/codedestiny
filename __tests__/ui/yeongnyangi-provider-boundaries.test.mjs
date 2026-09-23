@@ -28,3 +28,13 @@ test('provider enforces citation enums in Gemini structured output',async()=>{
  assert.equal(getOptions().responseSchema.additionalProperties,undefined);
  assert.equal(getOptions().maxProviderAttempts,1);
 });
+
+test('v5 empty legacy fields do not send unsupported empty Gemini enums',async()=>{
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ const outputSchema={type:'object',properties:{example:{type:'string',enum:['']},advice:{type:'string',enum:['']},sources:{type:'array',items:{type:'string',enum:['saju.dayMaster']}}}};
+ await provider.generate({...request,outputSchema});
+ assert.deepEqual(getOptions().responseSchema.properties.example,{type:'string'});
+ assert.deepEqual(getOptions().responseSchema.properties.advice,{type:'string'});
+ assert.deepEqual(getOptions().responseSchema.properties.sources.items.enum,['saju.dayMaster']);
+ assert.deepEqual(outputSchema.properties.example.enum,['']);
+});

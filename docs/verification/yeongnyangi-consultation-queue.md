@@ -26,3 +26,7 @@
 결제·환불 상태를 확인한 자동 중단 건만 `scripts/recover-yeongnyangi-request.mjs --db <database> --request <id> --resume-stop --reason <incident>`로 사전 점검한다. 승인된 적용에만 `--apply`를 추가한다. 이 모드는 상담 총 호출 한도를 늘리지 않으며, HTTP/LLM/PG를 직접 호출하지 않는다. 이후 운영 큐 또는 기존 복구 tick이 원래 스냅샷에서 이어간다.
 
 UI의 다시 불러오기는 읽기 오류를 재조회한다. 상담 이어가기는 기존 생성 API로 동일 상담을 재개하며 큐 등록 실패는 503과 Retry-After를 반환한다. 읽기 작업만 공유 DB 재시도 장치의 timeout/admission 복구를 사용하고 쓰기 작업에는 이를 확장하지 않는다.
+
+## 구조화 출력 호환성
+
+2026-09-23 운영 복구에서 v5의 `example`·`advice` 빈 문자열 enum이 Gemini의 생성 전 countTokens 단계에서 HTTP 400으로 거부되는 것을 확인했다. 공급자 스키마 변환은 빈 enum을 제거하되 인용 ID enum은 유지한다. 빈 레거시 필드는 기존 프롬프트와 validateChapter가 계속 검증한다. 같은 스키마의 비과금 검사 응답은 수정 전 400, 수정 후 200이었다. 공급자 오류의 제한된 코드·상태만 로그에 남기며 원문 요청·출생정보·응답 본문을 기록하지 않는다.
