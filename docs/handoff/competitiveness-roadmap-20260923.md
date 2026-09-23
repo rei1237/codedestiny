@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: "S4(GREEN·Opus/medium) — 선행 조건이 풀린 첫 대기 행. 운영은 `c255916e2`(2026-09-24 승격)이고, 🔴 이니시스 재감사 결제 수정 7건은 그 뒤 main에 올라와 **운영 미포함** — 다음 승격은 사용자가 따로 요청할 때 결제 변경으로 명시해 1회 승인을 새로 받는다. S6도 S1으로 풀렸고, S5 신년 허브는 10월 중순 운영 승격이 기한이다."
+next: "S5(신년 허브) — S4 완료(`18ca99c9c`·`7bf374a77`) 뒤 선행 조건이 풀린 첫 대기 행이고 10월 중순 운영 승격이 기한이다. S6도 착수 가능. 운영은 `c255916e2`(2026-09-24 승격)이고, 🔴 이니시스 재감사 결제 수정 7건은 그 뒤 main에 올라와 **운영 미포함** — 다음 승격은 사용자가 따로 요청할 때 결제 변경으로 명시해 1회 승인을 새로 받는다."
 ---
 
 # 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용
@@ -37,6 +37,8 @@ next: "S4(GREEN·Opus/medium) — 선행 조건이 풀린 첫 대기 행. 운영
 - S3 완료 `a246feca2` — `/saju/`·`/saju/guide/`·`/manse/`·`/ziwei/`·`/ziwei/chart/`에 정의형 첫 문단·가상 계산 예시·보이는 FAQ = FAQPage JSON-LD·설명형 앵커(허브→가이드→도구)·`dateModified` 2026-09-24. 새 URL 0, 제목·설명 불변. 계산 예시의 간지·오행·십성·궁·성·사화는 `__tests__/ui/core-landing-calculation-examples.test.mjs`가 두 엔진에 대조한다.
   - 첫 커밋 `8e4fcdda7`은 CI Build 레인의 `verify:hydrated-h1-integrity`가 `dynamic()` 인자 사이 주석을 읽지 못해 실패했다 → `001d9d131`로 되돌림. 재시도는 로더를 main 그대로 두고 도구 높이 자리(`min-h-[100dvh]`)를 `app/ziwei/chart/page.tsx`의 서버 래퍼로 잡았다.
   - 🔴 Build 레인 가드 7종(seo-heading·hydrated-h1·prose-depth·link-depth·editor-notes·period-axis·marker-keys)은 dist가 있어야 해 `check:fast`가 돌리지 않는다. 로더·SSR 경계를 건드리면 `build:cf` 뒤 로컬에서 먼저 돌린다.
+- S4 완료 — ① `18ca99c9c` 나크샤트라 융합 27/27 대조(`docs/nakshatra-fusion-crosswalk-audit-20260924.md`): 이름 정렬 27/27, 역사 대응(오프셋 13) 혼입 0. 해설만 5행 수정(받침 조사 4행, 여(女) 제목·조언을 정렬 나크샤트라 푸르바 아샤다 주제로). 계산 원천 불변. ② `7bf374a77` `/vedic/`·`/vedic/guide/`·`/nakshatra/`·`/astrology/`·`/astrology/guide/`에 가상 계산 예시(1997-02-10 14:30 서울: 아야남샤·하우스·어스펙트·나크샤트라·파다·다샤)와 나크샤트라↔숙요 체계 비교(서비스 정렬 오프셋 11과 역사 대응 분리), `dateModified` 2026-09-24. 베다 랜딩의 "하나씩 대응" 문장 제거. 새 URL 0, 제목·설명 불변. 예시 값은 `__tests__/ui/core-landing-calculation-examples.test.mjs`가 베다·점성술 엔진과 크로스워크에 대조한다.
+  - 후속(보고만): `FUSION_DEEP_DEFAULT`(역사 대응 원고)는 런타임 미사용 — 삭제는 3면 확인 후 별도 변경. 영어·일본어 융합 해설은 스텁. `app/nakshatra/nakshatra.module.css` 히어로 그라디언트 텍스트는 기존 것.
 - ~~운영 승격 보류~~ **승격 완료 `c255916e2`(위 첫 줄)** — 아래 이니시스 7건은 운영 미포함이라 다음 승격 요청에 그대로 적는다. 기록: 승인 뒤 main에 다른 세션 변경이 올라와 범위를 다시 물은 결과다. 재개 조건: 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구(말풍선 4줄·이용권 요약·더 둘러보기 요약) 4개 로케일 번역이 main에 올라온다(그 세션 `docs/handoff/ggulggul-home-garden-2026-09-24.md`의 `next:`). → **09-24 충족**: 번역 `a01e000fb`가 main에 올라왔고 PR CI 초록(run 35921225481). 무료 진입점도 `ef0810191`로 복구됐다. `[data-cdh-free]` 무료 진입점 부재는 `3a12b5a3a`부터 운영에 있던 것이라 조건이 아니다. 릴리스는 main HEAD만 내보내므로 워커 DB 계측 `011a3c527`(RED)도 함께 나간다(09-24 기준 `11d0be467..origin/main` 비머지 37커밋). 결제 변경 3건: 위 첫 줄의 두 건 + `a4e2d4ae7`(영냥이 미결제 결과 페이지 결제 재확인). 여기에 이니시스 권고 2차 7건(`d896f2048`·`8e0cfd044`·`01800b896`·`518f77445`·`a2f67175d`·`83800a38e`·`b2fb33652`, 2026-09-24 main·스테이징 — `docs/handoff/inicis-security-advisory-2026-09.md` 13번)을 더해 모두 10건을 이름으로 밝힌다. `verify:release`는 `80c3080f8`에서 exit 0 — 승격 SHA에서 다시 돌린다. 롤백은 릴리스 워크플로 `mode=rollback`(대상 `11d0be467`).
 - S3 후속(보고만, 미착수):
   1. `keep-all`은 `)` 뒤 조사 앞 줄바꿈을 막지 않는다 — 390px `/ziwei/chart/`에서 "丁未(납음 천하수)" / "라 수이국이…". main의 템플릿 본문에도 같은 패턴이 13곳이라 사이트 공통이다. 고치려면 공용 헬퍼(`)`와 한글 사이 U+2060)나 문장 재구성.
@@ -63,7 +65,7 @@ next: "S4(GREEN·Opus/medium) — 선행 조건이 풀린 첫 대기 행. 운영
 |---|---|---|---|---|---|
 | S2 | 색인 효율: GSC 페이지별 데이터로 URL 묶음(날짜 띠 운세·로케일·insights)의 노출 기여를 먼저 확인 → sitemap은 색인할 정본만, lastmod는 본문 변경만. 날짜 띠 운세는 "매일 갱신되는 상록 띠 URL + 날짜 아카이브 sitemap 제외" 구조를 7항목으로 제안. 사이트 이름 정렬, 중복 Organization, `/ggulggul/` WebPage `@id` 중복(기준선 참고), 낡은 셸 주석(`app/components/GlobalHeader.tsx:222`, `app/components/SiteFooterHub.jsx:182`) | RED(SEO 전역) · Opus/high | `scripts/generate-sitemap.mjs`, `__tests__/release/sitemap-*`, `lib/seo/siteSeo.ts`, `lib/seo/entity-registry.mjs`, `__tests__/ui/site-name-signals.static.test.js` | 재생성 diff 전부 설명 가능, 페이지·URL 삭제 0 | 대기(U2 후) |
 | S3 | 핵심 랜딩 답변 우선 개편 ①: 숙요 2개(09-21 완료)의 패턴(정의형 첫 문단·계산 예시·보이는 FAQ = JSON-LD·설명형 앵커)을 `/saju/`·`/saju/guide/`·`/manse/`·`/ziwei/`·`/ziwei/chart/`에 적용 + 업데이트 날짜·허브→가이드→도구 링크. 순서는 S2의 GSC 노출 순 | GREEN · Opus/medium | `docs/seo/core-landings-20260921.md`, `lib/seo-landing-pages.js`, `app/components/SeoLandingTemplate.jsx`. 저자 근거는 `lib/brand/founder.ts`만 | 얇은 신규 페이지 0, SSR FAQ = JSON-LD | 완료 `a246feca2` |
-| S4 | ② `/vedic/`·`/vedic/guide/`·`/nakshatra/`·`/astrology/`·`/astrology/guide/` + 체계 비교·계산 예시(기존 가이드·insights 확장 우선, 새 URL은 7항목 선보고) + 나크샤트라 융합 27개 대조(계산 원천 불변) | GREEN · Opus/medium | `constants/nakshatra-fusion.js`, `constants/nakshatra-crosswalk.js` | 27/27 대조표 | 대기 |
+| S4 | ② `/vedic/`·`/vedic/guide/`·`/nakshatra/`·`/astrology/`·`/astrology/guide/` + 체계 비교·계산 예시(기존 가이드·insights 확장 우선, 새 URL은 7항목 선보고) + 나크샤트라 융합 27개 대조(계산 원천 불변) | GREEN · Opus/medium | `constants/nakshatra-fusion.js`, `constants/nakshatra-crosswalk.js` | 27/27 대조표 | 완료 `18ca99c9c`·`7bf374a77` |
 | S5 | **2027 정미년 신년운세 허브**(총운·띠별·토정비결 해설 → 천원·신년 상담 CTA). 10월 중순 운영 승격 → 11월 초 색인이 기한 | RED(신규 라우트) · Opus/high | `app/new-year-ai-consultation/`, `scripts/generate-sitemap.mjs` | 11월 초 색인 확인 | 대기 |
 | S6 | 소셜→사이트: Threads 자동 게시물 링크·UTM(템플릿만 — 새 크론·변수 금지), 네오 네이버 블로그 글 초안(랜딩 1:1), 셀럽 사주 2차 묶음 | GREEN · Sonnet/medium | Threads 자동화 템플릿(이미 S1 규칙대로 `utm_source=threads&utm_medium=social&utm_campaign=daily_<type>` — `worker/lib/threads-daily-providers/shared.js:58`), `lib/famous-saju/`, UTM 규칙은 `docs/analytics-kpi.md` S1 절 | UTM 유입이 GA4에서 분리됨 | 대기(완료 확인은 S1 운영 승격 뒤) |
 
@@ -236,4 +238,4 @@ npm run verify:doc-freshness
 
 - 작업 위치 `D:\Development\code-destiny`(main). 시작: `git branch --show-current` → `git status` → `git pull --ff-only`. 쓰는 세션이 이미 있으면 워크트리.
 - 이 문서: `D:\Development\code-destiny\docs\handoff\competitiveness-roadmap-20260923.md`
-- 다음: 선행 조건이 풀린 첫 "대기" 행 — 지금은 S4(S2는 U2 대기). 운영 승격은 `c255916e2`로 끝났다. 이니시스 7건을 내보내는 다음 승격은 사용자 요청 때만(1회 승인). S6도 풀렸다(완료 확인은 S1 운영 승격 뒤).
+- 다음: 선행 조건이 풀린 첫 "대기" 행 — 지금은 S5(S4 완료, S2는 U2 대기). 운영 승격은 `c255916e2`로 끝났다. 이니시스 7건을 내보내는 다음 승격은 사용자 요청 때만(1회 승인). S6도 풀렸다(완료 확인은 S1 운영 승격 뒤).

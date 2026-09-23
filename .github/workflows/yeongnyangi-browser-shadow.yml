@@ -1,0 +1,118 @@
+name: Yeongnyangi Browser Shadow
+
+# 영냥이 결제·모바일 복귀 브라우저 인수 검사(scripts/verify-yeongnyangi-browser.mjs)를 main push 에서
+# **섀도로** 돌린다(사용자 승인 2026-09-24, docs/handoff/yeongnyangi-paid-flow-speed-2026-09-24.md).
+#
+# 🔴 섀도다 — 이 워크플로는 `CI required`(pr-ci.yml) 집계 밖이고, 결과를 소비하는 workflow_run 도
+#    없다. 실패해도 main·배포를 막지 않는다. 10회 push 비교 전까지 섀도를 유지하고, 차단 승격은
+#    사용자 승인 사항이다(CLAUDE.md 탐색·검증 절). continue-on-error 로 결론을 초록으로 덮지 않는다 —
+#    관측 신호(실패 여부)가 이 잡의 존재 이유다.
+#
+# 🔴 실PG·유료 LLM·운영 DB 호출 0. mock-network-guard 가 Node 외부 전송을 막고, 브라우저는 모든
+#    /api/ 를 fixture 로 처리하며 외부 호스트를 차단한다. 대상은 loopback 만 허용한다.
+#    verify-pg-window-live-e2e.mjs(실PG)는 여기서 쓰지 않는다.
+#
+# 트리거는 브라우저 검사가 실제로 실행하는 **클라이언트** 결제·로그인 경로로 한정한다. 워커 결제
+# 코드는 이 검사에서 fixture 로 대체되므로(카탈로그만 import) 넣지 않는다 — 워커는 paid-flow-gates 가 본다.
+on:
+  push:
+    branches: [main]
+    paths:
+      # ── 영냥이 화면·결제 진입 ─────────────────────────────
+      - "app/yeongnyangi/**"
+      - "app/checkout/**"
+      # ── 공통 결제 런타임·선택창·재개 ─────────────────────
+      - "app/_lib/billing-client.ts"
+      - "app/_lib/payment-phone-prompt.ts"
+      - "app/hooks/usePaidResume.ts"
+      - "app/hooks/useCoinGate.ts"
+      - "app/hooks/usePayment.ts"
+      - "app/components/PaymentProcessingContext.tsx"
+      - "app/components/PaymentProcessingOverlay.tsx"
+      - "lib/payment/portone.ts"
+      # ── 로그인 확인(속도 개선 후보 ④의 회귀 경계) ────────
+      - "app/_lib/user-session-cache.ts"
+      - "app/_lib/auth-client.ts"
+      # ── 검사가 import 하는 상품 정본 ─────────────────────
+      - "worker/yeongnyangi/payments/**"
+      # ── 검사 자신 ─────────────────────────────────────────
+      - "scripts/verify-yeongnyangi-browser.mjs"
+      - "scripts/lib/yeongnyangi-mobile-payment.mjs"
+      - "scripts/lib/mock-dev-settings.mjs"
+      - "scripts/lib/mock-network-guard.cjs"
+      - ".github/workflows/yeongnyangi-browser-shadow.yml"
+  workflow_dispatch:
+
+# 커밋마다 그룹을 나눠 연속 push 가 앞 커밋의 관측을 취소하지 않게 한다(10회 비교의 표본).
+concurrency:
+  group: yeongnyangi-browser-shadow-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  yeongnyangi-browser:
+    name: Yeongnyangi paid flow browser (shadow)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      YEONGNYANGI_TEST_BASE: http://127.0.0.1:3118
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      # mock 설정으로 HMR 없는 정적 산출물(out/)을 만든다. 비밀 env 는 mockDevSettings 가 지운다.
+      - name: Build mock static export
+        run: node scripts/verify-yeongnyangi-browser.mjs --build-static
+
+      - name: Serve static export on loopback
+        run: |
+          nohup python3 -m http.server 3118 --bind 127.0.0.1 --directory out > build-cache-static-server.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS -o /dev/null "$YEONGNYANGI_TEST_BASE/" && exit 0
+            sleep 1
+          done
+          echo "Static server did not become ready" >&2
+          cat build-cache-static-server.log >&2
+          exit 1
+
+      - name: Run browser acceptance matrix
+        run: node scripts/verify-yeongnyangi-browser.mjs
+
+      - name: Summarize report
+        if: always()
+        run: |
+          node -e '
+            const fs=require("fs");const p="build-cache/yeongnyangi-mobile-payment.json";
+            if(!fs.existsSync(p)){console.log("### Yeongnyangi browser shadow\n\nreport missing");process.exit(0);}
+            const r=JSON.parse(fs.readFileSync(p,"utf8"));const cases=r.cases||[];
+            const failed=cases.filter(c=>c.status&&c.status!=="PASS");
+            const lines=["### Yeongnyangi browser shadow","",`status: ${r.status} · cases: ${cases.length} · failed: ${failed.length}`,`realPgCalls: ${r.realPgCalls} · realLlmCalls: ${r.realLlmCalls} · productionDbWrites: ${r.productionDbWrites}`];
+            for(const c of failed.slice(0,30))lines.push(`- ${c.name}: ${String(c.message||"").slice(0,160)}`);
+            console.log(lines.join("\n"));
+          ' | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload report and failure screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yeongnyangi-browser-shadow-${{ github.sha }}
+          path: |
+            build-cache/yeongnyangi-mobile-payment*.json
+            build-cache/yeongnyangi-payment-*.png
+            build-cache-static-server.log
+          if-no-files-found: ignore
+          retention-days: 14
