@@ -1438,7 +1438,7 @@
       "title": "Kkulkkul Fortune，与花猪 Yeoni 一起",
       "fusion": "一步步梳理眼前的烦恼",
       "intro": "为此刻的心事，找一个温柔的方向",
-      "lead": "和妍伊免费查看今日运势. 了解灵喵的四柱解读.",
+      "lead": "今日运势和三张塔罗牌，和妍伊一起免费开始吧。",
       "start": "查看我的免费运势",
       "question": "现在，你想了解什么？",
       "deeper": "想要更深入的解读时",
@@ -1467,6 +1467,25 @@
     "business": {
       "paid": "了解灵喵的四柱解读",
       "daily": "和妍伊免费查看今日运势"
+    },
+    "gardenCopy": {
+      "bubble1": "你好！我是花猪妍伊。",
+      "bubble2": "你今天的心情是什么颜色？",
+      "bubble3": "先轻松翻开三张塔罗牌吧！",
+      "bubble4": "烦恼慢慢说，我会听到最后。",
+      "bubbleAria": "再听妍伊说一句",
+      "saysName": "妍伊",
+      "saysLine": "先看哪种运势呢？选一个就够了。",
+      "passMascotAlt": "拿着使用券卡片微笑的花猪妍伊",
+      "passEyebrow": "不自动续订的30天使用券",
+      "passTitle": "经常看运势的话，就选30天使用券",
+      "passDesc": "每次咨询按价格从额度中扣除。30天后自动结束。",
+      "passPer": "/ 30天",
+      "passBadge": "含灵喵",
+      "passNote": "Standard、Premium、VVIP 适用于花猪运势，Family 适用于花猪和灵喵的付费解读。已购买的使用券保持购买时的条件。",
+      "passCta": "查看4种使用券",
+      "moreTitle": "逛逛妍伊的花园",
+      "moreItems": "灵喵 · 今日运势 · 按烦恼查找 · 全部搜索 · 故事与音乐"
     }
   },
   "terms": {

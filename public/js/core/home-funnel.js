@@ -12,11 +12,12 @@
   var more = document.getElementById('cdhMore');
   var bubble = home.querySelector('[data-cdh-bubble]');
   var bubbleIndex = 0;
+  // [사전 키, ko 원문]. 키와 원문을 요소에 같이 옮겨야 언어 전환이 지금 줄을 번역·복원한다.
   var bubbleLines = bubble ? [
-    bubble.textContent,
-    '오늘 마음은 어떤 색이에요?',
-    '타로 세 장부터 가볍게 펼쳐 봐요!',
-    '고민은 천천히, 끝까지 들을게요.'
+    ['home.gardenCopy.bubble1', '안녕하세요! 꽃돼지 연이예요.'],
+    ['home.gardenCopy.bubble2', '오늘 마음은 어떤 색이에요?'],
+    ['home.gardenCopy.bubble3', '타로 세 장부터 가볍게 펼쳐 봐요!'],
+    ['home.gardenCopy.bubble4', '고민은 천천히, 끝까지 들을게요.']
   ] : [];
   var collectionToggle = document.getElementById('cdHomeExpandToggle');
   if (collectionToggle) collectionToggle.setAttribute('aria-controls', 'cdhCollections');
@@ -134,7 +135,10 @@
     }
     if (bubble && target.closest('[data-cdh-bubble], #honeypigLogo')) {
       bubbleIndex = (bubbleIndex + 1) % bubbleLines.length;
-      bubble.textContent = bubbleLines[bubbleIndex];
+      var line = bubbleLines[bubbleIndex];
+      bubble.setAttribute('data-cd-trans', line[0]);
+      bubble.setAttribute('data-cd-origin-text', line[1]);
+      bubble.textContent = typeof window.cdTranslate === 'function' ? window.cdTranslate(line[0], null, line[1]) : line[1];
     }
     if (target.closest('[data-cd-service-index-jump]')) {
       event.preventDefault();

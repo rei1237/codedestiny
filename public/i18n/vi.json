@@ -1438,7 +1438,7 @@
       "title": "Kkulkkul Fortune cùng chú heo hoa Yeoni",
       "fusion": "Từng bước gỡ rối những điều bạn băn khoăn",
       "intro": "Một gợi ý dịu dàng cho ngày hôm nay",
-      "lead": "Vận hôm nay miễn phí cùng Yeoni. Xem luận Tứ trụ của Yeongnyangi.",
+      "lead": "Start free with Yeoni: today's fortune and a three-card tarot spread.",
       "start": "Xem luận giải miễn phí của tôi",
       "question": "Bạn đang muốn biết điều gì?",
       "deeper": "Khi bạn cần một lời giải sâu hơn",
@@ -1467,6 +1467,25 @@
     "business": {
       "paid": "Xem luận Tứ trụ của Yeongnyangi",
       "daily": "Vận hôm nay miễn phí cùng Yeoni"
+    },
+    "gardenCopy": {
+      "bubble1": "Hi! I'm Yeoni, the flower pig.",
+      "bubble2": "What color is your heart today?",
+      "bubble3": "Let's start light with three tarot cards!",
+      "bubble4": "Take your time. I'll listen to every worry.",
+      "bubbleAria": "Hear another line from Yeoni",
+      "saysName": "Yeoni",
+      "saysLine": "Which reading shall we start with? Just one is plenty.",
+      "passMascotAlt": "Yeoni the flower pig smiling with a pass card",
+      "passEyebrow": "30-day pass, no auto-renewal",
+      "passTitle": "Reading often? Try a 30-day pass",
+      "passDesc": "Each reading's price is deducted from your allowance. It ends automatically after 30 days.",
+      "passPer": "/ 30 days",
+      "passBadge": "Incl. Yeongnyangi",
+      "passNote": "Standard, Premium and VVIP apply to Flower Pig readings; Family applies to paid readings from both Flower Pig and Yeongnyangi. Passes you already bought keep the terms from the time of purchase.",
+      "passCta": "See all 4 passes",
+      "moreTitle": "Explore more of Yeoni's garden",
+      "moreItems": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music"
     }
   },
   "terms": {
