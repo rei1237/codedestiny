@@ -325,3 +325,37 @@ describe("🔴 비-Paid 이벤트 PG 재조회(KG이니시스 보안 권고 2026
     expect(db.rows.find((r) => r.eventId).status).toBe("failed");
   });
 });
+
+describe("🔴 레거시 단건(cd-single-…) Paid 는 V2 가 확정·지급하지 않는다(2026-09-24 R3)", () => {
+  // productId 는 레거시 /single/start 가 클라이언트 serviceId 를 그대로 넣은 값 — V2 가 지급하면 결제 금액과 다른 상품이 풀린다.
+  const LEGACY_ID = "cd-single-u1-1790000000000-ab12cd34";
+  const legacyOrder = (db, overrides) => seedOrder(db, {
+    merchantUid: LEGACY_ID, accessType: "single_purchase", productId: "unlock.love-code", ...overrides,
+  });
+
+  test("대기 주문: PG 를 부르지 않고 처리 완료로 ack 한다 — 정산은 레거시 크론 몫", async () => {
+    const db = makeDb();
+    const order = legacyOrder(db);
+    let fetched = 0;
+    const { response, payload } = await postWebhook(db, { type: "Transaction.Paid", data: { paymentId: LEGACY_ID } }, {
+      fetchPayment: async (_env, paymentId) => { fetched += 1; return { paymentId, status: "paid" }; },
+    });
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, ignored: true, reason: "LEGACY_SINGLE_ORDER" });
+    expect(fetched).toBe(0);
+    expect(order.status).toBe("pending");
+    expect(db.rows.find((r) => r.eventId).status).toBe("processed");
+    expect(db.rows).toHaveLength(2); // 주문 + 이벤트 — 권한·지급 행이 없다
+  });
+
+  test("레거시가 이미 지급한 주문: 재수신해도 V2 가 다시 지급하지 않는다", async () => {
+    const db = makeDb();
+    const order = legacyOrder(db, { status: "fulfilled", paidAt: new Date() });
+    const { response, payload } = await postWebhook(db, { type: "Transaction.Paid", data: { paymentId: LEGACY_ID } });
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, ignored: true, reason: "LEGACY_SINGLE_ORDER" });
+    expect(order.status).toBe("fulfilled");
+    expect(order.entitlementGrantedAt).toBeUndefined();
+    expect(db.rows).toHaveLength(2);
+  });
+});

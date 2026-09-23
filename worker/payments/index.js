@@ -42,6 +42,7 @@ import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
 import { verifyPgPayment } from "./pg.js";
+import { isLegacySingleOrderId } from "./order-id.js";
 import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
@@ -738,6 +739,12 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
   ctx.productId = String(order.productId || "");
 
   const status = toOrderStatus(order);
+  // 🔴 레거시 단건(cd-single-…)은 V2 가 확정·지급하지 않는다 — 상태와 무관하게(PAID 재생 포함) 막는다(2026-09-24 R3).
+  //    받으면 레거시 지급과 겹치고, productId 가 클라이언트 serviceId 라 결제 금액과 다른 상품이 풀린다.
+  //    대기 주문은 레거시 크론(payment-reconcile-task → settleSinglePaymentForReconcile)이 정산한다.
+  if (isLegacySingleOrderId(order.merchantUid)) {
+    throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status });
+  }
   if (status === "PAID") {
     // 재생. PG 를 다시 부르지 않는다 — PortOne 지연이 확정 경로의 지배적 비용이다.
     const executionMissing = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
@@ -1666,6 +1673,12 @@ const ROUTES = {
           return { ...event, outcome: applied };
         }
         const order = await findOrder(db, { orderId: event.paymentId });
+        // 🔴 레거시 단건은 V2 가 확정하지 않는다(evaluateConfirmable). 던지면 409 라 PortOne 이 재전송을 이어 가므로
+        //    처리 완료로 ack 한다 — 대기 주문은 레거시 크론이 PG 를 다시 보고 정산한다(2026-09-24 R3).
+        if (order && isLegacySingleOrderId(order.merchantUid)) {
+          await markEventProcessed(db, { eventId: event.eventId });
+          return { ...event, outcome: { ignored: true, reason: "LEGACY_SINGLE_ORDER" } };
+        }
         return { ...event, begun: evaluateConfirmable(ctx, order, { orderId: event.paymentId }) };
       });
       if (accepted.outcome) return json({ ok: true, ...accepted.outcome });

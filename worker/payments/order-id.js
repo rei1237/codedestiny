@@ -8,3 +8,12 @@
 export function isV2OrderId(value) {
   return /^cd[0-9a-f]{38}$/.test(String(value || ""));
 }
+
+/**
+ * 레거시 단건 주문 ID 판별 — worker/routes/payments.js buildSinglePaymentId 가 만드는 모양(cd-single-…)이다.
+ * 🔴 이 주문은 레거시 /single/complete·재조정 크론(settleSinglePaymentForReconcile)만 확정·지급한다. V2 확정·웹훅이
+ *    받으면 레거시 지급과 V2 지급이 겹치고, productId 가 클라이언트가 보낸 serviceId 라 결제 금액과 다른 상품이 풀린다(2026-09-24 R3).
+ */
+export function isLegacySingleOrderId(value) {
+  return /^cd-single-/.test(String(value || ""));
+}
