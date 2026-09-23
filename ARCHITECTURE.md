@@ -6,7 +6,8 @@
 
 | 영역 | 원본·진입점 | 검증 출발점 |
 |---|---|---|
-| 정적 홈 | `index.html`, `js/core/init.js`, `js/core/index-inline-runtime.js` | `verify:js-module-graph`, `verify:public-mirror-fresh` |
+| 영냥이 홈 `/` | `app/page.js`, `app/yeongnyangi/_components/` | `typecheck`, `lint:changed` |
+| 정적 셸(`/ggulggul/`·로케일) | `index.html`, `js/core/init.js`, `js/core/index-inline-runtime.js` | `verify:js-module-graph`, `verify:public-mirror-fresh` |
 | React 화면 | `app/`, `components/`, `src/features/` | `typecheck`, `lint:changed` |
 | Worker API | `worker/index.js`, `worker/routes/` | `test:jest`, `verify:worker-no-undef` |
 | 결제 코어 | `worker/payments/index.js`, `js/core/payment-service.js` | `check:payment` |
@@ -33,7 +34,7 @@
 ## 원본과 공통화 경계
 
 - `public/`에는 실제 자산과 생성 사본이 섞여 있다. `sync:public`과 루트 `.ignore`가 확인한 동일 사본만 기본 검색에서 제외한다. 미러를 직접 수정하지 않는다.
-- 정적 홈의 정본은 `app/page.js`가 아니다. 홈 변경은 루트 셸과 해당 JS/CSS에서 시작한다.
+- 홈 `/`의 정본은 `app/page.js`와 영냥이 컴포넌트(`app/yeongnyangi/_components/`)다. 꽃돼지 `/ggulggul/`와 기존 로케일 정적 셸의 정본은 루트 `index.html`과 해당 JS/CSS이며, public 미러는 `sync:public`으로 생성한다. Pages 준비 단계에서 영냥이 루트를 정적 셸로 덮어쓰지 않는다.
 - 결제는 이미 상품·주문·PG·권한·이용권·월정석 모듈로 나뉜다. 새 payment-core나 가격표를 만들지 않는다.
 - 렌더러의 셸 → 독립 페이지 → React 폴백 우선순위는 의도적이다. 카드 CSS·마크업 공유와 DOM 부착 책임은 구분한다.
 - 구 결제 구현은 `config/payment-freeze.json`으로 보호된다. confirm 라우팅을 되돌리는 것만으로 안전한 롤백이 된다고 가정하지 않는다.

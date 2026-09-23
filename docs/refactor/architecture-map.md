@@ -5,7 +5,7 @@
 ## 1. 실행 계층
 
 ```
-브라우저 ─┬─ index.html (정적 셸, 번들러 없음)        ← production "/" 의 정본
+브라우저 ─┬─ index.html (정적 셸, 번들러 없음)        ← /ggulggul/·로케일 셸의 정본 (2026-09-21부터 "/" 는 app/page.js)
           └─ dist/** (Next.js output:"export")        ← Cloudflare Pages 가 서빙
                 │
                 ├─ public/_worker.js                  ← 유일한 Pages Function. /api/* 를 프록시
@@ -18,7 +18,7 @@
                               └─ MongoDB Atlas
 ```
 
-🔴 `app/page.js` 는 production `/` 가 **아니다.** 빌드 후 `scripts/promote-static-shell-to-root.mjs` 가 루트 `index.html` 을 `dist/index.html` 위로 승격하고, `app/page.js` 는 셸로 하드 리다이렉트한다. 홈 변경은 루트 셸에서 시작한다.
+🔴 (2026-09-24 정정) 2026-09-21 `3a9a0378d` 부터 production `/` 는 `app/page.js`(영냥이 홈)다. `scripts/promote-static-shell-to-root.mjs` 는 `public/` 을 `dist/` 에 복사한 뒤 셸 경로 6개(`ggulggul/`·`static/`·`en/`·`ja/`·`zh/`·`zh-tw/`)를 뺀 모든 라우트 HTML(루트 포함)을 Next 산출물로 되돌린다. 옛 홈 딥링크는 `app/components/LegacyHomeEntry.tsx` 가 `/ggulggul/` 로 넘긴다. 홈 변경은 `app/page.js`·`app/yeongnyangi/_components/` 에서, `/ggulggul/`·로케일 셸 변경은 루트 `index.html` 에서 시작한다.
 
 ## 2. 주요 모듈과 규모
 
@@ -26,7 +26,7 @@
 |---|---|---|
 | 정적 셸 | `index.html` + `js/**` 브라우저 스크립트 | 번들러 없음. 인라인 스크립트 21,803줄 |
 | Worker API | `worker/index.js` + `worker/routes/` 72파일 | 100% JS. 경로 조건문 91개, `routes/` 정적 import 0 = 동적 디스패치 |
-| React | `app/**` (내보내기 빌드) | 홈은 셸로 리다이렉트 |
+| React | `app/**` (내보내기 빌드) | 홈 `/` 포함(2026-09-21 전환) |
 | 결제 | `worker/payments/` 21모듈 + `worker/lib/billing.js`·`payments.js` | 뒤 둘은 동결 |
 | 엔진 | `js/saju-engine.js` 34,129줄 + 4벌 + `worker/lib/*-saju` | |
 | LLM | `lib/llm-client.ts` 정본 + `worker/lib/gemini.js`, 프롬프트 26모듈 | |

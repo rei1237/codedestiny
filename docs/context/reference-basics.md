@@ -35,7 +35,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 > **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리(`_graveyard/` 등)는 빌드에서만 빠질 뿐 grep·AI 코드 읽기에는 그대로 노출돼 "다음 세션이 보고 복제하는" 문제를 못 막는다. 안전망은 Git 이력이다.
 
-> **홈 `/` 은 정적 셸 `index.html` 의 승격본이다** — 홈 콘텐츠·메타는 `app/page.js` 가 아니라 정적 셸에 둔다. `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다.
+> **홈 `/` 은 `app/page.js`(영냥이 홈)다 — 2026-09-21 전환** — 홈 콘텐츠·메타는 `app/page.js` 와 `app/yeongnyangi/_components/` 에 둔다. 루트 `index.html` 은 꽃돼지 `/ggulggul/`·로케일 정적 셸의 정본이고, `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다. 옛 홈 딥링크(결제 복귀 쿼리·`#saju-result` 등)는 `app/components/LegacyHomeEntry.tsx` 가 `/ggulggul/` 로 넘긴다.
 
 > **없는 디렉터리 주의** — `veda/` 와 `models/` 는 **존재하지 않는다**(2026-08-09 확인). 베다/나크샤트라 엔진의 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js` 다. `tsconfig.json` `exclude` 와 `config/env.contract.json` `scanRoots` 에 남아 있던 `veda` 는 잔재이므로 새 코드의 근거로 삼지 말 것.
 
@@ -94,12 +94,13 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 |---|---|
 | Worker 런타임 API | `worker/**` |
 | Next/App UI | `app/**` · `components/**` |
-| 정적 홈 셸 | 루트 `index.html` |
+| 홈 `/` | `app/page.js` · `app/yeongnyangi/_components/` |
+| 정적 셸(`/ggulggul/`·로케일) | 루트 `index.html` |
 | 셸의 런타임 JS/CSS | `js/**` · `styles/**` |
 | 빌드·배포 스크립트 | `scripts/**` · `package.json` |
 | 생성 미러 | `public/**/index.html` — **정본이 아니다** |
 
-- 정적 셸과 React 라우트는 서로 대체 가능하지 않다. 라이브 홈의 소스는 루트 `index.html` 이다.
+- 정적 셸과 React 라우트는 서로 대체 가능하지 않다. 홈 `/` 의 소스는 `app/page.js` 이고, 루트 `index.html` 은 `/ggulggul/`·로케일 셸의 소스다.
 - 미러 검색 제외(`.ignore`)와 삭제 전 3면 grep 규칙은 [search-discipline.md](search-discipline.md) 에 있다.
 
 ## 2026-09-08 개발 명령 정정

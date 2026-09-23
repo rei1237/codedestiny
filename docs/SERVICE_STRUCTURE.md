@@ -32,7 +32,7 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 
 ## 전체 아키텍처 요약
 
-- 정적 홈/메인 셸: 루트 `index.html`이 실사용 원천이다. `app/page.js`는 홈 운영 화면의 정본이 아니다.
+- 홈 `/`: `app/page.js`와 영냥이 컴포넌트(`app/yeongnyangi/_components/`)가 정본이다(2026-09-21 전환). 꽃돼지 `/ggulggul/`·기존 로케일 정적 셸: 루트 `index.html`이 원천이며 public 미러는 `sync:public`으로 생성한다.
 - React route UI: `app/**`의 App Router 페이지가 기능별 화면, 관리자, 인사이트, 결과 페이지를 담당한다.
 - Worker API: `worker/index.js`가 `/api/*` 요청을 라우팅하고, `worker/routes/**`가 인증/결제/AI/콘텐츠 API를 처리한다.
 - 레거시 API: `server/**`는 Express fallback 또는 로컬 개발 참고다. 운영에서 동등 Worker 라우트가 있으면 Worker가 우선이다.

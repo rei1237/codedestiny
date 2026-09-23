@@ -70,7 +70,7 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ### Static home source of truth
 
-- Active rule: root `index.html` is the live home source.
+- Active rule (corrected 2026-09-24): `/` is `app/page.js` + `app/yeongnyangi/_components/`; root `index.html` is the source for `/ggulggul/` and the legacy locale static shells. Canonical: `CLAUDE.md` — see the 2026-09-24 entry at the end of this file.
 - Related detail: `public/**/index.html` files are generated mirrors and should not be patched directly unless explicitly requested.
 
 ### Runtime API source of truth
@@ -217,3 +217,11 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 ## 2026-09-16 영냥이 통합 결정 변경
 
 사용자가 기존 SoulCat Worker/D1 하이브리드 유지 결정을 명시적으로 변경했다. CODE DESTINY 계정·프로필·MongoDB·기존 운세 엔진과 단건 PG를 공유하며 28개 전체 상품을 출시하는 범위다. 과거 `docs/handoff/yeongnyangi-integration.md`의 결정 대기/독립 S3·S4는 historical이다. 현재 근거와 미완료 항목은 `docs/handoff/yeongnyangi-mongodb-integration.md`로 이동한다. 스테이징 및 게이트 통과 후 운영 승격은 이번 요청에 포함되지만 실 유료 LLM·결제 테스트 승인은 포함되지 않는다.
+
+## 2026-09-24 홈 정본 드리프트 정정 — `/`는 `app/page.js`, 정적 셸은 `/ggulggul/`·로케일
+
+- **충돌**: `CLAUDE.md`(2026-09-21 `96e85981b`)는 영냥이 홈 `/` 정본을 `app/page.js`와 영냥이 컴포넌트로, 꽃돼지 `/ggulggul/`·로케일 정적 셸 정본을 `index.html`로 적는데, 여러 문서가 전환 전 서술("root `index.html` is the live home source", "정적 홈의 정본은 `app/page.js`가 아니다", "홈 `/`은 정적 셸 `index.html`의 승격본")을 유지했다. 위치(정정 전 줄 번호): `ARCHITECTURE.md` 9·36줄, `docs/CURRENT_DEV_BASELINE.md` 44·102줄, `docs/SERVICE_STRUCTURE.md` 35줄, `docs/context/reference-basics.md` 38·97·103줄, `docs/context/seo-and-adsense.md` 19줄, `docs/refactor/architecture-map.md` 8·21·29줄, `docs/DEPLOYMENT_AND_INFRA.md` 115줄, 이 파일의 「Static home source of truth」.
+- **왜 위험한가**: 낡은 서술을 따라 `index.html`을 고치면 변경이 `/`가 아니라 `/ggulggul/`에만 닿는다. SEO 문서를 따라 홈 콘텐츠·메타를 정적 셸에 넣어도 `/`에는 나타나지 않는다.
+- **근거**: 전환 커밋 `3a9a0378d`(2026-09-21, "make Yeongnyangi the home"). `scripts/promote-static-shell-to-root.mjs`는 `public/`을 `dist/`에 복사한 뒤 셸 경로 6개를 뺀 라우트 HTML(루트 포함)을 Next 산출물로 되돌리고, 옛 홈 딥링크는 `app/components/LegacyHomeEntry.tsx`가 `/ggulggul/`로 넘긴다. 운영 실측(2026-09-23T15:03Z): `/` title "사주보는 고양이 영냥이 …", `/ggulggul/` title "꿀꿀 운세 | 꽃돼지 연이와 …".
+- **해소**: `CLAUDE.md`가 정본. 위 문서들을 같은 서술로 고쳤다. 미러 규칙(`public/**/index.html`은 `sync:public` 생성물)은 그대로다.
+- **검색 범위**: `marketing/**`·`public/**`·`docs/handoff/**` 밖에서 `git grep` — `live home`·`home source`·`root shell`·`정적 홈`·`홈 셸`·`루트 셸`·`라이브 홈`·`승격본`·`홈 운영 화면`. 이 문구를 단언하는 테스트·검증기는 0건이고, 고친 문서를 파일 이름으로 읽는 검사는 `scripts/verify-doc-freshness.mjs`(경로·날짜)뿐이다. "홈 셸"·"정적 홈"이 정적 셸 자체를 가리키는 서술(테마·미러·결제 facade 등)은 틀리지 않아 두었다. 남은 낡은 언급(보고만, 고치지 않음): 코드·스크립트 주석 `app/layout.js:97`·`app/components/GlobalHeader.tsx:222`·`app/components/SiteFooterHub.jsx:182`·`scripts/seo-audit.mjs:546`·`scripts/apply-staging-noindex.mjs:5`, 테스트 주석 `__tests__/ui/seo-landing-entry-handoff.static.test.js:2`, 과거 인수인계 문서.

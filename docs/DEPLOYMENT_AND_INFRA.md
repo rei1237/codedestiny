@@ -112,7 +112,8 @@ database write is required for this activation.
 - Build scripts: `npm run build`, `npm run build:cf`
 - Cache headers: `_headers`, `public/_headers`
 - Redirects: `public/_redirects`
-- Static home source: `index.html`
+- Home `/` source: `app/page.js` + `app/yeongnyangi/_components/` (since 2026-09-21)
+- Static shell source (`/ggulggul/`, legacy locale shells): `index.html`
 - Static mirrors: `public/index.html`, `public/static/index.html`, `public/{en,ja,zh}/index.html`
 
 운영 Pages 배포는 사용자 명시 승인 후에만 진행한다.

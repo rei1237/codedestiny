@@ -41,7 +41,7 @@ Last curated: `2026-09-12`
 ### 4. Static shell and runtime sync
 
 - Source files: `index.html`, `js/core/index-inline-runtime.js`, `js/core/uiBindings.js`
-- Why it matters now: the root shell is still the live home source of truth, and mirror sync remains a recurring regression risk.
+- Why it matters now: the root shell is the source of truth for `/ggulggul/` and the legacy locale shells — not for `/`, which has been `app/page.js` + `app/yeongnyangi/_components/` since 2026-09-21 (`3a9a0378d`; see `CLAUDE.md`). Mirror sync remains a recurring regression risk.
 
 ### 5. main 단독 전달 안전장치
 
@@ -99,7 +99,7 @@ Last curated: `2026-09-12`
 
 1. Start with this file only for what is current right now. If it drifts, update it instead of adding another summary document.
 2. For billing, access, or pass work, read this file together with `docs/PAYMENT_AND_ACCESS.md`.
-3. For shell-entry or home runtime work, check `index.html` and `js/core/**` before touching mirrored outputs.
+3. For static-shell (`/ggulggul/`, legacy locale) entry or runtime work, check `index.html` and `js/core/**` before touching mirrored outputs. For the `/` home, start at `app/page.js` and `app/yeongnyangi/_components/`.
 4. Immersive React fortune routes must own their home/back controls and must not render the shared header, footer, or mobile bottom navigation.
 5. For premium tarot yearly work, verify both `lib/tarot/tarot-year-premium.mjs` and `worker/routes/tarot.js` before editing UI copy or flow logic.
 6. Treat historical audit outputs as evidence only, not as active coding instructions.
