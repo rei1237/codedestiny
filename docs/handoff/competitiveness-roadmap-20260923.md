@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 번에) — 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구 번역(en·ja·zh-CN·zh-TW)이 main에 올라오고 main CI(`CI required`)가 초록이면 `npm run verify:release` → 승격(결제 변경 3건 명시, 새 세션은 1회 승인을 새로 받는다) → 지금 상태 첫 줄에 SHA·run 기록. 번역 전이면 S4(GREEN·Opus/medium)부터 — S4는 승격과 무관하다. S6도 S1으로 풀렸고, S5 신년 허브는 10월 중순 운영 승격이 기한이다."
+next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 번에) — 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구 번역(en·ja·zh-CN·zh-TW)이 main에 올라오고 main CI(`CI required`)가 초록이면 `npm run verify:release` → 승격(결제 변경 10건 명시 — 지금 상태의 보류 줄, 새 세션은 1회 승인을 새로 받는다) → 지금 상태 첫 줄에 SHA·run 기록. 번역 전이면 S4(GREEN·Opus/medium)부터 — S4는 승격과 무관하다. S6도 S1으로 풀렸고, S5 신년 허브는 10월 중순 운영 승격이 기한이다."
 ---
 
 # 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용
@@ -15,8 +15,8 @@ next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 �
 ## 지금 상태
 
 - 운영 `11d0be467`(run 35860013925, 2026-09-23 12:22:00Z 시작·12:33:08Z 완료). S0 착수 시 main은 11커밋 앞섰다(`git log --oneline 11d0be467..origin/main`). 🔴 그중 결제 변경 `bc2c873d0`(패밀리 이용권·융합 가격 재개)·`9b7affb12`(홈 레지스트리 융합 가격 동기화)는 **다음 승격 요청에 따로 적는다.**
-- S0 완료(2026-09-24) — 로드맵 `96d346da9`, 홈 정본 드리프트 정정 `2b005068f`(문서 8개 + `docs/CONTEXT_AUDIT.md` 2026-09-24 항목). 인이시스 문서 시각 정정만 아래처럼 보류.
-- 🔴 **보류한 정정**(인이시스 세션이 같은 파일을 쓰는 중 — 마지막 커밋 `be8211a8b`, 2026-09-24 00:19 KST) — `docs/handoff/inicis-security-advisory-2026-09.md`. 줄 번호는 `be8211a8b` 기준이며 그 세션이 고치면 움직이므로 문구로 찾는다:
+- S0 완료(2026-09-24) — 로드맵 `96d346da9`, 홈 정본 드리프트 정정 `2b005068f`(문서 8개 + `docs/CONTEXT_AUDIT.md` 2026-09-24 항목). 인이시스 문서 시각 정정은 인이시스 2차 세션이 `ad1ade4bb` 에서 반영했다(아래).
+- ~~보류한 정정~~ **반영 완료**(2026-09-24, `ad1ade4bb`) — `docs/handoff/inicis-security-advisory-2026-09.md`. 아래는 기록이다(줄 번호는 `be8211a8b` 기준):
   - 48줄 "(12:22 KST = 03:22Z)" → "(2026-09-23 12:22:00Z 시작·12:33:08Z 완료 = 21:22–21:33 KST, run 35860013925)"
   - 54줄 `ISODate("2026-09-23T03:22:00Z")` → `ISODate("2026-09-23T12:33:08Z")`. 58줄(`2026-09-16`)은 그대로.
   - 이유: 지금 값이면 승격 전 약 9시간의 결제가 "absent"로 잡힌다. `be8211a8b`의 실측(승격 뒤 확정 1건, channel matched)에는 영향이 드러나지 않았지만, 그 문서가 "확정 20건 이상이면 다시 집계"라고 적어 두었으므로 재집계(U4) 전에 반영한다.
@@ -36,7 +36,7 @@ next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 �
 - S3 완료 `a246feca2` — `/saju/`·`/saju/guide/`·`/manse/`·`/ziwei/`·`/ziwei/chart/`에 정의형 첫 문단·가상 계산 예시·보이는 FAQ = FAQPage JSON-LD·설명형 앵커(허브→가이드→도구)·`dateModified` 2026-09-24. 새 URL 0, 제목·설명 불변. 계산 예시의 간지·오행·십성·궁·성·사화는 `__tests__/ui/core-landing-calculation-examples.test.mjs`가 두 엔진에 대조한다.
   - 첫 커밋 `8e4fcdda7`은 CI Build 레인의 `verify:hydrated-h1-integrity`가 `dynamic()` 인자 사이 주석을 읽지 못해 실패했다 → `001d9d131`로 되돌림. 재시도는 로더를 main 그대로 두고 도구 높이 자리(`min-h-[100dvh]`)를 `app/ziwei/chart/page.tsx`의 서버 래퍼로 잡았다.
   - 🔴 Build 레인 가드 7종(seo-heading·hydrated-h1·prose-depth·link-depth·editor-notes·period-axis·marker-keys)은 dist가 있어야 해 `check:fast`가 돌리지 않는다. 로더·SSR 경계를 건드리면 `build:cf` 뒤 로컬에서 먼저 돌린다.
-- 🔴 **운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 번에)** — 승인 뒤 main에 다른 세션 변경이 올라와 범위를 다시 물은 결과다. 재개 조건: 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구(말풍선 4줄·이용권 요약·더 둘러보기 요약) 4개 로케일 번역이 main에 올라온다(그 세션 `docs/handoff/ggulggul-home-garden-2026-09-24.md`의 `next:`). → **09-24 충족**: 번역 `a01e000fb`가 main에 올라왔고 PR CI 초록(run 35921225481). 무료 진입점도 `ef0810191`로 복구됐다. `[data-cdh-free]` 무료 진입점 부재는 `3a12b5a3a`부터 운영에 있던 것이라 조건이 아니다. 릴리스는 main HEAD만 내보내므로 워커 DB 계측 `011a3c527`(RED)도 함께 나간다(09-24 기준 `11d0be467..origin/main` 비머지 37커밋). 결제 변경 3건: 위 첫 줄의 두 건 + `a4e2d4ae7`(영냥이 미결제 결과 페이지 결제 재확인). `verify:release`는 `80c3080f8`에서 exit 0 — 승격 SHA에서 다시 돌린다. 롤백은 릴리스 워크플로 `mode=rollback`(대상 `11d0be467`).
+- 🔴 **운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 번에)** — 승인 뒤 main에 다른 세션 변경이 올라와 범위를 다시 물은 결과다. 재개 조건: 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구(말풍선 4줄·이용권 요약·더 둘러보기 요약) 4개 로케일 번역이 main에 올라온다(그 세션 `docs/handoff/ggulggul-home-garden-2026-09-24.md`의 `next:`). → **09-24 충족**: 번역 `a01e000fb`가 main에 올라왔고 PR CI 초록(run 35921225481). 무료 진입점도 `ef0810191`로 복구됐다. `[data-cdh-free]` 무료 진입점 부재는 `3a12b5a3a`부터 운영에 있던 것이라 조건이 아니다. 릴리스는 main HEAD만 내보내므로 워커 DB 계측 `011a3c527`(RED)도 함께 나간다(09-24 기준 `11d0be467..origin/main` 비머지 37커밋). 결제 변경 3건: 위 첫 줄의 두 건 + `a4e2d4ae7`(영냥이 미결제 결과 페이지 결제 재확인). 여기에 이니시스 권고 2차 7건(`d896f2048`·`8e0cfd044`·`01800b896`·`518f77445`·`a2f67175d`·`83800a38e`·`b2fb33652`, 2026-09-24 main·스테이징 — `docs/handoff/inicis-security-advisory-2026-09.md` 13번)을 더해 모두 10건을 이름으로 밝힌다. `verify:release`는 `80c3080f8`에서 exit 0 — 승격 SHA에서 다시 돌린다. 롤백은 릴리스 워크플로 `mode=rollback`(대상 `11d0be467`).
 - S3 후속(보고만, 미착수):
   1. `keep-all`은 `)` 뒤 조사 앞 줄바꿈을 막지 않는다 — 390px `/ziwei/chart/`에서 "丁未(납음 천하수)" / "라 수이국이…". main의 템플릿 본문에도 같은 패턴이 13곳이라 사이트 공통이다. 고치려면 공용 헬퍼(`)`와 한글 사이 U+2060)나 문장 재구성.
   2. `SeoLandingTemplate` SectionHead h2에 `break-keep`이 없다(기존).
@@ -52,7 +52,7 @@ next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 �
 
 | # | 작업 | 등급·권장 | 핵심 파일·재사용 | 완료 기준 | 상태 |
 |---|---|---|---|---|---|
-| S0 | 로드맵 정본 + 홈 정본 문서 드리프트 정정(+`CONTEXT_AUDIT`) | GREEN · Opus/medium | `ARCHITECTURE.md`, `docs/CURRENT_DEV_BASELINE.md`, `docs/CONTEXT_AUDIT.md` 외 문서 5개 | CI green | 완료 `96d346da9`·`2b005068f`(인이시스 정정 보류) |
+| S0 | 로드맵 정본 + 홈 정본 문서 드리프트 정정(+`CONTEXT_AUDIT`) | GREEN · Opus/medium | `ARCHITECTURE.md`, `docs/CURRENT_DEV_BASELINE.md`, `docs/CONTEXT_AUDIT.md` 외 문서 5개 | CI green | 완료 `96d346da9`·`2b005068f`(인이시스 정정은 `ad1ade4bb`) |
 | BL | `CURRENT_DEV_BASELINE.md` 큐레이션 — 낡은 항목 정리 후 `Last curated` 갱신. **09-26까지** | GREEN · Sonnet/medium | `scripts/verify-doc-freshness.mjs` | `npm run verify:doc-freshness` OK | 완료 `1a202247a` |
 | S1 | 측정 정합: GA4 구매 0 vs DB 5 원인(시간대·필터·테스트 주문·전송 조건) → 결제 완료 이벤트 정합 + 소셜 링크 UTM 규칙 | RED(결제 인접) · Opus/high | `docs/analytics-kpi.md` 11·43줄(기존 발사 지점 — 새 이벤트를 만들기 전에 재사용) | mock 결제 1회에 구매 이벤트 1건·중복 0 | 완료 `03c3956ec` |
 
