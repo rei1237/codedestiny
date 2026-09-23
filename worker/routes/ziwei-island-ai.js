@@ -16,8 +16,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { isAllowedConsultTokenAccessType, normalizeConsultAccessType, resolveCanonicalEntitlement, resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, passDenialCode } from "../lib/pass-consumption.js";
-import { getPortOnePublicConfig } from "../lib/portone.js";
-import { verifyPgPayment } from "../payments/pg.js";
+import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
@@ -353,36 +352,47 @@ async function createOrReusePaymentPayload({ env, auth, user, pricing, idempoten
   });
   return { ok: true, paymentPayload: buildPaymentPayload({ config, paymentId, pricing, user, userId: auth.userId, idempotencyKey }) };
 }
+function extractPortOneStoreId(payment = {}) {
+  const raw = payment?.rawV2 && typeof payment.rawV2 === "object" ? payment.rawV2 : payment;
+  return clean(raw?.storeId || raw?.store?.id || raw?.store?.storeId);
+}
+function isKrwCurrency(value) {
+  const currency = clean(value).toUpperCase();
+  return currency === "KRW" || currency === "CURRENCY_KRW";
+}
 async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inputHash, pricing }) {
   const normalizedPaymentId = clean(paymentId, 160);
   if (!normalizedPaymentId) return { ok: false };
   const order = await withMongoRetry(env, () => Payment.findOne({ userId: auth.userId, merchantUid: normalizedPaymentId, featureKey: FEATURE_KEY, paymentType: "digital_content", accessType: "single_purchase" }).lean());
   if (!order) return { ok: false };
   if (clean(order?.pricingSnapshot?.inputHash) !== inputHash || clean(order.idempotencyKey) !== idempotencyKey) return { ok: false };
-  // 🔴 확정된 주문도 이 검증기가 채널까지 대조한 흔적(rawPortOne.channelCheck)이 있을 때만 재조회를 건너뛴다 — 구 확정 경로가 닫은 주문은 채널 대조가 없었을 수 있다(2026-09-24).
-  const alreadyPaid = ["paid", "success", "fulfilled"].includes(clean(order.status).toLowerCase());
-  if (alreadyPaid && order.rawPortOne?.channelCheck) return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
-  let verified;
-  // 🔴 실패를 삼키면 카드 승인 후 원인 추적이 불가능해진다(2026-07 PortOne 401 장애). 동작은 그대로 두고 사유만 남긴다. 대조는 V2 확정 경로와 같은 verifyPgPayment 한 벌.
-  try { verified = await verifyPgPayment(env, { orderId: normalizedPaymentId, expectedAmountKRW: alreadyPaid ? (Number(order.paymentAmount) || pricing.amountKRW) : pricing.amountKRW }); } catch (error) {
-    const failureCode = error?.name === "PaymentError" && error.code !== "PG_UNAVAILABLE" ? String(error.code).toLowerCase() : "portone_fetch_failed";
-    console.error("[ziwei-island-ai] PortOne payment verify failed", normalizedPaymentId, failureCode, error?.message || error);
-    if (!alreadyPaid) {
-      await Payment.findByIdAndUpdate(order._id, {
-        $set: {
-          failureCode,
-          failureMessage: String(error?.meta?.reason || error?.message || "PortOne payment lookup failed.").slice(0, 300),
-          failureStage: failureCode === "portone_fetch_failed" ? "ziwei_island_ai_portone_fetch" : "ziwei_island_ai_portone_verify",
-          lastErrorAt: new Date(),
-        },
-      }).catch(() => {});
-    }
+  if (["paid", "success", "fulfilled"].includes(clean(order.status).toLowerCase())) return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
+  let portOnePayment = null;
+  // 🔴 실패를 삼키면 카드 승인 후 원인 추적이 불가능해진다(2026-07 PortOne 401 장애). 동작은 그대로 두고 사유만 남긴다.
+  try { portOnePayment = await fetchPortOnePayment(env, normalizedPaymentId); } catch (error) {
+    console.error("[ziwei-island-ai] PortOne payment lookup failed", normalizedPaymentId, error?.message || error);
+    await Payment.findByIdAndUpdate(order._id, {
+      $set: {
+        failureCode: "portone_fetch_failed",
+        failureMessage: String(error?.message || "PortOne payment lookup failed.").slice(0, 300),
+        failureStage: "ziwei_island_ai_portone_fetch",
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
     return { ok: false };
   }
-  if (alreadyPaid) return { ok: true, accessType: "paid", paymentId: normalizedPaymentId }; // 확정된 주문의 상태·영수증은 덮지 않는다
-  const paidAt = verified.paidAt || new Date();
+  const config = getPortOnePublicConfig(env);
+  const portOneStoreId = extractPortOneStoreId(portOnePayment);
+  const amount = Number(portOnePayment?.amount || 0);
+  const status = clean(portOnePayment?.status).toLowerCase();
+  if (clean(portOnePayment?.paymentId || portOnePayment?.id) !== normalizedPaymentId) return { ok: false };
+  if (config.storeId && portOneStoreId && portOneStoreId !== config.storeId) return { ok: false };
+  if (amount !== pricing.amountKRW) return { ok: false };
+  if (!isKrwCurrency(portOnePayment?.currency)) return { ok: false };
+  if (status !== "paid") return { ok: false };
+  const paidAt = portOnePayment?.paid_at ? new Date(Number(portOnePayment.paid_at) * 1000) : new Date();
   await Payment.findByIdAndUpdate(order._id, {
-    $set: { impUid: normalizedPaymentId, merchantUid: normalizedPaymentId, paymentAmount: pricing.amountKRW, expectedChargedPoints: pricing.coinPrice, chargedPoints: 0, coinPrice: pricing.coinPrice, membershipCreditCost: pricing.membershipCreditCost, status: "success", orderState: "PAID_VERIFIED", paidAt, source: "confirm", rawPortOne: verified.summary, failureCode: null, failureMessage: null, failureStage: null, lastErrorAt: null },
+    $set: { impUid: normalizedPaymentId, merchantUid: normalizedPaymentId, paymentAmount: pricing.amountKRW, expectedChargedPoints: pricing.coinPrice, chargedPoints: 0, coinPrice: pricing.coinPrice, membershipCreditCost: pricing.membershipCreditCost, status: "success", orderState: "PAID_VERIFIED", paidAt, source: "confirm", rawPortOne: portOnePayment, failureCode: null, failureMessage: null, failureStage: null, lastErrorAt: null },
     $inc: { confirmAttempts: 1 },
   }).catch(() => {});
   return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
@@ -813,4 +823,4 @@ export async function handleZiweiIslandAiRoutes(request, env = {}) {
   }
 }
 
-export const __ziweiIslandTestUtils = { normalizePalaceInput, getPricing, publicConsultation, verifyPaymentForStart, FEATURE_KEY, SERVICE_KEY, ACCESS_TOKEN_TYPE };
+export const __ziweiIslandTestUtils = { normalizePalaceInput, getPricing, publicConsultation, FEATURE_KEY, SERVICE_KEY, ACCESS_TOKEN_TYPE };
