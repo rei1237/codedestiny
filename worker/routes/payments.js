@@ -2789,15 +2789,19 @@ async function handleReportFailure(request, env, auth) {
         payload: body,
       });
     }
-  } else if (payment && payment.status !== "success") {
-    await markPaymentFailure(payment, {
-      status: reasonCode === "cancelled" ? "cancelled" : "failed",
-      paymentMethod: payment.paymentMethod,
-      failureCode: reasonCode,
-      failureMessage: reasonMessage,
-      failureStage: "client_report",
-      incrementAttempt: false,
-    });
+  } else if (payment?.status === "pending") {
+    // 🔴 대기 주문만 정확 일치 CAS 로 닫는다(V2 markOrderFailed 와 같은 불변식). 예전엔 success 외 전부를 덮어 paid 가 failed 가 되고,
+    // 늦은 Paid 웹훅이 되살리는 failed+PG_PAYMENT_NOT_PAID 표식이 클라이언트 사유로 지워져 결제됐는데 결과가 없었다(2026-09-24 W3).
+    await Payment.findOneAndUpdate({ _id: payment._id, status: "pending" }, {
+      $set: {
+        status: reasonCode === "cancelled" ? "cancelled" : "failed",
+        paymentMethod: payment.paymentMethod || "unknown",
+        failureCode: reasonCode,
+        failureMessage: reasonMessage,
+        failureStage: "client_report",
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
   }
 
   await writeFailureLog({
@@ -3657,6 +3661,7 @@ export const __paymentsTestUtils = {
   handleSinglePaymentStart,
   handleSinglePaymentComplete,
   handleWebhook,
+  handleReportFailure,
   markPaymentCancellationForAdminReview,
   handleMe,
   formatPaymentSummaryResponse,

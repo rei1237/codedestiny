@@ -610,6 +610,57 @@ describe("single payment entitlement consistency", () => {
     expect(User.updateOne).not.toHaveBeenCalled();
   });
 
+  function buildReportFailureRequest(body) {
+    return new Request("https://example.com/api/payments/report-failure", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }
+
+  test.each([
+    ["paid", null],
+    ["fulfilled", null],
+    ["failed", "PG_PAYMENT_NOT_PAID"],
+  ])("🔴 실패 보고는 대기 주문이 아니면(status %s) 덮지 않는다 — 늦은 Paid 웹훅이 되살릴 표식이 남는다", async (status, failureCode) => {
+    // failed+PG_PAYMENT_NOT_PAID 가 confirm_failed 로 덮이면 늦은 Paid 웹훅이 409 로 닫혀 결제됐는데 결과가 없다(W3).
+    const v2OrderId = `cd${"5a".repeat(19)}`;
+    Payment.findOne = jest.fn(() => queryResult({ ...order, merchantUid: v2OrderId, status, failureCode }));
+    Payment.findOneAndUpdate = jest.fn();
+    Payment.findByIdAndUpdate = jest.fn();
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+    global.fetch = jest.fn();
+
+    const parsed = await readResponse(await testUtils.handleReportFailure(
+      buildReportFailureRequest({ merchantUid: v2OrderId, reasonCode: "confirm_failed" }), env, auth,
+    ));
+
+    expect(parsed.status).toBe(200);
+    expect(Payment.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(Payment.findByIdAndUpdate).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(PaymentFailureLog.create).toHaveBeenCalledTimes(1);
+  });
+
+  test("실패 보고는 대기 주문을 status 정확 일치 CAS 로만 닫는다 — 읽은 뒤 확정된 주문은 필터가 빗나간다", async () => {
+    Payment.findOne = jest.fn(() => queryResult({ ...order, status: "pending" }));
+    Payment.findOneAndUpdate = jest.fn().mockResolvedValue(null);
+    Payment.findByIdAndUpdate = jest.fn();
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+
+    const parsed = await readResponse(await testUtils.handleReportFailure(
+      buildReportFailureRequest({ merchantUid: order.merchantUid, reasonCode: "cancelled" }), env, auth,
+    ));
+
+    expect(parsed.status).toBe(200);
+    expect(Payment.findByIdAndUpdate).not.toHaveBeenCalled();
+    expect(Payment.findOneAndUpdate).toHaveBeenCalledTimes(1);
+    expect(Payment.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: order._id, status: "pending" },
+      { $set: expect.objectContaining({ status: "cancelled", failureCode: "cancelled", failureStage: "client_report" }) },
+    );
+  });
+
   test("full cancellation webhook revokes entitlement and paid feature access", async () => {
     Payment.findOne = jest.fn().mockReturnValue(queryResult({
       ...order,
