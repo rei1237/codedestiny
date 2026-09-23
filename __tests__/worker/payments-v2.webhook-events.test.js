@@ -19,7 +19,10 @@ const PAID_STATUS = __ordersTestUtils.PAID_RAW_STATUSES[0];
 
 let eventSeq = 0;
 
-async function postWebhook(db, body) {
+/* 실패·전액취소는 PG 재조회 뒤 적용된다 — 기본 mock 은 이벤트와 같은 사실을 답한다. */
+const PG_STATUS_BY_TYPE = { "Transaction.Failed": "failed", "Transaction.Cancelled": "cancelled" };
+
+async function postWebhook(db, body, { fetchPayment } = {}) {
   const rawBody = JSON.stringify(body);
   const eventId = `evt_${(eventSeq += 1)}`;
   // 🔴 고정 리터럴을 쓰지 않는다 — acceptWebhook 이 신선도를 보므로 박아 둔 값은 며칠 뒤
@@ -36,7 +39,10 @@ async function postWebhook(db, body) {
     },
   });
   const withDb = async (_env, _ctx, fn) => fn(db);
-  const response = await handlePaymentsContext(request, ENV, { prefix: "/api/payments", withDb });
+  const pgDeps = {
+    fetchPayment: fetchPayment || (async (_env, paymentId) => ({ paymentId, status: PG_STATUS_BY_TYPE[body.type] || "paid" })),
+  };
+  const response = await handlePaymentsContext(request, ENV, { prefix: "/api/payments", withDb, pgDeps });
   return { response, payload: await response.json() };
 }
 
@@ -233,4 +239,62 @@ test("모르는 주문의 취소 이벤트는 조용히 ack 한다(재전송 요
   const { response, payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: "cd-unknown" } });
   expect(response.status).toBe(200);
   expect(payload).toMatchObject({ ok: true, ignored: true, reason: "ORDER_NOT_FOUND" });
+});
+
+describe("🔴 비-Paid 이벤트 PG 재조회(KG이니시스 보안 권고 2026-09-18)", () => {
+  test("위조 Cancelled: PG 가 여전히 PAID 면 환불·회수하지 않고 PG_STATUS_MISMATCH 로 ack 한다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date(), entitlementGrantedAt: new Date() });
+    db.rows.push({ orderId: order.merchantUid, status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE, userId: "u1" });
+    const { response, payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async (_env, paymentId) => ({ paymentId, status: "paid", rawV2: { status: "PAID" } }),
+    });
+    expect(response.status).toBe(200);
+    expect(payload).toMatchObject({ ok: true, ignored: true, reason: "PG_STATUS_MISMATCH" });
+    expect(order.status).toBe(PAID_STATUS);
+    expect(db.rows.find((r) => r.orderId === order.merchantUid).status).toBe(CONTENT_ENTITLEMENT_STATUSES.ACTIVE);
+    expect(db.rows.find((r) => r.eventId).status).toBe("processed");
+  });
+
+  test("Cancelled 인데 PG 가 부분취소면 전액 환불하지 않는다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date() });
+    const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async (_env, paymentId) => ({ paymentId, status: "cancelled", rawV2: { status: "PARTIAL_CANCELLED" } }),
+    });
+    expect(payload).toMatchObject({ ignored: true, reason: "PG_STATUS_MISMATCH" });
+    expect(order.status).toBe(PAID_STATUS);
+  });
+
+  test("PG 가 다른 결제를 돌려주면 적용하지 않는다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date() });
+    const { payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async () => ({ paymentId: "cd-other", status: "cancelled" }),
+    });
+    expect(payload).toMatchObject({ ignored: true, reason: "PG_STATUS_MISMATCH" });
+    expect(order.status).toBe(PAID_STATUS);
+  });
+
+  test("위조 Failed: PG 가 PAID 면 PENDING 주문을 실패로 만들지 않는다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db);
+    const { payload } = await postWebhook(db, { type: "Transaction.Failed", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async (_env, paymentId) => ({ paymentId, status: "paid" }),
+    });
+    expect(payload).toMatchObject({ ignored: true, reason: "PG_STATUS_MISMATCH" });
+    expect(order.status).toBe("pending");
+  });
+
+  test("PG 조회 실패는 503 PG_UNAVAILABLE + 이벤트 failed — PortOne 재전송으로 복구한다", async () => {
+    const db = makeDb();
+    const order = seedOrder(db, { status: PAID_STATUS, paidAt: new Date() });
+    const { response, payload } = await postWebhook(db, { type: "Transaction.Cancelled", data: { paymentId: order.merchantUid } }, {
+      fetchPayment: async () => { throw new Error("PortOne payment lookup failed (500)"); },
+    });
+    expect(response.status).toBe(503);
+    expect(payload.code).toBe("PG_UNAVAILABLE");
+    expect(order.status).toBe(PAID_STATUS);
+    expect(db.rows.find((r) => r.eventId).status).toBe("failed");
+  });
 });
