@@ -114,10 +114,12 @@ test("결과는 새 창이 아니라 같은 탭에서 연다", () => {
 });
 
 test("공유 카드에는 생년월일을 넣지 않는다", () => {
-  const cardStart = resultClient.indexOf('id="life-book-share-card"');
-  const cardEnd = resultClient.indexOf("</div>", resultClient.indexOf("shareOwner"));
+  const shareEditor = read("components/fortune/PremiumResultShare.tsx");
+  const cardStart = shareEditor.indexOf('<div ref={card}');
+  const cardEnd = shareEditor.indexOf("</figure>", cardStart);
   assert.ok(cardStart >= 0, "공유 카드를 찾지 못했다");
-  const card = resultClient.slice(cardStart, cardEnd);
+  const card = shareEditor.slice(cardStart, cardEnd);
   assert.ok(!card.includes("birth.birthDate"), "공유 이미지에 생년월일이 들어가면 안 된다");
   assert.ok(!card.includes("birthTime"), "공유 이미지에 출생시간이 들어가면 안 된다");
+  assert.ok(shareEditor.includes('useState(false)'), "이름 표시의 기본값은 숨김이어야 한다");
 });

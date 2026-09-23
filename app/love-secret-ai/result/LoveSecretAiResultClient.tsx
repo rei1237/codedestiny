@@ -35,7 +35,7 @@ import { buildLoveSecretPreviewPayload } from "@/lib/dev-preview/fixtures/love-s
 import theme from "../love-secret-theme.module.css";
 import styles from "./LoveSecretAiResultClient.module.css";
 import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
-import LoveSecretShareCard from "./LoveSecretShareCard";
+import PremiumResultShare from "@/components/fortune/PremiumResultShare";
 import { groupLoveSections, type LoveCardVariant, type LoveSectionGroup } from "./love-secret-sections";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -836,12 +836,10 @@ export default function LoveSecretAiResultClient() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
-  const [shareLoading, setShareLoading] = useState(false);
   const [actionError, setActionError] = useState("");
   const [viewAll, setViewAll] = usePagedViewerMode("loveSecretViewerModeV1");
   // export 여부의 단일 진리 소스. data-ls-export 와 expandForExport 가 같은 값을 본다.
   const [exportMode, setExportMode] = useState<"idle" | "pdf">("idle");
-  const shareRef = useRef<HTMLDivElement | null>(null);
   const progressRef = useRef<HTMLDivElement | null>(null);
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const captureDeliveryScope = usePaidDeliveryScope(() => {
@@ -1005,83 +1003,14 @@ export default function LoveSecretAiResultClient() {
     }
   }
 
-  const isShareReady = Boolean(consultation && !loading && !pending && !error && consultation.saved !== false
-    && (!consultation.status || consultation.status === "completed"));
-
-  async function handleShareCard() {
-    const node = shareRef.current;
-    if (!node || shareLoading || !isShareReady) return;
-    setShareLoading(true);
-    setActionError("");
-    try {
-      await document.fonts?.ready?.catch?.(() => {});
-      const html2canvas = (await import("html2canvas")).default;
-      // 캡처 동안만 뷰포트 좌표로 들여놓고 페이지 뒤(z-index -1)에 둔다.
-      // 화면 밖 음수 좌표에서 그대로 캡처하면 html2canvas 가 빈 캔버스를 내는 경우가 있다.
-      const restore = { left: node.style.left, top: node.style.top, zIndex: node.style.zIndex };
-      node.style.left = "0px";
-      node.style.top = "0px";
-      node.style.zIndex = "-1";
-      let canvas: HTMLCanvasElement;
-      try {
-        // scale: 1 — 노드가 이미 최종 1080px 이라 정확히 1080×1350 이 나온다.
-        // devicePixelRatio 를 쓰면 레티나에서 2160px, 아니면 1080px 로 결과가 비결정적이 된다.
-        canvas = await html2canvas(node, {
-          backgroundColor: null,
-          scale: 1,
-          useCORS: true,
-          logging: false,
-          width: 1080,
-          height: 1350,
-          windowWidth: 1080,
-          windowHeight: 1350,
-        });
-      } finally {
-        node.style.left = restore.left;
-        node.style.top = restore.top;
-        node.style.zIndex = restore.zIndex;
-      }
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
-      if (!blob) throw new Error("capture failed");
-      const fileName = `love-secret-${safeFilePart(myName)}.png`;
-      const file = new File([blob], "love-secret-card.png", { type: "image/png" });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: summaryTitle, url: "https://code-destiny.com/love-secret-ai/" });
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      try {
-        const anchor = document.createElement("a");
-        anchor.href = url;
-        anchor.download = fileName;
-        anchor.click();
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-    } catch (error) {
-      if (!(error instanceof Error && error.name === "AbortError")) setActionError(copy.shareImageError);
-    } finally {
-      setShareLoading(false);
-    }
-  }
+  const isShareReady = Boolean(consultation && consultationKey && !loading && !pending && !error && consultation.saved !== false
+    && (!consultation.status || consultation.status === "completed")
+    && (consultation.reading?.oneLineDiagnosis || consultation.strategy || consultation.reading?.relationshipTemperature));
 
   return (
     <main className={`${theme.theme} ${theme.reportTheme} relative min-h-screen overflow-hidden text-[var(--ls-text)] [font-family:var(--font-body)]`}>
       <div ref={progressRef} className={styles.scrollProgress} aria-hidden="true" />
       <div className={`${theme.pageBg} pointer-events-none fixed inset-0`} aria-hidden="true" />
-
-      {consultation && (
-        <LoveSecretShareCard
-          ref={shareRef}
-          myName={myName}
-          summaryTitle={summaryTitle}
-          oneLine={oneLine}
-          temperature={toText(consultation.reading?.relationshipTemperature)}
-          keywords={(consultation.keywords || []).map(toText).filter(Boolean)}
-          generatedAt={generatedAt}
-          dark={prefersDark()}
-        />
-      )}
 
       <section className={styles.readingShell}>
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
@@ -1097,20 +1026,35 @@ export default function LoveSecretAiResultClient() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => void handleShareCard()}
-                disabled={shareLoading || !isShareReady}
+                onClick={() => {
+                  window.dispatchEvent(new Event("premium-share-open:letter"));
+                  document.getElementById("letter-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                disabled={!isShareReady}
                 aria-label={copy.shareCardAria}
                 className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)] disabled:opacity-60`}
               >
-                {shareLoading
-                  ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                  : <Share2 className="h-4 w-4" aria-hidden="true" />}
-                {shareLoading ? copy.shareCardDrawing : copy.shareCardCta}
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+                {copy.shareCardCta}
               </button>
               <LoveSecretPdfButton loading={pdfLoading} onClick={() => void handlePdfDownload()} />
             </div>
           )}
         </div>
+
+        {isShareReady && consultationKey && (
+          <PremiumResultShare
+            kind="letter"
+            title={copy.deckLabel}
+            ownerName={myName}
+            publicPath="/love-secret-ai/"
+            choices={[
+              { id: "diagnosis", label: "관계의 한 문장", text: consultation?.reading?.oneLineDiagnosis || "" },
+              { id: "strategy", label: "오늘의 연애 전략", text: consultation?.strategy || "" },
+              { id: "temperature", label: "관계의 온도", text: consultation?.reading?.relationshipTemperature || "" },
+            ].filter(choice => choice.text.trim())}
+          />
+        )}
 
         {loading && (
           <div className="grid min-h-[62vh] place-items-center rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-8 text-center">

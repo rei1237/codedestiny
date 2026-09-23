@@ -14,6 +14,7 @@ import { FAILURE_COPY, reasonCopy } from "../lifeBookCopy";
 import { useTypewriter } from "./useTypewriter";
 import BookOpenCover from "./_components/BookOpenCover";
 import ResultActionDock from "./_components/ResultActionDock";
+import PremiumResultShare from "@/components/fortune/PremiumResultShare";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
@@ -1956,23 +1957,28 @@ function LifeBookResultContent() {
           </div>
         </article>
 
-        {/* 🔴 공유·이미지 저장 대상. 본문이 아니라 이 카드만 캡처한다 — 생년월일은 넣지 않는다.
-            backdrop-filter 는 html-to-image 가 재현하지 못하므로 단색·그라디언트만 쓴다. */}
-        <div className={styles.shareCardHost} aria-hidden="true">
-          <div id="life-book-share-card" className={styles.shareCard}>
-            <p className={styles.shareTitle}>{report.title}</p>
-            <p className={styles.shareSubtitle}>{report.subtitle}</p>
-            <p className={styles.shareLine}>{toText(report.coreSummary?.oneLine)}</p>
-            <p className={styles.shareOwner}>{userName} · Code Destiny</p>
-            <p className={styles.shareAddress}>code-destiny.com/life-book-ai</p>
-          </div>
-        </div>
+        {attemptId && result?.status === "completed" && (
+          <PremiumResultShare
+            kind="book"
+            title={copy.shareKicker}
+            ownerName={userName}
+            publicPath="/life-book-ai/"
+            choices={[
+              { id: "one-line", label: "인생의 책 한 문장", text: report.coreSummary?.oneLine || "" },
+              { id: "theme", label: "삶의 주제", text: report.coreSummary?.lifeTheme || "" },
+              { id: "chapter", label: "첫 장의 요약", text: report.chapters.find(chapter => chapter.summary?.trim())?.summary || "" },
+            ].filter(choice => choice.text.trim())}
+          />
+        )}
 
         <ResultActionDock
           pdfLoading={pdfLoading}
           onDownloadPdf={() => void handlePdfDownload()}
-          shareCardId="life-book-share-card"
-          fileName={`life-book-cover-${safeFilePart(attemptId)}`}
+          onOpenShare={() => {
+            window.dispatchEvent(new Event("premium-share-open:book"));
+            document.getElementById("book-share-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          shareReady={Boolean(attemptId && result?.status === "completed" && (report.coreSummary?.oneLine || report.coreSummary?.lifeTheme || report.chapters.some(chapter => chapter.summary?.trim())))}
           bookmarked={bookmarks.has(chapterPage)}
           onToggleBookmark={toggleBookmark}
           onRegenerate={() => { window.location.href = "/life-book-ai"; }}

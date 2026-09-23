@@ -1,7 +1,7 @@
 "use client";
 
 import { Bookmark, Download, ImageDown, Loader2, RefreshCw, Share2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./result-action-dock.module.css";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -292,77 +292,23 @@ function useResultActionDockCopy(): ResultActionDockCopy {
 type ResultActionDockProps = {
   pdfLoading: boolean;
   onDownloadPdf: () => void;
-  /** 공유·이미지 저장 대상. 본문 전체가 아니라 표지 카드만 캡처한다(생년월일이 SNS로 나가지 않게). */
-  shareCardId: string;
-  fileName: string;
+  onOpenShare: () => void;
+  shareReady: boolean;
   bookmarked: boolean;
   onToggleBookmark: () => void;
   onRegenerate: () => void;
 };
 
-async function captureShareCard(elementId: string) {
-  const element = document.getElementById(elementId);
-  if (!element) throw new Error("share card not found");
-  const { toPng } = await import("html-to-image");
-  return toPng(element, { pixelRatio: 2, cacheBust: true, backgroundColor: "#0a0f24" });
-}
-
 export default function ResultActionDock({
   pdfLoading,
   onDownloadPdf,
-  shareCardId,
-  fileName,
+  onOpenShare,
+  shareReady,
   bookmarked,
   onToggleBookmark,
   onRegenerate,
 }: ResultActionDockProps) {
   const copy = useResultActionDockCopy();
-  const [busy, setBusy] = useState<"" | "image" | "share">("");
-  const [message, setMessage] = useState("");
-
-  const saveImage = useCallback(async () => {
-    setBusy("image");
-    setMessage("");
-    try {
-      const dataUrl = await captureShareCard(shareCardId);
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = `${fileName}.png`;
-      link.click();
-      setMessage(copy.saveImageSuccess);
-    } catch {
-      setMessage(copy.saveImageError);
-    } finally {
-      setBusy("");
-    }
-  }, [fileName, shareCardId, copy]);
-
-  const shareImage = useCallback(async () => {
-    setBusy("share");
-    setMessage("");
-    try {
-      const dataUrl = await captureShareCard(shareCardId);
-      const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "life-book-cover.png", { type: "image/png" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ title: copy.shareTitle, text: copy.shareText, url: "https://code-destiny.com/life-book-ai/", files: [file] });
-        setMessage(copy.shareSuccess);
-        return;
-      }
-      const fallbackUrl = URL.createObjectURL(file);
-      const link = document.createElement("a");
-      link.href = fallbackUrl;
-      link.download = `${fileName}.png`;
-      link.click();
-      URL.revokeObjectURL(fallbackUrl);
-      setMessage(copy.shareFallbackSuccess);
-    } catch (error) {
-      if (!(error instanceof Error && error.name === "AbortError")) setMessage(copy.shareError);
-    } finally {
-      setBusy("");
-    }
-  }, [fileName, shareCardId, copy]);
-
   return (
     <>
       {/* data-export 캡처 중에는 독을 숨긴다 — 안 그러면 PDF 마지막 장에 버튼이 찍힌다. */}
@@ -371,12 +317,12 @@ export default function ResultActionDock({
           {pdfLoading ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Download className="h-5 w-5" aria-hidden="true" />}
           <span className={styles.label}>PDF</span>
         </button>
-        <button type="button" onClick={() => void saveImage()} disabled={busy !== ""} aria-label={copy.imageSaveAria} className={styles.action}>
-          {busy === "image" ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <ImageDown className="h-5 w-5" aria-hidden="true" />}
+        <button type="button" onClick={onOpenShare} disabled={!shareReady} aria-label={copy.imageSaveAria} className={styles.action}>
+          <ImageDown className="h-5 w-5" aria-hidden="true" />
           <span className={styles.label}>{copy.imageLabel}</span>
         </button>
-        <button type="button" onClick={() => void shareImage()} disabled={busy !== ""} aria-label={copy.shareAria} className={styles.action}>
-          {busy === "share" ? <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Share2 className="h-5 w-5" aria-hidden="true" />}
+        <button type="button" onClick={onOpenShare} disabled={!shareReady} aria-label={copy.shareAria} className={styles.action}>
+          <Share2 className="h-5 w-5" aria-hidden="true" />
           <span className={styles.label}>{copy.shareLabel}</span>
         </button>
         <button
@@ -395,9 +341,6 @@ export default function ResultActionDock({
           <span className={styles.label}>{copy.regenerateLabel}</span>
         </button>
       </div>
-      {message && (
-        <p className={styles.dockMessage} role="status" aria-live="polite">{message}</p>
-      )}
     </>
   );
 }

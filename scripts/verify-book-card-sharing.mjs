@@ -10,8 +10,8 @@ assert.ok(['127.0.0.1', 'localhost'].includes(new URL(base).hostname));
 const directory = 'build-cache/book-card-sharing';
 await mkdir(directory, { recursive: true });
 const products = [
-  { key: 'life-book-ai', button: '표지 공유하기', file: 'life-book-cover.png', error: '표지를 나누지 못했습니다.' },
-  { key: 'love-secret-ai', button: '요약 카드를 이미지로 저장하거나 공유', file: 'love-secret-card.png', error: '공유 이미지를 만들지 못했습니다.' },
+  { key: 'life-book-ai', button: '표지 공유하기', kind: 'book', file: 'book-share.png' },
+  { key: 'love-secret-ai', button: '요약 카드를 이미지로 저장하거나 공유', kind: 'letter', file: 'letter-share.png' },
 ];
 const results = [];
 const fontCache = new Map();
@@ -77,6 +77,19 @@ try {
           assert.ok(bounds.height >= 44, 'Share button touch target');
         }
         await button.click();
+        const editor = page.locator(`[data-premium-share="${product.kind}"]`);
+        await editor.waitFor();
+        assert.equal(await editor.evaluate(node => node.open), true, 'share editor opens before transmission');
+        const card = editor.locator('figure > div');
+        assert.doesNotMatch(await card.innerText(), /PRIVATE_RESULT|PRIVATE_ATTEMPT/);
+        assert.equal(await editor.getByRole('checkbox').isChecked(), false, 'name hidden by default');
+        await editor.getByRole('checkbox').check();
+        assert.equal(await editor.getByRole('checkbox').isChecked(), true);
+        await editor.getByRole('checkbox').uncheck();
+        const message = `공유 전에 고른 문장 ${width}`;
+        await editor.getByRole('textbox', { name: '공유할 문구' }).fill(message);
+        assert.ok((await card.innerText()).includes(message), 'edited text appears in card preview');
+        await editor.getByRole('button', { name: '이미지 공유' }).click();
         await page.waitForFunction(() => window.__native.length === 1);
         const shared = await page.evaluate(() => window.__native[0]);
         assert.equal(shared.url, `https://code-destiny.com/${product.key}/`);
@@ -92,9 +105,8 @@ try {
             await page.screenshot({ path: `${directory}/${product.key}-reading-${width}-${colorScheme}.png` });
           }
           await page.evaluate(() => { window.__cancelShare = true; });
-          await button.click();
-          await page.waitForFunction(label => !document.querySelector(`button[aria-label="${label}"]`)?.disabled, product.button);
-          assert.equal(await page.getByText(product.error, { exact: false }).count(), 0);
+          await editor.getByRole('button', { name: '이미지 공유' }).click();
+          await editor.getByText('공유를 취소했어요.', { exact: true }).waitFor();
           assert.equal(await page.evaluate(() => window.__native.length), 1);
         }
         assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
