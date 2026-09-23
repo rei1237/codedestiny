@@ -14,6 +14,7 @@ const SAJU_GUIDE_TEXT_TRANSLATIONS = {
     access: "무료와 유료 범위",
     flow: "해석 흐름",
     resultItems: "결과에서 확인할 수 있는 항목",
+    calculation: "계산 예시 — 명식에서 일간·오행·십성까지",
     sample: "짧은 예시 리딩",
     caution: "해석 시 주의할 점",
   },
@@ -48,6 +49,17 @@ const resultItems = [
   "결과를 읽을 때 피해야 할 단정과 주의사항",
 ];
 
+// 가상 입력(lib/seo-reading-examples.js 의 SEO_EXAMPLE_BIRTH)으로 세운 명식. 간지·오행·십성은
+// __tests__/ui/core-landing-calculation-examples.test.mjs 가 사주 엔진 결과와 맞춰 본다.
+const calculationSteps = [
+  "네 기둥 — 1997년 입춘(2월 4일)이 지났으므로 연주는 丁丑(정축), 입춘부터 경칩 전까지인 寅월이라 월주는 壬寅(임인), 날짜의 간지인 일주는 癸未(계미), 오후 2시 30분은 未시라 시주는 己未(기미)입니다.",
+  "일간 — 태어난 날의 천간 癸(계수)가 나를 대표하는 글자입니다. 나머지 일곱 글자는 모두 癸와의 관계로 읽습니다.",
+  "계절 — 월지 寅은 입춘 뒤 초봄의 목(木) 자리입니다. 계절을 먼저 확인해야 일간이 힘을 얻는지 잃는지를 판단할 수 있습니다.",
+  "오행 — 겉으로 드러난 여덟 글자를 세면 토가 丑·未·己·未의 넷으로 가장 많고 금은 하나도 없습니다. 지장간까지 넣으면 비율이 달라지므로 개수는 출발점일 뿐입니다.",
+  "십성 — 癸를 기준으로 연간 丁은 편재, 월간 壬은 겁재, 시간 己는 편관입니다. 같은 십성도 어느 기둥에 있느냐에 따라 무게가 달라집니다.",
+  "입춘 경계 — 같은 해 2월 3일생이라면 입춘 하루 전이라 연주는 앞 해의 丙子(병자), 월주는 辛丑(신축)이 됩니다. 해석보다 명식이 맞는지를 먼저 확인하는 이유입니다.",
+];
+
 const faqItems = [
   {
     question: "출생시간을 모르면 사주를 볼 수 없나요?",
@@ -64,9 +76,14 @@ const faqItems = [
     answer:
       "사주는 자신의 흐름을 돌아보는 참고 자료입니다. 건강, 법률, 투자, 결혼, 이혼, 진로처럼 큰 결정은 현실 정보와 전문가 조언을 함께 확인해야 합니다.",
   },
+  {
+    question: "생년과 명식의 연주가 다르게 나올 수 있나요?",
+    answer:
+      "그렇습니다. 명리에서 한 해는 양력 1월 1일이나 설날이 아니라 입춘에 바뀌므로, 입춘 전에 태어났다면 명식의 연주는 앞 해의 간지가 됩니다. 예를 들어 1997년 2월 3일생은 그해 입춘(2월 4일) 하루 전이라 연주가 丁丑이 아니라 丙子입니다. 설날로 띠를 세는 방식과도 입춘과 설날 사이에 태어난 사람은 결과가 갈릴 수 있습니다.",
+  },
 ];
 
-// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 본문을 마지막으로 고친 날(계산 예시·정의 문단).
 // 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
 const GUIDE_ARTICLE = {
   path: "/saju/guide",
@@ -74,7 +91,7 @@ const GUIDE_ARTICLE = {
   description:
     "사주 명리학이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 오행·십성·대운을 어떻게 읽는지 차분히 안내합니다.",
   datePublished: "2026-06-21",
-  dateModified: "2026-09-06",
+  dateModified: "2026-09-24",
 };
 
 const guideJsonLd = JSON.stringify({
@@ -102,7 +119,7 @@ export default function SajuGuidePage() {
       <header className="cd-main-header">
         <h1 className="cd-main-title">사주 명리학 기본 가이드</h1>
         <p className="cd-main-intro">
-          사주는 태어난 순간의 하늘과 땅의 기운을 네 기둥으로 세워, 사람이 어떤 리듬 속에서 생각하고 관계 맺고 선택하는지 살피는 동양 명리의 언어입니다. Code Destiny에서는 이 흐름을 겁주거나 단정하기보다, 자기 이해와 현실적인 판단을 돕는 참고 자료로 풀이합니다.
+          사주(사주팔자)는 태어난 연·월·일·시를 각각 천간과 지지 두 글자로 옮긴 네 기둥, 모두 여덟 글자의 명식입니다. 명리학은 이 여덟 글자 가운데 태어난 날의 천간(일간)을 나로 두고, 나머지 글자가 나를 돕는지 제어하는지와 오행이 어디에 몰리고 비었는지를 읽습니다. Code Destiny에서는 이 흐름을 겁주거나 단정하기보다, 자기 이해와 현실적인 판단을 돕는 참고 자료로 풀이합니다.
         </p>
       </header>
 
@@ -162,6 +179,18 @@ export default function SajuGuidePage() {
       </section>
 
       <section className="cd-card">
+        <h2>{sajuGuideText("calculation")}</h2>
+        <p>
+          실제 고객 사례가 아니라 계산 순서를 보여 주려고 고른 가상 입력입니다. 1997년 2월 10일 오후 2시 30분, 서울 출생 여성으로 두고 명식을 세워 보겠습니다. 이 명식의 좋고 나쁨을 판정하는 예시가 아닙니다.
+        </p>
+        <ol className="mt-[14px] max-w-[66ch] list-decimal pl-[1.2em]">
+          {calculationSteps.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="cd-card">
         <h2>{sajuGuideText("sample")}</h2>
         <p>
           목의 기운이 뚜렷하고 금의 기운이 균형을 잡아 주는 사주는 새로운 일을 시작하는 감각과 기준을 세우는 힘이 함께 드러납니다. 다만 계절의 열기가 강하면 마음이 앞서 지칠 수 있으니, 결정 전에는 일정과 체력을 먼저 정리하는 편이 안정적입니다.
@@ -189,6 +218,7 @@ export default function SajuGuidePage() {
 
       <nav className="cd-chip-wrap" aria-label="사주 가이드 관련 링크">
         <Link href="/saju" className="cd-chip">사주 서비스</Link>
+        <Link href="/manse" className="cd-chip">무료 만세력으로 명식 세우기</Link>
         <Link href="/saju/basic" className="cd-chip">기본 사주 보기</Link>
         <Link href="/compatibility" className="cd-chip">궁합 보기</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
