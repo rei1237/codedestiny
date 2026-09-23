@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: 두 후속 과제(무료 진입점·번역)는 끝났다. 남은 것은 verify-mobile-cdp-smoke 의 옛 히어로 CTA 계약 갱신과 영냥이 밴드 유입 관찰이다
+next: 스모크 계약 갱신까지 끝났다. 🔴 다음은 "모든 운세" 오버레이가 정원이 닫혀 있으면 빈 컬렉션을 보여 주는 회귀 수정이다. 영냥이 밴드 유입 관찰은 그 뒤다
 ---
 # 꿀꿀 운세 홈 "연이의 꽃정원" 개편 (2026-09-24)
 
@@ -24,8 +24,10 @@ next: 두 후속 과제(무료 진입점·번역)는 끝났다. 남은 것은 ve
 - 무료 사주 인라인 폼 진입점(`ef0810191`): 사용자 결정에 따라 퀵 서비스 사주 카드에 `data-cdh-free`를 달았다. 카드는 원래 `data-action="cdOneStepFreeSajuEntry"`라 공용 디스패처가 실행한다. `home-funnel.js`의 캡처 핸들러는 `data-action`이 있으면 건너뛴다(두 번 호출 방지, 실측 1회). `verify-mobile-runtime-readiness.mjs`의 단언은 "히어로 주 CTA 존재" 하나와 "무료 진입점 존재" 하나로 나눴다. `seo-search-browser-check.mjs` 로케이터도 함께 바꿨다. `verify-home-funnel.cjs`는 member 단계까지 exit 0이다.
 - 새 ko 문구 번역(`a01e000fb`): `i18n/authored/shellCopy-10.json`에 `home.gardenCopy.*` 17키를 넣었고, `shellCopy-09`의 `home.searchEntry.lead`는 새 문구로 갱신했다. 말풍선은 줄을 바꿀 때 `data-cd-trans`와 `data-cd-origin-text`를 같이 옮긴다. 그래서 언어를 전환하면 지금 보이는 줄이 번역되거나 복원된다(en→ko→ja 실측). `.cdh-says span`은 `.cdh-says>span`으로 좁혔다. 이렇게 해야 이름·대사를 감싼 안쪽 span이 말풍선 배경을 받지 않는다. 사전이 바뀌면 앱 라우트 서명도 바뀌므로 sitemap 원장·xml을 같이 커밋했다.
 
+- 모바일 CDP 스모크 계약 갱신(`5444ea7bf`): 히어로 주 CTA는 `.cdh-copy .cdh-primary`이다. 스모크는 href를 읽어서 탭 뒤에 그 경로·해시로 실제 이동했는지 잰다. 목적지가 App Router라 정적 트리에서는 404지만, 잴 대상은 `location`이다. 운세 카드와 `#cdHomeExpandToggle`이 닫힌 `#cdhMore` 안으로 들어가서 탭이 전부 가려졌다. 그래서 `expandHomeFolds()`(정원 summary → 모두 펼치기)를 추가해 제스처 4블록·토템·타로 탭·이용권 블록에 넣었다. 실측 결과 제스처 4개, 토템, 히어로 CTA 2개, 타로 탭, 모든 운세 개요 8개가 PASS다. 남은 실패는 아래 🔴 결함 하나이고, 스모크는 그 결함에서 멈춘다. 그 뒤 구간(무료/유료 타일 시트, 이용권 등)은 아직 미검증이다.
+
 ## 기존 결함 (보고만, 미수정)
-- `verify-mobile-cdp-smoke`는 아직 옛 계약을 단언한다. 히어로 주 CTA가 `.cdh-copy [data-cdh-free]`이고, 페이지 안 앵커로 이동한다는 계약이다. 지금 히어로 주 CTA는 `/today/#daily-tarot`이고 무료 진입점은 퀵 서비스 사주 카드다. 스모크를 새 계약으로 고쳐야 한다.
+- 🔴 **개편 회귀**: 하단 탭 "모든 운세"의 컬렉션이 비어 있다. 기본 상태(`#cdhMore` 닫힘)에서 모든 운세 → 타로를 누르면 `#tarotCollection` 타일이 0개이고, 화면 중앙 히트는 `.wrap`으로 빠진다. `#cdhMore`를 미리 열어 두면 타일 6개가 정상으로 보인다(412px playwright 실측). 원인: 오버레이가 보여 주는 컬렉션이 닫힌 details 안에 있다. 스모크의 "selected fortune collection is the only home content owning the touch target" FAIL과 `.tarot-tile--healing` 대기 타임아웃이 같은 원인이다. 수정 방향 후보는 둘이다. 오버레이를 열 때 `#cdhMore`를 연다(route()의 해시 열기와 같은 방식). 또는 컬렉션이 details 밖에서도 렌더되게 한다. 스모크는 이 결함을 잡도록 그대로 두었다. 가드를 낮추지 말 것.
 - `verify-mobile-runtime-readiness.mjs`에서 이번 변경과 무관한 3건이 실패한다: 하단 탭 메인 슬롯, 퀵 카테고리, 결제 시트. 변경 전 HEAD 스크립트로 돌려도 같은 3건이 실패한다.
 - /en/·/ja/ 홈에 기존 한국어 리프가 남아 있다. 이용권 등급명·등급 줄·가격(원), 히어로 연이 alt("연꽃을 단 꽃돼지 연이"), 접힘 안의 적중 기록·공유 카드·일간/띠 링크, 헤더 aria-label이다. 모두 개편 전부터 한국어였다(범위 밖).
 - neo 테마에서 연이 틀이 원형이 아니라 16px 라운드 사각형이다(`html.neo-mode #honeypigLogo{border-radius:16px!important}`). 의도된 규칙인지 확인이 필요하다.
@@ -34,5 +36,5 @@ next: 두 후속 과제(무료 진입점·번역)는 끝났다. 남은 것은 ve
 - `npm run sync:public`이 윈도우에서 가끔 EPERM/UNKNOWN(파일 잠금)으로 실패한다. 재실행하면 수렴한다.
 
 ## 후속 과제
-- `verify-mobile-cdp-smoke` 히어로 CTA 계약 갱신(위 결함 첫 줄).
+- 🔴 "모든 운세" 빈 컬렉션 회귀 수정(위 결함 첫 줄). 고친 뒤 `node scripts/verify-mobile-cdp-smoke.mjs`를 끝까지 돌려 뒤 구간을 검증한다(`MOBILE_CDP_DEBUG=1`이면 PASS/FAIL이 줄마다 찍힌다).
 - 영냥이 밴드 노출이 줄었다. 영냥이 유입 지표를 1~2주 관찰하고, 필요하면 이용권 뒤로 꺼낸다.
