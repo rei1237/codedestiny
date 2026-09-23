@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import NakshatraFormClient from "./NakshatraFormClient";
+import ContentIntegrityNote from "../components/ContentIntegrityNote";
 import { Taegeuk, Yantra, Spark, CornerMark } from "./NakshatraSymbols";
 import styles from "./nakshatra.module.css";
 import { SUKUYO_MANSIONS } from "../../worker/lib/sukuyo-premium.js";
@@ -42,6 +43,9 @@ export default function NakshatraLanding({ page }) {
   const steps = Array.isArray(page?.steps) ? page.steps : [];
   const resultItems = Array.isArray(page?.resultItems) ? page.resultItems : [];
   const faqs = Array.isArray(page?.faqs) ? page.faqs : [];
+  const sections = Array.isArray(page?.sections) ? page.sections.filter((item) => item?.heading) : [];
+  // 본문을 고친 날은 SeoLandingTemplate 과 같이 검수 노트와 WebPage JSON-LD 에 같은 값으로 싣는다.
+  const dateModified = typeof page?.dateModified === "string" ? page.dateModified : null;
   const headline = splitHeadline(page?.h1);
   const crosswalk = NAKSHATRA_CROSSWALK.map((entry) => ({ h: entry.sukuyoHan, n: entry.nakshatraEn }));
   const marquee = [...crosswalk, ...crosswalk];
@@ -57,7 +61,10 @@ export default function NakshatraLanding({ page }) {
     { name: page?.h1 || page?.title, path: page?.path || "/nakshatra" },
   ];
   const jsonLd = [
-    buildWebPageJsonLd({ title: page?.title, description: page?.description, path: page?.path || "/nakshatra" }),
+    {
+      ...buildWebPageJsonLd({ title: page?.title, description: page?.description, path: page?.path || "/nakshatra" }),
+      ...(dateModified ? { dateModified } : {}),
+    },
     buildServiceJsonLd({ name: page?.title, description: page?.description, path: page?.path || "/nakshatra", serviceType: "운세 해석 서비스" }),
     buildBreadcrumbJsonLd(breadcrumb),
     ...(faqs.length > 0 ? [buildFaqPageJsonLd(faqs)] : []),
@@ -185,6 +192,21 @@ export default function NakshatraLanding({ page }) {
         </section>
       )}
 
+      {/* 체계 비교·계산 예시 — page.sections(lib/seo-landing-pages.js). 예시 값은
+          __tests__/ui/core-landing-calculation-examples.test.mjs 가 엔진 결과와 맞춰 본다. */}
+      {sections.map((section) => (
+        <section key={section.heading} className={`${styles.section} ${styles.sectionTop}`}>
+          <div className={styles.wrap}>
+            <div className={styles.secHead}>
+              <h2>{section.heading}</h2>
+            </div>
+            {(section.paragraphs || []).map((text) => (
+              <p key={text} className={styles.lead}>{text}</p>
+            ))}
+          </div>
+        </section>
+      ))}
+
       {/* FAQ */}
       {faqs.length > 0 && (
         <section className={`${styles.section} ${styles.sectionTop}`}>
@@ -203,6 +225,12 @@ export default function NakshatraLanding({ page }) {
             </div>
           </div>
         </section>
+      )}
+
+      {dateModified && (
+        <div className={styles.wrap}>
+          <ContentIntegrityNote contentSource="authored" contentPath={page?.path || ""} dateModified={dateModified} tone="dark" className="mx-auto mb-10 max-w-[780px]" />
+        </div>
       )}
 
       {/* 관련 별자리 리딩 — 내부 링크(SEO·탐색성) */}

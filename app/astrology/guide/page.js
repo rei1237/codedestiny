@@ -15,6 +15,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.freePaid": "무료와 유료 범위",
     "section.flow": "해석 흐름",
     "section.results": "결과에서 확인할 수 있는 항목",
+    "section.calculation": "계산 예시 — 태양·달·상승점에서 하우스와 어스펙트까지",
     "section.example": "짧은 예시 리딩",
     "section.caution": "해석 시 주의할 점",
   },
@@ -27,6 +28,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.freePaid": "Free and Paid Scope",
     "section.flow": "Reading Flow",
     "section.results": "What You Can Check in the Result",
+    "section.calculation": "Calculation Example — From Sun, Moon and Ascendant to Houses and Aspects",
     "section.example": "Short Sample Reading",
     "section.caution": "What to Keep in Mind",
   },
@@ -39,6 +41,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.freePaid": "無料と有料の範囲",
     "section.flow": "解釈の流れ",
     "section.results": "結果で確認できる項目",
+    "section.calculation": "計算例 — 太陽・月・アセンダントからハウスとアスペクトまで",
     "section.example": "短いサンプルリーディング",
     "section.caution": "解釈時の注意点",
   },
@@ -51,6 +54,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.freePaid": "免费与付费范围",
     "section.flow": "解读流程",
     "section.results": "结果中可查看的项目",
+    "section.calculation": "计算示例 — 从太阳、月亮、上升点到宫位与相位",
     "section.example": "简短示例解读",
     "section.caution": "解读时的注意事项",
   },
@@ -63,6 +67,7 @@ const ASTROLOGY_GUIDE_TEXT_TRANSLATIONS = {
     "section.freePaid": "免費與付費範圍",
     "section.flow": "解讀流程",
     "section.results": "結果中可查看的項目",
+    "section.calculation": "計算範例 — 從太陽、月亮、上升點到宮位與相位",
     "section.example": "簡短示例解讀",
     "section.caution": "解讀時的注意事項",
   },
@@ -97,6 +102,17 @@ const resultItems = [
   "현실 판단과 함께 확인해야 할 주의사항",
 ];
 
+// 가상 입력(lib/seo-reading-examples.js 의 SEO_EXAMPLE_BIRTH)으로 세운 출생차트. 황경·하우스·어스펙트는
+// __tests__/ui/core-landing-calculation-examples.test.mjs 가 점성술 엔진 결과와 맞춰 본다.
+const calculationSteps = [
+  "태양 — 태양의 황경은 321.52도, 곧 물병자리 21.52도입니다. 흔히 말하는 태양 별자리가 이 값입니다.",
+  "달 — 같은 순간 달은 물고기자리 28.17도에 있습니다. 달은 이틀 반마다 별자리를 옮기므로 같은 날에 태어나도 시각에 따라 달라질 수 있습니다.",
+  "상승점과 MC — 서울의 위도·경도와 시각을 넣으면 동쪽 지평선의 상승점은 게자리 8.31도, 하늘 꼭대기의 MC는 물고기자리 18.92도입니다.",
+  "하우스 — 플라시두스 방식으로 열두 하우스를 나누면 태양은 9하우스, 달은 10하우스에 놓입니다.",
+  "어스펙트 — 달과 해왕성의 육각(오차 0.16도), 달과 토성의 합(6.34도), 달과 화성의 대립(7.64도)이 달에 함께 걸립니다. 오차가 작을수록 그 조합이 뚜렷하다고 봅니다.",
+  "사이더리얼 비교 — 같은 입력을 베다 점성술의 사이더리얼 좌표로 옮기면 약 23.82도를 빼게 되어 태양은 염소자리, 상승점은 쌍둥이자리로 바뀌지만 달은 물고기자리에 남습니다.",
+];
+
 const faqItems = [
   {
     question: "출생시간을 모르면 점성술 차트를 볼 수 없나요?",
@@ -115,7 +131,7 @@ const faqItems = [
   },
 ];
 
-// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 검수 노트·Article 을 붙인 날.
+// 발행일은 이 파일의 첫 커밋일(git log --diff-filter=A), 수정일은 본문을 마지막으로 고친 날(계산 예시).
 // 짝 구현: app/guides/[slug]/page.js 의 @graph(BreadcrumbList·Article·FAQPage) + ContentIntegrityNote.
 const GUIDE_ARTICLE = {
   path: "/astrology/guide",
@@ -123,7 +139,7 @@ const GUIDE_ARTICLE = {
   description:
     "서양 점성술의 출생 차트, 행성, 별자리, 하우스, 애스펙트를 어떻게 읽는지와 입력값, 샘플 리딩, 주의사항을 안내합니다.",
   datePublished: "2026-06-21",
-  dateModified: "2026-09-06",
+  dateModified: "2026-09-24",
 };
 
 const guideJsonLd = JSON.stringify({
@@ -208,6 +224,18 @@ export default function AstrologyGuidePage() {
             <li key={item}>{item}</li>
           ))}
         </ul>
+      </section>
+
+      <section className="cd-card">
+        <h2>{astrologyGuideText("section.calculation")}</h2>
+        <p>
+          실제 고객 사례가 아니라 계산 순서를 보여 주려고 고른 가상 입력입니다. 1997년 2월 10일 오후 2시 30분, 서울 출생으로 두고 출생차트를 세워 보겠습니다. 이 차트의 좋고 나쁨을 판정하는 예시가 아닙니다.
+        </p>
+        <ol className="mt-[14px] max-w-[66ch] list-decimal pl-[1.2em]">
+          {calculationSteps.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
       </section>
 
       <section className="cd-card">
