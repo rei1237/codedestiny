@@ -114,7 +114,9 @@
   document.addEventListener('click', function (event) {
     var target = event.target instanceof Element ? event.target : null;
     if (!target) return;
-    if (target.closest('[data-cdh-free]')) {
+    // data-action 진입점(퀵 서비스 사주 카드)은 공용 디스패처가 실행한다. 여기서도 부르면 두 번 돈다.
+    var freeEntry = target.closest('[data-cdh-free]');
+    if (freeEntry && !freeEntry.hasAttribute('data-action')) {
       event.preventDefault();
       revealInput();
       if (typeof window.cdOneStepFreeSajuEntry === 'function') window.cdOneStepFreeSajuEntry();

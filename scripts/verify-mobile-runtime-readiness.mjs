@@ -50,7 +50,9 @@ check("mobile slim header exists", includesAll(index, ["id=\"cdMobileHeader\"", 
 check("mobile header keeps a single theme toggle", (index.match(/id="themeCheckbox"/g) || []).length === 1);
 check("mobile header search reuses the service index", includesAll(index, ["cd-mobile-header__search", "data-cd-service-index-jump=\"1\""]));
 check("responsive home sections present", includesAll(index, ["cd-fortune-pick", "cd-ai-feats", "honey-membership-mini", "moon-story-entry"]));
-check("hero primary CTA present", index.includes('id="cdHomeFunnel"') ? index.includes('data-cdh-free') : index.includes("moon-hero__cta--primary"));
+check("hero primary CTA present", index.includes('id="cdHomeFunnel"') ? index.includes('class="cdh-primary"') : index.includes("moon-hero__cta--primary"));
+// 무료 사주 인라인 폼 진입점은 히어로가 아니라 퀵 서비스 사주 카드다(2026-09-24 결정).
+check("free saju form entry present", !index.includes('id="cdHomeFunnel"') || index.includes('data-cdh-free'));
 check("sticky CTA sits above bottom nav", includesAll(index, ["id=\"cdStickyCta\"", "cd-sticky-cta", "cd-sticky-cta-v20260723"]));
 check("bottom navigation exists with safe area", includesAll(index, ["id=\"cdMobileBottomNav\"", "cd-mobile-bottom-navigation-v20260701", "env(safe-area-inset-bottom"]));
 // 메인 5탭은 실제 링크다 — data-nav-key 만 보면 숨은 퀵칩 레일에도 같은 key 가 있어 통과해버린다.

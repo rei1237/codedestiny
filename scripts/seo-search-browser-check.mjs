@@ -39,13 +39,13 @@ try {
     assert.ok(layout.scroll<=layout.width+2,JSON.stringify(layout));
     assert.ok(layout.documentWidth<=width+2,JSON.stringify(layout));
     await page.screenshot({path:join(artifactDir,`home-${width}.png`)});
-    const entry=page.locator('.cdh-hero [data-cdh-free]');
+    const entry=page.locator('[data-cdh-free]').first();
     await entry.focus();
     await page.keyboard.press('Enter');
     await page.waitForTimeout(500);
     const formVisible=await page.locator('#destinyCardForm').isVisible();
     results.push({width,...layout,keyboardEntryFormVisible:formVisible});
-    assert.equal(formVisible,true,'primary entry must reveal the birth form');
+    assert.equal(formVisible,true,'free saju entry must reveal the birth form');
     await context.close();
   }
   const context=await browser.newContext({javaScriptEnabled:false});
