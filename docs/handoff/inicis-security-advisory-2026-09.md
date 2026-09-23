@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-23
+next: "스테이징 검증(verify:staging) 후 운영 승격 1회 승인을 받고, 포트원·이니시스 문의 항목을 확인한다."
+---
+
 # KG이니시스 가맹점 보안 권고(2026-09-18) 적용 — 인수인계
 
 다음 세션 첫 문장: "docs/handoff/inicis-security-advisory-2026-09.md 를 읽고 '남은 일'부터 이어서 해."
