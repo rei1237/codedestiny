@@ -1,10 +1,10 @@
 /**
  * 영냥이(YeongnyangiRequest) 결제 후 결과 누락 집계 — 읽기 전용(쓰기 없음).
  *
- * 챕터 생성은 클라이언트가 매 챕터마다 트리거하고(worker/yeongnyangi/service.ts
- * generateNextChapter), 서버 자동 재시도/크론이 없다. 챕터당 시도가
- * manifest.length*3 회를 넘으면 GENERATION_REVIEW_REQUIRED 로 막혀
- * scripts/recover-yeongnyangi-request.mjs 로 운영자가 직접 풀어야 한다. 이 스크립트는
+ * 챕터는 큐 메시지 하나당 하나씩 생성되고(worker/yeongnyangi/queue.js), 운영은 10분 크론
+ * (worker/yeongnyangi/recovery.js)이 멈춘 요청을 다시 큐에 넣는다. 챕터당 자동 3회·수동 2회를
+ * 넘기면 GENERATION_REVIEW_REQUIRED 로 막혀 scripts/recover-yeongnyangi-request.mjs 로
+ * 운영자가 직접 풀어야 한다. failureCodes·generationSeconds 는 실패 원인과 생성 소요시간이다. 이 스크립트는
  * "결제는 됐는데 아직 결과가 없는" 요청이 실제로 몇 건 있는지, state/errorCode 별
  * 분포와 함께 집계만 한다 — 어떤 요청도 고치지 않는다.
  *
@@ -107,6 +107,37 @@ try {
     errorCode: "GENERATION_REVIEW_REQUIRED",
   }, COUNT_OPTIONS);
 
+  // 생성 실패 원인과 소요시간 — 카드 결제와 가족 이용권을 모두 본다. 코드·상품·수치만 낸다.
+  const anyAccess = { $or: [{ paymentId: { $ne: null } }, { accessMethod: "FAMILY" }] };
+  const failureCodes = await collection.aggregate([
+    { $match: anyAccess },
+    { $unwind: "$recoveryAudit" },
+    { $match: { "recoveryAudit.kind": { $in: ["retryable_failure", "automatic_recovery_stopped", "review_required"] } } },
+    { $group: { _id: { kind: "$recoveryAudit.kind", code: "$recoveryAudit.code" }, events: { $sum: 1 },
+      requests: { $addToSet: "$_id" }, newestAt: { $max: "$recoveryAudit.at" } } },
+    { $project: { events: 1, requests: { $size: "$requests" }, newestAt: 1 } },
+    { $sort: { events: -1 } },
+  ], AGG_OPTIONS).toArray();
+  const durations = await collection.aggregate([
+    { $match: { ...anyAccess, state: "COMPLETED", completedAt: { $ne: null } } },
+    { $project: { productId: 1, chapters: { $size: "$chapters" }, attempts: 1, completedAt: 1,
+      startedAt: { $min: { $map: { input: { $filter: { input: "$recoveryAudit", cond: { $eq: ["$$this.kind", "generation_claim"] } } }, in: "$$this.at" } } } } },
+    { $match: { startedAt: { $ne: null } } },
+  ], AGG_OPTIONS).toArray();
+  const pct = (values, p) => values.length ? values[Math.min(values.length - 1, Math.floor(p * values.length))] : null;
+  const byProduct = {};
+  for (const row of durations) {
+    const item = byProduct[row.productId] ||= { count: 0, chapters: row.chapters, seconds: [], extraAttempts: 0 };
+    item.count += 1;
+    item.seconds.push(Math.round((new Date(row.completedAt) - new Date(row.startedAt)) / 1000));
+    item.extraAttempts += Math.max(0, (row.attempts || 0) - row.chapters);
+  }
+  const generationSeconds = Object.entries(byProduct).map(([productId, item]) => {
+    const s = item.seconds.sort((a, b) => a - b);
+    return { productId, count: item.count, chapters: item.chapters, extraAttempts: item.extraAttempts,
+      p50: pct(s, 0.5), p90: pct(s, 0.9), max: s.at(-1) };
+  }).sort((a, b) => b.count - a.count);
+
   const summary = {
     database: DATABASE,
     generatedAt: now.toISOString(),
@@ -115,6 +146,8 @@ try {
     totalCompleted,
     stuckCandidates,
     reviewRequiredNow,
+    failureCodes: failureCodes.map((row) => ({ kind: row._id.kind, code: row._id.code || "", events: row.events, requests: row.requests, newestAt: row.newestAt })),
+    generationSeconds,
     breakdown: breakdown.map((row) => ({
       state: row._id.state,
       errorCode: row._id.errorCode || "",
