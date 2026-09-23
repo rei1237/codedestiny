@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-23
-next: "운영 승격 1회 승인을 받은 뒤 승격하고, 포트원·이니시스 문의 항목을 확인한다."
+next: "운영 실결제가 쌓인 뒤 channelCheck/storeIdCheck absent 비율을 재고, 포트원·이니시스 문의 항목을 사람이 확인한다."
 ---
 
 # KG이니시스 가맹점 보안 권고(2026-09-18) 적용 — 인수인계
@@ -36,9 +36,11 @@ next: "운영 승격 1회 승인을 받은 뒤 승격하고, 포트원·이니�
 - 구 `/api/payments/single/*` 삭제: 프런트 호출 0건이지만, 삭제는 규칙 6에 따라 별도 변경으로 다룬다.
 
 ## 남은 일 / 미확인(완료로 표시하지 말 것)
-1. 운영 승격은 명시적 1회 승인이 필요하다. main CI(`PR CI`·`Paid Flow Gates`·`Gift transaction integrity`·`Secret Scan`)는 통과했다. 스테이징 `verify:staging --sha=34c97868a…` 는 Pages·Worker 모두 PASS 다(2026-09-23).
-2. 운영 결제 성공률과 결제→결과 제공 지표: 이 세션에서는 조회하지 않았으므로 미확인이다.
-3. 운영 로그의 `channelCheck`/`storeIdCheck` absent 비율을 실측한 뒤 엄격 모드 전환을 검토한다.
+1. ~~운영 승격~~ 완료(2026-09-23). 운영 Pages·Worker 모두 `11d0be467` in-sync(`verify-merge-landed --check=drift`). 승격은 12:22 workflow_dispatch run 35860013925 가 수행했다.
+   - 승격 전 확인: 11d0be467 `PR CI` 통과, 스테이징 릴리스는 스모크의 `_next/static/chunks/webpack-*.js` 일시 404 로 1회 자동 롤백 → 청크 200 확인 뒤 `rerun --failed` 로 통과. `verify:release` 는 메인 체크아웃에서 CRLF 작업 트리(1,961파일) 때문에 `verify:billing-pass-policy`·`verify:paid-gate-ui` 가 헛실패했고, LF 분리 워크트리에서 나머지 전 단계(`build:worker` 포함)가 통과했다.
+   - 이 세션이 연 운영 승격 run 35864616459 는 대기 중 main 이 `4986336c3`(다른 세션의 패밀리 이용권·퓨전 가격 결제 변경)로 앞서 있어 **배포 단계 전에 취소**했다. 그 변경의 운영 승격은 별도 검증·승인 대상이다.
+2. 운영 결제 성공률과 결제→결과 제공 지표: 미확인. 읽기 전용 Mongo 집계(Payment 상태 분포·paidAt 있고 entitlementGrantedAt 없는 건수)를 시도했으나 자동 모드가 운영 읽기를 차단했다. 사람이 직접 돌리거나 권한 규칙을 허용해야 한다.
+3. 운영 로그의 `channelCheck`/`storeIdCheck` absent 비율을 실측한 뒤 엄격 모드 전환을 검토한다. 이 필드는 0158a4bc9 에서 생겨 2026-09-23 승격부터 운영에 있다 — 실결제가 쌓인 뒤에만 잴 수 있다.
 4. 포트원 문의: V2 KG이니시스 채널에서 `P_CHKFAKE`/`signature` 검증과 IDC centerCd 승인 URL 검증을 포트원이 수행하는가? 권고 메일 대응 공지가 있는가?
 5. 포트원 콘솔: 운영·스테이징 웹훅 시크릿과 웹훅 URL 이 등록돼 있는지.
 6. 이니시스 가맹점 관리자: 포트원 연동 MID 가 권고 대상인 "직접 연동"으로 분류되는지.
