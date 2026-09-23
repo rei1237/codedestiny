@@ -1,0 +1,38 @@
+---
+status: active
+updated: 2026-09-24
+next: 운영 승격은 사용자 1회 명시 승인 대기(범위 c255916e2..main, 이니시스 2차 재실사 결제 커밋 포함). 승인 없으면 아래 후속 과제 중 하나를 고른다
+---
+# 기본 운세 모달 모바일 CSS 최적화 (2026-09-24)
+
+## 결과
+
+- 커밋: `f67733823` (CSS), `a46978945` (sync 캐시 키 수렴). 워크트리 `wt/mobile-fortunes-css-20260924-080219` 에서 origin/main 머지 후 main 으로 fast-forward push.
+- 범위: 숙요점·자미두수·점성술 모달의 모바일 조작 하한만. 색·서체·배치 재설계 없음, 데스크톱 무변경(모두 기존 모바일 미디어쿼리 안).
+
+| 결함(360px 실측) | 수정 | 위치 |
+|---|---|---|
+| 헤더 제목·닫기 8.7px, 홈 10px | 0.86rem(12px) | `styles/core-ui.css` 모바일 헤더 블록 |
+| 숙요 기본 요약 탭 3개가 2+1 줄 | 한 줄 레일(14px·44px), 360 미만만 가로 스크롤 | `styles/basic-fortune-library.css` 끝 |
+| 자미 흐름 탭 4개가 3+1 줄 | 2×2 균등 | 같은 블록 |
+| 자미 간소/상세 칩 34px·라벨 9.8px | 44px·12px | 같은 블록(엔진 주입 규칙 이기려 ID 2개) |
+| 27숙 달력 월 입력이 “2026년 0” 으로 잘림 | 104→140px | `index.html` `#sukuyo-basic-calendar-style` 480px 블록 |
+| 달력 이전/다음 32px | 44px | 같은 블록 |
+| 오늘 숫자 대비 ≈1.2:1 | #161a33, 9.5~15.5:1 | 같은 블록 |
+
+검증: 로컬 정적 서버 감사(가로 넘침 0 유지, 헤더 소형 글자 3건 해소, 숙요 탭 rows=1 sw=cw), visual-checker 6컷 PASS,
+check:fast 의 paid-gate 88/88, sitemap-drift·mobile-detail-nonintrusive·mobile-detail-render·paid-gate-ui·entry-encoding·test:node 통과.
+
+## 남은 것 (후속 과제, 이번 범위 밖)
+
+- 결제 축이라 미수정: 숙요 연간 운세 “보기”(56x34, JS 인라인 스타일, 코인 게이트 진입점), 자미 `.cd-section-gate__btn`(36px). payment-gating 절차로 따로.
+- 숙요·자미 본문 차트 내부 글자(명반 셀·27숙 원형 차트 칩 등 9~11px)는 도표 밀도라 손대지 않음.
+- 헤더 제목의 💫/🌌 이모지가 `background-clip:text` 그라데이션에 먹혀 단색으로 보임(기존 동작).
+- 달력 제목이 로컬에서 serif 폴백으로 보임 — 로컬 폰트 환경 가능성, 미확인.
+- 주역 모달은 로컬 런타임 DOM 에 `#juyukModalOverlay` 가 없어 감사 불가(원인 미조사).
+- 모든 운세 오버레이의 빈 컬렉션은 다른 세션 담당.
+- 운영 승격: 사용자 1회 명시 승인 필요. main 에는 이니시스 재감사 결제 수정 등 다른 세션 커밋이 함께 실려 있으니 승격 범위를 다시 알리고 승인받는다. 롤백 대상 `c255916e2`.
+
+## 다음 세션 첫 문장
+
+“docs/handoff/mobile-fortune-modals-css.md 를 읽고, 운영 승격 승인 여부를 확인한 뒤 남은 후속 과제 중 하나를 고른다.”

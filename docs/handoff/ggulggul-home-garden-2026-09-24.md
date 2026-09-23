@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: "모든 운세" 빈 컬렉션 회귀를 고쳤고 모바일 CDP 스모크가 끝까지 통과한다. 다음은 데스크탑 CDP 스모크의 기존 실패(타로 토글 0x0) 판정이다. 영냥이 밴드 유입 관찰은 계속한다
+next: 모바일·데스크탑·하이브리드 CDP 스모크가 모두 exit 0이다. 다음은 데스크탑 `/?action=cdOpenAllFortunes` scrollY 0 판정이다. 영냥이 밴드 유입 관찰은 계속한다
 ---
 # 꿀꿀 운세 홈 "연이의 꽃정원" 개편 (2026-09-24)
 
@@ -29,9 +29,9 @@ next: "모든 운세" 빈 컬렉션 회귀를 고쳤고 모바일 CDP 스모크�
 - "모든 운세" 빈 컬렉션 회귀 수정(`01f2cbc61`): 오버레이가 컬렉션으로 들어갈 때(`switchCollection`) `#cdhMore`를 열고, 닫을 때 스크롤을 복원하기 전에 자기가 연 경우만 되접는다(`openedGardenForOverlay`, 기존 `expandedHomeForOverlay`와 같은 짝). 개요 모드에서는 열지 않는다. 오버레이 코드의 성능 주석대로 개요는 홈 DOM을 쓰지 않기 때문이다. 412px playwright 실측 결과: 개요에서는 정원이 닫힌 상태이고, 타로에서는 타일 6/6이 보이며 히트는 `tarotCollection`이 받는다. 닫으면 정원이 다시 닫힌다.
   - 🔴 함정: `home-funnel.js`의 구독자(`move('.feature-card-grid', … 'inputPage' …)`)는 `slot.contains(node)` 때문에 늘 no-op이다. 이것을 "고쳐서" 그리드를 `#inputPage`로 옮기면 더 나빠진다. `home-funnel.css`가 `#inputPage > .feature-card-grid`를 숨기고, 오버레이 CSS(index.html `body.cd-all-fortunes-fullscreen #cdhCollections …`)는 그리드가 `#cdhCollections` 안에 있다고 가정하기 때문이다(실측 후 되돌림).
 - 스모크 이용권 블록 계약 갱신(이 커밋 다음): 옛 `#honeyMembershipMini`는 2026-09-08 홈 재조립(`ffcc3626a`) 때부터 홈에서 `display:none`이다. 그래서 대상을 `.cdh-pass .cdh-pass__btn`으로 바꿨다. 계약은 그대로다: 보이는 CTA가 `/points/` 안내로 가고 결제 `data-action`이 없어야 한다. 모바일 CDP 스모크 결과는 exit 0, PASS 49, FAIL 0이다.
+- 데스크탑 CDP 스모크 판정·계약 갱신(이 커밋): 제품 결함이 아니다. 스모크가 08-20에 의도적으로 바뀐 두 계약을 따라가지 못한 것이다. 옛 index.html을 이분 탐색해 경계 커밋을 찾았다(1440px playwright 실측). (1) `467d0cc53`(08-20): 8개 `fg-group`에 `data-cd-home-secondary`를 달아 데스크탑에서도 "모두 펼치기" 뒤로 접었다. 데스크탑 진입 경로에는 `__cdExpandHome()`을 붙였다. 09-24부터는 정원 접힘 안이라 두 겹이다. (2) `9f7648605`(08-20): 커밋 메시지에 "하단 네비게이션을 데스크탑에도 노출"이라고 적혀 있다. 그래서 08-04 단언 "desktop keeps the mobile bottom nav out of layout"은 그때부터 낡았다(토글 실패에 가려 보이지 않았다). 고친 것: 데스크탑 분기는 `expandHomeFolds(cdp, clickSelector)`로 접힘을 마우스 클릭으로 연다(`press` 인자를 추가했고 기본값은 모바일과 같은 `tapSelector`다). 하단 탭 단언은 `display !== "none"`으로 바꿨다. 브리지 격리 단언 4개는 그대로다. 결과: `--desktop`·`--hybrid-desktop`은 각각 exit 0, PASS 7이다. 모바일은 exit 0, PASS 49, FAIL 0으로 회귀가 없다.
 
 ## 기존 결함 (보고만, 미수정)
-- 🔴 **데스크탑 CDP 스모크 실패**(`--desktop`·`--hybrid-desktop`): 첫 단계에서 `.fc-toggle-btn[data-target="tarotCollection"]`이 0x0이라 클릭하지 못한다. 수정 전 index.html(`01f2cbc61~1`)로 돌려도 똑같이 실패하므로 이번 수정과는 무관하다. 스모크는 접힘을 열지 않고 홈에서 바로 토글을 누르는데, 토글이 "모두 펼치기"/정원 접힘 안에 있는 것으로 보인다(추정, 미확인). 데스크탑 사용자 경로를 먼저 판정한 뒤, 스모크에 접힘 열기를 넣을지 제품을 고칠지 정한다. 가드를 낮추지 말 것.
 - 데스크탑 `/?action=cdOpenAllFortunes`: `#tarotCollection`은 높이가 있는데(408px) `scrollY`가 0에 머문다(1280px playwright 1회 관찰, 원인 미조사).
 - 오버레이의 `ensureHomeExpanded()`는 `38c6ecdde`(09-11) 이후 호출부가 0개인 죽은 함수다. 위 `home-funnel.js` no-op 구독자도 같은 성격이다(삭제는 별도 변경).
 - `verify-mobile-runtime-readiness.mjs`에서 이번 변경과 무관한 3건이 실패한다: 하단 탭 메인 슬롯, 퀵 카테고리, 결제 시트. 변경 전 HEAD 스크립트로 돌려도 같은 3건이 실패한다.
@@ -42,5 +42,5 @@ next: "모든 운세" 빈 컬렉션 회귀를 고쳤고 모바일 CDP 스모크�
 - `npm run sync:public`이 윈도우에서 가끔 EPERM/UNKNOWN(파일 잠금)으로 실패한다. 재실행하면 수렴한다.
 
 ## 후속 과제
-- 🔴 데스크탑 CDP 스모크 실패 판정(위 결함 첫 줄). `node scripts/verify-mobile-cdp-smoke.mjs --desktop`으로 재현한다.
+- 데스크탑 `/?action=cdOpenAllFortunes`의 `scrollY` 0 관찰(위 결함 첫 줄)을 재현하고 판정한다. 사용자에게 컬렉션이 안 보이면 결함이다.
 - 영냥이 밴드 노출이 줄었다. 영냥이 유입 지표를 1~2주 관찰하고, 필요하면 이용권 뒤로 꺼낸다.
