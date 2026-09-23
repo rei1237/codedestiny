@@ -26,4 +26,5 @@ test('provider enforces citation enums in Gemini structured output',async()=>{
  await provider.generate({...request,outputSchema:{type:'object',additionalProperties:false,properties:{sources:{type:'array',items:{type:'string',enum:['saju.dayMaster']}}}}});
  assert.deepEqual(getOptions().responseSchema.properties.sources.items.enum,['saju.dayMaster']);
  assert.equal(getOptions().responseSchema.additionalProperties,undefined);
+ assert.equal(getOptions().maxProviderAttempts,1);
 });
