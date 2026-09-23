@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: "운영 승격 마무리 — S3 `a246feca2`까지 main에 있다. 승인 뒤 다른 세션 변경(꿀꿀 홈 개편·워커 DB 계측)이 main에 올라와 승격 범위를 사용자에게 다시 묻는 중이다(아래 지금 상태 🔴). 결정되면 `npm run verify:release` → 승격(결제 변경 3건 명시, 새 세션은 1회 승인을 새로 받는다) → 지금 상태 첫 줄에 SHA·run 기록. 그다음 S4(GREEN·Opus/medium). S6도 S1으로 풀렸고, S5 신년 허브는 10월 중순 운영 승격이 기한이다."
+next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 번에) — 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구 번역(en·ja·zh-CN·zh-TW)이 main에 올라오고 main CI(`CI required`)가 초록이면 `npm run verify:release` → 승격(결제 변경 3건 명시, 새 세션은 1회 승인을 새로 받는다) → 지금 상태 첫 줄에 SHA·run 기록. 번역 전이면 S4(GREEN·Opus/medium)부터 — S4는 승격과 무관하다. S6도 S1으로 풀렸고, S5 신년 허브는 10월 중순 운영 승격이 기한이다."
 ---
 
 # 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용
@@ -36,7 +36,7 @@ next: "운영 승격 마무리 — S3 `a246feca2`까지 main에 있다. 승인 �
 - S3 완료 `a246feca2` — `/saju/`·`/saju/guide/`·`/manse/`·`/ziwei/`·`/ziwei/chart/`에 정의형 첫 문단·가상 계산 예시·보이는 FAQ = FAQPage JSON-LD·설명형 앵커(허브→가이드→도구)·`dateModified` 2026-09-24. 새 URL 0, 제목·설명 불변. 계산 예시의 간지·오행·십성·궁·성·사화는 `__tests__/ui/core-landing-calculation-examples.test.mjs`가 두 엔진에 대조한다.
   - 첫 커밋 `8e4fcdda7`은 CI Build 레인의 `verify:hydrated-h1-integrity`가 `dynamic()` 인자 사이 주석을 읽지 못해 실패했다 → `001d9d131`로 되돌림. 재시도는 로더를 main 그대로 두고 도구 높이 자리(`min-h-[100dvh]`)를 `app/ziwei/chart/page.tsx`의 서버 래퍼로 잡았다.
   - 🔴 Build 레인 가드 7종(seo-heading·hydrated-h1·prose-depth·link-depth·editor-notes·period-axis·marker-keys)은 dist가 있어야 해 `check:fast`가 돌리지 않는다. 로더·SSR 경계를 건드리면 `build:cf` 뒤 로컬에서 먼저 돌린다.
-- 🔴 **운영 승격 대기(사용자 결정)** — 승인 뒤 main에 다른 세션 변경이 올라와 승격 범위가 바뀌었다: 꿀꿀 홈 개편 `7096f61f7`(그 세션 `next:` — `[data-cdh-free]` 무료 사주 인라인 폼 진입점 재배치, 새 ko 문구 4개 로케일 번역이 남았다)과 워커 DB 계측 `011a3c527`(RED). 릴리스는 main HEAD만 내보내므로 부분 승격은 없다. 다른 세션 문서의 frontmatter 부재로 빨갛던 main CI는 `9745234a7`로 풀렸다.
+- 🔴 **운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 번에)** — 승인 뒤 main에 다른 세션 변경이 올라와 범위를 다시 물은 결과다. 재개 조건: 꿀꿀 홈 개편 `7096f61f7`의 새 ko 문구(말풍선 4줄·이용권 요약·더 둘러보기 요약) 4개 로케일 번역이 main에 올라온다(그 세션 `docs/handoff/ggulggul-home-garden-2026-09-24.md`의 `next:`). `[data-cdh-free]` 무료 진입점 부재는 `3a12b5a3a`부터 운영에 있던 것이라 조건이 아니다. 릴리스는 main HEAD만 내보내므로 워커 DB 계측 `011a3c527`(RED)도 함께 나간다(09-24 기준 `11d0be467..origin/main` 비머지 37커밋). 결제 변경 3건: 위 첫 줄의 두 건 + `a4e2d4ae7`(영냥이 미결제 결과 페이지 결제 재확인). `verify:release`는 `80c3080f8`에서 exit 0 — 승격 SHA에서 다시 돌린다. 롤백은 릴리스 워크플로 `mode=rollback`(대상 `11d0be467`).
 - S3 후속(보고만, 미착수):
   1. `keep-all`은 `)` 뒤 조사 앞 줄바꿈을 막지 않는다 — 390px `/ziwei/chart/`에서 "丁未(납음 천하수)" / "라 수이국이…". main의 템플릿 본문에도 같은 패턴이 13곳이라 사이트 공통이다. 고치려면 공용 헬퍼(`)`와 한글 사이 U+2060)나 문장 재구성.
   2. `SeoLandingTemplate` SectionHead h2에 `break-keep`이 없다(기존).
@@ -235,4 +235,4 @@ npm run verify:doc-freshness
 
 - 작업 위치 `D:\Development\code-destiny`(main). 시작: `git branch --show-current` → `git status` → `git pull --ff-only`. 쓰는 세션이 이미 있으면 워크트리.
 - 이 문서: `D:\Development\code-destiny\docs\handoff\competitiveness-roadmap-20260923.md`
-- 다음: 운영 승격 마무리(지금 상태 🔴, 새 세션은 1회 승인을 새로 받는다) → 선행 조건이 풀린 첫 "대기" 행 — 지금은 S4(S2는 U2 대기). S6도 풀렸다(완료 확인은 S1 운영 승격 뒤).
+- 다음: 운영 승격(보류 — 꿀꿀 번역이 main에 올라온 뒤. 지금 상태 🔴, 새 세션은 1회 승인을 새로 받는다). 번역 전이면 선행 조건이 풀린 첫 "대기" 행 — 지금은 S4(S2는 U2 대기). S6도 풀렸다(완료 확인은 S1 운영 승격 뒤).
