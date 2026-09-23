@@ -61,3 +61,20 @@ test('actual chapter prompt passes immutable questions, period, professional ter
  assert.equal(rules.professionalEvidenceNames.fiveElements,'오행의 분포');
  assert.ok(prompt.outputSchema.required.includes('questionAnswers'));
 });
+
+test('provider schema binds answers to this chapter and forbids repeating first-chapter questions later',async()=>{
+ let prompt;
+ const provider=new StructuredChapterProvider({generate:async request=>{prompt=request;return {result:{},provider:'mock',model:'mock'};}});
+ for(const consultation of [make('연애는? 이직은?'),make()]){
+  for(const spec of manifest.slice(0,2)){
+   const chapter={...spec,factSelectors:{saju:['fiveElements']}};
+   const expected=consultation.questions.filter(q=>q.chapterId===chapter.id);
+   await provider.generateChapter({chapter,analysis:{consultation,question:consultation.question,topicId:'general',contexts:{saju:{domain:'saju',engineVersion:'mock',calculatedAt:clock.asOf,limitations:[],facts:[{id:'saju.fiveElements',label:'fiveElements',value:{목:2}}]}},themes:[]},previous:[]});
+   const schema=prompt.outputSchema.properties.questionAnswers;
+   assert.equal(schema.minItems,expected.length);assert.equal(schema.maxItems,expected.length);
+   assert.deepEqual(schema.items.properties.questionId.enum,expected.length?expected.map(q=>q.id):undefined);
+   assert.deepEqual(JSON.parse(prompt.domainRules).assignedQuestions,expected);
+   assert.deepEqual(JSON.parse(prompt.domainRules).consultation,consultation);
+  }
+ }
+});
