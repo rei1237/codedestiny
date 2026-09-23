@@ -270,7 +270,7 @@ window.__cdServiceRegistry = [
     desc: "여섯 체계가 겹치는 신호와 엇갈리는 신호를 함께 짚는 최종 교차 판정",
     href: "/fusion-fortune/",
     featureKey: "fusion-fortune-consultation",
-    price: "30,000원",
+    price: "50,000원",
     purposes: ["life", "self", "career", "love"],
     methods: ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"],
     keys: "초융합 교차검증 종합 심층 여섯 체계 2만자",
