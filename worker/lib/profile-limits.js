@@ -323,7 +323,14 @@ export function resolveMonthlySpendQuota(profileSubscription, entitlement, coinC
 // (js/core/pass-verdict.js)가 숫자를 미러링하는 정본이고, 이 레포의 크로스파일
 // 숫자 합의 방식은 "미러 상수 + 가드 단언"이다. verify:pass-tier-policy 가
 // registry 를 전수로 읽어 이 값과 대조하므로, 더 싼 상품이 생기면 즉시 실패한다.
-export const MIN_PASS_COVERABLE_COIN = 30; // 3,000원
+export const MIN_PASS_COVERABLE_COIN = 30; // 일반 이용권 최저 커버 상품 3,000원
+export const FAMILY_MIN_PASS_COVERABLE_COIN = 10; // Family가 커버하는 영냥이 최저 상품 1,000원
+
+export function minPassCoverableCoinForTier(tier) {
+  return normalizePassTier(tier) === PASS_TIERS.FAMILY
+    ? FAMILY_MIN_PASS_COVERABLE_COIN
+    : MIN_PASS_COVERABLE_COIN;
+}
 
 /**
  * 이 등급의 월 한도가 소진됐는가(= 잔여로 열 수 있는 유료 항목이 없는가).
@@ -340,7 +347,8 @@ export function isPassBudgetExhausted(tier, usedCoin, limitCoin, subscription = 
   const used = Math.max(0, Math.floor(Number(usedCoin || 0)));
   const perItemLimit = Math.max(0, Math.floor(Number(resolvePassPolicy(subscription, normalizedTier)?.maxCoveredCoin || 0)));
   // 건당 상한이 최저가보다 낮은 등급이 생기면 그 등급은 애초에 최저가 상품도 못 연다.
-  const threshold = Math.max(1, Math.min(MIN_PASS_COVERABLE_COIN, perItemLimit || MIN_PASS_COVERABLE_COIN));
+  const minimumCoverable = minPassCoverableCoinForTier(normalizedTier);
+  const threshold = Math.max(1, Math.min(minimumCoverable, perItemLimit || minimumCoverable));
   return budgetCoin - used < threshold;
 }
 

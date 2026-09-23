@@ -1,6 +1,8 @@
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { YeongnyangiRequest } from './repository.js';
 
+const hasRequestAccess=row=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
+
 const terminal = row => !row || ['COMPLETED','REFUNDED'].includes(row.state) || ['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED'].includes(row.errorCode) ||
   (row.errorCode==='AUTOMATIC_RECOVERY_STOPPED' && !(row.snapshot?.manifest?.length && row.chapters.length===row.snapshot.manifest.length));
 
@@ -15,7 +17,7 @@ export async function enqueuePaidConsultation(env, order) {
 }
 
 export async function enqueueConsultation(env, row) {
-  if (!env.YEONGNYANGI_QUEUE || terminal(row) || !row.paymentId) return false;
+  if (!env.YEONGNYANGI_QUEUE || terminal(row) || !hasRequestAccess(row)) return false;
   const now = new Date();
   const claimed = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
     _id:row._id, state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},
@@ -52,7 +54,7 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
     try {
       let row = await read(id);
       if (terminal(row)) { message.ack(); continue; }
-      if (!row.paymentId) row = await service.activateFortune(env,String(row.userId),id);
+      if (!hasRequestAccess(row)) row = await service.activateFortune(env,String(row.userId),id);
       if (terminal(row)) { message.ack(); continue; }
       const due = Math.max(new Date(row.nextAttemptAt || 0).getTime(), new Date(row.leaseUntil || 0).getTime());
       if (due > Date.now()) { message.retry({delaySeconds:Math.max(1,Math.ceil((due-Date.now())/1000))}); continue; }

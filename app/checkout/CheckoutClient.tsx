@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * 영냥이(SoulCat) 단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
+ * 영냥이(SoulCat) Family·단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
  *
  * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
- * 가리킨다 → 여기서 CD 결제창을 **단건(카드·카카오페이) 전용**으로 연다 → 결제가 끝나면 returnTo 로 돌아간다.
+ * 가리킨다 → 여기서 CD 결제창을 **Family 이용권 또는 단건 결제 전용**으로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
  * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
  *
  * 이 페이지는 두 진입점을 공유한다 — `isSoulCatMode = !params.requestId`로 분기한다.
@@ -13,9 +13,8 @@
  * - **CD 내부 모드**(`requestId`=64자리 상담 id): CD 자체 영냥이 상품이 결제 전 만들어 둔 상담
  *   레코드의 id로 이 페이지를 연다 — `available`/웹훅 선확인이 그 레코드를 직접 조회한다.
  *
- * 🔴 단건 전용은 두 겹이다. ① 서버: `paymentScope:"direct_only"` 상품은 이용권·월정석 게이트가 402 로 거부
- *    (worker/payments/index.js). ② 이 호출부: `allowedPaymentModes:["direct"]` + 이용권 선검사 3종 off 로
- *    결제창에 이용권·월정석 카드를 그리지 않는다. 렌더러는 서버 hiddenMethods 를 읽지 않으므로 ②를 빼면 안 된다.
+ * 🔴 결제 범위는 두 겹이다. ① 서버: `paymentScope:"direct_or_family"` 상품은 다른 이용권·월정석을 402 로 거부
+ *    (worker/payments/index.js). ② 이 호출부: `allowedPaymentModes:["pass","direct"]`로 Family·단건만 그린다.
  * 🔴 featureKey 는 `yeongnyangi-` 접두만 받는다 — 이 페이지가 다른 상품의 우회 결제창이 되면 안 된다.
  * 🔴 가격은 레지스트리(resolveServerFeaturePricing)에서만 온다. URL 의 금액을 믿지 않는다.
  * 🔴 화면 문구는 `checkout-copy.ts` 의 동기 표에서 온다. 사전(useT)으로 옮기면 첫 렌더가 비고, 그건
@@ -194,10 +193,9 @@ export default function CheckoutClient() {
         requestId,
         cost: pricing.cost,
         amountKRW: pricing.amountKRW,
-        allowedPaymentModes: ["direct"],
+        allowedPaymentModes: ["pass", "direct"],
+        passStorePlan: "family",
         disablePassFirst: true,
-        disablePassChoice: true,
-        skipPassProbe: true,
         resume: buildResume({ returnTo: params.returnTo }),
       });
       const code = String(result.error?.code || "").toUpperCase();

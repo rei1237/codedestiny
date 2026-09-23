@@ -47,7 +47,7 @@ export default function SpiritConsultation(){
       <ProfilePicker state={state}/>
       <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> 이번 상담에서는 내 출생시간을 미상으로 보기</label>
       <p>질문 시각과 시간대는 접수할 때 서버에서 확정해 저장해. 질문자 지역이나 상대방 위치는 수집하지 않아.</p>
-      <div className={styles.checkoutSection}><h2>상담 내용 확인</h2><p>기존 사주 고등어 상담의 영감 모드 · {product.chapterCount}개 이야기와 영냥이의 마무리</p><strong>{product.priceKRW.toLocaleString('ko-KR')}원 · 단건 결제</strong><p>{SPIRIT_NOTICE}</p>
+      <div className={styles.checkoutSection}><h2>상담 내용 확인</h2><p>기존 사주 고등어 상담의 영감 모드 · {product.chapterCount}개 이야기와 영냥이의 마무리</p><strong>{product.priceKRW.toLocaleString('ko-KR')}원 · Family 또는 단건 결제</strong><p>{SPIRIT_NOTICE}</p>
         <button type="button" onClick={()=>void prepare()} disabled={busy||(!guest&&(!ready||!available||!profileId))}>{busy?'질문의 결을 살피는 중':guest?'로그인하고 상담 시작하기':'결제 내용 확인하기'}</button>
         {!ready&&<p role="status">상담 준비 상태를 확인하고 있어요.</p>}{ready&&!available&&<p>지금은 상담 준비 중이에요. 결제는 진행되지 않아요.</p>}
         {error&&<p role="alert">{error}</p>}

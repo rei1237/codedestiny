@@ -697,9 +697,8 @@ const SUBSCRIPTION_BASE_PLANS = [
     theme:        "purple",
     features:     [
       "profileUnlimited",
-      "allPaidPdf",
       "monthlyCap",
-      "activeImmediately",
+      "allPaidPdf",
       "notAutoBilling",
     ],
     badge:        "Family",
@@ -722,12 +721,10 @@ const LEGACY_SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.fl
   }))
 );
 
-const SUBSCRIPTION_PLANS: SubscriptionPlan[] = LEGACY_SUBSCRIPTION_PLANS.filter(p => p.tier !== "family").map(p => {
+const SUBSCRIPTION_PLANS: SubscriptionPlan[] = LEGACY_SUBSCRIPTION_PLANS.map(p => {
   const next = currentPassPlan(p.tier)!;
   return { ...p, id: next.planId, planId: next.planId, wonPrice: next.wonPrice, baseWonPrice: next.wonPrice,
-    freeUpTo: next.maxCoveredCoin, features: ["꽃돼지 서비스 전용 · 영냥이 제외",
-      `30일 최대 ${(next.monthlyLimitCoin * 100).toLocaleString("ko-KR")}원 상당`,
-      `프로필 최대 ${next.profileLimit}개`, "30일 이용 · 자동갱신 없음"] };
+    freeUpTo: p.tier === "family" ? null : next.maxCoveredCoin };
 });
 
 const SUBSCRIPTION_TIER_RANK: Record<SubscriptionTier, number> = {
@@ -880,9 +877,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     duration30: "30일",
     passTerminationNote: "월 최대 한도를 모두 사용하면 남은 기간과 관계없이 이용권이 종료됩니다. 새로 구매하면 그날부터 30일이 다시 시작됩니다.",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "이용권 대상 전체 · 월 최대 50만원 상당",
+    allPaidPdfPolicy: "건당 금액 상한 없음 · 30일 최대 50만원 상당",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
-    familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
+    familyValueLine: (duration) => `Family 혜택 · 최대 50만원 상당 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
     monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} 월정석`,
     won: (amount, locale) => `${Number(amount || 0).toLocaleString(locale)}원`,
@@ -920,7 +917,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         profile15: "프로필 최대 15개 생성",
-        under10000: "2만원급 콘텐츠까지 이용",
+        under10000: "3만원급 콘텐츠까지 이용",
         monthlyCap: "월 최대 20만원 상당",
         over10000Single: "30일 동안 VVIP 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
@@ -929,10 +926,10 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "이용권 대상 콘텐츠 전체 이용",
-        monthlyCap: "월 최대 50만원 상당",
+        allPaidPdf: "꿀꿀·영냥이의 이용권 대상 유료 리딩",
+        monthlyCap: "30일 최대 50만원 상당",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "원화 단건 결제로 구매 가능",
+        notAutoBilling: "자동갱신 없음",
       },
     },
     pointPackages: {
@@ -1016,9 +1013,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     duration30: "30 days",
     passTerminationNote: "If the monthly allowance is fully used, the pass ends regardless of the days left. Buying a new pass starts another 30 days from that day.",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "All pass-eligible content · Up to KRW 500,000 worth per month",
+    allPaidPdfPolicy: "No per-item price cap · Up to KRW 500,000 worth over 30 days",
     generalLimitPolicy: (value) => `General services up to ${value}`,
-    familyValueLine: (duration) => `All Family benefits / ${duration}`,
+    familyValueLine: (duration) => `Family benefits · Up to KRW 500,000 worth / ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
     monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} moon credits`,
     won: (amount, locale) => `KRW ${Number(amount || 0).toLocaleString(locale)}`,
@@ -1056,7 +1053,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         profile15: "Create up to 15 profiles",
-        under10000: "Content priced around KRW 20,000 and below",
+        under10000: "Content priced around KRW 30,000 and below",
         monthlyCap: "Up to KRW 200,000 worth per month",
         over10000Single: "VVIP benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
@@ -1065,10 +1062,10 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "Unlimited profile add/edit/delete",
-        allPaidPdf: "All pass-eligible content",
-        monthlyCap: "Up to KRW 500,000 worth per month",
+        allPaidPdf: "Eligible paid Ggulggul and Yeongnyangi readings",
+        monthlyCap: "Up to KRW 500,000 worth over 30 days",
         activeImmediately: "30-day pass activates after payment",
-        notAutoBilling: "Monthly credits or KRW purchase available",
+        notAutoBilling: "No automatic renewal",
       },
     },
     pointPackages: {
@@ -2000,7 +1997,7 @@ function SubscriptionSection({
           <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 5,000원/10,000원/30,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Family 신규 판매는 종료됩니다. 기존 이용권과 선물은 구매 당시 조건을 유지합니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Family는 프로필 수 제한 없이 꽃돼지와 영냥이 유료 리딩에 적용되며, 30일 누적 한도는 500,000원 상당입니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
             <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
@@ -2101,9 +2098,9 @@ function SubscriptionSection({
       </div>
       )}
 
-      <p className="px-5 pb-4 text-sm">꽃돼지 서비스 전용입니다. 영냥이는 단건 결제로 이용해 주세요. 새 이용권의 가격·한도는 검토 중인 안으로, 판매 시작 시 확정 조건을 안내합니다. 기존 이용권과 선물은 구매 당시 조건을 유지합니다.</p>
+      <p className="px-5 pb-4 text-sm">Standard·Premium·VVIP는 꽃돼지 서비스에 적용되며, Family는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 모든 이용권은 자동갱신되지 않고, 기존 이용권과 선물은 구매 당시 조건을 유지합니다.</p>
       {/* 플랜 카드 */}
-      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-4">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
           const isCurrentActive = subscription.isActive && subscription.tier === plan.tier;
@@ -2510,10 +2507,10 @@ function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
 
 // 🔴 2026-08-24 문구 정책: 모든 등급에 월 이용 한도가 있으므로 한도가 없다는 뜻의 표현을 쓰지
 //    않는다. 금액은 worker/lib/profile-limits.js 의 PASS_LIMITS 와 뜻이 같아야 한다
-//    (5,000 / 10,000 / 20,000원, family 상한 없음). 가드: verify:pass-tier-policy
+//    (5,000 / 10,000 / 30,000원, family 상한 없음). 가드: verify:pass-tier-policy
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {
   if (tier === "family") return "이용권 대상 전체";
-  if (tier === "vvip") return "2만원급 콘텐츠까지";
+  if (tier === "vvip") return "3만원급 콘텐츠까지";
   if (tier === "premium") return "1만원급 콘텐츠까지";
   if (tier === "standard") return "5천원급 콘텐츠까지";
   return "30일 혜택 선택 가능";
@@ -2824,7 +2821,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
-          <h2 className="mt-2 text-2xl font-black text-white">꽃돼지 전용 이용권 3종</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">Code Destiny 이용권 4종</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2847,7 +2844,7 @@ function MoonlightShopPlans({
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== CURRENT_PASS_POLICY_VERSION);
-          const features = plan.features.slice(0, 3).map((feature) => copy.planFeatures[plan.tier]?.[feature] || feature);
+          const features = plan.features.slice(0, 4).map((feature) => copy.planFeatures[plan.tier]?.[feature] || feature);
 
           return (
             <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
@@ -3057,7 +3054,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      꽃돼지 서비스 전용 이용권입니다. 영냥이는 단건 결제로 이용해 주세요. 신규 가격과 한도는 검토 중이며 판매 시작 시 확정 조건을 안내합니다. Family 신규 판매는 종료되며 기존 구매와 선물은 원래 조건을 유지합니다.
+      Standard·Premium·VVIP는 꽃돼지 서비스에 적용되며, Family는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
     </section>
   );
 }
@@ -5221,7 +5218,7 @@ export default function PointsPage() {
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          꽃돼지 서비스 전용 이용권입니다. 영냥이는 단건 결제로 이용해 주세요. 신규 가격과 한도는 검토 중이며 판매 시작 시 확정 조건을 안내합니다. Family 신규 판매는 종료되며 기존 구매와 선물은 원래 조건을 유지합니다.
+          Standard·Premium·VVIP는 꽃돼지 서비스에 적용되며, Family는 꽃돼지와 영냥이 유료 리딩을 함께 커버합니다. 자동갱신은 없고, 기존 구매와 선물은 원래 조건을 유지합니다.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">

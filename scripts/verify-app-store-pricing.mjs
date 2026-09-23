@@ -14,11 +14,13 @@ import { MUSIC_TRACK_UNLOCK_COIN_COST } from "../lib/music-access-policy.js";
 import {
   APP_FREE_MAX_COIN_PRICE,
   isAppFreeCoinPrice,
+  isAppUnverifiedContentCoinPrice,
   listAppContentTiers,
   listAppPassProducts,
   resolveAppContentTier,
 } from "../worker/lib/app-store-pricing.js";
 import { PASS_LIMITS } from "../worker/lib/profile-limits.js";
+import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_PLANS, PRIOR_PASS_POLICY_VERSION } from "../lib/payment/pass-policy.js";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -66,6 +68,11 @@ for (const [coinPrice, sourceKeys] of [...registryCoinPrices.entries()].sort((a,
     notes.push(`무료 통과(${coinPrice}코인 ≤ ${APP_FREE_MAX_COIN_PRICE}): ${sourceKeys.join(", ")}`);
     continue;
   }
+  if (isAppUnverifiedContentCoinPrice(coinPrice)) {
+    if (resolveAppContentTier(coinPrice)) failures.push(`판매 준비 중 가격 ${coinPrice}코인에 Play SKU가 연결됨 — 검증 전에는 APP_SKU_NOT_VERIFIED로 닫아야 한다`);
+    else notes.push(`판매 준비 중(${coinPrice}코인): Play SKU 미생성, APP_SKU_NOT_VERIFIED 실패 폐쇄 — ${sourceKeys.join(", ")}`);
+    continue;
+  }
   if (!resolveAppContentTier(coinPrice)) {
     failures.push(`앱 티어 누락: ${coinPrice}코인(웹 ₩${(coinPrice * 100).toLocaleString("ko-KR")}) — 해당 기능 ${sourceKeys.length}개가 앱에서 결제 불가. 예: ${sourceKeys.slice(0, 3).join(", ")}`);
   }
@@ -75,7 +82,9 @@ for (const [coinPrice, sourceKeys] of [...registryCoinPrices.entries()].sort((a,
 for (const tier of listAppContentTiers()) {
   const orphan = tier.coinPrices.filter((coinPrice) => !registryCoinPrices.has(coinPrice));
   if (orphan.length === tier.coinPrices.length) {
-    failures.push(`앱 티어 ${tier.productId}: 레지스트리에 존재하지 않는 가격대(${tier.coinPrices.join(", ")}코인) — 사용되지 않는 SKU`);
+    // 이미 Play Console에 등록된 7천원 티어는 과거 영수증 복원을 위해 ID를 보존한다.
+    if (tier.productId === "cd_content_tier_14") notes.push(`복원 전용 보존 SKU ${tier.productId}: 현행 레지스트리 상품 없음`);
+    else failures.push(`앱 티어 ${tier.productId}: 레지스트리에 존재하지 않는 가격대(${tier.coinPrices.join(", ")}코인) — 사용되지 않는 SKU`);
   }
 }
 
@@ -100,7 +109,12 @@ for (const pass of listAppPassProducts()) {
 
 // 이용권의 coinLimit이 웹 정본(PASS_LIMITS)과 같은가 — 어긋나면 앱이 잘못된 커버 금액을 표시한다.
 for (const pass of listAppPassProducts()) {
-  const webLimit = PASS_LIMITS[pass.passTier];
+  const versionedPlan = pass.passPolicyVersion === CURRENT_PASS_POLICY_VERSION
+    ? CURRENT_PASS_PLANS[pass.passTier]
+    : pass.passPolicyVersion === PRIOR_PASS_POLICY_VERSION
+      ? PRIOR_PASS_PLANS[pass.passTier]
+      : null;
+  const webLimit = versionedPlan?.maxCoveredCoin ?? PASS_LIMITS[pass.passTier];
   const isUnlimited = Number(webLimit) >= 999999999;
   if (isUnlimited) {
     if (pass.coinLimit !== null) failures.push(`이용권 ${pass.productId}: 웹은 무제한인데 coinLimit=${pass.coinLimit}`);

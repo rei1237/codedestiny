@@ -286,7 +286,28 @@ for (const featureKey of listServerPricedFeatureKeys()) {
   // 정본 판정(isPassExcludedPricing)을 그대로 써서 향후 추가되는 제외 기능도 자동으로 덮는다.
   // 과거엔 이 루프가 profile-card-manage에 대해 "premium/vvip는 한도 안이니 커버됨"을 단언해 버그를
   // 정상으로 고정했고, 같은 파일의 licenseTier!=="FAMILY"/profile_card_pass_excluded 단언과 모순이었다.
-  // direct_only(영냥이, 등록소 paymentScope): 이용권도 월정석도 불가 — 단건만 노출된다.
+  // direct_or_family(영냥이, 등록소 paymentScope): Family와 단건만 허용한다.
+  // 다른 이용권·월정석은 거절하고, Family는 같은 공용 차감 경로로 커버한다.
+  if (__billingTestUtils.isFamilyPassOnlyPricing(pricingInput)) {
+    for (const [label, decisionForTier] of [
+      ["standard", standardDecision],
+      ["premium", premiumDecision],
+      ["vvip", vvipDecision],
+    ]) {
+      assert.equal(decisionForTier.canUseByPass, false, `${featureKey}: ${label} 이용권은 영냥이를 커버하면 안 된다`);
+      assert.equal(decisionForTier.canUseByMonthly, false, `${featureKey}: 월정석은 영냥이를 커버하면 안 된다(${label})`);
+      assert.deepEqual(decisionForTier.allowedPaymentMethods, ["FAMILY", "DIRECT_KRW"], `${featureKey}: Family와 단건만 허용한다(${label})`);
+      assert.deepEqual(decisionForTier.equalPriorityMethods, ["DIRECT_KRW"], `${featureKey}: Family 미보유 시 단건과 Family 안내로 인계한다(${label})`);
+      assert.ok(decisionForTier.hiddenMethods.includes("MOONLIGHT_STONE") && decisionForTier.hiddenMethods.includes("COIN"), `${featureKey}: 월정석·코인을 숨긴다(${label})`);
+      assert.equal(decisionForTier.decisionReason, "FAMILY_PASS_REQUIRED", `${featureKey}: Family 필요 사유(${label})`);
+    }
+    assert.equal(familyDecision.canUseByPass, true, `${featureKey}: Family 이용권은 영냥이를 커버해야 한다`);
+    assert.equal(familyDecision.canUseByMonthly, false, `${featureKey}: Family 보유 중에도 월정석을 노출하면 안 된다`);
+    assert.deepEqual(familyDecision.allowedPaymentMethods, ["FAMILY", "DIRECT_KRW"], `${featureKey}: 허용 수단 정본`);
+    continue;
+  }
+
+  // direct_only(등록소 paymentScope): 이용권도 월정석도 불가 — 단건만 노출된다.
   // 문서화된 예외(docs/context/payment-gating.md "direct_only 예외"). 정본은 isDirectOnlyPricing 하나.
   if (__billingTestUtils.isDirectOnlyPricing(pricingInput)) {
     for (const [label, decisionForTier] of [
@@ -839,7 +860,7 @@ assertContains(indexSource, "월정석 사용이 완료되었습니다.", "month
 assertContains(indexSource, "월정석 이벤트 재화로 열람되었습니다.", "monthly event currency access success copy");
 assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.", "monthly event currency disclaimer copy");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
-assertContains(indexSource, "이용권 3종 확인하기", "static current pass offer links to the three-tier shop");
+assertContains(indexSource, "이용권 4종 확인하기", "static current pass offer links to the four-tier shop");
 assertContains(indexSource, "기존에 구매한 이용권은 구매 당시 조건을 유지합니다", "static offer preserves historical pass rights");
 assertNotContains(indexSource, "forceDeduct: false", "static membership pass probe no longer sends the deprecated coin flag");
 assertNotContains(indexSource, "forceDeduct: true", "static paid flows never enable the deprecated coin flag");

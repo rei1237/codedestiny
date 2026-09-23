@@ -26,11 +26,11 @@ export default function FishCatalog({fusionOnly=false,layout='grid'}:{fusionOnly
    <div className={layout==='list'?'fish-catalog-list':'fish-catalog-grid'}>{items.map(p=><a key={p.id} href={p.available?(p.readingKind==='single'?`/yeongnyangi/fortune/?domain=${p.domain}&fish=${p.fishId}`:`/yeongnyangi/fortune/?product=${p.id}`):undefined} aria-disabled={p.available?undefined:true}>
     <img src={p.image} width={220} height={180} alt="" loading="lazy"/>
     <span>{fusionOnly?consultationTitle(p):p.fishName}</span><strong>{p.priceKRW.toLocaleString('ko-KR')}원</strong>
-    <small>{p.chapterCount}챕터 · {p.readingKind==='single'?'선택한 한 분야':p.readingKind==='pair'?'두 체계 교차분석':'여섯 체계 전체 통합'} · 단건 결제</small>
+    <small>{p.chapterCount}챕터 · {p.readingKind==='single'?'선택한 한 분야':p.readingKind==='pair'?'두 체계 교차분석':'여섯 체계 전체 통합'} · Family 또는 단건 결제</small>
     <p>{fusionDescription(p)||depthDescriptions[p.fishId]}</p><b>{p.available?'이 상담 선택하기 →':'지금은 상담을 잠시 쉬고 있어'}</b>
    </a>)}</div>
    {items.some(p=>!p.available)&&<p role="status">지금은 상담 연결을 확인하고 있어. 결제는 진행되지 않아. <button type="button" className="catalog-retry" onClick={()=>setAttempt(n=>n+1)}>상담 가능 여부 다시 확인하기</button></p>}
-   {fusionOnly&&<p className="catalog-delivery">프로필과 질문 확인 → 단건 결제 → 내 상담 기록에서 이어 읽기. 결제 후에는 완성된 챕터부터 펼쳐줄게.</p>}
+   {fusionOnly&&<p className="catalog-delivery">프로필과 질문 확인 → Family 또는 단건 결제 → 내 상담 기록에서 이어 읽기. 이용 확인 후에는 완성된 챕터부터 펼쳐줄게.</p>}
   </>}
  </section>;
 }

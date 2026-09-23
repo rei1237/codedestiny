@@ -27,7 +27,7 @@ export default function ProfilePicker({state}:{state:ProfileState}){
    {query&&!matches.length&&<p className={styles.message}>이 이름으로 저장한 프로필이 없어. 검색어를 바꿔줘.</p>}
    {state.error&&<div className={styles.error} role="alert"><p>{state.error}</p><button type="button" onClick={()=>void state.refresh(true)}>프로필 다시 확인하기</button></div>}
    <button type="button" className={styles.add} aria-expanded={open} onClick={()=>setOpen(!open)}><Plus size={17}/>{open?'프로필 입력 접기':'새 프로필 만들기'}</button>
-   <p className={styles.note}>영냥이에서는 프로필 개수 제한 없이 등록할 수 있어.</p>
+   <p className={styles.note}>Family 이용권은 프로필 개수 제한 없이 등록할 수 있어.</p>
    {open&&<ProfileForm key={account} onSaved={profile=>{state.saved(profile);setOpen(false);}}/>}
   </>}
  </section>;

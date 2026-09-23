@@ -210,7 +210,7 @@ function resolveProduct(pricing, env, body = {}) {
   const tier = resolveAppContentTier(coinPrice);
   if (!tier) {
     const error = new Error("Google Play tier is not registered for this price.");
-    error.code = "APP_STORE_TIER_NOT_REGISTERED";
+    error.code = "APP_SKU_NOT_VERIFIED";
     error.status = 503;
     throw error;
   }
@@ -236,9 +236,11 @@ function resolveAppPassPurchaseProduct(body = {}) {
   const version = findAppStoreProductById(cleanText(body.productId))?.passPolicyVersion || body.passPolicyVersion || "legacy";
   const pass = resolveAppPassProduct(passTier, version);
   if (!pass) {
-    const error = new Error("Google Play pass product is not registered for this tier.");
-    error.code = "APP_STORE_PASS_TIER_UNKNOWN";
-    error.status = 400;
+    const planned=currentPassPlan(passTier);
+    const pendingSku=planned && planned.passPolicyVersion===version;
+    const error = new Error(pendingSku ? "Google Play SKU is not verified for this pass." : "Google Play pass product is not registered for this tier.");
+    error.code = pendingSku ? "APP_SKU_NOT_VERIFIED" : "APP_STORE_PASS_TIER_UNKNOWN";
+    error.status = pendingSku ? 503 : 400;
     throw error;
   }
   // 커버 한도는 웹 정본(PASS_LIMITS, 코인)에서 읽고 앱 확정가로 환산해 내려준다 —
@@ -513,8 +515,13 @@ async function handleProducts(request, env) {
   // 이용권 스토어는 featureKey가 아니라 passTier로 조회한다.
   const passTier = cleanText(url.searchParams.get("passTier"));
   if (passTier) {
-    const pass = resolveAppPassProduct(passTier, url.searchParams.get("passPolicyVersion") || "legacy");
-    if (!pass) return json({ ok: false, code: "APP_STORE_PASS_TIER_UNKNOWN", message: "Unknown pass tier." }, { status: 400 });
+    const version=url.searchParams.get("passPolicyVersion") || "legacy";
+    const pass = resolveAppPassProduct(passTier, version);
+    if (!pass) {
+      const planned=currentPassPlan(passTier), pendingSku=planned && planned.passPolicyVersion===version;
+      return json({ok:false,code:pendingSku?"APP_SKU_NOT_VERIFIED":"APP_STORE_PASS_TIER_UNKNOWN",
+        message:pendingSku?"Google Play sale is being prepared for this pass.":"Unknown pass tier."},{status:pendingSku?503:400});
+    }
     return json({
       ok: true,
       data: {

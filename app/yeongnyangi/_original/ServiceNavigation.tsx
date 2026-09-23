@@ -55,7 +55,7 @@ export default function ServiceNavigation() {
 
     <p className="service-navigation__fineprint">
       <PawPrint size={14} aria-hidden="true" />
-      Code Destiny 계정과 프로필을 함께 사용하며, 영냥이 상담은 생선 상품별 단건 결제로 이용합니다.
+      Code Destiny 계정과 프로필을 함께 사용하며, 영냥이 상담은 Family 이용권 또는 생선 상품별 단건 결제로 이용합니다.
       <Sparkles size={14} aria-hidden="true" />
     </p>
   </footer>;

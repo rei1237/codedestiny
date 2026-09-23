@@ -1345,7 +1345,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (paid.revoked) return { ok: false, status: 403, reason: "RESULT_ACCESS_REVOKED", error: "RESULT_ACCESS_REVOKED", resultId: safeId, retryable: false, message: "취소·환불된 결제의 결과는 제공할 수 없어요." };
     return paid.degraded
       ? { ok: false, status: 503, retryable: true, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_CHECK_DEGRADED, message: "결제 내역을 확인하지 못했어요. 잠시 후 다시 시도해 주세요. 이미 결제하셨다면 차감되지 않습니다." }
-      : { ok: false, status: 402, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, message: "초융합 운세는 1회 30,000원입니다.", pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } };
+      : { ok: false, status: 402, error: FUSION_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED, message: "초융합 운세는 1회 50,000원입니다.", pricing: { featureKey: FUSION_FORTUNE_PAID_FEATURE_KEY } };
   }
 
   if (stageNumber === 2 && !hasFusionStageOneResult(priorResult)) {

@@ -6,7 +6,7 @@
 - 주요 API: `GET /api/fusion-fortune/status`, `POST /api/fusion-fortune/generate`
 - 주요 lib: `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-prompt.js`, `worker/lib/fusion-fortune-visual.js`, `worker/routes/fusion-fortune.js`
 - 데이터: `FusionFortuneDailyLimit`, `FusionFortuneGenerationAttempt`
-- 권한: 표준 회당 결제 `fusion-fortune-consultation`(300코인 · 30,000원). 결제 증빙은 `verifyPerUsePayment` 가 `requestId` 로 확인하며, 30,000원이라 이용권은 family 등급만 커버한다.
+- 권한: 표준 회당 결제 `fusion-fortune-consultation`(500코인 · 50,000원). 결제 증빙은 `verifyPerUsePayment` 가 `requestId` 로 확인하며, Family 이용권 또는 단건 결제만 허용한다.
 - 접수: Asia/Seoul 기준 성공 결과 완성 순서로 선착순 하루 100자리만 확정한다. 실패·검증 실패·결제 미완료는 자리를 소진하지 않는다.
 - UI: 오늘의 귀인에서 이어지는 프리미엄 화면으로, repo-local WebP 히어로와 CSS/SVG 오브를 사용하고 390px 이하까지 반응형으로 제공한다.
 

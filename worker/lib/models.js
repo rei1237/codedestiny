@@ -142,8 +142,8 @@ const userSchema = new mongoose.Schema({
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },
-    // 공정이용 공유 카운터: 이용권 기간당 프리미엄 상담(300코인 이상) 사용 횟수(Family
-    // 10회 · VVIP 3회)와 이용권으로 커버된 거래의 월 누적 코인가 합계를 함께 담는다.
+    // 이용권 주기 식별자와 이용권으로 커버된 거래의 30일 누적 코인가 합계를 함께 담는다.
+    // premiumUseCount 는 옛 횟수제 문서 호환용으로만 남고 현재 판정에는 쓰지 않는다.
     // cycleKey 는 이용권 만료일 ISO 문자열이라, 이용권을 새로 사면 키가 바뀌어
     // 두 카운터가 자동으로 0부터 다시 센다(리셋 크론 불필요) — 리셋 트리거가 같아 키를 공유한다.
     // 판정 정본은 lib/profile-limits.js 의 resolvePremiumQuota / resolveMonthlySpendQuota.

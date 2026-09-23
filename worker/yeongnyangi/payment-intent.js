@@ -14,7 +14,7 @@ export async function assertFortunePaymentIntent(db, {env, userId, requestId, pr
   if (!fortune || fortune.featureKey!==product.featureKey || resolveChargeAmountKRW(env,fortune.amountKRW)!==product.priceKRW) {
     throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
   }
-  const paid=fortune.paymentId || await db.findOne(Payment, {
+  const paid=fortune.paymentId || fortune.accessMethod==='FAMILY' || fortune.passEvidenceId || await db.findOne(Payment, {
     userId:toObjectId(userId),requestId,paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},
   }, {projection:{_id:1}});
   if (paid) throw paymentError('FORTUNE_ALREADY_PAID','이미 결제한 상담이에요. 결과 화면에서 이어가 주세요.',{fortuneRequestId:id});
@@ -30,6 +30,7 @@ export async function advanceFortunePaymentGeneration(db,userId,requestId,genera
   // Concurrent clients advance the same generation once and then share the next merchant UID.
   return db.findOneAndUpdate(YeongnyangiRequest,{
     _id:requestId.slice(3),userId:toObjectId(userId),state:'CREATED',paymentId:null,
+    $or:[{accessMethod:null},{accessMethod:{$exists:false}}],
     ...(generation===0?{$or:[{paymentGeneration:0},{paymentGeneration:{$exists:false}}]}:{paymentGeneration:generation}),
   },{$inc:{paymentGeneration:1}},{returnDocument:'after'});
 }

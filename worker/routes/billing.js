@@ -15,6 +15,7 @@ import {
 import {
   LEGACY_LOVE_CODE_FEATURE_KEYS,
   LOVE_CODE_FEATURE_KEY,
+  isDirectOrFamilyPaidFeatureKey,
   isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
   isUnlockPaidFeatureKey,
@@ -595,9 +596,13 @@ function resolvePricingAmountKRW(pricing = {}, coinCost = 0) {
   return calculateKrwAmountFromCoins(coinCost);
 }
 
-// direct_only(영냥이) 상품은 이용권 제외를 포함한다 — 정본은 등록소 paymentScope 하나.
+// direct_only 상품은 이용권 제외를 포함한다 — 정본은 등록소 paymentScope 하나.
 function isDirectOnlyPricing(pricing = {}) {
   return isDirectOnlyPaidFeatureKey(pricing?.featureKey);
+}
+
+function isFamilyPassOnlyPricing(pricing = {}) {
+  return isDirectOrFamilyPaidFeatureKey(pricing?.featureKey);
 }
 
 function isPassExcludedPricing(pricing = {}) {
@@ -703,6 +708,9 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   const usage = resolveTierPassUsageSnapshot(user?.profileSubscription || {}, entitlement);
   const policy = resolvePassPolicyForTier(usage?.tier, user?.profileSubscription);
+  if (isFamilyPassOnlyPricing(pricing) && usage?.tier !== "family") {
+    return { ok: false, reason: "family_pass_required", featureKey, coinCost, amountKRW, passTier: usage?.tier || null };
+  }
 
   // 멱등: 이미 이 마커로 통과한 요청이면 재기록 없이 같은 결과를 되돌린다(추가 왕복 없음).
   if (
@@ -1020,7 +1028,9 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     serverProductType: pricing?.productType,
     productId: pricing?.productId || pricing?.featureKey,
   });
-  const passExcluded = isPassExcludedPricing(pricing) || isPassLikeProductType(targetProductType);
+  const familyPassOnly = isFamilyPassOnlyPricing(pricing);
+  const passExcluded = isPassExcludedPricing(pricing) || isPassLikeProductType(targetProductType)
+    || (familyPassOnly && passTier !== "family");
   // 공정이용: 프리미엄 상담(300코인 이상)은 이용권 기간당 포함 횟수까지만 커버한다(family
   // 10회 · vvip 3회). 소비 단계(consumeTierPassIfAvailable)와 반드시 같은 답을 내야 한다 —
   // 여기서 커버라 해놓고 소비가 거부하면 결제수단이 전부 숨겨진 막다른 길이 된다(바로 위
@@ -1043,13 +1053,13 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     passExcluded,
   });
   const passCovered = featureAccess.allowed && !familyQuotaExhausted && !monthlyQuotaExceeded;
-  // direct_only(영냥이): 이용권도 월정석도 불가 — 서버가 MOONLIGHT_STONE 을 내보내면 셸 렌더러가
+  // direct_only/direct_or_family: 월정석 불가 — 서버가 MOONLIGHT_STONE 을 내보내면 셸 렌더러가
   // 월정석 카드를 다시 켜므로(index.html equalPriorityMethods 재활성화) 목록에서 아예 뺀다.
   const directOnly = isDirectOnlyPricing(pricing);
-  const monthlyCovered = !directOnly && coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
+  const monthlyCovered = !directOnly && !familyPassOnly && coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
   // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다(direct_only 예외).
-  const equalPriorityPaidMethods = directOnly ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
+  const equalPriorityPaidMethods = (directOnly || familyPassOnly) ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
 
   return {
     coinCost,
@@ -1066,11 +1076,13 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     monthlyBalance,
     canUseByMonthly: monthlyCovered,
     canUseByCard: true,
+    familyPassOnly,
+    allowedPaymentMethods: familyPassOnly ? ["FAMILY", "DIRECT_KRW"] : (directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"]),
     recommendedMethod: passCovered ? "PASS" : "PAYMENT_CHOICE",
     recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : []),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", "MOONLIGHT_STONE"] : [])),
     // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
     // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
     // 사유와 잔여 횟수를 함께 내린다.
@@ -1091,6 +1103,8 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
       ? "PASS_COVERED"
       : (directOnly
         ? "DIRECT_ONLY_PAYMENT_REQUIRED"
+        : familyPassOnly && passTier !== "family"
+        ? "FAMILY_PASS_REQUIRED"
         : passExcluded
         ? "PASS_EXCLUDED_PAYMENT_REQUIRED"
         : (familyQuotaExhausted
@@ -3363,6 +3377,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   // 이 가드는 음악 트랙 전용이 아니다 — PASS_EXCLUDED_FEATURE_KEYS(프로필 카드 추가/삭제)와
   // 음악 트랙이 같은 판정(isPassExcludedPricing)을 공유하므로 문구도 기능 중립이어야 한다.
   const directOnlyForPricing = isDirectOnlyPricing(pricing);
+  const familyPassOnlyForPricing = isFamilyPassOnlyPricing(pricing);
   if (membershipPassRequested && passExcludedForPricing) {
     return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", directOnlyForPricing ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
@@ -3371,9 +3386,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       balance: null,
     });
   }
-  // direct_only(영냥이): 월정석 차감 경로를 진입에서 닫는다(fail-closed).
-  if (monthlyBalanceRequested && directOnlyForPricing) {
-    return failure(402, "MONTHLY_NOT_ALLOWED", "이 상품은 월정석으로 결제할 수 없습니다. 단건 결제로 이용해 주세요.", undefined, {
+  // direct_only/direct_or_family: 월정석 차감 경로를 진입에서 닫는다(fail-closed).
+  if (monthlyBalanceRequested && (directOnlyForPricing || familyPassOnlyForPricing)) {
+    return failure(402, "MONTHLY_NOT_ALLOWED", familyPassOnlyForPricing ? "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요." : "이 상품은 월정석으로 결제할 수 없습니다. 단건 결제로 이용해 주세요.", undefined, {
       pricing,
       paymentOptions: buildPassPaymentDecision(null, pricing, null),
       accessGrant: null,
@@ -3853,7 +3868,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         // + User.findById + PointHistory.create 를 무방비로 연달아 돈다. 한 번의 Mongo 블립이 그대로
         // passEvidenceFailure → 503 PAID_ACCESS_VERIFY_RETRYABLE 이 됐고, 그 시점엔 이용권이 이미
         // 소진된 뒤라 사용자는 "이용권을 썼는데 실패"를 본다. FAMILY 등급만 이 경로를 타므로
-        // (recordPassAccessIfNeeded 의 조기 반환) 300코인 초융합처럼 family 전용 커버 기능에 집중됐다.
+        // (recordPassAccessIfNeeded 의 조기 반환) 500코인 초융합처럼 family 전용 커버 기능에 집중됐다.
         // 재시도가 중복 기록을 만들지 않는 근거: 같은 함수가 metadata.requestId 로 기존 기록을 먼저
         // 조회해 있으면 그대로 돌려준다(멱등).
         // 🔴 여기에 withDbAccessTimeout 을 겹치지 않는다 — withMongoRetry 가 이미 시도마다 상한을
@@ -6335,6 +6350,7 @@ export const __billingTestUtils = {
   buildMembershipPassFromStatusSnapshot,
   buildRefundedSpendSourceId,
   isDirectOnlyPricing,
+  isFamilyPassOnlyPricing,
   isPassExcludedPricing,
   isExplicitLegacyCoinPaymentMode,
   // 503 분류 3종. 정적 문자열 매칭으로는 "무엇을 DB 장애로 볼 것인가"를 검증할 수 없어 실제로 호출한다.

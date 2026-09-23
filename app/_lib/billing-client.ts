@@ -415,6 +415,7 @@ export type BillingCoinGateInput = {
   executionKey?: string;
   paymentMode?: string;
   allowedPaymentModes?: string[];
+  passStorePlan?: string;
   disablePassFirst?: boolean;
   disablePassChoice?: boolean;
   skipPassProbe?: boolean;
@@ -1018,7 +1019,7 @@ function openMembershipPassStore(coinPrice: number, currentTier?: string, featur
     runtimeWindow.__cdOpenChargeModal();
     return;
   }
-  const storeUrl = checkoutEntry.buildPassStoreUrl({ costCoins: coinPrice, currentTier, source: "react-payment-pass-store" });
+  const storeUrl = checkoutEntry.buildPassStoreUrl({ plan: toText(options.passStorePlan), costCoins: coinPrice, currentTier, source: "react-payment-pass-store" });
   if (storeUrl) {
     checkoutEntry.rememberCheckoutReturn({
       url: `${window.location.pathname}${window.location.search}${window.location.hash}`,
@@ -1159,13 +1160,18 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 🔴 결제창 문구는 셸·독립 정적과 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
   // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
   const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
-  const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} ${passBadgeLabel}` : passBadgeLabel;
-  const passStoreTitle = hasActivePassTier
-    ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
-    : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
-  const passStoreHint = hasActivePassTier
-    ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
-    : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
+  const familyPassStore = toText(opts.passStorePlan).toLowerCase() === "family";
+  const passLabel = familyPassStore ? "Family 이용권" : (hasActivePassTier ? `${passTier.toUpperCase()} ${passBadgeLabel}` : passBadgeLabel);
+  const passStoreTitle = familyPassStore
+    ? "Family 이용권으로 열기"
+    : hasActivePassTier
+      ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
+      : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
+  const passStoreHint = familyPassStore
+    ? "영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용할 수 있어요. 이미 Family라면 눌러서 확인해 주세요."
+    : hasActivePassTier
+      ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
+      : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
   // 한도 라벨은 등급을 실제로 아는 경우에만 덧붙인다. 미보유(=한도 미상)일 때 붙이면
   // "…바로 확인됩니다. 플랜별 기준 확인" 처럼 의미 없는 꼬리가 남는다.
   const passLimitHint = hasActivePassTier ? formatMembershipPassLimitLabel(passTier, passLimit) : "";
@@ -1583,7 +1589,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이용권 월 한도를 모두 사용했어요. 만료일까지 등급과 프로필 상한은 유지되며, 추가 콘텐츠는 단건 결제나 월정석으로 이용할 수 있어요."), true);
             return;
           }
-          setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
+          setStatus(familyPassStore ? "Family 이용권이 필요해 이용권 상점으로 이동합니다." : "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
           leavingForPassStore = true;
           close("cancel");
           openMembershipPassStore(coinPrice, passTier, passCheckFeatureKey, opts);
@@ -2308,7 +2314,9 @@ export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): Snapsho
   //    서버 정본은 isPassExcludedPricing 하나이고 그 판정이 라우트 안에 있어 여기서 볼 수 없었다.
   //    가격이 호출부 인자로만 오던 동안에는 이 구멍이 드러나지 않았는데, 이제 featureKey 만으로도
   //    가격이 풀리므로 "featureKey 만 넘기는 호출부 = 이용권 무료 통과" 가 될 수 있다. 미리 막는다.
-  const passExcluded = resolveServerFeaturePricing(input)?.passExcluded === true;
+  const resolvedPricing = resolveServerFeaturePricing(input);
+  const passExcluded = resolvedPricing?.passExcluded === true;
+  const familyPassOnly = resolvedPricing?.familyPassOnly === true;
   const passDisabled = passExcluded || input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
   const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
   const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
@@ -2321,11 +2329,12 @@ export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): Snapsho
   const knownCoinCost = resolveKnownCoinCost(input, null);
   const verdict = passVerdict.resolveVerdict(snapshot, knownCoinCost);
   const usable = !explicitPaymentMode && !passDisabled && knownCoinCost > 0 && Boolean(snapshot);
+  const nonFamilySnapshot = familyPassOnly && snapshot?.state === "active" && snapshot.tier !== "family";
   return {
     snapshot,
     passLimit: verdict.passLimit,
-    coversNow: Boolean(usable && verdict.coversNow),
-    cannotCover: Boolean(usable && verdict.cannotCover),
+    coversNow: Boolean(usable && !nonFamilySnapshot && verdict.coversNow),
+    cannotCover: Boolean(usable && (nonFamilySnapshot || verdict.cannotCover)),
   };
 }
 
@@ -2460,8 +2469,8 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     // 재시도를 안내하는 편이 낫다(사용자가 3,000원인 줄 알고 눌렀는데 3,900원이 청구된다).
     if (appAmountKRW === null) {
       return nativeAppStoreFailure(
-        "APP_STORE_PRICE_UNAVAILABLE",
-        "앱 결제 금액을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        "APP_SKU_NOT_VERIFIED",
+        "Google Play 판매를 준비하고 있습니다. 웹에서 Family 이용권 또는 단건 결제를 이용해 주세요.",
       );
     }
     // Play 최저가를 밑도는 저가 콘텐츠는 앱에서 무료다 — 결제창을 띄우지 않는다.
@@ -2513,6 +2522,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       equalPriorityMethods: runtimePaymentOptions.equalPriorityMethods,
       recommendedMethods: runtimePaymentOptions.recommendedMethods,
       allowedPaymentModes: input.allowedPaymentModes,
+      passStorePlan: input.passStorePlan,
       /* 🔴 결제 전 화면 상태. 여기서 넘기지 않으면 티켓에 안 실리고, 모바일 PG 리다이렉트로 돌아온
          사용자는 결제만 끝난 채 기능이 닫혀 있다 — React 경로 전체가 이 한 줄이 없어 막혀 있었다.
          레거시 런타임(js/destiny-profile.js)이 opts.resume 을 그대로 복귀 티켓에 싣는다. */
@@ -3190,6 +3200,7 @@ function resolvePaidFeatureInFlightKey(input: {
   payloadHash?: string;
   paymentMode?: string;
   allowedPaymentModes?: string[];
+  passStorePlan?: string;
   disablePassFirst?: boolean;
   disablePassChoice?: boolean;
   skipPassProbe?: boolean;
@@ -3207,6 +3218,7 @@ function resolvePaidFeatureInFlightKey(input: {
     ["purchase", input.purchaseId || input.idempotencyKey || input.orderId],
     ["payload", input.payloadHash],
     ["paymentModes", Array.isArray(input.allowedPaymentModes) ? input.allowedPaymentModes.join(",") : ""],
+    ["passStorePlan", input.passStorePlan],
     ["disablePassFirst", input.disablePassFirst === true ? "1" : ""],
     ["disablePassChoice", input.disablePassChoice === true ? "1" : ""],
     ["skipPassProbe", input.skipPassProbe === true ? "1" : ""],
@@ -4903,6 +4915,7 @@ export async function purchaseFeature(input: {
   forceDeduct?: boolean;
   paymentMode?: string;
   allowedPaymentModes?: string[];
+  passStorePlan?: string;
   disablePassFirst?: boolean;
   disablePassChoice?: boolean;
   skipPassProbe?: boolean;

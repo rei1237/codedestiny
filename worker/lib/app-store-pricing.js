@@ -70,13 +70,21 @@ const CONTENT_TIER_TABLE = Object.freeze([
 // 동일하다(canUseByPass 가 코인으로 판정하므로). 월 이용 한도는 앱 SKU 필드로는 노출하지
 // 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
 const PASS_TIER_TABLE = Object.freeze([
-  ...Object.keys(CURRENT_PASS_PLANS).map(tier => { const p = currentPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
+  // Family v3는 Play Console SKU 검증 전까지 코드 가격표에도 만들지 않는다. 웹 offer만 판매 가능하다.
+  ...Object.keys(CURRENT_PASS_PLANS).filter(tier => tier !== "family").map(tier => { const p = currentPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
   ...Object.keys(PRIOR_PASS_PLANS).map(tier => { const p = priorPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 9900, webAmountKRW: 9900, coinLimit: 50 },
   { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 29900, webAmountKRW: 29900, coinLimit: 100 },
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 59000, webAmountKRW: 59000, coinLimit: 200 },
   { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 149000, webAmountKRW: 149000, coinLimit: null },
 ]);
+
+// 웹에는 존재하지만 Play Console SKU를 아직 만들지 않은 가격대. 네이티브 결제는 대체 SKU로
+// 내리지 않고 APP_SKU_NOT_VERIFIED로 실패 폐쇄한다.
+export const APP_UNVERIFIED_CONTENT_COIN_PRICES = Object.freeze([500]);
+export function isAppUnverifiedContentCoinPrice(value) {
+  return APP_UNVERIFIED_CONTENT_COIN_PRICES.includes(Math.floor(Number(value)));
+}
 
 const CONTENT_TIER_BY_COIN_PRICE = (() => {
   const map = new Map();

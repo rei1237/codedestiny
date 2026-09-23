@@ -195,7 +195,7 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
  *
  * @returns {Promise<{refunded:boolean, amount?:number, skipped?:boolean, reason?:string}>}
  */
-export async function refundPassCoverage({ userId, cycleKey, cost, refundId, db = nativeDb }) {
+export async function refundPassCoverage({ userId, cycleKey, cost, refundId, restorePass = null, db = nativeDb }) {
   const amount = Math.max(0, Math.floor(Number(cost) || 0));
   const key = String(cycleKey || "").trim();
   if (!userId || amount <= 0 || !key || !refundId) return { refunded: false, skipped: true };
@@ -206,6 +206,27 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, db 
   const result = await db.transaction(async tx => {
     const receipt = await tx.findOne(PointHistory, { _id: receiptId, userId: uid });
     if (receipt) return { refunded: true, idempotent: true, amount: receipt.metadata.amount };
+    const current = restorePass ? await tx.findOne(User, { _id: uid }) : null;
+    const sub = current?.profileSubscription && typeof current.profileSubscription === "object" ? current.profileSubscription : {};
+    const restoreExpiry = restorePass?.expiresAt ? new Date(restorePass.expiresAt) : null;
+    const exhaustedFrom = sub.passExhaustedFromExpiresAt ? new Date(sub.passExhaustedFromExpiresAt) : null;
+    const shouldRestore = Boolean(restorePass && restoreExpiry && Number.isFinite(restoreExpiry.getTime()) && restoreExpiry.getTime() > Date.now()
+      && exhaustedFrom && Number.isFinite(exhaustedFrom.getTime()) && exhaustedFrom.toISOString() === key
+      && String(sub.premiumUseCycleKey || "") === key);
+    const restoreSet = shouldRestore ? {
+      "profileSubscription.tier": String(restorePass.tier || "family"),
+      "profileSubscription.passTier": String(restorePass.tier || "family"),
+      "profileSubscription.expiresAt": restoreExpiry,
+      "profileSubscription.profileLimit": Math.max(0, Number(restorePass.profileLimit || 0)),
+      "profileSubscription.maxCoveredCoin": Math.max(0, Number(restorePass.maxCoveredCoin || 0)),
+      "profileSubscription.freeLimit": Math.max(0, Number(restorePass.maxCoveredCoin || 0)),
+      "profileSubscription.passLimit": Math.max(0, Number(restorePass.maxCoveredCoin || 0)),
+      "profileSubscription.monthlyLimitCoin": Math.max(0, Number(restorePass.monthlyLimitCoin || 0)),
+      "profileSubscription.passPolicyVersion": String(restorePass.passPolicyVersion || sub.passPolicyVersion || ""),
+      "profileSubscription.passExhaustedAt": null,
+      "profileSubscription.passExhaustedFromExpiresAt": null,
+      "profileSubscription.updatedAt": new Date(),
+    } : {};
     const updated = unwrapUser(await tx.findOneAndUpdate(
     User,
     {
@@ -213,7 +234,7 @@ export async function refundPassCoverage({ userId, cycleKey, cost, refundId, db 
       "profileSubscription.premiumUseCycleKey": key,
       "profileSubscription.monthlySpendCoin": { $gte: amount },
     },
-    { $inc: { "profileSubscription.monthlySpendCoin": -amount } },
+    { $inc: { "profileSubscription.monthlySpendCoin": -amount }, ...(shouldRestore ? { $set: restoreSet } : {}) },
     { returnDocument: "after" },
   ));
     if (!updated) return { refunded: false, skipped: true, reason: "PASS_QUOTA_CYCLE_MISMATCH_OR_INSUFFICIENT" };

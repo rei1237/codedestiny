@@ -10,10 +10,10 @@ const CHAPTER_RESERVE_MS = 105000; // existing 90s provider deadline + DB commit
 const MAX_REQUESTS = 3;
 
 export function abandonedRequestFilter(now) {
-  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},paymentId:{$ne:null},
+  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:'FAMILY',passEvidenceId:{$ne:null}}],
     updatedAt:{$lt:new Date(now-ABANDONED_MS)},
     errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
-    $or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]};
+    $and:[{$or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]}]};
 }
 
 // Existing ten-minute recovery tick. Original immutable input, chapter lease and

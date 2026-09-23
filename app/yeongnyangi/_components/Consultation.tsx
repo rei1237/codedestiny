@@ -130,7 +130,7 @@ export default function Consultation(){
    <aside className={styles.consultationGuide} aria-label="선택한 상담 요약">
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="반갑게 맞이하는 영냥이"/>
     <h2>네 이야기에,<br/>작은 달빛 하나.</h2><p>한 번에 답을 찾으려 하지 않아도 돼.<br/>함께 살펴볼 흐름부터 골라보자.</p>
-    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{kind.label} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>단건 결제</dt><dd>{product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{kind.label} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>이용 방식</dt><dd>Family 이용권 또는 단건 결제 · {product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>계산은 운세 체계가,<br/>해설은 영냥이가 함께해.</p>
     <details className={styles.predictionRecords}><summary>두 대통령 적중 기록 원문 보기</summary><p>10년 경력 명리학자가 남긴 공개 해석 기록. 블로그 게시일과 원문을 직접 살펴보세요.</p><ul>{predictionRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer">{record.date} · {record.title}</a></li>)}</ul></details>
    </aside>
@@ -153,7 +153,7 @@ export default function Consultation(){
    <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
   </button>)}</div>
    <details className={styles.manifestPreview}><summary>{kind.label} · {preview.length}개 챕터 목차</summary><ol>{preview.map(chapter=><li key={chapter.id}>{chapter.title}</li>)}</ol></details>
-   <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>
+   <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · Family 이용권 또는 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>
    <p>선택한 운세의 계산 결과를 바탕으로 AI가 해설해요. 선택을 돕는 참고 자료이며 미래를 확정하지 않아요.</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
    <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?'상담 준비 중':guest?'로그인하고 상담 이어가기':'결제 내용 확인하기'}<ArrowRight size={18} aria-hidden="true"/></button>

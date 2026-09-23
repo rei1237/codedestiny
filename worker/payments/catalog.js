@@ -19,6 +19,7 @@ import {
   PAID_FEATURE_BILLING_TYPES,
   PIG_COIN_UNLOCK_PRODUCTS,
   getPaidFeatureBillingType,
+  isDirectOrFamilyPaidFeatureKey,
   isDirectOnlyPaidFeatureKey,
   normalizePaidFeatureKey,
   resolveFeatureReasonCost,
@@ -104,6 +105,7 @@ export function resolveProduct(input = {}) {
 
   // direct_only(등록소 paymentScope): 이용권도 월정석도 불가, 단건 결제만. passExcluded 를 함께 켠다.
   const directOnly = isDirectOnlyPaidFeatureKey(canonicalFeatureKey);
+  const familyPassOnly = isDirectOrFamilyPaidFeatureKey(canonicalFeatureKey);
   return Object.freeze({
     productId: found.productId,
     featureKey: canonicalFeatureKey,
@@ -114,6 +116,9 @@ export function resolveProduct(input = {}) {
     label: String(found.spec.reason || "").trim(),
     passExcluded: PASS_EXCLUDED_SET.has(canonicalFeatureKey) || directOnly,
     directOnly,
+    familyPassOnly,
+    monthlyExcluded: directOnly || familyPassOnly,
+    allowedPaymentMethods: Object.freeze(familyPassOnly ? ["FAMILY", "DIRECT_KRW"] : directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"]),
   });
 }
 

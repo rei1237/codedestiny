@@ -66,6 +66,19 @@ test("같은 요청을 재호출해도 영속 영수증으로 이중 환불되�
   expect(db.rows[0].profileSubscription.monthlySpendCoin).toBe(0);
 });
 
+test("마지막 사용으로 조기 종료된 Family도 무결과 환급과 같은 트랜잭션에서 복구한다", async () => {
+  const db = makeFakePaymentDb();
+  const user=seed(db, { monthlySpendCoin: 5000 });
+  Object.assign(user.profileSubscription, {tier:"free",passTier:"",expiresAt:new Date("2026-09-23T00:00:00.000Z"),
+    passExhaustedAt:new Date("2026-09-23T00:00:00.000Z"),passExhaustedFromExpiresAt:new Date(CYCLE_KEY),monthlyLimitCoin:0,maxCoveredCoin:0});
+  const result=await refundPassCoverage({userId:USER,refundId:"terminal-empty",cycleKey:CYCLE_KEY,cost:500,db,
+    restorePass:{tier:"family",expiresAt:CYCLE_KEY,monthlyLimitCoin:5000,profileLimit:0,maxCoveredCoin:999999999,passPolicyVersion:"flower-cost-20260921"}});
+  expect(result).toMatchObject({refunded:true,amount:500});
+  expect(user.profileSubscription).toMatchObject({tier:"family",passTier:"family",monthlySpendCoin:4500,monthlyLimitCoin:5000,
+    profileLimit:0,maxCoveredCoin:999999999,passPolicyVersion:"flower-cost-20260921",passExhaustedAt:null,passExhaustedFromExpiresAt:null});
+  expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(CYCLE_KEY);
+});
+
 test("other usage remains intact after a repeated refund with sufficient balance", async () => {
   const db = makeFakePaymentDb();
   seed(db, { monthlySpendCoin: 1200 });

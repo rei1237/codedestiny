@@ -6,7 +6,8 @@ import { listProducts, resolveProduct } from "../payments/catalog.js";
 export function listPassCostProducts(plan) {
   const products = new Map();
   const add = (product) => {
-    if (!product.passExcluded && !product.directOnly && product.priceCoins > 0 && product.priceCoins <= plan.maxCoveredCoin) {
+    const tierAllowed = !product.familyPassOnly || plan?.tier === "family";
+    if (tierAllowed && !product.passExcluded && !product.directOnly && product.priceCoins > 0 && product.priceCoins <= plan.maxCoveredCoin) {
       products.set(product.featureKey, product);
     }
   };

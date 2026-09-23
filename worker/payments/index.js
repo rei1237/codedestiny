@@ -48,7 +48,7 @@ import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFa
 import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
 import { createOperatorAlertSender } from "./fulfillment-alert.js";
 import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } from "./executions.js";
-import { consumePassForFeature } from "../lib/pass-consumption.js";
+import { consumePassForFeature, hasConsumedPassFeature } from "../lib/pass-consumption.js";
 import { sendPendingReceiptEmails } from "./receipt-email.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
 import { canUseForeignCard, narrowToOrderSnapshot } from "./foreign-card-policy.js";
@@ -377,6 +377,7 @@ const PASS_FAILURE_CODES = Object.freeze({
   price_exceeds_pass_limit: "PRICE_EXCEEDS_PASS_LIMIT",
   monthly_pass_limit_exceeded: "MEMBERSHIP_PASS_NOT_COVERED",
   pass_access_conflict: "MEMBERSHIP_PASS_NOT_COVERED",
+  family_pass_required: "MEMBERSHIP_PASS_NOT_ALLOWED",
   no_active_pass: "MEMBERSHIP_PASS_NOT_COVERED",
   invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
 });
@@ -388,6 +389,7 @@ const PASS_FAILURE_CODES = Object.freeze({
 const PASS_FAILURE_MESSAGES = Object.freeze({
   monthly_pass_limit_exceeded: "이번 이용권의 남은 한도로는 이 서비스를 열 수 없습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
+  family_pass_required: "이 상품은 Family 이용권 또는 원화 단건 결제로 이용해 주세요.",
 });
 
 function passFailureCode(reason) {
@@ -406,6 +408,7 @@ function passFailureMessage(reason) {
 const PASS_DECISION_REASONS = Object.freeze({
   monthly_pass_limit_exceeded: "MONTHLY_PASS_LIMIT_EXCEEDED",
   price_exceeds_pass_limit: "PRICE_EXCEEDS_PASS_LIMIT",
+  family_pass_required: "FAMILY_PASS_REQUIRED",
 });
 
 function passDecisionReason(reason) {
@@ -1248,15 +1251,19 @@ const ROUTES = {
       const profileId = String(body.profileId || body.selectedProfileId || "").trim();
       let billingType = "per_use";
       let directOnly = false;
+      let familyPassOnly = false;
       try {
         const catalogItem = resolveProduct({ featureKey: product.featureKey });
         billingType = String(catalogItem.billingType || "per_use");
         directOnly = catalogItem.directOnly === true;
+        familyPassOnly = catalogItem.familyPassOnly === true;
       } catch { billingType = "per_use"; }
-      // direct_only(영냥이) 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 directOnly 하나. 구 coin-gate
+      // direct_only/direct_or_family 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 범위 필드다. 구 coin-gate
       // MONTHLY 요청은 worker/index.js 가 여기로 재작성하므로 이 자리가 실제 관문이다.
-      if (directOnly) {
-        throw paymentError("DIRECT_ONLY_PAYMENT_REQUIRED", "이 상품은 단건 결제로만 이용할 수 있습니다.", { featureKey: product.featureKey });
+      if (directOnly || familyPassOnly) {
+        throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : "FAMILY_OR_DIRECT_PAYMENT_REQUIRED",
+          directOnly ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요.",
+          { featureKey: product.featureKey, familyPassOnly });
       }
       const unlock = billingType !== "per_use";
 
@@ -1377,11 +1384,13 @@ const ROUTES = {
       let billingType = "per_use";
       let passExcluded = false;
       let directOnly = false;
+      let familyPassOnly = false;
       try {
         const catalogItem = resolveProduct({ featureKey: product.featureKey });
         billingType = String(catalogItem.billingType || "per_use");
         passExcluded = catalogItem.passExcluded === true;
         directOnly = catalogItem.directOnly === true;
+        familyPassOnly = catalogItem.familyPassOnly === true;
       } catch { /* 카탈로그 미등재는 아래 일반 경로로 */ }
       if (passExcluded) {
         const message = directOnly
@@ -1398,6 +1407,11 @@ const ROUTES = {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
         const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins });
+
+        if (familyPassOnly && String(entitlement?.passTier || entitlement?.tier || "").toLowerCase() !== "family") {
+          const replayed = await hasConsumedPassFeature(user, product.featureKey, requestId, db);
+          if (!replayed) return { coverage: { ...coverage, covered: false, reason: "family_pass_required" }, entitlement, user };
+        }
 
         if (!unlock) {
           const consumed = await consumePassForFeature({ db, user, entitlement, userId,

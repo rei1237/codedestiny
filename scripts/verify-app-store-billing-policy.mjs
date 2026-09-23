@@ -148,7 +148,7 @@ check(
 );
 check(
   "앱 표시 금액을 확인 못 하면 결제창을 열지 않는다 (fail-closed)",
-  runtimePaymentFn.includes("APP_STORE_PRICE_UNAVAILABLE"),
+  runtimePaymentFn.includes("APP_SKU_NOT_VERIFIED"),
 );
 check(
   "결제 가드가 없으면 결제를 열지 않는다 (PortOne 누출 차단)",

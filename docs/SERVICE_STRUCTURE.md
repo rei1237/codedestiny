@@ -3,7 +3,7 @@
 ## 초융합 운세 경계
 
 - 초융합 운세는 여섯 어댑터를 명시적으로 각각 한 번 실행하는 내부 전용 builder와 KST 일일 성공 한도(선착순 100)를 사용한다.
-- 과금은 표준 회당 결제 `fusion-fortune-consultation`(300코인 · 30,000원)이며 전용 재화는 없다. 증빙은 `requestId` 에 묶여, 생성이 실패한 결제 사용자가 같은 id 로 추가 결제 없이 재시도한다.
+- 과금은 표준 회당 결제 `fusion-fortune-consultation`(500코인 · 50,000원)이며 전용 재화는 없다. Family 이용권 또는 단건 결제만 허용하며, 증빙은 `requestId` 에 묶여 생성이 실패한 결제 사용자가 같은 id 로 추가 결제 없이 재시도한다.
 - 본문은 4그룹 병렬 생성으로 20,000자 이상을 만들고, 계약(섹션 분량·타로 환각·개인정보)을 통과한 뒤에만 daily limit 을 commit한다. 테스트는 mock을 사용하며 운영 Gemini 실패 시에도 실제 계산 컨텍스트를 사용한 체계별 장문 fallback만 제공한다.
 - 프론트는 신규 `fusion-guardian-celestial-hero.webp`를 우선 로드하고, 연결 오브·입자·진행률·카드 테두리는 CSS/SVG로 렌더링한다. 긴 결과 섹션은 `content-visibility`와 접힘 UI로 모바일 렌더 비용을 줄인다.
 

@@ -21,6 +21,8 @@ import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider, validateChapter } from './providers/chapter';
 import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId } from './repository.js';
 
+const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
+
 export function providerReady(env: Record<string, unknown>) {
   return Boolean(getEnv(env,'GEMINIF_API_KEY')) && getEnv(env,'LLM_DRY_RUN') !== 'true';
 }
@@ -78,7 +80,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({productId:product.id,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
+  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
   const id=await digest({userId,fingerprint});
   // Deterministic intent also survives losing all browser storage and returning with the same inputs.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
@@ -113,7 +115,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){
   if(body.mode==='horary-v1')throw new FortuneError('HORARY_FREE_PROMPT_REQUIRED');
   const input=validateSkyInput(body);
-  const fingerprint=await digest({input,version:'question-sky-flounder-2'});
+  const product=getProduct('saju_flounder');
+  const fingerprint=await digest({input,priceKRW:product.priceKRW,version:'question-sky-flounder-2'});
   const id=await digest({userId,fingerprint});
   await connectDb(env);
   // Existing paid or partial snapshots always win, even when a provider is down
@@ -122,7 +125,6 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
   const moment=skyMoment(input);
   const calculated=await calculateQuestionSky(env,input,moment);
-  const product=getProduct('saju_flounder');
   product.manifestVersion=READING_V5_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);
   const clock=consultationClock(moment.timezone,moment.date);
   const context=calculated.context;
@@ -142,7 +144,8 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
 
 export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string) {
   const request=await readRequest(env,userId,requestId);
-  const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW));
+  const currentProduct=getProduct(request.productId);
+  const row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,request.amountKRW),{currentAmountKRW:currentProduct.priceKRW});
   await enqueueConsultation(env,row);
   return row;
 }
@@ -178,8 +181,8 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 export function presentFortune(row: any) {
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
-    charts:!symbolic && row.paymentId && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
-    paid:Boolean(row.paymentId),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
+    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
+    paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

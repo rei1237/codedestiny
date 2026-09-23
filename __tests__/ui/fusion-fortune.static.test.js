@@ -22,12 +22,14 @@ test("fusion fortune renders the premium flow and optimized hero asset", () => {
 
 test("fusion fortune charges through the shared coin gate, not its own PortOne flow", () => {
   const client = read(CLIENT);
-  // 전용 상담권을 폐지하고 표준 회당 결제로 옮겼다(300코인 = 30,000원).
+  // 전용 상담권을 폐지하고 표준 회당 결제로 옮겼다(500코인 = 50,000원).
   assert.match(client, /PAID_FEATURE_KEY = "fusion-fortune-consultation"/);
   assert.match(client, /useCoinGate/);
   assert.match(client, /ensurePaidAccess/);
   // 결제 게이트와 생성이 같은 requestId 를 써야 증빙이 잡힌다.
   assert.match(client, /paidRequestIdRef/);
+  assert.match(client, /Family 이용권 또는 단건 결제만 이용할 수 있어요/);
+  assert.match(client, /Standard·Premium·VVIP와 월정석은 적용되지 않습니다/);
   // 페이지 전용 결제창을 되살리지 말 것 — 공용 게이트만 이용권 카드를 띄운다.
   assert.doesNotMatch(client, /cdn\.portone\.io/);
   assert.doesNotMatch(client, /fusion_fortune_ticket_1/);
@@ -155,7 +157,7 @@ test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
 test("fusion hero states the raised length contract", () => {
   const client = read(CLIENT);
   const prompt = read("worker/lib/fusion-fortune-prompt.js");
-  // 30,000원으로 오른 만큼 분량 계약도 함께 올렸다. 화면 문구와 서버 계약이 어긋나면 안 된다.
+  // 50,000원 상품의 분량 계약이 화면 문구와 서버 계약에서 어긋나면 안 된다.
   assert.match(client, /30,000자 이상/);
   assert.doesNotMatch(client, /20,000자 이상|10,000~15,000자/);
   assert.match(prompt, /total: Object\.freeze\(\{ min: 30000/);
@@ -177,7 +179,7 @@ test("fusion fortune production switches enable the approved live flow and keep 
 test("family shop copy states the real fusion coverage", () => {
   const points = read("app/points/PointsClient.tsx");
   const html = read("index.html");
-  // family 는 초융합(30,000원)을 커버한다 — 건당 상한이 없는 유일한 등급이기 때문이다.
+  // family 는 초융합(50,000원)을 커버한다 — 건당 상한이 없는 유일한 등급이기 때문이다.
   // "별도 상담권"·"초융합 제외"는 사실과 다르고, 2026-08-24 부터 "포함 횟수"도 사실이 아니다
   // (PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 가 빈 표 = 횟수 제도 폐지). 남은 제약은 월 이용 한도뿐.
   assert.match(points, /초융합 심층 리딩까지 이용권으로/);
@@ -306,7 +308,7 @@ test("a paid request survives a page reload so nobody is charged twice", () => {
 
   // 🔴 결제 증빙 id 가 메모리에만 있으면, 멈춤 화면을 본 사용자가 새로고침하는 순간 id 가
   //    사라지고 다음 제출이 **새 id 로 결제를 한 번 더** 요청한다. 서버는 requestId 로만
-  //    증빙을 찾으므로(findPaidPayment) 잃어버린 id 의 30,000원은 회수할 방법이 없다.
+  //    증빙을 찾으므로(findPaidPayment) 잃어버린 id 의 50,000원은 회수할 방법이 없다.
   // 보관은 lib/fusion-paid-request-store.js 가 맡는다 — 화면과 검증기가 같은 코드를 쓰게 하려고
   // 분리했다(scripts/verify-fusion-fortune-retry-payload.mjs 가 그 모듈을 실제로 구동한다).
   assert.match(client, /from "@\/lib\/fusion-paid-request-store"/);

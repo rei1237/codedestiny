@@ -4,7 +4,7 @@
  * 영냥이(SoulCat) 결제 증빙 조회·소비 라우트 — Service Binding 계약.
  *
  * SoulCat 은 결제 경로가 없고 CD `/checkout/` 단건 결제 증빙(Payment 행)만 읽는다. 여기서 고정하는 것:
- *   ① `yeongnyangi-` 접두의 direct_only 상품 키만 받는다(다른 상품 증빙 노출 금지)
+ *   ① `yeongnyangi-` 접두의 direct_only/direct_or_family 상품 키만 받는다(다른 상품 증빙 노출 금지)
  *   ② GET 은 본인 소유·결제 완료·미소비 행만 돌려준다(GIFT·pending·소비됨 제외)
  *   ③ POST 소비는 원자적이고 같은 requestId 재요청은 멱등, 다른 requestId 는 409 ALREADY_CONSUMED
  * 🔴 mock 은 DB 어댑터뿐이다 — 판정은 실제 라우트가 돌린다.

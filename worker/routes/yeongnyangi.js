@@ -18,6 +18,10 @@ const messages={
   QUESTION_REQUIRED:'궁금한 이야기를 남겨 주세요.',
   GENERATION_QUEUE_UNAVAILABLE:'상담 재개를 접수하지 못했어요. 잠시 후 같은 상담에서 다시 시도해 주세요.',
   PAYMENT_NOT_ACTIVE:'결제 또는 환불 상태 확인이 필요해요. 다시 결제하지 말고 결제 내역을 확인해 주세요.',
+  FAMILY_OR_DIRECT_PAYMENT_REQUIRED:'영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용해 주세요.',
+  MONTHLY_PASS_LIMIT_EXCEEDED:'Family 이용권의 누적 한도를 모두 사용했어요. 이번 상담은 단건 결제로 이용해 주세요.',
+  PASS_QUOTA_RESTORED:'상담 결과가 저장되지 않아 Family 이용 한도를 복구했어요.',
+  PRICE_CHANGED:'상담 가격이 변경되었어요. 상담 선택 화면에서 50,000원 가격을 확인한 뒤 다시 시작해 주세요.',
   HORARY_FREE_PROMPT_REQUIRED:'호라리는 무료 프롬프트 화면에서 이용해 주세요.',
   QUESTION_LOCATION_REQUIRED:'위치 사용에 동의하거나 질문 당시 도시를 선택해 주세요.',
   QUESTION_SKY_INPUT:'5자 이상 질문(최대 8개), 주제와 질문자 도시를 확인해 주세요.',
@@ -46,6 +50,7 @@ const messages={
   "INVALID_CATEGORY": "선택한 무료 운세를 찾지 못했어요. 목록에서 다시 골라 주세요.",
   "FREE_READING_PENDING": "영냥이가 같은 이야기를 정리하고 있어요. 잠시 후 다시 확인해 주세요."
 };
+const hasRequestAccess=row=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
 
 export async function handleYeongnyangiRoutes(request, env) {
   try {
@@ -96,10 +101,10 @@ export async function handleYeongnyangiRoutes(request, env) {
       }
       const queryStart=performance.now();
       const rows=await withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),...before})
-        .select('_id productId state paymentId createdAt completedAt snapshot.product snapshot.analysis.consultation.consultationKind snapshot.analysis.consultation.kindLabel completedChapters errorCode').sort({createdAt:-1,_id:-1}).limit(31).maxTimeMS(4000).lean(),{retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true});
+        .select('_id productId state paymentId accessMethod passEvidenceId createdAt completedAt snapshot.product snapshot.analysis.consultation.consultationKind snapshot.analysis.consultation.kindLabel completedChapters errorCode').sort({createdAt:-1,_id:-1}).limit(31).maxTimeMS(4000).lean(),{retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true});
       const page=rows.slice(0,30),last=page.at(-1);
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
-        fortunes:page.map(row=>({id:row._id,product:row.snapshot.product,state:row.state,paid:Boolean(row.paymentId),completedChapters:row.completedChapters,createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
+        fortunes:page.map(row=>({id:row._id,product:row.snapshot.product,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
     const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate))?$/);
     if(!match) return notFound();

@@ -2,7 +2,7 @@
  * @jest-environment node
  *
  * 연이 운명 상담(fortune-chat-consultation, 현재 3,000원/30코인)과 초융합 운세
- * (fusion-fortune-consultation, 30,000원)는 전용 재화를 버리고 표준 회당 결제로 옮겼다.
+ * (fusion-fortune-consultation, 50,000원)는 전용 재화를 버리고 표준 회당 결제로 옮겼다.
  * 두 기능은 verifyPerUsePayment 를 **실제 차단**에 쓰는 첫 사례라, 증빙 5경로가 전부
  * 통과하는지와 DB 장애가 402 로 세탁되지 않는지를 여기서 못 박는다.
  *
@@ -117,7 +117,7 @@ describe("회당 결제 증빙 — 5경로", () => {
 
   it("월정석 차감은 accessType 으로 구분한다", async () => {
     pointHistoryFindOne.mockReturnValue(query({ _id: "ph-2", metadata: { accessType: "membership_credit" } }));
-    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))
       .resolves.toMatchObject({ proven: true, source: "monthly" });
   });
 
@@ -127,11 +127,11 @@ describe("회당 결제 증빙 — 5경로", () => {
       _id: "ledger-1",
       userId: USER_ID,
       type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FUSION_FEATURE_KEY,
+      serviceKey: CHAT_FEATURE_KEY,
       sourceId: REQUEST_ID,
       settledAt: new Date(),
     }));
-    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))
       .resolves.toMatchObject({ proven: true, source: "monthly" });
   });
 
@@ -141,16 +141,16 @@ describe("회당 결제 증빙 — 5경로", () => {
       _id: "ledger-2",
       userId: USER_ID,
       type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FUSION_FEATURE_KEY,
+      serviceKey: CHAT_FEATURE_KEY,
       sourceId: REQUEST_ID,
     }));
-    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: CHAT_FEATURE_KEY, coinPrice: 50, requestId: REQUEST_ID }))
       .resolves.toMatchObject({ proven: false, reason: "NO_RECORD" });
   });
 
   it("admin 은 차감 기록 없이 통과한다", async () => {
     userFindById.mockReturnValue(query({ _id: USER_ID, role: "admin" }));
-    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 500, requestId: REQUEST_ID }))
       .resolves.toMatchObject({ proven: true, source: "admin" });
   });
 });
@@ -177,7 +177,7 @@ describe("이용권 커버 — 가격에 따라 등급이 갈린다", () => {
     if (covered) expect(proof.source).toBe("pass");
   });
 
-  // 초융합 300코인(30,000원): 적용 가격 범위는 standard 50 / premium 100 / vvip 200 이라
+  // 초융합 500코인(50,000원): 적용 가격 범위는 standard 50 / premium 100 / vvip 200 이라
   // **family 만** 통과한다. 2026-08-24 에 '상담 포함횟수'(vvip 3회)가 폐지되면서 vvip 도 미커버가
   // 됐다 — VVIP 문구 "2만원급 콘텐츠까지"를 문자 그대로 지키기 위한 교환이다.
   it.each([
@@ -185,9 +185,9 @@ describe("이용권 커버 — 가격에 따라 등급이 갈린다", () => {
     ["premium", false],
     ["vvip", false],
     ["family", true],
-  ])("초융합 30,000원 — %s 이용권 커버=%s", async (tier, covered) => {
+  ])("초융합 50,000원 — %s 이용권 커버=%s", async (tier, covered) => {
     userFindById.mockReturnValue(query(activePass(tier)));
-    const proof = await verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID });
+    const proof = await verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 500, requestId: REQUEST_ID });
     expect(proof.proven).toBe(covered);
     if (covered) expect(proof.source).toBe("pass");
   });
@@ -220,7 +220,7 @@ describe.each([
   it("옛 카운터가 0이든 999든 판정이 달라지지 않는다(횟수 개념 부활 감지)", async () => {
     for (const count of [0, 3, 10, 999]) {
       userFindById.mockReturnValue(query(tierUser(count)));
-      const proof = await verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID });
+      const proof = await verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 500, requestId: REQUEST_ID });
       expect(proof.proven).toBe(covered);
       if (covered) expect(proof.source).toBe("pass");
       else expect(proof.reason).not.toBe("PREMIUM_QUOTA_EXHAUSTED");

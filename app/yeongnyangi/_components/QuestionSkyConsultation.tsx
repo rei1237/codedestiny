@@ -55,7 +55,7 @@ export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
       <p>기억하는 시각을 그대로 적어줘. 시간대는 도시를 기준으로 서버에서 확인하고 저장해. 정확히 기억나지 않으면 임의로 채우지 말고 질문을 새로 정리한 순간을 기준으로 해줘. 출생정보는 필요하지 않아.</p>
       <label htmlFor="sky-situation">이미 알고 있는 상황 (선택)</label><textarea id="sky-situation" rows={3} maxLength={600} value={situation} onChange={e=>setSituation(e.target.value)} placeholder="이름과 주소 대신 네가 알고 있는 상황만 적어줘."/>
       <label><input type="checkbox" checked={boundary} onChange={e=>setBoundary(e.target.checked)}/> 상대가 연락을 거절하거나 차단한 상황이에요</label>
-      <div className={styles.checkoutSection}><h2>상담 내용 확인</h2><p>{free?'전통 서양 호라리 계산과 외부 AI 상담 프롬프트':`${product.fishName} 상담 · ${product.chapterCount}개 이야기와 영냥이의 마무리`}</p><strong>{free?'무료 · 프롬프트 제공':`${product.priceKRW.toLocaleString('ko-KR')}원 · 단건 결제`}</strong><p>{SPIRIT_NOTICE}</p>
+      <div className={styles.checkoutSection}><h2>상담 내용 확인</h2><p>{free?'전통 서양 호라리 계산과 외부 AI 상담 프롬프트':`${product.fishName} 상담 · ${product.chapterCount}개 이야기와 영냥이의 마무리`}</p><strong>{free?'무료 · 프롬프트 제공':`${product.priceKRW.toLocaleString('ko-KR')}원 · Family 또는 단건 결제`}</strong><p>{SPIRIT_NOTICE}</p>
         <button type="submit" disabled={busy||!ready||!available}>{busy?'질문 순간의 결을 살피는 중':free?'무료 호라리 프롬프트 만들기':'결제 내용 확인하기'}</button>
         {!ready&&<p role="status">상담 준비 상태를 확인하고 있어요.</p>}{ready&&!available&&<p>지금은 상담 준비 중이에요. 결제는 진행되지 않아요.</p>}
         {error&&<p role="alert">{error}</p>}

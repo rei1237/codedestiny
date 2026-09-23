@@ -1,6 +1,7 @@
 import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
 import {
+  isDirectOrFamilyPaidFeatureKey,
   isDirectOnlyPaidFeatureKey,
   isPerUsePaidFeatureKey,
   isUnlockPaidFeatureKey,
@@ -122,13 +123,13 @@ function resolveMonthlySubscription(user = {}) {
   };
 }
 
-// direct_only(영냥이) 상품은 월정석·월 구독으로 열 수 없다 — 단건 결제만.
+// direct_only 및 direct_or_family 상품은 월정석·월 구독으로 열 수 없다.
 function canUseMonthlyForFeature(featureKey) {
   const key = cleanText(featureKey);
-  return Boolean(key) && !isDirectOnlyPaidFeatureKey(key);
+  return Boolean(key) && !isDirectOnlyPaidFeatureKey(key) && !isDirectOrFamilyPaidFeatureKey(key);
 }
 
-// direct_only 는 이용권 제외를 포함한다(이용권도 월정석도 불가).
+// direct_only 는 이용권 제외를 포함한다. direct_or_family는 별도 Family 판정에서 다룬다.
 function isPassExcluded(featureCandidates = []) {
   return featureCandidates.some((key) => PASS_EXCLUDED_FEATURE_KEYS.has(cleanText(key)) || isDirectOnlyPaidFeatureKey(key));
 }
@@ -249,8 +250,10 @@ function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
   }
 
   const pass = normalizeHoneyPassEntitlement(user || {});
-  const passExcluded = isPassExcluded(featureCandidates);
   const directLicense = resolveDirectLicense(user || {});
+  const familyPassOnly = featureCandidates.some((key) => isDirectOrFamilyPaidFeatureKey(key));
+  const activeTier = cleanText(directLicense.tier || pass.passTier || pass.tier).toLowerCase();
+  const passExcluded = isPassExcluded(featureCandidates) || (familyPassOnly && activeTier !== "family");
   if (!passExcluded && directLicense.active) {
     return buildDecision({
       allowed: true,

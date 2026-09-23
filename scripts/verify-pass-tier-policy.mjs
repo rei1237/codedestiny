@@ -24,11 +24,13 @@ import { fileURLToPath } from "node:url";
 
 import {
   buildPassTerminationFields,
+  FAMILY_MIN_PASS_COVERABLE_COIN,
   FAMILY_PASS_MAX_COVERED_COIN,
   HONEY_PASS_POLICY,
   isPassBudgetExhausted,
   KRW_PER_COIN,
   MIN_PASS_COVERABLE_COIN,
+  minPassCoverableCoinForTier,
   MONTHLY_PASS_LIMITS,
   MONTHLY_PASS_LIMITS_KRW,
   normalizeHoneyPassEntitlement,
@@ -111,8 +113,8 @@ const PRICE_MATRIX = [
   { priceKRW: 10100, covered: ["vvip", "family"] },
   { priceKRW: 20000, covered: ["vvip", "family"] },
   { priceKRW: 20100, covered: ["family"] },
-  // 초융합 심층 리딩(30,000원) — family 만 커버한다.
-  { priceKRW: 30000, covered: ["family"] },
+  // 초융합 심층 리딩(50,000원) — family 만 커버한다.
+  { priceKRW: 50000, covered: ["family"] },
 ];
 
 for (const row of PRICE_MATRIX) {
@@ -396,10 +398,13 @@ for (const file of localeFiles) {
    (환불 분쟁), 최저가가 올랐는데 그대로면 아무것도 못 여는 이용권이 남는다(원래 문제).
 
    fail-closed: 커버 대상을 하나도 못 뽑으면 통과가 아니라 실패다. */
-const coverablePrices = listProducts()
-  .filter((product) => product.passExcluded !== true && Number(product.priceCoins) > 0)
+const coverableProducts = listProducts()
+  .filter((product) => product.passExcluded !== true && Number(product.priceCoins) > 0);
+const coverablePrices = coverableProducts
+  .filter((product) => product.familyPassOnly !== true)
   .map((product) => Number(product.priceCoins));
-check("이용권 커버 대상 상품을 레지스트리에서 뽑았다", coverablePrices.length >= 50, `실제=${coverablePrices.length}개`);
+const familyCoverablePrices = coverableProducts.map((product) => Number(product.priceCoins));
+check("일반 이용권 커버 대상 상품을 레지스트리에서 뽑았다", coverablePrices.length >= 50, `실제=${coverablePrices.length}개`);
 if (coverablePrices.length) {
   const registryMin = Math.min(...coverablePrices);
   check(
@@ -409,13 +414,23 @@ if (coverablePrices.length) {
     + " worker/lib/profile-limits.js 의 상수를 실측에 맞추고, 문구의 '3,000원' 표기도 함께 본다",
   );
 }
+check("Family v3 Play SKU는 검증 전 미생성", !allAppPasses.some(pass => pass.passPolicyVersion === CURRENT_PASS_POLICY_VERSION && pass.passTier === "family"));
+if (familyCoverablePrices.length) {
+  const registryMin = Math.min(...familyCoverablePrices);
+  check(
+    `FAMILY_MIN_PASS_COVERABLE_COIN 이 Family 대상 최저가 ${registryMin}코인과 같다`,
+    FAMILY_MIN_PASS_COVERABLE_COIN === registryMin,
+    `상수=${FAMILY_MIN_PASS_COVERABLE_COIN}`,
+  );
+}
 
 /* ── ⑦ 소진 경계와 종료 필드 ─────────────────────────────────────────────
    임계는 등급별 건당 상한과 최저가 중 작은 쪽이다(건당 상한이 최저가보다 낮은 등급이
    생기면 그 등급은 잔여가 상한 미만일 때 이미 아무것도 못 연다). */
 for (const tier of TIERS) {
   const budget = MONTHLY_PASS_LIMITS[tier];
-  const threshold = Math.max(1, Math.min(MIN_PASS_COVERABLE_COIN, PASS_LIMITS[tier] || MIN_PASS_COVERABLE_COIN));
+  const tierMinimum = minPassCoverableCoinForTier(tier);
+  const threshold = Math.max(1, Math.min(tierMinimum, PASS_LIMITS[tier] || tierMinimum));
   check(`[${tier}] 안 쓴 이용권은 종료하지 않는다`, isPassBudgetExhausted(tier, 0) === false);
   check(
     `[${tier}] 잔여가 최저가와 같으면 아직 열 수 있다`,
@@ -519,5 +534,5 @@ if (failures.length) {
 console.log(
   "[통과] 이용권 등급 정책 검증 — 4등급 절대값 · 가격 경계 7종 × 4등급 · 월 한도 경계 ·"
   + ` 중앙 설명자 정합 · 하드코딩 사본 5곳 · 문구 금지 표현 · 로케일 사전 ${localeFiles.length}개 × 4등급 카드 문구 ·`
-  + ` 소진 임계 ${MIN_PASS_COVERABLE_COIN}코인(레지스트리 최저가) · 소진 경계 4등급 × 4케이스 · 종료 필드 왕복 · 사전 2곳 ${scannedStrings}문자열 리셋 문구 0건\n`,
+  + ` 소진 임계 일반 ${MIN_PASS_COVERABLE_COIN}코인·Family ${FAMILY_MIN_PASS_COVERABLE_COIN}코인(레지스트리 최저가) · 소진 경계 4등급 × 4케이스 · 종료 필드 왕복 · 사전 2곳 ${scannedStrings}문자열 리셋 문구 0건\n`,
 );

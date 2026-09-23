@@ -70,7 +70,7 @@ const EMPTY_STATUS: Status = {
   message: "",
 };
 
-/** 회당 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js (300코인 = 30,000원). */
+/** 회당 결제 키. 가격 정본은 worker/lib/paid-feature-registry.js (500코인 = 50,000원). */
 /* 체계↔아이콘 짝은 app/_lib/design/iconMap.ts 의 FEATURE_ICON_MAP 과 같은 것을 쓴다.
    그 맵을 직접 import 하지 않는 이유는 숙요 키가 거기서 `sukyo` 라 이 화면의
    FusionSystemKey("sukuyo")와 맞지 않기 때문이다 — 조용히 undefined 가 되는 걸 막는다. */
@@ -87,8 +87,8 @@ const FUSION_SYSTEM_ICONS: Record<FusionSystemKey, DestinyIconName> = {
 };
 
 const PAID_FEATURE_KEY = "fusion-fortune-consultation";
-const PAID_COIN_PRICE = 300;
-const PAID_AMOUNT_KRW = 30000;
+const PAID_COIN_PRICE = 500;
+const PAID_AMOUNT_KRW = 50000;
 
 const DEFAULT_BIRTH_PLACES: BirthPlaceOption[] = [{ label: "대한민국 · 서울", tz: "Asia/Seoul", lon: 126.978, lat: 37.5665, country: "KR" }];
 const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
@@ -98,7 +98,7 @@ const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
  *
  * 🔴 메모리(ref)에만 두면 생성이 멈춘 화면에서 사용자가 새로고침하는 순간 id 가 사라지고,
  * 다음 제출이 **새 id 로 결제를 한 번 더** 요청한다. 서버는 requestId 로만 증빙을 찾으므로
- * (worker/lib/nakshatra-paid-access.js 의 findPaidPayment) 잃어버린 id 에 묶인 30,000원은
+ * (worker/lib/nakshatra-paid-access.js 의 findPaidPayment) 잃어버린 id 에 묶인 50,000원은
  * 회수할 방법이 없다. 결과를 실제로 받은 뒤에만 지운다.
  *
  * 🔴 그리고 id 만으로는 모자란다 — 폼은 새로고침으로 초기값이 되므로, 저장본이 없으면
@@ -422,7 +422,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
   reportPreviewTitle: "The table of contents you actually receive",
   heroFirstCome: "Six-system cross reading",
-  heroPriceFallback: "₩30,000",
+  heroPriceFallback: "₩50,000",
   heroPricePrefix: "per reading ",
   heroWordCount: "30,000+ characters",
   heroSaveNote: "Saved · Reopenable · PDF",
@@ -437,7 +437,7 @@ const FUSION_FORTUNE_EN: FusionFortuneCopy = {
   statusScopeNote: "Reads Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot separately, then cross-reads them at the end.",
   statusMethodLabel: "How it's billed",
   statusMethodValue: "Paid per reading",
-  statusMethodNote: "At checkout you can choose a pass, a one-time payment, or a Moonstone together. Family passes are covered.",
+  statusMethodNote: "Only a Family pass or one-time payment is available. Standard, Premium, VVIP, and Moonstones are not accepted.",
   coreButtonLabel: "See how Fusion Core works",
   formIntroHeading: "Connect all six systems with your exact birth time",
   formIntroDesc: "The information you enter isn't exposed in the result text or the shared summary.",
@@ -559,7 +559,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "타고난 기질과 삶의 흐름", ziwei: "삶의 영역과 시기의 변화", vedic: "행성 주기와 운명의 시간", sukuyo: "관계와 인연의 리듬", astrology: "심리와 선택의 패턴", tarot: "지금의 질문과 그 가능성" },
     reportPreviewTitle: "실제로 받게 되는 리포트의 차례입니다",
     heroFirstCome: "여섯 체계 교차 판정",
-    heroPriceFallback: "30,000원",
+    heroPriceFallback: "50,000원",
     heroPricePrefix: "1회 ",
     heroWordCount: "30,000자 이상",
     heroSaveNote: "저장 · 재열람 · PDF",
@@ -574,7 +574,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽고 마지막에 교차 판정합니다.",
     statusMethodLabel: "이용 방식",
     statusMethodValue: "회당 결제",
-    statusMethodNote: "결제창에서 이용권·단건·월정석 중에 고를 수 있어요. 가족 이용권도 그대로 적용됩니다.",
+    statusMethodNote: "Family 이용권 또는 단건 결제만 이용할 수 있어요. Standard·Premium·VVIP와 월정석은 적용되지 않습니다.",
     coreButtonLabel: "Fusion Core 진행 방식 보기",
     formIntroHeading: "정확한 생시로 여섯 체계를 연결해요",
     formIntroDesc: "입력 정보는 결과 본문과 공유 요약에 노출하지 않습니다.",
@@ -695,7 +695,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "生まれ持った気質と人生の流れ", ziwei: "人生の領域と時期の移り変わり", vedic: "惑星周期と運命の時間", sukuyo: "関係と縁のリズム", astrology: "心理と選択のパターン", tarot: "今の問いとその可能性" },
     reportPreviewTitle: "実際に受け取るレポートの目次です",
     heroFirstCome: "六体系クロス判定",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "1回 ",
     heroWordCount: "30,000字以上",
     heroSaveNote: "保存 · 再閲覧 · PDF",
@@ -710,7 +710,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "四柱推命・紫微斗数・ヴェーダ占星術・宿曜・西洋占星術・タロットをそれぞれ読み解き、最後にクロス判定します。",
     statusMethodLabel: "利用方式",
     statusMethodValue: "都度決済",
-    statusMethodNote: "決済画面で利用権・都度決済・月姫石を一緒に選べます。ファミリー利用権は対象になります。",
+    statusMethodNote: "Familyパスまたは都度決済のみ利用できます。Standard・Premium・VVIPと月精石は対象外です。",
     coreButtonLabel: "Fusion Coreの進め方を見る",
     formIntroHeading: "正確な出生時刻で六体系をつなげます",
     formIntroDesc: "入力情報は結果本文や共有要約には表示されません。",
@@ -830,7 +830,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "与生俱来的气质与人生流向", ziwei: "人生领域与时期的变化", vedic: "行星周期与命运的时间", sukuyo: "关系与缘分的节奏", astrology: "心理与选择的模式", tarot: "此刻的提问与可能性" },
     reportPreviewTitle: "这是您实际会收到的报告目录",
     heroFirstCome: "六体系交叉解读",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "每次 ",
     heroWordCount: "30,000字以上",
     heroSaveNote: "保存 · 可重新查看 · PDF",
@@ -845,7 +845,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "分别解读命理、紫微斗数、吠陀占星术、宿曜、西方占星术、塔罗，最后进行交叉判定。",
     statusMethodLabel: "使用方式",
     statusMethodValue: "按次付费",
-    statusMethodNote: "在结账页面可以同时选择使用权、单次付款或月相石。家庭使用权也在覆盖范围内。",
+    statusMethodNote: "仅可使用Family通行证或单次付款。Standard、Premium、VVIP与月精石不适用。",
     coreButtonLabel: "查看Fusion Core的运作方式",
     formIntroHeading: "以准确的出生时间连接六大体系",
     formIntroDesc: "您输入的信息不会显示在结果正文或分享摘要中。",
@@ -965,7 +965,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "與生俱來的氣質與人生流向", ziwei: "人生領域與時期的變化", vedic: "行星週期與命運的時間", sukuyo: "關係與緣分的節奏", astrology: "心理與選擇的模式", tarot: "此刻的提問與可能性" },
     reportPreviewTitle: "這是您實際會收到的報告目錄",
     heroFirstCome: "六體系交叉解讀",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "每次 ",
     heroWordCount: "30,000字以上",
     heroSaveNote: "儲存 · 可重新查看 · PDF",
@@ -980,7 +980,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "分別解讀命理、紫微斗數、吠陀占星術、宿曜、西方占星術、塔羅，最後進行交叉判定。",
     statusMethodLabel: "使用方式",
     statusMethodValue: "按次付費",
-    statusMethodNote: "在結帳頁面可以同時選擇使用權、單次付款或月相石。家庭使用權也在涵蓋範圍內。",
+    statusMethodNote: "僅可使用Family通行證或單次付款。Standard、Premium、VVIP與月精石不適用。",
     coreButtonLabel: "查看Fusion Core的運作方式",
     formIntroHeading: "以準確的出生時間連接六大體系",
     formIntroDesc: "您輸入的資訊不會顯示在結果正文或分享摘要中。",
@@ -1100,7 +1100,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Đọc chéo sáu hệ thống",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "mỗi lần đọc ",
     heroWordCount: "Hơn 30.000 ký tự",
     heroSaveNote: "Đã lưu · Có thể mở lại · PDF",
@@ -1115,7 +1115,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Đọc riêng Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Sukuyo, chiêm tinh Phương Tây và Tarot, sau đó đọc chéo vào cuối.",
     statusMethodLabel: "Cách tính phí",
     statusMethodValue: "Trả phí theo mỗi lần đọc",
-    statusMethodNote: "Tại trang thanh toán, bạn có thể chọn thẻ sử dụng, thanh toán một lần, hoặc Đá Mặt Trăng cùng lúc. Thẻ sử dụng gia đình cũng được áp dụng.",
+    statusMethodNote: "Chỉ có thể dùng thẻ Family hoặc thanh toán một lần. Standard, Premium, VVIP và Đá Mặt Trăng không áp dụng.",
     coreButtonLabel: "Xem cách Fusion Core hoạt động",
     formIntroHeading: "Kết nối cả sáu hệ thống với giờ sinh chính xác của bạn",
     formIntroDesc: "Thông tin bạn nhập không hiển thị trong nội dung kết quả hoặc bản tóm tắt chia sẻ.",
@@ -1235,7 +1235,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "छह-प्रणाली क्रॉस रीडिंग",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "प्रति रीडिंग ",
     heroWordCount: "30,000+ अक्षर",
     heroSaveNote: "सहेजा गया · फिर से खोला जा सकता है · PDF",
@@ -1250,7 +1250,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "साजू, ज़िवेई दोशु, वैदिक ज्योतिष, सुक्यो, पाश्चात्य ज्योतिष और टैरो को अलग-अलग पढ़ता है, फिर अंत में उन्हें क्रॉस-रीड करता है।",
     statusMethodLabel: "इसका बिल कैसे बनता है",
     statusMethodValue: "प्रति रीडिंग भुगतान",
-    statusMethodNote: "चेकआउट पर आप पास, एक बार का भुगतान, या मूनस्टोन एक साथ चुन सकते हैं। पारिवारिक पास भी कवर होते हैं।",
+    statusMethodNote: "केवल Family पास या एकल भुगतान उपलब्ध है। Standard, Premium, VVIP और मूनस्टोन लागू नहीं होते।",
     coreButtonLabel: "देखें कि Fusion Core कैसे काम करता है",
     formIntroHeading: "अपने सटीक जन्म समय के साथ सभी छह प्रणालियों को जोड़ें",
     formIntroDesc: "आपके द्वारा दर्ज की गई जानकारी परिणाम पाठ या साझा सारांश में प्रदर्शित नहीं होती है।",
@@ -1370,7 +1370,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Lectura cruzada de seis sistemas",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "por lectura ",
     heroWordCount: "Más de 30,000 caracteres",
     heroSaveNote: "Guardado · Reabrible · PDF",
@@ -1385,7 +1385,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Lee Saju, Ziwei Doushu, astrología védica, Sukuyo, astrología occidental y Tarot por separado, y luego los lee de forma cruzada al final.",
     statusMethodLabel: "Cómo se factura",
     statusMethodValue: "Se paga por lectura",
-    statusMethodNote: "En el pago puedes elegir un pase, un pago único, o una Piedra Lunar juntos. Los pases familiares están cubiertos.",
+    statusMethodNote: "Solo se admite el pase Family o el pago único. Standard, Premium, VVIP y las Piedras Lunares no se aplican.",
     coreButtonLabel: "Ver cómo funciona Fusion Core",
     formIntroHeading: "Conecta los seis sistemas con tu hora de nacimiento exacta",
     formIntroDesc: "La información que ingresas no se muestra en el texto del resultado ni en el resumen compartido.",
@@ -1505,7 +1505,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Lecture croisée à six systèmes",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "par lecture ",
     heroWordCount: "Plus de 30 000 caractères",
     heroSaveNote: "Enregistré · Réouvrable · PDF",
@@ -1520,7 +1520,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Lit séparément le Saju, le Ziwei Doushu, l'astrologie védique, le Sukuyo, l'astrologie occidentale et le Tarot, puis les lit de manière croisée à la fin.",
     statusMethodLabel: "Mode de facturation",
     statusMethodValue: "Facturé par lecture",
-    statusMethodNote: "Au paiement, vous pouvez choisir un pass, un paiement unique, ou une Pierre de Lune ensemble. Les pass familiaux sont couverts.",
+    statusMethodNote: "Seuls le pass Family ou le paiement unique sont acceptés. Standard, Premium, VVIP et les Pierres de Lune ne s’appliquent pas.",
     coreButtonLabel: "Voir comment fonctionne Fusion Core",
     formIntroHeading: "Connectez les six systèmes avec votre heure de naissance exacte",
     formIntroDesc: "Les informations que vous saisissez ne sont pas affichées dans le texte du résultat ni dans le résumé partagé.",
@@ -1640,7 +1640,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Sechs-Systeme-Kreuzdeutung",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "pro Deutung ",
     heroWordCount: "Über 30.000 Zeichen",
     heroSaveNote: "Gespeichert · Wieder öffenbar · PDF",
@@ -1655,7 +1655,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Liest Saju, Ziwei Doushu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot separat und liest sie am Ende dann kreuzweise.",
     statusMethodLabel: "Abrechnungsart",
     statusMethodValue: "Pro Deutung bezahlt",
-    statusMethodNote: "An der Kasse können Sie einen Pass, eine Einmalzahlung oder einen Mondstein gemeinsam auswählen. Familienpässe sind abgedeckt.",
+    statusMethodNote: "Nur der Family-Pass oder eine Einmalzahlung sind möglich. Standard, Premium, VVIP und Mondsteine gelten nicht.",
     coreButtonLabel: "Sehen, wie Fusion Core funktioniert",
     formIntroHeading: "Verbinden Sie alle sechs Systeme mit Ihrer genauen Geburtszeit",
     formIntroDesc: "Die von Ihnen eingegebenen Informationen werden weder im Ergebnistext noch in der geteilten Zusammenfassung angezeigt.",
@@ -1775,7 +1775,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Zes-systemen kruislezing",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "per lezing ",
     heroWordCount: "Meer dan 30.000 tekens",
     heroSaveNote: "Opgeslagen · Opnieuw te openen · PDF",
@@ -1790,7 +1790,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Leest Saju, Ziwei Doushu, Vedische astrologie, Sukuyo, Westerse astrologie en Tarot afzonderlijk, en leest ze aan het einde kruiselings.",
     statusMethodLabel: "Hoe het wordt gefactureerd",
     statusMethodValue: "Per lezing betaald",
-    statusMethodNote: "Bij het afrekenen kun je een pas, een eenmalige betaling of een Maansteen samen kiezen. Gezinspassen worden gedekt.",
+    statusMethodNote: "Alleen de Family-pas of een eenmalige betaling is mogelijk. Standard, Premium, VVIP en Maanstenen gelden niet.",
     coreButtonLabel: "Bekijk hoe Fusion Core werkt",
     formIntroHeading: "Verbind alle zes systemen met je exacte geboortetijd",
     formIntroDesc: "De informatie die je invoert wordt niet weergegeven in de resultaattekst of de gedeelde samenvatting.",
@@ -1910,7 +1910,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     systemBriefs: { saju: "Natural temperament and the flow of a life", ziwei: "Life domains and how their seasons turn", vedic: "Planetary cycles and the timing of fate", sukuyo: "The rhythm of relationships and ties", astrology: "Patterns of psychology and choice", tarot: "The question you hold now, and what it opens" },
     reportPreviewTitle: "The table of contents you actually receive",
     heroFirstCome: "Bacaan silang enam sistem",
-    heroPriceFallback: "₩30,000",
+    heroPriceFallback: "₩50,000",
     heroPricePrefix: "setiap bacaan ",
     heroWordCount: "Lebih 30,000 aksara",
     heroSaveNote: "Disimpan · Boleh dibuka semula · PDF",
@@ -1925,7 +1925,7 @@ const FUSION_FORTUNE_COPY: Partial<Record<LoadingLocale, FusionFortuneCopy>> = {
     statusScopeNote: "Membaca Saju, Ziwei Doushu, astrologi Veda, Sukuyo, astrologi Barat dan Tarot secara berasingan, kemudian membaca secara silang pada akhirnya.",
     statusMethodLabel: "Cara pengebilan",
     statusMethodValue: "Dibayar setiap bacaan",
-    statusMethodNote: "Semasa pembayaran anda boleh memilih pas, pembayaran sekali, atau Batu Bulan bersama-sama. Pas keluarga turut diliputi.",
+    statusMethodNote: "Hanya pas Family atau bayaran sekali dibenarkan. Standard, Premium, VVIP dan Batu Bulan tidak terpakai.",
     coreButtonLabel: "Lihat cara Fusion Core berfungsi",
     formIntroHeading: "Hubungkan kesemua enam sistem dengan masa lahir anda yang tepat",
     formIntroDesc: "Maklumat yang anda masukkan tidak dipaparkan dalam teks hasil atau ringkasan yang dikongsi.",

@@ -182,8 +182,8 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze(
   ),
 );
 
-// 영냥이(SoulCat, /yeongnyangi/*) 책 상품. 다른 차원 세계관이라 이용권·월정석이 통하지 않고
-// 단건 결제(카드·카카오페이)만 받는다(paymentScope:"direct_only", 2026-09-15 사용자 확정).
+// 영냥이(SoulCat, /yeongnyangi/*) 책 상품. Family 이용권 또는 단건 결제만 허용하며
+// 다른 이용권 등급과 월정석은 통하지 않는다(paymentScope:"direct_or_family", 2026-09-23 사용자 확정).
 // 가격 정본은 SoulCat server/payments/catalog.ts 와 같아야 한다(6 체계 × 4 어종 + 퓨전 4종).
 const YEONGNYANGI_SYSTEMS = Object.freeze({
   saju: "사주", ziwei: "자미두수", sukuyo: "숙요", vedic: "베다점", astrology: "서양 점성술", tarot: "타로",
@@ -195,10 +195,10 @@ const YEONGNYANGI_FUSIONS = Object.freeze([
   ["fusion-saju-ziwei", "사주 + 자미두수", "생선 모둠 세트", 20000],
   ["fusion-sukuyo-vedic", "숙요 + 베다점", "생선 모둠 세트", 20000],
   ["fusion-astrology-tarot", "서양 점성술 + 타로", "생선 모둠 세트", 20000],
-  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 30000],
+  ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 50000],
 ]);
 function buildYeongnyangiEntry(name, fishName, amountKRW) {
-  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_only" };
+  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family" };
 }
 const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
   ...Object.entries(YEONGNYANGI_SYSTEMS).flatMap(([system, name]) =>
@@ -344,13 +344,13 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   // 연이 운명 상담 — 무료 횟수(비회원 1회 + 계정 3회)를 모두 쓴 뒤부터 회당 결제.
   // 전용 "대화권" 재화를 폐지하고 표준 회당 결제로 옮긴 자리다(2026-08-07).
   "fortune-chat-consultation": { cost: 30, amountKRW: 3000, reason: "연이 운명 상담 1회" },
-  // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 300코인이라 건당 상한
+  // 초융합 운세 — 여섯 체계를 한 번에 엮는 2만자 이상 리딩. 500코인이라 건당 상한
   // (PASS_LIMITS: standard 50 · premium 100 · vvip 200)을 넘어 **family 등급만** 커버한다.
   // family 는 건당 상한이 없고 월 누적 한도(MONTHLY_PASS_LIMITS.family = 5,000코인 = 500,000원)
   // 만 적용된다. 횟수 제한은 없다 — FAMILY_PREMIUM_MIN_COIN_COST 와 "이용권 기간당 10회"는
   // 2026-08-24 에 폐지된 제도이고 그 상수는 레포에 존재하지 않는다(2026-09-03 정정).
   // 전수 가드: scripts/verify-billing-pass-policy.mjs 의 "family must cover every paid service".
-  "fusion-fortune-consultation": { cost: 300, amountKRW: 30000, reason: "초융합 운세 상담 1회" },
+  "fusion-fortune-consultation": { cost: 500, amountKRW: 50000, reason: "초융합 운세 상담 1회" },
   "premium-sibyl-dominator": { cost: 50, reason: "시빌라 도미네이터 리포트" },
   "ziwei_decade_luck": { cost: 50, reason: "자미두수 대한 흐름 해금" },
   "ziwei_love_deep": { cost: 50, reason: "자미두수 부부궁 심화 상담 해금" },
@@ -377,10 +377,17 @@ export const FEATURE_KEY_PRICE_TABLE = normalizeRegistryPricingTable(RAW_FEATURE
 
 /** 결제 범위 `direct_only`: 이용권·월정석 모두 불가, 단건 결제(카드·카카오페이)만. 정본 판정은 이 함수 하나. */
 export const PAYMENT_SCOPE_DIRECT_ONLY = "direct_only";
+export const PAYMENT_SCOPE_DIRECT_OR_FAMILY = "direct_or_family";
 
 export function isDirectOnlyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
   return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
+}
+
+/** 결제 범위 `direct_or_family`: Family 이용권 또는 단건 결제만 허용하고 월정석·다른 이용권은 거절한다. */
+export function isDirectOrFamilyPaidFeatureKey(featureKey) {
+  const key = normalizePaidFeatureKey(featureKey);
+  return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_OR_FAMILY;
 }
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({

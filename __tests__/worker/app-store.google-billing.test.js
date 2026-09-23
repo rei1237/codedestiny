@@ -227,6 +227,13 @@ beforeEach(() => {
   mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => null }) });
 });
 
+test("Family v3 Play SKU는 검증 전 판매 준비 중으로 실패 폐쇄한다", async () => {
+  const version=(await import("../../lib/payment/pass-policy.js")).CURRENT_PASS_POLICY_VERSION;
+  const {status,payload}=await callRoute(new Request(`https://code-destiny.com/api/app-store/products?passTier=family&passPolicyVersion=${version}`));
+  expect(status).toBe(503);
+  expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+});
+
 describe("verify — 회당 결제(PER_USE)", () => {
   test("영수증 검증 → 멱등키 Payment 기록 → 앱 확정가 → 서버 acknowledge → consume 지시", async () => {
     const { status, payload } = await callRoute(postJson("/google/verify", {

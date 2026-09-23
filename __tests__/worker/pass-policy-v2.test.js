@@ -37,7 +37,7 @@ describe("versioned flower passes", () => {
     expect(isPassPolicyMix({ tier: "vvip", expiresAt: "2026-09-01" }, currentPassPlan("vvip"), now)).toBe(false);
   });
   test("approved web prices open web sales while Play remains closed without verified SKUs", () => {
-    for (const tier of ["standard", "premium", "vvip"]) {
+    for (const tier of ["standard", "premium", "vvip", "family"]) {
       expect(auditPassSale(tier, "web")).toEqual({ eligible: true, reason: "APPROVED_WEB_PRICE_POLICY" });
       expect(auditPassSale(tier, "googlePlay").eligible).toBe(false);
       expect(() => assertPassSaleAllowed(currentPassPlan(tier), "web")).not.toThrow();
@@ -45,12 +45,25 @@ describe("versioned flower passes", () => {
     }
     expect(() => assertPassSaleAllowed({ tier: "family" })).toThrow();
   });
+  test("Family v3 fixes unlimited profiles and at least three times the sale price in coverage", () => {
+    const family = currentPassPlan("family");
+    expect(family).toMatchObject({ planId: "family_1m_v3", wonPrice: 149000, monthlyLimitCoin: 5000, profileLimit: 0 });
+    expect(family.monthlyLimitCoin * 100).toBeGreaterThanOrEqual(family.wonPrice * 3);
+    expect(canUseByPass({ ...family, isActive: true }, 500)).toBe(true);
+    expect(isPassBudgetExhausted("family", 4990, 5000, family)).toBe(false);
+    expect(isPassBudgetExhausted("family", 4991, 5000, family)).toBe(true);
+    expect(isPassBudgetExhausted("family", 5000, 5000, family)).toBe(true);
+  });
   test("three-card, five-card, saju and compatibility teas cost 5,000", () => {
     const tea = Object.entries(FEATURE_KEY_PRICE_TABLE).filter(([key]) => key.startsWith("fortune-tea-house-"));
     expect(tea).toHaveLength(5);
     expect(tea.every(([, value]) => value.amountKRW === 5000 && value.cost === 50)).toBe(true);
-    expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"].amountKRW).toBe(30000);
+    expect(FEATURE_KEY_PRICE_TABLE["fusion-fortune-consultation"]).toMatchObject({ cost: 500, amountKRW: 50000 });
     expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-saju-mackerel"].amountKRW).toBe(1000);
+    expect(FEATURE_KEY_PRICE_TABLE["yeongnyangi-fusion-all"]).toMatchObject({ cost: 500, amountKRW: 50000, paymentScope: "direct_or_family" });
+    for (const key of ["yeongnyangi-fusion-saju-ziwei", "yeongnyangi-fusion-sukuyo-vedic", "yeongnyangi-fusion-astrology-tarot"]) {
+      expect(FEATURE_KEY_PRICE_TABLE[key].amountKRW).toBe(20000);
+    }
   });
 });
 
@@ -76,24 +89,45 @@ test("real admission accepts the approved web plan and preserves a pre-cutover p
   expect(resolvePassPolicy(user.profileSubscription).maxCoveredCoin).toBe(200);
 });
 
-test("public offers expose three approved web offers and cost coverage includes reason variants", async () => {
+test("public offers expose four approved web offers and cost coverage includes reason variants", async () => {
   const response = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers") });
   const body = await response.json();
   expect(body.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 14900, true], ["premium", 39900, true], ["vvip", 79900, true],
+    ["standard", 14900, true], ["premium", 39900, true], ["vvip", 79900, true], ["family", 149000, true],
   ]);
   const playResponse = await __paymentsContextTestUtils.ROUTES["GET /pass-offers"].handle({ request: new Request("https://code-destiny.com/api/payments/pass-offers?channel=googlePlay") });
   const playBody = await playResponse.json();
   expect(playBody.offers.map(p => [p.tier, p.wonPrice, p.saleEnabled])).toEqual([
-    ["standard", 14900, false], ["premium", 39900, false], ["vvip", 79900, false],
+    ["standard", 14900, false], ["premium", 39900, false], ["vvip", 79900, false], ["family", 149000, false],
   ]);
   const catalog = listPassCostProducts(currentPassPlan("vvip"));
   expect(catalog.some(p => p.featureKey.includes("::"))).toBe(true);
   expect(catalog.some(p => p.featureKey.startsWith("yeongnyangi-"))).toBe(false);
-  expect(catalog.some(p => p.featureKey === "fusion-fortune-consultation" && p.priceKRW === 30000)).toBe(true);
+  expect(catalog.some(p => p.featureKey === "fusion-fortune-consultation")).toBe(false);
+  const familyCatalog = listPassCostProducts(currentPassPlan("family"));
+  expect(familyCatalog.some(p => p.featureKey === "fusion-fortune-consultation" && p.priceKRW === 50000)).toBe(true);
+  expect(familyCatalog.filter(p => p.featureKey.startsWith("yeongnyangi-"))).toHaveLength(28);
 });
 
-test("VVIP consumes one 30,000 reading exactly, preserves gift version, and excludes Yeongnyangi", async () => {
+test("Family repurchase stacks both 30-day duration and 500,000 won coverage", async () => {
+  const plan = currentPassPlan("family");
+  const userId = "64b000000000000000000001";
+  const firstExpiry = new Date("2026-10-23T00:00:00.000Z");
+  const secondExpiry = new Date("2026-11-22T00:00:00.000Z");
+  const user = { _id: userId, profileSubscription: { tier: "free" } };
+  const db = makeFakePaymentDb(); db.rows.push(user);
+  await activatePassSubscription(db, { userId, plan, orderId: "family-first", paidAt: now, expiresAt: firstExpiry, now, existing: user });
+  expect(user.profileSubscription.monthlyLimitCoin).toBe(5000);
+  expect(user.profileSubscription.profileLimit).toBe(0);
+  user.profileSubscription.monthlySpendCoin = 700;
+  const extensionNow = new Date("2026-09-24T00:00:00.000Z");
+  await activatePassSubscription(db, { userId, plan, orderId: "family-second", paidAt: extensionNow, expiresAt: secondExpiry, now: extensionNow, existing: user });
+  expect(user.profileSubscription.monthlyLimitCoin).toBe(10000);
+  expect(user.profileSubscription.monthlySpendCoin).toBe(700);
+  expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(secondExpiry.toISOString());
+});
+
+test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeongnyangi is Family-only", async () => {
   const plan = currentPassPlan("vvip");
   expect(giftDraftFor({}, plan).productSnapshot.passPolicyVersion).toBe(CURRENT_PASS_POLICY_VERSION);
   const user = { _id: "64b000000000000000000001", profileSubscription: {
@@ -107,8 +141,9 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and excl
   expect(user.profileSubscription.monthlySpendCoin).toBe(300);
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
-  expect(describePassEligibility({ user: other, entitlement: other.profileSubscription,
-    product: resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" }) }).eligible).toBe(false);
+  const yn = resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" });
+  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: true, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW"] });
+  expect(describePassEligibility({ user: other, entitlement: other.profileSubscription, product: { ...yn, passExcluded: true } }).eligible).toBe(false);
 });
 
 test("cost audit uses the most expensive repeatable combination, not the largest ticket", () => {

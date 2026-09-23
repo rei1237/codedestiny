@@ -13,7 +13,11 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 import { requireUserFromRequest } from "../lib/auth.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { Payment } from "../lib/models.js";
-import { isDirectOnlyPaidFeatureKey, normalizePaidFeatureKey } from "../lib/paid-feature-registry.js";
+import {
+  isDirectOnlyPaidFeatureKey,
+  isDirectOrFamilyPaidFeatureKey,
+  normalizePaidFeatureKey,
+} from "../lib/paid-feature-registry.js";
 
 export const YEONGNYANGI_ENTITLEMENT_PREFIX = "/api/yeongnyangi-entitlement";
 const FEATURE_KEY_PATTERN = /^yeongnyangi-[a-z0-9-]+$/;
@@ -31,7 +35,8 @@ function objectId(userId) {
 
 function resolveFeatureKey(raw) {
   const key = normalizePaidFeatureKey(raw) || cleanText(raw);
-  if (!FEATURE_KEY_PATTERN.test(key) || !isDirectOnlyPaidFeatureKey(key)) {
+  if (!FEATURE_KEY_PATTERN.test(key)
+    || (!isDirectOnlyPaidFeatureKey(key) && !isDirectOrFamilyPaidFeatureKey(key))) {
     throw createHttpError(400, "영냥이 상품 키가 아닙니다.", { code: "INVALID_FEATURE_KEY", featureKey: key });
   }
   return key;

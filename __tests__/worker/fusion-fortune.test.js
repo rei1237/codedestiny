@@ -197,9 +197,9 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(generated.deliverable).toBe(false);
   });
 
-  it("prices the reading at 300 coins (30,000 KRW) as a per-use feature", () => {
+  it("prices the reading at 500 coins (50,000 KRW) as a per-use feature", () => {
     expect(FUSION_FORTUNE_PAID_FEATURE_KEY).toBe("fusion-fortune-consultation");
-    expect(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 300, amountKRW: 30000 });
+    expect(FEATURE_KEY_PRICE_TABLE[FUSION_FORTUNE_PAID_FEATURE_KEY]).toMatchObject({ cost: 500, amountKRW: 50000 });
     // 회당 결제여야 매번 재판정된다. 영구 해금으로 등록되면 1회 결제로 무제한이 된다.
     expect(isPerUsePaidFeatureKey(FUSION_FORTUNE_PAID_FEATURE_KEY)).toBe(true);
   });

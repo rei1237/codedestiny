@@ -482,7 +482,7 @@
     }
     if (snapshot.state !== "active") return result;
     var policyCoverageLimits = {
-      "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300 },
+      "flower-cost-20260921": { standard: 50, premium: 100, vvip: 300, family: 999999999 },
       "flower-20260921": { standard: 50, premium: 100, vvip: 300 }
     };
     var policyCoverageLimit = policyCoverageLimits[snapshot.passPolicyVersion];

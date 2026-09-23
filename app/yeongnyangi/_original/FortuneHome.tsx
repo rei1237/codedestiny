@@ -382,7 +382,7 @@ export default function FortuneHome() {
                 <span>Code Destiny 연결</span>
                 <h2 id="ggulggul-title">꽃돼지 연이의 꿀꿀 운세도 함께 볼 수 있어.</h2>
                 <p>
-                  영냥이 상담은 1,000~30,000원 단건 결제로, 꽃돼지 전문 상담은 단건 결제와 꽃돼지 전용 이용권으로 만나봐.
+                  영냥이 상담은 1,000~50,000원이며 Family 이용권 또는 단건 결제로, 꽃돼지 전문 상담은 단건 결제와 이용권으로 만나봐.
                 </p>
                 <div>
                   <a className="outlined-cta" href="/points/">

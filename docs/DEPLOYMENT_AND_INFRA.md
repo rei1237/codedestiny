@@ -97,7 +97,7 @@ generate, and share endpoints with `ENABLE_GUARDIAN_FORTUNE_API=true` and
 
 - 기능/실 LLM은 `ENABLE_FUSION_FORTUNE_UI`, `ENABLE_FUSION_FORTUNE_API`, `ENABLE_FUSION_FORTUNE_REAL_LLM`, `ALLOW_FUSION_FORTUNE_REAL_LLM`을 서로 독립적으로 제어한다. 전용 상담권 판매 플래그(`ENABLE_FUSION_FORTUNE_TICKET_SALES`)는 재화 폐지와 함께 사라졌다. 테스트는 `ENABLE_FUSION_FORTUNE_MOCK_FLOW=true`와 fake provider만 사용한다.
 - 2026-08-04 운영 승인과 전용 인덱스 검증 후 UI/API/실 LLM 플래그를 `true`로 활성화했다. 운영 mock 플래그는 `false`를 유지한다.
-- 2026-08-08 전용 상담권을 폐지하고 `fusion-fortune-consultation`(300코인 · 30,000원) 회당 결제로 옮겼다. 30,000원은 `PASS_LIMITS` 상 family 이용권만 커버한다.
+- 2026-08-08 전용 상담권을 폐지하고 표준 회당 결제로 옮겼으며, 현재 `fusion-fortune-consultation`은 500코인 · 50,000원이다. Family 이용권 또는 단건 결제만 허용한다.
 - 판매 전 `npm run verify:fusion-fortune-indexes`로 전용 balance, transaction, daily limit, attempt 인덱스를 확인한다. 누락 시 별도 운영 DB 승인 후 `npm run migrate:fusion-fortune-indexes`를 한 번 실행한다.
 - 운영 활성화 순서는 전용 인덱스 확인 → Worker 배포 → `/api/version` 동일 SHA 확인 → status/catalog 확인 → Pages 배포다. 결제 성공 전에 ticket을 적립하지 않으며 생성 성공 transaction 안에서만 ticket과 KST daily count를 함께 commit한다.
 - 롤백은 판매 → API → 실 LLM → UI 플래그 순으로 끄고 이전 Worker/Pages SHA로 되돌린다. 기존 ticket balance와 원장은 삭제하거나 일반 entitlement로 변환하지 않는다.

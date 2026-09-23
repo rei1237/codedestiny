@@ -23,8 +23,8 @@ const ENV = { JWT_ACCESS_SECRET: "test-access-secret-value-0123456789" };
 const DAY_MS = 86_400_000;
 
 // 건당 상한 안쪽의 저가 상품 하나를 레지스트리에서 고른다(가격 개정에 흔들리지 않게).
-// 이용권 제외(passExcluded·direct_only 영냥이) 상품은 이 경로의 대상이 아니므로 뺀다.
-const CHEAP = listProducts().filter((p) => !p.passExcluded && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard)
+// 이용권 제외(passExcluded·direct_only) 상품은 이 경로의 대상이 아니므로 뺀다.
+const CHEAP = listProducts().filter((p) => !p.passExcluded && !p.familyPassOnly && Number(p.priceCoins) > 0 && Number(p.priceCoins) <= PASS_LIMITS.standard)
   .sort((a, b) => Number(a.priceCoins) - Number(b.priceCoins))[0];
 
 async function tokenFor(userId) {
@@ -524,11 +524,11 @@ describe("동시 확정 CAS — 다른 주문이 먼저 반영되면 덮어쓰�
   });
 });
 
-/* direct_only(영냥이) 상품 — 이용권도 월정석도 통하지 않는다(2026-09-15). 구 coin-gate 의 MEMBERSHIP_PASS ·
-   MONTHLY 요청은 worker/index.js 가 이 두 라우트로 재작성하므로 여기가 실제 관문이다. 둘 다 402 로
-   결제창에 인계하고(막다른 길 금지) 예산·원장을 건드리지 않는다. */
-describe("direct_only 상품 — 이용권·월정석 모두 402 인계", () => {
-  const DIRECT_ONLY = listProducts().find((p) => p.directOnly === true);
+/* direct_or_family(영냥이) 상품 — Family와 단건만 통한다. 구 coin-gate 의 MEMBERSHIP_PASS ·
+   MONTHLY 요청은 worker/index.js 가 이 두 라우트로 재작성하므로 여기가 실제 관문이다. */
+describe("direct_or_family 영냥이 상품 — Family 또는 단건만 허용", () => {
+  const FAMILY_PRODUCTS = listProducts().filter((p) => p.familyPassOnly === true);
+  const FAMILY_ONLY = FAMILY_PRODUCTS[0];
 
   async function postMoonstone(db, body) {
     const request = new Request("https://code-destiny.com/api/payments/coin-gate/moonstone", {
@@ -543,26 +543,47 @@ describe("direct_only 상품 — 이용권·월정석 모두 402 인계", () => 
     return { response, payload: await response.json() };
   }
 
-  test("카탈로그에 direct_only 상품이 있고 passExcluded 를 포함한다", () => {
-    expect(DIRECT_ONLY).toBeTruthy();
-    expect(DIRECT_ONLY.passExcluded).toBe(true);
+  test("영냥이 유료 상품 28개 모두 Family 전용 범위와 허용 수단을 공유한다", () => {
+    expect(FAMILY_PRODUCTS).toHaveLength(28);
+    for (const product of FAMILY_PRODUCTS) {
+      expect(product).toMatchObject({
+        familyPassOnly: true,
+        monthlyExcluded: true,
+        passExcluded: false,
+        allowedPaymentMethods: ["FAMILY", "DIRECT_KRW"],
+      });
+    }
   });
 
-  test("pass-check: 활성 이용권이 있어도 402 MEMBERSHIP_PASS_NOT_ALLOWED — 월정석을 권하지 않는다", async () => {
+  test.each(["standard", "premium", "vvip"])("pass-check: %s 이용권은 402 FAMILY_PASS_REQUIRED로 인계하고 차감하지 않는다", async (tier) => {
     const db = makeFakePaymentDb();
-    const user = seedUser(db, activePass("premium", { monthlySpendCoin: 0, monthlyCycleKey: "cycle-a" }));
+    const user = seedUser(db, activePass(tier, { monthlySpendCoin: 0, monthlyCycleKey: "cycle-a" }));
     const { response, payload } = await postPassCheck(db, {
-      featureKey: DIRECT_ONLY.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "direct-only-pass",
+      featureKey: FAMILY_ONLY.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: `family-only-${tier}`,
     });
     expect(response.status).toBe(402);
     expect(payload.code).toBe("MEMBERSHIP_PASS_NOT_ALLOWED");
     expect(payload.status).toBe("payment_required");
-    expect(payload.directOnly).toBe(true);
-    expect(payload.message).not.toMatch(/월정석/);
+    expect(payload.decisionReason).toBe("FAMILY_PASS_REQUIRED");
+    expect(payload.message).toMatch(/Family/);
     expect(user.profileSubscription.monthlySpendCoin).toBe(0);
   });
 
-  test("coin-gate/moonstone: 잔액이 충분해도 402 DIRECT_ONLY_PAYMENT_REQUIRED — 차감·원장 없음", async () => {
+  test("pass-check: Family는 1회만 차감하고 동일 requestId 재시도는 멱등 재생한다", async () => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db, activePass("family", {
+      monthlyLimitCoin: 5000, monthlySpendCoin: 0, monthlyCycleKey: "cycle-a", profileLimit: 0,
+    }));
+    const body = { featureKey: FAMILY_ONLY.featureKey, paymentMode: "MEMBERSHIP_PASS", requestId: "family-pass-once" };
+    const first = await postPassCheck(db, body);
+    const second = await postPassCheck(db, body);
+    expect(first.response.status).toBe(200);
+    expect(second.response.status).toBe(200);
+    expect(second.payload?.data?.consume?.idempotent).toBe(true);
+    expect(user.profileSubscription.monthlySpendCoin).toBe(FAMILY_ONLY.priceCoins);
+  });
+
+  test("coin-gate/moonstone: 잔액이 충분해도 402 FAMILY_OR_DIRECT_PAYMENT_REQUIRED — 차감·원장 없음", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db, {
       membershipCreditBalance: 100000, membershipCreditGranted: 100000, membershipCreditUsed: 0,
@@ -570,10 +591,10 @@ describe("direct_only 상품 — 이용권·월정석 모두 402 인계", () => 
       membershipCreditLots: [{ amount: 100000, remaining: 100000, grantedAt: new Date(), expiresAt: new Date(Date.now() + 30 * DAY_MS) }],
     });
     const { response, payload } = await postMoonstone(db, {
-      featureKey: DIRECT_ONLY.featureKey, paymentMode: "MOONLIGHT_STONE", requestId: "direct-only-moon",
+      featureKey: FAMILY_ONLY.featureKey, paymentMode: "MOONLIGHT_STONE", requestId: "family-only-moon",
     });
     expect(response.status).toBe(402);
-    expect(payload.error?.code ?? payload.code).toBe("DIRECT_ONLY_PAYMENT_REQUIRED");
+    expect(payload.error?.code ?? payload.code).toBe("FAMILY_OR_DIRECT_PAYMENT_REQUIRED");
     expect(user.profileSubscription.membershipCreditBalance).toBe(100000);
     expect(db.rows.filter((row) => row.type === "MONTHLY_CREDIT_SPEND")).toHaveLength(0);
   });

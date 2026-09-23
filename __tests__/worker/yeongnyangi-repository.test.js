@@ -1,7 +1,8 @@
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
-let requests=[],payments=[],failWrite=false,failFinalRead=false,failFinalComplete=false,tail=Promise.resolve(),activeOperations=0;
+let requests=[],payments=[],evidences=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,tail=Promise.resolve(),activeOperations=0;
+const consumePass=jest.fn(),refundPass=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
 function matches(row,query) {
   return Object.entries(query).every(([key,want])=>{
@@ -57,6 +58,7 @@ function model(source,kind) {
   };
 }
 const RequestModel=model(()=>requests,'request'), Payment=model(()=>payments,'payment');
+const User={findById:()=>query(()=>familyUser),collection:{}}, PointHistory=model(()=>evidences,'history');
 const txOptions={maxCommitTimeMS:12000};
 const startSession=async()=>{
   expect(activeOperations).toBeGreaterThan(0);
@@ -73,13 +75,43 @@ jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   },mongoTransactionOptions:()=>txOptions,
   isTransientMongoError:()=>false,
 }));
-jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment}));
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory}));
+jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
+jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass}));
+jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
 let repo;
 beforeAll(async()=>{repo=await import('../../worker/yeongnyangi/repository.js');});
 const values={profileId:'p1',productId:'saju_mackerel',featureKey:'yeongnyangi-saju-mackerel',amountKRW:1000,fingerprint:'fixed',snapshot:{manifest:[{},{}]}};
 beforeEach(()=>{
   requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
+  evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;tail=Promise.resolve();
+});
+test('Family access consumes once, persists proof, and remains readable after pass expiry',async()=>{
+  payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true,expiresAt:'2026-10-23T00:00:00.000Z'}};
+  consumePass.mockImplementation(async()=>{
+    if(!evidences.length)evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'id',accessMethod:'FAMILY'}});
+    return {covered:true,replayed:evidences.length>1,coverage:{cycleKey:'2026-10-23T00:00:00.000Z'}};
+  });
+  await repo.createRequest({},owner,'id',values);
+  const [a,b]=await Promise.all([repo.attachPayment({},owner,'id',1000),repo.attachPayment({},owner,'id',1000)]);
+  expect(a.accessMethod||b.accessMethod).toBe('FAMILY');
+  expect(requests[0]).toMatchObject({accessMethod:'FAMILY',passCoinCost:10,passCycleKey:'2026-10-23T00:00:00.000Z',state:'PAID'});
+  familyUser.profileSubscription={tier:'free',isActive:false,expiresAt:'2026-09-23T00:00:00.000Z'};
+  expect((await repo.readRequest({},owner,'id')).accessMethod).toBe('FAMILY');
+});
+
+test('Family terminal failure with no chapter restores quota, but a partial result does not',async()=>{
+  requests.push({_id:'empty',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',passCycleKey:'cycle',passCoinCost:10,completedChapters:0,chapters:[],leaseToken:'lease'});
+  evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'empty',accessMethod:'FAMILY'}});
+  refundPass.mockResolvedValue({refunded:true});
+  await repo.failChapter({},owner,'empty','lease','FORTUNE_PROVIDER_FAILED',3,'provider');
+  expect(refundPass).toHaveBeenCalledWith(expect.objectContaining({cycleKey:'cycle',cost:10,refundId:'yeongnyangi:empty'}));
+  expect(requests[0]).toMatchObject({state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED'});
+  requests.push({_id:'partial',userId:owner,...values,state:'GENERATING',accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439098',passCycleKey:'cycle',passCoinCost:10,completedChapters:1,chapters:[{}],leaseToken:'lease2'});
+  await repo.failChapter({},owner,'partial','lease2','FORTUNE_PROVIDER_FAILED',3,'provider');
+  expect(refundPass).toHaveBeenCalledTimes(1);
+  expect(requests[1].state).toBe('FORTUNE_FAILED');
 });
 test('same intent is restored; altered payload conflicts',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.createRequest({},owner,'id',values);
@@ -100,6 +132,14 @@ test('foreign or wrong amount proof never creates access',async()=>{
   await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
   payments[0].userId=owner;payments[0].paymentAmount=1;
   await expect(repo.attachPayment({},owner,'id',1000)).rejects.toMatchObject({status:402});
+});
+test('already paid legacy price is preserved while an unpaid stale request must confirm the new price',async()=>{
+  await repo.createRequest({},owner,'id',values);
+  expect((await repo.attachPayment({},owner,'id',1000,{currentAmountKRW:5000})).accessMethod).toBe('DIRECT_KRW');
+  requests=[];payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+  await repo.createRequest({},owner,'stale',values);
+  await expect(repo.attachPayment({},owner,'stale',1000,{currentAmountKRW:5000})).rejects.toMatchObject({status:409,code:'PRICE_CHANGED'});
+  expect(consumePass).not.toHaveBeenCalled();
 });
 test('two intents cannot consume the same proof',async()=>{
   payments[0].requestId='yn-a';
