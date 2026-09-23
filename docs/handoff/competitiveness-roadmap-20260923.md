@@ -186,6 +186,7 @@ sitemap 1,284 URL:
 - 홈 측정 도구는 기본값 `/`(이제 React 홈)에서 셸 요소를 기다린다 — S10 전까지 `--url` 필수.
 - 홈 `/`에는 운세 입문 콘텐츠 섹션(`.cd-home-guide`)이 없다 — 정적 셸 8벌에만 있어 지금은 `/ggulggul/`·로케일 셸에서 보인다(2026-09-24 실측). 홈 콘텐츠·AdSense 품질 판단은 `app/page.js` 기준으로 한다(S2·S3 입력).
 - 홈 `/`의 canonical은 `app/page.js` metadata가 낸다(운영 확인). hreflang HTML 태그는 0개라 사이트맵 alternate가 유일한 전달 수단이다(S2에서 확인). `app/layout.js` 97줄 등 코드 주석 5곳은 아직 `/`를 정적 셸로 설명한다 — 목록은 `docs/CONTEXT_AUDIT.md` 2026-09-24 항목(S2에서 정리).
+- KST 자정(15:00 UTC)이 지나면 `verify:sitemap-drift`가 사이트맵과 무관한 push도 실패시킨다. `/fortune/date/<날짜>/<띠>` 30일 창은 KST 날짜로 밀리는데, `--check`는 매일 바뀌는 lastmod만 정규화하고 URL 집합은 정규화하지 않기 때문이다(#1895, 2026-09-11부터). 09-24 자정 직후 문서 커밋 3개가 이렇게 실패했고 `a6ba3185d`로 재생성해 복구했다. 복구 절차: `npm run sitemap:generate` → diff가 날짜 URL 12개 교체와 KST 운세 lastmod(전날→오늘)뿐인지 확인 → 사이트맵 12개와 `config/sitemap-lastmod.json`을 커밋. 가드 구조 해소는 S2의 "날짜 아카이브는 sitemap 제외" 제안에 함께 넣는다.
 - 쓰는 세션이 둘 이상이면 워크트리(`scripts/create-safe-worktree.ps1`). `marketing/**` 미커밋은 다른 세션 소유라 스테이징하지 않는다.
 - push ≠ 배포. 새 CI 게이트는 사용자 지시 없이 추가하지 않는다(U6).
 - 가짜 후기·통계 금지. "두 대통령 적중"은 유지하고 "모든 예측 적중·유일·정확한 날짜"는 쓰지 않는다. `humanReview`·`adsAllowed`는 임의로 승격하지 않는다.
