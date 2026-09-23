@@ -198,17 +198,11 @@ export default function SeoLandingTemplate({ page }) {
     { name: copy.breadcrumbServices, path: "/guides" },
     { name: page.h1, path: page.path },
   ];
-  /* 본문을 고친 날(page.dateModified, 선택 필드)은 화면의 검수 노트와 WebPage JSON-LD 에 같은 값으로
-     싣는다. 넘기지 않은 랜딩의 출력은 그대로다. */
-  const dateModified = typeof page?.dateModified === "string" ? page.dateModified : null;
-  const webPageJsonLd = {
-    ...buildWebPageJsonLd({
-      title: page.title,
-      description: page.description,
-      path: page.path,
-    }),
-    ...(dateModified ? { dateModified } : {}),
-  };
+  const webPageJsonLd = buildWebPageJsonLd({
+    title: page.title,
+    description: page.description,
+    path: page.path,
+  });
   const serviceJsonLd = buildServiceJsonLd({
     name: page.title,
     description: page.description,
@@ -429,7 +423,7 @@ export default function SeoLandingTemplate({ page }) {
           </p>
         </section>
 
-        <ContentIntegrityNote tone="light" contentPath={page?.path || ""} dateModified={dateModified} />
+        <ContentIntegrityNote tone="light" contentPath={page?.path || ""} />
 
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />

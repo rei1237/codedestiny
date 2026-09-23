@@ -71,18 +71,18 @@
     "ms": "How the five elements translate into protection"
   },
   "shellRuntime.f2235": {
-    "ko": "볼 수 있습니다. 연·월·일의 여섯 글자만으로도 일간과 오행의 큰 분포는 확인됩니다. 다만 시주가 빠지면 자녀·말년과 세부 성향처럼 시주에 기대는 해석은 보수적으로 읽어야 하고, 오행 개수도 두 글자만큼 비어 있다는 점을 감안해야 합니다.",
-    "en": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "ja": "見られます。年・月・日の六文字だけでも、日干と五行の大まかな分布は確認できます。ただし時柱が欠けると、子ども・晩年や細かな性向のように時柱に頼る解釈は控えめに読む必要があり、五行の数も二文字分欠けている点を考慮する必要があります。",
-    "zh-CN": "可以看。仅凭年、月、日六个字，也能确认日主与五行的大致分布。不过缺了时柱，子女、晚年和细部性情这类依赖时柱的解读就得读得保守些，也要考虑到五行的数量少算了两个字。",
-    "zh-TW": "可以看。僅憑年、月、日六個字，也能確認日主與五行的大致分布。不過缺了時柱，子女、晚年和細部性情這類依賴時柱的解讀就得讀得保守些，也要考慮到五行的數量少算了兩個字。",
-    "vi": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "hi": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "es": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "fr": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "de": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "nl": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short.",
-    "ms": "Yes. The six characters of the year, month and day are enough to show the day master and the broad spread of the five elements. Without the hour pillar, though, readings that lean on it — children, later life and finer personality traits — should be taken conservatively, and bear in mind that the element count is two characters short."
+    "ko": "기본 흐름은 볼 수 있지만 시주가 빠지면 세부 해석은 보수적으로 읽어야 합니다.",
+    "en": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "ja": "基本の流れは見られますが、時柱が欠ける場合、細部の解釈は控えめに読む必要があります。",
+    "zh-CN": "基本流向仍看得到，但缺了时柱，细部解读就得读得保守些。",
+    "zh-TW": "基本流向仍看得到，但缺了時柱，細部解讀就得讀得保守些。",
+    "vi": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "hi": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "es": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "fr": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "de": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "nl": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively.",
+    "ms": "You can see the basic current, but without the hour pillar the detailed reading has to be taken conservatively."
   },
   "shellRuntime.f2236": {
     "ko": "태어난 해와 달, 날과 시간을 네 기둥으로 세우고 천간과 지지의 관계를 살핍니다.",

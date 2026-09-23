@@ -55,7 +55,7 @@ const ROUTE_DATES: Record<string, { datePublished: string; dateModified: string 
   "/vedic-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
   "/yeon-star-hug": { datePublished: "2026-05-18", dateModified: "2026-09-06" },
   "/ziwei-ai": { datePublished: "2026-06-27", dateModified: "2026-09-06" },
-  "/ziwei/chart": { datePublished: "2026-04-02", dateModified: "2026-09-24" },
+  "/ziwei/chart": { datePublished: "2026-04-02", dateModified: "2026-09-06" },
   "/ziwei/animal-destiny": { datePublished: "2026-09-18", dateModified: "2026-09-18" },
 };
 const FUSION_PATH = "/fusion-fortune";
