@@ -108,9 +108,21 @@
   //
   // ad_* 는 일부러 선언하지 않는다. 같은 Google 태그를 쓰는 AdSense 의 현재 동작까지 바뀌는데
   // 그건 이 변경의 범위가 아니다(선언하지 않으면 종전과 같다).
+  /*
+   * GA4 에 보내는 주소는 경로와 utm_* 뿐이다. 토큰·결과 ID 같은 나머지 쿼리는 계속 뗀다.
+   * 🔴 utm_* 까지 떼면 캠페인 귀속이 통째로 사라진다 — 2026-09-21 승격부터 실제로 그랬다
+   *    (docs/analytics-kpi.md 2026-09-24 절). 원래 인코딩을 지키려고 파싱하지 않고 쌍 단위로 고른다.
+   */
+  function pageLocation() {
+    var campaign = String(global.location.search || "").replace(/^\?/, "").split("&").filter(function (pair) {
+      return /^utm_[a-z_]+=./.test(pair);
+    });
+    return global.location.origin + global.location.pathname + (campaign.length ? "?" + campaign.join("&") : "");
+  }
+
   gtag("consent", "default", { analytics_storage: analyticsStorageState() });
   gtag("js", new Date());
-  gtag("config", measurementId, {page_location: global.location.origin + global.location.pathname});
+  gtag("config", measurementId, {page_location: pageLocation()});
 
   /**
    * 이벤트 전송. 실패해도 절대 던지지 않는다 — 계측이 기능을 깨뜨려선 안 된다.
@@ -121,7 +133,7 @@
     if (!eventName) return;
     try {
       var safeParams = Object.assign({}, params || {});
-      if (eventName === 'page_view') safeParams.page_location = global.location.origin + global.location.pathname;
+      if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
     } catch (_sendError) {
       /* 계측 실패는 무시한다 */
@@ -168,7 +180,8 @@
       if (!payment || !/^(paid|success|fulfilled)$/i.test(String(payment.status || ''))) return false;
       var id = String(payment.merchantUid || payment.orderId || '');
       var value = Number(payment.paymentAmount == null ? payment.amountKRW : payment.paymentAmount);
-      var item = String(payload.featureKey || payment.featureKey || payment.productId || payment.paymentType || 'fortune');
+      // 지급 완료 봉투(worker/payments/compat.js legacyConfirmEnvelope)는 featureKey 를 accessGrant 안에만 싣는다.
+      var item = String(payload.featureKey || (payload.accessGrant && payload.accessGrant.featureKey) || payment.featureKey || payment.productId || payment.paymentType || 'fortune');
       if (!/^[a-zA-Z0-9_-]{1,100}$/.test(item)) item = 'fortune';
       if (!/^[a-zA-Z0-9_-]{1,160}$/.test(id) || !Number.isFinite(value) || value <= 0) return false;
       var key = 'cd:purchase:' + id;

@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-09-22
+updated: 2026-09-24
 next: "Play v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가를 확보하기 전까지 신규 이용권 판매 차단을 유지한다"
 ---
 
@@ -29,6 +29,7 @@ next: "Play v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가�
 - 원격: rei1237/codedestiny. 조사 시 main 6d9510cc1bbcc482d36ae5ec9af640c5a78af5dc, 운영 Pages/Worker f0ffba34e168b27879409ae1ceaddca7e56cd19e. 구현 시작 기준 c9e8dca7ec7cd47042e0497c4c2764003bff2de2. 이후 배포 완료의 증거로 재사용하지 않는다.
 - GA4 계정 Code:Destiny, 속성 FortuneDevelope(526361229), 웹 스트림 꿀만세력(13684562754), 등록 URL code-destiny.com. 지난 90일 활성 325·신규 319. 적격 고객이나 동일 기간 전환율 분모로 사용 불가.
 - GA4 전자상거래 2026-08-24~09-20: 구매 0, 조회 상품 0. 보고 시간대·내부 필터 최종 대조 미완료.
+  - 2026-09-24 S1 판정: 원인은 전송 부재다 — `purchase` 는 09-21 00:46 KST, `view_item` 은 09-22 23:54 KST 운영 승격부터 나간다. 이후 대조 규칙·동의 하한·UTM 규칙은 [analytics-kpi.md](analytics-kpi.md) S1 절.
 - 운영 payments의 위 KST 기간 생성 주문: 현재 paid 5(이용권 4, 콘텐츠 1), refunded 12, failed 24, cancelled 22, pending 1. 주문 생성 시점 코호트이며 기간 내 승인/매출 집계가 아니다. 운영자 테스트 제외 전이고 PG 원장 대조 전이다.
 - 영냥이 featureKey/productId 접두어 조회: 전체 기간 refunded 1. yeongnyangi_requests의 paymentId 연결은 0. 따라서 요청만으로 구매 이력 부재를 단정하지 않는다.
 - 실행: `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny --json --max-time-ms 15000` → paid/completed/stuck/review 각 0. 읽기 전용, PG·LLM·DB 쓰기 없음.
@@ -92,7 +93,7 @@ next: "Play v3 SKU와 상품별 유료 상담·저장·지원·환불 실원가�
 - 일일 공유는 세 카드의 공개 정적 상징 ID만 URL에 포함. 생년월일/이름/질문/유료 결과 없음. 공개 요약은 로그인 전 열림. 공유 수신자 이벤트와 무료 완료를 연결해 관찰하되 native share 반환은 실제 전송 완료로 세지 않는다.
 - 공개 정적 카드 링크는 비공개 자료를 담지 않으므로 이 버전은 만료/회수 기능 없음. 유료 공유 정책에 전용하지 않는다.
 - 카카오 관리자 접근 가능: 꿀꿀 운세, _GgxaGX, business space 10500173. 소개 55자 제한 확인. 저장 결과는 인수인계에서 확정한다. 자동 메시지·광고·알림톡 발송 없음.
-- 채널용 링크안: /yeongnyangi/fortune/?product=saju_mackerel&utm_source=kakao&utm_medium=channel&utm_campaign=menu, /today/?utm_source=kakao&utm_medium=channel&utm_campaign=menu, /yeongnyangi/library/ (실제 메뉴 등록/실기기 검증 전).
+- 채널용 링크안: /yeongnyangi/fortune/?product=saju_mackerel&utm_source=kakao&utm_medium=social&utm_campaign=channel_menu, /today/?utm_source=kakao&utm_medium=social&utm_campaign=channel_menu, /yeongnyangi/library/ (실제 메뉴 등록/실기기 검증 전). 2026-09-24: `utm_medium=channel` 은 GA4 기본 채널 규칙에 없어 [UTM 규칙](analytics-kpi.md)대로 `social` 로 바꿨다 — 이미 메뉴에 등록했다면 카카오 관리자에서도 바꾼다.
 - 환영 메시지 초안: “연이와 오늘의 운세를 만나고, 영냥이에게 더 깊은 해석을 받아보세요. 구매한 결과는 내 결과에서 다시 확인할 수 있어요. 결제·이용 문의는 주문번호와 함께 남겨주세요.” 신규 채널 추가 고객에게 자동 발송하는 설정은 별도 승인 전 비활성 유지.
 
 ## P4/P5 다음 측정

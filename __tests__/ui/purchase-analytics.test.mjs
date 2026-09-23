@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {JSDOM} from 'jsdom';
 const source=readFileSync(new URL('../../js/core/analytics.js',import.meta.url),'utf8');
-function boot(){
-  const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url:'https://code-destiny.com/points/?token=private',runScripts:'outside-only'});
+function boot(url='https://code-destiny.com/points/?token=private'){
+  const dom=new JSDOM('<!doctype html><html><head></head><body></body></html>',{url,runScripts:'outside-only'});
   dom.window.eval(source);return dom;
 }
 test('server approval is purchase; pending grant is not fulfillment; replay does not duplicate',()=>{
@@ -29,6 +29,30 @@ test('PG callback alone, unpaid status and missing server amount are not purchas
   const dom=boot(),w=dom.window;
   for(const payload of [{paymentId:'pg-callback'}, {payment:{merchantUid:'order-1',paymentAmount:1000,status:'pending'}}, {payment:{merchantUid:'order-1',status:'paid'}}])assert.equal(w.cdTrackConfirmedPurchase(payload),false);
   assert.equal(w.dataLayer.filter(row=>row[1]==='purchase').length,0);
+  dom.window.close();
+});
+test('one mock web payment through the real confirm envelopes is one purchase named by its feature',async()=>{
+  const {legacyConfirmEnvelope}=await import('../../worker/payments/compat.js');
+  const order={merchantUid:'cd'+'1'.repeat(38),featureKey:'saju-deep',paymentAmount:5000,impUid:'imp-1'};
+  const dom=boot(),w=dom.window;
+  w.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order));
+  w.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order,{granted:true}));
+  w.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order,{granted:true,replayed:true}));
+  const sent=Array.from(w.dataLayer.filter(row=>row[0]==='event'&&/^(purchase|entitlement_granted)$/.test(row[1])),row=>[row[1],row[2].transaction_id,row[2].items?row[2].items[0].item_id:row[2].item_id]);
+  assert.deepEqual(sent,[['purchase',order.merchantUid,'saju-deep'],['entitlement_granted',order.merchantUid,'saju-deep']]);
+  dom.window.close();
+  const direct=boot(),d=direct.window;
+  d.cdTrackConfirmedPurchase(legacyConfirmEnvelope(order,{granted:true}));
+  assert.equal(d.dataLayer.find(row=>row[1]==='purchase')[2].items[0].item_id,'saju-deep');
+  direct.window.close();
+});
+test('page_location keeps campaign parameters and drops every other query value',()=>{
+  const dom=boot('https://code-destiny.com/landing/?utm_source=threads&token=private&utm_medium=social&utm_campaign=s1_launch'),w=dom.window;
+  const expected='https://code-destiny.com/landing/?utm_source=threads&utm_medium=social&utm_campaign=s1_launch';
+  assert.equal(w.dataLayer.find(row=>row[0]==='config')[2].page_location,expected);
+  w.cdTrack('page_view',{page_location:'https://code-destiny.com/result/?id=private'});
+  assert.equal(w.dataLayer.at(-1)[2].page_location,expected);
+  assert.equal(JSON.stringify(w.dataLayer).includes('private'),false);
   dom.window.close();
 });
 test('only completed paid reports emit anonymous delivery and first-open events once',()=>{
