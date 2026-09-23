@@ -134,6 +134,8 @@ try {
     const scrollTapTarget = '.moon-preview-card[href="/tarot/mingri/"]';
     const homeUrl = `http://127.0.0.1:${server.port}/index.html`;
 
+    // 운세 카드는 정원 접힘과 2차 패널 접힘 안에 있다(0×0). 새 페이지마다 먼저 펼친다.
+    await expandHomeFolds(cdp);
     const arbiter = await evaluate(cdp, gestureProbeExpression(), "gesture arbiter presence");
     assert(arbiter.arbiterPresent, "gesture arbiter is installed on the mobile shell", arbiter);
 
@@ -153,6 +155,7 @@ try {
     //    어떤 스크롤 잠금 목록에도 없어 가로 스와이프가 그대로 기능을 열었다.
     await navigate(cdp, homeUrl);
     await delay(400);
+    await expandHomeFolds(cdp);
     const beforeHorizontal = await evaluate(cdp, gestureProbeExpression(), "before horizontal swipe");
     await swipeFromSelector(cdp, scrollTapTarget, -150, 0);
     await delay(600);
@@ -168,6 +171,7 @@ try {
     //    좌표 차이만 보는 판정기(기존 4벌 전부)는 이걸 전부 탭으로 통과시킨다.
     await navigate(cdp, homeUrl);
     await delay(400);
+    await expandHomeFolds(cdp);
     const beforeOutBack = await evaluate(cdp, gestureProbeExpression(), "before out-and-back swipe");
     await swipeOutAndBackFromSelector(cdp, scrollTapTarget, -120);
     await delay(600);
@@ -192,6 +196,7 @@ try {
     // 정적 트리에 없는 Next 라우트 때문에 환경 탓으로 실패해 신호가 흐려진다.
     await navigate(cdp, homeUrl);
     await delay(400);
+    await expandHomeFolds(cdp);
     await evaluate(cdp, "(() => { window.scrollBy(0, 120); return true; })()", "emit scroll before settled tap");
     await delay(500); // 스크롤이 완전히 멎은 상태를 만든다
     const beforeSettled = await evaluate(cdp, gestureProbeExpression(), "before settled tap");
@@ -246,9 +251,7 @@ try {
     // 그 뒤로 계속 실패해 왔다(verify:guard-wiring 상 미배선이라 CI 가 못 잡았다. 2026-09-01
     // 실측: HEAD 에서도 같은 자리에서 같은 오류). 아래 이용권 블록과 같은 방식으로, 가드를
     // 낮추지 않고 사용자와 같은 경로("모두 펼치기")로 먼저 펼친 뒤에 잰다.
-    await dismissCookieConsent(cdp);
-    await tapSelector(cdp, "#cdHomeExpandToggle");
-    await delay(400);
+    await expandHomeFolds(cdp);
     // 컬렉션은 접힌 채 시작한다 — 열어야 타일이 히트 테스트를 받는다.
     // 셸이 로드 직후 스크롤 위치를 복원하므로(index.html 의 window.scrollTo(0, savedScrollY)),
     // tapSelector 안의 scrollIntoView 만 믿으면 그 복원에 밀려 좌표가 뷰포트 밖으로 나간다.
@@ -283,9 +286,7 @@ try {
     await navigate(cdp, totemHomeUrl);
     await delay(400);
     // 새 페이지라 홈이 다시 접혀 있다 — 위와 같은 경로로 펼친다.
-    await dismissCookieConsent(cdp);
-    await tapSelector(cdp, "#cdHomeExpandToggle");
-    await delay(400);
+    await expandHomeFolds(cdp);
     await waitForSelector(cdp, animalToggle);
     await evaluate(cdp, scrollSelectorIntoViewExpression(animalToggle), "re-scroll animal collection toggle into view");
     await delay(500);
@@ -314,45 +315,42 @@ try {
   }
 
   if (!focusAllFortunes) {
-  // 🔴 주 CTA 의 목적지는 홈 개편마다 바뀐다(#cdConcernPick → #cdTodayHub, 6c605edd4).
-  // 셀렉터에 목적지를 박아 두면 가드가 "존재하지 않음"으로 죽는다 — 실제 href 를 읽어서 잰다.
+  // 🔴 주 CTA 의 목적지는 홈 개편마다 바뀐다(#cdConcernPick → #cdTodayHub, 6c605edd4 →
+  // 꽃정원 개편 2026-09-24 에서 /today/#daily-tarot). 셀렉터에 목적지를 박아 두면 가드가
+  // "존재하지 않음"으로 죽는다 — 실제 href 를 읽어서 잰다.
   const heroCtaTarget = await evaluate(cdp, `(() => {
-    const el = document.querySelector('.cdh-copy [data-cdh-free], .moon-hero__cta--primary');
-    if (!el) return { exists: false, id: '' };
-    const href = String(el.getAttribute('href') || '');
-    return { exists: true, href, id: href.charAt(0) === '#' ? href.slice(1) : '' };
+    const el = document.querySelector('.cdh-copy .cdh-primary, .moon-hero__cta--primary');
+    if (!el) return { exists: false };
+    const url = new URL(el.getAttribute('href') || '', location.href);
+    return { exists: true, sameOrigin: url.origin === location.origin, pathname: url.pathname, hash: url.hash };
   })()`, "hero primary CTA target");
   assert(
-    heroCtaTarget.exists && !!heroCtaTarget.id,
-    "the hero primary CTA points at an in-page anchor",
+    heroCtaTarget.exists && heroCtaTarget.sameOrigin && heroCtaTarget.pathname !== "/index.html",
+    "the hero primary CTA links to a same-origin route",
     heroCtaTarget,
   );
-  await tapSelector(cdp, ".cdh-copy [data-cdh-free], .moon-hero__cta--primary");
-  // 단일 반응형 홈의 주 CTA는 같은 문서 안 블록으로 내려간다(문서 전환 없음). 히어로 스크립트가
-  // preventDefault 후 스무스 스크롤하므로 해시가 아니라 **실제 위치**로 재야 한다 — 해시로 재면
-  // 스크롤이 정상이어도 틀리게 실패한다. 스무스 스크롤 완료까지 짧은 폴링이 안정적이다.
-  let afterPrimaryTap = { top: null, inView: false };
+  await tapSelector(cdp, ".cdh-copy .cdh-primary, .moon-hero__cta--primary");
+  // 목적지가 App Router 라우트라 정적 소스 트리에는 문서가 없을 수 있다(404). 그래서 목적지
+  // 블록이 보이는지가 아니라 **탭이 그 경로로 이동했는지**로 잰다 — 가로챈 스크립트가
+  // preventDefault 로 이동을 삼키는 회귀를 잡는 것이 이 단언의 목적이다.
+  let afterPrimaryTap = { pathname: "", hash: "" };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
-    afterPrimaryTap = await evaluate(
-      cdp,
-      `(() => {
-        const el = document.getElementById(${JSON.stringify(heroCtaTarget.id)});
-        if (!el) return { top: null, inView: false };
-        const r = el.getBoundingClientRect();
-        return { top: Math.round(r.top), inView: r.top < innerHeight * 0.5 && r.bottom > 0 };
-      })()`,
-      "after primary CTA tap",
-    );
-    if (afterPrimaryTap.inView) break;
+    try {
+      afterPrimaryTap = await evaluate(cdp, "({ pathname: location.pathname, hash: location.hash })", "after primary CTA tap");
+    } catch (_) {
+      continue; // 문서 전환 중에는 실행 컨텍스트가 잠깐 사라진다
+    }
+    if (afterPrimaryTap.pathname === heroCtaTarget.pathname) break;
   }
   assert(
-    afterPrimaryTap.inView,
-    `primary CTA scrolls its target (#${heroCtaTarget.id}) into view`,
+    afterPrimaryTap.pathname === heroCtaTarget.pathname && afterPrimaryTap.hash === heroCtaTarget.hash,
+    `primary CTA navigates to ${heroCtaTarget.pathname}${heroCtaTarget.hash}`,
     afterPrimaryTap,
   );
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
+  await expandHomeFolds(cdp);
   await tapSelector(cdp, ".moon-preview-card[href=\"/tarot/mingri/\"]");
   await delay(450);
   const afterTarotTap = await evaluate(cdp, `(() => {
@@ -697,9 +695,7 @@ try {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   // 홈 축약(cd-home-secondary-v20260817) 이후 이용권 섹션은 첫 화면에서 접혀 있다.
   // 가드를 낮추지 않고, 사용자와 같은 경로("모두 펼치기")로 먼저 펼친 뒤에 잰다.
-  await dismissCookieConsent(cdp);
-  await tapSelector(cdp, "#cdHomeExpandToggle");
-  await delay(400);
+  await expandHomeFolds(cdp);
   const homeExpandedState = await evaluate(
     cdp,
     "({ expanded: document.documentElement.classList.contains('cd-home-expanded') })",
@@ -1332,6 +1328,25 @@ async function dismissCookieConsent(cdp) {
   return state;
 }
 
+// 🔴 꽃정원 개편(2026-09-24)이 2차 패널과 "모두 펼치기"(#cdHomeExpandToggle)를 접힘
+// <details id="cdhMore"> 안으로 옮겼다. 닫힌 details 안의 토글은 좌표 히트 테스트에 걸리지 않아
+// tapSelector 가 가림으로 실패한다(실측). 가드를 낮추지 않고 사용자와 같은 경로 —
+// 정원 summary 탭 → 모두 펼치기 탭 — 로 연다. 정원이 없는 옛 셸은 두 번째 단계만 탄다.
+async function expandHomeFolds(cdp) {
+  await dismissCookieConsent(cdp);
+  const gardenClosed = await evaluate(
+    cdp,
+    "(() => { const d = document.getElementById('cdhMore'); return !!d && !d.open; })()",
+    "garden fold state",
+  );
+  if (gardenClosed) {
+    await tapSelector(cdp, "#cdhMore > summary");
+    await delay(300);
+  }
+  await tapSelector(cdp, "#cdHomeExpandToggle");
+  await delay(400);
+}
+
 async function tapSelector(cdp, selector) {
   let box = await evaluate(cdp, selectorBoxExpression(selector));
   if (!box.exists || !box.visible) {
@@ -1543,7 +1558,7 @@ function mobileStateExpression() {
     const nav = document.querySelector('#cdMobileBottomNav');
     // 🔴 목적지를 셀렉터에 박지 않는다 — 앵커가 바뀌면 cta 가 null 이 되어 이 단언이
     // "첫 화면에 없다"로 조용히 뒤집힌다(2026-09-01 실측: #cdConcernPick 하드코드 탓에 실패 중이었다).
-    const cta = document.querySelector('.cdh-copy [data-cdh-free], .moon-hero__cta--primary');
+    const cta = document.querySelector('.cdh-copy .cdh-primary, .moon-hero__cta--primary');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');
