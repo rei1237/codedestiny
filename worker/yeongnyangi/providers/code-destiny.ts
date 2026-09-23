@@ -8,7 +8,9 @@ import { getEnv } from '../../lib/env.js';
 function providerSchema(value: any): any {
   if(Array.isArray(value))return value.map(providerSchema);
   if(!value || typeof value!=='object')return value;
-  return Object.fromEntries(Object.entries(value).filter(([key])=>key!=='additionalProperties').map(([key,item])=>[key,providerSchema(item)]));
+  // Gemini rejects empty enum values before generation. Empty legacy fields
+  // remain a prompt and application-validation contract, not a provider enum.
+  return Object.fromEntries(Object.entries(value).filter(([key,item])=>key!=='additionalProperties' && !(key==='enum' && Array.isArray(item) && item.includes(''))).map(([key,item])=>[key,providerSchema(item)]));
 }
 
 export class CodeDestinyProvider implements LLMProvider {
@@ -28,6 +30,7 @@ export class CodeDestinyProvider implements LLMProvider {
     if (response.truncated || /^(MAX_TOKENS|LENGTH)$/.test(response.finishReason || '')) throw new FortuneError('FORTUNE_OUTPUT_TRUNCATED',502);
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
+      console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null}));
       throw new FortuneError(/timeout|deadline/i.test(code)?'FORTUNE_PROVIDER_TIMEOUT':'FORTUNE_PROVIDER_FAILED',502);
     }
     return {result:response.text,provider:response.provider || 'gemini',model:response.model || 'gemini-2.5-flash'};
