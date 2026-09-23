@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그것부터 짧게, 그다음 S1 측정 정합 — GA4 purchase 0건 vs DB 결제 5건(08-24~09-20) 불일치 원인을 읽기 전용으로 좁힌다(RED·결제 인접, 착수 전 7항목 선보고)."
+next: "S3 핵심 랜딩 답변 우선 개편 ①(GREEN·Opus/medium) — 선행 조건이 풀린 첫 대기 행이다(S2는 U2 대기). 순서 근거인 GSC 페이지별 노출(S2·U4)이 없으면 표에 적힌 순서로 한다. S6도 S1으로 풀렸고(완료 확인은 S1 운영 승격 뒤), S5 신년 허브는 10월 중순 운영 승격이 기한이다."
 ---
 
 # 경쟁력 로드맵 — 측정 정합 → 모수 확대 → 공유 루프 → 속도 → 비용
@@ -20,7 +20,19 @@ next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그�
   - 48줄 "(12:22 KST = 03:22Z)" → "(2026-09-23 12:22:00Z 시작·12:33:08Z 완료 = 21:22–21:33 KST, run 35860013925)"
   - 54줄 `ISODate("2026-09-23T03:22:00Z")` → `ISODate("2026-09-23T12:33:08Z")`. 58줄(`2026-09-16`)은 그대로.
   - 이유: 지금 값이면 승격 전 약 9시간의 결제가 "absent"로 잡힌다. `be8211a8b`의 실측(승격 뒤 확정 1건, channel matched)에는 영향이 드러나지 않았지만, 그 문서가 "확정 20건 이상이면 다시 집계"라고 적어 두었으므로 재집계(U4) 전에 반영한다.
-- 🔴 **기한 09-26**: `docs/CURRENT_DEV_BASELINE.md`의 `Last curated: 2026-09-12`는 09-27에 15일이 되어 `verify:doc-freshness`(14일 한도)가 실패한다. `.github/workflows/pr-ci.yml`은 fast가 아닌 tier마다 이 검사를 돌린다 → 표 A의 BL.
+- BL 완료 `1a202247a` — `docs/CURRENT_DEV_BASELINE.md` `Last curated: 2026-09-24`. `verify:doc-freshness`(14일 한도)는 10-09에 다시 실패하므로 **10-08까지** 재큐레이션한다(`.github/workflows/pr-ci.yml`은 fast가 아닌 tier마다 이 검사를 돌린다).
+- S1 완료 `03c3956ec` — 원인·대조 규칙·UTM 규칙의 정본은 `docs/analytics-kpi.md` "S1" 절.
+  - GA4 0 ↔ DB 5(08-24~09-20)의 원인은 전송 부재다. `purchase`는 09-21 00:46 KST, `view_item`은 09-22 23:54 KST 운영 승격부터 나간다.
+  - 09-21 승격부터 `page_location`이 쿼리를 통째로 떼어 UTM 귀속이 없었다 → S1이 `utm_*`만 남긴다. 구매 `item_id`가 `fortune`으로 떨어지던 것도 `accessGrant.featureKey`로 고쳤다. mock 결제 1회(대기→지급→재응답) = `purchase` 1·중복 0.
+  - GA4 `purchase`는 동의 사용자만 잡히는 하한이다. 건수 정본은 서버 원장이다(U7).
+  - 🔴 효과는 운영 승격 뒤부터다(push = 스테이징). React 경로는 `app/layout.js:198`의 고정 `?v=`와 7일 캐시 때문에 최대 7일 늦게 닿는다(운영 헤더 실측).
+- S1 후속(보고만, 미착수):
+  1. React `analytics.js` 고정 `?v=20260814-ga4-v1`(`app/layout.js:198`) — analytics.js 변경이 매번 최대 7일 늦는다.
+  2. 셸의 내부 UTM 버튼 2개(`index.html:20333`, 테스트 `__tests__/ui/yeongnyangi-free-fortune.test.mjs:20`가 href 고정) — S1 승격부터 구매 귀속을 `code_destiny / referral`로 덮는다. `cross_sell_click`으로 대체한다.
+  3. `purchase`가 없는 경로: Play·선물·마스터 연애/영냥이 활성화 복구·`analytics.js` 없는 정적 페이지 12개.
+  4. dp 결제 경로(`js/destiny-profile.js` 5788–5803, 동결 region)에 GRANT_PENDING 분기가 없다 — 200 대기 응답도 "결제 완료"를 띄운다(이중 전송은 아님).
+  5. `/points`는 확인 뒤 약 1.2초 만에 이동한다(`app/points/PointsClient.tsx` 3364·3389). 그때 analytics.js가 아직 설치 전이면 대기열 이벤트가 사라질 수 있다(미검증).
+  6. `cd_ga_last_visit_v1`을 동의 전에 쓴다. 공개 공유 `utm_medium=share`는 GA4에서 Unassigned다(`share_receive` 계약이라 유지). 광고 클릭 ID(gclid 등)도 떼진다 — 광고를 집행할 때만 문제다.
 
 ## 로드맵 — 1 세션 = 1행
 
@@ -32,8 +44,8 @@ next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그�
 | # | 작업 | 등급·권장 | 핵심 파일·재사용 | 완료 기준 | 상태 |
 |---|---|---|---|---|---|
 | S0 | 로드맵 정본 + 홈 정본 문서 드리프트 정정(+`CONTEXT_AUDIT`) | GREEN · Opus/medium | `ARCHITECTURE.md`, `docs/CURRENT_DEV_BASELINE.md`, `docs/CONTEXT_AUDIT.md` 외 문서 5개 | CI green | 완료 `96d346da9`·`2b005068f`(인이시스 정정 보류) |
-| BL | `CURRENT_DEV_BASELINE.md` 큐레이션 — 낡은 항목 정리 후 `Last curated` 갱신. **09-26까지** | GREEN · Sonnet/medium | `scripts/verify-doc-freshness.mjs` | `npm run verify:doc-freshness` OK | 대기 |
-| S1 | 측정 정합: GA4 구매 0 vs DB 5 원인(시간대·필터·테스트 주문·전송 조건) → 결제 완료 이벤트 정합 + 소셜 링크 UTM 규칙 | RED(결제 인접) · Opus/high | `docs/analytics-kpi.md` 11·43줄(기존 발사 지점 — 새 이벤트를 만들기 전에 재사용) | mock 결제 1회에 구매 이벤트 1건·중복 0 | 대기 |
+| BL | `CURRENT_DEV_BASELINE.md` 큐레이션 — 낡은 항목 정리 후 `Last curated` 갱신. **09-26까지** | GREEN · Sonnet/medium | `scripts/verify-doc-freshness.mjs` | `npm run verify:doc-freshness` OK | 완료 `1a202247a` |
+| S1 | 측정 정합: GA4 구매 0 vs DB 5 원인(시간대·필터·테스트 주문·전송 조건) → 결제 완료 이벤트 정합 + 소셜 링크 UTM 규칙 | RED(결제 인접) · Opus/high | `docs/analytics-kpi.md` 11·43줄(기존 발사 지점 — 새 이벤트를 만들기 전에 재사용) | mock 결제 1회에 구매 이벤트 1건·중복 0 | 완료 `03c3956ec` |
 
 ### B. 모수 확대 — 검색·AI·소셜 (최우선)
 
@@ -43,7 +55,7 @@ next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그�
 | S3 | 핵심 랜딩 답변 우선 개편 ①: 숙요 2개(09-21 완료)의 패턴(정의형 첫 문단·계산 예시·보이는 FAQ = JSON-LD·설명형 앵커)을 `/saju/`·`/saju/guide/`·`/manse/`·`/ziwei/`·`/ziwei/chart/`에 적용 + 업데이트 날짜·허브→가이드→도구 링크. 순서는 S2의 GSC 노출 순 | GREEN · Opus/medium | `docs/seo/core-landings-20260921.md`, `lib/seo-landing-pages.js`, `app/components/SeoLandingTemplate.jsx`. 저자 근거는 `lib/brand/founder.ts`만 | 얇은 신규 페이지 0, SSR FAQ = JSON-LD | 대기 |
 | S4 | ② `/vedic/`·`/vedic/guide/`·`/nakshatra/`·`/astrology/`·`/astrology/guide/` + 체계 비교·계산 예시(기존 가이드·insights 확장 우선, 새 URL은 7항목 선보고) + 나크샤트라 융합 27개 대조(계산 원천 불변) | GREEN · Opus/medium | `constants/nakshatra-fusion.js`, `constants/nakshatra-crosswalk.js` | 27/27 대조표 | 대기 |
 | S5 | **2027 정미년 신년운세 허브**(총운·띠별·토정비결 해설 → 천원·신년 상담 CTA). 10월 중순 운영 승격 → 11월 초 색인이 기한 | RED(신규 라우트) · Opus/high | `app/new-year-ai-consultation/`, `scripts/generate-sitemap.mjs` | 11월 초 색인 확인 | 대기 |
-| S6 | 소셜→사이트: Threads 자동 게시물 링크·UTM(템플릿만 — 새 크론·변수 금지), 네오 네이버 블로그 글 초안(랜딩 1:1), 셀럽 사주 2차 묶음 | GREEN · Sonnet/medium | Threads 자동화 템플릿, `lib/famous-saju/` | UTM 유입이 GA4에서 분리됨 | 대기(S1 후) |
+| S6 | 소셜→사이트: Threads 자동 게시물 링크·UTM(템플릿만 — 새 크론·변수 금지), 네오 네이버 블로그 글 초안(랜딩 1:1), 셀럽 사주 2차 묶음 | GREEN · Sonnet/medium | Threads 자동화 템플릿(이미 S1 규칙대로 `utm_source=threads&utm_medium=social&utm_campaign=daily_<type>` — `worker/lib/threads-daily-providers/shared.js:58`), `lib/famous-saju/`, UTM 규칙은 `docs/analytics-kpi.md` S1 절 | UTM 유입이 GA4에서 분리됨 | 대기(완료 확인은 S1 운영 승격 뒤) |
 
 ### C. 공유 루프
 
@@ -85,9 +97,10 @@ next: "BL(기한 09-26) CURRENT_DEV_BASELINE 큐레이션이 안 됐으면 그�
 | U1 | Cloudflare AI 크롤러 허용 | **GPTBot·PerplexityBot·ClaudeBot 허용.** robots.txt는 이미 허용인데 엣지만 403이다. 막으면 Perplexity 색인·모델 브랜드 학습이 빠진다. 절차: ① 대시보드 → code-destiny.com → Security → Events에서 User agent `GPTBot` 필터 → 차단한 규칙(Service 열) 확인 ② AI Crawl Control 또는 Security → Bots의 AI 봇 차단에서 세 봇 허용(메뉴 이름은 대시보드 개편에 따라 다를 수 있다) ③ 아래 기준선의 재현 명령이 세 줄 모두 200 ④ 롤백 = 같은 토글 원복 |
 | U2 | Google 사이트 이름 | **"꿀꿀 운세" 유지 + 홈 title 접미사 정렬.** 09-06 결정·가드 테스트·바꿀 수 없는 카카오 채널명·소셜 해시태그가 모두 꿀꿀 운세다. 09-21 브랜드 지도(CODE DESTINY 운영 브랜드)를 우선하면 반대로 WebSite 이름을 바꾼다. S2 전에 결정 |
 | U3 | 카카오 공유 키 A/B/C | S7 전에 결정. 선택지는 `docs/handoff/kakao-share-viral-loop-2026-09-13.md` |
-| U4 | 운영 채널·데이터 | 인스타 프로필에 사이트 링크, 카카오 채널 메뉴 등록, GSC 페이지별 내보내기(지금·28일 뒤), 네이버 서치어드바이저·빙 재제출, CF Web Analytics 경로별 CWV 내보내기(S10), 운영 읽기 스크립트 실행(`scripts/report-pg-window-latency.mjs --days 30`·결제 성공률·channelCheck 집계 — 정정된 시각으로) |
+| U4 | 운영 채널·데이터 | 인스타 프로필에 사이트 링크, 카카오 채널 메뉴 등록, GSC 페이지별 내보내기(지금·28일 뒤), 네이버 서치어드바이저·빙 재제출, CF Web Analytics 경로별 CWV 내보내기(S10), 운영 읽기 스크립트 실행(`scripts/report-pg-window-latency.mjs --days 30`·결제 성공률·channelCheck 집계 — 정정된 시각으로) · S1: GA4 보고 시간대(Asia/Seoul)·내부 트래픽 필터 확인, S1 운영 승격 뒤 셸 경로 UTM 링크 1회 실시간 확인(쿠키 동의 후), 이미 등록한 카카오 채널 메뉴 링크는 `utm_source=kakao&utm_medium=social&utm_campaign=channel_menu`로 |
 | U5 | 사업 판단 | 이용권 7일 관찰 판정: 실제 변동비가 제공 가치의 30%를 넘는 상품부터 조정(`docs/pass-pricing-20260921.md` 16줄). 119,800원 등 스트레스 최소가는 폐기된 89,000원 체계의 과거 분석이라 판매 차단 근거가 아니다(같은 문서 18줄). 패밀리 이용권(09-23 재개) 마진 점검, 3,000/5,000원 상품 처리, 윈백 메일 경로 A/B, Play v3 SKU |
 | U6 | 결제 브라우저 시나리오 CI | **`scripts/verify-yeongnyangi-browser.mjs`(104 시나리오)를 결제 파일 경로 한정 섀도 잡으로 편입.** 결제 게이트 범주이고 영냥이 결제 버튼 장애가 2일 넘게 미탐지됐다. 새 CI 게이트는 사용자 지시가 있어야 하므로 S13 전에 결정 |
+| U7 | 북극성 정의 | **서버 원장의 주간 결제 완료 주문 수(테스트 주문 제외)로 바꾼다.** S1 실측상 GA4는 동의 사용자만 잡는 하한이고, `purchase_complete`는 월정석 사용에도 발사되어 결제 건수가 아니다. GA4 `purchase`는 유입 귀속에만 쓴다. 바꾸면 아래 측정 규칙 첫 줄과 `docs/analytics-kpi.md` 3-1을 함께 고친다 |
 
 ## 기준선 — 2026-09-23 운영 실측(읽기 전용)
 
@@ -143,7 +156,7 @@ sitemap 1,284 URL:
 문서·사용자 제공 수치(재측정 전까지 출처 그대로):
 
 - 사업: 매출 월 약 5만원(사용자) < 고정비 약 10.8만원(Mongo 약 10만원 + Cloudflare $5). Gemini 약 1만원.
-- 측정: GA4 구매 0건 vs DB 결제 5건(08-24~09-20). Threads 월 약 6.8만 조회·팔로워 353 vs GA4 90일 방문자 325(인스타 프로필 링크·소셜 UTM 없음).
+- 측정: GA4 구매 0건 vs DB 결제 5건(08-24~09-20 — S1: 그 기간엔 `purchase` 이벤트가 없었다). Threads 월 약 6.8만 조회·팔로워 353 vs GA4 90일 방문자 325(인스타 프로필 링크·소셜 UTM 없음).
 - GSC 06-19~09-18: 클릭 30·노출 356·평균 25.4위, 색인 292·발견-미색인 1,023.
 - 속도: 옛 셸(지금 `/ggulggul/`) 필드 LCP P75 1,340ms·INP poor 12%(09-06). **새 React `/`는 기준선 없음.** React 공통 경로 차단 CSS: `/saju/` 스로틀 FCP=LCP 2,660–2,720ms → 제거 시 1,120–1,260ms(`global-css-render-blocking-2026-09-17.md`). `/js/core` 6개가 `beforeInteractive`(`app/layout.js` 181–187줄). 한국어 페이지도 `ko.json`(519KB·압축 132KB)을 받는다(`lib/i18n/useT.ts` 86줄 → `lib/i18n/dictionary.ts` 150줄). `/ggulggul/` `#iljuCard` CLS 1.517·`activateNavItem` 519–542ms·44px 미만 탭 타깃 37%. CrUX 404.
 - 결제: 클릭→결제창 p50 2,187 / p90 9,963ms(n=5, 08-16, 원인 = 죽은 Mongo 소켓 재사용) — #691 예열 뒤 재측정 없음. 결제→결과 시간은 측정 자체가 없다. 영냥이 결제 버튼 미표시 장애(09-16~18)가 2일 넘게 미탐지.
@@ -160,7 +173,7 @@ sitemap 1,284 URL:
 
 ## 측정 규칙
 
-- 북극성: 주간 `purchase_complete` 건수(`docs/analytics-kpi.md` 3-1, 테스트 주문 제외). 추정 목표치 없이 기준선 대비 실측만 쓴다.
+- 북극성: 주간 `purchase_complete` 건수(`docs/analytics-kpi.md` 3-1, 테스트 주문 제외). 추정 목표치 없이 기준선 대비 실측만 쓴다. S1: GA4는 동의 사용자 하한이고 `purchase_complete`는 월정석 사용도 센다 — 정본 교체 여부는 U7.
 - 선행 지표: GSC 동일 URL 28일 비교, AI 봇 403 수, AI 답변 인용 패널(고정 질문 20개 × ChatGPT·Perplexity·Gemini·네이버 AI 브리핑, 월 1회), UTM별 소셜 유입, 공유 수신 유입. 중간 지표: 결제창 열림 p75, 첫 챕터 표시 p75, 결과→공유율.
 - SEO·GEO 효과는 **운영 승격 뒤**부터다(push는 스테이징까지).
 
@@ -205,11 +218,12 @@ npm run verify:doc-freshness
 
 - 403을 내는 Cloudflare 규칙의 정체(U1).
 - 한국 기준 TTFB·CWV, 새 React `/`의 필드 CWV(S10).
-- GA4 구매 0건의 원인(S1), 구매 직전 DB_FALLBACK 원인(S13).
+- 구매 직전 DB_FALLBACK 원인(S13).
+- GA4 보고 시간대·내부 트래픽 필터 설정(U4 — S1 대조 규칙의 전제), 엣지가 배포 때 `/js/*.js` 캐시를 비우는지(React 경로 반영 지연).
 - Atlas Flex의 Search·연결 한도(S17).
 
 ## 재개
 
 - 작업 위치 `D:\Development\code-destiny`(main). 시작: `git branch --show-current` → `git status` → `git pull --ff-only`. 쓰는 세션이 이미 있으면 워크트리.
 - 이 문서: `D:\Development\code-destiny\docs\handoff\competitiveness-roadmap-20260923.md`
-- 다음: 선행 조건이 풀린 첫 "대기" 행 — 지금은 BL(기한 09-26), 그다음 S1.
+- 다음: 선행 조건이 풀린 첫 "대기" 행 — 지금은 S3(S2는 U2 대기). S6도 풀렸다(완료 확인은 S1 운영 승격 뒤).
