@@ -14,7 +14,8 @@
  *   ③ 발견됐는데 CTA 가 없으면 실패한다.
  *   ④ CTA 표에 있는 라우트가 실제로 렌더되지 않으면 실패한다(죽은 표 항목을 막는다).
  *   ⑤ 표의 목적지가 실재하지 않으면 실패한다 — 셸 딥링크는 index.html 의 [data-action]
- *      타일 존재로, 그 외는 app/ 아래 page 파일 존재로 확인한다. 셸에 타일이 없는
+ *      타일 존재로, 기능 소개는 동적 라우트와 검증된 카탈로그 항목으로, 그 외는
+ *      app/ 아래 page 파일 존재로 확인한다. 셸에 타일이 없는
  *      `?action=` 은 클릭해도 조용히 아무 일도 일어나지 않으므로 이게 핵심이다.
  *   ⑥ /tarot/guide 는 로케일 12벌이 살아 있는 유일한 가이드다. 비-ko 로케일은 번역된
  *      navLinks 를 CTA 로 승격하므로, 어느 로케일에서든 그 배열이 비면 CTA 가 사라진다.
@@ -89,6 +90,10 @@ const shell = existsSync(shellPath) ? readFileSync(shellPath, "utf8") : "";
 if (!shell) fail("index.html 을 읽지 못했다 — 셸 딥링크 목적지를 확인할 수 없다.");
 
 const pageFileNames = ["page.js", "page.jsx", "page.ts", "page.tsx"];
+const featureCatalog = JSON.parse(readFileSync(path.join(rootDir, "lib", "marketing", "feature-visual-details.generated.json"), "utf8"));
+const verifiedFeatureSlugs = new Set(featureCatalog.index
+  .filter((item) => item.verification === "verified")
+  .map((item) => item.slug));
 
 function destinationExists(href) {
   if (href.startsWith("/?action=")) {
@@ -98,6 +103,15 @@ function destinationExists(href) {
     return tiles > 0 ? null : `셸에 [data-action="${action}"] 타일이 없다 — 클릭해도 아무 일도 일어나지 않는다.`;
   }
   if (!href.startsWith("/")) return `내부 경로가 아니다: ${href}`;
+  const featureSlug = href.match(/^\/features\/([^/]+)\/?$/)?.[1];
+  if (featureSlug) {
+    const dynamicPage = path.join(rootDir, "app", "features", "[slug]");
+    if (!pageFileNames.some((name) => existsSync(path.join(dynamicPage, name)))) return "기능 소개 동적 라우트가 없다.";
+    if (!verifiedFeatureSlugs.has(featureSlug) || featureCatalog.items?.[featureSlug]?.verification !== "verified") {
+      return `검증된 기능 소개 카탈로그에 ${featureSlug} 항목이 없다.`;
+    }
+    return null;
+  }
   const dir = path.join(rootDir, "app", ...href.replace(/^\/|\/$/g, "").split("/"));
   const found = pageFileNames.some((name) => existsSync(path.join(dir, name)));
   return found ? null : `app${href} 아래에 page 파일이 없다.`;
