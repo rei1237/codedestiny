@@ -10,6 +10,14 @@ const chapter=m.readingManifest(product)[0];
 const input={chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous:[]};
 const good=await new m.MockChapterProvider().generateChapter(input);
 
+test('the citation index includes valid block references without accepting invented IDs',()=>{
+ const partial=structuredClone(good);partial.sources=[context.facts[0].id];
+ const result=m.validateChapter(partial,input);
+ assert.ok(result.sources.includes(context.facts[1].id));
+ const forged=structuredClone(partial);forged.blocks[0].sources=['saju.invented'];
+ assert.throws(()=>m.validateChapter(forged,input),{code:'INVALID_EVIDENCE'});
+});
+
 test('28 products preserve counts and have funded, distinct v5 section quotas',()=>{
  assert.equal(m.products.length,28);
  for(const p of m.products){

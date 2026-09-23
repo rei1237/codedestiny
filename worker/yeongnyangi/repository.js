@@ -7,6 +7,9 @@ export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
 const failure = (status, code) => createHttpError(status, code, {code});
+// Only pure reads opt into timeout recovery. A timed-out payment/storage write
+// must retain its uncertainty rather than being blindly replayed.
+const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
 
 export function ownerId(id) {
   if (!/^[a-f0-9]{24}$/i.test(String(id))) throw failure(401,'UNAUTHORIZED');
@@ -14,10 +17,10 @@ export function ownerId(id) {
 }
 
 export async function readRequest(env, userId, requestId) {
-  const row = await withMongoRetry(env, () => YeongnyangiRequest.findOne({_id:requestId,userId:ownerId(userId)}).lean());
+  const row = await withMongoRetry(env, () => YeongnyangiRequest.findOne({_id:requestId,userId:ownerId(userId)}).lean(),readOptions);
   if (!row) throw failure(404,'FORTUNE_NOT_FOUND');
   if (row.paymentId && row.state !== 'REFUNDED') {
-    const payment = await withMongoRetry(env, () => Payment.findOne({_id:row.paymentId,userId:ownerId(userId)}).select('status metadata refundLock').lean());
+    const payment = await withMongoRetry(env, () => Payment.findOne({_id:row.paymentId,userId:ownerId(userId)}).select('status metadata.consumedBy metadata.unlockRevoked metadata.yeongnyangiRefundPending refundLock').lean(),readOptions);
     const refunded = payment && ['refunded','cancelled'].includes(payment.status);
     if (refunded) {
       const patch={state:'REFUNDED',leaseToken:'',leaseUntil:null,errorCode:'PAYMENT_NOT_ACTIVE'};
@@ -167,10 +170,10 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
   return completeStoredRequest(env,userId,requestId,total,token);
 }
 
-export async function failChapter(env, userId, requestId, token, code, attempt = 1) {
+export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '') {
   const stopped=attempt>=3 && code!=='GENERATION_REVIEW_REQUIRED';
   return withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
-    {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),nextAttemptAt:stopped?null:new Date(Date.now()+(attempt===1?30000:120000))}}));
+    {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:stopped?null:new Date(Date.now()+(attempt===1?30000:120000))}}));
 }
 
 export async function resumeRequest(env,userId,requestId) {

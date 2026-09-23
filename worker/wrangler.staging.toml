@@ -336,3 +336,16 @@ crons = []
 # 스테이징은 crons = [] 라 크론 로그는 안 나오지만, 요청 경로 실패는 여기서도 사후 조사 대상이다.
 # 사유 원문은 worker/wrangler.toml 의 같은 블록에 있다.
 enabled = true
+
+# Paid consultation chapters are dispatched immediately after payment confirmation.
+[[queues.producers]]
+binding = "YEONGNYANGI_QUEUE"
+queue = "yeongnyangi-consultation-staging"
+
+[[queues.consumers]]
+queue = "yeongnyangi-consultation-staging"
+max_batch_size = 1
+max_batch_timeout = 1
+max_concurrency = 2
+max_retries = 5
+retry_delay = 30
