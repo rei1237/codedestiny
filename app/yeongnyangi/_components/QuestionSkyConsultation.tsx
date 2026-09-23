@@ -17,6 +17,7 @@ export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
   const [cityId,setCityId]=useState(''),[localTime,setLocalTime]=useState('');
   const [available,setAvailable]=useState(false),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const lock=useRef(false),draftKey=`yeongnyangi:question-sky:${mode}`;
+  const consultationAttemptId=useRef('');
   useEffect(()=>{
     let active=true;
     if(free){setAvailable(true);setReady(true);}else fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(r=>{if(active)setAvailable(r.products.some(p=>p.id===product.id&&p.available));}).catch(()=>{if(active)setError('상담 준비 상태를 확인하지 못했어요. 잠시 후 다시 열어 주세요.');}).finally(()=>{if(active)setReady(true);});
@@ -34,8 +35,10 @@ export default function QuestionSkyConsultation({mode}:{mode:SkyMode}){
         const {result}=await fortuneApi<{result:FreeReading}>('free/horary',{question,questionSky:{relationship,situation,topic,boundary,cityId,localTime,location:location||undefined}});
         setReading(result);try{sessionStorage.removeItem(draftKey);}catch{/* Optional draft only. */}return;
       }
-      const {fortune}=await fortuneApi<{fortune:FortuneRecord}>('requests',{mode,productId:product.id,question,questionSky:{relationship,situation,topic,boundary,cityId,localTime,location:location||undefined}});
+      if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
+      const {fortune}=await fortuneApi<{fortune:FortuneRecord}>('requests',{consultationAttemptId:consultationAttemptId.current,mode,productId:product.id,question,questionSky:{relationship,situation,topic,boundary,cityId,localTime,location:location||undefined}});
       try{sessionStorage.removeItem(draftKey);}catch{/* Submitted input is durable. */}
+      consultationAttemptId.current='';
       window.location.assign(fortune.paid?resultPath(fortune.id):checkoutPath(fortune));
     }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요.');}
     finally{lock.current=false;setBusy(false);}

@@ -16,7 +16,7 @@ try{
   const product=getProduct('saju_flounder'),f=await fixtures(browser,base,product,width);
   f.page.on('pageerror',error=>console.error(error.stack));
   f.state.holdGeneration=true;f.state.generationBoundary=0;
-  f.row.manifest=skyManifest(readingManifest(product),{domain:mode==='prashna-v1'?'vedic':'astrology',facts:[{id:'question',label:'질문의 결',value:'mock'}]});
+  f.row.manifest=skyManifest(readingManifest(product,'general','personal','destiny-book-v4'),{domain:mode==='prashna-v1'?'vedic':'astrology',facts:[{id:'question',label:'질문의 결',value:'mock'}]});
   await f.context.addInitScript(()=>{Object.defineProperty(navigator,'share',{configurable:true,value:async data=>{window.__anonymousShare=data;}});});
   try{
    let horaryCalls=0;
@@ -64,6 +64,7 @@ try{
    await f.page.waitForURL('**/checkout/**');
    assert.equal(f.state.creates,1);assert.equal(f.state.requestInput.mode,mode);assert.equal(f.state.requestInput.productId,'saju_flounder');assert.equal(f.state.requestInput.questionSky.location.source,'geolocation');assert.equal(f.state.requestInput.questionSky.boundary,true);assert.equal(f.state.requestInput.profileId,undefined);
    assert.equal(f.state.requestInput.partnerProfileId,undefined);
+   assert.match(f.state.requestInput.consultationAttemptId,/^[a-f0-9-]{36}$/);
    f.row.product={...product,name:title,image:SKY_IMAGE};f.row.paid=true;f.row.state='PAID';
    const chapters=f.row.manifest.map((c,i)=>({summary:`${i+1}번째 모의 해석: 확인한 사실과 추측을 나누어 보자.`,analysis:[],example:'보내지 않을 글에 내 감정을 적어보는 가상의 연습이야.',advice:'지금은 나의 일상을 돌보고 경계를 존중하자.',persona:'알 수 없는 마음 앞에서도 네 하루는 소중하다냥.',blocks:[{title:'모의 화면 검증',paragraphs:['계산 해석의 적중을 검증하는 내용이 아니라 화면의 읽기 흐름을 확인하는 mock 자료입니다.']}],questionAnswers:i===0?f.row.consultation.questions.map(q=>({questionId:q.id,answer:'지금 할 수 있는 선택에 집중해 보자.',reason:'나의 반복되는 선택을 참고해서 살펴보자.',timing:SKY_TIMING,action:'추측보다 나의 일상을 돌아보자.'})):[]}));
    f.row.chapters=chapters.slice(0,2);
@@ -85,7 +86,7 @@ try{
    await f.page.getByRole('link').filter({hasText:title}).click();await f.page.getByRole('heading',{name:'영냥이의 마무리',exact:true}).waitFor();
    assert.equal(f.state.generates,0);assert.equal(f.state.sdk.length,0);assert.deepEqual(f.state.errors,[]);
    results.push({mode,width,status:'PASS',partialReload:true,libraryReread:true,anonymousShare:true,realLlmCalls:0,realPgCalls:0});
-  }catch(error){await f.page.screenshot({path:`${output}/failure-${mode}-${width}.png`,fullPage:true});console.error(JSON.stringify({errors:f.state.errors,unknown:f.state.unknown,url:f.page.url()}));throw error;}finally{await f.context.close();}
+  }catch(error){await f.page.screenshot({path:`${output}/failure-${mode}-${width}.png`,fullPage:true});console.error(JSON.stringify({errors:f.state.errors,unknown:f.state.unknown,blocked:f.state.blocked,resources:f.state.resources.slice(-12),http:f.state.http.slice(-8),url:f.page.url()}));throw error;}finally{await f.context.close();}
  }
 }finally{await browser.close();await writeFile(`${output}/result.json`,JSON.stringify(results,null,2));}
 console.log(JSON.stringify(results,null,2));

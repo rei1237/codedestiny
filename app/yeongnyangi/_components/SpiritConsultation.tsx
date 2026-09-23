@@ -14,6 +14,7 @@ export default function SpiritConsultation(){
   const [topic,setTopic]=useState<SpiritTopic>('space'),[boundary,setBoundary]=useState(false),[timeUnknown,setTimeUnknown]=useState(false);
   const [available,setAvailable]=useState(false),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const lock=useRef(false);
+  const consultationAttemptId=useRef('');
   useEffect(()=>{
     let active=true;
     fortuneApi<{products:(Product&{available:boolean})[]}>('products').then(r=>{if(active)setAvailable(r.products.some(p=>p.id===product.id&&p.available));}).catch(()=>{if(active)setError('상담 준비 상태를 확인하지 못했어요. 잠시 후 다시 열어 주세요.');}).finally(()=>{if(active)setReady(true);});
@@ -26,8 +27,10 @@ export default function SpiritConsultation(){
     if(!profileId||!question.trim()||!relationship){setError('내 프로필과 관계를 고르고 질문을 남겨 주세요.');return;}
     lock.current=true;setBusy(true);setError('');
     try{
-      const {fortune}=await fortuneApi<{fortune:FortuneRecord}>('requests',{mode:SPIRIT_MODE,productId:product.id,profileId,timeUnknown,question,topicId:'relationship',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Seoul',spirit:{relationship,situation,topic,boundary}});
+      if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
+      const {fortune}=await fortuneApi<{fortune:FortuneRecord}>('requests',{consultationAttemptId:consultationAttemptId.current,mode:SPIRIT_MODE,productId:product.id,profileId,timeUnknown,question,topicId:'relationship',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'Asia/Seoul',spirit:{relationship,situation,topic,boundary}});
       try{sessionStorage.removeItem(draftKey);}catch{/* Submitted input is durable. */}
+      consultationAttemptId.current='';
       window.location.assign(fortune.paid?resultPath(fortune.id):checkoutPath(fortune));
     }catch(e){if(e instanceof FortuneApiError&&e.status===401)login();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요.');}
     finally{lock.current=false;setBusy(false);}

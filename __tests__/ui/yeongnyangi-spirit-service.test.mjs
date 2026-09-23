@@ -82,3 +82,25 @@ test('new horary purchase is refused before DB/provider and old saved horary rem
  const legacy={...row,paymentId:'legacy-horary',snapshot:{...row.snapshot,analysis:{...row.snapshot.analysis,consultation:{questionSky:{mode:'horary-v1'}}}}};
  const result=presentFortune(legacy);assert.equal(result.paid,true);assert.equal(result.product.priceKRW,1000);
 });
+
+test('new consultation attempts separate identical purchases while retries and saved results keep their identity',async()=>{
+ const {mode,spirit,...regular}=body;
+ const sky={mode:'prashna-v1',productId:'saju_flounder',question:'관계를 어떻게 살펴볼까요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',cityId:'seoul',localTime:new Date(Date.now()-86400000).toISOString().slice(0,16),boundary:false}};
+ for(const input of [regular,body,sky]){
+  const firstInput={...input,consultationAttemptId:'11111111-1111-4111-8111-111111111111'};
+  const first=await prepareFortune(env,'repeat-owner',firstInput);
+  first.paymentId='paid-original';first.state='COMPLETED';first.chapters=[{summary:'keep original'}];
+  const replay=await prepareFortune(env,'repeat-owner',firstInput);
+  assert.equal(replay,first);
+  const second=await prepareFortune(env,'repeat-owner',{...input,consultationAttemptId:'22222222-2222-4222-8222-222222222222'});
+  assert.notEqual(second._id,first._id);assert.match(second._id,/^[a-f0-9]{64}$/);
+  assert.equal(second.state,'CREATED');assert.equal(second.paymentId,undefined);assert.deepEqual(second.chapters,[]);
+  assert.equal(second.featureKey,first.featureKey);assert.equal(second.amountKRW,first.amountKRW);
+  assert.equal(first.chapters[0].summary,'keep original');
+  assert.notEqual((await prepareFortune(env,'other-owner',firstInput))._id,first._id);
+ }
+ for(const consultationAttemptId of ['',null,{},'not-a-uuid']){
+  await assert.rejects(prepareFortune(env,'repeat-owner',{...regular,consultationAttemptId}),{code:'INVALID_CONSULTATION_ATTEMPT'});
+ }
+ assert.equal(globalThis.__spiritTest.calls,0);
+});

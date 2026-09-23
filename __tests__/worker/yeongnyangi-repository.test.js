@@ -174,7 +174,7 @@ test('duplicate generation claims and late completions cannot append twice',asyn
   expect(restored.state).toBe('COMPLETED');expect(restored.chapters).toHaveLength(2);
 });
 
-test.each([15,28])('all %i chapters finish in queue without browser calls and replay cannot regenerate',async(total)=>{
+test.each([5,8,11,15,18,28])('all %i chapters finish in queue without browser calls and replay cannot regenerate',async(total)=>{
   const id='a'.repeat(64);payments[0].requestId=`yn-${id}`;
   const manifest=Array.from({length:total},(_,i)=>({id:`chapter-${i}`}));
   await repo.createRequest({},owner,id,{...values,snapshot:{manifest}});
@@ -212,6 +212,44 @@ test('three chapter failures stop automatically; explicit resume preserves total
   await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',5,'provider',5);
   await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409,payload:{code:'GENERATION_REVIEW_REQUIRED'}});
   expect(requests[0]).toMatchObject({attempts:5,state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+});
+
+test.each(['queue','user'])('worker interruption after chapter one becomes recoverable via %s at the attempt limit',async source=>{
+  const total=5;
+  await repo.createRequest({},owner,'id',{...values,snapshot:{manifest:Array.from({length:total},(_,i)=>({id:`chapter-${i}`}))}});await repo.attachPayment({},owner,'id',1000);
+  const first=await repo.claimChapter({},owner,'id');
+  await repo.finishChapter({},owner,'id',first.token,0,{summary:'saved first chapter'},total);
+  for(let attempt=1;attempt<=3;attempt++){
+    const claim=await repo.claimChapter({},owner,'id');
+    expect(claim.token).toBeTruthy();
+    // A terminated Worker cannot call failChapter. The lease alone expires.
+    requests[0].leaseUntil=new Date(0);
+  }
+  if(source==='queue'){
+    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'AUTOMATIC_RECOVERY_STOPPED'});
+  }
+  await repo.resumeRequest({},owner,'id');
+  const resumed=await repo.claimChapter({},owner,'id');
+  expect(resumed.token).toBeTruthy();expect(resumed.row.chapters).toEqual([{summary:'saved first chapter'}]);
+  requests[0].lastFailure={stage:'quality',code:'CHAPTER_SECTION_TOO_SHORT',at:new Date()};
+  let complete=await repo.finishChapter({},owner,'id',resumed.token,1,{summary:'recovered second chapter'},total);
+  expect(complete.lastFailure).toBeNull();
+  for(let ordinal=2;ordinal<total;ordinal++){
+    const claim=await repo.claimChapter({},owner,'id');
+    complete=await repo.finishChapter({},owner,'id',claim.token,ordinal,{summary:`remaining chapter ${ordinal}`},total);
+  }
+  expect(complete.state).toBe('COMPLETED');expect(complete.paymentId).toBe('pay1');
+  expect(complete.chapterAttempts).toEqual({0:1,1:4,2:1,3:1,4:1});expect(payments).toHaveLength(1);
+});
+
+test('the last allowed attempt keeps its active lease until it finishes',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  requests[0].chapterAttempts={0:2};requests[0].attempts=2;
+  const last=await repo.claimChapter({},owner,'id');
+  const duplicate=await repo.claimChapter({},owner,'id');
+  expect(duplicate.token).toBeNull();expect(requests[0].state).toBe('GENERATING');
+  expect(requests[0].leaseToken).toBe(last.token);expect(requests[0].errorCode).toBe('');
 });
 
 test('expired final lease can finalize a saved checkpoint without another provider claim',async()=>{
