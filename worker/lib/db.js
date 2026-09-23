@@ -3,6 +3,16 @@ import mongoose from "mongoose";
 import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
+// 진행 중인 웜 검증(ping → 실패하면 detach·재수립까지)의 single-flight(2026-09-24 설계안 D).
+// connectPromise 는 수립만 공유하고 검증은 공유하지 않는다 — 뒤따라 들어온 요청은 ping 을 건너뛰지
+// 않고 이것을 기다린다(connectDb). 항상 resolve 만 하고, 결과는 기다린 쪽이 readyState 로 읽는다.
+let warmValidation = null;
+let warmValidationStartedAt = 0;
+// 🔴 기다림의 상한은 **기다리는 쪽의** 타이머로 둔다. 검증을 이끄는 요청의 컨텍스트가 도중에 죽으면 그
+// 타이머도 함께 죽어(아래 activeMongoOps 주석) warmValidation 이 영영 settle 하지 않고, 상한이 없으면 그 뒤
+// 아이솔레이트의 모든 요청이 거기에 걸린다. 이 나이를 넘긴 검증은 버려진 것으로 보고 비운다.
+// 5000 = ping 300 + 스테이징 핸드셰이크 1537~2440ms 를 덮고, 시도 예산 8000 안에 op 몫을 남긴다.
+const WARM_VALIDATION_MAX_WAIT_MS = 5000;
 // 마지막으로 연결 건강을 확인한 시각(ping 성공 또는 신규 연결 성공).
 // 웜 커넥션 재사용 시 매 요청 ping 왕복을 피하기 위해 유휴 임계 이내면 ping을 생략한다.
 let lastHealthyAt = 0;
@@ -661,6 +671,20 @@ function sleep(ms) {
  *   동시 요청 하나를 자기 자신으로 착각해 그 요청의 소켓을 끊는다(2026-08-08 재연결 폭풍의 형태).
  */
 export async function connectDb(env = {}, options = {}) {
+  // 이 요청이 웜 검증을 이끌었으면(openConnection 웜 분기) 어느 출구로 끝나든 한 번 풀어 준다 —
+  // ping 성공·거짓 실패 유지·재수립 성공·실패. 먼저 비워야 깨어난 요청이 끝난 검증을 다시 기다리지 않는다.
+  const lead = { validation: null, release: null };
+  try {
+    return await openConnection(env, options, lead);
+  } finally {
+    if (lead.validation) {
+      if (warmValidation === lead.validation) warmValidation = null;
+      lead.release();
+    }
+  }
+}
+
+async function openConnection(env, options, lead) {
   installProcessEnv(env);
   const activeOpsOwned = Number.isFinite(options?.activeOpsOwned) ? Math.max(0, options.activeOpsOwned) : 0;
   // withMongoRetry 가 넘겨 주는 계측 싱크(없으면 null). 여기서 채우는 값은 전부 진단용이고
@@ -717,6 +741,40 @@ export async function connectDb(env = {}, options = {}) {
   const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
+  /* 🔴 다른 요청의 웜 검증이 **진행 중**이면 ping 을 건너뛰지 않고 그 검증을 — ping 이 실패했으면
+     이어지는 detach·재수립까지 — 함께 기다린다(2026-09-24 설계안 D). 아래 이웃 skip 에 맡기면 ping 을
+     이끄는 형제를 살아 있는 이웃으로 세어 검증 없이 커넥션을 받아 가고, LIFO 풀이 끝난 요청의 소켓을
+     내준다. 스테이징 재현 4/4 회차의 동시 attendance 503 이 그것이다 — 22~42ms 늦게 든 쪽의 find 가
+     직전에 끝난 요청이 연 소켓 위에서 8000ms 정지했고, 형제는 ping 실패 → 재수립 → 200 이었다.
+     기다리는 동안은 명령을 보내지 않으므로 형제의 detach 에 다치지 않는다(아래 catch 주석).
+     이웃이 op 을 **돌리는 중**(크론 등)이면 진행 중인 검증이 없으므로 종전대로 아래 skip 이다 — 그 경로의
+     한계(풀이 끝난 요청의 소켓을 내줄 수 있다)는 남는다(docs/handoff/yeongnyangi-paid-result-attach-503.md
+     설계안 C). */
+  if (warmValidation && Date.now() - warmValidationStartedAt >= WARM_VALIDATION_MAX_WAIT_MS) {
+    warmValidation = null;
+  }
+  if (warmValidation) {
+    const joinStartedAt = Date.now();
+    let settled = true;
+    try {
+      await withTimeout(
+        warmValidation,
+        WARM_VALIDATION_MAX_WAIT_MS - (joinStartedAt - warmValidationStartedAt),
+        "Warm validation wait timed out in Worker.",
+      );
+    } catch (e) {
+      settled = false;
+    }
+    const joinedMs = Date.now() - joinStartedAt;
+    if (timings) timings.pingJoinedMs = joinedMs;
+    if (settled && mongoose.connection.readyState === 1) {
+      console.log(`[db-ping] joined in-flight warm validation. waitedMs=${joinedMs}`);
+      return mongoose.connection;
+    }
+    if (!settled) console.warn(`[db-ping] in-flight warm validation abandoned; continuing alone. waitedMs=${joinedMs}`);
+    // 앞선 검증이 재수립까지 실패했거나(검증할 커넥션이 없다) 상한을 넘겼다 — 종전 판정으로 내려간다.
+  }
+
   if (mongoose.connection.readyState === 1) {
     /* 🔴 웜 커넥션을 **검증 없이 재사용하지 않는다**(2026-08-16 프로덕션 실측 후 방향 반전).
      *
@@ -753,7 +811,8 @@ export async function connectDb(env = {}, options = {}) {
        즉 이웃이 있는 동안의 ping 은 예산만 태우는 호출이라 없앤다. 죽은 소켓의 검증·교체는 종전대로
        이웃이 없는 요청이 맡는다(단독 요청은 매번 검증). 🔴 이 분기가 곧 "남의 소켓을 끊지 않는다"
        가드다 — 크론 태스크(cron-shared-connection-teardown.test.js)처럼 **먼저** 돌고 있는 op 은
-       여기서 걸러져 ping 도 detach 도 겪지 않는다. ping 도중에 들어온 이웃은 아래 catch 주석 참조.
+       여기서 걸러져 ping 도 detach 도 겪지 않는다. ping 도중에 들어온 요청은 여기까지 오지 않고 위
+       warmValidation 에서 그 검증을 기다린다(설계안 D).
        🔴 이웃은 **아직 호출자에게 안 돌아간** op 이다(countLiveMongoOps, 2026-09-24) — 끝난 요청의
        좀비 기록까지 세면 죽은 소켓 검증이 15초 동안 꺼진다. */
     if (countLiveMongoOps() > activeOpsOwned) {
@@ -787,6 +846,9 @@ export async function connectDb(env = {}, options = {}) {
        되돌리기는 이 값과 양쪽 `[vars]` 를 함께 1000 으로 올리는 것 하나다
        (__tests__/worker/db.vars-code-default-parity.test.js 가 둘을 묶는다). */
     const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "300"), 300, 300, 10000);
+    // 여기서부터 이 요청이 웜 검증을 이끈다 — 재수립까지 끝날 때(connectDb finally) 뒤따른 요청을 깨운다.
+    lead.validation = warmValidation = new Promise((resolve) => { lead.release = resolve; });
+    warmValidationStartedAt = Date.now();
     const pingStartedAt = Date.now();
     try {
       await withTimeout(
@@ -815,16 +877,20 @@ export async function connectDb(env = {}, options = {}) {
          전역 disconnect 가 살아 있는 동시 요청까지 죽인 사고의 처방이었다. 그런데 위 분기가 이웃이
          있으면 ping 자체를 건너뛰게 된 뒤로 이 catch 에 이웃이 보이는 경우는 "내 ping 이 도는 300ms
          사이에 이웃이 들어왔다"뿐이고, 그 이웃은 방금 죽었다고 판정된 바로 그 커넥션을 ping 없이
-         받아 간다. 그 상태에서 죽은 커넥션을 돌려주면 셋이 함께 8000ms 예산을 태운다 — 스테이징
-         버스트(동시 3건 × 5회) 15요청 중 [db-op-timeout] 4건, /api/reviews wall p95 11.7s 가 그것이다.
+         받아 갔다(설계안 D 이전 — 지금은 위 warmValidation 에서 이 검증을 기다리므로 명령을 보내기
+         전이다. 기다리는 동안에도 살아 있는 이웃으로 세어져 아래 나이 가드에는 그대로 보인다).
+         그 상태에서 죽은 커넥션을 돌려주면 셋이 함께 8000ms 예산을 태운다 — 스테이징 버스트(동시 3건 × 5회) 15요청 중 [db-op-timeout] 4건, /api/reviews wall p95 11.7s 가 그것이다.
          (반대로 이웃이 **먼저** 있던 경우 — 크론 태스크가 도는 중에 요청이 들어오는 2026-09-03 의
          형태 — 는 위 분기가 ping 을 보내지 않으므로 여기까지 오지 않는다.)
 
          떼는 것은 2026-08-08 의 전역 disconnect 와 다르다: detachDeadWarmConnection() 은 mongoose 를
-         먼저 분리하고 옛 클라이언트를 배경에서 닫는다. 그 위의 이웃 op 은 세션 종료/미연결 에러로
-         빨리 실패하고(isTransientMongoError 가 그 둘을 transient 로 분류한다) withMongoRetry 의
-         다음 시도가 새 커넥션을 탄다. 🔴 ping 이 거짓 실패(살아 있는데 예산 300 초과)면 살아 있던
-         이웃을 한 번 재시도시키는 비용을 낸다 — 스테이징 웜 ping rtt 실측 186~261ms 라 예산과
+         먼저 분리하고 옛 클라이언트를 배경에서 닫는다. 옛 클라이언트에 아직 명령을 보내지 않은 이웃
+         op 은 세션 종료/미연결 에러로 빨리 실패하고(isTransientMongoError 가 그 둘을 transient 로
+         분류한다) withMongoRetry 의 다음 시도가 새 커넥션을 탄다. 🔴 **이미 명령을 보낸** op 은 빨리
+         실패하지 않는다 — 2026-09-24 스테이징 재현에서 형제의 `[db-detach] stale client closed`(+1140ms)
+         뒤에도 그 find 는 8000ms 까지 응답 없이 남았다(원인 — 드라이버 close 가 체크아웃된 커넥션을
+         즉시 끊지 않는다 — 은 추정·미검증). ping 도중에 든 요청을 기다리게 하는(설계안 D) 이유다.
+         🔴 ping 이 거짓 실패(살아 있는데 예산 300 초과)면 살아 있던 이웃을 한 번 재시도시키는 비용을 낸다 — 스테이징 웜 ping rtt 실측 186~261ms 라 예산과
          40ms 차이다. 예산 인하는 하지 말고, 프로덕션 [db-ping] rtt 를 잰 뒤에만 올릴 것.
 
          🔴 **단, 커넥션이 방금 세워진 것이면 돌려준다**(2026-09-06, ① 머지 후 스테이징 재버스트
@@ -1681,6 +1747,10 @@ export const __dbTestUtils = {
   // 지금 커넥션을 agoMs 전에 세운 것으로 둔다(웜 분기 나이 가드를 시간 경과 없이 재현).
   ageConnectionForTest: (agoMs = FRESH_CONNECTION_MAX_AGE_MS + 1000) => {
     connectionEstablishedAt = Date.now() - agoMs;
+  },
+  // 진행 중인 웜 검증의 남은 기다림을 remainingMs 로 둔다(이끈 요청이 사라진 경우를 시간 경과 없이 재현).
+  ageWarmValidationForTest: (remainingMs = 0) => {
+    warmValidationStartedAt = Date.now() - (WARM_VALIDATION_MAX_WAIT_MS - remainingMs);
   },
   // agoMs 만큼 과거에 리셋이 있었던 것으로 둔다(쿨다운·자기유발 창을 시간 경과 없이 재현).
   markPoolResetForTest: (agoMs = 0) => {
