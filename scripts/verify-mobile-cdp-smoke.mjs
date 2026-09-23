@@ -703,14 +703,14 @@ try {
   );
   assert(homeExpandedState.expanded === true, "home expand toggle reveals the folded sections", homeExpandedState);
 
-  // 🔴 첫 매치를 그냥 집으면 안 된다. 이 섹션에는 benefits CTA 가 둘 있고, 앞의
-  // .honey-membership-mini__hero 는 모바일에서 display:none 이다(index.html 의
-  // "#honeyMembershipMini .honey-membership-mini__hero{display:none!important}").
-  // 예전에는 그 숨은 쪽을 재고 있었는데, 스모크가 낡은 dist 를 서빙한 탓에 어긋남이 드러나지
-  // 않았다(G-8). 계약은 "모바일에서 눌리는 benefits CTA 가 하나는 있다"이므로 그대로 잰다.
+  // 🔴 계약은 "모바일에서 눌리는 이용권 안내 CTA 가 하나는 있고, 결제가 아니라 안내로 간다"이다.
+  // 2026-09-08 홈 재조립부터 옛 #honeyMembershipMini 는 홈에서 통째로 숨고
+  // (styles/home-funnel.css "body:has(#cdHomeFunnel) #honeyMembershipMini{display:none}"),
+  // 그 자리를 .cdh-pass 가 대신한다. 그 CTA 는 data-membership-cta 가 아니라 /points/ 링크다.
+  // 숨은 옛 노드를 재면 계약과 무관하게 실패하므로(G-8 과 같은 부류) 보이는 쪽을 잰다.
   const membershipButtonState = await evaluate(cdp, `(() => {
-    const nodes = Array.from(document.querySelectorAll('#honeyMembershipMini [data-membership-cta="benefits"]'));
-    if (!nodes.length) return { exists: false, visible: false, action: null, total: 0 };
+    const nodes = Array.from(document.querySelectorAll('.cdh-pass .cdh-pass__btn'));
+    if (!nodes.length) return { exists: false, visible: false, href: null, total: 0 };
     const isVisible = (node) => {
       const r = node.getBoundingClientRect();
       const style = getComputedStyle(node);
@@ -719,23 +719,24 @@ try {
     nodes.forEach((node) => node.removeAttribute('data-cdp-benefits-target'));
     const node = nodes.find(isVisible);
     if (!node) {
-      return { exists: true, visible: false, action: null, total: nodes.length };
+      return { exists: true, visible: false, href: null, total: nodes.length };
     }
     node.setAttribute('data-cdp-benefits-target', '1');
     const r = node.getBoundingClientRect();
     return {
       exists: true,
       visible: true,
-      action: node.getAttribute('data-membership-cta'),
+      href: node.getAttribute('href'),
+      paymentAction: node.getAttribute('data-action'),
       total: nodes.length,
       width: Math.round(r.width),
       height: Math.round(r.height)
     };
   })()`, "membership benefits button state");
-  assert(membershipButtonState.exists && membershipButtonState.visible && membershipButtonState.action === "benefits", "mobile membership benefits button is visible and action-wired", membershipButtonState);
+  assert(membershipButtonState.exists && membershipButtonState.visible && /^\/points\//.test(membershipButtonState.href || "") && !membershipButtonState.paymentAction, "mobile membership benefits button is visible and links to the pass guide", membershipButtonState);
 
   await dismissCookieConsent(cdp);
-  await tapSelector(cdp, '#honeyMembershipMini [data-cdp-benefits-target="1"]');
+  await tapSelector(cdp, '.cdh-pass [data-cdp-benefits-target="1"]');
   let membershipBenefitsDestination = { pathname: "", search: "" };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
