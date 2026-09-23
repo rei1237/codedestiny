@@ -26,6 +26,8 @@
  *      옮겨 간 자리다. 먼저 돌던 op(크론 태스크 포함)은 ping 도 detach 도 겪지 않는다.
  *   ④ ②의 예외는 **커넥션 나이** 하나다 — 이웃이 있고 그 커넥션을 방금(FRESH_CONNECTION_MAX_AGE_MS
  *      이내) 세웠으면 ping 실패를 거짓 실패로 보고 그대로 돌려준다.
+ *   ⑤ ③·④의 이웃은 **아직 호출자에게 안 돌아간** op 이다. 재시도로 이미 반환한 op 의 걸린 시도는
+ *      리셋 회계에만 남는다(2026-09-24 스테이징 재현의 503 경로).
  *
  * ②에 "단 동시 요청이 있으면 끊지 않는다" 절이 있었다. ③이 생긴 뒤 그 절이 잡는 경우는 "내 ping 이
  * 도는 300ms 사이에 이웃이 들어왔다"뿐인데, 그 이웃은 ③ 으로 ping 없이 **같은 죽은 커넥션**을 받아
@@ -294,6 +296,56 @@ test("a ping failure on a just-established connection with a neighbour is treate
     releaseNeighbour?.({ ok: 1 });
     await neighbour.catch(() => {});
   }
+});
+
+/* 2026-09-24 스테이징 재현의 503 경로(⑤). activate 동시 2건이 시도 예산을 넘겨 재시도로 200 을 냈지만
+   걸린 첫 시도는 settle 하지 않아 회계에 15초까지 남았다. 그 좀비를 이웃으로 세면 다음 GET 이 ping 을
+   건너뛰고, LIFO 풀이 끝난 요청의 소켓을 내줘 find 가 8000ms 를 태웠다. */
+async function returnWithHungFirstAttempt(withMongoRetry, opts) {
+  let calls = 0;
+  await withMongoRetry(opts, () => {
+    calls += 1;
+    return calls === 1 ? PING_HANGS() : Promise.resolve({ ok: 1 });
+  }, {
+    retries: 1, retryOnOperationTimeout: true, resetOnOperationTimeout: false,
+    attemptTimeoutMS: 300, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false,
+  });
+}
+
+test("an op that already returned is not a neighbour: the next request still pings", async () => {
+  const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
+  const { connectDb, withMongoRetry, __dbTestUtils } = await loadDb(mongooseMock);
+  const opts = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
+  await connectDb(opts);
+  await returnWithHungFirstAttempt(withMongoRetry, opts);
+
+  // 리셋 안전 회계는 그대로 센다 — 걸린 시도가 아직 소켓을 쥐고 있을 수 있다.
+  expect(__dbTestUtils.countActiveMongoOps()).toBe(1);
+  expect(__dbTestUtils.countLiveMongoOps()).toBe(0);
+
+  const pingsBefore = mongooseMock.connection.db.command.mock.calls.length;
+  const timings = {};
+  await connectDb(opts, { timings });
+  expect(mongooseMock.connection.db.command.mock.calls.length).toBe(pingsBefore + 1);
+  expect(timings.pingSkipped).toBeUndefined();
+});
+
+test("a failed ping on a just-established connection is not kept for an op that already returned", async () => {
+  const mongooseMock = buildMongooseMock({ pingBehavior: PING_OK });
+  const { connectDb, withMongoRetry } = await loadDb(mongooseMock);
+  const opts = { ...env, MONGO_PING_TIMEOUT_MS: "300" };
+  await connectDb(opts);
+  await returnWithHungFirstAttempt(withMongoRetry, opts);
+
+  // 커넥션은 방금 세운 것(④의 나이 창 안)이지만, 남은 것은 끝난 요청의 좀비뿐이라 지킬 이웃이 없다.
+  mongooseMock.connection.__setPing(PING_HANGS);
+  const closesBefore = mongooseMock.connection.close.mock.calls.length;
+  const connectsBefore = mongooseMock.connect.mock.calls.length;
+  await connectDb(opts);
+
+  expect(mongooseMock.connection.close.mock.calls.length).toBe(closesBefore + 1);
+  expect(mongooseMock.connection.close).toHaveBeenLastCalledWith({ skipCloseClient: true });
+  expect(mongooseMock.connect.mock.calls.length).toBe(connectsBefore + 1);
 });
 
 test("errors an op sees when its client was detached underneath it are transient (retried on a fresh connection)", async () => {

@@ -11,7 +11,7 @@
  * ping 으로 재검증하고, 실패하면 떼어 내며 MongoClient.close() 한다. 그 close 는 activeSessions 를
  * 전부 끝내므로 진행 중인 **남의** op 가 함께 죽는다. 그 파괴를 막는 장치는 하나뿐이다:
  *
- *     if (countActiveMongoOps() > activeOpsOwned) { ... ping 을 보내지 않고 그대로 돌려준다 }
+ *     if (countLiveMongoOps() > activeOpsOwned) { ... ping 을 보내지 않고 그대로 돌려준다 }
  *
  * (2026-09-06 부터 이 가드는 웜 분기의 ping 건너뛰기다. ping 이 실패한 뒤의 catch 는 이웃이
  *  있어도 떼어 낸다 — db.warm-connection-revalidation.test.js 가 그 이유를 고정한다.)

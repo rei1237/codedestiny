@@ -49,6 +49,19 @@ function countActiveMongoOps() {
   }
   return activeMongoOps.size;
 }
+// 🔴 웜 분기의 이웃 판정 전용(2026-09-24). 호출자에게 이미 반환·throw 한 op 은 걸린 시도가 남아
+// 회계(위 Set)에 15초까지 남더라도 **소켓을 함께 쓰는 이웃이 아니다** — 그 요청은 끝났다.
+// 스테이징 재현에서 재시도로 200 을 낸 activate 2건의 좀비 기록이 다음 GET 의 ping 을 건너뛰게 했고,
+// LIFO 풀이 끝난 요청의 소켓을 내줘 find 가 8000ms 정지 → 503 이 됐다
+// (docs/handoff/yeongnyangi-paid-result-attach-503.md). 리셋 안전 판정은 여전히 countActiveMongoOps 다.
+function countLiveMongoOps() {
+  countActiveMongoOps();
+  let live = 0;
+  for (const record of activeMongoOps) {
+    if (!record.returnedToCaller) live += 1;
+  }
+  return live;
+}
 // 동시 요청 때문에 미뤄 둔 전역 disconnect가 있는지. 마지막 작업이 빠져나갈 때 한 번만 처리한다.
 let pendingPoolReset = false;
 // A topology failure can be observed by several requests at once. Keep the
@@ -497,7 +510,7 @@ let staleClientCloseTask = null;
  * mongoose 가 아직 그 클라이언트를 가리키는 채로 `closeCheckedOutConnections()` 를 불렀다 —
  * 그래서 그 사이 컬렉션을 잡은 op 은 함께 끊겼다. 지금은 **끊기 전에 먼저 떼므로**, 떼어 낸 뒤
  * 들어온 요청은 옛 클라이언트에 닿을 길이 없다. 호출부의 이웃 가드는 웜 분기의 **ping 건너뛰기**
- * (`countActiveMongoOps() > activeOpsOwned` 면 ping 도 detach 도 없다)로 옮겨 갔다 — 두 장치는
+ * (`countLiveMongoOps() > activeOpsOwned` 면 ping 도 detach 도 없다)로 옮겨 갔다 — 두 장치는
  * 서로를 대체하지 않는다. ping 도중 들어온 이웃은 커넥션이 **방금 세운 것일 때만** 이 함수를 막는다
  * (거짓 ping 실패 — connectDb catch 의 나이 가드, 2026-09-06).
  *
@@ -740,8 +753,10 @@ export async function connectDb(env = {}, options = {}) {
        즉 이웃이 있는 동안의 ping 은 예산만 태우는 호출이라 없앤다. 죽은 소켓의 검증·교체는 종전대로
        이웃이 없는 요청이 맡는다(단독 요청은 매번 검증). 🔴 이 분기가 곧 "남의 소켓을 끊지 않는다"
        가드다 — 크론 태스크(cron-shared-connection-teardown.test.js)처럼 **먼저** 돌고 있는 op 은
-       여기서 걸러져 ping 도 detach 도 겪지 않는다. ping 도중에 들어온 이웃은 아래 catch 주석 참조. */
-    if (countActiveMongoOps() > activeOpsOwned) {
+       여기서 걸러져 ping 도 detach 도 겪지 않는다. ping 도중에 들어온 이웃은 아래 catch 주석 참조.
+       🔴 이웃은 **아직 호출자에게 안 돌아간** op 이다(countLiveMongoOps, 2026-09-24) — 끝난 요청의
+       좀비 기록까지 세면 죽은 소켓 검증이 15초 동안 꺼진다. */
+    if (countLiveMongoOps() > activeOpsOwned) {
       if (timings) timings.pingSkipped = true;
       return mongoose.connection;
     }
@@ -827,14 +842,14 @@ export async function connectDb(env = {}, options = {}) {
          (2026-08-16 무검증 재사용 7.8초)가 그대로 살아 있어야 한다.
          🔴 어린 커넥션이 **정말로** 죽었다면 이 요청은 못 살리지만, withMongoRetry 의 다음 시도가
          (attemptTimeoutMS 8000 뒤라 그때는 FRESH 를 넘겨) 떼어 낸다. 즉 지연될 뿐 막히지 않는다. */
-      if (countActiveMongoOps() > activeOpsOwned) {
+      if (countLiveMongoOps() > activeOpsOwned) {
         const connectionAgeMs = connectionEstablishedAt ? Date.now() - connectionEstablishedAt : Number.POSITIVE_INFINITY;
         if (connectionAgeMs < FRESH_CONNECTION_MAX_AGE_MS) {
           if (timings) {
             timings.pingFalseFailure = true;
             timings.connectionAgeMs = connectionAgeMs;
           }
-          console.warn(`[db-ping] fresh connection kept despite ping timeout (treated as false failure). ageMs=${connectionAgeMs} rttMs=${warmPingMs} budgetMs=${pingTimeoutMS} neighbours=${countActiveMongoOps() - activeOpsOwned}`);
+          console.warn(`[db-ping] fresh connection kept despite ping timeout (treated as false failure). ageMs=${connectionAgeMs} rttMs=${warmPingMs} budgetMs=${pingTimeoutMS} neighbours=${countLiveMongoOps() - activeOpsOwned}`);
           return mongoose.connection;
         }
       }
@@ -1559,6 +1574,7 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
               connectMs: connectFinishedAt ? connectFinishedAt - attemptStartedAt : null,
               opMs: connectFinishedAt ? Date.now() - connectFinishedAt : null,
               inFlightOps: countActiveMongoOps(),
+              liveOps: countLiveMongoOps(),
               delta: diffMongoCounters(countersAtStart),
               pending: describePendingMongoCommands(),
             }));
@@ -1636,6 +1652,8 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     // returned. Keep it counted for reset safety, but do not let it reserve an
     // admission slot and turn every later read into an overload 503.
     releaseAdmission();
+    // 걸린 시도가 남아도 이 op 은 더는 웜 분기의 이웃이 아니다(countLiveMongoOps).
+    opRecord.returnedToCaller = true;
     finalizeOperation();
   }
 }
@@ -1647,6 +1665,7 @@ export { mongoose };
 // 리셋 폭풍의 핵심 상태라 회귀 테스트가 반드시 확인해야 한다.
 export const __dbTestUtils = {
   countActiveMongoOps,
+  countLiveMongoOps,
   backoffDelayMs,
   getConsecutiveConnectionFailuresForTest: () => consecutiveConnectionFailures,
   // 나이 기반 만료를 시간 경과 없이 재현한다(테스트에서 15초를 실제로 기다릴 수는 없다).
