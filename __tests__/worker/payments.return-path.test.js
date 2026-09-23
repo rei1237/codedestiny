@@ -34,6 +34,8 @@ describe("sanitizeReturnPath", () => {
   test.each([
     ["/saju?tab=1#r", "/saju?tab=1#r"],
     ["https://code-destiny.com/yeongnyangi/result?id=1", "/yeongnyangi/result?id=1"],
+    // 남의 절대 URL 은 호스트를 버리고 경로만 남긴다 — 자사 origin 위의 경로라 밖으로 나가지 않는다.
+    ["https://evil.com/x?y=1", "/x?y=1"],
     ["", "/"],
     [undefined, "/"],
   ])("자사 경로 %j 는 보존된다", (input, expected) => {
@@ -41,7 +43,7 @@ describe("sanitizeReturnPath", () => {
   });
 
   test("redirectUrl 은 어떤 입력이든 자사 origin 이다", () => {
-    for (const returnPath of ["/\\evil.com", "/\t/evil.com", "https://a//evil.com", "/ok"]) {
+    for (const returnPath of ["/\\evil.com", "/\t/evil.com", "https://a//evil.com", "https://evil.com/x", "/ok"]) {
       const url = new URL(buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId: "cd-single-x" }));
       expect(url.origin).toBe(SITE);
     }

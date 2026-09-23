@@ -27,6 +27,8 @@ import {
   createPayableOrder,
 } from "../../worker/payments/orders.js";
 import { PaymentError } from "../../worker/payments/errors.js";
+import { isLegacySingleOrderId, isV2OrderId } from "../../worker/payments/order-id.js";
+import { derivePassOrderId } from "../../worker/payments/passes.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "507f1f77bcf86cd799439011";
@@ -64,6 +66,23 @@ describe("T1 · 주문 생성은 멱등이다", () => {
     expect(a.startsWith("cd")).toBe(true);
     expect(await deriveOrderId(USER, "idem-2")).not.toBe(a);
     expect(await deriveOrderId(OTHER_USER, "idem-1")).not.toBe(a);
+  });
+
+  test("🔴 레거시 경로의 V2 판별(isV2OrderId)은 실제 파생 id 를 알아보고 레거시 id 는 거른다", async () => {
+    // 형식이 바뀌어 판별이 빗나가면 V2 주문이 레거시 complete·크론 settle 로 조용히 샌다(2026-09-24 W4·W5).
+    expect(isV2OrderId(await deriveOrderId(USER, "idem-1"))).toBe(true);
+    expect(isV2OrderId(await deriveOrderId(OTHER_USER, "idem-2"))).toBe(true);
+    for (const legacy of ["cd-single-1790000000000-ab12cd", "cd-zwai-fixture-0001", "cd-zwisl-fixture-0001", "sub_x", "google:x", ""]) {
+      expect(isV2OrderId(legacy)).toBe(false);
+    }
+  });
+
+  test("🔴 V2 확정이 거르는 레거시 단건 판별(isLegacySingleOrderId)은 cd-single- 만 알아본다", async () => {
+    // !isV2OrderId 로 넓히면 이용권(sub_…) 확정까지 막힌다 — 이용권 id 는 derivePassOrderId 가 만든다(2026-09-24 R3).
+    expect(isLegacySingleOrderId("cd-single-u1-1790000000000-ab12cd34")).toBe(true);
+    for (const other of [await deriveOrderId(USER, "idem-1"), await derivePassOrderId(USER, "idem-1", "standard"), "cd-zwai-fixture-0001", "cd-zwisl-fixture-0001", "google:x", "", null]) {
+      expect(isLegacySingleOrderId(other)).toBe(false);
+    }
   });
 
   test("idempotencyKey 가 없으면 만들지 않는다", async () => {

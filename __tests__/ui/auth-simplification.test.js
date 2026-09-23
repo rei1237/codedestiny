@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
+const { pathToFileURL } = require("node:url");
 
 const root = process.cwd();
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -13,6 +14,18 @@ test("auth return path applies internal-only redirect guards", () => {
   assert.match(source, /raw\.includes\("\\\\"\)/);
   assert.match(source, /parsed\.origin !== base/);
   assert.match(source, /AUTH_ROUTE_PREFIXES/);
+});
+
+test("auth return path blocks external and auth-loop targets when actually run", async () => {
+  // 🔴 KG이니시스 보안 권고(2026-09-18) 리다이렉트 피싱 항목. 위 소스 검사만으로는 가드가 실제로 무는지 모른다.
+  const { sanitizeAuthReturnPath, resolveAuthReturnPath } = await import(pathToFileURL(path.join(root, "app/_lib/auth-return.js")).href);
+  for (const input of ["//evil.com", "/\\evil.com", "/\tevil.com", "/\u0000x", "https://evil.com/x", "javascript:alert(1)", "evil.com", "/login?next=/x", "/auth/cb", `/${"a".repeat(1200)}`]) {
+    assert.equal(sanitizeAuthReturnPath(input), null, `must reject ${JSON.stringify(input).slice(0, 40)}`);
+  }
+  assert.equal(sanitizeAuthReturnPath("/yeongnyangi/../admin"), "/admin");
+  assert.equal(sanitizeAuthReturnPath("/saju?tab=1#r"), "/saju?tab=1#r");
+  assert.equal(resolveAuthReturnPath(new URLSearchParams({ returnTo: "//evil.com", next: "/points" })), "/points");
+  assert.equal(resolveAuthReturnPath(new URLSearchParams({ returnTo: "https://evil.com", next: "/login", redirect: "/\\evil" })), "/");
 });
 
 test("shared auth shell keeps email and social login in one mobile-first surface", () => {

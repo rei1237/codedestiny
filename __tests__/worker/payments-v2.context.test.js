@@ -177,6 +177,30 @@ describe("확정 오케스트레이션", () => {
     expect(classify(caught).status).toBe(409);
   });
 
+  test("🔴 레거시 단건(cd-single-…)은 상태와 무관하게 409 — PG 조회도 지급도 없다(2026-09-24 R3)", async () => {
+    // 확정·이용권 확정·웹훅 재생·재조정 V2 정산이 전부 이 판정을 지난다. 대기 주문은 레거시 크론이 정산한다.
+    const legacyId = "cd-single-u1-1790000000000-ab12cd34";
+    for (const status of ["pending", "fulfilled"]) {
+      const db = makeFakePaymentDb();
+      db.rows.push({
+        merchantUid: legacyId, userId: USER, productId: "unlock.love-code", featureKey: PRODUCT.featureKey,
+        paymentType: "digital_content", accessType: "single_purchase", status, paymentAmount: 30000,
+      });
+      let called = 0;
+      let caught = null;
+      try {
+        await runConfirm(db, ctxOf(), { orderId: legacyId, actorUserId: USER }, {
+          fetchPayment: async () => { called += 1; return pgReply({ paymentId: legacyId }); },
+        });
+      } catch (error) { caught = error; }
+      expect(caught?.code).toBe("ORDER_NOT_CONFIRMABLE");
+      expect(classify(caught).status).toBe(409);
+      expect(called).toBe(0);
+      expect(db.rows).toHaveLength(1);
+      expect(db.rows[0].status).toBe(status);
+    }
+  });
+
   test("🔴 금액이 어긋나면 주문을 실패로 확정한다", async () => {
     const db = makeFakePaymentDb();
     const order = await seedPending(db);

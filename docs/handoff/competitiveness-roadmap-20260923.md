@@ -81,7 +81,7 @@ next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 �
 | S10 | 속도 기준선: 홈 측정 도구 기본 경로 정정(기본 `/`가 이제 React 홈인데 셸 요소를 기다린다 — `scripts/measure-home-interaction.mjs` 75·158줄, `scripts/measure-home-lighthouse.mjs` 54·718줄, 코드 판독·미실행) → 운영 `/`·`/ggulggul/`·`/saju/` 실험실(`perf:home --url`, React는 `perf:app-route`) + U4 데이터 + 결제→첫 챕터 시간 측정 방법 | GREEN · Sonnet/medium | 기존 perf 스크립트(새 RUM 비콘 금지) | 수치표를 이 문서 기준선에 추가 | 대기 |
 | S11 | 첫인상 CWV: React 공통 경로 렌더 차단 CSS(임계 CSS), 한국어 `ko.json` 요청 중단(사용자 결정 — S10 수치와 함께 선택지 제시), `/ggulggul/` `#iljuCard` CLS·`activateNavItem` INP. `/js/core` 6개 지연은 결제 민감이라 S13 | GREEN~RED · Opus/high | `app/layout.js`, `lib/i18n/useT.ts`, `index.html`(+sync:public). 재시도 금지 목록: `home-lcp-inp-2026-08-28.md`·`global-css-render-blocking-2026-09-17.md` | 전후 실측 비교 | 대기(S10 후) |
 | S12 | 고민별 진입(기존 홈 고민 버튼 재사용) + 상품 상세에 예시 질문·챕터·"예시" 표기 샘플·가격 | GREEN · Opus/medium | `scripts/verify-premium-detail.mjs`, `scripts/verify-premium-finder.mjs` | 5초 안에 차이 이해(방문자 과제) | 대기 |
-| S13 | 결제창 속도: 유료 게이트 선조회(`app/_lib/billing-client.ts` `beginPaidFeatureGateCheck`·`loadPaidServiceRuntimeGate`), 영냥이 결제 진입의 중복 신원 확인(후보 — `app/checkout/CheckoutClient.tsx`·`purchaseFeature`, 착수 시 재확인), `/points` PortOne SDK 로더(`app/points/PointsClient.tsx` `portone-v2-sdk`)·`refundConsentHtml` 폴백, `/js/core` 6개 로드 시점(`app/layout.js` 181–187줄), 구매 직전 DB_FALLBACK 원인 | RED(결제 동결) · Opus/high | paid-gate-auditor, `config/payment-freeze.json`, `scripts/verify-yeongnyangi-browser.mjs` | mock 결제 흐름 통과, 운영 p75는 승격 뒤 S10 도구로 | 대기(U6 후) |
+| S13 | 결제창 속도: 유료 게이트 선조회(`app/_lib/billing-client.ts` `beginPaidFeatureGateCheck`·`loadPaidServiceRuntimeGate`), 영냥이 결제 진입의 중복 신원 확인(후보 — `app/checkout/CheckoutClient.tsx`·`purchaseFeature`, 착수 시 재확인), `/points` PortOne SDK 로더(`app/points/PointsClient.tsx` `portone-v2-sdk`)·`refundConsentHtml` 폴백, `/js/core` 6개 로드 시점(`app/layout.js` 181–187줄), 구매 직전 DB_FALLBACK 원인 | RED(결제 동결) · Opus/high | paid-gate-auditor, `config/payment-freeze.json`, `scripts/verify-yeongnyangi-browser.mjs` | mock 결제 흐름 통과, 운영 p75는 승격 뒤 S10 도구로 | 착수 가능 — U6 승인(2026-09-24), 영냥이 우선: `yeongnyangi-paid-flow-speed-2026-09-24` |
 | S14 | 결과 첫 챕터 속도(스트리밍·첫 챕터 우선·계산 캐시) | RED(LLM) · Opus/high | `docs/handoff/paid-llm-service-delivery-20260916.md` | mock 전후 시간 | 대기 |
 | S15 | 고가 상담 UI 잔여(마스터 연애·카르마·서양점성·베다): 결함·일관성만, 한 표지 복제 금지 | GREEN · Opus/medium | `docs/premium-consultation-design-20260923.md`, `DESIGN.md` | 실화면 검증 | 대기 |
 
@@ -108,7 +108,7 @@ next: "운영 승격 보류(사용자 결정 2026-09-24: 꿀꿀 번역 뒤 한 �
 | U3 | 카카오 공유 키 A/B/C | S7 전에 결정. 선택지는 `docs/handoff/kakao-share-viral-loop-2026-09-13.md` |
 | U4 | 운영 채널·데이터 | 인스타 프로필에 사이트 링크, 카카오 채널 메뉴 등록, GSC 페이지별 내보내기(지금·28일 뒤), 네이버 서치어드바이저·빙 재제출, CF Web Analytics 경로별 CWV 내보내기(S10), 운영 읽기 스크립트 실행(`scripts/report-pg-window-latency.mjs --days 30`·결제 성공률·channelCheck 집계 — 정정된 시각으로) · S1: GA4 보고 시간대(Asia/Seoul)·내부 트래픽 필터 확인, S1 운영 승격 뒤 셸 경로 UTM 링크 1회 실시간 확인(쿠키 동의 후), 이미 등록한 카카오 채널 메뉴 링크는 `utm_source=kakao&utm_medium=social&utm_campaign=channel_menu`로 |
 | U5 | 사업 판단 | 이용권 7일 관찰 판정: 실제 변동비가 제공 가치의 30%를 넘는 상품부터 조정(`docs/pass-pricing-20260921.md` 16줄). 119,800원 등 스트레스 최소가는 폐기된 89,000원 체계의 과거 분석이라 판매 차단 근거가 아니다(같은 문서 18줄). 패밀리 이용권(09-23 재개) 마진 점검, 3,000/5,000원 상품 처리, 윈백 메일 경로 A/B, Play v3 SKU |
-| U6 | 결제 브라우저 시나리오 CI | **`scripts/verify-yeongnyangi-browser.mjs`(104 시나리오)를 결제 파일 경로 한정 섀도 잡으로 편입.** 결제 게이트 범주이고 영냥이 결제 버튼 장애가 2일 넘게 미탐지됐다. 새 CI 게이트는 사용자 지시가 있어야 하므로 S13 전에 결정 |
+| U6 | 결제 브라우저 시나리오 CI | **`scripts/verify-yeongnyangi-browser.mjs`(104 시나리오)를 결제 파일 경로 한정 섀도 잡으로 편입.** 결제 게이트 범주이고 영냥이 결제 버튼 장애가 2일 넘게 미탐지됐다. 새 CI 게이트는 사용자 지시가 있어야 하므로 S13 전에 결정. **승인 2026-09-24** — 구현은 S13 속도 세션 첫 단계(`yeongnyangi-paid-flow-speed-2026-09-24.md`) |
 | U7 | 북극성 정의 | **서버 원장의 주간 결제 완료 주문 수(테스트 주문 제외)로 바꾼다.** S1 실측상 GA4는 동의 사용자만 잡는 하한이고, `purchase_complete`는 월정석 사용에도 발사되어 결제 건수가 아니다. GA4 `purchase`는 유입 귀속에만 쓴다. 바꾸면 아래 측정 규칙 첫 줄과 `docs/analytics-kpi.md` 3-1을 함께 고친다 |
 
 ## 기준선 — 2026-09-23 운영 실측(읽기 전용)
@@ -192,7 +192,7 @@ sitemap 1,284 URL:
 |---|---|
 | 완료 | `checkout-i18n-wiring-20260918`, `inicis-overseas-card-phase2-20260918` |
 | 차단 | `llm-prompt-json-slicing`(사주 `evidenceRefs` 설계 결정 대기) |
-| 활성·유효 | S10·S11 ← `home-perf-cwv-2026-09-07`, `home-lcp-inp-2026-08-28`, `desktop-perf-2026-08-16`, `global-css-render-blocking-2026-09-17`, `mobile-home-perf`, `n3-shell-inline-css-externalization`, `app-optimization-remaining-2026-09-02` · S13 ← `pg-window-latency-2026-08-16`, `payment-503-and-renderer-unification`, `payment-stabilization`, `checkout-soulcat-requestid-gate-p0-20260918` · S14·S19 ← `paid-llm-service-delivery-20260916` · S16·S17 ← `mongo-m10-phase2-2026-09-06` · S18 ← `llm-optimization-leftovers` · U5 ← `business-refactor` · 인이시스 세션 ← `inicis-security-advisory-2026-09` |
+| 활성·유효 | S10·S11 ← `home-perf-cwv-2026-09-07`, `home-lcp-inp-2026-08-28`, `desktop-perf-2026-08-16`, `global-css-render-blocking-2026-09-17`, `mobile-home-perf`, `n3-shell-inline-css-externalization`, `app-optimization-remaining-2026-09-02` · S13 ← `pg-window-latency-2026-08-16`, `payment-503-and-renderer-unification`, `payment-stabilization`, `checkout-soulcat-requestid-gate-p0-20260918`, `yeongnyangi-paid-flow-speed-2026-09-24`(영냥이 우선·U6 배선부터) · S14·S19 ← `paid-llm-service-delivery-20260916` · S16·S17 ← `mongo-m10-phase2-2026-09-06` · S18 ← `llm-optimization-leftovers` · U5 ← `business-refactor` · 인이시스 세션 ← `inicis-security-advisory-2026-09` |
 | `active` 표기지만 낡음 | `llm-explicit-context-caching`(#659 머지), `sukuyo-duplicate-generation-window`(#652 머지), `app-optimization-roadmap-2026-09-02`(remaining 문서로 대체), `inp-round3-2026-08-16`, `desktop-tbt-2026-08-29`, `payments-confirm-v2-cutover`, `kakaopay-golive-2026-08-31`, `devloop-perf-followups`, `music-lounge-perf-2026-09-16`, `payment-mobile-audit-20260909`, `worker-cpu-atlas-search-2026-09-08` |
 
 - 🔴 문서에 적힌 #1810 `3541904e9`·#1845 `3080b0a02`는 스쿼시 전 SHA다. main 커밋은 `7e221cdfa`(#1810, 09-08)·`8422192d9`(#1845, 09-09).
@@ -210,7 +210,7 @@ sitemap 1,284 URL:
 - 홈 `/`의 canonical은 `app/page.js` metadata가 낸다(운영 확인). hreflang HTML 태그는 0개라 사이트맵 alternate가 유일한 전달 수단이다(S2에서 확인). `app/layout.js` 97줄 등 코드 주석 5곳은 아직 `/`를 정적 셸로 설명한다 — 목록은 `docs/CONTEXT_AUDIT.md` 2026-09-24 항목(S2에서 정리).
 - KST 자정(15:00 UTC)이 지나면 `verify:sitemap-drift`가 사이트맵과 무관한 push도 실패시킨다. `/fortune/date/<날짜>/<띠>` 30일 창은 KST 날짜로 밀리는데, `--check`는 매일 바뀌는 lastmod만 정규화하고 URL 집합은 정규화하지 않기 때문이다(#1895, 2026-09-11부터). 09-24 자정 직후 문서 커밋 3개가 이렇게 실패했고 `a6ba3185d`로 재생성해 복구했다. 복구 절차: `npm run sitemap:generate` → diff가 날짜 URL 12개 교체와 KST 운세 lastmod(전날→오늘)뿐인지 확인 → 사이트맵 12개와 `config/sitemap-lastmod.json`을 커밋. 가드 구조 해소는 S2의 "날짜 아카이브는 sitemap 제외" 제안에 함께 넣는다.
 - 쓰는 세션이 둘 이상이면 워크트리(`scripts/create-safe-worktree.ps1`). `marketing/**` 미커밋은 다른 세션 소유라 스테이징하지 않는다.
-- push ≠ 배포. 새 CI 게이트는 사용자 지시 없이 추가하지 않는다(U6).
+- push ≠ 배포. 새 CI 게이트는 사용자 지시 없이 추가하지 않는다(U6 은 2026-09-24 승인).
 - 가짜 후기·통계 금지. "두 대통령 적중"은 유지하고 "모든 예측 적중·유일·정확한 날짜"는 쓰지 않는다. `humanReview`·`adsAllowed`는 임의로 승격하지 않는다.
 
 ## 검증

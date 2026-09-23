@@ -150,6 +150,9 @@ test('two intents cannot consume the same proof',async()=>{
   await repo.createRequest({},owner,'a',values);await repo.createRequest({},owner,'b',values);
   const result=await Promise.allSettled([repo.attachPayment({},owner,'a',1000),repo.attachPayment({},owner,'b',1000)]);
   expect(result.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+  // 🔴 consumedBy 는 마지막 겹이다 — 요청 행이 새로 만들어져 paymentId 가 비어도 이미 소비된 증빙은 다시 붙지 않는다(결제 1건 = 결과 1회).
+  requests=requests.filter(r=>r._id!=='a');await repo.createRequest({},owner,'a',values);
+  await expect(repo.attachPayment({},owner,'a',1000)).rejects.toMatchObject({status:402});
 });
 test('failed request write rolls back proof consumption',async()=>{
   await repo.createRequest({},owner,'id',values);failWrite=true;

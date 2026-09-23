@@ -57,6 +57,7 @@ const isPartialSingleCancel = isPartialCancel;
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { buildApiError, buildApiMeta } from "../lib/api-contract.js";
 import { resolvePaymentMethodLabel } from "../lib/payment-method-label.js";
+import { isV2OrderId } from "../payments/order-id.js";
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
@@ -999,6 +1000,12 @@ function extractPortOneStoreId(portOnePayment = {}) {
   ).trim();
 }
 
+/* 응답이 알려 준 채널키(SelectedChannel.key) — V2 확정(worker/payments/pg.js extractChannelKey)과 같은 자리. 값은 로그에 싣지 않는다. */
+function extractPortOneChannelKey(portOnePayment = {}) {
+  const raw = portOnePayment?.rawV2 && typeof portOnePayment.rawV2 === "object" ? portOnePayment.rawV2 : portOnePayment;
+  return String(raw?.channel?.key || "").trim();
+}
+
 function isPortOnePendingStatus(status) {
   const normalized = String(status || "").trim().toLowerCase();
   return ["ready", "pay_pending", "virtual_account_issued", "pending"].includes(normalized);
@@ -1335,7 +1342,9 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     return json({ ok: false, message: "Only your own payment can be completed.", code: "FORBIDDEN_PAYMENT_OWNER" }, { status: 403 });
   }
 
-  if (order.status === "success" || order.status === "fulfilled") {
+  // 🔴 V2 주문(worker/payments/order-id.js)은 V2 확정 경로만 정산한다. 아래 멱등 재지급 블록도 건너뛰고 409 로 닫는다 —
+  // 여기서 받으면 레거시 지급·해금 기록·orderState 가 V2 지급과 겹친다(2026-09-24).
+  if (!isV2OrderId(paymentId) && (order.status === "success" || order.status === "fulfilled")) {
     const paidAt = order.paidAt ? new Date(order.paidAt) : new Date();
     let entitlement;
     try {
@@ -1375,7 +1384,7 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
     });
   }
 
-  if (order.status === "failed" || order.status === "cancelled" || order.status === "refunded") {
+  if (isV2OrderId(paymentId) || order.status === "failed" || order.status === "cancelled" || order.status === "refunded") {
     return json({
       ok: false,
       idempotent: true,
@@ -1468,6 +1477,34 @@ async function handleSinglePaymentComplete(request, env, auth, options = {}) {
       payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
     });
     return json({ ok: false, message: "Payment store verification failed.", code: "STORE_ID_MISMATCH" }, { status: 400 });
+  }
+
+  // 🔴 채널도 V2 확정(pg.js ⑥)과 같은 기준 — 응답에 channel.key 가 있을 때만 우리가 연 채널(이니시스·카카오페이) 중 하나여야 한다.
+  // 이 라우트는 직접 호출로 닿으므로 같은 상점의 다른 채널(테스트 채널 등) 결제로 주문을 확정하지 못하게 막는다(2026-09-24 L1).
+  const portOneChannelKey = extractPortOneChannelKey(portOnePayment);
+  const allowedChannelKeys = [config.channelKey, config.kakaopayChannelKey].map((key) => String(key || "").trim()).filter(Boolean);
+  if (portOneChannelKey && !allowedChannelKeys.includes(portOneChannelKey)) {
+    await markPaymentFailure(order, {
+      status: "failed",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.VERIFY_FAILED,
+      paymentMethod: order.paymentMethod,
+      failureCode: "channel_mismatch",
+      failureMessage: "PortOne channel does not match configured channels.",
+      failureStage: "single_channel_validate",
+      incrementAttempt: true,
+    });
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
+      merchantUid: paymentId,
+      source: "confirm",
+      stage: "single_channel_validate",
+      code: "channel_mismatch",
+      message: "PortOne channel does not match configured channels.",
+      status: 400,
+      payload: { paymentId, portOne: safePortOneLog, securityEvent: true },
+    });
+    return json({ ok: false, message: "Payment channel verification failed.", code: "CHANNEL_MISMATCH" }, { status: 400 });
   }
 
   if (!Number.isInteger(portOneAmount) || portOneAmount !== expectedAmount) {
@@ -2786,15 +2823,19 @@ async function handleReportFailure(request, env, auth) {
         payload: body,
       });
     }
-  } else if (payment && payment.status !== "success") {
-    await markPaymentFailure(payment, {
-      status: reasonCode === "cancelled" ? "cancelled" : "failed",
-      paymentMethod: payment.paymentMethod,
-      failureCode: reasonCode,
-      failureMessage: reasonMessage,
-      failureStage: "client_report",
-      incrementAttempt: false,
-    });
+  } else if (payment?.status === "pending") {
+    // 🔴 대기 주문만 정확 일치 CAS 로 닫는다(V2 markOrderFailed 와 같은 불변식). 예전엔 success 외 전부를 덮어 paid 가 failed 가 되고,
+    // 늦은 Paid 웹훅이 되살리는 failed+PG_PAYMENT_NOT_PAID 표식이 클라이언트 사유로 지워져 결제됐는데 결과가 없었다(2026-09-24 W3).
+    await Payment.findOneAndUpdate({ _id: payment._id, status: "pending" }, {
+      $set: {
+        status: reasonCode === "cancelled" ? "cancelled" : "failed",
+        paymentMethod: payment.paymentMethod || "unknown",
+        failureCode: reasonCode,
+        failureMessage: reasonMessage,
+        failureStage: "client_report",
+        lastErrorAt: new Date(),
+      },
+    }).catch(() => {});
   }
 
   await writeFailureLog({
@@ -3654,6 +3695,7 @@ export const __paymentsTestUtils = {
   handleSinglePaymentStart,
   handleSinglePaymentComplete,
   handleWebhook,
+  handleReportFailure,
   markPaymentCancellationForAdminReview,
   handleMe,
   formatPaymentSummaryResponse,

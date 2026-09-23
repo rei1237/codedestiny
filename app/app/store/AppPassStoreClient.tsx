@@ -119,6 +119,10 @@ export default function AppPassStoreClient() {
     }
     const returnUrl = String(target?.url || "");
     if (!returnUrl) return false;
+    // 저장된 복귀 URL 도 같은 사이트일 때만 따라간다(PointsClient 와 같은 origin 비교). 저장하는 곳은 전부 같은 사이트 경로라 방어 1겹이다.
+    let destination: URL;
+    try { destination = new URL(returnUrl, window.location.origin); } catch { return false; }
+    if (destination.origin !== window.location.origin) return false;
     setMessage(copy.purchaseReturningMessage(title));
     const departAt = Date.now() + 1200;
     const warmFreshSnapshot = async (): Promise<boolean> => {

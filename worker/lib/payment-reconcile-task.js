@@ -10,6 +10,7 @@ import { connectDb, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, Payment } from "./models.js";
 import { fetchPortOnePayment } from "./portone.js";
 import { revokeSinglePaymentContentAccess } from "./payment-refund.js";
+import { isV2OrderId } from "../payments/order-id.js";
 
 function clampInt(value, fallback, min, max) {
   const n = Math.floor(Number(value));
@@ -209,10 +210,9 @@ export async function reconcilePendingPayments(env, options = {}) {
       const revivable = String(candidate.status || "") === "failed"
         && String(candidate.failureCode || "") === "PG_PAYMENT_NOT_PAID";
       // 비-단건 V2 주문(orderState PENDING — 이용권이 여기 해당)과 PG_PAYMENT_NOT_PAID 로 닫힌 주문은 V2 확정
-      // 경로가 정산한다. 🔴 단건(digital_content+single_purchase)은 V2 주문이어도 아래 레거시
-      // settleSinglePaymentForReconcile 로 간다(fulfilled 로 닫고 entitlementGrantedAt 을 쓰지 않는다) —
-      // 레거시 주문도 orderState 를 쓰므로 그 값만으로 V2/레거시를 가를 수 없어 순서를 바꾸지 않았다(2026-09-03).
-      if (revivable || (!isSinglePurchase && String(candidate.orderState || "") === "PENDING")) {
+      // 경로가 정산한다. 레거시 주문도 orderState 를 쓰므로 단건은 ID 형식으로 가른다(worker/payments/order-id.js).
+      // 🔴 V2 단건을 아래 레거시 settle 로 보내면 채널 대조·V2 지급 기록·영냥이 enqueue 없이 fulfilled 로 닫힌다(2026-09-24 수정).
+      if (revivable || isV2OrderId(candidate.merchantUid) || (!isSinglePurchase && String(candidate.orderState || "") === "PENDING")) {
         try {
           const { settleOrderFromReconcile } = await import("../payments/index.js");
           await settleOrderFromReconcile(env, { orderId: candidate.merchantUid, pgPayment: portOnePayment });
