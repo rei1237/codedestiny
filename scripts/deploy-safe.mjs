@@ -28,6 +28,7 @@ import { lintTargets } from "./lib/lint-targets.mjs";
 import { assertWorkerBaseIsFresh } from "./lib/worker-deploy-base-guard.mjs";
 import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
 import { assertWorkerBindingBudget } from "./lib/worker-binding-budget.mjs";
+import { cloudflareTransport } from "./lib/cloudflare-transport.mjs";
 
 const root = process.cwd();
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -275,7 +276,7 @@ async function cfFetch(url, options = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("Authorization", "Bearer " + process.env.CLOUDFLARE_API_TOKEN);
   headers.set("Accept", "application/json");
-  const response = await fetch(url, { ...options, headers });
+  const response = await cloudflareTransport(url, { ...options, headers });
   const body = await response.json().catch(() => ({}));
   if (!response.ok || body.success === false) {
     const detail = (body.errors || []).map((e) => e.message).filter(Boolean).join("; ");
