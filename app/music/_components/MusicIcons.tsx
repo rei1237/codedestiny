@@ -102,11 +102,16 @@ export function ShareIcon({ size }: IconProps) {
 export function LyricsIcon({ size }: IconProps) {
   return (
     <Svg size={size}>
-      <path d="M4 6h16" />
-      <path d="M4 12h10" />
-      <path d="M4 18h13" />
+      <path d="M4 6h9" />
+      <path d="M4 11h9" />
+      <path d="M4 16h5" />
+      <path d="M17 16V5l4 1.5" />
+      <circle cx="15" cy="16.5" r="2" />
     </Svg>
   );
+}
+export function ChevronDownIcon({ size }: IconProps) {
+  return <Svg size={size}><path d="m6 9 6 6 6-6" /></Svg>;
 }
 export function LockIcon({ size }: IconProps) {
   return (

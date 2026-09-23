@@ -7,6 +7,7 @@ import type { MusicCopy } from "../_lib/musicCopy";
 import { buildCoverSrc } from "../_lib/musicFormat";
 import styles from "../music-lounge.module.css";
 import {
+  ChevronDownIcon,
   DownloadIcon,
   LockIcon,
   LyricsIcon,
@@ -171,18 +172,21 @@ export const NowPlaying = memo(forwardRef<HTMLElement, NowPlayingProps>(function
         >
           <ShareIcon />
         </button>
-        <button
-          type="button"
-          className={styles.iconBtn}
-          onClick={props.onToggleLyrics}
-          aria-label={copy.lyrics}
-          aria-pressed={props.lyricsOpen}
-          aria-expanded={props.lyricsOpen}
-          disabled={!track}
-        >
-          <LyricsIcon />
-        </button>
       </div>
+
+      {/* 아이콘만 두면 햄버거 메뉴로 읽혀 가사를 못 찾는다 → 라벨 달린 펼침 토글. 가사 없는 곡은 비활성. */}
+      <button
+        type="button"
+        className={styles.lyricsToggle}
+        onClick={props.onToggleLyrics}
+        aria-expanded={props.lyricsOpen}
+        aria-controls="music-lyrics"
+        disabled={!track?.lyricsLookupKey}
+      >
+        <LyricsIcon size={18} />
+        <span>{copy.lyrics}</span>
+        <ChevronDownIcon size={18} />
+      </button>
 
       <div className={styles.access}>
         {/* 옛 FeaturedTrackCard 와 같은 분기: 잠금 미리듣기이거나 다운로드 권한이 없으면 구매, 아니면 다운로드. */}

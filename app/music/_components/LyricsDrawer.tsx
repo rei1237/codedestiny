@@ -75,7 +75,7 @@ export function LyricsDrawer({ copy, title, lyricsLookupKey, onClose }: LyricsDr
   }, [onClose]);
 
   return (
-    <section className={styles.lyrics} aria-label={copy.lyricsAria}>
+    <section id="music-lyrics" className={styles.lyrics} aria-label={copy.lyricsAria}>
       <div className={styles.lyricsHead}>
         <h2 className={styles.lyricsTitle}>{title}</h2>
         <button type="button" className={styles.iconBtn} onClick={onClose} aria-label={copy.close}>

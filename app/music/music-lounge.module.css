@@ -178,6 +178,19 @@
 .emptyBody { margin: 0; color: var(--ivory-2); font-size: 14px; }
 
 /* ---------- lyrics ---------- */
+.lyricsToggle {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-height: var(--tap); padding-inline: 16px;
+  border-radius: 999px; border: 1px solid var(--line); background-color: rgba(243, 239, 228, 0.04); color: var(--ivory);
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background-color var(--ease), border-color var(--ease), color var(--ease);
+}
+.lyricsToggle span { flex: 1; text-align: left; }
+.lyricsToggle svg:last-child { color: var(--ivory-2); transition: transform var(--ease); }
+.lyricsToggle:hover { background-color: rgba(243, 239, 228, 0.08); }
+.lyricsToggle[aria-expanded="true"] { color: var(--gold); border-color: rgba(216, 184, 106, 0.45); }
+.lyricsToggle[aria-expanded="true"] svg:last-child { color: var(--gold); transform: rotate(180deg); }
+.lyricsToggle:disabled { opacity: 0.45; cursor: default; }
+.lyricsToggle:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .lyrics { margin-top: 16px; border: 1px solid var(--line); border-radius: var(--radius); background-color: rgba(20, 23, 51, 0.7); }
 .lyricsHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 16px; border-bottom: 1px solid var(--line); }
 .lyricsTitle { margin: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
