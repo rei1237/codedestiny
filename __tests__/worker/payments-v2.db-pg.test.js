@@ -117,6 +117,47 @@ describe("pg: 상점(storeId) 대조 — 응답에 있을 때만", () => {
   });
 });
 
+// KG이니시스 보안 권고(2026-09-18) ① 위변조 — 포트원 V2 공식 검증은 amount.total 기준이다.
+describe("pg: 금액은 amount.total 로 댄다", () => {
+  test("PG 즉시할인으로 paid < total 이어도 total 이 주문 금액이면 통과", async () => {
+    const reply = pgReply({ amount: 27000, rawV2: { amount: { total: 30000, paid: 27000, discount: 3000 } } });
+    await expect(verifyPgPayment(ENV, OK, { fetchPayment: async () => reply })).resolves.toBeTruthy();
+  });
+
+  test("🔴 total 이 주문 금액과 다르면 paid 가 맞아도 AMOUNT_MISMATCH", async () => {
+    const reply = pgReply({ amount: 30000, rawV2: { amount: { total: 100, paid: 30000 } } });
+    await expectPaymentError(
+      () => verifyPgPayment(ENV, OK, { fetchPayment: async () => reply }),
+      "AMOUNT_MISMATCH",
+      422,
+    );
+  });
+});
+
+describe("pg: 채널(channel.key) 대조 — 응답에 있을 때만", () => {
+  const CH_ENV = { ...ENV, PORTONE_CHANNEL_KEY: "channel-key-inicis", PORTONE_KAKAOPAY_CHANNEL_KEY: "channel-key-kakao" };
+
+  test("🔴 우리가 연 채널이 아니면 422 CHANNEL_MISMATCH 이고 오류에 키 값이 없다", async () => {
+    const reply = pgReply({ rawV2: { channel: { key: "channel-key-test-other", pgProvider: "INICIS_V2" } } });
+    const error = await verifyPgPayment(CH_ENV, OK, { fetchPayment: async () => reply }).then(() => null, (caught) => caught);
+    expect(error).toBeInstanceOf(PaymentError);
+    expect(error.code).toBe("CHANNEL_MISMATCH");
+    expect(classify(error).status).toBe(422);
+    expect(JSON.stringify({ message: error.message, meta: error.meta })).not.toMatch(/channel-key-/);
+  });
+
+  test("이니시스·카카오페이 채널은 matched, 없으면 absent", async () => {
+    for (const key of ["channel-key-inicis", "channel-key-kakao"]) {
+      const reply = pgReply({ rawV2: { channel: { key } } });
+      const result = await verifyPgPayment(CH_ENV, OK, { fetchPayment: async () => reply });
+      expect(result.summary.channelCheck).toBe("matched");
+      expect(JSON.stringify(result.summary)).not.toMatch(/channel-key-/);
+    }
+    const absent = await verifyPgPayment(CH_ENV, OK, { fetchPayment: async () => pgReply() });
+    expect(absent.summary.channelCheck).toBe("absent");
+  });
+});
+
 describe("pg: 닿지 못한 것과 사실이 다른 것을 가른다", () => {
   test("🔴 PG 에 닿지 못하면 503 PG_UNAVAILABLE", async () => {
     const timeout = new Error("PortOne payment lookup failed: request timed out after 8000ms");
@@ -160,7 +201,7 @@ describe("pg: PG 응답의 PII 는 저장 형태로 넘어가지 않는다", () 
     expect(result.summary.rawV2).toBeUndefined();
     // 대조·정산에 필요한 것은 남아 있어야 한다.
     expect(Object.keys(result.summary).sort()).toEqual(
-      ["amount", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
+      ["amount", "channelCheck", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
     );
   });
 });
