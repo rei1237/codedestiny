@@ -12,6 +12,7 @@
  *
  * 응답에 storeId 가 **있으면** 우리 상점(PORTONE_STORE_ID)과도 같아야 한다(STORE_ID_MISMATCH). 없으면
  * 대조를 건너뛰고 요약에 storeIdCheck: "absent" 로 남긴다 — 실제 응답 형식을 mock 으로 확인할 수 없어서다.
+ * 채널(channel.key)도 같은 방식이다(CHANNEL_MISMATCH / channelCheck). 금액은 amount.total 로 댄다.
  *
  * 하나라도 어긋나면 422 다 — 형식은 맞는데 사실이 다르다는 뜻이고, **자동 재시도 대상이 아니다.**
  * 특히 금액 불일치를 재시도 가능으로 두면 클라이언트가 조작한 금액을 반복 제출하게 된다.
@@ -45,6 +46,18 @@ function summarize(pg) {
 function extractStoreId(pg) {
   const raw = pg?.rawV2 && typeof pg.rawV2 === "object" ? pg.rawV2 : pg;
   return String(raw?.storeId || raw?.store?.id || raw?.store?.storeId || pg?.storeId || "").trim();
+}
+
+/* 응답이 알려 준 채널키(SelectedChannel.key). 🔴 storeId 처럼 값은 오류·요약·로그에 싣지 않는다. */
+function extractChannelKey(pg) {
+  const raw = pg?.rawV2 && typeof pg.rawV2 === "object" ? pg.rawV2 : pg;
+  return String(raw?.channel?.key || "").trim();
+}
+
+/* 주문 총액(amount.total). V2 원본에 없으면 정규화 값으로 폴백한다. */
+function extractTotalAmount(pg) {
+  const total = pg?.rawV2?.amount?.total;
+  return Number.isFinite(Number(total)) && total !== null && total !== "" ? total : pg?.amount;
 }
 
 /* PortOne 호출이 "닿지 못한" 것인지 판정한다. requestJson 은 타임아웃도 HTTP 오류도 전부
@@ -117,8 +130,10 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
   }
 
   // ③ 금액. 클라이언트가 보낸 값이 아니라 **우리 주문 문서**의 금액과 댄다.
+  //    PortOne V2 공식 검증 예시는 `amount.total` 이다(developers.portone.io v2 checkout, 2026-09-23 확인).
+  //    정규화된 pg.amount 는 amount.paid 를 먼저 읽어 PG 즉시할인이 붙으면 정상 결제가 불일치로 떨어진다.
   const expected = Math.floor(Number(expectedAmountKRW) || 0);
-  const actual = Math.floor(Number(pg.amount) || 0);
+  const actual = Math.floor(Number(extractTotalAmount(pg)) || 0);
   if (expected <= 0 || actual !== expected) {
     throw paymentError("AMOUNT_MISMATCH", "결제 금액이 주문 금액과 다릅니다.", {
       orderId,
@@ -142,7 +157,25 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
     throw paymentError("STORE_ID_MISMATCH", "결제 정보가 주문과 일치하지 않습니다.", { orderId });
   }
 
-  const summary = { ...summarize(pg), storeIdCheck: pgStoreId ? "matched" : "absent" };
+  // ⑥ 채널. 응답에 channel.key 가 **있을 때만** 우리가 연 채널(이니시스·카카오페이) 중 하나인지 댄다.
+  //    같은 상점의 다른 채널(테스트 채널 등) 결제로 우리 주문을 확정하지 않는다. storeId 와 같은
+  //    present-only 인 이유: 운영 응답에서 이 필드가 항상 오는지 아직 실측하지 않았다 — 없는데 엄격하게
+  //    막으면 결제 확정 전면 중단이다. absent 비율은 요약의 channelCheck 로 본다.
+  const pgChannelKey = extractChannelKey(pg);
+  if (pgChannelKey) {
+    const allowed = [config.portoneChannelKey, config.portoneKakaopayChannelKey]
+      .map((key) => String(key || "").trim())
+      .filter(Boolean);
+    if (!allowed.includes(pgChannelKey)) {
+      throw paymentError("CHANNEL_MISMATCH", "결제 정보가 주문과 일치하지 않습니다.", { orderId });
+    }
+  }
+
+  const summary = {
+    ...summarize(pg),
+    storeIdCheck: pgStoreId ? "matched" : "absent",
+    channelCheck: pgChannelKey ? "matched" : "absent",
+  };
   return {
     pgTransactionId: summary.paymentId,
     paidAt: summary.paidAt,

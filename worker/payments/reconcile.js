@@ -192,7 +192,7 @@ const UNFULFILLED_ALERT_MAX_COUNT = 7;
 /** 대조 실패는 이 기간 안에 실패 확정된 주문만 본다 — 알림 도입 이전의 실패 주문을 한꺼번에 쏟지 않는다. */
 const VERIFY_ALERT_LOOKBACK_MS = 30 * 24 * 60 * 60_000;
 /** PG 가 말하는 사실과 주문이 어긋난 코드만(errors.js 422). PG_PAYMENT_NOT_PAID 는 돈이 나가지 않은 주문이라 뺀다. */
-const VERIFY_ALERT_CODES = Object.freeze(["AMOUNT_MISMATCH", "CURRENCY_MISMATCH", "PAYMENT_ID_MISMATCH", "STORE_ID_MISMATCH"]);
+const VERIFY_ALERT_CODES = Object.freeze(["AMOUNT_MISMATCH", "CURRENCY_MISMATCH", "PAYMENT_ID_MISMATCH", "STORE_ID_MISMATCH", "CHANNEL_MISMATCH"]);
 
 /**
  * 결제 후 미이행·PG 대조 실패를 운영자에게 알린다(해외카드 1단계 C7). 알림뿐이다 — 지급·환불은 하지 않는다.

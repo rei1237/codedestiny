@@ -103,6 +103,8 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   PAYMENT_ID_MISMATCH: { status: 422 },
   // 응답 storeId 가 있을 때만 대조한다(pg.js ⑤). meta 에 storeId 값을 싣지 않는다 — 시크릿 분류.
   STORE_ID_MISMATCH: { status: 422 },
+  // 응답 channel.key 가 있을 때만 대조한다(pg.js ⑥). 이니시스·카카오페이 채널 밖이면 거부. meta 에 키 값을 싣지 않는다.
+  CHANNEL_MISMATCH: { status: 422 },
   PG_PAYMENT_NOT_PAID: { status: 422 },
 
   // 500 — 우리 잘못. 재시도해도 같으므로 눈에 띄어야 한다.
