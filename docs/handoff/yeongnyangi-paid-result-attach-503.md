@@ -1,31 +1,31 @@
 ---
 status: active
 updated: 2026-09-24
-next: 승인된 쪽부터 진행한다 — 1) db.js poolClosed 8000ms 정지 수정(RED) 또는 2) 피해 주문 읽기 전용 조회(운영 DB, 실행 전 승인)
+next: 설계안 A(끝난 호출의 op 을 ping-skip 이웃 판정에서 제외) 승인을 받아 db.js 에 구현하고, 같은 스테이징 재현 4회로 [db-op-timeout] 0건을 확인한다
 ---
 # 영냥이 결제 직후 "상담 기록에 잠시 연결하지 못했어요" — 인수인계 (2026-09-24)
 
-## 끝난 것 (main, CI 통과)
-- `dbeab8865` Result.tsx `load()`: activate 가 실패해도 이미 읽은 요청 행을 버리지 않는다. 일시 오류는 기존 결제 대기 폴링이 재시도한다. 검증: `node scripts/verify-yeongnyangi-result-retry.mjs` (activate 503 경우 추가, 옛 코드로 되돌리면 실패하는 것 확인)
-- `89f4d3334` api.ts DB-503 문구 → "영냥이 서버에 잠시 연결하지 못했어요. 결제한 상담은 그대로 있어요. …" (CD 상담 기록 연결 단계는 존재하지 않음 — 오해 문구였음)
-- `7d1989347` recovery.js: 미연결 유료 주문 재활성화가 `isDbUnavailableError` 면 5분 보류(다음 틱), 그 밖은 기존 24시간.
+## 끝난 것 (main)
+- `dbeab8865` Result.tsx: activate 가 실패해도 읽은 요청 행 유지(`node scripts/verify-yeongnyangi-result-retry.mjs`). `89f4d3334` DB-503 문구. `7d1989347` recovery.js: DB 일시 오류면 5분 보류. `60d4cf1da` 재현 픽스처 `analysis` 수정.
+- `011a3c527`(머지 `d2e138ca1`) db.js **계측만, 동작 변경 없음**: `[db-op-timeout]` 의 `lastCheckOutFailReason` 은 그 시도에 checkOutFailed 가 있을 때만 붙는다. `pending[]`(응답 없는 명령·커넥션) 추가. 풀이 소켓을 열 때 `[db-conn-open] {conn}` — 소켓을 연 요청의 tail 이벤트에 찍힌다.
 
-## 503 원인 실측 (2026-09-24, 스테이징, 사용자 승인)
-`YN_READ_REPEATS=10 node scripts/verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures` 를 4회 돌리며
-`wrangler tail code-destiny-web-staging --format json` 을 함께 받았다(캡처는 스크래치패드, 커밋 안 함). PG·LLM 0건.
-- 유료 경로(로그인 → 조회 → activate 동시 2건 → 조회 12건): **전부 200**. WriteConflict·트랜잭션 오류 0건.
-- 503 은 2건. 동시 2건 요청(`attendance`, `free/unlock`)에서만 났고, **둘 다 같은 모양**이다:
-  `[db-op-timeout] opMs=8000 inFlightOps=1 lastCheckOutFailReason:"poolClosed"` → `MongoDB operation timed out in Worker.` → 503.
-- 해석(로그로 확인한 부분 + 추정): 이웃 요청이 웜 ping 실패로 `detachDeadWarmConnection()`(db.js:466, 호출 800)을 타서
-  옛 클라이언트를 배경에서 닫는다. db.js:760 주석은 "그 위의 이웃 op 은 빨리 실패하고 withMongoRetry 가 새 커넥션을 탄다"고
-  가정하지만, 실측은 **빨리 실패하지 않고 풀 체크아웃이 poolClosed 로 막힌 채 8000ms 예산을 다 쓴다.**
-  결제 직후 결과 화면은 조회·activate·결제 대기 폴링·큐 소비가 겹치므로 같은 경로로 503 을 받는다고 본다(추정 — 유료 경로에서 직접 재현은 못 함).
-- 테스트 데이터 결함도 고쳤다: `analysis:{}` 는 mongoose 가 빈 객체를 저장하지 않아 `presentFortune` 이 500 으로 죽었다(d218731c6 이후). `analysis:{topicId:'general'}` 로 교체.
-- 이 스크립트는 지금도 attendance/unlock 동시 구간에서 위 503 때문에 간헐 실패한다.
+## 원인 (스테이징 실측, 승인된 재현 1회)
+재현: `YN_READ_REPEATS=10 node scripts/verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures` + `npx wrangler tail code-destiny-web-staging --config worker/wrangler.staging.toml --format json`. 1회차 28행(조회 반복)에서 503. PG·LLM 0, 픽스처 정리 PASS.
+- 🔴 이전 판정 "poolClosed 체크아웃 8초 정지"는 **오진**. poolClosed 는 예전 실패가 남은 전역 값이었고 증분은 checkOutFailed 0·commandStarted 만 증가 = **명령은 나갔는데 답이 없다.** (mongo-m10-phase2-2026-09-06.md ⓐ 도 같은 오독)
+- 측정: 끝내 답이 없던 명령 5/5 가 **소켓을 연 요청이 끝난 뒤** 보낸 명령이다(로그인이 연 소켓의 create 3건, 끝난 GET 이 연 소켓의 ping, 끝난 activate 가 연 소켓의 find → 8000ms → 503). 웜 ping 도 끝난 요청의 소켓 3/3 실패, 자기 요청이 연 소켓 4/4 성공.
+- 503 경로(실측+코드): activate 동시 2건이 1000ms 시도 예산을 넘겨 재시도(둘 다 200) → 걸린 시도가 settle 하지 않아 `finalizeOperation` 이 op 기록을 못 지움(`ABANDONED_OP_MAX_AGE_MS` 15초까지) → 다음 GET 이 `countActiveMongoOps() > activeOpsOwned` 로 **웜 ping 을 건너뜀** → LIFO 풀이 끝난 activate 의 소켓을 내줌 → 정지. 로그 inFlightOps=3 = 좀비 2 + 자기 1.
+- 부수: fresh-connection 거짓 실패 가드(`FRESH_CONNECTION_MAX_AGE_MS`)가 끝난 GET 이 연 1초짜리 소켓의 ping 정지를 "거짓 실패"로 보고 유지했다.
+- 미해명: 살아 있는 activate 끼리 보낸 명령 2건도 1000ms 안에 답이 없었다(서버 잠금 대기인지 못 가름). activate 시도 예산이 왜 1000ms 인지도 미확인.
 
-## 남은 것 (다음 세션)
-1. **db.js 이웃 op poolClosed 8000ms 정지 수정 (RED, 공용 DB 계층).** 방향 후보: detach 된 클라이언트 위의 op 을 poolClosed 체크아웃 실패 즉시 transient 로 끊어 withMongoRetry 가 새 커넥션으로 재시도하게. 기존 계약 테스트 `__tests__/worker/db.mongoose-detach-contract.test.js`·`db.warm-teardown-off-critical-path.test.js` 와 db.js 주석의 과거 사고(08-08 전역 disconnect, 09-06 거짓 실패) 먼저 읽을 것. 재현: 위 스크립트 + tail, 성공 기준 = `poolClosed` 8000ms 0건.
-2. **피해 주문 조회(읽기 전용, 운영 DB → 실행 전 승인):** `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny` 와 `payments` 중 `requestId:/^yn-[a-f0-9]{64}$/`, 결제 완료, `metadata.consumedBy:null`, `metadata.yeongnyangiRecoveryAfter` 가 미래인 건. 이미 24시간 보류된 건은 이번 수정으로 앞당겨지지 않는다 — 해제 쓰기는 별도 승인.
+## 설계안 (RED, 공용 DB 계층 — 승인 후)
+- **A (권장, 작음):** withMongoRetry 가 반환·throw 한 op 은 걸린 시도가 남아도 ping-skip 이웃 판정에서 뺀다(리셋 안전 회계는 그대로). 이번 503 은 ping 실패 → 분리 → 재연결로 바뀐다. 한계: 살아 있는 이웃이 있을 때 풀이 끝난 요청의 소켓을 내주는 경우는 남는다.
+- B: 거짓 실패 가드를 "이 요청이 연 소켓"일 때로 좁힌다(opener 식별은 AsyncLocalStorage — [db-conn-open] 이 opener 컨텍스트에서 찍히는 것은 실측됨).
+- C (구조, 큼): 요청 범위 클라이언트로 소켓을 요청 밖에서 재사용하지 않는다. 전 라우트 영향.
+- 성공 기준: 같은 재현 4회 PASS, [db-op-timeout] 0건. 기존 계약 테스트 `db.mongoose-detach-contract`·`db.warm-teardown-off-critical-path`·`cron-shared-connection-teardown` 유지.
+
+## 남은 것
+1. 설계안 A 승인 → 구현 → 재현.
+2. **피해 주문 조회(읽기 전용, 운영 DB → 실행 전 승인):** `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny` 와 `payments` 중 `requestId:/^yn-[a-f0-9]{64}$/`, 결제 완료, `metadata.consumedBy:null`, `metadata.yeongnyangiRecoveryAfter` 가 미래인 건. 해제 쓰기는 별도 승인.
 3. 범위 밖 보고: `verify-yeongnyangi-result-retry.mjs` 가 package.json·CI 에 배선돼 있지 않고, `paid-flow-gates.yml` 트리거에 `app/yeongnyangi/**`·`worker/yeongnyangi/**` 가 없다.
 
-다음 세션 첫 문장: "docs/handoff/yeongnyangi-paid-result-attach-503.md 를 읽고 남은 것 1(503 원인) 또는 2(피해 주문 조회) 중 승인된 것부터 진행해줘."
+다음 세션 첫 문장: "docs/handoff/yeongnyangi-paid-result-attach-503.md 를 읽고 남은 것 1(설계안 A)을 진행해줘."
