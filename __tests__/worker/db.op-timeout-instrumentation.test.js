@@ -174,14 +174,50 @@ test("스테이징에서는 명령마다 시작 줄(커넥션)과 완료 줄을 
   try {
     const staging = await runOnce({ ...ENV, APP_ENV: "staging" });
     expect(staging.started).toEqual([
-      { k: expect.stringMatching(/:9$/), cmd: "find", coll: "yeongnyangi_requests", conn: staging.conn[0].conn },
-      { k: expect.stringMatching(/:10$/), cmd: "insert", coll: "users", conn: staging.conn[0].conn },
+      { k: expect.stringMatching(/:9$/), cmd: "find", coll: "yeongnyangi_requests", conn: staging.conn[0].conn, scope: null },
+      { k: expect.stringMatching(/:10$/), cmd: "insert", coll: "users", conn: staging.conn[0].conn, scope: null },
     ]);
     expect(staging.ok).toEqual([{ k: staging.started[0].k, ms: 12 }]);
     expect(staging.failed).toEqual([{ k: staging.started[1].k, ms: 5, err: "MongoNetworkError" }]);
   } finally {
     delete process.env.APP_ENV;
   }
+});
+
+// 2026-09-24 설계안 C1: 소켓을 연 요청을 tail 이벤트로 추정하지 않고 스코프 id 로 맞춘다.
+test("스코프 안에서는 [db-conn-open]·[db-cmd] 에 요청 스코프 id 를 남겨, 다른 요청이 연 소켓으로 보낸 명령을 가른다", async () => {
+  const { client, mongooseMock } = buildEmittingMongoose();
+  const { withMongoRetry } = await loadDb(mongooseMock);
+  const { withDbScopes, currentDbScopeId } = await import("../../worker/lib/db-scope.js");
+  const scopes = [];
+  const entry = withDbScopes({
+    fetch: (requestId, opensSocket) => withMongoRetry({ ...ENV, APP_ENV: "staging" }, async () => {
+      // withMongoRetry 의 연결·admission await 를 지나서도 요청 스코프가 op 까지 이어져야 한다.
+      scopes.push(currentDbScopeId());
+      if (opensSocket) client.emit("connectionCreated", { connectionId: 3 });
+      client.emit("commandStarted", { requestId, connectionId: 3, commandName: "find", command: { find: "users" } });
+      return "ok";
+    }),
+  });
+  const logs = [];
+  const originalLog = console.log;
+  console.log = (...args) => { logs.push(args.map(String).join(" ")); };
+  try {
+    await entry.fetch(1, true); // 요청 A 가 소켓 #3 을 열고 보낸다.
+    await entry.fetch(2, false); // 요청 B 가 A 가 연 소켓 #3 으로 보낸다.
+  } finally {
+    console.log = originalLog;
+    delete process.env.APP_ENV;
+  }
+  const parse = (tag) => logs.filter((l) => l.startsWith(`${tag} `)).map((l) => JSON.parse(l.slice(l.indexOf("{"))));
+
+  expect(scopes).toEqual([expect.stringMatching(/^f-\w+$/), expect.stringMatching(/^f-\w+$/)]);
+  expect(scopes[0]).not.toBe(scopes[1]);
+  expect(parse("[db-conn-open]")).toEqual([{ conn: expect.stringMatching(/#3$/), scope: scopes[0] }]);
+  expect(parse("[db-cmd]").map(({ conn, scope }) => ({ conn, scope }))).toEqual([
+    { conn: parse("[db-conn-open]")[0].conn, scope: scopes[0] },
+    { conn: parse("[db-conn-open]")[0].conn, scope: scopes[1] },
+  ]);
 });
 
 test("시도 안에서 체크아웃이 실패했으면 그 사유를 붙인다", async () => {
