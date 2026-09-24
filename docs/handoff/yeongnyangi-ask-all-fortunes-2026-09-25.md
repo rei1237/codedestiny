@@ -16,6 +16,7 @@ next: "영냥이 '무엇이든 물어보기' 답변에, 상품 체계와 무관�
 
 - **체계 교차** — 어느 체계 상품이든 꿀꿀의 사주 일진·월운·세운, 숙요 일운, 베다 판창가, 수비학, 타로 일일 카드까지 근거로 쓴다.
 - **대운은 제외** — 지금처럼. `majorLuck` 선택자와 대운 문구는 들어가지 않는다.
+- **타로는 뽑은 당시로** (사용자 지시, 2026-09-25: "타로는 뽑은 당시로 해주길 바래") — 사용자가 실제로 뽑은 3장을 뽑은 날짜와 함께 그대로 근거로 쓴다. 서버가 새로 추첨하거나 오늘 날짜로 다시 계산하지 않는다. 뽑은 날이 오늘이 아니면 오늘의 카드처럼 말하지 않고 "N월 N일에 뽑은 카드"로 읽는다. 뽑은 기록이 없거나 3장을 다 뒤집지 않았으면 타로 근거를 빼고 진행한다.
 
 ## 현재 흐름 (실측)
 
@@ -33,7 +34,7 @@ next: "영냥이 '무엇이든 물어보기' 답변에, 상품 체계와 무관�
 | 일간별 오늘 지침 | `worker/lib/daily-stem-guidance.js:135` `buildStemGuidance(dayStem, today)` | 워커 모듈 |
 | 체계별 일운(숙요·사주·점성·베다·자미) | `lib/lock-screen-daily-fortune.ts:348` `getDailyFortune(system, input, now)` | `@/lib/yeon/zodiac` 별칭 import — 워커 번들 해석 미검증 |
 | 수비학 개인 일수 | `lib/numerology/personal-day.mjs` | 미검증 |
-| 타로 일일 3장 | `lib/tarot/daily-three.mjs` | 미검증. 결정적 추첨인지 확인 필요(새 추첨을 지어내면 안 된다) |
+| 타로 일일 3장 | `lib/tarot/daily-three.mjs` | **결정적 추첨이 아니다**(실측): `newDailyReading` 이 `Math.random` 으로 22장을 섞고 `{date(KST), deck, picks, revealed}` 를 브라우저 localStorage `cd:yeoni:daily-three:v1` 에만 저장한다(`app/today/DailyTarot.tsx:44`). 서버는 재현 불가 → 요청 생성 때 클라이언트가 저장본(`revealed===3` 인 것만)의 날짜와 카드 3장(`picks.map(s=>deck[s])`)을 보내고, 서버는 `sharedDailyCards` 수준으로 검증해 스냅샷에 날짜와 함께 고정한다. 위 "뽑은 당시로" 결정 |
 | 스위스 천문력 | `worker/lib/swiss-ephemeris.js` | 비동기·실패 가능 → 실패해도 상담이 멈추지 않게(코딩 원칙 17) |
 | 오늘의 운세 데이터 | `lib/fortune/daily-data.ts` | `node:fs` import(:12) → **워커에서 못 쓴다** |
 
@@ -48,7 +49,7 @@ next: "영냥이 '무엇이든 물어보기' 답변에, 상품 체계와 무관�
 
 ## 권장 설계 (다음 세션이 확정)
 
-1. 요청 생성 시(`service.ts`, 요청 시계 기준 KST) 교차 근거를 한 번 계산해 `analysis.contexts` 에 체계별 일일 팩트로 저장한다. 실패한 체계는 빼고 진행한다.
+1. 요청 생성 시(`service.ts`, 요청 시계 기준 KST) 교차 근거를 한 번 계산해 `analysis.contexts` 에 체계별 일일 팩트로 저장한다. 실패한 체계는 빼고 진행한다. **타로만 예외** — 요청 시각에 계산하지 않고 클라이언트가 보낸 "뽑은 당시" 카드와 날짜를 그대로 저장한다(위 결정).
 2. `questionFactSelectors` 가 질문형일 때 이 팩트를 상품 체계와 무관하게 선택한다. `majorLuck` 은 계속 제외.
 3. 프롬프트 어휘(`professionalEvidenceNames`)와 기간 문구(`periodScope`)를 맞춘다.
 
