@@ -38,7 +38,9 @@ test('missing, duplicate and underfilled sections fail independently of total le
  const absent=structuredClone(good);absent.blocks.pop();assert.throws(()=>m.validateChapter(absent,input),{code:'CHAPTER_DEPTH_INCOMPLETE'});
  const short=structuredClone(good);short.blocks[0].paragraphs=['짧은 설명'];assert.throws(()=>m.validateChapter(short,input),{code:'CHAPTER_SECTION_TOO_SHORT'});
  const duplicate=structuredClone(good);duplicate.blocks[1].id=duplicate.blocks[0].id;assert.throws(()=>m.validateChapter(duplicate,input),{code:'CHAPTER_DEPTH_INCOMPLETE'});
- const long=structuredClone(good);long.blocks[0].paragraphs[0]='가'.repeat(501);assert.throws(()=>m.validateChapter(long,input),{code:'INVALID_CHAPTER_BLOCKS'});
+ // The shape check still rejects an over-cap paragraph; validateChapter wraps it first instead of failing the chapter.
+ const long=structuredClone(good);long.blocks[0].paragraphs[0]='가'.repeat(501);assert.throws(()=>m.validateReadingQuality(long,chapter,[]),{code:'INVALID_CHAPTER_BLOCKS'});
+ assert.deepEqual(m.validateChapter(long,input).blocks[0].paragraphs.slice(0,2).map(p=>Array.from(p).length),[500,1]);
 });
 test('unprovided evidence, repeated passages and invented dates fail',()=>{
  const forged=structuredClone(good);forged.blocks[0].sources=['saju.fake'];assert.throws(()=>m.validateChapter(forged,input),{code:'INVALID_EVIDENCE'});
