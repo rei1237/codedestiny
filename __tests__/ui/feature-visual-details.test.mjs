@@ -64,6 +64,7 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
     'fortune-tea-house': '/images/fortune-tea-house/premium-tea-house-desktop.webp',
     'master-love-codex': '/images/feature-details/master-love-codex-hero-v1.webp',
     'neo-operation-room': '/images/feature-details/neo-operation-room-hero-v1.webp',
+    omikuji: '/fuctionassets/오미쿠지.webp',
   };
   for (const [slug, image] of Object.entries(restored)) {
     assert.equal(authored[slug].image, image);

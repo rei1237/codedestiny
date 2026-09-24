@@ -1098,6 +1098,7 @@
         "/emoi_omikuji_v2.html",
         "/emoi_omikuji_v2.html/"
       ],
+      "catalogImage": "/feature-details/assets/omikuji-catalog-320.webp",
       "category": "타로·신탁",
       "description": "오늘 마음에 담아둘 한마디가 궁금한가요?",
       "verification": "verified",
@@ -6250,6 +6251,7 @@
         "faq": []
       },
       "contents": [],
+      "catalogImage": "/feature-details/assets/omikuji-catalog-320.webp",
       "imageAlt": "이모이 오미쿠지의 주제를 담은 오리지널 일러스트",
       "theme": "burgundy",
       "heroVariants": [
