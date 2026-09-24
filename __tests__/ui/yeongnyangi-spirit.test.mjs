@@ -46,6 +46,8 @@ test('actual LLM adapter gets structured evidence, input context and one provide
   assert.equal(rules.spiritContract.spirit.boundary,true);
   assert.equal(rules.professionalEvidenceNames,undefined);
   assert.equal(request.calculatedData.facts.some(f=>f.label==='pillars'),false);
+  await new StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'mock'};}}).generateChapter({chapter:manifest[0],analysis,previous:[],repair:{code:'INTERNAL_EVIDENCE_EXPOSED'}});
+  assert.match(JSON.parse(request.domainRules).correction.instruction,/십성.*오행.*쉬운 우리말/);
 });
 test('unsupported location, mind, timing, spiritual and contact claims never pass the save validator',()=>{
   assert.doesNotThrow(()=>validateSpiritChapter(safe(),context,spirit));

@@ -84,6 +84,10 @@ for(const advanced of [false,true])test(`actual provider validates ${advanced?'e
   assert.equal(request.maxProviderAttempts,1);assert.ok(request.maxOutputTokens<=16384);
   assert.equal(JSON.stringify(request.calculatedData).includes('longitude'),advanced);
   assert.equal(JSON.parse(request.domainRules).domain,undefined);
+  await new api.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'mock'};}}).generateChapter({chapter:manifest[0],analysis,previous:[],repair:{code:'INTERNAL_EVIDENCE_EXPOSED'}});
+  // The flounder evidence version may use explained Korean terms, so its retry bans only English terms and system names.
+  const {instruction}=JSON.parse(request.domainRules).correction;
+  assert.match(instruction,/horary/);assert.equal(instruction.includes('하우스'),!advanced);
   const previous=[];
   for(const chapter of manifest){
     const body=await new api.MockChapterProvider().generateChapter({chapter:advanced?{...chapter,requiredSections:[...chapter.requiredSections,'판단을 바꿀 단서','선택의 비용','실행 후 관찰']}:chapter,analysis:{...analysis,consultation:undefined},previous});

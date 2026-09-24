@@ -107,3 +107,23 @@ test('validateChapter stores long mackerel/salmon action and tuna sections as sp
   assert.deepEqual(m.validateChapter(result,input),result);
  }
 });
+
+test('a quality retry restates the failed rule; a first attempt or an unmapped code sends none',async()=>{
+ const c=m.readingManifest(singles.find(p=>p.id==='saju_mackerel')).find(c=>c.key==='action');
+ const rulesFor=async repair=>{
+  let request;
+  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'mock'};}}).generateChapter({...inputFor(c),repair});
+  return JSON.parse(request.domainRules);
+ };
+ const first=await rulesFor(undefined);
+ assert.equal(first.correction,undefined);
+ assert.match(first.blockContract,/500자를 넘으면 문장 단위로 끊어 여러 문단/);
+ for(const code of ['INVALID_CHAPTER_BLOCKS','INTERNAL_EVIDENCE_EXPOSED','TIER_SCOPE_VIOLATION','DUPLICATE_CHAPTER','CHAPTER_SECTION_TOO_SHORT','CHAPTER_TOO_SHORT','CHAPTER_EVIDENCE_INCOMPLETE','INVALID_EVIDENCE','UNSUPPORTED_READING_CLAIM','CHAPTER_DEPTH_INCOMPLETE']){
+  const {correction}=await rulesFor({code});
+  assert.equal(correction.code,code);
+  assert.ok(correction.instruction?.length>20,code);
+  // Only spirit and question-sky chapters get the symbolic vocabulary rule.
+  if(code==='INTERNAL_EVIDENCE_EXPOSED')assert.match(correction.instruction,/professionalEvidenceNames/);
+ }
+ assert.deepEqual((await rulesFor({code:'QUESTION_ANSWER_INCOMPLETE'})).correction,{code:'QUESTION_ANSWER_INCOMPLETE'});
+});
