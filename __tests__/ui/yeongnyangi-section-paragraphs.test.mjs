@@ -127,3 +127,21 @@ test('a quality retry restates the failed rule; a first attempt or an unmapped c
  }
  assert.deepEqual((await rulesFor({code:'QUESTION_ANSWER_INCOMPLETE'})).correction,{code:'QUESTION_ANSWER_INCOMPLETE'});
 });
+
+test('a first attempt already carries the internal-evidence and tier-scope rules its validators enforce',async()=>{
+ const rulesFor=async product=>{
+  const c=m.readingManifest(singles.find(p=>p.id===product))[0];
+  let request;
+  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:{},provider:'mock',model:'mock'};}}).generateChapter(inputFor(c));
+  return JSON.parse(request.domainRules);
+ };
+ const mackerel=await rulesFor('saju_mackerel');
+ assert.match(mackerel.evidencePresentation,/내부 ID는 sources에만/);
+ assert.match(mackerel.paidScope,/부정하는 문장에도 쓰지 않는다/);
+ // The vocabulary never hands a non-premium chapter a word its tier check rejects.
+ assert.ok(Object.values(mackerel.professionalEvidenceNames).every(name=>!/용신|희신|대운|마하다샤|안타르다샤|삼방사정/.test(name)));
+ assert.equal(mackerel.professionalEvidenceNames.dayMaster,'일간 — 나를 나타내는 천간');
+ const tuna=await rulesFor(singles.find(p=>p.id.startsWith('saju_')&&p.fishId==='tuna').id);
+ assert.equal(tuna.paidScope,undefined);
+ assert.equal(tuna.professionalEvidenceNames.usefulGod,'용신과 희신');
+});
