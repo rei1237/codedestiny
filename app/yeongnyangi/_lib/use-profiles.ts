@@ -59,7 +59,16 @@ export function useProfiles(){
  },[select]);
  useEffect(()=>{
   void refresh(false,true);
-  const auth=()=>{void refresh(true,true);};
+  // auth-client 는 refresh 가 실패한 뒤에야 logout 을 발행한다. 여기서 다시 조회하면 401→refresh→logout 이 끝없이 돈다.
+  const auth=(event?:Event)=>{
+   const detail=event instanceof CustomEvent?(event.detail as Record<string,unknown>|null):null;
+   if(String(detail?.event||'').toLowerCase()==='logout'){
+    revision.current++;list.current=[];selection.current='';setProfiles([]);setProfileId('');setGuest(true);setLoading(false);setError('');
+    try{if(scope.current)sessionStorage.removeItem(storageKey(scope.current));}catch{/* Optional presentation cache. */}
+    return;
+   }
+   void refresh(true,true);
+  };
   const storage=(event:StorageEvent)=>{if(event.key===null||['fortune_auth_user','fortune_auth_token','cdToken'].includes(event.key))auth();};
   window.addEventListener('cd:auth-changed',auth);window.addEventListener('storage',storage);
   return()=>{revision.current++;window.removeEventListener('cd:auth-changed',auth);window.removeEventListener('storage',storage);};

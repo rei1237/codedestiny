@@ -1,7 +1,7 @@
 ---
 status: done
 updated: 2026-09-25
-next: (선택, 후속) app/yeongnyangi/_lib/use-profiles.ts:62 도 로그아웃 이벤트에 프로필을 다시 조회하는 같은 구조다(코드 추적, 미재현). 고칠지는 사용자 결정 — 요청이 오면 브라우저 목으로 재현한 뒤 Library 와 같은 방식으로 멈춘다. 그 전까지 재거론 안 함.
+next: (선택, 후속) app/yeongnyangi/_components/FreeFortune.tsx:49 도 logout 이벤트에 출석을 다시 조회하는 같은 구조다(코드 추적, 401 루프 미재현). 고칠지는 사용자 결정.
 ---
 
 # 영냥이 내 상담 기록 화면 — 무한 로딩·밋밋한 화면
@@ -44,7 +44,8 @@ next: (선택, 후속) app/yeongnyangi/_lib/use-profiles.ts:62 도 로그아웃 
 
 ## 남은 것 (범위 밖, 보고만)
 
-- `use-profiles.ts:62` 같은 루프 — 위 next.
+- `use-profiles.ts:62` 같은 루프 — 2026-09-25 수정(`fix(yeongnyangi): stop profile reloading on logout`). 브라우저 목 실측(dev 서버 3107, `/api/*` 전부 목): 수정 전 `/yeongnyangi/fortune/` 에서 프로필 GET·refresh 3초 11·6초 25·9초 39, logout 이벤트 38회. 수정 후 `/fortune/`·`/room/` 모두 3·6·9초 GET 1·refresh 2 고정, login 이벤트·detail 없는 이벤트에 각 1회 재조회, 로그인 안내 표시, pageerror 0. `npm run check:fast` EXIT 0(옆 세션 미커밋 파일로 critical 전체 — jest 295/4200).
+- `FreeFortune.tsx:49` 같은 구조 — 위 next.
 - 인증 이벤트 가드 두 개(`verify:auth-event-loop`·`verify:auth-changed-coverage`)는 `app/**` 를 안 읽어 이 종류의 루프를 못 잡는다. 가드 확장은 사용자 결정(지시 없는 CI 게이트 추가 금지).
 - auth-store 의 `monthlyStoneBalance` 변경도 `cd:auth-changed` 를 쏘므로 기록 화면이 한 번 더 조회한다 — 요청 1회 추가, 루프 아님.
 - `Experience.tsx` 의 청크 로딩 폴백(`ReadingLoading`)은 기록 화면에서도 상담 한 건용 로딩 문구를 잠깐 보인다.
