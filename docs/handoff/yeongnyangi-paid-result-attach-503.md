@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: 설계안 E 계측으로 "다른 요청이 연 소켓은 그 요청이 살아 있어도 답하지 않는다"를 확정했다(0/68). 설계안 C(요청 범위 연결) 제안을 승인받아 C1 부터 구현한다 — 보안 레인 예산 결정이 C5 전에 필요하다
+next: 설계안 C1(요청 스코프, 동작 변경 없음)을 main 에 올리고 스테이징에서 ALS 전파를 실측했다 — 요청 흐름의 명령은 전부 스코프가 찍히고, 빈 스코프는 모듈 로드 때 걸린 모델 초기화 create 뿐이다. 다음은 C2(결제 레인 계측). C3 전에 autoCreate 처리와 프로덕션 재사용률 확인 여부, C5 전에 보안 레인 예산 (a)/(b) 결정이 필요하다
 ---
 # 영냥이 결제 직후 "상담 기록에 잠시 연결하지 못했어요" — 인수인계 (2026-09-24)
 
@@ -12,6 +12,7 @@ next: 설계안 E 계측으로 "다른 요청이 연 소켓은 그 요청이 살
 - `04948d2bc` 재현 스크립트: 호라리는 무료 리딩에서 400 `HORARY_FREE_PROMPT_REQUIRED` 가 계약이므로(free-service.ts) 그 거절을 단언하고 나머지 15개만 저장 기대. 동시 attendance·unlock 은 **모든** 응답 200 을 단언(`attendance[0]` 만 보던 구멍 제거).
 - `a7af98e15`(머지 `ea7d0381e`) 설계안 D → **revert `56bbe9f2b`**(아래 재현 결과). db.js·테스트는 D 이전과 동일.
 - `ac815121e`(머지 `289c96d9a`) db.js **설계안 E, 계측만**: `APP_ENV=staging` 일 때 명령마다 `[db-cmd] {k,cmd,coll,conn}`(보낸 요청의 tail 이벤트)과 `[db-cmd-ok] {k,ms}`/`[db-cmd-fail] {k,ms,err}`(k 로 조인). 프로덕션은 APP_ENV 가 없어 새 로그 0. 테스트 1건(`db.op-timeout-instrumentation`, 프로덕션 무출력까지 단언). main CI 녹색.
+- `3b338fbdf`(머지 `b746b17ad`) **설계안 C1, 동작 변경 없음**: 신규 `worker/lib/db-scope.js`(ALS 스토어 `{ id }`, `runInDbScope`·`currentDbScopeId`·`withDbScopes`). `worker/index.js` 는 `export default {` → `const app = {`, 맨 끝에 `export default withDbScopes(app)` — 핸들러를 이름 나열 없이 전부 감싼다(fetch 1건·queue 배치 1건·scheduled 1회 = 스코프 하나, id `f-/q-/s-` + 6자). `async scheduled(` 텍스트는 `app` 안에 남아 `verify-cron-mongo-op-coverage`·`verify-payment-reconcile` 통과. db.js: `[db-conn-open] {conn, scope}`(프로덕션도 출력), `[db-cmd] {…, scope}`(스테이징 전용). 테스트 1건 추가 + 기존 스테이징 단언에 `scope: null`(`db.op-timeout-instrumentation` 5/5, 변이로 무는 것 확인). check:fast 전체 jest 승격 통과, main CI `CI required`·Release 녹색.
 
 ## 원인 (스테이징 실측, 승인된 재현 1회)
 재현: `YN_READ_REPEATS=10 node scripts/verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures` + `npx wrangler tail code-destiny-web-staging --config worker/wrangler.staging.toml --format json`. 1회차 28행(조회 반복)에서 503. PG·LLM 0, 픽스처 정리 PASS.
@@ -56,9 +57,18 @@ next: 설계안 E 계측으로 "다른 요청이 연 소켓은 그 요청이 살
 - 살아 있는 다른 요청 소켓 3건 = 1회차 동시 activate 둘이 서로의 소켓으로 보낸 `abuse_scores`(보안 레인, fail-open) 2 + 3회차 503 1.
 - 분석기(스크래치, 레포에 없음): `%TEMP%\claude\d--Development-code-destiny\ea9cf83d-6325-49a8-bf53-534928dd7884\scratchpad\cmds.mjs <tail.json> summary|others|noreply|cmdtally <cmd>`. 위 조인 규칙이면 다시 만들 수 있다.
 
+## 설계안 C1 재현 결과 (스테이징 1회, 워커 72b623bf = b746b17ad, C1 포함) — ALS 전파 확인
+동작 변경이 없어 1회만 돌렸다. 버전 대응 근거: 모든 `[db-conn-open]`·`[db-cmd]` 줄에 `scope` 필드가 있고, 재현 시점 origin/main 이 b746b17ad 였다. 결과 FAIL(동시 attendance 503, wall 8007 — 예상대로, C1 은 동작을 바꾸지 않는다). 픽스처 정리 PASS, PG·LLM 0. 이벤트 24건, `[db-cmd]` 249줄, `[db-conn-open]` 99줄.
+- ✅ **C3 의 전제 성립(실측):** 요청 흐름이 보낸 명령은 **전부** 스코프가 찍혔다 — find 70·ping 57·endSessions 22·findAndModify 9·commit/abortTransaction 5·insert 2·create 32(재연결 뒤 모델 재초기화). 한 tail 이벤트에 스코프 둘 이상 0건, 한 스코프가 이벤트 둘 이상 0건. 드라이버의 체크아웃 대기·풀 콜백을 지나도 ALS 가 끊기지 않는다.
+- 스코프가 null 인 줄은 **`create` 52줄 + 그 create 가 연 소켓 10줄뿐**이다(POST auth/login 1건·queue 2건, 전부 아이솔레이트의 첫 연결 직후). mongoose 모델 초기화(`autoCreate` — db.js 는 `autoIndex:false` 만 끄고 `autoCreate` 는 기본값 true, mongoose 9.3.0)의 비동기 연속이 **모듈 로드 때** 걸려서 요청 스코프 밖이다. 그 직전에 workerd 가 "A promise was resolved or rejected from a different request context" 경고를 4번 찍었다. E 표의 "자기 소켓 무응답 create 69건"도 이 계열이다.
+- 스코프 판정과 이벤트 판정은 null 을 뺀 175건에서 **100% 일치**(자기 154·다른 요청 21). 다른 요청 소켓 위 21건은 **전부 무응답**(E 와 합쳐 0/89): 끝난 요청 소켓 위 웜 ping 18, 동시 activate 끼리 보안 레인 `abuse_scores` 2(살아 있는 형제), 503 1 = 늦게 온 attendance 의 `find/users` 가 **직전 activate(402, 끝남)가 연 소켓**에서 정지(E 1·2회차와 같은 경로).
+- 🔴 **C3 설계 입력:** 모델 프록시가 스코프 커넥션마다 `connection.model()` 을 컴파일하면 모델 초기화가 **요청마다** 모델 수만큼 `create` 를 낸다(63개). 스코프 커넥션은 `autoCreate:false` 가 필요하다 — 끄기 전에 스키마 옵션으로 컬렉션을 만드는 모델(capped·timeseries·collation·validator)이 있는지 전수 확인(없으면 첫 insert 가 컬렉션을 암묵 생성). 모듈 로드 때 걸리는 전역 모델 초기화도 C3 의 `[db-scope-miss]` fail-closed 판정에서 따로 분류해야 한다(지금 그대로면 매 첫 연결마다 miss).
+- 범위 밖 관찰(실측+추정): 콜드 로그인 1건이 9695ms. 첫 연결 직후 create 47건이 풀을 점유했고(+2497~+6486ms), 로그인의 첫 시도가 정확히 4000ms(= `MONGO_WAIT_QUEUE_TIMEOUT_MS`) 뒤 `MongoWaitQueueTimeoutError` 로 재시도했다. create 뒤에 줄 서서 대기했다는 인과는 추정(시각 일치만 실측).
+- 분석기: E 분석기 사본에 `scope` 모드 추가(`nullLines`·`multiScopeEvents`·`multiEventScopes`·스코프×이벤트 일치표, null 은 sender-null/opener-null/both-null 로 분리). `%TEMP%\claude\d--Development-code-destiny\389c9580-5b29-417e-a0b9-1052d09f4fc8\scratchpad\cmds.mjs <tail.json> summary|others|scope`. 스테이징 tail 은 main 체크아웃에서 띄운다 — 워크트리에서 띄운 `npx wrangler tail` 은 출력 없이 exit 0 으로 끝났다(원인 미확인).
+
 ## 설계안 C 제안 — 요청 범위 연결 (RED: DB·결제·인증·라우팅 진입, 승인 전 구현 금지)
 목표: 한 요청(fetch 1건·queue 배치 1건·scheduled 1회)의 Mongo 명령은 **그 요청이 연 소켓으로만** 나간다. 3회차대로 살아 있는 동시 요청끼리도 소켓을 나눌 수 없으므로, "소유권 확인 후 재사용"이 아니라 요청마다 자기 연결이다.
-- **스코프:** 신규 `worker/lib/db-scope.js` — AsyncLocalStorage 스토어 `{ id, connection, paymentConnection, models }`. 진입 3곳(`worker/index.js` fetch 1080·queue 1912·scheduled 1916)을 `runInDbScope(ctx, …)` 로 감싼다. fetch 본문은 그대로 두고 export 객체만 위임해(`const app = {…}; export default { fetch: (r, e, c) => runInDbScope(c, () => app.fetch(r, e, c)), … }`) diff 를 머리·꼬리로 한정한다. ALS 선례: `worker/lib/ai-locale-context.js`.
+- **스코프:** C1 완료 — `worker/lib/db-scope.js` 스토어 `{ id }`, `export default withDbScopes(app)`(위 "끝난 것"). C3 은 스토어에 `connection`·`paymentConnection`·`models` 를 더하고, 닫기에 필요한 `ctx` 는 `withDbScopes` 가 핸들러 인자에서 받는다(fetch·scheduled 는 3번째, queue 도 3번째). ALS 선례: `worker/lib/ai-locale-context.js`.
 - **연결:** 스코프 안의 `connectDb` 는 스코프에 `mongoose.createConnection()` 을 한 번 만들고 재사용한다(요청당 풀 2). 웜 ping·detach·거짓 실패 가드·이웃 판정은 스코프 안에서 할 일이 없어진다. 결제 레인 `connectPaymentDb` 도 아이솔레이트 전역(`paymentConnection`)이라 같은 위험이 있으므로 스코프로 옮긴다.
 - **모델:** 63개(models.js 52·yeongnyangi-models 4·gift-models 3·app-store/feedback/review/purchase-entitlement 각 1)가 전역 기본 커넥션에 묶여 있고, 호출부는 connectDb 291곳(78파일)·withMongoRetry 329곳(68파일)이다. 호출부를 바꾸지 않도록 모델 export 를 **스코프 해석 프록시**로 바꿔 접근 시 `scope.connection.model(name, schema)` 를 지연 컴파일해 돌려준다. 스코프 밖(테스트·모듈 초기화)은 전역 커넥션으로 폴백하되, 워커 런타임의 스코프 밖 DB 접근은 `[db-scope-miss]` 로그 + 스테이징 재현에서 실패로 센다(fail-closed).
 - **트랜잭션:** `mongoose.startSession()` 10곳(payment-service·routes/payments·routes/rpg·guardian-fortune-usage 각 1·yeongnyangi repository 4·free-repository 2) + `mongoose.connection.startSession()` 1곳(pass-consumption)은 전역 커넥션 세션이라 스코프 모델과 섞이면 안 된다 → `startScopedSession()` 헬퍼로 바꾼다. `mongoose.connection` 직접 사용 7곳(6파일, db.js 제외, pass-consumption 포함)도 같은 헬퍼로. `worker/payments/db.js` 의 레인 세션은 레인 커넥션을 따라간다(C4).
@@ -66,7 +76,7 @@ next: 설계안 E 계측으로 "다른 요청이 연 소켓은 그 요청이 살
 - **`cron-shared-connection-teardown`:** 이 계약은 "이웃의 ping 실패가 남의 소켓을 끊는다"를 막는다. 스코프마다 연결이면 그 이웃이 없어 전제가 사라진다. 테스트는 지우지 않고 "같은 아이솔레이트에서 겹친 크론 둘이 서로의 연결을 닫지 않는다"로 의미를 옮긴다. `verify-cron-mongo-op-coverage` 는 admission 회계 때문에 유지. admission(`__mongoOperationAdmission`·`__mongoPaymentAdmission`)은 아이솔레이트 동시 op 상한이라 그대로.
 - 🔴 **보안 레인(결정 필요):** 요청의 첫 DB 접촉은 대개 보안 가드(`SECURITY_DB_TIMEOUT_MS=1000`, fail-open)다. 스코프 연결의 핸드셰이크(1245~1741ms)가 그 예산 안에 끝나지 않으므로 C 를 그대로 넣으면 **가드가 매 요청 fail-open** 한다. (a) 가드 예산에서 연결 수립을 빼고 명령만 1000ms — 추천, 라우트 지식이 진입으로 새지 않는다. (b) 진입 래퍼가 DB 라우트에서 연결을 선착수. 보안 동작 변경이라 별도 커밋·별도 승인.
 - **비용:** 스테이징은 지금도 요청마다 ping 300 + 재수립 ~1.6초를 내므로 C 는 ~300ms 줄인다. 프로덕션 재사용률은 미측정(IoContext 규칙은 환경과 무관하니 같을 것 — 추정). 확인은 프로덕션 tail 의 `[db-ping]` 줄 읽기(실행 전 승인). 연결 생성은 지금의 재수립 빈도와 같아 M10 신규 커넥션 생성률(노드당 15/s) 부담은 늘지 않는다(추정).
-- **미검증 위험(C3 전 확인):** 프록시가 깨는 패턴(`instanceof 모델`·모듈 최상위 모델 사용·`Model.schema` 정적 접근) 전수 grep. 요청당 모델 컴파일 비용·메모리. close 를 놓친 클라이언트의 드라이버 타이머(poll 모니터)가 IoContext 종료 뒤 어떻게 되는지.
+- **미검증 위험(C3 전 확인):** 스코프 커넥션의 `autoCreate:false` 와 그 전제(위 "C1 재현 결과"의 C3 설계 입력). 프록시가 깨는 패턴(`instanceof 모델`·모듈 최상위 모델 사용·`Model.schema` 정적 접근) 전수 grep. 요청당 모델 컴파일 비용·메모리. close 를 놓친 클라이언트의 드라이버 타이머(poll 모니터)가 IoContext 종료 뒤 어떻게 되는지.
 - **단계(각각 revert 가능한 커밋):** C1 스코프 도입 + `[db-conn-open]` 에 스코프 id(동작 변경 없음 — opener 판정이 tail 이벤트 추정에서 실측이 된다) → C2 결제 레인 계측(아래 범위 밖 보고의 누락 보완, 계측만) → C3 공유 레인 스코프 연결 + 모델 프록시 + 세션 헬퍼 → C4 결제 레인 스코프 연결(payment-freeze 절차·paid-gate-auditor) → C5 보안 레인 예산. 스코프 밖 폴백에만 남는 웜 ping·detach 코드 정리는 그 뒤 별도 변경(3면 grep).
 - **판정·롤백:** 매 단계 스테이징 재현 4회 + E 분석기. 성공 = 재현 4/4 PASS, 다른 요청 소켓 위 명령 0건(`others` 모드 빈 출력), 끝난 요청 소켓 위 `[db-op-timeout]` 0건. 회귀 시 그 단계 커밋만 revert.
 - 버린 대안: 전역 클라이언트 + 요청 소유권 태그로 낡은 클라이언트만 즉시 교체(1·2회차만 막고 3회차 못 막음). 아이솔레이트 뮤텍스로 DB 요청 직렬화(처리량 붕괴, 스트리밍이 잠금을 오래 쥠). Durable Object DB 프록시(쿼리 전부 RPC·모델·트랜잭션 재작성, DO 안 소켓 재사용도 미검증).
@@ -76,14 +86,14 @@ next: 설계안 E 계측으로 "다른 요청이 연 소켓은 그 요청이 살
 - **D: 폐기(`56bbe9f2b` revert).** 리더의 새 커넥션도 리더가 연 소켓이라 안전하지 않다(위 재현 결과). 같은 구조(검증 공유)로 재시도하지 않는다. 당시 제안은 다음과 같았다: 웜 ping 이 진행 중이면 뒤따라 들어온 요청은 ping 을 건너뛰지 말고 그 검증(과 이어지는 재연결 `connectPromise`)을 함께 기다린다(single-flight). 4/4 실측 경로를 정면으로 막는다 — 503 쪽이 형제의 ping 실패 → 재연결을 기다려 새 커넥션을 탄다(예상 ≈ 형제 wall 4초, 8초 503 대신). 이웃이 **op 을 돌리는 중**(크론 등)이면 종전대로 ping 생략이라 `cron-shared-connection-teardown` 계약은 그대로다. 기존 장치 확인: `connectPromise` 는 수립만 공유하고 검증은 공유하지 않는다(db.js `if (!connectPromise)`). 롤백은 그 커밋 revert.
   - 한계(A 와 공통): 이웃이 op 을 돌리는 중에 들어온 요청은 여전히 ping 없이 풀의 끝난 요청 소켓을 받을 수 있다 — 근본은 C.
 - B: 거짓 실패 가드를 "이 요청이 연 소켓"일 때로 좁힌다(AsyncLocalStorage). 이번 503 4건에는 개입하지 않았다 → 우선순위 낮춤.
-- **C (구조, 큼, 1순위):** 요청 범위 연결 — 위 "설계안 C 제안" 절. 승인 전 구현 금지.
+- **C (구조, 큼, 1순위):** 요청 범위 연결 — 위 "설계안 C 제안" 절. 사용자가 "C1 스코프 도입부터" 진행을 요청했다(2026-09-24). C1 완료(`3b338fbdf`). C4 는 payment-freeze 절차, C5 는 보안 동작 변경이라 각각 별도 승인이 필요하다.
 - E: 완료(`ac815121e`). 가설 확정(위 "설계안 E 재현 결과"). 스테이징 전용이라 C 판정이 끝날 때까지 유지한다.
 - 계약 테스트 유지: `db.mongoose-detach-contract`·`db.warm-teardown-off-critical-path`·`cron-shared-connection-teardown`.
 
 ## 남은 것
-1. **설계안 C 승인 → C1(스코프 도입, 동작 변경 없음)부터 구현.** 승인 범위는 사용자가 정한다. C5 전에 보안 레인 예산 (a)/(b) 결정이 필요하고, 프로덕션 재사용률 확인(프로덕션 tail 읽기)은 C3 전에 할지 선택한다. 재현은 `YN_READ_REPEATS=10 node scripts/verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures` + staging tail, 판정은 E 분석기.
+1. **설계안 C2 — 결제 레인 계측(동작 변경 없음).** `connectPaymentDb`(db.js `mongoose.createConnection`)에 공유 레인과 같은 `instrumentMongoClient` 를 붙여 `[db-conn-open]`·`[db-cmd]`(scope 포함)·`[db-op-timeout]` 카운터가 결제 레인에서도 나오게 한다(아래 3의 누락). 가장 가까운 구현: db.js 의 공유 커넥션 쪽 instrumentMongoClient 호출부와 `db.op-timeout-instrumentation` 테스트. 스테이징 재현에서 결제 레인 줄이 스코프와 함께 찍히는지 확인. 그다음 C3(위 "C1 재현 결과"의 autoCreate 입력 반영). C3 전에 프로덕션 재사용률 확인(프로덕션 tail 읽기, 실행 전 승인)을 할지 사용자가 고르고, C5 전에 보안 레인 예산 (a)/(b) 결정이 필요하다. 재현은 `YN_READ_REPEATS=10 node scripts/verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures` + staging tail(main 체크아웃에서 띄움), 판정은 C1 분석기 `summary|others|scope`.
    - 🔴 재현 러너를 도중에 죽이면 스크립트 `finally` 정리가 돌지 않는다. 설계안 D 재현 3회차 고아 픽스처 1건이 스테이징 `code_destiny_staging` 에 남았다(E 재현 3회는 정리 PASS): User `yn-edge-8633b567-…@example.invalid`(생성 2026-09-23T23:01:53Z) + 요청 3·Payment 2(`metadata.stagingQaRun`)·ProfileCard 1·RefreshTokenSession 1. 이 세션의 삭제 시도는 권한 분류기가 막았다. 사용자 승인 뒤 스크립트 finally 와 같은 범위로 지운다(run UUID 는 이메일에서, 요청 id 는 sha256(run+':'+n), n=0..2). 러너는 tail 종료 알림만 믿고 멈추지 말고 tail 파일이 계속 자라는지 확인한다.
 2. **피해 주문 조회(읽기 전용, 운영 DB → 실행 전 승인):** `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny` 와 `payments` 중 `requestId:/^yn-[a-f0-9]{64}$/`, 결제 완료, `metadata.consumedBy:null`, `metadata.yeongnyangiRecoveryAfter` 가 미래인 건. 해제 쓰기는 별도 승인.
-3. 범위 밖 보고: `verify-yeongnyangi-result-retry.mjs` 가 package.json·CI 에 배선돼 있지 않고, `paid-flow-gates.yml` 트리거에 `app/yeongnyangi/**`·`worker/yeongnyangi/**` 가 없다. 보안 가드 레인이 새 소켓 준비(~870ms)에 밀려 POST 마다 ~1초를 쓰고 fail-open 한다(그 순간 가드는 사실상 꺼짐). db.js catch 주석의 "이웃 op 은 빨리 실패" 서술은 위 실측과 어긋난다(D 와 함께 고쳤다가 revert 로 되돌아갔다 — C 작업 때 고친다). 🔴 결제 레인 `connectPaymentDb`(db.js `mongoose.createConnection`)는 `monitorCommands: true` 만 켜고 `instrumentMongoClient` 를 붙이지 않는다 — 그 위 주석은 계측을 맞춘 것처럼 쓰지만 결제 레인의 `[db-op-timeout]` 카운터·`[db-conn-open]`·E 추적은 비어 있다(C2).
+3. 범위 밖 보고: `verify-yeongnyangi-result-retry.mjs` 가 package.json·CI 에 배선돼 있지 않고, `paid-flow-gates.yml` 트리거에 `app/yeongnyangi/**`·`worker/yeongnyangi/**` 가 없다. 보안 가드 레인이 새 소켓 준비(~870ms)에 밀려 POST 마다 ~1초를 쓰고 fail-open 한다(그 순간 가드는 사실상 꺼짐). db.js catch 주석의 "이웃 op 은 빨리 실패" 서술은 위 실측과 어긋난다(D 와 함께 고쳤다가 revert 로 되돌아갔다 — C 작업 때 고친다). 🔴 결제 레인 `connectPaymentDb`(db.js `mongoose.createConnection`)는 `monitorCommands: true` 만 켜고 `instrumentMongoClient` 를 붙이지 않는다 — 그 위 주석은 계측을 맞춘 것처럼 쓰지만 결제 레인의 `[db-op-timeout]` 카운터·`[db-conn-open]`·E 추적은 비어 있다(C2). 아이솔레이트 첫 연결의 모델 초기화 create 47건이 콜드 로그인을 9.7초로 늘린 정황(위 "C1 재현 결과", 인과는 추정).
 
-다음 세션 첫 문장: "docs/handoff/yeongnyangi-paid-result-attach-503.md 를 읽고 남은 것 1(설계안 C, C1 스코프 도입부터)을 진행해줘."
+다음 세션 첫 문장: "docs/handoff/yeongnyangi-paid-result-attach-503.md 를 읽고 남은 것 1(설계안 C2 결제 레인 계측)을 진행해줘."
