@@ -8,7 +8,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
 globalThis.__paidRecovery={row:null,providerCalls:[],claims:[],finishes:[],failures:[],failOnce:false};
 const replacements={
-  'worker/lib/models.js':`export const ProfileCard={};`,
+  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`
 export const ownerId=x=>x;export const createRequest=async()=>{};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;

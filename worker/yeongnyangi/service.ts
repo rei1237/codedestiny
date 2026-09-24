@@ -14,6 +14,7 @@ import { domains } from './fortune';
 import { getProduct } from './payments/catalog';
 import { analyze } from './fortune/analysis';
 import { readingManifest, questionFactSelectors } from './fortune/reading-manifest';
+import { computeCrossDaily } from './fortune/daily-cross';
 import { consultationClock, createConsultation } from './fortune/consultation';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
@@ -91,6 +92,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // A new form starts a separate purchase; retries in that form keep the same intent.
   // Clients without an attempt retain their original deterministic recovery identity.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
+  // Free questions also read the 꿀꿀 daily systems; started first so Swiss latency overlaps the domain calculations.
+  const crossDaily=(!kind||kind.question)&&!spiritInput?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
   for(const system of product.systems) contexts[system]=domains[system].buildContext(await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
@@ -103,8 +106,10 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
   manifest[0].excludes=[];
   manifest[0].systems=product.systems;
-  manifest[0].factSelectors=questionFactSelectors(product.systems,analysis.question || '',analysis.topicId || 'general');
-  manifest[0].periodScope='저장된 상담의 기준일과 요청 기간을 다룬다. 해당 기간의 계산 근거가 없으면 실천·점검 기간으로 명시한다.';
+  const cross=await crossDaily;
+  contexts[product.domain]!.facts.push(...cross);
+  manifest[0].factSelectors=questionFactSelectors(product.systems,analysis.question || '',analysis.topicId || 'general',cross.map(f=>f.label));
+  manifest[0].periodScope='저장된 상담의 기준일과 요청 기간을 다룬다. 해당 기간의 계산 근거가 없으면 실천·점검 기간으로 명시한다. 오늘의 일진·일운·판창가·수비학은 기준일 하루의 근거이고, 세운·월운은 해당 연·월의 근거다. 하루 근거를 다른 날짜나 장기 예측으로 늘리지 않는다.';
   if(!manifest[0].sections)manifest[0].requiredSections=[...(manifest[0].requiredSections || []),'관련 시기'];
   }
   if(spiritInput){

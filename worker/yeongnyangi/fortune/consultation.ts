@@ -66,6 +66,8 @@ export const professionalEvidenceNames: Record<string, string> = {
   palaces: '자미두수의 궁과 별 배치', bodyPalace: '신궁의 위치', planets: '행성의 위치',
   ascendant: '상승점', aspects: '행성 간 각도', houseCusps: '하우스의 경계',
   vimshottariDasha: '빔쇼타리 다샤의 기간', cards: '뽑힌 카드와 위치별 상징',
+  todaySaju: '오늘의 사주 일진', todaySukuyo: '오늘의 숙요 일운', todayVedic: '오늘의 베다 판창가와 타라 발라',
+  todayNumerology: '오늘의 수비학 개인 수', sajuYearlyLuck: '사주 세운의 흐름', sajuMonthlyLuck: '사주 월운의 흐름',
 };
 
 export function assertProfessionalProse(body: ChapterBody, question = '', factLabels: string[] = []) {

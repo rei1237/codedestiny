@@ -49,12 +49,13 @@ const groups:Record<DomainId,Record<string,string[]>>={
  tarot:{base:['spreadId','cards'],question:['reading'],flow:['reading'],choice:['reading'],desire:['reading'],alternatives:['reading'],conflict:['reading'],observation:['reading']},
 };
 const aliases:Record<string,string>={inner:'self',intimacy:'love',longterm:'love',pace:'distance',environment:'career',spending:'money',expansion:'money',burden:'recovery',defense:'conflict',hesitation:'desire',revision:'observation'};
-export function questionFactSelectors(systems:DomainId[],question:string,topicId:string) {
+// extraLabels: cross-system daily facts stored in the first system context (daily-cross.ts). Never majorLuck.
+export function questionFactSelectors(systems:DomainId[],question:string,topicId:string,extraLabels:string[]=[]) {
  const text=`${topicId} ${question}`;
  const keys=['self',...(/love|relationship|연애|연락|재회|결혼|관계|상대/.test(text)?['love','relations']:[]),
   ...(/money|재물|돈|사업|창업|매출|수입|투자/.test(text)?['money']:[]),
   ...(/work|직업|취업|이직|직장|사업|창업|일자리/.test(text)?['talent','career']:[])];
- return Object.fromEntries(systems.map(d=>[d,[...new Set([...groups[d].base,...keys.flatMap(k=>groups[d][k] || []),...(groups[d].year || [])])]]));
+ return Object.fromEntries(systems.map((d,i)=>[d,[...new Set([...groups[d].base,...keys.flatMap(k=>groups[d][k] || []),...(groups[d].year || []),...(i===0?extraLabels:[])])]]));
 }
 export function readingManifest(p:Product,topicId='general',readingMode='personal',version=p.manifestVersion):ChapterSpec[]{
  if(version===READING_V6_VERSION)return readingManifestV6(p,topicId,readingMode);
