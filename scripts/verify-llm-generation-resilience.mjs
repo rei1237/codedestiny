@@ -147,7 +147,7 @@ function assertNeverThrows(feature, label, run) {
   assertBudget(feature, {
     minChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
     maxChars: MAX_INITIAL_CONSULTATION_BODY_CHARS,
-    maxOutputTokens: 48000,
+    maxOutputTokens: 72000,
     tokenConstantName: "INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS",
     sourcePath: "worker/routes/ziwei-ai.js",
   });
@@ -179,10 +179,11 @@ function assertNeverThrows(feature, label, run) {
   // 베다도 이제 그룹을 나눠 병렬 생성한다 — 예산 단위는 "상담 전체"가 아니라 "그룹 하나"다.
   const { VEDIC_SECTION_GROUPS, VEDIC_GROUP_MAX_OUTPUT_TOKENS, MIN_INITIAL_READING_CHARS } = __vedicAiTestUtils;
   assert(Array.isArray(VEDIC_SECTION_GROUPS) && VEDIC_SECTION_GROUPS.length > 0, `${feature}: 그룹 정의가 없다`);
+  // 한 호출이 실제로 받아들이는 최대 출력은 프롬프트 목표 상한이 아니라 거부 상한(hardMaxChars)이다.
   for (const group of VEDIC_SECTION_GROUPS) {
     assertBudget(`${feature}:${group.key}`, {
       minChars: group.minChars,
-      maxChars: group.maxChars,
+      maxChars: group.hardMaxChars,
       maxOutputTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
       tokenConstantName: "VEDIC_GROUP_MAX_OUTPUT_TOKENS",
       sourcePath: "worker/routes/vedic-ai.js",
@@ -224,10 +225,11 @@ function assertNeverThrows(feature, label, run) {
   // (섹션 합이 전체 게이트와 맞는지는 verify:astrology-sectioned 가 따로 단언한다.)
   const { ASTROLOGY_SECTIONS, ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS } = __astrologyAiTestUtils;
   assert(Array.isArray(ASTROLOGY_SECTIONS) && ASTROLOGY_SECTIONS.length > 0, `${feature}: 섹션 정의가 없다`);
+  // 한 호출이 실제로 받아들이는 최대 출력은 프롬프트 목표 상한이 아니라 거부 상한(hardMaxChars)이다.
   for (const section of ASTROLOGY_SECTIONS) {
     assertBudget(`${feature}:${section.key}`, {
       minChars: section.minChars,
-      maxChars: section.maxChars,
+      maxChars: section.hardMaxChars,
       maxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS,
       tokenConstantName: "ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS",
       sourcePath: "worker/routes/astrology-ai.js",
@@ -235,9 +237,9 @@ function assertNeverThrows(feature, label, run) {
   }
   // 섹션 합이 전체 요구 분량을 덮는지 — 섹션을 줄이다 전체 하한이 깨지는 회귀를 막는다.
   const sectionMinTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
-  const sectionMaxTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.maxChars, 0);
+  const sectionMaxTotal = ASTROLOGY_SECTIONS.reduce((sum, section) => sum + section.hardMaxChars, 0);
   assert(sectionMinTotal >= ASTROLOGY_AI_MIN_RESULT_CHARS, `${feature}: 섹션 minChars 합 ${sectionMinTotal} < 전체 하한 ${ASTROLOGY_AI_MIN_RESULT_CHARS}`);
-  assert(sectionMaxTotal <= ASTROLOGY_AI_MAX_RESULT_CHARS, `${feature}: 섹션 maxChars 합 ${sectionMaxTotal} > 전체 상한 ${ASTROLOGY_AI_MAX_RESULT_CHARS}`);
+  assert(sectionMaxTotal <= ASTROLOGY_AI_MAX_RESULT_CHARS, `${feature}: 섹션 hardMaxChars 합 ${sectionMaxTotal} > 전체 상한 ${ASTROLOGY_AI_MAX_RESULT_CHARS}`);
 }
 
 // ── 4. 숙요 궁합 ──────────────────────────────────────
@@ -1115,4 +1117,97 @@ for (const path of ["worker/lib/paid-narrative-delivery.js", "worker/lib/love-ta
   );
 }
 
+// 라우트 그룹 AI(사주·점성·베다·자미). 숫자는 모듈에서 읽고, 프롬프트 문구·거부 상한 코드·토큰 코드가 그 숫자를
+// 실제로 쓰는지 소스에서 확인한다. 하한은 목표 하한 × 0.8 이하, 거부 상한은 목표 상한 × 1.15 이상(목표대로 쓴
+// 응답이 넘친다고 버려지지 않게), 한 호출 토큰은 거부 상한(없으면 목표 상한)까지 담아야 한다(잘려서 버려지지 않게).
+const MIN_REJECT_OVER_TARGET = 1.15;
+{
+  const saju = await import("../worker/lib/saju-ai-prompt.js");
+  const { __astrologyAiTestUtils: astrology } = await import("../worker/routes/astrology-ai.js");
+  const { __vedicAiTestUtils: vedic } = await import("../worker/routes/vedic-ai.js");
+  const { __ziweiAiTestUtils: ziwei } = await import("../worker/routes/ziwei-ai.js");
+  const ROUTE_GROUP_TARGETS = [
+    {
+      feature: "saju",
+      // 사주 그룹은 거부 상한이 없다 — 토큰은 목표 상한을 담으면 된다.
+      codes: [
+        ["worker/routes/fortune.js", '최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자'],
+        ["worker/routes/fortune.js", "maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS"],
+      ],
+      tokens: saju.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
+      rows: saju.SAJU_AI_SECTION_GROUPS.map((g) => ({ key: g.key, floor: g.minChars, targetLow: g.targetMinChars, targetHigh: g.maxChars, rejectMax: 0 })),
+      totalMin: saju.SAJU_AI_MIN_RESULT_CHARS,
+    },
+    {
+      feature: "astrology",
+      codes: [
+        ["worker/routes/astrology-ai.js", '최소 ${section.minChars.toLocaleString("ko-KR")}자, 목표 ${section.targetMinChars.toLocaleString("ko-KR")}~${section.maxChars.toLocaleString("ko-KR")}자'],
+        ["worker/routes/astrology-ai.js", "countPaidReportBodyChars(text) <= section.hardMaxChars"],
+        ["worker/routes/astrology-ai.js", "sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS"],
+      ],
+      tokens: astrology.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS,
+      rows: astrology.ASTROLOGY_SECTIONS.map((s) => ({ key: s.key, floor: s.minChars, targetLow: s.targetMinChars, targetHigh: s.maxChars, rejectMax: s.hardMaxChars })),
+      totalMin: astrology.ASTROLOGY_AI_MIN_RESULT_CHARS,
+      totalMax: astrology.ASTROLOGY_AI_MAX_RESULT_CHARS,
+    },
+    {
+      feature: "vedic",
+      codes: [
+        ["worker/routes/vedic-ai.js", '최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자'],
+        ["worker/routes/vedic-ai.js", "countPaidReportBodyChars(text) <= group.hardMaxChars"],
+        ["worker/routes/vedic-ai.js", "maxTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS"],
+      ],
+      tokens: vedic.VEDIC_GROUP_MAX_OUTPUT_TOKENS,
+      // 근거 흐름 그룹(sectionKeys 없음)은 분량 합계에 들어가지 않는다.
+      rows: vedic.VEDIC_SECTION_GROUPS.map((g) => ({ key: g.key, floor: g.minChars, targetLow: g.targetMinChars, targetHigh: g.maxChars, rejectMax: g.hardMaxChars, counted: g.sectionKeys.length > 0 })),
+      totalMin: vedic.MIN_INITIAL_READING_CHARS,
+      totalMax: vedic.MAX_INITIAL_READING_CHARS,
+    },
+    {
+      feature: "ziwei",
+      codes: [
+        ["worker/routes/ziwei-ai.js", "본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자"],
+        ["worker/routes/ziwei-ai.js", "countPaidReportBodyChars(body) >= group.minChars"],
+        ["worker/routes/ziwei-ai.js", "countPaidReportBodyChars(body) <= Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)"],
+        ["worker/routes/ziwei-ai.js", "capTokens: SECTION_GROUP_TARGET_TOKENS"],
+      ],
+      tokens: ziwei.SECTION_GROUP_TARGET_TOKENS,
+      rows: ziwei.SECTION_GROUP_SPECS.map((g) => ({ key: g.id, floor: g.minChars, targetLow: g.targetChars, targetHigh: g.targetChars, rejectMax: Math.ceil(g.targetChars * ziwei.SECTION_GROUP_MAX_OVER_TARGET) })),
+      totalMin: ziwei.MIN_INITIAL_CONSULTATION_BODY_CHARS,
+      totalMax: ziwei.MAX_INITIAL_CONSULTATION_BODY_CHARS,
+    },
+  ];
+  for (const { feature, codes, tokens, rows, totalMin, totalMax } of ROUTE_GROUP_TARGETS) {
+    for (const [path, code] of codes) {
+      assert(read(path).includes(code), `${feature}: ${path}에서 ${code} 를 찾지 못했다 — 소스와 이 표를 함께 갱신하라`);
+    }
+    assert(rows.length > 0 && Number.isFinite(tokens), `${feature}: 그룹 정의나 토큰 상수를 읽지 못했다`);
+    for (const { key, floor, targetLow, targetHigh, rejectMax } of rows) {
+      const tag = `${feature}:${key}`;
+      assert([floor, targetLow, targetHigh].every(Number.isFinite), `${tag}: 하한·목표 숫자가 없다`);
+      assert(
+        floor <= targetLow * MAX_FLOOR_TO_TARGET,
+        `${tag}: 하한 ${floor}자가 목표 하한 ${targetLow}자의 ${MAX_FLOOR_TO_TARGET}배를 넘는다 — 하한을 올리지 말고 목표를 올려라(원칙 17)`,
+      );
+      if (rejectMax) {
+        assert(
+          rejectMax >= targetHigh * MIN_REJECT_OVER_TARGET,
+          `${tag}: 거부 상한 ${rejectMax}자가 목표 상한 ${targetHigh}자의 ${MIN_REJECT_OVER_TARGET}배에 못 미친다 — 목표대로 쓴 응답이 버려진다(원칙 17)`,
+        );
+      }
+      const outputMax = rejectMax || targetHigh;
+      assert(
+        tokensRequiredForChars(outputMax) <= tokens,
+        `${tag}: 한 호출 출력 상한 ${outputMax}자에 ${tokensRequiredForChars(outputMax)} 토큰이 필요한데 ${tokens} 뿐이다`,
+      );
+    }
+    const counted = rows.filter((row) => row.counted !== false);
+    const floorTotal = counted.reduce((sum, row) => sum + row.floor, 0);
+    assert(floorTotal >= totalMin, `${feature}: 그룹 하한 합 ${floorTotal} < 배달 하한 ${totalMin}`);
+    if (totalMax) {
+      const rejectTotal = counted.reduce((sum, row) => sum + row.rejectMax, 0);
+      assert(rejectTotal <= totalMax, `${feature}: 그룹 거부 상한 합 ${rejectTotal} > 전체 상한 ${totalMax} — 그룹을 다 통과해도 전체에서 버려진다`);
+    }
+  }
+}
 console.log(`${LABEL} ok (${checks} checks)`);

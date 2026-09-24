@@ -48,11 +48,13 @@ const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
 // personality_profile 섹션 신설분(+700자)을 essence 그룹 목표에 더하며 하한도 함께 올렸다(2026-08-19).
 const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20700;
-const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
+const MAX_INITIAL_CONSULTATION_BODY_CHARS = 38000;
 // 초기 상담 body 합산 20,000~30,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 26000은
 // 최소 분량도 여유가 없어 상시 잘림→JSON 파싱 실패→degraded 결과를 유발했다.
 // 구 45000은 상한 30,000자를 최악 비율로 채우면 정확히 소진돼 완충이 0이었다(JSON 키·제목 몫도 없음).
 // tokensRequiredForChars(30000) = 47,250 이상을 확보한다.
+// 2026-09-25 그룹 목표를 올리며(CLAUDE.md 코딩 원칙 17) 상한을 38,000자, 총 예산을 72,000토큰(그룹당 12,000)으로
+// 넓혔다 — 그룹 하나가 거부 상한(목표 × SECTION_GROUP_MAX_OVER_TARGET)까지 써도 잘리지 않아야 한다.
 //
 // 🔴 이 예산은 "한 번의 호출"이 아니라 아래 SECTION_GROUP_SPECS 6그룹이 나눠 쓰는 총량이다.
 // 예전에는 단일 호출에 48,000토큰을 걸었는데, 동기 라우트라 LLM 대기가 85초(clampSyncLlmTimeoutMs)로
@@ -60,12 +62,14 @@ const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
 // 매번 잘리거나 Workers AI 폴백으로 넘어갔고(70B는 목표의 60~77%만 쓰고 멈춘다),
 // 최종적으로 degrade 경로가 그 짧은 결과를 ₩30,000 정상 결제로 배달했다.
 // 그룹으로 쪼개 병렬로 부르면 각 호출이 시간 예산 안에 완주해 실제 분량이 나온다.
-const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 48000;
+const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 72000;
 
 // ── 초기 상담 섹션 그룹(병렬 생성 단위) ──────────────────────────────
 // 그룹 하나가 담당하는 분량은 40초 안에 Gemini 가 완주할 수 있는 크기로 잡았다.
 // targetChars 합계는 MIN_INITIAL_CONSULTATION_BODY_CHARS 를 넘도록 배분한다.
 const SECTION_GROUP_TARGET_TOKENS = Math.floor(INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS / 6);
+// 그룹 본문이 목표의 이 배수를 넘으면 다시 부른다. 목표에 바짝 붙이면 목표대로 쓴 응답도 넘친다고 버려진다.
+const SECTION_GROUP_MAX_OVER_TARGET = 1.25;
 // 그룹 1회 호출의 LLM 대기 상한. 잘림 재시도(attempts)까지 겹쳐도 아래 총 예산 안에 들도록 짧게 잡는다.
 const SECTION_GROUP_TIMEOUT_MS = 40000;
 // callGeminiJsonWithRetry 기본값은 attempts=3 이라 한 호출이 최악 timeout×3 을 쓴다.
@@ -88,42 +92,52 @@ const GENERATING_FRESHNESS_MS = 150000;
 
 // targetChars 합계는 MIN_INITIAL_CONSULTATION_BODY_CHARS(20,000)보다 넉넉히 위여야 한다.
 // 딱 맞춰 두면 모델이 목표의 90%만 써도 곧바로 미달로 떨어진다. 대신 그룹 하나의 몫은
-// SECTION_GROUP_TIMEOUT_MS(40초) 안에 완주할 크기(4,400자 ≈ 5,300 출력 토큰)를 넘기지 않는다.
+// 한 호출 대기 상한(45초) 안에 완주할 크기(5,100자 ≈ 6,100 출력 토큰)를 넘기지 않는다.
+//
+// minChars 는 판정 하한, targetChars 는 프롬프트 목표다. 하한은 목표 × 0.8 이하로 둔다 — 예전 하한(목표 × 0.9)은
+// 목표 가까이 쓴 응답도 조금만 모자라면 미달로 떨어졌다(CLAUDE.md 코딩 원칙 17, verify:llm-generation-resilience 7절).
+// 2026-09-25 하한은 구 하한(구 목표 × 0.9) 그대로 두고 목표만 올렸다.
 const SECTION_GROUP_SPECS = Object.freeze([
   {
     id: "foundation",
     sections: ["reading_guide", "structure_core", "influence_factors"],
-    targetChars: 3600,
+    minChars: 3240,
+    targetChars: 4100,
     focus: "이 명반을 어떤 순서로 읽어야 하는지와, 이번 흐름을 만드는 핵심 구조·영향 요인",
   },
   {
     id: "essence",
     sections: ["evidence_basis", "personality_profile", "essence"],
-    targetChars: 4500,
+    minChars: 4050,
+    targetChars: 5100,
     focus: "판단의 근거를 먼저 드러내고, 이 명반 전체를 종합한 핵심 성향으로 이어, 명궁·신궁이 말하는 타고난 본질로 잇는 흐름",
   },
   {
     id: "flow",
     sections: ["flow", "triad_axis", "twelve_palaces"],
-    targetChars: 4400,
+    minChars: 3960,
+    targetChars: 5000,
     focus: "사화의 흐름, 삼방사정이 여는 축, 12궁이 서로 주고받는 연결 구조",
   },
   {
     id: "achievement",
     sections: ["career", "wealth", "domain_matrix"],
-    targetChars: 4400,
+    minChars: 3960,
+    targetChars: 5000,
     focus: "사회적 성취와 금전 — 관록궁·재백궁을 중심으로 한 현실 영역",
   },
   {
     id: "relation",
     sections: ["relationship", "dayun_now", "timing_strategy"],
-    targetChars: 4200,
+    minChars: 3780,
+    targetChars: 4800,
     focus: "인연과 환경 — 부부궁·천이궁을 중심으로 한 관계, 그리고 현재 대운과 세운의 시기 전략",
   },
   {
     id: "closing",
     sections: ["caution", "core_answer", "action_plan", "prescription"],
-    targetChars: 4000,
+    minChars: 3600,
+    targetChars: 4500,
     focus: "반복되는 함정과 전환점, 질문에 대한 핵심 답, 지금 실행할 처방",
   },
 ]);
@@ -1414,7 +1428,7 @@ const SHORT_SECTION_CHARS = Object.freeze({ reading_guide: 300 });
  * 그 구체적인 숫자가 앵커가 되어 그룹 전체를 그 수준으로 끌어내렸다 — foundation 그룹은 목표가
  * 3,600자인데 섹션 지시를 다 더하면 1,100자(31%)여서, 목표 분량 도달이 구조적으로 불가능했다.
  * 그 minChars 는 "다섯 섹션을 단일 호출에 더하면 maxOutputTokens 상한에 걸린다"는 이유로
- * 의도적으로 작게 잡힌 값이라(fortune-reasoning-contract.js 주석), 그룹당 8,000토큰을 따로 쓰는
+ * 의도적으로 작게 잡힌 값이라(fortune-reasoning-contract.js 주석), 그룹당 12,000토큰을 따로 쓰는
  * 지금의 병렬 생성에는 해당되지 않는다. 공유 상수는 그대로 두고 여기서만 그룹 목표로 덮어쓴다.
  */
 function buildSectionCharTargets(group) {
@@ -1795,13 +1809,13 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     try {
       const calls = await Promise.allSettled([callGeminiJsonWithRetry(env, [
         buildSectionGroupPrompt(input, chart, group),
-        `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${Math.ceil(group.targetChars * 0.9)}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
+        `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
       ].join("\n"), {
         systemPrompt: await resolveSystemPrompt(env), taskType: "fortune", responseMimeType: "application/json",
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(SECTION_GROUP_TARGET_TOKENS, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
-        capTokens: 11000, fallbackToWorkersAI: false,
+        capTokens: SECTION_GROUP_TARGET_TOKENS, fallbackToWorkersAI: false,
         cache: { store: createLlmCacheStore(env), deterministic: true, keyExtra: `ziwei-delivery-v1-${group.id}`, skipRead: attempts[group.id] > 1 },
         logContext: { ...logContext, sectionGroup: group.id },
       }), ...(group.id === "foundation" && attempts[group.id] === 1 ? [callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), { systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000, baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false, responseMimeType: "application/json", logContext: { ...logContext, sectionGroup: "meta" } })] : [])]);
@@ -1816,8 +1830,8 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     const body = ziweiSectionBody(next);
     const candidate = { ...sections, ...next };
     const valid = group.sections.every(key => clean(next[key]?.title) && countPaidReportBodyChars(next[key]?.body) >= 120)
-      && countPaidReportBodyChars(body) >= Math.ceil(group.targetChars * 0.9)
-      && countPaidReportBodyChars(body) <= Math.ceil(group.targetChars * 1.18)
+      && countPaidReportBodyChars(body) >= group.minChars
+      && countPaidReportBodyChars(body) <= Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)
       && !hasRepeatedReportPassage(ziweiSectionBody(candidate))
       && !collectZiweiCrossSectionDuplicates(candidate).length;
     if (valid) {
@@ -2681,6 +2695,8 @@ export const __ziweiAiTestUtils = {
   MAX_INITIAL_CONSULTATION_BODY_CHARS,
   // 섹션 그룹 병렬 생성
   SECTION_GROUP_SPECS,
+  SECTION_GROUP_TARGET_TOKENS,
+  SECTION_GROUP_MAX_OVER_TARGET,
   SECTION_GROUP_TIMEOUT_MS,
   SECTION_GROUP_RETRY_RATIO,
   INITIAL_CONSULTATION_DEADLINE_MS,
