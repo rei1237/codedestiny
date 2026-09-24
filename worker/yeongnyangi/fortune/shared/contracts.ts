@@ -76,10 +76,14 @@ export interface FortuneDomain {
   validateResult(result: unknown, context: DomainContext): FortuneResult;
 }
 export class FortuneError extends Error {
+  // Optional diagnostic token (manifest IDs only, never model text or personal data).
+  declare detail?: string;
   constructor(
     public code: string,
     public status = 400,
+    detail?: string,
   ) {
     super(code);
+    if (detail) this.detail = detail;
   }
 }

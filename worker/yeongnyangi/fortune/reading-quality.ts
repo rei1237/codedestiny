@@ -16,12 +16,29 @@ export function bodyCharacterCount(body:ChapterBody):number {
  // Headings, summaries, persona, highlights and citations are never credited.
  return [...new Set(bodyPassages(body).map(normalize))].reduce((n,s)=>n+Array.from(s).length,0);
 }
+// Names the first failing block-shape condition by manifest section ID (or block index), never by model text.
+function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string{
+ const blocks=body.blocks;
+ if(!Array.isArray(blocks))return 'blocks_missing';
+ if(blocks.length<2||blocks.length>(v5?20:8))return 'block_count';
+ for(let i=0;i<blocks.length;i++){
+  const b=blocks[i],id=chapter.sections?.[i]?.id||`#${i}`;
+  if(!b||typeof b.title!=='string'||!b.title.trim())return `block_title:${id}`;
+  if(!Array.isArray(b.paragraphs)||!b.paragraphs.length)return `paragraphs_empty:${id}`;
+  for(const p of b.paragraphs){
+   if(typeof p!=='string'||!p.trim())return `paragraph_blank:${id}`;
+   if(Array.from(p).length>(v5?500:5000))return `paragraph_too_long:${id}`;
+   if(/<\/?[a-z][^>]*>/i.test(p))return `paragraph_html:${id}`;
+  }
+ }
+ return 'unknown';
+}
 export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[]){
  if(!isStructuredReading(chapter.version))return;
  const v5=hasReadingSections(chapter.version);
- if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?500:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS');
+ if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?500:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,blockShapeIssue(body,chapter,v5));
  if(v5){
-  if(!chapter.sections?.length || body.analysis.length || body.example || body.advice)throw new FortuneError('INVALID_CHAPTER_BLOCKS');
+  if(!chapter.sections?.length || body.analysis.length || body.example || body.advice)throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,!chapter.sections?.length?'sections_missing':body.analysis.length?'analysis_not_empty':body.example?'example_not_empty':'advice_not_empty');
   const blocks=body.blocks!;
   if(blocks.length!==chapter.sections.length || new Set(blocks.map(b=>b.id)).size!==blocks.length || blocks.some((b,i)=>b.id!==chapter.sections![i].id))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
   for(const section of chapter.sections){

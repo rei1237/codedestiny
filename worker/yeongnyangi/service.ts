@@ -178,9 +178,10 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     return completed;
   } catch(error) {
     const code=error instanceof FortuneError?error.code:stage==='storage'?'RESULT_STORAGE_UNAVAILABLE':'GENERATION_FAILED';
-    console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code}));
+    const detail=error instanceof FortuneError?error.detail:undefined;
+    console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code,detail}));
     const allowedAttempts=3+Number(row.manualRecoveryGrants?.[ordinal] || 0);
-    try { await failChapter(env,userId,requestId,token,code,row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts); }
+    try { await failChapter(env,userId,requestId,token,code,row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,detail); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }

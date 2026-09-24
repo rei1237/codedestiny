@@ -335,12 +335,12 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
   });
 }
 
-export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '', allowedAttempts = AUTOMATIC_CHAPTER_ATTEMPTS) {
+export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '', allowedAttempts = AUTOMATIC_CHAPTER_ATTEMPTS, detail = '') {
   const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST'].includes(code);
   const stopped=attempt>=allowedAttempts&&!permanent;
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
     {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:permanent||stopped?null:new Date(Date.now()+(attempt===1?30000:120000))},
-      $push:{recoveryAudit:{kind:permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:null,at:new Date(),code:String(code).slice(0,80)}}}));
+      $push:{recoveryAudit:{kind:permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:null,at:new Date(),code:String(code).slice(0,80),...(detail?{detail:String(detail).slice(0,80)}:{})}}}));
   if(permanent)await refundTerminalFamilyQuota(env,userId,requestId);
   return result;
 }
