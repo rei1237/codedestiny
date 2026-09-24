@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { currentDbScopeId } from "./db-scope.js";
 import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
@@ -318,6 +319,8 @@ const mongoConnectionOpenedAt = new Map();
 // 그 요청이 살아 있어도 답하지 않는다" 가설의 반증 사례(다른 요청 소켓 위 성공)를 셀 수 없었다.
 // 시작 줄 [db-cmd] 는 보낸 요청의 흐름(체크아웃 await 뒤)에서 찍혀 그 요청의 tail 이벤트에 남고, 완료 줄은
 // 응답을 받은 쪽 컨텍스트에서 찍힐 수 있으므로 k 로만 조인한다. 요청당 명령 수만큼 줄이 늘어 프로덕션은 끈다.
+// scope(설계안 C1)는 두 줄 모두 그 줄을 찍은 흐름의 요청 스코프다 — [db-cmd].scope 가 그 conn 의
+// [db-conn-open].scope 와 다르면 다른 요청이 연 소켓으로 보낸 명령이다. null 은 스코프 밖(./db-scope.js).
 let mongoCommandTraceEnabled = false;
 
 function rememberBounded(map, key, value) {
@@ -348,7 +351,7 @@ function instrumentMongoClient(client) {
       const conn = connKey(event);
       rememberBounded(mongoConnectionOpenedAt, conn, Date.now());
       // 드라이버는 이 이벤트 직후 같은 흐름에서 소켓을 연다. 그래서 이 줄이 찍힌 tail 요청 = 소켓을 연 요청이다.
-      console.log("[db-conn-open]", JSON.stringify({ conn }));
+      console.log("[db-conn-open]", JSON.stringify({ conn, scope: currentDbScopeId() }));
     });
     client.on("connectionCheckOutStarted", () => { mongoOpCounters.checkOutStarted += 1; });
     client.on("connectionCheckedOut", (event) => {
@@ -372,7 +375,7 @@ function instrumentMongoClient(client) {
       if (mongoCommandTraceEnabled) {
         const target = event?.command?.[event?.commandName];
         const coll = typeof target === "string" ? target.slice(0, 32) : "";
-        console.log("[db-cmd]", JSON.stringify({ k: commandKey(event), cmd, coll, conn: connKey(event) }));
+        console.log("[db-cmd]", JSON.stringify({ k: commandKey(event), cmd, coll, conn: connKey(event), scope: currentDbScopeId() }));
       }
     });
     client.on("commandSucceeded", (event) => {

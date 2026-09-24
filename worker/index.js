@@ -4,6 +4,7 @@ import { getEnv } from "./lib/env.js";
 import { PAYMENT_METHODS, resolvePaymentCommandFromBody } from "./lib/payment-service.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
 import { resolveAiLocaleForRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
+import { withDbScopes } from "./lib/db-scope.js";
 // 지오코딩 좌표의 시간대 판정. 경도만 보면 서울이 "UTC+8" 로 나와 차트가 1시간 어긋난다.
 import { resolveGeoTimezone } from "./lib/geo-timezone.js";
 
@@ -1076,7 +1077,8 @@ async function proxyApiRequest(request, env) {
 // 반대로 일일 태스크가 10분마다 도는 사고가 난다.
 const PAYMENT_RECONCILE_CRON = "*/10 * * * *";
 
-export default {
+// 진입 핸들러 본문. 워커에 내보내는 것은 맨 아래 withDbScopes(app) 다.
+const app = {
   async fetch(request, env, ctx) {
     if (shouldCollectClientApiTrace(env) && getClientApiTraceSource(request)) {
       CLIENT_API_TRACE_STARTS.set(request, nowMs());
@@ -2029,3 +2031,7 @@ export default {
     })());
   },
 };
+
+// 요청 범위 DB 스코프(설계안 C1). fetch 1건·queue 배치 1건·scheduled 1회가 각각 스코프 하나이고,
+// 그 id 가 db.js 계측([db-conn-open]·[db-cmd])에 찍힌다. 동작 변경 없음 — worker/lib/db-scope.js.
+export default withDbScopes(app);
