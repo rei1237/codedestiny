@@ -1,12 +1,12 @@
 ---
-status: active
+status: done
 updated: 2026-09-25
-next: "영냥이 '무엇이든 물어보기' 답변에, 상품 체계와 무관하게 꿀꿀 운세의 일진·월운·세운·숙요 일운·베다 판창가·수비학·타로 일일 카드를 근거로 넣는다. 대운은 계속 제외."
+next: "후속(별도 세션): 타로 일일 3장을 '뽑은 당시로' 클라이언트가 보내 질문 장 근거로 고정한다. 사주·숙요·베다·수비학 교차 근거는 완료."
 ---
 
 # 영냥이 자유질문에 꿀꿀 운세 전 체계 연동
 
-다음 세션 첫 문장: 이 문서의 '꿀꿀 모듈' 표에서 워커 번들로 import 가능한 모듈부터 esbuild 로 실측한 뒤, `service.ts` 요청 생성 시점에 계산하는 설계를 먼저 공유하고 구현한다.
+다음 세션 첫 문장(후속 과제): 이 문서 '완료' 절의 남은 항목 1(타로 일일)부터, `app/today/DailyTarot.tsx` 저장본을 요청 본문에 싣는 클라이언트 경로를 먼저 읽고 설계를 공유한 뒤 구현한다.
 
 ## 왜
 
@@ -18,7 +18,30 @@ next: "영냥이 '무엇이든 물어보기' 답변에, 상품 체계와 무관�
 - **대운은 제외** — 지금처럼. `majorLuck` 선택자와 대운 문구는 들어가지 않는다.
 - **타로는 뽑은 당시로** (사용자 지시, 2026-09-25: "타로는 뽑은 당시로 해주길 바래") — 사용자가 실제로 뽑은 3장을 뽑은 날짜와 함께 그대로 근거로 쓴다. 서버가 새로 추첨하거나 오늘 날짜로 다시 계산하지 않는다. 뽑은 날이 오늘이 아니면 오늘의 카드처럼 말하지 않고 "N월 N일에 뽑은 카드"로 읽는다. 뽑은 기록이 없거나 3장을 다 뒤집지 않았으면 타로 근거를 빼고 진행한다.
 
-## 현재 흐름 (실측)
+## 완료 (2026-09-25)
+
+- **이번 범위에서 타로 일일은 제외**(AskUserQuestion 확답 "이번엔 제외"). 서버가 재현할 수 없고(아래 표), 새로 뽑으면 지어낸 근거가 된다. 위 "뽑은 당시로" 결정은 후속 과제의 요구사항으로 남긴다.
+- 커밋 1 `aebf0eeac` — `worker/routes/fortune-today.js` 에서 `buildTodayFortunes(env, input, today, {requestUrl, wantDetail})` 를 추출했다(허브 동작은 바뀌지 않음).
+- 커밋 2 — 영냥이 연동.
+  - `worker/yeongnyangi/fortune/daily-cross.ts` 가 요청 기준일(KST `asOf`)로 꿀꿀 허브를 호출한다. 결과 카드는 상품 1체계 컨텍스트에 `<domain>.todaySaju|todaySukuyo|todayVedic|todayNumerology` 팩트로 넣는다.
+  - 사주가 아닌 상품에는 사주 `yearlyLuck`(당해 1개)·`monthlyLuck` 을 `sajuYearlyLuck`·`sajuMonthlyLuck` 으로 더한다.
+  - 대운은 넣지 않는다.
+  - 실패하면 `[]` 와 `[yeongnyangi-cross-daily-skip]` 경고만 남기고 상담은 계속한다.
+  - `service.ts` 는 질문형이고 영감 모드가 아닐 때만 도메인 계산 전에 프로미스를 시작한다. analyze 뒤 질문 분기에서 팩트를 넣고, `questionFactSelectors(..., extraLabels)` 로 1체계에만 선택한다. `periodScope` 에 "하루 근거는 기준일 하루로" 문장을 추가했다.
+  - `professionalEvidenceNames` 에 한글명 6개를 추가했다.
+  - 새 테스트는 `__tests__/ui/yeongnyangi-daily-cross.test.mjs` 다. 기존 서비스 테스트 3개의 `models.js` 스텁에는 `CmsEntry` 를 추가했다(허브가 CMS 레코드를 import).
+  - `/yeongnyangi/1000-won-fortune/` 이 `reading-manifest.ts` 를 import 하므로 사이트맵 원장 서명을 재생성했다.
+- 실측(mock): `prepareFortune` ask 에서 사주 고등어는 today 4종이 들어가고, 베다 고등어는 today 4종에 세운·월운까지 들어갔다. 대운 선택자는 0이다. 서비스 번들은 허브 모듈을 이미 포함해 합친 번들과의 차이가 13KB(esbuild, cjs)다.
+- 기존 요청은 `$setOnInsert` 스냅샷이라 그대로다. 새 요청부터 적용된다.
+
+### 남은 항목 (보고만, 범위 밖)
+
+1. 타로 일일 3장 "뽑은 당시로" — 클라이언트가 저장본을 전달하고 서버가 검증해 고정해야 한다(아래 표의 타로 행).
+2. 자미·점성 일운 — 정확한 일일 엔진이 없다(`lock-screen-daily-fortune.ts` 는 해시 기반이라 쓰지 않았다).
+3. 베다 질문 장의 `year` 그룹이 `currentAntardasha` 를 고른다. 이번 작업 전부터 그랬고, 비참치 등급은 필터로 걸러진다. 의도대로인지 확인이 필요하다.
+4. 본명 숙요 Swiss 계산이 throw 하면 `buildTodayFortunes` 전체가 throw 해 교차 근거가 통째로 빠진다(허브 원래 동작과 같음). 체계별로 격리할지는 후속으로 판단한다.
+
+## 현재 흐름 (작업 전 실측)
 
 - `worker/yeongnyangi/service.ts:101-109` — 질문형 종류(`kind.question`)이거나 종류가 없으면 1장(`manifest[0]`)이 질문에 먼저 답한다. 이때 `systems` 는 상품 체계 그대로, 근거는 `questionFactSelectors` 로 고른다.
 - `worker/yeongnyangi/fortune/reading-manifest.ts:52-58` `questionFactSelectors` — 상품 체계의 계산 결과(`contexts[domain]`)만 쓴다. 질문 문구를 정규식으로 love·money·work 로 분류해 그룹을 더하고, `year` 그룹(사주는 `yearlyLuck`, `monthlyLuck`)을 붙인다. **다른 체계와 꿀꿀의 일일 로직은 쓰지 않는다.**
