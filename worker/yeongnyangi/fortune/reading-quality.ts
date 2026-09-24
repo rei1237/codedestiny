@@ -3,6 +3,34 @@ import { FortuneError } from './shared/contracts';
 import { hasReadingSections, isStructuredReading } from './reading-policy';
 
 const normalize=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
+export const SECTION_PARAGRAPH_LIMIT=500;
+const codePoints=(s:string)=>Array.from(s).length;
+// Sentence end: a non-digit, non-space character, then . ! ? 。 (plus closing quotes/brackets) and whitespace; or a line break.
+// List numbers ("1. "), dotted dates ("2026. 10.") and decimals are never cut.
+const SENTENCE_BOUNDARY=/(?<=(?:[^\s\d][.!?。]["'”’)\]」』]*\s+|\n\s*))(?=\S)/u;
+// v5/v6 section targets can exceed the per-paragraph cap. Cut only at sentence ends into balanced
+// parts; a paragraph with no sentence end, or a single sentence over the cap, stays whole and fails validation.
+export function splitSectionParagraph(paragraph:string):string[]{
+ if(codePoints(paragraph)<=SECTION_PARAGRAPH_LIMIT)return [paragraph];
+ const units=paragraph.split(SENTENCE_BOUNDARY);
+ if(units.length<2)return [paragraph];
+ const total=codePoints(paragraph),parts=Math.ceil(total/SECTION_PARAGRAPH_LIMIT),goal=total/parts,out:string[]=[];
+ let current='',done=0;
+ for(const unit of units){
+  const cs=codePoints(current),us=codePoints(unit);
+  const overflow=cs+us>SECTION_PARAGRAPH_LIMIT;
+  const balanced=out.length<parts-1&&done+cs+us/2>=goal*(out.length+1);
+  if(current&&(overflow||balanced)){out.push(current);done+=cs;current=unit;}else current+=unit;
+ }
+ if(current)out.push(current);
+ return out.map(c=>c.trim()).filter(Boolean);
+}
+// Paragraph text is kept verbatim apart from trimming; blank paragraphs are dropped. Shape errors are left to validateReadingQuality.
+export function normalizeSectionParagraphs(body:ChapterBody):ChapterBody{
+ if(!body||!Array.isArray(body.blocks))return body;
+ return {...body,blocks:body.blocks.map(b=>!b||!Array.isArray(b.paragraphs)?b:
+  {...b,paragraphs:b.paragraphs.flatMap(p=>typeof p!=='string'?[p]:!p.trim()?[]:splitSectionParagraph(p.trim()))})};
+}
 function nearDuplicate(a:string,b:string,cache:Map<string,Set<string>>){
  if(a.length<120||b.length<120)return false;
  const grams=(s:string)=>{const found=cache.get(s);if(found)return found;const clean=s.replace(/[^\p{L}\p{N}]/gu,'');const result=new Set(Array.from({length:Math.max(0,clean.length-2)},(_,i)=>clean.slice(i,i+3)));cache.set(s,result);return result;};
@@ -27,7 +55,7 @@ function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string
   if(!Array.isArray(b.paragraphs)||!b.paragraphs.length)return `paragraphs_empty:${id}`;
   for(const p of b.paragraphs){
    if(typeof p!=='string'||!p.trim())return `paragraph_blank:${id}`;
-   if(Array.from(p).length>(v5?500:5000))return `paragraph_too_long:${id}`;
+   if(Array.from(p).length>(v5?SECTION_PARAGRAPH_LIMIT:5000))return `paragraph_too_long:${id}`;
    if(/<\/?[a-z][^>]*>/i.test(p))return `paragraph_html:${id}`;
   }
  }
@@ -36,7 +64,7 @@ function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string
 export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[]){
  if(!isStructuredReading(chapter.version))return;
  const v5=hasReadingSections(chapter.version);
- if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?500:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,blockShapeIssue(body,chapter,v5));
+ if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?SECTION_PARAGRAPH_LIMIT:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,blockShapeIssue(body,chapter,v5));
  if(v5){
   if(!chapter.sections?.length || body.analysis.length || body.example || body.advice)throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,!chapter.sections?.length?'sections_missing':body.analysis.length?'analysis_not_empty':body.example?'example_not_empty':'advice_not_empty');
   const blocks=body.blocks!;

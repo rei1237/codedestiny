@@ -1,7 +1,7 @@
 import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
 import {READING_V6_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
-import {validateReadingQuality} from '../fortune/reading-quality';
+import {normalizeSectionParagraphs,validateReadingQuality} from '../fortune/reading-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {assertProfessionalProse, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames} from '../fortune/consultation';
 import {
@@ -70,6 +70,8 @@ export function validateChapter(
     !v.topics.every(text)
   )
     throw new FortuneError("INVALID_CHAPTER");
+  // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
+  if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
   const allowed = new Set(
     Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap((c) =>
       selectChapterFacts(c,input.chapter,input.analysis.topicId).map((f) => f.id),
