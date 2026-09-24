@@ -86,6 +86,10 @@ const INTEREST = [
 const byRoute = new Map();
 const authTiming = new Map(); // routePath|outcome -> { total: [], stages: { stage: [] } }
 const slowOps = new Map(); // route -> [{ totalMs, connectMs, opMs, lane }]
+// [pay] 는 db-slow-op 와 달리 500ms 문턱 없이 결제 컨텍스트의 **모든** 요청을 찍는다(worker/payments/db.js
+// withPaymentDb → ctx.dbTimings). 문턱 로그만 보면 웜 커넥션(빠름)이 표본에서 빠져 connect 비중을
+// 과대추정한다 — 여기서는 그 표본을 따로 모아 전체 분포(빠른 것 포함)를 낸다.
+const payLog = new Map(); // route -> [{ status, durationMs, mongoOps, admissionMs, connectMs, opMs, attempts }]
 const timeouts = [];
 let firstTs = Infinity;
 let lastTs = -Infinity;
@@ -120,6 +124,10 @@ for (const ev of events) {
     } else if (tag === "[db-slow-op]" && obj) {
       if (!slowOps.has(key)) slowOps.set(key, []);
       slowOps.get(key).push(obj);
+    } else if (tag === "[pay]" && obj) {
+      const route = String(obj.route || key);
+      if (!payLog.has(route)) payLog.set(route, []);
+      payLog.get(route).push(obj);
     } else if (tag === "[db-op-timeout]") {
       timeouts.push({ key, body: typeof body === "string" ? body.slice(0, 200) : body });
     }
@@ -162,6 +170,24 @@ if (slowOps.size) {
   }
 } else {
   console.log("\n[db-slow-op] 0건(프로덕션에 PR #1603 미배포면 정상)");
+}
+if (payLog.size) {
+  console.log("\n## [pay] — 결제 컨텍스트 전체 요청(admission/connect/op 분해, 문턱 없음)");
+  console.log("route | n | status | durationMs p50/p95 | admissionMs p50 | connectMs p50/p95 | opMs p50/p95 | attempts>1 | connect=0");
+  for (const [k, arr] of payLog) {
+    const d = arr.map((x) => x.durationMs).filter((x) => x != null);
+    const ad = arr.map((x) => x.admissionMs).filter((x) => x != null);
+    const c = arr.map((x) => x.connectMs).filter((x) => x != null);
+    const o = arr.map((x) => x.opMs).filter((x) => x != null);
+    const statuses = [...arr.reduce((m, x) => m.set(x.status, (m.get(x.status) || 0) + 1), new Map())]
+      .map(([s, n]) => `${s}:${n}`).join(",");
+    const retried = arr.filter((x) => Number(x.attempts) > 1).length;
+    // connectMs===0 이면 그 시도는 웜 커넥션을 그대로 재사용했다는 뜻(connectDb 가 핸드셰이크 없이 반환) — 콜드 비중의 반증 표본.
+    const warmReuse = c.filter((x) => x === 0).length;
+    console.log(`${k} | ${arr.length} | ${statuses} | ${fmt(pct(d, 0.5))}/${fmt(pct(d, 0.95))} | ${fmt(pct(ad, 0.5))} | ${fmt(pct(c, 0.5))}/${fmt(pct(c, 0.95))} | ${fmt(pct(o, 0.5))}/${fmt(pct(o, 0.95))} | ${retried}/${arr.length} | ${warmReuse}/${c.length}`);
+  }
+} else {
+  console.log("\n[pay] 0건");
 }
 if (timeouts.length) {
   console.log(`\n## [db-op-timeout] ${timeouts.length}건`);
