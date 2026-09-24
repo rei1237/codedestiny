@@ -343,9 +343,9 @@ function buildSajuAISectionPromptSuffix(group, options = {}) {
     otherTitles.length
       ? ["다음 챕터는 다른 곳에서 씁니다. 여기서는 쓰지도 말고 요약하지도 마세요.", ...otherTitles].join("\n")
       : "",
-    `이번 부분만으로 공백 제외 ${group.minChars.toLocaleString("ko-KR")}자 이상 ${group.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    `이번 부분만으로 공백 제외 최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자로 쓰세요.`,
     group?.guide || "",
-    `각 챕터의 본문은 제목·목차·공백을 제외하고 최소 ${Math.ceil(group.minChars / group.chapters.length)}자입니다. 합계 목표는 ${group.maxChars}자이며 같은 문장 반복으로 채우지 마세요.`,
+    `각 챕터의 본문은 제목·목차·공백을 제외하고 최소 ${Math.ceil(group.minChars / group.chapters.length)}자입니다. 챕터마다 고르게 나눠 합계 목표를 채우고, 같은 문장 반복으로 채우지 마세요.`,
     "각 챕터는 제공된 명식 근거 → 실제 생활 패턴 → 반대 조건과 주의점 → 실행 가능한 조언 순으로 연결하세요. 근거에 없는 사건이나 수치는 만들지 마세요.",
     "출생시각 미상은 시주·시주 기반 해석을 확정하지 마세요. 절입·날짜 경계는 제공된 계산 기준을 따르세요. 억부와 조후가 다르면 적용 조건을 구분하고 한쪽을 임의로 덮지 마세요.",
     "대운·세운은 제공된 연도와 간지에 연결하세요. 월운 근거가 없으면 특정 월의 길흉이나 상반기·하반기 차이를 만들어내지 마세요.",
@@ -5121,7 +5121,7 @@ const SAJU_AI_SECTION_REPAIR_TIMEOUT_MS = 30000;
 /** 이만큼도 안 남았으면 웨이브2를 시작하지 않는다 — 시작해 놓고 잘리면 그 호출은 통째로 버려진다. */
 const SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS = 28000;
 /** 보완도 같은 챕터 분량을 담을 수 있어야 한다. 실행 시간은 남은 요청 예산으로 별도 제한한다. */
-const SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS = 11000;
+const SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS = 12000;
 
 /**
  * 남은 예산 안에서만 기다린다. 0을 돌려주면 호출부가 그 호출을 건너뛴다.

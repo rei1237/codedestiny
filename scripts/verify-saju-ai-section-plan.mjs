@@ -109,12 +109,13 @@ const CHAPTER_TITLES = [
   for (const group of SAJU_AI_SECTION_GROUPS) {
     const prompt = buildSajuAISectionPrompt(builtPrompt, group, {});
     check(
-      prompt.includes(`${group.minChars.toLocaleString("ko-KR")}자 이상`),
-      `${group.key}: 프롬프트에 minChars(${group.minChars})가 숫자로 없다`,
+      prompt.includes(`최소 ${group.minChars.toLocaleString("ko-KR")}자`),
+      `${group.key}: 프롬프트에 판정 하한 minChars(${group.minChars})가 숫자로 없다`,
     );
+    // 목표는 하한과 따로 싣는다 — 하한만 보이면 모델이 하한 근처로 써서 판정에서 흔들린다(원칙 17).
     check(
-      prompt.includes(`${group.maxChars.toLocaleString("ko-KR")}자 이하`),
-      `${group.key}: 프롬프트에 maxChars(${group.maxChars})가 숫자로 없다`,
+      prompt.includes(`목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자`),
+      `${group.key}: 프롬프트에 목표(${group.targetMinChars}~${group.maxChars})가 숫자로 없다`,
     );
     // 🔴 이 문장이 되살아나면 분량이 다시 무너진다. 되돌리지 말 것.
     check(

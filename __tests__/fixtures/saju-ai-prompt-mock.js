@@ -25,6 +25,7 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
           { no: 2, title: "이 명식의 중심 성향" },
         ],
         minChars: 3000,
+        targetMinChars: 3750,
         maxChars: 4600,
       },
       {
@@ -34,6 +35,7 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
           { no: 4, title: "오행 균형 해석" },
         ],
         minChars: 3000,
+        targetMinChars: 3750,
         maxChars: 4600,
       },
       {
@@ -43,6 +45,7 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
           { no: 6, title: "일/돈/관계/연애/건강 리듬" },
         ],
         minChars: 3200,
+        targetMinChars: 4000,
         maxChars: 4800,
       },
       {
@@ -52,6 +55,7 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
           { no: 8, title: "올해의 흐름" },
         ],
         minChars: 3000,
+        targetMinChars: 3750,
         maxChars: 4600,
       },
       {
@@ -63,6 +67,7 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
           { no: 12, title: "마지막 한마디" },
         ],
         minChars: 3000,
+        targetMinChars: 3750,
         maxChars: 4600,
       },
     ],

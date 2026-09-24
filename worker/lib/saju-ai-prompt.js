@@ -36,6 +36,10 @@ export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDom
 // 🔴 title 문자열은 서버 검증(SAJU_AI_REQUIRED_CHAPTER_PATTERNS)과 클라이언트 렌더러
 //    (js/saju-engine.js `_sajuPromptChapterTitle`)가 함께 보는 계약이다. 한 글자도 바꾸지 말 것 —
 //    바꾸면 렌더러가 전 챕터를 '핵심 상담' 하나로 뭉갠다.
+//
+// minChars 는 판정 하한, targetMinChars~maxChars 는 프롬프트 목표다. 하한이 목표 하한에 붙어 있으면
+// 목표 근처로 쓴 응답도 하한 아래로 흔들려 다시 불린다 — 목표만 올리고 하한은 목표 하한 × 0.8 이하로 둔다
+// (CLAUDE.md 코딩 원칙 17, verify:llm-generation-resilience 7절).
 export const SAJU_AI_SECTION_GROUPS = Object.freeze([
   Object.freeze({
     key: "answer_core",
@@ -45,7 +49,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 2, title: "이 명식의 중심 성향" }),
     ]),
     minChars: 4000,
-    maxChars: 5600,
+    targetMinChars: 5000,
+    maxChars: 6000,
     guide: "사용자의 질문에 첫 문단에서 바로 답한 뒤, 이 명식이 반복시키는 중심 성향과 그것이 삶에서 드러나는 장면을 풀어 주세요.",
   }),
   Object.freeze({
@@ -56,7 +61,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 4, title: "오행 균형 해석" }),
     ]),
     minChars: 4000,
-    maxChars: 5600,
+    targetMinChars: 5000,
+    maxChars: 6000,
     guide: "확정표에 적힌 십성만 써서 구조를 읽고, 오행의 과한 곳과 부족한 곳이 일상에서 어떻게 함께 드러나는지 이어 주세요.",
   }),
   Object.freeze({
@@ -67,7 +73,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 6, title: "일/돈/관계/연애/건강 리듬" }),
     ]),
     minChars: 4000,
-    maxChars: 5600,
+    targetMinChars: 5000,
+    maxChars: 6000,
     guide: "지금의 고민을 명식의 어느 자리가 만들고 있는지 짚고, 일·돈·관계·연애·건강 다섯 영역의 리듬을 각각 구체적 장면으로 보여 주세요.",
   }),
   Object.freeze({
@@ -78,7 +85,8 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 8, title: "올해의 흐름" }),
     ]),
     minChars: 4000,
-    maxChars: 5600,
+    targetMinChars: 5000,
+    maxChars: 6000,
     guide: "지나온 대운과 지금 대운, 다음 대운이 각각 어떤 성격의 시기인지 나누고, 그 사이의 전환점에서 실제로 무엇이 바뀌었고 무엇이 바뀔지 짚어 주세요. 이어서 올해의 세운이 원국의 어느 자리를 건드리는지 밝히고, 상반기와 하반기의 결이 어떻게 다른지 구분해 주세요. 다른 챕터에서 다루는 성향·구조·영역별 리듬을 다시 설명하지 말고, 여기서는 **시기의 순서**만 다루세요. '좋아진다/나빠진다'로 뭉뚱그리지 말고 어느 달·어느 시기에 무엇을 하면 유리하고 무엇을 미루는 편이 나은지로 쓰세요.",
   }),
   Object.freeze({
@@ -91,17 +99,18 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
       Object.freeze({ no: 12, title: "마지막 한마디" }),
     ]),
     minChars: 4000,
-    maxChars: 5600,
+    targetMinChars: 5000,
+    maxChars: 6000,
     guide: "반복되는 손해 패턴을 먼저 짚고, 그것을 뒤집는 전략과 30일 안에 실제로 해볼 행동으로 좁힌 뒤, 마지막 한마디로 따뜻하지만 가볍지 않게 닫아 주세요.",
   }),
 ]);
 
 /**
- * 그룹 하나의 LLM 출력 상한. charsAllowedByTokens(9600) ≈ 6,400자로 그룹 maxChars(4,400)를
+ * 그룹 하나의 LLM 출력 상한. charsAllowedByTokens(12000) = 8,000자로 그룹 maxChars(6,000)를
  * 2,000자 덮는다 — 소제목·줄바꿈 몫과 토크나이저 오차를 흡수하는 완충이다.
  * (같은 값의 선례: worker/routes/astrology-ai.js ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS)
  */
-export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 11000;
+export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 12000;
 
 // New reports complete only after all chapter bodies meet this floor and storage is confirmed.
 // Historical purchased reports keep their existing read contract.
