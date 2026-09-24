@@ -1,5 +1,6 @@
 import { mongoose } from "./db.js";
 import { GIFT_STATUS } from "../../lib/payment/gift-policy.js";
+import { scopedModel } from "./db-scope-connection.js";
 
 const objectId = mongoose.Schema.Types.ObjectId;
 const giftSchema = new mongoose.Schema({
@@ -42,6 +43,6 @@ const contextSchema = new mongoose.Schema({
 }, { timestamps: true });
 contextSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const Gift = mongoose.models.Gift || mongoose.model("Gift", giftSchema);
-export const GiftGrant = mongoose.models.GiftGrant || mongoose.model("GiftGrant", grantSchema);
-export const GiftClaimContext = mongoose.models.GiftClaimContext || mongoose.model("GiftClaimContext", contextSchema);
+export const Gift = scopedModel(mongoose.models.Gift || mongoose.model("Gift", giftSchema));
+export const GiftGrant = scopedModel(mongoose.models.GiftGrant || mongoose.model("GiftGrant", grantSchema));
+export const GiftClaimContext = scopedModel(mongoose.models.GiftClaimContext || mongoose.model("GiftClaimContext", contextSchema));

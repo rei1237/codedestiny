@@ -14,9 +14,9 @@
  * settle 한 뒤에 끝난다. 끝나면 onDbScopeEnd 로 등록된 닫기(closer)를 돌린다. 닫기는 원래 ctx.waitUntil 에
  * 걸어 두므로, 응답을 보낸 뒤에도 IoContext 가 닫기를 마칠 때까지 살아 있다. 요청이 연 소켓은 그 요청의
  * IoContext 에서만 쓸 수 있으므로 닫기도 거기서 한다.
- * 🔴 스트리밍 응답 본문은 추적하지 않는다. 핸들러가 Response 를 돌려준 뒤에도 본문을 흘리며 DB 를 쓰는
- *    경로가 있으면 그 경로의 연결은 먼저 닫힌다. C4 의 결제 레인은 이런 경로가 없다(핸들러가 await 하거나
- *    scheduled 의 waitUntil 안에서 돈다). 공유 레인(C3)으로 넓힐 때 진행 중인 op 수를 세도록 넓힌다.
+ * 🔴 스트리밍 응답 본문 자체는 추적하지 않는다. 핸들러가 Response 를 돌려준 뒤 본문을 흘리며 DB 를 쓰는
+ *    경로는 그 작업을 ctx.waitUntil 로 넘겨야 연결이 먼저 닫히지 않는다. 공유 레인(C3, 2026-09-25)으로
+ *    넓힐 때 SSE 두 곳(routes/fortune.js·routes/fusion-fortune.js)이 모두 ctx.waitUntil 로 넘기는 것을 확인했다.
  *
  * ALS 선례: ./ai-locale-context.js (nodejs_compat).
  */

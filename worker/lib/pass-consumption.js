@@ -18,6 +18,7 @@ import { createHash } from "node:crypto";
 import { User, PointHistory } from "./models.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
 import { mongoose, mongoTransactionOptions } from "./db.js";
+import { scopeConnection } from "./db-scope-connection.js";
 
 function invalidatePassUsageReadCaches(userId) {
   const uid = String(userId || "").trim();
@@ -86,7 +87,7 @@ function withPersistedPassUsage(coverage = {}, user = null) {
    함정을 통과하지 않는다(같은 파일 머리주석의 이유와 동일). */
 function makeNativeDb(session) { return {
   async transaction(run) {
-    const txn = await mongoose.connection.startSession();
+    const txn = await (scopeConnection() || mongoose.connection).startSession();
     try { return await txn.withTransaction(() => run(makeNativeDb(txn)), mongoTransactionOptions()); }
     finally { await txn.endSession(); }
   },

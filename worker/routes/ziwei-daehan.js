@@ -5,6 +5,7 @@ import { json, methodNotAllowed, notFound, readJson, getRoutePath } from "../lib
 import { User } from "../lib/models.js";
 import { hasUnlockedContent } from "../lib/content-unlocks.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
+import { scopeConnection } from "../lib/db-scope-connection.js";
 
 const DAEHAN_COST = FEATURE_KEY_PRICE_TABLE["ziwei_decade_luck"].cost;
 const DAEHAN_SERVICE_KEY = "ziwei";
@@ -30,7 +31,7 @@ function getRequestProfileSource(request, body = {}) {
 async function ensureDaehanIndexes() {
   if (daehanIndexPromise) return daehanIndexPromise;
   daehanIndexPromise = Promise.all([
-    mongoose.connection.db.collection("daehan_purchases").createIndex(
+    (scopeConnection() || mongoose.connection).db.collection("daehan_purchases").createIndex(
       { userId: 1, profileId: 1 },
       { unique: true, name: "uniq_daehan_purchase_user_profile" },
     ),
@@ -50,7 +51,7 @@ async function resolveDaehanProfileId(userId, source = {}) {
 
 async function getDaehanPurchase(userId, profileId) {
   if (!userId || !profileId) return null;
-  return mongoose.connection.db.collection("daehan_purchases").findOne({
+  return (scopeConnection() || mongoose.connection).db.collection("daehan_purchases").findOne({
     userId: String(userId),
     profileId: String(profileId),
   });

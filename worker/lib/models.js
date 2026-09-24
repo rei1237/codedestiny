@@ -1,5 +1,6 @@
 import { mongoose } from "./db.js";
 import { AI_OUTPUT_LOCALES } from "../../lib/i18n/ai-locale.js";
+import { scopedModel } from "./db-scope-connection.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -1917,39 +1918,39 @@ userSchema.index({ "profileSubscription.membershipCreditLots.expiresAt": 1 });
 // (실측 docs/db-query-plans-2026-08-30.md). 실제 생성은 scripts/migrations/20260830-add-request-path-indexes.mjs.
 userSchema.index({ referralCode: 1 }, { sparse: true });
 
-export const User = mongoose.models.User || mongoose.model("User", userSchema);
-export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
-export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);
-export const PointHistory = mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema);
-export const MonthlyCreditLedger = mongoose.models.MonthlyCreditLedger
-  || mongoose.model("MonthlyCreditLedger", monthlyCreditLedgerSchema);
-export const ContentEntitlement = mongoose.models.ContentEntitlement
-  || mongoose.model("ContentEntitlement", contentEntitlementSchema);
-export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
-export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
-  || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema);
-export const CheckoutFunnelEvent = mongoose.models.CheckoutFunnelEvent
-  || mongoose.model("CheckoutFunnelEvent", checkoutFunnelEventSchema);
-export const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema);
+export const User = scopedModel(mongoose.models.User || mongoose.model("User", userSchema));
+export const ProfileCard = scopedModel(mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema));
+export const Payment = scopedModel(mongoose.models.Payment || mongoose.model("Payment", paymentSchema));
+export const PointHistory = scopedModel(mongoose.models.PointHistory || mongoose.model("PointHistory", pointHistorySchema));
+export const MonthlyCreditLedger = scopedModel(mongoose.models.MonthlyCreditLedger
+  || mongoose.model("MonthlyCreditLedger", monthlyCreditLedgerSchema));
+export const ContentEntitlement = scopedModel(mongoose.models.ContentEntitlement
+  || mongoose.model("ContentEntitlement", contentEntitlementSchema));
+export const PaymentFailureLog = scopedModel(mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema));
+export const PaymentWebhookEvent = scopedModel(mongoose.models.PaymentWebhookEvent
+  || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema));
+export const CheckoutFunnelEvent = scopedModel(mongoose.models.CheckoutFunnelEvent
+  || mongoose.model("CheckoutFunnelEvent", checkoutFunnelEventSchema));
+export const SecurityEvent = scopedModel(mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema));
 
-export const AdminAuditLog = mongoose.models.AdminAuditLog || mongoose.model("AdminAuditLog", adminAuditLogSchema);
-export const IdempotencyKey = mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema);
-export const AbuseScore = mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema);
-export const LlmResponseCache = mongoose.models.LlmResponseCache
-  || mongoose.model("LlmResponseCache", llmResponseCacheSchema);
-export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
-export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
-  || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);
-export const PaidExecutionRecord = mongoose.models.PaidExecutionRecord
-  || mongoose.model("PaidExecutionRecord", paidExecutionRecordSchema);
-export const NewYearAiConsultation = mongoose.models.NewYearAiConsultation
-  || mongoose.model("NewYearAiConsultation", newYearAiConsultationSchema);
-export const KarmaDestinyAiConsultation = mongoose.models.KarmaDestinyAiConsultation
-  || mongoose.model("KarmaDestinyAiConsultation", karmaDestinyAiConsultationSchema);
-export const ZiweiAiConsultation = mongoose.models.ZiweiAiConsultation
-  || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema);
-export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
-  || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
+export const AdminAuditLog = scopedModel(mongoose.models.AdminAuditLog || mongoose.model("AdminAuditLog", adminAuditLogSchema));
+export const IdempotencyKey = scopedModel(mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema));
+export const AbuseScore = scopedModel(mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema));
+export const LlmResponseCache = scopedModel(mongoose.models.LlmResponseCache
+  || mongoose.model("LlmResponseCache", llmResponseCacheSchema));
+export const RefreshTokenSession = scopedModel(mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema));
+export const ServiceExecutionTransaction = scopedModel(mongoose.models.ServiceExecutionTransaction
+  || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema));
+export const PaidExecutionRecord = scopedModel(mongoose.models.PaidExecutionRecord
+  || mongoose.model("PaidExecutionRecord", paidExecutionRecordSchema));
+export const NewYearAiConsultation = scopedModel(mongoose.models.NewYearAiConsultation
+  || mongoose.model("NewYearAiConsultation", newYearAiConsultationSchema));
+export const KarmaDestinyAiConsultation = scopedModel(mongoose.models.KarmaDestinyAiConsultation
+  || mongoose.model("KarmaDestinyAiConsultation", karmaDestinyAiConsultationSchema));
+export const ZiweiAiConsultation = scopedModel(mongoose.models.ZiweiAiConsultation
+  || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema));
+export const LoveSecretAiConsultation = scopedModel(mongoose.models.LoveSecretAiConsultation
+  || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema));
 
 // 관계 경계 테스트는 출생 정보별 회당 결제 결과다. `idempotencyKey`가 같은 재시도는
 // 동일 세션을 재사용하며, 결과는 요청한 계정에서만 조회한다.
@@ -1976,51 +1977,51 @@ const relationshipBoundaryTestSchema = new mongoose.Schema({
 
 relationshipBoundaryTestSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 relationshipBoundaryTestSchema.index({ userId: 1, createdAt: -1 });
-export const RelationshipBoundaryTest = mongoose.models.RelationshipBoundaryTest
-  || mongoose.model("RelationshipBoundaryTest", relationshipBoundaryTestSchema);
-export const DestinyCompassReport = mongoose.models.DestinyCompassReport
-  || mongoose.model("DestinyCompassReport", destinyCompassReportSchema);
+export const RelationshipBoundaryTest = scopedModel(mongoose.models.RelationshipBoundaryTest
+  || mongoose.model("RelationshipBoundaryTest", relationshipBoundaryTestSchema));
+export const DestinyCompassReport = scopedModel(mongoose.models.DestinyCompassReport
+  || mongoose.model("DestinyCompassReport", destinyCompassReportSchema));
 
-export const ZiweiDeepReport = mongoose.models.ZiweiDeepReport
-  || mongoose.model("ZiweiDeepReport", ziweiDeepReportSchema);
-export const MasterLoveCodexSession = mongoose.models.MasterLoveCodexSession
-  || mongoose.model("MasterLoveCodexSession", masterLoveCodexSchema);
-export const LifeBookAiConsultation = mongoose.models.LifeBookAiConsultation
-  || mongoose.model("LifeBookAiConsultation", lifeBookAiConsultationSchema);
-export const SukuyoCompatibilityAiConsultation = mongoose.models.SukuyoCompatibilityAiConsultation
-  || mongoose.model("SukuyoCompatibilityAiConsultation", sukuyoCompatibilityAiConsultationSchema);
-export const VedicAiConsultation = mongoose.models.VedicAiConsultation
-  || mongoose.model("VedicAiConsultation", vedicAiConsultationSchema);
-export const AstrologyAiConsultation = mongoose.models.AstrologyAiConsultation
-  || mongoose.model("AstrologyAiConsultation", astrologyAiConsultationSchema);
-export const NeoOperationRoomConsultation = mongoose.models.NeoOperationRoomConsultation
-  || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema);
-export const NakshatraAiConsultation = mongoose.models.NakshatraAiConsultation
-  || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema);
-export const HumanDesignCalculation = mongoose.models.HumanDesignCalculation
-  || mongoose.model("HumanDesignCalculation", humanDesignCalculationSchema);
-export const HumanDesignInterpretation = mongoose.models.HumanDesignInterpretation
-  || mongoose.model("HumanDesignInterpretation", humanDesignInterpretationSchema);
-export const HumanDesignReport = mongoose.models.HumanDesignReport
-  || mongoose.model("HumanDesignReport", humanDesignReportSchema);
-export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsage
-  || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
-export const GuardianFortuneAccountUsage = mongoose.models.GuardianFortuneAccountUsage
-  || mongoose.model("GuardianFortuneAccountUsage", guardianFortuneAccountUsageSchema);
-export const GuardianFortuneAnonymousMerge = mongoose.models.GuardianFortuneAnonymousMerge
-  || mongoose.model("GuardianFortuneAnonymousMerge", guardianFortuneAnonymousMergeSchema);
-export const FortuneChatSession = mongoose.models.FortuneChatSession
-  || mongoose.model("FortuneChatSession", fortuneChatSessionSchema);
-export const GuardianFortuneGenerationAttempt = mongoose.models.GuardianFortuneGenerationAttempt
-  || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema);
-export const GuardianFortuneSharedSnapshot = mongoose.models.GuardianFortuneSharedSnapshot
-  || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema);
-export const ResultSharedSnapshot = mongoose.models.ResultSharedSnapshot
-  || mongoose.model("ResultSharedSnapshot", resultSharedSnapshotSchema);
-export const FusionFortuneGenerationAttempt = mongoose.models.FusionFortuneGenerationAttempt
-  || mongoose.model("FusionFortuneGenerationAttempt", fusionFortuneGenerationAttemptSchema);
-export const FusionFortuneConsultation = mongoose.models.FusionFortuneConsultation
-  || mongoose.model("FusionFortuneConsultation", fusionFortuneConsultationSchema);
+export const ZiweiDeepReport = scopedModel(mongoose.models.ZiweiDeepReport
+  || mongoose.model("ZiweiDeepReport", ziweiDeepReportSchema));
+export const MasterLoveCodexSession = scopedModel(mongoose.models.MasterLoveCodexSession
+  || mongoose.model("MasterLoveCodexSession", masterLoveCodexSchema));
+export const LifeBookAiConsultation = scopedModel(mongoose.models.LifeBookAiConsultation
+  || mongoose.model("LifeBookAiConsultation", lifeBookAiConsultationSchema));
+export const SukuyoCompatibilityAiConsultation = scopedModel(mongoose.models.SukuyoCompatibilityAiConsultation
+  || mongoose.model("SukuyoCompatibilityAiConsultation", sukuyoCompatibilityAiConsultationSchema));
+export const VedicAiConsultation = scopedModel(mongoose.models.VedicAiConsultation
+  || mongoose.model("VedicAiConsultation", vedicAiConsultationSchema));
+export const AstrologyAiConsultation = scopedModel(mongoose.models.AstrologyAiConsultation
+  || mongoose.model("AstrologyAiConsultation", astrologyAiConsultationSchema));
+export const NeoOperationRoomConsultation = scopedModel(mongoose.models.NeoOperationRoomConsultation
+  || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema));
+export const NakshatraAiConsultation = scopedModel(mongoose.models.NakshatraAiConsultation
+  || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema));
+export const HumanDesignCalculation = scopedModel(mongoose.models.HumanDesignCalculation
+  || mongoose.model("HumanDesignCalculation", humanDesignCalculationSchema));
+export const HumanDesignInterpretation = scopedModel(mongoose.models.HumanDesignInterpretation
+  || mongoose.model("HumanDesignInterpretation", humanDesignInterpretationSchema));
+export const HumanDesignReport = scopedModel(mongoose.models.HumanDesignReport
+  || mongoose.model("HumanDesignReport", humanDesignReportSchema));
+export const GuardianFortuneGuestUsage = scopedModel(mongoose.models.GuardianFortuneGuestUsage
+  || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema));
+export const GuardianFortuneAccountUsage = scopedModel(mongoose.models.GuardianFortuneAccountUsage
+  || mongoose.model("GuardianFortuneAccountUsage", guardianFortuneAccountUsageSchema));
+export const GuardianFortuneAnonymousMerge = scopedModel(mongoose.models.GuardianFortuneAnonymousMerge
+  || mongoose.model("GuardianFortuneAnonymousMerge", guardianFortuneAnonymousMergeSchema));
+export const FortuneChatSession = scopedModel(mongoose.models.FortuneChatSession
+  || mongoose.model("FortuneChatSession", fortuneChatSessionSchema));
+export const GuardianFortuneGenerationAttempt = scopedModel(mongoose.models.GuardianFortuneGenerationAttempt
+  || mongoose.model("GuardianFortuneGenerationAttempt", guardianFortuneGenerationAttemptSchema));
+export const GuardianFortuneSharedSnapshot = scopedModel(mongoose.models.GuardianFortuneSharedSnapshot
+  || mongoose.model("GuardianFortuneSharedSnapshot", guardianFortuneSharedSnapshotSchema));
+export const ResultSharedSnapshot = scopedModel(mongoose.models.ResultSharedSnapshot
+  || mongoose.model("ResultSharedSnapshot", resultSharedSnapshotSchema));
+export const FusionFortuneGenerationAttempt = scopedModel(mongoose.models.FusionFortuneGenerationAttempt
+  || mongoose.model("FusionFortuneGenerationAttempt", fusionFortuneGenerationAttemptSchema));
+export const FusionFortuneConsultation = scopedModel(mongoose.models.FusionFortuneConsultation
+  || mongoose.model("FusionFortuneConsultation", fusionFortuneConsultationSchema));
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -2042,8 +2043,8 @@ userRpgProgressSchema.index({ userId: 1, profileId: 1 }, { unique: true });
 userRpgProgressSchema.index({ userId: 1, updatedAt: -1 });
 userRpgProgressSchema.index({ userId: 1, currentLevel: 1 });
 
-export const UserRpgProgress = mongoose.models.UserRpgProgress
-  || mongoose.model("UserRpgProgress", userRpgProgressSchema);
+export const UserRpgProgress = scopedModel(mongoose.models.UserRpgProgress
+  || mongoose.model("UserRpgProgress", userRpgProgressSchema));
 
 const userDailyQuestLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true },
@@ -2069,8 +2070,8 @@ userDailyQuestLogSchema.index({ userId: 1, profileId: 1, questDateKst: 1, questI
 userDailyQuestLogSchema.index({ userId: 1, questDateKst: 1 });
 userDailyQuestLogSchema.index({ userId: 1, profileId: 1, questDateKst: 1 });
 
-export const UserDailyQuestLog = mongoose.models.UserDailyQuestLog
-  || mongoose.model("UserDailyQuestLog", userDailyQuestLogSchema);
+export const UserDailyQuestLog = scopedModel(mongoose.models.UserDailyQuestLog
+  || mongoose.model("UserDailyQuestLog", userDailyQuestLogSchema));
 
 const userRpgRewardLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
@@ -2092,8 +2093,8 @@ userRpgRewardLogSchema.index({ userId: 1, profileId: 1, rewardType: 1, rewardKey
 userRpgRewardLogSchema.index({ userId: 1, profileId: 1, level: 1 });
 userRpgRewardLogSchema.index({ userId: 1, createdAt: -1 });
 
-export const UserRpgRewardLog = mongoose.models.UserRpgRewardLog
-  || mongoose.model("UserRpgRewardLog", userRpgRewardLogSchema);
+export const UserRpgRewardLog = scopedModel(mongoose.models.UserRpgRewardLog
+  || mongoose.model("UserRpgRewardLog", userRpgRewardLogSchema));
 
 const dailyFortuneSubscriptionSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: emailRegex },
@@ -2116,8 +2117,8 @@ const dailyFortuneSubscriptionSchema = new mongoose.Schema({
 
 dailyFortuneSubscriptionSchema.index({ isActive: 1, subDaily: 1 });
 
-export const DailyFortuneSubscription = mongoose.models.DailyFortuneSubscription
-  || mongoose.model("DailyFortuneSubscription", dailyFortuneSubscriptionSchema);
+export const DailyFortuneSubscription = scopedModel(mongoose.models.DailyFortuneSubscription
+  || mongoose.model("DailyFortuneSubscription", dailyFortuneSubscriptionSchema));
 
 const insightFeaturedImageSchema = new mongoose.Schema({
   url: { type: String, default: "", trim: true },
@@ -2198,7 +2199,7 @@ insightSchema.index({ status: 1, updatedAt: -1 });
 insightSchema.index({ category: 1, updatedAt: -1 });
 insightSchema.index({ isFeatured: 1, updatedAt: -1 });
 
-export const Insight = mongoose.models.Insight || mongoose.model("Insight", insightSchema);
+export const Insight = scopedModel(mongoose.models.Insight || mongoose.model("Insight", insightSchema));
 
 // 구 오버라이드 컬렉션. 신규 편집은 전부 CmsEntry 로 가고, 이 모델은 유명인 사주의
 // 기존 발행본을 읽기 위해서만 남는다(웹소설이 라이트 노벨로 대체되며 story/chapter 는 폐기).
@@ -2212,7 +2213,7 @@ const contentOverrideSchema = new mongoose.Schema({
 
 contentOverrideSchema.index({ source: 1, key: 1 }, { unique: true });
 
-export const ContentOverride = mongoose.models.ContentOverride || mongoose.model("ContentOverride", contentOverrideSchema);
+export const ContentOverride = scopedModel(mongoose.models.ContentOverride || mongoose.model("ContentOverride", contentOverrideSchema));
 
 /* 통합 CMS 엔트리. 관리자가 고치는 모든 텍스트/프롬프트가 여기 한 컬렉션에 들어간다.
    무엇을 편집할 수 있는지는 lib/cms/registry.mjs 가 선언하고, 이 스키마는 그 값을 담기만 한다
@@ -2244,7 +2245,7 @@ const cmsEntrySchema = new mongoose.Schema({
 
 cmsEntrySchema.index({ namespace: 1, key: 1, locale: 1 }, { unique: true });
 
-export const CmsEntry = mongoose.models.CmsEntry || mongoose.model("CmsEntry", cmsEntrySchema);
+export const CmsEntry = scopedModel(mongoose.models.CmsEntry || mongoose.model("CmsEntry", cmsEntrySchema));
 
 /* 버전 스냅샷. 엔트리 본문에 배열로 쌓지 않고 별도 컬렉션으로 뺀 이유는, 문서 안에 이력을 무한히
    누적하면 문서가 부풀어 결국 저장 자체가 실패하기 때문이다(환불 마커 누적으로 영구 500 이 났던 전례).
@@ -2262,7 +2263,7 @@ const cmsRevisionSchema = new mongoose.Schema({
 
 cmsRevisionSchema.index({ namespace: 1, key: 1, locale: 1, version: -1 });
 
-export const CmsRevision = mongoose.models.CmsRevision || mongoose.model("CmsRevision", cmsRevisionSchema);
+export const CmsRevision = scopedModel(mongoose.models.CmsRevision || mongoose.model("CmsRevision", cmsRevisionSchema));
 
 const destinyBiasCardSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -2280,5 +2281,5 @@ const destinyBiasCardSchema = new mongoose.Schema({
 
 destinyBiasCardSchema.index({ userId: 1, createdAt: -1 });
 
-export const DestinyBiasCard = mongoose.models.DestinyBiasCard
-  || mongoose.model("DestinyBiasCard", destinyBiasCardSchema);
+export const DestinyBiasCard = scopedModel(mongoose.models.DestinyBiasCard
+  || mongoose.model("DestinyBiasCard", destinyBiasCardSchema));

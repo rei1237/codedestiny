@@ -1,4 +1,5 @@
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "./db.js";
+import { scopeConnection } from "./db-scope-connection.js";
 import {
   GuardianFortuneAccountUsage,
   GuardianFortuneAnonymousMerge,
@@ -391,7 +392,7 @@ export async function mergeGuardianFortuneAnonymousUsage({ userId, guestIdHash, 
   if (!normalizedUserId || !normalizedGuestHash) return { ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.INVALID_INPUT, status: 400 };
   await connectDb(env);
   const accountId = objectIdOrString(normalizedUserId);
-  const session = await mongoose.startSession();
+  const session = await (scopeConnection() || mongoose).startSession();
   try {
     let merged = false;
     let guestUsed = 0;

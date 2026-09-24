@@ -17,6 +17,7 @@ import { grantMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { peekAccessTokenUserId, requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
+import { scopeConnection } from "../lib/db-scope-connection.js";
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const KST_DAY_MS = 24 * 60 * 60 * 1000;
@@ -1216,7 +1217,7 @@ async function completeDailyQuest(request, env) {
   }
 
   const todayMaxExp = questSet.todayMaxExp;
-  const session = await mongoose.startSession();
+  const session = await (scopeConnection() || mongoose).startSession();
   const now = new Date();
 
   try {

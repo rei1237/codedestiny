@@ -185,17 +185,34 @@ test("스테이징에서는 명령마다 시작 줄(커넥션)과 완료 줄을 
 });
 
 // 2026-09-24 설계안 C1: 소켓을 연 요청을 tail 이벤트로 추정하지 않고 스코프 id 로 맞춘다.
-test("스코프 안에서는 [db-conn-open]·[db-cmd] 에 요청 스코프 id 를 남겨, 다른 요청이 연 소켓으로 보낸 명령을 가른다", async () => {
-  const { client, mongooseMock } = buildEmittingMongoose();
+// 2026-09-25 설계안 C3: 스코프 안의 공유 레인은 요청마다 자기 연결을 연다. 그 전에는 요청 B 가 A 가 연 소켓으로
+// 보냈고(이 테스트가 그 모양을 재현했다), Workers 에서 그 소켓은 B 에 답하지 않았다.
+test("스코프 안에서는 요청마다 공유 레인 연결을 열고, [db-conn-open]·[db-cmd] 가 같은 스코프 id 로 짝지어진다", async () => {
+  const { mongooseMock } = buildEmittingMongoose();
+  const clients = [];
+  mongooseMock.createConnection = jest.fn(() => {
+    const client = new EventEmitter();
+    const conn = {
+      readyState: 0,
+      getClient: () => client,
+      asPromise: async () => {
+        client.emit("connectionCreated", { connectionId: 3 });
+        conn.readyState = 1;
+        return conn;
+      },
+      destroy: jest.fn(async () => { conn.readyState = 0; }),
+    };
+    clients.push(client);
+    return conn;
+  });
   const { withMongoRetry } = await loadDb(mongooseMock);
   const { withDbScopes, currentDbScopeId } = await import("../../worker/lib/db-scope.js");
   const scopes = [];
   const entry = withDbScopes({
-    fetch: (requestId, opensSocket) => withMongoRetry({ ...ENV, APP_ENV: "staging" }, async () => {
+    fetch: (requestId) => withMongoRetry({ ...ENV, APP_ENV: "staging" }, async () => {
       // withMongoRetry 의 연결·admission await 를 지나서도 요청 스코프가 op 까지 이어져야 한다.
       scopes.push(currentDbScopeId());
-      if (opensSocket) client.emit("connectionCreated", { connectionId: 3 });
-      client.emit("commandStarted", { requestId, connectionId: 3, commandName: "find", command: { find: "users" } });
+      clients[clients.length - 1].emit("commandStarted", { requestId, connectionId: 3, commandName: "find", command: { find: "users" } });
       return "ok";
     }),
   });
@@ -203,8 +220,8 @@ test("스코프 안에서는 [db-conn-open]·[db-cmd] 에 요청 스코프 id �
   const originalLog = console.log;
   console.log = (...args) => { logs.push(args.map(String).join(" ")); };
   try {
-    await entry.fetch(1, true); // 요청 A 가 소켓 #3 을 열고 보낸다.
-    await entry.fetch(2, false); // 요청 B 가 A 가 연 소켓 #3 으로 보낸다.
+    await entry.fetch(1);
+    await entry.fetch(2);
   } finally {
     console.log = originalLog;
     delete process.env.APP_ENV;
@@ -213,10 +230,16 @@ test("스코프 안에서는 [db-conn-open]·[db-cmd] 에 요청 스코프 id �
 
   expect(scopes).toEqual([expect.stringMatching(/^f-\w+$/), expect.stringMatching(/^f-\w+$/)]);
   expect(scopes[0]).not.toBe(scopes[1]);
-  expect(parse("[db-conn-open]")).toEqual([{ conn: expect.stringMatching(/#3$/), scope: scopes[0], lane: "shared" }]);
+  expect(mongooseMock.connect).not.toHaveBeenCalled();
+  const opened = parse("[db-conn-open]");
+  expect(opened.map(({ scope, lane }) => ({ scope, lane }))).toEqual([
+    { scope: scopes[0], lane: "shared" },
+    { scope: scopes[1], lane: "shared" },
+  ]);
+  expect(opened[0].conn).not.toBe(opened[1].conn);
   expect(parse("[db-cmd]").map(({ conn, scope }) => ({ conn, scope }))).toEqual([
-    { conn: parse("[db-conn-open]")[0].conn, scope: scopes[0] },
-    { conn: parse("[db-conn-open]")[0].conn, scope: scopes[1] },
+    { conn: opened[0].conn, scope: scopes[0] },
+    { conn: opened[1].conn, scope: scopes[1] },
   ]);
 });
 

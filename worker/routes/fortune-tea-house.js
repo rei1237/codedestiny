@@ -36,6 +36,7 @@ import { PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
+import { scopeConnection } from "../lib/db-scope-connection.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -4411,7 +4412,7 @@ function buildHoneyResultId(body, consultRequest) {
 }
 
 function honeyCollections() {
-  const db = mongoose.connection.db;
+  const db = (scopeConnection() || mongoose.connection).db;
   return {
     wallets: db.collection("fortune_tea_house_honey_wallets"),
     ledgers: db.collection("fortune_tea_house_honey_ledgers"),

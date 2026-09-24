@@ -42,6 +42,7 @@ import {
 } from "../lib/neo-operation-room-compat.js";
 import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
 import { buildNeoAstroSynastry } from "../lib/neo-synastry.js";
+import { scopeConnection } from "../lib/db-scope-connection.js";
 import {
   buildPreviousAdviceLog,
   neoCompatInitialSections,
@@ -1383,7 +1384,7 @@ const NEO_BADGE_LETTER_COST = 5; // 편지/PDF 해금에 필요한 휘장 수(�
 const NEO_BADGE_GRADE_COUNT = 10; // 휘장 등급 이미지 종류
 
 function neoBadgeCollections() {
-  const db = mongoose.connection.db;
+  const db = (scopeConnection() || mongoose.connection).db;
   return {
     wallets: db.collection("neo_operation_room_badge_wallets"),
     ledgers: db.collection("neo_operation_room_badge_ledgers"),

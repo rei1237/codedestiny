@@ -2,6 +2,7 @@ import {mongoose,mongoTransactionOptions,withMongoRetry} from '../lib/db.js';
 import {createHttpError} from '../lib/http.js';
 import {YeongnyangiAnchovyAccount,YeongnyangiAnchovyLedger,YeongnyangiFreeReading} from '../lib/yeongnyangi-models.js';
 import {ownerId} from './repository.js';
+import {scopeConnection} from '../lib/db-scope-connection.js';
 
 const failure=(status,code)=>createHttpError(status,code,{code});
 export const kstDay=(now=new Date())=>new Date(now.getTime()+9*3600000).toISOString().slice(0,10);
@@ -24,7 +25,7 @@ export async function attend(env,userId,now=new Date()) {
   let awarded=false;
   try{
     await withMongoRetry(env,async()=>{
-      const session=await mongoose.startSession();
+      const session=await (scopeConnection()||mongoose).startSession();
       try{await session.withTransaction(async()=>{
         if(await YeongnyangiAnchovyLedger.findById(_id).session(session).lean())return;
         await YeongnyangiAnchovyLedger.create([{_id,userId:owner,day,kind:'attendance',amount:1}],{session});
@@ -42,7 +43,7 @@ export async function unlockToday(env,userId,now=new Date()) {
   let newlyUnlocked=false;
   try{
     await withMongoRetry(env,async()=>{
-      const session=await mongoose.startSession();
+      const session=await (scopeConnection()||mongoose).startSession();
       try{await session.withTransaction(async()=>{
         if(await YeongnyangiAnchovyLedger.findById(_id).session(session).lean())return;
         const account=await YeongnyangiAnchovyAccount.findOneAndUpdate({_id:owner,balance:{$gte:1}},{$inc:{balance:-1}},

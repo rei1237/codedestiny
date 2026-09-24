@@ -1,4 +1,5 @@
 import { mongoose } from './db.js';
+import { scopedModel } from './db-scope-connection.js';
 
 // One immutable purchase intent also owns the chart snapshot and completed chapters.
 // Users, profiles and PG orders remain in the existing CD collections.
@@ -38,7 +39,7 @@ const schema = new mongoose.Schema({
   completedAt: { type: Date, default: null },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });
 schema.index({ userId: 1, createdAt: -1, _id: -1 });
-export const YeongnyangiRequest = mongoose.models.YeongnyangiRequest || mongoose.model('YeongnyangiRequest', schema);
+export const YeongnyangiRequest = scopedModel(mongoose.models.YeongnyangiRequest || mongoose.model('YeongnyangiRequest', schema));
 
 const anchovyAccountSchema = new mongoose.Schema({
   _id: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
@@ -65,9 +66,9 @@ const freeReadingSchema = new mongoose.Schema({
   leaseUntil: { type: Date, default: null },
 }, { timestamps: true, collection: 'yeongnyangi_free_readings' });
 
-export const YeongnyangiAnchovyAccount = mongoose.models.YeongnyangiAnchovyAccount
-  || mongoose.model('YeongnyangiAnchovyAccount', anchovyAccountSchema);
-export const YeongnyangiAnchovyLedger = mongoose.models.YeongnyangiAnchovyLedger
-  || mongoose.model('YeongnyangiAnchovyLedger', anchovyLedgerSchema);
-export const YeongnyangiFreeReading = mongoose.models.YeongnyangiFreeReading
-  || mongoose.model('YeongnyangiFreeReading', freeReadingSchema);
+export const YeongnyangiAnchovyAccount = scopedModel(mongoose.models.YeongnyangiAnchovyAccount
+  || mongoose.model('YeongnyangiAnchovyAccount', anchovyAccountSchema));
+export const YeongnyangiAnchovyLedger = scopedModel(mongoose.models.YeongnyangiAnchovyLedger
+  || mongoose.model('YeongnyangiAnchovyLedger', anchovyLedgerSchema));
+export const YeongnyangiFreeReading = scopedModel(mongoose.models.YeongnyangiFreeReading
+  || mongoose.model('YeongnyangiFreeReading', freeReadingSchema));

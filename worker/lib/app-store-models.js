@@ -4,6 +4,7 @@
 // 여기서 등록해도 동일하게 동작한다.
 
 import { mongoose } from "./db.js";
+import { scopedModel } from "./db-scope-connection.js";
 
 // 결제 의도(intent). launchBillingFlow 직전에 기록한다.
 //
@@ -34,7 +35,7 @@ appPurchaseIntentSchema.index({ userId: 1, productId: 1, status: 1, createdAt: -
 
 // NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
 // scripts/migrations/20260716-add-app-purchase-intent-indexes.mjs를 DB에 1회 실행할 것.
-export const AppPurchaseIntent = mongoose.models.AppPurchaseIntent
-  || mongoose.model("AppPurchaseIntent", appPurchaseIntentSchema);
+export const AppPurchaseIntent = scopedModel(mongoose.models.AppPurchaseIntent
+  || mongoose.model("AppPurchaseIntent", appPurchaseIntentSchema));
 
 export const APP_PURCHASE_INTENT_TTL_MS = 24 * 60 * 60 * 1000;

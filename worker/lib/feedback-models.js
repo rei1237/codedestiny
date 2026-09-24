@@ -4,6 +4,7 @@
 // 여기서 등록해도 동일하게 동작한다(review-models.js·app-store-models.js 선례).
 
 import { mongoose } from "./db.js";
+import { scopedModel } from "./db-scope-connection.js";
 
 export const FEEDBACK_CATEGORIES = Object.freeze({
   BUG: "bug",
@@ -209,4 +210,4 @@ feedbackSchema.index(
 //
 // NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
 // scripts/migrations/20260731-add-feedback-indexes.mjs 를 DB에 1회 실행할 것.
-export const Feedback = mongoose.models.Feedback || mongoose.model("Feedback", feedbackSchema);
+export const Feedback = scopedModel(mongoose.models.Feedback || mongoose.model("Feedback", feedbackSchema));

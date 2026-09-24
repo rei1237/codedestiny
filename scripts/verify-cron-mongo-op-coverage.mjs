@@ -197,13 +197,13 @@ export function analyzeCronMongoCoverage({ sources, modelsFile, indexFile }) {
   const modelsSource = sources.get(modelsFile);
   if (typeof modelsSource !== "string") return empty([...problems, `모델 정본을 못 읽었다: ${modelsFile}`]);
   const models = new Set();
-  for (const m of modelsSource.matchAll(/export\s+const\s+(\w+)\s*=\s*mongoose\.models\.\w+/g)) models.add(m[1]);
+  for (const m of modelsSource.matchAll(/export\s+const\s+(\w+)\s*=\s*(?:scopedModel\(\s*)?mongoose\.models\.\w+/g)) models.add(m[1]);
   // 🔴 선언 형태가 바뀌면 그 모델의 op 이 통째로 스캔에서 빠지고 위반 0 으로 초록불이 된다.
   //    mongoose.model( 호출 수와 발견 수가 같아야 한다.
   const modelCtorCount = (modelsSource.match(/mongoose\.model\s*\(/g) || []).length;
   if (modelCtorCount !== models.size) {
     problems.push(`모델 발견 수(${models.size})가 mongoose.model( 호출 수(${modelCtorCount})와 다르다`
-      + " — `export const X = mongoose.models.X || mongoose.model(\"X\", …)` 형태를 벗어난 선언이 있다.");
+      + " — `export const X = scopedModel(mongoose.models.X || mongoose.model(\"X\", …))` 형태를 벗어난 선언이 있다.");
   }
 
   /* ── 발견: 크론 진입점 ── */
@@ -350,7 +350,7 @@ export function analyzeCronMongoCoverage({ sources, modelsFile, indexFile }) {
 const FIXTURE_MODELS = [
   "import mongoose from \"mongoose\";",
   "export const User = mongoose.models.User || mongoose.model(\"User\", s);",
-  "export const PointHistory = mongoose.models.PointHistory || mongoose.model(\"PointHistory\", s);",
+  "export const PointHistory = scopedModel(mongoose.models.PointHistory || mongoose.model(\"PointHistory\", s));",
   "",
 ].join("\n");
 

@@ -40,7 +40,8 @@ test("재시도 판정에 op-타임아웃 예외가 실제로 배선돼 있다",
 
 test("재시도가 새 연결로 가도록 웜 참조 무효화가 그대로 남아 있다", () => {
   // 이게 없으면 재시도가 같은 죽은 소켓으로 다시 가 두 배로 느린 실패가 된다.
-  const start = dbSource.indexOf("if (isConnectionLevelFailure)");
+  // 스코프 안(C3)은 그 요청의 연결만 은퇴시키고, 전역 무효화는 스코프 밖 분기에 남는다.
+  const start = dbSource.indexOf("if (isConnectionLevelFailure && !scopedLane)");
   expect(start).toBeGreaterThan(0);
   const block = dbSource.slice(start, start + 200);
   expect(block).toMatch(/lastHealthyAt = 0/);

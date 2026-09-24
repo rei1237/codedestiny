@@ -41,11 +41,11 @@ test("0·음수·NaN 기준은 대기 없음", () => {
   expect(backoffDelayMs("abc", 2)).toBe(0);
 });
 
-test("연결 재시도 3곳이 전부 헬퍼를 쓰고 옛 선형식은 남아 있지 않다", () => {
+test("연결 재시도 4곳이 전부 헬퍼를 쓰고 옛 선형식은 남아 있지 않다", () => {
   const source = readFileSync(fileURLToPath(new URL("../../worker/lib/db.js", import.meta.url)), "utf8");
-  // connectDb 의 family 루프 2곳 + connectPaymentDb 1곳.
+  // connectDb 의 family 루프 2곳 + 요청 스코프 공유 레인(C3) 1곳 + connectPaymentDb 1곳.
   const uses = source.match(/await sleep\(backoffDelayMs\(/g) ?? [];
-  expect(uses).toHaveLength(3);
+  expect(uses).toHaveLength(4);
   // 옛 형태: `retryBaseDelayMS * (attempt + 1)` / `..., 2000) * (attempt + 1)`.
   expect(source).not.toMatch(/retryBaseDelayMS\s*\*\s*\(attempt\s*\+\s*1\)/);
   expect(source).not.toMatch(/2000\)\s*\*\s*\(attempt\s*\+\s*1\)/);

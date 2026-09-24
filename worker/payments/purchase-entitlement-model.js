@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { scopedModel } from "../lib/db-scope-connection.js";
 
 // Purchase rights and service-specific execution rows have different identities.
 // The built-in _id index is sufficient: every lookup is by the verified order.
@@ -16,5 +17,5 @@ const schema = new mongoose.Schema({
   updatedAt: { type: Date, required: true },
 }, { collection: "payment_entitlements", autoIndex: false, autoCreate: false });
 
-export const PurchaseEntitlement = mongoose.models.PurchaseEntitlement
-  || mongoose.model("PurchaseEntitlement", schema);
+export const PurchaseEntitlement = scopedModel(mongoose.models.PurchaseEntitlement
+  || mongoose.model("PurchaseEntitlement", schema));

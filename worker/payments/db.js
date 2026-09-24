@@ -32,6 +32,7 @@ import {
   resetPaymentConnection,
   withMongoRetry,
 } from "../lib/db.js";
+import { scopeConnection, unscopedModel } from "../lib/db-scope-connection.js";
 
 /* 🔴 ContentEntitlement.userId 는 String 이고 나머지 결제 컬렉션은 전부 ObjectId 다
    (worker/lib/models.js). 네이티브 드라이버는 캐스팅을 해 주지 않으므로, auth 의 userId 를
@@ -67,7 +68,8 @@ export function createPaymentContext({ requestId, route }) {
 function resolveCollection(Model, paymentConn) {
   if (paymentConn && paymentConn.readyState === 1) {
     try {
-      const name = Model.collection.collectionName || Model.collection.name;
+      const { collection } = unscopedModel(Model);
+      const name = collection.collectionName || collection.name;
       if (name) return paymentConn.db.collection(name);
     } catch { /* 공유 커넥션 폴백 */ }
   }
@@ -83,7 +85,7 @@ function makeCountingDb(ctx, paymentConn = null, session = null) {
   return {
     async transaction(fn) {
       if (session) throw new Error("Nested payment transaction");
-      const connection = paymentConn || mongoose.connection;
+      const connection = paymentConn || scopeConnection() || mongoose.connection;
       const txn = await connection.startSession();
       try {
         return await txn.withTransaction(() => fn(makeCountingDb(ctx, paymentConn, txn)), mongoTransactionOptions());

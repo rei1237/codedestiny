@@ -109,3 +109,123 @@ test("연결 전 접근은 기반 모델로 폴백하고 모델마다 [db-scope-
     expect(parse("[db-scope-late]")).toEqual([{ scope: late.id, lane: "shared", model: "C3ScopeProbe", prop: "db" }]);
   });
 });
+
+// ── connectDb 쪽 계약(목 mongoose) ─────────────────────────────────────────────
+//   5. 연속한 두 요청은 각자 연결을 세우고(autoCreate:false), 요청이 끝나면 destroy 한다. 전역 connect 는 타지 않는다.
+//   6. 한 요청 안의 순차·동시 connectDb 는 연결 하나를 공유하고, 그 연결이 scopeConnection 으로 묶인다.
+//   7. 연결 레벨 실패는 그 요청의 연결만 은퇴시키고 재시도는 새 연결로 간다. 은퇴한 연결은 스코프 끝에 닫힌다.
+//   8. 스코프 밖은 예전 전역 연결 그대로이고 [db-scope-miss] 를 남긴다.
+
+const ENV = { MONGO_URI: "mongodb://127.0.0.1:27017/test", MONGO_WORKER_RETRY_DELAY_MS: "0" };
+
+function makeSharedConnection() {
+  const conn = {
+    readyState: 0,
+    getClient: () => ({ on: jest.fn() }),
+    asPromise: async () => {
+      conn.readyState = 1;
+      return conn;
+    },
+    destroy: jest.fn(async () => { conn.readyState = 0; }),
+  };
+  return conn;
+}
+
+async function loadSharedLane() {
+  const created = [];
+  const global = { readyState: 0, getClient: () => ({ on: jest.fn() }), db: { command: jest.fn(async () => ({ ok: 1 })) } };
+  const mongooseMock = {
+    connection: global,
+    connect: jest.fn(async () => { global.readyState = 1; return global; }),
+    disconnect: jest.fn(async () => { global.readyState = 0; }),
+    createConnection: jest.fn(() => {
+      const conn = makeSharedConnection();
+      created.push(conn);
+      return conn;
+    }),
+  };
+  delete globalThis.__mongoOperationAdmission;
+  jest.resetModules();
+  jest.unstable_mockModule("mongoose", () => ({ default: mongooseMock }));
+  const db = await import("../../worker/lib/db.js");
+  const scope = await import("../../worker/lib/db-scope.js");
+  const binding = await import("../../worker/lib/db-scope-connection.js");
+  return { ...db, ...scope, ...binding, created, mongooseMock };
+}
+
+const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+test("연속한 두 요청은 각자 공유 레인 연결을 세우고, 요청이 끝나면 destroy 한다", async () => {
+  const { withDbScopes, connectDb, created, mongooseMock } = await loadSharedLane();
+  const entry = withDbScopes({ fetch: () => connectDb(ENV) });
+
+  const first = await entry.fetch();
+  await flush();
+  const second = await entry.fetch();
+  await flush();
+
+  expect(created).toEqual([first, second]);
+  expect(mongooseMock.connect).not.toHaveBeenCalled();
+  expect(mongooseMock.createConnection.mock.calls[0][1]).toMatchObject({ autoCreate: false, bufferCommands: false, monitorCommands: true });
+  expect(first.destroy).toHaveBeenCalledTimes(1);
+  expect(second.destroy).toHaveBeenCalledTimes(1);
+  expect(parse("[db-scope-close]").map(({ lane, why }) => ({ lane, why }))).toEqual([
+    { lane: "shared", why: "end" },
+    { lane: "shared", why: "end" },
+  ]);
+  expect(parse("[db-scope-miss]")).toEqual([]);
+});
+
+test("한 요청 안의 순차·동시 connectDb 는 연결 하나를 공유하고, 그 연결이 scopeConnection 으로 묶인다", async () => {
+  const { withDbScopes, connectDb, scopeConnection, created } = await loadSharedLane();
+  const entry = withDbScopes({
+    fetch: async () => {
+      const [a, b] = await Promise.all([connectDb(ENV), connectDb(ENV)]);
+      const c = await connectDb(ENV);
+      return { a, b, c, bound: scopeConnection() };
+    },
+  });
+
+  const { a, b, c, bound } = await entry.fetch();
+
+  expect(created).toHaveLength(1);
+  expect(b).toBe(a);
+  expect(c).toBe(a);
+  expect(bound).toBe(a);
+});
+
+test("연결 레벨 실패는 그 요청의 연결만 은퇴시키고 재시도는 새 연결로 간다; 은퇴한 연결은 스코프 끝에 닫힌다", async () => {
+  const { withDbScopes, withMongoRetry, created, mongooseMock } = await loadSharedLane();
+  let calls = 0;
+  const entry = withDbScopes({
+    fetch: () => withMongoRetry(ENV, async () => {
+      calls += 1;
+      if (calls === 1) {
+        const error = new Error("connection reset");
+        error.name = "MongoNetworkError";
+        throw error;
+      }
+      return "ok";
+    }, { maxRetries: 1, baseDelayMS: 0 }),
+  });
+
+  await expect(entry.fetch()).resolves.toBe("ok");
+  await flush();
+
+  expect(created).toHaveLength(2);
+  expect(mongooseMock.disconnect).not.toHaveBeenCalled();
+  expect(created[0].destroy).toHaveBeenCalledTimes(1);
+  expect(created[1].destroy).toHaveBeenCalledTimes(1);
+  expect(parse("[db-scope-close]").map(({ why }) => why).sort()).toEqual(["end", "reset"]);
+});
+
+test("스코프 밖 connectDb 는 예전 전역 연결 그대로이고 [db-scope-miss] 를 남긴다", async () => {
+  const { connectDb, created, mongooseMock } = await loadSharedLane();
+
+  const conn = await connectDb(ENV);
+
+  expect(conn).toBe(mongooseMock.connection);
+  expect(mongooseMock.connect).toHaveBeenCalledTimes(1);
+  expect(created).toEqual([]);
+  expect(parse("[db-scope-miss]")).toEqual([{ lane: "shared" }]);
+});

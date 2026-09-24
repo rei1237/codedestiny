@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 import { currentDbScope, currentDbScopeId, onDbScopeEnd } from "./db-scope.js";
+import { bindScopeConnection, releaseScopeModels } from "./db-scope-connection.js";
 import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
@@ -414,10 +415,10 @@ function instrumentMongoClient(client, lane = "shared") {
  *
  * 실패해도 연결을 막지 않는다(전부 try 안, 값은 -1 로 남는다).
  */
-function observeConnectPhases(startedAt) {
+function observeConnectPhases(startedAt, clientOverride = null) {
   const phases = { dnsMs: -1, hosts: 0, helloRttMs: -1, socketReadyMs: -1 };
   try {
-    const client = mongoose.connection.getClient?.();
+    const client = clientOverride || mongoose.connection.getClient?.();
     if (!client || typeof client.on !== "function") return phases;
     const createdAtByConnection = new Map();
     client.on("serverOpening", () => {
@@ -597,6 +598,12 @@ async function detachDeadWarmConnection() {
  * 호출부는 await 하지 않아도 된다(void). 복구는 다음 요청을 위한 것이지 이 요청을 살리는 게 아니다.
  */
 export async function requestPoolRecovery(env = {}, options = {}) {
+  // 요청 스코프 연결(C3)이면 그 요청의 연결만 은퇴시킨다 — 다음 connectDb 가 새 연결을 세운다.
+  const scopedLane = activeSharedLane();
+  if (scopedLane) {
+    retireScopedSharedConnection(scopedLane);
+    return true;
+  }
   const cooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
   if (options.force !== true && Date.now() - lastPoolResetAt < cooldownMS) return false;
 
@@ -737,8 +744,10 @@ export async function connectDb(env = {}, options = {}) {
   const maxIdleTimeMS = clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "60000"), 60000, 10000, 300000);
   const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
+  // 스코프 안이면 전역 연결의 웜 판정·재수립을 통째로 건너뛴다(아래 sharedLane 분기).
+  const sharedLane = sharedLaneForRequest();
 
-  if (mongoose.connection.readyState === 1) {
+  if (!sharedLane && mongoose.connection.readyState === 1) {
     /* 🔴 웜 커넥션을 **검증 없이 재사용하지 않는다**(2026-08-16 프로덕션 실측 후 방향 반전).
      *
      * 여기 있던 "최근에 건강을 확인했으면 ping 을 생략한다"(50초)는 M0→M10 전환기에 넣은 것이고,
@@ -842,9 +851,11 @@ export async function connectDb(env = {}, options = {}) {
          형태 — 는 위 분기가 ping 을 보내지 않으므로 여기까지 오지 않는다.)
 
          떼는 것은 2026-08-08 의 전역 disconnect 와 다르다: detachDeadWarmConnection() 은 mongoose 를
-         먼저 분리하고 옛 클라이언트를 배경에서 닫는다. 그 위의 이웃 op 은 세션 종료/미연결 에러로
-         빨리 실패하고(isTransientMongoError 가 그 둘을 transient 로 분류한다) withMongoRetry 의
-         다음 시도가 새 커넥션을 탄다. 🔴 ping 이 거짓 실패(살아 있는데 예산 300 초과)면 살아 있던
+         먼저 분리하고 옛 클라이언트를 배경에서 닫는다. 아직 커넥션을 체크아웃하지 않은 이웃 op 은
+         세션 종료/미연결 에러로 빨리 실패하고(isTransientMongoError 가 그 둘을 transient 로 분류한다)
+         withMongoRetry 의 다음 시도가 새 커넥션을 탄다. 🔴 이미 명령을 보낸 이웃은 깨우지 못한다
+         (2026-09-24 스테이징 실측: detach 뒤에도 find 가 8000ms 까지 pending). 스코프 안은 이 분기를
+         타지 않는다(C3, 요청마다 자기 연결). 🔴 ping 이 거짓 실패(살아 있는데 예산 300 초과)면 살아 있던
          이웃을 한 번 재시도시키는 비용을 낸다 — 스테이징 웜 ping rtt 실측 186~261ms 라 예산과
          40ms 차이다. 예산 인하는 하지 말고, 프로덕션 [db-ping] rtt 를 잰 뒤에만 올릴 것.
 
@@ -911,6 +922,106 @@ export async function connectDb(env = {}, options = {}) {
     return [4, 0];
   })();
 
+  // 공유 레인 연결 옵션. 전역 연결(아래 루프)과 요청 스코프 연결(connectScopedSharedLane)이 같은 값을 쓴다.
+  const buildConnectOptions = (ipFamily) => {
+    const connectOptions = {
+      dbName: resolveMongoDbName(env) || undefined,
+      // 🔴 이 값은 전역 예산의 분모다: 총 연결 = 아이솔레이트 수 × maxPoolSize.
+      // 2026-08-01 에 "M0 상한 500 에 포화됐다"고 보고 5 → 2 로 줄였다가 **되돌렸다**.
+      // 계측이 그 전제를 반증했다:
+      //   · 전 구간 `[db-connect-error]` **0건** — 상한에 닿았다면 연결 생성이 실패해야 한다.
+      //   · 풀 2 구간에서 체크아웃 **257건 시도 / 219건 실패(85%)**, inFlightOps 가 6까지 올라
+      //     커넥션 2개로는 아이솔레이트 내부 동시성을 감당하지 못했다.
+      // 즉 병목은 전역 상한이 아니라 **아이솔레이트 내부 풀 고갈**이고, 그건 소켓 점유 시간을
+      // 줄이는 쪽(당시 socketTimeoutMS 11초 — 현재값은 [vars]/패리티 테스트가 정본, 2026-08-31)이 맞는
+      // 처방이었다. 근거 없이 다시 줄이지 말 것.
+      //
+      // 🔴 5 → 10 (2026-08-12). 위 진단이 여전히 맞고, 소켓 점유 시간을 줄이는 것만으로는
+      // 부족하다는 것이 프로덕션 실측으로 드러났다. 결제 경로 응답 시간이 **두 덩어리로 뭉친다**:
+      //   · ~5.07~5.20초 — waitQueueTimeoutMS(5,000)에서 커넥션을 못 받아 실패 → 재시도 성공
+      //   · ~14초        — op 예산(12,000)에서 잘려 실패 → 재시도 성공
+      // 두 값이 각 타임아웃과 200ms 안쪽으로 일치한다. 즉 대부분의 요청이 '느린 것'이 아니라
+      // **커넥션을 기다리다 타임아웃 후 재시도로 살아나는** 것이다. 실제로 자유 소켓을 즉시
+      // 받은 요청 하나는 1,588ms 로 끝났다 — 쿼리 자체는 빠르다.
+      // Mongo 를 아예 안 쓰는 라우트(GET /api/payments/config)는 158~894ms 라, 워커·네트워크
+      // 고정비가 아니라 커넥션 확보가 병목임이 같은 측정에서 함께 확인된다.
+      // 전역 예산은 여전히 여유가 있다(총 연결 = 아이솔레이트 수 × 10, M0 상한 500).
+      // env(MONGO_MAX_POOL_SIZE)로 배포 없이 되돌릴 수 있다.
+      //
+      // 🔴 M10 전환 후에도 10 을 유지한다(2026-08-12). 위 두 덩어리(5.1초/14초) 증상의 원인은
+      // 소켓 부족 그 자체가 아니라 **M0 에서 op 하나가 소켓을 오래 물고 있던 것**이었다
+      // (서버 명령 실행은 250~417ms 인데 체크아웃 대기가 최대 10,383ms). M10 전용 노드에서
+      // 점유 시간이 짧아지면 같은 10 소켓의 회전율이 올라가 자연히 해소된다. 여기서 더 올리면
+      // 아이솔레이트당 소켓만 늘어 **신규 커넥션 생성률(노드당 15/s)** 예산을 더 먹는다.
+      // 올리기 전에 반드시 Atlas Metrics 의 커넥션 그래프와 `[db-op-timeout]` 의 checkOutFailed 를
+      // 먼저 볼 것 — 지금 필요한 것은 소켓 수가 아니라 소켓 회전율이다.
+      //
+      // clampInt 를 쓴다: 예전엔 이 줄만 raw Number() 라 비숫자 env 가 NaN 으로 드라이버에
+      // 그대로 들어갔다(이웃 옵션은 전부 clamp 를 탄다).
+      maxPoolSize: clampInt(getEnv(env, "MONGO_MAX_POOL_SIZE", "10"), 10, 1, 50),
+      // 유휴 시 커넥션을 하나도 붙들지 않는다(드라이버 기본값이지만 전역 예산에 직결되므로 명시).
+      // 🔴 M10 에서도 0 을 유지한다. minPoolSize > 0 은 아이솔레이트가 뜰 때마다 그 수만큼
+      // 핸드셰이크를 **미리** 하게 만드는데, 서버리스는 아이솔레이트가 수시로 생기고 죽으므로
+      // 그게 곧 15/s 예산을 태우는 행위다. 예열은 장수명 런타임에서만 의미가 있다.
+      minPoolSize: 0,
+      // 🔴 동시에 새로 여는 커넥션 수의 상한(드라이버 기본값 2). M10·M20 의 신규 커넥션
+      // 생성률 제한(노드당 초당 15개)에 직접 대응하는 유일한 드라이버 노브라 기본값에 맡기지
+      // 않고 명시한다 — 드라이버 버전이 기본값을 바꿔도 우리 예산이 흔들리지 않게 한다.
+      // 콜드 아이솔레이트가 풀을 한꺼번에 채우지 않고 2개씩 계단식으로 연다.
+      maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
+      // 🔴 M10 은 3노드 리플리카셋이다(M0 에는 리플리카셋이 없어 이 두 옵션이 무의미했다).
+      // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다.
+      // 🔴 선거 내성을 담당하는 것은 **이 두 옵션과 withMongoRetry 의 재시도**이지 긴 선택창이
+      // 아니다(2026-08-13 정정). 예전 주석은 serverSelectionTimeoutMS 8000 을 "선거가 끝날
+      // 때까지 기다려 주는 시간"이라 적었지만, 그 값은 파생 하한(+3500)을 통해 모든 요청의
+      // 시도 예산을 11.5초로 밀어 올려 슬롯을 붙들었다 — 드문 선거를 위해 상시 비용을 냈다.
+      // 지금은 3000 이며(코드·wrangler [vars] 동일), 되올리려면 양쪽을 함께 올려야 한다.
+      retryWrites: true,
+      retryReads: true,
+      /* 🔴 쓰기 보장을 코드에 못박는다(2026-09-06 Phase 1 진단 P1). 그 전까지 write concern 은
+         어디에도 없어서 실효값이 MONGO_URI 의 `w=` 에 종속됐다 — URI 에 `w=1` 이 섞이면 primary
+         교체 순간 확정된 결제·발급된 세션이 롤백될 수 있고, 코드만 봐서는 그걸 알 수 없었다.
+         M10 은 3노드 PSS 라 majority 는 2노드 ack 이고 커넥션 수에는 영향이 없다.
+         wtimeoutMS 는 소켓 타임아웃(7000)·op 예산(8000) 안쪽이어야 우리가 먼저 자른다. */
+      writeConcern: mongoWriteConcern(env),
+      // Atlas Query Profiler / Real-Time Panel 에서 부하 주체를 구분하기 위한 라벨.
+      // 이게 없으면 공유 커넥션과 결제 레인이 같은 익명 클라이언트로 뭉쳐 보인다.
+      appName: String(getEnv(env, "MONGO_APP_NAME", "code-destiny-worker") || "code-destiny-worker").slice(0, 128),
+      serverSelectionTimeoutMS,
+      connectTimeoutMS,
+      socketTimeoutMS,
+      waitQueueTimeoutMS,
+      maxIdleTimeMS,
+      bufferCommands: false,
+      autoIndex: false,
+      // Cloudflare Workers는 요청 간 I/O 격리로 '한 요청에서 만든 스트림/소켓'을 다른 요청이 쓰면 막는다.
+      // 드라이버 기본 'stream' 모니터는 요청 수명을 넘겨 지속되는 ReadableStream을 만들어, 다른 요청이 연결을
+      // 재사용할 때 "Cannot perform I/O on behalf of a different request"(→ Mongo 에러로 분류 안 돼 500)를
+      // 유발했다. 'poll' 모드는 짧은 개별 하트비트만 써 이 지속 스트림을 만들지 않는다(서버리스/엣지 권장).
+      serverMonitoringMode: "poll",
+      // 🔴 poll 모니터는 노드마다 주기적으로 hello 를 던진다. M10 은 3노드라 클라이언트 하나당
+      // 초당 0.3회가 요청과 무관하게 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
+      // (M0 는 1노드였으므로 M10 전환만으로 3배가 됐다 — Atlas Opcounters 가 트래픽 없는
+      // 새벽에도 평평하게 떠 있는 성분이 이것이다). 드라이버 기본값 10000 을 30000 으로 늘려
+      // 3분의 1로 줄인다. 진행 중인 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면
+      // 드라이버가 즉시 모니터 확인을 트리거하기 때문이다(minHeartbeatFrequency 500ms).
+      // 늦어지는 것은 **유휴 상태에서의 토폴로지 변화 발견**뿐이다.
+      heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
+      // commandStarted/Succeeded 이벤트를 켠다 — '명령이 나갔는지'와 '서버가 늦는지'를
+      // 가르는 유일한 신호다. 카운터만 올리므로 비용은 무시할 수준이다.
+      monitorCommands: true,
+    };
+    if (ipFamily === 4 || ipFamily === 6) {
+      connectOptions.family = ipFamily;
+    }
+    return connectOptions;
+  };
+
+  // 요청 스코프 안이면 전역 연결 대신 이 요청의 연결을 세운다(설계안 C3 — sharedLaneForRequest 주석).
+  if (sharedLane) {
+    return connectScopedSharedLane(sharedLane, { uri, familyCandidates, retryCount, retryBaseDelayMS, guardTimeoutMS, buildConnectOptions, timings });
+  }
+
   let lastError = null;
 
   for (let familyIndex = 0; familyIndex < familyCandidates.length; familyIndex += 1) {
@@ -926,96 +1037,7 @@ export async function connectDb(env = {}, options = {}) {
         // 요청당 로그가 하나 더 늘므로 이미 요청당 1회 나가는 이 줄에 붙인다.
         const warmSuffix = warmPingMs >= 0 ? ` warmPingMs=${warmPingMs} warmResetMs=${warmResetMs}` : "";
         console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}${warmSuffix}`);
-        const connectOptions = {
-          dbName: resolveMongoDbName(env) || undefined,
-          // 🔴 이 값은 전역 예산의 분모다: 총 연결 = 아이솔레이트 수 × maxPoolSize.
-          // 2026-08-01 에 "M0 상한 500 에 포화됐다"고 보고 5 → 2 로 줄였다가 **되돌렸다**.
-          // 계측이 그 전제를 반증했다:
-          //   · 전 구간 `[db-connect-error]` **0건** — 상한에 닿았다면 연결 생성이 실패해야 한다.
-          //   · 풀 2 구간에서 체크아웃 **257건 시도 / 219건 실패(85%)**, inFlightOps 가 6까지 올라
-          //     커넥션 2개로는 아이솔레이트 내부 동시성을 감당하지 못했다.
-          // 즉 병목은 전역 상한이 아니라 **아이솔레이트 내부 풀 고갈**이고, 그건 소켓 점유 시간을
-          // 줄이는 쪽(당시 socketTimeoutMS 11초 — 현재값은 [vars]/패리티 테스트가 정본, 2026-08-31)이 맞는
-          // 처방이었다. 근거 없이 다시 줄이지 말 것.
-          //
-          // 🔴 5 → 10 (2026-08-12). 위 진단이 여전히 맞고, 소켓 점유 시간을 줄이는 것만으로는
-          // 부족하다는 것이 프로덕션 실측으로 드러났다. 결제 경로 응답 시간이 **두 덩어리로 뭉친다**:
-          //   · ~5.07~5.20초 — waitQueueTimeoutMS(5,000)에서 커넥션을 못 받아 실패 → 재시도 성공
-          //   · ~14초        — op 예산(12,000)에서 잘려 실패 → 재시도 성공
-          // 두 값이 각 타임아웃과 200ms 안쪽으로 일치한다. 즉 대부분의 요청이 '느린 것'이 아니라
-          // **커넥션을 기다리다 타임아웃 후 재시도로 살아나는** 것이다. 실제로 자유 소켓을 즉시
-          // 받은 요청 하나는 1,588ms 로 끝났다 — 쿼리 자체는 빠르다.
-          // Mongo 를 아예 안 쓰는 라우트(GET /api/payments/config)는 158~894ms 라, 워커·네트워크
-          // 고정비가 아니라 커넥션 확보가 병목임이 같은 측정에서 함께 확인된다.
-          // 전역 예산은 여전히 여유가 있다(총 연결 = 아이솔레이트 수 × 10, M0 상한 500).
-          // env(MONGO_MAX_POOL_SIZE)로 배포 없이 되돌릴 수 있다.
-          //
-          // 🔴 M10 전환 후에도 10 을 유지한다(2026-08-12). 위 두 덩어리(5.1초/14초) 증상의 원인은
-          // 소켓 부족 그 자체가 아니라 **M0 에서 op 하나가 소켓을 오래 물고 있던 것**이었다
-          // (서버 명령 실행은 250~417ms 인데 체크아웃 대기가 최대 10,383ms). M10 전용 노드에서
-          // 점유 시간이 짧아지면 같은 10 소켓의 회전율이 올라가 자연히 해소된다. 여기서 더 올리면
-          // 아이솔레이트당 소켓만 늘어 **신규 커넥션 생성률(노드당 15/s)** 예산을 더 먹는다.
-          // 올리기 전에 반드시 Atlas Metrics 의 커넥션 그래프와 `[db-op-timeout]` 의 checkOutFailed 를
-          // 먼저 볼 것 — 지금 필요한 것은 소켓 수가 아니라 소켓 회전율이다.
-          //
-          // clampInt 를 쓴다: 예전엔 이 줄만 raw Number() 라 비숫자 env 가 NaN 으로 드라이버에
-          // 그대로 들어갔다(이웃 옵션은 전부 clamp 를 탄다).
-          maxPoolSize: clampInt(getEnv(env, "MONGO_MAX_POOL_SIZE", "10"), 10, 1, 50),
-          // 유휴 시 커넥션을 하나도 붙들지 않는다(드라이버 기본값이지만 전역 예산에 직결되므로 명시).
-          // 🔴 M10 에서도 0 을 유지한다. minPoolSize > 0 은 아이솔레이트가 뜰 때마다 그 수만큼
-          // 핸드셰이크를 **미리** 하게 만드는데, 서버리스는 아이솔레이트가 수시로 생기고 죽으므로
-          // 그게 곧 15/s 예산을 태우는 행위다. 예열은 장수명 런타임에서만 의미가 있다.
-          minPoolSize: 0,
-          // 🔴 동시에 새로 여는 커넥션 수의 상한(드라이버 기본값 2). M10·M20 의 신규 커넥션
-          // 생성률 제한(노드당 초당 15개)에 직접 대응하는 유일한 드라이버 노브라 기본값에 맡기지
-          // 않고 명시한다 — 드라이버 버전이 기본값을 바꿔도 우리 예산이 흔들리지 않게 한다.
-          // 콜드 아이솔레이트가 풀을 한꺼번에 채우지 않고 2개씩 계단식으로 연다.
-          maxConnecting: clampInt(getEnv(env, "MONGO_MAX_CONNECTING", "2"), 2, 1, 8),
-          // 🔴 M10 은 3노드 리플리카셋이다(M0 에는 리플리카셋이 없어 이 두 옵션이 무의미했다).
-          // 이제 primary 교체(failover/election) 시 드라이버가 자동으로 한 번 다시 시도한다.
-          // 🔴 선거 내성을 담당하는 것은 **이 두 옵션과 withMongoRetry 의 재시도**이지 긴 선택창이
-          // 아니다(2026-08-13 정정). 예전 주석은 serverSelectionTimeoutMS 8000 을 "선거가 끝날
-          // 때까지 기다려 주는 시간"이라 적었지만, 그 값은 파생 하한(+3500)을 통해 모든 요청의
-          // 시도 예산을 11.5초로 밀어 올려 슬롯을 붙들었다 — 드문 선거를 위해 상시 비용을 냈다.
-          // 지금은 3000 이며(코드·wrangler [vars] 동일), 되올리려면 양쪽을 함께 올려야 한다.
-          retryWrites: true,
-          retryReads: true,
-          /* 🔴 쓰기 보장을 코드에 못박는다(2026-09-06 Phase 1 진단 P1). 그 전까지 write concern 은
-             어디에도 없어서 실효값이 MONGO_URI 의 `w=` 에 종속됐다 — URI 에 `w=1` 이 섞이면 primary
-             교체 순간 확정된 결제·발급된 세션이 롤백될 수 있고, 코드만 봐서는 그걸 알 수 없었다.
-             M10 은 3노드 PSS 라 majority 는 2노드 ack 이고 커넥션 수에는 영향이 없다.
-             wtimeoutMS 는 소켓 타임아웃(7000)·op 예산(8000) 안쪽이어야 우리가 먼저 자른다. */
-          writeConcern: mongoWriteConcern(env),
-          // Atlas Query Profiler / Real-Time Panel 에서 부하 주체를 구분하기 위한 라벨.
-          // 이게 없으면 공유 커넥션과 결제 레인이 같은 익명 클라이언트로 뭉쳐 보인다.
-          appName: String(getEnv(env, "MONGO_APP_NAME", "code-destiny-worker") || "code-destiny-worker").slice(0, 128),
-          serverSelectionTimeoutMS,
-          connectTimeoutMS,
-          socketTimeoutMS,
-          waitQueueTimeoutMS,
-          maxIdleTimeMS,
-          bufferCommands: false,
-          autoIndex: false,
-          // Cloudflare Workers는 요청 간 I/O 격리로 '한 요청에서 만든 스트림/소켓'을 다른 요청이 쓰면 막는다.
-          // 드라이버 기본 'stream' 모니터는 요청 수명을 넘겨 지속되는 ReadableStream을 만들어, 다른 요청이 연결을
-          // 재사용할 때 "Cannot perform I/O on behalf of a different request"(→ Mongo 에러로 분류 안 돼 500)를
-          // 유발했다. 'poll' 모드는 짧은 개별 하트비트만 써 이 지속 스트림을 만들지 않는다(서버리스/엣지 권장).
-          serverMonitoringMode: "poll",
-          // 🔴 poll 모니터는 노드마다 주기적으로 hello 를 던진다. M10 은 3노드라 클라이언트 하나당
-          // 초당 0.3회가 요청과 무관하게 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
-          // (M0 는 1노드였으므로 M10 전환만으로 3배가 됐다 — Atlas Opcounters 가 트래픽 없는
-          // 새벽에도 평평하게 떠 있는 성분이 이것이다). 드라이버 기본값 10000 을 30000 으로 늘려
-          // 3분의 1로 줄인다. 진행 중인 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면
-          // 드라이버가 즉시 모니터 확인을 트리거하기 때문이다(minHeartbeatFrequency 500ms).
-          // 늦어지는 것은 **유휴 상태에서의 토폴로지 변화 발견**뿐이다.
-          heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
-          // commandStarted/Succeeded 이벤트를 켠다 — '명령이 나갔는지'와 '서버가 늦는지'를
-          // 가르는 유일한 신호다. 카운터만 올리므로 비용은 무시할 수준이다.
-          monitorCommands: true,
-        };
-        if (ipFamily === 4 || ipFamily === 6) {
-          connectOptions.family = ipFamily;
-        }
+        const connectOptions = buildConnectOptions(ipFamily);
 
         connectStartedAt = Date.now();
         const connectTask = mongoose.connect(uri, connectOptions);
@@ -1138,14 +1160,128 @@ export async function connectDb(env = {}, options = {}) {
 const globalPaymentLane = { conn: null, promise: null };
 const scopedPaymentLanes = new WeakMap();
 
-async function destroyScopedPaymentConnection(conn, scopeId, why) {
+async function destroyScopedConnection(conn, scopeId, laneName, why) {
   const startedAt = Date.now();
   try {
     if (typeof conn.destroy === "function") await conn.destroy(false);
   } catch (e) {
     // 이미 끊긴 커넥션을 닫는 실패는 정보가 없다.
   }
-  console.log("[db-scope-close]", JSON.stringify({ scope: scopeId, lane: "payment", why, closeMs: Date.now() - startedAt }));
+  console.log("[db-scope-close]", JSON.stringify({ scope: scopeId, lane: laneName, why, closeMs: Date.now() - startedAt }));
+}
+
+// ── 공유 레인의 요청 스코프 연결(설계안 C3, 2026-09-25) ─────────────────────────────
+// 결제 레인(C4, 아래)과 같은 이유다. 프로덕션 결과 화면 18요청이 공유 레인에서 멈췄고, 멈춘 find 는 옆 요청이
+// 연 소켓 위에 있었다(2026-09-24 8단계, [db-conn-open] 31건 전부 공유 레인). 전역 연결을 ping 으로 검증해도
+// 막을 수 없다 — 이웃 op 이 살아 있으면 ping 을 건너뛰고 그 연결을 그대로 넘긴다(connectDb 웜 분기).
+// 그래서 스코프 안에서는 요청마다 연결을 열고, 그 요청의 모델이 그 연결로 가게 묶는다(./db-scope-connection.js).
+// 스코프 안에서는 전역 웜 판정·ping·detach·풀 리셋 상태기계를 타지 않는다. 전부 "여러 요청이 한 연결을 나눠
+// 쓴다"를 전제로 한 장치이고, 요청이 자기 연결만 쓰면 전제가 사라진다. 연결 레벨 실패는 그 요청의 연결만
+// 은퇴시키고(retired), 은퇴한 연결은 같은 요청의 다른 op 이 아직 쓰고 있을 수 있어 스코프가 끝날 때 닫는다.
+// autoCreate:false — 연결마다 모델 컬렉션 생성(createCollection)을 보내지 않는다. 스키마에 capped·timeseries·
+// collation·validator 가 없어 첫 쓰기가 컬렉션을 만드는 것과 차이가 없다(2026-09-25 전수 확인).
+// 스코프 밖(테스트·스크립트)은 예전 전역 연결 그대로이고 [db-scope-miss] 를 남긴다.
+const scopedSharedLanes = new WeakMap();
+
+function sharedLaneForRequest() {
+  const scope = currentDbScope();
+  if (!scope) {
+    console.log("[db-scope-miss]", JSON.stringify({ lane: "shared" }));
+    return null;
+  }
+  const existing = scopedSharedLanes.get(scope);
+  if (existing && !scope.ended) return existing;
+  const lane = { scope, conn: null, promise: null, retired: [] };
+  const registered = onDbScopeEnd(async () => {
+    // 수립 중이면 끝나기를 기다렸다가 닫는다 — 가드 타임아웃 뒤에도 수립은 계속된다.
+    if (lane.promise) await lane.promise.catch(() => {});
+    const conn = lane.conn;
+    lane.conn = null;
+    bindScopeConnection(scope, null);
+    const closing = lane.retired.splice(0).map((stale) => destroyScopedConnection(stale, scope.id, "shared", "reset"));
+    if (conn) closing.push(destroyScopedConnection(conn, scope.id, "shared", "end"));
+    await Promise.all(closing);
+    releaseScopeModels(scope);
+  });
+  if (!registered) {
+    console.log("[db-scope-late]", JSON.stringify({ scope: scope.id, lane: "shared" }));
+    return null;
+  }
+  scopedSharedLanes.set(scope, lane);
+  return lane;
+}
+
+// 지금 요청의 공유 레인(없거나 스코프가 끝났으면 null). 로그를 남기지 않는 조회용이다.
+function activeSharedLane() {
+  const scope = currentDbScope();
+  if (!scope || scope.ended) return null;
+  return scopedSharedLanes.get(scope) || null;
+}
+
+// 이 요청의 연결을 은퇴시킨다. 다음 connectDb 가 새 연결을 세우고, 은퇴한 연결은 스코프 끝에 닫힌다.
+function retireScopedSharedConnection(lane) {
+  if (!lane.conn) return;
+  lane.retired.push(lane.conn);
+  lane.conn = null;
+  bindScopeConnection(lane.scope, null);
+}
+
+async function connectScopedSharedLane(lane, params) {
+  if (lane.conn && lane.conn.readyState === 1) return lane.conn;
+  if (!lane.promise) {
+    retireScopedSharedConnection(lane);
+    lane.promise = establishScopedSharedLane(lane, params).finally(() => { lane.promise = null; });
+  }
+  return lane.promise;
+}
+
+async function establishScopedSharedLane(lane, { uri, familyCandidates, retryCount, retryBaseDelayMS, guardTimeoutMS, buildConnectOptions, timings }) {
+  const scopeId = lane.scope.id;
+  let lastError = null;
+  for (let familyIndex = 0; familyIndex < familyCandidates.length; familyIndex += 1) {
+    const ipFamily = familyCandidates[familyIndex];
+    for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+      console.log(`[db-connect] starting connection to mongodb... lane=shared scope=${scopeId} family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
+      const startedAt = Date.now();
+      let opening = null;
+      try {
+        opening = mongoose.createConnection(uri, { ...buildConnectOptions(ipFamily), autoCreate: false });
+        // 계측은 asPromise() 를 기다리기 전 같은 동기 지점에서 건다(결제 레인 establishLane 과 같은 이유).
+        let phases = null;
+        try {
+          const client = opening.getClient?.();
+          phases = observeConnectPhases(startedAt, client);
+          instrumentMongoClient(client, "shared");
+        } catch (e) {
+          // 계측 실패는 무시한다.
+        }
+        const conn = await withTimeout(opening.asPromise(), guardTimeoutMS, "MongoDB connection timed out in Worker.");
+        if (conn.readyState !== 1) throw new Error("MongoDB connection is not ready in Worker.");
+        lane.conn = conn;
+        bindScopeConnection(lane.scope, conn);
+        if (timings) {
+          timings.handshakeMs = Date.now() - startedAt;
+          if (phases) {
+            timings.dnsMs = phases.dnsMs;
+            timings.socketReadyMs = phases.socketReadyMs;
+            timings.helloRttMs = phases.helloRttMs;
+            timings.hosts = phases.hosts;
+          }
+        }
+        console.log(`[db-connect] mongodb connected successfully. lane=shared scope=${scopeId} family=${ipFamily} elapsedMs=${Date.now() - startedAt} ${formatConnectPhases(phases)}`);
+        return conn;
+      } catch (error) {
+        lastError = error;
+        // 가드에 걸려도 수립은 계속되므로 버리지 않고 스코프 끝에 닫는다.
+        if (opening) lane.retired.push(opening);
+        console.error(`[db-connect-error] shared lane failed (scope=${scopeId} family=${ipFamily} attempt=${attempt + 1}): ${String(error?.message || error).slice(0, 200)}`);
+        const isLastAttemptForFamily = attempt >= retryCount;
+        const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
+        if (!isLastAttemptForFamily || hasMoreFamilyCandidates) await sleep(backoffDelayMs(retryBaseDelayMS, attempt));
+      }
+    }
+  }
+  throw lastError || new Error("MongoDB connection is not ready in Worker.");
 }
 
 // 이 요청이 쓸 레인 홀더. 스코프 안이면 처음 부를 때 만들고, 스코프가 끝날 때 닫기를 등록한다.
@@ -1163,7 +1299,7 @@ function paymentLaneForRequest() {
     if (lane.promise) await lane.promise;
     const conn = lane.conn;
     lane.conn = null;
-    if (conn) await destroyScopedPaymentConnection(conn, scope.id, "end");
+    if (conn) await destroyScopedConnection(conn, scope.id, "payment", "end");
   });
   if (!registered) {
     console.log("[db-scope-late]", JSON.stringify({ scope: scope.id, lane: "payment" }));
@@ -1184,7 +1320,7 @@ export async function resetPaymentConnection() {
     const stale = lane?.conn;
     if (!stale) return;
     lane.conn = null;
-    await destroyScopedPaymentConnection(stale, scope.id, "reset");
+    await destroyScopedConnection(stale, scope.id, "payment", "reset");
     return;
   }
   const stale = globalPaymentLane.conn;
@@ -1595,7 +1731,8 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // 이 연결 위에서 실제로 작업이 성공했다 = 연결은 살아 있다. 다른 요청이 예약해 둔 전역
         // disconnect가 있다면 취소한다 — 멀쩡한 연결을 끊어 다음 요청을 콜드 재연결로 몰지 않는다.
         // 전용 레인의 성공은 공유 커넥션에 대해 아무것도 증명하지 않으므로 취소 권한도 없다.
-        if (ownsSharedConnection) {
+        // 요청 스코프 연결(C3)의 성공도 전역 연결에 대해서는 아무것도 증명하지 않는다.
+        if (ownsSharedConnection && !activeSharedLane()) {
           pendingPoolReset = false;
           consecutiveConnectionFailures = 0;
         }
@@ -1679,7 +1816,11 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         // 그대로 붙들고 있을 위험만 남았다. 같은 아이디어를 다시 넣으려면 먼저 계측으로 전제를 세울 것.
         // 실제 병목은 연결 수립이 아니라 **수립된 연결 위에서 쿼리가 op 예산(당시 12초, 현재 [vars]
         // MONGO_OP_ATTEMPT_TIMEOUT_MS=8000 — 정본은 [vars]/패리티 테스트, 2026-08-31)을 넘기는 것**이다.
-        if (isConnectionLevelFailure) {
+        // 요청 스코프 연결(C3)이면 그 요청의 연결만 은퇴시킨다. 아래 전역 상태기계는 여러 요청이 나눠 쓰는
+        // 전역 연결을 위한 것이라 스코프 안에서는 돌리지 않는다(sharedLaneForRequest 주석).
+        const scopedLane = isConnectionLevelFailure ? activeSharedLane() : null;
+        if (scopedLane) retireScopedSharedConnection(scopedLane);
+        if (isConnectionLevelFailure && !scopedLane) {
           lastHealthyAt = 0;
           connectPromise = null;
           // 🔴 우리가 방금 끊은 직후의 실패는 '연속 실패'로 세지 않는다.

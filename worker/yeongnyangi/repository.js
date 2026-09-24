@@ -3,6 +3,7 @@ import { Payment } from '../lib/models.js';
 import { createHttpError } from '../lib/http.js';
 
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
+import { scopeConnection } from '../lib/db-scope-connection.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -96,7 +97,7 @@ async function attachDirectPayment(env, userId, requestId, expectedCharge) {
   // Register the whole atomic operation with the shared connection guard. Otherwise
   // another request can detach its connection while this session is still active.
   return withMongoRetry(env, async () => {
-    const session = await mongoose.startSession();
+    const session = await (scopeConnection() || mongoose).startSession();
     try {
       let result;
       await session.withTransaction(async () => {
@@ -224,7 +225,7 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
   // The final stored result and its payment proof are checked in one transaction.
   // A refund cannot commit between the durable reread and the completion marker.
   const completed=await withMongoRetry(env,async()=>{
-    const session=await mongoose.startSession();
+    const session=await (scopeConnection() || mongoose).startSession();
     try{
       let result=null;
       await session.withTransaction(async()=>{
@@ -265,7 +266,7 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
   const result=await withMongoRetry(env, async () => {
-    const session = await mongoose.startSession();
+    const session = await (scopeConnection() || mongoose).startSession();
     try {
       let result = null;
       await session.withTransaction(async () => {
@@ -320,7 +321,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
       maxCoveredCoin:999999999,passPolicyVersion:row.passPolicyVersion}});
   if(!refunded.refunded)return false;
   return withMongoRetry(env,async()=>{
-    const session=await mongoose.startSession();
+    const session=await (scopeConnection() || mongoose).startSession();
     try{
       let restored=false;
       await session.withTransaction(async()=>{

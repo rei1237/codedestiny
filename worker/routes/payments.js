@@ -1,4 +1,4 @@
-import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js"; import { scopeConnection } from "../lib/db-scope-connection.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
@@ -288,7 +288,7 @@ async function findRecentPaymentsForUser(userId, limit = 20, { includeDetails = 
     paidAt: 1,
   };
   if (includeDetails) projection.rawPortOne = 1;
-  return mongoose.connection.collection("payments")
+  return (scopeConnection() || mongoose.connection).collection("payments")
     .find({ userId: { $in: [objectId, normalizedId] } })
     .project(projection)
     .sort({ createdAt: -1, paidAt: -1 })
@@ -2373,7 +2373,7 @@ async function runCancelUpdate({ paymentRecord, canceledPortOne, pointsToRollbac
   };
 
   const runWithTransaction = async () => {
-    const session = await mongoose.startSession();
+    const session = await (scopeConnection() || mongoose).startSession();
     let txPayload = null;
 
     try {

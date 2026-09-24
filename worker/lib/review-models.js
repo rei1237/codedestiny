@@ -4,6 +4,7 @@
 // 여기서 등록해도 동일하게 동작한다(app-store-models.js 선례).
 
 import { mongoose } from "./db.js";
+import { scopedModel } from "./db-scope-connection.js";
 
 export const REVIEW_STATUSES = Object.freeze({
   PENDING: "pending",
@@ -102,7 +103,7 @@ reviewSchema.index(
 // NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
 // scripts/migrations/20260729-add-review-indexes.mjs를 DB에 1회 실행할 것.
 // 실행 전에는 1인 1리뷰 unique 제약이 걸리지 않는다.
-export const Review = mongoose.models.Review || mongoose.model("Review", reviewSchema);
+export const Review = scopedModel(mongoose.models.Review || mongoose.model("Review", reviewSchema));
 
 export const REVIEW_BODY_MIN_LENGTH = 20;
 export const REVIEW_BODY_MAX_LENGTH = 1000;

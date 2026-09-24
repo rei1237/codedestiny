@@ -1,3 +1,5 @@
+import { scopeConnection } from "./db-scope-connection.js";
+
 export const PAYMENT_METHODS = Object.freeze({
   MEMBERSHIP_PASS: "MEMBERSHIP_PASS",
   MONTHLY: "MONTHLY",
@@ -148,7 +150,7 @@ export async function runAtomicMonthlyPayment({ mongoose, operation, transaction
 
   let session;
   try {
-    session = await mongoose.startSession();
+    session = await (scopeConnection() || mongoose).startSession();
   } catch (error) {
     throw createMonthlyAtomicUnavailableError(error);
   }
