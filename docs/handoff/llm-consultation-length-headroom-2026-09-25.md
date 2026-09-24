@@ -1,12 +1,12 @@
 ---
 status: active
 updated: 2026-09-25
-next: "세션 1(paid-narrative 계열)은 acf88e953 로 끝났다. 2번 사주·점성·베다·자미 라우트 그룹 AI 부터 — 목표만 올리고 하한 ≤ 목표 하한 × 0.8, 토큰 ≥ tokensRequiredForChars(목표 상한)+thinking."
+next: "세션 1(acf88e953)·세션 2(cbd7a81ee~044ad44d5, 사주·점성·베다·자미 라우트 그룹)는 끝났다. 3번 나머지 개별 라우트부터 — 목표만 올리고 하한 ≤ 목표 하한 × 0.8, 거부 상한 ≥ 목표 상한 × 1.15, 토큰 ≥ tokensRequiredForChars(거부 상한)+thinking."
 ---
 
 # LLM 상담 분량 상향과 생성 여유 (영냥이 외)
 
-다음 세션 첫 문장: 이 문서의 '권장 세션 분할' 2번(사주·점성·베다·자미 라우트 그룹 AI)부터 시작한다. 바꿀 숫자마다 `scripts/verify-llm-generation-resilience.mjs` 의 고정값(`assertBudget` 과 7절 표)을 먼저 확인하고, 실 LLM 호출 없이 mock 으로만 검증한다.
+다음 세션 첫 문장: 이 문서의 '권장 세션 분할' 3번(나머지 개별 라우트)부터 시작한다 — 목록이 길므로 계획 단계에서 한 세션 몫(4~5개)으로 자르고, 라우트마다 판정 하한·목표·거부 상한·토큰을 먼저 읽어 `scripts/verify-llm-generation-resilience.mjs` 7절 표(`PAID_PART_TARGETS` 또는 `ROUTE_GROUP_TARGETS`)에 한 줄씩 넣은 뒤, 실 LLM 호출 없이 mock 으로만 검증한다.
 
 ## 왜
 
@@ -49,6 +49,26 @@ next: "세션 1(paid-narrative 계열)은 acf88e953 로 끝났다. 2번 사주·
 
 🔴 **정정 — "공통 레버" 는 공통이 아니었다.** `runPaidNarrativeDelivery` 의 기본 프롬프트·9500 토큰(`paid-narrative-delivery.js:96`)을 실제로 쓰는 곳은 펫 사주(`worker/lib/pet-report-delivery.js`)뿐이다. 나머지 호출부(기능 질문·꿈·지오맨시·타로 3종·전문가 후속·수호신·동물 토템·요가)는 모두 자체 `produce` 로 프롬프트와 토큰을 따로 정한다. 작명·천상·관계는 `runPaidNarrativeDelivery` 를 아예 쓰지 않는다. 그래서 파일별로 고쳤다.
 
+## 세션 2에서 끝낸 것 (사주·점성·베다·자미 라우트 그룹 AI)
+
+커밋: `cbd7a81ee` 사주 · `f4d988574` 점성 · `0e1aae029` 베다 · `044ad44d5` 자미 + 검증기 7절. 판정 하한·결제/환불 로직·재시도 횟수·타임아웃은 그대로다. 필드를 셋으로 나눴다 — `minChars` 판정 하한, `targetMinChars~maxChars`(자미는 `targetChars`) 프롬프트 목표, `hardMaxChars`(자미는 목표 × `SECTION_GROUP_MAX_OVER_TARGET` 1.25) 거부 상한. 프롬프트 문구는 세션 1과 같은 "공백 제외 최소 X자, 목표 A~B자".
+
+| 기능 · 위치 | 판정 하한 | 목표 (전 → 후) | 거부 상한 (전 → 후) | 토큰/호출 (전 → 후) | 전체 상한 (전 → 후) |
+|---|---|---|---|---|---|
+| 사주 5그룹 · `worker/lib/saju-ai-prompt.js:43`, 프롬프트 `worker/routes/fortune.js:346` | 4000 | 4000~6000 → **5000~6000** | 없음 | 11000 → **12000**(웨이브 2도) | — |
+| 점성 6섹션 · `worker/routes/astrology-ai.js:918` | 3400 | 3400~5000 → **4300~5000** | 5000 → **6000** | 11000 → **12000** | 32000 → **38000**(소제목까지 센다) |
+| 베다 읽기 4그룹 · `worker/routes/vedic-ai.js:63` | 4400 | 4400~6000 → **5500~6000** | 6000 → **7000** | 12500 → **13000** | 25000 → **30000** |
+| 베다 근거 그룹 | 2600 | 2600~4200 → **3300~4200** | 4200 → **5000** | 〃 | 합계 제외 |
+| 자미 6그룹 · `worker/routes/ziwei-ai.js:100` | 목표 × 0.9 → **절대값 3240~4050**(구 하한 그대로) | 3600~4500 → **4100~5100** | 목표 × 1.18 → **× 1.25** | 실효 8000 → **12000**(총 48000 → 72000) | 30000 → **38000** |
+
+하한/목표 하한은 넷 다 1.0(자미 0.9)이었고 이제 모두 ≤ 0.8 이다. 자미는 예전 실효 토큰이 8000(= `charsAllowedByTokens` 5,333자, 머리말 몫을 빼면 3,833자)이라 목표(최대 4,500자)조차 예산 모델상 빠듯했다.
+
+가드: `scripts/verify-llm-generation-resilience.mjs:1120` 7절 `ROUTE_GROUP_TARGETS` — 숫자는 모듈에서 읽고 프롬프트 문구·거부 상한 코드·토큰 코드가 소스에 그대로 있는지 본다. 행마다 하한 ≤ 목표 하한 × 0.8, 거부 상한 ≥ 목표 상한 × 1.15, `tokensRequiredForChars(거부 상한 또는 목표 상한)` ≤ 토큰, 그룹 하한 합 ≥ 배달 하한, 그룹 거부 상한 합 ≤ 전체 상한. 2·3절 `assertBudget` 은 이제 `hardMaxChars` 로 잰다. 변이 5종(자미 하한 상향·자미 cap 11000 복귀·점성 거부를 maxChars 로·베다 거부 상한 6500·사주 목표 문구 삭제) 모두 무는 것 확인.
+
+검증(과금 호출 0회): `verify:llm-generation-resilience` ok(1046 checks) · `verify-saju-ai-section-plan`(160) · `verify-astrology-sectioned-generation` · `verify-astrology-ai-flow` · `verify-vedic-ai-flow` · `verify-ziwei-ai-consultation-flow` · `verify-ziwei-personality-context` 모두 ok · jest 13 suites/170 tests(사주·점성·베다·자미 유료 배달·프롬프트). `check:fast --committed-head --base=origin/main`(네 커밋 전체) critical 등급 exit 0 — paid-gate-suite 88/0, jest 296 suites/4207 tests, build:worker 포함. 옆 세션의 미커밋 마케팅 파일이 있어 커밋 기준으로 돌렸다.
+
+남은 위험(추정·미측정): 평균 출력이 10~14% 늘어 호출당 45초(자미·베다·점성) 타임아웃에 가까워지고, 보고서당 출력 비용도 그만큼 는다. 운영 로그에서 그룹별 소요 시간 분포를 먼저 볼 것. 되돌림은 라우트별 커밋 `git revert` 하나(자미 커밋은 검증기 7절을 함께 담고 있어 자미만 되돌리면 7절도 같이 빠진다).
+
 ## 공통 레버 (하나 바꾸면 여러 기능이 같이 움직인다)
 
 | 파일 | 현재 값 | 영향 |
@@ -64,11 +84,11 @@ next: "세션 1(paid-narrative 계열)은 acf88e953 로 끝났다. 2번 사주·
 
 | 기능 · 진입점 | 토큰/호출 | 하한 · 목표 | 하한/목표 | 실패 시 사용자 화면 |
 |---|---|---|---|---|
-| 사주 명식 AI · `worker/routes/fortune.js:4492`, `worker/lib/saju-ai-prompt.js:104` | 11000 | 그룹 5 × 최소 4000 | 목표 미확인 | 20000 미달 → "상담 분량이 유료 기준에 못 미칩니다." |
+| 사주 명식 AI · `worker/routes/fortune.js:4492`, `worker/lib/saju-ai-prompt.js:113` | ~~11000~~ 12000(세션 2) | 그룹 5 × 최소 4000, 목표 5000~6000(세션 2) | 0.8 | 20000 미달 → "상담 분량이 유료 기준에 못 미칩니다." |
 | 기능 질문(점성·베다·자미·숙요) · `worker/lib/feature-question-delivery.js` | 9500 | 소제목 9 × 최소 2200, 목표 2800~3200(세션 1) | 0.79 | 소진 → 환불 |
-| 점성술 AI · `worker/routes/astrology-ai.js:54` | 11000 | 섹션 3400~5000, 총 20000~32000 | 판정 min–max 범위 | `LLM_QUALITY_CHECK_FAILED` + 환불 안내 |
-| 베다 AI · `worker/routes/vedic-ai.js:42` | 12500 | 그룹 4400~6000 | 0.73 | 짧은 그룹 재생성 웨이브 |
-| 자미두수 AI · `worker/routes/ziwei-ai.js:50` | 그룹 8000 | 그룹 목표 3600~4500, 판정 0.9~1.18× | **0.9** | `REPORT_QUALITY_FAILED` |
+| 점성술 AI · `worker/routes/astrology-ai.js:54` | ~~11000~~ 12000(세션 2) | 섹션 최소 3400, 목표 4300~5000, 거부 6000, 총 20000~38000(세션 2) | 0.79 | `LLM_QUALITY_CHECK_FAILED` + 환불 안내 |
+| 베다 AI · `worker/routes/vedic-ai.js:42` | ~~12500~~ 13000(세션 2) | 그룹 최소 4400, 목표 5500~6000, 거부 7000(세션 2) | 0.8 | 짧은 그룹 재생성 웨이브 |
+| 자미두수 AI · `worker/routes/ziwei-ai.js:50` | ~~그룹 8000~~ 12000(세션 2) | 그룹 최소 3240~4050, 목표 4100~5100, 거부 목표 × 1.25(세션 2) | 0.79 | `REPORT_QUALITY_FAILED` |
 | 자미 딥 리포트 · `worker/routes/ziwei-deep-report.js:258` | 9000 | 장 최소 2200, 총 20000 | 목표 미확인 | 대체 문단 + `ok:false` |
 | 카르마 운명 · `worker/routes/karma-destiny-ai.js:94` | 장 7000 | 섹션 최소 1500, 총 30000 | 미확인 | 불완전 → throw |
 | 인생의 책 · `worker/routes/life-book-ai.js:210` | 10000/7000 | 장 최소 2000~2400, 목표 3000 | 0.67~0.8 | `SECTION_JSON_MISSING` |
@@ -94,7 +114,7 @@ next: "세션 1(paid-narrative 계열)은 acf88e953 로 끝났다. 2번 사주·
 
 ## 고정 수치 정본과 테스트
 
-- `scripts/verify-llm-generation-resilience.mjs` `assertBudget`(:440-458) — 글자↔토큰·머리말 검사, **숫자가 소스에 문자 그대로 있어야** 통과. 베다·점성·숙요 12000·사주·나침반·인생의 책·12500·CMS 클램프(:1009-1073)를 덮는다. 토큰을 바꾸면 여기부터 갱신.
+- `scripts/verify-llm-generation-resilience.mjs` `assertBudget`(:440-458) — 글자↔토큰·머리말 검사, **숫자가 소스에 문자 그대로 있어야** 통과. 베다·점성·숙요 12000·사주·나침반·인생의 책·12500·CMS 클램프(:1009-1073)를 덮는다. 토큰을 바꾸면 여기부터 갱신. 세션 2부터 7절에 라우트 그룹 표 `ROUTE_GROUP_TARGETS`(:1120)가 붙었다 — 숫자는 모듈에서 읽으므로 값만 바꾸면 따라오고, 문구·거부·토큰 코드를 바꾸면 표를 함께 고친다.
 - 그 밖: `scripts/verify-astrology-sectioned-generation.mjs:163`(≤12000), `scripts/verify-ziwei-deep-paid-reopen-browser.mjs:41`, `__tests__/worker/celestial-paid-delivery.test.js:123`, `life-book-ai.sections.test.js:95`(≤10000), `cms-prompt-model-config.clamp.test.js`, `ziwei-ai.pass-generation.test.js:218`, `dream-psycho-analysis.route.test.js:65`(9500), `__tests__/ui/ziwei-deep-paid-delivery.behavior.test.js:350`, `config/pass-cost-planning-20260921.json`(호출당 토큰 계획값).
 
 ## 우회 경로 (공통 레버가 닿지 않는다)
@@ -103,7 +123,9 @@ next: "세션 1(paid-narrative 계열)은 acf88e953 로 끝났다. 2번 사주·
 
 ## 발견한 결함 (범위 밖, 보고만)
 
-- `worker/lib/saju-ai-prompt.js:100-101` 주석은 "9600 토큰 ≈ 6,400자" 인데 상수(:104)는 11000.
+- ~~`worker/lib/saju-ai-prompt.js:100-101` 주석은 "9600 토큰 ≈ 6,400자" 인데 상수(:104)는 11000.~~ 세션 2에서 주석을 12000 기준으로 고쳤다.
+- (세션 2) 베다·점성 그룹 토큰은 CMS 오버라이드가 `minTokens: tokensRequiredForChars(minChars)` 까지 낮출 수 있다(`vedic-ai.js` `cmsPromptModelConfig`). CMS 로 낮추면 거부 상한까지는 못 담는다. 현재 CMS 미설정이면 코드 기본값(13000·12000). 자미는 `max(그룹 기본값, CMS/6)` 라 해당 없음.
+- (세션 2) 자미 비체크포인트 경로 `generateInitialConsultation`(재생성 비율 0.8·그룹 하한 목표 × 0.4)은 유일한 호출부가 checkpoint 를 넘겨 운영에서 타지 않는다. 손대지 않았다.
 - `lib/llm-client.ts` 에 기본 maxTokens 가 없어 호출부가 빠뜨리면 프로바이더 기본값이 조용히 쓰인다.
 - 동물 토템은 JSON 문자열(키 포함) 길이로 분량을 재서 실제 본문보다 크게 센다.
 - 오라클 상담은 짧은 결과를 `llm_short` 로 전달한다 — 환불하는 paid-narrative 계열과 반대 계약.
@@ -116,7 +138,7 @@ next: "세션 1(paid-narrative 계열)은 acf88e953 로 끝났다. 2번 사주·
 ## 권장 세션 분할 (한 세션 한 작업)
 
 1. ~~**paid-narrative 계열**~~ — 끝(`acf88e953`, 위 표).
-2. **사주·점성·베다·자미 라우트 그룹 AI** — `verify-llm-generation-resilience.mjs` 고정값과 함께. 자미 checkpoint 0.9 하한이 가장 빡빡하다. 7절 표 방식(하한 코드·목표 문구·토큰 코드를 한 줄로)을 그대로 넓혀 쓴다.
+2. ~~**사주·점성·베다·자미 라우트 그룹 AI**~~ — 끝(`cbd7a81ee`~`044ad44d5`, 위 표).
 3. **나머지 개별 라우트** — 연애 비밀·카르마·인생의 책·신년·초융합·네오·숙요 궁합·찻집·휴먼디자인·나침반·마스터 러브 코덱스 + 섬 궁전 상담(`palace-delivery.js`)·동물 토템·요가 구루·수호신.
 4. **타로 lib 3종** — 우회 경로라 따로.
 
