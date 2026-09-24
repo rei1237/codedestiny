@@ -5,7 +5,7 @@
  * CAS 필터에 실려 있다. 그 필터가 맞는지는 인프라가 아니라 **연산자 의미**를 확인해야 알 수 있으므로,
  * 여기서는 실제로 쓰는 연산자를 전부 구현한다. 통과시켜 주는 스텁이면 검증하는 게 없다.
  *
- * 지원: $nin · $in · $ne · $lt · $exists · $or · $set · $inc · $unset · $setOnInsert · $addToSet
+ * 지원: $nin · $in · $ne · $lt · $exists · $or · $and · $nor · $set · $inc · $unset · $setOnInsert · $addToSet
  *       · $push($each/$slice) · upsert · returnDocument(before|after) · dot notation(필터·$set·$inc·$push)
  * 미구현 연산자를 만나면 **조용히 통과시키지 않고 던진다** — 조용한 통과가 가짜 초록불을 만든다.
  */
@@ -35,6 +35,8 @@ export function matches(doc, filter) {
     // 없으면 $and 가 평범한 필드명으로 취급돼 **항상 false** 가 되고, 그 쿼리를 쓰는 테스트는
     // "아무것도 못 찾는다"만 확인하게 된다.
     if (key === "$and") return cond.every((sub) => matches(doc, sub));
+    // 결제 없이 만료된 주문을 회수 판정에서 뺄 때 쓴다(worker/lib/paid-result-revocation.js neverPaidExpiredOrder).
+    if (key === "$nor") return !cond.some((sub) => matches(doc, sub));
     const value = getPath(doc, key);
     // ObjectId·Date 처럼 프로퍼티를 가진 '값 객체'를 연산자 맵으로 오인하면 안 된다.
     if (isOperatorMap(cond)) {

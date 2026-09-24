@@ -619,8 +619,9 @@ function storageResponse(resultId) {
 function revokedResponse() {
   return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED", message: "취소·환불된 상담은 이어서 생성할 수 없어요." }, { status: 403 });
 }
+// 같은 요청 키로 다시 결제하면(K → K#1) 결제창만 열고 떠나 만료된 옛 회차는 회수 증거가 아니다(ziwei-ai.js resolveStartAccess 와 같은 판정).
 async function revoked(doc) {
-  return isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.paymentId, doc.llmMeta?.access?.evidenceId, doc.llmMeta?.access?.purchaseId]);
+  return isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.paymentId, doc.llmMeta?.access?.evidenceId, doc.llmMeta?.access?.purchaseId], { ignoreNeverPaidExpiry: true });
 }
 async function saveIsland(filter, fields) {
   try {
