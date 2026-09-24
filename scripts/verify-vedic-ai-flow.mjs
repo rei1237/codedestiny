@@ -116,11 +116,13 @@ assertIncludes(client, "buildPayload(source, requestId, requestLocale)", "start 
 // 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).
 // 첫 상담은 그룹 단위로 나눠 생성하므로 예산 단위도 "그룹 하나"다(전체가 아니다).
 const vedicGroupMaxChars = Number(/VEDIC_READING_GROUP_MAX_CHARS = (\d+)/.exec(route)?.[1] || 0);
+// 토큰은 목표 상한이 아니라 거부 상한까지 담아야 한다 — 받아들일 길이를 쓰다 잘리면 안 된다.
+const vedicGroupHardMaxChars = Number(/VEDIC_READING_GROUP_HARD_MAX_CHARS = (\d+)/.exec(route)?.[1] || 0);
 const vedicTokenBudget = Number(/VEDIC_GROUP_MAX_OUTPUT_TOKENS = (\d+)/.exec(route)?.[1] || 0);
-const vedicTokensNeeded = Math.ceil((vedicGroupMaxChars + 1500) * 1.5);
+const vedicTokensNeeded = Math.ceil((vedicGroupHardMaxChars + 1500) * 1.5);
 assert(
-  vedicGroupMaxChars > 0 && vedicTokenBudget >= vedicTokensNeeded,
-  `[verify:vedic-ai-flow] VEDIC_GROUP_MAX_OUTPUT_TOKENS too small: ${vedicTokenBudget} (need >= ${vedicTokensNeeded} for ${vedicGroupMaxChars} chars + headroom)`,
+  vedicGroupHardMaxChars > vedicGroupMaxChars && vedicTokenBudget >= vedicTokensNeeded,
+  `[verify:vedic-ai-flow] VEDIC_GROUP_MAX_OUTPUT_TOKENS too small: ${vedicTokenBudget} (need >= ${vedicTokensNeeded} for ${vedicGroupHardMaxChars} chars + headroom)`,
 );
 // 그룹을 나눈 이유가 사라지지 않도록 — 한 그룹이 한 번에 채울 수 있는 크기를 넘기면 안 된다.
 assert(

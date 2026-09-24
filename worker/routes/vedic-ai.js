@@ -40,7 +40,7 @@ const ORDER_NAME = "베다점 전문가 상담";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const MIN_INITIAL_READING_CHARS = 15000;
-const MAX_INITIAL_READING_CHARS = 25000;
+const MAX_INITIAL_READING_CHARS = 30000;
 const MAX_ASSISTANT_TEXT_CHARS = 60000;
 // ── 첫 상담을 나눠 쓰는 단위 ────────────────────────────────────────────────
 //
@@ -54,9 +54,16 @@ const MAX_ASSISTANT_TEXT_CHARS = 60000;
 // 🔴 분량 판정(validateConsultationQuality)은 READING_SECTION_KEYS 4개의 body 만 센다.
 //    근거 흐름 그룹은 화면에는 나가지만 분량 합계에는 들어가지 않는다 — 그래서 요구 하한
 //    15,000자는 **읽기 섹션 4개만으로** 채워야 하고, 그룹 minChars 합도 그 기준으로 잡았다.
-const VEDIC_GROUP_MAX_OUTPUT_TOKENS = 12500;
+//
+// minChars 는 판정 하한, targetMinChars~maxChars 는 프롬프트 목표, hardMaxChars 는 거부 상한이다.
+// 하한은 목표 하한 × 0.8 이하, 거부 상한은 목표 상한보다 넉넉히 위에 둔다 — 목표대로 쓴 응답이 양끝에서
+// 흔들려 거부되고 3회를 다 쓰면 결과 없이 끝난다(CLAUDE.md 코딩 원칙 17). 토큰은 거부 상한까지 담는다.
+// 읽기 그룹 4개가 모두 거부 상한까지 써도(28,000자) MAX_INITIAL_READING_CHARS 에 걸리지 않는다.
+const VEDIC_GROUP_MAX_OUTPUT_TOKENS = 13000;
 const VEDIC_READING_GROUP_MIN_CHARS = 4400;
+const VEDIC_READING_GROUP_TARGET_MIN_CHARS = 5500;
 const VEDIC_READING_GROUP_MAX_CHARS = 6000;
+const VEDIC_READING_GROUP_HARD_MAX_CHARS = 7000;
 const VEDIC_REASONING_GROUP_KEY = "reasoning_flows";
 // 상담문은 차트 요소별 나열이 아니라 삶의 주제 네 갈래로 쓴다.
 // 요소별 7섹션 시절에는 라그나·라시·그라하를 각각 설명하느라 "요소 설명서"가 됐고,
@@ -93,7 +100,9 @@ const VEDIC_SECTION_GROUPS = Object.freeze(READING_SECTION_KEYS.map((key, index)
   sectionKeys: Object.freeze([key]),
   label: REQUIRED_SECTION_LABELS[key],
   minChars: VEDIC_READING_GROUP_MIN_CHARS,
+  targetMinChars: VEDIC_READING_GROUP_TARGET_MIN_CHARS,
   maxChars: VEDIC_READING_GROUP_MAX_CHARS,
+  hardMaxChars: VEDIC_READING_GROUP_HARD_MAX_CHARS,
   includeScores: index === 0,
   includeReasoning: false,
 })).concat([Object.freeze({
@@ -102,7 +111,9 @@ const VEDIC_SECTION_GROUPS = Object.freeze(READING_SECTION_KEYS.map((key, index)
   label: "해석 근거 흐름",
   // 분량 합계에 들어가지 않는 그룹이라 목표는 화면에서 읽을 만한 최소치로만 잡는다.
   minChars: 2600,
+  targetMinChars: 3300,
   maxChars: 4200,
+  hardMaxChars: 5000,
   includeScores: false,
   includeReasoning: true,
 })]));
@@ -1002,7 +1013,7 @@ function buildGroupPrompt(input, chart, group, repairLines = []) {
     "불안을 자극하지 말고, 사용자가 오늘 실제로 선택할 수 있는 방향을 제시하세요.",
     "각 섹션 body는 (1) 계산값 근거 명시 → (2) 삶의 주제 해석 → (3) 실행 가능한 조언 순서로 쓰세요. 해당 섹션의 핵심 계산값(라시·나크샤트라·다샤 lord 등)을 본문에 그대로 언급한 뒤 해석하세요.",
     `모든 섹션의 마지막 문단은 상담 주제 "${input.topic}"${input.userQuestion ? "와 사용자의 자유 질문" : ""}에 연결해 마무리하세요.`,
-    `이번 부분의 body 합산은 공백 제외 ${group.minChars.toLocaleString("ko-KR")}자 이상 ${group.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    `이번 부분의 body 합산은 공백 제외 최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자로 쓰세요.`,
     "분량을 채우려고 같은 문장을 반복하지 말고, 새로 짚을 장면과 판단 기준을 더하세요. 요약으로 끝내지 말고 근거→해석→조언을 각각 여러 문단으로 전개하세요.",
     "반환은 JSON 객체 하나만 허용합니다.",
     "",
@@ -1441,7 +1452,7 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
       const text = bodies(row?.text || "");
       return parsed && Object.keys(parsed.sections || {}).every(key => keys.includes(key))
         && keys.every(key => clean(parsed.sections?.[key]?.title) && countPaidReportBodyChars(parsed.sections?.[key]?.body) >= (group.includeReasoning ? 400 : group.minChars))
-        && countPaidReportBodyChars(text) >= group.minChars && countPaidReportBodyChars(text) <= group.maxChars
+        && countPaidReportBodyChars(text) >= group.minChars && countPaidReportBodyChars(text) <= group.hardMaxChars
         && !hasRepeatedReportPassage(text) && !validateChartConsistency(row.text, chart).length
         && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue))
         && (!group.includeScores || Object.keys(parsed.scores || {}).length > 0)
