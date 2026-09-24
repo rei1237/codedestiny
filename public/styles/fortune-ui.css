@@ -13464,6 +13464,14 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           margin-bottom: 14px;
           transition: opacity .4s;
         }
+        /* 모바일 판독 하한(0.86rem, 실측 근거는 core-ui.css 주석 참고) 아래로 떨어지는 배지·라벨·상태문구 보정 */
+        @media (max-width: 768px) {
+          .tc-header-badge,
+          .tc-question-label,
+          .tc-status-msg {
+            font-size: .86rem;
+          }
+        }
         /* 결과 패널 */
         .tc-result {
           position: relative;

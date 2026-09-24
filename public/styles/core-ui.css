@@ -1823,11 +1823,12 @@ a[href].btn,
     min-height: -webkit-fill-available;
   }
 
-  /* 숙요점/자미두수/점성술: 동일한 상단 네비 동작 통일
+  /* 숙요점/자미두수/점성술/거북점(주역): 동일한 상단 네비 동작 통일
      네비는 항상 상단에 보이고, 시트만 끝까지 세로 스크롤되도록 고정 */
   #sukuyoNavBar.modal-top-nav,
   #ziweiModalNavBar.modal-top-nav,
-  #astroNavBar.modal-top-nav {
+  #astroNavBar.modal-top-nav,
+  #juyukNavBar.modal-top-nav {
     position: sticky;
     top: 0;
     left: 0;
@@ -1844,12 +1845,15 @@ a[href].btn,
   #ziweiModalNavBar .modal-nav-home,
   #ziweiModalNavBar .modal-nav-close,
   #astroNavBar .modal-nav-home,
-  #astroNavBar .modal-nav-close {
+  #astroNavBar .modal-nav-close,
+  #juyukNavBar .modal-nav-home,
+  #juyukNavBar .modal-nav-close {
     white-space: nowrap;
   }
   #sukuyoNavBar .modal-nav-home,
   #ziweiModalNavBar .modal-nav-home,
-  #astroNavBar .modal-nav-home {
+  #astroNavBar .modal-nav-home,
+  #juyukNavBar .modal-nav-home {
     justify-self: start;
     font-size: 0.86rem;
     padding: 8px 2px;
@@ -1857,14 +1861,16 @@ a[href].btn,
   }
   #sukuyoNavBar .modal-nav-close,
   #ziweiModalNavBar .modal-nav-close,
-  #astroNavBar .modal-nav-close {
+  #astroNavBar .modal-nav-close,
+  #juyukNavBar .modal-nav-close {
     justify-self: end;
     font-size: 0.86rem;
     padding: 8px 8px;
   }
   #sukuyoNavBar .modal-nav-title,
   #ziweiModalNavBar .modal-nav-title,
-  #astroNavBar .modal-nav-title {
+  #astroNavBar .modal-nav-title,
+  #juyukNavBar .modal-nav-title {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1894,27 +1900,31 @@ a[href].btn,
   @media (max-width: 360px) {
     #sukuyoNavBar.modal-top-nav,
     #ziweiModalNavBar.modal-top-nav,
-    #astroNavBar.modal-top-nav {
+    #astroNavBar.modal-top-nav,
+    #juyukNavBar.modal-top-nav {
       column-gap: 2px;
       padding-left: 8px;
       padding-right: 8px;
     }
     #sukuyoNavBar .modal-nav-home,
     #ziweiModalNavBar .modal-nav-home,
-    #astroNavBar .modal-nav-home {
+    #astroNavBar .modal-nav-home,
+    #juyukNavBar .modal-nav-home {
       font-size: 0.86rem;
       padding: 8px 0;
       gap: 2px;
     }
     #sukuyoNavBar .modal-nav-close,
     #ziweiModalNavBar .modal-nav-close,
-    #astroNavBar .modal-nav-close {
+    #astroNavBar .modal-nav-close,
+    #juyukNavBar .modal-nav-close {
       font-size: 0.86rem;
       padding: 8px 6px;
     }
     #sukuyoNavBar .modal-nav-title,
     #ziweiModalNavBar .modal-nav-title,
-    #astroNavBar .modal-nav-title {
+    #astroNavBar .modal-nav-title,
+    #juyukNavBar .modal-nav-title {
       font-size: 0.86rem;
       letter-spacing: 0.7px;
     }
