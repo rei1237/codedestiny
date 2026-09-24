@@ -1,14 +1,111 @@
-.trust { margin:32px 0; padding:28px 0; border-block:1px solid currentColor; color:inherit; }
-.trust h2 { margin:0 0 16px; font-size:clamp(1.2rem,3vw,1.6rem); line-height:1.5; text-wrap:balance; }
-.trust p { max-width:65ch; line-height:1.8; }
-.headline { font-weight:700; font-size:1.1rem; }
-.trust ul { padding:0; margin:20px 0; list-style:none; }
-.trust li + li { margin-top:8px; }
-.trust a { color:inherit; text-underline-offset:4px; }
-.trust li a { display:flex; flex-wrap:wrap; gap:6px 16px; align-items:center; min-height:48px; padding:8px 0; }
-.trust time,.source { font-size:.875rem; }
-.method { font-size:.9rem; }
-.trust nav { display:flex; flex-wrap:wrap; gap:8px 24px; }
-.trust nav a { display:inline-flex; align-items:center; min-height:44px; }
-.trust a:focus-visible { outline:2px solid currentColor; outline-offset:4px; }
-@media(max-width:480px) { .trust li a { display:grid; gap:4px; } }
+/* 영냥이 토큰(홈 .ynOriginal, 하위 페이지 --yn-*)을 그대로 쓴다. 새 색 없음.
+   [id] 는 천원사주 .hub > section 의 구분선·패딩보다 이기기 위한 특이도다. */
+.trust[id] {
+  --ft-surface: var(--surface, var(--yn-surface, #2c1c40));
+  --ft-deep: var(--deep, var(--yn-deep, #18132b));
+  --ft-gold: var(--gold, var(--yn-gold, #e9c78d));
+  --ft-line: var(--gold-line, #8b674d);
+  --ft-ivory: var(--ivory, var(--yn-ivory, #fff3e2));
+  --ft-muted: var(--muted, var(--yn-muted, #c7b5ce));
+  --ft-serif: var(--serif, "Yeongnyangi Myeongjo", serif);
+  margin: 40px 0;
+  padding: 28px 20px 24px;
+  border: 1px solid var(--ft-line);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(233, 199, 141, 0.12), transparent 22rem),
+    var(--ft-surface);
+  color: var(--ft-ivory);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.intro { display: grid; gap: 22px; }
+.trust .eyebrow { margin: 0 0 10px; color: var(--ft-gold); font-size: 13px; font-weight: 700; line-height: 1.5; }
+.trust .title {
+  margin: 0 0 12px;
+  color: var(--ft-ivory);
+  font-family: var(--ft-serif);
+  font-size: clamp(26px, 7vw, 38px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.trust .lead { max-width: 34ch; margin: 0; color: var(--ft-muted); font-size: 15px; line-height: 1.7; text-wrap: pretty; }
+.trust .primary {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 20px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: var(--ft-gold);
+  color: var(--ft-deep);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 160ms ease-out;
+}
+.trust .primary:hover { background: var(--ft-ivory); }
+.art { margin: 0; }
+.art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  border: 1px solid var(--ft-line);
+  border-radius: 16px;
+}
+.timeline { display: grid; gap: 14px; margin: 32px 0 0; padding: 0; list-style: none; }
+.record {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 18px 10px;
+  border: 1px solid rgba(233, 199, 141, 0.28);
+  border-radius: 16px;
+  background: rgba(24, 19, 43, 0.6);
+}
+.record time { color: var(--ft-gold); font-size: 13px; font-weight: 700; letter-spacing: 0.04em; }
+.trust .record h3 { margin: 6px 0 14px; color: var(--ft-ivory); font-family: inherit; font-size: 16px; line-height: 1.5; text-wrap: balance; }
+.trust .label { margin: 0 0 6px; color: var(--ft-muted); font-size: 12px; font-weight: 700; }
+.record blockquote { margin: 0; padding-left: 12px; border-left: 2px solid var(--ft-gold); }
+.trust .record blockquote p { margin: 0; font-family: var(--ft-serif); font-size: 15px; line-height: 1.75; text-wrap: pretty; }
+.trust .after { margin: 16px 0 0; padding-top: 12px; border-top: 1px dashed rgba(199, 181, 206, 0.35); color: var(--ft-muted); font-size: 13.5px; line-height: 1.65; }
+.after span { margin-right: 8px; color: var(--ft-gold); font-weight: 700; }
+.trust .source {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  align-self: flex-start;
+  min-height: 44px;
+  margin-top: auto;
+  padding-top: 6px;
+  color: var(--ft-gold);
+  font-weight: 700;
+  text-underline-offset: 4px;
+}
+.trust .note { margin: 14px 0 0; color: var(--ft-muted); font-size: 12.5px; line-height: 1.6; }
+.offer {
+  margin-top: 28px;
+  padding: 24px 20px;
+  border: 1px solid var(--ft-line);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(117, 65, 173, 0.32), rgba(24, 19, 43, 0.5));
+  text-align: center;
+}
+.trust .offerLine { margin: 0; font-family: var(--ft-serif); font-size: 18px; line-height: 1.55; text-wrap: balance; }
+.offer .primary { margin-top: 16px; }
+.trust .fine { margin: 14px 0 0; color: var(--ft-muted); font-size: 12.5px; line-height: 1.6; }
+.trust .method { max-width: 65ch; margin: 24px 0 4px; color: var(--ft-muted); font-size: 13px; line-height: 1.7; }
+.trust nav { display: flex; flex-wrap: wrap; gap: 0 24px; }
+.trust nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--ft-ivory); text-underline-offset: 4px; }
+.trust a:focus-visible { outline: 2px solid var(--ft-gold); outline-offset: 3px; }
+@media (min-width: 860px) {
+  .trust[id] { padding: 40px 40px 32px; }
+  .intro { grid-template-columns: minmax(0, 1fr) 440px; align-items: center; gap: 40px; }
+  .timeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trust .primary { transition: none; }
+}
