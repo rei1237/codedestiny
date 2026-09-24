@@ -34,7 +34,9 @@ const {
 const minTotal = ASTROLOGY_SECTIONS.reduce((sum, s) => sum + s.minChars, 0);
 const maxTotal = ASTROLOGY_SECTIONS.reduce((sum, s) => sum + s.maxChars, 0);
 assert(minTotal >= ASTROLOGY_AI_MIN_RESULT_CHARS, `섹션 minChars 합 ${minTotal} < 전체 하한 ${ASTROLOGY_AI_MIN_RESULT_CHARS}`);
-assert(maxTotal <= ASTROLOGY_AI_MAX_RESULT_CHARS, `섹션 maxChars 합 ${maxTotal} > 전체 상한 ${ASTROLOGY_AI_MAX_RESULT_CHARS}`);
+// 섹션이 받아들이는 최대치(거부 상한)를 다 써도 전체 상한에 걸리지 않아야 한다.
+const hardMaxTotal = ASTROLOGY_SECTIONS.reduce((sum, s) => sum + s.hardMaxChars, 0);
+assert(hardMaxTotal <= ASTROLOGY_AI_MAX_RESULT_CHARS, `섹션 hardMaxChars 합 ${hardMaxTotal} > 전체 상한 ${ASTROLOGY_AI_MAX_RESULT_CHARS}`);
 // 섹션 목표는 모델이 한 번에 채우는 크기여야 한다. 이게 커지면 expand 고리가 되돌아온다.
 for (const section of ASTROLOGY_SECTIONS) {
   assert(section.maxChars <= 5000, `섹션 ${section.key} 목표 상한 ${section.maxChars} 가 한 번에 쓰기엔 크다`);
