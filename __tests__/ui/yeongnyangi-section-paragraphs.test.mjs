@@ -22,7 +22,7 @@ const singles=m.products.filter(p=>p.readingKind==='single');
 const context={domain:'saju',engineVersion:'fixture',calculatedAt:'2026-09-24',limitations:[],facts:[{id:'saju.pillars',label:'pillars',value:{day:'甲子'}},{id:'saju.dayMaster',label:'dayMaster',value:'甲'}]};
 const inputFor=chapter=>({chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous:[]});
 
-test('sentence splitter keeps the text, cuts only at sentence ends and is idempotent',()=>{
+test('sentence splitter keeps the text, fits every part to the cap and is idempotent',()=>{
  const ends=['.','!','?','.”','?)','。'],longSentences=new Set();
  for(let round=0;round<400;round++){
   const pieces=[];let size=0;const target=1+rand(1600);
@@ -41,7 +41,7 @@ test('sentence splitter keeps the text, cuts only at sentence ends and is idempo
   assert.deepEqual(parts.flatMap(p=>m.splitSectionParagraph(p)),parts);
   if(len(text)<=LIMIT)assert.deepEqual(parts,[text]);
   for(const part of parts){
-   assert.ok(len(part)<=LIMIT||longSentences.has(part),'only a single over-long sentence may exceed the cap');
+   assert.ok(len(part)<=LIMIT,'every part fits the cap, including a single over-long sentence');
    assert.ok(!/\d\.$/.test(part),'list numbers, dotted dates and decimals are not sentence ends');
   }
  }
@@ -106,6 +106,26 @@ test('validateChapter stores long mackerel/salmon action and tuna sections as sp
   assert.deepEqual(result.blocks.map(b=>b.paragraphs.join(' ')),raw.blocks.map(b=>b.paragraphs[0]));
   assert.deepEqual(m.validateChapter(result,input),result);
  }
+});
+
+test('a paragraph with no sentence end, or one over-long sentence, is wrapped instead of failing the chapter',async()=>{
+ const run=size=>{let s='';while(len(s)<size)s+=(s?' ':'')+word();return s;};
+ const noEnd=run(900);
+ const clauses=Array.from({length:40},()=>sentence(15).slice(0,-1)).join(', ')+'.';
+ const unbroken=SYLLABLES.join('').repeat(20).slice(0,700);
+ for(const text of [noEnd,clauses,unbroken]){
+  assert.ok(len(text)>LIMIT);
+  const parts=m.splitSectionParagraph(text);
+  assert.ok(parts.length>=2&&parts.every(p=>p&&p===p.trim()&&len(p)<=LIMIT),`${len(text)}`);
+  assert.equal(parts.join('').replace(/\s/g,''),text.replace(/\s/g,''));
+ }
+ assert.ok(m.splitSectionParagraph(clauses).slice(0,-1).every(p=>p.endsWith(',')),'a long sentence is cut after a clause mark');
+ const c=m.readingManifest(singles.find(p=>p.id==='saju_mackerel')).find(c=>c.key==='action'),input=inputFor(c);
+ const good=await new m.MockChapterProvider().generateChapter(input);
+ const raw={...good,blocks:good.blocks.map(b=>b.id==='action'?{...b,paragraphs:[run(c.sections.find(s=>s.id==='action').targetChars[1])]}:b)};
+ assert.throws(()=>m.validateReadingQuality(raw,c,[]),{code:'INVALID_CHAPTER_BLOCKS'});
+ const result=m.validateChapter(raw,input);
+ assert.ok(result.blocks.every(b=>b.paragraphs.every(p=>len(p)<=LIMIT)));
 });
 
 test('a quality retry restates the failed rule; a first attempt or an unmapped code sends none',async()=>{
