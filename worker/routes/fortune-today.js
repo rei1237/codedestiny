@@ -399,40 +399,8 @@ async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber 
     return localizeTodayPayload({ ok: true, date: dateKey(today), personalized: true, systems: { number } }, requestLocale(request));
   }
 
-  // 숙요 본명수별 조언 표의 CMS 오버라이드를 judgeDayFortune 호출 전에 채운다.
-  // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다(기본 숙요점과 같은 관례).
-  await primeCmsRecords(env);
-
   const today = kstParts(new Date());
-  const todayLunar = toLunarParts({ ...today, hour: 12, minute: 0, calendarType: "solar" });
-  const natalSukuyo = input
-    ? await calculateSukuyoForMoment(env, {
-      ...input,
-      timezoneOffset: 9,
-      birthTimeKnown: !input.timeUnknown,
-    }, { requestUrl: request.url })
-    : null;
-  const natalIndex = Number.isInteger(Number(natalSukuyo?.index)) ? Number(natalSukuyo.index) : null;
-
-  let saju = null;
-  try {
-    saju = buildSaju(input, today, wantDetail);
-  } catch (error) {
-    console.warn("[today-hub-saju-skip]", String(error?.message || error).slice(0, 200));
-  }
-
-  const sky = await resolveTodaySky(env, today, natalIndex, request.url);
-  const todaySukuyo = sky?.moonLon != null
-    ? buildSukuyoFromMoonLongitude(sky.moonLon, { lunarMonth: todayLunar.month, lunarDay: todayLunar.day, isLeapMonth: todayLunar.isLeap })
-    : null;
-  const sukuyo = buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail);
-  const vedic = buildVedic(sky, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "", wantDetail);
-  let number = null;
-  try {
-    number = buildNumber(input, today, wantDetail);
-  } catch (error) {
-    console.warn("[today-hub-number-skip]", String(error?.message || error).slice(0, 200));
-  }
+  const { saju, sukuyo, vedic, number } = await buildTodayFortunes(env, input, today, { requestUrl: request.url, wantDetail });
 
   // 수비학은 계산이 실패할 일이 거의 없어 "모두 실패" 판정에 넣지 않는다 — 넣으면 Swiss·사주가 다 죽어도
   // 한 장짜리 응답이 공개 캐시에 30분 굳는다.
@@ -444,6 +412,45 @@ async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber 
     personalized: Boolean(input),
     systems: { saju, sukuyo, vedic, number },
   }, requestLocale(request));
+}
+
+// 네 점술의 오늘 카드(한국어 원문). 허브와 영냥이 자유질문 근거가 같은 계산을 쓴다.
+// 체계별 실패는 null 로 돌려주고, 모두 실패했는지는 호출부가 판정한다.
+export async function buildTodayFortunes(env, input, today, { requestUrl, wantDetail = false } = {}) {
+  // 숙요 본명수별 조언 표의 CMS 오버라이드를 judgeDayFortune 호출 전에 채운다.
+  // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다(기본 숙요점과 같은 관례).
+  await primeCmsRecords(env);
+
+  const todayLunar = toLunarParts({ ...today, hour: 12, minute: 0, calendarType: "solar" });
+  const natalSukuyo = input
+    ? await calculateSukuyoForMoment(env, {
+      ...input,
+      timezoneOffset: 9,
+      birthTimeKnown: !input.timeUnknown,
+    }, { requestUrl })
+    : null;
+  const natalIndex = Number.isInteger(Number(natalSukuyo?.index)) ? Number(natalSukuyo.index) : null;
+
+  let saju = null;
+  try {
+    saju = buildSaju(input, today, wantDetail);
+  } catch (error) {
+    console.warn("[today-hub-saju-skip]", String(error?.message || error).slice(0, 200));
+  }
+
+  const sky = await resolveTodaySky(env, today, natalIndex, requestUrl);
+  const todaySukuyo = sky?.moonLon != null
+    ? buildSukuyoFromMoonLongitude(sky.moonLon, { lunarMonth: todayLunar.month, lunarDay: todayLunar.day, isLeapMonth: todayLunar.isLeap })
+    : null;
+  const sukuyo = buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail);
+  const vedic = buildVedic(sky, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "", wantDetail);
+  let number = null;
+  try {
+    number = buildNumber(input, today, wantDetail);
+  } catch (error) {
+    console.warn("[today-hub-number-skip]", String(error?.message || error).slice(0, 200));
+  }
+  return { saju, sukuyo, vedic, number };
 }
 
 function todayHubUnavailable(request) {
