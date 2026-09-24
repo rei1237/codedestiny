@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: "🔴 자미두수 V2 만료 취소(결제됐는데 402/403)는 `b5b264cc5`(머지 `fe7058e1c`)로 main·스테이징까지 고쳤고 **운영에는 없다**. 다음은 사용자의 1회 승인을 받아 운영 읽기 전용 집계 9번 ⓔ(과거 피해 건수, 식별자 무출력)를 돌리는 것 — 피해가 있으면 복구는 운영 DB 쓰기라 별도 승인. 2차 재실사 수정도 운영에는 없다(13번). 다음 승격은 사용자가 요청할 때만, 결제 커밋 8건(기존 7건+`b5b264cc5`)을 이름으로 밝혀 새 1회 승인. 사람 몫: 4 포트원 문의·6 이니시스 MID 분류·7 Atlas Network Access·8 포트원 콘솔 채널·9 운영 읽기 조회 ⓐ~ⓓ·11·12 제품 결정. 3번 엄격 모드는 승격 뒤 확정 20건에서 재집계."
+next: "9번 ⓔ 운영 읽기 전용 집계 완료(2026-09-24) — 자미두수 만료 취소 결함으로 인한 과거 피해(결제됐는데 상담 없음/재열람 403) **운영 0건**(상세는 본문 9번 ⓔ 아래). 자미두수 V2 만료 취소 수정(`b5b264cc5`, 머지 `fe7058e1c`)과 2차 재실사 수정은 여전히 **운영에 없다**(13번, 결제 커밋 8건). 다음 승격은 사용자가 요청할 때만, 이 8건을 이름으로 밝혀 새 1회 승인 뒤 진행. 사람 몫: 4 포트원 문의·6 이니시스 MID 분류·7 Atlas Network Access·8 포트원 콘솔 채널·9 운영 읽기 조회 ⓐ~ⓓ·11·12 제품 결정. 3번 엄격 모드는 승격 뒤 확정 20건에서 재집계."
 ---
 
 # KG이니시스 가맹점 보안 권고(2026-09-18) 적용 — 인수인계
@@ -78,8 +78,8 @@ next: "🔴 자미두수 V2 만료 취소(결제됐는데 402/403)는 `b5b264cc5
   - `check:fast`(위험 승격 전체): 결제 게이트 88/88, jest 294 suites / 4187 tests, test:node 1648, lint·typecheck·build:worker·결제 verify 통과.
   - main CI(`fe7058e1c`): `PR CI` run 35936061538 성공(CI required·Static guards·Typecheck and lint·Build Pages and Worker·Critical checks·Risk tier), `Paid Flow Gates` run 35936061522 성공(scope·paid-flow-gates). AI Locale Gate·Secret Scan·Landing/Main drift watchdog·스테이징 릴리스 run 35936061547 도 성공.
 - 남은 것:
-  - 과거 피해(결제됐는데 상담 없음) 건수 — 9번 ⓔ.
-  - 운영 반영 — 13번 승격 목록에 `b5b264cc5` 추가.
+  - ~~과거 피해(결제됐는데 상담 없음) 건수 — 9번 ⓔ.~~ 확인 완료(2026-09-24) — 운영 0건. 상세는 9번 ⓔ 아래.
+  - ~~운영 반영 — 13번 승격 목록에 `b5b264cc5` 추가.~~ 13번에 이미 반영됨.
   - 후속 항목의 ③ 과 교차 기능.
 
 ## 남은 일 / 미확인(완료로 표시하지 말 것)
@@ -148,6 +148,13 @@ next: "🔴 자미두수 V2 만료 취소(결제됐는데 402/403)는 `b5b264cc5
        delivered: { $size: { $filter: { input: "$retry", cond: { $eq: ["$$this.status", "fulfilled"] } } } },
        consult: { $ifNull: [{ $first: "$consult.status" }, "none"] } }, n: { $sum: 1 } } }])
    ```
+   - **ⓔ 확인 완료(2026-09-24)**: 1회성 스크립트 `scripts/audit-ziwei-expired-cancel-damage.mjs`(커밋 안 함, 실행 뒤 삭제)를 `--db code_destiny_staging`로 먼저 드라이런(전부 0 — 스테이징은 이 기능 결제 이력이 없음) 한 뒤 `--db code_destiny`(운영, 이번 요청의 1회 승인)로 실행 — find/count/aggregate 만, 식별자 무출력.
+     - 운영에 `ziwei-ai-consultation`·`ziwei-island-palace-consult`로 생성된 주문은 **총 1건**뿐이고, 그 1건이 이 결함이 말하는 취소(`status:"cancelled"`·`failureCode:"ORDER_EXPIRED"`·`paidAt:null`)다(ⓔ-1). 섬 주문은 0건.
+     - `paidAt`(오직 `markOrderPaid`/각 라우트 결제확인 경로만 쓰고 취소는 절대 건드리지 않음 — `worker/payments/orders.js`)이 찍힌 주문은 두 featureKey 를 통틀어 **0건** — 운영에서 이 두 기능이 실제 결제 완료까지 간 적이 한 번도 없다는 뜻이다. featureKey 리터럴은 `worker/routes/ziwei-ai.js:43`·`ziwei-island-ai.js:33` 코드와 직접 대조해 오타로 인한 거짓 0이 아님을 확인했다.
+     - ⓔ-2(형제 회차 조인, `$first`→`$arrayElemAt` 치환 — 배열 원소는 유니크 인덱스로 최대 1개라 동작 동일)도 `retryPaid=0·delivered=0·consult="none"`: 1건 — 있는 그대로 0.
+     - Part B(신규 보정 — 형제 문서를 가정하지 않고 `paidAt!=null` 주문을 `ziweiAiConsultations`에 직접 조인): 매치 대상 자체가 0건이라 그룹 0개.
+     - 계획 단계에서 짚었던 위험("ⓔ-2는 재결제=새 회차 문서 전제가 이 두 기능엔 안 맞아 피해를 놓칠 수 있다")은 Part B로 배제된다 — ⓔ-2가 구조상 0을 낸 게 아니라, 볼 대상(결제 완료 주문) 자체가 애초에 없었다는 걸 전제가 다른 두 질의로 교차 확인했다.
+     - 결론: 이 결함으로 인한 과거 피해(①결제됐는데 상담 없음 ②재열람 403)는 **운영에 0건**이다. 결함이 아직 운영에 없는데도(13번) 이 결과가 나온 이유는 결함의 전제(취소된 K 에 재결제가 붙는 경우) 자체가 운영에서 발생한 적이 없기 때문 — 코드 수정 여부와 무관하게 과거분은 안전하다.
 10. SoulCat 저장소는 운영에 배포하지 않는다. 라우트가 CD 의 영냥이 경로를 가려 결제 사용자가 잠긴다(운영 영냥이는 전부 CD 가 서빙, 배포 스크립트도 거부).
 11. 영냥이 B-2(Family 이용권이 클릭 없이 차감될 수 있음)가 의도인지 — 제품 결정. 상세는 `docs/handoff/yeongnyangi-paid-flow-speed-2026-09-24.md`.
 12. V2 대기 주문의 구 본인 취소를 막을지. 막으면 대기·완료 단건의 취소 버튼 동작이 바뀐다. W4·W5 뒤 새 V2 주문은 fulfilled 가 되지 않아, 남는 위험은 V2 대기 주문 취소와 V2 확정 사이의 좁은 경합뿐이다.
