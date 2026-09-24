@@ -11,6 +11,9 @@ const profilesHandler=jest.fn();
 const find=jest.fn(),select=jest.fn(),sort=jest.fn(),limit=jest.fn(),lean=jest.fn();
 const maxTimeMS=jest.fn();
 const query={select,sort,limit,maxTimeMS,lean};
+const paymentFind=jest.fn(),paymentLean=jest.fn();
+const paymentQuery={select:()=>paymentQuery,limit:()=>paymentQuery,maxTimeMS:()=>paymentQuery,lean:paymentLean};
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment:{find:paymentFind}}));
 jest.unstable_mockModule('../../worker/lib/auth.js',()=>({requireUserFromRequest:auth}));
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
 jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensitiveEndpointSecurity:security}));
@@ -45,6 +48,7 @@ beforeEach(()=>{
   unlock.mockResolvedValue({day:'2026-09-16',balance:0,attended:true,unlocked:true,newlyUnlocked:true});
   freeRead.mockResolvedValue({result:null});freePrepare.mockResolvedValue({category:'basic',title:'오늘의 운세'});
   maxTimeMS.mockReturnValue(query);find.mockReturnValue(query);select.mockReturnValue(query);sort.mockReturnValue(query);limit.mockReturnValue(query);lean.mockResolvedValue([]);
+  paymentFind.mockReturnValue(paymentQuery);paymentLean.mockResolvedValue([]);
 });
 
 test.each(['GET','POST'])('profile %s delegates once to the authenticated profile boundary',async method=>{
@@ -93,6 +97,23 @@ test('list uses owner filter, bounded projection and stable pagination',async()=
   expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,$or:expect.any(Array)}));
   expect(limit).toHaveBeenCalledWith(31);expect(select.mock.calls[0][0].split(' ')).not.toEqual(expect.arrayContaining(['chapters','snapshot.analysis']));
   expect(maxTimeMS).toHaveBeenCalledWith(4000);expect(response.headers.get('Server-Timing')).toMatch(/auth;dur=.*db;dur=.*query;dur=/);
+});
+test('list hides abandoned unpaid consultations after the pending window without deleting them',async()=>{
+  const before=Date.now();expect((await handleYeongnyangiRoutes(request('requests'),env)).status).toBe(200);
+  expect(find).toHaveBeenCalledTimes(1);const [hidden]=find.mock.calls[0][0].$nor;
+  expect(hidden).toEqual({state:'CREATED',paymentId:null,passEvidenceId:null,accessMethod:null,createdAt:{$lt:expect.any(Date)}});
+  const cutoff=hidden.createdAt.$lt.getTime();expect(cutoff).toBeGreaterThanOrEqual(before-30*60*1000);expect(cutoff).toBeLessThanOrEqual(Date.now()-30*60*1000);
+  expect(paymentFind).toHaveBeenCalledWith(expect.objectContaining({userId,requestId:expect.any(RegExp),'metadata.consumedBy':{$in:[null,'']}}));
+});
+test('list keeps a consultation whose paid order is not attached yet',async()=>{
+  paymentLean.mockResolvedValue([{requestId:`yn-${id}`}]);
+  expect((await handleYeongnyangiRoutes(request('requests'),env)).status).toBe(200);
+  expect(find).toHaveBeenCalledTimes(2);expect(find.mock.calls[1][0].$nor[0]._id).toEqual({$nin:[id]});
+});
+test('list shows everything when the paid order lookup fails',async()=>{
+  paymentLean.mockRejectedValue(new Error('timeout'));
+  expect((await handleYeongnyangiRoutes(request('requests'),env)).status).toBe(200);
+  expect(find).toHaveBeenCalledTimes(2);expect(find.mock.calls[1][0]).not.toHaveProperty('$nor');
 });
 test('invalid cursor does not run a database query',async()=>{
   expect((await handleYeongnyangiRoutes(request('requests?cursor=bad'),env)).status).toBe(400);expect(find).not.toHaveBeenCalled();
