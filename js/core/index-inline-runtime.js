@@ -2798,6 +2798,8 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       // 잡히곤 한다. 그대로 쓰면 필요보다 두 배 큰 이미지를 받는다 — 뷰포트로 상한을 건다.
       var isNarrow = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
       maxCss = isNarrow ? Math.ceil(window.innerWidth / 2) : window.innerWidth;
+      // 데스크탑은 DPR 1 이어도 1.75배로 받는다 — 폭 그대로(320)는 큰 화면에서 흐리게 보였다.
+      if (!isNarrow) dpr = Math.max(dpr, 1.75);
     } catch (_) {}
     if (!cssWidth) cssWidth = maxCss;
     cssWidth = Math.min(cssWidth, maxCss);
@@ -2851,6 +2853,14 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
     if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
     img.addEventListener('error', function() {
+      // srcset 이 있으면 src 를 바꿔도 브라우저는 srcset 후보를 계속 고른다. 먼저 걷어 내고,
+      // 실패한 것이 srcset 후보였다면 원래 src 가 스스로 다시 로드되게 둔다.
+      if (img.hasAttribute('srcset')) {
+        var failed = img.currentSrc;
+        img.removeAttribute('srcset');
+        img.removeAttribute('sizes');
+        if (failed && failed !== img.src) return;
+      }
       var rest = img.__cdImgFallbackChain || [];
       var next = rest.shift();
       if (next) {
@@ -2863,6 +2873,22 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       img.remove();
       if (placeholder) placeholder.style.display = '';
     });
+  }
+
+  // /feature-details/assets/<id>-320.webp 는 같은 이름의 480·960 파생본과 늘 함께 생성된다
+  // (scripts/lib/build-visual-details.mjs). R2 리사이즈를 못 타는 이 경로는 320 한 장만 붙어
+  // 데스크탑(타일 약 270px)에서 흐렸다. sizes 의 480px 는 실제 폭보다 크게 잡은 값이다 —
+  // DPR 1 에서도 480 을 받아 선명하게 축소되고, 모바일 180px 는 DPR 2.625 에서 480 에 머문다.
+  // 쌍둥이: js/core/uiBindings.js __applyFeatureDetailSrcset.
+  var FEATURE_DETAIL_320_RE = /^(\/feature-details\/assets\/(?![a-z0-9-]*-catalog-)[a-z0-9-]+)-320\.webp$/;
+  var COLLECTION_TILE_SIZES = '(max-width: 768px) 180px, 480px';
+  function applyFeatureDetailSrcset(img, src) {
+    var match = img && FEATURE_DETAIL_320_RE.exec(String(src || ''));
+    if (!match) return;
+    if (!img.getAttribute('srcset')) {
+      img.setAttribute('srcset', match[1] + '-320.webp 320w, ' + match[1] + '-480.webp 480w, ' + match[1] + '-960.webp 960w');
+    }
+    img.setAttribute('sizes', COLLECTION_TILE_SIZES);
   }
 
   function hydrateWrap(wrap) {
@@ -2884,6 +2910,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       // 리사이즈 → R2 원본 → 마크업에 박혀 있던 원래 경로 순으로 물러난다.
       var existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       var nextSrc = resizedExisting || resolvedExistingSrc;
+      applyFeatureDetailSrcset(existingImg, existingSrc);
       if (nextSrc && nextSrc !== existingSrc) {
         // 체인은 "바인딩 시점의 src" 와 같은 후보를 중복으로 보고 걸러낸다. 먼저 바인딩하면
         // 마크업의 원래 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는
@@ -2925,6 +2952,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     var resizedSrc = buildResizedCollectionImageUrl(resolvedSrc, wrap);
     // 리사이즈본 → 원본 R2 → 마크업의 원래 경로 → 그래도 안 되면 심볼 플레이스홀더.
     bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
+    applyFeatureDetailSrcset(img, resizedSrc || resolvedSrc);
     img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   }

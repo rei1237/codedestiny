@@ -392,6 +392,8 @@ function __buildResizedCollectionImageUrl(r2Url, wrap) {
     // 하이드레이션이 2열 레이아웃 확정 전에 돌면 clientWidth 가 1열 기준으로 잡힌다 — 뷰포트로 상한
     const isNarrow = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     maxCss = isNarrow ? Math.ceil(window.innerWidth / 2) : window.innerWidth;
+    // 데스크탑은 DPR 1 이어도 1.75배로 받는다 — 폭 그대로(320)는 큰 화면에서 흐리게 보였다.
+    if (!isNarrow) dpr = Math.max(dpr, 1.75);
   } catch {}
   if (!cssWidth) cssWidth = maxCss;
   cssWidth = Math.min(cssWidth, maxCss);
@@ -440,6 +442,13 @@ function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) 
   if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
   if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
   img.addEventListener('error', () => {
+    // srcset 이 있으면 src 를 바꿔도 srcset 후보가 계속 골린다 — 걷어 내고, 실패가 후보였다면 원래 src 를 기다린다
+    if (img.hasAttribute('srcset')) {
+      const failed = img.currentSrc;
+      img.removeAttribute('srcset');
+      img.removeAttribute('sizes');
+      if (failed && failed !== img.src) return;
+    }
     const next = (img.__cdImgFallbackChain || []).shift();
     if (next) {
       const rest = img.__cdImgFallbackChain || [];
@@ -504,6 +513,20 @@ function __runChunked(listLike, fn, opts = {}) {
   });
 }
 
+// /feature-details/assets/<id>-320.webp 는 480·960 파생본과 늘 함께 생성된다. 320 한 장만 붙이면 데스크탑이 흐리다.
+// sizes 480px 는 의도적으로 크게 잡았다(DPR 1 도 480), 모바일 180px 는 DPR 2.625 에서 480 에 머문다.
+// 쌍둥이: js/core/index-inline-runtime.js applyFeatureDetailSrcset.
+const __FEATURE_DETAIL_320_RE = /^(\/feature-details\/assets\/(?![a-z0-9-]*-catalog-)[a-z0-9-]+)-320\.webp$/;
+const __COLLECTION_TILE_SIZES = '(max-width: 768px) 180px, 480px';
+function __applyFeatureDetailSrcset(img, src) {
+  const match = img && __FEATURE_DETAIL_320_RE.exec(String(src || ''));
+  if (!match) return;
+  if (!img.getAttribute('srcset')) {
+    img.setAttribute('srcset', `${match[1]}-320.webp 320w, ${match[1]}-480.webp 480w, ${match[1]}-960.webp 960w`);
+  }
+  img.setAttribute('sizes', __COLLECTION_TILE_SIZES);
+}
+
 function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
   if (!collection) return;
   // 모바일에서도 데스크톱과 동일하게 전 컬렉션의 이미지를 하이드레이션한다.
@@ -530,6 +553,7 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
       // 마지막 후보가 있어야 R2 에 아직 안 올라간 자산도 화면에서 사라지지 않는다.
       const existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       const nextSrc = resizedExisting || resolvedExistingSrc;
+      __applyFeatureDetailSrcset(existingImg, existingSrc);
       if (nextSrc && nextSrc !== existingSrc) {
         // 체인은 "바인딩 시점의 src" 와 같은 후보를 걸러낸다. 먼저 바인딩하면 마크업의 원래
         // 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는 자산은
@@ -566,6 +590,7 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     img.alt = alt;
     const resizedSrc = __buildResizedCollectionImageUrl(resolvedSrc, wrap);
     __bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
+    __applyFeatureDetailSrcset(img, resizedSrc || resolvedSrc);
     img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   };
