@@ -35,15 +35,15 @@ export function readingChapterCount(domain: DomainId, tier: PackageId, version =
 export const v5ReadingPolicies = {
   ...readingPolicies,
   tuna: {...readingPolicies.tuna, minimum:32000, target:[36000,44000]},
-  assorted: {...readingPolicies.assorted, minimum:48000, target:[55000,65000]},
-  omakase: {...readingPolicies.omakase, minimum:80000, target:[90000,110000]},
+  assorted: {...readingPolicies.assorted, minimum:48000, target:[60500,71500]},
+  omakase: {...readingPolicies.omakase, minimum:80000, target:[99000,121000]},
 } as const;
 export const v6ReadingPolicies = {
   ...v5ReadingPolicies,
-  mackerel: {...readingPolicies.mackerel, minimum:5000, target:[6000,7000]},
-  salmon: {...readingPolicies.salmon, minimum:10000, target:[12000,14000]},
-  flounder: {...readingPolicies.flounder, minimum:18000, target:[21000,25000]},
-  tuna: {...v5ReadingPolicies.tuna, minimum:40000, target:[45000,52000]},
+  mackerel: {...readingPolicies.mackerel, minimum:5500, target:[7500,8500]},
+  salmon: {...readingPolicies.salmon, minimum:10000, target:[13200,15400]},
+  flounder: {...readingPolicies.flounder, minimum:18000, target:[23000,27500]},
+  tuna: {...v5ReadingPolicies.tuna, minimum:40000, target:[49500,57000]},
 } as const;
 export const policyForReading = (tier: PackageId, version?: string) =>
   version === READING_V6_VERSION ? v6ReadingPolicies[tier] : version === READING_V5_VERSION ? v5ReadingPolicies[tier] : readingPolicies[tier];

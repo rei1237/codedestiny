@@ -5,7 +5,7 @@ import {build} from 'esbuild';
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const counts={mackerel:5,salmon:8,flounder:11,tuna:15};
-const minimums={mackerel:5000,salmon:10000,flounder:18000,tuna:40000};
+const minimums={mackerel:5500,salmon:10000,flounder:18000,tuna:40000};
 const singles=m.products.filter(p=>p.readingKind==='single');
 const context={domain:'saju',engineVersion:'fixture',calculatedAt:'2026-09-23',limitations:[],facts:[{id:'saju.pillars',label:'pillars',value:{day:'甲子'}},{id:'saju.dayMaster',label:'dayMaster',value:'甲'}]};
 const product=singles.find(p=>p.id==='saju_tuna');
@@ -33,6 +33,18 @@ test('24 single products and every offered consultation have complete tier-speci
    assert.deepEqual(c.systems,[p.domain]);
   }
  }
+});
+test('the mackerel closing action chapter is the longest, and every floor sits well under its target',()=>{
+ const books=[];
+ for(const p of singles)for(const k of m.consultationKinds[p.domain])if(m.supportsKind(p,k))books.push({p,tag:`${p.id}/${k.id}`,rows:m.consultationManifest(p,k)});
+ for(const p of m.products.filter(p=>p.readingKind!=='single'))books.push({p,tag:p.id,rows:m.readingManifest(p)});
+ for(const {p,tag,rows} of books){
+  const action=rows.at(-1),others=rows.slice(0,-1);
+  if(p.readingKind==='single')assert.ok(others.every(c=>p.fishId==='mackerel'?action.targetChars[0]>c.targetChars[0]*1.1:action.targetChars[0]<=c.targetChars[0]),tag);
+  // Headroom: a raised target must not drag the floor up with it (CLAUDE.md principle 17). Current tiers sit at .73-.81.
+  for(const c of rows)for(const q of [c,...c.sections])assert.ok(q.minimumChars<=q.targetChars[0]*.82,`${tag}/${c.key}/${q.id}`);
+ }
+ assert.ok(books.length>=singles.length+2);
 });
 test('fusion retains v5 counts and quotas; explicit legacy versions cannot inherit current single counts',()=>{
  for(const p of m.products.filter(p=>p.readingKind!=='single')){

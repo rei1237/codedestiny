@@ -8,11 +8,27 @@ const codePoints=(s:string)=>Array.from(s).length;
 // Sentence end: a non-digit, non-space character, then . ! ? 。 (plus closing quotes/brackets) and whitespace; or a line break.
 // List numbers ("1. "), dotted dates ("2026. 10.") and decimals are never cut.
 const SENTENCE_BOUNDARY=/(?<=(?:[^\s\d][.!?。]["'”’)\]」』]*\s+|\n\s*))(?=\S)/u;
-// v5/v6 section targets can exceed the per-paragraph cap. Cut only at sentence ends into balanced
-// parts; a paragraph with no sentence end, or a single sentence over the cap, stays whole and fails validation.
+// Last resort for one unit over the cap (no sentence end, or a single very long sentence): cut after the
+// last clause mark in the back half of the cap, else after the last space, else at the cap itself.
+// A missing sentence end must never fail a chapter; only whitespace at the cut is dropped.
+function wrapLongUnit(unit:string):string[]{
+ const out:string[]=[];let rest=unit;
+ while(codePoints(rest)>SECTION_PARAGRAPH_LIMIT){
+  const head=Array.from(rest).slice(0,SECTION_PARAGRAPH_LIMIT).join('');
+  const last=(re:RegExp,from:number)=>{let cut=-1;for(const m of head.matchAll(re))if(m.index!>=from)cut=m.index!+m[0].length;return cut;};
+  let cut=last(/[,，、;:]\s+/gu,head.length/2);
+  if(cut<=0||cut>=head.length)cut=last(/\s+/gu,1);
+  if(cut<=0||cut>=head.length)cut=head.length;
+  out.push(rest.slice(0,cut));rest=rest.slice(cut);
+ }
+ if(rest)out.push(rest);
+ return out;
+}
+// v5/v6 section targets can exceed the per-paragraph cap. Cut at sentence ends into balanced parts;
+// a unit that is still over the cap is wrapped by wrapLongUnit, so every part fits the cap.
 export function splitSectionParagraph(paragraph:string):string[]{
  if(codePoints(paragraph)<=SECTION_PARAGRAPH_LIMIT)return [paragraph];
- const units=paragraph.split(SENTENCE_BOUNDARY);
+ const units=paragraph.split(SENTENCE_BOUNDARY).flatMap(wrapLongUnit);
  if(units.length<2)return [paragraph];
  const total=codePoints(paragraph),parts=Math.ceil(total/SECTION_PARAGRAPH_LIMIT),goal=total/parts,out:string[]=[];
  let current='',done=0;

@@ -13,14 +13,17 @@ function providerSchema(value: any): any {
   return Object.fromEntries(Object.entries(value).filter(([key,item])=>key!=='additionalProperties' && !(key==='enum' && Array.isArray(item) && item.includes(''))).map(([key,item])=>[key,providerSchema(item)]));
 }
 
+// Gemini 2.5 thinking tokens eat into maxOutputTokens (lib/llm-client.ts), so the cap adds the thinking budget on top.
+const THINKING_BUDGET=1024;
+
 export class CodeDestinyProvider implements LLMProvider {
   constructor(private env: Record<string, unknown>) {}
   async generate(request: FortuneLLMRequest) {
     // No fixture or paid-provider fallback is selected by request parameters.
     if (getEnv(this.env,'LLM_DRY_RUN') === 'true' || !getEnv(this.env,'GEMINIF_API_KEY')) throw new FortuneError('LLM_NOT_CONFIGURED',503);
-    const cap=Math.max(request.maxOutputTokens || 8192,tokensRequiredForChars(4000));
+    const cap=Math.max(request.maxOutputTokens || 8192,tokensRequiredForChars(6000))+THINKING_BUDGET;
     const response=await callGeminiText(this.env, JSON.stringify(messages(request)), {
-      maxOutputTokens:cap,thinkingBudget:1024,timeoutMs:90000,
+      maxOutputTokens:cap,thinkingBudget:THINKING_BUDGET,timeoutMs:90000,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
       maxProviderAttempts:1,

@@ -230,7 +230,8 @@ export function readingManifestV6(p:Product,topic='general',mode='personal',kind
  selected=[...selected,action];
  if(selected.length!==readingChapterCount(p.domain,p.fishId,READING_V6_VERSION) || new Set(selected.map(r=>r.key)).size!==selected.length)throw new FortuneError('INVALID_READING_MANIFEST');
  const policy=policyForReading(p.fishId,READING_V6_VERSION);
- const weights=selected.map(r=>r.key==='action'?.85:['useful','current','next','overlap','triad','transform','yoga','division','complex'].includes(r.key)?1.15:1);
+ // Mackerel has only five chapters, so its closing action chapter gets the longest share instead of the shortest.
+ const weights=selected.map(r=>r.key==='action'?(p.fishId==='mackerel'?1.3:.85):['useful','current','next','overlap','triad','transform','yoga','division','complex'].includes(r.key)?1.15:1);
  const sum=weights.reduce((a,b)=>a+b,0);
  return selected.map((r,i)=>withReadingSections({id:`${p.fishId}-${String(i+1).padStart(2,'0')}`,ordinal:i,key:r.key,title:r.title,part:kind?.label || '나의 운세',theme:r.theme,
   version:READING_V6_VERSION,tier:p.fishId,systems:p.systems,
