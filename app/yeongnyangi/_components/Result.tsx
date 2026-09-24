@@ -18,8 +18,9 @@ function RecoveryNotice({message,busy,onRetry}:{message:string;busy:boolean;onRe
   </div>
  </div>;
 }
-// 결제 확정(웹훅·PG 복귀)보다 먼저 열린 결과 화면이 새로고침 없이 넘어가도록 /activate 를 5초 간격으로 다시 확인하는 상한(약 3분).
-const PAY_CHECK_LIMIT=36;
+const RESULT_POLL_MS=1500;
+// 결제 확정(웹훅·PG 복귀)보다 먼저 열린 결과 화면이 새로고침 없이 넘어가도록 /activate 를 RESULT_POLL_MS 간격으로 다시 확인하는 상한(약 3분).
+const PAY_CHECK_LIMIT=Math.ceil(180000/RESULT_POLL_MS);
 function sameRequest(fortune:FortuneRecord,id:string){
  if(fortune.id!==id||(fortune.recovery?.requestId&&fortune.recovery.requestId!==id))throw new FortuneApiError('RECOVERY_ID_MISMATCH','원래 상담과 복구 응답이 일치하지 않아요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.',409,false);
  return fortune;
@@ -77,7 +78,7 @@ export default function Result(){
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
     if(!cancelled){setRow(sameRequest(fortune,row.id));setError('');}
    }catch(e){if(!cancelled){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError('진행 상태를 확인하지 못했어요. 연결되면 다시 확인할게요.');setRow({...row});}}}
-  },5000);
+  },RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
  useEffect(()=>{
@@ -96,7 +97,7 @@ export default function Result(){
     const waiting=!(e instanceof FortuneApiError)||((e.status===402&&e.code!=='MONTHLY_PASS_LIMIT_EXCEEDED')||e.retryable||e.code==='PAYMENT_ATTACH_CONFLICT');
     if(waiting)setRow({...row});else setPayWatching(false);
    }
-  },5000);
+  },RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row,payWatching]);
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
