@@ -217,6 +217,18 @@ test('three chapter failures stop automatically; explicit resume preserves total
   expect(requests[0]).toMatchObject({attempts:5,state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
 });
 
+test('a rejected draft is retried within seconds under the same three-attempt cap; the audit keeps the block detail',async()=>{
+  await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
+  for(let attempt=1;attempt<=3;attempt++){
+    requests[0].nextAttemptAt=null;
+    const claim=await repo.claimChapter({},owner,'id');
+    await repo.failChapter({},owner,'id',claim.token,'INVALID_CHAPTER_BLOCKS',attempt,'quality',undefined,'paragraph_too_long:action');
+    if(attempt<3){const wait=requests[0].nextAttemptAt.getTime()-Date.now();expect(wait).toBeGreaterThan(4000);expect(wait).toBeLessThanOrEqual(5000);}
+  }
+  expect(requests[0]).toMatchObject({errorCode:'AUTOMATIC_RECOVERY_STOPPED',nextAttemptAt:null,lastFailure:{code:'INVALID_CHAPTER_BLOCKS',stage:'quality'}});
+  expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'automatic_recovery_stopped',code:'INVALID_CHAPTER_BLOCKS',detail:'paragraph_too_long:action'});
+});
+
 test.each(['queue','user'])('worker interruption after chapter one becomes recoverable via %s at the attempt limit',async source=>{
   const total=5;
   await repo.createRequest({},owner,'id',{...values,snapshot:{manifest:Array.from({length:total},(_,i)=>({id:`chapter-${i}`}))}});await repo.attachPayment({},owner,'id',1000);

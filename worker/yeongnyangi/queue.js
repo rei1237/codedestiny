@@ -70,7 +70,11 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
       catch { message.retry({delaySeconds:30}); continue; }
       console.warn('[yeongnyangi-queue]',JSON.stringify({requestId:id,chapter:row?.chapters?.length || 0,outcome:String(error?.code || 'GENERATION_FAILED')}));
       if (terminal(row) || ['PAYMENT_REQUIRED','PAYMENT_NOT_ACTIVE','FORTUNE_NOT_FOUND'].includes(error?.code || error?.payload?.code)) message.ack();
-      else message.retry({delaySeconds:Math.max(30,Math.ceil((new Date(row?.nextAttemptAt || 0).getTime()-Date.now())/1000))});
+      else {
+        // Only this delivery's own recorded quality failure skips the 30s floor; a stale one never shortens other errors.
+        const quality=row?.state==='FORTUNE_FAILED'&&row?.lastFailure?.stage==='quality'&&row.lastFailure.code===String(error?.code || 'GENERATION_FAILED').slice(0,80);
+        message.retry({delaySeconds:Math.max(quality?1:30,Math.ceil((new Date(row?.nextAttemptAt || 0).getTime()-Date.now())/1000))});
+      }
     }
   }
 }

@@ -8,6 +8,8 @@ export { YeongnyangiRequest };
 const paidStatuses = ['paid','success','fulfilled'];
 export const AUTOMATIC_CHAPTER_ATTEMPTS = 3;
 export const MANUAL_CHAPTER_RECOVERY_LIMIT = 2;
+// A rejected draft is not an outage: retry it almost at once. Provider and storage failures keep 30s, then 120s.
+const QUALITY_RETRY_MS = 5000;
 const failure = (status, code) => {
   const error=createHttpError(status, code, {code});
   error.code=code;
@@ -339,7 +341,7 @@ export async function failChapter(env, userId, requestId, token, code, attempt =
   const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST'].includes(code);
   const stopped=attempt>=allowedAttempts&&!permanent;
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
-    {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:permanent||stopped?null:new Date(Date.now()+(attempt===1?30000:120000))},
+    {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000))},
       $push:{recoveryAudit:{kind:permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:null,at:new Date(),code:String(code).slice(0,80),...(detail?{detail:String(detail).slice(0,80)}:{})}}}));
   if(permanent)await refundTerminalFamilyQuota(env,userId,requestId);
   return result;

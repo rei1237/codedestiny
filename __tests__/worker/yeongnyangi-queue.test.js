@@ -56,3 +56,12 @@ test('database failure during failure handling retries instead of losing the mes
  await consumeConsultationQueue({messages:[m]},{},{read,service:{}});
  expect(m.retry).toHaveBeenCalledWith({delaySeconds:30});expect(m.ack).not.toHaveBeenCalled();
 });
+test('a rejected draft retries within seconds; provider failures and stale quality records keep the 30s floor',async()=>{
+ for(const [stage,recorded,floor] of [['quality','INVALID_CHAPTER_BLOCKS',1],['provider','INVALID_CHAPTER_BLOCKS',30],['quality','CHAPTER_TOO_SHORT',30]]){
+  const failed={...row(),state:'FORTUNE_FAILED',lastFailure:{stage,code:recorded},nextAttemptAt:new Date(Date.now()+5000)},m=message();
+  const read=jest.fn().mockResolvedValueOnce(row()).mockResolvedValueOnce(failed);
+  await consumeConsultationQueue({messages:[m]},{},{read,service:{generateNextChapter:jest.fn().mockRejectedValue({code:'INVALID_CHAPTER_BLOCKS'})}});
+  const {delaySeconds}=m.retry.mock.calls[0][0];
+  expect(delaySeconds).toBeGreaterThanOrEqual(floor);expect(delaySeconds).toBeLessThanOrEqual(Math.max(floor,5));expect(m.ack).not.toHaveBeenCalled();
+ }
+});
