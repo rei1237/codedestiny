@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-24
-next: 모바일·데스크탑·하이브리드 CDP 스모크가 모두 exit 0이다. 다음은 데스크탑 `/?action=cdOpenAllFortunes` scrollY 0 판정이다. 영냥이 밴드 유입 관찰은 계속한다
+next: 데스크탑 `/?action=cdOpenAllFortunes` scrollY 0 결함을 고쳤다. 모바일·데스크탑·하이브리드 CDP 스모크는 모두 exit 0. 영냥이 밴드 유입 관찰은 계속한다
 ---
 # 꿀꿀 운세 홈 "연이의 꽃정원" 개편 (2026-09-24)
 
@@ -31,8 +31,11 @@ next: 모바일·데스크탑·하이브리드 CDP 스모크가 모두 exit 0이
 - 스모크 이용권 블록 계약 갱신(이 커밋 다음): 옛 `#honeyMembershipMini`는 2026-09-08 홈 재조립(`ffcc3626a`) 때부터 홈에서 `display:none`이다. 그래서 대상을 `.cdh-pass .cdh-pass__btn`으로 바꿨다. 계약은 그대로다: 보이는 CTA가 `/points/` 안내로 가고 결제 `data-action`이 없어야 한다. 모바일 CDP 스모크 결과는 exit 0, PASS 49, FAIL 0이다.
 - 데스크탑 CDP 스모크 판정·계약 갱신(이 커밋): 제품 결함이 아니다. 스모크가 08-20에 의도적으로 바뀐 두 계약을 따라가지 못한 것이다. 옛 index.html을 이분 탐색해 경계 커밋을 찾았다(1440px playwright 실측). (1) `467d0cc53`(08-20): 8개 `fg-group`에 `data-cd-home-secondary`를 달아 데스크탑에서도 "모두 펼치기" 뒤로 접었다. 데스크탑 진입 경로에는 `__cdExpandHome()`을 붙였다. 09-24부터는 정원 접힘 안이라 두 겹이다. (2) `9f7648605`(08-20): 커밋 메시지에 "하단 네비게이션을 데스크탑에도 노출"이라고 적혀 있다. 그래서 08-04 단언 "desktop keeps the mobile bottom nav out of layout"은 그때부터 낡았다(토글 실패에 가려 보이지 않았다). 고친 것: 데스크탑 분기는 `expandHomeFolds(cdp, clickSelector)`로 접힘을 마우스 클릭으로 연다(`press` 인자를 추가했고 기본값은 모바일과 같은 `tapSelector`다). 하단 탭 단언은 `display !== "none"`으로 바꿨다. 브리지 격리 단언 4개는 그대로다. 결과: `--desktop`·`--hybrid-desktop`은 각각 exit 0, PASS 7이다. 모바일은 exit 0, PASS 49, FAIL 0으로 회귀가 없다.
 
+## 후속 세션에서 끝낸 것 (계속)
+- 데스크탑 `/?action=cdOpenAllFortunes` scrollY 0 판정·수정: 원인은 `window.cdOpenAllFortunes`의 데스크톱 폴백이 `__cdExpandHome()`(옛 `cd-home-expanded` 접기)만 열고 `<details id="cdhMore">`는 열지 않은 것이다. `#tarotCollection`은 `move('#featureBegin','cdhCollections')`로 `#cdhCollections`(`#cdhMore` 안)로 옮겨진 상태라, 닫힌 `<details>` 안에서 `.cdh-more__body{display:grid}`가 UA의 닫힘 은닉을 이겨 `getBoundingClientRect`는 높이(408px)를 주지만 `document.documentElement.scrollHeight`에는 반영되지 않는다(playwright 실측: rect.top 7747 > scrollHeight 6855) — `scrollIntoView`가 존재하지 않는 위치로 스크롤을 시도해 무반응이었다. 판정: 제품 결함(사용자가 컬렉션을 못 본다). 고침: `cdOpenAllFortunes`에 `ensureGardenOpen()`과 같은 `more.open = true`를 추가했다(index.html:14249). 수정 후 playwright 실측: `cdhMoreOpen: true`, `scrollY: 7683`, `#tarotCollection` rect.top 365px(뷰포트 안). `verify-mobile-cdp-smoke.mjs --desktop`은 그대로 OK.
+- 🔴 함정: index.html 수정은 `/`·`/ggulggul/`·`/en/`·`/ja/` 등 셸 라우트의 사이트맵 서명을 바꾼다. `npm run sitemap:generate`를 같은 커밋에 담지 않으면 `verify:sitemap-drift`가 막는다(실측: index.html만 stash하면 드리프트가 사라짐 → 원인이 이 편집임을 확인).
+
 ## 기존 결함 (보고만, 미수정)
-- 데스크탑 `/?action=cdOpenAllFortunes`: `#tarotCollection`은 높이가 있는데(408px) `scrollY`가 0에 머문다(1280px playwright 1회 관찰, 원인 미조사).
 - 오버레이의 `ensureHomeExpanded()`는 `38c6ecdde`(09-11) 이후 호출부가 0개인 죽은 함수다. 위 `home-funnel.js` no-op 구독자도 같은 성격이다(삭제는 별도 변경).
 - `verify-mobile-runtime-readiness.mjs`에서 이번 변경과 무관한 3건이 실패한다: 하단 탭 메인 슬롯, 퀵 카테고리, 결제 시트. 변경 전 HEAD 스크립트로 돌려도 같은 3건이 실패한다.
 - /en/·/ja/ 홈에 기존 한국어 리프가 남아 있다. 이용권 등급명·등급 줄·가격(원), 히어로 연이 alt("연꽃을 단 꽃돼지 연이"), 접힘 안의 적중 기록·공유 카드·일간/띠 링크, 헤더 aria-label이다. 모두 개편 전부터 한국어였다(범위 밖).
@@ -42,5 +45,4 @@ next: 모바일·데스크탑·하이브리드 CDP 스모크가 모두 exit 0이
 - `npm run sync:public`이 윈도우에서 가끔 EPERM/UNKNOWN(파일 잠금)으로 실패한다. 재실행하면 수렴한다.
 
 ## 후속 과제
-- 데스크탑 `/?action=cdOpenAllFortunes`의 `scrollY` 0 관찰(위 결함 첫 줄)을 재현하고 판정한다. 사용자에게 컬렉션이 안 보이면 결함이다.
 - 영냥이 밴드 노출이 줄었다. 영냥이 유입 지표를 1~2주 관찰하고, 필요하면 이용권 뒤로 꺼낸다.
