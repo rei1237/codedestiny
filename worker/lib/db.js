@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { currentDbScopeId } from "./db-scope.js";
+import { currentDbScope, currentDbScopeId, onDbScopeEnd } from "./db-scope.js";
 import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
@@ -1127,15 +1127,68 @@ export async function connectDb(env = {}, options = {}) {
 // 🔴 이 소켓 레인만으로는 절반이다 — 위 mongoPaymentAdmission(전용 admission 레인)과 반드시
 // 한 세트로 본다. 소켓만 나누고 게이트를 공유하면 부팅 폭풍이 공유 한도를 채우는 순간 결제는
 // 소켓을 기다려 보지도 못하고 admission 에서 하드 503 이 된다.
-let paymentConnection = null;
-let paymentConnectionPromise = null;
+//
+// 🔴 레인 연결은 요청 스코프마다 따로 연다(설계안 C4, 2026-09-24). 아이솔레이트 전역 연결 하나를
+// readyState 만 보고 재사용하면, 다음 요청이 앞 요청이 연 소켓으로 명령을 보낸다. Workers 에서는 그
+// 소켓이 다른 요청에 답하지 않는다(스테이징 0/115). 프로덕션에서는 결제 레인 요청 8건 중 4건이 8초
+// 정지했고, 1건은 16.1초 만에 503 이 났다. 그래서 스코프 안에서는 scopedPaymentLanes 가
+// { conn, promise } 를 스코프마다 들고 있고, 스코프가 끝나면(./db-scope.js) destroy 한다. close 가
+// 아니라 destroy 인 이유: close 는 mongoose.connections 에서 연결을 빼지 않아 요청마다 샌다.
+// 스코프 밖(테스트·컨텍스트가 끊긴 경로)은 예전처럼 전역 홀더를 쓰고 [db-scope-miss] 를 남긴다.
+const globalPaymentLane = { conn: null, promise: null };
+const scopedPaymentLanes = new WeakMap();
+
+async function destroyScopedPaymentConnection(conn, scopeId, why) {
+  const startedAt = Date.now();
+  try {
+    if (typeof conn.destroy === "function") await conn.destroy(false);
+  } catch (e) {
+    // 이미 끊긴 커넥션을 닫는 실패는 정보가 없다.
+  }
+  console.log("[db-scope-close]", JSON.stringify({ scope: scopeId, lane: "payment", why, closeMs: Date.now() - startedAt }));
+}
+
+// 이 요청이 쓸 레인 홀더. 스코프 안이면 처음 부를 때 만들고, 스코프가 끝날 때 닫기를 등록한다.
+function paymentLaneForRequest() {
+  const scope = currentDbScope();
+  if (!scope) {
+    console.log("[db-scope-miss]", JSON.stringify({ lane: "payment" }));
+    return globalPaymentLane;
+  }
+  const existing = scopedPaymentLanes.get(scope);
+  if (existing && !scope.ended) return existing;
+  const lane = { conn: null, promise: null };
+  const registered = onDbScopeEnd(async () => {
+    // 수립 중이면 끝나기를 기다렸다가 닫는다 — 가드 타임아웃 뒤에도 수립은 계속된다(아래 withTimeout 주석).
+    if (lane.promise) await lane.promise;
+    const conn = lane.conn;
+    lane.conn = null;
+    if (conn) await destroyScopedPaymentConnection(conn, scope.id, "end");
+  });
+  if (!registered) {
+    console.log("[db-scope-late]", JSON.stringify({ scope: scope.id, lane: "payment" }));
+    return globalPaymentLane;
+  }
+  scopedPaymentLanes.set(scope, lane);
+  return lane;
+}
 
 // 레인 커넥션을 버린다. 공유 풀의 resetMongooseConnection 은 기본 커넥션만 건드리므로
 // (withMongoRetry 의 skipSharedConnect 참고) 레인은 자기 회복 경로가 따로 있어야 한다.
 // close 를 빠뜨리면 죽은 커넥션이 아이솔레이트에 그대로 남아 M0 연결 예산만 먹는다.
+// 스코프 안에서는 그 요청의 레인만 버린다 — 다른 요청의 레인은 그 요청의 IoContext 소유다.
 export async function resetPaymentConnection() {
-  const stale = paymentConnection;
-  paymentConnection = null;
+  const scope = currentDbScope();
+  if (scope && !scope.ended) {
+    const lane = scopedPaymentLanes.get(scope);
+    const stale = lane?.conn;
+    if (!stale) return;
+    lane.conn = null;
+    await destroyScopedPaymentConnection(stale, scope.id, "reset");
+    return;
+  }
+  const stale = globalPaymentLane.conn;
+  globalPaymentLane.conn = null;
   if (!stale) return;
   try {
     await stale.close(false);
@@ -1149,10 +1202,11 @@ export async function connectPaymentDb(env = {}) {
   // 결제 요청은 skipSharedConnect 로 connectDb 를 건너뛴다. 여기서도 정하지 않으면 결제만 받은
   // 아이솔레이트에서는 스테이징 [db-cmd] 추적이 꺼진 채로 남는다.
   mongoCommandTraceEnabled = String(getEnv(env, "APP_ENV", "")).trim().toLowerCase() === "staging";
-  if (paymentConnection && paymentConnection.readyState === 1) return paymentConnection;
-  if (paymentConnectionPromise) return paymentConnectionPromise;
+  const lane = paymentLaneForRequest();
+  if (lane.conn && lane.conn.readyState === 1) return lane.conn;
+  if (lane.promise) return lane.promise;
   // readyState 가 1 이 아닌 커넥션이 남아 있으면 재할당 전에 닫는다(그냥 덮으면 소켓이 샌다).
-  if (paymentConnection) await resetPaymentConnection();
+  if (lane.conn) await resetPaymentConnection();
   const uri = (
     getEnv(env, "MONGO_URI")
     || getEnv(env, "MONGODB_URI")
@@ -1246,7 +1300,7 @@ export async function connectPaymentDb(env = {}) {
             // 계측 실패는 무시한다.
           }
           const conn = await opening.asPromise();
-          paymentConnection = conn;
+          lane.conn = conn;
           console.log(`[db-connect] payment lane connected. elapsedMs=${Date.now() - startedAt} pool=${attemptOptions.maxPoolSize} family=${candidate} attempt=${attempt + 1}`);
           return conn;
         } catch (error) {
@@ -1262,16 +1316,17 @@ export async function connectPaymentDb(env = {}) {
 
   const establishPromise = establishLane();
   // 🔴 withTimeout 은 Promise.race 라 가드가 먼저 끊겨도 **수립 자체는 계속 진행된다.**
-  // 그래서 in-flight 표식(paymentConnectionPromise)은 가드 시점이 아니라 수립이 **실제로** 끝날 때
-  // 비운다. 가드에서 비우면 다음 요청이 '진행 중인 수립'을 못 보고 두 번째 핸드셰이크를 시작하는데,
+  // 그래서 in-flight 표식(lane.promise)은 가드 시점이 아니라 수립이 **실제로** 끝날 때
+  // 비운다. 가드에서 비우면 같은 레인의 다음 호출(스코프 안이면 같은 요청의 재시도·동시 슬롯)이
+  // '진행 중인 수립'을 못 보고 두 번째 핸드셰이크를 시작하는데,
   // 그게 M10 의 신규 커넥션 생성률(노드당 15/s) 예산을 태우는 정확히 그 행동이다.
   // 여기서 거절을 흡수(→ null)하는 것은 unhandled rejection 방지 겸, 이 표식을 먼저 받아 가는
   // 동시 호출자에게 "연결 없음"을 정상 값으로 넘기기 위해서다 — worker/payments/db.js 는
   // null 을 받으면 공유 커넥션으로 폴백한다(그 경로가 이미 있다).
-  paymentConnectionPromise = establishPromise.then(
+  lane.promise = establishPromise.then(
     (conn) => conn,
     () => null,
-  ).finally(() => { paymentConnectionPromise = null; });
+  ).finally(() => { lane.promise = null; });
   return withTimeout(establishPromise, laneGuardMS, "Payment lane connection timed out in Worker.");
 }
 

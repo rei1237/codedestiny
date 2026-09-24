@@ -2032,6 +2032,7 @@ const app = {
   },
 };
 
-// 요청 범위 DB 스코프(설계안 C1). fetch 1건·queue 배치 1건·scheduled 1회가 각각 스코프 하나이고,
-// 그 id 가 db.js 계측([db-conn-open]·[db-cmd])에 찍힌다. 동작 변경 없음 — worker/lib/db-scope.js.
+// 요청 범위 DB 스코프(설계안 C1·C4). fetch 1건·queue 배치 1건·scheduled 1회가 각각 스코프 하나이고,
+// 그 id 가 db.js 계측([db-conn-open]·[db-cmd])에 찍힌다. 결제 레인 연결은 스코프마다 따로 열고, 핸들러와
+// 그 요청의 ctx.waitUntil 작업이 끝나면 닫는다(C4) — worker/lib/db-scope.js.
 export default withDbScopes(app);
