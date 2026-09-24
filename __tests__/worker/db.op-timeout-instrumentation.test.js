@@ -213,12 +213,62 @@ test("스코프 안에서는 [db-conn-open]·[db-cmd] 에 요청 스코프 id �
 
   expect(scopes).toEqual([expect.stringMatching(/^f-\w+$/), expect.stringMatching(/^f-\w+$/)]);
   expect(scopes[0]).not.toBe(scopes[1]);
-  expect(parse("[db-conn-open]")).toEqual([{ conn: expect.stringMatching(/#3$/), scope: scopes[0] }]);
+  expect(parse("[db-conn-open]")).toEqual([{ conn: expect.stringMatching(/#3$/), scope: scopes[0], lane: "shared" }]);
   expect(parse("[db-cmd]").map(({ conn, scope }) => ({ conn, scope }))).toEqual([
     { conn: parse("[db-conn-open]")[0].conn, scope: scopes[0] },
     { conn: parse("[db-conn-open]")[0].conn, scope: scopes[1] },
   ]);
 });
+
+// 2026-09-24 설계안 C2: 결제 소켓 레인(스테이징·프로덕션 PAYMENTS_DB_SOCKET_LANE=1)은 monitorCommands 만
+// 켜고 리스너가 없어서 [db-conn-open]·[db-cmd]·[db-op-timeout] 어디에도 안 잡혔다.
+test("결제 레인도 첫 소켓부터 [db-conn-open](lane: payment)·[db-cmd] 에 스코프를 남기고, [db-op-timeout] 이 그 명령을 센다", async () => {
+  const { mongooseMock } = buildEmittingMongoose();
+  const paymentClient = new EventEmitter();
+  const paymentConnection = {
+    readyState: 0,
+    getClient: () => paymentClient,
+    // 드라이버는 connect 안에서 첫 풀 소켓을 연다 — 수립이 끝난 뒤에 계측을 걸면 이 줄을 놓친다.
+    asPromise: async () => {
+      paymentClient.emit("connectionCreated", { connectionId: 1 });
+      paymentConnection.readyState = 1;
+      return paymentConnection;
+    },
+  };
+  mongooseMock.createConnection = jest.fn(() => paymentConnection);
+  const { withMongoRetry, connectPaymentDb } = await loadDb(mongooseMock);
+  const { withDbScopes, currentDbScopeId } = await import("../../worker/lib/db-scope.js");
+  const env = { ...ENV, APP_ENV: "staging" };
+  let scope = null;
+  const entry = withDbScopes({
+    // worker/payments/db.js withPaymentDb 가 레인을 켰을 때의 모양: 공유 연결 없이 레인만 세운다.
+    fetch: () => withMongoRetry(env, async () => {
+      scope = currentDbScopeId();
+      await connectPaymentDb(env);
+      paymentClient.emit("commandStarted", { requestId: 5, connectionId: 1, commandName: "find", command: { find: "payments" } });
+      return HANG_FOREVER();
+    }, { admissionLane: "payment", skipSharedConnect: true }),
+  });
+  const logs = [];
+  const originalLog = console.log;
+  console.log = (...args) => { logs.push(args.map(String).join(" ")); };
+  try {
+    await expect(entry.fetch()).rejects.toThrow(/operation timed out/i);
+  } finally {
+    console.log = originalLog;
+    delete process.env.APP_ENV;
+  }
+  const parse = (tag) => logs.filter((l) => l.startsWith(`${tag} `)).map((l) => JSON.parse(l.slice(l.indexOf("{"))));
+
+  expect(mongooseMock.connect).not.toHaveBeenCalled();
+  expect(scope).toMatch(/^f-\w+$/);
+  const [open] = parse("[db-conn-open]");
+  expect(parse("[db-conn-open]")).toEqual([{ conn: expect.stringMatching(/#1$/), scope, lane: "payment" }]);
+  expect(parse("[db-cmd]")).toEqual([{ k: expect.stringMatching(/:5$/), cmd: "find", coll: "payments", conn: open.conn, scope }]);
+  const [timeout] = parse("[db-op-timeout]");
+  expect(timeout.delta).toMatchObject({ commandStarted: 1 });
+  expect(timeout.pending).toEqual([expect.objectContaining({ cmd: "find", conn: open.conn })]);
+}, ATTEMPT_TIMEOUT_FLOOR_MS + 10000);
 
 test("시도 안에서 체크아웃이 실패했으면 그 사유를 붙인다", async () => {
   const { client, mongooseMock } = buildEmittingMongoose();

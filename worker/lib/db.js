@@ -336,7 +336,9 @@ function describePendingMongoCommands() {
   });
 }
 
-function instrumentMongoClient(client) {
+// lane 은 이 클라이언트가 어느 소켓 레인인지다(shared = connectDb, payment = connectPaymentDb, 설계안 C2).
+// [db-conn-open] 에만 싣는다 — [db-cmd]·[db-op-timeout].pending[] 은 conn 으로 조인해 레인을 얻는다.
+function instrumentMongoClient(client, lane = "shared") {
   if (!client || typeof client.on !== "function") return;
   if (instrumentedMongoClients.has(client)) return;
   instrumentedMongoClients.add(client);
@@ -351,7 +353,7 @@ function instrumentMongoClient(client) {
       const conn = connKey(event);
       rememberBounded(mongoConnectionOpenedAt, conn, Date.now());
       // 드라이버는 이 이벤트 직후 같은 흐름에서 소켓을 연다. 그래서 이 줄이 찍힌 tail 요청 = 소켓을 연 요청이다.
-      console.log("[db-conn-open]", JSON.stringify({ conn, scope: currentDbScopeId() }));
+      console.log("[db-conn-open]", JSON.stringify({ conn, scope: currentDbScopeId(), lane }));
     });
     client.on("connectionCheckOutStarted", () => { mongoOpCounters.checkOutStarted += 1; });
     client.on("connectionCheckedOut", (event) => {
@@ -1144,6 +1146,9 @@ export async function resetPaymentConnection() {
 
 export async function connectPaymentDb(env = {}) {
   installProcessEnv(env);
+  // 결제 요청은 skipSharedConnect 로 connectDb 를 건너뛴다. 여기서도 정하지 않으면 결제만 받은
+  // 아이솔레이트에서는 스테이징 [db-cmd] 추적이 꺼진 채로 남는다.
+  mongoCommandTraceEnabled = String(getEnv(env, "APP_ENV", "")).trim().toLowerCase() === "staging";
   if (paymentConnection && paymentConnection.readyState === 1) return paymentConnection;
   if (paymentConnectionPromise) return paymentConnectionPromise;
   // readyState 가 1 이 아닌 커넥션이 남아 있으면 재할당 전에 닫는다(그냥 덮으면 소켓이 샌다).
@@ -1197,9 +1202,11 @@ export async function connectPaymentDb(env = {}) {
     // 🔴 하트비트 주기도 공유 커넥션과 같은 값을 쓴다(근거는 connectDb 쪽 주석). 레인을 켜면
     // 아이솔레이트당 클라이언트가 둘이 되어 이 상시 부하가 그대로 2배가 되므로 특히 여기서 중요하다.
     heartbeatFrequencyMS: clampTimeoutMs(getEnv(env, "MONGO_HEARTBEAT_FREQUENCY_MS", "30000"), 30000, 10000, 60000),
-    // 🔴 공유 커넥션에는 있고 여기엔 없던 계측을 맞춘다. instrumentMongoClient 가 붙지 않으면
-    // `[db-op-timeout]` 의 checkOutFailed/checkedOut 카운터가 **가장 사고가 잦은 결제 경로를
-    // 보지 못한다** — 진단할 때마다 공유 커넥션 수치를 결제 수치로 착각하게 된다.
+    // 🔴 공유 커넥션에는 있고 여기엔 없던 계측을 맞춘다. 이 옵션은 명령 이벤트를 켜기만 하고, 카운터·
+    // [db-conn-open]·[db-cmd] 는 아래 establishLane 의 instrumentMongoClient(…, "payment") 가 붙인다.
+    // 둘 중 하나라도 빠지면 `[db-op-timeout]` 이 **가장 사고가 잦은 결제 경로를 보지 못한다** —
+    // 진단할 때마다 공유 커넥션 수치를 결제 수치로 착각하게 된다(2026-09-24 설계안 C2 전까지 실제로
+    // 리스너가 없어서 결제 레인은 이 옵션만 켜 두고 아무것도 세지 않았다).
     monitorCommands: true,
     ...(family === 4 || family === 6 ? { family } : {}),
   };
@@ -1229,7 +1236,16 @@ export async function connectPaymentDb(env = {}) {
       else delete attemptOptions.family;
       for (let attempt = 0; attempt <= laneRetryCount; attempt += 1) {
         try {
-          const conn = await mongoose.createConnection(uri, attemptOptions).asPromise();
+          const opening = mongoose.createConnection(uri, attemptOptions);
+          // 계측은 asPromise() 를 기다리기 **전** 같은 동기 지점에서 건다. mongoose 9 의 createConnection 은
+          // MongoClient 를 동기로 만들고 connect 안에서 첫 풀 소켓을 열므로, 수립 뒤에 걸면 그 소켓의
+          // [db-conn-open] 이 빠진다(connectDb 의 같은 호출과 같은 이유).
+          try {
+            instrumentMongoClient(opening.getClient?.(), "payment");
+          } catch (e) {
+            // 계측 실패는 무시한다.
+          }
+          const conn = await opening.asPromise();
           paymentConnection = conn;
           console.log(`[db-connect] payment lane connected. elapsedMs=${Date.now() - startedAt} pool=${attemptOptions.maxPoolSize} family=${candidate} attempt=${attempt + 1}`);
           return conn;
