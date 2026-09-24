@@ -32,6 +32,7 @@ next: "Library.tsx 가 로그아웃 이벤트에 재조회하지 않고 로그�
 - `app/yeongnyangi/_lib/api.ts:19` 타임아웃 문구 "같은 상담에서 다시 확인해 주세요." 는 이 화면에 안 맞는다 — 기록 화면에서만 덮어쓴다.
 - 로그인 사용자의 느림은 쿼리 탓이 아니다(운영 인덱스 `userId_1_createdAt_-1__id_-1` 존재·문서 10건, 실측). 남는 건 인증 조회 + DB 연결이고 DB 연결은 DB 세션(`worker/lib/db.js`) 소유다.
 - 같은 루프가 `app/yeongnyangi/_lib/use-profiles.ts:62` 에도 있다(상담 폼 프로필 재조회). 범위를 넓힐지는 사용자에게 묻는다.
+- 기존 인증 이벤트 가드는 이 루프를 못 잡는다: `verify:auth-event-loop`(`scripts/verify-auth-event-loop-guard.mjs:26-43`)·`verify:auth-changed-coverage`(`scripts/verify-auth-changed-listener-coverage.mjs:49-59`)는 정적 셸 JS 만 읽고 `app/**` 는 안 읽는다. 가드 확장은 사용자 결정이다(지시 없는 CI 게이트 추가 금지).
 
 ## 검증
 
