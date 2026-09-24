@@ -20,6 +20,7 @@ next: "U6 배선 완료(섀도 관측 중). 계측(report-pg-window-latency)부�
 - 실PG·유료 LLM 호출 0 이어야 한다. `verify-pg-window-live-e2e.mjs` 는 실PG 라 쓰지 않는다.
 - **완료(2026-09-24)**: `.github/workflows/yeongnyangi-browser-shadow.yml`. main push 중 클라이언트 결제·로그인 경로(영냥이·checkout·billing-client·재개 훅·user-session-cache·auth-client·카탈로그·검사 자신)만 트리거. `--build-static` → loopback python 서버 → 전체 매트릭스. 요약은 잡 Summary, 리포트·실패 스크린샷은 아티팩트(14일). `CI required` 밖·workflow_run 소비자 0 이라 비차단이며 continue-on-error 로 결론을 덮지 않는다. package.json 은 건드리지 않았다.
 - 관측 기록: 결제 경로 push 10회의 결론을 여기 적는다(차단 승격은 오탐 0 + 사용자 승인). 첫 런은 배선 커밋 자체다.
+  - #1 6c240994f(런 35932706972, 13분): 1차 FAIL — 87개째 `webkit-generation-interrupted` 에서 `ChunkLoadError`(청크 80554). 2차 재실행 FAIL — 95개째 `webkit-back-forward` 에서 `Target page, context or browser has been closed`. 두 번 모두 앞 사례 통과·실PG/LLM/DB 0. 실패 사례가 매번 달라 **CI WebKit 불안정으로 추정(미확정)**. 러너가 첫 실패에서 멈춰 나머지 사례는 미관측. 코드 결함인지는 로컬 정적 산출물에서 해당 필터 반복 실행으로 가른다(후속, 이 세션 범위 밖).
 
 ## 지연 지도(HEAD 7d1989347 기준 코드 조사 — 시간 값은 추정, 실측 아님)
 - 첫 장까지 전체 페이지 이동: 데스크톱 2회, 모바일 3회.

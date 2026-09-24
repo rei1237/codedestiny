@@ -142,6 +142,48 @@ test("시도 밖의 체크아웃 실패 사유는 붙이지 않고, 걸린 명�
   expect(JSON.parse(openLine.slice(openLine.indexOf("{"))).conn).toBe(payload.pending[0].conn);
 }, ATTEMPT_TIMEOUT_FLOOR_MS + 10000);
 
+// 2026-09-24: 다른 요청이 연 소켓 위 **성공** 명령을 세려면 성공에도 커넥션이 남아야 한다(스테이징 전용).
+test("스테이징에서는 명령마다 시작 줄(커넥션)과 완료 줄을 같은 k 로 남기고, 프로덕션에서는 남기지 않는다", async () => {
+  const runOnce = async (env) => {
+    const { client, mongooseMock } = buildEmittingMongoose();
+    const { withMongoRetry } = await loadDb(mongooseMock);
+    const logs = [];
+    const originalLog = console.log;
+    console.log = (...args) => { logs.push(args.map(String).join(" ")); };
+    try {
+      await withMongoRetry(env, async () => {
+        client.emit("connectionCreated", { connectionId: 3 });
+        client.emit("commandStarted", { requestId: 9, connectionId: 3, commandName: "find", command: { find: "yeongnyangi_requests" } });
+        client.emit("commandSucceeded", { requestId: 9, connectionId: 3, duration: 12.4 });
+        client.emit("commandStarted", { requestId: 10, connectionId: 3, commandName: "insert", command: { insert: "users" } });
+        client.emit("commandFailed", { requestId: 10, connectionId: 3, duration: 5, failure: { name: "MongoNetworkError" } });
+        return "ok";
+      });
+    } finally {
+      console.log = originalLog;
+    }
+    const parse = (tag) => logs.filter((l) => l.startsWith(`${tag} `)).map((l) => JSON.parse(l.slice(l.indexOf("{"))));
+    return { conn: parse("[db-conn-open]"), started: parse("[db-cmd]"), ok: parse("[db-cmd-ok]"), failed: parse("[db-cmd-fail]") };
+  };
+
+  // installProcessEnv 가 env 를 process.env 로 복사해 남기므로 프로덕션을 먼저 돌리고 끝에 지운다.
+  const production = await runOnce(ENV);
+  expect(production.conn).toHaveLength(1);
+  expect([...production.started, ...production.ok, ...production.failed]).toEqual([]);
+
+  try {
+    const staging = await runOnce({ ...ENV, APP_ENV: "staging" });
+    expect(staging.started).toEqual([
+      { k: expect.stringMatching(/:9$/), cmd: "find", coll: "yeongnyangi_requests", conn: staging.conn[0].conn },
+      { k: expect.stringMatching(/:10$/), cmd: "insert", coll: "users", conn: staging.conn[0].conn },
+    ]);
+    expect(staging.ok).toEqual([{ k: staging.started[0].k, ms: 12 }]);
+    expect(staging.failed).toEqual([{ k: staging.started[1].k, ms: 5, err: "MongoNetworkError" }]);
+  } finally {
+    delete process.env.APP_ENV;
+  }
+});
+
 test("시도 안에서 체크아웃이 실패했으면 그 사유를 붙인다", async () => {
   const { client, mongooseMock } = buildEmittingMongoose();
   const { withMongoRetry } = await loadDb(mongooseMock);

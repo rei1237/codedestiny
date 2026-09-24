@@ -314,6 +314,11 @@ function diffMongoCounters(before) {
 const MONGO_TRACKED_ENTRIES_LIMIT = 100;
 const pendingMongoCommands = new Map();
 const mongoConnectionOpenedAt = new Map();
+// 명령 단위 추적(2026-09-24, 스테이징 전용). pending[] 은 **답이 없던** 명령만 보여서 "다른 요청이 연 소켓은
+// 그 요청이 살아 있어도 답하지 않는다" 가설의 반증 사례(다른 요청 소켓 위 성공)를 셀 수 없었다.
+// 시작 줄 [db-cmd] 는 보낸 요청의 흐름(체크아웃 await 뒤)에서 찍혀 그 요청의 tail 이벤트에 남고, 완료 줄은
+// 응답을 받은 쪽 컨텍스트에서 찍힐 수 있으므로 k 로만 조인한다. 요청당 명령 수만큼 줄이 늘어 프로덕션은 끈다.
+let mongoCommandTraceEnabled = false;
 
 function rememberBounded(map, key, value) {
   if (map.size >= MONGO_TRACKED_ENTRIES_LIMIT) map.delete(map.keys().next().value);
@@ -358,21 +363,31 @@ function instrumentMongoClient(client) {
     client.on("connectionPoolCleared", () => { mongoOpCounters.poolCleared += 1; });
     client.on("commandStarted", (event) => {
       mongoOpCounters.commandStarted += 1;
+      const cmd = String(event?.commandName || "unknown").slice(0, 24);
       rememberBounded(pendingMongoCommands, commandKey(event), {
-        cmd: String(event?.commandName || "unknown").slice(0, 24),
+        cmd,
         conn: connKey(event),
         at: Date.now(),
       });
+      if (mongoCommandTraceEnabled) {
+        const target = event?.command?.[event?.commandName];
+        const coll = typeof target === "string" ? target.slice(0, 32) : "";
+        console.log("[db-cmd]", JSON.stringify({ k: commandKey(event), cmd, coll, conn: connKey(event) }));
+      }
     });
     client.on("commandSucceeded", (event) => {
       mongoOpCounters.commandSucceeded += 1;
       pendingMongoCommands.delete(commandKey(event));
       const took = Number(event?.duration || 0);
       if (took > mongoOpCounters.maxCommandMs) mongoOpCounters.maxCommandMs = took;
+      if (mongoCommandTraceEnabled) console.log("[db-cmd-ok]", JSON.stringify({ k: commandKey(event), ms: Math.round(took) }));
     });
     client.on("commandFailed", (event) => {
       mongoOpCounters.commandFailed += 1;
       pendingMongoCommands.delete(commandKey(event));
+      if (mongoCommandTraceEnabled) {
+        console.log("[db-cmd-fail]", JSON.stringify({ k: commandKey(event), ms: Math.round(Number(event?.duration || 0)), err: String(event?.failure?.name || "").slice(0, 40) }));
+      }
     });
   } catch (e) {
     // 계측 실패가 DB 접근을 막아서는 안 된다.
@@ -662,6 +677,7 @@ function sleep(ms) {
  */
 export async function connectDb(env = {}, options = {}) {
   installProcessEnv(env);
+  mongoCommandTraceEnabled = String(getEnv(env, "APP_ENV", "")).trim().toLowerCase() === "staging";
   const activeOpsOwned = Number.isFinite(options?.activeOpsOwned) ? Math.max(0, options.activeOpsOwned) : 0;
   // withMongoRetry 가 넘겨 주는 계측 싱크(없으면 null). 여기서 채우는 값은 전부 진단용이고
   // 흐름을 바꾸지 않는다 — 소비처는 worker/lib/auth.js 의 authDetail 과 아래 [db-*] 로그다.
