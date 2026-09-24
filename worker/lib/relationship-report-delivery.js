@@ -54,7 +54,7 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
     const cites = !frame && index % 2 === 0;
     const instruction = frame
       ? `마지막 JSON에 evidenceHash: "${meta.evidenceHash}"도 포함하세요. character.title/caption, summary, finalMessage는 모두 비어 있지 않아야 합니다. 확정 점수 ${score}점 외의 다른 점수는 쓰지 마세요.`
-      : `이번 호출은 ${chapter + 1}장 중 ${index % 2 + 1}/2 부분만 작성합니다. 앞선 전체 장 출력 지시 대신 JSON {"evidenceHash":"${meta.evidenceHash}","body":"본문"}만 반환하세요. 본문은 제목·마크다운·공백 제외 최소 2000자, 목표 2200~2500자입니다. ${index % 2 ? "앞부분의 근거/패턴 설명을 반복하지 말고 반대 조건, 주의점, 상황별 대화와 실천 순서를 설명하세요." : `계산된 근거와 관계에서 나타날 수 있는 여러 생활 패턴을 구체적으로 설명하세요. 본문에 확정 점수 ${score}점을 최소 한 번 그대로 인용하세요. 행동 조언은 뒤 부분의 몫입니다.`} 적용 조건과 출생시각 미상 등 계산 한계를 명시하고 확정 점수 ${score}점 외의 새로운 점수나 명식을 만들지 마세요.`;
+      : `이번 호출은 ${chapter + 1}장 중 ${index % 2 + 1}/2 부분만 작성합니다. 앞선 전체 장 출력 지시 대신 JSON {"evidenceHash":"${meta.evidenceHash}","body":"본문"}만 반환하세요. 본문은 제목·마크다운·공백 제외 최소 2000자, 목표 2600~3000자입니다. ${index % 2 ? "앞부분의 근거/패턴 설명을 반복하지 말고 반대 조건, 주의점, 상황별 대화와 실천 순서를 설명하세요." : `계산된 근거와 관계에서 나타날 수 있는 여러 생활 패턴을 구체적으로 설명하세요. 본문에 확정 점수 ${score}점을 최소 한 번 그대로 인용하세요. 행동 조언은 뒤 부분의 몫입니다.`} 적용 조건과 출생시각 미상 등 계산 한계를 명시하고 확정 점수 ${score}점 외의 새로운 점수나 명식을 만들지 마세요.`;
     const requestPrompt = `${frame ? meta.framePrompt : meta.sectionPrompts[chapter]}\n\n${instruction}`;
     let response;
     try {

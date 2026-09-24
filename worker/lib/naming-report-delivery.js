@@ -61,7 +61,7 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
   const results = await Promise.allSettled(wave.map(async chapter => {
     let ai;
     try {
-      ai = await call(`${snapshot.generatedPrompt}\n\n[이번 호출 범위]\n${chapter.id}장 '${chapter.title}' 하나만 작성하세요. 다른 장이나 이름 카드 블록은 쓰지 마세요. 전체 8장의 기존 목표보다 아래의 장별 최소량이 우선합니다.\n확정된 후보와 추천: ${JSON.stringify(state.candidates)}\n명식/용신과 후보를 수정하지 마세요. 후보별 한자 획수·수리는 제공된 확정 계산이 없으므로 산출하거나 숫자로 단정하지 말고 확인 조건을 설명하세요.\n계산 근거 → 생활에서의 사용 패턴과 구체적 사례 → 반대 조건/주의점 → 현실적인 선택과 행동을 배분하세요. 앞선 다른 장의 설명을 반복하지 마세요.\n본문만 공백·마크다운·제목 제외 최소 2,500자, 목표 3,000~3,400자. 소제목과 짧은 문단으로 작성하세요.\nJSON만 출력: {"title":"현재 출력 언어로 장 제목", "body":"본문", "evidenceHash":"${snapshot.evidenceHash}"}. 계산 근거 해시를 그대로 돌려주세요.`, String(chapter.id), 9500);
+      ai = await call(`${snapshot.generatedPrompt}\n\n[이번 호출 범위]\n${chapter.id}장 '${chapter.title}' 하나만 작성하세요. 다른 장이나 이름 카드 블록은 쓰지 마세요. 전체 8장의 기존 목표보다 아래의 장별 최소량이 우선합니다.\n확정된 후보와 추천: ${JSON.stringify(state.candidates)}\n명식/용신과 후보를 수정하지 마세요. 후보별 한자 획수·수리는 제공된 확정 계산이 없으므로 산출하거나 숫자로 단정하지 말고 확인 조건을 설명하세요.\n계산 근거 → 생활에서의 사용 패턴과 구체적 사례 → 반대 조건/주의점 → 현실적인 선택과 행동을 배분하세요. 앞선 다른 장의 설명을 반복하지 마세요.\n본문만 공백·마크다운·제목 제외 최소 2,500자, 목표 3,200~3,700자. 소제목과 짧은 문단으로 작성하세요.\nJSON만 출력: {"title":"현재 출력 언어로 장 제목", "body":"본문", "evidenceHash":"${snapshot.evidenceHash}"}. 계산 근거 해시를 그대로 돌려주세요.`, String(chapter.id), 9500);
     } catch { return; }
     const value = usable(ai) ? parseJson(ai.text) : null;
     const save = async () => {

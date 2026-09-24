@@ -170,7 +170,7 @@ export async function handleOracleRoutes(request, env = {}) {
           tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 3000 })) };
       },
       produce: async (task, state) => {
-        const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}\n위 전체 JSON 스키마 대신 이번 부분만 JSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 3,000자, 목표 3,600~4,200자입니다. 다른 부분을 반복하지 말고 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
+        const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}\n위 전체 JSON 스키마 대신 이번 부분만 JSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 3,000자, 목표 3,900~4,600자입니다. 다른 부분을 반복하지 말고 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
         const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
           timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
           maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json" });

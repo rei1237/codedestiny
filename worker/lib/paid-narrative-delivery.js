@@ -93,7 +93,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     if (missing.length) await persist();
     let queue = Promise.resolve();
     const calls = await Promise.allSettled(missing.map(async task => {
-      const prompt = `${state.prompt}\n\n[이번 호출 범위]\n${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"} 하나만 출력하세요. 본문은 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.2)}~${Math.ceil(task.minChars * 1.4)}자입니다. 확정 계산값을 바꾸지 말고 근거 → 생활 패턴 → 반대 조건·주의점 → 행동 조언 순으로 짧은 문단을 나누세요. 반복으로 분량을 채우지 마세요.`;
+      const prompt = `${state.prompt}\n\n[이번 호출 범위]\n${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"} 하나만 출력하세요. 본문은 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다. 확정 계산값을 바꾸지 말고 근거 → 생활 패턴 → 반대 조건·주의점 → 행동 조언 순으로 짧은 문단을 나누세요. 반복으로 분량을 채우지 마세요.`;
       let ai, value;
       try {
         if (produce) {

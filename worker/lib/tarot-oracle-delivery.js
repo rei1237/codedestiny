@@ -78,7 +78,7 @@ export async function deliverTarotOracle(request, env, auth, body, verify) {
   return runPaidNarrativeDelivery(request, env, auth, body, {
     featureKey, reportType: 'tarotOracleConsultation', verify, seed: original => seedOracle(original, env), render: renderOracle,
     produce: async (task, state) => {
-      const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력한다. 제목·목차·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.25)}자. 각 문단에 서로 다른 근거, 생활 사례, 반대 조건과 행동 조언을 배분한다. 다른 부분을 반복하지 않는다.`, {
+      const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력한다. 제목·목차·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 각 문단에 서로 다른 근거, 생활 사례, 반대 조건과 행동 조언을 배분한다. 다른 부분을 반복하지 않는다.`, {
         systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0,
         temperature: 0.55, fallbackToWorkersAI: false, responseMimeType: 'application/json',
       });

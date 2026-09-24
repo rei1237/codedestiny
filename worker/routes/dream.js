@@ -1199,7 +1199,7 @@ async function handlePsychoAnalysis(request, env = {}) {
           prompt: `${title} 중 ${part === "a" ? `꿈에 실제 등장한 장면을 근거로 ${PSYCHO_DREAM_REQUIRED_PHRASES[i]}의 관점과 감정 패턴을 해설` : "다른 가능한 해석과 적용되지 않는 조건, 생활 속 사례·성찰 질문·현실적인 작은 행동을 제안"}` }))) };
     },
     produce: async (task, state) => {
-      const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}\n꿈에 없는 사실을 추가하지 마세요. 제목·다른 장·일반적 설명의 반복 없이 본문 2,000자 이상, 목표 2,400~2,800자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
+      const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}\n꿈에 없는 사실을 추가하지 마세요. 제목·다른 장·일반적 설명의 반복 없이 본문 2,000자 이상, 목표 2,600~3,100자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
       const ai = await dreamGeminiCaller(env, prompt, { systemPrompt: state.systemPrompt, model: firstDreamPsychoModel(env), temperature: 0.62,
         maxOutputTokens: 9500, thinkingBudget: 0, timeoutMs: Math.min(45000, Math.max(15000, Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS) || 45000)), fallbackToWorkersAI: false, responseMimeType: "application/json" });
       if (!ai?.ok || ai.isMock || ai.truncated || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;

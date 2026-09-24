@@ -48,7 +48,7 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
   const calls=await Promise.allSettled(missing.map(async id=>{
     const card = id === "summary" ? null : snapshot.reading.cards[Number(id)];
     const instruction = card
-      ? `이번 호출은 ${Number(id)+1}번 카드 하나만 해설합니다. 11장 전체 JSON 대신 다음 단일 객체만 출력하세요. ${JSON.stringify({evidence:{planetId:card.planetId,cardNameKo:card.cardNameKo,orientation:card.orientation},...Object.fromEntries(CARD_FIELDS.map(field=>[field,"해설 본문"]))})}. cardMeaning/planetMeaning은 본문 40자 이상, 나머지 여섯 필드는 각각 공백·제목·마크다운 제외 500자 이상, 목표 600~700자입니다. 기존 카드와 행성 배치를 바꾸지 마세요. 근거, 생활 패턴, 반대 조건과 주의점, 구체적인 행동을 서로 다른 관점으로 배분하고 짧은 문단으로 쓰세요.`
+      ? `이번 호출은 ${Number(id)+1}번 카드 하나만 해설합니다. 11장 전체 JSON 대신 다음 단일 객체만 출력하세요. ${JSON.stringify({evidence:{planetId:card.planetId,cardNameKo:card.cardNameKo,orientation:card.orientation},...Object.fromEntries(CARD_FIELDS.map(field=>[field,"해설 본문"]))})}. cardMeaning/planetMeaning은 본문 40자 이상, 나머지 여섯 필드는 각각 공백·제목·마크다운 제외 500자 이상, 목표 650~750자입니다. 기존 카드와 행성 배치를 바꾸지 마세요. 근거, 생활 패턴, 반대 조건과 주의점, 구체적인 행동을 서로 다른 관점으로 배분하고 짧은 문단으로 쓰세요.`
       : `이번 호출은 전체 11장 흐름을 종합하는 summary 객체만 출력하세요. cards나 바깥 summary 키는 쓰지 마세요. overallTheme은 본문 공백 제외 1000자 이상, finalOracle 250자 이상, strongestPlanetSignal/deepestShadow/soulLesson/integrationPath 각 60자 이상입니다. insightMatrix의 love/work/money/health와 closingFortune의 love/work/money/health는 각 60자 이상, closingFortune.overall은 250자 이상입니다. planetHighlights/practices/ritualPlan은 각각 3개 이상이며 각 항목 20자 이상입니다. 계산된 행성 배치와 카드 정역방향을 바꾸거나 상대방의 마음을 단정하지 마세요.`;
     let ai;
     const requestPrompt=`${snapshot.prompt}\n\n[이번 호출 범위가 전체 출력 형식보다 우선합니다]\n${instruction}`;

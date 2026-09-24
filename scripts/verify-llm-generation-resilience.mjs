@@ -1075,4 +1075,44 @@ for (const [path, key] of CLAMPED_PROMPT_ROUTES) {
   );
 }
 
+// ── 7. 분할 유료 상담의 하한·목표 여유 (CLAUDE.md 코딩 원칙 17) ──────
+// 판정 하한이 프롬프트 목표 하한에 붙어 있으면 목표 근처로 쓴 응답도 하한 아래로 흔들려 거부되고,
+// 과제당 3회를 다 쓰면 결과 없이 환불로 끝난다. 목표만 올리고 하한은 목표 하한 × 0.8 이하로 둔다.
+// 판정 하한 코드·목표 문구·토큰 코드가 모두 소스에 그대로 있어야 통과한다 — 한쪽만 바뀌면 여기서 멈춘다.
+const MAX_FLOOR_TO_TARGET = 0.8;
+const PAID_PART_TARGETS = [
+  // [파일, 판정 하한 코드, 하한, 프롬프트 목표 문구, 목표 하한, 한 호출 출력 상한(자), 토큰 코드, maxOutputTokens]
+  ["worker/lib/feature-question-delivery.js", "minChars: 2200", 2200, "목표 2800~3200자", 2800, 3200, "maxOutputTokens: 9500", 9500],
+  ["worker/routes/dream.js", "minChars: 2000", 2000, "목표 2,600~3,100자", 2600, 3100, "maxOutputTokens: 9500", 9500],
+  ["worker/routes/oracle.js", "minChars: 3000", 3000, "목표 3,900~4,600자", 3900, 4600, "maxOutputTokens: 11000", 11000],
+  ["worker/lib/naming-report-delivery.js", "countPaidReportBodyChars(value.body) < 2500", 2500, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
+  // 천상의 조화 카드 한 호출은 긴 필드 여섯 개를 함께 쓴다.
+  ["worker/lib/celestial-report-delivery.js", "? 500 : 40", 500, "목표 650~750자", 650, 6 * 750, "CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000", 11000],
+  ["worker/lib/relationship-report-delivery.js", "countPaidReportBodyChars(value.body) >= 2000", 2000, "목표 2600~3000자", 2600, 3000, "capTokens: 9500", 9500],
+];
+for (const [path, floorCode, floor, targetPhrase, targetLow, outputMaxChars, tokenCode, maxOutputTokens] of PAID_PART_TARGETS) {
+  const source = read(path);
+  assert(
+    source.includes(floorCode) && source.includes(targetPhrase) && source.includes(tokenCode),
+    `${path}: 판정 하한(${floorCode})·목표(${targetPhrase})·토큰(${tokenCode}) 중 하나가 소스에서 사라졌다 — 이 표를 함께 갱신하라`,
+  );
+  assert(
+    floor <= targetLow * MAX_FLOOR_TO_TARGET,
+    `${path}: 하한 ${floor}자가 목표 하한 ${targetLow}자의 ${MAX_FLOOR_TO_TARGET}배를 넘는다 — 하한을 올리지 말고 목표를 올려라(원칙 17)`,
+  );
+  assert(
+    tokensRequiredForChars(outputMaxChars) <= maxOutputTokens,
+    `${path}: 목표 상한 ${outputMaxChars}자에 ${tokensRequiredForChars(outputMaxChars)} 토큰이 필요한데 ${maxOutputTokens} 뿐이다`,
+  );
+}
+// 목표를 과제 하한의 배수로 만드는 호출부. 과제 하한 최댓값(2026-09-25 실측: 오라클 2500·펫 2200·마음 스캔 2000)
+// × 1.5 도 9500 토큰 안에 든다.
+for (const path of ["worker/lib/paid-narrative-delivery.js", "worker/lib/love-tarot-delivery.js", "worker/lib/mindscan-delivery.js", "worker/lib/tarot-oracle-delivery.js"]) {
+  const match = read(path).match(/목표 \$\{Math\.ceil\(task\.minChars \* ([\d.]+)\)\}~\$\{Math\.ceil\(task\.minChars \* ([\d.]+)\)\}자/);
+  assert(
+    match && 1 / Number(match[1]) <= MAX_FLOOR_TO_TARGET && Number(match[2]) > Number(match[1]),
+    `${path}: 목표가 "과제 하한 × a~b" 형식이 아니거나 하한/목표 하한이 ${MAX_FLOOR_TO_TARGET}를 넘는다(원칙 17)`,
+  );
+}
+
 console.log(`${LABEL} ok (${checks} checks)`);
