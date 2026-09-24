@@ -84,7 +84,7 @@ export default function Page(){
   <section className={styles.intro}>
    <div>
     <p className={styles.kicker}>사주보는 고양이 영냥이 · 고등어 상담</p>
-    <h1>천원사주 · 천원운세, 영냥이 고등어 상담 {PRICE}</h1>
+    <h1><span className={styles.h1Line}>천원사주 · 천원운세,</span> <span className={styles.h1Line}>영냥이 고등어 상담 {PRICE}</span></h1>
     <p>영냥이는 꿀꿀 운세(CODE DESTINY) 안에서 사주를 봐 주는 고양이 캐릭터예요. 천원사주는 영냥이의 가장 가벼운 상담인 고등어 상담을 부르는 이름으로, 사주뿐 아니라 자미두수·숙요점·베다점·점성술·타로도 같은 {PRICE}에 볼 수 있어요.</p>
     <p>무료 페이지에서 확인한 계산 결과를 한 걸음 더 풀어 보고 싶을 때, 주제와 질문을 남기면 영냥이가 챕터별로 나눈 글로 답해요. 계산은 각 운세 체계가 하고, 해설은 AI가 영냥이의 말투로 써요.</p>
     <p className={styles.actions}><a className={styles.primary} href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">천원 사주 상담 알아보기</a><a href="#systems">체계별 천원 상담 보기</a></p>

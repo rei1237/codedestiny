@@ -204,6 +204,15 @@
   .hub {
     padding: 0 16px;
   }
+  /* 웹폰트 교체 CLS 방지: 나눔명조는 대체 글꼴보다 좁아(둘째 줄 11.79em vs 바탕 12.95em)
+     390폭에서 줄 수가 3→2로 바뀌며 첫 화면이 41px 밀렸다. 줄을 고정하고 대체 글꼴도 들어갈 크기로 둔다.
+     하한 1.5rem 은 h2(1.4rem)보다 작아지지 않게 하는 값이다(356px 미만 폭에서만 걸린다). */
+  .hub h1 {
+    font-size: clamp(1.5rem, calc((100vw - 32px) / 13.5), 1.9rem);
+  }
+  .h1Line {
+    display: block;
+  }
   .intro {
     grid-template-columns: 1fr;
   }
