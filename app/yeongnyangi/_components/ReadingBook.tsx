@@ -26,7 +26,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
   </details>{saved&&row.manifest.some(c=>`chapter-${c.id}`===saved)&&<a className={styles.resume} href={`#${saved}`}>{copy.resume}</a>}</aside>
   <div className={styles.body}>
    {row.chapters.length>0&&<section className={styles.overview}><h2>{copy.intro}</h2><p>{row.chapters[0].summary}</p>{(row.chapters[0].highlights || []).length>0&&<ul>{(row.chapters[0].highlights || []).map((t,i)=><li key={i}>{t}</li>)}</ul>}</section>}
-   {!!row.charts?.length&&<ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))}/>}
+   {!!row.charts?.length&&<ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/>}
    {row.chapters.map((chapter,index)=><article data-reading-chapter key={row.manifest[index].id} id={`chapter-${row.manifest[index].id}`} className={styles.chapter} tabIndex={-1}>
     <h2>{title(index)}</h2><p className={styles.chapterSummary}>{chapter.summary}</p>
     {chapter.questionAnswers?.map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || copy.answer}</h3><p>{answer.answer}</p><h4>{copy.reason}</h4><p>{answer.reason}</p><h4>{copy.timing}</h4><p>{answer.timing}</p><h4>{copy.action}</h4><p>{answer.action}</p></section>)}

@@ -50,3 +50,16 @@ test('free reading shares only its chosen summary with a daily entry and no prof
  const url=new URL(resultShareUrl());assert.equal(url.pathname,'/yeongnyangi/room/');assert.equal(url.hash,'#daily');
  assert.equal(url.searchParams.get('utm_campaign'),'yeongnyangi_daily');
 });
+test('saved purchase locale governs share labels, message and private destination',()=>{
+ for(const [locale,answer,heading] of [['en','Answer to question 1','Reading date'],['ja','質問1への回答','鑑定基準日']]){
+  const localized={...row,locale,chapters:[{...row.chapters[0],title:locale==='en'?'Conditions for your choice':'選択の条件'}]};
+  const choices=shareChoices(localized);
+  assert.equal(choices[0].label,answer);
+  assert.equal(choices[1].label,localized.chapters[0].title);
+  assert.doesNotMatch(choices[0].text,/관련 시기|지금 해볼 일/);
+  const message=shareMessage(choices[0].text,'2026-09-22',locale);
+  assert.ok(message.includes(`${heading}: 2026-09-22`));
+  assert.doesNotMatch(message,/private-order|private-profile|개인적인 질문/);
+  assert.doesNotMatch(resultShareUrl(localized),/private-order|private-profile/);
+ }
+});

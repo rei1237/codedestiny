@@ -18,8 +18,9 @@ try{
    await f.page.goto(`${base}/yeongnyangi/fortune/?lang=${locale}`,{waitUntil:'load'});
    const select=f.page.getByLabel('상담 결과 언어 / Reading language / 結果の言語');
    await select.waitFor();assert.equal(await select.inputValue(),locale);
+   if(locale!=='ko')await f.page.getByText(locale==='en'?'Profile for this reading':'鑑定するプロフィール', {exact:true}).first().waitFor();
    await f.page.screenshot({path:`build-cache/yn-locale-${locale}-input.png`,fullPage:true});
-   await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
+   await f.page.getByRole('button',{name:locale==='en'?'Review payment details':locale==='ja'?'支払い内容を確認':'결제 내용 확인하기',exact:true}).click();
    await f.page.waitForURL('**/checkout/**');
    assert.equal(f.state.requestInput.locale,locale);
    assert.equal(f.state.requestInput.productId,'saju_mackerel');
@@ -29,10 +30,14 @@ try{
    // Persisted server response fixture, not an LLM or PG approval simulation.
    f.row.state='COMPLETED';f.row.paid=true;
    f.row.chapters=f.row.manifest.map((_,i)=>({title:`${title} ${i+1}`,summary:`${title} — fixture ${i+1}`,analysis:[locale==='ja'?'これは表示確認用の文章です。':'This is a display fixture.'],example:'',advice:'',persona:'Fixture',highlights:[],topics:[],sources:[]}));
+   f.row.charts=[{domain:'astrology',title:'나의 출생 차트',source:'구매 당시 저장된 계산 근거',limitations:['출생 차트 해석이며 실시간 트랜짓은 포함하지 않습니다.'],groups:[{id:'astrology-0',label:'태양',items:[{label:'별자리',value:'양자리'}],chapterIds:[f.row.manifest[0].id],longitude:20}],cusps:[]}];
    const before=f.state.generates;
    await f.page.goto(`${base}/yeongnyangi/result/?id=${f.row.id}&lang=ko`,{waitUntil:'load'});
    const book=f.page.locator('[data-reading-chapter]').first();await book.waitFor();
    await book.getByRole('heading',{name:locale==='ko'?f.row.manifest[0].title:`${title} 1`,exact:true}).waitFor();
+   await f.page.getByRole('heading',{name:locale==='en'?'My birth chart':locale==='ja'?'私の出生チャート':'나의 출생 차트',exact:true}).waitFor();
+   await f.page.locator('[data-consultation-sharing] > summary').click();
+   await f.page.getByRole('button',{name:locale==='en'?'Copy message':locale==='ja'?'文章をコピー':'문구 복사',exact:true}).waitFor();
    assert.equal(await book.locator('xpath=../..').getAttribute('lang'),locale);
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await f.page.screenshot({path:`build-cache/yn-locale-${locale}-result.png`,fullPage:true});
@@ -44,6 +49,13 @@ try{
    assert.equal(f.state.sdk.length,0,'Review and reread must not open the PG');
    assert.deepEqual(f.state.unknown,[]);
    assert.deepEqual(f.state.errors,[]);
+   if(locale!=='ko'){
+    delete f.state.profiles[0].location;
+    await f.page.evaluate(()=>sessionStorage.clear());
+    await f.page.goto(`${base}/yeongnyangi/fortune/?lang=${locale}`,{waitUntil:'load'});
+    await f.page.getByRole('button',{name:locale==='en'?'Use current location':'現在地を使う',exact:true}).waitFor();
+    await f.page.getByPlaceholder(locale==='en'?'City and country':'都市名と国名').waitFor();
+   }
    console.log(`PASS ${locale} ${width}px: purchase snapshot, return language, saved result and library reread`);
   }catch(error){
    await f.page.screenshot({path:`build-cache/yn-locale-${locale}-failure.png`,fullPage:true}).catch(()=>{});

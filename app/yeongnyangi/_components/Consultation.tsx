@@ -18,6 +18,7 @@ import {predictionTimeline} from '@/lib/brand/prediction-timeline';
 import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
+import {consultationInputCopy} from '../_lib/consultation-input-copy';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 const loginDraftKey='yeongnyangi:consultation-login-draft';
 const predictionProofRecords=predictionRecords.map(record=>{
@@ -43,6 +44,7 @@ export default function Consultation(){
  const viewedProduct=useRef('');
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
+ const inputCopy=consultationInputCopy(locale);
  useEffect(()=>{
   if(!ready||viewedProduct.current===product.id)return;
   viewedProduct.current=product.id;
@@ -56,13 +58,13 @@ export default function Consultation(){
  const needsTime=premium||product.systems.some(id=>!['saju','tarot'].includes(id));
  const needsPlace=premium||product.systems.some(id=>['vedic','astrology','sukuyo'].includes(id));
  const missing=!tarotOnly&&!guest?[
-  ...(kind.partner&&partnerProfile&&premium&&(partnerProfile.birth?.timeUnknown||!partnerProfile.location?.label||!partnerProfile.gender)?['이 등급의 궁합에는 상대의 출생시간·지역·성별도 필요해요. 상대 프로필을 보완하거나 다른 등급을 골라 주세요.']:[]),
-  ...(kind.partner&&!partnerId?['궁합을 함께 볼 상대 프로필을 골라 주세요.']:[]),
-  ...(!selectedProfile?['함께 읽을 프로필을 골라 주세요.']:[]),
-  ...(selectedProfile&&needsTime&&(timeUnknown||(selectedProfile.birth?.timeUnknown&&!extraTime))?['선택한 상담에는 출생시간이 필요해요. 시간을 보완하거나 다른 상담을 골라 주세요.']:[]),
-  ...(selectedProfile&&needsPlace&&!selectedProfile.location?.label&&!extraPlace.trim()&&!currentLocation?['선택한 상담에는 출생지역이 필요해요. 도시와 국가를 입력해 주세요.']:[]),
+  ...(kind.partner&&partnerProfile&&premium&&(partnerProfile.birth?.timeUnknown||!partnerProfile.location?.label||!partnerProfile.gender)?[inputCopy.partnerDetails]:[]),
+  ...(kind.partner&&!partnerId?[inputCopy.partnerRequired]:[]),
+  ...(!selectedProfile?[inputCopy.profileRequired]:[]),
+  ...(selectedProfile&&needsTime&&(timeUnknown||(selectedProfile.birth?.timeUnknown&&!extraTime))?[inputCopy.timeRequired]:[]),
+  ...(selectedProfile&&needsPlace&&!selectedProfile.location?.label&&!extraPlace.trim()&&!currentLocation?[inputCopy.placeRequired]:[]),
  ]:[];
- if(kind.question&&!question.trim()&&!guest)missing.push('궁금한 이야기를 남겨 주세요.');
+ if(kind.question&&!question.trim()&&!guest)missing.push(inputCopy.questionRequired);
  useEffect(()=>{if(restoredDraft.current)return;setExtraTime('');setExtraPlace('');setCurrentLocation(null);setTimeUnknown(false);setError('');},[profileId]);
  useEffect(()=>{if(!profileState.loading&&partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId,profileState.loading]);
  useEffect(()=>{
@@ -118,7 +120,7 @@ export default function Consultation(){
    if(!currentLocation&&extraPlace.trim()&&!selectedProfile?.location?.label){
     const response=await authFetch(`/api/geocode?place=${encodeURIComponent(extraPlace)}`);
     const found=await response.json();
-    if(!response.ok||found.fallback)throw new Error('출생지역을 찾지 못했어요. 도시와 국가를 함께 입력해 주세요.');
+    if(!response.ok||found.fallback)throw new Error(inputCopy.geocodeError);
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
    if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
@@ -127,7 +129,7 @@ export default function Consultation(){
    trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
    consultationAttemptId.current='';
    window.location.assign(data.fortune.paid?resultPath(data.fortune.id,data.fortune.locale):checkoutPath(data.fortune));
-  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(e instanceof Error?e.message:'상담을 준비하지 못했어요.');}
+  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(e instanceof FortuneApiError&&locale!=='ko'?inputCopy.consultationError:e instanceof Error?e.message:inputCopy.consultationError);}
   finally{lock.current=false;setBusy(false);}
  }
  function chooseDomain(next:string){setKindId(consultationKinds[next][0].id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
@@ -136,7 +138,7 @@ export default function Consultation(){
   <picture className={styles.consultationScenery}><source media="(max-width: 767px)" srcSet="/assets/yeongnyangi/original/room-780.webp"/><img src="/assets/yeongnyangi/original/room-1440.webp" width={1440} height={810} alt=""/></picture>
   <header className={styles.consultationHeader}><div><h1>무엇부터 읽어볼까?</h1><p>말이 조금 엉켜도 괜찮아.<br/>궁금한 운세를 고르고, 네 이야기를 들려줘.</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
   <label className={styles.field}>상담 결과 언어 / Reading language / 結果の言語
-   <select value={locale} disabled={busy} onChange={e=>setLocale(readingLocale(e.target.value))}>{readingLocales.map(value=><option key={value} value={value}>{readingLanguageNames[value]}</option>)}</select>
+   <select value={locale} disabled={busy} onChange={e=>{setLocale(readingLocale(e.target.value));setError('');}}>{readingLocales.map(value=><option key={value} value={value}>{readingLanguageNames[value]}</option>)}</select>
   </label>
   <p lang={locale}>{locale==='en'?'Your new reading will be written in English. The purchase language stays fixed for recovery and rereading. Some menus and calculated chart labels remain in Korean.':locale==='ja'?'新しい鑑定結果は日本語で作成します。再開・再閲覧でも購入時の言語を維持します。一部のメニューと計算図の表示は韓国語です。':'새 상담은 선택한 언어로 작성돼요. 복구하거나 다시 읽어도 구매 시 선택한 언어를 유지해요.'}</p>
   <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>영냥 신점</strong><br/>질문이 떠오른 순간의 기운과 선택 살펴보기</span></a>
@@ -154,19 +156,19 @@ export default function Consultation(){
     <details className={styles.predictionRecords}><summary><span className={styles.predictionRecordsSeal} aria-hidden="true">原</span><span><strong>두 대통령 적중 기록</strong><small>게시일과 원문으로 직접 확인하기</small></span></summary><div className={styles.predictionRecordsBody}><figure className={styles.predictionRecordsArt}><img src="/assets/yeongnyangi/original/records-scroll-2d-480.webp" width={480} height={320} alt="" loading="lazy" decoding="async"/></figure><p>2022년과 2024년에 공개된 블로그 원문을 기준으로, 당시 문장과 이후 확인된 사건을 분리해 보여드려요. 개인 상담 결과를 보장하는 문구는 아니며, 원문 링크에서 직접 확인할 수 있어요.</p><ol>{predictionProofRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer" aria-label={`원문 보기: ${record.title} (새 창)`}><time dateTime={record.date}>{record.date.replaceAll('-','.')}</time><strong>{record.title}</strong><span>{record.after}</span><em>원문 보기</em></a></li>)}</ol></div></details>
    </aside>
    <div className={`${styles.form} ${styles.consultationForm}`}>
-   {tarotOnly?<section className={styles.questionIntro}><h2>카드에 물어볼 이야기</h2><p>타로 상담에는 출생정보가 필요하지 않아. 질문과 카드의 상징으로 함께 읽어볼게.</p>{guest&&<p>상담을 이어가려면 먼저 로그인해 주세요.</p>}</section>:<>
-    <ProfilePicker state={profileState}/>
+   {tarotOnly?<section className={styles.questionIntro} lang={locale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
+    <ProfilePicker state={profileState} locale={locale}/>
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
-    <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> 이번 상담에서 출생시간을 미상으로 보기</label>
-    {selectedProfile?.birth?.timeUnknown&&<label>출생시간 보완 (선택)<input type="time" value={extraTime} onChange={e=>setExtraTime(e.target.value)}/></label>}
-    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">확인한 현재 위치를 이 상담의 출생 장소로 사용할게요. {currentLocation.timezone}</p>}<label>이 상담에 필요한 출생지역<input value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder="도시와 국가" maxLength={120}/></label></>}
-    {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>보완한 정보는 이번 상담 기록에 함께 저장해요.</p>}
-    {kind.partner&&<label>궁합 상대 (필수)<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">상대 프로필 선택</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
+    <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
+    {selectedProfile?.birth?.timeUnknown&&<label>{inputCopy.timeSupplement}<input type="time" value={extraTime} onChange={e=>setExtraTime(e.target.value)}/></label>}
+    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} locale={locale} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">{inputCopy.currentLocation} {currentLocation.timezone}</p>}<label>{inputCopy.placeSupplement}<input value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder} maxLength={120}/></label></>}
+    {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>{inputCopy.supplementSaved}</p>}
+    {kind.partner&&<label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
     </div>}
    </>}
-   {kind.question&&<section className={styles.questionSection} aria-label="상담 주제와 질문"><h2>{tarotOnly?'카드에 물어볼 이야기':'궁금한 이야기를 들려줘.'}</h2><p>길게 쓰지 않아도 괜찮아. 지금 마음에 걸리는 것부터 남겨줘.</p>
-   {kind.id==='ask'&&<><label htmlFor="consultation-topic">상담 주제</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">전체 흐름</option>{Object.entries(topicCatalog).map(([id,topic])=><option value={id} key={id}>{topic.label}</option>)}</select></>}
-   <label htmlFor="consultation-question">영냥이에게 궁금한 이야기</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder="지금 가장 궁금한 고민을 들려줘."/>
+   {kind.question&&<section className={styles.questionSection} aria-label={inputCopy.questionSection} lang={locale}><h2>{tarotOnly?inputCopy.tarotHeading:inputCopy.questionHeading}</h2><p>{inputCopy.questionIntro}</p>
+   {kind.id==='ask'&&<><label htmlFor="consultation-topic">{inputCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">{inputCopy.general}</option>{Object.entries(topicCatalog).map(([id,topic])=><option value={id} key={id}>{topic.label}</option>)}</select></>}
+   <label htmlFor="consultation-question">{inputCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={inputCopy.questionPlaceholder}/>
    </section>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
    <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
@@ -175,10 +177,10 @@ export default function Consultation(){
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · Family 이용권 또는 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>
    <p>선택한 운세의 계산 결과를 바탕으로 AI가 해설해요. 선택을 돕는 참고 자료이며 미래를 확정하지 않아요.</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
-   <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?'상담 준비 중':guest?'로그인하고 상담 이어가기':'결제 내용 확인하기'}<ArrowRight size={18} aria-hidden="true"/></button>
-   {!ready&&<p role="status">상담 상품을 확인하고 있어요. 프로필과 질문은 먼저 고를 수 있어요.</p>}
-   {catalogError&&<p role="alert">{catalogError}</p>}
-   {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>지금은 상담 연결을 확인하고 있어. 결제는 진행되지 않아. 잠시 후 다시 확인해줘.</p>}
+   <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
+   {!ready&&<p role="status">{inputCopy.catalogLoading}</p>}
+   {catalogError&&<p role="alert">{locale==='ko'?catalogError:inputCopy.unavailable}</p>}
+   {ready&&!catalogError&&!available.some(p=>p.id===productId)&&<p>{inputCopy.unavailable}</p>}
    {error&&<p role="alert">{error}</p>}
    </div>
    </div>

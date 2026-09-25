@@ -6,10 +6,12 @@ import {trackEvent} from '@/lib/analytics';
 import type {FortuneRecord} from '../_lib/api';
 import type {FreeReading} from '@/worker/yeongnyangi/fortune/free/categories';
 import {resultShareUrl,consultationShareImage,shareChoices,freeShareChoices,shareLimit,shareMessage,shorten,renderShareCard} from '../_lib/result-share';
+import {shareCopy} from '../_lib/share-copy';
 import styles from '../yeongnyangi.module.css';
 
 export default function ResultSharing({row,reading}:{row:FortuneRecord;reading?:never}|{reading:FreeReading;row?:never}){
- const choices=useMemo(()=>row?shareChoices(row):freeShareChoices(reading),[row,reading]);
+ const locale=row?.locale||'ko',copyText=shareCopy(locale);
+ const choices=useMemo(()=>row?shareChoices(row):freeShareChoices(reading,locale),[row,reading,locale]);
  const [open,setOpen]=useState(false),[choice,setChoice]=useState(choices[0]?.id||'');
  const selected=choices.find(c=>c.id===choice)||choices[0];
  const [text,setText]=useState(()=>shorten(selected?.text||'',shareLimit)),[includeQuestion,setIncludeQuestion]=useState(false);
@@ -19,60 +21,60 @@ export default function ResultSharing({row,reading}:{row:FortuneRecord;reading?:
  const consultationShareUrl=resultShareUrl(row);
  const source=row?'paid':'daily';
  const record=(channel:string,outcome:string)=>trackEvent('fortune_share_action',{content_type:'yeongnyangi',source,channel,outcome});
- const sharedText=[includeQuestion&&selected?.question?`내 질문\n${selected.question}`:'',text.trim()].filter(Boolean).join('\n\n');
- const message=shareMessage(sharedText,asOf);
+ const sharedText=[includeQuestion&&selected?.question?`${copyText.question}\n${selected.question}`:'',text.trim()].filter(Boolean).join('\n\n');
+ const message=shareMessage(sharedText,asOf,locale);
  const kakaoText=shorten(text.replace(/\s+/g,' '),95);
  useEffect(()=>{if(open)void prepareKakao(process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY);},[open]);
  useEffect(()=>{
   if(!open)return;
   let cancelled=false,url='';setCard(null);setImageError(false);
-  const timer=setTimeout(()=>{void renderShareCard(sharedText,asOf).then(blob=>{if(cancelled)return;url=URL.createObjectURL(blob);setCard({url,blob});}).catch(()=>{if(!cancelled)setImageError(true);});},250);
+  const timer=setTimeout(()=>{void renderShareCard(sharedText,asOf,locale).then(blob=>{if(cancelled)return;url=URL.createObjectURL(blob);setCard({url,blob});}).catch(()=>{if(!cancelled)setImageError(true);});},250);
   return ()=>{cancelled=true;clearTimeout(timer);if(url)URL.revokeObjectURL(url);};
- },[open,sharedText,asOf]);
+ },[open,sharedText,asOf,locale]);
  if(!choices.length)return null;
- async function copy(){try{await navigator.clipboard.writeText(`${message}\n\n${consultationShareUrl}`);record('copy','copied');setNotice('상담 문구를 복사했어. 원하는 대화방에 붙여 넣어줘.');}catch{record('copy','manual');setNotice('아래 공유 문구를 길게 눌러 복사해줘.');const details=manual.current?.closest('details');if(details)details.open=true;manual.current?.focus();manual.current?.select();}}
- function download(){if(!card)return;const link=document.createElement('a');link.href=card.url;link.download='영냥이-상담-한장.png';link.click();record('image','download_requested');setNotice('이미지 저장을 요청했어. 저장한 사진과 문구의 링크를 함께 보내면 친구도 자기 상담을 시작할 수 있어.');}
+ async function copy(){try{await navigator.clipboard.writeText(`${message}\n\n${consultationShareUrl}`);record('copy','copied');setNotice(copyText.copied);}catch{record('copy','manual');setNotice(copyText.copyManual);const details=manual.current?.closest('details');if(details)details.open=true;manual.current?.focus();manual.current?.select();}}
+ function download(){if(!card)return;const link=document.createElement('a');link.href=card.url;link.download='yeongnyangi-reading.png';link.click();record('image','download_requested');setNotice(copyText.downloaded);}
  async function share(channel:'kakao'|'native'|'image'){
   if(lock.current)return;lock.current=true;setBusy(true);setNotice('');
   try{
    if(channel==='image'){
     if(!card)return;
-    const file=new File([card.blob],'영냥이-상담-한장.png',{type:'image/png'});
-    if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'영냥이 상담 한 장',text:'나는 이런 흐름이래. 너는 어때?',url:resultShareUrl(row,'image')});record('image','shared');setNotice('공유 창에서 선택한 동작을 마쳤어.');}
+    const file=new File([card.blob],'yeongnyangi-reading.png',{type:'image/png'});
+    if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({files:[file],title:copyText.imageTitle,text:copyText.heading,url:resultShareUrl(row,'image')});record('image','shared');setNotice(copyText.shared);}
     else download();
     return;
    }
-   const outcome=await shareThrough(channel,{title:'나는 이런 흐름이래. 너는 어때? · 영냥이',text:channel==='kakao'?kakaoText:message,url:resultShareUrl(row,channel),image:consultationShareImage});
+   const outcome=await shareThrough(channel,{title:`${copyText.heading} · Yeongnyangi`,text:channel==='kakao'?kakaoText:message,url:resultShareUrl(row,channel),image:consultationShareImage});
    record(channel,outcome.status);
-   if(outcome.status==='opened')setNotice('카카오톡에서 보낼 친구나 단톡방을 골라줘.');
-   else if(outcome.status==='shared')setNotice('공유 창에서 선택한 동작을 마쳤어.');
-   else if(outcome.status==='cancelled')setNotice('공유를 취소했어. 상담은 그대로 남아 있어.');
-   else {await copy();setNotice('공유 창을 열지 못했어. 아래 문구를 복사하거나 이미지를 저장해 대화방에 보내줘.');}
-  }catch(e){record(channel,e instanceof Error&&e.name==='AbortError'?'cancelled':'failed');setNotice(e instanceof Error&&e.name==='AbortError'?'공유를 취소했어. 상담은 그대로 남아 있어.':'공유 창을 열지 못했어. 문구 복사나 이미지 저장으로 다시 시도해줘.');}
+   if(outcome.status==='opened')setNotice(copyText.opened);
+   else if(outcome.status==='shared')setNotice(copyText.shared);
+   else if(outcome.status==='cancelled')setNotice(copyText.cancelled);
+   else {await copy();setNotice(copyText.fallback);}
+  }catch(e){record(channel,e instanceof Error&&e.name==='AbortError'?'cancelled':'failed');setNotice(e instanceof Error&&e.name==='AbortError'?copyText.cancelled:copyText.failed);}
   finally{lock.current=false;setBusy(false);}
  }
- return <details className={styles.resultSharing} data-consultation-sharing onToggle={e=>{setOpen(e.currentTarget.open);if(e.currentTarget.open)record('editor','opened');}}>
-  <summary><Share2 size={20} aria-hidden="true"/> 마음에 남은 상담 공유하기</summary>
+ return <details className={styles.resultSharing} data-consultation-sharing lang={locale} onToggle={e=>{setOpen(e.currentTarget.open);if(e.currentTarget.open)record('editor','opened');}}>
+  <summary><Share2 size={20} aria-hidden="true"/> {copyText.summary}</summary>
   {open&&<div className={styles.shareEditor}>
    <div className={styles.shareForm}>
-    <h2>나는 이런 흐름이래. 너는 어때?</h2><p>친구와 비교하고 싶은 이야기만 골라줘. {row?'링크는 같은 종류의 상담 시작 화면으로 이어져.':'링크는 영냥이의 무료 운세로 이어져.'} 내 상담 전체는 공개되지 않아.</p>
-    <label htmlFor="share-story">공유할 이야기</label><select id="share-story" value={choice} onChange={e=>{setChoice(e.target.value);setIncludeQuestion(false);setText(shorten(choices.find(c=>c.id===e.target.value)?.text||'',shareLimit));setNotice('');}}>{choices.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
-    <label htmlFor="share-message">보낼 문구</label><textarea id="share-message" value={text} maxLength={shareLimit} rows={4} onChange={e=>setText(e.target.value)}/>
-    <small>{Array.from(text).length} / {shareLimit}자 · 보내기 전에 개인적인 내용이 있는지 확인해줘.</small>
-    <button className={styles.shareShorten} type="button" disabled={busy||Array.from(text).length<=180} onClick={()=>setText(shorten(text,180))}>단톡방용 180자로 줄이기</button>
-    {selected.question&&<label className={styles.shareQuestion}><input type="checkbox" checked={includeQuestion} onChange={e=>setIncludeQuestion(e.target.checked)}/> 원문 질문도 이미지·문구에 포함하기</label>}
-    <p className={styles.kakaoExcerpt}>카카오톡 카드 미리보기: {kakaoText||'보낼 문구를 입력해줘.'}</p>
+    <h2>{copyText.heading}</h2><p>{row?copyText.paidHint:copyText.freeHint}</p>
+    <label htmlFor="share-story">{copyText.story}</label><select id="share-story" value={choice} onChange={e=>{setChoice(e.target.value);setIncludeQuestion(false);setText(shorten(choices.find(c=>c.id===e.target.value)?.text||'',shareLimit));setNotice('');}}>{choices.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select>
+    <label htmlFor="share-message">{copyText.message}</label><textarea id="share-message" value={text} maxLength={shareLimit} rows={4} onChange={e=>setText(e.target.value)}/>
+    <small>{Array.from(text).length} / {shareLimit} · {copyText.privacy}</small>
+    <button className={styles.shareShorten} type="button" disabled={busy||Array.from(text).length<=180} onClick={()=>setText(shorten(text,180))}>{copyText.shorten}</button>
+    {selected.question&&<label className={styles.shareQuestion}><input type="checkbox" checked={includeQuestion} onChange={e=>setIncludeQuestion(e.target.checked)}/> {copyText.includeQuestion}</label>}
+    <p className={styles.kakaoExcerpt}>{copyText.preview}: {kakaoText||copyText.enter}</p>
     <div className={styles.shareActions}>
-     <button type="button" disabled={busy||!text.trim()} onClick={()=>void share('kakao')}><MessageCircle size={18} aria-hidden="true"/>카카오톡 요약 보내기</button>
-     <button type="button" disabled={busy||!text.trim()} onClick={()=>void share('native')}><Share2 size={18} aria-hidden="true"/>문구 공유</button>
-     <button type="button" disabled={busy||!text.trim()} onClick={()=>void copy()}><Copy size={18} aria-hidden="true"/>문구 복사</button>
-     <button type="button" disabled={busy||!card||!text.trim()} onClick={()=>void share('image')}><Share2 size={18} aria-hidden="true"/>이미지로 공유</button>
-     <button type="button" disabled={busy||!card||!text.trim()} onClick={download}><Download size={18} aria-hidden="true"/>이미지 저장</button>
+     <button type="button" disabled={busy||!text.trim()} onClick={()=>void share('kakao')}><MessageCircle size={18} aria-hidden="true"/>{copyText.kakao}</button>
+     <button type="button" disabled={busy||!text.trim()} onClick={()=>void share('native')}><Share2 size={18} aria-hidden="true"/>{copyText.native}</button>
+     <button type="button" disabled={busy||!text.trim()} onClick={()=>void copy()}><Copy size={18} aria-hidden="true"/>{copyText.copy}</button>
+     <button type="button" disabled={busy||!card||!text.trim()} onClick={()=>void share('image')}><Share2 size={18} aria-hidden="true"/>{copyText.image}</button>
+     <button type="button" disabled={busy||!card||!text.trim()} onClick={download}><Download size={18} aria-hidden="true"/>{copyText.save}</button>
     </div>
-    <p role="status" aria-live="polite">{notice||'긴 문구는 이미지로 보내면 단톡방에서도 한눈에 읽기 좋아.'}</p>
-    <details><summary>복사용 전체 문구</summary><textarea ref={manual} aria-label="복사용 전체 공유 문구" readOnly rows={8} value={`${message}\n\n${consultationShareUrl}`} onFocus={e=>e.target.select()}/></details>
+    <p role="status" aria-live="polite">{notice||copyText.tip}</p>
+    <details><summary>{copyText.manual}</summary><textarea ref={manual} aria-label={locale==='ko'?'복사용 전체 공유 문구':copyText.manual} readOnly rows={8} value={`${message}\n\n${consultationShareUrl}`} onFocus={e=>e.target.select()}/></details>
    </div>
-   <figure className={styles.sharePreview}>{card?<img src={card.url} alt="보내기 전 확인하는 영냥이 상담 이미지" width={1080} height={1350}/>:<p role="status">{imageError?'이미지를 준비하지 못했어. 문구로 공유할 수 있어.':'영냥이가 공유할 한 장을 준비하고 있어.'}</p>}<figcaption>이미지에는 위 문구와 선택한 질문만 담겨요.</figcaption></figure>
+   <figure className={styles.sharePreview}>{card?<img src={card.url} alt={copyText.previewAlt} width={1080} height={1350}/>:<p role="status">{imageError?copyText.imageError:copyText.imageLoading}</p>}<figcaption>{copyText.imageCaption}</figcaption></figure>
   </div>}
  </details>;
 }

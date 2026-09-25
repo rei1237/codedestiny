@@ -27,7 +27,7 @@ try{
    });
    await f.context.route(`**/api/yeongnyangi/requests/${f.row.id}`,async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fortune:f.row})});});
    await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id);
-   await f.page.getByText('네 상담 두루마리, 영냥이가 가져올게.').waitFor();
+   await f.page.getByText('네 상담이 어디까지 준비됐는지 살펴볼게.').waitFor();
    const loadingCat=f.page.getByAltText('별빛 문을 열고 상담을 가져오는 영냥이');
    assert.equal(await loadingCat.evaluate(img=>img.complete&&img.naturalWidth>0),true);
    assert.equal(await loadingCat.evaluate(img=>getComputedStyle(img.parentElement).backgroundColor),'rgba(0, 0, 0, 0)');

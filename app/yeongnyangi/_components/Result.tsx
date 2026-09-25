@@ -3,6 +3,7 @@ import {useEffect,useRef,useState} from 'react';
 import {PawPrint,RefreshCw} from 'lucide-react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
 import {readingCopy} from '../_lib/reading-copy';
+import {resultStateCopy} from '../_lib/result-state-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import ReadingBook from './ReadingBook';
 import ReadingIdentity from './ReadingIdentity';
@@ -12,11 +13,12 @@ import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
 import ReadingLoading from './ReadingLoading';
 import ResultSharing from './ResultSharing';
 import FishReceipt from './FishReceipt';
-function RecoveryNotice({message,busy,onRetry}:{message:string;busy:boolean;onRetry:()=>void}){
+function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
+ const copy=resultStateCopy(locale);
  return <div className={styles.recoveryNotice}>
-  <img src="/assets/yeongnyangi/original/signup.webp" width={116} height={116} alt="두루마리를 다시 챙기는 영냥이"/>
-  <div><h2>잠깐, 영냥이가 다시 챙겨올게.</h2><p role="alert">{message}</p><p className={styles.recoveryHint}>결제한 상담은 그대로 이어갈 수 있어. 다시 결제하지 않아도 돼.</p>
-   <button className={styles.retryButton} disabled={busy} onClick={onRetry}><RefreshCw size={18} aria-hidden="true"/>{busy?'두루마리 챙기는 중':'다시 불러오기'}<PawPrint size={18} aria-hidden="true"/></button>
+  <img src="/assets/yeongnyangi/original/signup.webp" width={116} height={116} alt={copy.retryAlt}/>
+  <div><h2>{copy.retryTitle}</h2><p role="alert">{message}</p><p className={styles.recoveryHint}>{copy.retryHint}</p>
+   <button className={styles.retryButton} disabled={busy} onClick={onRetry}><RefreshCw size={18} aria-hidden="true"/>{busy?copy.retryBusy:copy.retry}<PawPrint size={18} aria-hidden="true"/></button>
   </div>
  </div>;
 }
@@ -39,13 +41,13 @@ export default function Result(){
   try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/generate`,{});
     if(mounted.current)setRow(sameRequest(fortune,id));
-  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(e instanceof Error?e.message:'상담을 이어가지 못했어요.');}
+  }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else if(mounted.current)setError(row?.locale&&row.locale!=='ko'?resultStateCopy(row.locale).generateFailed:e instanceof Error?e.message:resultStateCopy().generateFailed);}
   finally{lock.current=false;if(mounted.current)setBusy(false);}
  }
  useEffect(()=>{
   mounted.current=true;
   const id=new URLSearchParams(window.location.search).get('id')||'';
-  if(!/^[a-f0-9]{64}$/.test(id)){setError('상담을 찾지 못했어요. 내 상담 기록에서 다시 선택해 주세요.');return;}
+  if(!/^[a-f0-9]{64}$/.test(id)){setError(resultStateCopy().notFound);return;}
   requestId.current=id;
   let cancelled=false,timer:ReturnType<typeof setTimeout>|undefined;
   async function load(attempt=0){
@@ -58,14 +60,14 @@ export default function Result(){
      try{fortune=sameRequest((await fortuneApi<{fortune:FortuneRecord}>(`requests/${id}/activate`,{})).fortune,id);}
      catch(e){
       if(e instanceof FortuneApiError&&(e.status===401||e.code==='RECOVERY_ID_MISMATCH'))throw e;
-      if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=e.message;
+      if(e instanceof FortuneApiError&&e.status!==402&&!e.retryable&&e.code!=='PAYMENT_ATTACH_CONFLICT')notice=fortune.locale&&fortune.locale!=='ko'?resultStateCopy(fortune.locale).paymentRequired:e.message;
      }
     }
     if(!cancelled){setRow(fortune);setError(notice);}
    }catch(e){
     if(cancelled)return;
     if(e instanceof FortuneApiError&&e.status===401){loginForCurrentPage();return;}
-    setError(e instanceof Error?e.message:'상담을 불러오지 못했어요. 다시 시도해 주세요.');
+    setError(e instanceof Error?e.message:resultStateCopy().loadFailed);
     if(attempt<3 && (!(e instanceof FortuneApiError)||e.retryable))timer=setTimeout(()=>void load(attempt+1),Math.max(2000*2**attempt,e instanceof FortuneApiError?e.retryAfterSeconds*1000:0));
    }
   }
@@ -79,7 +81,7 @@ export default function Result(){
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
     if(!cancelled){setRow(sameRequest(fortune,row.id));setError('');}
-   }catch(e){if(!cancelled){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError('진행 상태를 확인하지 못했어요. 연결되면 다시 확인할게요.');setRow({...row});}}}
+   }catch(e){if(!cancelled){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError(resultStateCopy(row.locale).pollFailed);setRow({...row});}}}
   },RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
@@ -104,41 +106,42 @@ export default function Result(){
  },[row,payWatching]);
  // 결제 전에는 챕터가 하나도 없다 — "0 / N개 챕터 저장됨"·진행률·목차("준비 중")를 그리면 결제가 끝난 화면처럼 보인다.
  const copy=readingCopy(row?.locale);
+ const stateCopy=resultStateCopy(row?.locale);
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   <SpiritResult row={row}/>
   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
-  {row.state==='REFUNDED'?<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>:!row.paid?<><p>결제 확인이 필요해요. 이미 결제했다면 먼저 상태를 다시 확인해 주세요.</p>{payWatching&&<p role="status">결제가 확인되면 이 화면이 자동으로 바뀌어요.</p>}<button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a href={checkoutPath(row)}>{copy.checkout}</a></>:row.state!=='COMPLETED'&&<>
-    {row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:row.errorCode==='GENERATION_REVIEW_REQUIRED'||row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>서버에서 남은 이야기만 자동으로 이어가요. 창을 닫아도 내 상담 기록에서 확인할 수 있어요.</p>}
+  {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button><a href={checkoutPath(row)}>{copy.checkout}</a></>:row.state!=='COMPLETED'&&<>
+    {row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:row.errorCode==='GENERATION_REVIEW_REQUIRED'||row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
-  {error&&<><p role="alert">{error} 결제한 상담은 다시 결제하지 마세요.</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>상담 상태 다시 확인하기</button></>}<p className={styles.orderId}>{copy.order}: {row.id}</p>
+  {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<p className={styles.orderId}>{copy.order}: {row.id}</p>
  </section>;
- return <section className={styles.reader}>
-  <p className={styles.readerGreeting}><PawPrint size={19} aria-hidden="true"/> 영냥이가 차곡차곡 담은 이야기</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:'상담 결과'}</h1>
+ return <section className={styles.reader} lang={row?.locale||'ko'}>
+  <p className={styles.readerGreeting}><PawPrint size={19} aria-hidden="true"/> {stateCopy.greeting}</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:stateCopy.result}</h1>
   {row&&<ReadingIdentity product={row.product}/>}
   {row?.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   {!row&&!error&&<ReadingLoading/>}
   {row&&<>
    {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading product={row.product} stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}
-   <section className={styles.questionContext} aria-label="이번 상담의 주제와 질문">
-    <h2>{row.consultation?.kindLabel || row.consultation?.topicLabel || '이번 상담'}</h2>
-    {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>선택한 상담의 계산 근거와 흐름을 살펴보는 기록이에요.</p>}
-    {row.consultation?.asOf&&<p>상담 기준: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
-    {row.consultation?.period&&<p>분석 범위: {row.consultation.period.label}. 시기 근거가 없는 부분은 실천·점검 기간으로 안내해요.</p>}
+   <section className={styles.questionContext} aria-label={stateCopy.questionSection}>
+    <h2>{row.consultation?.kindLabel || row.consultation?.topicLabel || stateCopy.consultation}</h2>
+    {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
+    {row.consultation?.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
+    {row.consultation?.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}
    </section>
-   <div id="reading-progress" className={styles.progress}><img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt="상담을 준비하는 영냥이"/>
-    <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:`${row.chapters.length} / ${row.manifest.length}개 챕터 저장됨`}</p>}
-     {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label="챕터 저장과 최종 확인 진행률"/>}
-     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="alert">상담을 완료하지 못해 확인이 필요해요. 다시 결제하지 말고 상담 기록의 주문번호와 함께 문의해 주세요.</p>:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">자동 복구가 멈췄어요. 저장된 내용은 유지되며 추가 결제 없이 다시 시도할 수 있어요.</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?'복구 요청 중':copy.recovery}</button></>:<p role="status">{row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
-     {row.state==='REFUNDED'&&<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>}
-     {!row.paid&&row.state!=='REFUNDED'&&<><p>아직 확인된 결제가 없어요. 결제를 마쳤다면 먼저 결제 상태를 다시 확인해 주세요.</p>{payWatching&&<p role="status">결제가 확인되면 이 화면이 자동으로 바뀌어요.</p>}<button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a className={styles.button} href={checkoutPath(row)}>{copy.checkout}</a></>}
+   <div id="reading-progress" className={styles.progress}><img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt={stateCopy.greeting}/>
+    <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
+     {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={stateCopy.progress}/>}
+     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="alert">{stateCopy.reviewRequired}</p>:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:<p role="status">{row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
+     {row.state==='REFUNDED'&&<p>{stateCopy.refunded}</p>}
+     {!row.paid&&row.state!=='REFUNDED'&&<><p>{stateCopy.unpaid}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button><a className={styles.button} href={checkoutPath(row)}>{copy.checkout}</a></>}
     </div>
    </div>
    {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
    {!unpaid&&<ReadingBook row={row}/>}
   </>}
-  {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{error} 결제가 확인된 상담은 다시 결제하지 마세요.</p>}
+  {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{row?.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarningKnown}</p>}
   {row?.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?copy.loading:copy.continue}</button>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
   {row&&<p className={styles.orderId}>{copy.order}: {row.id}</p>}
