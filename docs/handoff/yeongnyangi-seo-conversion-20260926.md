@@ -25,7 +25,8 @@ next: "일반 상담의 구매 locale 계약 검증 결과를 확인하고 남�
 
 - `node --test __tests__/ui/yeongnyangi-reading-locale.test.mjs __tests__/ui/yeongnyangi-spirit-service.test.mjs __tests__/ui/yeongnyangi-provider-boundaries.test.mjs`: 18/18 통과. locale 분리·한국어 기존 ID·가격/계산값 유지·저장 snapshot 재시도·공급자 옵션·언어/출처/중복 검증.
 - `node scripts/verify-yeongnyangi-locale-browser.mjs`: mock 개발 서버에서 en 360px 통과. 첫 연속 실행의 ja 보관함 링크 대기는 시간 초과였고 HMR 로그가 동반됐다. `--locale=ja` 390px 및 `--locale=ko` 1280px 개별 재검증 통과. 이 결과를 정적 전체 브라우저 회귀 통과로 확대하지 않는다. 스크린샷 확인 시 선택기/본문 가로 넘침은 없었다.
-- `npm run check:fast -- --plan` 실행. 최초 `check:fast`는 sitemap 서명 드리프트로 중단하여 `npm run sitemap:generate`로 원장을 갱신했다. 최종 check:fast·main CI 결과는 전달 시 갱신한다.
+- `npm run check:fast -- --plan` 실행. 최초 `check:fast`는 sitemap 서명 드리프트로 중단하여 `npm run sitemap:generate`로 원장을 갱신했다. 두 번째 실행은 결제 가드 87개 통과 후 `npm test`의 Node 1688개 중 3개 실패로 중단했다(재시도 객체 계약, 링크 정적 검사, mock env 설정). 해당 세 원인을 수정하고 실패 항목을 포함한 관련 Node 36개와 추가 질문 체크포인트 검사를 통과했다. 최종 전체 로컬 check:fast 재실행은 하지 않았으며 공식 완료 판정은 main CI다.
+- 동시 작업 `c01762d879ab630d2b4c81c1f3b3e738a003f37b`의 질문 분석 체크포인트를 병합했다. 분석 1회 재사용, 챕터 실패 후 재시도, 완료 후 재생성 금지 경계에서도 en/ja snapshot 언어 유지를 확인했다. `npm run typecheck` exit 0, 보관함/저장소 Jest 74/74 통과. 운영 호출 없는 mock 검사다.
 - 실제 해외 PG 승인·유료 LLM 문장 품질·운영 주문/환불/비용 원장은 여전히 미검증이다. 운영 승격이나 자동 관찰 일정은 실행하지 않는다.
 
 ## 현재 전달

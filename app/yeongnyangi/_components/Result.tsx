@@ -142,6 +142,6 @@ export default function Result(){
   {row?.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?copy.loading:copy.continue}</button>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
   {row&&<p className={styles.orderId}>{copy.order}: {row.id}</p>}
-  <a href={`/yeongnyangi/library/${row?.locale?`?lang=${row.locale}`:''}`}>{copy.library}</a>
+  <a href={row?.locale?'/yeongnyangi/library/?lang='+row.locale:'/yeongnyangi/library/'}>{copy.library}</a>
  </section>;
 }

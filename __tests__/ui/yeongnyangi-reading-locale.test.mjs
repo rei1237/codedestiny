@@ -17,7 +17,7 @@ for(const locale of ['en','ja'])test(`${locale}: translated prose keeps section 
  assert.equal(request.locale,locale);assert.ok(request.outputSchema.required.includes('title'));
  const rules=JSON.parse(request.domainRules);
  assert.equal(rules.outputLocale,locale);assert.deepEqual(rules.sectionContract,chapter.sections);
- assert.match(rules.correction.language,/purchase language/);
+ assert.match(rules.languageContract,/purchase language/);
  assert.deepEqual(request.outputSchema.properties.blocks.items.properties.id.enum,['evidence','action']);
  assert.throws(()=>m.validateChapter({...value,sources:['tarot.invented']},input(locale)),/INVALID_EVIDENCE/);
  const missing=structuredClone(value);missing.blocks.pop();assert.throws(()=>m.validateChapter(missing,input(locale)),/INVALID_CHAPTER_BLOCKS|CHAPTER_DEPTH_INCOMPLETE/);

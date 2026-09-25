@@ -51,7 +51,7 @@ test('v5 empty legacy fields do not send unsupported empty Gemini enums',async()
 test('provider transport pins the purchase language instead of ambient HTTP locale',async()=>{
  setResponse({ok:true,text:'{}',provider:'gemini',model:'fixture'});
  for(const locale of ['en','ja',undefined]){
-  await new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-sent'}).generate({...request,locale});
+  await new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-sent',LLM_DRY_RUN:'false'}).generate({...request,locale});
   assert.equal(getOptions().locale,locale || 'ko');
  }
 });

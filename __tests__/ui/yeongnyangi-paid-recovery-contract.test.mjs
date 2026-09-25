@@ -74,3 +74,21 @@ test('quality retries tell the provider what failed without leaking that correct
  assert.equal(fixture.lastInput.repair,undefined);
  assert.deepEqual(fixture.providerCalls,[1,2]);
 });
+
+test('question-analysis checkpoints keep purchase locale through chapter retry and completion',async()=>{
+ for(const locale of ['en','ja']){
+  const f=reset();f.failOnce=true;f.row.snapshot.locale=locale;
+  f.row.generationCheckpoint={version:'ask-generation-v1',evidence:{locale}};
+  f.row.snapshot.analysis.consultation={topicId:'work',questions:[{id:'q1',text:locale==='en'?'How can I prepare for work?':'仕事に向けて何を準備すればいいですか？',chapterId:'first'}]};
+  await assert.rejects(generateNextChapter(env,'owner',f.row._id));
+  for(let i=0;i<3;i++){
+   await generateNextChapter(env,'owner',f.row._id);
+   assert.equal(f.lastInput.locale,locale);
+  }
+  assert.equal(f.analysisCalls,1);assert.equal(f.row.state,'COMPLETED');
+  assert.equal(presentFortune(f.row).locale,locale);
+  const calls=f.providerCalls.length;
+  await generateNextChapter(env,'owner',f.row._id);
+  assert.equal(f.providerCalls.length,calls);
+ }
+});
