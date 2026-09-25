@@ -22,7 +22,7 @@ export default function FounderTrust(){
     <a className={styles.primary} href="#founder-timeline">원문 기록 {records.length}편 확인하기 <span aria-hidden="true">↓</span></a>
    </div>
    <figure className={styles.art}>
-    <img src="/assets/yeongnyangi/original/records-scroll-960.webp" srcSet="/assets/yeongnyangi/original/records-scroll-480.webp 480w, /assets/yeongnyangi/original/records-scroll-960.webp 960w" sizes="(min-width: 860px) 440px, calc(100vw - 44px)" width={960} height={640} alt="" loading="lazy" decoding="async"/>
+    <img src="/assets/yeongnyangi/original/records-scroll-2d-960.webp" srcSet="/assets/yeongnyangi/original/records-scroll-2d-480.webp 480w, /assets/yeongnyangi/original/records-scroll-2d-960.webp 960w" sizes="(min-width: 860px) 440px, calc(100vw - 44px)" width={960} height={640} alt="" loading="lazy" decoding="async"/>
    </figure>
   </div>
   <ol className={styles.timeline} id="founder-timeline">{records.map(record=><li key={record.url} className={styles.record}>
