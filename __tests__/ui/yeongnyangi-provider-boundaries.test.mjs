@@ -7,6 +7,14 @@ const compiled=await build({stdin:{contents:"export {CodeDestinyProvider} from '
 const {CodeDestinyProvider,setResponse,getOptions}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const provider=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'});
 const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',calculatedData:{},outputSchema:{},sectionTitles:[]};
+test('question analysis uses a short deterministic single provider call',async()=>{
+ setResponse({ok:true,text:'{"questions":[]}'});
+ assert.equal(await provider.analyzeQuestion('classify','data'),'{"questions":[]}');
+ assert.equal(getOptions().temperature,0);assert.equal(getOptions().maxProviderAttempts,1);
+ assert.equal(getOptions().fallbackToWorkersAI,false);assert.equal(getOptions().maxOutputTokens,1024);
+ assert.equal(getOptions().thinkingBudget,0);
+ setResponse({ok:true,text:'{}',truncated:true});await assert.rejects(provider.analyzeQuestion('classify','data'));
+});
 test('output truncation never becomes a completed chapter even with parseable JSON',async()=>{
  for(const flags of [{truncated:true},{finishReason:'MAX_TOKENS'}]){
   setResponse({ok:true,text:'{}',...flags});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_OUTPUT_TRUNCATED');
