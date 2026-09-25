@@ -21,10 +21,15 @@ createRoot(document.getElementById('root')).render(<main className={styles.page}
   b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>({loader:'js',contents:path==='api'?`
 export class FortuneApiError extends Error {constructor(code,message,status){super(message);this.code=code;this.status=status;this.retryable=true;this.retryAfterSeconds=0;}}
 window.calls={read:0,generate:0,payments:1,provider:0};window.activateCalls=0;
-const activateCase=new URLSearchParams(location.search).get('case')==='activate';
+const caseName=new URLSearchParams(location.search).get('case'),activateCase=caseName==='activate',unpaidCase=caseName==='unpaid';
 const id='a'.repeat(64),manifest=[{id:'first'},{id:'second'},{id:'third'}],stored={summary:'이미 저장된 첫 장'};
 const row={id,paid:true,state:'FORTUNE_FAILED',errorCode:'AUTOMATIC_RECOVERY_STOPPED',product:{name:'사주',fishName:'고등어'},chapters:[stored],manifest,recovery:{requestId:id,savedChapters:1,totalChapters:3,providerNeeded:true,retryable:true,canRetryNow:true,nextAction:'retry'}};
 export async function fortuneApi(path){
+ if(unpaidCase){
+  // 결제 전: 상담은 읽히지만 결제가 확인되지 않는다(activate → 402 PAYMENT_REQUIRED).
+  if(path.endsWith('/activate')){window.activateCalls++;throw new FortuneApiError('PAYMENT_REQUIRED','결제 확인 중',402);}
+  window.calls.read++;return {fortune:{...row,paid:false,state:'CREATED',errorCode:'',chapters:[],recovery:{...row.recovery,savedChapters:0}}};
+ }
  if(activateCase){
   // 결제 직후: 상담은 읽히지만 결제 연결(activate) 첫 시도가 일시 DB 오류로 실패한다.
   if(path.endsWith('/activate')){window.activateCalls++;if(window.activateCalls===1)throw new FortuneApiError('SERVICE_UNAVAILABLE','영냥이 서버에 잠시 연결하지 못했어요.',503);
@@ -36,7 +41,7 @@ export async function fortuneApi(path){
  return {fortune:row};
 }
 export function loginForCurrentPage(){throw Error('unexpected login');}
-export function checkoutPath(){if(activateCase)return '#checkout';throw Error('paid retry must not enter checkout');}
+export function checkoutPath(){if(activateCase||unpaidCase)return '#checkout';throw Error('paid retry must not enter checkout');}
 `:path==='analytics'?'export function trackFortuneDelivery(){} export function trackFortuneView(){}':path==='style'?'export default {};':'export default function Child(){return null;}'}));
  }}]});
 const js=bundle.outputFiles.find(f=>f.path.endsWith('.js')).text;
@@ -83,6 +88,18 @@ try{
   assert.deepEqual(await page.evaluate(()=>[window.calls,window.activateCalls]),[{read:1,generate:0,payments:1,provider:0},2]);
   await page.close();
  }
+ {
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  await page.goto('http://127.0.0.1:'+server.address().port+'/?case=unpaid&id='+'a'.repeat(64));
+  await page.getByText('아직 확인된 결제가 없어요.',{exact:false}).waitFor();
+  assert.equal(await page.getByText(/개 챕터 저장됨/).count(),0,'결제 전 화면에 챕터 저장 진행률을 그리면 안 된다');
+  assert.equal(await page.locator('progress').count(),0,'결제 전 화면에 진행률 막대를 그리면 안 된다');
+  assert.equal(await page.getByRole('button',{name:'결제 상태 다시 확인하기'}).count(),1,'결제 상태 확인 버튼은 남는다');
+  assert.equal(await page.getByRole('link',{name:'결제 내용 확인하기'}).count(),1,'결제 내용 확인 링크는 남는다');
+  await page.close();
+ }
+ console.log('PASS: unpaid result shows the payment-check notice only, no chapter progress shell; real calls=0');
  console.log('PASS: activate 503 right after payment keeps the read consultation; payment poll attaches it; real calls=0');
  console.log('PASS: one payment, partial saved chapter reused, two missing provider calls, duplicate click suppressed, same request completed; 390/1280px; real calls=0');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

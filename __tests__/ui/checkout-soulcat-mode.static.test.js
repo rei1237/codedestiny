@@ -102,3 +102,22 @@ test("🔴 모바일 PG 복귀 effect 는 requestId 를 요구하지 않는다",
     "모바일 PG 복귀 effect 가 requestId 를 요구한다 — SoulCat 결제 후 모바일 복귀가 멈춘다(7ab9c152b 류 재발).",
   );
 });
+
+test("🔴 결제 이탈 링크: CD 내부 모드는 결제 성공 뒤 주소를 쓰지 않고 SoulCat 모드는 직전 화면(returnTo)을 쓴다", () => {
+  const source = readSource();
+  // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)다.
+  // 이탈 링크가 그걸 쓰면 결제를 그만둔 사용자가 미결제 결과 화면으로 떨어진다(2026-09-26 사용자 제보).
+  assert.match(
+    source,
+    /const leaveHref\s*=\s*isSoulCatMode\s*\?\s*params\.returnTo\s*:\s*DEFAULT_RETURN_TO;/,
+    "← 영냥이 방 링크가 CD 내부 모드에서 params.returnTo(미결제 결과 화면)로 다시 연결됐다.",
+  );
+  assert.match(
+    source,
+    /const chooseHref\s*=\s*isSoulCatMode\s*\?\s*params\.returnTo\s*:\s*FISH_CHOOSER_PATH;/,
+    "생선 다시 고르기 링크가 CD 내부 모드에서 params.returnTo 로 다시 연결됐다.",
+  );
+  assert.match(source, /<a href=\{leaveHref\}/, "← 영냥이 방 링크가 leaveHref 를 쓰지 않는다.");
+  assert.match(source, /<a href=\{chooseHref\}/, "생선 다시 고르기 링크가 chooseHref 를 쓰지 않는다.");
+  assert.ok(!/<a href=\{params\.returnTo\}/.test(source), "이탈 링크가 params.returnTo 를 직접 쓴다.");
+});

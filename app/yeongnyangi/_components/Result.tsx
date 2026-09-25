@@ -100,6 +100,8 @@ export default function Result(){
   },RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row,payWatching]);
+ // 결제 전에는 챕터가 하나도 없다 — "0 / N개 챕터 저장됨"·진행률·목차("준비 중")를 그리면 결제가 끝난 화면처럼 보인다.
+ const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   <SpiritResult row={row}/>
@@ -123,15 +125,15 @@ export default function Result(){
     {row.consultation?.period&&<p>분석 범위: {row.consultation.period.label}. 시기 근거가 없는 부분은 실천·점검 기간으로 안내해요.</p>}
    </section>
    <div id="reading-progress" className={styles.progress}><img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt="상담을 준비하는 영냥이"/>
-    <div><p>{row.state==='COMPLETED'?'네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.':`${row.chapters.length} / ${row.manifest.length}개 챕터 저장됨`}</p>
-     <progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label="챕터 저장과 최종 확인 진행률"/>
+    <div>{!unpaid&&<p>{row.state==='COMPLETED'?'네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.':`${row.chapters.length} / ${row.manifest.length}개 챕터 저장됨`}</p>}
+     {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label="챕터 저장과 최종 확인 진행률"/>}
      {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="alert">상담을 완료하지 못해 확인이 필요해요. 다시 결제하지 말고 상담 기록의 주문번호와 함께 문의해 주세요.</p>:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">자동 복구가 멈췄어요. 저장된 내용은 유지되며 추가 결제 없이 다시 시도할 수 있어요.</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?'복구 요청 중':'기존 상담 복구하기'}</button></>:<p role="status">{row.chapters.length===row.manifest.length?'저장된 상담을 최종 확인하고 있어요.':'남은 상담은 서버에서 자동으로 이어지고 있어요. 창을 닫아도 내 상담 기록에서 다시 확인할 수 있어요.'}</p>)}
      {row.state==='REFUNDED'&&<p>환불된 상담이에요. 결제 내역에서 처리 상태를 확인해 주세요.</p>}
      {!row.paid&&row.state!=='REFUNDED'&&<><p>아직 확인된 결제가 없어요. 결제를 마쳤다면 먼저 결제 상태를 다시 확인해 주세요.</p>{payWatching&&<p role="status">결제가 확인되면 이 화면이 자동으로 바뀌어요.</p>}<button onClick={()=>window.location.reload()}>결제 상태 다시 확인하기</button><a className={styles.button} href={checkoutPath(row)}>결제 내용 확인하기</a></>}
     </div>
    </div>
    {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
-   <ReadingBook row={row}/>
+   {!unpaid&&<ReadingBook row={row}/>}
   </>}
   {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{error} 결제가 확인된 상담은 다시 결제하지 마세요.</p>}
   {row?.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?'복구 요청 중':'상담 이어가기'}</button>}

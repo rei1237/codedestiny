@@ -21,7 +21,7 @@
  *    결제 임계 화면에서 번역 누락보다 나쁘다. 상품명·분석 깊이는 아직 카탈로그의 한국어 데이터다.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
@@ -38,6 +38,8 @@ const FEATURE_KEY_PATTERN = /^yeongnyangi-[a-z0-9-]+$/;
 const RETURN_TO_PREFIX = "/yeongnyangi/";
 const DEFAULT_RETURN_TO = "/yeongnyangi/";
 const RESUME_KIND = "yeongnyangi-checkout";
+// 결제 화면의 "생선 다시 고르기" 도착지(내 상담 기록의 "새 상담 고르기"와 같은 경로).
+const FISH_CHOOSER_PATH = "/yeongnyangi/fortune/";
 
 
 type CheckoutParams = {
@@ -81,6 +83,21 @@ function redirectToLogin(): void {
   const { pathname, search } = window.location;
   const next = encodeURIComponent(`${pathname}${search || ""}`);
   window.location.assign(`/login?next=${next}&returnTo=${next}&redirect=${next}`);
+}
+
+/** 결제를 안 하고 나갈 때 브라우저 뒤로가기가 "이전 화면"인지 판정한다. 같은 출처 영냥이 화면(상담 폼 등)에서 넘어왔을 때만 참이다.
+ * 새 탭·PG 왕복 뒤(직전 문서가 PG 이거나 비어 있음)·미결제 결과 화면에서 온 경우는 거짓이라 링크의 href(영냥이 방)가 처리한다 —
+ * 뒤로가기가 PG 페이지로 새거나 결과 화면으로 되돌아가는 일이 없다. */
+function canGoBackToPreviousScreen(): boolean {
+  if (typeof window === "undefined" || window.history.length <= 1) return false;
+  try {
+    const from = new URL(document.referrer);
+    return from.origin === window.location.origin
+      && from.pathname.startsWith(RETURN_TO_PREFIX)
+      && !from.pathname.startsWith(`${RETURN_TO_PREFIX}result`);
+  } catch {
+    return false;
+  }
 }
 
 /** SoulCat 모드(requestId 없음)의 결정론적 requestId 재료. 서버 idempotency 키는 120자 상한만 있고
@@ -211,11 +228,21 @@ export default function CheckoutClient() {
     } finally { paymentLock.current=false; }
   }, [pricing, available, buildResume, params, copy, isSoulCatMode]);
 
+  // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
+  // SoulCat 모드의 returnTo 는 진짜 직전 화면이라 그대로 쓴다.
+  const leaveHref = isSoulCatMode ? params.returnTo : DEFAULT_RETURN_TO;
+  const chooseHref = isSoulCatMode ? params.returnTo : FISH_CHOOSER_PATH;
+  const leaveToPreviousScreen = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (isSoulCatMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen()) return;
+    event.preventDefault();
+    window.history.back();
+  };
+
   const product = products.find(item => item.cdFeatureKey === params.featureKey);
   return (
     <main className={styles.page}>
       <nav className={styles.nav} aria-label={copy.navAria}>
-        <a href={params.returnTo}>{copy.backToRoom}</a><a href="/">CODE DESTINY</a>
+        <a href={leaveHref} onClick={leaveToPreviousScreen}>{copy.backToRoom}</a><a href="/">CODE DESTINY</a>
       </nav>
       <section className={styles.checkout} aria-labelledby="checkout-title">
         <div className={styles.host}>
@@ -254,7 +281,7 @@ export default function CheckoutClient() {
                 {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
                 {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
               </div>
-              <a href={params.returnTo} className={styles.back}>{copy.reselect}</a>
+              <a href={chooseHref} className={styles.back}>{copy.reselect}</a>
               <p className={styles.security}>
                 <a href={policyHrefs.terms}>{copy.legalTerms}</a> · <a href={policyHrefs.refund}>{copy.legalRefund}</a> · <a href={policyHrefs.support}>{copy.legalSupport}</a>
               </p>
