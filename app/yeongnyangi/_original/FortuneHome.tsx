@@ -323,15 +323,15 @@ export default function FortuneHome() {
                 <span>영냥이에게 내 질문 남기기</span>
                 <ArrowRight size={21} />
               </a>
-              <p>사주 고등어 {packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 · {packages.mackerel.chapterCount}개 챕터와 내 질문에 대한 답. 다음 화면에서 상품을 바꿀 수 있어.</p>
+              <p>사주 고등어 {packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 · {packages.mackerel.chapterCount}개 챕터 · 상품 변경 가능</p>
               <a className="hero-proof-link" href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 보기</a>
-              <a className="hero-proof-link" href="#founder-records">상담사 경력과 공개 예측 기록 보기</a>
             </div>
           </section>
               <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
                 <a href="/yeongnyangi/room/#daily">무료 운세</a>
                 <a href="/yeongnyangi/library/">내 상담 기록</a>
                 <a href="/ggulggul/">다른 운세 둘러보기</a>
+                <a href="#founder-records">상담사 경력과 공개 예측 기록</a>
               </nav>
 
           <div className="main-content">
