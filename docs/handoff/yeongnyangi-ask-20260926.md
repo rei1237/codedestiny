@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-26
-next: "Phase 2 구현 및 mock 검증. main CI 확인 후 Phase 3 승인 대기."
+next: "Phase 2 main 전달과 CI 통과 완료. Phase 3 사용자 승인 대기."
 ---
 
 # 영냥이 자유질문 Phase 2 인수인계
@@ -15,11 +15,14 @@ next: "Phase 2 구현 및 mock 검증. main CI 확인 후 Phase 3 승인 대기.
 
 ## Phase 2 (사용자 승인: 2026-09-26)
 
+- 구현 및 main push: `c01762d879ab630d2b4c81c1f3b3e738a003f37b`.
+- main CI: [36174484853](https://github.com/rei1237/codedestiny/actions/runs/36174484853)의 `CI required` 및 전체 lane 통과.
+
 질문 분석기와 `generationCheckpoint.analysis` 저장·재사용을 구현했다. 공통 공급자 모델, temperature 0, 1,024 출력 토큰, 15초, 공급자 시도 1회다. 오류·잘못된 응답은 규칙 폴백을 저장한다. 원문 질문 ID를 유지하고 모델이 만든 자유 텍스트 지시문은 폐기한다. 결제·환불 증명, 소유자, 장 잠금 확인 후 트랜잭션 저장·재읽기를 수행한다. 장 생성 실패와 저장 응답 불확실성 후에도 저장된 분석을 재사용한다.
 
 - 수정: `fortune/ask/analysis.ts`, `providers/code-destiny.ts`, `repository.js`, `service.ts`, 관련 mock 테스트와 계약 문서.
 - targeted: 분석/공급자/서비스 13건, 상담 종류/신점 호환 15건, repository/recovery 46건 통과.
-- `npm run check:fast -- --plan`: critical. `npm run check:fast` 실행 결과와 main CI는 전달 시 확인한다.
+- `npm run check:fast -- --plan`: critical. `npm run check:fast`: 종료 0, Node 1,686건 및 Jest 296 suites / 4,211 tests 통과. 타입·lint·정책 가드·Worker build도 통과했다.
 - 구매 snapshot·가격·차감/환불 정책·일반 리포트·계산 엔진·공개 API 형식은 유지했다.
 - 분석 결과를 답변에 반영하는 Phase 3는 아직 연결하지 않았다. 폴백의 다국어 어휘는 제한적이다. 실 LLM 품질·실결제·운영 DB·프로덕션 승격은 미실행이다.
 
@@ -52,5 +55,5 @@ main에 다른 세션의 marketing 변경이 남아 있다. 광역 reset/stash/a
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 Phase 2 전달 커밋 포함 여부를 확인하라. 다른 세션 변경을 보존하고 Phase 3 승인 후 프롬프트 조립과 첫 장 연결부터 진행하라. 실제 과금 호출과 운영 작업은 하지 마라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 c01762d879ab630d2b4c81c1f3b3e738a003f37b 포함 여부를 확인하라. 다른 세션 변경을 보존하고 Phase 3 승인 후 프롬프트 조립과 첫 장 연결부터 진행하라. 실제 과금 호출과 운영 작업은 하지 마라.
 ```
