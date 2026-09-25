@@ -15,7 +15,7 @@ const PERMANENT_HOLD_MS = 24 * 60 * 60 * 1000;
 export function abandonedRequestFilter(now) {
   return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:'FAMILY',passEvidenceId:{$ne:null}}],
     updatedAt:{$lt:new Date(now-ABANDONED_MS)},
-    errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
+    errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
     $and:[{$or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]}]};
 }
 
