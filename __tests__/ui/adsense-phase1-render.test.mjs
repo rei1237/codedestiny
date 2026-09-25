@@ -7,7 +7,7 @@ import { build } from 'esbuild';
 import { createElement } from 'react';
 import { renderToString, renderToStaticMarkup } from 'react-dom/server';
 import { inspectPublisherDocument } from '../../scripts/lib/publisher-document.mjs';
-import { INTRO_LOCALES, INTRO_TOPICS } from '../../lib/i18n/feature-introductions.mjs';
+import { FEATURE_INTRODUCTIONS, INTRO_TOPICS } from '../../lib/i18n/feature-introductions.mjs';
 import { trustRoutes } from '../../lib/i18n/public-trust-copy.mjs';
 
 const root = path.resolve(import.meta.dirname, '../..');
@@ -42,7 +42,7 @@ test('tarot guide remains server HTML when the interactive tool cannot render', 
 });
 
 test('every localized introduction renders a contact link to a supported route', () => {
-  for (const locale of INTRO_LOCALES) for (const topic of INTRO_TOPICS) {
+  for (const topic of INTRO_TOPICS) for (const locale of Object.keys(FEATURE_INTRODUCTIONS[topic])) {
     const html = renderToStaticMarkup(createElement(Introduction, { locale, topic }));
     const expected = trustRoutes('contact')[locale] || trustRoutes('contact').ko;
     const doc = inspectPublisherDocument(html, `https://code-destiny.com/${locale}/${topic}/`);
