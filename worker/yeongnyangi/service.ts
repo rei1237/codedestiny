@@ -20,6 +20,8 @@ import { buildEvidencePacket } from './fortune/ask/packet';
 import { extendAskLocalTiming } from './fortune/ask/wrappers';
 import { calculateAskTarot } from './fortune/ask/tarot';
 import { analyzeAsk, parseAskAnalysis, escapeAskData } from './fortune/ask/analysis';
+import type { AskAnalysis } from './fortune/ask/analysis';
+import type { EvidencePacket } from './fortune/ask/contracts';
 import { consultationClock, createConsultation } from './fortune/consultation';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
@@ -195,6 +197,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const startedAt=Date.now();let stage='provider';
   try {
     const sharedProvider=new CodeDestinyProvider(env);
+    let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
     if(row.generationCheckpoint?.version==='ask-generation-v1') {
       const consultation=row.snapshot.analysis.consultation;
       const saved=row.generationCheckpoint.analysis;
@@ -210,11 +213,18 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       // Recheck access after analysis/storage before paying for the chapter call.
       const current=await readRequest(env,userId,requestId);
       if(current.state!=='GENERATING'||current.leaseToken!==token)throw new FortuneError('GENERATION_LEASE_LOST',409);
+      if(ordinal===0) {
+        const checkpoint=current.generationCheckpoint;
+        if(checkpoint?.version!=='ask-generation-v1'||!checkpoint.evidence||!checkpoint.analysis)
+          throw new FortuneError('INVALID_ASK_CHECKPOINT',500);
+        parseAskAnalysis(escapeAskData(checkpoint.analysis),consultation);
+        ask={analysis:checkpoint.analysis,evidence:checkpoint.evidence};
+      }
     }
     stage='provider';
     const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
       ? {code:row.lastFailure.code}:undefined;
-    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair};
+    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair,ask};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(sharedProvider);
     const generated=await provider.generateChapter(input);

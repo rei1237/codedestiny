@@ -1,10 +1,23 @@
 ---
 status: active
 updated: 2026-09-26
-next: "Phase 2 main 전달과 CI 통과 완료. Phase 3 사용자 승인 대기."
+next: "Phase 3 main 전달과 CI 통과 완료. Phase 4 사용자 승인 대기."
 ---
 
-# 영냥이 자유질문 Phase 2 인수인계
+# 영냥이 자유질문 인수인계
+
+## Phase 3 (사용자 승인: 2026-09-26)
+
+- 구현 커밋: `8f05df2d0a4df8a26ac44e9a1510baac1c3f2029`.
+- main 전달 커밋: `1a0914de71285514ec0c35b8192822ffbee7169b`; `git push origin main` 완료.
+- main CI: [36185203154](https://github.com/rei1237/codedestiny/actions/runs/36185203154)의 `CI required` 및 전체 lane 통과를 확인했다.
+
+`fortune/ask/prompt.ts`가 저장된 질문 ID와 분류 결과를 주제별 F/T 근거에 연결한다. 중복 근거 값은 한 번만 싣고, 기간 질문에만 기간 근거를 넣는다. 첫 장 조립 직전 체크포인트를 재읽어 소유자·잠금 상태를 확인한다. `ask-chapter-v1`은 신규 질문형 요청의 첫 장에만 적용하고 후속 장·이전 구매의 프롬프트는 유지한다. 질문과 근거의 태그 종료 문자를 이스케이프하고 분석 결과의 자유 문장 지시를 사용하지 않는다.
+
+- 관련 mock: 질문 프롬프트·근거·재시도 29건 통과. 직렬화 조정 후 관련 15건과 타입 검사 통과.
+- `npm run check:fast -- --plan`: critical. `npm run check:fast`: 종료 0, 타입·lint·정책 가드·Worker dry build·Jest 296 suites / 4,212 tests 통과. 마지막 직렬화 조정은 이후 targeted 15건과 타입 검사로 확인했다.
+- 구매 snapshot·가격·차감/환불 정책·일반 리포트·계산 엔진·공개 API 형식은 유지했다. 실제 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않았다.
+- Phase 4의 패킷 근거/기간/안전 검증, 1회 재생성·limited 복구, 실제 문장 품질 평가는 아직 남아 있다.
 
 - 작업 디렉터리: `D:\Development\code-destiny`
 - 이 문서: `D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md`
@@ -46,14 +59,14 @@ next: "Phase 2 main 전달과 CI 통과 완료. Phase 3 사용자 승인 대기.
 
 ## 다음 단계
 
-첨부 원문의 “각 Phase 종료 시 … 보고하고 승인을 기다린다”를 따른다. Phase 2 분석기와 체크포인트 구현은 완료했다. Phase 3는 사용자 승인 후 진행한다. 분석 결과로 지시문을 바꾸지 않으며 태그 종료 문자열을 이스케이프한다. 기존 구매 스냅샷을 재작성하지 않는다.
+첨부 원문의 “각 Phase 종료 시 … 보고하고 승인을 기다린다”를 따른다. Phase 3 프롬프트 조립과 첫 장 연결까지 완료했다. Phase 4는 별도 사용자 승인 후 진행한다. 분석 결과로 지시문을 바꾸지 않으며 태그 종료 문자열을 이스케이프한다. 기존 구매 스냅샷을 재작성하지 않는다.
 
-Phase 3은 프롬프트 조립과 첫 장 연결, Phase 4는 근거/기간/안전 검증과 1회 재생성·limited 미완료 복구, Phase 5는 12개 언어 입력·normal/limited/care 화면 및 기존 렌더 호환, Phase 6은 180건+퓨전/복구/다국어 평가다. 실제 LLM 평가와 사주 전문가 20건 검수는 별도 승인·검수자가 필요하다.
+Phase 4는 근거/기간/안전 검증과 1회 재생성·limited 미완료 복구, Phase 5는 12개 언어 입력·normal/limited/care 화면 및 기존 렌더 호환, Phase 6은 180건+퓨전/복구/다국어 평가다. 실제 LLM 평가와 사주 전문가 20건 검수는 별도 승인·검수자가 필요하다.
 
 main에 다른 세션의 marketing 변경이 남아 있다. 광역 reset/stash/add를 사용하지 않는다. 동시 쓰기 세션이면 기존 안전 worktree 스크립트로 격리하고, PR 없이 main 전달 및 CI 확인 후 배수한다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 c01762d879ab630d2b4c81c1f3b3e738a003f37b 포함 여부를 확인하라. 다른 세션 변경을 보존하고 Phase 3 승인 후 프롬프트 조립과 첫 장 연결부터 진행하라. 실제 과금 호출과 운영 작업은 하지 마라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 1a0914de71285514ec0c35b8192822ffbee7169b 포함 여부를 확인하라. 다른 세션 변경을 보존하고 Phase 4 사용자 승인 후 근거/기간/안전 검증과 1회 재생성·limited 복구부터 진행하라. 실제 과금 호출과 운영 작업은 하지 마라.
 ```

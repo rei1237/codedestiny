@@ -42,6 +42,7 @@ test('ask analysis is reused after chapter failure and uncertain checkpoint writ
   f.storageFailure=false;
   await generateNextChapter(env,'owner',f.row._id);
   assert.equal(f.analysisCalls,1);
+  assert.deepEqual(f.lastInput.ask,{analysis:f.row.generationCheckpoint.analysis,evidence:f.row.generationCheckpoint.evidence});
   assert.equal(JSON.stringify(f.row.snapshot),snapshot);
  }
 });
@@ -84,6 +85,8 @@ test('question-analysis checkpoints keep purchase locale through chapter retry a
   for(let i=0;i<3;i++){
    await generateNextChapter(env,'owner',f.row._id);
    assert.equal(f.lastInput.locale,locale);
+   if(f.lastInput.chapter.id==='first')assert.deepEqual(f.lastInput.ask.evidence,{locale});
+   else assert.equal(f.lastInput.ask,undefined);
   }
   assert.equal(f.analysisCalls,1);assert.equal(f.row.state,'COMPLETED');
   assert.equal(presentFortune(f.row).locale,locale);
