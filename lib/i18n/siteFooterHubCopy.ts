@@ -1,3 +1,4 @@
+import { TRUST_DOCUMENT_COPY } from "./public-trust-copy.mjs";
 import { Locale } from "./locales";
 
 /**
@@ -131,6 +132,7 @@ export const FOOTER_POLICY_HREFS = [
   "/refund-policy/",
   "/faq/",
   "/methodology/",
+  "/editorial-policy/",
   "/insights/",
 ] as const;
 
@@ -294,6 +296,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/refund-policy/": "교환/환불 정책",
       "/faq/": "FAQ",
       "/methodology/": "콘텐츠 방법론",
+      "/editorial-policy/": TRUST_DOCUMENT_COPY["ko"].editorial,
       "/insights/": "인사이트 아카이브",
     },
     policyNavAriaLabel: "정책 및 안내 링크",
@@ -428,6 +431,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/refund-policy/": "返金・交換ポリシー",
       "/faq/": "FAQ",
       "/methodology/": "コンテンツ方法論",
+      "/editorial-policy/": TRUST_DOCUMENT_COPY["ja"].editorial,
       "/insights/": "インサイト・アーカイブ",
     },
     policyNavAriaLabel: "ポリシー・案内リンク",
@@ -563,6 +567,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/refund-policy/": "退换与退款政策",
       "/faq/": "常见问题解答",
       "/methodology/": "内容方法论",
+      "/editorial-policy/": TRUST_DOCUMENT_COPY["zh"].editorial,
       "/insights/": "洞察归档",
     },
     policyNavAriaLabel: "政策与指南链接",
@@ -697,6 +702,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/refund-policy/": "退換與退款政策",
       "/faq/": "常見問題解答",
       "/methodology/": "內容方法論",
+      "/editorial-policy/": TRUST_DOCUMENT_COPY["zh-tw"].editorial,
       "/insights/": "洞察彙整",
     },
     policyNavAriaLabel: "政策與指南連結",
@@ -831,6 +837,7 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/refund-policy/": "Refund Policy",
       "/faq/": "FAQ",
       "/methodology/": "Content Methodology",
+      "/editorial-policy/": TRUST_DOCUMENT_COPY["en"].editorial,
       "/insights/": "Insights Archive",
     },
     policyNavAriaLabel: "Policy and information links",

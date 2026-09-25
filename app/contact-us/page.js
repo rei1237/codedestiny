@@ -7,6 +7,9 @@ import ContactForm from "./ContactForm";
 const CONTACT_US_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     title: "Contact Us | 문의하기 — Code Destiny",
+    replyMeta: "Contact Us · 보통 영업일 기준 1~3일 내 회신",
+    replyTiming: "문의는 보통 영업일 기준 1~3일 내 회신합니다. 문의 내용과 확인 절차에 따라 더 걸릴 수 있습니다.",
+    generalInquiry: " — 서비스 이용 방법, 오류 신고, 결과가 보이지 않는 문제를 접수합니다.",
     description: "Code Destiny 문의 페이지입니다. 이메일 및 문의 폼으로 서비스 관련 문의를 접수할 수 있습니다.",
     keywords: ["Contact Us", "문의하기", "고객지원", "Code Destiny 문의"],
   },
@@ -41,13 +44,14 @@ export function generateMetadata() {
 }
 
 export default function ContactUsPage() {
+  const copy = CONTACT_US_PAGE_TEXT_TRANSLATIONS.ko;
   return (
     <main className={`policy-doc ${policyPageClass}`}>
       <PolicyGuide
         kind="contact"
         title="무엇을 도와드릴까요?"
         description="서비스 이용, 결제 내역 확인, 개인정보 요청을 남겨주세요. 확인에 필요한 정보만 안전하게 보내주시면 됩니다."
-        meta="Contact Us · 영업일 기준 1~3일 내 회신"
+        meta={copy.replyMeta}
       />
 
       <div className="policy-doc__single">
@@ -58,7 +62,7 @@ export default function ContactUsPage() {
               <p>
                 운영 이메일: <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>
                 <br />
-                평균 회신 시간: 영업일 기준 1~3일 / Typical response time: 1-3 business days.
+                {copy.replyTiming}
               </p>
             </section>
 
@@ -69,7 +73,7 @@ export default function ContactUsPage() {
               </p>
               <ul>
                 <li>
-                  <strong>일반 문의</strong> — 서비스 이용 방법, 오류 신고, 결과가 보이지 않는 문제. 영업일 기준 1~3일 내 회신합니다.
+                  <strong>일반 문의</strong>{copy.generalInquiry}
                 </li>
                 <li>
                   <strong>개인정보 요청</strong> — 열람, 정정, 삭제, 처리정지, 동의철회. 본인 확인 후 처리하며, 처리 결과를 회신 메일로 알려드립니다.

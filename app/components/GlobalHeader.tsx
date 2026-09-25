@@ -41,6 +41,8 @@ const policyNavItems = [
   { href: "/about" },
   { href: "/disclaimer" },
   { href: "/advertising-policy" },
+  { href: "/editorial-policy" },
+  { href: "/methodology" },
 ] as const;
 
 const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
@@ -54,7 +56,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
   brandTagline: string;
 }> = {
   ko: {
-    nav: { "/index.html": "홈", "/insights": "운세 인사이트", "/privacy": "개인정보", "/terms": "이용약관", "/contact": "문의", "/about": "소개", "/disclaimer": "면책", "/advertising-policy": "광고정책" },
+    nav: { "/index.html": "홈", "/insights": "운세 인사이트", "/privacy": "개인정보", "/terms": "이용약관", "/contact": "문의", "/about": "소개", "/disclaimer": "면책", "/advertising-policy": "광고정책", "/editorial-policy": "콘텐츠 편집 원칙", "/methodology": "콘텐츠 방법론" },
     mainNav: "주요 내비게이션",
     openMenu: "메뉴 열기",
     closeMenu: "메뉴 닫기",
@@ -64,7 +66,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "꿀꿀 운세",
   },
   en: {
-    nav: { "/index.html": "Home", "/insights": "Insights", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy" },
+    nav: { "/index.html": "Home", "/insights": "Insights", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy", "/editorial-policy": "Editorial Policy", "/methodology": "Content Methodology" },
     mainNav: "Main navigation",
     openMenu: "Open menu",
     closeMenu: "Close menu",
@@ -74,7 +76,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "A gentler reading",
   },
   ja: {
-    nav: { "/index.html": "ホーム", "/insights": "インサイト", "/privacy": "プライバシー", "/terms": "利用規約", "/contact": "お問い合わせ", "/about": "紹介", "/disclaimer": "免責事項", "/advertising-policy": "広告ポリシー" },
+    nav: { "/index.html": "ホーム", "/insights": "インサイト", "/privacy": "プライバシー", "/terms": "利用規約", "/contact": "お問い合わせ", "/about": "紹介", "/disclaimer": "免責事項", "/advertising-policy": "広告ポリシー", "/editorial-policy": "編集方針", "/methodology": "コンテンツ方法論" },
     mainNav: "メインナビゲーション",
     openMenu: "メニューを開く",
     closeMenu: "メニューを閉じる",
@@ -84,7 +86,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "心ほどける占い",
   },
   "zh-CN": {
-    nav: { "/index.html": "首页", "/insights": "运势洞察", "/privacy": "隐私", "/terms": "使用条款", "/contact": "联系", "/about": "关于", "/disclaimer": "免责声明", "/advertising-policy": "广告政策" },
+    nav: { "/index.html": "首页", "/insights": "运势洞察", "/privacy": "隐私", "/terms": "使用条款", "/contact": "联系", "/about": "关于", "/disclaimer": "免责声明", "/advertising-policy": "广告政策", "/editorial-policy": "编辑政策", "/methodology": "内容方法论" },
     mainNav: "主导航",
     openMenu: "打开菜单",
     closeMenu: "关闭菜单",
@@ -94,7 +96,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "治愈心绪的占卜",
   },
   "zh-TW": {
-    nav: { "/index.html": "首頁", "/insights": "運勢洞察", "/privacy": "隱私", "/terms": "使用條款", "/contact": "聯絡", "/about": "關於", "/disclaimer": "免責聲明", "/advertising-policy": "廣告政策" },
+    nav: { "/index.html": "首頁", "/insights": "運勢洞察", "/privacy": "隱私", "/terms": "使用條款", "/contact": "聯絡", "/about": "關於", "/disclaimer": "免責聲明", "/advertising-policy": "廣告政策", "/editorial-policy": "編輯政策", "/methodology": "內容方法論" },
     mainNav: "主要導覽",
     openMenu: "開啟選單",
     closeMenu: "關閉選單",
@@ -104,7 +106,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "療癒心緒的占卜",
   },
   vi: {
-    nav: { "/index.html": "Trang chủ", "/insights": "Bài viết", "/privacy": "Quyền riêng tư", "/terms": "Điều khoản", "/contact": "Liên hệ", "/about": "Giới thiệu", "/disclaimer": "Miễn trừ", "/advertising-policy": "Chính sách quảng cáo" },
+    nav: { "/index.html": "Trang chủ", "/insights": "Bài viết", "/privacy": "Quyền riêng tư", "/terms": "Điều khoản", "/contact": "Liên hệ", "/about": "Giới thiệu", "/disclaimer": "Miễn trừ", "/advertising-policy": "Chính sách quảng cáo", "/editorial-policy": "Nguyên tắc biên tập", "/methodology": "Phương pháp nội dung" },
     mainNav: "Điều hướng chính",
     openMenu: "Mở menu",
     closeMenu: "Đóng menu",
@@ -114,7 +116,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "Lời giải dịu dàng",
   },
   hi: {
-    nav: { "/index.html": "होम", "/insights": "लेख", "/privacy": "गोपनीयता", "/terms": "शर्तें", "/contact": "संपर्क", "/about": "परिचय", "/disclaimer": "अस्वीकरण", "/advertising-policy": "विज्ञापन नीति" },
+    nav: { "/index.html": "होम", "/insights": "लेख", "/privacy": "गोपनीयता", "/terms": "शर्तें", "/contact": "संपर्क", "/about": "परिचय", "/disclaimer": "अस्वीकरण", "/advertising-policy": "विज्ञापन नीति", "/editorial-policy": "संपादकीय नीति", "/methodology": "सामग्री पद्धति" },
     mainNav: "मुख्य नेविगेशन",
     openMenu: "मेनू खोलें",
     closeMenu: "मेनू बंद करें",
@@ -124,7 +126,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "मन को सुकून देने वाला पठन",
   },
   es: {
-    nav: { "/index.html": "Inicio", "/insights": "Artículos", "/privacy": "Privacidad", "/terms": "Términos", "/contact": "Contacto", "/about": "Acerca de", "/disclaimer": "Aviso legal", "/advertising-policy": "Política publicitaria" },
+    nav: { "/index.html": "Inicio", "/insights": "Artículos", "/privacy": "Privacidad", "/terms": "Términos", "/contact": "Contacto", "/about": "Acerca de", "/disclaimer": "Aviso legal", "/advertising-policy": "Política publicitaria", "/editorial-policy": "Política editorial", "/methodology": "Metodología del contenido" },
     mainNav: "Navegación principal",
     openMenu: "Abrir menú",
     closeMenu: "Cerrar menú",
@@ -134,7 +136,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "Una lectura más amable",
   },
   fr: {
-    nav: { "/index.html": "Accueil", "/insights": "Articles", "/privacy": "Confidentialité", "/terms": "Conditions", "/contact": "Contact", "/about": "À propos", "/disclaimer": "Avertissement", "/advertising-policy": "Politique publicitaire" },
+    nav: { "/index.html": "Accueil", "/insights": "Articles", "/privacy": "Confidentialité", "/terms": "Conditions", "/contact": "Contact", "/about": "À propos", "/disclaimer": "Avertissement", "/advertising-policy": "Politique publicitaire", "/editorial-policy": "Politique éditoriale", "/methodology": "Méthodologie du contenu" },
     mainNav: "Navigation principale",
     openMenu: "Ouvrir le menu",
     closeMenu: "Fermer le menu",
@@ -144,7 +146,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "Une lecture apaisante",
   },
   de: {
-    nav: { "/index.html": "Start", "/insights": "Artikel", "/privacy": "Datenschutz", "/terms": "Nutzungsbedingungen", "/contact": "Kontakt", "/about": "Über uns", "/disclaimer": "Haftungsausschluss", "/advertising-policy": "Werberichtlinie" },
+    nav: { "/index.html": "Start", "/insights": "Artikel", "/privacy": "Datenschutz", "/terms": "Nutzungsbedingungen", "/contact": "Kontakt", "/about": "Über uns", "/disclaimer": "Haftungsausschluss", "/advertising-policy": "Werberichtlinie", "/editorial-policy": "Redaktionelle Richtlinien", "/methodology": "Inhaltliche Methodik" },
     mainNav: "Hauptnavigation",
     openMenu: "Menü öffnen",
     closeMenu: "Menü schließen",
@@ -154,7 +156,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "Eine sanfte Deutung",
   },
   nl: {
-    nav: { "/index.html": "Home", "/insights": "Artikelen", "/privacy": "Privacy", "/terms": "Voorwaarden", "/contact": "Contact", "/about": "Over", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertentiebeleid" },
+    nav: { "/index.html": "Home", "/insights": "Artikelen", "/privacy": "Privacy", "/terms": "Voorwaarden", "/contact": "Contact", "/about": "Over", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertentiebeleid", "/editorial-policy": "Redactioneel beleid", "/methodology": "Inhoudsmethodologie" },
     mainNav: "Hoofdnavigatie",
     openMenu: "Menu openen",
     closeMenu: "Menu sluiten",
@@ -164,7 +166,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     brandTagline: "Een zachte duiding",
   },
   ms: {
-    nav: { "/index.html": "Laman utama", "/insights": "Artikel", "/privacy": "Privasi", "/terms": "Terma", "/contact": "Hubungi", "/about": "Tentang", "/disclaimer": "Penafian", "/advertising-policy": "Dasar iklan" },
+    nav: { "/index.html": "Laman utama", "/insights": "Artikel", "/privacy": "Privasi", "/terms": "Terma", "/contact": "Hubungi", "/about": "Tentang", "/disclaimer": "Penafian", "/advertising-policy": "Dasar iklan", "/editorial-policy": "Dasar editorial", "/methodology": "Metodologi kandungan" },
     mainNav: "Navigasi utama",
     openMenu: "Buka menu",
     closeMenu: "Tutup menu",

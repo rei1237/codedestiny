@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { TRUST_DOCUMENT_COPY } from "../../lib/i18n/public-trust-copy.mjs";
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
@@ -48,6 +49,7 @@ const POLICY_LINKS = [
   { href: "/refund-policy/", text: "교환/환불 정책" },
   { href: "/faq/", text: "FAQ" },
   { href: "/methodology/", text: "콘텐츠 방법론" },
+  { href: "/editorial-policy/", text: TRUST_DOCUMENT_COPY.ko.editorial },
   { href: "/insights/", text: "인사이트 아카이브" },
 ];
 

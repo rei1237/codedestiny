@@ -7,6 +7,11 @@ const EDITORIAL_POLICY_TEXT_TRANSLATIONS = {
     metadataTitle: "콘텐츠 제작 및 AI 활용 고지 | Code Destiny",
     metadataDescription: "Code Destiny의 운세 콘텐츠 제작 원칙, AI 활용 범위, 검수 기준, 광고와 편집 독립성, 정정 요청 절차를 안내합니다.",
     metadataKeywords: ["콘텐츠 제작 원칙", "AI 활용 고지", "운세 콘텐츠", "편집 정책", "Code Destiny"],
+    creationIntro: "다음은 공개 문서를 작성·검토할 때 적용하는 기준입니다. 이 절차를 안내하는 것만으로 모든 문서의 개별 검수가 완료되었다는 뜻은 아닙니다. 원고별 완료 여부는 해당 글의 제작·검수 안내를 확인해 주세요.",
+    draftStep: "③ 초안 — 계산 근거와 참고 자료를 읽기 쉬운 문장으로 옮길 때 생성형 AI의 도움을 받을 수 있습니다. 초안은 검토 대상이며, 생성되었다는 사실만으로 발행·검수 완료를 뜻하지 않습니다.",
+    publicationStep: "⑤ 발행과 갱신 — 확인 가능한 발행·수정 이력을 표시하고, 정책이나 기능이 바뀌면 관련 문서와 내부 링크를 점검합니다. 기록이 없는 날짜를 검수일로 만들어 표시하지 않습니다.",
+    reviewScope: "현재 사람의 검수는 주로 유료 상담 결과를 대상으로 합니다. 이를 모든 유료 결과의 개별 검수 완료나 공개 원고·공통 템플릿 전체의 검수 완료로 안내하지 않습니다. 개별 검수 여부는 실제 확인 기록을 기준으로 구분합니다.",
+    automation: "규칙으로 조립되는 페이지와 개별 원고는 제작 방식이 다릅니다. 공통 문안이나 템플릿의 검토와 개별 페이지의 검수 완료도 구분합니다. 검수자·검수일은 실제 확인 기록이 있는 경우에만 표시하며, 검색에 공개된 페이지라는 사실만으로 사람의 개별 검수를 보장하지 않습니다.",
     privacy: "개인정보처리방침",
     disclaimer: "면책 고지",
     advertising: "광고 운영정책",
@@ -80,17 +85,18 @@ export default function EditorialPolicyPage() {
             <section className="policy-embed-section">
               <h2 className="policy-embed-heading">3-1. 제작 절차</h2>
               <p>
-                공개 문서는 아래 순서로 만듭니다. 각 단계에서 무엇을 확인하는지 밝혀 두는 이유는, 어떤 문서가 사람의 손을 거쳤고 어떤 문서가 규칙에 따라 조립된 것인지 독자가 구분할 수 있어야 하기 때문입니다.
+                {editorialPolicyCopy.creationIntro}
               </p>
               <ul style={textMarkedListStyle}>
                 <li>① 주제 선정 — 실제로 들어오는 질문과 각 체계의 기초 개념 중 설명이 비어 있는 지점을 고릅니다.</li>
                 <li>② 근거 정리 — 사주의 천간지지·오행, 자미두수의 12궁과 사화, 점성술의 행성·하우스, 숙요점의 27수처럼 해당 체계 안에서 검증 가능한 규칙만 근거로 씁니다. 출처가 불분명한 속설은 쓰지 않거나 속설임을 밝힙니다.</li>
-                <li>③ 초안 — 계산 결과를 읽기 쉬운 문장으로 옮기는 단계에서 생성형 AI 의 도움을 받습니다. 방향과 최종 문장은 사람이 정합니다.</li>
+                <li>{editorialPolicyCopy.draftStep}</li>
                 <li>④ 검수 — 과장·불안 조장 표현, 의료·법률·금융 조언으로 오해될 문장, 단정적 예언, 내부 작업 문구 노출을 점검합니다.</li>
-                <li>⑤ 발행과 갱신 — 발행일과 최종 수정일을 표기하고, 정책이나 기능이 바뀌면 관련 문서와 내부 링크를 함께 갱신합니다.</li>
+                <li>{editorialPolicyCopy.publicationStep}</li>
               </ul>
+              <p>{editorialPolicyCopy.reviewScope}</p>
               <p>
-                규칙에 따라 자동으로 조립되는 페이지는 문서를 한 건씩 사람이 검토하지 않습니다. 대신 조립에 쓰이는 문안과 템플릿을 사람이 쓰고 검수하며, 아래 4번의 표현 안전 기준을 같은 방식으로 적용합니다. 사람의 검토를 거치지 않고 독립적인 정보 가치도 충분하지 않은 페이지는 검색 색인 대상에서 제외합니다.
+                {editorialPolicyCopy.automation}
               </p>
             </section>
 

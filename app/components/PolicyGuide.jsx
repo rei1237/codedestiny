@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "./PolicyGuide.module.css";
+import { trustDocumentLinks } from "../../lib/i18n/public-trust-copy.mjs";
 
 export const policyPageClass = styles.page;
 
@@ -44,6 +45,7 @@ const POLICY_PAGES = [
   ["contact", "고객센터", "/contact"],
   ["about", "서비스 소개", "/about"],
   ["faq", "FAQ", "/faq"],
+  ...trustDocumentLinks().map(({ key, label, href }) => [key, label, href]),
 ];
 
 function PolicyHero({ title, description, meta }) {
