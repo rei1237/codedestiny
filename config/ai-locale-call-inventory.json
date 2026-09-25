@@ -873,7 +873,12 @@
         "symbol": "../../lib/gemini.js"
       },
       {
-        "line": 13,
+        "line": 23,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      },
+      {
+        "line": 34,
         "kind": "call",
         "symbol": "callGeminiText"
       }
