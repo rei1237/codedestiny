@@ -1,4 +1,7 @@
 "use client";
+import {readingCopy} from '../_lib/reading-copy';
+import {readingLanguageNames,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {readingArtwork} from './ReadingIdentity';
 import {useCallback,useEffect,useRef,useState} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,type FortuneSummary,type FortunePage} from '../_lib/api';
@@ -6,6 +9,9 @@ import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import styles from '../yeongnyangi.module.css';
 const ART={login:['/assets/yeongnyangi/original/login.webp',440,557],signup:['/assets/yeongnyangi/original/signup.webp',440,445],hero:['/assets/yeongnyangi/hero.webp',480,480]} as const;
 export default function Library(){
+ const [locale,setLocale]=useState<ReadingLocale>('ko');
+ useEffect(()=>{const value=getCurrentLoadingLocale();setLocale(value==='en'||value==='ja'?value:'ko');},[]);
+ const copy=readingCopy(locale);
  const [cursor,setCursor]=useState<string|null>(null),[loading,setLoading]=useState(false);
  const [rows,setRows]=useState<FortuneSummary[]|null>(null),[error,setError]=useState(''),[needsLogin,setNeedsLogin]=useState(false);
  const active=useRef<AbortController|null>(null),revision=useRef(0),retryAt=useRef(0);
@@ -47,9 +53,9 @@ export default function Library(){
  },[load]);
  function retry(){if(Date.now()<retryAt.current){setError('잠시 후 다시 불러와 주세요.');return;}void load(rows?cursor:null);}
  const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];
- return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><p className={styles.eyebrow}>CODE DESTINY 계정에 보관된 이야기</p><h1>내 상담 기록</h1>
-  {needsLogin?<div role="alert"><p>로그인하면 보관된 상담을 다시 펼쳐볼 수 있어요.</p><button onClick={loginForCurrentPage}>로그인하고 기록 보기</button></div>:rows===null&&loading?<p role="status">기록을 불러오고 있어요.</p>:rows?.length===0&&<p>아직 상담 기록이 없어요. 영냥이에게 첫 이야기를 들려줘.</p>}</div></header>
-  <div className={styles.library}>{rows?.map(row=><a key={row.id} href={`${resultPath(row.id)}&source=library`}><img src={readingArtwork(row.product)} width={120} height={80} loading="lazy" alt=""/><div><h2>{row.kindLabel||row.product.name} · {row.product.fishName}</h2><p>{new Date(row.createdAt).toLocaleDateString('ko-KR')} · {row.state==='REFUNDED'?'환불된 상담':row.state==='COMPLETED'?'결과 보기':row.paid?'상담 이어가기':'결제 확인하기'}</p></div></a>)}</div>
+ return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><p className={styles.eyebrow}>CODE DESTINY 계정에 보관된 이야기</p><h1>{copy.library}</h1>
+  {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:rows?.length===0&&<p>{copy.empty}</p>}</div></header>
+  <div className={styles.library}>{rows?.map(row=><a key={row.id} href={`${resultPath(row.id,row.locale)}&source=library`}><img src={readingArtwork(row.product)} width={120} height={80} loading="lazy" alt=""/><div><h2>{row.kindLabel||row.product.name} · {row.product.fishName}</h2><p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>)}</div>
   {cursor&&!error&&<button disabled={loading} onClick={()=>void load(cursor)}>{loading?'불러오는 중':'이전 상담 더 보기'}</button>}
   {error&&!needsLogin&&<div role="alert"><p>{error}</p><button disabled={loading} onClick={retry}>{loading?'불러오는 중':'다시 불러오기'}</button></div>}
   <a href="/yeongnyangi/fortune/">새 상담 고르기</a>

@@ -70,13 +70,13 @@ export const professionalEvidenceNames: Record<string, string> = {
   todayNumerology: '오늘의 수비학 개인 수', sajuYearlyLuck: '사주 세운의 흐름', sajuMonthlyLuck: '사주 월운의 흐름',
 };
 
-export function assertProfessionalProse(body: ChapterBody, question = '', factLabels: string[] = []) {
-  const prose = [body.summary, body.example, body.advice, body.persona, ...(body.analysis || []), ...(body.highlights || []),
+export function assertProfessionalProse(body: ChapterBody, question = '', factLabels: string[] = [], locale = 'ko') {
+  const prose = [body.title || '',body.summary, body.example, body.advice, body.persona, ...(body.analysis || []), ...(body.highlights || []),
     ...(body.blocks || []).flatMap(b => [b.title, ...b.paragraphs]),
     ...(body.questionAnswers || []).flatMap(a => [a.answer, a.reason, a.timing, a.action])].join('\n');
   const text = question ? prose.split(question).join('') : prose;
   if (/\b(?:saju|ziwei|vedic|astrology|sukuyo|tarot)\.[A-Za-z][\w.[\]-]*|\b(?:FortuneFact|CALCULATED_DATA|USER_QUESTION|factSelectors|requiredSections|engineVersion|questionAnswers)\b/.test(text) ||
-    [...Object.keys(professionalEvidenceNames),...factLabels.filter(k=>/^[A-Za-z][A-Za-z0-9]+$/.test(k))].some(key => new RegExp(`\\b${key}\\b`).test(text))) {
+    [...Object.keys(professionalEvidenceNames),...factLabels.filter(k=>/^[A-Za-z][A-Za-z0-9]+$/.test(k))].filter(key=>locale==='ko'||/[a-z][A-Z]|[0-9_]/.test(key)).some(key => new RegExp(`\\b${key}\\b`).test(text))) {
     throw new FortuneError('INTERNAL_EVIDENCE_EXPOSED');
   }
 }

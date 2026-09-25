@@ -77,7 +77,7 @@ function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string
  }
  return 'unknown';
 }
-export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[]){
+export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[],locale='ko'){
  if(!isStructuredReading(chapter.version))return;
  const v5=hasReadingSections(chapter.version);
  if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?SECTION_PARAGRAPH_LIMIT:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,blockShapeIssue(body,chapter,v5));
@@ -104,7 +104,9 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  const content=[...passages,body.summary,body.persona,...body.highlights,
   ...(body.questionAnswers || []).flatMap(a=>[a.answer,a.reason,a.timing,a.action])].join('\n');
  if(/(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)/.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
+ if(locale!=='ko'&&/(?:guaranteed|100%|definitely).{0,35}(?:reunion|marriage|success)|(?:必ず|絶対|100%).{0,15}(?:復縁|結婚|成功)|(?:diagnos\w*|確定|診断).{0,20}(?:cancer|disease|癌|病気)/i.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  if(!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/(?:용신|희신|대운|마하다샤|안타르다샤|삼방사정)/.test(content))throw new FortuneError('TIER_SCOPE_VIOLATION');
+ if(locale!=='ko'&&!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー|三方四正/i.test(content))throw new FortuneError('TIER_SCOPE_VIOLATION');
  if(bodyCharacterCount(body)<(chapter.minimumChars||0))throw new FortuneError('CHAPTER_TOO_SHORT');
  if(!v5&&chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title)))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
 }
