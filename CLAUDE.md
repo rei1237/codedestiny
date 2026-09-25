@@ -56,6 +56,7 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 
 - 결제: [payment-gating](docs/context/payment-gating.md)
 - AI·DB: [ai-and-db](docs/context/ai-and-db.md)
+- 영냥이 질문 근거·단계별 구현: [yeongnyangi-ask](docs/context/yeongnyangi-ask.md)
 - UI: [design-and-ui](docs/context/design-and-ui.md)
 - SEO: [seo-and-adsense](docs/context/seo-and-adsense.md)
 - 자산: [content-assets](docs/context/content-assets.md)
