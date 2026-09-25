@@ -19,12 +19,13 @@ import { computeCrossDaily } from './fortune/daily-cross';
 import { buildEvidencePacket } from './fortune/ask/packet';
 import { extendAskLocalTiming } from './fortune/ask/wrappers';
 import { calculateAskTarot } from './fortune/ask/tarot';
+import { analyzeAsk, parseAskAnalysis, escapeAskData } from './fortune/ask/analysis';
 import { consultationClock, createConsultation } from './fortune/consultation';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider, validateChapter } from './providers/chapter';
-import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId } from './repository.js';
+import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis } from './repository.js';
 
 const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
 
@@ -193,11 +194,29 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const ordinal=row.chapters.length;
   const startedAt=Date.now();let stage='provider';
   try {
+    const sharedProvider=new CodeDestinyProvider(env);
+    if(row.generationCheckpoint?.version==='ask-generation-v1') {
+      const consultation=row.snapshot.analysis.consultation;
+      const saved=row.generationCheckpoint.analysis;
+      if(saved) {
+        if(saved.version!=='ask-analysis-v1')throw new FortuneError('INVALID_ASK_ANALYSIS',500);
+        parseAskAnalysis(escapeAskData(saved),consultation);
+      } else {
+        stage='analysis';
+        const analysis=await analyzeAsk(consultation,(system,data)=>sharedProvider.analyzeQuestion(system,data));
+        stage='storage';
+        await saveAskAnalysis(env,userId,requestId,token,analysis);
+      }
+      // Recheck access after analysis/storage before paying for the chapter call.
+      const current=await readRequest(env,userId,requestId);
+      if(current.state!=='GENERATING'||current.leaseToken!==token)throw new FortuneError('GENERATION_LEASE_LOST',409);
+    }
+    stage='provider';
     const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
       ? {code:row.lastFailure.code}:undefined;
     const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
-    const provider=new StructuredChapterProvider(new CodeDestinyProvider(env));
+    const provider=new StructuredChapterProvider(sharedProvider);
     const generated=await provider.generateChapter(input);
     stage='quality';
     const result=validateChapter(generated,input);

@@ -18,6 +18,15 @@ const THINKING_BUDGET=1024;
 
 export class CodeDestinyProvider implements LLMProvider {
   constructor(private env: Record<string, unknown>) {}
+  async analyzeQuestion(system: string, data: string): Promise<string> {
+    if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
+    const response=await callGeminiText(this.env,data,{
+      systemPrompt:system,temperature:0,maxOutputTokens:1024,thinkingBudget:0,timeoutMs:15000,
+      maxProviderAttempts:1,fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-ask-analysis',
+    });
+    if(!response.ok||response.isMock||!response.text||response.truncated||/^(MAX_TOKENS|LENGTH)$/.test(response.finishReason||''))throw new FortuneError('ASK_ANALYSIS_FAILED',502);
+    return response.text;
+  }
   async generate(request: FortuneLLMRequest) {
     // No fixture or paid-provider fallback is selected by request parameters.
     if (getEnv(this.env,'LLM_DRY_RUN') === 'true' || !getEnv(this.env,'GEMINIF_API_KEY')) throw new FortuneError('LLM_NOT_CONFIGURED',503);

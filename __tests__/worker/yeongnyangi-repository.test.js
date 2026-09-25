@@ -100,6 +100,44 @@ test('ask generation evidence is stored separately and an intent replay cannot r
   expect(requests).toHaveLength(1);
 });
 
+async function claimedAsk() {
+  await repo.createRequest({},owner,'id',{...values,generationCheckpoint:{version:'ask-generation-v1',evidence:{facts:[]}}});
+  await repo.attachPayment({},owner,'id',1000);
+  return repo.claimChapter({},owner,'id');
+}
+test('ask analysis persists independently, rereads and cannot be replaced',async()=>{
+  const {token}=await claimedAsk();
+  const analysis={version:'ask-analysis-v1',source:'rules',questions:[{questionId:'q1',category:'career',needsTiming:false}]};
+  expect(await repo.saveAskAnalysis({},owner,'id',token,analysis)).toEqual(analysis);
+  expect(await repo.saveAskAnalysis({},owner,'id',token,{version:'replacement'})).toEqual(analysis);
+  expect(requests[0].snapshot).toEqual(values.snapshot);
+  expect(requests[0].generationCheckpoint.evidence).toEqual({facts:[]});
+});
+test('ask checkpoint rejects other owner, stale lease, refunded and pending refund',async()=>{
+  const {token}=await claimedAsk();
+  await expect(repo.saveAskAnalysis({},other,'id',token,{})).rejects.toThrow();
+  await expect(repo.saveAskAnalysis({},owner,'id','old',{})).rejects.toThrow();
+  payments[0].metadata.yeongnyangiRefundPending=true;
+  await expect(repo.saveAskAnalysis({},owner,'id',token,{})).rejects.toThrow();
+  payments[0].metadata.yeongnyangiRefundPending=false;payments[0].status='refunded';
+  await expect(repo.saveAskAnalysis({},owner,'id',token,{})).rejects.toThrow();
+  expect(requests[0].generationCheckpoint.analysis).toBeUndefined();
+});
+
+test('ask checkpoint requires active Family evidence and an unexpired lease',async()=>{
+  await repo.createRequest({},owner,'id',{...values,generationCheckpoint:{version:'ask-generation-v1'}});
+  Object.assign(requests[0],{accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',state:'PAID'});
+  evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,metadata:{requestId:'id',accessMethod:'FAMILY'}});
+  const {token}=await repo.claimChapter({},owner,'id');
+  const analysis={version:'ask-analysis-v1',source:'rules',questions:[]};
+  expect(await repo.saveAskAnalysis({},owner,'id',token,analysis)).toEqual(analysis);
+  evidences[0].metadata.refundedForServiceExecution=true;
+  await expect(repo.saveAskAnalysis({},owner,'id',token,analysis)).rejects.toThrow();
+  evidences[0].metadata.refundedForServiceExecution=false;
+  requests[0].leaseUntil=new Date(0);
+  await expect(repo.saveAskAnalysis({},owner,'id',token,analysis)).rejects.toThrow();
+});
+
 test('Family access consumes once, persists proof, and remains readable after pass expiry',async()=>{
   payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true,expiresAt:'2026-10-23T00:00:00.000Z'}};
   consumePass.mockImplementation(async()=>{
