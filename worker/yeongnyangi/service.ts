@@ -67,6 +67,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
+  if(!askEvidenceEnabled && !['ko','en','ja'].includes(locale))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
     if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');

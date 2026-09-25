@@ -1,6 +1,6 @@
 "use client";
 import {readingCopy} from '../_lib/reading-copy';
-import {readingLanguageNames,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {readingLanguageNames,readingLocales,readingLocale,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {readingArtwork} from './ReadingIdentity';
 import {useCallback,useEffect,useRef,useState} from 'react';
@@ -10,7 +10,7 @@ import styles from '../yeongnyangi.module.css';
 const ART={login:['/assets/yeongnyangi/original/login.webp',440,557],signup:['/assets/yeongnyangi/original/signup.webp',440,445],hero:['/assets/yeongnyangi/hero.webp',480,480]} as const;
 export default function Library(){
  const [locale,setLocale]=useState<ReadingLocale>('ko');
- useEffect(()=>{const value=getCurrentLoadingLocale();setLocale(value==='en'||value==='ja'?value:'ko');},[]);
+ useEffect(()=>{const value=new URLSearchParams(window.location.search).get('lang')||getCurrentLoadingLocale();if(readingLocales.includes(value as ReadingLocale))setLocale(readingLocale(value));},[]);
  const copy=readingCopy(locale);
  const [cursor,setCursor]=useState<string|null>(null),[loading,setLoading]=useState(false);
  const [rows,setRows]=useState<FortuneSummary[]|null>(null),[error,setError]=useState(''),[needsLogin,setNeedsLogin]=useState(false);

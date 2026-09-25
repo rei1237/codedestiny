@@ -25,7 +25,7 @@ const check=value=>validateAskChapter(value,consultation,analysis,packet);
 
 test('question evidence is validated and private F/T metadata is removed before storage',()=>{
   const original=body(),saved=check(original);
-  assert.deepEqual(saved.questionAnswers[0],answer('q1'));
+  assert.deepEqual(saved.questionAnswers[0],answer('q1',{mode:'normal'}));
   assert.deepEqual(original.questionAnswers[0].factIds,['F001']);
 });
 test('other question evidence, forged IDs and missing source citations fail closed',()=>{
@@ -49,6 +49,13 @@ test('limited answer can retain facts without inventing an event date',()=>{
   const limited=body();limited.questionAnswers[0]={...limited.questionAnswers[0],timingIds:[],evidenceStatus:'limited',
     timing:'시기 근거가 부족해 사건 날짜 대신 점검 기간으로만 봅니다.'};
   assert.doesNotThrow(()=>check(limited));
+  assert.equal(check(limited).questionAnswers[0].mode,'limited');
   limited.questionAnswers[0].timing='2027년 3월 5일에 연락이 옵니다.';
   assert.throws(()=>check(limited),{code:'ASK_UNSUPPORTED_TIMING'});
+});
+
+test('health answers use care display mode after evidence validation',()=>{
+  const health={...analysis,questions:[analysis.questions[0],{...analysis.questions[1],category:'health'}]};
+  const evidence={...packet,facts:[packet.facts[0],{...packet.facts[1],tags:['health']} ]};
+  assert.equal(validateAskChapter(body(),consultation,health,evidence).questionAnswers[1].mode,'care');
 });

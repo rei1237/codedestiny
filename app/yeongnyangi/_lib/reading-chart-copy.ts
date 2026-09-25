@@ -4,7 +4,7 @@ const ko={section:'운세별 계산 근거',heading:'이야기의 바탕을 펼�
 type Copy=typeof ko;
 const en:Copy={section:'Calculation sources by reading',heading:'Explore the basis of your reading',select:'Select a calculation detail',none:'No planets in this placement',wheel:'Birth chart drawn from the saved longitudes and house cusps. Select a planet below for details.',timingSelect:'Select a calculated period',timing:'Saved timing',related:'Chapters connected to this detail',more:(n:number)=>`Show ${n} more related chapters`,empty:'Connected chapters will appear here when saved.',limits:'Calculation method and limits of interpretation',weight:(label:string)=>`Weight of ${label}`,sourceStored:'Calculation snapshot saved at purchase',sourceCards:'Card spread saved on the server'};
 const ja:Copy={section:'鑑定ごとの計算根拠',heading:'鑑定の根拠を見てみましょう',select:'計算根拠を選択',none:'この配置に惑星はありません',wheel:'保存された黄経とハウス境界から描いた出生チャートです。下の一覧で惑星を選ぶと詳細を確認できます。',timingSelect:'計算された時期を選択',timing:'保存された時期の流れ',related:'この根拠につながる章',more:(n:number)=>`関連する章をあと${n}件表示`,empty:'関連する章が保存されるとここから読めます。',limits:'計算方法と解釈の限界',weight:(label:string)=>`${label}の重み`,sourceStored:'購入時に保存された計算根拠',sourceCards:'サーバーに保存されたカードの配置'};
-export const chartCopy=(locale?:ReadingLocale):Copy=>locale==='en'?en:locale==='ja'?ja:ko;
+export const chartCopy=(locale?:ReadingLocale):Copy=>locale==='ko'||!locale?ko:locale==='ja'?ja:en;
 
 const terms:Record<string,[string,string]>={
  '나의 사주와 오행':['My saju and five elements','私の四柱推命と五行'],'열두 궁에 담긴 삶':['Life across the twelve palaces','十二宮に表れる人生'],'별 사이의 관계':['Relationships between the stars','星の間の関係'],'라시 차트와 별의 주기':['Rashi chart and planetary periods','ラーシチャートと惑星の周期'],'나의 출생 차트':['My birth chart','私の出生チャート'],'질문 위에 펼친 카드':['Cards drawn for your question','質問に向けて引いたカード'],
@@ -16,13 +16,13 @@ const terms:Record<string,[string,string]>={
 };
 export function chartTerm(value:string,locale?:ReadingLocale):string{
  if(!locale||locale==='ko')return value;
- const index=locale==='en'?0:1;
+ const index=locale==='ja'?1:0;
  if(terms[value])return terms[value][index];
  if(value.startsWith('계산된 시기 · '))return `${terms['계산된 시기'][index]} · ${chartTerm(value.slice('계산된 시기 · '.length),locale)}`;
- if(value.endsWith(' · 라그나'))return `${chartTerm(value.slice(0,-' · 라그나'.length),locale)} · ${locale==='en'?'Lagna':'ラグナ'}`;
- if(value.endsWith(' · 신궁'))return `${value.slice(0,-' · 신궁'.length)} · ${locale==='en'?'Body palace':'身宮'}`;
+ if(value.endsWith(' · 라그나'))return `${chartTerm(value.slice(0,-' · 라그나'.length),locale)} · ${locale==='ja'?'ラグナ':'Lagna'}`;
+ if(value.endsWith(' · 신궁'))return `${value.slice(0,-' · 신궁'.length)} · ${locale==='ja'?'身宮':'Body palace'}`;
  if(value.includes(' · '))return value.split(' · ').map(part=>chartTerm(part,locale)).join(' · ');
- if(/^\d+하우스$/.test(value))return `${value.slice(0,-3)} ${locale==='en'?'house':'ハウス'}`;
+ if(/^\d+하우스$/.test(value))return `${value.slice(0,-3)} ${locale==='ja'?'ハウス':'house'}`;
  return value;
 }
 
@@ -41,7 +41,7 @@ const limitations:Record<string,[string,string]>={
 };
 export function chartLimitation(value:string,locale?:ReadingLocale):string{
  if(!locale||locale==='ko')return value;
- const index=locale==='en'?0:1;
- if(value.startsWith('상대: '))return `${locale==='en'?'Partner':'相手'}: ${chartLimitation(value.slice(4),locale)}`;
+ const index=locale==='ja'?1:0;
+ if(value.startsWith('상대: '))return `${locale==='ja'?'相手':'Partner'}: ${chartLimitation(value.slice(4),locale)}`;
  return limitations[value]?.[index]||value;
 }
