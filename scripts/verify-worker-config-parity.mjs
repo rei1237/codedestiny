@@ -51,6 +51,10 @@ const MUST_DIFFER_KEYS = new Set([
   "name",
   "routes",
   "triggers.crons",
+  // 프로덕션은 smart(재배치 효과 0 으로 실측), 스테이징은 targeted 로 명시 지역 배치를 실험한다
+  // (2026-09-26). 실험이 끝나 값이 같아지면 이 줄을 지운다. 프로덕션에 옮기려면 STAGING_ONLY_KEYS 의
+  // placement.region 과 함께 지워야 하므로 결정이 우연히 새지 않는다.
+  "placement.mode",
   "r2_buckets.FEEDBACK_IMAGES_BUCKET.bucket_name",
   "r2_buckets.INSIGHT_IMAGES_BUCKET.bucket_name",
   "vars.AUTH_FRONTEND_BASE_URL",
@@ -90,6 +94,9 @@ const STAGING_ONLY_KEYS = new Set([
   //    정적 셸 공유 버튼을 배선해 프로덕션에서 켤 때는, 이 줄을 빼기 전에 먼저 바인딩 한 자리를
   //    비워야 한다 — 선례 02560ce64.
   "vars.ENABLE_RESULT_SHARE",
+  // 명시 배치의 지역 힌트(2026-09-26 스테이징 실험). 프로덕션에 들어오면 프로덕션 워커의 실행 위치가
+  // 조용히 바뀐다 — 승격은 별도 결정이라 이 선언이 유일한 자동 방어다.
+  "placement.region",
 ]);
 
 /**
@@ -392,6 +399,9 @@ const BASE_PRODUCTION = [
   '  { pattern = "code-destiny.com/api/*", zone_name = "code-destiny.com" },',
   ']',
   '',
+  '[placement]',
+  'mode = "smart"',
+  '',
   '[ai]',
   'binding = "AI"',
   '',
@@ -419,6 +429,10 @@ const BASE_STAGING = [
   '  { pattern = "staging-api.code-destiny.com", custom_domain = true },',
   '  { pattern = "staging.code-destiny.com/api/*", zone_name = "code-destiny.com" },',
   ']',
+  '',
+  '[placement]',
+  'mode = "targeted"',
+  'region = "aws:ap-northeast-2"',
   '',
   '[ai]',
   'binding = "AI"',
@@ -449,6 +463,9 @@ const BASE_STAGING = [
 function withoutStagingOnlyKey(fixture, key) {
   if (key.startsWith("vars.")) {
     return fixture.split("\n").filter((line) => !line.startsWith(`${key.slice(5)} =`)).join("\n");
+  }
+  if (key === "placement.region") {
+    return fixture.split("\n").filter((line) => !line.startsWith("region =")).join("\n");
   }
   throw new Error(`self-test 가 모르는 스테이징 전용 키 종류: ${key}`);
 }
@@ -542,6 +559,13 @@ function runSelfTest() {
       production: withExtraVar(BASE_PRODUCTION, 'APP_ENV = "staging"'),
       staging: BASE_STAGING,
       expectFailure: /스테이징 전용 키인데 프로덕션 설정에도 있다/,
+    },
+    {
+      // 실험이 끝나 양쪽이 같은 배치가 됐는데 선언이 남아 있으면 낡은 허용목록이다.
+      name: "placement.mode 가 양쪽 같으면 잡는다 (낡은 허용목록)",
+      production: BASE_PRODUCTION,
+      staging: BASE_STAGING.replace('mode = "targeted"', 'mode = "smart"'),
+      expectFailure: /placement\.mode: 달라야 하는 키인데 값이 같다/,
     },
   ];
 
