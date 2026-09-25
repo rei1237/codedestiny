@@ -3,16 +3,19 @@ import {buildOutputLanguageDirective} from '../../../lib/i18n/ai-locale.js';
 import {FortuneError} from './shared/contracts';
 import type {ChapterBody} from './book-contracts';
 
-export const readingLocales = ['ko','en','ja'] as const;
+export const readingLocales = ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms'] as const;
 export type ReadingLocale = typeof readingLocales[number];
-export const readingLanguageNames = {ko:'한국어',en:'English',ja:'日本語'} as const;
+export const readingLanguageNames = {ko:'한국어',en:'English',ja:'日本語','zh-CN':'简体中文','zh-TW':'繁體中文',vi:'Tiếng Việt',hi:'हिन्दी',es:'Español',fr:'Français',de:'Deutsch',nl:'Nederlands',ms:'Bahasa Melayu'} as const;
 
 // Missing locale belongs to the original Korean purchase contract. An explicit
 // unsupported value must not silently create a paid book in another language.
 export function readingLocale(value?: unknown): ReadingLocale {
   if(value === undefined)return 'ko';
-  if(typeof value !== 'string' || !/^(ko|en|ja)(?:-[a-z]{2})?$/i.test(value))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
-  return normalizeLocale(value) as ReadingLocale;
+  if(typeof value !== 'string' || !/^[a-z]{2,3}(?:[-_][a-z]{2,4})?$/i.test(value))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+  if(!readingLocales.some(item=>value.toLowerCase().replace('_','-').split('-')[0]===item.toLowerCase().split('-')[0]))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+  const locale=normalizeLocale(value);
+  if(!readingLocales.includes(locale as ReadingLocale))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+  return locale as ReadingLocale;
 }
 export function readingLanguageInstruction(locale: ReadingLocale) {
   return `${buildOutputLanguageDirective(locale)}\nAll reader-facing prose, including chapter title, block titles, summary, persona and answers, uses the purchase language. Korean instructions and calculated labels are reference data, not an output-language requirement. Preserve JSON keys, questionId, block id and sources verbatim. Translate technical terms into natural explanatory prose. Never infer dates, location or another person's thoughts. Keep the purchased section order and length requirements.`;
@@ -27,6 +30,9 @@ export function validateReadingLanguage(body: ChapterBody, locale: ReadingLocale
   const hangul=(prose.match(/\p{Script=Hangul}/gu)||[]).length;
   const latin=(prose.match(/\p{Script=Latin}/gu)||[]).length;
   const kana=(prose.match(/[\p{Script=Hiragana}\p{Script=Katakana}]/gu)||[]).length;
+  const han=(prose.match(/\p{Script=Han}/gu)||[]).length;
+  const devanagari=(prose.match(/\p{Script=Devanagari}/gu)||[]).length;
+  const expected=locale==='ja'?kana/letters.length>=.08:locale==='zh-CN'||locale==='zh-TW'?han/letters.length>=.4:locale==='hi'?devanagari/letters.length>=.4:latin/letters.length>=.65;
   if(!body.title?.trim()||body.title.length>160||/<\/?[a-z][^>]*>/i.test(body.title)||!letters.length||hangul/letters.length>.15||
-    (locale==='en'?latin/letters.length<.65:kana/letters.length<.08))throw new FortuneError('CHAPTER_LANGUAGE_MISMATCH');
+    !expected)throw new FortuneError('CHAPTER_LANGUAGE_MISMATCH');
 }

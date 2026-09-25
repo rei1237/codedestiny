@@ -50,7 +50,7 @@ export default function ProfileForm({onSaved,locale}:{onSaved:(profile:DestinyPr
   <label><input type="checkbox" checked={unknown} onChange={e=>setUnknown(e.target.checked)} /> {copy.unknown}</label>
   <p>{copy.unknownHint}</p>
   <label>{copy.birthPlace}<input name="place" value={place} onChange={e=>{setPlace(e.target.value);setCurrentLocation(null);}} placeholder={copy.placeExample} maxLength={120} /></label>
-  <CurrentLocationButton locale={locale} disabled={busy} onLocation={value=>{setCurrentLocation(value);setPlace(value.name);}}/>{currentLocation&&<p role="status">{copy.locationUsed} {currentLocation.timezone}</p>}
+  <CurrentLocationButton locale={locale==='ja'?'ja':locale==='ko'||!locale?'ko':'en'} disabled={busy} onLocation={value=>{setCurrentLocation(value);setPlace(value.name);}}/>{currentLocation&&<p role="status">{copy.locationUsed} {currentLocation.timezone}</p>}
   <p>{copy.placeHint}</p>
   <button disabled={busy} type="submit">{busy?copy.saving:copy.save}</button>
   {error&&<p role="alert">{error}</p>}

@@ -35,5 +35,18 @@ test('ordinary English terms are allowed but internal IDs and camelCase data key
 
 test('supported locale aliases normalize, absent legacy defaults to Korean, and explicit unsupported values fail closed',()=>{
  assert.equal(m.readingLocale(),'ko');assert.equal(m.readingLocale('en-US'),'en');assert.equal(m.readingLocale('ja-JP'),'ja');
- for(const value of [null,'','fr','zh-CN',{},'en ignore policy'])assert.throws(()=>m.readingLocale(value),/READING_LOCALE_UNAVAILABLE/);
+ assert.equal(m.readingLocale('zh-Hant'),'zh-TW');assert.equal(m.readingLocale('fr-FR'),'fr');
+ assert.deepEqual([...m.readingLocales],['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']);
+ for(const value of [null,'','zz',{},'en ignore policy'])assert.throws(()=>m.readingLocale(value),/READING_LOCALE_UNAVAILABLE/);
+});
+
+test('new locales reject a substituted Korean chapter and require the target script where distinguishable',()=>{
+ for(const locale of m.readingLocales.filter(value=>!['ko','en','ja'].includes(value))){
+  const value={title:'A thoughtful reading',summary:'Review the facts and your options.',persona:'Take your time.',blocks:[],questionAnswers:[]};
+  assert.throws(()=>m.validateReadingLanguage({...value,summary:'한국어로 작성된 상담 결과입니다. '.repeat(10)},locale),/CHAPTER_LANGUAGE_MISMATCH/);
+  if(locale==='zh-CN'||locale==='zh-TW')value.summary='请根据现有信息审慎考虑不同的选择。'.repeat(3);
+  if(locale==='hi')value.summary='उपलब्ध जानकारी के आधार पर अपने विकल्पों पर विचार करें।'.repeat(3);
+  if(locale==='zh-CN'||locale==='zh-TW'||locale==='hi')value.title=value.summary.slice(0,16);
+  assert.doesNotThrow(()=>m.validateReadingLanguage(value,locale));
+ }
 });

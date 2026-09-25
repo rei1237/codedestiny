@@ -40,7 +40,7 @@ export interface ChapterSpec {
 }
 export interface ChapterBody {
   title?: string;
-  questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string }[];
+  questionAnswers?: { questionId: string; answer: string; reason: string; timing: string; action: string; mode?: 'normal' | 'limited' | 'care' }[];
   blocks?: { id?: string; title: string; paragraphs: string[]; sources?: string[] }[];
   summary: string;
   analysis: string[];
