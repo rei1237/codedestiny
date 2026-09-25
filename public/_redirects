@@ -42,6 +42,8 @@
 /famous-saju/:slug/            /insights/famous-saju/:slug/         301
 
 # ── canonical 경로 정규화 ────────────────────────────────────────────────
+/sukyo/relationship-encyclopedia  /sukuyo/                301
+/sukyo/relationship-encyclopedia/ /sukuyo/                301
 /sukyo                         /sukuyo/                  301
 /sukyo/*                       /sukuyo/:splat            301
 /face-reading                  /physiognomy/             301
