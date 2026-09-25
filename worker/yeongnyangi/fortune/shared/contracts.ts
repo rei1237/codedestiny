@@ -39,6 +39,7 @@ export interface FortuneResult {
   cautions: string[];
 }
 export interface FortuneLLMRequest {
+  locale?: import('../reading-locale').ReadingLocale;
   maxProviderAttempts?: number;
   maxOutputTokens?: number;
   system: string;

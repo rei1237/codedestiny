@@ -19,7 +19,7 @@ export async function fixtures(browser,base,product,width=390){
  const row={id:'a'.repeat(64),productId:product.id,profileId:'shared-profile',product,state:'CREATED',paid:false,chapters:[],manifest:Array.from({length:product.chapterCount},(_,i)=>({id:`chapter-${i}`,title:`QA 상담 ${i+1}`})),createdAt:new Date().toISOString()};
  const state={row,orders:new Map(),sdk:[],confirm:0,activates:0,generates:0,resumeReads:0,unknown:[],errors:[],approved:false,pending:false,auth:true,read503:0,activate503:0,generate503:0,holdGeneration:false,generationBoundary:0,sdkMode:'redirect',handlerDelay:0,assetDelays:0};
  state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;
- state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];
+ state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
  context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event')state.apiInFlight.set(request,request.frame().page());});
  const finishRequest=request=>state.apiInFlight.delete(request);
  context.on('requestfinished',finishRequest);context.on('requestfailed',finishRequest);
@@ -27,7 +27,7 @@ export async function fixtures(browser,base,product,width=390){
  context.on('requestfailed',request=>{const url=new URL(request.url());state.resources.push({path:url.pathname,status:null,failure:request.failure()?.errorText});});
  const page=await context.newPage();
  const attachPage=p=>{
-  p.on('pageerror',e=>state.errors.push(e.message));
+  p.on('pageerror',e=>{state.errors.push(e.message);state.pageErrorDetails.push({message:e.message,page:new URL(p.url()).pathname,at:Date.now()});});
   p.on('framenavigated',frame=>{if(frame!==p.mainFrame())return;state.visited.push(new URL(frame.url()).pathname);for(const [request,owner] of state.apiInFlight)if(owner===p)state.apiInFlight.delete(request);});
  };
  context.on('page',attachPage);attachPage(page);
@@ -58,6 +58,8 @@ export async function fixtures(browser,base,product,width=390){
   // Test fails closed on every unrecognised API; external hosts never reach a transport.
   if(url.origin!==base&&!(url.origin===QA_API_ORIGIN&&path.startsWith('/api/'))){state.blocked.push(url.hostname+url.pathname);return route.fulfill({status:403,body:'QA_EXTERNAL_NETWORK_BLOCKED'});}
   if(!path.startsWith('/api/')){
+   // Exercise the lazy login form under a slow connection, before reauthentication.
+   if(state.loginAssetDelay&&request.resourceType()==='script'&&new URL(request.frame().url()).pathname==='/login/')await new Promise(r=>setTimeout(r,state.loginAssetDelay));
    if(state.handlerDelay&&path.includes('chunks/app/checkout/page')){state.assetDelays++;await new Promise(r=>setTimeout(r,state.handlerDelay));}
    return route.continue();
   }
@@ -113,7 +115,7 @@ export async function fixtures(browser,base,product,width=390){
    return send({ok:true,fortune:row});
   }
   if(path==='/api/yeongnyangi/requests'){
-   if(request.method()==='POST'){state.creates++;state.requestInput=input;assert.equal(input.productId,product.id);row.profileId=input.profileId;row.consultation=state.prepareConsultation?.(input,row);return send({ok:true,fortune:row},201);}
+   if(request.method()==='POST'){state.creates++;state.requestInput=input;assert.equal(input.productId,product.id);row.locale=input.locale||'ko';row.profileId=input.profileId;row.consultation=state.prepareConsultation?.(input,row);return send({ok:true,fortune:row},201);}
    return send({ok:true,fortunes:[row],nextCursor:null});
   }
   if(/^\/api\/yeongnyangi\/requests\/[a-f0-9]{64}$/.test(path))return send({ok:false,code:'FORTUNE_NOT_FOUND',message:'QA 다른 소유자 또는 없는 상담'},404);
@@ -269,7 +271,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
    report.cases.push({name,status:'PASS',product:product.id,width,orders:f.state.orders.size,sdkCalls:f.state.sdk.length,confirmCalls:f.state.confirm,serverContextReads:f.state.resumeReads,chapters:f.row.chapters.length});
    console.log(`[yeongnyangi:payment] PASS ${name}`);
   }catch(error){
-   report.cases.push({name,status:'FAIL',message:error.message,unknown:f.state.unknown,pageErrors:f.state.errors,url:f.page.url(),paid:f.row.paid,chapters:f.row.chapters.length,confirmCalls:f.state.confirm,activations:f.state.activates,http:f.state.http,resources:f.state.resources,blockedExternal:f.state.blocked});
+   report.cases.push({name,status:'FAIL',message:error.message,unknown:f.state.unknown,pageErrors:f.state.errors,pageErrorDetails:f.state.pageErrorDetails,url:f.page.url(),paid:f.row.paid,chapters:f.row.chapters.length,confirmCalls:f.state.confirm,activations:f.state.activates,http:f.state.http,resources:f.state.resources,blockedExternal:f.state.blocked});
    await f.page.screenshot({path:'build-cache/yeongnyangi-payment-failure.png',fullPage:true}).catch(()=>{});
    throw error;
   }finally{await f.context.close();}
@@ -420,11 +422,15 @@ export async function verifyMobilePayments({base,products,systemNames}){
        if(scenario==='handler-delay')f.state.handlerDelay=1500;
        if(scenario==='idle-return')f.state.delayIdle=true;
        if(scenario==='pending-webhook')f.state.pending=true;
-       if(scenario==='expired-login')f.state.auth=false;
+       if(scenario==='expired-login'){f.state.auth=false;f.state.loginAssetDelay=750;}
        await redirectBack(f,{noStorage:scenario==='handler-delay'||scenario==='idle-return'});
       }
       if(scenario==='expired-login'){
        await f.page.waitForURL('**/login**');
+       // URL/load alone can precede LoginRouteClient's dynamic import. A real
+       // customer cannot authenticate before the form is usable; neither should QA.
+       await f.page.locator('#auth-email').waitFor({state:'visible'});
+       await f.page.locator('#auth-password').fill('fixture-only-password');
        const next=new URL(f.page.url()).searchParams.get('next');
        assert.ok(next.includes(`/checkout/?`)&&next.includes(f.row.id));
        // Simulate reauthentication at its HTTP boundary; login UI is outside this payment test.

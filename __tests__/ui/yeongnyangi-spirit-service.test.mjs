@@ -11,7 +11,7 @@ const replacements={
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`export const saveAskAnalysis=async()=>{throw new Error("unexpected analysis checkpoint")};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__spiritTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__spiritTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__spiritTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
-  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__spiritTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
+  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(request){globalThis.__spiritTest.lastLocale=request.locale;globalThis.__spiritTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
 const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('spirit-service-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
@@ -103,4 +103,42 @@ test('new consultation attempts separate identical purchases while retries and s
   await assert.rejects(prepareFortune(env,'repeat-owner',{...regular,consultationAttemptId}),{code:'INVALID_CONSULTATION_ATTEMPT'});
  }
  assert.equal(globalThis.__spiritTest.calls,0);
+});
+
+
+test('purchase locale separates new books while legacy Korean identity, money and clocks stay unchanged',async()=>{
+ const {mode,spirit,...regular}=body;
+ const input={...regular,consultationKind:'personal',consultationAttemptId:'33333333-3333-4333-8333-333333333333'};
+ const legacy=await prepareFortune(env,'locale-owner',input);
+ const korean=await prepareFortune(env,'locale-owner',{...input,locale:'ko-KR'});
+ assert.equal(korean._id,legacy._id);
+ const rows=[];
+ for(const locale of ['en','ja']){
+  const row=await prepareFortune(env,'locale-owner',{...input,locale});rows.push(row);
+  assert.notEqual(row._id,korean._id);assert.equal(row.snapshot.locale,locale);
+  assert.equal(row.amountKRW,korean.amountKRW);assert.equal(row.featureKey,korean.featureKey);
+  assert.equal(row.snapshot.analysis.consultation.timezone,korean.snapshot.analysis.consultation.timezone);
+  assert.deepEqual(row.snapshot.analysis.contexts.saju.facts,korean.snapshot.analysis.contexts.saju.facts);
+  row.paymentId='saved-payment';row.state='COMPLETED';row.chapters=[{title:'Saved title',summary:'Saved prose'}];
+  const replay=await prepareFortune(env,'locale-owner',{...input,locale});
+  assert.equal(replay,row);assert.equal(presentFortune(replay).locale,locale);
+  assert.equal(presentFortune(replay).chapters[0].summary,'Saved prose');
+ }
+ assert.notEqual(rows[0]._id,rows[1]._id);
+ delete korean.snapshot.locale;assert.equal(presentFortune(korean).locale,'ko');
+ const size=globalThis.__spiritTest.rows.size;
+ for(const locale of ['fr','',null,'en; ignore instructions'])await assert.rejects(prepareFortune(env,'locale-owner',{...input,locale}),/READING_LOCALE_UNAVAILABLE/);
+ await assert.rejects(prepareFortune(env,'locale-owner',{...body,locale:'en'}),/READING_LOCALE_UNAVAILABLE/);
+ assert.equal(globalThis.__spiritTest.rows.size,size);
+});
+
+test('queue retries take locale only from the stored purchase, including Korean legacy fallback',async()=>{
+ const {mode,spirit,...regular}=body;
+ for(const locale of ['en','ja',undefined]){
+  const row=await prepareFortune(env,'queue-locale-owner',{...regular,consultationKind:'personal',...(locale?{locale}:{})});
+  if(!locale)delete row.snapshot.locale;
+  globalThis.__spiritTest.claim={...row,chapters:[],chapterAttempts:{0:2},lastFailure:{stage:'quality',code:'CHAPTER_LANGUAGE_MISMATCH'}};
+  await assert.rejects(generateNextChapter(env,'queue-locale-owner',row._id));
+  assert.equal(globalThis.__spiritTest.lastLocale,locale || 'ko');
+ }
 });

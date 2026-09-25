@@ -176,3 +176,14 @@ test('completed reread returns 200 and the same request without another payment 
   expect(body.fortunes).toHaveLength(count);expect(body.nextCursor).toBeNull();
   if(count){expect(body.fortunes[0].kindLabel).toBe('사주 해석');expect(body.fortunes[0].chapters).toBeUndefined();expect(body.fortunes[0].snapshot).toBeUndefined();}
  });
+
+
+test('library exposes only saved purchase locale, with Korean fallback for old books',async()=>{
+ lean.mockResolvedValue(['en','ja',undefined].map((locale,i)=>({_id:String(i).padStart(64,'0'),snapshot:{locale,product:{id:'saju_mackerel'}},state:'COMPLETED',createdAt:'2026-09-26'})));
+ const response=await handleYeongnyangiRoutes(request('requests?lang=ko'),env);
+ expect(response.status).toBe(200);
+ const body=await response.json();
+ expect(body.fortunes.map(row=>row.locale)).toEqual(['en','ja','ko']);
+ expect(select.mock.calls[0][0].split(' ')).toContain('snapshot.locale');
+ expect(body.fortunes.every(row=>!row.snapshot&&!row.chapters)).toBe(true);
+});

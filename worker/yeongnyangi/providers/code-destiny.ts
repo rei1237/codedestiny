@@ -32,6 +32,7 @@ export class CodeDestinyProvider implements LLMProvider {
     if (getEnv(this.env,'LLM_DRY_RUN') === 'true' || !getEnv(this.env,'GEMINIF_API_KEY')) throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const cap=Math.max(request.maxOutputTokens || 8192,tokensRequiredForChars(6000))+THINKING_BUDGET;
     const response=await callGeminiText(this.env, JSON.stringify(messages(request)), {
+      locale:request.locale || 'ko',
       maxOutputTokens:cap,thinkingBudget:THINKING_BUDGET,timeoutMs:90000,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.

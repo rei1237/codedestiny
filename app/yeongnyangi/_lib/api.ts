@@ -1,9 +1,10 @@
 import {authFetch} from '@/app/_lib/auth-client';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
+import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 export type FortuneRecovery={requestId:string;savedChapters:number;totalChapters:number;providerNeeded:boolean;retryable:boolean;canRetryNow:boolean;nextAction:'reread'|'wait'|'retry'|'support'};
-export type FortuneRecord={charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;recovery?:FortuneRecovery;errorCode?:string;createdAt:string;completedAt?:string};
-export type FortuneSummary=Pick<FortuneRecord,'id'|'product'|'state'|'paid'|'createdAt'> & {completedChapters:number;consultationKind?:string;kindLabel?:string};
+export type FortuneRecord={locale?:ReadingLocale;charts?:import('@/worker/yeongnyangi/fortune/reading-presentation').ReadingChart[];id:string;profileId:string;productId:string;state:string;paid:boolean;accessMethod?:'DIRECT_KRW'|'FAMILY';product:Product;manifest:ChapterSpec[];chapters:ChapterBody[];consultation?:Partial<import('@/worker/yeongnyangi/fortune/consultation').Consultation>;recovery?:FortuneRecovery;errorCode?:string;createdAt:string;completedAt?:string};
+export type FortuneSummary=Pick<FortuneRecord,'id'|'product'|'state'|'paid'|'createdAt'|'locale'> & {completedChapters:number;consultationKind?:string;kindLabel?:string};
 export type FortunePage={fortunes:FortuneSummary[];nextCursor:string|null};
 export class FortuneApiError extends Error {
  constructor(public code:string,message:string,public status:number,public retryable=false,public retryAfterSeconds=0){super(message);}
@@ -37,7 +38,7 @@ export function loginForCurrentPage(){
  const next=encodeURIComponent(window.location.pathname+window.location.search);
  window.location.assign(`/login/?next=${next}&returnTo=${next}`);
 }
-export function resultPath(id:string){return `/yeongnyangi/result/?id=${encodeURIComponent(id)}`;}
+export function resultPath(id:string,locale?:ReadingLocale){return `/yeongnyangi/result/?id=${encodeURIComponent(id)}${locale?`&lang=${locale}`:''}`;}
 export function checkoutPath(row:FortuneRecord){
- return `/checkout/?featureKey=${encodeURIComponent(row.product.cdFeatureKey)}&requestId=${row.id}&returnTo=${encodeURIComponent(resultPath(row.id))}`;
+ return `/checkout/?featureKey=${encodeURIComponent(row.product.cdFeatureKey)}&requestId=${row.id}${row.locale?`&lang=${row.locale}`:''}&returnTo=${encodeURIComponent(resultPath(row.id,row.locale))}`;
 }

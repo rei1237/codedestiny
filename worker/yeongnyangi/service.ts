@@ -1,4 +1,5 @@
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
+import {readingLocale} from './fortune/reading-locale';
 import {readingCharts} from './fortune/reading-presentation';
 import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './fortune/reading-policy';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
@@ -53,6 +54,9 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 }
 
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any) {
+  const locale=readingLocale(body.locale);
+  // Symbolic readings retain their Korean-only vocabulary/validator contract.
+  if(body.mode && locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   const attempt=consultationAttempt(body);
   const product=getProduct(body.productId);
   if(Object.hasOwn(skyModes,body.mode))return prepareQuestionSky(env,userId,body);
@@ -92,7 +96,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
+  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
   const id=await digest({userId,fingerprint,...attempt});
   if(askEvidenceEnabled) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -134,7 +138,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     product.name=SPIRIT_TITLE;product.image=SPIRIT_IMAGE;
   }
   const askEvidence=askEvidenceEnabled ? buildEvidencePacket({
-    contexts:await extendAskLocalTiming(contexts,normalized,date),today:date,locale:body.locale,tier:product.fishId,
+    contexts:await extendAskLocalTiming(contexts,normalized,date),today:date,locale,tier:product.fishId,
     birthProfileAvailable:product.systems.some(system=>Boolean(normalized[system].personA)),
     birthTimeKnown:product.systems.every(system=>system==='tarot'||Boolean(normalized[system].personA?.birthTime)),
     ...(partner?{partnerTimeKnown:product.systems.every(system=>Boolean(normalized[system].personB?.birthTime))}:{}),
@@ -142,7 +146,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    snapshot:{product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
+    snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
 }
 
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){
@@ -210,7 +214,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     stage='provider';
     const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
       ? {code:row.lastFailure.code}:undefined;
-    const input={chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair};
+    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(sharedProvider);
     const generated=await provider.generateChapter(input);
@@ -237,7 +241,7 @@ export function presentFortune(row: any) {
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
     providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked,
     canRetryNow:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED',nextAction:complete?'reread':blocked?'support':row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?'retry':'wait'};
-  return {id:row._id,profileId:row.profileId,productId:row.productId,state:row.state,
+  return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},

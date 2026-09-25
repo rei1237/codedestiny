@@ -1,10 +1,33 @@
 ---
 status: active
 updated: 2026-09-26
-next: "한국어·영어·일본어 구매 locale 계약과 서버 주문·환불 집계부터 이어서 구현한다."
+next: "일반 상담의 구매 locale 계약 검증 결과를 확인하고 남은 입력·오류·차트·공유 번역과 서버 주문·환불 집계를 이어간다."
 ---
 
 # 영냥이 SEO·다국어·구매 전환 후속 작업
+
+## 2026-09-26 구매 언어 계약 후속
+
+- 시작 main `031226495d25a66d3bd98fb99b3552a3915f3efc`에 `8302c7544f86544c3f1cd5fe7e174c650a501d4a` 포함을 `git merge-base --is-ancestor` exit 0으로 확인했다. 활성 동시 세션이 있어 안전 워크트리에서 작업했다. main의 마케팅 미커밋·미추적 자료는 편집·스테이징하지 않는다.
+- 일반 상담 ko/en/ja 선택을 로그인 draft → 요청 → immutable snapshot → 큐/품질 재시도 → 공급자 locale → 결과/보관함으로 연결했다. locale 없는 옛 snapshot은 ko이며, ko fingerprint는 기존과 동일하다. 영어·일본어만 fingerprint에 locale을 추가한다. 계산 시간대·계산값·상품 ID·KRW 가격·결제 권리는 유지한다.
+- 새 영어·일본어 챕터는 현지어 제목을 저장한다. 섹션 ID·순서·출처·분량·중복 검증은 유지하며, 명백한 언어 불일치와 내부 camelCase/근거 ID 노출을 검사한다. 영어의 일반 단어 `cards`, `planets` 등을 내부 키로 오인하지 않는다. 언어 검사 통과는 실제 해설 품질이나 번역 완성도의 증거가 아니다.
+- 보관함은 `snapshot.locale`만 추가 조회하며 질문·출생정보·본문은 목록으로 내보내지 않는다. 결과 URL 언어가 달라도 서버 snapshot의 언어와 저장된 본문을 따른다. 완료 후 재열람은 생성/결제를 새로 호출하지 않는다.
+- 범위: 일반 사주·자미두수·숙요·베다·점성술·타로·복합 상담. 신점/질문 순간 상품은 기존 한국어 전용 규칙을 유지하며 다른 locale 구매 요청은 생성·결제 전에 거절한다. 아직 입력 폼·상품 설명·프로필·일부 오류·차트·공유는 한국어가 남는다. 구매 화면에 이 한계를 명시했으며 전체 국제화 완료로 보고하지 않는다.
+
+### WebKit 원인 분리
+
+- 기존 Browser Shadow `36171364415` artifact: `webkit-expired-login`, 5개 챕터 생성, 청크 `80554.961af70185b0810f.js`는 다른 문서에서 200으로 수신됐고 로그인 이동 부근의 한 요청만 `Load request cancelled`였다. 청크 404나 미생성 결과로 분류할 근거는 없다.
+- `LoginRouteClient`는 `ssr:false` 동적 import인데 기존 테스트는 로그인 URL 도달 직후 HTTP 인증을 모의 처리하고 `page.goto(next)`했다. 로그인 폼이 사용 가능해지기 전 문서를 종료할 수 있는 테스트 경계를 확인했다.
+- 테스트는 이제 이메일 입력 노출과 비밀번호 입력 가능 상태를 확인한 뒤 인증을 모의 처리한다. 로그인 스크립트 750ms 지연도 넣었다. `pageerror`를 숨기지 않고 실패 판정을 유지하며 실패 페이지/시각을 추가 기록한다.
+- 기존 정적 산출물에서 원래 WebKit 1회, 지연 대조 1회, 의도적으로 이른 이동 대조 1회는 모두 통과했다. 따라서 역사적 실패의 결정적 재현/근본 원인 확정은 미완료다. 수정된 Chromium/WebKit 로그인 만료 2개 사례는 통과했다. 실 PG/LLM/운영 DB 호출은 0이다.
+
+### 후속 검증
+
+- `node --test __tests__/ui/yeongnyangi-reading-locale.test.mjs __tests__/ui/yeongnyangi-spirit-service.test.mjs __tests__/ui/yeongnyangi-provider-boundaries.test.mjs`: 18/18 통과. locale 분리·한국어 기존 ID·가격/계산값 유지·저장 snapshot 재시도·공급자 옵션·언어/출처/중복 검증.
+- `node scripts/verify-yeongnyangi-locale-browser.mjs`: mock 개발 서버에서 en 360px 통과. 첫 연속 실행의 ja 보관함 링크 대기는 시간 초과였고 HMR 로그가 동반됐다. `--locale=ja` 390px 및 `--locale=ko` 1280px 개별 재검증 통과. 이 결과를 정적 전체 브라우저 회귀 통과로 확대하지 않는다. 스크린샷 확인 시 선택기/본문 가로 넘침은 없었다.
+- `npm run check:fast -- --plan` 실행. 최초 `check:fast`는 sitemap 서명 드리프트로 중단하여 `npm run sitemap:generate`로 원장을 갱신했다. 두 번째 실행은 결제 가드 87개 통과 후 `npm test`의 Node 1688개 중 3개 실패로 중단했다(재시도 객체 계약, 링크 정적 검사, mock env 설정). 해당 세 원인을 수정하고 실패 항목을 포함한 관련 Node 36개와 추가 질문 체크포인트 검사를 통과했다. 최종 전체 로컬 check:fast 재실행은 하지 않았으며 공식 완료 판정은 main CI다.
+- 동시 작업 `c01762d879ab630d2b4c81c1f3b3e738a003f37b`의 질문 분석 체크포인트를 병합했다. 분석 1회 재사용, 챕터 실패 후 재시도, 완료 후 재생성 금지 경계에서도 en/ja snapshot 언어 유지를 확인했다. `npm run typecheck` exit 0, 보관함/저장소 Jest 74/74 통과. 운영 호출 없는 mock 검사다.
+- 실제 해외 PG 승인·유료 LLM 문장 품질·운영 주문/환불/비용 원장은 여전히 미검증이다. 운영 승격이나 자동 관찰 일정은 실행하지 않는다.
 
 ## 현재 전달
 
