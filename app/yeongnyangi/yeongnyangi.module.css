@@ -525,7 +525,233 @@
   }
 }
 
-.predictionRecords{margin-top:20px;font-size:13px;line-height:1.8;text-align:left}.predictionRecords summary{cursor:pointer;padding:12px 0;font-weight:700}.predictionRecords a{text-decoration:underline;text-underline-offset:3px}.predictionRecords ul{padding-left:18px}
+.predictionRecords {
+  position: relative;
+  grid-column: 1 / -1;
+  margin-top: 22px;
+  border: 1px solid rgba(233, 199, 141, 0.42);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(233, 199, 141, 0.18), transparent 12rem),
+    linear-gradient(145deg, rgba(54, 37, 74, 0.96), rgba(29, 18, 43, 0.98));
+  box-shadow:
+    0 18px 42px rgba(7, 4, 14, 0.28),
+    inset 0 1px 0 rgba(255, 243, 226, 0.08);
+  overflow: hidden;
+  text-align: left;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.predictionRecords::before {
+  content: "";
+  position: absolute;
+  inset: -40px -32px auto auto;
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(233, 199, 141, 0.24), transparent 64%);
+  pointer-events: none;
+}
+.predictionRecords summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+.predictionRecords summary::-webkit-details-marker {
+  display: none;
+}
+.predictionRecords summary::marker {
+  content: "";
+}
+.predictionRecords summary::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  margin-left: auto;
+  border-right: 1.5px solid var(--yn-gold);
+  border-bottom: 1.5px solid var(--yn-gold);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+}
+.predictionRecords[open] summary::after {
+  transform: translateY(3px) rotate(225deg);
+}
+.predictionRecords summary strong {
+  display: block;
+  color: var(--yn-ivory);
+  font-family: "Yeongnyangi Myeongjo", serif;
+  font-size: 1.02rem;
+  line-height: 1.45;
+}
+.predictionRecords summary small {
+  display: block;
+  margin-top: 2px;
+  color: #ddc9df;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.predictionRecordsSeal {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(233, 199, 141, 0.58);
+  border-radius: 50%;
+  background: rgba(33, 20, 50, 0.72);
+  color: var(--yn-gold);
+  font-family: "Yeongnyangi Myeongjo", serif;
+  font-size: 0.95rem;
+  box-shadow: 0 0 22px rgba(233, 199, 141, 0.16);
+}
+.predictionRecordsBody {
+  position: relative;
+  padding: 0 16px 18px;
+}
+.predictionRecordsBody p {
+  margin: 0 0 14px;
+  color: #e1d1e7;
+  font-size: 0.84rem;
+  line-height: 1.75;
+}
+.predictionRecordsArt {
+  position: relative;
+  margin: 0 0 14px;
+  border: 1px solid rgba(233, 199, 141, 0.26);
+  border-radius: 14px;
+  background: rgba(24, 19, 43, 0.52);
+  overflow: hidden;
+}
+.predictionRecordsArt::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 45%;
+  background: linear-gradient(180deg, transparent, rgba(24, 19, 43, 0.74));
+  pointer-events: none;
+}
+.predictionRecordsArt img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+.predictionRecords ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.predictionRecords li {
+  min-width: 0;
+}
+.predictionRecords a {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 10px;
+  min-height: 64px;
+  padding: 12px;
+  border: 1px solid rgba(233, 199, 141, 0.22);
+  border-radius: 13px;
+  background: rgba(24, 19, 43, 0.56);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+.predictionRecords a:hover {
+  border-color: rgba(233, 199, 141, 0.58);
+  background: rgba(44, 28, 64, 0.82);
+  transform: translateY(-1px);
+}
+.predictionRecords time {
+  color: var(--yn-gold);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+}
+.predictionRecords a strong {
+  grid-column: 1 / -1;
+  color: var(--yn-ivory);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.predictionRecords a span {
+  grid-column: 1 / -1;
+  color: #d5c3dc;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+.predictionRecords a em {
+  align-self: start;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: max-content;
+  color: var(--yn-gold);
+  font-size: 0.74rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .predictionRecordsBody {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.54fr) minmax(0, 1fr);
+    gap: 0 16px;
+    align-items: start;
+  }
+  .predictionRecordsBody p,
+  .predictionRecordsBody ol {
+    grid-column: 2;
+  }
+  .predictionRecordsArt {
+    grid-row: 1 / span 2;
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .predictionRecords {
+    margin-top: 18px;
+    border-radius: 16px;
+  }
+  .predictionRecords summary {
+    min-height: 60px;
+    padding: 13px 14px;
+  }
+  .predictionRecordsSeal {
+    width: 34px;
+    height: 34px;
+    font-size: 0.86rem;
+  }
+  .predictionRecordsBody {
+    padding: 0 14px 15px;
+  }
+  .predictionRecordsArt {
+    margin-bottom: 12px;
+  }
+  .predictionRecords a {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 72px;
+  }
+  .predictionRecords a em {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+    margin-top: 2px;
+  }
+}
 
 .spiritIntro { display:flex; align-items:center; gap:24px; margin:24px 0 32px; }
 .spiritIntro img { width:152px; height:auto; flex-shrink:0; object-fit:contain; }
@@ -578,13 +804,71 @@
  .shareEditor { grid-template-columns:minmax(0,1fr); gap:24px; }
  .sharePreview { width:min(100%,380px); justify-self:center; }
 }
-.skyEntry { width:100%; max-width:560px; margin:0 auto 20px; padding:12px 16px; border:1px solid #d8c4a3; border-radius:24px; background:linear-gradient(135deg,#fff9ee,#f2e9f8); text-align:left; color:#493455; }
-.skyEntry>a:first-child { display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit; }
-.skyEntry img { flex:0 0 116px; width:116px; height:116px; object-fit:contain; }
-.skyEntry strong { display:block; font-size:24px; }
-.skyEntry span span { display:block; font-size:14px; line-height:1.6; margin:6px 0; word-break:keep-all; }
-.skyEntry b { font-size:14px; color:#6b4778; }
-.skyEntry .skyWestern { display:block; text-align:center; padding:12px 0 2px; font-size:13px; color:#684f70; }
+.skyEntry {
+  position:relative;
+  width:100%;
+  max-width:560px;
+  margin:0 auto 28px;
+  padding:10px;
+  border:1px solid rgba(233,199,141,.86);
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 94% 10%,rgba(117,65,173,.12),transparent 34%),
+    #fbf4ef;
+  color:#3f2d4c;
+  box-shadow:0 16px 34px rgba(7,4,14,.2),0 0 0 4px rgba(233,199,141,.08),inset 0 1px 0 rgba(255,255,255,.9);
+  overflow:hidden;
+}
+.skyEntry::before {
+  content:"";
+  position:absolute;
+  inset:6px;
+  border:1px solid rgba(117,65,173,.16);
+  border-radius:20px;
+  pointer-events:none;
+}
+.skyEntry::after {
+  content:"";
+  position:absolute;
+  top:-72px;
+  right:-38px;
+  width:180px;
+  height:180px;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(233,199,141,.28),rgba(233,199,141,0) 68%);
+  pointer-events:none;
+}
+.skyEntry>a:first-child {
+  position:relative;
+  z-index:1;
+  display:flex;
+  align-items:center;
+  min-height:136px;
+  gap:18px;
+  padding:8px 16px 8px 4px;
+  border-radius:18px;
+  text-decoration:none;
+  color:inherit;
+  transition:background-color .22s ease,transform .22s ease;
+}
+.skyEntry>a:first-child:hover {
+  background:rgba(117,65,173,.06);
+  transform:translateY(-1px);
+}
+.skyEntry img { flex:0 0 132px; width:132px; height:132px; object-fit:contain; filter:drop-shadow(0 8px 12px rgba(74,42,91,.18)); }
+.skyEntryCopy { display:flex; min-width:0; flex-direction:column; align-items:flex-start; }
+.skyEntryKicker { margin:0 0 5px; color:#8e6b3d; font-size:11px; font-weight:800; letter-spacing:.14em; line-height:1.4; }
+.skyEntry strong { display:block; color:#392346; font-family:"Yeongnyangi Myeongjo",serif; font-size:clamp(1.45rem,4vw,1.8rem); letter-spacing:-.04em; line-height:1.3; }
+.skyEntryDescription { display:block; margin:7px 0 13px; color:#674f70; font-size:14px; line-height:1.55; word-break:keep-all; }
+.skyEntryAction { display:inline-flex; align-items:center; gap:5px; min-height:44px; padding:8px 14px; border:1px solid rgba(117,65,173,.34); border-radius:999px; background:#f1e5f5; color:#5b3471; font-size:13px; font-weight:800; line-height:1.2; }
+.skyEntryAction svg { width:15px; height:15px; fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; stroke-width:1.8; }
+@media(max-width:600px) {
+  .skyEntry { margin-bottom:22px; padding:8px; border-radius:22px; }
+  .skyEntry>a:first-child { min-height:122px; gap:12px; padding:6px 10px 6px 0; }
+  .skyEntry img { flex-basis:112px; width:112px; height:112px; }
+  .skyEntryDescription { margin-top:5px; margin-bottom:9px; font-size:13px; }
+  .skyEntryAction { min-height:42px; padding:7px 12px; }
+}
 
 .consultationRoom .fusionChoices { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .consultationRoom .fusionChoices button { display:grid; grid-template-columns:80px minmax(0,1fr); gap:6px 14px; align-content:start; }
