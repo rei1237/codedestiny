@@ -66,6 +66,30 @@
   height: auto;
   border-radius: 24px;
 }
+.sampleReading {
+  max-width: 70ch;
+  margin: 24px 0;
+  line-height: 1.85;
+}
+.sampleReading dt {
+  margin-top: 22px;
+  color: var(--yn-gold);
+  font-weight: 700;
+}
+.sampleReading dd {
+  margin: 6px 0 0;
+}
+.sample details {
+  color: var(--yn-muted);
+}
+.sample summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 0;
+}
+.sample details a {
+  color: var(--yn-gold);
+}
 .kicker {
   color: var(--yn-gold);
   font-weight: 700;
@@ -217,8 +241,8 @@
     grid-template-columns: 1fr;
   }
   .intro img {
-    max-width: 220px;
-    order: -1;
+    max-width: 140px;
+    justify-self: center;
   }
   .systems {
     grid-template-columns: 1fr;

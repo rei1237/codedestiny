@@ -314,15 +314,17 @@ export default function FortuneHome() {
               </span>
             </div>
             <div className="hero-action">
-              <button
+              <a
                 className="primary-cta"
-                onClick={() => window.location.assign("/yeongnyangi/fortune/?domain=saju&fish=mackerel")}
+                href="/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask"
+                data-cd-business-entry="paid"
               >
                 <PawPrint size={21} />
-                <span>영냥이에게 상담하기</span>
+                <span>영냥이에게 내 질문 남기기</span>
                 <ArrowRight size={21} />
-              </button>
-              <p>{packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 · 주제와 가격을 확인한 뒤 시작해.</p>
+              </a>
+              <p>사주 고등어 {packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 · {packages.mackerel.chapterCount}개 챕터와 내 질문에 대한 답. 다음 화면에서 상품을 바꿀 수 있어.</p>
+              <a className="hero-proof-link" href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 보기</a>
               <a className="hero-proof-link" href="#founder-records">상담사 경력과 공개 예측 기록 보기</a>
             </div>
           </section>

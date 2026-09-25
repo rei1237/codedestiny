@@ -10,6 +10,7 @@ import styles from './page.module.css';
 import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 import FounderTrust from '@/app/components/FounderTrust';
 import {founder} from '@/lib/brand/founder';
+import SampleExposure from '../_components/SampleExposure';
 
 // 천원사주 허브. 영냥이 고등어 상담의 검색 착륙 페이지다(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md).
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
@@ -27,6 +28,7 @@ const single=(domain:DomainId,fish:string)=>{const p=products.find(item=>item.re
 const mackerels=DOMAINS.map(domain=>single(domain,'mackerel'));
 for(const p of mackerels)if(p.priceKRW!==1000)throw new Error(`천원사주 허브: ${p.id} 가격이 ${p.priceKRW}원이다. 페이지 이름과 문안을 먼저 고칠 것.`);
 const PRICE=won(mackerels[0].priceKRW);
+const QUESTION_HREF='/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask';
 const fusions=products.filter(p=>p.readingKind!=='single');
 const chapterRange=(items:Product[])=>{const counts=items.map(p=>p.chapterCount);const min=Math.min(...counts),max=Math.max(...counts);return min===max?`${min}개`:`${min}~${max}개`;};
 const mackerelPolicy=policyForReading('mackerel',mackerels[0].manifestVersion);
@@ -47,7 +49,7 @@ const FAQS=[
  {question:'천원사주는 정말 1,000원인가요?',answer:`네. 영냥이의 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. Family 이용권 한도 또는 단건 결제로 이용하며, 결제창에서 금액과 적용 수단을 한 번 더 확인해요.`},
  {question:'이용권이나 월정석으로도 볼 수 있나요?',answer:'Family 이용권은 적용됩니다. 다른 이용권 등급과 월정석은 적용되지 않으며, Family가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
  {question:'출생시간을 모르면 상담할 수 없나요?',answer:'천원 사주는 출생시간 없이도 상담할 수 있어요. 자미두수, 숙요점, 베다점, 점성술은 출생시간으로 계산이 달라지므로 시간이 필요하고, 타로는 출생정보 없이 질문만으로 상담해요.'},
- {question:'천원으로 궁합도 볼 수 있나요?',answer:`숙요점 고등어 상담에서 궁합 상대 프로필을 함께 고르면 두 사람의 관계를 ${sukuyoPair.length}개 챕터로 읽어요. 사주 궁합처럼 다른 체계의 궁합은 영냥이 천원 상담에 없고, 꿀꿀 운세 궁합 페이지에서 볼 수 있어요.`},
+ {question:'천원으로 궁합도 볼 수 있나요?',answer:`숙요점 고등어 상담에서 궁합 상대 프로필을 함께 고르면 두 사람의 관계를 ${sukuyoPair.length}개 챕터로 읽어요. 다른 운세의 궁합 지원 여부와 필요한 정보는 상담 종류에서 확인할 수 있어요. 꿀꿀 운세 궁합 페이지도 함께 둘러볼 수 있어요.`},
  {question:'결제한 상담은 다시 볼 수 있나요?',answer:'네. 같은 CODE DESTINY 계정으로 로그인하면 영냥이의 내 상담 기록에서 결제한 상담을 다시 열 수 있어요.'},
  {question:'상담 결과는 누가 쓰나요?',answer:'운세 계산은 각 체계의 계산 엔진이 하고, 그 계산 결과를 바탕으로 AI가 영냥이의 말투로 해설을 써요. 결과는 선택을 돕는 참고 자료이며 미래를 확정하지 않아요.'},
  {question:'환불은 어떻게 하나요?',answer:'결제와 환불 기준은 CODE DESTINY 환불 정책을 따라요. 문제가 있으면 문의하기로 결제 내역과 함께 알려 주세요.'},
@@ -85,11 +87,26 @@ export default function Page(){
    <div>
     <p className={styles.kicker}>사주보는 고양이 영냥이 · 고등어 상담</p>
     <h1><span className={styles.h1Line}>천원사주 · 천원운세,</span> <span className={styles.h1Line}>영냥이 고등어 상담 {PRICE}</span></h1>
-    <p>영냥이는 꿀꿀 운세(CODE DESTINY) 안에서 사주를 봐 주는 고양이 캐릭터예요. 천원사주는 영냥이의 가장 가벼운 상담인 고등어 상담을 부르는 이름으로, 사주뿐 아니라 자미두수·숙요점·베다점·점성술·타로도 같은 {PRICE}에 볼 수 있어요.</p>
-    <p>무료 페이지에서 확인한 계산 결과를 한 걸음 더 풀어 보고 싶을 때, 주제와 질문을 남기면 영냥이가 챕터별로 나눈 글로 답해요. 계산은 각 운세 체계가 하고, 해설은 AI가 영냥이의 말투로 써요.</p>
-    <p className={styles.actions}><a className={styles.primary} href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">천원 사주 상담 알아보기</a><a href="#systems">체계별 천원 상담 보기</a></p>
+    <p>왜 선택 앞에서 자꾸 망설이게 될까요? 지금의 고민을 남기면, 사주 계산을 바탕으로 내 질문에 대한 답과 근거, 생활 속에서 해볼 행동을 함께 읽어요.</p>
+    <p>처음이라면 사주 고등어 상담부터 시작해 보세요. {PRICE}에 {mackerels[0].chapterCount}개 챕터의 상담 글을 받고, 같은 계정의 내 상담 기록에서 다시 볼 수 있어요. 계산은 사주 엔진이, 해설은 AI가 맡아요.</p>
+    <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a><a href="#example">받게 될 답의 형태 보기</a></p>
+    <p className={styles.policy}>Family 이용권이 없어도 단건 결제로 이용할 수 있어요. 상품과 가격은 다음 화면에서 바꿀 수 있으며, 로그인 후 결제창에서 총액과 적용 수단을 확인해요.</p>
    </div>
    <img src="/assets/yeongnyangi/hero.webp" width={480} height={480} alt="생선을 기다리며 사주를 봐 주는 고양이 영냥이" fetchPriority="high"/>
+  </section>
+
+  <section id="example" className={styles.sample} aria-labelledby="example-title">
+   <h2 id="example-title">내 질문에는 어떤 답이 올까요?</h2>
+   <p>가상 입력으로 만든 짧은 편집 예시예요. 실제 고객 데이터나 AI가 생성한 상담 원문이 아니며, 전체 {mackerels[0].chapterCount}개 챕터 중 답변의 형태를 보여드려요.</p>
+   <dl className={styles.sampleReading}>
+    <dt>질문 예시</dt><dd>선택할 때마다 오래 망설여요. 어떻게 결정하는 연습을 하면 좋을까요?</dd>
+    <dt>답변 예시</dt><dd>세부적인 차이를 살피는 태도를 장점으로 쓰되, 모든 불확실성이 사라질 때까지 기다리지는 않는 연습을 해보세요. 되돌릴 수 있는 작은 선택부터 기한을 정하면 도움이 될 수 있어요.</dd>
+    <dt>계산 근거와 해석의 한계</dt><dd>{SEO_READING_EXAMPLES['/saju'].fact} {SEO_READING_EXAMPLES['/saju'].interpretation}</dd>
+    <dt>오늘 해볼 행동</dt><dd>{SEO_READING_EXAMPLES['/saju'].action} 확인할 항목 하나와 결정할 기한을 정해 보세요.</dd>
+   </dl>
+   <details><summary>가상 입력과 계산 기준 보기</summary><p>{SEO_READING_EXAMPLES['/saju'].input}</p><a href="/methodology/">계산과 해석 기준</a></details>
+   <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="#systems">다른 운세와 필요한 정보 보기</a></p>
+   <SampleExposure targetId="example" itemId={mackerels[0].cdFeatureKey}/>
   </section>
 
   <FounderTrust/>
@@ -132,16 +149,6 @@ export default function Page(){
    </table></div>
   </section>
 
-  <section aria-labelledby="example">
-   <h2 id="example">계산 근거에서 생활 조언까지</h2>
-   <p>가상 입력으로 만든 편집 예시이며 실제 고객이나 AI 상담 원문이 아니에요. 상담에서는 선택한 상품의 챕터와 질문에 맞춰 해설이 달라져요.</p>
-   <p><strong>입력</strong> · {SEO_READING_EXAMPLES['/saju'].input}</p>
-   <p><strong>계산 근거</strong> · {SEO_READING_EXAMPLES['/saju'].fact}</p>
-   <p><strong>해석 예시</strong> · {SEO_READING_EXAMPLES['/saju'].interpretation}</p>
-   <p><strong>생활 속 행동</strong> · {SEO_READING_EXAMPLES['/saju'].action}</p>
-   <p><a href="/about/#author">운영자 박병하·네오의 공개 분석 기록</a> · <a href="/methodology/">계산과 해석 기준</a></p>
-  </section>
-
   <section aria-labelledby="how">
    <h2 id="how">천원 상담 이용 방법</h2>
    <ol className={styles.steps}>
@@ -175,7 +182,7 @@ export default function Page(){
   <section className={styles.closing} aria-labelledby="start">
    <h2 id="start">영냥이에게 첫 이야기를 들려줘</h2>
    <p>어떤 체계로 볼지 고민된다면 출생시간 없이도 가능한 천원 사주부터, 지금 당장 답이 궁금한 질문이 있다면 천원 타로부터 시작해 보세요.</p>
-   <p className={styles.actions}><a className={styles.primary} href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">천원 사주 상담 알아보기</a><a href="/yeongnyangi/fortune/?domain=tarot&fish=mackerel">천원 타로 상담 알아보기</a><a href="/yeongnyangi/">영냥이의 방 둘러보기</a></p>
+   <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="/yeongnyangi/fortune/?domain=tarot&fish=mackerel">천원 타로 상담 알아보기</a><a href="/yeongnyangi/">영냥이의 방 둘러보기</a></p>
   </section>
 
   {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serialize(item)}}/>)}
