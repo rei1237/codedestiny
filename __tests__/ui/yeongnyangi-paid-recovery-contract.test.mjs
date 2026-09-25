@@ -11,14 +11,14 @@ const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`
-export const ownerId=x=>x;export const createRequest=async()=>{};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
-export const claimChapter=async(e,u,id,source)=>{const f=globalThis.__paidRecovery,r=f.row;f.claims.push({id,source,chapter:r.chapters.length});if(r.state==='COMPLETED')return {row:r,token:null};r.state='GENERATING';const n=r.chapters.length;r.chapterAttempts[n]=(r.chapterAttempts[n]||0)+1;return {row:r,token:'lease-'+n};};
+export const saveAskAnalysis=async(e,u,id,token,analysis)=>{const f=globalThis.__paidRecovery;if(!f)throw new Error("unexpected analysis");f.row.generationCheckpoint.analysis=analysis;if(f.storageFailure)throw new Error("storage uncertain");return analysis;};export const ownerId=x=>x;export const createRequest=async()=>{};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
+export const claimChapter=async(e,u,id,source)=>{const f=globalThis.__paidRecovery,r=f.row;f.claims.push({id,source,chapter:r.chapters.length});if(r.state==='COMPLETED')return {row:r,token:null};r.state='GENERATING';const n=r.chapters.length;r.chapterAttempts[n]=(r.chapterAttempts[n]||0)+1;r.leaseToken='lease-'+n;return {row:r,token:r.leaseToken};};
 export const finishChapter=async(e,u,id,token,ordinal,body,total)=>{const f=globalThis.__paidRecovery,r=f.row;f.finishes.push({id,token,ordinal});assertOrdinal(r.chapters.length,ordinal);r.chapters.push(body);r.completedChapters=r.chapters.length;r.state=r.chapters.length===total?'COMPLETED':'PAID';return r;};
 export const failChapter=async(e,u,id,token,code,attempt,stage,allowedAttempts)=>{const f=globalThis.__paidRecovery;f.failures.push({id,code,attempt,stage,allowedAttempts});f.row.state='FORTUNE_FAILED';f.row.errorCode=code;};
 function assertOrdinal(actual,expected){if(actual!==expected)throw new Error('ordinal mismatch');}
 `,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>true;`,
-  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{constructor(env){this.env=env}}`,
+  'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{constructor(env){this.env=env}async analyzeQuestion(){const f=globalThis.__paidRecovery;f.analysisCalls=(f.analysisCalls||0)+1;return JSON.stringify({questions:[{questionId:"q1",category:"career",needsTiming:false}]});}}`,
   'worker/yeongnyangi/providers/chapter':`
 export class StructuredChapterProvider{async generateChapter(input){const f=globalThis.__paidRecovery,n=input.previous.length;f.lastInput=input;f.providerCalls.push(n);if(f.failOnce){f.failOnce=false;throw new Error('temporary provider failure')}return {summary:'generated-'+n,analysis:'analysis',example:'example',advice:'advice',persona:'persona',highlights:[],topics:[],blocks:[],sources:[]};}}
 export const validateChapter=value=>value;
@@ -30,6 +30,21 @@ const {generateNextChapter,presentFortune}=loaded.exports;
 const env={GEMINIF_API_KEY:'fixture-only',LLM_DRY_RUN:'false'};
 function row(chapters=[]){return {_id:'a'.repeat(64),userId:'owner',profileId:'profile',productId:'saju_mackerel',paymentId:'original-payment',state:'PAID',errorCode:'',chapters:[...chapters],completedChapters:chapters.length,chapterAttempts:{},manualRecoveryGrants:{},snapshot:{product:{id:'saju_mackerel'},analysis:{consultation:{}},manifest:[{id:'first'},{id:'second'},{id:'third'}]}};}
 function reset(chapters=[]){globalThis.__paidRecovery={row:row(chapters),providerCalls:[],claims:[],finishes:[],failures:[],failOnce:false};return globalThis.__paidRecovery;}
+
+test('ask analysis is reused after chapter failure and uncertain checkpoint write',async()=>{
+ for(const failure of ['failOnce','storageFailure']){
+  const f=reset();f[failure]=true;
+  f.row.generationCheckpoint={version:'ask-generation-v1',evidence:{}};
+  f.row.snapshot.analysis.consultation={topicId:'work',questions:[{id:'q1',text:'취업?',chapterId:'first'}]};
+  const snapshot=JSON.stringify(f.row.snapshot);
+  await assert.rejects(generateNextChapter(env,'owner',f.row._id));
+  if(failure==='storageFailure')assert.equal(f.providerCalls.length,0);
+  f.storageFailure=false;
+  await generateNextChapter(env,'owner',f.row._id);
+  assert.equal(f.analysisCalls,1);
+  assert.equal(JSON.stringify(f.row.snapshot),snapshot);
+ }
+});
 
 test('service resumes at the first missing chapter and never regenerates stored chapters',async()=>{
  const fixture=reset([{summary:'stored-first'}]);

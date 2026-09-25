@@ -220,6 +220,35 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
   return row ? {row,token} : {row:current,token:null};
 }
 
+// Own the same chapter lease; never replace an already durable analysis.
+export async function saveAskAnalysis(env,userId,requestId,token,analysis) {
+  const owner=ownerId(userId);
+  await withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try {
+      await session.withTransaction(async()=>{
+        const filter={_id:requestId,userId:owner,state:'GENERATING',leaseToken:token,
+          'generationCheckpoint.version':'ask-generation-v1'};
+        const current=await YeongnyangiRequest.findOne(filter).session(session).lean();
+        if(!current||new Date(current.leaseUntil).getTime()<=Date.now())throw failure(409,'GENERATION_LEASE_LOST');
+        const proof=requestAccessMethod(current)==='FAMILY'
+          ? await findFamilyEvidence(current,userId,session)
+          : await Payment.findOneAndUpdate({_id:current.paymentId,userId:owner,'metadata.consumedBy':requestId,
+            status:{$in:paidStatuses},refundLock:null,'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true}},
+            {$set:{'metadata.yeongnyangiAnalysisCommit':requestId}},{new:true,session}).lean();
+        if(!proof)throw failure(409,'PAYMENT_NOT_ACTIVE');
+        if(current.generationCheckpoint.analysis)return;
+        const saved=await YeongnyangiRequest.findOneAndUpdate({...filter,'generationCheckpoint.analysis':{$exists:false}},
+          {$set:{'generationCheckpoint.analysis':analysis}},{new:true,session}).lean();
+        if(!saved)throw failure(409,'GENERATION_LEASE_LOST');
+      },mongoTransactionOptions());
+    } finally { await session.endSession(); }
+  });
+  const stored=await readRequest(env,userId,requestId);
+  if(stored.state!=='GENERATING'||stored.leaseToken!==token||!stored.generationCheckpoint?.analysis)throw failure(409,'GENERATION_LEASE_LOST');
+  return stored.generationCheckpoint.analysis;
+}
+
 async function completeStoredRequest(env, userId, requestId, total, token = '') {
   const owner=ownerId(userId);
   // The final stored result and its payment proof are checked in one transaction.
