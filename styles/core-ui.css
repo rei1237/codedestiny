@@ -1047,16 +1047,16 @@ body {
 	color: #fff;
 }
 .tarot-tile__badge--new    { background: rgba(128, 55, 235, 0.95); }
-.tarot-tile__badge--beta   { background: rgba(16, 185, 129, 0.95); }
-.tarot-tile__badge--totem  { background: rgba(180, 100, 40, 0.95); }
+.tarot-tile__badge--beta   { background: rgba(4, 120, 87, 0.95); }
+.tarot-tile__badge--totem  { background: rgba(146, 64, 14, 0.95); }
 .tarot-tile__badge--healing{ background: rgba(194, 65, 12, 0.95); }
-.tarot-tile__badge--levelup{ background: rgba(35, 175, 250, 0.95); }
+.tarot-tile__badge--levelup{ background: rgba(3, 105, 161, 0.95); }
 .tarot-tile__badge--reunion{ background: rgba(45, 95, 235, 0.95); }
-.tarot-tile__badge--bloom  { background: rgba(236, 72, 153, 0.95); }
+.tarot-tile__badge--bloom  { background: rgba(190, 24, 93, 0.95); }
 .tarot-tile__badge--nebula { background: rgba(99, 60, 219, 0.95); }
-.tarot-tile__badge--ziwei  { background: rgba(168, 85, 247, 0.95); }
+.tarot-tile__badge--ziwei  { background: rgba(126, 34, 206, 0.95); }
 .tarot-tile__badge--sukuyo { background: rgba(37, 99, 235, 0.95); }
-.tarot-tile__badge--free   { background: rgba(59, 130, 246, 0.95); }
+.tarot-tile__badge--free   { background: rgba(29, 78, 216, 0.95); }
 
 .tarot-tile--ijik {
 	border-color: rgba(129, 79, 245, 0.45);
