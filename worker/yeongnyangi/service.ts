@@ -239,7 +239,12 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     const detail=error instanceof FortuneError?error.detail:undefined;
     console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code,detail}));
     const allowedAttempts=3+Number(row.manualRecoveryGrants?.[ordinal] || 0);
-    try { await failChapter(env,userId,requestId,token,code,row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,detail); }
+    const askQuality=stage==='quality'&&ordinal===0&&row.generationCheckpoint?.version==='ask-generation-v1';
+    // One existing-budget quality regeneration at most. A second rejection
+    // preserves the paid request and saved chapters for support review.
+    const review=askQuality&&(row.lastFailure?.stage==='quality'||Number(row.chapterAttempts?.[ordinal] || 0)>=allowedAttempts);
+    try { await failChapter(env,userId,requestId,token,review?'ASK_LIMITED_REVIEW_REQUIRED':code,
+      row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,review?code:detail); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }
@@ -247,13 +252,14 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 
 export function presentFortune(row: any) {
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
-  const complete=row.state==='COMPLETED',blocked=row.state==='REFUNDED'||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED'].includes(row.errorCode);
+  const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
+  const complete=row.state==='COMPLETED',blocked=row.state==='REFUNDED'||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED'].includes(errorCode);
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
     providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked,
-    canRetryNow:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED',nextAction:complete?'reread':blocked?'support':row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?'retry':'wait'};
+    canRetryNow:errorCode==='AUTOMATIC_RECOVERY_STOPPED',nextAction:complete?'reread':blocked?'support':errorCode==='AUTOMATIC_RECOVERY_STOPPED'?'retry':'wait'};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,recovery,errorCode:row.errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

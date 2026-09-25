@@ -113,6 +113,10 @@ test('new ask first chapter binds classifier IDs to category evidence and escape
  assert.match(rules.askEvidenceContract,/사건 시점을 예측하지/);
  assert.equal(prompt.promptVersion,'ask-chapter-v1');
  assert.equal(prompt.outputSchema.properties.questionAnswers.minItems,2);
+ assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.required,
+  ['questionId','answer','reason','timing','action','factIds','timingIds','evidenceStatus']);
+ assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.properties.factIds.items.enum,['F001','F002']);
+ assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.properties.timingIds.items.enum,['T001']);
  await provider.generateChapter({chapter:{...chapter,ordinal:1},analysis,previous:[],ask:{analysis:classification,evidence:packet}});
  assert.equal(JSON.parse(prompt.domainRules).askFirstChapter,undefined);
  assert.notEqual(prompt.promptVersion,'ask-chapter-v1');

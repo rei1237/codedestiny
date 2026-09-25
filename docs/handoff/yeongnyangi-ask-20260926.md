@@ -1,10 +1,20 @@
 ---
 status: active
 updated: 2026-09-26
-next: "Phase 3 main 전달과 CI 통과 완료. Phase 4 사용자 승인 대기."
+next: "Phase 4 main CI 결과 확인 후 Phase 5 사용자 승인 대기."
 ---
 
 # 영냥이 자유질문 인수인계
+
+## Phase 4 (사용자 승인: 2026-09-26)
+
+신규 질문형 첫 장의 답변에 질문별 F/T 근거 ID, 원 출처, 기간 해상도와 안전 표현 검증을 추가했다. 모델이 생성한 검증용 ID·상태는 저장 전에 제거해 공개 응답 필드를 유지한다. 품질 오류는 기존 예산 안에서 한 번만 재생성하고, 다시 실패하면 저장된 장과 유료 접근을 보존한 미완료 지원 확인 상태로 멈춘다. 자동 큐·정기 복구·사용자 재시도가 이 상태에서 추가 생성하지 않는다. 공급자·저장 오류의 기존 복구 경로는 유지했다.
+
+- 구현 커밋: `10db30be9ec5871e0acc1c0231bbb4ebbd1c9079`. main 병합 커밋: `a630900f008a60887221526106f4f4cc5bb6e83e`. push·CI 결과는 GitHub main run과 최종 보고에서 확인한다.
+- 대상: `worker/yeongnyangi/fortune/ask/validate.ts`, `providers/chapter.ts`, `service.ts`, `repository.js`, `queue.js`, `recovery.js`, `retry.js`, 관련 mock 테스트.
+- 관련 mock: 첫 장 검증·상담·서비스 20/20, 저장소·정기 복구·재시도 60/60 및 타입 검사 통과. `npm run check:fast -- --plan`은 critical, `npm run check:fast`는 종료 0으로 Node 검사·정책 가드·Worker dry build·Jest 296 suites / 4,214 tests를 통과했다. 게이트 뒤 Family 접근 보존 테스트 1건을 더했고 관련 60건을 다시 통과했다. `npm run verify:handoff-contract`는 195개 문서 통과.
+- 구매 snapshot·가격·차감·기존 환불 함수·일반 리포트·계산 엔진·공개 API 필드 구조는 유지했다. 새 검증 대기 상태는 즉시 환불하거나 추가 생성하지 않고 기존 유료 접근을 유지한다. 실 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않았다.
+- 자동 검증은 문장의 의미적 사실 일치나 12개 언어의 실제 품질을 입증하지 않는다. Phase 5 화면 모드와 Phase 6 평가, 실제 LLM·전문가 검수는 남아 있다.
 
 ## Phase 3 (사용자 승인: 2026-09-26)
 
@@ -59,14 +69,14 @@ next: "Phase 3 main 전달과 CI 통과 완료. Phase 4 사용자 승인 대기.
 
 ## 다음 단계
 
-첨부 원문의 “각 Phase 종료 시 … 보고하고 승인을 기다린다”를 따른다. Phase 3 프롬프트 조립과 첫 장 연결까지 완료했다. Phase 4는 별도 사용자 승인 후 진행한다. 분석 결과로 지시문을 바꾸지 않으며 태그 종료 문자열을 이스케이프한다. 기존 구매 스냅샷을 재작성하지 않는다.
+첨부 원문의 “각 Phase 종료 시 … 보고하고 승인을 기다린다”를 따른다. Phase 4 검증과 미완료 지원 확인까지 구현했다. Phase 5는 별도 사용자 승인 전에는 시작하지 않는다. 분석 결과로 지시문을 바꾸지 않으며 태그 종료 문자열을 이스케이프한다. 기존 구매 스냅샷을 재작성하지 않는다.
 
-Phase 4는 근거/기간/안전 검증과 1회 재생성·limited 미완료 복구, Phase 5는 12개 언어 입력·normal/limited/care 화면 및 기존 렌더 호환, Phase 6은 180건+퓨전/복구/다국어 평가다. 실제 LLM 평가와 사주 전문가 20건 검수는 별도 승인·검수자가 필요하다.
+Phase 5는 12개 언어 입력·normal/limited/care 화면 및 기존 렌더 호환, Phase 6은 180건+퓨전/복구/다국어 평가다. 실제 LLM 평가와 사주 전문가 20건 검수는 별도 승인·검수자가 필요하다.
 
 main에 다른 세션의 marketing 변경이 남아 있다. 광역 reset/stash/add를 사용하지 않는다. 동시 쓰기 세션이면 기존 안전 worktree 스크립트로 격리하고, PR 없이 main 전달 및 CI 확인 후 배수한다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 1a0914de71285514ec0c35b8192822ffbee7169b 포함 여부를 확인하라. 다른 세션 변경을 보존하고 Phase 4 사용자 승인 후 근거/기간/안전 검증과 1회 재생성·limited 복구부터 진행하라. 실제 과금 호출과 운영 작업은 하지 마라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 a630900f008a60887221526106f4f4cc5bb6e83e 포함 여부를 확인하라. Phase 4의 main CI 결과를 확인하고, Phase 5 사용자 승인 후 12개 언어 입력과 normal/limited/care 화면·기존 렌더 호환부터 진행하라. 다른 세션 변경을 보존하고 실제 과금 호출과 운영 작업은 하지 마라.
 ```

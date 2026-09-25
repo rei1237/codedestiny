@@ -8,13 +8,13 @@ export async function retryFortune(env, userId, requestId) {
   let row=await readRequest(env,userId,requestId);
   if(row.state==='COMPLETED')return row;
   if(row.state==='REFUNDED'||row.errorCode==='PAYMENT_NOT_ACTIVE')throw failure('PAYMENT_NOT_ACTIVE');
-  if(row.errorCode==='GENERATION_REVIEW_REQUIRED')throw failure('GENERATION_REVIEW_REQUIRED');
+  if(['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode))throw failure('GENERATION_REVIEW_REQUIRED');
   if(!env.YEONGNYANGI_QUEUE)throw failure('GENERATION_QUEUE_UNAVAILABLE');
   if(!hasRequestAccess(row))row=await attachPayment(env,userId,requestId,resolveChargeAmountKRW(env,row.amountKRW));
   row=await resumeRequest(env,userId,requestId);
   if(row.state==='COMPLETED')return row;
   if(row.state==='REFUNDED'||row.errorCode==='PAYMENT_NOT_ACTIVE')throw failure('PAYMENT_NOT_ACTIVE');
-  if(row.errorCode==='GENERATION_REVIEW_REQUIRED')throw failure('GENERATION_REVIEW_REQUIRED');
+  if(['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode))throw failure('GENERATION_REVIEW_REQUIRED');
   if(!await enqueueConsultation(env,row))throw failure('GENERATION_QUEUE_UNAVAILABLE');
   return row;
 }

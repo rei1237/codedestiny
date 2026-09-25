@@ -149,7 +149,7 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
 async function reconcileAttemptLimit(env,userId,current) {
   const requestId=String(current._id),total=current.snapshot?.manifest?.length || 0;
   if(!['PAID','FORTUNE_FAILED','GENERATING'].includes(current.state)||!total||current.chapters.length>=total||
-    ['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(current.errorCode)||
+    ['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(current.errorCode)||
     new Date(current.leaseUntil || 0).getTime()>Date.now()||new Date(current.nextAttemptAt || 0).getTime()>Date.now())return current;
   const ordinal=current.chapters.length;
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
@@ -164,7 +164,7 @@ async function reconcileAttemptLimit(env,userId,current) {
     const stopped=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({
       _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
       chapters:{$size:ordinal},attempts:current.attempts,leaseToken:current.leaseToken,
-      errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','PAYMENT_NOT_ACTIVE']},
+      errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','PAYMENT_NOT_ACTIVE']},
       $and:[manualGrants?{[`manualRecoveryGrants.${ordinal}`]:manualGrants}:{$or:[{[`manualRecoveryGrants.${ordinal}`]:{$exists:false}},{[`manualRecoveryGrants.${ordinal}`]:0}]}],
       $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
     },{$set:{state:'FORTUNE_FAILED',errorCode:exhausted,leaseToken:'',leaseUntil:null,nextAttemptAt:null,queuedUntil:null},
@@ -197,11 +197,11 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
     const completed=await completeStoredRequest(env,userId,requestId,total);
     return {row:completed || current,token:null};
   }
-  if (['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(current.errorCode)) throw failure(409,current.errorCode);
+  if (['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(current.errorCode)) throw failure(409,current.errorCode);
   if (new Date(current.nextAttemptAt || 0).getTime()>Date.now()) return {row:current,token:null};
   if (new Date(current.leaseUntil || 0).getTime()>Date.now()) return {row:current,token:null};
   const reconciled=await reconcileAttemptLimit(env,userId,current);
-  if(['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED'].includes(reconciled.errorCode))throw failure(409,reconciled.errorCode);
+  if(['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(reconciled.errorCode))throw failure(409,reconciled.errorCode);
   if(reconciled!==current)return {row:reconciled,token:null};
   const ordinal=current.chapters.length;
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
@@ -210,7 +210,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
     _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
     chapters:{$size:current.chapters.length},
-    errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED']},
+    errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED']},
     $and:[{$or:[{nextAttemptAt:null},{nextAttemptAt:{$lte:now}}]},
       {$or:[{[attemptKey]:{$exists:false}},{[attemptKey]:chapterAttempts}]}],
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
@@ -368,11 +368,12 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
 }
 
 export async function failChapter(env, userId, requestId, token, code, attempt = 1, stage = '', allowedAttempts = AUTOMATIC_CHAPTER_ATTEMPTS, detail = '') {
+  const limited=code==='ASK_LIMITED_REVIEW_REQUIRED';
   const permanent=['GENERATION_REVIEW_REQUIRED','INVALID_MANIFEST'].includes(code);
-  const stopped=attempt>=allowedAttempts&&!permanent;
+  const stopped=attempt>=allowedAttempts&&!permanent&&!limited;
   const result=await withMongoRetry(env, () => YeongnyangiRequest.updateOne({_id:requestId,userId:ownerId(userId),leaseToken:token,state:'GENERATING'},
-    {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000))},
-      $push:{recoveryAudit:{kind:permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:null,at:new Date(),code:String(code).slice(0,80),...(detail?{detail:String(detail).slice(0,80)}:{})}}}));
+    {$set:{state:'FORTUNE_FAILED',leaseToken:'',leaseUntil:null,errorCode:limited?'ASK_LIMITED_REVIEW_REQUIRED':permanent?'GENERATION_REVIEW_REQUIRED':stopped?'AUTOMATIC_RECOVERY_STOPPED':String(code).slice(0,80),lastFailure:{code:String(code).slice(0,80),stage,at:new Date()},nextAttemptAt:limited||permanent||stopped?null:new Date(Date.now()+(stage==='quality'?QUALITY_RETRY_MS:attempt===1?30000:120000))},
+      $push:{recoveryAudit:{kind:limited||permanent?'review_required':stopped?'automatic_recovery_stopped':'retryable_failure',source:'generation',chapter:null,at:new Date(),code:String(code).slice(0,80),...(detail?{detail:String(detail).slice(0,80)}:{})}}}));
   if(permanent)await refundTerminalFamilyQuota(env,userId,requestId);
   return result;
 }
