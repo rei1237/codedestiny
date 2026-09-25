@@ -91,6 +91,15 @@ beforeEach(()=>{
   evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
+test('ask generation evidence is stored separately and an intent replay cannot replace it',async()=>{
+  const generationCheckpoint={version:'ask-generation-v1',evidence:{packet_version:'ask-evidence-v1',facts:[{id:'F001',value:'first draw'}]}};
+  const first=await repo.createRequest({},owner,'id',{...values,generationCheckpoint});
+  const replay=await repo.createRequest({},owner,'id',{...values,generationCheckpoint:{version:'replacement'}});
+  expect(first.snapshot).toEqual(values.snapshot);
+  expect(replay.generationCheckpoint).toEqual(generationCheckpoint);
+  expect(requests).toHaveLength(1);
+});
+
 test('Family access consumes once, persists proof, and remains readable after pass expiry',async()=>{
   payments=[];familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true,expiresAt:'2026-10-23T00:00:00.000Z'}};
   consumePass.mockImplementation(async()=>{

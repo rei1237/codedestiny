@@ -15,6 +15,9 @@ import { getProduct } from './payments/catalog';
 import { analyze } from './fortune/analysis';
 import { readingManifest, questionFactSelectors } from './fortune/reading-manifest';
 import { computeCrossDaily } from './fortune/daily-cross';
+import { buildEvidencePacket } from './fortune/ask/packet';
+import { extendAskLocalTiming } from './fortune/ask/wrappers';
+import { calculateAskTarot } from './fortune/ask/tarot';
 import { consultationClock, createConsultation } from './fortune/consultation';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
@@ -56,6 +59,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
+  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
     if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');
@@ -89,12 +93,20 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const date=clock.asOf;
   const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
   const id=await digest({userId,fingerprint,...attempt});
+  if(askEvidenceEnabled) {
+    // A retry reads the immutable purchase intent before any calculation or card draw.
+    // Storage uncertainty is not permission to recalculate an existing purchase.
+    try { return await readRequest(env,userId,id); }
+    catch(error:any) { if(error?.code!=='FORTUNE_NOT_FOUND') throw error; }
+  }
   // A new form starts a separate purchase; retries in that form keep the same intent.
   // Clients without an attempt retain their original deterministic recovery identity.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   // Free questions also read the 꿀꿀 daily systems; started first so Swiss latency overlaps the domain calculations.
   const crossDaily=(!kind||kind.question)&&!spiritInput?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
-  for(const system of product.systems) contexts[system]=domains[system].buildContext(await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
+  for(const system of product.systems) contexts[system]=domains[system].buildContext(
+    askEvidenceEnabled&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
+      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
@@ -120,8 +132,16 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     manifest=spiritManifest(manifest);
     product.name=SPIRIT_TITLE;product.image=SPIRIT_IMAGE;
   }
+  const askEvidence=askEvidenceEnabled ? buildEvidencePacket({
+    contexts:await extendAskLocalTiming(contexts,normalized,date),today:date,locale:body.locale,tier:product.fishId,
+    birthProfileAvailable:product.systems.some(system=>Boolean(normalized[system].personA)),
+    birthTimeKnown:product.systems.every(system=>system==='tarot'||Boolean(normalized[system].personA?.birthTime)),
+    ...(partner?{partnerTimeKnown:product.systems.every(system=>Boolean(normalized[system].personB?.birthTime))}:{}),
+  }) : undefined;
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
-    amountKRW:product.priceKRW,fingerprint,snapshot:{product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
+    amountKRW:product.priceKRW,fingerprint,
+    ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
+    snapshot:{product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
 }
 
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){

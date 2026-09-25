@@ -21,6 +21,8 @@ const schema = new mongoose.Schema({
   passMonthlyLimitCoin: { type: Number, default: 0 },
   passPolicyVersion: { type: String, default: '' },
   snapshot: { type: mongoose.Schema.Types.Mixed, required: true },
+  // Versioned generation evidence is separate from the immutable purchase snapshot.
+  generationCheckpoint: { type: mongoose.Schema.Types.Mixed, default: undefined },
   chapters: { type: [mongoose.Schema.Types.Mixed], default: [] },
   completedChapters: { type: Number, default: 0 },
   leaseToken: { type: String, default: '' },

@@ -76,11 +76,19 @@ routes = [
 #   명시 지역 힌트는 감지와 무관하게 워커를 그 지역 근처에서 돌린다.
 #   fetch 핸들러에만 적용된다(큐 컨슈머·크론·RPC 는 대상 아님).
 #
-# 🔴 안 먹을 수 있다. 판정 기준은 셋을 함께 본다:
+# 🔴 판정 기준은 둘을 함께 본다:
 #   (1) 응답 헤더 cf-placement 가 local-* 에서 remote-* 로 바뀌었는가
-#   (2) DB 없는 /api/health 는 진입→서울 홉만큼 소폭 느려졌는가(재배치가 일어났다는 양성 대조)
-#   (3) DB 를 만지는 요청이 크게 빨라졌는가(기대: 캐시 미스 읽기 1건에서 −1.3s 이상)
-#   안 먹으면 이 커밋을 revert 하면 끝이다 — 검증기 선언(아래)도 같은 커밋에 있다.
+#   (2) DB 를 만지는 요청이 크게 빨라졌는가(기대: 캐시 미스 읽기 1건에서 −1.3s 이상)
+#   (처음엔 "DB 없는 /api/health 가 홉만큼 소폭 느려진다"를 양성 대조로 뒀으나 예측이 틀렸다 — 아래 결과.)
+#
+# 결과(2026-09-26, 스테이징·같은 머신·각 3회 curl, 배포 두 번 뒤에도 유지):
+#   cf-placement local-ATL|BOS → remote-ICN.
+#   캐시 미스 GET /api/reviews  평균 4.34s → 1.05s(≈−3.3s).
+#   GET /api/health             1.16~1.50s → 0.60~0.97s — DB 를 안 만지는 경로가 빨라진 이유는 분리하지 못했다.
+#   tail 의 connectMs·opMs 집계(npm run report:worker-tail-latency)는 아직 안 돌렸다.
+#   되돌리기: 실험 커밋 483760d86 을 revert(검증기 선언도 같은 커밋에 있다).
+#   프로덕션 승격: worker/wrangler.toml 의 [placement] 를 smart → 이 값으로 바꾸고 아래 두 선언을 지운다
+#   (별도 1회 승인). 해외 사용자는 서울까지 홉이 하나 늘고, 지역 장애 시 폴백은 미검증이다.
 #
 # scripts/verify-worker-config-parity.mjs 가 placement.mode 를 MUST_DIFFER_KEYS 로, placement.region
 # 을 스테이징 전용 키로 선언한다. 프로덕션에 옮기려면 그 두 선언을 함께 지워야 하고 안 지우면

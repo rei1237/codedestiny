@@ -9,7 +9,7 @@ globalThis.__kindTest={rows:new Map(),calls:0};
 const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:filter=>({lean:async()=>({updatedAt:null,birth:{year:filter.profileId==='partner'?1994:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
-  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__kindTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__kindTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__kindTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
+  'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__kindTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{if(globalThis.__kindTest.readError)throw Object.assign(new Error('database unavailable'),{code:'RESULT_STORAGE_UNAVAILABLE'});const row=globalThis.__kindTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__kindTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__kindTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
@@ -63,6 +63,41 @@ test('old requests retain legacy shape and question behavior',async()=>{
  const row=await prepareFortune(env,'owner',{...body,question:'기존 질문'});
  assert.equal(row.snapshot.analysis.consultation.consultationKind,undefined);
  assert.equal(row.snapshot.analysis.consultation.question,'기존 질문');
+ assert.equal(row.generationCheckpoint,undefined);
+});
+
+test('only explicit question menus save private evidence packets without changing paid manifests',async()=>{
+ for(const productId of ['saju_mackerel','ziwei_mackerel','vedic_mackerel','astrology_mackerel','sukuyo_mackerel','tarot_mackerel','fusion_saju_ziwei']) {
+  const product=products.find(p=>p.id===productId);
+  const request={...body,productId,consultationKind:productId.startsWith('tarot')?'choice':'ask',
+   question:'첫 질문의 근거를 확인해 주세요.',locale:'ja'};
+  const row=await prepareFortune(env,'evidence-owner',request);
+  const packet=row.generationCheckpoint.evidence;
+  assert.equal(row.generationCheckpoint.version,'ask-generation-v1');
+  assert.equal(row.snapshot.askEvidence,undefined,'purchase snapshot stays unchanged');
+  assert.equal(packet.packet_version,'ask-evidence-v1');
+  assert.equal(packet.locale,'ja');
+  assert.ok(packet.facts.length);
+  assert.equal(row.amountKRW,product.priceKRW);
+  assert.equal(row.snapshot.manifest.length,product.chapterCount);
+  assert.equal(presentFortune(row).askEvidence,undefined,'raw packet is not a public API field');
+  assert.deepEqual(await prepareFortune(env,'evidence-owner',request),row);
+ }
+ assert.equal(globalThis.__kindTest.calls,0);
+});
+
+test('tarot retries reuse the first stored draw; storage uncertainty blocks a new draw',async()=>{
+ const request={...body,productId:'tarot_mackerel',consultationKind:'choice',question:'저장된 카드를 다시 확인해 주세요.'};
+ const row=await prepareFortune(env,'tarot-owner',request);
+ const before=structuredClone(row.snapshot);
+ const rng=crypto.getRandomValues;
+ crypto.getRandomValues=()=>{throw new Error('unexpected redraw');};
+ try {
+  assert.equal(await prepareFortune(env,'tarot-owner',request),row);
+  assert.deepEqual(row.snapshot,before);
+  globalThis.__kindTest.readError=true;
+  await assert.rejects(()=>prepareFortune(env,'tarot-owner',request),error=>error.code==='RESULT_STORAGE_UNAVAILABLE');
+ } finally {crypto.getRandomValues=rng;delete globalThis.__kindTest.readError;}
 });
 
 test('v6 intent cannot reuse a paid v5 snapshot and old reads retain their purchased depth',async()=>{
