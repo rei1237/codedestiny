@@ -1,3 +1,9 @@
+---
+status: done
+updated: 2026-09-25
+next: "꿀꿀 운세 모든 운세 둘러보기 빈 시트는 무대(#cdAllFortunesStage) 구조로 고쳤고 달빛 예화 개편·데스크탑 srcset·오미쿠지 원본 복원까지 main 에 올렸다. 남은 것은 아래 후속 과제(HEALING 배지 대비 등 기존 결함)이며 운영 승격은 별도 1회 승인이 필요하다."
+---
+
 # 꿀꿀 운세 "모든 운세 둘러보기" 빈 시트 복구 · 달빛 예화 개편 · 데스크탑 화질 · 오미쿠지 원본 (2026-09-25)
 
 다음 세션 첫 문장: "docs/handoff/ggulggul-all-fortunes-stage-yehwa-2026-09-25.md 를 읽고, 남은 후속 과제 중 하나만 골라 시작해."
@@ -9,7 +15,7 @@
 | `63b79bd17` | 전문가 이모이 오미쿠지 타일을 원본 `/fuctionassets/오미쿠지.webp` 로 복원(ce3b05158 패턴, catalogImage=hero-v2) |
 | `1993b7c57` | 데스크탑 화질: `applyFeatureDetailSrcset` 로 `-320/-480/-960` srcset + `sizes="(max-width: 768px) 180px, 480px"` (index-inline-runtime.js·uiBindings.js 쌍둥이) |
 | `10a7ddf95` | 빈 시트 근본 수정: 전체화면 동안 `.feature-card-grid` 를 `#inputPage` 직속 `#cdAllFortunesStage` 로 옮긴다(mountStage/unmountStage). 홈 접힘(`details#cdhMore`)·containment 와 무관 |
-| A-2 커밋 | 달빛 예화 개편: `<style id="cd-all-fortunes-yehwa-v20260925">` + 개요 히어로(연이/네오 페르소나)·카테고리 16:9 썸네일(`collectionThumbSrc`, 지연 마운트라 `__cdLazyCards` 에서 추출) |
+| `4393e952a` | 달빛 예화 개편: `<style id="cd-all-fortunes-yehwa-v20260925">` + 개요 히어로(연이/네오 페르소나)·카테고리 16:9 썸네일(`collectionThumbSrc`, 지연 마운트라 `__cdLazyCards` 에서 추출) |
 
 ## 알아 둘 구조
 
