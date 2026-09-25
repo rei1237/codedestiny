@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-26
-next: "Phase 4 검증과 main CI 확인 후 Phase 5 사용자 승인 대기."
+next: "Phase 4 main CI 결과 확인 후 Phase 5 사용자 승인 대기."
 ---
 
 # 영냥이 자유질문 인수인계
@@ -10,7 +10,7 @@ next: "Phase 4 검증과 main CI 확인 후 Phase 5 사용자 승인 대기."
 
 신규 질문형 첫 장의 답변에 질문별 F/T 근거 ID, 원 출처, 기간 해상도와 안전 표현 검증을 추가했다. 모델이 생성한 검증용 ID·상태는 저장 전에 제거해 공개 응답 필드를 유지한다. 품질 오류는 기존 예산 안에서 한 번만 재생성하고, 다시 실패하면 저장된 장과 유료 접근을 보존한 미완료 지원 확인 상태로 멈춘다. 자동 큐·정기 복구·사용자 재시도가 이 상태에서 추가 생성하지 않는다. 공급자·저장 오류의 기존 복구 경로는 유지했다.
 
-- 구현 커밋: `10db30be9ec5871e0acc1c0231bbb4ebbd1c9079`. main 병합·push·CI 결과는 이 절의 후속 기록과 `git log -1 -- docs/handoff/yeongnyangi-ask-20260926.md`를 확인한다.
+- 구현 커밋: `10db30be9ec5871e0acc1c0231bbb4ebbd1c9079`. main 병합 커밋: `a630900f008a60887221526106f4f4cc5bb6e83e`. push·CI 결과는 GitHub main run과 최종 보고에서 확인한다.
 - 대상: `worker/yeongnyangi/fortune/ask/validate.ts`, `providers/chapter.ts`, `service.ts`, `repository.js`, `queue.js`, `recovery.js`, `retry.js`, 관련 mock 테스트.
 - 관련 mock: 첫 장 검증·상담·서비스 20/20, 저장소·정기 복구·재시도 60/60 및 타입 검사 통과. `npm run check:fast -- --plan`은 critical, `npm run check:fast`는 종료 0으로 Node 검사·정책 가드·Worker dry build·Jest 296 suites / 4,214 tests를 통과했다. 게이트 뒤 Family 접근 보존 테스트 1건을 더했고 관련 60건을 다시 통과했다. `npm run verify:handoff-contract`는 195개 문서 통과.
 - 구매 snapshot·가격·차감·기존 환불 함수·일반 리포트·계산 엔진·공개 API 필드 구조는 유지했다. 새 검증 대기 상태는 즉시 환불하거나 추가 생성하지 않고 기존 유료 접근을 유지한다. 실 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않았다.
@@ -78,5 +78,5 @@ main에 다른 세션의 marketing 변경이 남아 있다. 광역 reset/stash/a
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 10db30be9ec5871e0acc1c0231bbb4ebbd1c9079 포함 여부를 확인하라. Phase 4의 main CI 결과를 확인하고, Phase 5 사용자 승인 후 12개 언어 입력과 normal/limited/care 화면·기존 렌더 호환부터 진행하라. 다른 세션 변경을 보존하고 실제 과금 호출과 운영 작업은 하지 마라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-ask-20260926.md를 읽고, main 상태와 a630900f008a60887221526106f4f4cc5bb6e83e 포함 여부를 확인하라. Phase 4의 main CI 결과를 확인하고, Phase 5 사용자 승인 후 12개 언어 입력과 normal/limited/care 화면·기존 렌더 호환부터 진행하라. 다른 세션 변경을 보존하고 실제 과금 호출과 운영 작업은 하지 마라.
 ```
