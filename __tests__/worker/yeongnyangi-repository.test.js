@@ -124,6 +124,33 @@ test('ask checkpoint rejects other owner, stale lease, refunded and pending refu
   expect(requests[0].generationCheckpoint.analysis).toBeUndefined();
 });
 
+test('limited ask review keeps payment and saved chapters without another claim',async()=>{
+  const first=await claimedAsk();
+  await repo.failChapter({},owner,'id',first.token,'ASK_EVIDENCE_INCOMPLETE',1,'quality',3);
+  requests[0].nextAttemptAt=new Date(0);
+  const second=await repo.claimChapter({},owner,'id');
+  expect(second.token).toBeTruthy();
+  await repo.failChapter({},owner,'id',second.token,'ASK_LIMITED_REVIEW_REQUIRED',2,'quality',3,'ASK_EVIDENCE_INCOMPLETE');
+  expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'ASK_LIMITED_REVIEW_REQUIRED',paymentId:'pay1',nextAttemptAt:null});
+  expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'review_required',detail:'ASK_EVIDENCE_INCOMPLETE'});
+  await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+  expect(requests[0].chapters).toHaveLength(0);
+});
+
+test('limited ask review preserves Family proof for support without restoring quota',async()=>{
+  requests.push({_id:'family-ask',userId:owner,...values,state:'GENERATING',
+    accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',passCycleKey:'cycle',
+    passCoinCost:10,completedChapters:0,chapters:[],leaseToken:'lease',
+    generationCheckpoint:{version:'ask-generation-v1'}});
+  evidences.push({_id:'507f1f77bcf86cd799439099',userId:owner,featureKey:values.featureKey,
+    metadata:{requestId:'family-ask',accessMethod:'FAMILY'}});
+  await repo.failChapter({},owner,'family-ask','lease','ASK_LIMITED_REVIEW_REQUIRED',2,'quality',3);
+  expect(refundPass).not.toHaveBeenCalled();
+  expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'ASK_LIMITED_REVIEW_REQUIRED',
+    accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099'});
+  expect((await repo.readRequest({},owner,'family-ask')).state).toBe('FORTUNE_FAILED');
+});
+
 test('ask checkpoint requires active Family evidence and an unexpired lease',async()=>{
   await repo.createRequest({},owner,'id',{...values,generationCheckpoint:{version:'ask-generation-v1'}});
   Object.assign(requests[0],{accessMethod:'FAMILY',passEvidenceId:'507f1f77bcf86cd799439099',state:'PAID'});

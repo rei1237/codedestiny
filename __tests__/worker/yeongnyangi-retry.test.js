@@ -20,7 +20,7 @@ test('a completed result does not require provider or queue availability',async(
  read.mockResolvedValue({...row(),state:'COMPLETED'});
  expect((await retryFortune({},'owner',id)).state).toBe('COMPLETED');expect(resume).not.toHaveBeenCalled();expect(enqueue).not.toHaveBeenCalled();
 });
-test.each(['REFUNDED','PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED'])('%s cannot enqueue',async code=>{
+test.each(['REFUNDED','PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'])('%s cannot enqueue',async code=>{
  read.mockResolvedValue({...row(),state:code==='REFUNDED'?code:'FORTUNE_FAILED',errorCode:code});
  await expect(retryFortune(env,'owner',id)).rejects.toMatchObject({status:409});expect(enqueue).not.toHaveBeenCalled();
 });
