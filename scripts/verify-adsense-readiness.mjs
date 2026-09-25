@@ -353,13 +353,15 @@ const policyContentExpectations = {
   ],
   "/contact": [
     "Contact Us",
-    "Typical response time",
+    "문의는 보통 영업일 기준 1~3일 내 회신합니다.",
+    "문의 내용과 확인 절차에 따라 더 걸릴 수 있습니다.",
     "Privacy Request Guide",
     "Please avoid sharing unnecessary sensitive data",
   ],
   "/contact-us": [
     "Contact Us",
-    "Typical response time",
+    "문의는 보통 영업일 기준 1~3일 내 회신합니다.",
+    "문의 내용과 확인 절차에 따라 더 걸릴 수 있습니다.",
     "Privacy Request Guide",
     "Please avoid sharing unnecessary sensitive data",
   ],
