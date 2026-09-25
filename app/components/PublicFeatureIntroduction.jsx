@@ -4,6 +4,7 @@ import { FEATURE_INTRODUCTIONS, INTRO_ACTIONS, INTRO_CTA_PATHS, INTRO_TOPICS, IN
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-data";
 import styles from "./PublicFeatureIntroduction.module.css";
+import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 
 export function introductionMetadata(locale, topic) {
   const copy = FEATURE_INTRODUCTIONS[topic][locale];
@@ -50,7 +51,7 @@ export default function PublicFeatureIntroduction({ locale, topic }) {
     </div>
     <nav className={styles.related} aria-label={ui.related}>
       {INTRO_TOPICS.filter(key => key !== topic && FEATURE_INTRODUCTIONS[key][locale]).map(key => <Link key={key} href={`/${locale}/${key}/`}>{FEATURE_INTRODUCTIONS[key][locale].heading}</Link>)}
-      <Link href={`/${locale}/contact/`}>{ui.contact}</Link>
+      <Link href={trustRoutes("contact")[locale] || trustRoutes("contact").ko}>{ui.contact}</Link>
     </nav>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": graph }).replace(/</g, "\\u003c") }} />
   </main>;

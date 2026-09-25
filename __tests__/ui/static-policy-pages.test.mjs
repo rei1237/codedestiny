@@ -23,6 +23,8 @@ for (const route of STATIC_POLICY_ROUTES) test(`${route.canonical} is complete s
   assert.match(html, /src="\/icons\/app-logo-512\.webp"/);
   assert.match(html, /꽃돼지가 길을 안내할게요/);
   assert.match(html, /<meta name="robots" content="index, follow">/);
+  const publisherId = read('ads.txt').match(/^google\.com,\s*(pub-\d+),/m)[1];
+  assert.ok(html.split('</head>')[0].includes(`<meta name="google-adsense-account" content="ca-${publisherId}">`));
   const ids = new Set();
   const anchors = [];
   const scripts = [];

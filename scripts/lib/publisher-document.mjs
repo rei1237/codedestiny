@@ -2,6 +2,7 @@ import { parse } from "parse5";
 
 const excluded = new Set(["script", "style", "svg", "template", "noscript", "nav", "footer", "header", "aside"]);
 export const attr = (node, name) => node.attrs?.find((item) => item.name === name)?.value || "";
+const isLoading = (node) => attr(node, "aria-busy") === "true" || attr(node, "role") === "status";
 export function nodes(root, predicate) {
   const result = [];
   function visit(node) {
@@ -12,7 +13,7 @@ export function nodes(root, predicate) {
   return result;
 }
 export function publisherText(node, omitChrome = true, streamedIds = new Set()) {
-  if (!node || excluded.has(node.tagName) && omitChrome) return "";
+  if (!node || omitChrome && (excluded.has(node.tagName) || isLoading(node))) return "";
   if (node.attrs?.some((item) => item.name === "hidden") && !streamedIds.has(attr(node, "id")) || attr(node, "aria-hidden") === "true"
     || /(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(attr(node, "style"))) return "";
   if (node.nodeName === "#text") return node.value;
@@ -37,7 +38,7 @@ export function inspectPublisherDocument(html, url) {
     && /\$RC\s*\(/.test(html)).map((node) => attr(node, "id")));
   const hiddenAncestor = (node) => {
     for (let parent = node.parentNode; parent; parent = parent.parentNode) {
-      if (excluded.has(parent.tagName)
+      if (excluded.has(parent.tagName) || isLoading(parent)
         || parent.attrs?.some((item) => item.name === "hidden") && !streamedIds.has(attr(parent, "id"))
         || attr(parent, "aria-hidden") === "true"
         || /(?:display\s*:\s*none|visibility\s*:\s*hidden)/i.test(attr(parent, "style"))) return true;

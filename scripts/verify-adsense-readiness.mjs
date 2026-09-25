@@ -922,7 +922,9 @@ function rememberUniqueAdsenseContentFingerprint(htmlPath, route, visibleText, s
 
 function assertPublisherBody(htmlPath, html) {
   const content = inspectPublisherDocument(html, siteOrigin);
-  assert(content.bodyChars > 0, `${htmlPath}: missing server-rendered publisher body`);
+  assert(getMetaContent(html, "google-adsense-account") === "ca-" + adsTxtRecord.split(",")[1].trim(), `${htmlPath}: missing or mismatched AdSense ownership meta`);
+  assert(content.bodyChars > 0, `${htmlPath}: missing server-rendered publisher body (loading/status text is not content)`);
+  assert(content.noJsBodyChars > 0, `${htmlPath}: publisher body requires JavaScript to reveal streamed HTML`);
   assert(!content.bodyText.includes("목차를 생성할 h2/h3가 없습니다"), `${htmlPath}: empty article template`);
   // Nonempty markup is only a technical gate. Editorial approval is recorded separately.
 }

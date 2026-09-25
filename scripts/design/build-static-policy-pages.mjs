@@ -60,6 +60,9 @@ const email = compiled.SUPPORT_EMAIL;
 const siteSchema = JSON.stringify({ '@context': 'https://schema.org', '@graph': [compiled.buildOrganizationJsonLd(), compiled.buildWebsiteJsonLd()] }).replace(/</g, '\\u003c');
 const nav = STATIC_POLICY_ROUTES.map((route) => `<a href="${route.canonical}/">${route.label}</a>`).join('');
 const summary = [];
+const publisherId = fs.readFileSync('ads.txt', 'utf8').match(/^google\.com,\s*(pub-\d+),\s*DIRECT,/m)?.[1];
+if (!publisherId) throw new Error('Missing Google publisher record in ads.txt');
+const accountMeta = `<meta name="google-adsense-account" content="ca-${publisherId}">`;
 
 for (let index = 0; index < STATIC_POLICY_ROUTES.length; index += 1) {
   const route = STATIC_POLICY_ROUTES[index];
@@ -74,7 +77,7 @@ for (let index = 0; index < STATIC_POLICY_ROUTES.length; index += 1) {
     : `${metadata.robots?.index === false ? 'noindex' : 'index'}, ${metadata.robots?.follow === false ? 'nofollow' : 'follow'}`;
   const image = metadata.openGraph?.images?.[0];
   const imageUrl = typeof image === 'string' ? image : image?.url;
-  const seoTags = `<meta name="robots" content="${escape(robots)}"><meta name="googlebot" content="${escape(robots)}"><meta property="og:type" content="${escape(metadata.openGraph?.type || 'website')}">${imageUrl ? `<meta property="og:image" content="${escape(imageUrl)}">` : ''}${metadata.keywords ? `<meta name="keywords" content="${escape(Array.isArray(metadata.keywords) ? metadata.keywords.join(', ') : metadata.keywords)}">` : ''}`;
+  const seoTags = accountMeta + `<meta name="robots" content="${escape(robots)}"><meta name="googlebot" content="${escape(robots)}"><meta property="og:type" content="${escape(metadata.openGraph?.type || 'website')}">${imageUrl ? `<meta property="og:image" content="${escape(imageUrl)}">` : ''}${metadata.keywords ? `<meta name="keywords" content="${escape(Array.isArray(metadata.keywords) ? metadata.keywords.join(', ') : metadata.keywords)}">` : ''}`;
   let main = renderToStaticMarkup(createElement(page.default));
   if (!main.includes('<main') || !main.includes('<h1')) throw new Error(`Incomplete policy content: ${route.key}`);
   if (route.key === 'contact') main = main.replace(/<form\b/, `<form data-policy-contact data-support-email="${escape(email)}"`);

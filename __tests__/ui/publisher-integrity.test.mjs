@@ -68,3 +68,13 @@ test("a short complete article is measured, never rejected by a word-count thres
   assert.equal(doc.bodyText, "일주는 민용일을 기준으로 구분합니다.");
   assert.equal(doc.title, "");
 });
+
+test("loading/status text and shared navigation cannot pass as a publisher body", () => {
+  for (const loading of ['<main aria-busy="true"><p>스프레드의 문을 여는 중입니다.</p></main>', '<p role="status">Loading…</p>', '<main aria-busy="true"><section data-article-body="true">Loading…</section></main>']) {
+    const html = loading + '<nav>관련 콘텐츠</nav><footer>운영 안내</footer>';
+    assert.equal(inspectPublisherDocument(html, 'https://code-destiny.com/tool/').bodyChars, 0);
+    const withGuide = inspectPublisherDocument(html + '<article><p>카드의 자리는 질문의 서로 다른 측면을 나타냅니다.</p></article>', 'https://code-destiny.com/tool/');
+    // An explicit article marker is authoritative, including a hidden/loading empty article.
+    if (!loading.includes('data-article-body')) assert.match(withGuide.bodyText, /카드의 자리/);
+  }
+});

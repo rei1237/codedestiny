@@ -3225,7 +3225,7 @@ export default function TarotPromptMakerPage() {
 
   return (
     <div
-      className="fixed inset-0 overflow-hidden"
+      className="relative min-h-dvh overflow-hidden"
       style={{
         background: "radial-gradient(ellipse at 20% 0%, #2d0a4e 0%, transparent 50%), radial-gradient(ellipse at 80% 10%, #1a0a3a 0%, transparent 45%), linear-gradient(180deg, #0d0618 0%, #120828 30%, #0f0520 60%, #080312 100%)",
         fontFamily: "'Noto Serif KR', serif",
@@ -3258,21 +3258,21 @@ export default function TarotPromptMakerPage() {
       }} />
 
       {/* Scrollable content wrapper */}
-      <div className="relative z-10 h-full overflow-y-auto">
-        <div className="min-h-full flex flex-col px-4 py-6 sm:px-6 lg:px-10">
+      <div className="relative z-10">
+        <div className="mx-auto min-h-dvh w-full max-w-[960px] flex flex-col px-4 py-6 sm:px-6 lg:px-10">
 
           {/* ── Header ── */}
           <header className="text-center mb-8 pt-2">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#a855f7]/40 bg-[#a855f7]/10 text-[11px] font-semibold tracking-[0.25em] text-[#c4b5fd] uppercase mb-4">
               ✦ {uiCopy.heroBadge} ✦
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: "#fff", textShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight" style={{ color: "#fff", textShadow: "0 0 40px rgba(168,85,247,0.4)" }}>
               <span className="text-[#e9d5ff]">{uiCopy.heroSteps[0]}</span>
               <span className="mx-3 text-[#c084fc]">→</span>
               <span className="text-[#e9d5ff]">{uiCopy.heroSteps[1]}</span>
               <span className="mx-3 text-[#c084fc]">→</span>
               <span className="bg-gradient-to-r from-[#c084fc] to-[#f472b6] bg-clip-text text-transparent">{uiCopy.heroSteps[2]}</span>
-            </h1>
+            </h2>
             <p className="mt-3 text-[#c4b5fd]/70 text-sm sm:text-base">
               {oracleModeMeta.description}
             </p>
