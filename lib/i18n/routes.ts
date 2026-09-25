@@ -15,7 +15,9 @@ export type I18nRouteKey = (typeof I18N_ROUTE_KEYS)[number];
 
 export const I18N_ROUTE_MAP: Record<I18nRouteKey, Record<Locale, string>> = {
   home: {
-    ko: "/",
+    // These translated shells describe Flower Pig, whose Korean home is /ggulggul.
+    // The Yeongnyangi root is a different service landing, not their translation.
+    ko: "/ggulggul",
     ja: "/ja",
     zh: "/zh",
     "zh-TW": "/zh-tw",

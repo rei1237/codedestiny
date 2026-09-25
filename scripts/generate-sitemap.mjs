@@ -332,7 +332,7 @@ const i18nRouteGroups = [
   ...INTRO_TOPICS.map(topic => ({ paths: Object.fromEntries(Object.entries(introductionRoutes(topic)).filter(([lang]) => lang !== "x-default").map(([lang, p]) => [lang === "zh-tw" ? "zh-TW" : lang, p])), changefreq: "monthly", priority: 0.8 })),
   ...TRUST_KEYS.map(key => ({ paths: Object.fromEntries(Object.entries(trustRoutes(key)).filter(([lang]) => lang !== "x-default")), changefreq: "monthly", priority: 0.7 })),
   {
-    paths: { ko: "/", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },
+    paths: { ko: "/ggulggul", ja: "/ja", zh: "/zh", "zh-TW": "/zh-tw", en: "/en" },
     changefreq: "daily",
     priority: 1.0,
   },
