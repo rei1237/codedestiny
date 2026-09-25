@@ -94,6 +94,19 @@ export default function AboutPage() {
           id="author" 는 ContentIntegrityNote 의 "저자 소개" 링크(/about#author)가 착지하는 앵커다. */}
       <section className="cd-card" id="author">
         <h2>{aboutPageText("editorial.title")}</h2>
+        <figure style={{ margin: "0 0 16px" }}>
+          <img
+            src="/assets/yeongnyangi/original/records-scroll-960.webp"
+            srcSet="/assets/yeongnyangi/original/records-scroll-480.webp 480w, /assets/yeongnyangi/original/records-scroll-960.webp 960w"
+            sizes="(min-width: 760px) 560px, calc(100vw - 48px)"
+            width={960}
+            height={640}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            style={{ display: "block", width: "100%", maxWidth: "560px", height: "auto", borderRadius: "var(--cd-card-radius-img, 12px)" }}
+          />
+        </figure>
         <p>
           {aboutPageText("editorial.team")}
         </p>
