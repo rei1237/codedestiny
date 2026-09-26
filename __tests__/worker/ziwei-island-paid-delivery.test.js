@@ -1,5 +1,6 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+import { palaceParts } from "../../worker/lib/island/consult/palace-delivery.js";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", palaceKey: "명궁", calendarType: "solar", focusArea: "overall", accessType: "pass" };
@@ -80,6 +81,7 @@ beforeEach(() => {
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.logContext.sectionGroup;
+    expect(options.cache.minChars).toBe(palaceParts(body.palaceKey).find(part => part.id === id).minChars);
     return { ok: true, provider: "gemini", model: "fixture", text: JSON.stringify({ body: prose(id, 3500), evidence: { palace: "명궁", mainStars: ["자미"], daeun: "23-32" } }) };
   });
   chart = jest.fn(() => ({ palaces: [{ name: "명궁", mainStars: ["자미"], majorLuck: { range: "23-32" } }], fourTransformations: {}, chartSummary: "fixture" }));

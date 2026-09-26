@@ -121,12 +121,14 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       const valid = ai?.ok && !ai.truncated && !ai.isMock && !/mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
         && value?.evidenceHash === state.evidenceHash && typeof value.body === "string" && countPaidReportBodyChars(value.body) > 0;
       const accept = async () => {
-        const body = valid ? value.body : null;
-        const candidate = selectNarrativeCandidate(draft, body);
+        const body = valid && !hasRepeatedReportPassage(value.body)
+          && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + value.body) ? value.body : null;
+        const previous = draft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + draft) ? draft : null;
+        const candidate = selectNarrativeCandidate(previous, body);
         // A short first result is durable before spending the one repair call.
         // Failed repairs reuse only that already validated draft. Empty, truncated,
         // wrong-evidence and repeated responses never become candidates.
-        const accepted = body && countPaidReportBodyChars(body) >= task.minChars ? body
+        const accepted = body && countPaidReportBodyChars(body) >= task.minChars ? candidate || body
           : (draft || state.attempts[task.id] >= 3) ? candidate : null;
         const chosen = accepted || candidate;
         if (!chosen || hasRepeatedReportPassage(chosen) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + chosen)) return;
