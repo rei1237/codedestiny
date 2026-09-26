@@ -95,6 +95,11 @@ Family v3 149,000원/30일/누적 5,000단위는 무제한 생성이 아니다. 
 
 ## 재개 명령
 
+### 이번 인수인계 전달 검사
+
+- 문서 커밋 `3a9a7adcccf2af90627e24d3a7b1581fb42fa32a`는 main push 완료. `check:fast -- --plan` fast, `check:fast` 통과, `verify:handoff-contract` 199개 문서 통과, `git diff --check` 통과.
+- [해당 main CI](https://github.com/rei1237/codedestiny/actions/runs/36266664180)의 Static guards는 `verify:hero-firstpaint-lock`에서 실패했다: `Only the shared hero/payment art is preloaded` (`scripts/verify-hero-firstpaint-lock.mjs:77`). 부모 `06d651ce5`와 이 커밋 사이 변경은 이 인수인계 문서 1개뿐이며 해당 검사/hero 소스는 변경하지 않았다. 문서 전달을 CI 전체 통과라고 보고하지 않는다. 다음 코드 작업 전에 최신 main에서 이 실패의 해결 여부를 확인한다. 이 요청 밖 UI/가드를 임의 수정하지 않았다.
+
 다음은 읽기 및 로컬 보고 명령이다. 운영 DB 접근·실거래·배포를 자동 실행하지 않는다.
 
 ```powershell
