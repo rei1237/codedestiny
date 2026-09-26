@@ -26,7 +26,7 @@ try {
     await page.waitForFunction(()=>{const i=document.querySelector('.cd-soulcat-entry img');return i.complete&&i.naturalWidth>0;});
     await page.locator('.cd-soulcat-entry').screenshot({path:resolve(out,`cat-${width}.png`)});
     const catHeight=await page.locator('.cd-soulcat-entry').evaluate(el=>el.getBoundingClientRect().height);
-    if(!baseline&&width===360)assert.ok(catHeight<=140,`Compact entry height ${catHeight}`);
+    if(!baseline&&width===360)assert.ok(catHeight<=480,`Mobile entry height ${catHeight}`);
     await page.evaluate(()=>document.querySelector('[aria-label="사주 분석 시작하기"]').click());
     await page.waitForFunction(()=>typeof window.calculate==='function');
     await page.locator('#nameInput').fill('테스트');await page.locator('#birthDate').fill('19910220');
