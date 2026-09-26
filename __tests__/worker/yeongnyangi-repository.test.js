@@ -88,6 +88,34 @@ jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEviden
 let repo;
 beforeAll(async()=>{repo=await import('../../worker/yeongnyangi/repository.js');});
 const values={profileId:'p1',productId:'saju_mackerel',featureKey:'yeongnyangi-saju-mackerel',amountKRW:1000,fingerprint:'fixed',snapshot:{manifest:[{},{}]}};
+test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recovery',async()=>{
+  const tuna={...values,productId:'saju_tuna',featureKey:'yeongnyangi-saju-tuna',amountKRW:10000,snapshot:{manifest:Array.from({length:15},()=>({}))}};
+  payments[0].featureKey=tuna.featureKey;payments[0].paymentAmount=tuna.amountKRW;
+  await repo.createRequest({},owner,'id',tuna);
+  await repo.attachPayment({},owner,'id',tuna.amountKRW);
+  for(let ordinal=0;ordinal<8;ordinal++){
+    const claim=await repo.claimChapter({},owner,'id');
+    await repo.finishChapter({},owner,'id',claim.token,ordinal,{summary:`saved-${ordinal}`},15);
+  }
+  const saved=structuredClone(requests[0].chapters);
+  const ninth=await repo.claimChapter({},owner,'id');
+  await repo.failChapter({},owner,'id',ninth.token,'FORTUNE_PROVIDER_TIMEOUT',1,'provider');
+  requests[0].nextAttemptAt=null;
+  const claims=await Promise.all([repo.claimChapter({},owner,'id'),repo.claimChapter({},owner,'id')]);
+  expect(claims.filter(row=>row.token)).toHaveLength(1);
+  const resumed=claims.find(row=>row.token);
+  expect(resumed.row.chapters).toEqual(saved);
+  await repo.finishChapter({},owner,'id',resumed.token,8,{summary:'recovered-9'},15);
+  for(let ordinal=9;ordinal<15;ordinal++){
+    const claim=await repo.claimChapter({},owner,'id');
+    await repo.finishChapter({},owner,'id',claim.token,ordinal,{summary:`saved-${ordinal}`},15);
+  }
+  expect(requests[0].chapters.slice(0,8)).toEqual(saved);
+  expect(requests[0].state).toBe('COMPLETED');
+  expect(requests[0].chapterAttempts[8]).toBe(2);
+  expect(payments).toHaveLength(1);
+  expect(consumePass).not.toHaveBeenCalled();
+});
 beforeEach(()=>{
   requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
   evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();

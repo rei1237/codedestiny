@@ -6,6 +6,8 @@ import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
+import { selectNarrativeCandidate, narrativeRepairTask } from "./paid-narrative-candidate.js";
+import { runWithPaidGenerationContext } from "./paid-generation-context.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const failure = resultId => Object.assign(new Error("Result storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE", resultId });
@@ -13,6 +15,7 @@ const cleanBody = body => JSON.parse(JSON.stringify(body, (key, value) => /^(?:p
 const ready = state => state.tasks.every(task => state.parts[task.id])
   && countPaidReportBodyChars(Object.values(state.parts).join("\n")) >= state.minBodyChars;
 const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 3);
+const reviewRequired = state => limited(state) || (state.tasks.every(task => state.parts[task.id]) && !ready(state));
 
 async function find(env, filter) {
   try { await connectDb(env); return await ServiceExecutionTransaction.findOne(filter).sort({ createdAt: -1 }).lean(); }
@@ -20,7 +23,7 @@ async function find(env, filter) {
 }
 async function save(filter, fields) {
   try {
-    const written = await ServiceExecutionTransaction.findOneAndUpdate(filter, { $set: fields }, { returnDocument: "after" }).lean();
+    const written = await ServiceExecutionTransaction.findOneAndUpdate({ ...filter, "lock.until": { $gt: new Date() } }, { $set: fields }, { returnDocument: "after" }).lean();
     if (!written) throw failure(filter.executionKey);
     const confirmed = await ServiceExecutionTransaction.findOne({ userId: filter.userId, executionKey: filter.executionKey }).lean();
     for (const [key, value] of Object.entries(fields)) if (JSON.stringify(confirmed?.[key]) !== JSON.stringify(value)) throw failure(filter.executionKey);
@@ -36,7 +39,9 @@ function respond(doc, render, busy = false) {
   if (state.exhaustionClaimed) return json({ ok: false, code: "RESULT_STORAGE_UNAVAILABLE", reason: "DELIVERY_REVIEW_REQUIRED", resultId: doc.executionKey, retryable: false, paymentRetainedForRetry: true }, { status: 503 });
   if (doc.premiumStatus === "completed") return json({ ...doc.metadata.result, ok: true, status: "completed", resultId: doc.executionKey, saved: true });
   return json({ ...render(state), ok: true, status: ready(state) ? "delivery_pending" : Object.keys(state.parts).length ? "partial" : "generating",
-    saved: false, retryable: !limited(state), resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
+    saved: false, retryable: !reviewRequired(state), reviewRequired: reviewRequired(state),
+    ...(reviewRequired(state) ? { code: "DELIVERY_REVIEW_REQUIRED", nextAction: "support" } : {}),
+    resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
     completedParts: Object.keys(state.parts), totalParts: state.tasks.length, busy, retryAfterMs: busy ? 5000 : 1000,
   }, { status: 202 });
 }
@@ -86,13 +91,19 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc.lock.token !== token) return respond(doc, render, true);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
-  const persist = async () => { doc = await save(filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state) } }); };
+  const persist = async () => { doc = await save(filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null },
+    timeoutAt: new Date(Date.now() + 600000) }); };
   try {
     const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 3).slice(0, 4);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();
-    const calls = await Promise.allSettled(missing.map(async task => {
+    const calls = await Promise.allSettled(missing.map(originalTask => runWithPaidGenerationContext({
+      serviceId: featureKey, requestId: executionKey, sectionGroup: originalTask.id,
+      attempt: state.attempts[originalTask.id], generationSource: state.drafts?.[originalTask.id] ? 'repair' : state.attempts[originalTask.id] > 1 ? 'recovery' : 'initial',
+    }, async () => {
+      const draft = state.drafts?.[originalTask.id];
+      const task = narrativeRepairTask(originalTask, draft);
       const prompt = `${state.prompt}\n\n[이번 호출 범위]\n${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"} 하나만 출력하세요. 본문은 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다. 확정 계산값을 바꾸지 말고 근거 → 생활 패턴 → 반대 조건·주의점 → 행동 조언 순으로 짧은 문단을 나누세요. 반복으로 분량을 채우지 마세요.`;
       let ai, value;
       try {
@@ -106,16 +117,26 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
           }));
           try { value = JSON.parse(ai?.text || ""); } catch { value = null; }
         }
-      } catch { return; }
-      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
-        || value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || countPaidReportBodyChars(value.body) < task.minChars) return;
+      } catch { ai = null; }
+      const valid = ai?.ok && !ai.truncated && !ai.isMock && !/mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
+        && value?.evidenceHash === state.evidenceHash && typeof value.body === "string" && countPaidReportBodyChars(value.body) > 0;
       const accept = async () => {
-        if (hasRepeatedReportPassage(value.body) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + value.body)) return;
-        state = { ...state, parts: { ...state.parts, [task.id]: value.body } };
+        const body = valid ? value.body : null;
+        const candidate = selectNarrativeCandidate(draft, body);
+        // A short first result is durable before spending the one repair call.
+        // Failed repairs reuse only that already validated draft. Empty, truncated,
+        // wrong-evidence and repeated responses never become candidates.
+        const accepted = body && countPaidReportBodyChars(body) >= task.minChars ? body
+          : (draft || state.attempts[task.id] >= 3) ? candidate : null;
+        const chosen = accepted || candidate;
+        if (!chosen || hasRepeatedReportPassage(chosen) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + chosen)) return;
+        state = { ...state,
+          drafts: { ...state.drafts, [task.id]: accepted ? null : candidate },
+          parts: accepted ? { ...state.parts, [task.id]: accepted } : state.parts };
         await persist();
       };
       queue = queue.then(accept, accept); await queue;
-    }));
+    })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
     if (!ready(state)) {
       if (limited(state) && onExhausted) {

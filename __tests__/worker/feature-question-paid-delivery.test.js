@@ -10,7 +10,7 @@ const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
  if(key==='$or')return value.some(item=>matches(doc,item));const actual=get(doc,key);
- if(value&&typeof value==='object'&&!(value instanceof Date)){if('$exists'in value)return Boolean(actual!==undefined)===value.$exists;if('$in'in value)return value.$in.includes(actual);}
+ if(value&&typeof value==='object'&&!(value instanceof Date)){if('$exists'in value)return Boolean(actual!==undefined)===value.$exists;if('$in'in value)return value.$in.includes(actual);if('$gt'in value)return new Date(actual)>new Date(value.$gt);}
  return value===null?actual==null:JSON.stringify(actual)===JSON.stringify(value);
 });}
 const query=value=>({lean:async()=>clone(value),select(){return this;},sort(){return this;}});

@@ -1967,6 +1967,10 @@ const app = {
       ctx.waitUntil(runYeongnyangiRecovery(env).catch((error) => {
         console.error("[yeongnyangi-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
       }));
+      const { monitorPaidNarratives } = await import("./lib/paid-narrative-monitor.js");
+      ctx.waitUntil(monitorPaidNarratives(env).catch(() => {
+        console.error('[paid-narrative-monitor] failed');
+      }));
       return;
     }
 

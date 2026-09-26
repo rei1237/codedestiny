@@ -4,6 +4,7 @@ import {
   deleteGeminiContextCache as deleteLLMContextCache,
 } from "../../lib/llm-client.ts";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
+import { getPaidGenerationContext } from "./paid-generation-context.js";
 
 function clean(value, maxLength = 0) {
   const text = String(value || "").trim();
@@ -138,7 +139,7 @@ export async function callGeminiText(env, prompt, options = {}) {
         ? options.geminiParts
         : undefined,
       fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
-      logContext: options.logContext && typeof options.logContext === "object" ? options.logContext : undefined,
+      logContext: { ...getPaidGenerationContext(), ...(options.logContext && typeof options.logContext === "object" ? options.logContext : {}) },
       cache: options.cache && typeof options.cache === "object" ? options.cache : undefined,
       // Gemini 명시적 컨텍스트 캐시 핸들(createGeminiContextCache 반환값). 위 `cache`(응답 캐시)와
       // 다른 것이다. prompt 는 접두사를 포함한 전체로 두고, 접두사 제거는 llm-client 가 전송

@@ -54,7 +54,7 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
         sections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: state.parts[task.id] })),
       }),
       produce: async (task, state) => {
-        const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n[이번 부분: ${task.id}] ${task.title}\nJSON {"evidenceHash":"${state.evidenceHash}","claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 하나 이상 정확하게 복사합니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
+        const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n[이번 부분: ${task.id}] ${task.prompt || task.title}\nJSON {"evidenceHash":"${state.evidenceHash}","claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 하나 이상 정확하게 복사합니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
           systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500,
           thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
         });

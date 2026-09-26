@@ -2,9 +2,9 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const compiled=await build({stdin:{contents:"export {CodeDestinyProvider} from './worker/yeongnyangi/providers/code-destiny'; export {setResponse,getOptions} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
- plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options; export function setResponse(value){response=value;} export function getOptions(){return options;} export async function callGeminiText(env,prompt,opts){options=opts;return response;}'}));}}]});
-const {CodeDestinyProvider,setResponse,getOptions}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const compiled=await build({stdin:{contents:"export {CodeDestinyProvider} from './worker/yeongnyangi/providers/code-destiny'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
+ plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return response;}'}));}}]});
+const {CodeDestinyProvider,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const provider=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'});
 const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',calculatedData:{},outputSchema:{},sectionTitles:[]};
 test('question analysis uses a short deterministic single provider call',async()=>{
@@ -54,4 +54,15 @@ test('provider transport pins the purchase language instead of ambient HTTP loca
   await new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-sent',LLM_DRY_RUN:'false'}).generate({...request,locale});
   assert.equal(getOptions().locale,locale || 'ko');
  }
+});
+
+test('chapter transport sends fixed evidence once and keeps system instructions separate',async()=>{
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ await provider.generate({...request,system:'SYSTEM_ONLY',userQuestion:'질문 원문',calculatedData:{facts:[{id:'saju.dayMaster',value:'wood'}]}});
+ const payload=JSON.parse(getPrompt());
+ assert.equal(Array.isArray(payload),false);
+ assert.equal(payload.USER_QUESTION,'질문 원문');
+ assert.deepEqual(payload.CALCULATED_DATA.facts,[{id:'saju.dayMaster',value:'wood'}]);
+ assert.equal(getOptions().systemPrompt,'SYSTEM_ONLY');
+ assert.equal(getPrompt().includes('SYSTEM_ONLY'),false);
 });

@@ -178,7 +178,7 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
   const context=vm.createContext({console,Date,PAYMENT_RECONCILE_CRON:'*/10 * * * *',
    __import:async spec=>spec==='./lib/fusion-fortune-recovery-task.js'
     ? import('../../worker/lib/fusion-fortune-recovery-task.js')
-    : {runYeongnyangiRecovery: async () => {}, runPaymentReconcileTask:async()=>{},runPaymentsV2Reconcile:async()=>{},runSnsDailyPostRecovery:async()=>{},runThreadsDailyJobs:async()=>{},runMasterLoveCodexRecovery:async()=>{},runZiweiDeepReportRecovery:async()=>{}},
+    : {monitorPaidNarratives:async()=>{}, runYeongnyangiRecovery: async () => {}, runPaymentReconcileTask:async()=>{},runPaymentsV2Reconcile:async()=>{},runSnsDailyPostRecovery:async()=>{},runThreadsDailyJobs:async()=>{},runMasterLoveCodexRecovery:async()=>{},runZiweiDeepReportRecovery:async()=>{}},
   });
   vm.runInContext(scheduled.getText(ast).replace(/^async scheduled/,'async function scheduled').replace(/\bimport\(/g,'__import('),context);
   await context.scheduled({cron:'*/10 * * * *'},ENV,{waitUntil:promise=>pending.push(promise)});

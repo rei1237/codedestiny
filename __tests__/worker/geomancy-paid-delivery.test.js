@@ -5,7 +5,7 @@ let owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
 function matches(doc,filter){return Object.entries(filter).every(([key,value])=>{
  if(key==='$or')return value.some(item=>matches(doc,item));const actual=get(doc,key);
- if(value&&typeof value==='object'&&!(value instanceof Date)){if('$exists'in value)return Boolean(actual!==undefined)===value.$exists;if('$in'in value)return value.$in.includes(actual);}
+ if(value&&typeof value==='object'&&!(value instanceof Date)){if('$exists'in value)return Boolean(actual!==undefined)===value.$exists;if('$in'in value)return value.$in.includes(actual);if('$gt'in value)return new Date(actual)>new Date(value.$gt);}
  return value===null?actual==null:JSON.stringify(actual)===JSON.stringify(value);
 });}
 const query=value=>({lean:async()=>clone(value),select(){return this;},sort(){return this;}});
@@ -36,6 +36,45 @@ const original=()=>({requestId:'original-paid-geomancy',transactionId:'paid-'+mo
 const post=body=>route(new Request('https://mock.test/api/oracle/geomancy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{});
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 const finish=async()=>{let result;for(let i=0;i<4;i++){result=await resume();if(result.status===200)return result;}return result;};
+test.each(['timeout','short'])('a durable short draft survives a %s repair without a third call',async failure=>{
+ const good=provider.getMockImplementation();
+ let firstId, saved;
+ provider.mockImplementation(async(...args)=>{
+  const response=await good(...args), value=JSON.parse(response.text);
+  const id=args[1].split('[이번 호출 범위] ')[1].split(':')[0];
+  firstId ||= id;
+  if(id===firstId){
+   if(saved && failure==='timeout') throw Error('timeout');
+   value.body=value.body.split('\n\n').slice(0,10).join('\n\n');
+   saved ||= value.body;
+  }
+  return {...response,text:JSON.stringify(value)};
+ });
+ await start();
+ expect(docs[0].metadata.paidNarrative.drafts[firstId]).toBe(saved);
+ expect(docs[0].metadata.paidNarrative.parts[firstId]).toBeUndefined();
+ const result=await finish();
+ expect(result.status).toBe(200);
+ expect(docs[0].metadata.paidNarrative.parts[firstId]).toBe(saved);
+ expect(provider).toHaveBeenCalledTimes(8);
+ expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(2);
+});
+test('a complete set below the advertised report minimum requests review instead of polling forever',async()=>{
+ await start();
+ const state=docs[0].metadata.paidNarrative;
+ for(const task of state.tasks)state.parts[task.id]=`${task.id}의 근거를 확인합니다.\n\n조건에 맞춰 선택하세요.`;
+ const response=await resume();
+ expect(response.status).toBe(202);
+ expect(await response.json()).toMatchObject({retryable:false,reviewRequired:true,nextAction:'support',code:'DELIVERY_REVIEW_REQUIRED'});
+ expect(docs[0].premiumStatus).not.toBe('completed');
+});
+test('an expired worker cannot commit late provider results even before another owner claims',async()=>{
+ const good=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const response=await good(...args);docs[0].lock.until=new Date(0);return response;});
+ expect((await start()).status).toBe(503);
+ expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(0);
+ expect(docs[0].premiumStatus).not.toBe('completed');
+});
 test.each(['pass','monthly','single'])('%s saves and reopens all seven parts without regeneration',async pay=>{mode=pay;expect((await start()).status).toBe(202);const result=await finish();expect(result.status).toBe(200);const data=await result.json();expect(data.saved).toBe(true);expect(data.source).toBe('gemini');expect(provider).toHaveBeenCalledTimes(7);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(7);expect(proofs.every(p=>p.requestId===original().requestId)).toBe(true);});
 test.each(['pass','monthly','single'].flatMap(pay=>['throw','null','confirm'].map(kind=>[pay,kind])))('%s final storage %s retains generated parts',async(pay,kind)=>{mode=pay;await start();fault={kind};const failed=await resume();expect(failed.status).toBe(503);expect(await failed.json()).toMatchObject({ok:false,retryable:true,reason:'RESULT_STORAGE_UNAVAILABLE',resultId:docs[0].executionKey});expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(7);});
 test.each(['throw','null','confirm'])('checkpoint %s stops before provider',async kind=>{fault={kind,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect((await resume()).status).toBe(202);});

@@ -197,7 +197,9 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
   const ordinal=row.chapters.length;
   const startedAt=Date.now();let stage='provider';
   try {
-    const sharedProvider=new CodeDestinyProvider(env);
+    const sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
+      access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
+      attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source});
     let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
     if(row.generationCheckpoint?.version==='ask-generation-v1') {
       const consultation=row.snapshot.analysis.consultation;
@@ -234,6 +236,8 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     stage='storage';
     const completed=await finishChapter(env,userId,requestId,token,ordinal,result,row.snapshot.manifest.length);
     if(!completed) throw new FortuneError('GENERATION_LEASE_LOST',409);
+    console.info('[yeongnyangi-generation]',JSON.stringify({requestId,productId:row.productId,chapter:ordinal,
+      stage:'checkpoint',source,durationMs:Date.now()-startedAt,state:completed.state,recordedAt:new Date().toISOString()}));
     return completed;
   } catch(error) {
     const code=error instanceof FortuneError?error.code:stage==='storage'?'RESULT_STORAGE_UNAVAILABLE':'GENERATION_FAILED';
@@ -261,7 +265,8 @@ export function presentFortune(row: any) {
   const canRetryNow=userCanRetry(row);
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
     providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked&&!held,
-    canRetryNow,nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
+    canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
+    nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,

@@ -17,12 +17,13 @@ function providerSchema(value: any): any {
 const THINKING_BUDGET=1024;
 
 export class CodeDestinyProvider implements LLMProvider {
-  constructor(private env: Record<string, unknown>) {}
+  constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {}) {}
   async analyzeQuestion(system: string, data: string): Promise<string> {
     if(getEnv(this.env,'LLM_DRY_RUN')==='true'||!getEnv(this.env,'GEMINIF_API_KEY'))throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const response=await callGeminiText(this.env,data,{
       systemPrompt:system,temperature:0,maxOutputTokens:1024,thinkingBudget:0,timeoutMs:15000,
       maxProviderAttempts:1,fallbackToWorkersAI:false,responseMimeType:'application/json',taskType:'yeongnyangi-ask-analysis',
+      logContext:{...this.logContext,sectionGroup:'question-analysis'},
     });
     if(!response.ok||response.isMock||!response.text||response.truncated||/^(MAX_TOKENS|LENGTH)$/.test(response.finishReason||''))throw new FortuneError('ASK_ANALYSIS_FAILED',502);
     return response.text;
@@ -31,7 +32,9 @@ export class CodeDestinyProvider implements LLMProvider {
     // No fixture or paid-provider fallback is selected by request parameters.
     if (getEnv(this.env,'LLM_DRY_RUN') === 'true' || !getEnv(this.env,'GEMINIF_API_KEY')) throw new FortuneError('LLM_NOT_CONFIGURED',503);
     const cap=Math.max(request.maxOutputTokens || 8192,tokensRequiredForChars(6000))+THINKING_BUDGET;
-    const response=await callGeminiText(this.env, JSON.stringify(messages(request)), {
+    // The system instructions already travel in systemPrompt. Send the user
+    // payload once, without embedding and escaping the whole message array.
+    const response=await callGeminiText(this.env, messages(request)[1].content, {
       locale:request.locale || 'ko',
       maxOutputTokens:cap,thinkingBudget:THINKING_BUDGET,timeoutMs:90000,
       // The durable chapter counter owns retries. Hidden provider retries would
@@ -39,6 +42,7 @@ export class CodeDestinyProvider implements LLMProvider {
       maxProviderAttempts:1,
       systemPrompt:request.system,responseMimeType:'application/json',responseSchema:providerSchema(request.outputSchema),fallbackToWorkersAI:false,
       taskType:'yeongnyangi-chapter',
+      logContext:this.logContext,
     });
     if (response.truncated || /^(MAX_TOKENS|LENGTH)$/.test(response.finishReason || '')) throw new FortuneError('FORTUNE_OUTPUT_TRUNCATED',502);
     if (!response.ok || response.isMock || !response.text) {
