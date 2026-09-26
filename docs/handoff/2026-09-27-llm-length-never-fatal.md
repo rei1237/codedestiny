@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P1(paid-narrative 공통 헬퍼 11개 서비스)부터 한 세션에 한 단계씩. 영냥이는 완료."
+next: "P2(토큰 부족 3곳 + 신년)부터 한 세션에 한 단계씩. 영냥이와 P1은 구현 완료; P1 검증·전달 결과는 아래 참조."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -32,7 +32,18 @@ next: "P1(paid-narrative 공통 헬퍼 11개 서비스)부터 한 세션에 한 
 - 보관함·상세의 구매자 재시도 버튼을 보류 주문에도 연다(e8a221c70, a828e4959).
 - 남은 영냥이 형식 거부: `worker/yeongnyangi/providers/chapter.ts:59-63` 필드 5000자 초과 시 `INVALID_CHAPTER`. P4 에서 분할 교정으로 바꾼다.
 
-## 전수 조사 (2026-09-27, 읽기 전용·실호출 0)
+## P1 구현 (2026-09-27)
+
+- 시작 시 `main` 확인, `git pull --ff-only`는 Already up to date. 주 체크아웃에는 다른 세션의 마케팅·타입 생성 파일 변경이 있어 clean은 아니었으며, 변경을 보존하고 main 기준 clean 격리 체크아웃에서 작업했다.
+- 선행 `c4e1a69fd`에 이미 짧은 초안 저장·1회 보강·마지막 시도 수용이 있었다. 이를 다시 구현하지 않고, 반복 보강본이 저장된 유효 초안까지 막던 잔여를 수정했다.
+- 현재 본문과 저장 초안을 각각 이미 수용한 파트와 반복 검사한 뒤 가장 긴 유효 후보를 선택한다. 유효 초안이 없으면 빈 본문·잘림·mock·잘못된 근거·반복·미완성 본문은 마지막 시도의 분량 예외 후보로도 수용하지 않는다.
+- 섬 `generatePalaceText`의 캐시 `minChars`에 호출 파트의 `minChars`를 연결했다. 캐시는 원시 JSON 텍스트 길이를 검사하고, 본문·근거의 최종 판정은 기존 `validPalacePart`가 담당한다.
+- 총합 20,000자 및 서비스별 `minBodyChars`, producer의 구조·근거 검증, 기존 서술형 후보의 2문단·종결부호 조건은 유지한다. **짧은 파트 수용이 전체 리포트 완료를 보장하지는 않는다.** 총합 결정은 P5, 형식 교정은 P4다.
+- 핵심 mock: `npm run test:jest -- --runInBand __tests__/worker/geomancy-paid-delivery.test.js __tests__/worker/paid-narrative-candidate.test.js __tests__/worker/ziwei-island-paid-delivery.test.js` → 3 suites / 73 tests 통과.
+- 변이 5종(마지막 시도 수용 제거, 보강 초안 수용 제거, 반복 보강 필터 제거, 기존 파트와 겹치는 초안 필터 제거, 섬 캐시 하한 축소) 모두 실제 assertion 실패로 검출 후 원본 복원.
+- `regression-scout` / `paid-gate-auditor` 읽기 전용 감사 수행. `npm run check:fast -- --plan` critical 분류, `npm run check:fast` exit 0: 결제 가드 88/88, lint·typecheck·Node 테스트·Worker dry-run 통과, Jest 300 suites / 4,267 tests 통과. `node scripts/verify-handoff-contract.mjs` 198문서 통과. main CI 판정은 이 변경 커밋의 GitHub 실행과 세션 최종 보고를 참조한다. 실 LLM·결제·운영 DB·운영 승격 없음.
+
+## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 
 - 방식: `git grep`/코드 읽기.
 - 환산: `worker/lib/llm-budget.js` 1.5토큰/자 + 1,500자.
@@ -104,7 +115,7 @@ next: "P1(paid-narrative 공통 헬퍼 11개 서비스)부터 한 세션에 한 
 
 | 단계 | 범위 | 핵심 변경 | 검증 |
 |---|---|---|---|
-| **P1** | `paid-narrative-delivery.js` (11개 서비스) | 분량만 미달인 마지막 시도를 수용한다(L2). 그 외 거부 사유는 그대로 둔다. 섬 캐시에 `minChars` 를 추가한다. | 헬퍼 단위 테스트(분량 미달 3회 → 수용, 반복·잘림 → 기존대로). 변이 검사. `paid-gate-auditor`. |
+| **P1 구현 완료** | `paid-narrative-delivery.js` (11개 서비스) | 선행 초안/마지막 수용을 유지하고 반복 보강본의 초안 차단을 수정. 섬 캐시에 파트 `minChars` 연결. | 핵심 mock 73개·변이 5종 통과. 위 P1 검증·전달 기록 참조. |
 | **P2** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
 | **P3** | 대형 리포트 라우트 18개 | 섹션 분량 판정에 L2(보강본 수용)를 적용한다. 점성술·베딕·자미 상한 거절은 자르기로 바꾼다(L3). 자미·자미 심층·네오·인생책 프롬프트의 공백 기준을 판정 기준(`countPaidReportBodyChars`, 공백 제외)과 통일한다. 비율 1.0·0.85+ 인 곳은 프롬프트 목표를 하한/0.8 이상으로 올린다. | 라우트별 mock 테스트. 서비스 3~4개씩 나눠 커밋한다. |
 | **P4** | 형식 교정 | 연애 타로 4문단·마인드스캔 10문단은 분할·병합으로 맞춘다. 질문형 문장부호 끝은 정규화한다. 영냥이 필드 5000자는 분할한다. | 단위 테스트. |
@@ -126,4 +137,4 @@ next: "P1(paid-narrative 공통 헬퍼 11개 서비스)부터 한 세션에 한 
 
 ## 다음 세션 첫 문장
 
-"docs/handoff/2026-09-27-llm-length-never-fatal.md 를 읽고 main·clean 확인과 git pull --ff-only 후 P1(paid-narrative-delivery 공통 헬퍼: 분량만 미달인 마지막 시도 수용)을 진행하라."
+"docs/handoff/2026-09-27-llm-length-never-fatal.md 를 읽고 main·clean 확인과 git pull --ff-only 후 P2(토큰 부족 3곳 + 신년)를 진행하라. P1의 총합·형식 제한은 유지한다."

@@ -535,7 +535,7 @@ function normalizePalaceInput(body = {}) {
 }
 
 async function generatePalaceText(env, prompt, options = {}) {
-  const cache = { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 30 * 24 * 60 * 60, keyExtra: "ziwei-island-v1" };
+  const cache = { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 30 * 24 * 60 * 60, keyExtra: "ziwei-island-v1", minChars: options.minLength || 300 };
   const timeoutMs = Math.min(45000, clampSyncLlmTimeoutMs(Number(env?.ZIWEI_ISLAND_TIMEOUT_MS) || 45000));
   const baseTokens = options.maxOutputTokens || PALACE_CONSULT_MAX_OUTPUT_TOKENS;
   const ai = await callGeminiJsonWithRetry(env, prompt, {
@@ -723,7 +723,7 @@ async function handleStart(request, env) {
       const outcomes = await Promise.allSettled(wave.map(async part => {
         let value;
         try {
-          const generated = await generatePalaceText(env, palacePartPrompt(input, chart, part, meta.attempts[part.id]), { partId: part.id });
+          const generated = await generatePalaceText(env, palacePartPrompt(input, chart, part, meta.attempts[part.id]), { partId: part.id, minLength: part.minChars });
           value = parseSections(generated.text);
         } catch { return; }
         // Serialize the writes, not the provider calls; each finished part becomes durable immediately.
