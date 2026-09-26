@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "공통 paid-narrative의 승인 주문 영속 등록 및 서버 이어생성 공백부터 구현하고, 상품 48개 미매핑과 전체 구간 계측을 이어서 완료한다."
+next: "1단계 A(기존 실행의 서버 이어생성)는 dd0123537 까지 main 에 있다. 1단계 B(승인 직후 주문 영속 등록)의 상품별 선행 수정부터 구현하고, 상품 48개 미매핑과 전체 구간 계측을 이어서 완료한다."
 ---
 
 # 결제 지연·유료 결과 복구·LLM 비용 통제 인수인계
@@ -17,6 +17,7 @@ next: "공통 paid-narrative의 승인 주문 영속 등록 및 서버 이어생
 - 런타임 critical CI 및 양쪽 스테이징 SHA를 직접 검증한 기준: `3baf54db3d8250fcbe89f6357026ae35f039e89e`. 현재 HEAD 전체를 이 검증으로 대체하지 않는다.
 - main에는 마케팅 파일, `next-env.d.ts`, 화면 캡처 등 다른 세션의 미커밋 작업이 있다. 격리 체크아웃을 재사용하며 reset/stash/일괄 stage를 하지 않는다. 이전 임시 파일 `paid-delivery-plan.json`, `paid-primary-before.txt`는 이번 문서 검사에 섞이지 않도록 시스템 TEMP의 고유 paid-delivery-handoff 디렉터리로 보존 이동했다.
 - 이 문서만 추가했다. 이번 인수인계에서 런타임·정책·계정·주문은 수정하지 않는다.
+- **2026-09-27 후속 세션(1단계 A):** 기준 `bb970446e` 위에 `94d583536`(엔진 DB 연산 withMongoRetry·서버 진입점) → `9f1d6f638`(oracle-consultation 테스트 목 보강) → `ba0326a27`(상품 어댑터 추출·레지스트리) → `dd0123537`(10분 크론 이어생성·모니터 지연) 을 격리 워크트리에서 만들어 main 에 fast-forward 로 전달했다. 1단계 B·2단계·3단계는 미착수다.
 
 상세 근거는 `docs/verification/paid-delivery-reliability-20260927.md`, 상품 표는 `docs/verification/paid-delivery-inventory-20260927.json`, 손익 표는 `docs/verification/yeongnyangi-pass-economics-20260927.json`, 스테이징 증거는 `docs/verification/paid-delivery-staging-20260927.json`에 있다. 먼저 이 문서로 재개하고 필요한 근거만 읽는다.
 
@@ -39,6 +40,7 @@ next: "공통 paid-narrative의 승인 주문 영속 등록 및 서버 이어생
 | 비용 귀속 | `worker/lib/paid-generation-context.js`, `worker/lib/gemini.js`, `lib/llm-client.ts`, 영냥이 `service.ts`와 `providers/code-destiny.ts` | 실행/장/시도/호출 종류 기록. 실패 usage 및 청구 누락은 별도 대조 필요 |
 | 프롬프트 | 영냥이 provider의 system 중복 전송 제거 | 전체 상품의 컨텍스트 최적화 완료 아님 |
 | 보고 | `scripts/report-paid-delivery-{inventory,health}.mjs`, `report-llm-token-usage.mjs`, `report-pg-window-latency.mjs`, `report-yeongnyangi-pass-economics.mjs`, `lib/payment/llm-cost-report.mjs` | 상품 전수 완료율·복구 성공률·실측 원가는 아직 불완전 |
+| 서버 이어생성 | `worker/lib/paid-narrative-recovery-task.js`(신규), `paid-narrative-adapters.js`(레지스트리 18키), `paid-narrative-delivery.js`의 `resumePaidNarrativeOnServer`, `worker/index.js` 10분 분기 배선 | 이미 실행 기록이 생긴 건만. 승인 직후 첫 요청 전 이탈(기록 없음)은 1단계 B. 스테이징 `crons = []`라 자동 경로 스테이징 실증 없음 |
 
 **동시 작업 주의:** 현재 main에는 후속 `a572d4ae5`가 들어 있다. 반복되거나 무효인 보완 응답이 기존 유효 초안을 막던 문제와 섬 캐시 minChars 연결을 수정했다. `docs/handoff/2026-09-27-llm-length-never-fatal.md`의 P1 완료 기록과 최신 diff를 읽고 보존한다. 그 문서의 P1 이전 전수 조사와 이 작업의 원래 보고는 역사적 스냅샷이며 최신 구현과 다를 수 있다. 길이 품질 작업의 P2~P5와 여기의 복구 작업을 중복 구현하지 않는다. 타 세션에 메시지를 보내는 것은 사용자 허가 없이 하지 않는다.
 
@@ -46,7 +48,33 @@ next: "공통 paid-narrative의 승인 주문 영속 등록 및 서버 이어생
 
 ### 1. 승인 주문 등록 및 공통 서버 이어생성 — 최우선
 
-기존 주문 확정·실행 저장·큐/스케줄·라우트 호출부를 추적한다. 별도 결제 코어를 만들지 않는다. 공통 상담 18개 경로는 현재 서버 자동 이어생성이 없고, 브라우저가 최초 생성 요청 전 닫히면 입력/작업 등록이 비는 구간도 남아 있다.
+기존 주문 확정·실행 저장·큐/스케줄·라우트 호출부를 추적한다. 별도 결제 코어를 만들지 않는다. 공통 상담 18개 경로는 이제 A(아래)로 **이미 시작된 실행**을 서버가 이어 생성한다. 브라우저가 최초 생성 요청 전 닫히면 실행 기록 자체가 없어 A가 잡을 대상이 없다 — 이 구간이 B다.
+
+#### 1A. 기존 실행의 서버 이어생성 — 완료 (`dd0123537`)
+
+- 동작: 기존 10분 크론 분기에서 `runPaidNarrativeRecovery`가 `status:'pending'`·마지막 저장 후 5분 무진행(`timeoutAt ≤ now+5분`, 저장마다 +10분)·생성 24시간 이내·레지스트리 등록 `featureKey|reportType`·잠금 만료인 실행을 틱당 3건, 작업 예산 240초 안에서 이어 만든다. 파(최대 4항목)마다 기존 항목당 3회 예산(`attempts`)을 브라우저·GET 재개와 함께 소비한다. 새 공급자 예산 없음.
+- 서버 진입점 `resumePaidNarrativeOnServer`는 `resumeResultId`로만 들어가 `seed`에 도달하지 않고, `verify`는 **무동작**이다(실행 생성 때 라우트가 이미 검증했다는 전제). 상품 verify를 서버에서 다시 돌리면 이용권 차감 분기·쿠키 의존으로 오작동한다. 환불·취소는 엔진 `revoked()`가 공급자 호출 전·완료 직전에 막는다.
+- 제외: `karma-destiny-ai-consultation|expertFollowUp`, `love-secret-ai-consultation|expertFollowUp` — 라우트가 주입하는 생성기이고 답이 상담 GET 에서 붙으므로 서버 사본이 갈 곳이 없다(`PAID_NARRATIVE_SERVER_RESUME_EXCLUSIONS`). 미등록 조합은 로더가 null → 선택조차 안 된다(fail-closed, 커버리지 테스트가 fixture 목록과 대조).
+- guardian(`fortune-chat-consultation`)은 실모델 플래그가 꺼져 있으면 어댑터가 null → `ADAPTER_UNAVAILABLE` 60분 백오프. 라우트가 그때 유료 턴을 거절하므로 저장된 시도만 태울 이유가 없다. guardian 생성기는 `requestId`를 라우트 클로저가 아니라 저장된 본문 `state.body.requestId`에서 읽도록 바뀌었다(값 동일).
+- **서버 환불 없음:** 어댑터에 `onExhausted`가 없다. 서버에서 3회 소진되면 `metadata.paidNarrativeRecovery.reviewRequired`만 남기고, feature-question 의 기존 환불 청구는 사용자가 돌아와 라우트 요청을 보낼 때 라우트의 `onExhausted`가 한다.
+- **정산 스윕과의 충돌 회피(실측 발견):** 일일 `sweepStaleServiceExecutions`는 최상위 `retryCount`·`nextRetryAt`로 선택·증가하고 소진 시 환불/실패 처리한다. 그래서 이어생성 백오프·검토 상태는 최상위 필드를 쓰지 않고 `metadata.paidNarrativeRecovery`(errors·code·nextAttemptAt·reviewRequired)에 둔다. 엔진 `persist()`가 저장마다 이 표시를 `null`로 비워 브라우저 진전이 검토 표시를 풀게 했다. 연속 오류 5회면 검토 상태.
+- 계획에 있던 응답 추가 필드(`autoResume`·`nextAttemptAt`)는 넣지 않았다 — 소비하는 UI가 없고 응답 계약을 늘릴 근거가 없다. 보관함 연결은 1B/3단계 몫.
+- 모니터(`stalledNarrativeFilter`)는 `timeoutAt ≤ now−10분`으로 늦춰 이어생성이 최소 한 틱 먼저 시도한다. 알림 ≠ 완료 원칙 유지.
+- 첫 배포 백로그 상한: 24시간 창 밖의 오래된 pending 은 건드리지 않는다(과거 고객 주문 자동 재실행 방지).
+- 기각한 대안: Cloudflare Queue 공유 — 기존 소비자가 64-hex 외 메시지를 조용히 ack 하고, 동시성 2를 영냥이와 나눠 쓴다.
+- 운영 위험: 프로덕션 승격 뒤에는 서버가 **실 과금 LLM을 사용자 요청 없이 호출**한다(기존 항목당 3회 예산 안). 스테이징은 `crons = []`라 이 경로가 돌지 않아 스테이징 실증이 없다. 승격 전 시험표 승인 범위에 이 자동 경로를 포함할지 정하고, 승격 후 첫 틱의 `[paid-narrative-recovery]` 로그(executionKey·featureKey·결과 코드만, 질문·본문 없음)를 확인한다.
+- 롤백: `git revert dd0123537` 하나로 크론 호출이 멈춘다. `94d583536`·`ba0326a27`은 동작 보존 리팩터라 남겨도 무해하다.
+
+#### 1B. 승인 직후 주문 영속 등록 — 다음 세션
+
+선행 수정(상품별, 조사로 확인):
+- 결제 전 입력 `paidResume`이 geomancy·yoga·animal-totem 에서 불완전하다 — 배열·객체를 `js/core/checkout-entry.js:1497-1518` 정리기가 버린다.
+- guardian 은 서버 등록용 descriptor 가 미확인이다.
+- geomancy·yoga·pet 의 verify 는 쿠키/헤더/120분 창에 묶여(`worker/lib/access-control.js:767` 부근) 서버에서 재검증할 수 없다. 서버 등록 시 결제 증빙을 어떻게 원래 주문에 묶을지 먼저 정한다.
+- 서버가 등록한 본문과 브라우저의 첫 POST 가 다르면 409 `INPUT_MISMATCH` 가 난다 — 같은 실행으로 합치는 규칙이 필요하다.
+- 영냥이·꿀꿀 운세 보관함의 목록 API 가 없어(신규 기능) 진행/재시도/검토 상태 노출은 새 필드가 아니라 새 API 가 필요하다.
+
+B 의 요구와 통과 조건(원래 목록). 이 중 브라우저 종료·DB 응답 유실·만료 작업자의 늦은 저장·동시 복구·환불 경합·소진 검토는 A 경로에서 mock 으로 확인했다(`__tests__/worker/paid-narrative-recovery-task.test.js`). 승인 응답 유실·큐 등록 실패·중복/역순 콜백·보관함은 B 에서 새로 증명한다.
 
 - 승인된 원래 주문과 소유권·입력·상품 버전을 영속적으로 연결하고, 큐 전송 실패는 재조정 작업으로 회수한다. 개인정보는 로그가 아닌 필요한 접근 제어 저장소에만 보관한다.
 - 콜백·모바일 복귀·여러 기기 복구가 같은 실행을 사용해야 한다. 기존 실행 레코드와 잠금의 원자적 전이·만료 소유권 검사를 활용한다.
@@ -57,7 +85,11 @@ next: "공통 paid-narrative의 승인 주문 영속 등록 및 서버 이어생
 
 ### 2. 상품 대응표의 미매핑 48개 해소
 
-`report-paid-delivery-inventory.mjs`의 카탈로그 158개 중 영냥이 28개와 공통 18개 외 개별 경로를 대조한다. 현재 48개 미매핑으로 exit 2다. 이는 48개 모두 판매 중 LLM 상품이라는 뜻은 아니다.
+`report-paid-delivery-inventory.mjs`의 카탈로그 158개 중 영냥이 28개와 공통 18개 외 개별 경로를 대조한다. 현재 48개 미매핑으로 exit 2다. 이는 48개 모두 판매 중 LLM 상품이라는 뜻은 아니다. 공통 18키의 `serverRecovery`는 이제 `worker/lib/paid-narrative-recovery-task.js`로 채워진다(레지스트리에 실제 등록된 키만).
+
+범위 밖이라 보고만 한 사실(수정하지 않음):
+- 인벤토리는 `saju_ai_question_prompt`를 feature-question-delivery 로 매핑하지만 실제 처리는 `worker/routes/fortune.js`다. 공통 엔진 레지스트리에는 넣지 않았고(`saju_ai_question_prompt|featureQuestionConsultation`은 null 로 고정 테스트), `backgroundRecoveryNotMapped`에 남아 있다. 2단계에서 경로를 바로잡는다.
+- 일일 타임아웃 정산의 체크포인트 보호(`worker/lib/checkpoint-refund-guard.js:19`)는 공통 13키만 `recoverable`로 미룬다. feature-question 4키(`astrology_/ziwei_/sukuyo_/vedic_ai_prompt_generator`)와 `fortune-chat-consultation`은 `unmanaged`라 정산 시각까지 완료되지 않으면 기존 정책대로 환불된다. 이어생성이 그 전에 끝내면 `status`가 바뀌어 정산 대상이 아니다. 목록을 늘리는 것은 환불 정책 변경이라 별도 승인 사항이다.
 
 가격 등록소 → 실제 판매 진입 → 주문 확정 → 생성 → 부분/최종 저장 → 복구 → 보관함을 연결한다. 비LLM/종료/과거 구매용은 근거와 함께 구분하고 단순 제외로 통과시키지 않는다. 파일 존재만으로 전달 검증 완료 표시 금지. 모든 활성 유료 결과 생성 상품의 검증 매트릭스와 누락 시 실패 검사를 연결한다.
 
@@ -84,6 +116,7 @@ next: "공통 paid-narrative의 승인 주문 영속 등록 및 서버 이어생
 - 과거 7일 웹 PG 표본 10건: checkout p50/p95 1,078/2,055ms, SDK 1/6,825ms. 모바일/신규 세션 표본 및 개선 후 수치는 없다.
 - 운영 DB 읽기 전용 과거 집계: 결제 연결 3건, 누락 0건. 이 소표본을 전체 상품 주문 누락률로 일반화하지 않는다. request 생성→완료는 대기시간 포함이다.
 - 실 PG 0회, 과금 LLM 0회, 운영 주문 복구/환불 0회. 이 작업의 프로덕션 배포 미실행.
+- 1단계 A(mock 전용): 신규 이어생성 테스트 9건(미완료 3항목만 호출·기존 파트 보존·확인 재조회 후 완료·GET `?resultId=` completed, 살아 있는 잠금 건너뜀·동시 두 틱 중복 호출 0, 환불 표시 시 공급자 0회·검토 표시, 저장 응답 유실 throw/null/confirm 3종 → 완료 금지·`retryCount` 불변·백오프 후 재개, 늦은 저장 거부, 소진 시 `exhaustionClaimed`·`failureResult` 없음, 전문가 후속 미선택), 어댑터 레지스트리 21건, 호출부 회귀 포함 jest 19개 스위트 544건, ziwei `node --test` 51건 통과. `verify:cron-mongo-op-coverage`(보호 밖 21건 원장 유지), `verify:no-nested-retry`, `verify:paid-gate-ui`, `verify-llm-generation-resilience`, `audit-ai-locale-calls --check` 통과. 인벤토리 exit 2(48개, 예상대로), `serverRecovery` 18키 채워짐. 실 LLM·실 PG·운영 DB 0회.
 
 ## 이용권 결론 및 아직 승인되지 않은 시험표
 
