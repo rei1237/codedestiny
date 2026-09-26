@@ -18,7 +18,7 @@ next: "1단계 B 의 상품별 선행 수정(서술자 충실도 9d8be5c91·ca61
 - main에는 마케팅 파일, `next-env.d.ts`, 화면 캡처 등 다른 세션의 미커밋 작업이 있다. 격리 체크아웃을 재사용하며 reset/stash/일괄 stage를 하지 않는다. 이전 임시 파일 `paid-delivery-plan.json`, `paid-primary-before.txt`는 이번 문서 검사에 섞이지 않도록 시스템 TEMP의 고유 paid-delivery-handoff 디렉터리로 보존 이동했다.
 - 이 문서만 추가했다. 이번 인수인계에서 런타임·정책·계정·주문은 수정하지 않는다.
 - **2026-09-27 후속 세션(1단계 A):** 기준 `bb970446e` 위에 `94d583536`(엔진 DB 연산 withMongoRetry·서버 진입점) → `9f1d6f638`(oracle-consultation 테스트 목 보강) → `ba0326a27`(상품 어댑터 추출·레지스트리) → `dd0123537`(10분 크론 이어생성·모니터 지연) 을 격리 워크트리에서 만들어 main 에 fast-forward 로 전달했다. 1단계 B·2단계·3단계는 미착수다.
-- **2026-09-27 후속 세션(1단계 B 선행 수정):** 기준 `6797c40a8` 위에 `9d8be5c91`(geomancy counts·animal-totem cards/birth 를 JSON 문자열로 서술자에 실음) → `ca6154fef`(guardian 이 질문 전 recentTurns 를 서술자에 고정) 를 격리 워크트리에서 만들어 이 문서 커밋과 함께 main 에 전달했다. 1B 본 구현(의도 등록·증빙 결속·병합 규칙)과 2·3단계는 미착수다. 실 PG·과금 LLM·운영 DB 0회.
+- **2026-09-27 후속 세션(1단계 B 선행 수정):** 기준 `6797c40a8` 위에 `9d8be5c91`(geomancy counts·animal-totem cards/birth 를 JSON 문자열로 서술자에 실음) → `ca6154fef`(guardian 이 질문 전 recentTurns 를 서술자에 고정) 를 격리 워크트리에서 만들어 이 문서 커밋과 함께 main 에 전달했다. 첫 push(`3f27d4be0`)는 `9d8be5c91`의 sync:public 을 1회만 돌린 탓에 CI `Static guards`(`verify-public-mirror-fresh`, `?v=` 키 한 세대 차)에서 실패했고, `29605f577`에서 3회 수렴한 산출물로 수습했다. 1B 본 구현(의도 등록·증빙 결속·병합 규칙)과 2·3단계는 미착수다. 실 PG·과금 LLM·운영 DB 0회.
 
 상세 근거는 `docs/verification/paid-delivery-reliability-20260927.md`, 상품 표는 `docs/verification/paid-delivery-inventory-20260927.json`, 손익 표는 `docs/verification/yeongnyangi-pass-economics-20260927.json`, 스테이징 증거는 `docs/verification/paid-delivery-staging-20260927.json`에 있다. 먼저 이 문서로 재개하고 필요한 근거만 읽는다.
 
