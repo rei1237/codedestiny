@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import { ServiceExecutionTransaction } from "./models.js";
-import { connectDb } from "./db.js";
+import { withMongoRetry } from "./db.js";
 import { json } from "./http.js";
 import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
@@ -17,21 +17,24 @@ const ready = state => state.tasks.every(task => state.parts[task.id])
 const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 3);
 const reviewRequired = state => limited(state) || (state.tasks.every(task => state.parts[task.id]) && !ready(state));
 
+// Every raw op is its own withMongoRetry unit because the cron resume path reaches
+// this engine (verify:cron-mongo-op-coverage). Reads may retry; writes keep
+// { retries: 0 } so a lost reply is settled by the confirming read, not a rewrite.
 async function find(env, filter) {
-  try { await connectDb(env); return await ServiceExecutionTransaction.findOne(filter).sort({ createdAt: -1 }).lean(); }
+  try { return await withMongoRetry(env, () => ServiceExecutionTransaction.findOne(filter).sort({ createdAt: -1 }).lean()); }
   catch { throw failure(filter.executionKey || "pending"); }
 }
-async function save(filter, fields) {
+async function save(env, filter, fields) {
   try {
-    const written = await ServiceExecutionTransaction.findOneAndUpdate({ ...filter, "lock.until": { $gt: new Date() } }, { $set: fields }, { returnDocument: "after" }).lean();
+    const written = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ ...filter, "lock.until": { $gt: new Date() } }, { $set: fields }, { returnDocument: "after" }).lean(), { retries: 0 });
     if (!written) throw failure(filter.executionKey);
-    const confirmed = await ServiceExecutionTransaction.findOne({ userId: filter.userId, executionKey: filter.executionKey }).lean();
+    const confirmed = await withMongoRetry(env, () => ServiceExecutionTransaction.findOne({ userId: filter.userId, executionKey: filter.executionKey }).lean());
     for (const [key, value] of Object.entries(fields)) if (JSON.stringify(confirmed?.[key]) !== JSON.stringify(value)) throw failure(filter.executionKey);
     return confirmed;
   } catch { throw failure(filter.executionKey); }
 }
-async function revoked(doc, featureKey, body) {
-  return ["refunded", "cancelled"].includes(doc?.status) || await isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId]);
+async function revoked(env, doc, featureKey, body) {
+  return ["refunded", "cancelled"].includes(doc?.status) || await withMongoRetry(env, () => isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId]));
 }
 function respond(doc, render, busy = false) {
   const state = doc.metadata.paidNarrative;
@@ -59,7 +62,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (!doc && (request.method === "GET" || resumeId)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
   const original = doc?.metadata?.paidNarrative?.body || body;
   await verify(original);
-  if (await revoked(doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
+  if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && hash(cleanBody(body)) !== hash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
   if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return respond(doc, render);
   const now = new Date(), token = randomUUID();
@@ -69,21 +72,21 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     const seeded = await seed(original);
     const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale: getAmbientAiLocale() || "ko", parts: {}, attempts: {} };
     try {
-      const inserted = await ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: {
+      const inserted = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: {
         userId, executionKey, featureKey, reportType,
         reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,
         sessionId: typeof original.sessionId === "string" ? original.sessionId : "",
         idempotencyKey: original.requestId,
         status: "pending", premiumStatus: "generating", metadata: { paidNarrative: state }, lock,
         timeoutAt: new Date(now.getTime() + 600000), createdAt: now, updatedAt: now,
-      } }, { upsert: true, returnDocument: "after" }).lean();
+      } }, { upsert: true, returnDocument: "after" }).lean(), { retries: 0 });
       if (!inserted) throw failure(executionKey);
       doc = await find(env, { userId, executionKey });
       if (!doc?.metadata?.paidNarrative) throw failure(executionKey);
     } catch { throw failure(executionKey); }
   } else {
     try {
-      const claim = await ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey, status: "pending", "lock.token": doc.lock?.token ?? null }, { $set: { lock } }, { returnDocument: "after" }).lean();
+      const claim = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey, status: "pending", "lock.token": doc.lock?.token ?? null }, { $set: { lock } }, { returnDocument: "after" }).lean(), { retries: 0 });
       if (!claim) return respond(doc, render, true);
       doc = claim;
     } catch { throw failure(executionKey); }
@@ -91,7 +94,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc.lock.token !== token) return respond(doc, render, true);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
-  const persist = async () => { doc = await save(filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null },
+  const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null },
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
     const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 3).slice(0, 4);
@@ -152,11 +155,25 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       }
       return respond(doc, render);
     }
-    doc = await save(filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
-    if (await revoked(doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
-    doc = await save(filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date() });
+    doc = await save(env, filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
+    if (await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
+    doc = await save(env, filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date() });
     return respond(doc, render);
   } finally {
-    await ServiceExecutionTransaction.updateOne({ userId, executionKey, "lock.token": token }, { $set: { "lock.token": "", "lock.until": null } }).catch(() => {});
+    await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne({ userId, executionKey, "lock.token": token }, { $set: { "lock.token": "", "lock.until": null } }), { retries: 0 }).catch(() => {});
   }
+}
+
+// Cron entry for an execution the browser left unfinished. The record exists only
+// after the product's verify() accepted this user and body, so verify is not rerun:
+// product verifiers read request cookies or consume a pass. revoked() still blocks
+// refunded or cancelled payments before any provider call and before completion.
+// A resume never creates a record, so seed is unreachable and fails closed.
+export function resumePaidNarrativeOnServer(env, doc, adapter) {
+  const request = new Request("https://internal.invalid/paid-narrative/resume", { method: "POST" });
+  return runPaidNarrativeDelivery(request, env, { userId: String(doc.userId) }, { resumeResultId: doc.executionKey }, {
+    ...adapter, featureKey: doc.featureKey,
+    verify: async () => {},
+    seed: async () => { throw failure(doc.executionKey); },
+  });
 }

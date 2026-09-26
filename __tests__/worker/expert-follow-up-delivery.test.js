@@ -38,7 +38,7 @@ const reportModel = {
 };
 beforeAll(async () => {
   const db = await import('../../worker/lib/db.js'), models = await import('../../worker/lib/models.js');
-  jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, connectDb: async () => {} }));
+  jest.unstable_mockModule('../../worker/lib/db.js', () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, fn) => fn() }));
   jest.unstable_mockModule('../../worker/lib/models.js', () => ({ ...models, ServiceExecutionTransaction: model }));
   jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js', () => ({ isPaidResultRevoked: async () => revoked }));
   ({ deliverExpertFollowUp: deliver, recoverSavedExpertFollowUps: recover } = await import('../../worker/lib/expert-follow-up-delivery.js'));
