@@ -32,18 +32,30 @@ const INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS = {
     fallbackDescription: "운세 인사이트 상세 글입니다.",
     fallbackKeyword: "운세 인사이트",
     titleSuffix: "운세 인사이트",
+    readingGuide: "개념과 해석 안내",
+    figureCaption: "꽃돼지가 핵심 개념을 안내할게요.",
+    readingLeadTitle: "이 글을 읽을 때",
+    readingLeadBody: "전통적 해석과 실제로 확인할 수 있는 정보를 구분하며 읽어 보세요.",
   },
   en: {
     fallbackTitle: "Fortune Insights | Code Destiny",
     fallbackDescription: "Detailed fortune insight article.",
     fallbackKeyword: "fortune insights",
     titleSuffix: "Fortune Insights",
+    readingGuide: "Concepts and interpretation",
+    figureCaption: "Flower Pig will guide you through the key concepts.",
+    readingLeadTitle: "As you read",
+    readingLeadBody: "Distinguish traditional interpretations from information you can verify in practice.",
   },
   ja: {
     fallbackTitle: "運勢インサイト | Code Destiny",
     fallbackDescription: "運勢インサイトの詳細記事です。",
     fallbackKeyword: "運勢インサイト",
     titleSuffix: "運勢インサイト",
+    readingGuide: "概念と解釈のガイド",
+    figureCaption: "花ぶたが基本的な概念をご案内します。",
+    readingLeadTitle: "この記事を読むときに",
+    readingLeadBody: "伝統的な解釈と、実際に確認できる情報を区別しながらお読みください。",
   },
 };
 
@@ -185,6 +197,7 @@ function normalizeContentHtml(html) {
 }
 
 export default async function InsightArticlePage({ params }) {
+  const copy = INSIGHT_DETAIL_PAGE_TEXT_TRANSLATIONS.ko;
   const resolvedParams = await params;
   const slug = String(resolvedParams?.slug || "");
   const article = getInsightSeedBySlug(slug);
@@ -220,15 +233,15 @@ export default async function InsightArticlePage({ params }) {
         <nav className={styles.breadcrumb} aria-label="인사이트 위치">
           <Link href="/insights" className={styles.backLink}>← 운세 인사이트</Link>
           <span aria-hidden="true">·</span>
-          <span>자미두수 비교 읽기</span>
+          <span>{article.category || copy.fallbackKeyword}</span>
         </nav>
 
         <header className={styles.hero}>
           <div className={styles.heroCopy}>
             <div className={styles.metaRow}>
-              <span>{article.category || "운세 인사이트"}</span>
+              <span>{article.category || copy.fallbackKeyword}</span>
               <span aria-hidden="true">·</span>
-              <span>차분한 비교 읽기</span>
+              <span>{copy.readingGuide}</span>
             </div>
             <h1>{article.title}</h1>
             {description ? <p className={styles.description}>{description}</p> : null}
@@ -242,14 +255,14 @@ export default async function InsightArticlePage({ params }) {
             <img src={image.src} alt={image.alt || `${article.title} 대표 이미지`} width="1600" height="900" />
             <figcaption className={styles.pigNote}>
               <img src="/icons/app-logo-512.webp" alt="" width="512" height="512" />
-              <span>꽃돼지가 비교 기준을 안내할게요.</span>
+              <span>{copy.figureCaption}</span>
             </figcaption>
           </figure>
         </header>
 
         <div className={styles.readingLead}>
-          <h2>이 글을 읽는 순서</h2>
-          <p>두 체계를 어느 쪽이 더 맞는지 겨루기보다, 어떤 질문에 어떤 지도가 도움이 되는지 차분히 비교해 보세요.</p>
+          <h2>{copy.readingLeadTitle}</h2>
+          <p>{copy.readingLeadBody}</p>
         </div>
 
         {contentHtml ? (
