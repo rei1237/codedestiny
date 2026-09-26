@@ -1,10 +1,31 @@
 [
   {
+    "slug": "ziwei-what-is",
+    "title": "자미두수란? 사주와 다른 12궁 운명 분석법",
+    "description": "자미두수란 생년월일시로 14주성을 12궁에 배치해 삶의 영역별 흐름을 읽는 동양 점성술입니다. 명궁·삼방사정·사화까지 핵심 구조를 한 번에 정리했습니다.",
+    "href": "/insights/ziwei-what-is/",
+    "body": "ziwei-what-is-8ac06865af32.json"
+  },
+  {
+    "slug": "ziwei-life-palaces",
+    "title": "자미두수 12궁 읽는 법 — 궁별 질문과 연결 구조",
+    "description": "자미두수 12궁은 인생 전체를 12개 영역으로 나눈 인생 지도입니다. 명궁부터 부모궁까지 각 궁의 의미와 궁끼리의 연결, 명반 해석의 핵심 원칙을 정리했습니다.",
+    "href": "/insights/ziwei-life-palaces/",
+    "body": "ziwei-life-palaces-bbc341e88e23.json"
+  },
+  {
     "slug": "ziwei-star-brightness",
     "title": "자미두수 별 밝기: 묘·왕·리·평·함을 읽는 순서",
     "description": "묘·왕·리·평·함은 관측 밝기나 능력 점수가 아닌 자미두수의 배치 평가입니다. 유파별 등급 차이, 사화와 함께 보는 법, 단정하기 쉬운 오류를 설명합니다.",
     "href": "/insights/ziwei-star-brightness/",
-    "body": "ziwei-star-brightness-eff722010da3.json"
+    "body": "ziwei-star-brightness-ac587eeb6be7.json"
+  },
+  {
+    "slug": "ziwei-14-main-stars-complete-guide",
+    "title": "자미두수 14주성(十四主星) 총론 — 명반을 움직이는 열네 개의 중심 별",
+    "description": "14주성은 자미두수 명반의 중심축을 이루는 별입니다. 북두·남두 계열 구분, 14개 별의 기본 상징, 궁과 함께 읽는 법, 별끼리의 상호작용까지 정리했습니다.",
+    "href": "/insights/ziwei-14-main-stars-complete-guide/",
+    "body": "ziwei-14-main-stars-complete-guide-887d63d63755.json"
   },
   {
     "slug": "ziwei-vs-saju",
@@ -119,13 +140,6 @@
     "body": "ziwei-star-combinations-for-beginners-f8b479377bf0.json"
   },
   {
-    "slug": "ziwei-14-main-stars-complete-guide",
-    "title": "자미두수 14주성(十四主星) 총론 — 명반을 움직이는 열네 개의 중심 별",
-    "description": "14주성은 자미두수 명반의 중심축을 이루는 별입니다. 북두·남두 계열 구분, 14개 별의 기본 상징, 궁과 함께 읽는 법, 별끼리의 상호작용까지 정리했습니다.",
-    "href": "/insights/ziwei-14-main-stars-complete-guide/",
-    "body": "ziwei-14-main-stars-complete-guide-13b659cb64e1.json"
-  },
-  {
     "slug": "ziwei-compatibility-palace-method",
     "title": "자미두수 궁합(부처궁) 완전 가이드 — 부처궁(夫妻宮)으로 배우자 운과 궁합을 읽는 법",
     "description": "자미두수 궁합은 부처궁 하나만으로 판단하지 않습니다. 명궁·복덕궁·재백궁·사화·길성흉성·대운유년까지 종합해 배우자 운과 관계의 흐름을 읽는 정통 해석 순서를 정리했습니다.",
@@ -147,25 +161,11 @@
     "body": "ziwei-decade-and-annual-flow-reading-guide-d6e1c9f5d550.json"
   },
   {
-    "slug": "ziwei-what-is",
-    "title": "자미두수란? 사주와 다른 12궁 운명 분석법",
-    "description": "자미두수란 생년월일시로 14주성을 12궁에 배치해 삶의 영역별 흐름을 읽는 동양 점성술입니다. 명궁·삼방사정·사화까지 핵심 구조를 한 번에 정리했습니다.",
-    "href": "/insights/ziwei-what-is/",
-    "body": "ziwei-what-is-44df22de32ed.json"
-  },
-  {
     "slug": "ziwei-chart-guide",
     "title": "자미두수 명반 보는 법 — 5단계 해석법",
     "description": "자미두수는 명궁부터 신궁, 핵심 궁의 연결, 별의 조합과 사화, 대운·세운까지 5단계로 명반을 읽습니다. 초보자부터 전문가까지 쓸 수 있는 해석 순서를 정리했습니다.",
     "href": "/insights/ziwei-chart-guide/",
     "body": "ziwei-chart-guide-126f7632c476.json"
-  },
-  {
-    "slug": "ziwei-life-palaces",
-    "title": "자미두수 12궁 전체 해석 — 명궁부터 부모궁까지 완벽하게 이해하기",
-    "description": "자미두수 12궁은 인생 전체를 12개 영역으로 나눈 인생 지도입니다. 명궁부터 부모궁까지 각 궁의 의미와 궁끼리의 연결, 명반 해석의 핵심 원칙을 정리했습니다.",
-    "href": "/insights/ziwei-life-palaces/",
-    "body": "ziwei-life-palaces-e0737330f37f.json"
   },
   {
     "slug": "ziwei-minggong",

@@ -4,21 +4,42 @@
     "title": "숙요점이란? 달이 머문 별자리로 읽는 나의 운명 — 입문 완전 가이드",
     "description": "숙요점은 태어난 날 달이 머문 별자리로 나를 읽는 동양의 점술입니다. 28수·27숙의 구조부터 본명숙 찾는 법, 사주와의 차이, 오늘의 달자리 활용법까지 입문자를 위해 정리했습니다.",
     "href": "/insights/sukuyo-what-is/",
-    "body": "sukuyo-what-is-9314da52ed66.json"
+    "body": "sukuyo-what-is-2ff3c3ad893f.json"
   },
   {
     "slug": "sukuyo-compatibility-guide",
     "title": "숙요점 궁합 보는 법 — 영친·업태·안괴 관계를 읽는 순서",
     "description": "숙요점 궁합은 좋고 나쁨을 가리는 도구가 아니라 관계의 성격과 방향을 이해하는 지도입니다. 영친·업태·안괴·명·성위·우쇠 6유형의 핵심 특징과 연애·결혼 궁합에서 진짜 중요한 것을 정리했습니다.",
     "href": "/insights/sukuyo-compatibility-guide/",
-    "body": "sukuyo-compatibility-guide-9605628d05db.json"
+    "body": "sukuyo-compatibility-guide-7997ed2d004a.json"
   },
   {
     "slug": "sukuyo-27-mansions",
     "title": "27숙 이름과 본명숙 계산: 날짜표와 달의 위치 구분하기",
     "description": "27숙의 이름과 Code Destiny의 달 황경 계산을 설명합니다. 13도 20분 구간, 이름 배열, 출생시간 미상과 음력 날짜표 방식의 차이를 예시로 확인하세요.",
     "href": "/insights/sukuyo-27-mansions/",
-    "body": "sukuyo-27-mansions-eb6c069f2695.json"
+    "body": "sukuyo-27-mansions-f0a6e3c71546.json"
+  },
+  {
+    "slug": "sukuyo-antai",
+    "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
+    "description": "숙요점에서 업(業)과 태(胎)라는 관계 표지를 어떻게 읽는지, 거리 분류와 방향성을 실제 관계의 대화·경계 질문에 연결해 정리했습니다.",
+    "href": "/insights/sukuyo-antai/",
+    "body": "sukuyo-antai-7465f71274dd.json"
+  },
+  {
+    "slug": "sukuyo-ankai",
+    "title": "안괴관계(安壞關係) 가이드 — 안·괴 방향과 거리 분류 읽는 법",
+    "description": "숙요점의 안(安)·괴(壞) 관계 표지를 결과 예측이 아닌 대화와 경계의 질문으로 읽는 법을 정리했습니다. 연애·가족·일과 거리 분류의 한계도 함께 설명합니다.",
+    "href": "/insights/sukuyo-ankai/",
+    "body": "sukuyo-ankai-3a8640cfacc0.json"
+  },
+  {
+    "slug": "sukuyo-bonmyeongsuk-how-to-find",
+    "title": "본명숙이란? 생년월일로 내 별자리 찾는 방법",
+    "description": "본명숙은 태어난 날 달이 머문 27숙 중 하나로, 숙요점 해석의 출발점입니다. 양력·음력 구분과 윤달·자정 경계까지, 본명숙을 정확히 찾는 5단계를 정리했습니다.",
+    "href": "/insights/sukuyo-bonmyeongsuk-how-to-find/",
+    "body": "sukuyo-bonmyeongsuk-how-to-find-2f3076bdc022.json"
   },
   {
     "slug": "sukuyo-love",
@@ -47,27 +68,6 @@
     "description": "숙요의 본명숙 관계와 사주의 일간·오행 관계를 비교합니다. 두 결과를 점수로 합치지 않고 계산 설정, 갈등 상황, 실제 대화로 확인하는 방법을 정리했습니다.",
     "href": "/insights/sukuyo-vs-saju-compatibility/",
     "body": "sukuyo-vs-saju-compatibility-bfc307c16a4f.json"
-  },
-  {
-    "slug": "nakshatra-what-is",
-    "title": "나크샤트라란? 27개 달 구간의 계산과 숙요 비교",
-    "description": "나크샤트라는 항성 황도를 27개 구간으로 나누는 베다 점성술 체계입니다. 현대 계산 구간, 잔마 나크샤트라와 다샤, 27·28수의 역사, 숙요와 비교할 때의 한계를 정리했습니다.",
-    "href": "/insights/nakshatra-what-is/",
-    "body": "nakshatra-what-is-5dd6fb0c0f20.json"
-  },
-  {
-    "slug": "sukuyo-antai",
-    "title": "업태관계(業胎關係) 가이드 — 업·태 방향과 거리 분류 읽는 법",
-    "description": "숙요점에서 업(業)과 태(胎)라는 관계 표지를 어떻게 읽는지, 거리 분류와 방향성을 실제 관계의 대화·경계 질문에 연결해 정리했습니다.",
-    "href": "/insights/sukuyo-antai/",
-    "body": "sukuyo-antai-ac56ed71e000.json"
-  },
-  {
-    "slug": "sukuyo-ankai",
-    "title": "안괴관계(安壞關係) 가이드 — 안·괴 방향과 거리 분류 읽는 법",
-    "description": "숙요점의 안(安)·괴(壞) 관계 표지를 결과 예측이 아닌 대화와 경계의 질문으로 읽는 법을 정리했습니다. 연애·가족·일과 거리 분류의 한계도 함께 설명합니다.",
-    "href": "/insights/sukuyo-ankai/",
-    "body": "sukuyo-ankai-85416236c8fb.json"
   },
   {
     "slug": "sukuyo-myeongseong",
@@ -152,13 +152,6 @@
     "description": "우쇠관계는 인생의 상승과 하강을 함께 경험하며 시간이 흐를수록 의미가 깊어지는 관계입니다. 성(成)과 쇠(衰)의 역할, 연애·결혼·가족·친구·직장·사업에서의 특징과 오래 유지하는 법을 정리했습니다.",
     "href": "/insights/sukuyo-useo/",
     "body": "sukuyo-useo-62aa05ad82a4.json"
-  },
-  {
-    "slug": "sukuyo-bonmyeongsuk-how-to-find",
-    "title": "본명숙이란? 생년월일로 내 별자리 찾는 방법",
-    "description": "본명숙은 태어난 날 달이 머문 27숙 중 하나로, 숙요점 해석의 출발점입니다. 양력·음력 구분과 윤달·자정 경계까지, 본명숙을 정확히 찾는 5단계를 정리했습니다.",
-    "href": "/insights/sukuyo-bonmyeongsuk-how-to-find/",
-    "body": "sukuyo-bonmyeongsuk-how-to-find-6e5064c8041a.json"
   },
   {
     "slug": "sukuyo-three-group-types-guide",
