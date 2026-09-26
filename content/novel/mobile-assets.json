@@ -1,0 +1,888 @@
+{
+  "backgrounds": [
+    {
+      "key": "memoryVault",
+      "source": "/images/novel/remaster/memory-vault-release-v1.webp",
+      "sourceBytes": 200164,
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "path": "/images/novel/mobile/memoryVault.webp",
+      "bytes": 105034,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "key": "clearMoonWater",
+      "source": "/images/novel/remaster/clear-moon-waterway-v1.webp",
+      "sourceBytes": 295952,
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "path": "/images/novel/mobile/clearMoonWater.webp",
+      "bytes": 153104,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "key": "cherryMoonPortal",
+      "source": "/images/novel/remaster/cherry-moon-portal-promise-v1.webp",
+      "sourceBytes": 349570,
+      "sourceWidth": 1672,
+      "sourceHeight": 941,
+      "path": "/images/novel/mobile/cherryMoonPortal.webp",
+      "bytes": 195750,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "key": "campus",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9A%B4%EC%84%B8%EB%8C%80%20%EC%BA%A0%ED%8D%BC%EC%8A%A4.webp",
+      "sourceBytes": 243206,
+      "sourceWidth": 1693,
+      "sourceHeight": 929,
+      "path": "/images/novel/mobile/campus.webp",
+      "bytes": 126510,
+      "width": 1280,
+      "height": 702
+    },
+    {
+      "key": "bench",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9A%B4%EC%84%B8%EB%8C%80%20%EC%BA%A0%ED%8D%BC%EC%8A%A4%20%EB%B2%A4%EC%B9%98.webp",
+      "sourceBytes": 235692,
+      "sourceWidth": 1694,
+      "sourceHeight": 929,
+      "path": "/images/novel/mobile/bench.webp",
+      "bytes": 118752,
+      "width": 1280,
+      "height": 702
+    },
+    {
+      "key": "room",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%B0%A9.webp",
+      "sourceBytes": 83386,
+      "sourceWidth": 1535,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/room.webp",
+      "bytes": 45208,
+      "width": 1280,
+      "height": 854
+    },
+    {
+      "key": "roomNight",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%B0%A9%20%EB%B0%A4.webp",
+      "sourceBytes": 82400,
+      "sourceWidth": 1264,
+      "sourceHeight": 843,
+      "path": "/images/novel/mobile/roomNight.webp",
+      "bytes": 72808,
+      "width": 1264,
+      "height": 843
+    },
+    {
+      "key": "tarotDoor",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%ED%83%80%EB%A1%9C%20%EB%AC%B8%20%EC%B9%B4%EB%93%9C.webp",
+      "sourceBytes": 173822,
+      "sourceWidth": 1535,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/tarotDoor.webp",
+      "bytes": 106050,
+      "width": 1280,
+      "height": 854
+    },
+    {
+      "key": "river",
+      "source": "/images/novel/remaster/river-of-names-v1.webp",
+      "sourceBytes": 288464,
+      "sourceWidth": 1920,
+      "sourceHeight": 1080,
+      "path": "/images/novel/mobile/river.webp",
+      "bytes": 110202,
+      "width": 1280,
+      "height": 720
+    },
+    {
+      "key": "island",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%20%EC%84%AC.webp",
+      "sourceBytes": 126378,
+      "sourceWidth": 1663,
+      "sourceHeight": 946,
+      "path": "/images/novel/mobile/island.webp",
+      "bytes": 58122,
+      "width": 1280,
+      "height": 728
+    },
+    {
+      "key": "islandIn",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%20%EC%84%AC%20%EB%82%B4%EB%B6%80.webp",
+      "sourceBytes": 283676,
+      "sourceWidth": 1662,
+      "sourceHeight": 946,
+      "path": "/images/novel/mobile/islandIn.webp",
+      "bytes": 139668,
+      "width": 1280,
+      "height": 729
+    },
+    {
+      "key": "hands",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EA%B2%80%EC%9D%80%20%EC%86%90%EB%93%A4.webp",
+      "sourceBytes": 95952,
+      "sourceWidth": 1376,
+      "sourceHeight": 783,
+      "path": "/images/novel/mobile/hands.webp",
+      "bytes": 61738,
+      "width": 1280,
+      "height": 728
+    },
+    {
+      "key": "siksang",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%20%EC%84%AC.webp",
+      "sourceBytes": 428318,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/siksang.webp",
+      "bytes": 246040,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "siksang2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%AC2.webp",
+      "sourceBytes": 96922,
+      "sourceWidth": 757,
+      "sourceHeight": 506,
+      "path": "/images/novel/mobile/siksang2.webp",
+      "bytes": 89906,
+      "width": 757,
+      "height": 506
+    },
+    {
+      "key": "siksang3",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%AC3.webp",
+      "sourceBytes": 86878,
+      "sourceWidth": 762,
+      "sourceHeight": 502,
+      "path": "/images/novel/mobile/siksang3.webp",
+      "bytes": 80152,
+      "width": 762,
+      "height": 502
+    },
+    {
+      "key": "siksang4",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%AC4.webp",
+      "sourceBytes": 105246,
+      "sourceWidth": 758,
+      "sourceHeight": 500,
+      "path": "/images/novel/mobile/siksang4.webp",
+      "bytes": 97410,
+      "width": 758,
+      "height": 500
+    },
+    {
+      "key": "siksang5",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%AC5.webp",
+      "sourceBytes": 108986,
+      "sourceWidth": 747,
+      "sourceHeight": 503,
+      "path": "/images/novel/mobile/siksang5.webp",
+      "bytes": 99624,
+      "width": 747,
+      "height": 503
+    },
+    {
+      "key": "siksangNight",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%20%EC%84%AC%EB%B0%A4.webp",
+      "sourceBytes": 366702,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/siksangNight.webp",
+      "bytes": 209578,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "siksangA",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%20%EC%84%ACa.webp",
+      "sourceBytes": 76268,
+      "sourceWidth": 758,
+      "sourceHeight": 507,
+      "path": "/images/novel/mobile/siksangA.webp",
+      "bytes": 68482,
+      "width": 758,
+      "height": 507
+    },
+    {
+      "key": "siksangB",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%ACb.webp",
+      "sourceBytes": 84886,
+      "sourceWidth": 760,
+      "sourceHeight": 506,
+      "path": "/images/novel/mobile/siksangB.webp",
+      "bytes": 77562,
+      "width": 760,
+      "height": 506
+    },
+    {
+      "key": "siksangC",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%ACc.webp",
+      "sourceBytes": 86724,
+      "sourceWidth": 762,
+      "sourceHeight": 506,
+      "path": "/images/novel/mobile/siksangC.webp",
+      "bytes": 79230,
+      "width": 762,
+      "height": 506
+    },
+    {
+      "key": "siksangD",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%EC%84%ACd.webp",
+      "sourceBytes": 76406,
+      "sourceWidth": 760,
+      "sourceHeight": 503,
+      "path": "/images/novel/mobile/siksangD.webp",
+      "bytes": 69136,
+      "width": 760,
+      "height": 503
+    },
+    {
+      "key": "siksangCrisis",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%20%EC%84%AC%20%EC%9C%84%EA%B8%B0.webp",
+      "sourceBytes": 341344,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/siksangCrisis.webp",
+      "bytes": 187192,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "siksangBattle",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%9D%EC%83%81%EC%9D%98%20%EC%84%AC%20%EC%A0%84%ED%88%AC.webp",
+      "sourceBytes": 267332,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/siksangBattle.webp",
+      "bytes": 137464,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "jaeEnter",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%AC%EC%84%B1%EC%9D%98%20%EC%84%AC%20%EC%A7%84%EC%9E%85.webp",
+      "sourceBytes": 453756,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/jaeEnter.webp",
+      "bytes": 260080,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "jaeEnter2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%AC%EC%84%B1%EC%9D%98%20%EC%84%AC%20%EC%A7%84%EC%9E%852.webp",
+      "sourceBytes": 454618,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/jaeEnter2.webp",
+      "bytes": 264772,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "jae",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%AC%EC%84%B1%EC%9D%98%20%EC%84%AC.webp",
+      "sourceBytes": 240258,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/jae.webp",
+      "bytes": 135124,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "jaeSlave",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%AC%EC%84%B1%EC%9D%98%20%EC%84%AC%20%EB%85%B8%EB%8F%99%ED%95%98%EB%8A%94%20%EB%85%B8%EC%98%88%EB%93%A4.webp",
+      "sourceBytes": 350398,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/jaeSlave.webp",
+      "bytes": 197100,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "library",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%A0%EB%B9%84%EC%9D%98%20%EB%8F%84%EC%84%9C%EA%B4%80.webp",
+      "sourceBytes": 379106,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/library.webp",
+      "bytes": 219494,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "library2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%8B%A0%EB%B9%84%EC%9D%98%20%EB%8F%84%EC%84%9C%EA%B4%802.webp",
+      "sourceBytes": 356268,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/library2.webp",
+      "bytes": 205586,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "ziwei1",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%90%EB%AF%B8%EB%91%90%EC%88%98%20%EC%84%B8%EA%B3%841.webp",
+      "sourceBytes": 64880,
+      "sourceWidth": 768,
+      "sourceHeight": 512,
+      "path": "/images/novel/mobile/ziwei1.webp",
+      "bytes": 59116,
+      "width": 768,
+      "height": 512
+    },
+    {
+      "key": "ziwei2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%90%EB%AF%B8%EB%91%90%EC%88%98%20%EC%84%B8%EA%B3%842.webp",
+      "sourceBytes": 62034,
+      "sourceWidth": 768,
+      "sourceHeight": 512,
+      "path": "/images/novel/mobile/ziwei2.webp",
+      "bytes": 56278,
+      "width": 768,
+      "height": 512
+    },
+    {
+      "key": "ziwei3",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%90%EB%AF%B8%EB%91%90%EC%88%98%20%EC%84%B8%EA%B3%843.webp",
+      "sourceBytes": 46506,
+      "sourceWidth": 768,
+      "sourceHeight": 512,
+      "path": "/images/novel/mobile/ziwei3.webp",
+      "bytes": 40344,
+      "width": 768,
+      "height": 512
+    },
+    {
+      "key": "ziwei4",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%9E%90%EB%AF%B8%EB%91%90%EC%88%98%20%EC%84%B8%EA%B3%844.webp",
+      "sourceBytes": 42664,
+      "sourceWidth": 768,
+      "sourceHeight": 512,
+      "path": "/images/novel/mobile/ziwei4.webp",
+      "bytes": 37372,
+      "width": 768,
+      "height": 512
+    },
+    {
+      "key": "sukuyo",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EC%88%99%EC%9A%94%EC%A0%90%20%EB%B6%89%EC%9D%80%20%EC%8B%A4%EC%9D%98%20%EC%84%B8%EA%B3%84.webp",
+      "sourceBytes": 185856,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/sukuyo.webp",
+      "bytes": 98912,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "doorSuck",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%AC%B8%EC%97%90%20%EB%B9%A8%EB%A0%A4%EB%93%A4%EC%96%B4%EA%B0%80%EB%8A%94%20%EB%AA%A8%EC%8A%B5.webp",
+      "sourceBytes": 100284,
+      "sourceWidth": 1264,
+      "sourceHeight": 843,
+      "path": "/images/novel/mobile/doorSuck.webp",
+      "bytes": 90856,
+      "width": 1264,
+      "height": 843
+    },
+    {
+      "key": "handsRush",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EA%B2%80%EC%9D%80%20%EC%86%90%EB%93%A4%20%EB%B0%95%EC%A7%84%EA%B0%90.webp",
+      "sourceBytes": 193348,
+      "sourceWidth": 1663,
+      "sourceHeight": 946,
+      "path": "/images/novel/mobile/handsRush.webp",
+      "bytes": 91488,
+      "width": 1280,
+      "height": 728
+    },
+    {
+      "key": "bigeopIn1",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%EC%84%AC%EB%82%B4%EB%B6%801.webp",
+      "sourceBytes": 98616,
+      "sourceWidth": 768,
+      "sourceHeight": 341,
+      "path": "/images/novel/mobile/bigeopIn1.webp",
+      "bytes": 92264,
+      "width": 768,
+      "height": 341
+    },
+    {
+      "key": "bigeopIn2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%EC%84%AC%EB%82%B4%EB%B6%802.webp",
+      "sourceBytes": 98894,
+      "sourceWidth": 768,
+      "sourceHeight": 341,
+      "path": "/images/novel/mobile/bigeopIn2.webp",
+      "bytes": 92618,
+      "width": 768,
+      "height": 341
+    },
+    {
+      "key": "bigeopIn3",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%EC%84%AC%EB%82%B4%EB%B6%803.webp",
+      "sourceBytes": 102492,
+      "sourceWidth": 768,
+      "sourceHeight": 341,
+      "path": "/images/novel/mobile/bigeopIn3.webp",
+      "bytes": 95880,
+      "width": 768,
+      "height": 341
+    },
+    {
+      "key": "bigeopIn4",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%EC%84%AC%EB%82%B4%EB%B6%804.webp",
+      "sourceBytes": 94176,
+      "sourceWidth": 768,
+      "sourceHeight": 341,
+      "path": "/images/novel/mobile/bigeopIn4.webp",
+      "bytes": 88592,
+      "width": 768,
+      "height": 341
+    },
+    {
+      "key": "bigeopIn5",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%EC%84%AC%EB%82%B4%EB%B6%805.webp",
+      "sourceBytes": 98936,
+      "sourceWidth": 768,
+      "sourceHeight": 341,
+      "path": "/images/novel/mobile/bigeopIn5.webp",
+      "bytes": 92602,
+      "width": 768,
+      "height": 341
+    },
+    {
+      "key": "bigeopIn6",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/background/%EB%B9%84%EA%B2%81%EC%9D%98%EC%84%AC%EB%82%B4%EB%B6%806.webp",
+      "sourceBytes": 87164,
+      "sourceWidth": 768,
+      "sourceHeight": 341,
+      "path": "/images/novel/mobile/bigeopIn6.webp",
+      "bytes": 81626,
+      "width": 768,
+      "height": 341
+    },
+    {
+      "key": "neoBound2",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%EA%B0%87%ED%9E%8C%20%EB%84%A4%EC%98%A42.webp",
+      "sourceBytes": 307614,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "path": "/images/novel/mobile/neoBound2.webp",
+      "bytes": 150610,
+      "width": 960,
+      "height": 960
+    },
+    {
+      "key": "neoBound3",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%EA%B0%87%ED%9E%8C%20%EB%84%A4%EC%98%A43.webp",
+      "sourceBytes": 341512,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "path": "/images/novel/mobile/neoBound3.webp",
+      "bytes": 168128,
+      "width": 960,
+      "height": 960
+    },
+    {
+      "key": "fateTarot",
+      "source": "https://assets.code-destiny.com/CodeDestinyNovel/%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C%EB%93%A4%20%EC%86%8D%EC%9D%98%20%EC%97%B0%EC%9D%B4.webp",
+      "sourceBytes": 287816,
+      "sourceWidth": 1254,
+      "sourceHeight": 1254,
+      "path": "/images/novel/mobile/fateTarot.webp",
+      "bytes": 142272,
+      "width": 960,
+      "height": 960
+    },
+    {
+      "key": "rainStop",
+      "source": "/images/novel/remaster/rainStop.webp",
+      "sourceBytes": 367986,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/rainStop.webp",
+      "bytes": 209446,
+      "width": 1280,
+      "height": 853
+    },
+    {
+      "key": "foundation",
+      "source": "/images/novel/remaster/foundation.webp",
+      "sourceBytes": 143634,
+      "sourceWidth": 1536,
+      "sourceHeight": 1024,
+      "path": "/images/novel/mobile/foundation.webp",
+      "bytes": 81504,
+      "width": 1280,
+      "height": 853
+    }
+  ],
+  "sprites": {
+    "pig pigsheet|400% 400%|0% 0%": {
+      "path": "/images/novel/mobile/yeon-511ca35e27.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15672
+    },
+    "pig pigsheet|400% 400%|33.333% 0%": {
+      "path": "/images/novel/mobile/yeon-e821d4126a.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15294
+    },
+    "pig pigsheet|400% 400%|0% 100%": {
+      "path": "/images/novel/mobile/yeon-bbc793a664.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 13966
+    },
+    "pig pigsheet|400% 400%|100% 33.333%": {
+      "path": "/images/novel/mobile/yeon-079ebbc0be.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15156
+    },
+    "pig pigsheet|400% 400%|33.333% 66.667%": {
+      "path": "/images/novel/mobile/yeon-089fe114c2.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 11864
+    },
+    "pig pigsheet|400% 200%|33.333% 100%": {
+      "path": "/images/novel/mobile/yeon-650e3aa60f.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15066
+    },
+    "pig pigsheet|400% 400%|0% 33.333%": {
+      "path": "/images/novel/mobile/yeon-91db69b155.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15548
+    },
+    "pig pigsheet|400% 400%|66.667% 0%": {
+      "path": "/images/novel/mobile/yeon-0beb3130aa.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15530
+    },
+    "neo||2.306% 3.145%": {
+      "path": "/images/novel/mobile/neo-cef04fde61.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 16018
+    },
+    "neo||2.516% 65.618%": {
+      "path": "/images/novel/mobile/neo-91ec563fb8.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15506
+    },
+    "neo||63.941% 65.618%": {
+      "path": "/images/novel/mobile/neo-aaca47d16c.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15848
+    },
+    "pig pigsheet|400% 400%|100% 66.667%": {
+      "path": "/images/novel/mobile/yeon-2e3363da63.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 11772
+    },
+    "neo||95.388% 34.591%": {
+      "path": "/images/novel/mobile/neo-48d4aa814f.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 16158
+    },
+    "neo||63.941% 34.172%": {
+      "path": "/images/novel/mobile/neo-0d22992d55.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15890
+    },
+    "neo||31.866% 34.591%": {
+      "path": "/images/novel/mobile/neo-e2bc681b39.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15374
+    },
+    "neo||63.732% 97.065%": {
+      "path": "/images/novel/mobile/neo-770ae3da96.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15118
+    },
+    "neo||95.178% 65.618%": {
+      "path": "/images/novel/mobile/neo-aaded9f0ec.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15586
+    },
+    "pig pigsheet|400% 400%|100% 0%": {
+      "path": "/images/novel/mobile/yeon-c56b4fc813.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15702
+    },
+    "neo||32.075% 3.145%": {
+      "path": "/images/novel/mobile/neo-42784c3e31.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15778
+    },
+    "neo||2.306% 34.172%": {
+      "path": "/images/novel/mobile/neo-b7e4708f9f.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 16138
+    },
+    "pig pigsheet|400% 400%|66.667% 33.333%": {
+      "path": "/images/novel/mobile/yeon-c601d7fed1.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15486
+    },
+    "pig pigsheet|400% 400%|100% 100%": {
+      "path": "/images/novel/mobile/yeon-66860e6eed.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 14088
+    },
+    "neo||95.178% 97.065%": {
+      "path": "/images/novel/mobile/neo-4e363560f9.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15940
+    },
+    "pig pigsheet|400% 400%|66.667% 66.667%": {
+      "path": "/images/novel/mobile/yeon-b3f0682d42.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 11920
+    },
+    "neo||32.285% 65.618%": {
+      "path": "/images/novel/mobile/neo-a6de56bfed.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15692
+    },
+    "pig pigsheet|400% 400%|33.333% 33.333%": {
+      "path": "/images/novel/mobile/yeon-2ed429eeff.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 14752
+    },
+    "moka mokaSheet|300% 200%|0% 0%": {
+      "path": "/images/novel/mobile/moka-9241a3cc05.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 34228
+    },
+    "moka mokaSheet|300% 200%|0% 100%": {
+      "path": "/images/novel/mobile/moka-286bb8c381.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 34816
+    },
+    "moka mokaSheet|300% 200%|50% 100%": {
+      "path": "/images/novel/mobile/moka-81bbc57e45.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 38056
+    },
+    "moka mokaSheet|300% 200%|100% 100%": {
+      "path": "/images/novel/mobile/moka-b79d339faa.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 33090
+    },
+    "moka mokaSheet|300% 200%|50% 0%": {
+      "path": "/images/novel/mobile/moka-4fc96ec439.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 32716
+    },
+    "pig pigsheet|400% 200%|100% 0%": {
+      "path": "/images/novel/mobile/yeon-d4ea56aadb.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 15966
+    },
+    "pig pigsheet|400% 400%|0% 66.667%": {
+      "path": "/images/novel/mobile/yeon-201523f9c7.webp",
+      "width": 264,
+      "height": 372,
+      "bytes": 12528
+    },
+    "moka mokaSheet|300% 200%|100% 0%": {
+      "path": "/images/novel/mobile/moka-cd05085bef.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 38542
+    },
+    "neo||64.151% 3.145%": {
+      "path": "/images/novel/mobile/neo-a066db3e3e.webp",
+      "width": 300,
+      "height": 300,
+      "bytes": 15790
+    },
+    "ln|300% 200%|100% 0%": {
+      "path": "/images/novel/mobile/ln-abb8cbdbef.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 18924
+    },
+    "ln|300% 200%|0% 100%": {
+      "path": "/images/novel/mobile/ln-f5b881ef14.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 17476
+    },
+    "ln|300% 200%|50% 0%": {
+      "path": "/images/novel/mobile/ln-fd2c878ec5.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 17310
+    },
+    "ln|300% 200%|0% 0%": {
+      "path": "/images/novel/mobile/ln-48e4401feb.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 20846
+    },
+    "ln|300% 200%|50% 100%": {
+      "path": "/images/novel/mobile/ln-4925ce956d.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 18526
+    },
+    "ln|300% 200%|100% 100%": {
+      "path": "/images/novel/mobile/ln-20acba39fe.webp",
+      "width": 400,
+      "height": 400,
+      "bytes": 18370
+    },
+    "lns|300% 200%|0% 0%": {
+      "path": "/images/novel/mobile/lns-77af965511.webp",
+      "width": 375,
+      "height": 600,
+      "bytes": 39988
+    },
+    "lns|300% 200%|50% 0%": {
+      "path": "/images/novel/mobile/lns-c27e6907ac.webp",
+      "width": 375,
+      "height": 600,
+      "bytes": 38538
+    },
+    "lns|300% 200%|100% 0%": {
+      "path": "/images/novel/mobile/lns-b83f9483ca.webp",
+      "width": 375,
+      "height": 600,
+      "bytes": 40282
+    },
+    "lns|300% 200%|0% 100%": {
+      "path": "/images/novel/mobile/lns-a8fad6cca1.webp",
+      "width": 375,
+      "height": 600,
+      "bytes": 46990
+    },
+    "lns|300% 200%|100% 100%": {
+      "path": "/images/novel/mobile/lns-a52d7a350d.webp",
+      "width": 375,
+      "height": 600,
+      "bytes": 38802
+    },
+    "rab|400% 200%|100% 0%": {
+      "path": "/images/novel/mobile/rab-67bd7120be.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 26230
+    },
+    "rab|400% 200%|33.333% 0%": {
+      "path": "/images/novel/mobile/rab-dff925a61c.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 27006
+    },
+    "rab|400% 200%|66.667% 0%": {
+      "path": "/images/novel/mobile/rab-4d662d2808.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 28812
+    },
+    "rab|400% 200%|100% 100%": {
+      "path": "/images/novel/mobile/rab-cc2556418a.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 22756
+    },
+    "rab|400% 200%|0% 0%": {
+      "path": "/images/novel/mobile/rab-7b1bb9895a.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 27352
+    },
+    "rab|400% 200%|0% 100%": {
+      "path": "/images/novel/mobile/rab-36781a8649.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 26348
+    },
+    "rab|400% 200%|33.333% 100%": {
+      "path": "/images/novel/mobile/rab-fec6a9e93e.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 27018
+    },
+    "rab|400% 200%|66.667% 100%": {
+      "path": "/images/novel/mobile/rab-e55066a30c.webp",
+      "width": 400,
+      "height": 554,
+      "bytes": 35242
+    },
+    "neoh|400% 200%|0% 100%": {
+      "path": "/images/novel/mobile/neo-47e3141579.webp",
+      "width": 362,
+      "height": 543,
+      "bytes": 39144
+    },
+    "neoh|400% 200%|66.667% 100%": {
+      "path": "/images/novel/mobile/neo-1c948b4319.webp",
+      "width": 362,
+      "height": 543,
+      "bytes": 39088
+    },
+    "neoh|400% 200%|66.667% 0%": {
+      "path": "/images/novel/mobile/neo-116fe205d9.webp",
+      "width": 362,
+      "height": 543,
+      "bytes": 41134
+    },
+    "neoh|400% 200%|33.333% 100%": {
+      "path": "/images/novel/mobile/neo-12d20ee33e.webp",
+      "width": 362,
+      "height": 543,
+      "bytes": 39184
+    },
+    "neoh|400% 200%|100% 100%": {
+      "path": "/images/novel/mobile/neo-d52f6d3ba7.webp",
+      "width": 362,
+      "height": 543,
+      "bytes": 37602
+    }
+  }
+}

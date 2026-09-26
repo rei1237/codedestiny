@@ -91,12 +91,27 @@ for (const [index, source] of inlineScripts.entries()) {
 }
 
 // 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
-const EXPECTED_BEAT_COUNT = 8844;
+const EXPECTED_BEAT_COUNT = 9124;
 const runtime = buildNovelPayload();
+const mobileAssets = JSON.parse(readFileSync(resolve(ROOT, "content/novel/mobile-assets.json"), "utf8"));
+const mobileSpriteMap = JSON.parse(html.match(/var MOBILE_SPRITES=(\{[^\n]+\});/)?.[1] || "{}");
+for (const asset of mobileAssets.backgrounds) {
+  const file = resolve(ROOT, "public", asset.path.slice(1));
+  if (!existsSync(file) || statSync(file).size !== asset.bytes || asset.bytes > 300_000 || asset.width > 1280 || asset.height > 960) fail(`mobile background budget or inventory drift: ${asset.key}`);
+}
+for (const [key, asset] of Object.entries(mobileAssets.sprites)) {
+  const file = resolve(ROOT, "public", asset.path.slice(1));
+  if (!existsSync(file) || statSync(file).size !== asset.bytes || asset.bytes > 80_000 || asset.width * asset.height > 240_000 || mobileSpriteMap[key] !== asset.path) fail(`mobile sprite budget or binding drift: ${key}`);
+}
+for (const pose of ["base", "talk", "surprise", "angry", "sad", "water"]) {
+  const file = resolve(ROOT, `public/images/novel/hanbi/${pose}.webp`);
+  if (!existsSync(file) || statSync(file).size > 80_000) fail(`tiger sprite missing or over budget: ${pose}`);
+}
+if (runtime.episodes.some(episode => episode.beats.some(beat => !beat.id))) fail("stable story IDs are required");
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
-if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 44 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
-  fail(`manifest is not synchronized with the 44-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
+if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 60 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
+  fail(`manifest is not synchronized with the 60-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
 // 🔴 emotionPath 가 아예 없으면 undefined < 3 이 false 라 통과했다(fail-open). 배열 여부를 먼저 본다.
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => !Array.isArray(episode.emotionPath) || episode.emotionPath.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
@@ -137,7 +152,7 @@ const expectedVisualCues = [
   [43, 8, "cherryMoonPortal"],
 ];
 for (const [episodeIndex, beatIndex, background] of expectedVisualCues) {
-  if (runtime.episodes[episodeIndex]?.beats[beatIndex]?.bg !== background) {
+  if (runtime.episodes.flatMap(e => e.beats).find(b => b.id === `${episodeIndex === 0 ? "prologue" : "ep-" + String(episodeIndex).padStart(2, "0")}:${beatIndex + 1}`)?.bg !== background) {
     fail(`event background is not bound to its canonical beat: ${background}`);
   }
 }
@@ -147,7 +162,7 @@ const preservedEarlyVisualCues = [
   [5, 0, "islandIn"],
 ];
 for (const [episodeIndex, beatIndex, background] of preservedEarlyVisualCues) {
-  if (runtime.episodes[episodeIndex]?.beats[beatIndex]?.bg !== background) {
+  if (runtime.episodes.flatMap(e => e.beats).find(b => b.id === `${episodeIndex === 0 ? "prologue" : "ep-" + String(episodeIndex).padStart(2, "0")}:${beatIndex + 1}`)?.bg !== background) {
     fail(`an existing early-scene background was unexpectedly remapped: ${background}`);
   }
 }
@@ -173,7 +188,7 @@ for (const [index, meta] of manifest.episodes.entries()) {
   }
   // 새 ID 저장과 기존 숫자 저장이 같은 위치를 가리키는지 확인한다.
   const saved = { ep: index, bi: Math.min(2, chunk.beats.length - 1), episodeId: chunk.id, beatId: chunk.beats[Math.min(2, chunk.beats.length - 1)].id };
-  if (saved.episodeId !== manifest.episodes[index].id || !saved.beatId.startsWith(`${chunk.id}:`)) fail(`bookmark mapping failed for ${chunk.id}`);
+  if (saved.episodeId !== manifest.episodes[index].id || !chunk.beats.some(beat => beat.id === saved.beatId)) fail(`bookmark mapping failed for ${chunk.id}`);
 }
 
 console.log(`[novel-runtime] OK: shell ${statSync(PLAYER_PATH).size.toLocaleString("ko-KR")} bytes · ${runtime.episodeCount} episodes · ${runtime.beatCount.toLocaleString("ko-KR")} beats · ID bookmark migration ready`);

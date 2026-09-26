@@ -14,9 +14,9 @@ import {
 
 export const metadata = buildSeoMetadata({
   path: "/stories",
-  title: "연이의 운명 노벨 — 사주로 걷는 44화 판타지 | Code Destiny",
+  title: "연이의 운명 노벨 — 사주로 걷는 60화 판타지 | Code Destiny",
   description:
-    "평범한 회사원이 꽃돼지가 되어 십성의 섬, 자미두수의 궁, 숙요의 붉은 실을 건너는 44화 완결 창작 소설. 등장인물과 세계관, 화별 줄거리를 한자리에서 볼 수 있습니다.",
+    "평범한 회사원이 꽃돼지가 되어 십성의 섬, 자미두수의 궁, 숙요의 붉은 실을 건너는 60화 완결 창작 소설. 등장인물과 세계관, 화별 줄거리를 한자리에서 볼 수 있습니다.",
   keywords: ["연이의 운명 노벨", "사주 소설", "운세 웹소설", "십성 판타지", "코드데스티니 스토리"],
 });
 
@@ -60,7 +60,7 @@ export default function StoriesHubPage() {
           알람 세 개를 다 끄고도 일어나지 못하던 아침, 깔린 적 없는 앱 하나가 화면에 떠 있었습니다.
           평범한 회사원이던 연이는 그 앱을 열고 꽃돼지의 몸으로 낯선 세계에 떨어집니다. 이 이야기는
           그가 십성의 섬과 자미두수의 궁, 숙요의 붉은 실을 차례로 건너며 자기 이름을 되찾는
-          44화 완결 창작 소설입니다.
+          60화 완결 창작 소설입니다.
         </p>
         <p className="mt-4 break-keep text-sm leading-8 text-slate-300 md:text-base">
           전체 분량은 한글 약 {Math.round(TOTAL_KOREAN / 10000)}만 자, 처음부터 끝까지 읽는 데

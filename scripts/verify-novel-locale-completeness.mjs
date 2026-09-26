@@ -24,9 +24,9 @@ for (const locale of locales) {
     if (invalidText(tr.tag) || invalidText(tr.title)) errors.push(`${locale}: ${id} tag/title incomplete`);
     for (let beat = 0; beat < src.beats.length; beat += 1) {
       const item = tr.beats[beat];
-      if (!item || item.id !== `${id}:${beat + 1}` || invalidText(item.t)) errors.push(`${locale}: ${id}:${beat + 1} missing/Korean/marker`);
+      if (!item || item.id !== (src.beats[beat].id || `${id}:${beat + 1}`) || invalidText(item.t)) errors.push(`${locale}: ${id}:${beat + 1} missing/Korean/marker`);
     }
   }
 }
 if (errors.length) { console.error(`[verify:novel-i18n] FAILED ${errors.length}`); errors.slice(0, 30).forEach((item) => console.error(`- ${item}`)); process.exit(1); }
-console.log(`[verify:novel-i18n] OK — 44화 × ${locales.length}개 언어의 에피소드/비트 ID와 번역이 완전합니다.`);
+console.log(`[verify:novel-i18n] OK — ${source.episodes.length}화 × ${locales.length}개 언어의 에피소드/비트 ID와 번역이 완전합니다.`);

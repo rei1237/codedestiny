@@ -13,8 +13,8 @@ export const MANIFEST_PATH = resolve(OUTPUT_DIR, "manifest.json");
 export const READER_OUTPUT_PATH = resolve(ROOT, "lib/stories/vn/episodes.generated.json");
 export const SCENE_MATRIX_PATH = resolve(ROOT, "content/novel/scene-matrix.generated.json");
 
-const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje"]);
-const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon"]);
+const SPEAKERS = new Set(["n", "sys", "yeon", "neo", "mu", "moka", "luna", "rab", "baek", "crow", "geo", "god", "ln", "lns", "pje", "tiger"]);
+const CAST_IDS = new Set(["baek", "crow", "ln", "lns", "mirror", "moka", "mu", "neo", "pje", "rab", "yeon", "tiger"]);
 const EFFECTS = new Set(["burst", "claw", "fire", "flash", "fuse", "hands", "heart", "ink", "metal", "net", "reveal", "root", "script", "shake", "stars", "suck", "tarot", "thread", "transform", "veil", "vortex", "water", "wood"]);
 const BARE_DIALOGUE = new Set(["그래.", "응.", "알겠어.", "좋아."]);
 // 작가가 레거시 정본에 남긴 의미값 중, 실물 파일명이 바뀐 경우에만 고정 매핑한다.
@@ -51,7 +51,7 @@ function inferScene(beat, priorScene) {
     tone,
     ambient,
     eventEffect,
-    camera: beat.im ? "focus" : beat.s === "n" ? "drift" : "steady",
+    camera: beat.shot === "close" || beat.im ? "focus" : beat.s === "n" ? "drift" : "steady",
   };
 }
 
@@ -72,6 +72,7 @@ function validateBeat(beat, context, bgKeys, trackKeys) {
   if (typeof beat.t !== "string" || !beat.t.trim()) throw new Error(`${context}: 대사가 비어 있습니다.`);
   if (beat.t.length > BEAT_MAX_LENGTH) throw new Error(`${context}: 대사가 ${BEAT_MAX_LENGTH}자를 초과합니다. 호흡 단위로 나누어 주세요.`);
   if (beat.s !== "n" && beat.s !== "sys" && BARE_DIALOGUE.has(beat.t.trim())) throw new Error(`${context}: 감정 정보 없는 단답 '${beat.t}'은 보이스에 맞춰 보강해 주세요.`);
+  if (beat.shot && !["wide", "close", "impact", "quiet"].includes(beat.shot)) throw new Error(`${context}: invalid shot`);
   if (beat.bg && !bgKeys.has(beat.bg)) throw new Error(`${context}: 배경 '${beat.bg}'이 BG 맵에 없습니다.`);
   if (beat.bgm && !trackKeys.has(beat.bgm)) throw new Error(`${context}: BGM '${beat.bgm}'이 TRK 맵에 없습니다.`);
   if (beat.fx && !EFFECTS.has(beat.fx)) throw new Error(`${context}: 효과 '${beat.fx}'이 허용 목록에 없습니다.`);
@@ -107,15 +108,16 @@ export function buildNovelPayload() {
         ? { ...sourceBeat, bg: BACKGROUND_FALLBACKS[sourceBeat.bg], backgroundIntent: sourceBeat.bg }
         : sourceBeat;
       validateBeat(rawBeat, context, bgKeys, trackKeys);
-      const hasSceneDirection = Boolean(rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
+      const hasSceneDirection = Boolean(rawBeat.shot || rawBeat.bg || rawBeat.bgm || rawBeat.fx || rawBeat.tone || rawBeat.im);
       const scene = hasSceneDirection ? inferScene(rawBeat, priorScene) : undefined;
       const beat = {
         ...rawBeat,
-        id: `${id}:${beatIndex + 1}`,
+        id: sourceBeat.id || `${id}:${beatIndex + 1}`,
         ...(scene ? { scene, a11y: inferAccessibility(rawBeat, scene) } : {}),
         ...(inferPacing(rawBeat) ? { pacing: inferPacing(rawBeat) } : {}),
       };
       if (scene && !beat.a11y?.description) throw new Error(`${context}: 장면 접근성 설명이 없습니다.`);
+      if (!/^[a-z0-9-]+:[a-z0-9-]+$/.test(beat.id)) throw new Error(`invalid stable beat ID: ${beat.id}`);
       if (beatIds.has(beat.id)) throw new Error(`중복 비트 ID: ${beat.id}`);
       beatIds.add(beat.id);
       if (scene) priorScene = scene;
@@ -214,6 +216,10 @@ export function writeNovelRuntime(runtime = buildNovelPayload()) {
       tag: episode.tag,
       title: episode.title,
       beatCount: episode.beats.length,
+      legacyRanges: [...new Set(episode.beats.map(beat => beat.id.split(":")[0]))].map(id => {
+        const positions = episode.beats.filter(beat => beat.id.startsWith(id + ":") && /^\d+$/.test(beat.id.split(":")[1])).map(beat => Number(beat.id.split(":")[1]));
+        return positions.length ? { id, first: Math.min(...positions), last: Math.max(...positions) } : null;
+      }).filter(Boolean),
       path: `/data/novel/episodes/${episode.id}.json`,
     })),
   };
