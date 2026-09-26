@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url), Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/consultation'; export {questionFactSelectors,readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export {StructuredChapterProvider} from './worker/yeongnyangi/providers/chapter'; export {buildAskFirstChapterPrompt} from './worker/yeongnyangi/fortune/ask/prompt'; export {products} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('consultation-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
+const {consultationClock,createConsultation,validateConsultationAnswers,validatePreciseTiming,assertProfessionalProse,redactInternalEvidence,questionFactSelectors,readingManifest,products,StructuredChapterProvider,buildAskFirstChapterPrompt}=loaded.exports;
 const clock=consultationClock('Asia/Seoul',new Date('2026-09-21T23:00:00Z'));
 const manifest=readingManifest(products.find(p=>p.id==='saju_mackerel'));
 const make=(q='',topic='general')=>createConsultation(q,topic,clock,manifest);
@@ -37,6 +37,25 @@ test('missing or duplicated answers fail; empty question does not acquire a fict
 test('professional reasoning rejects internal identifiers in every visible result field',()=>{
  for(const body of [{summary:'saju.fiveElements'},{blocks:[{title:'fiveElements',paragraphs:['오행의 분포입니다.']}]},{questionAnswers:[{reason:'FortuneFact'}]}])assert.throws(()=>assertProfessionalProse(body));
  assert.doesNotThrow(()=>assertProfessionalProse({summary:'오행의 분포와 월령이 일간을 돕는 관계를 살펴봐요.',sources:['saju.fiveElements']}));
+ assert.throws(()=>assertProfessionalProse({summary:'일간은 강해요 (saju.dayMaster).'}),{code:'INTERNAL_EVIDENCE_EXPOSED',detail:'id:saju.dayMaster'});
+});
+test('an exposed internal ID is corrected in place instead of discarding the paid chapter',()=>{
+ const labels=['dayMaster','fiveElements','pillars','tenGods'];
+ const fix=(body,locale='ko',question='')=>redactInternalEvidence(body,question,labels,locale);
+ const cited=fix({summary:'일간이 단단해요 (saju.dayMaster).',blocks:[{title:'해석',paragraphs:['기둥을 봐요 [근거: saju.dayMaster, saju.pillars] 흐름이 이어져요.']}],sources:['saju.dayMaster']});
+ assert.equal(cited.count,2);assert.equal(cited.body.summary,'일간이 단단해요.');assert.equal(cited.body.blocks[0].paragraphs[0],'기둥을 봐요 흐름이 이어져요.');
+ assert.deepEqual(cited.body.sources,['saju.dayMaster']);
+ const named=fix({summary:'saju.dayMaster가 강하고 pillars과 tenGods을 함께 보면 saju.fiveElements로 균형이 보여요.'});
+ assert.equal(named.body.summary,'일간이 강하고 사주 네 기둥과 십성의 구성을 함께 보면 오행의 분포로 균형이 보여요.');
+ assert.doesNotThrow(()=>assertProfessionalProse(named.body,'',labels));
+ for(const [body,detail] of [[{summary:'CALCULATED_DATA 기준으로 봐요.'},'system:CALCULATED_DATA'],[{summary:'(saju.dayMaster)'},'id:saju.dayMaster']]){
+  const out=fix(body);assert.throws(()=>assertProfessionalProse(out.body,'',labels),{code:'INTERNAL_EVIDENCE_EXPOSED',detail});
+ }
+ const english=fix({summary:'Your dayMaster is firm (saju.dayMaster).'},'en');
+ assert.equal(english.body.summary,'Your dayMaster is firm.');
+ assert.throws(()=>assertProfessionalProse(english.body,'',labels,'en'),{detail:'key:dayMaster'});
+ const untouched={summary:'saju.dayMaster가 뭐예요?'};
+ assert.equal(fix(untouched,'ko','saju.dayMaster가 뭐예요?').body,untouched);
 });
 test('an invented event date is rejected while supplied dates and reference date remain usable',()=>{
  const body={summary:'2027년 5월 17일에 기회가 생깁니다.',analysis:[]};

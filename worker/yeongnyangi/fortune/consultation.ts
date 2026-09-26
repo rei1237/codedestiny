@@ -70,15 +70,76 @@ export const professionalEvidenceNames: Record<string, string> = {
   todayNumerology: '오늘의 수비학 개인 수', sajuYearlyLuck: '사주 세운의 흐름', sajuMonthlyLuck: '사주 월운의 흐름',
 };
 
+const exposedKeys = (factLabels: string[], locale: string) =>
+  [...new Set([...Object.keys(professionalEvidenceNames),...factLabels.filter(k=>/^[A-Za-z][A-Za-z0-9]+$/.test(k))])].filter(key=>locale==='ko'||/[a-z][A-Z]|[0-9_]/.test(key));
+
 export function assertProfessionalProse(body: ChapterBody, question = '', factLabels: string[] = [], locale = 'ko') {
   const prose = [body.title || '',body.summary, body.example, body.advice, body.persona, ...(body.analysis || []), ...(body.highlights || []),
     ...(body.blocks || []).flatMap(b => [b.title, ...b.paragraphs]),
     ...(body.questionAnswers || []).flatMap(a => [a.answer, a.reason, a.timing, a.action])].join('\n');
   const text = question ? prose.split(question).join('') : prose;
-  if (/\b(?:saju|ziwei|vedic|astrology|sukuyo|tarot)\.[A-Za-z][\w.[\]-]*|\b(?:FortuneFact|CALCULATED_DATA|USER_QUESTION|factSelectors|requiredSections|engineVersion|questionAnswers)\b/.test(text) ||
-    [...Object.keys(professionalEvidenceNames),...factLabels.filter(k=>/^[A-Za-z][A-Za-z0-9]+$/.test(k))].filter(key=>locale==='ko'||/[a-z][A-Z]|[0-9_]/.test(key)).some(key => new RegExp(`\\b${key}\\b`).test(text))) {
-    throw new FortuneError('INTERNAL_EVIDENCE_EXPOSED');
-  }
+  // Detail names the matched class and key only (never model text), so the next exposure is diagnosable.
+  const system = text.match(/\b(?:saju|ziwei|vedic|astrology|sukuyo|tarot)\.[A-Za-z][\w.[\]-]*|\b(?:FortuneFact|CALCULATED_DATA|USER_QUESTION|factSelectors|requiredSections|engineVersion|questionAnswers)\b/);
+  if (system) throw new FortuneError('INTERNAL_EVIDENCE_EXPOSED',400,(system[0].includes('.')?`id:${system[0]}`:`system:${system[0]}`).slice(0,80));
+  const key = exposedKeys(factLabels,locale).find(key => new RegExp(`\\b${key}\\b`).test(text));
+  if (key) throw new FortuneError('INTERNAL_EVIDENCE_EXPOSED',400,`key:${key}`.slice(0,80));
+}
+
+// Principle 17: an internal evidence ID in the prose is corrected, not paid for again. A bracket that holds only
+// IDs/keys is dropped; in Korean a bare ID/key becomes its professional name with the particle fixed.
+// Anything else (system names, unknown keys, non-Korean bare keys) is left for assertProfessionalProse to reject.
+const EVIDENCE_ID = /\b(saju|ziwei|vedic|astrology|sukuyo|tarot)\.([A-Za-z][\w[\]-]*(?:\.[A-Za-z0-9][\w[\]-]*)*)/g;
+const BRACKETED = /[ \t]*[(\[（【]\s*([^()[\]（）【】\n]{1,200}?)\s*[)\]）】]/g;
+const CITATION_LABEL = /^(?:근거|출처|참고|데이터|자료|sources?|evidence|ref|根拠|出典|依据|依據)\s*[:：]?\s*/i;
+const PARTICLES: [string, string][] = [['으로','로'],['은','는'],['을','를'],['과','와'],['이','가']];
+const finalConsonant = (s: string) => { const c = s.charCodeAt(s.length - 1) - 0xAC00; return c >= 0 && c <= 11171 ? c % 28 : 0; };
+
+export function redactInternalEvidence(body: ChapterBody, question = '', factLabels: string[] = [], locale = 'ko'): { body: ChapterBody; count: number } {
+  const keys = exposedKeys(factLabels, locale);
+  const isInternal = (token: string) => new RegExp(`^${EVIDENCE_ID.source}$`).test(token) || keys.includes(token);
+  const shortName = (key: string) => professionalEvidenceNames[key]?.split(' — ')[0];
+  let count = 0;
+  const particle = (name: string, found?: string) => {
+    if (!found) return '';
+    const pair = PARTICLES.find(p => p.includes(found))!, fc = finalConsonant(name);
+    return pair[0] === '으로' ? (fc && fc !== 8 ? '으로' : '로') : fc ? pair[0] : pair[1];
+  };
+  const PARTICLE = '(?:(?<particle>으로|로|은|는|을|를|과|와|이|가)(?=[\\s.,!?·)\\]」』]|$))?';
+  const names = Object.keys(professionalEvidenceNames).filter(k => keys.includes(k));
+  const renames = [new RegExp(`\\b(?:saju|ziwei|vedic|astrology|sukuyo|tarot)\\.(?<key>[A-Za-z][\\w[\\]-]*(?:\\.[A-Za-z0-9][\\w[\\]-]*)*)${PARTICLE}`, 'g'),
+    ...(names.length ? [new RegExp(`\\b(?<key>${names.join('|')})\\b${PARTICLE}`, 'g')] : [])];
+  const fix = (value: unknown) => {
+    if (typeof value !== 'string' || !value) return value;
+    let fixed = 0, next = value.replace(BRACKETED, (whole, inner: string) => {
+      const tokens = inner.replace(CITATION_LABEL, '').split(/[\s,，、·/|;]+/).filter(Boolean);
+      if (!tokens.length || !tokens.every(isInternal)) return whole;
+      fixed++; return '';
+    });
+    if (locale === 'ko') for (const pattern of renames) next = next.replace(pattern, (...args) => {
+      const whole = args[0] as string, groups = args[args.length - 1] as { key: string; particle?: string };
+      const name = shortName(groups.key.split(/[.[]/)[0]);
+      if (!name) return whole;
+      fixed++; return name + particle(name, groups?.particle);
+    });
+    if (next === value) return value;
+    next = next.replace(/[ \t]{2,}/g, ' ').replace(/[ \t]+([.,!?。])/g, '$1').trim();
+    // Never blank a field to pass: an emptied string stays as written for the guard to reject.
+    if (!next) return value;
+    count += fixed; return next;
+  };
+  if (question && (new RegExp(EVIDENCE_ID.source).test(question) || keys.some(k => new RegExp(`\\b${k}\\b`).test(question)))) return { body, count: 0 };
+  const out: ChapterBody = { ...body,
+    title: fix(body.title) as string, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b, title: fix(b.title) as string,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
+  };
+  if (body.title === undefined) delete (out as {title?: string}).title;
+  return count ? { body: out, count } : { body, count: 0 };
 }
 
 export function validatePreciseTiming(body: ChapterBody, consultation: Consultation | undefined, evidence: unknown) {

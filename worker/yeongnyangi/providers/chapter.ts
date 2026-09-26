@@ -8,7 +8,7 @@ import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
 import {validateAskChapter} from '../fortune/ask/validate';
 import {escapeAskData, type AskAnalysis} from '../fortune/ask/analysis';
 import type {EvidencePacket} from '../fortune/ask/contracts';
-import {assertProfessionalProse, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames} from '../fortune/consultation';
+import {assertProfessionalProse, redactInternalEvidence, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames} from '../fortune/consultation';
 import {
   ChapterBody,
   ChapterSpec,
@@ -77,6 +77,10 @@ export function validateChapter(
     !v.topics.every(text)
   )
     throw new FortuneError("INVALID_CHAPTER");
+  const factLabels=Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label));
+  // An internal ID in the prose is corrected before any length or language check reads it, not regenerated (principle 17).
+  const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale);
+  if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
   if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
   const allowed = new Set(
@@ -120,7 +124,7 @@ export function validateChapter(
     if(['flounder','tuna','assorted','omakase'].includes(input.chapter.tier || '') && new Set(evidence.sources).size<Math.min(2,allowed.size))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
   }
   validateConsultationAnswers(v,input.chapter,input.analysis.consultation);
-  assertProfessionalProse(v,input.analysis.question,Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label)),input.locale);
+  assertProfessionalProse(v,input.analysis.question,factLabels,input.locale);
   validatePreciseTiming(v,input.analysis.consultation,Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId)));
   return input.ask && input.chapter.ordinal === 0
     ? validateAskChapter(v,input.analysis.consultation!,input.ask.analysis,input.ask.evidence) : v;
