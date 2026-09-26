@@ -4,11 +4,18 @@ import { hasReadingSections, isStructuredReading } from './reading-policy';
 
 const normalize=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
 export const SECTION_PARAGRAPH_LIMIT=500;
-// Principle 17: the chapter total (CHAPTER_TOO_SHORT) keeps the full promised minimum. A single section's
-// share already sits at ~81% of its target, so failing the whole chapter for one short section wasted
-// two of every three paid calls (incident 2026-09-26). Only a section under 70% of its share is a real gap.
+// Principle 17: the prompt still asks for minimumChars and the target range; only the rejection line is
+// looser. A single section's share already sits at ~81% of its target, so failing the whole chapter for one
+// short section wasted two of every three paid calls (incident 2026-09-26). Only a section under 70% of its
+// share is a real gap, and a chapter is rejected only under 70% of its target low (v6 minimums sat at 73~81%,
+// v4 at 85% — a chapter the model had already written was thrown away for a few hundred characters).
 export const SECTION_FLOOR_RATIO=.7;
 export const sectionFloor=(minimumChars:number)=>Math.ceil((minimumChars||0)*SECTION_FLOOR_RATIO);
+export const CHAPTER_FLOOR_RATIO=.7;
+export const chapterFloor=(chapter:Pick<ChapterSpec,'minimumChars'|'targetChars'>)=>{
+ const minimum=chapter.minimumChars||0;
+ return Math.ceil(Math.min(minimum,CHAPTER_FLOOR_RATIO*(chapter.targetChars?.[0]||minimum)));
+};
 const codePoints=(s:string)=>Array.from(s).length;
 // Sentence end: a non-digit, non-space character, then . ! ? 。 (plus closing quotes/brackets) and whitespace; or a line break.
 // List numbers ("1. "), dotted dates ("2026. 10.") and decimals are never cut.
@@ -113,6 +120,7 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  if(locale!=='ko'&&/(?:guaranteed|100%|definitely).{0,35}(?:reunion|marriage|success)|(?:必ず|絶対|100%).{0,15}(?:復縁|結婚|成功)|(?:diagnos\w*|確定|診断).{0,20}(?:cancer|disease|癌|病気)/i.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');
  if(!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/(?:용신|희신|대운|마하다샤|안타르다샤|삼방사정)/.test(content))throw new FortuneError('TIER_SCOPE_VIOLATION');
  if(locale!=='ko'&&!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー|三方四正/i.test(content))throw new FortuneError('TIER_SCOPE_VIOLATION');
- if(bodyCharacterCount(body)<(chapter.minimumChars||0))throw new FortuneError('CHAPTER_TOO_SHORT');
+ const chapterCount=bodyCharacterCount(body),floor=chapterFloor(chapter);
+ if(chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);
  if(!v5&&chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title)))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
 }

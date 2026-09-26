@@ -2,7 +2,7 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor,chapterFloor,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const counts={mackerel:5,salmon:8,flounder:11,tuna:15};
 const minimums={mackerel:5500,salmon:10000,flounder:18000,tuna:40000};
@@ -45,6 +45,8 @@ test('the mackerel closing action chapter is the longest, and every floor sits w
   for(const c of rows)for(const q of [c,...c.sections])assert.ok(q.minimumChars<=q.targetChars[0]*.82,`${tag}/${c.key}/${q.id}`);
   // A single section discards the whole paid chapter only when it is far below its target (incident 2026-09-26).
   for(const c of rows)for(const q of c.sections)assert.ok(m.sectionFloor(q.minimumChars)<=q.targetChars[0]*.6,`${tag}/${c.key}/${q.id} section floor`);
+  // The chapter total is rejected only under 70% of its target low; the prompt still asks for minimumChars.
+  for(const c of rows)assert.ok(m.chapterFloor(c)<=Math.ceil(c.targetChars[0]*.7)&&m.chapterFloor(c)<=c.minimumChars,`${tag}/${c.key} chapter floor`);
  }
  assert.ok(books.length>=singles.length+2);
 });
@@ -58,6 +60,7 @@ test('fusion retains v5 counts and quotas; explicit legacy versions cannot inher
   const rows=m.readingManifest(p,'general','personal',version);
   assert.equal(rows.length,m.readingChapterCount(p.domain,p.fishId,version));
   assert.ok(rows.every(c=>c.version===version));
+  assert.ok(rows.every(c=>m.chapterFloor(c)<=Math.ceil(c.targetChars[0]*.7)),`${p.id}/${version} chapter floor`);
   assert.ok(rows.reduce((n,c)=>n+c.minimumChars,0)<minimums[p.fishId]);
  }
 });
@@ -117,4 +120,11 @@ test('one section a little short keeps the chapter; only a hollow section discar
  const cut=ratio=>{const b=structuredClone(good);b.blocks[0].paragraphs=[Array.from(b.blocks[0].paragraphs.join(' ')).slice(0,Math.ceil(section.minimumChars*ratio)).join('').trim()];return b;};
  assert.doesNotThrow(()=>m.validateChapter(cut(.75),input));
  assert.throws(()=>m.validateChapter(cut(.5),input),e=>e.code==='CHAPTER_SECTION_TOO_SHORT'&&e.detail===`section:${section.id}:${Math.ceil(section.minimumChars*.5)}/${Math.ceil(section.minimumChars*.7)}`);
+});
+test('a chapter a little under its minimum is kept; only one under 70% of its target low is discarded',()=>{
+ const cut=ratio=>{const b=structuredClone(good);b.blocks.forEach((block,i)=>{block.paragraphs=[Array.from(block.paragraphs.join(' ')).slice(0,Math.ceil(chapter.sections[i].targetChars[0]*ratio)).join('').trim()];});return b;};
+ const kept=cut(.72);
+ assert.ok(m.bodyCharacterCount(kept)<chapter.minimumChars,'the kept chapter is below the old full-minimum floor');
+ assert.doesNotThrow(()=>m.validateChapter(kept,input));
+ assert.throws(()=>m.validateChapter(cut(.62),input),e=>{const [count,floor]=(e.detail||'').replace(/^chapter:/,'').split('/').map(Number);return e.code==='CHAPTER_TOO_SHORT'&&floor===m.chapterFloor(chapter)&&count<floor;});
 });

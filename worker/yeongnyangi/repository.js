@@ -16,7 +16,8 @@ export const SYSTEM_CHAPTER_RETRY_GRANT = 2;
 export const FIX_RESUME_GRANT = 3;
 export const MAX_FIX_RESUMES = 2;
 // Raise when a deployed generation fix should retry held orders once more.
-export const GENERATION_FIX_EPOCH = 1;
+// 2: chapter rejection floor relaxed to 70% of the target low (2026-09-27).
+export const GENERATION_FIX_EPOCH = 2;
 const FIX_RESUMABLE = ['MANUAL_RECOVERY_LIMIT_REACHED','ATTEMPT_LIMIT_REACHED','SYSTEM_RECOVERY_EXHAUSTED'];
 // A rejected draft is not an outage: retry it almost at once. Provider and storage failures keep 30s, then 120s.
 const QUALITY_RETRY_MS = 5000;
