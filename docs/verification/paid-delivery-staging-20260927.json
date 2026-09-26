@@ -1,0 +1,28 @@
+{
+  "origin": "https://staging.code-destiny.com",
+  "actualWorker": true,
+  "actualMongo": true,
+  "paymentProof": "staging fixture",
+  "realPgCalls": 0,
+  "realLlmCalls": 0,
+  "checks": [
+    "payment lane order read x2",
+    "login",
+    "created read",
+    "concurrent activation idempotency",
+    "atomic Payment proof consumption",
+    "paid restore",
+    "guest401",
+    "foreign404",
+    "amount mismatch402",
+    "concurrent attendance once",
+    "concurrent daily unlock once",
+    "15 fixed free readings",
+    "horary free-prompt only",
+    "free reading restore",
+    "zero provider calls"
+  ],
+  "status": "PASS",
+  "verifiedSourceSha": "3baf54db3d8250fcbe89f6357026ae35f039e89e",
+  "fixtureCleanup": "PASS"
+}

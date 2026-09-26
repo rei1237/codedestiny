@@ -53,6 +53,8 @@
 
 현재 Family 정책: 판매가 149,000원, 기간 30일, 누적 한도 5,000(코드 차감 단위). 프로필 수 제한과 생성 누적 한도는 별개이며 무제한 생성으로 해석하지 않는다. 과거 구매 권리는 변경하지 않았다. `PASS_COST_EVIDENCE`가 비어 있어 신규 적용 범위는 확대하지 않는다.
 
+정책 버전은 `flower-cost-20260921`(v3)이며, `flower-20260921`(v2)와 무버전 legacy 구매는 구분한다. 한도를 전부 사용하면 단건 정가 환산 500,000원 대비 산술 차이는 70.2%지만 실제 고객에게 적용된 할인율·쿠폰·환불률은 미확인이다. 게시 환불 문구의 정본은 `app/terms-of-service/TermsContent.jsx` 제12조(시행일 2026-04-11)다. 결제/계약내용 수령 후 7일 이내 철회 요청, 제공 개시 부분의 제한 가능성, 미제공/시스템 오류 시 재생성·기간 조정·부분/전액 환불, 중복 결제 확인 시 환불, 대상 확인 후 3영업일 이내 절차 진행을 규정한다. 주문에는 당시 정책 버전과 환불 동의가 별도 기록된다. 이는 현재 코드/게시 문구 조사이며 개별 거래의 환불 적격 판정이나 정책 변경이 아니다.
+
 아래는 현재 정가를 전부 사용했을 때의 **정책 산술**이며 정산 매출이 아니다. 28상품 전체 표는 `yeongnyangi-pass-economics-20260927.json`.
 
 | 등급 | 단건 가격(원) | 정책 차감 단위 | 같은 상품 최대 횟수 | 한도 비례 회당 매출 배분(원) | PG/LLM 평균·p95/복구/운영비 | 평균·p95 순기여 |
@@ -113,3 +115,13 @@
 - 구현 커밋: `c4e1a69fd`(복구), `a3ee0c4ca`(준비 병렬화), `f5890b859`(관측). 다른 세션의 main 커밋을 병합한 `d100554ca28a96af5d0330212a1cff373918c2e1`을 main에 push했다. 타 세션 미커밋 상태를 전후 비교해 보존을 확인했다.
 
 커밋·CI·스테이징·배포 결과는 완료 후 추가한다. 미실행 또는 실패 상태는 성공으로 바꾸지 않는다.
+
+## 전달 결과
+
+- `5bf57b238`: SDK 예열의 비동기 거절도 결제 게이트가 재시도할 수 있도록 `await`로 처리, 회귀 검사 5/5 통과.
+- `3baf54db3d8250fcbe89f6357026ae35f039e89e`: 최신 main과 병합 후 push. [main CI](https://github.com/rei1237/codedestiny/actions/runs/36263991647)의 Risk tier, Typecheck and lint, Build Pages and Worker, Critical checks, Static guards, CI required 모두 성공.
+- 최초 `d100554ca` CI의 정적 검사 실패는 병합된 별도 UI 변경의 `item.chapterCount` 검사 조건이었다. 해당 수정 `aaf43253d`를 포함한 최신 SHA의 전체 CI 성공으로 재확인했다.
+- [스테이징 배포](https://github.com/rei1237/codedestiny/actions/runs/36264016297) 성공. 2026-09-27 04:04 KST 조회한 `/version.json`(Pages)과 `/api/version`(Worker)의 `gitSha`가 모두 `3baf54db3d8250fcbe89f6357026ae35f039e89e`이며 환경은 staging이다. 프로덕션 승격/실 PG/실 LLM은 실행하지 않았다.
+- `verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures`도 실제 스테이징 HTTP/Mongo에서 통과했다. 로그인, 결제 소켓 레인 주문 조회, 동시 활성화/증빙 소비/재열람, 비로그인 401, 타 사용자 404, 금액 불일치 402, 무료 결과 중복 차감 차단을 검증하고 fixture 정리했다. PG/LLM 호출 0. 요약: `paid-delivery-staging-20260927.json`.
+- 필수 main CI와 별도인 [Browser Shadow](https://github.com/rei1237/codedestiny/actions/runs/36263991613)는 프로필 버튼의 옛 접근성 이름을 기다리다 실패했다. `88fabdb6a`에서 테스트 선택자가 수정됐으며 재검증은 이 문서 작성 시 진행 중이다. 이를 모바일 전체 성공으로 집계하지 않는다.
+- 지정 테스트 계정은 읽기 전용 조회에서 활성 일반 사용자로 확인했다. 권한·프로필·구매 기록은 변경하지 않았다. 브라우저의 로그인됨 표시만 확인했고 실결제 화면은 실행하지 않았다.
