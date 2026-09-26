@@ -94,7 +94,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (doc.lock.token !== token) return respond(doc, render, true);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
-  const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null },
+  const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null, paidNarrativeRecovery: null },
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
     const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 3).slice(0, 4);

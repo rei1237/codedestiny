@@ -1,8 +1,10 @@
 import { connectDb, withMongoRetry } from './db.js';
 import { ServiceExecutionTransaction } from './models.js';
 
+// Ten idle minutes past the deadline leave the server resume task at least one
+// tick first; only records it cannot move (review, repeated errors) stay here.
 export function stalledNarrativeFilter(now) {
-  return {status:'pending',timeoutAt:{$lte:now},'metadata.paidNarrative':{$exists:true},
+  return {status:'pending',timeoutAt:{$lte:new Date(now.getTime()-600000)},'metadata.paidNarrative':{$exists:true},
     'metadata.paidNarrativeAlertedAt':null,
     $or:[{'lock.until':null},{'lock.until':{$lte:now}}]};
 }

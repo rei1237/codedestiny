@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import { listProducts } from '../worker/payments/catalog.js';
 import { PAID_NON_LLM_DELIVERY_FIXTURES } from '../__tests__/fixtures/paid-non-llm-delivery-fixtures.mjs';
+import { PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS } from '../worker/lib/paid-narrative-adapters.js';
 const inventory=JSON.parse(fs.readFileSync('docs/payments/payment-p0-inventory.json','utf8'));
 const staticProducts=new Map(PAID_NON_LLM_DELIVERY_FIXTURES.map(row=>[row.featureKey,row]));
 const adapters=[
@@ -45,7 +46,7 @@ const rows=listProducts().map(product=>{
   const sources=(inventory.products.find(row=>row.featureKey===product.featureKey)?.sources || []).filter(file=>fs.existsSync(file));
   return {...product,deliveryKind:adapter?.[3] || (deterministic?'deterministic':'NEEDS_INSPECTION'),
     generation:adapter?.[1] || deterministic?.consumer.file || null,
-    serverRecovery:adapter?.[2] || null,
+    serverRecovery:adapter?.[2] || (PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS.includes(product.featureKey)?'worker/lib/paid-narrative-recovery-task.js':null),
     stalledMonitor:adapter?.[3]==='paid-narrative'?'worker/lib/paid-narrative-monitor.js':null,
     paymentCore:'worker/payments/index.js',
     candidateSources:sources.filter(file=>file.startsWith('worker/routes/')||file.startsWith('worker/lib/')),

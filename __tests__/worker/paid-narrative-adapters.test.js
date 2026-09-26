@@ -22,6 +22,9 @@ test.each(PAID_NARRATIVE_SERVER_RESUME_KEYS)('%s loads the route adapter', async
   if (!reportType.startsWith('pet')) expect(adapter.produce).toEqual(expect.any(Function));
   expect(adapter).not.toHaveProperty('verify');
   expect(adapter).not.toHaveProperty('seed');
+  // Refunds are bound to the route request's payment context; a server resume
+  // leaves an exhausted execution for review instead of claiming one.
+  expect(adapter).not.toHaveProperty('onExhausted');
 });
 
 test('unlisted, excluded and mismatched pairs fail closed', async () => {

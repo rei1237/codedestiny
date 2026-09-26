@@ -9,7 +9,7 @@ let monitorPaidNarratives,stalledNarrativeFilter;
 beforeAll(async()=>{({monitorPaidNarratives,stalledNarrativeFilter}=await import('../../worker/lib/paid-narrative-monitor.js'));});
 beforeEach(()=>update.mockClear());
 test('selection excludes completed records and active leases',()=>{
- const now=new Date();expect(stalledNarrativeFilter(now)).toMatchObject({status:'pending',timeoutAt:{$lte:now},
+ const now=new Date();expect(stalledNarrativeFilter(now)).toMatchObject({status:'pending',timeoutAt:{$lte:new Date(now.getTime()-600000)},
   $or:[{'lock.until':null},{'lock.until':{$lte:now}}]});
 });
 test('unconfigured or failed alerts remain eligible for a later cron',async()=>{
