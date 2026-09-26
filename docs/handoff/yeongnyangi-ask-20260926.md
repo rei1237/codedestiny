@@ -14,7 +14,13 @@ Phase 6 사용자 승인 후 실제 과금·운영 경계 없이 mock 회귀 평
 - Worker 134/134: `repository`, `recovery`, `retry`, `queue`, `route`, `entitlement.route`, `payment-intent`, `free-repository`, `profiles-cache`.
 - 확인한 경계: 퓨전 근거 중복 제거와 실제 계산 재사용, 저장된 장/결제 증명의 재사용, 품질 실패 후 1회 재생성 및 `ASK_LIMITED_REVIEW_REQUIRED`, 큐·복구의 추가 과금 방지, 12개 결과 언어의 입력·모드·문자권·구매 언어 보존.
 - 검증 명령은 `node --require ./scripts/lib/mock-network-guard.cjs --test ...`(UI 56건)과 `npm run test:jest -- --runInBand ...`(Worker 134건)이며 두 명령 모두 종료 0이다.
-- 이 평가는 mock 동작·계약 회귀만 증명한다. 실제 LLM 문장의 의미·번역 품질과 사주 전문가 20건 검수는 수행하지 않았으며 별도 승인·검수자가 필요하다. 실 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않았다.
+- 이 평가는 mock 동작·계약 회귀만 증명한다. 실제 LLM 문장의 의미·번역 품질과 사주 전문가 20건 검수는 수행하지 않았으며 별도 검수자가 필요하다. 실 LLM 평가는 아직 실행하지 않았고, 실결제·운영 DB 쓰기는 실행하지 않았다.
+
+## 운영 승격 (사용자 승인: 2026-09-26)
+
+- main CI `36212358502`의 `CI required` 및 정적 가드가 통과한 뒤, GitHub Actions `Release Cloudflare Pages and Worker` `36212875251`을 `mode=production`으로 실행했다.
+- 대상 커밋은 `625e9430b7ed5810010a112e3c1582aa626bc7a4`이며 Pages 배포 ID는 `80302888-0ee2-411c-9b25-e179568a26a7`, Worker 버전 ID는 `e4120623-6faa-4a4e-9499-010aa102bd29`이다.
+- production smoke, 배포 후 Pages `/version.json`·Worker `/api/version` SHA 대조, IndexNow 단계가 통과했다. 실 LLM 평가·전문가 검수는 이 승격 결과만으로 완료된 것으로 보지 않는다.
 
 ## Phase 5 (사용자 승인: 2026-09-26)
 
