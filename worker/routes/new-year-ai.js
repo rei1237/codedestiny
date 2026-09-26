@@ -1,3 +1,4 @@
+import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
@@ -72,6 +73,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     heading: "올해의 총운",
     categories: ["study"],
     minChars: 4000,
+    targetMinChars: 5000,
     maxChars: 5500,
     covered: "재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름, 건강과 개운법, 마무리 한 줄",
   },
@@ -81,6 +83,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     heading: "재물과 직업",
     categories: ["money", "career"],
     minChars: 4000,
+    targetMinChars: 5000,
     maxChars: 5500,
     covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 애정·대인관계, 1~12월 월별 흐름, 건강과 개운법",
   },
@@ -90,6 +93,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     heading: "애정과 대인관계",
     categories: ["love", "relationship"],
     minChars: 4000,
+    targetMinChars: 5000,
     maxChars: 5500,
     covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 재물·직업, 1~12월 월별 흐름, 건강과 개운법",
   },
@@ -99,6 +103,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     heading: "",
     categories: [],
     minChars: 4000,
+    targetMinChars: 5000,
     maxChars: 5500,
     covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 건강과 개운법, 마무리 한 줄",
   },
@@ -108,6 +113,7 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     heading: "건강과 개운법",
     categories: ["health"],
     minChars: 4000,
+    targetMinChars: 5000,
     maxChars: 5500,
     covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름",
   },
@@ -1469,7 +1475,7 @@ function buildSectionOutlineLines(input, section) {
 // covered로 다른 섹션이 담당하는 내용을 명시해 이어 붙였을 때의 중복을 막는다.
 function buildSectionLengthLines(section) {
   return [
-    `이 부분의 본문은 공백을 제외하고 ${section.minChars.toLocaleString("ko-KR")}자 이상 ${section.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    `이 부분의 본문은 제목·목차·마크다운 기호·공백을 제외하고 ${(section.targetMinChars || section.minChars).toLocaleString("ko-KR")}자 이상 ${section.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
     "위에 나열된 항목들에 분량을 고르게 배분하고, 한 항목만 길게 쓰지 마세요.",
     `다른 부분에서 따로 다루는 내용(${section.covered})은 여기서 반복하지 마세요.`,
     "분량이 부족하면 문장을 길게 늘이지 말고, 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충의 근거를 더 촘촘하게 채우세요.",
@@ -1860,7 +1866,7 @@ async function generateConsultationSection(env, options) {
     const provider = clean(ai?.provider || ai?.model || "gemini");
     const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     const text = clean(ai?.text);
-    if (!ai?.ok || isMock || text.length < NEW_YEAR_AI_SECTION_MIN_LENGTH) {
+    if (!ai?.ok || isMock || (options.allowShortDraft ? typeof ai?.text !== "string" || !countPaidReportBodyChars(text) : text.length < NEW_YEAR_AI_SECTION_MIN_LENGTH)) {
       return { ...base, text: previousText, ok: false, isMock, reason: clean(ai?.error || ai?.message || "SECTION_FAILED", 120) };
     }
     // ai.truncated(finishReason === "MAX_TOKENS")를 여기서 처음으로 실제로 읽는다.
@@ -2306,14 +2312,24 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 async function generateNewYearWave(env, input, fortuneData, options) {
   const results = NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, text: '', ok: false,
     ...(options.savedSections || []).find(row => row.key === section.key), section }));
+  const attempts = options.attempts || {};
   const qualityOptions = { minTotalChars: NEW_YEAR_AI_MIN_TOTAL_CHARS, maxTotalChars: NEW_YEAR_AI_MAX_TOTAL_CHARS,
     fortuneData, hasCustomQuestion: options.hasCustomQuestion };
+  const contentIssues = rows => validateConsultationQuality(assembleConsultationSections(rows), qualityOptions).issues
+    .filter(issue => !/^(MIN_TOTAL_CHARS|MAX_TOTAL_CHARS):/.test(issue))
+    .flatMap(issue => /^MISSING_(EXPERT_TOPICS|CATEGORIES|MONTHS):/.test(issue)
+      ? issue.slice(issue.indexOf(":") + 1).split(/[|,]/).map(item => `${issue.split(":")[0]}:${item}`)
+      : issue.startsWith("SECTION_COUNT:") ? ["SECTION_COUNT"] : [issue]);
+  const valid = row => row.ok && !row.truncated && !row.isMock && countPaidReportBodyChars(row.text) > 0
+    && !hasRepeatedReportPassage(row.text);
+  const accepted = row => valid(row) && (countPaidReportBodyChars(row.text) >= row.section.minChars
+    || attempts[`${row.key}:lengthRepair`] || Number(attempts[row.key] || 0) >= 3);
   const assess = () => {
     const quality = validateConsultationQuality(assembleConsultationSections(results), qualityOptions);
-    quality.issues = quality.issues.filter(issue => !issue.startsWith('MAX_TOTAL_CHARS'));
+    quality.issues = contentIssues(results);
     const targets = mapIssuesToSections(quality, results);
     for (const row of results) {
-      if (!row.ok || row.truncated || countPaidReportBodyChars(row.text) < row.section.minChars) targets.set(row.key, [`SECTION_MIN_CHARS:${row.key}`]);
+      if (!accepted(row)) targets.set(row.key, [...(targets.get(row.key) || []), `SECTION_MIN_CHARS:${row.key}`]);
       if (hasRepeatedReportPassage(row.text)) targets.set(row.key, ['DUPLICATE_NARRATIVE']);
     }
     quality.totalChars = countPaidReportBodyChars(quality.text);
@@ -2322,7 +2338,11 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       if (repeated) targets.set(repeated.key, ['DUPLICATE_NARRATIVE']);
     }
     if (quality.issues.length && !targets.size) targets.set('overview', quality.issues);
-    quality.ok = quality.issues.length === 0 && targets.size === 0 && quality.totalChars >= 20000;
+    if (!targets.size && quality.totalChars < NEW_YEAR_AI_MIN_TOTAL_CHARS) {
+      for (const row of results) if (Number(attempts[row.key] || 0) < 3
+        && countPaidReportBodyChars(row.text) < (row.section.targetMinChars || row.section.minChars)) targets.set(row.key, [`SECTION_MIN_CHARS:${row.key}`]);
+    }
+    quality.ok = quality.issues.length === 0 && results.every(accepted) && targets.size === 0 && quality.totalChars >= NEW_YEAR_AI_MIN_TOTAL_CHARS;
     return { quality, targets };
   };
   let { quality, targets } = assess();
@@ -2333,20 +2353,31 @@ async function generateNewYearWave(env, input, fortuneData, options) {
     }
     const remaining = Number(options.deadlineAt) - Date.now();
     if (remaining > NEW_YEAR_AI_REPAIR_MIN_REMAINING_MS) {
-      await options.onReserve(candidate.key);
+      await options.onReserve(candidate.key, valid(candidate) && !mapIssuesToSections({ issues: contentIssues(results) }, results).has(candidate.key));
       const generated = await generateConsultationSection(env, {
-        input, fortuneData, section: candidate.section,
+        input, fortuneData, section: candidate.section, allowShortDraft: true,
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
         cache: null, logContext: options.logContext,
-        repairLines: candidate.text ? [...buildSectionRepairLines(candidate.section, targets.get(candidate.key) || [], fortuneData), '제목·목차·마크다운 기호·공백을 제외한 본문을 4,000자 이상 작성하고 같은 문장이나 문단을 반복하지 마세요.'] : ['제목·목차·기호·공백을 제외한 본문을 4,000~5,500자로 작성하세요.'],
+        repairLines: candidate.text ? [...buildSectionRepairLines(candidate.section, targets.get(candidate.key) || [], fortuneData), '제목·목차·마크다운 기호·공백을 제외한 본문을 5,000~5,500자로 보강하고 같은 문장이나 문단을 반복하지 마세요.'] : ['제목·목차·기호·공백을 제외한 본문을 5,000~5,500자로 작성하세요.'],
         previousText: candidate.text,
       });
-      if (generated.ok || !candidate.ok) Object.assign(candidate, generated);
+      if (valid(generated)) {
+        const index = results.indexOf(candidate);
+        const before = contentIssues(results);
+        const sourceRows = results.map((row, i) => i === index ? generated : row);
+        const trimmed = { ...generated, text: trimPaidReportText(generated.text, candidate.section.maxChars) };
+        const next = results.map((row, i) => i === index ? trimmed : row);
+        const after = contentIssues(next);
+        const noNewIssues = contentIssues(sourceRows).every(issue => before.includes(issue)) && after.every(issue => before.includes(issue));
+        if (valid(trimmed) && noNewIssues && !hasRepeatedReportPassage(assembleConsultationSections(sourceRows))
+          && !hasRepeatedReportPassage(assembleConsultationSections(next))
+          && (!valid(candidate) || after.length < before.length || countPaidReportBodyChars(trimmed.text) > countPaidReportBodyChars(candidate.text))) Object.assign(candidate, trimmed);
+      }
       await options.onCheckpoint(results);
       ({ quality, targets } = assess());
     }
   }
-  return { complete: quality.ok, text: quality.text, quality, savedSections: results,
+  return { complete: quality.ok, retryable: [...targets.keys()].some(key => Number(attempts[key] || 0) < 3), text: quality.text, quality, savedSections: results,
     sections: results.filter(row => row.text).map(row => ({ key: row.key, label: row.section.label, text: cleanForbiddenResult(row.text) })),
     provider: clean(results.find(row => row.provider)?.provider), model: clean(results.find(row => row.model)?.model),
   };
@@ -2448,7 +2479,8 @@ async function handleStart(request, env) {
     const generated = await generateConsultationText(env, normalized.input, fortuneData, {
       hasCustomQuestion: normalized.input.hasCustomQuestion, deadlineAt: startedAt + NEW_YEAR_AI_LLM_BUDGET_MS,
       savedSections: claimed.llmMeta?.savedSections || [], attempts,
-      onReserve: async key => {
+      onReserve: async (key, lengthRepair) => {
+        if (lengthRepair) attempts[`${key}:lengthRepair`] = 1;
         attempts[key] = Number(attempts[key] || 0) + 1;
         await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { 'llmMeta.attempts': attempts } });
       },
@@ -2463,7 +2495,7 @@ async function handleStart(request, env) {
       'llmMeta.sections': generated.sections, 'llmMeta.quality': generated.quality, 'llmMeta.fortuneData': fortuneData,
       'llmMeta.provider': generated.provider, 'llmMeta.model': generated.model,
     } });
-    if (!generated.complete) return json({ ...publicSession(stored), retryable: true }, { status: 202 });
+    if (!generated.complete) return json({ ...publicSession(stored), retryable: generated.retryable }, { status: 202 });
     const freshAccess = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }).catch(() => { throw resultStorageUnavailable(sessionId); });
     if (!freshAccess.ok) return paymentVerifyFailed();
     return json(publicSession(await finishNewYearDelivery({ request, env, auth, access: freshAccess, pending: stored })));

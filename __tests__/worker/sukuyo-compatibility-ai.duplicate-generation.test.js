@@ -304,14 +304,14 @@ for (const index of [0, 1, 2, 3]) test(`취소·환불 저장소 ${index}은 재
 afterEach(() => { expect(blockedFetch).not.toHaveBeenCalled(); });
 afterAll(() => { blockedFetch.mockRestore(); });
 
-for (const [length, accepted] of [[1199, false], [1200, true], [1499, true]]) {
-  test(`P2 accepts nonrepeating ${length}-character sections: ${accepted}`, async () => {
+for (const [length, accepted] of [[1199, true], [1200, true], [1499, true]]) {
+  test(`P3 preserves nonrepeating drafts of ${length}-character sections: ${accepted}`, async () => {
     const input = testUtils.normalizeInput(SAMPLE_BODY);
     const calculation = testUtils.calculateSukuyo(input);
     const group = testUtils.SUKUYO_SECTION_GROUPS[0];
     // 서로 다른 한글 문자로 공백 제외 경계를 정확히 만들며 반복 판정은 우회하지 않는다.
     const body = Array.from({ length: length - 1 }, (_, i) => String.fromCharCode(0xac00 + i)).join('') + '다';
-    const payload = Object.fromEntries(group.keys.map(key => [key, { body }]));
+    const payload = Object.fromEntries(group.keys.map(key => [key, { body: key + body.slice(key.length) }]));
     callGeminiJsonWithRetryMock.mockResolvedValue({ ok: true, provider: 'gemini', text: JSON.stringify(payload) });
     const result = await testUtils.generateSectionGroup({}, input, calculation, group, 'test', 2);
     expect(Object.keys(result.sections)).toHaveLength(accepted ? group.keys.length : 0);
@@ -345,7 +345,10 @@ test('P2 selects reinforcement for a short total without waiving 20,000 characte
   expect(result.complete).toBe(false);
   expect(Object.keys(result.sections)).toHaveLength(15);
   expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
-  await expect(testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary, attempts: { essence: 3 } })).rejects.toMatchObject({ code: 'LLM_FAILED' });
+  const exhausted = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map(group => [group.id, 3]));
+  const final = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary, attempts: exhausted });
+  expect(final.complete).toBe(false);
+  expect(final.retryable).toBe(false);
   expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
 });
 
@@ -358,7 +361,32 @@ test('P2 generates missing groups before reinforcing valid short sections', asyn
   callGeminiJsonWithRetryMock.mockResolvedValue({ ok: false, error: 'provider_unavailable' });
   const onReserve = jest.fn();
   const result = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary: { headline: 'saved' }, attempts: { essence: 3 }, onReserve });
-  expect(onReserve).toHaveBeenCalledWith('attraction', 1);
+  expect(onReserve).toHaveBeenCalledWith('attraction', 1, false);
   expect(Object.keys(result.sections)).toHaveLength(3);
   expect(result.complete).toBe(false);
+});
+function p3SectionBody(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
+for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 keeps valid short sections after ${repair} repair`, async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY), calculation = testUtils.calculateSukuyo(input);
+  const specs = testUtils.SUKUYO_SECTION_SPECS, group = testUtils.SUKUYO_SECTION_GROUPS[0];
+  const sections = Object.fromEntries(specs.map((spec, i) => [spec.key, { title: spec.title, body: p3SectionBody(spec.key, i ? 1600 : 500) }]));
+  const body = repair === 'empty' ? '' : repair === 'repeat' ? sections[specs[1].key].body : p3SectionBody(specs[0].key, 400);
+  callGeminiJsonWithRetryMock.mockResolvedValue({ ok: true, provider: 'gemini', truncated: repair === 'truncated', text: JSON.stringify({ [specs[0].key]: { body } }) });
+  const onReserve = jest.fn();
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary: { headline: 'saved' }, attempts: { [group.id]: 1 }, onReserve });
+  expect(result.complete).toBe(true); expect(result.sections[specs[0].key].body).toBe(sections[specs[0].key].body);
+  expect(onReserve).toHaveBeenCalledWith(group.id, 2, true); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+});
+test('P3 last short attempt completes without an additional call when total is sufficient', async () => {
+ const input=testUtils.normalizeInput(SAMPLE_BODY),calculation=testUtils.calculateSukuyo(input);
+ const sections=Object.fromEntries(testUtils.SUKUYO_SECTION_SPECS.map((spec,i)=>[spec.key,{title:spec.title,body:p3SectionBody(spec.key,i?1600:500)}]));
+ const result=await testUtils.createCompatibilityAnswer({},input,calculation,{sections,summary:{headline:'saved'},attempts:{essence:3}});
+ expect(result.complete).toBe(true);expect(callGeminiJsonWithRetryMock).not.toHaveBeenCalled();
+});
+test('P3 clamps oversized bodies but cannot hide repetition after the ceiling or accept non-string bodies',async()=>{
+ const input=testUtils.normalizeInput(SAMPLE_BODY),calculation=testUtils.calculateSukuyo(input),group=testUtils.SUKUYO_SECTION_GROUPS[0];
+ const body=p3SectionBody(group.keys[0],4000);
+ callGeminiJsonWithRetryMock.mockResolvedValue({ok:true,provider:'gemini',text:JSON.stringify({[group.keys[0]]:{body},[group.keys[1]]:{body:[body]},[group.keys[2]]:{body:`${body}.\n${body}.`}})});
+ const result=await testUtils.generateSectionGroup({},input,calculation,group,'test');
+ expect(Object.keys(result.sections)).toEqual([group.keys[0]]);expect(result.sections[group.keys[0]].body.length).toBe(2250);
 });

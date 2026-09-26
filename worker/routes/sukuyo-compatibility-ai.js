@@ -1,3 +1,4 @@
+import { trimPaidReportText } from "../lib/paid-report-length.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
@@ -1471,10 +1472,10 @@ function sukuyoSectionCache(env, keyExtra) {
 }
 
 /** 그룹 하나(장 3개)를 생성한다. 실패하면 빈 객체를 돌려주고 나머지 그룹을 죽이지 않는다. */
-async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1) {
+async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1, existingSections = {}) {
   const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars, 0);
   try {
-    const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group), {
+    const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group) + (attempt > 1 ? "\n직전 초안의 빠진 근거와 행동 조언을 보강하여 목표 분량의 완결된 본문을 작성하세요. 같은 문장을 반복하지 마세요." : ""), {
       systemPrompt,
       taskType: "fortune",
       temperature: 0.74,
@@ -1494,10 +1495,17 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
     const raw = sanitizeConsultationText(ai?.text || "");
     const parsed = parseJsonObjectFromText(raw) || {};
     const sections = {};
+    const sourceBodies = {};
     group.keys.forEach((key) => {
       const spec = SUKUYO_SECTION_SPEC_MAP.get(key);
-      const body = extractSectionBody(parsed[key]?.body ? JSON.stringify({ body: parsed[key].body }) : "");
-      if (countPaidReportBodyChars(body) >= spec.minChars && !hasRepeatedReportPassage(body)) sections[key] = { title: spec.title, body };
+      const rawBody = typeof parsed[key]?.body === "string" ? parsed[key].body : "";
+      const others = Object.entries({ ...existingSections, ...sourceBodies }).filter(([other]) => other !== key).map(([, row]) => row.body).join("\n");
+      if (!countPaidReportBodyChars(rawBody) || hasRepeatedReportPassage(`${others}\n${rawBody}`)) return;
+      const body = trimPaidReportText(cleanRichText(rawBody), spec.targetMaxChars);
+      if (countPaidReportBodyChars(body) > 0 && !hasRepeatedReportPassage(body)) {
+        sections[key] = { title: spec.title, body };
+        sourceBodies[key] = { body: rawBody };
+      }
     });
     return { sections, provider, model };
   } catch (error) {
@@ -1554,33 +1562,45 @@ async function generateSummary(env, input, calculation, systemPrompt) {
  */
 async function createCompatibilityAnswer(env, input, calculation, options = {}) {
   const sections = { ...(options.sections || {}) };
-  const attempts = options.attempts || {};
-  const isComplete = key => countPaidReportBodyChars(sections[key]?.body) >= SUKUYO_SECTION_SPEC_MAP.get(key).minChars && !hasRepeatedReportPassage(sections[key]?.body);
+  const attempts = { ...(options.attempts || {}) };
+  const valid = key => typeof sections[key]?.body === "string" && countPaidReportBodyChars(sections[key].body) > 0 && !hasRepeatedReportPassage(sections[key].body);
+  const groupFor = key => SUKUYO_SECTION_GROUPS.find(row => row.keys.includes(key));
+  const isComplete = key => valid(key) && (countPaidReportBodyChars(sections[key].body) >= SUKUYO_SECTION_SPEC_MAP.get(key).minChars
+    || attempts[`${groupFor(key).id}:lengthRepair`] || Number(attempts[groupFor(key).id] || 0) >= 3);
   const totalChars = Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0);
   // 모든 장을 먼저 확보한 뒤, 총합이 부족하면 목표 미달 장을 기존 예산 안에서 보강한다.
   const needsTotalRepair = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && totalChars < 20000;
   const needsGeneration = key => !isComplete(key) || (needsTotalRepair
     && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars);
   const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(needsGeneration) })).filter(group => group.keys.length);
-  const group = pending[0];
+  const group = needsTotalRepair ? pending.find(row => Number(attempts[row.id] || 0) < 3) : pending[0];
   if (group && Number(attempts[group.id] || 0) >= 3) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
   let provider = "", model = "";
   let summary = options.summary || null;
   if (group) {
     const attempt = Number(attempts[group.id] || 0) + 1;
-    await options.onReserve?.(group.id, attempt);
+    const lengthRepair = group.keys.some(valid);
+    if (lengthRepair) attempts[`${group.id}:lengthRepair`] = 1;
+    attempts[group.id] = attempt;
+    await options.onReserve?.(group.id, attempt, lengthRepair);
     const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
     const [generated, generatedSummary] = await Promise.all([
-      generateSectionGroup(env, input, calculation, group, systemPrompt, attempt),
+      generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections),
       !summary && group.id === SUKUYO_SECTION_GROUPS[0].id && attempt === 1 ? generateSummary(env, input, calculation, systemPrompt) : Promise.resolve(summary),
     ]);
     summary = generatedSummary || summary;
-    Object.assign(sections, generated.sections); provider = generated.provider; model = generated.model;
+    for (const [key, row] of Object.entries(generated.sections)) {
+      const others = Object.entries(sections).filter(([other]) => other !== key).map(([, value]) => value.body).join("\n");
+      if (hasRepeatedReportPassage(`${others}\n${row.body}`)) continue;
+      if (!valid(key) || countPaidReportBodyChars(row.body) > countPaidReportBodyChars(sections[key].body)) sections[key] = row;
+    }
+    provider = generated.provider; model = generated.model;
     await options.onCheckpoint?.({ sections, summary });
   }
-  const complete = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0) >= 20000;
+  const complete = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0) >= 20000
+    && !hasRepeatedReportPassage(Object.values(sections).map(row => row.body).join("\n"));
   const result = { meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta, ...(summary || {}), sections };
-  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections };
+  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 3 && row.keys.some(key => !isComplete(key) || (!complete && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars))) };
 }
 
 async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) {
@@ -2034,7 +2054,7 @@ async function handleStart(request, env) {
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
         ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
           sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary,
-          onReserve: (groupId, attempt) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt }),
+          onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
           onCheckpoint: ({ sections, summary }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary }),
         })
         : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
@@ -2053,7 +2073,7 @@ async function handleStart(request, env) {
     ];
     if (normalized.consultationType === "compatibility" && !firstAnswer.complete) {
       const partial = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "partial", messages, generationLease: "" });
-      return json({ ok: true, saved: false, status: "partial", sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
+      return json({ ok: true, saved: false, status: "partial", retryable: firstAnswer.retryable, sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
     }
     const freshAccess = await resolveStartAccess(request, env, auth, body, normalized, accessHash).catch(() => { throw resultStorageUnavailable(sessionId); });
     if (!freshAccess.ok) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });

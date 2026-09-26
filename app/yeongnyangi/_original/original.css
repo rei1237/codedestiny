@@ -3997,3 +3997,14 @@
 .ynOriginal .catalog-retry:focus-visible{outline:3px solid #93652e;outline-offset:3px}
 .ynOriginal .fish-catalog a[aria-disabled=true]{cursor:default;border-style:dashed}
 .ynOriginal .fish-catalog.fish-catalog-compact .catalog-delivery{margin:16px 0 0;line-height:1.8}
+
+/* 홈 본문 배경: 고민 칩~운세 카드 뒤 밤하늘 장막, 방 구간 뒤 램프 서재(night/README.md). 글자 대비는 남색 겹침으로 지킨다. */
+.ynOriginal .main-content,.ynOriginal .room-section{position:relative;isolation:isolate}
+.ynOriginal .main-content::before,.ynOriginal .room-section::before{content:"";position:absolute;z-index:-1;left:50%;width:100vw;max-width:1440px;transform:translateX(-50%);pointer-events:none}
+.ynOriginal .main-content::before{top:-72px;height:1120px;background:linear-gradient(rgb(16 27 44/.5),rgb(16 27 44/.5)),url(/assets/yeongnyangi/night/sky-veil.webp) center top/cover no-repeat;-webkit-mask-image:linear-gradient(transparent,#000 12%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 12%,#000 78%,transparent)}
+.ynOriginal .room-section::before{top:-56px;bottom:-48px;background:radial-gradient(ellipse at 50% 55%,rgb(16 27 44/.4),rgb(16 27 44/.82) 72%),url(/assets/yeongnyangi/night/room-lamp.webp) center/cover no-repeat;-webkit-mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+@media (max-width:699px){
+  /* 좁은 폭에서 cover 는 비워 둔 가운데만 남기므로, 폭에 맞춰 양옆 장막·마법진을 살리고 겹침을 낮춘다. */
+  .ynOriginal .main-content::before{height:1180px;background:linear-gradient(rgb(16 27 44/.32),rgb(16 27 44/.32)),url(/assets/yeongnyangi/night/sky-veil-mobile.webp) center top/112% auto repeat-y}
+  .ynOriginal .room-section::before{background:radial-gradient(ellipse at 50% 55%,rgb(16 27 44/.25),rgb(16 27 44/.7) 80%),url(/assets/yeongnyangi/night/room-lamp-mobile.webp) 18% center/cover no-repeat}
+}
