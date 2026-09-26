@@ -31,6 +31,9 @@ const schema = new mongoose.Schema({
   attempts: { type: Number, default: 0 },
   chapterAttempts: { type: mongoose.Schema.Types.Mixed, default: {} },
   manualRecoveryGrants: { type: mongoose.Schema.Types.Mixed, default: {} },
+  systemRecoveryGrants: { type: mongoose.Schema.Types.Mixed, default: {} },
+  // Held order: {reason, chapter, epoch, alertPending, at, resumes}. Never set to null (dotted writes).
+  hold: { type: mongoose.Schema.Types.Mixed, default: undefined },
   nextAttemptAt: { type: Date, default: null },
   queuedUntil: { type: Date, default: null },
   queuedChapter: { type: Number, default: -1 },

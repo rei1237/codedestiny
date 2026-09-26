@@ -43,7 +43,7 @@ const messages={
   "PROFILE_REQUIRED": "CODE DESTINY 프로필을 선택해 주세요.",
   "PROFILE_NOT_FOUND": "이 계정에서 프로필을 찾지 못했어요. 다시 선택해 주세요.",
   "LLM_NOT_CONFIGURED": "지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.",
-  "GENERATION_REVIEW_REQUIRED": "상담을 완료하지 못해 확인이 필요해요. 다시 결제하지 말고 상담 기록의 주문번호와 함께 문의해 주세요.",
+  "GENERATION_REVIEW_REQUIRED": "남은 항목을 이어서 만드는 중이에요. 이미 저장된 항목은 지금 볼 수 있고, 운영팀에 자동으로 전달돼 추가 결제 없이 복구해요.",
   "FORTUNE_PROVIDER_FAILED": "상담을 잠시 멈췄어요. 다시 결제하지 말고 같은 상담에서 이어가 주세요.",
   "PARTNER_NOT_SUPPORTED": "두 사람의 궁합은 숙요 상담에서 선택해 주세요.",
   "ANCHOVY_REQUIRED": "멸치가 한 마리 필요해요. 먼저 오늘 출석을 확인해 주세요.",
