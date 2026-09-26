@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-27
-next: "영냥이 쪽은 운영 승격 뒤 감사만 남음. 다른 유료 LLM 은 2026-09-27-llm-length-never-fatal.md P1 부터."
+next: "완료(운영 d98947f53). 다른 유료 LLM 은 2026-09-27-llm-length-never-fatal.md P1 부터."
 ---
 
 # 영냥이: 장 거부선 완화 + 분량 보강본 수용 + 보관함 재시도
@@ -53,7 +53,12 @@ next: "영냥이 쪽은 운영 승격 뒤 감사만 남음. 다른 유료 LLM �
 
 커밋 하나씩 `git revert <sha>` 한다. UI 는 a828e4959, 재시도는 e8a221c70, 거부선은 1e50c2654, 분량 보강본은 a7a439b43 이다. 서로 독립적이지만 C 는 B 의 `canRetry` 에 의존한다.
 
+## 운영 승격 (2026-09-27)
+
+- 범위: 373d8f6c8..d98947f53, 9커밋. 이 세션 5개 + 다른 세션의 영냥이 시각 요소 4개(e18bbbb38~d98947f53). 사용자가 범위를 다시 확인해 "전부 승격"을 골랐다.
+- 절차: 스테이징 SHA PASS, Mongo 스테이징 픽스처 PASS(실PG·실LLM 0), `verify:release` exit 0, CI `CI required` success. 런 36260459340 success(롤백 없음). 운영 `verify-deployed-sha` Pages·Worker PASS.
+- 승격 뒤 감사(읽기 전용, 2026-09-26T18:04Z): 유료 6, 완료 3, `reviewRequiredNow` 0, `stuckCandidates` 0.
+
 ## 다음 단계
 
-1. 운영 승격 뒤 `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny --json`(읽기 전용)을 돌려 `reviewRequiredNow` 0 을 확인한다.
-2. 다른 유료 LLM 서비스: [llm-length-never-fatal](2026-09-27-llm-length-never-fatal.md) P1.
+1. 다른 유료 LLM 서비스: [llm-length-never-fatal](2026-09-27-llm-length-never-fatal.md) P1.
