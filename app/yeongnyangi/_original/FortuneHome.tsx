@@ -1,8 +1,8 @@
 "use client";
 import Image from "next/image";
+import NightHero from "../_components/NightHero";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
 import FounderTrust from "@/app/components/FounderTrust";
-import {founder} from "@/lib/brand/founder";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
 const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
@@ -50,11 +50,6 @@ type Panel =
   | "fusion"
   | null;
 const imagePath = (name: string) => `/assets/yeongnyangi/original/${name}.webp`;
-const bubbles = [
-  "무슨 고민이야?\n어디 한번 볼까.",
-  "쓰다듬는 건…\n딱 한 번만이야.",
-  "흥, 잘 찾아왔네.\n편하게 앉아.",
-];
 const concernIcons: Record<string, typeof Heart> = {
   heart: Heart,
   wallet: Wallet,
@@ -111,8 +106,6 @@ export default function FortuneHome() {
   const [panel, setPanel] = useState<Panel>(null);
   const [serviceId, setServiceId] = useState("saju");
   const [concern, setConcern] = useState<string | null>(null);
-  const [bubble, setBubble] = useState(0);
-  const [petting, setPetting] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [notice, setNotice] = useState("");
   const [timeOfDay, setTimeOfDay] = useState("night");
@@ -120,7 +113,6 @@ export default function FortuneHome() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const reactionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const selectedConcern = concerns.find((item) => item.id === concern);
   const service = services.find((item) => item.id === serviceId) || services[0];
   const returnTo = typeof window === "undefined" ? "/yeongnyangi/fortune/" : window.location.pathname + window.location.search;
@@ -140,9 +132,6 @@ export default function FortuneHome() {
       }).format(now),
     );
     setTimeOfDay(hour >= 7 && hour < 19 ? "day" : "night");
-    return () => {
-      if (reactionTimer.current) clearTimeout(reactionTimer.current);
-    };
   }, []);
 
   useEffect(() => {
@@ -205,12 +194,6 @@ export default function FortuneHome() {
       if(id==="cat")window.location.assign("/yeongnyangi/room/#daily");else window.location.assign("/yeongnyangi/library/");
     }
   }
-  function petCat() {
-    setBubble((value) => (value + 1) % bubbles.length);
-    setPetting(true);
-    if (reactionTimer.current) clearTimeout(reactionTimer.current);
-    reactionTimer.current = setTimeout(() => setPetting(false), 650);
-  }
   const titles: Record<Exclude<Panel, null>, string> = {
     auth: "달빛 점술방의 문",
     library: "나의 보관함",
@@ -251,82 +234,7 @@ export default function FortuneHome() {
         </header>
 
         <main>
-          <section className="hero" aria-labelledby="hero-title">
-            <picture className="hero-room">
-              <source
-                media="(min-width: 700px)"
-                srcSet={imagePath("room-1440")}
-              />
-              <img
-                src={imagePath("room-780")}
-                width="780"
-                height="439"
-                alt=""
-                fetchPriority="high"
-              />
-            </picture>
-            <div className="hero-copy">
-              <h1 id="hero-title">
-                사주보는 고양이,
-                <br />
-                <span>영냥이에게 물어봐.</span>
-              </h1>
-              <p>{founder.credential}</p>
-              <div className="desktop-intro">
-                대통령 운세의 2025년을 미리 짚은 공개 기록.
-                <br />
-                이제, 네 고민의 흐름을 함께 읽어볼게.
-              </div>
-            </div>
-            <div className="cat-stage">
-              <span className="star star-one" aria-hidden="true">
-                <Sparkles />
-              </span>
-              <span className="star star-two" aria-hidden="true">
-                <Sparkles size={17} />
-              </span>
-              <div className="speech-bubble" aria-live="polite">
-                {bubbles[bubble].split("\n").map((line, i) => (
-                  <span key={i}>{line}</span>
-                ))}
-                <PawPrint size={14} />
-              </div>
-              <button
-                className={`hero-cat ${petting ? "is-petted" : ""}`}
-                aria-label="영냥이 쓰다듬기"
-                onClick={petCat}
-              >
-                <img
-                  src={imagePath("hero-800")}
-                  srcSet={`${imagePath("hero-480")} 480w, ${imagePath("hero-800")} 800w`}
-                  sizes="(min-width: 900px) 480px, 90vw"
-                  width="800"
-                  height="800"
-                  alt="보라색 마법사 모자를 쓰고 턱을 괸 흰 고양이 영냥이"
-                  fetchPriority="high"
-                />
-                <span className="pet-heart" aria-hidden="true">
-                  <Heart size={23} />
-                </span>
-              </button>
-              <span className="cat-caption">
-                <PawPrint size={12} /> 영냥이를 살짝 눌러봐
-              </span>
-            </div>
-            <div className="hero-action">
-              <a
-                className="primary-cta"
-                href="/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask"
-                data-cd-business-entry="paid"
-              >
-                <PawPrint size={21} />
-                <span>영냥이에게 내 질문 남기기</span>
-                <ArrowRight size={21} />
-              </a>
-              <p>사주 고등어 {packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 · {packages.mackerel.chapterCount}개 챕터 · 상품 변경 가능</p>
-              <a className="hero-proof-link" href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 보기</a>
-            </div>
-          </section>
+          <NightHero/>
               <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
                 <a href="/yeongnyangi/room/#daily">무료 운세</a>
                 <a href="/yeongnyangi/library/">내 상담 기록</a>
@@ -335,68 +243,6 @@ export default function FortuneHome() {
               </nav>
 
           <div className="main-content">
-            <QuestionSkyEntry/>
-            <button
-              className="prologue-banner"
-              onClick={() => window.location.assign("/yeongnyangi/room/")}
-            >
-              <Art name="story-mirror" className="prologue-backdrop" />
-              <span className="prologue-copy">
-                <span className="small-label">
-                  <BookOpen size={14} /> 영냥이의 방 · 프롤로그
-                </span>
-                <strong>
-                  두 대통령의 운명을 맞힌 밤, <br />나는 고양이가 됐다.
-                </strong>
-                <span className="text-link">
-                  그날의 이야기 <ArrowRight size={15} />
-                </span>
-              </span>
-              <Art
-                name="surprised"
-                className="prologue-cat"
-                width={480}
-                height={640}
-              />
-            </button>
-
-            <FounderTrust/>
-            <aside className="starter-invitation">
-              <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
-              <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
-              <a href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">{packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 상담 알아보기 →</a>
-              {" · "}
-              <a href="/yeongnyangi/1000-won-fortune/">천원사주 안내 보기</a>
-              {" · "}<a href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 읽기</a>
-            </aside>
-            <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
-              <div className="ggulggul-bridge__art">
-                <img
-                  src="/assets/yeongnyangi/original/ggulggul-fortune.webp"
-                  width="512"
-                  height="512"
-                  alt="연꽃 위에서 웃고 있는 꿀꿀 운세 꽃돼지"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </div>
-              <div className="ggulggul-bridge__copy">
-                <span>Code Destiny 연결</span>
-                <h2 id="ggulggul-title">꽃돼지 연이의 꿀꿀 운세도 함께 볼 수 있어.</h2>
-                <p>
-                  영냥이 상담은 1,000~50,000원이며 Family 이용권 또는 단건 결제로, 꽃돼지 전문 상담은 단건 결제와 이용권으로 만나봐.
-                </p>
-                <div>
-                  <a className="outlined-cta" href="/points/">
-                    꽃돼지 이용권 알아보기 <ArrowRight size={17} />
-                  </a>
-                  <a className="text-link" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
-                    꿀꿀 운세로 이동 <ChevronRight size={15} />
-                  </a>
-                </div>
-              </div>
-            </section>
-
             <section
               className="concern-section"
               aria-labelledby="concern-title"
@@ -477,6 +323,70 @@ export default function FortuneHome() {
               </div>
             </section>
 
+
+            <QuestionSkyEntry/>
+            <button
+              className="prologue-banner"
+              onClick={() => window.location.assign("/yeongnyangi/room/")}
+            >
+              <Art name="story-mirror" className="prologue-backdrop" />
+              <span className="prologue-copy">
+                <span className="small-label">
+                  <BookOpen size={14} /> 영냥이의 방 · 프롤로그
+                </span>
+                <strong>
+                  두 대통령의 운명을 맞힌 밤, <br />나는 고양이가 됐다.
+                </strong>
+                <span className="text-link">
+                  그날의 이야기 <ArrowRight size={15} />
+                </span>
+              </span>
+              <Art
+                name="surprised"
+                className="prologue-cat"
+                width={480}
+                height={640}
+              />
+            </button>
+
+            <FounderTrust/>
+            <aside className="starter-invitation">
+              <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>
+              <p>가볍게 시작해도, 네 이야기는 깊이 있게. 기질과 고민의 흐름을 읽고 오늘 해볼 작은 행동까지 짚어줄게.</p>
+              <a href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">{packages.mackerel.priceKRW.toLocaleString("ko-KR")}원 상담 알아보기 →</a>
+              {" · "}
+              <a href="/yeongnyangi/1000-won-fortune/">천원사주 안내 보기</a>
+              {" · "}<a href="/yeongnyangi/1000-won-fortune/#example">결제 전 상담 예시 읽기</a>
+            </aside>
+
+
+            <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
+              <div className="ggulggul-bridge__art">
+                <img
+                  src="/assets/yeongnyangi/original/ggulggul-fortune.webp"
+                  width="512"
+                  height="512"
+                  alt="연꽃 위에서 웃고 있는 꿀꿀 운세 꽃돼지"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div className="ggulggul-bridge__copy">
+                <span>Code Destiny 연결</span>
+                <h2 id="ggulggul-title">연이의 따뜻한 운세도 만나봐.</h2>
+                <p>
+                  Code Destiny의 꽃돼지 연이가 전하는 또 다른 이야기. 상담과 이용 방식은 각 서비스에서 확인해 줘.
+                </p>
+                <div>
+                  <a className="outlined-cta" href="/points/">
+                    꽃돼지 이용권 알아보기 <ArrowRight size={17} />
+                  </a>
+                  <a className="text-link" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
+                    꿀꿀 운세로 이동 <ChevronRight size={15} />
+                  </a>
+                </div>
+              </div>
+            </section>
             <section className="fusion-section" aria-labelledby="fusion-title">
               <div className="fusion-card">
                 <Art name="story-curse" className="fusion-art" />

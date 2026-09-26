@@ -1,7 +1,7 @@
 "use client";
 import {consultationKinds,consultationDomain,supportsKind,consultationManifest} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import {consultationTitle,fusionDescription} from '../_lib/consultation-copy';
-import ReadingIdentity,{readingFeatures} from './ReadingIdentity';
+import {readingFeatures} from './ReadingIdentity';
 import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {useEffect,useRef,useState} from 'react';
 import {authFetch} from '@/app/_lib/auth-client';
@@ -19,6 +19,7 @@ import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {consultationInputCopy} from '../_lib/consultation-input-copy';
+import {journeyCopy} from '../_lib/journey-copy';
 import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 const loginDraftKey='yeongnyangi:consultation-login-draft';
@@ -45,7 +46,7 @@ export default function Consultation(){
  const viewedProduct=useRef('');
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
- const inputCopy=consultationInputCopy(locale);
+ const inputCopy=consultationInputCopy(locale),journey=journeyCopy(locale);
  useEffect(()=>{
   if(!ready||viewedProduct.current===product.id)return;
   viewedProduct.current=product.id;
@@ -140,7 +141,6 @@ export default function Consultation(){
  function chooseDomain(next:string){const first=consultationKinds[next][0];setKindId(first.id);if(!first.question&&!readingLocales.slice(0,3).includes(locale as 'ko'|'en'|'ja'))setLocale('en');setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
  function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(!next.question&&!readingLocales.slice(0,3).includes(locale as 'ko'|'en'|'ja'))setLocale('en');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
-  <picture className={styles.consultationScenery}><source media="(max-width: 767px)" srcSet="/assets/yeongnyangi/original/room-780.webp"/><img src="/assets/yeongnyangi/original/room-1440.webp" width={1440} height={810} alt=""/></picture>
   <header className={styles.consultationHeader}><div><h1>무엇부터 읽어볼까?</h1><p>말이 조금 엉켜도 괜찮아.<br/>궁금한 운세를 고르고, 네 이야기를 들려줘.</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
   <label className={styles.field} lang={locale}>{kind.question?askCopy.language:'상담 결과 언어 / Reading language / 結果の言語'}
    <select value={locale} disabled={busy} onChange={e=>{setLocale(readingLocale(e.target.value));setError('');}}>{selectableLocales.map(value=><option key={value} value={value}>{readingLanguageNames[value]}</option>)}</select>
@@ -149,14 +149,14 @@ export default function Consultation(){
   <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>영냥 신점</strong><br/>질문이 떠오른 순간의 기운과 선택 살펴보기</span></a>
   <div className={styles.tabs} role="group" aria-label="운세 종류">{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{label}</button>)}</div>
   <div className={styles.kindChoices} role="group" aria-label="상담 종류">{consultationKinds[domain].map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>
-  <ReadingIdentity product={product} compact/>
+
   <p className={styles.systemDescription}>{fusionDescription(product)||explanation[domain]}</p>
   {domain==='fusion'&&<p className={styles.systemDescription}>각 체계는 고유한 기준으로 계산해. 같은 흐름과 다른 해석을 나란히 읽고, 네가 선택할 수 있는 행동으로 정리해줄게. 결제 후 창을 닫아도 내 상담 기록에서 이어 읽을 수 있어.</p>}
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label="선택한 상담 요약">
     <img className={styles.guideCat} src="/assets/yeongnyangi/profiles/welcome.webp" width={168} height={171} alt="반갑게 맞이하는 영냥이"/>
     <h2>네 이야기에,<br/>작은 달빛 하나.</h2><p>한 번에 답을 찾으려 하지 않아도 돼.<br/>함께 살펴볼 흐름부터 골라보자.</p>
-    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{kind.label} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{product.chapterCount}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>이용 방식</dt><dd>Family 이용권 또는 단건 결제 · {product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
+    <dl className={styles.consultationSummary}><div><dt>오늘의 상담</dt><dd>{kind.label} · {product.fishName}</dd></div><div><dt>함께 읽을 이야기</dt><dd>{tarotOnly?'질문과 카드의 상징':selectedProfile?.name||'프로필을 골라줘'}</dd></div><div><dt>상담 구성</dt><dd>{preview.length}개 챕터</dd></div><div><dt>전용 구성</dt><dd>{readingFeatures[domain]}</dd></div><div><dt>이용 방식</dt><dd>Family 이용권 또는 단건 결제 · {product.priceKRW.toLocaleString('ko-KR')}원</dd></div></dl>
     <p className={styles.guideNote}><Sparkles size={16} aria-hidden="true"/>계산은 운세 체계가,<br/>해설은 영냥이가 함께해.</p>
     <details className={styles.predictionRecords}><summary><span className={styles.predictionRecordsSeal} aria-hidden="true">原</span><span><strong>두 대통령 적중 기록</strong><small>게시일과 원문으로 직접 확인하기</small></span></summary><div className={styles.predictionRecordsBody}><figure className={styles.predictionRecordsArt}><img src="/assets/yeongnyangi/original/records-scroll-2d-480.webp" width={480} height={320} alt="" loading="lazy" decoding="async"/></figure><p>2022년과 2024년에 공개된 블로그 원문을 기준으로, 당시 문장과 이후 확인된 사건을 분리해 보여드려요. 개인 상담 결과를 보장하는 문구는 아니며, 원문 링크에서 직접 확인할 수 있어요.</p><ol>{predictionProofRecords.map(record=><li key={record.url}><a href={record.url} target="_blank" rel="noopener noreferrer" aria-label={`원문 보기: ${record.title} (새 창)`}><time dateTime={record.date}>{record.date.replaceAll('-','.')}</time><strong>{record.title}</strong><span>{record.after}</span><em>원문 보기</em></a></li>)}</ol></div></details>
    </aside>
@@ -175,8 +175,10 @@ export default function Consultation(){
    {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}
    <label htmlFor="consultation-question">{askCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={askCopy.placeholder}/>
    </section>}
+  <h2 className={styles.selectionHeading} lang={locale}>{journey.depth}</h2>
+  <p lang={locale}>{journey.depthHint} {kind.question&&journey.questionHint}</p>
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
-   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
+   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span className={styles.fishPrice}>{item.priceKRW.toLocaleString('ko-KR')}원</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {journey.chapters}{productId===item.id&&<b>{journey.selected}</b>}</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')} {journey.target}</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
   </button>)}</div>
    <details className={styles.manifestPreview}><summary>{kind.label} · {preview.length}개 챕터 목차</summary><ol>{preview.map(chapter=><li key={chapter.id}>{chapter.title}</li>)}</ol></details>
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · Family 이용권 또는 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>

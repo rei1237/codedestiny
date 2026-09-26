@@ -98,6 +98,8 @@ components:
 
 # Design System: Code Destiny
 
+영냥이 홈·상담·결과의 한정된 디자인 결정은 [영냥이 밤의 상담실](docs/design/yeongnyangi-night.md)에 기록한다.
+
 ## 1. Overview
 
 **Creative North Star: "달빛 아래 두 권의 책"**

@@ -1,4 +1,5 @@
 "use client";
+import {OrderLookup} from './OrderRecovery';
 import {readingCopy} from '../_lib/reading-copy';
 import {resultStateCopy} from '../_lib/result-state-copy';
 import {readingLanguageNames,readingLocales,readingLocale,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
@@ -66,6 +67,7 @@ export default function Library(){
  const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];
  return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><p className={styles.eyebrow}>CODE DESTINY 계정에 보관된 이야기</p><h1>{copy.library}</h1>
   {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:rows?.length===0&&<p>{copy.empty}</p>}</div></header>
+  <OrderLookup locale={locale}/>
   <div className={styles.library}>{rows?.map(row=><div key={row.id} className={styles.libraryItem}><a href={`${resultPath(row.id,row.locale)}&source=library`}><img src={readingArtwork(row.product)} width={120} height={80} loading="lazy" alt=""/><div><h2>{row.kindLabel||row.product.name} · {row.product.fishName}</h2><p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product.chapterCount):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>
    {row.canRetry&&<button className={styles.retryButton} disabled={Boolean(recovering)} onClick={()=>void recover(row)}>{recovering===row.id?stateCopy.recovering:copy.recovery}</button>}
    {recoverError?.id===row.id&&<p role="alert">{recoverError.message}</p>}</div>)}</div>
