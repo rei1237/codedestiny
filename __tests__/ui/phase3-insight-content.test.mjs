@@ -29,6 +29,29 @@ const internalLinks = (value) => Array.from(
   new Set(Array.from(String(value || "").matchAll(/href="(\/[^"#?]+)[^\"]*"/g), (match) => match[1])),
 );
 
+test("후속 정정 원고는 체계 혼동과 현실 결과 단정을 다시 넣지 않는다", () => {
+  const dictionary = bySlug("sukuyo-beginner-terms-easy-dictionary");
+  const questions = bySlug("sukuyo-qa-most-asked-questions");
+  const useo = bySlug("sukuyo-useo");
+  const retrograde = bySlug("vedic-retrograde-planets-practical-decoding");
+  const career = bySlug("career-luck-interview-exam-prep-strategy");
+
+  for (const article of [dictionary, questions, useo, retrograde, career]) {
+    assert.ok(article);
+    assert.equal(article.contentSource, "authored", article.slug);
+    assert.match(article.updatedAt, /^2026-09-26(?:T00:00:00\.000Z)?$/, article.slug);
+    assert.ok(internalLinks(article.contentHtml).length >= 3, article.slug);
+  }
+  assert.doesNotMatch(dictionary.contentHtml, /월명숙은 외부 표현|숙요점에는 별의 상태를 표현하는 개념/);
+  assert.doesNotMatch(questions.contentHtml, /월명숙은 현실에서 표현되는 모습|모순이 아니라 표현 차이/);
+  assert.doesNotMatch(useo.contentHtml, /우쇠관계는 말 그대로.*성\(成\)|시간이 관계를 증명하는 사랑/);
+  assert.match(useo.contentHtml, /우쇠\(友衰\).*벗 우\(友\)/);
+  assert.doesNotMatch(retrograde.contentHtml, /라후와 케투는 반대로 언제나 역행|역행이 끝난 뒤로 미루고/);
+  assert.match(retrograde.contentHtml, /평균 교점과.*진 교점은 같은 값이 아닙니다/);
+  assert.doesNotMatch(career.contentHtml, /20~30%|관성이 힘을 받는.*합격.*잘 따라/);
+  assert.doesNotMatch(career.title, /합격률 높이는/);
+});
+
 test("명시 카테고리가 비교 키워드보다 먼저 적용된다", () => {
   const astrology = bySlug("astrology-birth-chart-guide");
   const nakshatra = bySlug("nakshatra-what-is");

@@ -35,11 +35,32 @@
     "body": "sukuyo-ankai-3a8640cfacc0.json"
   },
   {
+    "slug": "sukuyo-useo",
+    "title": "우쇠관계(友衰) 읽는 법 — 우와 쇠의 방향, 실제 관계의 확인 질문",
+    "description": "우쇠의 우(友)와 쇠(衰)를 구분하고 두 사람의 관계 방향을 확인합니다. 성위의 성(成)과 섞지 않으며 장기 지속·성공·쇠퇴를 관계 이름으로 예측하지 않습니다.",
+    "href": "/insights/sukuyo-useo/",
+    "body": "sukuyo-useo-bc4b5998e3f0.json"
+  },
+  {
     "slug": "sukuyo-bonmyeongsuk-how-to-find",
     "title": "본명숙이란? 생년월일로 내 별자리 찾는 방법",
     "description": "본명숙은 태어난 날 달이 머문 27숙 중 하나로, 숙요점 해석의 출발점입니다. 양력·음력 구분과 윤달·자정 경계까지, 본명숙을 정확히 찾는 5단계를 정리했습니다.",
     "href": "/insights/sukuyo-bonmyeongsuk-how-to-find/",
     "body": "sukuyo-bonmyeongsuk-how-to-find-2f3076bdc022.json"
+  },
+  {
+    "slug": "sukuyo-beginner-terms-easy-dictionary",
+    "title": "숙요점 초보 용어 사전 — 본명숙·관계·거리의 기준을 구분하는 법",
+    "description": "숙과 27숙, 본명숙, 관계 방향과 거리의 의미를 구분합니다. 월명숙의 정의와 자미두수의 별 밝기를 숙요 계산에 섞지 않는 확인 순서를 담았습니다.",
+    "href": "/insights/sukuyo-beginner-terms-easy-dictionary/",
+    "body": "sukuyo-beginner-terms-easy-dictionary-f02a4c615ac4.json"
+  },
+  {
+    "slug": "sukuyo-qa-most-asked-questions",
+    "title": "숙요점 Q&A — 입력·관계 방향·월명숙에서 헷갈리는 기준",
+    "description": "출생 시각이 필요한 이유, 월명숙의 정의, 관계 방향과 거리의 한계를 질문별로 답합니다. 같은 숙과 궁합 결과를 현실 관계의 확정 판정으로 읽지 않는 방법을 안내합니다.",
+    "href": "/insights/sukuyo-qa-most-asked-questions/",
+    "body": "sukuyo-qa-most-asked-questions-b8ee35551b2a.json"
   },
   {
     "slug": "sukuyo-love",
@@ -105,13 +126,6 @@
     "body": "sukuyo-day-by-day-rhythm-usage-2f2c3d5d36e3.json"
   },
   {
-    "slug": "sukuyo-qa-most-asked-questions",
-    "title": "숙요점 자주 묻는 질문 Q&A — 처음 공부하는 사람들이 가장 많이 궁금해하는 내용",
-    "description": "숙요점은 무엇을 보는 학문인지, 서양 별자리와는 무엇이 다른지, 본명숙이 성격을 결정하는지 등 입문자가 가장 많이 묻는 질문 10가지에 답했습니다.",
-    "href": "/insights/sukuyo-qa-most-asked-questions/",
-    "body": "sukuyo-qa-most-asked-questions-d826b4d46f7d.json"
-  },
-  {
     "slug": "sukuyo-conflict-repair-dialogue-templates",
     "title": "숙요점 갈등 회복 가이드 — 갈등은 관계의 끝이 아니라 재조정하는 과정이다",
     "description": "갈등은 관계가 가까워질수록 자연스럽게 드러나는 현상입니다. 영친·업태·안괴·명·성위·우쇠 6유형별 갈등 회복 방식과 감정전달형·문제해결형 등 실전 대화 템플릿을 정리했습니다.",
@@ -147,25 +161,11 @@
     "body": "sukuyo-eishin-e35ed70b9ce2.json"
   },
   {
-    "slug": "sukuyo-useo",
-    "title": "우쇠관계(友衰關係) 완전 가이드 — 시간이 증명하는 인연, 성장과 쇠퇴를 함께 건너는 관계",
-    "description": "우쇠관계는 인생의 상승과 하강을 함께 경험하며 시간이 흐를수록 의미가 깊어지는 관계입니다. 성(成)과 쇠(衰)의 역할, 연애·결혼·가족·친구·직장·사업에서의 특징과 오래 유지하는 법을 정리했습니다.",
-    "href": "/insights/sukuyo-useo/",
-    "body": "sukuyo-useo-62aa05ad82a4.json"
-  },
-  {
     "slug": "sukuyo-three-group-types-guide",
     "title": "숙요점의 근(近)·중(中)·원(遠) 관계 완전 해설",
     "description": "숙요점에서는 같은 명·업태·안괴 관계라도 상대와 몇 숙 떨어져 있는지에 따라 기운의 작용 방식이 달라집니다. 근거리·중거리·원거리 3분류의 본질과 각각의 장단점, 연애·결혼·사업에서의 체감을 정리했습니다.",
     "href": "/insights/sukuyo-three-group-types-guide/",
     "body": "sukuyo-three-group-types-guide-90bde8c79bd7.json"
-  },
-  {
-    "slug": "sukuyo-beginner-terms-easy-dictionary",
-    "title": "숙요점 초심자 완벽 가이드 — 쉬운 용어 사전과 처음 공부하는 사람이 알아야 할 핵심",
-    "description": "숙(宿)·27수·본명숙·월명숙부터 관계 유형·거리 개념·묘왕쇠까지 숙요점 핵심 용어를 초보 눈높이로 정리했습니다. 처음 공부하는 사람을 위한 5단계 학습 순서도 담았습니다.",
-    "href": "/insights/sukuyo-beginner-terms-easy-dictionary/",
-    "body": "sukuyo-beginner-terms-easy-dictionary-29d8d63448bd.json"
   },
   {
     "slug": "sukuyo-27-guardian-animals-origin-guide",
