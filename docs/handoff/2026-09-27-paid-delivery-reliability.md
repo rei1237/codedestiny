@@ -102,6 +102,8 @@ Family v3 149,000원/30일/누적 5,000단위는 무제한 생성이 아니다. 
 
 다음은 읽기 및 로컬 보고 명령이다. 운영 DB 접근·실거래·배포를 자동 실행하지 않는다.
 
+전달 중 main 후속 변경도 병합했다: `76d122fd2` hero 이미지 로딩 우선순위 수정, `bebf4cd18` 관련 sitemap 갱신, `63b7bc03e` LLM P2 토큰 예산 수정. 따라서 위 길이 품질 P2 상태와 CI 실패는 최신 후속 커밋의 결과를 확인해 갱신해야 한다. 이 세 변경은 다른 세션 작업이며 이 문서 작성자가 새로 검증한 구현으로 간주하지 않는다.
+
 ```powershell
 Set-Location 'C:\Users\user\.codex\worktrees\paid-delivery-reliability\code-destiny'
 git status --short
