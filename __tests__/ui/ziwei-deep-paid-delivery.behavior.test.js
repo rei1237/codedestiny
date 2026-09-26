@@ -238,7 +238,8 @@ test('앞 장 실패·뒤 장 성공이면 성공 장을 다시 호출하지 않
 for (const code of ['HTTP_429', 'HTTP_503', 'PROVIDER_REFUSED', 'LLM_TIMEOUT']) test(`실제 챕터 생성기의 ${code} 뒤 원래 구매의 실패 장만 복구한다`, async () => {
   const f = fixture(), calls = new Map();
   Object.assign(f.ctx, { buildZiweiDeepChapterPrompt: (_chart, _birth, definition) => definition.id, createLlmCacheStore: () => ({}),
-    callGeminiText: async (_env, id) => {
+    callGeminiText: async (_env, prompt) => {
+      const id = prompt.split('\n')[0];
       calls.set(id, (calls.get(id) || 0) + 1);
       if (id === 'chapter0' && calls.get(id) === 1) throw Object.assign(new Error(code), { code });
       return { ok: true, provider: 'gemini', text: Array.from({ length: 70 }, (_, i) => `${id}의 ${i}번째 흐름은 계산한 명반의 조건을 바탕으로 현실에서 선택할 수 있는 행동을 구체적으로 설명합니다.`).join('\n') };
@@ -316,9 +317,51 @@ test('동시 요청, 소유권 변경, 입력 변경, 취소 증빙을 차단한
   f.owner('owner'); f.permitted(false); assert.equal((await f.post()).status, 402); assert.equal(f.calls, 8);
 });
 test('짧은 챕터는 완료하지 않고 저장된 호출 한도로 멈춘다', async () => {
-  const f = fixture(); f.ctx.generateChapter = async (_e, _c, _b, definition) => ({ ...definition, body: '짧은 본문', ok: true });
-  for (let i = 0; i < 3; i++) assert.equal((await f.post()).status, 202);
-  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.refunds, 1);
+  const f = fixture(); let calls = 0;
+  f.ctx.generateChapter = async (_e, _c, _b, definition) => { calls++; return { ...definition, body: '짧은 본문', ok: true }; };
+  for (let i = 0; i < 20; i++) assert.equal((await f.post()).status, 202);
+  assert.equal(calls, 45); assert.equal(f.doc.status, 'partial'); assert.equal(f.refunds, 0);
+  assert.equal(Object.keys(f.doc.llmMeta.checkpoints).length, 15);
+});
+for (const repair of ['shorter', 'empty', 'repeated']) test(`심층 ${repair} 보강은 유효 초안을 보존하고 총합을 충족하면 완료한다`, async () => {
+  const f = fixture(); const normal = f.ctx.generateChapter; let tries = 0, draft;
+  f.ctx.generateChapter = async (...args) => {
+    const row = await normal(...args);
+    if (row.id !== 'chapter0') return row;
+    tries++;
+    row.body = tries === 1 ? '첫 장의 고유 해석입니다. ' + '가'.repeat(900) : '짧은 해석';
+    if (tries === 1) draft = row.body;
+    else if (repair === 'empty') row.body = '';
+    else if (repair === 'repeated') row.body = ('이 문장은 계산한 근거를 해석하는 동일한 내용을 계속해서 반복하고 있습니다.\n').repeat(100);
+    return row;
+  };
+  await f.post(); assert.equal(f.doc.llmMeta.checkpoints.chapter0.body, draft);
+  for (let i = 0; i < 6 && f.doc.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(tries, 2);
+  assert.equal(f.doc.llmMeta.checkpoints.chapter0.body, draft);
+  assert.equal(f.doc.llmMeta.attempts['chapter0:lengthRepair'], 1);
+});
+test('심층 보강 예약 뒤 응답이 유실되어도 같은 개별 분량 보강을 다시 호출하지 않는다', async () => {
+  const f = fixture(); const normal = f.ctx.generateChapter; let tries = 0;
+  f.ctx.generateChapter = async (...args) => {
+    const row = await normal(...args);
+    if (row.id === 'chapter0') { tries++; row.body = '유효한 짧은 초안'; }
+    return row;
+  };
+  await f.post();
+  f.doc.llmMeta.attempts.chapter0 = 2; f.doc.llmMeta.attempts['chapter0:lengthRepair'] = 1;
+  for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(tries, 1);
+});
+test('심층 마지막 시도의 유효 본문은 개별 하한으로 거부하지 않는다', async () => {
+  const f = fixture(); const normal = f.ctx.generateChapter; let tries = 0;
+  f.ctx.generateChapter = async (...args) => {
+    const row = await normal(...args);
+    if (row.id === 'chapter0') { tries++; row.ok = tries >= 3; row.body = '마지막 유효 초안'; }
+    return row;
+  };
+  for (let i = 0; i < 7 && f.doc?.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(tries, 3);
 });
 test('기존 완료 구매본은 새 분량 기준으로 차단하지 않는다', async () => {
   const f = fixture(); await f.post(); f.doc.status = 'completed'; f.doc.chapters = [{ id: 'old', body: '과거 본문' }]; f.doc.llmMeta.checkpoints = {};
@@ -361,6 +404,19 @@ test('정상 Workers AI 공급자의 충분한 본문은 기존대로 완료한�
   Object.assign(ctx, { buildZiweiDeepChapterPrompt: () => 'fixed facts', createLlmCacheStore: () => ({}), callGeminiText: async () => ({ ok: true, text: '가'.repeat(2400), provider: 'workers-ai', isMock: false, truncated: false, finishReason: 'stop' }) });
   load(ctx, 'worker/routes/ziwei-deep-report.js', ['generateChapter']);
   assert.equal((await ctx.generateChapter({}, {}, {}, ctx.ZIWEI_DEEP_CHAPTERS[0], {}, 'ko', 1)).ok, true);
+});
+test('실제 심층 생성기는 짧은 본문을 보존하되 잘못된 타입·빈 본문·반복은 거부한다', async () => {
+  const ctx = fixture().ctx;
+  Object.assign(ctx, { buildZiweiDeepChapterPrompt: () => 'fixed facts', createLlmCacheStore: () => ({}) });
+  load(ctx, 'worker/routes/ziwei-deep-report.js', ['generateChapter']);
+  for (const [text, ok] of [['명반의 근거를 생활 속 행동과 연결한 짧은 해석입니다.', true], ['', false], [{ body: '본문' }, false], [('계산한 명반의 근거를 생활 속 행동과 연결하는 해석이 같은 문장으로 반복됩니다.\n').repeat(10), false]]) {
+    ctx.callGeminiText = async (_env, _prompt, options) => {
+      assert.ok(options.maxOutputTokens >= Math.ceil((ctx.ZIWEI_DEEP_CHAPTERS[0].minChars * 1.5 + 1500) * 1.5));
+      assert.equal(options.thinkingBudget, 0);
+      return { ok: true, text, provider: 'gemini', finishReason: 'STOP' };
+    };
+    assert.equal((await ctx.generateChapter({}, {}, {}, ctx.ZIWEI_DEEP_CHAPTERS[0], {}, 'ko')).ok, ok);
+  }
 });
 test('실제 심화 화면은 저장된 챕터를 보여주고 같은 결과 ID로 이어간다', async () => {
   const file = 'app/components/ziwei/ZiweiDeepPdfPanel.tsx';

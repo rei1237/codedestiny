@@ -815,7 +815,7 @@ function neoSectionClosingLines(section) {
     JSON.stringify(section.schema),
     "",
     ...safeArray(section.rules),
-    `분량: 이 챕터의 모든 텍스트 값 합계가 공백 포함 최소 ${section.minChars}자 이상이 되도록 충분히 전개한다. 얕게 끝내지 말고 근거→해석→구체적 장면→실행 조언 순으로 두텁게 쓴다.`,
+    `분량: 이 챕터의 제목·공백을 제외한 본문이 ${Math.ceil(section.minChars / 0.8)}~${Math.ceil(section.minChars * 1.5)}자가 되도록 충분히 전개한다. 얕게 끝내지 말고 근거→해석→구체적 장면→실행 조언 순으로 두텁게 쓴다.`,
     "각 문자열은 한국어로, 네오가 사용자에게 직접 말하는 상담 문장으로 쓴다. 모든 문장의 어조는 [팩폭 강도 지침]의 rules를 따른다.",
     "반드시 위 [반환 JSON 스키마]의 키만 가진 JSON 객체 하나만 반환한다.",
   ];

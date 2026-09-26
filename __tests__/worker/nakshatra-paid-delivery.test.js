@@ -88,6 +88,57 @@ beforeEach(()=>{
  fetchBlock=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw new Error('External fetch blocked')});
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
+for (const repair of ['shorter', 'empty', 'evidence', 'repeated']) it(`keeps a valid short draft after ${repair} repair and delivers the total`, async () => {
+  const normal = provider.getMockImplementation();
+  const id = definitions[0].id;
+  let tries = 0, draft;
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args);
+    if (!args[1].includes(`[이 장: ${definitions[0].title}]`)) return result;
+    const row = JSON.parse(result.text);
+    tries++;
+    row.body = prose('고유초안', tries === 1 ? 1300 : 700);
+    if (tries === 1) draft = row.body.trim();
+    else if (repair === 'empty') row.body = '';
+    else if (repair === 'evidence') row.vedicEvidence = '잘못된 계산값';
+    else if (repair === 'repeated') row.body = (prose('반복된해석', 150) + '\n').repeat(30);
+    return { ...result, text: JSON.stringify(row) };
+  });
+  await start();
+  expect(docs[0].sections.find(row => row.id === id).body).toBe(draft);
+  for (let i = 0; i < 5 && docs[0].status !== 'completed'; i++) await batch();
+  expect(docs[0].status).toBe('completed');
+  expect(docs[0].sections.find(row => row.id === id).body).toBe(draft);
+  expect(docs[0].llmMeta.attempts[`${id}:lengthRepair`]).toBe(1);
+  expect(tries).toBe(2);
+  expect(docs[0].totalCharCount).toBeGreaterThanOrEqual(Math.max(20000, definitions.reduce((sum, section) => sum + section.minChars, 0)));
+});
+it('keeps total shortfall partial after the original attempt budget is exhausted', async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args); const row = JSON.parse(result.text);
+    row.body = prose(row.keyInsight.replace(/[?!]/g, ""), 650);
+    return { ...result, text: JSON.stringify(row) };
+  });
+  await start(); for (let i = 0; i < 14; i++) expect((await batch()).status).toBe(202);
+  expect(provider).toHaveBeenCalledTimes(definitions.length * 3);
+  expect(docs[0].status).not.toBe('completed');
+  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+});
+for (const stage of ['reserved', 'last']) it(`accepts the short draft on ${stage} attempt without resetting its budget`, async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args);
+    if (!args[1].includes(`[이 장: ${section.title}]`)) return result;
+    tries++; const row = JSON.parse(result.text); row.body = prose('마지막고유초안', 1300);
+    if (stage === 'last' && tries < 3) row.body = '';
+    return { ...result, text: JSON.stringify(row) };
+  });
+  await start();
+  if (stage === 'reserved') { docs[0].llmMeta.attempts[section.id] = 2; docs[0].llmMeta.attempts[`${section.id}:lengthRepair`] = 1; }
+  for (let i = 0; i < 6 && docs[0].status !== 'completed'; i++) await batch();
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(stage === 'last' ? 3 : 1);
+});
 async function start(extra={}) { return route(new Request('https://mock.test/api/nakshatra-ai/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...body,...extra})}),{}); }
 async function batch() { return route(new Request('https://mock.test/api/nakshatra-ai/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:docs[0]?.id})}),{}); }
 for(const paid of ['pass','monthly','paid'])it(`${paid}: three waves preserve all nine chapters and paid evidence`,async()=>{mode=paid;const first=await start();expect(await first.clone().json()).toMatchObject({ok:true});expect(first.status).toBe(202);expect(docs[0].sections).toHaveLength(4);expect(usage).not.toHaveBeenCalled();expect((await batch()).status).toBe(202);expect(docs[0].sections).toHaveLength(8);expect((await batch()).status).toBe(200);expect(docs[0].totalCharCount).toBeGreaterThanOrEqual(20000);expect(provider).toHaveBeenCalledTimes(9);expect(chart).toHaveBeenCalledTimes(1);expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(9)});
