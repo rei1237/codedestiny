@@ -5047,6 +5047,6 @@ export async function prewarmPaidCheckout(): Promise<void> {
   if (typeof window === "undefined" || isMobileAppRuntime()) return;
   try {
     await loadPaidServiceRuntimeGate();
-    (window as RuntimeApiWindow).__cdPreloadPortOneV2Sdk?.();
+    await (window as RuntimeApiWindow).__cdPreloadPortOneV2Sdk?.();
   } catch { /* The user-initiated gate owns retry and error presentation. */ }
 }

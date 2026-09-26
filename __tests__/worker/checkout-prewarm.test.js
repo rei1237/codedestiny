@@ -20,3 +20,7 @@ test.each([{native:true},{server:true}])('native or server execution never loads
 test('failed prewarm leaves retry to the payment gate',async()=>{
   const {run,preload}=setup({failed:true});await expect(run()).resolves.toBeUndefined();expect(preload).not.toHaveBeenCalled();
 });
+test('an asynchronously rejected SDK preload stays a recoverable preparation failure',async()=>{
+  const {run,preload}=setup();preload.mockRejectedValueOnce(Error('sdk unavailable'));
+  await expect(run()).resolves.toBeUndefined();
+});
