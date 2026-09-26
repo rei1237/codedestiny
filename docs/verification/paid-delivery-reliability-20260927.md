@@ -123,5 +123,6 @@
 - 최초 `d100554ca` CI의 정적 검사 실패는 병합된 별도 UI 변경의 `item.chapterCount` 검사 조건이었다. 해당 수정 `aaf43253d`를 포함한 최신 SHA의 전체 CI 성공으로 재확인했다.
 - [스테이징 배포](https://github.com/rei1237/codedestiny/actions/runs/36264016297) 성공. 2026-09-27 04:04 KST 조회한 `/version.json`(Pages)과 `/api/version`(Worker)의 `gitSha`가 모두 `3baf54db3d8250fcbe89f6357026ae35f039e89e`이며 환경은 staging이다. 프로덕션 승격/실 PG/실 LLM은 실행하지 않았다.
 - `verify-yeongnyangi-worker-mongo-staging.mjs --staging-fixtures`도 실제 스테이징 HTTP/Mongo에서 통과했다. 로그인, 결제 소켓 레인 주문 조회, 동시 활성화/증빙 소비/재열람, 비로그인 401, 타 사용자 404, 금액 불일치 402, 무료 결과 중복 차감 차단을 검증하고 fixture 정리했다. PG/LLM 호출 0. 요약: `paid-delivery-staging-20260927.json`.
-- 필수 main CI와 별도인 [Browser Shadow](https://github.com/rei1237/codedestiny/actions/runs/36263991613)는 프로필 버튼의 옛 접근성 이름을 기다리다 실패했다. `88fabdb6a`에서 테스트 선택자가 수정됐으며 재검증은 이 문서 작성 시 진행 중이다. 이를 모바일 전체 성공으로 집계하지 않는다.
+- 필수 main CI와 별도인 최초 [Browser Shadow](https://github.com/rei1237/codedestiny/actions/runs/36263991613)는 프로필 버튼의 옛 접근성 이름을 기다리다 실패했다. `88fabdb6a`의 수정된 선택자로 [Browser Shadow 재검증](https://github.com/rei1237/codedestiny/actions/runs/36264438572)이 성공했다. 자동화의 mock 모바일 행렬이며 실기기 PG 앱 복귀 증명은 아니다.
+- 검증 문서를 반영한 main `1c9dda90f8b7cb705d02fc3a72aebbb1d0c70cff`의 [문서 변경 CI](https://github.com/rei1237/codedestiny/actions/runs/36264996354)도 성공했다. 이 CI는 fast 범위이며 런타임 변경 검증의 근거는 앞서 통과한 `3baf54db3`의 critical CI다.
 - 지정 테스트 계정은 읽기 전용 조회에서 활성 일반 사용자로 확인했다. 권한·프로필·구매 기록은 변경하지 않았다. 브라우저의 로그인됨 표시만 확인했고 실결제 화면은 실행하지 않았다.
