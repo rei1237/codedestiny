@@ -27,7 +27,7 @@ import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider, validateChapter } from './providers/chapter';
-import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis } from './repository.js';
+import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, allowedChapterAttempts, holdAutoResumes } from './repository.js';
 
 const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
 
@@ -67,6 +67,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
+  if(!askEvidenceEnabled && !['ko','en','ja'].includes(locale))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
     if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');
@@ -238,13 +239,13 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     const code=error instanceof FortuneError?error.code:stage==='storage'?'RESULT_STORAGE_UNAVAILABLE':'GENERATION_FAILED';
     const detail=error instanceof FortuneError?error.detail:undefined;
     console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code,detail}));
-    const allowedAttempts=3+Number(row.manualRecoveryGrants?.[ordinal] || 0);
+    const allowedAttempts=allowedChapterAttempts(row,ordinal);
     const askQuality=stage==='quality'&&ordinal===0&&row.generationCheckpoint?.version==='ask-generation-v1';
     // One existing-budget quality regeneration at most. A second rejection
     // preserves the paid request and saved chapters for support review.
     const review=askQuality&&(row.lastFailure?.stage==='quality'||Number(row.chapterAttempts?.[ordinal] || 0)>=allowedAttempts);
     try { await failChapter(env,userId,requestId,token,review?'ASK_LIMITED_REVIEW_REQUIRED':code,
-      row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,review?code:detail); }
+      row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,review?code:detail,ordinal); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }
@@ -253,10 +254,12 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 export function presentFortune(row: any) {
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
-  const complete=row.state==='COMPLETED',blocked=row.state==='REFUNDED'||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED'].includes(errorCode);
+  const complete=row.state==='COMPLETED',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
+  // A held order is still being recovered server-side: saved chapters stay readable and nothing asks the buyer to pay or chase.
+  const held=!complete&&!blocked&&errorCode==='GENERATION_REVIEW_REQUIRED';
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
-    providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked,
-    canRetryNow:errorCode==='AUTOMATIC_RECOVERY_STOPPED',nextAction:complete?'reread':blocked?'support':errorCode==='AUTOMATIC_RECOVERY_STOPPED'?'retry':'wait'};
+    providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked&&!held,
+    canRetryNow:errorCode==='AUTOMATIC_RECOVERY_STOPPED',nextAction:complete?'reread':blocked?'support':held?'held':errorCode==='AUTOMATIC_RECOVERY_STOPPED'?'retry':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,

@@ -25,6 +25,8 @@ function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boole
 const RESULT_POLL_MS=1500;
 // 결제 확정(웹훅·PG 복귀)보다 먼저 열린 결과 화면이 새로고침 없이 넘어가도록 /activate 를 RESULT_POLL_MS 간격으로 다시 확인하는 상한(약 3분).
 const PAY_CHECK_LIMIT=Math.ceil(180000/RESULT_POLL_MS);
+// 멈춤·보류 주문은 서버(크론·운영자)가 이어서 완성한다. 창을 열어 둔 구매자도 새로고침 없이 넘어가도록 느리게 계속 확인한다.
+const HELD_POLL_MS=30000;
 function sameRequest(fortune:FortuneRecord,id:string){
  if(fortune.id!==id||(fortune.recovery?.requestId&&fortune.recovery.requestId!==id))throw new FortuneApiError('RECOVERY_ID_MISMATCH','원래 상담과 복구 응답이 일치하지 않아요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.',409,false);
  return fortune;
@@ -75,14 +77,15 @@ export default function Result(){
   return ()=>{cancelled=true;mounted.current=false;if(timer)clearTimeout(timer);};
  },[reload]);
  useEffect(()=>{
-  if(!row?.paid || ['COMPLETED','REFUNDED'].includes(row.state) || ['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode || ''))return;
+  if(!row?.paid || ['COMPLETED','REFUNDED'].includes(row.state) || row.errorCode==='PAYMENT_NOT_ACTIVE')return;
+  const held=['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode || '');
   let cancelled=false;
   const timer=setTimeout(async()=>{
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
     if(!cancelled){setRow(sameRequest(fortune,row.id));setError('');}
    }catch(e){if(!cancelled){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError(resultStateCopy(row.locale).pollFailed);setRow({...row});}}}
-  },RESULT_POLL_MS);
+  },held?HELD_POLL_MS:RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row]);
  useEffect(()=>{
@@ -113,7 +116,7 @@ export default function Result(){
   <SpiritResult row={row}/>
   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
   {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button><a href={checkoutPath(row)}>{copy.checkout}</a></>:row.state!=='COMPLETED'&&<>
-    {row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:row.errorCode==='GENERATION_REVIEW_REQUIRED'||row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
+    {row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
   {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<p className={styles.orderId}>{copy.order}: {row.id}</p>
  </section>;
@@ -133,7 +136,7 @@ export default function Result(){
    <div id="reading-progress" className={styles.progress}><img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt={stateCopy.greeting}/>
     <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
      {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={stateCopy.progress}/>}
-     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="alert">{stateCopy.reviewRequired}</p>:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:<p role="status">{row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
+     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.errorCode==='GENERATION_REVIEW_REQUIRED'?<p role="status">{stateCopy.reviewRequired}</p>:row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:<p role="status">{row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
      {row.state==='REFUNDED'&&<p>{stateCopy.refunded}</p>}
      {!row.paid&&row.state!=='REFUNDED'&&<><p>{stateCopy.unpaid}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button><a className={styles.button} href={checkoutPath(row)}>{copy.checkout}</a></>}
     </div>

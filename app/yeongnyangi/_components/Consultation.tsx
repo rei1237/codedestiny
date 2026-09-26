@@ -19,6 +19,7 @@ import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {consultationInputCopy} from '../_lib/consultation-input-copy';
+import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 const loginDraftKey='yeongnyangi:consultation-login-draft';
 const predictionProofRecords=predictionRecords.map(record=>{
@@ -51,6 +52,8 @@ export default function Consultation(){
   trackEvent('view_item',{currency:product.currency,value:product.priceKRW,items:[{item_id:product.cdFeatureKey,item_name:product.name,price:product.priceKRW}],service:'yeongnyangi'});
  },[ready,product]);
  const kind=consultationKinds[domain].find(k=>k.id===kindId)||consultationKinds[domain][0];
+ const askCopy=askPhase5Copy(locale).input;
+ const selectableLocales=kind.question?readingLocales:readingLocales.slice(0,3);
  const preview=consultationManifest(product,kind,topicId);
  const choices=products.filter(p=>domain==='fusion'?p.readingKind!=='single':p.readingKind==='single'&&p.domain===domain).filter(p=>supportsKind(p,kind));
  const tarotOnly=product.domain==='tarot'&&product.readingKind==='single';
@@ -64,18 +67,18 @@ export default function Consultation(){
   ...(selectedProfile&&needsTime&&(timeUnknown||(selectedProfile.birth?.timeUnknown&&!extraTime))?[inputCopy.timeRequired]:[]),
   ...(selectedProfile&&needsPlace&&!selectedProfile.location?.label&&!extraPlace.trim()&&!currentLocation?[inputCopy.placeRequired]:[]),
  ]:[];
- if(kind.question&&!question.trim()&&!guest)missing.push(inputCopy.questionRequired);
+ if(kind.question&&!question.trim()&&!guest)missing.push(askCopy.required);
  useEffect(()=>{if(restoredDraft.current)return;setExtraTime('');setExtraPlace('');setCurrentLocation(null);setTimeUnknown(false);setError('');},[profileId]);
  useEffect(()=>{if(!profileState.loading&&partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId,profileState.loading]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
   const preferred=getCurrentLoadingLocale();
-  if(readingLocales.includes(preferred as ReadingLocale))setLocale(preferred as ReadingLocale);
   const selected=products.find(p=>p.id===params.get('product'))||(requested==='fusion'?products.find(p=>p.readingKind==='pair'):undefined)||products.find(p=>p.domain===requested&&p.fishId===params.get('fish')&&p.readingKind==='single')||products.find(p=>p.domain===requested&&p.readingKind==='single')||products[0];
   setProductId(selected.id);setDomain(selected.readingKind==='single'?selected.domain:'fusion');
   const nextDomain=consultationDomain(selected);
   const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||consultationKinds[nextDomain][0];
   setKindId(requestedKind.id);
+  if(readingLocales.includes(preferred as ReadingLocale)&& (requestedKind.question||readingLocales.slice(0,3).includes(preferred as 'ko'|'en'|'ja')))setLocale(preferred as ReadingLocale);
   if(!supportsKind(selected,requestedKind))setProductId(products.find(p=>consultationDomain(p)===nextDomain&&supportsKind(p,requestedKind))!.id);
   const requestedTopic=params.get('topic');
   if(requestedTopic && Object.hasOwn(topicCatalog,requestedTopic))setTopicId(requestedTopic);
@@ -83,9 +86,11 @@ export default function Consultation(){
    const draft=JSON.parse(sessionStorage.getItem(loginDraftKey)||'null');
    if(draft&&draft.path===window.location.pathname+window.location.search&&Date.now()-draft.savedAt<3600000){
     const savedProduct=products.find(p=>p.id===draft.productId);
-    if(savedProduct){const d=consultationDomain(savedProduct),k=consultationKinds[d].find(k=>k.id===draft.consultationKind)||consultationKinds[d][0];setKindId(k.id);setProductId(supportsKind(savedProduct,k)?savedProduct.id:products.find(p=>consultationDomain(p)===d&&supportsKind(p,k))!.id);setDomain(d);}
+    const savedDomain=savedProduct?consultationDomain(savedProduct):nextDomain;
+    const savedKind=consultationKinds[savedDomain].find(k=>k.id===draft.consultationKind)||consultationKinds[savedDomain][0];
+    if(savedProduct){setKindId(savedKind.id);setProductId(supportsKind(savedProduct,savedKind)?savedProduct.id:products.find(p=>consultationDomain(p)===savedDomain&&supportsKind(p,savedKind))!.id);setDomain(savedDomain);}
     restoredDraft.current=draft;
-    if(readingLocales.includes(draft.locale))setLocale(readingLocale(draft.locale));
+    if(readingLocales.includes(draft.locale)&&(savedKind.question||readingLocales.slice(0,3).includes(draft.locale)))setLocale(readingLocale(draft.locale));
     if(typeof draft.extraTime==='string')setExtraTime(draft.extraTime);
     if(typeof draft.extraPlace==='string')setExtraPlace(draft.extraPlace);
     if(draft.topicId==='general'||Object.hasOwn(topicCatalog,draft.topicId))setTopicId(draft.topicId);
@@ -132,15 +137,15 @@ export default function Consultation(){
   }catch(e){if(e instanceof FortuneApiError&&e.status===401)loginWithDraft();else setError(e instanceof FortuneApiError&&locale!=='ko'?inputCopy.consultationError:e instanceof Error?e.message:inputCopy.consultationError);}
   finally{lock.current=false;setBusy(false);}
  }
- function chooseDomain(next:string){setKindId(consultationKinds[next][0].id);setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
- function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
+ function chooseDomain(next:string){const first=consultationKinds[next][0];setKindId(first.id);if(!first.question&&!readingLocales.slice(0,3).includes(locale as 'ko'|'en'|'ja'))setLocale('en');setTopicId('general');setQuestion('');setDomain(next);setProductId(products.find(p=>next==='fusion'?p.readingKind!=='single':p.domain===next&&p.readingKind==='single')!.id);setPartnerId('');setError('');}
+ function chooseKind(id:string){const next=consultationKinds[domain].find(k=>k.id===id)!;setKindId(id);if(!next.question&&!readingLocales.slice(0,3).includes(locale as 'ko'|'en'|'ja'))setLocale('en');setPartnerId('');setError('');if(!supportsKind(product,next))setProductId(products.find(p=>consultationDomain(p)===domain&&supportsKind(p,next))!.id);}
  return <section className={`${styles.consultation} ${styles.consultationRoom}`}>
   <picture className={styles.consultationScenery}><source media="(max-width: 767px)" srcSet="/assets/yeongnyangi/original/room-780.webp"/><img src="/assets/yeongnyangi/original/room-1440.webp" width={1440} height={810} alt=""/></picture>
   <header className={styles.consultationHeader}><div><h1>무엇부터 읽어볼까?</h1><p>말이 조금 엉켜도 괜찮아.<br/>궁금한 운세를 고르고, 네 이야기를 들려줘.</p></div><Moon size={36} strokeWidth={1} aria-hidden="true"/></header>
-  <label className={styles.field}>상담 결과 언어 / Reading language / 結果の言語
-   <select value={locale} disabled={busy} onChange={e=>{setLocale(readingLocale(e.target.value));setError('');}}>{readingLocales.map(value=><option key={value} value={value}>{readingLanguageNames[value]}</option>)}</select>
+  <label className={styles.field} lang={locale}>{kind.question?askCopy.language:'상담 결과 언어 / Reading language / 結果の言語'}
+   <select value={locale} disabled={busy} onChange={e=>{setLocale(readingLocale(e.target.value));setError('');}}>{selectableLocales.map(value=><option key={value} value={value}>{readingLanguageNames[value]}</option>)}</select>
   </label>
-  <p lang={locale}>{locale==='en'?'Your new reading will be written in English. The purchase language stays fixed for recovery and rereading. Some menus and calculated chart labels remain in Korean.':locale==='ja'?'新しい鑑定結果は日本語で作成します。再開・再閲覧でも購入時の言語を維持します。一部のメニューと計算図の表示は韓国語です。':'새 상담은 선택한 언어로 작성돼요. 복구하거나 다시 읽어도 구매 시 선택한 언어를 유지해요.'}</p>
+  <p lang={locale}>{kind.question?askCopy.languageHint:locale==='en'?'Your new reading will be written in English. The purchase language stays fixed for recovery and rereading. Some menus and calculated chart labels remain in Korean.':locale==='ja'?'新しい鑑定結果は日本語で作成します。再開・再閲覧でも購入時の言語を維持します。一部のメニューと計算図の表示は韓国語です。':'새 상담은 선택한 언어로 작성돼요. 복구하거나 다시 읽어도 구매 시 선택한 언어를 유지해요.'}</p>
   <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>영냥 신점</strong><br/>질문이 떠오른 순간의 기운과 선택 살펴보기</span></a>
   <div className={styles.tabs} role="group" aria-label="운세 종류">{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{label}</button>)}</div>
   <div className={styles.kindChoices} role="group" aria-label="상담 종류">{consultationKinds[domain].map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>
@@ -161,14 +166,14 @@ export default function Consultation(){
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
     <label><input type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
     {selectedProfile?.birth?.timeUnknown&&<label>{inputCopy.timeSupplement}<input type="time" value={extraTime} onChange={e=>setExtraTime(e.target.value)}/></label>}
-    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} locale={locale} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">{inputCopy.currentLocation} {currentLocation.timezone}</p>}<label>{inputCopy.placeSupplement}<input value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder} maxLength={120}/></label></>}
+    {selectedProfile&&!selectedProfile.location?.label&&<><CurrentLocationButton key={profileId} locale={locale==='ja'?'ja':locale==='ko'?'ko':'en'} disabled={busy} onLocation={value=>{setCurrentLocation(value);setExtraPlace(value.name);}}/>{currentLocation&&<p role="status">{inputCopy.currentLocation} {currentLocation.timezone}</p>}<label>{inputCopy.placeSupplement}<input value={extraPlace} onChange={e=>{setExtraPlace(e.target.value);setCurrentLocation(null);}} placeholder={inputCopy.placePlaceholder} maxLength={120}/></label></>}
     {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>{inputCopy.supplementSaved}</p>}
     {kind.partner&&<label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
     </div>}
    </>}
-   {kind.question&&<section className={styles.questionSection} aria-label={inputCopy.questionSection} lang={locale}><h2>{tarotOnly?inputCopy.tarotHeading:inputCopy.questionHeading}</h2><p>{inputCopy.questionIntro}</p>
-   {kind.id==='ask'&&<><label htmlFor="consultation-topic">{inputCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">{inputCopy.general}</option>{Object.entries(topicCatalog).map(([id,topic])=><option value={id} key={id}>{topic.label}</option>)}</select></>}
-   <label htmlFor="consultation-question">{inputCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={inputCopy.questionPlaceholder}/>
+   {kind.question&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={locale}><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
+   {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}
+   <label htmlFor="consultation-question">{askCopy.question}</label><textarea id="consultation-question" rows={4} maxLength={1000} value={question} onChange={e=>setQuestion(e.target.value)} placeholder={askCopy.placeholder}/>
    </section>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
    <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span>{item.priceKRW.toLocaleString('ko-KR')}원 · {item.chapterCount}개 챕터</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')}자 목표 · 본문 기준</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>

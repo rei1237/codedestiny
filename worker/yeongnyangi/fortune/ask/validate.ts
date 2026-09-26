@@ -70,5 +70,8 @@ export function validateAskChapter(body: ChapterBody, consultation: Consultation
     ...answers.flatMap(answer => [answer.answer, answer.reason, answer.timing, answer.action])].join('\n');
   if (/\b[FT]\d{3}\b|(?:100\s*%|반드시|무조건|guaranteed|definitely).{0,30}(?:재회|결혼|성공|reunion|marriage|success)/iu.test(prose))
     throw new FortuneError('ASK_UNSAFE_CLAIM');
-  return {...body, questionAnswers: answers.map(({factIds: _facts, timingIds: _timing, evidenceStatus: _status, ...answer}) => answer)};
+  const categories=new Map(guide.questions.map(question=>[question.questionId,question.category]));
+  return {...body, questionAnswers: answers.map(({factIds: _facts, timingIds: _timing, evidenceStatus, ...answer}) => ({
+    ...answer,mode:evidenceStatus==='limited'?'limited':categories.get(answer.questionId)==='health'?'care':'normal',
+  }))};
 }

@@ -2,6 +2,7 @@
 import {useEffect,useState} from 'react';
 import type {FortuneRecord} from '../_lib/api';
 import {readingCopy} from '../_lib/reading-copy';
+import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import ReadingCharts from './ReadingCharts';
 import styles from './reading-v5.module.css';
 
@@ -18,6 +19,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
   return ()=>observer.disconnect();
  },[storageKey,row.chapters.length]);
  const copy=readingCopy(row.locale);
+ const answerCopy=askPhase5Copy(row.locale).answer;
  const title=(index:number)=>row.locale&&row.locale!=='ko'?(row.chapters[index]?.title || `${copy.chapter} ${index+1}`):row.manifest[index].title;
  const available=new Set(row.manifest.slice(0,row.chapters.length).map(c=>c.id));
  return <div className={styles.book} lang={row.locale || 'ko'}>
@@ -29,7 +31,9 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
    {!!row.charts?.length&&<ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/>}
    {row.chapters.map((chapter,index)=><article data-reading-chapter key={row.manifest[index].id} id={`chapter-${row.manifest[index].id}`} className={styles.chapter} tabIndex={-1}>
     <h2>{title(index)}</h2><p className={styles.chapterSummary}>{chapter.summary}</p>
-    {chapter.questionAnswers?.map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || copy.answer}</h3><p>{answer.answer}</p><h4>{copy.reason}</h4><p>{answer.reason}</p><h4>{copy.timing}</h4><p>{answer.timing}</p><h4>{copy.action}</h4><p>{answer.action}</p></section>)}
+    {chapter.questionAnswers?.map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || (answer.mode?answerCopy.answer:copy.answer)}</h3>
+     {answer.mode&&<div className={styles.answerStatus} data-mode={answer.mode} role="note"><strong>{answerCopy[answer.mode]}</strong>{answer.mode==='limited'&&<p>{answerCopy.limitedHint}</p>}{answer.mode==='care'&&<p>{answerCopy.careHint}</p>}</div>}
+     <p>{answer.answer}</p><h4>{answer.mode?answerCopy.reason:copy.reason}</h4><p>{answer.reason}</p><h4>{answer.mode?answerCopy.timing:copy.timing}</h4><p>{answer.timing}</p><h4>{answer.mode?answerCopy.action:copy.action}</h4><p>{answer.action}</p></section>)}
     {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={block.id || b}><h3>{block.title}</h3>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
     {chapter.example&&<section><h3>{copy.example}</h3><p>{chapter.example}</p></section>}{chapter.advice&&<section><h3>{copy.next}</h3><p>{chapter.advice}</p></section>}
     <blockquote>{chapter.persona}</blockquote><a href="#reading-progress">{copy.top}</a>

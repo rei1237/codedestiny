@@ -187,3 +187,13 @@ test('library exposes only saved purchase locale, with Korean fallback for old b
  expect(select.mock.calls[0][0].split(' ')).toContain('snapshot.locale');
  expect(body.fortunes.every(row=>!row.snapshot&&!row.chapters)).toBe(true);
 });
+
+test('library shows a stopped or held paid reading as recovering with its saved count',async()=>{
+ const book={product:{id:'saju_tuna'},manifest:Array.from({length:15},(_,i)=>({id:'c'+i}))};
+ lean.mockResolvedValue([['FORTUNE_FAILED','GENERATION_REVIEW_REQUIRED'],['FORTUNE_FAILED','AUTOMATIC_RECOVERY_STOPPED'],['GENERATING',''],['REFUNDED','GENERATION_REVIEW_REQUIRED']]
+  .map(([state,errorCode],i)=>({_id:String(i).padStart(64,'0'),paymentId:'pay'+i,snapshot:book,state,errorCode,completedChapters:9,createdAt:'2026-09-26'})));
+ const body=await(await handleYeongnyangiRoutes(request('requests'),env)).json();
+ expect(body.fortunes.map(row=>[row.recovering,row.completedChapters,row.totalChapters])).toEqual([[true,9,15],[true,9,15],[false,9,15],[false,9,15]]);
+ expect(select.mock.calls[0][0].split(' ')).toContain('snapshot.manifest.id');
+ expect(body.fortunes.every(row=>!row.snapshot&&!row.manifest&&!row.errorCode)).toBe(true);
+});
