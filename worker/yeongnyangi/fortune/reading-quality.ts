@@ -12,6 +12,9 @@ export const SECTION_PARAGRAPH_LIMIT=500;
 export const SECTION_FLOOR_RATIO=.7;
 export const sectionFloor=(minimumChars:number)=>Math.ceil((minimumChars||0)*SECTION_FLOOR_RATIO);
 export const CHAPTER_FLOOR_RATIO=.7;
+// Length alone never keeps a chapter from the buyer (2026-09-27). A short draft gets one length repair,
+// and that repaired draft is judged on shape, evidence, duplicates and claims only — never rejected for length again.
+export const LENGTH_FAILURES=['CHAPTER_TOO_SHORT','CHAPTER_SECTION_TOO_SHORT'];
 export const chapterFloor=(chapter:Pick<ChapterSpec,'minimumChars'|'targetChars'>)=>{
  const minimum=chapter.minimumChars||0;
  return Math.ceil(Math.min(minimum,CHAPTER_FLOOR_RATIO*(chapter.targetChars?.[0]||minimum)));
@@ -89,7 +92,7 @@ function blockShapeIssue(body:ChapterBody,chapter:ChapterSpec,v5:boolean):string
  }
  return 'unknown';
 }
-export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[],locale='ko'){
+export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,previous:Partial<ChapterBody>[],locale='ko',{lengthRepair=false}:{lengthRepair?:boolean}={}){
  if(!isStructuredReading(chapter.version))return;
  const v5=hasReadingSections(chapter.version);
  if(!Array.isArray(body.blocks)||body.blocks.length<2||body.blocks.length>(v5?20:8)||body.blocks.some(b=>!b||typeof b.title!=='string'||!b.title.trim()||!Array.isArray(b.paragraphs)||!b.paragraphs.length||b.paragraphs.some(p=>typeof p!=='string'||!p.trim()||Array.from(p).length>(v5?SECTION_PARAGRAPH_LIMIT:5000)||/<\/?[a-z][^>]*>/i.test(p))))throw new FortuneError('INVALID_CHAPTER_BLOCKS',400,blockShapeIssue(body,chapter,v5));
@@ -103,7 +106,7 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
    if(!Array.isArray(block.sources) || !block.sources.length || block.sources.some(id=>!body.sources.includes(id)))throw new FortuneError('INVALID_EVIDENCE');
    const count=[...new Set(block.paragraphs.map(normalize))].reduce((sum,p)=>sum+Array.from(p).length,0);
    const floor=sectionFloor(section.minimumChars);
-   if(count<floor)throw new FortuneError('CHAPTER_SECTION_TOO_SHORT',400,`section:${section.id}:${count}/${floor}`);
+   if(!lengthRepair&&count<floor)throw new FortuneError('CHAPTER_SECTION_TOO_SHORT',400,`section:${section.id}:${count}/${floor}`);
   }
  }
  const passages=bodyPassages(body).map(normalize);
@@ -121,6 +124,6 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  if(!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/(?:용신|희신|대운|마하다샤|안타르다샤|삼방사정)/.test(content))throw new FortuneError('TIER_SCOPE_VIOLATION');
  if(locale!=='ko'&&!['tuna','assorted','omakase'].includes(chapter.tier||'')&&/\b(?:yongshin|heeshin|daewoon|mahadasha|antardasha)\b|用神|喜神|大運|マハーダシャー|アンタルダシャー|三方四正/i.test(content))throw new FortuneError('TIER_SCOPE_VIOLATION');
  const chapterCount=bodyCharacterCount(body),floor=chapterFloor(chapter);
- if(chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);
+ if(!lengthRepair&&chapterCount<floor)throw new FortuneError('CHAPTER_TOO_SHORT',400,`chapter:${chapterCount}/${floor}`);
  if(!v5&&chapter.requiredSections?.some(title=>!body.blocks!.some(b=>b.title===title)))throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
 }

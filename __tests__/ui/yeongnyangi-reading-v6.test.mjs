@@ -128,3 +128,13 @@ test('a chapter a little under its minimum is kept; only one under 70% of its ta
  assert.doesNotThrow(()=>m.validateChapter(kept,input));
  assert.throws(()=>m.validateChapter(cut(.62),input),e=>{const [count,floor]=(e.detail||'').replace(/^chapter:/,'').split('/').map(Number);return e.code==='CHAPTER_TOO_SHORT'&&floor===m.chapterFloor(chapter)&&count<floor;});
 });
+test('a length repair is never rejected for length again; its other checks still hold',()=>{
+ const hollow=structuredClone(good);hollow.blocks.forEach(block=>{block.paragraphs=[Array.from(block.paragraphs.join(' ')).slice(0,40).join('').trim()];});
+ for(const code of ['CHAPTER_TOO_SHORT','CHAPTER_SECTION_TOO_SHORT']){
+  assert.doesNotThrow(()=>m.validateChapter(hollow,{...input,repair:{code}}),code);
+  const claim=structuredClone(hollow);claim.blocks[0].paragraphs.push('반드시 재회합니다.');
+  assert.throws(()=>m.validateChapter(claim,{...input,repair:{code}}),{code:'UNSUPPORTED_READING_CLAIM'});
+ }
+ assert.throws(()=>m.validateChapter(hollow,input),{code:'CHAPTER_SECTION_TOO_SHORT'});
+ assert.throws(()=>m.validateChapter(hollow,{...input,repair:{code:'INVALID_EVIDENCE'}}),{code:'CHAPTER_SECTION_TOO_SHORT'});
+});

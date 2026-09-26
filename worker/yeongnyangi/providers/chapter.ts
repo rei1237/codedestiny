@@ -2,7 +2,7 @@ import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {readingLocale,readingLanguageInstruction,validateReadingLanguage,type ReadingLocale} from '../fortune/reading-locale';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
 import {READING_V6_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
-import {normalizeSectionParagraphs,validateReadingQuality} from '../fortune/reading-quality';
+import {LENGTH_FAILURES,normalizeSectionParagraphs,validateReadingQuality} from '../fortune/reading-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
 import {validateAskChapter} from '../fortune/ask/validate';
@@ -116,7 +116,7 @@ export function validateChapter(
   if(input.analysis.consultation?.spirit)validateSpiritChapter(v,input.analysis.contexts.saju!,input.analysis.consultation.spirit);
   if(input.analysis.consultation?.questionSky)validateSkyChapter(v,Object.values(input.analysis.contexts)[0],input.analysis.consultation.questionSky);
   validateReadingLanguage(v,readingLocale(input.locale));
-  validateReadingQuality(v,input.chapter,input.previous,input.locale);
+  validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||'')});
   if(hasReadingSections(input.chapter.version)){
     const evidence=v.blocks?.find(b=>b.id==='evidence');
     const domains=new Set([...allowed].map(id=>id.split('.')[0]));
