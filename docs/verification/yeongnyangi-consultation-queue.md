@@ -27,6 +27,8 @@
 
 결제·환불 상태를 확인한 자동 중단 건만 `scripts/recover-yeongnyangi-request.mjs --db <database> --request <id> --resume-stop --reason <incident> --operator <name>`로 사전 점검한다. dry-run 은 시도·부여·보류 사유·최근 실패 코드를 식별자와 숫자만으로 보여 주고, `--apply` 는 적용 전 상태(장 본문은 sha256 만)를 임시 폴더(`--out-dir` 로 변경)에 먼저 기록한 뒤 감사 기록에 운영자를 남긴다. 승인된 적용에만 `--apply`를 추가한다. 이 모드는 현재 챕터에 사용자 복구와 같은 1회만 추가하고 기존 시도 횟수를 보존하며, HTTP/LLM/PG를 직접 호출하지 않는다. `GENERATION_REVIEW_REQUIRED`는 원인을 확인한 뒤 `--attempts 1..5`로 명시한 횟수만 추가한다. ask 품질 보류(`ASK_LIMITED_REVIEW_REQUIRED`)도 자동 재개 없이 이 경로로만 운영자가 재개한다. 이후 운영 큐 또는 기존 복구 tick이 원래 스냅샷에서 이어간다.
 
+생성 품질 규칙을 고쳐 배포할 때는 `worker/yeongnyangi/repository.js` 의 `GENERATION_FIX_EPOCH` 를 1 올린다. 그러면 10분 크론이 결제가 유효하고 사용자 한도·시도 한도·시스템 재시도 소진으로 멈춘 보류 주문(ask 보류 제외)을 주문당 최대 2회까지 이어서 생성한다. 재개할 수 없는 보류는 운영자 알림을 1회 보낸다. 2026-09-26 참치 주문이 이 경로로 복구됐다.
+
 UI의 다시 불러오기는 읽기 오류를 재조회한다. 상담 이어가기는 기존 생성 API로 동일 상담을 재개하며 큐 등록 실패는 503과 Retry-After를 반환한다. 읽기 작업만 공유 DB 재시도 장치의 timeout/admission 복구를 사용하고 쓰기 작업에는 이를 확장하지 않는다.
 
 ## 구조화 출력 호환성
