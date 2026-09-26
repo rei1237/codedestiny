@@ -110,3 +110,9 @@ test('v6 rejects missing depth, false evidence, duplicated prose and unsupported
  assert.throws(()=>m.validateChapter(good,{...input,previous:[good]}),{code:'DUPLICATE_CHAPTER'});
  const claim=structuredClone(good);claim.blocks[0].paragraphs.push('반드시 재회합니다.');assert.throws(()=>m.validateChapter(claim,input),{code:'UNSUPPORTED_READING_CLAIM'});
 });
+test('one section a little short keeps the chapter; only a hollow section discards it (principle 17)',()=>{
+ const section=chapter.sections[0];
+ const cut=ratio=>{const b=structuredClone(good);b.blocks[0].paragraphs=[Array.from(b.blocks[0].paragraphs.join(' ')).slice(0,Math.ceil(section.minimumChars*ratio)).join('').trim()];return b;};
+ assert.doesNotThrow(()=>m.validateChapter(cut(.75),input));
+ assert.throws(()=>m.validateChapter(cut(.5),input),e=>e.code==='CHAPTER_SECTION_TOO_SHORT'&&e.detail===`section:${section.id}:${Math.ceil(section.minimumChars*.5)}/${Math.ceil(section.minimumChars*.7)}`);
+});

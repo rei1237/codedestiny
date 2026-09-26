@@ -4,6 +4,11 @@ import { hasReadingSections, isStructuredReading } from './reading-policy';
 
 const normalize=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
 export const SECTION_PARAGRAPH_LIMIT=500;
+// Principle 17: the chapter total (CHAPTER_TOO_SHORT) keeps the full promised minimum. A single section's
+// share already sits at ~81% of its target, so failing the whole chapter for one short section wasted
+// two of every three paid calls (incident 2026-09-26). Only a section under 70% of its share is a real gap.
+export const SECTION_FLOOR_RATIO=.7;
+export const sectionFloor=(minimumChars:number)=>Math.ceil((minimumChars||0)*SECTION_FLOOR_RATIO);
 const codePoints=(s:string)=>Array.from(s).length;
 // Sentence end: a non-digit, non-space character, then . ! ? 。 (plus closing quotes/brackets) and whitespace; or a line break.
 // List numbers ("1. "), dotted dates ("2026. 10.") and decimals are never cut.
@@ -90,7 +95,8 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
    if(!block)throw new FortuneError('CHAPTER_DEPTH_INCOMPLETE');
    if(!Array.isArray(block.sources) || !block.sources.length || block.sources.some(id=>!body.sources.includes(id)))throw new FortuneError('INVALID_EVIDENCE');
    const count=[...new Set(block.paragraphs.map(normalize))].reduce((sum,p)=>sum+Array.from(p).length,0);
-   if(count<section.minimumChars)throw new FortuneError('CHAPTER_SECTION_TOO_SHORT');
+   const floor=sectionFloor(section.minimumChars);
+   if(count<floor)throw new FortuneError('CHAPTER_SECTION_TOO_SHORT',400,`section:${section.id}:${count}/${floor}`);
   }
  }
  const passages=bodyPassages(body).map(normalize);
