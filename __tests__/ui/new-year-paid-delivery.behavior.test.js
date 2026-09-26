@@ -83,6 +83,7 @@ function fixture(accessType = 'pass') {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
+  load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText']);
   load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'generateNewYearWave', 'assembleConsultationSections', 'saveNewYearState', 'finishNewYearDelivery']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
@@ -126,7 +127,7 @@ test('원래 입력·소유권·취소 증빙을 확인하고 동시 요청은 �
   const responses = await Promise.all([f.post(), f.post()]); assert.ok(responses.every(row => row.status === 202)); assert.equal(f.calls, 2);
 });
 test('400자·누락 분야는 완료나 차감으로 넘어가지 않는다', async () => {
-  const f = fixture(); f.ctx.generateConsultationSection = async (_env, { section }) => ({ key: section.key, section, text: '짧은해설'.repeat(80), ok: true });
+  const f = fixture(); f.ctx.generateConsultationSection = async (_env, { section }) => ({ key: section.key, section, text: section.key + '짧은해설'.repeat(80), ok: true });
   for (let i = 0; i < 5; i++) assert.equal((await f.post()).status, 202);
   assert.equal(f.doc.status, 'partial'); assert.equal(f.charges, 0);
 });
@@ -213,4 +214,38 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
     assert.equal(options.fallbackMinChars, 1600);
   }
   assert.equal(calls.length, 10);
+});
+function p3Body(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
+for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 short draft survives ${repair} reinforcement and completes above total floor`, async () => {
+  const f = fixture(), ctx = f.ctx;
+  await f.post();
+  const saved = ctx.NEW_YEAR_AI_SECTIONS.map((section, i) => ({ key: section.key, section, ok: true, text: p3Body(section.key, i === 0 ? 1000 : 5000) }));
+  f.doc.llmMeta.savedSections = clone(saved); f.doc.llmMeta.attempts = { overview: 1 };
+  ctx.generateConsultationSection = async (_env, { section }) => ({ key: section.key, section, ok: repair !== 'empty', truncated: repair === 'truncated',
+    text: repair === 'empty' ? '' : repair === 'repeat' ? saved[1].text : p3Body(section.key, 900) });
+  const response = await f.post(); assert.equal(response.status, 200, await response.text());
+  assert.equal(f.doc.llmMeta.savedSections[0].text, saved[0].text);
+  assert.equal(f.doc.llmMeta.attempts.overview, 2); assert.equal(f.doc.llmMeta.attempts['overview:lengthRepair'], 1);
+  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+});
+test('P3 last short attempt is accepted without another provider call', async () => {
+  const f = fixture();
+  const savedSections = f.ctx.NEW_YEAR_AI_SECTIONS.map((section, i) => ({ key: section.key, section, ok: true, text: p3Body(section.key, i ? 5000 : 1000) }));
+  const result = await f.ctx.generateNewYearWave({}, {}, {}, { savedSections, attempts: { overview: 3 }, deadlineAt: Date.now(), onReserve: () => assert.fail('extra call') });
+  assert.equal(result.complete, true);
+});
+test('P3 total under 20,000 stays partial after every section exhausts its budget', async () => {
+  const f = fixture(); await f.post();
+  f.doc.llmMeta.savedSections = f.ctx.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true, text: p3Body(section.key, 3999) }));
+  f.doc.llmMeta.attempts = Object.fromEntries(f.ctx.NEW_YEAR_AI_SECTIONS.map(section => [section.key, 3]));
+  const response = await f.post(); assert.equal(response.status, 202); assert.equal((await response.json()).retryable, false);
+  assert.equal(f.calls, 1); assert.equal(f.charges, 0); assert.equal(f.refunds, 0);
+});
+test('P3 lost repair checkpoint does not spend another attempt when the preserved total is enough', async () => {
+  const f = fixture(); await f.post();
+  f.doc.llmMeta.savedSections = f.ctx.NEW_YEAR_AI_SECTIONS.map((section, i) => ({ key: section.key, section, ok: true, text: p3Body(section.key, i ? 5000 : 1000) }));
+  f.doc.llmMeta.attempts = { overview: 1 }; f.fault('checkpoint');
+  assert.equal((await f.post()).status, 503); const calls = f.calls;
+  assert.equal(f.doc.llmMeta.attempts['overview:lengthRepair'], 1);
+  assert.equal((await f.post()).status, 200); assert.equal(f.calls, calls); assert.equal(f.refunds, 0);
 });

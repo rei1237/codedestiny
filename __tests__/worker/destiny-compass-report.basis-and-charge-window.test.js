@@ -229,3 +229,9 @@ test('차감이 없던 통과(이용권·관리자)는 되돌릴 실행 기록�
   expect(startCalls).toHaveLength(0);
   expect(refundMock).not.toHaveBeenCalled();
 });
+it('length repair keeps the real compass safety and evidence validator active', async () => {
+ const { validateCompassSection, COMPASS_SECTIONS } = await import('../../worker/lib/destiny-compass-report-contract.js');
+ const ctx={spec:COMPASS_SECTIONS[0],allowedLabels:['직장·커리어'],lengthRepair:true};
+ expect(validateCompassSection('직장·커리어의 흐름을 돌아보며 오늘의 일정을 정리합니다.',ctx)).toEqual([]);
+ for(const body of ['', '근거가 없는 이야기입니다.', '직장·커리어에서 반드시 성공합니다.', '직장·커리어의 라그나를 해석합니다.']) expect(validateCompassSection(body,ctx).length).toBeGreaterThan(0);
+});

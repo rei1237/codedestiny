@@ -1,3 +1,4 @@
+import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 // 운명의 지도 — 심층 리포트(유료, 회당 결제). 9섹션을 두 웨이브로 나눠 '동기' 생성한다.
 //
@@ -353,9 +354,19 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
       return json({ ok: false, reason: "CALCULATION_INCOMPLETE", missingSystems, refunded, resultId: reportId }, { status: 422 });
     }
     const context = buildContext(input);
-    const saved = new Map((current.sections || []).filter(row => row.status === "ok" && countPaidReportBodyChars(row.body) >= getCompassSection(row.key)?.minChars).map(row => [row.key, row]));
-    const missing = COMPASS_SECTIONS.filter(spec => !saved.has(spec.key));
     const attempts = { ...current.llmMeta?.attempts }, failures = { ...current.llmMeta?.failures };
+    const validBody = (spec, body) => typeof body === "string" && countPaidReportBodyChars(body) > 0
+      && !validateCompassSection(body, { spec, allowedLabels: context.allowedLabels, lengthRepair: true }).length
+      && !hasRepeatedReportPassage(body);
+    const saved = new Map((current.sections || []).filter(row => getCompassSection(row.key)
+      && (row.status === "ok" || attempts[`${row.key}:lengthDraft`]) && validBody(getCompassSection(row.key), row.body)).map(row => [row.key, row]));
+    const accepted = spec => saved.has(spec.key) && (countPaidReportBodyChars(saved.get(spec.key).body) >= spec.minChars
+      || attempts[`${spec.key}:lengthRepair`] || Number(attempts[spec.key] || 0) >= 3);
+    const missing = COMPASS_SECTIONS.filter(spec => !accepted(spec));
+    if (!missing.length && countPaidReportBodyChars([...saved.values()].map(row => row.body).join("\n")) < 20000) {
+      missing.push(...COMPASS_SECTIONS.filter(spec => Number(attempts[spec.key] || 0) < 3
+        && countPaidReportBodyChars(saved.get(spec.key).body) < spec.targetMinChars));
+    }
     if (missing.some(spec => Number(attempts[spec.key] || 0) >= 3)) {
       if (missing.some(spec => Number(attempts[spec.key] || 0) >= 3 && Number(failures[spec.key] || 0) < 3)) throw resultStorageUnavailable(reportId);
       if (!(current.sections || []).some(row => countPaidReportBodyChars(row.body) >= DELIVERY_MIN_CHARS)) {
@@ -368,7 +379,10 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
     }
     const wave = missing.slice(0, 4);
     if (wave.length) {
-      wave.forEach(spec => { attempts[spec.key] = Number(attempts[spec.key] || 0) + 1; });
+      wave.forEach(spec => {
+        if (saved.has(spec.key)) attempts[`${spec.key}:lengthRepair`] = 1;
+        attempts[spec.key] = Number(attempts[spec.key] || 0) + 1;
+      });
       current = await saveCompassDelivery(env, filter, { llmMeta: { ...current.llmMeta, attempts } }, reportId);
       context.digests = [...saved.values()].map(row => ({ title: row.title, text: row.body.slice(0, 300) }));
       const systemPrompt = await resolveSystemPrompt(env), cacheStore = createLlmCacheStore(env);
@@ -376,23 +390,29 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
       const outcomes = await Promise.allSettled(wave.map(async spec => {
         const result = await generateCompassSection(env, spec, context, { systemPrompt, cacheStore, timeoutMs: COMPASS_SECTION_TIMEOUT_MS, repairIssues: attempts[spec.key] > 1 ? ["분량과 계산 근거를 보완하세요."] : [] });
         const write = queue.catch(() => {}).then(async () => {
-          const issues = result.ok ? validateCompassSection(result.text, { spec, allowedLabels: context.allowedLabels, seenSentences: new Set() }) : ["provider_failed"];
-          const valid = result.ok && !result.truncated && !issues.length && countPaidReportBodyChars(result.text) >= spec.minChars
-            && !hasRepeatedReportPassage([...saved.values()].map(row => row.body).concat(result.text).join("\n"));
-          if (valid) saved.set(spec.key, toPublicSection({ ...result, issues: [] }, context));
-          else failures[spec.key] = Number(failures[spec.key] || 0) + 1;
+          const otherBodies = [...saved].filter(([key]) => key !== spec.key).map(([, row]) => row.body);
+          const body = trimPaidReportText(result.text, spec.maxChars);
+          const valid = result.ok && !result.truncated && validBody(spec, result.text) && validBody(spec, body)
+            && !hasRepeatedReportPassage(otherBodies.concat(result.text).join("\n"))
+            && !hasRepeatedReportPassage(otherBodies.concat(body).join("\n"));
+          if (valid) {
+            if (!saved.has(spec.key) || countPaidReportBodyChars(body) > countPaidReportBodyChars(saved.get(spec.key).body)) {
+              saved.set(spec.key, toPublicSection({ ...result, text: body, issues: [] }, context));
+            }
+            attempts[`${spec.key}:lengthDraft`] = 1;
+          } else failures[spec.key] = Number(failures[spec.key] || 0) + 1;
           const sections = new Map((current.sections || []).map(row => [row.key, row]));
-          if (result.ok && !sections.has(spec.key)) sections.set(spec.key, toPublicSection({ ...result, issues: valid ? [] : [...issues, "quality_incomplete"] }, context));
-          for (const [key, row] of saved) sections.set(key, row);
+          if (result.ok && !sections.has(spec.key)) sections.set(spec.key, toPublicSection({ ...result, issues: ["quality_incomplete"] }, context));
+          for (const [key, row] of saved) sections.set(key, { ...row, status: accepted(getCompassSection(key)) ? "ok" : "degraded" });
           current = await saveCompassDelivery(env, filter, { sections: sectionsForDb([...sections.values()]), status: "partial", llmMeta: { ...current.llmMeta, attempts, failures } }, reportId);
         }); queue = write; await write;
       }));
       const failed = outcomes.find(row => row.status === "rejected");
       if (failed) throw failed.reason;
     }
-    if (COMPASS_SECTIONS.every(spec => saved.has(spec.key))) {
+    if (COMPASS_SECTIONS.every(accepted)) {
       const body = COMPASS_SECTIONS.map(spec => saved.get(spec.key).body).join("\n");
-      if (countPaidReportBodyChars(body) < 20000 || hasRepeatedReportPassage(body)) return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: false }, { status: 202 });
+      if (countPaidReportBodyChars(body) < 20000 || hasRepeatedReportPassage(body)) return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: COMPASS_SECTIONS.some(spec => Number(attempts[spec.key] || 0) < 3 && countPaidReportBodyChars(saved.get(spec.key).body) < spec.targetMinChars) }, { status: 202 });
       current = await saveCompassDelivery(env, filter, { status: "delivery_pending" }, reportId);
       if (!await compassAccessCurrent(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
       current = await saveCompassDelivery(env, filter, { status: "completed", usageAppliedAt: new Date(), lock: null }, reportId);
@@ -448,12 +468,12 @@ async function generateCompassSection(env, spec, context, options) {
       fallbackToWorkersAI: false,
       // 🔴 폴백을 켠 유료 라우트는 문턱을 반드시 함께 준다. 없으면 8% 분량이 정상 결제로 나간다.
       fallbackMinChars: compassFallbackMinChars(spec),
-      cache: {
+      cache: repairIssues?.length ? undefined : {
         store: cacheStore,
         deterministic: true,
         ttlSeconds: 7 * 24 * 60 * 60,
         // 섹션 키를 넣어야 같은 웨이브의 병렬 호출이 in-flight dedup 에서 서로를 덮지 않는다.
-        keyExtra: `${COMPASS_REPORT_VERSION}:${spec.key}:${context.cacheSalt}${repairIssues?.length ? ":r1" : ""}`,
+        keyExtra: `${COMPASS_REPORT_VERSION}:${spec.key}:${context.cacheSalt}`,
       },
       logContext: { route: "destiny-compass-ai", section: spec.key },
     });

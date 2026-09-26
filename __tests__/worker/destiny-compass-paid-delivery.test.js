@@ -98,3 +98,33 @@ it('historical completion bypasses new quality limits',async()=>{docs[0].status=
 it('null initial storage never starts a provider call',async()=>{docs=[];const original=model.updateOne;model.updateOne=async()=>null;try{const response=await route(new Request('https://mock.test/api/destiny-compass-ai/report',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(requestInput())}),{});expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE'});expect(provider).not.toHaveBeenCalled()}finally{model.updateOne=original}});
 it('completion bookkeeping failure does not hide the saved result',async()=>{complete.mockRejectedValueOnce(Error('bookkeeping offline'));await generate();await generate();expect((await generate()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled()});
 it('known empty failures use the original bounded failure refund',async()=>{docs[0].llmMeta={attempts:{[specs[0].key]:3},failures:{[specs[0].key]:3}};expect((await generate()).status).toBe(503);expect(refund).toHaveBeenCalledTimes(1);expect(provider).not.toHaveBeenCalled()});
+function p3Text(key, size) { return key + Array.from({ length: size - key.length }, (_, i) => String.fromCharCode(0xac00 + i % 11172)).join(''); }
+for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) it(`P3 retains the longest short draft after ${repair} reinforcement`, async () => {
+ docs[0].sections=specs.map((spec,i)=>({key:spec.key,title:spec.title,order:spec.order,body:p3Text(spec.key,i?2300:500),status:'ok'}));
+ docs[0].llmMeta.attempts={[specs[0].key]:1};
+ provider.mockImplementation(async()=>({ok:repair!=='empty',truncated:repair==='truncated',text:repair==='empty'?'':repair==='repeat'?docs[0].sections[1].body:p3Text(specs[0].key,400)}));
+ expect((await generate()).status).toBe(200); expect(docs[0].sections[0].body).toBe(p3Text(specs[0].key,500));
+ expect(docs[0].llmMeta.attempts[`${specs[0].key}:lengthRepair`]).toBe(1);expect(provider).toHaveBeenCalledTimes(1);expect(provider.mock.calls[0][2].cache).toBeUndefined();expect(refund).not.toHaveBeenCalled();
+});
+it('P3 total-only repair uses remaining budget, then stops without completion or refund',async()=>{
+ docs[0].sections=specs.map(spec=>({key:spec.key,title:spec.title,order:spec.order,body:p3Text(spec.key,1999),status:'ok'}));
+ docs[0].llmMeta.attempts=Object.fromEntries(specs.map(spec=>[spec.key,3]));
+ expect((await generate()).status).toBe(202); expect(provider).not.toHaveBeenCalled();expect(complete).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
+ docs[0].llmMeta.attempts[specs[0].key]=2;docs[0].llmMeta.attempts[`${specs[0].key}:lengthRepair`]=1;
+ provider.mockResolvedValue({ok:true,text:p3Text(specs[0].key,2500)});
+ expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
+});
+it('P3 bounds oversized text and rejects repetition hidden beyond the ceiling',async()=>{
+ const spec=specs[0]; const good=p3Text(spec.key,5000);
+ provider.mockImplementation(async(_env,key)=>({ok:true,text:key===spec.key?good:p3Text(key,2300)}));
+ await generate();expect(docs[0].sections.find(row=>row.key===spec.key).body.length).toBe(spec.maxChars);
+ docs[0].sections=[];docs[0].llmMeta={attempts:{},failures:{}};
+ provider.mockImplementation(async(_env,key)=>({ok:true,text:key===spec.key?`${good}.\n${good}.`:p3Text(key,2300)}));
+ await generate();expect(docs[0].sections.find(row=>row.key===spec.key).status).toBe('degraded');
+});
+it('P3 lost repair checkpoint resumes from the reserved repair without another provider call', async()=>{
+ docs[0].sections=specs.map((spec,i)=>({key:spec.key,title:spec.title,order:spec.order,body:p3Text(spec.key,i?2300:500),status:'ok'}));
+ docs[0].llmMeta.attempts={[specs[0].key]:1};fault={count:10,kind:'throw'};
+ expect((await generate()).status).toBe(503);expect(docs[0].llmMeta.attempts[`${specs[0].key}:lengthRepair`]).toBe(1);
+ expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
+});
