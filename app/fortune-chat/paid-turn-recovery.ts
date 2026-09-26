@@ -1,6 +1,18 @@
 type PendingTurn = { body: Record<string, unknown>; completed: boolean };
 const keyFor = (sessionId: string) => `cd.guardian.paid-turn:${sessionId}`;
 
+export type RecentTurn = { speaker: 'user' | 'assistant'; text: string };
+
+// 최근 6턴만 보낸다. 서버가 개수·길이·민감정보를 다시 조이므로 여기서는 형태만 맞춘다.
+export function recentTurnsOf(messages: ReadonlyArray<{ speaker: string; text: string; detail?: string }>): RecentTurn[] {
+  return messages.slice(-6).map((message): RecentTurn => ({ speaker: message.speaker === 'assistant' ? 'assistant' : 'user', text: message.detail ? `${message.text} ${message.detail}` : message.text }));
+}
+
+// 결제 재개 서술자에서 푼 값(unpackPaidResumeArg)을 확인한다. 모양이 틀리면 undefined — 호출부가 지금 대화로 만든다.
+export function readRecentTurns(value: unknown): RecentTurn[] | undefined {
+  return Array.isArray(value) && value.every((turn) => (turn?.speaker === 'user' || turn?.speaker === 'assistant') && typeof turn.text === 'string') ? value : undefined;
+}
+
 export function readPendingTurn(sessionId: string, includeCompleted = false): PendingTurn | null {
   if (!sessionId) return null;
   try {

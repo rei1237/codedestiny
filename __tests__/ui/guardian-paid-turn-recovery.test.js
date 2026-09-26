@@ -7,3 +7,23 @@ test('refresh retains original birth, question and request key',async()=>{const 
 test('revocation removes local retry hint',async()=>{const f=fixture([{status:403,payload:{ok:false}}]);assert.equal((await f.run()).status,403);assert.equal(f.api.readPendingTurn('owned-session',true),null);});
 test('account switch discards late result and does not mark it complete',async()=>{const f=fixture([()=>{f.stop();return {status:200,json:async()=>completed.payload};}]);const response=await f.run();assert.equal(response.stale,true);assert.equal(f.api.readPendingTurn('owned-session',true).completed,false);});
 test('provider exhaustion remains incomplete without another purchase',async()=>{const f=fixture([{status:202,payload:{ok:false,retryable:false,paymentRetainedForRetry:true}}]);assert.equal((await f.run()).ok,false);assert.equal(f.calls.length,1);assert.ok(f.api.readPendingTurn('owned-session'));});
+test('redirect ticket carries the pre-question turns so the resumed body equals the in-page paid body',async()=>{const {JSDOM}=require('jsdom'),file='app/fortune-chat/FortuneChatClient.tsx',ast=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX),hook=ts.createSourceFile('hook.ts',fs.readFileSync('app/hooks/usePaidResume.ts','utf8'),ts.ScriptTarget.Latest,true),found={};
+ (function visit(node){if(ts.isVariableDeclaration(node)&&['send','requestReading','buildResume'].includes(node.name.getText(ast)))found[node.name.getText(ast)]=node.initializer;ts.forEachChild(node,visit);})(ast);
+ const js=text=>ts.transpileModule(text,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,recovery={exports:{}};vm.runInNewContext(source,recovery);
+ const question='다음 달에 이사해도 될까요?',posts=[],gates=[],messagesRef={current:[{id:'a0',speaker:'assistant',text:'어서 와요.'},{id:'u1',speaker:'user',text:'올해 이직해도 될까요?'},{id:'a1',speaker:'assistant',text:'흐름은 열려 있어요.',detail:'하반기가 더 좋아요.'}]};
+ const context=vm.createContext({...recovery.exports,messagesRef,AbortController,window:{setTimeout:()=>1,clearTimeout(){}},busy:false,isPaying:false,sessionId:'owned-session',question,topic:'',CONCERN_MAX_LENGTH:300,birth:{birthDate:'1990-05-17',birthTime:'07:30',calendarType:'solar',gender:'female'},activeCategory:'saju',topicKey:'decision',character:'yeoni',needsPayment:true,apiBase:'',AI_LOCALE_HEADER:'X-Locale',localeRequestEpochRef:{current:0},activeReadingRef:{current:null},toAiLocale:locale=>locale,detectLocale:()=>'ko',makeRequestId:()=>'paid-turn-1',id:()=>'m-new',append(){},persist(){},setMessages(){},setBusy(){},setError(){},setNotice(){},setShareDraftToken(){},setBirthOpen(){},presentAttempt:()=>true,friendlyError:(_e,message)=>message,
+  readPendingTurn:()=>null,requestGuardianTurn:async options=>{posts.push(JSON.parse(JSON.stringify(options.body)));return {status:200,ok:true,payload:{}};},buildResume:args=>({kind:'fortune-chat-consultation',action:'',args}),
+  // append 는 참조를 바로 바꾸지 않지만, 결제창을 기다리는 동안 다시 그려져 참조에 이 질문이 들어온다.
+  openPaymentGate:async(_requestId,resume)=>{gates.push(resume);messagesRef.current=[...messagesRef.current,{id:'m-new',speaker:'user',text:question}];return {ok:true};}});
+ for(const node of hook.statements)if(ts.isFunctionDeclaration(node)&&/PaidResumeArg$/.test(node.name.text))vm.runInContext(js(node.getText(hook).replace(/^export /,'')),context);
+ context.requestReading=vm.runInContext(js('('+found.requestReading.arguments[0].getText(ast)+')'),context);
+ const send=vm.runInContext(js('('+found.send.getText(ast)+')'),context),runner=vm.runInContext(js('('+found.buildResume.arguments[1].getText(ast)+')'),context);
+ await send();const inPage=posts[0],ticket=JSON.parse(JSON.stringify(gates[0]));
+ // 복귀 문서: bootstrap 이 서버에서 대화를 채우기 전에 재개가 돈다.
+ posts.length=0;messagesRef.current=[];
+ const dom=new JSDOM('<!doctype html><body></body>',{url:'https://mock.test/fortune-chat/',runScripts:'outside-only'});dom.window.eval(fs.readFileSync('js/core/checkout-entry.js','utf8'));
+ const entry=dom.window.__cdCheckoutEntry;entry.registerPaidResumeHandler('fortune-chat-consultation',(descriptor,grant)=>runner(descriptor.args,grant||null));
+ assert.equal(await entry.runPaidResume(ticket,{requestId:'paid-turn-1',merchantUid:'paid-id',payload:{}}),true);
+ assert.deepEqual(posts[0],inPage);
+ assert.deepEqual(inPage.recentTurns,[{speaker:'assistant',text:'어서 와요.'},{speaker:'user',text:'올해 이직해도 될까요?'},{speaker:'assistant',text:'흐름은 열려 있어요. 하반기가 더 좋아요.'}]);
+ dom.window.close();});

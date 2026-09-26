@@ -1,6 +1,6 @@
 "use client";
 
-import { readPendingTurn, requestGuardianTurn } from "./paid-turn-recovery";
+import { readPendingTurn, readRecentTurns, recentTurnsOf, requestGuardianTurn, type RecentTurn } from "./paid-turn-recovery";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,7 +10,7 @@ import { PersonaAvatar } from "./PersonaAvatar";
 import { GuardianShareButton } from "./GuardianShareButton";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
-import { usePaidResume } from "@/app/hooks/usePaidResume";
+import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import type { PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -434,11 +434,9 @@ export default function FortuneChatClient() {
     category: string; topic: string; mode: string;
   };
 
-  const requestReading = useCallback(async (requestId: string, concern: string, ctx?: ReadingContext) => {
-    // 최근 6턴만 보낸다. 서버가 개수·길이·민감정보를 다시 조이므로 여기서는 형태만 맞춘다.
-    const recentTurns = messagesRef.current
-      .slice(-6)
-      .map((message) => ({ speaker: message.speaker === "assistant" ? "assistant" : "user", text: message.detail ? `${message.text} ${message.detail}` : message.text }));
+  const requestReading = useCallback(async (requestId: string, concern: string, ctx?: ReadingContext, turns?: RecentTurn[]) => {
+    // send 는 질문을 넣기 전에 굳힌 turns(결제 재개 서술자와 같은 값)를 넘긴다. 없으면 지금 대화로 만든다.
+    const recentTurns = turns ?? recentTurnsOf(messagesRef.current);
     const controller = new AbortController();
     const localeEpoch = localeRequestEpochRef.current;
     activeReadingRef.current = { controller, epoch: localeEpoch };
@@ -587,7 +585,7 @@ export default function FortuneChatClient() {
         category: String(args.category || "saju"),
         topic: String(args.topic || "decision"),
         mode: String(args.mode || "yeoni"),
-      });
+      }, readRecentTurns(unpackPaidResumeArg(args.recentTurns)));
       return presentAttempt(attempt);
     } catch (reason) {
       const timedOut = (reason as Error)?.name === "AbortError";
@@ -619,15 +617,20 @@ export default function FortuneChatClient() {
     setBusy(true); setError(""); setNotice(""); setShareDraftToken("");
     const label = concern || topic;
     const userMessageId = id();
+    // 🔴 이 질문을 넣기 전의 대화를 한 번만 굳힌다. 서버는 recentTurns 를 '이전 대화'로 읽는데, 결제창을
+    //    기다리는 동안 다시 그려진 messagesRef 에는 이 질문이 섞인다. 요청 본문과 재개 서술자가 이 값을 같이 쓴다.
+    const recentTurns = recentTurnsOf(messagesRef.current);
     append([{ id: userMessageId, speaker: "user", text: label }], topic);
     let delivered = false;
 
     try {
       let requestId = makeRequestId();
 
-      // 결제 직전 화면 상태를 굳혀 둔다 — 복귀 문서에는 질문도, 이 requestId 도 없다.
+      // 결제 직전 화면 상태를 굳혀 둔다 — 복귀 문서에는 질문도, 이 requestId 도 없고, 대화는
+      // bootstrap 이 서버에서 늦게 채워 재개보다 뒤일 수 있다.
       const resumeArgs = {
         concern,
+        recentTurns: packPaidResumeArg(recentTurns),
         birthDate: birth.birthDate,
         birthTime: birth.birthTime,
         calendarType: birth.calendarType,
@@ -643,7 +646,7 @@ export default function FortuneChatClient() {
         if (!gate.ok) { if (gate.message) setError(gate.message); return; }
       }
 
-      let attempt = await requestReading(requestId, concern);
+      let attempt = await requestReading(requestId, concern, undefined, recentTurns);
 
       // 스냅샷이 낡아 무료가 남은 줄 알았던 경우. 새 requestId 로 결제하고 그 id 로 재요청한다
       // (앞선 requestId 는 결제 증빙이 없어 재사용할 수 없다).
@@ -651,7 +654,7 @@ export default function FortuneChatClient() {
         requestId = makeRequestId();
         const gate = await openPaymentGate(requestId, buildResume({ ...resumeArgs, requestId }));
         if (!gate.ok) { if (gate.message) setError(gate.message); return; }
-        attempt = await requestReading(requestId, concern);
+        attempt = await requestReading(requestId, concern, undefined, recentTurns);
       }
 
       delivered = presentAttempt(attempt);
