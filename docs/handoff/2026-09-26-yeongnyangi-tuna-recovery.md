@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-26
-next: "참치 주문 15/15 복구 완료. 남은 일은 신규 주문 모니터링과 남은 위험 후속 판단."
+status: done
+updated: 2026-09-27
+next: "완료. 후속은 2026-09-26-yeongnyangi-floor-and-library-retry.md(영냥이)와 2026-09-27-llm-length-never-fatal.md(다른 유료 LLM)."
 ---
 
 # 영냥이 참치 유료 주문 복구·생성 중단 근본 수정 인수인계
