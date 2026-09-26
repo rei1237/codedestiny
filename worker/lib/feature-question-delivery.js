@@ -28,7 +28,7 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
     if (request.method !== 'GET' && !body.resumeResultId && !body.requestId) body.requestId = `question:${hash([String(auth.userId), featureKey, body])}`;
     let proof;
     return await runPaidNarrativeDelivery(request, env, auth, body, {
-      featureKey, reportType: 'featureQuestionConsultation',
+      ...featureQuestionNarrativeAdapter(env, featureKey), featureKey,
       verify: async original => { proof = await verify(original); },
       seed: async original => {
         const { built, factsInput } = await prepare(original);
@@ -40,32 +40,6 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
           minBodyChars: 20000,
           tasks: HEADINGS.map((title, index) => ({ id: `part-${index + 1}`, title, prompt: title, minChars: 2200 })),
         };
-      },
-      render: state => ({
-        resultText: state.tasks.filter(task => state.parts[task.id]).map(task => `## ${task.title}\n\n${state.parts[task.id]}`).join('\n\n'),
-        title: state.built.title, prompt: state.built.prompt, generatedPrompt: state.built.generatedPrompt || state.built.prompt,
-        summaryIntent: state.built.summaryIntent || '', analysisAngles: state.built.analysisAngles || [],
-        recommendedFollowUpQuestions: state.built.recommendedFollowUpQuestions || [],
-        caution: state.built.caution, questionType: state.built.questionType,
-        compatibilityUsed: Boolean(state.built.compatibilityUsed), compatibilityHint: state.built.compatibilityHint,
-        featureKey, requestId: state.body.requestId, locale: state.locale,
-        chargedCoins: state.paymentProof?.chargedCoins || 0, balanceAfter: state.paymentProof?.balanceAfter,
-        paymentRetainedForRetry: true, resumeInputs: state.body,
-        sections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: state.parts[task.id] })),
-      }),
-      produce: async (task, state) => {
-        const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n[이번 부분: ${task.id}] ${task.prompt || task.title}\nJSON {"evidenceHash":"${state.evidenceHash}","claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 하나 이상 정확하게 복사합니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
-          systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500,
-          thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
-        });
-        if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
-        let parsed; try { parsed = JSON.parse(ai.text); } catch { return null; }
-        if (!Array.isArray(parsed.claims) || !parsed.claims.length || parsed.claims.some(claim => {
-          const fact = state.facts.find(row => row.id === claim.factId);
-          return !fact || JSON.stringify(fact.value) !== JSON.stringify(claim.value);
-        })) return null;
-        if (typeof parsed.body !== 'string' || !/[.!?。？！]["'”’)]?\s*$/u.test(parsed.body)) return null;
-        return parsed;
       },
       onExhausted: async state => {
         const response = await refund(state.paymentProof, state.body);
@@ -79,6 +53,40 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
       message: storage ? '저장된 상담을 확인하고 있어요. 같은 상담으로 다시 시도해 주세요.' : error.message,
       resultId: error.resultId, retryable: storage, paymentRetainedForRetry: storage }, { status: storage ? 503 : error.status });
   }
+}
+
+// The route and the server resume task share render and produce. Refunds stay
+// on the route because refund() is bound to that request's payment context.
+export function featureQuestionNarrativeAdapter(env, featureKey) {
+  return {
+    reportType: 'featureQuestionConsultation',
+    render: state => ({
+      resultText: state.tasks.filter(task => state.parts[task.id]).map(task => `## ${task.title}\n\n${state.parts[task.id]}`).join('\n\n'),
+      title: state.built.title, prompt: state.built.prompt, generatedPrompt: state.built.generatedPrompt || state.built.prompt,
+      summaryIntent: state.built.summaryIntent || '', analysisAngles: state.built.analysisAngles || [],
+      recommendedFollowUpQuestions: state.built.recommendedFollowUpQuestions || [],
+      caution: state.built.caution, questionType: state.built.questionType,
+      compatibilityUsed: Boolean(state.built.compatibilityUsed), compatibilityHint: state.built.compatibilityHint,
+      featureKey, requestId: state.body.requestId, locale: state.locale,
+      chargedCoins: state.paymentProof?.chargedCoins || 0, balanceAfter: state.paymentProof?.balanceAfter,
+      paymentRetainedForRetry: true, resumeInputs: state.body,
+      sections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: state.parts[task.id] })),
+    }),
+    produce: async (task, state) => {
+      const ai = await callGeminiText(env, `${state.prompt}\n\n[고정 계산 근거]\n${JSON.stringify(state.facts)}\n[이번 부분: ${task.id}] ${task.prompt || task.title}\nJSON {"evidenceHash":"${state.evidenceHash}","claims":[{"factId":"fact-1","value":"해당 근거의 원래 값"}],"body":"상담 본문"}만 출력하세요. claims에는 실제 사용하는 계산 근거를 하나 이상 정확하게 복사합니다. 본문은 공백 제외 최소 ${task.minChars}자, 목표 2800~3200자입니다. 이 부분에 해당하는 근거와 구체적 생활 사례·반대 조건·행동을 각각 다른 문단으로 쓰고 마지막 문장을 완결합니다. 다른 부분은 쓰지 않습니다.`, {
+        systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500,
+        thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
+      });
+      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
+      let parsed; try { parsed = JSON.parse(ai.text); } catch { return null; }
+      if (!Array.isArray(parsed.claims) || !parsed.claims.length || parsed.claims.some(claim => {
+        const fact = state.facts.find(row => row.id === claim.factId);
+        return !fact || JSON.stringify(fact.value) !== JSON.stringify(claim.value);
+      })) return null;
+      if (typeof parsed.body !== 'string' || !/[.!?。？！]["'”’)]?\s*$/u.test(parsed.body)) return null;
+      return parsed;
+    },
+  };
 }
 
 export async function readFeatureQuestionRequest(request, env, auth, featureKey) {

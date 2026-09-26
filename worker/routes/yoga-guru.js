@@ -52,21 +52,10 @@ function validCourse(course,duration) {
   return steps.reduce((sum,step)=>sum+step.duration_seconds,0)===duration*60
     &&countPaidReportBodyChars(steps.flatMap(step=>[...step.instructions,step.breathing_guide,step.caution]).join("\n"))>=800;
 }
-async function handleGenerateYogaCourse(request,env){
-  const body=request.method==="POST"?await readJson(request):{};
-  if(request.method==="POST"&&!body.resumeResultId)yogaInput(body);
-  const auth=await requireAuth(request,env);
-  return runPaidNarrativeDelivery(request,env,auth,body,{
-    featureKey:"yoga-guru-per-use",reportType:"yogaGuruCourse",
-    verify:async original=>{
-      const access=await requirePremiumReportAccess(withPdfFastDbEnv(env),auth.userId,"yogaGuruCourse",{
-        ...original,featureKey:"yoga-guru-per-use",reportType:"yogaGuruCourse",
-        premiumAccessToken:clean(request.headers.get("x-premium-access-token")||original.premiumAccessToken||cookieValue(request,"cd_premium_access"))||undefined,
-        _accessRoute:"/api/yoga-guru",
-      });
-      if(!access?.ok)throw new HttpError(Number(access?.status||402),"결제 확인이 필요합니다.",{code:access?.code||"PAYMENT_REQUIRED"});
-    },
-    seed:original=>({input:yogaInput(original),tasks:[{id:"course",minChars:800}],minBodyChars:800}),
+// The route and the server resume task share produce and render.
+export function yogaNarrativeAdapter(env){
+  return {
+    reportType:"yogaGuruCourse",
     produce:async(_task,state)=>{
       const prompt=[state.input.systemPrompt,"[사용자 입력]",state.input.userPrompt,
         `전체 시간은 정확히 ${state.input.duration}분입니다. duration_seconds의 합은 ${state.input.duration*60}초이고 duration_min은 ${state.input.duration}입니다. 단계는 4~16개, 첫 단계는 Warmup, 마지막은 Relaxation이며 모든 필드를 채우세요. instructions/호흡/주의 안내 본문은 합계 800자 이상, 목표 1,600~2,400자입니다. 신체 치료를 보장하거나 통증을 참게 하지 마세요.`,
@@ -80,6 +69,23 @@ async function handleGenerateYogaCourse(request,env){
     },
     render:state=>({...state.parts.course?JSON.parse(state.parts.course):{},source:state.parts.course?"gemini":"pending",
       requestId:state.body.requestId,duration:state.input.duration,locale:state.locale}),
+  };
+}
+async function handleGenerateYogaCourse(request,env){
+  const body=request.method==="POST"?await readJson(request):{};
+  if(request.method==="POST"&&!body.resumeResultId)yogaInput(body);
+  const auth=await requireAuth(request,env);
+  return runPaidNarrativeDelivery(request,env,auth,body,{
+    ...yogaNarrativeAdapter(env),featureKey:"yoga-guru-per-use",
+    verify:async original=>{
+      const access=await requirePremiumReportAccess(withPdfFastDbEnv(env),auth.userId,"yogaGuruCourse",{
+        ...original,featureKey:"yoga-guru-per-use",reportType:"yogaGuruCourse",
+        premiumAccessToken:clean(request.headers.get("x-premium-access-token")||original.premiumAccessToken||cookieValue(request,"cd_premium_access"))||undefined,
+        _accessRoute:"/api/yoga-guru",
+      });
+      if(!access?.ok)throw new HttpError(Number(access?.status||402),"결제 확인이 필요합니다.",{code:access?.code||"PAYMENT_REQUIRED"});
+    },
+    seed:original=>({input:yogaInput(original),tasks:[{id:"course",minChars:800}],minBodyChars:800}),
   });
 }
 export async function handleYogaGuruRoutes(request,env={}){

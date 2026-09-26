@@ -594,26 +594,10 @@ async function verifyAnimalTotemAccess(request, env, input, knownAuth) {
 
 /* ────────────────────────────── 핸들러 ────────────────────────────── */
 
-async function handleReading(request, env) {
-  const body = request.method === "POST" ? await readJson(request) : {};
-  const mode = body.mode || new URL(request.url).searchParams.get("mode");
-  const spec = MODE_SPEC[mode];
-  if (!spec) throw invalidInput("지원하지 않는 리딩 모드입니다.");
-  if (request.method === "POST" && !body.resumeResultId) normalizeReadingInput(body);
-  const auth = await requireAuth(request, env);
-  return runPaidNarrativeDelivery(request, env, auth, body, {
-    featureKey: spec.featureKey, reportType: "animal-totem",
-    verify: async original => {
-      const input = normalizeReadingInput(original);
-      if (input.spec.featureKey !== spec.featureKey) throw invalidInput("저장된 리딩 모드와 일치하지 않습니다.");
-      const access = await verifyAnimalTotemAccess(request, env, input, auth);
-      if (!access.ok) throw new HttpError(access.status, access.message, { code: access.code, reason: access.reason });
-    },
-    seed: async original => {
-      const input = normalizeReadingInput(original);
-      return { input, prompt: buildUserPrompt(input), systemPrompt: await resolveSystemPrompt(env),
-        tasks: [{ id: "narrative", minChars: spec.minBodyChars }], minBodyChars: spec.minBodyChars };
-    },
+// The route and the server resume task share produce and render.
+export function animalTotemNarrativeAdapter(env) {
+  return {
+    reportType: "animal-totem",
     produce: async (_task, state) => {
       const ai = await callGeminiJsonWithRetry(env, state.prompt, {
         systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.72,
@@ -636,6 +620,29 @@ async function handleReading(request, env) {
     render: state => ({ mode: state.input.mode, cards: state.input.cards, question: state.input.question,
       requestId: state.input.requestId, source: state.parts.narrative ? "llm" : "pending",
       narrative: state.parts.narrative ? JSON.parse(state.parts.narrative) : null }),
+  };
+}
+
+async function handleReading(request, env) {
+  const body = request.method === "POST" ? await readJson(request) : {};
+  const mode = body.mode || new URL(request.url).searchParams.get("mode");
+  const spec = MODE_SPEC[mode];
+  if (!spec) throw invalidInput("지원하지 않는 리딩 모드입니다.");
+  if (request.method === "POST" && !body.resumeResultId) normalizeReadingInput(body);
+  const auth = await requireAuth(request, env);
+  return runPaidNarrativeDelivery(request, env, auth, body, {
+    ...animalTotemNarrativeAdapter(env), featureKey: spec.featureKey,
+    verify: async original => {
+      const input = normalizeReadingInput(original);
+      if (input.spec.featureKey !== spec.featureKey) throw invalidInput("저장된 리딩 모드와 일치하지 않습니다.");
+      const access = await verifyAnimalTotemAccess(request, env, input, auth);
+      if (!access.ok) throw new HttpError(access.status, access.message, { code: access.code, reason: access.reason });
+    },
+    seed: async original => {
+      const input = normalizeReadingInput(original);
+      return { input, prompt: buildUserPrompt(input), systemPrompt: await resolveSystemPrompt(env),
+        tasks: [{ id: "narrative", minChars: spec.minBodyChars }], minBodyChars: spec.minBodyChars };
+    },
   });
 }
 

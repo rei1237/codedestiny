@@ -185,14 +185,18 @@ function buildCompatPrompt(compat, blueprintA, blueprintB) {
   ].join("\n");
 }
 
+// The route and the server resume task share render and the provider timeout.
+export function petNarrativeAdapter(env, reportType) {
+  return { reportType, render: renderPetNarrative, timeoutMs: env.PET_SAJU_PROVIDER_TIMEOUT_MS };
+}
+
 async function handlePetDelivery(request, env, kind) {
   const body = request.method === "POST" ? await readJson(request) : {};
   const auth = await requireAuth(request, env);
   const featureKey = kind === "report" ? REPORT_FEATURE_KEY : COMPAT_FEATURE_KEY;
   const reportType = kind === "report" ? REPORT_TYPE : COMPAT_REPORT_TYPE;
   return runPaidNarrativeDelivery(request, env, auth, body, {
-    featureKey, reportType, render: renderPetNarrative,
-    timeoutMs: env.PET_SAJU_PROVIDER_TIMEOUT_MS,
+    ...petNarrativeAdapter(env, reportType), featureKey,
     verify: original => resolveAccess(request, env, original, { featureKey, reportType, route: `/api/pet-saju-ai/${kind}` }, auth),
     seed: original => {
       const date = normalizeRequestDate(original.date);

@@ -134,6 +134,25 @@ function oracleInput(body) {
     flow: normalizeCard(body.flow || body.cards?.flow || judge, "흐름"), judge: normalizeCard(judge, "신탁") };
 }
 
+// The route and the server resume task share produce and render.
+export function geomancyNarrativeAdapter(env) {
+  return {
+    reportType: "geomancyOracle",
+    produce: async (task, state) => {
+      const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}\n위 전체 JSON 스키마 대신 이번 부분만 JSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 3,000자, 목표 3,900~4,600자입니다. 다른 부분을 반복하지 말고 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
+      const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
+        timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
+        maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json" });
+      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+      return parseJsonCandidate(ai.text);
+    },
+    render: state => ({ ...Object.fromEntries(ORACLE_SECTIONS.map(([id]) => [id, state.parts[id] || ""])),
+      source: Object.keys(state.parts).length ? "gemini" : "pending", requestId: state.body.requestId,
+      question: state.input.question, theme: state.input.theme, locale: state.locale,
+      cards: { cause: state.input.cause, flow: state.input.flow, judge: state.input.judge } }),
+  };
+}
+
 export async function handleOracleRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
@@ -155,7 +174,7 @@ export async function handleOracleRoutes(request, env = {}) {
       throw e;
     }
     return await runPaidNarrativeDelivery(request, env, auth, body, {
-      featureKey: "geomancy", reportType: "geomancyOracle",
+      ...geomancyNarrativeAdapter(env), featureKey: "geomancy",
       verify: async original => {
         const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "geomancyOracle", {
           ...original, featureKey: "geomancy", reportType: "geomancyOracle",
@@ -169,18 +188,6 @@ export async function handleOracleRoutes(request, env = {}) {
         return { input, prompt: buildGeomancyPrompt(input), minBodyChars: 20000,
           tasks: ORACLE_SECTIONS.map(([id, title]) => ({ id, prompt: title, minChars: 3000 })) };
       },
-      produce: async (task, state) => {
-        const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}\n위 전체 JSON 스키마 대신 이번 부분만 JSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 3,000자, 목표 3,900~4,600자입니다. 다른 부분을 반복하지 말고 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.`;
-        const ai = await callGeminiText(env, prompt, { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
-          timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
-          maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json" });
-        if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
-        return parseJsonCandidate(ai.text);
-      },
-      render: state => ({ ...Object.fromEntries(ORACLE_SECTIONS.map(([id]) => [id, state.parts[id] || ""])),
-        source: Object.keys(state.parts).length ? "gemini" : "pending", requestId: state.body.requestId,
-        question: state.input.question, theme: state.input.theme, locale: state.locale,
-        cards: { cause: state.input.cause, flow: state.input.flow, judge: state.input.judge } }),
     });
   } catch (error) {
     if (error.code === "RESULT_STORAGE_UNAVAILABLE") return json({ ok: false, retryable: true, reason: error.code, resultId: error.resultId }, { status: 503 });

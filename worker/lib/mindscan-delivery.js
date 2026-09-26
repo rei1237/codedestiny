@@ -47,7 +47,11 @@ function render(state) {
     deliverySections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: text(task.id) })) };
 }
 export function deliverMindscan(request, env, auth, body, verify) {
-  return runPaidNarrativeDelivery(request, env, auth, body, { featureKey: 'tarot-mindscan', reportType: 'mindscan', seed, verify, render,
+  return runPaidNarrativeDelivery(request, env, auth, body, { ...mindscanNarrativeAdapter(env), seed, verify });
+}
+// The route and the server resume task share render and produce.
+export function mindscanNarrativeAdapter(env) {
+  return { featureKey: 'tarot-mindscan', reportType: 'mindscan', render,
     produce: async (task, state) => {
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`, {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
@@ -59,5 +63,5 @@ export function deliverMindscan(request, env, auth, body, verify) {
       if ((task.sectionIndex !== undefined && count < 2) || (task.id === 'summary' && count !== 10)) return null;
       return value;
     },
-  });
+  };
 }

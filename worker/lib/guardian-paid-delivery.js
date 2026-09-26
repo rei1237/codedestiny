@@ -26,7 +26,7 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
     }
     const body = found ? { resumeResultId: found.executionKey } : { ...input, requestId };
     const response = await runPaidNarrativeDelivery(new Request('https://internal.invalid/api/fortune/guardian/generate' + (readOnly ? '?resultId=' + encodeURIComponent(found.executionKey) : ''), { method: readOnly ? 'GET' : 'POST' }), env, { userId }, body, {
-      featureKey, reportType: 'guardianPaidTurn',
+      ...guardianNarrativeAdapter(env, userId, generator), featureKey,
       verify: async original => {
         const proof = await resolvePaidAccess({ userId, requestId: original.requestId });
         if (!proof?.ok) throw Object.assign(Error('결제 내역을 확인하지 못했어요.'), { accessStatus: proof?.degraded ? 503 : 403 });
@@ -36,15 +36,6 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
         if (!calculated?.ok || calculated.context?.availableSystems?.length !== 1 || calculated.context.availableSystems[0] !== original.category) throw Object.assign(Error('계산 근거를 확인하지 못했어요.'), { accessStatus: 422 });
         return { input: original, context: calculated.context, prompt: '', minBodyChars: 1, tasks: [{ id: 'answer', prompt: '', minChars: 1 }] };
       },
-      produce: async (_task, state) => {
-        // Development stays mock-only. Production must never silently sell a
-        // mock or deterministic fallback as a completed paid LLM consultation.
-        if (String(env.NODE_ENV).toLowerCase() !== 'test' && !shouldUseRealGuardianFortuneLLM({ env, userId })) return null;
-        const generated = await generator({ input: state.input, context: state.context, env, requestId, userId, generationSource: 'paid', singleAttempt: true });
-        if (!generated?.result || generated.usedFallback || generated.isMock || generated.deliverable === false) return null;
-        return { evidenceHash: state.evidenceHash, body: JSON.stringify(generated.result) };
-      },
-      render: state => ({ result: state.parts.answer ? JSON.parse(state.parts.answer) : null, generationSource: 'paid', requestId: state.body.requestId, resumeInputs: state.input }),
     });
     const payload = await response.json();
     if (response.status === 202) return { ...payload, ok: false, status: 202, error: 'DELIVERY_PENDING', message: payload.retryable === false ? '상담 생성을 완료하지 못했어요. 기존 결제 내역을 기준으로 확인이 필요합니다.' : '같은 상담의 저장된 답변을 이어서 확인하고 있어요.', paymentRetainedForRetry: true };
@@ -53,4 +44,21 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
     if (error.accessStatus) return { ok: false, status: error.accessStatus, error: error.accessStatus === 403 ? 'PAYMENT_REVOKED' : 'PAID_ACCESS_VERIFY_RETRYABLE', message: error.message, requestId, retryable: error.accessStatus === 503 };
     return unavailable(requestId);
   }
+}
+
+// The route and the server resume task share produce and render. The request id
+// comes from the stored turn so a resumed call logs the original request.
+export function guardianNarrativeAdapter(env, userId, generator = generateGuardianFortuneWithConfiguredLLM) {
+  return {
+    reportType: 'guardianPaidTurn',
+    produce: async (_task, state) => {
+      // Development stays mock-only. Production must never silently sell a
+      // mock or deterministic fallback as a completed paid LLM consultation.
+      if (String(env.NODE_ENV).toLowerCase() !== 'test' && !shouldUseRealGuardianFortuneLLM({ env, userId })) return null;
+      const generated = await generator({ input: state.input, context: state.context, env, requestId: state.body.requestId, userId, generationSource: 'paid', singleAttempt: true });
+      if (!generated?.result || generated.usedFallback || generated.isMock || generated.deliverable === false) return null;
+      return { evidenceHash: state.evidenceHash, body: JSON.stringify(generated.result) };
+    },
+    render: state => ({ result: state.parts.answer ? JSON.parse(state.parts.answer) : null, generationSource: 'paid', requestId: state.body.requestId, resumeInputs: state.input }),
+  };
 }

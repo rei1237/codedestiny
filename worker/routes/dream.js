@@ -1171,6 +1171,21 @@ function renderPsychoDelivery(state) {
   return { tone: state.tone, chapters, quality: { ...quality, fallbackUsed: false }, llm: { used: Object.keys(state.parts).length > 0, source: "gemini" },
     record: { id: state.body.requestId, markdown, source: "gemini", createdAt: state.createdAt }, dreamText: state.dreamText, requestId: state.body.requestId };
 }
+// The route and the server resume task share render and produce.
+export function dreamPsychoNarrativeAdapter(env) {
+  return {
+    reportType: DREAM_PSYCHO_REPORT_TYPE, render: renderPsychoDelivery,
+    produce: async (task, state) => {
+      const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}\n꿈에 없는 사실을 추가하지 마세요. 제목·다른 장·일반적 설명의 반복 없이 본문 2,000자 이상, 목표 2,600~3,100자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
+      const ai = await dreamGeminiCaller(env, prompt, { systemPrompt: state.systemPrompt, model: firstDreamPsychoModel(env), temperature: 0.62,
+        maxOutputTokens: 9500, thinkingBudget: 0, timeoutMs: Math.min(45000, Math.max(15000, Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS) || 45000)), fallbackToWorkersAI: false, responseMimeType: "application/json" });
+      if (!ai?.ok || ai.isMock || ai.truncated || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+      let value; try { value = JSON.parse(ai.text); } catch { return null; }
+      if (value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || /Chapter\s+\d+\./i.test(value.body) || !evaluatePsychoMarkdownQuality(value.body, state.tone, true).ok) return null;
+      return value;
+    },
+  };
+}
 async function handlePsychoAnalysis(request, env = {}) {
   const body = request.method === "POST" ? await readJson(request) : {};
   if (request.method === "POST" && !body.resumeResultId) {
@@ -1185,7 +1200,7 @@ async function handlePsychoAnalysis(request, env = {}) {
   }
   if (!auth?.userId) throw new HttpError(401, "로그인 후 정신분석 해몽을 이용해 주세요.", { code: "LOGIN_REQUIRED" });
   return runPaidNarrativeDelivery(request, env, auth, body, {
-    featureKey: DREAM_PSYCHO_FEATURE_KEY, reportType: DREAM_PSYCHO_REPORT_TYPE, render: renderPsychoDelivery,
+    ...dreamPsychoNarrativeAdapter(env), featureKey: DREAM_PSYCHO_FEATURE_KEY,
     verify: async original => {
       const access = await dreamPsychoAccessVerifier(request, env, original, auth);
       if (!access?.ok) throw new HttpError(Number(access?.status || 402), access?.message || "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED", detail: { ...access?.detail, requiredFeatureKey: DREAM_PSYCHO_FEATURE_KEY } });
@@ -1197,15 +1212,6 @@ async function handlePsychoAnalysis(request, env = {}) {
         prompt: buildPsychoPrompt(original, normalized.text, tone).split("[출력 규칙]")[0], systemPrompt: DREAM_PSYCHO_SYSTEM_PROMPT,
         tasks: PSYCHO_DREAM_REQUIRED_HEADERS.flatMap((title, i) => ["a", "b"].map(part => ({ id: `chapter-${i + 1}-${part}`, minChars: 2000,
           prompt: `${title} 중 ${part === "a" ? `꿈에 실제 등장한 장면을 근거로 ${PSYCHO_DREAM_REQUIRED_PHRASES[i]}의 관점과 감정 패턴을 해설` : "다른 가능한 해석과 적용되지 않는 조건, 생활 속 사례·성찰 질문·현실적인 작은 행동을 제안"}` }))) };
-    },
-    produce: async (task, state) => {
-      const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}\n꿈에 없는 사실을 추가하지 마세요. 제목·다른 장·일반적 설명의 반복 없이 본문 2,000자 이상, 목표 2,600~3,100자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
-      const ai = await dreamGeminiCaller(env, prompt, { systemPrompt: state.systemPrompt, model: firstDreamPsychoModel(env), temperature: 0.62,
-        maxOutputTokens: 9500, thinkingBudget: 0, timeoutMs: Math.min(45000, Math.max(15000, Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS) || 45000)), fallbackToWorkersAI: false, responseMimeType: "application/json" });
-      if (!ai?.ok || ai.isMock || ai.truncated || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
-      let value; try { value = JSON.parse(ai.text); } catch { return null; }
-      if (value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || /Chapter\s+\d+\./i.test(value.body) || !evaluatePsychoMarkdownQuality(value.body, state.tone, true).ok) return null;
-      return value;
     },
   });
 }
