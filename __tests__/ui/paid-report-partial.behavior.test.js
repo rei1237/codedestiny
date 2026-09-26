@@ -32,6 +32,9 @@ test("human design quality pause preserves result and never closes or refunds ex
     requireAuth: async () => ({ userId: "owner" }), readJson: async () => ({ reportId: "owned" }),
     verifyStoredHdAccess: async () => true, HD_REPORT_MAX_WAVES: 10,
     hdSectionBody: row => row.body, countPaidReportBodyChars: body => body.length,
+    hdLengthOnly: runFunction("worker/routes/human-design-report.js", "hdLengthOnly", {
+      hdSectionBody: row => row.body, countPaidReportBodyChars: body => body.length,
+    }),
     saveHdDelivery: async (_env, _filter, fields) => { doc = { ...doc, ...fields }; events.push(fields.status); return doc; },
     clean: String, claimWave: async () => doc, HD_REPORT_SECTIONS: [{ key: "a" }],
     HD_REPORT_MAX_SECTION_ATTEMPTS: 3, HD_REPORT_SECTION_CONCURRENCY: 4,

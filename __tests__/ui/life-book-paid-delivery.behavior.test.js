@@ -76,6 +76,8 @@ function fixture(accessType = 'pass') {
     LifeBookAiConsultation: model,
     buildSectionPlan: () => plan, buildSectionDigest: () => '', buildSectionPrompt: () => 'mock', pickSajuSlice: v => v,
     createLlmCacheStore: () => null,
+    lifeBookSectionValid: () => true, hasRepeatedReportPassage: () => false,
+    sectionBodyChars: (_section, body) => body?.content?.replace(/\s/g, '').length || 0,
     generateSectionOnce: async (_env, section) => {
       calls.push(section.id);
       return { ok: true, body: { content: `${section.id} 저장된 해설` }, chars: 2600, provider: 'mock', model: 'mock', error: '' };
@@ -85,7 +87,7 @@ function fixture(accessType = 'pass') {
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), {});
@@ -220,4 +222,28 @@ test('총운: 사주 결과가 구조적으로 불완전하면 생성 전에 환
   assert.equal(passed.status, 202, await passed.text());
   assert.equal(f.calls.length, 4);
   assert.equal(f.refunds, 1, '완전한 사주는 추가 환불을 유발하지 않는다');
+});
+
+for (const repair of ['shorter', 'invalid']) test(`life book ${repair} length repair keeps the saved draft`, async () => {
+  const f = fixture(); await f.post();
+  const prior = clone(f.doc.llmMeta.sections.section0);
+  f.doc.llmMeta.sections.section0.needsRepair = true;
+  f.doc.llmMeta.sections.section0.repairKind = 'length';
+  const base = f.ctx.generateSectionOnce;
+  f.ctx.generateSectionOnce = async (...args) => args[1].id === 'section0'
+    ? { ok: repair !== 'invalid', body: { content: '짧음' }, chars: 2, error: 'fixture' } : base(...args);
+  await f.post();
+  assert.equal(f.doc.llmMeta.sections.section0.body.content, prior.body.content);
+  assert.equal(f.doc.llmMeta.sections.section0.lengthRepair, true);
+  assert.equal(f.doc.llmMeta.sections.section0.attempts, 2);
+  for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
+});
+test('life book reserved length repair resumes without calling that section again', async () => {
+  const f = fixture(); await f.post();
+  Object.assign(f.doc.llmMeta.sections.section0, { needsRepair: true, repairKind: 'length', lengthRepair: true, attempts: 2 });
+  f.calls.length = 0;
+  for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.ok(!f.calls.includes('section0'));
+  assert.equal(f.doc.llmMeta.sections.section0.attempts, 2);
 });

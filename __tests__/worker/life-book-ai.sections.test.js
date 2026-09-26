@@ -32,7 +32,8 @@ const lifeBookInput = { consultationType: "lifeBook", topic: "전체 인생 흐�
 function filler(seed, length) {
   const unit = `${seed} 일간과 월지, 오행과 조후, 십성의 작동을 함께 살피며 삶에서 드러나는 선택의 리듬을 차분히 짚습니다. `
     + `${seed} 대운과 세운이 열어 주는 때를 근거로 삼고, 관계와 일과 재물의 흐름을 조정할 방향을 남깁니다. `;
-  return unit.repeat(Math.ceil(length / unit.length) + 1).slice(0, length);
+  const compact = unit.replace(/\s/g, "");
+  return compact.repeat(Math.ceil(length / compact.length) + 1).slice(0, length);
 }
 
 /** 각 섹션이 targetChars 를 채웠을 때의 sections 맵. */
@@ -195,4 +196,35 @@ describe("섹션 프롬프트", () => {
     const prompt = buildSectionPrompt(lifeFortuneInput, {}, plan[1], "- 1장: 앞 문장");
     expect(prompt).toContain("같은 문장·같은 결론을 반복하지 마세요");
   });
+});
+
+test('individual length exceptions keep total and structural gates', () => {
+  const plan = buildSectionPlan(lifeFortuneInput);
+  const sections = buildSectionsAtTarget(plan);
+  const report = assembleReport(lifeFortuneInput, plan, sections);
+  report.chapters[0].content = '짧아도 장의 의미를 전달하는 본문입니다.';
+  const options = { lengthAcceptedIds: new Set(['chapter-1']) };
+  expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput)).toContain('chapter_1_content_too_short');
+  expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput, options)).toEqual([]);
+  report.chapters[0].summary = '';
+  expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput, options)).toContain('chapter_1_summary_missing');
+  for (const row of report.chapters) row.content = '작은 본문';
+  expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput, { lengthAcceptedIds: new Set(plan.map(row => row.id)) })).toContain('total_content_too_short');
+});
+test('section lengths count body characters excluding spaces', () => {
+  const plan = buildSectionPlan(lifeFortuneInput);
+  const report = assembleReport(lifeFortuneInput, plan, buildSectionsAtTarget(plan));
+  report.chapters[0].content = ('본문 ' + ' '.repeat(20)).repeat(100);
+  expect(getLifeBookReportQualityIssues(JSON.stringify(report), lifeFortuneInput)).toContain('chapter_1_content_too_short');
+});
+
+test('short life-book candidates retain structure, evidence and repetition checks', () => {
+  const section = buildSectionPlan(lifeFortuneInput)[0];
+  const valid = { title: section.title, summary: '요약', content: '선택의 의미를 일상에서 관찰해 보는 시기입니다.', advice: ['하나', '둘', '셋'], evidenceRefs: section.evidenceRefs };
+  const accepts = body => __lifeBookAiTestUtils.lifeBookSectionValid(section, body, lifeFortuneInput);
+  expect(accepts(valid)).toBe(true);
+  expect(accepts({ ...valid, content: '   ' })).toBe(false);
+  expect(accepts({ ...valid, summary: '' })).toBe(false);
+  expect(accepts({ ...valid, evidenceRefs: ['invented.path'] })).toBe(false);
+  expect(accepts({ ...valid, content: '선택의 의미를 일상에서 관찰하면서 상대의 속도를 돌아보고 작은 행동으로 확인하는 과정이 필요합니다. '.repeat(60) })).toBe(false);
 });

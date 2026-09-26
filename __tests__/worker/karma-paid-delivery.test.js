@@ -120,3 +120,43 @@ it("cancellation after the final provider response prevents apply",async()=>{mod
 
 it("checkpoint null preserves successful siblings and retries only the unsaved chapter",async()=>{await start();fault={chapterCount:2,kind:'null'};const response=await batch();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE'});const ids=docs[0].chapters.map(c=>c.id);expect(ids).toHaveLength(3);const calls=provider.mock.calls.length;expect((await batch()).status).toBe(202);for(const id of ids)expect(provider.mock.calls.slice(calls).some(c=>c[2].cache.keyExtra.endsWith(id))).toBe(false);expect(refund).not.toHaveBeenCalled();});
 it("calculation storage failure resumes from original server input",async()=>{fault={status:'generating',kind:'null'};expect((await start()).status).toBe(503);expect(docs[0].integratedResult).toBeUndefined();docs[0].updatedAt=new Date(Date.now()-121000);expect((await batch()).status).toBe(202);expect(docs[0].integratedResult).toBeTruthy();expect(docs[0].idempotencyKey).toBe('original-paid-request');expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();});
+
+for (const repair of ['shorter', 'empty', 'repeated']) it(`length repair ${repair} keeps the valid karma draft and completes`, async () => {
+  await start();
+  const base = provider.getMockImplementation(); let calls = 0;
+  provider.mockImplementation(async (...args) => {
+    const result = await base(...args); const payload = JSON.parse(result.text);
+    if (payload.id === 'chapter-01') {
+      calls++;
+      payload.content = calls === 1 ? prose('saved-short', 700)
+        : repair === 'shorter' ? prose('replacement-short', 400)
+        : repair === 'empty' ? '' : prose('repeated', 100).repeat(30);
+    }
+    return { ...result, text: JSON.stringify(payload) };
+  });
+  await batch(); const draft = docs[0].chapters.find(row => row.id === 'chapter-01').content;
+  expect(draft).toContain('saved-short');
+  for (let i = 0; i < 6 && docs[0].status !== 'completed'; i++) await batch();
+  expect(docs[0].status).toBe('completed'); expect(calls).toBe(2);
+  expect(docs[0].chapters.find(row => row.id === 'chapter-01').content).toBe(draft);
+  expect(docs[0].llmMeta.attempts['chapter-01:lengthRepair']).toBe(1);
+  expect(refund).not.toHaveBeenCalled();
+});
+it('reserved karma length repair resumes a saved draft without another provider call', async () => {
+  await start(); for (let i = 0; i < 4; i++) await batch();
+  docs[0].status = 'partial'; docs[0].chapters[0].content = prose('saved-short', 700);
+  docs[0].llmMeta.attempts['chapter-01:lengthRepair'] = 1;
+  docs[0].llmMeta.attempts['chapter-01'] = 2;
+  provider.mockClear(); expect((await batch()).status).toBe(200);
+  expect(provider).not.toHaveBeenCalled();
+});
+
+it('karma accepts a structurally valid short final attempt without changing total gates', async () => {
+  await start(); for (let i = 0; i < 4; i++) await batch();
+  docs[0].status = 'partial'; docs[0].chapters = docs[0].chapters.filter(row => row.id !== 'chapter-01');
+  docs[0].llmMeta.attempts['chapter-01'] = 2;
+  const base = provider.getMockImplementation(); provider.mockClear();
+  provider.mockImplementation(async (...args) => { const result = await base(...args); const payload = JSON.parse(result.text); payload.content = prose('last-valid', 700); return { ...result, text: JSON.stringify(payload) }; });
+  expect((await batch()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
+  expect(docs[0].llmMeta.attempts['chapter-01']).toBe(3); expect(refund).not.toHaveBeenCalled();
+});

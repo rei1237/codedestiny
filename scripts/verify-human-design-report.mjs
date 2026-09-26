@@ -142,6 +142,12 @@ if (row) {
 
 const promptsByLocale = {};
 if (fact) {
+  for (const spec of SECTIONS) {
+    const requiredIds = Array.from({ length: 26 }, (_, index) => `topic:${index}`);
+    const built = promptModule.buildHumanDesignReportSectionPrompt({ snapshot: fact, spec, locale: "ko", requiredIds });
+    const floor = Math.max(spec.minChars, contract.effectiveMinChars(spec, requiredIds.length));
+    check(`${spec.key}: 많은 항목에서도 목표 하한과 상한이 충돌하지 않는다`, built.targetMinChars >= floor / 0.8 && built.targetMaxChars >= built.targetMinChars + 400);
+  }
   for (const locale of contract.HD_REPORT_LOCALES) {
     promptsByLocale[locale] = SECTIONS.map((spec) => contract && promptModule.buildHumanDesignReportSectionPrompt({
       snapshot: fact,

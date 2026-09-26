@@ -108,7 +108,7 @@ const PREMIUM_CHAPTER_CONCURRENCY = 4;
 // 락이 파이프라인보다 짧으면 병렬 폴링 POST가 같은 배치를 중복 기동한다(찻집 390s 락과 같은 원리).
 const PREMIUM_BATCH_LOCK_TTL_MS = 120_000;
 const PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2;
-const PREMIUM_CHAPTER_TARGET_LENGTH = "2,100~2,400자";
+const PREMIUM_CHAPTER_TARGET_LENGTH = "2,250~2,500자";
 const INITIAL_SECTION_SYMBOLS = ["業", "源", "流", "課", "緣", "情", "財", "職", "體", "才", "轉", "策", "總", "句", "箋"];
 
 // 프롬프트에 싣는 계산 근거 총량. 구조가 바뀌어도 총량은 기존(14,000자)을 유지한다 —
@@ -328,7 +328,7 @@ const PREMIUM_CHAPTERS = Object.freeze([
   },
   {
     id: "chapter-14", order: 14, symbol: "句", title: "운명을 바꾸는 핵심 문장",
-    minLength: 800, targetLength: "900~1,200자",
+    minLength: 800, targetLength: "1,000~1,200자",
     leadLens: "none", supportLens: [],
     required: [
       "이 상담의 맥락에서만 나올 수 있는 문장 10개",
@@ -341,7 +341,7 @@ const PREMIUM_CHAPTERS = Object.freeze([
   },
   {
     id: "chapter-15", order: 15, symbol: "箋", title: "최종 편지",
-    minLength: 1500, targetLength: "1,700~2,000자",
+    minLength: 1500, targetLength: "1,875~2,100자",
     leadLens: "none", supportLens: [],
     required: [
       "상담가가 사용자에게 직접 건네는 따뜻한 편지",
@@ -1442,7 +1442,7 @@ function validatePremiumReportQuality(chapters, options = {}) {
     .filter((definition) => !ordered.some((chapter) => chapter.id === definition.id && clean(chapter.content).length > 0))
     .map((definition) => definition.id);
   const shortChapters = ordered
-    .filter((chapter) => countUserVisibleChars(formatChapterContent(chapter)) < Number(PREMIUM_CHAPTERS[Number(chapter.order || 1) - 1]?.minLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH))
+    .filter((chapter) => !options.lengthAcceptedIds?.has(chapter.id) && countUserVisibleChars(formatChapterContent(chapter)) < Number(PREMIUM_CHAPTERS[Number(chapter.order || 1) - 1]?.minLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH))
     .map((chapter) => chapter.id);
   const summaryWarnings = ordered
     .filter((chapter) => safeArray(chapter.keyTakeaways).filter(Boolean).length < 3)
@@ -2634,10 +2634,10 @@ async function saveKarmaDelivery(filter, fields, resultId) {
     return saved;
   } catch { throw resultStorageUnavailable(resultId); }
 }
-function karmaChapterReady(chapter, definition) {
+function karmaChapterReady(chapter, definition, acceptShort = false) {
   const content = clean(chapter?.content);
-  return !!content && countUserVisibleChars(formatChapterContent(chapter)) >= definition.minLength
-    && countPaidReportBodyChars(content) >= Math.floor(definition.minLength * 0.75)
+  return !!content && (acceptShort || (countUserVisibleChars(formatChapterContent(chapter)) >= definition.minLength
+    && countPaidReportBodyChars(content) >= Math.floor(definition.minLength * 0.75)))
     && safeArray(chapter?.keyTakeaways).filter(Boolean).length >= 3
     && !hasRepeatedReportPassage(content) && !hasForbiddenResult(content)
     && !detectGenericAdviceWarnings(content).length;
@@ -2678,9 +2678,11 @@ async function handleGenerateBatch(request, env) {
   try {
     let chapters = safeArray(consultation.chapters);
     if (consultation.status !== "delivery_pending") {
-      const quality = validatePremiumReportQuality(chapters);
+      const attempts = { ...consultation.llmMeta?.attempts };
+      const lengthAcceptedIds = new Set(PREMIUM_CHAPTERS.filter(def => attempts[`${def.id}:lengthRepair`] || Number(attempts[def.id] || 0) >= 3).map(def => def.id));
+      const quality = validatePremiumReportQuality(chapters, { lengthAcceptedIds });
       const bodyChars = countPaidReportBodyChars(chapters.map(row => row.content).join("\n"));
-      let targets = PREMIUM_CHAPTERS.filter(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def));
+      let targets = PREMIUM_CHAPTERS.filter(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id)));
       if (!targets.length && (!quality.ok || bodyChars < 20000)) {
         const affected = new Set([...quality.shortChapters, ...quality.missingChapters, ...quality.summaryWarnings]);
         for (const warning of quality.repeatedPhraseWarnings) {
@@ -2692,21 +2694,32 @@ async function handleGenerateBatch(request, env) {
         }
         chapters.filter(chapter => hasForbiddenResult(formatChapterContent(chapter))).forEach(chapter => affected.add(chapter.id));
         targets = PREMIUM_CHAPTERS.filter(def => affected.has(def.id));
-        if (!targets.length) targets = [...PREMIUM_CHAPTERS].sort((a, b) => {
+        if (!targets.length) targets = [...PREMIUM_CHAPTERS].filter(def => Number(attempts[def.id] || 0) < 3).sort((a, b) => {
           const ratio = def => countUserVisibleChars(formatChapterContent(chapters.find(row => row.id === def.id))) / Number(String(def.targetLength).replace(/,/g, "").match(/\d+/)?.[0] || def.minLength);
           return ratio(a) - ratio(b);
         });
       }
       targets = targets.slice(0, PREMIUM_BATCH_SIZE);
-      const attempts = { ...consultation.llmMeta?.attempts };
-      if (targets.some(def => Number(attempts[def.id] || 0) >= 3)) { const error = new Error("필수 챕터의 품질 기준을 충족하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
-      targets.forEach(def => { attempts[def.id] = Number(attempts[def.id] || 0) + 1; });
+      if ((!targets.length && (!quality.ok || bodyChars < 20000)) || targets.some(def => Number(attempts[def.id] || 0) >= 3)) { const error = new Error("필수 챕터의 품질 기준을 충족하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
+      targets.forEach(def => {
+        const prior = chapters.find(row => row.id === def.id);
+        if (karmaChapterReady(prior, def, true) && !karmaChapterReady(prior, def)) {
+          attempts[`${def.id}:lengthRepair`] = 1;
+        }
+        attempts[def.id] = Number(attempts[def.id] || 0) + 1;
+        if (attempts[`${def.id}:lengthRepair`] || attempts[def.id] >= 3) lengthAcceptedIds.add(def.id);
+      });
       consultation = await saveKarmaDelivery(filter, { llmMeta: { ...consultation.llmMeta, resumeBody, attempts } }, consultation.id);
       let queue = Promise.resolve();
       const results = await Promise.allSettled(targets.map(async definition => {
         const row = await generateOneChapter(env, consultation, definition, { singleAttempt: true, retry: attempts[definition.id] > 1, previousSummaries: chapters.map(chapter => chapter.summary).slice(-8), siblingDefinitions: targets });
-        if (!row.ok || !karmaChapterReady(row.chapter, definition)) return;
+        if (!row.ok || !karmaChapterReady(row.chapter, definition, true)) return;
         const save = queue.catch(() => {}).then(async () => {
+          const prior = safeArray(consultation.chapters).find(chapter => chapter.id === definition.id);
+          const priorReport = safeArray(consultation.chapters).map(chapter => chapter.content).join("\n");
+          if (karmaChapterReady(prior, definition, true) && !hasRepeatedReportPassage(priorReport)
+            && !detectRepeatedParagraphs(priorReport).length && !detectGenericAdviceWarnings(priorReport).length
+            && countPaidReportBodyChars(prior.content) >= countPaidReportBodyChars(row.chapter.content)) return;
           const candidate = [...safeArray(consultation.chapters).filter(chapter => chapter.id !== definition.id), row.chapter].sort((a, b) => a.order - b.order);
           if (hasRepeatedReportPassage(candidate.map(chapter => chapter.content).join("\n"))) return;
           consultation = await saveKarmaDelivery(filter, { chapters: candidate, totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(candidate)), generationProgress: buildGenerationProgress(consultation, { chapters: candidate, lockToken, lockedAt: new Date() }), llmMeta: { ...consultation.llmMeta, provider: row.provider, model: row.model } }, consultation.id);
@@ -2716,8 +2729,8 @@ async function handleGenerateBatch(request, env) {
       const storageFailure = results.find(row => row.status === "rejected");
       if (storageFailure) throw storageFailure.reason;
       chapters = safeArray(consultation.chapters);
-      const finalQuality = validatePremiumReportQuality(chapters);
-      if (!finalQuality.ok || countPaidReportBodyChars(chapters.map(row => row.content).join("\n")) < 20000) {
+      const finalQuality = validatePremiumReportQuality(chapters, { lengthAcceptedIds });
+      if (!finalQuality.ok || PREMIUM_CHAPTERS.some(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id))) || countPaidReportBodyChars(chapters.map(row => row.content).join("\n")) < 20000) {
         consultation = await saveKarmaDelivery(filter, { status: "partial", qualityCheck: finalQuality }, consultation.id);
         return pending(consultation);
       }

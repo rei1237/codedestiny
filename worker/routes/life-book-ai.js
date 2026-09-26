@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
@@ -210,7 +211,7 @@ const EXPERT_READING_SPECS = Object.freeze([
 const SECTION_TARGETS = Object.freeze({
   lifeFortune: Object.freeze({
     chapter: Object.freeze({ minChars: LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS, targetChars: 3000, maxOutputTokens: 10000, minAdvice: 3 }),
-    expert: Object.freeze({ minChars: LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS, targetChars: 1400, maxOutputTokens: 8000, minAdvice: 2 }),
+    expert: Object.freeze({ minChars: LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS, targetChars: 1500, maxOutputTokens: 8000, minAdvice: 2 }),
     frame: Object.freeze({ minChars: 0, targetChars: 0, maxOutputTokens: 2000, minAdvice: 0 }),
   }),
   lifeBook: Object.freeze({
@@ -1213,7 +1214,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
   } else if (section.kind === "expert") {
     lines.push(
       `깊은 판독 ${section.index + 1}: "${section.title}".`,
-      `content 는 최소 ${section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
+      `content 는 공백 제외 최소 ${section.minChars}자 이상, 목표 ${section.targetChars}자 안팎으로 쓰세요.`,
       `guidance 는 현실에서 바로 쓸 수 있는 조언을 ${section.minAdvice}개 이상 담으세요.`,
       "원국·오행·조후·십성·대운·세운 중 이 판독의 관점에서만 깊게 파고들고, 다른 판독과 겹치지 마세요.",
     );
@@ -1221,7 +1222,7 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "") {
     lines.push(
       `${section.index + 1}장: "${section.title}".`,
       section.guide ? `이 장에서 풀 내용: ${section.guide}` : "",
-      `summary 는 이 장의 핵심을 한 문장으로, content 는 최소 ${section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
+      `summary 는 이 장의 핵심을 한 문장으로, content 는 공백 제외 최소 ${section.minChars}자 이상(목표 ${section.targetChars}자 안팎), advice 는 ${section.minAdvice}개 이상 담으세요.`,
       "content 는 명식 근거 → 삶에서 드러나는 의미 → 현실에서 조정할 선택의 순서로 자연스럽게 이어 주세요.",
     );
   }
@@ -1296,7 +1297,7 @@ function hasValidEvidenceRefs(refs = [], minCount = 1) {
   return cleaned.every((ref) => LIFE_FORTUNE_EVIDENCE_REF_ROOTS.includes(evidenceRefRoot(ref)));
 }
 
-function getLifeBookReportQualityIssues(content, input = {}) {
+function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
   const issues = [];
   const text = clean(content, LIFE_BOOK_RESULT_TEXT_MAX_CHARS);
   const lifeFortune = isLifeFortuneInput(input);
@@ -1332,7 +1333,7 @@ function getLifeBookReportQualityIssues(content, input = {}) {
     if (lifeFortune && !hasValidEvidenceRefs(chapter?.evidenceRefs, 3)) issues.push(`chapter_${chapterNumber}_evidence_refs_missing`);
     if (!summary) issues.push(`chapter_${chapterNumber}_summary_missing`);
     if (!chapterContent) issues.push(`chapter_${chapterNumber}_content_missing`);
-    if (chapterContent && chapterContent.length < minChapterContentChars) issues.push(`chapter_${chapterNumber}_content_too_short`);
+    if (chapterContent && countPaidReportBodyChars(chapterContent) < minChapterContentChars && !options.lengthAcceptedIds?.has(`chapter-${chapterNumber}`)) issues.push(`chapter_${chapterNumber}_content_too_short`);
     if (advice.length < (lifeFortune ? 3 : 1)) issues.push(`chapter_${chapterNumber}_advice_missing`);
   });
 
@@ -1349,7 +1350,7 @@ function getLifeBookReportQualityIssues(content, input = {}) {
     if (lifeFortune && !hasValidEvidenceRefs(reading?.evidenceRefs, 2)) issues.push(`expert_reading_${readingNumber}_evidence_refs_missing`);
     if (!title) issues.push(`expert_reading_${readingNumber}_title_missing`);
     if (!readingContent) issues.push(`expert_reading_${readingNumber}_content_missing`);
-    if (readingContent && readingContent.length < minExpertReadingContentChars) issues.push(`expert_reading_${readingNumber}_content_too_short`);
+    if (readingContent && countPaidReportBodyChars(readingContent) < minExpertReadingContentChars && !options.lengthAcceptedIds?.has(`expert-${readingNumber}`)) issues.push(`expert_reading_${readingNumber}_content_too_short`);
     if (readingContent && !guidance.length) issues.push(`expert_reading_${readingNumber}_guidance_missing`);
   });
 
@@ -1424,7 +1425,7 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
       systemPrompt: buildSystemPrompt(options.consultationType || "lifeBook"),
       taskType: "fortune",
       temperature: options.temperature || 0.72,
-      maxOutputTokens: section.maxOutputTokens,
+      maxOutputTokens: Math.max(section.maxOutputTokens, tokensRequiredForChars(section.targetChars)),
       timeoutMs: resolveSectionTimeoutMs(env),
       // 폴백은 켜 둔다. 섹션 목표가 3,000자까지 내려오면 Workers AI 실측 정지점(≈1,700자)이
       // 이 문턱을 넘기므로, 단일 3만자 호출에서 무용지물이던 폴백이 여기서는 실제 안전망이 된다.
@@ -1508,7 +1509,24 @@ function normalizeSectionBody(section, parsed) {
 function sectionBodyChars(section, body) {
   if (!body) return 0;
   if (section.kind === "frame") return clean(body.finalMessage, 2000).length;
-  return clean(body.content, 20000).length;
+  return countPaidReportBodyChars(clean(body.content, 20000));
+}
+
+function lifeBookSectionValid(section, body, input) {
+  if (!body) return false;
+  if (section.kind === "frame") return true;
+  const content = clean(body.content, 20000);
+  if (!countPaidReportBodyChars(content) || hasForbiddenResultTerms(content) || hasRepeatedReportPassage(content)) return false;
+  const lifeFortune = isLifeFortuneInput(input);
+  if (lifeFortune && !hasValidEvidenceRefs(body.evidenceRefs, section.kind === "chapter" ? 3 : 2)) return false;
+  if (section.kind === "expert") return Boolean(clean(body.title)) && toStringList(body.guidance).length > 0;
+  return Boolean(clean(body.summary)) && toStringList(body.advice).length >= (lifeFortune ? 3 : 1)
+    && (!lifeFortune || clean(body.title).includes(LIFE_FORTUNE_CHAPTER_TITLES[section.index]));
+}
+
+function lifeBookLengthOptions(plan, sections) {
+  return { lengthAcceptedIds: new Set(plan.filter(section => sections[section.id]?.lengthRepair
+    || Number(sections[section.id]?.attempts || 0) >= LIFE_BOOK_MAX_SECTION_ATTEMPTS).map(section => section.id)) };
 }
 
 // 앞 섹션의 첫 문장만 모아 장 간 중복 서사(duplicate_narrative)를 억제한다.
@@ -1560,8 +1578,8 @@ function assembleReport(input, plan, sections) {
 function reportTotalContentChars(report) {
   const chapters = Array.isArray(report?.chapters) ? report.chapters : [];
   const readings = Array.isArray(report?.expertReadings) ? report.expertReadings : [];
-  return chapters.reduce((sum, chapter) => sum + clean(chapter?.content, 20000).length, 0)
-    + readings.reduce((sum, reading) => sum + clean(reading?.content, 12000).length, 0);
+  return chapters.reduce((sum, chapter) => sum + countPaidReportBodyChars(clean(chapter?.content, 20000)), 0)
+    + readings.reduce((sum, reading) => sum + countPaidReportBodyChars(clean(reading?.content, 12000)), 0);
 }
 
 // 품질 이슈를 책임 섹션에 되돌린다. 이슈 코드가 chapter_{n}_* / expert_reading_{n}_* 형태라 기계적으로 매핑된다.
@@ -1591,7 +1609,7 @@ function mapIssuesToSections(issues = [], plan = [], sections = {}) {
     if (issue === "total_content_too_short") {
       // 가장 짧은 장부터 보강한다.
       const shortest = plan
-        .filter((section) => section.kind === "chapter")
+        .filter((section) => section.kind === "chapter" && Number(sections[section.id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS)
         .map((section) => ({ id: section.id, chars: sections[section.id]?.chars || 0 }))
         .sort((a, b) => a.chars - b.chars)[0];
       if (shortest) targets.add(shortest.id);
@@ -2558,6 +2576,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
         const pending = plan.filter((section) => {
           const stored = sections[section.id];
           if (!stored) return true;
+          if (stored.lengthRepair && stored.repairKind === "length" && stored.ok) {
+            stored.needsRepair = false;
+            return false;
+          }
           if (stored.needsRepair) return Number(stored.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS;
           if (!stored.ok) return Number(stored.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS;
           return false;
@@ -2580,7 +2602,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
           const results = await runWithConcurrency(pending, SECTION_CONCURRENCY, async (section) => {
             const stored = sections[section.id];
             const attempt = Number(stored?.attempts || 0) + 1;
-            const reservedSection = { ...(stored || { id: section.id, kind: section.kind, ok: false }), attempts: attempt };
+            const lengthRepair = stored?.lengthRepair || (stored?.repairKind === "length" && stored?.ok);
+            const reservedSection = { ...(stored || { id: section.id, kind: section.kind, ok: false }), attempts: attempt, lengthRepair };
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: reservedSection } });
             // 재시도에서는 목표 분량을 올려 잡아 "또 짧게" 오는 것을 막는다.
             const boosted = stored?.needsRepair
@@ -2599,10 +2622,15 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
               },
               logContext: { ...baseLogContext, sectionId: section.id, attempt },
             });
-            const checkpoint = !result.ok && stored?.ok
-              ? { ...stored, attempts: attempt }
-              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, provider: result.provider, model: result.model, error: result.error, needsRepair: false };
+            const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input)
+              && !hasRepeatedReportPassage([...Object.entries(sections).filter(([id, value]) => id !== section.id && value.ok).map(([, value]) => value.body?.content || ""), row.body?.content || ""].join("\n"));
+            const keepPrior = valid(stored) && (!valid(result) || sectionBodyChars(section, stored.body) >= sectionBodyChars(section, result.body));
+            result.ok = Boolean(valid(result));
+            const checkpoint = keepPrior
+              ? { ...stored, attempts: attempt, lengthRepair, needsRepair: false }
+              : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, needsRepair: false };
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: checkpoint } });
+            sections[section.id] = checkpoint;
             logLifeBookAction(result.ok ? "section_generate" : "section_retry", {
               route,
               requestId: idempotencyKey,
@@ -2620,31 +2648,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
               providerCallCount: lock.providerCallCount,
               reason: result.error || "",
             }, result.ok ? "info" : "warn");
-            return { section, attempt, result };
+            return checkpoint;
           });
 
-          for (const entry of results) {
-            if (!entry) continue;
-            const { section, attempt, result } = entry;
-            const previous = sections[section.id];
-            // 실패했는데 이전 성공본이 있으면 그것을 지키고 시도 횟수만 올린다.
-            if (!result.ok && previous?.ok) {
-              sections[section.id] = { ...previous, attempts: attempt, needsRepair: previous.needsRepair || false };
-              continue;
-            }
-            sections[section.id] = {
-              id: section.id,
-              kind: section.kind,
-              ok: result.ok,
-              body: result.body,
-              chars: result.chars,
-              attempts: attempt,
-              provider: result.provider,
-              model: result.model,
-              error: result.error,
-              needsRepair: false,
-            };
-          }
+          for (const checkpoint of results) if (checkpoint) sections[checkpoint.id] = checkpoint;
         }
 
         // ── 조립 + 품질 게이트(정본 재사용). 결손은 책임 섹션에만 매핑한다.
@@ -2658,11 +2665,16 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
         if (!missing.length) {
           assembled = assembleReport(normalized.input, plan, sections);
           assembledText = JSON.stringify(assembled);
-          issues = getLifeBookReportQualityIssues(assembledText, normalized.input);
+          issues = getLifeBookReportQualityIssues(assembledText, normalized.input, lifeBookLengthOptions(plan, sections));
           repairTargets = mapIssuesToSections(issues, plan, sections).targets
             .filter((id) => Number(sections[id]?.attempts || 0) < LIFE_BOOK_MAX_SECTION_ATTEMPTS);
           for (const id of repairTargets) {
-            if (sections[id]) sections[id] = { ...sections[id], needsRepair: true };
+            if (sections[id]) {
+              const section = plan.find(row => row.id === id);
+              const lengthOnly = !issues.includes("total_content_too_short") && lifeBookSectionValid(section, sections[id].body, normalized.input)
+                && sectionBodyChars(section, sections[id].body) < section.minChars;
+              sections[id] = { ...sections[id], needsRepair: true, repairKind: lengthOnly ? "length" : "quality" };
+            }
           }
           logLifeBookAction("quality_gate", {
             route,
@@ -2720,7 +2732,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
         if (finished) {
           const finalReport = assembled || assembleReport(normalized.input, plan, sections);
           const finalText = JSON.stringify(finalReport);
-          const finalIssues = issues.length ? issues : getLifeBookReportQualityIssues(finalText, normalized.input);
+          const finalIssues = issues.length ? issues : getLifeBookReportQualityIssues(finalText, normalized.input, lifeBookLengthOptions(plan, sections));
           const totalChars = reportTotalContentChars(finalReport);
           const degraded = false;
 
@@ -2903,6 +2915,9 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
 }
 
 export const __lifeBookAiTestUtils = {
+  lifeBookSectionValid,
+  sectionBodyChars,
+  lifeBookLengthOptions,
   normalizeConsultationInput,
   extractTitle,
   extractKeywords,

@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P3 두 번째 묶음 숙요 궁합·신년·운명 나침반 검증·전달 상태 확인 후 휴먼디자인·카르마·인생책부터 진행. 총합 20,000자 정책 유지."
+next: "P3 세 번째 묶음 휴먼디자인·카르마·인생책 전달 SHA와 main CI 확인 후 네오·낙샤트라·자미 심층으로 진행. 총합 20,000자 및 서비스별 기존 총합 기준 유지."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -81,6 +81,17 @@ next: "P3 두 번째 묶음 숙요 궁합·신년·운명 나침반 검증·전�
 - 수정 파일: `worker/routes/sukuyo-compatibility-ai.js`, `worker/routes/new-year-ai.js`, `worker/routes/destiny-compass-ai.js`, `worker/lib/destiny-compass-report-contract.js`; 회귀 테스트 `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`, `__tests__/worker/new-year-length-repair.test.js`, `__tests__/worker/destiny-compass-paid-delivery.test.js`, `__tests__/worker/destiny-compass-report.basis-and-charge-window.test.js`, `__tests__/ui/new-year-paid-delivery.behavior.test.js`; 이 인수인계 문서.
 - 다음: P3 휴먼디자인·카르마·인생책 묶음. P4 형식 교정과 P5 관계 궁합 구조는 미착수. 총합 정책은 다시 결정받지 않는다.
 
+## P3 세 번째 묶음 구현 (2026-09-27)
+
+- 시작 main `e34c6170f`, 전달 SHA `d071fe9e0b0bd5169cff382bbbcae11973139d61`이 조상임을 확인했다. `git pull --ff-only`로 `4b0bb812a2cf9504260cfac4cc74bac6f19f251d`까지 전진하고 기존 마케팅·타입 파일·미추적 변경을 보존했다. 이번 묶음만 main에 커밋하며 브랜치·PR은 만들지 않는다.
+- 휴먼디자인: 개별 분량 이슈만 있는 유효 초안을 보존하고 기존 섹션 시도 예산 안에서 보강 1회를 예약한다. `sections[].lengthRepair`는 호출 전에 저장하며 응답 유실 뒤 재개해도 같은 개별 분량 보강을 반복하지 않는다. 빈 본문·필수 항목·계산 근거·로케일·반복 검사를 유지하고 유효 후보 중 긴 본문을 선택한다. 목표 하한은 수용 하한/0.8, 항목이 많은 차트는 목표 상한과 출력 토큰도 함께 늘린다. 총합 미달 보강은 별도 이슈로 남기며 기존 3회/10웨이브 한도를 유지한다.
+- 카르마: 기존 `llmMeta.attempts`에 장별 `:lengthRepair` 예약 플래그를 저장한다. 짧은 유효 장을 보관하고 보강/마지막 시도에서는 개별 하한만 면제한다. 보강본이 빈 본문·반복·금지 내용이면 기존 유효 초안을 유지한다. 필수 핵심 3개와 기존 전체 품질 검사를 유지한다. 총합 보강 대상 선정에서는 예산이 남은 장을 선택한다. **기존 30,000자 plain text 총합과 공백 제외 본문 20,000자 기준을 모두 유지한다.**
+- 인생책/인생 총운: 섹션·조립본 집계와 프롬프트를 공백 제외 본문 기준으로 통일한다. 기존 체크포인트에 보강 예약과 목적을 저장해 1회 보강 후 개별 하한을 면제하고, 더 짧거나 구조·근거·반복 검사를 통과하지 못한 보강본은 유효 초안을 덮지 않는다. 총합 부족 시 예산이 남은 장을 보강하며 20,000자 총합은 면제하지 않는다. 전문가 목표 1,500자와 보강 목표에 필요한 출력 토큰을 확보한다.
+- 유지: 가격·이용권/월정석/단건 결제 정책, 인증, 결제 증빙 재확인, 차감/환불 계약, DB 스키마, API 경로, 저장 재읽기 계약. 실 LLM·결제·운영 DB·운영 승격 없음.
+- 검증: 핵심 Jest 3 suites / 71 tests, Node 전달/재개 19개 및 공통 partial 5개 통과. `verify:human-design-report`, `verify:karma-destiny-ai-flow`, `verify:life-book-ai-flow`, 변경 파일 ESLint, handoff 199문서 검증 통과. 짧은/빈/반복 보강, 예약 후 중단, 마지막 시도 수용, 총합·구조·근거 유지 사례 포함. `check:fast -- --plan`은 critical. 첫 `check:fast`의 가드 87/88은 통과했고 npm test의 Node 1,747개 중 휴먼디자인 VM 테스트 1개가 신규 helper 미주입으로 실패했다. 실제 helper를 로드하도록 픽스처를 수정하고 해당 테스트 5개를 재실행해 통과했다. 로컬 전체 통과로 보고하지 않으며 공식 main CI 최종 결과는 전달 세션 최종 보고를 참조한다.
+- 수정 파일: `worker/routes/human-design-report.js`, `worker/lib/human-design-report-prompt.js`, `worker/routes/karma-destiny-ai.js`, `worker/routes/life-book-ai.js`; 관련 worker/UI 테스트 5개와 검증 스크립트 2개, 이 문서.
+- 다음: P3 네오·낙샤트라·자미 심층. P4 형식 교정 및 P5 관계 궁합은 미착수. 실출력 품질·완료율은 mock 통과로 입증되지 않으며 총합 정책은 다시 결정받지 않는다.
+
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 
 - 방식: `git grep`/코드 읽기.
@@ -155,7 +166,7 @@ next: "P3 두 번째 묶음 숙요 궁합·신년·운명 나침반 검증·전�
 |---|---|---|---|
 | **P1 구현 완료** | `paid-narrative-delivery.js` (11개 서비스) | 선행 초안/마지막 수용을 유지하고 반복 보강본의 초안 차단을 수정. 섬 캐시에 파트 `minChars` 연결. | 핵심 mock 73개·변이 5종 통과. 위 P1 검증·전달 기록 참조. |
 | **P2 구현 완료** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
-| **P3 진행 중** | 대형 리포트 라우트 18개 중 점성술·베딕·자미 AI 및 숙요 궁합·신년·운명 나침반 6개 구현 | 섹션 분량 판정에 L2(보강본 수용)를 적용한다. 점성술·베딕·자미 상한 거절은 자르기로 바꾼다(L3). 자미·자미 심층·네오·인생책 프롬프트의 공백 기준을 판정 기준(`countPaidReportBodyChars`, 공백 제외)과 통일한다. 비율 1.0·0.85+ 인 곳은 프롬프트 목표를 하한/0.8 이상으로 올린다. | 라우트별 mock 테스트. 서비스 3~4개씩 나눠 커밋한다. |
+| **P3 진행 중** | 대형 리포트 라우트 18개 중 점성술·베딕·자미 AI, 숙요 궁합·신년·운명 나침반, 휴먼디자인·카르마·인생책 9개 구현 | 섹션 분량 판정에 L2(보강본 수용)를 적용한다. 점성술·베딕·자미 상한 거절은 자르기로 바꾼다(L3). 자미·자미 심층·네오·인생책 프롬프트의 공백 기준을 판정 기준(`countPaidReportBodyChars`, 공백 제외)과 통일한다. 비율 1.0·0.85+ 인 곳은 프롬프트 목표를 하한/0.8 이상으로 올린다. | 라우트별 mock 테스트. 서비스 3~4개씩 나눠 커밋한다. |
 | **P4** | 형식 교정 | 연애 타로 4문단·마인드스캔 10문단은 분할·병합으로 맞춘다. 질문형 문장부호 끝은 정규화한다. 영냥이 필드 5000자는 분할한다. | 단위 테스트. |
 | **P5** | 구조 | 관계 궁합이 한 파트 실패로 전체 환불되는 구조를 부분 수용 + 재시도로 바꾼다. 총합 20,000자 정책은 사용자 결정대로 유지한다. | 기존 총합 유지하며 설계. |
 
@@ -175,4 +186,4 @@ next: "P3 두 번째 묶음 숙요 궁합·신년·운명 나침반 검증·전�
 
 ## 다음 세션 첫 문장
 
-"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md를 읽고, main 상태와 마지막 구현 커밋 788b836030355c9a27ef0924ffd4cf6e94eb5342를 확인한 뒤 git pull --ff-only 후 P3 휴먼디자인·카르마·인생책부터 진행하라. 기존 미커밋 변경을 보존하고 총합 20,000자 정책은 유지하라."
+"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md를 읽고, 세 번째 묶음의 전달 SHA(직전 세션 최종 보고)와 main CI를 확인한 뒤 git pull --ff-only 후 P3 네오·낙샤트라·자미 심층부터 진행하라. 기존 미커밋 변경을 보존하고 총합 20,000자 및 서비스별 기존 총합 기준은 유지하라."

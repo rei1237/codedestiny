@@ -24,6 +24,7 @@ import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
@@ -284,8 +285,8 @@ async function generateSection(env, context, spec, attemptState) {
     // Continue the report in its saved language even if the UI changed between waves.
     locale,
     systemPrompt: built.systemPrompt,
-    baseTokens: HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,
-    capTokens: HD_REPORT_SECTION_MAX_OUTPUT_TOKENS,
+    baseTokens: Math.max(HD_REPORT_SECTION_MAX_OUTPUT_TOKENS, tokensRequiredForChars(built.targetMaxChars || spec.maxChars)),
+    capTokens: Math.max(HD_REPORT_SECTION_MAX_OUTPUT_TOKENS, tokensRequiredForChars(built.targetMaxChars || spec.maxChars)),
     temperature: 0.8,
     taskType: "fortune",
     timeoutMs: HD_REPORT_SECTION_TIMEOUT_MS,
@@ -316,6 +317,9 @@ async function generateSection(env, context, spec, attemptState) {
   });
   if (countPaidReportBodyChars(hdSectionBody({ ...payload, subsections: verdict.keptSubsections })) < Math.max(spec.minChars, effectiveMinChars(spec, requiredIds.length))) {
     verdict.ok = false; verdict.issues.push("body_minimum_not_met");
+  }
+  if (!countPaidReportBodyChars(payload.body) || verdict.keptSubsections.some(row => !countPaidReportBodyChars(row.body))) {
+    verdict.ok = false; verdict.issues.push("empty_body");
   }
   return { ok: verdict.ok, issues: verdict.issues, payload, verdict, meta: ai };
 }
@@ -521,6 +525,14 @@ async function handleStart(request, env) {
 function hdSectionBody(section) {
   return [section.body || "", ...(section.subsections || []).map(row => row.body || "")].join("\n");
 }
+function hdLengthOnly(section) {
+  return countPaidReportBodyChars(hdSectionBody(section)) > 0 && section.issues?.length > 0
+    && section.issues.every(issue => issue === "body_minimum_not_met" || issue.startsWith("too_short:"));
+}
+function hdValidDraft(section) {
+  return countPaidReportBodyChars(hdSectionBody(section)) > 0
+    && (section.status === "ok" || hdLengthOnly(section) || section.issues?.every(issue => issue === "report_total_too_short"));
+}
 async function verifyStoredHdAccess(doc) {
   if (await isPaidResultRevoked(doc.userId, FEATURE_KEY, [doc.idempotencyKey, doc.billingRequestId, doc.paymentId, executionKeyOf(doc.billingRequestId)])) return false;
   return true;
@@ -573,10 +585,15 @@ async function handleGenerate(request, env) {
     const snapshot = current.basis?.snapshot, rawAllowed = current.basis?.allowed;
     if (!snapshot || !rawAllowed) return json({ ok: false, reason: "CALCULATION_INCOMPLETE" }, { status: 422 });
     const allowed = { ...rawAllowed, all: new Set(rawAllowed.all || []) };
+    // Reservation survives a lost response: a saved valid draft needs no second length repair.
+    if (current.sections.some(row => hdLengthOnly(row) && (row.lengthRepair || row.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS))) {
+      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => hdLengthOnly(row)
+        && (row.lengthRepair || row.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS) ? { ...row, status: "ok", issues: [] } : row) }, reportId);
+    }
     const pending = waveBudgetExhausted ? [] : current.sections.filter(row => row.status !== "ok" && row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS).slice(0, HD_REPORT_SECTION_CONCURRENCY);
     if (pending.length) {
       const keys = new Set(pending.map(row => row.key));
-      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => keys.has(row.key) ? { ...row, attempts: Number(row.attempts || 0) + 1 } : row),
+      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => keys.has(row.key) ? { ...row, attempts: Number(row.attempts || 0) + 1, lengthRepair: row.lengthRepair || hdLengthOnly(row) } : row),
         llmMeta: { ...current.llmMeta, unknownAttempt: Boolean(current.llmMeta?.unknownAttempt || current.llmMeta?.waveInFlight), waveInFlight: true } }, reportId);
       const done = current.sections.filter(row => row.status === "ok"), seenSentences = new Set();
       done.forEach(row => rememberSentences(seenSentences, row));
@@ -597,8 +614,14 @@ async function handleGenerate(request, env) {
           const latest = await findReport(env, auth.userId, { id: reportId });
           if (!latest || latest.lock?.token !== claimed.lock.token) throw resultStorageUnavailable(reportId);
           current = latest;
-          const normalBodies = current.sections.filter(row => row.status === "ok").map(hdSectionBody);
-          if (section.status === "ok" && hasRepeatedReportPassage(normalBodies.concat(hdSectionBody(section)).join("\n"))) section = { ...section, status: "degraded", issues: ["repeated_body"] };
+          const stored = current.sections.find(row => row.key === section.key);
+          const normalBodies = current.sections.filter(row => row.key !== section.key && hdValidDraft(row)).map(hdSectionBody);
+          const valid = row => hdValidDraft(row) && !hasRepeatedReportPassage(normalBodies.concat(hdSectionBody(row)).join("\n"));
+          if (valid(stored) && (!valid(section) || countPaidReportBodyChars(hdSectionBody(stored)) >= countPaidReportBodyChars(hdSectionBody(section)))) section = { ...stored };
+          else if (hdValidDraft(section) && !valid(section)) section = { ...section, status: "degraded", issues: ["repeated_body"] };
+          section = { ...section, attempts: result.attempts, lengthRepair: stored.lengthRepair };
+          if (hdLengthOnly(section) && (section.lengthRepair || section.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS)) section = { ...section, status: "ok", issues: [] };
+          if (valid(section) && section.issues?.includes("report_total_too_short")) section = { ...section, status: "ok", issues: [] };
           const sections = current.sections.map(row => row.key === section.key ? section : row);
           const totalChars = sections.filter(row => row.status === "ok" || row.status === "degraded").reduce((sum, row) => sum + countPaidReportBodyChars(hdSectionBody(row)), 0);
           current = await saveHdDelivery(env, filter, { sections, totalChars, degraded: sections.some(row => row.status === "degraded") }, reportId);
@@ -609,8 +632,8 @@ async function handleGenerate(request, env) {
       current = await saveHdDelivery(env, filter, { llmMeta: { ...current.llmMeta, waveInFlight: false } }, reportId);
     }
     if (current.sections.every(row => row.status === "ok") && countPaidReportBodyChars(current.sections.map(hdSectionBody).join("\n")) < 20000) {
-      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => countPaidReportBodyChars(hdSectionBody(row)) < HD_REPORT_SECTIONS.find(spec => spec.key === row.key).minChars
-        ? { ...row, status: "degraded", issues: ["body_minimum_not_met"] } : row) }, reportId);
+      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS
+        ? { ...row, status: "degraded", issues: ["report_total_too_short"] } : row) }, reportId);
     }
     const normal = current.sections.filter(row => row.status === "ok");
     const reportBody = normal.map(hdSectionBody).join("\n");

@@ -325,8 +325,8 @@ for (const marker of [
   "SAJU_CALCULATION_FAILED",
   "restoreAccessBeforeGenerationFailure",
   // 품질 검사는 조립본에 하고, 결손은 책임 섹션에만 매핑한다(전체 재생성 금지).
-  "getLifeBookReportQualityIssues(assembledText, normalized.input)",
-  "getLifeBookReportQualityIssues(finalText, normalized.input)",
+  "getLifeBookReportQualityIssues(assembledText, normalized.input, lifeBookLengthOptions(plan, sections))",
+  "getLifeBookReportQualityIssues(finalText, normalized.input, lifeBookLengthOptions(plan, sections))",
   "LIFE_FORTUNE_REPORT_INVALID",
   "LIFE_FORTUNE_EVIDENCE_REF_ROOTS",
   "hasValidEvidenceRefs",

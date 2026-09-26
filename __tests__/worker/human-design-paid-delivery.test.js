@@ -91,3 +91,38 @@ it('lost checkpoint confirmation preserves the written chapter and all siblings'
 it('known empty failures exhaust the bounded budget and retain the existing refund policy',async()=>{provider.mockImplementation(async()=>({ok:false}));docs[0].waveCount=10;expect((await generate()).status).toBe(503);expect(docs[0].status).toBe('generation_failed');expect(refund).toHaveBeenCalledTimes(1);expect(docs[0].generationError.refunded).toBe(true);expect(provider).not.toHaveBeenCalled()});
 it('unknown interrupted calls at the wave cap never turn into generation refunds',async()=>{docs[0].waveCount=10;docs[0].llmMeta={waveInFlight:true};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE'});expect(docs[0].status).toBe('generating');expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled()});
 it('short outputs cannot complete even when the schema validator accepts them',async()=>{provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({body:'짧은 본문',keyPoints:[]})}));await generate();expect(docs[0].sections.filter(row=>row.status==='ok')).toHaveLength(0);expect(docs[0].status).not.toBe('completed');expect(refund).not.toHaveBeenCalled()});
+
+for (const repair of ['shorter', 'empty', 'repeated']) it(`HD ${repair} repair preserves its valid short draft`, async () => {
+  const base = provider.getMockImplementation(); let calls = 0;
+  provider.mockImplementation(async (...args) => {
+    if (args[1] !== specs[0].key) return base(...args);
+    calls++;
+    const body = calls === 1 ? '생활에서 선택을 관찰하고 그 의미를 차분히 돌아봅니다.'
+      : repair === 'shorter' ? '선택을 관찰합니다.' : repair === 'empty' ? ''
+      : '생활에서 선택을 관찰하고 그 의미를 차분히 돌아보며 반복되는 상황을 기록합니다. '.repeat(80);
+    return { ok: true, text: JSON.stringify({ body, keyPoints: [] }) };
+  });
+  await generate(); const draft = docs[0].sections[0].body;
+  for (let i = 0; i < 8 && docs[0].status !== 'completed'; i++) await generate();
+  expect(docs[0].status).toBe('completed'); expect(calls).toBe(2);
+  expect(docs[0].sections[0].body).toBe(draft); expect(refund).not.toHaveBeenCalled();
+});
+it('HD reserved length repair completes from its saved draft after interruption', async () => {
+  for (let i = 0; i < 5; i++) await generate();
+  docs[0].status = 'generating'; docs[0].sections[0] = { ...docs[0].sections[0], body: '의미 있는 선택을 관찰합니다.', status: 'degraded', issues: ['body_minimum_not_met'], attempts: 2, lengthRepair: true };
+  provider.mockClear(); expect((await generate()).status).toBe(200); expect(provider).not.toHaveBeenCalled();
+});
+it('HD keeps the total floor after accepting individual short sections', async () => {
+  provider.mockImplementation(async (_env, key) => ({ ok: true, text: JSON.stringify({ body: `${key} 의미 있는 선택을 관찰합니다.`, keyPoints: [] }) }));
+  for (let i = 0; i < 12; i++) await generate();
+  expect(docs[0].status).not.toBe('completed');
+  expect(Math.max(...docs[0].sections.map(row => row.attempts))).toBeLessThanOrEqual(3);
+});
+
+it('HD accepts a valid short last attempt while preserving the report floor', async () => {
+  for (let i = 0; i < 5; i++) await generate();
+  docs[0].status = 'generating'; docs[0].sections[0] = { ...docs[0].sections[0], body: '', status: 'pending', issues: ['ai_unavailable'], attempts: 2 };
+  provider.mockClear(); provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ body: '삶에서 선택의 의미를 돌아보고 작은 행동으로 확인합니다.', keyPoints: [] }) }));
+  expect((await generate()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
+  expect(docs[0].sections[0].attempts).toBe(3);
+});

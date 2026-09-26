@@ -146,7 +146,7 @@ function subsectionBrief(id, locale) {
  * @param {string[]} [input.repairIssues] 재생성이면 직전 시도의 문제
  * @param {string} [input.userQuestion] 사용자가 덧붙인 질문. 은퇴한 해석 라우트가 받던 것과 같은
  *   계약이며, 관리자 프롬프트 랩이 이 자리를 쓴다(모든 랩 서비스가 질문 입력을 받는다는 불변식).
- * @returns {{prompt:string, systemPrompt:string, targetMinChars:number}}
+ * @returns {{prompt:string, systemPrompt:string, targetMinChars:number, targetMaxChars:number}}
  */
 export function buildHumanDesignReportSectionPrompt(input) {
   const { snapshot, spec, locale, requiredIds = [], priorDigests = [], repairIssues = [], userQuestion = "" } = input;
@@ -154,7 +154,8 @@ export function buildHumanDesignReportSectionPrompt(input) {
   const question = String(userQuestion || "").trim().slice(0, 600);
   const ko = locale === "ko";
   const title = HD_REPORT_SECTION_TITLES[spec.key]?.[locale] || spec.key;
-  const targetMinChars = Math.max(spec.minChars, effectiveMinChars(spec, requiredIds.length));
+  const targetMinChars = Math.ceil(Math.max(spec.minChars, effectiveMinChars(spec, requiredIds.length)) / 0.8);
+  const targetMaxChars = Math.max(spec.maxChars, targetMinChars + 400);
 
   // ── 불변 접두 ──────────────────────────────────────────────────────────────
   const head = [
@@ -178,8 +179,8 @@ export function buildHumanDesignReportSectionPrompt(input) {
     tail.push(requiredIds.map((id) => `  - ${subsectionBrief(id, locale)}`).join("\n"));
   }
   tail.push(ko
-    ? `분량: 본문과 항목 본문을 합쳐 공백 제외 ${targetMinChars}자 이상, ${spec.maxChars}자 이하.`
-    : `Length: at least ${targetMinChars} characters excluding whitespace across the body and item bodies, at most ${spec.maxChars}.`);
+    ? `분량: 본문과 항목 본문을 합쳐 공백 제외 ${targetMinChars}자 이상, ${targetMaxChars}자 이하.`
+    : `Length: at least ${targetMinChars} characters excluding whitespace across the body and item bodies, at most ${targetMaxChars}.`);
 
   if (priorDigests.length) {
     tail.push("");
@@ -223,6 +224,7 @@ export function buildHumanDesignReportSectionPrompt(input) {
     prompt: `${head}\n${tail.join("\n")}`,
     systemPrompt: SYSTEM_PROMPT[locale] || SYSTEM_PROMPT.en,
     targetMinChars,
+    targetMaxChars,
   };
 }
 
