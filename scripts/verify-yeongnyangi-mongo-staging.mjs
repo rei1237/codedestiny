@@ -54,8 +54,15 @@ try{
    const applied=JSON.parse(execFileSync(process.execPath,[...args,'--apply'],{encoding:'utf8'}).trim().split('\n').at(-1));
    assert.equal(applied.applied,true);
    const recovered=await readRequest(env,userId,id);
-   assert.equal(recovered.manualRecoveryGrants[1],2);assert.equal(recovered.recoveryAudit.length,1);assert.equal(recovered.recoveryAudit[0].operator,'staging-verifier');
+   // Claims and failures are audited too; the operator approval itself must be recorded exactly once, with who applied it.
+   const approvals=recovered.recoveryAudit.filter(event=>event.kind==='operator_retry_approved');
+   assert.equal(recovered.manualRecoveryGrants[1],2);assert.equal(approvals.length,1);assert.equal(approvals[0].operator,'staging-verifier');
    assert.equal(recovered.chapters.length,1);assert.equal(String(recovered.paymentId),String(paymentIds[i]));
+  }
+  if(i!==0){
+   // A retryable failure backs off before the next claim; the fixture moves only its own deadline instead of sleeping.
+   assert.equal((await claimChapter(env,userId,id)).token,null);
+   await YeongnyangiRequest.updateOne({_id:id,userId:owner},{$set:{nextAttemptAt:new Date(Date.now()-1000)}});
   }
   const retry=await claimChapter(env,userId,id);
   await finishChapter(env,userId,id,retry.token,1,{summary:'Staging fixture chapter two'},2);
