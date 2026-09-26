@@ -19,6 +19,8 @@ const birth={birthDate:'1997-02-10',birthTime:'14:30',calendarType:'solar',gende
 const contexts={};
 for(const [id,engine] of Object.entries(domains))contexts[id]=await engine.calculate(engine.validateInput({personA:birth,personB:{...birth,birthDate:'1992-06-12'},question:'관계와 일에서 어떤 선택을 할까요?'}),{asOf:'2026-09-22'});
 await mkdir('build-cache/yeongnyangi-v5',{recursive:true});
+// next dev can answer 500 while HMR recompiles; retry the navigation, never the assertions.
+const reopen=async page=>{for(let i=0;i<3;i++){const res=await page.reload();if(res&&res.status()<500)break;}await page.getByRole('heading',{name:'먼저, 너에게 전할 이야기',exact:true}).waitFor();};
 const browser=await chromium.launch({headless:true}),results=[];
 try{
  for(const currentProduct of products.filter(p=>(p.fishId==='tuna'||p.id==='fusion_all')&&(!process.env.YEONGNYANGI_TEST_PRODUCT||p.id===process.env.YEONGNYANGI_TEST_PRODUCT))){
@@ -37,6 +39,27 @@ try{
     assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,product.id+' overflow '+width);
     assert.equal(f.state.errors.length,0,f.state.errors.join('\n'));
     await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-cover.png`});
+    // 10,000+ character readings add tables, timing bars, mascot bubbles and interludes without widening the page.
+    const glance=f.page.getByRole('region',{name:'한눈에 보는 이야기',exact:true});
+    assert.equal(await glance.locator('tbody tr').count(),manifest.length);
+    assert.ok(await f.page.locator('figure blockquote').count()>0,'mascot bubbles render');
+    assert.ok(await f.page.locator('img[src*="/reading-art/"]').count()>0,'interludes render');
+    assert.equal(await f.page.evaluate(()=>[...document.querySelectorAll('img[src*="/expressions/"],img[src*="/reading-art/"]')].some(img=>img.getBoundingClientRect().right>innerWidth+1)),false);
+    await f.page.evaluate(()=>document.querySelectorAll('img[src*="/expressions/"],img[src*="/reading-art/"]').forEach(img=>{img.loading='eager';}));
+    await f.page.waitForFunction(()=>[...document.querySelectorAll('img[src*="/expressions/"],img[src*="/reading-art/"]')].every(img=>img.complete&&img.naturalWidth>0));
+    await glance.scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-glance.png`});
+    const timeline=f.page.getByRole('region',{name:'시기의 흐름',exact:true});
+    if(await timeline.count()){await timeline.scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-timeline.png`});}
+    const saju=f.page.getByRole('region',{name:'나의 사주 원국표',exact:true});
+    if(await saju.count()){await saju.scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-saju.png`});}
+    await f.page.locator('figure blockquote').first().scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-bubble.png`});
+    await f.page.locator('figure[aria-hidden] img[src*="/reading-art/"]').first().scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-interlude.png`});
+    // Under 10,000 characters the plain layout stays exactly as before.
+    f.row.chapters=chapters.map(c=>({...c,blocks:c.blocks?.map(b=>({...b,paragraphs:b.paragraphs.map(p=>p.slice(0,10))})),analysis:(c.analysis||[]).map(p=>p.slice(0,10)),example:'',advice:'',questionAnswers:undefined}));
+    await reopen(f.page);
+    assert.equal(await f.page.locator('img[src*="/expressions/"],img[src*="/reading-art/"],figure blockquote').count(),0,'short readings stay plain');
+    assert.equal(await f.page.getByRole('region',{name:'한눈에 보는 이야기',exact:true}).count(),0);
+    f.row.chapters=chapters;await reopen(f.page);
     const panel=f.page.getByRole('region',{name:charts[0].title,exact:true});
     const choices=panel.getByRole('button');await choices.nth(Math.min(1,await choices.count()-1)).click();
     assert.equal(await choices.nth(Math.min(1,await choices.count()-1)).getAttribute('aria-pressed'),'true');
