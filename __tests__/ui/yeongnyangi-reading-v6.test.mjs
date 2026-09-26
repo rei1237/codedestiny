@@ -2,7 +2,7 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 const counts={mackerel:5,salmon:8,flounder:11,tuna:15};
 const minimums={mackerel:5500,salmon:10000,flounder:18000,tuna:40000};
@@ -43,6 +43,8 @@ test('the mackerel closing action chapter is the longest, and every floor sits w
   if(p.readingKind==='single')assert.ok(others.every(c=>p.fishId==='mackerel'?action.targetChars[0]>c.targetChars[0]*1.1:action.targetChars[0]<=c.targetChars[0]),tag);
   // Headroom: a raised target must not drag the floor up with it (CLAUDE.md principle 17). Current tiers sit at .73-.81.
   for(const c of rows)for(const q of [c,...c.sections])assert.ok(q.minimumChars<=q.targetChars[0]*.82,`${tag}/${c.key}/${q.id}`);
+  // A single section discards the whole paid chapter only when it is far below its target (incident 2026-09-26).
+  for(const c of rows)for(const q of c.sections)assert.ok(m.sectionFloor(q.minimumChars)<=q.targetChars[0]*.6,`${tag}/${c.key}/${q.id} section floor`);
  }
  assert.ok(books.length>=singles.length+2);
 });
