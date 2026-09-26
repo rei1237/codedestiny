@@ -480,9 +480,11 @@ export async function resumeHeldAfterFix(env,row) {
 }
 
 // A hold this epoch will not resume is stamped so it stops occupying the scan.
+// A legacy hold was never reported, so stamping it also queues its first operator alert.
 export function keepHold(env,row) {
+  const firstAlert=row.hold?{}:{'hold.alertPending':true,'hold.at':new Date()};
   return withMongoRetry(env,()=>YeongnyangiRequest.updateOne({_id:row._id,errorCode:'GENERATION_REVIEW_REQUIRED',...olderEpoch()},
-    {$set:{'hold.epoch':GENERATION_FIX_EPOCH,'hold.reason':heldReason(row) || 'UNKNOWN'}}));
+    {$set:{'hold.epoch':GENERATION_FIX_EPOCH,'hold.reason':heldReason(row) || 'UNKNOWN',...firstAlert}}));
 }
 
 // Only this hold's alert is cleared; a newer hold keeps its own pending alert.

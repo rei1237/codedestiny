@@ -375,7 +375,8 @@ test('holds that a fix cannot help are stamped out of the scan and never auto-re
   expect(repo.canResumeAfterFix(requests[0])).toBe(false);
   expect(requests.filter(row=>matches(row,repo.heldForFixFilter()))).toHaveLength(1);
   await repo.keepHold({},requests[0]);
-  expect(requests[0].hold).toMatchObject({epoch:repo.GENERATION_FIX_EPOCH,reason:'UNKNOWN'});
+  expect(requests[0].hold).toMatchObject({epoch:repo.GENERATION_FIX_EPOCH,reason:'UNKNOWN',alertPending:true});
+  expect(requests.filter(row=>matches(row,repo.pendingAlertFilter()))).toHaveLength(1);
   expect(requests.filter(row=>matches(row,repo.heldForFixFilter()))).toHaveLength(0);
   expect(await repo.resumeHeldAfterFix({},requests[0])).toBeNull();
 });
