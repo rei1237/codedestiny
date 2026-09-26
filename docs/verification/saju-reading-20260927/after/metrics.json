@@ -1,0 +1,38 @@
+[
+  {
+    "width": 360,
+    "catHeight": 114,
+    "synchronousMs": 63.80000001192093,
+    "modeChangeMs": 143,
+    "anchorDelta": -8.625,
+    "paidOrGenerationRequests": 0,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "catHeight": 114,
+    "synchronousMs": 56.80000001192093,
+    "modeChangeMs": 145,
+    "anchorDelta": -1.8125,
+    "paidOrGenerationRequests": 0,
+    "errors": []
+  },
+  {
+    "width": 430,
+    "catHeight": 114,
+    "synchronousMs": 66.10000002384186,
+    "modeChangeMs": 149,
+    "anchorDelta": -33.84375,
+    "paidOrGenerationRequests": 0,
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "catHeight": 122,
+    "synchronousMs": 105.40000003576279,
+    "modeChangeMs": 175,
+    "anchorDelta": -2.125,
+    "paidOrGenerationRequests": 0,
+    "errors": []
+  }
+]
