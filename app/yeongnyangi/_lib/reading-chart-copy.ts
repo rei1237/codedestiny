@@ -45,3 +45,24 @@ export function chartLimitation(value:string,locale?:ReadingLocale):string{
  if(value.startsWith('상대: '))return `${locale==='ja'?'相手':'Partner'}: ${chartLimitation(value.slice(4),locale)}`;
  return limitations[value]?.[index]||value;
 }
+
+const visualKo={glance:'한눈에 보는 이야기',glanceCaption:'장마다 영냥이가 짚은 핵심이야.',chapterCol:'장',themeCol:'주제',pointCol:'핵심 한 줄',
+ keyPoints:'영냥이의 핵심 정리',timeline:'시기의 흐름',timelineCaption:'구매 당시 저장된 계산 기간이야. 금빛 선이 지금이야.',periodCol:'주기',rangeCol:'기간',now:'지금',noRange:'기간 자료 없음',
+ pillars:'나의 사주 원국표',pillarRow:'천간·지지',tenGodRow:'천간 십성',elements:'오행의 균형',elementsCaption:'월령 가중치를 포함한 저장된 분포야.',
+ elementCount:(label:string,n:number)=>`${label} ${n}`,says:'영냥이의 한마디',answerTable:'답의 근거와 실행',
+ themes:{self:'나',wealth:'재물',love:'사랑',career:'일',relations:'관계',timing:'시기',cross:'교차',action:'실천'} as Record<string,string>,
+ pillarNames:{'시주':'시주','일주':'일주','월주':'월주','년주':'년주'} as Record<string,string>};
+type VisualCopy=typeof visualKo;
+const visualEn:VisualCopy={glance:'Your reading at a glance',glanceCaption:'The key point Yeongnyangi picked from each chapter.',chapterCol:'Ch.',themeCol:'Theme',pointCol:'Key point',
+ keyPoints:'Yeongnyangi’s key points',timeline:'Timing at a glance',timelineCaption:'Periods saved from your calculation at purchase. The gold line marks today.',periodCol:'Period',rangeCol:'Range',now:'Now',noRange:'No date range saved',
+ pillars:'My four pillars',pillarRow:'Stem and branch',tenGodRow:'Ten Gods of the stem',elements:'Five element balance',elementsCaption:'Saved distribution, weighted by birth month.',
+ elementCount:(label:string,n:number)=>`${label} ${n}`,says:'A word from Yeongnyangi',answerTable:'Reason, timing and action',
+ themes:{self:'Self',wealth:'Wealth',love:'Love',career:'Work',relations:'Relationships',timing:'Timing',cross:'Crossing',action:'Action'},
+ pillarNames:{'시주':'Hour','일주':'Day','월주':'Month','년주':'Year'}};
+const visualJa:VisualCopy={glance:'ひと目でわかる鑑定',glanceCaption:'各章でヨンニャンイが押さえた要点です。',chapterCol:'章',themeCol:'テーマ',pointCol:'要点',
+ keyPoints:'ヨンニャンイの要点まとめ',timeline:'時期の流れ',timelineCaption:'購入時に保存された計算上の期間です。金色の線が現在です。',periodCol:'周期',rangeCol:'期間',now:'現在',noRange:'期間の資料なし',
+ pillars:'私の四柱命式',pillarRow:'天干・地支',tenGodRow:'天干の通変星',elements:'五行のバランス',elementsCaption:'月令の重みを含む保存済みの分布です。',
+ elementCount:(label:string,n:number)=>`${label} ${n}`,says:'ヨンニャンイのひとこと',answerTable:'答えの根拠と実行',
+ themes:{self:'自分',wealth:'財運',love:'恋愛',career:'仕事',relations:'人間関係',timing:'時期',cross:'交差',action:'実践'},
+ pillarNames:{'시주':'時柱','일주':'日柱','월주':'月柱','년주':'年柱'}};
+export const visualCopy=(locale?:ReadingLocale):VisualCopy=>locale==='ko'||!locale?visualKo:locale==='ja'?visualJa:visualEn;
