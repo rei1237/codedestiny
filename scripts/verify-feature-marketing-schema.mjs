@@ -269,7 +269,9 @@ const {products:catProducts}=loadTsModule('worker/yeongnyangi/payments/catalog.t
 const {depthDescriptions}=loadTsModule('worker/yeongnyangi/fortune/reading-policy.ts');
 const catSelector=readFileSync(resolve(ROOT,'app/yeongnyangi/_components/Consultation.tsx'),'utf8');
 const catCheckout=readFileSync(resolve(ROOT,'app/checkout/CheckoutClient.tsx'),'utf8');
-for(const expected of ['payments/catalog','depthDescriptions[item.fishId]','item.priceKRW','item.chapterCount']) {
+// The selected consultation kind can change its manifest; compare the actual
+// chapter count rather than the catalog's default composition.
+for(const expected of ['payments/catalog','depthDescriptions[item.fishId]','item.priceKRW','consultationManifest(item,kind,topicId).length']) {
   if(!catSelector.includes(expected))fail(`영냥이 상품 안내 연결 누락: ${expected}`);
 }
 if(!catCheckout.includes('yeongnyangi'))fail('영냥이 전용 결제 안내가 없습니다.');
