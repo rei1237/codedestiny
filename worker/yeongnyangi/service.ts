@@ -245,7 +245,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     // preserves the paid request and saved chapters for support review.
     const review=askQuality&&(row.lastFailure?.stage==='quality'||Number(row.chapterAttempts?.[ordinal] || 0)>=allowedAttempts);
     try { await failChapter(env,userId,requestId,token,review?'ASK_LIMITED_REVIEW_REQUIRED':code,
-      row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,review?code:detail); }
+      row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,review?code:detail,ordinal); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }
