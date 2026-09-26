@@ -2,8 +2,8 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,askPhase5Copy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('chart display translates known evidence while retaining saved source values',()=>{
  assert.equal(chartTerm('오행 분포 · 월령 가중치 포함','en'),'Five elements · adjusted for birth month');
  assert.equal(chartTerm('계산된 시기 · 태양','en'),'Calculated period · Sun');
@@ -37,4 +37,13 @@ test('input and recovery copy preserve payment and retry cautions for each purch
  }
  assert.match(resultStateCopy('en').reviewRequired,/Do not pay again/);
  assert.match(resultStateCopy('ja').reviewRequired,/再度支払わず/);
+});
+test('a held paid reading tells the buyer it is being recovered, never to chase support or pay again',()=>{
+ for(const locale of ['ko','en','ja']){
+  for(const text of [resultStateCopy(locale).reviewRequired,readingCopy(locale).held]){
+   assert.doesNotMatch(text,/문의|contact support|お問い合わせ/i);
+   assert.match(text,/추가 결제 없이|no extra cost|追加料金なし/);
+  }
+  assert.match(readingCopy(locale).recoveringItems(9,15),/9\/15/);
+ }
 });
