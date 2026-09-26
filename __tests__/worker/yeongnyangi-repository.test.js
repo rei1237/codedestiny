@@ -352,6 +352,49 @@ test('a tuna book stopped at item 10/15 is retried by the server, held, then res
   expect(payments).toHaveLength(1);
 });
 
+test('a buyer retries a spent hold twice, then it stays held for the next fix with one payment',async()=>{
+  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
+  await failCurrent(3);await repo.resumeRequest({},owner,'id');
+  await failCurrent(1);await repo.resumeRequest({},owner,'id');
+  await failCurrent(1);await repo.resumeRequest({},owner,'id');
+  await failCurrent(2);
+  expect(requests[0]).toMatchObject({errorCode:'AUTOMATIC_RECOVERY_STOPPED',manualRecoveryGrants:{0:2},systemRecoveryGrants:{0:2}});
+  expect(repo.userCanRetry(requests[0])).toBe(true);
+  expect(repo.userCanRetry({...requests[0],paymentId:null,accessMethod:'FAMILY'})).toBe(false);
+  for(const [used,system] of [[1,4],[2,6]]){
+    await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409,payload:{code:'GENERATION_REVIEW_REQUIRED'}});
+    expect(repo.userCanRetryHold(requests[0])).toBe(true);
+    expect(await repo.resumeHeldByUser({},owner,'id')).toMatchObject({state:'PAID'});
+    expect(requests[0]).toMatchObject({state:'PAID',errorCode:'',systemRecoveryGrants:{0:system},hold:{userRetries:{0:used},epoch:repo.GENERATION_FIX_EPOCH}});
+    expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'user_retry_after_hold',source:'user',chapter:0});
+    await failCurrent(2);
+  }
+  expect(requests[0].chapterAttempts[0]).toBe(11);
+  expect(repo.userCanRetry(requests[0])).toBe(false);
+  await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409});
+  expect(repo.userCanRetryHold(requests[0])).toBe(false);
+  expect(await repo.resumeHeldByUser({},owner,'id')).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+  expect(requests[0].systemRecoveryGrants[0]).toBe(6);expect(repo.holdAutoResumes(requests[0])).toBe(true);
+  for(const hold of [{errorCode:'ASK_LIMITED_REVIEW_REQUIRED'},{hold:{reason:'UNKNOWN'}}])
+    expect(repo.userCanRetryHold({...requests[0],hold:{},...hold})).toBe(false);
+  // A family order held before its first chapter restores its pass; an order without access has nothing to retry.
+  const fresh={...requests[0],hold:{reason:'SYSTEM_RECOVERY_EXHAUSTED'}};
+  expect(repo.userCanRetryHold(fresh)).toBe(true);
+  for(const row of [{...fresh,paymentId:null,accessMethod:'FAMILY'},{...fresh,paymentId:null,accessMethod:''}])expect(repo.userCanRetryHold(row)).toBe(false);
+  expect(repo.userCanRetryHold({...fresh,paymentId:null,accessMethod:'FAMILY',chapters:[{}]})).toBe(true);
+  expect(payments).toHaveLength(1);
+});
+
+test('a buyer hold retry decided on a stale read grants nothing once another retry has landed',async()=>{
+  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
+  Object.assign(requests[0],{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',hold:{reason:'SYSTEM_RECOVERY_EXHAUSTED',chapter:0,epoch:repo.GENERATION_FIX_EPOCH}});
+  const update=RequestModel.findOneAndUpdate;
+  // The other click was granted, failed again and was held between this click's read and its write.
+  RequestModel.findOneAndUpdate=(...args)=>{RequestModel.findOneAndUpdate=update;requests[0].hold.userRetries={0:1};return update(...args);};
+  expect(await repo.resumeHeldByUser({},owner,'id')).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+  expect(requests[0].hold.userRetries).toEqual({0:1});expect(requests[0].systemRecoveryGrants?.[0]).toBeUndefined();
+});
+
 test('the production-shaped legacy hold resumes once even when two ticks race',async()=>{
   await repo.createRequest({},owner,'id',book(15));await repo.attachPayment({},owner,'id',1000);
   await saveThrough(9,15);

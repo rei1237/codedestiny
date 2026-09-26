@@ -10,7 +10,7 @@ globalThis.__paidRecovery={row:null,providerCalls:[],claims:[],finishes:[],failu
 const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
-  'worker/yeongnyangi/repository.js':`export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;
+  'worker/yeongnyangi/repository.js':`export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=r=>globalThis.__paidRecovery.canRetry??r.errorCode==='AUTOMATIC_RECOVERY_STOPPED';
 export const saveAskAnalysis=async(e,u,id,token,analysis)=>{const f=globalThis.__paidRecovery;if(!f)throw new Error("unexpected analysis");f.row.generationCheckpoint.analysis=analysis;if(f.storageFailure)throw new Error("storage uncertain");return analysis;};export const ownerId=x=>x;export const createRequest=async()=>{};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
 export const claimChapter=async(e,u,id,source)=>{const f=globalThis.__paidRecovery,r=f.row;f.claims.push({id,source,chapter:r.chapters.length});if(r.state==='COMPLETED')return {row:r,token:null};r.state='GENERATING';const n=r.chapters.length;r.chapterAttempts[n]=(r.chapterAttempts[n]||0)+1;r.leaseToken='lease-'+n;return {row:r,token:r.leaseToken};};
 export const finishChapter=async(e,u,id,token,ordinal,body,total)=>{const f=globalThis.__paidRecovery,r=f.row;f.finishes.push({id,token,ordinal});assertOrdinal(r.chapters.length,ordinal);r.chapters.push(body);r.completedChapters=r.chapters.length;r.state=r.chapters.length===total?'COMPLETED':'PAID';return r;};
@@ -84,6 +84,18 @@ test('ask quality has one regeneration, then keeps paid access and saved chapter
  assert.equal(presented.recovery.retryable,false);
  assert.equal(presentFortune({...fixture.row,state:'REFUNDED',errorCode:'PAYMENT_NOT_ACTIVE'}).recovery.nextAction,'support');
  assert.equal(presented.recovery.providerNeeded,true);
+});
+
+test('a held order offers the buyer retry only while the repository still allows one',async()=>{
+ const fixture=reset([{summary:'stored-first'}]);
+ Object.assign(fixture.row,{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+ fixture.canRetry=true;
+ const retry=presentFortune(fixture.row).recovery;
+ assert.equal(retry.canRetryNow,true);assert.equal(retry.nextAction,'retry');assert.equal(retry.retryable,false);
+ fixture.canRetry=false;
+ const held=presentFortune(fixture.row).recovery;
+ assert.equal(held.canRetryNow,false);assert.equal(held.nextAction,'held');
+ assert.equal(presentFortune({...fixture.row,state:'REFUNDED',errorCode:'PAYMENT_NOT_ACTIVE'}).recovery.nextAction,'support');
 });
 
 test('quality retries tell the provider what failed without leaking that correction into the next chapter',async()=>{

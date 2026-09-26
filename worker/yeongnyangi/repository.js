@@ -10,9 +10,12 @@ const paidStatuses = ['paid','success','fulfilled'];
 export const AUTOMATIC_CHAPTER_ATTEMPTS = 3;
 export const MANUAL_CHAPTER_RECOVERY_LIMIT = 2;
 // Once a chapter spends its user grants, the server retries it once more, then
-// holds the order and alerts operators. Every grant path is capped, so a chapter
-// costs at most 3 automatic + 2 user + 2 system + 2x3 post-fix attempts.
+// holds the order and alerts operators. A hold from a spent budget can still be
+// retried by its buyer twice. Every grant path is capped, so a chapter costs at most
+// 3 automatic + 2 user + 2 system + 2x2 user-after-hold + 2x3 post-fix attempts (17).
 export const SYSTEM_CHAPTER_RETRY_GRANT = 2;
+export const USER_HOLD_RETRY_LIMIT = 2;
+export const USER_HOLD_RETRY_GRANT = 2;
 export const FIX_RESUME_GRANT = 3;
 export const MAX_FIX_RESUMES = 2;
 // Raise when a deployed generation fix should retry held orders once more.
@@ -62,6 +65,26 @@ export function holdAutoResumes(row = {}) {
 export function canResumeAfterFix(row = {}) {
   return row.state==='FORTUNE_FAILED'&&row.errorCode==='GENERATION_REVIEW_REQUIRED'&&
     Number(row.hold?.epoch || 0)<GENERATION_FIX_EPOCH&&holdAutoResumes(row);
+}
+const savedChapters=row=>Array.isArray(row.chapters)?row.chapters.length:Number(row.completedChapters || 0);
+// A family order held before its first chapter restores its pass instead, so it never gets a buyer hold retry.
+// Access method and the saved count are pinned by the caller, so the decision holds at write time.
+const holdRetryLeft=(row,ordinal)=>hasRequestAccess(row)&&!(requestAccessMethod(row)==='FAMILY'&&!ordinal)&&
+  grantCount(row.hold?.userRetries,ordinal)<USER_HOLD_RETRY_LIMIT;
+// A hold from a spent budget (never a deterministic rejection or the ask limit) that its buyer may still retry.
+export function userCanRetryHold(row = {}) {
+  const total=row.snapshot?.manifest?.length || 0,ordinal=savedChapters(row);
+  return row.state==='FORTUNE_FAILED'&&row.errorCode==='GENERATION_REVIEW_REQUIRED'&&total>ordinal&&
+    FIX_RESUMABLE.includes(heldReason(row))&&holdRetryLeft(row,ordinal);
+}
+// Whether the buyer's retry button can move the order. A stopped chapter escalates through a user grant,
+// the system retry, then a user hold retry; a held chapter only while its user hold retries last.
+export function userCanRetry(row = {}) {
+  if(['COMPLETED','REFUNDED'].includes(row.state)||!hasRequestAccess(row))return false;
+  if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED')return userCanRetryHold(row);
+  const ordinal=savedChapters(row);
+  return grantCount(row.manualRecoveryGrants,ordinal)<MANUAL_CHAPTER_RECOVERY_LIMIT||!grantCount(row.systemRecoveryGrants,ordinal)||
+    holdRetryLeft(row,ordinal);
 }
 const olderEpoch=()=>({$or:[{hold:{$exists:false}},{'hold.epoch':{$lt:GENERATION_FIX_EPOCH}}]});
 
@@ -478,6 +501,21 @@ export async function resumeHeldAfterFix(env,row) {
     'hold.epoch':GENERATION_FIX_EPOCH,'hold.alertPending':false,'hold.resumedAt':now},
   $inc:{'hold.resumes':1,[`systemRecoveryGrants.${ordinal}`]:FIX_RESUME_GRANT},
   $push:{recoveryAudit:{kind:'system_resume_after_fix',source:'scheduled',chapter:ordinal,at:now,code:reason}}},{new:true}).lean());
+}
+
+// Buyer retry of a held chapter: USER_HOLD_RETRY_GRANT more attempts, USER_HOLD_RETRY_LIMIT times per chapter.
+// The payment is re-checked first and the counter is pinned, so duplicate clicks grant once. Attempts are never
+// reset (the request cap grows by the same grant) and hold.epoch is untouched, so a later fix still resumes it.
+export async function resumeHeldByUser(env,userId,requestId) {
+  const current=await readRequest(env,userId,requestId);
+  if(!userCanRetryHold(current))return current;
+  const ordinal=current.chapters.length,used=grantCount(current.hold?.userRetries,ordinal),reason=heldReason(current),now=new Date();
+  const resumed=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),state:'FORTUNE_FAILED',
+    errorCode:'GENERATION_REVIEW_REQUIRED',chapters:{$size:ordinal},...pinGrant('hold.userRetries',ordinal,used)},
+  {$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null,leaseToken:'',leaseUntil:null,'hold.alertPending':false},
+  $inc:{[`hold.userRetries.${ordinal}`]:1,[`systemRecoveryGrants.${ordinal}`]:USER_HOLD_RETRY_GRANT},
+  $push:{recoveryAudit:{kind:'user_retry_after_hold',source:'user',chapter:ordinal,at:now,code:reason}}},{new:true}).lean());
+  return resumed || readRequest(env,userId,requestId);
 }
 
 // A hold this epoch will not resume is stamped so it stops occupying the scan.

@@ -27,7 +27,7 @@ jest.unstable_mockModule('../../worker/yeongnyangi/free-service.ts',()=>({
   attendanceStatus:attendance,attend,unlockToday:unlock,getFreeReading:freeRead,prepareFreeReading:freePrepare,
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
-  readRequest:read,resumeRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},
+  readRequest:read,resumeRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},userCanRetry:row=>row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'||Boolean(row.hold?.retryLeft),
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/retry.js',()=>({retryFortune:generate}));
 let handleYeongnyangiRoutes;
@@ -195,5 +195,13 @@ test('library shows a stopped or held paid reading as recovering with its saved 
  const body=await(await handleYeongnyangiRoutes(request('requests'),env)).json();
  expect(body.fortunes.map(row=>[row.recovering,row.completedChapters,row.totalChapters])).toEqual([[true,9,15],[true,9,15],[false,9,15],[false,9,15]]);
  expect(select.mock.calls[0][0].split(' ')).toContain('snapshot.manifest.id');
- expect(body.fortunes.every(row=>!row.snapshot&&!row.manifest&&!row.errorCode)).toBe(true);
+ expect(body.fortunes.every(row=>!row.snapshot&&!row.manifest&&!row.errorCode&&!row.hold)).toBe(true);
+});
+
+test('library carries the repository retry decision and selects the grant fields it reads',async()=>{
+ lean.mockResolvedValue([{},{hold:{retryLeft:true}},{errorCode:'AUTOMATIC_RECOVERY_STOPPED'}].map((extra,i)=>({_id:String(i).padStart(64,'0'),paymentId:'pay'+i,
+  snapshot:{product:{id:'saju_tuna'},manifest:[{id:'c0'},{id:'c1'}]},state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:1,createdAt:'2026-09-27',...extra})));
+ const body=await(await handleYeongnyangiRoutes(request('requests'),env)).json();
+ expect(body.fortunes.map(row=>row.canRetry)).toEqual([false,true,true]);
+ expect(select.mock.calls[0][0].split(' ')).toEqual(expect.arrayContaining(['manualRecoveryGrants','systemRecoveryGrants','hold']));
 });

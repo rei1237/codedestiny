@@ -12,14 +12,14 @@
 
 - 메시지에는 `requestId`만 포함한다. 원문 질문·출생정보·토큰은 큐와 로그에 넣지 않는다.
 - 배치 1, 동시 소비자 2. 챕터별 90초 provider 제한과 DB 저장 여유를 유지한다.
-- 챕터 호출은 자동 3회까지, 30초·120초 대기한다. 사용자 명시 복구는 현재 미생성 챕터에 1회씩 최대 2회만 추가하며, 기존 시도 횟수는 초기화하지 않는다. 따라서 provider 호출 상한은 챕터당 5회다.
+- 챕터 호출은 자동 3회까지, 30초·120초 대기한다. 사용자 명시 복구는 현재 미생성 챕터에 1회씩 최대 2회만 추가하며, 기존 시도 횟수는 초기화하지 않는다. 그다음 서버 재시도 2회(`SYSTEM_CHAPTER_RETRY_GRANT`), 예산 소진 보류의 구매자 재시도 2회×2시도(`USER_HOLD_RETRY_LIMIT`·`USER_HOLD_RETRY_GRANT`, 2026-09-27), 수정 배포 재개 2회×3시도가 이어진다. 따라서 provider 호출 상한은 챕터당 17회(3+2+2+2×2+2×3)이고, 요청 단위 상한도 같은 부여만큼만 늘어난다.
 - 큐 재전달은 최대 5회다. 이후에도 DB의 미완료 주문이 주기 복구의 근거이며, 자동 중단된 상담은 재등록하지 않는다.
 - 중복 메시지·결제 콜백·새로고침은 동일 주문·챕터 잠금을 사용한다. 저장된 챕터를 덮어쓰지 않는다.
 - 큐가 생성된 뒤에만 실제 연결·재전달·최장 상담의 완료 시간·실기기 이탈을 검증한다. 현재 mock 결과를 운영 검증으로 취급하지 않는다.
 
 ## 관측
 
-`[yeongnyangi-queue]`의 상담 ID·저장 챕터 수·오류 코드와 `[yeongnyangi-recovery]`의 집계만 사용한다. `AUTOMATIC_RECOVERY_STOPPED`는 사용자 복구 가능 상태이고 `GENERATION_REVIEW_REQUIRED`는 총 예산 소진으로 추가 확인이 필요한 상태다. 2026-09-23 운영 로그에서 결과 조회 MongoDB operation timeout 및 첫 챕터 quality 단계 INVALID_EVIDENCE 3회를 확인했다. 근거 스키마를 Gemini responseSchema에 전달하고, 유효한 소절 인용의 합집합을 결과 인용 목록으로 정규화한다. 알 수 없는 인용은 계속 거부한다. 마지막 실패의 code/stage/at는 lastFailure로 보존한다.
+`[yeongnyangi-queue]`의 상담 ID·저장 챕터 수·오류 코드와 `[yeongnyangi-recovery]`의 집계만 사용한다. `AUTOMATIC_RECOVERY_STOPPED`는 사용자 복구 가능 상태이고 `GENERATION_REVIEW_REQUIRED`는 총 예산 소진으로 추가 확인이 필요한 상태다. 보류 사유가 사용자 한도·시도 한도·시스템 재시도 소진이면 구매자가 보관함·결과 화면의 복구 버튼으로 장마다 2회까지 다시 생성할 수 있다(`userCanRetry`, 목록 `canRetry`, 결과 `recovery.canRetryNow`). 결제를 다시 확인하고 `hold.userRetries` 를 고정해 중복 클릭은 1회만 부여하며, `hold.epoch` 는 건드리지 않아 다음 수정 배포의 자동 재개도 남는다. ask 보류(`ASK_LIMITED_REVIEW_REQUIRED`)·사유 불명 보류·첫 장 전 가족 이용권 보류(이용권 복원)는 운영자 전용이다. 2026-09-23 운영 로그에서 결과 조회 MongoDB operation timeout 및 첫 챕터 quality 단계 INVALID_EVIDENCE 3회를 확인했다. 근거 스키마를 Gemini responseSchema에 전달하고, 유효한 소절 인용의 합집합을 결과 인용 목록으로 정규화한다. 알 수 없는 인용은 계속 거부한다. 마지막 실패의 code/stage/at는 lastFailure로 보존한다.
 
 상태 전이는 `CREATED → PAID → GENERATING → PAID(다음 챕터)`를 반복하고, 마지막 챕터의 저장본·결제 증명을 같은 트랜잭션에서 다시 읽은 뒤에만 `COMPLETED`로 닫는다. 일시 실패는 `FORTUNE_FAILED`에서 backoff 후 재개하고, 자동 3회 소진은 `AUTOMATIC_RECOVERY_STOPPED`, 사용자 추가 2회 소진·불변 manifest 오류·저장 내용 검수 실패는 `GENERATION_REVIEW_REQUIRED`로 보낸다. 환불·취소·권한 중지는 `REFUNDED` 또는 `PAYMENT_NOT_ACTIVE`로 차단한다. 큐 claim은 `queue`/`scheduled`, 명시 복구는 `user`, 운영자 승인은 `operator`로 `recoveryAudit`에 구분한다.
 
