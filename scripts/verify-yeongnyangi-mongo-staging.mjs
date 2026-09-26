@@ -48,13 +48,13 @@ try{
   assert.equal((await attachPayment(env,userId,id,product.priceKRW)).state,'FORTUNE_FAILED');
   if(i===0){
    await YeongnyangiRequest.updateOne({_id:id,userId:owner},{$set:{errorCode:'GENERATION_REVIEW_REQUIRED',attempts:7}});
-   const args=['scripts/recover-yeongnyangi-request.mjs','--db',database,'--request',id,'--attempts','2','--reason',`fixture-${run}`];
+   const args=['scripts/recover-yeongnyangi-request.mjs','--db',database,'--request',id,'--attempts','2','--reason',`fixture-${run}`,'--operator','staging-verifier'];
    const dryRun=JSON.parse(execFileSync(process.execPath,args,{encoding:'utf8'}).trim().split('\n').at(-1));
    assert.equal(dryRun.applied,false);assert.equal((await readRequest(env,userId,id)).state,'FORTUNE_FAILED');
    const applied=JSON.parse(execFileSync(process.execPath,[...args,'--apply'],{encoding:'utf8'}).trim().split('\n').at(-1));
    assert.equal(applied.applied,true);
    const recovered=await readRequest(env,userId,id);
-   assert.equal(recovered.manualRecoveryGrants[1],2);assert.equal(recovered.recoveryAudit.length,1);
+   assert.equal(recovered.manualRecoveryGrants[1],2);assert.equal(recovered.recoveryAudit.length,1);assert.equal(recovered.recoveryAudit[0].operator,'staging-verifier');
    assert.equal(recovered.chapters.length,1);assert.equal(String(recovered.paymentId),String(paymentIds[i]));
   }
   const retry=await claimChapter(env,userId,id);

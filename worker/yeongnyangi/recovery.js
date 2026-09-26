@@ -52,7 +52,7 @@ export function holdAlertMessage(row) {
     holdAutoResumes(row)
       ?`자동 재개: 생성 수정 배포 때 GENERATION_FIX_EPOCH 를 올리면 다음 크론에서 이어서 생성 (재개 ${Number(row.hold?.resumes || 0)}/${MAX_FIX_RESUMES})`
       :'자동 재개 없음: 운영자 확인 필요',
-    `수동: node scripts/recover-yeongnyangi-request.mjs --db code_destiny --request ${id} --operator <이름> (dry-run 확인 후 --apply)`,
+    `수동: node scripts/recover-yeongnyangi-request.mjs --db code_destiny --request ${id} --attempts 3 --reason <사건> --operator <이름> (dry-run 진단 확인 후 --apply, 적용 전 상태 파일 자동 기록)`,
     '저장된 항목은 구매자가 계속 열람하며 추가 결제는 없음',
   ].join('\n')};
 }
