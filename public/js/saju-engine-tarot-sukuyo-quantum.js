@@ -3814,10 +3814,12 @@ async function renderDailyMonthlyFortune(p){
 
   document.getElementById('dailyPanel').innerHTML=buildFortuneHTML(dayRes,p);
   document.getElementById('monthlyPanel').innerHTML=buildFortuneHTML(monRes,p);
+  if(window.SajuReadingPresentation)window.SajuReadingPresentation.setDaily(dayRes,monRes);
   card.style.display='block';
 }
 
 function renderLetter(p){
+  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('letter');
   var isNeoSaju = isNeoSajuModeActive();
   var pw=G_POWER,jg=G_JONG;
   var dayEl=(GAN[p.d.g]&&GAN[p.d.g].e)||'earth';

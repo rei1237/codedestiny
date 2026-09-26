@@ -1708,9 +1708,7 @@ function applyNeoTexts(){
       renderLetter(window.G_PILLARS, window.G_NATAL, window.G_POWER, window.G_JONG);
     }
   }
-  if(isResultPageVisible() && typeof renderDailyMonthlyFortune === 'function' && window.G_PILLARS) {
-    renderDailyMonthlyFortune(window.G_PILLARS);
-  }
+  if (window.SajuReadingPresentation) window.SajuReadingPresentation.changed();
 
   var hint=document.querySelector('#inputPage [style*="FF8BA7"]');
   if(hint){

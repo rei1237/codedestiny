@@ -5,6 +5,7 @@
    STEP 8: 모달
 ═══════════════════════════════════════ */
 function showTsDetail(name){
+  if (window.SajuReadingPresentation && window.SajuReadingPresentation.showGod(name)) return;
   var info=TS_DB[name],deep=TS_DEEP[name];
   if(!info||!deep)return;
   /* #tsModal 은 모바일에서 DOM 밖에 있을 수 있다(saju-engine.js 의 ensureSajuDetailModal 주석 참고).

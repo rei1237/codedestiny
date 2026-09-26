@@ -126,6 +126,7 @@
 /public/js/core/saju/dopamineResult.js
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
+/public/js/core/saju/reading-personas.js
 /public/js/core/saju/reportDashboard.js
 /public/js/core/service-registry.js
 /public/js/core/standalone-ai-locale.js
@@ -232,6 +233,7 @@
 /public/styles/mobile-bottom-nav.css
 /public/styles/mobile-lite.css
 /public/styles/mobile-totem-flower-fix.css
+/public/styles/saju-reading.css
 /public/styles/sibyl-system.css
 /public/styles/tarot-healing-dawn.css
 /public/styles/tarot-love-mystic.css

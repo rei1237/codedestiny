@@ -5203,6 +5203,7 @@ async function calculate(){
   // 점성술 계산 전용 원본(표준시) 출생 데이터
   var _birthMinuteDefault = (!_hourWasDefault && _minuteWasDefault);
   var _birthTimeUnknown = (_hourWasDefault || (window.__cdBirthTimeUnknown === true && hour === 12 && minute === 0));
+  window.__cdSajuTimeUnknown = _birthTimeUnknown;
   window._astroBirth={year:year,month:month,day:day,hour:hour,minute:minute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown,minuteDefault:_birthMinuteDefault,locationDefault:!opt};
 
   window._ziweiBirth={year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown};
@@ -9824,6 +9825,7 @@ function renderIlju(p){
       ? 'ⓘ 전문 용어 참고: ' + iljuSanitizeText(data.details)
       : 'ⓘ 일간(' + p.d.g + ') · 일지(' + p.d.j + ') 기반 기본 분석';
   }
+  if (window.SajuReadingPresentation) window.SajuReadingPresentation.render('ilju');
 }
 
 /* 사주 결과의 상세 모달(#tsModal)은 모바일에서 DOM 밖에 있을 수 있다 — index.html 의
@@ -10487,6 +10489,7 @@ function renderManse(p){
 }
 
 function renderTenshin(p){
+  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('ten');
   var tsSet=new Set();
   var dg=p.d.g;
   [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(c){
@@ -10506,6 +10509,7 @@ function renderTenshin(p){
 }
 
 function renderJohu(johu) {
+  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('climate');
     let tempRaw = Math.max(-6, Math.min(6, johu.score));
     let tempPct = ((tempRaw + 6) / 12) * 100;
 
@@ -10775,6 +10779,7 @@ function _ukbuJongKind(name){
 }
 
 function renderUkbu(p){
+  if (window.SajuReadingPresentation) return window.SajuReadingPresentation.render('strength');
   var pw=G_POWER,jg=G_JONG,dg=p.d.g;
   var host=document.getElementById('ukbuSection');
   if(!host)return;
@@ -30457,6 +30462,7 @@ function renderCurrentSeasonSummary(bazi){
     parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.</div>');
     box.innerHTML=parts.join('');
     card.style.display='block';
+    if (window.SajuReadingPresentation) window.SajuReadingPresentation.setFlow([cur ? {kind:'period',g:cur.g,j:cur.j,score:cEv.score} : null, yg&&yz ? {kind:'year',g:yg,j:yz,score:yEv.score} : null].filter(Boolean));
   }catch(err){ console.error('올해의 나 요약 오류',err); }
 }
 
