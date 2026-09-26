@@ -294,8 +294,8 @@ export async function verifyMobilePayments({base,products,systemNames}){
     await check(browser,`${engine.name()}-home-profile-catalog`,products[0],390,async f=>{
      f.state.profiles=[];
      await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{name:/사주보는 고양이/}).waitFor();
-     assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(24, 19, 43)');
-     await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건…',{exact:true}).waitFor();
+     assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(11, 18, 32)');
+     await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건… 딱 한 번만이야.',{exact:true}).waitFor();
      await f.page.waitForLoadState('load');
      await f.page.goto(base+'/yeongnyangi/fortune/');await f.page.getByRole('button',{name:'새 프로필 만들기'}).click();
      await f.page.getByLabel('이름',{exact:true}).fill('QA 고객');await f.page.getByLabel('생년월일',{exact:true}).fill('1990-06-15');

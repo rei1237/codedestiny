@@ -67,3 +67,7 @@
 실제 결제 승인·유료 LLM 호출·운영 DB 쓰기는 0건이다. 기존 한국어 중심 홈·서비스 메뉴와 일부 본문 설명의 다국어 범위는 유지했으며, 서비스 전체 번역이 완료됐다는 뜻은 아니다. 프로덕션 승격은 별도 명시적 승인 대상이다. main CI와 스테이징 검증 결과는 전달 시 별도 확인한다.
 
 추가 확인: `node scripts/verify-yeongnyangi-browser.mjs --payment-filter=chromium-generation-failure|chromium-generation-interrupted|chromium-refund`의 3개 mock 시나리오 모두 통과. sitemap drift 1,284 URL 일치. 최종 변경 파일 ESLint는 오류 0, 기존 anchor/img 사용 경고 18건이다.
+
+### CI 검증 기준 보정
+
+첫 CI에서 제품 빌드는 통과했으나 두 기존 검사가 이전 UI를 요구했다. browser shadow의 홈 배경색·인사말 기대값을 새 디자인에 맞췄고, feature-marketing-schema는 선택한 상담의 `consultationManifest(item,kind,topicId).length` 연결을 검증하도록 바꿨다. 가격과 분량 데이터 소스를 검사하는 목적은 유지한다. `npm run verify:feature-marketing-schema`는 보정 후 통과했다. 로컬 home-profile-catalog 재시도는 Next 개발 청크 오류로 실패하여 성공으로 기록하지 않으며, 정적 빌드 CI에서 재확인한다.
