@@ -310,7 +310,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      }
      assert.equal(displayed,28);
      await f.page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:systemNames.saju,exact:true}).click();
-     await f.page.getByRole('group',{name:'저장한 프로필'}).getByRole('button',{name:/QA 고객/}).click();
+     await f.page.getByRole('group',{name:'함께 읽을 프로필'}).getByRole('button',{name:/QA 고객/}).click();
      await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
      await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
      await f.page.waitForURL('**/checkout/**');assert.equal(new URL(f.page.url()).searchParams.get('requestId'),f.row.id);assert.equal(f.state.creates,1);
@@ -347,7 +347,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        // 결제창까지 갔다가 그만두면 직전 화면(상담 폼)으로 돌아간다. 미결제 결과 화면은 한 번도 거치지 않는다.
        await f.page.goto(base+'/yeongnyangi/fortune/');
        await f.page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:systemNames.saju,exact:true}).click();
-       await f.page.getByRole('group',{name:'저장한 프로필'}).getByRole('button',{name:/QA 고객/}).click();
+       await f.page.getByRole('group',{name:'함께 읽을 프로필'}).getByRole('button',{name:/QA 고객/}).click();
        await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
        await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');
        await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();

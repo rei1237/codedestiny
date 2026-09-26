@@ -71,3 +71,5 @@
 ### CI 검증 기준 보정
 
 첫 CI에서 제품 빌드는 통과했으나 두 기존 검사가 이전 UI를 요구했다. browser shadow의 홈 배경색·인사말 기대값을 새 디자인에 맞췄고, feature-marketing-schema는 선택한 상담의 `consultationManifest(item,kind,topicId).length` 연결을 검증하도록 바꿨다. 가격과 분량 데이터 소스를 검사하는 목적은 유지한다. `npm run verify:feature-marketing-schema`는 보정 후 통과했다. 로컬 home-profile-catalog 재시도는 Next 개발 청크 오류로 실패하여 성공으로 기록하지 않으며, 정적 빌드 CI에서 재확인한다.
+
+추가 Shadow 실패는 기존 `저장한 프로필` aria 이름을 찾는 테스트 선택자 두 곳이었다. 실제 화면의 `함께 읽을 프로필`에 맞췄다. 배포된 정적 자산을 localhost 읽기 전용 미러로 제공하고 모든 API를 mock 처리하여 Chromium/WebKit의 홈→프로필→28개 상품 비교 및 미결제 결과에서 나가기 4개 시나리오를 모두 통과했다. 이는 staging PG/DB에 요청을 쓰는 검증이 아니다.
