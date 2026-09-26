@@ -1,10 +1,11 @@
 # Phase 3 남은 우선 콘텐츠 16편 검수 기록
 
-- 상태: 공개 소스 반영, 배포 미실시
+- 상태: 공개 소스 및 운영 배포 반영
 - 진행 승인: 2026-09-26
 - 코드·문헌 사실 대조: 완료
 - 사람 전문 검수: 미확인
 - 광고 적합 판단: 미실시
+- 운영 반영: 2026-09-26, `15878288f092072c605701b4c910f210e9060148` (Pages·Worker 실제 SHA 일치)
 
 이 문서는 남은 우선 콘텐츠 16편에 어떤 고유 정보를 더했고, 어떤 근거로 표현을 제한했는지 기록한다. 공개 원고는 locale 키 기반 `app/insights/phase3-editorial-batch2.js`에서 관리한다. 여기서 말하는 사실 대조는 현재 서비스 구현과 아래 명시한 자료의 범위에 한정되며, 전통 전체에 대한 학술 감수나 상담 결과의 유효성 검증을 뜻하지 않는다.
 
@@ -45,11 +46,11 @@
 - Swiss Ephemeris Lahiri 문서: <https://www.astro.com/swisseph/sweph_sla_e.htm>
 - A. E. Waite, *The Pictorial Key to the Tarot*: <https://en.wikisource.org/wiki/The_Pictorial_Key_to_the_Tarot>
 
-## 공개 전 남은 확인
+## 운영 반영 후 남은 확인
 
 - [ ] 네오가 16편의 문체와 공개 범위를 검수한다.
 - [ ] 전통 체계에 대한 외부 전문가 감수를 받았다면 실제 이름·범위·날짜만 기록한다.
-- [ ] 운영 배포 뒤 각 URL의 초기 HTML, canonical, 200 응답을 확인한다.
+- [x] 운영 배포 뒤 핵심40 URL×2 UA의80건에서 초기 HTML, canonical,200 응답을 확인했다(2026-09-26).
 - [ ] Search Console 색인은 배포 후 별도 관찰한다.
 
-위 항목이 끝나기 전에는 저자·감수 완료 표시나 AdSense 제출 준비 완료로 기록하지 않는다.
+공개 반영 승인은 받았으며 [운영 릴리스](https://github.com/rei1237/codedestiny/actions/runs/36246787626)도 성공했다. 남은 항목이 끝나기 전에는 저자·감수 완료 표시나 AdSense 제출 준비 완료로 기록하지 않는다.
