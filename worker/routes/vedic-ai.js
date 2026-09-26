@@ -1,5 +1,6 @@
+import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { PAID_REPORT_MIN_BODY_CHARS, countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -55,7 +56,7 @@ const MAX_ASSISTANT_TEXT_CHARS = 60000;
 //    근거 흐름 그룹은 화면에는 나가지만 분량 합계에는 들어가지 않는다 — 그래서 요구 하한
 //    15,000자는 **읽기 섹션 4개만으로** 채워야 하고, 그룹 minChars 합도 그 기준으로 잡았다.
 //
-// minChars 는 판정 하한, targetMinChars~maxChars 는 프롬프트 목표, hardMaxChars 는 거부 상한이다.
+// minChars 는 판정 하한, targetMinChars~maxChars 는 프롬프트 목표, hardMaxChars 는 저장 전 절단 상한이다.
 // 하한은 목표 하한 × 0.8 이하, 거부 상한은 목표 상한보다 넉넉히 위에 둔다 — 목표대로 쓴 응답이 양끝에서
 // 흔들려 거부되고 3회를 다 쓰면 결과 없이 끝난다(CLAUDE.md 코딩 원칙 17). 토큰은 거부 상한까지 담는다.
 // 읽기 그룹 4개가 모두 거부 상한까지 써도(28,000자) MAX_INITIAL_READING_CHARS 에 걸리지 않는다.
@@ -1451,28 +1452,54 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
       const keys = group.includeReasoning ? Object.keys(buildReasoningSectionSchema()) : group.sectionKeys;
       const text = bodies(row?.text || "");
       return parsed && Object.keys(parsed.sections || {}).every(key => keys.includes(key))
-        && keys.every(key => clean(parsed.sections?.[key]?.title) && countPaidReportBodyChars(parsed.sections?.[key]?.body) >= (group.includeReasoning ? 400 : group.minChars))
-        && countPaidReportBodyChars(text) >= group.minChars && countPaidReportBodyChars(text) <= group.hardMaxChars
+        && keys.every(key => typeof parsed.sections?.[key]?.title === "string" && clean(parsed.sections[key].title)
+          && typeof parsed.sections?.[key]?.body === "string" && countPaidReportBodyChars(parsed.sections[key].body) > 0)
+        && countPaidReportBodyChars(text) > 0
         && !hasRepeatedReportPassage(text) && !validateChartConsistency(row.text, chart).length
         && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue))
         && (!group.includeScores || Object.keys(parsed.scores || {}).length > 0)
         && group.sectionKeys.every(key => clean(parsed.sections[key].title).includes(REQUIRED_SECTION_LABELS[key]));
     };
-    const pending = VEDIC_SECTION_GROUPS.filter(group => !valid(group, rows[group.key]));
+    const meetsFloor = (group, row) => {
+      const parsed = parseStructuredConsultationText(row?.text || "");
+      return countPaidReportBodyChars(bodies(row?.text)) >= group.minChars
+        && (!group.includeReasoning || Object.values(parsed?.sections || {}).every(section => countPaidReportBodyChars(section.body) >= 400));
+    };
+    const accepted = group => valid(group, rows[group.key]) && (meetsFloor(group, rows[group.key])
+      || attempts[`${group.key}:lengthRepair`] || Number(attempts[group.key] || 0) >= 3);
+    const pending = VEDIC_SECTION_GROUPS.filter(group => !accepted(group));
+    if (!pending.length && countPaidReportBodyChars(Object.values(rows).map(row => bodies(row.text)).join("\n\n")) < PAID_REPORT_MIN_BODY_CHARS) {
+      pending.push(...VEDIC_SECTION_GROUPS.filter(group => Number(attempts[group.key] || 0) < 3
+        && countPaidReportBodyChars(bodies(rows[group.key].text)) < group.targetMinChars));
+    }
     if (pending.some(group => Number(attempts[group.key] || 0) >= 3)) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
     const group = pending[0];
     if (group) {
+      const repairing = valid(group, rows[group.key]);
+      if (repairing) attempts[`${group.key}:lengthRepair`] = 1;
       attempts[group.key] = Number(attempts[group.key] || 0) + 1;
       await options.checkpoint({ groups: rows, attempts });
-      const row = await generateVedicGroup(env, input, chart, group, context, [], { ...options, skipCacheRead: attempts[group.key] > 1 });
+      const repairLines = repairing ? [
+        `직전 본문은 공백 제외 ${countPaidReportBodyChars(bodies(rows[group.key].text))}자입니다. 목표 ${group.targetMinChars}자까지 계산 근거와 생활 장면을 보강해 완결된 JSON으로 다시 작성하세요.`,
+        "같은 문장을 반복하지 말고 아직 다루지 않은 해석과 행동 조언을 더하세요.",
+      ] : [];
+      const row = await generateVedicGroup(env, input, chart, group, context, repairLines, { ...options, skipCacheRead: attempts[group.key] > 1 });
+      const sourceText = bodies(row.text);
+      const sourceValid = valid(group, row);
+      if (sourceValid) {
+        const parsed = parseStructuredConsultationText(row.text);
+        row.text = JSON.stringify({ ...parsed, sections: trimPaidReportSections(parsed.sections, group.hardMaxChars) });
+      }
       const otherText = Object.entries(rows).filter(([key]) => key !== group.key).map(([, value]) => bodies(value.text)).join("\n\n");
-      if (valid(group, row) && !hasRepeatedReportPassage(`${otherText}\n\n${bodies(row.text)}`)) {
+      if (sourceValid && valid(group, row) && !hasRepeatedReportPassage(`${otherText}\n\n${sourceText}`)
+        && !hasRepeatedReportPassage(`${otherText}\n\n${bodies(row.text)}`)
+        && (!repairing || countPaidReportBodyChars(bodies(row.text)) > countPaidReportBodyChars(bodies(rows[group.key].text)))) {
         rows[group.key] = row;
         await options.checkpoint({ groups: rows, attempts });
       }
     }
     const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => rows[group.key]).filter(Boolean));
-    const complete = VEDIC_SECTION_GROUPS.every(group => valid(group, rows[group.key])) && countPaidReportBodyChars(bodies(content)) >= 20000;
+    const complete = VEDIC_SECTION_GROUPS.every(accepted) && countPaidReportBodyChars(bodies(content)) >= PAID_REPORT_MIN_BODY_CHARS;
     const quality = validateConsultationQuality(content, qualityOptions);
     if (complete && !quality.ok) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
     const first = Object.values(rows)[0];

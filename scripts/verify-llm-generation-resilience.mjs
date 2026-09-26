@@ -1145,7 +1145,7 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       feature: "astrology",
       codes: [
         ["worker/routes/astrology-ai.js", '최소 ${section.minChars.toLocaleString("ko-KR")}자, 목표 ${section.targetMinChars.toLocaleString("ko-KR")}~${section.maxChars.toLocaleString("ko-KR")}자'],
-        ["worker/routes/astrology-ai.js", "countPaidReportBodyChars(text) <= section.hardMaxChars"],
+        ["worker/routes/astrology-ai.js", "trimPaidReportText(row.text, section.hardMaxChars)"],
         ["worker/routes/astrology-ai.js", "sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS"],
       ],
       tokens: astrology.ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS,
@@ -1157,7 +1157,7 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       feature: "vedic",
       codes: [
         ["worker/routes/vedic-ai.js", '최소 ${group.minChars.toLocaleString("ko-KR")}자, 목표 ${group.targetMinChars.toLocaleString("ko-KR")}~${group.maxChars.toLocaleString("ko-KR")}자'],
-        ["worker/routes/vedic-ai.js", "countPaidReportBodyChars(text) <= group.hardMaxChars"],
+        ["worker/routes/vedic-ai.js", "trimPaidReportSections(parsed.sections, group.hardMaxChars)"],
         ["worker/routes/vedic-ai.js", "maxTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS"],
       ],
       tokens: vedic.VEDIC_GROUP_MAX_OUTPUT_TOKENS,
@@ -1170,8 +1170,8 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       feature: "ziwei",
       codes: [
         ["worker/routes/ziwei-ai.js", "본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자"],
-        ["worker/routes/ziwei-ai.js", "countPaidReportBodyChars(body) >= group.minChars"],
-        ["worker/routes/ziwei-ai.js", "countPaidReportBodyChars(body) <= Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)"],
+        ["worker/routes/ziwei-ai.js", "countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars"],
+        ["worker/routes/ziwei-ai.js", "trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET))"],
         ["worker/routes/ziwei-ai.js", "capTokens: SECTION_GROUP_TARGET_TOKENS"],
       ],
       tokens: ziwei.SECTION_GROUP_TARGET_TOKENS,

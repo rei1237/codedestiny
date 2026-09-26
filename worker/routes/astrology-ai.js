@@ -1,3 +1,4 @@
+import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
@@ -902,7 +903,7 @@ function buildSystemPrompt() {
  *    초안 전체를 다시 입력에 넣고 처음부터 다시 쓰는 expand 호출이 상시 발동했다
  *    (출력이 2~3배). 섹션당 목표를 모델이 한 번에 채우는 크기로 낮추면 그 고리가 사라진다.
  *
- * minChars 는 판정 하한, targetMinChars~maxChars 는 프롬프트 목표, hardMaxChars 는 거부 상한이다.
+ * minChars 는 판정 하한, targetMinChars~maxChars 는 프롬프트 목표, hardMaxChars 는 저장 전 절단 상한이다.
  * 하한은 목표 하한 × 0.8 이하, 거부 상한은 목표 상한보다 넉넉히 위에 둔다 — 목표대로 쓴 응답이
  * 양끝에서 흔들려 거부되고 3회를 다 쓰면 결과 없이 끝난다(CLAUDE.md 코딩 원칙 17).
  * minChars 합계 20,400 ≥ ASTROLOGY_AI_MIN_RESULT_CHARS(20,000),
@@ -1176,25 +1177,44 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
   if (options.checkpoint) {
     const sections = { ...(options.sections || {}) };
     const attempts = { ...(options.attempts || {}) };
-    const validText = (section, text) => countPaidReportBodyChars(text) >= section.minChars
+    const validText = (section, text) => countPaidReportBodyChars(text) > 0
       && countPaidReportBodyChars(text) <= section.hardMaxChars
       && !hasRepeatedReportPassage(text)
       && !getConsultationQualityIssues(text).length
       && !getMissingExpertParts(text).some(part => section.expertParts.includes(part.id));
     const valid = section => validText(section, sections[section.key]?.text || "");
-    const pending = ASTROLOGY_SECTIONS.filter(section => !valid(section));
+    const accepted = section => valid(section) && (countPaidReportBodyChars(sections[section.key].text) >= section.minChars
+      || attempts[`${section.key}:lengthRepair`] || Number(attempts[section.key] || 0) >= 3);
+    const pending = ASTROLOGY_SECTIONS.filter(section => !accepted(section));
+    // The total product floor remains mandatory, even after accepting short sections.
+    if (!pending.length && countPaidReportBodyChars(Object.values(sections).map(row => row.text).join("\n\n")) < ASTROLOGY_AI_MIN_RESULT_CHARS) {
+      pending.push(...ASTROLOGY_SECTIONS.filter(section => Number(attempts[section.key] || 0) < 3
+        && countPaidReportBodyChars(sections[section.key].text) < section.targetMinChars));
+    }
     if (pending.some(section => Number(attempts[section.key] || 0) >= 3)) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED" });
     }
     const batch = pending.slice(0, 2);
-    for (const section of batch) attempts[section.key] = Number(attempts[section.key] || 0) + 1;
+    for (const section of batch) {
+      if (valid(section)) attempts[`${section.key}:lengthRepair`] = 1;
+      attempts[section.key] = Number(attempts[section.key] || 0) + 1;
+    }
     await options.checkpoint({ sections, attempts });
     let queue = Promise.resolve();
     const outcomes = await Promise.allSettled(batch.map(async section => {
-      const row = await runSection(section, [], attempts[section.key]);
-      if (!row.ok || !validText(section, row.text)) return;
+      const repairLines = valid(section) ? [
+        `직전 본문은 공백 제외 ${countPaidReportBodyChars(sections[section.key].text)}자입니다. 목표 ${section.targetMinChars}자까지 계산 근거와 구체적인 행동 조언을 보강하세요.`,
+        "같은 문장을 반복하지 말고 빠진 해석을 더해 완결된 본문으로 다시 작성하세요.",
+      ] : [];
+      const row = await runSection(section, repairLines, attempts[section.key]);
+      if (!row.ok || !validText(section, trimPaidReportText(row.text, section.hardMaxChars))) return;
+      // Reject unsafe/repeated source text before trimming can hide it.
+      if (hasRepeatedReportPassage(row.text) || getConsultationQualityIssues(row.text).length) return;
+      const sourceText = row.text;
+      row.text = trimPaidReportText(row.text, section.hardMaxChars);
       const otherText = Object.entries(sections).filter(([key]) => key !== section.key).map(([, value]) => value.text).join("\n\n");
-      if (hasRepeatedReportPassage(`${otherText}\n\n${row.text}`)) return;
+      if (hasRepeatedReportPassage(`${otherText}\n\n${sourceText}`) || hasRepeatedReportPassage(`${otherText}\n\n${row.text}`)) return;
+      if (valid(section) && countPaidReportBodyChars(sections[section.key].text) >= countPaidReportBodyChars(row.text)) return;
       sections[section.key] = row;
       const snapshot = { sections: { ...sections }, attempts: { ...attempts } };
       queue = queue.catch(() => {}).then(() => options.checkpoint(snapshot));
@@ -1203,7 +1223,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
     const storageFailure = outcomes.find(row => row.status === "rejected" && row.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
     if (storageFailure) throw storageFailure.reason;
     const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
-    const complete = ASTROLOGY_SECTIONS.every(valid) && countPaidReportBodyChars(content) >= ASTROLOGY_AI_MIN_RESULT_CHARS;
+    const complete = ASTROLOGY_SECTIONS.every(accepted) && countPaidReportBodyChars(content) >= ASTROLOGY_AI_MIN_RESULT_CHARS;
     const issues = complete ? getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: true }) : [];
     if (complete && (issues.length || hasRepeatedReportPassage(content))) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED", issues });

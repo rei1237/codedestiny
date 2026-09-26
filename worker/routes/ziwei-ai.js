@@ -1,3 +1,4 @@
+import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
@@ -68,7 +69,7 @@ const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 72000;
 // 그룹 하나가 담당하는 분량은 40초 안에 Gemini 가 완주할 수 있는 크기로 잡았다.
 // targetChars 합계는 MIN_INITIAL_CONSULTATION_BODY_CHARS 를 넘도록 배분한다.
 const SECTION_GROUP_TARGET_TOKENS = Math.floor(INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS / 6);
-// 그룹 본문이 목표의 이 배수를 넘으면 다시 부른다. 목표에 바짝 붙이면 목표대로 쓴 응답도 넘친다고 버려진다.
+// 그룹 본문이 목표의 이 배수를 넘으면 저장 전에 결정적으로 자른다. 목표에 바짝 붙이면 목표대로 쓴 응답도 넘친다고 버려진다.
 const SECTION_GROUP_MAX_OVER_TARGET = 1.25;
 // 그룹 1회 호출의 LLM 대기 상한. 잘림 재시도(attempts)까지 겹쳐도 아래 총 예산 안에 들도록 짧게 잡는다.
 const SECTION_GROUP_TIMEOUT_MS = 40000;
@@ -1487,7 +1488,7 @@ function buildSectionGroupPrompt(input, chart, group) {
     otherSections.length
       ? `- ${otherSections.join(", ")} 는 이 상담의 다른 대목에서 따로 다룹니다. 필요하면 한 줄로 언급만 하고 여기서 펼치지 마세요.`
       : "",
-    `- 이 부분의 body 합산은 공백 포함 ${Number(group.targetChars).toLocaleString("ko-KR")}자 이상 ${Number(Math.round(group.targetChars * 1.35)).toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
+    `- 이 부분의 body 합산은 제목과 공백 제외 ${Number(group.targetChars).toLocaleString("ko-KR")}자 이상 ${Number(Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)).toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
     "- 섹션별 최소 분량(반드시 지킬 것. 짧게 쓰고 넘어가면 상담이 성립하지 않습니다):",
     ...sectionKeys.map((key) => `  · ${key}: 최소 ${Number(charTargets[key] || 0).toLocaleString("ko-KR")}자`),
     "- 분량을 채우려고 같은 말을 바꿔 쓰지 마세요. 명반에서 아직 인용하지 않은 별·궁·강약 표기·사화 배치를 새로 끌어와 근거를 더하고, 그 근거가 현실에서 어떤 장면으로 나타나는지 구체적인 예를 들어 늘리세요.",
@@ -1796,12 +1797,22 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   let sections = merge();
   const grounding = enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections }), chart);
   const repairIds = Object.keys(groups).length === SECTION_GROUP_SPECS.length ? resolveGroundingRetryGroupIds(grounding.issues) : [];
-  const group = SECTION_GROUP_SPECS.find(row => !groups[row.id] || repairIds.includes(row.id));
+  const valid = (group, value) => group.sections.every(key => typeof value?.[key]?.title === "string" && clean(value[key].title)
+    && typeof value?.[key]?.body === "string" && countPaidReportBodyChars(value[key].body) > 0)
+    && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
+  const accepted = group => valid(group, groups[group.id]) && (countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars
+    || attempts[`${group.id}:lengthRepair`] || Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS);
+  const group = SECTION_GROUP_SPECS.find(row => !accepted(row) || repairIds.includes(row.id))
+    || (countPaidReportBodyChars(ziweiSectionBody(sections)) < MIN_INITIAL_CONSULTATION_BODY_CHARS
+      ? SECTION_GROUP_SPECS.find(row => Number(attempts[row.id] || 0) < ZIWEI_GROUP_MAX_ATTEMPTS
+        && countPaidReportBodyChars(ziweiSectionBody(groups[row.id] || {})) < row.targetChars) : null);
   if (group) {
     if (Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS) {
       const error = new Error("필수 분량과 계산 근거를 갖춘 결과를 완성하지 못했습니다.");
       error.code = "REPORT_QUALITY_FAILED"; throw error;
     }
+    const repairing = valid(group, groups[group.id]);
+    if (repairing && !repairIds.includes(group.id)) attempts[`${group.id}:lengthRepair`] = 1;
     attempts[group.id] = Number(attempts[group.id] || 0) + 1;
     await checkpoint({ groups, attempts, meta }); // Reserve before the provider; a lost response consumes this attempt.
     const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
@@ -1811,6 +1822,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
         buildSectionGroupPrompt(input, chart, group),
         `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
+        ...(repairing ? [`직전 본문은 공백 제외 ${countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
       ].join("\n"), {
         systemPrompt: await resolveSystemPrompt(env), taskType: "fortune", responseMimeType: "application/json",
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
@@ -1825,28 +1837,35 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
       logZiweiAi("Group interrupted", { sectionGroup: group.id, code: error?.code }, "warn");
     }
     const mockBlocked = (generated?.isMock === true || /mock/i.test(generated?.provider || "")) && !isStagingLlmMockEnabled(env);
-    const parsed = generated?.ok && !mockBlocked ? parseSectionsFromGroupText(generated.text) : {};
-    const next = Object.fromEntries(group.sections.filter(key => parsed[key]).map(key => [key, parsed[key]]));
-    const body = ziweiSectionBody(next);
+    const parsed = isCompleteLlmResponse(generated) && !mockBlocked ? parseSectionsFromGroupText(generated.text) : {};
+    const source = Object.fromEntries(group.sections.filter(key => parsed[key]).map(key => [key, parsed[key]]));
+    const next = trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET));
     const candidate = { ...sections, ...next };
-    const valid = group.sections.every(key => clean(next[key]?.title) && countPaidReportBodyChars(next[key]?.body) >= 120)
-      && countPaidReportBodyChars(body) >= group.minChars
-      && countPaidReportBodyChars(body) <= Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)
+    const candidateIssues = enforceZiweiChartFacts(JSON.stringify({ meta, sections: candidate }), chart).issues;
+    const candidateRepairIds = resolveGroundingRetryGroupIds(candidateIssues);
+    const priorIssueCodes = new Set(grounding.issues.map(issue => issue.split(":")[0]));
+    const candidateValid = valid(group, source) && valid(group, next)
+      && (!repairing || !candidateIssues.some(issue => !priorIssueCodes.has(issue.split(":")[0])))
+      && !hasRepeatedReportPassage(ziweiSectionBody({ ...sections, ...source }))
       && !hasRepeatedReportPassage(ziweiSectionBody(candidate))
       && !collectZiweiCrossSectionDuplicates(candidate).length;
-    if (valid) {
+    // A grounding repair must fix its own issues; otherwise retain the saved draft.
+    const groundingImproved = repairIds.includes(group.id)
+      && !candidateRepairIds.includes(group.id);
+    if (candidateValid && (!repairing || groundingImproved
+      || (!repairIds.includes(group.id) && countPaidReportBodyChars(ziweiSectionBody(next)) > countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))))) {
       groups[group.id] = next;
       await checkpoint({ groups, attempts, meta });
       sections = merge();
     }
-    if (!valid && attempts[group.id] >= ZIWEI_GROUP_MAX_ATTEMPTS) {
+    if (!valid(group, groups[group.id]) && attempts[group.id] >= ZIWEI_GROUP_MAX_ATTEMPTS) {
       const error = new Error("해당 챕터의 품질 검사를 통과하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error;
     }
   }
   const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart);
   const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
   const chars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
-  return { text, complete: SECTION_GROUP_SPECS.every(row => groups[row.id]) && !checked.issues.length && chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
+  return { text, complete: SECTION_GROUP_SPECS.every(accepted) && !checked.issues.length && chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
 }
 
 async function saveZiweiDelivery(filter, fields, resultId) {

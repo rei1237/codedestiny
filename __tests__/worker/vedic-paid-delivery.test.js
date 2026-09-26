@@ -165,3 +165,64 @@ it("rechecks cancellation after generation and before completing delivery", asyn
   provider.mockImplementationOnce(async (...args) => { const result = await original(...args); blocked = 1; return result; });
   expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(refund).not.toHaveBeenCalled();
 });
+
+for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"]) it(`retains a short valid group through one ${repair} repair`, async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args);
+    if (provider.mock.calls.length > 2) {
+      const parsed = JSON.parse(result.text);
+      if (args[2].logContext.group !== "reasoning_flows") for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, 4800);
+      return { ...result, text: JSON.stringify(parsed) };
+    }
+    const parsed = JSON.parse(result.text); const [key] = Object.keys(parsed.sections);
+    const first = provider.mock.calls.length === 1;
+    if (!first) expect(args[1]).toContain("[보강 요청]");
+    parsed.sections[key].body = first ? prose(key, 3500) : repair === "empty" ? "" : repair === "repeated"
+      ? prose(key, 5000) + prose(key, 5000) : repair === "wrong-chart" ? prose(key, 5000) + " 황소자리 라그나입니다." : prose(key, 3000);
+    return { ...result, text: JSON.stringify(parsed), truncated: !first && repair === "truncated" };
+  });
+  expect((await start()).status).toBe(202);
+  const [key] = Object.keys(docs[0].llmMeta.groups); const draft = clone(docs[0].llmMeta.groups[key]);
+  for (let i = 0; i < 6 && docs[0].status !== "completed"; i++) await start();
+  expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.groups[key]).toEqual(draft);
+  expect(docs[0].llmMeta.attempts[key]).toBe(2); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
+});
+it("trims overlong JSON bodies while retaining keys and scores", async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args); const parsed = JSON.parse(result.text);
+    for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, args[2].logContext.group === "reasoning_flows" ? 1300 : 7500);
+    return { ...result, text: JSON.stringify(parsed) };
+  });
+  for (let i = 0; i < 5; i++) await start();
+  const { countPaidReportBodyChars } = await import("../../worker/lib/paid-report-quality.js");
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(5);
+  for (const group of utils.VEDIC_SECTION_GROUPS) {
+    const parsed = JSON.parse(docs[0].llmMeta.groups[group.key].text);
+    expect(countPaidReportBodyChars(Object.values(parsed.sections).map(row => row.body).join("\n\n"))).toBeLessThanOrEqual(group.hardMaxChars);
+    if (group.includeScores) expect(parsed.scores).toEqual({ overall: 70 });
+  }
+});
+it("keeps the total floor after short groups are accepted and exhausts no extra calls", async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args); const parsed = JSON.parse(result.text);
+    for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, 600);
+    return { ...result, text: JSON.stringify(parsed) };
+  });
+  for (let i = 0; i < 18; i++) expect((await start()).status).toBe(202);
+  expect(provider).toHaveBeenCalledTimes(15); expect(docs[0].status).not.toBe("completed");
+  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+});
+
+it("does not accept non-string required bodies as short content", async () => {
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args); const parsed = JSON.parse(result.text);
+    const first = Object.keys(parsed.sections || {})[0];
+    if (first) parsed.sections[first].body = { invalid: "본문 아님" };
+    return { ...result, text: JSON.stringify(parsed) };
+  });
+  expect((await start()).status).toBe(202); expect(docs[0].llmMeta.groups).toEqual({});
+});
