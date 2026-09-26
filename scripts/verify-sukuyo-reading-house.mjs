@@ -5,6 +5,8 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const expectedArticles = JSON.parse(await fs.readFile(path.join(root, 'public/data/sukuyo-reading/index.json'), 'utf8'));
+assert.ok(expectedArticles.length > 0, 'Public Sukuyo catalogue must not be empty');
 const phase = 'house';
 const output = path.join(root, '.impeccable', 'basic-fortune', phase);
 await fs.mkdir(output, { recursive: true });
@@ -57,7 +59,9 @@ try {
     window.openSukuyoModal();
   });
   await page.waitForSelector('.sy-house-mansions button');
-  await page.waitForFunction(()=>document.querySelectorAll('.sy-house-story').length===26);
+  await page.waitForFunction(count=>document.querySelectorAll('.sy-house-story').length===count, expectedArticles.length);
+  assert.deepEqual(await page.locator('.sy-house-story').evaluateAll(links=>links.map(link=>link.getAttribute('href'))),
+    expectedArticles.map(article=>article.href), 'Every public Sukuyo article is reachable in catalogue order');
   const coverage=await page.evaluate(()=>window.__syOriginalControls.every(item=>window.__syNewControls.some(next=>JSON.stringify(next)===JSON.stringify(item))));
   assert.equal(coverage,true,'Original control/ID coverage');
   const privateCopyExposed=await page.evaluate(()=>{
@@ -90,7 +94,7 @@ try {
   }
   await page.locator('#syHouseDirectory input').fill('위');assert.equal(await page.locator('.sy-house-mansions button:visible').count(),2);
   await page.locator('#syHouseDirectory input').fill('');
-  for(let index=0;index<26;index++){
+  for(let index=0;index<expectedArticles.length;index++){
     const link=page.locator('.sy-house-story').nth(index);await link.click();
     await page.waitForFunction(()=>document.querySelector('.sy-house-article-body')?.textContent.length>300);
     await page.locator('.sy-house-article-reader > button').click();
@@ -107,6 +111,6 @@ try {
   for(const section of ['#syHouseTools','#syHouseDirectory','#syHouseJournal']){
     await page.locator(section).evaluate(el=>el.scrollIntoView());await page.screenshot({path:path.join(output,section.slice(1)+'.png')});
   }
-  const summary={originalControlsPreserved:coverage,mansions:27,articles:26,natalUnchanged:true,viewports:[360,390,430,1280],errors};
+  const summary={originalControlsPreserved:coverage,mansions:27,articles:expectedArticles.length,natalUnchanged:true,viewports:[360,390,430,1280],errors};
   assert.deepEqual(errors,[]);await fs.writeFile(path.join(output,'house-report.json'),JSON.stringify(summary,null,2));console.log(JSON.stringify(summary));
 } finally { await browser.close(); }
