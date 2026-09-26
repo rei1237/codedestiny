@@ -1,10 +1,20 @@
 ---
 status: active
 updated: 2026-09-26
-next: "Phase 5 main CI 결과 확인 후 Phase 6 사용자 승인 대기."
+next: "Phase 6 mock 평가 완료. 실제 LLM 평가와 사주 전문가 20건 검수는 별도 승인·검수자 대기."
 ---
 
 # 영냥이 자유질문 인수인계
+
+## Phase 6 mock 평가 (2026-09-26)
+
+Phase 6 사용자 승인 후 실제 과금·운영 경계 없이 mock 회귀 평가를 재개했다. 질문 근거·분석·첫 장 검증, 퓨전/상담 종류, 저장·재시도·큐·복구, 12개 결과 언어와 공급자 경계를 포함한 총 190건이 통과했다.
+
+- UI 56/56: `yeongnyangi-ask-evidence`, `ask-analysis`, `ask-validation`, `paid-recovery-contract`, `consultation-kinds`, `reading-locale`, `ui-locale-copy`, `provider-boundaries`, `api-timeout`.
+- Worker 134/134: `repository`, `recovery`, `retry`, `queue`, `route`, `entitlement.route`, `payment-intent`, `free-repository`, `profiles-cache`.
+- 확인한 경계: 퓨전 근거 중복 제거와 실제 계산 재사용, 저장된 장/결제 증명의 재사용, 품질 실패 후 1회 재생성 및 `ASK_LIMITED_REVIEW_REQUIRED`, 큐·복구의 추가 과금 방지, 12개 결과 언어의 입력·모드·문자권·구매 언어 보존.
+- 검증 명령은 `node --require ./scripts/lib/mock-network-guard.cjs --test ...`(UI 56건)과 `npm run test:jest -- --runInBand ...`(Worker 134건)이며 두 명령 모두 종료 0이다.
+- 이 평가는 mock 동작·계약 회귀만 증명한다. 실제 LLM 문장의 의미·번역 품질과 사주 전문가 20건 검수는 수행하지 않았으며 별도 승인·검수자가 필요하다. 실 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않았다.
 
 ## Phase 5 (사용자 승인: 2026-09-26)
 
