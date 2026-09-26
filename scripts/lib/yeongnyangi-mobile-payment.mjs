@@ -128,7 +128,7 @@ export async function fixtures(browser,base,product,width=390){
   if(path===`/api/yeongnyangi/requests/${row.id}/generate`){
    if(row.state==='REFUNDED')return send({code:'PAYMENT_NOT_ACTIVE'},409);
    assert.equal(row.paid,true);
-   if(row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'){row.errorCode='';row.state='PAID';}
+   if(row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'){row.errorCode='';row.state='PAID';row.recovery={requestId:row.id,canRetryNow:false};}
    return send({ok:true,fortune:row},202);
   }
   state.unknown.push(`${request.method()} ${path}`);
@@ -139,7 +139,7 @@ export async function fixtures(browser,base,product,width=390){
  // The real queue/repository completion and retry rules are covered in worker tests.
  const worker=setInterval(()=>{
   if(!row.paid||['COMPLETED','REFUNDED'].includes(row.state)||row.errorCode==='AUTOMATIC_RECOVERY_STOPPED')return;
-  if(state.generate503>0&&row.chapters.length>=state.generationBoundary){state.generate503--;row.state='FORTUNE_FAILED';row.errorCode='AUTOMATIC_RECOVERY_STOPPED';return;}
+  if(state.generate503>0&&row.chapters.length>=state.generationBoundary){state.generate503--;row.state='FORTUNE_FAILED';row.errorCode='AUTOMATIC_RECOVERY_STOPPED';row.recovery={requestId:row.id,canRetryNow:true};return;}
   if(state.holdGeneration&&row.chapters.length>=state.generationBoundary){row.state='GENERATING';return;}
   state.generates++;
   row.chapters.push({summary:`QA 챕터 ${row.chapters.length+1}`,analysis:['QA fixture 본문'],example:'QA 사례',advice:'QA 조언',persona:'QA 메시지',questionAnswers:row.chapters.length===0?row.consultation?.questions?.map(q=>({questionId:q.id,answer:'선택의 기준을 먼저 정리해 보는 편이 좋아요.',reason:'오행의 분포와 월령에 따른 균형을 살펴봐요.',timing:'2026년 9~12월은 실천과 점검 기간이며 사건 예측은 아니에요.',action:'가능한 선택지를 적고 작게 시도해 보세요.'})):undefined});
@@ -459,7 +459,10 @@ export async function verifyMobilePayments({base,products,systemNames}){
        f.state.read503=0;await restored;await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
       }
       if(scenario==='generation-failure'){
-       await f.page.locator('p[role="alert"]').waitFor();assert.equal(f.row.paid,true);assert.equal(f.state.sdk.length,1);assert.equal(f.row.chapters.length,1);
+       // The server's retry grant, not the error code alone, enables manual recovery.
+       await f.page.getByText('자동 복구가 멈췄어요.',{exact:false}).waitFor();
+       assert.equal(f.row.paid,true);assert.equal(f.state.sdk.length,1);assert.equal(f.row.chapters.length,1);
+       assert.equal(await f.page.locator('a[href*="/checkout/"]').count(),0);
       }
       if(scenario==='generation-interrupted'){
        await waitFixture(()=>f.row.state==='GENERATING');assert.equal(f.row.chapters.length,1);

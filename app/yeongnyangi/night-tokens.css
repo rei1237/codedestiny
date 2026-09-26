@@ -1,0 +1,15 @@
+/* Shared by the landing, consultation, checkout and saved reading surfaces. */
+:where(.ynOriginal, [data-yn-night]) {
+  --yn-deep: #0b1220;
+  --yn-night: #101b2c;
+  --yn-surface: #18263a;
+  --yn-raised: #23344b;
+  --yn-violet: #665087;
+  --yn-gold: #e5c58e;
+  --yn-ivory: #f3eee5;
+  --yn-muted: #bac9da;
+  --yn-line: #52677e;
+  --yn-radius: 16px;
+  --yn-reading-width: 68ch;
+  color-scheme: dark;
+}

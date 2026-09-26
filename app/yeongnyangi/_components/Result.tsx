@@ -13,6 +13,7 @@ import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
 import ReadingLoading from './ReadingLoading';
 import ResultSharing from './ResultSharing';
 import FishReceipt from './FishReceipt';
+import {OrderReference} from './OrderRecovery';
 function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
  const copy=resultStateCopy(locale);
  return <div className={styles.recoveryNotice}>
@@ -115,39 +116,39 @@ export default function Result(){
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   <SpiritResult row={row}/>
   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
-  {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button><a href={checkoutPath(row)}>{copy.checkout}</a></>:row.state!=='COMPLETED'&&<>
+  {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a href={checkoutPath(row)}>{copy.checkout}</a>}</>:row.state!=='COMPLETED'&&<>
     {row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode||'')?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
-  {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<p className={styles.orderId}>{copy.order}: {row.id}</p>
+  {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<OrderReference id={row.id} locale={row.locale}/>
  </section>;
  return <section className={styles.reader} lang={row?.locale||'ko'}>
-  <p className={styles.readerGreeting}><PawPrint size={19} aria-hidden="true"/> {stateCopy.greeting}</p><h1>{row?`${row.product.name} · ${row.product.fishName}`:stateCopy.result}</h1>
-  {row&&<ReadingIdentity product={row.product}/>}
-  {row?.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
+  <h1>{row?`${row.product.name} · ${row.product.fishName}`:stateCopy.result}</h1>
+  {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
+
   {!row&&!error&&<ReadingLoading/>}
   {row&&<>
-   {row.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<ReadingLoading product={row.product} stage={row.chapters.length===row.manifest.length?'verifying':'generating'} saved={row.chapters.length} total={row.manifest.length}/>}
-   <section className={styles.questionContext} aria-label={stateCopy.questionSection}>
-    <h2>{row.consultation?.kindLabel || row.consultation?.topicLabel || stateCopy.consultation}</h2>
+   {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
+    <summary>{row.consultation?.kindLabel || row.consultation?.topicLabel || stateCopy.consultation}</summary>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
     {row.consultation?.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
     {row.consultation?.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}
-   </section>
-   <div id="reading-progress" className={styles.progress}><img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt={stateCopy.greeting}/>
+   </details>}
+   <div id="reading-progress" className={styles.progress} data-state={row.state}>{row.state!=='COMPLETED'&&<img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt=""/>}
     <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
      {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={stateCopy.progress}/>}
-     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.recovery?.canRetryNow?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode||'')?<p role="status">{stateCopy.reviewRequired}</p>:<p role="status">{row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
+     {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.recovery?.canRetryNow?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode||'')?<p role="status">{stateCopy.reviewRequired}</p>:<p role="status">{row.errorCode==='PAYMENT_NOT_ACTIVE'?copy.support:row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
      {row.state==='REFUNDED'&&<p>{stateCopy.refunded}</p>}
-     {!row.paid&&row.state!=='REFUNDED'&&<><p>{stateCopy.unpaid}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button><a className={styles.button} href={checkoutPath(row)}>{copy.checkout}</a></>}
+     {!row.paid&&row.state!=='REFUNDED'&&<><p>{stateCopy.unpaid}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.button} href={checkoutPath(row)}>{copy.checkout}</a>}</>}
     </div>
    </div>
-   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
    {!unpaid&&<ReadingBook row={row}/>}
+   {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{row.consultation.kindLabel||row.consultation.topicLabel||stateCopy.consultation}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}</details>}</>}
+   {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product}/><FishReceipt product={row.product}/></>}
   </>}
   {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{row?.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarningKnown}</p>}
   {row?.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?copy.loading:copy.continue}</button>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
-  {row&&<p className={styles.orderId}>{copy.order}: {row.id}</p>}
+  {!row&&requestId.current&&<OrderReference id={requestId.current}/>}
   <a href={row?.locale?'/yeongnyangi/library/?lang='+row.locale:'/yeongnyangi/library/'}>{copy.library}</a>
  </section>;
 }

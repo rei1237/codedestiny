@@ -27,6 +27,7 @@ import { loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billin
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
+import "../yeongnyangi/night-tokens.css";
 import { products } from "@/worker/yeongnyangi/payments/catalog";
 import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
@@ -113,6 +114,7 @@ export default function CheckoutClient() {
   const paymentLock=useRef(false);
   const [available,setAvailable]=useState(false);
   const [checked,setChecked]=useState(false);
+  const [reading,setReading]=useState<FortuneRecord|null>(null);
   const [gate, setGate] = useState<GateState>({ phase: "idle" });
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   // 표는 모듈 상수라 같은 로케일이면 참조가 그대로다 — 아래 useEffect·useCallback 의존성에 넣어도 안전하다.
@@ -182,6 +184,7 @@ export default function CheckoutClient() {
       if(!active)return;
       if(record.fortune.product.cdFeatureKey!==params.featureKey)throw new Error(copy.errProductMismatch);
       if(record.fortune.paid){window.location.assign(params.returnTo);return;}
+      setReading(record.fortune);
       setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
     }).catch(e=>{if(active)setGate({phase:'error',message:e.message});}).finally(()=>{if(active)setChecked(true);});
     return ()=>{active=false;};
@@ -240,7 +243,7 @@ export default function CheckoutClient() {
 
   const product = products.find(item => item.cdFeatureKey === params.featureKey);
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-yn-night>
       <nav className={styles.nav} aria-label={copy.navAria}>
         <a href={leaveHref} onClick={leaveToPreviousScreen}>{copy.backToRoom}</a><a href="/">CODE DESTINY</a>
       </nav>
@@ -265,7 +268,7 @@ export default function CheckoutClient() {
                 <div><h2>{product.name} · {product.fishName}</h2><p>{depthDescriptions[product.fishId]}</p></div>
               </div>
               <dl className={styles.receipt}>
-                <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(product.chapterCount)}</dd></div>
+                <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
                 <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
                 <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
               </dl>
