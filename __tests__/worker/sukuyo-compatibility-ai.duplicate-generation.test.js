@@ -303,3 +303,62 @@ for (const index of [0, 1, 2, 3]) test(`취소·환불 저장소 ${index}은 재
 
 afterEach(() => { expect(blockedFetch).not.toHaveBeenCalled(); });
 afterAll(() => { blockedFetch.mockRestore(); });
+
+for (const [length, accepted] of [[1199, false], [1200, true], [1499, true]]) {
+  test(`P2 accepts nonrepeating ${length}-character sections: ${accepted}`, async () => {
+    const input = testUtils.normalizeInput(SAMPLE_BODY);
+    const calculation = testUtils.calculateSukuyo(input);
+    const group = testUtils.SUKUYO_SECTION_GROUPS[0];
+    // 서로 다른 한글 문자로 공백 제외 경계를 정확히 만들며 반복 판정은 우회하지 않는다.
+    const body = Array.from({ length: length - 1 }, (_, i) => String.fromCharCode(0xac00 + i)).join('') + '다';
+    const payload = Object.fromEntries(group.keys.map(key => [key, { body }]));
+    callGeminiJsonWithRetryMock.mockResolvedValue({ ok: true, provider: 'gemini', text: JSON.stringify(payload) });
+    const result = await testUtils.generateSectionGroup({}, input, calculation, group, 'test', 2);
+    expect(Object.keys(result.sections)).toHaveLength(accepted ? group.keys.length : 0);
+    const [, prompt, options] = callGeminiJsonWithRetryMock.mock.calls[0];
+    expect(prompt).toContain('1,500');
+    expect(prompt).toContain('2,250');
+    expect(options.attempts).toBe(1);
+    expect(Math.min(options.baseTokens, options.capTokens)).toBeGreaterThanOrEqual(12375);
+    expect(options.fallbackMinChars).toBe(1800);
+  });
+}
+test('P2 still rejects repeated and empty sections', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY);
+  const calculation = testUtils.calculateSukuyo(input);
+  const group = testUtils.SUKUYO_SECTION_GROUPS[0];
+  const body = '계산 근거를 살펴보고 관계에서 자신의 속도를 차분히 돌아보며 구체적인 행동의 방향을 정리하는 것이 좋습니다. '.repeat(40);
+  callGeminiJsonWithRetryMock.mockResolvedValue({ ok: true, provider: 'gemini', text: JSON.stringify({ [group.keys[0]]: { body }, [group.keys[1]]: { body: '' } }) });
+  const result = await testUtils.generateSectionGroup({}, input, calculation, group, 'test', 2);
+  expect(result.sections).toEqual({});
+});
+
+test('P2 selects reinforcement for a short total without waiving 20,000 characters', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY);
+  const calculation = testUtils.calculateSukuyo(input);
+  const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_SPECS.map((spec, index) => [spec.key, {
+    title: spec.title, body: Array.from({ length: 1200 }, (_, i) => String.fromCharCode(0xac00 + (index * 1200 + i) % 11172)).join(''),
+  }]));
+  callGeminiJsonWithRetryMock.mockResolvedValue({ ok: false, error: 'provider_unavailable' });
+  const summary = { headline: 'saved summary' };
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary });
+  expect(result.complete).toBe(false);
+  expect(Object.keys(result.sections)).toHaveLength(15);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  await expect(testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary, attempts: { essence: 3 } })).rejects.toMatchObject({ code: 'LLM_FAILED' });
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+});
+
+test('P2 generates missing groups before reinforcing valid short sections', async () => {
+  const input = testUtils.normalizeInput(SAMPLE_BODY);
+  const calculation = testUtils.calculateSukuyo(input);
+  const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS[0].keys.map(key => [key, {
+    body: Array.from({ length: 1200 }, (_, i) => String.fromCharCode(0xac00 + i)).join(''),
+  }]));
+  callGeminiJsonWithRetryMock.mockResolvedValue({ ok: false, error: 'provider_unavailable' });
+  const onReserve = jest.fn();
+  const result = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary: { headline: 'saved' }, attempts: { essence: 3 }, onReserve });
+  expect(onReserve).toHaveBeenCalledWith('attraction', 1);
+  expect(Object.keys(result.sections)).toHaveLength(3);
+  expect(result.complete).toBe(false);
+});

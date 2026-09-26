@@ -1,4 +1,5 @@
 import { fusionLocaleLengthScale, fusionExpertEvidenceReady, FUSION_EXPERT_VERSION, validFusionSignals, buildFusionEvidenceCrossCheck, fusionInputIdentity, fusionCheckpointMatches } from "./fusion-expert-contract.js";
+import { tokensRequiredForChars } from "./llm-budget.js";
 import { FusionFortuneGenerationAttempt } from "./models.js";
 import { countPaidReportBodyChars, PAID_REPORT_MIN_BODY_CHARS } from "./paid-report-quality.js";
 import { mongoose, withMongoRetry } from "./db.js";
@@ -9,6 +10,7 @@ import {
   FUSION_FORTUNE_LENGTH,
   FUSION_SECTION_GROUP_SPECS,
   fusionGroupsForStage,
+  fusionGroupCeilingChars,
 } from "./fusion-fortune-prompt.js";
 import {
   FUSION_VISUAL_SYSTEMS,
@@ -657,13 +659,14 @@ const FUSION_TAIL_RESERVE_MS = 20000;
 //    않으면서도 기존 10분 TTL 전부를 기다리게 하지 않는다. 근거: docs/HANDOFF_FUSION_FORTUNE_UX.md.
 export const FUSION_RESERVATION_FRESHNESS_MS = FUSION_GENERATION_DEADLINE_MS + 60000;
 /**
- * 한국어 1자 ≈ 1.6 출력 토큰(JSON 키·이스케이프 몫 포함) + 여유.
+ * 그룹 목표 상한 + JSON 완충을 공통 토큰 환산식으로 확보한다.
  * 단일 호출 시절의 운영 노브 FUSION_FORTUNE_MAX_OUTPUT_TOKENS 는 이제 **그룹당** 상한으로 읽는다.
  */
-function fusionGroupTokens(group, env = {}) {
+export function fusionGroupTokens(group, env = {}) {
+  const required = tokensRequiredForChars(fusionGroupCeilingChars(group));
   const override = Number(env.FUSION_FORTUNE_MAX_OUTPUT_TOKENS);
-  if (Number.isFinite(override) && override > 0) return Math.min(16384, Math.max(3000, Math.round(override)));
-  return Math.min(12000, Math.round(group.targetChars * 1.8) + 900);
+  if (Number.isFinite(override) && override > 0) return Math.max(required, Math.min(16384, Math.round(override)));
+  return required;
 }
 
 /** 그룹 1회 호출의 LLM 대기 상한. FUSION_FORTUNE_LLM_TIMEOUT_MS 로 덮을 수 있다. */

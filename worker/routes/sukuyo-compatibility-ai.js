@@ -14,6 +14,7 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
+import { tokensRequiredForChars } from "../lib/llm-budget.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
@@ -71,9 +72,13 @@ const SUKUYO_SECTION_SPECS = [
   { key: "outlook", title: "🔭 展望 — 시간에 따른 변화", minChars: 1200, guide: "만난 직후 / 1년 후 / 3년 후 / 5년 이후 네 구간으로 나눠 관계가 어떻게 변하는지 서술하고, 각 구간마다 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오를 함께 제시" },
   { key: "closingLetter", title: "💌 一言 — 달빛이 전하는 한마디", minChars: 700, guide: "앞의 모든 해석을 종합해 두 사람에게 건네는 짧은 편지 한 편을 감성적인 문체로 쓴다. 번호 목록·체크리스트를 쓰지 않고 이어지는 문장으로만 쓰며, 마지막 문장은 반드시 두 사람의 이름을 모두 불러 마무리한다" },
 ];
-SUKUYO_SECTION_SPECS.forEach(spec => { spec.minChars = Math.max(spec.minChars, 1500); });
+SUKUYO_SECTION_SPECS.forEach(spec => {
+  spec.targetMinChars = Math.max(spec.minChars, 1500);
+  spec.targetMaxChars = Math.round(spec.targetMinChars * 1.5);
+  spec.minChars = Math.floor(spec.targetMinChars * 0.8);
+});
 const SUKUYO_SECTION_SPEC_MAP = new Map(SUKUYO_SECTION_SPECS.map((spec) => [spec.key, spec]));
-const SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS = SUKUYO_SECTION_SPECS.reduce((total, section) => total + section.minChars, 0);
+const SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS = SUKUYO_SECTION_SPECS.reduce((total, section) => total + section.targetMinChars, 0);
 const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 26000;
 
 /**
@@ -99,8 +104,11 @@ const SUKUYO_SECTION_GROUPS = [
 const SUKUYO_SECTION_TIMEOUT_MS = clampSyncLlmTimeoutMs(45000);
 // 한 장의 본문 상한. 토큰 예산(capTokens)은 그룹 합계 + 완충을 담을 수 있어야 한다(worker/lib/llm-budget.js).
 const SUKUYO_SECTION_BODY_MAX_CHARS = 6000;
-const SUKUYO_SECTION_BASE_TOKENS = 8000;
-const SUKUYO_SECTION_CAP_TOKENS = 12000;
+// attempts:1 이므로 첫 호출부터 가장 큰 그룹의 목표 상한 + JSON 완충을 확보한다.
+const SUKUYO_SECTION_BASE_TOKENS = tokensRequiredForChars(Math.max(...SUKUYO_SECTION_GROUPS.map(
+  group => group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).targetMaxChars, 0),
+)));
+const SUKUYO_SECTION_CAP_TOKENS = SUKUYO_SECTION_BASE_TOKENS;
 // 이 라우트는 요청 안에서 생성을 끝낸다(백그라운드 waitUntil 없음). 그룹 하나가 최악
 // attempts:2 × 60s = 120s 지만, 그보다 먼저 엣지가 100초에 요청을 끊으므로 엣지 컷이 실질 상한이다.
 // 따라서 엣지 컷 + 저장 마진(20s)보다 오래된 generating 문서는 진행 중일 수 없다 — 그걸 쓴 요청은 이미 죽었다.
@@ -772,9 +780,9 @@ function buildSukuyoCompatibilityJsonSchema(input, calculation) {
     },
     sections: Object.fromEntries(SUKUYO_SECTION_SPECS.map((section) => [section.key, {
       title: section.title,
-      minChars: section.minChars,
+      minChars: section.targetMinChars,
       guide: section.guide,
-      body: `최소 ${section.minChars.toLocaleString("ko-KR")}자 상담문`,
+      body: `최소 ${section.targetMinChars.toLocaleString("ko-KR")}자 상담문`,
     }])),
   };
 }
@@ -1300,7 +1308,7 @@ function buildSectionGroupPrompt(input, calculation, group) {
     ...specs.map((spec) => [
       `● ${spec.title}  (키: ${spec.key})`,
       `   요구 사항: ${spec.guide}`,
-      `   분량: 제목·공백·마크다운을 제외한 본문 최소 ${spec.minChars.toLocaleString("ko-KR")}자, 상한 ${Math.round(spec.minChars * 1.5).toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
+      `   분량: 제목·공백·마크다운을 제외한 본문 최소 ${spec.targetMinChars.toLocaleString("ko-KR")}자, 상한 ${spec.targetMaxChars.toLocaleString("ko-KR")}자. 늘리는 것보다 밀도를 높이는 쪽이 낫습니다.`,
     ].join("\n")),
     "",
     "각 장 본문은 3~6개 소단락으로 나누고, 마크업은 **굵게**, 번호 목록(1. ), 하이픈 목록(- ), 인용(> ) 네 가지만 사용합니다.",
@@ -1464,7 +1472,7 @@ function sukuyoSectionCache(env, keyExtra) {
 
 /** 그룹 하나(장 3개)를 생성한다. 실패하면 빈 객체를 돌려주고 나머지 그룹을 죽이지 않는다. */
 async function generateSectionGroup(env, input, calculation, group, systemPrompt, attempt = 1) {
-  const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).minChars, 0);
+  const groupMinChars = group.keys.reduce((sum, key) => sum + SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars, 0);
   try {
     const ai = await callGeminiJsonWithRetry(env, buildSectionGroupPrompt(input, calculation, group), {
       systemPrompt,
@@ -1548,7 +1556,12 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   const sections = { ...(options.sections || {}) };
   const attempts = options.attempts || {};
   const isComplete = key => countPaidReportBodyChars(sections[key]?.body) >= SUKUYO_SECTION_SPEC_MAP.get(key).minChars && !hasRepeatedReportPassage(sections[key]?.body);
-  const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(key => !isComplete(key)) })).filter(group => group.keys.length);
+  const totalChars = Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0);
+  // 모든 장을 먼저 확보한 뒤, 총합이 부족하면 목표 미달 장을 기존 예산 안에서 보강한다.
+  const needsTotalRepair = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && totalChars < 20000;
+  const needsGeneration = key => !isComplete(key) || (needsTotalRepair
+    && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars);
+  const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(needsGeneration) })).filter(group => group.keys.length);
   const group = pending[0];
   if (group && Number(attempts[group.id] || 0) >= 3) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
   let provider = "", model = "";
@@ -2294,6 +2307,10 @@ export const __sukuyoCompatibilityAiTestUtils = {
   SUKUYO_SECTION_SPECS,
   SUKUYO_AXIS_SPECS,
   SUKUYO_SECTION_GROUPS,
+  SUKUYO_SECTION_BASE_TOKENS,
+  SUKUYO_SECTION_CAP_TOKENS,
+  generateSectionGroup,
+  createCompatibilityAnswer,
   SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
   SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
   SUKUYO_COMPAT_AI_GENERATING_FRESH_MS,

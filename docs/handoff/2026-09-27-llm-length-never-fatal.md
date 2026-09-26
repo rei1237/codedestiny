@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P2(토큰 부족 3곳 + 신년)부터 한 세션에 한 단계씩. 영냥이와 P1은 구현 완료; P1 검증·전달 결과는 아래 참조."
+next: "P3 대형 리포트 라우트부터 3~4개씩 진행. P2 구현과 mock 검증 기록은 아래 참조. 총합 20,000자 결정은 P5에 유지."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -42,6 +42,18 @@ next: "P2(토큰 부족 3곳 + 신년)부터 한 세션에 한 단계씩. 영냥
 - 핵심 mock: `npm run test:jest -- --runInBand __tests__/worker/geomancy-paid-delivery.test.js __tests__/worker/paid-narrative-candidate.test.js __tests__/worker/ziwei-island-paid-delivery.test.js` → 3 suites / 73 tests 통과.
 - 변이 5종(마지막 시도 수용 제거, 보강 초안 수용 제거, 반복 보강 필터 제거, 기존 파트와 겹치는 초안 필터 제거, 섬 캐시 하한 축소) 모두 실제 assertion 실패로 검출 후 원본 복원.
 - `regression-scout` / `paid-gate-auditor` 읽기 전용 감사 수행. `npm run check:fast -- --plan` critical 분류, `npm run check:fast` exit 0: 결제 가드 88/88, lint·typecheck·Node 테스트·Worker dry-run 통과, Jest 300 suites / 4,267 tests 통과. `node scripts/verify-handoff-contract.mjs` 198문서 통과. main CI 판정은 이 변경 커밋의 GitHub 실행과 세션 최종 보고를 참조한다. 실 LLM·결제·운영 DB·운영 승격 없음.
+
+## P2 구현 (2026-09-27)
+
+- 주 체크아웃 main `0cad2a975ed169f763220a03afd5670ce3da59e1` 확인. 전달받은 `b7e96a28390a21412ef04851486bfabee3505e13`은 조상이며 `git pull --ff-only`는 Already up to date. 마케팅·사이트맵·타입 파일 등의 기존 변경을 보존하고 main 기준 clean 격리 체크아웃에서 작업했다.
+- 숙요 궁합: 요청 목표 1,500~2,250자 유지, 수용 하한 1,200자(80%). 가장 큰 3장 그룹 목표 상한 6,750자를 기준으로 첫 호출 base와 cap 모두 12,375토큰. 폴백 문턱 1,800자와 3회 시도 한도 유지.
+- 모든 장을 먼저 확보한 뒤 개별 하한은 통과하지만 총합 20,000자 미만이면 목표 미달 장을 기존 예산 안에서 보강 대상으로 선정한다. 이를 빠뜨리면 생성 대상이 없는 영구 partial이 생긴다는 감사 지적을 반영했다. 총합 기준을 면제하거나 시도 횟수를 늘리지 않는다.
+- 수호 운세: 공통 환산식으로 기본/환경값 하한 7,650토큰, 환경값 상한 12,000. 잘못된 글자당 1토큰 주석 수정.
+- 초융합: 자체 환산 대신 `tokensRequiredForChars(fusionGroupCeilingChars(group))`. 최대 그룹 5,400자 상한에 10,350토큰, 낮은 env 값도 필요 예산 아래로 내리지 못한다.
+- 신년: 기존 5,500자 상한과 52초 timeout 유지, 10,500→12,000토큰. 재시도·분량·총합·결제/저장 계약은 유지한다.
+- 공통 Gemini thinking 기본값은 0이며 이번 호출들은 별도 thinking을 활성화하지 않는다. 공유 provider helper는 수정하지 않았다.
+- mock 핵심 3 suites / 81 tests(숙요 최종 22개 포함), 전달/스트림 3 suites / 84 tests, 신년 전달 17개, 복원력 1,224 assertions 통과. `check:fast -- --plan`은 critical. `check:fast`에서 목표와 수용 하한을 같은 값으로 보던 `verify:analysis-basis-contract`가 실패하여 목표 합계를 검사하도록 수정했고, 해당 검사 재실행 94 assertions 통과. 전체 검사와 main CI 최종 결과는 전달 커밋의 실행 및 세션 최종 보고를 참조한다.
+- `regression-scout`와 `paid-gate-auditor` 읽기 전용 감사 수행. 실 LLM·결제·운영 DB·운영 승격 없음. 토큰 확대만으로 실제 완결·총합 통과를 보장하지 않으며, 분량 미달의 최종 수용은 P3/P5에 남는다.
 
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 
@@ -116,7 +128,7 @@ next: "P2(토큰 부족 3곳 + 신년)부터 한 세션에 한 단계씩. 영냥
 | 단계 | 범위 | 핵심 변경 | 검증 |
 |---|---|---|---|
 | **P1 구현 완료** | `paid-narrative-delivery.js` (11개 서비스) | 선행 초안/마지막 수용을 유지하고 반복 보강본의 초안 차단을 수정. 섬 캐시에 파트 `minChars` 연결. | 핵심 mock 73개·변이 5종 통과. 위 P1 검증·전달 기록 참조. |
-| **P2** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
+| **P2 구현 완료** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
 | **P3** | 대형 리포트 라우트 18개 | 섹션 분량 판정에 L2(보강본 수용)를 적용한다. 점성술·베딕·자미 상한 거절은 자르기로 바꾼다(L3). 자미·자미 심층·네오·인생책 프롬프트의 공백 기준을 판정 기준(`countPaidReportBodyChars`, 공백 제외)과 통일한다. 비율 1.0·0.85+ 인 곳은 프롬프트 목표를 하한/0.8 이상으로 올린다. | 라우트별 mock 테스트. 서비스 3~4개씩 나눠 커밋한다. |
 | **P4** | 형식 교정 | 연애 타로 4문단·마인드스캔 10문단은 분할·병합으로 맞춘다. 질문형 문장부호 끝은 정규화한다. 영냥이 필드 5000자는 분할한다. | 단위 테스트. |
 | **P5** | 구조 | 관계 궁합이 한 파트 실패로 전체 환불되는 구조를 부분 수용 + 재시도로 바꾼다. L6(총합 20,000) 결정을 사용자에게 받는다. | 결정 뒤 설계. |
@@ -137,4 +149,4 @@ next: "P2(토큰 부족 3곳 + 신년)부터 한 세션에 한 단계씩. 영냥
 
 ## 다음 세션 첫 문장
 
-"docs/handoff/2026-09-27-llm-length-never-fatal.md 를 읽고 main·clean 확인과 git pull --ff-only 후 P2(토큰 부족 3곳 + 신년)를 진행하라. P1의 총합·형식 제한은 유지한다."
+"docs/handoff/2026-09-27-llm-length-never-fatal.md 를 읽고 main·clean 확인과 git pull --ff-only 후 P3를 3~4개 라우트씩 진행하라. P1/P2의 총합·형식 제한은 유지한다."
