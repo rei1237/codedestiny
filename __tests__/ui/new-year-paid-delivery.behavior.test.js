@@ -188,3 +188,29 @@ test('긴 신년 결과는 애니메이션·화면 진입 조건 없이 처음�
   const html = renderToStaticMarkup(ctx.RevealBlock({ children: content }));
   assert.ok(html.includes(content)); assert.doesNotMatch(html, /opacity|visibility|display:none|transform/);
 });
+
+test('P2 initial and repair calls retain expanded token budget and timeout', async () => {
+  const file = 'worker/routes/new-year-ai.js';
+  const ast = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+  const calls = [];
+  const ctx = vm.createContext({ console, Math,
+    clean: value => String(value || '').trim(), isStagingLlmMockEnabled: () => false,
+    buildSectionPrompt: () => 'mock prompt', buildSystemPrompt: () => 'mock system',
+    callGeminiText: async (_env, _prompt, options) => { calls.push(options); return { ok: true, provider: 'gemini', text: '본문'.repeat(300) }; },
+  });
+  for (const name of ['NEW_YEAR_AI_SECTIONS', 'NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS', 'NEW_YEAR_AI_SECTION_MIN_LENGTH', 'NEW_YEAR_AI_SECTION_TIMEOUT_MS']) {
+    const declaration = ast.statements.filter(ts.isVariableStatement).flatMap(row => [...row.declarationList.declarations]).find(row => row.name.getText(ast) === name);
+    assert.ok(declaration, name);
+    vm.runInContext(`var ${declaration.getText(ast)};`, ctx);
+  }
+  load(ctx, file, ['generateConsultationSection']);
+  for (const section of ctx.NEW_YEAR_AI_SECTIONS) for (const repairLines of [[], ['내용 보강']]) {
+    const result = await ctx.generateConsultationSection({}, { section, repairLines, timeoutMs: ctx.NEW_YEAR_AI_SECTION_TIMEOUT_MS });
+    assert.equal(result.ok, true);
+    const options = calls.at(-1);
+    assert.ok(options.maxOutputTokens >= Math.ceil((section.maxChars + 1500) * 1.5) + 1500);
+    assert.equal(options.timeoutMs, 52000);
+    assert.equal(options.fallbackMinChars, 1600);
+  }
+  assert.equal(calls.length, 10);
+});

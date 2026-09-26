@@ -296,14 +296,16 @@ function assertNeverThrows(feature, label, run) {
     `${feature}: 문서 분량 여유가 부족하다 (상한 ${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS}, 하한 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS})`,
   );
 
-  // 실제 LLM 호출 단위는 "섹션 그룹"이다. 토큰 예산은 그 단위로 재야 의미가 있다.
-  assertBudget(feature, {
-    minChars: Math.max(...SUKUYO_SECTION_SPECS.map((spec) => spec.minChars)),
-    maxChars: 6000, // SUKUYO_SECTION_BODY_MAX_CHARS
-    maxOutputTokens: 12000, // SUKUYO_SECTION_CAP_TOKENS
-    tokenConstantName: "SUKUYO_SECTION_CAP_TOKENS",
-    sourcePath: "worker/routes/sukuyo-compatibility-ai.js",
-  });
+  // attempts:1의 실효 상한은 cap과 base 중 작은 값이다.
+  const { SUKUYO_SECTION_GROUPS, SUKUYO_SECTION_BASE_TOKENS, SUKUYO_SECTION_CAP_TOKENS } = __sukuyoCompatibilityAiTestUtils;
+  for (const spec of SUKUYO_SECTION_SPECS) {
+    assert(spec.minChars <= spec.targetMinChars * 0.8, `${feature}:${spec.key}: 수용 하한 여유 부족`);
+  }
+  for (const group of SUKUYO_SECTION_GROUPS) {
+    const specs = group.keys.map(key => SUKUYO_SECTION_SPECS.find(spec => spec.key === key));
+    const maximum = specs.reduce((sum, spec) => sum + spec.targetMaxChars, 0);
+    assert(Math.min(SUKUYO_SECTION_BASE_TOKENS, SUKUYO_SECTION_CAP_TOKENS) >= tokensRequiredForChars(maximum), `${feature}:${group.id}: 첫 호출 토큰 부족`);
+  }
 
   // 숙요 generating 신선도 창이 엣지보다 길면, 잘린 좀비 세션이 그동안 재시도를 202로 막는다.
   // 이 라우트는 동기 생성이라 엣지 컷(100s)을 넘겨 살아남을 수 없으므로 그보다 오래된 generating 은
@@ -502,6 +504,7 @@ for (const [feature, path, timeoutVar] of [
       sourcePath: "worker/routes/new-year-ai.js",
     });
   }
+  assert(sectionTokens >= tokensRequiredForChars(Math.max(...sections.map(section => section.maxChars))) + 1500, `${feature}: 추가 토큰 여유 부족`);
   // 섹션 합이 전체 계약을 덮는지 — 섹션을 줄이다 전체 하한이 깨지는 회귀를 막는다.
   const minTotal = Number((source.match(/const NEW_YEAR_AI_MIN_TOTAL_CHARS = (\d+);/) || [])[1]);
   const maxTotal = Number((source.match(/const NEW_YEAR_AI_MAX_TOTAL_CHARS = (\d+);/) || [])[1]);
@@ -1210,4 +1213,23 @@ const MIN_REJECT_OVER_TARGET = 1.15;
     }
   }
 }
+
+// P2: 환경값도 실제 프롬프트 상한에 필요한 첫 호출 예산을 깎지 못한다.
+{
+  const { getGuardianFortuneLLMConfig } = await import("../worker/lib/guardian-fortune-llm-policy.js");
+  const { GUARDIAN_FORTUNE_RESULT_LENGTH } = await import("../worker/lib/guardian-fortune-runtime-contract.js");
+  const { fusionGroupTokens } = await import("../worker/lib/fusion-fortune.js");
+  const { FUSION_SECTION_GROUP_SPECS, fusionGroupCeilingChars } = await import("../worker/lib/fusion-fortune-prompt.js");
+  for (const value of [undefined, "", "invalid", "-1", "1", "5200", "6400", "999999"]) {
+    const guardian = getGuardianFortuneLLMConfig({ GUARDIAN_FORTUNE_LLM_MAX_TOKENS: value });
+    assert(guardian.maxOutputTokens >= tokensRequiredForChars(GUARDIAN_FORTUNE_RESULT_LENGTH.max), "guardian: 환경값이 토큰 하한을 낮춤");
+    assert(guardian.maxOutputTokens <= 12000, "guardian: 환경값 상한 초과");
+    for (const group of FUSION_SECTION_GROUP_SPECS) {
+      const tokens = fusionGroupTokens(group, { FUSION_FORTUNE_MAX_OUTPUT_TOKENS: value });
+      assert(tokens >= tokensRequiredForChars(fusionGroupCeilingChars(group)), `fusion:${group.id}: 환경값이 토큰 하한을 낮춤`);
+      assert(tokens <= 16384, `fusion:${group.id}: 환경값 상한 초과`);
+    }
+  }
+}
+
 console.log(`${LABEL} ok (${checks} checks)`);
