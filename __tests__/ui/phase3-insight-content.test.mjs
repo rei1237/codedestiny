@@ -50,6 +50,10 @@ test("후속 정정 원고는 체계 혼동과 현실 결과 단정을 다시 �
   assert.match(retrograde.contentHtml, /평균 교점과.*진 교점은 같은 값이 아닙니다/);
   assert.doesNotMatch(career.contentHtml, /20~30%|관성이 힘을 받는.*합격.*잘 따라/);
   assert.doesNotMatch(career.title, /합격률 높이는/);
+  const rhythm = bySlug("sukuyo-day-by-day-rhythm-usage");
+  assert.match(rhythm.updatedAt, /^2026-09-27(?:T00:00:00\.000Z)?$/);
+  assert.doesNotMatch(rhythm.contentHtml, /1~2주가 지나면 상대도 같은 리듬으로 화답|2주 동안 이어가자|며칠만 다시 쌓아도 관계의 온도/);
+  assert.match(rhythm.contentHtml, /설명을 위한 가상의 부부/);
 });
 
 test("명시 카테고리가 비교 키워드보다 먼저 적용된다", () => {
