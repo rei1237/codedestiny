@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P3 첫 묶음 점성술·베딕·자미 AI 완료 후 남은 라우트 3~4개 진행. 총합 20,000자 정책은 사용자 지시로 유지. 아래 P3 검증·전달 상태 확인."
+next: "P3 두 번째 묶음 숙요 궁합·신년·운명 나침반 검증·전달 상태 확인 후 휴먼디자인·카르마·인생책부터 진행. 총합 20,000자 정책 유지."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -66,6 +66,20 @@ next: "P3 첫 묶음 점성술·베딕·자미 AI 완료 후 남은 라우트 3~
 - 유지: 가격/이용권/월정석/단건 정책, 인증·소유권·환불/취소 차단, 총합 하한, 토큰·타임아웃·폴백 문턱, 시도 상한, DB 스키마, 저장 재조회 후 완료 계약. 실 LLM·실결제·운영 DB·운영 승격 없음.
 - 검증 진행: 핵심 4 suites / 94 tests 통과(빈 본문·잘림·반복·근거 누락·잘못된 본문 타입 포함), 복원력 1,224 assertions 통과. `check:fast -- --plan` critical; `check:fast` 통과: 결제 가드 88/88, lint·typecheck·Node 테스트·Worker dry-run·Jest 301 suites / 4,303 tests 통과. 마지막 절단 경계 보완 후 핵심 94개 재검증 통과. `verify:handoff-contract` 199문서 통과. 구현 커밋은 `75f0ceb8ff59e212bb6190546e92c691cb3a8ef9`; main push·CI 최종 결과는 해당 전달 SHA의 GitHub 실행 및 세션 최종 보고에서 확인한다.
 - 다음: P3 남은 라우트를 3~4개씩 진행(권장: 숙요 궁합·신년·운명 나침반). P4 형식 교정과 P5 관계 궁합 구조는 미착수. 총합 정책을 다시 결정받을 필요는 없다.
+
+## P3 두 번째 묶음 구현 (2026-09-27)
+
+- 범위: 숙요 궁합 `createCompatibilityAnswer`, 신년 `generateNewYearWave`, 운명 나침반 유료 체크포인트 경로. 개인 숙요·무료 나침반·레거시 신년 비체크포인트 전달은 변경하지 않았다.
+- 시작 main `bb970446e1fa3ca58833a1c66478008923d29af9`, `git pull --ff-only` Already up to date. 마케팅·타입 파일 등 기존 미커밋 변경을 보존하고 앱 관리 격리 체크아웃에서 작업했다. 브랜치·PR 없이 검증 커밋을 main으로 전달한다.
+- 유효한 짧은 초안을 저장하고 기존 3회 예산 안에서 분량 보강 1회를 예약한다. `attempts`의 `:lengthRepair` 숫자 플래그로 보강 예약을 보존하고 마지막 시도 또는 보강 뒤에는 개별 분량만으로 거절하지 않는다. 가장 긴 유효 초안을 유지하며 신년은 필수 근거 오류를 해결하는 더 짧은 보강본도 수용한다.
+- 나침반은 `:lengthDraft` 플래그로 검증한 짧은 초안과 기존 품질 미달 보관본을 구분한다. 보강 호출에서는 캐시를 재사용하지 않는다. 총합만 부족할 때도 목표 미달 섹션을 남은 예산 안에서 선택한다.
+- 신년 목표는 5,000~5,500자(하한 4,000), 나침반 목표는 2,500~3,600자(하한 2,000)로 분리했다. 토큰·타임아웃·폴백 문턱·3회 시도 상한은 그대로다. 신년 체크포인트에서는 레거시 300자 응답 하한도 초안 폐기 사유로 삼지 않는다.
+- 상한은 기존 `trimPaidReportText`로 교정하며 원문·절단본의 반복과 기존 근거 검증을 유지한다. 숙요는 문자열 본문만 수용하고 그룹 내·기존 섹션과의 반복도 검사한다.
+- **총합 20,000자 및 기존 서비스 총합 하한 유지.** 예산 소진 뒤 총합 미달은 완료·차감·분량 사유 환불 없이 partial / retryable:false로 보존한다. 구조·근거·반복 실패와 기존 저장 불확실성 처리는 별도 유지한다. 짧은 파트 수용이 전체 리포트 완료를 보장하지는 않는다.
+- 유지: 가격/이용권/월정석/단건 정책, 인증·소유권·취소/환불 증빙 차단, DB 스키마, 완료 전 저장 재조회, 기존 차감 계약. 실 LLM·실결제·운영 DB·운영 승격 없음.
+- 검증: 핵심 Jest 5 suites / 74 tests(실제 신년·나침반 검증기 포함), Node 전달/재개 29 tests, 복원력 1,224 assertions 통과. 숙요 그룹 원문 반복 검사 보완 후 숙요 28 tests 재통과. 보강 체크포인트 응답 유실 뒤 추가 호출 없이 저장 초안으로 완료하는 신년·나침반 회귀 포함. `check:fast -- --plan` critical. `check:fast` exit 0: 결제 가드 88/88, lint·typecheck·Node 1,743 tests·Worker dry-run·Jest 302 suites / 4,324 tests 통과. `verify:handoff-contract` 199문서 통과. 구현 커밋 `788b836030355c9a27ef0924ffd4cf6e94eb5342`. main push·CI 최종 결과는 이 구현을 포함한 전달 SHA의 GitHub 실행과 세션 최종 보고에서 확인한다.
+- 수정 파일: `worker/routes/sukuyo-compatibility-ai.js`, `worker/routes/new-year-ai.js`, `worker/routes/destiny-compass-ai.js`, `worker/lib/destiny-compass-report-contract.js`; 회귀 테스트 `__tests__/worker/sukuyo-compatibility-ai.duplicate-generation.test.js`, `__tests__/worker/new-year-length-repair.test.js`, `__tests__/worker/destiny-compass-paid-delivery.test.js`, `__tests__/worker/destiny-compass-report.basis-and-charge-window.test.js`, `__tests__/ui/new-year-paid-delivery.behavior.test.js`; 이 인수인계 문서.
+- 다음: P3 휴먼디자인·카르마·인생책 묶음. P4 형식 교정과 P5 관계 궁합 구조는 미착수. 총합 정책은 다시 결정받지 않는다.
 
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 
@@ -141,7 +155,7 @@ next: "P3 첫 묶음 점성술·베딕·자미 AI 완료 후 남은 라우트 3~
 |---|---|---|---|
 | **P1 구현 완료** | `paid-narrative-delivery.js` (11개 서비스) | 선행 초안/마지막 수용을 유지하고 반복 보강본의 초안 차단을 수정. 섬 캐시에 파트 `minChars` 연결. | 핵심 mock 73개·변이 5종 통과. 위 P1 검증·전달 기록 참조. |
 | **P2 구현 완료** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
-| **P3 진행 중** | 대형 리포트 라우트 18개 중 점성술·베딕·자미 AI 첫 3개 구현 | 섹션 분량 판정에 L2(보강본 수용)를 적용한다. 점성술·베딕·자미 상한 거절은 자르기로 바꾼다(L3). 자미·자미 심층·네오·인생책 프롬프트의 공백 기준을 판정 기준(`countPaidReportBodyChars`, 공백 제외)과 통일한다. 비율 1.0·0.85+ 인 곳은 프롬프트 목표를 하한/0.8 이상으로 올린다. | 라우트별 mock 테스트. 서비스 3~4개씩 나눠 커밋한다. |
+| **P3 진행 중** | 대형 리포트 라우트 18개 중 점성술·베딕·자미 AI 및 숙요 궁합·신년·운명 나침반 6개 구현 | 섹션 분량 판정에 L2(보강본 수용)를 적용한다. 점성술·베딕·자미 상한 거절은 자르기로 바꾼다(L3). 자미·자미 심층·네오·인생책 프롬프트의 공백 기준을 판정 기준(`countPaidReportBodyChars`, 공백 제외)과 통일한다. 비율 1.0·0.85+ 인 곳은 프롬프트 목표를 하한/0.8 이상으로 올린다. | 라우트별 mock 테스트. 서비스 3~4개씩 나눠 커밋한다. |
 | **P4** | 형식 교정 | 연애 타로 4문단·마인드스캔 10문단은 분할·병합으로 맞춘다. 질문형 문장부호 끝은 정규화한다. 영냥이 필드 5000자는 분할한다. | 단위 테스트. |
 | **P5** | 구조 | 관계 궁합이 한 파트 실패로 전체 환불되는 구조를 부분 수용 + 재시도로 바꾼다. 총합 20,000자 정책은 사용자 결정대로 유지한다. | 기존 총합 유지하며 설계. |
 
@@ -161,4 +175,4 @@ next: "P3 첫 묶음 점성술·베딕·자미 AI 완료 후 남은 라우트 3~
 
 ## 다음 세션 첫 문장
 
-"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md를 읽고, main 상태와 마지막 구현 커밋 75f0ceb8ff59e212bb6190546e92c691cb3a8ef9를 확인한 뒤 git pull --ff-only 후 P3 남은 라우트(권장: 숙요 궁합·신년·운명 나침반)부터 진행하라. 기존 미커밋 변경을 보존하고 총합 20,000자 정책은 유지하라."
+"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md를 읽고, main 상태와 마지막 구현 커밋 788b836030355c9a27ef0924ffd4cf6e94eb5342를 확인한 뒤 git pull --ff-only 후 P3 휴먼디자인·카르마·인생책부터 진행하라. 기존 미커밋 변경을 보존하고 총합 20,000자 정책은 유지하라."
