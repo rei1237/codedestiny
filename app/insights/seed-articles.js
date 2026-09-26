@@ -1,6 +1,11 @@
 import { actualContentDate } from "../../lib/content/editorial-review.mjs";
 import { INSIGHT_ARTICLES } from "./articles";
 import { getExplicitInsightTopic, getInsightTopicLabel } from "./insight-topic";
+import {
+  getPhase3Batch2ArticleContent,
+  getPhase3Batch2ArticleTitle,
+  PHASE3_BATCH2_UPDATED_AT,
+} from "./phase3-editorial-batch2";
 import { getPhase3ArticleContent, PHASE3_ARTICLE_UPDATED_AT } from "./phase3-editorial-content";
 import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
@@ -846,11 +851,14 @@ function normalizeFaqItems(items) {
 
 function buildSeedArticle(article, index) {
   const slug = String(article?.slug || "").trim();
-  const title = String(article?.title || "운세 인사이트").trim();
+  const batch2Title = getPhase3Batch2ArticleTitle(slug);
+  const title = String(batch2Title || article?.title || "운세 인사이트").trim();
   const resolvedImage = resolveSeedImage(article, index, title);
   const category = inferCategoryLabel(article);
   const tags = normalizeTags(article);
-  const phase3ContentHtml = getPhase3ArticleContent(slug);
+  const phase3PrimaryContentHtml = getPhase3ArticleContent(slug);
+  const phase3Batch2ContentHtml = getPhase3Batch2ArticleContent(slug, article?.contentHtml);
+  const phase3ContentHtml = phase3PrimaryContentHtml || phase3Batch2ContentHtml;
   const useOriginalContent =
     Boolean(phase3ContentHtml) ||
     ((ORIGINAL_CONTENT_SLUGS.has(slug) || article?.useOriginalContent === true) &&
@@ -871,7 +879,10 @@ function buildSeedArticle(article, index) {
       : String(article?.author || DEFAULT_AUTHOR);
 
   const publishedAt = actualContentDate(article?.publishedAt);
-  const updatedAt = actualContentDate(phase3ContentHtml ? PHASE3_ARTICLE_UPDATED_AT : article?.updatedAt);
+  const phase3UpdatedAt = phase3PrimaryContentHtml
+    ? PHASE3_ARTICLE_UPDATED_AT
+    : (phase3Batch2ContentHtml ? PHASE3_BATCH2_UPDATED_AT : article?.updatedAt);
+  const updatedAt = actualContentDate(phase3UpdatedAt);
   const internalLinks = normalizeLinkItems(article?.internalLinks);
   const faq = normalizeFaqItems(article?.faq);
   const ctaLinks = normalizeLinkItems(article?.cta?.links);
@@ -881,7 +892,7 @@ function buildSeedArticle(article, index) {
     ? ctaLinks
     : (internalLinks.length > 0 ? internalLinks : [{ href: ctaServiceRoute || "/insights", label: ctaLabel }]);
 
-  const seoTitle = String(article?.metaTitle || article?.seoTitle || `${title} — 상담가의 비밀 노트로 읽는 운의 흐름`).trim();
+  const seoTitle = String(batch2Title || article?.metaTitle || article?.seoTitle || `${title} — 상담가의 비밀 노트로 읽는 운의 흐름`).trim();
   const seoDescriptionSource = useOriginalContent
     ? (article?.metaDescription || article?.seoDescription || article?.description || buildMysticSeoDescription(article, category, tags))
     : (article?.metaDescription || article?.seoDescription || buildMysticSeoDescription(article, category, tags));

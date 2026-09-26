@@ -9,6 +9,7 @@ const bundle = await build({
       export { getTopicKey } from "./app/insights/articles.js";
       export { inferInsightTopic } from "./app/insights/insight-topic.js";
       export { getPhase3HubGuide } from "./app/insights/phase3-editorial-content.js";
+      export { PHASE3_BATCH2_SLUGS } from "./app/insights/phase3-editorial-batch2.js";
     `,
     resolveDir: process.cwd(),
   },
@@ -18,7 +19,7 @@ const bundle = await build({
   format: "esm",
 });
 
-const { INSIGHT_SEED_ARTICLES, getPhase3HubGuide, getTopicKey, inferInsightTopic } = await import(
+const { INSIGHT_SEED_ARTICLES, PHASE3_BATCH2_SLUGS, getPhase3HubGuide, getTopicKey, inferInsightTopic } = await import(
   `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString("base64")}`
 );
 
@@ -82,6 +83,45 @@ test("우선 네 편의 긴 본문 문단은 서로 완전 중복되지 않는�
       owners.set(paragraph, slug);
     }
   }
+});
+
+test("남은 우선 16편은 검증 근거와 공개 품질 기준을 충족한다", () => {
+  const expectedMarkers = {
+    "sukuyo-27-mansions": /27숙과 28수를 섞지 않는 체크표/,
+    "sukuyo-compatibility-guide": /방향을 바꾸면 역할 이름이 달라지는 예시/,
+    "sukuyo-ankai": /관찰과 해석을 분리하는 연습/,
+    "sukuyo-antai": /상담 사례를 쓰지 않은 이유/,
+    "ziwei-what-is": /자미두수가 제공하지 않는 증거/,
+    "ziwei-life-palaces": /같은 부부궁 문장을 다시 쓰는 예/,
+    "ziwei-star-brightness": /등급을 숫자로 바꾸지 않는 이유/,
+    "nakshatra-what-is": /Code Destiny의 나크샤트라 계산을 재현하는 순서/,
+    "vedic-lagna-what-is": /경계 부근의 가상 예시/,
+    "vedic-astrology-navamsa-basics": /Code Destiny가 D9를 만드는 실제 규칙/,
+    "how-we-calculate-saju": /현재 구현에서 확인한 입력별 영향 범위/,
+    "ten-gods-beginner-map": /<td>갑목<\/td>[\s\S]*?<td>식신<\/td>[\s\S]*?<td>경금<\/td>[\s\S]*?<td>편관<\/td>/,
+    "five-elements-ohang-complete-guide": /많음과 부족을 한 문장으로 단정하지 않는 표/,
+    "tarot-major-arcana-22-complete-meanings": /카드 뜻을 질문으로 바꾸는 세 칸/,
+    "astrology-birth-chart-guide": /같은 태양궁의 다른 맥락/,
+    "astrology-houses-what-is": /하우스 체계가 바뀌면 생기는 차이/,
+  };
+
+  assert.equal(PHASE3_BATCH2_SLUGS.length, 16);
+  assert.deepEqual(new Set(PHASE3_BATCH2_SLUGS), new Set(Object.keys(expectedMarkers)));
+
+  for (const slug of PHASE3_BATCH2_SLUGS) {
+    const article = bySlug(slug);
+    assert.ok(article, slug);
+    assert.match(article.contentHtml, expectedMarkers[slug], slug);
+    assert.match(article.updatedAt, /^2026-09-26(?:T00:00:00\.000Z)?$/, slug);
+    const bodyChars = stripHtml(article.contentHtml).replace(/\s+/g, "").length;
+    assert.ok(bodyChars >= 2500, `${slug}: ${bodyChars}`);
+    assert.ok(internalLinks(article.contentHtml).length >= 3, slug);
+  }
+
+  assert.doesNotMatch(bySlug("sukuyo-ankai").contentHtml, /둘이 협력하면 매우 뛰어난 성과/);
+  assert.doesNotMatch(bySlug("sukuyo-antai").contentHtml, /실제 사례로 보는 업태관계/);
+  assert.doesNotMatch(bySlug("ziwei-life-palaces").contentHtml, /좋은 별이 있으면 평생 귀인/);
+  assert.doesNotMatch(bySlug("ziwei-what-is").contentHtml, /송대의 도사 진단/);
 });
 
 test("공개 인사이트 전체의 긴 본문 문단은 서로 완전 중복되지 않는다", () => {
