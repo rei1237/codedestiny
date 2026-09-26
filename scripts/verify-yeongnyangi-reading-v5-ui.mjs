@@ -53,7 +53,7 @@ try{
     const saju=f.page.getByRole('region',{name:'나의 사주 원국표',exact:true});
     if(await saju.count()){await saju.scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-saju.png`});}
     await f.page.locator('figure blockquote').first().scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-bubble.png`});
-    await f.page.locator('figure[aria-hidden] img[src*="/reading-art/"]').first().scrollIntoViewIfNeeded();await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-interlude.png`});
+    const interlude=f.page.locator('figure[aria-hidden] img[src*="/reading-art/"]').first();await interlude.scrollIntoViewIfNeeded();await interlude.evaluate(img=>img.decode());await f.page.screenshot({path:`build-cache/yeongnyangi-v5/${product.id}-${width}-interlude.png`});
     // Under 10,000 characters the plain layout stays exactly as before.
     f.row.chapters=chapters.map(c=>({...c,blocks:c.blocks?.map(b=>({...b,paragraphs:b.paragraphs.map(p=>p.slice(0,10))})),analysis:(c.analysis||[]).map(p=>p.slice(0,10)),example:'',advice:'',questionAnswers:undefined}));
     await reopen(f.page);
