@@ -177,7 +177,8 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .bgStage{position:absolute;inset:0;transform:scale(1);transition:transform 2.6s var(--ease);will-change:transform}
 .bgLayer[data-camera="focus"] .bgStage{transform:scale(1.05)}
 .bgImg{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:0;transition:opacity 1s var(--ease),filter 1s var(--ease);
-  will-change:transform,opacity;animation:kenburns 18s ease-in-out infinite alternate}
+  will-change:auto;animation:kenburns 18s ease-in-out infinite alternate;animation-play-state:paused}
+.bgImg.show{animation-play-state:running}
 .bgImg.show{opacity:1}
 .bgImg.dark{filter:brightness(.5) saturate(.7)}
 .bgImg.desat{filter:brightness(.55) saturate(.3)}
@@ -505,6 +506,15 @@ body.reduce-motion .ambientLayer{animation:none!important}
 /* 대사창 블러는 켄번스로 계속 움직이는 배경 위에 얹혀 매 프레임 대면적 재합성을 부른다.
    모션 줄이기에서는 배경이 멈추므로 블러도 함께 내려 저사양 기기의 합성 비용을 없앤다. */
 body.reduce-motion .dlg{backdrop-filter:none}
+.dlg[data-typing="true"] #dlgBody::after{content:"▌";color:var(--gold)}
+#fxLayer[data-still]{box-shadow:inset 0 0 0 3px rgba(168,179,199,.5)}
+#fxLayer[data-still="water"],#fxLayer[data-still="thread"]{background:linear-gradient(0deg,rgba(16,26,51,.24),transparent 30%)}
+body.novel-paused *{animation-play-state:paused!important}
+@media (hover:none) and (pointer:coarse){
+  .bgImg{animation:none;transform:scale(1.02)}
+  .dlg{backdrop-filter:none;background:rgba(9,12,30,.96)}
+}
+
 /* 성운 44개는 무한 애니메이션이라 불투명한 플레이어 뒤에서도 계속 합성된다. 플레이어가 떠 있는 동안 뺀다. */
 body.novel-playing #nebula{display:none}
 </style>
@@ -887,7 +897,7 @@ var reduceMQ=typeof window.matchMedia==="function"?window.matchMedia("(prefers-r
 S.reduce=reduceMQ.matches;
 /* body.reduce-motion 을 붙이는 곳이 한 군데도 없어 그 CSS 두 줄이 죽어 있었다 —
    설정에서 "모션 줄이기"를 켜도 배경 연출이 그대로 돌았다. */
-function applyReduceMotion(){document.body.classList.toggle("reduce-motion",!!S.reduce);}
+function applyReduceMotion(){document.body.classList.toggle("reduce-motion",!!S.reduce);if(S.reduce&&fxLayer)clearSceneEffects();}
 applyReduceMotion();
 /* OS 설정을 읽는 시점이 부팅 한 번뿐이라, 읽는 도중 접근성 설정을 바꿔도 반영되지 않았다.
    단 설정 패널에서 손으로 켜고 끈 뒤에는 OS 변화가 그 선택을 덮지 않는다. */
@@ -1077,11 +1087,16 @@ function preloadFirstBg(ep){
 }
 /* 변신·초반 등장 핵심 스프라이트를 미리 캐시에 올려 최초 로드 플래시(잘못된 프레임/빈 이미지) 방지.
    사주의 강 진입(EP.01)에서 꽃돼지 시트가 콜드 페치되며 순간 오프레임이 보이던 문제 대응. */
+var _spriteWarm=[];
 function preloadCoreSprites(){
-  try{[PIGSHEET,PIGPOSE,PIG.base,YEON.base,YEONI_SHEET,NEO].forEach(function(u){if(u){var im=new Image();im.src=u;}});}catch(e){}
+  var beats=EPISODES[S.ep]&&EPISODES[S.ep].beats||[],urls=[];
+  for(var i=S.bi;i<Math.min(beats.length,S.bi+8);i++){
+    var beat=beats[i];["l","c","r"].forEach(function(slot){var cast=beat[slot];if(cast){var sp=spriteFor(cast.who,cast.x,formAt(S.ep,i));if(sp.url&&urls.indexOf(sp.url)<0)urls.push(sp.url);}});
+  }
+  urls.slice(0,3).forEach(function(url){if(_spriteWarm.indexOf(url)>=0)return;_spriteWarm.push(url);if(_spriteWarm.length>12)_spriteWarm.shift();var im=new Image();im.src=url;});
 }
 /* 플레이어가 불투명하게 덮고 있는 동안에는 배경 성운 애니메이션을 합성할 이유가 없다. */
-function setNovelPlaying(on){document.body.classList.toggle("novel-playing",!!on);}
+function setNovelPlaying(on){document.body.classList.toggle("novel-playing",!!on);if(!on&&fxLayer)clearSceneEffects();}
 /* 소설 진입 — 메인→플레이어 크로스페이드(빈 화면 최소화), 재개 시 상태복원 */
 async function startNovel(fromStart){
   window.removeEventListener("mousemove",heroParallax);
@@ -1205,8 +1220,8 @@ async function enterEpisode(ei,showCard){
   clearCardTimers(); /* 앞 화의 카드 타이머를 물려받으면 이 화의 컷 0이 두 번 돈다 */
   S.ep=ei;
   warmNextEpisode(ei);
-  hardClearSlots();setSceneDirection(null);
-  S.form=formAt(ei,0); /* 마커를 지나지 않고 들어온 진입도 그 화의 모습으로 시작한다 */
+  clearSceneEffects();hardClearSlots();setSceneDirection(null);
+  S.form=formAt(ei,0);preloadCoreSprites(); /* 마커를 지나지 않고 들어온 진입도 그 화의 모습으로 시작한다 */
   /* S.curBg 를 밀지 않는다 — setBg 가 dataset.bgKey 로 중복을 막으므로, 앞뒤 배경이 같은 화 경계
      16곳에서 같은 그림으로 되돌아오는 1초 크로스페이드가 더는 돌지 않는다. */
   document.getElementById("epTag").textContent=eps.tag;
@@ -1246,6 +1261,7 @@ function runBeat(){
   var beats=curBeats();
   if(S.bi>=beats.length){nextEpisode();return;}
   var b=beats[S.bi];curBeat=b;
+  clearSceneEffects();
   // form
   if(b.form)S.form=b.form;
   // bgm
@@ -1606,7 +1622,7 @@ function showDialogue(b){
   var spk=b.s||"n";
   dlg.dataset.spk=spk;dlg.classList.toggle("impact",!!b.im);
   spkIcon.textContent=ICON[spk]||"달";spkName.textContent=NAME[spk]||"";
-  fullText=b.t||"";shownLen=0;dlgBody.innerHTML="";
+  fullText=b.t||"";shownLen=0;dlgBody.replaceChildren(document.createTextNode(""));
   dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
   // log + 자동 책갈피
   /* 로그는 openLog 가 마지막 60줄만 그린다 — 8,844비트를 통째로 들고 있을 이유가 없어 상한을 둔다. */
@@ -1619,9 +1635,9 @@ function showDialogue(b){
 function typeStep(){
   if(shownLen>=fullText.length){finishType();return;}
   shownLen++;
-  dlgBody.innerHTML=escapeHtml(fullText.slice(0,shownLen))+'<span class="caret">▌</span>';
+  dlgBody.firstChild.nodeValue=fullText.slice(0,shownLen);
   var sp=(curBeat&&curBeat.s==="neo")?Math.max(8,Math.min(S.speed,Math.floor(2600/Math.max(1,fullText.length)))):S.speed;
-  typeTimer=setTimeout(typeStep,Math.max(4,sp));
+  typeTimer=setTimeout(typeStep,Math.max(16,sp));
 }
 /* 🔴 스킵 진행은 반드시 한 줄기여야 한다 — doSkipStep 이 타이핑 중이면 finishType 을 부르는데,
    그 finishType 이 다음 걸음을 예약하고 곧이어 advance() 가 새 비트를 띄우며 또 예약해 체인이
@@ -1663,8 +1679,19 @@ document.addEventListener("keydown",function(e){
    FX (인라인 SVG / CSS, transform·opacity)
    ============================================================ */
 var fxLayer=document.getElementById("fxLayer");
+var _fxTimers=[],_fxFrames=[];
+function fxLater(fn,ms){var id=setTimeout(function(){_fxTimers=_fxTimers.filter(function(x){return x!==id;});fn();},ms);_fxTimers.push(id);return id;}
+function fxFrame(fn){var id=requestAnimationFrame(function(){_fxFrames=_fxFrames.filter(function(x){return x!==id;});fn();});_fxFrames.push(id);return id;}
+function clearSceneEffects(){
+  _fxTimers.forEach(clearTimeout);_fxFrames.forEach(cancelAnimationFrame);_fxTimers=[];_fxFrames=[];
+  fxLayer.replaceChildren();delete fxLayer.dataset.still;
+  document.getElementById("player").classList.remove("shakeScreen");
+  var card=document.getElementById("skillCard");if(card)card.remove();
+  if(_skTimer){clearTimeout(_skTimer);_skTimer=0;}
+}
 function runFx(name){
-  if(S.reduce&&name!=="ink"){/* 최소화: 짧은 페이드만 */}
+  if(S.skip||document.hidden)return;
+  if(S.reduce){fxLayer.dataset.still=name;return;}
   if(name==="ink")fxInk();
   else if(name==="veil")fxVeil();
   else if(name==="hands")fxHands();
@@ -1688,7 +1715,7 @@ function runFx(name){
   else if(name==="stars")fxStars();
 }
 function mkOverlay(){var d=document.createElement("div");d.style.cssText="position:absolute;inset:0";fxLayer.appendChild(d);return d;}
-function cleanup(el,ms){setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},ms);}
+function cleanup(el,ms){fxLater(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},ms);}
 function fxInk(){var d=mkOverlay();d.style.background="radial-gradient(circle at 50% 60%,#05060c,#05060c)";d.style.animation="inkOut .9s ease forwards";cleanup(d,1000);}
 function fxVeil(){var d=mkOverlay();d.style.overflow="hidden";
   var v=document.createElement("div");v.style.cssText="position:absolute;inset:0;background:linear-gradient(180deg,rgba(232,228,217,.5),transparent 60%);animation:veilDown 2.2s ease forwards";d.appendChild(v);
@@ -1699,7 +1726,7 @@ function fxHands(){
   var handsBg=shownBg(),handsKey=handsBg.dataset.bgKey,handsToned=(handsBg.dataset.tone==="desat");
   if(!handsToned)handsBg.classList.add("desat");
   var d=mkOverlay();d.style.overflow="hidden";
-  var vig=document.createElement("div");vig.style.cssText="position:absolute;inset:0;box-shadow:inset 0 0 200px 80px rgba(5,6,12,.85);opacity:0;transition:opacity .6s";d.appendChild(vig);requestAnimationFrame(function(){vig.style.opacity="1";});
+  var vig=document.createElement("div");vig.style.cssText="position:absolute;inset:0;box-shadow:inset 0 0 200px 80px rgba(5,6,12,.85);opacity:0;transition:opacity .6s";d.appendChild(vig);fxFrame(function(){vig.style.opacity="1";});
   var n=6;for(var i=0;i<n;i++){
     var wrap=document.createElement("div");
     var lft=8+i*(84/(n-1));var sc=.7+((i*7)%5)/10;
@@ -1709,17 +1736,17 @@ function fxHands(){
     d.appendChild(wrap);
   }
   cleanup(d,4200);
-  setTimeout(function(){
+  fxLater(function(){
     if(handsToned)return;                       /* tone:"desat" 로 원래 깔려 있던 톤은 건드리지 않는다 */
     if(handsBg.dataset.bgKey!==handsKey)return; /* 그 사이 배경이 바뀌었으면 남의 톤을 벗기지 않는다 */
     handsBg.classList.remove("desat");
   },3600);
 }
 function fxClaw(){
-  var p=document.getElementById("player");p.classList.add("shakeScreen");setTimeout(function(){p.classList.remove("shakeScreen");},520);
+  var p=document.getElementById("player");p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);
   var d=mkOverlay();
   d.innerHTML='<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%"><g stroke="#fff" stroke-width="1.4" fill="none" opacity=".9" filter="url(#gl)"><defs><filter id="gl"><feGaussianBlur stdDeviation="0.5"/></filter></defs><line x1="18" y1="8" x2="78" y2="86" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease forwards"/><line x1="34" y1="6" x2="92" y2="80" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease .06s forwards"/><line x1="6" y1="20" x2="66" y2="94" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease .12s forwards"/></g></svg>';
-  var fade=d.firstChild;setTimeout(function(){fade.style.transition="opacity .3s";fade.style.opacity="0";},300);
+  var fade=d.firstChild;fxLater(function(){fade.style.transition="opacity .3s";fade.style.opacity="0";},300);
   cleanup(d,900);
 }
 function fxBurst(){
@@ -1736,8 +1763,8 @@ function fxTarot(){
   card.style.cssText="position:relative;height:58vh;max-height:560px;border-radius:14px;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5)) drop-shadow(0 0 44px rgba(233,196,106,.5));opacity:0;transform:translateY(34px) scale(.9);transition:opacity .7s var(--ease),transform .9s var(--ease)";
   var fb=svgData('<defs><linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset="1" stop-color="#141a37"/></linearGradient></defs><rect width="300" height="460" rx="16" fill="url(#c)" stroke="#c9a227" stroke-width="3"/><path d="M180 60a70 70 0 1 0 30 92 56 56 0 0 1-30-92Z" fill="#e9c46a"/><circle cx="150" cy="330" r="10" fill="#f8bbdd"/><path d="M150 330c0-30 0-70 0-120" stroke="#e9c46a" stroke-width="2"/><text x="150" y="420" fill="#e8e4d9" font-size="22" text-anchor="middle" letter-spacing="4">THE DOOR</text>',300,460);
   setImg(card,TAROT,fb);d.appendChild(card);
-  requestAnimationFrame(function(){card.style.opacity="1";card.style.transform="translateY(0) scale(1)";});
-  setTimeout(function(){ // 문 개방: 빛 버스트 + 카드 확대 페이드
+  fxFrame(function(){card.style.opacity="1";card.style.transform="translateY(0) scale(1)";});
+  fxLater(function(){ // 문 개방: 빛 버스트 + 카드 확대 페이드
     var burst=document.createElement("div");burst.style.cssText="position:absolute;left:50%;top:50%;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,240,248,.5) 40%,transparent 72%);opacity:0;animation:flash 1s ease forwards";d.appendChild(burst);
     card.style.transition="opacity .9s var(--ease),transform 1s var(--ease)";card.style.opacity="0";card.style.transform="scale(1.6)";
   },2300);
@@ -1769,7 +1796,7 @@ function fxSuck(){
   spin.style.cssText="position:absolute;left:55%;top:42%;width:150vmax;height:150vmax;transform:translate(-50%,-50%);opacity:0;"+
     "background:conic-gradient(from 0deg,transparent,rgba(140,170,255,.16),transparent 25%,rgba(185,156,255,.13),transparent 50%,rgba(140,170,255,.13),transparent 75%,rgba(185,156,255,.1),transparent);"+
     "animation:suckSpin 1.3s cubic-bezier(.5,0,.9,.6) forwards";
-  d.appendChild(spin);requestAnimationFrame(function(){spin.style.opacity="1";});
+  d.appendChild(spin);fxFrame(function(){spin.style.opacity="1";});
   var core=document.createElement("div");
   core.style.cssText="position:absolute;left:55%;top:42%;width:14px;height:14px;transform:translate(-50%,-50%);border-radius:50%;"+
     "box-shadow:0 0 0 3px rgba(200,220,255,.7),0 0 46px 16px rgba(120,150,255,.4);animation:ringOut 1.3s ease forwards";
@@ -1791,7 +1818,7 @@ var EL_HUE={
 function elHue(el){return EL_HUE[el]||EL_HUE.metal;}
 /* 金 — 백금 참격 3선 + 서리 섬광 */
 function fxMetal(){
-  var p=document.getElementById("player");p.classList.add("shakeScreen");setTimeout(function(){p.classList.remove("shakeScreen");},520);
+  var p=document.getElementById("player");p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);
   var d=mkOverlay();d.style.overflow="hidden";
   var glint=document.createElement("div");
   glint.style.cssText="position:absolute;inset:0;background:radial-gradient(circle at 58% 44%,rgba(230,237,245,.5),transparent 62%);animation:frostGlint .5s ease forwards";
@@ -1805,7 +1832,7 @@ function fxMetal(){
       "opacity:0;transform-origin:50% 50%;clip-path:inset(0 100% 0 0);"+
       "animation:frostGlint .62s ease "+(i*0.09)+"s forwards";
     d.appendChild(s);
-    (function(node){requestAnimationFrame(function(){node.style.transition="clip-path .34s cubic-bezier(.2,.8,.3,1)";node.style.clipPath="inset(0 0 0 0)";});})(s);
+    (function(node){fxFrame(function(){node.style.transition="clip-path .34s cubic-bezier(.2,.8,.3,1)";node.style.clipPath="inset(0 0 0 0)";});})(s);
   }
   cleanup(d,1100);
 }
@@ -1905,7 +1932,7 @@ function fxNet(){
 }
 /* 木·뿌리내림 — 화면 아래에서 뿌리 균열이 번지고 흙빛이 맥동한다 */
 function fxRoot(){
-  var p=document.getElementById("player");p.classList.add("shakeScreen");setTimeout(function(){p.classList.remove("shakeScreen");},520);
+  var p=document.getElementById("player");p.classList.add("shakeScreen");fxLater(function(){p.classList.remove("shakeScreen");},520);
   var d=mkOverlay();d.style.overflow="hidden";
   var soil=document.createElement("div");
   soil.style.cssText="position:absolute;left:0;right:0;bottom:0;height:34%;"+
@@ -2009,7 +2036,7 @@ function runSkill(sk){
   if(!S.reduce)html+='<span class="skSlash"></span>';
   wrap.innerHTML=html;
   box.appendChild(wrap);host.appendChild(box);
-  _skTimer=setTimeout(function(){if(box.parentNode)box.parentNode.removeChild(box);_skTimer=0;},1800);
+  _skTimer=fxLater(function(){if(box.parentNode)box.parentNode.removeChild(box);_skTimer=0;},1800);
 }
 function hardClearSlots(){["l","c","r"].forEach(function(slot){if(_slotRm[slot]){clearTimeout(_slotRm[slot]);_slotRm[slot]=0;}S.slotWho[slot]=null;var el=document.getElementById("char_"+slot);if(el&&el.parentNode)el.parentNode.removeChild(el);});S.active=null;}
 function fxVortex(){
@@ -2111,6 +2138,14 @@ function ensureEpisodeLoaded(index){
     return NOVEL_EPISODE_LOADS[index];
   });
 }
+document.addEventListener("visibilitychange",function(){
+  document.body.classList.toggle("novel-paused",document.hidden);
+  if(document.hidden){clearTimeout(typeTimer);clearTimeout(autoT);clearTimeout(_skipTimer);clearSceneEffects();audio.pause();}
+  else if(S.screen==="player"){
+    if(S.typing)typeStep();else if(S.skip)scheduleSkipStep();else if(S.auto)scheduleAuto();
+    if(S.bgmOn&&audio.src)audio.play().catch(function(){});
+  }
+});
 initNovelData().then(function(){
   window.__NOVEL_READY=true;
   if(location.hash==="#play"||location.hash==="#novel")bootDirectPlay();

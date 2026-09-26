@@ -421,6 +421,37 @@ async function verifyTimingRaces() {
     }
   }
 }
+async function verifyMobileRendering() {
+  const { dom, errors } = createPlayerDom({ clampTimers: false });
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "mobile rendering manifest");
+    await win.ensureEpisodeLoaded(0);
+    win.S.screen = "player";
+    win.S.reduce = true;
+    for (const fx of ["hands", "metal", "water", "suck", "thread"]) {
+      win.runFx(fx);
+      assert.equal(win.fxLayer.childElementCount, 0, "reduced motion must not construct animated effects");
+      assert.equal(win._fxTimers.length, 0, "reduced motion must not queue effect timers");
+    }
+    win.S.reduce = false;
+    win.runFx("metal");
+    assert.ok(win.fxLayer.childElementCount > 0);
+    win.clearSceneEffects();
+    await wait(600);
+    assert.equal(win.fxLayer.childElementCount, 0, "an old effect reappeared after cancellation");
+    assert.equal(win._fxTimers.length, 0);
+    assert.equal(win.document.getElementById("player").classList.contains("shakeScreen"), false);
+    win.showDialogue({ s: "n", t: "검은 호랑이가 발끝을 감추었다. 이름은 쉽게 주는 것이 아니었다." });
+    const node = win.dlgBody.firstChild;
+    await wait(100);
+    assert.equal(win.dlgBody.firstChild, node, "typing replaced the text node");
+    assert.equal(win.dlgBody.childNodes.length, 1, "typing must not allocate a caret DOM each tick");
+    win.finishType();
+    assert.deepEqual(errors, []);
+  } finally { dom.window.close(); }
+}
+await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
