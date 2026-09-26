@@ -406,7 +406,13 @@
   gap: 14px;
   margin: 30px 0;
 }
-.library > a {
+.libraryItem {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+.libraryItem > a {
+  justify-self: stretch;
   display: flex;
   align-items: center;
   gap: 22px;
@@ -492,7 +498,7 @@
   .progress button {
     width: 100%;
   }
-  .library > a {
+  .libraryItem > a {
     padding: 18px 14px;
     gap: 12px;
   }

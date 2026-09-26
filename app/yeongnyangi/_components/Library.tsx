@@ -1,5 +1,6 @@
 "use client";
 import {readingCopy} from '../_lib/reading-copy';
+import {resultStateCopy} from '../_lib/result-state-copy';
 import {readingLanguageNames,readingLocales,readingLocale,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {readingArtwork} from './ReadingIdentity';
@@ -11,9 +12,10 @@ const ART={login:['/assets/yeongnyangi/original/login.webp',440,557],signup:['/a
 export default function Library(){
  const [locale,setLocale]=useState<ReadingLocale>('ko');
  useEffect(()=>{const value=new URLSearchParams(window.location.search).get('lang')||getCurrentLoadingLocale();if(readingLocales.includes(value as ReadingLocale))setLocale(readingLocale(value));},[]);
- const copy=readingCopy(locale);
+ const copy=readingCopy(locale),stateCopy=resultStateCopy(locale);
  const [cursor,setCursor]=useState<string|null>(null),[loading,setLoading]=useState(false);
  const [rows,setRows]=useState<FortuneSummary[]|null>(null),[error,setError]=useState(''),[needsLogin,setNeedsLogin]=useState(false);
+ const [recovering,setRecovering]=useState(''),[recoverError,setRecoverError]=useState<{id:string;message:string}|null>(null);
  const active=useRef<AbortController|null>(null),revision=useRef(0),retryAt=useRef(0);
  const load=useCallback(async(next:string|null=null)=>{
   if(next&&active.current)return;
@@ -52,10 +54,21 @@ export default function Library(){
   return()=>{revision.current++;active.current?.abort();window.removeEventListener('cd:auth-changed',reset);window.removeEventListener('storage',storage);};
  },[load]);
  function retry(){if(Date.now()<retryAt.current){setError('잠시 후 다시 불러와 주세요.');return;}void load(rows?cursor:null);}
+ // The same server retry as the result page; the result page then shows the chapters as they are saved.
+ async function recover(row:FortuneSummary){
+  if(recovering)return;setRecovering(row.id);setRecoverError(null);
+  try{await fortuneApi(`requests/${row.id}/generate`,{});window.location.assign(`${resultPath(row.id,row.locale)}&source=library`);}
+  catch(reason){
+   if(reason instanceof FortuneApiError&&reason.status===401){loginForCurrentPage();return;}
+   setRecoverError({id:row.id,message:locale!=='ko'||!(reason instanceof Error)?stateCopy.generateFailed:reason.message});setRecovering('');void load();
+  }
+ }
  const scene=needsLogin?'login':rows?.length||error?'hero':'signup',[art,artWidth,artHeight]=ART[scene];
  return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><p className={styles.eyebrow}>CODE DESTINY 계정에 보관된 이야기</p><h1>{copy.library}</h1>
   {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:rows?.length===0&&<p>{copy.empty}</p>}</div></header>
-  <div className={styles.library}>{rows?.map(row=><a key={row.id} href={`${resultPath(row.id,row.locale)}&source=library`}><img src={readingArtwork(row.product)} width={120} height={80} loading="lazy" alt=""/><div><h2>{row.kindLabel||row.product.name} · {row.product.fishName}</h2><p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product.chapterCount):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>)}</div>
+  <div className={styles.library}>{rows?.map(row=><div key={row.id} className={styles.libraryItem}><a href={`${resultPath(row.id,row.locale)}&source=library`}><img src={readingArtwork(row.product)} width={120} height={80} loading="lazy" alt=""/><div><h2>{row.kindLabel||row.product.name} · {row.product.fishName}</h2><p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product.chapterCount):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>
+   {row.canRetry&&<button className={styles.retryButton} disabled={Boolean(recovering)} onClick={()=>void recover(row)}>{recovering===row.id?stateCopy.recovering:copy.recovery}</button>}
+   {recoverError?.id===row.id&&<p role="alert">{recoverError.message}</p>}</div>)}</div>
   {cursor&&!error&&<button disabled={loading} onClick={()=>void load(cursor)}>{loading?'불러오는 중':'이전 상담 더 보기'}</button>}
   {error&&!needsLogin&&<div role="alert"><p>{error}</p><button disabled={loading} onClick={retry}>{loading?'불러오는 중':'다시 불러오기'}</button></div>}
   <a href="/yeongnyangi/fortune/">새 상담 고르기</a>
