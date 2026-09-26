@@ -5040,3 +5040,13 @@ export function completeServiceExecution(payload: ServiceExecutionPayload) {
 export function failServiceExecution(payload: ServiceExecutionPayload) {
   return runServiceExecutionApi("fail", payload);
 }
+
+// Download the existing web payment runtime while the customer reviews checkout.
+// No order, permission probe, customer lookup or payment is performed here.
+export async function prewarmPaidCheckout(): Promise<void> {
+  if (typeof window === "undefined" || isMobileAppRuntime()) return;
+  try {
+    await loadPaidServiceRuntimeGate();
+    (window as RuntimeApiWindow).__cdPreloadPortOneV2Sdk?.();
+  } catch { /* The user-initiated gate owns retry and error presentation. */ }
+}

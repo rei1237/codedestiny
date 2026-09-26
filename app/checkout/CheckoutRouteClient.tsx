@@ -18,6 +18,9 @@ export default function CheckoutRouteClient() {
   // (refreshAuth 는 인플라이트 요청을 병합하므로 CheckoutClient 마운트 시 재호출해도 안전하다).
   useEffect(() => {
     void refreshAuth();
+    void import("@/app/_lib/billing-client")
+      .then(({ prewarmPaidCheckout }) => prewarmPaidCheckout())
+      .catch(() => { /* The checkout gate retains normal SDK loading and errors. */ });
   }, []);
 
   return <CheckoutClient />;
