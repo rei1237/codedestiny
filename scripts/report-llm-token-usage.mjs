@@ -18,7 +18,7 @@
  */
 
 import { readFileSync } from "node:fs";
-import { costUsageByModel } from "../lib/payment/llm-cost-report.mjs";
+import { costUsageByModel, costUsageByRequest } from "../lib/payment/llm-cost-report.mjs";
 
 // gemini-2.5-flash 기준 USD/1M tokens. 다른 모델을 쓰면 --in/--out 으로 덮어쓴다.
 const DEFAULT_INPUT_USD_PER_M = 0.3;
@@ -84,6 +84,9 @@ function collect(text) {
         serviceId: readField(chunk, "serviceId") || `(unlabeled:${readField(chunk, "taskType") || "general"})`,
         requestId: readField(chunk, "requestId"),
         billingAccess: readField(chunk, "billingAccess"),
+        sectionGroup: readField(chunk, "sectionGroup"),
+        generationSource: readField(chunk, "generationSource"),
+        attempt: toNumber(readField(chunk, "attempt")),
         taskType: readField(chunk, "taskType") || "general",
         provider: readField(chunk, "provider") || "gemini",
         model: readField(chunk, "model") || "",
@@ -259,10 +262,12 @@ function main() {
   const args = parseArgs(process.argv.slice(2));
   const rows = collect(readInput(args.file));
   if (args.prices) {
-    const services = costUsageByModel(rows, JSON.parse(readFileSync(args.prices, "utf8")));
+    const tariffs = JSON.parse(readFileSync(args.prices, "utf8"));
+    const services = costUsageByModel(rows, tariffs);
+    const requests = costUsageByRequest(rows, tariffs);
     const complete = services.length > 0 && services.every(row => row.complete);
     const attributionComplete = rows.length > 0 && rows.every(row => row.requestId && row.billingAccess && !row.serviceId.startsWith("(unlabeled:"));
-    console.log(JSON.stringify({ rows: rows.length, complete, attributionComplete, services, saleApproval: false }, null, 2));
+    console.log(JSON.stringify({ rows: rows.length, complete, attributionComplete, services, requests, saleApproval: false }, null, 2));
     process.exitCode = complete ? 0 : 2;
     return;
   }

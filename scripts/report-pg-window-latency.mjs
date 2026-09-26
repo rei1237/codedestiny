@@ -129,6 +129,11 @@ try {
     console.log(JSON.stringify({
       sinceIso: since.toISOString(), days: rawDays,
       funnel: Object.fromEntries(counts), sampleCount: samples.length, overall,
+      byDimension: Object.fromEntries(["runtime", "renderer", "featureKey"].map(dimension => [dimension,
+        Object.fromEntries([...groupBy(dimension)].map(([bucket, list]) => [bucket, {
+          sampleCount: list.length,
+          ...Object.fromEntries([...STEP_KEYS, "dwellMs"].map(key => [key, summarize(list.map(sample => sample[key]))])),
+        }]))])),
     }, null, 2));
   } else {
     console.log(`\n[pg-latency] checkout_funnel_events · 최근 ${rawDays}일 (since ${since.toISOString()})`);
