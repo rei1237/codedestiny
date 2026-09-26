@@ -103,6 +103,7 @@ next: "P3 네 번째 묶음 네오·낙샤트라·자미 심층 전달 SHA와 ma
 - 유지: 가격·이용권/월정석/단건 결제 정책, 인증·소유권, 결제 증빙 재확인, 저장 재조회, 환불/취소 차단, DB 스키마, API 경로, 시도 상한. 실 LLM·실결제·운영 DB·운영 승격 없음.
 - 검증: 짧은/더 짧은/빈/반복/잘못된 근거 보강, 예약 후 중단, 마지막 시도, 총합 미달 시 예산 소진을 mock으로 검증했다. 핵심 Jest 3 suites / 77 tests, 자미 심층 Node 57 tests, 낙샤트라·네오·자미 심층 흐름 검증 및 handoff 199문서 검증 통과. `check:fast -- --plan`은 critical, `check:fast`와 main CI 최종 결과는 전달 커밋 및 이 세션 최종 보고를 참조한다.
 - 수정 파일: `worker/routes/neo-operation-room.js`, `worker/routes/nakshatra-ai.js`, `worker/routes/ziwei-deep-report.js`; 각 서비스 프롬프트 3개, 관련 테스트 4개, 이 문서.
+- 첫 전달 `19024857d0b17914e488ad2a2e0ce2a613683c44`의 CI는 타입·lint·Critical checks·Pages/Worker 빌드가 통과했으나 정적 미러 신선도에서 실패했다. 기존 정적 소스의 캐시 키 10개 불일치를 `npm run sync:public`으로 갱신해 별도 커밋한다. 동기화 전후 기존 미커밋 파일 SHA-256은 모두 동일했다. 미러 검증기는 미커밋 트리에서 실행을 거부하므로 최종 판정은 새 main CI에서 확인한다.
 - 다음: 남은 P3 라우트의 현재 구현을 확인한 뒤 다음 3~4개를 묶는다. P4 형식 교정·P5 관계 궁합은 미착수. 총합 정책은 다시 결정받지 않는다.
 
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
