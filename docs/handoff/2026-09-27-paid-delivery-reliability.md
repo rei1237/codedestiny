@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "1단계 A(기존 실행의 서버 이어생성)는 dd0123537 까지 main 에 있다. 1단계 B(승인 직후 주문 영속 등록)의 상품별 선행 수정부터 구현하고, 상품 48개 미매핑과 전체 구간 계측을 이어서 완료한다."
+next: "1단계 B 의 상품별 선행 수정(서술자 충실도 9d8be5c91·ca6154fef)은 main 에 있다. 1B 절의 결정대로 등록 대상 상품의 결제 게이트가 소비 기록에 route 본문과 같은 featureKey·requestId 를 남기는지부터 확인한 뒤 결제 전 의도 등록(awaiting_payment)과 증빙 키 제외 병합 규칙을 구현하고, 상품 48개 미매핑과 전체 구간 계측을 이어서 완료한다."
 ---
 
 # 결제 지연·유료 결과 복구·LLM 비용 통제 인수인계
@@ -18,6 +18,7 @@ next: "1단계 A(기존 실행의 서버 이어생성)는 dd0123537 까지 main 
 - main에는 마케팅 파일, `next-env.d.ts`, 화면 캡처 등 다른 세션의 미커밋 작업이 있다. 격리 체크아웃을 재사용하며 reset/stash/일괄 stage를 하지 않는다. 이전 임시 파일 `paid-delivery-plan.json`, `paid-primary-before.txt`는 이번 문서 검사에 섞이지 않도록 시스템 TEMP의 고유 paid-delivery-handoff 디렉터리로 보존 이동했다.
 - 이 문서만 추가했다. 이번 인수인계에서 런타임·정책·계정·주문은 수정하지 않는다.
 - **2026-09-27 후속 세션(1단계 A):** 기준 `bb970446e` 위에 `94d583536`(엔진 DB 연산 withMongoRetry·서버 진입점) → `9f1d6f638`(oracle-consultation 테스트 목 보강) → `ba0326a27`(상품 어댑터 추출·레지스트리) → `dd0123537`(10분 크론 이어생성·모니터 지연) 을 격리 워크트리에서 만들어 main 에 fast-forward 로 전달했다. 1단계 B·2단계·3단계는 미착수다.
+- **2026-09-27 후속 세션(1단계 B 선행 수정):** 기준 `6797c40a8` 위에 `9d8be5c91`(geomancy counts·animal-totem cards/birth 를 JSON 문자열로 서술자에 실음) → `ca6154fef`(guardian 이 질문 전 recentTurns 를 서술자에 고정) 를 격리 워크트리에서 만들어 이 문서 커밋과 함께 main 에 전달했다. 1B 본 구현(의도 등록·증빙 결속·병합 규칙)과 2·3단계는 미착수다. 실 PG·과금 LLM·운영 DB 0회.
 
 상세 근거는 `docs/verification/paid-delivery-reliability-20260927.md`, 상품 표는 `docs/verification/paid-delivery-inventory-20260927.json`, 손익 표는 `docs/verification/yeongnyangi-pass-economics-20260927.json`, 스테이징 증거는 `docs/verification/paid-delivery-staging-20260927.json`에 있다. 먼저 이 문서로 재개하고 필요한 근거만 읽는다.
 
@@ -41,6 +42,7 @@ next: "1단계 A(기존 실행의 서버 이어생성)는 dd0123537 까지 main 
 | 프롬프트 | 영냥이 provider의 system 중복 전송 제거 | 전체 상품의 컨텍스트 최적화 완료 아님 |
 | 보고 | `scripts/report-paid-delivery-{inventory,health}.mjs`, `report-llm-token-usage.mjs`, `report-pg-window-latency.mjs`, `report-yeongnyangi-pass-economics.mjs`, `lib/payment/llm-cost-report.mjs` | 상품 전수 완료율·복구 성공률·실측 원가는 아직 불완전 |
 | 서버 이어생성 | `worker/lib/paid-narrative-recovery-task.js`(신규), `paid-narrative-adapters.js`(레지스트리 18키), `paid-narrative-delivery.js`의 `resumePaidNarrativeOnServer`, `worker/index.js` 10분 분기 배선 | 이미 실행 기록이 생긴 건만. 승인 직후 첫 요청 전 이탈(기록 없음)은 1단계 B. 스테이징 `crons = []`라 자동 경로 스테이징 실증 없음 |
+| 결제 재개 서술자 | `geomancy-oracle-v4.html`, `js/animal-totem-experience.js`(배열·객체를 JSON 문자열로 싣고 복귀 때 검증), `app/fortune-chat/FortuneChatClient.tsx`·`paid-turn-recovery.ts`(질문 전 recentTurns 고정) | 복귀 본문 = 페이지 내 본문까지(증빙 키는 다를 수 있음). pet 자정 날짜 미수정. 서버 등록은 1B 본 구현 |
 
 **동시 작업 주의:** 현재 main에는 후속 `a572d4ae5`가 들어 있다. 반복되거나 무효인 보완 응답이 기존 유효 초안을 막던 문제와 섬 캐시 minChars 연결을 수정했다. `docs/handoff/2026-09-27-llm-length-never-fatal.md`의 P1 완료 기록과 최신 diff를 읽고 보존한다. 그 문서의 P1 이전 전수 조사와 이 작업의 원래 보고는 역사적 스냅샷이며 최신 구현과 다를 수 있다. 길이 품질 작업의 P2~P5와 여기의 복구 작업을 중복 구현하지 않는다. 타 세션에 메시지를 보내는 것은 사용자 허가 없이 하지 않는다.
 
@@ -65,14 +67,19 @@ next: "1단계 A(기존 실행의 서버 이어생성)는 dd0123537 까지 main 
 - 운영 위험: 프로덕션 승격 뒤에는 서버가 **실 과금 LLM을 사용자 요청 없이 호출**한다(기존 항목당 3회 예산 안). 스테이징은 `crons = []`라 이 경로가 돌지 않아 스테이징 실증이 없다. 승격 전 시험표 승인 범위에 이 자동 경로를 포함할지 정하고, 승격 후 첫 틱의 `[paid-narrative-recovery]` 로그(executionKey·featureKey·결과 코드만, 질문·본문 없음)를 확인한다.
 - 롤백: `git revert dd0123537` 하나로 크론 호출이 멈춘다. `94d583536`·`ba0326a27`은 동작 보존 리팩터라 남겨도 무해하다.
 
-#### 1B. 승인 직후 주문 영속 등록 — 다음 세션
+#### 1B. 승인 직후 주문 영속 등록 — 선행 수정 완료, 본 구현은 다음 세션
 
-선행 수정(상품별, 조사로 확인):
-- 결제 전 입력 `paidResume`이 geomancy·yoga·animal-totem 에서 불완전하다 — 배열·객체를 `js/core/checkout-entry.js:1497-1518` 정리기가 버린다.
-- guardian 은 서버 등록용 descriptor 가 미확인이다.
-- geomancy·yoga·pet 의 verify 는 쿠키/헤더/120분 창에 묶여(`worker/lib/access-control.js:767` 부근) 서버에서 재검증할 수 없다. 서버 등록 시 결제 증빙을 어떻게 원래 주문에 묶을지 먼저 정한다.
-- 서버가 등록한 본문과 브라우저의 첫 POST 가 다르면 409 `INPUT_MISMATCH` 가 난다 — 같은 실행으로 합치는 규칙이 필요하다.
-- 영냥이·꿀꿀 운세 보관함의 목록 API 가 없어(신규 기능) 진행/재시도/검토 상태 노출은 새 필드가 아니라 새 API 가 필요하다.
+선행 수정(상품별) — 2026-09-27 결과. 서술자 충실도(아래 앞 다섯 줄)는 main 에 있고, 증빙 결속·병합·구조·보관함은 결정만 기록했다(미구현). 공통 전제: 서버 등록 본문과 브라우저 POST 가 같은 실행이 되려면 복귀 본문이 결제 전 페이지 내 본문과 같아야 한다. 서술자 args 는 원시값만 `js/core/checkout-entry.js:1497` 정리기를 통과하므로 배열·객체는 JSON 문자열로 싣는다(TSX 는 `packPaidResumeArg`/`unpackPaidResumeArg`).
+
+- **geomancy — 수정(`9d8be5c91`).** `counts`(8~29 정수 16개)를 JSON 문자열로 싣고 복귀 때 `parseGeomancyResumeCounts`가 검증한다. 모양이 틀리면 예전처럼 새로 던진다(예전 배열 티켓도 받는다).
+- **animal-totem — 수정(`9d8be5c91`).** `birth`는 JSON 문자열, `cards`는 복원에 필요한 `{slot, animalId}`만 JSON 문자열로 싣고 복귀 때 검증한다(카드 문구는 복원 뒤 `buildReadingCards`가 다시 만든다).
+- **yoga — 수정 불필요(실측).** 서술자 `{mood, duration, requestId}`가 원시값이고, 페이지 내와 복귀가 같은 `invokeGuruCore`에서 상수 `buildSystemPrompt()`·(mood, duration)의 순수 함수 `buildUserPrompt`·숫자 `duration`(버튼 리터럴 30/60)으로 본문을 만든다(mood 는 양쪽 trim). 다를 수 있는 것은 증빙 키(`transactionId`·`purchaseId`·`sessionId`)뿐 — 아래 병합 규칙 몫.
+- **guardian — 수정(`ca6154fef`).** 서버는 `recentTurns`를 '이전 대화'로 읽는데, 페이지 내 결제 호출은 결제창 대기 중 다시 그려진 `messagesRef`(현재 질문 포함)로, 복귀는 bootstrap 이 대화를 채우기 전의 빈 대화로 만들어 두 본문이 달랐다. `send`가 질문을 넣기 전 대화를 한 번 굳혀 페이지 내 본문과 서술자에 같이 쓴다. **동작 변화:** 유료 페이지 내 턴의 `recentTurns`에 현재 질문이 더는 들어가지 않는다(`concern`에는 있다 — 무료 경로와 같아졌다). **개인정보:** 최근 6턴 원문이 암호화된 결제 재개 컨텍스트(대기 30분·승인 7일)에 `concern`과 같은 등급으로 저장된다. 서버는 여전히 6턴·160자·민감 턴 제거로 다시 조인다.
+- **pet — 발견만, 미수정(결함은 후속 과제로 보고).** `pet-saju.html`의 `paidRequestBody`가 요청할 때마다 `date: kstToday()`를 넣어 KST 자정을 넘긴 복귀·재시도는 본문이 달라진다. 서버 `normalizeRequestDate`(`worker/lib/pet/pet-input.js:95`)는 허용 창이 없고 `handlePetDelivery`가 이 날짜로 시드한다. 서술자의 pets 는 이미 JSON 문자열이다. 1B 등록 전에 고칠 방법: 결제창 전에 `kstToday()`를 한 번 굳혀 서술자 `date`와 페이지 내 본문에 쓰고, 복귀 때 유효하면 그 값을 쓴다.
+- **증빙 결속 — 결정.** geomancy·yoga·pet 의 verify 는 쿠키/헤더/120분 창에 묶여(`worker/lib/access-control.js:767` 부근) 서버에서 재검증할 수 없고, 상품 verify 를 서버에서 다시 돌리면 이용권 차감 분기가 탄다. 그래서 `verifyPerUsePayment(env, { userId, featureKey, requestId, requireExisting: true })`로 **이미 있는 소비만** 증명한다(`worker/lib/nakshatra-paid-access.js:107`, 선례 `worker/lib/palm-result-delivery.js:41`·fusion·ziwei 복구). 실측: 단건(Payment)·코인/월정석(PointHistory deduct)·월정석 원장(MonthlyCreditLedger)·이용권(`worker/lib/pass-consumption.js:136` 마커·사용 증빙)·admin 을 (userId, featureKey, requestId)로 조회하고, 앞의 세 헬퍼는 requestId 가 비면 null 이며, `requireExisting`이면 차감 분기 전에 `NO_EXISTING_CONSUMPTION`으로 끝난다. **미검증 — 다음 세션 첫 조사:** 등록 대상 상품마다 결제 게이트가 소비 기록에 route 본문과 같은 featureKey·requestId 를 남기는지. 안 남기는 상품은 등록 대상에서 빼거나 게이트를 고친다(fail-closed). 증명 결과(source·transactionId)는 실행 문서 metadata 에 둔다.
+- **409 `INPUT_MISMATCH` 병합 — 결정.** 지금 `cleanBody`(`worker/lib/paid-narrative-delivery.js:14`)는 토큰 5종만 빼고 비교하므로 증빙 키가 다르면 같은 주문도 409 다. 해시에서 명시적 증빙 키 목록(`transactionId`·`purchaseId`·`sessionId`·`accessGrant`·`consume` 등 — 상품별 게이트가 싣는 키를 전수 확인해 확정)만 빼고, 목록에 없는 새 키는 입력으로 본다(fail-closed). 같은 입력이면 같은 실행으로 합치고 저장된 원본을 쓴다.
+- **권장 1B 구조 — 결정.** 결제창을 열기 전에 정확한 route 본문을 같은 executionKey(`paid-narrative:${hash([userId, featureKey, requestId])}`)의 `awaiting_payment` 의도로 등록 → 10분 크론이 위 증명으로 `pending` 전환 → 1A 이어생성이 넘겨받는다. 함정: ① 일일 `sweepStaleServiceExecutions`가 `awaiting_payment`를 고르지 않게 한다. ② 미결제 의도는 TTL·개인정보 정리가 필요하다. ③ 엔진은 `verify(original)`(`paid-narrative-delivery.js:64`)로 **저장된** 본문의 증빙을 검사하므로, 증빙 없는 의도 문서는 들어온 본문의 증빙이나 크론 증명으로 검증하게 바꿔야 한다.
+- **보관함 목록 API — 3단계로 미룬다.** 영냥이·꿀꿀 운세 보관함에 목록 API 가 없어(신규 기능) 진행/재시도/검토 상태 노출은 새 필드가 아니라 새 API 가 필요하다.
 
 B 의 요구와 통과 조건(원래 목록). 이 중 브라우저 종료·DB 응답 유실·만료 작업자의 늦은 저장·동시 복구·환불 경합·소진 검토는 A 경로에서 mock 으로 확인했다(`__tests__/worker/paid-narrative-recovery-task.test.js`). 승인 응답 유실·큐 등록 실패·중복/역순 콜백·보관함은 B 에서 새로 증명한다.
 
@@ -117,6 +124,7 @@ B 의 요구와 통과 조건(원래 목록). 이 중 브라우저 종료·DB �
 - 운영 DB 읽기 전용 과거 집계: 결제 연결 3건, 누락 0건. 이 소표본을 전체 상품 주문 누락률로 일반화하지 않는다. request 생성→완료는 대기시간 포함이다.
 - 실 PG 0회, 과금 LLM 0회, 운영 주문 복구/환불 0회. 이 작업의 프로덕션 배포 미실행.
 - 1단계 A(mock 전용): 신규 이어생성 테스트 9건(미완료 3항목만 호출·기존 파트 보존·확인 재조회 후 완료·GET `?resultId=` completed, 살아 있는 잠금 건너뜀·동시 두 틱 중복 호출 0, 환불 표시 시 공급자 0회·검토 표시, 저장 응답 유실 throw/null/confirm 3종 → 완료 금지·`retryCount` 불변·백오프 후 재개, 늦은 저장 거부, 소진 시 `exhaustionClaimed`·`failureResult` 없음, 전문가 후속 미선택), 어댑터 레지스트리 21건, 호출부 회귀 포함 jest 19개 스위트 544건, ziwei `node --test` 51건 통과. `verify:cron-mongo-op-coverage`(보호 밖 21건 원장 유지), `verify:no-nested-retry`, `verify:paid-gate-ui`, `verify-llm-generation-resilience`, `audit-ai-locale-calls --check` 통과. 인벤토리 exit 2(48개, 예상대로), `serverRecovery` 18키 채워짐. 실 LLM·실 PG·운영 DB 0회.
+- 1단계 B 선행 수정(mock 전용): 실제 `checkout-entry.js` 정리기를 통과한 티켓으로 복귀 본문 = 페이지 내 본문을 geomancy(`__tests__/ui/geomancy-paid-delivery.test.js`)·animal-totem(`__tests__/ui/animal-totem-paid-delivery.test.js`)·guardian(`__tests__/ui/guardian-paid-turn-recovery.test.js`, 수정 전 코드에서 실패 확인)으로 증명했다. `check:fast`는 두 커밋에 한 번씩 모두 tier critical·jest 304 스위트 4,368건 통과·exit 0. 실 PG·과금 LLM·운영 DB 0회.
 
 ## 이용권 결론 및 아직 승인되지 않은 시험표
 
