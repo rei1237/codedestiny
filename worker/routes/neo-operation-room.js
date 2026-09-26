@@ -1606,7 +1606,7 @@ function neoShape(value, schema) {
   if (schema && typeof schema === "object") return value && typeof value === "object" && Object.entries(schema).every(([key, item]) => neoShape(value[key], item));
   return typeof schema === "number" ? Number.isFinite(Number(value)) : typeof value === "string" && value.trim().length > 0;
 }
-function neoSectionReady(section, row, input, methodSummary) {
+function neoSectionReady(section, row, input, methodSummary, allowShort = false) {
   if (!row?.ok || !neoShape(row.parsed, section.schema) || hasForbiddenResultText(row.parsed)) return false;
   for (const [path, count] of Object.entries(section.counts || {})) {
     const list = path.split(".").reduce((value, key) => value?.[key], row.parsed);
@@ -1615,7 +1615,7 @@ function neoSectionReady(section, row, input, methodSummary) {
   // Count the rendered, normalized values; aliases and the calculated fallback cannot inflate length.
   const rendered = mergeNeoInitialSections([row], input, { ...methodSummary, evidenceSummary: "", summary: "" });
   const text = neoBody(rendered);
-  if (countPaidReportBodyChars(text) < section.minChars || hasRepeatedReportPassage(text)) return false;
+  if (!countPaidReportBodyChars(text) || (!allowShort && countPaidReportBodyChars(text) < section.minChars) || hasRepeatedReportPassage(text)) return false;
   if (section.id === "methodEvidence" && methodSummary?.evidenceTokens?.length && !briefingCitesEvidence(rendered, methodSummary.evidenceTokens)) return false;
   return true;
 }
@@ -1693,22 +1693,33 @@ async function handleStart(request, env, ctx = null) {
       doc = await saveNeoDelivery(filter, { methodSummary, llmMeta: { ...doc.llmMeta, resumeBody } }, sessionId);
     }
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
-    const rows = { ...doc.llmMeta.sections };
-    const missing = sections.filter(section => !neoSectionReady(section, rows[section.id], normalized.input, doc.methodSummary));
+    const accepted = section => neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary,
+      Boolean(doc.llmMeta.attempts?.[`${section.id}:lengthRepair`] || Number(doc.llmMeta.attempts?.[section.id] || 0) >= 3));
+    const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" })));
+    const missing = sections.filter(section => !accepted(section));
+    if (!missing.length && countPaidReportBodyChars(neoBody(mergeNeoInitialSections(Object.values(doc.llmMeta.sections || {}), normalized.input, doc.methodSummary))) < 20000) {
+      missing.push(...sections.filter(section => Number(doc.llmMeta.attempts?.[section.id] || 0) < 3
+        && sectionChars(doc.llmMeta.sections[section.id]) < Math.ceil(section.minChars / 0.8)));
+    }
     if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, 4);
       const attempts = { ...doc.llmMeta.attempts };
-      selected.forEach(section => { attempts[section.id] = Number(attempts[section.id] || 0) + 1; });
+      selected.forEach(section => {
+        if (neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary, true)) attempts[`${section.id}:lengthRepair`] = 1;
+        attempts[section.id] = Number(attempts[section.id] || 0) + 1;
+      });
       doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
       await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
       const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
-        const prompt = buildNeoInitialSectionPrompt(section, context) + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars * 1.2)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
+        const prompt = buildNeoInitialSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·목차·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 계산값 → 생활 패턴 → 반대 조건 → 행동 조언으로 전개한다. 반복으로 채우지 않는다.`;
         const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
-        if (!neoSectionReady(section, row, normalized.input, doc.methodSummary)) return;
+        if (!neoSectionReady(section, row, normalized.input, doc.methodSummary, true)) return;
         const write = queue.catch(() => {}).then(async () => {
+          const previous = doc.llmMeta.sections?.[section.id];
+          if (neoSectionReady(section, previous, normalized.input, doc.methodSummary, true) && sectionChars(previous) >= sectionChars(row)) return;
           const candidate = { ...doc.llmMeta.sections, [section.id]: row };
           const briefing = mergeNeoInitialSections(Object.values(candidate), normalized.input, doc.methodSummary);
           if (hasRepeatedReportPassage(neoBody(briefing))) return;
@@ -1722,7 +1733,7 @@ async function handleStart(request, env, ctx = null) {
     }
     const allRows = Object.values(doc.llmMeta.sections || {});
     const briefing = mergeNeoInitialSections(allRows, normalized.input, doc.methodSummary);
-    if (sections.some(section => !neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary))) return pendingNeo(doc);
+    if (sections.some(section => !accepted(section)) || countPaidReportBodyChars(neoBody(briefing)) < 20000) return pendingNeo(doc);
     if (countPaidReportBodyChars(neoBody(briefing)) < 20000 || hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (doc.status !== "delivery_pending") doc = await saveNeoDelivery(filter, { status: "delivery_pending", initialBriefing: briefing,
       messages: [{ role: "user", content: normalized.input.question, createdAt: new Date() }, { role: "assistant", content: JSON.stringify(briefing), createdAt: new Date() }] }, sessionId);
@@ -1809,14 +1820,14 @@ async function handleResult(request, env, pathId = "") {
   return json({ ...publicSession(consultation), badge });
 }
 
-function neoRefinedSectionReady(section, row, consultation) {
+function neoRefinedSectionReady(section, row, consultation, allowShort = false) {
   if (!row?.ok || !neoShape(row.parsed, section.schema) || hasForbiddenResultText(row.parsed)) return false;
   for (const [path, count] of Object.entries(section.counts || {})) {
     const list = path.split(".").reduce((value, key) => value?.[key], row.parsed);
     if (!Array.isArray(list) || list.length < count) return false;
   }
   const text = neoBody(mergeNeoRefinedSections([row], consultation));
-  return countPaidReportBodyChars(text) >= section.minChars && !hasRepeatedReportPassage(text);
+  return countPaidReportBodyChars(text) > 0 && (allowShort || countPaidReportBodyChars(text) >= section.minChars) && !hasRepeatedReportPassage(text);
 }
 function pendingNeoRefinement(doc) {
   return json({ ...publicSession(doc), resultId: doc.id, retryable: true }, { status: 202, headers: { "Retry-After": "3" } });
@@ -1849,21 +1860,35 @@ async function handleRefine(request, env) {
   try {
     const previous = doc.llmMeta.refinement;
     const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, sections: {}, attempts: {} };
-    const missing = NEO_REFINED_SECTIONS.filter(section => !neoRefinedSectionReady(section, state.sections[section.id], doc));
+    const accepted = (section, current) => neoRefinedSectionReady(section, current.sections[section.id], doc,
+      Boolean(current.attempts[`${section.id}:lengthRepair`] || Number(current.attempts[section.id] || 0) >= 3));
+    const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoRefinedSections(row ? [row] : [], doc)));
+    const totalChars = current => countPaidReportBodyChars(neoBody(mergeNeoRefinedSections(Object.values(current.sections), doc)));
+    const minTotalChars = NEO_REFINED_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
+    const missing = NEO_REFINED_SECTIONS.filter(section => !accepted(section, state));
+    if (!missing.length && totalChars(state) < minTotalChars) {
+      missing.push(...NEO_REFINED_SECTIONS.filter(section => Number(state.attempts[section.id] || 0) < 3
+        && sectionChars(state.sections[section.id]) < Math.ceil(section.minChars / 0.8)));
+    }
     if (missing.some(section => Number(state.attempts[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, 4);
       const attempts = { ...state.attempts };
-      selected.forEach(section => { attempts[section.id] = Number(attempts[section.id] || 0) + 1; });
+      selected.forEach(section => {
+        if (neoRefinedSectionReady(section, state.sections[section.id], doc, true)) attempts[`${section.id}:lengthRepair`] = 1;
+        attempts[section.id] = Number(attempts[section.id] || 0) + 1;
+      });
       doc = await saveNeoDelivery(filter, { refinementStatus: "generating", refinementError: null, llmMeta: { ...doc.llmMeta, refinement: { ...state, attempts } } }, sessionId);
       const context = { selectedMethod: doc.selectedMethod, topic: doc.topic, intensity: doc.intensity, question: doc.question, methodSummary: doc.methodSummary,
         initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing) };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
-        const prompt = buildNeoRefinedSectionPrompt(section, context) + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars * 1.2)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
+        const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;
         const row = await generateNeoSectionOnce(env, section, prompt, null, Date.now() + 45000, true);
-        if (!neoRefinedSectionReady(section, row, doc)) return;
+        if (!neoRefinedSectionReady(section, row, doc, true)) return;
         const write = queue.catch(() => {}).then(async () => {
+          const previous = doc.llmMeta.refinement.sections[section.id];
+          if (neoRefinedSectionReady(section, previous, doc, true) && sectionChars(previous) >= sectionChars(row)) return;
           const sections = { ...doc.llmMeta.refinement.sections, [section.id]: row };
           if (hasRepeatedReportPassage(neoBody(mergeNeoRefinedSections(Object.values(sections), doc)))) return;
           doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, refinement: { ...doc.llmMeta.refinement, sections } } }, sessionId);
@@ -1874,7 +1899,7 @@ async function handleRefine(request, env) {
       const failure = outcomes.find(result => result.status === "rejected");
       if (failure) throw failure.reason;
     }
-    if (NEO_REFINED_SECTIONS.some(section => !neoRefinedSectionReady(section, doc.llmMeta.refinement.sections[section.id], doc))) return pendingNeoRefinement(doc);
+    if (NEO_REFINED_SECTIONS.some(section => !accepted(section, doc.llmMeta.refinement)) || totalChars(doc.llmMeta.refinement) < minTotalChars) return pendingNeoRefinement(doc);
     const refinedOrder = mergeNeoRefinedSections(Object.values(doc.llmMeta.refinement.sections), doc);
     let freshAccess;
     try { freshAccess = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: doc.inputHash }, pricing: getPricing(), idempotencyKey: doc.idempotencyKey }); }

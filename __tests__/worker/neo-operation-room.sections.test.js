@@ -47,7 +47,7 @@ describe("buildNeoInitialSectionPrompt", () => {
     expect(prompt).toContain("돈/재물");
     expect(prompt).toContain("자미두수 명반 대가");
     expect(prompt).toContain("별 세기");
-    expect(prompt).toContain(`최소 ${section.minChars}자`);
+    expect(prompt).toContain(`제목·공백을 제외한 본문이 ${Math.ceil(section.minChars / 0.8)}~${Math.ceil(section.minChars * 1.5)}자`);
   });
 });
 

@@ -618,10 +618,10 @@ function publicSession(doc) {
     question: clean(raw?.question),
     // 결과 렌더에 필요한 필드만 노출 — 내부 근거 텍스트(summaryText)·codex 원본은 은닉.
     natal: raw?.factSummary?.identity || null,
-    decks: raw?.decks || (readSections(raw).some(isSectionSettled) ? mergeConsultationSections(readSections(raw).filter(isSectionSettled)) : null),
+    decks: raw?.decks || (readSections(raw).some(row => isSectionSettled(row, raw?.llmMeta?.attempts)) ? mergeConsultationSections(readSections(raw).filter(row => isSectionSettled(row, raw?.llmMeta?.attempts))) : null),
     // 진행 인디케이터는 서버 진행률에 실제로 물려 있어야 한다(가짜 진행바 금지).
     progress: {
-      completed: raw?.status === "completed" ? Number(raw?.generationProgress?.total || NAKSHATRA_SECTIONS.length) : countSettled(readSections(raw)),
+      completed: raw?.status === "completed" ? Number(raw?.generationProgress?.total || NAKSHATRA_SECTIONS.length) : countSettled(readSections(raw), raw?.llmMeta?.attempts),
       total: Number(raw?.generationProgress?.total || NAKSHATRA_SECTIONS.length),
       phase: clean(raw?.generationProgress?.phase) || (raw?.status === "completed" ? "done" : "consultation"),
       chars: Number(raw?.totalCharCount || 0),
@@ -701,12 +701,13 @@ async function generateSectionOnce(env, section, prompt, cacheConfig) {
 }
 
 // ── 배치 진행 계산 ───────────────────────────────────────────────────────────
-// 정상 내용과 본문 최소 분량을 모두 충족한 장만 완료된 부분으로 인정한다.
-// 정착하지 않은 섹션은 다음 배치에서 자동으로 다시 생성된다 → 이게 광고 분량을 실제로 떠받친다.
-function isSectionSettled(entry) {
+// 유효한 초안은 보존한다. 개별 하한은 1회 보강 예약 후/마지막 시도에만 면제하며 총합은 별도로 유지한다.
+function isSectionSettled(entry, attempts = {}, allowShort = false) {
   const spec = SECTION_BY_ID.get(entry?.id);
   return Boolean(spec && entry.ok && entry.keyInsight && entry.vedicEvidence && entry.sukuyoEvidence
-    && countPaidReportBodyChars(entry.body) >= spec.minChars && !hasRepeatedReportPassage(entry.body) && !hasForbiddenResultText([entry.keyInsight, entry.body, entry.vedicEvidence, entry.sukuyoEvidence]));
+    && countPaidReportBodyChars(entry.body) > 0
+    && (allowShort || countPaidReportBodyChars(entry.body) >= spec.minChars || attempts[`${spec.id}:lengthRepair`] || Number(attempts[spec.id] || 0) >= SECTION_MAX_ATTEMPTS)
+    && !hasRepeatedReportPassage(entry.body) && !hasForbiddenResultText([entry.keyInsight, entry.body, entry.vedicEvidence, entry.sukuyoEvidence]));
 }
 
 function readSections(doc) {
@@ -714,16 +715,20 @@ function readSections(doc) {
 }
 
 // 다음에 생성할 섹션 묶음. 모든 장은 이미 두 전통의 계산 근거를 함께 받아 하나의 상담으로 쓴다.
-function pickNextBatch(done) {
+function pickNextBatch(done, attempts = {}) {
   const byId = new Map(done.map((entry) => [entry.id, entry]));
-  const settled = (section) => isSectionSettled(byId.get(section.id));
+  const settled = (section) => isSectionSettled(byId.get(section.id), attempts);
   const pool = NAKSHATRA_PHASE_CONSULTATION.filter((section) => !settled(section));
+  if (!pool.length && sumSectionChars(done) < Math.max(20000, MIN_TOTAL_CHARS)) {
+    pool.push(...NAKSHATRA_PHASE_CONSULTATION.filter(section => Number(attempts[section.id] || 0) < SECTION_MAX_ATTEMPTS
+      && countPaidReportBodyChars(byId.get(section.id)?.body) < Math.ceil(section.minChars / 0.8)));
+  }
   return { phase: "consultation", slice: pool.slice(0, SECTION_BATCH_SIZE), remaining: pool.length };
 }
 
-function countSettled(done) {
+function countSettled(done, attempts = {}) {
   const byId = new Map(done.map((entry) => [entry.id, entry]));
-  return NAKSHATRA_SECTIONS.filter((section) => isSectionSettled(byId.get(section.id))).length;
+  return NAKSHATRA_SECTIONS.filter((section) => isSectionSettled(byId.get(section.id), attempts)).length;
 }
 
 function sumSectionChars(done) {
@@ -731,10 +736,10 @@ function sumSectionChars(done) {
 }
 
 // 완료 조립. 첫 장과 핵심 장이 비면 하나의 통합 상담 계약이 깨진 것이므로 실패로 돌린다.
-function buildCompletion(sections) {
+function buildCompletion(sections, attempts = {}) {
   const decks = mergeConsultationSections(sections);
   const totalCharCount = sumSectionChars(sections);
-  if (countSettled(sections) !== NAKSHATRA_SECTIONS.length || totalCharCount < Math.max(20000, MIN_TOTAL_CHARS)
+  if (countSettled(sections, attempts) !== NAKSHATRA_SECTIONS.length || totalCharCount < Math.max(20000, MIN_TOTAL_CHARS)
     || hasRepeatedReportPassage(sections.map(row => row.body).join("\n"))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
   return { decks, totalCharCount, provider: clean(sections.find(row => row.provider)?.provider), model: clean(sections.find(row => row.model)?.model), topInsights: extractTopInsights(sections.find(row => row.id === "lifeManual")?.body) };
 }
@@ -906,8 +911,8 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
   let session = lock.doc;
   const filter = { id: sessionId, userId: auth.userId, "generationProgress.lockToken": lock.lockToken, status: { $ne: "completed" } };
   try {
-    const missing = pickNextBatch(readSections(session)).slice;
     const attempts = { ...session.llmMeta?.attempts };
+    const missing = pickNextBatch(readSections(session), attempts).slice;
     const exhausted = missing.filter(section => Number(attempts[section.id] || 0) >= SECTION_MAX_ATTEMPTS);
     if (exhausted.length) {
       // 응답·저장 확인이 유실된 실행은 생성 실패로 확정하거나 자동 환불하지 않는다.
@@ -915,7 +920,10 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     }
     if (missing.length) {
-      missing.forEach(section => { attempts[section.id] = Number(attempts[section.id] || 0) + 1; });
+      missing.forEach(section => {
+        if (isSectionSettled(readSections(session).find(row => row.id === section.id), {}, true)) attempts[`${section.id}:lengthRepair`] = 1;
+        attempts[section.id] = Number(attempts[section.id] || 0) + 1;
+      });
       session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, attempts } }, sessionId);
       const context = { summaryText: session.factSummary?.summaryText, question: session.question, writtenMemory: buildWrittenMemory(readSections(session)) };
       let queue = Promise.resolve();
@@ -928,26 +936,29 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
         queue = write; return write;
       };
       const outcomes = await Promise.allSettled(missing.map(async section => {
-        const prompt = buildSectionPrompt(section, context);
+        const prompt = buildSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`]
+          ? `\n[분량 보강] 기존 계산 근거를 유지하고 새로운 생활 장면과 행동 조언을 더해 공백 제외 본문 ${Math.ceil(section.minChars / 0.8)}자 이상의 완결된 JSON으로 작성하세요. 반복으로 채우지 마세요.` : "");
         const row = await generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
           minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` });
         const identity = session.factSummary?.identity;
-        if (!isSectionSettled(row) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id); return; }
+        if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id); return; }
         const write = queue.catch(() => {}).then(async () => {
+          const previous = readSections(session).find(saved => saved.id === row.id);
+          if (isSectionSettled(previous, {}, true) && countPaidReportBodyChars(previous.body) >= countPaidReportBodyChars(row.body)) return;
           const sections = [...readSections(session).filter(saved => saved.id !== row.id), row].sort((a,b) => NAKSHATRA_SECTIONS.findIndex(spec => spec.id === a.id) - NAKSHATRA_SECTIONS.findIndex(spec => spec.id === b.id));
           if (hasRepeatedReportPassage(sections.map(saved => saved.body).join("\n"))) {
             const generationFailures = { ...session.llmMeta?.generationFailures, [section.id]: Number(session.llmMeta?.generationFailures?.[section.id] || 0) + 1 };
             session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, generationFailures } }, sessionId);
             return;
           }
-          session = await saveNakshatraDelivery(filter, { sections, totalCharCount: sumSectionChars(sections), generationProgress: { ...session.generationProgress, completed: countSettled(sections), total: NAKSHATRA_SECTIONS.length, phase: "consultation" } }, sessionId);
+          session = await saveNakshatraDelivery(filter, { sections, totalCharCount: sumSectionChars(sections), generationProgress: { ...session.generationProgress, completed: countSettled(sections, attempts), total: NAKSHATRA_SECTIONS.length, phase: "consultation" } }, sessionId);
         }); queue = write; await write;
       }));
       const failure = outcomes.find(outcome => outcome.status === "rejected");
       if (failure) throw failure.reason;
     }
-    if (pickNextBatch(readSections(session)).slice.length) return json(publicSession(session), { status: 202 });
-    const completion = buildCompletion(readSections(session));
+    if (pickNextBatch(readSections(session), attempts).slice.length || sumSectionChars(readSections(session)) < Math.max(20000, MIN_TOTAL_CHARS)) return json(publicSession(session), { status: 202 });
+    const completion = buildCompletion(readSections(session), attempts);
     if (session.status !== "delivery_pending") session = await saveNakshatraDelivery(filter, { status: "delivery_pending", decks: completion.decks, totalCharCount: completion.totalCharCount,
       llmMeta: { ...session.llmMeta, provider: completion.provider, model: completion.model, topInsights: completion.topInsights } }, sessionId);
     try {

@@ -133,6 +133,58 @@ it('overlapping requests acquire only one generation lease',async()=>{let releas
 
 async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
 async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
+for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short initial draft after ${repair} repair`, async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, draft;
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++;
+    const parsed = fixture({ ...section, minChars: section.minChars * (tries === 1 ? 0.45 : 0.2) });
+    if (tries === 1) draft = parsed;
+    if (tries > 1 && repair === 'empty') return { ok: true, provider: 'gemini', text: '{}' };
+    if (tries > 1 && repair === 'repeated') return { ok: true, provider: 'gemini', text: JSON.stringify({ ...parsed, description: prose('동일문장', 180).repeat(30) }) };
+    return { ok: true, provider: 'gemini', text: JSON.stringify(parsed) };
+  });
+  await start(); expect(docs[0].llmMeta.sections[section.id]?.parsed).toEqual(draft);
+  for (let i = 0; i < 7 && docs[0].status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
+  expect(docs[0].llmMeta.sections[section.id].parsed).toEqual(draft);
+  expect(docs[0].llmMeta.attempts[`${section.id}:lengthRepair`]).toBe(1);
+});
+it('does not consume or regenerate after total shortfall exhausts the section budget', async () => {
+  provider.mockImplementation(async (_env, prompt) => {
+    const section = definitions.find(row => prompt.includes(`제목: ${row.title}\n`));
+    return { ok: true, provider: 'gemini', text: JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
+  });
+  for (let i = 0; i < 18; i++) expect((await start()).status).toBe(202);
+  expect(provider).toHaveBeenCalledTimes(definitions.length * 3);
+  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+});
+for (const stage of ['reserved', 'last']) it(`initial short draft respects the ${stage} attempt`, async () => {
+  const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++;
+    return { ok: true, provider: 'gemini', text: stage === 'last' && tries < 3 ? '{}' : JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
+  });
+  await start();
+  if (stage === 'reserved') { docs[0].llmMeta.attempts[section.id] = 2; docs[0].llmMeta.attempts[`${section.id}:lengthRepair`] = 1; }
+  for (let i = 0; i < 7 && docs[0].status !== 'completed'; i++) await start();
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(stage === 'last' ? 3 : 1);
+});
+it('refinement preserves a shorter valid draft while retaining its existing total floor', async () => {
+  await initialComplete(); const section = refinedDefinitions[0]; const normal = provider.getMockImplementation(); let tries = 0, draft;
+  provider.mockImplementation(async (...args) => {
+    if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
+    tries++; const parsed = fixture({ ...section, minChars: section.minChars * (tries === 1 ? 0.45 : 0.2) });
+    if (tries === 1) draft = parsed;
+    return { ok: true, provider: 'gemini', text: JSON.stringify(parsed) };
+  });
+  await refine({ sessionId: docs[0].id, freeform: '작은 선택부터 바꾸겠습니다.' });
+  for (let i = 0; i < 5 && docs[0].refinementStatus !== 'completed'; i++) await refine();
+  expect(docs[0].refinementStatus).toBe('completed'); expect(tries).toBe(2);
+  expect(docs[0].llmMeta.refinement.sections[section.id].parsed).toEqual(draft);
+  expect(usage).toHaveBeenCalledTimes(1);
+});
 it('refinement saves four sections per request and reuses the same answer',async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);expect((await refine({sessionId:docs[0].id,freeform:'이제 작은 선택부터 바꿔보겠습니다.'})).status).toBe(202);expect(Object.keys(docs[0].llmMeta.refinement.sections)).toHaveLength(4);const response=await refine();expect(await response.clone().json()).toMatchObject({refinementStatus:'completed'});expect(response.status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(docs[0].initialBriefing).toEqual(initial);expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(usage).toHaveBeenCalledTimes(1)});
 for(const kind of ['null','throw','confirm']) it(`refinement final ${kind} preserves the initial report and saved sections`,async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);await refine({sessionId:docs[0].id,freeform:'우선 작은 선택을 바꾸겠습니다.'});fault={refinementStatus:'completed',kind};const response=await refine();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(docs[0].status).toBe('completed');expect(docs[0].initialBriefing).toEqual(initial);const calls=provider.mock.calls.length;expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();expect(docs[0].versionHistory).toHaveLength(1)});
 it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<2;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(26);expect(refund).not.toHaveBeenCalled()});
