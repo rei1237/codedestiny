@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "2365e00debf179c884eb13c7b618763560eda438e4de35dc6b9c41c6fba3e299",
+  "sourceHash": "357a0f192bc8d838480bee4ae3c1cdb7a1e6419b96231cc2a8fa53c7cf2d97aa",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -329,6 +329,81 @@
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "focus",
+          "accessibility": "river 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-01a",
+      "title": "이름 없는 검은 호랑이",
+      "purpose": "이름 없는 검은 호랑이",
+      "conflictBeatId": "ep-01a:14",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-01a:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-01a:14",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-01a:38",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-01a:1",
+          "background": "river",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-01a:4",
+          "background": "river",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "river 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-01a:14",
+          "background": "river",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": "claw",
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-01a:20",
+          "background": "river",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "river 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-01a:36",
+          "background": "river",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
           "accessibility": "river 배경에서 진행되는 서술"
         }
       ]
@@ -1905,6 +1980,71 @@
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "siksang 배경에서 진행되는 시스템 메시지"
+        }
+      ]
+    },
+    {
+      "id": "ep-06a",
+      "title": "빌려 간 박수",
+      "purpose": "빌려 간 박수",
+      "conflictBeatId": "ep-06a:26",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-06a:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-06a:26",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-06a:36",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-06a:1",
+          "background": "siksang",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-06a:20",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-06a:26",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "water",
+          "camera": "drift",
+          "accessibility": "siksang 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-06a:36",
+          "background": "siksang",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksang 배경에서 진행되는 서술"
         }
       ]
     },
@@ -3789,6 +3929,61 @@
       ]
     },
     {
+      "id": "ep-12a",
+      "title": "칼을 내려놓는 저녁",
+      "purpose": "칼을 내려놓는 저녁",
+      "conflictBeatId": "ep-12a:18",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-12a:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-12a:18",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-12a:35",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-12a:1",
+          "background": "siksangNight",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:10",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-12a:30",
+          "background": "siksangNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "siksangNight 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
       "id": "ep-13",
       "title": "맛있는 작별",
       "purpose": "맛있는 작별",
@@ -4056,13 +4251,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-14:193",
+          "beatId": "ep-14:92",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-14:402",
-          "pacing": "impact"
+          "beatId": "ep-14:173",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -4195,6 +4390,41 @@
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "islandIn 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-14a",
+      "title": "서로의 숨을 받치는 법",
+      "purpose": "서로의 숨을 받치는 법",
+      "conflictBeatId": "ep-14:193",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-14:174",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-14:252",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-14:402",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-14:174",
+          "background": "islandIn",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "islandIn 배경에서 진행되는 moka의 대사"
         },
         {
           "beatId": "ep-14:180",
@@ -7481,13 +7711,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-21:70",
-          "pacing": "impact"
+          "beatId": "ep-21:61",
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-21:200",
-          "pacing": "impact"
+          "beatId": "ep-21:112",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -7790,7 +8020,32 @@
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "jaeSlave 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-21a",
+      "title": "기억하지 못한 이름",
+      "purpose": "기억하지 못한 이름",
+      "conflictBeatId": "ep-21:113",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-21:113",
+          "pacing": "normal"
         },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-21:145",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-21:200",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
         {
           "beatId": "ep-21:113",
           "background": "bigeopIn4",
@@ -12721,13 +12976,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-27:127",
+          "beatId": "ep-27:58",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-27:200",
-          "pacing": "impact"
+          "beatId": "ep-27:123",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -12940,6 +13195,41 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "jae 배경에서 진행되는 lns의 대사"
+        }
+      ]
+    },
+    {
+      "id": "ep-27a",
+      "title": "반 걸음 뒤의 마음",
+      "purpose": "반 걸음 뒤의 마음",
+      "conflictBeatId": "ep-27:127",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-27:124",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-27:162",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-27:200",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-27:124",
+          "background": "jae",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "jae 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-27:127",
@@ -13079,7 +13369,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:176",
@@ -13099,7 +13389,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:178",
@@ -13119,7 +13409,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:181",
@@ -13139,7 +13429,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:183",
@@ -13149,7 +13439,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:184",
@@ -13169,7 +13459,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:186",
@@ -13179,7 +13469,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:187",
@@ -13199,7 +13489,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:189",
@@ -13219,7 +13509,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:191",
@@ -13239,7 +13529,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:193",
@@ -13259,7 +13549,7 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
-          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+          "accessibility": "handsRush 배경에서 진행되는 tiger의 대사"
         },
         {
           "beatId": "ep-27:195",
@@ -13300,6 +13590,71 @@
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "handsRush 배경에서 진행되는 시스템 메시지"
+        }
+      ]
+    },
+    {
+      "id": "ep-27b",
+      "title": "돌려줄 수 없는 선물",
+      "purpose": "돌려줄 수 없는 선물",
+      "conflictBeatId": "ep-27b:18",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-27b:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-27b:18",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-27b:35",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-27b:1",
+          "background": "jae",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-27b:8",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 tiger의 대사"
+        },
+        {
+          "beatId": "ep-27b:24",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "jae 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-27b:35",
+          "background": "jae",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "jae 배경에서 진행되는 서술"
         }
       ]
     },
@@ -14005,6 +14360,296 @@
           "eventEffect": null,
           "camera": "focus",
           "accessibility": "roomNight 배경에서 진행되는 시스템 메시지"
+        }
+      ]
+    },
+    {
+      "id": "ep-28a",
+      "title": "붉은 귀걸이의 여자",
+      "purpose": "붉은 귀걸이의 여자",
+      "conflictBeatId": "ep-28a:17",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-28a:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-28a:17",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-28a:32",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-28a:1",
+          "background": "campus",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "campus 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:5",
+          "background": "foundation",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:6",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28a:32",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-28b",
+      "title": "안전한 내일의 가격",
+      "purpose": "안전한 내일의 가격",
+      "conflictBeatId": "ep-28b:17",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-28b:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-28b:17",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-28b:33",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-28b:1",
+          "background": "room",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "room 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:11",
+          "background": "foundation",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28b:17",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "foundation 배경에서 진행되는 pje의 대사"
+        },
+        {
+          "beatId": "ep-28b:31",
+          "background": "foundation",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "foundation 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-28c",
+      "title": "비 오는 정류장의 약속",
+      "purpose": "비 오는 정류장의 약속",
+      "conflictBeatId": "ep-28c:11",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-28c:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-28c:19",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-28c:33",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-28c:1",
+          "background": "rainStop",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:11",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "script",
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:19",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "metal",
+          "camera": "steady",
+          "accessibility": "rainStop 배경에서 진행되는 neo의 대사"
+        },
+        {
+          "beatId": "ep-28c:20",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:29",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": "water",
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28c:33",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-28d",
+      "title": "문을 닫는 사람",
+      "purpose": "문을 닫는 사람",
+      "conflictBeatId": "ep-28d:18",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-28d:1",
+          "pacing": "normal"
+        },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-28d:18",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-28d:35",
+          "pacing": "normal"
+        }
+      ],
+      "visualCues": [
+        {
+          "beatId": "ep-28d:1",
+          "background": "rainStop",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:25",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:28",
+          "background": "rainStop",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "rainStop 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:29",
+          "background": "roomNight",
+          "transition": "crossfade",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-28d:35",
+          "background": "roomNight",
+          "transition": "hold",
+          "tone": "natural",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "roomNight 배경에서 진행되는 서술"
         }
       ]
     },
@@ -17656,13 +18301,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-32:68",
-          "pacing": "impact"
+          "beatId": "ep-32:49",
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-32:201",
-          "pacing": "impact"
+          "beatId": "ep-32:130",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -18485,11 +19130,36 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "ziwei2 배경에서 진행되는 mu의 대사"
+        }
+      ]
+    },
+    {
+      "id": "ep-32a",
+      "title": "삼킨 이야기를 돌려주다",
+      "purpose": "삼킨 이야기를 돌려주다",
+      "conflictBeatId": "ep-32:131",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-32:131",
+          "pacing": "normal"
         },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-32:154",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-32:201",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
         {
           "beatId": "ep-32:131",
           "background": "ziwei2",
-          "transition": "hold",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": null,
           "eventEffect": "water",
@@ -22426,13 +23096,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-36:83",
-          "pacing": "impact"
+          "beatId": "ep-36:33",
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-36:201",
-          "pacing": "impact"
+          "beatId": "ep-36:72",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -22935,7 +23605,32 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "memoryVault 배경에서 진행되는 mu의 대사"
+        }
+      ]
+    },
+    {
+      "id": "ep-36a",
+      "title": "내 것이 아닌 사랑",
+      "purpose": "내 것이 아닌 사랑",
+      "conflictBeatId": "ep-36:83",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-36:73",
+          "pacing": "normal"
         },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-36:133",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-36:201",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
         {
           "beatId": "ep-36:73",
           "background": "sukuyo",
@@ -24696,13 +25391,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-38:71",
-          "pacing": "normal"
+          "beatId": "ep-38:30",
+          "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-38:203",
-          "pacing": "impact"
+          "beatId": "ep-38:87",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -25325,7 +26020,32 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "clearMoonWater 배경에서 진행되는 pje의 대사"
+        }
+      ]
+    },
+    {
+      "id": "ep-38a",
+      "title": "일곱 개의 손",
+      "purpose": "일곱 개의 손",
+      "conflictBeatId": "ep-38:88",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-38:88",
+          "pacing": "impact"
         },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-38:126",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-38:203",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
         {
           "beatId": "ep-38:88",
           "background": "handsRush",
@@ -28681,13 +29401,13 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-41:82",
+          "beatId": "ep-41:42",
           "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-41:204",
-          "pacing": "impact"
+          "beatId": "ep-41:116",
+          "pacing": "normal"
         }
       ],
       "visualCues": [
@@ -29267,7 +29987,7 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
+          "eventEffect": "claw",
           "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
@@ -29277,7 +29997,7 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": "thread",
+          "eventEffect": "water",
           "camera": "focus",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
@@ -29307,7 +30027,7 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
-          "eventEffect": null,
+          "eventEffect": "script",
           "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
@@ -29410,7 +30130,32 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
+        }
+      ]
+    },
+    {
+      "id": "ep-41a",
+      "title": "물이 맑아진 뒤",
+      "purpose": "물이 맑아진 뒤",
+      "conflictBeatId": "ep-41:117",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-41:117",
+          "pacing": "impact"
         },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-41:144",
+          "pacing": "normal"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-41:204",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
         {
           "beatId": "ep-41:117",
           "background": "clearMoonWater",
@@ -29419,6 +30164,26 @@
           "ambient": "moonlight",
           "eventEffect": "fuse",
           "camera": "focus",
+          "accessibility": "clearMoonWater 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-41a:city-return-1",
+          "background": "clearMoonWater",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "clearMoonWater 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-41a:city-return-3",
+          "background": "clearMoonWater",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29866,12 +30631,12 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-42:71",
+          "beatId": "ep-42:47",
           "pacing": "impact"
         },
         {
           "phase": "정리·다음 걸음",
-          "beatId": "ep-42:202",
+          "beatId": "ep-42:71",
           "pacing": "impact"
         }
       ],
@@ -29965,7 +30730,32 @@
           "eventEffect": "tarot",
           "camera": "focus",
           "accessibility": "tarotDoor 배경에서 진행되는 서술"
+        }
+      ]
+    },
+    {
+      "id": "ep-42a",
+      "title": "너와 나의 평범한 봄",
+      "purpose": "너와 나의 평범한 봄",
+      "conflictBeatId": "ep-42:82",
+      "emotionPath": [
+        {
+          "phase": "진입",
+          "beatId": "ep-42:72",
+          "pacing": "normal"
         },
+        {
+          "phase": "압력·전환",
+          "beatId": "ep-42:128",
+          "pacing": "impact"
+        },
+        {
+          "phase": "정리·다음 걸음",
+          "beatId": "ep-42:202",
+          "pacing": "impact"
+        }
+      ],
+      "visualCues": [
         {
           "beatId": "ep-42:72",
           "background": "room",

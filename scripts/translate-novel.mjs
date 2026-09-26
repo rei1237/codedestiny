@@ -109,21 +109,21 @@ function collectItems(source) {
     items.push({ id: `${id}:tag`, text: episode.tag });
     items.push({ id: `${id}:title`, text: episode.title });
     episode.beats.forEach((beat, index) => {
-      items.push({ id: `${id}:${index + 1}`, text: beat.t });
+      items.push({ id: beat.id || `${id}:${index + 1}`, text: beat.t });
     });
   }
   return items;
 }
 
 function setById(output, id, value) {
-  const [episodeId, field, beatIndex] = id.split(":");
+  const [episodeId, field] = id.split(":");
   const episode = output.episodes.find((item) => item.id === episodeId);
   if (!episode) throw new Error(`번역 대상 에피소드를 찾지 못했습니다: ${episodeId}`);
   if (field === "tag" || field === "title") {
     episode[field] = value;
     return;
   }
-  const beat = episode.beats[Number(field) - 1];
+  const beat = output.episodes.flatMap(item => item.beats).find(item => item.id === id);
   if (!beat) throw new Error(`번역 대상 비트를 찾지 못했습니다: ${id}`);
   beat.t = value;
 }
@@ -140,7 +140,7 @@ function makeSkeleton(source, locale, sourceHash) {
         no: episode.no,
         tag: "",
         title: "",
-        beats: episode.beats.map((beat, index) => ({ id: `${id}:${index + 1}`, t: "" })),
+        beats: episode.beats.map((beat, index) => ({ id: beat.id || `${id}:${index + 1}`, t: "" })),
       };
     }),
   };
@@ -148,8 +148,8 @@ function makeSkeleton(source, locale, sourceHash) {
 
 const sourceRaw = await readFile(SOURCE_PATH, "utf8");
 const source = JSON.parse(sourceRaw);
-if (source.schemaVersion !== 1 || !Array.isArray(source.episodes) || source.episodes.length !== 44) {
-  throw new Error("라이트 노벨 정본 스키마 또는 44화 계약이 맞지 않습니다.");
+if (source.schemaVersion !== 1 || !Array.isArray(source.episodes) || !source.episodes.length) {
+  throw new Error("라이트 노벨 정본 스키마 또는 회차 목록이 올바르지 않습니다.");
 }
 
 await mkdir(OUTPUT_DIR, { recursive: true });

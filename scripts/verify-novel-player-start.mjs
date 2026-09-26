@@ -10,6 +10,13 @@ const PUBLIC_ROOT = resolve(ROOT, "public");
 const PLAYER_PATH = resolve(PUBLIC_ROOT, "codedestiny-novel.html");
 const html = await readFile(PLAYER_PATH, "utf8");
 
+const canonical = JSON.parse(await readFile(resolve(ROOT, "content/novel/episodes.source.json"), "utf8")).episodes;
+function originalPoint(episode, position) {
+  const id = (episode === 0 ? "prologue" : "ep-" + String(episode).padStart(2, "0")) + ":" + (position + 1);
+  for (let ep = 0; ep < canonical.length; ep++) { const bi = canonical[ep].beats.findIndex(b => b.id === id); if (bi >= 0) return [ep, bi]; }
+  throw new Error("Original scene was lost: " + id);
+}
+const episodeIndex = (ep) => originalPoint(ep, 0)[0];
 const wait = (ms) => new Promise((resolveWait) => setTimeout(resolveWait, ms));
 
 async function waitFor(check, label) {
@@ -21,7 +28,7 @@ async function waitFor(check, label) {
 }
 
 /* clampTimers=false 는 타이밍 경합 전용이다 — 나머지 검사는 클램프가 있어야 빨리 끝난다. */
-function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false, clampTimers = true } = {}) {
+function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false, clampTimers = true, mobile = false, staleCache = false } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(`jsdom: ${error.message}`));
@@ -33,10 +40,12 @@ function createPlayerDom({ hash = "", failManifest = false, bookmark = null, app
     pretendToBeVisual: true,
     virtualConsole,
     beforeParse(window) {
+      if (mobile) Object.defineProperty(window, "innerWidth", { value: 390 });
       const originalTimeout = window.setTimeout.bind(window);
       if (clampTimers) window.setTimeout = (callback, delay = 0, ...args) => originalTimeout(callback, Math.min(Number(delay) || 0, 20), ...args);
-      window.fetch = async (input) => {
+      window.fetch = async (input, options = {}) => {
         const url = new URL(typeof input === "string" ? input : input.url, window.location.href);
+        if (staleCache && options.cache === "force-cache") return new Response('{"episodes":[]}', { status: 200 });
         if (failManifest && url.pathname.endsWith("/data/novel/manifest.json")) return new Response("unavailable", { status: 503 });
         try {
           const relativePath = decodeURIComponent(url.pathname).replace(/^\/+/, "");
@@ -111,7 +120,7 @@ async function verifyVisualCueBindings() {
     ];
     await waitFor(() => dom.window.__NOVEL_READY === true, "novel manifest");
     for (const [episodeIndex, beatIndex, background, asset] of visualCues) {
-      await dom.window.hydrateTo(episodeIndex, beatIndex);
+      await dom.window.hydrateTo(...originalPoint(episodeIndex, beatIndex));
       assert.equal(dom.window.S.curBg, background, `${background} was not selected`);
       const visibleAsset = ["bgA", "bgB"].some((id) => document.getElementById(id)?.src.includes(asset));
       assert.equal(visibleAsset, true, `${asset} was not assigned to the background pool`);
@@ -146,9 +155,9 @@ async function verifyBackgroundStability() {
     };
 
     // ① EP.23 은 배경이 15번 바뀌는 화다. 그 끝으로 점프해도 배경은 딱 한 번만 갈려야 한다.
-    await win.hydrateTo(23, 0);
+    await win.hydrateTo(...originalPoint(23, 0));
     countSwaps();
-    await win.hydrateTo(23, 199);
+    await win.hydrateTo(...originalPoint(23, 199));
     stopCounting();
     assert.equal(swaps, 1, `hydrateTo replayed ${swaps} background swaps (must be 1)`);
 
@@ -160,7 +169,7 @@ async function verifyBackgroundStability() {
     }
     assert.ok(staged.length > 0, "no character was staged after the jump");
     countSwaps();
-    await win.hydrateTo(23, 199);
+    await win.hydrateTo(...originalPoint(23, 199));
     stopCounting();
     assert.equal(swaps, 0, "re-jumping to the same beat swapped the background again");
     for (const { slot, el, who } of staged) {
@@ -174,7 +183,7 @@ async function verifyBackgroundStability() {
     await win.hydrateTo(0, prologue.beats.length - 1);
     assert.equal(win.S.curBg, "river", "prologue did not end on the river background");
     countSwaps();
-    await win.hydrateTo(1, 0);
+    await win.hydrateTo(...originalPoint(1, 0));
     stopCounting();
     assert.equal(swaps, 0, "episode boundary with an identical background still crossfaded");
 
@@ -212,7 +221,7 @@ async function verifyFormContinuity() {
       assert.match(resume.textContent, /이어읽기/, "the bookmark did not produce a resume entry");
       resume.click();
       await waitFor(() => document.getElementById("dlgBody")?.textContent.trim().length > 0, "resumed dialogue");
-      assert.equal(win.S.ep, 5, "resume did not land on the bookmarked episode");
+      assert.equal(win.S.ep, episodeIndex(5), "resume did not land on the bookmarked episode");
       assert.equal(win.S.bi, 0, "this case must resume at cut 0 — the entry that never replays the marker");
       assert.equal(win.S.form, "pig", "resuming inside the pig arc left Yeon in her human form");
       win.setSlot("l", "yeon", "neutral");
@@ -229,12 +238,12 @@ async function verifyFormContinuity() {
     try {
       const win = dom.window;
       await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
-      await win.hydrateTo(27, 0);
+      await win.hydrateTo(...originalPoint(27, 0));
       assert.equal(win.S.form, "human", "episodes after the EP.26 marker must start human");
-      assert.equal(Array.isArray(win.EPISODES[26].beats), false, "EP.26 must be unloaded for this case to mean anything");
+      assert.equal(Array.isArray(win.EPISODES[episodeIndex(26)].beats), false, "EP.26 must be unloaded for this case to mean anything");
       win.chapSkip(-1);
       await waitFor(() => win.curBeat?.id?.startsWith("ep-26:"), "backward chapter skip");
-      assert.equal(win.S.ep, 26, "backward chapter skip did not land on EP.26");
+      assert.equal(win.S.ep, episodeIndex(26), "backward chapter skip did not land on EP.26");
       assert.equal(win.S.form, "pig", "backward chapter skip into the pig arc rendered Yeon as a human");
       assert.deepEqual(errors, [], "backward chapter skip emitted runtime errors");
     } finally {
@@ -256,7 +265,8 @@ async function verifyFormContinuity() {
         [26, 59, "human", "the EP.26 marker back to human did not take"],
         [27, 0, "human", "episodes after EP.26 start human"],
       ];
-      for (const [ep, bi, form, why] of points) {
+      for (const [oldEp, oldBi, form, why] of points) {
+        const [ep, bi] = originalPoint(oldEp, oldBi);
         await win.hydrateTo(ep, bi);
         assert.equal(win.S.form, form, `hydrateTo(${ep},${bi}) — ${why}`);
         await win.ensureEpisodeLoaded(ep);
@@ -278,7 +288,7 @@ async function verifyFormContinuity() {
       const win = dom.window;
       const { document } = win;
       await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
-      await win.hydrateTo(20, 0);
+      await win.hydrateTo(...originalPoint(20, 0));
       assert.equal(win.S.form, "pig", "EP.20 is inside the pig arc");
       document.getElementById("setRestart").click();
       await waitFor(() => win.curBeat?.id?.startsWith("prologue:"), "restart from the beginning");
@@ -311,7 +321,7 @@ async function verifyChapterCardTimers() {
     assert.equal(document.getElementById("chCard").classList.contains("on"), true, "the chapter card did not open");
     win.S.bi = 0;
     win.enterEpisode(2, true); // 카드가 떠 있는 동안 ⏭ — 앞 화의 타이머는 여기서 끊겨야 한다
-    await waitFor(() => win.curBeat?.id?.startsWith("ep-02:"), "the newer chapter card ran its first cut");
+    await waitFor(() => win.curBeat?.id === canonical[2].beats[0].id, "the newer chapter card ran its first cut");
     await wait(150); // 앞 화의 타이머가 살아 있었다면 이 사이에 컷 0이 한 번 더 돈다
     win.runBeat = realRunBeat;
     assert.equal(runs, 1, `an abandoned chapter card ran cut 0 again (runBeat fired ${runs} times, must be 1)`);
@@ -421,6 +431,73 @@ async function verifyTimingRaces() {
     }
   }
 }
+async function verifyMobileRendering() {
+  const { dom, errors } = createPlayerDom({ clampTimers: false });
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY === true, "mobile rendering manifest");
+    await win.ensureEpisodeLoaded(0);
+    win.S.screen = "player";
+    win.S.reduce = true;
+    for (const fx of ["hands", "metal", "water", "suck", "thread"]) {
+      win.runFx(fx);
+      assert.equal(win.fxLayer.childElementCount, 0, "reduced motion must not construct animated effects");
+      assert.equal(win._fxTimers.length, 0, "reduced motion must not queue effect timers");
+    }
+    win.S.reduce = false;
+    win.runFx("metal");
+    assert.ok(win.fxLayer.childElementCount > 0);
+    win.clearSceneEffects();
+    await wait(600);
+    assert.equal(win.fxLayer.childElementCount, 0, "an old effect reappeared after cancellation");
+    assert.equal(win._fxTimers.length, 0);
+    assert.equal(win.document.getElementById("player").classList.contains("shakeScreen"), false);
+    win.showDialogue({ s: "n", t: "검은 호랑이가 발끝을 감추었다. 이름은 쉽게 주는 것이 아니었다." });
+    const node = win.dlgBody.firstChild;
+    await wait(100);
+    assert.equal(win.dlgBody.firstChild, node, "typing replaced the text node");
+    assert.equal(win.dlgBody.childNodes.length, 1, "typing must not allocate a caret DOM each tick");
+    win.finishType();
+    assert.deepEqual(errors, []);
+  } finally { dom.window.close(); }
+}
+async function verifyExpandedBookmarks() {
+  for (const bookmark of [{ ep: 41, bi: 160 }, { ep: 41, bi: 160, episodeId: "ep-41", beatId: "ep-41:161" }]) {
+    const { dom, errors } = createPlayerDom({ bookmark });
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY, "expanded bookmark manifest");
+      const ep = win.resolveSavedEpisode(win.S.save);
+      await win.ensureEpisodeLoaded(ep);
+      const bi = win.resolveSavedBeat(ep, win.S.save);
+      assert.equal(win.EPISODES[ep].id, "ep-41a", "legacy bookmark did not migrate to the continuation");
+      assert.equal(win.EPISODES[ep].beats[bi].id, "ep-41:161", "legacy bookmark changed the story sentence");
+      await win.hydrateTo(ep, bi);
+      assert.equal(win.curBeat.id, "ep-41:161");
+      assert.deepEqual(errors, []);
+    } finally { dom.window.close(); }
+  }
+}
+async function verifyMobileAssetsAndCache() {
+  const { dom, errors } = createPlayerDom({ mobile: true, staleCache: true });
+  try {
+    const win = dom.window;
+    await waitFor(() => win.__NOVEL_READY, "mobile assets manifest");
+    assert.match(win.spriteFor("neo", "neutral", "pig").url, /\/mobile\/neo-/);
+    assert.match(win.spriteFor("yeon", "base", "pig").url, /\/mobile\/yeon-/);
+    assert.equal(win.spriteFor("tiger", "angry", "pig").url, "/images/novel/hanbi/angry.webp");
+    assert.equal(win.bgUrl("rainStop"), "/images/novel/mobile/rainStop.webp");
+    for (let ep = 0; ep < 12; ep++) { await win.hydrateTo(ep, 0); }
+    assert.ok(win.EPISODES.filter(e => Array.isArray(e.beats)).length <= 4, "episode cache grew past four chapters");
+    assert.equal(Object.keys(win.NOVEL_EPISODE_LOADS).length, 0, "settled promises retained chapter data");
+    await win.hydrateTo(0, 0);
+    assert.equal(win.curBeat.id, "prologue:1", "an evicted chapter could not be reopened");
+    assert.deepEqual(errors, []);
+  } finally { dom.window.close(); }
+}
+await verifyMobileAssetsAndCache();
+await verifyExpandedBookmarks();
+await verifyMobileRendering();
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
