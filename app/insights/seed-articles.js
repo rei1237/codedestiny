@@ -1,5 +1,7 @@
 import { actualContentDate } from "../../lib/content/editorial-review.mjs";
 import { INSIGHT_ARTICLES } from "./articles";
+import { getExplicitInsightTopic, getInsightTopicLabel } from "./insight-topic";
+import { getPhase3ArticleContent, PHASE3_ARTICLE_UPDATED_AT } from "./phase3-editorial-content";
 import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
 // Explicit authorship is preserved; an absent byline must not imply expert review.
@@ -210,8 +212,10 @@ function renderSectionsToHtml(sections) {
 }
 
 function inferCategoryLabel(article) {
+  const explicitTopic = getExplicitInsightTopic(article?.category);
+  if (explicitTopic) return getInsightTopicLabel(explicitTopic);
+
   const bag = [
-    article?.category,
     article?.title,
     article?.slug,
     article?.mainKeyword,
@@ -846,15 +850,17 @@ function buildSeedArticle(article, index) {
   const resolvedImage = resolveSeedImage(article, index, title);
   const category = inferCategoryLabel(article);
   const tags = normalizeTags(article);
+  const phase3ContentHtml = getPhase3ArticleContent(slug);
   const useOriginalContent =
-    (ORIGINAL_CONTENT_SLUGS.has(slug) || article?.useOriginalContent === true) &&
-    Boolean(String(article?.contentHtml || "").trim());
+    Boolean(phase3ContentHtml) ||
+    ((ORIGINAL_CONTENT_SLUGS.has(slug) || article?.useOriginalContent === true) &&
+      Boolean(String(article?.contentHtml || "").trim()));
   const rewrittenSections = useOriginalContent
     ? (Array.isArray(article?.sections) ? article.sections : [])
     : buildMysticSections(article, category, tags);
-  const contentHtml = useOriginalContent
+  const contentHtml = phase3ContentHtml || (useOriginalContent
     ? String(article.contentHtml)
-    : `<article><h1>${escapeHtml(title)}</h1>${renderSectionsToHtml(rewrittenSections)}</article>`;
+    : `<article><h1>${escapeHtml(title)}</h1>${renderSectionsToHtml(rewrittenSections)}</article>`);
   const excerpt = useOriginalContent
     ? (String(article?.description || "").trim() || buildMysticExcerpt(article, category, tags))
     : buildMysticExcerpt(article, category, tags);
@@ -865,7 +871,7 @@ function buildSeedArticle(article, index) {
       : String(article?.author || DEFAULT_AUTHOR);
 
   const publishedAt = actualContentDate(article?.publishedAt);
-  const updatedAt = actualContentDate(article?.updatedAt);
+  const updatedAt = actualContentDate(phase3ContentHtml ? PHASE3_ARTICLE_UPDATED_AT : article?.updatedAt);
   const internalLinks = normalizeLinkItems(article?.internalLinks);
   const faq = normalizeFaqItems(article?.faq);
   const ctaLinks = normalizeLinkItems(article?.cta?.links);

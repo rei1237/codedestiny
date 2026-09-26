@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { getInsightTopicLabel, inferInsightTopic } from "./insight-topic";
 
 const PAGE_SIZE = 12;
 const INSIGHTS_COSMIC_CLIENT_TEXT_TRANSLATIONS = {
@@ -100,6 +101,9 @@ function splitTags(value) {
 }
 
 function inferCategoryLabel(item) {
+  const explicitTopic = inferInsightTopic(item, null);
+  if (explicitTopic) return getInsightTopicLabel(explicitTopic);
+
   const bag = `${normalizeText(item?.categoryLabel, 120)} ${normalizeText(item?.categoryName, 120)} ${normalizeText(item?.categorySlug, 120)} ${normalizeText(item?.category, 120)} ${normalizeText(item?.type, 80)} ${normalizeText(item?.kind, 80)} ${normalizeText(item?.title, 240)} ${splitTags(item?.tags).join(" ")}`;
 
   if (/자미두수|ziwei|명궁|궁위|관록궁/i.test(bag)) return "자미두수";

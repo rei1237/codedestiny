@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTopicKey } from "./articles";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug } from "./seed-articles";
 import { getFeatureGuidesByTopic } from "./feature-guides";
+import { getPhase3HubGuide } from "./phase3-editorial-content";
 import EditorNote from "../components/EditorNote";
 
 function topicMatcher(topic) {
@@ -115,6 +116,10 @@ const TOPIC_GUIDES = {
     ],
   },
 };
+
+for (const topic of ["saju", "ziwei", "sukuyo", "tarot", "astrology", "vedic"]) {
+  TOPIC_GUIDES[topic] = getPhase3HubGuide(topic);
+}
 
 /**
  * 체계별 원전. 해석의 근거가 어디서 왔는지 밝히는 용도이며, 각 허브에 그대로 렌더링된다.

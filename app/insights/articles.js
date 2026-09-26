@@ -1,4 +1,5 @@
 import { ADSENSE_READY_ARTICLES } from "./adsense-ready-articles";
+import { inferInsightTopic } from "./insight-topic";
 
 const INSIGHT_ARTICLE_TEXT_TRANSLATIONS = {
   ko: {
@@ -6188,17 +6189,7 @@ export const INSIGHT_TOPICS = [
 ];
 
 function inferTopic(article) {
-  const slug = String(article?.slug || "");
-  const category = String(article?.category || "");
-  const title = String(article?.title || "");
-  const bag = `${slug} ${category} ${title}`.toLowerCase();
-
-  if (bag.includes("sukuyo") || bag.includes("숙요")) return "sukuyo";
-  if (bag.includes("vedic") || bag.includes("베다")) return "vedic";
-  if (bag.includes("ziwei") || bag.includes("자미두수")) return "ziwei";
-  if (bag.includes("tarot") || bag.includes("타로")) return "tarot";
-  if (bag.includes("astrology") || bag.includes("점성술")) return "astrology";
-  return "saju";
+  return inferInsightTopic(article, "saju");
 }
 
 export function getTopicKey(article) {
