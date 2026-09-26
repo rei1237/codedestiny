@@ -2173,10 +2173,27 @@
         mode: String(state.mode || "three"),
         question: String(state.question || ""),
         requestId: state.requestId,
-        birth: state.birthSeed,
-        cards: state.spread ? global.AnimalTotemContentEngine.buildReadingCards(state.spread) : [],
+        // 🔴 배열·객체는 sanitizePaidResumeDescriptor 가 버린다 — JSON 문자열로 싣는다. 카드는 복원에 쓰는
+        //    slot·animalId 만 담는다(본문의 카드 문구는 restoreTotemCards 뒤 buildReadingCards 가 다시 만든다).
+        birth: state.birthSeed ? JSON.stringify(state.birthSeed) : null,
+        cards: state.spread ? JSON.stringify(state.spread.cards.map(function(item) { return { slot: item.slot, animalId: item.card.id }; })) : "",
       },
     };
+  }
+
+  // 현재 티켓은 JSON 문자열, 예전 호출은 배열·객체를 넘긴다 — 둘 다 받는다. 모양이 틀리면 null.
+  function parseTotemResumeArg(raw) {
+    if (typeof raw !== "string") return raw;
+    try { return JSON.parse(raw); } catch (_) { return null; }
+  }
+  function readTotemResumeBirth(raw) {
+    var birth = parseTotemResumeArg(raw);
+    return birth && typeof birth === "object" && !Array.isArray(birth) ? birth : null;
+  }
+  function readTotemResumeCards(raw) {
+    var cards = parseTotemResumeArg(raw), engine = global.AnimalTotemContentEngine;
+    if (!Array.isArray(cards) || !cards.length) return null;
+    return cards.every(function(item) { return item && typeof item.slot === "string" && engine.getAnimalById(item.animalId); }) ? cards : null;
   }
 
   function waitForTotemDrawResumeTarget(limitMs) {
@@ -2207,8 +2224,8 @@
       if (!args.requestId) return false;
       var saved = readTotemDelivery();
       if (saved && saved.requestId === args.requestId) { state.delivery = saved; return recoverTotemDelivery(); }
-      state.birthSeed = args.birth || null;
-      if (!Array.isArray(args.cards) || !args.cards.length) args.cards = global.AnimalTotemContentEngine.buildReadingCards(global.AnimalTotemContentEngine.getRandomSpread(args.mode));
+      state.birthSeed = readTotemResumeBirth(args.birth);
+      args.cards = readTotemResumeCards(args.cards) || global.AnimalTotemContentEngine.buildReadingCards(global.AnimalTotemContentEngine.getRandomSpread(args.mode));
       restoreTotemCards(args);
       setMode(args.mode);
       state.question = String(args.question || "").slice(0, QUESTION_MAX);

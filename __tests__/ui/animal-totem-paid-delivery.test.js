@@ -5,8 +5,9 @@ const { JSDOM } = require('jsdom');
 const read = file => fs.readFileSync(file, 'utf8');
 const source = read('index.html');
 const scripts = ['js/services/animal-totem-content-engine.js', 'js/core/paid-narrative-reader.js', 'js/animal-totem-experience.js'].map(read);
+const entry = read('js/core/checkout-entry.js');
 const pause = () => new Promise(resolve => setTimeout(resolve, 20));
-function setup(fetcher, records = {}) {
+function setup(fetcher, records = {}, realEntry = false) {
   const dom = new JSDOM(source, { url: 'https://mock.test/', runScripts: 'outside-only', pretendToBeVisual: true });
   const win = dom.window; let handler;
   win.localStorage.setItem('fortune_auth_user', JSON.stringify({ id: 'owner-a' }));
@@ -14,7 +15,8 @@ function setup(fetcher, records = {}) {
   win.AbortController = AbortController; win.fetch = fetcher;
   win.requestAnimationFrame = () => 0; win.matchMedia = () => ({ matches: false });
   const timer = win.setTimeout.bind(win); win.setTimeout = (fn, ms) => timer(fn, ms >= 22000 ? ms : 1);
-  win.__cdCheckoutEntry = { registerPaidResumeHandler: (_kind, fn) => { handler = fn; } };
+  if (realEntry) win.eval(entry);
+  else win.__cdCheckoutEntry = { registerPaidResumeHandler: (_kind, fn) => { handler = fn; } };
   win._cdCoinGatePerUse = () => { throw Error('payment gate must not reopen'); };
   scripts.forEach(script => win.eval(script));
   win.openAnimalTotemModal();
@@ -57,4 +59,22 @@ test('account changes hide old content and prevent a late response from saving i
   assert.equal(await result, false); await pause();
   assert.doesNotMatch(env.win.document.body.textContent, /고객에게 전달한 LLM 본문/);
   assert.equal(env.win.localStorage.getItem('cd:animal-totem:v2:owner-b'), null); env.dom.window.close();
+});
+test('draw ticket passes the real resume sanitizer and re-sends the exact in-page reading body', async () => {
+  const capture = posts => async (_url, options) => {
+    if (options.method === 'GET') return reply(404, {});
+    const body = JSON.parse(options.body); posts.push(body);
+    return reply(200, { ...completed, requestId: body.requestId, mode: body.mode, cards: body.cards });
+  };
+  const inPage = [], gates = [], first = setup(capture(inPage));
+  first.win.__cdCurrentDestinyProfile = { birthDate: '1990-05-17', birthTime: '07:30', gender: 'female', calendarType: 'solar' };
+  first.win._cdCoinGatePerUse = (_cost, _reason, onPaid, _cancel, options) => { gates.push(options); onPaid('paid-id', {}); return { ok: true }; };
+  await pause(); first.win.drawAnimalTotemSpread();
+  for (let i = 0; i < 50 && !inPage.length; i++) await pause();
+  const ticket = JSON.parse(JSON.stringify(gates[0].resume)); first.dom.window.close();
+  const resumed = [], back = setup(capture(resumed), {}, true);
+  await pause();
+  assert.equal(await back.win.__cdCheckoutEntry.runPaidResume(ticket, { requestId: inPage[0].requestId, merchantUid: 'paid-id', payload: {} }), true);
+  assert.equal(inPage[0].birth.birthDate, '1990-05-17'); assert.ok(inPage[0].cards.length > 0);
+  assert.deepEqual(resumed[0], inPage[0]); back.dom.window.close();
 });

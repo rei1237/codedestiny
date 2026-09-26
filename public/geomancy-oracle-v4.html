@@ -1046,9 +1046,18 @@ function buildGeomancyResumeDescriptor(text){
   const asked = String(text || '').trim();
   if (!asked) return null;
   // args 에는 원시값만 살아남는다(checkout-entry 의 sanitizePaidResumeDescriptor).
+  // 🔴 counts 는 JSON 문자열로 싣는다 — 배열이면 새니타이저가 버려 복귀 문서가 새 점괘로
+  //    다른 본문을 보낸다. 복귀 본문은 결제 전 본문과 같아야 한다(서버 주문 등록 전제).
   // 🔴 action 은 비운다 — 이 파일은 셸에 상주해 복귀 시점에 핸들러가 이미 등록돼 있고,
   //    딥링크로 또 열면 이중 이동으로 재개가 날아간다.
-  return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked, requestId: geomancySaved.requestId, theme: geomancySaved.theme, counts: geomancySaved.counts } };
+  return { kind: GEOMANCY_RESUME_KIND, action: '', args: { question: asked, requestId: geomancySaved.requestId, theme: geomancySaved.theme, counts: JSON.stringify(geomancySaved.counts) } };
+}
+
+// 현재 티켓의 문자열과 예전 호출의 배열을 둘 다 받는다. 8~29 정수 16개가 아니면 null(호출부가 새로 던진다).
+function parseGeomancyResumeCounts(raw){
+  let list = raw;
+  if (typeof raw === 'string') { try { list = JSON.parse(raw); } catch (_e) { list = null; } }
+  return Array.isArray(list) && list.length === 16 && list.every(n => Number.isInteger(n) && n >= 8 && n <= 29) ? list : null;
 }
 
 function runGeomancyResume(descriptor, grant){
@@ -1072,7 +1081,7 @@ function runGeomancyResume(descriptor, grant){
     if (input) input.value = asked;
   } catch (_e) {}
   geomancySaved = {requestId:args.requestId || grant.requestId,question:asked,theme:args.theme || theme,
-    counts:Array.isArray(args.counts)&&args.counts.length===16?args.counts:Array.from({length:16},()=>8+Math.floor(Math.random()*22))};
+    counts:parseGeomancyResumeCounts(args.counts)||Array.from({length:16},()=>8+Math.floor(Math.random()*22))};
   if (!geomancySaved.requestId) return false;
   theme=geomancySaved.theme;
   return geomancyEnterActivation(asked);
