@@ -209,6 +209,6 @@
   });
   root.addEventListener('cd:locale-ready',changed);
   document.addEventListener('toggle',function(event){var el=event.target;if(el.open&&el.matches('[data-saju-sample]')&&typeof root.cdTrack==='function')root.cdTrack('saju_static_detail_view',{item_id:el.getAttribute('data-saju-sample'),mode:mode()});},true);
-  function init(){renderHeader();refreshCopy();}
+  function init(){renderHeader();refreshCopy();['yeoni-clue','neo-plan'].forEach(function(name){var asset=new Image();asset.decoding='async';asset.src='/images/saju/'+name+'-160.webp';});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(typeof window==='undefined'?globalThis:window);
