@@ -1,0 +1,32 @@
+{
+  "signedIn": true,
+  "profileReopened": true,
+  "chartInvariant": true,
+  "currentMode": "neo",
+  "mutations": [
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/rpg/award",
+      "method": "POST"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    }
+  ]
+}
