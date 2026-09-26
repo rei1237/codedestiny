@@ -114,13 +114,13 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
 ]);
 // 섹션 min 합 20,000자 / max 합 27,500자. 제목·공백은 본문 분량에서 제외한다.
 // 정상 경로에서 MIN_TOTAL_CHARS·MAX_TOTAL_CHARS 어느 쪽도 걸리지 않아 압축 패스가 불필요하다.
-// 상한 5,000자 × 1.5tok/자 + 완충 = llm-budget의 tokensRequiredForChars(5000)=9,750 이상.
+// 상한 5,500자 + 공통 완충 1,500자 = 10,500토큰에 추가 여유 1,500토큰을 둔다.
 //
 // 🔴 분량을 더 늘려야 하면 섹션 목표를 키우지 말고 **섹션을 늘려라.** 다만 그 한계는 "호출당 목표"이지
 //    "섹션당 목표"가 아니다 — 한 호출에 1~2만자를 요구하면 모델이 6천자에서 멈추지만(astrology-ai.js
 //    의 실패 기록), 3,000~5,000자는 astrology(4,600)·sukuyo(6,000)·love-secret(6,500)이 이미 쓰고 있는
 //    검증된 구간이다. 한 요청은 한 분야만 생성하며 52초 호출 한도와 토큰 여유를 함께 유지한다.
-const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = 10500;
+const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = 12000;
 // 섹션 1개의 LLM 대기 상한. 4개가 동시에 도니 이 값이 곧 1웨이브의 벽시계 상한이다.
 const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
 // 요청 시작 시점 기준 LLM 총 예산. 남는 18초는 인증·결제·DB 기록·응답 직렬화 몫이다(엣지 100s).

@@ -125,7 +125,7 @@ function assertBasis(name, payload, { minGroups = 2, minStages = 2 } = {}) {
   assert(basis.groups.find((group) => group.key === "relation")?.items.length >= 3, "sukuyo: 방위 관계 근거가 부족함");
 
   // 섹션을 더할 때 최소 분량 합이 상한에 붙으면 JSON이 잘려 degraded로 떨어진다.
-  const minSum = SUKUYO_SECTION_SPECS.reduce((total, spec) => total + spec.minChars, 0);
+  const minSum = SUKUYO_SECTION_SPECS.reduce((total, spec) => total + spec.targetMinChars, 0);
   assert(minSum === SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS, "sukuyo: 최소 분량 합계가 상수와 어긋남");
   assert(
     SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS - minSum >= 1500,

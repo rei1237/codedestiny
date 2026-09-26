@@ -127,6 +127,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
     const providerCall = jest.fn(async (_env, _prompt, options) => {
       const group = FUSION_SECTION_GROUP_SPECS.find(row => row.id === options.logContext.sectionGroup);
+      expect(options.maxOutputTokens).toBeGreaterThanOrEqual(Math.ceil((fusionGroupCeilingChars(group) + 1500) * 1.5));
       return group.id === "saju" ? { ok: false, status, error: `PROVIDER_HTTP_${status}` } : { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)) };
     });
     const env = { ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINIF_API_KEY: "mock-only", GEMINI_CONTEXT_CACHE: "false" };
@@ -135,6 +136,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(providerCall.mock.calls.filter(([, , options]) => options.logContext.sectionGroup === "saju")).toHaveLength(2);
     providerCall.mockClear(); providerCall.mockImplementation(async (_env, _prompt, options) => {
       const group = FUSION_SECTION_GROUP_SPECS.find(row => row.id === options.logContext.sectionGroup);
+      expect(options.maxOutputTokens).toBeGreaterThanOrEqual(Math.ceil((fusionGroupCeilingChars(group) + 1500) * 1.5));
       return { ok: true, provider: "gemini", text: JSON.stringify(buildFusionGroupPayload(group, context.tarotSpread.cards)) };
     });
     const recovered = await generateFusionFortuneWithRealLLM({ input, context, stage: 1, env, providerCall, priorResult: first.result });
