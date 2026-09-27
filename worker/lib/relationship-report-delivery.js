@@ -32,9 +32,21 @@ export function relationshipScoreBasisOk(text, score, { citation = false } = {})
   return citation ? cited : true;
 }
 export const RELATIONSHIP_PART_IDS = [...Array.from({ length: 10 }, (_, i) => String(i)), "frame"];
+const RELATIONSHIP_PART_MIN_CHARS = 2000;
+// A body part saved under its floor is a draft, not a failure. It is accepted after
+// one length repair or on its last attempt; the 20,000 total still decides completion.
+const partAccepted = (delivery, id) => Boolean(delivery.parts?.[id]) && (!delivery.short?.[id]
+  || Boolean(delivery.attempts?.[`${id}:lengthRepair`]) || (delivery.attempts?.[id] || 0) >= 3);
 export function relationshipDeliveryComplete(delivery) {
-  return RELATIONSHIP_PART_IDS.every(id => delivery.parts?.[id])
+  return RELATIONSHIP_PART_IDS.every(id => partAccepted(delivery, id))
     && countPaidReportBodyChars(Array.from({ length: 10 }, (_, i) => delivery.parts[String(i)]?.body || "").join("\n")) >= 20000;
+}
+function pendingRelationshipParts(delivery) {
+  const open = id => (delivery.attempts?.[id] || 0) < 3;
+  const pending = RELATIONSHIP_PART_IDS.filter(id => !partAccepted(delivery, id) && open(id));
+  // Every part accepted but the total short: short parts use their remaining attempts.
+  if (!pending.length && !relationshipDeliveryComplete(delivery)) return RELATIONSHIP_PART_IDS.filter(id => open(id) && delivery.short?.[id]);
+  return pending;
 }
 export function relationshipContent(meta) {
   return {
@@ -45,8 +57,14 @@ export function relationshipContent(meta) {
 export async function generateRelationshipWave(env, meta, checkpoint) {
   let delivery = structuredClone(meta.delivery);
   const score = relationshipScoreAnchor(meta);
-  const missing = RELATIONSHIP_PART_IDS.filter(id => !delivery.parts[id] && (delivery.attempts[id] || 0) < 3).slice(0, 4);
-  for (const id of missing) delivery.attempts[id] = (delivery.attempts[id] || 0) + 1;
+  delivery.short ||= {};
+  const missing = pendingRelationshipParts(delivery).slice(0, 4);
+  // The repair flag is saved before the call so a lost response never buys a second repair.
+  const drafts = Object.fromEntries(missing.filter(id => delivery.parts[id]?.body).map(id => [id, delivery.parts[id].body]));
+  for (const id of missing) {
+    if (drafts[id]) delivery.attempts[`${id}:lengthRepair`] = 1;
+    delivery.attempts[id] = (delivery.attempts[id] || 0) + 1;
+  }
   if (missing.length) await checkpoint(structuredClone(delivery));
   let queue = Promise.resolve();
   const settled = await Promise.allSettled(missing.map(async id => {
@@ -55,7 +73,8 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
     const instruction = frame
       ? `마지막 JSON에 evidenceHash: "${meta.evidenceHash}"도 포함하세요. character.title/caption, summary, finalMessage는 모두 비어 있지 않아야 합니다. 확정 점수 ${score}점 외의 다른 점수는 쓰지 마세요.`
       : `이번 호출은 ${chapter + 1}장 중 ${index % 2 + 1}/2 부분만 작성합니다. 앞선 전체 장 출력 지시 대신 JSON {"evidenceHash":"${meta.evidenceHash}","body":"본문"}만 반환하세요. 본문은 제목·마크다운·공백 제외 최소 2000자, 목표 2600~3000자입니다. ${index % 2 ? "앞부분의 근거/패턴 설명을 반복하지 말고 반대 조건, 주의점, 상황별 대화와 실천 순서를 설명하세요." : `계산된 근거와 관계에서 나타날 수 있는 여러 생활 패턴을 구체적으로 설명하세요. 본문에 확정 점수 ${score}점을 최소 한 번 그대로 인용하세요. 행동 조언은 뒤 부분의 몫입니다.`} 적용 조건과 출생시각 미상 등 계산 한계를 명시하고 확정 점수 ${score}점 외의 새로운 점수나 명식을 만들지 마세요.`;
-    const requestPrompt = `${frame ? meta.framePrompt : meta.sectionPrompts[chapter]}\n\n${instruction}`;
+    const repair = drafts[id] ? `\n[저장된 초안 보완]\n${drafts[id]}\n위 초안의 근거와 방향을 보존하고 부족한 해석·반대 조건·행동 조언만 보완한 이 부분 전체 본문을 같은 JSON으로 다시 반환하세요. 같은 문장 반복이나 새 점수·명식으로 분량을 채우지 마세요.` : "";
+    const requestPrompt = `${frame ? meta.framePrompt : meta.sectionPrompts[chapter]}\n\n${instruction}${repair}`;
     let response;
     try {
       response = await runWithAiLocale(meta.locale || "ko", () => callGeminiJsonWithRetry(env, requestPrompt, {
@@ -68,18 +87,22 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
     const genuine = response?.ok && !response.truncated && !response.isMock && !/mock/i.test(`${response.provider || ""} ${response.model || ""}`);
     const shaped = genuine && value?.evidenceHash === meta.evidenceHash && (frame
       ? [value.character?.title, value.character?.caption, value.summary, value.finalMessage].every(v => typeof v === "string" && v.trim())
-      : typeof value.body === "string" && countPaidReportBodyChars(value.body) >= 2000);
+      : typeof value.body === "string" && countPaidReportBodyChars(value.body) > 0);
     // 저장될 본문만 대조한다. 장 앞부분은 계산된 확정 점수를 인용해야 하고, 어느 본문도 다른 점수를 말할 수 없다.
     const stored = shaped && (frame ? [value.character.title, value.character.caption, value.summary, value.finalMessage].join("\n") : value.body);
     const valid = shaped && relationshipScoreBasisOk(stored, score, { citation: cites });
     const part = valid ? frame ? { character: { title: value.character.title.slice(0, 40), caption: value.character.caption.slice(0, 300) }, summary: value.summary.slice(0, 1000), finalMessage: value.finalMessage.slice(0, 2000) } : { body: value.body } : null;
+    const short = Boolean(part?.body) && countPaidReportBodyChars(part.body) < RELATIONSHIP_PART_MIN_CHARS;
     const persist = async () => {
-      const existing = Object.values(delivery.parts).map(part => part.body || "").join("\n");
+      // The repeat check excludes this part's own draft, which a repair preserves.
+      const existing = Object.entries(delivery.parts).filter(([key]) => key !== id).map(([, part]) => part.body || "").join("\n");
       if (!part || repeated(part.body || JSON.stringify(part)) || (part.body && repeated(existing + "\n" + part.body))) {
         if (response?.ok) { delivery.invalidAttempts[id] = (delivery.invalidAttempts[id] || 0) + 1; await checkpoint(structuredClone(delivery)); }
         return;
       }
-      delivery = { ...delivery, parts: { ...delivery.parts, [id]: part } };
+      // A full part always replaces a draft; a short one only when it is longer.
+      if (delivery.parts[id]?.body && short && countPaidReportBodyChars(delivery.parts[id].body) >= countPaidReportBodyChars(part.body)) return;
+      delivery = { ...delivery, parts: { ...delivery.parts, [id]: part }, short: { ...delivery.short, [id]: short } };
       await checkpoint(structuredClone(delivery));
     };
     queue = queue.then(persist, persist); await queue;
@@ -88,7 +111,8 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
   if (failure) throw failure.reason;
   return {
     delivery,
-    limited: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.attempts[id] >= 3),
+    limited: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.attempts[id] >= 3)
+      || (!relationshipDeliveryComplete(delivery) && !pendingRelationshipParts(delivery).length),
     knownFailed: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.invalidAttempts[id] >= 3),
   };
 }

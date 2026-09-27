@@ -66,11 +66,11 @@ test.each(['throw','null','confirm'])('checkpoint %s starts no provider before v
  fault={kind,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect(refunds).toBe(0);
  expect((await resume()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(4);
 });
-test.each(['short','fact','repeat','interrupted'])('%s part alone is regenerated',async kind=>{
+test.each(['fact','repeat','interrupted'])('%s part alone is regenerated',async kind=>{
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{
   if(kind==='interrupted')throw Error('connection lost');
   const response=await base(...args),value=JSON.parse(response.text);
-  if(kind==='short')value.body='짧은 본문';if(kind==='fact')value.evidenceHash='changed';if(kind==='repeat')value.body='반복되는 문장을 분량으로 인정하지 않습니다. '.repeat(150);
+  if(kind==='fact')value.evidenceHash='changed';if(kind==='repeat')value.body='반복되는 문장을 분량으로 인정하지 않습니다. '.repeat(150);
   return {...response,text:JSON.stringify(value)};
  });
  await start();expect(Object.keys(docs[0].llmMeta.delivery.parts)).toHaveLength(3);await resume();await resume();
@@ -118,4 +118,34 @@ test('new report completion uses the 19999 / 20000 body-character boundary',asyn
  const {relationshipDeliveryComplete}=await import('../../worker/lib/relationship-report-delivery.js');
  const parts=Object.fromEntries(Array.from({length:10},(_,i)=>[String(i),{body:'가'.repeat(2000)}]));parts.frame={summary:'요약'};
  expect(relationshipDeliveryComplete({parts})).toBe(true);parts['0'].body=parts['0'].body.slice(1);expect(relationshipDeliveryComplete({parts})).toBe(false);
+});
+// A part that cites the fixed score but is under 2,000 characters is a draft, not a failure.
+const shortPart=async(base,args,tag,count)=>{const response=await base(...args),value=JSON.parse(response.text);value.body=value.body.split('\n').slice(0,count).join('\n')+'\n'+tag;return {...response,text:JSON.stringify(value)};};
+const partOf=prompt=>(prompt.match(/이번 호출은 (\d+)장 중 (\d)\/2/)||[]).slice(1).join('/');
+test('a short but valid part is kept as a draft and its one repair receives it',async()=>{
+ const base=provider.getMockImplementation();let repairPrompt='';
+ provider.mockImplementation(async(...args)=>{
+  if(partOf(args[1])!=='1/1')return base(...args);
+  if(args[1].includes('[저장된 초안 보완]')){repairPrompt=args[1];return base(...args);}
+  return shortPart(base,args,'초안 표식입니다.',3);
+ });
+ await start();expect(Object.keys(docs[0].llmMeta.delivery.parts)).toHaveLength(4);expect(docs[0].llmMeta.delivery.short['0']).toBe(true);
+ await resume();expect((await resume()).status).toBe(200);
+ expect(repairPrompt).toContain('초안 표식입니다.');expect(docs[0].llmMeta.delivery.short['0']).toBe(false);
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);expect(refunds).toBe(0);expect(closes).toBe(1);
+});
+test('one short part never refunds the report; a still-short repair is accepted when the total holds',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>partOf(args[1])==='1/1'?shortPart(base,args,args[1].includes('[저장된 초안 보완]')?'보강 표식입니다.':'초안 표식입니다.',args[1].includes('[저장된 초안 보완]')?5:3):base(...args));
+ await start();await resume();expect((await resume()).status).toBe(200);
+ expect(docs[0].llmMeta.delivery.parts['0'].body).toContain('보강 표식입니다.');expect(docs[0].llmMeta.delivery.attempts['0']).toBe(2);
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);expect(refunds).toBe(0);
+});
+test('a total under 20,000 spends remaining attempts, then stays partial for review without refund',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>partOf(args[1])?shortPart(base,args,'호출 '+provider.mock.calls.length+' 표식입니다.',3):base(...args));
+ let last=await start();for(let n=0;n<9;n++)last=await resume();
+ expect(last.status).toBe(202);expect((await last.json()).retryable).toBe(false);
+ expect(provider).toHaveBeenCalledTimes(31);expect(refunds).toBe(0);expect(docs[0].status).not.toBe('completed');
+ await resume();expect(provider).toHaveBeenCalledTimes(31);
 });
