@@ -51,6 +51,8 @@ test('종격 year check is written for the five authored languages and falls bac
  const authored=['ko','en','ja','zh-CN','zh-TW'].map(locale=>jongCheckCopy(locale));
  for(const copy of authored)for(const [key,value] of Object.entries(copy))if(typeof value==='string')assert.ok(value.length>0,key);
  assert.equal(new Set(authored.map(copy=>copy.best)).size,5);
+ assert.equal(new Set(authored.map(copy=>copy.strengthIntro)).size,5);
+ assert.ok(authored.every(copy=>copy.strengthIntro!==copy.intro),'the 신강/신약 check has its own intro');
  for(const locale of ['vi','hi','es','fr','de','nl','ms'])assert.equal(jongCheckCopy(locale),jongCheckCopy('en'));
  assert.equal(jongCheckCopy('ko').year(2022,'壬寅(임인)'),'2022년 壬寅(임인)');
  assert.equal(jongCheckCopy('en').year(2022,'壬寅(임인)'),'2022 (壬寅)');

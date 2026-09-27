@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/saju/jong-check'; export * from './worker/yeongnyangi/fortune/saju/jong-check-policy'; export {calculateScreenSaju} from './worker/yeongnyangi/fortune/saju/runtime'; export {saju} from './worker/yeongnyangi/fortune/saju'; export {getProduct} from './worker/yeongnyangi/payments/catalog';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false});
 const loaded=new Module(path.resolve('jong-check-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(built.outputFiles[0].text,loaded.id);
-const {jongCheckYears,parseJongAnswer,jongCheckApplies,calculateScreenSaju,saju,getProduct}=loaded.exports;
+const {jongCheckYears,strengthCheckYears,parseJongAnswer,jongCheckApplies,calculateScreenSaju,saju,getProduct}=loaded.exports;
 
 const gokjik={isJong:true,name:'곡직격(曲直格)',dominant:'wood',parEl:'water',dayEl:'wood'};
 const years=list=>list.map(y=>y.year);
@@ -79,4 +79,56 @@ test('saju reading: the partner chart never receives the answer',async()=>{
   const c=await saju.calculate(saju.validateInput({personA:person,personB:person,readingMode:'compatibility'}),{asOf:'2026-09-27',jongAnswer:answer('no','no')});
   assert.ok(c.limitations.some(l=>l.includes('일반격(억부)')));
   assert.ok(c.limitations.some(l=>l.startsWith('상대: ')&&l.includes('조건부')));
+});
+
+// 1971-03-10: 08:00 scores 33 (신강), 14:00 scores 26 (신약) on the same day stem, so each is the other's flipped reading.
+const strongSide={...person,birthDate:'1971-03-10',birthTime:'08:00'},weakSide={...strongSide,birthTime:'14:00'};
+const readAs=async(profile,best,worst,shift=0)=>{
+  const check=calculateScreenSaju(profile,new Date('2026-09-27')).jongCheck;
+  const c=await saju.calculate(saju.validateInput({personA:profile}),{asOf:'2026-09-27',jongAnswer:best&&{best,worst,bestYears:years(check.best).map(y=>y+shift),worstYears:years(check.worst)}});
+  return {fact:label=>c.facts.find(f=>f.label===label)?.value,limitations:c.limitations};
+};
+
+test('strength question: a non-종격 chart within one 7-point step of the 신강 line (23..36)',()=>{
+  const at=score=>strengthCheckYears({score,yongshin:['wood','water'],kijishin:['metal','earth','fire']},{birthYear:1984,asOfYear:2026});
+  assert.deepEqual([22,23,36,37].map(score=>at(score)?.kind??null),[null,'strength','strength',null]);
+  assert.deepEqual(years(at(30).best),[2022,2023]);
+  const now=new Date('2026-09-27');
+  assert.equal(calculateScreenSaju(strongSide,now).jongCheck.kind,'strength');
+  assert.equal(calculateScreenSaju(weakSide,now).jongCheck.kind,'strength');
+  assert.equal(calculateScreenSaju({...person,birthDate:'1970-01-22',birthTime:'08:00'},now).jongCheck,null,'score -34 is not on the line');
+  assert.equal(asked.kind,'jong');
+  // A 종격 candidate is its own frame even when its score sits on the line and its own question is skipped.
+  const jongOnLine=calculateScreenSaju({...person,birthDate:'1984-05-15',birthTime:'02:00'},now);
+  assert.ok(jongOnLine.jong.isJong&&jongOnLine.strength.score>=23&&jongOnLine.strength.score<=36);
+  assert.equal(jongOnLine.jongCheck,null);
+});
+
+test('saju reading: both "no" flips a boundary 신강/신약, both "yes" confirms, anything else changes nothing',async()=>{
+  const strongBase=await readAs(strongSide),weakBase=await readAs(weakSide);
+  assert.equal(strongBase.fact('strengthHeuristic').isStrong,true);
+  assert.equal(weakBase.fact('strengthHeuristic').isStrong,false);
+  for(const [side,base,other] of [[strongSide,strongBase,weakBase],[weakSide,weakBase,strongBase]]){
+    const flipped=await readAs(side,'no','no'),power=flipped.fact('strengthHeuristic');
+    assert.equal(power.isStrong,!base.fact('strengthHeuristic').isStrong);
+    assert.equal(power.flippedByUser,true);
+    assert.equal(power.calculatedIsStrong,base.fact('strengthHeuristic').isStrong);
+    assert.equal(power.score,base.fact('strengthHeuristic').score);
+    // calcPower's own other branch for the same day stem.
+    assert.deepEqual([power.eokbuYongshin,power.eokbuKijishin],[other.fact('strengthHeuristic').eokbuYongshin,other.fact('strengthHeuristic').eokbuKijishin]);
+    assert.notDeepEqual(flipped.fact('usefulGod'),base.fact('usefulGod'));
+    assert.deepEqual(flipped.fact('jong'),base.fact('jong'));
+    assert.ok(flipped.limitations.some(l=>l.includes('신강·신약 판단을 반대로'))&&!flipped.limitations.some(l=>l.includes('일반격(억부)')));
+  }
+  const confirmed=await readAs(strongSide,'yes','yes');
+  assert.equal(confirmed.fact('strengthHeuristic').confirmedByUser,true);
+  assert.deepEqual(confirmed.fact('usefulGod'),strongBase.fact('usefulGod'));
+  assert.deepEqual(confirmed.limitations,strongBase.limitations);
+  for(const [best,worst,shift] of [['yes','no'],['unsure','no'],['no','no',1]]){
+    const r=await readAs(strongSide,best,worst,shift);
+    assert.deepEqual(r.fact('strengthHeuristic'),strongBase.fact('strengthHeuristic'));
+    assert.deepEqual(r.limitations,strongBase.limitations);
+  }
+  // A 종격 answer never touches 신강/신약.
+  assert.equal((await run(answer('no','no'))).fact('strengthHeuristic').flippedByUser,undefined);
 });
