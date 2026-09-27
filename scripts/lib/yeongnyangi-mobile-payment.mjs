@@ -131,6 +131,8 @@ export async function fixtures(browser,base,product,width=390){
    if(row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'){row.errorCode='';row.state='PAID';row.recovery={requestId:row.id,canRetryNow:false};}
    return send({ok:true,fortune:row},202);
   }
+  // Premium saju input asks the server for 종격 check years before checkout; none keeps these payment flows question-free.
+  if(path==='/api/yeongnyangi/saju/jong-check'&&request.method()==='POST')return send({ok:true,check:null});
   state.unknown.push(`${request.method()} ${path}`);
   return send({ok:false,code:'QA_UNEXPECTED_API'},501);
  });
