@@ -19,7 +19,7 @@
  */
 
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { PAID_REPORT_MIN_BODY_CHARS, countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
@@ -519,7 +519,7 @@ function chapterCache(env, modeKey, chapter, evidenceContract) {
   return {
     store: qualityCheckedCodexCache(createLlmCacheStore(env), value => {
       if (value?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
-      assertCodexChapterQuality(chapter.structured === false ? value?.text : parseChapterJson(value?.text), chapter, resolveMode(modeKey).dnaMetrics, evidenceContract);
+      assertCodexChapterQuality(chapter.structured === false ? value?.text : parseChapterJson(value?.text), chapter, resolveMode(modeKey).dnaMetrics, evidenceContract, { allowShort: true });
     }),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
@@ -673,12 +673,14 @@ async function generateChapter(env, {
     : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true });
   const prompt = `${basePrompt}\n${formatCodexEvidence(evidenceContract)}`;
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
+  // A reserved repair must reach the provider instead of replaying the short draft.
+  if (previousError) cache.store.get = async () => null;
   try {
     if (chapter.structured !== false) {
       // 🔴 시간 예산은 timeoutMs 가 아니라 timeoutMs × attempts 다. 3시도는 예산을 혼자 다 먹는다.
       const raced = await withDeadline(generateCodexChapterResponse(
         (text, options) => callGeminiJsonWithRetry(env, text, options), prompt,
-        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1, previousError,
+        { chapter, metricDefs: modeDef.dnaMetrics, evidenceContract, deadlineAt, minBudgetMs: CHAPTER_MIN_BUDGET_MS, maxAttempts: 1, previousError, allowShort: true,
           options: { temperature: 0.6, timeoutMs, cache, fallbackToWorkersAI: false, logContext } },
       ), deadlineAt);
       if (raced.deferred) throw Object.assign(new Error("LLM_TIMEOUT_UNCERTAIN"), { code: "LLM_TIMEOUT_UNCERTAIN" });
@@ -713,7 +715,7 @@ async function generateChapter(env, {
     if (ai?.ok === false) throw Object.assign(new Error(ai.message || ai.error || "LLM provider unavailable"), { code: "LLM_PROVIDER_UNAVAILABLE" });
     const body = clean(ai?.text || "");
     if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
-    assertCodexChapterQuality(body, chapter, modeDef.dnaMetrics);
+    assertCodexChapterQuality(body, chapter, modeDef.dnaMetrics, null, { allowShort: true });
     return {
       status: "ok",
       chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
@@ -764,8 +766,16 @@ function expectedChapters(doc) {
 /** 기대 목록 기준으로 검증·저장이 끝난 장. 목차·진행률·크론 재개가 같은 규칙을 봐야 한다. */
 function savedChapterRows(doc, expected) {
   return new Map([...(doc?.chapters || []), ...(doc?.deliveryMeta?.savedChapters || [])]
-    .filter(row => row?.ok !== false && expected.some(spec => spec.id === row.id && row.body?.length >= codexDedupedChapterFloor(spec)))
+    .filter(row => row?.ok !== false && countPaidReportBodyChars(row.body) > 0
+      && expected.some(spec => spec.id === row.id && (row.lengthDraft === true || row.body?.length >= codexDedupedChapterFloor(spec))))
     .map(row => [row.id, row]));
+}
+
+function codexTotalReady(expected, saved) {
+  const rows = [...saved.values()];
+  // Keep both the old implicit sum of post-dedupe floors and the paid body contract.
+  return rows.reduce((sum, row) => sum + row.body.length, 0) >= expected.reduce((sum, spec) => sum + codexDedupedChapterFloor(spec), 0)
+    && countPaidReportBodyChars(rows.map(row => row.body).join("\n")) >= PAID_REPORT_MIN_BODY_CHARS;
 }
 
 /**
@@ -773,8 +783,12 @@ function savedChapterRows(doc, expected) {
  *
  * 🔴 이 판정이 두 벌이 되면 화면과 DB 가 갈라진다 — 웨이브·조회·크론 재개가 같은 함수를 본다.
  */
-function splitPendingChapters(expected, readyIds, attempts = {}) {
-  const pending = expected.filter(spec => !readyIds.has(spec.id));
+function splitPendingChapters(expected, readyIds, attempts = {}, saved = new Map()) {
+  let pending = expected.filter(spec => !readyIds.has(spec.id)
+    || (saved.get(spec.id)?.lengthDraft && !attempts[`${spec.id}:lengthRepair`] && Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT));
+  if (!pending.length && saved.size && !codexTotalReady(expected, saved)) {
+    pending = expected.slice().sort((a, b) => (saved.get(a.id)?.body.length || 0) - (saved.get(b.id)?.body.length || 0));
+  }
   return {
     pending,
     actionable: pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT),
@@ -791,7 +805,7 @@ function splitPendingChapters(expected, readyIds, attempts = {}) {
 export function diagnoseCodexSession(doc) {
   const expected = expectedChapters(doc);
   const saved = savedChapterRows(doc, expected);
-  return { expected, saved, ...splitPendingChapters(expected, new Set(saved.keys()), doc?.deliveryMeta?.attempts) };
+  return { expected, saved, ...splitPendingChapters(expected, new Set(saved.keys()), doc?.deliveryMeta?.attempts, saved) };
 }
 
 function publicSession(doc) {
@@ -810,7 +824,7 @@ function publicSession(doc) {
   const attempts = doc?.deliveryMeta?.attempts || {};
   const errors = doc?.deliveryMeta?.errors || {};
   const readyIds = new Set(chapters.map(row => row.id));
-  const { pending, actionable, exhausted: blocked } = splitPendingChapters(expected, readyIds, attempts);
+  const { pending, actionable, exhausted: blocked } = splitPendingChapters(expected, readyIds, attempts, saved);
   // 락이 살아 있는 동안에만 저장된 step 을 믿는다. 끊긴 웨이브의 낡은 단계가 남지 않는다.
   const lockAlive = new Date(doc?.generationProgress?.lockedAt || 0).getTime() > Date.now() - BATCH_LOCK_TTL_MS;
   const storedStep = clean(doc?.generationProgress?.step);
@@ -1381,6 +1395,12 @@ async function handleGenerate(request, env, dependencies = {}) {
  */
 async function saveCodexDelivery(filter, fields, sessionId) {
   try {
+    // Draft metadata belongs to deliveryMeta (Mixed), not the strict chapter schema.
+    if (fields.chapters) fields = { ...fields, chapters: fields.chapters.map(row => {
+      const chapter = { ...row };
+      delete chapter.lengthDraft;
+      return chapter;
+    }) };
     const saved = await MasterLoveCodexSession.updateOne(filter, { $set: fields });
     if (!saved?.matchedCount) throw resultStorageUnavailable(sessionId);
     const current = await MasterLoveCodexSession.findOne({ id: sessionId, userId: filter.userId }).lean();
@@ -1408,14 +1428,12 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
   const chapterFloor = new Map(expected.map(spec => [spec.id, codexDedupedChapterFloor(spec)]));
   let current = doc;
   try {
-    const byId = new Map([...(doc.chapters || []), ...(doc.deliveryMeta?.savedChapters || [])]
-      .filter(chapter => chapter.ok !== false && expected.some(spec => spec.id === chapter.id && chapter.body?.length >= chapterFloor.get(spec.id)))
-      .map(chapter => [chapter.id, chapter]));
+    const byId = savedChapterRows(doc, expected);
     const snapshotStore = dependencies.chapterSnapshotStore || (!dependencies.generateChapter ? createLlmCacheStore(env) : null);
     const snapshotKey = chapter => `codex-chapter:${sha256(JSON.stringify([sessionId, doc.inputHash, modeDef.mode, chapter.id, CODEX_EVIDENCE_VERSION, doc.deliveryMeta?.locale || "ko", "chapter-v2"]))}`;
     // Read committed storage first (the lock document), then a stable validated cache.
     // Even an exhausted uncertain reservation may already have a completed checkpoint.
-    if (snapshotStore) for (const chapter of expected.filter(spec => !byId.has(spec.id) && Number(doc.deliveryMeta?.attempts?.[spec.id]) > 0)) {
+    if (snapshotStore) for (const chapter of expected.filter(spec => (!byId.has(spec.id) || byId.get(spec.id).lengthDraft) && Number(doc.deliveryMeta?.attempts?.[spec.id]) > 0)) {
       const restored = await withDeadline(snapshotStore.get(snapshotKey(chapter)), deadlineAt);
       if (restored.deferred) break;
       try {
@@ -1423,12 +1441,14 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         if (!cached?.parsed || cached.chapter?.id !== chapter.id) continue;
         assertCodexChapterQuality(cached.parsed, chapter, modeDef.dnaMetrics, buildCodexEvidence({ chapter,
           saju: doc.sajuResult, ziweiChart: doc.ziweiChart, partnerSaju: doc.partnerSajuResult,
-          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility }));
+          partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility }), { allowShort: true });
         const content = normalizeChapterContent(cached.parsed);
         const recovered = dedupeChapterAgainst({ id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol,
           body: content.body, content, provider: clean(cached.chapter.provider, 40), ok: true }, [...byId.values()]);
-        if (recovered.body.length < chapterFloor.get(chapter.id)
-            || hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(recovered.body).join("\n"))) continue;
+        recovered.lengthDraft = content.body.length < codexChapterFloor(chapter) || recovered.body.length < chapterFloor.get(chapter.id);
+        if (!countPaidReportBodyChars(recovered.body)
+            || hasRepeatedReportPassage([...byId.values()].filter(row => row.id !== chapter.id).map(row => row.body).concat(recovered.body).join("\n"))) continue;
+        if (byId.has(chapter.id) && countPaidReportBodyChars(byId.get(chapter.id).body) >= countPaidReportBodyChars(recovered.body)) continue;
         byId.set(chapter.id, recovered);
         if (chapter.jsonMode) current.loveDna = normalizeLoveDna(cached.parsed, modeDef.dnaMetrics);
       } catch { /* Invalid caches never become purchased chapters. */ }
@@ -1437,11 +1457,17 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     const errors = { ...doc.deliveryMeta?.errors };
     // 시도 가능한 장만 후보다 — 막힌 장이 웨이브 슬롯을 계속 물고 가지 않는다.
     // 판정은 조회·크론과 같은 함수를 쓴다(화면과 DB 가 갈라지지 않게).
-    const { actionable, exhausted } = splitPendingChapters(expected, new Set(byId.keys()), attempts);
+    const { actionable, exhausted } = splitPendingChapters(expected, new Set(byId.keys()), attempts, byId);
     const missing = actionable.slice(0, CHAPTER_BATCH_SIZE);
     // 🔴 미완 장 **전부**가 소진됐을 때만 세션을 닫는다. 한 장의 소진으로 닫으면 클라이언트
     //    (retryable:false)·크론(reviewRequired 제외)·락이 모두 건너뛰어 나머지 장이 영구 정지한다.
     if (!actionable.length && exhausted.length) {
+      if (byId.size === expected.length) {
+        current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, savedChapters: [...byId.values()], reviewRequired: true,
+          reviewReason: "REPORT_TOTAL_TOO_SHORT" }, chapters: [...byId.values()],
+          generationProgress: { ...current.generationProgress, step: "failed" } }, sessionId);
+        return { outcome: "stalled", reason: "REPORT_TOTAL_TOO_SHORT", retryable: false, session: current };
+      }
       const reason = "SERVICE_GENERATION_FAILED";
       current = await saveCodexDelivery(lockFilter, { status: "generation_failed", deliveryMeta: { ...current.deliveryMeta, reviewRequired: true,
         reviewReason: "GENERATION_BUDGET_EXCEEDED", exhaustedChapterIds: exhausted.map(row => row.id), savedChapters: [...byId.values()] },
@@ -1455,8 +1481,13 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
       return { outcome: "stalled", reason: "GENERATION_BUDGET_EXCEEDED", retryable: false };
     }
     if (missing.length) {
-      missing.forEach(chapter => { attempts[chapter.id] = Number(attempts[chapter.id] || 0) + 1; });
-      current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, attempts },
+      missing.forEach(chapter => {
+        if (byId.get(chapter.id)?.lengthDraft) attempts[`${chapter.id}:lengthRepair`] = 1;
+        attempts[chapter.id] = Number(attempts[chapter.id] || 0) + 1;
+      });
+      // Persist recovered drafts before a repair can replace the latest provider snapshot.
+      const reservedChapters = expected.map(spec => byId.get(spec.id)).filter(Boolean);
+      current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, attempts, savedChapters: reservedChapters }, chapters: reservedChapters,
         generationProgress: { ...current.generationProgress, step: "writing" } }, sessionId);
       const memory = buildMemory([...byId.values()]);
       let unavailable = false;
@@ -1467,25 +1498,32 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           mode: modeDef.mode, saju: doc.sajuResult, ziweiChart: doc.ziweiChart,
           partnerSaju: doc.partnerSajuResult, partnerZiweiChart: doc.partnerZiweiChart, compatibility: doc.compatibility,
           birthInfo: doc.birthInfo, partnerInfo: doc.partnerInfo, chapter, prologueChoice: clean(doc.prologueChoice), memory, deadlineAt,
-          previousError: errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
+          previousError: byId.has(chapter.id) ? "LLM_OUTPUT_TOO_SHORT" : errors[chapter.id]?.kind === "quality" ? errors[chapter.id].code : "", snapshotKey: snapshotKey(chapter),
         }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {
           const failures = { ...current.deliveryMeta?.failures };
           // Sentences an earlier chapter already delivered are cut, not failed: the book
           // stays free of repeats without spending another paid attempt on the chapter.
           const rawChars = result?.status === "ok" ? Number(result.chapter?.body?.length || 0) : 0;
-          if (result?.status === "ok" && result.chapter?.body) result = { ...result, chapter: dedupeChapterAgainst(result.chapter, [...byId.values()]) };
+          const priorRows = [...byId.values()].filter(row => row.id !== chapter.id);
+          if (result?.status === "ok" && typeof result.chapter?.body === "string") result = { ...result, chapter: dedupeChapterAgainst(result.chapter, priorRows) };
           const valid = result?.status === "ok" && result.chapter?.id === chapter.id && result.chapter.ok
-            && rawChars >= codexChapterFloor(chapter) && result.chapter.body?.length >= chapterFloor.get(chapter.id)
-            && !hasRepeatedReportPassage([...byId.values()].map(row => row.body).concat(result.chapter.body).join("\n"));
-          if (valid) { byId.set(chapter.id, result.chapter); delete errors[chapter.id]; }
+            && typeof result.chapter.body === "string"
+            && countPaidReportBodyChars(result.chapter.body) > 0
+            && !hasRepeatedReportPassage(priorRows.map(row => row.body).concat(result.chapter.body).join("\n"));
+          const selected = valid && (!byId.has(chapter.id) || countPaidReportBodyChars(result.chapter.body) > countPaidReportBodyChars(byId.get(chapter.id).body));
+          if (valid) {
+            result.chapter.lengthDraft = rawChars < codexChapterFloor(chapter) || result.chapter.body.length < chapterFloor.get(chapter.id);
+            if (selected) byId.set(chapter.id, result.chapter);
+            delete errors[chapter.id];
+          }
           else if (result?.status === "deferred" || result?.failure?.kind === "provider_rejected") {
             // Provider outages and work that never started are not bad manuscripts.
             // Release this confirmed reservation while keeping uncertain calls capped.
             attempts[chapter.id] = Math.max(0, attempts[chapter.id] - 1);
             unavailable = true;
           } else if (result?.status === "retryable") unavailable = true;
-          else failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
+          else if (!byId.has(chapter.id)) failures[chapter.id] = Number(failures[chapter.id] || 0) + 1;
           if (!valid) errors[chapter.id] = { code: result?.failure?.code || (result?.status === "deferred" ? "CALL_DEFERRED" : result?.status === "ok" ? "LLM_OUTPUT_REPEATED" : "LLM_QUALITY_FAILED"),
             kind: result?.failure?.kind || (result?.status === "deferred" ? "deferred" : "quality"), at: new Date() };
           // 검증을 통과한 장은 앞 장의 성패와 무관하게 **개별로** 저장·노출된다.
@@ -1494,7 +1532,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
             lastProgressAt: valid ? new Date() : current.deliveryMeta?.lastProgressAt || doc.createdAt || null }, chapters: savedChapters,
             totalCharCount: savedChapters.reduce((sum, row) => sum + Number(row.chars || row.body.length), 0),
             generationProgress: { ...current.generationProgress, completed: savedChapters.length, total: expected.length, step: "saving" },
-            ...(result?.loveDna && valid ? { loveDna: result.loveDna } : current.loveDna ? { loveDna: current.loveDna } : {}),
+            ...(result?.loveDna && selected ? { loveDna: result.loveDna } : current.loveDna ? { loveDna: current.loveDna } : {}),
           };
           current = await saveCodexDelivery(lockFilter, fields, sessionId);
         }); queue = write; await write;
@@ -1510,7 +1548,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
         return { outcome: "stalled", reason: "LLM_PROVIDER_UNAVAILABLE", retryAfterMs, session: current };
       }
     }
-    if (expected.some(chapter => !byId.has(chapter.id))) {
+    if (splitPendingChapters(expected, new Set(byId.keys()), attempts, byId).pending.length) {
       if (current.deliveryMeta?.outages) current = await saveCodexDelivery(lockFilter, {
         deliveryMeta: { ...current.deliveryMeta, outages: 0, nextAttemptAt: null }, generationError: null,
       }, sessionId);
@@ -1518,13 +1556,16 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
     }
     const chapters = expected.map(chapter => byId.get(chapter.id));
     const body = chapters.map(chapter => chapter.body).join("\n");
-    if (chapters.some(row => row.body.length < chapterFloor.get(row.id)) || hasRepeatedReportPassage(body)) {
+    if (hasRepeatedReportPassage(body)) {
       // Chapters saved under an older contract can still collide. Keep the earliest copy and
       // send a chapter that no longer meets the floor back to generation (attempt cap still ends it).
       const kept = [];
       for (const row of chapters) {
         const deduped = dedupeChapterAgainst(row, kept);
-        if (deduped.body.length >= chapterFloor.get(row.id)) { kept.push(deduped); byId.set(row.id, deduped); } else byId.delete(row.id);
+        if (countPaidReportBodyChars(deduped.body) > 0) {
+          deduped.lengthDraft = row.lengthDraft || deduped.body.length < chapterFloor.get(row.id);
+          kept.push(deduped); byId.set(row.id, deduped);
+        } else byId.delete(row.id);
       }
       if (kept.length < chapters.length) {
         current = await saveCodexDelivery(lockFilter, { deliveryMeta: { ...current.deliveryMeta, savedChapters: kept }, chapters: kept,
@@ -1533,13 +1574,17 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
       }
       chapters.splice(0, chapters.length, ...kept);
     }
+    if (!codexTotalReady(expected, byId)) {
+      current = await saveCodexDelivery(lockFilter, { chapters, deliveryMeta: { ...current.deliveryMeta, savedChapters: chapters } }, sessionId);
+      return { outcome: "committed", session: current, done: false };
+    }
     if (current.status !== "delivery_pending") current = await saveCodexDelivery(lockFilter, { status: "delivery_pending", chapters,
       generationProgress: { ...current.generationProgress, step: "finalizing" } }, sessionId);
     const authorized = await recoverCodexSession({ userId: ownerId, sessionId });
     if (!authorized || authorized.denied) return { outcome: "denied" };
     current = await saveCodexDelivery(lockFilter, { status: "completed", generationError: null,
       loveDna: current.loveDna || null, totalCharCount: chapters.reduce((sum, row) => sum + row.body.length, 0),
-      deliveryMeta: { ...current.deliveryMeta, reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true, lastProgressAt: new Date() },
+      deliveryMeta: { ...current.deliveryMeta, lengthPolicy: "bounded-repair-v1", reviewRequired: false, nextAttemptAt: null, outages: 0, savedChapters: chapters, executionSyncPending: true, lastProgressAt: new Date() },
       generationProgress: { completed: chapters.length, total: chapters.length, step: "complete", lockedAt: null, lockToken: "" } }, sessionId);
     await syncCodexExecution(current);
     return { outcome: "completed", session: current, done: true };
@@ -1590,7 +1635,14 @@ async function handleSessions(request, env) {
 
 export function isCodexArchiveComplete(doc) {
   if (doc?.status !== "completed") return false;
-  return expectedChapters({ ...doc, mode: sessionMode(doc) }).every(spec => (doc.chapters || []).some(row =>
+  const expected = expectedChapters({ ...doc, mode: sessionMode(doc) });
+  if (doc.deliveryMeta?.lengthPolicy === "bounded-repair-v1") {
+    const saved = new Map((doc.chapters || []).filter(row => row.ok !== false && typeof row.body === "string"
+      && countPaidReportBodyChars(row.body) > 0 && expected.some(spec => spec.id === row.id)).map(row => [row.id, row]));
+    return expected.every(spec => saved.has(spec.id)) && codexTotalReady(expected, saved)
+      && !hasRepeatedReportPassage([...saved.values()].map(row => row.body).join("\n"));
+  }
+  return expected.every(spec => (doc.chapters || []).some(row =>
     row.id === spec.id && row.ok !== false && Number(row.chars ?? row.body?.length) >= codexDedupedChapterFloor(spec)));
 }
 

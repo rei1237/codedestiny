@@ -191,7 +191,7 @@ it('expired batch lock resumes without repeating accepted chapters', async () =>
   expect((await generate()).status).toBe(202); expect(provider).toHaveBeenCalledTimes(8);
 });
 
-it('a validated stable cache resolves uncertain exhausted storage without another chapter call', async () => {
+it.each([false, true])('a validated stable cache resolves uncertain exhausted storage, short=%s', async short => {
   const { __masterLoveCodexTestUtils: utils } = await import('../../worker/routes/master-love-codex.js');
   const { buildCodexEvidence } = await import('../../worker/lib/master-love-codex-evidence.js');
   const { buildCodexStagingChapter } = await import('../../worker/lib/master-love-codex-quality.js');
@@ -207,6 +207,7 @@ it('a validated stable cache resolves uncertain exhausted storage without anothe
   parsed.evidence = contract.records.map(record => ({ evidenceId: record.id, subject: record.subject, system: record.system,
     period: record.period, certainty: record.certainty, label: record.path, explanation: '모의 근거' }));
   parsed.crossChecks = contract.crossChecks.map(record => ({ id: record.id, status: record.status, explanation: '모의 판정' }));
+  if (short) parsed.body = lengthCandidate(chapter, 650).chapter.body;
   docs[0].deliveryMeta = { attempts: { [chapter.id]: 3 } };
   const chapterSnapshotStore = { get: jest.fn(async () => ({ text: JSON.stringify({ parsed, chapter: { id: chapter.id, body: 'untrusted copy' } }) })) };
   expect((await generate({ chapterSnapshotStore })).status).toBe(202);
@@ -280,6 +281,8 @@ it('a chapter that exhausts its attempts does not stop the remaining chapters', 
 // §4. 구매 시점 구성이 세션에 고정되어, 이후 상품 구성 변경이 진행 중인 책을 바꾸지 못한다.
 it('pins the purchased chapter list so a later product change cannot resize a running book', async () => {
   const { MODES } = await utils();
+  const originalProvider = provider.getMockImplementation();
+  provider.mockImplementation((env, input) => originalProvider(env, { ...input, chapter: { ...input.chapter, minChars: 4000 } }));
   docs[0].deliveryMeta = { manifest: { mode: 'solo', chapterIds: MODES.solo.chapters.slice(0, 8).map(row => row.id), version: 'test-v1' } };
   for (let wave = 0; wave < 2; wave++) await generate();
   expect(provider).toHaveBeenCalledTimes(8);
@@ -332,4 +335,121 @@ for (const [name, ratio, lead] of [
   expect(provider).toHaveBeenCalledTimes(20);
   expect(hasRepeatedReportPassage(docs[0].chapters.map(row => row.body).join('\n'))).toBe(false);
   expect(refund).not.toHaveBeenCalled();
+});
+
+
+function lengthCandidate(chapter, target, tag = "초안") {
+  let body = "";
+  for (let i = 0; body.length < target; i++) body += `${chapter.id} ${tag} ${i}번째 계산 근거는 관계의 속도를 살펴보고 서로 다른 선택과 행동을 검토하는 장면입니다.\n`;
+  return { status: 'ok', chapter: { id: chapter.id, order: chapter.order, title: chapter.title, symbol: chapter.symbol, body, chars: body.length, ok: true } };
+}
+
+for (const mode of ['solo', 'compat']) for (const repair of ['shorter', 'longer', 'empty', 'invalid', 'repeated']) {
+  it(`${mode} preserves the longest valid short draft after one ${repair} repair`, async () => {
+    const { MODES } = await utils(); docs[0].mode = mode;
+    const first = MODES[mode].chapters[0];
+    const normal = provider.getMockImplementation();
+    let draftCalls = 0;
+    provider.mockImplementation(async (env, input) => {
+      if (input.chapter.id !== first.id) return normal(env, input);
+      draftCalls++;
+      if (draftCalls === 1) return lengthCandidate(first, 650);
+      expect(docs[0].deliveryMeta.attempts[`${first.id}:lengthRepair`]).toBe(1);
+      expect(input.previousError).toBe('LLM_OUTPUT_TOO_SHORT');
+      if (repair === 'invalid') return { status: 'fallback', failure: { kind: 'quality', code: 'LLM_EVIDENCE_INVALID' } };
+      if (repair === 'empty') return { status: 'ok', chapter: { ...lengthCandidate(first, 1).chapter, body: '' } };
+      if (repair === 'repeated') return { status: 'ok', chapter: { ...lengthCandidate(first, 1).chapter, body: docs[0].chapters.find(row => row.id !== first.id).body } };
+      return lengthCandidate(first, repair === 'longer' ? 1100 : 300, '보강');
+    });
+    for (let wave = 0; wave < 8 && docs[0].status !== 'completed'; wave++) await generate();
+    expect(docs[0].status).toBe('completed');
+    expect(draftCalls).toBe(2);
+    const { isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
+    expect(isCodexArchiveComplete(docs[0])).toBe(true);
+    expect(isCodexArchiveComplete({ ...docs[0], chapters: docs[0].chapters.slice(1) })).toBe(false);
+    const body = docs[0].chapters.find(row => row.id === first.id).body;
+    expect(body).toBe(lengthCandidate(first, repair === 'longer' ? 1100 : 650, repair === 'longer' ? '보강' : '초안').chapter.body.trim());
+    expect(docs[0].deliveryMeta.failures[first.id] || 0).toBe(0);
+    expect(refund).not.toHaveBeenCalled();
+  });
+}
+
+it('resumes a lost final length-repair reservation without another provider call', async () => {
+  const { MODES } = await utils();
+  const rows = await Promise.all(MODES.solo.chapters.map(async chapter => (await provider({}, { chapter })).chapter));
+  const first = MODES.solo.chapters[0];
+  rows[0] = { ...lengthCandidate(first, 700).chapter, lengthDraft: true };
+  docs[0].chapters = rows;
+  docs[0].deliveryMeta = { savedChapters: rows, attempts: { [first.id]: 3, [`${first.id}:lengthRepair`]: 1 } };
+  provider.mockClear();
+  expect((await generate()).status).toBe(200);
+  expect(provider).not.toHaveBeenCalled();
+  expect(docs[0].chapters[0].body).toBe(rows[0].body);
+  expect(refund).not.toHaveBeenCalled();
+});
+
+it('accepts a structurally valid short chapter on its last existing attempt', async () => {
+  const { MODES } = await utils(); const first = MODES.solo.chapters[0];
+  docs[0].deliveryMeta = { attempts: { [first.id]: 2 } };
+  provider.mockImplementationOnce(async () => lengthCandidate(first, 700));
+  for (let wave = 0; wave < 5; wave++) await generate();
+  expect(docs[0].status).toBe('completed');
+  expect(provider.mock.calls.filter(([, input]) => input.chapter.id === first.id)).toHaveLength(1);
+  expect(refund).not.toHaveBeenCalled();
+});
+
+it('never completes below either total floor and exhausts the existing budget without refund', async () => {
+  provider.mockImplementation(async (_env, { chapter }) => lengthCandidate(chapter, 650));
+  for (let wave = 0; wave < 20 && !docs[0].deliveryMeta?.reviewRequired; wave++) await generate();
+  expect(docs[0].status).not.toBe('completed');
+  expect(docs[0].deliveryMeta.reviewReason).toBe('REPORT_TOTAL_TOO_SHORT');
+  expect(docs[0].chapters).toHaveLength(20);
+  expect(provider).toHaveBeenCalledTimes(60);
+  expect((await generate()).status).toBe(503);
+  expect(provider).toHaveBeenCalledTimes(60);
+  expect(refund).not.toHaveBeenCalled();
+});
+
+it('resumes total shortfall with remaining chapter reservations and completes after useful expansion', async () => {
+  const { MODES } = await utils();
+  const rows = MODES.solo.chapters.map(chapter => ({ ...lengthCandidate(chapter, 650).chapter, lengthDraft: true }));
+  docs[0].chapters = rows;
+  docs[0].deliveryMeta = { savedChapters: rows, attempts: Object.fromEntries(MODES.solo.chapters.flatMap(chapter => [[chapter.id, 2], [`${chapter.id}:lengthRepair`, 1]])) };
+  for (let wave = 0; wave < 5 && docs[0].status !== 'completed'; wave++) await generate();
+  expect(docs[0].status).toBe('completed');
+  expect(provider.mock.calls.length).toBeLessThanOrEqual(20);
+  expect(refund).not.toHaveBeenCalled();
+});
+
+
+it('keeps draft markers in Mixed delivery metadata while strict chapter persistence stays compatible', async () => {
+  provider.mockImplementationOnce(async (_env, { chapter }) => lengthCandidate(chapter, 650));
+  expect((await generate()).status).toBe(202);
+  expect(docs[0].chapters.every(row => !Object.hasOwn(row, 'lengthDraft'))).toBe(true);
+  expect(docs[0].deliveryMeta.savedChapters[0].lengthDraft).toBe(true);
+  const payload = await reopen();
+  expect(payload.chapters).toHaveLength(4);
+  expect(payload.chapters[0].body).toBe(docs[0].chapters[0].body);
+});
+
+for (const floor of ['paid body', 'legacy aggregate']) it(`keeps the independent ${floor} total floor after individual repair`, async () => {
+  const { MODES } = await utils();
+  const { countPaidReportBodyChars } = await import('../../worker/lib/paid-report-quality.js');
+  const { diagnoseCodexSession } = await import('../../worker/routes/master-love-codex.js');
+  const rows = MODES.solo.chapters.map(chapter => {
+    const row = lengthCandidate(chapter, floor === 'paid body' ? 1000 : 1400).chapter;
+    row.body = floor === 'paid body' ? Array.from(row.body).join(' ') : row.body.replace(/\s/g, '');
+    return { ...row, chars: row.body.length, lengthDraft: true };
+  });
+  docs[0].chapters = rows;
+  docs[0].deliveryMeta = { savedChapters: rows, attempts: Object.fromEntries(MODES.solo.chapters.flatMap(chapter => [[chapter.id, 3], [`${chapter.id}:lengthRepair`, 1]])) };
+  const raw = rows.reduce((sum, row) => sum + row.body.length, 0);
+  const body = countPaidReportBodyChars(rows.map(row => row.body).join('\n'));
+  const legacy = MODES.solo.chapters.reduce((sum, chapter) => sum + Math.ceil(chapter.minChars * 0.5), 0);
+  if (floor === 'paid body') { expect(raw).toBeGreaterThan(legacy); expect(body).toBeLessThan(20000); }
+  else { expect(raw).toBeLessThan(legacy); expect(body).toBeGreaterThanOrEqual(20000); }
+  expect(diagnoseCodexSession(docs[0]).exhausted).toHaveLength(20);
+  expect((await generate()).status).toBe(503);
+  expect(docs[0].status).not.toBe('completed');
+  expect(provider).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
 });

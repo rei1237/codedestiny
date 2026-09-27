@@ -1,6 +1,7 @@
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { assertCodexEvidence } from "./master-love-codex-evidence.js";
-import { paidReportBody, reportSentenceKey } from "./paid-report-quality.js";
+import { countPaidReportBodyChars, paidReportBody, reportSentenceKey } from "./paid-report-quality.js";
+import { tokensRequiredForChars } from "./llm-budget.js";
 
 /** Shared editorial contract for both books; calculations and pricing remain unchanged. */
 export function buildCodexEditorialContract(chapter, compatibility) {
@@ -96,11 +97,14 @@ export function dedupeCodexBody(body, priorBodies = []) {
   }).filter(line => line !== null).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
-export function assertCodexChapterQuality(parsed, chapter, metricDefs = [], evidenceContract = null) {
+export function assertCodexChapterQuality(parsed, chapter, metricDefs = [], evidenceContract = null, { allowShort = false } = {}) {
   const source = chapter.structured === false ? { body: parsed } : parsed;
   const body = typeof source?.body === "string" ? source.body.trim() : "";
-  if (body.length < codexChapterFloor(chapter)) throw new Error("LLM_OUTPUT_TOO_SHORT");
-  if (chapter.structured === false) return;
+  if (!countPaidReportBodyChars(body)) throw new Error("LLM_OUTPUT_EMPTY");
+  if (chapter.structured === false) {
+    if (!allowShort && body.length < codexChapterFloor(chapter)) throw new Error("LLM_OUTPUT_TOO_SHORT");
+    return;
+  }
   if (evidenceContract) assertCodexEvidence(source, evidenceContract);
   const hasText = value => typeof value === "string" && value.trim().length > 0;
   if (!["narration", "insight", "keySentence", "caution", "bridge"].every(key => hasText(source[key]))
@@ -118,6 +122,7 @@ export function assertCodexChapterQuality(parsed, chapter, metricDefs = [], evid
             && matches[0].score >= 0 && matches[0].score <= 100 && hasText(matches[0].basis);
         })) throw new Error("LLM_DNA_INCOMPLETE");
   }
+  if (!allowShort && body.length < codexChapterFloor(chapter)) throw new Error("LLM_OUTPUT_TOO_SHORT");
 }
 
 /** Invalid responses must not trap a purchased retry behind the same cached output. */
@@ -159,14 +164,14 @@ export function parseChapterJson(text) {
 }
 
 /** Two bounded provider attempts cover malformed JSON and incomplete content too. */
-export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, maxAttempts = 2, previousError = "", options = {} }) {
+export async function generateCodexChapterResponse(call, prompt, { chapter, metricDefs, evidenceContract = null, deadlineAt = Infinity, minBudgetMs = 1000, maxAttempts = 2, previousError = "", allowShort = false, options = {} }) {
   let failure = previousError ? new Error(previousError) : null;
   for (let attempt = 0; attempt < Math.min(2, Math.max(1, maxAttempts)); attempt += 1) {
     const remaining = deadlineAt - Date.now();
     if (remaining < minBudgetMs) throw failure || new Error("GENERATION_BUDGET_EXCEEDED");
     const instruction = failure ? `\n[재작성] 이전 응답은 ${failure.message} 기준을 통과하지 못했다. JSON 문자열을 올바르게 닫고, body의 최소 분량·계산 근거·필수 필드를 지켜 완성된 새 응답을 작성하라.` : "";
     const ai = await call(prompt + instruction, {
-      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, capTokens: 14000,
+      ...options, attempts: 1, maxProviderAttempts: 1, baseTokens: Math.max(failure?.message === "LLM_OUTPUT_TRUNCATED" ? 11000 : 8000, tokensRequiredForChars((chapter.minChars || 2400) + 900)), capTokens: 14000, thinkingBudget: 0,
       timeoutMs: Math.min(Number(options.timeoutMs) || remaining, remaining),
     });
     if (ai?.ok === false) {
@@ -178,7 +183,7 @@ export async function generateCodexChapterResponse(call, prompt, { chapter, metr
       if (ai?.truncated) throw new Error("LLM_OUTPUT_TRUNCATED");
       if (!ai?.text) throw new Error("LLM_OUTPUT_EMPTY");
       const parsed = parseChapterJson(ai.text);
-      assertCodexChapterQuality(parsed, chapter, metricDefs, evidenceContract);
+      assertCodexChapterQuality(parsed, chapter, metricDefs, evidenceContract, { allowShort });
       return { ai, parsed };
     } catch (error) { failure = error; }
   }

@@ -158,7 +158,7 @@ test("chapter cache accepts repairable JSON but still rejects incomplete content
 test("quality repair stops at two attempts and never starts after the deadline", async () => {
   const chapter = utils.resolveMode("solo").chapters[0];
   const call = jest.fn().mockResolvedValue({ text: '{}' });
-  await expect(generateCodexChapterResponse(call, "prompt", { chapter })).rejects.toThrow("LLM_OUTPUT_TOO_SHORT");
+  await expect(generateCodexChapterResponse(call, "prompt", { chapter })).rejects.toThrow("LLM_OUTPUT_EMPTY");
   expect(call).toHaveBeenCalledTimes(2);
   call.mockClear();
   await expect(generateCodexChapterResponse(call, "prompt", { chapter, deadlineAt: Date.now() - 1 })).rejects.toThrow("GENERATION_BUDGET_EXCEEDED");
@@ -182,7 +182,7 @@ test("compatibility prompt preserves the calculated direction without modifying 
 test("paid delivery can limit structured generation to one provider call", async () => {
   const chapter = utils.resolveMode("solo").chapters[0];
   const call = jest.fn().mockResolvedValue({ text: '{}' });
-  await expect(generateCodexChapterResponse(call, "prompt", { chapter, maxAttempts: 1 })).rejects.toThrow("LLM_OUTPUT_TOO_SHORT");
+  await expect(generateCodexChapterResponse(call, "prompt", { chapter, maxAttempts: 1 })).rejects.toThrow("LLM_OUTPUT_EMPTY");
   expect(call).toHaveBeenCalledTimes(1);
 });
 
@@ -200,4 +200,18 @@ test.each([["LLM_OUTPUT_TRUNCATED", 11000], ["LLM_EVIDENCE_INVALID", 8000], ["LL
   expect(call).toHaveBeenCalledTimes(1);
   expect(call.mock.calls[0][0]).toContain(previousError);
   expect(call.mock.calls[0][1]).toMatchObject({ attempts: 1, maxProviderAttempts: 1, baseTokens: tokens });
+});
+
+
+test("paid draft extraction relaxes only length and retains structure, DNA and empty-body checks", async () => {
+  const chapter = utils.resolveMode("solo").chapters[0];
+  const parsed = { ...fixture(chapter), body: "계산된 성향을 바탕으로 대화할 간격을 조절해 보세요." };
+  const call = jest.fn().mockResolvedValue({ text: JSON.stringify(parsed) });
+  expect((await generateCodexChapterResponse(call, "prompt", { chapter, maxAttempts: 1, allowShort: true })).parsed).toEqual(parsed);
+  expect(call).toHaveBeenCalledTimes(1);
+  for (const body of ["", "   ", "## 제목", 123, {}]) {
+    expect(() => assertCodexChapterQuality({ ...parsed, body }, chapter, [], null, { allowShort: true })).toThrow("LLM_OUTPUT_EMPTY");
+  }
+  expect(() => assertCodexChapterQuality({ ...parsed, actions: [] }, chapter, [], null, { allowShort: true })).toThrow("LLM_OUTPUT_INCOMPLETE");
+  expect(() => assertCodexChapterQuality(parsed, { ...chapter, jsonMode: true }, [], null, { allowShort: true })).toThrow("LLM_DNA_INCOMPLETE");
 });
