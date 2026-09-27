@@ -34,9 +34,9 @@
 | 영냥이 28개 | 기존 승인 연결·장 저장·잠금·큐·서버 복구 재사용. 참치 15개 중 9번째 실패 후 앞선 8개 보존/재개와 동시 호출 회귀 검사 추가 | 실제 PG/모바일/LLM/운영 장애 주입 미검증. 28상품 각각의 실 경로 미검증 |
 | 공통 paid-narrative 18개 등록 키 | 초안 보존/한정 보완/만료 작업자 차단/총 분량 미달 운영 확인/지연 알림 | 브라우저 종료 후 자동 완주 미구현. 초기 요청 전 승인 주문의 입력 영속 등록 점검 필요 |
 | 인연의 서·융합운세·자미두수 심화 | 기존 서버 복구 경로 목록화, 추가 스케줄 의존성에 맞춰 회귀 mock 보완 | 실환경 승인→보관함 전체 검증 미실행 |
-| 기타 개별 생성/정적 해금 | 코드 후보와 기존 비 LLM 검증 fixture를 대조 | 48개 키 전달 매핑 미확인. 역사적/등록소 전용 키와 판매 가능 경로 구분 필요 |
+| 기타 개별 생성/정적 해금 | 2단계(`1c36ec974`·`1f4055771`)에서 158개 전부 단일 분류: LLM chapter 30·paid-narrative 18·section 3·route 24, 비LLM 결정적 69(키마다 CTA·consumer 마커)·판매 중단 3·등록소 전용 10·비결과 1. `saju_ai_question_prompt`는 `worker/routes/fortune.js` 섹션 체크포인트로 정정, `openGeomancyOracle`은 `geomancy` 경로 상속, 판매 중단 2키의 LLM 이중 분류 해소 | 마커는 정적 배선 근거일 뿐 실 전달 증명이 아니다. 서버 이어생성 없는 LLM 24키(`llmWithoutServerRecovery`) |
 
-매핑 누락 시 조사 스크립트는 exit 2로 실패한다. 현재 이 실패를 통과로 취급하지 않는다. 모든 상품의 완료본/부분본 보관함 표시, 환불 경합, DB 응답 유실을 통합 검증하지 못했다.
+분류 정본은 `scripts/lib/paid-delivery-inventory.mjs`다. 미분류·중복·카탈로그에 없는 근거 키·빈 어댑터·없는 경로가 있으면 조사 스크립트는 exit 2, `__tests__/worker/paid-delivery-inventory.test.js`는 실패한다. exit 0은 분류 완료일 뿐 전달 검증 완료가 아니다(`liveValidation: UNVERIFIED`, `allProductsVerified: false`). 모든 상품의 완료본/부분본 보관함 표시, 환불 경합, DB 응답 유실을 통합 검증하지 못했다.
 
 ## 운영 DB 읽기 전용 관측
 
@@ -95,7 +95,7 @@
 
 ## 남은 완료 조건
 
-- 미확인 48개 상품 키의 판매 상태·결제 진입·생성·보관함 매핑.
+- 분류된 158개 상품의 실제 결제 진입·생성·보관함 전달 검증(2단계는 정적 근거 분류까지).
 - 공통 상담의 서버 자동 이어생성과 승인 후 입력 영속 등록 보장, 모든 상품의 동일 복구 상태 표시.
 - 로그인 시작부터 보관함까지 구간별 상관관계/오류율/실측 p50·p95 및 모바일 분리.
 - 실제 공급자 응답 품질과 실패 호출 비용, 모델/상품별 정산·청구 대조.
@@ -111,6 +111,7 @@
 - `npm run verify:cron-mongo-op-coverage`: 통과. 94 op 중 73 보호, 기존 부채 21 유지.
 - `npm run build:worker`: dry-run 통과, gzip 3,467.58 KiB. 실제 배포 아님.
 - `node scripts/report-paid-delivery-inventory.mjs`: exit 2, 매핑 누락 48개. 의도적으로 미통과를 기록한다.
+- 2단계 후 같은 명령: exit 0, 미분류·중복·낡은 근거·빈 어댑터·무효 경로 0. jest `paid-delivery-inventory`·`paid-non-llm-delivery`·`paid-narrative-adapters` 31/31. 변이 2종(비LLM fixture 행 삭제, 판매 중단 키를 LLM 경로에 재매핑)은 각각 새 테스트 1건 실패로 잡힘.
 - `node --env-file=<local env> scripts/verify-yeongnyangi-mongo-staging.mjs --staging-fixtures`: 실제 `code_destiny_staging`에서 28/28 상품 통과. 중복 활성화/소유권/금액 변조/중복 장 저장/생성 실패 복구/재열람 검사 및 fixture 정리 통과. PG 승인·LLM 본문은 fixture이며 실 PG/LLM 호출 0.
 - 구현 커밋: `c4e1a69fd`(복구), `a3ee0c4ca`(준비 병렬화), `f5890b859`(관측). 다른 세션의 main 커밋을 병합한 `d100554ca28a96af5d0330212a1cff373918c2e1`을 main에 push했다. 타 세션 미커밋 상태를 전후 비교해 보존을 확인했다.
 

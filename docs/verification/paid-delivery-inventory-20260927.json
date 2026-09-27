@@ -1,76 +1,47 @@
 {
   "catalogCount": 158,
   "yeongnyangiCount": 28,
-  "missingDeliveryMappings": [
-    "physiognomy-compatibility",
-    "physiognomy-pastlife-compatibility",
-    "physiognomy-ogwan-mole-deep",
-    "tarot-reunion-reading",
-    "tarot-myeongri-three-card",
-    "neville-meditation",
-    "cosmic-soul-meditation",
-    "sukuyo-symbolic-comparison",
-    "sukuyo-monthly-fortune",
-    "nakshatra-compat",
-    "nakshatra-muhurta",
-    "nakshatra-vvip-codex",
-    "destiny-compass-crossroads",
-    "destiny-compass-life-voyage",
-    "destiny-compass-future-sim",
-    "openGeomancyOracle",
-    "turtleIChing",
-    "egyptOracle",
-    "egyptian_oracle_ai_prompt",
-    "stonehengeRunes",
-    "stonehenge-runes-single",
-    "stonehenge-runes-deep",
-    "stonehenge-runes-yearly",
-    "stonehenge-runes-ai-prompt",
-    "animal-destiny-unlock",
-    "saju-guardian-unlock",
-    "destiny_meeting_place",
-    "premiumTarot",
-    "vedic_prashna_prompt",
-    "astro_basic_deep_pack",
-    "astro_monthly_transit",
-    "astro_yearly_transit",
-    "ziwei_decade_luck",
-    "ziwei_love_deep",
-    "ziwei_twelve_palaces",
-    "ziwei_symbolic_layer",
-    "ziwei_life_yearly_flow",
-    "premium-fpti-report",
-    "tetogen_deep_report",
-    "profile-card-manage",
-    "rpt_specialCharmCard",
-    "rpt_quantumCard",
-    "rpt_healthReportCard",
-    "rpt_skillTreeCard",
-    "rpt_energyCoordCard",
-    "rpt_villainCard",
-    "rpt_secretHouseEntryCard",
-    "fun.quantumLotto.ritualReport"
-  ],
+  "deliveryKindCounts": {
+    "route-delivery": 24,
+    "deterministic": 69,
+    "paid-narrative": 18,
+    "historical": 3,
+    "registry-only": 10,
+    "section-checkpoint": 3,
+    "chapter-checkpoint": 30,
+    "non-result": 1
+  },
+  "missingDeliveryMappings": [],
+  "ambiguousDeliveryMappings": [],
   "invalidMappings": [],
-  "backgroundRecoveryNotMapped": [
-    "tarot-love-relationship",
-    "tarot-mindscan",
-    "tarot-prompt-maker",
-    "tarot-prompt-maker-standard",
-    "tarot-prompt-maker-deep",
-    "tarot-prompt-maker-master",
-    "dream-psycho-analysis",
-    "yoga-guru-per-use",
-    "pet-saju-ai-consultation",
-    "pet-compatibility-ai",
-    "geomancy",
-    "animal-totem-basic",
-    "animal-totem-deep",
+  "staleEvidenceKeys": [],
+  "unusedLlmAdapters": [],
+  "backgroundRecoveryNotMapped": [],
+  "llmWithoutServerRecovery": [
+    "vedic-ai-consultation",
+    "tarot-celestial-harmony",
+    "fortune-tea-house-tarot-consultation",
+    "fortune-tea-house-tarot-five-consultation",
+    "fortune-tea-house-saju-consultation",
+    "fortune-tea-house-saju-compatibility-consultation",
+    "fortune-tea-house-sukuyo-compatibility-consultation",
+    "sukuyo-compatibility-ai",
+    "nakshatra-ai-consultation",
+    "human-design-report",
+    "destiny-compass-deep-report",
+    "palm-reading-general",
+    "life-book-ai-consultation",
+    "life-fortune-ai-consultation",
+    "astrology-ai-consultation",
+    "neo-operation-room-consultation",
     "saju_ai_question_prompt",
-    "ziwei_ai_prompt_generator",
-    "astrology_ai_prompt_generator",
-    "vedic_ai_prompt_generator",
-    "sukuyo_ai_prompt_generator"
+    "new-year-ai-consultation",
+    "love-secret-ai-consultation",
+    "relationship-boundary-test",
+    "ziwei-ai-consultation",
+    "ziwei-island-palace-consult",
+    "karma-destiny-ai-consultation",
+    "premium-naming-prompt"
   ],
   "allProductsVerified": false,
   "products": [
@@ -95,6 +66,7 @@
       "generation": "worker/routes/vedic-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -120,10 +92,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "PhysiognomyUI.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "PhysiognomyUI.js",
+          "marker": "featureKey: 'physiognomy-compatibility'"
+        },
+        "consumer": {
+          "file": "PhysiognomyUI.js",
+          "marker": "window.faceAnalysisEngine.calculateCompatibility("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -148,10 +130,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "PastLifeFaceUI.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "PastLifeFaceUI.js",
+          "marker": "featureKey: 'physiognomy-pastlife-compatibility'"
+        },
+        "consumer": {
+          "file": "PastLifeFaceUI.js",
+          "marker": "calculatePastLifeCompatibility(plfSelfResult, plfPartnerResult)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -176,10 +168,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "PhysiognomyUI.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "PhysiognomyUI.js",
+          "marker": "featureKey: 'physiognomy-ogwan-mole-deep'"
+        },
+        "consumer": {
+          "file": "PhysiognomyUI.js",
+          "marker": "function applyOgwanMoleUnlock()"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -208,6 +210,16 @@
       "generation": "worker/routes/tarot.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "index.html",
+          "marker": "data-action=\"openTarotYearFortuneModal\""
+        },
+        "consumer": {
+          "file": "worker/routes/tarot.js",
+          "marker": "YEAR_TAROT_FEATURE_KEY = \"tarot-year-fortune\""
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -235,8 +247,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/love-tarot-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -263,10 +276,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "worker/routes/tarot.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/tarot-reunion-experience.js",
+          "marker": "consumeCoinDirect(REUNION_COIN_COST, REUNION_REASON, REUNION_FEATURE_KEY"
+        },
+        "consumer": {
+          "file": "worker/routes/tarot.js",
+          "marker": "const payload = buildReadingPayload({"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -291,10 +314,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "featureKey: MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "function _runShowTarotFinalInterpretation()"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -321,8 +354,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/mindscan-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -353,6 +387,7 @@
       "generation": "worker/lib/celestial-report-delivery.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -385,6 +420,16 @@
       "generation": "worker/routes/tarot.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/index-inline-runtime.js",
+          "marker": "function startCrystalSoulTarot()"
+        },
+        "consumer": {
+          "file": "worker/routes/tarot.js",
+          "marker": "CRYSTAL_SOUL_FEATURE_KEY = \"tarot-crystal-soul-reading\""
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -414,6 +459,16 @@
       "generation": "worker/routes/tarot.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/tarot/numerology/NumerologyTarotClient.tsx",
+          "marker": "FEATURE_KEY = \"tarot-numerology-reading\""
+        },
+        "consumer": {
+          "file": "worker/routes/tarot.js",
+          "marker": "NUMEROLOGY_TAROT_READING_FEATURE_KEY = \"tarot-numerology-reading\""
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -441,8 +496,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/tarot-oracle-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -471,8 +527,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/tarot-oracle-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -500,8 +557,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/tarot-oracle-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -529,8 +587,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/tarot-oracle-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -560,6 +619,16 @@
       "generation": "src/lib/maya-prompt-generator.ts",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "src/components/maya/MayaPromptGeneratorCard.tsx",
+          "marker": "runBillingCoinGate({"
+        },
+        "consumer": {
+          "file": "src/lib/maya-prompt-generator.ts",
+          "marker": "generateMayaReadingPrompt"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -588,6 +657,16 @@
       "generation": "worker/routes/tarot.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "index.html",
+          "marker": "data-action=\"startIjikTarot\""
+        },
+        "consumer": {
+          "file": "worker/routes/tarot.js",
+          "marker": "buildIjikReading(cards)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -617,6 +696,16 @@
       "generation": "royal-tea-oracle.html",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "royal-tea-oracle.html",
+          "marker": "runRoyalTeaGate"
+        },
+        "consumer": {
+          "file": "royal-tea-oracle.html",
+          "marker": "buildCupMap"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -645,6 +734,16 @@
       "generation": "ifa_oracle_v2_full.html",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "ifa_oracle_v2_full.html",
+          "marker": "ensureIfaCoinGate"
+        },
+        "consumer": {
+          "file": "ifa_oracle_v2_full.html",
+          "marker": "buildPatternDisplay"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -669,10 +768,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "neville-meditation.html",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "neville-meditation.html",
+          "marker": "featureKey: 'neville-meditation'"
+        },
+        "consumer": {
+          "file": "neville-meditation.html",
+          "marker": "function startCourseCore("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -697,10 +806,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "cosmic-soul-meditation.html",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "cosmic-soul-meditation.html",
+          "marker": "featureKey:'cosmic-soul-meditation'"
+        },
+        "consumer": {
+          "file": "cosmic-soul-meditation.html",
+          "marker": "function _startSessionCore(mode)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -727,8 +846,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/dream.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -757,8 +877,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/yoga-guru.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -790,6 +911,7 @@
       "generation": "worker/routes/fortune-tea-house.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -819,6 +941,7 @@
       "generation": "worker/routes/fortune-tea-house.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -848,6 +971,7 @@
       "generation": "worker/routes/fortune-tea-house.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -877,6 +1001,7 @@
       "generation": "worker/routes/fortune-tea-house.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -906,6 +1031,7 @@
       "generation": "worker/routes/fortune-tea-house.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -931,10 +1057,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "historical",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "retained": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "과거 결제 이력과 서버 레지스트리 정합성을 위해 키 정의만 남긴다(UI 미사용)"
+        },
+        "replacement": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "pastLifeReading: { key: 'sukuyo-past-life-reading'"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -963,6 +1099,16 @@
       "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "SY_PAID_FEATURES.extremeTRelationshipCircuit"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "syRequirePaidSukuyoFeature("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -991,6 +1137,16 @@
       "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "SY_PAID_FEATURES.relationshipEncyclopedia"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "syRequirePaidSukuyoFeature("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1020,6 +1176,16 @@
       "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "SY_PAID_FEATURES.natureDeepDive"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "syRequirePaidSukuyoFeature("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1049,6 +1215,16 @@
       "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "SY_PAID_FEATURES.pastLifeReading"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "syRequirePaidSukuyoFeature("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -1075,10 +1251,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1107,6 +1284,7 @@
       "generation": "worker/routes/sukuyo-compatibility-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1137,6 +1315,16 @@
       "generation": "worker/routes/sukuyo.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "featureKey: 'sukyo_yearly_fortune_unlock'"
+        },
+        "consumer": {
+          "file": "worker/routes/sukuyo.js",
+          "marker": "sukyo_yearly_fortune_unlock"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/content-unlocks.js",
@@ -1169,6 +1357,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "featureKey: 'compat-astro-synastry'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroPickCelebCore"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1197,6 +1395,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "featureKey: 'compat-astro-direct-synastry'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroDirectSynastryCore"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1225,6 +1433,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "featureKey: 'compat-ziwei-compatibility'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_runZwCompatibilityCore"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1253,6 +1471,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "featureKey: 'compat-saju-compatibility'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "runCompatCore"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1281,6 +1509,16 @@
       "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "SY_PAID_FEATURES.compatibility"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "_triggerSynergyCheckCore"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1309,6 +1547,16 @@
       "generation": "vedic-astrology.html",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "vedic-astrology.html",
+          "marker": "featureKey:'vedic-compatibility-per-use'"
+        },
+        "consumer": {
+          "file": "vedic-astrology.html",
+          "marker": "doCompatCalcCore"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1333,10 +1581,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "worker/routes/nakshatra.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/nakshatra/compat/NakshatraCompatClient.tsx",
+          "marker": "const FEATURE_KEY = \"nakshatra-compat\";"
+        },
+        "consumer": {
+          "file": "worker/routes/nakshatra.js",
+          "marker": "assembleNakshatraCompat(personA, personB)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1366,6 +1624,7 @@
       "generation": "worker/routes/nakshatra-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -1392,10 +1651,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "worker/routes/nakshatra-premium.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/nakshatra/muhurta/MuhurtaClient.tsx",
+          "marker": "const FEATURE_KEY = \"nakshatra-muhurta\";"
+        },
+        "consumer": {
+          "file": "worker/routes/nakshatra-premium.js",
+          "marker": "const report = buildNakshatraMuhurta({"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1421,10 +1690,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "worker/routes/nakshatra-premium.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/nakshatra/vvip/VvipClient.tsx",
+          "marker": "const FEATURE_KEY = \"nakshatra-vvip-codex\";"
+        },
+        "consumer": {
+          "file": "worker/routes/nakshatra-premium.js",
+          "marker": "const report = buildNakshatraVvipCodex({"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1450,10 +1729,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "route-delivery",
-      "generation": "worker/routes/human-design-report.js",
+      "deliveryKind": "historical",
+      "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "retained": {
+          "file": "worker/routes/human-design.js",
+          "marker": "ARCHIVE_ID_PREFIX = \"human-design-chart\""
+        },
+        "replacement": {
+          "file": "js/core/service-registry.js",
+          "marker": "price: \"무료 시작\""
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1484,6 +1773,7 @@
       "generation": "worker/routes/human-design-report.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -1511,10 +1801,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "app/destiny-compass/_components/Crossroads.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/destiny-compass/_components/Crossroads.tsx",
+          "marker": "featureKey: \"destiny-compass-crossroads\","
+        },
+        "consumer": {
+          "file": "app/destiny-compass/_components/Crossroads.tsx",
+          "marker": "computeCrossroad(field, a, b)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1539,10 +1839,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "app/destiny-compass/_components/LifeVoyage.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/destiny-compass/_components/LifeVoyage.tsx",
+          "marker": "featureKey: \"destiny-compass-life-voyage\","
+        },
+        "consumer": {
+          "file": "app/destiny-compass/_components/LifeVoyage.tsx",
+          "marker": "const phase = field.timeline[key];"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1567,10 +1877,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "app/destiny-compass/_components/FutureSim.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/destiny-compass/_components/FutureSim.tsx",
+          "marker": "featureKey: \"destiny-compass-future-sim\","
+        },
+        "consumer": {
+          "file": "app/destiny-compass/_components/FutureSim.tsx",
+          "marker": "field.timeline[k]"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1599,6 +1919,7 @@
       "generation": "worker/routes/destiny-compass-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -1629,8 +1950,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/pet-saju-ai.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -1661,8 +1983,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/pet-saju-ai.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -1695,6 +2018,16 @@
       "generation": "js/iching-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/iching-engine.js",
+          "marker": "featureKey: _TC_FEATURE_KEY"
+        },
+        "consumer": {
+          "file": "js/iching-engine.js",
+          "marker": "function _renderResult("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1723,6 +2056,16 @@
       "generation": "js/oracle-kcg.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/oracle-kcg.js",
+          "marker": "featureKey: 'openKemetModal'"
+        },
+        "consumer": {
+          "file": "js/oracle-kcg.js",
+          "marker": "showKemetSpread"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1747,10 +2090,21 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
-      "serverRecovery": null,
-      "stalledMonitor": null,
+      "deliveryKind": "paid-narrative",
+      "deliveryFeatureKey": "geomancy",
+      "generation": "worker/routes/oracle.js",
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
+      "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": {
+        "cta": {
+          "file": "geomancy-oracle-v4.html",
+          "marker": "const GEOMANCY_FEATURE_KEY = 'openGeomancyOracle';"
+        },
+        "consumer": {
+          "file": "worker/routes/oracle.js",
+          "marker": "...geomancyNarrativeAdapter(env), featureKey: \"geomancy\","
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1779,6 +2133,16 @@
       "generation": "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
+          "marker": "runPaidAccessGate({"
+        },
+        "consumer": {
+          "file": "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
+          "marker": "startSimulationScene("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1804,10 +2168,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1832,10 +2197,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1860,10 +2226,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1890,8 +2257,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/oracle.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -1919,10 +2287,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -1947,10 +2316,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "StonehengeRune.jsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "StonehengeRune.jsx",
+          "marker": "1: \"stonehenge-runes-single\","
+        },
+        "consumer": {
+          "file": "StonehengeRune.jsx",
+          "marker": "drawRunes(spread)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -1980,6 +2359,16 @@
       "generation": "StonehengeRune.jsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "StonehengeRune.jsx",
+          "marker": "ensurePaidAccess({"
+        },
+        "consumer": {
+          "file": "StonehengeRune.jsx",
+          "marker": "drawRunes"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2005,10 +2394,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "StonehengeRune.jsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "StonehengeRune.jsx",
+          "marker": "5: \"stonehenge-runes-deep\","
+        },
+        "consumer": {
+          "file": "StonehengeRune.jsx",
+          "marker": "drawRunes(spread)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2034,10 +2433,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "StonehengeRune.jsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "StonehengeRune.jsx",
+          "marker": "12: \"stonehenge-runes-yearly\","
+        },
+        "consumer": {
+          "file": "StonehengeRune.jsx",
+          "marker": "drawRunes(spread)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2063,10 +2472,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2094,8 +2504,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/animal-totem.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2126,8 +2537,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/routes/animal-totem.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2156,10 +2568,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "app/saju/animal-destiny/components/AnimalDestinyPage.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "index.html",
+          "marker": "data-tile-lock-key=\"animal-destiny-unlock\""
+        },
+        "consumer": {
+          "file": "app/saju/animal-destiny/components/AnimalDestinyPage.tsx",
+          "marker": "<AnimalResultScreen"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2185,10 +2607,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "app/saju-guardian/SajuGuardianClient.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/saju-guardian/SajuGuardianClient.tsx",
+          "marker": "subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,"
+        },
+        "consumer": {
+          "file": "app/saju-guardian/SajuGuardianClient.tsx",
+          "marker": "const { calculateLocalSaju } = await import("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2214,10 +2646,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx",
+          "marker": "const FEATURE_KEY = \"destiny_meeting_place\";"
+        },
+        "consumer": {
+          "file": "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx",
+          "marker": "generateDestinyMeetingPlaceResult("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2242,10 +2684,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2274,6 +2717,7 @@
       "generation": "worker/routes/palm.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2300,10 +2744,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "route-delivery",
-      "generation": "worker/routes/palm.js",
+      "deliveryKind": "historical",
+      "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "retained": {
+          "file": "worker/lib/billing-feature-registry.js",
+          "marker": "aiConsult: Object.freeze"
+        },
+        "replacement": {
+          "file": "worker/routes/palm.js",
+          "marker": "구 palm-reading-ai-consult(별도 5,000원 과금)가 하던 일을 기본 분석에 통합했다"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/billing-feature-registry.js",
@@ -2333,6 +2787,7 @@
       "generation": "worker/routes/life-book-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/models.js",
@@ -2363,6 +2818,7 @@
       "generation": "worker/routes/life-book-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2392,6 +2848,7 @@
       "generation": "worker/routes/astrology-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -2422,6 +2879,7 @@
       "generation": "worker/routes/neo-operation-room.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -2448,10 +2906,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "paid-narrative",
-      "generation": "worker/lib/feature-question-delivery.js",
+      "deliveryKind": "section-checkpoint",
+      "generation": "worker/routes/fortune.js",
       "serverRecovery": null,
-      "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2478,8 +2937,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/feature-question-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2506,8 +2966,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/feature-question-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2534,8 +2995,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/feature-question-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2562,8 +3024,9 @@
       ],
       "deliveryKind": "paid-narrative",
       "generation": "worker/lib/feature-question-delivery.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": "worker/lib/paid-narrative-monitor.js",
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2588,10 +3051,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "worker/routes/fortune.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "vedic-astrology.html",
+          "marker": "featureKey:VEDIC_PRASHNA_FEATURE_KEY,"
+        },
+        "consumer": {
+          "file": "worker/routes/fortune.js",
+          "marker": "prashnaResult = await generatePrashnaPromptResult(env, snapshot"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2620,6 +3093,16 @@
       "generation": "vedic-astrology.html",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "vedic-astrology.html",
+          "marker": "window._cdOpenPaidServiceGate({"
+        },
+        "consumer": {
+          "file": "vedic-astrology.html",
+          "marker": "else if(id==='personality')html=renderPersonality"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2648,6 +3131,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_career_talent_deep'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2676,6 +3169,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_talent_attraction_deep'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2704,6 +3207,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_relationship_deep'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2732,6 +3245,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_growth_shadow_deep'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2756,10 +3279,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2788,6 +3312,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_stellar_career_room'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2816,6 +3350,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_stellar_talent_room'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2844,6 +3388,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_stellar_relationship_room'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2872,6 +3426,16 @@
       "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselPaidGate('astro_stellar_growth_room'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "_astroCounselSection("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2896,10 +3460,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2924,10 +3489,11 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
+      "deliveryKind": "registry-only",
       "generation": null,
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2956,6 +3522,7 @@
       "generation": "worker/routes/new-year-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -2985,6 +3552,7 @@
       "generation": "worker/routes/love-secret-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3014,6 +3582,7 @@
       "generation": "worker/routes/relationship-boundary-test.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -3046,6 +3615,7 @@
       "generation": "worker/routes/master-love-codex.js",
       "serverRecovery": "worker/lib/master-love-codex-recovery-task.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/master-love-codex-paid-bootstrap.js",
@@ -3079,6 +3649,7 @@
       "generation": "worker/routes/master-love-codex.js",
       "serverRecovery": "worker/lib/master-love-codex-recovery-task.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/master-love-codex-paid-bootstrap.js",
@@ -3110,6 +3681,7 @@
       "generation": "worker/routes/ziwei-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3139,6 +3711,7 @@
       "generation": "worker/routes/ziwei-island-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3169,6 +3742,16 @@
       "generation": "app/island-consult/IslandConsultClient.tsx",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "app/island-consult/IslandConsultClient.tsx",
+          "marker": "featureKey: REPORT_FEATURE_KEY"
+        },
+        "consumer": {
+          "file": "app/island-consult/IslandConsultClient.tsx",
+          "marker": "setReport(data.report)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3198,6 +3781,7 @@
       "generation": "worker/routes/ziwei-deep-report.js",
       "serverRecovery": "worker/lib/ziwei-deep-report-recovery-task.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/checkpoint-refund-guard.js",
@@ -3229,6 +3813,7 @@
       "generation": "worker/routes/karma-destiny-ai.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3256,8 +3841,9 @@
       ],
       "deliveryKind": "route-delivery",
       "generation": "worker/routes/fortune-chat.js",
-      "serverRecovery": null,
+      "serverRecovery": "worker/lib/paid-narrative-recovery-task.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/guardian-fortune-usage.js",
@@ -3287,6 +3873,7 @@
       "generation": "worker/routes/fusion-fortune.js",
       "serverRecovery": "worker/lib/fusion-fortune-recovery-task.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/fusion-fortune.js",
@@ -3317,6 +3904,16 @@
       "generation": "worker/routes/sibyl.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/sibyl-system.js",
+          "marker": "window._cdOpenPaidServiceGate({"
+        },
+        "consumer": {
+          "file": "worker/routes/sibyl.js",
+          "marker": "mapToSibylChapters"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -3344,10 +3941,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "zwBasicPaidGateHtml('ziwei_decade_luck', 100,"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "zwDahanPremiumShellHtml(dahanTimelineHtml)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3374,10 +3981,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "zwBasicPaidGateHtml('ziwei_love_deep', 100,"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "buildZwSpouseDeepHtml(pd)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3403,10 +4020,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "zwBasicPaidGateHtml('ziwei_twelve_palaces', 100,"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "buildZwTwelvePalaceDeepHtml(pd)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3432,10 +4059,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "zwBasicPaidGateHtml('ziwei_symbolic_layer', 100,"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "buildZwSymbolicDeepHtml({"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3461,10 +4098,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine.js",
+          "marker": "zwBasicPaidGateHtml('ziwei_life_yearly_flow', 100,"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "buildZwYearlyFlowDeepHtml(pd)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3490,10 +4137,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "worker/routes/fpti.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "components/fpti/FptiResultCard.tsx",
+          "marker": "featureKey: \"premium-fpti-report\","
+        },
+        "consumer": {
+          "file": "worker/routes/fpti.js",
+          "marker": "async function createAndArchiveDeepReport("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/access-control.js",
@@ -3524,10 +4181,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/entertain-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/entertain-engine.js",
+          "marker": "featureKey: TETOGEN_DEEP_REPORT_FEATURE_KEY,"
+        },
+        "consumer": {
+          "file": "js/entertain-engine.js",
+          "marker": "function buildTetogenDeepReportBody("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3556,6 +4223,7 @@
       "generation": "worker/routes/naming-prompt.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3586,6 +4254,16 @@
       "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "SY_PAID_FEATURES.compatibilityPrecision"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "syRequirePaidSukuyoFeature("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3610,10 +4288,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "non-result",
+      "generation": "worker/routes/profile.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/destiny-profile.js",
+          "marker": "window._cdCoinGatePerUse(PROFILE_CARD_MANAGE_COST, reason,"
+        },
+        "consumer": {
+          "file": "worker/routes/profile.js",
+          "marker": "async function findProfileMutationPaymentEvidence("
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-access.js",
@@ -3642,10 +4330,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "target:'specialCharmCard'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "function renderSpecialCharm(p, natal)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3671,10 +4369,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "lockKey:'rpt_quantumCard'"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "function renderQuantumStrategy(p, natal, bazi)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3700,10 +4408,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/entertain-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "target:'healthReportCard'"
+        },
+        "consumer": {
+          "file": "js/entertain-engine.js",
+          "marker": "w.renderHealthReport = function"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3729,10 +4447,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/entertain-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "target:'skillTreeCard'"
+        },
+        "consumer": {
+          "file": "js/entertain-engine.js",
+          "marker": "w.renderSkillTree = function"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3758,10 +4486,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "target:'energyCoordCard'"
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "function renderEnergyCoord(natal)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3787,10 +4525,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "target:'villainCard'"
+        },
+        "consumer": {
+          "file": "js/saju-engine.js",
+          "marker": "function renderVillain(p, power)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3816,10 +4564,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/core/saju/reportDashboard.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "target:'secretHouseEntryCard'"
+        },
+        "consumer": {
+          "file": "js/core/saju/reportDashboard.js",
+          "marker": "var target = '/secret-house_real.html';"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3845,10 +4603,20 @@
         "DIRECT_KRW",
         "MOONLIGHT_STONE"
       ],
-      "deliveryKind": "NEEDS_INSPECTION",
-      "generation": null,
+      "deliveryKind": "deterministic",
+      "generation": "js/saju-engine-tarot-sukuyo-quantum.js",
       "serverRecovery": null,
       "stalledMonitor": null,
+      "evidence": {
+        "cta": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "data-tile-lock-key=\"'+LOTTO_RITUAL_FEATURE_KEY+'\""
+        },
+        "consumer": {
+          "file": "js/saju-engine-tarot-sukuyo-quantum.js",
+          "marker": "function buildLottoRitualReport(state)"
+        }
+      },
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [
         "worker/lib/paid-feature-registry.js",
@@ -3878,6 +4646,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -3902,6 +4671,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -3926,6 +4696,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -3950,6 +4721,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -3974,6 +4746,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -3998,6 +4771,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4022,6 +4796,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4046,6 +4821,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4070,6 +4846,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4094,6 +4871,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4118,6 +4896,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4142,6 +4921,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4166,6 +4946,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4190,6 +4971,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4214,6 +4996,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4238,6 +5021,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4262,6 +5046,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4286,6 +5071,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4310,6 +5096,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4334,6 +5121,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4358,6 +5146,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4382,6 +5171,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4406,6 +5196,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4430,6 +5221,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4454,6 +5246,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4478,6 +5271,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4502,6 +5296,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"
@@ -4526,6 +5321,7 @@
       "generation": "worker/yeongnyangi/service.ts",
       "serverRecovery": "worker/yeongnyangi/recovery.js",
       "stalledMonitor": null,
+      "evidence": null,
       "paymentCore": "worker/payments/index.js",
       "candidateSources": [],
       "liveValidation": "UNVERIFIED"

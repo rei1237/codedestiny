@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "0절 P0(공통 엔진·천상 조화 첫 삽입 MongoDB code 40)는 `84b20aa35`·`9f4ec59f0`로 main 에 있고 스테이징 Mongo 에서 수정 전 거부·수정 후 성공을 확인했다. 프로덕션은 아직 결함 빌드이며 승격은 1A·1B 크론 위험과 함께 별도 1회 승인 사항이다. 2단계 상품 48개 미매핑 해소부터 시작하고 3단계 전체 구간 계측을 이어서 진행한다."
+next: "2단계(카탈로그 158개 전달 분류)는 `1c36ec974`·`1f4055771`로 main 에 있고 `report-paid-delivery-inventory.mjs`는 exit 0, 미분류 상품은 jest 가 실패시킨다. 0절 P0 수정도 main 에 있으나 프로덕션은 아직 결함 빌드이며 승격은 1A·1B 크론 위험과 함께 별도 1회 승인 사항이다. 3단계 전체 구간 계측부터 시작하고, 서버 이어생성 없는 LLM 24키(인벤토리 `llmWithoutServerRecovery`)와 2절 범위 밖 발견을 입력으로 쓴다."
 ---
 
 # 결제 지연·유료 결과 복구·LLM 비용 통제 인수인계
@@ -21,6 +21,7 @@ next: "0절 P0(공통 엔진·천상 조화 첫 삽입 MongoDB code 40)는 `84b2
 - **2026-09-27 후속 세션(1단계 B 선행 수정):** 기준 `6797c40a8` 위에 `9d8be5c91`(geomancy counts·animal-totem cards/birth 를 JSON 문자열로 서술자에 실음) → `ca6154fef`(guardian 이 질문 전 recentTurns 를 서술자에 고정) 를 격리 워크트리에서 만들어 이 문서 커밋과 함께 main 에 전달했다. 첫 push(`3f27d4be0`)는 `9d8be5c91`의 sync:public 을 1회만 돌린 탓에 CI `Static guards`(`verify-public-mirror-fresh`, `?v=` 키 한 세대 차)에서 실패했고, `29605f577`에서 3회 수렴한 산출물로 수습했다. 1B 본 구현(의도 등록·증빙 결속·병합 규칙)과 2·3단계는 미착수다. 실 PG·과금 LLM·운영 DB 0회.
 - **2026-09-27 후속 세션(1단계 B 본 구현):** 기준 `25ad5ee7e`에서 만든 `8261429ba`(서버: 결제 전 의도 등록·크론 증명 승격·증빙 키 제외 병합) → `d52cfb4e6`(등록 11키 페이지의 결제 직전 등록·pet 날짜 고정·sync:public·sitemap) → `3d73f0a5d`(의도 테스트)를 origin/main `18622016a` 위로 rebase 해 이 문서 커밋과 함께 main 에 전달했다. 작업 중 **P0 후보**(공통 엔진 첫 삽입이 MongoDB code 40 으로 거부될 수 있음)를 발견해 보고만 했다 — 아래 0절. 2·3단계는 미착수다. 실 PG·과금 LLM·운영/스테이징 DB 0회.
 - **2026-09-27 후속 세션(P0 수정):** 운영 반영·영향을 읽기 전용으로 확인하고 사용자 승인(엔진+천상 조화, 스테이징 fixture)을 받아 기준 `53e9f9342` 위에 `84b20aa35`(엔진 첫 삽입)·`9f4ec59f0`(천상 조화 체크포인트)를 만들었다 — 0절. 2·3단계는 미착수다. 실 PG·과금 LLM 0회, 운영 DB 읽기 전용 집계만, 스테이징 DB 는 fixture 쓰기 후 삭제(잔존 0).
+- **2026-09-27 후속 세션(2단계):** 기준 `dcf13b492` 위에 `1c36ec974`(비LLM 35개 CTA·consumer 근거) → `1f4055771`(분류 모듈·미분류 실패 jest) → 이 문서 커밋. 런타임 무변경(검사·fixture·보고 스크립트·문서) — 2절. 3단계는 미착수다. 실 PG·과금 LLM·DB 0회.
 
 상세 근거는 `docs/verification/paid-delivery-reliability-20260927.md`, 상품 표는 `docs/verification/paid-delivery-inventory-20260927.json`, 손익 표는 `docs/verification/yeongnyangi-pass-economics-20260927.json`, 스테이징 증거는 `docs/verification/paid-delivery-staging-20260927.json`에 있다. 먼저 이 문서로 재개하고 필요한 근거만 읽는다.
 
@@ -117,12 +118,29 @@ B 의 요구와 통과 조건(원래 목록). 이 중 브라우저 종료·DB �
 - 영냥이와 꿀꿀 운세 보관함에 진행/재시도 시각/복구 가능/운영 확인 상태를 연결하고 기존 API 필드를 보존한다. 재결제 없는 복구와 중복 클릭 병합을 검증한다.
 - 통과 조건: 브라우저 종료, 승인 응답 유실, 큐 등록 실패, 중복·역순 콜백, DB 응답 유실, 만료 작업자의 늦은 저장, 동시 복구, 환불 경합 mock 및 격리 DB 회귀. 알림이 왔다는 이유로 생성 완료로 표시하지 않는다.
 
-### 2. 상품 대응표의 미매핑 48개 해소
+### 2. 상품 대응표의 미매핑 48개 해소 — 완료 (`1c36ec974`·`1f4055771`)
 
-`report-paid-delivery-inventory.mjs`의 카탈로그 158개 중 영냥이 28개와 공통 18개 외 개별 경로를 대조한다. 현재 48개 미매핑으로 exit 2다. 이는 48개 모두 판매 중 LLM 상품이라는 뜻은 아니다. 공통 18키의 `serverRecovery`는 이제 `worker/lib/paid-narrative-recovery-task.js`로 채워진다(레지스트리에 실제 등록된 키만).
+카탈로그 158개가 전부 한 분류에 들어간다(`node scripts/report-paid-delivery-inventory.mjs` exit 0). 분류 정본은 `scripts/lib/paid-delivery-inventory.mjs`, 비LLM 근거는 `__tests__/fixtures/paid-non-llm-delivery-fixtures.mjs`다. `__tests__/worker/paid-delivery-inventory.test.js`가 미분류·중복·카탈로그에 없는 근거 키·어느 상품에도 안 맞는 어댑터·없는 경로를 실패시킨다(fixture 행 삭제·판매 중단 키 재매핑 변이로 실패 확인).
+
+| 분류 | 수 | 근거 |
+|---|---|---|
+| chapter-checkpoint | 30 | 영냥이 28·인연의 서 2 |
+| paid-narrative | 18 | 전부 서버 이어생성 있음. `openGeomancyOracle`은 지오맨시 페이지의 판매 키라 `geomancy` 경로 상속(`deliveryFeatureKey`) |
+| section-checkpoint | 3 | 융합운세·자미두수 심화 + `saju_ai_question_prompt` 정정: `worker/routes/fortune.js` `handleSajuAIPrompt`, PaidExecutionRecord 섹션 체크포인트, 복구는 클라이언트 `resumeJobId`뿐 |
+| route-delivery | 24 | 기존 어댑터. `fortune-chat-consultation`만 서버 이어생성 있음 |
+| deterministic | 69 | 기존 34 + 신규 35(destiny-compass 3·자미 해금 5·나크샤트라 3·베다 프라쉬나·관상 3·재회/명리 타로·명상 2·룬 3·인연의 장소·동물 운명·수호신·FPTI·테토겐·rpt 카드 7·로또 리추얼), 키마다 CTA·consumer 마커 |
+| historical | 3 | 판매 중단: `palm-reading-ai-consult`·`human-design-chart`(옛 스크립트는 LLM 경로로 이중 분류했다)·`sukuyo-symbolic-comparison` |
+| registry-only | 10 | 등록소에만 있는 키. 신규 `premiumTarot`은 코드 참조 0 |
+| non-result | 1 | `profile-card-manage`: 프로필 생성/수정/삭제 자체가 전달(`findProfileMutationPaymentEvidence`) |
+
+마커는 정적 배선 근거일 뿐이다. 모든 행은 `liveValidation: UNVERIFIED`, 출력은 `allProductsVerified: false`를 유지한다. 서버 이어생성 없는 LLM 24키는 출력의 `llmWithoutServerRecovery`에 있다 — 3단계 계측과 서버 복구 확장의 입력이다.
 
 범위 밖이라 보고만 한 사실(수정하지 않음):
-- 인벤토리는 `saju_ai_question_prompt`를 feature-question-delivery 로 매핑하지만 실제 처리는 `worker/routes/fortune.js`다. 공통 엔진 레지스트리에는 넣지 않았고(`saju_ai_question_prompt|featureQuestionConsultation`은 null 로 고정 테스트), `backgroundRecoveryNotMapped`에 남아 있다. 2단계에서 경로를 바로잡는다.
+- 지오맨시 증빙 키 불일치 의심: 게이트는 `openGeomancyOracle`로 소비를 남기고 route 규칙은 `geomancy`를 본다(`worker/lib/access-control.js:197-211`). mock 테스트는 mode='pass'라 미증명, 운영 09-01 이후 결제 0건.
+- 클라이언트 표시 코인 ≠ 등록소 가격(실청구액 미검증): 자미 해금 5키(100 vs 50), `vedic_prashna_prompt`(50 vs 30), 재회·명리 타로, 전생 관상 궁합, 네빌 60분, 코스믹 명상, 룬 스프레드, rpt 카드 5종, 로또 리추얼, 동물 운명, 사주 AI(200 vs 100).
+- 게이트 없는 직접 URL: `/saju/animal-destiny`(실측), `/secret-house_real.html`(추정). 룬 게이트는 `resume`을 넘기지 않는다.
+- `/api/ziwei/daehan`은 호출부가 없다(추정 고아). 등록소 전용 키의 "CTA 없음"은 grep 근거뿐이고 부정 단언 테스트는 없다.
+- 기존 LLM 어댑터 행은 생성 파일에 상품 키 리터럴이 없는 동적 키라 파일 경로 매핑만 있다.
 - 일일 타임아웃 정산의 체크포인트 보호(`worker/lib/checkpoint-refund-guard.js:19`)는 공통 13키만 `recoverable`로 미룬다. feature-question 4키(`astrology_/ziwei_/sukuyo_/vedic_ai_prompt_generator`)와 `fortune-chat-consultation`은 `unmanaged`라 정산 시각까지 완료되지 않으면 기존 정책대로 환불된다. 이어생성이 그 전에 끝내면 `status`가 바뀌어 정산 대상이 아니다. 목록을 늘리는 것은 환불 정책 변경이라 별도 승인 사항이다.
 
 가격 등록소 → 실제 판매 진입 → 주문 확정 → 생성 → 부분/최종 저장 → 복구 → 보관함을 연결한다. 비LLM/종료/과거 구매용은 근거와 함께 구분하고 단순 제외로 통과시키지 않는다. 파일 존재만으로 전달 검증 완료 표시 금지. 모든 활성 유료 결과 생성 상품의 검증 매트릭스와 누락 시 실패 검사를 연결한다.
@@ -184,7 +202,7 @@ git log -5 --oneline origin/main
 # tracked 변경이 없고 병합 가능함을 확인한 뒤 기존 격리 checkout을 최신화한다.
 git merge --ff-only origin/main
 node scripts/report-paid-delivery-inventory.mjs
-# 현재 exit 2 예상: 미매핑 48개. 실패를 숨기지 말고 각 경로를 조사한다.
+# exit 0 기대. exit 2 면 새 상품이나 낡은 근거다 — 제외하지 말고 근거를 조사해 fixture/어댑터에 싣는다.
 node scripts/report-yeongnyangi-pass-economics.mjs
 ```
 
