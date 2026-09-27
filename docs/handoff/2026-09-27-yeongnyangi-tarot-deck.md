@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "메이저22 승인 완료. Phase3b 완드14 제작·QA 완료, 사용자 배치 승인 대기. 승인 후 컵14 콘셉트 제출·제작. Phase4a 저장 위치 미결정."
+next: "완드14 승인 완료. 컵14 콘셉트 제출·제작 중. 컵 에이스 Phase2 채택본 재사용. 컵 승인 전 소드 착수 금지."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -77,7 +77,7 @@ next: "메이저22 승인 완료. Phase3b 완드14 제작·QA 완료, 사용자 
 | **Phase 3a** | 메이저 22장(「다음 작업 4」, 3a-1·3a-2 두 세션) | Phase 2 승인·뒷면 선택 | GREEN · 주력 / medium | **22장 전체 승인 완료**(2026-09-28). 뒷면 C·파일럿 재사용 확정 |
 | Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, R2 운영 버킷 쓰기면 RED · 주력 / high | 대기 |
 | F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
-| Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 완드14 제작·QA 완료, 사용자 승인 대기. 슈트별 승인 유지 |
+| Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 완드14 승인 완료, 컵14 제작 중. 슈트별 승인 유지 |
 | Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 대기 |
 | Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 대기 |
 | Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 대기 |
@@ -645,7 +645,9 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **재개·전달 근거**: 산출물 커밋 `438ce4f7c`(원장24줄·바이블·보고). `npm run check:fast -- --plan` → fast、`npm run check:fast` → whitespace/문서 freshness 통과、JSONL 파싱 →84줄 고유. main 직접 반영→push→해당 SHA의 GitHub `CI required` 확인 절차로 전달한다. push/CI 실결과는 세션 최종 보고에 기록하며, 문서 자체를 push 성공 증거로 해석하지 않는다.
 - **재개 지시**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `438ce4f7c` 포함 여부 및 문서 마지막 커밋을 확인한 뒤, `D:\Development\yeongnyangi-tarot-art\phase3a\contact\phase3a2-contact.png`의 전체22장 승인 검토부터 이어간다. 사용자 승인 전 Phase4a/3b는 시작하지 않는다.
 
-## Phase 3b 완드 결과 (2026-09-28 · 14장 배치 승인 대기)
+## Phase 3b 완드 결과 (2026-09-28 · 14장 승인 완료)
+
+- **승인 기록**: 2026-09-28 사용자가 「승인하고 다음 단계 진행해」로 현 채택본14장을 승인했다. 10의 합성 심볼 크기/금테, 기사/왕 스타일 차이, 주변 가림과 경계 침범을 포함해 확정. 컵14 콘셉트 제출·제작으로 진행한다.
 
 - **전달 복구점**: 산출물 커밋 `b0e7a4500`(기존 main `5aa267a24` 위에 반영). contact/build-ledger 검사 PASS, 원장109줄/완드채택14, `npm run check:fast -- --plan` fast 및 `npm run check:fast` whitespace/doc-freshness PASS. 원격 push·CI 실결과는 최종 보고로 확인하며 이 문구 자체를 성공 증거로 해석하지 않는다.
 - **재개 문장**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `b0e7a4500` 포함 여부, `git log -1 --oneline -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md`의 문서 마지막 커밋을 확인한 뒤, `D:\Development\yeongnyangi-tarot-art\phase3b\contact\wands-contact.png`의 완드14장 배치 승인 검토부터 이어간다. 완드 승인 전 컵14를 시작하지 않는다.
