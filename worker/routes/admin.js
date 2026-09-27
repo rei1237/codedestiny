@@ -5013,6 +5013,12 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
     }
 
+    if (path === "/kakao-crm" || path.startsWith("/kakao-crm/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminKakaoCrmRoutes } = await import("./admin-kakao-crm.js");
+      return await handleAdminKakaoCrmRoutes(path.slice("/kakao-crm".length) || "/", request, env, adminContext);
+    }
+
     if (path === "/sns-daily-post" || path.startsWith("/sns-daily-post/")) {
       await authorizeAdminRequest(request, env);
       const { handleAdminSnsRoutes } = await import("./admin-sns.js");

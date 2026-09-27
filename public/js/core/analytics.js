@@ -129,10 +129,25 @@
    * @param {string} eventName
    * @param {Object} [params]
    */
+  // CRM attribution is allowlisted, same-session and analytics-consent gated.
+  // A site visit is not a Kakao read/click receipt. Do not emit message_sent here.
+  function crmCampaign() {
+    try {
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem('cd:crm:campaign'); return ''; }
+      var query = new URLSearchParams(global.location.search);
+      var id = query.get('utm_source') === 'kakao' && query.get('utm_medium') === 'channel' ? query.get('utm_campaign') : '';
+      var allowed = /^(yeoni-weekly|neo-depth|yeongnyangi-ask|autumn-pause|welcome|crm-[a-z0-9][a-z0-9-]{2,79})$/;
+      if (allowed.test(id || '')) global.sessionStorage.setItem('cd:crm:campaign', id);
+      var saved = global.sessionStorage.getItem('cd:crm:campaign') || '';
+      return allowed.test(saved) ? saved : '';
+    } catch (_crmError) { return ''; }
+  }
   global.cdTrack = function cdTrack(eventName, params) {
     if (!eventName) return;
     try {
       var safeParams = Object.assign({}, params || {});
+      var crmId = crmCampaign();
+      if (crmId) safeParams.crm_campaign = crmId;
       if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
     } catch (_sendError) {
@@ -140,6 +155,7 @@
     }
   };
 
+  if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
   // Browser-observed server state; no profile, question, result text or request ID is sent.
   global.cdTrackFortuneDelivery = function (record) {

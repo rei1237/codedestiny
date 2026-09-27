@@ -1,0 +1,8 @@
+.invite{max-width:44rem;margin:2rem auto;padding:1.25rem;border:1px solid var(--cd-border,#d8bccd);border-radius:16px;background:#fff7fa;color:#3c1830;font-family:var(--font-body);line-height:1.65}
+.invite h2{font-family:var(--font-display);font-size:1.2rem;margin:0 0 .5rem}.invite p{margin:.5rem 0}.hint{font-size:.82rem;color:#70445c}
+.invite a{color:#8b1747;text-underline-offset:3px}.invite button,.invite summary{cursor:pointer;min-height:44px}.invite button{padding:.5rem .75rem;background:transparent;color:inherit;border:1px solid #b78fa3;border-radius:8px}.invite button:disabled{opacity:.6;cursor:wait}
+.invite .primary{display:inline-flex;align-items:center;min-height:44px;padding:.5rem 1rem;background:#662443;color:#fff;text-decoration:none;border-radius:8px;margin:.5rem 0}
+.actions{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}.consent{display:flex;gap:.65rem;padding:1rem 0;font-size:.88rem}.consent input{width:20px;height:20px;flex-shrink:0;margin-top:4px;accent-color:#8b1747}
+.invite :focus-visible{outline:3px solid #9e4272;outline-offset:3px}.invite details button+button{margin-left:.5rem}
+@media(prefers-color-scheme:dark){.invite{background:#291723;color:#fff3f8;border-color:#825168}.hint{color:#e4bdd0}.invite a{color:#ffb7d2}}
+@media(max-width:480px){.invite{margin:1rem;padding:1rem}}
