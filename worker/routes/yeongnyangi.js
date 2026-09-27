@@ -7,7 +7,7 @@ import { Payment } from '../lib/models.js';
 import { json, readJson, createHttpError, handleRouteError, notFound } from '../lib/http.js';
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
-import { activateFortune, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
+import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
 import { readRequest, ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
@@ -18,6 +18,7 @@ const messages={
   PARTNER_REQUIRED:'궁합 상대 프로필을 선택해 주세요.',
   DISTINCT_PARTNER_REQUIRED:'본인과 다른 상대 프로필을 선택해 주세요.',
   QUESTION_REQUIRED:'궁금한 이야기를 남겨 주세요.',
+  INVALID_JONG_CHECK:'지난 해 확인 질문에 다시 답해 주세요.',
   GENERATION_QUEUE_UNAVAILABLE:'상담 재개를 접수하지 못했어요. 잠시 후 같은 상담에서 다시 시도해 주세요.',
   PAYMENT_NOT_ACTIVE:'결제 또는 환불 상태 확인이 필요해요. 다시 결제하지 말고 결제 내역을 확인해 주세요.',
   FAMILY_OR_DIRECT_PAYMENT_REQUIRED:'영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용해 주세요.',
@@ -96,6 +97,13 @@ export async function handleYeongnyangiRoutes(request, env) {
         throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
       }
       return json({ok:true,fortune:presentFortune(await prepareFortune(env,auth.userId,body))},{status:201});
+    }
+    if(path==='saju/jong-check' && method==='POST') {
+      const body=await readJson(request);
+      if(!body || typeof body!=='object' || Array.isArray(body)) {
+        throw createHttpError(400,'상담 요청 정보를 확인해 주세요.',{code:'INVALID_REQUEST'});
+      }
+      return json({ok:true,...await jongCheckFortune(env,auth.userId,body)},{headers:{'Cache-Control':'private, no-store'}});
     }
     if(path==='requests' && method==='GET') {
       const dbStart=performance.now();

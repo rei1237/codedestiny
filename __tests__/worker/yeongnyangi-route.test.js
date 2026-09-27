@@ -2,7 +2,7 @@ import {jest} from '@jest/globals';
 import {createHttpError,json} from '../../worker/lib/http.js';
 
 const userId='507f1f77bcf86cd799439011', id='a'.repeat(64);
-const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
+const auth=jest.fn(),security=jest.fn(),prepare=jest.fn(),jongCheck=jest.fn(),activate=jest.fn(),generate=jest.fn(),read=jest.fn();
 const attendance=jest.fn(),attend=jest.fn(),unlock=jest.fn(),freeRead=jest.fn(),freePrepare=jest.fn();
 const horary=jest.fn(),location=jest.fn();
 jest.unstable_mockModule('../../worker/yeongnyangi/fortune/free/horary.ts',()=>({prepareHoraryPrompt:horary}));
@@ -20,7 +20,7 @@ jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensi
 jest.unstable_mockModule('../../worker/routes/yeongnyangi-profiles.js',()=>({handleYeongnyangiProfiles:profilesHandler}));
 jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({products:[{id:'saju_mackerel',priceKRW:1000}]}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
-  prepareFortune:prepare,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
+  prepareFortune:prepare,jongCheckFortune:jongCheck,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
   providerReady:env=>Boolean(env.GEMINIF_API_KEY),
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/free-service.ts',()=>({
@@ -78,6 +78,17 @@ test.each(['requests',`requests/${id}/activate`,`requests/${id}/generate`])('sha
 test.each([null,[],42,'invalid'])('invalid JSON object %p fails before preparation',async body=>{
   expect((await handleYeongnyangiRoutes(request('requests','POST',body),env)).status).toBe(400);
   expect(prepare).not.toHaveBeenCalled();
+});
+test('종격 year check is read for the authenticated owner, never cached, and blocked by shared security',async()=>{
+  jongCheck.mockResolvedValue({check:null});
+  const body={userId:'someone-else',profileId:'profile',productId:'saju_tuna'};
+  const response=await handleYeongnyangiRoutes(request('saju/jong-check','POST',body),env);
+  expect(response.status).toBe(200);expect(await response.json()).toEqual({ok:true,check:null});
+  expect(response.headers.get('Cache-Control')).toContain('no-store');expect(jongCheck).toHaveBeenCalledWith(env,userId,body);
+  expect((await handleYeongnyangiRoutes(request('saju/jong-check','POST',[]),env)).status).toBe(400);
+  security.mockResolvedValue({ok:false,response:json({code:'INVALID_ORIGIN'},{status:403})});
+  expect((await handleYeongnyangiRoutes(request('saju/jong-check','POST',body),env)).status).toBe(403);
+  expect(jongCheck).toHaveBeenCalledTimes(1);
 });
 test('payload owner is ignored; authenticated owner is passed to the service',async()=>{
   const body={userId:'someone-else',profileId:'profile',productId:'saju_mackerel'};

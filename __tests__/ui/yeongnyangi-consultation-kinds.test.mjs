@@ -7,7 +7,7 @@ import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
 globalThis.__kindTest={rows:new Map(),calls:0};
 const replacements={
-  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:filter=>({lean:async()=>({updatedAt:null,birth:{year:filter.profileId==='partner'?1994:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
+  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:filter=>({lean:async()=>({updatedAt:null,birth:filter.profileId==='jong'?{year:1975,month:1,day:22,hour:14,minute:0,timeUnknown:false,calType:'solar'}:{year:filter.profileId==='partner'?1994:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveAskAnalysis=async()=>{throw new Error("unexpected analysis checkpoint")};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__kindTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{if(globalThis.__kindTest.readError)throw Object.assign(new Error('database unavailable'),{code:'RESULT_STORAGE_UNAVAILABLE'});const row=globalThis.__kindTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__kindTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
@@ -15,7 +15,7 @@ const replacements={
 };
 const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('spirit-service-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
-const {prepareFortune,presentFortune,generateNextChapter}=loaded.exports;
+const {prepareFortune,presentFortune,generateNextChapter,jongCheckFortune}=loaded.exports;
 
 const {consultationKinds,consultationDomain,consultationManifest,supportsKind,resolveConsultationKind,products,selectChapterFacts}=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
@@ -127,4 +127,21 @@ test('new paid compatibility and timing chapters satisfy existing v5 quality and
   for(const chapter of row.snapshot.manifest){const input={chapter,analysis:row.snapshot.analysis,previous};const result=await new loaded.exports.MockChapterProvider().generateChapter(input);loaded.exports.validateChapter(result,input);previous.push(result);}
   assert.equal(previous.length,row.snapshot.manifest.length);
  }
+});
+test('종격 answers change only premium saju requests; no answer keeps the legacy request id',async()=>{
+ const jong={...body,profileId:'jong',consultationKind:'personal'};
+ assert.deepEqual(await jongCheckFortune(env,'owner',{...jong,productId:'saju_mackerel'}),{check:null});
+ const {check}=await jongCheckFortune(env,'owner',{...jong,productId:'saju_tuna'});
+ assert.ok(check.best.length>=2&&check.worst.length>=2);
+ const answer=reply=>({best:reply,worst:reply,bestYears:check.best.map(y=>y.year),worstYears:check.worst.map(y=>y.year)});
+ const lower=await prepareFortune(env,'owner',{...jong});
+ assert.equal((await prepareFortune(env,'owner',{...jong,jongCheck:answer('no')}))._id,lower._id,'lower tiers drop the answer');
+ assert.equal((await prepareFortune(env,'owner',{...jong,jongCheck:'malformed'}))._id,lower._id);
+ const tuna={...jong,productId:'saju_tuna'};
+ const plain=await prepareFortune(env,'owner',tuna);
+ const rejected=await prepareFortune(env,'owner',{...tuna,jongCheck:answer('no')});
+ assert.notEqual(rejected._id,plain._id);
+ assert.ok(JSON.stringify(rejected.snapshot.analysis).includes('rejectedByUser')&&!JSON.stringify(plain.snapshot.analysis).includes('rejectedByUser'));
+ assert.equal((await prepareFortune(env,'owner',{...tuna,jongCheck:answer('unsure')}))._id!==plain._id,true,'every answer is its own request');
+ await assert.rejects(prepareFortune(env,'owner',{...tuna,jongCheck:{best:'no'}}),{code:'INVALID_JONG_CHECK'});
 });

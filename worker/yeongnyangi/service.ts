@@ -23,6 +23,9 @@ import { analyzeAsk, parseAskAnalysis, escapeAskData } from './fortune/ask/analy
 import type { AskAnalysis } from './fortune/ask/analysis';
 import type { EvidencePacket } from './fortune/ask/contracts';
 import { consultationClock, createConsultation } from './fortune/consultation';
+import { calculateScreenSaju } from './fortune/saju/runtime';
+import { parseJongAnswer } from './fortune/saju/jong-check';
+import { jongCheckApplies } from './fortune/saju/jong-check-policy';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
@@ -67,6 +70,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
+  // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
+  const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
   if(!askEvidenceEnabled && !['ko','en','ja'].includes(locale))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
@@ -99,7 +104,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{})});
+  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
   const id=await digest({userId,fingerprint,...attempt});
   if(askEvidenceEnabled) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -114,7 +119,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const crossDaily=(!kind||kind.question)&&!spiritInput?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
     askEvidenceEnabled&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single'}));
+      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
@@ -150,6 +155,18 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
     snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
+}
+
+/** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
+export async function jongCheckFortune(env: Record<string, unknown>, userId: string, body: any) {
+  const product=getProduct(body.productId);
+  if(!jongCheckApplies(product))return {check:null};
+  if (typeof body.profileId !== 'string' || !body.profileId || body.profileId.length>80) throw new FortuneError('PROFILE_REQUIRED');
+  await connectDb(env);
+  const profile=await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.profileId}).lean());
+  if (!profile) throw new FortuneError('PROFILE_NOT_FOUND',404);
+  const input=domains.saju.validateInput({personA:birthFromProfile(profile,body.timeUnknown===true,body.birthDetails || {})});
+  return {check:calculateScreenSaju(input.personA!,new Date(consultationClock(body.timezone).asOf)).jongCheck};
 }
 
 async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:any){
