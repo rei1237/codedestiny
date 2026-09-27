@@ -53,6 +53,19 @@ test('unapproved relation API stays closed and makes no external request',async(
   const r=await handleKakaoCrmRoutes(request('refresh',{}),{});
   expect(r.status).toBe(503);expect(fetchSpy).not.toHaveBeenCalled();fetchSpy.mockRestore();
 });
+test('approved relation lookup follows the official admin-key request contract',async()=>{
+  const fetchSpy=jest.spyOn(global,'fetch').mockResolvedValue(new Response(JSON.stringify({channels:[]})));
+  try {
+    const r=await handleKakaoCrmRoutes(request('refresh',{}),{KAKAO_CHANNEL_RELATION_ENABLED:'true',KAKAO_CHANNEL_ADMIN_KEY:'mock-key'});
+    expect(r.status).toBe(200);
+    const [url,options]=fetchSpy.mock.calls[0];
+    expect(url.origin+url.pathname).toBe('https://kapi.kakao.com/v2/api/talk/channels');
+    expect(url.searchParams.get('target_id')).toBe('123');
+    expect(url.searchParams.get('channel_ids')).toBe('_GgxaGX');
+    expect(options.headers['Content-Type']).toBe('application/x-www-form-urlencoded;charset=utf-8');
+    expect((await r.json()).relationship).toBe('unknown');
+  } finally { fetchSpy.mockRestore(); }
+});
 test('campaign review rejects paid campaigns without delivery proof',async()=>{
   CrmCampaign.findById.mockReturnValue({lean:async()=>({_id:'test-1',status:'draft',creativeId:'yeongnyangi-ask'})});
   const r=await handleAdminKakaoCrmRoutes('/review',request('unused',{id:'test-1',audienceChecked:true,previewChecked:true,walletChecked:true}),{},{});

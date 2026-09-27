@@ -48,7 +48,7 @@ export async function handleKakaoCrmRoutes(request, env) {
       if (!id) return json({ relationship: 'unknown', message: '카카오 계정이 연결되지 않아 친구 여부를 조회할 수 없어요.' });
       const url = new URL('https://kapi.kakao.com/v2/api/talk/channels');
       url.searchParams.set('target_id', String(id)); url.searchParams.set('target_id_type', 'user_id'); url.searchParams.set('channel_ids', KAKAO_CHANNEL.publicId);
-      const response = await fetch(url, { headers: { Authorization: `KakaoAK ${env.KAKAO_CHANNEL_ADMIN_KEY}` }, signal: AbortSignal.timeout(2500) });
+      const response = await fetch(url, { headers: { Authorization: `KakaoAK ${env.KAKAO_CHANNEL_ADMIN_KEY}`, 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' }, signal: AbortSignal.timeout(2500) });
       if (!response.ok) return json({ relationship: 'unknown', message: '친구 상태 조회에 동의하지 않았거나 조회할 수 없어요.' });
       const data = await response.json();
       const channel = data.channels?.find(c => c.channel_public_id === KAKAO_CHANNEL.publicId);
