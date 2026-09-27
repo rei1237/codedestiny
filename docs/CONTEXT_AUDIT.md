@@ -225,3 +225,26 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **근거**: 전환 커밋 `3a9a0378d`(2026-09-21, "make Yeongnyangi the home"). `scripts/promote-static-shell-to-root.mjs`는 `public/`을 `dist/`에 복사한 뒤 셸 경로 6개를 뺀 라우트 HTML(루트 포함)을 Next 산출물로 되돌리고, 옛 홈 딥링크는 `app/components/LegacyHomeEntry.tsx`가 `/ggulggul/`로 넘긴다. 운영 실측(2026-09-23T15:03Z): `/` title "사주보는 고양이 영냥이 …", `/ggulggul/` title "꿀꿀 운세 | 꽃돼지 연이와 …".
 - **해소**: `CLAUDE.md`가 정본. 위 문서들을 같은 서술로 고쳤다. 미러 규칙(`public/**/index.html`은 `sync:public` 생성물)은 그대로다.
 - **검색 범위**: `marketing/**`·`public/**`·`docs/handoff/**` 밖에서 `git grep` — `live home`·`home source`·`root shell`·`정적 홈`·`홈 셸`·`루트 셸`·`라이브 홈`·`승격본`·`홈 운영 화면`. 이 문구를 단언하는 테스트·검증기는 0건이고, 고친 문서를 파일 이름으로 읽는 검사는 `scripts/verify-doc-freshness.mjs`(경로·날짜)뿐이다. "홈 셸"·"정적 홈"이 정적 셸 자체를 가리키는 서술(테마·미러·결제 facade 등)은 틀리지 않아 두었다. 남은 낡은 언급(보고만, 고치지 않음): 코드·스크립트 주석 `app/layout.js:97`·`app/components/GlobalHeader.tsx:222`·`app/components/SiteFooterHub.jsx:182`·`scripts/seo-audit.mjs:546`·`scripts/apply-staging-noindex.mjs:5`, 테스트 주석 `__tests__/ui/seo-landing-entry-handoff.static.test.js:2`, 과거 인수인계 문서.
+
+## 2026-09-28 영냥이 티어별 챕터 브리프 ↔ 저장소 규칙 충돌 해소
+
+- **출처**: 사용자 브리프 "영냥이 사주·운세 — 가격 티어별 챕터 확장 & 반복 제거 프롬프트". 진단·결정·측정은 [`docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md`](handoff/2026-09-28-yeongnyangi-tier-chapters.md)에 있다.
+- **원칙**: 브리프의 목표는 그대로 받는다(티어별 고유 장, 반복의 구조적 차단, 고등어 불변 스냅샷). 작업 방식이 저장소 규칙과 부딪히는 곳은 저장소 규칙을 따른다(코딩 원칙 14).
+
+| 브리프 | 저장소 정본 | 해소 |
+|---|---|---|
+| 브랜치에서 작업 | 절대 규칙 3, 2026-09-12 전달 흐름(main 직접, 브랜치·PR 없음) | main 직접 + 작은 커밋. 쓰는 세션이 둘 이상이면 `scripts/create-safe-worktree.ps1` 워크트리 → main 직접 머지 |
+| Phase 0 반복 측정·Phase 4 골든 실생성 | 절대 규칙 1(과금 LLM 검증 금지, 실호출은 정확한 1회 승인) | Phase 0 은 운영 완료본을 읽기 전용으로 측정했다(₩0, 지표만). 골든 실생성은 호출 수·상한 금액을 적어 1회 승인받는다 |
+| Phase 5 스테이징 결제 흐름 | 절대 규칙 2(실결제 금지) | mock 픽스처(`scripts/verify-yeongnyangi-mongo-staging.mjs --staging-fixtures` 패턴) |
+| 카탈로그 이름 "v2" | `destiny-book-v2` 는 레거시 `BOOK_VERSION` 으로 이미 쓰인다(`worker/yeongnyangi/fortune/book-contracts.ts:2`) | 새 매니페스트 `destiny-book-v7`, 프롬프트 `chapter-v7` |
+| Phase 3 "2회 실패 → 문장 삭제 후 통과" | 코딩 원칙 17(결과가 안 나오는 것이 최악, 거부보다 결정적 교정) | 일치한다. v7 은 반복을 거부하지 않고 결정적으로 제거하며, 분량을 단독 실패 사유로 두지 않는다 |
+| Wave 2 병렬 생성 | 큐는 메시지당 1장 순차, 리스·`chapters:{$size}` 불변식(`worker/yeongnyangi/repository.js`) | 1차 Wave 는 목차 순서로만 구현한다. 병렬은 측정 뒤 별도 RED 로 다룬다 |
+| 장 제목 i18n 키 | v6 제목은 한국어 리터럴이고, 비한국어 제목은 모델이 쓴다. 영냥이 UI 사전은 ko·ja + 영어 폴백 | v7 매니페스트에 `titleKey` 를 둔다. 목차와 아직 저장되지 않은 장의 제목은 사전으로 그리고, 본문 제목은 모델이 구매 언어로 쓴다 |
+| `sajuAdapter.ts`·`normalizeSaju.ts`·KASI prefetch 불변 | 세 곳 모두 영냥이 경로가 아니다 | 건드리지 않는다. 영냥이가 실제로 쓰는 엔진은 읽기 전용으로 두고, 파생 데이터는 새 래퍼 모듈에서만 만든다 |
+| 기능 플래그로 즉시 롤백 | 운영 워커 텍스트 바인딩 128개 한도(`scripts/verify-worker-config-parity.mjs:90-95`) | 코드 상수 플래그(기본 OFF). 롤백은 활성화 커밋 revert + 승격이다. 즉시 롤백용 바인딩 자리가 필요하면 별도 RED 로 결정한다(선례 02560ce64) |
+| 데스크톱 960px 레이아웃 유지 | 영냥이 리더에는 960px 규칙이 없다(`.reader` 1160px, `app/yeongnyangi/yeongnyangi.module.css:292`) | "현재 데스크톱 레이아웃 불변"으로 해석한다. 레이아웃 CSS 는 바꾸지 않는다 |
+
+- **검색 범위(2026-09-28, `git grep`)**
+  - `960`: `app/yeongnyangi` 에서는 이미지 크기와 폰트 unicode-range 만 나온다. 레이아웃 규칙은 0건이다.
+  - `sajuAdapter|normalizeSaju|kasi`(대소문자 무시): `worker/yeongnyangi` 에서 import 는 0건이다. 이름은 `fortune/saju-runtime.mjs:51` 의 야자시 규칙 주석 한 곳에만 나온다.
+  - `destiny-book-v7|chapter-v7`: 0건이라 새 이름이 충돌하지 않는다.
