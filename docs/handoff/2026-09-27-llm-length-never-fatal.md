@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P3 여섯 번째 묶음 마스터 연애 코덱스 개인·궁합의 전달 SHA와 main CI 확인 후 초융합 그룹·복구 경로 진행. 총합 20,000자 및 초융합 기존 30,000자 기준 유지."
+next: "P3 일곱 번째 묶음 초융합 그룹·복구 구현. 전달 SHA와 main CI는 세션 최종 보고 참조. 다음 P3 잔여 범위 확인 후 P4 형식 교정. 본문 20,000자 및 초융합 기존 가시 텍스트 30,000자 기준 유지."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -132,6 +132,17 @@ next: "P3 여섯 번째 묶음 마스터 연애 코덱스 개인·궁합의 전�
 - 검증: 핵심 Jest 3 suites / 140 tests, 공통 partial Node 5개, 코덱스 flow·batch-budget·efficiency, 변경 파일 ESLint(오류 0), handoff 199문서 통과. `check:fast -- --plan`은 critical. 첫 `check:fast`는 결제 가드 87/88 통과 후 npm test의 1,756개 중 코덱스 VM 테스트 2개가 새 helper 미주입으로 실패했다. 실제 helper를 주입하고 초안 보존 예약과 원고 저장 장애를 구분하도록 fixture를 수정한 뒤 해당 Node 5개를 재실행해 통과했다. 로컬 전체 통과로 보고하지 않으며 main CI 최종 결과는 이 전달 세션의 최종 보고를 참조한다. mock 통과는 실출력 품질·완료율의 측정이 아니다.
 - 수정 파일: `worker/lib/master-love-codex-quality.js`, `worker/routes/master-love-codex.js`, 관련 worker 회귀 테스트 2개, 공통 partial UI 테스트 1개, 이 문서.
 - 다음: 초융합 `validateFusionFortuneGroup`의 section/summary/action/closing/verdict depth와 구조·안전 검사를 분리하고, `generateFusionFortuneWithRealLLM`의 checkpoint·onAttempt·최종 조립 및 `fusion-fortune-recovery-task.js`의 그룹 소진 판정까지 연결한다. `resolveFusionFortuneDelivery`의 기존 30,000자 가시 텍스트와 공백 제외 본문 20,000자는 유지한다. P4 형식 교정·P5 관계 궁합은 미착수.
+
+## P3 일곱 번째 묶음 구현 (2026-09-27)
+
+- 시작 main `c64482769fd667e6db50c1a076c0b51323408c59`, `git pull --ff-only` Already up to date. 전달 SHA의 main CI 성공 확인. 기존 마케팅·타입·미추적 변경을 보존하고 이번 파일만 전달한다.
+- 초융합 그룹의 section/summary/action/closing/verdict 분량을 구조·안전 검사와 분리했다. 빈/제목뿐인/잘못된 타입의 본문, 반복, 개인정보, 잘못된 타로, 전문가 계산 근거 및 제공자 잘림 검사는 유지한다. 짧은 유효 초안을 먼저 체크포인트에 저장하고 기존 예산 안에서 1회 보강한다.
+- 기존 Mixed `generationSnapshot.lengthRepairs`에 그룹별 보강 예약을 시도 증가와 원자적으로 저장하고 재조회한다. 응답 유실·재개에도 예약은 소모된다. 그룹당 총 3회 상한·요청 내 두 물결·토큰·시간 예산을 늘리지 않는다. 짧거나 무효인 보강본이 기존 긴 유효 초안을 덮지 않으며, 총합 복구 첫 실패 뒤 둘째 물결에도 같은 후보를 보존한다.
+- 최종 조립은 개별 깊이를 다시 거절하지 않는다. **본문 20,000자와 초융합 기존 가시 텍스트 30,000자(기존 로케일 배율 포함) 기준을 각각 유지**한다. 둘 중 하나가 부족하면 기존 stage 2 그룹의 남은 예산에서 보강하고, 소진되면 원고를 보존한 검토 상태로 둔다. 저장본만으로 완료 가능한 소진 체크포인트는 추가 호출 없이 복구할 수 있도록 차단하지 않는다.
+- 유지: 이용권/월정석/단건 결제 정책·가격, 소유권·결제 증빙·취소/환불 차단, lease, 저장 재조회 후 완료, DB 스키마, API 경로. 실 LLM·실결제·운영 DB·운영 승격 없음.
+- 검증: 최종 핵심 mock 3 suites / 135 tests 통과. `regression-scout` 및 `paid-gate-auditor` 읽기 전용 감사 지적을 반영했다. `check:fast -- --plan` critical, `check:fast` 및 최종 핵심 재검증 결과와 main CI는 전달 세션 최종 보고 참조. mock은 실출력 품질·완료율 측정이 아니다.
+- 수정 파일: `worker/lib/fusion-fortune.js`, `worker/lib/fusion-fortune-consultation.js`, `worker/lib/fusion-fortune-recovery-task.js`, `worker/routes/fusion-fortune.js`, worker 회귀 테스트 3개, 이 문서.
+- 다음: P3 잔여 범위를 확인하고 P4 형식 교정으로 진행. P5 관계 궁합은 미착수. 이번 작업은 초융합 범위에 한정한다.
 
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 

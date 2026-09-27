@@ -189,7 +189,7 @@ export async function runFusionFortuneDeliveryStage(env, { userId, requestId, bo
     onSnapshot: snapshot => withMongoRetry(env, () => saveFusionGenerationSnapshot({ ...snapshot, userId }), { retries: 0 }),
     onReserved: () => withMongoRetry(env, () => claimFusionDeliveryLease({ userId, requestId }), { retries: 0 }),
     onReleased: lease => withMongoRetry(env, () => releaseFusionDeliveryLease({ userId, requestId, lease }), { retries: 0 }),
-    onAttempt: (groupId, lease) => withMongoRetry(env, () => reserveFusionGroupAttempt({ userId, requestId, groupId, lease }), { retries: 0 }),
+    onAttempt: (groupId, lease, attemptOptions) => withMongoRetry(env, () => reserveFusionGroupAttempt({ userId, requestId, groupId, lease, ...attemptOptions }), { retries: 0 }),
     onCheckpoint: delivery => withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 }),
     onDelivery: async delivery => {
       consultationId = await withMongoRetry(env, () => persistFusionDelivery({ userId, input: prior?.generationSnapshot?.input || body, delivery }), { retries: 0 });
@@ -369,7 +369,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         onSnapshot: snapshot => saveFusionGenerationSnapshot({ ...snapshot, userId: String(auth.userId) }),
         onReserved: () => claimFusionDeliveryLease({ userId: String(auth.userId), requestId: streamRequestId }),
         onReleased: lease => releaseFusionDeliveryLease({ userId: String(auth.userId), requestId: streamRequestId, lease }),
-        onAttempt: (groupId, lease) => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId: streamRequestId, groupId, lease }),
+        onAttempt: (groupId, lease, attemptOptions) => reserveFusionGroupAttempt({ userId: String(auth.userId), requestId: streamRequestId, groupId, lease, ...attemptOptions }),
         onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
 
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아

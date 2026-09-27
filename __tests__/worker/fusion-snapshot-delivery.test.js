@@ -77,3 +77,15 @@ it('an expired request cannot reserve, save, or release its replacement lease',a
  expect(docs[0].generationLease.token).toBe(current.token);
  expect(await reserve({...args,groupId:'saju',lease:current})).toBe(1);
 });
+
+it('reserves length repair atomically and keeps it after lost confirmation', async () => {
+ await snapshot();
+ const args={userId:uid,requestId:'original-request',groupId:'saju',lengthRepair:true};
+ fault='confirm';
+ await expect(reserve(args)).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
+ expect(docs[0].generationSnapshot.lengthRepairs.saju).toBe(true);
+ expect(docs[0].generationSnapshot.attempts.saju).toBe(1);
+ await expect(reserve(args)).rejects.toMatchObject({code:'RESULT_STORAGE_UNAVAILABLE'});
+ expect(docs[0].generationSnapshot.attempts.saju).toBe(1);
+ expect(await reserve({...args,lengthRepair:false})).toBe(2);
+});

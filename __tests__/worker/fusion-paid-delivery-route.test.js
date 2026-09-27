@@ -252,3 +252,26 @@ it('recovers encrypted PG approval before the first generation request, with no 
  expect(docs[0].status).toBe('completed');
  expect(paymentChecks.map(proof=>proof.requestId)).toEqual([requestId,requestId]);
 });
+
+
+it.each(["short-total", "complete-checkpoint"])("recovery handles exhausted %s without an extra provider reservation", async kind => {
+ const fusion=await import('../../worker/lib/fusion-fortune.js');
+ const full=await fusion.generateFusionFortuneWithMockLLM({context:{birthTimeKnown:true,birthPlaceKnown:true}});
+ generator=async()=>({result:full,deliverable:true,qualityTier:'partial'});
+ await route(request(),ENV);
+ docs[0].updatedAt=new Date(Date.now()-600000);
+ docs[0].generationSnapshot.context={birthTimeKnown:true,birthPlaceKnown:true};
+ docs[0].generationSnapshot.attempts={integration:3,action:3,verdict:3};
+ if(kind==='short-total')for(const key of ['sajuSection','ziweiSection','vedicSection','sukuyoSection','astrologySection','tarotSection'])docs[0].result[key].content='짧지만 구조를 갖춘 해석입니다.';
+ const runStage=jest.fn(async()=>({ok:true,stageStatus:'completed'}));
+ const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+ const result=await runFusionFortuneRecovery(ENV,{runStage});
+ if(kind==='short-total'){
+  expect(runStage).not.toHaveBeenCalled();
+  expect(result.outcomes[0].outcome).toBe('budget_exhausted');
+  expect(docs[0].generationSnapshot.recovery.reviewRequired).toBe(true);
+ }else{
+  expect(runStage).toHaveBeenCalledTimes(1);
+  expect(result.outcomes[0].completed).toBe(true);
+ }
+});
