@@ -647,6 +647,9 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 
 ## Phase 3b 완드 결과 (2026-09-28 · 14장 배치 승인 대기)
 
+- **전달 복구점**: 산출물 커밋 `b0e7a4500`(기존 main `5aa267a24` 위에 반영). contact/build-ledger 검사 PASS, 원장109줄/완드채택14, `npm run check:fast -- --plan` fast 및 `npm run check:fast` whitespace/doc-freshness PASS. 원격 push·CI 실결과는 최종 보고로 확인하며 이 문구 자체를 성공 증거로 해석하지 않는다.
+- **재개 문장**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `b0e7a4500` 포함 여부, `git log -1 --oneline -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md`의 문서 마지막 커밋을 확인한 뒤, `D:\Development\yeongnyangi-tarot-art\phase3b\contact\wands-contact.png`의 완드14장 배치 승인 검토부터 이어간다. 완드 승인 전 컵14를 시작하지 않는다.
+
 - **사용자 결정**: 메이저 22장 전체 승인 후 「추가로 더 만들것없이 마이너 카드들도 작성해」 요청. 승인 방식은 「원래대로 슈트별 14장 승인」으로 확정했다. 이번 범위는 완드 14장까지이며 컵·소드·펜타클은 승인 전 착수하지 않았다. Phase 4a 저장 위치는 미결정이다.
 - **격리**: 다른 세션의 미커밋 마케팅·환경·테스트 변경을 보존하고 관리 워크트리에서 문서만 수정했다. 시작 main/origin/main은 9db24d4fb였고, 동시 세션의 5aa267a24를 보존해 전달한다.
 - **콘셉트**: [minor-concepts.md](../design/yeongnyangi-tarot/minor-concepts.md). 생성 전에 완드14 콘셉트표를 제출했다. 숫자 카드의 낚싯대 개수, 에이스 앞발, 조연 코트 카드와 영냥이의 작은 카메오 규칙을 적용했다. 10번은 개수 식별을 위해 부담을 나르는 수레 장면으로 보완했다.
