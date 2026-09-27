@@ -166,7 +166,7 @@ function SectionHead({ id, title, label }) {
   );
 }
 
-export default function SeoLandingTemplate({ page }) {
+export default function SeoLandingTemplate({ page, hero = null }) {
   const copy = page?.templateCopy || SEO_LANDING_TEMPLATE_COPY.ko;
   const faqs = mergeFaqs(page?.faqs);
   const topicProfile = getSeoRouteProfile(page?.path);
@@ -196,7 +196,7 @@ export default function SeoLandingTemplate({ page }) {
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
     { name: copy.breadcrumbServices, path: "/guides" },
-    { name: page.h1, path: page.path },
+    { name: page.breadcrumbLabel || page.h1, path: page.path },
   ];
   /* 본문을 고친 날(page.dateModified, 선택 필드)은 화면의 검수 노트와 WebPage JSON-LD 에 같은 값으로
      싣는다. 넘기지 않은 랜딩의 출력은 그대로다. */
@@ -242,7 +242,7 @@ export default function SeoLandingTemplate({ page }) {
           ))}
         </nav>
 
-        <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[rgba(232,213,163,0.18)] pb-[clamp(2.5rem,6vw,4rem)]">
+        {hero || <header className="mt-[clamp(2.5rem,6vw,4rem)] border-b border-[rgba(232,213,163,0.18)] pb-[clamp(2.5rem,6vw,4rem)]">
           <p className="flex items-center gap-2.5 text-[0.85rem] font-semibold text-[#6f3fa6]">
             <MoonMark />
             <span className="font-[family-name:var(--font-serif)] tracking-[0.02em]">Code Destiny</span>
@@ -293,7 +293,12 @@ export default function SeoLandingTemplate({ page }) {
             </Link>
           </div>
           )}
-        </header>
+        </header>}
+
+        {hero && <section aria-labelledby="sajuIntroduction" className="mt-10 max-w-[68ch]">
+          <h2 id="sajuIntroduction" className="font-[family-name:var(--font-serif)] text-2xl font-bold">사주, 나를 이해하는 여덟 글자</h2>
+          <p className="mt-4 break-keep text-[0.98rem] leading-[1.9] text-[#51475c]">{page.intro || page.description}</p>
+        </section>}
 
         {/* 세 덩어리는 성격이 다르다 — 순서(사용 방법), 목록(제공 결과), 각주(면책).
             같은 크기 카드 세 장으로 찍어내면 형태가 내용을 배신한다. */}

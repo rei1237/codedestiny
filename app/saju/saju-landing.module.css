@@ -1,0 +1,18 @@
+.hero { --saju-ink: #292431; --saju-muted: #62556c; --saju-accent: #6f3fa6; display: grid; gap: 20px; margin-top: 20px; padding-bottom: 28px; border-bottom: 1px solid #d5c8df; color: var(--saju-ink); }
+.intro h1 { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; }
+.intro h1 span { display: block; margin-top: 10px; font-family: var(--font-serif); font-size: clamp(28px, 5vw, 46px); font-weight: 700; line-height: 1.3; letter-spacing: -.025em; word-break: keep-all; }
+.intro > p { margin-top: 14px; color: var(--saju-muted); font-size: 15px; line-height: 1.8; word-break: keep-all; }
+.scope { display: grid; gap: 6px; margin-top: 20px; font-size: 14px; line-height: 1.6; }
+.scope strong { color: var(--saju-accent); }
+.scope span { color: var(--saju-muted); }
+.jump { display: none; }
+.form { min-width: 0; scroll-margin-top: 24px; }
+.guide { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; color: var(--saju-accent); font-size: 14px; text-underline-offset: 4px; }
+.guide:hover { text-decoration: underline; }
+.hero :is(a, button, input, select):focus-visible { outline: 2px solid var(--saju-accent); outline-offset: 3px; }
+.hero ::selection { background: #e8ddf2; color: #292431; }
+@media (min-width: 768px) {
+  .hero { grid-template-columns: 1fr 1.1fr; gap: 28px 48px; margin-top: 40px; align-items: center; }
+  .guide { grid-column: 2; }
+  .jump { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 24px; color: var(--saju-accent); font-weight: 600; }
+}
