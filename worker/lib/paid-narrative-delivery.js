@@ -24,6 +24,8 @@ export const paidNarrativeExecutionKey = (userId, featureKey, requestId) => `pai
 export { cleanBody as cleanPaidNarrativeBody };
 // One insert shape for the route and for an intent the cron proved paid
 // (paid-narrative-intent.js), so both land in the same record under the unique key.
+// No updatedAt: schema timestamps add $set.updatedAt to every update, and MongoDB
+// rejects a path under both $set and $setOnInsert (code 40).
 export function paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale, lock, now, timeoutAt, metadata = {} }) {
   const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale, parts: {}, attempts: {} };
   return {
@@ -32,7 +34,7 @@ export function paidNarrativeInsert({ userId, executionKey, featureKey, reportTy
     sessionId: typeof original.sessionId === "string" ? original.sessionId : "",
     idempotencyKey: original.requestId,
     status: "pending", premiumStatus: "generating", metadata: { ...metadata, paidNarrative: state }, lock,
-    timeoutAt, createdAt: now, updatedAt: now,
+    timeoutAt, createdAt: now,
   };
 }
 // measure is an adapter's own body length for structured parts (a JSON string's

@@ -21,7 +21,7 @@ const model={find:filter=>{const rows=docs.filter(doc=>matches(doc,filter));let 
  findOne:filter=>query(docs.find(doc=>matches(doc,filter))||null),
  exists:async filter=>{if(fault==='exists')throw Error('storage');const doc=docs.find(doc=>matches(doc,filter));return doc?{_id:doc._id}:null;},
  countDocuments:async filter=>docs.filter(doc=>matches(doc,filter)).length,
- findOneAndUpdate:(filter,update,options={})=>{let doc=docs.find(doc=>matches(doc,filter));if(doc)patch(doc,update.$set||{});else if(options.upsert)doc=insert(filter,update);return query(doc||null);},
+ findOneAndUpdate:(filter,update,options={})=>{writes.push(clone(update));let doc=docs.find(doc=>matches(doc,filter));if(doc)patch(doc,update.$set||{});else if(options.upsert)doc=insert(filter,update);return query(doc||null);},
  updateOne:async(filter,update,options={})=>{writes.push(clone(update));const doc=docs.find(doc=>matches(doc,filter));
   if(doc){patch(doc,update.$set||{});return {matchedCount:1};}if(!options.upsert)return {matchedCount:0};insert(filter,update);
   // The write lands and only its reply fails: a duplicate-key race or a lost connection.

@@ -169,10 +169,9 @@ async function promoteOne(env, intent) {
     const locale = state.locale || "ko";
     const seeded = await runWithAiLocale(locale, () => seedIntent(env, featureKey, body));
     // The record starts like one the route inserts (ten-minute deadline), so the
-    // recovery task resumes it once idle. updatedAt stays out of the insert-only
-    // fields for the same code-40 reason as above.
+    // recovery task resumes it once idle.
     const promotedAt = new Date();
-    const { updatedAt: _updatedAt, ...insert } = paidNarrativeInsert({ userId, executionKey, featureKey, reportType: INTENT_PRODUCTS[featureKey],
+    const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType: INTENT_PRODUCTS[featureKey],
       original: body, seeded, locale, lock: { token: "", until: null }, now: promotedAt, timeoutAt: new Date(promotedAt.getTime() + 600000),
       metadata: { paidNarrativeProof: { source: proof.source, transactionId: proof.transactionId || "", requestId: state.requestId, provenAt: promotedAt } } });
     try {
