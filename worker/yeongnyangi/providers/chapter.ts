@@ -84,7 +84,7 @@ export function validateChapter(
   const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale);
   if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
-  if(isStructuredReading(input.chapter.version))v=normalizeSectionParagraphs(v,hasReadingSections(input.chapter.version)?500:5000);
+  if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
   const allowed = new Set(
     Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap((c) =>
       selectChapterFacts(c,input.chapter,input.analysis.topicId).map((f) => f.id),

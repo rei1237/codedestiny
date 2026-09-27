@@ -57,10 +57,10 @@ export function splitSectionParagraph(paragraph:string,limit=SECTION_PARAGRAPH_L
  return out.map(c=>c.trim()).filter(Boolean);
 }
 // Paragraph text is kept verbatim apart from trimming; blank paragraphs are dropped. Shape errors are left to validateReadingQuality.
-export function normalizeSectionParagraphs(body:ChapterBody,limit=SECTION_PARAGRAPH_LIMIT):ChapterBody{
+export function normalizeSectionParagraphs(body:ChapterBody):ChapterBody{
  if(!body||!Array.isArray(body.blocks))return body;
  return {...body,blocks:body.blocks.map(b=>!b||!Array.isArray(b.paragraphs)?b:
-  {...b,paragraphs:b.paragraphs.flatMap(p=>typeof p!=='string'?[p]:!p.trim()?[]:splitSectionParagraph(p.trim(),limit))})};
+  {...b,paragraphs:b.paragraphs.flatMap(p=>typeof p!=='string'?[p]:!p.trim()?[]:splitSectionParagraph(p.trim()))})};
 }
 function nearDuplicate(a:string,b:string,cache:Map<string,Set<string>>){
  if(a.length<120||b.length<120)return false;

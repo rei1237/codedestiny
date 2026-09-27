@@ -27,7 +27,7 @@ test('long scalar fields are split in place without losing text or bypassing HTM
  assert.throws(()=>m.validateChapter(value,{...input,previous:[{summary:long,example:'',topics:[]}]}),{code:'DUPLICATE_CHAPTER'});
 });
 
-test('legacy fields and v4 blocks split at 5000 without changing their schema or body total',async()=>{
+test('legacy string fields split at 5000 without changing their schema; v4 blocks retain their contract',async()=>{
  const long=Array.from({length:5101},(_,i)=>String.fromCodePoint(0xac00+i)).join('');
  const legacyInput={...input,chapter:{...input.chapter,version:'chapter-v2'}};
  const legacy={...structuredClone(good),analysis:[long],example:long+' 사례',advice:long+' 조언'};
@@ -39,11 +39,7 @@ test('legacy fields and v4 blocks split at 5000 without changing their schema or
  const c=m.readingManifest(product,'general','personal',m.READING_VERSION)[0],v4Input={...input,chapter:c};
  const v4=await new m.MockChapterProvider().generateChapter(v4Input);
  v4.blocks[0].paragraphs=[long];
- const normalized=m.validateChapter(v4,v4Input);
- assert.deepEqual(normalized.blocks.map(b=>b.title),v4.blocks.map(b=>b.title));
- assert.equal(normalized.blocks[0].paragraphs.join(''),long);
- assert.ok(normalized.blocks[0].paragraphs.every(p=>Array.from(p).length<=5000));
- assert.equal(m.bodyCharacterCount(normalized),m.bodyCharacterCount(v4));
+ assert.throws(()=>m.validateChapter(v4,v4Input),{code:'INVALID_CHAPTER_BLOCKS'});
 });
 
 test('24 single products and every offered consultation have complete tier-specific v6 contracts',()=>{
