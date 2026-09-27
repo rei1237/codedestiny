@@ -102,3 +102,32 @@ it('19999/20000 body boundary requires all eight named chapters',async()=>{
  expect(namingReportComplete({chapters})).toBe(false);chapters[1].body+='나';expect(namingReportComplete({chapters})).toBe(true);
  delete chapters[5];expect(namingReportComplete({chapters})).toBe(false);
 });
+const chapterReply=(prompt,id,count,tag='')=>({ok:true,provider:'gemini',text:JSON.stringify({title:`검증 ${id}장`,body:Array.from({length:count},(_,i)=>`${id}장 ${tag}${i}번째 이름의 의미와 소리 흐름은 계산된 근거와 일상에서의 사용 조건을 함께 살펴보고 판단합니다. `).join(''),evidenceHash:prompt.match(/"evidenceHash":"([a-f0-9]+)"/)[1]})});
+it('a short but valid chapter is kept as a draft and repaired once with that draft',async()=>{
+ const base=provider.getMockImplementation();let repairPrompt='';
+ provider.mockImplementation(async(env,prompt,options)=>{
+  if(options.logContext.sectionGroup!=='1')return base(env,prompt,options);
+  if(prompt.includes('[저장된 초안 보완]')){repairPrompt=prompt;return chapterReply(prompt,1,65,'보강');}
+  return chapterReply(prompt,1,20,'초안');
+ });
+ await start();await start();
+ expect(docs[0].result.namingPrompt.delivery.chapters[1].body).toContain('초안');expect(docs[0].status).not.toBe('completed');
+ await start();expect((await start()).status).toBe(201);
+ expect(repairPrompt).toContain('1장 초안0번째');expect(docs[0].result.namingPrompt.delivery.chapters[1].body).toContain('보강');
+ expect(docs[0].result.namingPrompt.delivery.attempts['1:lengthRepair']).toBe(1);expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
+});
+it('a still-short repair is accepted without a third call when the 20,000 total holds',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(env,prompt,options)=>options.logContext.sectionGroup==='1'?chapterReply(prompt,1,prompt.includes('[저장된 초안 보완]')?25:20,prompt.includes('[저장된 초안 보완]')?'보강':'초안'):base(env,prompt,options));
+ await start();await start();await start();expect((await start()).status).toBe(201);
+ expect(docs[0].status).toBe('completed');expect(docs[0].result.namingPrompt.delivery.chapters[1].body).toContain('보강');
+ expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
+});
+it('a total under 20,000 spends remaining attempts, then stays partial for review without refund',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(env,prompt,options)=>options.logContext.sectionGroup==='candidates'?base(env,prompt,options):chapterReply(prompt,options.logContext.sectionGroup,30,`a${provider.mock.calls.length}-`));
+ let last;for(let n=0;n<9;n++)last=await start();
+ expect(last.status).toBe(202);expect(await last.json()).toMatchObject({retryable:false});
+ expect(['completed','generation_failed']).not.toContain(docs[0].status);expect(docs[0].result.namingPrompt.generatedResult).toContain('8장');expect(provider).toHaveBeenCalledTimes(25);expect(refund).not.toHaveBeenCalled();
+ await start();expect(provider).toHaveBeenCalledTimes(25);
+});
