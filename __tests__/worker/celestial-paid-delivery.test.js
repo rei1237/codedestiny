@@ -101,11 +101,10 @@ test('original locale survives a differently localized resume request',async()=>
  await runWithAiLocale('en',()=>start());await runWithAiLocale('ko',()=>resume());await runWithAiLocale('ja',()=>resume());
  expect(docs[0].premiumStatus).toBe('completed');expect(locales).toEqual(Array(12).fill('en'));
 });
-test.each(['fact','short','repeat'])('%s failure preserves the other cards and repairs only the invalid card',async kind=>{
+test.each(['fact','repeat'])('%s failure preserves the other cards and repairs only the invalid card',async kind=>{
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{
   const ai=await base(...args),value=JSON.parse(ai.text);
   if(kind==='fact')value.evidence.planetId='invented';
-  if(kind==='short')value.archetypeReading='짧은 결과';
   if(kind==='repeat')value.archetypeReading=prose('same','same',1).repeat(15);
   return {...ai,text:JSON.stringify(value)};
  });
@@ -121,4 +120,40 @@ test('provider overrides retain the short-call token and time ceiling',async()=>
  const snapshot=docs[0].metadata.celestialDelivery;
  await generateCelestialWave({CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS:'90000',CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS:'24000',CELESTIAL_HARMONY_TEMPERATURE:'0.4'},snapshot,async()=>{});
  expect(provider.mock.calls.at(-1)[2]).toMatchObject({timeoutMs:45000,maxOutputTokens:11000,temperature:0.4});
+});
+// A card whose six long fields are present but under 500 characters is a draft, not a failure.
+const shorten=async(base,args,tag)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.archetypeReading=drawn(args[1],args[2].logContext.sectionGroup)+prose(tag,'archetype',1);return {...ai,text:JSON.stringify(value)};};
+test('a short but valid card is kept as a draft and its one repair receives it',async()=>{
+ const base=provider.getMockImplementation();let repairPrompt='';
+ provider.mockImplementation(async(...args)=>{
+  if(args[2].logContext.sectionGroup!=='0')return base(...args);
+  if(args[1].includes('[저장된 초안 보완]')){repairPrompt=args[1];return base(...args);}
+  return shorten(base,args,'draft');
+ });
+ await start();const state=docs[0].metadata.celestialDelivery.delivery;
+ expect(Object.keys(state.parts)).toEqual(['0','1','2','3']);expect(state.short['0']).toBe(true);
+ await resume();await resume();expect((await resume()).status).toBe(200);
+ expect(repairPrompt).toContain('draft archetype 0번째');expect(docs[0].metadata.celestialDelivery.delivery.short['0']).toBe(false);
+ expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(13);
+});
+test('a still-short repair is accepted without a third call when the 20,000 total holds',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>args[2].logContext.sectionGroup==='0'?shorten(base,args,args[1].includes('[저장된 초안 보완]')?'repair longer text':'draft'):base(...args));
+ await start();await resume();await resume();expect((await resume()).status).toBe(200);
+ const state=docs[0].metadata.celestialDelivery.delivery;
+ expect(state.attempts['0']).toBe(2);expect(state.attempts['0:lengthRepair']).toBe(1);expect(state.parts['0'].archetypeReading).toContain('repair longer text');
+ expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(13);
+});
+test('a total under 20,000 spends remaining attempts, then stays partial for review',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{
+  const ai=await base(...args),value=JSON.parse(ai.text),id=args[2].logContext.sectionGroup,tag='t'+provider.mock.calls.length;
+  if(id==='summary'){for(const field of ['overallTheme','strongestPlanetSignal','deepestShadow','soulLesson','integrationPath','finalOracle'])value[field]=prose(tag,field,1);}
+  else for(const field of ['archetypeReading','consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'])value[field]=drawn(args[1],id)+prose(tag,field,1);
+  return {...ai,text:JSON.stringify(value)};
+ });
+ let last=await start();for(let n=0;n<10;n++)last=await resume();
+ expect(last.status).toBe(202);expect(await last.json()).toMatchObject({retryable:false,status:'partial'});
+ expect(provider).toHaveBeenCalledTimes(36);expect(docs[0].premiumStatus).not.toBe('completed');
+ await resume();expect(provider).toHaveBeenCalledTimes(36);
 });
