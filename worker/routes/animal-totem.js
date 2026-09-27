@@ -481,7 +481,8 @@ function makeFieldGuard(drawnNames) {
   };
 }
 
-function mergeNarrative(template, parsed, input) {
+// shortBody keeps an answer under its floor as a length draft; the other guards still apply.
+function mergeNarrative(template, parsed, input, { shortBody = false } = {}) {
   if (!parsed) return { narrative: template, adopted: 0 };
 
   const drawnNames = new Set(input.cards.map((c) => c.animalName));
@@ -492,7 +493,7 @@ function mergeNarrative(template, parsed, input) {
   const opening = accept(parsed.opening, 40);
   if (opening) { narrative.opening = opening; adopted += 1; }
 
-  const body = accept(parsed.question_answer, input.spec.minBodyChars);
+  const body = accept(parsed.question_answer, shortBody ? 1 : input.spec.minBodyChars);
   if (body) { narrative.question_answer = body; adopted += 1; }
 
   const closing = accept(parsed.closing, 40);
@@ -598,8 +599,14 @@ async function verifyAnimalTotemAccess(request, env, input, knownAuth) {
 export function animalTotemNarrativeAdapter(env) {
   return {
     reportType: "animal-totem",
-    produce: async (_task, state) => {
-      const ai = await callGeminiJsonWithRetry(env, state.prompt, {
+    // Parts are JSON strings. Length is the answer the floor always meant, so a
+    // short answer is a draft that gets one repair instead of an empty result.
+    measureBody: body => denseLength(safeParse(body)?.question_answer || ""),
+    completeBody: body => Boolean(String(safeParse(body)?.question_answer || "").trim()),
+    produce: async (task, state) => {
+      const draft = safeParse(state.drafts?.[task.id] || "")?.question_answer;
+      const prompt = draft ? `${state.prompt}\n\n[저장된 초안 보완]\n${draft}\n위 question_answer 초안의 해석 방향을 보존하고 부족한 설명·반대 조건·행동 조언만 보완한 전체 JSON을 다시 반환하세요. 같은 문장 반복으로 분량을 채우지 마세요.` : state.prompt;
+      const ai = await callGeminiJsonWithRetry(env, prompt, {
         systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.72,
         timeoutMs: Math.min(45000, clampSyncLlmTimeoutMs(Number(env?.ANIMAL_TOTEM_LLM_TIMEOUT_MS) || 45000)),
         attempts: 1, baseTokens: state.input.spec.baseTokens, capTokens: Math.round(state.input.spec.baseTokens * 1.3),
@@ -613,7 +620,7 @@ export function animalTotemNarrativeAdapter(env) {
         || !Array.isArray(parsed.action_plan) || parsed.action_plan.length !== 3 || parsed.action_plan.some(item => typeof item !== "string")
         || !Array.isArray(parsed.card_bridges) || parsed.card_bridges.some((bridge, i) =>
           typeof bridge?.line !== "string" || bridge?.slot !== state.input.cards[i]?.slot || (bridge.animalId && bridge.animalId !== state.input.cards[i]?.animalId))) return null;
-      const { narrative, adopted } = mergeNarrative({}, parsed, state.input);
+      const { narrative, adopted } = mergeNarrative({}, parsed, state.input, { shortBody: true });
       if (adopted !== (state.input.mode === "five" ? 6 : 5)) return null;
       return { evidenceHash: state.evidenceHash, body: JSON.stringify(narrative) };
     },
