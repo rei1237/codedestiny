@@ -26,6 +26,23 @@ beforeAll(async()=>{
  ({handleTarotRoutes:route}=await import('../../worker/routes/tarot.js'));
 });
 let proofs=[];
+test.each(['single', 'excess'])('summary %s paragraphs are saved and reopened without an extra call',async format=>{
+ const base=provider.getMockImplementation();let originalSummary;
+ provider.mockImplementation(async(...args)=>{
+  const ai=await base(...args),value=JSON.parse(ai.text),id=args[1].match(/\[이번 부분 ([^\]]+)\]/)[1];
+  if(id==='summary'){
+   value.body=format==='single'?value.body.replace(/\n\s*\n/g,' '):value.body.replace(/\. /g,'.\n\n');
+   originalSummary=value.body;
+  }
+  return {...ai,text:JSON.stringify(value)};
+ });
+ await start();const response=await finish();expect(response.status).toBe(200);
+ const data=await response.json(),state=docs[0].metadata.paidNarrative;
+ expect(state.parts.summary.split('\n\n')).toHaveLength(10);
+ expect(state.parts.summary.replace(/\s/g,'')).toBe(originalSummary.replace(/\s/g,''));
+ expect((await (await resume()).json()).reading).toEqual(data.reading);
+ expect(provider).toHaveBeenCalledTimes(25);
+});
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='pass';proofs=[];authError=null;
  provider=jest.fn(async(_env,prompt,options)=>{expect(options.timeoutMs).toBeLessThanOrEqual(45000);expect(options.fallbackToWorkersAI).toBe(false);
  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1],label=prompt.match(/\[이번 부분 ([^\]]+)\]/)[1].replaceAll('.', '-');

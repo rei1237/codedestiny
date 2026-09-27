@@ -5,7 +5,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-repor
 export function completeNarrativeBody(body) {
   if (typeof body !== 'string' || !body.trim() || hasRepeatedReportPassage(body)) return false;
   const paragraphs = body.trim().split(/\n\s*\n/u).filter(Boolean);
-  return paragraphs.length > 1 && paragraphs.every(text => /[.!?。？！]["'”’)]?\s*$/u.test(text));
+  return paragraphs.length > 1 && paragraphs.every(text => /[.!?。？！]["'”’)\]」』]*\s*$/u.test(text));
 }
 
 export function selectNarrativeCandidate(previous, body) {

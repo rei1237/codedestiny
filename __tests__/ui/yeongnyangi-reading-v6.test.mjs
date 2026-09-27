@@ -13,6 +13,39 @@ const chapter=m.readingManifest(product)[0];
 const input={chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous:[]};
 const good=await new m.MockChapterProvider().generateChapter(input);
 
+test('long scalar fields are split in place without losing text or bypassing HTML/evidence checks',()=>{
+ const long=Array.from({length:5101},(_,i)=>String.fromCodePoint(0xac00+i)).join('');
+ const value={...structuredClone(good),summary:long,persona:long,highlights:[long],topics:[long]};
+ const result=m.validateChapter(value,input);
+ for(const text of [result.summary,result.persona,...result.highlights,...result.topics]){
+  assert.equal(text.replace(/\s/gu,''),long);
+  assert.ok(text.split('\n\n').every(p=>Array.from(p).length<=5000));
+ }
+ assert.equal(value.summary,long,'provider object is not mutated');
+ assert.throws(()=>m.validateChapter({...value,summary:long+'<script>x</script>'},input),{code:'INVALID_CHAPTER'});
+ assert.throws(()=>m.validateChapter({...value,sources:['saju.fake']},input),{code:'INVALID_EVIDENCE'});
+ assert.throws(()=>m.validateChapter(value,{...input,previous:[{summary:long,example:'',topics:[]}]}),{code:'DUPLICATE_CHAPTER'});
+});
+
+test('legacy fields and v4 blocks split at 5000 without changing their schema or body total',async()=>{
+ const long=Array.from({length:5101},(_,i)=>String.fromCodePoint(0xac00+i)).join('');
+ const legacyInput={...input,chapter:{...input.chapter,version:'chapter-v2'}};
+ const legacy={...structuredClone(good),analysis:[long],example:long+' 사례',advice:long+' 조언'};
+ delete legacy.blocks;
+ const result=m.validateChapter(legacy,legacyInput);
+ assert.equal(result.analysis.length,1);
+ for(const key of ['example','advice'])assert.equal(result[key].replace(/\s/gu,''),legacy[key].replace(/\s/gu,''));
+ assert.equal(result.analysis[0].replace(/\s/gu,''),long);
+ const c=m.readingManifest(product,'general','personal',m.READING_VERSION)[0],v4Input={...input,chapter:c};
+ const v4=await new m.MockChapterProvider().generateChapter(v4Input);
+ v4.blocks[0].paragraphs=[long];
+ const normalized=m.validateChapter(v4,v4Input);
+ assert.deepEqual(normalized.blocks.map(b=>b.title),v4.blocks.map(b=>b.title));
+ assert.equal(normalized.blocks[0].paragraphs.join(''),long);
+ assert.ok(normalized.blocks[0].paragraphs.every(p=>Array.from(p).length<=5000));
+ assert.equal(m.bodyCharacterCount(normalized),m.bodyCharacterCount(v4));
+});
+
 test('24 single products and every offered consultation have complete tier-specific v6 contracts',()=>{
  assert.equal(singles.length,24);
  for(const p of singles)for(const k of m.consultationKinds[p.domain]){

@@ -2,6 +2,8 @@ import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
+import { normalizeNarrativeParagraphs } from './narrative-format.js';
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
 import { createHttpError } from './http.js';
 
 const paragraphs = value => String(value || '').split(/\n\s*\n/).map(text => text.trim()).filter(Boolean);
@@ -59,6 +61,10 @@ export function mindscanNarrativeAdapter(env) {
       });
       if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       let value; try { value = JSON.parse(ai.text); } catch { return null; }
+      if (!value || typeof value.body !== 'string' || !value.body.trim()) return null;
+      if (!countPaidReportBodyChars(value.body) || hasRepeatedReportPassage(value.body)) return null;
+      if (task.id === 'summary') value.body = normalizeNarrativeParagraphs(value.body, 10);
+      else if (task.sectionIndex !== undefined && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const count = paragraphs(value.body).length;
       if ((task.sectionIndex !== undefined && count < 2) || (task.id === 'summary' && count !== 10)) return null;
       return value;

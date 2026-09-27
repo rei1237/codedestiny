@@ -4,6 +4,8 @@ import { connectDb } from './db.js';
 import { json } from './http.js';
 import { callGeminiText } from './gemini.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
+import { normalizeNarrativeEndings } from './narrative-format.js';
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
 
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const HEADINGS = ['질문의 핵심과 한 줄 답변', '타고난 기질과 반복되는 선택', '현재 흐름을 보여 주는 근거', '강점과 활용할 자원', '관계에서 드러나는 패턴', '일과 재물에서 확인할 조건', '주의할 약점과 반대 가능성', '가까운 변화와 시기 해석의 한계', '현실적인 행동 계획', '종합 판단과 마지막 메시지'];
@@ -79,11 +81,14 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
       });
       if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       let parsed; try { parsed = JSON.parse(ai.text); } catch { return null; }
-      if (!Array.isArray(parsed.claims) || !parsed.claims.length || parsed.claims.some(claim => {
+      if (!parsed || !Array.isArray(parsed.claims) || !parsed.claims.length || parsed.claims.some(claim => {
+        if (!claim || typeof claim !== 'object') return true;
         const fact = state.facts.find(row => row.id === claim.factId);
         return !fact || JSON.stringify(fact.value) !== JSON.stringify(claim.value);
       })) return null;
-      if (typeof parsed.body !== 'string' || !/[.!?。？！]["'”’)]?\s*$/u.test(parsed.body)) return null;
+      if (typeof parsed.body !== 'string' || !parsed.body.trim()) return null;
+      if (!countPaidReportBodyChars(parsed.body) || hasRepeatedReportPassage(parsed.body)) return null;
+      parsed.body = normalizeNarrativeEndings(parsed.body, state.locale);
       return parsed;
     },
   };

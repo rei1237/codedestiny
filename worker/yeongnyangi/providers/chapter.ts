@@ -2,7 +2,7 @@ import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {readingLocale,readingLanguageInstruction,validateReadingLanguage,type ReadingLocale} from '../fortune/reading-locale';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
 import {READING_V6_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
-import {LENGTH_FAILURES,normalizeSectionParagraphs,validateReadingQuality} from '../fortune/reading-quality';
+import {LENGTH_FAILURES,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
 import {validateAskChapter} from '../fortune/ask/validate';
@@ -59,7 +59,6 @@ export function validateChapter(
   const text = (s: unknown) =>
     typeof s === "string" &&
     s.trim().length > 0 &&
-    s.length <= 5000 &&
     !/<\/?[a-z][^>]*>/i.test(s);
   if (
     !v ||
@@ -77,12 +76,15 @@ export function validateChapter(
     !v.topics.every(text)
   )
     throw new FortuneError("INVALID_CHAPTER");
+  // Retain the field types and array cardinality of stored books. Long legacy
+  // string fields become paragraphs inside that same field, never new content.
+  const splitField=(s:string)=>s.split(/\n\s*\n/u).flatMap(p=>splitSectionParagraph(p,5000)).join('\n\n');
   const factLabels=Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label));
   // An internal ID in the prose is corrected before any length or language check reads it, not regenerated (principle 17).
   const redacted=redactInternalEvidence(v,input.analysis.question,factLabels,input.locale);
   if(redacted.count){v=redacted.body;console.log('[yeongnyangi-redaction]',JSON.stringify({chapter:input.chapter.ordinal,count:redacted.count}));}
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
-  if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
+  if(isStructuredReading(input.chapter.version))v=normalizeSectionParagraphs(v,hasReadingSections(input.chapter.version)?500:5000);
   const allowed = new Set(
     Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap((c) =>
       selectChapterFacts(c,input.chapter,input.analysis.topicId).map((f) => f.id),
@@ -109,7 +111,7 @@ export function validateChapter(
 
   if (
     input.previous.some(
-      (p) => p.summary === v.summary || (Boolean(v.example) && p.example === v.example),
+      (p) => splitField(p.summary) === splitField(v.summary) || (Boolean(v.example) && splitField(p.example) === splitField(v.example)),
     )
   )
     throw new FortuneError("DUPLICATE_CHAPTER");
@@ -126,8 +128,12 @@ export function validateChapter(
   validateConsultationAnswers(v,input.chapter,input.analysis.consultation);
   assertProfessionalProse(v,input.analysis.question,factLabels,input.locale);
   validatePreciseTiming(v,input.analysis.consultation,Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId)));
-  return input.ask && input.chapter.ordinal === 0
-    ? validateAskChapter(v,input.analysis.consultation!,input.ask.analysis,input.ask.evidence) : v;
+  if(input.ask && input.chapter.ordinal === 0)v=validateAskChapter(v,input.analysis.consultation!,input.ask.analysis,input.ask.evidence);
+  // Safety/evidence/duplicate checks see the original field text, including
+  // phrases at a split boundary. Only the validated return value is formatted.
+  return {...v,summary:splitField(v.summary),example:splitField(v.example),advice:splitField(v.advice),
+    persona:splitField(v.persona),analysis:v.analysis.map(splitField),
+    highlights:v.highlights.map(splitField),topics:v.topics.map(splitField)};
 }
 // A quality retry (service.ts repair) restates the rule that failed; an unmapped code is sent alone.
 // Same word list as validateReadingQuality's TIER_SCOPE_VIOLATION check.

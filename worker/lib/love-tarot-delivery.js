@@ -4,6 +4,8 @@ import { buildOutputLanguageDirective } from '../../lib/i18n/ai-locale.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
 import { callGeminiText } from './gemini.js';
+import { normalizeNarrativeParagraphs } from './narrative-format.js';
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
 
 const paragraphs = body => String(body || '').split(/\n\s*\n/).map(text => text.trim()).filter(Boolean);
 const MATRIX = ['projectionGap', 'relationshipFrame', 'blockToOutcome', 'wholeStory', 'dominantSuit', 'majorArcanaSignal', 'reversedSignal', 'courtCardSignal'];
@@ -52,6 +54,10 @@ export function loveTarotNarrativeAdapter(env) {
       });
       if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
       let value; try { value = JSON.parse(ai.text); } catch { return null; }
+      if (!value || typeof value.body !== 'string' || !value.body.trim()) return null;
+      if (!countPaidReportBodyChars(value.body) || hasRepeatedReportPassage(value.body)) return null;
+      if (task.id.startsWith('matrix-')) value.body = normalizeNarrativeParagraphs(value.body, 4);
+      else if (task.cardIndex !== undefined && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const count = paragraphs(value.body).length;
       if ((task.cardIndex !== undefined && count < 2) || (task.id.startsWith('matrix-') && count !== 4)) return null;
       return value;

@@ -26,10 +26,10 @@ const SENTENCE_BOUNDARY=/(?<=(?:[^\s\d][.!?。]["'”’)\]」』]*\s+|\n\s*))(?
 // Last resort for one unit over the cap (no sentence end, or a single very long sentence): cut after the
 // last clause mark in the back half of the cap, else after the last space, else at the cap itself.
 // A missing sentence end must never fail a chapter; only whitespace at the cut is dropped.
-function wrapLongUnit(unit:string):string[]{
+function wrapLongUnit(unit:string,limit:number):string[]{
  const out:string[]=[];let rest=unit;
- while(codePoints(rest)>SECTION_PARAGRAPH_LIMIT){
-  const head=Array.from(rest).slice(0,SECTION_PARAGRAPH_LIMIT).join('');
+ while(codePoints(rest)>limit){
+  const head=Array.from(rest).slice(0,limit).join('');
   const last=(re:RegExp,from:number)=>{let cut=-1;for(const m of head.matchAll(re))if(m.index!>=from)cut=m.index!+m[0].length;return cut;};
   let cut=last(/[,，、;:]\s+/gu,head.length/2);
   if(cut<=0||cut>=head.length)cut=last(/\s+/gu,1);
@@ -41,15 +41,15 @@ function wrapLongUnit(unit:string):string[]{
 }
 // v5/v6 section targets can exceed the per-paragraph cap. Cut at sentence ends into balanced parts;
 // a unit that is still over the cap is wrapped by wrapLongUnit, so every part fits the cap.
-export function splitSectionParagraph(paragraph:string):string[]{
- if(codePoints(paragraph)<=SECTION_PARAGRAPH_LIMIT)return [paragraph];
- const units=paragraph.split(SENTENCE_BOUNDARY).flatMap(wrapLongUnit);
+export function splitSectionParagraph(paragraph:string,limit=SECTION_PARAGRAPH_LIMIT):string[]{
+ if(codePoints(paragraph)<=limit)return [paragraph];
+ const units=paragraph.split(SENTENCE_BOUNDARY).flatMap(unit=>wrapLongUnit(unit,limit));
  if(units.length<2)return [paragraph];
- const total=codePoints(paragraph),parts=Math.ceil(total/SECTION_PARAGRAPH_LIMIT),goal=total/parts,out:string[]=[];
+ const total=codePoints(paragraph),parts=Math.ceil(total/limit),goal=total/parts,out:string[]=[];
  let current='',done=0;
  for(const unit of units){
   const cs=codePoints(current),us=codePoints(unit);
-  const overflow=cs+us>SECTION_PARAGRAPH_LIMIT;
+  const overflow=cs+us>limit;
   const balanced=out.length<parts-1&&done+cs+us/2>=goal*(out.length+1);
   if(current&&(overflow||balanced)){out.push(current);done+=cs;current=unit;}else current+=unit;
  }
@@ -57,10 +57,10 @@ export function splitSectionParagraph(paragraph:string):string[]{
  return out.map(c=>c.trim()).filter(Boolean);
 }
 // Paragraph text is kept verbatim apart from trimming; blank paragraphs are dropped. Shape errors are left to validateReadingQuality.
-export function normalizeSectionParagraphs(body:ChapterBody):ChapterBody{
+export function normalizeSectionParagraphs(body:ChapterBody,limit=SECTION_PARAGRAPH_LIMIT):ChapterBody{
  if(!body||!Array.isArray(body.blocks))return body;
  return {...body,blocks:body.blocks.map(b=>!b||!Array.isArray(b.paragraphs)?b:
-  {...b,paragraphs:b.paragraphs.flatMap(p=>typeof p!=='string'?[p]:!p.trim()?[]:splitSectionParagraph(p.trim()))})};
+  {...b,paragraphs:b.paragraphs.flatMap(p=>typeof p!=='string'?[p]:!p.trim()?[]:splitSectionParagraph(p.trim(),limit))})};
 }
 function nearDuplicate(a:string,b:string,cache:Map<string,Set<string>>){
  if(a.length<120||b.length<120)return false;

@@ -65,6 +65,20 @@ const original=()=>({requestId:'original-paid-request',question:'현재 선택�
 const post=body=>handler()(new Request('https://mock.test/api/fortune/'+kind.toLowerCase()+'/ai-prompt',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{userId},{});
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 async function finish(){let response;for(let i=0;i<8;i++){response=await resume();if(response.status!==202)break;}return response;}
+
+test('missing paragraph punctuation is corrected and persisted without regeneration or refund',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{
+  const ai=await base(...args),value=JSON.parse(ai.text);
+  value.body=value.body.replace(/\.(?=\n|$)/g,'');
+  return {...ai,text:JSON.stringify(value)};
+ });
+ await start();expect((await finish()).status).toBe(200);
+ const parts=docs[0].metadata.paidNarrative.parts;
+ expect(Object.values(parts).every(body=>body.split('\n\n').every(p=>p.endsWith('.')))).toBe(true);
+ expect((await resume()).status).toBe(200);
+ expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
+});
 test.each(['Astrology','Vedic','Ziwei','Sukuyo'].flatMap(kind=>['pass','monthly','single'].map(mode=>[kind,mode])))('%s %s confirms ten parts and reopens without another generation',async(type,access)=>{
  kind=type;mode=access;expect((await start()).status).toBe(202);const full=await finish();expect(full.status).toBe(200);expect(await full.json()).toMatchObject({saved:true,status:'completed'});expect(provider).toHaveBeenCalledTimes(10);expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);expect(refund).not.toHaveBeenCalled();
  const sent=await consume.mock.calls[0][0].json();expect(sent).toMatchObject({requireExistingPaidAccess:true,requestId:'original-paid-request'});
