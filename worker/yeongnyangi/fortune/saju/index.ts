@@ -25,6 +25,7 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
         "출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.",
       );
     if(r.jongVerdict==='rejected')limitations.push('생활 이력 확인 결과가 종격 흐름과 맞지 않아 일반격(억부) 용신으로 읽었습니다.');
+    if(r.strengthVerdict==='rejected')limitations.push('지난 해 확인 결과에 따라 경계값에 있던 신강·신약 판단을 반대로 읽었습니다.');
     if(r.jong.confirmationRequired)limitations.push('종격은 기존 엔진이 찾은 후보입니다. 기존 서비스의 생활 이력 확인을 거치지 않은 용신·종격 해석은 조건부입니다.');
     const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{...options,jongAnswer:undefined}) : undefined;
     const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
