@@ -5,6 +5,7 @@ import {
   ACTIVE_NON_LLM_FEATURE_KEYS,
   HISTORICAL_PAID_FEATURE_FIXTURES,
   PAID_NON_LLM_DELIVERY_FIXTURES,
+  PAID_NON_RESULT_FIXTURES,
   REGISTRY_ONLY_NON_LLM_KEYS,
 } from "../fixtures/paid-non-llm-delivery-fixtures.mjs";
 import {
@@ -56,6 +57,21 @@ test("CTA/consumer가 확인되지 않은 registry-only 키를 활성 전달 완
     expect(registryPrice(featureKey)).toBeTruthy();
     expect(getPaidFeatureBillingType(featureKey)).not.toBe("");
     expect(ACTIVE_NON_LLM_FEATURE_KEYS).not.toContain(featureKey);
+  }
+});
+
+test("결과물 없는 유료 동작은 결제 CTA와 서버의 결제 근거 확인부에 함께 연결된다", () => {
+  for (const fixture of PAID_NON_RESULT_FIXTURES) {
+    const expectedPrice = registryPrice(fixture.featureKey);
+    const billing = getBillingFeaturePricing({ featureKey: fixture.featureKey });
+
+    expect(expectedPrice).toBeTruthy();
+    expect(getPaidFeatureBillingType(fixture.featureKey)).toBe(fixture.billingType);
+    expect(billing).toMatchObject({ ok: true, pricing: { featureKey: fixture.featureKey } });
+    expect(billing.pricing.cost).toBe(expectedPrice.cost);
+    expect(source(fixture.cta)).toContain(fixture.cta.marker);
+    expect(source(fixture.consumer)).toContain(fixture.consumer.marker);
+    expect(ACTIVE_NON_LLM_FEATURE_KEYS).not.toContain(fixture.featureKey);
   }
 });
 
