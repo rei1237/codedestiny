@@ -84,9 +84,9 @@ function useRuneDraw() {
 // ─── SPREAD LABELS ────────────────────────────────────────────────────────────
 const SPREAD_OPTIONS = [
   { count: 1, rune: "ᚢ", name: "1-룬", desc: "오늘의 조언", costCoins: 30 },
-  { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래", costCoins: 50 },
-  { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함", costCoins: 70 },
-  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", costCoins: 100 },
+  { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래", costCoins: 30 },
+  { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함", costCoins: 50 },
+  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", costCoins: 50 },
 ];
 
 const SPREAD_LABELS = {
@@ -109,9 +109,9 @@ const RUNE_BILLING_SUB_FEATURE_BY_SPREAD = Object.freeze({
 // 스냅샷 기반 빠른 이용권 선검사를 켠다 — 이용권 보유자는 서버 왕복 없이 즉시 통과.
 const RUNE_COST_BY_SPREAD = Object.freeze({
   1: 30,
-  3: 50,
-  5: 70,
-  12: 100,
+  3: 30,
+  5: 50,
+  12: 50,
 });
 
 const RUNE_FALLBACK_FEATURE_BY_SPREAD = Object.freeze({

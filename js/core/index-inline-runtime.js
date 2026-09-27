@@ -1883,16 +1883,16 @@ var __cdLazyActionLoaders = {
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h9ee7eacf3957'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-5ef2aa106d97').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-eb5aec0cad49'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-f30f4574a918'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-f4cadeacc695'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-61595b2c468d'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-a214af72905f'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing/')); },
   openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-91390be43877'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-bc7880a3d23f'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-01ca428bfc60'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-c63f87a37894').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-17f27a22f2a0').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -2253,16 +2253,16 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/korean-calendar.js?v=build-67e89135b871',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-    '/js/saju-engine.js?v=build-118ff734abdc',
+    '/js/saju-engine.js?v=build-a08be4e3cae3',
       '/js/core/saju/extremeTResult.js?v=build-2c30eaeaaf14',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-fb1934481456',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-11e6281226fa',
     '/js/core/saju/basicFortunePresentation.js?v=build-b1550726867a',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
-    '/js/core/saju/reportDashboard.js?v=build-20bed9814e5d',
+    '/js/core/saju/reportDashboard.js?v=build-69a84b7e07e2',
     '/js/saju-engine-continuation.js?v=build-65db4dab14e6',
-    '/js/entertain-engine.js?v=build-d8ac3bc18d96',
+    '/js/entertain-engine.js?v=build-c3b89a46c12c',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-c2d0a3979a9a'
   ];
@@ -2287,7 +2287,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-d409d6e8ab5d')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-06c59ca03f64')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -8325,9 +8325,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
     '/js/core/korean-calendar.js?v=build-67e89135b871',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
-      '/js/saju-engine.js?v=build-118ff734abdc',
+      '/js/saju-engine.js?v=build-a08be4e3cae3',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-fb1934481456'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-11e6281226fa'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일
@@ -9292,7 +9292,7 @@ function openAnimalTotemModal() {
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
     __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b7d07cb6850b')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-eb5aec0cad49'); })
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-81c843ae9e30'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {

@@ -10,7 +10,7 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { usePaidResume } from "../../hooks/usePaidResume";
 
-const CRYSTAL_COST = 50;
+const CRYSTAL_COST = 30;
 const CRYSTAL_COST_KRW = CRYSTAL_COST * 100; // 코인은 폐지된 내부 계산 단위, 사용자 표시는 항상 원화(KRW_PER_COIN=100)
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const GEM_TYPES = [

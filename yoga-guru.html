@@ -11,7 +11,7 @@
 <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
 <script src="/js/core/checkout-entry.js?v=build-e0884752af77"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-67b5642694e8"></script>
+<script src="/js/destiny-profile.js?v=build-2363e7c0a364"></script>
 <style>
   :root {
     --bg-void: #05030f;
@@ -1274,7 +1274,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             <div class="deity">🔱</div>
             <div class="time">60분</div>
             <div class="name">Shiva's Transformation</div>
-            <div class="desc">시바의 파괴와 재창조 에너지 · 유연성 극대화 · 깊은 내면 탐구 · 이용료 5,000원</div>
+            <div class="desc">시바의 파괴와 재창조 에너지 · 유연성 극대화 · 깊은 내면 탐구 · 이용료 3,000원</div>
           </button>
         </div>
       </div>
@@ -2103,7 +2103,7 @@ async function invokeGuru() {
   const pickedDuration=selectedDuration;
   yogaSaved={requestId:'yoga:'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9)};
   const billingEpoch=yogaEpoch;
-  const sessionCost = Number(pickedDuration) >= 60 ? 50 : 30;
+  const sessionCost = 30;
   yogaPaying=true;if(invokeBtn)invokeBtn.disabled=true;
   try{
     const paid=await _consumeMeditationCoin(sessionCost,'openYogaGuru '+pickedDuration+'분 코스',buildYogaResumeDescriptor(mood,pickedDuration));

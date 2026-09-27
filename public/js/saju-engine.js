@@ -5715,7 +5715,7 @@ function generateSajuTreasureMapPrompt(p, natal){
   return 'personal wealth luck treasure map inspired by saju five elements, '+profile.symbol+', '+profile.tone+' palette, mystical illustrated map, glowing route lines, lucky objects, elegant Korean fortune scroll design, warm magical lighting, high-detail fantasy map, 8k --ar 16:9';
 }
 
-var ASTROLOGY_AI_PROMPT_COST = 100;
+var ASTROLOGY_AI_PROMPT_COST = 50;
 var ASTROLOGY_AI_PROMPT_MIN_LENGTH = 5;
 var ASTROLOGY_AI_PROMPT_MAX_LENGTH = 1000;
 
@@ -7700,9 +7700,9 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   return _cdAIPromptGate({
     featureKey: 'saju_ai_prompt_generator',
     reason: '사주 AI 상담 결과 생성',
-    cost: 200,
-    amountKrw: 20000,
-    paymentAmount: 20000,
+    cost: 100,
+    amountKrw: 10000,
+    paymentAmount: 10000,
     requestId: 'saju-ai-prompt:' + requestNonce,
     categoryKey: 'saju',
     action: 'cdSajuTabEntry',
@@ -7723,7 +7723,7 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
 }
 
 function _buildSajuQuestionPromptHtml() {
-  var sajuAiAmountKrw = 20000;
+  var sajuAiAmountKrw = 10000;
   var sajuAiPriceLabel = sajuAiAmountKrw.toLocaleString('ko-KR') + '원';
   var steps = [
     ['0', '결제 확인'],
@@ -13316,13 +13316,13 @@ function renderAstroInsightLegacyNeon() {
 
     var astroAiPromptSectionHtml = ''
       + '<div class="astro-section astro-prompt-panel" id="astroAiPromptSection" style="border:1px solid rgba(125,211,252,0.35);background:linear-gradient(145deg,rgba(2,6,23,.96),rgba(10,20,42,.94));box-shadow:0 24px 54px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;">'
-      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Consultation</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 AI 상담</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 10,000원</span></div>'
+      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Consultation</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 AI 상담</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 5,000원</span></div>'
       + '<p class="astro-birth-lead" style="margin-bottom:9px;color:#e2e8f0;">'
       + '현재 차트 해석을 바탕으로 질문에 대한 맞춤 상담 답변을 바로 드립니다. 시너스트리 궁합을 본 뒤에는 방금 계산한 궁합 데이터가 함께 반영되고, 답변에 쓰인 프롬프트도 무료로 함께 제공됩니다.'
       + '</p>'
       + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
       + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">이용권 · 단건결제 · 월정석 보너스</span>'
-      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">10,000원 · 궁합 결과 반영 가능</span>'
+      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">5,000원 · 궁합 결과 반영 가능</span>'
       + '</div>'
       + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="' + _sajuEngineText("se_10474_attr_placeholder") + '" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
@@ -13330,7 +13330,7 @@ function renderAstroInsightLegacyNeon() {
       + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">10,000원으로 AI 상담 받기</button>'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">5,000원으로 AI 상담 받기</button>'
       + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
       + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
@@ -13349,12 +13349,12 @@ function renderAstroInsightLegacyNeon() {
       + '<div><div class="astro-action-hub__kicker">Swiss Ephemeris Ready</div><div class="astro-subhead" style="margin-bottom:7px;color:#bae6fd;">🌌 나의 항성판이 열렸습니다</div></div>'
       + '<span class="astro-price-pill astro-price-pill--free">기본 차트 무료</span>'
       + '</div>'
-      + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 5,000원 결제 후 열립니다.</p>'
+      + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 3,000원 결제 후 열립니다.</p>'
       + '<div class="astro-action-hub__constellation" aria-hidden="true"><span>☉</span><i></i><span>☽</span><i></i><span>ASC</span><i></i><span>♀</span><i></i><span>♂</span></div>'
       + '<div class="astro-action-hub__grid">'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><span class="astro-action-hub__glyph">✦</span><strong>AI 상담 받기</strong><span>차트 기반 맞춤 답변을 바로 생성합니다.</span><em>아래에 표시됨</em></button>'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 5,000원</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 5,000원</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 3,000원</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 3,000원</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
       + '</div>'
       + '</div>';
 
@@ -13905,8 +13905,8 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-amber astro-compat-panel astro-compat-panel--direct">'
-        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#f59e0b;margin-bottom:0;"><span aria-hidden="true">💫</span> 나의 시나스트리: 상대 직접 입력</div><span class="astro-price-pill">5,000원</span></div>'
-        +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 5,000원</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#f59e0b;margin-bottom:0;"><span aria-hidden="true">💫</span> 나의 시나스트리: 상대 직접 입력</div><span class="astro-price-pill">3,000원</span></div>'
+        +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 3,000원</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
         +'<div class="astro-desc">'
         +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
         +'상대 정보를 입력하면 두 사람의 궁합 지도를 확인할 수 있습니다. 태어난 시각을 모르면 12:00(정오)로 계산되며, 대화 템포에 대한 힌트도 함께 제공됩니다.'
@@ -13940,15 +13940,15 @@ function renderAstroInsightLegacyNeon() {
         +'</select>'
         +'</div>'
         +'</div>'
-        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 5,000원으로 시나스트리 분석하기</button>'
+        +'<button onclick="window._astroDirectSynastry()" class="astro-neon-cta">✦ 3,000원으로 시나스트리 분석하기</button>'
         +'<div id="asDirectResult" style="margin-top:14px;"></div>'
         +'</div>'
         +'</div>'
 
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo astro-compat-panel astro-compat-panel--celeb" id="astroSynastrySection">'
-        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill">5,000원</span></div>'
-        +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 5,000원</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill">3,000원</span></div>'
+        +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 3,000원</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
         +'<div class="astro-desc">'
 
         /* ── [✨ 천상의 지도: 당신의 성좌] ── */
@@ -14482,7 +14482,7 @@ function renderAstroInsightLegacyNeon() {
         + '<div class="astro-syn-prompt-card" data-astro-synastry-prompt-card="included-v20260615-quality-v2" style="margin-top:14px;border:1px solid rgba(125,211,252,.34);background:linear-gradient(145deg,rgba(8,13,32,.94),rgba(20,34,58,.9));border-radius:14px;padding:13px;box-shadow:0 16px 34px rgba(8,47,73,.26);">'
         + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px;">'
         + '<div><div style="font-size:0.76rem;color:#a5f3fc;font-weight:900;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">Synastry Prompt Included</div><strong style="display:block;color:#fef3c7;font-size:0.96rem;">궁합 결과 기반 AI 상담 프롬프트</strong></div>'
-        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:0.7rem;font-weight:900;">궁합 5,000원에 포함</span>'
+        + '<span style="border:1px solid rgba(134,239,172,.35);background:rgba(22,101,52,.22);color:#bbf7d0;border-radius:999px;padding:4px 8px;font-size:0.7rem;font-weight:900;">궁합 3,000원에 포함</span>'
         + '</div>'
         + '<p style="margin:0 0 8px 0;color:#cbd5e1;font-size:0.8rem;line-height:1.65;">방금 계산한 시너스트리 결과를 달·금성·화성·하우스 오버레이 중심의 깊은 관계 상담 흐름으로 이어갈 수 있습니다.</p>'
         + '<textarea data-astro-synastry-prompt-output readonly style="width:100%;min-height:178px;border-radius:10px;border:1px solid rgba(125,211,252,.3);background:rgba(2,6,23,.74);color:#e0f2fe;padding:10px;font-size:0.78rem;line-height:1.66;box-sizing:border-box;resize:vertical;">' + _astroPromptEscapeHtml(prompt) + '</textarea>'
@@ -14531,7 +14531,7 @@ function renderAstroInsightLegacyNeon() {
 
     function _astroSetCoinBalanceText(node, points) {
       if (!node) return;
-      node.textContent = '10,000원 · 이용권/단건결제 확인 후 생성';
+      node.textContent = '5,000원 · 이용권/단건결제 확인 후 생성';
     }
 
     function _astroBuildPromptHeaders() {
@@ -14638,7 +14638,7 @@ function renderAstroInsightLegacyNeon() {
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
         generateBtn.textContent = inFlight
           ? 'AI 상담 생성 중...'
-          : (astroRetryFree ? '추가 결제 없이 다시 상담 받기' : '10,000원으로 AI 상담 받기');
+          : (astroRetryFree ? '추가 결제 없이 다시 상담 받기' : '5,000원으로 AI 상담 받기');
       }
 
       function updateCount() {
@@ -14802,12 +14802,12 @@ function renderAstroInsightLegacyNeon() {
         if (astroRetryFree) {
           astroEvidenceStore.clear();
           astroRetryFree = false;
-          if (!inFlight) generateBtn.textContent = '10,000원으로 AI 상담 받기';
+          if (!inFlight) generateBtn.textContent = '5,000원으로 AI 상담 받기';
         }
         updateCount();
       });
       updateCount();
-      _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
+      _astroSetPromptStatus(statusEl, '질문을 입력하면 5,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
     }
     _astroMountPromptSection();
 
@@ -14915,7 +14915,7 @@ function renderAstroInsightLegacyNeon() {
                         +'onmouseenter="this.style.background=\'rgba(52,211,153,0.2)\'" onmouseleave="this.style.background=\'rgba(52,211,153,0.08)\'">'
                         + t.flag + ' ' + t.c.name
                         +'<span style="font-size:0.6rem;color:'+tagClr+';margin-left:4px;font-weight:700;">'+tag+'</span>'
-                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">5,000원</span>'
+                        +'<span style="font-size:0.6rem;color:#fde68a;margin-left:6px;font-weight:800;">3,000원</span>'
                         +'</div>';
                 }).join('');
             }
@@ -14946,7 +14946,7 @@ function renderAstroInsightLegacyNeon() {
                 var flag = (typeof COUNTRY_CONFIG !== 'undefined' && COUNTRY_CONFIG[c.nationality]) ? COUNTRY_CONFIG[c.nationality].flag + ' ' : '';
                 var btn = document.createElement('button');
                 btn.type = 'button';
-                btn.textContent = flag + c.name + ' · 5,000원';
+                btn.textContent = flag + c.name + ' · 3,000원';
                 btn.style.cssText = 'padding:5px 11px;border-radius:999px;font-size:0.75rem;font-weight:700;letter-spacing:.01em;border:1px solid rgba(244,114,182,0.34);background:linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78));color:#fbcfe8;cursor:pointer;transition:all 0.2s;white-space:nowrap;font-family:"Space Grotesk","SUIT Variable","Pretendard Variable","Noto Sans KR",sans-serif;';
                 btn.onmouseenter = function() { this.style.background='rgba(244,114,182,0.18)'; };
                 btn.onmouseleave = function() { this.style.background='linear-gradient(135deg,rgba(15,23,42,.92),rgba(30,27,75,.78))'; };
@@ -15212,7 +15212,7 @@ function renderAstroInsightLegacyNeon() {
     window._astroPickCeleb = function(name, birth, hour) {
         /* 5,000원 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(50, '점성술 셜럭 시나스트리 궁합', function() {
+          window._cdCoinGatePerUse(30, '점성술 셜럭 시나스트리 궁합', function() {
             window._astroPickCelebCore(name, birth, hour);
           }, {
             featureKey: 'compat-astro-synastry',
@@ -15478,7 +15478,7 @@ function renderAstroInsightLegacyNeon() {
     window._astroDirectSynastry = function() {
         /* 5,000원 퍼유즈 게이트 */
         if (typeof window._cdCoinGatePerUse === 'function') {
-          window._cdCoinGatePerUse(50, '점성술 직접 입력 시나스트리 궁합', function() {
+          window._cdCoinGatePerUse(30, '점성술 직접 입력 시나스트리 궁합', function() {
             window._astroDirectSynastryCore();
           }, {
             featureKey: 'compat-astro-direct-synastry',
@@ -16842,11 +16842,11 @@ function zwDeepEsc(value) {
 }
 /**
  * 자미두수 궁합의 회당 결제 단위(코인). 정본은 worker/lib/paid-feature-registry.js 의
- * "compat-ziwei-compatibility"(cost: 50) 이고, 사용자에게는 언제나 원화로 환산해 보여준다
+ * "compat-ziwei-compatibility"(cost: 30) 이고, 사용자에게는 언제나 원화로 환산해 보여준다
  * (1코인 = 100원). 게이트 호출과 카드 표기가 같은 값을 쓰도록 여기 하나만 둔다 —
  * 예전에는 게이트에 50 이 박혀 있고 카드는 금액을 아예 안 보여줬다.
  */
-var ZW_COMPAT_COST = 50;
+var ZW_COMPAT_COST = 30;
 
 /**
  * 삼방사정(三方四正) — 본궁에서 +4·+8 이 삼합 두 궁, +6 이 대궁이다.
@@ -21626,7 +21626,7 @@ function renderZiwei(p, natal, targetId) {
       + '</div>';
   }
 
-  var _ZW_AI_PROMPT_COST = 100;
+  var _ZW_AI_PROMPT_COST = 50;
   var _ZW_AI_PROMPT_MAX_LENGTH = 1000;
   var _ZW_AI_PROMPT_MIN_LENGTH = 5;
   var _ZW_AI_PROMPT_FEATURE_KEY = 'ziwei_ai_prompt_generator';
@@ -21948,7 +21948,7 @@ function renderZiwei(p, natal, targetId) {
       + '    <span>1회 ' + (_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">10,000원으로 AI 상담 받기</button>'
+      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">5,000원으로 AI 상담 받기</button>'
       + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#312e81);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담 받기</button>'
       + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '  </div>'
@@ -22244,7 +22244,7 @@ function renderZiwei(p, natal, targetId) {
     });
 
     updateCount();
-    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 5,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
   function _zwPortfolioBuildModalHtml(row, summary) {
@@ -25593,13 +25593,13 @@ function renderZiwei(p, natal, targetId) {
           +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
           +monthlySummaryHtml
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
-          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 10,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
+          +'<div class="cd-section-gate zw-basic-paid-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 5,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'
               +'<p class="cd-section-gate__title">자미두수 10년운 — 프리미엄 콘텐츠</p>'
               +'<p class="cd-section-gate__desc">대한(大限)을 기준으로 앞으로의 10년을 연도별로 풀어드립니다.</p>'
-              +'<span class="cd-section-gate__badge">10,000원으로 영구 해금</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="100">🪙 10,000원으로 10년운 열기</button>'
+              +'<span class="cd-section-gate__badge">5,000원으로 영구 해금</span>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="ziwei_decade_luck" data-content-key="ziwei.decadeLuck" data-service-key="ziwei" data-unlock-cost="50">5,000원으로 10년운 열기</button>'
               +'<div data-zw-paid-gate-message style="min-height:14px;color:#a78bfa;font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body">'
@@ -26040,7 +26040,7 @@ function renderZiwei(p, natal, targetId) {
             +'</details>';
         }
         function zwDahanPremiumShellHtml(bodyHtml) {
-          return zwBasicPaidGateHtml('ziwei_decade_luck', 100, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
+          return zwBasicPaidGateHtml('ziwei_decade_luck', 50, '대한(大限) 인생 타임라인', '현재 대한과 다음 대한, 전체 12단계 흐름을 엽니다.', bodyHtml, '#a78bfa', 'ziwei.decadeLuck')
             .replace('data-cd-marker="ziwei-basic-paid-gate-v20260615"', 'data-cd-marker="ziwei-basic-paid-gate-v20260615" data-zw-daehan-gate="ziwei-daehan-common-paid-gate-v20260629"');
         }
         var sec_dahan = '<div data-cd-marker="'+ZW_DAHAN_TIMELINE_MARKER+'" style="background:rgba(15,15,30,0.8);padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.25);">'
@@ -26524,7 +26524,7 @@ function renderZiwei(p, natal, targetId) {
               +'<p class="cd-section-gate__title" style="font-size:0.94rem;">'+zwFlowEsc(title)+'</p>'
               +'<p class="cd-section-gate__desc" style="max-width:300px;font-size:0.74rem;-webkit-line-clamp:2;">'+zwFlowEsc(desc)+'</p>'
               +'<span class="cd-section-gate__badge">'+(cost * 100).toLocaleString('ko-KR')+'원 영구 해금</span>'
-              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="'+zwFlowEsc(key)+'"'+(contentKey ? ' data-content-key="'+zwFlowEsc(contentKey)+'"' : '')+' data-service-key="ziwei" data-unlock-cost="'+cost+'" style="min-height:36px;padding:9px 14px;font-size:0.78rem;">🪙 '+(cost * 100).toLocaleString('ko-KR')+'원으로 열기</button>'
+              +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="'+zwFlowEsc(key)+'"'+(contentKey ? ' data-content-key="'+zwFlowEsc(contentKey)+'"' : '')+' data-service-key="ziwei" data-unlock-cost="'+cost+'" style="min-height:36px;padding:9px 14px;font-size:0.78rem;">'+(cost * 100).toLocaleString('ko-KR')+'원으로 열기</button>'
               +'<div data-zw-paid-gate-message style="min-height:14px;color:'+color+';font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body" style="max-height:none;">'+_cdGateBody(key, bodyHtml)+'</div>'
@@ -26561,11 +26561,11 @@ function renderZiwei(p, natal, targetId) {
         +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
           +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
-          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 10,000원', zwBasicPaidGateHtml('ziwei_love_deep', 100, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
-          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 10,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 100, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
+          +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 5,000원', zwBasicPaidGateHtml('ziwei_love_deep', 50, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
+          +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 5,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 50, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
-          +zwReadingPanel('상징 보조층', '유료 상징 · 10,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 100, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
-          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 10,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 100, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
+          +zwReadingPanel('상징 보조층', '유료 상징 · 5,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 50, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
+          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 5,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 50, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
         +'</section>';
 
         var contentHtml = '';
@@ -29079,7 +29079,7 @@ async function runCompat(){
 
   /* 🔒 사주 궁합 5,000원 게이트 */
   if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(50, '사주 궁합 분석', function() {
+    window._cdCoinGatePerUse(30, '사주 궁합 분석', function() {
       runCompatCore(compatRunBtn, name, bd, type);
     }, function() {
       if (compatRunBtn) {
@@ -33601,7 +33601,7 @@ function showQuantumResult() {
     var safeId = 'astroPaidGate_' + key.replace(/[^a-z0-9_-]/gi, '_');
     var unlocked = _astroCounselIsUnlocked(key);
     var gateClass = 'cd-section-gate astro-counsel-paid-gate' + (unlocked ? ' cd-section-gate--unlocked' : '');
-    var buttonText = unlocked ? '잠금 해제됨' : ('🪙 ' + (Number(cost || 0) * 100).toLocaleString('ko-KR') + '원으로 열기');
+    var buttonText = unlocked ? '잠금 해제됨' : ((Number(cost || 0) * 100).toLocaleString('ko-KR') + '원으로 열기');
     var buttonAttrs = unlocked ? ' disabled aria-label="' + _sajuEngineText("se_28691_attr_aria_label") + '"' : '';
     return '<div class="' + gateClass + '" id="' + _astroCounselEscape(safeId) + '" data-unlock-key="' + _astroCounselEscape(key) + '" style="position:relative;min-height:210px;border-radius:12px;overflow:hidden;">'
       + '<div class="cd-section-gate__overlay" style="gap:7px;padding:16px 14px;background:linear-gradient(180deg,rgba(9,6,28,.88),rgba(5,12,30,.96));">'
@@ -34035,10 +34035,10 @@ function showQuantumResult() {
       + '<p>기본 차트에서 한 걸음 더 들어가, 일과 역할, 재능과 끌림, 관계의 문, 과제와 변화를 상담실의 언어로 천천히 펼칩니다. 별의 배치를 따로 나열하지 않고, 서로 이어지는 삶의 장면으로 읽습니다.</p>'
       + '</div>'
       + '<div class="astro-stellar-archive__grid">'
-      + _astroCounselPaidGate('astro_stellar_career_room', 50, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
-      + _astroCounselPaidGate('astro_stellar_talent_room', 50, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
-      + _astroCounselPaidGate('astro_stellar_relationship_room', 50, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
-      + _astroCounselPaidGate('astro_stellar_growth_room', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
+      + _astroCounselPaidGate('astro_stellar_career_room', 30, '일과 역할 심화 리딩', 'MC·10하우스 룰러·6하우스·ASC 룰러·목성으로 사회적 이름, 일의 리듬, 수익화 방향을 함께 엽니다.', careerBody)
+      + _astroCounselPaidGate('astro_stellar_talent_room', 30, '재능과 끌림 심화 리딩', '금성·화성·목성으로 좋아하는 것, 움직이게 하는 것, 사람에게 닿는 매력을 잇습니다.', talentBody)
+      + _astroCounselPaidGate('astro_stellar_relationship_room', 30, '관계의 문 심화 리딩', '금성·화성·7하우스로 마음이 열리는 조건, 끌림의 속도, 오래 머무는 관계의 약속을 봅니다.', relationshipBody)
+      + _astroCounselPaidGate('astro_stellar_growth_room', 30, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 반복되는 과제, 깊은 전환, 현실로 돌아오는 회복 의식을 읽습니다.', growthBody)
       + '</div>'
       + '</section>';
   }
@@ -34150,13 +34150,13 @@ function showQuantumResult() {
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-section-kicker', 'Ask the Stars');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-subhead', '🌌 별에게 묻는 질문 만들기');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-birth-lead', '지금 차트의 별빛을 바탕으로, 실제 상담에 건넬 수 있는 질문 문장을 정돈합니다. 궁합을 본 뒤에는 두 사람의 시나스트리 흐름까지 함께 담깁니다.');
-    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '10,000원으로 별자리 질문 열기');
+    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '5,000원으로 별자리 질문 열기');
     _astroCounselSetText(wrap, '#astroAiPromptCopyBtn', '질문 문장 복사');
     _astroCounselSetPlaceholder(wrap, '#astroAiPromptQuestionInput', '예: 지금 내 차트에서 사랑과 일의 방향이 왜 엇갈리는지, 점성술 상담 문장으로 깊게 풀어주세요.');
     _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn strong', [
       '별에게 묻는 질문',
-      '두 사람의 별을 겹쳐 보기 · 5,000원',
-      '유명인 별자리 궁합 · 5,000원'
+      '두 사람의 별을 겹쳐 보기 · 3,000원',
+      '유명인 별자리 궁합 · 3,000원'
     ]);
     _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn > span:not(.astro-action-hub__glyph)', [
       '현재 차트를 바탕으로 상담에 건넬 질문을 정돈합니다.',
@@ -34169,9 +34169,9 @@ function showQuantumResult() {
       '별자리 실험실'
     ]);
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-subhead', '💫 두 사람의 별을 겹쳐 보기');
-    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note strong', '시나스트리 궁합 · 5,000원');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note strong', '시나스트리 궁합 · 3,000원');
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-paid-note span', '상대의 출생 정보를 더하면 두 별자리의 끌림과 긴장을 함께 읽습니다.');
-    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-neon-cta', '✦ 5,000원으로 두 사람의 별자리 궁합 보기');
+    _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-neon-cta', '✦ 3,000원으로 두 사람의 별자리 궁합 보기');
     _astroCounselSetTexts(wrap, '.astro-compat-panel--direct .astro-label', [
       '상대 이름',
       '상대 생년월일',
@@ -34184,7 +34184,7 @@ function showQuantumResult() {
     if (directCityEmpty) directCityEmpty.textContent = '태어난 도시 선택';
     _astroCounselSetText(wrap, '.astro-compat-panel--direct .astro-desc > p', '상대의 별을 더하면 두 사람 사이의 끌림, 긴장, 안정감, 반복되는 관계 패턴이 하나의 하늘 지도처럼 드러납니다. 생시를 모를 때는 정오 기준으로 읽되, 달과 상승궁은 가능성의 범위로 보겠습니다.');
     _astroCounselSetText(wrap, '#astroSynastrySection .astro-subhead', '🌌 유명인 별자리 궁합 실험실');
-    _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note strong', '유명인 시나스트리 · 5,000원');
+    _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note strong', '유명인 시나스트리 · 3,000원');
     _astroCounselSetText(wrap, '#astroSynastrySection .astro-paid-note span', '선택한 인물의 별과 나의 별을 겹쳐 관계의 결을 읽습니다.');
     _astroCounselSetTexts(wrap, '#astroSynastrySection .astro-neon-soft-block > div:first-child', [
       '나와 같은 별의 결',
@@ -34359,10 +34359,10 @@ function showQuantumResult() {
       + basis.html
       + '</section>'
       + _astroCounselSection('핵심 기질: 태양 별자리·달 별자리·상승궁', '<div class="astro-counsel-axis-grid">' + axisHtml + '</div>' + integrationHtml, '가장 중요한 선택 하나를 태양 별자리, 달 별자리, 상승궁 세 문장으로 나누어 보세요. 목표, 감정, 첫 행동이 분리되면 결정이 선명해집니다.', 'astro-counsel-core')
-      + _astroCounselSection('일과 역할: MC·10하우스 룰러·6하우스·ASC 룰러·목성', _astroCounselPaidGate('astro_career_talent_deep', 50, '커리어·재능 정밀 분석', 'MC·10하우스·6하우스·목성으로 일의 무대와 수익화 재능을 엽니다.', careerHtml), '처리할 업무 하나를 “성과물”, “반복 루틴”, “사람에게 보이는 가치” 세 칸으로 나누어 정리해보세요.', 'astro-counsel-career')
-      + _astroCounselSection('재능과 끌림: 금성·화성·목성', _astroCounselPaidGate('astro_talent_attraction_deep', 50, '재능과 끌림 심화 분석', '금성·화성·목성으로 매력, 추진력, 확장 가능한 재능을 봅니다.', talentHtml), '좋아하는 일, 바로 움직이고 싶은 일, 커질 수 있는 일을 각각 하나씩 적고 겹치는 지점을 찾아보세요.', 'astro-counsel-talents')
-      + _astroCounselSection('관계의 문: 금성·화성·7하우스', _astroCounselPaidGate('astro_relationship_deep', 50, '관계·끌림 심화 분석', '금성·화성·7하우스로 반복되는 관계 패턴과 끌림의 문을 엽니다.', relationshipHtml), '관계에서 반복되는 끌림과 거리감을 금성, 화성, 7하우스 세 문장으로 나누어 보세요.', 'astro-counsel-relationship')
-      + _astroCounselSection('과제와 변화: 토성·명왕성·해왕성', _astroCounselPaidGate('astro_growth_shadow_deep', 50, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 오래 반복되는 과제와 회복 방향을 봅니다.', growthHtml), '반복해서 미뤄온 문제 하나를 고르고, 해결보다 먼저 15분 동안 관찰해보세요.', 'astro-counsel-growth')
+      + _astroCounselSection('일과 역할: MC·10하우스 룰러·6하우스·ASC 룰러·목성', _astroCounselPaidGate('astro_career_talent_deep', 30, '커리어·재능 정밀 분석', 'MC·10하우스·6하우스·목성으로 일의 무대와 수익화 재능을 엽니다.', careerHtml), '처리할 업무 하나를 “성과물”, “반복 루틴”, “사람에게 보이는 가치” 세 칸으로 나누어 정리해보세요.', 'astro-counsel-career')
+      + _astroCounselSection('재능과 끌림: 금성·화성·목성', _astroCounselPaidGate('astro_talent_attraction_deep', 30, '재능과 끌림 심화 분석', '금성·화성·목성으로 매력, 추진력, 확장 가능한 재능을 봅니다.', talentHtml), '좋아하는 일, 바로 움직이고 싶은 일, 커질 수 있는 일을 각각 하나씩 적고 겹치는 지점을 찾아보세요.', 'astro-counsel-talents')
+      + _astroCounselSection('관계의 문: 금성·화성·7하우스', _astroCounselPaidGate('astro_relationship_deep', 30, '관계·끌림 심화 분석', '금성·화성·7하우스로 반복되는 관계 패턴과 끌림의 문을 엽니다.', relationshipHtml), '관계에서 반복되는 끌림과 거리감을 금성, 화성, 7하우스 세 문장으로 나누어 보세요.', 'astro-counsel-relationship')
+      + _astroCounselSection('과제와 변화: 토성·명왕성·해왕성', _astroCounselPaidGate('astro_growth_shadow_deep', 30, '과제와 변화 심화 리딩', '토성·명왕성·해왕성으로 오래 반복되는 과제와 회복 방향을 봅니다.', growthHtml), '반복해서 미뤄온 문제 하나를 고르고, 해결보다 먼저 15분 동안 관찰해보세요.', 'astro-counsel-growth')
       + '</div>';
     _astroCounselBindPaidGateObserver(area);
     _astroCounselApplyPaidGates();

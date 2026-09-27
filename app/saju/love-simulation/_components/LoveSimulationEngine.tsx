@@ -27,7 +27,7 @@ const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection
 
 const LOVE_SIMULATION_FEATURE_REASON = "LOVE CODE 사주 연애 시뮬레이션";
 const LEGACY_LOVE_CODE_RESUME_KINDS = ["loveSimulation"] as const;
-// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → love-code = 10,000원 영구 해금
+// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → love-code = 5,000원 영구 해금
 const LOVE_SIMULATION_PRICING = resolveServerFeaturePricing({ featureKey: LOVE_CODE_FEATURE_KEY });
 const LOVE_SIMULATION_FEATURE_COST = LOVE_SIMULATION_PRICING?.cost ?? 0;
 const LOVE_SIMULATION_FEATURE_AMOUNT_KRW = LOVE_SIMULATION_PRICING?.amountKRW ?? 0;
@@ -2213,7 +2213,7 @@ export const LoveSimulationEngine: React.FC = () => {
               <><strong className="block text-white">러브 코드 잠금 해제됨</strong>이미 구매한 기능이에요. 계속 이용할 수 있어요.</>
             ) : null}
             {loveCodeAccess.state === "locked" ? (
-              <><strong className="block text-white">러브 코드 잠금 해제</strong>1회 10,000원 결제로 계속 이용할 수 있어요.</>
+              <><strong className="block text-white">러브 코드 잠금 해제</strong>1회 5,000원 결제로 계속 이용할 수 있어요.</>
             ) : null}
             {loveCodeAccess.state === "error" ? "러브 코드 이용권을 다시 확인하고 있어요..." : null}
           </div>
@@ -2327,7 +2327,7 @@ export const LoveSimulationEngine: React.FC = () => {
                               {loveCodeAccess.state === "unlocked"
                                 ? "러브 코드 이용하기"
                                 : loveCodeAccess.state === "locked"
-                                  ? "러브 코드 잠금 해제 (10,000원)"
+                                  ? "러브 코드 잠금 해제 (5,000원)"
                                   : loveCodeAccess.state === "error"
                                     ? "러브 코드 이용권 다시 확인"
                                     : "러브 코드 이용권 확인 중"}

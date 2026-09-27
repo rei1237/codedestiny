@@ -98,9 +98,9 @@ function repairEnglishValue(key, value) {
   const exact = {
     "home.music.hint": "♪ 123 moonlit tracks",
     "home.startCards.freeBadge": "Collection No. {index} · Free",
-    "home.tiles.animalFacePrice": "Free · Compatibility KRW 5,000",
+    "home.tiles.animalFacePrice": "Free · Compatibility KRW 3,000",
     "home.tiles.palmMapMeta": "AI palm reading · Eastern palmistry · Destiny map",
-    "home.tiles.cosmicSoulPrice": "30 min KRW 10,000 · 60 min KRW 20,000",
+    "home.tiles.cosmicSoulPrice": "30 min KRW 5,000 · 60 min KRW 10,000",
     "home.passMini.standardPrice": "30 days · KRW 14,900",
     "home.passMini.premiumPrice": "30 days · KRW 39,900",
     "home.passMini.vvipPrice": "30 days · KRW 79,900",

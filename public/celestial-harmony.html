@@ -9,7 +9,7 @@
   <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
   <script src="/js/core/checkout-entry.js?v=build-e0884752af77"></script>
   <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-  <script src="/js/destiny-profile.js?v=build-67b5642694e8"></script>
+  <script src="/js/destiny-profile.js?v=build-2363e7c0a364"></script>
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -891,7 +891,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           <div class="premium-status-panel" id="premiumStatusPanel" aria-live="polite">
             <div class="premium-status-row">
               <span class="premium-chip" id="premiumChip">카드 대기</span>
-              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">10,000원</strong> · 별빛 통합 오라클이 열립니다.</span>
+              <span style="font-size:.72rem;color:rgba(255,255,255,.64);">11행성 심층 리딩 <strong style="color:rgba(253,230,138,.95);">5,000원</strong> · 별빛 통합 오라클이 열립니다.</span>
             </div>
             <div id="premiumStatusText" style="font-size:.78rem;color:rgba(255,255,255,.78);line-height:1.5;">행성 자리를 먼저 펼친 뒤, 별빛 통합 오라클을 열 수 있습니다.</div>
             <button id="resumeStoredReading" type="button" class="cosmic-btn cosmic-btn--read" hidden>저장된 리딩 이어서 열기</button>
@@ -902,7 +902,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
               <div class="premium-step" data-step="complete"><div class="premium-step__k">4단계</div><div class="premium-step__v">리딩 완성</div></div>
             </div>
           </div>
-          <p class="hero-disclaimer">&#x1F4AB; 1회 10,000원으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
+          <p class="hero-disclaimer">&#x1F4AB; 1회 5,000원으로 11행성 전체 리딩과 별빛 통합 오라클을 엽니다.</p>
         </div>
       </div>
     </section>
@@ -1015,7 +1015,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     window.addEventListener('cd:auth-changed',accountChanged);
     window.addEventListener('storage',function(event){if(event.key==='fortune_auth_user')accountChanged();});
     var FEATURE_KEY='tarot-celestial-harmony';
-    var COIN_COST=100;
+    var COIN_COST=50;
     var spread=[];
     var goldenCard=null;
     var currentReportId='';

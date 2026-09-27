@@ -2742,8 +2742,8 @@
   }
 
   var TETOGEN_DEEP_REPORT_FEATURE_KEY = 'tetogen_deep_report';
-  var TETOGEN_DEEP_REPORT_COST = 100;
-  var TETOGEN_DEEP_REPORT_KRW = 10000;
+  var TETOGEN_DEEP_REPORT_COST = 50;
+  var TETOGEN_DEEP_REPORT_KRW = 5000;
 
   function isTetogenDeepReportUnlocked() {
     try {
@@ -2839,7 +2839,7 @@
       + '</div>'
       + '<ul class="tetogen-premium-gate__list">' + teaserItems + '</ul>'
       + '<div class="tetogen-premium-gate__action">'
-      + '<strong>10,000원</strong>'
+      + '<strong>5,000원</strong>'
       + '<button type="button" class="tetogen-premium-gate__cta" data-tetogen-unlock="1">' + (unlocked ? '상세 리포트 열림' : '상세 리포트 열기') + '</button>'
       + '<small data-tetogen-status>' + (unlocked ? '이미 열린 흐름입니다.' : '결제 후 남은 해석이 펼쳐집니다.') + '</small>'
       + '</div>'

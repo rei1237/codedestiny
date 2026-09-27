@@ -190,7 +190,7 @@ check(
 
 const compatBtn = compat && [...compat.querySelectorAll("button")].find((b) => (b.getAttribute("onclick") || "").includes("_runZwCompatibility"));
 ok("궁합 실행 버튼이 회당 게이트를 탄다", !!compatBtn);
-ok("궁합 카드가 금액을 원화로 보여준다", !!(compat && compat.textContent.includes("5,000원")), compat ? compat.textContent.slice(0, 120) : "");
+ok("궁합 카드가 금액을 원화로 보여준다", !!(compat && compat.textContent.includes("3,000원")), compat ? compat.textContent.slice(0, 120) : "");
 ok("궁합 카드에 코인 단위를 노출하지 않는다", !!compat && !/\d+\s*코인/.test(compat.textContent));
 
 // 결제 경로 자체는 소스로 고정한다 — 렌더 결과만으로는 "게이트를 우회하는 다른 길이 생겼는지"를 못 본다.
@@ -221,7 +221,7 @@ ok(
 );
 ok(
   "가격 상수는 한 곳에서만 정의된다",
-  engineSrc.split("var ZW_COMPAT_COST").length - 1 === 1 && /var ZW_COMPAT_COST = 50;/.test(engineSrc),
+  engineSrc.split("var ZW_COMPAT_COST").length - 1 === 1 && /var ZW_COMPAT_COST = 30;/.test(engineSrc),
 );
 
 // ── 결과 ────────────────────────────────────────────────────────────────────

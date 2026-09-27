@@ -168,9 +168,9 @@
   //    지금은 달·아치문·별밭을 전부 CSS 로 그린다. 기법의 정본은 styles/cosmic-main.css 의 .moon-hero.
   //    사진을 다시 깔지 말 것 — verify:past-life-face 가 막는다.
 
-  // 정본은 worker/lib/paid-feature-registry.js 의 physiognomy-pastlife-compatibility (cost: 50 = 5,000원).
+  // 정본은 worker/lib/paid-feature-registry.js 의 physiognomy-pastlife-compatibility (cost: 30 = 3,000원).
   // featureKey 는 결제 게이트 호출부에 리터럴로 둔다 — verify:paid-feature-billing-policy 가 리터럴을 찾는다.
-  const PLF_COMPAT_COIN_COST = 50;
+  const PLF_COMPAT_COIN_COST = 30;
   const PLF_SHARE_CONTENT_ID = 'pastlifeface';
 
   // 순차 공개의 긴장감은 이 티커가 맡는다 — 결과 화면은 공유 카드가 캡처 대상이라
@@ -3337,11 +3337,11 @@
    * mode:'compat' 은 이 모달 안의 기존 유료 게이트, 나머지는 외부 이동이라 모달을 먼저 닫는다.
    */
   const PLF_DEEPER_CTAS = [
-    { mode: 'compat', emoji: '🌘', title: '전생의 인연', desc: '전생에 나와 이 사람은 어떤 사이였을까?', price: '5,000원' },
+    { mode: 'compat', emoji: '🌘', title: '전생의 인연', desc: '전생에 나와 이 사람은 어떤 사이였을까?', price: '3,000원' },
     { href: '/love-secret-ai', emoji: '💕', title: '전생의 사랑', desc: '전생부터 이어진 사랑의 방식이 궁금하다면', price: '30,000원' },
     { href: '/karma-destiny-ai', emoji: '⚖️', title: '전생의 업(業)', desc: '이번 생으로 넘어온 숙제를 깊게 풀어보기', price: '30,000원' },
     { href: '/destiny-island.html', emoji: '🏝️', title: '전생의 장소', desc: '내 운명의 지도 위에서 내 자리를 찾기', price: '무료' },
-    { href: '/?action=openSukuyoModal', emoji: '🔮', title: '전생의 인연도', desc: '생년월일로 보는 숙요 인연 레이더', price: '10,000원' }
+    { href: '/?action=openSukuyoModal', emoji: '🔮', title: '전생의 인연도', desc: '생년월일로 보는 숙요 인연 레이더', price: '3,000원' }
   ];
 
   function plfDeeperHtml() {

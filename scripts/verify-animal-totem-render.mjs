@@ -175,7 +175,7 @@ check("3개 의식 렌더", modeBtns.length === 3);
 check("아이콘이 서로 다름 (예전엔 3개 다 🌙)", new Set(modeBtns.map((b) => b.querySelector(".totem-mode-icon")?.textContent)).size === 3);
 check("각 의식에 '받는 것' 체크리스트", modeBtns.every((b) => b.querySelectorAll(".totem-mode-perks li").length >= 3));
 const prices = modeBtns.map((b) => b.querySelector(".totem-mode-price")?.textContent || "");
-check("1장·3장은 같은 가격, 5장은 더 비쌈", prices[0] === prices[1] && prices[2] !== prices[0]);
+check("1장·3장·5장은 같은 가격(등록소 30)", prices[0] === prices[1] && prices[2] === prices[0]);
 check("1장과 3장의 정체성이 다름", modeBtns[0].querySelector(".totem-mode-tagline").textContent !== modeBtns[1].querySelector(".totem-mode-tagline").textContent);
 
 console.log("\n[3] 결제 게이트 계약 · 카드 소환");
@@ -286,7 +286,7 @@ window.setAnimalTotemSpreadMode("five");
 window.drawAnimalTotemSpread();
 await sleep(60);
 check("5장 모드 featureKey = animal-totem-deep", gateCalls[0]?.opts?.featureKey === "animal-totem-deep");
-check("5장 모드 cost = 50", gateCalls[0]?.cost === 50);
+check("5장 모드 cost = 30", gateCalls[0]?.cost === 30);
 check("5장 렌더", $$(".totem-draw-card").length === 5);
 
 for (let i = 0; i < 5; i += 1) {

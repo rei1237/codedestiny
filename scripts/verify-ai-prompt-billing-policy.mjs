@@ -151,8 +151,8 @@ assert.match(sajuAIGateSource, /allowedPaymentModes:\s*allowedPaymentModes/, "sa
 assert.match(sajuAIGateSource, /disablePassChoice:\s*opts\.disablePassChoice === true/, "saju prompt gate must support direct-only pass choice disabling");
 assert.match(sajuAIGateSource, /code:\s*'PAYMENT_GATE_UNAVAILABLE'/, "saju prompt gate fallback must fail safe (surface gate-unavailable, never silently charge) when the standard paid service gate module is missing");
 assert.match(sajuPromptRequestSource, /featureKey:\s*'saju_ai_prompt_generator'/, "saju question prompt must use the 1514371 feature key");
-assert.match(sajuPromptRequestSource, /cost:\s*200/, "saju prompt must charge 200 coins for the 20,000 KRW result");
-assert.match(sajuPromptRequestSource, /amountKrw:\s*20000/, "saju prompt must pass the 20,000 KRW amount");
+assert.match(sajuPromptRequestSource, /cost:\s*100/, "saju prompt must charge 100 coins for the 10,000 KRW result");
+assert.match(sajuPromptRequestSource, /amountKrw:\s*10000/, "saju prompt must pass the 10,000 KRW amount");
 // 🔴 셸의 결제 성공 검증(_cdHasVerifiedServerAccess / _cdHasVerifiedMonthlyConsumption)은 클라이언트가
 // 들고 있는 featureKey 와 서버가 정규화해 돌려준 featureKey 를 _cdServerAccessFeatureMatches 로 비교한다.
 // 서버 alias 표(PAID_FEATURE_KEY_ALIASES)에 있는 AI 프롬프트 쌍이 셸 alias 맵에 없으면, 차감이 끝난 뒤
@@ -206,7 +206,7 @@ assert.match(aiPromptPassPayloadSource, /accessType === 'family'/, "AI prompt ga
 assert.match(aiPromptPassPayloadSource, /accessType === 'family_pass'/, "AI prompt gate evidence must classify family_pass as pass evidence");
 assert.match(aiPromptPassPayloadSource, /accessMethod === 'FAMILY'/, "AI prompt gate evidence must classify FAMILY accessMethod as pass evidence");
 assert.match(sajuEngineSource, /freeBySubscription:\s*passAccess \|\|/, "AI prompt gate evidence must mark FAMILY/pass payloads as freeBySubscription before generation POST");
-assert.match(sajuPromptCardSource, /var sajuAiAmountKrw = 20000;/, "saju AI consultation card must derive its displayed price from the existing 20,000 KRW amount");
+assert.match(sajuPromptCardSource, /var sajuAiAmountKrw = 10000;/, "saju AI consultation card must derive its displayed price from the existing 10,000 KRW amount");
 assert.match(sajuPromptCardSource, /1회 ' \+ sajuAiPriceLabel/, "saju AI consultation card must show the one-time KRW price");
 assert.match(sajuPromptCardSource, /sajuAiPriceLabel \+ '으로 사주 AI 상담 받기<\/button>'/, "saju AI consultation CTA must show the KRW price");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");

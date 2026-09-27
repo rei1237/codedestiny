@@ -196,7 +196,7 @@ test("the CTA opens the gate for that year with no pre-check round trip", async 
     assert.equal(env.state.gateCalls.length, 1);
     assert.equal(env.state.gateCalls[0].featureKey, "sukyo_yearly_fortune_unlock");
     assert.equal(env.state.gateCalls[0].contentKey, "sukyo_yearly_fortune_unlock:2026");
-    assert.equal(env.state.gateCalls[0].amountKrw, 10000);
+    assert.equal(env.state.gateCalls[0].amountKrw, 5000);
     assert.ok(env.cta(), "cancelling leaves the CTA in place");
   } finally {
     env.restore();

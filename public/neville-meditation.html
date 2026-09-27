@@ -8,7 +8,7 @@
   <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
   <script src="/js/core/checkout-entry.js?v=build-e0884752af77"></script>
   <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-  <script src="/js/destiny-profile.js?v=build-67b5642694e8"></script>
+  <script src="/js/destiny-profile.js?v=build-2363e7c0a364"></script>
 <style>
     :root {
       --bg: #02030E;
@@ -759,7 +759,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div class="card-corner"></div>
       <div class="card-dur">60<span>분</span></div>
       <div class="card-title">마스터 명상<br>의식의 완전한 재편</div>
-      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스<br>이용료: 5,000원</div>
+      <div class="card-desc">의식의 층위를 가장 깊은 곳까지<br>안내하는 완전한 마스터 코스<br>이용료: 3,000원</div>
       <div class="phase-dots">
         <div class="phase-dot" style="background:#4A7C9E"></div>
         <div class="phase-dot" style="background:#7B5EA7;flex:3"></div>
@@ -1594,7 +1594,7 @@ async function startCourse(mins) {
   _sessionBootInFlight = true;
   _sessionBootStartedAt = Date.now();
   try {
-    var cost = Number(mins) >= 60 ? 50 : 30;
+    var cost = 30;
     // 결제 전에 고른 코스를 서술자로 굳혀 둔다 — 복귀 문서는 이 값 없이는 어느 코스였는지 모른다.
     var paid = await _consumeMeditationCoin(cost, 'openNevilleMeditationPage ' + mins + '분 코스', buildNevilleResumeDescriptor(mins));
     if (!paid) return;

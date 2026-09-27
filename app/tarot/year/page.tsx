@@ -43,7 +43,7 @@ export default function TarotYearLandingPage() {
         ogImage: META.image,
         landingPoints: [...META.featureList],
         seoText: "열두 장의 카드가 한 해의 핵심 주제와 월별 선택 기준, 분야별 흐름과 전환점을 차례로 비춥니다.",
-        valueGuideTitle: "1만원 상담에 담긴 내용",
+        valueGuideTitle: "5,000원 상담에 담긴 내용",
         valueSections: [
           { title: "한 해 전체를 하나의 흐름으로", body: "오늘의 기분만 보는 운세가 아니라 올해의 핵심 카드, 반복되는 주제, 강한 시기와 속도를 조절할 시기를 연결해 읽습니다." },
           { title: "12개월과 8개 분야의 구체적인 리딩", body: "매월 카드와 십이지신 상징을 함께 해석하고 금전·일·연애·건강·가족·성장·귀인·주의점을 분야별로 정리합니다." },

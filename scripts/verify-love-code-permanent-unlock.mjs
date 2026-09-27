@@ -62,7 +62,7 @@ check("React entry holds payment CTA until server revalidation and mobile resume
   assert.match(engine, /legacyKinds: LEGACY_LOVE_CODE_RESUME_KINDS/);
   assert.match(engine, /러브 코드 이용권을 확인하고 있어요/);
   assert.match(engine, /러브 코드 잠금 해제됨/);
-  assert.match(engine, /러브 코드 잠금 해제 \(10,000원\)/);
+  assert.match(engine, /러브 코드 잠금 해제 \(5,000원\)/);
 });
 
 for (const { name, fn } of checks) {

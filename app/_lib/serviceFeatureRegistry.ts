@@ -1116,7 +1116,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "The service classifies your question, recommends a matching spread, and once you draw your cards an AI writes an actual consultation result from the positions and orientations. The Oracle Prompt behind that consultation stays available for you to read too.",
       "heroImageAlt": "Tarot Oracle Consultation symbolic preview",
       "tags": ["Tarot", "AI Consultation", "Spread", "Oracle Reading"],
-      "highlights": ["Automatic question classification", "Library of 77 spreads", "3,000-10,000 KRW per session by card count · real AI consultation"],
+      "highlights": ["Automatic question classification", "Library of 77 spreads", "3,000-5,000 KRW per session by card count · real AI consultation"],
       "howItWorks": [
         {
           "title": "Ask your question",

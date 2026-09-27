@@ -816,8 +816,8 @@ var tarotReadingTimer = null;
 var tarotLifecycleToken = 0;
 var lastTarotMissingCategoryAlertAt = 0;
 var MYEONGRI_TAROT_THREE_CARD_FEATURE_KEY = 'tarot-myeongri-three-card';
-var MYEONGRI_TAROT_THREE_CARD_COST = 50;
-var MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW = 5000;
+var MYEONGRI_TAROT_THREE_CARD_COST = 30;
+var MYEONGRI_TAROT_THREE_CARD_AMOUNT_KRW = 3000;
 var MYEONGRI_TAROT_THREE_CARD_TITLE = '명리학 타로 3장 스프레드';
 var myeongriTarotThreeCardPaymentPending = false;
 
@@ -914,7 +914,7 @@ function requireMyeongriTarotThreeCardPayment(onGranted, resume) {
       return;
     }
     if (!result || result.status !== 'cancelled') {
-      window.alert('5,000원 결제가 끝나야 세 장의 흐름이 열립니다.');
+      window.alert('3,000원 결제가 끝나야 세 장의 흐름이 열립니다.');
     }
   }).catch(function(error) {
     _myeongriTarotRestoreFullscreen();
@@ -925,7 +925,7 @@ function requireMyeongriTarotThreeCardPayment(onGranted, resume) {
     window.__cdMyeongriTarotPaymentInFlight = false;
     if (finalBtn) {
       finalBtn.disabled = false;
-      finalBtn.textContent = originalText || '흐름 리딩 보기 · 5,000원';
+      finalBtn.textContent = originalText || '흐름 리딩 보기 · 3,000원';
     }
   });
   return true;
@@ -4997,7 +4997,7 @@ function renderTTest(p, natal, johu, pw) {
       button.addEventListener('click', function() {
         var feature = SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit
           ? SY_PAID_FEATURES.extremeTRelationshipCircuit
-          : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
+          : { key: 'extreme-t-relationship-circuit', cost: 30, reason: '극T 관계 회로 잠금 해제' };
         syRequirePaidSukuyoFeature(feature, function() {
           syMarkPaidSukuyoFeatureUnlocked(feature.key);
           renderTTest.apply(null, renderArgs);
@@ -5094,7 +5094,7 @@ function renderTTest(p, natal, johu, pw) {
 
       var tTestFeature = (SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit)
         ? SY_PAID_FEATURES.extremeTRelationshipCircuit
-        : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
+        : { key: 'extreme-t-relationship-circuit', cost: 30, reason: '극T 관계 회로 잠금 해제' };
       var hasExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(tTestFeature.key);
       var relationshipGateHtmlFromBuilder = '';
       if (!hasExtremeTRelationshipAccess) {
@@ -5584,7 +5584,7 @@ function renderTTest(p, natal, johu, pw) {
   var workMoneyHtml = renderSection('[현실 처리 능력] 감정보다 구조를 먼저 보는 생산형 두뇌', renderInfoRows(workMoneyRows), 'rgba(250,204,21,.24)');
   var fallbackExtremeTRelationshipFeature = (SY_PAID_FEATURES && SY_PAID_FEATURES.extremeTRelationshipCircuit)
     ? SY_PAID_FEATURES.extremeTRelationshipCircuit
-    : { key: 'extreme-t-relationship-circuit', cost: 50, reason: '극T 관계 회로 잠금 해제' };
+    : { key: 'extreme-t-relationship-circuit', cost: 30, reason: '극T 관계 회로 잠금 해제' };
   var hasFallbackExtremeTRelationshipAccess = syIsPaidSukuyoFeatureUnlocked(fallbackExtremeTRelationshipFeature.key);
   var fallbackRelationshipGateHtml = '';
   if (!hasFallbackExtremeTRelationshipAccess) {
@@ -6198,7 +6198,7 @@ function buildLottoRitualReport(state){
   var ritualSummary=(luckyColorMap[element]||luckyColorMap.water)+'을 곁에 두고, 복권은 정해둔 한도 안에서 소액으로만 즐기기';
   return {
     title:_sajuQuantumText("sq_5221_prop_title"),
-    priceCoins:50,
+    priceCoins:30,
     moneyCondition:{
       title:_sajuQuantumText("sq_5224_prop_title"),
       body:(moneyMoodMap[element]||moneyMoodMap.water)+' 용신/희신 축은 '+lottoElementText(state.primary)+'과 '+lottoElementText(state.secondary)+'로 짚습니다.',
@@ -6243,7 +6243,7 @@ function renderLottoRitualReport(state){
   area.innerHTML=
     '<section class="lr-wrap" aria-label="' + _sajuQuantumText("sq_5265_attr_aria_label") + '">'+
       '<div class="lr-head">'+
-        '<span class="lr-kicker">5,000원 디지털 리포트</span>'+
+        '<span class="lr-kicker">3,000원 디지털 리포트</span>'+
         '<h4>'+lottoEsc(report.title)+'</h4>'+
         '<p>더 좋은 번호가 아니라, 번호별 상징 해석과 이번 주 금전 루틴을 여는 달빛 리포트입니다.</p>'+
       '</div>'+
@@ -6605,9 +6605,9 @@ function renderLottoNumbers(natal, bazi){
           '<span>더 좋은 번호가 아닌 더 깊은 리포트입니다</span>'+
           '<strong>달빛 럭키 리추얼 리포트</strong>'+
           '<p>번호별 상징 해석과 이번 주 금전 루틴을 확인해보세요.</p>'+
-          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="50">'+
+          '<button type="button" class="lc-ritual-cta-btn" data-action="openLottoRitualReport" data-tile-lock-key="'+LOTTO_RITUAL_FEATURE_KEY+'" data-tile-lock-cost="30">'+
             '<span class="tarot-tile__title">달빛 럭키 리추얼 리포트</span>'+
-            '<small>5,000원으로 달빛 럭키 리추얼 열기</small>'+
+            '<small>3,000원으로 달빛 럭키 리추얼 열기</small>'+
           '</button>'+
           '<em>구매 즉시 열람되는 디지털 콘텐츠이며, 복권 결과를 예측하거나 보장하지 않습니다.</em>'+
         '</div>'+
@@ -8277,14 +8277,14 @@ function syCanonicalEsc(value) {
 var SY_PAID_FEATURES = Object.freeze({
   // 레거시 — 인연 레이더는 전생 인연 리딩과 통합돼 pastLifeReading 키로 과금한다.
   // 과거 결제 이력과 서버 레지스트리 정합성을 위해 키 정의만 남긴다(UI 미사용).
-  relationshipRadar: { key: 'sukuyo-symbolic-comparison', cost: 50, reason: '숙요 인연 레이더' },
-  extremeTRelationshipCircuit: { key: 'sukuyo-extreme-t-relationship', cost: 50, reason: '극T 관계 회로 확장' },
-  relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 50, reason: '숙요 인연 도감' },
-  natureDeepDive: { key: 'sukuyo-nature-deep-dive', cost: 50, reason: '본성 심화 해석' },
-  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 100, reason: '숙요 인연 레이더' },
+  relationshipRadar: { key: 'sukuyo-symbolic-comparison', cost: 30, reason: '숙요 인연 레이더' },
+  extremeTRelationshipCircuit: { key: 'sukuyo-extreme-t-relationship', cost: 30, reason: '극T 관계 회로 확장' },
+  relationshipEncyclopedia: { key: 'sukuyo-relationship-encyclopedia', cost: 30, reason: '숙요 인연 도감' },
+  natureDeepDive: { key: 'sukuyo-nature-deep-dive', cost: 30, reason: '본성 심화 해석' },
+  pastLifeReading: { key: 'sukuyo-past-life-reading', cost: 50, reason: '숙요 인연 레이더' },
   monthlyFortune: { key: 'sukuyo-monthly-fortune', cost: 30, reason: '월별 숙요 운세 확장' },
-  compatibility: { key: 'compat-sukuyo-compatibility', cost: 50, reason: '숙요점 궁합 분석' },
-  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 50, reason: '숙요점 정밀 궁합 확장 분석' }
+  compatibility: { key: 'compat-sukuyo-compatibility', cost: 30, reason: '숙요점 궁합 분석' },
+  compatibilityPrecision: { key: 'premium-sukuyo-compat-extra', cost: 30, reason: '숙요점 정밀 궁합 확장 분석' }
 });
 
 function syResolveCurrentProfileIdForPaidGate() {
@@ -11656,11 +11656,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     html += `<div class="sy-card" id="sySoloAiConsultCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.18), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.32); box-shadow:0 20px 44px rgba(76,29,149,0.3); border-radius:14px; padding:18px 16px;">
       <div class="sy-sec-title" style="color:#ddd6fe;">🌙 월하의 숙요 AI 상담</div>
-      <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">궁금한 점을 입력하면 당신의 숙요(宿) 데이터를 바탕으로 맞춤 상담 답변을 바로 드립니다. (1회 10,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
+      <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">궁금한 점을 입력하면 당신의 숙요(宿) 데이터를 바탕으로 맞춤 상담 답변을 바로 드립니다. (1회 5,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
       <textarea data-sy-ai-question maxlength="1000" placeholder="예: 요즘 진로를 어떻게 잡아야 할지 고민이에요." style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
         <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
-        <span style="font-size:0.72rem;color:#e9d5ff;">1회 10,000원</span>
+        <span style="font-size:0.72rem;color:#e9d5ff;">1회 5,000원</span>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
         <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원 AI 상담 받기</button>
@@ -11696,7 +11696,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     try {
       var sySoloConsultCard = document.getElementById('sySoloAiConsultCard');
       if (sySoloConsultCard && typeof window.syBindSukuyoPromptComposer === 'function') {
-        window.syBindSukuyoPromptComposer(sySoloConsultCard, { preferCompatibility: false, freePrompt: false, generateLabel: '10,000원 AI 상담 받기' });
+        window.syBindSukuyoPromptComposer(sySoloConsultCard, { preferCompatibility: false, freePrompt: false, generateLabel: '5,000원 AI 상담 받기' });
       }
       var sySoloCompatBtn = sySoloConsultCard ? sySoloConsultCard.querySelector('[data-sy-open-compat]') : null;
       if (sySoloCompatBtn) {
@@ -15129,7 +15129,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;">' + keywords.map(function(key) { return '<span class="sy-paid-status">' + syCanonicalEsc(key) + '</span>'; }).join('') + '</div>'
         + '<p style="color:#fef3c7;">' + syCanonicalEsc(summary.name || '프로필') + ' · ' + syCanonicalEsc(summary.birthDate || '') + ' · ' + syCanonicalEsc(summary.gender || '') + ' · ' + syCanonicalEsc(summary.targetYear || '') + '년 · 본명숙 ' + syCanonicalEsc(summary['natal宿'] || '') + '</p>'
         + '<p>' + syCanonicalEsc((preview.totalFortunePreview && preview.totalFortunePreview.text) || '') + '</p>'
-        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 5,000원</button>'
         + '<p class="sy-lunar-note">해금은 선택한 프로필의 ' + syCanonicalEsc(summary.targetYear || '해당') + '년에만 적용됩니다.</p>'
       + '</div>'
       + '</div>'
@@ -15162,7 +15162,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       + '<div class="sy-month-lock-body">'
         + '<strong>' + syCanonicalEsc(targetYear) + '년 숙요점 1년운 전체 해석</strong>'
         + '<p>본명숙 기준 12개월 달빛 흐름과 사랑, 일, 금전, 건강운은 잠금 해제 후 열립니다.</p>'
-        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 5,000원</button>'
         + '<p class="sy-lunar-note">해금은 선택한 프로필의 ' + syCanonicalEsc(targetYear) + '년에만 적용됩니다.</p>'
       + '</div>'
       + '</div>';
@@ -15297,7 +15297,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       card.classList.toggle('is-locked', !isUnlocked);
     }
     if (status) {
-      status.textContent = label || (isUnlocked ? ('해금 완료 · ' + syCanonicalEsc(targetYear || '') + ' 전체 1년운') : '잠금 콘텐츠 · 10,000원');
+      status.textContent = label || (isUnlocked ? ('해금 완료 · ' + syCanonicalEsc(targetYear || '') + ' 전체 1년운') : '잠금 콘텐츠 · 5,000원');
       status.classList.toggle('is-unlocked', !!isUnlocked);
     }
   }
@@ -15400,7 +15400,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       card.classList.toggle('is-locked', !isUnlocked);
     }
     if (status) {
-      status.textContent = isUnlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 10,000원';
+      status.textContent = isUnlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 5,000원';
       status.classList.toggle('is-unlocked', !!isUnlocked);
     }
   }
@@ -15558,7 +15558,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           payload: payload
         });
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
-        if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 10,000원';
+        if (status) status.textContent = payload.unlocked ? '해금 완료 · 전체 1년운' : '잠금 콘텐츠 · 5,000원';
         target.innerHTML = payload.unlocked ? syRenderSukuyoYearlyFullV2(payload.result) : syRenderSukuyoYearlyLocked(payload);
         target.setAttribute('data-sy-yearly-rendered', hydrateKey);
         sySetSukuyoYearlyUnlockStateV2(!!payload.unlocked, targetYear);
@@ -15701,7 +15701,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     // 같은 형식이라 잃는 정보가 없다. state.contentKey 를 우선하면 직전 조회가 남긴 다른 연도의 키가
     // 그대로 실려, 사용자가 연도만 바꾸고 CTA 를 누를 때 엉뚱한 연도가 결제된다.
     var contentKey = syBuildSukuyoYearlyContentKey(targetYear);
-    var idleLabel = '숙요점 1년운 전체 해석 잠금 해제 · 10,000원';
+    var idleLabel = '숙요점 1년운 전체 해석 잠금 해제 · 5,000원';
     window._sySukuyoYearlyUnlockBusy = true;
     sySetSukuyoYearlyUnlockButtonLabel('숙요점 1년운을 열고 있어요.', true);
     // 🔴 featureKey 가 연도와 무관한 상수라, 셸의 단일비행 키(featureKey|title|cost|amount|profileId)가
@@ -15719,9 +15719,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       profileId: profileId,
       selectedProfileId: profileId,
       targetYear: targetYear,
-      coinPrice: 100,
-      cost: 100,
-      amountKrw: 10000,
+      coinPrice: 50,
+      cost: 50,
+      amountKrw: 5000,
       action: 'openSukuyoModal',
       resume: {
         kind: SY_YEARLY_RESUME_KIND,
@@ -15805,7 +15805,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           + '<h4>숙요점 1년운</h4>'
           + '<p class="sy-lunar-month-copy">원하는 연도를 직접 열어 본명숙의 12개월 달빛 흐름을 비춥니다.</p>'
         + '</div>'
-        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view aria-expanded="false" aria-controls="syYearlyFortuneContent" style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 10,000원</span></div>'
+        + '<div style="display:grid;gap:7px;justify-items:end;"><div style="display:flex;gap:6px;align-items:center;"><input data-sy-yearly-input type="number" inputmode="numeric" min="1900" max="2100" step="1" value="' + syCanonicalEsc(year) + '" aria-label="' + _sajuQuantumText("sq_12405_attr_aria_label") + '" style="width:98px;min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(2,6,23,.62);color:#fef3c7;padding:4px 10px;font-weight:900;"><button type="button" data-sy-yearly-view aria-expanded="false" aria-controls="syYearlyFortuneContent" style="min-height:34px;border-radius:999px;border:1px solid rgba(248,231,183,.42);background:rgba(248,231,183,.12);color:#fef3c7;padding:4px 11px;font-weight:900;">보기</button></div><span class="sy-paid-status" data-sy-monthly-status>잠금 콘텐츠 · 5,000원</span></div>'
       + '</div>'
       // 접힌 채로 시작한다. 비어 있는 것이 맞다 — 펼치기 전에는 조회도 결제도 하지 않으므로
       // 로딩 문구를 두면 아무 일도 안 하면서 무언가 기다리는 것처럼 보인다.
@@ -16705,7 +16705,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return syPromptGate({
       featureKey: 'sukuyo_ai_prompt_generator',
       reason: '숙요점 AI 상담',
-      cost: 100,
+      cost: 50,
       requestId: requestId,
       categoryKey: 'sukuyo',
       action: opts.action || 'openSukuyoModal',
@@ -16746,7 +16746,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var isLoading = false;
     var isFreePrompt = opts.freePrompt === true;
-    var generateLabel = opts.generateLabel || '10,000원 AI 상담 받기';
+    var generateLabel = opts.generateLabel || '5,000원 AI 상담 받기';
     var loadingLabel = opts.loadingLabel || 'AI 상담 생성 중...';
     // 카드 인스턴스마다 별도 보관소 — 솔로 카드와 궁합 카드가 증거를 공유하면 안 된다.
     var paidEvidenceStore = (typeof window !== 'undefined' && typeof window._cdAIPromptEvidenceStore === 'function')
@@ -16966,7 +16966,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
 
     updateCount();
-    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 5,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
   // 전역(renderSukuyo)에서 기본 프로필용 단독 상담 패널을 바인딩할 수 있도록 노출.
@@ -17907,10 +17907,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <div style="font-size:0.74rem;color:#fde68a;letter-spacing:0.08em;text-transform:uppercase;font-weight:900;margin-bottom:5px;">정밀 궁합 확장</div>
                   <div style="font-size:1rem;color:#fff7ed;font-weight:900;line-height:1.45;">목적별 리딩, 30일 타이밍, 위험·회복 루틴까지 더 깊게 엽니다.</div>
                 </div>
-                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">5,000원</span>
+                <span style="font-size:0.72rem;color:#fef3c7;border:1px solid rgba(251,191,36,0.34);background:rgba(251,191,36,0.1);padding:4px 9px;border-radius:999px;">3,000원</span>
               </div>
-              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 5,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
-              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 5,000원</button>
+              <p style="margin:0 0 10px;color:#fde68a;font-size:0.82rem;line-height:1.72;">기본 궁합 3,000원에서 드러난 관계 결 위로, 세부 시나리오와 회복 문장이 더 깊게 열립니다.</p>
+              <button type="button" data-sy-precision-unlock style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(251,191,36,0.46);background:rgba(251,191,36,0.16);color:#fef3c7;font-size:0.84rem;font-weight:900;cursor:pointer;">정밀 궁합 확장 열기 · 3,000원</button>
               <div data-sy-precision-content style="display:none;margin-top:12px;"></div>
               <div data-sy-precision-status style="margin-top:8px;color:#fde68a;font-size:0.76rem;line-height:1.6;"></div>
             </section>`;
@@ -18365,11 +18365,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
                 <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 상담</div>
-                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 반영한 상담 답변을 바로 드립니다. (1회 10,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
+                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 반영한 상담 답변을 바로 드립니다. (1회 5,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
                 <textarea data-sy-ai-question maxlength="1000" placeholder="${syCanonicalEsc(_sajuQuantumText("sq_14399_attr_placeholder"))}" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
-                  <span style="font-size:0.72rem;color:#e9d5ff;">1회 10,000원</span>
+                  <span style="font-size:0.72rem;color:#e9d5ff;">1회 5,000원</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
                   <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 AI 상담 받기</button>
@@ -18419,7 +18419,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           var compatAiPromptCard = rd.querySelector('#syCompatAiPromptCard');
           if (compatAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '10,000원 AI 상담 받기', freePrompt: false });
+            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '5,000원 AI 상담 받기', freePrompt: false });
           }
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약

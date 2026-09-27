@@ -727,7 +727,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         <div class="card-tag">// VERSION A</div>
         <div class="card-badge">HIGH EFFICIENCY</div>
         <div class="card-dur">30<span>min</span></div>
-        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 10,000원</div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 5,000원</div>
         <p class="card-title">효율 동기화 세션<br><em style="font-style:italic;color:var(--nebula);font-family:'Cormorant Garamond',serif">Efficiency Sync Protocol</em></p>
         <p class="card-desc">
           바쁜 일과 중 강력한 멘탈 튜닝.<br>
@@ -747,7 +747,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         <div class="card-tag">// VERSION B</div>
         <div class="card-badge" style="border-color:rgba(219,167,58,0.35);color:var(--gold)">DEEP DIVE</div>
         <div class="card-dur" style="color:var(--gold)">60<span>min</span></div>
-        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 20,000원</div>
+        <div class="card-tag" style="top:44px;border-color:rgba(219,167,58,0.35);color:var(--gold)">이용료 10,000원</div>
         <p class="card-title">심층 변형 세션<br><em style="font-style:italic;color:var(--gold);font-family:'Cormorant Garamond',serif">Deep Transformation Protocol</em></p>
         <p class="card-desc">
           자아 해체 → 양자 얽힘 → 완전한 현실 변형.<br>
@@ -908,7 +908,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
 <script src="/js/core/checkout-entry.js?v=build-e0884752af77"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-67b5642694e8"></script>
+<script src="/js/destiny-profile.js?v=build-2363e7c0a364"></script>
 <script>
 (function(){
 'use strict';
@@ -1593,7 +1593,7 @@ async function _startSession(mode){
   if(_sessionBootInFlight)return;
   _sessionBootInFlight=true;
   try{
-    var cost=mode==='60'?200:100;
+    var cost=mode==='60'?100:50;
     // 결제 전에 고른 코스를 서술자로 굳혀 둔다 — 복귀 문서는 이 값 없이는 어느 코스였는지 모른다.
     var paid=await _consumeMeditationCoin(cost,'openCosmicSoulMeditation '+mode+'분 코스',_buildCosmicResumeDescriptor(mode));
     if(!paid)return;

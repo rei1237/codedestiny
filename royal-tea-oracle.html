@@ -8,7 +8,7 @@
 <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
 <script src="/js/core/checkout-entry.js?v=build-e0884752af77"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-67b5642694e8"></script>
+<script src="/js/destiny-profile.js?v=build-2363e7c0a364"></script>
 <style>
 :root {
   --ebony: #0c1018;
@@ -2193,7 +2193,7 @@ function syncRoyalTeaBilling(payload) {
 }
 
 async function runRoyalTeaGate(resume) {
-  var COST = 50;
+  var COST = 30;
   var requestId = 'royal-tea:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   if (typeof window._cdCoinGatePerUse === 'function') {
     var granted = false;

@@ -54,7 +54,7 @@
     meditationCycleCount: 0,
     lightbox: null,
   };
-  var REUNION_COIN_COST = 50;
+  var REUNION_COIN_COST = 30;
   var REUNION_REASON = "재회운 타로 리딩";
   var REUNION_FEATURE_KEY = "tarot-reunion-reading";
   var TAROT_API_TIMEOUT_MS = 12000;
@@ -439,17 +439,6 @@
       if (window.__cdAdminBypass) return true;
     } catch (e2) {}
     return false;
-  }
-
-  function showCoinShortage(cost, reason) {
-    try {
-      if (typeof window.__cdOpenChargeModal === "function") {
-        window.alert("🪙 " + reason + "\n\n" + (Math.max(0, Number(cost || 0)) * 100).toLocaleString("ko-KR") + "원 단건 결제가 필요합니다.\n결제 상점을 엽니다.");
-        window.__cdOpenChargeModal();
-        return;
-      }
-    } catch (e) {}
-    window.location.href = "/points";
   }
 
   function consumeCoinDirect(cost, reason, featureKey, resume) {

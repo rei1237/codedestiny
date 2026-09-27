@@ -541,12 +541,12 @@ function _sibylText(key) {
         btn.disabled = false;
         return;
       }
-      btn.textContent = '⚡ EXECUTE DOMINATOR — 10,000원';
+      btn.textContent = '⚡ EXECUTE DOMINATOR — 5,000원';
       btn.disabled = false;
       return;
     }
 
-    btn.textContent = '⚡ EXECUTE DOMINATOR — 10,000원';
+    btn.textContent = '⚡ EXECUTE DOMINATOR — 5,000원';
     btn.disabled = false;
   }
 
@@ -3043,7 +3043,7 @@ function _sibylText(key) {
       + '위 데이터는 원국의 <strong>정적 구조 분석</strong>입니다. 실제 운명은 <strong>현재 어느 대운에 위치하는지</strong>에 따라 완전히 달라집니다. '
       + '<strong>10년 위험 계수 그래프</strong>, 직업 전환 최적 타이밍, 관계 리스크, '
       + '개운 처방전은 <em class="sb-nature-hl">DOMINATOR REPORT</em>에서만 열람됩니다.</p>'
-      + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (10,000원) 으로 전체 리포트 열람</div>'
+      + '<div class="sb-nature-cta-hint">▼ 하단 ⚡ EXECUTE DOMINATOR (5,000원) 으로 전체 리포트 열람</div>'
       + '</div>';
 
     return html;
@@ -3252,10 +3252,10 @@ function _sibylText(key) {
       + '<div class="sb-nature-block">'
       + '<div class="sb-nature-tag">■ ACTION GUIDE — 무료 실행 가이드</div>'
       + '<p class="sb-nature-body">' + overview.action + '</p>'
-      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 10,000원은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
+      + '<div class="sb-nature-row"><span class="sb-nature-key">유료와 구분</span><span class="sb-nature-val">무료는 요약/기본 지표, 5,000원은 10챕터 장문 리포트 잠금 해제 전용입니다.</span></div>'
       + '<ul class="sb-free-recovery-checklist">'
       + '<li>무료 결과는 기본 지표와 월별 우선순위를 지속 제공합니다.</li>'
-      + '<li>유료 10,000원은 도미네이터 10챕터 리포트 잠금 해제 전용입니다.</li>'
+      + '<li>유료 5,000원은 도미네이터 10챕터 리포트 잠금 해제 전용입니다.</li>'
       + '<li>복구 모드 해제 후 상세 계산 결과가 자동으로 갱신됩니다.</li>'
       + '</ul>'
       + '</div>';
@@ -3752,7 +3752,7 @@ function _sibylText(key) {
       if (!ready) return false;
       var paymentContext = {
         requestId: String((grant && grant.requestId) || ''),
-        pricing: { featureKey: SIBYL_FEATURE_KEY, cost: 100, reason: SIBYL_FEATURE_REASON },
+        pricing: { featureKey: SIBYL_FEATURE_KEY, cost: 50, reason: SIBYL_FEATURE_REASON },
         consumePayload: (grant && grant.payload && typeof grant.payload === 'object') ? grant.payload : {},
         bypass: false,
         // 🔴 환불 금지 표식이 아니라 재시도용 컨텍스트다 — 이 경로는 catch 에서 환불을 부르지 않는다.
@@ -3928,7 +3928,7 @@ function _sibylText(key) {
           requestId: _createRequestId('sibyl-admin-bypass'),
           pricing: {
             featureKey: SIBYL_FEATURE_KEY,
-            cost: 100,
+            cost: 50,
             reason: SIBYL_FEATURE_REASON
           },
           consumePayload: {}

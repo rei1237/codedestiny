@@ -10,7 +10,7 @@
 <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
 <script src="/js/core/checkout-entry.js?v=build-e0884752af77"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-67b5642694e8"></script>
+<script src="/js/destiny-profile.js?v=build-2363e7c0a364"></script>
 <script>
 window.tailwind = window.tailwind || {};
 window.tailwind.config = {
@@ -1229,7 +1229,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   </button>
 
   <div style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;">
-    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">🪙 7카드 커리어 전환 리딩 · 5,000원</span>
+    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.4);border-radius:20px;padding:5px 14px;font-size:11.5px;color:#e8c44a;font-weight:600;letter-spacing:0.5px;">7카드 커리어 전환 리딩 · 3,000원</span>
   </div>
 
   <p style="margin-top:12px;font-size:11px;color:rgba(200,185,220,0.3);letter-spacing:1px;">
@@ -1428,7 +1428,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   <div class="action-area">
     <div class="status-msg" id="statusMsg" role="status" aria-live="polite">카드를 한 장씩 열어 일의 기준을 확인하세요 ✦</div>
     <button class="btn-read" id="readBtn" onclick="getReading()" disabled>
-      <div>✦ &nbsp; 5,000원으로 커리어 리딩 열기 &nbsp; ✦</div>
+      <div>✦ &nbsp; 3,000원으로 커리어 리딩 열기 &nbsp; ✦</div>
       <div style="font-size:11px;font-weight:600;background:rgba(0,0,0,0.2);border-radius:12px;padding:2px 12px;margin-top:5px;letter-spacing:0.5px;">리딩이 열리지 않으면 자동 환불</div>
     </button>
     <button class="btn-reset" onclick="resetSpread()">↺ &nbsp; 카드 다시 정렬하기</button>
@@ -1495,7 +1495,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 <script>
 const TAROT_SPREAD_TYPE = 'job_change_seven_card';
 const TAROT_API_TIMEOUT_MS = 12000;
-const IJIK_COIN_COST = 50;
+const IJIK_COIN_COST = 30;
 
 let _ijikLastCoinTx = '';
 // 서버 리딩 라우트가 결제 증빙을 찾을 때 쓰는 열쇠. coin-gate 에 넘긴 값과 같아야 한다.

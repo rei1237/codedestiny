@@ -21,7 +21,7 @@
   var state = { cards: [], revealedCount: 0, reading: null, hasAccess: false, paymentInFlight: false, readingPromise: null, readingResult: null };
   // 리셋/모달 닫힘 이후 도착하는 늦은 draw·프리페치 응답이 새 세션을 덮지 않도록 하는 세대 카운터.
   var flowSeq = 0;
-  var LOVE_COIN_COST = 50;
+  var LOVE_COIN_COST = 30;
   var LOVE_REASON = "우리는 무슨 사이? 타로 리딩";
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
@@ -618,18 +618,6 @@
       if (FLOWER_ADMIN_TOKEN_RE.test(lTok)) return true;
     } catch (e3) {}
     return false;
-  }
-
-  function showCoinShortage(cost, reason) {
-    try {
-      if (typeof window.__cdOpenChargeModal === "function") {
-        var copy = getTarotLoveCopy();
-        window.alert("🪙 " + reason + "\n\n" + formatTarotLoveKrw(cost) + " " + copy.paymentRequired + "\n" + copy.openPayment);
-        window.__cdOpenChargeModal();
-        return;
-      }
-    } catch (e) {}
-    window.location.href = "/points";
   }
 
   function consumeCoinDirect(cost, reason, featureKey, resume) {

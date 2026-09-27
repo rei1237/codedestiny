@@ -2452,7 +2452,7 @@
       item.style.transition = 'opacity 220ms ease, transform 220ms ease';
       item.style.pointerEvents = 'auto';
       item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">PAYMENT NOTICE</strong>'
-        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + (amount * 100).toLocaleString('ko-KR') + '원</strong> 결제가 확인되었습니다.</span>';
+        + '<span>' + detail + ' 이용으로 <strong>' + (amount * 100).toLocaleString('ko-KR') + '원</strong> 결제가 확인되었습니다.</span>';
 
       root.appendChild(item);
       requestAnimationFrame(function() {
