@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-09-28
 next: "Phase 1 — 체계별 챕터 카탈로그 설계. 계획 모드로 시작하고, 설계 승인 전에는 코드를 바꾸지 않는다."
 ---
