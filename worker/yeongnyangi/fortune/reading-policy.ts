@@ -3,7 +3,8 @@ import type { DomainId, PackageId } from './shared/contracts';
 export const READING_VERSION = 'destiny-book-v4';
 export const READING_V5_VERSION = 'destiny-book-v5';
 export const READING_V6_VERSION = 'destiny-book-v6';
-export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION;
+export const READING_V7_VERSION = 'destiny-book-v7';
+export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION || version === READING_V7_VERSION;
 export const isStructuredReading = (version?: string) => version === READING_VERSION || hasReadingSections(version);
 export const PROMPT_VERSION = 'chapter-v4';
 export const readingPolicies = {
@@ -45,5 +46,7 @@ export const v6ReadingPolicies = {
   flounder: {...readingPolicies.flounder, minimum:18000, target:[23000,27500]},
   tuna: {...v5ReadingPolicies.tuna, minimum:40000, target:[49500,57000]},
 } as const;
+// v7 quotas are per chapter; a book's length is the manifest sum, so tier policies do not apply.
+export const v7ChapterPolicy = { minimum: 1400, target: [1800, 2200] } as const;
 export const policyForReading = (tier: PackageId, version?: string) =>
   version === READING_V6_VERSION ? v6ReadingPolicies[tier] : version === READING_V5_VERSION ? v5ReadingPolicies[tier] : readingPolicies[tier];
