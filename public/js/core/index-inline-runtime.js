@@ -3077,8 +3077,7 @@ function __cdBindCollectionToggleHydration() {
   // 모바일 카드 시스템(index.html mobile-card-system)은 열린 컬렉션의 카드를 뷰포트에 들어올 때마다
   // 뒤늦게 끼워 넣는다. 토글 때 한 번 도는 하이드레이션은 그 카드들을 못 보므로 여기서 카드 단위로 받는다.
   // 실행 시점에 아직 이미지가 없는 카드만 처리해 토글 하이드레이션과 겹치지 않게 한다.
-  document.addEventListener('cd:collection-cards-mounted', function(event) {
-    var cards = event && event.detail && event.detail.cards;
+  window.__cdHydrateMountedCollectionCards = function(cards) {
     if (!cards || !cards.length) return;
     __cdScheduleCollectionTask(function() {
       for (var i = 0; i < cards.length; i++) {
@@ -3093,7 +3092,7 @@ function __cdBindCollectionToggleHydration() {
         }
       }
     });
-  });
+  };
 }
 
 function __cdSchedulePromptSpotlightHydration() {

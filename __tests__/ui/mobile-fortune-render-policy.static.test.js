@@ -21,10 +21,10 @@ test("mobile fortune cards keep every collection card available", () => {
 
 test("late-mounted mobile collection cards still get their images", () => {
   const mountFn = shell.slice(shell.indexOf("function mountVisibleCollectionCards"), shell.indexOf("function mountCollectionPlaceholders"));
-  assert.match(mountFn, /cd:collection-cards-mounted/);
+  assert.match(mountFn, /window\.__cdHydrateMountedCollectionCards\(/);
   for (const twin of ["js/core/index-inline-runtime.js", "js/core/uiBindings.js"]) {
     const source = fs.readFileSync(path.join(root, twin), "utf8");
-    assert.match(source, /addEventListener\('cd:collection-cards-mounted'/, twin);
+    assert.match(source, /window\.__cdHydrateMountedCollectionCards = /, twin);
   }
 });
 

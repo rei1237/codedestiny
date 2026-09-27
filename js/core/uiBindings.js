@@ -662,8 +662,7 @@ function __bindCollectionToggleHydration(root) {
   });
   // 쌍둥이: index-inline-runtime.js __cdBindCollectionToggleHydration — 모바일 카드 시스템이 뒤늦게
   // 끼워 넣은 카드를 카드 단위로 하이드레이션한다. 실행 시점에 이미지가 없는 카드만 처리한다.
-  root.addEventListener('cd:collection-cards-mounted', (event) => {
-    const cards = event && event.detail && event.detail.cards;
+  window.__cdHydrateMountedCollectionCards = (cards) => {
     if (!cards || !cards.length) return;
     __scheduleCollectionTask(() => {
       Array.prototype.forEach.call(cards, (card) => {
@@ -673,7 +672,7 @@ function __bindCollectionToggleHydration(root) {
         if (needsImage) __hydrateCollectionImagesChunked(card, true);
       });
     });
-  });
+  };
 }
 
 function __schedulePromptSpotlightHydration(root) {
