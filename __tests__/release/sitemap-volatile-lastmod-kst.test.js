@@ -190,3 +190,11 @@ test("IndexNow는 UTC·KST 날짜와 지연 배포 모두 마지막 제출 이�
   assert.deepEqual(selectSubmissionDelta(deployed, deployed), []);
   assert.match(readSource(INDEXNOW), /selectSubmissionDelta\(current, previous, extra\)/);
 });
+
+// /today now embeds the weekly package, but its daily panel still refreshes daily.
+test("일일·주간 통합 화면은 목요일에도 KST 오늘 날짜를 유지한다", async () => {
+  const { createSitemapLastmodLedger } = await import(pathToFileURL(LEDGER_MODULE).href);
+  const { thursday } = pickProbeThursday();
+  const ledger = createSitemapLastmodLedger({ rootDir: root, today: UTC_DAY, volatileToday: thursday });
+  assert.equal(ledger.lastmodFor("/today/"), thursday);
+});

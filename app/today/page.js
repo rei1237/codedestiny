@@ -1,3 +1,7 @@
+import WeeklyFortune from "./WeeklyFortune";
+import { buildSignViewModel } from "@/lib/fortune/build-view";
+import { SIGN_PROFILES } from "@/lib/fortune/sign-profiles";
+import { getPeriodReading } from "@/lib/fortune/period-readings";
 import TodayHubClient from "./TodayHubClient";
 import TodayReadingGuide from "./TodayReadingGuide";
 import TodaySystemPrimer from "./TodaySystemPrimer";
@@ -57,7 +61,7 @@ export default function TodayLandingPage() {
       {/* 🔴 이 라우트는 몰입형(AppChrome.CHROMELESS_ROUTES)이라 SiteFooterHub 가 붙지 않는다.
           예전에 배포 게이트(1,800자)를 떠받치던 것이 그 푸터(실측 2,265자)였으므로,
           아래 두 서버 컴포넌트를 지우거나 줄이면 build:cf 의 verify-adsense-readiness 가 실패한다. */}
-      <TodayHubClient dailyTarotCards={TAROT_CARDS.filter(card => card.arcana === "major").map((card, id) => ({id, name:card.nameKo, image:buildImageCandidates(card.code)[0]}))}>
+      <TodayHubClient weeklyContent={<WeeklyFortune readings={SIGN_PROFILES.flatMap(profile => { const vm = buildSignViewModel(profile, "weekly"); return vm ? [{ id: profile.id, name: profile.nameKo, kind: profile.kind, range: vm.rangeLabel, narrative: vm.narrative, advice: getPeriodReading(profile.id, "weekly", profile.reading), days: vm.weekDays || [] }] : []; })} />} dailyTarotCards={TAROT_CARDS.filter(card => card.arcana === "major").map((card, id) => ({id, name:card.nameKo, image:buildImageCandidates(card.code)[0]}))}>
         <TodaySystemPrimer />
         <TodayReadingGuide />
       </TodayHubClient>
