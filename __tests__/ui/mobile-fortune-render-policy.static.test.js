@@ -19,6 +19,15 @@ test("mobile fortune cards keep every collection card available", () => {
   assert.match(shell, /coll\.querySelectorAll\('\.tarot-tile'\)\.length/);
 });
 
+test("late-mounted mobile collection cards still get their images", () => {
+  const mountFn = shell.slice(shell.indexOf("function mountVisibleCollectionCards"), shell.indexOf("function mountCollectionPlaceholders"));
+  assert.match(mountFn, /cd:collection-cards-mounted/);
+  for (const twin of ["js/core/index-inline-runtime.js", "js/core/uiBindings.js"]) {
+    const source = fs.readFileSync(path.join(root, twin), "utf8");
+    assert.match(source, /addEventListener\('cd:collection-cards-mounted'/, twin);
+  }
+});
+
 test("mobile tarot cards preserve physical ratio and keyboard access", () => {
   const tarot = fs.readFileSync(path.join(root, "tarot-ijik.html"), "utf8");
   assert.match(tarot, /\.card-wrap\s*\{[\s\S]*?aspect-ratio:\s*15\s*\/\s*26/);

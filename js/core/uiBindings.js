@@ -660,6 +660,20 @@ function __bindCollectionToggleHydration(root) {
       __scheduleCollectionToggleWork(collection, false);
     }
   });
+  // 쌍둥이: index-inline-runtime.js __cdBindCollectionToggleHydration — 모바일 카드 시스템이 뒤늦게
+  // 끼워 넣은 카드를 카드 단위로 하이드레이션한다. 실행 시점에 이미지가 없는 카드만 처리한다.
+  root.addEventListener('cd:collection-cards-mounted', (event) => {
+    const cards = event && event.detail && event.detail.cards;
+    if (!cards || !cards.length) return;
+    __scheduleCollectionTask(() => {
+      Array.prototype.forEach.call(cards, (card) => {
+        if (!card || !card.isConnected) return;
+        const wraps = card.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
+        const needsImage = Array.prototype.some.call(wraps, (wrap) => !wrap.querySelector('img.tarot-tile__img'));
+        if (needsImage) __hydrateCollectionImagesChunked(card, true);
+      });
+    });
+  });
 }
 
 function __schedulePromptSpotlightHydration(root) {
