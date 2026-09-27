@@ -27,7 +27,7 @@ export default function KakaoCrmPage() {
   const reportCosts=Object.fromEntries(COSTS.map(([k])=>[k,costs[k]?.trim()?Number(costs[k]):null])) as Record<typeof COSTS[number][0], number | null>;
   const profit=contribution(reportCosts);
   return <main className={styles.page}>
-    <h1>카카오 채널 CRM</h1><p>꿀꿀 운세 · 관리자 검토 후 카카오에서 예약 발송</p>
+    <h1>카카오 채널 CRM</h1><p>꿀꿀 운세 · 관리자 검토 후 카카오에서 예약 발송</p><p>검토 기록은 캠페인 ID 역순으로 최대 50개 표시합니다.</p>
     <p className={styles.notice}>자동 발송 API는 연결되지 않았습니다. 이 화면은 검토·중지 기록과 비용 정산을 관리합니다. 카카오 예약의 생성·중지는 관리자센터에서 직접 수행하세요.</p>
     <p><a href={`${CENTER}/welcome`} target="_blank" rel="noreferrer">웰컴 메시지</a> · <a href={`${CENTER}/new`} target="_blank" rel="noreferrer">카카오 메시지 작성</a> · <a href="https://business.kakao.com/space/10500173/channel/_GgxaGX/targetgroups/list" target="_blank" rel="noreferrer">친구 그룹</a></p>
     <div className={styles.workspace}><section><h2>메시지 소재</h2><label>소재 선택<select className={ADMIN_INPUT} value={creativeId} onChange={e=>setCreativeId(e.target.value)}>{CRM_CAMPAIGNS.map(c=><option key={c.id} value={c.id}>{c.title}{c.paid?' · 발송 보류':''}</option>)}</select></label>

@@ -7,7 +7,8 @@ import { CRM_CAMPAIGNS, campaignUrl, estimateCampaign, isCrmSendTime, contributi
 export async function handleAdminKakaoCrmRoutes(path, request, env, admin) {
   await connectDb(env);
   if (path === '/' && request.method === 'GET') {
-    const campaigns = await withMongoRetry(env, () => CrmCampaign.find({}).sort({ updatedAt: -1 }).limit(50).lean());
+    // Read at most 50 entries in the built-in _id index order; do not sort the whole collection in memory.
+    const campaigns = await withMongoRetry(env, () => CrmCampaign.find({ _id: { $gt: '' } }).sort({ _id: -1 }).limit(50).lean());
     return json({ campaigns, creatives: CRM_CAMPAIGNS.map(c => ({ ...c, url: campaignUrl(c.id) })), apiSendingEnabled: false });
   }
   if (request.method !== 'POST') return methodNotAllowed();
