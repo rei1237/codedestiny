@@ -14,6 +14,8 @@ function patch(doc,fields){for(const[key,value]of Object.entries(fields)){const 
 const model={
  findOne:filter=>{if(lost){lost=false;return query(null);}return query(docs.find(doc=>matches(doc,filter))||null);},
  findOneAndUpdate:(filter,update,options={})=>{
+  // Mongoose timestamps add $set.updatedAt to every update; MongoDB rejects the same path in $setOnInsert (code 40).
+  if(update.$setOnInsert&&'updatedAt'in update.$setOnInsert)throw Object.assign(Error('ConflictingUpdateOperators'),{code:40});
   if(fault&&(fault.metadata?Boolean(update.$set?.metadata):update.$set?.premiumStatus===fault.status)){const failure=fault;fault=null;if(failure.kind==='throw')throw Error('storage');if(failure.kind==='null')return query(null);if(failure.kind==='confirm')lost=true;}
   let doc=docs.find(doc=>matches(doc,filter));
   if(!doc&&options.upsert){doc={...clone(update.$setOnInsert),_id:'record'};docs.push(doc);}

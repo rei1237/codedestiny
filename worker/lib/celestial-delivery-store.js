@@ -57,7 +57,7 @@ export async function runCelestialDelivery(request,env,auth,supplied,{verify,leg
     const reading=buildReading(body,access);
     const snapshot={body:originalBody(body),reading,locale:getAmbientAiLocale()||"ko",prompt:buildPrompt(reading,body.goldenCard),delivery:{version:1,parts:{},attempts:{},invalidAttempts:{}},limited:false};
     try {
-      const inserted=await ServiceExecutionTransaction.findOneAndUpdate({userId:auth.userId,executionKey:id},{$setOnInsert:{userId:auth.userId,executionKey:id,featureKey:FEATURE,reportType:"celestialHarmony",reportId:body.reportId||"",sessionId:body.sessionId||"",idempotencyKey:body.requestId||"",status:"pending",premiumStatus:"generating",timeoutAt:new Date(now.getTime()+600000),retentionUntil:new Date(now.getTime()+90*86400000),metadata:{celestialDelivery:snapshot},lock:{token,until:new Date(now.getTime()+120000)},createdAt:now,updatedAt:now}},{upsert:true,returnDocument:"after"}).lean();
+      const inserted=await ServiceExecutionTransaction.findOneAndUpdate({userId:auth.userId,executionKey:id},{$setOnInsert:{userId:auth.userId,executionKey:id,featureKey:FEATURE,reportType:"celestialHarmony",reportId:body.reportId||"",sessionId:body.sessionId||"",idempotencyKey:body.requestId||"",status:"pending",premiumStatus:"generating",timeoutAt:new Date(now.getTime()+600000),retentionUntil:new Date(now.getTime()+90*86400000),metadata:{celestialDelivery:snapshot},lock:{token,until:new Date(now.getTime()+120000)},createdAt:now}},{upsert:true,returnDocument:"after"}).lean();
       if(!inserted)throw failure(id);
       stored=await findCelestialDelivery(env,auth.userId,id);
       if(!stored)throw failure(id);
