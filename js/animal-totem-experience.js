@@ -867,6 +867,7 @@
       var requestId = state.requestId;
       state.requestId = requestId;
 
+      await registerTotemPaidIntent(spec.featureKey);
       var immediate = global._cdCoinGatePerUse(
         spec.cost,
         spec.reason,
@@ -1098,11 +1099,25 @@
     }());
     deliveryFlight = flight; return flight;
   }
+  // 결제 전 의도 등록과 결제 뒤 요청이 같은 본문을 쓰도록 한 곳에서 만든다(서버가 두 본문을 비교한다).
+  function buildTotemNarrativeBody(engine) {
+    var payload = { mode: state.mode, requestId: state.requestId, question: state.question, cards: engine.buildReadingCards(state.spread) };
+    if (state.birthSeed) payload.birth = state.birthSeed;
+    return payload;
+  }
+  // 결제창 전에 결제 뒤 보낼 본문을 서버에 맡긴다(worker/lib/paid-narrative-intent.js) — 결제 뒤 창이 닫혀도
+  // 서버가 결제를 확인하면 이 본문으로 생성을 이어 간다. 응답은 쓰지 않고 1.5초 넘게 기다리지 않는다.
+  function registerTotemPaidIntent(featureKey) {
+    var engine = global.AnimalTotemContentEngine, sent;
+    if (!engine || !state.spread || !featureKey) return Promise.resolve();
+    var headers = { "Content-Type": "application/json" }, token = getAuthToken(); if (token) headers.Authorization = "Bearer " + token;
+    try { sent = fetch("/api/paid-narrative/intent?featureKey=" + encodeURIComponent(featureKey), { method: "POST", headers: headers, credentials: "include", keepalive: true, body: JSON.stringify(buildTotemNarrativeBody(engine)) }).catch(function() {}); } catch (_) { return Promise.resolve(); }
+    return Promise.race([sent, new Promise(function(resolve) { setTimeout(resolve, 1500); })]);
+  }
   function requestYeoniNarrative() {
     var engine = global.AnimalTotemContentEngine;
     if (!engine || !state.spread) return Promise.resolve(false);
-    var payload = { mode: state.mode, requestId: state.requestId, question: state.question, cards: engine.buildReadingCards(state.spread) };
-    if (state.birthSeed) payload.birth = state.birthSeed;
+    var payload = buildTotemNarrativeBody(engine);
     state.narrative = null; state.narrativeSource = "pending";
     state.delivery = { mode: state.mode, requestId: state.requestId, body: payload }; persistTotemDelivery();
     state.narrativePromise = continueTotemDelivery(payload); return state.narrativePromise;

@@ -6,6 +6,16 @@ export type OracleDeliveryResponse = {
   reading?: unknown; deliverySections?: { key: string; title: string; body: string }[];
 };
 
+// Before checkout, send the exact first POST body through the same authFetch (its locale rewrite included) so
+// the server keeps it as a payment intent (worker/lib/paid-narrative-intent.js): a page that dies after payment
+// still leaves the server its input. The reply is unused and checkout never waits more than 1.5 s for it.
+export function registerPaidNarrativeIntent(featureKey: string, body: Record<string, unknown>): Promise<void> {
+  const sent = import('./auth-client').then(({ authFetch }) => authFetch(`/api/paid-narrative/intent?featureKey=${encodeURIComponent(featureKey)}`, {
+    method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+  })).then(() => undefined, () => undefined);
+  return Promise.race([sent, new Promise<void>(resolve => setTimeout(resolve, 1500))]);
+}
+
 // Four bounded server calls run per wave; transport retries keep the same identity.
 export async function continueOracleDelivery({ body, fetcher, active, progress, endpoint = '/api/tarot/oracle-consultation', pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)) }: {
   body: Record<string, unknown>; fetcher: (url: string, init: RequestInit) => Promise<Response>;

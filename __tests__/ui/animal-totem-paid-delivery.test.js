@@ -61,12 +61,14 @@ test('account changes hide old content and prevent a late response from saving i
   assert.equal(env.win.localStorage.getItem('cd:animal-totem:v2:owner-b'), null); env.dom.window.close();
 });
 test('draw ticket passes the real resume sanitizer and re-sends the exact in-page reading body', async () => {
-  const capture = posts => async (_url, options) => {
+  const capture = (posts, intents = []) => async (url, options) => {
     if (options.method === 'GET') return reply(404, {});
-    const body = JSON.parse(options.body); posts.push(body);
+    const body = JSON.parse(options.body);
+    if (url.startsWith('/api/paid-narrative/intent?')) { intents.push(body); return reply(200, { ok: true, registered: true }); }
+    posts.push(body);
     return reply(200, { ...completed, requestId: body.requestId, mode: body.mode, cards: body.cards });
   };
-  const inPage = [], gates = [], first = setup(capture(inPage));
+  const inPage = [], intents = [], gates = [], first = setup(capture(inPage, intents));
   first.win.__cdCurrentDestinyProfile = { birthDate: '1990-05-17', birthTime: '07:30', gender: 'female', calendarType: 'solar' };
   first.win._cdCoinGatePerUse = (_cost, _reason, onPaid, _cancel, options) => { gates.push(options); onPaid('paid-id', {}); return { ok: true }; };
   await pause(); first.win.drawAnimalTotemSpread();
@@ -76,5 +78,7 @@ test('draw ticket passes the real resume sanitizer and re-sends the exact in-pag
   await pause();
   assert.equal(await back.win.__cdCheckoutEntry.runPaidResume(ticket, { requestId: inPage[0].requestId, merchantUid: 'paid-id', payload: {} }), true);
   assert.equal(inPage[0].birth.birthDate, '1990-05-17'); assert.ok(inPage[0].cards.length > 0);
-  assert.deepEqual(resumed[0], inPage[0]); back.dom.window.close();
+  assert.deepEqual(resumed[0], inPage[0]);
+  // 결제창 전에 맡긴 본문이 결제 뒤 풀이 본문과 달라지면 서버가 승격한 기록과 409 로 충돌한다.
+  assert.deepEqual(intents, [inPage[0]]); back.dom.window.close();
 });

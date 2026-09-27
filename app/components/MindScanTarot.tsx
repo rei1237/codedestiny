@@ -13,7 +13,7 @@ import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { continueOracleDelivery, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import { continueOracleDelivery, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
@@ -1693,6 +1693,7 @@ export default function MindScanTarot() {
         return;
       }
 
+      if (recoveryRef.current?.body.requestId === paidRequestIdRef.current) await registerPaidNarrativeIntent("tarot-mindscan", recoveryRef.current.body);
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-mindscan",
         cost: lookupServerCoinPrice("tarot-mindscan"),

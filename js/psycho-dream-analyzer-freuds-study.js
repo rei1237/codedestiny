@@ -759,6 +759,13 @@
     try { var response = await fetch(url, { method: body ? "POST" : "GET", headers: headers, credentials: "include", signal: controller.signal, body: payload ? JSON.stringify(payload) : undefined }); return { status: response.status, payload: await response.json() }; }
     finally { clearTimeout(timer); }
   }
+  // 결제창 전에 결제 뒤 보낼 본문을 서버에 맡긴다(worker/lib/paid-narrative-intent.js) — 결제 뒤 창이 닫혀도
+  // 서버가 결제를 확인하면 이 본문으로 생성을 이어 간다. 응답은 쓰지 않고 1.5초 넘게 기다리지 않는다.
+  function registerPaidIntent(body) {
+    var headers = { "Content-Type": "application/json" }, token = getAuthToken(); if (token) headers.Authorization = "Bearer " + token;
+    var sent; try { sent = fetch(getPsychoApiBase() + "/api/paid-narrative/intent?featureKey=dream-psycho-analysis", { method: "POST", headers: headers, credentials: "include", keepalive: true, body: JSON.stringify(body) }).catch(function() {}); } catch (_) { return Promise.resolve(); }
+    return Promise.race([sent, new Promise(function(resolve) { setTimeout(resolve, 1500); })]);
+  }
   function showPaidProgress(message, canRetry) {
     var host = $(RESULT_SCREEN_ID); if (!host) return;
     var progress = $("psychoPaidProgress"); if (!progress) { progress = document.createElement("div"); progress.id = "psychoPaidProgress"; host.prepend(progress); }
@@ -819,6 +826,7 @@
     var body = { requestId: "psycho-dream:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9), dreamText: dreamText };
     var epoch = paidEpoch, granted = false; state.uiLocked = true;
     try {
+      await registerPaidIntent(body);
       var result = await window._cdCoinGatePerUse(cost, psychoDreamText("reportMeta"), function() { granted = true; }, function() { granted = false; }, {
         featureKey: "dream-psycho-analysis", serviceKey: "dream-psycho-analysis", requestId: body.requestId,
         resume: { kind: "psycho-dream-analysis", action: "openPsychoDreamModal", args: body }

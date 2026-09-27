@@ -6,7 +6,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { continueOracleDelivery, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import { continueOracleDelivery, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../../hooks/usePaidResume";
 import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
@@ -3116,7 +3116,9 @@ export default function TarotPromptMakerPage() {
       }
       const requestId = buildOracleConsultationRequestId(oracleTierFeatureKey);
       const paidInputs = { spread: selectedSpread, category: selectedQuestionCategory, question: effectiveQuestion, cards: drawnCards };
-      rememberOracle(prepareOracle(requestId, paidInputs));
+      const prepared = prepareOracle(requestId, paidInputs);
+      rememberOracle(prepared);
+      await registerPaidNarrativeIntent(oracleTierFeatureKey, prepared.body);
       const paymentResult = await ensurePaidAccess({
         featureKey: oracleTierFeatureKey,
         cost: oracleTierCost,

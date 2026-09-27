@@ -10,7 +10,7 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { continueOracleDelivery, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import { continueOracleDelivery, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
 
 type DrawnCard = {
   cardId: string;
@@ -590,6 +590,7 @@ export default function LoveRelationshipTarot() {
         return;
       }
 
+      if (recoveryRef.current?.body.requestId === requestIdRef.current) await registerPaidNarrativeIntent("tarot-love-relationship", recoveryRef.current.body);
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-love-relationship",
         cost: lookupServerCoinPrice("tarot-love-relationship"),

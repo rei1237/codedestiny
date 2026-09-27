@@ -677,6 +677,7 @@ function apiFetch(path, options){
     body: init.body,
     credentials: "include",
     signal: init.signal,
+    keepalive: init.keepalive === true,
     cache: "no-store"
   }).then(function(res){
     return res.text().then(function(text){
@@ -1216,11 +1217,11 @@ function renderResult(){
 var _petPaidGateInFlight = Object.create(null);
 var PET_PAID_GATE_TTL_MS = 60000;
 
-function runPaidGate(spec, buildResume){
+function runPaidGate(spec, buildResume, extra){
   var inFlightKey = String(spec && spec.key || "pet-paid");
   var active = _petPaidGateInFlight[inFlightKey];
   if (active && (Date.now() - active.startedAt) < PET_PAID_GATE_TTL_MS) return active.promise;
-  var promise = runPaidGateOnce(spec, buildResume);
+  var promise = runPaidGateOnce(spec, buildResume, extra);
   _petPaidGateInFlight[inFlightKey] = { promise: promise, startedAt: Date.now() };
   var clear = function(){
     if (_petPaidGateInFlight[inFlightKey] && _petPaidGateInFlight[inFlightKey].promise === promise) {
@@ -1231,12 +1232,25 @@ function runPaidGate(spec, buildResume){
   return promise;
 }
 
-function runPaidGateOnce(spec, buildResume){
+/* 결제창을 열기 전에 결제 뒤 보낼 본문을 서버에 의도로 맡긴다 — 결제 뒤 창이 닫혀도 서버가 결제를
+   확인하면 이 본문으로 생성을 이어 간다(worker/lib/paid-narrative-intent.js). 응답은 쓰지 않고
+   1.5초 넘게 기다리지 않는다(keepalive 라 요청은 계속 간다). */
+function registerPetPaidIntent(featureKey, body){
+  var sent;
+  try {
+    sent = apiFetch("/api/paid-narrative/intent?featureKey=" + encodeURIComponent(featureKey), { method: "POST", body: JSON.stringify(body), keepalive: true }).catch(function(){});
+  } catch (_error) { return Promise.resolve(); }
+  return Promise.race([sent, new Promise(function(resolve){ setTimeout(resolve, 1500); })]);
+}
+
+function runPaidGateOnce(spec, buildResume, extra){
   var requestId = "pet-" + spec.key + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+  // 날짜도 결제 전에 굳힌다 — 결제 중 자정을 넘겨도 의도·복귀 서술자·결제 뒤 본문이 같은 date 를 쓴다.
+  var date = kstToday();
   // 🔴 모바일 PortOne 은 상위 프레임을 리다이렉트하므로 아래 게이트 프로미스가 문서와 함께 죽는다.
   // 서술자는 **게이트가 만든 이 requestId** 를 실어야 한다 — 복귀 문서가 다시 만들면 서버가 읽는
   // requestId 가 갈라져 같은 결제로 이어 붙지 못한다.
-  var resumeDescriptor = (typeof buildResume === "function") ? buildResume(requestId) : null;
+  var resumeDescriptor = (typeof buildResume === "function") ? buildResume(requestId, date) : null;
   var gatePayload = {
     categoryKey: "premium-consultation",
     featureKey: spec.key,
@@ -1261,13 +1275,14 @@ function runPaidGateOnce(spec, buildResume){
   if (typeof window._cdOpenPaidServiceGate !== "function") {
     return Promise.reject(new Error("GATE_UNAVAILABLE"));
   }
-  return new Promise(function(resolve, reject){
+  var intentBody = paidRequestBody({ requestId: requestId, date: date, evidence: {} }, extra || {});
+  return registerPetPaidIntent(spec.key, intentBody).then(function(){ return new Promise(function(resolve, reject){
     var settled = false;
     function finish(payload){
       if (settled) return;
       settled = true;
       var data = (payload && payload.data) || payload || {};
-      resolve({ requestId: requestId, evidence: data });
+      resolve({ requestId: requestId, date: date, evidence: data });
     }
     var gatePromise;
     try {
@@ -1291,13 +1306,13 @@ function runPaidGateOnce(spec, buildResume){
         else finish(payload);
       }).catch(reject);
     }
-  });
+  }); });
 }
 
 function paidRequestBody(gate, extra){
   var evidence = gate.evidence || {};
   var body = {
-    date: kstToday(),
+    date: /^\d{4}-\d{2}-\d{2}$/.test(String(gate.date || "")) ? gate.date : kstToday(),
     requestId: gate.requestId,
     transactionId: evidence.transactionId || evidence.purchaseId || "",
     purchaseId: evidence.purchaseId || evidence.transactionId || "",
@@ -1392,9 +1407,9 @@ function openReport(){
   if (!state.blueprint) { go("species"); return; }
   if (state.report) { renderReport(); go("report"); return; }
   showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
-  runPaidGate(PRICE.report, function(requestId){
-    return buildPetReportResumeDescriptor(requestId, state.profile);
-  }).then(function(gate){
+  runPaidGate(PRICE.report, function(requestId, date){
+    return buildPetReportResumeDescriptor(requestId, state.profile, date);
+  }, { pet: state.profile }).then(function(gate){
     return runPetReportCore(gate, state.profile);
   }).catch(function(error){ handlePaidFailure(error, openReport); });
 }
@@ -1526,9 +1541,9 @@ function openCompat(){
   var petB = state.pets[state.compatPick[1]];
   if (!petA || !petB) return;
   showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
-  runPaidGate(PRICE.compat, function(requestId){
-    return buildPetCompatResumeDescriptor(requestId, petA, petB);
-  }).then(function(gate){
+  runPaidGate(PRICE.compat, function(requestId, date){
+    return buildPetCompatResumeDescriptor(requestId, petA, petB, date);
+  }, { petA: petA, petB: petB }).then(function(gate){
     return runPetCompatCore(gate, petA, petB);
   }).catch(function(error){ handlePaidFailure(error, openCompat); });
 }
@@ -1555,31 +1570,31 @@ function petResumeParsePet(text){
   return parsed;
 }
 
-function buildPetReportResumeDescriptor(requestId, profile){
+function buildPetReportResumeDescriptor(requestId, profile, date){
   var id = String(requestId || "").trim();
   var pet = petResumePetText(profile);
   if (!id || !pet) return null;
   // 🔴 action 은 비운다 — 이 문서에 핸들러가 이미 등록돼 있고, 딥링크로 또 열면 이중 이동으로 재개가 날아간다.
-  return { kind: PET_REPORT_RESUME_KIND, action: "", args: { requestId: id, pet: pet } };
+  return { kind: PET_REPORT_RESUME_KIND, action: "", args: { requestId: id, pet: pet, date: String(date || "") } };
 }
-function buildPetCompatResumeDescriptor(requestId, petA, petB){
+function buildPetCompatResumeDescriptor(requestId, petA, petB, date){
   var id = String(requestId || "").trim();
   var a = petResumePetText(petA);
   var b = petResumePetText(petB);
   if (!id || !a || !b) return null;
-  return { kind: PET_COMPAT_RESUME_KIND, action: "", args: { requestId: id, petA: a, petB: b } };
+  return { kind: PET_COMPAT_RESUME_KIND, action: "", args: { requestId: id, petA: a, petB: b, date: String(date || "") } };
 }
 
 /* 인페이지에서 runPaidGateOnce 가 돌려주던 것과 **같은 모양**({requestId, evidence})을 만든다 —
    paidRequestBody 가 읽는 자리가 같아야 서버가 보는 결제 증빙이 갈라지지 않는다(원칙 6). */
-function buildPetResumeGate(grant, requestId){
+function buildPetResumeGate(grant, requestId, date){
   if (!grant || typeof grant !== "object") return null;
   var payload = (grant.payload && typeof grant.payload === "object") ? grant.payload : {};
   var evidence = (payload.data && typeof payload.data === "object") ? payload.data : payload;
   if (!evidence || typeof evidence !== "object") return null;
   var merged = Object.assign({}, evidence);
   if (!merged.transactionId) merged.transactionId = String(grant.merchantUid || grant.requestId || "");
-  return { requestId: requestId, evidence: merged };
+  return { requestId: requestId, date: date, evidence: merged };
 }
 
 function runPetReportResume(descriptor, grant){
@@ -1589,7 +1604,7 @@ function runPetReportResume(descriptor, grant){
   // 🔴 유효성 판정을 전역 대입보다 앞에 둔다. false 를 돌려주면 복귀 처리가 '지금 열기' 카드로
   // 떨어뜨린다(영수증은 그대로 남아 재클릭이 무료다).
   if (!requestId || !profile) return false;
-  var gate = buildPetResumeGate(grant, requestId);
+  var gate = buildPetResumeGate(grant, requestId, args.date);
   if (!gate) return false;
 
   state.profile = profile;
@@ -1604,7 +1619,7 @@ function runPetCompatResume(descriptor, grant){
   var petA = petResumeParsePet(args.petA);
   var petB = petResumeParsePet(args.petB);
   if (!requestId || !petA || !petB) return false;
-  var gate = buildPetResumeGate(grant, requestId);
+  var gate = buildPetResumeGate(grant, requestId, args.date);
   if (!gate) return false;
   return runPetCompatCore(gate, petA, petB)
     .then(function(ok){ return ok !== false; })
