@@ -192,7 +192,7 @@ export default function Consultation(){
     {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>{inputCopy.supplementSaved}</p>}
     {kind.partner&&<label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
     </div>}
-    {jongCheck&&<section className={styles.jongCheck} aria-label={jongCopy.heading} lang={locale}><h2>{jongCopy.heading}</h2><p>{jongCopy.intro}</p>
+    {jongCheck&&<section className={styles.jongCheck} aria-label={jongCopy.heading} lang={locale}><h2>{jongCopy.heading}</h2><p>{jongCheck.kind==='strength'?jongCopy.strengthIntro:jongCopy.intro}</p>
     {(['best','worst'] as const).map(side=><fieldset key={side} disabled={busy}><legend>{jongCopy[side]}</legend><p className={styles.jongYears}>{jongCheck[side].map((y,i)=><span key={y.year}>{i>0&&' · '}<span className={styles.jongYear}>{jongCopy.year(y.year,y.ganji)}</span></span>)}</p>
      <div className={styles.jongReplies}>{(['yes','no','unsure'] as const).map(reply=><label key={reply}><input type="radio" name={`jong-${side}`} value={reply} checked={jongReply[side]===reply} onChange={()=>setJongReply(prev=>({...prev,[side]:reply}))}/>{jongCopy[reply]}</label>)}</div>
     </fieldset>)}
