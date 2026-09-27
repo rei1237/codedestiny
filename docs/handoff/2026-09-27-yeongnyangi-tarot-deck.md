@@ -1,0 +1,551 @@
+---
+status: active
+updated: 2026-09-27
+next: "영냥이 타로 Phase 1(아트 디렉션)을 이 문서 「다음 작업 1」대로 진행하고, 보고 후 승인을 기다린다. 무료 원카드 F-1(데이터·로직)은 「다음 작업 2」대로 별도 세션에서 병행할 수 있다(동시에 쓰면 워크트리)."
+---
+
+# 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
+
+## 요구 (사용자 원문, 2026-09-27)
+
+사용자가 8-Phase 브리프 「영냥이 전용 타로 — 덱 제작 · 드로우 의식 · 티어별 마스터 상담 구현 프롬프트」를 붙여넣었다. 다음 세션은 붙여넣은 원문을 볼 수 없다. 그래서 원문 전체를 [2026-09-27-yeongnyangi-tarot-deck-brief.md](2026-09-27-yeongnyangi-tarot-deck-brief.md)에 한 글자도 고치지 않고 보존했다. 각 Phase 세션은 해당 줄 범위만 읽는다.
+
+| 원문 절 | 브리프 파일 줄 |
+|---|---|
+| 0. 역할과 목표 · 1. 절대 규칙 | 17–41 |
+| Phase 0 진단 (완료) | 42–63 |
+| Phase 1 아트 디렉션 (1-1~1-6) | 64–102 |
+| Phase 2 파일럿 5장 (생성 프로토콜 · 카드별 QA 체크리스트) | 103–127 |
+| Phase 3 전체 덱 (등장 규칙 · 메이저 콘셉트) | 128–171 |
+| Phase 4 에셋 파이프라인 · 덱 레지스트리 | 172–185 |
+| Phase 5 드로우 의식 UX | 186–215 |
+| Phase 6 마스터 상담 엔진 | 216–262 |
+| Phase 7 통합 검증 | 263–273 |
+
+핵심 원문:
+
+> **사주보는 고양이 영냥이**(러시안 블루 고양이 캐릭터, 생선 등급 요금제 고등어/연어/광어/참치)의 타로 상담을 다음과 같이 바꾼다.
+> 1. **흐름 변경**: 질문 → 상담이 아니라, **카드를 먼저 뽑고 → 공개 → 영냥이 상담** 순서로 진행한다.
+> 2. **드로우 의식 연출**: 셔플·선택·공개 전 과정에 신비로운 효과를 넣어 기대감을 끌어올린다.
+> 3. **영냥이 전용 78장 덱**: 현재 사용 중인 꿀꿀 운세 연이 타로 카드 에셋을 영냥이에서만 걷어내고, 이미지 생성 스킬로 **귀엽고 신비로운 영냥이 오리지널 덱 78장 + 카드 뒷면**을 직접 제작한다.
+> 4. **최고의 타로 마스터 상담**: 고등어부터 참치까지 티어별로 깊이가 분명히 다른, 상세하고 전문적인 상담을 제공한다.
+
+> **게이트 방식**: 각 Phase는 `진단/작업 → 구조화된 보고서 → 명시적 승인 대기`로 끝난다. 승인 없이 다음 Phase로 넘어가지 않는다.
+> **경로 추측 금지**: 파일 경로, 스킬 이름, 버킷 이름, 컬렉션 이름은 반드시 실제로 확인한 뒤 사용한다. 확인하지 못했으면 보고서에 "미확인"으로 적고 멈춘다.
+
+같은 날 추가 요청(원문):
+
+> 추가로 영냥이 타로는 원카드는 무료로 정적으로 생성해서 명리학 타로를 활용해서 재밌게 하루의 운세를 볼 수 있도록 해줘
+
+사용자 결정(선택지 원문):
+
+- 결제 시점과 드로우·공개 시점: "A. 결제 후 의식"
+- 새 덱의 영냥이 외형 기준: "저장소 정본 흰 고양이"
+- 티어 차등: "장수는 현행·해석 깊이로 차등"
+- 지금 영냥이 결과에 나오는 연이 찻집 덱(caretaro): "어차피 결제한 사람이 없어서 영냥이 타로 이미지로 바꿔도 좋을 것 같다"(직접 입력)
+- 무료 원카드 출시 시점: "메이저 22장 먼저 → 원카드 출시"
+- 무료 원카드 접근: "로그인 없이 누구나"
+- 명리 결합 방식: "입력 없이 한 번에"
+- Phase 0 보고서와 이 문서의 계획: 승인(2026-09-27)
+
+## 재개 정보
+
+- **기준 커밋**: `90aa6e10f`. Phase 0 실측 시점의 `main`이며 `origin/main`과 같았다.
+  - 아래 file:line 은 모두 이 커밋 기준 실측이다. 이후 커밋으로 줄이 밀렸을 수 있으니 인용 전에 다시 확인한다.
+- **이 세션에서 한 것**: 읽기 전용 진단, 그리고 이 문서와 브리프 원문 문서의 커밋.
+  - 코드·에셋·테스트 변경 0, 이미지 생성 0, 과금 LLM 호출 0.
+- **시작 점검**: `git branch --show-current`(→ `main`), `git status`, `git fetch origin main`, `git pull --ff-only`.
+- 🔴 **공유 체크아웃**: 이 세션 시점에 옆 세션의 미커밋 변경이 있었다.
+  - 목록: `marketing/HANDOFF.md`, `marketing/card-news/fortune-month01/**` 수정과 미추적 다수, `next-env.d.ts`, `.codex-consultation-shots/`.
+  - 남아 있으면 `reset --hard`·`stash`·`checkout --` 을 쓰지 않고, 경로를 지정해 add 한다.
+  - 쓰는 세션이 둘 이상이면 두 번째부터 `scripts/create-safe-worktree.ps1` 로 워크트리를 만든다.
+  - 옆 세션 미커밋 파일이 `check:fast` 를 critical 로 올리면, 내 파일만 커밋한 뒤 `npm run check:fast -- --committed-head` 로 검사한다.
+- **실패한 시도**: 없다(Phase 0 은 읽기 전용). `codex exec -i` 참조 입력이 반영되는지는 아직 시험하지 않았다. Phase 1 1단계에서 확인한다.
+- 근거를 못 찾으면 추측하지 않는다. "미확인"으로 적고 멈춘 뒤 묻는다(브리프 절대 규칙, 원칙 8).
+
+## 진행 순서 (단계마다 보고 → 명시적 승인 대기)
+
+| 단계 | 내용 | 선행 | 등급 · 권장 | 상태 |
+|---|---|---|---|---|
+| Phase 0 | 읽기 전용 진단 | — | — | 완료·승인 |
+| **Phase 1** | 스타일 바이블·캐릭터 시트·조연·슈트 모티프·뒷면 후보 3·프레임 SVG | Phase 0 | GREEN · 주력 / medium | **다음** |
+| **F-1** | 무료 원카드 데이터·로직(그림 불필요, UI 없음) | Phase 0 | GREEN · 주력 / medium | 대기(병행 가능) |
+| Phase 2 | 파일럿 5장 | Phase 1 승인 | GREEN · 주력 / medium | 대기 |
+| Phase 3a | 메이저 22장 | Phase 2 승인 | GREEN · 주력 / medium | 대기 |
+| Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, R2 운영 버킷 쓰기면 RED · 주력 / high | 대기 |
+| F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
+| Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 대기 |
+| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 대기 |
+| Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 대기 |
+| Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 대기 |
+| Phase 7 | 통합 검증·최종 보고 | 6 | RED · 주력 / high | 대기 |
+
+프로젝트 전체는 RED 다(결제 직후 흐름·상담 엔진·공유 표시 경로). 메이저 22장을 먼저 그리는 3a/4a 분할은 무료 원카드(§F)를 먼저 내보내기 위한 순서 변경이다.
+
+## 확정 결정
+
+### ① 결제 시점 vs 드로우 시점 → A. 결제 후 의식
+
+- **영향**: 결제 전 흐름·`prepareFortune`·결제 경로는 바꾸지 않는다. 의식은 결제 후 결과 화면(`Result.tsx`)에만 추가한다.
+- **공개 방식**: 사용자가 고른 자리에 서버가 이미 정한 카드를 위치 순서대로 공개한다. 고르는 동작은 상징이다.
+- **브리프 5-2 와의 차이**: 카드는 "선택 확정 순간"이 아니라 요청 생성 시점에 이미 정해진다. 그래도 서버·암호학적 난수·저장·재추첨 불가 요건은 모두 충족한다.
+- **전제(실측)**: 지금도 드로우는 결제 전 서버(prepare)에서 암호학적 난수로 확정·저장된다. 결제 전에는 숨겨지고, 재진입하면 같은 카드가 복원된다. 부채꼴에서 "고르는" 동작은 어느 안이든 상징적이다. 실물 타로에서 셔플이 카드를 정하는 것과 같다.
+
+검토 기록:
+
+| 안 | 순서 | 결제·코드 영향 | 어뷰징 | 전환·체감 |
+|---|---|---|---|---|
+| **A. 결제 후 의식 (채택)** | 질문·생선 → 결제(현행 그대로) → 결과 화면에서 집중·셔플·선택·공개 → 상담 | 결제 전 흐름·prepare·결제 경로 **무변경**. 의식은 결과 화면(결제 후)에만 추가 | 없음(카드 노출은 결제 후) | 결제 후 첫 챕터 대기(최대 90초)를 의식이 가려 체감 속도가 가장 좋다. 결제 전 유인 효과는 없음 |
+| B. 무료 드로우·공개 → 상담 결제 | 질문 → 의식·공개(무료) → 생선·결제 → 상담 | 결제 전 카드 공개 = `presentFortune` 경계 변경, 티어 독립 드로우 컬렉션 신설, 결제 요청에 드로우 연결(prepare·fingerprint 변경) | **큼**: 결제 포기 후 재제출로 원하는 카드가 나올 때까지 재추첨 가능 → 사용자·질문·일 단위 고정 등 방어 필요. 무료 타로(일일 3장)와 중복 | 결제 전 매몰 효과로 전환 기대. 단 90일 결제창 도달 20명 수준이라 전환 레버 효과는 작음(병목은 모수) |
+| C. 하이브리드 | 질문·생선 → 집중·셔플·선택(카드 뒷면) → 결제 → 공개 → 상담 | "선택 확정 = POST /requests" 로 현 드로우 시점과 정확히 일치, 공개 경계 무변경. 결제 전 화면(`Consultation.tsx`) 변경 | 없음(카드 숨김 유지) | 결제 전 기대감 형성. 단 PG 왕복(모바일·WebView)으로 의식이 끊기고, 같은 결제 전 입력 단계를 바꾸는 다른 세션의 종격 작업(`docs/handoff/2026-09-27-yeongnyangi-jong-verification.md`)과 순서 조정 필요 |
+
+A 를 고른 이유는 셋이다.
+- 결제·이용권 경계와 멱등 드로우를 그대로 재사용해 RED 면적이 가장 작다.
+- 결제 후 LLM 대기를 의식으로 가린다.
+- 다른 세션의 결제 전 작업과 충돌하지 않는다.
+
+A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적음).
+
+### ② 영냥이 외형 → 저장소 정본 흰 고양이
+
+- 브리프의 러시안 블루·블루그레이는 적용하지 않는다.
+- **외형**: 흰 장모, 남보라→금 그라데이션 눈, 짙은 남색 마법사 모자·망토(금장), 목줄 보석, 약 2등신. 기존 그림 100여 장·홈·결과 화면과 같은 고양이로 보이고, 브리프 1-2 "기존 자료를 기준으로"와도 맞는다.
+- **화풍**: 캐릭터 모델은 hero-800 셀 라인을 따른다. 카드 장면은 tarot-v5 처럼 페인터리하게 그리고, 브리프 1-1 의 수채 질감·글로우·별가루를 더한다.
+- 브리프대로 러시안 블루로 그리면 타로 덱만 다른 고양이처럼 보인다. 브랜드 전체 전환은 별도 대형 작업이다.
+
+### ③ 티어 차등 → 장수 현행(선택 3·사랑 6), 해석 깊이로 차등
+
+- 호스슈·켈틱 크로스는 신설하지 않는다.
+- 엔진 스프레드를 그대로 쓰므로 드로우·결제·의식 UI 가 티어와 무관해 단순하다.
+- 현 챕터 목차(§5)가 이미 티어별 누적 심화 구조다. 기법(정역·원소 균형·수비학·시선 흐름·상충 신호·대안 해석)을 목차에 배치하면 된다.
+- 참치 후속 질문(새 LLM 호출 비용)·조언 카드·주제 칩 6종·위기 안내 추가는 Phase 6 게이트에서 따로 결정한다.
+
+### ④ 영냥이 화면의 연이 덱(caretaro) → 영냥이 덱으로 전면 교체 (Phase 4b)
+
+- **해석**: 사용자 진술상 영냥이 타로 결제 이력이 없다(운영 DB 는 조회하지 않았다). 그래서 과거 결과 보호나 전환기 caretaro 유지가 필요 없다.
+- **교체 시점**: 카드 그림은 결제 후 결과에서만 보이므로 지금 노출은 0 이다. 78장이 모두 갖춰지는 4b 에서 조회 함수를 영냥이 덱으로 바꾸고 과거 결과까지 통일한다. 폴백은 영냥이 뒷면이다.
+- 한 리딩 안에 두 덱이 섞이지 않도록 22장만 있는 4a 에서는 유료 결과를 바꾸지 않는다.
+
+## 브리프 ↔ 저장소 규칙 충돌 해소 (코딩 원칙 14)
+
+| 붙여넣은 브리프 | 저장소 정본 | 해소 |
+|---|---|---|
+| 전용 브랜치 `feat/youngnyangee-tarot-deck` | CLAUDE.md 절대 규칙 3 · 09-12 전달 흐름: main 직접, 브랜치·PR 없음 | main 직접 + 작은 커밋 |
+| 폐기 코드는 `_graveyard/` 격리 | `docs/context/reference-basics.md:36` "죽은 코드는 격리하지 말고 지운다" | 격리 디렉터리를 만들지 않음(연이 덱은 어차피 보존) |
+| `youngnyangee` 표기 | 저장소 표기 `yeongnyangi` | `yeongnyangi` 사용 |
+| 프롬프트 원장 `prompts/tarot/youngnyangee/<cardId>.json` | 기존 `docs/design/*.jsonl` + `save-fortune-art.mjs` 패턴 | 기존 패턴 재사용(새 jsonl) |
+| 6-5 샘플 상담 10질문×4티어 = 40회 실생성 | 절대 규칙 1: 과금 LLM 검증 금지, 실호출은 정확한 1회 승인 | mock 구조 평가 기본, 실호출은 건수 명시 1회 승인 |
+| 6-4 "티어별 최소 분량 미충족 → 재생성/축약" | 원칙 17: 분량 미달은 단독 실패 사유가 아님 | 분량은 목표만, 하한 ≤ 0.8×목표, 미달로 거부 금지 |
+| 연출: 파티클 캔버스·효과 | `design-and-ui.md:22`: 애니메이션은 Tailwind 클래스(기존 framer-motion 허용), 신규 라이브러리 지양. UI 작업은 `impeccable` 스킬 | 신규 라이브러리 없이 구현 |
+| 서두 "러시안 블루"·1-2 "털색(블루그레이)" | 저장소 정본 흰 고양이(§8 실측) | 결정 ② |
+| 5-2 "선택 확정 순간 서버 드로우" | 현 드로우는 요청 준비(prepare) 시점(§3) | 결정 ① |
+| 6-2 티어별 장수(1·3 / 3~5 / 7 / 10+1~2) | 엔진 스프레드: 선택 3·사랑 6(§5) | 결정 ③ |
+| `codex-image` 스킬 "생성 이미지는 반드시 Read 로 표시" | 이미지는 메인 세션에서 Read 하지 않고 `visual-checker` 에이전트로 판정 | 저장소 규칙 우선 |
+
+## Phase 0 진단 (실측, `90aa6e10f`)
+
+### 1. 영냥이 타로 현재 흐름
+
+- **진입**: `app/yeongnyangi/_original/domain-registry.ts:120-134` → `/yeongnyangi/fortune/?domain=tarot&fish=mackerel`. 그 밖에 `1000-won-fortune/page.tsx:185`, `home-data.ts:18-22`, `topics.ts:5`.
+  - tarot `freeEntry` `/yeongnyangi/free-fortune/?category=tarot` 는 읽는 곳도 페이지도 없는 죽은 데이터다(보고만).
+- **화면 순서**(`Experience.tsx` → `Consultation.tsx`):
+  1. 타로는 프로필 선택 대신 안내문을 보여 주고(:164) 출생정보 검사를 생략한다(:64).
+  2. 상담 종류 선택: **지금의 선택(3장)** / **사랑과 관계(6장)**(`worker/yeongnyangi/fortune/consultation-kinds.ts:18`).
+  3. 질문 textarea, 필수, 최대 1000자(:71, :174-177).
+  4. 생선 선택과 챕터 미리보기(:180-183).
+  5. POST `/requests`. 폼마다 `crypto.randomUUID()` attempt id 를 만든다(:132-137).
+  6. `/checkout/?featureKey…&requestId…` 로 가거나, 이미 결제됐으면 바로 `/yeongnyangi/result/?id=…` 로 간다(`_lib/api.ts:41-43`).
+  7. 결과 페이지가 1.5초마다 폴링하고(`Result.tsx:26,56-91`), 결제 확인 뒤 `ReadingBook` 을 띄운다(:144).
+- **현재 순서**: 질문 → 생선 → (서버가 조용히 드로우) → 결제 → 상담 챕터가 차례로 채워진다.
+  - **카드를 고르거나 뒤집는 UI 는 전혀 없다.** 카드는 결제 후 차트 이미지로 처음 보인다.
+
+### 2. 카드 에셋 참조와 분리 지점
+
+- **덱은 2종이고 카드 코드는 공통이다**(M00–M21, W/C/S/P 01–14 · `lib/tarot/tarot-cards.mjs:17,42,49`).
+  - **덱 A `/tarot-cards/`**: `public/tarot-cards/` 156파일, 약 6.7MB. 외부 공개 덱이다(`scripts/download-tarot-images.js:1-8`).
+    - 쓰는 곳: 본 브랜드(`/today`, `worker/routes/tarot.js`, 하드코딩 9곳)와 엔진 `buildImageCandidates()`(`tarot-cards.mjs:709-713`, thefool.jpeg 폴백).
+    - 연이 덱이 아니다.
+  - **덱 B R2 caretaro**: `{NEXT_PUBLIC_ASSETS_BASE_URL||https://assets.code-destiny.com}/DestinyCafe/caretaro/<한글명>.webp`.
+    - 매핑이 두 벌이다.
+      - `src/features/fortune-tea-house/lib/tarotCardImageMap.ts`: 목록 :6, resolve :441, URL :469, 78장 검사 :473.
+      - `lib/tarot/caretaro-card-images.mjs:11-94`: 꿈해몽 `worker/routes/dream.js:316` 이 쓰고, `/cdn-cgi/image/` 리사이즈가 :107-117 에 있다.
+    - 찻집은 이 덱을 **"연이의 비밀 카드첩"** 으로 보여 준다(`DestinyCafeTarotAlbum.tsx:49,180`, `TarotAssetCard.tsx:54`, `tarotAlbumStories.ts:818`).
+    - `docs/yeongnyangi-reading-v5.md:69` 는 "연이의 운명 찻집 … 정본을 재사용"이라고 적는다.
+    - 그림 속 인물이 연이인지는 R2 이미지라 미확인이다.
+- **영냥이는 덱 B 를 쓴다.**
+  - 유료 결과: `worker/yeongnyangi/fortune/reading-presentation.ts:1,53` 이 응답마다 URL 을 계산한다(`service.ts:271`). 저장된 값이 아니다.
+  - 무료: `fortune/charts.ts:1,43` 은 URL 을 저장하지만 `FreeFortune.tsx` 는 이미지를 표시하지 않는다.
+  - 질문형: `ask/tarot.ts:21-24` 는 덱 A 경로를 저장만 하고 표시에는 쓰지 않는다.
+  - 화면 표시는 `app/yeongnyangi/_components/ReadingCharts.tsx:34` 의 `<img alt="" 140×240>` 한 곳뿐이다. 역방향은 CSS 로 회전한다.
+  - `__tests__/ui/yeongnyangi-reading-v5.test.mjs:81-94` 가 "78장 모두 caretaro·고유·저장 URL 무시"를 고정한다.
+- **덱 추상화가 없다**(deckId·brandDeck 류 0건).
+  - 분리 지점: `reading-presentation.ts:53`, `charts.ts:43`, 위 테스트. 엔진·`TAROT_CARDS`·카드 코드는 공유로 둔다.
+  - URL 이 응답 시점에 계산되므로 조회 함수만 바꾸면 **이미 산 결과까지 새 덱으로 바뀐다**(코드 근거 추정). 브랜드 분리에 유리하다.
+- **카드 뒷면**: 영냥이 뒷면은 없다.
+  - 본 브랜드 뒷면: `app/components/TarotCardBack.tsx`(CSS "✦ TAROT").
+  - 연이 뒷면: 찻집 `data/assets.ts:22,95,124-125`(yeoni-tarot-card-back-photoroom.webp 등). 폴백으로도 쓰면 안 된다.
+- 브리프 서두 "카드 에셋을 영냥이에서만 걷어내고"와 맞게, 덱 B 는 영냥이 조회에서만 빼고 연이 덱·찻집 코드는 그대로 둔다.
+
+### 3. 드로우 로직
+
+- **서버에서, 결제 전, 요청 준비 시점에 뽑는다**(`worker/yeongnyangi/service.ts:115-117`).
+  - 결제 안 한 CREATED 문서에도 카드가 이미 저장돼 있다(추정: 이탈 주문 잔여).
+- **난수 경로는 둘이다.**
+  - 질문형(두 타로 종류 전부 + 퓨전 ask): `worker/yeongnyangi/fortune/ask/tarot.ts:7-11`.
+    - `crypto.getRandomValues` + 거부 샘플링, 중복 없음(:17-20), 정/역 50:50.
+  - 구형 클라이언트·퓨전 personal·무료 타로: `lib/tarot/tarot-interpretation-engine.mjs:1248-1256`.
+    - `Math.random` Fisher-Yates. 문서 `yeongnyangi-ask.md:16` 과 맞지 않는다(보고만).
+- **스프레드**: 선택 `three_card_cause_process_outcome`, 사랑 `relationship_six_card`(`shared/input.ts:100`), 퓨전 `fusion_six_expert`(`lib/tarot/spreads.mjs:64-95`).
+- **장수는 티어와 무관하다.** 티어는 챕터 수만 바꾼다(V6: 고등어 5 · 연어 8 · 광어 11 · 참치 15, `reading-policy.ts`, `reading-v6.ts:90-103`).
+- **저장**: Mongo `yeongnyangi_requests` 의 `snapshot.analysis.contexts.tarot.facts`(spreadId·cards).
+  - 질문형은 `generationCheckpoint.evidence` 에도 저장한다(service.ts:143-152).
+  - 카드 필드: cardId·이름·position/positionKey·orientation·image·키워드·해석(`ask/tarot.ts:22-25`).
+- **멱등**
+  - `_id = sha256({userId, fingerprint, consultationAttemptId?})`(service.ts:102-103). fingerprint 에 사용자 시간대 날짜가 들어간다.
+  - 질문형은 저장본을 먼저 읽고, 읽기가 불확실하면 재추첨하지 않는다(:104-109).
+  - 동시 최초 요청은 `$setOnInsert` 승자를 공유한다. fingerprint 가 다르면 409 다(`repository.js:139-153`).
+  - 새로고침하면 저장 스냅샷만 보여 준다. **"다시 뽑기로 결과 바꾸기"는 이미 막혀 있다.**
+  - 단, 성공 후 폼이 attempt id 를 비우므로 다음 제출은 새 구매·새 드로우다.
+
+### 4. 상담 파이프라인
+
+- **흐름**: `enqueueConsultation` → Cloudflare Queue `YEONGNYANGI_QUEUE` → `consumeConsultationQueue` → `StructuredChapterProvider` → `CodeDestinyProvider.generate` → `callGeminiText`(`providers/code-destiny.ts:31-54`).
+  - 큐는 **메시지당 1챕터**를 생성한 뒤 다시 큐에 넣는다(`queue.js:63`).
+- **모델**: `gemini-2.5-flash`(`worker/lib/gemini.js:44`). 응답 스키마 JSON, thinking 1024, 90초, 1회 시도, 공급자 폴백 없음.
+  - 큐 설정: batch 1 · 동시 2 · 재시도 5 · 지연 30(`scripts/prepare-yeongnyangi-queue-config.mjs:12-23`).
+- **스트리밍 없음.** 클라이언트가 1.5초마다 폴링한다. 출력 JSON 은 summary·blocks·sources·persona·questionAnswers 다(`providers/chapter.ts:164-194,328`).
+- **말투 정본**
+  - `worker/yeongnyangi/prompts/persona/yeongnyangi.ts`: "'~냥'은 짧은 한마디에 절제", 문단마다 반복 금지.
+  - `prompts/system/fortune-master.ts:8`: 말투로 분석을 대체하지 않는다.
+  - 타로 규칙 `prompts/domain/rules.ts:2`: "서버가 확정한 카드·정역·자리·조합만 읽는다… 상대의 마음을 단정하지 않는다".
+- **검증기**
+  - `chapter.ts:47-140` `validateChapter`.
+  - `fortune/reading-quality.ts:95-129`: 구조·분량 하한·근사 중복·금지 주장 정규식(:122)·티어 범위(:124). **타로 전용 규칙은 없다.**
+  - `fortune/ask/validate.ts:20-77`: 근거 ID·grounded/limited·`ASK_UNSAFE_CLAIM`·limited/care/normal.
+- **위기 신호(자해·극단 선택) 감지·안내가 없다.**
+  - 영냥이 worker/app 과 `worker/lib` 에서 자해|자살|위기|crisis|self-harm|hotline 을 검색해 0건이었다.
+  - 가장 가까운 것은 건강 care 안내다(`app/yeongnyangi/_lib/ask-phase5-copy.ts:10`).
+- **엔진 공유**: 엔진은 `lib/tarot/*` 에만 있고 본 브랜드와 공유한다(`worker/routes/tarot.js:37,1886`).
+  - 영냥이는 **어댑터 없이 상대경로로 직접 import** 한다: `worker/yeongnyangi/fortune/tarot/index.ts:2`, `ask/tarot.ts`, `free-service.ts:3`, `fortune/free/readings.ts:11`.
+
+### 5. 티어 정의 (가격은 변경하지 않음)
+
+출처: 가격 정본 `worker/lib/paid-feature-registry.js:192`(`payments/catalog.ts:11` 은 조회만), 챕터 `reading-policy.ts:25-32`, 분량 `:41-47`, 챕터 분배 `reading-v6.ts:234-241`.
+
+| 생선 | 가격 / Family 코인 | 챕터 | 전체 하한 / 목표(자) | 카드 |
+|---|---|---|---|---|
+| 고등어 | 1,000원 / 10 | 5 | 5,500 / 7,500–8,500 | 종류로 결정: 선택 3장 · 사랑 6장 (티어 무관) |
+| 연어 | 3,000원 / 30 | 8 | 10,000 / 13,200–15,400 | 〃 |
+| 광어 | 5,000원 / 50 | 11 | 18,000 / 23,000–27,500 | 〃 |
+| 참치 | 10,000원 / 100 | 15 | 40,000 / 49,500–57,000 | 〃 |
+
+- **챕터 목차**(누적, `reading-v6.ts:90-103,207-211`). 두 종류(선택/사랑)의 목차는 같다(:217).
+  - 고등어: 질문의 핵심·카드 위치별 의미·카드 흐름·선택 기준 + 마지막 "지금의 선택과 실행 계획".
+  - 연어: + 원하는 것/망설임·도움 조건·어려운 요인.
+  - 광어: + 첫/다른 선택의 가능성·카드 간 상충 신호.
+  - 참치: + 다르게 읽을 가능성·바꿀 수 있는 행동·현실 확인 신호·수정 조건.
+- **토큰**: 챕터당 최소 11,250 + thinking 1,024(`chapter.ts:259-261`), 상한 24,576.
+  - 질문은 최대 8개로 쪼개고, 첫 챕터가 모두 답한다(`consultation.ts:112-113`, `service.ts:124-134`).
+  - **후속 질문 기능은 없다.**
+- **분량 정책**(원칙 17 · `ai-and-db.md:119-125` · `reading-quality.ts:12-21`)
+  - v6 하한은 목표 하한의 0.73–0.81 이고, 챕터 거부선은 0.7× 다.
+  - 짧은 초안은 1회 보강하며, 보강본은 분량으로 거부하지 않는다.
+  - `__tests__/ui/yeongnyangi-reading-v6.test.mjs:74` 가 하한 ≤ 0.82×목표를 단언한다.
+- 퓨전(점성술+타로 20,000원, 오마카세 50,000원)은 `fusion_six_expert` 6장이다.
+- **엔진 스프레드**(`lib/tarot/spreads.mjs`) 12종: one_card, three_card×2, relationship_six_card, fusion_six_expert, healing 4, reunion_lighthouse 5, yearly 12/3, self_esteem 5, job_change 7, mindscan 5.
+  - **켈틱 크로스·호스슈는 없다.**
+
+브리프 6-2 기본안과의 차이:
+
+| 항목 | 현재 | 기본안(브리프 6-2) | 영향 |
+|---|---|---|---|
+| 장수 결정 | 상담 종류(3/6) | 티어(1·3 / 3~5 / 7 / 10+1~2) | 결정 ③ 으로 현행 유지. (티어별로 가려면 광어 7·참치 10은 엔진에 없는 스프레드라 영냥이 어댑터에 정의해야 했다) |
+| 분량 | 7.5k~57k자, 5~15챕터 | "기존 정책 따름" | 챕터 수·분량은 그대로 두고 **챕터 목차(해석 기법)만 티어별로 심화** |
+| 참치 후속 질문 | 없음 | 있음 | 새 LLM 호출·UI·비용 → Phase 6 게이트 |
+| 참치 조언 카드 추가 드로우 | 없음 | 1~2장 | 드로우 세션 확장 → Phase 6 게이트 |
+| 주제 칩 6종(연애·재회·일·돈·선택·오늘) | 종류 2개(선택·사랑) | 6종 | 새 상담 종류 = worker `consultation-kinds.ts` 변경 → Phase 6 게이트 |
+| 위기 신호 안내 | **없음** | 기존 정책 따름/없으면 제안 | Phase 6 에서 추가 제안 |
+
+### 6. 결제·이용권 연동 지점
+
+| 단계 | 코드 | 이용권 판정 | 카드 |
+|---|---|---|---|
+| 생선·종류 선택 | `Consultation.tsx:58,159,181-187` | 없음(가격 표시만) | 없음 |
+| POST /requests → `prepareFortune` | `worker/routes/yeongnyangi.js:93-99`, `service.ts:58-153` | **없음** | **여기서 드로우·저장** |
+| 주문 생성 | `orders.js:105-110` → `payment-intent.js:8-26` | 미결제·가격 일치 요청 `yn-<id>` 에 묶음 | 확정됨 |
+| /checkout/ | `_lib/api.ts:42-43` | Family 이용권 카드 또는 사용자가 고른 단건 | — |
+| 활성화 | `Result.tsx:63,99`, `repository.js:155-207` | 단건 결제 증명 또는 Family 차감, 아니면 402 | — |
+| 챕터 생성 | `service.ts:195,212,233`, `repository.js:240-311,358-402` | 트랜잭션마다 재증명 | 저장 카드 재사용 |
+
+- **결제 전에는 카드 정보가 전혀 나가지 않는다.** `presentFortune` 이 미결제면 차트를 숨긴다(`service.ts:271`).
+- **받는 결제**: Family 이용권과 단건만 받는다(`repository.js:196-199`).
+  - 다른 이용권은 `FAMILY_PASS_REQUIRED`, 월정석은 `FAMILY_OR_DIRECT_PAYMENT_REQUIRED` 다.
+- **결제 동결**: `config/payment-freeze.json` 에 **영냥이 파일은 없다.**
+  - 금지 패턴 7종(`payment-gating.md:21`, 예: 진입 시 서버 사전검사 추가 금지)과 규칙("진입은 로컬 스냅샷·서버 판정은 /checkout/ · 단건은 사용자 선택 후만")을 따른다.
+  - `paid-flow-gates.yml` 은 `worker/payments/**` 만 트리거한다. 영냥이 경로는 빠져 있다(보고만).
+- **무료 타로**
+  - 오늘의 16종 중 하나다. 하루 1회 멸치 1마리로 해금한다(`free-repository.js:41-66`).
+  - 원인/과정/결과 3장이 하루 동안 고정되고, **이미지 없이 텍스트만** 보여 준다(`FreeFortune.tsx:18`). 유료 드로우와 무관하다.
+- **저장소**: MongoDB(mongoose) `yeongnyangi_requests`. 요청 1건이 구매 1건이고, 카드는 `snapshot` 안에 있다.
+  - 요청 id 에 생선·상품이 들어간다. 그래서 "먼저 뽑고 나중에 생선 고르기"를 하려면 티어 독립 드로우 레코드가 따로 필요하다(추정).
+  - 미결제 요청은 지우지 않고 30분 뒤 목록에서만 숨긴다(`routes/yeongnyangi.js:59-63`).
+- **경제성**: `docs/verification/yeongnyangi-pass-economics-20260927.json` 은 정가 산술뿐이다. LLM 원가 필드는 전부 null 이다.
+
+### 7. 이미지 생성 스킬
+
+- **스킬**: `codex-image`(`C:\Users\user\.claude\skills\codex-image\SKILL.md`). Codex CLI `codex exec` → 내장 `image_gen` → **gpt-image-2** 경로이고, ChatGPT OAuth 로 인증한다.
+- **실측**: `codex-cli 0.156.1` 설치, `codex login status` = "Logged in using ChatGPT".
+- **비율·해상도**: `1024x1024` · **`1024x1536`(정확히 2:3, 카드 비율과 같다)** · `1536x1024` · `auto`. 품질 low/medium/high. 1회 1~10장.
+- **참조 이미지**: 스킬 자체는 텍스트 프롬프트만 넘긴다.
+  - `codex exec -i/--image <FILE>`("Optional image(s) to attach to the initial prompt")는 있다.
+  - **image_gen 이 첨부 이미지를 캐릭터 참조로 실제 반영하는지는 미확인**이다. 1장 시험 생성으로만 확인할 수 있다.
+- **시드 고정**: 옵션이 없다(스킬·README 어디에도 없음). **불가로 간주**한다.
+  - 네거티브 프롬프트도 README 상 미지원이다. 금지 사항은 본문 프롬프트에 "No text…" 식으로 넣는다(기존 원장 관행과 같다).
+- **비용·속도**(README 기재값, 실측 아님): 1024x1536 high ≈ $0.06/장, 호출 타임아웃 2분. ChatGPT 요금제 한도·레이트리밋은 미확인이다.
+- **기존 파이프라인**(실측): `scripts/save-fortune-art.mjs`.
+  - 흐름: image_gen 원본 → sharp 리사이즈 → webp → `docs/design/fortune-detail-art.jsonl` 에 `{slug,file,source,tool,prompt,bytes}` 한 줄 추가(88줄 누적).
+  - 영냥이 에셋 폴더마다 `README.md` 에도 출처가 있다.
+
+### 8. 기존 영냥이 캐릭터 자료
+
+- **`public/assets/yeongnyangi/`**(git ls-files)
+  - original 53(hero-800 800×800 알파 · walk-pose 1~6 · tarot.webp 460×300), readings 8(960×640, tarot-v5 포함), moods 22, expressions 10(128×128).
+  - reading-art 6, night 7, fish 14, ui 4, spirit 2, profiles 2, 루트 hero.webp 480×480, fonts 218.
+- **외형 서술**
+  - `public/assets/yeongnyangi/readings/README.md:3-4`: "흰 털, 금빛 눈, 남색 마법사 모자·의상, 달·별 금장과 푸른 보석"(hero.webp 기준).
+  - `docs/yeongnyangi-question-sky.md:40`: "white cat, purple eyes, chubby proportions, violet and gold palette, hand-drawn detailed clean storybook/chibi style".
+  - `NightHero.tsx:27`, `docs/business-refactor.md:56`: "흰 고양이".
+  - "러시안 블루"는 반려동물 사주 품종 데이터에만 있다.
+- **실제 그림 판정**: visual-checker 로 5장을 봤다(original/hero-800 · hero · original/tarot · readings/tarot-v5 · expressions/welcome). 모두 같은 캐릭터다.
+  - 털: **흰 장모**. 귀 안·코·발바닥은 분홍이고, 회청색 털은 없다.
+  - 눈: **위는 남보라, 아래는 금색인 그라데이션**. 문서의 "금빛"과 "purple" 은 각각 절반만 맞다.
+  - 의상: 검정에 가까운 짙은 남색 모자·망토, 금 테두리와 초승달·별·별자리 금장, 보라 안감, 금 술.
+  - 소품: 검정 목줄에 금테 청보라 보석.
+  - 체형: 약 2등신 앉은 치비.
+  - 화풍: 캐릭터 단독 그림은 셀풍 + 가는 갈색 외곽선 + 털결 스트로크다. 장면 삽화(tarot-v5)는 더 페인터리하고 외곽선이 약하다.
+  - hero 두 장에만 "영냥이" 나무 명찰(글자)과 금 물고기 장식이 있다. 카드에서는 명찰을 뺀다(글자 금지).
+  - 색은 육안 판정이다. 픽셀 확정은 Phase 1 에서 sharp 로 한다.
+- **팔레트 정본**: `app/yeongnyangi/night-tokens.css:2-15`. 기준 문서는 `docs/design/yeongnyangi-night.md`.
+  - deep #0b1220 · night #101b2c · surface #18263a · raised #23344b · violet #665087 · gold #e5c58e · ivory #f3eee5 · muted #bac9da · line #52677e.
+  - 브리프 1-1 "기존 컬러 우선"에 따라 채택한다. 브리프 기본안(네이비·실버·라벤더·골드)과 사실상 같다.
+- **캐릭터 시트**: 저장소에 없다. expressions README 가 외부 폴더 "사주보는 고양이 영냥이/영냥이 표정"을 가리킨다(미커밋).
+- **생성 기록 관행**
+  - 폴더별 README 에 도구(gpt-image-2/ImageGen)·hero-800 스타일 참조·"no text/letters/logos"·1536×1024→WebP 를 적는다.
+  - **"원본 PNG는 저장소에 두지 않는다."**
+  - original/ 약 51개는 SoulCat 이관분이라 출처 기록이 없다.
+- 결과 화면 삽화는 글자 없는 것만 쓴다(`reading-visuals.ts:16`, `__tests__/ui/yeongnyangi-reading-visuals.test.mjs:16-23`).
+
+### 9. 에셋 저장소·최적화 파이프라인
+
+- **R2**: `codedestinyassets`·`bugs`(`worker/wrangler.toml:95-102`), 스테이징 `codedestinyassets-staging`·`bugs-staging`(`wrangler.staging.toml:109-116`).
+  - 공개 도메인은 assets.code-destiny.com 이고, caretaro 는 루트 `DestinyCafe/` 아래에 있다.
+  - **범용 업로드 스크립트가 없다.** R2 에 쓰는 것은 `scripts/convert-r2-png-to-webp.mjs:224`(`--apply`)뿐이다. caretaro 는 수동 업로드로 추정한다.
+- **영냥이 그림의 배포 경로**: `public/` → 정적 export(`next.config.mjs:159`, :186-187 unoptimized) → dist → Pages.
+  - `_headers:363,394` 가 `/tarot-cards/*`·`/assets/*` 에 7일 + SWR 30일을 준다(immutable 아님). 그래서 덮어쓰지 말고 **버전 붙은 새 경로**를 쓴다.
+- **최적화 도구**
+  - `scripts/optimize-images.mjs`: sharp WebP q82, tarot/photoroom q90.
+  - `scripts/build-mobile-app.mjs:242`: 앱 번들 1080px 상한.
+  - `scripts/lib/build-visual-details.mjs:209-246`: 480/960/320/og, feature-details 전용.
+  - `scripts/save-fortune-art.mjs`: 원본 → webp → jsonl 원장.
+  - **AVIF 파이프라인은 없다**(sharp 로 가능). Cloudflare `/cdn-cgi/image/width=N,format=auto/` 는 caretaro 가 이미 쓴다.
+- **검사**: `yeongnyangi-assets.test.mjs` 는 참조 경로가 있는지만 본다. 용량 예산은 소설에만 있고, LFS 는 없다.
+  - `content-assets.md:15` 의 `<Image>` 규칙과 달리 영냥이는 `<img>` 를 쓴다(기존 편차).
+- **Phase 4 예고**(지금 결정 불필요)
+  - 78장 × 3크기 × 2포맷 = 468파일, 1200px 기준 추정 20~30MB.
+  - `public/` 에 두면 git 과 안드로이드 AAB 가 커진다.
+  - R2 버전 경로를 쓰면 업로드 스크립트 신설과 운영 버킷 쓰기 승인이 필요하다.
+
+### 기타 환경 (이후 Phase 규칙)
+
+- **i18n**: 영냥이는 `app/yeongnyangi/_lib/*-copy.ts` 파일마다 로케일 객체를 둔다(`journey-copy.ts:8`: ko/ja/zh-CN/zh-TW + en 폴백).
+  - 사이트 로케일은 5개(`lib/i18n/locales.ts`), 워커 결과 언어는 12개(`reading-locale.ts:6`)다.
+  - 엔진 카드명은 nameKo/nameEn 뿐이다. 그래서 카드명·alt 는 카드 코드를 키로 하는 새 copy 파일에 둔다.
+- **햅틱**: `@capacitor/haptics` 는 없다. `navigator.vibrate` 는 VIBRATE 권한(`AndroidManifest.xml:95-98`)으로 동작한다.
+  - 선례는 `js/touch-perf.js:34-41` `safeVibrate` 이고, `APP_UIUX_SPEC.md:199` 도 얇은 래퍼를 권한다. 새 의존성 없이 래퍼로 만든다.
+- **960px**: 영냥이 CSS 에는 960 레이아웃이 없다(680/940/1080…, `--yn-reading-width: 68ch`).
+  - 960px 는 셸 헤더 규칙이다(`design-and-ui.md:72`). "기존 레이아웃 유지"로 해석한다.
+- **`_graveyard/`**: 없다(0파일). 저장소 규칙상 만들지 않는다(충돌표).
+
+## §F — 무료 원카드 「오늘의 한 장」 (명리 타로 · 정적 생성)
+
+사용자가 확정한 것:
+- 메이저 22장을 먼저 그려 원카드부터 출시한다.
+- 로그인 없이 누구나 볼 수 있다.
+- 입력 없이 한 번에 본다(오늘 일진 × 카드 명리 태그).
+
+해석: "정적으로 생성"은 LLM·워커·DB 없이, 빌드 때 만든 작은 데이터와 브라우저의 결정적 계산만 쓴다는 뜻으로 본다. 그래서 비용 0, 생성 실패 0이다. 유료 티어(결정 ③: 선택 3장·사랑 6장)와는 겹치지 않는다.
+
+**현재 사실 (실측)**
+
+- **본 브랜드 명리 타로**
+  - 경로: `/tarot/mingri` 랜딩 → 홈 셸 모달. 로직은 `js/saju-engine-tarot-sukuyo-quantum.js`.
+  - 브라우저 전용이다. 1장은 무료, 3장은 유료(`tarot-myeongri-three-card`). 메이저 22장만 쓴다.
+  - 카드마다 `sipsinTag`가 있다(:484-529).
+  - 정적 문구: `MYEONGRI_CARD_TOPIC_LINES` 22장 × 8고민 × 정/역 × [장면, 조언](:2154-2376), 십성 템플릿(:1745-1826). 한국어뿐이다.
+  - 셸 전역 스크립트라 import 할 수 없다. 데이터만 가져와야 한다.
+  - 생년월일·일진은 쓰지 않는다. 영냥이 쪽 참조는 0건이다.
+- **카드 풀이 정본**
+  - `lib/tarot/rich-card-meanings.mjs:71-104`: 정/역마다 daily·advice 등이 있다(한국어).
+  - 클라이언트가 `tarot-cards.mjs`를 import 하면 285KB가 딸려 온다. 그래서 `app/today/page.js:60`처럼 빌드 때 필요한 필드만 뽑아 props 로 넘긴다.
+- **결정적 선택 선례**: `lib/lock-screen-daily-fortune.ts`
+  - KST `dateKeyOf`:52, FNV `hashStr`:57, `pickBy`:66, seed = hash(날짜+체계):157.
+- **오늘 일진**
+  - `lib/korean-calendar/ganji.js:5`의 공식 `floor(Date.UTC(y,m-1,d)/864e5)+17`을 쓴다. 표가 필요 없다.
+  - `lib/diary/fortune-adapter.ts:81` `dayGanji`는 57KB 표를 끌고 온다.
+  - 셸 `getGanjiFromParts`는 1990년 외에는 null이라 쓰지 않는다.
+- **UI 선례**: `/today` 오늘의 타로(`app/today/DailyTarot.tsx`: 셔플 :46-47, 고르기 :90-96, 뒤집기 :99-108).
+  - 연이 브랜드(`cd:yeoni:daily-three:v1`)이고 3장·`Math.random` 이다.
+  - 그래서 패턴만 참고하고 코드·문구·이미지는 가져오지 않는다.
+- **영냥이 무료 운세**
+  - 위치: `/yeongnyangi/room/#daily`(`Room.tsx:30` → `FreeFortune.tsx`). 페이지는 공개, API 는 로그인과 출석 멸치가 필요하다.
+  - 무료 basic 이 이미 일간 × 오늘 일주 십성 정적 조언을 준다(`fortune/free/readings.ts:19-30,76-81`). "내 사주로 더 보기" 연결 대상이다.
+  - `home-data.ts:164 dailyMessages`는 정의만 있고 쓰는 곳이 없다. 영냥이 한마디 문구 풀 후보다.
+- **원소**: 메이저는 모두 `spirit`(`tarot-cards.mjs:561`)이고, 카드↔오행 매핑은 저장소에 없다. 그래서 명리 층은 명리 타로의 `sipsinTag`로 만든다.
+
+**제약 해소**
+
+- **SEO**
+  - 근거: `docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md:10,52`. 영냥이 무료 허브를 만들지 않고, title·H1·description 에 "무료"를 쓰지 않는다.
+  - 해소: 새 라우트·색인 페이지 없이 기존 room 무료 탭 안에 둔다. noindex·메타데이터는 바꾸지 않는다.
+- **브랜드**: 연이 덱, `/today` 코드, caretaro 폴백을 쓰지 않는다. 그림은 영냥이 메이저 22장만 쓰고, 그림이 없으면 영냥이 뒷면을 보여 준다.
+- **엔진 읽기 전용**: `lib/tarot/*`와 명리 타로 파일은 읽기만 한다. 엔진 데이터는 빌드 때 import 해 필요한 필드만 뽑는 어댑터로 읽는다(브리프 "어댑터 래퍼로만"). 영냥이 문구는 새로 쓴다.
+- **다른 흐름 보호**: 무료 16종(로그인·멸치)과 유료 결제 경로는 바꾸지 않는다.
+
+**설계**
+
+1. **하루 한 장**
+   - seed = hash(KST 날짜 + 기기 무작위 id). 이 값으로 메이저 22장 중 1장과 정/역을 고른다.
+   - 기기 id 는 처음 한 번 `crypto.getRandomValues`로 만들어 localStorage 에 둔다. 읽기·쓰기는 try/catch 로 감싼다.
+   - 저장이 실패하면 날짜만으로 seed 를 만든다. 이 경우 모두에게 같은 카드가 나온다.
+   - 저장소를 지우면 다시 뽑을 수 있다. 무료이고 가치가 없는 결과라 허용한다. 유료 드로우의 불변식과는 별개다.
+2. **명리 층(입력 없음)**
+   - 오늘 일진(KST 기준 일주, ganji.js 공식)에서 천간 오행을 얻는다.
+   - 카드 `sipsinTag`를 오늘 천간 기준 오행에 투영한다. 비겁=같은 오행, 식상=내가 생하는 오행, 재성=내가 극하는 오행, 관성=나를 극하는 오행, 인성=나를 생하는 오행. 예: 오늘 甲木 + 식상 태그 → 火.
+   - 그 오행으로 "오늘 카드가 불러오는 기운"과 행운 색·숫자·방향·고양이 소품을 정한다.
+   - 역마처럼 십성이 아닌 태그의 규칙은 F-1 의 매핑 정본 문서에서 확정한다.
+3. **결과 화면 순서**
+   - 뒤집기 → 카드명·정/역 → 영냥이 한마디(카드 × 오행 관계, '~냥'은 절제) → 오늘의 기운(일진 간지·오행) → 카드 풀이(daily·advice) → 행운 포인트·오늘의 작은 미션.
+   - 다음 단계로 무료 16종 "내 사주로 더 보기"와 고등어 3장 상담을 잇는다.
+   - 공유 기능은 넣지 않는다. 공유 동작은 RED 라 필요하면 별도 작업으로 한다.
+4. **문구**
+   - 세션 안에서 직접 쓴다(과금 LLM 없음). 한국어 정본과 영어를 쓰고, 나머지 언어는 영냥이 copy 폴백 규칙을 따른다.
+   - 저작량: 22장 × 정/역, 여기에 오행 관계표·행운표가 붙는다. 수백 줄 이내다.
+
+**작업 분할 (한 세션 한 작업)**
+
+- **F-1 데이터·로직**(「다음 작업 2」): 그림이 필요 없어 언제든 할 수 있다. UI 는 없다. Phase 1 과 동시에 돌리면 워크트리를 쓴다.
+- **순서 변경**: Phase 3 은 메이저 22장을 먼저 그린다(3a). Phase 4 파이프라인도 22장부터 적용한다(4a). 저장 위치(`public/` 또는 R2)는 4a 에서 결정한다.
+- **F-2 UI 출시(4a 뒤)**
+  - room 무료 탭 맨 위에 섹션을 둔다. 뒷면 → 뒤집기 연출은 Tailwind/기존 framer-motion 으로 만들고 `impeccable` 스킬을 쓴다. 메이저 22장 그림을 연결한다.
+  - Phase 5 유료 의식이 이 뒤집기 컴포넌트를 확장한다.
+- **유료 결과의 caretaro 교체(결정 ④)**: 78장이 다 갖춰지는 4b 에서 한 번에 한다.
+
+**검증 (F)**
+
+- **결정성**: 같은 날짜·id 면 같은 카드가 나오고, 날짜가 바뀌면 다시 계산되는지 여러 날짜로 본다. 1만 표본에서 44가지 결과(22장 × 정/역)가 모두 나오고 한쪽으로 쏠리지 않아야 한다.
+- **일진**: 알려진 날짜 3~5개를 공식으로 계산해 `lib/korean-calendar` 정본과 대조한다.
+- **데이터 완결**
+  - 22장 × 정/역의 모든 필드가 비어 있지 않고, ko·en 키가 같다.
+  - 브랜드 가드: 연이·caretaro·DestinyCafe 문자열이 0건이어야 한다.
+- **네트워크 0**: `mock-network-guard` 아래에서 테스트하고, 컴포넌트가 API 를 부르지 않는지 확인한다.
+- **F-2 화면**
+  - localStorage 가 막힌 환경에서도 렌더되는지 본다.
+  - 모바일 폭과 WebView 에서 확인하고, visual-checker 로 화면을 판정한다.
+  - `check:fast` → commit → push → CI.
+
+## 다음 작업 1 — Phase 1 착수 계획 (승인됨)
+
+- **범위**: 브리프 1-1~1-6 산출물만 만든다. 앱 코드·테스트·결제·엔진·연이 덱은 바꾸지 않는다.
+- **원본 이미지 위치**: 기존 관행("원본 PNG는 저장소에 두지 않는다")대로 저장소 밖 `D:\Development\yeongnyangi-tarot-art\phase1\` 에 둔다. 저장소에는 문서·원장·SVG 만 커밋한다.
+- **등급**: GREEN. 권장: 주력 모델 / effort medium.
+
+0. **시작 점검**: 「재개 정보」의 시작 점검을 한다. 옆 세션이 아직 쓰는 중이면 `scripts/create-safe-worktree.ps1` 로 워크트리를 만든다.
+1. **참조 입력 시험**(생성 2장 이내)
+   - `codex exec -C <원본 폴더> -i D:\Development\code-destiny\public\assets\yeongnyangi\original\hero-800.webp` 에 image_gen 1024x1536 로 생성한다.
+   - 캐릭터 동일성이 유지되는지 visual-checker 로 판정한다.
+   - 반영되지 않으면 텍스트 캐릭터 명세와 고정 프롬프트 머리말로 일관성을 잡는다.
+   - `-C` 폴더 안에만 쓰기가 허용된다는 것은 추정이다.
+2. **스타일 바이블** `docs/design/yeongnyangi-tarot/style-bible.md` 에 다음을 담는다.
+   - 톤과 팔레트(night-tokens).
+   - 캐릭터·렌더링(결정 ②): 흰 장모·남보라→금 그라데이션 눈·짙은 남색 모자·망토(금장)·목줄 보석·약 2등신, 명찰 제외. 캐릭터 선은 hero-800 셀 라인, 카드 장면은 tarot-v5 처럼 페인터리 + 브리프의 수채 질감·글로우·별가루.
+   - 2:3 구도, 상단 10%·하단 14% 오버레이 안전 영역.
+   - 금지 항목: 글자·숫자·서명·워터마크, 상업 덱 구도 복제, 연이를 닮은 요소, 공포·유혈.
+   - 캐릭터·조연·슈트 모티프·뒷면·프레임 규격.
+   - 정본 프롬프트 머리말.
+3. **생성할 것**
+   - 캐릭터 시트: 턴어라운드 4면(정면·3/4·측면·뒷모습) + 표정 6종(평온·미소·놀람·진지·졸림·장난), 1536x1024.
+   - 조연 4~6마리 시트: 서로 다른 품종·털색·실루엣, 영냥이와 한눈에 구분.
+   - 슈트 모티프 4종: 별빛 깃털 낚싯대 장난감(완드)·달빛 찻잔(컵)·수염 모양 은빛 검(소드)·황금 생선 동전(펜타클). 보조색은 브리프 1-4 표.
+   - 카드 뒷면 후보 3종, 1024x1536: 초승달 + 영냥이 실루엣 + 고양이 눈 문양 + 별자리 링(브리프 1-5).
+   - **뒷면의 180° 대칭은 모델에 맡기지 않는다.** 위쪽 절반을 180° 회전 복제해 sharp 로 합성해 결정적으로 보장한다. 고양이 한 마리 실루엣은 회전 대칭이 안 되므로 "머리-꼬리가 맞물린 두 마리"처럼 회전 대칭인 구성으로 설계한다.
+4. **프레임**: 이미지 생성 없이 SVG 로 직접 그린다(`docs/design/yeongnyangi-tarot/frame-draft.svg`). 금박 테두리 + 코너 장식을 넣고, 이름·번호 오버레이 자리는 비운다(브리프 1-6: 이름·번호는 런타임 i18n 오버레이).
+5. **원장** `docs/design/yeongnyangi-tarot/art-ledger.jsonl`
+   - 생성 1회당 1줄: `{id, phase, target, prompt, size, quality, referenceImage, source, adopted, reason, qa}`.
+   - `save-fortune-art.mjs` 원장 형식을 확장한다.
+6. **QA**
+   - 후보마다 visual-checker 로 판정한다: 캐릭터 동일성·글자 없음·해부학·안전 영역·240px 식별.
+   - 메인 세션은 이미지를 읽지 않는다.
+   - 사용자 확인용 컨택트 시트 1장을 sharp 로 합성하고 경로만 보고한다.
+7. **생성 예산**: 최대 30회(시험 2 · 캐릭터 8 · 조연 6 · 모티프 4 · 뒷면 8 · 예비 2).
+   - README 기재가 ≈$0.06/장 기준 약 $2 이하다(실측 아님).
+   - 레이트리밋이나 한도에 걸리면 멈추고 보고한다.
+8. **커밋과 보고**
+   - 문서·원장·SVG 만 커밋한다(`docs(design): …`). `git status`·`git diff --stat` 을 확인한 뒤 경로를 지정해 add 한다.
+   - 보고한 뒤 승인을 기다린다. 다음은 Phase 2 파일럿 5장이다.
+
+검증 (Phase 1):
+- 원장 JSONL 파싱 검사(node 한 줄), 채택 항목마다 visual-checker 판정 기록.
+- 뒷면: 원본과 180° 회전본의 픽셀 차이 0(스크래치패드 sharp 스크립트).
+- 모든 생성물에 글자 없음(visual-checker), 눈·털 색은 sharp 픽셀 샘플로 정본과 대조.
+- `npm run check:fast` 1회 → commit → push → main `CI required` 통과 확인.
+
+## 다음 작업 2 — F-1 데이터·로직 착수 계획 (그림 불필요, UI 없음)
+
+- **등급**: GREEN(새 데이터·순수 함수·테스트). 권장: 주력 모델 / effort medium.
+
+0. **시작 점검**: 「재개 정보」의 시작 점검을 한다. Phase 1 세션과 동시에 쓰면 이쪽이 워크트리를 만든다.
+1. **가장 가까운 기존 구현부터 읽는다**(원칙 15).
+   - `lib/lock-screen-daily-fortune.ts`(결정적 선택), `lib/korean-calendar/ganji.js:5`(일진 공식).
+   - `js/saju-engine-tarot-sukuyo-quantum.js` 의 `sipsinTag`(:484-529), 십성 템플릿(:1745-1826), 주제별 문구(:2154-2376).
+   - `lib/tarot/rich-card-meanings.mjs:71-104`, `app/today/page.js:60`(빌드 때 필드 추출).
+   - `app/yeongnyangi/_lib/*-copy.ts`(로케일 폴백), `__tests__/ui/yeongnyangi-*.test.mjs`(node --test 선례).
+2. **매핑 정본 문서를 쓴다.**
+   - 메이저 22장 × `sipsinTag` → 오행 투영 규칙.
+   - 십성이 아닌 태그(예: 역마)의 규칙.
+   - 오행별 행운 색·숫자·방향·고양이 소품, 오늘의 작은 미션 풀.
+   - 일진 날짜 경계. 추천은 KST 자정(달력 날짜)이고, 자시(23시) 경계는 쓰지 않는다.
+3. **데이터를 만든다.**
+   - 22장 × 정/역 영냥이 문구(ko 정본 + en), 영냥이 한마디(카드 × 오행 관계), 행운표.
+   - 엔진 데이터(카드명·daily·advice)는 빌드 때 import 해 필요한 필드만 뽑는 어댑터로 읽는다. 285KB 번들은 금지한다.
+   - 셸 스크립트는 import 할 수 없다. 추천: 22개 `sipsinTag` 는 영냥이 데이터로 옮기고, 원본 파일을 텍스트로 읽어 값이 같은지 대조하는 테스트로 드리프트를 막는다(원본 수정 없음, F-1 세션이 확정).
+4. **순수 함수를 만든다.**
+   - KST 날짜 키, 기기 id(시드) 읽기·생성(try/catch, 실패하면 날짜만), 카드·정역 선택, 일진·천간 오행, 투영, 행운 포인트.
+   - 날짜와 id 는 인자로 받는다. 함수 안에서 네트워크나 시계를 직접 호출하지 않는다.
+   - 파일 위치는 1단계에서 읽은 선례를 따라 정한다.
+5. **테스트**: node --test, `mock-network-guard` 아래에서 「검증 (F)」 항목을 그대로 확인한다.
+6. **전달**: `check:fast` → 경로를 지정한 add → Conventional Commits 커밋 → push → CI. 보고한다. F-2 는 4a 뒤에 한다.
+
+## 해당 게이트에서 결정 (지금 불필요)
+
+- Phase 4a: 파생 이미지 저장 위치(`public/` vs R2 버전 경로, §9). 메이저 22장부터 적용한다.
+- Phase 6: 실 LLM 샘플 평가 건수(정확한 1회 승인), 참치 후속 질문·조언 카드·주제 칩·위기 안내.
+
+## 기존 결함·불일치 (보고만, 이번 범위에서 고치지 않음)
+
+1. 영냥이 유료 결과가 연이 찻집 덱을 보여 준다(§2) → 결정 ④ 로 4b 에서 교체.
+2. 결과 카드 `<img alt="">`(`ReadingCharts.tsx:34`): 카드는 장식이 아니라 내용이다. Phase 5 에서 카드명 alt(i18n)를 단다.
+3. en/ja 사용자에게 카드명이 한국어로 표시된다(`charts.ts:43`; `reading-chart-copy.ts:17-27` 에 카드명이 없다).
+4. `Math.random` 드로우 경로(`tarot-interpretation-engine.mjs:1248-1256`: 구형·퓨전 personal·무료)가 문서 "Web Crypto"(`yeongnyangi-ask.md:16`)와 맞지 않는다.
+5. 타로 요청이 생년월일 `undefined-undefined-undefined` 를 만들어 `daily-cross.ts:41-45` 로 넘긴다(`service.ts:50,81,91`).
+6. 질문형이 저장하는 `imageUrl`(덱 A)과 실제 표시(덱 B)가 다르다(`ask/tarot.ts:21-24`).
+7. caretaro 매핑이 두 벌이다(`tarotCardImageMap.ts`, `caretaro-card-images.mjs`).
+8. `worker/routes/yeongnyangi.js:26` 에 "50,000원"이 하드코딩돼 있다. `paid-flow-gates.yml` 에 영냥이 경로 트리거가 없다.
+9. 타로 `freeEntry`(`/yeongnyangi/free-fortune/?category=tarot`)는 읽는 곳 없는 죽은 데이터다. 워커는 이 경로를 `/today/`(연이 브랜드 일일 타로)로 302 한다(`public/_worker.js:465-467`).
+10. 영냥이 전역에 위기 신호(자해·극단 선택) 안내가 없다 → Phase 6 에서 추가를 제안한다.
+11. 본 브랜드 명리 타로가 "78장"을 내세우지만 실제 데이터는 메이저 22장이다(`FeatureLandingPage.tsx:103`, `index.html:34143`).
+12. 명리 타로 `resolveMainTenGod`(`js/saju-engine-tarot-sukuyo-quantum.js:2438-2451`): 사주를 먼저 계산해 `G_PILLARS` 가 있으면 `getTenGod(일간,'甲')` 로 고정된다. 그래서 어떤 카드가 나와도 십성이 같다.
+
+## 다음 세션 시작 문장
+
+- Phase 1: "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 `git log --oneline -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md` 로 이 문서 커밋을 확인한 뒤, 영냥이 타로 Phase 1(아트 디렉션)을 「다음 작업 1」 0단계부터 진행해줘."
+- F-1(병행 시 워크트리): "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 이 문서 커밋을 확인한 뒤, 영냥이 무료 원카드 F-1(데이터·로직)을 「다음 작업 2」 0단계부터 진행해줘."
