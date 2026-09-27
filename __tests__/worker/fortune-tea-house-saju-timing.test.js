@@ -248,11 +248,13 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     const first = await fakeDb.collection('fortune_tea_house_results').find({}).next();
     const sections = first.generationCheckpoint.parts;
     expect(sections['saju-section-0'].saju.deepSections[0].body).toBe(strongBody(SECTION_TITLES[0]));
-    expect(sections['saju-section-1']).toBeUndefined();
+    expect(sections['saju-section-1'].saju.deepSections[0].body).toBe(weakBody);
     await postConsult(consultBody({ attemptId: 'saju-partial-merge' }));
     const next = await fakeDb.collection('fortune_tea_house_results').find({}).next();
     expect(next.generationCheckpoint.parts['saju-section-0']).toEqual(sections['saju-section-0']);
     expect(next.generationCheckpoint.attempts['saju-section-0']).toBe(1);
+    expect(next.generationCheckpoint.parts['saju-section-1'].saju.deepSections[0].body).toBe(weakBody);
+    expect(next.generationCheckpoint.attempts['saju-section-1:lengthRepair']).toBe(1);
   });
 });
 

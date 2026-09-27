@@ -188,3 +188,72 @@ test("body count excludes headings, markup, whitespace and TOC; 19999/20000 boun
   }
   expect(quality.hasRepeatedReportPassage(`${"긴문장".repeat(30)}.\n${"긴문장".repeat(30)}.`)).toBe(true);
 });
+
+
+describe("length-only chapter recovery", () => {
+  const shortGroup = (group, paragraphs = 4) => group.chapters.map(chapter =>
+    `${chapter.no}. ${chapter.title}\n` + Array.from({ length: paragraphs }, (_, i) =>
+      `${chapter.no}장 ${i}번째 진로 직업 재물 관계 연애 건강의 선택을 명식과 연결해서 살펴보세요. 장면 ${chapter.no}-${i}는 생활 속에서 확인할 근거와 실행할 조언을 따로 정리합니다.`).join("\n")
+  ).join("\n\n");
+  test.each(["shorter", "empty", "repeated", "grounding", "cross-repeat"])("a %s repair preserves the valid short draft", async kind => {
+    const h = harness();
+    const group = prompt.SAJU_AI_SECTION_GROUPS[0];
+    const draft = shortGroup(group);
+    const repeat = "이 문장은 상대방의 속도를 존중하면서 자신의 선택을 점검하고 현실에서 실행할 수 있는 행동을 정리하는 데 쓰이는 반복된 상담 문장입니다.";
+    h.ctx.callGeminiText.mockReset().mockResolvedValueOnce({ ok: true, text: draft });
+    let repaired = kind === "empty" ? "" : kind === "shorter" ? shortGroup(group, 2) : groupBody(group);
+    if (kind === "repeated") repaired += "\n" + Array(4).fill(repeat).join("\n");
+    if (kind === "grounding") repaired += "\n십성모순입니다.";
+    if (kind === "cross-repeat") {
+      // First obtain another paid checkpoint, then retry a short second group with a shared passage.
+      h.ctx.callGeminiText.mockReset().mockResolvedValueOnce({ ok: true, text: groupBody(group) });
+      await h.post();
+      const second = prompt.SAJU_AI_SECTION_GROUPS[1];
+      const secondDraft = shortGroup(second);
+      repaired = groupBody(second) + "\n" + groupBody(group).split("\n").slice(1, 3).join("\n");
+      h.ctx.callGeminiText.mockResolvedValueOnce({ ok: true, text: secondDraft }).mockResolvedValueOnce({ ok: true, text: repaired });
+      expect((await h.post()).status).toBe(202);
+      expect(h.record().result.sections[1]).toMatchObject({ text: secondDraft, valid: true, lengthRepair: true });
+      return;
+    }
+    h.ctx.callGeminiText.mockResolvedValueOnce({ ok: true, text: repaired });
+    expect((await h.post()).status).toBe(202);
+    expect(h.record().result.sections[0]).toMatchObject({ text: draft, valid: true, lengthRepair: true, attempts: 2 });
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(2);
+  });
+  test("a saved short draft stays partial when this request has no repair time left", async () => {
+    const h = harness();
+    h.ctx.SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS = 1000000;
+    const draft = shortGroup(prompt.SAJU_AI_SECTION_GROUPS[0]);
+    h.ctx.callGeminiText.mockResolvedValue({ ok: true, text: draft });
+    expect((await h.post()).status).toBe(202);
+    expect(h.record().status).toBe("partial");
+    expect(h.record().result.sections[0]).toMatchObject({ text: draft, valid: false, attempts: 2 });
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+  test("last reservation interruption revalidates saved drafts without another call", async () => {
+    const h = harness();
+    await h.post();
+    h.record().status = "partial";
+    h.record().result.sections = prompt.SAJU_AI_SECTION_GROUPS.map(group => ({ key: group.key, text: groupBody(group), attempts: 4, valid: false }));
+    const calls = h.ctx.callGeminiText.mock.calls.length;
+    expect((await h.post()).status).toBe(200);
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
+  });
+  test("short total exhausts the existing budget and remains resumable storage without refund or further calls", async () => {
+    const h = harness();
+    h.ctx.callGeminiText.mockImplementation(async (_env, text) => {
+      const block = text.slice(text.indexOf("[이번에 쓸 챕터]"), text.indexOf("다음 챕터"));
+      const group = prompt.SAJU_AI_SECTION_GROUPS.find(g => g.chapters.every(c => block.includes(`${c.no}. ${c.title}`)));
+      return { ok: true, text: shortGroup(group) };
+    });
+    for (let i = 0; i < 12; i++) expect((await h.post()).status).toBe(202);
+    expect(h.record().status).toBe("partial");
+    expect(h.record().result.sections.every(row => row.valid && row.attempts === 4)).toBe(true);
+    const calls = h.ctx.callGeminiText.mock.calls.length;
+    const res = await h.post();
+    expect((await res.json()).retryable).toBe(false);
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
+    expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
+  });
+});

@@ -382,12 +382,12 @@ function bodyFromValue(value) {
   return clean(value, 8000);
 }
 
-function normalizeSectionList(value, limit = 14) {
+function normalizeSectionList(value, limit = 14, minBodyChars = 20) {
   if (!Array.isArray(value)) return [];
   return value.map((section) => ({
     title: clean(section?.title, 80),
     body: clean(section?.body || section?.content || section?.text, 12000),
-  })).filter((section) => section.title && section.body.length >= 20).slice(0, limit);
+  })).filter((section) => section.title && section.body.length >= minBodyChars).slice(0, limit);
 }
 
 function countSectionBodyChars(sections = []) {
@@ -548,7 +548,7 @@ function trimToLastCompleteSentence(text) {
 /**
  * 그룹 응답 파싱. **절대 throw 하지 않는다** — 실패는 값으로 돌려 한 그룹이 나머지를 죽이지 못하게 한다.
  */
-export function parseLoveSecretGroupResponse(text, group) {
+export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false } = {}) {
   const base = { key: group?.key || "", ok: false, sections: [], extras: {}, chars: 0, issues: [], reason: "" };
   const raw = clean(text);
   if (!raw) return { ...base, reason: "EMPTY_RESPONSE", issues: ["EMPTY_LLM_RESPONSE"] };
@@ -568,12 +568,20 @@ export function parseLoveSecretGroupResponse(text, group) {
   const titles = (group?.sections || []).map((section) => section.title);
   let sections = [];
   if (parsed && typeof parsed === "object") {
-    sections = normalizeSectionList(parsed.sections, titles.length + 2);
+    if (Array.isArray(parsed.sections) && parsed.sections.some(section => {
+      const body = section?.body ?? section?.content ?? section?.text;
+      return typeof body !== "string";
+    })) return { ...base, reason: "INVALID_SECTION_BODY", issues: ["REQUIRED_SECTIONS_INCOMPLETE"] };
+    sections = normalizeSectionList(parsed.sections, titles.length + 2, lengthRepair ? 1 : 20);
     if (!sections.length) {
       // 필드 형태(title 없이 field 키로만)로 왔을 때의 구제.
+      if ((group?.sections || []).some(section => {
+        const value = parsed[section.field];
+        return value != null && typeof value !== "string" && !(Array.isArray(value) && value.every(item => typeof item === "string"));
+      })) return { ...base, reason: "INVALID_SECTION_BODY", issues: ["REQUIRED_SECTIONS_INCOMPLETE"] };
       sections = (group?.sections || [])
         .map((section) => ({ title: section.title, body: bodyFromValue(parsed[section.field]) }))
-        .filter((section) => section.body.length >= 20);
+        .filter((section) => section.body.length >= (lengthRepair ? 1 : 20));
     }
   } else {
     // JSON 이 아예 아닐 때 — 이 그룹 제목 범위로만 프로즈를 쪼갠다.
@@ -586,7 +594,10 @@ export function parseLoveSecretGroupResponse(text, group) {
   const chars = countSectionBodyChars(trimmed);
   const issues = scanConsultationTextIssues(trimmed.map((section) => section.body).join("\n"));
   const sectionFloor = Math.ceil(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7 / Math.max(1, titles.length));
-  const requiredSectionsPresent = titles.every(title => trimmed.some(section => section.title === title && countPaidReportBodyChars(section.body) >= sectionFloor));
+  const lengthShort = titles.some(title => !trimmed.some(section => section.title === title && countPaidReportBodyChars(section.body) >= sectionFloor))
+    || chars < LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7;
+  const requiredSectionsPresent = titles.every(title => trimmed.filter(section => section.title === title && countPaidReportBodyChars(section.body) >= (lengthRepair ? 1 : sectionFloor)).length === 1);
+  if (hasRepeatedReportPassage(trimmed.map(section => section.body).join("\n"))) issues.push("REPEATED_PASSAGE");
   if (!requiredSectionsPresent) issues.push("REQUIRED_SECTIONS_INCOMPLETE");
 
   const extras = {};
@@ -614,7 +625,7 @@ export function parseLoveSecretGroupResponse(text, group) {
     });
   }
 
-  return { ...base, ok: requiredSectionsPresent && issues.length === 0, sections: trimmed, extras, chars, issues };
+  return { ...base, ok: requiredSectionsPresent && issues.length === 0, sections: trimmed, extras, chars, issues, lengthShort };
 }
 
 /** 그룹 제목 범위 안에서만 프로즈를 쪼갠다(전역 15섹션 폴백의 그룹 스코프 버전). */
@@ -702,6 +713,8 @@ export function assembleLoveSecretConsultation(groupResults = [], context = {}) 
       key: result?.key || "",
       ok: Boolean(result?.ok),
       chars: Number(result?.chars || 0),
+      lengthShort: Boolean(result?.lengthShort),
+      lengthRepair: Boolean(result?.lengthRepair),
       reason: clean(result?.reason, 60),
       provider: clean(result?.provider, 40),
       model: clean(result?.model, 60),
@@ -752,7 +765,7 @@ export function validateLoveSecretConsultation(result = {}, context = {}) {
       issues.push(`SECTION_EMPTY:${status.key}`);
       return;
     }
-    if (status.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7) issues.push(`SECTION_MIN_CHARS:${status.key}`);
+    if (!status.lengthRepair && (status.lengthShort || status.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.7)) issues.push(`SECTION_MIN_CHARS:${status.key}`);
   });
 
   return { issues, totalChars };

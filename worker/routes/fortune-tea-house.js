@@ -1626,7 +1626,7 @@ function assertText(value, label) {
   if (!textValue(value)) throw new Error(`fortune tea house quality failed: ${label}`);
 }
 
-function normalizeDeepSections(value) {
+function normalizeDeepSections(value, { lengthRepair = false } = {}) {
   if (!Array.isArray(value)) return [];
   return value
     .map((item, index) => {
@@ -1638,7 +1638,7 @@ function normalizeDeepSections(value) {
         tone: cleanText(section.tone, 20) || undefined,
       };
     })
-    .filter((section) => section.title && section.body.length >= 60);
+    .filter((section) => section.title && section.body.length >= (lengthRepair ? 1 : 60));
 }
 
 // 사주 궁합 전용 규칙 — 단독 사주의 자기중심 섹션 골격 대신 두 사람의 명식을 각각 세우고
@@ -2901,13 +2901,13 @@ function mergeLuckyKeywords(candidates, fallbackKeywords) {
 // 🔴 id 는 폴백 것을 유지한다 — 본문 확장 룩업(expansions[section.id])과 React key 가 id 기반이다.
 const FORTUNE_TEA_SECTION_BODY_FLOOR = 140;
 
-function mergeDeepSections(parsedSections, fallbackSections) {
+function mergeDeepSections(parsedSections, fallbackSections, { lengthRepair = false } = {}) {
   const parsed = Array.isArray(parsedSections) ? parsedSections : [];
   const base = Array.isArray(fallbackSections) ? fallbackSections : [];
   if (!base.length) return parsed;
   if (!parsed.length) return base;
 
-  const usable = parsed.filter((section) => cleanMultiline(section?.body, 1800).length >= FORTUNE_TEA_SECTION_BODY_FLOOR);
+  const usable = parsed.filter((section) => cleanMultiline(section?.body, 1800).length >= (lengthRepair ? 1 : FORTUNE_TEA_SECTION_BODY_FLOOR));
   const byTitle = new Map();
   for (const section of usable) {
     const title = cleanText(section?.title, 80);
@@ -2933,9 +2933,9 @@ function mergeDeepSections(parsedSections, fallbackSections) {
   return merged;
 }
 
-function mergeLlmResult(fallback, parsed) {
+function mergeLlmResult(fallback, parsed, options = {}) {
   const safeParsed = parsed && typeof parsed === "object" ? parsed : {};
-  const parsedDeepSections = normalizeDeepSections(safeParsed.saju?.deepSections);
+  const parsedDeepSections = normalizeDeepSections(safeParsed.saju?.deepSections, options);
   const isTarotConsultation = fallback.consultationMode === "tarot";
   return {
     ...fallback,
@@ -2962,7 +2962,7 @@ function mergeLlmResult(fallback, parsed) {
       fiveElements: fallback.saju.fiveElements,
       primaryTenGod: fallback.saju.primaryTenGod,
       secondaryTenGods: fallback.saju.secondaryTenGods,
-      deepSections: mergeDeepSections(parsedDeepSections, fallback.saju.deepSections),
+      deepSections: mergeDeepSections(parsedDeepSections, fallback.saju.deepSections, options),
       monthBranch: fallback.saju.monthBranch,
       season: fallback.saju.season,
       daewoon: fallback.saju.daewoon,
@@ -3134,49 +3134,53 @@ function assertTarotNarrativeOwnership(result) {
   }
 }
 
-function assertSajuDeepQuality(result, fallback) {
+function assertSajuDeepQuality(result, fallback, { lengthRepair = false, contentOnly = false, errors = null } = {}) {
+  const fail = message => { if (errors) errors.push(message); else throw new Error(message); };
+  const check = callback => { try { callback(); } catch (error) { fail(String(error.message || error)); } };
   const rule = resolveSajuCategoryRule(fallback || result);
   const requiredSectionTitles = getSajuRequiredSectionTitles(fallback || result);
-  const sections = normalizeDeepSections(result.saju?.deepSections);
+  const sections = normalizeDeepSections(result.saju?.deepSections, { lengthRepair });
   if (sections.length < requiredSectionTitles.length) {
-    throw new Error("fortune tea house quality failed: saju deepSections count");
+    fail("fortune tea house quality failed: saju deepSections count");
   }
   const titles = new Set(sections.map((section) => section.title));
   const missing = requiredSectionTitles.filter((title) => !titles.has(title));
   if (missing.length) {
-    throw new Error(`fortune tea house quality failed: saju missing sections ${missing.join(",")}`);
+    if (errors) missing.forEach(item => fail(`fortune tea house quality failed: saju missing sections ${item}`));
+    else fail(`fortune tea house quality failed: saju missing sections ${missing.join(",")}`);
   }
   sections.forEach((section, index) => {
-    assertText(section.title, `saju.deepSections.${index}.title`);
-    assertText(section.body, `saju.deepSections.${index}.body`);
-    if (section.body.length < 140) {
-      throw new Error(`fortune tea house quality failed: saju.deepSections.${index}.body too short`);
+    check(() => assertText(section.title, `saju.deepSections.${index}.title`));
+    check(() => assertText(section.body, `saju.deepSections.${index}.body`));
+    if (section.body.length < (lengthRepair ? 1 : 140)) {
+      fail(`fortune tea house quality failed: saju.deepSections.${index}.body too short`);
     }
   });
   const joined = collectConsultText(result);
   const compactLength = joined.replace(/\s/g, "").length;
-  if (compactLength < getSajuMinResultChars(fallback || result)) {
-    throw new Error(`fortune tea house quality failed: saju length ${compactLength}`);
+  if (!contentOnly && compactLength < getSajuMinResultChars(fallback || result)) {
+    fail(`fortune tea house quality failed: saju length ${compactLength}`);
   }
   if (SYSTEM_COPY_PATTERN.test(joined)) {
-    throw new Error("fortune tea house quality failed: system copy");
+    fail("fortune tea house quality failed: system copy");
   }
   if (SAJU_FORBIDDEN_COPY_PATTERN.test(joined)) {
-    throw new Error("fortune tea house quality failed: saju forbidden copy");
+    fail("fortune tea house quality failed: saju forbidden copy");
   }
   const factTerms = ["일간", "오행", "십성"].filter((term) => joined.includes(term));
   if (factTerms.length < 2) {
-    throw new Error("fortune tea house quality failed: saju fact terms");
+    fail("fortune tea house quality failed: saju fact terms");
   }
   if (!/현재 운|운의 흐름|대운|세운|월운/.test(joined)) {
-    throw new Error("fortune tea house quality failed: saju luck flow");
+    fail("fortune tea house quality failed: saju luck flow");
   }
   const missingCategoryTerms = (rule.requiredTerms || []).filter((term) => !joined.includes(term));
   if (missingCategoryTerms.length) {
-    throw new Error(`fortune tea house quality failed: saju category terms ${missingCategoryTerms.join(",")}`);
+    if (errors) missingCategoryTerms.forEach(item => fail(`fortune tea house quality failed: saju category terms ${item}`));
+    else fail(`fortune tea house quality failed: saju category terms ${missingCategoryTerms.join(",")}`);
   }
   if (hasRepeatedLongBlock(joined)) {
-    throw new Error("fortune tea house quality failed: repeated block");
+    fail("fortune tea house quality failed: repeated block");
   }
 }
 
@@ -3200,7 +3204,9 @@ function isReunionTarotQuestion(result, fallback) {
   return /재회|다시\s*만|전남|전여|헤어진|헤어졌|돌아오|붙잡/.test(joined);
 }
 
-function assertTarotDeepQuality(result, fallback) {
+function assertTarotDeepQuality(result, fallback, { lengthRepair = false, contentOnly = false, errors = null } = {}) {
+  const fail = message => { if (errors) errors.push(message); else throw new Error(message); };
+  const check = callback => { try { callback(); } catch (error) { fail(String(error.message || error)); } };
   const tarotRule = resolveTarotCategoryRule({
     selectedTeaCupId: fallback?.teaCup?.id,
     selectedTeaCupName: fallback?.teaCup?.name,
@@ -3238,146 +3244,152 @@ function assertTarotDeepQuality(result, fallback) {
     teaCup: fallback?.teaCup,
     tarotSpread: result.tarotSpread || fallback?.tarotSpread,
   });
-  if (compactLength < minChars) {
-    throw new Error(`fortune tea house quality failed: tarot length ${compactLength}`);
+  if (!contentOnly && compactLength < minChars) {
+    fail(`fortune tea house quality failed: tarot length ${compactLength}`);
   }
-  assertTarotAnchorCoverage(joined, result, fallback);
+  check(() => assertTarotAnchorCoverage(joined, result, fallback));
   if (SYSTEM_COPY_PATTERN.test(joined)) {
-    throw new Error("fortune tea house quality failed: tarot system copy");
+    fail("fortune tea house quality failed: tarot system copy");
   }
   if (TAROT_GENERIC_COPY_PATTERN.test(joined)) {
-    throw new Error("fortune tea house quality failed: tarot generic copy");
+    fail("fortune tea house quality failed: tarot generic copy");
   }
   if (TAROT_DETERMINISTIC_CLAIM_PATTERN.test(joined)) {
-    throw new Error("fortune tea house quality failed: tarot deterministic claim");
+    fail("fortune tea house quality failed: tarot deterministic claim");
   }
   if (hasRepeatedLongBlock(joined)) {
-    throw new Error("fortune tea house quality failed: tarot repeated block");
+    fail("fortune tea house quality failed: tarot repeated block");
   }
-  assertTarotNarrativeOwnership(result);
-  if (cleanMultiline(result.tarot?.reading, 4000).length < 120) {
-    throw new Error("fortune tea house quality failed: tarot reading too short");
+  check(() => assertTarotNarrativeOwnership(result));
+  if (cleanMultiline(result.tarot?.reading, 4000).length < (lengthRepair ? 1 : 120)) {
+    fail("fortune tea house quality failed: tarot reading too short");
   }
   ["intro", "main", "advice", "caution"].forEach((key) => {
-    if (cleanMultiline(result.yeoniReading?.[key], 4000).length < 80) {
-      throw new Error(`fortune tea house quality failed: yeoniReading.${key} too short`);
+    if (cleanMultiline(result.yeoniReading?.[key], 4000).length < (lengthRepair ? 1 : 80)) {
+      fail(`fortune tea house quality failed: yeoniReading.${key} too short`);
     }
   });
-  if (cleanMultiline(result.actionPrescription, 4000).length < 100) {
-    throw new Error("fortune tea house quality failed: actionPrescription too short");
+  if (cleanMultiline(result.actionPrescription, 4000).length < (lengthRepair ? 1 : 100)) {
+    fail("fortune tea house quality failed: actionPrescription too short");
   }
   result.emotionAnalysis.forEach((item, index) => {
-    if (cleanMultiline(item.description, 1000).length < 80) {
-      throw new Error(`fortune tea house quality failed: emotionAnalysis.${index}.reason too short`);
+    if (cleanMultiline(item.description, 1000).length < (lengthRepair ? 1 : 80)) {
+      fail(`fortune tea house quality failed: emotionAnalysis.${index}.reason too short`);
     }
   });
   // 🔴 요구사항 1: 뽑힌 카드는 한 장도 빠짐없이 개별 해석되어야 한다.
   if (!spreadCards.length) {
-    throw new Error("fortune tea house quality failed: tarot spread cards missing");
+    fail("fortune tea house quality failed: tarot spread cards missing");
   }
   spreadCards.forEach((card, index) => {
     const detail = card?.detail || {};
-    const missing = TAROT_CARD_DETAIL_FIELDS.filter((field) => cleanMultiline(detail[field], 900).length < 20);
+    const missing = TAROT_CARD_DETAIL_FIELDS.filter((field) => cleanMultiline(detail[field], 900).length < (lengthRepair ? 1 : 20));
     if (missing.length) {
-      throw new Error(`fortune tea house quality failed: tarot card ${index + 1} detail ${missing.join(",")}`);
+      if (errors) missing.forEach(item => fail(`fortune tea house quality failed: tarot card ${index + 1} detail ${item}`));
+      else fail(`fortune tea house quality failed: tarot card ${index + 1} detail ${missing.join(",")}`);
     }
     const detailText = TAROT_CARD_DETAIL_FIELDS.map((field) => cleanMultiline(detail[field], 900)).join("\n");
-    if (detailText.replace(/\s/g, "").length < TAROT_CARD_DETAIL_MIN_CHARS) {
-      throw new Error(`fortune tea house quality failed: tarot card ${index + 1} detail too short`);
+    if (detailText.replace(/\s/g, "").length < (lengthRepair ? 1 : TAROT_CARD_DETAIL_MIN_CHARS)) {
+      fail(`fortune tea house quality failed: tarot card ${index + 1} detail too short`);
     }
     // 카드 해석이 다른 카드 자리로 밀리는 사고를 막는다.
     const cardName = cleanText(card?.nameKo, 80);
     if (koreanAnchorsApply() && cardName && !detailText.includes(cardName)) {
-      throw new Error(`fortune tea house quality failed: tarot card ${index + 1} name missing`);
+      fail(`fortune tea house quality failed: tarot card ${index + 1} name missing`);
     }
   });
 
   const expectedInteractionCount = buildTarotInteractionPairIndexes(spreadCards.length).length;
   if ((result.cardInteractions || []).length < expectedInteractionCount) {
-    throw new Error(`fortune tea house quality failed: tarot card interactions ${(result.cardInteractions || []).length}/${expectedInteractionCount}`);
+    fail(errors ? "fortune tea house quality failed: tarot card interactions missing" : `fortune tea house quality failed: tarot card interactions ${(result.cardInteractions || []).length}/${expectedInteractionCount}`);
   }
 
   // 마음의 향은 이름이 정본 카탈로그 안이어야 하고(merge가 보장), 이유가 실제 카드와 이어져야 한다.
   const scentReason = cleanMultiline(result.heartScent?.reason, 1200);
   if (!isHeartScentName(cleanText(result.heartScent?.name, 40))) {
-    throw new Error("fortune tea house quality failed: heart scent name");
+    fail("fortune tea house quality failed: heart scent name");
   }
-  if (scentReason.replace(/\s/g, "").length < 150) {
-    throw new Error("fortune tea house quality failed: heart scent reason too short");
+  if (scentReason.replace(/\s/g, "").length < (lengthRepair ? 1 : 150)) {
+    fail("fortune tea house quality failed: heart scent reason too short");
   }
   if (!spreadCards.some((card) => cleanText(card?.nameKo, 80) && scentReason.includes(cleanText(card.nameKo, 80)))) {
-    throw new Error("fortune tea house quality failed: heart scent not linked to cards");
+    fail("fortune tea house quality failed: heart scent not linked to cards");
   }
 
   const expectedGaugeLabels = new Set(tarotRule.gauges || []);
   const matchedGaugeCount = (result.emotionAnalysis || []).filter((item) => expectedGaugeLabels.has(cleanText(item.label, 80))).length;
   if (matchedGaugeCount < Math.min(4, expectedGaugeLabels.size)) {
-    throw new Error("fortune tea house quality failed: tarot category gauges");
+    fail("fortune tea house quality failed: tarot category gauges");
   }
   const missingCategoryTerms = (tarotRule.requiredTerms || []).filter((term) => !joined.includes(term));
   if (missingCategoryTerms.length) {
-    throw new Error(`fortune tea house quality failed: tarot missing category terms ${missingCategoryTerms.join(",")}`);
+    if (errors) missingCategoryTerms.forEach(item => fail(`fortune tea house quality failed: tarot missing category terms ${item}`));
+    else fail(`fortune tea house quality failed: tarot missing category terms ${missingCategoryTerms.join(",")}`);
   }
   if (!Array.isArray(result.choiceSimulation) || result.choiceSimulation.length < 4) {
-    throw new Error("fortune tea house quality failed: tarot category action plan");
+    fail("fortune tea house quality failed: tarot category action plan");
   }
   if (isLoveTarotQuestion(result, fallback)) {
     const missing = TAROT_LOVE_REQUIRED_TERMS.filter((term) => !joined.includes(term));
     if (missing.length) {
-      throw new Error(`fortune tea house quality failed: tarot missing terms ${missing.join(",")}`);
+      if (errors) missing.forEach(item => fail(`fortune tea house quality failed: tarot missing terms ${item}`));
+      else fail(`fortune tea house quality failed: tarot missing terms ${missing.join(",")}`);
     }
     const missingReunion = isReunionTarotQuestion(result, fallback) ? TAROT_REUNION_REQUIRED_TERMS.filter((term) => !joined.includes(term)) : [];
     if (missingReunion.length) {
-      throw new Error(`fortune tea house quality failed: tarot missing reunion terms ${missingReunion.join(",")}`);
+      if (errors) missingReunion.forEach(item => fail(`fortune tea house quality failed: tarot missing reunion terms ${item}`));
+      else fail(`fortune tea house quality failed: tarot missing reunion terms ${missingReunion.join(",")}`);
     }
     if (!Array.isArray(result.choiceSimulation) || result.choiceSimulation.length < 4) {
-      throw new Error("fortune tea house quality failed: tarot 7day plan");
+      fail("fortune tea house quality failed: tarot 7day plan");
     }
   }
 }
 
-function assertConsultQuality(result, fallback) {
-  assertText(result.sessionTitle, "sessionTitle");
-  assertText(result.questionSummary, "questionSummary");
-  assertText(result.saju?.title, "saju.title");
-  assertText(result.saju?.summary, "saju.summary");
-  assertText(result.tarot?.reading, "tarot.reading");
-  assertText(result.synthesis?.title, "synthesis.title");
-  assertText(result.synthesis?.summary, "synthesis.summary");
-  assertText(result.synthesis?.sajuTarotBridge, "synthesis.sajuTarotBridge");
-  assertText(result.yeoniReading?.intro, "yeoniReading.intro");
-  assertText(result.yeoniReading?.main, "yeoniReading.main");
-  assertText(result.yeoniReading?.advice, "yeoniReading.advice");
-  assertText(result.yeoniReading?.caution, "yeoniReading.caution");
-  assertText(result.actionPrescription, "actionPrescription");
-  assertText(result.closingLine, "closingLine");
+function assertConsultQuality(result, fallback, options = {}) {
+  const fail = message => { if (options.errors) options.errors.push(message); else throw new Error(message); };
+  const check = callback => { try { callback(); } catch (error) { fail(String(error.message || error)); } };
+  check(() => assertText(result.sessionTitle, "sessionTitle"));
+  check(() => assertText(result.questionSummary, "questionSummary"));
+  check(() => assertText(result.saju?.title, "saju.title"));
+  check(() => assertText(result.saju?.summary, "saju.summary"));
+  check(() => assertText(result.tarot?.reading, "tarot.reading"));
+  check(() => assertText(result.synthesis?.title, "synthesis.title"));
+  check(() => assertText(result.synthesis?.summary, "synthesis.summary"));
+  check(() => assertText(result.synthesis?.sajuTarotBridge, "synthesis.sajuTarotBridge"));
+  check(() => assertText(result.yeoniReading?.intro, "yeoniReading.intro"));
+  check(() => assertText(result.yeoniReading?.main, "yeoniReading.main"));
+  check(() => assertText(result.yeoniReading?.advice, "yeoniReading.advice"));
+  check(() => assertText(result.yeoniReading?.caution, "yeoniReading.caution"));
+  check(() => assertText(result.actionPrescription, "actionPrescription"));
+  check(() => assertText(result.closingLine, "closingLine"));
 
   if (result.tarot.cardId !== fallback.tarot.cardId || result.tarot.orientation !== fallback.tarot.orientation) {
-    throw new Error("fortune tea house quality failed: tarot identity changed");
+    fail("fortune tea house quality failed: tarot identity changed");
   }
   if (result.tarot.nameKo !== fallback.tarot.nameKo || result.tarot.nameEn !== fallback.tarot.nameEn) {
-    throw new Error("fortune tea house quality failed: tarot name changed");
+    fail("fortune tea house quality failed: tarot name changed");
   }
   if (fallback.consultationMode === "sukuyo") {
-    assertText(result.sukuyoCompatibility?.title, "sukuyoCompatibility.title");
-    assertText(result.sukuyoCompatibility?.summary, "sukuyoCompatibility.summary");
-    assertText(result.sukuyoCompatibility?.user?.name, "sukuyoCompatibility.user.name");
-    assertText(result.sukuyoCompatibility?.partner?.name, "sukuyoCompatibility.partner.name");
+    check(() => assertText(result.sukuyoCompatibility?.title, "sukuyoCompatibility.title"));
+    check(() => assertText(result.sukuyoCompatibility?.summary, "sukuyoCompatibility.summary"));
+    check(() => assertText(result.sukuyoCompatibility?.user?.name, "sukuyoCompatibility.user.name"));
+    check(() => assertText(result.sukuyoCompatibility?.partner?.name, "sukuyoCompatibility.partner.name"));
     if (fallback.sukuyoCompatibility?.available) {
       if (result.sukuyoCompatibility?.relationType !== fallback.sukuyoCompatibility.relationType) {
-        throw new Error("fortune tea house quality failed: sukuyo relation changed");
+        fail("fortune tea house quality failed: sukuyo relation changed");
       }
       if (result.sukuyoCompatibility?.user?.sukuyoName !== fallback.sukuyoCompatibility.user.sukuyoName) {
-        throw new Error("fortune tea house quality failed: user sukuyo changed");
+        fail("fortune tea house quality failed: user sukuyo changed");
       }
       if (result.sukuyoCompatibility?.partner?.sukuyoName !== fallback.sukuyoCompatibility.partner.sukuyoName) {
-        throw new Error("fortune tea house quality failed: partner sukuyo changed");
+        fail("fortune tea house quality failed: partner sukuyo changed");
       }
       if (result.sukuyoCompatibility?.scores?.total !== fallback.sukuyoCompatibility.scores?.total) {
-        throw new Error("fortune tea house quality failed: sukuyo score changed");
+        fail("fortune tea house quality failed: sukuyo score changed");
       }
       if (result.sukuyoCompatibility?.relationDetail?.typeAToB !== fallback.sukuyoCompatibility.relationDetail?.typeAToB) {
-        throw new Error("fortune tea house quality failed: sukuyo directional relation changed");
+        fail("fortune tea house quality failed: sukuyo directional relation changed");
       }
       const sukuyoJoined = [
         result.sukuyoCompatibility?.title,
@@ -3395,8 +3407,8 @@ function assertConsultQuality(result, fallback) {
         ...(result.choiceSimulation || []).flatMap((item) => [item.title, item.subtitle, item.result, item.caution]),
       ].filter(Boolean).join("\n");
       const sukuyoCompactLength = sukuyoJoined.replace(/\s/g, "").length;
-      if (sukuyoCompactLength < SUKUYO_MIN_RESULT_CHARS) {
-        throw new Error(`fortune tea house quality failed: sukuyo length ${sukuyoCompactLength}`);
+      if (!options.contentOnly && sukuyoCompactLength < SUKUYO_MIN_RESULT_CHARS) {
+        fail(`fortune tea house quality failed: sukuyo length ${sukuyoCompactLength}`);
       }
       const sukuyoAnchors = [
         fallback.sukuyoCompatibility.user?.sukuyoName,
@@ -3405,34 +3417,35 @@ function assertConsultQuality(result, fallback) {
       ].map((value) => cleanText(value, 60)).filter(Boolean);
       const missingSukuyoAnchors = sukuyoAnchors.filter((anchor) => !sukuyoJoined.includes(anchor));
       if (missingSukuyoAnchors.length) {
-        throw new Error(`fortune tea house quality failed: sukuyo anchors ${missingSukuyoAnchors.join(",")}`);
+        if (options.errors) missingSukuyoAnchors.forEach(item => fail(`fortune tea house quality failed: sukuyo anchors ${item}`));
+        else fail(`fortune tea house quality failed: sukuyo anchors ${missingSukuyoAnchors.join(",")}`);
       }
     }
   }
   if (!Array.isArray(result.emotionAnalysis) || result.emotionAnalysis.length < 4) {
-    throw new Error("fortune tea house quality failed: emotionAnalysis");
+    fail("fortune tea house quality failed: emotionAnalysis");
   }
   result.emotionAnalysis.forEach((item, index) => {
-    assertText(item.label, `emotionAnalysis.${index}.label`);
-    assertText(item.description, `emotionAnalysis.${index}.description`);
+    check(() => assertText(item.label, `emotionAnalysis.${index}.label`));
+    check(() => assertText(item.description, `emotionAnalysis.${index}.description`));
     const value = Number(item.value);
-    if (!Number.isFinite(value)) throw new Error("fortune tea house quality failed: emotion value");
+    if (!Number.isFinite(value)) fail("fortune tea house quality failed: emotion value");
     item.value = Math.max(0, Math.min(100, Math.round(value)));
   });
   if (!Array.isArray(result.choiceSimulation) || result.choiceSimulation.length < 3) {
-    throw new Error("fortune tea house quality failed: choiceSimulation");
+    fail("fortune tea house quality failed: choiceSimulation");
   }
   result.choiceSimulation.slice(0, 3).forEach((choice, index) => {
-    assertText(choice.title, `choiceSimulation.${index}.title`);
-    assertText(choice.subtitle, `choiceSimulation.${index}.subtitle`);
-    assertText(choice.result, `choiceSimulation.${index}.result`);
-    assertText(choice.caution, `choiceSimulation.${index}.caution`);
+    check(() => assertText(choice.title, `choiceSimulation.${index}.title`));
+    check(() => assertText(choice.subtitle, `choiceSimulation.${index}.subtitle`));
+    check(() => assertText(choice.result, `choiceSimulation.${index}.result`));
+    check(() => assertText(choice.caution, `choiceSimulation.${index}.caution`));
   });
   if (!Array.isArray(result.luckyKeywords) || result.luckyKeywords.length < 2) {
-    throw new Error("fortune tea house quality failed: luckyKeywords");
+    fail("fortune tea house quality failed: luckyKeywords");
   }
   if (isSajuFamilyMode(fallback.consultationMode)) {
-    assertSajuDeepQuality(result, fallback);
+    assertSajuDeepQuality(result, fallback, options);
   }
   // 사주 궁합은 상대 명식 해석이 서사에 실제로 담겼는지 확인한다(본인 위주로 흐르는 것을 차단).
   if (koreanAnchorsApply() && fallback.consultationMode === "sajuCompatibility" && fallback.sajuCompatibility?.available) {
@@ -3441,7 +3454,7 @@ function assertConsultQuality(result, fallback) {
     const partner = compat.partner || {};
     const partnerName = cleanText(partner.name, 60);
     if (partnerName && !joined.includes(partnerName)) {
-      throw new Error("fortune tea house quality failed: saju compat partner not interpreted");
+      fail("fortune tea house quality failed: saju compat partner not interpreted");
     }
     // 상대 일간(천간)이 본문에 실제로 등장하는지 확인 — 이름만 언급하고 명식은 본인 사주인 경우를 차단.
     // 포맷 기인 false negative를 피하려 dayMaster의 맨 천간 글자만 비교하고, 실패는 상위 degrade가 흡수한다.
@@ -3449,17 +3462,17 @@ function assertConsultQuality(result, fallback) {
     const partnerStem = stemOf(partner.saju?.dayMaster);
     const selfStem = stemOf(compat.user?.saju?.dayMaster);
     if (partner.saju?.available === true && partnerStem && !joined.includes(partnerStem)) {
-      throw new Error("fortune tea house quality failed: saju compat partner ilgan missing");
+      fail("fortune tea house quality failed: saju compat partner ilgan missing");
     }
     // 두 일간이 다른데 본인 천간이 본문에 전혀 없으면 본인 명식을 상대 것으로 오인했을 가능성 — 함께 확인한다.
     if (partnerStem && selfStem && partnerStem !== selfStem && compat.user?.saju?.available === true && !joined.includes(selfStem)) {
-      throw new Error("fortune tea house quality failed: saju compat self ilgan missing");
+      fail("fortune tea house quality failed: saju compat self ilgan missing");
     }
   }
   if (fallback.consultationMode === "tarot") {
-    assertTarotDeepQuality(result, fallback);
+    assertTarotDeepQuality(result, fallback, options);
   }
-  assertNoMechanicalCopy(result);
+  check(() => assertNoMechanicalCopy(result));
 }
 
 const sharedOutputRules = [
@@ -3692,7 +3705,7 @@ function applyFortuneTeaGroupScope(prompt, group) {
       ...(group.positionId ? { exactPositionId: group.positionId, tarotCardReadings: "오직 이 위치의 카드 해설 하나만 반환한다." } : {}),
       minimumKoreanChars: group.minChars,
       ...(group.paths ? {
-        targetBodyChars: Math.ceil(group.minChars * 1.2),
+        targetBodyChars: Math.ceil(group.minChars / 0.8),
         completionRule: '제목·목차·공백·기호를 제외한 본문만 센다. 각 담당 필드에 고르게 배분하고 계산 근거, 생활 패턴, 반대 조건, 실행 조언을 서로 다른 문단으로 설명한다. 계산값을 만들거나 수정하지 않는다.',
         fieldLimits: '일반 본문 필드당 최대 4000자, 카드별 detail 각 900자, 감정 description 각 900자, choice result 1600자/caution 600자, closingLine 1200자. 특정 필드 하나에 몰아 쓰지 않는다.',
       } : {}),
@@ -4095,7 +4108,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // 🔴 프롬프트를 바꾼 PR 은 이 버전을 반드시 올린다. 결정론 캐시 TTL 이 30일이라
         // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
         // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
-        keyExtra: `tea-house-${consultationMode}-${group.key}-v3`,
+        keyExtra: `tea-house-${consultationMode}-${group.key}-v4`,
         minChars: group.minChars,
       },
     });
@@ -4135,11 +4148,11 @@ function teaNarrativeText(value) {
 function pickTeaCheckpointFields(parsed, group) {
     if (group.sectionTitle) {
         const section = parsed.saju?.deepSections?.find(item => item?.title === group.sectionTitle);
-        return typeof section?.body === 'string' ? { saju: { deepSections: [section] } } : null;
+        return typeof section?.body === 'string' && section.body.trim() ? { saju: { deepSections: [section] } } : null;
     }
     if (group.positionId) {
         const card = parsed.tarotCardReadings?.find(item => item?.positionId === group.positionId);
-        if (!card || TAROT_CARD_DETAIL_FIELDS.some(key => typeof card[key] !== 'string'))
+        if (!card || TAROT_CARD_DETAIL_FIELDS.some(key => typeof card[key] !== 'string' || !card[key].trim()))
             return null;
         const cards = Array(group.cardCount).fill(null);
         cards[group.cardIndex] = card;
@@ -4148,8 +4161,19 @@ function pickTeaCheckpointFields(parsed, group) {
     const picked = {};
     for (const path of group.paths) {
         const value = teaField(parsed, path);
-        if (value === undefined || value === null)
+        if (value === undefined || value === null || !teaNarrativeText(value).trim())
             return null;
+        const textFields = { synthesis: ['title', 'summary', 'sajuTarotBridge'], heartScent: ['name', 'category', 'reason'] }[path];
+        const itemFields = { emotionAnalysis: ['label', 'description'], choiceSimulation: ['title', 'subtitle', 'result', 'caution'], cardInteractions: ['pair', 'insight'] }[path];
+        const hasFields = (item, fields) => item && typeof item === 'object' && !Array.isArray(item)
+            && fields.every(key => typeof item[key] === 'string' && item[key].trim());
+        if (textFields) {
+            if (!hasFields(value, textFields)) return null;
+        } else if (itemFields) {
+            if (!Array.isArray(value) || !value.length || !value.every(item => hasFields(item, itemFields))) return null;
+        } else if (/^(?:luckyKeywords|sukuyoCompatibility\.(?:strengths|cautions|adviceKeywords))$/.test(path)) {
+            if (!Array.isArray(value) || !value.length || !value.every(item => typeof item === 'string' && item.trim())) return null;
+        } else if (typeof value !== 'string' || !value.trim()) return null;
         teaSet(picked, path, value);
     }
     return picked;
@@ -4195,46 +4219,75 @@ async function saveTeaCheckpoint(auth, resultId, lockToken, state) {
     }
 }
 function teaCheckpointProgress(state, resultId) {
-    return { ok: true, status: 'generating', retryable: state.groups.some(group => (!state.parts[group.key] || state.repairs?.includes(group.key)) && (state.attempts[group.key] || 0) < 3), resultId,
+    return { ok: true, status: 'generating', retryable: state.groups.some(group => (!state.parts[group.key] || state.repairs?.includes(group.key)
+        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars && !state.attempts[group.key + ':lengthRepair'])) && (state.attempts[group.key] || 0) < 3), resultId,
         completedSections: state.groups.filter(group => state.parts[group.key]).map(group => ({ key: group.key, title: group.label, body: teaNarrativeText(state.parts[group.key]) })), totalSections: state.groups.length,
         message: '정상 생성한 부분을 저장했어요. 같은 요청으로 나머지를 이어서 작성합니다.' };
 }
 async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, lockToken, checkpoint, body }) {
     const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko',
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
-    const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)) && (state.attempts[group.key] || 0) < 3).slice(0, 4);
+    const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)
+        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars && !state.attempts[group.key + ':lengthRepair'])) && (state.attempts[group.key] || 0) < 3).slice(0, 4);
     if (eligible.length && !hasGeminiKey(env)) {
         return { partial: { ...teaCheckpointProgress(state, resultId), reason: 'LLM_UNAVAILABLE' } };
     }
-    for (const group of eligible)
+    for (const group of eligible) {
+        if (state.parts[group.key] && countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars)
+            state.attempts[group.key + ':lengthRepair'] = 1;
         state.attempts[group.key] = (state.attempts[group.key] || 0) + 1;
+    }
     await saveTeaCheckpoint(auth, resultId, lockToken, state);
     let writes = Promise.resolve();
+    const contentError = parts => {
+        const errors = [];
+        try {
+            let candidate = state.fallback;
+            for (const item of state.groups)
+                if (parts[item.key]) candidate = mergeLlmResult(candidate, parts[item.key], { lengthRepair: true });
+            assertConsultQuality(candidate, state.fallback, { lengthRepair: true, contentOnly: true, errors });
+        } catch (error) { errors.push(String(error.message || error)); }
+        return [...new Set(errors)];
+    };
     const outcomes = await Promise.allSettled(eligible.map(async (group) => {
         const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '' }));
         if (!output.ok)
             return;
-        const rendered = mergeLlmResult(state.fallback, output.parsed);
+        // Required provider fields must exist before the deterministic fallback is merged.
+        if (!pickTeaCheckpointFields(output.parsed, group)) return;
+        const rendered = mergeLlmResult(state.fallback, output.parsed, { lengthRepair: true });
             const normalized = group.positionId ? { tarotCardReadings: rendered.tarotSpreadCards.map((card, i) => i === group.cardIndex ? { positionId: group.positionId, ...card.detail } : null) } : pickTeaCheckpointFields(rendered, group);
-            if (countPaidReportBodyChars(teaNarrativeText(normalized)) < group.minChars || hasRepeatedReportPassage(teaNarrativeText(normalized)))
+            if (!normalized || !countPaidReportBodyChars(teaNarrativeText(normalized)) || hasRepeatedReportPassage(teaNarrativeText(normalized)))
                 return;
             if (state.request.consultationMode === 'saju' && !validateSajuMyeongsikTenGodText(
                 teaNarrativeText(normalized), buildFortuneTeaSajuMyeongsikFacts(state.request, state.fallback.saju),
             ).ok) return;
-        const accept = async () => { state.parts[group.key] = normalized; state.repairs = state.repairs.filter(key => key !== group.key); await saveTeaCheckpoint(auth, resultId, lockToken, state); };
+        const accept = async () => {
+            const previous = state.parts[group.key];
+            const candidateParts = { ...state.parts, [group.key]: normalized };
+            if (hasRepeatedReportPassage(state.groups.map(item => teaNarrativeText(candidateParts[item.key])).join('\n'))) return;
+            const before = contentError(state.parts), after = contentError(candidateParts);
+            if (previous && after.some(error => !before.includes(error))) return;
+            if (!previous || after.length < before.length || countPaidReportBodyChars(teaNarrativeText(normalized)) > countPaidReportBodyChars(teaNarrativeText(previous)))
+                state.parts[group.key] = normalized;
+            state.repairs = state.repairs.filter(key => key !== group.key);
+            await saveTeaCheckpoint(auth, resultId, lockToken, state);
+        };
         writes = writes.then(accept, accept);
         await writes;
     }));
     const rejected = outcomes.find(outcome => outcome.status === 'rejected');
     if (rejected)
         throw rejected.reason;
-    if (state.groups.some(group => !state.parts[group.key]) || state.repairs.length)
+    if (state.groups.some(group => !state.parts[group.key]
+        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars
+            && !state.attempts[group.key + ':lengthRepair'] && state.attempts[group.key] < 3)))
         return { partial: teaCheckpointProgress(state, resultId) };
     let result = state.fallback;
     for (const group of state.groups)
-        result = mergeLlmResult(result, state.parts[group.key]);
+        result = mergeLlmResult(result, state.parts[group.key], { lengthRepair: true });
     try {
-        assertConsultQuality(result, state.fallback);
+        assertConsultQuality(result, state.fallback, { lengthRepair: true });
         // Only provider-written narrative contributes to the new detailed-report floor.
         const bodyText = state.groups.map(group => teaNarrativeText(state.parts[group.key])).join('\n');
         if (countPaidReportBodyChars(bodyText) < 20000)
@@ -4246,7 +4299,10 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
         state.qualityError = String(error.message || error);
         const exact = state.groups.filter(group => state.qualityError.includes(group.label));
         const scoped = state.groups.filter(group => group.paths.some(path => state.qualityError.includes(path.split('.')[0])));
-        state.repairs = (exact.length ? exact : scoped.length ? scoped : state.groups).map(group => group.key);
+        const lengthOnly = state.qualityError === 'report body length' || /quality failed: (?:saju|tarot|sukuyo) length /.test(state.qualityError);
+        state.repairs = (lengthOnly
+            ? state.groups.filter(group => countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < Math.ceil(group.minChars / 0.8))
+            : exact.length ? exact : scoped.length ? scoped : state.groups).map(group => group.key);
         await saveTeaCheckpoint(auth, resultId, lockToken, state);
         return { partial: teaCheckpointProgress(state, resultId) };
     }
