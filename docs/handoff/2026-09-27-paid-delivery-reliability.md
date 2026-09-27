@@ -1,14 +1,14 @@
 ---
 status: active
 updated: 2026-09-27
-next: "2단계(카탈로그 158개 전달 분류)는 `1c36ec974`·`1f4055771`로 main 에 있고 `report-paid-delivery-inventory.mjs`는 exit 0, 미분류 상품은 jest 가 실패시킨다. 0절 P0 수정도 main 에 있으나 프로덕션은 아직 결함 빌드이며 승격은 1A·1B 크론 위험과 함께 별도 1회 승인 사항이다. 3단계 전체 구간 계측부터 시작하고, 서버 이어생성 없는 LLM 24키(인벤토리 `llmWithoutServerRecovery`)와 2절 범위 밖 발견을 입력으로 쓴다."
+next: "프로덕션은 `8a8a709fa`(코인 표식 제거 `f998eaf79`·표시가 정정 `8a8a709fa`, run 36301695579)다. 0절 P0 수정·1A·1B 크론·2단계는 `9d2b30b8c` 승격(run 36296950632)부터 프로덕션에 있다. 3단계 전체 구간 계측부터 시작하되 1B 크론의 과금 LLM 호출 수·비용을 먼저 보고, 서버 이어생성 없는 LLM 24키(인벤토리 `llmWithoutServerRecovery`)와 2절·5절 범위 밖 발견을 입력으로 쓴다."
 ---
 
 # 결제 지연·유료 결과 복구·LLM 비용 통제 인수인계
 
 ## 현재 상태와 작업 위치
 
-전체 계획은 미완료다. 1차 구현은 main과 스테이징에서 검증했지만 이 작업에서 프로덕션 승격은 하지 않았다. 승인 대기만 남은 작업이 아니다. 아래 서버 복구·상품 연결·계측 구현이 남아 있다.
+전체 계획은 미완료다. 1차 구현·P0 수정·2단계는 `9d2b30b8c`로, 코인 표식 제거·표시가 정정은 `8a8a709fa`로 프로덕션에 승격됐다(각각 사용자 1회 승인). 승인 대기만 남은 작업이 아니다. 아래 서버 복구·상품 연결·계측 구현이 남아 있다.
 
 - 주 저장소: `D:\Development\code-destiny`
 - 재사용할 격리 작업 디렉터리: `C:\Users\user\.codex\worktrees\paid-delivery-reliability\code-destiny`
@@ -22,6 +22,7 @@ next: "2단계(카탈로그 158개 전달 분류)는 `1c36ec974`·`1f4055771`로
 - **2026-09-27 후속 세션(1단계 B 본 구현):** 기준 `25ad5ee7e`에서 만든 `8261429ba`(서버: 결제 전 의도 등록·크론 증명 승격·증빙 키 제외 병합) → `d52cfb4e6`(등록 11키 페이지의 결제 직전 등록·pet 날짜 고정·sync:public·sitemap) → `3d73f0a5d`(의도 테스트)를 origin/main `18622016a` 위로 rebase 해 이 문서 커밋과 함께 main 에 전달했다. 작업 중 **P0 후보**(공통 엔진 첫 삽입이 MongoDB code 40 으로 거부될 수 있음)를 발견해 보고만 했다 — 아래 0절. 2·3단계는 미착수다. 실 PG·과금 LLM·운영/스테이징 DB 0회.
 - **2026-09-27 후속 세션(P0 수정):** 운영 반영·영향을 읽기 전용으로 확인하고 사용자 승인(엔진+천상 조화, 스테이징 fixture)을 받아 기준 `53e9f9342` 위에 `84b20aa35`(엔진 첫 삽입)·`9f4ec59f0`(천상 조화 체크포인트)를 만들었다 — 0절. 2·3단계는 미착수다. 실 PG·과금 LLM 0회, 운영 DB 읽기 전용 집계만, 스테이징 DB 는 fixture 쓰기 후 삭제(잔존 0).
 - **2026-09-27 후속 세션(2단계):** 기준 `dcf13b492` 위에 `1c36ec974`(비LLM 35개 CTA·consumer 근거) → `1f4055771`(분류 모듈·미분류 실패 jest) → 이 문서 커밋. 런타임 무변경(검사·fixture·보고 스크립트·문서) — 2절. 3단계는 미착수다. 실 PG·과금 LLM·DB 0회.
+- **2026-09-27 후속 세션(코인 표식·표시가·영냥이 검토):** 기준 `9d2b30b8c` 위에 `f998eaf79`(사용자에게 보이는 코인 문구·아이콘 제거) → `8a8a709fa`(등록소보다 비싸게 보이던 표시가와 결제 입력 상수를 등록소에 맞춤 — 12개 로케일 사전·미러·캐시 핀·결제 동결 매니페스트·sitemap 포함) → 이 문서 커밋. 사용자 1회 승인으로 `8a8a709fa`를 프로덕션에 승격(run 36301695579). 영냥이 결제 후 전달은 검토만 했다 — 5절. 실 PG·과금 LLM·DB 0회.
 
 상세 근거는 `docs/verification/paid-delivery-reliability-20260927.md`, 상품 표는 `docs/verification/paid-delivery-inventory-20260927.json`, 손익 표는 `docs/verification/yeongnyangi-pass-economics-20260927.json`, 스테이징 증거는 `docs/verification/paid-delivery-staging-20260927.json`에 있다. 먼저 이 문서로 재개하고 필요한 근거만 읽는다.
 
@@ -46,13 +47,13 @@ next: "2단계(카탈로그 158개 전달 분류)는 `1c36ec974`·`1f4055771`로
 | 보고 | `scripts/report-paid-delivery-{inventory,health}.mjs`, `report-llm-token-usage.mjs`, `report-pg-window-latency.mjs`, `report-yeongnyangi-pass-economics.mjs`, `lib/payment/llm-cost-report.mjs` | 상품 전수 완료율·복구 성공률·실측 원가는 아직 불완전 |
 | 서버 이어생성 | `worker/lib/paid-narrative-recovery-task.js`(신규), `paid-narrative-adapters.js`(레지스트리 18키), `paid-narrative-delivery.js`의 `resumePaidNarrativeOnServer`, `worker/index.js` 10분 분기 배선 | 이미 실행 기록이 생긴 건과 1B 가 승격한 의도(등록 11키). 제외 7키는 첫 요청 전 이탈 시 여전히 기록이 없다. 스테이징 `crons = []`라 자동 경로 스테이징 실증 없음 |
 | 결제 재개 서술자 | `geomancy-oracle-v4.html`, `js/animal-totem-experience.js`(배열·객체를 JSON 문자열로 싣고 복귀 때 검증), `app/fortune-chat/FortuneChatClient.tsx`·`paid-turn-recovery.ts`(질문 전 recentTurns 고정) | 복귀 본문 = 페이지 내 본문(증빙 키 차이는 1B 병합 규칙이 흡수). pet 자정 날짜는 1B 에서 수정. 이 행의 geomancy·`fortune-chat-consultation`(guardian)은 서버 등록 제외, totem 은 등록 11키(1B 절) |
-| 결제 전 의도 등록 | `worker/lib/paid-narrative-intent.js`·`worker/routes/paid-narrative-intent.js`(신규), `paid-narrative-delivery.js` 증빙 키 제외 병합·증명된 실행의 verifier 생략, `paid-narrative-recovery-task.js` 틱 시작 승격, 등록 11키 페이지의 결제 직전 등록 | mock 만. 제외 7키는 1A 브라우저 재개만. P0(엔진 첫 삽입 code 40)은 `84b20aa35`로 수정, 프로덕션 미승격 |
+| 결제 전 의도 등록 | `worker/lib/paid-narrative-intent.js`·`worker/routes/paid-narrative-intent.js`(신규), `paid-narrative-delivery.js` 증빙 키 제외 병합·증명된 실행의 verifier 생략, `paid-narrative-recovery-task.js` 틱 시작 승격, 등록 11키 페이지의 결제 직전 등록 | mock 만. 제외 7키는 1A 브라우저 재개만. P0(엔진 첫 삽입 code 40)은 `84b20aa35`로 수정, `9d2b30b8c` 승격으로 프로덕션 반영 |
 
 **동시 작업 주의:** 현재 main에는 후속 `a572d4ae5`가 들어 있다. 반복되거나 무효인 보완 응답이 기존 유효 초안을 막던 문제와 섬 캐시 minChars 연결을 수정했다. `docs/handoff/2026-09-27-llm-length-never-fatal.md`의 P1 완료 기록과 최신 diff를 읽고 보존한다. 그 문서의 P1 이전 전수 조사와 이 작업의 원래 보고는 역사적 스냅샷이며 최신 구현과 다를 수 있다. 길이 품질 작업의 P2~P5와 여기의 복구 작업을 중복 구현하지 않는다. 타 세션에 메시지를 보내는 것은 사용자 허가 없이 하지 않는다.
 
 ## 남은 작업 순서와 통과 조건
 
-### 0. P0 — 공통 엔진·천상 조화 첫 삽입의 MongoDB code 40 (수정 `84b20aa35`·`9f4ec59f0`, 프로덕션 미승격)
+### 0. P0 — 공통 엔진·천상 조화 첫 삽입의 MongoDB code 40 (수정 `84b20aa35`·`9f4ec59f0`, `9d2b30b8c` 승격으로 프로덕션 반영)
 
 1B 작업 중 발견했고 후속 세션이 사용자 승인 뒤 고쳤다. 아래 첫 네 항목은 발견 당시 기록이고, 확정 결과는 그 뒤 항목들이다.
 
@@ -158,6 +159,38 @@ B 의 요구와 통과 조건(원래 목록). 이 중 브라우저 종료·DB �
 위 구현과 관련 CI가 통과하면 요청된 스테이징 전체 경로를 검증한다. 일상 push마다 스테이징을 기다리지 않는다. 실제 시험표 승인 후에만 승인 범위의 PG/LLM을 실행하며, 시험 대상 SHA가 수정된 코드인지 먼저 확인한다. 오래된 프로덕션에서 실행한 거래로 새 코드 전달을 입증하지 않는다. 스테이징 실 공급자 키를 임의로 켜지 않는다.
 
 최종 검증 SHA를 기존 GitHub Actions 릴리스로 승격하고 Pages `/version.json` 및 Worker `/api/version` 일치·스모크를 확인한다. 실패하면 양쪽 롤백. 로컬 직접 배포 금지. 24시간·7일 관찰 보고 경로를 제공하되 경과 전 수치를 완료로 표시하지 않는다.
+
+### 5. 2026-09-27 코인 표식 제거·표시가 정정·영냥이 검토의 후속 (보고만 한 항목)
+
+이 세션은 코인 표식 제거(`f998eaf79`)와 표시가 정정(`8a8a709fa`)을 전달하고 프로덕션에 승격했다(run 36301695579). 아래는 범위 밖이라 **고치지 않고 기록만** 한 항목이다. 실측은 파일:줄, 추정은 그렇게 적었다.
+
+**영냥이 결제 후 전달 검토 (코드 읽기 + mock 테스트, 실결제·과금 LLM 0회)** — P0(조용한 유실·이중 청구) 없음. jest 144·node --test 49/153 통과, tsc 0.
+- P1-1 질문 장 영구 보류: `worker/yeongnyangi/retry.js:11`이 `ASK_LIMITED` 재시도를 막고, `repository.js:432-440` failChapter 는 `limited` 를 환불 대상(permanent)으로 보지 않는다 → 한도 걸린 질문 장이 재시도도 환불도 없이 남는다.
+- P1-2 생성 초안 보존 없음: `service.ts:228-250` 교정·검토 실패 시 초안을 버린다(원칙 17 "안 나오는 게 최악"과 충돌).
+- P1-3 Family 1장 환불 실패 재시도 없음: `refundTerminalFamilyQuota` 가 실패하면 다시 시도하는 경로가 없다.
+- P1-4 보류 스캔 기아(추정): 오래된 보류 건이 스캔 상한 뒤로 밀리면 영영 안 잡힐 수 있다. 미실측.
+- P2(서버): 상담 2,000자 초과를 거부(L3 교정 규칙과 충돌) · 목록 응답에 recoveryAudit 없음 · PASS_QUOTA_RESTORED 재시도 문구 · `code-destiny.ts:37` 프롬프트 변경 미검증.
+- P2(클라이언트 6): `scripts/verify-yeongnyangi-result-retry.mjs` 가 fixture 에 `resultPath` 가 없어 깨져 있고 어디에도 배선 안 됨 · 보류 중 목차가 "복구 필요"로 보임 · canRetry 판정 불일치 · activate 오류 시 결제 링크 숨김 · 무한 폴링 · 서재 페이지 리셋.
+
+**표시가가 청구보다 싸다 (사용자 요청은 "비싸게 표시"만이라 미수정)** — 결제창은 서버 가격을 보여 주므로 과소 청구·과다 청구는 없다(추정).
+- `app/_lib/serviceSections.js` 천운 타로 vi:410·es:479·fr:548·de:617·hi:686·nl:755·ms:824 → 3,000원 표시, 청구 5,000원.
+- `app/_lib/serviceFeatureRegistry.ts` 심화 자미두수 priceLabel 20,000(:172·907·1672·2437·3202) → `ziwei-deep-pdf` 30,000.
+- 코스믹 명상 `FEATURE_MARKETING_COPY`(index.html → `lib/marketing/feature-marketing-copy.generated.json`) 30분 3,000·60분 5,000 → 등록소 하위가 50·100(5,000·10,000).
+
+**청구 동작 (RED, 미수정)**
+- `worker/routes/animal-totem.js:60` 5장 `coinPrice: 50` — 단건 청구는 등록소 30 이지만 `verifyPerUsePayment`(`worker/lib/nakshatra-paid-access.js:190`)가 이 값으로 **이용권 예산 50 을 차감**한다.
+- 폴백 기본값: sukuyo `syPromptGate` `? 100`(js/saju-engine-tarot-sukuyo-quantum.js 약 16467), sibyl `|| 100`(js/sibyl-system.js 약 3880·3964).
+
+**문구·정책 결정 필요**
+- neville·yoga 의 "30분과 60분 가격이 다릅니다" 문구가 이제 거짓(둘 다 3,000원).
+- 등록소에 없는 가격 문구: `guardian_fortune` "1회 5,000원"(src/features/guardian-fortune/constants.ts:161, mocks.ts:73), `myungwun_final.html:782/785` "30,000원", 휴먼 디자인 타일 "무료 공개" vs `human-design-chart` 100.
+- index.html 약 21107 이용권 상점 `price: 9900` vs 14,900원 표시, `TermsContent.jsx:82,85` 이용권 등급 문구 vs `lib/payment/pass-policy.js`.
+- `worker/lib/paid-feature-registry.js:159-162` 코스믹 주석과 하위 가격표가 어긋남.
+- 참조 없는 사전 키에 옛 가격·코인이 남아 있다(화면 아님, 삭제는 별도 변경): `home.animalTotem.modes.{one,three,five}.desc`(5장 5,000원), `payment.unlockWith5000`("🪙 5,000원으로 잠금 해제"), `payment.permanentUnlock5000`·`permanentUnlockApprox5000`, `home.tiles.unlock10000`·`unlock20000`, `home.passFooter.title`, `shell.fortuneGatewayDoor…n130000`. 근거: `public/i18n`·`i18n/`·`docs/` 밖 `git grep -F` 0건. `sajuEngine.se_21084_call_confirm`(20,000원)도 `js/saju-engine.js:227` 정의뿐.
+- `i18n/authored/core-03.json` 의 `_comment` 가 아직 "₩3,000~₩10,000"(값은 3,000~5,000 으로 고침).
+- 낡은 가격 주석(화면 아님): IslandConsultClient.tsx:42·432·606·636·1091, FptiResultCard.tsx:714, DestinyMeetingPlacePage.tsx:24, PastLifeFaceUI.js:3424·3553·3695, AnalysisEngine.js:940, QuestionInputScene.tsx:430, app/README.md:23·95·96, saju-engine.js 227·5521·26556·27313·28947.
+
+**운영 위험 (이미 라이브)** — 1B 크론(위 1절 ②)은 `9d2b30b8c` 승격(run 36296950632) 때부터 프로덕션에서 돈다. 증명된 의도를 사용자 요청 없이 과금 LLM 으로 이어 생성한다(건당 최대 3회). 스테이징은 `crons = []` 라 증거가 없다. 3단계 계측에서 크론 호출 수·비용을 먼저 본다.
 
 ## 검증된 범위와 수치
 
