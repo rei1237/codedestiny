@@ -1275,6 +1275,11 @@ const app = {
         return await handleOgRoutes(request, env);
       }
 
+      if (url.pathname.startsWith("/api/kakao-crm/")) {
+        const { handleKakaoCrmRoutes } = await import("./routes/kakao-crm.js");
+        return withCorsHeaders(request, env, await handleKakaoCrmRoutes(request, env));
+      }
+
       if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
         return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
       }

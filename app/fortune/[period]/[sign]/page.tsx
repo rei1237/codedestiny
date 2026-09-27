@@ -20,6 +20,7 @@ import { buildSignViewModel } from "@/lib/fortune/build-view";
 import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { FORTUNE_PERIOD_IDS, PERIOD_LABEL, PERIOD_TITLE, isFortunePeriodId } from "@/lib/fortune/periods";
 import { SIGN_PROFILES, getSignProfile } from "@/lib/fortune/sign-profiles";
+import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 import SignFortuneView from "./SignFortuneView";
 
 export const dynamicParams = false;
@@ -153,6 +154,7 @@ export default function SignFortunePage({ params }: { params: { period: string; 
   return (
     <>
       <SignFortuneView vm={vm} />
+      <KakaoChannelInvite source="free_result" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />

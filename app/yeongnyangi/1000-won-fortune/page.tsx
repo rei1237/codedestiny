@@ -11,6 +11,7 @@ import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 import FounderTrust from '@/app/components/FounderTrust';
 import {founder} from '@/lib/brand/founder';
 import SampleExposure from '../_components/SampleExposure';
+import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 
 // 천원사주 허브. 영냥이 고등어 상담의 검색 착륙 페이지다(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md).
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
@@ -185,6 +186,7 @@ export default function Page(){
    <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="/yeongnyangi/fortune/?domain=tarot&fish=mackerel">천원 타로 상담 알아보기</a><a href="/yeongnyangi/">영냥이의 방 둘러보기</a></p>
   </section>
 
+  <KakaoChannelInvite source="product_detail" />
   {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serialize(item)}}/>)}
  </article>;
 }

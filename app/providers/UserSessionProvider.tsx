@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useLayoutEffect } from "react";
+import SignupChannelInvite from '../components/SignupChannelInvite';
 import {
   ensureUserAccessLoaded,
   installUserAccessFetchCache,
@@ -36,5 +37,5 @@ export default function UserSessionProvider({ children }: { children: ReactNode 
     };
   }, []);
 
-  return children;
+  return <>{children}<SignupChannelInvite /></>;
 }
