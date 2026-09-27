@@ -15,7 +15,7 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
     "현실적인 조언",
   ],
   async (input, options = {}) => {
-    const r = calculateScreenSaju(input.personA!,new Date(options.asOf || Date.now()));
+    const r = calculateScreenSaju(input.personA!,new Date(options.asOf || Date.now()),options.jongAnswer);
     const limitations = [
       "강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.",
       "한국 표준시 출생 기준입니다.",
@@ -24,8 +24,9 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
       limitations.push(
         "출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.",
       );
+    if(r.jongVerdict==='rejected')limitations.push('생활 이력 확인 결과가 종격 흐름과 맞지 않아 일반격(억부) 용신으로 읽었습니다.');
     if(r.jong.confirmationRequired)limitations.push('종격은 기존 엔진이 찾은 후보입니다. 기존 서비스의 생활 이력 확인을 거치지 않은 용신·종격 해석은 조건부입니다.');
-    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},options) : undefined;
+    const partner = input.personB ? await saju.calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{...options,jongAnswer:undefined}) : undefined;
     const partnerFacts = partner ? Object.fromEntries(partner.facts.map(f=>[f.label,f.value])) : undefined;
     return context(
       "saju",

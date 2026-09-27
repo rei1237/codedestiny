@@ -59,7 +59,7 @@ export interface FortuneLLMResponse {
 export interface LLMProvider {
   generate(request: FortuneLLMRequest): Promise<FortuneLLMResponse>;
 }
-export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; tarotFusion?: boolean; }
+export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; tarotFusion?: boolean; jongAnswer?: import('../saju/jong-check').JongAnswer; }
 
 export interface FortuneDomain {
   id: DomainId;

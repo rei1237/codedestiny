@@ -24,8 +24,9 @@ import { buildSajuAdvancedFactors } from "../../../lib/saju-ai-prompt.js";
 import { buildLoveShinsal } from "../../../lib/saju-shinsal.js";
 import { BirthProfile, FortuneError } from "../shared/contracts";
 import {koreanCivilProfile} from '../shared/korean-time';
+import { jongCheckYears, resolveJongVerdict, type JongAnswer } from './jong-check';
 
-export function calculateScreenSaju(profile: BirthProfile, now: Date) {
+export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
   if (profile.birthPlace && profile.birthPlace.timezone !== "Asia/Seoul")
     throw new FortuneError("SAJU_KST_REQUIRED");
   const normalized=koreanCivilProfile(profile);
@@ -110,7 +111,19 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date) {
   );
   const johu = analyzeJohu(p),
     natal = calcNatalElement(p),
-    jong = detectJong(p);
+    detected = detectJong(p);
+  const jongCheck = jongCheckYears(detected, { birthYear: year, asOfYear: kstYear });
+  const verdict = resolveJongVerdict(jongCheck, jongAnswer);
+  // 생활 이력이 종격과 맞지 않으면 억부로 읽는다. 합화 사실은 꿀꿀 원본처럼 남긴다.
+  const jong = verdict === "rejected"
+    ? { isJong: false, ganHeMerged: detected.ganHeMerged, jiHeMerged: detected.jiHeMerged }
+    : detected;
+  const userCheck = verdict === "unconfirmed" ? undefined : {
+    best: jongAnswer!.best,
+    worst: jongAnswer!.worst,
+    bestYears: jongCheck!.best,
+    worstYears: jongCheck!.worst,
+  };
   const power = applyRuntimeYongshinPolicy(calcPower(p), jong, johu);
   const advanced = buildSajuAdvancedFactors({
     pillars: p,
@@ -127,7 +140,13 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date) {
     strength: power,
     usefulGod: power?.yongshin,
     advancedFactors: advanced,
-    jong: { ...jong, confirmationRequired: jong.isJong === true },
+    jong: verdict === "rejected"
+      ? { ...jong, candidateName: detected.name, rejectedByUser: true, confirmationRequired: false, userCheck }
+      : verdict === "confirmed"
+        ? { ...detected, confirmedByUser: true, confirmationRequired: false, userCheck }
+        : { ...detected, confirmationRequired: detected.isJong === true },
+    jongCheck,
+    jongVerdict: verdict,
     shinsal: buildLoveShinsal({
       pillars: Object.fromEntries(
         Object.entries(p).map(([key, v]) => [
