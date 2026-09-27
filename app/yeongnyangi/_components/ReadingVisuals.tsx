@@ -1,7 +1,7 @@
 import type {ChapterBody,ChapterSpec} from '@/worker/yeongnyangi/fortune/book-contracts';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {visualCopy,chartTerm} from '../_lib/reading-chart-copy';
-import {artSrc,expressionSrc,type Art,type Expression,type TimingRow,type ElementRow} from '../_lib/reading-visuals';
+import {artSrc,expressionSrc,type Art,type Expression,type TimingRow,type ElementRow,type YearFocusRow} from '../_lib/reading-visuals';
 import {Divider,ElementIcon,Paw,ThemeIcon,elementColor} from './ReadingIcons';
 import styles from './reading-visuals.module.css';
 
@@ -21,7 +21,7 @@ export function AtAGlance({manifest,chapters,title,locale}:{manifest:ChapterSpec
  </section>;
 }
 
-export function TimingTimeline({rows,locale}:{rows:TimingRow[];locale?:ReadingLocale}){
+export function TimingTimeline({rows,locale,focus=[]}:{rows:TimingRow[];locale?:ReadingLocale;focus?:number[]}){
  const copy=visualCopy(locale);
  const drawn=rows.filter(r=>r.from!==undefined&&r.to!==undefined);
  const min=Math.floor(Math.min(...drawn.map(r=>r.from!))),max=Math.ceil(Math.max(...drawn.map(r=>r.to!)));
@@ -34,8 +34,11 @@ export function TimingTimeline({rows,locale}:{rows:TimingRow[];locale?:ReadingLo
    <div className={styles.axis}><span>{min}</span><span>{max}</span></div>
    {drawn.map(r=><div key={r.id} className={styles.track}><span className={styles.trackLabel}>{chartTerm(r.label,locale)}</span>
     <span className={styles.bar} data-now={r.now || undefined} style={{left:pos(r.from!),width:`calc(${pos(r.to!)} - ${pos(r.from!)})`}}/></div>)}
+   {/* After the tracks so the band tints the bars; track labels stay above it. */}
+   {focus.filter(y=>y+1>min&&y<max).map(y=><span key={y} className={styles.focusBand} style={{left:pos(Math.max(min,y)),width:`calc(${pos(Math.min(max,y+1))} - ${pos(Math.max(min,y))})`}}/>)}
    {current>=min&&current<=max&&<span className={styles.nowLine} style={{left:pos(current)}}><span>{copy.now}</span></span>}
   </div>}
+  {drawn.length>0&&focus.some(y=>y+1>min&&y<max)&&<p className={styles.legend}><span className={styles.legendSwatch}/>{copy.yearFocus}</p>}
   <div className={styles.tableWrap}><table className={styles.table}>
    <thead><tr><th scope="col">{copy.periodCol}</th><th scope="col">{copy.rangeCol}</th></tr></thead>
    <tbody>{rows.map(r=><tr key={r.id} data-now={r.now || undefined}><td>{chartTerm(r.label,locale)}{r.now&&<strong className={styles.nowBadge}>{copy.now}</strong>}</td>
@@ -61,6 +64,21 @@ export function SajuBoard({pillars,elements,locale}:{pillars:{label:string;ganji
     <span className={styles.elementTrack} role="meter" aria-valuemin={0} aria-valuemax={total} aria-valuenow={e.value} aria-label={copy.elementCount(chartTerm(e.label,locale),e.value)}>
      <span style={{width:`${e.value/top*100}%`,background:elementColor[e.label] || 'var(--gold)'}}/></span>
     <span className={styles.elementValue}>{e.value}</span></li>)}</ul></>}
+ </section>;
+}
+
+// The year a question named, so the answer is visibly tied to that year and never to the one before it.
+export function YearFocus({rows,expression,locale}:{rows:YearFocusRow[];expression:Expression;locale?:ReadingLocale}){
+ const copy=visualCopy(locale),ko=!locale || locale==='ko';
+ return <section className={`${styles.panel} ${styles.yearFocus}`} aria-labelledby="reading-year-focus">
+  <div className={styles.yearHead}><img className={styles.badge} src={expressionSrc(expression)} alt="" width={64} height={64} loading="lazy" decoding="async"/>
+   <div><h3 id="reading-year-focus" className={styles.panelTitle}><Paw size={18}/>{copy.yearFocus}</h3><p className={styles.caption}>{copy.yearFocusCaption}</p></div></div>
+  <ul className={styles.years}>{rows.map(r=><li key={r.year} data-current={r.offset===0 || undefined}>
+   <span className={styles.yearRel}>{copy.relative(r.offset)}</span>
+   <span className={styles.yearName}><strong>{copy.yearLabel(r.year)}</strong><span className={styles.yearGanji} lang="zh-Hant">{r.stem}{r.branch}</span>{ko&&<span className={styles.yearReading}>{r.reading}</span>}</span>
+   <span className={styles.chips}>{[r.stem,r.branch].map((ch,i)=><span key={i} className={styles.chip} style={{borderColor:elementColor[r.elements[i]]}}>
+    <ElementIcon element={r.elements[i]} size={16}/><span lang="zh-Hant">{ch}</span>{chartTerm(r.elements[i],locale)}</span>)}</span>
+  </li>)}</ul>
  </section>;
 }
 

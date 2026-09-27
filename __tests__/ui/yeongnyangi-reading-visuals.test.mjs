@@ -40,3 +40,11 @@ test('timing rows parse years and dates and keep missing values table-only',()=>
  assert.ok(rows[1].from>2014.6&&rows[1].from<2014.7);
  assert.equal(m.yearValue('34세'),undefined);
 });
+
+test('the asked year card reads each 간지 into stem and branch elements, relative to the consultation date',()=>{
+ const rows=m.yearFocus([{year:2026,label:'올해',ganji:'丙午(병오)'},{year:2027,label:'내년',ganji:'丁未(정미)'},{year:2025,label:'작년',ganji:'broken'}],'2026-09-27');
+ assert.deepEqual(rows.map(r=>[r.year,r.offset,r.stem+r.branch,r.reading,r.elements.join('')]),[[2026,0,'丙午','병오','화화'],[2027,1,'丁未','정미','화토']]);
+ assert.deepEqual(m.yearFocus([{year:2024,ganji:'甲辰(갑진)'}],'2026-01-02')[0].elements,['목','토']);
+ assert.deepEqual(m.yearFocus(undefined,'2026-09-27'),[]);
+ assert.deepEqual(m.yearFocus([{year:2026,ganji:'丙午(병오)'}],undefined),[]);
+});

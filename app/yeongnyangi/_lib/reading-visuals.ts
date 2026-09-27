@@ -67,6 +67,20 @@ export function timingRows(charts:ReadingChart[],today=new Date()):TimingRow[]{
  return rows.filter(r=>r.from!==undefined||!rows.some(o=>o!==r&&o.label===r.label&&o.from!==undefined));
 }
 
+// The years a question named (consultation.period.years), with the element of each stem and branch.
+export interface YearFocusRow {year:number;offset:number;stem:string;branch:string;reading:string;elements:[string,string]}
+const STEMS='甲乙丙丁戊己庚辛壬癸',STEM_ELEMENTS='목목화화토토금금수수',BRANCHES='子丑寅卯辰巳午未申酉戌亥',BRANCH_ELEMENTS='수토목목토화화토금금토수';
+export function yearFocus(years:{year:number;ganji:string}[]|undefined,asOf?:string):YearFocusRow[]{
+ const base=/^\d{4}/.test(String(asOf || ''))?Number(String(asOf).slice(0,4)):NaN;
+ if(!Array.isArray(years) || !Number.isInteger(base))return [];
+ return years.flatMap(y=>{
+  const m=/^(.)(.)\((.+)\)$/u.exec(String(y?.ganji || ''));
+  const s=m?STEMS.indexOf(m[1]):-1,b=m?BRANCHES.indexOf(m[2]):-1;
+  if(!m || !Number.isInteger(y.year) || s<0 || b<0)return [];
+  return [{year:y.year,offset:y.year-base,stem:m[1],branch:m[2],reading:m[3],elements:[STEM_ELEMENTS[s],BRANCH_ELEMENTS[b]] as [string,string]}];
+ });
+}
+
 export interface ElementRow {label:string;value:number}
 export function sajuFacts(charts:ReadingChart[]){
  const saju=charts.find(c=>c.domain==='saju');
