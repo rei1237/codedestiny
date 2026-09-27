@@ -35,3 +35,37 @@ test("정적 셸은 action 실행 전에 인계값을 입력 폼에 복원한다
 test("정적 셸과 public 미러의 인계 런타임이 같다", () => {
   assert.equal(publicRuntime, runtime);
 });
+const ts = require('typescript');
+const vm = require('node:vm');
+
+test('ggulggul destination receives this reading input once without rewriting the saved profile', () => {
+  const ast = ts.createSourceFile('form.tsx', form, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let submit;
+  function find(node) { if (ts.isFunctionDeclaration(node) && node.name?.text === 'handleSubmit') submit = node; ts.forEachChild(node, find); }
+  find(ast);
+  assert.ok(submit);
+  for (const pathname of ['/ggulggul/', '/ggulggul', '/']) {
+    const entries = new Map(); let destination;
+    const ctx = {
+      URL, Date, JSON, SEO_LANDING_ENTRY_HANDOFF_KEY: 'cd:seo-landing-entry:v1',
+      form: { birthDate: '1990-01-15', birthTime: '13:30', birthTimeUnknown: false, gender: 'female', calendarType: 'solar' },
+      showTime: true, showGender: true, showCalendar: true,
+      submitHref: pathname + '?action=checkPrivacyAndCalculate',
+      validateBirthDateWithAge: () => ({ isValid: true }),
+      readCurrentDestinyProfile: () => ({ id: 'saved-card' }),
+      applyDestinyProfileBirthEdit: (existing, birth) => ({ ...existing, ...birth }),
+      readDestinyProfileAccountId: () => 'owner',
+      window: { location: { origin: 'https://mock.invalid', assign: href => { destination = href; } }, sessionStorage: { setItem: (key, value) => entries.set(key, value) }, localStorage: { setItem: () => assert.fail('must not change saved profile') } },
+    };
+    vm.createContext(ctx);
+    vm.runInContext(ts.transpileModule(submit.getText(ast), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText, ctx);
+    ctx.handleSubmit({ preventDefault() {} });
+    const handoff = JSON.parse(entries.get(ctx.SEO_LANDING_ENTRY_HANDOFF_KEY));
+    assert.equal(handoff.profile.birthDate, '1990-01-15');
+    assert.equal(handoff.profile.birthTime, '13:30');
+    assert.equal(handoff.action, 'checkPrivacyAndCalculate');
+    assert.equal(handoff.accountId, 'owner');
+    assert.equal(destination, ctx.submitHref);
+    assert.ok(!destination.includes('1990'));
+  }
+});

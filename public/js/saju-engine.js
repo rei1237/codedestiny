@@ -7794,6 +7794,7 @@ function _buildSajuQuestionPromptHtml() {
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
     +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">' + sajuAiPriceLabel + '으로 사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
+    +     '<button data-saju-ai-archive type="button" style="display:none;min-height:44px;background:transparent;color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;">상담 보관함 · 저장된 상담 보기</button>'
     +     '<button data-saju-ai-resume type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">이전 상담문 이어보기</button>'
     +   '</div>'
     +   '<div data-saju-ai-output-panel style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(230,196,112,.38);background:linear-gradient(180deg,rgba(255,252,243,.98),rgba(255,247,223,.95));box-shadow:0 18px 34px rgba(0,0,0,.2);overflow:hidden;">'
@@ -7859,6 +7860,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var generateBtn = rootEl.querySelector('[data-saju-ai-generate]');
   var regenerateBtn = rootEl.querySelector('[data-saju-ai-regenerate]');
   var resumeBtn = rootEl.querySelector('[data-saju-ai-resume]');
+  var archiveBtn = rootEl.querySelector('[data-saju-ai-archive]');
   var outputEl = rootEl.querySelector('[data-saju-ai-output]');
   var outputPanel = rootEl.querySelector('[data-saju-ai-output-panel]');
   var outputTextEl = rootEl.querySelector('[data-saju-ai-output-text]');
@@ -7932,6 +7934,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     activePendingJob = null; currentResultPayload = null; requestInFlight = false;
     outputEl.value = ''; outputTextEl.innerHTML = ''; outputPanel.style.display = 'none';
     if (resumeBtn) resumeBtn.style.display = 'none';
+    if (archiveBtn) archiveBtn.style.display = 'none';
     setLoading(false);
     _sajuPromptSetStatus(statusEl, '계정이 변경되었어요. 해당 계정의 상담을 다시 열어 주세요.', 'info');
   }
@@ -8574,6 +8577,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
     currentResultPayload = null;
     outputPanel.style.display = 'none';
     inputEl.disabled = false;
+    inputEl.value = '';
+    regenerateBtn.style.display = 'none';
+    updateCount();
     inputEl.focus();
     _sajuPromptSetStatus(statusEl, '새 질문을 입력해 주세요.', 'info');
   });
@@ -8604,6 +8610,20 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
   };
 
+  function offerArchivedResult(readResult) {
+    // 완료된 기록은 새 질문과 분리한다. 저장소와 결제 복구 증빙은 그대로 둔다.
+    if (!archiveBtn) return;
+    archiveBtn.style.display = 'inline-flex';
+    var archiveIsCurrent = captureLocaleScope();
+    archiveBtn.addEventListener('click', function() {
+      if (!archiveIsCurrent() || isLoading) return;
+      var archived = readResult();
+      if (!archived) return;
+      renderResult(archived);
+      _sajuPromptSetStatus(statusEl, '보관함에서 이전 상담을 열었습니다. 새 상담은 새 질문을 입력해 시작해 주세요.', 'info');
+    });
+    _sajuPromptSetStatus(statusEl, '새 질문으로 상담을 시작하세요. 이전 결과는 상담 보관함에서 다시 볼 수 있어요.', 'info');
+  }
   var currentProfileId = _sajuPromptResolveProfileId();
   var restoredJob = _sajuPromptReadPendingJob(currentProfileId);
   if (restoredJob && (restoredJob.requestId || restoredJob.jobId || restoredJob.executionId)) {
@@ -8623,18 +8643,17 @@ function _bindSajuQuestionPromptCard(rootEl) {
   } else {
     var savedResult = _sajuPromptReadSavedResult(currentProfileId);
     if (savedResult) {
-      renderResult(savedResult);
-      if (savedResult.question) inputEl.value = savedResult.question;
-      updateCount();
-      regenerateBtn.style.display = 'inline-flex';
-      regenerateBtn.textContent = '다시 상담 받기';
-      _sajuPromptSetStatus(statusEl, '저장된 사주 AI 상담 결과를 불러왔습니다.', 'success');
+      offerArchivedResult(function() { return _sajuPromptReadSavedResult(currentProfileId); });
     } else {
       var discoveryIsCurrent = captureLocaleScope();
       _sajuPromptFetchStatus({ profileId: currentProfileId }).then(function(result) {
         if (!discoveryIsCurrent() || activePendingJob || currentResultPayload || requestInFlight) return;
         var payload = result && result.payload || {};
         if (!payload.jobId) return;
+        if (payload.status === 'completed' && payload.saved === true && payload.resultText) {
+          offerArchivedResult(function() { return payload; });
+          return;
+        }
         rememberPendingJob(payload);
         if (payload.question) inputEl.value = payload.question;
         updateCount();

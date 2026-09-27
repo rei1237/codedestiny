@@ -2,6 +2,7 @@ import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
 import SeoLandingTemplate from "../components/SeoLandingTemplate";
 import { buildSeoMetadata } from "../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
+import SajuLandingHero from "./SajuLandingHero";
 
 const page = SEO_LANDING_PAGES.saju;
 
@@ -14,5 +15,5 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function SajuLandingPage() {
-  return <SeoLandingTemplate page={page} />;
+  return <SeoLandingTemplate page={{ ...page, breadcrumbLabel: "무료 사주" }} hero={<SajuLandingHero />} />;
 }

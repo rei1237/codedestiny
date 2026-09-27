@@ -9,7 +9,7 @@ const ast = ts.createSourceFile('saju.js', source, ts.ScriptTarget.Latest, true,
 const names = new Set(['_bindSajuQuestionPromptCard', '_sajuPromptOwnerId', '_sajuPromptPendingStorageKey', '_sajuPromptStorePendingJob', '_sajuPromptReadPendingJob', '_sajuPromptClearPendingJob', '_sajuPromptSavedResultsKey', '_sajuPromptReadSavedResult', '_sajuPromptStoreSavedResult', '_sajuPromptRenderChapters', '_sajuPromptChapterTitle', '_sajuPromptEscapeHtml']);
 const code = ast.statements.filter(n => ts.isFunctionDeclaration(n) && names.has(n.name?.text)).map(n => n.getText(ast)).join('\n');
 function setup() {
-  const fields = ['question', 'count', 'generate', 'regenerate', 'resume', 'output', 'output-panel', 'output-text', 'copy-result', 'save-result', 'share-result', 'reset-result', 'save-state', 'status'];
+  const fields = ['question', 'count', 'generate', 'regenerate', 'resume', 'archive', 'output', 'output-panel', 'output-text', 'copy-result', 'save-result', 'share-result', 'reset-result', 'save-state', 'status'];
   const dom = new JSDOM('<main>' + fields.map(key => `<${key === 'question' || key === 'output' ? 'textarea' : 'button'} data-saju-ai-${key}></${key === 'question' || key === 'output' ? 'textarea' : 'button'}>`).join('') + '</main>', { url: 'https://mock.invalid', pretendToBeVisual: true });
   const w = dom.window;
   w.localStorage.setItem('fortune_auth_user', JSON.stringify({ id: 'owner' }));
@@ -100,5 +100,48 @@ test('account change discards in-flight result and isolates local recovery keys'
   assert.equal(h.root.querySelector('[data-saju-ai-output-text]').textContent, '');
   h.w.localStorage.setItem('fortune_auth_user', JSON.stringify({ id: 'owner' }));
   assert.equal(h.ctx._sajuPromptReadPendingJob('p').requestId, 'original');
+  h.close();
+});
+
+
+test('saved consultation stays in archive until explicitly opened, without charging or deleting', () => {
+  const h = setup();
+  h.ctx._sajuPromptClearPendingJob('p');
+  h.ctx._sajuPromptStoreSavedResult({profileId: 'p', resultId: 'saved', question: 'Previous question', resultText: 'Archived reading'});
+  const before = h.w.localStorage.getItem(h.ctx._sajuPromptSavedResultsKey('p'));
+  h.root.querySelector('[data-saju-ai-output-panel]').style.display = 'none';
+  h.bind();
+  assert.equal(h.root.querySelector('[data-saju-ai-output-text]').textContent, '');
+  assert.equal(h.root.querySelector('[data-saju-ai-question]').value, '');
+  assert.equal(h.root.querySelector('[data-saju-ai-output-panel]').style.display, 'none');
+  h.root.querySelector('[data-saju-ai-archive]').click();
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent, /Archived reading/);
+  assert.equal(h.root.querySelector('[data-saju-ai-question]').value, '');
+  h.root.querySelector('[data-saju-ai-reset-result]').click();
+  assert.equal(h.root.querySelector('[data-saju-ai-output-panel]').style.display, 'none');
+  assert.equal(h.w.localStorage.getItem(h.ctx._sajuPromptSavedResultsKey('p')), before);
+  h.root.querySelector('[data-saju-ai-archive]').click();
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent, /Archived reading/);
+  h.w.localStorage.setItem('fortune_auth_user', JSON.stringify({id: 'other'}));
+  h.w.dispatchEvent(new h.w.Event('cd:auth-changed'));
+  h.root.querySelector('[data-saju-ai-archive]').click();
+  assert.equal(h.root.querySelector('[data-saju-ai-output-text]').textContent, '');
+  assert.equal(h.posts.length, 0);
+  h.close();
+});
+
+
+test('server-discovered completed reading does not become a pending job or reopen on focus', async () => {
+  const h = setup();
+  h.ctx._sajuPromptClearPendingJob('p');
+  h.ctx._sajuPromptFetchStatus = async () => ({ok: true, payload: {jobId: 'done', resultId: 'done', status: 'completed', saved: true, resultText: 'Server archive', question: 'Old question'}});
+  h.bind(); await tick();
+  h.w.dispatchEvent(new h.w.Event('focus')); await tick();
+  assert.equal(h.ctx._sajuPromptReadPendingJob('p'), null);
+  assert.equal(h.root.querySelector('[data-saju-ai-question]').value, '');
+  assert.equal(h.root.querySelector('[data-saju-ai-output-text]').textContent, '');
+  h.root.querySelector('[data-saju-ai-archive]').click();
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent, /Server archive/);
+  assert.equal(h.posts.length, 0);
   h.close();
 });

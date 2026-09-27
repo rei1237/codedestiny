@@ -100,6 +100,7 @@ type Props = {
   /** 이동 목적지. 셸 액션(`/?action=…`)이든 Next 라우트든 문서 이동으로 보낸다. */
   submitHref: string;
   fields?: FieldToggles;
+  compact?: boolean;
 };
 
 type FormState = {
@@ -149,7 +150,7 @@ function applySeed(prev: FormState, seed: ReturnType<typeof useAiProfileSeed>["s
  * 초기 상태는 반드시 비워 둔다. `output: "export"` 정적 빌드라 렌더 중 localStorage 를 읽으면
  * 하이드레이션 불일치가 난다. 시드는 마운트 후 `seedVersion` 기준 effect 에서만 적용한다.
  */
-export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, fields = {} }: Props) {
+export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, fields = {}, compact = false }: Props) {
   const showTime = fields.time !== false;
   const showGender = Boolean(fields.gender);
   const showCalendar = Boolean(fields.calendar);
@@ -203,7 +204,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
 
     const target = new URL(submitHref, window.location.origin);
     const action = target.searchParams.get("action");
-    if ((action && (target.pathname === "/" || target.pathname === "/index.html")) || target.pathname.replace(/\/$/, "") === "/ziwei/chart") {
+    if ((action && ["/", "/index.html", "/ggulggul", "/ggulggul/"].includes(target.pathname)) || target.pathname.replace(/\/$/, "") === "/ziwei/chart") {
       try {
         window.sessionStorage.setItem(
           SEO_LANDING_ENTRY_HANDOFF_KEY,
@@ -222,7 +223,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-9 rounded-2xl border border-[#d5c8df] bg-white p-5 sm:p-6"
+      className={`${compact ? "mt-0" : "mt-9"} rounded-2xl border border-[#d5c8df] bg-white p-5 sm:p-6`}
     >
       <p className="text-[0.95rem] font-semibold text-[#292431]">{heading}</p>
       {seed?.birthDate && !editAll && <div className="mt-4 text-sm text-[#51475c]">
@@ -230,7 +231,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         <button type="button" onClick={() => setEditAll(true)} className="min-h-11 text-[#6f3fa6] underline underline-offset-4">{copy.editDetails}</button>
       </div>}
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className={`mt-4 grid gap-4 ${compact ? "grid-cols-2 [&>div]:min-w-0" : "sm:grid-cols-2"}`}>
         {(editAll || !seed?.birthDate) && <div>
           <label htmlFor="cd-landing-birthdate" className={LABEL_CLASS}>
             {copy.birthDateLabel}
@@ -309,7 +310,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         )}
       </div>
 
-      <p className="mt-3 text-sm text-[#62556c]">{copy.temporaryEdit}</p>
+      {(!compact || seed) && <p className="mt-3 text-sm text-[#62556c]">{copy.temporaryEdit}</p>}
       {error && (
         <p role="alert" className="mt-3 break-keep text-[0.85rem] leading-6 text-[#a72b45]">
           {error}
