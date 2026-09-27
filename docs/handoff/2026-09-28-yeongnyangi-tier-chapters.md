@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "Phase 2 첫 커밋 = 불변 스냅샷(테스트만, 설계 §6-1). 설계 정본은 docs/design/yeongnyangi-v7-chapter-catalog.md. 플래그 OFF, 과금 LLM 0회."
+next: "Phase 2 커밋 2 = reading-v7.ts(설계 §6-2: 카탈로그·v7Applies·readingManifestV7·withV7Sections + 정적 테스트 5종). 불변 스냅샷(§6-1)은 커밋 완료. 플래그 OFF, 과금 LLM 0회."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -58,6 +58,26 @@ next: "Phase 2 첫 커밋 = 불변 스냅샷(테스트만, 설계 §6-1). 설계
     - 시기 래퍼는 정규화 입력이 필요한데 스냅샷에 없다(`service.ts:157`). 매트릭스는 prepare 에서 계산해 저장한다.
     - 원장은 소한 `baseYear`(출생연도)를 싣지 않는다.
   - 플래그 ON 때 함께 고칠 테스트 3개(`yeongnyangi-reading-v6`·`section-paragraphs`·`consultation-kinds`)는 설계 §6 끝에 있다.
+
+## Phase 2 커밋 1 결과: 불변 스냅샷 (2026-09-28)
+
+- 파일: `__tests__/ui/yeongnyangi-reading-invariance.test.mjs`(테스트만, 제품 코드 0). 커밋 `5aa267a24`(main CI `CI required` success, 새 테스트 CI 실행 33.9초 실측).
+- 과금 LLM 0회, 실결제 0, DB 접근 0. 공급자·DB·큐·저장소는 esbuild onLoad 로 스텁했고, 물어보기 분석은 `analyzeAsk` 의 규칙 폴백(`source:'rules'`)을 쓴다.
+- 결정성: `TZ=UTC`, `Date` 를 2026-09-28T03:00Z 로 고정, `Math.random`·`crypto.getRandomValues` 는 케이스마다 같은 시드(mulberry32)로 바꾼다. 2회 연속 실행 해시 동일(실측).
+- 행 = 상품 × 상담 종류(레거시 무종류 포함) 118행 + 변형 5행(연어 사주 시간 미상 해석/물어보기, 장소 없는 연어 자미 해석/물어보기, 고등어 영감) = 123행. 한 행은 12자리 해시 다섯 개다.
+  1. id: 요청 `_id`(orderId 의 원천).
+  2. prepare: fingerprint·금액·productId·featureKey·체크포인트 버전·스냅샷 키·상품·매니페스트·consultation·분석 키·체계별 사실 ID 목록. **사실 값은 넣지 않는다**(엔진 변경 흔들림 축소).
+  3. requests: 장마다 `StructuredChapterProvider.generateChapter` 가 공급자에 넘기는 요청 전체의 정규 JSON(키 정렬).
+  4. validated: 장마다 `validateChapter` 결과 또는 에러 코드.
+  5. manifests: `consultationManifest(상품, 종류, 주제)` 를 `topicIds` 전부에 대해(변형 행은 `-`).
+- mock 본문: 기존 `MockChapterProvider` 에, 그 장에 배정된 질문에만 결정적 `questionAnswers`(물어보기는 `limited`·빈 F/T)를 붙인다. 그래서 질문형 1장도 실제 검증을 통과한다. **영감 모드만** `SPIRIT_EVIDENCE_MISSING` 에러 코드로 고정된다. 영감 인용 규칙은 `yeongnyangi-spirit.test.mjs` 가 따로 검증한다.
+- 무는지 확인(변이 후 원복, 실측): fingerprint 의 `kindVersion` 1→2, 장 프롬프트 문구 한 글자, 질문 답변 최소 길이 10→40. 셋 다 실패로 잡혔다.
+- 실행 시간은 약 30초다(로컬, 1,000여 mock 장).
+- 해시 재생성: `YEONGNYANGI_INVARIANCE_PRINT=1 node --require ./scripts/lib/mock-network-guard.cjs --test __tests__/ui/yeongnyangi-reading-invariance.test.mjs` 로 표를 찍어 `EXPECTED` 를 바꾼다. **의도한 변경일 때만** 쓴다.
+  - Phase 2 §6-2~6(플래그 OFF)에서는 한 행도 바뀌면 안 된다.
+  - Phase 5(플래그 ON)에서는 연어·광어·참치의 `personal`·`ask`·타로 행만 바뀌어야 한다. 고등어 전부, 집중형·timing·퓨전·레거시·영감 행은 그대로여야 한다.
+- 빠진 것: question-sky 모드, 비한국어 로케일(영감·질문 모드는 ko 전용), repair 재시도 입력.
+- 위험: 엔진·프롬프트·카탈로그를 v7 과 무관하게 정당하게 고치는 다른 세션도 requests 해시를 깨뜨린다. 그 세션은 원인이 자기 변경인지 확인한 뒤 위 명령으로 갱신한다.
 
 ## Phase 0 세션 변경
 
@@ -292,15 +312,16 @@ next: "Phase 2 첫 커밋 = 불변 스냅샷(테스트만, 설계 §6-1). 설계
 
 ## 다음 단계
 
-1. 다음 세션(`[RED]` fingerprint 불변 증명, 권장: 주력 모델 / effort high): 설계 §6-1 **불변 스냅샷 테스트 한 커밋**만 한다.
-   - 대상: 고등어 전부, 범위 밖 경로(집중형·timing·퓨전·레거시 무종류·영감), 플래그 OFF 인 연어·광어·참치 해석/물어보기.
-   - 고정: 매니페스트, mock 장마다의 `FortuneLLMRequest` 전체, 검증 경로, fingerprint 입력 객체. 정규 JSON 의 sha256 을 테스트 안에 인라인으로 둔다.
-   - 과금 LLM 0회, 전부 mock. 끝나면 check:fast → 커밋 → push → main CI 확인 → 이 문서 갱신.
-2. 그다음 세션부터 설계 §6-2~7 을 한 커밋씩 한다. 플래그는 끝까지 OFF 다.
+1. ~~설계 §6-1 불변 스냅샷~~ 완료(위 "Phase 2 커밋 1 결과").
+2. 다음 세션(`[GREEN]` 새 순수 모듈 + 정적 테스트, 플래그 OFF 라 동작 경계 불변. 권장: 주력 모델 / effort high): 설계 §6-2 `reading-v7.ts` 한 커밋만 한다.
+   - 카탈로그, `v7Applies`(플래그 인자 주입), `readingManifestV7`(순수), `withV7Sections`, `READING_V7_VERSION`·`hasReadingSections`·v7 정책 등록.
+   - 정적 테스트 5종: 소유 충돌 0, 체계 안 단조성, `evidenceInputs` 실제 필드, 금지 요소 0, 원가 가드.
+   - 끝나면 불변 스냅샷 테스트가 **갱신 없이** 통과해야 한다. `hasReadingSections` 등록이 v6 경로를 건드리면 여기서 잡힌다.
+   - 그다음 세션부터 §6-3~7 을 한 커밋씩 한다. 플래그는 끝까지 OFF 다.
 3. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 첫 커밋(설계 §6-1 불변 스냅샷 테스트)을 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하라.
+D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 2(설계 §6-2 reading-v7.ts와 정적 테스트 5종)를 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
 ```
