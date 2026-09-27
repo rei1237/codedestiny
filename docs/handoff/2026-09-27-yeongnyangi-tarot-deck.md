@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "영냥이 타로 Phase 1(아트 디렉션)을 이 문서 「다음 작업 1」대로 진행하고, 보고 후 승인을 기다린다. 무료 원카드 F-1(데이터·로직)은 「다음 작업 2」대로 별도 세션에서 병행할 수 있다(동시에 쓰면 워크트리)."
+next: "영냥이 타로 Phase 1(아트 디렉션)은 끝나 사용자 승인과 뒷면 A/B/C 선택을 기다린다(「Phase 1 결과」). 승인되면 Phase 2 파일럿 5장을 「다음 작업 3」대로 진행한다. 무료 원카드 F-1(데이터·로직)은 「다음 작업 2」대로 별도 세션에서 병행할 수 있다(동시에 쓰면 워크트리)."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -52,15 +52,17 @@ next: "영냥이 타로 Phase 1(아트 디렉션)을 이 문서 「다음 작업
 
 - **기준 커밋**: `90aa6e10f`. Phase 0 실측 시점의 `main`이며 `origin/main`과 같았다.
   - 아래 file:line 은 모두 이 커밋 기준 실측이다. 이후 커밋으로 줄이 밀렸을 수 있으니 인용 전에 다시 확인한다.
-- **이 세션에서 한 것**: 읽기 전용 진단, 그리고 이 문서와 브리프 원문 문서의 커밋.
+- **Phase 0 세션에서 한 것**: 읽기 전용 진단, 그리고 이 문서와 브리프 원문 문서의 커밋.
   - 코드·에셋·테스트 변경 0, 이미지 생성 0, 과금 LLM 호출 0.
+- **Phase 1 세션에서 한 것**(2026-09-27): 워크트리에서 스타일 바이블·원장·프레임 SVG 를 만들고 이 문서를 갱신했다. 이미지 생성은 저장소 밖에서 19회 했다.
+  - 앱 코드·에셋·테스트 변경 0. 자세한 내용은 「Phase 1 결과」.
 - **시작 점검**: `git branch --show-current`(→ `main`), `git status`, `git fetch origin main`, `git pull --ff-only`.
 - 🔴 **공유 체크아웃**: 이 세션 시점에 옆 세션의 미커밋 변경이 있었다.
   - 목록: `marketing/HANDOFF.md`, `marketing/card-news/fortune-month01/**` 수정과 미추적 다수, `next-env.d.ts`, `.codex-consultation-shots/`.
   - 남아 있으면 `reset --hard`·`stash`·`checkout --` 을 쓰지 않고, 경로를 지정해 add 한다.
   - 쓰는 세션이 둘 이상이면 두 번째부터 `scripts/create-safe-worktree.ps1` 로 워크트리를 만든다.
   - 옆 세션 미커밋 파일이 `check:fast` 를 critical 로 올리면, 내 파일만 커밋한 뒤 `npm run check:fast -- --committed-head` 로 검사한다.
-- **실패한 시도**: 없다(Phase 0 은 읽기 전용). `codex exec -i` 참조 입력이 반영되는지는 아직 시험하지 않았다. Phase 1 1단계에서 확인한다.
+- **실패한 시도**: Phase 0 은 없다(읽기 전용). Phase 1 에서 버린 후보와 이유는 「Phase 1 결과」 절과 `docs/design/yeongnyangi-tarot/art-ledger.jsonl` 에 있다. `codex exec -i` 참조 입력은 생성에 반영된다(§7, Phase 1 실측).
 - 근거를 못 찾으면 추측하지 않는다. "미확인"으로 적고 멈춘 뒤 묻는다(브리프 절대 규칙, 원칙 8).
 
 ## 진행 순서 (단계마다 보고 → 명시적 승인 대기)
@@ -68,9 +70,9 @@ next: "영냥이 타로 Phase 1(아트 디렉션)을 이 문서 「다음 작업
 | 단계 | 내용 | 선행 | 등급 · 권장 | 상태 |
 |---|---|---|---|---|
 | Phase 0 | 읽기 전용 진단 | — | — | 완료·승인 |
-| **Phase 1** | 스타일 바이블·캐릭터 시트·조연·슈트 모티프·뒷면 후보 3·프레임 SVG | Phase 0 | GREEN · 주력 / medium | **다음** |
+| Phase 1 | 스타일 바이블·캐릭터 시트·조연·슈트 모티프·뒷면 후보 3·프레임 SVG | Phase 0 | GREEN · 주력 / medium | 완료·승인 대기(「Phase 1 결과」) |
 | **F-1** | 무료 원카드 데이터·로직(그림 불필요, UI 없음) | Phase 0 | GREEN · 주력 / medium | 대기(병행 가능) |
-| Phase 2 | 파일럿 5장 | Phase 1 승인 | GREEN · 주력 / medium | 대기 |
+| **Phase 2** | 파일럿 5장(「다음 작업 3」) | Phase 1 승인·뒷면 선택 | GREEN · 주력 / medium | **다음**(승인 뒤) |
 | Phase 3a | 메이저 22장 | Phase 2 승인 | GREEN · 주력 / medium | 대기 |
 | Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, R2 운영 버킷 쓰기면 RED · 주력 / high | 대기 |
 | F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
@@ -295,13 +297,18 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 
 - **스킬**: `codex-image`(`C:\Users\user\.claude\skills\codex-image\SKILL.md`). Codex CLI `codex exec` → 내장 `image_gen` → **gpt-image-2** 경로이고, ChatGPT OAuth 로 인증한다.
 - **실측**: `codex-cli 0.156.1` 설치, `codex login status` = "Logged in using ChatGPT".
-- **비율·해상도**: `1024x1024` · **`1024x1536`(정확히 2:3, 카드 비율과 같다)** · `1536x1024` · `auto`. 품질 low/medium/high. 1회 1~10장.
+- **비율·해상도**: 스킬 README 기재값은 `1024x1024` · **`1024x1536`(정확히 2:3, 카드 비율과 같다)** · `1536x1024` · `auto`, 품질 low/medium/high, 1회 1~10장이다.
+  - Phase 1 실측: codex 가 부르는 `image_gen` 의 인자는 `prompt` 와 `referenced_image_paths` 뿐이다. 크기·품질을 인자로 줄 수 없다.
+  - 방향은 프롬프트 첫 블록(FORMAT_PORTRAIT / FORMAT_LANDSCAPE)으로 지정한다. Phase 1 의 19회는 모두 요청한 크기(세로 1024x1536, 가로 1536x1024)로 나왔다.
+  - 품질은 지정할 수 없다. 원장의 `quality` 는 요청값일 뿐이다.
 - **참조 이미지**: 스킬 자체는 텍스트 프롬프트만 넘긴다.
-  - `codex exec -i/--image <FILE>`("Optional image(s) to attach to the initial prompt")는 있다.
-  - **image_gen 이 첨부 이미지를 캐릭터 참조로 실제 반영하는지는 미확인**이다. 1장 시험 생성으로만 확인할 수 있다.
+  - `codex exec -i/--image <FILE>`("Optional image(s) to attach to the initial prompt")를 쓰면 codex 가 `referenced_image_paths` 로 넘긴다.
+  - **Phase 1 실측: 반영된다.** 같은 프롬프트로 참조 유무만 바꾼 T1/T2 에서 정본 동일성이 9/10 대 3/10 이었다. T1 은 글에 없는 정본 세부 13개를 재현했다. 정본의 포즈·표정도 따라가는 경향이 있어서, 배치와 표정은 글로 분명히 쓴다.
 - **시드 고정**: 옵션이 없다(스킬·README 어디에도 없음). **불가로 간주**한다.
   - 네거티브 프롬프트도 README 상 미지원이다. 금지 사항은 본문 프롬프트에 "No text…" 식으로 넣는다(기존 원장 관행과 같다).
-- **비용·속도**(README 기재값, 실측 아님): 1024x1536 high ≈ $0.06/장, 호출 타임아웃 2분. ChatGPT 요금제 한도·레이트리밋은 미확인이다.
+- **비용·속도**(README 기재값, 실측 아님): 1024x1536 high ≈ $0.06/장, 호출 타임아웃 2분. ChatGPT 요금제 한도는 미확인이다.
+  - Phase 1 실측: `codex exec` 1회가 82–142초(중앙값 102초) 걸렸다. 이미지 파일은 시작 54–95초 뒤에 생기고, codex 가 그 뒤 27–47초를 더 쓴다. 동시 2개로 19회를 돌렸고 레이트리밋은 없었다.
+  - 결과가 RGBA 투명 배경으로 나올 수 있다(19장 중 5장). 알파를 버리고 RGB 만 읽으면 투명 픽셀 밑의 금·세피아가 드러나 오진한다. 측정·합성 전에 프롬프트 배경색 위에 평탄화한다(스타일 바이블 「생성 파이프라인과 원장」).
 - **기존 파이프라인**(실측): `scripts/save-fortune-art.mjs`.
   - 흐름: image_gen 원본 → sharp 리사이즈 → webp → `docs/design/fortune-detail-art.jsonl` 에 `{slug,file,source,tool,prompt,bytes}` 한 줄 추가(88줄 누적).
   - 영냥이 에셋 폴더마다 `README.md` 에도 출처가 있다.
@@ -453,7 +460,44 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
   - 모바일 폭과 WebView 에서 확인하고, visual-checker 로 화면을 판정한다.
   - `check:fast` → commit → push → CI.
 
-## 다음 작업 1 — Phase 1 착수 계획 (승인됨)
+## Phase 1 결과 (2026-09-27 · 승인 대기)
+
+- **세션**: 워크트리 `D:\Development\codedestiny-worktrees\yeongnyangi-tarot-phase1-20260927-191939`(기준 `f4edab86d`)에서 작업하고 main 에 직접 반영했다. 앱 코드·에셋·테스트 변경 0.
+- **커밋한 파일**: [style-bible.md](../design/yeongnyangi-tarot/style-bible.md), [art-ledger.jsonl](../design/yeongnyangi-tarot/art-ledger.jsonl)(생성 1회당 1줄, 19줄), [frame-draft.svg](../design/yeongnyangi-tarot/frame-draft.svg), 이 문서.
+- **원본 폴더**(저장소 밖) `D:\Development\yeongnyangi-tarot-art\phase1\`
+  - `gen/` 생성 원본 19장, `prompts/` 생성마다 넘긴 프롬프트 원문, `refs/` 참조 사본(`hero-800-ref.png`, `tarot-v5-ref.png`).
+  - `flat/` 평탄화본, `sym/` 뒷면 대칭본(`*-flat-sym2.png` 3장이 후보, `-flat` 없는 파일은 평탄화 전 중간본이라 쓰지 않는다), `frame/` 프레임 렌더와 겹침 확인본, `qa/` QA 확대·축소본.
+  - `logs/` 실행 로그, `raw-ledger.jsonl`(생성 사실), `verdicts.json`(채택·이유·QA). 저장소 원장은 이 둘을 합쳐 만든다.
+  - `tools/` 이 세션의 스크래치 스크립트 사본(생성 래퍼 `gen.sh`, 원장 `post.mjs`·`build-ledger.mjs`·`set-verdicts.mjs`, `flatten.mjs`, `sym2.mjs`, `sample.mjs`, `contact.mjs` 등). 경로 상수가 이 세션 기준이라 고쳐 써야 한다.
+- **컨택트 시트**: `D:\Development\yeongnyangi-tarot-art\phase1\contact\phase1-contact.png`(채택 캐릭터 시트 · 조연 · 모티프 · 뒷면 A·B·C · 프레임).
+- **예산**: 30회 중 19회(시험 2 · 캐릭터 6 · 조연 2 · 모티프 3 · 뒷면 6). 레이트리밋은 없었다.
+
+| 산출물 | 채택 | 남은 결함·메모 |
+|---|---|---|
+| 캐릭터 턴어라운드 4면 | c03 | 네 시점·좌우 일관성·무늬 없는 뒷면은 맞다. 그림 사이가 최소 8px, 왼쪽 여백이 12px 로 빽빽하다(요구 60px). 뷰끼리 닿지 않아 마스크 재배치(약 0.8배)로 고칠 수 있다(추정). |
+| 캐릭터 표정 6종 | c06 | 머리 기울기(c04 9–14°)를 0.5–4.0° 로 고쳤다. ④ 진지의 눈이 ① 의 75–80%(요구 약 50%)이고 입이 얕은 아치라 ① 과 가장 비슷하다. 세로 간격·여백·③ 귀 위 여백이 40px 에 못 미친다. 여백은 재배치로, ④ 의 눈·입은 재생성으로만 고친다. |
+| 조연 5마리 | k02 | 진주의 어깨띠에 프롬프트에 없던 금고리. 카드 장면에서는 빼도 된다. |
+| 슈트 모티프 4종 | m03(평탄화본) | 컵 후광이 목표보다 푸르고 손잡이 끝이 휜다. 검 칼날이 강철 칼날 모양이다. 동전 두께감이 약하다. Phase 2 프롬프트에서 글로 교정한다. |
+| 뒷면 후보 3종 | A b05 · B b02 · C b06(대칭본) | **사용자가 하나를 고른다. 추천 C.** 후보별 결함은 바이블 「카드 뒷면 › 후보 A·B·C」. |
+| 프레임 | `frame-draft.svg` | 번호 명패의 귀 끝이 안쪽 금선과 겹쳐 선 위로 6px 만 나온다. 240px 에서는 명패가 선에 매달린 것처럼 보인다(디자인 판단 사항). |
+
+- **버린 것**: t01·t02(참조 시험), c01→c03, c02→c04→c06, c05(3/4 뷰 모자 끝이 반대편이라 c03 유지), k01→k02, m01→m02→m03, b01→b05, b03→b04→b06. 버린 이유는 원장의 `reason` 에 있다.
+- **배운 것**(바이블 「생성 파이프라인과 원장」에 반영)
+  1. `codex exec -i` 참조는 확실히 반영된다(정본 동일성 9/10 대 3/10). 대신 정본의 자세와 머리 기울기(약 −15°)까지 따라간다. 바꾸려면 "Unlike the reference image, …" 로 분명히 쓴다.
+  2. 19장 중 5장이 RGBA 투명 배경으로 나왔다. 뒷면이 "세피아·회색으로 나왔다"는 앞선 판정은 알파를 버리고 RGB 만 읽은 오진이었다. 측정·대칭화·참조 전에 프롬프트가 요청한 바탕색 위에 평탄화한다.
+  3. 크기는 프롬프트 FORMAT 첫 줄로 정해지고(19회 모두 요청 크기), 품질은 고를 수 없다.
+  4. 뒷면 대칭은 sym2 로 결정적으로 만든다. 모델이 그림을 dy 만큼 밀어 그리면 그만큼 위아래 여백이 늘어난다(A 38·37, B 26·16, C 61·39).
+- **남은 위험**
+  - 캐릭터 시트: 위 표의 간격과 ④ 진지 표정. 진지한 표정이 필요한 카드는 형용사 대신 결과 모양으로 쓴다(바이블 「생성 파이프라인과 원장」). 생성본의 망토 몸판은 정본 표본보다 약 10 밝다(정본 표본이 그늘일 수 있다).
+  - 뒷면: 고른 후보의 결함(위 표). 앱 카드의 둥근 모서리 마스크·인쇄에서의 여백은 확인하지 않았다.
+  - Phase 2 에서도 RGBA 출력이 나올 수 있다. 평탄화를 빼먹으면 색 판정이 틀린다.
+- **사용자 결정 필요**
+  1. Phase 1 승인.
+  2. 뒷면 A·B·C 중 하나. 추천 C: 금박 실루엣과 절제된 남색·금이라는 의도에 가장 가깝고 결함이 가장 작다.
+  3. 캐릭터 시트 결함을 지금 고칠지. 추천은 고치지 않고 Phase 2 프롬프트에서 글로 보완하는 것이다. 카드 생성의 참조는 시트가 아니라 정본 hero-800 이고, 시트는 사람이 보는 기준표다. 고친다면 ④ 재생성 1–2회와 마스크 재배치(생성 없음)로 남은 예산 11회 안에서 된다.
+  - 승인되면 「다음 작업 3」(Phase 2 파일럿 5장)으로 간다.
+
+## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 
 - **범위**: 브리프 1-1~1-6 산출물만 만든다. 앱 코드·테스트·결제·엔진·연이 덱은 바꾸지 않는다.
 - **원본 이미지 위치**: 기존 관행("원본 PNG는 저장소에 두지 않는다")대로 저장소 밖 `D:\Development\yeongnyangi-tarot-art\phase1\` 에 둔다. 저장소에는 문서·원장·SVG 만 커밋한다.
@@ -525,6 +569,33 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 5. **테스트**: node --test, `mock-network-guard` 아래에서 「검증 (F)」 항목을 그대로 확인한다.
 6. **전달**: `check:fast` → 경로를 지정한 add → Conventional Commits 커밋 → push → CI. 보고한다. F-2 는 4a 뒤에 한다.
 
+## 다음 작업 3 — Phase 2 파일럿 5장 착수 계획 (제안, Phase 1 승인과 함께 승인 필요)
+
+- **범위**: 브리프 Phase 2(103–127줄)의 파일럿 5장만 만든다: 0 광대 · 18 달 · 16 탑 · 컵 에이스 · 펜타클 5. 앱 코드·테스트·결제·엔진·연이 덱은 바꾸지 않는다.
+- **선행**: Phase 1 승인, 그리고 뒷면 A/B/C 중 하나의 선택. 선택이 없으면 컨택트 시트에 세 후보를 모두 놓는다.
+- **원본 위치**: 저장소 밖 `D:\Development\yeongnyangi-tarot-art\phase2\`. 저장소에는 문서·원장만 커밋한다.
+- **등급**: GREEN. 권장: 주력 모델 / effort medium.
+
+0. **시작 점검**: 「재개 정보」의 시작 점검을 한다.
+1. **바이블부터 읽는다**: [style-bible.md](../design/yeongnyangi-tarot/style-bible.md) 의 「정본 프롬프트 머리말」(카드 장면 조립 순서), 「구도와 안전 영역」, 「슈트 모티프」(m03 결함을 글로 보완하는 문구), 「생성 파이프라인과 원장」.
+2. **장면 문단을 쓴다.**
+   - 메이저 3장은 브리프 메이저 콘셉트표(142·158·160줄)를 따른다.
+   - 마이너 2장은 브리프대로 콘셉트를 먼저 적는다(165줄). 컵 에이스는 사물 중심에 영냥이의 앞발이나 실루엣을 함께 둔다(134줄). 펜타클 5 는 전통 상징을 지키고 동전을 정확히 5개 그린다.
+   - 자세·표정·시선·배치는 글로 분명히 쓴다. 참조를 붙이면 모델이 정본의 포즈와 머리 기울기를 따라가므로, 다르게 하려면 "Unlike the reference image, …" 로 명시한다(Phase 1 실측).
+3. **생성**
+   - 카드당 후보 2~4장, `-i refs/hero-800-ref.png`.
+   - 펜타클 5 는 동전 수를 센다. 3회 틀리면 심볼 레이어를 따로 합성하는 방식으로 바꾼다(브리프).
+   - 결과가 RGBA 투명 배경이면 원장에 남기고, 카드는 가장자리까지 채워야 하므로 투명 면적이 크면 다시 뽑는다.
+4. **QA**
+   - 브리프 카드별 체크리스트(113–121줄)를 따른다.
+   - 프레임 시안을 겹친 렌더로 위 10%·아래 14% 안전 영역을 확인한다.
+   - 240px 썸네일로 판정하고, 눈·털 색은 sharp 로 샘플링한다.
+   - 채택본의 시선 방향을 원장 `gaze` 에 남긴다. Phase 4 manifest 로 옮긴다.
+5. **원장**: 브리프가 예로 든 카드별 JSON 대신 [art-ledger.jsonl](../design/yeongnyangi-tarot/art-ledger.jsonl) 에 phase 2 줄을 잇는다. 원장 하나로 추적하기 위해서다. 원장 스크립트는 `phase1\tools\` 사본(`post.mjs`·`set-verdicts.mjs`·`build-ledger.mjs`)의 경로 상수를 고쳐 쓴다.
+6. **산출물**: 5장 원본과 채택 사유, QA 결과표, 컨택트 시트(5장 + 고른 뒷면).
+7. **예산 제안**: 최대 20회(카드당 3 + 예비 5). 레이트리밋에 걸리면 멈추고 보고한다.
+8. **전달**: `check:fast` → 경로를 지정한 add → commit → push → CI. 보고한 뒤 승인을 기다린다. 여기서 스타일이 확정되면 이후 바꾸지 않는다(브리프).
+
 ## 해당 게이트에서 결정 (지금 불필요)
 
 - Phase 4a: 파생 이미지 저장 위치(`public/` vs R2 버전 경로, §9). 메이저 22장부터 적용한다.
@@ -547,5 +618,5 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 
 ## 다음 세션 시작 문장
 
-- Phase 1: "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 `git log --oneline -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md` 로 이 문서 커밋을 확인한 뒤, 영냥이 타로 Phase 1(아트 디렉션)을 「다음 작업 1」 0단계부터 진행해줘."
+- Phase 2(Phase 1 승인 뒤): "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 `git log --oneline -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md` 로 이 문서 커밋을 확인한 뒤, 영냥이 타로 Phase 2(파일럿 5장)를 「다음 작업 3」 0단계부터 진행해줘. 뒷면은 (A·B·C 중 고른 것)으로 한다."
 - F-1(병행 시 워크트리): "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 이 문서 커밋을 확인한 뒤, 영냥이 무료 원카드 F-1(데이터·로직)을 「다음 작업 2」 0단계부터 진행해줘."
