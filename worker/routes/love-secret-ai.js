@@ -879,7 +879,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     sajuResult,
     group,
     systemPromptBase,
-    cache,
+    cache: { ...cache, skipRead: checkpointed && (attempts[group.key] || 0) > 2 },
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
     });
@@ -913,7 +913,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         sajuResult,
         group,
         systemPromptBase,
-        cache,
+        cache: { ...cache, skipRead: checkpointed && (attempts[key] || 0) > 2 },
         timeoutMs: budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS),
         logContext,
         repairLines,

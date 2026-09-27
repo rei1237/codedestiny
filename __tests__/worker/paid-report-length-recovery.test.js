@@ -144,6 +144,16 @@ describe("love secret bounded length recovery", () => {
     expect((await h.run()).complete).toBe(true);
     expect(h.ctx.generateLoveSecretGroup).not.toHaveBeenCalled();
   });
+  test("a total-length repair bypasses the previous short response cache within its reserved budget", async () => {
+    const rows = [loveRow("core", 500, { lengthShort: true, lengthRepair: true }), loveRow("timing", 5000)];
+    const attempts = { core: 2, timing: 2 };
+    const h = loveHarness(rows, attempts);
+    h.ctx.generateLoveSecretGroup.mockImplementation(async (_env, options) => options.cache.skipRead
+      ? loveRow("core", 16000) : rows[0]);
+    expect((await h.run()).complete).toBe(true);
+    expect(attempts.core).toBe(4);
+    expect(h.ctx.generateLoveSecretGroup).toHaveBeenCalledTimes(1);
+  });
   test("short total never completes and does not call exhausted groups", async () => {
     const rows = [loveRow("core", 500, { lengthShort: true }), loveRow("timing", 500, { lengthShort: true })];
     const h = loveHarness(rows, { core: 4, timing: 4 });
