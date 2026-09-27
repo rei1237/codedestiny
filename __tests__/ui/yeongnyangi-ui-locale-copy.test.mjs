@@ -2,8 +2,8 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy'; export {jongCheckCopy} from './app/yeongnyangi/_lib/jong-check-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy,jongCheckCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('chart display translates known evidence while retaining saved source values',()=>{
  assert.equal(chartTerm('오행 분포 · 월령 가중치 포함','en'),'Five elements · adjusted for birth month');
  assert.equal(chartTerm('계산된 시기 · 태양','en'),'Calculated period · Sun');
@@ -46,4 +46,12 @@ test('a held paid reading tells the buyer it is being recovered, never to chase 
   }
   assert.match(readingCopy(locale).recoveringItems(9,15),/9\/15/);
  }
+});
+test('종격 year check is written for the five authored languages and falls back to English elsewhere',()=>{
+ const authored=['ko','en','ja','zh-CN','zh-TW'].map(locale=>jongCheckCopy(locale));
+ for(const copy of authored)for(const [key,value] of Object.entries(copy))if(typeof value==='string')assert.ok(value.length>0,key);
+ assert.equal(new Set(authored.map(copy=>copy.best)).size,5);
+ for(const locale of ['vi','hi','es','fr','de','nl','ms'])assert.equal(jongCheckCopy(locale),jongCheckCopy('en'));
+ assert.equal(jongCheckCopy('ko').year(2022,'壬寅(임인)'),'2022년 壬寅(임인)');
+ assert.equal(jongCheckCopy('en').year(2022,'壬寅(임인)'),'2022 (壬寅)');
 });

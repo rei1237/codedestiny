@@ -21,6 +21,9 @@ import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {consultationInputCopy} from '../_lib/consultation-input-copy';
 import {journeyCopy} from '../_lib/journey-copy';
 import {askPhase5Copy} from '../_lib/ask-phase5-copy';
+import {jongCheckCopy} from '../_lib/jong-check-copy';
+import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-policy';
+import type {JongCheck,JongReply} from '@/worker/yeongnyangi/fortune/saju/jong-check';
 const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 const loginDraftKey='yeongnyangi:consultation-login-draft';
 const predictionProofRecords=predictionRecords.map(record=>{
@@ -39,6 +42,8 @@ export default function Consultation(){
  const [busy,setBusy]=useState(false),[ready,setReady]=useState(false);
  const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(null);
  const [extraTime,setExtraTime]=useState(''),[extraPlace,setExtraPlace]=useState('');
+ const [jong,setJong]=useState<{key:string;loading:boolean;check:JongCheck|null}>({key:'',loading:false,check:null});
+ const [jongReply,setJongReply]=useState<{best?:JongReply;worst?:JongReply}>({});
  const partnerProfile=profiles.find(p=>profileKey(p)===partnerId);
  const selectedProfile=profiles.find(p=>(p.profileId||p.id)===profileId);
  const lock=useRef(false);
@@ -46,7 +51,7 @@ export default function Consultation(){
  const viewedProduct=useRef('');
  const restoredDraft=useRef<{profileId?:string;partnerId?:string;extraTime?:string;extraPlace?:string;timeUnknown?:boolean}|null>(null);
  const product=products.find(p=>p.id===productId)!;
- const inputCopy=consultationInputCopy(locale),journey=journeyCopy(locale);
+ const inputCopy=consultationInputCopy(locale),journey=journeyCopy(locale),jongCopy=jongCheckCopy(locale);
  useEffect(()=>{
   if(!ready||viewedProduct.current===product.id)return;
   viewedProduct.current=product.id;
@@ -61,15 +66,32 @@ export default function Consultation(){
  const premium=['flounder','tuna'].includes(product.fishId);
  const needsTime=premium||product.systems.some(id=>!['saju','tarot'].includes(id));
  const needsPlace=premium||product.systems.some(id=>['vedic','astrology','sukuyo'].includes(id));
+ // Premium saju tiers test a possible 종격 against past years before payment. The key is the birth input the
+ // server reads; the server drops the answer if its years differ at prepare, so a stale check cannot misread.
+ const jongKey=!guest&&selectedProfile&&jongCheckApplies(product)&&!timeUnknown&&!(selectedProfile.birth?.timeUnknown&&!extraTime)?JSON.stringify([profileId,extraTime,currentLocation?.latitude,currentLocation?.longitude]):'';
+ const jongPending=Boolean(jongKey)&&(jong.key!==jongKey||jong.loading);
+ const jongCheck=!jongPending&&jongKey?jong.check:null;
  const missing=!tarotOnly&&!guest?[
   ...(kind.partner&&partnerProfile&&premium&&(partnerProfile.birth?.timeUnknown||!partnerProfile.location?.label||!partnerProfile.gender)?[inputCopy.partnerDetails]:[]),
   ...(kind.partner&&!partnerId?[inputCopy.partnerRequired]:[]),
   ...(!selectedProfile?[inputCopy.profileRequired]:[]),
   ...(selectedProfile&&needsTime&&(timeUnknown||(selectedProfile.birth?.timeUnknown&&!extraTime))?[inputCopy.timeRequired]:[]),
   ...(selectedProfile&&needsPlace&&!selectedProfile.location?.label&&!extraPlace.trim()&&!currentLocation?[inputCopy.placeRequired]:[]),
+  ...(jongPending?[jongCopy.checking]:[]),
+  ...(jongCheck&&(!jongReply.best||!jongReply.worst)?[jongCopy.required]:[]),
  ]:[];
  if(kind.question&&!question.trim()&&!guest)missing.push(askCopy.required);
  useEffect(()=>{if(restoredDraft.current)return;setExtraTime('');setExtraPlace('');setCurrentLocation(null);setTimeUnknown(false);setError('');},[profileId]);
+ useEffect(()=>{
+  if(!jongKey)return;
+  const controller=new AbortController();
+  setJong({key:jongKey,loading:true,check:null});setJongReply({});
+  fortuneApi<{check:JongCheck|null}>('saju/jong-check',{productId,profileId,timeUnknown,birthDetails:{birthTime:extraTime,birthPlace:currentLocation?{name:currentLocation.name,latitude:currentLocation.latitude,longitude:currentLocation.longitude,timezone:currentLocation.timezone}:undefined},timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'},{signal:controller.signal,timeoutMs:8000})
+   .then(data=>setJong({key:jongKey,loading:false,check:data.check||null}))
+   // A failed check never blocks payment: no question, and the reading keeps its conditional 종격 note.
+   .catch(()=>{if(!controller.signal.aborted)setJong({key:jongKey,loading:false,check:null});});
+  return ()=>controller.abort();
+ },[jongKey]);
  useEffect(()=>{if(!profileState.loading&&partnerId&&(partnerId===profileId||!profiles.some(p=>profileKey(p)===partnerId)))setPartnerId('');},[profileId,profiles,partnerId,profileState.loading]);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search),requested=params.get('domain')||'saju';
@@ -130,7 +152,7 @@ export default function Consultation(){
     birthPlace={name:found.name,latitude:found.lat,longitude:found.lng,timezone:found.timezone};
    }
    if(!consultationAttemptId.current)consultationAttemptId.current=crypto.randomUUID();
-   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{locale,consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{})});
+   const data=await fortuneApi<{fortune:FortuneRecord}>('requests',{locale,consultationAttemptId:consultationAttemptId.current,birthDetails:{birthTime:extraTime,birthPlace},productId,consultationKind:kind.id,profileId,topicId:kind.id==='ask'?topicId:kind.topic,question:kind.question?question:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',timeUnknown,...(jongCheck&&jongReply.best&&jongReply.worst?{jongCheck:{best:jongReply.best,worst:jongReply.worst,bestYears:jongCheck.best.map(y=>y.year),worstYears:jongCheck.worst.map(y=>y.year)}}:{}),...(kind.partner&&partnerId?{partnerProfileId:partnerId}:{})});
    try{sessionStorage.removeItem(loginDraftKey);}catch{/* The server snapshot now owns the consultation input. */}
    trackEvent('consultation_start',{item_id:product.cdFeatureKey,service:'yeongnyangi'});
    consultationAttemptId.current='';
@@ -170,6 +192,11 @@ export default function Consultation(){
     {(selectedProfile?.birth?.timeUnknown||!selectedProfile.location?.label)&&<p>{inputCopy.supplementSaved}</p>}
     {kind.partner&&<label>{inputCopy.partner}<select value={partnerId} onChange={e=>setPartnerId(e.target.value)}><option value="">{inputCopy.partnerSelect}</option>{profiles.filter(p=>(p.profileId||p.id)!==profileId).map(p=><option key={p.profileId||p.id} value={p.profileId||p.id}>{p.name}</option>)}</select></label>}
     </div>}
+    {jongCheck&&<section className={styles.jongCheck} aria-label={jongCopy.heading} lang={locale}><h2>{jongCopy.heading}</h2><p>{jongCopy.intro}</p>
+    {(['best','worst'] as const).map(side=><fieldset key={side} disabled={busy}><legend>{jongCopy[side]}</legend><p className={styles.jongYears}>{jongCheck[side].map((y,i)=><span key={y.year}>{i>0&&' · '}<span className={styles.jongYear}>{jongCopy.year(y.year,y.ganji)}</span></span>)}</p>
+     <div className={styles.jongReplies}>{(['yes','no','unsure'] as const).map(reply=><label key={reply}><input type="radio" name={`jong-${side}`} value={reply} checked={jongReply[side]===reply} onChange={()=>setJongReply(prev=>({...prev,[side]:reply}))}/>{jongCopy[reply]}</label>)}</div>
+    </fieldset>)}
+    </section>}
    </>}
    {kind.question&&<section className={styles.questionSection} aria-label={askCopy.heading} lang={locale}><h2>{tarotOnly?inputCopy.tarotHeading:askCopy.heading}</h2><p>{askCopy.intro}</p>
    {kind.id==='ask'&&<><label htmlFor="consultation-topic">{askCopy.topic}</label><select id="consultation-topic" value={topicId} onChange={e=>setTopicId(e.target.value)}><option value="general">{askCopy.general}</option>{Object.keys(topicCatalog).map(id=><option value={id} key={id}>{askCopy.topics[id as keyof typeof topicCatalog]}</option>)}</select></>}
