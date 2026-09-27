@@ -46,6 +46,7 @@ test('request cost sums models and retries before percentiles, and missing tarif
   const unattributed=costUsageByRequest([row,{...row,requestId:''}],{'gemini/fixture':tariff})[0];
   assert.equal(unattributed.meanCostUsd,null);
   assert.equal(unattributed.unattributedCalls,1);
+  assert.equal(costUsageByRequest([{...row,generationSource:'server_repair'}],{'gemini/fixture':tariff})[0].retryCostUsd,.002);
   const unknownRetry=costUsageByRequest([{...row,attempt:undefined}],{'gemini/fixture':tariff})[0];
   assert.equal(unknownRetry.retryCostUsd,null);
 });

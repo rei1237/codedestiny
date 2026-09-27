@@ -79,7 +79,7 @@ function respond(doc, render, busy = false, measure) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, timeoutMs = 45000 }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, timeoutMs = 45000, generationOrigin = "" }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -128,7 +128,8 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     let queue = Promise.resolve();
     const calls = await Promise.allSettled(missing.map(originalTask => runWithPaidGenerationContext({
       serviceId: featureKey, requestId: executionKey, sectionGroup: originalTask.id,
-      attempt: state.attempts[originalTask.id], generationSource: state.drafts?.[originalTask.id] ? 'repair' : state.attempts[originalTask.id] > 1 ? 'recovery' : 'initial',
+      attempt: state.attempts[originalTask.id], generationSource: (generationOrigin === "server" ? "server_" : "")
+        + (state.drafts?.[originalTask.id] ? 'repair' : state.attempts[originalTask.id] > 1 ? 'recovery' : 'initial'),
     }, async () => {
       const draft = state.drafts?.[originalTask.id];
       const task = narrativeRepairTask(originalTask, draft);
@@ -198,6 +199,8 @@ export function resumePaidNarrativeOnServer(env, doc, adapter) {
   const request = new Request("https://internal.invalid/paid-narrative/resume", { method: "POST" });
   return runPaidNarrativeDelivery(request, env, { userId: String(doc.userId) }, { resumeResultId: doc.executionKey }, {
     ...adapter, featureKey: doc.featureKey,
+    // Token logs label cron calls server_* so their cost is separable from browser retries.
+    generationOrigin: "server",
     verify: async () => {},
     seed: async () => { throw failure(doc.executionKey); },
   });

@@ -40,6 +40,14 @@ const start=async()=>{await route(new Request('https://mock.test/api/oracle/geom
  expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(4);docs[0].timeoutAt=new Date();};
 const missing=()=>docs[0].metadata.paidNarrative.tasks.map(task=>task.id).filter(id=>!docs[0].metadata.paidNarrative.parts[id]);
 
+test('cron calls are labelled server_* in token logs while browser calls keep their labels',async()=>{
+ const {getPaidGenerationContext}=await import('../../worker/lib/paid-generation-context.js'),sources=[];
+ provider=jest.fn(async(...args)=>{sources.push(getPaidGenerationContext()?.generationSource);return good(...args);});
+ await start();const log=jest.spyOn(console,'log').mockImplementation(()=>{});await run({});log.mockRestore();
+ expect(sources.slice(0,4)).toEqual(Array(4).fill('initial'));
+ expect(sources.length).toBeGreaterThan(4);expect(new Set(sources.slice(4))).toEqual(new Set(['server_initial']));
+});
+
 test('a left execution resumes only its missing parts and completes after the confirming read',async()=>{
  await start();const saved=clone(docs[0].metadata.paidNarrative.parts),left=missing(),log=jest.spyOn(console,'log').mockImplementation(()=>{});
  expect((await run({})).outcomes).toEqual([{executionKey:docs[0].executionKey,featureKey:'geomancy',outcome:'completed'}]);
