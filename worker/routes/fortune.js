@@ -2898,7 +2898,7 @@ async function handlePigCoinConsume(request, auth, options = {}) {
 
   return json({
     ok: false,
-    message: "기존 코인 결제는 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.",
+    message: "이전 결제 방식은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.",
     code: "PAYMENT_REQUIRED",
     status: "payment_required",
     reason: "LEGACY_COIN_DISABLED",
@@ -6089,7 +6089,7 @@ async function handleStartService(request, auth) {
 async function handleShareReward(request, auth) {
   return json({
     ok: false,
-    message: "기존 코인 공유 보상은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 이용해 주세요.",
+    message: "이전 공유 보상은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 이용해 주세요.",
     code: "POINT_REWARD_DISABLED",
     legacyCoinDisabled: true,
   }, { status: 410 });

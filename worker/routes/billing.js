@@ -2451,7 +2451,7 @@ async function handleDeferredUsageApply(request, env) {
   const snapshot = deferredUsageSnapshot(record);
   const paymentMethod = normalizeDeferredPaymentMethod(snapshot.paymentMethod || body?.paymentMode);
   if (paymentMethod === "COIN" && snapshot.source !== "verified_payment" && !snapshot.evidence) {
-    return failure(402, "PAYMENT_REQUIRED", "기존 코인 결제 기록은 새 코인 차감으로 재처리하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.", undefined, {
+    return failure(402, "PAYMENT_REQUIRED", "이전 방식의 결제 기록은 다시 처리하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.", undefined, {
       legacyCoinDisabled: true,
       blockedPaymentMode: "COIN",
       paymentOptions: ["MEMBERSHIP_PASS", "MOONLIGHT_STONE", "DIRECT_KRW"],
@@ -4484,7 +4484,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       paymentMode: "COIN",
       legacyCoinDisabled: true,
     });
-    return failure(402, "PAYMENT_REQUIRED", "기존 코인 결제는 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.", undefined, {
+    return failure(402, "PAYMENT_REQUIRED", "이전 결제 방식은 더 이상 사용하지 않습니다. 이용권, 월정석 또는 단건 결제를 선택해 주세요.", undefined, {
       pricing,
       ...paymentDecision,
       paymentOptions: paymentDecision,

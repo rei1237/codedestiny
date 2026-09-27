@@ -2139,7 +2139,6 @@ function SubscriptionSection({
 
               {/* 가격 */}
               <p className="mt-2 flex flex-wrap items-center gap-1 text-[17px] font-black leading-snug text-white">
-                <CoinIcon size="md" />
                 {formatSubscriptionPlanValueLine(plan, copy, formatLocale)}
               </p>
               <p className="mt-1 text-[12.5px] font-semibold text-slate-200">
@@ -2307,32 +2306,6 @@ function ToastContainer({
         </div>
       ))}
     </div>
-  );
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: 콘텐츠 기준 아이콘
-   🪙 이모지 렌더링 불안정 문제를 해결합니다.
-══════════════════════════════════════════════════════════════════ */
-
-function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" | "xl"; className?: string }) {
-  const sizeClasses: Record<string, string> = {
-    sm: "h-4 w-4 text-[8px]",
-    md: "h-5 w-5 text-[10px]",
-    lg: "h-6 w-6 text-[13px]",
-    xl: "h-8 w-8 text-[16px]",
-  };
-  return (
-    <span
-      aria-hidden="true"
-      className={`inline-flex flex-shrink-0 items-center justify-center rounded-full font-black text-white select-none ${sizeClasses[size]} ${className}`}
-      style={{
-        background: "radial-gradient(circle at 38% 32%, #fff6b0 0%, #f5c842 45%, #c8860a 100%)",
-        boxShadow: "inset 0 2px 3px rgba(255,255,255,0.55), inset 0 -1px 2px rgba(0,0,0,0.18), 0 2px 6px rgba(140,80,0,0.28)",
-      }}
-    >
-      ✦
-    </span>
   );
 }
 
