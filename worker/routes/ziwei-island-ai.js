@@ -21,6 +21,7 @@ import { verifyPgPayment } from "../payments/pg.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
+import { countPaidReportBodyChars } from "../lib/paid-report-quality.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import { stripEmptyParens } from "../lib/ziwei-hanja.js";
@@ -546,7 +547,8 @@ async function generatePalaceText(env, prompt, options = {}) {
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = (/mock/i.test(provider) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
   const text = clean(ai?.text);
-  if (!isCompleteLlmResponse(ai) || isMock || !hasRenderableLlmText(text, { minChars: options.minLength || 300 })) {
+  // The part floor gates only the cache; a short but readable part becomes a length draft.
+  if (!isCompleteLlmResponse(ai) || isMock || !hasRenderableLlmText(text, { minChars: 300 })) {
     const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed."));
     error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
     throw error;
@@ -709,31 +711,51 @@ async function handleStart(request, env) {
       return current.status === "completed" ? json(publicConsultation(current)) : pending(current);
     }
     filter = { ...owner, generationLease: lease, status: { $nin: ["completed", "generation_failed"] } };
-    let meta = { ...claimed.llmMeta, version: 2, input, chart, access, parts: { ...claimed.llmMeta?.parts }, attempts: { ...claimed.llmMeta?.attempts }, invalidAttempts: { ...claimed.llmMeta?.invalidAttempts } };
+    let meta = { ...claimed.llmMeta, version: 2, input, chart, access, parts: { ...claimed.llmMeta?.parts }, short: { ...claimed.llmMeta?.short }, attempts: { ...claimed.llmMeta?.attempts }, invalidAttempts: { ...claimed.llmMeta?.invalidAttempts } };
     // Read back the lease and original snapshot before any provider or consumption call.
     doc = await saveIsland(filter, { llmMeta: meta, generationLease: lease });
     const specs = palaceParts(input.palaceKey);
     const evidence = palaceEvidence(input.palaceKey, chart);
-    const missing = specs.filter(part => !meta.parts[part.id]);
-    const wave = missing.filter(part => (meta.attempts[part.id] || 0) < 3).slice(0, 4);
+    // A part saved under its floor is a draft. It is accepted after one length repair or on its
+    // last attempt; the 20,000-character body total still decides completion.
+    const accepted = part => Boolean(meta.parts[part.id]) && (!meta.short?.[part.id]
+      || Boolean(meta.attempts[`${part.id}:lengthRepair`]) || (meta.attempts[part.id] || 0) >= 3);
+    const complete = () => specs.every(accepted) && countPaidReportBodyChars(specs.map(part => meta.parts[part.id]?.body || "").join("\n")) >= 20000;
+    const pendingParts = () => {
+      const open = part => (meta.attempts[part.id] || 0) < 3;
+      const list = specs.filter(part => !accepted(part) && open(part));
+      // Every part accepted but the total short: short parts use their remaining attempts.
+      return list.length || complete() ? list : specs.filter(part => open(part) && meta.short?.[part.id]);
+    };
+    const wave = pendingParts().slice(0, 4);
     if (wave.length) {
-      for (const part of wave) meta.attempts[part.id] = (meta.attempts[part.id] || 0) + 1;
+      // The repair flag is saved before the call so a lost response never buys a second repair.
+      const drafts = Object.fromEntries(wave.filter(part => meta.parts[part.id]?.body).map(part => [part.id, meta.parts[part.id].body]));
+      for (const part of wave) {
+        if (drafts[part.id]) meta.attempts[`${part.id}:lengthRepair`] = 1;
+        meta.attempts[part.id] = (meta.attempts[part.id] || 0) + 1;
+      }
       doc = await saveIsland(filter, { llmMeta: meta });
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(wave.map(async part => {
         let value;
         try {
-          const generated = await generatePalaceText(env, palacePartPrompt(input, chart, part, meta.attempts[part.id]), { partId: part.id, minLength: part.minChars });
+          const generated = await generatePalaceText(env, palacePartPrompt(input, chart, part, meta.attempts[part.id], drafts[part.id]), { partId: part.id, minLength: part.minChars });
           value = parseSections(generated.text);
         } catch { return; }
         // Serialize the writes, not the provider calls; each finished part becomes durable immediately.
         const persist = async () => {
-          if (!validPalacePart(value, part, evidence, meta.parts, anchors)) {
+          // The duplicate check excludes this part's own draft, which a repair preserves.
+          const others = Object.fromEntries(Object.entries(meta.parts).filter(([key]) => key !== part.id));
+          if (!validPalacePart(value, part, evidence, others, anchors, { allowShort: true })) {
             meta = { ...meta, invalidAttempts: { ...meta.invalidAttempts, [part.id]: (meta.invalidAttempts[part.id] || 0) + 1 } };
             doc = await saveIsland(filter, { llmMeta: meta });
             return;
           }
-          meta = { ...meta, parts: { ...meta.parts, [part.id]: value } };
+          const short = countPaidReportBodyChars(value.body) < part.minChars;
+          // A full part always replaces a draft; a short one only when it is longer.
+          if (meta.parts[part.id]?.body && short && countPaidReportBodyChars(meta.parts[part.id].body) >= countPaidReportBodyChars(value.body)) return;
+          meta = { ...meta, parts: { ...meta.parts, [part.id]: value }, short: { ...meta.short, [part.id]: short } };
           doc = await saveIsland(filter, { status: "partial", llmMeta: meta,
             messages: [{ role: "assistant", content: JSON.stringify(palaceResult(input, chart, meta.parts)) }] });
         };
@@ -742,9 +764,8 @@ async function handleStart(request, env) {
       }));
       if (outcomes.some(outcome => outcome.status === "rejected")) throw storageUnavailable(resultId);
     }
-    const incomplete = specs.filter(part => !meta.parts[part.id]);
-    if (incomplete.length) {
-      meta = { ...meta, exhausted: incomplete.some(part => (meta.attempts[part.id] || 0) >= 3) };
+    if (!complete()) {
+      meta = { ...meta, exhausted: specs.some(part => !meta.parts[part.id] && (meta.attempts[part.id] || 0) >= 3) || !pendingParts().length };
       // Refund only a confirmed empty quality failure. Lost provider/checkpoint responses are uncertain.
       if (meta.exhausted && !Object.keys(meta.parts).length && Object.entries(meta.attempts).every(([key, count]) => meta.invalidAttempts[key] === count)) {
         doc = await saveIsland(filter, { status: "generation_failed", generationLease: "", llmMeta: meta });

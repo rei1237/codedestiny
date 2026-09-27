@@ -25,7 +25,7 @@ export function palaceAnchorStars(palaceKey, chart) {
   return [...new Set((chart?.sanFangSiZheng?.byPalace?.[palaceKey]?.mainStars || []).filter(Boolean))];
 }
 
-export function palacePartPrompt(input, chart, part, attempt) {
+export function palacePartPrompt(input, chart, part, attempt, draft = "") {
   return [
     `대상: ${input.palaceKey} · ${part.title}. 부분 식별자: ${part.id}. 시도 ${attempt}/3.`,
     `전체 상담의 다른 섹션: ${getPalaceConfig(input.palaceKey).sections.map(([, title]) => title).join(", ")}. 다른 섹션을 대신 쓰지 마세요.`,
@@ -35,6 +35,7 @@ export function palacePartPrompt(input, chart, part, attempt) {
     part.index === 0 ? "이 부분은 계산 근거 → 쉬운 해설 → 생활에서 나타나는 구체적인 패턴과 서로 다른 사례를 설명하세요." : "이 부분은 반대 조건과 해석의 한계 → 갈등하는 해석의 적용 조건 → 지금 실천할 단계와 점검 방법을 설명하세요. 앞부분의 기질 소개를 반복하지 마세요.",
     "서양 점성술·사주 등 다른 체계를 섞지 마세요. 별과 수치·연도·대운을 새로 계산하지 마세요. 제공되지 않은 시기는 모른다고 밝히세요. 주성은 대상 궁과 삼방사정을 구분하세요.",
     `본문은 공백·제목·목차·마크다운 기호 제외 최소 ${part.minChars}자, 목표 ${Math.ceil(part.minChars * 1.2)}~${Math.ceil(part.minChars * 1.4)}자. 같은 문장·일반론 반복으로 채우지 마세요.`,
+    ...(draft ? [`[저장된 초안 보완]\n${draft}\n위 초안의 근거와 방향을 보존하고 부족한 해석·반대 조건·행동 조언만 보완한 이 부분 전체 본문을 반환하세요. 같은 문장 반복이나 새 계산값으로 분량을 채우지 마세요.`] : []),
     `JSON만 출력: {"body":"본문", "evidence":${JSON.stringify(palaceEvidence(input.palaceKey, chart))}}. evidence는 계산 근거 그대로이며 본문에서도 그 근거를 설명하세요.`,
   ].join("\n");
 }
@@ -42,8 +43,9 @@ export function palacePartPrompt(input, chart, part, attempt) {
 // anchors 는 palaceAnchorStars 의 결과다. evidence 필드는 프롬프트가 그대로 건네준 값이라 되풀이만으로
 // 맞출 수 있으므로, 본문이 계산된 별을 실제로 인용했는지가 유일한 근거 대조다. 빈 anchors 를 건네면
 // 그 대조를 건너뛰는 게 아니라 거절한다(fail-closed).
-export function validPalacePart(value, part, evidence, saved = {}, anchors = []) {
-  if (!value || typeof value.body !== "string" || countPaidReportBodyChars(value.body) < part.minChars) return false;
+// allowShort keeps a part under its floor as a length draft; every other check still applies.
+export function validPalacePart(value, part, evidence, saved = {}, anchors = [], { allowShort = false } = {}) {
+  if (!value || typeof value.body !== "string" || countPaidReportBodyChars(value.body) < (allowShort ? 1 : part.minChars)) return false;
   if (value.evidence?.palace !== evidence.palace || value.evidence?.daeun !== evidence.daeun
     || !Array.isArray(value.evidence?.mainStars)
     || JSON.stringify([...value.evidence.mainStars].sort()) !== JSON.stringify([...evidence.mainStars].sort())) return false;

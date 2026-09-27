@@ -174,3 +174,31 @@ it("expired writer cannot overwrite the next holder or release its lease", async
   });
   expect((await start()).status).toBe(503);expect(docs[0].generationLease).toBe('next-holder');expect(docs[0].status).not.toBe('completed');
 });
+// A part that passes evidence and anchor checks but is under its floor is a draft, not a failure.
+const reply=(id,text)=>({ok:true,provider:"gemini",model:"fixture",text:JSON.stringify({body:text,evidence:{palace:"명궁",mainStars:["자미"],daeun:"23-32"}})});
+it("a short but valid part is kept as a draft and its one repair receives it",async()=>{
+  const first=palaceParts(body.palaceKey)[0].id,base=provider.getMockImplementation();let repairPrompt="";
+  provider.mockImplementation(async(env,prompt,options)=>{
+    if(options.logContext.sectionGroup!==first)return base(env,prompt,options);
+    if(prompt.includes("[저장된 초안 보완]")){repairPrompt=prompt;return base(env,prompt,options);}
+    return reply(first,prose("초안표식",1000));
+  });
+  expect((await start()).status).toBe(202);expect(docs[0].llmMeta.short[first]).toBe(true);
+  expect((await start()).status).toBe(202);expect((await start()).status).toBe(200);
+  expect(repairPrompt).toContain("초안표식");expect(docs[0].llmMeta.short[first]).toBe(false);
+  expect(provider).toHaveBeenCalledTimes(9);expect(refund).not.toHaveBeenCalled();expect(docs[0].status).toBe("completed");
+});
+it("a still-short repair is accepted when the 20,000 total holds",async()=>{
+  const first=palaceParts(body.palaceKey)[0].id,base=provider.getMockImplementation();
+  provider.mockImplementation(async(env,prompt,options)=>options.logContext.sectionGroup===first?reply(first,prose(prompt.includes("[저장된 초안 보완]")?"보강표식":"초안",prompt.includes("[저장된 초안 보완]")?1500:1000)):base(env,prompt,options));
+  await start();await start();expect((await start()).status).toBe(200);
+  expect(docs[0].llmMeta.parts[first].body).toContain("보강표식");expect(docs[0].llmMeta.attempts[first]).toBe(2);
+  expect(provider).toHaveBeenCalledTimes(9);expect(refund).not.toHaveBeenCalled();expect(docs[0].status).toBe("completed");
+});
+it("a total under 20,000 spends remaining attempts, then stays partial for review without refund",async()=>{
+  provider.mockImplementation(async(_env,_prompt,options)=>reply(options.logContext.sectionGroup,prose(`${options.logContext.sectionGroup}-${provider.mock.calls.length}`,2000)));
+  let last;for(let n=0;n<6;n++)last=await start();
+  expect(last.status).toBe(202);expect(await last.json()).toMatchObject({retryable:false});
+  expect(provider).toHaveBeenCalledTimes(24);expect(refund).not.toHaveBeenCalled();expect(usage).not.toHaveBeenCalled();expect(docs[0].status).toBe("partial");
+  await start();expect(provider).toHaveBeenCalledTimes(24);
+});
