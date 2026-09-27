@@ -60,6 +60,8 @@ function renderOracle(state) {
     sections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: state.parts[task.id] })) };
 }
 
+// The paid-intent task seeds a proven intent with the same function.
+export { seedOracle as seedTarotOracleNarrative };
 export async function deliverTarotOracle(request, env, auth, body, verify) {
   const resumeId = request.method === 'GET' ? new URL(request.url).searchParams.get('resultId') : body.resumeResultId;
   let featureKey = resolveOracleConsultationTier(body.cards?.length).featureKey;

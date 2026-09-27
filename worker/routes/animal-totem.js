@@ -638,12 +638,16 @@ async function handleReading(request, env) {
       const access = await verifyAnimalTotemAccess(request, env, input, auth);
       if (!access.ok) throw new HttpError(access.status, access.message, { code: access.code, reason: access.reason });
     },
-    seed: async original => {
-      const input = normalizeReadingInput(original);
-      return { input, prompt: buildUserPrompt(input), systemPrompt: await resolveSystemPrompt(env),
-        tasks: [{ id: "narrative", minChars: spec.minBodyChars }], minBodyChars: spec.minBodyChars };
-    },
+    seed: original => seedAnimalTotemNarrative(env, original),
   });
+}
+
+// Shared with the paid-intent task, which seeds a proven intent the same way.
+// input.spec is MODE_SPEC[original.mode], the route's spec for a new record.
+export async function seedAnimalTotemNarrative(env, original) {
+  const input = normalizeReadingInput(original);
+  return { input, prompt: buildUserPrompt(input), systemPrompt: await resolveSystemPrompt(env),
+    tasks: [{ id: "narrative", minChars: input.spec.minBodyChars }], minBodyChars: input.spec.minBodyChars };
 }
 
 export async function handleAnimalTotemRoutes(request, env) {

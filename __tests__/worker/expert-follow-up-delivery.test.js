@@ -8,6 +8,7 @@ const owner = '64b7f2a1c3d4e5f601234567';
 const at = (obj, key) => key.split('.').reduce((v, k) => v?.[k], obj);
 const matches = (row, filter) => Object.entries(filter).every(([key, value]) => {
   if (key === '$or') return value.some(candidate => matches(row, candidate));
+  if (value && typeof value === 'object' && '$exists' in value) return (at(row, key) !== undefined) === value.$exists;
   if (value && typeof value === 'object' && '$ne' in value) return at(row, key) !== value.$ne;
   if (value && typeof value === 'object' && '$gt' in value) return new Date(at(row, key)) > new Date(value.$gt);
   return at(row, key) === value;

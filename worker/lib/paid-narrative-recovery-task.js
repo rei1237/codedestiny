@@ -1,6 +1,7 @@
 import { connectDb, withMongoRetry } from './db.js';
 import { ServiceExecutionTransaction } from './models.js';
 import { resumePaidNarrativeOnServer } from './paid-narrative-delivery.js';
+import { promotePaidIntents } from './paid-narrative-intent.js';
 import {
   loadPaidNarrativeAdapter,
   PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS,
@@ -83,6 +84,11 @@ async function recoverOne(env, doc, now, deadline) {
 export async function runPaidNarrativeRecovery(env, options = {}) {
   const now = options.now || Date.now(), deadline = now + TASK_BUDGET_MS;
   await (options.connectDb || connectDb)(env);
+  // Stage 1B: proven pre-checkout intents become pending records first. A failure
+  // here leaves them for the next tick and does not block recovery.
+  let intents;
+  try { intents = await promotePaidIntents(env, { now, deadline: now + 30000 }); }
+  catch (error) { intents = { error: String(error?.code || error?.name || 'INTENT_PROMOTION_FAILED').slice(0, 120) }; }
   const candidates = await withMongoRetry(env, () => ServiceExecutionTransaction.find(buildRecoverableNarrativeFilter(now))
     .sort({ timeoutAt: 1 }).limit(MAX_PER_TICK)
     .select('userId executionKey featureKey reportType metadata.paidNarrative.parts metadata.paidNarrativeRecovery').lean());
@@ -92,5 +98,5 @@ export async function runPaidNarrativeRecovery(env, options = {}) {
     outcomes.push({ executionKey: doc.executionKey, featureKey: doc.featureKey, outcome: await recoverOne(env, doc, now, deadline) });
   }
   console.log('[paid-narrative-recovery]', JSON.stringify({ scanned: candidates.length, outcomes }));
-  return { ok: true, scanned: candidates.length, outcomes };
+  return { ok: true, scanned: candidates.length, outcomes, intents };
 }

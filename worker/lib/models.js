@@ -740,7 +740,9 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["pending", "success", "failed", "refunded", "cancelled"],
+    // awaiting_payment: a paid-narrative intent registered before its checkout
+    // (paid-narrative-intent.js). Every sweep and resume selects "pending" only.
+    enum: ["pending", "awaiting_payment", "success", "failed", "refunded", "cancelled"],
     default: "pending",
     index: true,
   },

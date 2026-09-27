@@ -1205,15 +1205,17 @@ async function handlePsychoAnalysis(request, env = {}) {
       const access = await dreamPsychoAccessVerifier(request, env, original, auth);
       if (!access?.ok) throw new HttpError(Number(access?.status || 402), access?.message || "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED", detail: { ...access?.detail, requiredFeatureKey: DREAM_PSYCHO_FEATURE_KEY } });
     },
-    seed: original => {
-      const normalized = normalizeDreamText(original), tone = normalizePsychoTone(original, normalized.text);
-      if (!normalized.ok) throw new HttpError(400, normalized.message);
-      return { dreamText: normalized.text, tone, createdAt: new Date().toISOString(), minBodyChars: 20000,
-        prompt: buildPsychoPrompt(original, normalized.text, tone).split("[출력 규칙]")[0], systemPrompt: DREAM_PSYCHO_SYSTEM_PROMPT,
-        tasks: PSYCHO_DREAM_REQUIRED_HEADERS.flatMap((title, i) => ["a", "b"].map(part => ({ id: `chapter-${i + 1}-${part}`, minChars: 2000,
-          prompt: `${title} 중 ${part === "a" ? `꿈에 실제 등장한 장면을 근거로 ${PSYCHO_DREAM_REQUIRED_PHRASES[i]}의 관점과 감정 패턴을 해설` : "다른 가능한 해석과 적용되지 않는 조건, 생활 속 사례·성찰 질문·현실적인 작은 행동을 제안"}` }))) };
-    },
+    seed: seedDreamPsychoNarrative,
   });
+}
+// Shared with the paid-intent task, which seeds a proven intent the same way.
+export function seedDreamPsychoNarrative(original) {
+  const normalized = normalizeDreamText(original), tone = normalizePsychoTone(original, normalized.text);
+  if (!normalized.ok) throw new HttpError(400, normalized.message);
+  return { dreamText: normalized.text, tone, createdAt: new Date().toISOString(), minBodyChars: 20000,
+    prompt: buildPsychoPrompt(original, normalized.text, tone).split("[출력 규칙]")[0], systemPrompt: DREAM_PSYCHO_SYSTEM_PROMPT,
+    tasks: PSYCHO_DREAM_REQUIRED_HEADERS.flatMap((title, i) => ["a", "b"].map(part => ({ id: `chapter-${i + 1}-${part}`, minChars: 2000,
+      prompt: `${title} 중 ${part === "a" ? `꿈에 실제 등장한 장면을 근거로 ${PSYCHO_DREAM_REQUIRED_PHRASES[i]}의 관점과 감정 패턴을 해설` : "다른 가능한 해석과 적용되지 않는 조건, 생활 속 사례·성찰 질문·현실적인 작은 행동을 제안"}` }))) };
 }
 
 export async function handleDreamRoutes(request, env) {

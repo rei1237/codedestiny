@@ -1662,6 +1662,16 @@ async function buildNumerologyReadingPayload(body = {}, env = {}) {
   };
 }
 
+// Shared with the paid-intent task, which seeds a proven intent the same way.
+export function buildLoveTarotBase(original, locale) {
+  if (!Array.isArray(original.cards) || original.cards.length !== 6 || original.cards.some(card => !getTarotCardByAnyId(card?.cardId)
+    || !["upright", "reversed"].includes(card?.orientation))) throw createHttpError(400, "카드 여섯 장과 방향을 확인해 주세요.", { reason: "INVALID_CARDS" });
+  const payload = buildReadingPayload({ spreadType: "relationship_six_card", category: "love", cards: original.cards,
+    serviceKey: "tarot-love-relationship", userQuestion: asText(original.userQuestion), userContext: original.userContext });
+  payload.reading = normalizeLoveReadingPayload(payload.reading, payload.cards || [], locale);
+  return payload;
+}
+
 async function handleLoveTarotDelivery(request, env, body) {
   const featureKey = "tarot-love-relationship";
   const spec = { featureKey, minCost: FEATURE_KEY_PRICE_TABLE[featureKey].cost, codePrefix: "LOVE_TAROT",
@@ -1674,14 +1684,7 @@ async function handleLoveTarotDelivery(request, env, body) {
   return deliverLoveTarot(request, env, auth, body, async original => {
     const access = initial || await verifyTarotPerUseAccess(request, env, original, spec, auth);
     if (!access.ok) throw createHttpError(access.status || 402, access.message, { code: access.code, reason: access.reason || "", retryable: ![401, 403].includes(access.status) });
-  }, (original, locale) => {
-    if (!Array.isArray(original.cards) || original.cards.length !== 6 || original.cards.some(card => !getTarotCardByAnyId(card?.cardId)
-      || !["upright", "reversed"].includes(card?.orientation))) throw createHttpError(400, "카드 여섯 장과 방향을 확인해 주세요.", { reason: "INVALID_CARDS" });
-    const payload = buildReadingPayload({ spreadType: "relationship_six_card", category: "love", cards: original.cards,
-      serviceKey: featureKey, userQuestion: asText(original.userQuestion), userContext: original.userContext });
-    payload.reading = normalizeLoveReadingPayload(payload.reading, payload.cards || [], locale);
-    return payload;
-  });
+  }, buildLoveTarotBase);
 }
 
 async function handleMindscanDelivery(request, env, body) {

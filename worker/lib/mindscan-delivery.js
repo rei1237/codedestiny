@@ -48,6 +48,8 @@ function render(state) {
   return { ...reading, reading, requestId: state.body.requestId, resumeInputs: state.body, locale: state.locale,
     deliverySections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: text(task.id) })) };
 }
+// The paid-intent task seeds a proven intent with the same function.
+export { seed as seedMindscanNarrative };
 export function deliverMindscan(request, env, auth, body, verify) {
   return runPaidNarrativeDelivery(request, env, auth, body, { ...mindscanNarrativeAdapter(env), seed, verify });
 }

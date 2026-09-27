@@ -190,6 +190,18 @@ export function petNarrativeAdapter(env, reportType) {
   return { reportType, render: renderPetNarrative, timeoutMs: env.PET_SAJU_PROVIDER_TIMEOUT_MS };
 }
 
+// Shared with the paid-intent task, which seeds a proven intent the same way.
+export function seedPetNarrative(kind, original) {
+  const date = normalizeRequestDate(original.date);
+  if (kind === "report") {
+    const { blueprint } = computePetBlueprint(original.pet, date);
+    return seedPetReport(blueprint, buildReportPrompt(blueprint), SYSTEM_PROMPT);
+  }
+  const pets = [computePetBlueprint(original.petA, date, "첫째 프로필").blueprint, computePetBlueprint(original.petB, date, "둘째 프로필").blueprint];
+  const compat = buildPetCompat(...pets);
+  return seedPetCompat(compat, pets, buildCompatPrompt(compat, ...pets), SYSTEM_PROMPT);
+}
+
 async function handlePetDelivery(request, env, kind) {
   const body = request.method === "POST" ? await readJson(request) : {};
   const auth = await requireAuth(request, env);
@@ -198,16 +210,7 @@ async function handlePetDelivery(request, env, kind) {
   return runPaidNarrativeDelivery(request, env, auth, body, {
     ...petNarrativeAdapter(env, reportType), featureKey,
     verify: original => resolveAccess(request, env, original, { featureKey, reportType, route: `/api/pet-saju-ai/${kind}` }, auth),
-    seed: original => {
-      const date = normalizeRequestDate(original.date);
-      if (kind === "report") {
-        const { blueprint } = computePetBlueprint(original.pet, date);
-        return seedPetReport(blueprint, buildReportPrompt(blueprint), SYSTEM_PROMPT);
-      }
-      const pets = [computePetBlueprint(original.petA, date, "첫째 프로필").blueprint, computePetBlueprint(original.petB, date, "둘째 프로필").blueprint];
-      const compat = buildPetCompat(...pets);
-      return seedPetCompat(compat, pets, buildCompatPrompt(compat, ...pets), SYSTEM_PROMPT);
-    },
+    seed: original => seedPetNarrative(kind, original),
   });
 }
 const handleReport = (request, env) => handlePetDelivery(request, env, "report");

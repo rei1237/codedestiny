@@ -42,6 +42,8 @@ function render(state) {
     requestId: state.body.requestId, resumeInputs: state.body, locale: state.locale,
     deliverySections: state.tasks.filter(task => state.parts[task.id]).map(task => ({ key: task.id, title: task.title, body: text(task.id) })) };
 }
+// The paid-intent task seeds a proven intent with the same function.
+export { seed as seedLoveTarot };
 export function deliverLoveTarot(request, env, auth, body, verify, buildBase) {
   return runPaidNarrativeDelivery(request, env, auth, body, { ...loveTarotNarrativeAdapter(env), seed: original => seed(original, buildBase), verify });
 }

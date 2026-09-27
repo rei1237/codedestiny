@@ -12,6 +12,29 @@ import { runWithPaidGenerationContext } from "./paid-generation-context.js";
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const failure = resultId => Object.assign(new Error("Result storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE", resultId });
 const cleanBody = body => JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|token|accessToken|authorization)$/i.test(key) ? undefined : value));
+// Top-level checkout evidence a gate adds to the route body after payment. The
+// executionKey already binds the purchase (user, feature, requestId), so these keys
+// never make a different input; a key missing from this list still does.
+const EVIDENCE_KEYS = new Set(["transactionId", "purchaseId", "paymentId", "orderId", "merchantUid", "impUid", "idempotencyKey", "ledgerId",
+  "accessGrant", "consume", "payment", "paymentContext", "_paymentContext", "accessDecision", "paidAccess"]);
+const stable = value => Array.isArray(value) ? value.map(stable)
+  : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])])) : value;
+export const paidNarrativeInputHash = body => hash(stable(Object.fromEntries(Object.entries(cleanBody(body)).filter(([key]) => !EVIDENCE_KEYS.has(key)))));
+export const paidNarrativeExecutionKey = (userId, featureKey, requestId) => `paid-narrative:${hash([String(userId), featureKey, requestId])}`;
+export { cleanBody as cleanPaidNarrativeBody };
+// One insert shape for the route and for an intent the cron proved paid
+// (paid-narrative-intent.js), so both land in the same record under the unique key.
+export function paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale, lock, now, timeoutAt, metadata = {} }) {
+  const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale, parts: {}, attempts: {} };
+  return {
+    userId, executionKey, featureKey, reportType,
+    reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,
+    sessionId: typeof original.sessionId === "string" ? original.sessionId : "",
+    idempotencyKey: original.requestId,
+    status: "pending", premiumStatus: "generating", metadata: { ...metadata, paidNarrative: state }, lock,
+    timeoutAt, createdAt: now, updatedAt: now,
+  };
+}
 const ready = state => state.tasks.every(task => state.parts[task.id])
   && countPaidReportBodyChars(Object.values(state.parts).join("\n")) >= state.minBodyChars;
 const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 3);
@@ -34,7 +57,7 @@ async function save(env, filter, fields) {
   } catch { throw failure(filter.executionKey); }
 }
 async function revoked(env, doc, featureKey, body) {
-  return ["refunded", "cancelled"].includes(doc?.status) || await withMongoRetry(env, () => isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId]));
+  return ["refunded", "cancelled"].includes(doc?.status) || await withMongoRetry(env, () => isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId, doc.metadata?.paidNarrativeProof?.transactionId]));
 }
 function respond(doc, render, busy = false) {
   const state = doc.metadata.paidNarrative;
@@ -57,29 +80,26 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
   if (resumeId != null && (typeof resumeId !== "string" || !/^[a-zA-Z0-9:_-]{8,120}$/.test(resumeId))) return json({ ok: false, reason: "INVALID_RESULT_ID" }, { status: 422 });
   if (request.method !== "GET" && !resumeId && (typeof body.requestId !== "string" || body.requestId.length < 8 || body.requestId.length > 180)) return json({ ok: false, reason: "REQUEST_ID_REQUIRED" }, { status: 422 });
-  const executionKey = resumeId || (request.method === "GET" ? "" : `paid-narrative:${hash([String(userId), featureKey, body.requestId])}`);
-  let doc = await find(env, { userId, featureKey, ...(executionKey ? { executionKey } : { status: "pending", "metadata.paidNarrative": { $exists: true } }) });
+  const executionKey = resumeId || (request.method === "GET" ? "" : paidNarrativeExecutionKey(userId, featureKey, body.requestId));
+  // A paid-intent record shares the collection but never carries paidNarrative.
+  let doc = await find(env, { userId, featureKey, "metadata.paidNarrative": { $exists: true }, ...(executionKey ? { executionKey } : { status: "pending" }) });
   if (!doc && (request.method === "GET" || resumeId)) return json({ ok: false, reason: "RESULT_NOT_FOUND" }, { status: 404 });
   const original = doc?.metadata?.paidNarrative?.body || body;
-  await verify(original);
+  // A record the intent task created stores its server proof of this exact
+  // purchase, and its body predates the checkout evidence the route verifier
+  // reads. revoked() below still blocks a refunded or cancelled payment.
+  if (!doc?.metadata?.paidNarrativeProof) await verify(original);
   if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
-  if (doc && !resumeId && request.method !== "GET" && hash(cleanBody(body)) !== hash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
+  if (doc && !resumeId && request.method !== "GET" && paidNarrativeInputHash(body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
   if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return respond(doc, render);
   const now = new Date(), token = randomUUID();
   const lock = { token, until: new Date(now.getTime() + 120000) };
   if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render, true);
   if (!doc) {
     const seeded = await seed(original);
-    const state = { ...seeded, body: cleanBody(original), evidenceHash: hash(seeded), locale: getAmbientAiLocale() || "ko", parts: {}, attempts: {} };
+    const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000) });
     try {
-      const inserted = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: {
-        userId, executionKey, featureKey, reportType,
-        reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,
-        sessionId: typeof original.sessionId === "string" ? original.sessionId : "",
-        idempotencyKey: original.requestId,
-        status: "pending", premiumStatus: "generating", metadata: { paidNarrative: state }, lock,
-        timeoutAt: new Date(now.getTime() + 600000), createdAt: now, updatedAt: now,
-      } }, { upsert: true, returnDocument: "after" }).lean(), { retries: 0 });
+      const inserted = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: insert }, { upsert: true, returnDocument: "after" }).lean(), { retries: 0 });
       if (!inserted) throw failure(executionKey);
       doc = await find(env, { userId, executionKey });
       if (!doc?.metadata?.paidNarrative) throw failure(executionKey);
