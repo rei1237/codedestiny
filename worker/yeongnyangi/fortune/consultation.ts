@@ -15,7 +15,86 @@ export interface Consultation {
   questions: { id: string; text: string; chapterId: string }[];
   asOf: string;
   timezone: string;
-  period: { kind: 'requested' | 'default'; label: string; start?: string; end?: string };
+  period: { kind: 'requested' | 'default'; label: string; start?: string; end?: string; years?: QuestionYear[] };
+}
+
+export interface QuestionYear { year: number; label: string; ganji: string }
+
+const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'], STEMS_KO = '갑을병정무기경신임계';
+const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'], BRANCHES_KO = '자축인묘진사오미신유술해';
+const mod = (n: number, m: number) => ((n % m) + m) % m;
+/** Calendar-year 간지, e.g. 2026 → '丙午(병오)'. */
+export function yearGanji(year: number) {
+  const s = mod(year - 4, 10), b = mod(year - 4, 12);
+  return `${STEMS[s]}${BRANCHES[b]}(${STEMS_KO[s]}${BRANCHES_KO[b]})`;
+}
+const RELATIVE_YEARS: [RegExp, number][] = [[/^재작년$/, -2], [/^(?:작년|지난\s*해|전년)$/, -1], [/^(?:올해|금년|이번\s*해)$/, 0],
+  [/^(?:내년|다음\s*해|명년)$/, 1], [/^(?:내후년|후년)$/, 2]];
+const RELATIVE_WORDS = '재작년|내후년|작년|지난\\s*해|전년|올해|금년|이번\\s*해|내년|다음\\s*해|명년|후년';
+const GANJI_YEAR = '(?<![가-힣])([갑을병정무기경신임계][자축인묘진사오미신유술해]|[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥])\\s*[년年]';
+const relativeOffset = (word: string) => RELATIVE_YEARS.find(([re]) => re.test(word))?.[1];
+
+/** Every year the question names, resolved against the consultation date: 올해 is always the asOf year. */
+export function resolveQuestionYears(question: string, asOf: string): QuestionYear[] {
+  const base = Number(asOf.slice(0, 4)), found = new Map<number, string>();
+  for (const m of question.matchAll(new RegExp(`${RELATIVE_WORDS}|(20\\d{2})\\s*년|${GANJI_YEAR}`, 'gu'))) {
+    let year: number | undefined;
+    if (m[1]) year = Number(m[1]);
+    else if (m[2]) {
+      const [a, b] = [...m[2]];
+      const s = Math.max(STEMS.indexOf(a), STEMS_KO.indexOf(a)), br = Math.max(BRANCHES.indexOf(b), BRANCHES_KO.indexOf(b));
+      // Only real sexagenary pairs (same parity); the nearest such year to the consultation date.
+      if (s % 2 !== br % 2) continue;
+      const offset = mod((s * 6 - br * 5) - mod(base - 4, 60), 60);
+      year = base + (offset >= 30 ? offset - 60 : offset);
+    } else {
+      const offset = relativeOffset(m[0]);
+      if (offset !== undefined) year = base + offset;
+    }
+    if (year !== undefined && !found.has(year)) found.set(year, m[0].replace(/\s+/g, ' '));
+  }
+  return [...found].sort(([a], [b]) => a - b).map(([year, label]) => ({ year, label, ganji: yearGanji(year) }));
+}
+
+const yearWord = (year: number, base: number) => ['재작년', '작년', '올해', '내년', '내후년'][year - base + 2];
+/**
+ * Principle 17: a relative year word paired with an explicit year that contradicts the consultation date
+ * ('올해(2025년)' when asOf is 2026) is corrected deterministically, never regenerated. The year number is the
+ * evidence; the word is the model's inference, so the word follows the number.
+ */
+export function alignRelativeYears(body: ChapterBody, asOf: string, locale = 'ko'): { body: ChapterBody; count: number } {
+  if (locale !== 'ko' || !/^\d{4}-/.test(asOf || '')) return { body, count: 0 };
+  const base = Number(asOf.slice(0, 4));
+  let count = 0;
+  const wordFirst = new RegExp(`(${RELATIVE_WORDS})(\\s*[(（]\\s*)(20\\d{2})(\\s*년?\\s*[)）])`, 'gu');
+  const yearFirst = new RegExp(`(20\\d{2})(\\s*년\\s*[(（]\\s*)(${RELATIVE_WORDS})(\\s*[)）])`, 'gu');
+  const fix = (value: unknown) => {
+    if (typeof value !== 'string' || !value) return value;
+    const next = value.replace(wordFirst, (whole, word: string, open: string, y: string, close: string) => {
+      const year = Number(y), offset = relativeOffset(word);
+      if (offset === undefined || base + offset === year) return whole;
+      count++;
+      const right = yearWord(year, base);
+      return right ? `${right}${open}${y}${close}` : `${y}년`;
+    }).replace(yearFirst, (whole, y: string, open: string, word: string, close: string) => {
+      const year = Number(y), offset = relativeOffset(word);
+      if (offset === undefined || base + offset === year) return whole;
+      count++;
+      const right = yearWord(year, base);
+      return right ? `${y}${open}${right}${close}` : `${y}년`;
+    });
+    return next;
+  };
+  const out: ChapterBody = { ...body, summary: fix(body.summary) as string, example: fix(body.example) as string,
+    advice: fix(body.advice) as string, persona: fix(body.persona) as string,
+    analysis: Array.isArray(body.analysis) ? body.analysis.map(fix) as string[] : body.analysis,
+    highlights: Array.isArray(body.highlights) ? body.highlights.map(fix) as string[] : body.highlights,
+    ...(Array.isArray(body.blocks) ? { blocks: body.blocks.map(b => !b || typeof b !== 'object' ? b : { ...b,
+      paragraphs: Array.isArray(b.paragraphs) ? b.paragraphs.map(fix) as string[] : b.paragraphs }) } : {}),
+    ...(Array.isArray(body.questionAnswers) ? { questionAnswers: body.questionAnswers.map(a => !a || typeof a !== 'object' ? a :
+      { ...a, answer: fix(a.answer) as string, reason: fix(a.reason) as string, timing: fix(a.timing) as string, action: fix(a.action) as string }) } : {}),
+  };
+  return count ? { body: out, count } : { body, count: 0 };
 }
 
 export function consultationClock(timezone: unknown, now = new Date()) {
@@ -32,7 +111,9 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   // answer slots, it never asks another model to rewrite the user's intent.
   const units = question.trim().split(/\n+|(?<=[?？])\s*/u).map(s => s.trim()).filter(Boolean);
   const questions = units.length > 8 ? [...units.slice(0, 7), units.slice(7).join('\n')] : units;
-  const requested = question.match(/(?:20\d{2}\s*년(?:\s*\d{1,2}\s*(?:월\s*)?(?:[~～–-]\s*\d{1,2}\s*)?월(?:\s*\d{1,2}\s*일)?)?|\d{1,2}\s*(?:월\s*)?[~～–-]\s*\d{1,2}\s*월|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|(?:앞으로|향후)\s*\d+(?:\s*[~～–-]\s*\d+)?\s*(?:개월|달|년|주)|올해|내년|이번\s*달|다음\s*달|상반기|하반기|봄|여름|가을|겨울)/gu);
+  const requested = question.match(/(?:20\d{2}\s*년(?:\s*\d{1,2}\s*(?:월\s*)?(?:[~～–-]\s*\d{1,2}\s*)?월(?:\s*\d{1,2}\s*일)?)?|\d{1,2}\s*(?:월\s*)?[~～–-]\s*\d{1,2}\s*월|\d{1,2}\s*월(?:\s*\d{1,2}\s*일)?|(?:앞으로|향후)\s*\d+(?:\s*[~～–-]\s*\d+)?\s*(?:개월|달|년|주)|재작년|내후년|작년|지난\s*해|올해|금년|내년|명년|이번\s*달|다음\s*달|상반기|하반기|봄|여름|가을|겨울)/gu);
+  // A named year becomes an explicit calendar range, so '올해' can never drift to another year downstream.
+  const years = resolveQuestionYears(question, clock.asOf);
   const end = new Date(`${clock.asOf}T12:00:00Z`);
   const day=end.getUTCDate();
   end.setUTCDate(1);
@@ -41,7 +122,9 @@ export function createConsultation(question: string, topicId: string, clock: Ret
   end.setUTCDate(Math.min(day,last));
   return { version: 1, topicId, topicLabel: topicLabel(topicId) || '전체 흐름', question,
     questions: questions.map((text, i) => ({ id: `q${i + 1}`, text, chapterId: manifest[0].id })), ...clock,
-    period: requested ? { kind: 'requested', label: [...new Set(requested)].join(' · ') }
+    period: requested || years.length ? { kind: 'requested', label: [...new Set([...(requested || []), ...years.map(y => y.label)
+      .filter(label => !(requested || []).some(r => r.replace(/\s+/g, ' ').includes(label)))])].join(' · '),
+      ...(years.length ? { start: `${years[0].year}-01-01`, end: `${years[years.length - 1].year}-12-31`, years } : {}) }
       : { kind: 'default', label: `${clock.asOf}부터 3개월의 흐름과 실천·점검`, start: clock.asOf, end: end.toISOString().slice(0, 10) } };
 }
 

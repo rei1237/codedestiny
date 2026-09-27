@@ -42,8 +42,9 @@ test('unsupported year and internal ID leaks are rejected',()=>{
   assert.throws(()=>check(leak),{code:'ASK_UNSAFE_CLAIM'});
   const month=body();month.questionAnswers[0].timing='2027년 3월에 변화가 나타납니다.';
   assert.throws(()=>check(month),{code:'ASK_UNSUPPORTED_TIMING'});
+  // A period outside the request is no longer offered, so citing it fails as an unoffered ID.
   assert.throws(()=>validateAskChapter(body(),{...consultation,period:{kind:'default',label:'3개월',start:'2026-09-26',end:'2026-12-26'}},analysis,packet),
-    {code:'ASK_UNSUPPORTED_TIMING'});
+    {code:'ASK_EVIDENCE_INCOMPLETE'});
 });
 test('limited answer can retain facts without inventing an event date',()=>{
   const limited=body();limited.questionAnswers[0]={...limited.questionAnswers[0],timingIds:[],evidenceStatus:'limited',

@@ -141,3 +141,58 @@ test('new ask first chapter binds classifier IDs to category evidence and escape
  assert.notEqual(prompt.promptVersion,'ask-chapter-v1');
  assert.throws(()=>buildAskFirstChapterPrompt(c,{...classification,questions:[classification.questions[1],classification.questions[0]]},packet));
 });
+
+test('named years resolve against the consultation date: 올해 is always the asOf year',()=>{
+ const {resolveQuestionYears,yearGanji}=loaded.exports;
+ const thisYear=make('올해 재물운은 어때?').period;
+ assert.deepEqual(thisYear.years,[{year:2026,label:'올해',ganji:'丙午(병오)'}]);
+ assert.equal(thisYear.start,'2026-01-01');assert.equal(thisYear.end,'2026-12-31');assert.equal(thisYear.label,'올해');
+ assert.deepEqual(make('작년이랑 비교해서 내년 흐름은?').period.years.map(y=>y.year),[2025,2027]);
+ assert.deepEqual(resolveQuestionYears('재작년과 내후년','2026-09-22').map(y=>y.year),[2024,2028]);
+ assert.deepEqual(resolveQuestionYears('병오년 재물운, 丁未年은?','2026-09-22').map(y=>[y.year,y.ganji]),[[2026,'丙午(병오)'],[2027,'丁未(정미)']]);
+ assert.deepEqual(resolveQuestionYears('기술년 임신 이야기','2026-09-22'),[]);
+ const months=make('2027년 3~5월에 창업할까요?').period;
+ assert.equal(months.label,'2027년 3~5월');assert.deepEqual(months.years.map(y=>y.year),[2027]);
+ const plain=make('이직할까요?').period;
+ assert.equal(plain.kind,'default');assert.equal(plain.years,undefined);
+ assert.equal(yearGanji(2025),'乙巳(을사)');
+});
+test('a relative year word that contradicts its explicit year is corrected, never regenerated',()=>{
+ const {alignRelativeYears}=loaded.exports;
+ const wrong={summary:'요약',analysis:[],highlights:[],questionAnswers:[{questionId:'q1',answer:'올해는 변동이 컸지만, 내년(2026년)에는 재물이 안정돼요.',
+  reason:'올해(2025년)의 乙목 편재는 변동을, 반면 내년(2026년)의 丙화 정관은 안정을 줘요.',timing:'2025년(올해)은 乙巳, 2026년(내년)은 丙午 세운이에요.',action:'올해(2020년)의 기록을 돌아봐요.'}]};
+ const out=alignRelativeYears(wrong,'2026-09-27');
+ assert.equal(out.count,6);
+ const a=out.body.questionAnswers[0];
+ assert.equal(a.reason,'작년(2025년)의 乙목 편재는 변동을, 반면 올해(2026년)의 丙화 정관은 안정을 줘요.');
+ assert.equal(a.timing,'2025년(작년)은 乙巳, 2026년(올해)은 丙午 세운이에요.');
+ assert.equal(a.answer,'올해는 변동이 컸지만, 올해(2026년)에는 재물이 안정돼요.');
+ assert.equal(a.action,'2020년의 기록을 돌아봐요.');
+ const right={summary:'올해(2026년)와 내년(2027년)을 봐요.',analysis:[],highlights:[]};
+ assert.equal(alignRelativeYears(right,'2026-09-27').body,right);
+ assert.equal(alignRelativeYears({summary:'this year (2025)',analysis:[]},'2026-09-27','en').count,0);
+});
+test('a 올해 question only offers this year\'s timing, labelled against the consultation date',async()=>{
+ let prompt;
+ const provider=new StructuredChapterProvider({generate:async request=>{prompt=request;return {result:{},provider:'mock',model:'mock'};}});
+ const c=make('올해 재물운은 어때?','wealth');
+ const src=f=>({system:'saju',contextDomain:'saju',factId:f,path:'',engineVersion:'fixture'});
+ const packet={packet_version:'ask-evidence-v1',today:clock.asOf,window:{from:'2025-09-01',to:'2028-09-30'},schools:{saju:'KST'},
+  reliability:{birth_time_known:true,time_dependent_fields_valid:true,notes:[]},partner:null,
+  facts:[{id:'F001',label:'tenGods',value:{재성:2},tags:['wealth'],subject:'self',source:src('saju.tenGods')}],
+  timing:[{id:'T001',label:'yearlyLuck',value:{year:2025,pillar:'乙巳'},tags:['wealth'],subject:'self',from:'2025',to:'2025',resolution:'year',source:src('saju.yearlyLuck')},
+   {id:'T002',label:'yearlyLuck',value:{year:2026,pillar:'丙午'},tags:['wealth'],subject:'self',from:'2026',to:'2026',resolution:'year',source:src('saju.yearlyLuck')},
+   {id:'T003',label:'monthlyLuck',value:{month:'2026-03'},tags:['wealth'],subject:'self',from:'2026-03',to:'2026-03',resolution:'month',source:src('saju.monthlyLuck')},
+   {id:'T004',label:'yearlyLuck',value:{year:2027,pillar:'丁未'},tags:['wealth'],subject:'self',from:'2027',to:'2027',resolution:'year',source:src('saju.yearlyLuck')}]};
+ const classification={version:'ask-analysis-v1',source:'rules',questions:[{questionId:'q1',category:'wealth',needsTiming:true}]};
+ const chapter={...manifest[0],factSelectors:{saju:['tenGods','yearlyLuck','monthlyLuck']}};
+ const analysis={consultation:c,question:c.question,topicId:'wealth',contexts:{saju:{domain:'saju',engineVersion:'fixture',calculatedAt:clock.asOf,limitations:[],
+  facts:[{id:'saju.tenGods',label:'tenGods',value:{재성:2}},{id:'saju.yearlyLuck',label:'yearlyLuck',value:{}},{id:'saju.monthlyLuck',label:'monthlyLuck',value:{}}]}},themes:[]};
+ await provider.generateChapter({chapter,analysis,previous:[],ask:{analysis:classification,evidence:packet}});
+ const rules=JSON.parse(prompt.domainRules),guide=rules.askFirstChapter;
+ assert.deepEqual(guide.referenceYear,{year:2026,ganji:'丙午(병오)',label:'올해'});
+ assert.deepEqual(guide.questions[0].timingIds,['T002','T003']);
+ assert.deepEqual(guide.evidence.timing.map(t=>[t.id,t.relation]),[['T002','current'],['T003','past']]);
+ assert.deepEqual(prompt.outputSchema.properties.questionAnswers.items.properties.timingIds.items.enum,['T002','T003']);
+ assert.match(rules.timeContract,/기준 연도는 2026년 丙午\(병오\)/);
+});
