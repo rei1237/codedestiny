@@ -869,6 +869,7 @@ function CardPanel({
           </span>
         </div>
         <h2 className="mt-3 break-keep text-lg font-black leading-8 text-white sm:text-xl">{card.headline}</h2>
+        {locale === "ko" && <p className="mt-4 text-sm leading-7 text-rose-200">연이가 {tabLabel}의 흐름을 읽어드릴게요. 오늘 마음에 남는 말이 있다면, 작은 실천 하나로 옮겨봐요.</p>}
         <p className="mt-2 max-w-[64ch] break-keep text-sm leading-7 text-slate-200">{card.body}</p>
         {card.detail && <p className="mt-3 break-keep text-xs leading-6 text-slate-400">{card.detail}</p>}
         {card.highlights.length > 0 && (
@@ -911,7 +912,8 @@ function CardPanel({
   );
 }
 
-export default function TodayHubClient({ children, dailyTarotCards }: { children?: ReactNode; dailyTarotCards?: DailyTarotCard[] }) {
+export default function TodayHubClient({ children, dailyTarotCards, weeklyContent }: { children?: ReactNode; dailyTarotCards?: DailyTarotCard[]; weeklyContent?: ReactNode }) {
+  const [period, setPeriod] = useState<"today" | "weekly">("today");
   const { copy, locale } = useTodayHubCopy();
   const { seed, seedVersion } = useAiProfileSeed();
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
@@ -1114,13 +1116,19 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
         </div>
 
         <header className="mt-8 text-center sm:mt-12">
-          <h1 className="mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl">{locale === "ko" ? "연이와 오늘을 펼쳐요" : copy.heroTitle}</h1>
+          {locale === "ko" && <Image src="/images/fortune-chat/persona/yeoni-greet.webp" alt="반갑게 인사하는 꽃돼지 연이" width={88} height={124} className="mx-auto object-contain" priority />}
+          <h1 className="mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl">{locale === "ko" ? period === "weekly" ? "연이와 한 주를 펼쳐요" : "연이와 오늘을 펼쳐요" : copy.heroTitle}</h1>
           <p className="mx-auto mt-4 max-w-2xl break-keep text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
-            {locale === "ko" ? "오늘의 운세로 흐름을 살피고, 세 장의 카드에서 마음에 남는 실천 하나를 찾아보세요. 무료로, 로그인 없이 시작할 수 있어요." : copy.heroLead}
+            {locale === "ko" ? "어서 와요, 꽃돼지 연이예요. 따뜻한 차 한 잔 곁에 두고 오늘과 이번 주의 흐름을 함께 살펴볼까요? 마음에 남는 조언 하나만 가볍게 챙겨가요." : copy.heroLead}
           </p>
-          {locale === "ko" && dailyTarotCards && <a href="#daily-tarot" className="mt-5 inline-flex min-h-12 items-center rounded-full bg-rose-200 px-6 py-3 font-bold text-rose-950 hover:bg-rose-100">오늘의 세 장 펼치기</a>}
+          {locale === "ko" && period === "today" && dailyTarotCards && <a href="#daily-tarot" className="mt-5 inline-flex min-h-12 items-center rounded-full bg-rose-200 px-6 py-3 font-bold text-rose-950 hover:bg-rose-100">오늘의 세 장 펼치기</a>}
         </header>
 
+        {locale === "ko" && weeklyContent && <div className="mt-7 grid grid-cols-2 gap-3" aria-label="운세 기간 선택">
+          {([['today', '오늘 운세'], ['weekly', '이번 주 운세']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={period === value} onClick={() => setPeriod(value)} className={`min-h-12 rounded-full border px-4 py-3 font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-rose-200 ${period === value ? 'border-rose-200 bg-rose-200 text-rose-950' : 'border-rose-200/40 text-rose-100 hover:bg-rose-200/10'}`}>{label}</button>)}
+        </div>}
+        {locale === "ko" && <div hidden={period !== "weekly"}>{weeklyContent}</div>}
+        <div hidden={locale === "ko" && period === "weekly"}>
         {/* 탭 */}
         <div role="tablist" aria-label={copy.tabsAriaLabel} className="mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5">
           {TAB_KEYS.map((tab) => {
@@ -1241,6 +1249,7 @@ export default function TodayHubClient({ children, dailyTarotCards }: { children
         </div>
 
         {locale === "ko" && dailyTarotCards && <DailyTarot cards={dailyTarotCards}/>}
+        </div>
         {children}
 
         <h2 className="mt-16 break-keep text-lg font-extrabold text-white">{copy.deeperHeading}</h2>

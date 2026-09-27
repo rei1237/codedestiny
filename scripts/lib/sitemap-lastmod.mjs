@@ -413,7 +413,10 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
   function volatileLastmodFor(pathname) {
     const parts = pathname.split("/").filter(Boolean);
     const fortuneIndex = parts[0] === "fortune" ? 0 : parts[1] === "fortune" ? 1 : -1;
-    const cadence = fortuneIndex >= 0 ? FORTUNE_VOLATILE_CADENCES.get(parts[fortuneIndex + 1]) : undefined;
+    // /today embeds the weekly package while its daily panel changes every day.
+    const cadence = parts.length === 1 && parts[0] === "today"
+      ? FORTUNE_VOLATILE_CADENCES.get("today")
+      : fortuneIndex >= 0 ? FORTUNE_VOLATILE_CADENCES.get(parts[fortuneIndex + 1]) : undefined;
     if (!cadence) {
       throw new Error(
         `[sitemap-lastmod] 휘발성 라우트 ${pathname} 의 갱신 주기를 분류하지 못했습니다. ` +
