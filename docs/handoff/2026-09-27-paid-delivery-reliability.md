@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "1단계 B(결제 전 의도 등록 `awaiting_payment`·크론 증명 승격·증빙 키 제외 병합, 등록 11키)는 main 에 있다. 먼저 0절 P0 후보 — 공통 엔진 첫 삽입이 `$setOnInsert.updatedAt`과 mongoose timestamps 의 `$set.updatedAt`을 함께 보내 MongoDB code 40 으로 거부될 수 있음(드라이버 입력 실측, 08-09 guardian 사고와 같은 모양) — 의 프로덕션 반영 여부를 읽기 전용으로 확인하고, 사용자 승인 뒤 고쳐 실제 Mongo 로 확인한 다음 2단계 상품 48개 미매핑 해소와 3단계 전체 구간 계측을 이어서 진행한다."
+next: "0절 P0(공통 엔진·천상 조화 첫 삽입 MongoDB code 40)는 `84b20aa35`·`9f4ec59f0`로 main 에 있고 스테이징 Mongo 에서 수정 전 거부·수정 후 성공을 확인했다. 프로덕션은 아직 결함 빌드이며 승격은 1A·1B 크론 위험과 함께 별도 1회 승인 사항이다. 2단계 상품 48개 미매핑 해소부터 시작하고 3단계 전체 구간 계측을 이어서 진행한다."
 ---
 
 # 결제 지연·유료 결과 복구·LLM 비용 통제 인수인계
@@ -20,6 +20,7 @@ next: "1단계 B(결제 전 의도 등록 `awaiting_payment`·크론 증명 승�
 - **2026-09-27 후속 세션(1단계 A):** 기준 `bb970446e` 위에 `94d583536`(엔진 DB 연산 withMongoRetry·서버 진입점) → `9f1d6f638`(oracle-consultation 테스트 목 보강) → `ba0326a27`(상품 어댑터 추출·레지스트리) → `dd0123537`(10분 크론 이어생성·모니터 지연) 을 격리 워크트리에서 만들어 main 에 fast-forward 로 전달했다. 1단계 B·2단계·3단계는 미착수다.
 - **2026-09-27 후속 세션(1단계 B 선행 수정):** 기준 `6797c40a8` 위에 `9d8be5c91`(geomancy counts·animal-totem cards/birth 를 JSON 문자열로 서술자에 실음) → `ca6154fef`(guardian 이 질문 전 recentTurns 를 서술자에 고정) 를 격리 워크트리에서 만들어 이 문서 커밋과 함께 main 에 전달했다. 첫 push(`3f27d4be0`)는 `9d8be5c91`의 sync:public 을 1회만 돌린 탓에 CI `Static guards`(`verify-public-mirror-fresh`, `?v=` 키 한 세대 차)에서 실패했고, `29605f577`에서 3회 수렴한 산출물로 수습했다. 1B 본 구현(의도 등록·증빙 결속·병합 규칙)과 2·3단계는 미착수다. 실 PG·과금 LLM·운영 DB 0회.
 - **2026-09-27 후속 세션(1단계 B 본 구현):** 기준 `25ad5ee7e`에서 만든 `8261429ba`(서버: 결제 전 의도 등록·크론 증명 승격·증빙 키 제외 병합) → `d52cfb4e6`(등록 11키 페이지의 결제 직전 등록·pet 날짜 고정·sync:public·sitemap) → `3d73f0a5d`(의도 테스트)를 origin/main `18622016a` 위로 rebase 해 이 문서 커밋과 함께 main 에 전달했다. 작업 중 **P0 후보**(공통 엔진 첫 삽입이 MongoDB code 40 으로 거부될 수 있음)를 발견해 보고만 했다 — 아래 0절. 2·3단계는 미착수다. 실 PG·과금 LLM·운영/스테이징 DB 0회.
+- **2026-09-27 후속 세션(P0 수정):** 운영 반영·영향을 읽기 전용으로 확인하고 사용자 승인(엔진+천상 조화, 스테이징 fixture)을 받아 기준 `53e9f9342` 위에 `84b20aa35`(엔진 첫 삽입)·`9f4ec59f0`(천상 조화 체크포인트)를 만들었다 — 0절. 2·3단계는 미착수다. 실 PG·과금 LLM 0회, 운영 DB 읽기 전용 집계만, 스테이징 DB 는 fixture 쓰기 후 삭제(잔존 0).
 
 상세 근거는 `docs/verification/paid-delivery-reliability-20260927.md`, 상품 표는 `docs/verification/paid-delivery-inventory-20260927.json`, 손익 표는 `docs/verification/yeongnyangi-pass-economics-20260927.json`, 스테이징 증거는 `docs/verification/paid-delivery-staging-20260927.json`에 있다. 먼저 이 문서로 재개하고 필요한 근거만 읽는다.
 
@@ -44,22 +45,28 @@ next: "1단계 B(결제 전 의도 등록 `awaiting_payment`·크론 증명 승�
 | 보고 | `scripts/report-paid-delivery-{inventory,health}.mjs`, `report-llm-token-usage.mjs`, `report-pg-window-latency.mjs`, `report-yeongnyangi-pass-economics.mjs`, `lib/payment/llm-cost-report.mjs` | 상품 전수 완료율·복구 성공률·실측 원가는 아직 불완전 |
 | 서버 이어생성 | `worker/lib/paid-narrative-recovery-task.js`(신규), `paid-narrative-adapters.js`(레지스트리 18키), `paid-narrative-delivery.js`의 `resumePaidNarrativeOnServer`, `worker/index.js` 10분 분기 배선 | 이미 실행 기록이 생긴 건과 1B 가 승격한 의도(등록 11키). 제외 7키는 첫 요청 전 이탈 시 여전히 기록이 없다. 스테이징 `crons = []`라 자동 경로 스테이징 실증 없음 |
 | 결제 재개 서술자 | `geomancy-oracle-v4.html`, `js/animal-totem-experience.js`(배열·객체를 JSON 문자열로 싣고 복귀 때 검증), `app/fortune-chat/FortuneChatClient.tsx`·`paid-turn-recovery.ts`(질문 전 recentTurns 고정) | 복귀 본문 = 페이지 내 본문(증빙 키 차이는 1B 병합 규칙이 흡수). pet 자정 날짜는 1B 에서 수정. 이 행의 geomancy·`fortune-chat-consultation`(guardian)은 서버 등록 제외, totem 은 등록 11키(1B 절) |
-| 결제 전 의도 등록 | `worker/lib/paid-narrative-intent.js`·`worker/routes/paid-narrative-intent.js`(신규), `paid-narrative-delivery.js` 증빙 키 제외 병합·증명된 실행의 verifier 생략, `paid-narrative-recovery-task.js` 틱 시작 승격, 등록 11키 페이지의 결제 직전 등록 | mock 만. 제외 7키는 1A 브라우저 재개만. P0 후보(엔진 첫 삽입 code 40) 미수정 |
+| 결제 전 의도 등록 | `worker/lib/paid-narrative-intent.js`·`worker/routes/paid-narrative-intent.js`(신규), `paid-narrative-delivery.js` 증빙 키 제외 병합·증명된 실행의 verifier 생략, `paid-narrative-recovery-task.js` 틱 시작 승격, 등록 11키 페이지의 결제 직전 등록 | mock 만. 제외 7키는 1A 브라우저 재개만. P0(엔진 첫 삽입 code 40)은 `84b20aa35`로 수정, 프로덕션 미승격 |
 
 **동시 작업 주의:** 현재 main에는 후속 `a572d4ae5`가 들어 있다. 반복되거나 무효인 보완 응답이 기존 유효 초안을 막던 문제와 섬 캐시 minChars 연결을 수정했다. `docs/handoff/2026-09-27-llm-length-never-fatal.md`의 P1 완료 기록과 최신 diff를 읽고 보존한다. 그 문서의 P1 이전 전수 조사와 이 작업의 원래 보고는 역사적 스냅샷이며 최신 구현과 다를 수 있다. 길이 품질 작업의 P2~P5와 여기의 복구 작업을 중복 구현하지 않는다. 타 세션에 메시지를 보내는 것은 사용자 허가 없이 하지 않는다.
 
 ## 남은 작업 순서와 통과 조건
 
-### 0. P0 후보 — 공통 엔진 첫 삽입의 MongoDB code 40 (발견·보고만, 미수정)
+### 0. P0 — 공통 엔진·천상 조화 첫 삽입의 MongoDB code 40 (수정 `84b20aa35`·`9f4ec59f0`, 프로덕션 미승격)
 
-1B 작업 중 발견했다. 범위 밖 결함이라 고치지 않았다. 고칠지와 범위는 사용자 판단이 먼저다.
+1B 작업 중 발견했고 후속 세션이 사용자 승인 뒤 고쳤다. 아래 첫 네 항목은 발견 당시 기록이고, 확정 결과는 그 뒤 항목들이다.
 
 - **실측(드라이버 입력):** `runPaidNarrativeDelivery`의 첫 삽입 `ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: insert }, { upsert: true, returnDocument: "after" })`(`worker/lib/paid-narrative-delivery.js`, 삽입 모양은 `paidNarrativeInsert`)는 `$setOnInsert.updatedAt`을 싣는다. 스키마 timestamps 가 켜진 mongoose 9.3.0 은 `$set.updatedAt`을 항상 더하고 `$setOnInsert`는 건드리지 않는다(`node_modules/mongoose/lib/helpers/update/applyTimestampsToUpdate.js:52-81`, 75행 `updates.$set[updatedAt] = now`). 컬렉션 메서드를 바꿔 끼운 오프라인 프로브(DB 연결 없음) 출력: `route first insert (engine) -> findOneAndUpdate {"$set":["updatedAt"],"conflictingPaths":["updatedAt"]}`.
 - **근거(문서·선례 — 여기서 서버 거부는 미실측):** 같은 경로가 `$set`과 `$setOnInsert`에 함께 있으면 MongoDB 는 ConflictingUpdateOperators(code 40)로 거부한다. 2026-08-09 guardian-fortune 사용량 upsert 가 같은 모양으로 운영에서 전부 실패했다(`29f0d0aed`). 로컬 mongod·mongodb-memory-server 가 없어 실제 서버 거부는 재현하지 못했다.
 - **범위(일부 추정):** 도입 `4fe97827f`(2026-09-15), origin/main 에도 있다. 공통 엔진으로 첫 실행을 만드는 모듈 11개(`worker/lib/{expert-follow-up,feature-question,guardian-paid,love-tarot,mindscan,tarot-oracle}-delivery.js`, `worker/routes/{animal-totem,dream,oracle,pet-saju-ai,yoga-guru}.js`)의 첫 POST 가 대상이다. 거부되면 `isPermanentMongoError`로 500 이다. 프로덕션 반영 여부와 운영 로그의 code 40 발생은 **미확인**.
 - **왜 안 잡혔나:** 정적 가드 `scripts/verify-no-timestamp-update-conflict.mjs`(UNWIRED_BY_DESIGN)는 `$setOnInsert`가 변수(`insert`)라 못 본다. jest mock 은 연산자 충돌을 흉내 내지 않는다. 1B 의도 테스트의 충돌 검사(`conflicts`)도 의도 쪽 쓰기만 보고 엔진의 findOneAndUpdate 는 대상이 아니다.
 - **1B 쓰기는 안전(같은 프로브):** 의도 등록 `conflictingPaths: []`, 승격 `conflictingPaths: []`(승격은 `updatedAt`을 빼고 넣는다). 그래서 등록 11키는 route 첫 삽입이 거부돼도 결제 증명 뒤 크론이 실행을 만들 수 있다(그동안 브라우저는 오류를 볼 것으로 추정).
-- **제안 수정(승인 필요):** `paidNarrativeInsert`에서 `updatedAt`을 빼거나 엔진 호출부에서 뺀다 → 실제 Mongo(승인된 격리 DB)로 첫 삽입 성공을 확인 → 가드가 변수 `$setOnInsert`도 보게 할지 정한다. 이미 운영에 반영됐다면 영향 주문 조회(읽기 전용)부터 한다.
+- **운영 반영(실측):** 프로덕션 Worker·Pages `/api/version`·`/version.json` 이 `25ad5ee7e`(빌드 2026-09-27T00:28:35Z)이고 이 빌드에 `4fe97827f`가 들어 있다. 첫 운영 반영일은 따로 특정하지 않았다(아래 조회 창이 09-01부터라 영향 판단에는 불필요).
+- **같은 결함 한 곳 더(실측):** `worker/lib/celestial-delivery-store.js` 천상 조화 타로 체크포인트 첫 삽입(`872c4f1be`, 09-15, 프로덕션 포함)도 같은 모델에 `$setOnInsert.updatedAt`을 실었다. 가드를 돌리면 위반 7건·exit 1 인데 `worker/payments/*` 5곳은 원시 드라이버(`worker/payments/db.js`의 `col(Model)`)라 timestamps 가 붙지 않는 오탐이고, 실제 거부는 천상 조화 1곳이다. 엔진은 변수라 가드가 못 본다.
+- **영향 주문(실측, 운영 `code_destiny` 읽기 전용 집계, 09-01~09-27):** 엔진 18키+`openGeomancyOracle`과 `tarot-celestial-harmony` 모두 결제 0·차감(이용권 증빙 포함) 0·월정석 지출 0·실행 기록 0. 대조로 같은 쿼리가 다른 상품의 결제 약 57건·차감 약 12건을 잡았고, 실행 컬렉션은 `code_destiny.serviceexecutiontransactions`(전체 3건, 마지막 07-19)로 바인딩이 맞다. 추정: 피해 고객은 아직 없다. 미측정: 관리자 경로, 실패 시도(DB 흔적 없음).
+- **수정:** `paidNarrativeInsert`와 천상 조화 삽입에서 `updatedAt`만 뺐다(`29f0d0aed` 선례, `createdAt`은 mongoose 가 `$setOnInsert`에서 덮어써 충돌 없음). 의도 승격의 `updatedAt` 구조분해는 무의미해져 지웠다.
+- **실제 Mongo 확인(실측, `code_destiny_staging`, 임시 스크립트·미커밋):** 새 fixture userId 하나, fetch 차단, AI 키 제거, 생성은 주입 스텁. 수정 전 — 직접 삽입 `code 40 ConflictingUpdateOperators`, 엔진·천상 조화 진입 모두 `RESULT_STORAGE_UNAVAILABLE`, 행 0. 수정 후 — 직접 삽입 성공(`createdAt`·`updatedAt`은 timestamps 가 채움), 엔진·천상 조화 진입 202·행 각 1. 두 번 모두 정리 뒤 잔존 0, 네트워크 시도 0.
+- **회귀 테스트:** 의도 테스트 저장소가 엔진의 `findOneAndUpdate`도 `writes`에 기록해 afterEach 충돌 검사에 걸리게 했고, 천상 조화 테스트 저장소는 `$setOnInsert.updatedAt`을 code 40 으로 거부한다. 결함을 되살리는 변이에서 두 스위트 29건 실패, 수정 상태에서 관련 9 스위트 90건 통과. `check:fast` critical exit 0(jest 4485건).
+- **남은 것:** ① 프로덕션은 승격 전까지 결함 빌드다 — 승격은 1A·1B 크론 위험(1B 절 남은 위험 ②)과 함께 별도 1회 승인. ② 가드 `verify-no-timestamp-update-conflict.mjs`는 미배선이고, 원시 드라이버 오탐 5건과 변수 `$setOnInsert` 누락이 남았다(수정 안 함, 후속 과제).
 ### 1. 승인 주문 등록 및 공통 서버 이어생성 — 최우선
 
 기존 주문 확정·실행 저장·큐/스케줄·라우트 호출부를 추적한다. 별도 결제 코어를 만들지 않는다. 공통 상담 18개 경로는 이제 A(아래)로 **이미 시작된 실행**을 서버가 이어 생성한다. 브라우저가 최초 생성 요청 전 닫히면 실행 기록 자체가 없어 A가 잡을 대상이 없다 — 이 구간이 B다.
@@ -97,7 +104,7 @@ next: "1단계 B(결제 전 의도 등록 `awaiting_payment`·크론 증명 승�
 - **불가시성(실측, 예전 함정 ①).** 일일 `sweepStaleServiceExecutions`와 모니터는 `status:'pending'`만 고른다. oracle 재개 조회가 의도를 찾아도 엔진이 404 로 끝난다. service-execution 작업의 다른 읽기는 무해했다. 모델 enum 에 `awaiting_payment`를 더했다.
 - **보존·정리(예전 함정 ②).** TTL 인덱스를 가정하지 않고 틱마다 만료 의도를 지운다. 운영 인덱스·마이그레이션 없음. 결제되지 않은 의도의 본문은 최대 24시간 남는다.
 - **클라이언트 계약.** 결제창 호출 바로 앞에서 결제 뒤 첫 POST 와 **같은 본문**을 같은 fetch 경로로 보낸다(TSX 는 `authFetch` — 본문 locale 정렬 포함). keepalive, 응답 무시, 최대 1.5초만 기다리고 실패·지연이어도 결제는 진행한다. 위치: `app/_lib/oracle-delivery.ts`의 `registerPaidNarrativeIntent`(LoveRelationshipTarot·MindScanTarot·TarotPromptMakerClient), `pet-saju.html` `registerPetPaidIntent`, `js/psycho-dream-analyzer-freuds-study.js` `registerPaidIntent`, `js/animal-totem-experience.js` `registerTotemPaidIntent`. 테스트가 11키 페이지의 등록 호출이 결제 게이트 호출보다 앞에 있음을 소스로 고정하고, totem UI 테스트는 의도 본문 = 결제 뒤 본문을 단언한다.
-- **남은 위험.** ① 승격 뒤 결제 중 언어를 바꾼 페이지가 다른 locale 본문을 보내면 409 가 날 수 있다(추정, mock 미재현). ② 프로덕션 승격 뒤 크론이 증명된 의도를 **사용자 요청 없이 실 과금 LLM 으로** 이어 간다(1A 와 같은 항목당 3회 예산). 스테이징 `crons = []`라 자동 경로 스테이징 실증 없음 — 1A 운영 위험 항목과 함께 시험표 승인 범위에 넣을지 정한다. ③ 게이트가 소비 기록에 requestId 를 남기지 못한 결제는 승격되지 않고 24시간 뒤 지워진다(1A 브라우저 재개만 남는다). ④ 실제 Mongo 회귀 없음(mock 만) — 0절과 함께 확인한다. ⑤ 범위 밖 관찰(수정 안 함): 표시 가격이 레지스트리와 다르다 — `pet-saju.html:568-569` 50코인·5,000원 대 `worker/lib/paid-feature-registry.js:274-275` 30·3,000, `worker/routes/animal-totem.js:60` deep `coinPrice: 50` 대 레지스트리 `:291` 30. 실제 청구액은 미검증.
+- **남은 위험.** ① 승격 뒤 결제 중 언어를 바꾼 페이지가 다른 locale 본문을 보내면 409 가 날 수 있다(추정, mock 미재현). ② 프로덕션 승격 뒤 크론이 증명된 의도를 **사용자 요청 없이 실 과금 LLM 으로** 이어 간다(1A 와 같은 항목당 3회 예산). 스테이징 `crons = []`라 자동 경로 스테이징 실증 없음 — 1A 운영 위험 항목과 함께 시험표 승인 범위에 넣을지 정한다. ③ 게이트가 소비 기록에 requestId 를 남기지 못한 결제는 승격되지 않고 24시간 뒤 지워진다(1A 브라우저 재개만 남는다). ④ 실제 Mongo 회귀는 엔진 첫 삽입만 스테이징에서 확인했다(0절). 의도 등록·승격의 격리 DB 회귀는 아직 없다(mock 만). ⑤ 범위 밖 관찰(수정 안 함): 표시 가격이 레지스트리와 다르다 — `pet-saju.html:568-569` 50코인·5,000원 대 `worker/lib/paid-feature-registry.js:274-275` 30·3,000, `worker/routes/animal-totem.js:60` deep `coinPrice: 50` 대 레지스트리 `:291` 30. 실제 청구액은 미검증.
 - **롤백.** `git revert 3d73f0a5d d52cfb4e6 8261429ba`. 클라이언트만 되돌려도 결제 흐름은 그대로다(등록은 응답을 무시한다). 서버를 되돌리면 남은 `awaiting_payment` 문서를 지우는 작업이 없어지므로, 필요하면 별도 승인으로 정리한다(엔진·스윕은 그 문서를 읽지 않는다).
 - **보관함 목록 API — 3단계로 미룬다.** 영냥이·꿀꿀 운세 보관함에 목록 API 가 없어(신규 기능) 진행/재시도/검토 상태 노출은 새 필드가 아니라 새 API 가 필요하다.
 
