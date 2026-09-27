@@ -3,7 +3,7 @@ import KakaoChannelInvite from '../components/KakaoChannelInvite';
 import { SIGN_PROFILES } from '@/lib/fortune/sign-profiles';
 import { products } from '@/worker/yeongnyangi/payments/catalog';
 import { policyForReading } from '@/worker/yeongnyangi/fortune/reading-policy';
-export const metadata: Metadata = { title: '연이의 이번 주 운세와 채널 소식', robots: { index: false, follow: true } };
+export const metadata: Metadata = { title: '연이의 이번 주 운세와 채널 소식', description: '꽃돼지 연이와 무료 별자리·띠 주간 운세를 살펴보고, 카카오톡 채널 소식과 광고성 정보 수신 설정을 확인하세요.', robots: { index: false, follow: true } };
 const product = products.find(p => p.id === 'saju_mackerel')!;
 const policy = policyForReading(product.fishId, product.manifestVersion);
 export default function ChannelPage() {
