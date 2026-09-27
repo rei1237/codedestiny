@@ -1,7 +1,7 @@
 ---
-status: active
-updated: 2026-09-27
-next: "먼저 프로덕션 승격 run 36313466265 결과와 Pages·Worker 버전이 `01dbf1fb3`인지 확인한다. 그다음 운영 DB 읽기 전용 집계 `node scripts/report-paid-narrative-cron-calls.mjs --db code_destiny`로 1A·1B 크론의 과금 LLM 호출 수 상한을 먼저 잰다(사용자가 허용 설정을 한다고 했다). 결과를 이 문서 1절에 적은 뒤 2절의 나머지 3단계 계측으로 간다."
+status: done
+updated: 2026-09-28
+next: "완료. 1·2절 측정 결과 크론 LLM 호출 0(실측). 첫 18키 결제가 생기면 1절 집계만 다시 돌린다. 나머지 3단계는 상위 문서 next를 따른다(착수 전 우선순위 확인)."
 ---
 
 # 유료 결과 크론 LLM 호출 계측 — 3단계 이어받기
@@ -28,6 +28,14 @@ node scripts/report-paid-narrative-cron-calls.mjs --db code_destiny
 - 예상(추정): 09-01~09-27 이 18키 결제가 0건이었으므로 호출 0일 가능성이 높다. 0이 아니면 `executions` 행별로 `cronProven`·시각을 보고 크론 몫을 가른다. 브라우저·크론 분리의 확정은 `server_*` 로그로만 된다.
 - 결과를 이 절에 수치로 적는다(실측/추정 구분, 0을 미측정으로 대체하지 않는다).
 
+### 결과 (실측, 2026-09-28 세션, 운영 `code_destiny` 읽기 전용)
+
+- 승격 확인: run 36313466265 성공(release 성공·rollback 스킵). 그 뒤 다른 세션의 dispatch run 36329155957(`cdc226c77`)도 성공. 운영 Pages `/version.json`·Worker `/api/version` 모두 `01dbf1fb3`(f0182a579 포함) — 한 번 읽음, 폴링 없음.
+- 기본 구간(`--since 2026-09-27T05:06:19Z`, until 2026-09-27T16:20Z): executions 0 · callsUpperBound 0 · cronProvenExecutions 0 · awaiting_payment 의도 0.
+- 넓힌 구간(`--since 2026-09-01T00:00:00Z`): 위와 같이 전부 0.
+- 0의 근거 확인: 같은 컬렉션(`ServiceExecutionTransaction`)의 전 기간 추정 행 수 3, 09-01 이후 생성 행 0(featureKey 무관). 즉 조회 대상이 틀린 것이 아니라 **09-01 이후 운영에 결제 실행 자체가 없다.**
+- 결론: 1A·1B 크론의 과금 LLM 호출 수는 승격 이후 **0(실측 상한)**. 1B 의도 승격 대상도 0이다. 행이 있을 때의 합산 경로는 여전히 실데이터로 미확인.
+
 ### 코드 상한 (상수 계산, 실측 아님)
 
 서버 경로도 항목당 3회(`attempts < 3`)를 브라우저와 공유한다 → 주문당 크론 호출 ≤ `3 × 항목 수 − 브라우저 사용분`. 호출당 출력 상한 9,500토큰(`capTokens`). 틱당 실행 3건·작업 240초·파 65초·파당 4호출(`paid-narrative-recovery-task.js:11`), 의도 승격 틱당 20건(`paid-narrative-intent.js:20`). 크론은 주문당 새 예산을 만들지 않는다.
@@ -36,6 +44,7 @@ node scripts/report-paid-narrative-cron-calls.mjs --db code_destiny
 
 - `f0182a579` 이후 SHA가 프로덕션에 올라간 뒤에만 가능하다. 저장소에 Workers Logs 조회 도구는 없다 — `npx wrangler tail --format json > llm.log`(main 체크아웃에서) 또는 대시보드 내보내기 뒤 `node scripts/report-llm-token-usage.mjs llm.log --json`.
 - 틱 요약은 `[paid-narrative-recovery]`(scanned·outcomes)와 `[paid-narrative-intent]`(expired·scanned·outcomes) 두 줄이다. 둘 다 executionKey·featureKey·결과 코드만 싣는다.
+- 2026-09-28 판단: 전제(`01dbf1fb3` 운영 반영)는 충족됐지만, 1절대로 대상 실행·의도가 0이라 크론이 공급자를 부를 입력이 없다 → 크론 토큰·비용 = 0(DB 근거 추론, 로그 실측 아님). `wrangler tail`은 과거 로그를 못 읽으므로 지금 돌려도 0 확인 외 정보가 없다. **첫 18키 결제가 생긴 뒤** 1절 집계를 다시 돌리고, 0이 아니면 그때 tail/대시보드 내보내기로 `server_*` 몫을 가른다.
 
 ## 3. 나머지 3단계 계측 (상위 문서 3절)
 
