@@ -6,6 +6,7 @@ import {
   parseGuardianFortuneLLMResponse,
   validateAndNormalizeGuardianFortuneResult,
   countGuardianFortuneVisibleTextLength,
+  isStructurallyCompleteGuardianFortuneResult,
 } from "./guardian-fortune-result.js";
 import { generateGuardianFortuneWithMockLLM } from "./guardian-fortune-mock.js";
 import { GUARDIAN_FORTUNE_RESULT_LENGTH } from "./guardian-fortune-runtime-contract.js";
@@ -94,10 +95,18 @@ export async function generateGuardianFortuneWithRealLLM({
   providerCall = callGeminiText,
   metricSink,
   singleAttempt = false,
+  // Paid delivery only: keep a structurally complete short answer as a draft, and
+  // on the one repair call send that saved draft back to be completed.
+  acceptShortDraft = false,
+  repairDraft = "",
 } = {}) {
   assertGuardianFortuneRealLLMAllowed({ env, userId });
   const config = getGuardianFortuneLLMConfig(env);
-  const prompt = buildGuardianFortunePrompt({ input, context });
+  const built = buildGuardianFortunePrompt({ input, context });
+  const prompt = singleAttempt && acceptShortDraft && typeof repairDraft === "string" && repairDraft ? {
+    ...built,
+    userPrompt: `${built.userPrompt}\n\n[저장된 초안 보완]\n${repairDraft}\n위 초안의 계산 근거와 답변 방향을 보존하고, 부족한 해석·반대 조건·행동 조언만 보완한 같은 JSON 필드 전체를 다시 반환해. 결과 본문 합계 ${GUARDIAN_FORTUNE_RESULT_LENGTH.min}자 이상 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max}자 이하를 목표로 하고, 같은 문장 반복이나 context 에 없는 새 계산값으로 분량을 채우지 마.`,
+  } : built;
   const startedAt = Date.now();
   const providerResult = await callProviderWithLimitedRetry({
     providerCall,
@@ -166,12 +175,16 @@ export async function generateGuardianFortuneWithRealLLM({
     return { result, usedFallback: deliverable, deliverable, errorCode: parsed.errorCode, usage };
   }
 
-  const validated = validateAndNormalizeGuardianFortuneResult({ parsed: parsed.value, input, context });
-  if (singleAttempt && (countGuardianFortuneVisibleTextLength(parsed.value) < GUARDIAN_FORTUNE_RESULT_LENGTH.min
+  // Paid turns never reach deterministic enrichment. A short answer is either a
+  // structurally complete draft (acceptShortDraft) or rejected as incomplete.
+  const short = countGuardianFortuneVisibleTextLength(parsed.value) < GUARDIAN_FORTUNE_RESULT_LENGTH.min;
+  const lengthDraft = singleAttempt && short && acceptShortDraft && isStructurallyCompleteGuardianFortuneResult(parsed.value);
+  if (singleAttempt && ((short && !lengthDraft)
     || !Array.isArray(parsed.value.evidenceLines) || parsed.value.evidenceLines.length < 3
     || !Array.isArray(parsed.value.followUpQuestions) || parsed.value.followUpQuestions.length !== 3)) {
     return { usedFallback: false, deliverable: false, errorCode: 'PAID_RESULT_INCOMPLETE', usage };
   }
+  const validated = validateAndNormalizeGuardianFortuneResult({ parsed: parsed.value, input, context, preserveShort: lengthDraft });
   if (!validated.ok) {
     const result = buildValidatedFallback({ input, context, reason: validated.errorCode });
     const deliverable = Boolean(result);
@@ -179,8 +192,8 @@ export async function generateGuardianFortuneWithRealLLM({
     return { result, usedFallback: deliverable, deliverable, errorCode: validated.errorCode, usage };
   }
 
-  emitMetric({ ...baseMetric, success: true, fallbackUsed: false }, metricSink);
-  return { result: validated.value, usedFallback: false, deliverable: true, isMock: Boolean(providerResult.isMock || /mock/i.test(`${providerResult.provider || ''} ${providerResult.model || ''}`)), issues: validated.issues, usage };
+  emitMetric({ ...baseMetric, success: true, fallbackUsed: false, ...(lengthDraft ? { lengthDraft: true } : {}) }, metricSink);
+  return { result: validated.value, usedFallback: false, deliverable: true, ...(lengthDraft ? { lengthDraft: true } : {}), isMock: Boolean(providerResult.isMock || /mock/i.test(`${providerResult.provider || ''} ${providerResult.model || ''}`)), issues: validated.issues, usage };
 }
 
 export async function generateGuardianFortuneWithConfiguredLLM(args = {}) {

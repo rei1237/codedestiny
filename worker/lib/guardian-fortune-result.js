@@ -449,7 +449,19 @@ export function buildFallbackGuardianFortuneResult({ input = {}, context = {}, r
   return fallback;
 }
 
-export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, context = {} } = {}) {
+// A paid draft must carry every visible field and both lists from the model
+// itself. Fallback copy may fill a full-length answer, never a short draft.
+export function isStructurallyCompleteGuardianFortuneResult(result) {
+  if (!result || typeof result !== "object" || Array.isArray(result)) return false;
+  if (!["title", ...VISIBLE_RESULT_FIELDS].every(field => safeText(result[field]))) return false;
+  return Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS).every(([field, limits]) => Array.isArray(result[field])
+    && result[field].length >= limits.min && result[field].length <= limits.max);
+}
+
+// preserveShort keeps a short paid draft as written: no deterministic enrichment
+// and no length floor here. Structure, category, safety and sensitive-data checks
+// still apply; the delivery engine owns the length target and the total floor.
+export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, context = {}, preserveShort = false } = {}) {
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
     return { ok: false, errorCode: "GUARDIAN_RESULT_MISSING_FIELDS", issues: ["result_object"] };
   }
@@ -497,7 +509,7 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   }
 
   let normalized = candidate;
-  if (countGuardianFortuneVisibleTextLength(normalized) < GUARDIAN_FORTUNE_RESULT_LENGTH.min) {
+  if (!preserveShort && countGuardianFortuneVisibleTextLength(normalized) < GUARDIAN_FORTUNE_RESULT_LENGTH.min) {
     normalized = enrichShortGuardianFortuneResult(normalized, { input, context });
     issues.push("enriched_short_result");
   }
@@ -524,7 +536,7 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   const length = countGuardianFortuneVisibleTextLength(normalized);
   const hasMissingLists = locale !== "ko" && Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS)
     .some(([field, limits]) => (normalized[field] || []).length < limits.min);
-  if (hasMissingRequired || hasMissingLists || hasForbidden || length < GUARDIAN_FORTUNE_RESULT_LENGTH.min || length > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
+  if (hasMissingRequired || hasMissingLists || hasForbidden || (!preserveShort && length < GUARDIAN_FORTUNE_RESULT_LENGTH.min) || length > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
     return {
       ok: false,
       errorCode: hasForbidden ? "GUARDIAN_RESULT_UNSAFE_CONTENT" : "GUARDIAN_RESULT_QUALITY_FAILED",

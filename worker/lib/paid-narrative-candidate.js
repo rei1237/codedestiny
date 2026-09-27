@@ -8,9 +8,11 @@ export function completeNarrativeBody(body) {
   return paragraphs.length > 1 && paragraphs.every(text => /[.!?。？！]["'”’)\]」』]*\s*$/u.test(text));
 }
 
-export function selectNarrativeCandidate(previous, body) {
-  if (!completeNarrativeBody(body)) return previous || null;
-  return !previous || countPaidReportBodyChars(body) > countPaidReportBodyChars(previous) ? body : previous;
+// A structured adapter passes its own completeness and length (see the delivery
+// engine's completeBody/measureBody); narrative products keep the defaults.
+export function selectNarrativeCandidate(previous, body, { complete = completeNarrativeBody, measure = countPaidReportBodyChars } = {}) {
+  if (!complete(body)) return previous || null;
+  return !previous || measure(body) > measure(previous) ? body : previous;
 }
 
 export function narrativeRepairTask(task, draft) {

@@ -6,6 +6,8 @@ import { buildGuardianFortuneContext } from './guardian-fortune-context.js';
 import { generateGuardianFortuneWithConfiguredLLM } from './guardian-fortune-llm.js';
 import { shouldUseRealGuardianFortuneLLM } from './guardian-fortune-llm-policy.js';
 import { GUARDIAN_FORTUNE_PAID_FEATURE_KEY } from './guardian-fortune-usage.js';
+import { countGuardianFortuneVisibleTextLength, isStructurallyCompleteGuardianFortuneResult } from './guardian-fortune-result.js';
+import { GUARDIAN_FORTUNE_RESULT_LENGTH } from './guardian-fortune-runtime-contract.js';
 
 const featureKey = GUARDIAN_FORTUNE_PAID_FEATURE_KEY;
 const executionId = (userId, requestId) => 'paid-narrative:' + createHash('sha256').update(JSON.stringify([String(userId), featureKey, requestId])).digest('hex');
@@ -34,7 +36,10 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
       seed: async original => {
         const calculated = await contextBuilder(original, contextOptions);
         if (!calculated?.ok || calculated.context?.availableSystems?.length !== 1 || calculated.context.availableSystems[0] !== original.category) throw Object.assign(Error('계산 근거를 확인하지 못했어요.'), { accessStatus: 422 });
-        return { input: original, context: calculated.context, prompt: '', minBodyChars: 1, tasks: [{ id: 'answer', prompt: '', minChars: 1 }] };
+        // The answer's visible text is both the part target and the total floor, so a
+        // short final answer is preserved for review rather than completed.
+        return { input: original, context: calculated.context, prompt: '', minBodyChars: GUARDIAN_FORTUNE_RESULT_LENGTH.min,
+          tasks: [{ id: 'answer', prompt: '', minChars: GUARDIAN_FORTUNE_RESULT_LENGTH.min }] };
       },
     });
     const payload = await response.json();
@@ -46,19 +51,36 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
   }
 }
 
+const parseAnswer = body => { try { return JSON.parse(body); } catch { return null; } };
+
 // The route and the server resume task share produce and render. The request id
 // comes from the stored turn so a resumed call logs the original request.
 export function guardianNarrativeAdapter(env, userId, generator = generateGuardianFortuneWithConfiguredLLM) {
   return {
     reportType: 'guardianPaidTurn',
-    produce: async (_task, state) => {
+    // Parts are JSON strings. Length is the answer's visible text, and a draft is
+    // a candidate only with every visible field and both lists present. A body the
+    // producer marked as a length draft was short as the model wrote it; the
+    // normalized CTA fallback reason must not lift it over the floor.
+    measureBody: body => {
+      const answer = parseAnswer(body);
+      if (!answer || typeof answer !== 'object') return 0;
+      const length = countGuardianFortuneVisibleTextLength(answer);
+      return answer.lengthDraft ? Math.min(length, GUARDIAN_FORTUNE_RESULT_LENGTH.min - 1) : length;
+    },
+    completeBody: body => isStructurallyCompleteGuardianFortuneResult(parseAnswer(body)),
+    produce: async (task, state) => {
       // Development stays mock-only. Production must never silently sell a
       // mock or deterministic fallback as a completed paid LLM consultation.
       if (String(env.NODE_ENV).toLowerCase() !== 'test' && !shouldUseRealGuardianFortuneLLM({ env, userId })) return null;
-      const generated = await generator({ input: state.input, context: state.context, env, requestId: state.body.requestId, userId, generationSource: 'paid', singleAttempt: true });
+      // Records seeded before the draft contract (minChars 1) keep the producer's
+      // short-answer rejection: their total floor cannot hold a short draft back.
+      const drafts = task.minChars >= GUARDIAN_FORTUNE_RESULT_LENGTH.min;
+      const generated = await generator({ input: state.input, context: state.context, env, requestId: state.body.requestId, userId, generationSource: 'paid', singleAttempt: true,
+        ...(drafts ? { acceptShortDraft: true, repairDraft: state.drafts?.[task.id] || '' } : {}) });
       if (!generated?.result || generated.usedFallback || generated.isMock || generated.deliverable === false) return null;
-      return { evidenceHash: state.evidenceHash, body: JSON.stringify(generated.result) };
+      return { evidenceHash: state.evidenceHash, body: JSON.stringify(generated.lengthDraft ? { ...generated.result, lengthDraft: true } : generated.result) };
     },
-    render: state => ({ result: state.parts.answer ? JSON.parse(state.parts.answer) : null, generationSource: 'paid', requestId: state.body.requestId, resumeInputs: state.input }),
+    render: state => ({ result: state.parts.answer ? (({ lengthDraft, ...answer }) => answer)(JSON.parse(state.parts.answer)) : null, generationSource: 'paid', requestId: state.body.requestId, resumeInputs: state.input }),
   };
 }

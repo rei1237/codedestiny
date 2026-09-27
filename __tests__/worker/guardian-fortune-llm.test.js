@@ -114,3 +114,21 @@ it('paid delivery bounds retries to one provider call per request',async()=>{
  await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:{...realEnv,GUARDIAN_FORTUNE_LLM_MAX_RETRIES:'1'},userId:'fixture-user',singleAttempt:true,providerCall:provider,metricSink:()=>{}});
  expect(provider).toHaveBeenCalledTimes(1);expect(provider.mock.calls[0][2].timeoutMs).toBeLessThanOrEqual(45000);
 });
+const shortAnswer=()=>({title:'상담',openingLine:'오늘의 흐름은 천천히 확인하는 쪽에 가깝습니다.',innerState:'마음은 결론을 서두르고 싶어 합니다.',coreReading:'계산 근거는 속도를 조절하라는 쪽을 가리킵니다.',topicAdvice:'작은 약속 하나부터 지켜보세요.',cautionPattern:'한 번의 반응을 전체 결론으로 키우지 마세요.',luckyAction:'답장을 보내기 전에 문장을 한 번 줄여보세요.',
+ evidenceLines:['근거 하나','근거 둘','근거 셋'],followUpQuestions:['다음은 무엇을 볼까요?','언제 움직이면 좋을까요?','무엇을 조심할까요?']});
+it('paid draft mode keeps a complete short answer without deterministic enrichment',async()=>{
+ const provider=jest.fn(async()=>({ok:true,text:JSON.stringify(shortAnswer())}));
+ const result=await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:realEnv,userId:'fixture-user',singleAttempt:true,acceptShortDraft:true,providerCall:provider,metricSink:()=>{}});
+ expect(result).toMatchObject({deliverable:true,usedFallback:false,lengthDraft:true});
+ expect(countGuardianFortuneVisibleTextLength(result.result)).toBeLessThan(GUARDIAN_FORTUNE_RESULT_LENGTH.min);expect(result.result.coreReading).toBe(shortAnswer().coreReading);
+});
+it('paid draft mode still rejects a short answer missing a field or list',async()=>{
+ for(const drop of ['cautionPattern','followUpQuestions']){const answer=shortAnswer();delete answer[drop];
+  const provider=jest.fn(async()=>({ok:true,text:JSON.stringify(answer)}));
+  expect(await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:realEnv,userId:'fixture-user',singleAttempt:true,acceptShortDraft:true,providerCall:provider,metricSink:()=>{}})).toMatchObject({deliverable:false,errorCode:'PAID_RESULT_INCOMPLETE'});}
+});
+it('the repair call carries the saved draft only in paid draft mode',async()=>{
+ const provider=jest.fn(async()=>({ok:true,text:JSON.stringify(shortAnswer())})),args={input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:realEnv,userId:'fixture-user',singleAttempt:true,repairDraft:'{"coreReading":"저장된 초안 본문"}',providerCall:provider,metricSink:()=>{}};
+ await generateGuardianFortuneWithRealLLM({...args,acceptShortDraft:true});await generateGuardianFortuneWithRealLLM(args);
+ expect(provider.mock.calls[0][1]).toContain('[저장된 초안 보완]');expect(provider.mock.calls[0][1]).toContain('저장된 초안 본문');expect(provider.mock.calls[1][1]).not.toContain('저장된 초안 본문');
+});

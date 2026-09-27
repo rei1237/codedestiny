@@ -35,10 +35,13 @@ export function paidNarrativeInsert({ userId, executionKey, featureKey, reportTy
     timeoutAt, createdAt: now, updatedAt: now,
   };
 }
-const ready = state => state.tasks.every(task => state.parts[task.id])
-  && countPaidReportBodyChars(Object.values(state.parts).join("\n")) >= state.minBodyChars;
+// measure is an adapter's own body length for structured parts (a JSON string's
+// syntax is not reading text). Without one, the shared narrative count applies.
+const ready = (state, measure) => state.tasks.every(task => state.parts[task.id])
+  && (measure ? state.tasks.reduce((sum, task) => sum + measure(state.parts[task.id]), 0)
+    : countPaidReportBodyChars(Object.values(state.parts).join("\n"))) >= state.minBodyChars;
 const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 3);
-const reviewRequired = state => limited(state) || (state.tasks.every(task => state.parts[task.id]) && !ready(state));
+const reviewRequired = (state, measure) => limited(state) || (state.tasks.every(task => state.parts[task.id]) && !ready(state, measure));
 
 // Every raw op is its own withMongoRetry unit because the cron resume path reaches
 // this engine (verify:cron-mongo-op-coverage). Reads may retry; writes keep
@@ -59,14 +62,14 @@ async function save(env, filter, fields) {
 async function revoked(env, doc, featureKey, body) {
   return ["refunded", "cancelled"].includes(doc?.status) || await withMongoRetry(env, () => isPaidResultRevoked(doc.userId, featureKey, [doc.executionKey, body.requestId, body.transactionId, body.purchaseId, body.paymentId, body.sessionId, doc.metadata?.paidNarrativeProof?.transactionId]));
 }
-function respond(doc, render, busy = false) {
+function respond(doc, render, busy = false, measure) {
   const state = doc.metadata.paidNarrative;
   if (state.failureResult) return json(state.failureResult, { status: 500 });
   if (state.exhaustionClaimed) return json({ ok: false, code: "RESULT_STORAGE_UNAVAILABLE", reason: "DELIVERY_REVIEW_REQUIRED", resultId: doc.executionKey, retryable: false, paymentRetainedForRetry: true }, { status: 503 });
   if (doc.premiumStatus === "completed") return json({ ...doc.metadata.result, ok: true, status: "completed", resultId: doc.executionKey, saved: true });
-  return json({ ...render(state), ok: true, status: ready(state) ? "delivery_pending" : Object.keys(state.parts).length ? "partial" : "generating",
-    saved: false, retryable: !reviewRequired(state), reviewRequired: reviewRequired(state),
-    ...(reviewRequired(state) ? { code: "DELIVERY_REVIEW_REQUIRED", nextAction: "support" } : {}),
+  return json({ ...render(state), ok: true, status: ready(state, measure) ? "delivery_pending" : Object.keys(state.parts).length ? "partial" : "generating",
+    saved: false, retryable: !reviewRequired(state, measure), reviewRequired: reviewRequired(state, measure),
+    ...(reviewRequired(state, measure) ? { code: "DELIVERY_REVIEW_REQUIRED", nextAction: "support" } : {}),
     resultId: doc.executionKey, resumeBody: { resumeResultId: doc.executionKey },
     completedParts: Object.keys(state.parts), totalParts: state.tasks.length, busy, retryAfterMs: busy ? 5000 : 1000,
   }, { status: 202 });
@@ -74,7 +77,7 @@ function respond(doc, render, busy = false) {
 
 // Uses the existing execution collection; no provider call survives beyond its own
 // bounded request, and every accepted part is confirmed before the next wave.
-export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, timeoutMs = 45000 }) {
+export async function runPaidNarrativeDelivery(request, env, auth, body, { featureKey, reportType, seed, verify, render, produce, onExhausted, measureBody, completeBody, timeoutMs = 45000 }) {
   const userId = auth.userId;
   const params = new URL(request.url).searchParams;
   const resumeId = request.method === "GET" ? params.get("resultId") : body.resumeResultId;
@@ -91,10 +94,10 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (!doc?.metadata?.paidNarrativeProof) await verify(original);
   if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && paidNarrativeInputHash(body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
-  if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return respond(doc, render);
+  if (doc?.premiumStatus === "completed" || doc?.metadata?.paidNarrative?.exhaustionClaimed || request.method === "GET") return respond(doc, render, false, measureBody);
   const now = new Date(), token = randomUUID();
   const lock = { token, until: new Date(now.getTime() + 120000) };
-  if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render, true);
+  if (doc?.lock?.token && new Date(doc.lock.until) > now) return respond(doc, render, true, measureBody);
   if (!doc) {
     const seeded = await seed(original);
     const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000) });
@@ -107,11 +110,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   } else {
     try {
       const claim = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey, status: "pending", "lock.token": doc.lock?.token ?? null }, { $set: { lock } }, { returnDocument: "after" }).lean(), { retries: 0 });
-      if (!claim) return respond(doc, render, true);
+      if (!claim) return respond(doc, render, true, measureBody);
       doc = claim;
     } catch { throw failure(executionKey); }
   }
-  if (doc.lock.token !== token) return respond(doc, render, true);
+  if (doc.lock.token !== token) return respond(doc, render, true, measureBody);
   const filter = { userId, executionKey, status: "pending", "lock.token": token };
   let state = doc.metadata.paidNarrative;
   const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null, paidNarrativeRecovery: null },
@@ -147,11 +150,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         const body = valid && !hasRepeatedReportPassage(value.body)
           && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + value.body) ? value.body : null;
         const previous = draft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + draft) ? draft : null;
-        const candidate = selectNarrativeCandidate(previous, body);
+        const candidate = selectNarrativeCandidate(previous, body, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
         // A short first result is durable before spending the one repair call.
         // Failed repairs reuse only that already validated draft. Empty, truncated,
         // wrong-evidence and repeated responses never become candidates.
-        const accepted = body && countPaidReportBodyChars(body) >= task.minChars ? candidate || body
+        const accepted = body && (measureBody || countPaidReportBodyChars)(body) >= task.minChars ? candidate || body
           : (draft || state.attempts[task.id] >= 3) ? candidate : null;
         const chosen = accepted || candidate;
         if (!chosen || hasRepeatedReportPassage(chosen) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + chosen)) return;
@@ -163,7 +166,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       queue = queue.then(accept, accept); await queue;
     })));
     const rejected = calls.find(call => call.status === "rejected"); if (rejected) throw rejected.reason;
-    if (!ready(state)) {
+    if (!ready(state, measureBody)) {
       if (limited(state) && onExhausted) {
         // Persist a single refund claim before any external side effect. An
         // uncertain refund response is for reconciliation, never another refund.
@@ -173,12 +176,12 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
         state = { ...state, failureResult };
         await persist();
       }
-      return respond(doc, render);
+      return respond(doc, render, false, measureBody);
     }
     doc = await save(env, filter, { metadata: { ...doc.metadata, result: render(state) }, premiumStatus: "generating" });
     if (await revoked(env, doc, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
     doc = await save(env, filter, { status: "success", premiumStatus: "completed", deliveryStatus: "delivered", completedAt: new Date() });
-    return respond(doc, render);
+    return respond(doc, render, false, measureBody);
   } finally {
     await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne({ userId, executionKey, "lock.token": token }, { $set: { "lock.token": "", "lock.until": null } }), { retries: 0 }).catch(() => {});
   }

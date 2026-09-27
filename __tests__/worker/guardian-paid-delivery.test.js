@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
 import { HttpError } from '../../worker/lib/http.js';
-let delivery;
+let delivery,guardianNarrativeAdapter;
 let docs,provider,revoked,userId,fault,lost,external,kind,mode;
 const owner='64b7f2a1c3d4e5f601234567',clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -17,6 +17,11 @@ const model={findOne:filter=>{if(lost){lost=false;return query(null);}return que
   if(fault&&(fault.metadata?Boolean(update.$set?.metadata):update.$set?.premiumStatus==='completed')){const failure=fault;fault=null;if(failure.kind==='throw')throw Error('storage');if(failure.kind==='null')return query(null);if(failure.kind==='confirm')lost=true;}
   let doc=docs.find(doc=>matches(doc,filter));if(!doc&&options.upsert){doc={...clone(update.$setOnInsert),_id:'record'};docs.push(doc);}if(doc)patch(doc,update.$set||{});return query(doc||null);
  },updateOne:async(filter,update)=>{const doc=docs.find(doc=>matches(doc,filter));if(doc)patch(doc,update.$set||{});return {modifiedCount:doc?1:0};}};
+// A structurally complete answer whose visible text is about chars long, with
+// numbered sentences so the repeated-passage check never trips.
+const answer=(chars,tag='a')=>{const fields=['openingLine','innerState','coreReading','topicAdvice','cautionPattern','luckyAction'],each=Math.ceil(chars/6),out={title:'상담'};
+ fields.forEach(field=>{let text='';for(let i=0;text.length<each;i++)text+=`${tag} ${field} ${i}번째 문장은 계산 근거와 생활 장면을 이어서 설명합니다. `;out[field]=text.slice(0,each).trim();});
+ return {...out,evidenceLines:['근거 하나','근거 둘','근거 셋'],followUpQuestions:['다음 질문 하나','다음 질문 둘','다음 질문 셋'],premiumCta:{reason:''}};};
 beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),gemini=await import('../../worker/lib/gemini.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
@@ -24,10 +29,10 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({...gemini,callGeminiText:(...args)=>provider(...args)}));
- ({deliverGuardianPaid:delivery}=await import('../../worker/lib/guardian-paid-delivery.js'));
+ ({deliverGuardianPaid:delivery,guardianNarrativeAdapter}=await import('../../worker/lib/guardian-paid-delivery.js'));
 });
 beforeEach(()=>{docs=[];revoked=false;userId=owner;fault=null;lost=false;mode='paid';
- provider=jest.fn(async()=>({usedFallback:false,deliverable:true,result:{openingLine:'저장된 대화 시작',coreReading:'계산 근거를 바탕으로 읽은 원래 상담 본문',luckyAction:'마지막 조언입니다.'}}));
+ provider=jest.fn(async()=>({usedFallback:false,deliverable:true,result:answer(3000)}));
  external=jest.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('external fetch forbidden');});
 });
 afterEach(()=>{expect(external).not.toHaveBeenCalled();external.mockRestore();});
@@ -54,3 +59,32 @@ test('real generation entry resumes the paid receipt before reserving another tu
  expect((await store.findAttempt('paid-guardian-original')).status).toBe('completed');
 });
 test('server-owned latest lookup returns the saved paid turn without browser input',async()=>{await start();expect(await start({readOnly:true,requestId:undefined,input:undefined})).toMatchObject({ok:true,saved:true,requestId:'paid-guardian-original'});expect(provider).toHaveBeenCalledTimes(1);});
+test('short complete answer is saved as a draft and the one repair receives it',async()=>{
+ provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,lengthDraft:true,result:answer(1500,'draft')});
+ expect(await start()).toMatchObject({ok:false,status:202,retryable:true});
+ const draft=docs[0].metadata.paidNarrative.drafts.answer;expect(JSON.parse(draft).coreReading).toContain('draft');expect(docs[0].metadata.paidNarrative.parts.answer).toBeUndefined();
+ expect(await start()).toMatchObject({ok:true,saved:true});
+ expect(provider).toHaveBeenCalledTimes(2);expect(provider.mock.calls[0][0]).toMatchObject({acceptShortDraft:true,repairDraft:''});expect(provider.mock.calls[1][0]).toMatchObject({acceptShortDraft:true,repairDraft:draft});
+});
+test('a shorter or failed repair keeps the draft and a short final answer stays for review',async()=>{
+ provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,result:answer(1800,'first')}).mockResolvedValueOnce({usedFallback:false,deliverable:true,result:answer(1200,'second')});
+ await start();const result=await start();
+ expect(result).toMatchObject({ok:false,status:202,retryable:false,reviewRequired:true});
+ expect(JSON.parse(docs[0].metadata.paidNarrative.parts.answer).coreReading).toContain('first');expect(docs[0].premiumStatus).not.toBe('completed');expect(provider).toHaveBeenCalledTimes(2);
+});
+test('an incomplete short answer is never kept as a draft',async()=>{
+ const {evidenceLines,...missing}=answer(1500);provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,result:missing});
+ expect(await start()).toMatchObject({ok:false,status:202});expect(docs[0].metadata.paidNarrative.drafts?.answer).toBeFalsy();
+});
+test('a record seeded before the draft contract keeps the producer rejection',async()=>{
+ const generator=jest.fn(async()=>({deliverable:false}));
+ await guardianNarrativeAdapter({NODE_ENV:'test'},owner,generator).produce({id:'answer',minChars:1},{input,context:{},body:{requestId:'legacy-request'},drafts:{answer:'{}'}});
+ expect(generator.mock.calls[0][0].acceptShortDraft).toBeUndefined();expect(generator.mock.calls[0][0].repairDraft).toBeUndefined();
+});
+test('a length draft never completes even when the normalized CTA reason lifts it over the floor',async()=>{
+ const draft=answer(2560,'lifted');draft.premiumCta={reason:'정규화 과정에서 채워진 폴백 사유 문구가 이 초안의 길이를 기준 위로 올립니다.'};
+ provider.mockResolvedValue({usedFallback:false,deliverable:true,lengthDraft:true,result:draft});
+ await start();await start();const result=await start();
+ expect(result).toMatchObject({ok:false,status:202,retryable:false});expect(docs[0].premiumStatus).not.toBe('completed');
+ expect(result.result).not.toHaveProperty('lengthDraft');expect(provider).toHaveBeenCalledTimes(2);
+});

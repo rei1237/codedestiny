@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P4 형식 교정 구현. 전달 SHA와 main CI는 세션 최종 보고 참조. P3 잔여 수호 운세·작명·천체 조화, P5 관계 궁합은 별도 작업. 본문 20,000자 및 초융합 기존 가시 텍스트 30,000자 기준 유지."
+next: "P3 작명·천체 조화, P5 관계 궁합을 같은 세션에서 이어서 진행한다(사용자 지시: 끝까지 진행 후 운영 승격). 본문 20,000자 및 초융합 기존 가시 텍스트 30,000자 기준 유지."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -156,6 +156,16 @@ next: "P4 형식 교정 구현. 전달 SHA와 main CI는 세션 최종 보고 �
 - 검증: 최종 핵심 Jest 5 suites / 106 tests 통과, 영냥이 v5/v6/locale Node 회귀 28개 통과(최종 v6 14개 재검증 포함), handoff 199문서 통과. `check:fast -- --plan`은 critical. 최종 `check:fast` 및 main CI 결과는 이번 전달 세션 최종 보고 참조. 이번 감사는 직접 diff·호출부 검토와 mock 회귀로 수행했으며 별도 감사 에이전트 실행을 주장하지 않는다.
 - 수정 파일: `worker/lib/narrative-format.js`, 연애 타로·마인드스캔·질문형 전달 어댑터 3개, `paid-narrative-candidate.js`, 영냥이 `reading-quality.ts`·`providers/chapter.ts`, worker 회귀 테스트 4개 및 영냥이 v6 테스트, 이 문서.
 
+## P3 수호 운세 묶음 구현 (2026-09-27)
+
+- 시작: 전달 `18622016a372b634ce63f001b00cd35b6d99e2c7` CI 통과 확인, main에서 `git pull --ff-only`. 기존 마케팅·타입·미추적 변경은 보존하고 이번 파일만 커밋한다.
+- 공통 엔진 `paid-narrative-delivery.js`에 어댑터 선택 훅 `measureBody`(구조화 본문 길이)·`completeBody`(초안 완결 판정)를 추가했다. 훅이 없는 기존 11개 서비스는 기존 서술형 계수·완결 판정 그대로다. `selectNarrativeCandidate`도 같은 선택 인자를 받는다.
+- 수호 운세: 가시 텍스트 2,600자를 파트 목표이자 총합 하한으로 둔다(기존 계약 유지). 모든 가시 필드·evidenceLines 3~5·followUpQuestions 3개를 갖춘 짧은 답은 `lengthDraft`로 보존(결정론 보강 없이)하고, 1회 보강 호출이 저장 초안을 받는다. 더 짧거나 실패한 보강본은 초안을 덮지 않는다. 짧은 최종본은 완료·차감 없이 검토 보류(202, retryable:false)로 남는다. 구조가 빠진 짧은 답은 초안이 되지 않는다.
+- 감사 차단 지적 반영: CTA 이유의 정규화 폴백 문구가 짧은 초안을 2,600자 위로 올려 완료시키는 경로를 `lengthDraft` 표식 + `measureBody` 상한(min-1)으로 막았다. 렌더는 표식을 제거한다. 이 계약 이전 레코드(seed minChars 1)는 producer의 짧은 답 거절을 그대로 유지한다(fail-closed).
+- 검증: 수호·후보 38/38, 엔진 소비 13 suites 410/410, 수정 후 수호 2 suites 30/30. 변이(어댑터 표식 제거 1건 실패, 엔진 measure 제거 10건 실패) 후 복원. `check:fast` exit 0: 결제 가드 88/88, Jest 307 suites / 4,485 tests.
+- 보고만(범위 밖): `candidate || body`가 completeBody 실패 긴 본문 대신 초안을 고를 수 있음(fail-closed); `paid-flow-gates.yml` 트리거가 `guardian-paid-delivery.js`·공통 엔진·후보 파일을 포함하지 않음; 202 검토 응답에 초안 result가 실림(클라이언트는 ok:false면 렌더하지 않음).
+- 수정 파일: `paid-narrative-delivery.js`, `paid-narrative-candidate.js`, `guardian-paid-delivery.js`, `guardian-fortune-llm.js`, `guardian-fortune-result.js`, 수호 회귀 테스트 2개, 이 문서.
+
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 
 - 방식: `git grep`/코드 읽기.
@@ -230,7 +240,7 @@ next: "P4 형식 교정 구현. 전달 SHA와 main CI는 세션 최종 보고 �
 |---|---|---|---|
 | **P1 구현 완료** | `paid-narrative-delivery.js` (11개 서비스) | 선행 초안/마지막 수용을 유지하고 반복 보강본의 초안 차단을 수정. 섬 캐시에 파트 `minChars` 연결. | 핵심 mock 73개·변이 5종 통과. 위 P1 검증·전달 기록 참조. |
 | **P2 구현 완료** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
-| **P3 진행 중** | 일곱 묶음으로 초융합 포함 17개 대형 리포트 경로 구현. 수호 운세·작명·천체 조화는 잔여 | 짧은 유효 초안 보존·기존 예산 내 1회 보강·마지막 개별 분량 수용. 기존 총합 하한 유지. 수호 운세의 producer 거절과 별도 구조화 어댑터를 다음 묶음으로 연결한다. | 묶음별 mock·전달 기록 및 P4의 잔여 재확인 참조. |
+| **P3 진행 중** | 일곱 묶음으로 초융합 포함 17개 대형 리포트 경로 + 수호 운세 구현. 작명·천체 조화는 잔여 | 짧은 유효 초안 보존·기존 예산 내 1회 보강·마지막 개별 분량 수용. 기존 총합 하한 유지. 수호 운세의 producer 거절과 별도 구조화 어댑터를 다음 묶음으로 연결한다. | 묶음별 mock·전달 기록 및 P4의 잔여 재확인 참조. |
 | **P4 구현** | 형식 교정 | 연애 타로 4문단·마인드스캔 10문단 분할·병합, 질문형 종결부호 정규화, 영냥이 필드 5000자 분할. 본문·출처·배열/필드 계약 유지. | 단위·producer·저장 재열람 mock 회귀 및 main CI. |
 | **P5** | 구조 | 관계 궁합이 한 파트 실패로 전체 환불되는 구조를 부분 수용 + 재시도로 바꾼다. 총합 20,000자 정책은 사용자 결정대로 유지한다. | 기존 총합 유지하며 설계. |
 
@@ -250,4 +260,4 @@ next: "P4 형식 교정 구현. 전달 SHA와 main CI는 세션 최종 보고 �
 
 ## 다음 세션 첫 문장
 
-"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md의 P4와 P3 잔여 재확인을 읽고 전달 SHA(직전 세션 최종 보고)와 main CI를 확인하라. 기존 미커밋 변경을 보존하고 main 확인·git pull --ff-only 후 P3 수호 운세의 producer·구조화 JSON 초안 보존부터 다음 묶음을 진행하라. 작명·천체 조화 및 P5 관계 궁합은 후속 범위이며 본문 20,000자와 초융합 기존 가시 텍스트 30,000자 기준을 유지하라."
+"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md의 P3 수호 운세 묶음과 이후 기록을 읽고 main·기존 미커밋 변경 보존·git pull --ff-only를 확인한 뒤, 남은 작명·천체 조화·P5 관계 궁합을 이어서 진행하라. 본문 20,000자와 초융합 기존 가시 텍스트 30,000자 기준을 유지하라."
