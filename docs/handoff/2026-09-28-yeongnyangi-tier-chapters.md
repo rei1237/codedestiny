@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "Phase 2 커밋 2 = reading-v7.ts(설계 §6-2: 카탈로그·v7Applies·readingManifestV7·withV7Sections + 정적 테스트 5종). 불변 스냅샷(§6-1)은 커밋 완료. 플래그 OFF, 과금 LLM 0회."
+next: "Phase 2 커밋 3 = reading-v7-ledger.ts(설계 §6-3: 하위 ID 분해·소유 확정, 결정적·LLM 0, 체계별 fixture 테스트, chapter-facts v6 경로 불변). §6-1·§6-2 는 커밋 완료. 플래그 OFF, 과금 LLM 0회."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -78,6 +78,38 @@ next: "Phase 2 커밋 2 = reading-v7.ts(설계 §6-2: 카탈로그·v7Applies·r
   - Phase 5(플래그 ON)에서는 연어·광어·참치의 `personal`·`ask`·타로 행만 바뀌어야 한다. 고등어 전부, 집중형·timing·퓨전·레거시·영감 행은 그대로여야 한다.
 - 빠진 것: question-sky 모드, 비한국어 로케일(영감·질문 모드는 ko 전용), repair 재시도 입력.
 - 위험: 엔진·프롬프트·카탈로그를 v7 과 무관하게 정당하게 고치는 다른 세션도 requests 해시를 깨뜨린다. 그 세션은 원인이 자기 변경인지 확인한 뒤 위 명령으로 갱신한다.
+
+## Phase 2 커밋 2 결과: reading-v7.ts + 정적 가드 (2026-09-28)
+
+- 커밋 `c97fb52b2`(main CI `CI required` success, run 36355525697). 과금 LLM 0회, 실결제 0, DB 접근 0. 플래그 `READING_V7_ENABLED=false`이고 v7 을 부르는 경로가 없다.
+- 파일
+  - `worker/yeongnyangi/fortune/reading-v7.ts`
+    - 카탈로그 `v7Catalog`(키 = 체계, 타로는 `tarot:love`·`tarot:choice`), `V7_PARTS`·`V7_PART_ORDER`, `V7_ANCHOR_REFS`, `V7_FORBIDDEN`.
+    - `v7Applies(p,k,enabled=READING_V7_ENABLED)`, 순수 `readingManifestV7(p,k)`, `withV7Sections`.
+  - `reading-v7-cost.ts`: 추정 원가 상수(§5)와 `v7CostRatio`. Phase 4 골든 실측으로 바꾼다.
+  - `reading-policy.ts`: `READING_V7_VERSION='destiny-book-v7'`, `hasReadingSections` 에 v7 등록, `v7ChapterPolicy`(장당 하한 1,400·목표 1,800~2,200 → 출력 토큰 6,450). `policyForReading` 은 그대로다.
+  - `__tests__/ui/yeongnyangi-reading-v7.test.mjs`: 정적 테스트 5종 + 계약 1종.
+  - `config/sitemap-lastmod.json`: `/`·`/yeongnyangi/1000-won-fortune/` 서명 2개가 바뀌었다. 두 라우트가 결제 카탈로그를 거쳐 `reading-policy.ts` 를 import 하기 때문이다(재생성 diff 로 실측).
+- 장 수(연어/광어/참치, 실측)
+  - 사주 8/13/24, 자미 8/13/20, 베다 8/13/23, 점성술 8/10/12, 숙요 6/8/10, 타로 연애 5/7/9, 타로 선택 4/5/6.
+  - 시기 장: 사주 1/2/6, 자미 1/2/4, 베다 0/0/4.
+  - 물어보기(`ask`)는 해석과 같은 카탈로그를 쓴다.
+- 테스트(무는지 변이로 확인: 가짜 필드 `houses.13`·앵커 소유 중복·연어 `majorLuck` 주입 → 세 테스트 모두 실패로 잡혔다)
+  1. 소유 충돌 0: 한 매니페스트 안에서 owns 중복·접두 겹침이 없다. owns 라벨은 자기 evidenceInputs 안에 있다. refs 는 앵커가 소유한다. 소유 라벨 집합은 티어가 오를수록 줄지 않는다.
+  2. 단조성: 장 수·인사이트 합이 연어<광어<참치이고, 체계별 기대 장 수·시기 장 수가 정확히 맞는다.
+  3. 실제 필드: evidenceInputs·refs·fallbackInputs 를 실제 엔진 6종 출력으로 해석한다(타로는 love·general 두 입력, 숙요는 `readingMode:'personal'`).
+  4. 금지 요소 0: 비참치에 프리미엄 라벨·제목이 없고, 체계별 제외 필드가 없고, `mustNotCover` 에 금지 태그가 들어 있다.
+  5. 원가: 해석·물어보기 8문항이 모두 가격의 10% 이하이고, 장 수 상한 8/13/26 을 지킨다.
+  6. 계약: 기본 플래그면 모든 상품×종류에서 `v7Applies` 가 false 이고 `consultationManifest` 는 v6 그대로다. 시기 테마 ⇔ `timingRef:'owner'`, 섹션 하한 ≤ 목표×0.8, 파트 순서를 지킨다.
+- 검증(실측)
+  - 요청 명령 6파일 51/51 통과. **불변 스냅샷은 해시 갱신 없이 통과**했다.
+  - `npm run check:fast` exit 0. 첫 실행은 sitemap 드리프트로 막혔고, 원장 재생성 뒤 다시 돌렸다.
+  - `npx tsc --noEmit` 오류 0.
+- 가정(골든·§6-3 에서 조정할 수 있다)
+  - `readingManifestV7` 에는 topic 인자가 없다. 목차는 (체계, 티어, 종류)로만 정한다.
+  - 소유 사슬(연어의 묶음 장 → 광어·참치의 분리 장)은 티어별 owns 로 암묵 표현했다.
+  - 시기 장이 없는 매니페스트(점성술·숙요·타로, 연어·광어 베다)의 비시기 장은 `timingRef:'none'`, 앵커도 `none` 이다.
+  - owns 에는 원장이 풀어야 할 파생 키가 있다: `yearlyLuck.Y0/Y1/Y2-9`, `monthlyLuck.M12`, `majorLuck.current/next/arc`, `natalInteractions.<기둥>`, `yearlyTimeline.*`, `minorLuck.*`, `vimshottariDasha.arc/next`, `aspects.tension/harmony/conjunction`, 숙요 `relationMap.<관계>`(원천 `personA`), 타로 `cards.<pos>`·`reading.*.<pos>`, 십신·신살 이름. **§6-3 원장이 이 키들을 실제 하위 ID 로 분해해야 한다.**
 
 ## Phase 0 세션 변경
 
@@ -309,19 +341,23 @@ next: "Phase 2 커밋 2 = reading-v7.ts(설계 §6-2: 카탈로그·v7Applies·r
 ## 롤백
 
 - Phase 0·1 모두 문서만 바꿨다. 각 커밋 하나를 `git revert` 하면 된다.
+- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)는 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다.
 
 ## 다음 단계
 
 1. ~~설계 §6-1 불변 스냅샷~~ 완료(위 "Phase 2 커밋 1 결과").
-2. 다음 세션(`[GREEN]` 새 순수 모듈 + 정적 테스트, 플래그 OFF 라 동작 경계 불변. 권장: 주력 모델 / effort high): 설계 §6-2 `reading-v7.ts` 한 커밋만 한다.
+2. ~~설계 §6-2 `reading-v7.ts`~~ 완료(위 "Phase 2 커밋 2 결과"). 아래 하위 항목은 기록용이다.
    - 카탈로그, `v7Applies`(플래그 인자 주입), `readingManifestV7`(순수), `withV7Sections`, `READING_V7_VERSION`·`hasReadingSections`·v7 정책 등록.
    - 정적 테스트 5종: 소유 충돌 0, 체계 안 단조성, `evidenceInputs` 실제 필드, 금지 요소 0, 원가 가드.
    - 끝나면 불변 스냅샷 테스트가 **갱신 없이** 통과해야 한다. `hasReadingSections` 등록이 v6 경로를 건드리면 여기서 잡힌다.
    - 그다음 세션부터 §6-3~7 을 한 커밋씩 한다. 플래그는 끝까지 OFF 다.
-3. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
+3. 다음 세션(`[GREEN]` 새 순수 모듈 + fixture 테스트, 플래그 OFF. 권장: 주력 모델 / effort high): 설계 §6-3 `reading-v7-ledger.ts` 한 커밋만 한다.
+   - 위 "가정"의 파생 owns 키를 체계별 fixture 차트의 실제 하위 ID 로 분해하고, 장마다 소유를 확정한다. 결정적이고 LLM 을 쓰지 않는다.
+   - `chapter-facts.ts` 의 v6 경로는 바꾸지 않는다. 불변 스냅샷은 갱신 없이 통과해야 한다.
+4. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 2(설계 §6-2 reading-v7.ts와 정적 테스트 5종)를 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
+D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 3(설계 §6-3 reading-v7-ledger.ts: 파생 owns 키의 하위 ID 분해·소유 확정과 체계별 fixture 테스트)을 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
 ```
