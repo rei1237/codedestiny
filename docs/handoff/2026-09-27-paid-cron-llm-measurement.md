@@ -1,18 +1,19 @@
 ---
 status: active
 updated: 2026-09-27
-next: "운영 DB 읽기 전용 집계 `node scripts/report-paid-narrative-cron-calls.mjs --db code_destiny`로 1A·1B 크론의 과금 LLM 호출 수 상한을 먼저 잰다(사용자가 허용 설정을 한다고 했다). 결과를 이 문서 1절에 적은 뒤 2절의 나머지 3단계 계측으로 간다."
+next: "먼저 프로덕션 승격 run 36313466265 결과와 Pages·Worker 버전이 `01dbf1fb3`인지 확인한다. 그다음 운영 DB 읽기 전용 집계 `node scripts/report-paid-narrative-cron-calls.mjs --db code_destiny`로 1A·1B 크론의 과금 LLM 호출 수 상한을 먼저 잰다(사용자가 허용 설정을 한다고 했다). 결과를 이 문서 1절에 적은 뒤 2절의 나머지 3단계 계측으로 간다."
 ---
 
 # 유료 결과 크론 LLM 호출 계측 — 3단계 이어받기
 
 상위 작업 문서는 [2026-09-27-paid-delivery-reliability](2026-09-27-paid-delivery-reliability.md)다. 승인·금지 경계(실결제·과금 LLM은 시험표 승인 후, 운영 DB 쓰기 금지)는 그 문서를 따른다. 이 문서는 3단계 중 **크론 호출 수·비용 측정**만 떼어 낸 것이다.
 
-## 현재 상태 (기준 `4e279db0f`, main CI·필수 PR CI 성공)
+## 현재 상태 (기준 `01dbf1fb3`, main CI·필수 PR CI 성공)
 
-- `f0182a579`: 서버 이어생성(`resumePaidNarrativeOnServer`)의 공급자 호출이 `[llm token_usage]` 로그에 `generationSource: server_initial|server_repair|server_recovery`로 찍힌다. 전에는 브라우저 재시도와 같은 라벨이라 크론 비용을 로그로도 분리할 수 없었다. `lib/payment/llm-cost-report.mjs`는 `server_repair/server_recovery`를 재시도 비용으로 센다. **프로덕션 미승격** — 운영 로그에 `server_*` 행이 나오려면 이 커밋 이후 SHA의 승격(별도 1회 승인)이 필요하다.
+- `f0182a579`: 서버 이어생성(`resumePaidNarrativeOnServer`)의 공급자 호출이 `[llm token_usage]` 로그에 `generationSource: server_initial|server_repair|server_recovery`로 찍힌다. 전에는 브라우저 재시도와 같은 라벨이라 크론 비용을 로그로도 분리할 수 없었다. `lib/payment/llm-cost-report.mjs`는 `server_repair/server_recovery`를 재시도 비용으로 센다.
+- **프로덕션 승격 실행(사용자 1회 승인, 2026-09-27):** `01dbf1fb3`(`f0182a579` 포함)을 [run 36313466265](https://github.com/rei1237/codedestiny/actions/runs/36313466265)로 dispatch 했다. 직전에 origin/main = `01dbf1fb3`·PR CI 성공(run 36312871011)을 확인했고 런 headSha 도 일치했다. 저장소 규칙대로 런을 폴링하지 않았다 — **런 결과와 Pages `/version.json`·Worker `/api/version` 일치는 다음 세션이 먼저 확인한다**(실패면 릴리스 잡이 양쪽을 자동 롤백하므로 `server_*` 로그 측정 전제도 무너진다).
 - 1A·1B 크론은 `9d2b30b8c` 승격(2026-09-27T05:06:19Z 커밋, run 36296950632)부터 프로덕션에서 돈다.
-- 운영 DB 읽기 전용 집계는 이전 세션에서 자동 모드 분류기(`Production Reads`)가 거부했다. 사용자가 허용하겠다고 했다 — 다음 세션은 허용된 상태에서 시작한다고 보고 실행하되, 다시 거부되면 우회하지 말고 보고한다.
+- 운영 DB 읽기 전용 집계는 이전 세션에서 자동 모드 분류기(`Production Reads`)가 거부했다. 사용자가 허용하겠다고 했으나, 승격을 요청받은 세션에서 다시 시도한 실행도 분류기가 거부했다(허용 규칙이 아직 없음). 다음 세션은 사용자가 Bash 허용 규칙을 넣었는지 확인한 뒤 실행하고, 또 거부되면 우회하지 말고 보고한다.
 
 ## 1. 크론 호출 수 — 운영 DB 읽기 전용 집계 (다음 세션 첫 작업)
 
