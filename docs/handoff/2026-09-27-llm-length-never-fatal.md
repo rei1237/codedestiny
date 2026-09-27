@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-27
-next: "P3 작명·천체 조화, P5 관계 궁합을 같은 세션에서 이어서 진행한다(사용자 지시: 끝까지 진행 후 운영 승격). 본문 20,000자 및 초융합 기존 가시 텍스트 30,000자 기준 유지."
+next: "P3·P5·잔여 재확인 구현 완료. 사용자의 운영 결제 테스트 결과를 받고, 아래 \"보고만\" 항목(기능 질문 한 문단 짧은 답 환불, 섬·관계 조기 retryable:false 등)의 후속 여부를 결정한다."
 ---
 
 # 모든 유료 LLM: 분량 미달로 전달이 막히지 않게 (단계 계획)
@@ -166,6 +166,27 @@ next: "P3 작명·천체 조화, P5 관계 궁합을 같은 세션에서 이어�
 - 보고만(범위 밖): `candidate || body`가 completeBody 실패 긴 본문 대신 초안을 고를 수 있음(fail-closed); `paid-flow-gates.yml` 트리거가 `guardian-paid-delivery.js`·공통 엔진·후보 파일을 포함하지 않음; 202 검토 응답에 초안 result가 실림(클라이언트는 ok:false면 렌더하지 않음).
 - 수정 파일: `paid-narrative-delivery.js`, `paid-narrative-candidate.js`, `guardian-paid-delivery.js`, `guardian-fortune-llm.js`, `guardian-fortune-result.js`, 수호 회귀 테스트 2개, 이 문서.
 
+## P3 작명·천체 조화, P5 관계 궁합, 잔여 재확인 구현 (2026-09-27)
+
+공통 규칙(네 묶음 동일): 근거·반복·구조 검사를 통과했지만 하한 미달인 파트는 `short` 표식과 함께 초안으로 저장한다. 다음 호출 전에 `attempts["<id>:lengthRepair"]=1` 을 먼저 저장하고, 보강 프롬프트에 `[저장된 초안 보완]` 과 초안을 싣는다. 파트는 하한 충족·보강 1회 소진·3회 시도 중 하나면 수용한다. 더 짧은 보강본은 긴 초안을 덮지 않는다. 반복 검사는 자기 초안을 제외한다. 전 파트 수용 후 총합 20,000자 미만이면 짧은 파트가 남은 시도를 쓰고, 그래도 미달이면 부분 결과로 보류(retryable:false, 환불·차감 없음)한다.
+
+- 작명 `naming-report-delivery.js`: 장 하한 2,500·목표 3,200 상수화. 검증기 표는 `const NAMING_CHAPTER_MIN_CHARS = 2500;` 을 추적한다. 테스트 20/20.
+- 천체 조화 `celestial-report-delivery.js`: 카드·요약은 필드 존재(목록 3개 이상·근거 대조 포함)만 요구하고 짧음은 표식으로 기록한다. 테스트 28/28.
+- 관계 궁합(P5) `relationship-report-delivery.js`: 본문 파트 2,000자 미만은 초안이다. 구조 무효 3회(`knownFailed`) 환불은 유지한다(fail-closed). 길이는 더 이상 무효가 아니다. 검증기 표는 `const RELATIONSHIP_PART_MIN_CHARS = 2000;` 을 추적한다. 테스트 30/30.
+- 섬(자미 궁 상담) `ziwei-island-ai.js`·`palace-delivery.js`: 파트 하한(2,500)은 이제 LLM 캐시만 막는다. 읽을 수 있는 짧은 파트(300자 이상 JSON)는 초안이다. `validPalacePart(..., { allowShort })` 로 나머지 검사는 그대로다. 테스트 28/28, 품질 node 3/3.
+- 애니멀 토템 `animal-totem.js`: 유료 producer만 `mergeNarrative(..., { shortBody: true })` 로 짧은 깨끗한 답을 초안으로 둔다. 어댑터 `measureBody`=question_answer 밀도 길이, `completeBody`=답 존재. 보강 1회 뒤에도 짧으면 긴 초안을 저장한 채 검토 보류(수호 운세와 같은 단일 파트 정책). 무료 병합·하한 450/800 유지. 테스트 33/33, verify-animal-totem-reading PASS.
+- 변이: 관계(lengthRepair 수용 제거 1 실패, 자기 초안 제외 제거 추가 실패), 섬(lengthRepair 제거 1 실패, 렌더 하한 되돌림 3 실패), 토템(shortBody 제거 2 실패) 후 복원.
+- 잔여 재확인(코드 읽기, 실호출 0):
+  - 초융합 복구: 총합 미달은 부분 저장 + `reviewRequired`. 정책과 일치.
+  - 찻집 체크포인트: 그룹 단위 초안·1회 보강은 이미 있다. 총합 미달은 짧은 그룹이 남은 시도를 쓴 뒤 `retryable:false` + `completedSections` 본문 제공으로 보류. 정책과 일치(상태 이름만 generating). 필드 절단 상한이 각 하한보다 높아 절단이 하한을 깨지 않는다(추정).
+  - 반려동물·전문가 후속: 엔진 초안·검토 보류 경로. 토큰 충분.
+- 보고만(범위 밖·미수정):
+  - fortune.js 기능 질문(자미·숙요, `feature-question-delivery.js`): 짧은 본문은 `completeNarrativeBody`(2문단 이상·문장부호 종결) 통과 시에만 초안이 된다. 짧은 한 문단 답이 3회 이어지면 자동 환불로 끝난다. P1 공통 엔진 규칙이며 테스트가 고정한다. 환불이라 고객 손실은 없다.
+  - 카르마 후속 `karma-destiny-ai.js:1647` 180자 미만 throw(후속 답만, 검토 보류).
+  - 섬·관계·작명·천체의 `limited`: 한 파트가 3회 실패로 비면 다른 파트가 아직 남아도 retryable:false 가 된다(기존 동작, 길이 무관).
+  - 작명 무작업 재개 시 상태가 generating 으로 보임(기존 claim 동작).
+- 수정 파일: 위 서비스 파일, 각 회귀 테스트, `verify-llm-generation-resilience.mjs`(표 2줄), 이 문서.
+
 ## 전수 조사 (2026-09-27, P1 구현 전 스냅샷·실호출 0)
 
 - 방식: `git grep`/코드 읽기.
@@ -240,9 +261,9 @@ next: "P3 작명·천체 조화, P5 관계 궁합을 같은 세션에서 이어�
 |---|---|---|---|
 | **P1 구현 완료** | `paid-narrative-delivery.js` (11개 서비스) | 선행 초안/마지막 수용을 유지하고 반복 보강본의 초안 차단을 수정. 섬 캐시에 파트 `minChars` 연결. | 핵심 mock 73개·변이 5종 통과. 위 P1 검증·전달 기록 참조. |
 | **P2 구현 완료** | 토큰 부족 3곳 + 신년 | 숙요 궁합 base ≥ 12,375, 하한 = 목표 하한×0.8. 수호 ≥ 7,650(env 범위 포함)과 주석 수정. 초융합 환산을 `tokensRequiredForChars` 로 교체. 신년 여유 확대. | `verify-llm-generation-resilience` 확장. 각 라우트 mock 테스트. |
-| **P3 진행 중** | 일곱 묶음으로 초융합 포함 17개 대형 리포트 경로 + 수호 운세 구현. 작명·천체 조화는 잔여 | 짧은 유효 초안 보존·기존 예산 내 1회 보강·마지막 개별 분량 수용. 기존 총합 하한 유지. 수호 운세의 producer 거절과 별도 구조화 어댑터를 다음 묶음으로 연결한다. | 묶음별 mock·전달 기록 및 P4의 잔여 재확인 참조. |
+| **P3 구현 완료** | 일곱 묶음으로 초융합 포함 17개 대형 리포트 경로 + 수호 운세·작명·천체 조화, 잔여 재확인으로 섬·애니멀 토템 | 짧은 유효 초안 보존·기존 예산 내 1회 보강·마지막 개별 분량 수용. 기존 총합 하한 유지. 수호 운세의 producer 거절과 별도 구조화 어댑터를 다음 묶음으로 연결한다. | 묶음별 mock·전달 기록 및 P4의 잔여 재확인 참조. |
 | **P4 구현** | 형식 교정 | 연애 타로 4문단·마인드스캔 10문단 분할·병합, 질문형 종결부호 정규화, 영냥이 필드 5000자 분할. 본문·출처·배열/필드 계약 유지. | 단위·producer·저장 재열람 mock 회귀 및 main CI. |
-| **P5** | 구조 | 관계 궁합이 한 파트 실패로 전체 환불되는 구조를 부분 수용 + 재시도로 바꾼다. 총합 20,000자 정책은 사용자 결정대로 유지한다. | 기존 총합 유지하며 설계. |
+| **P5 구현 완료** | 구조 | 관계 궁합이 한 파트 실패로 전체 환불되는 구조를 부분 수용 + 재시도로 바꾼다. 총합 20,000자 정책은 사용자 결정대로 유지한다. | 기존 총합 유지하며 설계. |
 
 각 단계 공통 절차:
 
@@ -260,4 +281,4 @@ next: "P3 작명·천체 조화, P5 관계 궁합을 같은 세션에서 이어�
 
 ## 다음 세션 첫 문장
 
-"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md의 P3 수호 운세 묶음과 이후 기록을 읽고 main·기존 미커밋 변경 보존·git pull --ff-only를 확인한 뒤, 남은 작명·천체 조화·P5 관계 궁합을 이어서 진행하라. 본문 20,000자와 초융합 기존 가시 텍스트 30,000자 기준을 유지하라."
+"D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-llm-length-never-fatal.md의 'P3 작명·천체 조화, P5 관계 궁합, 잔여 재확인 구현' 절을 읽고 main·clean·git pull --ff-only를 확인한 뒤, 사용자의 운영 결제 테스트 결과와 보고만 항목의 후속 여부를 정하라. 본문 20,000자와 초융합 기존 가시 텍스트 30,000자 기준을 유지하라."

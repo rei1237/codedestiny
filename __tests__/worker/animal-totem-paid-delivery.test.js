@@ -65,3 +65,20 @@ test('initial and resumed payment rejection prevent provider execution',async()=
 test('concurrent requests share the lease and original locale',async()=>{
  const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const pause=new Promise(resolve=>{release=resolve;}),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await pause;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&!provider.mock.calls.length;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();expect((await first).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);expect(locales).toEqual(['ja']);
 });
+// A clean answer under its floor is a draft that its one repair receives, not an empty result.
+test('a short but valid answer is kept as a draft and its one repair receives it',async()=>{
+ const base=provider.getMockImplementation();let repairPrompt='';
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);
+  if(args[1].includes('[저장된 초안 보완]'))repairPrompt=args[1];else value.question_answer=prose('초안표식',2);
+  return {...ai,text:JSON.stringify(value)};});
+ expect((await start()).status).toBe(202);expect(docs[0].metadata.paidNarrative.drafts.narrative).toContain('초안표식');
+ expect((await resume()).status).toBe(200);expect(repairPrompt).toContain('초안표식');expect(provider).toHaveBeenCalledTimes(2);
+});
+test('a still-short repair keeps the longer draft and is held for review without refund',async()=>{
+ const base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);
+  value.question_answer=prose(args[1].includes('[저장된 초안 보완]')?'보강표식':'초안표식',args[1].includes('[저장된 초안 보완]')?3:2);return {...ai,text:JSON.stringify(value)};});
+ await start();const held=await resume();expect(held.status).toBe(202);expect(await held.json()).toMatchObject({retryable:false});
+ expect(docs[0].metadata.paidNarrative.parts.narrative).toContain('보강표식');expect(docs[0].status).not.toBe('completed');
+ await resume();expect(provider).toHaveBeenCalledTimes(2);
+});
