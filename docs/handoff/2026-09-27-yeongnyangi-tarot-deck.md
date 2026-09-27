@@ -640,6 +640,8 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **기계 검증**: `node tools/verify-selection.mjs` → `PASS:22 unique fronts, backC, crown12, back180 pixel diff0`. 00–21 각1장·앞면 해시22개 고유·전부1024×1536·SVG 별12개·C 180° 픽셀 차0. 원장 빌드 → 다른 phase32줄 보존, phase3 52줄/채택19/원본RGBA0/파생1. 합성본은 불투명 RGBA다.
 - **세트 실측**: 평균 상대휘도(sRGB 선형화)는 6 연인0.469로 가장 밝다. 3 여황제0.348·20 심판0.326, 19 태양0.252, 12 매달린 자0.088·15 악마0.058. 기존9·11 큰 얼굴, 새19 작은 기승 인물도 함께 비교한다. 기존 채택본은 임의 재생성하지 않았다.
 - **사용자 확인**: 22장 전체 스타일 승인; 6 밝기·9/11 크기, 여황제 작은12별 왕관·악마 그림자 표현, 12/17/20/21 주변 가림. 예산24회를 소진했으므로 추가 재생성은 대상·새 예산을 정한 후 진행한다. 승인 후 Phase4a 파생 이미지 저장 위치(`public/` vs R2)를 결정한다.
+- **재개·전달 근거**: 산출물 커밋 `438ce4f7c`(원장24줄·바이블·보고). `npm run check:fast -- --plan` → fast、`npm run check:fast` → whitespace/문서 freshness 통과、JSONL 파싱 →84줄 고유. main 직접 반영→push→해당 SHA의 GitHub `CI required` 확인 절차로 전달한다. push/CI 실결과는 세션 최종 보고에 기록하며, 문서 자체를 push 성공 증거로 해석하지 않는다.
+- **재개 지시**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `438ce4f7c` 포함 여부 및 문서 마지막 커밋을 확인한 뒤, `D:\Development\yeongnyangi-tarot-art\phase3a\contact\phase3a2-contact.png`의 전체22장 승인 검토부터 이어간다. 사용자 승인 전 Phase4a/3b는 시작하지 않는다.
 
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 
