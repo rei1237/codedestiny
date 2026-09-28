@@ -47,12 +47,14 @@ await new Promise(done => server.listen(0, '127.0.0.1', done));
 const origin = remoteBase || `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
 const evidence = [];
+const apiRequests = [];
 let fixtureSignedIn = false;
 try {
   const context = await browser.newContext({ viewport: {width:390,height:844}, reducedMotion:'reduce', serviceWorkers:'block' });
   await context.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith('/api/')) {
+      apiRequests.push(url.pathname);
       const payload = url.pathname === '/api/billing/features' ? {legacyFeatureTable:[{featureKey:'saju_ai_question_prompt',amountKRW:10000,cost:100}]} : {ok:true,user:fixtureSignedIn ? {id:'ux-fixture-owner'} : null,unlocks:[],profiles:[],data:null};
       return route.fulfill({contentType:'application/json',body:JSON.stringify(payload)});
     }
@@ -121,14 +123,18 @@ try {
     await page.setViewportSize({width:390,height:900});
     await page.evaluate(() => { document.documentElement.style.fontSize='200%'; });
     assert.ok(await page.locator('#sajuQuestionPromptGeneratorCard').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
-    await page.evaluate(() => { document.documentElement.style.fontSize=''; document.body.classList.add('neo-mode'); });
+    await page.evaluate(() => { document.documentElement.style.fontSize=''; });
+    await page.locator('[data-saju-ai-mode-button][data-saju-mode="neo"]').click();
+    await page.waitForFunction(() => document.getElementById('sajuQuestionPromptGeneratorCard')?.dataset.readingMode === 'neo');
     await capture(page.locator('#sajuConsultationEntry'), resolve(output,'entry-neo-390.png'));
-    await page.evaluate(() => { document.body.classList.remove('neo-mode'); });
+    await page.waitForTimeout(500);
+    await page.locator('[data-saju-ai-mode-button][data-saju-mode="pig"]').click();
+    await page.waitForFunction(() => document.getElementById('sajuQuestionPromptGeneratorCard')?.dataset.readingMode === 'pig');
     fixtureSignedIn = true;
     await page.evaluate((reviewedText) => {
       localStorage.setItem('fortune_auth_user',JSON.stringify({id:'ux-fixture-owner'}));
       const titles=['질문에 대한 핵심 답변','이 명식의 중심 성향','십성 구조 해석','오행 균형 해석','현재 고민과 명식의 연결','일/돈/관계/연애/건강 리듬','대운의 전환점','올해의 흐름','조심해야 할 패턴','살리는 전략','30일 실천 가이드','마지막 한마디'];
-      window._sajuPromptStoreSavedResult({profileId:window._sajuPromptResolveProfileId(),resultId:'mock-consultation-ux',status:'completed',saved:true,resultText:reviewedText || titles.map((title,i)=>'## '+(i+1)+'. '+title+'\n이 문단은 화면 검증용 대역입니다. 실제 AI 상담의 품질을 증명하지 않습니다.\n서로 다른 조건과 선택 기준을 짧은 문단으로 읽을 수 있는지 확인합니다.').join('\n')});
+      window._sajuPromptStoreSavedResult({profileId:window._sajuPromptResolveProfileId(),resultId:'mock-consultation-ux',requestId:'mock-request',status:'completed',saved:true,resultText:reviewedText || titles.map((title,i)=>'## '+(i+1)+'. '+title+'\n이 문단은 화면 검증용 대역입니다. 실제 AI 상담의 품질을 증명하지 않습니다.\n서로 다른 조건과 선택 기준을 짧은 문단으로 읽을 수 있는지 확인합니다.').join('\n'),personaSummaries:{version:1,yeoni:{letter:'지금의 질문을 서두르지 않고 바라보면, 명식이 보여 준 선택 기준을 내 마음의 속도에 맞춰 확인할 수 있어요.',action:'오늘 가장 중요한 조건 하나를 종이에 적어보세요.'},neo:{conclusion:'지금은 결론을 서두르기보다 선택 기준을 먼저 고정할 때입니다.',basis:'공통 상담문에 제시된 일간과 오행 균형, 시기 흐름을 기준으로 판단했습니다.',caution:'실제 역할과 일정, 상대의 답변이 달라지면 판단도 다시 점검해야 합니다.',nextCheck:'역할, 보상, 일정, 상대의 답변 순서로 확인하세요.'}}});
       window._mountSajuQuestionPromptCard();
     }, reviewedResult);
     await page.locator('[data-saju-ai-archive]').click();
@@ -136,9 +142,22 @@ try {
     assert.equal(await page.locator('.consultation-contents a').count(),7);
     for (const width of [360,390,430,1440]) {
       await page.setViewportSize({width,height:900});
-      await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
+      await page.waitForTimeout(600);
+      await page.locator('[data-saju-ai-output-panel]').evaluate(el=>{el.scrollIntoView({block:'start',behavior:'instant'});window.scrollBy({top:-120,behavior:'instant'});});
       assert.ok(await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
-      await capture(page, resolve(output,'result-'+width+'.png'));
+      await capture(page, resolve(output,'result-yeoni-'+width+'.png'));
+      const requestCountBeforeModeChange=apiRequests.length;
+      await page.waitForTimeout(500);
+      await page.locator('[data-saju-ai-mode-button][data-saju-mode="neo"]').click();
+      await page.waitForFunction(() => document.getElementById('sajuQuestionPromptGeneratorCard')?.dataset.readingMode === 'neo');
+      await page.waitForTimeout(600);
+      await page.locator('[data-saju-ai-output-panel]').evaluate(el=>{el.scrollIntoView({block:'start',behavior:'instant'});window.scrollBy({top:250,behavior:'instant'});});
+      assert.equal(apiRequests.length,requestCountBeforeModeChange,'화자 전환은 API 요청을 만들면 안 된다');
+      assert.equal(await page.locator('[data-saju-ai-output-text]').textContent().then(text=>text.includes('화면 검증용 대역')),true);
+      await capture(page, resolve(output,'result-neo-'+width+'.png'));
+      await page.waitForTimeout(500);
+      await page.locator('[data-saju-ai-mode-button][data-saju-mode="pig"]').click();
+      await page.waitForFunction(() => document.getElementById('sajuQuestionPromptGeneratorCard')?.dataset.readingMode === 'pig');
       if (reviewedResult) {
         await page.locator('.consultation-chapter').nth(7).evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
         await capture(page, resolve(output,'result-chapter8-'+width+'.png'));

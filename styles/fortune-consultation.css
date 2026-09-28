@@ -31,12 +31,23 @@ body.neo-mode .consultation-saju {
 .consultation-saju :is(button, a, summary, textarea, input):focus-visible { outline: 3px solid var(--consult-accent); outline-offset: 3px; }
 .consultation-saju a { color: var(--consult-accent); text-underline-offset: .2em; }
 .consultation-saju ::selection { background: var(--consult-accent); color: var(--consult-paper); }
+.consultation-saju [data-saju-ai-mode-content] { display: none; }
+.consultation-saju[data-reading-mode="pig"] [data-saju-ai-mode-content="pig"],
+.consultation-saju[data-reading-mode="neo"] [data-saju-ai-mode-content="neo"] { display: block; }
+.consultation-saju[data-reading-mode="neo"] .consultation-entry__visual--neo { display: grid; align-items: center; }
 .consultation-entry { position: relative; isolation: isolate; display: grid; min-height: clamp(430px, 42vw, 520px); align-items: center; padding: clamp(32px, 5vw, 64px); background: #281622; }
 .consultation-entry::after { position: absolute; z-index: 3; inset: 12px; border: 1px solid rgba(255, 241, 224, .26); border-radius: calc(var(--cd-r-section, 26px) - 10px); pointer-events: none; content: ""; }
 .consultation-entry__visual { position: absolute; z-index: 0; inset: 0; display: block; overflow: hidden; }
 .consultation-entry__visual::after { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(35, 17, 29, .97) 0%, rgba(35, 17, 29, .86) 38%, rgba(35, 17, 29, .16) 70%, rgba(35, 17, 29, .04) 100%); content: ""; }
 .consultation-entry__art { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.consultation-entry__visual--neo { background: radial-gradient(circle at 76% 48%, #4e405d 0, #251d31 36%, #15101d 72%); }
+.consultation-entry__art--neo { width: min(38vw, 430px); height: auto; margin: auto clamp(24px, 8vw, 110px) auto auto; border-radius: 20px; object-fit: contain; filter: drop-shadow(0 24px 34px rgba(0, 0, 0, .38)); }
 .consultation-entry__copy { position: relative; z-index: 2; width: min(62%, 600px); color: #fff8ef; }
+.consultation-mode { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px; padding: 4px; border: 1px solid rgba(255, 241, 224, .28); background: rgba(30, 17, 27, .62); }
+.consultation-mode button { min-width: 92px; min-height: 44px; padding: 8px 14px; border: 0; color: rgba(255, 248, 239, .74); background: transparent; font-weight: 760; }
+.consultation-mode button[aria-pressed="true"] { color: #3a1e2d; background: #fff4e6; box-shadow: 0 4px 14px rgba(0, 0, 0, .2); }
+.consultation-mode__status { margin: -10px 0 14px; color: rgba(255, 248, 239, .74); font-size: .76rem; }
+.consultation-mode__status:empty { display: none; }
 .consultation-entry__eyebrow { margin: 0 0 18px; color: #f2cf9d; font-size: .78rem; font-weight: 750; letter-spacing: .13em; }
 .consultation-entry h3 { margin: 0 0 18px; color: #fff9f2; font: inherit; font-size: clamp(2rem, 4vw, 3rem); font-weight: 760; letter-spacing: -.04em; line-height: 1.16; text-wrap: balance; }
 .consultation-entry p { overflow-wrap: anywhere; }
@@ -82,13 +93,48 @@ body.neo-mode .consultation-saju {
 .consultation-report .consultation-chapter { padding: 24px 16px; scroll-margin-top: 24px; border-top: 1px solid #ddc7d3; }
 .consultation-report .consultation-chapter h4 { font-size: 1.2rem; line-height: 1.5; margin: 0 0 16px; }
 .consultation-report .consultation-chapter p { margin: 0 0 1.15em; font-size: 1rem; line-height: 1.85; overflow-wrap: anywhere; }
+.consultation-persona { max-width: 72ch; margin: 18px auto 10px; border: 1px solid #ddc7d3; background: #fffaf5; color: #392b33; }
+.consultation-persona h4 { margin: 4px 0 14px; font-size: 1.16rem; line-height: 1.5; }
+.consultation-persona__kicker { margin: 0; color: #8e174d; font-size: .72rem; font-weight: 800; letter-spacing: .08em; }
+.consultation-persona--yeoni > summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: center; padding: 16px 18px; cursor: pointer; list-style: none; }
+.consultation-persona--yeoni > summary::-webkit-details-marker { display: none; }
+.consultation-persona--yeoni > summary::after { grid-column: 2; grid-row: 1 / span 2; color: #8e174d; font-size: 1.15rem; content: "+"; }
+.consultation-persona--yeoni[open] > summary::after { content: "−"; }
+.consultation-persona--yeoni > summary span { font-weight: 800; }
+.consultation-persona--yeoni > summary small { grid-column: 1; color: #755866; font-size: .76rem; }
+.consultation-persona__letter { padding: 4px 18px 18px; }
+.consultation-persona__letter > p { margin: 0; line-height: 1.9; }
+.consultation-persona__action { display: grid; gap: 6px; margin-top: 16px !important; padding: 14px; border: 1px solid #e7b9cb; background: #fff1f6; }
+.consultation-persona__action strong { color: #8e174d; font-size: .78rem; }
+.consultation-persona--neo { padding: 18px; border-color: #766586; background: #201927; color: #f6edf9; }
+.consultation-persona--neo .consultation-persona__kicker { color: #e7d39b; }
+.consultation-persona--neo dl { display: grid; gap: 1px; margin: 0; background: #5a4a66; }
+.consultation-persona--neo dl > div { display: grid; grid-template-columns: minmax(84px, 112px) minmax(0, 1fr); gap: 12px; padding: 12px; background: #28202f; }
+.consultation-persona--neo dt { color: #e7d39b; font-size: .78rem; font-weight: 800; }
+.consultation-persona--neo dd { margin: 0; line-height: 1.7; overflow-wrap: anywhere; }
+.consultation-persona--legacy { padding: 18px; }
+.consultation-persona--legacy > p { margin: 8px 0 0; }
+.consultation-persona__legacy-preview { padding-top: 10px; border-top: 1px solid #ddc7d3; color: #715267; }
+.consultation-saju[data-reading-mode="neo"] .consultation-report { background: #17121d; color: #f4eafa; }
+.consultation-saju[data-reading-mode="neo"] .consultation-report > header,
+.consultation-saju[data-reading-mode="neo"] .consultation-report .consultation-chapter { border-color: #65506f; }
+.consultation-saju[data-reading-mode="neo"] .consultation-report__actions button { border-color: #766586; background: #21182b; color: #f4eafa; }
+.consultation-saju[data-reading-mode="neo"] .consultation-report .consultation-contents a { color: #ead69c; }
 @media (max-width: 759px) {
   .consultation-entry { display: block; min-height: 0; padding: 0; background: var(--consult-paper); }
   .consultation-entry::after { inset: 8px; border-color: rgba(255, 255, 255, .32); border-radius: calc(var(--cd-r-section, 26px) - 6px); }
   .consultation-entry__visual { position: relative; aspect-ratio: 16 / 10; }
   .consultation-entry__visual::after { background: linear-gradient(180deg, transparent 54%, rgba(35, 17, 29, .5) 100%); }
   .consultation-entry__art { object-position: 58% center; }
+  .consultation-entry__visual--neo { display: grid !important; place-items: center; }
+  .consultation-saju[data-reading-mode="pig"] .consultation-entry__visual--neo { display: none !important; }
+  .consultation-entry__art--neo { width: min(66vw, 280px); margin: 10px auto 0; object-position: center; }
   .consultation-entry__copy { width: auto; padding: 24px 20px 26px; color: var(--consult-ink); background: var(--consult-paper); }
+  .consultation-mode { margin-bottom: 14px; border-color: var(--consult-line); background: color-mix(in srgb, var(--consult-paper) 88%, var(--consult-accent)); }
+  .consultation-mode button { color: var(--consult-muted); }
+  .consultation-mode button[aria-pressed="true"] { color: #fff; background: var(--consult-accent); }
+  .consultation-saju[data-reading-mode="neo"] .consultation-mode button[aria-pressed="true"] { color: #fff; background: #71558f; }
+  .consultation-mode__status { color: var(--consult-muted); }
   .consultation-entry__eyebrow { margin-bottom: 12px; color: var(--consult-accent); font-size: .72rem; }
   .consultation-entry h3 { margin-bottom: 14px; color: var(--consult-ink); font-size: clamp(1.85rem, 9vw, 2.45rem); }
   .consultation-entry__lead { margin-bottom: 18px; color: var(--consult-muted); font-size: .94rem; }
@@ -101,8 +147,11 @@ body.neo-mode .consultation-saju {
   .consultation-entry__price span { margin-top: 2px; color: var(--consult-muted); }
   .consultation-entry .consultation-primary { width: 100%; }
   .consultation-saju .consultation-primary { border-color: var(--consult-accent); color: #fff9fc; background: var(--consult-accent); box-shadow: 0 10px 24px rgba(125, 24, 70, .18); }
+  .consultation-saju[data-reading-mode="neo"] .consultation-primary { color: #21182b; }
   .consultation-entry__note { grid-column: auto; margin: 0; color: var(--consult-muted); text-align: center; }
   .consultation-form__body { padding-inline: 20px; }
+  .consultation-persona { margin-inline: 12px; }
+  .consultation-persona--neo dl > div { grid-template-columns: 1fr; gap: 4px; }
 }
 @media (prefers-reduced-motion: reduce) { .consultation-saju { scroll-behavior: auto; } .consultation-saju .consultation-primary { transition: none; } }
 

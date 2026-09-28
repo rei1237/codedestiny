@@ -6,21 +6,23 @@ const ts = require('typescript');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('js/saju-engine.js', 'utf8');
 const ast = ts.createSourceFile('saju.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-const names = new Set(['_bindSajuQuestionPromptCard', '_sajuPromptOwnerId', '_sajuPromptPendingStorageKey', '_sajuPromptStorePendingJob', '_sajuPromptReadPendingJob', '_sajuPromptClearPendingJob', '_sajuPromptSavedResultsKey', '_sajuPromptReadSavedResult', '_sajuPromptStoreSavedResult', '_sajuPromptRenderChapters', '_sajuPromptBuildResultSummaryHtml', '_sajuPromptChapterTitle', '_sajuPromptEscapeHtml']);
+const names = new Set(['_bindSajuQuestionPromptCard', '_sajuPromptOwnerId', '_sajuPromptPendingStorageKey', '_sajuPromptStorePendingJob', '_sajuPromptReadPendingJob', '_sajuPromptClearPendingJob', '_sajuPromptSavedResultsKey', '_sajuPromptReadSavedResult', '_sajuPromptStoreSavedResult', '_sajuPromptRenderChapters', '_sajuPromptReadPersonaMode', '_sajuPromptReadPersonaSummary', '_sajuPromptBuildPersonaSummaryText', '_sajuPromptBuildResultSummaryHtml', '_sajuPromptBuildCopyText', '_sajuPromptBuildShareText', '_sajuPromptChapterTitle', '_sajuPromptEscapeHtml']);
 const code = ast.statements.filter(n => ts.isFunctionDeclaration(n) && names.has(n.name?.text)).map(n => n.getText(ast)).join('\n');
 function setup() {
-  const fields = ['question', 'count', 'generate', 'regenerate', 'resume', 'archive', 'output', 'output-panel', 'output-text', 'copy-result', 'save-result', 'share-result', 'reset-result', 'save-state', 'status'];
-  const dom = new JSDOM('<main>' + fields.map(key => `<${key === 'question' || key === 'output' ? 'textarea' : 'button'} data-saju-ai-${key}></${key === 'question' || key === 'output' ? 'textarea' : 'button'}>`).join('') + '</main>', { url: 'https://mock.invalid', pretendToBeVisual: true });
+  const fields = ['question', 'count', 'generate', 'regenerate', 'resume', 'archive', 'output', 'output-panel', 'output-text', 'copy-result', 'save-result', 'share-result', 'reset-result', 'save-state', 'status', 'result-summary', 'result-question', 'result-basis', 'mode-status'];
+  const dom = new JSDOM('<input id="themeCheckbox" type="checkbox"><main data-reading-mode="pig">' + fields.map(key => `<${key === 'question' || key === 'output' ? 'textarea' : key.startsWith('result-') || key === 'output-text' || key === 'mode-status' ? 'div' : 'button'} data-saju-ai-${key}></${key === 'question' || key === 'output' ? 'textarea' : key.startsWith('result-') || key === 'output-text' || key === 'mode-status' ? 'div' : 'button'}>`).join('') + '<button data-saju-ai-mode-button data-saju-mode="pig"></button><button data-saju-ai-mode-button data-saju-mode="neo"></button></main>', { url: 'https://mock.invalid', pretendToBeVisual: true });
   const w = dom.window;
   w.localStorage.setItem('fortune_auth_user', JSON.stringify({ id: 'owner' }));
   w.HTMLElement.prototype.scrollIntoView = function() {};
   const posts = [];
+  const copies = [];
   let respond = async () => ({ ok: true, status: 200, payload: { ok: true, status: 'completed', saved: true, resultId: 'r', resultText: '1. 질문에 대한 핵심 답변\n완성된 상담입니다.' } });
   const ctx = {
     window: w, document: w.document, localStorage: w.localStorage, sessionStorage: w.sessionStorage, navigator: w.navigator,
     console, Date, setTimeout: (fn) => setTimeout(fn, 0), clearTimeout, setInterval: () => 1, clearInterval() {},
     _sajuEngineCurrentLang: () => 'ko', _sajuPromptBindCalibrationSection() {}, _sajuPromptResolveProfileId: () => 'p',
     _sajuPromptSetStatus: (el, text) => { el.textContent = text; }, _sajuPromptReadDomain: () => 'life_direction',
+    _sajuPromptCopyText: async text => { copies.push(text); }, _sajuPromptToast() {},
     _sajuPromptApiUrls: () => ['https://mock.invalid/create'], _sajuPromptReadPrivacy: () => ({}),
     _sajuPromptBuildResultSummaryHtml: () => '', _sajuPromptBuildQuestionHtml: () => '', _sajuPromptBuildBasisHtml: () => '',
     _sajuPromptFetchStatus: async () => ({ ok: true, status: 202, payload: { status: 'partial', jobId: 'job', resultId: 'r', completedChapters: [1, 2], resultText: '1. 질문에 대한 핵심 답변\n저장된 첫 챕터입니다.' } }),
@@ -31,7 +33,7 @@ function setup() {
   vm.createContext(ctx); vm.runInContext(code, ctx);
   const root = w.document.querySelector('main');
   ctx._sajuPromptStorePendingJob({ profileId: 'p', jobId: 'job', requestId: 'original', question: '저장된 질문입니다', paidEvidence: { requestId: 'original' } });
-  return { ctx, w, root, posts, respond: fn => { respond = fn; }, bind: () => ctx._bindSajuQuestionPromptCard(root), close: () => { w._sajuPromptLocaleCleanup?.(); w.close(); } };
+  return { ctx, w, root, posts, copies, respond: fn => { respond = fn; }, bind: () => ctx._bindSajuQuestionPromptCard(root), close: () => { w._sajuPromptLocaleCleanup?.(); w.close(); } };
 }
 const tick = () => new Promise(resolve => setTimeout(resolve, 30));
 
@@ -178,13 +180,58 @@ test('question draft is scoped to the current owner and profile', () => {
 });
 
 
-test('result preview shows the first paragraph without headings or later chapter text', () => {
+test('legacy result opens as the previous format without regeneration', () => {
   const h=setup();
   const preview=h.ctx._sajuPromptBuildResultSummaryHtml({resultText:'## 1. 질문에 대한 핵심 답변\n먼저 **역할과 보상**을 확인하세요. <script>\n## 2. 이 명식의 중심 성향\n뒤 챕터의 본문입니다.'});
-  assert.match(preview,/상담 첫 문단/);
+  assert.match(preview,/이전 형식의 상담문/);
   assert.match(preview,/먼저 역할과 보상을 확인하세요/);
   assert.ok(!preview.includes('##') && !preview.includes('뒤 챕터') && !preview.includes('<script>'));
   assert.ok(h.ctx._sajuPromptBuildResultSummaryHtml({resultText:'과거 단일 본문'}).includes('과거 단일 본문'));
+  h.close();
+});
+
+test('persona mode changes only presentation and copy while preserving the paid result and input state', async () => {
+  const h=setup();
+  h.ctx._sajuPromptClearPendingJob('p');
+  const payload={
+    profileId:'p', resultId:'same-result', requestId:'same-request', question:'이직 기준을 알려주세요', domain:'career',
+    resultText:'1. 질문에 대한 핵심 답변\n공통 12챕터 상담문입니다.',
+    factSnapshot:{dayMaster:{stem:'甲'}}, analysisBasis:{groups:[{title:'기준',items:[{label:'일간',value:'甲'}]}]},
+    personaSummaries:{version:1,yeoni:{letter:'마음을 먼저 살펴보는 연이 편지입니다.',action:'조건 하나를 적어보세요.'},neo:{conclusion:'결론부터 확인합니다.',basis:'같은 일간 甲 근거입니다.',caution:'현실 조건이 다르면 재검토합니다.',nextCheck:'역할과 보상을 확인합니다.'}}
+  };
+  assert.equal(h.ctx._sajuPromptStoreSavedResult(payload),true);
+  const storedBefore=JSON.parse(h.w.localStorage.getItem(h.ctx._sajuPromptSavedResultsKey('p')));
+  assert.deepEqual(storedBefore.personaSummaries,payload.personaSummaries);
+  assert.deepEqual(storedBefore.analysisBasis,payload.analysisBasis);
+  h.bind();
+  h.root.querySelector('[data-saju-ai-archive]').click();
+  h.root.querySelector('[data-saju-ai-question]').value='작성 중인 새 질문';
+  assert.match(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/연이의 마무리 편지/);
+  assert.equal(h.root.querySelector('.consultation-persona--yeoni').open,true);
+  assert.equal(h.root.querySelector('.consultation-persona--yeoni').hasAttribute('data-mobile-detail-keep-open'),true);
+
+  h.w.localStorage.setItem('fortuneThemeModeStateV1','neo');
+  h.w.document.getElementById('themeCheckbox').checked=true;
+  h.w.document.getElementById('themeCheckbox').dispatchEvent(new h.w.Event('change',{bubbles:true}));
+  await tick();
+
+  assert.equal(h.root.getAttribute('data-reading-mode'),'neo');
+  assert.equal(h.root.querySelector('[data-saju-mode="neo"]').getAttribute('aria-pressed'),'true');
+  assert.match(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/네오의 판단 기록/);
+  assert.doesNotMatch(h.root.querySelector('[data-saju-ai-result-summary]').textContent,/연이의 마무리 편지/);
+  assert.match(h.root.querySelector('[data-saju-ai-output-text]').textContent,/공통 12챕터 상담문/);
+  assert.equal(h.root.querySelector('[data-saju-ai-question]').value,'작성 중인 새 질문');
+  assert.equal(h.posts.length,0,'화자 전환은 결제·생성·상태 조회 POST를 만들면 안 된다');
+  assert.deepEqual(JSON.parse(h.w.localStorage.getItem(h.ctx._sajuPromptSavedResultsKey('p'))),storedBefore);
+
+  h.root.querySelector('[data-saju-ai-copy-result]').click();
+  await tick();
+  assert.match(h.copies.at(-1),/네오의 판단 기록/);
+  assert.match(h.copies.at(-1),/공통 12챕터 상담문/);
+  assert.doesNotMatch(h.copies.at(-1),/연이의 마무리 편지/);
+  const neoShare=h.ctx._sajuPromptBuildShareText(payload,'neo');
+  assert.match(neoShare,/네오의 판단 기록/);
+  assert.doesNotMatch(neoShare,/연이의 마무리 편지|이직 기준을 알려주세요/);
   h.close();
 });
 

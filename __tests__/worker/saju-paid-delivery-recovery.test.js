@@ -13,7 +13,7 @@ const names = new Set([
   "sajuStorageError", "saveSajuAISectionCheckpoint", "validateSajuAISection", "validateSajuAIResultText", "findSajuAIUnsupportedAdvice",
   "runSajuAISectionWaves", "buildSajuAISectionPrompt", "buildSajuAISectionPromptPrefix", "buildSajuAISectionPromptSuffix",
   "formatSajuAIGroupChapterLines", "formatSajuAIOtherChapterTitles", "resolveSajuAIResultRubric", "formatSajuAIResultRubric",
-  "normalizeSajuAIResultText", "countSajuAIVisibleChars", "countSajuAIRequiredChapters", "hasSajuAINaturalEnding",
+  "normalizeSajuAIResultText", "normalizeSajuAIPersonaSummaryField", "extractSajuAIPersonaSummaries", "countSajuAIVisibleChars", "countSajuAIRequiredChapters", "hasSajuAINaturalEnding",
   "detectSajuAIIncompleteResult", "countSajuAICategoryMatches", "scoreSajuAISectionRow", "isSajuAISectionRowShort",
   "buildSajuAIStatusPayload", "mapSajuAIExecutionStatus", "buildSajuAIProgress", "normalizeSajuAIStoredResult",
   "findSajuAIExecutionForRead", "handleSajuAIConsultationStatus", "handleSajuAIConsultationResult",
@@ -24,6 +24,9 @@ const constants = new Set([
   "SAJU_AI_RESULT_FORBIDDEN_PATTERNS",
   "SAJU_AI_RESULT_UNSUPPORTED_PATTERNS",
   "SAJU_AI_PROGRESS_STEPS",
+  "SAJU_AI_PERSONA_SUMMARY_START",
+  "SAJU_AI_PERSONA_SUMMARY_END",
+  "SAJU_AI_PERSONA_SUMMARY_FIELDS",
 ]);
 const extracted = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && names.has(node.name?.text)
   || ts.isVariableStatement(node) && node.declarationList.declarations.some((d) => constants.has(d.name.getText(ast))))

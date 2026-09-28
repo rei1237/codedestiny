@@ -7088,7 +7088,9 @@ function _sajuPromptStoreSavedResult(payload) {
     promptVersion: String(item.promptVersion || '').trim(),
     consultationType: String(item.consultationType || 'saju_myeongsik_ai').trim(),
     factSnapshot: item.factSnapshot || null,
+    analysisBasis: item.analysisBasis || null,
     tenGodSnapshot: item.tenGodSnapshot || null,
+    personaSummaries: item.personaSummaries || null,
     saved: true,
     savedAt: new Date().toISOString()
   };
@@ -7376,15 +7378,61 @@ try {
   }
 } catch (_) {}
 
-function _sajuPromptBuildResultSummaryHtml(payload) {
+function _sajuPromptReadPersonaMode() {
+  try {
+    var stored = localStorage.getItem('fortuneThemeModeStateV1');
+    if (stored === 'neo' || stored === 'pig') return stored;
+  } catch (_) {}
+  if (typeof document === 'undefined') return 'pig';
+  return (document.documentElement && document.documentElement.classList.contains('neo-mode'))
+    || (document.body && document.body.classList.contains('neo-mode')) ? 'neo' : 'pig';
+}
+
+function _sajuPromptReadPersonaSummary(payload, mode) {
+  var summaries = payload && payload.personaSummaries && typeof payload.personaSummaries === 'object' ? payload.personaSummaries : null;
+  if (!summaries || Number(summaries.version) !== 1) return null;
+  if (mode === 'neo') {
+    var neo = summaries.neo && typeof summaries.neo === 'object' ? summaries.neo : {};
+    if (!neo.conclusion || !neo.basis || !neo.caution || !neo.nextCheck) return null;
+    return { mode: 'neo', conclusion: String(neo.conclusion), basis: String(neo.basis), caution: String(neo.caution), nextCheck: String(neo.nextCheck) };
+  }
+  var yeoni = summaries.yeoni && typeof summaries.yeoni === 'object' ? summaries.yeoni : {};
+  if (!yeoni.letter || !yeoni.action) return null;
+  return { mode: 'pig', letter: String(yeoni.letter), action: String(yeoni.action) };
+}
+
+function _sajuPromptBuildPersonaSummaryText(payload, mode) {
+  var summary = _sajuPromptReadPersonaSummary(payload, mode);
+  if (!summary) return '';
+  if (summary.mode === 'neo') {
+    return ['네오의 판단 기록', '결론: ' + summary.conclusion, '명식 근거: ' + summary.basis, '주의점: ' + summary.caution, '다음 확인: ' + summary.nextCheck].join('\n');
+  }
+  return ['연이의 마무리 편지', summary.letter, '작은 실천: ' + summary.action].join('\n');
+}
+
+function _sajuPromptBuildResultSummaryHtml(payload, mode) {
   var item = payload && typeof payload === 'object' ? payload : {};
+  var persona = _sajuPromptReadPersonaSummary(item, mode === 'neo' ? 'neo' : 'pig');
+  if (persona && persona.mode === 'neo') {
+    return '<section class="consultation-persona consultation-persona--neo" aria-labelledby="sajuNeoRecordTitle">'
+      + '<p class="consultation-persona__kicker">GUARDIAN RECORD · 동일한 상담문</p><h4 id="sajuNeoRecordTitle">네오의 판단 기록</h4>'
+      + '<dl><div><dt>결론</dt><dd>' + _sajuPromptEscapeHtml(persona.conclusion) + '</dd></div>'
+      + '<div><dt>명식 근거</dt><dd>' + _sajuPromptEscapeHtml(persona.basis) + '</dd></div>'
+      + '<div><dt>주의점</dt><dd>' + _sajuPromptEscapeHtml(persona.caution) + '</dd></div>'
+      + '<div><dt>다음 확인</dt><dd>' + _sajuPromptEscapeHtml(persona.nextCheck) + '</dd></div></dl></section>';
+  }
+  if (persona) {
+    return '<details class="consultation-persona consultation-persona--yeoni" data-mobile-detail-keep-open open><summary><span>연이의 마무리 편지</span><small>같은 명식을 마음의 순서로 읽어요</small></summary>'
+      + '<div class="consultation-persona__letter"><p>' + _sajuPromptEscapeHtml(persona.letter) + '</p>'
+      + '<p class="consultation-persona__action"><strong>부담 없는 작은 실천</strong><span>' + _sajuPromptEscapeHtml(persona.action) + '</span></p></div></details>';
+  }
   var paragraphs = String(item.resultText || '').split(/\n+/).map(function(line) { return line.trim(); }).filter(function(line) { return line && !_sajuPromptChapterTitle(line); });
   var text = String(paragraphs[0] || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
   var summary = text.length > 260 ? text.slice(0, 260) + '…' : text;
-  return '<div style="margin:13px 13px 0;border:1px solid rgba(180,121,38,.22);background:linear-gradient(135deg,rgba(255,247,223,.9),rgba(255,255,255,.72));border-radius:8px;padding:12px;">'
-    + '<div style="font-size:.72rem;color:#8a5a16;font-weight:950;letter-spacing:.08em;">상담 첫 문단</div>'
-    + '<p style="margin:6px 0 0;color:#2a2117;font-size:.86rem;line-height:1.72;word-break:keep-all;">' + _sajuPromptEscapeHtml(summary) + '</p>'
-    + '</div>';
+  return '<section class="consultation-persona consultation-persona--legacy" aria-label="이전 형식의 상담문">'
+    + '<p class="consultation-persona__kicker">이전 형식의 상담문</p><h4>공통 상담문으로 열었습니다</h4>'
+    + '<p>이 결과는 화자 요약이 도입되기 전에 저장되어 다시 생성하지 않습니다. 아래 12챕터 상담문은 그대로 읽을 수 있어요.</p>'
+    + (summary ? '<p class="consultation-persona__legacy-preview">' + _sajuPromptEscapeHtml(summary) + '</p>' : '') + '</section>';
 }
 
 // 계산 근거(analysis basis)를 그룹 카드로 그린다. 용어 풀이는 title 속성으로 붙여
@@ -7455,20 +7503,24 @@ function _sajuPromptBuildQuestionHtml(payload) {
   return '<div style="margin:10px 13px 0;padding:10px 11px;border-left:3px solid #c89236;background:rgba(120,53,15,.06);border-radius:8px;color:#3b2a14;font-size:.82rem;line-height:1.65;word-break:keep-all;"><b>질문</b><br>' + _sajuPromptEscapeHtml(question) + '</div>';
 }
 
-function _sajuPromptBuildShareText(payload) {
+function _sajuPromptBuildCopyText(payload, mode) {
   var item = payload && typeof payload === 'object' ? payload : {};
-  var fact = item.factSnapshot && typeof item.factSnapshot === 'object' ? item.factSnapshot : {};
-  var day = fact.dayMaster || {};
-  var question = String(item.question || '').trim();
+  var persona = _sajuPromptBuildPersonaSummaryText(item, mode);
+  var body = String(item.resultText || '').trim();
+  return [persona, body].filter(Boolean).join('\n\n');
+}
+
+function _sajuPromptBuildShareText(payload, mode) {
+  var item = payload && typeof payload === 'object' ? payload : {};
+  var persona = _sajuPromptBuildPersonaSummaryText(item, mode);
   var body = String(item.resultText || '').replace(/\s+/g, ' ').trim();
   if (body.length > 900) body = body.slice(0, 900) + '…';
   return [
     'Code Destiny 사주 AI 상담 결과',
-    day.stem ? '기준 일간: ' + day.stem + (day.elementKo ? ' / ' + day.elementKo : '') + (day.yinYangKo ? ' / ' + day.yinYangKo : '') : '',
-    question ? '질문: ' + question : '',
+    persona,
     '',
     body
-  ].filter(function(line, idx) { return idx === 3 || String(line || '').trim(); }).join('\n');
+  ].filter(function(line, idx) { return idx === 2 || String(line || '').trim(); }).join('\n');
 }
 
 function _sajuPromptApiUrls(path) {
@@ -7745,19 +7797,21 @@ function _buildSajuQuestionPromptHtml() {
   var domainHtml = domains.map(function(item, i) {
     return '<label><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="' + item[0] + '"' + (i === 0 ? ' checked' : '') + '>' + item[1] + '</label>';
   }).join('');
-  return '<div id="sajuQuestionPromptGeneratorCard" class="consultation-saju" data-saju-analysis-only="true" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260706 consultation-ux-v1">'
-    + '<section id="sajuConsultationEntry" class="consultation-entry" aria-labelledby="sajuConsultationTitle">'
-    + '<picture class="consultation-entry__visual"><source media="(max-width: 759px)" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp"><img class="consultation-entry__art" src="/images/consultation/saju-yeoni-entry-v2-1280.webp" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp 640w, /images/consultation/saju-yeoni-entry-v2-1280.webp 1280w" sizes="(min-width: 760px) min(100vw, 1280px), 100vw" width="1280" height="853" loading="lazy" decoding="async" alt="달빛 서재에서 여덟 글자의 명식 두루마리를 읽는 꽃돼지 연이"></picture>'
-    + '<div class="consultation-entry__copy"><p class="consultation-entry__eyebrow">사주 · 명식 기반 AI 상담</p><h3 id="sajuConsultationTitle">여덟 글자에서,<br>지금의 답을 찾다</h3>'
-    + '<p class="consultation-entry__lead">' + (dayStem ? '내 명식의 중심, 일간 ' + dayStem + '. ' : '') + '지금의 고민이 어떤 선택 패턴과 이어지는지 계산된 명식 근거부터 차분히 읽어보세요.</p>'
-    + '<ul class="consultation-entry__features"><li>질문부터 답하는 12개 챕터</li><li>명식 근거 · 선택 기준 · 30일 행동</li></ul>'
+  return '<div id="sajuQuestionPromptGeneratorCard" class="consultation-saju" data-reading-mode="' + _sajuPromptReadPersonaMode() + '" data-saju-analysis-only="true" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260706 consultation-persona-ux-v1">'
+    + '<section id="sajuConsultationEntry" class="consultation-entry" aria-label="명식이 답하는 사주 AI 상담">'
+    + '<picture class="consultation-entry__visual" data-saju-ai-mode-content="pig"><source media="(max-width: 759px)" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp"><img class="consultation-entry__art" src="/images/consultation/saju-yeoni-entry-v2-1280.webp" srcset="/images/consultation/saju-yeoni-entry-v2-640.webp 640w, /images/consultation/saju-yeoni-entry-v2-1280.webp 1280w" sizes="(min-width: 760px) min(100vw, 1280px), 100vw" width="1280" height="853" loading="lazy" decoding="async" alt="달빛 서재에서 여덟 글자의 명식 두루마리를 읽는 꽃돼지 연이"></picture>'
+    + '<div class="consultation-entry__visual consultation-entry__visual--neo" data-saju-ai-mode-content="neo"><img class="consultation-entry__art consultation-entry__art--neo" src="/images/saju/neo-plan-320.webp" width="320" height="320" loading="lazy" decoding="async" alt="명식 판단 기록을 펼쳐 든 가디언 네오"></div>'
+    + '<div class="consultation-entry__copy"><div class="consultation-mode" role="group" aria-label="상담 읽기 화자"><button type="button" data-saju-ai-mode-button data-saju-mode="pig" aria-pressed="false"><span aria-hidden="true">🌸</span> 연이</button><button type="button" data-saju-ai-mode-button data-saju-mode="neo" aria-pressed="false"><span aria-hidden="true">◆</span> 네오</button></div><p class="consultation-mode__status" data-saju-ai-mode-status aria-live="polite"></p>'
+    + '<div data-saju-ai-mode-content="pig"><p class="consultation-entry__eyebrow">연이 · 마음의 흐름부터 읽는 AI 상담</p><h3>여덟 글자에서,<br>마음의 결을 찾다</h3><p class="consultation-entry__lead">' + (dayStem ? '내 명식의 중심, 일간 ' + dayStem + '. ' : '') + '질문에 담긴 마음을 살핀 뒤, 계산된 명식의 흐름과 부담 없는 한 가지 실천으로 이어갑니다.</p><ul class="consultation-entry__features"><li>마음의 흐름을 따라 읽는 12개 챕터</li><li>연이의 편지 · 작은 실천 한 가지</li></ul></div>'
+    + '<div data-saju-ai-mode-content="neo"><p class="consultation-entry__eyebrow">네오 · 결론과 확인 기준부터 읽는 AI 상담</p><h3>판세를 먼저 보고,<br>근거를 확인하다</h3><p class="consultation-entry__lead">' + (dayStem ? '판단의 기준 일간 ' + dayStem + '. ' : '') + '결론을 먼저 잡고 명식 근거, 주의점, 다음 확인 순서로 빠르게 훑습니다.</p><ul class="consultation-entry__features"><li>결론부터 훑는 동일한 12개 챕터</li><li>판단 기록 · 근거 · 주의 · 다음 확인</li></ul></div>'
     + '<div class="consultation-entry__commerce"><p class="consultation-entry__price">단건 결제 <strong data-consultation-price>가격 확인 중</strong><span>이용권·월정석은 결제창에서 확인</span></p>'
     + '<button type="button" class="consultation-primary" data-consultation-open aria-controls="sajuConsultationForm" aria-expanded="false">내 질문으로 상담 시작하기</button>'
     + '<p class="consultation-entry__note">결제 전 상담 범위와 가격을 먼저 확인할 수 있어요.</p></div></div>'
     + '</section>'
     + '<details id="sajuConsultationForm" class="consultation-form" data-saju-ai-form><summary>무엇을 상담받을 수 있나요?</summary>'
-    + '<div class="consultation-form__body"><h4>무료 명식에서, 내 질문에 대한 답으로</h4><p>무료 풀이가 기질과 흐름을 보여준다면, 이 상담은 지금 입력한 고민을 명식의 근거와 연결해 선택 기준과 실천 방법을 정리합니다. 사람이 실시간으로 답하는 상담이 아닌 AI 생성 상담입니다.</p>'
-    + '<p>12개 챕터를 핵심 답변·명식 근거·반복 패턴·시기·선택지·행동·요약의 흐름으로 읽습니다. 각 선택에서 살릴 강점과 확인할 현실 조건, 먼저 해볼 행동을 정리합니다.</p>'
+    + '<div class="consultation-form__body"><div data-saju-ai-mode-content="pig"><h4>질문의 마음에서, 명식의 흐름으로</h4><p>연이는 고민의 감정을 먼저 짚고 계산된 명식 근거, 반복 패턴, 시기, 선택지, 행동 순서로 안내합니다. 마지막에는 따뜻한 편지와 부담 없는 실천 하나를 건넵니다.</p></div>'
+    + '<div data-saju-ai-mode-content="neo"><h4>결론에서, 확인할 근거와 순서로</h4><p>네오는 조건부 결론을 먼저 제시하고 계산된 명식 근거, 주의점, 현실에서 다음으로 확인할 순서를 기록합니다. 팩폭은 판단을 돕되 사용자를 깎아내리지 않습니다.</p></div>'
+    + '<p>두 모드는 같은 명식과 같은 12개 챕터를 사용합니다. 화자를 바꿔도 새 상담 생성이나 추가 결제가 발생하지 않습니다. 사람이 실시간으로 답하는 상담이 아닌 AI 생성 상담입니다.</p>'
     + '<details class="consultation-example"><summary>상담의 설명 방식 보기</summary><p><strong>설명용 예시 · 실제 개인 결과가 아닙니다</strong></p><p>“이직과 잔류 중 무엇이 나을까요?”라는 질문에는 계산된 명식의 근거를 먼저 짚고, 각 선택에서 살릴 강점과 부담을 비교합니다. 마지막에는 제안받은 역할·보상·일정에서 확인할 조건을 정리합니다.</p></details>'
     + '<p class="consultation-profile">위에서 계산한 명식을 이어 사용합니다. 출생 정보를 바꾸려면 <a href="#destinyCardForm" data-consultation-profile-edit>입력 정보 확인·수정</a>을 선택하세요. 출생 시각을 모르면 시주에 의존하는 해석에 한계가 있습니다.</p>'
     + '<label class="consultation-question-label">지금 가장 궁금한 질문<textarea data-saju-ai-question aria-label="상담할 질문" maxlength="1000" placeholder="예: 이직 제안을 받았어요. 현재 직장에 남는 선택과 비교해 어떤 기준으로 판단하면 좋을까요?"></textarea></label>'
@@ -7824,6 +7878,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var resetBtn = rootEl.querySelector('[data-saju-ai-reset-result]');
   var saveStateEl = rootEl.querySelector('[data-saju-ai-save-state]');
   var summaryEl = rootEl.querySelector('[data-saju-ai-result-summary]');
+  var modeStatusEl = rootEl.querySelector('[data-saju-ai-mode-status]');
+  var modeButtons = rootEl.querySelectorAll('[data-saju-ai-mode-button]');
   var basisEl = rootEl.querySelector('[data-saju-ai-result-basis]');
   var questionEl = rootEl.querySelector('[data-saju-ai-result-question]');
   var statusEl = rootEl.querySelector('[data-saju-ai-status]');
@@ -7854,6 +7910,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var accessConfirmed = false;
   var activePendingJob = null;
   var currentResultPayload = null;
+  var currentPersonaMode = _sajuPromptReadPersonaMode();
   var paidResumeDone = null;
   var localeEpoch = 0;
   var pollingEpoch = 0;
@@ -7861,6 +7918,19 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var continuationCount = 0;
   var requestLocale = _sajuEngineCurrentLang();
   var requestOwner = _sajuPromptOwnerId();
+  function applyPersonaMode(mode, announce) {
+    currentPersonaMode = mode === 'neo' ? 'neo' : 'pig';
+    rootEl.setAttribute('data-reading-mode', currentPersonaMode);
+    Array.prototype.forEach.call(modeButtons, function(button) {
+      button.setAttribute('aria-pressed', button.getAttribute('data-saju-mode') === currentPersonaMode ? 'true' : 'false');
+    });
+    if (currentResultPayload && summaryEl) summaryEl.innerHTML = _sajuPromptBuildResultSummaryHtml(currentResultPayload, currentPersonaMode);
+    if (modeStatusEl) {
+      modeStatusEl.textContent = announce
+        ? (currentPersonaMode === 'neo' ? '네오의 판단 순서로 같은 상담을 읽습니다.' : '연이의 편지 순서로 같은 상담을 읽습니다.')
+        : '';
+    }
+  }
   function captureLocaleScope() {
     var epoch = localeEpoch;
     var locale = _sajuEngineCurrentLang();
@@ -8114,7 +8184,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     });
     outputEl.value = text;
     outputTextEl.innerHTML = _sajuPromptRenderChapters(text);
-    if (summaryEl) summaryEl.innerHTML = _sajuPromptBuildResultSummaryHtml(currentResultPayload);
+    if (summaryEl) summaryEl.innerHTML = _sajuPromptBuildResultSummaryHtml(currentResultPayload, currentPersonaMode);
     if (questionEl) questionEl.innerHTML = _sajuPromptBuildQuestionHtml(currentResultPayload);
     if (basisEl) basisEl.innerHTML = _sajuPromptBuildBasisHtml(currentResultPayload);
     updateSavedState();
@@ -8505,7 +8575,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   regenerateBtn.addEventListener('click', handleGenerate);
   if (resumeBtn) resumeBtn.addEventListener('click', resumePendingJob);
   copyBtn.addEventListener('click', function() {
-    _sajuPromptCopyText(outputEl.value).then(function() {
+    _sajuPromptCopyText(_sajuPromptBuildCopyText(currentResultPayload || { resultText: outputEl.value }, currentPersonaMode)).then(function() {
       _sajuPromptSetStatus(statusEl, '상담문을 복사했습니다.', 'success');
       _sajuPromptToast('상담문을 복사했습니다.', 'success');
     }).catch(function() {
@@ -8535,7 +8605,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       _sajuPromptSetStatus(statusEl, '공유할 상담 결과가 없습니다.', 'error');
       return;
     }
-    var shareText = _sajuPromptBuildShareText(currentResultPayload);
+    var shareText = _sajuPromptBuildShareText(currentResultPayload, currentPersonaMode);
     var sharePayload = { title: 'Code Destiny 사주 AI 상담 결과', text: shareText };
     if (navigator.share) {
       Promise.resolve(navigator.share(sharePayload)).then(function() {
@@ -8578,6 +8648,19 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.focus();
     _sajuPromptSetStatus(statusEl, '새 질문을 입력해 주세요.', 'info');
   });
+  rootEl.addEventListener('click', function(event) {
+    var modeButton = event.target && event.target.closest ? event.target.closest('[data-saju-ai-mode-button]') : null;
+    if (!modeButton) return;
+    setTimeout(function() { applyPersonaMode(_sajuPromptReadPersonaMode(), true); }, 0);
+  });
+  var themeCheckbox = document.getElementById('themeCheckbox');
+  if (themeCheckbox) themeCheckbox.addEventListener('change', function() {
+    setTimeout(function() { if (rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), true); }, 0);
+  });
+  window.addEventListener('storage', function(event) {
+    if (event && event.key === 'fortuneThemeModeStateV1' && rootEl.isConnected !== false) applyPersonaMode(_sajuPromptReadPersonaMode(), true);
+  });
+  applyPersonaMode(currentPersonaMode, false);
   updateCount();
   setProgress(-1, false);
   _sajuPromptSetStatus(statusEl, '질문을 남기면 결제, 월정석 크레딧, 멤버십 이용권 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
