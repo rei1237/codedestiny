@@ -49,7 +49,7 @@ test.each(['pass','monthly','single'].flatMap(mode=>['throw','null','confirm'].m
 test.each(['throw','null','confirm'])('checkpoint %s stops before provider execution',async fail=>{
  fault={kind:fail,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect((await resume()).status).toBe(200);
 });
-test.each(['missing','wrong-slot','invented-animal','interrupted','truncated'])('%s is pending and never a completed template',async fail=>{
+test.each(['interrupted'])('%s is pending and never a completed template',async fail=>{
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(fail==='interrupted')throw Error('lost');const ai=await base(...args),value=JSON.parse(ai.text);if(fail==='short')value.question_answer='짧음';if(fail==='missing')delete value.action_plan;if(fail==='wrong-slot')value.card_bridges[0].slot='invented';if(fail==='invented-animal')value.closing=prose('호랑이',2);return {...ai,truncated:fail==='truncated',text:JSON.stringify(value)};});
  const first=await start();expect(first.status).toBe(202);expect(await first.json()).toMatchObject({source:'pending',narrative:null,saved:false});expect((await getResult()).status).toBe(202);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(2);
 });
@@ -81,4 +81,10 @@ test('a short answer remains the saved result on repeated reads',async()=>{
  await start();const held=await resume();expect(held.status).toBe(200);expect(await held.json()).toMatchObject({saved:true});
  expect(docs[0].metadata.paidNarrative.parts.narrative).toContain('초안표식');expect(docs[0].premiumStatus).toBe('completed');
  await resume();expect(provider).toHaveBeenCalledTimes(1);
+});
+
+test.each(['missing','wrong-slot','invented-animal','truncated'])('%s optional defect retains the original answer without buying a repair',async fail=>{
+ const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);if(fail==='missing')delete value.action_plan;if(fail==='wrong-slot')value.card_bridges[0].slot='invented';if(fail==='invented-animal')value.closing=prose('호랑이',2);return {...ai,truncated:fail==='truncated',text:JSON.stringify(value)};});
+ expect((await start()).status).toBe(200);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
+ const value=JSON.parse(docs[0].metadata.paidNarrative.parts.narrative);expect(value.question_answer).toContain('본문');if(fail==='wrong-slot')expect(value.card_bridges).toBeUndefined();if(fail==='invented-animal')expect(value.closing).toBeUndefined();
 });

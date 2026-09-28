@@ -1,3 +1,4 @@
+import { parseNarrativeResponse } from "../lib/paid-narrative-candidate.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { runPaidNarrativeDelivery } from "../lib/paid-narrative-delivery.js";
@@ -1179,9 +1180,9 @@ export function dreamPsychoNarrativeAdapter(env) {
       const prompt = `${state.prompt}\n[이번 호출]\n${task.prompt}\n꿈에 없는 사실을 추가하지 마세요. 제목·다른 장·일반적 설명의 반복 없이 본문 2,000자 이상, 목표 2,600~3,100자(공백·마크다운 제외)를 짧은 문단으로 쓰세요.\nJSON {"evidenceHash":"${state.evidenceHash}","body":"본문"}만 출력하세요.`;
       const ai = await dreamGeminiCaller(env, prompt, { systemPrompt: state.systemPrompt, model: firstDreamPsychoModel(env), temperature: 0.62,
         maxOutputTokens: 9500, thinkingBudget: 0, timeoutMs: Math.min(45000, Math.max(15000, Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS) || 45000)), fallbackToWorkersAI: false, responseMimeType: "application/json" });
-      if (!ai?.ok || ai.isMock || ai.truncated || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
-      let value; try { value = JSON.parse(ai.text); } catch { return null; }
-      if (value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || /Chapter\s+\d+\./i.test(value.body) || !evaluatePsychoMarkdownQuality(value.body, state.tone, true).ok) return null;
+      if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+      const value = parseNarrativeResponse(ai.text, state.evidenceHash);
+      if (value?.evidenceHash !== state.evidenceHash || typeof value.body !== "string" || /Chapter\s+\d+\./i.test(value.body) || evaluatePsychoMarkdownQuality(value.body, state.tone, true).warnings.includes("system_leak")) return null;
       return value;
     },
   };

@@ -613,15 +613,15 @@ export function animalTotemNarrativeAdapter(env) {
         responseMimeType: "application/json", fallbackToWorkersAI: false,
         logContext: { requestId: state.input.requestId.slice(0, 120), featureKey: state.input.spec.featureKey },
       });
-      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+      if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
       const parsed = safeParse(ai.text);
-      const fields = ["opening", "question_answer", "closing", ...(state.input.mode === "five" ? ["shadow_gift_synthesis"] : [])];
-      if (!parsed || fields.some(key => typeof parsed[key] !== "string")
-        || !Array.isArray(parsed.action_plan) || parsed.action_plan.length !== 3 || parsed.action_plan.some(item => typeof item !== "string")
-        || !Array.isArray(parsed.card_bridges) || parsed.card_bridges.some((bridge, i) =>
-          typeof bridge?.line !== "string" || bridge?.slot !== state.input.cards[i]?.slot || (bridge.animalId && bridge.animalId !== state.input.cards[i]?.animalId))) return null;
-      const { narrative, adopted } = mergeNarrative({}, parsed, state.input, { shortBody: true });
-      if (adopted !== (state.input.mode === "five" ? 6 : 5)) return null;
+      if (!parsed || typeof parsed.question_answer !== "string") return null;
+      // Optional prose and card notes cannot discard a usable answer. Retain only
+      // notes whose supplied card identity matches the actual draw.
+      const bridges = Array.isArray(parsed.card_bridges) ? parsed.card_bridges.filter(bridge =>
+        state.input.cards.some(card => bridge?.slot === card.slot && (!bridge.animalId || bridge.animalId === card.animalId))) : [];
+      const { narrative } = mergeNarrative({}, { ...parsed, card_bridges: bridges }, state.input, { shortBody: true });
+      if (denseLength(narrative.question_answer || "") < 40) return null;
       return { evidenceHash: state.evidenceHash, body: JSON.stringify(narrative) };
     },
     render: state => ({ mode: state.input.mode, cards: state.input.cards, question: state.input.question,

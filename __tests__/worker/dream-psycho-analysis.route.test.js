@@ -50,7 +50,7 @@ test.each(['pass','monthly','single'].flatMap(mode=>['throw','null','confirm'].m
 test.each(['throw','null','confirm'])('checkpoint %s stops before any provider call',async fail=>{
  fault={kind:fail,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect((await resume()).status).toBe(202);
 });
-test.each(['short','missing','wrong-facts','truncated','interrupted','mock','tone'])('%s chapter remains pending while valid parts are preserved',async fail=>{
+test.each(['short','missing','wrong-facts','interrupted','mock'])('%s chapter remains pending while valid parts are preserved',async fail=>{
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(fail==='interrupted')throw Error('network lost');const ai=await base(...args),value=JSON.parse(ai.text);if(fail==='short')value.body='짧음';if(fail==='missing')delete value.body;if(fail==='wrong-facts')value.evidenceHash='wrong';if(fail==='tone')value.body=value.body.replaceAll('안정과 회복','불안과 붕괴');return {...ai,truncated:fail==='truncated',isMock:fail==='mock',text:JSON.stringify(value)};});
  expect((await start()).status).toBe(202);expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(3);expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(11);
 });
@@ -67,4 +67,12 @@ test('unknown interruption has a per-part two-call limit without false completio
 test('provider model override, bounded timeout and original intake survive checkpointing',async()=>{
  const response=await route(new Request('https://mock.test/api/dream/psycho-analysis',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(original())}),{DREAM_PSYCHO_GEMINI_MODEL:'configured-model',DREAM_PSYCHO_PROVIDER_TIMEOUT_MS:999999});
  expect(response.status).toBe(202);expect(provider.mock.calls[0][1]).toContain('오래된 친구');expect(provider.mock.calls[0][2]).toMatchObject({model:'configured-model',timeoutMs:45000,thinkingBudget:0,maxOutputTokens:9500});
+});
+
+test.each(['short-readable','truncated','tone','json-tail','missing-hash'])('%s text completes with only the ten initial parts',async fail=>{
+ const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);
+ if(fail==='short-readable')value.body=value.body.slice(0,value.body.indexOf('。')+1)||'지금 마음에 남아 있는 장면을 떠올리고 그때 느낀 감정을 천천히 적어 보세요. 꿈에서 느낀 긴장과 현실의 고민이 연결되는 지점을 살피면 다음 선택에 도움이 됩니다.';
+ if(fail==='tone')value.body=value.body.replaceAll('안정과 회복','불안과 붕괴');if(fail==='missing-hash')delete value.evidenceHash;
+ const text=JSON.stringify(value);return {...ai,truncated:fail==='truncated',text:fail==='json-tail'?text.slice(0,-1):text};});
+ await start();expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(10);
 });

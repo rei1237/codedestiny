@@ -1,3 +1,4 @@
+import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { HttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { requireAuth } from "../lib/auth.js";
@@ -36,7 +37,7 @@ function parseJsonCandidate(text) {
     }
   }
 
-  return null;
+  return salvageTruncatedJsonObject(source);
 }
 
 function validCourse(course,duration) {
@@ -50,12 +51,13 @@ function validCourse(course,duration) {
     ||!["sanskrit_name","english_name","breathing_guide","benefits_physical","benefits_spiritual","caution","visual_cue_ui"].every(key=>text(step[key]))
     ||!Array.isArray(step.instructions)||step.instructions.length<2||step.instructions.length>8||step.instructions.some(line=>!text(line))))return false;
   return steps.reduce((sum,step)=>sum+step.duration_seconds,0)===duration*60
-    &&countPaidReportBodyChars(steps.flatMap(step=>[...step.instructions,step.breathing_guide,step.caution]).join("\n"))>=800;
+    &&countPaidReportBodyChars(steps.flatMap(step=>[...step.instructions,step.breathing_guide,step.caution]).join("\n"))>=120;
 }
 // The route and the server resume task share produce and render.
 export function yogaNarrativeAdapter(env){
   return {
     reportType:"yogaGuruCourse",
+    completeBody:body=>{const course=parseJsonCandidate(body);return validCourse(course,course?.course_metadata?.duration_min);},
     produce:async(_task,state)=>{
       const prompt=[state.input.systemPrompt,"[사용자 입력]",state.input.userPrompt,
         `전체 시간은 정확히 ${state.input.duration}분입니다. duration_seconds의 합은 ${state.input.duration*60}초이고 duration_min은 ${state.input.duration}입니다. 단계는 4~16개, 첫 단계는 Warmup, 마지막은 Relaxation이며 모든 필드를 채우세요. instructions/호흡/주의 안내 본문은 합계 800자 이상, 목표 1,600~2,400자입니다. 신체 치료를 보장하거나 통증을 참게 하지 마세요.`,
@@ -63,7 +65,7 @@ export function yogaNarrativeAdapter(env){
       ].join("\n\n");
       const ai=await callGeminiText(env,prompt,{model:clean(env.YOGA_GURU_GEMINI_MODEL),temperature:0.6,maxOutputTokens:8192,thinkingBudget:0,
         timeoutMs:Math.min(45000,Math.max(15000,Number(env.YOGA_GURU_PROVIDER_TIMEOUT_MS)||45000)),fallbackToWorkersAI:false,responseMimeType:"application/json"});
-      if(!ai?.ok||ai.truncated||ai.isMock||/mock/i.test(`${ai.provider||""} ${ai.model||""}`))return null;
+      if(!ai?.ok||ai.isMock||/mock/i.test(`${ai.provider||""} ${ai.model||""}`))return null;
       const course=parseJsonCandidate(ai.text);if(!validCourse(course,state.input.duration))return null;
       return {evidenceHash:state.evidenceHash,body:JSON.stringify(course)};
     },
@@ -80,6 +82,7 @@ async function handleGenerateYogaCourse(request,env){
     verify:async original=>{
       const access=await requirePremiumReportAccess(withPdfFastDbEnv(env),auth.userId,"yogaGuruCourse",{
         ...original,featureKey:"yoga-guru-per-use",reportType:"yogaGuruCourse",
+    completeBody:body=>{const course=parseJsonCandidate(body);return validCourse(course,course?.course_metadata?.duration_min);},
         premiumAccessToken:clean(request.headers.get("x-premium-access-token")||original.premiumAccessToken||cookieValue(request,"cd_premium_access"))||undefined,
         _accessRoute:"/api/yoga-guru",
       });
