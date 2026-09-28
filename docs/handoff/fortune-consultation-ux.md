@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: v12 실제 생성은 의미 품질 불합격이었다. v13 교정·mock·CI 전달 후 새 별도 승인으로 사주 1건을 실측하고, 의미 품질이 통과할 때만 자미두수를 시작한다.
+next: v12 실제 생성은 의미 품질 불합격이었고 v13 교정·mock·CI 전달을 마쳤다. 새 별도 승인으로 v13 사주 1건을 실측하고, 의미 품질이 통과할 때만 자미두수를 시작한다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -244,3 +244,4 @@ node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-cons
 - 생성용 사실 카드와 JSON에서는 점수·등급 라벨을 제외하되 저장·응답 `factSnapshot`은 유지한다. 위험한 그룹은 길이가 충분해도 보강 대상으로 보내며 더 긴 위험 원문보다 안전한 보강본을 우선한다.
 - 증거: `artifacts/fortune-consultation-ux/saju/live-v12-benchmark-summary.json`, `live-v12-quality-review.md`. 요청 해시·원문·제공자 응답·개인정보는 저장소에 넣지 않았다.
 - 자미두수는 미착수 상태를 유지한다. v13 새 실호출은 다시 별도 승인받기 전 실행하지 않는다.
+- 전달: 사주 v13 본체 `f454d8a71`, main 병합 `39cf9313e`, CI 보정 `6b5fe6954`·`cf3259cea`. 사주 변경 SHA의 Paid Flow Gates `36391806115`와 AI Locale Gate `36391806117`, 최종 main PR CI `36392693696`이 통과했다.
