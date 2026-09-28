@@ -29,7 +29,7 @@ next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI
 - `check:fast -- --plan`은 새 JSON/정적 엔진 경로로 critical 승격. 첫 실행의 paid suite는 84/88이었다. 편집 도구가 원본을 CRLF로 저장해 LF 문자열을 찾는 6개 Node 테스트와 3개 static guard가 실패했다. 소스를 원래 LF로 되돌린 뒤 해당 Node 44/44와 `verify:saju-fun-content-gate`, `verify:saju-unlock-entitlement-regression`, `verify:portone-single-payment` 모두 통과했다. 이후 전체 로컬 preflight를 반복하지 않으며 최종 공식 게이트는 exact main SHA의 GitHub CI다.
 - Windows Node의 간헐적 `UNKNOWN` 파일 쓰기는 저장소 밖의 제한된 로컬 파일쓰기 호환 보조로 공식 `sync:public`을 실행해 해결했다. 보조는 제품/커밋에 포함하지 않는다. public mirrors와 내용 해시는 공식 생성기의 결과다.
 - Impeccable detector는 한 번 실행했다. 새 shared helper/CSS에는 blocking이 없고 타입 크기 advisory 9건이다. 기존 엔진의 unrelated 경고를 정리하기 위한 리팩터링은 하지 않았다. fresh reviewer의 기록은 `basic-entry-finish-review.md`, 표면 방향은 `basic-entry-direction.md`를 참조한다.
-- **전달 상태:** 검증한 작업을 main에 합치고 push 및 exact SHA CI를 확인한다. 새 실 LLM·실결제·운영 DB 쓰기·운영 승격은 이번 UI 작업에서 실행하지 않는다.
+- **전달 상태:** UI 구현 커밋 `15b83212b38540548b964e3222b7a46cccb67f02`, 최신 main 통합 커밋 `643816450`에서 기존 변경을 보존했다. 디자인 구현 기록은 `basic-entry-design.md`와 `.json`이다. main push 후 exact SHA의 GitHub CI를 확인한다. 새 실 LLM·실결제·운영 DB 쓰기·운영 승격은 이번 UI 작업에서 실행하지 않는다.
 
 ## 2026-09-28 조사 기준
 
