@@ -138,6 +138,14 @@ const CHAPTER_TITLES = [
       prompt.includes("여기서는 쓰지도 말고 요약하지도 마세요"),
       `${group.key}: 남의 챕터 금지 문구가 없다`,
     );
+    for (const requiredSafetyLine of [
+      "본문에는 점수·이모지·'최고의 운' 같은 등급 이름을 옮기지 말고",
+      "오행의 부재만으로 충동 소비, 규율 부족, 몸의 냉기, 장기·질환 취약성을 만들지 마세요",
+      "주식·코인·부동산·금융상품·사업 확장을 좋거나 나쁜 선택으로 추천하지 마세요",
+      "뒤 챕터에서 앞 챕터의 오행 개수·십성 정의·비겁 경고를 다시 설명하지 마세요",
+    ]) {
+      check(prompt.includes(requiredSafetyLine), `${group.key}: v10 실측 후 안전 교정이 프롬프트에서 빠졌다 — ${requiredSafetyLine}`);
+    }
   }
 }
 
@@ -215,6 +223,32 @@ function resetCalls() {
 }
 
 // 3-2. 한 그룹만 짧으면 웨이브2가 **그 그룹만** 다시 부른다.
+//      전체 보강을 거친 결과는 20,000자에 조금 못 미쳐도 구조·근거·안전이 유효하면 전달한다.
+{
+  const shortCompleteText = SAJU_AI_SECTION_GROUPS.flatMap((group) => group.chapters).map((chapter) => {
+    let body = "";
+    let paragraph = 0;
+    while (countSajuAIVisibleChars(body) < 1500) {
+      paragraph += 1;
+      body += `${chapter.no}장 ${paragraph}번째 관찰은 현금흐름·저축·지출·계약 조건을 실제 기록으로 확인하고, 투자 판단은 명식이 아니라 감당 가능한 예산과 전문가 검토를 기준으로 삼는 내용입니다. `;
+    }
+    const closing = chapter.no === 12 ? "\n오늘부터 확인 가능한 한 걸음을 시작하시길 바랍니다." : "";
+    return `${chapter.no}. ${chapter.title}\n${body}${closing}`;
+  }).join("\n\n");
+  const visibleChars = countSajuAIVisibleChars(shortCompleteText);
+  check(visibleChars < SAJU_AI_MIN_RESULT_CHARS, `짧은 유효 결과 fixture가 ${visibleChars}자로 목표 하한보다 길다`);
+  const validation = validateSajuAIResultText(shortCompleteText, null, {
+    categoryRubric: {
+      domain: "money",
+      label: "재물/수익",
+      validationKeywords: [["현금흐름"], ["저축"], ["지출"], ["계약"], ["투자"]],
+    },
+  });
+  check(validation.ok, `분량만 짧은 유효 결과가 폐기됐다: ${validation.reason || "unknown"}`);
+  check(validation.qualityIssues?.length?.advisory === true, "짧은 유효 결과의 분량 경고가 사라졌다");
+}
+
+// 3-3. 한 그룹만 짧으면 웨이브2가 **그 그룹만** 다시 부른다.
 {
   resetCalls();
   const shortGroup = SAJU_AI_SECTION_GROUPS[1];
@@ -242,7 +276,7 @@ function resetCalls() {
   );
 }
 
-// 3-3. 웨이브2가 더 짧게 나오면 원본을 지킨다.
+// 3-4. 웨이브2가 더 짧게 나오면 원본을 지킨다.
 {
   resetCalls();
   const shortGroup = SAJU_AI_SECTION_GROUPS[0];
@@ -261,7 +295,7 @@ function resetCalls() {
   );
 }
 
-// 3-4. 한 그룹이 통째로 실패해도 나머지는 살아서 배달된다(결제 후 무결과 방지).
+// 3-5. 한 그룹이 통째로 실패해도 나머지는 살아서 배달된다(결제 후 무결과 방지).
 {
   resetCalls();
   const deadGroup = SAJU_AI_SECTION_GROUPS[2];
@@ -278,7 +312,7 @@ function resetCalls() {
   }
 }
 
-// 3-5. 예산이 없으면 호출을 아예 하지 않는다(잘릴 호출은 통째로 버려진다).
+// 3-6. 예산이 없으면 호출을 아예 하지 않는다(잘릴 호출은 통째로 버려진다).
 {
   resetCalls();
   respond = () => "";

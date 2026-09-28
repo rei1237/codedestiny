@@ -1,0 +1,44 @@
+{
+  "model": "gemini-2.5-flash",
+  "promptVersion": "saju-myeongsik-ai-v10",
+  "source": "live-local-benchmark",
+  "priceSource": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+  "inputUsdPerMillion": 0.3,
+  "outputUsdPerMillion": 2.5,
+  "generationCalls": 5,
+  "preflightTokens": [19716, 19722, 19770, 19796, 19812],
+  "inputTokens": 98816,
+  "outputTokens": 14854,
+  "bodyChars": 19411,
+  "wallElapsedMs": 25961,
+  "calculatedUsd": 0.0667798,
+  "maximumCalculatedUsd": 0.1796448,
+  "finishReasons": ["STOP", "STOP", "STOP", "STOP", "STOP"],
+  "paymentCalls": 0,
+  "databaseWrites": 0,
+  "retries": 0,
+  "fallbacks": 0,
+  "explicitCacheCreates": 0,
+  "initialValidation": {
+    "ok": false,
+    "reason": "legacy length-only gate",
+    "visibleChars": 19411,
+    "minChars": 20000
+  },
+  "revalidationAfterLengthPolicyFix": {
+    "ok": true,
+    "chapterCount": 12,
+    "categoryMatches": 5,
+    "lengthAdvisory": true,
+    "networkCalls": 0
+  },
+  "editorialGate": "not passed: unsupported causal health and finance claims, score-to-outcome exaggeration, specific investment suggestions, repeated explanations",
+  "limitations": [
+    "Historical raw request absent; anonymized question and reconstructed calculation facts were used.",
+    "This is one sample and not a controlled A/B test or customer average.",
+    "Default repository system prompt was used; production CMS overrides were not reproduced.",
+    "Local parallel LLM wall time excludes payment, persistence, and reread.",
+    "Raw provider responses remain outside the repository in the private benchmark directory.",
+    "v11 corrections have not been sent to an LLM."
+  ]
+}

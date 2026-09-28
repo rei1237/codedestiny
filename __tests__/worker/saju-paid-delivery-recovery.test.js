@@ -240,19 +240,28 @@ describe("length-only chapter recovery", () => {
     expect((await h.post()).status).toBe(200);
     expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
   });
-  test("short total exhausts the existing budget and remains resumable storage without refund or further calls", async () => {
+  test("short total exhausts the bounded repair budget, then completes without refund or further calls", async () => {
     const h = harness();
     h.ctx.callGeminiText.mockImplementation(async (_env, text) => {
       const block = text.slice(text.indexOf("[이번에 쓸 챕터]"), text.indexOf("다음 챕터"));
       const group = prompt.SAJU_AI_SECTION_GROUPS.find(g => g.chapters.every(c => block.includes(`${c.no}. ${c.title}`)));
       return { ok: true, text: shortGroup(group) };
     });
-    for (let i = 0; i < 12; i++) expect((await h.post()).status).toBe(202);
-    expect(h.record().status).toBe("partial");
-    expect(h.record().result.sections.every(row => row.valid && row.attempts === 4)).toBe(true);
+    let completed = null;
+    for (let i = 0; i < 12; i += 1) {
+      const response = await h.post();
+      if (response.status === 200) { completed = response; break; }
+      expect(response.status).toBe(202);
+    }
+    expect(completed?.status).toBe(200);
+    const completedData = await completed.json();
+    expect(h.record().status).toBe("completed");
+    expect(quality.countPaidReportBodyChars(completedData.resultText)).toBeLessThan(prompt.SAJU_AI_MIN_RESULT_CHARS);
     const calls = h.ctx.callGeminiText.mock.calls.length;
+    expect(calls).toBeLessThanOrEqual(prompt.SAJU_AI_SECTION_GROUPS.length * 4);
     const res = await h.post();
-    expect((await res.json()).retryable).toBe(false);
+    expect(res.status).toBe(200);
+    expect((await res.json()).saved).toBe(true);
     expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
     expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
   });
