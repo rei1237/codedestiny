@@ -468,7 +468,9 @@ next: "Phase 3(검증기)·§6-7(UI) 완료, 플래그 OFF. 다음은 Phase 4 �
    - h1 생선 이름이 번역되지 않는다.
 9. v5 고등어 1건의 attempts 카운터가 장별 합과 다르다(측정 절).
 10. `app/yeongnyangi/yeongnyangi.module.css` 에 impeccable 디자인 훅이 `design-system-font` 11건("Yeongnyangi Myeongjo")을 잡는다. 전부 이번 변경 밖의 기존 브랜드 폰트 선언이고(L74·94·103·169·262 외 6건), DESIGN.md 가 `.impeccable/design.json` 보다 새롭다. 원칙 14 에 따라 억제 규칙을 넣지 않고 보고만 한다.
-11. tsc 증분 캐시(`tsconfig.tsbuildinfo`, `tsconfig.json:20` `incremental:true`)가 한 번 유령 오류를 냈다: `consultation.ts(126,55) TS2339 ... 'never'`. 그 파일은 로컬 무변경이었고, `--incremental false` 전체 검사와 증분 재검사 둘 다 exit 0 이라 **재현되지 않는다**. 실제 결함이 아니라 증분 상태 잔여물이다. 증분 결과가 이상하면 `--incremental false` 로 한 번 확인할 것.
+11. `consultation.ts(126,55) TS2339 ... 'never'` 는 **실재하는 기존 결함**이었다(옆 세션이 `6b5fe6954` 로 고쳤다). 원인: `(requested || [])` 가 `RegExpMatchArray | never[]` 라서 `.some` 콜백 인자가 `never` 로 좁혀진다. 내 `book-contracts.ts` 변경은 원인이 아니라 증분 캐시에서 이 파일을 무효화해 **드러나게** 한 것뿐이다.
+    - 🔴 진단 교훈: 로컬 tsc 는 통과하는데 CI 는 실패할 수 있다. 공유 체크아웃의 옆 세션이 그 수정을 **미커밋 상태로** 작업 트리에 갖고 있으면 내 로컬 검사는 고쳐진 파일을 보고, CI 는 내 커밋만 받아 고쳐지지 않은 파일을 본다. 그때 `--incremental false` 로 재현이 안 되는 것은 캐시 문제가 아니라 **파일 내용이 다르다**는 신호다. `git log --oneline -3 -- <파일>` 과 `git fetch` 로 옆 세션 커밋을 먼저 확인할 것.
+    - 이 세션의 실제 경과: `2c5458068` 의 PR CI(run 36390533867)가 이 오류로 Typecheck 실패 → 옆 세션이 `6b5fe6954` 로 수정 → 현재 main 헤드 `cf3259cea` 에서 `CI required` success(내 커밋 3개 모두 포함). 내가 고칠 것은 없었다.
 12. `npm run check:fast` 의 jest 단계가 윈도우에서 출력 없이 0xC0000409(3221226505)로 죽을 때가 있다(커밋 4·5 세션에서 재현). 래퍼는 이것을 `BLOCKED` 로 찍지만 전체 종료 코드는 0이라 조용히 넘어간다. 같은 러너를 직접 부르면(`node scripts/run-mock-tests.mjs jest`) 309 스위트·4,515 테스트가 통과한다. BLOCKED 가 보이면 러너를 직접 돌려 확인해야 한다.
 
 ## 남은 위험
