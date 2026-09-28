@@ -18,7 +18,7 @@ export default function FounderTrust(){
    <div className={styles.copy}>
     <p className={styles.eyebrow}>{founder.credential}</p>
     <h2 id="founder-records-title" className={styles.title}>대통령의 2025년을 어떻게 읽었을까?</h2>
-    <p className={styles.lead}>2022년과 2024년, 변화가 오기 전에 공개 블로그에 먼저 적어 둔 기록입니다.</p>
+    <p className={styles.lead}>사이트에 소개된 2022년·2024년 대통령 관련 분석 기록입니다. 날짜와 문맥을 원문에서 함께 확인해 보세요.</p>
     <a className={styles.primary} href="#founder-timeline">원문 기록 {records.length}편 확인하기 <span aria-hidden="true">↓</span></a>
    </div>
    <figure className={styles.art}>
@@ -33,7 +33,7 @@ export default function FounderTrust(){
    <p className={styles.after}><span>이후</span>{record.after}</p>
    <a className={styles.source} href={record.url} target="_blank" rel="noopener noreferrer" aria-label={`원문 보기: ${record.title} (새 창)`}>원문 보기 <span aria-hidden="true">↗</span></a>
   </li>)}</ol>
-  <p className={styles.note}>인용은 원문 발췌이며 표기는 원문 그대로입니다. 게시일은 네이버 블로그 표시 기준입니다.</p>
+  <p className={styles.note}>사이트에 보관한 원문 발췌입니다. 게시일은 기존 네이버 블로그 표기 기준이며, 기록과 이후 사건을 나란히 살펴볼 수 있습니다.</p>
   <div className={styles.offer}>
    <p className={styles.offerLine}>공개 기록에서는 시대의 변화를, 내 사주에서는 반복되는 선택의 단서를. {price}부터.</p>
    <a className={styles.primary} href="/yeongnyangi/fortune/?domain=saju&fish=mackerel">{price}으로 내 흐름 물어보기 <span aria-hidden="true">→</span></a>
