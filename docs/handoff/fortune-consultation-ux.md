@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-29
-next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI의 선행 조건에서 해제했다. 기본 자미두수·숙요·서양 점성술·베다점 진입점과 입력·결과 UX를 검증하고 main CI로 전달한다. 새 실 LLM은 별도 승인 전 실행하지 않는다.
+next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI의 선행 조건에서 해제했다. 기본 자미두수·숙요·서양 점성술·베다점 진입점과 입력·결과 UX를 전달했다. 다음은 사용자 화면 검토 반영과 실제 기기에서의 결제 전 입력 흐름 확인이다. 새 실 LLM은 별도 승인 전 실행하지 않는다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -29,7 +29,19 @@ next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI
 - `check:fast -- --plan`은 새 JSON/정적 엔진 경로로 critical 승격. 첫 실행의 paid suite는 84/88이었다. 편집 도구가 원본을 CRLF로 저장해 LF 문자열을 찾는 6개 Node 테스트와 3개 static guard가 실패했다. 소스를 원래 LF로 되돌린 뒤 해당 Node 44/44와 `verify:saju-fun-content-gate`, `verify:saju-unlock-entitlement-regression`, `verify:portone-single-payment` 모두 통과했다. 이후 전체 로컬 preflight를 반복하지 않으며 최종 공식 게이트는 exact main SHA의 GitHub CI다.
 - Windows Node의 간헐적 `UNKNOWN` 파일 쓰기는 저장소 밖의 제한된 로컬 파일쓰기 호환 보조로 공식 `sync:public`을 실행해 해결했다. 보조는 제품/커밋에 포함하지 않는다. public mirrors와 내용 해시는 공식 생성기의 결과다.
 - Impeccable detector는 한 번 실행했다. 새 shared helper/CSS에는 blocking이 없고 타입 크기 advisory 9건이다. 기존 엔진의 unrelated 경고를 정리하기 위한 리팩터링은 하지 않았다. fresh reviewer의 기록은 `basic-entry-finish-review.md`, 표면 방향은 `basic-entry-direction.md`를 참조한다.
-- **전달 상태:** UI 구현 커밋 `15b83212b38540548b964e3222b7a46cccb67f02`, 최신 main 통합 커밋 `643816450`에서 기존 변경을 보존했다. 디자인 구현 기록은 `basic-entry-design.md`와 `.json`이다. main push 후 exact SHA의 GitHub CI를 확인한다. 새 실 LLM·실결제·운영 DB 쓰기·운영 승격은 이번 UI 작업에서 실행하지 않는다.
+- **전달 완료:** UI 구현 `15b83212b38540548b964e3222b7a46cccb67f02`, 최신 main 통합 `643816450`, 최종 구현·검증 SHA `93211078adb1317df9269d85db0de628d44a4873`를 main에 fast-forward하고 `git push origin main`을 완료했다. 다른 세션의 `marketing/**`와 `next-env.d.ts` 미커밋 변경은 보존했다.
+- exact 구현 SHA의 [PR CI 36475966679](https://github.com/rei1237/codedestiny/actions/runs/36475966679): Risk tier / Typecheck and lint / Build Pages and Worker / Static guards / CI required success. 티어에 따라 Critical checks lane은 skipped다. [Paid Flow Gates 36475967097](https://github.com/rei1237/codedestiny/actions/runs/36475967097), AI Locale Gate, Secret Scan, Main drift watchdog, Landing Watchdog, Business Identity Gate도 success다.
+- 통합 main에서 `node scripts/verify-basic-consultation-entry-ux.mjs`를 재실행해 16/16을 확인하고 캡처·contact sheets를 갱신했다. `verify:public-mirror-fresh`는 공식 생성기를 재실행해 변경 0개로 통과했다. `verify:handoff-contract`는 208개 문서 통과다. 디자인 구현 기록은 `basic-entry-design.md`와 `.json`이다.
+- 남은 확인: 실제 기기·사용자 검토와 실제 생성 내용의 변화는 미검증이다. 새 실 LLM·실결제·운영 DB 쓰기·운영 승격은 실행하지 않았으며 별도 승인 경계를 유지한다. 배포 인프라 변경이 없어 staging을 별도로 기다리거나 조회하지 않았다.
+- 재개 위치: `D:/Development/code-destiny`, 문서 `D:/Development/code-destiny/docs/handoff/fortune-consultation-ux.md`. 구현 전달 기준은 아래 SHA이며, 최신 기록 커밋은 `git log -1 --format=%H -- docs/handoff/fortune-consultation-ux.md`로 확인한다.
+
+```powershell
+Set-Location 'D:\Development\code-destiny'
+Get-Content 'D:\Development\code-destiny\docs\handoff\fortune-consultation-ux.md'
+git status --short
+git show --no-patch 93211078adb1317df9269d85db0de628d44a4873
+# 다음 행동: 네 서비스 진입 화면 사용자 검토 반영 및 실제 기기의 결제 전 입력 흐름 확인. 새 실 LLM은 별도 승인 후 실행.
+```
 
 ## 2026-09-28 조사 기준
 
