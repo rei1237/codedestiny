@@ -388,8 +388,23 @@ function buildSajuAISectionPromptSuffix(group, options = {}) {
     "오행을 생활 속 행동으로 풀 때 수영·식물·햇볕·색상·방향 같은 활동이 돈이나 운을 끌어당긴다고 쓰지 마세요. 행동과 결과 사이에 확인 가능한 현실적인 이유가 있어야 합니다. 수입·지출 기록, 부담 가능한 범위 확인, 작은 실험과 검토처럼 사용자가 통제하고 확인할 수 있는 행동을 제시하세요.",
     "출력 전 모든 문단을 서로 대조해 같거나 거의 같은 문단은 한 번만 남기세요. 한 근거의 상세 설명은 가장 관련 있는 한 챕터에서만 쓰고 다른 챕터에서는 되풀이하지 마세요.",
     hasClosingChapter
-      ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 상담자가 직접 건네는 말처럼 완결하세요."
+      ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 특정 캐릭터 말투가 아닌 공통 상담문으로 완결하세요."
       : "중간에 끊기는 느낌이 없도록 맡은 챕터를 모두 닫으세요. 여기서 상담 전체를 마무리하는 인사는 쓰지 마세요.",
+    hasClosingChapter
+      ? [
+        "12장 본문을 완전히 끝낸 뒤, 같은 응답의 맨 마지막에 아래 요약 블록을 정확히 한 번 덧붙이세요. 이 블록은 12장 본문과 별도이며 추가 챕터가 아닙니다.",
+        "두 화자는 같은 명식 사실과 같은 상담 결론만 다른 순서와 말투로 요약합니다. 본문에 없는 오행·십성·시기·사건·수치를 새로 만들지 마세요.",
+        "각 항목은 줄바꿈 없는 한 줄로 쓰고, 태그와 영문 키는 그대로 유지하세요. 연이는 따뜻하지만 유치하지 않은 편지와 부담 없는 실천 하나, 네오는 결론·명식 근거·주의점·다음 확인 순서를 간결하게 씁니다.",
+        "[[CD_PERSONA_SUMMARIES_V1]]",
+        "YEONI_LETTER: 질문의 감정과 명식의 흐름을 연결한 따뜻한 마무리 편지",
+        "YEONI_ACTION: 오늘부터 부담 없이 할 수 있는 실천 한 가지",
+        "NEO_CONCLUSION: 질문에 대한 조건부 결론",
+        "NEO_BASIS: 공통 본문에 이미 쓴 명식 근거",
+        "NEO_CAUTION: 결론이 달라질 수 있는 반대 조건 또는 주의점",
+        "NEO_NEXT_CHECK: 사용자가 다음에 확인할 현실적인 순서",
+        "[[/CD_PERSONA_SUMMARIES_V1]]",
+      ].join("\n")
+      : "",
     repairLines.length ? ["[보강 요청]", ...repairLines].join("\n") : "",
   ].filter(Boolean).join("\n\n").trim();
 }
@@ -416,6 +431,71 @@ function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
 
 function normalizeSajuAIResultText(text) {
   return String(text || "").replace(/\r\n/g, "\n").trim();
+}
+
+const SAJU_AI_PERSONA_SUMMARY_START = "[[CD_PERSONA_SUMMARIES_V1]]";
+const SAJU_AI_PERSONA_SUMMARY_END = "[[/CD_PERSONA_SUMMARIES_V1]]";
+const SAJU_AI_PERSONA_SUMMARY_FIELDS = Object.freeze({
+  YEONI_LETTER: Object.freeze({ maxChars: 1200 }),
+  YEONI_ACTION: Object.freeze({ maxChars: 400 }),
+  NEO_CONCLUSION: Object.freeze({ maxChars: 600 }),
+  NEO_BASIS: Object.freeze({ maxChars: 800 }),
+  NEO_CAUTION: Object.freeze({ maxChars: 600 }),
+  NEO_NEXT_CHECK: Object.freeze({ maxChars: 600 }),
+});
+
+function normalizeSajuAIPersonaSummaryField(value, maxChars) {
+  const normalized = String(value || "")
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!normalized || normalized.length > maxChars) return "";
+  return normalized;
+}
+
+/**
+ * 공통 12챕터와 표시 전용 화자 요약을 분리한다.
+ * 요약 계약이 깨져도 공통 상담문은 살리고, 추가 LLM 호출이나 재결제를 유발하지 않는다.
+ */
+function extractSajuAIPersonaSummaries(text) {
+  const normalized = normalizeSajuAIResultText(text);
+  const startIndex = normalized.indexOf(SAJU_AI_PERSONA_SUMMARY_START);
+  const endIndex = startIndex >= 0
+    ? normalized.indexOf(SAJU_AI_PERSONA_SUMMARY_END, startIndex + SAJU_AI_PERSONA_SUMMARY_START.length)
+    : -1;
+  if (startIndex < 0) {
+    return {
+      resultText: normalizeSajuAIResultText(normalized.replaceAll(SAJU_AI_PERSONA_SUMMARY_END, "")),
+      personaSummaries: undefined,
+    };
+  }
+
+  const resultText = normalizeSajuAIResultText(
+    `${normalized.slice(0, startIndex)}${endIndex >= 0 ? normalized.slice(endIndex + SAJU_AI_PERSONA_SUMMARY_END.length) : ""}`,
+  );
+  if (endIndex < 0) return { resultText, personaSummaries: undefined };
+
+  const block = normalized.slice(startIndex + SAJU_AI_PERSONA_SUMMARY_START.length, endIndex).trim();
+  const values = {};
+  for (const key of Object.keys(SAJU_AI_PERSONA_SUMMARY_FIELDS)) {
+    const match = block.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
+    const field = SAJU_AI_PERSONA_SUMMARY_FIELDS[key];
+    values[key] = normalizeSajuAIPersonaSummaryField(match?.[1], field.maxChars);
+    if (!values[key]) return { resultText, personaSummaries: undefined };
+  }
+  return {
+    resultText,
+    personaSummaries: {
+      version: 1,
+      yeoni: { letter: values.YEONI_LETTER, action: values.YEONI_ACTION },
+      neo: {
+        conclusion: values.NEO_CONCLUSION,
+        basis: values.NEO_BASIS,
+        caution: values.NEO_CAUTION,
+        nextCheck: values.NEO_NEXT_CHECK,
+      },
+    },
+  };
 }
 
 const SAJU_AI_REQUIRED_CHAPTER_PATTERNS = Object.freeze([
@@ -501,16 +581,18 @@ function countSajuAICategoryMatches(text, rubric) {
 
 /** 안전·완결이 길이보다 우선한다 — 위험한 장문이나 잘린 장문으로 바꾸면 개악이다. */
 function scoreSajuAISectionRow(row) {
-  const complete = row?.text && !detectSajuAIIncompleteResult(row.text).incomplete;
-  const supported = row?.text && !findSajuAIUnsupportedAdvice(row.text);
-  return (supported ? 2000000 : 0) + (complete ? 1000000 : 0) + countSajuAIVisibleChars(row?.text);
+  const bodyText = extractSajuAIPersonaSummaries(row?.text).resultText;
+  const complete = bodyText && !detectSajuAIIncompleteResult(bodyText).incomplete;
+  const supported = bodyText && !findSajuAIUnsupportedAdvice(bodyText);
+  return (supported ? 2000000 : 0) + (complete ? 1000000 : 0) + countSajuAIVisibleChars(bodyText);
 }
 
 function isSajuAISectionRowShort(row) {
+  const bodyText = extractSajuAIPersonaSummaries(row?.text).resultText;
   return !row?.ok
-    || countSajuAIVisibleChars(row.text) < row.group.minChars
-    || detectSajuAIIncompleteResult(row.text).incomplete
-    || Boolean(findSajuAIUnsupportedAdvice(row.text));
+    || countSajuAIVisibleChars(bodyText) < row.group.minChars
+    || detectSajuAIIncompleteResult(bodyText).incomplete
+    || Boolean(findSajuAIUnsupportedAdvice(bodyText));
 }
 
 /**
@@ -844,13 +926,14 @@ function normalizeSajuAIPromptAccessMethod(consumePayload = {}, body = {}) {
   return "single";
 }
 
-function buildSajuAIPromptResultPayload({ builtPrompt, resultText, consumePayload, chargedCoins, balanceAfter, requestId, execution, promptDigest, model, provider, domain, resultId, question, profileId, saved = false }) {
+function buildSajuAIPromptResultPayload({ builtPrompt, resultText, personaSummaries, consumePayload, chargedCoins, balanceAfter, requestId, execution, promptDigest, model, provider, domain, resultId, question, profileId, saved = false }) {
   return {
     ok: true,
     status: "completed",
     progress: 100,
     stepMessage: "결과 준비 완료",
     resultText: normalizeSajuAIResultText(resultText),
+    ...(personaSummaries ? { personaSummaries } : {}),
     title: SAJU_AI_PROMPT_TITLE,
     consultationType: "saju_myeongsik_ai",
     promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
@@ -959,6 +1042,9 @@ function buildSajuAIStatusPayload(record) {
   const fallbackProgress = status === "completed" ? 100 : status === "failed" ? Math.max(0, Math.min(95, Number(rawProgress.progress || 0) || 0)) : Number(rawProgress.progress || 0) || 0;
   const progress = buildSajuAIProgress(fallbackProgress, status, rawProgress.stepMessage || "");
   const error = record?.error && typeof record.error === "object" ? record.error : {};
+  const partialResult = extractSajuAIPersonaSummaries(
+    (stored.sections || []).filter((row) => row.valid).map((row) => row.text).join("\n\n"),
+  );
   return {
     ok: true,
     jobId: record?.executionId || "",
@@ -971,9 +1057,10 @@ function buildSajuAIStatusPayload(record) {
     progressState: progress,
     retryable: ["failed", "partial", "delivery_pending"].includes(status) && stored?.order?.paymentStatus === "PAID"
       && (status !== "partial" || (stored.sections || []).some(row => row.attempts < 4 && (!row.valid
-        || countSajuAIVisibleChars(row.text) < SAJU_AI_SECTION_GROUPS.find(group => group.key === row.key)?.targetMinChars))),
+        || countSajuAIVisibleChars(extractSajuAIPersonaSummaries(row.text).resultText) < SAJU_AI_SECTION_GROUPS.find(group => group.key === row.key)?.targetMinChars))),
     completedChapters: (stored.sections || []).filter((row) => row.valid).flatMap((row) => SAJU_AI_SECTION_GROUPS.find((group) => group.key === row.key)?.chapters.map((chapter) => chapter.no) || []),
-    resultText: ["partial", "delivery_pending", "generating"].includes(status) ? (stored.sections || []).filter((row) => row.valid).map((row) => row.text).join("\n\n") : undefined,
+    resultText: ["partial", "delivery_pending", "generating"].includes(status) ? partialResult.resultText : undefined,
+    personaSummaries: ["partial", "delivery_pending", "generating"].includes(status) ? partialResult.personaSummaries : undefined,
     saved: false,
     profileId: record?.profileId || "",
     question: stored.resumeBody?.question || stored.consultation?.question || "",
@@ -1168,7 +1255,12 @@ async function saveSajuAIConsultationResultRecord({ auth, body, profileId, reque
   ).lean());
   if (!saved || saved.status !== "completed") throw sajuStorageError();
   const confirmed = await PaidExecutionRecord.findOne({ executionId, userId, status: "completed" }).lean();
-  if (!confirmed || confirmed.result?.consultation?.resultText !== resultPayload.resultText) throw sajuStorageError();
+  const confirmedConsultation = confirmed?.result?.consultation;
+  if (!confirmed
+    || confirmedConsultation?.resultText !== resultPayload.resultText
+    || JSON.stringify(confirmedConsultation?.personaSummaries || null) !== JSON.stringify(resultPayload.personaSummaries || null)) {
+    throw sajuStorageError();
+  }
   return confirmed;
 }
 
@@ -1196,7 +1288,7 @@ async function saveSajuAISectionCheckpoint({ executionId, leaseToken, sections, 
 }
 
 function validateSajuAISection(text, group, factSnapshot, { lengthRepair = false } = {}) {
-  const normalized = normalizeSajuAIResultText(text);
+  const normalized = extractSajuAIPersonaSummaries(text).resultText;
   const chapters = [...normalized.matchAll(/^\s*(?:#{1,6}\s*)?(?:\*\*)?(\d+)[.)]\s*([^\n]+)\n/gm)];
   const matching = chapters.filter((match) => group.chapters.some((chapter) => chapter.no === Number(match[1]) && match[2].replace(/\*/g, "").trim() === chapter.title));
   if (matching.length !== group.chapters.length || chapters.length !== matching.length) return false;
@@ -4819,7 +4911,9 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
         },
         onSection: async (row) => {
-          const candidateText = sections.map(section => section.key === next.key ? row.text : section.text).join("\n\n");
+          const candidateText = extractSajuAIPersonaSummaries(
+            sections.map(section => section.key === next.key ? row.text : section.text).join("\n\n"),
+          ).resultText;
           const usable = row.ok && validateSajuAISection(row.text, group, builtPrompt.factSnapshot, { lengthRepair: true })
             && !hasRepeatedReportPassage(candidateText);
           const savedUsable = validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
@@ -4845,7 +4939,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       const partial = await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections, status: "partial" });
       return json(buildSajuAIStatusPayload(partial), { status: 202 });
     }
-    const assembledText = usableGroups.map((row) => row.text).join("\n\n");
+    const assembled = extractSajuAIPersonaSummaries(usableGroups.map((row) => row.text).join("\n\n"));
+    const assembledText = assembled.resultText;
     finalAi = { ok: true, model: usableGroups[0]?.model, provider: usableGroups[0]?.provider };
 
     lastValidation = assembledText
@@ -4895,6 +4990,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     const resultPayload = buildSajuAIPromptResultPayload({
       builtPrompt,
       resultText: finalText,
+      personaSummaries: assembled.personaSummaries,
       consumePayload,
       chargedCoins,
       balanceAfter,
@@ -6959,6 +7055,8 @@ export const __sajuAiSectionTestUtils = {
   runSajuAISectionWaves,
   buildSajuAISectionPrompt,
   buildSajuAISectionPromptPrefix,
+  extractSajuAIPersonaSummaries,
+  buildSajuAIPromptResultPayload,
   isSajuAISectionRowShort,
   scoreSajuAISectionRow,
   countSajuAIVisibleChars,
