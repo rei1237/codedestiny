@@ -6,7 +6,7 @@ import { buildGuardianFortuneContext } from './guardian-fortune-context.js';
 import { generateGuardianFortuneWithConfiguredLLM } from './guardian-fortune-llm.js';
 import { shouldUseRealGuardianFortuneLLM } from './guardian-fortune-llm-policy.js';
 import { GUARDIAN_FORTUNE_PAID_FEATURE_KEY } from './guardian-fortune-usage.js';
-import { countGuardianFortuneVisibleTextLength, isStructurallyCompleteGuardianFortuneResult } from './guardian-fortune-result.js';
+import { countGuardianFortuneVisibleTextLength, hasUsableGuardianFortuneResult } from './guardian-fortune-result.js';
 import { GUARDIAN_FORTUNE_RESULT_LENGTH } from './guardian-fortune-runtime-contract.js';
 
 const featureKey = GUARDIAN_FORTUNE_PAID_FEATURE_KEY;
@@ -68,7 +68,7 @@ export function guardianNarrativeAdapter(env, userId, generator = generateGuardi
       const length = countGuardianFortuneVisibleTextLength(answer);
       return answer.lengthDraft ? Math.min(length, GUARDIAN_FORTUNE_RESULT_LENGTH.min - 1) : length;
     },
-    completeBody: body => isStructurallyCompleteGuardianFortuneResult(parseAnswer(body)),
+    completeBody: body => hasUsableGuardianFortuneResult(parseAnswer(body)),
     produce: async (task, state) => {
       // Development stays mock-only. Production must never silently sell a
       // mock or deterministic fallback as a completed paid LLM consultation.

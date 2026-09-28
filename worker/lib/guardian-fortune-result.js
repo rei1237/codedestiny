@@ -1,3 +1,4 @@
+import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import {
   GUARDIAN_FORTUNE_FORBIDDEN_RESULT_PATTERNS,
   GUARDIAN_FORTUNE_LIST_LIMITS,
@@ -120,7 +121,8 @@ export function parseGuardianFortuneLLMResponse(rawResponse) {
     }
   }
 
-  return { ok: false, errorCode: PARSE_ERROR, message: "LLM 결과가 JSON 형식이 아닙니다." };
+  const recovered = salvageTruncatedJsonObject(source);
+  return recovered ? { ok: true, value: recovered } : { ok: false, errorCode: PARSE_ERROR, message: "LLM 결과가 JSON 형식이 아닙니다." };
 }
 
 export function countGuardianFortuneVisibleTextLength(result = {}) {
@@ -451,6 +453,11 @@ export function buildFallbackGuardianFortuneResult({ input = {}, context = {}, r
 
 // A paid draft must carry every visible field and both lists from the model
 // itself. Fallback copy may fill a full-length answer, never a short draft.
+export function hasUsableGuardianFortuneResult(result) {
+  return result && typeof result === "object" && !Array.isArray(result)
+    && safeText(result.coreReading).length >= 10 && safeText(result.topicAdvice).length >= 10
+    && countGuardianFortuneVisibleTextLength(result) >= 80;
+}
 export function isStructurallyCompleteGuardianFortuneResult(result) {
   if (!result || typeof result !== "object" || Array.isArray(result)) return false;
   if (!["title", ...VISIBLE_RESULT_FIELDS].every(field => safeText(result[field]))) return false;
@@ -487,11 +494,11 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
     return { ok: false, errorCode: "GUARDIAN_RESULT_UNSAFE_CONTENT", issues: ["forbidden_expression"] };
   }
   const fallback = buildFallbackGuardianFortuneResult({ input, context, reason: "validation_fallback" });
-  let candidate = sanitizeGuardianFortuneResult({ ...fallback, ...parsed });
+  let candidate = sanitizeGuardianFortuneResult(preserveShort ? parsed : { ...fallback, ...parsed });
   const issues = [];
   for (const field of ALL_RESULT_TEXT_FIELDS) {
     if (!safeText(parsed[field])) issues.push(`fallback_${field}`);
-    if (!safeText(candidate[field])) candidate[field] = fallback[field];
+    if (!preserveShort && !safeText(candidate[field])) candidate[field] = fallback[field];
   }
 
   candidate.premiumCta = normalizeCta(parsed.premiumCta, topic, fallback.premiumCta.reason, locale);
@@ -525,16 +532,16 @@ export function validateAndNormalizeGuardianFortuneResult({ parsed, input = {}, 
   // 목록이 모자라면 폴백의 목록으로 채운다. 목록 부재로 전체 상담을 버리면 결제한
   // 사용자가 산문까지 잃는다 — 목록은 보조 구조라 폴백 대체가 맞다.
   for (const [field, limits] of Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS)) {
-    if ((normalized[field] || []).length < limits.min) {
+    if (!preserveShort && (normalized[field] || []).length < limits.min) {
       normalized[field] = fallback[field] || [];
       issues.push(`fallback_${field}`);
     }
   }
-  const hasMissingRequired = VISIBLE_RESULT_FIELDS.some((field) => !safeText(normalized[field])) || !safeText(normalized.title);
+  const hasMissingRequired = preserveShort ? !hasUsableGuardianFortuneResult(normalized) : VISIBLE_RESULT_FIELDS.some((field) => !safeText(normalized[field])) || !safeText(normalized.title);
   const hasForbidden = ALL_RESULT_TEXT_FIELDS.some((field) => hasForbiddenExpression(normalized[field]))
     || hasForbiddenExpression(normalized.premiumCta.reason);
   const length = countGuardianFortuneVisibleTextLength(normalized);
-  const hasMissingLists = locale !== "ko" && Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS)
+  const hasMissingLists = !preserveShort && locale !== "ko" && Object.entries(GUARDIAN_FORTUNE_LIST_LIMITS)
     .some(([field, limits]) => (normalized[field] || []).length < limits.min);
   if (hasMissingRequired || hasMissingLists || hasForbidden || (!preserveShort && length < GUARDIAN_FORTUNE_RESULT_LENGTH.min) || length > GUARDIAN_FORTUNE_RESULT_LENGTH.max) {
     return {

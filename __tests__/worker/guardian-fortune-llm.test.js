@@ -122,10 +122,10 @@ it('paid draft mode keeps a complete short answer without deterministic enrichme
  expect(result).toMatchObject({deliverable:true,usedFallback:false,lengthDraft:true});
  expect(countGuardianFortuneVisibleTextLength(result.result)).toBeLessThan(GUARDIAN_FORTUNE_RESULT_LENGTH.min);expect(result.result.coreReading).toBe(shortAnswer().coreReading);
 });
-it('paid draft mode still rejects a short answer missing a field or list',async()=>{
+it('paid draft mode preserves prose despite a missing auxiliary field or list',async()=>{
  for(const drop of ['cautionPattern','followUpQuestions']){const answer=shortAnswer();delete answer[drop];
   const provider=jest.fn(async()=>({ok:true,text:JSON.stringify(answer)}));
-  expect(await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:realEnv,userId:'fixture-user',singleAttempt:true,acceptShortDraft:true,providerCall:provider,metricSink:()=>{}})).toMatchObject({deliverable:false,errorCode:'PAID_RESULT_INCOMPLETE'});}
+  expect(await generateGuardianFortuneWithRealLLM({input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:realEnv,userId:'fixture-user',singleAttempt:true,acceptShortDraft:true,providerCall:provider,metricSink:()=>{}})).toMatchObject({deliverable:true,usedFallback:false});}
 });
 it('the repair call carries the saved draft only in paid draft mode',async()=>{
  const provider=jest.fn(async()=>({ok:true,text:JSON.stringify(shortAnswer())})),args={input:guardianFortuneLlmInput,context:makeGuardianFortuneContext(),env:realEnv,userId:'fixture-user',singleAttempt:true,repairDraft:'{"coreReading":"저장된 초안 본문"}',providerCall:provider,metricSink:()=>{}};

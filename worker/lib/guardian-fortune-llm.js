@@ -6,7 +6,7 @@ import {
   parseGuardianFortuneLLMResponse,
   validateAndNormalizeGuardianFortuneResult,
   countGuardianFortuneVisibleTextLength,
-  isStructurallyCompleteGuardianFortuneResult,
+  hasUsableGuardianFortuneResult,
 } from "./guardian-fortune-result.js";
 import { generateGuardianFortuneWithMockLLM } from "./guardian-fortune-mock.js";
 import { GUARDIAN_FORTUNE_RESULT_LENGTH } from "./guardian-fortune-runtime-contract.js";
@@ -154,7 +154,7 @@ export async function generateGuardianFortuneWithRealLLM({
     generationSource: safeMetricText(generationSource, 40),
   };
 
-  if (!providerResult?.ok || providerResult.truncated || typeof providerResult.text !== "string") {
+  if (!providerResult?.ok || typeof providerResult.text !== "string") {
     const result = buildValidatedFallback({ input, context, reason: resultErrorCode(providerResult) });
     const deliverable = Boolean(result);
     emitMetric({ ...baseMetric, success: deliverable, fallbackUsed: deliverable, errorCode: resultErrorCode(providerResult) }, metricSink);
@@ -178,13 +178,12 @@ export async function generateGuardianFortuneWithRealLLM({
   // Paid turns never reach deterministic enrichment. A short answer is either a
   // structurally complete draft (acceptShortDraft) or rejected as incomplete.
   const short = countGuardianFortuneVisibleTextLength(parsed.value) < GUARDIAN_FORTUNE_RESULT_LENGTH.min;
-  const lengthDraft = singleAttempt && short && acceptShortDraft && isStructurallyCompleteGuardianFortuneResult(parsed.value);
-  if (singleAttempt && ((short && !lengthDraft)
-    || !Array.isArray(parsed.value.evidenceLines) || parsed.value.evidenceLines.length < 3
-    || !Array.isArray(parsed.value.followUpQuestions) || parsed.value.followUpQuestions.length !== 3)) {
+  const usablePaid = singleAttempt && hasUsableGuardianFortuneResult(parsed.value);
+  const lengthDraft = usablePaid && short;
+  if (singleAttempt && !usablePaid) {
     return { usedFallback: false, deliverable: false, errorCode: 'PAID_RESULT_INCOMPLETE', usage };
   }
-  const validated = validateAndNormalizeGuardianFortuneResult({ parsed: parsed.value, input, context, preserveShort: lengthDraft });
+  const validated = validateAndNormalizeGuardianFortuneResult({ parsed: parsed.value, input, context, preserveShort: usablePaid });
   if (!validated.ok) {
     const result = buildValidatedFallback({ input, context, reason: validated.errorCode });
     const deliverable = Boolean(result);

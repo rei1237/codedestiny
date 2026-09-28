@@ -71,9 +71,9 @@ test('the first usable answer completes before an unnecessary repair can replace
  expect(result).toMatchObject({ok:true,status:200,saved:true});
  expect(JSON.parse(docs[0].metadata.paidNarrative.parts.answer).coreReading).toContain('first');expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(1);
 });
-test('an incomplete short answer is never kept as a draft',async()=>{
+test('a missing auxiliary evidence list does not discard the paid answer',async()=>{
  const {evidenceLines,...missing}=answer(1500);provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,result:missing});
- expect(await start()).toMatchObject({ok:false,status:202});expect(docs[0].metadata.paidNarrative.drafts?.answer).toBeFalsy();
+ expect(await start()).toMatchObject({ok:true,status:200,saved:true});expect(provider).toHaveBeenCalledTimes(1);
 });
 test('a record seeded before the draft contract keeps the producer rejection',async()=>{
  const generator=jest.fn(async()=>({deliverable:false}));
