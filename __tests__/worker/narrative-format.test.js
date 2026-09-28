@@ -61,17 +61,18 @@ test.each([['love', 4], ['mind', 10]])('%s repairs paragraphs at the producer bo
     reply(value); expect(await adapter.produce(task, state)).toBeNull();
   }
   reply(result(sentences.join(' ')), { truncated: true });
-  expect(await adapter.produce(task, state)).toBeNull();
+  expect((await adapter.produce(task, state)).body.split('\n\n')).toHaveLength(count);
 });
-test('question repairs punctuation but rejects provider truncation, forged claims and raw repetitions', async () => {
+test('question locally repairs punctuation, citation metadata and duplicate paragraphs', async () => {
   const adapter = question({}, 'astrology_ai_prompt_generator'), task = { id: 'part-1', minChars: 2200 };
   const body = '선택에 필요한 조건과 자신의 일상에서 바꿀 수 있는 부분을 비교해 보세요\n\n서로의 속도가 다른 만큼 상대의 반응을 관찰할 시간을 남겨두세요';
   reply(result(body));
   expect((await adapter.produce(task, state)).body).toBe(normalizeNarrativeEndings(body));
-  for (const extra of [{ truncated: true }, { isMock: true }, { ok: false }]) {
+  for (const extra of [{ isMock: true }, { ok: false }]) {
     reply(result(body), extra); expect(await adapter.produce(task, state)).toBeNull();
   }
-  for (const value of [null, { ...result(body), claims: [null] }, { ...result(body), claims: [{ factId: 'fake', value: 'Sun' }] }, result('# 제목'), result([body]), result(`${body}\n\n${body}`)]) {
+  for (const value of [{ ...result(body), claims: [null] }, { ...result(body), claims: [{ factId: 'fake', value: 'Sun' }] }, result(`${body}\n\n${body}`)]) { reply(value, {truncated:true}); expect((await adapter.produce(task,state)).body).toBe(normalizeNarrativeEndings(body)); }
+  for (const value of [null, result('# 제목'), result([body])]) {
     reply(value); expect(await adapter.produce(task, state)).toBeNull();
   }
 });

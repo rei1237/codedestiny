@@ -60,8 +60,8 @@ test('owner, input, revoked payment and rejected new/resumed access are enforced
 test('server pending lookup, original locale and concurrent requests preserve the same four provider calls',async()=>{
  const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const pause=new Promise(resolve=>{release=resolve;}),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await pause;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&provider.mock.calls.length<4;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();await first;expect(locales).toEqual(['ja','ja','ja','ja']);const response=await route(new Request('https://mock.test/api/dream/psycho-result'),{});expect(response.status).toBe(202);expect((await response.json()).record.markdown).toContain('Chapter 1.');expect(provider).toHaveBeenCalledTimes(4);
 });
-test('unknown interruption has a per-part three-call limit without false completion or refund',async()=>{
- provider.mockImplementation(async()=>({ok:false}));await start();for(let i=0;i<10;i++)await resume();expect(provider).toHaveBeenCalledTimes(30);expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(count=>count===3)).toBe(true);expect(docs[0].status).toBe('pending');expect(docs[0].premiumStatus).toBe('generating');
+test('unknown interruption has a per-part two-call limit without false completion or refund',async()=>{
+ provider.mockImplementation(async()=>({ok:false}));await start();for(let i=0;i<10;i++)await resume();expect(provider).toHaveBeenCalledTimes(20);expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(count=>count===2)).toBe(true);expect(docs[0].status).toBe('pending');expect(docs[0].premiumStatus).toBe('generating');
 });
 
 test('provider model override, bounded timeout and original intake survive checkpointing',async()=>{

@@ -1,3 +1,4 @@
+import { parseNarrativeResponse } from './paid-narrative-candidate.js';
 import { createHash } from 'node:crypto';
 import { ServiceExecutionTransaction } from './models.js';
 import { connectDb } from './db.js';
@@ -79,13 +80,14 @@ export function featureQuestionNarrativeAdapter(env, featureKey) {
         systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500,
         thinkingBudget: 0, responseMimeType: 'application/json', fallbackToWorkersAI: false,
       });
-      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
-      let parsed; try { parsed = JSON.parse(ai.text); } catch { return null; }
-      if (!parsed || !Array.isArray(parsed.claims) || !parsed.claims.length || parsed.claims.some(claim => {
-        if (!claim || typeof claim !== 'object') return true;
-        const fact = state.facts.find(row => row.id === claim.factId);
-        return !fact || JSON.stringify(fact.value) !== JSON.stringify(claim.value);
-      })) return null;
+      if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
+      const parsed = parseNarrativeResponse(ai.text, state.evidenceHash);
+      if (!parsed) return null;
+      // Discard incorrect citation metadata without purchasing a new answer.
+      parsed.claims = (Array.isArray(parsed.claims) ? parsed.claims : []).filter(claim => {
+        const fact = state.facts.find(row => row.id === claim?.factId);
+        return fact && JSON.stringify(fact.value) === JSON.stringify(claim.value);
+      });
       if (typeof parsed.body !== 'string' || !parsed.body.trim()) return null;
       if (!countPaidReportBodyChars(parsed.body) || hasRepeatedReportPassage(parsed.body)) return null;
       parsed.body = normalizeNarrativeEndings(parsed.body, state.locale);

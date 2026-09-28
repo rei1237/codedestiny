@@ -45,7 +45,7 @@ test('completed paid response survives response loss and process recreation',asy
 test.each(['throw','null','confirm'])('final save %s preserves generated answer',async kind=>{fault={kind};expect(await start()).toMatchObject({ok:false,status:503,paymentRetainedForRetry:true});expect(await start({resumeOnly:true})).toMatchObject({ok:true,saved:true});expect(provider).toHaveBeenCalledTimes(1);});
 test.each(['throw','null','confirm'])('checkpoint %s stops generation and can retry the original turn',async kind=>{fault={kind,metadata:true};expect(await start()).toMatchObject({ok:false,status:503});expect(provider).not.toHaveBeenCalled();expect(await start()).toMatchObject({ok:true,saved:true});});
 test('payment rejection, cancellation and foreign user cannot read the answer',async()=>{await start();mode='denied';expect(await start({resumeOnly:true})).toMatchObject({status:403});mode='paid';revoked=true;expect(await start()).toMatchObject({status:403});userId='other';expect(await start({resumeOnly:true})).toBeNull();expect(provider).toHaveBeenCalledTimes(1);});
-test.each(['fallback','mock','invalid'])('%s is retained as incomplete, never sold as successful',async kind=>{provider.mockResolvedValue({result:{coreReading:'not a live paid answer'},usedFallback:kind==='fallback',isMock:kind==='mock',deliverable:kind!=='invalid'});for(let i=0;i<3;i++)expect(await start()).toMatchObject({ok:false,status:202});expect((await start()).retryable).toBe(false);expect(provider).toHaveBeenCalledTimes(3);expect(docs[0].premiumStatus).toBe('generating');});
+test.each(['fallback','mock','invalid'])('%s is retained as incomplete, never sold as successful',async kind=>{provider.mockResolvedValue({result:{coreReading:'not a live paid answer'},usedFallback:kind==='fallback',isMock:kind==='mock',deliverable:kind!=='invalid'});for(let i=0;i<3;i++)expect(await start()).toMatchObject({ok:false,status:202});expect((await start()).retryable).toBe(false);expect(provider).toHaveBeenCalledTimes(2);expect(docs[0].premiumStatus).toBe('generating');});
 test('disabled live configuration never falls back to a mock paid result',async()=>{expect(await start({env:{}})).toMatchObject({ok:false,status:503,error:'LLM_NOT_CONFIGURED'});expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);});
 test('overlapping paid requests share the claim',async()=>{let release;const pause=new Promise(resolve=>release=resolve),original=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{await pause;return original(...args);});const one=start();for(let i=0;i<30&&!provider.mock.calls.length;i++)await new Promise(resolve=>setImmediate(resolve));expect(await start()).toMatchObject({status:202,busy:true});release();expect(await one).toMatchObject({saved:true});expect(provider).toHaveBeenCalledTimes(1);});
 
@@ -59,18 +59,17 @@ test('real generation entry resumes the paid receipt before reserving another tu
  expect((await store.findAttempt('paid-guardian-original')).status).toBe('completed');
 });
 test('server-owned latest lookup returns the saved paid turn without browser input',async()=>{await start();expect(await start({readOnly:true,requestId:undefined,input:undefined})).toMatchObject({ok:true,saved:true,requestId:'paid-guardian-original'});expect(provider).toHaveBeenCalledTimes(1);});
-test('short complete answer is saved as a draft and the one repair receives it',async()=>{
+test('short complete answer is delivered on its first attempt without a length repair',async()=>{
  provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,lengthDraft:true,result:answer(1500,'draft')});
- expect(await start()).toMatchObject({ok:false,status:202,retryable:true});
- const draft=docs[0].metadata.paidNarrative.drafts.answer;expect(JSON.parse(draft).coreReading).toContain('draft');expect(docs[0].metadata.paidNarrative.parts.answer).toBeUndefined();
- expect(await start()).toMatchObject({ok:true,saved:true});
- expect(provider).toHaveBeenCalledTimes(2);expect(provider.mock.calls[0][0]).toMatchObject({acceptShortDraft:true,repairDraft:''});expect(provider.mock.calls[1][0]).toMatchObject({acceptShortDraft:true,repairDraft:draft});
+ expect(await start()).toMatchObject({ok:true,status:200,saved:true});
+ expect(JSON.parse(docs[0].metadata.paidNarrative.parts.answer).coreReading).toContain('draft');
+ expect(await start()).toMatchObject({ok:true,saved:true});expect(provider).toHaveBeenCalledTimes(1);
 });
-test('a shorter or failed repair keeps the draft and a short final answer stays for review',async()=>{
+test('the first usable answer completes before an unnecessary repair can replace it',async()=>{
  provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,result:answer(1800,'first')}).mockResolvedValueOnce({usedFallback:false,deliverable:true,result:answer(1200,'second')});
  await start();const result=await start();
- expect(result).toMatchObject({ok:false,status:202,retryable:false,reviewRequired:true});
- expect(JSON.parse(docs[0].metadata.paidNarrative.parts.answer).coreReading).toContain('first');expect(docs[0].premiumStatus).not.toBe('completed');expect(provider).toHaveBeenCalledTimes(2);
+ expect(result).toMatchObject({ok:true,status:200,saved:true});
+ expect(JSON.parse(docs[0].metadata.paidNarrative.parts.answer).coreReading).toContain('first');expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(1);
 });
 test('an incomplete short answer is never kept as a draft',async()=>{
  const {evidenceLines,...missing}=answer(1500);provider.mockResolvedValueOnce({usedFallback:false,deliverable:true,result:missing});
@@ -81,10 +80,10 @@ test('a record seeded before the draft contract keeps the producer rejection',as
  await guardianNarrativeAdapter({NODE_ENV:'test'},owner,generator).produce({id:'answer',minChars:1},{input,context:{},body:{requestId:'legacy-request'},drafts:{answer:'{}'}});
  expect(generator.mock.calls[0][0].acceptShortDraft).toBeUndefined();expect(generator.mock.calls[0][0].repairDraft).toBeUndefined();
 });
-test('a length draft never completes even when the normalized CTA reason lifts it over the floor',async()=>{
+test('length metadata does not prevent delivery or leak to the displayed answer',async()=>{
  const draft=answer(2560,'lifted');draft.premiumCta={reason:'정규화 과정에서 채워진 폴백 사유 문구가 이 초안의 길이를 기준 위로 올립니다.'};
  provider.mockResolvedValue({usedFallback:false,deliverable:true,lengthDraft:true,result:draft});
  await start();await start();const result=await start();
- expect(result).toMatchObject({ok:false,status:202,retryable:false});expect(docs[0].premiumStatus).not.toBe('completed');
- expect(result.result).not.toHaveProperty('lengthDraft');expect(provider).toHaveBeenCalledTimes(2);
+ expect(result).toMatchObject({ok:true,status:200,saved:true});expect(docs[0].premiumStatus).toBe('completed');
+ expect(result.result).not.toHaveProperty('lengthDraft');expect(provider).toHaveBeenCalledTimes(1);
 });

@@ -1,3 +1,4 @@
+import { parseNarrativeResponse } from './paid-narrative-candidate.js';
 import { buildMindscanDeliveryFacts } from '../../lib/tarot/mindscan-reading.mjs';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { getAmbientAiLocale } from './ai-locale-context.js';
@@ -61,8 +62,9 @@ export function mindscanNarrativeAdapter(env) {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
         fallbackToWorkersAI: false, responseMimeType: 'application/json',
       });
-      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
-      let value; try { value = JSON.parse(ai.text); } catch { return null; }
+      if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
+      const value = parseNarrativeResponse(ai.text, state.evidenceHash);
+      if (!value) return null;
       if (!value || typeof value.body !== 'string' || !value.body.trim()) return null;
       if (!countPaidReportBodyChars(value.body) || hasRepeatedReportPassage(value.body)) return null;
       if (task.id === 'summary') value.body = normalizeNarrativeParagraphs(value.body, 10);

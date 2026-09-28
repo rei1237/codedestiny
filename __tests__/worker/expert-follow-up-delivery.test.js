@@ -92,7 +92,7 @@ test('revoked purchase cannot generate or reopen a follow-up', async () => { awa
 test('quality failure keeps original report and bounded attempts', async () => {
   provider.mockResolvedValue({ text: '짧고 잘림', provider: 'gemini' });
   for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
-  expect(provider).toHaveBeenCalledTimes(3); expect(report.messages).toHaveLength(1);
+  expect(provider).toHaveBeenCalledTimes(2); expect(report.messages).toHaveLength(1);
 });
 test('two concurrent submissions attach only one answer', async () => {
   let release; const wait = new Promise(resolve => release = resolve), original = provider.getMockImplementation();

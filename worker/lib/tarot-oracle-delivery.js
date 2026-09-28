@@ -1,3 +1,4 @@
+import { parseNarrativeResponse } from './paid-narrative-candidate.js';
 import { buildOracleConsultationPrompt, validateOracleConsultationInput, resolveOracleConsultationTargetChars } from '../../lib/tarot/oracle-consultation.mjs';
 import { ORACLE_CONSULTATION_TIERS, resolveOracleConsultationTier } from '../../lib/tarot/oracle-consultation-pricing.mjs';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
@@ -88,8 +89,9 @@ export function tarotOracleNarrativeAdapter(env) {
         systemPrompt: state.systemPrompt, timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0,
         temperature: 0.55, fallbackToWorkersAI: false, responseMimeType: 'application/json',
       });
-      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
-      let value; try { value = JSON.parse(ai.text); } catch { return null; }
+      if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) return null;
+      const value = parseNarrativeResponse(ai.text, state.evidenceHash);
+      if (!value) return null;
       if (task.cardIndex !== undefined && paragraphs(value?.body).length < 2) return null;
       return value;
     },

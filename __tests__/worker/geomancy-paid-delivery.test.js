@@ -41,7 +41,7 @@ const original=()=>({requestId:'original-paid-geomancy',transactionId:'paid-'+mo
 const post=body=>route(new Request('https://mock.test/api/oracle/geomancy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}),{});
 const start=()=>post(original()),resume=()=>post({resumeResultId:docs[0].executionKey});
 const finish=async()=>{let result;for(let i=0;i<4;i++){result=await resume();if(result.status===200)return result;}return result;};
-test.each(['timeout','short','shorter','repeated','cross-part','truncated','wrong-evidence','empty','mock','malformed'])('a durable short draft survives a %s repair without a third call',async failure=>{
+test.each(['timeout','short','shorter','repeated','cross-part','truncated','wrong-evidence','empty','mock','malformed'])('a usable first response never purchases a %s repair',async failure=>{
  const good=provider.getMockImplementation();
  let firstId, saved;
  provider.mockImplementation(async(...args)=>{
@@ -63,15 +63,14 @@ test.each(['timeout','short','shorter','repeated','cross-part','truncated','wron
   return {...response,text:JSON.stringify(value)};
  });
  await start();
- expect(docs[0].metadata.paidNarrative.drafts[firstId]).toBe(saved);
- expect(docs[0].metadata.paidNarrative.parts[firstId]).toBeUndefined();
+ expect(docs[0].metadata.paidNarrative.parts[firstId]).toBe(saved);
  const result=await finish();
  expect(result.status).toBe(200);
  expect(docs[0].metadata.paidNarrative.parts[firstId]).toBe(saved);
- expect(provider).toHaveBeenCalledTimes(8);
- expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(2);
+ expect(provider).toHaveBeenCalledTimes(7);
+ expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(1);
 });
-test('the third short response is accepted when older checkpoints have no durable draft',async()=>{
+test('a saved legacy short draft is adopted before any new generation',async()=>{
  const good=provider.getMockImplementation();let firstId;
  provider.mockImplementation(async(...args)=>{
   const response=await good(...args),value=JSON.parse(response.text),id=args[1].split('[이번 호출 범위] ')[1].split(':')[0];
@@ -80,14 +79,13 @@ test('the third short response is accepted when older checkpoints have no durabl
   return {...response,text:JSON.stringify(value)};
  });
  await start();
- // Pre-draft checkpoints retain the attempt counter but have no candidate.
- delete docs[0].metadata.paidNarrative.drafts;
- await resume();
- delete docs[0].metadata.paidNarrative.drafts;
+ // Simulate a draft written by the former policy.
+ docs[0].metadata.paidNarrative.drafts={[firstId]:docs[0].metadata.paidNarrative.parts[firstId]};
+ delete docs[0].metadata.paidNarrative.parts[firstId];
  expect((await resume()).status).toBe(200);
- expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(3);
+ expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(1);
  expect(docs[0].metadata.paidNarrative.parts[firstId]).toBeTruthy();
- expect(provider).toHaveBeenCalledTimes(9);
+ expect(provider).toHaveBeenCalledTimes(7);
 });
 test('a draft overlapping a saved part cannot hide a valid shorter repair',async()=>{
  const good=provider.getMockImplementation();let firstId,saved;
@@ -99,12 +97,13 @@ test('a draft overlapping a saved part cannot hide a valid shorter repair',async
  });
  await start();
  // A different part may have been accepted after this draft was checkpointed.
- docs[0].metadata.paidNarrative.drafts[firstId]=Object.values(docs[0].metadata.paidNarrative.parts)[0];
+ docs[0].metadata.paidNarrative.drafts[firstId]=Object.entries(docs[0].metadata.paidNarrative.parts).find(([id])=>id!==firstId)[1];
+ delete docs[0].metadata.paidNarrative.parts[firstId];
  expect((await finish()).status).toBe(200);
  expect(docs[0].metadata.paidNarrative.parts[firstId]).toBe(saved);
  expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(2);
 });
-test.each(['repeated','truncated','wrong-evidence','empty','unfinished','mock','malformed'])('three %s responses without a valid draft still require review',async invalid=>{
+test.each(['wrong-evidence','empty','unfinished','mock','malformed'])('two %s responses without a valid draft still require review',async invalid=>{
  const good=provider.getMockImplementation();let firstId;
  provider.mockImplementation(async(...args)=>{
   const response=await good(...args),value=JSON.parse(response.text),id=args[1].split('[이번 호출 범위] ')[1].split(':')[0];
@@ -122,19 +121,19 @@ test.each(['repeated','truncated','wrong-evidence','empty','unfinished','mock','
  await start();await resume();const result=await resume();
  expect(result.status).toBe(202);
  expect(await result.json()).toMatchObject({retryable:false,reviewRequired:true});
- expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(3);
+ expect(docs[0].metadata.paidNarrative.attempts[firstId]).toBe(2);
  expect(docs[0].metadata.paidNarrative.parts[firstId]).toBeUndefined();
  expect(docs[0].metadata.paidNarrative.drafts?.[firstId]).toBeUndefined();
- await resume();expect(provider).toHaveBeenCalledTimes(9);
+ await resume();expect(provider).toHaveBeenCalledTimes(8);
 });
-test('a complete set below the advertised report minimum requests review instead of polling forever',async()=>{
+test('a complete saved set below its target delivers without length regeneration',async()=>{
  await start();
  const state=docs[0].metadata.paidNarrative;
  for(const task of state.tasks)state.parts[task.id]=`${task.id}의 근거를 확인합니다.\n\n조건에 맞춰 선택하세요.`;
  const response=await resume();
- expect(response.status).toBe(202);
- expect(await response.json()).toMatchObject({retryable:false,reviewRequired:true,nextAction:'support',code:'DELIVERY_REVIEW_REQUIRED'});
- expect(docs[0].premiumStatus).not.toBe('completed');
+ expect(response.status).toBe(200);
+ expect(await response.json()).toMatchObject({status:'completed',saved:true});
+ expect(docs[0].premiumStatus).toBe('completed');
 });
 test('an expired worker cannot commit late provider results even before another owner claims',async()=>{
  const good=provider.getMockImplementation();
@@ -149,4 +148,4 @@ test.each(['throw','null','confirm'])('checkpoint %s stops before provider',asyn
 test.each(['short','missing','wrong-facts','truncated','interrupted','mock'])('%s never becomes a completed fallback',async kind=>{const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(kind==='interrupted')throw Error('lost');const ai=await base(...args),value=JSON.parse(ai.text);if(kind==='short')value.body='짧음';if(kind==='missing')delete value.body;if(kind==='wrong-facts')value.evidenceHash='wrong';return {...ai,truncated:kind==='truncated',isMock:kind==='mock',text:JSON.stringify(value)};});expect((await start()).status).toBe(202);expect(Object.keys(docs[0].metadata.paidNarrative.parts)).toHaveLength(3);expect((await finish()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(8);});
 test('original owner, input and revoked/denied evidence are enforced',async()=>{mode='denied';expect((await start()).status).toBe(402);expect(provider).not.toHaveBeenCalled();mode='pass';await start();userId='other';expect((await resume()).status).toBe(404);userId=owner;expect((await post({...original(),question:'변경한 질문입니다.'})).status).toBe(409);mode='denied';expect((await resume()).status).toBe(402);mode='pass';revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(4);});
 test('concurrent original requests share a lease and retain original locale',async()=>{const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const hold=new Promise(resolve=>release=resolve),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await hold;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&provider.mock.calls.length<4;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();await first;expect(locales).toEqual(['ja','ja','ja','ja']);const pending=await route(new Request('https://mock.test/api/oracle/result'),{});expect(pending.status).toBe(202);expect((await pending.json()).locale).toBe('ja');expect(provider).toHaveBeenCalledTimes(4);});
-test('provider interruptions have three attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<8;i++)await resume();expect(provider).toHaveBeenCalledTimes(21);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===3)).toBe(true);});
+test('provider interruptions have two attempts per part without false refund or completion',async()=>{provider.mockResolvedValue({ok:false});await start();for(let i=0;i<8;i++)await resume();expect(provider).toHaveBeenCalledTimes(14);expect(docs[0].status).toBe('pending');expect(Object.values(docs[0].metadata.paidNarrative.attempts).every(n=>n===2)).toBe(true);});

@@ -49,12 +49,12 @@ test.each(['pass','monthly','single'].flatMap(mode=>['throw','null','confirm'].m
 test.each(['throw','null','confirm'])('checkpoint %s stops before provider execution',async fail=>{
  fault={kind:fail,metadata:true};expect((await start()).status).toBe(503);expect(provider).not.toHaveBeenCalled();expect((await resume()).status).toBe(200);
 });
-test.each(['short','missing','wrong-slot','invented-animal','interrupted','truncated'])('%s is pending and never a completed template',async fail=>{
+test.each(['missing','wrong-slot','invented-animal','interrupted','truncated'])('%s is pending and never a completed template',async fail=>{
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{if(fail==='interrupted')throw Error('lost');const ai=await base(...args),value=JSON.parse(ai.text);if(fail==='short')value.question_answer='짧음';if(fail==='missing')delete value.action_plan;if(fail==='wrong-slot')value.card_bridges[0].slot='invented';if(fail==='invented-animal')value.closing=prose('호랑이',2);return {...ai,truncated:fail==='truncated',text:JSON.stringify(value)};});
  const first=await start();expect(first.status).toBe(202);expect(await first.json()).toMatchObject({source:'pending',narrative:null,saved:false});expect((await getResult()).status).toBe(202);expect((await resume()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(2);
 });
-test('three attempts are bounded and preserve a pending result without refund',async()=>{
- provider.mockImplementation(async()=>({ok:false}));await start();await resume();const result=await resume();expect(result.status).toBe(202);expect(await result.json()).toMatchObject({retryable:false});await resume();expect(provider).toHaveBeenCalledTimes(3);expect(docs[0].status).toBe('pending');
+test('two attempts are bounded and preserve a pending result without refund',async()=>{
+ provider.mockImplementation(async()=>({ok:false}));await start();await resume();const result=await resume();expect(result.status).toBe(202);expect(await result.json()).toMatchObject({retryable:false});await resume();expect(provider).toHaveBeenCalledTimes(2);expect(docs[0].status).toBe('pending');
 });
 test('ownership, product, changed input and revoked proofs are enforced',async()=>{
  await start();userId='another';expect((await resume()).status).toBe(404);userId=owner;kind='five';expect((await resume()).status).toBe(404);kind='three';expect((await post({...original(),question:'다른 질문'})).status).toBe(409);revoked=true;expect((await resume()).status).toBe(403);expect(provider).toHaveBeenCalledTimes(1);
@@ -66,19 +66,19 @@ test('concurrent requests share the lease and original locale',async()=>{
  const {runWithAiLocale,getAmbientAiLocale}=await import('../../worker/lib/ai-locale-context.js');let release;const pause=new Promise(resolve=>{release=resolve;}),base=provider.getMockImplementation(),locales=[];provider.mockImplementation(async(...args)=>{locales.push(getAmbientAiLocale());await pause;return base(...args);});const first=runWithAiLocale('ja',start);for(let i=0;i<100&&!provider.mock.calls.length;i++)await new Promise(resolve=>setImmediate(resolve));expect((await start()).status).toBe(202);release();expect((await first).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);expect(locales).toEqual(['ja']);
 });
 // A clean answer under its floor is a draft that its one repair receives, not an empty result.
-test('a short but valid answer is kept as a draft and its one repair receives it',async()=>{
+test('a short valid answer is delivered without a repair',async()=>{
  const base=provider.getMockImplementation();let repairPrompt='';
  provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);
   if(args[1].includes('[저장된 초안 보완]'))repairPrompt=args[1];else value.question_answer=prose('초안표식',2);
   return {...ai,text:JSON.stringify(value)};});
- expect((await start()).status).toBe(202);expect(docs[0].metadata.paidNarrative.drafts.narrative).toContain('초안표식');
- expect((await resume()).status).toBe(200);expect(repairPrompt).toContain('초안표식');expect(provider).toHaveBeenCalledTimes(2);
+ expect((await start()).status).toBe(200);expect(docs[0].metadata.paidNarrative.parts.narrative).toContain('초안표식');
+ expect((await resume()).status).toBe(200);expect(repairPrompt).toBe('');expect(provider).toHaveBeenCalledTimes(1);
 });
-test('a still-short repair keeps the longer draft and is held for review without refund',async()=>{
+test('a short answer remains the saved result on repeated reads',async()=>{
  const base=provider.getMockImplementation();
  provider.mockImplementation(async(...args)=>{const ai=await base(...args),value=JSON.parse(ai.text);
   value.question_answer=prose(args[1].includes('[저장된 초안 보완]')?'보강표식':'초안표식',args[1].includes('[저장된 초안 보완]')?3:2);return {...ai,text:JSON.stringify(value)};});
- await start();const held=await resume();expect(held.status).toBe(202);expect(await held.json()).toMatchObject({retryable:false});
- expect(docs[0].metadata.paidNarrative.parts.narrative).toContain('보강표식');expect(docs[0].status).not.toBe('completed');
- await resume();expect(provider).toHaveBeenCalledTimes(2);
+ await start();const held=await resume();expect(held.status).toBe(200);expect(await held.json()).toMatchObject({saved:true});
+ expect(docs[0].metadata.paidNarrative.parts.narrative).toContain('초안표식');expect(docs[0].premiumStatus).toBe('completed');
+ await resume();expect(provider).toHaveBeenCalledTimes(1);
 });
