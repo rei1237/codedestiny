@@ -612,6 +612,7 @@ export function FeatureMarketingDetailModal({
                         <div className="cd-detail-scale">
                           {scaleChips(copy.reportScale, t).map((chip) => <span key={chip} className="cd-detail-chip">{chip}</span>)}
                         </div>
+                        {copy.reportScale?.minWords ? <p>{t("preview.scaleLengthNote")}</p> : null}
                       </section>
                     )}
                     {copy.answersQuestions && copy.answersQuestions.length > 0 && (
