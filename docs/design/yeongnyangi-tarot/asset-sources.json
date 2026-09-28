@@ -1,6 +1,6 @@
 {
   "deckVersion": "v1",
-  "scope": "major22",
+  "scope": "full78",
   "approvedOn": "2026-09-28",
   "cards": [
     {
@@ -222,6 +222,566 @@
       "framed": "phase3a/frame/p3-m21-b-framed.png",
       "framedSha256": "cad9de971857645fbe0abdb0fcecbb34d58c3300fd168077649450531f50a7d9",
       "gaze": "main viewer; guardians inward"
+    },
+    {
+      "id": "W01",
+      "rank": 1,
+      "artId": "p3b-wace-a",
+      "file": "phase3b/gen/p3b-wace-a.png",
+      "sha256": "45cb0bb9201aedbc73b961768e87c154dc4a7954c9ea6a05e7f5ee933613bdfe",
+      "framed": "phase3b/frame/p3b-wace-a-framed.png",
+      "framedSha256": "b2b06e6e1824d9c8c2bb22852681ebcb1f9c3dceaef583aae3f1dd5f2455f63e",
+      "gaze": "Not applicable: forepaw only"
+    },
+    {
+      "id": "W02",
+      "rank": 2,
+      "artId": "p3b-w02-b",
+      "file": "phase3b/gen/p3b-w02-b.png",
+      "sha256": "13afb5cff90288256fca377362d201815968ac63e0e1ccc0082bb4fe83ab37a7",
+      "framed": "phase3b/frame/p3b-w02-b-framed.png",
+      "framedSha256": "8ebeb3add856cb750c8e240773ff1e1ec57bbade0fc0e3c16e3b04e6c96f1945",
+      "gaze": "Down toward held globe at viewer-right"
+    },
+    {
+      "id": "W03",
+      "rank": 3,
+      "artId": "p3b-w03-b",
+      "file": "phase3b/gen/p3b-w03-b.png",
+      "sha256": "c72b2b4e237e0befb2c599fadd6d926059db024f93893a6e34bd8094821879a3",
+      "framed": "phase3b/frame/p3b-w03-b-framed.png",
+      "framedSha256": "baeff25b4ebd0b3bf8fdc649be99dbc72a7f9a828d21da7f96276588f2becf8f",
+      "gaze": "Away and slightly viewer-left toward distant ships"
+    },
+    {
+      "id": "W04",
+      "rank": 4,
+      "artId": "p3b-w04-b",
+      "file": "phase3b/gen/p3b-w04-b.png",
+      "sha256": "1f4cfc2c9ab75e6429ef9d38127e7861c0e16d953f4f4a54dfbe6d24c42f8954",
+      "framed": "phase3b/frame/p3b-w04-b-framed.png",
+      "framedSha256": "36e411810c837c15beafd7c96733ae657e58060b2d5d785c49eaf272dce41849",
+      "gaze": "Eyes closed in joyful dance"
+    },
+    {
+      "id": "W05",
+      "rank": 5,
+      "artId": "p3b-w05-a",
+      "file": "phase3b/gen/p3b-w05-a.png",
+      "sha256": "72f4ded482659399a9a94391f9834b259784645d21e78225606d19a0c7fc0243",
+      "framed": "phase3b/frame/p3b-w05-a-framed.png",
+      "framedSha256": "dda8a32aa59dc3e2de6780881f499858edaaeda94b33150a709994cb61447d39",
+      "gaze": "Forward and slightly toward viewer-right opposing toys"
+    },
+    {
+      "id": "W06",
+      "rank": 6,
+      "artId": "p3b-w06-b",
+      "file": "phase3b/gen/p3b-w06-b.png",
+      "sha256": "3824d60a46f9b662b990d788c489f082ef764e926387b2c1da559064c19ff8de",
+      "framed": "phase3b/frame/p3b-w06-b-framed.png",
+      "framedSha256": "84e8f884352f2fa10a86366b53ff5e5e1b6ca395fb79cfe3e99ed1189545066a",
+      "gaze": "Main rider forward, slightly toward viewer-left"
+    },
+    {
+      "id": "W07",
+      "rank": 7,
+      "artId": "p3b-w07-b",
+      "file": "phase3b/gen/p3b-w07-b.png",
+      "sha256": "b875b5424d09a93f15c5a7088403e760883f15354f918e1a9d786a5d5f79fcb7",
+      "framed": "phase3b/frame/p3b-w07-b-framed.png",
+      "framedSha256": "924a84f11fd044a9d056f5ecb09fa8e3b51475a6d7127829719efe1a4cecf6e7",
+      "gaze": "Forward toward viewer, alert lowered lids"
+    },
+    {
+      "id": "W08",
+      "rank": 8,
+      "artId": "p3b-w08-b",
+      "file": "phase3b/gen/p3b-w08-b.png",
+      "sha256": "a77c1d63df84632d7f8af4fac00e1522ce124ff80ff7d2b9a7eef4cd7fe9fe96",
+      "framed": "phase3b/frame/p3b-w08-b-framed.png",
+      "framedSha256": "515b4975db3033df76749dcc6004ccad30b84b3f61190dc84f139cb99348ca30",
+      "gaze": "Upward toward viewer-right, follows flight"
+    },
+    {
+      "id": "W09",
+      "rank": 9,
+      "artId": "p3b-w09-c",
+      "file": "phase3b/gen/p3b-w09-c.png",
+      "sha256": "5a7c4d6fd7c2905b4f5e26e969ae3ffc14ac00ae686e758495752ffefabc4257",
+      "framed": "phase3b/frame/p3b-w09-c-framed.png",
+      "framedSha256": "c7d4649c1cfad3d107e4040d00abd39a36204358beab3f01803f3c7fc6d39f50",
+      "gaze": "Forward toward viewer, slightly viewer-left"
+    },
+    {
+      "id": "W10",
+      "rank": 10,
+      "artId": "p3b-w10-c-composite",
+      "file": "phase3b/gen/p3b-w10-c-composite.png",
+      "sha256": "b9ffb3d4d50a746421e8846ca0bbf0745e5fe464fa9bb88ee1629c84c0d105ca",
+      "framed": "phase3b/frame/p3b-w10-c-composite-framed.png",
+      "framedSha256": "7304416f170023e3856265dade4b122e442cd6047f7a6d0009496cb86530566f",
+      "gaze": "Forward and slightly downward toward viewer-left"
+    },
+    {
+      "id": "W11",
+      "rank": 11,
+      "artId": "p3b-wpage-a",
+      "file": "phase3b/gen/p3b-wpage-a.png",
+      "sha256": "a52706dd2a18186f4f6b74ab3f86d4cfc335060260c5ff35dd23f9cf5b30e6dc",
+      "framed": "phase3b/frame/p3b-wpage-a-framed.png",
+      "framedSha256": "53dc01ac782ba7e20a62bd6bc5996eab6170a59f9e61ad24207d94998eae3084",
+      "gaze": "Orange page looks up toward feather at viewer-right; small main-cat cameo looks forward"
+    },
+    {
+      "id": "W12",
+      "rank": 12,
+      "artId": "p3b-wknight-a",
+      "file": "phase3b/gen/p3b-wknight-a.png",
+      "sha256": "e8335b80c65e25bcbd86f18f61863613f5d90f3e584cf7903665375061cfad7d",
+      "framed": "phase3b/frame/p3b-wknight-a-framed.png",
+      "framedSha256": "3aa4ec26db0248eac7030ee1b57887c1903baa8434d4b7f53e7854e04571327d",
+      "gaze": "Knight up toward viewer-right feather toy; cameo toward knight at viewer-right"
+    },
+    {
+      "id": "W13",
+      "rank": 13,
+      "artId": "p3b-wqueen-a",
+      "file": "phase3b/gen/p3b-wqueen-a.png",
+      "sha256": "a926c5564b1f51c202ba8cc0e47247547fcaca4be8fb4cc4bd1d42bc0d806c34",
+      "framed": "phase3b/frame/p3b-wqueen-a-framed.png",
+      "framedSha256": "a95ad6f308d67697adbfaaf6163145b2d489b27d50da1a59b24f7eaade4d9539",
+      "gaze": "Queen forward and slightly upward toward viewer-left; cameo forward and viewer-left"
+    },
+    {
+      "id": "W14",
+      "rank": 14,
+      "artId": "p3b-wking-a",
+      "file": "phase3b/gen/p3b-wking-a.png",
+      "sha256": "4f9397ca41e05135b702dc276beab24ec0306e7d267f4831c857e53dc0207a7e",
+      "framed": "phase3b/frame/p3b-wking-a-framed.png",
+      "framedSha256": "dd89493ec8f449d42c95f7626ddb802ee96451464db8babdc627381e31cead06",
+      "gaze": "King toward viewer-right in three-quarter view; cameo forward"
+    },
+    {
+      "id": "C01",
+      "rank": 1,
+      "artId": "p2-c01-b",
+      "file": "phase2/gen/p2-c01-b.png",
+      "sha256": "646fb268b4d6ad8c684311fd9cc752a9e78a1f67141068e804d2af564444070e",
+      "framed": "phase3b/cups/frame/p2-c01-b-framed.png",
+      "framedSha256": "058a466158a430e48ccacf3fbe42ae2ca21ac18f8332dbc9649e791ef1a1df5a",
+      "gaze": "없음(앞발만)"
+    },
+    {
+      "id": "C02",
+      "rank": 2,
+      "artId": "p3b-c02-a",
+      "file": "phase3b/cups/gen/p3b-c02-a.png",
+      "sha256": "258a84064f49a5aa5c247f4d718e82b5a4b57033ff464b151396bc68c6bcfd33",
+      "framed": "phase3b/cups/frame/p3b-c02-a-framed.png",
+      "framedSha256": "419a04d63d6efd5b957f80d9b31adf4870313c76a8c174676863269fd49a7d21",
+      "gaze": "Yeongnyangi looks viewer-right toward partner/cups; Jinju looks viewer-left toward partner."
+    },
+    {
+      "id": "C03",
+      "rank": 3,
+      "artId": "p3b-c03-a",
+      "file": "phase3b/cups/gen/p3b-c03-a.png",
+      "sha256": "29ad09dbfc759b068015639a04f1113f910da15d20e3e1e4b60942f3d1c81a0f",
+      "framed": "phase3b/cups/frame/p3b-c03-a-framed.png",
+      "framedSha256": "ca38159a7348d474c6c8ee92e83f8a470e1d697d0960552349edd4a164c22b3a",
+      "gaze": "Yeongnyangi looks down-left toward foreground friends/cups; Gyul looks up-right and Bori up-left toward raised toast."
+    },
+    {
+      "id": "C04",
+      "rank": 4,
+      "artId": "p3b-c04-a",
+      "file": "phase3b/cups/gen/p3b-c04-a.png",
+      "sha256": "3936de1de5f6f28c0b5580da3990172ae6a52b4db1880fdc0539aabefbcdae35",
+      "framed": "phase3b/cups/frame/p3b-c04-a-framed.png",
+      "framedSha256": "6ef14c67eae576b4ee7aff168859d0f6626be1609506b2132fbb5365a15d5a08",
+      "gaze": "Front/downward; does not turn toward offered left cup."
+    },
+    {
+      "id": "C05",
+      "rank": 5,
+      "artId": "p3b-c05-a",
+      "file": "phase3b/cups/gen/p3b-c05-a.png",
+      "sha256": "f15c1929e494166433b77bc371af600b9a2325b0523f5342bb7e13cd3ba7fafc",
+      "framed": "phase3b/cups/frame/p3b-c05-a-framed.png",
+      "framedSha256": "45f5553f75dab1dd495c55f3b50b1e69f0e7d6f7cded795fc988f1f730058434",
+      "gaze": "Down/front toward spilled cups."
+    },
+    {
+      "id": "C06",
+      "rank": 6,
+      "artId": "p3b-c06-a",
+      "file": "phase3b/cups/gen/p3b-c06-a.png",
+      "sha256": "6c980c981b12e1ddcc5a1f19dfb53cc48837fbcde991724548443fce9eed85b6",
+      "framed": "phase3b/cups/frame/p3b-c06-a-framed.png",
+      "framedSha256": "232805c5ef815031d61a5f13b93b0d2e26d43eb1e69f4c02250d8a1084329b2e",
+      "gaze": "Yeongnyangi down-right toward shared cup/Gyul; Gyul up-left toward offering."
+    },
+    {
+      "id": "C07",
+      "rank": 7,
+      "artId": "p3b-c07-a",
+      "file": "phase3b/cups/gen/p3b-c07-a.png",
+      "sha256": "42ef80b12322126612ae9d31c116c333f270f34a4d72eb32992a758946478a0b",
+      "framed": "phase3b/cups/frame/p3b-c07-a-framed.png",
+      "framedSha256": "2977e2c7c1f284da05c628e32c63c50f393c5a3c062b816af455345d6bb564ba",
+      "gaze": "Back view looking upward at seven dream cups; eyes hidden."
+    },
+    {
+      "id": "C08",
+      "rank": 8,
+      "artId": "p3b-c08-a",
+      "file": "phase3b/cups/gen/p3b-c08-a.png",
+      "sha256": "c4a922f0fcc10df59691aaa5c81ab7203734149e6d2fb784193e622596b27468",
+      "framed": "phase3b/cups/frame/p3b-c08-a-framed.png",
+      "framedSha256": "065cd05b275d013f97bbc066b99546488b1bd9cb6b1e3b23473238e6b13ed526",
+      "gaze": "Back view faces up-right along path; eyes hidden."
+    },
+    {
+      "id": "C09",
+      "rank": 9,
+      "artId": "p3b-c09-a",
+      "file": "phase3b/cups/gen/p3b-c09-a.png",
+      "sha256": "7d186490073c522e3b87d174eac2c3f450916ea907256dd660c61ec0b99b93d2",
+      "framed": "phase3b/cups/frame/p3b-c09-a-framed.png",
+      "framedSha256": "1d382fb5c43d1eb25576dc8d7bcab74d296c1f84b9bb39a95a256bc3e983a77f",
+      "gaze": "Front slightly viewer-right, relaxed satisfied expression."
+    },
+    {
+      "id": "C10",
+      "rank": 10,
+      "artId": "p3b-c10-a",
+      "file": "phase3b/cups/gen/p3b-c10-a.png",
+      "sha256": "822c53c4767aa70145f22b491d77c2070103e12f2b26487fb95b95cd94b5aeee",
+      "framed": "phase3b/cups/frame/p3b-c10-a-framed.png",
+      "framedSha256": "bc3cf85bdf892ffef87642bcb5a3c9b642c890d0cd09a2f002bc6ffbff3a066f",
+      "gaze": "Yeongnyangi down-right toward family; Bori up-left, kittens toward butterfly."
+    },
+    {
+      "id": "C11",
+      "rank": 11,
+      "artId": "p3b-cpage-a",
+      "file": "phase3b/cups/gen/p3b-cpage-a.png",
+      "sha256": "eef9f65188bd03a5a65f4b6cfd78fe9f29de4c61bbbd81b06bc2e585ccf2aa8f",
+      "framed": "phase3b/cups/frame/p3b-cpage-a-framed.png",
+      "framedSha256": "f90601d7c308e114baadbacccc6fd3cc206cb5a95daa62d8ab62b9467b818a00",
+      "gaze": "Gyul up-right toward emerging fish; cameo front."
+    },
+    {
+      "id": "C12",
+      "rank": 12,
+      "artId": "p3b-cknight-a",
+      "file": "phase3b/cups/gen/p3b-cknight-a.png",
+      "sha256": "f30bb569a1c6d2d616a631eadc34e020f523067cb881f5402a189bf097fdce3d",
+      "framed": "phase3b/cups/frame/p3b-cknight-a-framed.png",
+      "framedSha256": "69a153b9588364a82c48fcf4d13441831c20154f2f3dfb7e98638d9b4a5936bc",
+      "gaze": "Kkami viewer-right toward cup/path, pony forward/down-right, cameo front."
+    },
+    {
+      "id": "C13",
+      "rank": 13,
+      "artId": "p3b-cqueen-b",
+      "file": "phase3b/cups/gen/p3b-cqueen-b.png",
+      "sha256": "39c99d95892eb96e19ddd618eee9ec551c9c5c0b4774ad8a16dc8dcb152293d6",
+      "framed": "phase3b/cups/frame/p3b-cqueen-b-framed.png",
+      "framedSha256": "a1cf2cd429adef1d1843fa3ca9a67bd85dd6fe669d2bde8397ffa76754f2c01a",
+      "gaze": "Bori down-left toward closed goblet; cameo front."
+    },
+    {
+      "id": "C14",
+      "rank": 14,
+      "artId": "p3b-cking-a",
+      "file": "phase3b/cups/gen/p3b-cking-a.png",
+      "sha256": "ba1dcaf77bb51513d203e65a1a93257a6fd340e7d9a87755674c64844d660d0d",
+      "framed": "phase3b/cups/frame/p3b-cking-a-framed.png",
+      "framedSha256": "517255ded03119e83f0fcf56aed29a3275c304173f9c6e1cf0b649a37f78de66",
+      "gaze": "Hodu front, cameo front, leaping fish up-right."
+    },
+    {
+      "id": "S01",
+      "rank": 1,
+      "artId": "p3b-sace-a",
+      "file": "phase3b/swords/gen/p3b-sace-a.png",
+      "sha256": "9af1d232bebf03c69172d76dc4b20f3be5081835034a53e83e96dd2f0aa77c52",
+      "framed": "phase3b/swords/frame/p3b-sace-a-framed.png",
+      "framedSha256": "481a12aa85983cec71d34757584a2a5a472516ccdb6176b92abe0e1fd5e8f4b9",
+      "gaze": "not_applicable_object_centered"
+    },
+    {
+      "id": "S02",
+      "rank": 2,
+      "artId": "p3b-s02-a",
+      "file": "phase3b/swords/gen/p3b-s02-a.png",
+      "sha256": "17a0e1757863b9ec00cb9a6bb650fcc39e0370bd9b0b5e58764d74e0ce9cb953",
+      "framed": "phase3b/swords/frame/p3b-s02-a-framed.png",
+      "framedSha256": "87d6c1f8a72f5138165b02568bbcbbcec0c1a4dd1faca386195337294f3ae237",
+      "gaze": "forward_blindfolded"
+    },
+    {
+      "id": "S03",
+      "rank": 3,
+      "artId": "p3b-s03-a",
+      "file": "phase3b/swords/gen/p3b-s03-a.png",
+      "sha256": "798fedbc8be5bf96e0f1ac01fbd67f944413ec8b19f02250d9bbffea66c17727",
+      "framed": "phase3b/swords/frame/p3b-s03-a-framed.png",
+      "framedSha256": "9e2a09b17c1596662f4d0c08735a0887550b33299390e2d8a57c46e581fef3cb",
+      "gaze": "upward_right"
+    },
+    {
+      "id": "S04",
+      "rank": 4,
+      "artId": "p3b-s04-a",
+      "file": "phase3b/swords/gen/p3b-s04-a.png",
+      "sha256": "0979c56b11b413d93ccf172000d4dd59ef90e8def89d7ff6399bbf5f58e3b547",
+      "framed": "phase3b/swords/frame/p3b-s04-a-framed.png",
+      "framedSha256": "86610d1036b45252441d949385820fa815026505f1f06a72123a4274f0860487",
+      "gaze": "forward_slight_left"
+    },
+    {
+      "id": "S05",
+      "rank": 5,
+      "artId": "p3b-s05-a",
+      "file": "phase3b/swords/gen/p3b-s05-a.png",
+      "sha256": "20f2db388171c5c09021038f0b8a73e79c71d218107aca8b03a38a1fdfbb4822",
+      "framed": "phase3b/swords/frame/p3b-s05-a-framed.png",
+      "framedSha256": "85b1656b665139dd8a819301219272f2e2fbcb5bf71ecb965d9d172e824595c5",
+      "gaze": "forward_slight_left"
+    },
+    {
+      "id": "S06",
+      "rank": 6,
+      "artId": "p3b-s06-a",
+      "file": "phase3b/swords/gen/p3b-s06-a.png",
+      "sha256": "c356be38969874300bd561b6187435d70fc17f641e2f60cf03a3d7d447567172",
+      "framed": "phase3b/swords/frame/p3b-s06-a-framed.png",
+      "framedSha256": "f60f97dd1bf0218d1dc6e2a4b45c93a1cb670f64137e623b737ff241b40e4d65",
+      "gaze": "right"
+    },
+    {
+      "id": "S07",
+      "rank": 7,
+      "artId": "p3b-s07-a",
+      "file": "phase3b/swords/gen/p3b-s07-a.png",
+      "sha256": "47e9eef0d92fbe9e55b75d20d5b11625fb6377d0225cee2609858fece2caf666",
+      "framed": "phase3b/swords/frame/p3b-s07-a-framed.png",
+      "framedSha256": "14515559e3a05ebe7f52099b12eeffc4fa5186d341dbbaf9847ffdaeb18067dd",
+      "gaze": "left_back_over_shoulder"
+    },
+    {
+      "id": "S08",
+      "rank": 8,
+      "artId": "p3b-s08-c",
+      "file": "phase3b/swords/gen/p3b-s08-c.png",
+      "sha256": "2707aa41ee6479cd77d2ed202844523d11a47fc15eb62452180b4df510cdfc26",
+      "framed": "phase3b/swords/frame/p3b-s08-c-framed.png",
+      "framedSha256": "d36faff2dbcd9b7aab8863e523bd7813401c9ec60b447c7fedbbb9ab93466fec",
+      "gaze": "forward_blindfolded"
+    },
+    {
+      "id": "S09",
+      "rank": 9,
+      "artId": "p3b-s09-b",
+      "file": "phase3b/swords/gen/p3b-s09-b.png",
+      "sha256": "6237fff320237132275254740b5ea08306259c5765c1155bffbb3f08855b4922",
+      "framed": "phase3b/swords/frame/p3b-s09-b-framed.png",
+      "framedSha256": "09f0eacab5ab7049a6c4fe53178b5b2094d3924dcc1e818264925a02fc8006cb",
+      "gaze": "forward_slight_left"
+    },
+    {
+      "id": "S10",
+      "rank": 10,
+      "artId": "p3b-s10-b",
+      "file": "phase3b/swords/gen/p3b-s10-b.png",
+      "sha256": "46357d0d86bf51a2bcd85b6e7083f23f66988774c659449a9eed9c0cb68c91ad",
+      "framed": "phase3b/swords/frame/p3b-s10-b-framed.png",
+      "framedSha256": "3388f6a963d4e7979bb65318f8e2206ca59582e01174e7c36b87020a31a19eb3",
+      "gaze": "forward_slight_left"
+    },
+    {
+      "id": "S11",
+      "rank": 11,
+      "artId": "p3b-spage-a",
+      "file": "phase3b/swords/gen/p3b-spage-a.png",
+      "sha256": "bba60a386eacb5deab269f894b0f85f599bc7c267fde5b8a29d54ad85fad1372",
+      "framed": "phase3b/swords/frame/p3b-spage-a-framed.png",
+      "framedSha256": "28b737080b8de61b7b3ac3c141b706aa3835859c423f85b0e9a8fef0fec30a26",
+      "gaze": "right"
+    },
+    {
+      "id": "S12",
+      "rank": 12,
+      "artId": "p3b-sknight-a",
+      "file": "phase3b/swords/gen/p3b-sknight-a.png",
+      "sha256": "724aaa8361e2e17ce347636bc213353a39f779b1c40263fe1abf787364e43891",
+      "framed": "phase3b/swords/frame/p3b-sknight-a-framed.png",
+      "framedSha256": "09c0c434c90018a8a85a9aa7d30657d91aa9edf75d112b8877f8cb4076cde85b",
+      "gaze": "right"
+    },
+    {
+      "id": "S13",
+      "rank": 13,
+      "artId": "p3b-squeen-a",
+      "file": "phase3b/swords/gen/p3b-squeen-a.png",
+      "sha256": "cbfe0a979e935637ecfad6f8c989dbb5ccf1897cc8e2e716924476bde775cb81",
+      "framed": "phase3b/swords/frame/p3b-squeen-a-framed.png",
+      "framedSha256": "420390c95d57cd59c2d09cf3212c3523034b82646995fe91afddfe5813357346",
+      "gaze": "forward_slight_left"
+    },
+    {
+      "id": "S14",
+      "rank": 14,
+      "artId": "p3b-sking-a",
+      "file": "phase3b/swords/gen/p3b-sking-a.png",
+      "sha256": "89c1259b86c23fd13f57432c6cea6432aab0b978f478e3c6fb407ffe5198972f",
+      "framed": "phase3b/swords/frame/p3b-sking-a-framed.png",
+      "framedSha256": "fe7e4de250dffd09836a501d5ddd46ca80ad642578f7bf53e404fa1bef9365f6",
+      "gaze": "forward"
+    },
+    {
+      "id": "P01",
+      "rank": 1,
+      "artId": "p3b-pace-a",
+      "file": "phase3b/pentacles/gen/p3b-pace-a.png",
+      "sha256": "79ea236f2f95e344100d21510d7c21e9ea85e64cb905b87814bf6b4e6c50efbd",
+      "framed": "phase3b/pentacles/frame/p3b-pace-a-framed.png",
+      "framedSha256": "d7668e72b1ccabdbe622b89da2d4a3761ae85d8224f4868d33592c479733554c",
+      "gaze": "right_at_coin"
+    },
+    {
+      "id": "P02",
+      "rank": 2,
+      "artId": "p3b-p02-a",
+      "file": "phase3b/pentacles/gen/p3b-p02-a.png",
+      "sha256": "a9967f7b8373af20820d010fdaf32c1161f18f39eddab4384937e992ee1e3a4d",
+      "framed": "phase3b/pentacles/frame/p3b-p02-a-framed.png",
+      "framedSha256": "57a4ca1126adae2c52bee91a9d83ea3d39d0b58843470b75a214c815f93c35c3",
+      "gaze": "front_left_down"
+    },
+    {
+      "id": "P03",
+      "rank": 3,
+      "artId": "p3b-p03-a",
+      "file": "phase3b/pentacles/gen/p3b-p03-a.png",
+      "sha256": "3fa0e15fafcff3bc21bfb44dc0270a2a3f55a86d1b221afdf76b6e9798551a5a",
+      "framed": "phase3b/pentacles/frame/p3b-p03-a-framed.png",
+      "framedSha256": "d8bab60a7cc570e90dd15c856e2139159f16765293cccc0cdcbbadc3be02639c",
+      "gaze": "right_up_at_hodu"
+    },
+    {
+      "id": "P04",
+      "rank": 4,
+      "artId": "p3b-p04-a",
+      "file": "phase3b/pentacles/gen/p3b-p04-a.png",
+      "sha256": "07f0b0748acf1f28d1d94c7da886afd5b5584cb5b90f498a8cbd821a5913b84d",
+      "framed": "phase3b/pentacles/frame/p3b-p04-a-framed.png",
+      "framedSha256": "7d8e0f9a37f6065c635363c5bd8a19532bd63912e184a1c93b27741936a85315",
+      "gaze": "front_left_down"
+    },
+    {
+      "id": "P05",
+      "rank": 5,
+      "artId": "p2-p05-b",
+      "file": "phase2/gen/p2-p05-b.png",
+      "sha256": "906cefd7b21ded305f9dd9f5ad0696a3be8d030a4ff3df6fd66da4456bac7d77",
+      "framed": "phase3b/pentacles/frame/p2-p05-b-framed.png",
+      "framedSha256": "4980c8125e3062ba31bc63c65923be1df010bd972fbf2e6f5f144e68a95dd53c",
+      "gaze": "좌하(창을 보지 않음, 눈꺼풀 반쯤)"
+    },
+    {
+      "id": "P06",
+      "rank": 6,
+      "artId": "p3b-p06-b",
+      "file": "phase3b/pentacles/gen/p3b-p06-b.png",
+      "sha256": "1dada3f4604e152e569e7d40ef075f5147331de8c14ac46d045a119511ab6327",
+      "framed": "phase3b/pentacles/frame/p3b-p06-b-framed.png",
+      "framedSha256": "ac0a54798eb71053cf854b9d29bc2845d7e58f53ae4445d3b124e3d2296f14b4",
+      "gaze": "left_down_toward_gyuli"
+    },
+    {
+      "id": "P07",
+      "rank": 7,
+      "artId": "p3b-p07-a",
+      "file": "phase3b/pentacles/gen/p3b-p07-a.png",
+      "sha256": "115c1cd3b4d1bfb7b0235002252e2261918c8978f10baac82bc95e632e392b20",
+      "framed": "phase3b/pentacles/frame/p3b-p07-a-framed.png",
+      "framedSha256": "8222be2d99dc6a295a094bc10214a85f4d60b09a2ada0e7166f83fc4fe0f205f",
+      "gaze": "right_at_trellis"
+    },
+    {
+      "id": "P08",
+      "rank": 8,
+      "artId": "p3b-p08-a",
+      "file": "phase3b/pentacles/gen/p3b-p08-a.png",
+      "sha256": "f6d748c07515febfd9e3f76291db5c2b82b607e12edf38862549e6701eb5ef4b",
+      "framed": "phase3b/pentacles/frame/p3b-p08-a-framed.png",
+      "framedSha256": "7e1839bf4d27f7a200b3a171ae12148d054fa4467a447c2d8fead00f5b4c522b",
+      "gaze": "down_at_work_coin"
+    },
+    {
+      "id": "P09",
+      "rank": 9,
+      "artId": "p3b-p09-c",
+      "file": "phase3b/pentacles/gen/p3b-p09-c.png",
+      "sha256": "faa07dd5c0fb172d071fe307a0f52e7eb55df77e8b4fcf44f5159eb97a68f2cf",
+      "framed": "phase3b/pentacles/frame/p3b-p09-c-framed.png",
+      "framedSha256": "944107dd963aa620665af535cd041f0a43aa87d716f8ce1c7922b79e1db45235",
+      "gaze": "right_up_at_bird"
+    },
+    {
+      "id": "P10",
+      "rank": 10,
+      "artId": "p3b-p10-a",
+      "file": "phase3b/pentacles/gen/p3b-p10-a.png",
+      "sha256": "71e4de5cdedc87ccbd2b3240a828a0c5ddb9bae532fe5a932b2358649cb55e69",
+      "framed": "phase3b/pentacles/frame/p3b-p10-a-framed.png",
+      "framedSha256": "3053184dc5f842e0ed71c0c25067aa47123920cc3840ee0c5cff7b30d74649ce",
+      "gaze": "down_at_coins"
+    },
+    {
+      "id": "P11",
+      "rank": 11,
+      "artId": "p3b-ppage-a",
+      "file": "phase3b/pentacles/gen/p3b-ppage-a.png",
+      "sha256": "3b62865c28193123dc3e53d4ae75d652205b996e3751cc6e4752e559adc54ad2",
+      "framed": "phase3b/pentacles/frame/p3b-ppage-a-framed.png",
+      "framedSha256": "840af687a87af4f4fe94f2455d1b45ba6f58806dd1271c879e33cb883c46d4c3",
+      "gaze": "gyuli_right_at_coin;_yeongnyangi_left_at_gyuli"
+    },
+    {
+      "id": "P12",
+      "rank": 12,
+      "artId": "p3b-pknight-a",
+      "file": "phase3b/pentacles/gen/p3b-pknight-a.png",
+      "sha256": "6f55ff4d7390643cb286c1b0ba8e2deb958b91e3a8e17c8513f09d89b93da2f3",
+      "framed": "phase3b/pentacles/frame/p3b-pknight-a-framed.png",
+      "framedSha256": "35801303c35ef6d49836b278429264a64fa9f376bb3f6cc89159f6ab07f11d7b",
+      "gaze": "kkami_left_forward;_yeongnyangi_left_at_knight"
+    },
+    {
+      "id": "P13",
+      "rank": 13,
+      "artId": "p3b-pqueen-a",
+      "file": "phase3b/pentacles/gen/p3b-pqueen-a.png",
+      "sha256": "5fa39ff40a233d063d5582726bf387400a1c48e0b24c4c75015e7a458cc6a229",
+      "framed": "phase3b/pentacles/frame/p3b-pqueen-a-framed.png",
+      "framedSha256": "f0d337df74cf7cd371a19a50f491cb8e9320852dc7eb4b81ef7a25d72bf0e2be",
+      "gaze": "bori_front_right;_yeongnyangi_left_at_bori"
+    },
+    {
+      "id": "P14",
+      "rank": 14,
+      "artId": "p3b-pking-a",
+      "file": "phase3b/pentacles/gen/p3b-pking-a.png",
+      "sha256": "b4e7c672169d09c590406fa178681c9f19b156f0bc09ce95e575acaf6069c70e",
+      "framed": "phase3b/pentacles/frame/p3b-pking-a-framed.png",
+      "framedSha256": "89b670c507c707995dd31263e0fc38125d9f03482ae7ce026c8c6efc2a06d71a",
+      "gaze": "hodu_front;_yeongnyangi_left_at_hodu"
     }
   ],
   "back": {

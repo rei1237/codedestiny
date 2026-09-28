@@ -78,7 +78,7 @@ test('presentation excludes raw birth data and does not recalculate missing lega
  assert.deepEqual(m.readingCharts({contexts:{}},[]),[]);
 });
 
-test('all 78 saved tarot cards reuse the Tea House images without changing order or orientation',()=>{
+test('all 78 saved tarot cards use approved Yeongnyangi art without changing IDs, order or orientation',()=>{
  const cards=m.TAROT_CARDS.map((card,i)=>({...card,cardId:card.code,orientation:i%2?'reversed':'upright',imageUrl:'/old-deck.jpg'}));
  const legacyProducts=m.products.map(p=>({...p,manifestVersion:m.READING_V5_VERSION,chapterCount:m.readingChapterCount(p.domain,p.fishId,m.READING_V5_VERSION)}));
 const context={domain:'tarot',facts:[{id:'tarot.cards',label:'cards',value:cards}],limitations:[]};
@@ -86,10 +86,24 @@ const context={domain:'tarot',facts:[{id:'tarot.cards',label:'cards',value:cards
  assert.equal(result.length,78);
  const images=new Set();
  for(let i=0;i<78;i++){
-  assert.equal(result[i].image,m.getTarotCardImageUrl(cards[i]));
-  assert.ok(result[i].image.includes('/DestinyCafe/caretaro/'));
+  assert.equal(result[i].cardCode,cards[i].code);
+  assert.equal(result[i].image,`/assets/yeongnyangi/tarot/v1/${cards[i].code}-600.webp`);
+  assert.ok(m.getTarotCardImageUrl(cards[i]).includes('/DestinyCafe/caretaro/'),'Yeon keeps its original art');
   assert.equal(result[i].reversed,i%2===1);
   images.add(result[i].image);
  }
  assert.equal(images.size,78);
+ assert.deepEqual(cards.map(c=>[c.cardId,c.orientation,c.imageUrl]),m.TAROT_CARDS.map((c,i)=>[c.code,i%2?'reversed':'upright','/old-deck.jpg']));
+});
+
+test('legacy engine IDs and unknown saved cards keep their position, name and direction',()=>{
+ const cards=[{cardId:m.TAROT_CARDS[77].id,nameKr:'펜타클 왕',positionLabel:'첫 자리',orientation:'reversed'},{cardId:'UNKNOWN',nameKr:'확인 중인 카드',positionLabel:'둘째 자리',orientation:'upright'}];
+ const snapshot=JSON.stringify(cards);
+ const result=m.readingCharts({contexts:{tarot:{domain:'tarot',facts:[{id:'tarot.cards',label:'cards',value:cards}],limitations:[]}}},[])[0].groups;
+ assert.equal(result[0].cardCode,m.TAROT_CARDS[77].code);
+ assert.equal(result[0].reversed,true);
+ assert.equal(result[1].label,'둘째 자리');
+ assert.equal(result[1].items[0].value,'확인 중인 카드');
+ assert.equal(result[1].image,'/assets/yeongnyangi/tarot/v1/back-600.webp');
+ assert.equal(JSON.stringify(cards),snapshot);
 });

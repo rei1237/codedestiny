@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "펜타클14 승인 완료. public/ 버전 경로의 Phase4a 메이저22 파이프라인 완료·CI 통과. 사용자 Phase4a 승인 대기. 승인 전 Phase4b/F-2 착수 금지."
+next: "펜타클14 승인 완료. Phase4a 메이저22 파이프라인 사용자 승인 완료. Phase4b 78장 파이프라인·유료 결과 덱 교체 진행. Phase5 착수 금지."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -75,10 +75,10 @@ next: "펜타클14 승인 완료. public/ 버전 경로의 Phase4a 메이저22 �
 | **F-1** | 무료 원카드 데이터·로직(그림 불필요, UI 없음) | Phase 0 | GREEN · 주력 / medium | 대기(병행 가능) |
 | Phase 2 | 파일럿 5장(「다음 작업 3」) | Phase 1 승인·뒷면 선택 | GREEN · 주력 / medium | 완료·승인(Phase 3a 착수 지시와 후속 재사용 결정) |
 | **Phase 3a** | 메이저 22장(「다음 작업 4」, 3a-1·3a-2 두 세션) | Phase 2 승인·뒷면 선택 | GREEN · 주력 / medium | **22장 전체 승인 완료**(2026-09-28). 뒷면 C·파일럿 재사용 확정 |
-| Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 완료·CI 통과·사용자 승인 대기 |
+| Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 완료·CI 통과·사용자 승인 완료(2026-09-28) |
 | F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
 | Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 4슈트 각14장 전체 승인 완료(2026-09-28) |
-| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 대기 |
+| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 진행 중(Phase4a 사용자 승인 2026-09-28) |
 | Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 대기 |
 | Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 대기 |
 | Phase 7 | 통합 검증·최종 보고 | 6 | RED · 주력 / high | 대기 |
@@ -779,7 +779,7 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **유지 영역**: 앱 코드·공개 에셋·타로 엔진·연이 덱·가격·이용권/월정석/단건 결제·인증/API/DB 변경0. 실결제·운영 DB·과금 LLM 검증·운영 승격0.
 - **다음**: 펜타클14 승인 완료. Phase4a는 public/assets/yeongnyangi/tarot/v1/ 버전 경로의 메이저22·뒷면C·프레임 파이프라인으로 진행한다. Phase4a 보고·승인 전 Phase4b/F-2는 시작하지 않는다.
 
-## Phase 4a 결과 (2026-09-28 · 완료·CI 통과, 사용자 승인 대기)
+## Phase 4a 결과 (2026-09-28 · 완료·CI 통과·사용자 승인 완료)
 
 - **선행·저장 결정**: 펜타클14 승인으로 마이너56 전체가 확정됐다. 사용자가 저장 위치를 「public/ 버전 경로 (추천)」으로 선택했다. 새 경로는 public/assets/yeongnyangi/tarot/v1/이며 기존 에셋을 덮어쓰지 않는다.
 - **범위**: 승인된 메이저22 프레임 적용본 + 뒷면C + 프레임에 240/600/1200w WebP·AVIF 파생을 만들었다. 총144개/22.12MiB, frame.svg·manifest.json을 함께 둔다. PNG 원본은 저장소 밖에 보존한다. 원본1024w→1200w는 확대이며 원본 세부가 추가된 것은 아니다.
@@ -793,6 +793,22 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **실패·접근 변경**: 첫 파이프라인 커밋6eb96b3fa는 check:fast의 verify:worker-no-undef에서 JSON import 속성 `with`의 파싱이 차단됐다. 해당 커밋을1fa9366cf로 revert·push하고 승인기록은 유지했다. 새 접근은 호스트가 읽은 manifest를 createTarotDeckRegistry(manifest)에 전달하는 방식이다. 공용lib에서 JSON import·파일시스템 의존성을 없앴고 검사기의 ECMAScript2023 계약을 유지했다. 수정 후 verify:worker-no-undef →474파일OK, 에셋144파일검사와5개회귀테스트PASS. 검사기 완화·조건/예외목록 추가는 하지 않았다. 첫 check:fast에서 paid-gate88개·lint·typecheck·node tests 등 선행검사는 통과했으나 전체 명령은 실패였으며, 새 접근의 공식 완료 판정은 최종main CI다.
 - **전달 실측**: 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`을 main에 fast-forward 반영하고 git push origin main 완료. [GitHub CI 36361870996](https://github.com/rei1237/codedestiny/actions/runs/36361870996)의 headSha 일치·Typecheck and lint/Static guards/Build Pages and Worker/Critical checks/CI required 전부success를 확인했다. Linux CI에서도 새144파일 검사가success다. SVG 텍스트 해시는 LF 정규화로 Windows/Linux를 일치시킨다. 최초check:fast 실패는 위 실패기록 그대로 보존하며 성공으로 바꾸어 보고하지 않는다. 수정 접근은 lint:changed·에셋/Worker 정적검사·5개회귀테스트와 공식CI로 검증했다.
 - **재개 명령**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`, 문서 마지막 커밋을 확인한 뒤 「Phase 4a 결과」의 사용자 승인 검토부터 이어간다. public/ 결정과 펜타클 승인을 다시 묻지 않는다. Phase4a 승인 전 Phase4b/F-2 착수 금지.
+
+## Phase 4b 결과 (2026-09-28 · 구현·mock 검증 완료, main CI 확인 중)
+
+- **승인**: 사용자가 「승인할께」로 Phase4a 메이저22 파이프라인을 승인했다. public/ 결정과 펜타클 승인은 재확인하지 않았다. Phase5·F-1/F-2·Phase6/7은 착수하지 않았다.
+- **기준**: main의 d04d09c6ac3ccfde50e82635f0aebf18fdc6f335 포함을 재확인했고, 동시 세션 때문에 main 4f407762eb17b6e9aacf27a9d51918333c21d0bf에서 관리형 격리 워크트리로 작업했다. 공유 marketing/**와 next-env.d.ts 변경은 보존했다.
+- **에셋**: 승인된 마이너56 원본·프레임 적용본의 해시를 검증해 같은 v1 경로에 파생336개를 추가했다. 전체78 + 뒷면C + 프레임 × 3크기 × 2포맷 = 480개/71.36MiB. Phase4a 메이저22·뒷면·프레임의 메타데이터와 기존 파일 해시는 전부 동일하다. PNG 원본·승인 그림은 변경하지 않았다. manifest는 scope=full78/completeDeck=true/expectedCardCount=78이다.
+- **연결**: lib/tarot/yeongnyangi-deck.ts가 registry에 정적 manifest를 전달한다. reading-presentation.ts는 저장된 엔진 ID를 정본 코드로 바꾸어 이미지와 선택적 표시 필드 cardCode를 투영한다. 저장 스냅샷·DB·타로 엔진 ID/순서/방향/자리·해석·결제 소유권 경계는 유지한다. 새 카드 드로우나 재계산은 하지 않는다. 연이 찻집 매핑은 수정0이다.
+- **화면**: ReadingCharts/TarotCardArt는 600w AVIF와 WebP를 picture로 제공하고 2:3 비율·lazy loading을 사용한다. 역방향은 기존 CSS180도 회전이다. 앞면 로드 실패는 영냥이 뒷면으로 전환하고 카드명을 유지한다. 뒷면 실패에서 재시도하지 않는다. 5개 사이트 로케일의 78장 카드명·alt를 제공하고 기타언어는 en으로 폴백한다. 이름을 모르는 저장 카드도 기존 이름·자리·방향을 남기고 뒷면을 쓴다.
+- **용량 실측(78장 평균)**: WebP240/600/1200w = 34,851/156,780/387,022B, AVIF = 24,698/97,618/206,003B. 전체 용량은 모든 파생 파일의 합이며 화면에서 동시에 받는 용량이 아니다. 1200w는 승인1024w 원본의 확대다.
+- **검증**: npm run verify:yeongnyangi-tarot-assets → PASS full78/480파일(해시·크기·i18n·원장·대칭). npm script 기본값을 --full로 강화해 기존 CI 단계에서도 전체78을 요구한다. node --test __tests__/ui/yeongnyangi-tarot-assets.test.mjs __tests__/ui/yeongnyangi-reading-v5.test.mjs → 15/15 PASS. 완성덱·누락/중복/잘못된경로·브랜드분리·78개 ID/방향·legacy ID·알 수 없는 카드·저장배열 불변성을 검사했다.
+- **브라우저**: node scripts/verify-yeongnyangi-tarot-browser.mjs → mock 실제 /yeongnyangi/result/ 9/9 PASS. 360/390/430/1280px × 3/6장8개와 390px 앞면404 폴백1개. 선택·2:3 비율·회전·overflow 없음·reload 동일카드·생성/PG호출0 확인. 결과와 대표 캡처는 D:\Development\yeongnyangi-tarot-art\phase4b\results.json 및 3-390.png/6-1280.png/3-390-fallback.png. 실결제·실LLM·운영DB 검증이 아니다.
+- **UI 검사**: impeccable detect → [] (변경 TSX/CSS1회), verify:hero-contrast/verify:mobile-detail-nonintrusive → PASS. 캡처를 모바일·데스크톱·폴백 한 묶음으로 시각 검토했다. 기존 밤색 결과 레이아웃을 유지했다.
+- **검증 중 수정·환경**: 첫 78장 검사에서 재사용 컵에이스 선택 항목의 suit 누락 때문에 임시변환 ID undefined01이 탐지됐다. 정본 C01로 소스·파일명·메타데이터를 고쳤고 픽셀은 동일하다. C:/D: 간 공유 node_modules junction은 Next 개발 서버 경로 해석을 깨뜨렸고 symlink 보존 실행도 CSS 플러그인 경로를 깨뜨렸다. 별도 C: 의존성 캐시를 같은 lockfile로 설치하고 기존 junction을 build-cache로 보존해 정상 mock 서버를 실행했다. 제품 코드·검사기 우회는 하지 않았다.
+- **유지·한계**: 결제·가격·이용권/월정석/단건 결제·인증·API 소유권·DB 스키마/저장·생성 엔진·상담 의미·연이 덱 유지. 표시 API에 선택적 cardCode만 추가했다. 이미지 생성0/실LLM0/실PG0/운영DB쓰기0/운영승격0. 물리적 기기·운영 네트워크·인쇄는 미검증. Phase5 의식은 Phase4b 사용자 승인 전 금지다.
+- **로컬 게이트 기록**: check:fast는 critical로 자동 승격돼 paid-gate88/88(379.3초)·lint·sitemap-drift까지 통과했지만 새 TypeScript 호스트가 JS 인수의 brand/cardCode를 추론하지 못해 TS2353에서 실패했다. 작업 커밋 f24bafb49를 debfffbeb로 격리 워크트리에서 revert했다(main 반영0). 인수 객체에 JSDoc 타입 계약을 명시한 새 작업 단위의 npm run typecheck → exit0, verify:worker-no-undef →474파일OK, 관련15개 회귀 →PASS. 가드를 완화하거나 조건/예외를 추가하지 않았다. 최초 check:fast는 성공으로 보고하지 않는다. 수정된 코드의 공식 완료 판정은 main CI다.
+- **전달**: 관련 targeted 검증·mock 브라우저·수정 후 타입 검사 완료. 커밋·push·CI 결과는 전달 기록에 추가한다.
 
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 

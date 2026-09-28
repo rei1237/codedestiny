@@ -9,11 +9,13 @@ import { getYeongnyangiDeckText } from '../../lib/tarot/yeongnyangi-deck-copy.mj
 const manifest = JSON.parse(readFileSync(new URL('../../public/assets/yeongnyangi/tarot/v1/manifest.json', import.meta.url), 'utf8'));
 const { resolveTarotDeckCard, getTarotDeck } = createTarotDeckRegistry(manifest);
 
-test('major-only deck cannot claim to support a complete paid spread', () => {
-  validateTarotManifest(manifest);
-  assert.throws(() => validateTarotManifest(manifest, { requireFullDeck: true }), /full78/);
+test('full paid deck is complete; partial major deck cannot pass the full gate', () => {
+  validateTarotManifest(manifest, { requireFullDeck: true });
+  const partial = { ...manifest, cards: manifest.cards.slice(0, 22), scope: 'major22', completeDeck: false, expectedCardCount: 22 };
+  validateTarotManifest(partial);
+  assert.throws(() => validateTarotManifest(partial, { requireFullDeck: true }), /full78/);
   const invalid = structuredClone(manifest);
-  invalid.completeDeck = true;
+  invalid.completeDeck = false;
   assert.throws(() => validateTarotManifest(invalid));
 });
 
@@ -37,7 +39,7 @@ test('failed Yeongnyangi art keeps the card name and uses only its own back', ()
   assert.equal(card.name, '月');
   assert.equal(card.fallback, true);
   assert(!card.src.includes('caretaro'));
-  const unavailable = resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode: 'P01', size: 'thumb' });
+  const unavailable = resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode: 'P99', size: 'thumb' });
   assert.equal(unavailable.src, manifest.back.files.thumb);
   assert.equal(unavailable.fallback, true);
 });
@@ -56,4 +58,6 @@ test('non-site reading languages fall back to English, never Korean', () => {
   const normal = resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode: 'm00' });
   assert.equal(normal.src, manifest.cards[0].files.std);
   assert.equal(normal.fallback, false);
+  assert.equal(getYeongnyangiDeckText('tarot.P14.name', 'fr'), 'King of Pentacles');
+  for (const entry of manifest.cards) assert.equal(resolveTarotDeckCard({ brand: 'yeongnyangi', cardCode: entry.id }).src, entry.files.std);
 });

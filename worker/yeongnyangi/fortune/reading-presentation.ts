@@ -1,11 +1,12 @@
-import { getTarotCardImageUrl } from '../../../src/features/fortune-tea-house/lib/tarotCardImageMap';
+import { getTarotCardByAnyId } from '../../../lib/tarot/tarot-cards.mjs';
+import { yeongnyangiCardArt } from '../../../lib/tarot/yeongnyangi-deck';
 import type { ChapterSpec, MasterAnalysis } from './book-contracts';
 import type { ChartView } from './charts';
 import type { DomainContext, DomainId } from './shared/contracts';
 import { selectChapterFacts } from './chapter-facts';
 
 export interface ReadingChart extends ChartView {
-  groups: (ChartView['groups'][number] & {id:string;chapterIds:string[];longitude?:number;kind?:'timing'})[];
+  groups: (ChartView['groups'][number] & {id:string;chapterIds:string[];longitude?:number;kind?:'timing';cardCode?:string})[];
   cusps?: number[];
 }
 const names:Record<string,string>={Sun:'태양',Moon:'달',Mercury:'수성',Venus:'금성',Mars:'화성',Jupiter:'목성',Saturn:'토성',Uranus:'천왕성',Neptune:'해왕성',Pluto:'명왕성',Rahu:'라후',Ketu:'케투',Aries:'양자리',Taurus:'황소자리',Gemini:'쌍둥이자리',Cancer:'게자리',Leo:'사자자리',Virgo:'처녀자리',Libra:'천칭자리',Scorpio:'전갈자리',Sagittarius:'사수자리',Capricorn:'염소자리',Aquarius:'물병자리',Pisces:'물고기자리',conjunction:'합',opposition:'충',trine:'삼분각',square:'사각',sextile:'육분각',wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
@@ -50,7 +51,11 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
       add('ascendant','상승점',[{label:'별자리',value:text(f.ascendant?.signKo ?? f.ascendant?.sign)}]);
       for(const a of f.aspects || [])add('aspects',`${text(a.planet1 || a.p1)} · ${text(a.planet2 || a.p2)}`,[{label:'각',value:text(a.type || a.aspect)},{label:'오브',value:text(a.orb)}]);
     }else{
-      for(const card of f.cards || [])add('cards',card.positionLabel || ({cause:'원인',process:'과정',outcome:'결과',current:'현재',inner:'내면',obstacle:'장애물',external:'주변 영향',choice:'선택',action:'행동',self_view_of_other:'내가 바라보는 상대',other_view_of_relationship:'관계에 대한 상대의 시선',other_feeling_toward_me:'상대 감정의 가능성',other_romantic_will:'다가올 의지의 가능성',core_block:'관계의 핵심 장애물',short_term_outcome:'가까운 선택의 방향'} as Record<string,string>)[card.positionKey] || '카드의 자리',[{label:'카드',value:text(card.nameKr || card.nameKo || card.name)},{label:'방향',value:card.orientation==='reversed'?'역방향':'정방향'}],{image:getTarotCardImageUrl(card) || undefined,reversed:card.orientation==='reversed'});
+      for(const card of f.cards || []){
+       // 저장된 ID만 정규화한다. 새 카드를 뽑거나 저장된 순서·방향을 바꾸지 않는다.
+       const cardCode=getTarotCardByAnyId(card.cardId ?? card.cardCode ?? card.code ?? card.id)?.code;
+       add('cards',card.positionLabel || ({cause:'원인',process:'과정',outcome:'결과',current:'현재',inner:'내면',obstacle:'장애물',external:'주변 영향',choice:'선택',action:'행동',self_view_of_other:'내가 바라보는 상대',other_view_of_relationship:'관계에 대한 상대의 시선',other_feeling_toward_me:'상대 감정의 가능성',other_romantic_will:'다가올 의지의 가능성',core_block:'관계의 핵심 장애물',short_term_outcome:'가까운 선택의 방향'} as Record<string,string>)[card.positionKey] || '카드의 자리',[{label:'카드',value:text(card.nameKr || card.nameKo || card.name)},{label:'방향',value:card.orientation==='reversed'?'역방향':'정방향'}],{cardCode,image:yeongnyangiCardArt(cardCode).src,reversed:card.orientation==='reversed'});
+      }
     }
     // Only expose timing already selected under this purchase's tier policy.
     const timing=new Map(selected.flatMap(s=>s.facts).filter(f=>['majorLuck','yearlyLuck','vimshottariDasha'].includes(f.label)).map(f=>[JSON.stringify(f),f]));

@@ -36,7 +36,7 @@ async function buildEntry(source, kind) {
   const color = stats.dominant;
   const entry = {
     id: source.id,
-    ...(kind === 'card' ? { arcana: 'major', suit: null, rank: source.rank } : {}),
+    ...(kind === 'card' ? { arcana: source.id[0] === 'M' ? 'major' : 'minor', suit: { W: 'wands', C: 'cups', S: 'swords', P: 'pentacles' }[source.id[0]] || null, rank: source.rank } : {}),
     files: {}, avifFiles: {}, integrity: {},
     altKey: `tarot.${source.id}.alt`, nameKey: `tarot.${source.id}.name`,
     gaze: source.gaze, dominantColor: `#${[color.r, color.g, color.b].map((v) => v.toString(16).padStart(2, '0')).join('')}`,
@@ -73,9 +73,9 @@ const back = await buildEntry(sources.back, 'back');
 const frameEntry = await buildEntry({ ...sources.frame, id: 'frame', gaze: 'not-applicable' }, 'frame');
 const manifest = {
   schemaVersion: 1, deckId: 'yeongnyangi-tarot-v1', deckVersion: 'v1', brand: 'yeongnyangi',
-  scope: 'major22', completeDeck: false, expectedCardCount: 22,
+  scope: sources.scope, completeDeck: sources.scope === 'full78', expectedCardCount: sources.scope === 'full78' ? 78 : 22,
   sizes, formats: ['webp', 'avif'], cards, back, frame: { ...frameEntry, svg: `${prefix}/frame.svg` },
   encoding: { webpQuality: 90, avifQuality: 60, avifChromaSubsampling: '4:4:4', backAndFrameLossless: true, highResolution: '1200w enlarged from approved 1024w source; no new detail' },
 };
 await writeFile(resolve(output, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-console.log('Built major22 manifest; 144 raster derivatives + frame.svg. Original PNGs remain outside repository.');
+console.log(`Built ${sources.scope} manifest; ${(cards.length + 2) * 6} raster derivatives + frame.svg. Original PNGs remain outside repository.`);
