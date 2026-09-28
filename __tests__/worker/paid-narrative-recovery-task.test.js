@@ -93,7 +93,7 @@ test('a save after the lease moved to another worker is rejected',async()=>{
 });
 test('exhausted parts wait for review and the server never claims a refund',async()=>{
  await start();for(const id of missing())docs[0].metadata.paidNarrative.attempts[id]=2;provider.mockImplementation(async()=>({ok:false}));
- expect((await run({})).outcomes[0].outcome).toBe('review_required');expect(provider).toHaveBeenCalledTimes(4);
+ expect((await run({})).outcomes[0].outcome).toBe('review_required');expect(provider).toHaveBeenCalledTimes(7);
  expect(docs[0].metadata.paidNarrative).not.toHaveProperty('exhaustionClaimed');expect(docs[0].metadata.paidNarrative).not.toHaveProperty('failureResult');
  expect(docs[0].metadata.paidNarrativeRecovery).toMatchObject({reviewRequired:true});expect(await run({})).toMatchObject({scanned:0});
 });
@@ -101,21 +101,4 @@ test('unregistered feature and report pairs are never selected',async()=>{
  const doc={_id:'follow-up',userId:owner,executionKey:'paid-narrative:follow-up',featureKey:'karma-destiny-ai-consultation',reportType:'expertFollowUp',status:'pending',
   timeoutAt:new Date(0),createdAt:new Date(),lock:{token:'',until:null},metadata:{paidNarrative:{tasks:[{id:'answer'}],parts:{},attempts:{}}}};
  docs.push(clone(doc));expect(await run({})).toMatchObject({scanned:0,outcomes:[]});expect(docs[0]).toEqual(doc);expect(provider).not.toHaveBeenCalled();
-});
-
-for (const variant of ['short', 'partial-json', 'missing-evidence', 'duplicate-paragraph']) test(`minimum delivery ${variant}: first response saves, rereads and completes with no repair`, async()=>{
- const {runPaidNarrativeDelivery}=await import('../../worker/lib/paid-narrative-delivery.js');
- const body='지금의 관계에서는 상대의 반응을 확인하며 대화의 간격을 조절하는 편이 좋습니다.\n\n이번 주에는 먼저 원하는 것을 짧게 설명하고 실제 반응을 기록해 다음 대화의 방향을 정해 보세요.';
- provider=jest.fn(async(_env,prompt)=>{
-  const evidenceHash=prompt.match(/evidenceHash":"([a-f0-9]{64})/)[1];
-  let value={evidenceHash,body:variant==='duplicate-paragraph'?body+'\n\n'+body:body};
-  if(variant==='missing-evidence')delete value.evidenceHash;
-  return {ok:true,provider:'gemini',text:JSON.stringify(value).slice(0,variant==='partial-json'?-1:undefined),truncated:variant==='partial-json'};
- });
- const adapter={featureKey:'fixture-consultation',reportType:'fixture',verify:async()=>{},seed:async()=>({prompt:'관계 상담',tasks:[{id:'answer',prompt:'관계 행동 조언',minChars:2200}],minBodyChars:20000}),render:state=>({text:state.parts.answer})};
- const response=await runPaidNarrativeDelivery(new Request('https://mock.test',{method:'POST'}),{}, {userId:owner},{requestId:'minimum-'+variant},adapter);
- expect(response.status).toBe(200);expect(await response.json()).toMatchObject({status:'completed',saved:true,text:body});
- expect(docs[0].metadata.paidNarrative.attempts).toEqual({answer:1});expect(provider).toHaveBeenCalledTimes(1);
- const read=await runPaidNarrativeDelivery(new Request('https://mock.test?resultId='+encodeURIComponent(docs[0].executionKey)),{},{userId:owner},{},adapter);
- expect(read.status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
 });

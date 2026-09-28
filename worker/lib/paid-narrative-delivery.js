@@ -7,7 +7,7 @@ import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
-import { selectNarrativeCandidate, narrativeRepairTask, recoverNarrativeResponse, normalizeDeliverableNarrative } from "./paid-narrative-candidate.js";
+import { selectNarrativeCandidate, narrativeRepairTask } from "./paid-narrative-candidate.js";
 import { runWithPaidGenerationContext } from "./paid-generation-context.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -40,11 +40,11 @@ export function paidNarrativeInsert({ userId, executionKey, featureKey, reportTy
 }
 // measure is an adapter's own body length for structured parts (a JSON string's
 // syntax is not reading text). Without one, the shared narrative count applies.
-// Product lengths remain prompt targets. Completion depends on usable saved
-// parts and the confirming read, never another purchase to reach a word count.
-const ready = state => state.tasks.length > 0 && state.tasks.every(task => state.parts[task.id]);
-const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 2);
-const reviewRequired = state => limited(state);
+const ready = (state, measure) => state.tasks.every(task => state.parts[task.id])
+  && (measure ? state.tasks.reduce((sum, task) => sum + measure(state.parts[task.id]), 0)
+    : countPaidReportBodyChars(Object.values(state.parts).join("\n"))) >= state.minBodyChars;
+const limited = state => state.tasks.some(task => !state.parts[task.id] && state.attempts[task.id] >= 3);
+const reviewRequired = (state, measure) => limited(state) || (state.tasks.every(task => state.parts[task.id]) && !ready(state, measure));
 
 // Every raw op is its own withMongoRetry unit because the cron resume path reaches
 // this engine (verify:cron-mongo-op-coverage). Reads may retry; writes keep
@@ -123,14 +123,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null, paidNarrativeRecovery: null },
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
-    // Adopt durable drafts from the former length-repair policy before reserving
-    // any generation. Resume and cron share this same persisted attempt ledger.
-    for (const task of state.tasks) {
-      if (state.parts[task.id] || !state.drafts?.[task.id]) continue;
-      const candidate = selectNarrativeCandidate(null, state.drafts[task.id], { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
-      if (candidate) { state.parts[task.id] = candidate; await persist(); }
-    }
-    const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 3).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();
@@ -152,22 +145,23 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
             systemPrompt: state.systemPrompt, taskType: "fortune", temperature: 0.55, attempts: 1,
             timeoutMs: Math.min(45000, Math.max(15000, Number(timeoutMs) || 45000)), baseTokens: 9500, capTokens: 9500, fallbackToWorkersAI: false,
           }));
-          value = recoverNarrativeResponse(ai?.text, state.evidenceHash);
+          try { value = JSON.parse(ai?.text || ""); } catch { value = null; }
         }
       } catch { ai = null; }
-      const valid = ai?.ok && !ai.isMock && !/mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
+      const valid = ai?.ok && !ai.truncated && !ai.isMock && !/mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
         && value?.evidenceHash === state.evidenceHash && typeof value.body === "string" && countPaidReportBodyChars(value.body) > 0;
       const accept = async () => {
-        // Keep the provider response alongside the local edit, inside the same
-        // owner-scoped checkpoint. It is never exposed by render/respond.
-        if (ai?.text || value) state.rawResponses = { ...state.rawResponses, [task.id]: ai?.text || JSON.stringify(value) };
-        const body = valid ? (completeBody ? value.body : normalizeDeliverableNarrative(value.body)) : null;
+        const body = valid && !hasRepeatedReportPassage(value.body)
+          && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + value.body) ? value.body : null;
         const previous = draft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + draft) ? draft : null;
         const candidate = selectNarrativeCandidate(previous, body, { ...(completeBody && { complete: completeBody }), ...(measureBody && { measure: measureBody }) });
-        // The first usable answer is the final candidate. No length repair.
-        const accepted = candidate;
+        // A short first result is durable before spending the one repair call.
+        // Failed repairs reuse only that already validated draft. Empty, truncated,
+        // wrong-evidence and repeated responses never become candidates.
+        const accepted = body && (measureBody || countPaidReportBodyChars)(body) >= task.minChars ? candidate || body
+          : (draft || state.attempts[task.id] >= 3) ? candidate : null;
         const chosen = accepted || candidate;
-        if (!chosen || hasRepeatedReportPassage(chosen) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + chosen)) { await persist(); return; }
+        if (!chosen || hasRepeatedReportPassage(chosen) || hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + chosen)) return;
         state = { ...state,
           drafts: { ...state.drafts, [task.id]: accepted ? null : candidate },
           parts: accepted ? { ...state.parts, [task.id]: accepted } : state.parts };
