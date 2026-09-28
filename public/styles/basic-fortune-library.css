@@ -344,9 +344,6 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #ziweiModalOverlay .fr-flow-preview { border-left:2px solid var(--fr-accent); padding:4px 20px; margin:24px 0; }
 #ziweiModalOverlay .fr-flow-preview h4 { color:var(--fr-accent); font-size:18px; margin:0 0 12px; }
 #ziweiModalOverlay .fr-flow-link { display:inline-flex; align-items:center; min-height:44px; color:var(--fr-accent); text-underline-offset:5px; }
-#ziweiModalOverlay #zwDeepAiPromptPanel { padding:24px !important; border:1px solid var(--fr-rule) !important; background:var(--fr-surface) !important; box-shadow:none !important; }
-#ziweiModalOverlay #zwDeepAiPromptPanel :is(textarea,select) { width:100%; padding:12px; border:1px solid #657286; border-radius:6px; background:#0b121b; color:var(--fr-ink); font-size:16px !important; }
-#ziweiModalOverlay .fr-consult-example { display:block; padding:12px; text-align:left; border:1px solid var(--fr-rule); background:#202c38; color:var(--fr-ink); border-radius:6px; margin:10px 0; }
 #ziweiModalOverlay :is(.zw-detail-panel,.zw-report-section) { box-shadow:none !important; }
 /* #zwLifeAnimalPanel(내 영혼을 상징하는 자미두수 동물) 정규화. 이 패널은 노드 154개 중 126개가 인라인
    style= 이라 클래스 CSS 로 덮을 수 없었고(본문 11.06px, 리포트는 16px), 엔진의 보라 그라데이션을 그대로
@@ -456,7 +453,6 @@ body:has(#ziweiModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
   #ziweiModalOverlay .fr-life-timeline { grid-template-columns:repeat(2,minmax(0,1fr)); }
   #ziweiModalOverlay .fr-energy-spectrum { gap:8px; }
   #ziweiModalOverlay .fr-spectrum-row :is(strong,span) { font-size:12px; }
-  #ziweiModalOverlay #zwDeepAiPromptPanel { padding:18px 14px !important; }
 }
 #ziweiModalOverlay .fr-ziwei-nav { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
 #ziweiModalOverlay .fr-ziwei-nav a { justify-content:center; text-align:center; }
@@ -509,6 +505,7 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 #astroModalOverlay #astroResult { background:none !important; border:0 !important; padding:0 !important; margin:0 auto !important; max-width:var(--cd-w-prose, 760px) !important; }
 #astroModalOverlay #astroBodyWrap.fr-report {
   box-sizing:border-box; width:100%; min-width:0; padding:24px 20px 56px !important;
+  grid-template-columns:minmax(0,1fr);
   background:none !important; border:0 !important; border-radius:0 !important; box-shadow:none !important;
   color:var(--fr-ink); font-family:'Noto Sans KR','Pretendard',sans-serif; font-size:16px; line-height:1.75;
 }

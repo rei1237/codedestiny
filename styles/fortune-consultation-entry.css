@@ -1,0 +1,88 @@
+/* Four basic question consultations. Keep scope separate from paid feature modals. */
+.fortune-consultation {
+  --fc-paper: #fff8f3;
+  --fc-ink: #3c1830;
+  --fc-muted: #754455;
+  --fc-accent: #9a2853;
+  --fc-line: #dfbcc8;
+  --fc-field: #fffdfb;
+  --fc-dark: #2e1021;
+  --fc-light: #fff3ec;
+  color: var(--fc-ink);
+  background: var(--fc-paper);
+  border: 1px solid var(--fc-line);
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 24px 0;
+  text-align: left;
+  min-width: 0;
+  scroll-margin-top: 100px;
+  container-type: inline-size;
+  container-name: fc-consultation;
+}
+.neo-mode .fortune-consultation,
+.fortune-consultation--vedic {
+  --fc-paper: #171222;
+  --fc-ink: #f7effa;
+  --fc-muted: #d4bfdf;
+  --fc-accent: #eed49e;
+  --fc-line: #685375;
+  --fc-field: #241b30;
+  --fc-dark: #ead6ad;
+  --fc-light: #261a31;
+}
+.fortune-consultation *, .fortune-consultation *::before, .fortune-consultation *::after { box-sizing: border-box; }
+.fortune-consultation .fc-entry { display: grid; grid-template-columns: 1fr; }
+.fortune-consultation .fc-entry__scene { display: block; overflow: hidden; aspect-ratio: 16 / 10; background: #32101f; }
+.fortune-consultation .fc-entry__scene img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 65% center; }
+.fortune-consultation .fc-entry__copy { padding: 25px 22px 28px; min-width: 0; }
+.fortune-consultation .fc-entry h3 { margin: 0; color: var(--fc-ink); font: 700 clamp(1.55rem, 4.5vw, 2.4rem)/1.45 var(--font-display, 'Noto Serif KR', serif); letter-spacing: -.035em; word-break: keep-all; }
+.fortune-consultation .fc-entry__name { margin: 12px 0 16px; font-size: .8rem; color: var(--fc-accent); font-weight: 800; }
+.fortune-consultation .fc-entry__lead { margin: 0; color: var(--fc-muted); font-size: .95rem; line-height: 1.85; word-break: keep-all; }
+.fortune-consultation .fc-entry__topics { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 18px 0 24px; padding: 0; list-style: none; color: var(--fc-ink); font-size: .8rem; }
+.fortune-consultation .fc-entry__topics li + li::before { content: '·'; margin-right: 14px; color: var(--fc-muted); }
+.fortune-consultation .fc-entry__price { margin: 0 0 14px; color: var(--fc-muted); font-size: .8rem; }
+.fortune-consultation .fc-entry__price strong { margin-left: 5px; color: var(--fc-ink); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.fortune-consultation .fc-entry__price span { display: block; margin-top: 6px; font-size: .75rem; }
+.fortune-consultation .fc-primary { min-height: 48px; width: 100%; border: 1px solid var(--fc-dark); border-radius: 10px; padding: 12px 18px; background: var(--fc-dark); color: var(--fc-light); font: inherit; font-size: .95rem; font-weight: 800; cursor: pointer; }
+.fortune-consultation .fc-primary:hover { filter: brightness(1.12); }
+.fortune-consultation .fc-entry__note { margin: 12px 0 0; color: var(--fc-muted); font-size: .73rem; line-height: 1.65; }
+.fortune-consultation .fc-form { margin: 0; border-top: 1px solid var(--fc-line); scroll-margin-top: 100px; }
+.fortune-consultation .fc-form > summary { padding: 18px 22px; min-height: 52px; color: var(--fc-ink); font-weight: 800; font-size: .92rem; cursor: pointer; }
+.fortune-consultation .fc-form__body { padding: 4px 22px 24px; }
+.fortune-consultation .fc-form__intro h4 { margin: 12px 0 10px; font-size: 1.1rem; color: var(--fc-ink); }
+.fortune-consultation .fc-form__intro p { margin: 0 0 14px; color: var(--fc-muted); font-size: .9rem; line-height: 1.8; }
+.fortune-consultation .fc-form__intro dl { margin: 20px 0; border-block: 1px solid var(--fc-line); }
+.fortune-consultation .fc-form__intro dl > div { padding: 12px 0; }
+.fortune-consultation .fc-form__intro dt { margin-bottom: 4px; color: var(--fc-accent); font-size: .8rem; font-weight: 800; }
+.fortune-consultation .fc-form__intro dd { margin: 0; color: var(--fc-muted); font-size: .87rem; line-height: 1.75; }
+.fortune-consultation .fc-examples { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.fortune-consultation .fc-examples button, .fortune-consultation .fc-domain-example { min-height: 44px; padding: 10px 14px; color: var(--fc-accent); background: var(--fc-field); border: 1px solid var(--fc-line); border-radius: 9px; font: inherit; font-size: .85rem; cursor: pointer; }
+.fortune-consultation .fc-domain-example { width: 100%; text-align: left; margin-top: 10px; line-height: 1.7; }
+.fortune-consultation label { display: block; margin: 18px 0 8px; color: var(--fc-ink); font-size: .88rem; font-weight: 800; }
+.fortune-consultation .fc-question, .fortune-consultation select { width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--fc-line); border-radius: 10px; color: var(--fc-ink); background: var(--fc-field); font: inherit; font-size: 16px; line-height: 1.75; }
+.fortune-consultation .fc-question { min-height: 140px; resize: vertical; }
+.fortune-consultation .fc-question::placeholder { color: var(--fc-muted); }
+.fortune-consultation .fc-form__body button { min-height: 44px; }
+.fortune-consultation .fc-form__body > div:not([class]),
+.fortune-consultation .fc-form__body span { color: var(--fc-muted) !important; }
+.fortune-consultation .fc-status { color: var(--fc-muted) !important; font-size: .85rem !important; line-height: 1.8; }
+.fortune-consultation > details:not(.fc-form) { margin: 16px 22px; }
+.fortune-consultation > details:not(.fc-form) > summary { min-height: 44px; color: var(--fc-accent) !important; font-size: .85rem !important; }
+.fortune-consultation > details:not(.fc-form) > div { color: var(--fc-muted) !important; }
+.fortune-consultation > div:last-child > span { color: var(--fc-muted) !important; }
+.fortune-consultation [id$="Status"], .fortune-consultation [data-sy-ai-status] { padding-inline: 22px; }
+.fortune-consultation .fc-report { margin: 18px 22px 26px; padding: 20px 0; border-top: 1px solid var(--fc-line); color: var(--fc-ink); background: var(--fc-paper); overflow-wrap: anywhere; }
+.fortune-consultation .fc-report p { max-width: 72ch; margin: 0 auto 1.2em; color: var(--fc-ink) !important; font-size: 1rem !important; line-height: 1.9 !important; }
+.fortune-consultation .fc-report h4 { max-width: 72ch; margin: 26px auto 12px; color: var(--fc-accent) !important; font-size: 1.1rem !important; }
+.fortune-consultation .fc-report strong { color: var(--fc-ink) !important; }
+.fortune-consultation :focus-visible { outline: 3px solid var(--fc-accent); outline-offset: 4px; }
+.fortune-consultation ::selection { background: var(--fc-dark); color: var(--fc-light); }
+@container fc-consultation (min-width: 680px) {
+  .fortune-consultation .fc-entry { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); }
+  .fortune-consultation .fc-entry h3 { font-size: clamp(1.55rem, 3.8cqi, 2.4rem); }
+  .fortune-consultation .fc-entry__scene { grid-column: 2; grid-row: 1; aspect-ratio: auto; min-height: 480px; }
+  .fortune-consultation .fc-entry__copy { grid-column: 1; grid-row: 1; padding: 40px 32px; align-self: center; }
+  .fortune-consultation .fc-form__body { padding-inline: 32px; }
+  .fortune-consultation .fc-report { margin-inline: 32px; }
+}

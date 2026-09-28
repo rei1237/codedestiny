@@ -110,6 +110,7 @@
 /public/js/core/checkout-entry.js
 /public/js/core/cms-static.js
 /public/js/core/feature-pricing-store.js
+/public/js/core/fortune-consultation-ui.js
 /public/js/core/home-funnel.js
 /public/js/core/home-service-finder.js
 /public/js/core/index-inline-runtime.js
@@ -225,6 +226,7 @@
 /public/styles/feature-marketing-detail.css
 /public/styles/feature-visual-detail.css
 /public/styles/fonts-serif.css
+/public/styles/fortune-consultation-entry.css
 /public/styles/fortune-consultation.css
 /public/styles/fortune-gateway.css
 /public/styles/fortune-ui-home.css

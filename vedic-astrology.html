@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="/styles/fortune-consultation-entry.css">
+<script src="/js/core/feature-pricing-store.js"></script>
+<script src="/js/core/fortune-consultation-ui.js"></script>
 <title>베다 점성술 — 별들의 지도</title>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-e0884752af77"></script>
@@ -3640,31 +3643,25 @@ function renderVedicAIPromptSection(){
   const charCount=String(state.question||'').length;
   const hasCompat=!!G.vedicCompatibilityResult;
   return `
-  <div class="glass reveal reveal-delay-2" style="padding:16px;margin:14px 0 12px;border:1px solid rgba(251,191,36,0.35);border-radius:16px;background:radial-gradient(130% 140% at 6% 0%, rgba(251,191,36,0.2), transparent 42%), radial-gradient(120% 120% at 100% 100%, rgba(45,212,191,0.18), transparent 42%), linear-gradient(145deg, rgba(11,20,38,0.93), rgba(17,24,39,0.94));box-shadow:0 24px 56px rgba(120,53,15,0.25), inset 0 1px 0 rgba(255,255,255,0.07);">
-    <div class="section-head section-head-kr" style="margin-bottom:8px;color:#fde68a">🕉 베다 점성술 AI 상담</div>
-    <div class="body-text" style="margin-bottom:12px;line-height:1.72;color:#e2e8f0">계산된 라시·낙샤트라·다샤를 바탕으로 질문에 대한 맞춤 상담 답변을 바로 드립니다. 서버에서 가격을 검증하며, 생성 성공 시에만 5,000원 결제가 확인됩니다. 답변에 쓰인 프롬프트도 무료로 함께 제공됩니다.</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-      <span class="tag" style="background:rgba(251,191,36,0.16);color:#fde68a;border:1px solid rgba(251,191,36,0.36)">1회 유료</span>
-      <span class="tag ${hasCompat?'tag-gold':'tag-purple'}" id="vedicAiCompatState">궁합 컨텍스트: ${hasCompat?'연결됨':'미연결'}</span>
-    </div>
-    <textarea id="vedicAiQuestion" oninput="vedicAiOnQuestionInput(this.value)" maxlength="1000" placeholder="예: 내 다샤 흐름에서 올해 커리어 전환 타이밍을 어떻게 잡아야 할까?" style="width:100%;min-height:100px;border-radius:12px;border:1px solid rgba(45,212,191,0.34);background:rgba(6,14,30,0.68);color:#ecfeff;padding:12px;font-size:13px;line-height:1.65;resize:vertical">${hEsc(state.question)}</textarea>
+  <div class="fortune-consultation fortune-consultation--vedic" id="vedicConsultation">
+    ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.entry('vedic', 'vedicConsultationForm') : ''}
+    <details class="fc-form" id="vedicConsultationForm"><summary>상담 내용과 질문 입력</summary><div class="fc-form__body">
+    ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.formIntro('vedic', 'vedicAiQuestion') : ''}
+    <label for="vedicAiQuestion">지금 궁금한 이야기</label>
+    <span id="vedicAiCompatState" class="fc-entry__note">궁합 데이터: ${hasCompat?'연결됨':'미연결'}</span>
+    <textarea class="fc-question" id="vedicAiQuestion" oninput="vedicAiOnQuestionInput(this.value)" maxlength="1000" placeholder="예: 내 다샤 흐름에서 올해 커리어 전환 타이밍을 어떻게 잡아야 할까?">${hEsc(state.question)}</textarea>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:var(--text3)">
       <div>질문 길이: <span id="vedicAiCharCount">${charCount}</span>/1000</div>
       <div>추천: 구체적 기간/상황/목표를 함께 입력</div>
     </div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
-      <button class="btn-sm" type="button" onclick="vedicAiUseExample('현재 대운과 세운 기준으로 3개월 안에 직업 전환 시기와 우선순위를 알려줘.')">예시: 커리어</button>
-      <button class="btn-sm" type="button" onclick="vedicAiUseExample('내 연애 패턴의 반복 카르마를 줄이기 위한 대화 전략을 알려줘.')">예시: 연애/카르마</button>
-      <button class="btn-sm" type="button" onclick="vedicAiUseExample('차크라와 도샤 흐름을 반영한 주간 회복 루틴을 짜줘.')">예시: 에너지/차크라</button>
-      <button class="btn-sm" type="button" onclick="vedicAiUseExample('상대와의 궁합 데이터 기반으로 갈등을 줄이는 실전 행동 계획을 알려줘.')">예시: 궁합</button>
-    </div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px">
-      <button class="btn-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#f59e0b);border:1px solid rgba(251,191,36,0.5);color:#1f2937;box-shadow:0 10px 26px rgba(251,191,36,0.32)">${state.inFlight?'상담 생성 중...':(state.paidEvidence?'🔄 추가 결제 없이 다시 상담 받기':'✨ AI 상담 받기 (5,000원)')}</button>
+      <button class="fc-primary" id="vedicAiGenerateBtn" type="button" onclick="vedicAiGeneratePrompt()">${state.inFlight?'상담 생성 중...':(state.paidEvidence?'🔄 추가 결제 없이 다시 상담 받기':'상담 시작하기')}</button>
       <button class="btn-sm" id="vedicAiCopyBtn" type="button" onclick="vedicAiCopyPrompt()" ${state.prompt?'':'disabled'}>📋 프롬프트 복사</button>
       <button class="btn-sm" id="vedicAiRegenerateBtn" type="button" onclick="vedicAiGeneratePrompt()" ${state.prompt?'':'disabled'}>🔄 다시 상담</button>
     </div>
-    <div id="vedicAiStatus" style="margin-top:10px;font-size:12px;color:${statusColor};line-height:1.6">${hEsc(state.statusMessage)}</div>
-    <div id="vedicAiAnswer" style="margin-top:12px;${state.resultText?'':'display:none;'}padding:15px 16px;border-radius:14px;border:1px solid rgba(45,212,191,0.3);background:linear-gradient(160deg,rgba(6,14,30,0.82),rgba(17,24,39,0.74));overflow-wrap:anywhere;">${state.resultText?vedicRenderAnswerHtml(state.resultText):''}</div>
+    </div></details>
+    <div class="fc-status" role="status" aria-live="polite" id="vedicAiStatus" style="margin-top:10px;font-size:12px;color:${statusColor};line-height:1.6">${hEsc(state.statusMessage)}</div>
+    <div class="fc-report" id="vedicAiAnswer" style="${state.resultText?'':'display:none;'}">${state.resultText?vedicRenderAnswerHtml(state.resultText):''}</div>
     <details id="vedicAiPromptWrap" style="margin-top:12px;${state.prompt?'':'display:none;'}border:1px solid rgba(45,212,191,0.24);border-radius:12px;background:rgba(2,6,23,0.4);padding:9px 12px;">
       <summary style="cursor:pointer;font-size:12px;font-weight:800;color:#fde68a;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>
       <div style="font-size:11px;color:#ccfbf1;margin:8px 0 4px;line-height:1.55">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>
@@ -3699,7 +3696,7 @@ function vedicAiRefreshUi(){
     // 결제 권한이 보존된 실패 뒤에는 추가 결제가 없다는 것을 버튼에서도 알린다.
     gBtn.textContent=state.inFlight
       ?'상담 생성 중...'
-      :(state.paidEvidence?'🔄 추가 결제 없이 다시 상담 받기':'✨ AI 상담 받기 (5,000원)');
+      :(state.paidEvidence?'🔄 추가 결제 없이 다시 상담 받기':'상담 시작하기');
   }
   if(cpBtn) cpBtn.disabled=!state.prompt||state.inFlight;
   if(reBtn) reBtn.disabled=!state.prompt||state.inFlight;
