@@ -443,19 +443,19 @@
 
 - 입력은 `DomainContext.facts`(필드 단위 `Evidence{id,label,value}`)다. 엔진과 `chapter-facts.ts` v6 경로는 건드리지 않는다.
 - 하위 ID 는 `<domain>.<label>.<subkey>` 다.
-- subkey 는 ASCII 슬러그(`[A-Za-z0-9_-]`, 여러 조각이면 `:` 로 잇는다)만 쓴다. 매핑 표는 원장 모듈 한 곳에 둔다.
+- subkey 는 ASCII 슬러그(`[A-Za-z0-9_-]`, 여러 조각이면 `.` 로 잇는다)만 쓴다. (Phase 2 커밋 3 정정: 처음 적은 `:` 는 아래 정규식이 잇지 못해 `:year-day` 같은 꼬리가 남는다.) 매핑 표는 원장 모듈 한 곳에 둔다.
   - 이유: `redactInternalEvidence`(`consultation.ts:192`)의 ID 정규식은 ASCII `\w` 만 이어 붙인다. 그래서 `saju.tenGods.정재` 가 본문에 새면 `.정재` 꼬리가 남는다.
   - 앱은 `sources` 를 표시하지 않는다(`app/yeongnyangi/**` 검색 0건). 따라서 하위 ID 는 UI 에 닿지 않는다.
 - 분해 축(§3 실측 반영)
 
 | 체계 | 쪼개는 필드 → subkey | 통째 사실(쪼개지 않음) | 제외 |
 |---|---|---|---|
-| 사주 | `tenGods` → 십신 10종(개수 0 도 "선언된 부재"로 낸다), `tenGodsByPillar`·`pillarDetails` → 기둥 4개, `shinsal` → 신살 12종 이름, `natalInteractions` → `<종류>:<A>-<B>`, `yearlyLuck` → 연도(Y~Y+9, 시간 미상 연어는 결정 7 래퍼의 Y·Y+1), `monthlyLuck` → 연-월, `majorLuck` → current·next·arc | `dayMaster`·`pillars`·`strengthHeuristic`(기준점), `fiveElements`·`seasonalBalance`, `usefulGod`·`jong`, `advancedFactors` | `calculationMeta`, 비프리미엄의 대운 연결 키 |
+| 사주 | `tenGods` → 십신 10종(개수 0 도 "선언된 부재"로 낸다), `tenGodsByPillar`·`pillarDetails` → 기둥 4개, `shinsal` → 신살 12종 이름, `natalInteractions` → `<종류>.<A>-<B>`, `yearlyLuck` → 연도(Y~Y+9, 시간 미상 연어는 결정 7 래퍼의 Y·Y+1), `monthlyLuck` → 연-월, `majorLuck` → current·next·arc | `dayMaster`·`pillars`·`strengthHeuristic`(기준점), `fiveElements`·`seasonalBalance`, `usefulGod`·`jong`, `advancedFactors` | `calculationMeta`, 비프리미엄의 대운 연결 키 |
 | 자미 | `palaces` → 12궁(부부궁 표기), `fourTransformations` → 화록·화권·화과·화기, `yearlyTimeline` → 연도(같은 해의 `yearlyLuck` 은 이 ID 로 합친다), `majorLuck` → current·next(원장이 `minorLuck.current.age` 로 고른다), `minorLuck` → current·연도 | `lifePalace`·`bodyPalace`·`bureau`(기준점), `sanFangSiZheng` | `lunar`(생년월일), `minorLuck.baseYear`(출생연도, 개인정보 필터 `privacy.ts:3` 에 걸리지 않는다) |
 | 베다 | `planets`(9개 배열) → 행성 이름, `houses` → 12하우스(+ 주인 행성 배치 조인), `yogas` → 요가 이름, `divisionalCharts` → D9·D10·D7·D12·D2, `vimshottariDasha` → currentMahadasha·currentAntardasha·next·arc | `lagna`·`moon`(기준점), `sun` | D1(planets 와 중복), transits, 출생 균형 주기의 시작일 |
 | 점성술 | `planets`(10개 객체, 노드는 있을 때만) → 행성 이름, `houseCusps` → 12커스프, `aspects` → `<P1>-<type>-<P2>`(행성 이름 정렬, type 5종) | `ascendant`·`planets.Sun`(기준점), `midheaven` | — |
-| 숙요 | 관계 지도(래퍼) → `<역할>:<수 인덱스>`(nameKo 가 겹치므로 이름 대신 인덱스) | `personA`(본명숙, 기준점) | `birthTimeContext` |
-| 타로 | `cards` → 자리, `reading` → `cards:<pos>`·`cardSections:<pos>`·`positionReadings:<pos>`·`summary`·`combinations`·`combinationReading`·`finalReading`·`advice`·`caution` | `spreadId`·질문(기준점) | topSummary, quality, levelUpGuide, levelUpQuests, questionType |
+| 숙요 | 관계 지도(래퍼) → `<역할>.<수 인덱스>`(nameKo 가 겹치므로 이름 대신 인덱스) | `personA`(본명숙, 기준점) | `birthTimeContext` |
+| 타로 | `cards` → 자리, `reading` → `cards.<pos>`·`cardSections.<pos>`·`positionReadings.<pos>`·`summary`·`combinations`·`combinationReading`·`finalReading`·`advice`·`caution` | `spreadId`·질문(기준점) | topSummary, quality, levelUpGuide, levelUpQuests, questionType |
 
 ### 소유
 
