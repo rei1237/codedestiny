@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-09-28
-next: v14 실제 생성은 중대 의미 오류로 불합격이었다. v15 교정·mock·CI 전달 후 새 별도 승인으로 사주 1건을 실측하고, 중대 오류가 없을 때 자미두수를 시작한다.
+updated: 2026-09-29
+next: v15 실제 생성도 중대 의미 오류로 불합격이었다. 전 챕터와 캐릭터 요약의 재물 인과·시기 예고·매수 권유를 교정하고 mock·CI 전달 후 새 실측 승인을 받는다. 사주 검수 통과 전 후속 네 서비스는 미착수로 유지한다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -10,7 +10,7 @@ next: v14 실제 생성은 중대 의미 오류로 불합격이었다. v15 교�
 
 - 순서: 사주 → 기본 자미두수 → 기본 숙요점 → 기본 서양 점성술 → 기본 베다점.
 - 각 서비스의 구현·검증·증거를 기록하고 이 문서를 읽은 뒤 다음 단계에 착수한다.
-- 현재: **v14 실제 생성 중대 의미 품질 불합격, v15 교정·mock·CI 검증 중**. 이후 네 단계는 미착수. v15 실제 생성에서 중대 오류가 없기 전 사주 단계 완료로 표기하지 않는다.
+- 현재: **v15 실제 생성 중대 의미 품질 불합격**. 이후 네 단계는 미착수. 사주 실제 생성에서 중대 오류가 없기 전 사주 단계 완료로 표기하지 않는다.
 - 기본 자체 상담만 대상이다. 별도 `/…-ai`, 영냥이, 운명의 섬 상품은 합치지 않는다.
 - 가격·이용권·월정석·단건 결제 정책과 주문·결과 읽기 계약을 유지한다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 실행하지 않는다.
 
@@ -257,3 +257,15 @@ node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-cons
 - 증거: `artifacts/fortune-consultation-ux/saju/live-v14-benchmark-summary.json`, `live-v14-quality-review.md`. 후속 자미두수·숙요·서양 점성술·베다점과 해당 이미지 생성은 게이트에 따라 미착수다.
 - **다음 단계:** v15 코드·mock·CI를 전달한 뒤, 동일 상한의 v15 사주 1건 실제 생성은 새 별도 승인 후 실행한다. 중대 오류가 없으면 경미한 문체·밀도 경고는 허용하고 자미두수부터 네 서비스를 중간 승인 없이 연속 진행한다.
 - v15 제품·검사·익명 증거 main 커밋: `a870d9e4583af17057ed812625bdb70c5403f20d`. [PR CI 36398164976](https://github.com/rei1237/codedestiny/actions/runs/36398164976)의 Risk tier / Typecheck and lint / Critical checks / Build Pages and Worker / Static guards / CI required가 모두 success였고, Paid Flow Gates·AI Locale Gate·Secret Scan·Landing Watchdog·Main drift watchdog도 같은 SHA에서 success였다. 배포 인프라 변경이 없어 별도 staging 검증은 생략했다.
+
+### v15 승인 실측 — 2026-09-29 (KST)
+
+- 사용자의 “승인할테니 나머지 큰 문제없으면 나머지 운세 작업 진행해줘”에 따라 v15 사주 1건을 실측했다. Gemini 2.5 Flash 5그룹 각각 1회, 모두 `STOP`: 입력 99,359토큰, 출력 16,258토큰, 본문 21,581자, 병렬 생성 wall time 25,090ms.
+- benchmark 설정 요금 기준 계산 비용 USD 0.0704527, 사전 상한 계산 USD 0.1798077. 청구 실측이나 현재 요금 재검증은 아니다. 실결제·운영 DB 쓰기·자동 재시도·모델 폴백·명시 캐시 생성·운영 승격은 0회다.
+- **중대 오류로 불합격**. 자동 검증 `element-causality` 차단을 원문 검수에서도 확인했다. 화 부재→재정 규율 어려움, 비겁→동업 손실, 재성·상관→수입 능력, 대운 나이·세운→수입·투자 기회, 소액 주식 매수 예시가 남았다. 문체·분량 경고만으로 차단한 것이 아니다.
+- 익명 증거: `artifacts/fortune-consultation-ux/saju/live-v15-benchmark-summary.json`, `live-v15-quality-review.md`. 원문·입력·제공자 응답·요청 해시는 저장소 밖 `D:/Development/fortune-consultation-private/live-v15`에만 보존한다.
+- 승인된 5회는 소진했다. 후속 네 서비스의 진행 조건을 충족하지 못했으므로 구현·이미지 생성은 미착수이며, 새 실호출은 하지 않았다. 제품·가격·이용권·월정석·단건 결제·인증·API·DB 로직 변경은 없다.
+- 다음 교정은 재물 전용 지시만 바꾸는 방식 대신 전체 챕터와 캐릭터 요약의 근거 경계를 함께 검토한다. ‘작은 검증’은 금융상품 매수 제안으로 바꾸지 않는다. 후속 실측에는 새 별도 승인이 필요하다.
+- 이번 단위는 실측 판정과 증거 기록이다. 제품 수정·교정 구현·후속 운세 작업을 완료했다고 표시하지 않는다.
+- 재개 위치: `D:/Development/code-destiny`, 문서 `D:/Development/code-destiny/docs/handoff/fortune-consultation-ux.md`, 시작 기준 커밋 `f14a8e3325718cabde36e005d1bf7b07ba5384cf`. 기존 `marketing/**`·`next-env.d.ts` 미커밋 변경은 보존한다. 최신 증거 커밋은 `git log -1 --format=%H -- docs/handoff/fortune-consultation-ux.md`로 확인한다.
+- 기록 검증: `node scripts/verify-handoff-contract.mjs` exit 0 (207개 문서), `git diff --check` exit 0. `npm run check:fast -- --plan`은 JSON 증거 미분류로 critical 승격했다. `npm run check:fast` 실행 중 paid-gate-suite 88/88 통과(536.1초)를 확인했으며 후속 단계와 main CI 상태는 전달 뒤 확인한다.

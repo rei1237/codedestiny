@@ -1,0 +1,64 @@
+{
+  "measuredAt": "2026-09-28T18:38:11.247Z",
+  "model": "gemini-2.5-flash",
+  "promptVersion": "saju-myeongsik-ai-v15",
+  "source": "live-local-benchmark",
+  "priceSource": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+  "priceBasis": "benchmark-configured-rates; calculated estimate, not billing measurement",
+  "inputUsdPerMillion": 0.3,
+  "outputUsdPerMillion": 2.5,
+  "limits": {
+    "inputTokens": 100000,
+    "outputTokens": 60000,
+    "calculatedUsd": 1
+  },
+  "generationCalls": 5,
+  "finishReasons": [
+    "STOP",
+    "STOP",
+    "STOP",
+    "STOP",
+    "STOP"
+  ],
+  "inputTokensByGroup": [
+    19742,
+    19818,
+    19816,
+    19834,
+    20149
+  ],
+  "inputTokens": 99359,
+  "outputTokens": 16258,
+  "bodyChars": 21581,
+  "wallElapsedMs": 25090,
+  "calculatedUsd": 0.0704527,
+  "maximumCalculatedUsd": 0.1798077,
+  "paymentCalls": 0,
+  "databaseWrites": 0,
+  "retries": 0,
+  "modelFallbacks": 0,
+  "explicitCacheCreates": 0,
+  "validation": {
+    "ok": false,
+    "reason": "명식 근거를 벗어난 인과 또는 금융 조언이 있습니다.",
+    "qualityIssues": {
+      "unsupportedAdvice": "element-causality",
+      "severity": "blocking"
+    }
+  },
+  "editorialReview": {
+    "ok": false,
+    "severity": "blocking",
+    "issues": [
+      "element-financial-causality",
+      "ten-god-financial-loss",
+      "age-financial-prediction",
+      "stock-purchase-advice"
+    ]
+  },
+  "privacy": {
+    "rawInputCommitted": false,
+    "providerResponseCommitted": false,
+    "requestHashesCommitted": false
+  }
+}
