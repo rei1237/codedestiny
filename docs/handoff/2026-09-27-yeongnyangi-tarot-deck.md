@@ -779,18 +779,6 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **유지 영역**: 앱 코드·공개 에셋·타로 엔진·연이 덱·가격·이용권/월정석/단건 결제·인증/API/DB 변경0. 실결제·운영 DB·과금 LLM 검증·운영 승격0.
 - **다음**: 펜타클14 승인 완료. Phase4a는 public/assets/yeongnyangi/tarot/v1/ 버전 경로의 메이저22·뒷면C·프레임 파이프라인으로 진행한다. Phase4a 보고·승인 전 Phase4b/F-2는 시작하지 않는다.
 
-## Phase 4a 결과 (2026-09-28 · 검증·전달 중, 사용자 승인 대기)
-
-- **선행·저장 결정**: 펜타클14 승인으로 마이너56 전체가 확정됐다. 사용자가 저장 위치를 「public/ 버전 경로 (추천)」으로 선택했다. 새 경로는 public/assets/yeongnyangi/tarot/v1/이며 기존 에셋을 덮어쓰지 않는다.
-- **범위**: 승인된 메이저22 프레임 적용본 + 뒷면C + 프레임에 240/600/1200w WebP·AVIF 파생을 만들었다. 총144개/22.12MiB, frame.svg·manifest.json을 함께 둔다. PNG 원본은 저장소 밖에 보존한다. 원본1024w→1200w는 확대이며 원본 세부가 추가된 것은 아니다.
-- **기록**: docs/design/yeongnyangi-tarot/asset-sources.json에 승인 원본 상대 경로·SHA256·프레임 적용본SHA256·원장 시선을 고정했다. manifest는 id/arcana/suit/rank/files/altKey/nameKey/gaze/dominantColor/contentHash/deckVersion과 크기별 인코딩 해시·용량을 담는다. scope=major22, completeDeck=false로 유료78장 완성 상태와 구분한다.
-- **파이프라인**: scripts/build-yeongnyangi-tarot-assets.mjs. 앞면WebP q90/AVIF q60(4:4:4), 뒷면·프레임lossless. 크기별 뒷면 위 절반의180도 복제로 디코딩 픽셀 대칭을 유지한다. 역방향 파일은 만들지 않았다.
-- **레지스트리·i18n**: lib/tarot/deck-registry.mjs의 brand→deckId→manifest 계층과 yeongnyangi-deck-copy.mjs의 ko/en/ja/zh-CN/zh-TW 카드명·alt, 기타언어en 폴백을 준비했다. 이미지 실패 시 영냥이 뒷면+카드명 반환, 연이는 기존caretaro URL 함수 그대로 사용한다. 화면의 onError 연결·CSS 회전·유료 결과 교체는 후속 단계다. 기존 앱 호출부는 바꾸지 않았다.
-- **검증**: npm run verify:yeongnyangi-tarot-assets → PASS major22/144파일/해시·크기·i18n·뒷면대칭·원장일치. mock-network-guard 아래 node --test __tests__/ui/yeongnyangi-tarot-assets.test.mjs →5/5 PASS(불완전덱 완성 주장·중복/누락·잘못된경로/키·폴백·브랜드 격리). --full은 major22에서 의도한 오류로 차단됨을 확인했다. npm run verify:guard-wiring →OK, CI fast 잡에 새 검사1개 배선. check:fast 전체 결과와 main push/CI는 최종 보고에서 실측한다.
-- **용량 실측(22장 평균)**: 썸네일WebP33,663B/AVIF24,119B, 표준WebP149,303B/AVIF93,010B, 고해상도WebP372,369B/AVIF196,275B. 모든 크기를 한 화면에서 동시에 내려받는 연결은 없다.
-- **유지 영역**: 결제·가격·이용권/월정석/단건 결제·인증/API/DB·타로 엔진·기존연이 덱·유료결과 앱호출부 변경0. 새 이미지 생성0·실LLM/실결제/운영DB/운영승격0. CI 배선만 검사 명령1개 추가했다.
-- **재개·한계**: 기준main 커밋1fcf3b2e55c2468ce712f53c8b4f48143d3b0d5b에서 격리 작업, 승인기록 커밋114c08c48. 실제 앱모바일 연결·네트워크 실패 UI·운영배포는 미검증. Phase4a 사용자 승인 후 Phase4b의 마이너56 파생·78장 전체검사·영냥이 유료결과 어댑터 연결로 이어간다. F-2는 F-1 데이터·로직 선행도 필요하다.
-
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 
 - **범위**: 브리프 1-1~1-6 산출물만 만든다. 앱 코드·테스트·결제·엔진·연이 덱은 바꾸지 않는다.
@@ -921,7 +909,7 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 
 ## 해당 게이트에서 결정 (지금 불필요)
 
-- Phase 4a 저장 위치는 2026-09-28 public/ 버전 경로로 확정. 메이저22 파이프라인 결과 승인 뒤 Phase4b로 이어간다.
+- Phase 4a: 파생 이미지 저장 위치(`public/` vs R2 버전 경로, §9). 메이저 22장부터 적용한다.
 - Phase 6: 실 LLM 샘플 평가 건수(정확한 1회 승인), 참치 후속 질문·조언 카드·주제 칩·위기 안내.
 
 ## 기존 결함·불일치 (보고만, 이번 범위에서 고치지 않음)
@@ -941,5 +929,5 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 
 ## 다음 세션 시작 문장
 
-- Phase 4a 승인 검토: "D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md를 읽고 main과 문서 마지막 커밋 확인 후 「Phase 4a 결과」메이저22 파이프라인 승인 검토부터 이어간다. 저장 위치는 public/ 버전 경로로 확정됐고, 승인 전 Phase4b/F-2 착수 금지."
+- Phase 3b 승인 검토: "D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md를 읽고 main과 문서 마지막 커밋 확인 후 「Phase 3b 펜타클 결과」14장 승인 검토부터 이어간다. 펜타클 승인 전 Phase4 착수 금지."
 - F-1(병행 시 워크트리): "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 이 문서 커밋을 확인한 뒤, 영냥이 무료 원카드 F-1(데이터·로직)을 「다음 작업 2」 0단계부터 진행해줘."

@@ -541,8 +541,6 @@
     "verify:pages-worker-parity-test": "node scripts/verify-pages-worker-parity.mjs --self-test",
     "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs",
     "verify:payment-reconcile": "node scripts/verify-payment-reconcile.mjs",
-    "tarot:assets:build": "node scripts/build-yeongnyangi-tarot-assets.mjs",
-    "verify:yeongnyangi-tarot-assets": "node scripts/verify-yeongnyangi-tarot-assets.mjs",
     "check:fast": "node scripts/check-changed.mjs --profile=fast --skip-build",
     "check:ui": "node scripts/check-changed.mjs --profile=ui --skip-build",
     "check:worker": "node scripts/check-changed.mjs --profile=worker --skip-build",
