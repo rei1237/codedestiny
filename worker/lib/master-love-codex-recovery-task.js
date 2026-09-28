@@ -114,22 +114,7 @@ export function planCodexReopen(doc, diagnose) {
   // 🔴 닫힌 세션만 연다. DB 필터에만 의존하면 살아 있는 세션을 "재개"하면서 락·진행 상태를
   //    건드릴 수 있다 — 판정은 호출부가 아니라 이 함수가 갖는다(fail-closed).
   if (doc?.status !== "generation_failed" || meta.reviewRequired !== true) return null;
-  // The self chapter explicitly forbids partner interpretation. v3 nevertheless required it.
-  // Restore exactly one reservation for this known contract defect, never the whole book.
-  if (doc.mode === "compat" && !meta.evidenceScopeReopenedAt
-      && meta.errors?.self?.code === "LLM_PARTNER_EVIDENCE_MISSING") {
-    return { marker: "evidenceScopeReopenedAt", reason: "evidence_scope_mismatch",
-      set: { "deliveryMeta.attempts.self": __masterLoveCodexTestUtils.CHAPTER_ATTEMPT_LIMIT - 1,
-        "deliveryMeta.failures.self": __masterLoveCodexTestUtils.CHAPTER_ATTEMPT_LIMIT - 1 },
-      unset: { "deliveryMeta.reviewReason": "", "deliveryMeta.exhaustedChapterIds": "", "deliveryMeta.errors.self": "" } };
-  }
-  if (closedByDedupeMismatch(doc) && !meta.dedupeReopenedAt) {
-    const unset = { "deliveryMeta.reviewReason": "", "deliveryMeta.exhaustedChapterIds": "" };
-    for (const id of meta.exhaustedChapterIds) {
-      for (const field of ["attempts", "failures", "errors"]) unset[`deliveryMeta.${field}.${id}`] = "";
-    }
-    return { marker: "dedupeReopenedAt", reason: "dedupe_mismatch", unset };
-  }
+  // Recovery may reopen remaining work but cannot mint provider attempts.
   if (!meta.codexReopenedAt && diagnose(doc).actionable.length) {
     return { marker: "codexReopenedAt", reason: "stale_close", unset: { "deliveryMeta.reviewReason": "" } };
   }

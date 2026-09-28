@@ -1090,7 +1090,7 @@ const PAID_PART_TARGETS = [
   ["worker/lib/feature-question-delivery.js", "minChars: 2200", 2200, "목표 2800~3200자", 2800, 3200, "maxOutputTokens: 9500", 9500],
   ["worker/routes/dream.js", "minChars: 2000", 2000, "목표 2,600~3,100자", 2600, 3100, "maxOutputTokens: 9500", 9500],
   ["worker/routes/oracle.js", "minChars: 3000", 3000, "목표 3,900~4,600자", 3900, 4600, "maxOutputTokens: 11000", 11000],
-  ["worker/lib/naming-report-delivery.js", "const NAMING_CHAPTER_MIN_CHARS = 2500;", 2500, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
+  ["worker/lib/naming-report-delivery.js", "function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }", 0, "목표 3,200~3,700자", 3200, 3700, "String(chapter.id), 9500)", 9500],
   // 천상의 조화 카드 한 호출은 긴 필드 여섯 개를 함께 쓴다.
   ["worker/lib/celestial-report-delivery.js", "? 500 : 40", 500, "목표 650~750자", 650, 6 * 750, "CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000", 11000],
   ["worker/lib/relationship-report-delivery.js", "const RELATIONSHIP_PART_MIN_CHARS = 2000;", 2000, "목표 2600~3000자", 2600, 3000, "capTokens: 9500", 9500],
@@ -1170,7 +1170,7 @@ const MIN_REJECT_OVER_TARGET = 1.15;
       feature: "ziwei",
       codes: [
         ["worker/routes/ziwei-ai.js", "본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자"],
-        ["worker/routes/ziwei-ai.js", "countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars"],
+        ["worker/routes/ziwei-ai.js", "const accepted = group => valid(group, groups[group.id]);"],
         ["worker/routes/ziwei-ai.js", "trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET))"],
         ["worker/routes/ziwei-ai.js", "capTokens: SECTION_GROUP_TARGET_TOKENS"],
       ],

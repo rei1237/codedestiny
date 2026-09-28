@@ -297,7 +297,7 @@ for (const marker of [
   "const SECTION_LOCK_TTL_MS = 90 * 1000;",
   "saveLifeBookState",
   "finishLifeBookDelivery",
-  "const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;",
+  "const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 2;",
   "const SECTION_CONCURRENCY = 4;",
   "const MAX_GENERATION_WAVES = 32;",
   // 🔴 엣지 100초를 넘길 수 없으므로 동기 상한을 공용 헬퍼로 clamp 한다(0/음수 하한 가드 포함).

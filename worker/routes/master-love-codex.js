@@ -1510,9 +1510,9 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
             if (selected) byId.set(chapter.id, result.chapter);
             delete errors[chapter.id];
           }
-          else if (result?.status === "deferred" || result?.failure?.kind === "provider_rejected") {
-            // Provider outages and work that never started are not bad manuscripts.
-            // Release this confirmed reservation while keeping uncertain calls capped.
+          else if (result?.status === "deferred") {
+            // Only work deferred before a provider call releases its reservation.
+            // Rejected and uncertain provider calls still consume the shared cap.
             attempts[chapter.id] = Math.max(0, attempts[chapter.id] - 1);
             unavailable = true;
           } else if (result?.status === "retryable") unavailable = true;

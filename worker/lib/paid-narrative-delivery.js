@@ -8,8 +8,8 @@ import { getAmbientAiLocale, runWithAiLocale } from "./ai-locale-context.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
-import { selectNarrativeCandidate, narrativeRepairTask } from "./paid-narrative-candidate.js";
-import { runWithPaidGenerationContext } from "./paid-generation-context.js";
+import { selectNarrativeCandidate, narrativeRepairTask, normalizeNarrativeBody } from "./paid-narrative-candidate.js";
+import { runWithPaidGenerationContext, getPaidGenerationRaw } from "./paid-generation-context.js";
 
 const hash = value => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const failure = resultId => Object.assign(new Error("Result storage unavailable"), { code: "RESULT_STORAGE_UNAVAILABLE", resultId });
@@ -159,9 +159,10 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       const valid = ai?.ok && !ai.isMock && !/mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)
         && value?.evidenceHash === state.evidenceHash && typeof value.body === "string" && countPaidReportBodyChars(value.body) > 0;
       const accept = async () => {
-        if (ai?.text || value) state.rawResponses = { ...state.rawResponses, [task.id]: ai?.text || JSON.stringify(value) };
+        const raw = getPaidGenerationRaw() || ai?.rawText || ai?.text || (value ? JSON.stringify(value) : "");
+        if (raw) state.rawResponses = { ...state.rawResponses, [task.id]: raw };
         const edited = valid && !/^\s*[\[{]/.test(value.body)
-          ? [...new Set(value.body.split(/\n\s*\n/u).map(p => p.trim()).filter(Boolean))].join("\n\n") : value?.body;
+          ? normalizeNarrativeBody(value.body) : value?.body;
         const body = valid && !hasRepeatedReportPassage(edited)
           && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + edited) ? edited : null;
         const previous = draft && !hasRepeatedReportPassage(Object.values(state.parts).join("\n") + "\n" + draft) ? draft : null;

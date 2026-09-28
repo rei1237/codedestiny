@@ -48,7 +48,7 @@ assert(route.includes("const AMOUNT_KRW = 30000"), "30,000 KRW constant missing"
 assert(route.includes("MIN_INITIAL_CONSULTATION_BODY_CHARS = 20700"), "initial consultation 20,700 char guard missing");
 assert(route.includes("MAX_INITIAL_CONSULTATION_BODY_CHARS = 38000"), "initial consultation 38,000 char cap missing");
 assert(route.includes("countStructuredConsultationBodyChars"), "structured body char counter missing");
-assert(route.includes("chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation min body guard missing");
+assert(route.includes("SECTION_GROUP_SPECS.every(accepted)"), "initial generation requires every usable group");
 assert(route.includes("chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation max body guard missing");
 // 토큰 상한은 요구 분량 상한 + 완충을 담을 수 있어야 한다. 특정 숫자를 고정하면 예산을 올릴 때마다
 // 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).

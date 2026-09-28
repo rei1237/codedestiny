@@ -17,13 +17,12 @@ import { __masterLoveCodexTestUtils } from "../../worker/routes/master-love-code
 const { ABANDONED_AFTER_MS, MAX_SESSIONS_PER_TICK } = __masterLoveCodexRecoveryTestUtils;
 const { MODES } = __masterLoveCodexTestUtils;
 
-test("known self evidence mismatch restores one attempt once, preserving every other chapter", () => {
+test("known self evidence mismatch cannot restore spent generation attempts", () => {
   const doc = { mode: "compat", status: "generation_failed", deliveryMeta: {
     reviewRequired: true, errors: { self: { code: "LLM_PARTNER_EVIDENCE_MISSING" } }, attempts: { self: 3, other: 1 },
   } };
   const plan = planCodexReopen(doc, () => ({ actionable: [] }));
-  expect(plan.set).toEqual({ "deliveryMeta.attempts.self": 2, "deliveryMeta.failures.self": 2 });
-  expect(Object.keys(plan.unset)).not.toContain("deliveryMeta.attempts.other");
+  expect(plan).toBeNull();
   expect(doc.deliveryMeta.attempts).toEqual({ self: 3, other: 1 });
   doc.deliveryMeta.evidenceScopeReopenedAt = new Date();
   expect(planCodexReopen(doc, () => ({ actionable: [] }))).toBeNull();
@@ -181,21 +180,20 @@ describe("중복 판정 불일치로 닫힌 세션 1회 재개", () => {
       attempts: { c1: 1, ...Object.fromEntries(Object.keys(codes).map(k => [k, 3])) },
       errors: Object.fromEntries(Object.entries(codes).map(([k, code]) => [k, { code }])) } });
 
-  test("소진된 장이 전부 LLM_OUTPUT_REPEATED 면 시도 기록까지 지우고 1회 표식과 함께 연다", async () => {
+  test("중복 오류가 있어도 시도 기록을 보존하고 남은 장만 연다", async () => {
     const { model, options } = harness([closed("s1", { c2: "LLM_OUTPUT_REPEATED", c3: "LLM_OUTPUT_REPEATED" })]);
     model.updateOne = jest.fn(async () => ({ modifiedCount: 1 }));
     const now = Date.UTC(2026, 8, 17);
     const result = await runMasterLoveCodexRecovery({}, { ...options, now });
 
-    expect(result.reopened).toEqual(["s1:dedupe_mismatch"]);
+    expect(result.reopened).toEqual(["s1:stale_close"]);
     expect(model.updateOne).toHaveBeenCalledTimes(1);
     const [filter, update, opts] = model.updateOne.mock.calls[0];
     // 🔴 환급·이미 재개된 세션은 원자 필터에서 빠진다.
-    expect(filter).toMatchObject({ id: "s1", userId: "u-s1", status: "generation_failed", "deliveryMeta.dedupeReopenedAt": { $exists: false },
+    expect(filter).toMatchObject({ id: "s1", userId: "u-s1", status: "generation_failed", "deliveryMeta.codexReopenedAt": { $exists: false },
       "passRefund.refundedAt": { $exists: false }, "billingRefund.refundedAt": { $exists: false } });
-    expect(update.$set).toMatchObject({ status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.dedupeReopenedAt": new Date(now) });
-    expect(Object.keys(update.$unset).sort()).toEqual(["deliveryMeta.attempts.c2", "deliveryMeta.attempts.c3", "deliveryMeta.errors.c2", "deliveryMeta.errors.c3",
-      "deliveryMeta.exhaustedChapterIds", "deliveryMeta.failures.c2", "deliveryMeta.failures.c3", "deliveryMeta.reviewReason"]);
+    expect(update.$set).toMatchObject({ status: "generating", "deliveryMeta.reviewRequired": false, "deliveryMeta.codexReopenedAt": new Date(now) });
+    expect(Object.keys(update.$unset)).toEqual(["deliveryMeta.reviewReason"]);
     expect(opts).toEqual({ timestamps: false });
     expect(options.syncCodexExecution).toHaveBeenCalledWith(expect.objectContaining({ id: "s1", status: "generating" }));
   });

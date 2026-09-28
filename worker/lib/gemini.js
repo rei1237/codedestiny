@@ -4,7 +4,7 @@ import {
   deleteGeminiContextCache as deleteLLMContextCache,
 } from "../../lib/llm-client.ts";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
-import { getPaidGenerationContext } from "./paid-generation-context.js";
+import { getPaidGenerationContext, capturePaidGenerationRaw } from "./paid-generation-context.js";
 
 function clean(value, maxLength = 0) {
   const text = String(value || "").trim();
@@ -124,7 +124,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       taskType: normalizeTaskType(options),
       model: clean(options.model),
       timeoutMs: Number(options.timeoutMs || 0) || undefined,
-      maxProviderAttempts: getPaidGenerationContext() ? 1 : Number(options.maxProviderAttempts) || undefined,
+      maxProviderAttempts: getPaidGenerationContext() ? 1 : Number(options.maxProviderAttempts) || 1,
       responseMimeType: clean(options.responseMimeType) || undefined,
       // Gemini 구조화 출력(generationConfig.responseSchema). 🔴 이 화이트리스트는 명시한 키만
       // 넘기므로, 여기에 없으면 호출부가 아무리 넘겨도 바디에 안 실린다(조용히 사라진다).
@@ -149,6 +149,7 @@ export async function callGeminiText(env, prompt, options = {}) {
         : undefined,
     }, env);
 
+    capturePaidGenerationRaw(result?.text);
     const tooShort = rejectShortFallback(result, options.fallbackMinChars);
     if (tooShort) {
       console.warn("[gemini] workers-ai fallback rejected (too short)", {

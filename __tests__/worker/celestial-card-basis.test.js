@@ -87,8 +87,8 @@ test('a card body that never names the drawn card is rejected instead of deliver
  expect(docs[0].premiumStatus).toBe('generating');
  const parts=docs[0].metadata.celestialDelivery.delivery;
  expect(Object.keys(parts.parts)).not.toContain('0');
- expect(parts.attempts['0']).toBe(3);
- expect(parts.invalidAttempts['0']).toBe(3);
+ expect(parts.attempts['0']).toBe(2);
+ expect(parts.invalidAttempts['0']).toBe(2);
 });
 
 test('bodies that cite the drawn card and planet complete without extra provider calls',async()=>{

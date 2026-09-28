@@ -94,7 +94,7 @@ beforeEach(()=>{
 });
 afterEach(()=>{expect(fetchBlock).not.toHaveBeenCalled();fetchBlock.mockRestore()});
 async function generate(extra = {}){return route(new Request('https://mock.test/api/master-love-codex/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:'saved-codex'})}),{},{generateChapter:provider,refundPassCoverage:refund,runCoinRefund:refund,runMonthlyCreditRefund:refund,runPaymentCancel:refund,...extra})}
-it('repairs the measured 19/20 compat book with one self chapter and no duplicate payment or chapters', async () => {
+it('preserves a 19/20 compat book without granting calls beyond its exhausted budget', async () => {
   const { __masterLoveCodexTestUtils: utils, diagnoseCodexSession, isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
   const { planCodexReopen } = await import('../../worker/lib/master-love-codex-recovery-task.js');
   const chapters = [];
@@ -105,12 +105,11 @@ it('repairs the measured 19/20 compat book with one self chapter and no duplicat
       errors: { self: { code: 'LLM_PARTNER_EVIDENCE_MISSING' } }, reviewReason: 'GENERATION_BUDGET_EXCEEDED' } });
   const originalBodies = chapters.map(row => row.body);
   const plan = planCodexReopen(docs[0], diagnoseCodexSession);
-  assign(docs[0], { ...plan.set, status: 'generating', 'deliveryMeta.reviewRequired': false, 'deliveryMeta.evidenceScopeReopenedAt': new Date() });
-  expect((await generate()).status).toBe(200);
-  expect(provider).toHaveBeenCalledTimes(1);
-  expect(provider.mock.calls[0][1].chapter.id).toBe('self');
+  expect(plan).toBeNull();
+  await generate();
+  expect(provider).not.toHaveBeenCalled();
   expect(docs[0].chapters.filter(row => row.id !== 'self').map(row => row.body)).toEqual(originalBodies);
-  expect(isCodexArchiveComplete(docs[0])).toBe(true);
+  expect(isCodexArchiveComplete(docs[0])).toBe(false);
   expect(docs[0].paymentId).toBe('original-payment');
   expect(refund).not.toHaveBeenCalled();
 });
@@ -129,7 +128,7 @@ it('uncertain exhausted calls do not trigger more LLM or a refund',async()=>{awa
  expect((await generate()).status).toBe(202);expect(provider.mock.calls.some(([,input])=>input.chapter.id===next.id)).toBe(false);
  expect(docs[0].deliveryMeta.savedChapters).toHaveLength(8);expect(refund).not.toHaveBeenCalled()});
 
-for (const state of ['retryable', 'deferred']) it(`${state} confirmed refusals preserve the same paid book past three waves with durable backoff`, async () => {
+for (const state of ['deferred']) it(`${state} confirmed refusals preserve the same paid book past three waves with durable backoff`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async () => ({ status: state, failure: { code: 'LLM_PROVIDER_UNAVAILABLE', kind: state === 'deferred' ? 'deferred' : 'provider_rejected' } }));
   for (let wave = 0; wave < 4; wave++) {
@@ -144,6 +143,17 @@ for (const state of ['retryable', 'deferred']) it(`${state} confirmed refusals p
   provider.mockImplementation(normal);
   for (let wave = 0; wave < 5; wave++) await generate();
   expect(docs[0].status).toBe('completed');
+  expect(docs[0].paymentId).toBe('original-payment');
+});
+
+it('provider refusals consume at most two attempts per chapter across resumes', async () => {
+  provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_PROVIDER_UNAVAILABLE', kind: 'provider_rejected' } }));
+  for (let wave = 0; wave < 15; wave++) { await generate(); docs[0].deliveryMeta.nextAttemptAt = null; }
+  expect(Object.values(docs[0].deliveryMeta.attempts).every(value => value === 2)).toBe(true);
+  const calls = provider.mock.calls.length;
+  await generate();
+  expect(provider).toHaveBeenCalledTimes(calls);
+  expect(refund).not.toHaveBeenCalled();
   expect(docs[0].paymentId).toBe('original-payment');
 });
 

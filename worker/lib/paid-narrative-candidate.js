@@ -1,12 +1,22 @@
 import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from './paid-report-quality.js';
 
-// Only a structurally complete narrative can bypass a length target. Structured
-// JSON products keep their own producer validation and are not repaired here.
+// Keep provider prose, removing exact duplicate paragraphs and an unfinished tail.
+// JSON products retain their adapter's validation; never treat JSON syntax as prose.
+export function normalizeNarrativeBody(body) {
+  if (typeof body !== 'string' || /^\s*[\[{]/u.test(body)) return body;
+  return [...new Set(body.split(/\n\s*\n/u).map(paragraph => {
+    const text = paragraph.trim();
+    if (/[.!?。？！]["'”’)\]」』]*\s*$/u.test(text)) return text;
+    const sentences = [...text.matchAll(/[.!?。？！]["'”’)\]」』]*(?=\s|$)/gu)];
+    const last = sentences.at(-1);
+    return last ? text.slice(0, last.index + last[0].length) : '';
+  }).filter(Boolean))].join('\n\n');
+}
 export function completeNarrativeBody(body) {
-  if (typeof body !== 'string' || !body.trim() || hasRepeatedReportPassage(body)) return false;
+  if (typeof body !== 'string' || hasRepeatedReportPassage(body)) return false;
   const paragraphs = body.trim().split(/\n\s*\n/u).filter(Boolean);
-  return paragraphs.length > 1 && paragraphs.every(text => /[.!?。？！]["'”’)\]」』]*\s*$/u.test(text));
+  return (paragraphs.length > 1 || countPaidReportBodyChars(body) >= 40) && paragraphs.every(text => /[.!?。？！]["'”’)\]」』]*\s*$/u.test(text));
 }
 
 // A structured adapter passes its own completeness and length (see the delivery

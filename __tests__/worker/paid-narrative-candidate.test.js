@@ -1,4 +1,4 @@
-import { completeNarrativeBody, selectNarrativeCandidate, narrativeRepairTask } from '../../worker/lib/paid-narrative-candidate.js';
+import { normalizeNarrativeBody, completeNarrativeBody, selectNarrativeCandidate, narrativeRepairTask } from '../../worker/lib/paid-narrative-candidate.js';
 
 const draft = '현재의 선택은 계산된 근거와 실제 상황을 함께 확인해야 합니다.\n\n이번 주에는 대화 내용을 기록하고 상대의 속도를 확인해 보세요.';
 test('length is advisory, but empty, unfinished and repeated narratives are not candidates', () => {
@@ -18,4 +18,12 @@ test('repair targets only the missing part and preserves its identity', () => {
   expect(repair.prompt).toContain(draft);
   expect(repair.prompt).toContain('다른 항목은 다시 쓰지 마세요');
   expect(task.prompt).toBe('질문에 대한 답변');
+});
+
+test('one readable paragraph is deliverable and an incomplete tail is trimmed without new prose', () => {
+  const one = draft.replace('\n\n', ' ');
+  expect(completeNarrativeBody(one)).toBe(true);
+  expect(normalizeNarrativeBody(one + ' 아직 끝나지 않은')).toBe(one);
+  expect(normalizeNarrativeBody(draft + '\n\n' + draft)).toBe(draft);
+  expect(normalizeNarrativeBody('미완성')).toBe('');
 });

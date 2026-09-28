@@ -84,10 +84,10 @@ test('a body that states a different score than the calculation is refunded inst
  expect(docs[0].status).toBe('generation_failed');
  const delivery=docs[0].llmMeta.delivery;
  expect(Object.keys(delivery.parts)).not.toContain('0');
- expect(delivery.attempts['0']).toBe(3);
- expect(delivery.invalidAttempts['0']).toBe(3);
+ expect(delivery.attempts['0']).toBe(2);
+ expect(delivery.invalidAttempts['0']).toBe(2);
  // 거절은 그 part 만 막고 이미 저장된 나머지 아홉 개는 보존된다.
- expect(Object.keys(delivery.parts)).toEqual(['1','2','3','4','5','6','7','8','9']);
+ expect(Object.keys(delivery.parts)).toEqual(['1','2','3','4','5','6']);
 });
 
 test('an evidence half that never states the fixed score is refunded instead of delivered',async()=>{
@@ -97,7 +97,7 @@ test('an evidence half that never states the fixed score is refunded instead of 
  expect(await response.json()).toMatchObject({reason:'GENERATION_FAILED',refunded:true});
  const delivery=docs[0].llmMeta.delivery;
  expect(Object.keys(delivery.parts)).not.toContain('2');
- expect(delivery.invalidAttempts['2']).toBe(3);
+ expect(delivery.invalidAttempts['2']).toBe(2);
 });
 
 test('an advice half may omit the score as its own instruction requires',async()=>{

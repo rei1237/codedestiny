@@ -147,7 +147,6 @@ it("무주성 궁: 명반에 없는 주성만 인용한 본문은 유료 완주�
   expect(invented.length).toBeGreaterThan(0);
   provider = modelCiting(invented);
   expect((await start({ palaceKey: "명궁" })).status).toBe(202);
-  expect((await start({ palaceKey: "명궁" })).status).toBe(202);
   const exhausted = await start({ palaceKey: "명궁" });
   expect(exhausted.status).toBe(503);
   expect(await exhausted.json()).toMatchObject({ ok: false, reason: "LLM_ERROR" });

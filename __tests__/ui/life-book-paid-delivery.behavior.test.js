@@ -234,8 +234,8 @@ for (const repair of ['shorter', 'invalid']) test(`life book ${repair} length re
     ? { ok: repair !== 'invalid', body: { content: '짧음' }, chars: 2, error: 'fixture' } : base(...args);
   await f.post();
   assert.equal(f.doc.llmMeta.sections.section0.body.content, prior.body.content);
-  assert.equal(f.doc.llmMeta.sections.section0.lengthRepair, true);
-  assert.equal(f.doc.llmMeta.sections.section0.attempts, 2);
+  assert.equal(f.doc.llmMeta.sections.section0.needsRepair, false);
+  assert.equal(f.doc.llmMeta.sections.section0.attempts, 1);
   for (let i = 0; i < 5 && f.doc.status !== 'completed'; i++) await f.post();
   assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
 });

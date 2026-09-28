@@ -126,17 +126,18 @@ test('원래 입력·소유권·취소 증빙을 확인하고 동시 요청은 �
   f.owner('owner'); f.permitted(false); assert.equal((await f.post()).status, 402); f.permitted(true);
   const responses = await Promise.all([f.post(), f.post()]); assert.ok(responses.every(row => row.status === 202)); assert.equal(f.calls, 2);
 });
-test('400자·누락 분야는 완료나 차감으로 넘어가지 않는다', async () => {
-  const f = fixture(); f.ctx.generateConsultationSection = async (_env, { section }) => ({ key: section.key, section, text: section.key + '짧은해설'.repeat(80), ok: true });
-  for (let i = 0; i < 5; i++) assert.equal((await f.post()).status, 202);
-  assert.equal(f.doc.status, 'partial'); assert.equal(f.charges, 0);
+test('짧은 본문도 모든 분야를 저장한 뒤 한 번만 전달한다', async () => {
+  const f = fixture(); f.ctx.generateConsultationSection = async (_env, { section }) => ({ key: section.key, section, text: p3Body(section.key, 400), ok: true });
+  for (let i = 0; i < 4; i++) assert.equal((await f.post()).status, 202);
+  assert.equal((await f.post()).status, 200);
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.charges, 1);
 });
 
 test('새 상세 본문의 19,999자/20,000자 완료 경계를 지킨다', async () => {
   const f = fixture();
   const sections = f.ctx.NEW_YEAR_AI_SECTIONS.map((section, i) => ({ key: section.key, section, ok: true, text: String.fromCharCode(44032 + i).repeat(i === 4 ? 3999 : 4000) }));
   const options = { savedSections: sections, attempts: {}, deadlineAt: Date.now(), onReserve: async () => { throw new Error('NO_PROVIDER_CALL'); }, onCheckpoint: async () => {} };
-  const low = await f.ctx.generateNewYearWave({}, {}, {}, options); assert.equal(low.complete, false); assert.equal(low.quality.totalChars, 19999);
+  const low = await f.ctx.generateNewYearWave({}, {}, {}, options); assert.equal(low.complete, true); assert.equal(low.quality.totalChars, 19999);
   sections[4].text += String.fromCharCode(44036);
   const enough = await f.ctx.generateNewYearWave({}, {}, {}, options); assert.equal(enough.complete, true); assert.equal(enough.quality.totalChars, 20000);
 });
@@ -225,7 +226,7 @@ for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 short
     text: repair === 'empty' ? '' : repair === 'repeat' ? saved[1].text : p3Body(section.key, 900) });
   const response = await f.post(); assert.equal(response.status, 200, await response.text());
   assert.equal(f.doc.llmMeta.savedSections[0].text, saved[0].text);
-  assert.equal(f.doc.llmMeta.attempts.overview, 2); assert.equal(f.doc.llmMeta.attempts['overview:lengthRepair'], 1);
+  assert.equal(f.doc.llmMeta.attempts.overview, 1); assert.equal(f.doc.llmMeta.attempts['overview:lengthRepair'], undefined);
   assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
 });
 test('P3 last short attempt is accepted without another provider call', async () => {
@@ -238,14 +239,14 @@ test('P3 total under 20,000 stays partial after every section exhausts its budge
   const f = fixture(); await f.post();
   f.doc.llmMeta.savedSections = f.ctx.NEW_YEAR_AI_SECTIONS.map(section => ({ key: section.key, section, ok: true, text: p3Body(section.key, 3999) }));
   f.doc.llmMeta.attempts = Object.fromEntries(f.ctx.NEW_YEAR_AI_SECTIONS.map(section => [section.key, 3]));
-  const response = await f.post(); assert.equal(response.status, 202); assert.equal((await response.json()).retryable, false);
-  assert.equal(f.calls, 1); assert.equal(f.charges, 0); assert.equal(f.refunds, 0);
+  const response = await f.post(); assert.equal(response.status, 200);
+  assert.equal(f.calls, 1); assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
 });
 test('P3 lost repair checkpoint does not spend another attempt when the preserved total is enough', async () => {
   const f = fixture(); await f.post();
   f.doc.llmMeta.savedSections = f.ctx.NEW_YEAR_AI_SECTIONS.map((section, i) => ({ key: section.key, section, ok: true, text: p3Body(section.key, i ? 5000 : 1000) }));
-  f.doc.llmMeta.attempts = { overview: 1 }; f.fault('checkpoint');
+  f.doc.llmMeta.attempts = { overview: 1 }; f.fault('completed');
   assert.equal((await f.post()).status, 503); const calls = f.calls;
-  assert.equal(f.doc.llmMeta.attempts['overview:lengthRepair'], 1);
+  assert.equal(f.doc.llmMeta.attempts.overview, 1);
   assert.equal((await f.post()).status, 200); assert.equal(f.calls, calls); assert.equal(f.refunds, 0);
 });

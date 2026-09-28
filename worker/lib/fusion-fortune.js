@@ -561,7 +561,7 @@ export function evaluateFusionFortuneResult(result = {}, { birthTimeKnown = true
     if (selectedNames.some((name) => !tarotText.includes(name))) issues.push("missing_selected_tarot_card");
   }
   const length = countFusionFortuneVisibleText(result);
-  if (length < (FUSION_FORTUNE_LENGTH.total.min * depthScale) || length > (FUSION_FORTUNE_LENGTH.total.max * depthScale)) issues.push("length");
+  if (!ignoreLength && (length < (FUSION_FORTUNE_LENGTH.total.min * depthScale) || length > (FUSION_FORTUNE_LENGTH.total.max * depthScale))) issues.push("length");
   return {
     issues,
     length,
@@ -1061,9 +1061,6 @@ export async function generateFusionFortuneWithRealLLM({
   };
   const groupTimeoutMs = fusionGroupTimeoutMs(env);
   const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress, persist = true } = {}) => {
-    if (group.stage === 2 && prior.deliveryRepairGroups?.includes(group.id) && !fusionReportMeetsTotalFloor(prior, context.locale)) {
-      extraInstruction += `\n전체 리포트가 본문 ${PAID_REPORT_MIN_BODY_CHARS}자 또는 가시 텍스트 ${FUSION_FORTUNE_LENGTH.total.min * fusionLocaleLengthScale(context.locale)}자 기준에 미달합니다. 기존 여섯 체계 해석은 보존합니다. 이 묶음의 기존 분량 범위 안에서 계산 근거, 서로 다른 조건, 실제 행동의 예시를 구체화하세요. 반복 문장이나 일반론으로 채우지 마세요.`;
-    }
     // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
     //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
     //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지

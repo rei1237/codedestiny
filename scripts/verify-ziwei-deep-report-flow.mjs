@@ -120,7 +120,7 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
   assert(minChapters === ZIWEI_DEEP_CHAPTERS.length, "15개 필수 챕터가 모두 있어야 한다");
 
   assert(utils.judgeDeliverable(minChars, minChapters).ok, "하한을 정확히 채우면 통과해야 한다");
-  assert(!utils.judgeDeliverable(minChars - 1, 15).ok, "글자수가 하한 미만이면 실패해야 한다");
+  assert(utils.judgeDeliverable(minChars - 1, 15).ok, "유효한 모든 장이 있으면 분량만으로 전달을 막지 않는다");
   assert(!utils.judgeDeliverable(999999, minChapters - 1).ok, "글자수가 충분해도 살아남은 장이 모자라면 실패해야 한다");
 
   // 실제 사고 시나리오: 15장 중 12장이 2줄짜리 폴백 문단인 리포트.

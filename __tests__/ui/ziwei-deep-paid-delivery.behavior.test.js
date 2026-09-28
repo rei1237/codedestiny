@@ -316,12 +316,12 @@ test('동시 요청, 소유권 변경, 입력 변경, 취소 증빙을 차단한
   f.owner('other'); assert.equal((await f.post({ resumeReportId: f.doc.id })).status, 404);
   f.owner('owner'); f.permitted(false); assert.equal((await f.post()).status, 402); assert.equal(f.calls, 8);
 });
-test('짧은 챕터는 완료하지 않고 저장된 호출 한도로 멈춘다', async () => {
-  const f = fixture(); let calls = 0;
-  f.ctx.generateChapter = async (_e, _c, _b, definition) => { calls++; return { ...definition, body: '짧은 본문', ok: true }; };
-  for (let i = 0; i < 20; i++) assert.equal((await f.post()).status, 202);
-  assert.equal(calls, 45); assert.equal(f.doc.status, 'partial'); assert.equal(f.refunds, 0);
-  assert.equal(Object.keys(f.doc.llmMeta.checkpoints).length, 15);
+test('유효한 모든 짧은 챕터는 목표 분량을 위한 재생성 없이 전달한다', async () => {
+  const f = fixture(); const normal = f.ctx.generateChapter; let calls = 0;
+  f.ctx.generateChapter = async (...args) => { calls++; const row = await normal(...args); return { ...row, body: row.body.slice(0, 500) }; };
+  for (let i = 0; i < 4; i++) await f.post();
+  assert.equal(calls, 15); assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0);
+  assert.equal((await f.post()).status, 200); assert.equal(calls, 15);
 });
 for (const repair of ['shorter', 'empty', 'repeated']) test(`심층 ${repair} 보강은 유효 초안을 보존하고 총합을 충족하면 완료한다`, async () => {
   const f = fixture(); const normal = f.ctx.generateChapter; let tries = 0, draft;
@@ -337,9 +337,9 @@ for (const repair of ['shorter', 'empty', 'repeated']) test(`심층 ${repair} �
   };
   await f.post(); assert.equal(f.doc.llmMeta.checkpoints.chapter0.body, draft);
   for (let i = 0; i < 6 && f.doc.status !== 'completed'; i++) await f.post();
-  assert.equal(f.doc.status, 'completed'); assert.equal(tries, 2);
+  assert.equal(f.doc.status, 'completed'); assert.equal(tries, 1);
   assert.equal(f.doc.llmMeta.checkpoints.chapter0.body, draft);
-  assert.equal(f.doc.llmMeta.attempts['chapter0:lengthRepair'], 1);
+  assert.equal(f.doc.llmMeta.attempts.chapter0, 1);
 });
 test('심층 보강 예약 뒤 응답이 유실되어도 같은 개별 분량 보강을 다시 호출하지 않는다', async () => {
   const f = fixture(); const normal = f.ctx.generateChapter; let tries = 0;

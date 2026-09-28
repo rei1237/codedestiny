@@ -898,8 +898,8 @@ describe("fusion length drafts and bounded repairs", () => {
       expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(1);
     }
     expect(first.deliverable).toBe(true);
-    expect(snapshot.attempts.saju).toBe(2);
-    expect(snapshot.lengthRepairs.saju).toBe(true);
+    expect(snapshot.attempts.saju).toBe(1);
+    expect(snapshot.lengthRepairs.saju).toBeUndefined();
     expect(first.result.sajuSection.content).toBe(fusionFiller("short valid saju", 1000));
     providerCall.mockClear();
     const resumed = await generateFusionFortuneWithRealLLM({ ...args, priorResult: first.result, priorSnapshot: snapshot });
@@ -922,7 +922,7 @@ describe("fusion length drafts and bounded repairs", () => {
       value[`${group.id}Section`].content = fusionFiller(group.id, 300);
       return { ok: true, text: JSON.stringify(value) };
     });
-    const attempts = Object.fromEntries(FUSION_SECTION_GROUP_SPECS.filter(g => g.stage === 1).map(g => [g.id, 2]));
+    const attempts = Object.fromEntries(FUSION_SECTION_GROUP_SPECS.filter(g => g.stage === 1).map(g => [g.id, 1]));
     const result = await generateFusionFortuneWithRealLLM({ input, context, env, providerCall, priorSnapshot: { attempts } });
     expect(result.deliverable).toBe(true);
     expect(providerCall).toHaveBeenCalledTimes(6);
@@ -945,7 +945,7 @@ it("total repair keeps longer saved groups and marks a depth-only repair once", 
  const snapshot={attempts:{},lengthRepairs:{}};
  const providerCall=jest.fn(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify(buildFusionGroupPayload(FUSION_SECTION_GROUP_SPECS.find(g=>g.id===options.logContext.sectionGroup)))}));
  const first=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:prior,providerCall,onAttempt:async(id,opts)=>{reservations.push([id,opts]);if(opts.lengthRepair)snapshot.lengthRepairs[id]=true;return snapshot.attempts[id]=(snapshot.attempts[id]||0)+1;}});
- expect(reservations).toContainEqual(["verdict",{lengthRepair:true}]);
+ expect(reservations).toEqual([]);
  expect(first.result.finalVerdict.rationale).toBe(prior.finalVerdict.rationale);
  providerCall.mockClear();
  await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:first.result,priorSnapshot:snapshot,providerCall});
@@ -955,7 +955,7 @@ it("total repair keeps longer saved groups and marks a depth-only repair once", 
  for(const key of ["sajuSection","ziweiSection","vedicSection","sukuyoSection","astrologySection","tarotSection"])shortPrior[key]={...prior[key],content:fusionFiller(key,1000)};
  const repaired=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:shortPrior,providerCall,priorSnapshot:{attempts:{verdict:2}}});
  expect(repaired.result.finalVerdict.rationale).toBe(shortPrior.finalVerdict.rationale);
- expect(repaired.deliverable).toBe(false);
+ expect(repaired.deliverable).toBe(true);
  let failedOnce=false;
  const afterFailure=await generateFusionFortuneWithRealLLM({context:{birthTimeKnown:true,birthPlaceKnown:true},env,stage:2,priorResult:shortPrior,providerCall:async(...args)=>{
   if(args[2].logContext.sectionGroup==='verdict'&&!failedOnce){failedOnce=true;return {ok:false};}

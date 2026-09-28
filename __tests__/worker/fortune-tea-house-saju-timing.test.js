@@ -258,7 +258,7 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     expect(next.generationCheckpoint.parts['saju-section-0']).toEqual(sections['saju-section-0']);
     expect(next.generationCheckpoint.attempts['saju-section-0']).toBe(1);
     expect(next.generationCheckpoint.parts['saju-section-1'].saju.deepSections[0].body).toBe(weakBody);
-    expect(next.generationCheckpoint.attempts['saju-section-1:lengthRepair']).toBe(1);
+    expect(next.generationCheckpoint.attempts['saju-section-1']).toBe(1);
   });
 });
 
