@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "Phase 2 커밋 5 = chapter-v7 프롬프트·출력 스키마(설계 §6-5: 블록=인사이트 단위, 장면 ≤1, 선택은 결정 장만, 블록 스키마 id/title/paragraphs/sources 유지, highlights[]·topics[] 재사용, timingSummary 를 summary 장 프롬프트에 한 줄로). §6-1~§6-4 는 커밋 완료. 플래그 OFF, 과금 LLM 0회."
+next: "Phase 2 커밋 6 = 설계 §6-6 배선(consultation-kinds.ts·service.ts·chapter.ts·chapter-facts.ts 의 v7 분기). §6-1~§6-5 는 커밋 완료. 플래그 OFF, 과금 LLM 0회. fingerprint 가 걸리므로 RED."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -165,6 +165,30 @@ next: "Phase 2 커밋 5 = chapter-v7 프롬프트·출력 스키마(설계 §6-5
   - **불변 스냅샷은 해시 갱신 없이 통과**했다. v7 원장 8, reading-v7 6, reading-v6·ask-evidence·consultation-kinds 38 모두 통과(리베이스 뒤 시기·불변·원장 재실행 13/13).
   - `npx tsc --noEmit -p .` 오류 0. eslint 오류 0(경고 1: 원장 테스트와 같은 `_t` 구조분해 패턴).
   - `npm run check:fast`: entry-encoding OK, jest 309 스위트·4,512 테스트 통과(종료 코드는 캡처하지 못했고 실패 단계 출력은 없었다).
+
+## Phase 2 커밋 5 결과: reading-v7-prompt.ts (2026-09-28)
+
+- 커밋 `412dda498`. main 직접 작업(옆 세션은 `marketing/**` 만 건드려 워크트리가 필요 없었다). 과금 LLM 0회, 실결제 0, DB 접근 0. 플래그 `READING_V7_ENABLED=false`, 운영 경로 import 0, `chapter.ts`·`chapter-facts.ts`·`service.ts` 무변경.
+- 파일
+  - `worker/yeongnyangi/fortune/reading-v7-prompt.ts` (신규, 순수·결정적)
+    - `buildV7ChapterPrompt({chapter, facts, previous, askFirstChapter, questionCount})` → `{promptVersion, timeTheme, depth, sourceIds, carry, domainRules, outputSchema, maxOutputTokens}`. §6-6 이 이 객체를 기존 `domainRules`·`properties` 위에 펼치기만 하면 되도록 v7 전용 조각만 담는다.
+    - `v7PromptVersion(askFirstChapter)`: 물어보기 0장은 `ask-chapter-v1`, 나머지는 `chapter-v7`.
+    - `v7TimeTheme`: 제목 정규식(`/시기|전환|흐름|년/`) 대신 `timingRef==='owner'`.
+    - `v7Depth`: `requiredSections` 가 없으므로 `mustCover.join(' → ')`.
+    - `v7Carry(previous, budgetChars)`: 기존 필수 필드 `highlights[]`·`topics[]` 만 읽어 `previousHighlights`·`previousTopics`·`usedScenes`·`usedActions` 를 만든다. 예산은 `charsAllowedByTokens(3000)`=2,000자. 태그는 중복 방지의 키라서 통째로 남기고 결론이 남은 예산을 최신 장부터 채운다. v6 의 `previousConclusions`·`previousExamples` 는 v7 에서 `undefined` 로 지운다(예산 이중 계상 방지).
+    - `v7OutputSchema`: `blocks` min=max=`sections.length`, `items.required=['id','title','paragraphs','sources']`, `id` enum=소절 id, `sources` enum=`sourceIds`·minItems 1.
+    - `v7OutputTokens`: `max(chapter.outputTokens, tokensRequiredForChars(targetChars[1]+600+질문수*480))`.
+    - `domainRules` v7 키: `depth`, `insightUnits`, `blockContract`, `citationContract`, `factOwnership{owns,references,rule}`, `excludedSubjects`(=`mustNotCover`), `timingScope`, `timingSummary`, `highlightContract`, `topicContract`, `writingContract`, 전달 4종.
+  - `__tests__/ui/yeongnyangi-reading-v7-prompt.test.mjs` (신규, node --test 5종). 6체계 × 3티어 × 종류 전부(36 매니페스트)를 돈다.
+- 설계와 다르게 한 판단
+  - **사실 선택은 이 모듈에 넣지 않았다.** 설계 §1 이 `chapter-facts.ts` 의 `selectChapterFacts` 첫 줄에 `selectV7Facts` 를 두라고 했으므로, 프롬프트 모듈은 `chapter.ts` 가 `explanationFacts` 까지 끝낸 목록을 `facts` 로 받는다. 스키마 enum 과 CALCULATED_DATA 가 갈라질 수 없다.
+  - **`highlights`·`topics` 에 스키마 `minItems` 를 두지 않았다.** 원칙 17: 개수 미달은 거부가 아니라 하류 교정 대상이다. 개수 요구는 `highlightContract`·`topicContract` 문장으로만 넣었다.
+  - 시기 사실 필터를 따로 두지 않았다. 소유권(`owns ∪ refs`)이 이미 비시기 장에서 시기 사실을 배제하므로 중복 가드 대신 테스트로 전수 확인한다.
+- 검증(실측)
+  - 새 프롬프트 테스트 5/5. 변이 7종이 모두 물었다: `timeTheme` 상시 참, `depth` 구분자, 전달 최신순 → 오래된 순, 태그 예산 무시, `blocks.maxItems` 완화, owner 장에 요약 누출, `sources` enum 제거. 원본 복원 후 재실행 5/5.
+  - **불변 스냅샷은 해시 갱신 없이 통과**했다. v7 기존 19종(카탈로그 6·원장 8·시기 4 + 불변 스냅샷), v6·ask-evidence·consultation-kinds 38종 모두 통과.
+  - `npx tsc --noEmit -p .` 오류 0. eslint 오류·경고 0.
+  - `npm run check:fast`: entry-encoding OK, jest 단계가 윈도우 0xC0000409(3221226505)로 출력 없이 죽었다(커밋 4 세션과 같은 증상). 같은 러너를 직접 돌리면 `node scripts/run-mock-tests.mjs jest` = 309 스위트·4,515 테스트 통과. 로컬 하네스 결함이며 변경과 무관하다(범위 밖 결함 절 참조).
 
 ## Phase 0 세션 변경
 
@@ -382,6 +406,7 @@ next: "Phase 2 커밋 5 = chapter-v7 프롬프트·출력 스키마(설계 §6-5
    - 결제 완료 뒤 로딩 화면에 "결제 대기"가 기본 문구로 나올 수 있다(추정).
    - h1 생선 이름이 번역되지 않는다.
 9. v5 고등어 1건의 attempts 카운터가 장별 합과 다르다(측정 절).
+10. `npm run check:fast` 의 jest 단계가 윈도우에서 출력 없이 0xC0000409(3221226505)로 죽을 때가 있다(커밋 4·5 세션에서 재현). 래퍼는 이것을 `BLOCKED` 로 찍지만 전체 종료 코드는 0이라 조용히 넘어간다. 같은 러너를 직접 부르면(`node scripts/run-mock-tests.mjs jest`) 309 스위트·4,515 테스트가 통과한다. BLOCKED 가 보이면 러너를 직접 돌려 확인해야 한다.
 
 ## 남은 위험
 
@@ -396,7 +421,7 @@ next: "Phase 2 커밋 5 = chapter-v7 프롬프트·출력 스키마(설계 §6-5
 ## 롤백
 
 - Phase 0·1 모두 문서만 바꿨다. 각 커밋 하나를 `git revert` 하면 된다.
-- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다. 커밋 4(`eddaa5c13`)는 새 파일 2개뿐이라 `git revert` 하나로 끝난다.
+- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다. 커밋 4(`eddaa5c13`)와 커밋 5(`412dda498`)는 각각 새 파일 2개뿐이라 `git revert` 하나로 끝난다.
 
 ## 다음 단계
 
@@ -408,16 +433,18 @@ next: "Phase 2 커밋 5 = chapter-v7 프롬프트·출력 스키마(설계 §6-5
    - 그다음 세션부터 §6-3~7 을 한 커밋씩 한다. 플래그는 끝까지 OFF 다.
 3. ~~설계 §6-3 `reading-v7-ledger.ts`~~ 완료(위 "Phase 2 커밋 3 결과").
 4. ~~설계 §6-4 시기 매트릭스~~ 완료(위 "Phase 2 커밋 4 결과"). §6-6 배선 때 prepare 에서 `buildV7TimingMatrix` 를 v7 일 때만 부르고, 결과를 스냅샷(또는 `generationCheckpoint`)에 저장한다. 장 생성은 `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 순서다.
-5. 다음 세션(`[GREEN]` 순수 프롬프트·스키마 모듈 + mock 테스트, 플래그 OFF. 권장: 주력 모델 / effort high): 설계 §6-5 `chapter-v7` 프롬프트·출력 스키마 한 커밋만 한다.
-   - 블록 = 인사이트 단위, 장면 ≤1, 선택은 결정 장에만. 블록 스키마 `id/title/paragraphs/sources` 를 유지해 렌더러 분기가 필요 없게 한다.
-   - 이전 장 전달은 기존 필수 필드 `highlights[]`·`topics[]` 를 재사용한다. 스키마·렌더러·DB 는 바꾸지 않는다.
-   - summary 장 프롬프트에는 `timingSummary` 한 줄만 넣고 시기 사실 자체는 넣지 않는다. 입력 사실은 `selectV7Facts`(owns ∪ refs)다.
-   - 가장 가까운 기존 구현(`ask-chapter-v1`, v6 장 프롬프트)을 먼저 읽는다. LLM 안전 규칙(CLAUDE.md 원칙 17: 하한 ≤ 목표×0.8, 출력 토큰 여유, 형식은 거부 대신 교정)을 프롬프트·스키마에 반영한다.
-   - 불변 스냅샷은 갱신 없이 통과해야 한다.
-6. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
+5. ~~설계 §6-5 `chapter-v7` 프롬프트·출력 스키마~~ 완료(위 "Phase 2 커밋 5 결과").
+6. 다음 세션(`[RED]` 배선 — 매니페스트 분기·fingerprint·프롬프트 경로. 플래그는 계속 OFF. 권장: 주력 모델 / effort high): 설계 §6-6 배선 한 커밋만 한다.
+   - `consultation-kinds.ts` 의 `consultationManifest` 에 `v7Applies(p,k)` 분기를 넣어 `readingManifestV7` 을 부른다(결정 2). 플래그 OFF 면 도달하지 않는다.
+   - `service.ts`: prepare 에서 v7 일 때만 `buildV7TimingMatrix` 를 부르고 결과를 스냅샷에 저장한다. 장 생성은 `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 순서다.
+   - `chapter-facts.ts` `selectChapterFacts` 첫 줄에 `if(chapter.version===READING_V7_VERSION)return selectV7Facts(context,chapter)`.
+   - `chapter.ts` 에 v7 분기를 넣어 `buildV7ChapterPrompt` 결과를 `domainRules`·`outputSchema.properties`·`promptVersion`·`maxOutputTokens`·`timeTheme`·`depth` 에 펼친다. **v7 전용 키는 `chapter.version===READING_V7_VERSION` 일 때만 넣는다**(그래야 v6 페이로드가 바이트 동일하다).
+   - `chapter.ts:125-130` 의 `evidence` 블록 요구에 v7 분기가 **반드시** 필요하다. v7 소절 id 는 `insight-N`·`scene`·`decision` 이라 지금 그대로면 모든 v7 장이 `CHAPTER_EVIDENCE_INCOMPLETE` 로 떨어진다. v7 규칙: 해석 블록마다 근거 1개 이상, 블록 sources 합집합이 제공된 체계를 모두 덮고, 광어·참치는 서로 다른 근거 2개 이상.
+   - fingerprint 영향을 먼저 확인한다. 불변 스냅샷은 여기서도 갱신 없이 통과해야 한다.
+7. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 5(설계 §6-5 chapter-v7 프롬프트·출력 스키마: 블록=인사이트 단위, 장면 ≤1, 선택은 결정 장만, 블록 스키마 id/title/paragraphs/sources 유지, highlights[]·topics[] 재사용, summary 장에는 reading-v7-timing.ts 의 timingSummary 한 줄만, 입력 사실은 selectV7Facts 인 순수 모듈과 mock 테스트)를 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
+D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 6(설계 §6-6 배선: consultation-kinds.ts 의 consultationManifest 에 v7Applies 분기, service.ts prepare 에서 buildV7TimingMatrix 저장과 withV7Timing→resolveV7Ledger→v7TimingSummaries 순서, chapter-facts.ts 의 selectChapterFacts 첫 줄에 selectV7Facts, chapter.ts 에 buildV7ChapterPrompt 분기와 chapter.ts:125-130 evidence 블록 요구의 v7 규칙)을 시작하라. v7 전용 키는 chapter.version===READING_V7_VERSION 일 때만 넣어 v6 페이로드를 바이트 동일하게 유지하고, 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다. 이 커밋은 fingerprint 를 건드리므로 RED다 — 위험·검증·롤백을 먼저 보고하라.
 ```
