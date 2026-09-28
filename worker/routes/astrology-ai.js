@@ -1183,15 +1183,9 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       && !getConsultationQualityIssues(text).length
       && !getMissingExpertParts(text).some(part => section.expertParts.includes(part.id));
     const valid = section => validText(section, sections[section.key]?.text || "");
-    const accepted = section => valid(section) && (countPaidReportBodyChars(sections[section.key].text) >= section.minChars
-      || attempts[`${section.key}:lengthRepair`] || Number(attempts[section.key] || 0) >= 3);
+    const accepted = section => valid(section);
     const pending = ASTROLOGY_SECTIONS.filter(section => !accepted(section));
-    // The total product floor remains mandatory, even after accepting short sections.
-    if (!pending.length && countPaidReportBodyChars(Object.values(sections).map(row => row.text).join("\n\n")) < ASTROLOGY_AI_MIN_RESULT_CHARS) {
-      pending.push(...ASTROLOGY_SECTIONS.filter(section => Number(attempts[section.key] || 0) < 3
-        && countPaidReportBodyChars(sections[section.key].text) < section.targetMinChars));
-    }
-    if (pending.some(section => Number(attempts[section.key] || 0) >= 3)) {
+    if (pending.some(section => Number(attempts[section.key] || 0) >= 2)) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED" });
     }
     const batch = pending.slice(0, PAID_LLM_PARTS_PER_REQUEST);
@@ -1223,8 +1217,8 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
     const storageFailure = outcomes.find(row => row.status === "rejected" && row.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
     if (storageFailure) throw storageFailure.reason;
     const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
-    const complete = ASTROLOGY_SECTIONS.every(accepted) && countPaidReportBodyChars(content) >= ASTROLOGY_AI_MIN_RESULT_CHARS;
-    const issues = complete ? getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: true }) : [];
+    const complete = ASTROLOGY_SECTIONS.every(accepted);
+    const issues = complete ? getConsultationQualityIssues(content, { maxLength, requireExpertParts: true }) : [];
     if (complete && (issues.length || hasRepeatedReportPassage(content))) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED", issues });
     }

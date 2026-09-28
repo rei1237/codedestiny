@@ -1,6 +1,6 @@
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
-import { PAID_REPORT_MIN_BODY_CHARS, countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1460,19 +1460,9 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         && (!group.includeScores || Object.keys(parsed.scores || {}).length > 0)
         && group.sectionKeys.every(key => clean(parsed.sections[key].title).includes(REQUIRED_SECTION_LABELS[key]));
     };
-    const meetsFloor = (group, row) => {
-      const parsed = parseStructuredConsultationText(row?.text || "");
-      return countPaidReportBodyChars(bodies(row?.text)) >= group.minChars
-        && (!group.includeReasoning || Object.values(parsed?.sections || {}).every(section => countPaidReportBodyChars(section.body) >= 400));
-    };
-    const accepted = group => valid(group, rows[group.key]) && (meetsFloor(group, rows[group.key])
-      || attempts[`${group.key}:lengthRepair`] || Number(attempts[group.key] || 0) >= 3);
+    const accepted = group => valid(group, rows[group.key]);
     const pending = VEDIC_SECTION_GROUPS.filter(group => !accepted(group));
-    if (!pending.length && countPaidReportBodyChars(Object.values(rows).map(row => bodies(row.text)).join("\n\n")) < PAID_REPORT_MIN_BODY_CHARS) {
-      pending.push(...VEDIC_SECTION_GROUPS.filter(group => Number(attempts[group.key] || 0) < 3
-        && countPaidReportBodyChars(bodies(rows[group.key].text)) < group.targetMinChars));
-    }
-    if (pending.some(group => Number(attempts[group.key] || 0) >= 3)) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
+    if (pending.some(group => Number(attempts[group.key] || 0) >= 2)) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
     const group = pending[0];
     if (group) {
       const repairing = valid(group, rows[group.key]);
@@ -1499,8 +1489,8 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
       }
     }
     const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => rows[group.key]).filter(Boolean));
-    const complete = VEDIC_SECTION_GROUPS.every(accepted) && countPaidReportBodyChars(bodies(content)) >= PAID_REPORT_MIN_BODY_CHARS;
-    const quality = validateConsultationQuality(content, qualityOptions);
+    const complete = VEDIC_SECTION_GROUPS.every(accepted);
+    const quality = validateConsultationQuality(content, { ...qualityOptions, minTotalChars: 0 });
     if (complete && !quality.ok) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
     const first = Object.values(rows)[0];
     return { content, complete, meta: { provider: first?.provider || "", model: first?.model || "", quality, groups: rows, attempts } };

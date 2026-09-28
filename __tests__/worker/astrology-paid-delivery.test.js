@@ -116,10 +116,10 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
   expect(refund).not.toHaveBeenCalled(); expect(usage).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(6);
 });
-it("stops after three short section attempts", async () => {
+it("stops after two unusable section attempts", async () => {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
-  expect((await start()).status).toBe(503); expect(provider).toHaveBeenCalledTimes(6);
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503); expect(provider).toHaveBeenCalledTimes(4);
   expect((await start()).status).toBe(409);
 });
 for (const index of [0, 1, 2, 3]) it(`rejects revoked proof source ${index}`, async () => {
@@ -155,12 +155,12 @@ it("discovers the owned pending result after a new login", async () => {
   expect(await (await getPending()).json()).toMatchObject({ sessionId: "" });
 });
 
-for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(`preserves the longer valid short draft after one ${repair} repair`, async () => {
+for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(`keeps a valid short draft without requesting ${repair} repair`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const call = provider.mock.calls.length;
     if (call === 1) return { ok: true, provider: "gemini", text: prose("초안", 3000) };
-    if (call === 3) {
+    if (args[1].includes("[보강 요청]")) {
       expect(args[1]).toContain("[보강 요청]");
       if (repair === "throw") throw new Error("provider unavailable");
       const text = repair === "empty" ? "" : repair === "repeated" ? prose("반복", 4500) + prose("반복", 4500) : prose("보강", 2800);
@@ -174,16 +174,16 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "throw"]) it(
   for (let i = 0; i < 4 && docs[0].status !== "completed"; i++) await start();
   expect(docs[0].status).toBe("completed");
   expect(docs[0].llmMeta.sections[key]).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[key]).toBe(2);
-  expect(provider).toHaveBeenCalledTimes(7); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts[key]).toBe(1);
+  expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
 });
 it("accepts a valid short section on the last attempt after structural failures", async () => {
   const normal = provider.getMockImplementation();
-  provider.mockImplementation(async (...args) => provider.mock.calls.length <= 4
+  provider.mockImplementation(async (...args) => provider.mock.calls.length <= 2
     ? { ok: true, text: "", provider: "gemini" }
-    : provider.mock.calls.length <= 6 ? { ok: true, text: prose(`최종${provider.mock.calls.length}`, 3000), provider: "gemini" } : normal(...args));
+    : provider.mock.calls.length <= 4 ? { ok: true, text: prose(`최종${provider.mock.calls.length}`, 3000), provider: "gemini" } : normal(...args));
   for (let i = 0; i < 6 && docs[0]?.status !== "completed"; i++) await start();
-  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(10);
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(8);
 });
 it("trims overlong sections without rejecting or regenerating them", async () => {
   provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: prose(`상한${provider.mock.calls.length}`, 6500) }));
@@ -192,9 +192,10 @@ it("trims overlong sections without rejecting or regenerating them", async () =>
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(6);
   for (const row of Object.values(docs[0].llmMeta.sections)) expect(countPaidReportBodyChars(row.text)).toBeLessThanOrEqual(6000);
 });
-it("keeps the 20000 total floor and bounds total-shortfall calls", async () => {
+it("delivers all usable sections below the length target without more calls", async () => {
   provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: prose(`부족${provider.mock.calls.length}`, 1000) }));
-  for (let i = 0; i < 12; i++) expect((await start()).status).toBe(202);
-  expect(provider).toHaveBeenCalledTimes(18); expect(docs[0].status).not.toBe("completed");
-  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(6); expect(docs[0].status).toBe("completed");
+  expect(refund).not.toHaveBeenCalled();
 });

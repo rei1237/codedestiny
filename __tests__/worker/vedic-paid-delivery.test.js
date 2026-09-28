@@ -101,10 +101,10 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
   expect(refund).not.toHaveBeenCalled(); expect(usage).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(5);
 });
-it("stops after three short group attempts", async () => {
+it("stops after two unusable group attempts", async () => {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
-  expect((await start()).status).toBe(503); expect(provider).toHaveBeenCalledTimes(3); expect((await start()).status).toBe(409);
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(503); expect(provider).toHaveBeenCalledTimes(2); expect((await start()).status).toBe(409);
 });
 for (const index of [0, 1, 2, 3]) it(`rejects revoked proof source ${index}`, async () => {
   await start(); blocked = index; expect((await start()).status).toBe(402); expect(provider).toHaveBeenCalledTimes(1);
@@ -143,7 +143,7 @@ it("does not start another provider while a different database lease is fresh", 
 it("refunds the card payment once quality attempts are exhausted", async () => {
   mode = "paid";
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
   const response = await start();
   expect(response.status).toBe(503);
   expect(await response.json()).toMatchObject({ reason: "LLM_FAILED" });
@@ -155,7 +155,7 @@ it("refunds the card payment once quality attempts are exhausted", async () => {
 for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card refund once quality attempts are exhausted`, async () => {
   mode = paid;
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(503);
   expect(refund).not.toHaveBeenCalled();
 });
@@ -166,11 +166,11 @@ it("rechecks cancellation after generation and before completing delivery", asyn
   expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(refund).not.toHaveBeenCalled();
 });
 
-for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"]) it(`retains a short valid group through one ${repair} repair`, async () => {
+for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"]) it(`retains a short valid group without a ${repair} repair`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args);
-    if (provider.mock.calls.length > 2) {
+    if (provider.mock.calls.length > 1) {
       const parsed = JSON.parse(result.text);
       if (args[2].logContext.group !== "reasoning_flows") for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, 4800);
       return { ...result, text: JSON.stringify(parsed) };
@@ -186,7 +186,7 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"
   const [key] = Object.keys(docs[0].llmMeta.groups); const draft = clone(docs[0].llmMeta.groups[key]);
   for (let i = 0; i < 6 && docs[0].status !== "completed"; i++) await start();
   expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.groups[key]).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[key]).toBe(2); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts[key]).toBe(1); expect(provider).toHaveBeenCalledTimes(5); expect(refund).not.toHaveBeenCalled();
 });
 it("trims overlong JSON bodies while retaining keys and scores", async () => {
   const normal = provider.getMockImplementation();
@@ -204,16 +204,17 @@ it("trims overlong JSON bodies while retaining keys and scores", async () => {
     if (group.includeScores) expect(parsed.scores).toEqual({ overall: 70 });
   }
 });
-it("keeps the total floor after short groups are accepted and exhausts no extra calls", async () => {
+it("delivers usable short groups without total length regeneration", async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args); const parsed = JSON.parse(result.text);
     for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, 600);
     return { ...result, text: JSON.stringify(parsed) };
   });
-  for (let i = 0; i < 18; i++) expect((await start()).status).toBe(202);
-  expect(provider).toHaveBeenCalledTimes(15); expect(docs[0].status).not.toBe("completed");
-  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+  for (let i = 0; i < 4; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(5); expect(docs[0].status).toBe("completed");
+  expect(refund).not.toHaveBeenCalled();
 });
 
 it("does not accept non-string required bodies as short content", async () => {

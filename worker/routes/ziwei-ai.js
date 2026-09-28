@@ -1789,7 +1789,7 @@ function buildZiweiDuplicateInstruction(duplicates, group) {
  * ₩30,000 정상 결제로 배달했다. 그룹당 3,600~4,600자면 40초 안에 완주하므로 폴백을 타지 않는다.
  * 전체 벽시계는 가장 느린 그룹 기준이라 예산 안에 들어온다.
  */
-const ZIWEI_GROUP_MAX_ATTEMPTS = 3;
+const ZIWEI_GROUP_MAX_ATTEMPTS = 2;
 const ziweiSectionBody = sections => Object.values(sections).map(row => String(row?.body || "")).join("\n");
 async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {} }) {
   groups = { ...groups }; attempts = { ...attempts };
@@ -1800,12 +1800,8 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   const valid = (group, value) => group.sections.every(key => typeof value?.[key]?.title === "string" && clean(value[key].title)
     && typeof value?.[key]?.body === "string" && countPaidReportBodyChars(value[key].body) > 0)
     && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
-  const accepted = group => valid(group, groups[group.id]) && (countPaidReportBodyChars(ziweiSectionBody(groups[group.id])) >= group.minChars
-    || attempts[`${group.id}:lengthRepair`] || Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS);
-  const group = SECTION_GROUP_SPECS.find(row => !accepted(row) || repairIds.includes(row.id))
-    || (countPaidReportBodyChars(ziweiSectionBody(sections)) < MIN_INITIAL_CONSULTATION_BODY_CHARS
-      ? SECTION_GROUP_SPECS.find(row => Number(attempts[row.id] || 0) < ZIWEI_GROUP_MAX_ATTEMPTS
-        && countPaidReportBodyChars(ziweiSectionBody(groups[row.id] || {})) < row.targetChars) : null);
+  const accepted = group => valid(group, groups[group.id]);
+  const group = SECTION_GROUP_SPECS.find(row => !accepted(row) || repairIds.includes(row.id));
   if (group) {
     if (Number(attempts[group.id] || 0) >= ZIWEI_GROUP_MAX_ATTEMPTS) {
       const error = new Error("필수 분량과 계산 근거를 갖춘 결과를 완성하지 못했습니다.");
@@ -1877,7 +1873,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart);
   const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
   const chars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
-  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted) && !checked.issues.length && chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
+  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted) && !checked.issues.length && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
 }
 
 async function saveZiweiDelivery(filter, fields, resultId) {
