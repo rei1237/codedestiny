@@ -44,13 +44,19 @@ assert.equal((await handleInsightCardRoutes(new Request('https://code-destiny.co
 // Pages edge: real function with mocked fetch/asset transformer. Failure is never cached.
 const edge=await readFile('public/_worker.js','utf8');
 const source=edge.slice(edge.indexOf('const INSIGHT_CARD_ID ='),edge.indexOf('const GUARDIAN_SHARE_PATHS ='));
-let edgeStatus=200, edgeMeta;
-const sandbox={Response,Headers,URLSearchParams,AbortSignal,resolveApiWorkerOrigin:()=> 'https://api.invalid',fetch:async()=>edgeStatus===200?Response.json(publicInsight(rows.get(expiring.id))):new Response('',{status:edgeStatus}),
+let edgeStatus=200, edgeMeta, edgeOrigin;
+const sandbox={Response,Headers,URLSearchParams,AbortSignal,fetch:async target=>{edgeOrigin=new URL(target).origin;return edgeStatus===200?Response.json(publicInsight(rows.get(expiring.id))):new Response('',{status:edgeStatus});},
  transformGuardianShareHtml:(_asset,meta)=>{edgeMeta=meta;return new Response('<html>card</html>');},hardenResponse:(_url,r)=>r};
 vm.createContext(sandbox);vm.runInContext(source+';globalThis.serve=serveInsightCard;',sandbox);
 const url=new URL('https://code-destiny.com/share/?card='+expiring.id+'&utm_source=copy');
 response=await sandbox.serve(new Request(url),{ASSETS:{fetch:async()=>new Response('<html/>')}},url);
 assert.equal(response.headers.get('Cache-Control'),'no-store');assert.ok(edgeMeta.image.includes('/api/og?'));assert.equal(edgeMeta.description,input.text);assert.ok(!edgeMeta.url.includes('utm_'));
+assert.equal(edgeOrigin,'https://code-destiny-web.bulegyung.workers.dev');
+const stagingUrl=new URL(url);stagingUrl.hostname='staging.code-destiny.com';
+await sandbox.serve(new Request(stagingUrl),{ASSETS:{fetch:async()=>new Response('<html/>')}},stagingUrl);
+assert.equal(edgeOrigin,'https://code-destiny-web-staging.bulegyung.workers.dev');
+const previewUrl=new URL(url);previewUrl.hostname='unknown.pages.dev';edgeOrigin='';
+assert.equal((await sandbox.serve(new Request(previewUrl),{},previewUrl)).status,503);assert.equal(edgeOrigin,'');
 edgeStatus=404;assert.equal((await sandbox.serve(new Request(url),{},url)).status,404);
 edgeStatus=503;assert.equal((await sandbox.serve(new Request(url),{},url)).status,503);
 console.log('PASS backend: projection, consent, PII, revocation authority, replay, expiry, storage/rate errors, edge OG/no-store');

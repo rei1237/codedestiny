@@ -335,12 +335,19 @@ async function serveDynamicFeed(request, env) {
 // 경로와 shareId 정규식이 **동시에** 맞을 때만 들어오고, 무엇 하나라도 어긋나거나 예외가
 // 나면 null 을 돌려 원래 자산 서빙으로 떨어뜨린다.
 const INSIGHT_CARD_ID = /^ic_[a-f0-9]{40}$/;
+// This public renderer must stay in the incoming site's environment. The legacy
+// proxy's default is production and is unsafe for staging or unconfigured previews.
+const INSIGHT_API_ORIGINS = {
+  'code-destiny.com': 'https://code-destiny-web.bulegyung.workers.dev',
+  'www.code-destiny.com': 'https://code-destiny-web.bulegyung.workers.dev',
+  'staging.code-destiny.com': 'https://code-destiny-web-staging.bulegyung.workers.dev',
+};
 async function serveInsightCard(request, env, url) {
   const id = url.searchParams.get('card');
   if (!['/share', '/share/'].includes(url.pathname) || !INSIGHT_CARD_ID.test(id || '')) return null;
   const headers = {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','CDN-Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow','Referrer-Policy':'no-referrer'};
   try {
-    const apiOrigin = resolveApiWorkerOrigin(env);
+    const apiOrigin = INSIGHT_API_ORIGINS[url.hostname];
     if (!apiOrigin) throw new Error('UNAVAILABLE');
     const response = await fetch(`${apiOrigin}/api/fortune/cards/${id}`, {headers:{Accept:'application/json'}, signal:AbortSignal.timeout(8000)});
     if (response.status === 404) return new Response('<!doctype html><html lang="ko"><meta name="viewport" content="width=device-width,initial-scale=1"><title>공개가 종료된 카드</title><main><h1>이 카드는 더 이상 공개되지 않아요.</h1><p>링크가 폐기되었거나 만료되었습니다.</p><a href="/today/#daily-tarot">무료 타로 세 장 펼치기</a></main></html>',{status:404,headers});
