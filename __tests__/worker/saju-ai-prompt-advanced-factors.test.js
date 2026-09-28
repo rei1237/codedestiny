@@ -338,9 +338,14 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
 
   test.each([
     ["element-causality", "화 오행이 없어 재정 통제력이 약하고 충동 소비를 유발합니다."],
+    ["element-causality", "화(火) 기운은 드러나 있지 않아 재물 관리가 즉흥적으로 흐를 수 있습니다."],
+    ["element-health-causality", "화(火) 기운이 없다는 것은 심장과 혈액순환 기능이 약할 수 있음을 나타냅니다."],
     ["specific-financial-product", "부동산, 채권, 배당주 같은 자산에 관심을 가져볼 수 있습니다."],
+    ["specific-financial-product", "급등락이 심한 주식보다 배당주나 예금이 재산을 불리는 데 유리합니다."],
+    ["fortune-score-label", "36세 병술 대운은 81점으로 최고의 운에 해당합니다."],
     ["age-event-prediction", "36세 대운에는 재물 기회가 열리므로 사업 확장을 고려하세요."],
     ["ten-god-financial-loss", "겁재는 주변 사람과의 금전 분쟁과 재물 손실 가능성을 의미합니다."],
+    ["ten-god-income-causality", "상관은 부업이나 사업을 통한 수입 창출 가능성을 높입니다."],
   ])("실측에서 확인한 근거 밖 금융 인과를 거부한다: %s", (key, unsafeSentence) => {
     const built = buildCareerPrompt();
     const unsafe = CONCISE_COMPLETE_CAREER_RESULT.replace(
@@ -359,7 +364,8 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
 
 test("generation JSON preserves all computed opening rows while sending shared structures once", () => {
   const input = makeSajuResult({ daewun: [
-    { age: 20, gan: "甲", zhi: "戌" }, { age: 30, gan: "乙", zhi: "丑" },
+    { age: 20, gan: "甲", zhi: "戌", score: 81, label: "최고의 운" },
+    { age: 30, gan: "乙", zhi: "丑", score: 10, label: "역경 운" },
     { age: 40, gan: "丙", zhi: "未" }, { age: 50, gan: "丁", zhi: "戌" },
   ] });
   const original = JSON.stringify(input);
@@ -374,6 +380,11 @@ test("generation JSON preserves all computed opening rows while sending shared s
     expect(sent.advancedFactors[key] ?? built.factSnapshot.majorStructures[key]).toEqual(value);
   }
   expect(JSON.stringify(input)).toBe(original);
+  expect(built.factSnapshot.luck.daewun[0].score).toBe(81);
+  expect(sent.factSnapshot.luck.daewun[0].score).toBeUndefined();
+  expect(sent.factSnapshot.luck.daewun[0].label).toBeUndefined();
+  expect(built.factCard).not.toContain("81점");
+  expect(built.factCard).not.toContain("최고의 운");
   const section = fortuneRoute.__sajuAiSectionTestUtils.buildSajuAISectionPrompt(built, sajuPrompt.SAJU_AI_SECTION_GROUPS[0]);
   expect(section.split(built.factCard)).toHaveLength(2);
 });
