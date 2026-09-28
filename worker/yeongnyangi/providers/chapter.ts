@@ -4,7 +4,7 @@ import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spiri
 import {READING_V6_VERSION,READING_V7_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
 import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
 import {LENGTH_FAILURES,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
-import {auditV7Chapter,isV7QualityCode,pruneV7Chapter} from '../fortune/reading-v7-quality';
+import {auditV7Chapter,pruneV7Chapter} from '../fortune/reading-v7-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
 import {validateAskChapter} from '../fortune/ask/validate';
@@ -136,17 +136,6 @@ export function validateChapter(
     const domains=new Set([...chapterFactIds].map(id=>id.split('.')[0]));
     if([...domains].some(domain=>![...cited].some(id=>id.startsWith(domain+'.'))))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
     if(['flounder','tuna'].includes(input.chapter.tier || '') && cited.size<Math.min(2,chapterFactIds.size))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
-    // Design §4 ownership and §7 measurement: a repeat is thrown once, so service.ts spends exactly one repair
-    // attempt, and the repaired draft is pruned instead of refused (principle 17).
-    const audit=auditV7Chapter({body:v,chapter:input.chapter as V7PromptChapter,previous:input.previous as V7Previous[],
-      askFirstChapter:Boolean(input.ask && input.chapter.ordinal===0)});
-    if(audit.code){
-      if(!isV7QualityCode(input.repair?.code))throw new FortuneError(audit.code,400,audit.detail);
-      const pruned=pruneV7Chapter(v,audit);
-      v=pruned.body;
-      console.log('[yeongnyangi-v7-audit]',JSON.stringify({chapter:input.chapter.ordinal,detail:audit.detail,
-        sentences:pruned.removed,chars:pruned.chars,topics:audit.topics.length,restored:pruned.restored}));
-    }
   }else if(hasReadingSections(input.chapter.version)){
     const evidence=v.blocks?.find(b=>b.id==='evidence');
     const domains=new Set([...allowed].map(id=>id.split('.')[0]));
@@ -157,6 +146,19 @@ export function validateChapter(
   assertProfessionalProse(v,input.analysis.question,factLabels,input.locale);
   validatePreciseTiming(v,input.analysis.consultation,Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId)));
   if(input.ask && input.chapter.ordinal === 0)v=validateAskChapter(v,input.analysis.consultation!,input.ask.analysis,input.ask.evidence);
+  if(input.chapter.version===READING_V7_VERSION){
+    // Editorial overlap is corrected on the first usable draft. A provider failure may already have spent
+    // the other attempt; requiring a quality retry here would discard paid content and stop the whole book.
+    // All hard checks above inspect the original text, so pruning cannot hide an unsupported claim or date.
+    const audit=auditV7Chapter({body:v,chapter:input.chapter as V7PromptChapter,previous:input.previous as V7Previous[],
+      askFirstChapter:Boolean(input.ask && input.chapter.ordinal===0)});
+    if(audit.code){
+      const pruned=pruneV7Chapter(v,audit);
+      v=pruned.body;
+      console.log('[yeongnyangi-v7-audit]',JSON.stringify({chapter:input.chapter.ordinal,detail:audit.detail,
+        sentences:pruned.removed,chars:pruned.chars,topics:audit.topics.length,restored:pruned.restored}));
+    }
+  }
   // Safety/evidence/duplicate checks see the original field text, including
   // phrases at a split boundary. Only the validated return value is formatted.
   v=attachTarotSafetyNotice(v,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal);
