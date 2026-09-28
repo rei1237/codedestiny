@@ -4,6 +4,7 @@ import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spiri
 import {READING_V6_VERSION,READING_V7_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
 import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
 import {LENGTH_FAILURES,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
+import {auditV7Chapter,isV7QualityCode,pruneV7Chapter} from '../fortune/reading-v7-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
 import {validateAskChapter} from '../fortune/ask/validate';
@@ -135,6 +136,17 @@ export function validateChapter(
     const domains=new Set([...chapterFactIds].map(id=>id.split('.')[0]));
     if([...domains].some(domain=>![...cited].some(id=>id.startsWith(domain+'.'))))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
     if(['flounder','tuna'].includes(input.chapter.tier || '') && cited.size<Math.min(2,chapterFactIds.size))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
+    // Design §4 ownership and §7 measurement: a repeat is thrown once, so service.ts spends exactly one repair
+    // attempt, and the repaired draft is pruned instead of refused (principle 17).
+    const audit=auditV7Chapter({body:v,chapter:input.chapter as V7PromptChapter,previous:input.previous as V7Previous[],
+      askFirstChapter:Boolean(input.ask && input.chapter.ordinal===0)});
+    if(audit.code){
+      if(!isV7QualityCode(input.repair?.code))throw new FortuneError(audit.code,400,audit.detail);
+      const pruned=pruneV7Chapter(v,audit);
+      v=pruned.body;
+      console.log('[yeongnyangi-v7-audit]',JSON.stringify({chapter:input.chapter.ordinal,detail:audit.detail,
+        sentences:pruned.removed,chars:pruned.chars,topics:audit.topics.length,restored:pruned.restored}));
+    }
   }else if(hasReadingSections(input.chapter.version)){
     const evidence=v.blocks?.find(b=>b.id==='evidence');
     const domains=new Set([...allowed].map(id=>id.split('.')[0]));
@@ -172,6 +184,10 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   TAROT_UNDRAWN_CARD:'savedCardsOnly에 없는 카드 이름을 쓰지 않는다. 서버가 저장한 카드만 해석한다.',
   TAROT_ORIENTATION_MISMATCH:'savedCardsOnly의 orientation을 그대로 따른다. 정방향과 역방향을 바꾸지 않는다.',
   CHAPTER_DEPTH_INCOMPLETE:'blocks는 sectionContract의 id를 순서와 개수 그대로 한 번씩 쓴다. sectionContract가 없으면 requiredSections의 모든 제목을 title로 그대로 쓴다.',
+  V7_FOREIGN_FACT:'factOwnership.owns의 사실만 이 장에서 새로 해설한다. 다른 장이 소유한 십신·신살·궁·사화·행성·하우스를 끌어와 다시 설명하지 않고, 제공되지 않은 이름은 아예 쓰지 않는다. 지운 자리는 이 장이 소유한 근거의 새 해설로 채운다.',
+  V7_ANCHOR_REPEAT:'기준점(일간·일주·신강·신약·오행·명궁·신궁·라그나·나크샤트라·상승점·태양·본명숙·스프레드)은 그 기준점을 소유한 장에서만 설명한다. 이 장에서는 이번 해석을 잇는 한 문장으로만 가리키고 뜻이나 성향을 다시 풀지 않는다.',
+  V7_SCENE_REUSE:'usedScenes와 usedActions에 있는 소재·행동은 고르지 않는다. 장면과 제안은 이 장의 주제 안에서 새로 만들고 topics의 scene:·action: 태그도 앞 장에서 쓰지 않은 소재로 바꾼다.',
+  V7_RESTATED_SENTENCE:'앞 장의 문장을 단어만 바꾸어 다시 쓰지 않는다. previousHighlights의 결론을 되풀이하지 말고 이 장이 소유한 근거에서 나오는 새 판단으로 문장을 쓴다.',
 };
 // Spirit and question-sky chapters are checked against their own vocabulary (spirit.ts, question-sky-reading.ts).
 // The current question-sky evidence version allows explained Korean terms; spirit and older sky books do not.

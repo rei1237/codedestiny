@@ -22,7 +22,8 @@ export const chapterFloor=(chapter:Pick<ChapterSpec,'minimumChars'|'targetChars'
 const codePoints=(s:string)=>Array.from(s).length;
 // Sentence end: a non-digit, non-space character, then . ! ? 。 (plus closing quotes/brackets) and whitespace; or a line break.
 // List numbers ("1. "), dotted dates ("2026. 10.") and decimals are never cut.
-const SENTENCE_BOUNDARY=/(?<=(?:[^\s\d][.!?。]["'”’)\]」』]*\s+|\n\s*))(?=\S)/u;
+// Exported for the v7 audit (reading-v7-quality.ts): a zero-width split, so the parts always rejoin to the source.
+export const SENTENCE_BOUNDARY=/(?<=(?:[^\s\d][.!?。]["'”’)\]」』]*\s+|\n\s*))(?=\S)/u;
 // Last resort for one unit over the cap (no sentence end, or a single very long sentence): cut after the
 // last clause mark in the back half of the cap, else after the last space, else at the cap itself.
 // A missing sentence end must never fail a chapter; only whitespace at the cut is dropped.
