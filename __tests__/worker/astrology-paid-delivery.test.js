@@ -61,7 +61,7 @@ beforeAll(async () => {
   const swiss = await import("../../worker/lib/swiss-ephemeris.js");
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({ ...db, connectDb: async () => {}, withMongoRetry: async (_env, work) => work() }));
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({ ...auth, getOptionalUserFromRequest: async () => ({ userId, authUserDoc: { _id: userId } }) }));
-  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, AstrologyAiConsultation: model,
+  jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, AstrologyAiConsultation: model, User: { findById: () => query({ _id: uid }) },
     PaidExecutionRecord: { findOne: () => query(blocked === 0 ? {} : null), findOneAndUpdate: (...args) => { usage(...args); return query({}); } },
     Payment: { findOne: filter => query(blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null) },
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null) },
@@ -198,4 +198,11 @@ it("delivers all usable sections below the length target without more calls", as
   expect((await start()).status).toBe(200);
   expect(provider).toHaveBeenCalledTimes(6); expect(docs[0].status).toBe("completed");
   expect(refund).not.toHaveBeenCalled();
+});
+
+it('server resumes the stored owner after the browser leaves without a new purchase',async()=>{
+ await start();const {resumeConsultationOnServer}=await import('../../worker/routes/astrology-ai.js');
+ userId='not-the-owner-of-the-browser';
+ for(let i=0;i<5&&docs[0].status!=='completed';i++)await resumeConsultationOnServer({},docs[0]);
+ expect(docs[0].status).toBe('completed');const calls=provider.mock.calls.length;await resumeConsultationOnServer({},docs[0]);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();
 });

@@ -2503,9 +2503,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
-async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
+async function handleStart(request, env, route = "/api/ziwei-ai/generate", recoveryAuth = null) {
   let body = await readJson(request);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   await connectDb(env);
   let idempotencyKey = readIdempotencyKey(request, body);
@@ -2738,3 +2738,12 @@ export const __ziweiAiTestUtils = {
   GROUP_DUPLICATE_LIMIT,
   CROSS_SECTION_DUPLICATE_MIN_SENTENCE,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/ziwei-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+}

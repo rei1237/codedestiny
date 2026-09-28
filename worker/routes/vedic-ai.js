@@ -1642,10 +1642,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   }
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, recoveryAuth = null) {
   if (request.method !== "POST") return methodNotAllowed();
   let body = await readJson(request);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth?.userId) return loginRequired();
   let resumeKey = "";
   if (body.resumeSessionId) {
@@ -1791,3 +1791,12 @@ export const __vedicAiTestUtils = {
   buildVedicAnalysisBasis,
   collectEvidenceIds,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/vedic-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  return handleStart(request, env, { userId: String(doc.userId) });
+}

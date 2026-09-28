@@ -382,8 +382,8 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
   ].join("\n");
 }
 
-async function handleGenerate(request, env) {
-  const auth=await requireAuth(request,env);
+async function handleGenerate(request, env, recoveryAuth = null) {
+  const auth=recoveryAuth || await requireAuth(request,env);
   const body=await readJson(request);
   return runCelestialDelivery(request,env,auth,body,{
     verify: original => verifyCelestialAccess({request,env,auth,body:original,reportId:original.reportId,transactionId:original.transactionId}),
@@ -495,4 +495,11 @@ export async function handleCelestialHarmonyRoutes(request, env = {}) {
     if(error?.code === "RESULT_STORAGE_UNAVAILABLE")return json({ok:false,retryable:true,reason:error.code,resultId:error.resultId},{status:503});
     return handleRouteError(error);
   }
+}
+
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.executionKey) throw new Error("RECOVERY_doc.executionKey_REQUIRED");
+  const request = new Request("https://internal.invalid/api/celestial-harmony/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeResultId: String(doc.executionKey) }) });
+  return handleGenerate(request, env, { userId: String(doc.userId) });
 }

@@ -7076,3 +7076,9 @@ export const __sajuAiSectionTestUtils = {
   SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS,
   SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS,
 };
+
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.executionId) throw new Error("RECOVERY_IDENTITY_REQUIRED");
+  const request = new Request("https://internal.invalid/api/saju-ai-prompt", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ resumeJobId: String(doc.executionId) }) });
+  return handleSajuAIPrompt(request, { userId: String(doc.userId) }, env);
+}

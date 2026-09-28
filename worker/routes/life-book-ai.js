@@ -2286,11 +2286,11 @@ async function handleResult(request, env, pathId = "") {
   return json(payload, { headers: { "Cache-Control": "private, max-age=300" } });
 }
 
-async function handleStart(request, env, route = "/api/life-book-ai/generate") {
+async function handleStart(request, env, route = "/api/life-book-ai/generate", recoveryAuth = null) {
   logLifeBookAi("LLM Generate Start", { route });
   let body = await readJson(request);
   if (body.resumeSessionId) {
-    const resumeAuth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    const resumeAuth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
     if (!resumeAuth) return loginRequired();
     await connectDb(env);
     const stored = await LifeBookAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
@@ -2316,7 +2316,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
 
   // 결제 프로젝션을 함께 요청해, 아래 applyUsageOnce/restoreAccessBeforeGenerationFailure 의 내부
   // coin-gate/deferred 위임이 users 를 다시 읽지 않게 한다(preverifiedAuth).
-  const auth = await getOptionalUserFromRequest(request, env, {
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, {
     surfaceDbInfraError: true,
     userProjection: { ...PAID_FEATURE_ACCESS_USER_PROJECTION, ...BILLING_SNAPSHOT_USER_PROJECTION },
   });
@@ -2929,3 +2929,12 @@ export const __lifeBookAiTestUtils = {
   mapIssuesToSections,
   reportTotalContentChars,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/life-book-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+}

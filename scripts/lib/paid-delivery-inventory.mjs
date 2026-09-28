@@ -1,3 +1,4 @@
+import { CONSULTATION_RECOVERY_ADAPTERS } from '../../worker/lib/consultation-recovery-registry.js';
 // Classifies every LIVE catalog product by how its paid result is delivered.
 // Markers prove static wiring only; liveValidation stays UNVERIFIED until a real delivery is observed.
 import fs from 'node:fs';
@@ -36,7 +37,7 @@ export const LLM_DELIVERY_ADAPTERS=Object.freeze([
   // human-design-chart and palm-reading-ai-consult are discontinued sale keys (HISTORICAL_PAID_FEATURE_FIXTURES).
   [/^human-design-report$/, 'worker/routes/human-design-report.js',null,'route-delivery'],
   [/^destiny-compass-deep-report$/, 'worker/routes/destiny-compass-ai.js',null,'route-delivery'],
-  [/^tarot-celestial-harmony$/, 'worker/lib/celestial-report-delivery.js',null,'route-delivery'],
+  [/^tarot-celestial-harmony$/, 'worker/lib/celestial-report-delivery.js','worker/lib/consultation-recovery-task.js','route-delivery'],
   [/^premium-naming-prompt$/, 'worker/routes/naming-prompt.js',null,'route-delivery'],
   [/^life-(book|fortune)-ai-consultation$/, 'worker/routes/life-book-ai.js',null,'route-delivery'],
   [/^neo-operation-room-consultation$/, 'worker/routes/neo-operation-room.js',null,'route-delivery'],
@@ -91,7 +92,8 @@ export function buildPaidDeliveryInventory(products=listProducts()){
       ...(match.deliveryFeatureKey?{deliveryFeatureKey:match.deliveryFeatureKey}:{}),
       ...(candidates.length>1?{conflictingKinds:candidates.map(row=>row.deliveryKind)}:{}),
       generation:match.generation || null,
-      serverRecovery:match.serverRecovery || null,
+      serverRecovery:match.serverRecovery || (CONSULTATION_RECOVERY_ADAPTERS.some(([route])=>match.generation===`worker/routes/${route}.js`)?'worker/lib/consultation-recovery-task.js':null),
+      deliveryReadyBeforePayment:product.featureKey==='palm-reading-general',
       stalledMonitor:match.stalledMonitor || null,
       evidence:match.evidence || null,
       paymentCore:'worker/payments/index.js',
@@ -111,7 +113,7 @@ export function buildPaidDeliveryInventory(products=listProducts()){
     staleEvidenceKeys:evidenceKeys.filter(key=>!catalogKeys.has(key)),
     unusedLlmAdapters:LLM_DELIVERY_ADAPTERS.filter(([pattern])=>![...catalogKeys].some(key=>pattern.test(key))).map(([pattern])=>String(pattern)),
     backgroundRecoveryNotMapped:rows.filter(row=>row.deliveryKind==='paid-narrative'&&!row.serverRecovery).map(row=>row.featureKey),
-    llmWithoutServerRecovery:rows.filter(row=>LLM_DELIVERY_KINDS.includes(row.deliveryKind)&&!row.serverRecovery).map(row=>row.featureKey),
+    llmWithoutServerRecovery:rows.filter(row=>LLM_DELIVERY_KINDS.includes(row.deliveryKind)&&!row.serverRecovery&&!row.deliveryReadyBeforePayment).map(row=>row.featureKey),
     allProductsVerified:false,products:rows};
 }
 

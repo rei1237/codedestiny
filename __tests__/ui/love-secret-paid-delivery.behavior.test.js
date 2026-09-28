@@ -187,7 +187,7 @@ for (const failed of [false, true]) {
       savedGroups, onReserve: async () => { reserved++; }, onCheckpoint: async () => {},
     });
     assert.equal(reserved, 1);
-    assert.deepEqual(calls, failed ? ['d','d'] : ['d']);
+    assert.deepEqual(calls, ['d']);
     assert.equal(result.complete, false);
     assert.deepEqual(Array.from(result.savedGroups.slice(0,3), row => row.key), ['a','b','c']);
   });

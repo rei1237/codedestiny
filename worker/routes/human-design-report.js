@@ -552,8 +552,8 @@ async function saveHdDelivery(env, filter, fields, reportId) {
     return confirmed;
   } catch { throw resultStorageUnavailable(reportId); }
 }
-async function handleGenerate(request, env) {
-  const auth = await requireAuth(request, env);
+async function handleGenerate(request, env, recoveryAuth = null) {
+  const auth = recoveryAuth || await requireAuth(request, env);
   const body = await readJson(request);
   const reportId = clean(body?.reportId, 200);
   if (!reportId) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 400 });
@@ -562,12 +562,7 @@ async function handleGenerate(request, env) {
   if (current.status === "completed") return json({ ok: true, ...publicReport(current) }, { headers: noStore });
   if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   // 기존 명시적 '부족한 영역 보완'만 새 제한 실행을 연다. 자동으로 예산을 초기화하지 않는다.
-  if (body?.resumeQuality === true && current.status === "partial") {
-    current = await saveHdDelivery(env, { id: reportId, userId: auth.userId, status: "partial" }, {
-      status: "generating", waveCount: 0, generationError: null,
-      sections: current.sections.map(row => row.status === "ok" ? row : { ...row, attempts: 0 }),
-    }, reportId);
-  }
+
   if (current.status === "partial") return json({ ok: true, ...publicReport(current), retryable: true }, { status: 202, headers: noStore });
   if (current.status === "generation_failed") return json({ ok: false, reason: "GENERATION_ALREADY_FAILED", refunded: current.generationError?.refunded === true, message: MESSAGES.failed }, { status: 409 });
   const completeParts = current.sections.every(row => row.status === "ok");
@@ -721,3 +716,12 @@ export const __humanDesignReportTestUtils = {
   parseSectionPayload,
   publicReport,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/human-design-report/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ reportId: String(doc.id) }) });
+  return handleGenerate(request, env, { userId: String(doc.userId) });
+}

@@ -979,12 +979,12 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
 }
 
 // POST /generate — 원래 서버 요청의 소유권과 현재 결제 증빙을 다시 확인한다.
-async function handleGenerate(request, env) {
+async function handleGenerate(request, env, recoveryAuth = null) {
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.attemptId, 120);
   const idempotencyKey = readIdempotencyKey(request, body);
   if (!sessionId) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1081,4 +1081,13 @@ export async function handleNakshatraAiRoutes(request, env = {}) {
     }
     return serverError();
   }
+}
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/nakshatra-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ sessionId: String(doc.id) }) });
+  return handleGenerate(request, env, { userId: String(doc.userId) });
 }

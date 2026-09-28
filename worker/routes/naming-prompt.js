@@ -1512,8 +1512,8 @@ async function handleVerifyPayment(request, env) {
   });
 }
 
-async function handleGenerate(request, env) {
-  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+async function handleGenerate(request, env, _routeContext = null, recoveryAuth = null) {
+  const auth = recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const body = await readJson(request);
   const resumeId = clean(body.resumeExecutionId, 160);
   const stored = resumeId ? await findExecutionRecordForUser(env, auth, resumeId) : null;
@@ -1680,3 +1680,10 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
 }
 
 export const __namingPromptExecutionTestUtils = { beginNamingGeneration, upsertExecutionRecord };
+
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.executionId) throw new Error("RECOVERY_doc.executionId_REQUIRED");
+  const request = new Request("https://internal.invalid/api/naming-prompt/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeExecutionId: String(doc.executionId) }) });
+  return handleGenerate(request, env, undefined, { userId: String(doc.userId) });
+}

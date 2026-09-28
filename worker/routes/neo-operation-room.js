@@ -1638,9 +1638,9 @@ function pendingNeo(doc) {
   return json({ ...publicSession(doc), resultId: doc.id, retryable: true,
     completedChapters: Object.keys(doc.llmMeta?.sections || {}), totalChapters: 14 }, { status: 202, headers: { "Retry-After": "3" } });
 }
-async function handleStart(request, env, ctx = null) {
+async function handleStart(request, env, ctx = null, recoveryAuth = null) {
   let body = await readJson(request);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   await connectDb(env);
   const requestedId = clean(body.sessionId || body.resultId, 120);
@@ -1957,3 +1957,12 @@ export const __neoOperationRoomTestUtils = {
   CARD_REFUNDED_MESSAGE,
   neoBody, neoSectionReady,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/neo-operation-room/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ sessionId: String(doc.id) }) });
+  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+}

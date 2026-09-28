@@ -201,9 +201,9 @@ async function refundExecution(env, userId, requestId, sessionId, reasonMessage,
   return result?.refundStatus === "refunded";
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, recoveryAuth = null) {
   const body = await readJson(request);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   const supplied = { ...body, idempotencyKey: body.idempotencyKey || request.headers.get("Idempotency-Key") || "" };
   if (!supplied.resumeSessionId && supplied.idempotencyKey.length < 12) return json({ ok: false, reason: "INVALID_INPUT" }, { status: 422 });
@@ -246,3 +246,10 @@ export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
 }
 
 export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, buildSectionPrompt, SECTION_SPECS, SECTION_TITLES, paymentPayload };
+
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/relationship-boundary-test/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  return handleStart(request, env, { userId: String(doc.userId) });
+}

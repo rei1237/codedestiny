@@ -1450,7 +1450,7 @@ function buildFortuneTeaAccessDegradedResponse() {
   }, { status: 503 });
 }
 
-async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest) {
+async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest, recoveryAuth = null) {
   const featureKey = resolveFortuneTeaHouseFeatureKey(body, consultRequest);
   if (!featureKey) {
     return {
@@ -1473,7 +1473,7 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     // coin-gate/deferred 위임(callFortuneTeaDeferredUsageRoute)이 users 를 다시 읽지 않고
     // 이 인증 결과를 그대로 재사용하게 한다(preverifiedAuth). 기존 PAID_FEATURE_ACCESS_USER_PROJECTION
     // 필드는 그대로 유지된다(병합이지 대체가 아님).
-    auth = await getOptionalUserFromRequest(request, env, {
+    auth = recoveryAuth || await getOptionalUserFromRequest(request, env, {
       surfaceDbInfraError: true,
       userProjection: { ...PAID_FEATURE_ACCESS_USER_PROJECTION, ...BILLING_SNAPSHOT_USER_PROJECTION },
     });
@@ -5494,7 +5494,7 @@ function assertSukuyoCalculationBasis(consultRequest, draft) {
   throw error;
 }
 
-async function handleConsult(request, env, ctx = null) {
+async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
   if (!checkRateLimit(request)) {
     return json(
       { ok: false, message: "찻잔이 잠시 뜨거워졌어요. 잠시 후 다시 건네주세요." },
@@ -5506,7 +5506,7 @@ async function handleConsult(request, env, ctx = null) {
   const consultRequest = normalizeRequest(body);
   const requestHash = createHash("sha256").update(JSON.stringify(consultRequest)).digest("hex");
   await prepareFortuneTeaSukuyoAstronomy(consultRequest, env, request.url);
-  const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
+  const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest, recoveryAuth);
   if (!access.ok) return access.response;
 
   const fallback = normalizeDraftResult(body?.draftResult, consultRequest);
@@ -5628,7 +5628,7 @@ async function handleConsult(request, env, ctx = null) {
     // apply가 반영된 뒤 응답만 유실될 수 있으므로 cancel하지 않는다.
     // 동일 requestId의 기존 billing 멱등 처리로 다음 요청에서 확정한다.
     try {
-      const deliveryAccess = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
+      const deliveryAccess = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest, recoveryAuth);
       if (!deliveryAccess.ok) {
         await releaseFortuneTeaDelivery({ auth, resultId, lockToken: generation.lockToken });
         return deliveryAccess.response;
@@ -5729,4 +5729,18 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}, ctx = null)
     }
     return handleRouteError(error, { request, env, trace: { route: "fortune-tea-house", method: traceMethod, requestPath: tracePath } });
   }
+}
+
+export async function findRecoverableConsultations(env, filter) {
+  return withMongoRetry(env, () => honeyCollections().results.find({ ...filter,
+    _id: { $gte: "fortune-tea-house-result:", $lt: "fortune-tea-house-result;" },
+    serviceScope: FORTUNE_TEA_HOUSE_SCOPE, 'generationCheckpoint.requestBody': { $exists: true },
+  }).sort({ updatedAt: 1 }).limit(1).project({ userId: 1, resultId: 1 }).toArray());
+}
+export async function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.resultId) throw new Error("RECOVERY_IDENTITY_REQUIRED");
+  const stored = await withMongoRetry(env, () => honeyCollections().results.findOne({ userId: String(doc.userId), resultId: doc.resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE }));
+  if (!stored?.generationCheckpoint?.requestBody) return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
+  const request = new Request("https://internal.invalid/api/fortune-tea-house/consult", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(stored.generationCheckpoint.requestBody) });
+  return handleConsult(request, env, null, { userId: String(stored.userId) });
 }

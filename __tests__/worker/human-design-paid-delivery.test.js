@@ -131,3 +131,13 @@ it('HD accepts a usable short response within two attempts', async () => {
   expect((await generate()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
   expect(docs[0].sections[0].attempts).toBe(2);
 });
+
+it('quality resume cannot reset a spent chapter budget',async()=>{
+ docs[0].status='partial';docs[0].sections.forEach(row=>row.attempts=2);
+ await generate({resumeQuality:true});expect(provider).not.toHaveBeenCalled();expect(docs[0].sections.every(row=>row.attempts===2)).toBe(true);
+});
+it('server completes the saved report without browser authentication or another purchase',async()=>{
+ await generate();const {resumeConsultationOnServer}=await import('../../worker/routes/human-design-report.js');
+ for(let i=0;i<5&&docs[0].status!=='completed';i++)await resumeConsultationOnServer({},docs[0]);
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled();
+});

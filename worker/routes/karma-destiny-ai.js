@@ -2457,7 +2457,7 @@ async function callDeferredUsageRoute({ request, env, auth, path, idempotencyKey
   return payload?.data || payload;
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, recoveryAuth = null) {
   const route = "/api/karma-destiny-ai/start";
   logKarmaAi("LLM Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
@@ -2473,7 +2473,7 @@ async function handleStart(request, env) {
 
   // billing 프로젝션으로 한 번에 읽어 두면, 실패 시 아래 cancelDeferredUsageIfNeeded 의 내부 coin-gate
   // 위임이 users 를 다시 읽지 않고 이 인증 결과를 그대로 재사용한다(preverifiedAuth).
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -2642,10 +2642,10 @@ function karmaChapterReady(chapter, definition, acceptShort = false) {
     && !hasRepeatedReportPassage(content) && !hasForbiddenResult(content)
     && !detectGenericAdviceWarnings(content).length;
 }
-async function handleGenerateBatch(request, env) {
+async function handleGenerateBatch(request, env, recoveryAuth = null) {
   const body = await readJson(request);
   const sessionId = clean(body?.sessionId || body?.reportId || body?.attemptId || body?.idempotencyKey, 180);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
   await connectDb(env);
   let consultation = await KarmaDestinyAiConsultation.findOne(buildResultLookup(sessionId, auth)).lean();
@@ -2656,7 +2656,7 @@ async function handleGenerateBatch(request, env) {
     if (consultation.llmMeta?.resumeBody && Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime() >= PREMIUM_BATCH_LOCK_TTL_MS) {
       const url = new URL(request.url); url.pathname = "/api/karma-destiny-ai/start";
       const headers = cloneBillingHeaders(request); headers.set("Idempotency-Key", consultation.idempotencyKey);
-      return handleStart(new Request(url, { method: "POST", headers, body: JSON.stringify(consultation.llmMeta.resumeBody) }), env);
+      return handleStart(new Request(url, { method: "POST", headers, body: JSON.stringify(consultation.llmMeta.resumeBody) }), env, recoveryAuth);
     }
     return json(publicSession(consultation), { status: 202 });
   }
@@ -2866,3 +2866,9 @@ export const __karmaDestinyAiTestUtils = {
   detectCrossChapterConclusionOverlap,
   buildKarmaDestinyAiMockConsultation,
 };
+
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_IDENTITY_REQUIRED");
+  const request = new Request("https://internal.invalid/api/karma-destiny-ai/generate-batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: String(doc.id) }) });
+  return handleGenerateBatch(request, env, { userId: String(doc.userId) });
+}

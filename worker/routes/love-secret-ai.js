@@ -1424,13 +1424,13 @@ async function confirmLoveSecretDelivery(userId, pending) {
   } catch { throw resultStorageUnavailable(pending.id); }
 }
 
-async function handleStart(request, env, route = "/api/love-secret-ai/generate", ctx) {
+async function handleStart(request, env, route = "/api/love-secret-ai/generate", ctx, recoveryAuth = null) {
   // 총예산의 기준점. 인증·DB 지연이 LLM 예산에 더해지는 게 아니라 흡수되도록 진입 즉시 찍는다.
   const requestStartedAt = Date.now();
   logLoveSecretAi("LLM Generate Start", safeLogPayload({ route, env }));
   let body = await readJson(request);
   if (body?.resumeSessionId) {
-    const resumeAuth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    const resumeAuth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
     if (!resumeAuth) return loginRequired();
     await connectDb(env);
     const saved = await LoveSecretAiConsultation.findOne({ id: clean(body.resumeSessionId), userId: clean(resumeAuth.userId) }).lean();
@@ -1453,7 +1453,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
   logLoveSecretAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 정보가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1814,3 +1814,12 @@ export const __loveSecretAiTestUtils = {
   normalizeRequestBody,
   getPricing,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/love-secret-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  return handleStart(request, env, undefined, undefined, { userId: String(doc.userId) });
+}

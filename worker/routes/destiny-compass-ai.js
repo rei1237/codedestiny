@@ -591,9 +591,9 @@ async function handleReport(request, env) {
   return runCompassDelivery(env, auth, saved);
 }
 
-async function handleContinue(request, env) {
+async function handleContinue(request, env, recoveryAuth = null) {
   const body = await readJson(request);
-  const auth = await requireAuth(request, env);
+  const auth = recoveryAuth || await requireAuth(request, env);
   let reportId = clean(body?.reportId, 120);
   if (!reportId && body?.continuationToken) {
     const payload = await readContinuationToken(env, auth, body.continuationToken, normalizeReportInput(body));
@@ -692,3 +692,12 @@ export const __destinyCompassAiTestUtils = {
   COMPASS_SECTIONS,
   COMPASS_SECTION_MAX_OUTPUT_TOKENS,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/destiny-compass-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ reportId: String(doc.id) }) });
+  return handleContinue(request, env, { userId: String(doc.userId) });
+}

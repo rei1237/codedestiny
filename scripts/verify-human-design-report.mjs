@@ -382,9 +382,9 @@ if (!routeSource) {
     .map((marker) => routeCode.indexOf(marker, publicStart + 1))
     .filter((index) => index > 0);
   const publicBody = publicStart >= 0 && publicEnds.length ? routeCode.slice(publicStart, Math.min(...publicEnds)) : "";
-  check("진행 본문은 공개하되 정상 18개 섹션과 본문 분량을 완료 조건으로 사용한다",
+  check("진행 본문을 공개하고 정상 18개 섹션과 중복 검사를 완료 조건으로 사용한다",
     /degraded/.test(publicBody) && /normal.length === HD_REPORT_SECTIONS.length/.test(generateBody)
-    && /countPaidReportBodyChars\(reportBody\) >= 20000/.test(generateBody));
+    && /!hasRepeatedReportPassage\(reportBody\)/.test(generateBody));
 
   check("🔴 /result 에 결제 게이트가 없다", !/verifyPerUsePayment|PAYMENT_REQUIRED/.test(resultBody));
   check("/result 는 저장 결과를 조회하고 취소 증빙을 확인하며 경과 시간으로 환불하지 않는다", /verifyStoredHdAccess/.test(resultBody) && !/refundExecution|updateOne|finalizeReport/.test(resultBody));

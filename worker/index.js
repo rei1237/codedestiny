@@ -1982,10 +1982,14 @@ const app = {
         console.error("[yeongnyangi-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
       }));
       // 공통 유료 상담(paid-narrative)의 탭 종료 백스톱. 등록된 상품만, 원래 실행 기록의 항목당
-      // 3회 예산 안에서 이어 생성한다. 환불·취소 건은 엔진의 revoked() 가 공급자 호출 전에 막는다.
+      // 2회 예산 안에서 이어 생성한다. 환불·취소 건은 엔진의 revoked() 가 공급자 호출 전에 막는다.
       const { runPaidNarrativeRecovery } = await import("./lib/paid-narrative-recovery-task.js");
       ctx.waitUntil(runPaidNarrativeRecovery(env).catch((error) => {
         console.error("[paid-narrative-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
+      }));
+      const { runConsultationRecovery } = await import("./lib/consultation-recovery-task.js");
+      ctx.waitUntil(runConsultationRecovery(env).catch((error) => {
+        console.error("[consultation-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
       }));
       const { monitorPaidNarratives } = await import("./lib/paid-narrative-monitor.js");
       ctx.waitUntil(monitorPaidNarratives(env).catch(() => {

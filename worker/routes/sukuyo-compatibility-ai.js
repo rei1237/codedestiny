@@ -1848,10 +1848,10 @@ async function confirmSukuyoDelivery(userId, sessionId, messages, lease) {
   } catch { throw resultStorageUnavailable(sessionId); }
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, recoveryAuth = null) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+    auth = recoveryAuth || await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -2336,3 +2336,12 @@ export const __sukuyoCompatibilityAiTestUtils = {
   // startLocks 가 두 번째 요청을 먹어 DB 경로를 한 번도 안 밟고, 테스트가 통과하면서 아무것도 증명하지 못한다.
   clearStartLocks: () => startLocks.clear(),
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc._id) throw new Error("RECOVERY_doc._id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/sukuyo-compatibility-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc._id) }) });
+  return handleStart(request, env, { userId: String(doc.userId) });
+}

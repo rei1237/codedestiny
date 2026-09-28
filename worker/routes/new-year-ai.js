@@ -2402,11 +2402,11 @@ async function finishNewYearDelivery({ request, env, auth, access, pending }) {
   return completed;
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, _routeContext = null, recoveryAuth = null) {
   const startedAt = Date.now();
   const route = '/api/new-year-ai/start';
   let body = await readJson(request);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  const auth = recoveryAuth || await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
   if (!auth) return loginRequired();
   await connectDb(env);
   if (body.resumeSessionId) {
@@ -2646,3 +2646,12 @@ export const __newYearAiTestUtils = {
   trimToLastCompleteSentence,
   generateConsultationText,
 };
+
+// Internal cron continuation: only a stored owner/id is accepted, never client input.
+// The normal handler rereads that owner's record and rechecks existing payment proof.
+export function resumeConsultationOnServer(env, doc) {
+  if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");
+  const request = new Request("https://internal.invalid/api/new-year-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
+  return handleStart(request, env, undefined, { userId: String(doc.userId) });
+}
