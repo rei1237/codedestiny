@@ -115,10 +115,11 @@
 | `npm run check:fast -- --plan`, `npm run check:fast` | 자동 critical 승격. 내부 paid suite 88/88(521.3초), lint 통과 뒤 sitemap 원장 드리프트에서 중단. 소스 마무리 후 원장 재생성 |
 | `npm run sitemap:generate`, `npm run verify:sitemap-drift` | 재생성 후 URL 1,300개 일치 PASS |
 | `npx tsc --noEmit --pretty false` | 종료 0 |
+| `node scripts/verify-yeongnyangi-result-sharing.mjs` (같은 로컬 base) | 오래된 로딩 단언을 현재 문구로 맞춘 실행에서 360/390/430/1280px PASS. 기본 원문 질문·주문 ID 숨김, 사용자 체크 후 질문 포함, 카카오·복사·이미지·취소·부분 결과 공유 차단. 실제 메시지 0 |
 | Impeccable `detect` (새 안내 컴포넌트/CSS/라우트) | 종료 0, 출력된 finding 없음 |
 | `node scripts/verify-yeongnyangi-result-retry.mjs` | 기존 fixture의 `resultPath` export 누락으로 실패. 제품 파일은 수정하지 않음. 복구의 대체 검증은 위 실제 컴포넌트/transport mock 4건으로 수행 |
 
-개발 서버 콜드 컴파일/연속 HMR 중 일부 브라우저 실행은 timeout 또는 Next manifest 오류로 실패했다. 서버를 분리 재시작한 뒤 통과한 실행과 구별해서 기록한다. 유료 결과 공유 검사는 기존의 로딩 제목·이미지 alt를 하드코딩한 오래된 단언에서 멈춰, 현재 로딩 문구 원본과 장식 이미지 구조로 검증기를 맞췄다.
+개발 서버 콜드 컴파일/연속 HMR 중 일부 브라우저 실행은 timeout 또는 Next manifest 오류로 실패했다. 서버를 분리 재시작한 뒤 통과한 실행과 구별해서 기록한다. 유료 결과 공유 검사는 기존의 로딩 제목·이미지 alt를 하드코딩한 오래된 단언에서 멈춰, 현재 로딩 문구 원본과 장식 이미지 구조로 검증기를 맞췄다. 같은 수정이 동시 작업의 main에 이미 반영된 것을 확인해 중복 수정은 철회하고 해당 main 변경을 보존했다.
 
 화면 증거: [390px 카드](fortune-conversion-evidence/cards-390.webp), [사주 팝업](fortune-conversion-evidence/saju-390.webp), [사주 전체 안내](fortune-conversion-evidence/saju-guide-390.webp), [베다 전체 안내](fortune-conversion-evidence/vedic-guide-390.webp), [mock 판정 JSON](fortune-conversion-evidence/verification.json).
 변경 전 사주 원화: `public/assets/yeongnyangi/original/saju.webp`; 변경 후: `public/assets/yeongnyangi/conversion/saju-pattern.webp`. 변경 전 카피는 `home-data.ts`의 '타고난 나를 만나는 시간', 변경 후는 '왜 나는 같은 선택을 반복할까?'다. 사주 결과를 이미 판정한 문장은 아니다.
