@@ -1,7 +1,10 @@
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
 import {readingLocale} from './fortune/reading-locale';
 import {readingCharts} from './fortune/reading-presentation';
-import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, readingChapterCount } from './fortune/reading-policy';
+import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, readingChapterCount } from './fortune/reading-policy';
+import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
+import { resolveV7Ledger } from './fortune/reading-v7-ledger';
+import { buildV7TimingMatrix, v7TimingSummaries, withV7Timing } from './fortune/reading-v7-timing';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
 import {validateSkyInput,skyMoment,calculateQuestionSky} from './fortune/question-sky';
 import {skyModes,skyTopics,SKY_IMAGE,SKY_TIMING} from './fortune/question-sky-contract';
@@ -33,6 +36,18 @@ import { StructuredChapterProvider, validateChapter } from './providers/chapter'
 import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, allowedChapterAttempts, holdAutoResumes, userCanRetry } from './repository.js';
 
 const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
+
+/**
+ * A v7 snapshot stores its timing matrix once at prepare; every later read re-applies it to the stored
+ * context so the rebuilt fact ledger resolves the same IDs prepare assigned. Snapshots without one are
+ * returned untouched, so v6 and older requests keep their exact stored analysis.
+ */
+function snapshotAnalysis(snapshot:any) {
+  const matrix=snapshot?.v7Timing;
+  if(!matrix)return snapshot.analysis;
+  const contexts=snapshot.analysis.contexts;
+  return {...snapshot.analysis,contexts:{...contexts,[matrix.domain]:withV7Timing(contexts[matrix.domain],matrix)}};
+}
 
 export function providerReady(env: Record<string, unknown>) {
   return Boolean(getEnv(env,'GEMINIF_API_KEY')) && getEnv(env,'LLM_DRY_RUN') !== 'true';
@@ -69,6 +84,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
+  // Fail-closed: false unless READING_V7_ENABLED, a single-system v6 tier product and a v7 consultation kind.
+  const v7=v7Applies(product,kind);
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
   // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
   const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
@@ -104,7 +121,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
+  const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
   const id=await digest({userId,fingerprint,...attempt});
   if(askEvidenceEnabled) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -124,6 +141,17 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
   if(spiritInput)manifest=spiritManifest(manifest);
+  let v7Timing;
+  if(v7){
+    // The whole v7 chain runs once here: the timing matrix is cut from today's pillar, the ledger assigns every
+    // fact to exactly one chapter, and the summary line is frozen into the manifest. Generation only re-applies
+    // the stored matrix, so it never recomputes a period or resolves a different owner.
+    const context=contexts[product.domain]!;
+    v7Timing=await buildV7TimingMatrix(context,normalized[product.domain],date);
+    manifest=v7TimingSummaries(resolveV7Ledger(manifest as ChapterSpecV7[],withV7Timing(context,v7Timing)));
+    product.manifestVersion=READING_V7_VERSION;
+    product.chapterCount=manifest.length;
+  }
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest);
   if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?'저장된 계산 기준의 현재 시기와 다음 전환':'출생 성향과 선택한 상담의 조건'};}
   if(!kind||kind.question){
@@ -136,6 +164,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   manifest[0].factSelectors=questionFactSelectors(product.systems,analysis.question || '',analysis.topicId || 'general',cross.map(f=>f.label));
   manifest[0].periodScope='저장된 상담의 기준일과 요청 기간을 다룬다. 해당 기간의 계산 근거가 없으면 실천·점검 기간으로 명시한다. 오늘의 일진·일운·판창가·수비학은 기준일 하루의 근거이고, 세운·월운은 해당 연·월의 근거다. 하루 근거를 다른 날짜나 장기 예측으로 늘리지 않는다.';
   if(!manifest[0].sections)manifest[0].requiredSections=[...(manifest[0].requiredSections || []),'관련 시기'];
+  // The question chapter may cross every area, so it keeps only the system-forbidden subjects and drops the
+  // sibling-chapter titles the catalog excluded. Ownership is untouched: the other chapters still own their facts.
+  if(v7){const titles=new Set(manifest.map(c=>c.title));const first=manifest[0] as ChapterSpecV7;first.mustNotCover=first.mustNotCover.filter(t=>!titles.has(t));}
   }
   if(spiritInput){
     spiritEvidence(contexts.saju!);
@@ -154,7 +185,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {})}});
+    snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
@@ -244,7 +275,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     stage='provider';
     const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
       ? {code:row.lastFailure.code}:undefined;
-    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:row.snapshot.analysis,previous:row.chapters,repair,ask};
+    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(sharedProvider);
     const generated=await provider.generateChapter(input);
@@ -285,7 +316,7 @@ export function presentFortune(row: any) {
     canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
     nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
-    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(row.snapshot.analysis,row.snapshot.manifest):undefined,
+    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest):undefined,
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
