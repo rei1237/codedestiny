@@ -1,10 +1,28 @@
 ---
 status: active
 updated: 2026-09-29
-next: Chrome 16/16 및 iPhone WebKit 에뮬레이션 20/20을 확인했다. 다음은 실제 iPhone Chrome/Safari의 소프트 키보드·주소창·safe area와 결제 전 입력 흐름 확인이다. 실기기·실결제·새 실 LLM은 이번 검증에 포함하지 않았다.
+next: 구현·main CI 전달은 완료했다. 사용자 요청으로 실제 iPhone Chrome/Safari 검증은 후속으로 남긴다. 실기기 자료가 준비되면 아래 점검표부터 재개한다. 실기기·실결제·새 실 LLM은 미실행이다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
+
+## 재개용 요약 — 2026-09-29 마무리
+
+- 사용자 선택: “실기기 검증은 남기고 정리”. 구현·에뮬레이션·main CI 전달 단위는 완료했으며, 실기기 호환성 전체 완료를 뜻하지 않는다.
+- 구현 기준 `3af163056bcdffe0115d8d6e56902bf62dc709e5`: [main CI 36483224024](https://github.com/rei1237/codedestiny/actions/runs/36483224024) success. 기록 기준 `f72ad321528550b9fbffcc872be6f5dbd0c8ce41`: [main CI 36484506597](https://github.com/rei1237/codedestiny/actions/runs/36484506597) success / CI required success. 기록 전용 CI의 Typecheck·Build·Critical lanes는 skipped다. 두 SHA의 CI 상태는 이번 재개에서 직접 조회했다.
+- 추적된 Chrome/iPhone metrics를 재확인했다: 각각 16/20개 시나리오, `physicalDevice=false`, `nativeKeyboard=false`. 에뮬레이션을 재실행하거나 실기기 증거로 바꾸지 않았다. 예상 외부 번역 스크립트 차단 오류는 두 파일에 기록되어 있다.
+- 남은 범위는 자미두수·숙요점·서양 점성술·베다점의 실제 iPhone Chrome/Safari 결제 전 입력이다. 체크 순서·기기별 기록 항목은 `docs/design/fortune-consultation-ux/chrome-iphone-review.md`의 실기기 점검표를 따른다. 결제 버튼 실행·결제창 전환·실결제·실 LLM·운영 DB 쓰기·운영 승격은 이 점검 범위에 포함하지 않는다.
+- 이 마무리는 문서만 정리한다. 기존 `marketing/**`·`next-env.d.ts` 변경과 제품 코드를 보존한다. 실기기 연결·녹화는 제공되지 않았으며 결과는 미검증이다.
+- 재개 위치: `D:/Development/code-destiny`, 정본 문서 `D:/Development/code-destiny/docs/handoff/fortune-consultation-ux.md`. 이번 정리의 마지막 커밋은 아래 명령으로 조회한다. main CI 최종 상태는 해당 SHA의 `PR CI`에서 확인한다.
+
+```powershell
+Set-Location 'D:\Development\code-destiny'
+Get-Content 'D:\Development\code-destiny\docs\handoff\fortune-consultation-ux.md'
+git status --short
+git log -1 --format=%H -- docs/handoff/fortune-consultation-ux.md
+git show --no-patch f72ad321528550b9fbffcc872be6f5dbd0c8ce41
+# 다음 행동: 실제 iPhone 자료가 준비되면 chrome-iphone-review.md의 실기기 점검표를 Chrome/Safari 각각 수행하고 기기·버전·화면 증거를 기록한다.
+```
 
 ## 진행 규칙
 
