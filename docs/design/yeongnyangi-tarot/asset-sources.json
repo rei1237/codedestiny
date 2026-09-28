@@ -1,0 +1,238 @@
+{
+  "deckVersion": "v1",
+  "scope": "major22",
+  "approvedOn": "2026-09-28",
+  "cards": [
+    {
+      "id": "M00",
+      "rank": 0,
+      "artId": "p2-m00-b",
+      "file": "phase2/gen/p2-m00-b.png",
+      "sha256": "c176f6559165677bd47e7c76e0c3ffc29344445da90a6334d1d916616aa5130b",
+      "framed": "phase2/frame/p2-m00-b-framed.png",
+      "framedSha256": "12ae82050826afb0870b1b5a48cccd8ef67205c224d507a5326d6f2bce8a989c",
+      "gaze": "위-우(나비 쪽)"
+    },
+    {
+      "id": "M01",
+      "rank": 1,
+      "artId": "p3-m01-b",
+      "file": "phase3a/gen/p3-m01-b.png",
+      "sha256": "844c8469edc8d1ca63097eaed64f3809abda6d6bd177aa14359c7d1cbb854513",
+      "framed": "phase3a/frame/p3-m01-b-framed.png",
+      "framedSha256": "96cd68b120ef4f0a62af6fa38e2f9f0092f9f71491257d587c6d4298e38b5908",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M02",
+      "rank": 2,
+      "artId": "p3-m02-d",
+      "file": "phase3a/gen/p3-m02-d.png",
+      "sha256": "aaadd9df1d4b3cea4557a5ea831105cf566347b086d0f30a11c1a8f4be52d121",
+      "framed": "phase3a/frame/p3-m02-d-framed.png",
+      "framedSha256": "47376d5ac3ff2e2a31377b8ac32338e03d80b2b2a06eca07391ba8264d516e70",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M03",
+      "rank": 3,
+      "artId": "p3-m03-g-twelve-stars",
+      "file": "phase3a/gen/p3-m03-g-twelve-stars.png",
+      "sha256": "e2d2446e92c914e3ae7e812445f2c1df8b26b803893da187b73c10b1ed9f4a0c",
+      "framed": "phase3a/frame/p3-m03-g-twelve-stars-framed.png",
+      "framedSha256": "1e1ce2d0a0e9c2cae01b4b929dc9749d2a5a5145f9f0898cb7967549d4ee4c8c",
+      "gaze": "viewer tilted"
+    },
+    {
+      "id": "M04",
+      "rank": 4,
+      "artId": "p3-m04-b",
+      "file": "phase3a/gen/p3-m04-b.png",
+      "sha256": "54e1ef0695e0f8c6a015efafeb26400be2942bfe3291997c12b6801ddb566153",
+      "framed": "phase3a/frame/p3-m04-b-framed.png",
+      "framedSha256": "29bce720171717a19396e36e0f2f836e33d720aa100ffb753b32f3f4702cca81",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M05",
+      "rank": 5,
+      "artId": "p3-m05-b",
+      "file": "phase3a/gen/p3-m05-b.png",
+      "sha256": "eacdc2a4b0d42d0a4ed03efd33644abbf2b7fcf5653dc72cdabb94ae15f7ea83",
+      "framed": "phase3a/frame/p3-m05-b-framed.png",
+      "framedSha256": "ce0e5d56a00fea421f9dffe205d6143a849baf4e6a9d2585504113211bad85d2",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M06",
+      "rank": 6,
+      "artId": "p3-m06-b",
+      "file": "phase3a/gen/p3-m06-b.png",
+      "sha256": "ced47362f2d823717e7036c5a4f7b349df51ac56bc5633a2c9d9de4412332858",
+      "framed": "phase3a/frame/p3-m06-b-framed.png",
+      "framedSha256": "eae210d7e4f7b4685f7ca08bdf85731b6a4ed9bc70ebb3795e9a8de6986614d1",
+      "gaze": "우측(진주 쪽, 3/4 우향)"
+    },
+    {
+      "id": "M07",
+      "rank": 7,
+      "artId": "p3-m07-a",
+      "file": "phase3a/gen/p3-m07-a.png",
+      "sha256": "9fda56ce4de9119b5fdae442b4423caaccea4c89f3d49c9dde71ccb85df3de11",
+      "framed": "phase3a/frame/p3-m07-a-framed.png",
+      "framedSha256": "2d6414ef2181af526f1112e9f459f6c548e478e192306dc56886646166a27890",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M08",
+      "rank": 8,
+      "artId": "p3-m08-d",
+      "file": "phase3a/gen/p3-m08-d.png",
+      "sha256": "75df6bf1f8ff11f919878361a84691af565309be0e1d17c3723e71e5152c770d",
+      "framed": "phase3a/frame/p3-m08-d-framed.png",
+      "framedSha256": "e1833f70b32a273846cda460e50db028d91f7d1593fa4da08481b5c6f2638f65",
+      "gaze": "3/4 자신의 왼쪽(화면 오른쪽·사자 쪽)으로 돌렸으나 눈동자는 보는 사람"
+    },
+    {
+      "id": "M09",
+      "rank": 9,
+      "artId": "p3-m09-b",
+      "file": "phase3a/gen/p3-m09-b.png",
+      "sha256": "6d72befdda5d13e4dc5227421af4a07a154a6fcf4fa0abb256d3eb169205ff40",
+      "framed": "phase3a/frame/p3-m09-b-framed.png",
+      "framedSha256": "74090af415e62605ce00074ff762111baf645d6f29774a97eefa91de5dd71efa",
+      "gaze": "우측(보는 사람 기준 왼쪽 길), 거의 수평"
+    },
+    {
+      "id": "M10",
+      "rank": 10,
+      "artId": "p3-m10-a",
+      "file": "phase3a/gen/p3-m10-a.png",
+      "sha256": "8656f9765f06afc50206bec66e228792314ebf08c538158b2806a19b26341fe1",
+      "framed": "phase3a/frame/p3-m10-a-framed.png",
+      "framedSha256": "e855b079d32b36fee5f4b014c41f561ecd3a7ad327dfd2f995b5c3697b63c8d3",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M11",
+      "rank": 11,
+      "artId": "p3-m11-a",
+      "file": "phase3a/gen/p3-m11-a.png",
+      "sha256": "0012dad37b96f8d5b7eff36dda0a065e315be89a2966c956fcdebf59a73d7b29",
+      "framed": "phase3a/frame/p3-m11-a-framed.png",
+      "framedSha256": "63a6fc861f26bd7efb0fbe52e37cf4161f83de2983da6ddea5a2f5641c6a48c6",
+      "gaze": "정면(보는 사람)"
+    },
+    {
+      "id": "M12",
+      "rank": 12,
+      "artId": "p3-m12-c",
+      "file": "phase3a/gen/p3-m12-c.png",
+      "sha256": "e7a18a28fe0f6cc8a4f911b7c9bf5c712b3b69056ca8763f8cffa06669f945ed",
+      "framed": "phase3a/frame/p3-m12-c-framed.png",
+      "framedSha256": "f74cc6939a7ceaca2e53014eb3dd277cf723657ab12377d20b4576c412ddd3c4",
+      "gaze": "viewer inverted"
+    },
+    {
+      "id": "M13",
+      "rank": 13,
+      "artId": "p3-m13-a",
+      "file": "phase3a/gen/p3-m13-a.png",
+      "sha256": "60837ebd667f585b44d7f920fa7119288521412ab29ff613993d45b2953f4b8a",
+      "framed": "phase3a/frame/p3-m13-a-framed.png",
+      "framedSha256": "bf46ce37f7dcaa159f37df6cd769f8d7651f372ca9c8092067186cf27928c7e4",
+      "gaze": "viewer with slightly raised head"
+    },
+    {
+      "id": "M14",
+      "rank": 14,
+      "artId": "p3-m14-c",
+      "file": "phase3a/gen/p3-m14-c.png",
+      "sha256": "47024d2d6d49eb81b4aa499f70ad7fe6c1e3b3db6b6260571a95d445574301c7",
+      "framed": "phase3a/frame/p3-m14-c-framed.png",
+      "framedSha256": "240f82c6be86ba27a17ccde5ffdc7be43675bed0e2e460965332f4cf0e0b616f",
+      "gaze": "viewer tilted"
+    },
+    {
+      "id": "M15",
+      "rank": 15,
+      "artId": "p3-m15-c",
+      "file": "phase3a/gen/p3-m15-c.png",
+      "sha256": "1e4fe36eeae53facbeb46af79f1ac853741585e50117f62a570389c0e830cec2",
+      "framed": "phase3a/frame/p3-m15-c-framed.png",
+      "framedSha256": "6fb3eb8e018bbea82194a1b5f83c6904376d76b9221b31c2e68fabc7725b5c08",
+      "gaze": "shadow toward viewer; companions look toward each other/up"
+    },
+    {
+      "id": "M16",
+      "rank": 16,
+      "artId": "p2-m16-c",
+      "file": "phase2/gen/p2-m16-c.png",
+      "sha256": "726ec9929ef82b1631e484d41f41e16940699e5362432d485a92279968d6ec77",
+      "framed": "phase2/frame/p2-m16-c-framed.png",
+      "framedSha256": "5b4a928fe31fd88ae651a2a873b9be0e61471a1f7cf9dd9173ca0176ebcffccf",
+      "gaze": "보는 사람 쪽(동공 약간 왼쪽)"
+    },
+    {
+      "id": "M17",
+      "rank": 17,
+      "artId": "p3-m17-a",
+      "file": "phase3a/gen/p3-m17-a.png",
+      "sha256": "ddf9827107737ca8651672777df68e0895a63df766a9ef01c1f19ec05452277d",
+      "framed": "phase3a/frame/p3-m17-a-framed.png",
+      "framedSha256": "7d954429264af9d17eba21edb190b7144cff3b652c9b074f517d2dd69840f895",
+      "gaze": "viewer with slight tilt"
+    },
+    {
+      "id": "M18",
+      "rank": 18,
+      "artId": "p2-m18-d",
+      "file": "phase2/gen/p2-m18-d.png",
+      "sha256": "04ab3a296affab18376d019733d46218ef5176c553d7f51150702964ace21edd",
+      "framed": "phase2/frame/p2-m18-d-framed.png",
+      "framedSha256": "5ad8f989e1d6b6a17f7be89a2227b479149742fab91ccce69437374b3b1c698e",
+      "gaze": "위-우(달 쪽)"
+    },
+    {
+      "id": "M19",
+      "rank": 19,
+      "artId": "p3-m19-d",
+      "file": "phase3a/gen/p3-m19-d.png",
+      "sha256": "63573662fd2f66432a8282884eddb421974d321e3b0e94b68621cc358e2ff95d",
+      "framed": "phase3a/frame/p3-m19-d-framed.png",
+      "framedSha256": "5393e5c9697506d57ebc54878a76aea5bd6dc02df0fa0b42790c18549dffed16",
+      "gaze": "cat viewer; pony viewer-right"
+    },
+    {
+      "id": "M20",
+      "rank": 20,
+      "artId": "p3-m20-a",
+      "file": "phase3a/gen/p3-m20-a.png",
+      "sha256": "2350ccc8d123200ee0f0b8e93e215e7cd998283e50f83aeaed9ac79119884544",
+      "framed": "phase3a/frame/p3-m20-a-framed.png",
+      "framedSha256": "5dd61aa2d0ef7ffd011c07d16c8721d038dda5c93cf554be213db3831596116e",
+      "gaze": "main viewer; all companions look up"
+    },
+    {
+      "id": "M21",
+      "rank": 21,
+      "artId": "p3-m21-b",
+      "file": "phase3a/gen/p3-m21-b.png",
+      "sha256": "846e1db048f43493d756c54e26aeee3c10a8c4423320888f16e9b5126b8c6f25",
+      "framed": "phase3a/frame/p3-m21-b-framed.png",
+      "framedSha256": "cad9de971857645fbe0abdb0fcecbb34d58c3300fd168077649450531f50a7d9",
+      "gaze": "main viewer; guardians inward"
+    }
+  ],
+  "back": {
+    "id": "back",
+    "artId": "back-C",
+    "file": "phase1/sym/b06-back-c3-flat-sym2.png",
+    "sha256": "e580e4d8d179aeaae77b3138db5de66c0196540457692ab46283575f895c997a",
+    "gaze": "point-symmetric"
+  },
+  "frame": {
+    "file": "docs/design/yeongnyangi-tarot/frame-draft.svg",
+    "sha256": "d3cacdcf9a8567d8d51b803c5040b6226241fdead98cf41b78813eb4f9b815a3"
+  }
+}

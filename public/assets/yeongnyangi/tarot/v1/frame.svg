@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1536" width="1024" height="1536">
+  <!--
+    영냥이 타로 앞면 프레임 시안 (Phase 1, 2026-09-27). 그림(1024×1536, 2:3) 위에 얹는 오버레이다.
+    글자 없음: 카드 번호는 위쪽 고양이 귀 명패, 카드 이름은 아래쪽 리본 명패에 런타임 i18n 으로 얹는다.
+    위쪽 10%(0–154) · 아래쪽 14%(1321–1536)는 오버레이 안전 영역이라 그림의 중요한 요소를 두지 않는다.
+    색은 app/yeongnyangi/night-tokens.css 의 deep #0b1220 · night #101b2c · gold #e5c58e 를 따른다.
+  -->
+  <defs>
+    <linearGradient id="foil" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7e6bb"/>
+      <stop offset="0.22" stop-color="#e5c58e"/>
+      <stop offset="0.42" stop-color="#b8904f"/>
+      <stop offset="0.58" stop-color="#f3dfae"/>
+      <stop offset="0.76" stop-color="#c9a263"/>
+      <stop offset="1" stop-color="#8f6d37"/>
+    </linearGradient>
+    <linearGradient id="foilV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f7e6bb"/>
+      <stop offset="0.5" stop-color="#e5c58e"/>
+      <stop offset="1" stop-color="#a8844a"/>
+    </linearGradient>
+    <mask id="crescentCut" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="200">
+      <circle cx="84" cy="84" r="42" fill="#fff"/>
+      <circle cx="97" cy="97" r="37" fill="#000"/>
+    </mask>
+    <path id="star4" d="M0 -12 L3 -3 L12 0 L3 3 L0 12 L-3 3 L-12 0 L-3 -3 Z"/>
+    <g id="corner">
+      <path d="M 128 64 C 168 62, 184 44, 214 50 C 238 55, 236 78, 218 79 C 204 80, 202 66, 213 65" fill="none" stroke="url(#foil)" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 64 128 C 62 168, 44 184, 50 214 C 55 238, 78 236, 79 218 C 80 204, 66 202, 65 213" fill="none" stroke="url(#foil)" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="84" cy="84" r="42" fill="url(#foil)" mask="url(#crescentCut)"/>
+      <circle cx="92" cy="92" r="21" fill="#101b2c" stroke="url(#foil)" stroke-width="6"/>
+      <use href="#star4" transform="translate(92 92)" fill="url(#foilV)"/>
+      <use href="#star4" transform="translate(254 58) scale(0.5)" fill="#e5c58e"/>
+      <use href="#star4" transform="translate(58 254) scale(0.5)" fill="#e5c58e"/>
+      <circle cx="286" cy="58" r="2.6" fill="#e5c58e"/>
+      <circle cx="58" cy="286" r="2.6" fill="#e5c58e"/>
+    </g>
+  </defs>
+
+  <!-- 바깥 테두리 밖 짙은 여백(카드 가장자리) -->
+  <path fill="#0b1220" fill-rule="evenodd" d="M0 0 H1024 V1536 H0 Z M60 24 H964 A36 36 0 0 1 1000 60 V1476 A36 36 0 0 1 964 1512 H60 A36 36 0 0 1 24 1476 V60 A36 36 0 0 1 60 24 Z"/>
+
+  <!-- 금박 2중 테두리(240px 썸네일에서도 남도록 6px 이상) -->
+  <rect x="24" y="24" width="976" height="1488" rx="36" fill="none" stroke="url(#foil)" stroke-width="10"/>
+  <rect x="46" y="46" width="932" height="1444" rx="24" fill="none" stroke="url(#foil)" stroke-width="6"/>
+  <!-- 안쪽 금선과 그림 사이 어두운 키라인(밝은 그림 위에서도 금선이 그림에 묻히지 않게) -->
+  <rect x="51" y="51" width="922" height="1434" rx="20" fill="none" stroke="#0b1220" stroke-width="4"/>
+
+  <!-- 코너 장식: 초승달 + 별 메달, 가장자리를 따라 뻗는 덩굴 -->
+  <use href="#corner"/>
+  <use href="#corner" transform="translate(1024 0) scale(-1 1)"/>
+  <use href="#corner" transform="translate(0 1536) scale(1 -1)"/>
+  <use href="#corner" transform="translate(1024 1536) scale(-1 -1)"/>
+
+  <!-- 좌우 가운데 별 -->
+  <use href="#star4" transform="translate(35 768) scale(0.75)" fill="url(#foilV)"/>
+  <use href="#star4" transform="translate(989 768) scale(0.75)" fill="url(#foilV)"/>
+
+  <!-- 위쪽 번호 명패(고양이 귀 + 알약 한 경로, 불투명). 안은 비워 두고 런타임에 번호를 얹는다. 획 포함 y 37–147 로 위쪽 10% 안 -->
+  <g id="number-plate">
+    <path d="M 460 80.25 L 456 40 L 500 80 H 524 L 568 40 L 564 80.25 A 32 32 0 0 1 560 144 H 464 A 32 32 0 0 1 460 80.25 Z" fill="#0b1220" stroke="url(#foil)" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+
+  <!-- 아래쪽 이름 리본 명패. 안은 비워 두고 런타임에 카드 이름을 얹는다. 획 포함 y 1352–1459 로 아래쪽 14% 안 -->
+  <g id="name-plate">
+    <path d="M 172 1384 H 124 L 148 1411 L 124 1438 H 172 Z" fill="#101b2c" stroke="url(#foil)" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M 852 1384 H 900 L 876 1411 L 900 1438 H 852 Z" fill="#101b2c" stroke="url(#foil)" stroke-width="6" stroke-linejoin="round"/>
+    <rect x="172" y="1366" width="680" height="90" rx="18" fill="#0b1220" stroke="url(#foil)" stroke-width="6"/>
+    <use href="#star4" transform="translate(512 1366) scale(0.9)" fill="url(#foilV)"/>
+  </g>
+
+  <!-- 개발 참고용 안전 영역 가이드(기본 숨김). 번호 글자 상자 · 이름 글자 상자 · 그림 안전 영역 -->
+  <g id="guides" display="none" fill="none" stroke="#7fd1ff" stroke-dasharray="8 6" stroke-width="2">
+    <rect x="0" y="0" width="1024" height="154"/>
+    <rect x="0" y="1321" width="1024" height="215"/>
+    <rect x="456" y="90" width="112" height="44"/>
+    <rect x="196" y="1382" width="632" height="58"/>
+  </g>
+</svg>
