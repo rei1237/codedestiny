@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-29
+next: "순차 생성 main 전달 및 CI를 확인하고, 저장된 참치 10장 raw의 일간 반복 2곳과 발표 장면 재사용 2곳을 추가 과금 없이 분석한다. Phase 4 미완료, v7 OFF 유지."
+---
+
 # LLM 순차 생성 및 v7 Phase 4 부분 실측
 
 ## 상태와 승인 범위
@@ -30,7 +36,7 @@ Gemini 2.5 Flash의 `usageMetadata`를 저장했다. 아래 원가는 input $0.3
 | 광어 | 13/13 | 23 | 267.00원 | 5.34% | 1.77 |
 | 참치(미완성) | 9/24 | 18 | 192.86원 | 완료 원가 비율로 사용 금지 | 2.00 |
 
-- 총 유료 생성 53회, 총 계산 비용 601.24원. 품질 거절 23회 포함. 타임아웃 오류 0회, 시도 소요 최대 19.924초. 이는 이 표본의 결과이며 다른 서비스의 실운영 타임아웃 검증이 아니다.
+- 총 유료 생성 53회, 총 계산 비용 601.24원. 품질 거절 23회의 계산 비용 261.67원 포함. 타임아웃 오류 0회, 시도 소요 최대 19.924초. 이는 이 표본의 결과이며 다른 서비스의 실운영 타임아웃 검증이 아니다.
 - tokenizer 실패 시도 1회는 `networkCalls=0`, 즉 유료 generateContent를 호출하지 않았다. 처음 네트워크 허용 목록에서 tokenizer를 빠뜨린 로컬 guard 실패 역시 생성 요청 0회였다.
 - 입력/출력/thinking/cached: 연어 79,221/21,524/10,259/8,302; 광어 152,271/40,547/19,647/20,194; 참치 부분 결과 114,809/28,285/14,225/10,962.
 - 기존 추정 retryFactor=1.25보다 실제 연어·광어의 재생성률이 높았다. 10% 미만 원가만으로 품질 통과라고 판단하지 않는다.
@@ -72,14 +78,14 @@ node scripts/yeongnyangi-v7-golden.mjs --summary-only --out 'C:\Users\user\.code
 - 첫 `check:fast`는 기존 batch=4 가드 및 요청 횟수 fixture에서 실패했다. 수정 후 최종 `check:fast`와 main CI 결과는 아래 전달 기록/최종 응답을 따른다.
 - impeccable context는 기존 설정 drift를 알렸다. 요청 범위를 넓혀 설정을 바꾸지 않았다. 변경 progress 파일 detector에서 추가 결함은 보고되지 않았다. 시각적 브라우저 검증은 실행하지 않았다.
 
-## 남은 일
-
 ## 전달 기록
 
 - 구현 `3d6d87a36`, 골든 도구/부분 실측 `ce850f17e`, main 전달 merge `5d10f364a24074c75ce9278f2f1f8bdca4f21b13`은 `git push origin main` 완료.
 - 해당 main CI run `36471064225`에서 타입/lint와 Paid Flow Gates는 통과했으나 정적 node 테스트 1,848개 중 HD 동시성을 숫자 리터럴로 읽던 1개가 실패했다.
 - `9ad577f64`에서 그 테스트를 실제 공통 contract import로 바꾸고 `node --require ./scripts/lib/mock-network-guard.cjs --test __tests__/ui/human-design-report.static.test.js` 27/27 통과를 확인했다. 코드 정책을 완화하지 않았다.
 - 최종 전달 CI와 `check:fast` 상태는 최종 응답의 정확한 SHA 및 run 링크를 따른다. 위 초기 실패를 성공으로 표시하지 않는다.
+- 최종 로컬 Jest는 312스위트·4,542테스트 통과. node 1,848개는 수정 커밋 `2079aa3f3`의 CI에서 모두 통과했다. 그 뒤 날짜가 바뀐 사이트맵과 새 호출 inventory, 공개 미러 드리프트를 생성기로 갱신해 `dd07e9ca0d550ab65a9f6182cfc5548d469abf1b`까지 main push 완료. AI Locale Gate/Main drift watchdog/Secret Scan 통과, sitemap/mirror 로컬 가드도 통과했다.
+- `dd07e9ca0` CI run `36472895284`는 이 문서의 frontmatter 누락으로 중단됐다. 문서 계약만 수정해 후속 커밋에서 `verify:handoff-contract`를 재검증한다. 인수인계 문서는 실행 검증과 다른 상태를 나타내지 않는다.
 
 ## 다음 행동
 
