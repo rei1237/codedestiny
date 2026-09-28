@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-09-28
+next: 사주 수정 커밋 CI와 staging 검증을 완료한 뒤 실 LLM 1건의 별도 승인을 요청한다. 다른 네 상담은 미착수.
+---
+
 # 꿀꿀 운세 자체 상담 UX 인수인계
 
 ## 진행 규칙
@@ -25,6 +31,7 @@
 - 소스 기준 mock 무료 결과에서는 상담 카드가 이미 명식 바로 다음에 표시됐다. 접힌 메뉴에 숨었다고 단정하지 않는다. 핵심 문제는 작은 상품 소개 다음 긴 입력·선택 폼이 이어져 제공 내용을 먼저 이해하기 어렵다는 점이었다.
 - 개선 전: 무료 입력 → 명식 → 어두운 상담 폼(하드코딩 가격·태극 장식) → 질문·주제·개인정보·선택 보정 입력 → 생성 버튼.
 - 개선 후: 무료 입력 아래 유료 상담 예고 → 명식 → 실제 일간을 연결한 상담 소개·현재 가격·연이 그림 → 내용 확인 → AI 상담 설명·무료와의 차이·설명용 예시·출생정보 확인/수정·질문 → 기존 결제 선택 → 저장 상태 기반 진행 → 12챕터 결과/7개 읽기 흐름 → 기존 보관함.
+- 명식 카드 상단→상담 진입점 상단 거리(로컬 CSS px): 360px 폭 372→379, 390px 폭 387→394, 430px 폭 405→414, 1440px 폭 594→601. 전후 모두 접힌 조상 없음·추가 발견 클릭 0회. 스크롤 절감으로 보고하지 않으며, 소개 뒤 입력 열기 1회는 정보 분리의 의도된 단계다.
 - 소개와 입력을 details로 나누되 주 진입 버튼·상품명·가격은 접지 않는다. 결과·복구·보관함 버튼은 details 밖에 있다.
 - 생성 버튼이 기존 가격/권리 확인을 호출한다. 새 주문·결제 경로를 추가하지 않았다.
 
@@ -87,7 +94,7 @@
 
 - 사주 코드 단위 전달 준비. 다음 네 상담은 미착수.
 - 로컬 브라우저: 360·390·430·1440px, 무료 실제 계산→카드→입력, 키보드 진입, 출생 정보 수정 후 초안 유지, 시각 미상, 200% 글자 확대, 네오 모드, fixture 보관함 12챕터/7목차 통과. API는 전부 mock.
-- `npm run check:fast` 실행: critical 승격. 초기 가격 하드코딩 가드를 가격 저장소 계약으로 수정 후 해당 검사 통과. 재실행 도중 문구 정리로 미러 불일치가 발생했으며 sync:public 완료 후 `npm run verify:ai-consultation-flows` 전체 통과. 로컬 전체 게이트의 최종 상태는 후속 기록으로 남긴다.
+- `npm run check:fast` 실행: critical 승격. 초기 가격 하드코딩 가드를 가격 저장소 계약으로 수정 후 해당 검사 통과. 재실행 도중 문구 정리로 미러 불일치가 발생했으며 sync:public 완료 후 `npm run verify:ai-consultation-flows` 전체 통과. 추가 두 실패는 Windows CRLF를 고정 문자열 검사에서 다르게 읽은 경우였다. LF 정규화 후 해당 2검사 통과. 커밋 고정 재실행의 paid-gate-suite는 88/88 통과했으며 나머지 계획 검사는 후속 기록으로 남긴다.
 - `npm run verify:sitemap-drift`: 1,300 URL 일치. `git diff --check`: 통과. 사주 behavior 9/9 재통과.
 - 변경 정본: `index.html`, `js/saju-engine.js`, `styles/fortune-consultation.css`, `worker/lib/saju-ai-prompt.js`, `worker/routes/fortune.js`. 가격·주문·권리·인증·DB 스키마는 변경하지 않음.
 - 검증 변경: `__tests__/ui/saju-paid-delivery.behavior.test.js`, `scripts/verify-ai-prompt-billing-policy.mjs`, `scripts/verify-fortune-consultation-ux.mjs`. public 미러·캐시키·sitemap은 공식 생성기로 갱신.
@@ -102,3 +109,14 @@
 - 가격 근거: 2026-09-28 확인한 [Google Gemini 공식 가격](https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash), Standard 입력 $0.30/1M, 출력 $2.50/1M. 실행 직전 모델·가격·입력 계측을 재확인한다.
 - 필요한 이유: CLAUDE.md 절대 규칙 1: “과금 LLM 검증 금지. mock 기본, 실호출은 정확한 1회 승인 필요.” 사용자의 이번 계획도 새 실호출의 범위·예산 별도 승인을 명시했다. 구현/mock/main CI/staging 증거를 모두 확보한 뒤 승인 요청한다.
 - 승인 후 산출물: 익명화 전후 비교, 각 그룹의 usageMetadata(입력/출력/생각/캐시), 호출 지연, 전체 조립 시간, 저장 없는 오프라인 렌더 캡처. 실제 저장·재조회 운영 통계와 구분한다.
+
+
+### 생성 파일 정합 수정
+
+- 사주 구현 main 커밋: `2903cd057` (격리 원본 `6378a7ff2`).
+- 최초 [main CI](https://github.com/rei1237/codedestiny/actions/runs/36363250239)는 Typecheck/lint 및 Critical checks 통과 후 public 미러 신선도에서 실패했다. 새 CSS의 검색 제외 목록과 index-inline-runtime의 전이 캐시 참조 9파일을 생성기로 다시 맞췄다. 기능 우회나 검사 완화는 하지 않았다.
+- 수정 main 커밋: `b2b024c89` (격리 원본 `c48bf7da5`). `npm run verify:public-mirror-fresh`: 생성 후 변화 없음, 통과.
+- [수정 main CI](https://github.com/rei1237/codedestiny/actions/runs/36363850566) 및 스테이징 완료 증거는 아래 갱신한다.
+
+- `npm run check:fast -- --committed-head` 최종 exit 0. paid-gate-suite 88/88, Jest 309 suites / 4,512 tests 통과. 초기 실패의 수정 후 검사를 완료했다.
+- 수정 CI의 미러 검사는 통과. 인수인계 frontmatter 누락만 남아 템플릿의 status/updated/next를 추가했다. 문서 변경 외 제품 코드는 추가 수정하지 않았다.
