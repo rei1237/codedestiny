@@ -177,7 +177,7 @@ describe.each(["pass", "monthly", "single"])("%s saved paid report", (mode) => {
     const h = harness(mode); h.fault("short");
     expect((await h.post()).status).toBe(503);
     expect(h.record().status).toBe("generation_failed");
-    expect(h.calls).toHaveLength(2);
+    expect(h.calls).toHaveLength(1);
   });
   test("duplicate requests use one claim and reject another account or refunded proof", async () => {
     const h = harness(mode);
@@ -204,7 +204,7 @@ describe("length-only chapter recovery", () => {
     `${chapter.no}. ${chapter.title}\n` + Array.from({ length: paragraphs }, (_, i) =>
       `${chapter.no}장 ${i}번째 진로 직업 재물 관계 연애 건강의 선택을 명식과 연결해서 살펴보세요. 장면 ${chapter.no}-${i}는 생활 속에서 확인할 근거와 실행할 조언을 따로 정리합니다.`).join("\n")
   ).join("\n\n");
-  test.each(["shorter", "empty", "repeated", "grounding", "cross-repeat"])("a %s repair preserves the valid short draft", async kind => {
+  test.each(["shorter", "empty", "repeated", "grounding", "cross-repeat"])("a valid short draft needs no %s repair", async kind => {
     const h = harness();
     const group = prompt.SAJU_AI_SECTION_GROUPS[0];
     const draft = shortGroup(group);
@@ -222,13 +222,13 @@ describe("length-only chapter recovery", () => {
       repaired = groupBody(second) + "\n" + groupBody(group).split("\n").slice(1, 3).join("\n");
       h.ctx.callGeminiText.mockResolvedValueOnce({ ok: true, text: secondDraft }).mockResolvedValueOnce({ ok: true, text: repaired });
       expect((await h.post()).status).toBe(202);
-      expect(h.record().result.sections[1]).toMatchObject({ text: secondDraft, valid: true, lengthRepair: true });
+      expect(h.record().result.sections[1]).toMatchObject({ text: secondDraft, valid: true });
       return;
     }
     h.ctx.callGeminiText.mockResolvedValueOnce({ ok: true, text: repaired });
     expect((await h.post()).status).toBe(202);
-    expect(h.record().result.sections[0]).toMatchObject({ text: draft, valid: true, lengthRepair: true, attempts: 2 });
-    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(2);
+    expect(h.record().result.sections[0]).toMatchObject({ text: draft, valid: true, attempts: 1 });
+    expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(1);
   });
   test("a saved short draft stays partial when this request has no repair time left", async () => {
     const h = harness();
@@ -237,7 +237,7 @@ describe("length-only chapter recovery", () => {
     h.ctx.callGeminiText.mockResolvedValue({ ok: true, text: draft });
     expect((await h.post()).status).toBe(202);
     expect(h.record().status).toBe("partial");
-    expect(h.record().result.sections[0]).toMatchObject({ text: draft, valid: false, attempts: 2 });
+    expect(h.record().result.sections[0]).toMatchObject({ text: draft, valid: true, attempts: 1 });
     expect(h.ctx.refundSajuAIPromptMonthlyCredit).not.toHaveBeenCalled();
   });
   test("last reservation interruption revalidates saved drafts without another call", async () => {
@@ -249,7 +249,7 @@ describe("length-only chapter recovery", () => {
     expect((await h.post()).status).toBe(200);
     expect(h.ctx.callGeminiText).toHaveBeenCalledTimes(calls);
   });
-  test("short total exhausts the bounded repair budget, then completes without refund or further calls", async () => {
+  test("short total completes with one call per group and no refund", async () => {
     const h = harness();
     h.ctx.callGeminiText.mockImplementation(async (_env, text) => {
       const block = text.slice(text.indexOf("[이번에 쓸 챕터]"), text.indexOf("다음 챕터"));
@@ -267,7 +267,7 @@ describe("length-only chapter recovery", () => {
     expect(h.record().status).toBe("completed");
     expect(quality.countPaidReportBodyChars(completedData.resultText)).toBeLessThan(prompt.SAJU_AI_MIN_RESULT_CHARS);
     const calls = h.ctx.callGeminiText.mock.calls.length;
-    expect(calls).toBeLessThanOrEqual(prompt.SAJU_AI_SECTION_GROUPS.length * 4);
+    expect(calls).toBe(prompt.SAJU_AI_SECTION_GROUPS.length);
     const res = await h.post();
     expect(res.status).toBe(200);
     expect((await res.json()).saved).toBe(true);

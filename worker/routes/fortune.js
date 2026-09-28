@@ -607,7 +607,7 @@ function isSajuAISectionRowShort(row) {
  *
  * 제공자 오류는 그룹 결과로 반환한다. 체크포인트 저장 오류는 호출부로 전달해 환불과 분리한다.
  */
-async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false } = {}) {
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion, groups = SAJU_AI_SECTION_GROUPS, onSection = async (row) => row, onRepair = async () => {}, lengthRepair = false, allowRepair = true } = {}) {
   // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
   // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
   // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
@@ -621,6 +621,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         temperature: attempt > 0 ? 0.5 : 0.56,
         maxOutputTokens,
         timeoutMs,
+        maxProviderAttempts: 1,
         // 폴백 스텁이 20,000원 상품 결과로 전달되지 않도록 문턱을 건다. 전체가 아니라
         // 이 그룹 목표의 40% — CLAUDE.md 의 fallbackMinChars 관례를 그룹 단위로 적용한 것이다.
         fallbackMinChars: Math.round(group.minChars * 0.4),
@@ -675,7 +676,7 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
       const wave2TimeoutMs = deadlineAt - Date.now() >= SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS
         ? featureAiCallTimeoutMs(deadlineAt, SAJU_AI_SECTION_REPAIR_TIMEOUT_MS)
         : 0;
-      if (shortGroups.length && wave2TimeoutMs > 0) {
+      if (allowRepair && shortGroups.length && wave2TimeoutMs > 0) {
         console.warn("[SajuMyeongsikAI] section groups short", {
           requestId,
           promptVersion,
@@ -1072,8 +1073,7 @@ function buildSajuAIStatusPayload(record) {
     stepMessage: status === "completed" ? "결과 준비 완료" : progress.stepMessage,
     progressState: progress,
     retryable: ["failed", "partial", "delivery_pending"].includes(status) && stored?.order?.paymentStatus === "PAID"
-      && (status !== "partial" || (stored.sections || []).some(row => row.attempts < 4 && (!row.valid
-        || countSajuAIVisibleChars(extractSajuAIPersonaSummaries(row.text).resultText) < SAJU_AI_SECTION_GROUPS.find(group => group.key === row.key)?.targetMinChars))),
+      && (status !== "partial" || (stored.sections || []).some(row => row.attempts < 2 && !row.valid)),
     completedChapters: (stored.sections || []).filter((row) => row.valid).flatMap((row) => SAJU_AI_SECTION_GROUPS.find((group) => group.key === row.key)?.chapters.map((chapter) => chapter.no) || []),
     resultText: ["partial", "delivery_pending", "generating"].includes(status) ? partialResult.resultText : undefined,
     personaSummaries: ["partial", "delivery_pending", "generating"].includes(status) ? partialResult.personaSummaries : undefined,
@@ -4897,30 +4897,25 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     const promptVersion = builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION;
     const sections = SAJU_AI_SECTION_GROUPS.map((group) => {
       const saved = existingExecution?.result?.sections?.find((row) => row.key === group.key);
-      if (saved && !saved.qualityRepair && (saved.lengthRepair || saved.attempts >= 4))
+      if (saved && !saved.qualityRepair)
         saved.valid = validateSajuAISection(saved.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
       return saved || { key: group.key, text: "", valid: false, attempts: 0 };
     });
-    const totalShort = sections.every(row => row.valid)
-      && countSajuAIVisibleChars(sections.map(row => row.text).join("\n\n")) < SAJU_AI_MIN_RESULT_CHARS;
-    const next = sections.find((row) => !row.valid && row.attempts < 4)
-      || (totalShort && sections.find(row => row.attempts < 4
-        && countSajuAIVisibleChars(row.text) < SAJU_AI_SECTION_GROUPS.find(group => group.key === row.key).targetMinChars));
+    const next = sections.find((row) => !row.valid && row.attempts < 2);
     if (next) {
-      if (next.attempts >= 4) { const error = new Error("상담 챕터 생성 재시도 한도에 도달했습니다."); error.code = "LLM_GENERATION_RETRYABLE"; throw error; }
-      // Reserve both primary and repair before calling a provider. Interrupted calls consume this budget.
-      next.attempts += 2;
+      next.attempts += 1;
       await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
       const group = SAJU_AI_SECTION_GROUPS.find((item) => item.key === next.key);
       await runSajuAISectionWaves(env, {
         builtPrompt,
         systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
-        cache: { ...sajuLlmCache, skipRead: next.attempts > 2 || sajuLlmCache.skipRead },
+        cache: { ...sajuLlmCache, skipRead: next.attempts > 1 || sajuLlmCache.skipRead },
         deadlineAt: sajuDeadlineAt,
         requestId,
         promptVersion,
         groups: [group],
-        lengthRepair: Boolean(next.lengthRepair) || next.attempts >= 4,
+        lengthRepair: true,
+        allowRepair: false,
         onRepair: async () => {
           next.lengthRepair = true;
           next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
@@ -4941,7 +4936,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
             next.model = row.ai?.model; next.provider = row.ai?.provider;
             next.qualityRepair = false;
           }
-          next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: Boolean(next.lengthRepair) || next.attempts >= 4 });
+          next.valid = !next.qualityRepair && validateSajuAISection(next.text, group, builtPrompt.factSnapshot, { lengthRepair: true });
           await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections });
           return row;
         },

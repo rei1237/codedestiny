@@ -42,7 +42,7 @@ describe("tea checkpoint length recovery", () => {
     const h = teaHarness(teaState());
     expect(h.ctx.pickTeaCheckpointFields({ synthesis: value }, { paths: ["synthesis"] })).toBeNull();
   });
-  test.each(["shorter", "empty", "invalid", "repeated", "unsafe", "cross-repeat"])("%s repair keeps the saved valid draft", async kind => {
+  test.each(["shorter", "empty", "invalid", "repeated", "unsafe", "cross-repeat"])("saved valid draft does not request a %s repair", async kind => {
     const state = teaState(); state.groups[1].minChars = 20000;
     const before = clone(state.parts.a);
     const h = teaHarness(state);
@@ -55,16 +55,16 @@ describe("tea checkpoint length recovery", () => {
     });
     expect((await h.run()).result).toBeDefined();
     expect(state.parts.a).toEqual(before);
-    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(1);
+    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(0);
   });
   test("repair reservation survives interruption and does not repeat", async () => {
     const state = teaState(); state.groups[1].minChars = 20000;
     const h = teaHarness(state);
     h.ctx.generateFortuneTeaGroup.mockRejectedValueOnce(Error("interrupted"));
-    await expect(h.run()).rejects.toThrow("interrupted");
-    expect(state.attempts["a:lengthRepair"]).toBe(1);
     expect((await h.run()).result).toBeDefined();
-    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(1);
+    expect(state.attempts.a).toBe(1);
+    expect((await h.run()).result).toBeDefined();
+    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(0);
   });
   test("exhausted repair keys do not block completion after another group fills the total", async () => {
     const state = teaState(1000, 1000);
@@ -72,13 +72,14 @@ describe("tea checkpoint length recovery", () => {
     const h = teaHarness(state);
     h.ctx.generateFortuneTeaGroup.mockResolvedValue({ ok: true, parsed: { closingLine: prose("fixed", 20000) } });
     expect((await h.run()).result).toBeDefined();
-    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(1);
+    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(0);
   });
-  test("short total remains partial after the original budget is exhausted", async () => {
+  test("short total is delivered without spending the remaining budget", async () => {
     const state = teaState(500, 500); const h = teaHarness(state);
-    for (let i = 0; i < 4; i++) expect((await h.run()).partial).toBeDefined();
+    for (let i = 0; i < 4; i++) expect((await h.run()).result).toBeDefined();
     const calls = h.ctx.generateFortuneTeaGroup.mock.calls.length;
-    expect((await h.run()).partial.retryable).toBe(false);
+    expect((await h.run()).result).toBeDefined();
+    expect(calls).toBe(0);
     expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(calls);
     expect(state.parts.a).toBeDefined(); expect(state.parts.b).toBeDefined();
   });

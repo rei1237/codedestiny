@@ -4219,16 +4219,15 @@ async function saveTeaCheckpoint(auth, resultId, lockToken, state) {
     }
 }
 function teaCheckpointProgress(state, resultId) {
-    return { ok: true, status: 'generating', retryable: state.groups.some(group => (!state.parts[group.key] || state.repairs?.includes(group.key)
-        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars && !state.attempts[group.key + ':lengthRepair'])) && (state.attempts[group.key] || 0) < 3), resultId,
+    return { ok: true, status: 'generating', retryable: state.groups.some(group => (!state.parts[group.key] || state.repairs?.includes(group.key)) && (state.attempts[group.key] || 0) < 2), resultId,
         completedSections: state.groups.filter(group => state.parts[group.key]).map(group => ({ key: group.key, title: group.label, body: teaNarrativeText(state.parts[group.key]) })), totalSections: state.groups.length,
         message: '정상 생성한 부분을 저장했어요. 같은 요청으로 나머지를 이어서 작성합니다.' };
 }
 async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, lockToken, checkpoint, body }) {
     const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko',
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
-    const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)
-        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars && !state.attempts[group.key + ':lengthRepair'])) && (state.attempts[group.key] || 0) < 3).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    if (state.qualityError === 'report body length' || /quality failed: (?:saju|tarot|sukuyo) length /.test(state.qualityError || '')) state.repairs = [];
+    const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)) && (state.attempts[group.key] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     if (eligible.length && !hasGeminiKey(env)) {
         return { partial: { ...teaCheckpointProgress(state, resultId), reason: 'LLM_UNAVAILABLE' } };
     }
@@ -4279,19 +4278,14 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
     const rejected = outcomes.find(outcome => outcome.status === 'rejected');
     if (rejected)
         throw rejected.reason;
-    if (state.groups.some(group => !state.parts[group.key]
-        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars
-            && !state.attempts[group.key + ':lengthRepair'] && state.attempts[group.key] < 3)))
+    if (state.groups.some(group => !state.parts[group.key]))
         return { partial: teaCheckpointProgress(state, resultId) };
     let result = state.fallback;
     for (const group of state.groups)
         result = mergeLlmResult(result, state.parts[group.key], { lengthRepair: true });
     try {
-        assertConsultQuality(result, state.fallback, { lengthRepair: true });
-        // Only provider-written narrative contributes to the new detailed-report floor.
+        assertConsultQuality(result, state.fallback, { lengthRepair: true, contentOnly: true });
         const bodyText = state.groups.map(group => teaNarrativeText(state.parts[group.key])).join('\n');
-        if (countPaidReportBodyChars(bodyText) < 20000)
-            throw Error('report body length');
         if (hasRepeatedReportPassage(bodyText))
             throw Error('repeated narrative across sections');
     }

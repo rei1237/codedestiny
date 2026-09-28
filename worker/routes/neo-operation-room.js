@@ -1694,14 +1694,10 @@ async function handleStart(request, env, ctx = null) {
     }
     const sections = doc.methodSummary?.compat ? neoCompatInitialSections(normalized.input.selectedMethod) : NEO_INITIAL_SECTIONS;
     const accepted = section => neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary,
-      Boolean(doc.llmMeta.attempts?.[`${section.id}:lengthRepair`] || Number(doc.llmMeta.attempts?.[section.id] || 0) >= 3));
+      true);
     const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoInitialSections(row ? [row] : [], normalized.input, { ...doc.methodSummary, evidenceSummary: "", summary: "" })));
     const missing = sections.filter(section => !accepted(section));
-    if (!missing.length && countPaidReportBodyChars(neoBody(mergeNeoInitialSections(Object.values(doc.llmMeta.sections || {}), normalized.input, doc.methodSummary))) < 20000) {
-      missing.push(...sections.filter(section => Number(doc.llmMeta.attempts?.[section.id] || 0) < 3
-        && sectionChars(doc.llmMeta.sections[section.id]) < Math.ceil(section.minChars / 0.8)));
-    }
-    if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...doc.llmMeta.attempts };
@@ -1733,8 +1729,8 @@ async function handleStart(request, env, ctx = null) {
     }
     const allRows = Object.values(doc.llmMeta.sections || {});
     const briefing = mergeNeoInitialSections(allRows, normalized.input, doc.methodSummary);
-    if (sections.some(section => !accepted(section)) || countPaidReportBodyChars(neoBody(briefing)) < 20000) return pendingNeo(doc);
-    if (countPaidReportBodyChars(neoBody(briefing)) < 20000 || hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (sections.some(section => !accepted(section))) return pendingNeo(doc);
+    if (hasRepeatedReportPassage(neoBody(briefing))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (doc.status !== "delivery_pending") doc = await saveNeoDelivery(filter, { status: "delivery_pending", initialBriefing: briefing,
       messages: [{ role: "user", content: normalized.input.question, createdAt: new Date() }, { role: "assistant", content: JSON.stringify(briefing), createdAt: new Date() }] }, sessionId);
     try { access = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized, pricing, idempotencyKey }); }
@@ -1861,16 +1857,10 @@ async function handleRefine(request, env) {
     const previous = doc.llmMeta.refinement;
     const state = previous?.answerHash === normalized.realityCheck.answerHash ? previous : { answerHash: normalized.realityCheck.answerHash, realityCheck: normalized.realityCheck, sections: {}, attempts: {} };
     const accepted = (section, current) => neoRefinedSectionReady(section, current.sections[section.id], doc,
-      Boolean(current.attempts[`${section.id}:lengthRepair`] || Number(current.attempts[section.id] || 0) >= 3));
+      true);
     const sectionChars = row => countPaidReportBodyChars(neoBody(mergeNeoRefinedSections(row ? [row] : [], doc)));
-    const totalChars = current => countPaidReportBodyChars(neoBody(mergeNeoRefinedSections(Object.values(current.sections), doc)));
-    const minTotalChars = NEO_REFINED_SECTIONS.reduce((sum, section) => sum + section.minChars, 0);
     const missing = NEO_REFINED_SECTIONS.filter(section => !accepted(section, state));
-    if (!missing.length && totalChars(state) < minTotalChars) {
-      missing.push(...NEO_REFINED_SECTIONS.filter(section => Number(state.attempts[section.id] || 0) < 3
-        && sectionChars(state.sections[section.id]) < Math.ceil(section.minChars / 0.8)));
-    }
-    if (missing.some(section => Number(state.attempts[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
+    if (missing.some(section => Number(state.attempts[section.id] || 0) >= 2)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
       const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...state.attempts };
@@ -1899,7 +1889,7 @@ async function handleRefine(request, env) {
       const failure = outcomes.find(result => result.status === "rejected");
       if (failure) throw failure.reason;
     }
-    if (NEO_REFINED_SECTIONS.some(section => !accepted(section, doc.llmMeta.refinement)) || totalChars(doc.llmMeta.refinement) < minTotalChars) return pendingNeoRefinement(doc);
+    if (NEO_REFINED_SECTIONS.some(section => !accepted(section, doc.llmMeta.refinement))) return pendingNeoRefinement(doc);
     const refinedOrder = mergeNeoRefinedSections(Object.values(doc.llmMeta.refinement.sections), doc);
     let freshAccess;
     try { freshAccess = await resolveStartAccess({ request, env, auth, body: resumeBody, normalized: { inputHash: doc.inputHash }, pricing: getPricing(), idempotencyKey: doc.idempotencyKey }); }

@@ -127,7 +127,7 @@ for(const status of ['delivery_pending','completed']) for(const kind of ['null',
 });
 for(const store of [0,1,2,3]) it(`revoked store ${store} rejects resume`,async()=>{await start();blocked=store;const count=provider.mock.calls.length;expect((await start()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(count)});
 it('bookkeeping failure does not hide completed delivery',async()=>{usage.mockImplementation(()=>{throw new Error('ledger unavailable')});for(let i=0;i<3;i++)await start();expect((await start()).status).toBe(200);expect(docs[0].status).toBe('completed')});
-it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<3;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled()});
+it('short generation has a cumulative limit and no completion reward',async()=>{provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));for(let i=0;i<2;i++)expect((await start()).status).toBe(202);expect((await start()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled()});
 it('lease and ownership prevent concurrent and cross-account calls',async()=>{await start();const count=provider.mock.calls.length;docs[0].llmMeta.lockToken='other';docs[0].llmMeta.lockedAt=new Date();expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(count);userId='other';expect((await start()).status).toBe(404);userId=uid;docs[0].llmMeta.lockedAt=new Date(Date.now()-121000);expect((await start()).status).toBe(202);expect(provider).toHaveBeenCalledTimes(count+4)});
 it('checkpoint null keeps successful siblings',async()=>{fault={chapterCount:2,kind:'null'};expect((await start()).status).toBe(503);expect(Object.keys(docs[0].llmMeta.sections)).toHaveLength(3);expect(refund).not.toHaveBeenCalled();expect((await start()).status).toBe(202)});
 it('apply response loss resumes the saved result without another generation',async()=>{for(let i=0;i<3;i++)await start();fault={kind:'usage'};expect((await start()).status).toBe(503);expect(docs[0].status).toBe('delivery_pending');expect(refund).not.toHaveBeenCalled();const count=provider.mock.calls.length;expect((await start()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(count)});
@@ -138,7 +138,7 @@ it('overlapping requests acquire only one generation lease',async()=>{let releas
 
 async function refine(extra) { return route(new Request('https://mock.test/api/neo-operation-room/refine',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(extra || {sessionId:docs[0].id})}),{}); }
 async function initialComplete() { for(let i=0;i<4;i++) await start(); expect(docs[0].status).toBe('completed'); }
-for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short initial draft after ${repair} repair`, async () => {
+for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short initial draft without ${repair} repair`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0, draft;
   provider.mockImplementation(async (...args) => {
     if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
@@ -151,32 +151,33 @@ for (const repair of ['shorter', 'empty', 'repeated']) it(`preserves the short i
   });
   await start(); expect(docs[0].llmMeta.sections[section.id]?.parsed).toEqual(draft);
   for (let i = 0; i < 7 && docs[0].status !== 'completed'; i++) await start();
-  expect(docs[0].status).toBe('completed'); expect(tries).toBe(2);
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(1);
   expect(docs[0].llmMeta.sections[section.id].parsed).toEqual(draft);
-  expect(docs[0].llmMeta.attempts[`${section.id}:lengthRepair`]).toBe(1);
+  expect(docs[0].llmMeta.attempts[section.id]).toBe(1);
 });
-it('does not consume or regenerate after total shortfall exhausts the section budget', async () => {
+it('delivers all usable short sections without further generation', async () => {
   provider.mockImplementation(async (_env, prompt) => {
     const section = definitions.find(row => prompt.includes(`제목: ${row.title}\n`));
     return { ok: true, provider: 'gemini', text: JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
   });
-  for (let i = 0; i < 18; i++) expect((await start()).status).toBe(202);
-  expect(provider).toHaveBeenCalledTimes(definitions.length * 3);
-  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+  for (let i = 0; i < 3; i++) expect((await start()).status).toBe(202);
+  expect((await start()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(definitions.length);
+  expect(usage).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled();
 });
 for (const stage of ['reserved', 'last']) it(`initial short draft respects the ${stage} attempt`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
   provider.mockImplementation(async (...args) => {
     if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
     tries++;
-    return { ok: true, provider: 'gemini', text: stage === 'last' && tries < 3 ? '{}' : JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
+    return { ok: true, provider: 'gemini', text: stage === 'last' && tries < 2 ? '{}' : JSON.stringify(fixture({ ...section, minChars: section.minChars * 0.45 })) };
   });
   await start();
   if (stage === 'reserved') { docs[0].llmMeta.attempts[section.id] = 2; docs[0].llmMeta.attempts[`${section.id}:lengthRepair`] = 1; }
   for (let i = 0; i < 7 && docs[0].status !== 'completed'; i++) await start();
-  expect(docs[0].status).toBe('completed'); expect(tries).toBe(stage === 'last' ? 3 : 1);
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(stage === 'last' ? 2 : 1);
 });
-it('refinement preserves a shorter valid draft while retaining its existing total floor', async () => {
+it('refinement delivers a valid short draft without a length repair', async () => {
   await initialComplete(); const section = refinedDefinitions[0]; const normal = provider.getMockImplementation(); let tries = 0, draft;
   provider.mockImplementation(async (...args) => {
     if (!args[1].includes(`제목: ${section.title}\n`)) return normal(...args);
@@ -186,11 +187,11 @@ it('refinement preserves a shorter valid draft while retaining its existing tota
   });
   await refine({ sessionId: docs[0].id, freeform: '작은 선택부터 바꾸겠습니다.' });
   for (let i = 0; i < 5 && docs[0].refinementStatus !== 'completed'; i++) await refine();
-  expect(docs[0].refinementStatus).toBe('completed'); expect(tries).toBe(2);
+  expect(docs[0].refinementStatus).toBe('completed'); expect(tries).toBe(1);
   expect(docs[0].llmMeta.refinement.sections[section.id].parsed).toEqual(draft);
   expect(usage).toHaveBeenCalledTimes(1);
 });
 it('refinement saves four sections per request and reuses the same answer',async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);expect((await refine({sessionId:docs[0].id,freeform:'이제 작은 선택부터 바꿔보겠습니다.'})).status).toBe(202);expect(Object.keys(docs[0].llmMeta.refinement.sections)).toHaveLength(4);const response=await refine();expect(await response.clone().json()).toMatchObject({refinementStatus:'completed'});expect(response.status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(docs[0].initialBriefing).toEqual(initial);expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(22);expect(usage).toHaveBeenCalledTimes(1)});
 for(const kind of ['null','throw','confirm']) it(`refinement final ${kind} preserves the initial report and saved sections`,async()=>{await initialComplete();const initial=structuredClone(docs[0].initialBriefing);await refine({sessionId:docs[0].id,freeform:'우선 작은 선택을 바꾸겠습니다.'});fault={refinementStatus:'completed',kind};const response=await refine();expect(response.status).toBe(503);expect(await response.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE',retryable:true});expect(docs[0].status).toBe('completed');expect(docs[0].initialBriefing).toEqual(initial);const calls=provider.mock.calls.length;expect((await refine()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(refund).not.toHaveBeenCalled();expect(docs[0].versionHistory).toHaveLength(1)});
-it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<2;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(26);expect(refund).not.toHaveBeenCalled()});
+it('refinement short output is bounded and never changes completed initial delivery',async()=>{await initialComplete();provider.mockImplementation(async()=>({ok:true,text:'{"short":"empty"}'}));expect((await refine({sessionId:docs[0].id,freeform:'작게 바꾸겠습니다.'})).status).toBe(202);for(let i=0;i<1;i++)expect((await refine()).status).toBe(202);expect((await refine()).status).toBe(503);expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('generation_failed');expect(provider).toHaveBeenCalledTimes(22);expect(refund).not.toHaveBeenCalled()});
 it('refinement lease, owner and revoked proof block extra provider calls',async()=>{await initialComplete();await refine({sessionId:docs[0].id,freeform:'작은 선택부터 바꿉니다.'});const calls=provider.mock.calls.length;docs[0].llmMeta.refineLockedAt=new Date();docs[0].llmMeta.refineLockToken='other';expect((await refine()).status).toBe(202);userId='other';expect((await refine()).status).toBe(404);userId=uid;blocked=0;expect((await refine()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(calls)});
