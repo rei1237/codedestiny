@@ -108,15 +108,15 @@ test('original locale survives a differently localized resume request',async()=>
  await runWithAiLocale('en',()=>start());await runWithAiLocale('ko',()=>resume());await runWithAiLocale('ja',()=>resume());
  expect(docs[0].premiumStatus).toBe('completed');expect(locales).toEqual(Array(12).fill('en'));
 });
-test.each(['fact','repeat'])('%s failure preserves the other cards and repairs only the invalid card',async kind=>{
+test.each(['fact','repeat'])('%s metadata is repaired locally while unusable repeated content gets one retry',async kind=>{
  const base=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{
   const ai=await base(...args),value=JSON.parse(ai.text);
   if(kind==='fact')value.evidence.planetId='invented';
   if(kind==='repeat')value.archetypeReading=prose('same','same',1).repeat(15);
   return {...ai,text:JSON.stringify(value)};
  });
- await start();expect(Object.keys(docs[0].metadata.celestialDelivery.delivery.parts)).toEqual(['1','2','3']);
- await resume();await resume();await resume();expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(13);
+ await start();expect(Object.keys(docs[0].metadata.celestialDelivery.delivery.parts)).toEqual(kind==='fact'?['0','1','2','3']:['1','2','3']);
+ await resume();await resume();await resume();expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(kind==='fact'?12:13);
 });
 test('historical completed archives reopen without a new length gate or provider call',async()=>{
  docs.push({userId:user,executionKey:'legacy-execution',reportType:'celestialHarmony',featureKey:'tarot-celestial-harmony',reportId:body.reportId,status:'success',premiumStatus:'completed',metadata:{result:{summary:{overallTheme:'historical short report'},cards:body.cards,payment:{reportId:body.reportId}}}});

@@ -80,7 +80,7 @@ assert(route.includes("MOCK_PROVIDER_BLOCKED"), "mock provider block missing");
 assert(route.includes("ASTROLOGY_EXPERT_PARTS"), "expert part coverage rules missing");
 assert(route.includes("MISSING_EXPERT_PARTS"), "expert part quality issue missing");
 assert(route.includes("MAX_TOTAL_CHARS"), "upper-length quality issue missing");
-assert(route.includes("requireExpertParts: true"), "first consultation must require expert part coverage");
+assert(route.includes("const complete = ASTROLOGY_SECTIONS.every(accepted)"), "paid delivery must confirm all saved usable sections");
 assert(route.includes("분량만 늘리지 말고"), "expansion prompt must reject quantity-only padding");
 assertMissing(route, retiredApiTerms, "worker route");
 

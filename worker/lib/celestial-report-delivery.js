@@ -1,3 +1,4 @@
+import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiText } from "./gemini.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
@@ -16,7 +17,7 @@ const accepted = (delivery, id) => Boolean(delivery.parts?.[id]);
 function pendingParts(delivery) {
   return PART_IDS.filter(id => !accepted(delivery, id) && (delivery.attempts?.[id] || 0) < 2);
 }
-const parse = raw => { try { const value = String(raw || ""); return JSON.parse(value.slice(value.indexOf("{"), value.lastIndexOf("}") + 1)); } catch { return null; } };
+const parse = raw => { try { const value = String(raw || ""); return JSON.parse(value.slice(value.indexOf("{"), value.lastIndexOf("}") + 1)); } catch { return salvageTruncatedJsonObject(String(raw || "")); } };
 const boundedSetting = (value, fallback, min, max) => {
   const number = Number(value);
   return value !== undefined && value !== "" && Number.isFinite(number) ? Math.min(max, Math.max(min, number)) : fallback;
@@ -27,14 +28,12 @@ export function celestialDeliveryComplete(delivery) {
 }
 
 function validateCard(value, card) {
-  if (!value || value.evidence?.planetId !== card.planetId || value.evidence?.cardNameKo !== card.cardNameKo || value.evidence?.orientation !== card.orientation) return null;
-  if (!CARD_FIELDS.every(field=>present(value[field]))) return null;
+  if (!value || countPaidReportBodyChars(CARD_FIELDS.map(field => typeof value[field] === "string" ? value[field] : "").join("\n")) < 120) return null;
   // evidence는 프롬프트가 실어 보낸 값이라 그대로 되돌려주기만 해도 통과한다.
   // 저장되는 본문이 실제로 뽑힌 카드와 행성을 말하는지 계산값과 직접 대조한다.
-  const anchors = [card.cardNameKo, card.planetKo].map(anchor=>String(anchor||"").trim());
   const body = CELESTIAL_CARD_BODY_FIELDS.map(field=>String(value[field])).join("\n");
-  if (!anchors.every(anchor=>anchor && body.includes(anchor))) return null;
-  return {part:Object.fromEntries(CARD_FIELDS.map(field=>[field,value[field]])),
+  if (value.evidence?.cardNameKo && value.evidence.cardNameKo !== card.cardNameKo && !body.includes(card.cardNameKo)) return null;
+  return {part:Object.fromEntries(CARD_FIELDS.map(field=>[field,typeof value[field] === "string" ? value[field] : ""])),
     short:!CARD_FIELDS.every(field=>enough(value[field], CELESTIAL_CARD_BODY_FIELDS.includes(field) ? 500 : 40))};
 }
 function validateSummary(value) {
@@ -42,7 +41,10 @@ function validateSummary(value) {
   const fields = floor => SUMMARY_FIELDS.every(field=>floor(value[field],field === "overallTheme" ? 1000 : field === "finalOracle" ? 250 : 60))
     && DOMAINS.every(field=>floor(value.insightMatrix?.[field],60) && floor(value.closingFortune?.[field],60)) && floor(value.closingFortune?.overall,250)
     && lists.every(field=>value[field].every(item=>floor(item,20)));
-  if (!value || !lists.every(field=>Array.isArray(value[field]) && value[field].length >= 3) || !fields(present)) return null;
+  if (!value || countPaidReportBodyChars(SUMMARY_FIELDS.map(field => typeof value[field] === 'string' ? value[field] : '').join('\n')) < 120) return null;
+  value = { ...value, ...Object.fromEntries(SUMMARY_FIELDS.map(field => [field, typeof value[field] === 'string' ? value[field] : ''])),
+    insightMatrix: value.insightMatrix || {}, closingFortune: value.closingFortune || {},
+    ...Object.fromEntries(lists.map(field => [field, Array.isArray(value[field]) ? value[field].filter(item => typeof item === 'string') : []])) };
   return {part:Object.fromEntries([...SUMMARY_FIELDS,"insightMatrix","closingFortune",...lists].map(field=>[field,value[field]])), short:!fields(enough)};
 }
 
@@ -77,10 +79,11 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
         maxOutputTokens:boundedSetting(env?.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000,8000,11000),fallbackToWorkersAI:false,logContext:{sectionGroup:id},
       }));
     } catch { return; }
-    const value=ai?.ok && ai.truncated!==true && !/mock/i.test(ai.provider||"") ? parse(ai.text) : null;
+    const value=ai?.ok && !/mock/i.test(ai.provider||"") ? parse(ai.text) : null;
     const checked=card ? validateCard(value,card) : validateSummary(value);
     const part=checked?.part;
     const save=async()=>{
+      delivery.rawResponses = { ...delivery.rawResponses, [id]: ai?.rawText || ai?.text || "" };
       // The repeat check excludes this part's own draft, which a repair preserves.
       const others=Object.fromEntries(Object.entries(delivery.parts).filter(([key])=>key!==id));
       if (!part || hasRepeatedReportPassage(strings(part)) || hasRepeatedReportPassage(strings(others)+"\n"+strings(part))) {

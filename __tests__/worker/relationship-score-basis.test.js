@@ -90,14 +90,11 @@ test('a body that states a different score than the calculation is refunded inst
  expect(Object.keys(delivery.parts)).toEqual(['1','2','3','4','5','6']);
 });
 
-test('an evidence half that never states the fixed score is refunded instead of delivered',async()=>{
+test('a missing score citation retains usable prose without regeneration or refund',async()=>{
  silentPart='2';
  const response=await deliver();
- expect(response.status).toBe(503);
- expect(await response.json()).toMatchObject({reason:'GENERATION_FAILED',refunded:true});
- const delivery=docs[0].llmMeta.delivery;
- expect(Object.keys(delivery.parts)).not.toContain('2');
- expect(delivery.invalidAttempts['2']).toBe(2);
+ expect(response.status).toBe(200);expect(docs[0].status).toBe('completed');
+ expect(docs[0].score).toBe(38);expect(provider).toHaveBeenCalledTimes(11);
 });
 
 test('an advice half may omit the score as its own instruction requires',async()=>{

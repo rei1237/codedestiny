@@ -1,3 +1,4 @@
+import { recoverClippedLlmResponse } from './llm-local-recovery.js';
 import {
   callLLM,
   createGeminiContextCache as createLLMContextCache,
@@ -160,7 +161,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       return tooShort;
     }
 
-    return {
+    return recoverClippedLlmResponse({
       ok: true,
       text: result.text,
       model: result.model,
@@ -168,7 +169,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       isMock: result.isMock === true,
       truncated: result.truncated === true,
       finishReason: clean(result.finishReason, 40),
-    };
+    });
   } catch (error) {
     return toFailure(error);
   }

@@ -41,6 +41,8 @@ export { INTENT_PRODUCTS as PAID_INTENT_PRODUCTS };
 
 // Server-resumable products that stay out, and why. They keep 1A browser resume.
 export const PAID_INTENT_EXCLUSIONS = Object.freeze({
+  "karma-destiny-ai-consultation": "follow-up reuses the original paid report; it has no new checkout intent",
+  "love-secret-ai-consultation": "follow-up reuses the original paid report; it has no new checkout intent",
   astrology_ai_prompt_generator: "seed calls the route's prepare(); refund is bound to the route's own payment proof",
   ziwei_ai_prompt_generator: "seed calls the route's prepare(); refund is bound to the route's own payment proof",
   sukuyo_ai_prompt_generator: "seed calls the route's prepare(); refund is bound to the route's own payment proof",

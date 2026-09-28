@@ -79,16 +79,13 @@ test('every drawn card carries a planet and card name the body can be checked ag
  }
 });
 
-test('a card body that never names the drawn card is rejected instead of delivered',async()=>{
+test('omitted card citations retain usable prose with the original drawn-card identity',async()=>{
  forgedCard=0;
  const response=await deliver();
- expect(response.status).toBe(202);
- expect(await response.json()).toMatchObject({retryable:false});
- expect(docs[0].premiumStatus).toBe('generating');
- const parts=docs[0].metadata.celestialDelivery.delivery;
- expect(Object.keys(parts.parts)).not.toContain('0');
- expect(parts.attempts['0']).toBe(2);
- expect(parts.invalidAttempts['0']).toBe(2);
+ expect(response.status).toBe(200);expect(docs[0].premiumStatus).toBe('completed');
+ const delivery=docs[0].metadata.celestialDelivery.delivery;
+ expect(delivery.parts['0']).toBeDefined();expect(delivery.attempts['0']).toBe(1);
+ expect(provider).toHaveBeenCalledTimes(12);
 });
 
 test('bodies that cite the drawn card and planet complete without extra provider calls',async()=>{

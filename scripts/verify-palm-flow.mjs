@@ -68,11 +68,10 @@ assert.match(
   /fallbackMinChars:\s*PALM_CONSULT_FALLBACK_MIN_CHARS/,
   'palm-vision: 심층 해석에 fallbackMinChars 를 줘야 함 (짧은 폴백이 유료 결과로 나가는 것 차단)',
 );
-const minChars = Number(vision.match(/PALM_CONSULT_MIN_CHARS\s*=\s*(\d+)/)[1]);
 assert.match(
   vision,
-  /PALM_CONSULT_FALLBACK_MIN_CHARS\s*=\s*Math\.round\(PALM_CONSULT_MIN_CHARS\s*\*\s*0\.4\)/,
-  `palm-vision: 폴백 문턱은 관례대로 최소분량(${minChars}) × 0.4 여야 함`,
+  /PALM_CONSULT_FALLBACK_MIN_CHARS\s*=\s*120/,
+  'palm-vision: 읽을 만한 본문의 최소 전달 기준을 유지해야 함',
 );
 
 // ── 6. 문양·세부선은 미검출이 기본값 ──

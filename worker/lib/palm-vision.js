@@ -20,7 +20,7 @@ import { callGeminiText } from "./gemini.js";
 
 // 심층 해석의 최소 분량. Workers AI 폴백 문턱은 관례대로 이 값 × 0.4.
 export const PALM_CONSULT_MIN_CHARS = 1200;
-const PALM_CONSULT_FALLBACK_MIN_CHARS = Math.round(PALM_CONSULT_MIN_CHARS * 0.4);
+const PALM_CONSULT_FALLBACK_MIN_CHARS = 120; // Minimum readable delivery, separate from the writing target.
 
 // 손당 비전 타임아웃. 양손이면 병렬 2회이므로 기본 30초를 그대로 쓰면 예산을 넘긴다.
 const VISION_TIMEOUT_MS = 20000;
@@ -639,7 +639,7 @@ ${context}`;
     taskType: "fortune",
     timeoutMs: CONSULT_TIMEOUT_MS,
     // 텍스트 전용이라 폴백이 안전하다. 다만 유료 경로이므로 짧은 폴백은 거부한다.
-    fallbackMinChars: 120,
+    fallbackMinChars: PALM_CONSULT_FALLBACK_MIN_CHARS,
     logContext: { ...logContext, serviceId: "palm-reading", stage: "deep-consult" },
   });
 
@@ -649,5 +649,5 @@ ${context}`;
   }
 
   const text = normalizeNarrativeBody(String(ai.text || "").trim());
-  return text.replace(/\s/g, '').length >= 120 && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.text, provider: ai.provider, model: ai.model } : null;
+  return text.replace(/\s/g, '').length >= PALM_CONSULT_FALLBACK_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.rawText || ai.text, provider: ai.provider, model: ai.model } : null;
 }

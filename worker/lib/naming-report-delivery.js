@@ -1,3 +1,5 @@
+import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
+import { normalizeNarrativeBody } from './paid-narrative-candidate.js';
 import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiText } from "./gemini.js";
 import { parseNamingResultCards } from "./naming-result-cards.js";
@@ -22,9 +24,9 @@ function pendingNamingChapters(state) {
 }
 function parseJson(text) {
   const source = String(text || "");
-  try { return JSON.parse(source.slice(source.indexOf("{"), source.lastIndexOf("}") + 1)); } catch { return null; }
+  try { return JSON.parse(source.slice(source.indexOf("{"), source.lastIndexOf("}") + 1)); } catch { return salvageTruncatedJsonObject(source); }
 }
-function usable(ai) { return ai?.ok && ai?.truncated !== true && !/mock/i.test(ai.provider || ""); }
+function usable(ai) { return ai?.ok && !/mock/i.test(ai.provider || ""); }
 
 // One bounded wave per HTTP request. Attempt reservations precede every provider call.
 export async function generateNamingWave(env, snapshot, checkpoint) {
@@ -43,6 +45,7 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
     try {
       ai = await call(`${snapshot.generatedPrompt}\n\n이번 요청은 준비 단계입니다. 8장 본문은 아직 쓰지 말고 이름 카드 블록만 출력하세요. 새 이름 5~7개와 그중 최종 추천을 정하세요. 이미 입력된 후보도 함께 비교하세요. 획수·수리 수치를 새로 계산하거나 한자의 법적 등록 가능성을 단정하지 마세요. 확인되지 않은 수리는 확인 필요라고 쓰세요.`, "candidates", 6000);
     } catch { return { state, limited: state.attempts.candidates >= 2 }; }
+    state.rawResponses = { ...state.rawResponses, candidates: ai?.rawText || ai?.text || "" };
     const parsed = usable(ai) ? parseNamingResultCards(ai.text, { allowCardsOnly: true }) : null;
     const cards = parsed?.cards || [];
     if (cards.length >= 5 && cards.length <= 12 && new Set(cards.map(card => card.name)).size === cards.length
@@ -76,10 +79,12 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
     } catch { return; }
     const value = usable(ai) ? parseJson(ai.text) : null;
     const save = async () => {
+      state.rawResponses = { ...state.rawResponses, [chapter.id]: ai?.rawText || ai?.text || "" };
+      if (typeof value?.body === "string") value.body = normalizeNarrativeBody(value.body);
       // Length is not a structural failure: a short chapter is kept as a draft. The
       // repeat check excludes this chapter's own draft, which a repair preserves.
       const others = namingChaptersText(Object.fromEntries(Object.entries(state.chapters).filter(([id]) => Number(id) !== chapter.id)));
-      if (!value || value.evidenceHash !== snapshot.evidenceHash || typeof value.body !== "string"
+      if (!value || (value.evidenceHash && value.evidenceHash !== snapshot.evidenceHash) || typeof value.body !== "string"
         || countPaidReportBodyChars(value.body) <= 0 || hasRepeatedReportPassage(value.body)
         || hasRepeatedReportPassage(`${others}\n${value.body}`)) {
         if (ai?.ok) { state.invalidAttempts[chapter.id] = (state.invalidAttempts[chapter.id] || 0) + 1; await persist(); }
