@@ -10,7 +10,7 @@ import {
 } from "./workers-ai-input-token-limit.mjs";
 
 export interface LLMRequest {
-  /** A durable caller-owned retry budget can opt out of nested provider retries. */
+  /** Total generation attempts across Gemini, cache recovery and Workers AI. */
   maxProviderAttempts?: number;
   prompt: string;
   systemPrompt?: string;
@@ -984,10 +984,17 @@ function isWorkersAiEnabled(env?: CloudflareEnv): boolean {
   return raw !== "0" && raw !== "false" && raw !== "off";
 }
 
+type GenerationBudget = { remaining: number };
+function spendGenerationAttempt(budget: GenerationBudget) {
+  if (budget.remaining <= 0) throw Object.assign(new Error("LLM generation attempt budget exhausted."), { code: "LLM_ATTEMPT_LIMIT" });
+  budget.remaining -= 1;
+}
+
 async function callCloudflareWorkersAI(
   request: LLMRequest,
   env?: CloudflareEnv,
   deadlineAt?: number,
+  budget: GenerationBudget = { remaining: 2 },
 ): Promise<LLMResponse> {
   const normalized = normalizeRequest(request);
   if (!normalized.prompt) throw new Error("LLM prompt is empty.");
@@ -1022,7 +1029,7 @@ async function callCloudflareWorkersAI(
   let fallbackBudgetExhausted = false;
   for (const model of models) {
     const remainingMs = chainDeadlineAt - Date.now();
-    if (fallbackBudgetExhausted || remainingMs <= 0) {
+    if (budget.remaining <= 0 || fallbackBudgetExhausted || remainingMs <= 0) {
       failures.push(`${model}: skipped (fallback budget exhausted)`);
       continue;
     }
@@ -1034,6 +1041,7 @@ async function callCloudflareWorkersAI(
         messages,
         maxOutputTokens: normalized.maxTokens,
       });
+      spendGenerationAttempt(budget);
       emitProviderCallLog("cloudflare", model, normalized, env);
       const result = await raceWithDeadline(
         Promise.resolve(env.AI.run(model, buildWorkersAiInput(model, normalized, messages))),
@@ -1093,6 +1101,7 @@ async function callGeminiWithRetry(
   request: LLMRequest,
   env?: CloudflareEnv,
   deadlineAt?: number,
+  budget: GenerationBudget = { remaining: 2 },
 ): Promise<LLMResponse> {
   const effectiveDeadlineAt = Number.isFinite(deadlineAt)
     ? (deadlineAt as number)
@@ -1105,10 +1114,11 @@ async function callGeminiWithRetry(
       throw lastError || new Error("Gemini call skipped: timeout budget exhausted before attempt.");
     }
     try {
+      spendGenerationAttempt(budget);
       return await callGeminiPrimary(request, env, remainingMs);
     } catch (error) {
       lastError = error;
-      if (attempt >= maxAttempts || !isTransientGeminiError(error)) throw error;
+      if (budget.remaining <= 0 || attempt >= maxAttempts || !isTransientGeminiError(error)) throw error;
       const backoffMs = GEMINI_RETRY_BACKOFF_MS[attempt - 1];
       if (effectiveDeadlineAt - Date.now() - backoffMs <= 0) throw error;
       await new Promise((resolve) => setTimeout(resolve, backoffMs));
@@ -1122,6 +1132,8 @@ async function callLLMUncached(
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
   const requestModel = resolveGeminiModel(request, env);
+  // One ledger for every generation transport; tokenizer/cache CRUD are not generation.
+  const budget: GenerationBudget = { remaining: Math.min(2, Math.max(1, Math.floor(request.maxProviderAttempts || 2))) };
   // Gemini 시도(재시도 포함) + Workers AI 폴백 전체가 이 하나의 시계를 공유한다 — 각 단계가
   // timeoutMs 를 독자적으로 다시 배정하면 총 소요시간이 호출자가 준 예산을 넘어 엣지 실행
   // 한도에 걸리고, 그 경우 앱 자체 에러 응답도 환불 처리도 돌지 못한 채 연결이 끊긴다.
@@ -1154,7 +1166,7 @@ async function callLLMUncached(
 
   if (geminiInputVerified) {
     try {
-      return await callGeminiWithRetry(request, env, deadlineAt);
+      return await callGeminiWithRetry(request, env, deadlineAt, budget);
     } catch (error) {
       geminiError = error;
     }
@@ -1165,7 +1177,7 @@ async function callLLMUncached(
   //    Workers AI 로 떨어진다. 폴백은 목표 분량의 60~77%만 쓰고 멈추므로 유료 라우트의
   //    fallbackMinChars 게이트에 걸려 상담 전체가 실패한다. 같은 deadlineAt 을 쓰므로
   //    예산이 남아 있지 않으면 이 시도는 즉시 실패하고 벽시계를 늘리지 않는다.
-  if (request.geminiCachedContent && geminiInputVerified) {
+  if (budget.remaining > 0 && request.geminiCachedContent && geminiInputVerified) {
     const withoutContextCache: LLMRequest = { ...request };
     delete withoutContextCache.geminiCachedContent;
     console.warn("[llm context_cache] reference failed; retrying without the cache.", {
@@ -1173,13 +1185,13 @@ async function callLLMUncached(
       taskType: request.taskType || "general",
     });
     try {
-      return await callGeminiWithRetry(withoutContextCache, env, deadlineAt);
+      return await callGeminiWithRetry(withoutContextCache, env, deadlineAt, budget);
     } catch (error) {
       geminiError = error;
     }
   }
 
-  if (request.fallbackToWorkersAI === false) {
+  if (budget.remaining <= 0 || request.fallbackToWorkersAI === false) {
     throw geminiError;
   }
 
@@ -1191,7 +1203,7 @@ async function callLLMUncached(
   });
 
   try {
-    return await callCloudflareWorkersAI(request, env, deadlineAt);
+    return await callCloudflareWorkersAI(request, env, deadlineAt, budget);
   } catch (cloudflareError) {
     throw new Error(
       `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(
