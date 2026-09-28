@@ -2716,18 +2716,19 @@
 }
 .ynOriginal .service-copy h3 {
   font-family: var(--serif);
-  font-size: 22px;
+  font-size: 18px;
   color: #f1d3a3;
   font-weight: 700;
   line-height: 1.35;
 }
 .ynOriginal .service-copy p {
-  font-size: 11px;
+  font-size: 14px;
   color: #d8c7df;
   margin: 5px 0 12px;
   letter-spacing: -0.3px;
   word-break: keep-all;
 }
+.ynOriginal .service-copy small { display: block; color: #ead9eb; font-size: 13px; margin: 8px 0; }
 .ynOriginal .service-copy > span {
   font-size: 11px;
   display: flex;
@@ -3423,7 +3424,7 @@
     padding-inline: 11px;
   }
   .ynOriginal .service-copy p {
-    font-size: 10px;
+    font-size: 14px;
   }
   .ynOriginal .prologue-copy > strong {
     font-size: 19px;
@@ -3461,7 +3462,7 @@
     padding-bottom: 15px;
   }
   .ynOriginal .service-copy p {
-    font-size: 12px;
+    font-size: 14px;
   }
   .ynOriginal .main-content {
     padding-inline: 24px;
@@ -3547,10 +3548,10 @@
     padding: 14px 19px 18px;
   }
   .ynOriginal .service-copy h3 {
-    font-size: 26px;
+    font-size: 22px;
   }
   .ynOriginal .service-copy p {
-    font-size: 12px;
+    font-size: 14px;
   }
   .ynOriginal .service-copy > span {
     font-size: 12px;
@@ -3693,7 +3694,7 @@
     height: 203px;
   }
   .ynOriginal .service-copy h3 {
-    font-size: 28px;
+    font-size: 22px;
   }
   .ynOriginal .service-copy p {
     font-size: 14px;
@@ -3793,7 +3794,6 @@
   }
 }
 @media (max-width: 699px) {
-  .ynOriginal .service-copy p,
   .ynOriginal .service-copy > span {
     font-size: 12px;
   }

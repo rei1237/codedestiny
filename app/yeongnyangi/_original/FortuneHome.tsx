@@ -7,6 +7,8 @@ import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
 const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
 import FishCatalog from "./FishCatalog";
+import ProductGuide, {trackProductStep, type ProductOffers} from '../_components/ProductGuide';
+import {productCuriosity} from '../_lib/product-curiosity';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -49,7 +51,7 @@ type Panel =
   | "service"
   | "fusion"
   | null;
-const imagePath = (name: string) => `/assets/yeongnyangi/original/${name}.webp`;
+const imagePath = (name: string) => name==='saju'?'/assets/yeongnyangi/conversion/saju-pattern.webp':`/assets/yeongnyangi/original/${name}.webp`;
 const concernIcons: Record<string, typeof Heart> = {
   heart: Heart,
   wallet: Wallet,
@@ -102,7 +104,7 @@ function SectionHeading({
   );
 }
 
-export default function FortuneHome() {
+export default function FortuneHome({offers}:{offers:ProductOffers}) {
   const [panel, setPanel] = useState<Panel>(null);
   const [serviceId, setServiceId] = useState("saju");
   const [concern, setConcern] = useState<string | null>(null);
@@ -113,6 +115,7 @@ export default function FortuneHome() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const catalogueRef = useRef<HTMLDivElement>(null);
   const selectedConcern = concerns.find((item) => item.id === concern);
   const service = services.find((item) => item.id === serviceId) || services[0];
   const returnTo = typeof window === "undefined" ? "/yeongnyangi/fortune/" : window.location.pathname + window.location.search;
@@ -121,6 +124,20 @@ export default function FortuneHome() {
     { id: "naver", label: "네이버" },
     { id: "kakao", label: "카카오" },
   ];
+
+  useEffect(()=>{
+    if(!catalogueRef.current||!('IntersectionObserver' in window))return;
+    const observer=new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        if(!entry.isIntersecting||entry.intersectionRatio<0.5)return;
+        const domain=(entry.target as HTMLElement).dataset.productDomain as keyof ProductOffers;
+        trackProductStep('product_card_impression',domain,offers[domain][0].itemId);
+        observer.unobserve(entry.target);
+      });
+    },{threshold:0.5});
+    catalogueRef.current.querySelectorAll('[data-product-domain]').forEach(el=>observer.observe(el));
+    return ()=>observer.disconnect();
+  },[offers]);
 
   useEffect(() => {
     const now = new Date();
@@ -174,6 +191,7 @@ export default function FortuneHome() {
     );
   }
   function openService(id: string) {
+    trackProductStep('product_card_click',id,offers[id as keyof ProductOffers][0].itemId);
     setServiceId(id);
     openPanel("service");
   }
@@ -295,25 +313,27 @@ export default function FortuneHome() {
                 <h2 id="readings-title">운세 골라보기</h2>
                 <span className="section-aside">여섯 가지 운명의 언어</span>
               </div>
-              <div className="service-grid">
+              <div className="service-grid" ref={catalogueRef}>
                 {services.map((item) => (
                   <button
                     className={`service-card ${item.id === "ziwei" ? "ivory-art" : ""} ${selectedConcern && (selectedConcern.ids as readonly string[]).includes(item.id) ? "is-recommended" : ""}`}
                     key={item.id}
+                    data-product-domain={item.id}
                     onClick={() => openService(item.id)}
                   >
                     <div className="service-image">
                       <Art
                         name={item.image}
-                        alt={`${item.name}를 보는 영냥이`}
+                        alt={item.id==='saju'?'달빛 아래 한지에 펼친 네 기둥의 상징':`${item.name} 상담을 안내하는 영냥이`}
                       />
                       <span className="card-ornament" aria-hidden="true">
                         ✧
                       </span>
                     </div>
                     <div className="service-copy">
-                      <h3>{item.name}</h3>
-                      <p>{item.subtitle}</p>
+                      <p>{item.name}</p>
+                      <h3>{productCuriosity[item.id].question}</h3>
+                      <small>{offers[item.id][0].price.toLocaleString('ko-KR')}원부터<br/>{offers[item.id][0].fishName} · {offers[item.id][0].chapters.length}개 챕터</small>
                       <span>
                         보러가기 <ArrowRight size={14} />
                       </span>
@@ -335,7 +355,7 @@ export default function FortuneHome() {
                   <BookOpen size={14} /> 영냥이의 방 · 프롤로그
                 </span>
                 <strong>
-                  두 대통령의 운명을 맞힌 밤, <br />나는 고양이가 됐다.
+                  운명을 읽던 사람이 고양이가 된 밤. <br />영냥이의 가상 이야기
                 </strong>
                 <span className="text-link">
                   그날의 이야기 <ArrowRight size={15} />
@@ -633,19 +653,10 @@ export default function FortuneHome() {
                 eager
                 name={service.image}
                 className={`detail-art ${service.id === "ziwei" ? "ivory-detail" : ""}`}
-                alt={`${service.name}를 보는 영냥이`}
+                alt={service.id==='saju'?'달빛 아래 한지에 펼친 네 기둥의 상징':`${service.name} 상담을 안내하는 영냥이`}
               />
-              <h2>{service.subtitle}</h2>
-              <a className="outlined-cta" href={`/yeongnyangi/fortune/?domain=${service.id}`}>상담 살펴보기 <ArrowRight size={18} /></a>
-              <p>{service.description}</p>
-              <ul>
-                {service.details.map((item) => (
-                  <li key={item}>
-                    <Sparkles size={15} />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+              <h2>{productCuriosity[service.id].question}</h2>
+              <ProductGuide key={service.id} domain={service.id} offers={offers[service.id]}/>
               </div>
           )}
 

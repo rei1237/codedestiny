@@ -1,0 +1,23 @@
+{
+  "results": [
+    {
+      "width": 390,
+      "pass": true
+    },
+    {
+      "width": 360,
+      "pass": true
+    },
+    {
+      "width": 430,
+      "pass": true
+    },
+    {
+      "width": 1280,
+      "pass": true
+    }
+  ],
+  "realPgCalls": 0,
+  "realLlmCalls": 0,
+  "scope": "local mock UI; not production delivery proof"
+}

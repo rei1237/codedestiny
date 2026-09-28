@@ -20,8 +20,8 @@ import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 // 🔴 무료 키워드는 꿀꿀 운세 랜딩(/saju/ 등)의 몫이다. 제목·H1·설명에 "무료"를 넣지 않는다.
 const PATH='/yeongnyangi/1000-won-fortune/';
 const PAGE_URL=`https://code-destiny.com${PATH}`;
-// Use the existing Yeongnyangi portrait, matching the home social preview.
-const OG_IMAGE='https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png';
+// Original hanji birth-chart illustration shared with the saju purchasing guide.
+const OG_IMAGE='https://code-destiny.com/assets/yeongnyangi/conversion/saju-pattern.webp';
 const DOMAINS:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
 const TIERS=['mackerel','salmon','flounder','tuna'] as const;
 const won=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
@@ -59,7 +59,7 @@ const FAQS=[
 
 const TITLE='천원사주 · 천원 사주풀이 | 사주보는 고양이 영냥이';
 const DESCRIPTION=`${founder.credential}. 영냥이 천원사주·타로 ${PRICE} 단건 상담. 공개 분석 기록, 상담 예시와 가격을 확인하고 시작하세요.`;
-const OG_TITLE='천원사주 · 천원운세 | 사주보는 고양이 영냥이';
+const OG_TITLE='왜 나는 같은 선택을 반복할까? | 영냥이 천원사주';
 
 export const metadata:Metadata={
  metadataBase:new URL('https://code-destiny.com'),
