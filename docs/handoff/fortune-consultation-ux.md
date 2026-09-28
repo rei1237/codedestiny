@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-29
-next: v15 실제 생성도 중대 의미 오류로 불합격이었다. 전 챕터와 캐릭터 요약의 재물 인과·시기 예고·매수 권유를 교정하고 mock·CI 전달 후 새 실측 승인을 받는다. 사주 검수 통과 전 후속 네 서비스는 미착수로 유지한다.
+next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI의 선행 조건에서 해제했다. 기본 자미두수·숙요·서양 점성술·베다점 진입점과 입력·결과 UX를 검증하고 main CI로 전달한다. 새 실 LLM은 별도 승인 전 실행하지 않는다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -10,9 +10,26 @@ next: v15 실제 생성도 중대 의미 오류로 불합격이었다. 전 챕�
 
 - 순서: 사주 → 기본 자미두수 → 기본 숙요점 → 기본 서양 점성술 → 기본 베다점.
 - 각 서비스의 구현·검증·증거를 기록하고 이 문서를 읽은 뒤 다음 단계에 착수한다.
-- 현재: **v15 실제 생성 중대 의미 품질 불합격**. 이후 네 단계는 미착수. 사주 실제 생성에서 중대 오류가 없기 전 사주 단계 완료로 표기하지 않는다.
+- 현재: v15 실측의 당시 판정은 역사로 남긴다. **2026-09-29 추가 승인**에서 사용자가 비겁과 동업 손실은 타당한 해석일 수 있다고 정정했고, 100% 품질을 선행 조건으로 삼지 말고 네 서비스의 진입점·UI/UX를 계속 개선하도록 지시했다. 조건부 전통 해석을 일괄 오류로 취급하지 않는다. 결과 보장·계산 충돌·구체적 금융상품 매수 조언의 경계는 유지한다.
 - 기본 자체 상담만 대상이다. 별도 `/…-ai`, 영냥이, 운명의 섬 상품은 합치지 않는다.
 - 가격·이용권·월정석·단건 결제 정책과 주문·결과 읽기 계약을 유지한다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 실행하지 않는다.
+
+## 2026-09-29 추가 승인 — 기본 네 서비스 UI/UX
+
+- 대상: 기본 자미두수·숙요점·서양 점성술의 기존 modal 상담과 기본 베다 페이지의 상담. 사주 의미 품질의 완벽성을 후속 UI의 선행 게이트로 삼지 않는다는 사용자 지시를 적용했다. 과거 v15의 자동·수동 판정은 당시 기준의 기록이며, 비겁과 동업 손실 등 전통적 조건부 해석 자체를 일괄 오류로 판정하지 않는다.
+- `js/core/fortune-consultation-ui.js`와 `styles/fortune-consultation-entry.css`에 소개·체계별 근거·출생정보 안내·질문 예시·가격 표시·details 입력·읽기 스타일을 모았다. 기존 composer의 DOM ID·input 이벤트·생성/결제/복구 controller를 유지한다. 결과는 입력 details 밖에 있다.
+- `js/saju-engine.js`, `js/saju-engine-tarot-sukuyo-quantum.js`, `vedic-astrology.html`, `index.html`의 실제 정적 진입점에 연결했다. 별도 `/…-ai`, 영냥이, 운명의 섬 상품은 수정하지 않았다.
+- 가격 표시는 기존 `CodeDestinyFeaturePricingStore`의 각 `*_ai_prompt_generator`로 조회한다. 실패하면 “결제창에서 확인”한다. 하드코딩 가격·코인 중심 표시를 새로 만들지 않았다. 생성 버튼은 “상담 시작하기”로 통일하며 실제 결제 선택은 기존 controller가 담당한다.
+- ImageGen으로 체계별 연이 장면 네 개를 만들었다. 자미 궁성·숙요 달빛·서양 관측실·베다 천문 뜰은 서로 다른 상징 장면이다. 그림은 실제 고객 차트나 별 개수의 검증 자료가 아니다. 원본·정확한 프롬프트는 `docs/design/fortune-consultation-ux/basic-entry-assets-v1.json`과 PNG metadata에, 배포 WebP의 프롬프트는 sidecar에 보존한다. 기존 사주 그림은 변경하지 않았다.
+- WebP는 640/1280px, quality 82, 명시 크기·lazy·async decoding 적용. 네 640px는 72,766~82,024바이트, 1280px는 203,020~248,024바이트다.
+- 좁은 desktop modal은 viewport 대신 카드 container 폭 680px를 기준으로 좌우 배치를 선택한다. 서양 360px의 부모 auto grid가 자식 최소폭을 밀어 잘리던 문제는 기존 `fr-report` 트랙을 `minmax(0,1fr)`로 수정했다. 기존 자미/서양 스타일이 새 카드의 배경·입력·버튼을 덮던 선택자는 해당 소유 규칙에서 제거했다.
+- 증거: `artifacts/fortune-consultation-ux/basic-entry-v1`. entry/form 32장, Neo/result 8장, contact sheets 3장, `metrics.json`. 모든 API는 mock, 외부 origin은 차단, 계산 프로필과 결과는 fixture다. 실제 LLM 결과·결제·운영 DB 전달·실기기 측정으로 해석하지 않는다.
+- `node scripts/verify-basic-consultation-entry-ux.mjs`: 360/390/430/1440px × 네 서비스 16/16. 가격 registry 표시·Enter 펼침·질문 예시와 기존 글자 수·16px 입력·44px 이상 버튼·200% root font overflow·조상 clip bounding 확인. 외부 번역 스크립트 차단으로 `google_translate_script_failed` 1건은 예상 경계이며 다른 browser exception은 0건이다.
+- `npm run verify:ai-consultation-flows`, `node --check`(변경 JS와 browser script), `verify:entry-encoding -- --strict-core`, `verify:handoff-contract`, `git diff --check`, `verify:sitemap-drift` 통과. 공식 `sitemap:generate`로 1,300 URL과 날짜 롤링 추적본을 갱신했다.
+- `check:fast -- --plan`은 새 JSON/정적 엔진 경로로 critical 승격. 첫 실행의 paid suite는 84/88이었다. 편집 도구가 원본을 CRLF로 저장해 LF 문자열을 찾는 6개 Node 테스트와 3개 static guard가 실패했다. 소스를 원래 LF로 되돌린 뒤 해당 Node 44/44와 `verify:saju-fun-content-gate`, `verify:saju-unlock-entitlement-regression`, `verify:portone-single-payment` 모두 통과했다. 이후 전체 로컬 preflight를 반복하지 않으며 최종 공식 게이트는 exact main SHA의 GitHub CI다.
+- Windows Node의 간헐적 `UNKNOWN` 파일 쓰기는 저장소 밖의 제한된 로컬 파일쓰기 호환 보조로 공식 `sync:public`을 실행해 해결했다. 보조는 제품/커밋에 포함하지 않는다. public mirrors와 내용 해시는 공식 생성기의 결과다.
+- Impeccable detector는 한 번 실행했다. 새 shared helper/CSS에는 blocking이 없고 타입 크기 advisory 9건이다. 기존 엔진의 unrelated 경고를 정리하기 위한 리팩터링은 하지 않았다. fresh reviewer의 기록은 `basic-entry-finish-review.md`, 표면 방향은 `basic-entry-direction.md`를 참조한다.
+- **전달 상태:** UI 구현 커밋 `15b83212b38540548b964e3222b7a46cccb67f02`, 최신 main 통합 커밋 `643816450`에서 기존 변경을 보존했다. 디자인 구현 기록은 `basic-entry-design.md`와 `.json`이다. main push 후 exact SHA의 GitHub CI를 확인한다. 새 실 LLM·실결제·운영 DB 쓰기·운영 승격은 이번 UI 작업에서 실행하지 않는다.
 
 ## 2026-09-28 조사 기준
 
@@ -61,7 +78,7 @@ next: v15 실제 생성도 중대 의미 오류로 불합격이었다. 전 챕�
 - 모델 기록 Gemini 2.5 Flash, 이용권 사용. 저장 문자열 22,806자 / 공백 제외 17,582자. 정본 countPaidReportBodyChars 기준 본문은 17,309자다. 구·신규 렌더러 모두 12챕터·77문단을 표시하며 과거 결과에 새 완성 기준을 소급하지 않는다. 생성→완료 40,301ms는 LLM 단독 지연이 아니다.
 - 기록 1건을 실제 고객 평균·전체 실패율로 해석하지 않는다. 테스트 주문 여부와 다른 저장소 포함 범위를 확인하지 않았으므로 대표성 미확인이다.
 - 현재 구조 변경이 실제 생성 내용의 밀도를 개선했는지는 **미검증**. 실제 익명화 전후 결과 비교, 토큰 로그 기반 원가·실행 시간 측정은 아직 없다.
-- 새 실호출은 mock·CI·스테이징 확인 후 구체적 호출 범위/상한으로 별도 승인받는다. 이 조건 전 다음 서비스로 넘어가지 않는다.
+- 새 실호출은 구체적 호출 범위/상한으로 별도 승인받는다. 이후 사용자 승인으로 후속 UI 작업은 이 실측 조건과 분리했다.
 
 ### 증거·검증
 

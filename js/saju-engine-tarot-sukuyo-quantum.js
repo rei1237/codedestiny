@@ -11654,27 +11654,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
-    html += `<div class="sy-card" id="sySoloAiConsultCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.18), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.32); box-shadow:0 20px 44px rgba(76,29,149,0.3); border-radius:14px; padding:18px 16px;">
-      <div class="sy-sec-title" style="color:#ddd6fe;">🌙 월하의 숙요 AI 상담</div>
-      <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">궁금한 점을 입력하면 당신의 숙요(宿) 데이터를 바탕으로 맞춤 상담 답변을 바로 드립니다. (1회 5,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
-      <textarea data-sy-ai-question maxlength="1000" placeholder="예: 요즘 진로를 어떻게 잡아야 할지 고민이에요." style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+    html += `<div class="fortune-consultation" id="sySoloAiConsultCard">
+      ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.entry('sukuyo', 'syConsultationForm') : ''}
+      <details class="fc-form" id="syConsultationForm"><summary>상담 내용과 질문 입력</summary><div class="fc-form__body">
+      ${window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.formIntro('sukuyo', 'sySoloAiQuestion') : ''}
+      <label for="sySoloAiQuestion">지금 궁금한 이야기</label>
+      <textarea class="fc-question" id="sySoloAiQuestion" data-sy-ai-question maxlength="1000" placeholder="예: 요즘 진로를 어떻게 잡아야 할지 고민이에요."></textarea>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
         <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
-        <span style="font-size:0.72rem;color:#e9d5ff;">1회 5,000원</span>
+        <span>상황과 선택을 함께 적어 주세요.</span>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-        <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원 AI 상담 받기</button>
+        <button data-sy-ai-generate type="button" class="fc-primary">상담 시작하기</button>
         <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담</button>
         <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
         ${SY_AI_TARGETS.map(function(t){return '<button data-sy-ai-open data-ai-url="'+t.url+'" type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">'+t.label+'</button>';}).join('')}
       </div>
-      <div data-sy-ai-answer style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(196,181,253,0.32);background:linear-gradient(160deg,rgba(8,13,30,0.82),rgba(22,28,64,0.72));overflow-wrap:anywhere;"></div>
+      </div></details>
+      <div class="fc-report" data-sy-ai-answer style="display:none;"></div>
       <details data-sy-ai-prompt-wrap style="display:none;margin-top:11px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;background:rgba(8,13,30,0.5);padding:8px 12px;">
         <summary style="cursor:pointer;font-size:0.78rem;font-weight:800;color:#c4b5fd;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>
         <div style="font-size:0.72rem;color:#e9d5ff;margin:8px 0 4px;line-height:1.55">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>
         <textarea data-sy-ai-output readonly style="margin-top:6px;width:100%;min-height:180px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.78rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
       </details>
-      <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
+      <div class="fc-status" role="status" aria-live="polite" data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
       <div style="margin-top:14px;border-top:1px solid rgba(196,181,253,0.2);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
         <span style="font-size:0.8rem;color:#e9d5ff;">상대와의 숙요 궁합도 볼 수 있어요.</span>
         <button type="button" data-sy-open-compat style="background:linear-gradient(135deg,#db2777,#7c3aed);color:#fff;border:1px solid rgba(244,114,182,0.5);padding:9px 14px;border-radius:10px;font-size:0.8rem;font-weight:800;cursor:pointer;">💞 숙요 궁합 보러 가기</button>
@@ -11696,7 +11699,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     try {
       var sySoloConsultCard = document.getElementById('sySoloAiConsultCard');
       if (sySoloConsultCard && typeof window.syBindSukuyoPromptComposer === 'function') {
-        window.syBindSukuyoPromptComposer(sySoloConsultCard, { preferCompatibility: false, freePrompt: false, generateLabel: '5,000원 AI 상담 받기' });
+        window.syBindSukuyoPromptComposer(sySoloConsultCard, { preferCompatibility: false, freePrompt: false, generateLabel: '상담 시작하기' });
       }
       var sySoloCompatBtn = sySoloConsultCard ? sySoloConsultCard.querySelector('[data-sy-open-compat]') : null;
       if (sySoloCompatBtn) {

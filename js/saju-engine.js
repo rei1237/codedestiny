@@ -13413,26 +13413,23 @@ function renderAstroInsightLegacyNeon() {
     var mobileScenarioSectionHtml = '';
 
     var astroAiPromptSectionHtml = ''
-      + '<div class="astro-section astro-prompt-panel" id="astroAiPromptSection" style="border:1px solid rgba(125,211,252,0.35);background:linear-gradient(145deg,rgba(2,6,23,.96),rgba(10,20,42,.94));box-shadow:0 24px 54px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;">'
-      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Consultation</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 AI 상담</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 5,000원</span></div>'
-      + '<p class="astro-birth-lead" style="margin-bottom:9px;color:#e2e8f0;">'
-      + '현재 차트 해석을 바탕으로 질문에 대한 맞춤 상담 답변을 바로 드립니다. 시너스트리 궁합을 본 뒤에는 방금 계산한 궁합 데이터가 함께 반영되고, 답변에 쓰인 프롬프트도 무료로 함께 제공됩니다.'
-      + '</p>'
-      + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
-      + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">이용권 · 단건결제 · 월정석 보너스</span>'
-      + '  <span id="astroAiPromptCoinBalance" style="font-size:11px;color:#bae6fd;">5,000원 · 궁합 결과 반영 가능</span>'
-      + '</div>'
-      + '<textarea id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="' + _sajuEngineText("se_10474_attr_placeholder") + '" style="width:100%;min-height:108px;border-radius:12px;border:1px solid rgba(125,211,252,0.34);background:rgba(3,10,29,.78);color:#e2e8f0;padding:11px;line-height:1.65;font-size:0.84rem;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '<div class="fortune-consultation" id="astroAiPromptSection">'
+      + (window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.entry('astrology', 'astroConsultationForm') : '')
+      + '<details class="fc-form" id="astroConsultationForm"><summary>상담 내용과 질문 입력</summary><div class="fc-form__body">'
+      + (window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.formIntro('astrology', 'astroAiPromptQuestionInput') : '')
+      + '<label for="astroAiPromptQuestionInput">지금 궁금한 이야기</label><span id="astroAiPromptCoinBalance" hidden></span>'
+      + '<textarea class="fc-question" id="astroAiPromptQuestionInput" maxlength="'+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'" placeholder="' + _sajuEngineText("se_10474_attr_placeholder") + '"></textarea>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px;">'
       + '  <span id="astroAiPromptQuestionCount" style="font-size:11px;color:#93c5fd;">0 / '+ASTROLOGY_AI_PROMPT_MAX_LENGTH+'</span>'
       + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">5,000원으로 AI 상담 받기</button>'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" class="fc-primary">상담 시작하기</button>'
       + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
-      + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
-      + '<div id="astroAiPromptAnswer" style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(56,189,248,.3);background:linear-gradient(160deg,rgba(2,18,38,.82),rgba(10,20,42,.74));overflow-wrap:anywhere;"></div>'
+      + '</div></details>'
+      + '<div class="fc-status" role="status" aria-live="polite" id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
+      + '<div class="fc-report" id="astroAiPromptAnswer" style="display:none;"></div>'
       + '<details id="astroAiPromptOutputWrap" style="display:none;margin-top:11px;border:1px solid rgba(56,189,248,.28);border-radius:12px;background:rgba(2,18,38,.5);padding:9px 12px;">'
       + '  <summary style="cursor:pointer;font-size:12px;font-weight:800;color:#7dd3fc;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
       + '  <div style="font-size:11px;color:#bae6fd;margin:8px 0 4px;line-height:1.55;">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
@@ -14736,7 +14733,7 @@ function renderAstroInsightLegacyNeon() {
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
         generateBtn.textContent = inFlight
           ? 'AI 상담 생성 중...'
-          : (astroRetryFree ? '추가 결제 없이 다시 상담 받기' : '5,000원으로 AI 상담 받기');
+          : (astroRetryFree ? '추가 결제 없이 다시 상담 받기' : '상담 시작하기');
       }
 
       function updateCount() {
@@ -14900,7 +14897,7 @@ function renderAstroInsightLegacyNeon() {
         if (astroRetryFree) {
           astroEvidenceStore.clear();
           astroRetryFree = false;
-          if (!inFlight) generateBtn.textContent = '5,000원으로 AI 상담 받기';
+          if (!inFlight) generateBtn.textContent = '상담 시작하기';
         }
         updateCount();
       });
@@ -22025,38 +22022,32 @@ function renderZiwei(p, natal, targetId) {
   ];
   function _zwBuildDeepAiPromptPanel() {
     return ''
-      + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel" style="border:1px solid rgba(192,132,252,0.32);background:radial-gradient(140% 130% at 8% 0%, rgba(168,85,247,0.2), transparent 44%), radial-gradient(130% 130% at 100% 100%, rgba(16,185,129,0.18), transparent 40%), linear-gradient(145deg,rgba(24,24,55,0.93),rgba(8,20,28,0.92));box-shadow:0 24px 50px rgba(88,28,135,0.34), inset 0 1px 0 rgba(255,255,255,0.07);border-radius:16px;">'
-      + '  <div class="zw-dp-header">'
-      + '    <div class="zw-dp-title" style="color:#f5d0fe">👑 자미두수 궁성 맞춤 AI 상담</div>'
-      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">명반의 근거를 짚고, 지금의 고민에 적용할 선택지를 함께 정리합니다.</div>'
-      + '  </div>'
-      + '  <div style="font-size:0.78rem;line-height:1.62;color:#e9d5ff;margin-bottom:10px">'
-      + '    주제를 고르고 현재 상황과 고민하는 선택을 적어 주세요. 질병 진단, 투자 수익이나 법적 결과는 예측하지 않습니다.'
-      + '  </div>'
-      + '  <div style="font-size:0.74rem;line-height:1.58;color:#fef3c7;background:rgba(120,53,15,0.3);border:1px solid rgba(251,191,36,0.32);border-radius:10px;padding:8px 10px;margin-bottom:10px">'
-      + '    답변 생성에는 명반 요약이 사용됩니다. 답변과 함께 상담에 쓰인 프롬프트도 추가 비용 없이 아래에 제공됩니다.'
-      + '  </div>'
+      + '<div class="fortune-consultation" id="zwDeepAiPromptPanel">'
+      + (window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.entry('ziwei', 'zwConsultationForm') : '')
+      + '<details class="fc-form" id="zwConsultationForm"><summary>상담 내용과 질문 입력</summary><div class="fc-form__body">'
+      + (window.CodeDestinyConsultationUI ? window.CodeDestinyConsultationUI.formIntro('ziwei', 'zwDeepAiPromptQuestion') : '')
       + '  <label for="zwDeepAiPromptDomain">상담 주제</label>'
       + '  <select id="zwDeepAiPromptDomain">' + zwConsultTopics.map(function(topic) { return '<option value="' + topic[0] + '">' + topic[1] + '</option>'; }).join('') + '</select>'
-      + '  <button class="fr-consult-example" id="zwDeepAiPromptExample" type="button" aria-controls="zwDeepAiPromptQuestion"></button>'
+      + '  <button class="fc-domain-example" id="zwDeepAiPromptExample" type="button" aria-controls="zwDeepAiPromptQuestion"></button>'
       + '  <label for="zwDeepAiPromptQuestion">지금 궁금한 이야기</label>'
-      + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="' + _sajuEngineText("se_17711_attr_placeholder") + '" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  <textarea class="fc-question" id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="' + _sajuEngineText("se_17711_attr_placeholder") + '"></textarea>'
       + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#ddd6fe">'
       + '    <span id="zwDeepAiPromptCount">0 / 1000</span>'
-      + '    <span>1회 ' + (_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원</span>'
+      + '    <span>상황과 선택을 함께 적어 주세요.</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">5,000원으로 AI 상담 받기</button>'
+      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" class="fc-primary">상담 시작하기</button>'
       + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#312e81);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담 받기</button>'
       + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '  </div>'
-      + '  <div id="zwDeepAiAnswer" style="display:none;margin-top:12px;padding:15px 16px;border-radius:14px;border:1px solid rgba(52,211,153,0.3);background:linear-gradient(160deg,rgba(6,20,30,0.78),rgba(20,14,44,0.72));overflow-wrap:anywhere;"></div>'
+      + '</div></details>'
+      + '  <div class="fc-report" id="zwDeepAiAnswer" style="display:none;"></div>'
       + '  <details id="zwDeepAiPromptWrap" style="display:none;margin-top:12px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;padding:8px 12px;background:rgba(10,15,30,0.5);">'
       + '    <summary style="cursor:pointer;font-size:0.78rem;font-weight:800;color:#c4b5fd;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
       + '    <div style="font-size:0.72rem;color:#e9d5ff;margin:8px 0 4px;line-height:1.55">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
       + '    <textarea id="zwDeepAiPromptText" readonly style="margin-top:6px;width:100%;min-height:180px;border-radius:12px;border:1px solid rgba(52,211,153,0.42);background:rgba(2,24,19,0.56);color:#ecfdf5;padding:12px;font-size:0.78rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>'
       + '  </details>'
-      + '  <div id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>'
+      + '  <div class="fc-status" role="status" aria-live="polite" id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>'
       + '</div>';
   }
 
@@ -34204,8 +34195,8 @@ function showQuantumResult() {
       + '.astro-cosmic-restored .astro-paid-note{border:1px solid rgba(251,191,36,.28)!important;background:rgba(120,53,15,.18)!important;border-radius:13px!important;padding:10px 11px!important;margin:8px 0 12px!important;}'
       + '.astro-cosmic-restored .astro-paid-note strong{display:block;color:#fef3c7;font-size:13px;margin-bottom:4px;}'
       + '.astro-cosmic-restored .astro-paid-note span{display:block;color:#dbeafe;font-size:12px;line-height:1.65;}'
-      + '.astro-cosmic-restored .astro-neon-input,.astro-cosmic-restored .astro-neon-select,#astroAiPromptQuestionInput,#astroAiPromptOutput{border-color:rgba(125,211,252,.34)!important;background:rgba(2,8,23,.72)!important;color:#eaf6ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}'
-      + '.astro-cosmic-restored .astro-neon-cta,#astroAiPromptGenerateBtn{border-radius:999px!important;background:linear-gradient(135deg,#0ea5e9,#4f46e5 58%,#7c3aed)!important;box-shadow:0 16px 34px -20px rgba(56,189,248,.9)!important;}'
+      + '.astro-cosmic-restored .astro-neon-input,.astro-cosmic-restored .astro-neon-select,#astroAiPromptOutput{border-color:rgba(125,211,252,.34)!important;background:rgba(2,8,23,.72)!important;color:#eaf6ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}'
+      + '.astro-cosmic-restored .astro-neon-cta{border-radius:999px!important;background:linear-gradient(135deg,#0ea5e9,#4f46e5 58%,#7c3aed)!important;box-shadow:0 16px 34px -20px rgba(56,189,248,.9)!important;}'
       + '.astro-stellar-archive{position:relative;border:1px solid rgba(251,191,36,.3);background:radial-gradient(circle at 18% 0%,rgba(251,191,36,.15),transparent 28%),radial-gradient(circle at 88% 12%,rgba(125,211,252,.12),transparent 30%),linear-gradient(160deg,rgba(7,12,28,.94),rgba(18,11,37,.9));border-radius:20px;padding:15px;margin:0 0 14px 0;overflow:hidden;}'
       + '.astro-stellar-archive:before{content:"";position:absolute;inset:0;background-image:radial-gradient(1px 1px at 16% 26%,rgba(255,255,255,.78),transparent),radial-gradient(1px 1px at 44% 12%,rgba(251,191,36,.64),transparent),radial-gradient(1px 1px at 76% 72%,rgba(125,211,252,.7),transparent);pointer-events:none;opacity:.9;}'
       + '.astro-stellar-archive>*{position:relative;z-index:1;}'
@@ -34248,7 +34239,7 @@ function showQuantumResult() {
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-section-kicker', 'Ask the Stars');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-subhead', '🌌 별에게 묻는 질문 만들기');
     _astroCounselSetText(wrap, '#astroAiPromptSection .astro-birth-lead', '지금 차트의 별빛을 바탕으로, 실제 상담에 건넬 수 있는 질문 문장을 정돈합니다. 궁합을 본 뒤에는 두 사람의 시나스트리 흐름까지 함께 담깁니다.');
-    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '5,000원으로 별자리 질문 열기');
+    _astroCounselSetText(wrap, '#astroAiPromptGenerateBtn', '상담 시작하기');
     _astroCounselSetText(wrap, '#astroAiPromptCopyBtn', '질문 문장 복사');
     _astroCounselSetPlaceholder(wrap, '#astroAiPromptQuestionInput', '예: 지금 내 차트에서 사랑과 일의 방향이 왜 엇갈리는지, 점성술 상담 문장으로 깊게 풀어주세요.');
     _astroCounselSetTexts(wrap, '#astroActionHub .astro-action-hub__btn strong', [

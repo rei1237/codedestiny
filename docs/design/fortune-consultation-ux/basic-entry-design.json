@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-28T19:52:56Z",
+  "title": "Code Destiny 기본 네 운세 상담 — 구현 기록",
+  "scope": {
+    "kind": "local-code-led-incumbent-extension",
+    "services": ["ziwei", "sukuyo", "astrology", "vedic"],
+    "approvedComp": false,
+    "globalDesignUpdated": false,
+    "sources": ["js/core/fortune-consultation-ui.js", "styles/fortune-consultation-entry.css", "styles/basic-fortune-library.css", "js/saju-engine.js", "js/saju-engine-tarot-sukuyo-quantum.js", "vedic-astrology.html"],
+    "document": "docs/design/fortune-consultation-ux/basic-entry-design.md",
+    "modes": {"entry": "Persuade", "input": "Operate", "result": "Read"}
+  },
+  "extensions": {
+    "colorMeta": {
+      "fc-paper": {"role": "neutral", "displayName": "연이 상담 종이", "cssVariable": "--fc-paper"},
+      "fc-ink": {"role": "neutral", "displayName": "연이 본문", "cssVariable": "--fc-ink"},
+      "fc-muted": {"role": "neutral", "displayName": "연이 보조문", "cssVariable": "--fc-muted"},
+      "fc-accent": {"role": "primary", "displayName": "로즈 강조", "cssVariable": "--fc-accent"},
+      "fc-line": {"role": "neutral", "displayName": "로즈 경계", "cssVariable": "--fc-line"},
+      "fc-field": {"role": "neutral", "displayName": "밝은 입력 바탕", "cssVariable": "--fc-field"},
+      "fc-dark": {"role": "primary", "displayName": "딥 와인 행동", "cssVariable": "--fc-dark"},
+      "fc-light": {"role": "neutral", "displayName": "밝은 행동 글자", "cssVariable": "--fc-light"},
+      "fc-night-paper": {"role": "neutral", "displayName": "플럼 상담 종이", "cssVariable": "--fc-paper", "variant": "neo-or-vedic"},
+      "fc-night-ink": {"role": "neutral", "displayName": "밝은 플럼 본문", "cssVariable": "--fc-ink", "variant": "neo-or-vedic"},
+      "fc-night-muted": {"role": "neutral", "displayName": "플럼 보조문", "cssVariable": "--fc-muted", "variant": "neo-or-vedic"},
+      "fc-night-accent": {"role": "primary", "displayName": "샴페인 강조", "cssVariable": "--fc-accent", "variant": "neo-or-vedic"},
+      "fc-night-line": {"role": "neutral", "displayName": "플럼 경계", "cssVariable": "--fc-line", "variant": "neo-or-vedic"},
+      "fc-night-field": {"role": "neutral", "displayName": "짙은 입력 바탕", "cssVariable": "--fc-field", "variant": "neo-or-vedic"},
+      "fc-night-dark": {"role": "primary", "displayName": "샴페인 행동", "cssVariable": "--fc-dark", "variant": "neo-or-vedic"},
+      "fc-night-light": {"role": "neutral", "displayName": "짙은 행동 글자", "cssVariable": "--fc-light", "variant": "neo-or-vedic"}
+    },
+    "typographyMeta": {
+      "display": {"purpose": "HTML 진입 제목; 기존 --font-display 상속"},
+      "display-wide": {"purpose": "실제 상담 카드 680px 이상에서 cqi 크기 사용"},
+      "input": {"purpose": "textarea와 select의 고정 16px 입력"},
+      "report": {"purpose": "결과 본문; 최대 72ch, 문단 간격 1.2em"}
+    },
+    "shadows": [],
+    "motion": [{"name": "disclosure-scroll", "value": "instant", "purpose": "펼친 기존 details로 이동; 새 animation/transition 토큰 없음"}],
+    "breakpoints": [
+      {"name": "consultation-split", "value": "680px", "basis": "container inline-size", "query": "@container fc-consultation (min-width: 680px)"},
+      {"name": "scene-mobile-source", "value": "759px", "basis": "viewport maximum", "query": "(max-width: 759px)"}
+    ],
+    "layout": {
+      "containerName": "fc-consultation",
+      "narrow": "one column; scene aspect-ratio 16/10",
+      "wideTracks": "minmax(0, 1fr) minmax(0, 1.08fr)",
+      "wideScene": "right column; minimum height 480px",
+      "imageCrop": "object-fit:cover; object-position:65% center",
+      "imageDeclaredSize": "1280x853",
+      "narrowDesktopVedic": "actual card about 446px; one column at 1440px viewport",
+      "astroTrackFix": "#astroModalOverlay #astroBodyWrap.fr-report { grid-template-columns:minmax(0,1fr); }"
+    },
+    "nativeBehavior": {
+      "disclosure": "native details/summary; existing button sets open, scrolls instantly and focuses editable textarea",
+      "expandedState": "capture-phase toggle listener synchronizes opener aria-expanded",
+      "examples": "assign existing textarea value; dispatch bubbling input; focus",
+      "status": "role=status; aria-live=polite",
+      "result": "outside input disclosure",
+      "limits": "existing maxlength 1000; existing composer owns minimum and validation"
+    }
+  },
+  "components": [
+    {
+      "name": "상담 주 행동",
+      "kind": "button",
+      "refersTo": "primary",
+      "description": "기존 details를 여는 진입 또는 기존 composer의 상담 시작 행동. 이 예시는 시각 표본이며 결제·생성 controller를 구현하지 않는다.",
+      "html": "<button class=\"ds-primary\" type=\"button\">상담 시작하기</button>",
+      "css": ".ds-primary{min-height:48px;width:100%;border:1px solid var(--fc-dark,#2e1021);border-radius:10px;padding:12px 18px;background:var(--fc-dark,#2e1021);color:var(--fc-light,#fff3ec);font:inherit;font-size:.95rem;font-weight:800;cursor:pointer}.ds-primary:hover{filter:brightness(1.12)}.ds-primary:focus-visible{outline:3px solid var(--fc-accent,#9a2853);outline-offset:4px}"
+    },
+    {
+      "name": "질문 예시",
+      "kind": "button",
+      "refersTo": "example",
+      "description": "체계별 질문 두 개를 기존 입력에 연결한다. 예시는 native input 이벤트로 글자 수를 갱신한다.",
+      "html": "<button class=\"ds-example\" type=\"button\">질문 예시 1</button>",
+      "css": ".ds-example{min-height:44px;padding:10px 14px;color:var(--fc-accent,#9a2853);background:var(--fc-field,#fffdfb);border:1px solid var(--fc-line,#dfbcc8);border-radius:9px;font:inherit;font-size:.85rem;cursor:pointer}.ds-example:focus-visible{outline:3px solid var(--fc-accent,#9a2853);outline-offset:4px}"
+    },
+    {
+      "name": "질문 입력",
+      "kind": "input",
+      "refersTo": "question",
+      "description": "기존 textarea ID와 composer를 유지하는 16px, maxlength 1000 입력. 예시 ID는 문서용이다.",
+      "html": "<label class=\"ds-label\" for=\"ds-question\">지금 궁금한 이야기</label><textarea class=\"ds-question\" id=\"ds-question\" maxlength=\"1000\" placeholder=\"상황과 고민하는 선택을 함께 적어 주세요.\"></textarea>",
+      "css": ".ds-label{display:block;margin:18px 0 8px;color:var(--fc-ink,#3c1830);font-size:.88rem;font-weight:800}.ds-question{width:100%;min-height:140px;padding:12px;border:1px solid var(--fc-line,#dfbcc8);border-radius:10px;color:var(--fc-ink,#3c1830);background:var(--fc-field,#fffdfb);font:inherit;font-size:16px;line-height:1.75;resize:vertical}.ds-question::placeholder{color:var(--fc-muted,#754455)}.ds-question:focus-visible{outline:3px solid var(--fc-accent,#9a2853);outline-offset:4px}"
+    },
+    {
+      "name": "질문 disclosure",
+      "kind": "custom",
+      "description": "native summary marker와 keyboard affordance를 보존한다. 표본은 native 펼치기만 포함하며 helper의 외부 opener 포커스 동작은 별도 코드가 소유한다.",
+      "html": "<details class=\"ds-form\"><summary>상담 내용과 질문 입력</summary><div class=\"ds-form-body\">상황과 고민하는 선택을 함께 적으면, 질문의 초점을 더 잘 잡을 수 있어요.</div></details>",
+      "css": ".ds-form{margin:0;border-top:1px solid var(--fc-line,#dfbcc8);scroll-margin-top:100px;color:var(--fc-ink,#3c1830);background:var(--fc-paper,#fff8f3)}.ds-form>summary{padding:18px 22px;min-height:52px;color:var(--fc-ink,#3c1830);font-weight:800;font-size:.92rem;cursor:pointer}.ds-form-body{padding:4px 22px 24px;color:var(--fc-muted,#754455);font-size:.9rem;line-height:1.8}.ds-form>summary:focus-visible{outline:3px solid var(--fc-accent,#9a2853);outline-offset:4px}"
+    },
+    {
+      "name": "상담의 바탕",
+      "kind": "custom",
+      "description": "체계별 근거와 계산에 사용한 출생정보를 기존 form 안에서 설명한다.",
+      "html": "<dl class=\"ds-basis\"><div><dt>상담의 바탕</dt><dd>출생 차트의 행성 · 하우스 · 주요 각도</dd></div><div><dt>출생정보 확인</dt><dd>위 운세를 계산한 출생정보를 사용합니다. 정보가 다르면 위 입력에서 수정한 뒤 다시 계산해 주세요.</dd></div></dl>",
+      "css": ".ds-basis{margin:20px 0;border-block:1px solid var(--fc-line,#dfbcc8)}.ds-basis>div{padding:12px 0}.ds-basis dt{margin-bottom:4px;color:var(--fc-accent,#9a2853);font-size:.8rem;font-weight:800}.ds-basis dd{margin:0;color:var(--fc-muted,#754455);font-size:.87rem;line-height:1.75}"
+    },
+    {
+      "name": "상담 결과 읽기",
+      "kind": "custom",
+      "description": "입력 disclosure 밖의 기존 answer 컨테이너. 아래 문장은 화면 검증용 대역이며 실제 상담·저장 결과가 아니다.",
+      "html": "<article class=\"ds-report\"><h4>지금의 선택을 읽는 한 줄</h4><p>이 문단은 화면 검증용 대역입니다. 실제 AI 상담이나 저장된 결과가 아닙니다.</p><h4>오늘 해볼 일</h4><p>중요한 선택 하나를 적고, 필요한 정보와 확인할 사람을 나누어 정리합니다.</p></article>",
+      "css": ".ds-report{margin:18px 22px 26px;padding:20px 0;border-top:1px solid var(--fc-line,#dfbcc8);color:var(--fc-ink,#3c1830);background:var(--fc-paper,#fff8f3);overflow-wrap:anywhere}.ds-report p{max-width:72ch;margin:0 auto 1.2em;color:var(--fc-ink,#3c1830);font-size:1rem;line-height:1.9}.ds-report h4{max-width:72ch;margin:26px auto 12px;color:var(--fc-accent,#9a2853);font-size:1.1rem}"
+    }
+  ],
+  "ownership": {
+    "priceSource": "CodeDestinyFeaturePricingStore.getOrLoad(service + '_ai_prompt_generator')",
+    "initialPrice": "가격 확인 중",
+    "unavailablePrice": "결제창에서 확인",
+    "eligibilityCopy": "이용권·월정석은 결제창에서 확인",
+    "actualPriceInDocument": false,
+    "retainedOwners": ["payment", "entitlement", "authentication", "request", "recovery", "archive", "API", "DB"]
+  },
+  "assetProvenance": {
+    "ledger": "docs/design/fortune-consultation-ux/basic-entry-assets-v1.json",
+    "generator": "built-in image_gen",
+    "identityReference": "public/icons/app-logo-512.webp",
+    "originalPattern": "docs/design/fortune-consultation-ux/{service}-yeoni-entry-v1-original.png",
+    "originalCount": 4,
+    "derivativePattern": "public/images/consultation/{service}-yeoni-entry-v1-{640,1280}.webp",
+    "derivativeCount": 8,
+    "publicUrlPattern": "/images/consultation/{service}-yeoni-entry-v1-{640,1280}.webp",
+    "promptRecords": "ledger, original metadata, WebP .json sidecars",
+    "meaning": "editorial scene; not proof of chart calculation, marker counts or reading quality",
+    "newImageCallsInDocumentation": 0
+  },
+  "evidence": {
+    "directory": "artifacts/fortune-consultation-ux/basic-entry-v1",
+    "metrics": "artifacts/fortune-consultation-ux/basic-entry-v1/metrics.json",
+    "captureCount": 40,
+    "contactSheetCount": 3,
+    "scenarioCount": 16,
+    "viewportWidths": [360, 390, 430, 1440],
+    "componentCaptures": "entry 16, result 4, neo entry 4",
+    "viewportCaptures": "form 16; real existing modal or Vedic page",
+    "metricsResult": "16/16 overflow false, keyboardDisclosure true, exampleInput true",
+    "network": "Every API mocked; every external origin blocked; no payment/LLM/DB operations",
+    "resultSource": "explicit rendering fixture",
+    "priceSource": "fixture registry; not current commercial pricing proof",
+    "browserErrors": ["google_translate_script_failed"],
+    "review": {
+      "file": "docs/design/fortune-consultation-ux/basic-entry-finish-review.md",
+      "disposition": "ship",
+      "scope": "one previously identified 360px Astrology clipping fix and regressions at 390/430/1440px",
+      "reviewer": "fresh generic reviewer; no named preset claim",
+      "detectorRerunByReviewer": false,
+      "qualityBarProvided": false
+    },
+    "documentationPass": "read existing evidence and wrote only the two local documents; no tests, captures, UI edits or new matrices",
+    "unverifiedHere": ["live payments", "live LLM", "production database", "delivery persistence", "semantic consultation quality", "native device behavior", "CI", "deployment"]
+  },
+  "narrative": {
+    "northStar": "별 지도를 펼치는 연이의 상담 자리",
+    "overview": "체계별 꽃돼지 연이 장면이 상담의 분위기를 만들고, HTML 제목·설명·가격 상태·행동이 정보를 전달한다. 그림의 별 지도와 관측 기구는 연출이다. 실제 차트, 계산의 정확성, 상담 내용의 품질 또는 생성된 문양의 개수를 증명하지 않는다.",
+    "keyCharacteristics": ["장면 → 큰 제목 → 체계명 → 설명 → 질문 주제 → 가격 상태 → 내용 살펴보기의 위계", "크림·로즈의 밝은 표면과 네오·베다의 짙은 플럼 표면에 각각 대응하는 문자색", "기존 출생정보·composer·DOM ID를 유지하는 native disclosure", "입력 disclosure 밖에서 읽는 결과, 짧은 문단과 현실적인 행동 조언"],
+    "rules": [
+      {"name": "The Surface Pair Rule", "body": "이 표면의 색은 배경·본문·보조문·입력·행동을 한 세트로 읽는다. 전체 제품의 색상 토큰을 이번 국소 값으로 대체하지 않는다.", "section": "colors"},
+      {"name": "The Readable Input Rule", "body": "질문 textarea와 select의 글자는 고정 16px이고, 질문은 세로 resize 가능한 최소 140px 영역이다. 결과 본문은 최대 72ch, 문단 간격 1.2em이며 소제목으로 흐름을 나눈다. 기존 formatter와 리포트 내용을 새 고정 8챕터 구조로 바꾸지 않는다.", "section": "typography"},
+      {"name": "The Price Ownership Rule", "body": "가격은 helper의 `CodeDestinyFeaturePricingStore.getOrLoad(service + '_ai_prompt_generator')`에서 받아 `displayPrice`로 표시한다. 최초는 “가격 확인 중”, 저장소 부재·실패 또는 표시값 부재는 “결제창에서 확인”이다. “이용권·월정석은 결제창에서 확인”은 가격 표시와 권리 판정을 구분한다. UI badge는 권리를 지급하지 않으며 실제 gate·주문·인증·복구·보관함·API·DB는 기존 controller를 유지한다. 캡처의 5,000원은 fixture registry의 값으로 실제 현재 판매가격을 증명하지 않는다.", "section": "components"}
+    ],
+    "dos": ["Do 이번 표면의 container 폭과 이미지 viewport 조건을 구분한다.", "Do 질문 예시를 기존 input 이벤트와 controller에 연결한다.", "Do 출생정보와 결과 렌더링의 기존 DOM ID·소유권을 유지한다.", "Do fixture·선언 토큰 대비·component 캡처·viewport 캡처의 범위를 명시한다."],
+    "donts": ["Don't 그림의 별·문양·기구를 계산 정확성 또는 상담 품질 증거로 사용한다.", "Don't 문서의 가격 예시를 현재 판매가격·권리·혜택으로 하드코딩한다.", "Don't 기본 상담 확장을 별도 `/…-ai` 상품, 사주 품질, 전역 디자인 재정의로 확대한다.", "Don't 마지막 수정의 ship 판정을 배포·실거래·새 전체 품질 검증 완료로 표시한다."]
+  }
+}
