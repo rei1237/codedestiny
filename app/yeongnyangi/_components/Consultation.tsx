@@ -20,6 +20,7 @@ import {readingLocale,readingLocales,readingLanguageNames,type ReadingLocale} fr
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {consultationInputCopy} from '../_lib/consultation-input-copy';
 import {journeyCopy} from '../_lib/journey-copy';
+import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {jongCheckCopy} from '../_lib/jong-check-copy';
 import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-policy';
@@ -61,6 +62,15 @@ export default function Consultation(){
  const askCopy=askPhase5Copy(locale).input;
  const selectableLocales=kind.question?readingLocales:readingLocales.slice(0,3);
  const preview=consultationManifest(product,kind,topicId);
+ // v7 sets the length per chapter, so the book target is the manifest sum. v6 has no per-chapter target in the
+ // selector, so it keeps the tier policy range. partKey marks a v7 manifest (book-contracts.ts).
+ const targetRange=(item:Product)=>{
+  const rows=consultationManifest(item,kind,topicId);
+  const target=rows.some(row=>row.partKey)
+   ?[0,1].map(i=>rows.reduce((sum,row)=>sum+(row.targetChars?.[i]||0),0))
+   :policyForReading(item.fishId,item.manifestVersion).target;
+  return target.map(n=>n.toLocaleString('ko-KR')).join('~');
+ };
  const choices=products.filter(p=>domain==='fusion'?p.readingKind!=='single':p.readingKind==='single'&&p.domain===domain).filter(p=>supportsKind(p,kind));
  const tarotOnly=product.domain==='tarot'&&product.readingKind==='single';
  const premium=['flounder','tuna'].includes(product.fishId);
@@ -205,9 +215,12 @@ export default function Consultation(){
   <h2 className={styles.selectionHeading} lang={locale}>{journey.depth}</h2>
   <p lang={locale}>{journey.depthHint} {kind.question&&journey.questionHint}</p>
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label="생선 상품">{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
-   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span className={styles.fishPrice}>{item.priceKRW.toLocaleString('ko-KR')}원</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {journey.chapters}{productId===item.id&&<b>{journey.selected}</b>}</span>{domain!=='fusion'&&<small>{policyForReading(item.fishId,item.manifestVersion).target.map(n=>n.toLocaleString('ko-KR')).join('~')} {journey.target}</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
+   <img src={item.image} alt="" width={240} height={108}/><strong>{domain==='fusion'?consultationTitle(item):item.fishName}</strong><span className={styles.fishPrice}>{item.priceKRW.toLocaleString('ko-KR')}원</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {journey.chapters}{productId===item.id&&<b>{journey.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {journey.target}</small>}<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>
   </button>)}</div>
-   <details className={styles.manifestPreview}><summary>{kind.label} · {preview.length}개 챕터 목차</summary><ol>{preview.map(chapter=><li key={chapter.id}>{chapter.title}</li>)}</ol></details>
+   <details className={styles.manifestPreview}><summary>{kind.label} · {preview.length}개 챕터 목차</summary><ol>{preview.map((chapter,i)=>{
+    const head=v7PartHead(preview,i,locale);
+    return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,locale)||chapter.title}</li>;
+   })}</ol></details>
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · Family 이용권 또는 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>
    <p>선택한 운세의 계산 결과를 바탕으로 AI가 해설해요. 선택을 돕는 참고 자료이며 미래를 확정하지 않아요.</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}

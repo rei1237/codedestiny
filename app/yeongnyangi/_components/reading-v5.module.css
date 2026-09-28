@@ -20,4 +20,6 @@
 .chartDetail meter{display:block;width:100%;height:1rem;accent-color:var(--gold);margin-top:.35rem}
 
 .chapterStatus{display:block;color:var(--yn-muted);font-size:.8rem;margin-top:.2rem}
+/* v7 part head inside the contents list. A new element only; the sticky/grid layout above is unchanged. */
+.partHeading{display:block;padding:.85rem .4rem .1rem;color:var(--gold);font-size:.78rem;letter-spacing:.04em}
 @media(max-width:999px){.navigation:has(details[open]){position:relative;top:auto}.navigation nav{max-height:42vh}.body{width:100%}}

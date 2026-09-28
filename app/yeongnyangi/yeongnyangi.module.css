@@ -895,6 +895,8 @@
 .kindChoices button:focus-visible { outline: 2px solid #e9c78d; outline-offset: 3px; }
 .manifestPreview { margin: 20px 0; line-height: 1.8; }
 .manifestPreview summary { cursor: pointer; min-height: 44px; }
+/* v7 part head inside the preview list. A new element only; the list layout above is unchanged. */
+.partHeading { display: block; margin-top: 10px; color: #e9c78d; font-size: .78rem; letter-spacing: .04em; }
 @media (max-width: 480px) { .kindChoices button { flex: 1 1 140px; } }
 
 .selectionHeading { margin:28px 0 8px; font-size:1.3rem; }

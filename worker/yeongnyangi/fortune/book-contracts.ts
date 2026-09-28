@@ -21,6 +21,10 @@ export interface ChapterSpec {
   sections?: ReadingSectionSpec[];
   version?: string;
   key?: string;
+  // v7 only (reading-v7.ts): the UI dictionary keys for the chapter title and its part head.
+  // Absent on v5/v6 manifests, which is how the renderers tell the two apart.
+  titleKey?: string;
+  partKey?: string;
   tier?: import('./shared/contracts').PackageId;
   factSelectors?: Partial<Record<DomainId, string[]>>;
   excludes?: string[];
