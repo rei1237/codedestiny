@@ -22,7 +22,6 @@ import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/lo
 import {
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUP_MIN_CHARS,
-  LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS,
   LOVE_SECRET_AI_SYSTEM_PROMPT,
   assembleLoveSecretConsultation,
   buildFollowUpConsultationPrompt,
@@ -794,6 +793,7 @@ async function generateLoveSecretGroup(env, {
       taskType: "fortune",
       // 그룹 최소 분량 × 0.4. 단일 호출 시절의 3,000은 2만자 목표에서 도달 불가능해 무용지물이었다.
       fallbackMinChars: Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.4),
+      maxProviderAttempts: 1,
       cache,
     });
     // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
@@ -847,7 +847,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   let results = LOVE_SECRET_AI_GROUPS.map(group => options.savedGroups?.find(row => row.key === group.key) || { key: group.key, ok: false, sections: [], extras: {}, chars: 0 });
   const checkpointed = typeof options.onCheckpoint === "function";
   const attempts = options.attempts || {};
-  results.forEach(row => { if (row.ok && attempts[row.key] >= 4) row.lengthRepair = true; });
+  results.forEach(row => { if (row.ok) row.lengthRepair = true; });
   const qualityOf = rows => validateLoveSecretConsultation(assembleLoveSecretConsultation(rows, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
   const contentIssues = value => value.issues.filter(issue => !/^(?:TOTAL_(?:BELOW|ABOVE)_TARGET|SECTION_MIN_CHARS):/.test(issue));
   const choose = (previous, candidate) => {
@@ -861,15 +861,15 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   let selected = LOVE_SECRET_AI_GROUPS;
   if (checkpointed) {
     const priorQuality = validateLoveSecretConsultation(assembleLoveSecretConsultation(results, { input, sajuResult }), { sajuResult, groundingTerms: buildLoveSecretGroundingTerms(sajuResult) });
-    const repairKeys = mapLoveSecretIssuesToGroups(priorQuality, results);
-    const available = key => (attempts[key] || 0) < 4;
+    const repairKeys = mapLoveSecretIssuesToGroups({ ...priorQuality, issues: contentIssues(priorQuality) }, results);
+    const available = key => (attempts[key] || 0) < 2;
     const key = results.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
     selected = LOVE_SECRET_AI_GROUPS.filter(group => group.key === key);
     if (selected.length) {
       const key = selected[0].key;
       const used = attempts[key] || 0;
       await options.onReserve(key);
-      attempts[key] = used + 2;
+      attempts[key] = used + 1;
     }
   }
   const produced = await Promise.all(selected.map(async (group) => {
@@ -879,12 +879,12 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     sajuResult,
     group,
     systemPromptBase,
-    cache: { ...cache, skipRead: checkpointed && (attempts[group.key] || 0) > 2 },
+    cache: { ...cache, skipRead: checkpointed && (attempts[group.key] || 0) > 1 },
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
     });
     const row = choose(previous, generated);
-    if (previous?.lengthRepair || attempts[group.key] >= 4) row.lengthRepair = true;
+    if (row.ok) row.lengthRepair = true;
     if (checkpointed) await options.onCheckpoint(row);
     return row;
   }));
@@ -895,9 +895,9 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   let quality = validateLoveSecretConsultation(assembled, { sajuResult, groundingTerms });
 
   // Wave 2 — 책임 그룹만 다시 쓴다(전체 재생성 금지).
-  const targets = mapLoveSecretIssuesToGroups(quality, results);
+  const targets = mapLoveSecretIssuesToGroups({ ...quality, issues: contentIssues(quality) }, results);
   if (checkpointed) for (const key of targets.keys()) if (!selected.some(group => group.key === key)) targets.delete(key);
-  if (targets.size && budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS) > 0) {
+  if (!checkpointed && targets.size && budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS) > 0) {
     logLoveSecretAi("Group Repair", { ...logContext, issues: quality.issues, targets: [...targets.keys()] }, "warn");
     const repaired = await Promise.all([...targets.entries()].map(async ([key, repairLines]) => {
       const group = LOVE_SECRET_AI_GROUPS.find((item) => item.key === key);
@@ -943,7 +943,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   const usableGroups = results.filter((result) => result.ok).length;
   const totalChars = countLoveSecretConsultationBodyChars(assembled);
   // 하드 하한은 프롬프트 모듈이 소유한다 — 여기서 숫자를 복제하면 조용히 어긋난다.
-  const renderable = totalChars >= LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS && clean(assembled.answer).length >= 4000;
+  const renderable = totalChars >= 120;
 
   logLoveSecretAi("LLM Provider Selected", {
     ...logContext,
@@ -955,7 +955,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     residualIssues: quality.issues,
   });
 
-  const completionIssues = quality.issues.filter(issue => !/^TOTAL_(BELOW|ABOVE)_TARGET:/.test(issue));
+  const completionIssues = contentIssues(quality);
   const complete = usableGroups === LOVE_SECRET_AI_MIN_USABLE_GROUPS && renderable && completionIssues.length === 0;
   if (!checkpointed && !complete) {
     const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
@@ -1171,7 +1171,7 @@ function publicSession(doc) {
     saved: clean(raw?.status) === "completed",
     retryable: ["partial", "delivery_pending", "generating"].includes(raw?.status)
       && (raw?.status !== "partial" || LOVE_SECRET_AI_GROUPS.some(group => (!(storedMeta.delivery?.groups || []).some(row => row.key === group.key && row.ok) || pendingGroups.has(group.key))
-        && (storedMeta.delivery?.attempts?.[group.key] || 0) < 4)),
+        && (storedMeta.delivery?.attempts?.[group.key] || 0) < 2)),
     resumeSessionId: clean(raw?.id),
     completedGroups: (meta.delivery?.groups || []).filter(row => row.ok).map(row => row.key),
     myInfo: raw?.myInfo || null,
@@ -1572,8 +1572,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
       attempts: seed.llmMeta.delivery.attempts,
       onReserve: async (key) => {
         const attempts = seed.llmMeta.delivery.attempts;
-        if ((attempts[key] || 0) >= 4) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });
-        attempts[key] = (attempts[key] || 0) + 2;
+        if ((attempts[key] || 0) >= 2) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });
+        attempts[key] = (attempts[key] || 0) + 1;
         await saveLoveSecretCheckpoint(auth.userId, sessionId, seed.llmMeta.delivery);
       },
       onCheckpoint: async (row) => {

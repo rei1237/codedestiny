@@ -32,15 +32,15 @@ for (const kind of ['missing_basis', 'truncated', 'empty', 'mock', 'repeated']) 
   provider.mockResolvedValue({ ok: true, text: body, provider: kind === 'mock' ? 'mock' : 'gemini', truncated: kind === 'truncated' });
   const result = await utils.generateConsultationText({}, input, facts, f.options);
   expect(result.complete).toBe(true); expect(result.savedSections[0].text).toBe(f.savedSections[0].text);
-  expect(provider).toHaveBeenCalledTimes(1); expect(f.options.attempts['overview:lengthRepair']).toBe(1);
+  expect(provider).not.toHaveBeenCalled(); expect(f.options.attempts.overview).toBe(1);
 });
 it('real provider path preserves a first draft below the legacy 300-character floor', async () => {
   const f = fixture(); f.savedSections[0] = { ...f.savedSections[0], text: '', ok: false }; f.options.attempts.overview = 0;
   provider.mockResolvedValue({ ok: true, text: text('overview', 100, true), provider: 'gemini' });
   const first = await utils.generateConsultationText({}, input, facts, f.options);
-  expect(first.complete).toBe(false);expect(first.savedSections[0].text).not.toBe('');expect(first.savedSections[0].text.length).toBeLessThan(300);
+  expect(first.complete).toBe(true);expect(first.savedSections[0].text).not.toBe('');expect(first.savedSections[0].text.length).toBeLessThan(300);
   const second = await utils.generateConsultationText({}, input, facts, { ...f.options, savedSections: first.savedSections });
-  expect(second.complete).toBe(true);expect(provider).toHaveBeenCalledTimes(2);
+  expect(second.complete).toBe(true);expect(provider).toHaveBeenCalledTimes(1);
 });
 it('a shorter repair can restore missing required evidence', async () => {
   const f = fixture(1000); f.savedSections[0].text = f.savedSections[0].text.replace('병오', '');

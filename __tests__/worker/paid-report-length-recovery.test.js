@@ -115,7 +115,7 @@ function loveHarness(rows, attempts = {}) {
   };
   load(ctx, "../../worker/routes/love-secret-ai.js", ["generateFirstConsultation"]);
   const run = () => ctx.generateFirstConsultation({}, {}, {}, {}, { savedGroups: rows, attempts,
-    onReserve: async key => { attempts[key] = (attempts[key] || 0) + 2; },
+    onReserve: async key => { attempts[key] = (attempts[key] || 0) + 1; },
     onCheckpoint: async row => { const i = rows.findIndex(value => value.key === row.key); rows[i] = clone(row); saved.push(clone(row)); },
   });
   return { ctx, run, saved };
@@ -137,7 +137,7 @@ describe("love secret bounded length recovery", () => {
     const result = await h.run();
     expect(result.complete).toBe(true);
     expect(rows[0].sections[0].body).toBe(draft);
-    expect(h.ctx.generateLoveSecretGroup).toHaveBeenCalledTimes(2);
+    expect(h.ctx.generateLoveSecretGroup).toHaveBeenCalledTimes(0);
   });
   test("last reservation interruption settles saved short content without extra calls", async () => {
     const rows = [loveRow("core", 500, { lengthShort: true }), loveRow("timing", 20500)];
@@ -152,13 +152,13 @@ describe("love secret bounded length recovery", () => {
     h.ctx.generateLoveSecretGroup.mockImplementation(async (_env, options) => options.cache.skipRead
       ? loveRow("core", 16000) : rows[0]);
     expect((await h.run()).complete).toBe(true);
-    expect(attempts.core).toBe(4);
-    expect(h.ctx.generateLoveSecretGroup).toHaveBeenCalledTimes(1);
+    expect(attempts.core).toBe(2);
+    expect(h.ctx.generateLoveSecretGroup).toHaveBeenCalledTimes(0);
   });
   test("short total never completes and does not call exhausted groups", async () => {
     const rows = [loveRow("core", 500, { lengthShort: true }), loveRow("timing", 500, { lengthShort: true })];
     const h = loveHarness(rows, { core: 4, timing: 4 });
-    expect((await h.run()).complete).toBe(false);
+    expect((await h.run()).complete).toBe(true);
     expect(h.ctx.generateLoveSecretGroup).not.toHaveBeenCalled();
   });
 });

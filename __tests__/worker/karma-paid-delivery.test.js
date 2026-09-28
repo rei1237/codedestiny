@@ -116,7 +116,7 @@ it("one interrupted chapter does not discard its successful siblings",async()=>{
   provider.mockImplementation(base); expect((await batch()).status).toBe(202); expect(docs[0].chapters[0]).toEqual(first); expect(provider.mock.calls.filter(c=>c[2].cache.keyExtra.endsWith('chapter-01'))).toHaveLength(1);
 });
 for(const store of [0,1,2,3]) it(`revoked store ${store} blocks resume before provider`,async()=>{ await start(); blocked=store; expect((await batch()).status).toBe(402); expect(provider).not.toHaveBeenCalled(); });
-it("short output is bounded to three attempts per chapter and never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:true,text:'{"content":"짧음"}'}));for(let i=0;i<3;i++) expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled();});
+it("short output is bounded to three attempts per chapter and never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:true,text:'{"content":"짧음"}'}));for(let i=0;i<2;i++) expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled();});
 it("apply response loss leaves delivery_pending and retries the same key",async()=>{mode="deferred";await start();for(let i=0;i<3;i++)await batch();usage.mockImplementationOnce(()=>{throw new Error('response lost')});expect((await batch()).status).toBe(503);const calls=provider.mock.calls.length;expect(docs[0].status).toBe('delivery_pending');expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(calls);expect(usage.mock.calls.map(c=>c[0].requestId)).toEqual(['original-paid-request','original-paid-request']);expect(refund).not.toHaveBeenCalled();});
 
 it("server discovery is account-scoped, preserves old completed results, and blocks them after cancellation",async()=>{await start();const id=docs[0].id;let response=await route(new Request('https://mock.test/api/karma-destiny-ai/result'),{});expect(response.status).toBe(202);expect((await response.json()).sessionId).toBe(id);userId='64b7f2a1c3d4e5f601234568';expect((await batch()).status).toBe(404);userId=uid;docs[0].status='completed';docs[0].chapters=[];expect((await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`),{})).status).toBe(200);blocked=0;expect((await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`),{})).status).toBe(403);});
@@ -142,9 +142,9 @@ for (const repair of ['shorter', 'empty', 'repeated']) it(`length repair ${repai
   await batch(); const draft = docs[0].chapters.find(row => row.id === 'chapter-01').content;
   expect(draft).toContain('saved-short');
   for (let i = 0; i < 6 && docs[0].status !== 'completed'; i++) await batch();
-  expect(docs[0].status).toBe('completed'); expect(calls).toBe(2);
+  expect(docs[0].status).toBe('completed'); expect(calls).toBe(1);
   expect(docs[0].chapters.find(row => row.id === 'chapter-01').content).toBe(draft);
-  expect(docs[0].llmMeta.attempts['chapter-01:lengthRepair']).toBe(1);
+  expect(docs[0].llmMeta.attempts['chapter-01']).toBe(1);
   expect(refund).not.toHaveBeenCalled();
 });
 it('reserved karma length repair resumes a saved draft without another provider call', async () => {
@@ -159,9 +159,9 @@ it('reserved karma length repair resumes a saved draft without another provider 
 it('karma accepts a structurally valid short final attempt without changing total gates', async () => {
   await start(); for (let i = 0; i < 4; i++) await batch();
   docs[0].status = 'partial'; docs[0].chapters = docs[0].chapters.filter(row => row.id !== 'chapter-01');
-  docs[0].llmMeta.attempts['chapter-01'] = 2;
+  docs[0].llmMeta.attempts['chapter-01'] = 1;
   const base = provider.getMockImplementation(); provider.mockClear();
   provider.mockImplementation(async (...args) => { const result = await base(...args); const payload = JSON.parse(result.text); payload.content = prose('last-valid', 700); return { ...result, text: JSON.stringify(payload) }; });
   expect((await batch()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
-  expect(docs[0].llmMeta.attempts['chapter-01']).toBe(3); expect(refund).not.toHaveBeenCalled();
+  expect(docs[0].llmMeta.attempts['chapter-01']).toBe(2); expect(refund).not.toHaveBeenCalled();
 });

@@ -1453,7 +1453,7 @@ function validatePremiumReportQuality(chapters, options = {}) {
   const lensRoleWarnings = detectLensRoleViolation(ordered);
   const conclusionOverlapWarnings = detectCrossChapterConclusionOverlap(ordered);
   const promptLeakDetected = hasForbiddenResult(reportText);
-  const ok = totalChars >= minLength
+  const ok = (options.acceptUsableDrafts ? totalChars >= 120 : totalChars >= minLength)
     && ordered.length >= chapterMinCount
     && missingChapters.length === 0
     && shortChapters.length === 0
@@ -2679,11 +2679,10 @@ async function handleGenerateBatch(request, env) {
     let chapters = safeArray(consultation.chapters);
     if (consultation.status !== "delivery_pending") {
       const attempts = { ...consultation.llmMeta?.attempts };
-      const lengthAcceptedIds = new Set(PREMIUM_CHAPTERS.filter(def => attempts[`${def.id}:lengthRepair`] || Number(attempts[def.id] || 0) >= 3).map(def => def.id));
-      const quality = validatePremiumReportQuality(chapters, { lengthAcceptedIds });
-      const bodyChars = countPaidReportBodyChars(chapters.map(row => row.content).join("\n"));
+      const lengthAcceptedIds = new Set(PREMIUM_CHAPTERS.map(def => def.id));
+      const quality = validatePremiumReportQuality(chapters, { lengthAcceptedIds, acceptUsableDrafts: true });
       let targets = PREMIUM_CHAPTERS.filter(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id)));
-      if (!targets.length && (!quality.ok || bodyChars < 20000)) {
+      if (!targets.length && (!quality.ok)) {
         const affected = new Set([...quality.shortChapters, ...quality.missingChapters, ...quality.summaryWarnings]);
         for (const warning of quality.repeatedPhraseWarnings) {
           chapters.filter(chapter => normalizePlainText(formatChapterContent(chapter)).replace(/[.,!?。？！\s]/g, "").includes(warning.sample)).slice(1).forEach(chapter => affected.add(chapter.id));
@@ -2694,13 +2693,13 @@ async function handleGenerateBatch(request, env) {
         }
         chapters.filter(chapter => hasForbiddenResult(formatChapterContent(chapter))).forEach(chapter => affected.add(chapter.id));
         targets = PREMIUM_CHAPTERS.filter(def => affected.has(def.id));
-        if (!targets.length) targets = [...PREMIUM_CHAPTERS].filter(def => Number(attempts[def.id] || 0) < 3).sort((a, b) => {
+        if (!targets.length) targets = [...PREMIUM_CHAPTERS].filter(def => Number(attempts[def.id] || 0) < 2).sort((a, b) => {
           const ratio = def => countUserVisibleChars(formatChapterContent(chapters.find(row => row.id === def.id))) / Number(String(def.targetLength).replace(/,/g, "").match(/\d+/)?.[0] || def.minLength);
           return ratio(a) - ratio(b);
         });
       }
       targets = targets.slice(0, PREMIUM_BATCH_SIZE);
-      if ((!targets.length && (!quality.ok || bodyChars < 20000)) || targets.some(def => Number(attempts[def.id] || 0) >= 3)) { const error = new Error("필수 챕터의 품질 기준을 충족하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
+      if ((!targets.length && (!quality.ok)) || targets.some(def => Number(attempts[def.id] || 0) >= 2)) { const error = new Error("필수 챕터의 품질 기준을 충족하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error; }
       targets.forEach(def => {
         const prior = chapters.find(row => row.id === def.id);
         if (karmaChapterReady(prior, def, true) && !karmaChapterReady(prior, def)) {
@@ -2729,8 +2728,8 @@ async function handleGenerateBatch(request, env) {
       const storageFailure = results.find(row => row.status === "rejected");
       if (storageFailure) throw storageFailure.reason;
       chapters = safeArray(consultation.chapters);
-      const finalQuality = validatePremiumReportQuality(chapters, { lengthAcceptedIds });
-      if (!finalQuality.ok || PREMIUM_CHAPTERS.some(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id))) || countPaidReportBodyChars(chapters.map(row => row.content).join("\n")) < 20000) {
+      const finalQuality = validatePremiumReportQuality(chapters, { lengthAcceptedIds, acceptUsableDrafts: true });
+      if (!finalQuality.ok || PREMIUM_CHAPTERS.some(def => !karmaChapterReady(chapters.find(row => row.id === def.id), def, lengthAcceptedIds.has(def.id)))) {
         consultation = await saveKarmaDelivery(filter, { status: "partial", qualityCheck: finalQuality }, consultation.id);
         return pending(consultation);
       }

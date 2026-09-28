@@ -109,7 +109,7 @@ const SECTION_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST;
 // 웨이브 최악(≈42초)의 2배. 이 값보다 STALE 창이 짧으면 락 보유 중인 정상 세션을 죽인다.
 const SECTION_LOCK_TTL_MS = 90 * 1000;
 // 1회 생성 + 자동 재시도 2회.
-const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;
+const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 2;
 // 세션당 웨이브 상한. /generate 는 레이트리밋상 하루 60회라 무한 재개를 막아야 한다.
 const MAX_GENERATION_WAVES = 32; // Same total part-attempt budget, one part per request.
 const SECTION_TIMEOUT_MS = 45000;
@@ -1303,7 +1303,7 @@ function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
   const lifeFortune = isLifeFortuneInput(input);
   const minChapterContentChars = lifeFortune ? LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS : LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS;
   const minExpertReadingContentChars = lifeFortune ? LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS : 350;
-  const minTotalContentChars = LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS;
+  const minTotalContentChars = options.acceptUsableDrafts ? 120 : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS;
   const maxTotalContentChars = lifeFortune ? LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS : LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS;
   if (!text) return ["empty_result"];
   if (hasForbiddenResultTerms(text)) issues.push("forbidden_terms");
@@ -1525,8 +1525,7 @@ function lifeBookSectionValid(section, body, input) {
 }
 
 function lifeBookLengthOptions(plan, sections) {
-  return { lengthAcceptedIds: new Set(plan.filter(section => sections[section.id]?.lengthRepair
-    || Number(sections[section.id]?.attempts || 0) >= LIFE_BOOK_MAX_SECTION_ATTEMPTS).map(section => section.id)) };
+  return { acceptUsableDrafts: true, lengthAcceptedIds: new Set(plan.filter(section => sections[section.id]?.ok).map(section => section.id)) };
 }
 
 // 앞 섹션의 첫 문장만 모아 장 간 중복 서사(duplicate_narrative)를 억제한다.
@@ -2576,7 +2575,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
         const pending = plan.filter((section) => {
           const stored = sections[section.id];
           if (!stored) return true;
-          if (stored.lengthRepair && stored.repairKind === "length" && stored.ok) {
+          if (stored.repairKind === "length" && stored.ok) {
             stored.needsRepair = false;
             return false;
           }

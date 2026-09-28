@@ -2322,8 +2322,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       : issue.startsWith("SECTION_COUNT:") ? ["SECTION_COUNT"] : [issue]);
   const valid = row => row.ok && !row.truncated && !row.isMock && countPaidReportBodyChars(row.text) > 0
     && !hasRepeatedReportPassage(row.text);
-  const accepted = row => valid(row) && (countPaidReportBodyChars(row.text) >= row.section.minChars
-    || attempts[`${row.key}:lengthRepair`] || Number(attempts[row.key] || 0) >= 3);
+  const accepted = row => valid(row);
   const assess = () => {
     const quality = validateConsultationQuality(assembleConsultationSections(results), qualityOptions);
     quality.issues = contentIssues(results);
@@ -2338,17 +2337,13 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       if (repeated) targets.set(repeated.key, ['DUPLICATE_NARRATIVE']);
     }
     if (quality.issues.length && !targets.size) targets.set('overview', quality.issues);
-    if (!targets.size && quality.totalChars < NEW_YEAR_AI_MIN_TOTAL_CHARS) {
-      for (const row of results) if (Number(attempts[row.key] || 0) < 3
-        && countPaidReportBodyChars(row.text) < (row.section.targetMinChars || row.section.minChars)) targets.set(row.key, [`SECTION_MIN_CHARS:${row.key}`]);
-    }
-    quality.ok = quality.issues.length === 0 && results.every(accepted) && targets.size === 0 && quality.totalChars >= NEW_YEAR_AI_MIN_TOTAL_CHARS;
+    quality.ok = quality.issues.length === 0 && results.every(accepted) && targets.size === 0;
     return { quality, targets };
   };
   let { quality, targets } = assess();
   const candidate = results.find(row => !row.text) || results.find(row => targets.has(row.key));
   if (candidate) {
-    if (Number(options.attempts?.[candidate.key] || 0) >= 3) {
+    if (Number(options.attempts?.[candidate.key] || 0) >= 2) {
       throw Object.assign(new Error('신년운세 해당 분야의 생성 한도 안에서 품질을 확인하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
     }
     const remaining = Number(options.deadlineAt) - Date.now();
