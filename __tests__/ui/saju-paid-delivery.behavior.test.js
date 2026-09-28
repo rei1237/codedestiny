@@ -145,3 +145,34 @@ test('server-discovered completed reading does not become a pending job or reope
   assert.equal(h.posts.length, 0);
   h.close();
 });
+
+test('twelve chapter bodies survive grouped navigation and historical bold headings', () => {
+  const h = setup();
+  const titles = ['질문에 대한 핵심 답변','이 명식의 중심 성향','십성 구조 해석','오행 균형 해석','현재 고민과 명식의 연결','일/돈/관계/연애/건강 리듬','대운의 전환점','올해의 흐름','조심해야 할 패턴','살리는 전략','30일 실천 가이드','마지막 한마디'];
+  const raw = titles.map((title,i) => `**${i+1}. ${title}**\n본문 ${i+1}: 계산 근거와 질문에 대한 조건입니다.`).join('\n');
+  const output = h.w.document.createElement('div');
+  output.innerHTML = h.ctx._sajuPromptRenderChapters(raw);
+  assert.equal(output.querySelectorAll('section').length,12);
+  assert.equal(output.querySelectorAll('nav a').length,7);
+  titles.forEach((_,i) => assert.ok(output.textContent.includes(`본문 ${i+1}: 계산 근거와 질문에 대한 조건입니다.`)));
+  assert.equal(h.ctx._sajuPromptChapterTitle('이 명식의 중심 성향은 결론을 단정하는 근거가 아닙니다.'),'');
+  assert.ok(h.ctx._sajuPromptRenderChapters('과거 단일 본문도 그대로 읽습니다.').includes('과거 단일 본문도 그대로 읽습니다.'));
+  h.close();
+});
+
+test('question draft is scoped to the current owner and profile', () => {
+  const h=setup();
+  h.ctx._sajuPromptClearPendingJob('p');
+  h.bind();
+  const input=h.root.querySelector('[data-saju-ai-question]');
+  input.value='이직과 잔류 중 무엇을 확인해야 할까요?';
+  input.dispatchEvent(new h.w.Event('input'));
+  const draft=h.w.sessionStorage.getItem('cd_saju_consultation_draft:owner:p');
+  assert.ok(draft.includes('이직과 잔류'));
+  h.w.localStorage.setItem('fortune_auth_user',JSON.stringify({id:'other'}));
+  h.w.dispatchEvent(new h.w.Event('cd:auth-changed'));
+  assert.equal(input.value,'');
+  assert.equal(h.w.sessionStorage.getItem('cd_saju_consultation_draft:other:p'),null);
+  assert.equal(h.posts.length,0);
+  h.close();
+});

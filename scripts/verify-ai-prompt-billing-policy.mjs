@@ -206,9 +206,10 @@ assert.match(aiPromptPassPayloadSource, /accessType === 'family'/, "AI prompt ga
 assert.match(aiPromptPassPayloadSource, /accessType === 'family_pass'/, "AI prompt gate evidence must classify family_pass as pass evidence");
 assert.match(aiPromptPassPayloadSource, /accessMethod === 'FAMILY'/, "AI prompt gate evidence must classify FAMILY accessMethod as pass evidence");
 assert.match(sajuEngineSource, /freeBySubscription:\s*passAccess \|\|/, "AI prompt gate evidence must mark FAMILY/pass payloads as freeBySubscription before generation POST");
-assert.match(sajuPromptCardSource, /var sajuAiAmountKrw = 10000;/, "saju AI consultation card must derive its displayed price from the existing 10,000 KRW amount");
-assert.match(sajuPromptCardSource, /1회 ' \+ sajuAiPriceLabel/, "saju AI consultation card must show the one-time KRW price");
-assert.match(sajuPromptCardSource, /sajuAiPriceLabel \+ '으로 사주 AI 상담 받기<\/button>'/, "saju AI consultation CTA must show the KRW price");
+assert.match(sajuEngineSource, /pricing.getOrLoad\('saju_ai_question_prompt'\)/, "saju consultation must load its price from the existing pricing registry");
+assert.match(sajuPromptCardSource, /data-consultation-price/, "saju consultation must expose a live price label before purchase");
+assert.match(sajuPromptCardSource, /단건 결제/, "saju consultation must describe the unchanged single purchase option");
+assert.doesNotMatch(sajuPromptCardSource, /10000|10,000/, "saju consultation must not duplicate the authoritative price");
 assert.match(fortuneSource, /accessDecision\.requestId/, "AI prompt token collection must include accessDecision request evidence");
 assert.match(fortuneSource, /accessDecision\.accessGranted === true/, "AI prompt pass payload must honor granted accessDecision evidence");
 assert.match(fortuneSource, /function readAIPromptRequestId/, "AI prompt routes must share request-id resolution");

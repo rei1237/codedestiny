@@ -1,0 +1,17 @@
+{
+  "readOnly": true,
+  "periodDays": 30,
+  "sampleCount": 1,
+  "summary": [
+    {
+      "promptVersion": "saju-myeongsik-ai-v6",
+      "bodyChars": 17309,
+      "beforeRenderedChapters": 12,
+      "afterRenderedChapters": 12,
+      "beforeParagraphs": 77,
+      "afterParagraphs": 77,
+      "storedResultModified": false
+    }
+  ],
+  "limitations": "Storage sample only; not a customer average or new generation quality comparison."
+}

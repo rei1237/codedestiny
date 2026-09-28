@@ -1,0 +1,94 @@
+# 꿀꿀 운세 자체 상담 UX 인수인계
+
+## 진행 규칙
+
+- 순서: 사주 → 기본 자미두수 → 기본 숙요점 → 기본 서양 점성술 → 기본 베다점.
+- 각 서비스의 구현·검증·증거를 기록하고 이 문서를 읽은 뒤 다음 단계에 착수한다.
+- 현재: **사주 구현 및 검증 중**. 이후 네 단계는 미착수. 실제 생성 품질 비교와 스테이징 검증이 끝나기 전 사주 완료로 표기하지 않는다.
+- 기본 자체 상담만 대상이다. 별도 `/…-ai`, 영냥이, 운명의 섬 상품은 합치지 않는다.
+- 가격·이용권·월정석·단건 결제 정책과 주문·결과 읽기 계약을 유지한다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 실행하지 않는다.
+
+## 2026-09-28 조사 기준
+
+- 소스 기준 SHA: `1fcf3b2e55c2468ce712f53c8b4f48143d3b0d5b`.
+- 조사 당시 운영 Pages/Worker: `01dbf1fb3cd45abde3657a97a1bee287175c9ad4`.
+- 조사 당시 staging Pages/Worker: `1fcf3b2e55c2468ce712f53c8b4f48143d3b0d5b`.
+- 운영·staging `/api/billing/features` GET: 사주 `saju_ai_question_prompt` 10,000원, 기본 자미·숙요·서양·베다의 `*_ai_prompt_generator` 각 5,000원. 서버 정본과 코드 값이 일치했다. 서버 reason의 ‘프롬프트 생성’ 표현과 실제 생성 상담을 혼동하지 않도록 표시 문구만 개선한다.
+- 사주 클라이언트 alias: `saju_ai_prompt_generator`. 요청 `/api/fortune/saju/ai-prompt`, 동일 주문 생성·복구 `/api/fortune/saju-ai-consultation/create`, status/result GET을 유지한다.
+- 다른 활성 작업이 있어 관리형 detached worktree를 사용했다. main의 marketing/** 및 next-env.d.ts 변경은 이 작업에 포함하지 않는다.
+
+## 1단계 — 사주
+
+### 발견 문제와 전후 경로
+
+- 운영 첫 화면: 영냥이 사주 1,000원은 보이지만 기본 사주 자체 상담의 가치는 드러나지 않았다.
+- 소스 기준 mock 무료 결과에서는 상담 카드가 이미 명식 바로 다음에 표시됐다. 접힌 메뉴에 숨었다고 단정하지 않는다. 핵심 문제는 작은 상품 소개 다음 긴 입력·선택 폼이 이어져 제공 내용을 먼저 이해하기 어렵다는 점이었다.
+- 개선 전: 무료 입력 → 명식 → 어두운 상담 폼(하드코딩 가격·태극 장식) → 질문·주제·개인정보·선택 보정 입력 → 생성 버튼.
+- 개선 후: 무료 입력 아래 유료 상담 예고 → 명식 → 실제 일간을 연결한 상담 소개·현재 가격·연이 그림 → 내용 확인 → AI 상담 설명·무료와의 차이·설명용 예시·출생정보 확인/수정·질문 → 기존 결제 선택 → 저장 상태 기반 진행 → 12챕터 결과/7개 읽기 흐름 → 기존 보관함.
+- 소개와 입력을 details로 나누되 주 진입 버튼·상품명·가격은 접지 않는다. 결과·복구·보관함 버튼은 details 밖에 있다.
+- 생성 버튼이 기존 가격/권리 확인을 호출한다. 새 주문·결제 경로를 추가하지 않았다.
+
+### 디자인·입력·결과
+
+- 새 그림: `docs/design/fortune-consultation-ux/saju-yeoni-original.png`; 배포본 `public/images/consultation/saju-yeoni-{320,640}.webp`.
+- 원본은 ImageGen으로 제작. 참조는 기존 `public/icons/app-logo-512.webp`의 꽃돼지 연이. 그림 속 글자는 연출용 상징이며 실제 고객 명식이 아니다. 상품명·가격·행동은 HTML 텍스트다.
+- 320px 20,468바이트 / 640px 68,754바이트. Sharp quality 82, 3:2 비율, srcset·명시 크기·lazy·async decoding 적용.
+- 연이 로즈·플럼, 네오 모드 대응. CTA/폼/결과를 전용 CSS로 범위 제한했다.
+- 가격은 `CodeDestinyFeaturePricingStore.getOrLoad`로 조회한다. 실패 시 금액을 만들지 않고 결제창 확인으로 표시한다.
+- 질문 초안은 같은 탭의 계정·프로필별 sessionStorage에 보관하며 계정 전환 때 표시를 비운다. 기존 유료 복구 저장소와 구분한다.
+- 시간 경과만으로 진행률을 올리던 UI 타이머를 제거했다. 서버가 전달한 진행 문구를 사용하며 새 예측 시간을 만들지 않는다.
+- 12챕터 제목·본문을 보존하면서 일곱 읽기 흐름으로 목차를 묶었다. 굵게 표시된 과거 제목을 인식하고 제목으로 시작하는 일반 문장은 버리지 않는다.
+- 화면 검증 결과는 fixture임을 본문에 표시한다. 실제 AI 결과로 제시하지 않는다.
+
+### 상품 결과 품질
+
+- 신규 프롬프트 버전 `saju-myeongsik-ai-v8`. 기존 12챕터·5그룹·총합 20,000자 계약과 토큰/호출 상한은 유지한다.
+- 5~6장: 질문의 쟁점과 직접 관련된 영역을 우선하고 개인사를 만들지 않는다.
+- 7~8장: 제공된 대운·세운만 사용한다. 월운이 없는데 특정 월/반기 차이를 요구하던 지시를 제거했다.
+- 9~12장: 반대 조건, 선택지의 동일 기준 비교, 통제 가능한 행동과 확인 방법, 질문 중심 요약으로 역할을 구분했다.
+- 짧은 유효 초안·부분 결과 보존, 같은 주문 재개, 저장 재조회 완료 판정은 기존 구현을 유지하며 회귀 검사한다.
+
+### 실제 데이터와 한계
+
+- 사용자 승인에 따라 운영 DB를 읽기 전용 조회했다. 2026-08-29~09-28 조회 시 `paid_execution_records`의 사주 기록은 completed 1건이었다.
+- 모델 기록 Gemini 2.5 Flash, 이용권 사용. 저장 문자열 22,806자 / 공백 제외 17,582자. 정본 countPaidReportBodyChars 기준 본문은 17,309자다. 구·신규 렌더러 모두 12챕터·77문단을 표시하며 과거 결과에 새 완성 기준을 소급하지 않는다. 생성→완료 40,301ms는 LLM 단독 지연이 아니다.
+- 기록 1건을 실제 고객 평균·전체 실패율로 해석하지 않는다. 테스트 주문 여부와 다른 저장소 포함 범위를 확인하지 않았으므로 대표성 미확인이다.
+- 현재 구조 변경이 실제 생성 내용의 밀도를 개선했는지는 **미검증**. 실제 익명화 전후 결과 비교, 토큰 로그 기반 원가·실행 시간 측정은 아직 없다.
+- 새 실호출은 mock·CI·스테이징 확인 후 구체적 호출 범위/상한으로 별도 승인받는다. 이 조건 전 다음 서비스로 넘어가지 않는다.
+
+### 증거·검증
+
+- `artifacts/fortune-consultation-ux/saju/before`: 변경 전 소스의 네 화면 폭 캡처·metrics.json.
+- `artifacts/fortune-consultation-ux/saju/before-production`: 운영 배포 자산의 동일 규격 캡처. API는 모두 mock이며 실구매 증거가 아니다.
+- `artifacts/fortune-consultation-ux/saju/stored-result-render-audit.json`: 운영 저장 1건의 익명 집계만 보관. 원문·개인정보·식별자는 없음.
+- `artifacts/fortune-consultation-ux/saju/after`: 변경 후 진입점·입력·fixture 보관함 결과 캡처·metrics.json.
+- 캡처는 Playwright mock 정적 셸이다. 모든 API를 대역 처리하고 외부 요청을 차단한다. 운영 전체 구매 흐름 검증으로 해석하지 않는다.
+- `node --test __tests__/ui/saju-paid-delivery.behavior.test.js`: 9/9 통과. 부분 저장·같은 주문 재시도·앱 복귀·계정 격리·보관함·12챕터 보존·질문 초안 범위.
+- `node scripts/verify-saju-ai-section-plan.mjs`: mock 160 checks 통과. provider/token 로그도 이 검사에서는 대역 값이다.
+- `npm run check:fast -- --plan`: critical 자동 승격 확인. 실행 결과/CI/스테이징 증거는 아래 전달 기록에 갱신한다.
+- 디자인·생성만 확인하고 실결제 성공, 비용 절감, 전환 향상을 주장하지 않는다.
+
+## 다음 단계에 재사용할 요소
+
+- `.consultation-entry`, `.consultation-form`, `.consultation-report`의 골격·터치·목차 규칙. 현재 사주만 활성화한다.
+- 가격 저장소, 계정별 기존 복구 컨트롤러, 명시적으로 표시되는 AI 상담 설명, 계산 근거 직후 CTA.
+- 체계별 입력·계산 자료·상담 문구를 사주와 공유하지 않는다. 각 단계의 저장·생성 경로를 확인해 어댑터만 최소 확장한다.
+
+## 측정 정의
+
+- `consultation_entry_view`: 주 카드 50% 이상 노출. `consultation_entry_click`: 주 버튼 클릭. `consultation_description_view`: 상품 설명 펼침.
+- 이벤트 payload: service_id / entry_location / ux_version만 전달한다. 질문·생년월일·명식·결과·주문 ID는 보내지 않는다. 기존 cdTrack/동의 흐름을 사용한다.
+- 클릭률은 해당 서비스 카드 노출 세션 중 클릭 세션으로 산정해 반복 이벤트를 세션 수준에서 중복 제거한다.
+- 설명→결제는 기존 checkout_opened 이벤트의 feature_key(사주 alias 정규화 필요)와 설명 이벤트를 같은 세션에서 연결한다. 상담 시작 클릭을 결제 완료로 간주하지 않는다.
+- 정상 전달률은 서버 주문/권리 사용 기록과 저장 재조회 완료 기록으로 주문별 집계한다. 브라우저 이벤트만으로 정상 전달을 확정하지 않는다. 즉시·복구 완료를 분리한다.
+- 배포 전 28일 기준. 기존 이벤트가 없으면 기준을 복원하지 않고 수집 시작일·버전부터 같은 기간으로 비교한다. 표본이 쌓이기 전 성과 주장을 하지 않는다.
+
+## 전달 기록
+
+- 사주 코드 단위 전달 준비. 다음 네 상담은 미착수.
+- 로컬 브라우저: 360·390·430·1440px, 무료 실제 계산→카드→입력, 키보드 진입, 출생 정보 수정 후 초안 유지, 시각 미상, 200% 글자 확대, 네오 모드, fixture 보관함 12챕터/7목차 통과. API는 전부 mock.
+- `npm run check:fast` 실행: critical 승격. 초기 가격 하드코딩 가드를 가격 저장소 계약으로 수정 후 해당 검사 통과. 재실행 도중 문구 정리로 미러 불일치가 발생했으며 sync:public 완료 후 `npm run verify:ai-consultation-flows` 전체 통과. 로컬 전체 게이트의 최종 상태는 후속 기록으로 남긴다.
+- `npm run verify:sitemap-drift`: 1,300 URL 일치. `git diff --check`: 통과. 사주 behavior 9/9 재통과.
+- 변경 정본: `index.html`, `js/saju-engine.js`, `styles/fortune-consultation.css`, `worker/lib/saju-ai-prompt.js`, `worker/routes/fortune.js`. 가격·주문·권리·인증·DB 스키마는 변경하지 않음.
+- 검증 변경: `__tests__/ui/saju-paid-delivery.behavior.test.js`, `scripts/verify-ai-prompt-billing-policy.mjs`, `scripts/verify-fortune-consultation-ux.mjs`. public 미러·캐시키·sitemap은 공식 생성기로 갱신.
+- 커밋·main CI·staging SHA 및 변경 후 staging 캡처는 전달 후 이 문서에 누적한다. 실제 생성 품질·원가는 아직 미검증.

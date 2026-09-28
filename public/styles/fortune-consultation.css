@@ -1,0 +1,83 @@
+/* Shared reading rules; only the saju stage opts in. */
+.consultation-saju {
+  --consult-ink: #442238;
+  --consult-muted: #715267;
+  --consult-paper: #fff9fc;
+  --consult-line: #ddc7d3;
+  --consult-accent: #a51558;
+  margin-block: var(--cd-sp-lg, 24px);
+  color: var(--consult-ink);
+  background: var(--consult-paper);
+  border: 1px solid var(--consult-line);
+  border-radius: var(--cd-r-card, 20px);
+  overflow: clip;
+  font-size: 1rem;
+  line-height: 1.75;
+  scroll-margin-top: 24px;
+}
+body.neo-mode .consultation-saju {
+  --consult-ink: #f4eafa;
+  --consult-muted: #d5c0df;
+  --consult-paper: #21182b;
+  --consult-line: #65506f;
+  --consult-accent: #dcc6f3;
+}
+.consultation-saju * { box-sizing: border-box; }
+.consultation-saju :is(button, summary, a) { touch-action: manipulation; }
+.consultation-saju :is(button, summary) { min-height: 44px; font: inherit; }
+.consultation-saju button { cursor: pointer; padding: 10px 16px; border: 1px solid var(--consult-line); border-radius: var(--cd-r-control, 12px); background: var(--consult-paper); color: var(--consult-ink); }
+.consultation-saju button:disabled { cursor: wait; }
+.consultation-saju :is(button, a, summary, textarea, input):focus-visible { outline: 3px solid var(--consult-accent); outline-offset: 3px; }
+.consultation-saju a { color: var(--consult-accent); text-underline-offset: .2em; }
+.consultation-saju ::selection { background: var(--consult-accent); color: var(--consult-paper); }
+.consultation-entry { display: grid; grid-template-columns: minmax(0, 1fr) 38%; align-items: center; gap: var(--cd-sp-md, 16px); padding: var(--cd-sp-lg, 24px); }
+.consultation-entry h3 { margin: 0 0 12px; font: inherit; font-size: clamp(1.35rem, 3vw, 1.9rem); font-weight: 800; line-height: 1.4; text-wrap: balance; }
+.consultation-entry p { margin: 0 0 16px; overflow-wrap: anywhere; }
+.consultation-entry__art { display: block; width: 100%; height: auto; border-radius: var(--cd-r-sm, 8px); }
+.consultation-entry__price { font-variant-numeric: tabular-nums; }
+.consultation-entry__price span { display: block; color: var(--consult-muted); font-size: .85rem; }
+.consultation-saju .consultation-primary { min-height: 48px; font-weight: 750; color: var(--consult-paper); background: var(--consult-accent); border-color: var(--consult-accent); }
+.consultation-primary:hover { filter: brightness(.95); }
+.consultation-form { border-top: 1px solid var(--consult-line); scroll-margin-top: 24px; }
+.consultation-form > summary { padding: 16px 24px; cursor: pointer; }
+.consultation-form__body { padding: 0 24px 24px; max-width: 75ch; margin-inline: auto; }
+.consultation-form__body h4 { font-size: 1.2rem; margin: 24px 0 12px; }
+.consultation-form__body p { margin: 12px 0 20px; }
+.consultation-form textarea { display: block; width: 100%; min-height: 140px; margin-top: 10px; padding: 14px; border: 1px solid var(--consult-line); border-radius: var(--cd-r-control, 12px); background: var(--consult-paper); color: var(--consult-ink); caret-color: var(--consult-accent); font: inherit; resize: vertical; }
+.consultation-form textarea::placeholder { color: var(--consult-muted); opacity: 1; }
+.consultation-input-help { color: var(--consult-muted); font-size: .85rem; }
+.consultation-question-label { display: block; font-weight: 700; margin-top: 24px; }
+.consultation-saju fieldset { border: 0; padding: 0; margin: 24px 0; }
+.consultation-saju legend { font-weight: 700; margin-bottom: 10px; }
+.consultation-saju fieldset label { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; }
+.consultation-domains label { border: 1px solid var(--consult-line); border-radius: 24px; margin: 0 6px 8px 0; }
+.consultation-domains label:has(input:checked) { border-color: var(--consult-accent); font-weight: 750; }
+.consultation-saju input { accent-color: var(--consult-accent); }
+.consultation-saju :is(.consultation-example, .consultation-calibration) { padding-block: 12px; border-block: 1px solid var(--consult-line); }
+.consultation-saju :is(.consultation-example, .consultation-calibration) summary { cursor: pointer; padding-block: 8px; }
+.consultation-saju .consultation-calibration { margin-bottom: 24px; }
+.consultation-recovery { display: flex; flex-wrap: wrap; gap: 10px; padding-inline: 24px; }
+.consultation-recovery:has(button:not([style*="display:none"]):not([style*="display: none"])) { padding-block: 16px; }
+.consultation-saju [data-saju-ai-status]:not(:empty), .consultation-progress { padding: 16px 24px; }
+.consultation-progress { border-top: 1px solid var(--consult-line); }
+.consultation-report { background: #fffcf8; color: #392b33; }
+.consultation-report > header { padding: 24px; border-block: 1px solid #ddc7d3; }
+.consultation-report__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.consultation-report__actions button { background: #fffcf8; color: #442238; border-color: #b696a8; }
+.consultation-report [data-saju-ai-output-text] { max-width: 72ch; margin-inline: auto; padding: 8px 8px 24px; }
+.consultation-report .consultation-contents { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px; }
+.consultation-report .consultation-contents a { min-height: 44px; padding: 8px; color: #8e174d; }
+.consultation-report .consultation-chapter { padding: 24px 16px; scroll-margin-top: 24px; border-top: 1px solid #ddc7d3; }
+.consultation-report .consultation-chapter h4 { font-size: 1.2rem; line-height: 1.5; margin: 0 0 16px; }
+.consultation-report .consultation-chapter p { margin: 0 0 1.15em; font-size: 1rem; line-height: 1.85; overflow-wrap: anywhere; }
+@media (max-width: 759px) {
+  .consultation-entry { grid-template-columns: minmax(0, 1fr); padding: 20px; }
+  .consultation-entry__art { width: 180px; justify-self: end; }
+  .consultation-entry__copy { grid-row: 1; }
+  .consultation-entry .consultation-primary { width: 100%; }
+  .consultation-form__body { padding-inline: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .consultation-saju { scroll-behavior: auto; } }
+
+.consultation-saju [data-consultation-profile-edit] { display: inline-flex; align-items: center; min-height: 44px; }
+.consultation-calibration :is(input, select) { min-height: 44px; }

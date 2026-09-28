@@ -1,0 +1,118 @@
+// Static-shell browser evidence. Every API is mocked; external traffic is blocked.
+import { chromium } from 'playwright';
+import { createServer } from 'node:http';
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { resolve, extname } from 'node:path';
+import assert from 'node:assert/strict';
+
+const root = process.cwd();
+const phase = process.argv.includes('--before') ? 'before' : 'after';
+const baseIndex = process.argv.indexOf('--base');
+const remoteBase = baseIndex < 0 ? '' : process.argv[baseIndex + 1];
+if (remoteBase && !['https://staging.code-destiny.com','https://code-destiny.com'].includes(remoteBase)) throw new Error('Only the two documented public hosts may be inspected');
+const environment = remoteBase ? (remoteBase.includes('staging.') ? 'staging' : 'production') : 'local';
+const output = resolve('artifacts/fortune-consultation-ux/saju', phase + (remoteBase ? '-' + environment : ''));
+await mkdir(output, { recursive: true });
+const server = createServer(async (req, res) => {
+  const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
+  if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403).end(); return; }
+  for (const candidate of [file, resolve(root, 'public', '.' + pathname)]) {
+    try {
+      const data = await readFile(candidate);
+      res.setHeader('content-type', ({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'})[extname(candidate)] || 'application/octet-stream');
+      res.end(data); return;
+    } catch {}
+  }
+  res.writeHead(404).end();
+});
+await new Promise(done => server.listen(0, '127.0.0.1', done));
+const origin = remoteBase || `http://127.0.0.1:${server.address().port}`;
+const browser = await chromium.launch({headless:true});
+const evidence = [];
+try {
+  const context = await browser.newContext({ viewport: {width:390,height:844}, reducedMotion:'reduce', serviceWorkers:'block' });
+  await context.route('**/*', route => {
+    const url = new URL(route.request().url());
+    if (url.pathname.startsWith('/api/')) {
+      const payload = url.pathname === '/api/billing/features' ? {legacyFeatureTable:[{featureKey:'saju_ai_question_prompt',amountKRW:10000,cost:100}]} : {ok:true,user:null,unlocks:[],profiles:[],data:null};
+      return route.fulfill({contentType:'application/json',body:JSON.stringify(payload)});
+    }
+    return url.origin === origin ? route.continue() : route.abort();
+  });
+  await context.addInitScript(() => sessionStorage.setItem('privacyAgreed','true'));
+  const page = await context.newPage();
+  page.on('dialog', dialog => dialog.dismiss());
+  await page.goto(origin + (remoteBase ? '/ggulggul/' : ''), {waitUntil:'domcontentloaded'});
+  await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
+  await page.locator('#nameInput').fill('검증용 프로필');
+  await page.locator('#birthDate').fill('1990-05-15');
+  await page.locator('#run-btn').click();
+  await page.waitForFunction(() => window.G_PILLARS && window.G_NATAL, {timeout:30000});
+  await page.locator('#sajuQuestionPromptGeneratorCard').waitFor({state:'attached',timeout:30000});
+  for (const width of [360,390,430,1440]) {
+    await page.setViewportSize({width,height:900});
+    await page.locator('#sajuCard').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
+    const metrics = await page.evaluate(() => {
+      const source=document.getElementById('sajuCard'), target=document.getElementById('sajuQuestionPromptGeneratorCard');
+      const entry=document.getElementById('sajuConsultationEntry') || target;
+      return {width:innerWidth,sourceY:source.getBoundingClientRect().top+scrollY,entryY:entry.getBoundingClientRect().top+scrollY,consultationY:target.getBoundingClientRect().top+scrollY,
+        hiddenAncestor:!!entry.closest('details:not([open]),[aria-hidden="true"]'),overflow:entry.scrollWidth>entry.clientWidth+1,entryVisible:!!entry.offsetParent,heading:entry.querySelector('h2,h3,h4,.prem-title')?.textContent};
+    });
+    await page.screenshot({path:resolve(output,`chart-${width}.png`),animations:'disabled'});
+    if (phase === 'after') {
+      await page.locator('#sajuConsultationEntry').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
+      await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,`entry-${width}.png`),animations:'disabled'});
+    }
+    if(phase==='after') {
+      assert.equal(await page.locator('[data-consultation-price]').first().textContent(),'10,000원');
+      assert.equal(metrics.entryVisible,true); assert.equal(metrics.hiddenAncestor,false); assert.equal(metrics.overflow,false);
+      assert.equal(await page.locator('#sajuConsultationEntry').evaluate(el=>el.parentElement.previousElementSibling?.id),'sajuCard');
+      await page.locator('[data-consultation-open]').focus();
+      await page.keyboard.press('Enter');
+      await page.locator('[data-saju-ai-question]').waitFor({state:'visible'});
+      await page.locator('[data-saju-ai-form]').screenshot({path:resolve(output,`consultation-${width}.png`),animations:'disabled'});
+      assert.equal(await page.locator('[data-saju-ai-question]').getAttribute('aria-label'),'상담할 질문');
+      assert.ok(await page.locator('[data-saju-ai-generate]').evaluate(el=>el.getBoundingClientRect().height>=44));
+    }
+    evidence.push(metrics);
+  }
+  if (phase === 'after') {
+    await page.locator('[data-saju-ai-question]').fill('검증용 질문: 선택 기준을 알려 주세요.');
+    await page.locator('[data-consultation-profile-edit]').click();
+    await page.locator('#birthDate').waitFor({state:'visible'});
+    assert.equal(await page.locator('#birthDate').inputValue(),'1990-05-15');
+    assert.equal(await page.locator('#nameInput').inputValue(),'검증용 프로필');
+    await page.locator('#birthTimeTip').click();
+    await page.locator('#run-btn').click();
+    await page.waitForFunction(() => window.__cdSajuTimeUnknown === true);
+    await page.locator('[data-consultation-open]').click();
+    assert.equal(await page.locator('[data-saju-ai-question]').inputValue(),'검증용 질문: 선택 기준을 알려 주세요.');
+    await page.locator('[data-saju-ai-calib]').evaluate(el => { el.open=true; });
+    assert.ok(await page.locator('[data-saju-ai-calib-when]').first().evaluate(el=>el.getBoundingClientRect().height>=44));
+    await page.setViewportSize({width:390,height:900});
+    await page.evaluate(() => { document.documentElement.style.fontSize='200%'; });
+    assert.ok(await page.locator('#sajuQuestionPromptGeneratorCard').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+    await page.evaluate(() => { document.documentElement.style.fontSize=''; document.body.classList.add('neo-mode'); });
+    await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,'entry-neo-390.png'),animations:'disabled'});
+    await page.evaluate(() => { document.body.classList.remove('neo-mode'); });
+    await page.evaluate(() => {
+      localStorage.setItem('fortune_auth_user',JSON.stringify({id:'ux-fixture-owner'}));
+      const titles=['질문에 대한 핵심 답변','이 명식의 중심 성향','십성 구조 해석','오행 균형 해석','현재 고민과 명식의 연결','일/돈/관계/연애/건강 리듬','대운의 전환점','올해의 흐름','조심해야 할 패턴','살리는 전략','30일 실천 가이드','마지막 한마디'];
+      window._sajuPromptStoreSavedResult({profileId:window._sajuPromptResolveProfileId(),resultId:'mock-consultation-ux',status:'completed',saved:true,resultText:titles.map((title,i)=>'## '+(i+1)+'. '+title+'\n이 문단은 화면 검증용 대역입니다. 실제 AI 상담의 품질을 증명하지 않습니다.\n서로 다른 조건과 선택 기준을 짧은 문단으로 읽을 수 있는지 확인합니다.').join('\n')});
+      window._mountSajuQuestionPromptCard();
+    });
+    await page.locator('[data-saju-ai-archive]').click();
+    assert.equal(await page.locator('.consultation-chapter').count(),12);
+    assert.equal(await page.locator('.consultation-contents a').count(),7);
+    for (const width of [390,1440]) {
+      await page.setViewportSize({width,height:900});
+      await page.locator('[data-saju-ai-output-panel]').screenshot({path:resolve(output,'result-'+width+'.png'),animations:'disabled'});
+    }
+    await page.locator('[data-saju-ai-reset-result]').click();
+    assert.equal(await page.locator('[data-saju-ai-output-panel]').isVisible(),false);
+  }
+  console.log(JSON.stringify({phase,evidence,network:'all APIs mocked; all external traffic blocked'},null,2));
+  await writeFile(resolve(output,'metrics.json'),JSON.stringify({phase,evidence,network:'mock'},null,2));
+  await context.close();
+} finally {await browser.close(); await new Promise(done=>server.close(done));}

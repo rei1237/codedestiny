@@ -6943,9 +6943,9 @@ function _sajuPromptBindCalibrationSection(rootEl) {
     var good = periods.filter(function(p) { return p.polarity === 'good'; }).length;
     var bad = periods.length - good;
     var message;
-    if (!periods.length) message = '한 시기만 알려줘도 보정이 시작돼요';
-    else if (!good || !bad) message = '좋았던 시기와 힘들었던 시기를 하나씩 채우면 정확도 보정이 켜져요';
-    else if (good === 1 && bad === 1) message = '하나만 더 알려주시면 훨씬 정확해져요 (2~3개 권장)';
+    if (!periods.length) message = '입력한 시기를 해석의 참고 정보로 사용합니다';
+    else if (!good || !bad) message = '서로 다른 시기를 입력하면 경험의 차이를 함께 참고할 수 있어요';
+    else if (good === 1 && bad === 1) message = '기억하는 시기가 더 있다면 추가할 수 있어요';
     else message = '시기 ' + periods.length + '건이 상담 보정에 반영돼요';
     nudgeEl.textContent = message;
   }
@@ -7113,7 +7113,7 @@ function _sajuPromptReadSavedResult(profileId) {
 }
 
 function _sajuPromptChapterTitle(line) {
-  var text = String(line || '').trim().replace(/^#+\s*/, '').replace(/^\d{1,2}[.)]\s*/, '');
+  var text = String(line || '').trim().replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/^\d{1,2}[.)]\s*/, '').trim();
   var titles = [
     '질문에 대한 핵심 답변',
     '이 명식의 중심 성향',
@@ -7129,37 +7129,45 @@ function _sajuPromptChapterTitle(line) {
     '마지막 한마디'
   ];
   for (var i = 0; i < titles.length; i += 1) {
-    if (text.indexOf(titles[i]) === 0) return titles[i];
+    if (text === titles[i] || text === titles[i] + ':') return titles[i];
   }
   return '';
 }
 
 function _sajuPromptRenderChapters(text) {
   var lines = String(text || '').split(/\n+/);
-  var html = '';
-  var open = false;
-  var chapterIndex = 0;
-  var contents = [];
+  var html = '', open = false, chapterIndex = 0, sections = [];
+  var readingGroups = [
+    ['핵심 답변', ['질문에 대한 핵심 답변']],
+    ['명식 근거', ['십성 구조 해석', '오행 균형 해석']],
+    ['성향과 반복 패턴', ['이 명식의 중심 성향', '현재 고민과 명식의 연결', '일/돈/관계/연애/건강 리듬', '조심해야 할 패턴']],
+    ['시기 흐름', ['대운의 전환점', '올해의 흐름']],
+    ['선택지별 해석', ['살리는 전략']],
+    ['실천 행동', ['30일 실천 가이드']],
+    ['핵심 요약', ['마지막 한마디']]
+  ];
   function ensureOpen(title) {
     if (open) html += '</section>';
     var id = 'saju-ai-chapter-' + (++chapterIndex);
-    contents.push('<a href="#' + id + '" style="display:inline-block;padding:12px;color:#4a2e11;overflow-wrap:anywhere;">' + _sajuPromptEscapeHtml(title || '상담 흐름') + '</a>');
-    html += '<section id="' + id + '" style="padding:15px 14px;border-top:1px solid rgba(113,63,18,.12);scroll-margin-top:80px;"><h4 style="margin:0 0 9px;color:#4a2e11;font-size:.96rem;line-height:1.42;font-weight:950;">' + _sajuPromptEscapeHtml(title || '상담 흐름') + '</h4>';
+    sections.push({id:id,title:title});
+    html += '<section id="' + id + '" class="consultation-chapter"><h4>' + _sajuPromptEscapeHtml(title || '핵심 상담') + '</h4>';
     open = true;
   }
   lines.forEach(function(line) {
     var trimmed = String(line || '').trim();
     if (!trimmed) return;
     var title = _sajuPromptChapterTitle(trimmed);
-    if (title) {
-      ensureOpen(title);
-      return;
-    }
+    if (title) { ensureOpen(title); return; }
     if (!open) ensureOpen('핵심 상담');
-    html += '<p style="margin:0 0 10px;color:#1f2a19;font-size:.88rem;line-height:1.86;word-break:keep-all;overflow-wrap:anywhere;">' + _sajuPromptEscapeHtml(trimmed) + '</p>';
+    html += '<p>' + _sajuPromptEscapeHtml(trimmed) + '</p>';
   });
   if (open) html += '</section>';
-  return html ? '<nav aria-label="상담 목차" style="padding:8px;">' + contents.join('') + '</nav>' + html : '<section style="padding:14px;"><p style="margin:0;color:#1f2a19;">상담문을 불러오지 못했습니다.</p></section>';
+  var contents = readingGroups.map(function(group) {
+    var members = sections.filter(function(section) { return group[1].indexOf(section.title) !== -1; });
+    if (!members.length) return '';
+    return '<a href="#' + members[0].id + '" title="' + _sajuPromptEscapeHtml(members.map(function(row) { return row.title; }).join(' · ')) + '">' + group[0] + '</a>';
+  }).join('');
+  return html ? (contents ? '<nav class="consultation-contents" aria-label="상담의 일곱 가지 읽기 흐름">' + contents + '</nav>' : '') + html : '<p>상담문을 불러오지 못했습니다.</p>';
 }
 
 // 기본 코스믹 상담(자미두수·점성술·베다·숙요) 공용 답변 렌더.
@@ -7723,91 +7731,37 @@ function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
 }
 
 function _buildSajuQuestionPromptHtml() {
-  var sajuAiAmountKrw = 10000;
-  var sajuAiPriceLabel = sajuAiAmountKrw.toLocaleString('ko-KR') + '원';
-  var steps = [
-    ['0', '결제 확인'],
-    ['15', '명식 로딩'],
-    ['30', '질문 해석'],
-    ['45', '구조 판독'],
-    ['65', '상담 생성'],
-    ['85', '결과 정리'],
-    ['100', '완료']
-  ];
-  var stepHtml = steps.map(function(label, idx) {
-    return '<div data-saju-ai-step="' + idx + '" data-saju-ai-step-progress="' + label[0] + '" style="display:flex;align-items:center;gap:7px;border:1px solid rgba(230,196,112,.24);background:rgba(255,255,255,.06);border-radius:8px;padding:8px 8px;color:rgba(255,247,223,.66);font-size:0.68rem;font-weight:900;min-height:36px;box-sizing:border-box;"><span data-saju-ai-step-dot style="width:7px;height:7px;border-radius:50%;background:rgba(255,247,223,.34);box-shadow:0 0 0 0 rgba(253,230,138,0);"></span><span>' + label[1] + '</span></div>';
+  var domains = [['','자동'],['career','진로'],['money','재물'],['love','연애'],['litigation','송사'],['relationship','관계'],['health','건강'],['life_direction','인생']];
+  var dayStem = G_PILLARS && G_PILLARS.d ? _sajuPromptEscapeHtml(G_PILLARS.d.g || '') : '';
+  var domainHtml = domains.map(function(item, i) {
+    return '<label><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="' + item[0] + '"' + (i === 0 ? ' checked' : '') + '>' + item[1] + '</label>';
   }).join('');
-  return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260706" style="margin:18px 0 0" data-saju-analysis-only="true">'
-    + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.2),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(33,28,26,.97) 56%,rgba(60,42,27,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.18);padding:18px;">'
-    +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.14),transparent 32%,rgba(255,255,255,.1) 100%);"></div>'
-    +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
-    +     '<div style="display:flex;gap:12px;align-items:flex-start;min-width:220px;flex:1 1 300px;"><span aria-hidden="true" style="flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,231,164,.72);background:radial-gradient(circle at 50% 28%,#f8ead4 0 10%,transparent 11%),radial-gradient(circle at 50% 72%,#24170c 0 10%,transparent 11%),linear-gradient(180deg,#b91c1c 0 50%,#123c7d 50% 100%);box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 0 3px rgba(255,247,223,.72);"></span><div><div style="font-size:0.72rem;color:#e8c778;letter-spacing:.14em;font-weight:900;text-transform:uppercase;">Saju AI Consultation</div><span class="prem-title" style="display:block;margin-top:4px;color:#fff7df;font-size:1.04rem;line-height:1.35;font-weight:900;">명식이 답하는 사주 AI 상담</span><p style="font-size:0.82rem;color:rgba(255,247,223,.8);margin:5px 0 0;line-height:1.7;word-break:keep-all;">고민을 남기면 일간·월령·조후·십성의 결을 따라 지금 필요한 흐름과 선택의 방향이 상담문으로 열립니다.</p></div></div>'
-    +     '<span style="white-space:nowrap;font-size:0.72rem;color:#2a2117;border:1px solid rgba(244,216,142,.68);background:linear-gradient(135deg,#fde8a4,#c6923a);padding:7px 11px;border-radius:999px;font-weight:900;box-shadow:0 10px 20px rgba(0,0,0,.18);">1회 ' + sajuAiPriceLabel + '</span>'
-    +   '</div>'
-    +   '<textarea data-saju-ai-question maxlength="1000" placeholder="' + _sajuEngineText("se_6277_attr_placeholder") + '" style="position:relative;width:100%;min-height:116px;border-radius:8px;border:1px solid rgba(230,196,112,.55);background:rgba(255,252,243,.94);color:#24170c;padding:13px 14px;font-size:0.88rem;line-height:1.68;resize:vertical;box-sizing:border-box;box-shadow:inset 0 1px 12px rgba(44,29,12,.09),0 0 0 1px rgba(255,244,205,.18);"></textarea>'
-    +   '<div style="position:relative;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
-    +     '<span data-saju-ai-count style="font-size:0.72rem;color:rgba(255,247,223,.68);font-weight:800;">0 / 1000</span>'
-    +     '<span style="font-size:0.72rem;color:rgba(255,247,223,.72);font-weight:700;">질문 5자 이상 · 1회 ' + sajuAiPriceLabel + ' · 결제 확인 뒤 상담문 생성</span>'
-    +   '</div>'
-    +   '<div style="position:relative;margin-top:13px;">'
-    +     '<div style="font-size:0.72rem;color:#e8c778;font-weight:900;margin-bottom:7px;letter-spacing:.04em;">질문이 향하는 자리</div>'
-    +     '<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:0.74rem;color:#fff7df;">'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="" checked style="accent-color:#d9bd77;"> 자동</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="career" style="accent-color:#d9bd77;"> 진로</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="money" style="accent-color:#d9bd77;"> 재물</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="love" style="accent-color:#d9bd77;"> 연애</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="litigation" style="accent-color:#d9bd77;"> 송사</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="relationship" style="accent-color:#d9bd77;"> 관계</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="health" style="accent-color:#d9bd77;"> 건강</label>'
-    +       '<label style="display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(207,172,91,.36);background:rgba(255,255,255,.08);padding:7px 9px;border-radius:999px;cursor:pointer;"><input type="radio" name="sajuAiDomain" data-saju-ai-domain value="life_direction" style="accent-color:#d9bd77;"> 인생</label>'
-    +     '</div>'
-    +   '</div>'
-    +   '<div style="position:relative;display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:0.74rem;color:rgba(255,247,223,.78);">'
-    +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-name checked style="accent-color:#d9bd77;"> 이름 원문 제외</label>'
-    +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-birth checked style="accent-color:#d9bd77;"> 원본 생년월일 제외</label>'
-    +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
-    +   '</div>'
-    +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 상담 생성에 남깁니다.</div>'
-    +   '<details data-saju-ai-calib style="position:relative;margin-top:13px;border:1px solid rgba(230,196,112,.32);border-radius:8px;background:rgba(255,255,255,.05);">'
-    +     '<summary style="cursor:pointer;padding:11px 12px;font-size:0.78rem;color:#e8c778;font-weight:900;line-height:1.5;word-break:keep-all;">정확도 높이기 (선택) — 좋았던/힘들었던 시기를 알려주시면 상담이 당신의 삶에 맞춰 보정돼요</summary>'
-    +     '<div style="padding:0 12px 12px;">'
-    +       '<p style="margin:0 0 8px;font-size:0.72rem;color:rgba(255,247,223,.72);line-height:1.6;word-break:keep-all;">힘들었던 시기는 연도와 영역만으로 충분해요. 사연은 적지 않으셔도 됩니다. 시기 정보는 운 흐름 보정에만 사용돼요.</p>'
-    +       '<div data-saju-ai-calib-rows style="display:flex;flex-direction:column;gap:7px;">' + _sajuPromptBuildCalibRowHtml('good') + _sajuPromptBuildCalibRowHtml('bad') + '</div>'
-    +       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
-    +         '<button data-saju-ai-calib-add type="button" aria-label="시기 추가" style="background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:7px 10px;border-radius:8px;font-size:0.72rem;font-weight:800;cursor:pointer;">+ 시기 추가</button>'
-    +         '<span data-saju-ai-calib-nudge style="font-size:0.72rem;color:rgba(255,247,223,.7);font-weight:700;line-height:1.5;">한 시기만 알려줘도 보정이 시작돼요</span>'
-    +       '</div>'
-    +     '</div>'
-    +   '</details>'
-    +   '<div data-saju-ai-progress-card style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(248,219,142,.48);background:radial-gradient(circle at 18% 12%,rgba(245,231,184,.2),transparent 26%),linear-gradient(145deg,rgba(12,15,30,.94),rgba(42,34,31,.94));box-shadow:0 18px 36px rgba(0,0,0,.24);padding:14px;">'
-    +     '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;">'
-    +       '<div><div style="font-size:0.7rem;color:#e8c778;font-weight:900;letter-spacing:.1em;">LLM CONSULTATION</div><strong data-saju-ai-progress-message style="display:block;margin-top:4px;color:#fff7df;font-size:0.92rem;line-height:1.45;">명식의 흐름을 읽고 있어요</strong><p style="margin:5px 0 0;color:rgba(255,247,223,.7);font-size:0.74rem;line-height:1.55;">결제 확인이 완료되면 질문과 명식을 바탕으로 새 상담문을 엮습니다.</p></div>'
-    +       '<div data-saju-ai-progress-percent style="flex:0 0 auto;color:#fde68a;font-size:1.28rem;font-weight:950;line-height:1;">0%</div>'
-    +     '</div>'
-    +     '<div role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-saju-ai-progress-track style="height:8px;border-radius:999px;background:rgba(255,247,223,.14);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);">'
-    +       '<div data-saju-ai-progress-bar style="width:0%;height:100%;border-radius:999px;background:linear-gradient(90deg,#f7d46b,#fff7df,#9bdcff);box-shadow:0 0 18px rgba(253,230,138,.42);transition:width .55s ease;"></div>'
-    +     '</div>'
-    +     '<div data-saju-ai-progress-steps style="display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:6px;margin-top:10px;">' + stepHtml + '</div>'
-    +     '<div data-saju-ai-basis-live style="display:none;margin-top:10px;max-height:280px;overflow-y:auto;"></div>'
-    +   '</div>'
-    +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
-    +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">' + sajuAiPriceLabel + '으로 사주 AI 상담 받기</button>'
-    +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
-    +     '<button data-saju-ai-archive type="button" style="display:none;min-height:44px;background:transparent;color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.85rem;font-weight:700;cursor:pointer;">상담 보관함 · 저장된 상담 보기</button>'
-    +     '<button data-saju-ai-resume type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">이전 상담문 이어보기</button>'
-    +   '</div>'
-    +   '<div data-saju-ai-output-panel style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(230,196,112,.38);background:linear-gradient(180deg,rgba(255,252,243,.98),rgba(255,247,223,.95));box-shadow:0 18px 34px rgba(0,0,0,.2);overflow:hidden;">'
-    +     '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(113,63,18,.16);padding:12px 13px;background:rgba(120,53,15,.06);flex-wrap:wrap;"><div><strong style="font-size:0.9rem;color:#2a2117;line-height:1.42;">명식이 열어 준 상담문</strong><div data-saju-ai-save-state style="margin-top:3px;font-size:.7rem;color:#7c5a20;font-weight:800;">내부 명식 기준으로 해석되었습니다</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button data-saju-ai-save-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#2a2117;color:#fff7df;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">저장하기</button><button data-saju-ai-copy-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">내용 복사</button><button data-saju-ai-share-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">공유하기</button><button data-saju-ai-reset-result type="button" style="border:1px solid rgba(113,63,18,.24);background:rgba(255,255,255,.66);color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">다시 질문하기</button></div></div>'
-    +     '<div data-saju-ai-result-summary></div>'
-    +     '<div data-saju-ai-result-question></div>'
-    +     '<div data-saju-ai-result-basis></div>'
-    +     '<div data-saju-ai-output-text style="margin:0;font-family:inherit;"></div>'
-    +   '</div>'
-    +   '<textarea data-saju-ai-output readonly style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;"></textarea>'
-    +   '<div data-saju-ai-status style="position:relative;margin-top:9px;font-size:0.76rem;color:rgba(255,247,223,.72);line-height:1.55;"></div>'
-    + '</div>'
-    + '</div>';
+  return '<div id="sajuQuestionPromptGeneratorCard" class="consultation-saju" data-saju-analysis-only="true" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260706 consultation-ux-v1">'
+    + '<section id="sajuConsultationEntry" class="consultation-entry" aria-labelledby="sajuConsultationTitle">'
+    + '<div class="consultation-entry__copy"><h3 id="sajuConsultationTitle">명식이 답하는<br>사주 AI 상담</h3>'
+    + '<p>' + (dayStem ? '내 명식의 중심, 일간 ' + dayStem + '. ' : '') + '이 기질이 지금의 고민과 어떻게 이어지는지 연이와 더 깊이 읽어보세요.</p>'
+    + '<p class="consultation-entry__price">단건 결제 <strong data-consultation-price>가격 확인 중</strong><span>이용권·월정석은 결제창에서 확인</span></p>'
+    + '<button type="button" class="consultation-primary" data-consultation-open aria-controls="sajuConsultationForm" aria-expanded="false">상담 내용 확인하기</button>'
+    + '</div><img class="consultation-entry__art" src="/images/consultation/saju-yeoni-320.webp" srcset="/images/consultation/saju-yeoni-320.webp 320w, /images/consultation/saju-yeoni-640.webp 640w" sizes="(min-width: 760px) 320px, 180px" width="640" height="427" loading="lazy" decoding="async" alt="여덟 글자의 상징을 펼쳐 고민의 실마리를 잇는 꽃돼지 연이의 일러스트">'
+    + '</section>'
+    + '<details id="sajuConsultationForm" class="consultation-form" data-saju-ai-form><summary>무엇을 상담받을 수 있나요?</summary>'
+    + '<div class="consultation-form__body"><h4>무료 명식에서, 내 질문에 대한 답으로</h4><p>무료 풀이가 기질과 흐름을 보여준다면, 이 상담은 지금 입력한 고민을 명식의 근거와 연결해 선택 기준과 실천 방법을 정리합니다. 사람이 실시간으로 답하는 상담이 아닌 AI 생성 상담입니다.</p>'
+    + '<p>12개 챕터를 핵심 답변·명식 근거·반복 패턴·시기·선택지·행동·요약의 흐름으로 읽습니다. 각 선택에서 살릴 강점과 확인할 현실 조건, 먼저 해볼 행동을 정리합니다.</p>'
+    + '<details class="consultation-example"><summary>상담의 설명 방식 보기</summary><p><strong>설명용 예시 · 실제 개인 결과가 아닙니다</strong></p><p>“이직과 잔류 중 무엇이 나을까요?”라는 질문에는 계산된 명식의 근거를 먼저 짚고, 각 선택에서 살릴 강점과 부담을 비교합니다. 마지막에는 제안받은 역할·보상·일정에서 확인할 조건을 정리합니다.</p></details>'
+    + '<p class="consultation-profile">위에서 계산한 명식을 이어 사용합니다. 출생 정보를 바꾸려면 <a href="#destinyCardForm" data-consultation-profile-edit>입력 정보 확인·수정</a>을 선택하세요. 출생 시각을 모르면 시주에 의존하는 해석에 한계가 있습니다.</p>'
+    + '<label class="consultation-question-label">지금 가장 궁금한 질문<textarea data-saju-ai-question aria-label="상담할 질문" maxlength="1000" placeholder="예: 이직 제안을 받았어요. 현재 직장에 남는 선택과 비교해 어떤 기준으로 판단하면 좋을까요?"></textarea></label>'
+    + '<p class="consultation-input-help"><span data-saju-ai-count>0 / 1000</span> · 질문은 5자 이상 입력해 주세요.</p>'
+    + '<fieldset class="consultation-domains"><legend>질문의 주제</legend>' + domainHtml + '</fieldset>'
+    + '<fieldset class="consultation-privacy"><legend>상담에 전달할 원문 정보</legend><label><input type="checkbox" data-saju-ai-hide-name checked>이름 원문 제외</label><label><input type="checkbox" data-saju-ai-hide-birth checked>원본 생년월일 제외</label><label><input type="checkbox" data-saju-ai-hide-time checked>원본 출생시간 제외</label></fieldset>'
+    + '<p>원문 정보는 기본으로 가리고, 계산된 명식은 해석 근거로 사용합니다.</p>'
+    + '<details data-saju-ai-calib class="consultation-calibration"><summary>기억하는 시기 추가하기 · 선택</summary><div><p>좋았거나 힘들었던 시기를 해석의 참고 정보로 함께 전할 수 있어요. 사연은 쓰지 않아도 됩니다.</p><div data-saju-ai-calib-rows>' + _sajuPromptBuildCalibRowHtml('good') + _sajuPromptBuildCalibRowHtml('bad') + '</div><button data-saju-ai-calib-add type="button" aria-label="시기 추가">시기 추가</button><span data-saju-ai-calib-nudge></span></div></details>'
+    + '<button data-saju-ai-generate type="button" class="consultation-primary">상담 시작하기</button><p>단건 결제 <strong data-consultation-price>가격 확인 중</strong> · 결제 전 사용할 방식을 확인합니다.</p></div></details>'
+    + '<div class="consultation-recovery"><button data-saju-ai-regenerate type="button" style="display:none">같은 상담 이어 받기</button><button data-saju-ai-archive type="button" style="display:none">상담 보관함 · 저장된 상담 보기</button><button data-saju-ai-resume type="button" style="display:none">이전 상담문 이어보기</button></div>'
+    + '<div data-saju-ai-status role="status" aria-live="polite"></div>'
+    + '<div data-saju-ai-progress-card class="consultation-progress" style="display:none"><strong data-saju-ai-progress-message>상담 준비 중</strong><p>저장된 진행 상태를 확인하고 있어요. 창을 나갔다 돌아와도 같은 상담을 이어 받을 수 있습니다.</p><div data-saju-ai-basis-live style="display:none"></div></div>'
+    + '<div data-saju-ai-output-panel class="consultation-report" style="display:none"><header><h3>명식이 열어 준 상담문</h3><p data-saju-ai-save-state></p><div class="consultation-report__actions"><button data-saju-ai-save-result type="button">저장하기</button><button data-saju-ai-copy-result type="button">내용 복사</button><button data-saju-ai-share-result type="button">공유하기</button><button data-saju-ai-reset-result type="button">다시 질문하기</button></div></header>'
+    + '<div data-saju-ai-result-summary></div><div data-saju-ai-result-question></div><div data-saju-ai-result-basis></div><div data-saju-ai-output-text></div></div>'
+    + '<textarea data-saju-ai-output readonly hidden aria-label="상담 결과 원문"></textarea></div>';
 }
 
 function _mountSajuQuestionPromptCard() {
@@ -7818,20 +7772,9 @@ function _mountSajuQuestionPromptCard() {
   var html = _buildSajuQuestionPromptHtml();
   var resultPage = document.getElementById('resultPage');
   if (!resultPage || resultPage.style.display === 'none') return false;
-  var imgMount = resultPage.querySelector('#sajuAiImagePromptMount');
-  if (imgMount) {
-    imgMount.insertAdjacentHTML('afterbegin', html);
-  } else {
-    var aiMount = resultPage.querySelector('#aiPromptMount');
-    var targetCard = resultPage.querySelector('#sajuCard');
-    if (aiMount) {
-      aiMount.insertAdjacentHTML('afterbegin', html);
-    } else if (targetCard) {
-      targetCard.insertAdjacentHTML('afterend', html);
-    } else {
-      return false;
-    }
-  }
+  var targetCard = resultPage.querySelector('#sajuCard');
+  if (!targetCard) return false;
+  targetCard.insertAdjacentHTML('afterend', html);
 
   _bindSajuQuestionPromptCard(document.getElementById('sajuQuestionPromptGeneratorCard'));
   return true;
@@ -7933,6 +7876,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
     stopPolling(); stopProgress(); clearPaidEvidence();
     activePendingJob = null; currentResultPayload = null; requestInFlight = false;
     outputEl.value = ''; outputTextEl.innerHTML = ''; outputPanel.style.display = 'none';
+    inputEl.value = '';
+    if (form) form.open = false;
     if (resumeBtn) resumeBtn.style.display = 'none';
     if (archiveBtn) archiveBtn.style.display = 'none';
     setLoading(false);
@@ -7952,7 +7897,55 @@ function _bindSajuQuestionPromptCard(rootEl) {
     window.removeEventListener('cd:locale-ready', discardForLocaleChange);
     window.removeEventListener('cd:auth-changed', discardForAccountChange);
     window.removeEventListener('storage', discardForAccountChange);
+    if (entryObserver) entryObserver.disconnect();
   };
+
+  var form = rootEl.querySelector('[data-saju-ai-form]');
+  var openButton = rootEl.querySelector('[data-consultation-open]');
+  var entry = rootEl.querySelector('#sajuConsultationEntry');
+  var entryObserver = null;
+  function trackConsultation(event) {
+    if (typeof window.cdTrack === 'function') window.cdTrack(event, {service_id:'saju_ai_question_prompt',entry_location:'free_chart',ux_version:'consultation-v1'});
+  }
+  function draftKey() { return 'cd_saju_consultation_draft:' + _sajuPromptOwnerId() + ':' + _sajuPromptResolveProfileId(); }
+  function saveQuestionDraft() {
+    try { sessionStorage.setItem(draftKey(), JSON.stringify({question:inputEl.value,domain:_sajuPromptReadDomain(rootEl)})); } catch (_) {}
+  }
+  try {
+    var draft = JSON.parse(sessionStorage.getItem(draftKey()) || 'null');
+    if (draft && typeof draft.question === 'string') inputEl.value = draft.question.slice(0,1000);
+    if (draft && typeof draft.domain === 'string') rootEl.querySelectorAll('[data-saju-ai-domain]').forEach(function(el) { el.checked = el.value === draft.domain; });
+  } catch (_) {}
+  inputEl.addEventListener('input', saveQuestionDraft);
+  rootEl.querySelectorAll('[data-saju-ai-domain]').forEach(function(el) { el.addEventListener('change', saveQuestionDraft); });
+  if (openButton && form) openButton.addEventListener('click', function() {
+    form.open = true;
+    openButton.setAttribute('aria-expanded','true');
+    trackConsultation('consultation_entry_click');
+    form.scrollIntoView({behavior:'smooth',block:'start'});
+    form.querySelector('summary').focus({preventScroll:true});
+  });
+  if (form) form.addEventListener('toggle', function() {
+    if (openButton) openButton.setAttribute('aria-expanded',String(form.open));
+    if (form.open) trackConsultation('consultation_description_view');
+  });
+  var editProfile = rootEl.querySelector('[data-consultation-profile-edit]');
+  if (editProfile) editProfile.addEventListener('click', function(event) {
+    if (typeof window.resetApp !== 'function' || typeof window.dpScrollToForm !== 'function') return;
+    event.preventDefault(); saveQuestionDraft(); window.resetApp(); window.dpScrollToForm();
+  });
+  var pricing = window.CodeDestinyFeaturePricingStore;
+  if (pricing && typeof pricing.getOrLoad === 'function') pricing.getOrLoad('saju_ai_question_prompt').then(function(price) {
+    rootEl.querySelectorAll('[data-consultation-price]').forEach(function(el) { el.textContent = price && price.displayPrice ? price.displayPrice : '결제창에서 확인'; });
+  }).catch(function() { rootEl.querySelectorAll('[data-consultation-price]').forEach(function(el) { el.textContent = '결제창에서 확인'; }); });
+  if (entry && typeof window.IntersectionObserver === 'function') {
+    entryObserver = new window.IntersectionObserver(function(rows) {
+      if (rows.some(function(row) { return row.isIntersecting && row.intersectionRatio >= 0.5; })) {
+        trackConsultation('consultation_entry_view'); entryObserver.disconnect();
+      }
+    }, {threshold:0.5});
+    entryObserver.observe(entry);
+  }
 
   function requestKey(question, domain) {
     return String(question || '').trim() + '::' + String(domain || '').trim();
@@ -8036,24 +8029,13 @@ function _bindSajuQuestionPromptCard(rootEl) {
       return;
     }
     liveBasisEl.style.display = 'block';
-    liveBasisEl.innerHTML = _sajuPromptRenderBasisGroups({ groups: visible }, { dark: true });
+    liveBasisEl.innerHTML = _sajuPromptRenderBasisGroups({ groups: visible }, { dark: false });
   }
 
   function startProgress() {
     clearInterval(progressTimer);
     loadLiveBasis();
-    setProgress(Math.max(0, progressPercent || 0), '결제/이용권 확인 중', false);
-    progressTimer = setInterval(function() {
-      // 이용권/결제 확인(게이트)이 끝나기 전에는 '결제/이용권 확인 중'에 머물러, 생성 단계로 먼저 진입하지 않는다.
-      if (!accessConfirmed) {
-        setProgress(Math.min(12, progressPercent + 1), '결제/이용권 확인 중', false);
-        return;
-      }
-      var cap = activePendingJob ? 85 : 65;
-      var next = Math.min(cap, progressPercent + (progressPercent < 45 ? 5 : 3));
-      var message = next >= 65 ? 'AI 상담문 생성 중' : next >= 45 ? '명식 핵심 구조 해석 중' : next >= 30 ? '질문 의도 분석 중' : next >= 15 ? '사주 명식 불러오는 중' : '결제/이용권 확인 중';
-      setProgress(next, message, false);
-    }, 900);
+    setProgress(Math.max(0, progressPercent || 0), accessConfirmed ? '저장된 상담 진행 상태 확인 중' : '결제·이용권 확인 중', false);
   }
   function stopProgress() {
     clearInterval(progressTimer);
@@ -8073,7 +8055,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     inputEl.disabled = isLoading;
     generateBtn.disabled = isLoading;
     regenerateBtn.disabled = isLoading;
-    generateBtn.textContent = isLoading ? '상담문을 여는 중...' : '사주 AI 상담 받기';
+    generateBtn.textContent = isLoading ? '상담문을 여는 중…' : '상담 시작하기';
     if (isLoading) startProgress(); else stopProgress();
     updateCount();
   }
@@ -8578,6 +8560,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
     outputPanel.style.display = 'none';
     inputEl.disabled = false;
     inputEl.value = '';
+    saveQuestionDraft();
+    if (form) form.open = true;
     regenerateBtn.style.display = 'none';
     updateCount();
     inputEl.focus();
@@ -9453,15 +9437,16 @@ function _bindSajuQuestionPromptCard(rootEl) {
 
         var imgMount = resultPage ? resultPage.querySelector('#sajuAiImagePromptMount') : null;
         if (imgMount && resultPage && resultPage.contains(imgMount)) {
-          imgMount.innerHTML = questionPromptHtml + aiPromptHtml;
+          imgMount.innerHTML = aiPromptHtml;
         } else {
           var aiMount = resultPage ? resultPage.querySelector('#aiPromptMount') : null;
           if (aiMount && resultPage.contains(aiMount)) {
-            aiMount.innerHTML = questionPromptHtml + aiPromptHtml;
+            aiMount.innerHTML = aiPromptHtml;
           } else if (analysisCard) {
-            analysisCard.insertAdjacentHTML('afterend', questionPromptHtml + aiPromptHtml);
+            analysisCard.insertAdjacentHTML('afterend', aiPromptHtml);
           }
         }
+        if (analysisCard) analysisCard.insertAdjacentHTML('afterend', questionPromptHtml);
         _bindSajuQuestionPromptCard(document.getElementById('sajuQuestionPromptGeneratorCard'));
 
       } catch (e) {

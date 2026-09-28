@@ -22,7 +22,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v7";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v8";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -75,7 +75,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "지금의 고민을 명식의 어느 자리가 만들고 있는지 짚고, 일·돈·관계·연애·건강 다섯 영역의 리듬을 각각 구체적 장면으로 보여 주세요.",
+    guide: "5장은 사용자 질문의 각 쟁점을 계산된 명식과 연결하세요. 6장은 질문과 직접 관련된 생활 영역을 우선하고, 다른 영역은 연결되는 근거가 있을 때만 짧게 다루세요. 질문에서 말하지 않은 직업·연애 상태·건강 이력을 지어내지 마세요. 실제 사건처럼 단정하지 말고 적용 조건이 있는 예시로 설명하세요.",
   }),
   Object.freeze({
     key: "timing_flow",
@@ -87,7 +87,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "지나온 대운과 지금 대운, 다음 대운이 각각 어떤 성격의 시기인지 나누고, 그 사이의 전환점에서 실제로 무엇이 바뀌었고 무엇이 바뀔지 짚어 주세요. 이어서 올해의 세운이 원국의 어느 자리를 건드리는지 밝히고, 상반기와 하반기의 결이 어떻게 다른지 구분해 주세요. 다른 챕터에서 다루는 성향·구조·영역별 리듬을 다시 설명하지 말고, 여기서는 **시기의 순서**만 다루세요. '좋아진다/나빠진다'로 뭉뚱그리지 말고 어느 달·어느 시기에 무엇을 하면 유리하고 무엇을 미루는 편이 나은지로 쓰세요.",
+    guide: "7장은 제공된 대운의 순서와 전환 조건을, 8장은 제공된 세운의 간지와 원국의 연결을 설명하세요. 지나온 개인사를 사실로 쓰지 마세요. 월운 계산이 없으면 특정 월·상반기·하반기 차이를 만들지 말고 시기 판단의 한계를 설명하세요. 시각 미상으로 달라지는 부분은 확정하지 않습니다. 성향·오행 설명을 되풀이하지 말고 질문에 관련된 준비·실행·재검토의 조건으로 연결하세요.",
   }),
   Object.freeze({
     key: "strategy_action",
@@ -101,7 +101,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "반복되는 손해 패턴을 먼저 짚고, 그것을 뒤집는 전략과 30일 안에 실제로 해볼 행동으로 좁힌 뒤, 마지막 한마디로 따뜻하지만 가볍지 않게 닫아 주세요.",
+    guide: "9장은 질문에 관련된 반복 패턴과 그 패턴이 나타나지 않는 반대 조건을 설명하세요. 10장은 사용자가 제시한 선택지를 같은 기준(활용할 강점·감수할 부담·확인할 현실 조건)으로 비교하고, 선택지가 없으면 가능한 행동과 보류 조건을 제시하세요. 11장은 통제 가능한 30일 실천을 행동·확인 방법·다음 판단 기준으로 정리하세요. 12장은 질문에 대한 답과 핵심 근거·주의점·첫 행동을 간결히 요약하며 새 예언을 추가하지 마세요.",
   }),
 ]);
 
