@@ -115,11 +115,14 @@ it("rejects another account resume and preserves historical results", async () =
   userId = uid; docs[0].status = "completed"; docs[0].messages = [{ role: "assistant", content: "과거 구매본" }];
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
 });
-it("leaves a contradictory lagna pending and retries only that group", async () => {
+it("removes a contradictory lagna sentence locally and retains the group", async () => {
   const original = provider.getMockImplementation();
   provider.mockImplementationOnce(async (...args) => { const row = await original(...args); row.text = row.text.replaceAll("양자리 라그나", "황소자리 라그나"); return row; });
-  const first = await (await start()).json(); expect(first.consultation.completedGroups).toHaveLength(0);
-  const second = await (await start()).json(); expect(second.consultation.completedGroups).toEqual(["karma_origin"]);
+  const first = await (await start()).json(); expect(first.consultation.completedGroups).toEqual(["karma_origin"]);
+  expect(docs[0].llmMeta.groups.karma_origin.text).not.toContain("황소자리 라그나");
+  expect(docs[0].llmMeta.rawResponses.karma_origin).toContain("황소자리 라그나");
+  for(let i=0;i<4;i++)await start();
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(5);
   expect(chart).toHaveBeenCalledTimes(1);
 });
 it("returns independent responses for simultaneous requests with the same key", async () => {

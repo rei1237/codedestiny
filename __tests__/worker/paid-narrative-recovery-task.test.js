@@ -98,7 +98,7 @@ test('exhausted parts wait for review and the server never claims a refund',asyn
  expect(docs[0].metadata.paidNarrativeRecovery).toMatchObject({reviewRequired:true});expect(await run({})).toMatchObject({scanned:0});
 });
 test('unregistered feature and report pairs are never selected',async()=>{
- const doc={_id:'follow-up',userId:owner,executionKey:'paid-narrative:follow-up',featureKey:'karma-destiny-ai-consultation',reportType:'expertFollowUp',status:'pending',
+ const doc={_id:'follow-up',userId:owner,executionKey:'paid-narrative:follow-up',featureKey:'unregistered-product',reportType:'expertFollowUp',status:'pending',
   timeoutAt:new Date(0),createdAt:new Date(),lock:{token:'',until:null},metadata:{paidNarrative:{tasks:[{id:'answer'}],parts:{},attempts:{}}}};
  docs.push(clone(doc));expect(await run({})).toMatchObject({scanned:0,outcomes:[]});expect(docs[0]).toEqual(doc);expect(provider).not.toHaveBeenCalled();
 });
@@ -117,4 +117,12 @@ for (const variant of ['short', 'partial-json', 'missing-evidence', 'duplicate-p
  expect(docs[0].metadata.paidNarrative.attempts).toEqual({answer:1});expect(provider).toHaveBeenCalledTimes(1);
  const read=await runPaidNarrativeDelivery(new Request('https://mock.test?resultId='+encodeURIComponent(docs[0].executionKey)),{},{userId:owner},{},adapter);
  expect(read.status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
+});
+
+test('repeated transient storage faults retain automatic recovery after the fifth error',async()=>{
+ await start();docs[0].metadata.paidNarrativeRecovery={errors:4};fault='throw';
+ expect((await run({})).outcomes[0].outcome).toBe('RESULT_STORAGE_UNAVAILABLE');
+ expect(docs[0].metadata.paidNarrativeRecovery).toMatchObject({errors:5});
+ expect(docs[0].metadata.paidNarrativeRecovery.reviewRequired).not.toBe(true);
+ expect((await run({},{now:Date.now()+3600001})).outcomes[0].outcome).toBe('completed');
 });

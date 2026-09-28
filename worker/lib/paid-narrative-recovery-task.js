@@ -53,6 +53,11 @@ async function recoverOne(env, doc, now, deadline) {
       const response = await resumePaidNarrativeOnServer(env, doc, adapter);
       const result = await response.json().catch(() => ({}));
       if (response.status === 200) return 'completed';
+      if (response.status >= 500 || response.status === 429) {
+        const error = new Error('Transient recovery failure');
+        error.code = String(result.reason || result.code || 'RECOVERY_PENDING');
+        throw error;
+      }
       if (response.status !== 202) {
         const code = String(result.reason || result.code || response.status).slice(0, 120);
         await mark(env, doc, { reviewRequired: true, code });
@@ -73,8 +78,7 @@ async function recoverOne(env, doc, now, deadline) {
   } catch (error) {
     const code = String(error?.code || 'RECOVERY_PENDING').slice(0, 120);
     const errors = (progressed ? 0 : Number(doc.metadata?.paidNarrativeRecovery?.errors) || 0) + 1;
-    await mark(env, doc, errors >= MAX_ERRORS ? { reviewRequired: true, errors, code }
-      : { errors, code, nextAttemptAt: new Date(now + Math.min(MAX_BACKOFF_MS, BACKOFF_MS * 2 ** errors)) });
+    await mark(env, doc, { errors: Math.min(errors, MAX_ERRORS), code, nextAttemptAt: new Date(now + Math.min(MAX_BACKOFF_MS, BACKOFF_MS * 2 ** Math.min(errors, MAX_ERRORS))) });
     return code;
   }
 }

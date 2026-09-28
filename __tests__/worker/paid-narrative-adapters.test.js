@@ -12,7 +12,7 @@ const narrativeProducts = PAID_COMPLETED_RESULT_ACCESS_FIXTURES
   .filter(fixture => fixture.marker === 'runPaidNarrativeDelivery').flatMap(fixture => fixture.products);
 
 test('every shared paid-narrative product has a server resume adapter', () => {
-  expect([...PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS].sort()).toEqual([...narrativeProducts].sort());
+  expect([...PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS].sort()).toEqual([...narrativeProducts, "karma-destiny-ai-consultation", "love-secret-ai-consultation"].sort());
 });
 
 test.each(PAID_NARRATIVE_SERVER_RESUME_KEYS)('%s loads the route adapter', async key => {

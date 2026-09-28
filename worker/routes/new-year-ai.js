@@ -2372,7 +2372,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       ({ quality, targets } = assess());
     }
   }
-  return { complete: quality.ok, retryable: [...targets.keys()].some(key => Number(attempts[key] || 0) < 3), text: quality.text, quality, savedSections: results,
+  return { complete: quality.ok, retryable: [...targets.keys()].some(key => Number(attempts[key] || 0) < 2), text: quality.text, quality, savedSections: results,
     sections: results.filter(row => row.text).map(row => ({ key: row.key, label: row.section.label, text: cleanForbiddenResult(row.text) })),
     provider: clean(results.find(row => row.provider)?.provider), model: clean(results.find(row => row.model)?.model),
   };

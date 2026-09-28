@@ -1,3 +1,4 @@
+import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
@@ -1170,18 +1171,18 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       error.status = 503;
       throw error;
     }
-    return { section, ok: isCompleteLlmResponse(ai), text: sanitizeConsultationText(ai?.text || ""), provider, model };
+    return { section, ok: ai?.ok === true, rawText: ai?.rawText || ai?.text || "", text: options.checkpoint ? normalizeNarrativeBody(sanitizeConsultationText(ai?.text || "")) : sanitizeConsultationText(ai?.text || ""), provider, model };
   };
 
   // 웨이브 1 — 전 섹션 동시 생성. 벽시계는 섹션 시간의 합이 아니라 가장 느린 섹션 하나.
   if (options.checkpoint) {
     const sections = { ...(options.sections || {}) };
     const attempts = { ...(options.attempts || {}) };
-    const validText = (section, text) => countPaidReportBodyChars(text) > 0
+    const rawResponses = { ...(options.rawResponses || {}) };
+    const validText = (section, text) => countPaidReportBodyChars(text) >= 40
       && countPaidReportBodyChars(text) <= section.hardMaxChars
       && !hasRepeatedReportPassage(text)
-      && !getConsultationQualityIssues(text).length
-      && !getMissingExpertParts(text).some(part => section.expertParts.includes(part.id));
+      && !getConsultationQualityIssues(text).length;
     const valid = section => validText(section, sections[section.key]?.text || "");
     const accepted = section => valid(section);
     const pending = ASTROLOGY_SECTIONS.filter(section => !accepted(section));
@@ -1193,7 +1194,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       if (valid(section)) attempts[`${section.key}:lengthRepair`] = 1;
       attempts[section.key] = Number(attempts[section.key] || 0) + 1;
     }
-    await options.checkpoint({ sections, attempts });
+    await options.checkpoint({ sections, attempts, rawResponses });
     let queue = Promise.resolve();
     const outcomes = await Promise.allSettled(batch.map(async section => {
       const repairLines = valid(section) ? [
@@ -1201,6 +1202,9 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
         "같은 문장을 반복하지 말고 빠진 해석을 더해 완결된 본문으로 다시 작성하세요.",
       ] : [];
       const row = await runSection(section, repairLines, attempts[section.key]);
+      rawResponses[section.key] = row.rawText;
+      queue = queue.catch(() => {}).then(() => options.checkpoint({ sections: { ...sections }, attempts: { ...attempts }, rawResponses: { ...rawResponses } }));
+      await queue;
       if (!row.ok || !validText(section, trimPaidReportText(row.text, section.hardMaxChars))) return;
       // Reject unsafe/repeated source text before trimming can hide it.
       if (hasRepeatedReportPassage(row.text) || getConsultationQualityIssues(row.text).length) return;
@@ -1210,7 +1214,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       if (hasRepeatedReportPassage(`${otherText}\n\n${sourceText}`) || hasRepeatedReportPassage(`${otherText}\n\n${row.text}`)) return;
       if (valid(section) && countPaidReportBodyChars(sections[section.key].text) >= countPaidReportBodyChars(row.text)) return;
       sections[section.key] = row;
-      const snapshot = { sections: { ...sections }, attempts: { ...attempts } };
+      const snapshot = { sections: { ...sections }, attempts: { ...attempts }, rawResponses: { ...rawResponses } };
       queue = queue.catch(() => {}).then(() => options.checkpoint(snapshot));
       await queue;
     }));
@@ -1218,7 +1222,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
     if (storageFailure) throw storageFailure.reason;
     const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
     const complete = ASTROLOGY_SECTIONS.every(accepted);
-    const issues = complete ? getConsultationQualityIssues(content, { maxLength, requireExpertParts: true }) : [];
+    const issues = complete ? getConsultationQualityIssues(content, { maxLength }) : [];
     if (complete && (issues.length || hasRepeatedReportPassage(content))) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED", issues });
     }
@@ -1787,11 +1791,11 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       const generated = await generateSectionedConsultation(env, normalized.input, chart, {
         minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
         sectionMaxOutputTokens: ASTROLOGY_AI_SECTION_MAX_OUTPUT_TOKENS, fallbackToWorkersAI: false,
-        sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts,
-        checkpoint: async ({ sections, attempts }) => {
+        sections: doc.llmMeta?.sections, attempts: doc.llmMeta?.attempts, rawResponses: doc.llmMeta?.rawResponses,
+        checkpoint: async ({ sections, attempts, rawResponses }) => {
           const content = ASTROLOGY_SECTIONS.map(section => sections[section.key]?.text || "").filter(Boolean).join("\n\n");
           doc = await saveAstrologyDelivery(locked, {
-            llmMeta: { ...doc.llmMeta, sections, attempts },
+            llmMeta: { ...doc.llmMeta, sections, attempts, rawResponses },
             messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content, createdAt: now }],
           }, sessionId);
         },

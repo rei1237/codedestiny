@@ -133,12 +133,11 @@ it("apply response loss retries the original key without regenerating", async ()
   expect(usage.mock.calls.map(call => call[0].requestId)).toEqual(["original-paid-request", "original-paid-request"]); expect(refund).not.toHaveBeenCalled();
 });
 
-it("missing calculated grounding repairs only its owning group", async () => {
-  chart.mockImplementation(() => ({ palaces: ["명궁", "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁"].map((name, i) => ({ name, mainStars: i ? [] : ["자미"], earthlyBranch: "자" })), fourTransformations: {} }));
-  for (let i = 0; i < 6; i++) expect((await start()).status).toBe(202);
-  const saved = structuredClone(docs[0].llmMeta.groups.foundation); const base = provider.getMockImplementation();
-  provider.mockImplementation(async (...args) => { const value = await base(...args); const parsed = JSON.parse(value.text); const key = Object.keys(parsed.sections)[0]; parsed.sections[key].body += " 자미 명궁 형제궁 부부궁 자녀궁 재백궁 질액궁 천이궁 노복궁 관록궁을 근거로 지금 선택의 방향을 읽습니다."; return { ...value, text: JSON.stringify(parsed) }; });
-  expect((await start()).status).toBe(202); expect(provider.mock.calls.at(-1)[2].logContext.sectionGroup).toBe("essence"); expect(docs[0].llmMeta.groups.foundation).toEqual(saved);
+it("missing optional grounding does not purchase an extra group", async () => {
+  chart.mockImplementation(() => ({ palaces: ["명궁", "형제궁", "부부궁"].map(name => ({ name, mainStars: ["자미"], earthlyBranch: "자" })), fourTransformations: {} }));
+  for(let i=0;i<7;i++)await start();
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(7);
+  expect(Object.keys(docs[0].llmMeta.rawResponses)).toHaveLength(6);
 });
 it("refunds the card payment once short groups exhaust their attempts", async () => {
   mode = "paid";
@@ -225,13 +224,15 @@ it("does not replace grounded short content with a longer ungrounded repair", as
   await start(); const draft = clone(docs[0].llmMeta.groups.foundation);
   await start(); expect(docs[0].llmMeta.groups.foundation).toEqual(draft);
 });
-for (const flags of [{ truncated: true }, { finishReason: "length" }]) it(`rejects a clipped initial group: ${JSON.stringify(flags)}`, async () => {
+for (const flags of [{ truncated: true }, { finishReason: "length" }]) it(`preserves usable sections from a clipped initial group: ${JSON.stringify(flags)}`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => ({ ...await normal(...args), ...flags }));
-  expect((await start()).status).toBe(202); expect(docs[0].llmMeta.groups).toEqual({});
+  expect((await start()).status).toBe(202); expect(Object.keys(docs[0].llmMeta.groups)).toHaveLength(1);
+  for(let i=0;i<6;i++)await start();
+  expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(7);
 });
 
-it("does not accept non-string required bodies as short content", async () => {
+it("discards a malformed body while retaining other usable sections", async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => {
     const result = await normal(...args); const parsed = JSON.parse(result.text);
@@ -239,5 +240,6 @@ it("does not accept non-string required bodies as short content", async () => {
     if (first) parsed.sections[first].body = { invalid: "본문 아님" };
     return { ...result, text: JSON.stringify(parsed) };
   });
-  expect((await start()).status).toBe(202); expect(docs[0].llmMeta.groups).toEqual({});
+  expect((await start()).status).toBe(202); expect(Object.keys(docs[0].llmMeta.groups)).toHaveLength(1);
+  expect(JSON.stringify(docs[0].llmMeta.groups)).not.toContain("본문 아님");
 });

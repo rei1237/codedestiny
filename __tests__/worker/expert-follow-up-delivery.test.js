@@ -110,3 +110,17 @@ test.each(['karma-destiny-ai', 'love-secret-ai'])('actual %s message handler rej
   expect((await context.handleMessage(request(), {})).status).toBe(200);
   userId = 'other'; expect((await context.handleMessage(request(), {})).status).toBe(404); expect(provider).toHaveBeenCalledTimes(1);
 });
+
+test('server resumes the original follow-up budget and GET attaches once without customer retry', async () => {
+  provider.mockImplementationOnce(async()=>null);
+  expect((await start()).status).toBe(202);
+  const {expertFollowUpNarrativeAdapter}=await import('../../worker/lib/expert-follow-up-delivery.js');
+  const {resumePaidNarrativeOnServer}=await import('../../worker/lib/paid-narrative-delivery.js');
+  const adapter=expertFollowUpNarrativeAdapter({featureKey:'karma-destiny-ai-consultation',generate:provider});
+  expect((await resumePaidNarrativeOnServer({},docs[0],adapter)).status).toBe(200);
+  expect(docs[0].metadata.paidNarrative.attempts.answer).toBe(2);
+  await recover({auth:{userId:owner},consultation:report,featureKey:'karma-destiny-ai-consultation',model:reportModel});
+  expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
+  await recover({auth:{userId:owner},consultation:report,featureKey:'karma-destiny-ai-consultation',model:reportModel});
+  expect(report.messages).toHaveLength(3);expect(provider).toHaveBeenCalledTimes(2);
+});

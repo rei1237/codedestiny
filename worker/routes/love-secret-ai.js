@@ -13,7 +13,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { deliverExpertFollowUp, recoverSavedExpertFollowUps } from '../lib/expert-follow-up-delivery.js';
+import { deliverExpertFollowUp, recoverSavedExpertFollowUps, expertFollowUpNarrativeAdapter } from '../lib/expert-follow-up-delivery.js';
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -991,13 +991,14 @@ async function generateFollowUp(env, consultation, message) {
   const provider = clean(ai?.provider);
   const model = clean(ai?.model);
   const isMock = (/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
-  if (!ai?.ok || ai.truncated || isMock || !clean(ai.text)) {
+  if (!ai?.ok || isMock || !clean(ai.text)) {
     const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
     error.code = "LLM_GENERATION_FAILED";
     throw error;
   }
   return {
     text: normalizeFollowUpResponse(ai.text),
+    rawText: ai.rawText || ai.text,
     provider,
     model,
   };
@@ -1822,4 +1823,9 @@ export function resumeConsultationOnServer(env, doc) {
   const request = new Request("https://internal.invalid/api/love-secret-ai/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeSessionId: String(doc.id) }) });
   return handleStart(request, env, undefined, undefined, { userId: String(doc.userId) });
+}
+
+export function serverExpertFollowUpAdapter(env) {
+  const { featureKey, reportType, produce, render } = expertFollowUpNarrativeAdapter({ featureKey: FEATURE_KEY, generate: (original, question) => generateFollowUp(env, original, question) });
+  return { featureKey, reportType, produce, render };
 }

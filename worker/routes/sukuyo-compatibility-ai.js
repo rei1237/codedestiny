@@ -1507,7 +1507,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
         sourceBodies[key] = { body: rawBody };
       }
     });
-    return { sections, provider, model };
+    return { sections, provider, model, rawText: ai.rawText || ai.text };
   } catch (error) {
     logSukyoAi("[Sukyo AI Section Group Failed]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1563,8 +1563,10 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   const sections = { ...(options.sections || {}) };
   const attempts = { ...(options.attempts || {}) };
   const valid = key => typeof sections[key]?.body === "string" && countPaidReportBodyChars(sections[key].body) > 0 && !hasRepeatedReportPassage(sections[key].body);
+  const rawResponses = { ...(options.rawResponses || {}) };
   const isComplete = valid;
-  const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(key => !isComplete(key)) })).filter(group => group.keys.length);
+  const groupComplete = group => group.keys.some(key => valid(key) && countPaidReportBodyChars(sections[key].body) >= 40);
+  const pending = SUKUYO_SECTION_GROUPS.filter(group => !groupComplete(group));
   const group = pending[0];
   if (group && Number(attempts[group.id] || 0) >= 2) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
   let provider = "", model = "";
@@ -1582,18 +1584,19 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
       if (hasRepeatedReportPassage(`${others}\n${row.body}`)) continue;
       if (!valid(key) || countPaidReportBodyChars(row.body) > countPaidReportBodyChars(sections[key].body)) sections[key] = row;
     }
+    rawResponses[group.id] = generated.rawText || "";
     provider = generated.provider; model = generated.model;
-    await options.onCheckpoint?.({ sections, summary });
+    await options.onCheckpoint?.({ sections, summary, rawResponses });
   }
   if (!group && !summary && !attempts.summary) {
     attempts.summary = 1;
     await options.onReserve?.('summary', 1, false);
     const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
     summary = await generateSummary(env, input, calculation, systemPrompt);
-    await options.onCheckpoint?.({ sections, summary });
+    await options.onCheckpoint?.({ sections, summary, rawResponses });
   }
   const summaryPending = !summary && !attempts.summary;
-  const complete = !summaryPending && SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key))
+  const complete = !summaryPending && SUKUYO_SECTION_GROUPS.every(groupComplete)
     && !hasRepeatedReportPassage(Object.values(sections).map(row => row.body).join("\n"));
   const result = { meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta, ...(summary || {}), sections };
   return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: summaryPending || SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 2 && row.keys.some(key => !isComplete(key))) };
@@ -2049,9 +2052,9 @@ async function handleStart(request, env, recoveryAuth = null) {
         // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
         // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
         ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation, {
-          sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary,
+          sections: existing?.llmMeta?.sections || {}, attempts: existing?.llmMeta?.attempts || {}, summary: existing?.llmMeta?.summary, rawResponses: existing?.llmMeta?.rawResponses,
           onReserve: (groupId, attempt, lengthRepair) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { [`llmMeta.attempts.${groupId}`]: attempt, ...(lengthRepair ? { [`llmMeta.attempts.${groupId}:lengthRepair`]: 1 } : {}) }),
-          onCheckpoint: ({ sections, summary }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary }),
+          onCheckpoint: ({ sections, summary, rawResponses }) => saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { 'llmMeta.sections': sections, 'llmMeta.summary': summary, 'llmMeta.rawResponses': rawResponses }),
         })
         : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
     } catch (genError) {

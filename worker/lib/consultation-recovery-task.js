@@ -48,13 +48,25 @@ export async function runConsultationRecovery(env, options = {}) {
       const adapter = options.loadAdapter ? await options.loadAdapter(route) : await loadAdapters[route]();
       const model = (options.models || models)[modelName];
       const docs = !modelName ? await adapter.findRecoverableConsultations(env, consultationRecoveryFilter(now, extra)) : await withMongoRetry(env, () => model.find(consultationRecoveryFilter(now, extra))
-        .sort({ _id: 1 }).limit(1).select('id executionId executionKey userId locale llmMeta.locale llmMeta.resumeBody.locale').lean());
+        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId updatedAt locale llmMeta.locale llmMeta.resumeBody.locale').lean());
       for (const doc of docs) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;
+        try {
         const response = await runWithAiLocale(doc.locale || doc.llmMeta?.locale || doc.llmMeta?.resumeBody?.locale || 'ko',
           () => adapter.resumeConsultationOnServer(env, doc));
         // Never log body/raw, payment IDs or birth inputs.
         outcomes.push({ service: route, status: response.status });
+        } finally {
+          // Rotate an unchanged stalled record behind other idle records. CAS
+          // protects progress saved by a browser or another worker meanwhile.
+          if (model && doc._id && doc.updatedAt) {
+            await withMongoRetry(env, () => model.updateOne(
+              { _id: doc._id, userId: doc.userId, updatedAt: doc.updatedAt },
+              { $set: { updatedAt: new Date(now) } }), { retries: 0 });
+          } else if (adapter.deferUnchangedConsultation) {
+            await adapter.deferUnchangedConsultation(env, doc, now);
+          }
+        }
       }
     } catch (error) {
       outcomes.push({ service: route, code: String(error?.code || 'RECOVERY_PENDING').slice(0, 80) });

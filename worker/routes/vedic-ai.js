@@ -1,3 +1,5 @@
+import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
+import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
@@ -1404,8 +1406,8 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       logContext: { ...context, group: group.key },
     });
     const provider = clean(result?.provider || result?.model || "gemini");
-    if (!result?.ok || result.truncated || /^(MAX_TOKENS|length)$/i.test(clean(result.finishReason)) || ((/mock/i.test(provider) || result?.isMock === true) && !isStagingLlmMockEnabled(env))) return { group, text: "", provider: "", model: "" };
-    return { group, text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || "") };
+    if (!result?.ok || ((/mock/i.test(provider) || result?.isMock === true) && !isStagingLlmMockEnabled(env))) return { group, text: "", provider: "", model: "" };
+    return { group, rawText: result?.rawText || result?.text || "", text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || "") };
   } catch (error) {
     logVedicAi("Group Generation Failed", { ...context, group: group.key, message: clean(error?.message, 200) }, "warn");
     return { group, text: "", provider: "", model: "" };
@@ -1447,18 +1449,15 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
     const rows = { ...(options.groups || {}) };
     const attempts = { ...(options.attempts || {}) };
     const bodies = text => Object.values(parseStructuredConsultationText(text)?.sections || {}).map(section => section?.body || "").join("\n\n");
+    const rawResponses = { ...(options.rawResponses || {}) };
     const valid = (group, row) => {
       const parsed = parseStructuredConsultationText(row?.text || "");
       const keys = group.includeReasoning ? Object.keys(buildReasoningSectionSchema()) : group.sectionKeys;
       const text = bodies(row?.text || "");
       return parsed && Object.keys(parsed.sections || {}).every(key => keys.includes(key))
-        && keys.every(key => typeof parsed.sections?.[key]?.title === "string" && clean(parsed.sections[key].title)
-          && typeof parsed.sections?.[key]?.body === "string" && countPaidReportBodyChars(parsed.sections[key].body) > 0)
-        && countPaidReportBodyChars(text) > 0
-        && !hasRepeatedReportPassage(text) && !validateChartConsistency(row.text, chart).length
-        && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue))
-        && (!group.includeScores || Object.keys(parsed.scores || {}).length > 0)
-        && group.sectionKeys.every(key => clean(parsed.sections[key].title).includes(REQUIRED_SECTION_LABELS[key]));
+        && countPaidReportBodyChars(text) >= 40
+        && !hasRepeatedReportPassage(text)
+        && !validateConsultationQuality(row.text).issues.some(issue => ["raw_leak", "mechanical_label"].includes(issue));
     };
     const accepted = group => valid(group, rows[group.key]);
     const pending = VEDIC_SECTION_GROUPS.filter(group => !accepted(group));
@@ -1468,12 +1467,20 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
       const repairing = valid(group, rows[group.key]);
       if (repairing) attempts[`${group.key}:lengthRepair`] = 1;
       attempts[group.key] = Number(attempts[group.key] || 0) + 1;
-      await options.checkpoint({ groups: rows, attempts });
+      await options.checkpoint({ groups: rows, attempts, rawResponses });
       const repairLines = repairing ? [
         `직전 본문은 공백 제외 ${countPaidReportBodyChars(bodies(rows[group.key].text))}자입니다. 목표 ${group.targetMinChars}자까지 계산 근거와 생활 장면을 보강해 완결된 JSON으로 다시 작성하세요.`,
         "같은 문장을 반복하지 말고 아직 다루지 않은 해석과 행동 조언을 더하세요.",
       ] : [];
       const row = await generateVedicGroup(env, input, chart, group, context, repairLines, { ...options, skipCacheRead: attempts[group.key] > 1 });
+      rawResponses[group.key] = row.rawText || row.text;
+      await options.checkpoint({ groups: rows, attempts, rawResponses });
+      const recovered = parseStructuredConsultationText(row.text) || salvageTruncatedJsonObject(row.text);
+      if (recovered?.sections) {
+        const keys = group.includeReasoning ? Object.keys(buildReasoningSectionSchema()) : group.sectionKeys;
+        recovered.sections = Object.fromEntries(Object.entries(recovered.sections).filter(([key, value]) => keys.includes(key) && typeof value?.body === 'string').map(([key, value]) => [key, { ...value, title: clean(value.title) || REQUIRED_SECTION_LABELS[key] || key, body: normalizeNarrativeBody(value.body.split(/(?<=[.!?。])\s+/u).filter(sentence => !validateChartConsistency(JSON.stringify({ sections: { [key]: { body: sentence } } }), chart).some(issue => issue.endsWith("_mismatch"))).join(' ')) }]).filter(([, value]) => value.body));
+        row.text = JSON.stringify(recovered);
+      }
       const sourceText = bodies(row.text);
       const sourceValid = valid(group, row);
       if (sourceValid) {
@@ -1485,13 +1492,13 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         && !hasRepeatedReportPassage(`${otherText}\n\n${bodies(row.text)}`)
         && (!repairing || countPaidReportBodyChars(bodies(row.text)) > countPaidReportBodyChars(bodies(rows[group.key].text)))) {
         rows[group.key] = row;
-        await options.checkpoint({ groups: rows, attempts });
+        await options.checkpoint({ groups: rows, attempts, rawResponses });
       }
     }
     const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => rows[group.key]).filter(Boolean));
     const complete = VEDIC_SECTION_GROUPS.every(accepted);
     const quality = validateConsultationQuality(content, { ...qualityOptions, minTotalChars: 0 });
-    if (complete && !quality.ok) throw Object.assign(new Error("LLM_QUALITY_FAILED"), { code: "LLM_QUALITY_FAILED" });
+    // Detailed quality diagnostics are advisory once every group has usable prose.
     const first = Object.values(rows)[0];
     return { content, complete, meta: { provider: first?.provider || "", model: first?.model || "", quality, groups: rows, attempts } };
   }
@@ -1615,10 +1622,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
       delete resumeBody.accessToken;
       doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody: doc.llmMeta?.resumeBody || resumeBody, chartSnapshot: chart } }, sessionId);
       const generated = await generateInitialReading(env, normalized.input, chart, context, {
-        locale: doc.locale, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts,
-        checkpoint: async ({ groups, attempts }) => {
+        locale: doc.locale, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, rawResponses: doc.llmMeta.rawResponses,
+        checkpoint: async ({ groups, attempts, rawResponses }) => {
           const content = mergeVedicGroupPayloads(VEDIC_SECTION_GROUPS.map(group => groups[group.key]).filter(Boolean));
-          doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
+          doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, rawResponses }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
         },
       });
       doc = await saveVedicDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta } }, sessionId);

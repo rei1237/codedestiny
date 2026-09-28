@@ -5735,7 +5735,7 @@ export async function findRecoverableConsultations(env, filter) {
   return withMongoRetry(env, () => honeyCollections().results.find({ ...filter,
     _id: { $gte: "fortune-tea-house-result:", $lt: "fortune-tea-house-result;" },
     serviceScope: FORTUNE_TEA_HOUSE_SCOPE, 'generationCheckpoint.requestBody': { $exists: true },
-  }).sort({ updatedAt: 1 }).limit(1).project({ userId: 1, resultId: 1 }).toArray());
+  }).sort({ updatedAt: 1 }).limit(1).project({ userId: 1, resultId: 1, updatedAt: 1 }).toArray());
 }
 export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.resultId) throw new Error("RECOVERY_IDENTITY_REQUIRED");
@@ -5743,4 +5743,11 @@ export async function resumeConsultationOnServer(env, doc) {
   if (!stored?.generationCheckpoint?.requestBody) return json({ ok: false, reason: 'RESULT_NOT_FOUND' }, { status: 404 });
   const request = new Request("https://internal.invalid/api/fortune-tea-house/consult", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(stored.generationCheckpoint.requestBody) });
   return handleConsult(request, env, null, { userId: String(stored.userId) });
+}
+
+export async function deferUnchangedConsultation(env, doc, now) {
+  if (!doc?._id || !doc.updatedAt) return;
+  return withMongoRetry(env, () => honeyCollections().results.updateOne(
+    { _id: doc._id, userId: doc.userId, updatedAt: doc.updatedAt },
+    { $set: { updatedAt: new Date(now) } }), { retries: 0 });
 }

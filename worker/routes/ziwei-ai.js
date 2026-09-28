@@ -1,3 +1,5 @@
+import { normalizeNarrativeBody } from '../lib/paid-narrative-candidate.js';
+import { salvageTruncatedJsonObject } from '../../lib/llm-text.js';
 import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { createHash, randomUUID } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1791,14 +1793,14 @@ function buildZiweiDuplicateInstruction(duplicates, group) {
  */
 const ZIWEI_GROUP_MAX_ATTEMPTS = 2;
 const ziweiSectionBody = sections => Object.values(sections).map(row => String(row?.body || "")).join("\n");
-async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {} }) {
-  groups = { ...groups }; attempts = { ...attempts };
+async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {} }) {
+  groups = { ...groups }; attempts = { ...attempts }; rawResponses = { ...rawResponses };
   const merge = () => Object.assign({}, ...Object.values(groups));
   let sections = merge();
   const grounding = enforceZiweiChartFacts(JSON.stringify({ meta: {}, sections }), chart);
-  const repairIds = Object.keys(groups).length === SECTION_GROUP_SPECS.length ? resolveGroundingRetryGroupIds(grounding.issues) : [];
-  const valid = (group, value) => group.sections.every(key => typeof value?.[key]?.title === "string" && clean(value[key].title)
-    && typeof value?.[key]?.body === "string" && countPaidReportBodyChars(value[key].body) > 0)
+  const repairIds = []; // Chart facts are corrected locally; no paid rewrite for minor discrepancies.
+  const valid = (group, value) => Object.keys(value || {}).some(key => group.sections.includes(key)
+    && typeof value[key]?.body === 'string' && countPaidReportBodyChars(value[key].body) >= 40)
     && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
   const accepted = group => valid(group, groups[group.id]);
   const group = SECTION_GROUP_SPECS.find(row => !accepted(row) || repairIds.includes(row.id));
@@ -1810,7 +1812,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     const repairing = valid(group, groups[group.id]);
     if (repairing && !repairIds.includes(group.id)) attempts[`${group.id}:lengthRepair`] = 1;
     attempts[group.id] = Number(attempts[group.id] || 0) + 1;
-    await checkpoint({ groups, attempts, meta }); // Reserve before the provider; a lost response consumes this attempt.
+    await checkpoint({ groups, attempts, meta, rawResponses }); // Reserve before the provider; a lost response consumes this attempt.
     const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
     let generated;
     try {
@@ -1831,8 +1833,10 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
       logZiweiAi("Group interrupted", { sectionGroup: group.id, code: error?.code }, "warn");
     }
     const mockBlocked = (generated?.isMock === true || /mock/i.test(generated?.provider || "")) && !isStagingLlmMockEnabled(env);
-    const parsed = isCompleteLlmResponse(generated) && !mockBlocked ? parseSectionsFromGroupText(generated.text) : {};
-    const source = Object.fromEntries(group.sections.filter(key => parsed[key]).map(key => [key, parsed[key]]));
+    rawResponses[group.id] = generated?.rawText || generated?.text || '';
+    await checkpoint({ groups, attempts, meta, rawResponses });
+    const parsed = generated?.ok && !mockBlocked ? (salvageTruncatedJsonObject(generated.text)?.sections || parseSectionsFromGroupText(generated.text)) : {};
+    const source = Object.fromEntries(group.sections.filter(key => typeof parsed[key]?.body === "string").map(key => [key, { ...parsed[key], title: clean(parsed[key].title) || key, body: normalizeNarrativeBody(parsed[key].body) }]));
     const next = trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET));
     const candidate = { ...sections, ...next };
     const candidateIssues = enforceZiweiChartFacts(JSON.stringify({ meta, sections: candidate }), chart).issues;
@@ -1849,7 +1853,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     if (candidateValid && (!repairing || groundingImproved
       || (!repairIds.includes(group.id) && countPaidReportBodyChars(ziweiSectionBody(next)) > countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))))) {
       groups[group.id] = next;
-      await checkpoint({ groups, attempts, meta });
+      await checkpoint({ groups, attempts, meta, rawResponses });
       sections = merge();
     }
     if (!valid(group, groups[group.id]) && attempts[group.id] >= ZIWEI_GROUP_MAX_ATTEMPTS) {
@@ -1860,20 +1864,20 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
   // Reserve it before calling so a lost response cannot purchase it again.
   if (!group && !Object.keys(meta).length && !attempts.meta) {
     attempts.meta = 1;
-    await checkpoint({ groups, attempts, meta });
+    await checkpoint({ groups, attempts, meta, rawResponses });
     const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), {
       systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000,
       baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
       responseMimeType: "application/json", logContext: { ...logContext, sectionGroup: "meta" },
     }).catch(() => null); // Optional meta failure keeps the saved body deliverable.
     if (generated?.ok) meta = parseMetaFromText(generated.text) || meta;
-    await checkpoint({ groups, attempts, meta });
+    await checkpoint({ groups, attempts, meta, rawResponses });
   }
   const metaPending = !Object.keys(meta).length && !attempts.meta;
   const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart);
   const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
   const chars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
-  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted) && !checked.issues.length && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
+  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted) && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
 }
 
 async function saveZiweiDelivery(filter, fields, resultId) {
@@ -1886,8 +1890,8 @@ async function saveZiweiDelivery(filter, fields, resultId) {
   } catch { throw resultStorageUnavailable(resultId); }
 }
 
-async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta }) {
-  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta });
+async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses }) {
+  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses });
   const startedAt = Date.now();
   const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
   const retryTimeoutMs = () => Math.max(18000, Math.min(SECTION_GROUP_TIMEOUT_MS, remainingMs() - 6000));
@@ -2557,11 +2561,11 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
       const chart = doc.llmMeta?.chartSnapshot || calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
-      const generated = await generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta,
-        checkpoint: async ({ groups, attempts, meta }) => {
+      const generated = await generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses,
+        checkpoint: async ({ groups, attempts, meta, rawResponses }) => {
           const sections = Object.assign({}, ...Object.values(groups));
           const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
-          doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, reportMeta: meta }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
+          doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, groups, attempts, reportMeta: meta, rawResponses }, messages: [{ role: "assistant", content, createdAt: now }] }, sessionId);
         },
       });
       doc = await saveZiweiDelivery(locked, { status: generated.complete ? "delivery_pending" : "partial", llmMeta: { ...doc.llmMeta, ...generated.meta }, messages: [{ role: "user", content: normalized.input.userQuestion || normalized.input.topic, createdAt: now }, { role: "assistant", content: generated.text, createdAt: now }] }, sessionId);

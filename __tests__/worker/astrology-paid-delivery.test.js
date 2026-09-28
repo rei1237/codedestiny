@@ -88,14 +88,16 @@ beforeEach(() => {
   fetchBlock = jest.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("External fetch blocked"); });
 });
 afterEach(() => { expect(fetchBlock).not.toHaveBeenCalled(); fetchBlock.mockRestore(); });
-for (const flags of [{ truncated: true }, { finishReason: "length" }]) it(`does not save a long clipped section as complete: ${JSON.stringify(flags)}`, async () => {
+for (const flags of [{ truncated: true }, { finishReason: "length" }]) it(`delivers complete sentences from a clipped response without regeneration: ${JSON.stringify(flags)}`, async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => ({ ...await normal(...args), ...flags }));
   expect((await start()).status).toBe(202);
-  expect(Object.keys(docs[0].llmMeta.sections)).toHaveLength(0);
+  expect(Object.keys(docs[0].llmMeta.sections)).toHaveLength(2);
+  expect(Object.keys(docs[0].llmMeta.rawResponses)).toHaveLength(2);
   provider.mockImplementation(normal);
-  for (let wave = 0; wave < 3; wave++) await start();
+  for (let wave = 0; wave < 2; wave++) await start();
   expect(docs[0].status).toBe("completed");
+  expect(provider).toHaveBeenCalledTimes(6);
 });
 async function start(extra = {}) {
   return route(new Request("https://mock.test/api/astrology-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, ...extra }) }), {});

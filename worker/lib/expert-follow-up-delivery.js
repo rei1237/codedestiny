@@ -1,3 +1,4 @@
+import { normalizeNarrativeBody, completeNarrativeBody } from './paid-narrative-candidate.js';
 import { createHash } from 'node:crypto';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
 import { ServiceExecutionTransaction } from './models.js';
@@ -56,16 +57,8 @@ export async function deliverExpertFollowUp({ request, env, auth, consultation, 
   };
   try {
     await verify();
-    const response = await runPaidNarrativeDelivery(request, env, auth, { requestId: 'follow-up:' + receipt, sessionId: consultation.id, message }, {
-      featureKey, reportType: 'expertFollowUp', verify,
-      seed: async () => ({ input: consultation, prompt: '', minBodyChars: 180, tasks: [{ id: 'answer', prompt: '', minChars: 180 }] }),
-      produce: async (_task, state) => {
-        const answer = await generate(state.input, state.body.message);
-        if (!answer?.text || answer.truncated || answer.isMock || /mock/i.test(`${answer.provider || ''} ${answer.model || ''}`) || !/[.!?。？！]["'”’)]?\s*$/u.test(answer.text)) return null;
-        return { evidenceHash: state.evidenceHash, body: answer.text };
-      },
-      render: state => ({ answer: state.parts.answer || '', question: state.body.message }),
-    });
+    const response = await runPaidNarrativeDelivery(request, env, auth, { requestId: 'follow-up:' + receipt, sessionId: consultation.id, message }, expertFollowUpNarrativeAdapter({ featureKey, verify, consultation, generate })
+    );
     const result = await response.json();
     if (response.status !== 200 || !result.saved) return json({ ...result, ok: false }, { status: response.status });
     await verify();
@@ -77,4 +70,18 @@ export async function deliverExpertFollowUp({ request, env, auth, consultation, 
     if (error.status === 403) return json({ ok: false, reason: 'PAYMENT_REVOKED', retryable: false }, { status: 403 });
     return json({ ok: false, reason: 'RESULT_STORAGE_UNAVAILABLE', retryable: true, message: '같은 질문의 저장된 답변을 다시 확인해 주세요.' }, { status: 503 });
   }
+}
+
+export function expertFollowUpNarrativeAdapter({ featureKey, generate, consultation, verify = async () => { throw new Error("SERVER_RESUME_ONLY"); } }) {
+  return {
+      featureKey, reportType: 'expertFollowUp', verify,
+      seed: async () => ({ input: consultation, prompt: '', minBodyChars: 180, tasks: [{ id: 'answer', prompt: '', minChars: 180 }] }),
+      produce: async (_task, state) => {
+        const answer = await generate(state.input, state.body.message);
+        if (!answer?.text || answer.isMock || /mock/i.test(`${answer.provider || ''} ${answer.model || ''}`)) return null;
+        const body = normalizeNarrativeBody(answer.text);
+        return completeNarrativeBody(body) ? { evidenceHash: state.evidenceHash, body, rawText: answer.rawText || answer.text } : null;
+      },
+      render: state => ({ answer: state.parts.answer || '', question: state.body.message }),
+  };
 }

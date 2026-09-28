@@ -27,3 +27,11 @@ test('one unavailable adapter does not prevent another stored service from resum
  const result=await runConsultationRecovery({}, {now,connectDb:async()=>{},adapters:[['bad','Test',{}],['good','Test',{}]],models:{Test:model},loadAdapter:async route=>({resumeConsultationOnServer:async()=>{if(route==='bad')throw new Error('private body');return new Response('{}')}})});
  expect(result.outcomes).toEqual(expect.arrayContaining([{service:'bad',code:'RECOVERY_PENDING'},{service:'good',status:200}]));expect(JSON.stringify(result)).not.toContain('private body');
 });
+
+test('an unchanged failed record is deferred with a timestamp compare-and-set', async () => {
+ const doc={_id:'persisted',userId:'owner',updatedAt:new Date(now-600000)};
+ const updateOne=jest.fn(async()=>({modifiedCount:1}));
+ const model={updateOne,find:()=>({sort(){return this},limit(){return this},select(){return this},lean:async()=>[doc]})};
+ await runConsultationRecovery({}, {now,connectDb:async()=>{},adapters:[['stalled','Test',{}]],models:{Test:model},loadAdapter:async()=>({resumeConsultationOnServer:async()=>{throw new Error('temporary')}})});
+ expect(updateOne).toHaveBeenCalledWith({_id:doc._id,userId:doc.userId,updatedAt:doc.updatedAt},{$set:{updatedAt:new Date(now)}});
+});
