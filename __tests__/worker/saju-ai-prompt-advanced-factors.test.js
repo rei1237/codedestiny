@@ -318,6 +318,41 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     expect(validation.qualityIssues.length.advisory).toBe(true);
   });
 
+  test("카테고리 세 항목이 직접 답변되면 경미한 누락은 경고로 전달한다", () => {
+    const built = buildCareerPrompt();
+    const validation = fortuneRoute.validateSajuAIResultText(CONCISE_COMPLETE_CAREER_RESULT, built.factSnapshot, {
+      domain: "career",
+      categoryRubric: {
+        domain: "career",
+        label: "진로",
+        validationKeywords: [["직업"], ["조직"], ["전환"], ["없는표현A"], ["없는표현B"]],
+      },
+    });
+
+    expect(validation.ok).toBe(true);
+    expect(validation.qualityIssues.category).toEqual({
+      categoryMatches: 3,
+      targetMatches: 4,
+      category: "진로",
+      advisory: true,
+    });
+  });
+
+  test("카테고리 두 항목 이하는 질문 주제 결손으로 차단한다", () => {
+    const built = buildCareerPrompt();
+    const validation = fortuneRoute.validateSajuAIResultText(CONCISE_COMPLETE_CAREER_RESULT, built.factSnapshot, {
+      domain: "career",
+      categoryRubric: {
+        domain: "career",
+        label: "진로",
+        validationKeywords: [["직업"], ["조직"], ["없는표현A"], ["없는표현B"], ["없는표현C"]],
+      },
+    });
+
+    expect(validation.ok).toBe(false);
+    expect(validation.qualityIssues.severity).toBe("blocking");
+  });
+
   test("권해드립니다 is a complete ending, not a reason to regenerate a paid result", () => {
     const complete = `${CONCISE_COMPLETE_CAREER_RESULT}\n오늘부터 작은 실천을 시작해 보시길 권해드립니다.`;
     const validation = fortuneRoute.validateSajuAIResultText(complete);
@@ -342,8 +377,12 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     ["element-health-causality", "화(火) 기운이 없다는 것은 심장과 혈액순환 기능이 약할 수 있음을 나타냅니다."],
     ["specific-financial-product", "부동산, 채권, 배당주 같은 자산에 관심을 가져볼 수 있습니다."],
     ["specific-financial-product", "급등락이 심한 주식보다 배당주나 예금이 재산을 불리는 데 유리합니다."],
+    ["specific-financial-product", "장기 계획에는 검증된 금융 상품을 이용하는 선택도 좋습니다."],
+    ["fortune-grade-label", "이 구간은 재정을 키우기 좋은 운으로 분류됩니다."],
+    ["fortune-grade-label", "다음 대운은 주의 운이므로 지출을 줄여야 합니다."],
     ["fortune-score-label", "36세 병술 대운은 81점으로 최고의 운에 해당합니다."],
     ["age-event-prediction", "36세 대운에는 재물 기회가 열리므로 사업 확장을 고려하세요."],
+    ["age-event-prediction", "46세 대운에는 수입이 안정되고 자산이 성장할 것입니다."],
     ["ten-god-financial-loss", "겁재는 주변 사람과의 금전 분쟁과 재물 손실 가능성을 의미합니다."],
     ["ten-god-income-causality", "상관은 부업이나 사업을 통한 수입 창출 가능성을 높입니다."],
   ])("실측에서 확인한 근거 밖 금융 인과를 거부한다: %s", (key, unsafeSentence) => {
@@ -358,6 +397,7 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     });
     expect(validation.ok).toBe(false);
     expect(validation.qualityIssues.unsupportedAdvice).toBe(key);
+    expect(validation.qualityIssues.severity).toBe("blocking");
   });
 });
 

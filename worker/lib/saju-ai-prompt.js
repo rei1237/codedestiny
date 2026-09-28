@@ -22,7 +22,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v14";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v15";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -87,7 +87,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "7장은 제공된 대운 순서와 전환 조건, 8장은 세운 간지와 원국의 연결만 설명하세요. 지나온 개인사를 사실로 쓰지 말고 월운이 없으면 월·상하반기 차이를 만들지 않습니다. 대운 나이는 구간 라벨이지 그 나이의 수익·손실·사업·투자 사건 예고가 아닙니다. 점수·등급·사건 규모를 옮기지 말고 준비·실행·재검토 조건만 비교하세요.",
+    guide: "7장은 제공된 대운 순서와 전환 조건, 8장은 세운 간지와 원국의 연결만 설명하세요. 지나온 개인사를 사실로 쓰지 말고 월운이 없으면 월·상하반기 차이를 만들지 않습니다. 대운 나이는 구간 라벨이지 그 나이의 수익·손실·사업·투자 사건 예고가 아닙니다. '좋은 운·주의 운·최고의 운·역경 운' 같은 등급과 점수·사건 규모를 옮기지 말고, 각 구간에는 실제 기록을 다시 확인할 조건만 제시하세요.",
   }),
   Object.freeze({
     key: "strategy_action",
@@ -133,14 +133,14 @@ export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
   money: Object.freeze({
     domain: "money",
     label: "재물",
-    requiredSections: ["수입 구조", "돈이 모이는 방식", "투자/소비 리스크", "부업/사업 가능성", "30일 재정 루틴"],
-    tenGodFocus: ["재성", "식상", "비겁"],
+    requiredSections: ["현재 현금흐름 확인", "선택 비용 비교", "손실 감당 범위", "계약·정산 기준", "30일 기록 루틴"],
+    tenGodFocus: ["실제 수입·지출 기록", "계약·정산 조건", "검증 가능한 선택지"],
     validationKeywords: [
-      ["수입", "수익", "매출", "돈"],
-      ["모이는", "축적", "현금흐름", "흐름"],
-      ["투자", "소비", "리스크", "손실"],
-      ["부업", "사업", "수익 모델", "모델"],
-      ["30일", "재정", "루틴", "실천"],
+      ["현금흐름", "수입 기록", "지출 기록", "고정비"],
+      ["비용", "비교", "선택지", "되돌릴"],
+      ["감당", "예산", "상한", "손실"],
+      ["계약", "정산", "역할", "결정권"],
+      ["30일", "기록", "점검", "재검토"],
     ],
   }),
   love: Object.freeze({
@@ -271,7 +271,7 @@ const SAJU_AI_PROMPT_MASTERY_ANGLES = Object.freeze([
   "외부 AI에게 그대로 물어볼 수 있도록 역할·원국 근거·질문 의도·답변 형식을 한 번에 묶기",
   "최고 수준의 명리학자 관점에서 일간·월령·조후·격국·용신·십성·합충형파해·대운·세운을 우선순위화",
   "월지·일지 지장간과 일간 기준 십성을 질문 주제의 숨은 작동점으로 반영",
-  "원국 천간 투간과 대운·세운 투출을 구분해 성향과 시기 사건성을 나누기",
+  "원국 천간 투간과 대운·세운 투출을 구분하되 시기 라벨과 실제 사건 기록을 분리해 인과를 만들지 않기",
   "도충 exists=true일 때 반복 지지와 유도되는 반대 충 지지를 질문 주제에 맞춰 절제해서 반영",
   "辰·戌·丑·未 토 지지가 형충해파로 열리는 개고는 열린 지장간과 시기성을 분리해 반영",
   "투간·투출·도충·개고를 서로 섞지 않고 각각의 작동 원리로 상담 흐름을 세우기",

@@ -147,6 +147,9 @@ const CHAPTER_TITLES = [
     ]) {
       check(prompt.includes(requiredSafetyLine), `${group.key}: 실제 생성 후 안전 교정이 프롬프트에서 빠졌다 — ${requiredSafetyLine}`);
     }
+    if (group.key === "timing_flow") {
+      check(prompt.includes("'좋은 운·주의 운·최고의 운·역경 운' 같은 등급"), `${group.key}: v14에서 재발한 대운 등급 차단 문구가 없다`);
+    }
   }
 }
 

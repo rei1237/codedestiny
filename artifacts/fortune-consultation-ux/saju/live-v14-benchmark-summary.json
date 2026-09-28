@@ -1,0 +1,39 @@
+{
+  "measuredAt": "2026-09-28",
+  "model": "gemini-2.5-flash",
+  "promptVersion": "saju-myeongsik-ai-v14",
+  "source": "live-local-benchmark",
+  "priceSource": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+  "inputUsdPerMillion": 0.3,
+  "outputUsdPerMillion": 2.5,
+  "limits": {
+    "inputTokens": 100000,
+    "outputTokens": 60000,
+    "calculatedUsd": 1
+  },
+  "generationCalls": 5,
+  "finishReasons": ["STOP", "STOP", "STOP", "STOP", "STOP"],
+  "inputTokensByGroup": [19639, 19715, 19713, 19711, 20046],
+  "inputTokens": 98824,
+  "outputTokens": 15454,
+  "bodyChars": 20658,
+  "wallElapsedMs": 30272,
+  "calculatedUsd": 0.0682822,
+  "maximumCalculatedUsd": 0.1796472,
+  "paymentCalls": 0,
+  "databaseWrites": 0,
+  "retries": 0,
+  "modelFallbacks": 0,
+  "explicitCacheCreates": 0,
+  "validation": {
+    "ok": false,
+    "severity": "blocking",
+    "reason": "명식 근거를 벗어난 금융 인과와 특정 시기·상품 조언이 여러 장에서 반복되었습니다.",
+    "firstDetectedType": "element-causality"
+  },
+  "privacy": {
+    "rawInputCommitted": false,
+    "providerResponseCommitted": false,
+    "requestHashesCommitted": false
+  }
+}

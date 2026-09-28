@@ -226,15 +226,19 @@ const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   }),
   Object.freeze({
     key: "specific-financial-product",
-    pattern: /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금).{0,220}(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|큰\s*수익|재산을\s*불)/s,
+    pattern: /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금|연금).{0,220}(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|이용|선택|활용|큰\s*수익|재산을\s*불)/s,
   }),
   Object.freeze({
     key: "fortune-score-label",
     pattern: /(?:\d{1,3}세.{0,80}\d{1,3}점|\d{1,3}점.{0,40}(?:최고의\s*운|역경\s*운|길운|흉운)|(?:최고의\s*운|역경\s*운|길운|흉운).{0,40}\d{1,3}점)/s,
   }),
   Object.freeze({
+    key: "fortune-grade-label",
+    pattern: /(?:최고의|좋은|주의|역경)\s*운/,
+  }),
+  Object.freeze({
     key: "age-event-prediction",
-    pattern: /\d{1,3}세.{0,260}(?:큰\s*수익|손실이\s*발생|사업\s*확장|투자\s*포트폴리오|재물\s*기회가\s*열|수입을\s*기대|재물\s*활동이\s*활발)/s,
+    pattern: /\d{1,3}세.{0,260}(?:큰\s*수익|손실이\s*발생|사업\s*확장|투자\s*(?:포트폴리오|기회|성과|확대)|재물\s*기회가\s*열|수입(?:을\s*기대|이\s*안정|이\s*늘)|재물\s*활동이\s*활발|자산(?:이|을)\s*(?:성장|증가|늘)|재정(?:이|의)?\s*(?:안정|확대))/s,
   }),
   Object.freeze({
     key: "ten-god-financial-loss",
@@ -739,7 +743,7 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
     return {
       ok: false,
       reason: "명식 근거를 벗어난 인과 또는 금융 조언이 있습니다.",
-      qualityIssues: { unsupportedAdvice: unsupported.key },
+      qualityIssues: { unsupportedAdvice: unsupported.key, severity: "blocking" },
     };
   }
   const incomplete = detectSajuAIIncompleteResult(normalized);
@@ -763,11 +767,13 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
     : null;
   const rubric = options?.categoryRubric || getSajuAICategoryRubric(options?.domain || factSnapshot?.domain || "life_direction");
   const categoryMatches = countSajuAICategoryMatches(normalized, rubric);
-  if (categoryMatches < 4) {
+  // 카테고리 5항목 중 4개는 품질 목표다. 3개가 직접 답변되면 경고로 전달하고,
+  // 2개 이하는 질문 주제 자체가 빠진 중대 결손으로 보아 차단한다.
+  if (categoryMatches < 3) {
     return {
       ok: false,
       reason: "카테고리별 핵심 상담 항목이 부족합니다.",
-      qualityIssues: { categoryMatches, category: rubric.label || rubric.domain },
+      qualityIssues: { categoryMatches, category: rubric.label || rubric.domain, severity: "blocking" },
     };
   }
   const tenGodValidation = validateSajuMyeongsikTenGodText(normalized, factSnapshot);
@@ -778,12 +784,22 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
       tenGodMismatches: tenGodValidation.mismatches,
     };
   }
+  const qualityIssues = {};
+  if (lengthWarning) qualityIssues.length = lengthWarning;
+  if (categoryMatches === 3) {
+    qualityIssues.category = {
+      categoryMatches,
+      targetMatches: 4,
+      category: rubric.label || rubric.domain,
+      advisory: true,
+    };
+  }
   return {
     ok: true,
     text: normalized,
     chapterCount,
     categoryMatches,
-    ...(lengthWarning ? { qualityIssues: { length: lengthWarning } } : {}),
+    ...(Object.keys(qualityIssues).length ? { qualityIssues } : {}),
   };
 }
 

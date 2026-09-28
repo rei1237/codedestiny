@@ -131,7 +131,7 @@ describe("Saju AI prompt domain templates", () => {
   test("각 도메인별 상담 품질 rubric을 프롬프트에 넣는다", () => {
     const cases = [
       ["career", "직업 적합도"],
-      ["money", "수입 구조"],
+      ["money", "현재 현금흐름 확인"],
       ["love", "끌림의 방식"],
       ["litigation", "문서/증거 정리"],
       ["relationship", "소통 방식"],
@@ -162,9 +162,12 @@ describe("Saju AI prompt domain templates", () => {
     expect(built.domain).toBe("money");
     expect(built.domainLabel).toBe("재물/수익");
     expect(built.keywordWeights).toBeDefined();
-    expect(built.keywordWeights["현금흐름"]).toBeDefined();
+    expect(built.keywordWeights["현금흐름 기록"]).toBeDefined();
     expect(built.prompt).toContain("명식으로 수익 모델이나 금융상품을 추천하지 않고");
     expect(built.prompt).toContain("비겁으로 동업 손실을 단정하지 않고");
+    expect(built.prompt).toContain("대운·세운을 수익 예고가 아닌 재검토 시점의 라벨로만 사용");
+    expect(built.prompt).not.toContain("시기별 수익 가속");
+    expect(built.prompt).not.toContain("가장 현실적인 수익모델 3가지");
     expect(built.prompt).not.toContain("적합 수익 모델 3~5개 추천");
     expect(built.prompt).not.toContain("비겁 과다 시 재탈/동업 리스크");
   });
