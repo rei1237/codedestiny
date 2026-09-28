@@ -109,15 +109,15 @@ for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) it(`P3 retains
  docs[0].llmMeta.attempts={[specs[0].key]:1};
  provider.mockImplementation(async()=>({ok:repair!=='empty',truncated:repair==='truncated',text:repair==='empty'?'':repair==='repeat'?docs[0].sections[1].body:p3Text(specs[0].key,400)}));
  expect((await generate()).status).toBe(200); expect(docs[0].sections[0].body).toBe(p3Text(specs[0].key,500));
- expect(docs[0].llmMeta.attempts[`${specs[0].key}:lengthRepair`]).toBe(1);expect(provider).toHaveBeenCalledTimes(1);expect(provider.mock.calls[0][2].cache).toBeUndefined();expect(refund).not.toHaveBeenCalled();
+ expect(docs[0].llmMeta.attempts[specs[0].key]).toBe(1);expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
 });
 it('P3 total-only repair uses remaining budget, then stops without completion or refund',async()=>{
  docs[0].sections=specs.map(spec=>({key:spec.key,title:spec.title,order:spec.order,body:p3Text(spec.key,1999),status:'ok'}));
  docs[0].llmMeta.attempts=Object.fromEntries(specs.map(spec=>[spec.key,3]));
- expect((await generate()).status).toBe(202); expect(provider).not.toHaveBeenCalled();expect(complete).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
+ expect((await generate()).status).toBe(200); expect(provider).not.toHaveBeenCalled();expect(complete).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
  docs[0].llmMeta.attempts[specs[0].key]=2;docs[0].llmMeta.attempts[`${specs[0].key}:lengthRepair`]=1;
  provider.mockResolvedValue({ok:true,text:p3Text(specs[0].key,2500)});
- expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);
+ expect((await generate()).status).toBe(200);expect(provider).not.toHaveBeenCalled();
 });
 it('P3 bounds oversized text and rejects repetition hidden beyond the ceiling',async()=>{
  const spec=specs[0]; const good=p3Text(spec.key,5000);
@@ -129,7 +129,7 @@ it('P3 bounds oversized text and rejects repetition hidden beyond the ceiling',a
 });
 it('P3 lost repair checkpoint resumes from the reserved repair without another provider call', async()=>{
  docs[0].sections=specs.map((spec,i)=>({key:spec.key,title:spec.title,order:spec.order,body:p3Text(spec.key,i?2300:500),status:'ok'}));
- docs[0].llmMeta.attempts={[specs[0].key]:1};fault={count:10,kind:'throw'};
- expect((await generate()).status).toBe(503);expect(docs[0].llmMeta.attempts[`${specs[0].key}:lengthRepair`]).toBe(1);
- expect((await generate()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
+ docs[0].llmMeta.attempts={[specs[0].key]:1};fault={status:'completed',kind:'throw'};
+ expect((await generate()).status).toBe(503);expect(docs[0].llmMeta.attempts[specs[0].key]).toBe(1);
+ expect((await generate()).status).toBe(200);expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
 });

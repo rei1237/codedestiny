@@ -355,20 +355,15 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
     }
     const context = buildContext(input);
     const attempts = { ...current.llmMeta?.attempts }, failures = { ...current.llmMeta?.failures };
-    const validBody = (spec, body) => typeof body === "string" && countPaidReportBodyChars(body) > 0
+    const validBody = (spec, body) => typeof body === "string" && countPaidReportBodyChars(body) >= 120
       && !validateCompassSection(body, { spec, allowedLabels: context.allowedLabels, lengthRepair: true }).length
       && !hasRepeatedReportPassage(body);
     const saved = new Map((current.sections || []).filter(row => getCompassSection(row.key)
       && (row.status === "ok" || attempts[`${row.key}:lengthDraft`]) && validBody(getCompassSection(row.key), row.body)).map(row => [row.key, row]));
-    const accepted = spec => saved.has(spec.key) && (countPaidReportBodyChars(saved.get(spec.key).body) >= spec.minChars
-      || attempts[`${spec.key}:lengthRepair`] || Number(attempts[spec.key] || 0) >= 3);
+    const accepted = spec => saved.has(spec.key);
     const missing = COMPASS_SECTIONS.filter(spec => !accepted(spec));
-    if (!missing.length && countPaidReportBodyChars([...saved.values()].map(row => row.body).join("\n")) < 20000) {
-      missing.push(...COMPASS_SECTIONS.filter(spec => Number(attempts[spec.key] || 0) < 3
-        && countPaidReportBodyChars(saved.get(spec.key).body) < spec.targetMinChars));
-    }
-    if (missing.some(spec => Number(attempts[spec.key] || 0) >= 3)) {
-      if (missing.some(spec => Number(attempts[spec.key] || 0) >= 3 && Number(failures[spec.key] || 0) < 3)) throw resultStorageUnavailable(reportId);
+    if (missing.some(spec => Number(attempts[spec.key] || 0) >= 2)) {
+      if (missing.some(spec => Number(attempts[spec.key] || 0) >= 2 && Number(failures[spec.key] || 0) < 2)) throw resultStorageUnavailable(reportId);
       if (!(current.sections || []).some(row => countPaidReportBodyChars(row.body) >= DELIVERY_MIN_CHARS)) {
         current = await saveCompassDelivery(env, filter, { status: "generation_failed", generationError: { reason: "GENERATION_FAILED" } }, reportId);
         const refunded = await refundExecution(env, auth, input, reportId, "bounded section generation failed");
@@ -412,7 +407,7 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
     }
     if (COMPASS_SECTIONS.every(accepted)) {
       const body = COMPASS_SECTIONS.map(spec => saved.get(spec.key).body).join("\n");
-      if (countPaidReportBodyChars(body) < 20000 || hasRepeatedReportPassage(body)) return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: COMPASS_SECTIONS.some(spec => Number(attempts[spec.key] || 0) < 3 && countPaidReportBodyChars(saved.get(spec.key).body) < spec.targetMinChars) }, { status: 202 });
+      if (hasRepeatedReportPassage(body)) return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: false }, { status: 202 });
       current = await saveCompassDelivery(env, filter, { status: "delivery_pending" }, reportId);
       if (!await compassAccessCurrent(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
       current = await saveCompassDelivery(env, filter, { status: "completed", usageAppliedAt: new Date(), lock: null }, reportId);

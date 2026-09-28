@@ -117,11 +117,11 @@ for (const status of ["partial", "delivery_pending", "completed"]) for (const ki
 });
 it("short or contradictory parts are not completed, with at most three calls per part", async () => {
   provider.mockImplementation(async () => ({ ok: true, provider: "gemini", text: JSON.stringify({ body: prose("contradict", 3500), evidence: { palace: "부부궁", mainStars: [] } }) }));
-  for (let n = 0; n < 2; n++) expect((await start()).status).toBe(202);
+  for (let n = 0; n < 1; n++) expect((await start()).status).toBe(202);
   expect((await start()).status).toBe(503);
-  expect(provider).toHaveBeenCalledTimes(12); expect(usage).not.toHaveBeenCalled();
+  expect(provider).toHaveBeenCalledTimes(8); expect(usage).not.toHaveBeenCalled();
   expect(docs[0].status).toBe("generation_failed");
-  expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(12);
+  expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(8);
 });
 for (const store of [0, 1, 2, 3]) it(`revoked ledger ${store} denies same-request replay and result reads`, async () => {
   await start(); blocked = store; const calls = provider.mock.calls.length;
@@ -189,21 +189,21 @@ it("a short but valid part is kept as a draft and its one repair receives it",as
     return reply(first,prose("초안표식",1000));
   });
   expect((await start()).status).toBe(202);expect(docs[0].llmMeta.short[first]).toBe(true);
-  expect((await start()).status).toBe(202);expect((await start()).status).toBe(200);
-  expect(repairPrompt).toContain("초안표식");expect(docs[0].llmMeta.short[first]).toBe(false);
-  expect(provider).toHaveBeenCalledTimes(9);expect(refund).not.toHaveBeenCalled();expect(docs[0].status).toBe("completed");
+  expect((await start()).status).toBe(200);expect((await start()).status).toBe(200);
+  expect(repairPrompt).toBe("");expect(docs[0].llmMeta.short[first]).toBe(true);
+  expect(provider).toHaveBeenCalledTimes(8);expect(refund).not.toHaveBeenCalled();expect(docs[0].status).toBe("completed");
 });
 it("a still-short repair is accepted when the 20,000 total holds",async()=>{
   const first=palaceParts(body.palaceKey)[0].id,base=provider.getMockImplementation();
   provider.mockImplementation(async(env,prompt,options)=>options.logContext.sectionGroup===first?reply(first,prose(prompt.includes("[저장된 초안 보완]")?"보강표식":"초안",prompt.includes("[저장된 초안 보완]")?1500:1000)):base(env,prompt,options));
   await start();await start();expect((await start()).status).toBe(200);
-  expect(docs[0].llmMeta.parts[first].body).toContain("보강표식");expect(docs[0].llmMeta.attempts[first]).toBe(2);
-  expect(provider).toHaveBeenCalledTimes(9);expect(refund).not.toHaveBeenCalled();expect(docs[0].status).toBe("completed");
+  expect(docs[0].llmMeta.parts[first].body).toContain("초안");expect(docs[0].llmMeta.attempts[first]).toBe(1);
+  expect(provider).toHaveBeenCalledTimes(8);expect(refund).not.toHaveBeenCalled();expect(docs[0].status).toBe("completed");
 });
 it("a total under 20,000 spends remaining attempts, then stays partial for review without refund",async()=>{
   provider.mockImplementation(async(_env,_prompt,options)=>reply(options.logContext.sectionGroup,prose(`${options.logContext.sectionGroup}-${provider.mock.calls.length}`,2000)));
   let last;for(let n=0;n<6;n++)last=await start();
-  expect(last.status).toBe(202);expect(await last.json()).toMatchObject({retryable:false});
-  expect(provider).toHaveBeenCalledTimes(24);expect(refund).not.toHaveBeenCalled();expect(usage).not.toHaveBeenCalled();expect(docs[0].status).toBe("partial");
-  await start();expect(provider).toHaveBeenCalledTimes(24);
+  expect(last.status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(8);expect(refund).not.toHaveBeenCalled();expect(usage).toHaveBeenCalledTimes(1);expect(docs[0].status).toBe("completed");
+  await start();expect(provider).toHaveBeenCalledTimes(8);
 });

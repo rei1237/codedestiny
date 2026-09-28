@@ -66,7 +66,7 @@ const MIN_DELIVERABLE_CHAPTERS = ZIWEI_DEEP_CHAPTERS.length;
 
 // `generating` 문서를 "아직 누가 만들고 있다"고 믿어 줄 창(자매 라우트와 동일한 완충).
 const GENERATING_FRESHNESS_MS = 150000;
-const CHAPTER_MAX_ATTEMPTS = 3;
+const CHAPTER_MAX_ATTEMPTS = 2;
 
 const MESSAGES = {
   loginRequired: "심화 자미두수 리포트를 생성하려면 로그인이 필요합니다.",
@@ -558,9 +558,6 @@ function judgeDeliverable(totalChars, okChapters) {
   if (okChapters < MIN_DELIVERABLE_CHAPTERS) {
     return { ok: false, reason: `usable chapters ${okChapters} < ${MIN_DELIVERABLE_CHAPTERS}` };
   }
-  if (totalChars < MIN_DELIVERABLE_CHARS) {
-    return { ok: false, reason: `total chars ${totalChars} < ${MIN_DELIVERABLE_CHARS}` };
-  }
   return { ok: true };
 }
 
@@ -651,7 +648,6 @@ function reusableDeepChapters(doc) {
 }
 function isDeepChapterComplete(chapter, definition, attempts = {}, allowShort = false) {
   return chapter?.ok === true && countPaidReportBodyChars(chapter.body) > 0
-    && (allowShort || countPaidReportBodyChars(chapter.body) >= definition.minChars || attempts[`${definition.id}:lengthRepair`] || Number(attempts[definition.id] || 0) >= CHAPTER_MAX_ATTEMPTS)
     && !hasRepeatedReportPassage(chapter.body);
 }
 async function saveDeepCheckpoint({ env, id, userId, lockToken, status = 'generating', values }) {
@@ -753,10 +749,6 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
     const chapters = reusableDeepChapters(claimed);
     const attempts = { ...(claimed.llmMeta?.attempts || {}) };
     const pending = ZIWEI_DEEP_CHAPTERS.filter(def => !isDeepChapterComplete(chapters.find(ch => ch.id === def.id), def, attempts));
-    if (!pending.length && accumulatedFromStored({ chapters }).chars < MIN_DELIVERABLE_CHARS) {
-      pending.push(...ZIWEI_DEEP_CHAPTERS.filter(def => Number(attempts[def.id] || 0) < CHAPTER_MAX_ATTEMPTS
-        && countPaidReportBodyChars(chapters.find(ch => ch.id === def.id)?.body) < Math.ceil(def.minChars / 0.8)));
-    }
     if (pending.some(def => Number(attempts[def.id] || 0) >= CHAPTER_MAX_ATTEMPTS)) throw Object.assign(new Error('챕터 생성 한도 안에서 필수 본문을 완성하지 못했습니다.'), { code: 'LLM_QUALITY_CHECK_FAILED' });
     const batch = pending.slice(0, CHAPTER_BATCH_SIZE);
     await runWithConcurrency(batch, CHAPTER_CONCURRENCY, async definition => {

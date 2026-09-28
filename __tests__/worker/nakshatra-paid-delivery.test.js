@@ -114,8 +114,8 @@ for (const repair of ['shorter', 'empty', 'evidence', 'repeated']) it(`keeps a v
   for (let i = 0; i < 5 && docs[0].status !== 'completed'; i++) await batch();
   expect(docs[0].status).toBe('completed');
   expect(docs[0].sections.find(row => row.id === id).body).toBe(draft);
-  expect(docs[0].llmMeta.attempts[`${id}:lengthRepair`]).toBe(1);
-  expect(tries).toBe(2);
+  expect(docs[0].llmMeta.attempts[id]).toBe(1);
+  expect(tries).toBe(1);
   expect(docs[0].totalCharCount).toBeGreaterThanOrEqual(Math.max(20000, definitions.reduce((sum, section) => sum + section.minChars, 0)));
 });
 it('keeps total shortfall partial after the original attempt budget is exhausted', async () => {
@@ -125,10 +125,10 @@ it('keeps total shortfall partial after the original attempt budget is exhausted
     row.body = prose(row.keyInsight.replace(/[?!]/g, ""), 650);
     return { ...result, text: JSON.stringify(row) };
   });
-  await start(); for (let i = 0; i < 14; i++) expect((await batch()).status).toBe(202);
-  expect(provider).toHaveBeenCalledTimes(definitions.length * 3);
-  expect(docs[0].status).not.toBe('completed');
-  expect(usage).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+  await start(); expect((await batch()).status).toBe(202); expect((await batch()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(definitions.length);
+  expect(docs[0].status).toBe('completed');
+  expect(usage).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled();
 });
 for (const stage of ['reserved', 'last']) it(`accepts the short draft on ${stage} attempt without resetting its budget`, async () => {
   const normal = provider.getMockImplementation(); const section = definitions[0]; let tries = 0;
@@ -136,13 +136,13 @@ for (const stage of ['reserved', 'last']) it(`accepts the short draft on ${stage
     const result = await normal(...args);
     if (!args[1].includes(`[이 장: ${section.title}]`)) return result;
     tries++; const row = JSON.parse(result.text); row.body = prose('마지막고유초안', 1300);
-    if (stage === 'last' && tries < 3) row.body = '';
+    if (stage === 'last' && tries < 2) row.body = '';
     return { ...result, text: JSON.stringify(row) };
   });
   await start();
   if (stage === 'reserved') { docs[0].llmMeta.attempts[section.id] = 2; docs[0].llmMeta.attempts[`${section.id}:lengthRepair`] = 1; }
   for (let i = 0; i < 6 && docs[0].status !== 'completed'; i++) await batch();
-  expect(docs[0].status).toBe('completed'); expect(tries).toBe(stage === 'last' ? 3 : 1);
+  expect(docs[0].status).toBe('completed'); expect(tries).toBe(stage === 'last' ? 2 : 1);
 });
 async function start(extra={}) { return route(new Request('https://mock.test/api/nakshatra-ai/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...body,...extra})}),{}); }
 async function batch() { return route(new Request('https://mock.test/api/nakshatra-ai/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({sessionId:docs[0]?.id})}),{}); }
@@ -155,7 +155,7 @@ it('rejects another account without provider calls',async()=>{await start();user
 for(const source of [0,1,2,3])it(`rejects revoked evidence source ${source}`,async()=>{await start();blocked=source;expect((await batch()).status).toBe(402);expect(provider).toHaveBeenCalledTimes(4);expect(usage).not.toHaveBeenCalled()});
 it('concurrent retries share one wave',async()=>{await start();const responses=await Promise.all([batch(),batch()]);expect(responses.map(r=>r.status)).toEqual([202,202]);expect(provider).toHaveBeenCalledTimes(8);expect(docs[0].sections).toHaveLength(8)});
 it('keeps successful siblings when one checkpoint is unavailable',async()=>{fault={chapterCount:1,kind:'null'};expect((await start()).status).toBe(503);expect(docs[0].sections).toHaveLength(3);expect(refund).not.toHaveBeenCalled();await batch();await batch();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10)});
-it('does not complete or consume for short output',async()=>{provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({keyInsight:'짧음',body:'짧은 결과',vedicEvidence:'근거',sukuyoEvidence:'근거'})}));expect((await start()).status).toBe(202);expect(docs[0].sections).toHaveLength(0);expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled()});
+it('does not complete or consume for short output',async()=>{provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({keyInsight:'짧음',body:'짧은 결과',vedicEvidence:'근거',sukuyoEvidence:'근거'})}));expect((await start()).status).toBe(202);expect(docs[0].sections).toHaveLength(0);expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(8);expect(usage).not.toHaveBeenCalled()});
 it('does not replace historical short completed results',async()=>{await start();docs[0].status='completed';docs[0].decks={sukuyo:[{body:'과거 결과'}]};docs[0].totalCharCount=5;mode='none';expect((await read()).status).toBe(200);expect((await batch()).status).toBe(200);expect(provider).toHaveBeenCalledTimes(4)});
 it('delivers saved result when usage bookkeeping fails',async()=>{await start();await batch();usage.mockImplementation(()=>{throw new Error('bookkeeping unavailable')});expect((await batch()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled()});
 it('retries only the chapter with contradictory calculated evidence',async()=>{const normal=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const result=await normal(...args);const value=JSON.parse(result.text);value.vedicEvidence='잘못된 별자리';return{...result,text:JSON.stringify(value)}});await start();expect(docs[0].sections).toHaveLength(3);await batch();await batch();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10)});

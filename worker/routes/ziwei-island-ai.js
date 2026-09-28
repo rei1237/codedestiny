@@ -716,17 +716,9 @@ async function handleStart(request, env) {
     doc = await saveIsland(filter, { llmMeta: meta, generationLease: lease });
     const specs = palaceParts(input.palaceKey);
     const evidence = palaceEvidence(input.palaceKey, chart);
-    // A part saved under its floor is a draft. It is accepted after one length repair or on its
-    // last attempt; the 20,000-character body total still decides completion.
-    const accepted = part => Boolean(meta.parts[part.id]) && (!meta.short?.[part.id]
-      || Boolean(meta.attempts[`${part.id}:lengthRepair`]) || (meta.attempts[part.id] || 0) >= 3);
-    const complete = () => specs.every(accepted) && countPaidReportBodyChars(specs.map(part => meta.parts[part.id]?.body || "").join("\n")) >= 20000;
-    const pendingParts = () => {
-      const open = part => (meta.attempts[part.id] || 0) < 3;
-      const list = specs.filter(part => !accepted(part) && open(part));
-      // Every part accepted but the total short: short parts use their remaining attempts.
-      return list.length || complete() ? list : specs.filter(part => open(part) && meta.short?.[part.id]);
-    };
+    const accepted = part => Boolean(meta.parts[part.id]);
+    const complete = () => specs.every(accepted);
+    const pendingParts = () => specs.filter(part => !accepted(part) && (meta.attempts[part.id] || 0) < 2);
     const wave = pendingParts().slice(0, PAID_LLM_PARTS_PER_REQUEST);
     if (wave.length) {
       // The repair flag is saved before the call so a lost response never buys a second repair.
@@ -765,7 +757,7 @@ async function handleStart(request, env) {
       if (outcomes.some(outcome => outcome.status === "rejected")) throw storageUnavailable(resultId);
     }
     if (!complete()) {
-      meta = { ...meta, exhausted: specs.some(part => !meta.parts[part.id] && (meta.attempts[part.id] || 0) >= 3) || !pendingParts().length };
+      meta = { ...meta, exhausted: specs.some(part => !meta.parts[part.id] && (meta.attempts[part.id] || 0) >= 2) || !pendingParts().length };
       // Refund only a confirmed empty quality failure. Lost provider/checkpoint responses are uncertain.
       if (meta.exhausted && !Object.keys(meta.parts).length && Object.entries(meta.attempts).every(([key, count]) => meta.invalidAttempts[key] === count)) {
         doc = await saveIsland(filter, { status: "generation_failed", generationLease: "", llmMeta: meta });

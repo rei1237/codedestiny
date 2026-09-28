@@ -184,10 +184,10 @@ it('chapter two failure preserves later IDs and passes its correction into the n
 it('ambiguous provider timeouts stay capped at three attempts a chapter and stop without refund', async () => {
   provider.mockImplementation(async () => ({ status: 'retryable', failure: { code: 'LLM_TIMEOUT_UNCERTAIN', kind: 'uncertain' } }));
   for (let wave = 0; wave < 15; wave++) { expect((await generate()).status).toBe(503); docs[0].deliveryMeta.nextAttemptAt = null; }
-  expect(provider).toHaveBeenCalledTimes(60);
+  expect(provider).toHaveBeenCalledTimes(40);
   const payload = await (await generate()).json();
   expect(payload.retryable).toBe(false); expect(payload.reason).toBe('GENERATION_BUDGET_EXCEEDED');
-  await generate(); expect(provider).toHaveBeenCalledTimes(60); expect(refund).not.toHaveBeenCalled();
+  await generate(); expect(provider).toHaveBeenCalledTimes(40); expect(refund).not.toHaveBeenCalled();
 });
 
 it('expired batch lock resumes without repeating accepted chapters', async () => {
@@ -270,7 +270,7 @@ it('a chapter that exhausts its attempts does not stop the remaining chapters', 
   provider.mockImplementation(async (env, input) => input.chapter.id === stuck.id
     ? { status: 'fallback', failure: { code: 'LLM_QUALITY_FAILED', kind: 'quality' } } : normal(env, input));
   for (let wave = 0; wave < 6; wave++) expect((await generate()).status).toBe(202);
-  expect(docs[0].deliveryMeta.attempts[stuck.id]).toBe(3);
+  expect(docs[0].deliveryMeta.attempts[stuck.id]).toBe(2);
   expect(docs[0].chapters).toHaveLength(19);
   expect(docs[0].status).toBe('generating');
   expect((await generate()).status).toBe(503);
@@ -368,12 +368,12 @@ for (const mode of ['solo', 'compat']) for (const repair of ['shorter', 'longer'
     });
     for (let wave = 0; wave < 8 && docs[0].status !== 'completed'; wave++) await generate();
     expect(docs[0].status).toBe('completed');
-    expect(draftCalls).toBe(2);
+    expect(draftCalls).toBe(1);
     const { isCodexArchiveComplete } = await import('../../worker/routes/master-love-codex.js');
     expect(isCodexArchiveComplete(docs[0])).toBe(true);
     expect(isCodexArchiveComplete({ ...docs[0], chapters: docs[0].chapters.slice(1) })).toBe(false);
     const body = docs[0].chapters.find(row => row.id === first.id).body;
-    expect(body).toBe(lengthCandidate(first, repair === 'longer' ? 1100 : 650, repair === 'longer' ? '보강' : '초안').chapter.body.trim());
+    expect(body).toBe(lengthCandidate(first, 650, '초안').chapter.body.trim());
     expect(docs[0].deliveryMeta.failures[first.id] || 0).toBe(0);
     expect(refund).not.toHaveBeenCalled();
   });
@@ -395,7 +395,7 @@ it('resumes a lost final length-repair reservation without another provider call
 
 it('accepts a structurally valid short chapter on its last existing attempt', async () => {
   const { MODES } = await utils(); const first = MODES.solo.chapters[0];
-  docs[0].deliveryMeta = { attempts: { [first.id]: 2 } };
+  docs[0].deliveryMeta = { attempts: { [first.id]: 1 } };
   provider.mockImplementationOnce(async () => lengthCandidate(first, 700));
   for (let wave = 0; wave < 5; wave++) await generate();
   expect(docs[0].status).toBe('completed');
@@ -403,15 +403,14 @@ it('accepts a structurally valid short chapter on its last existing attempt', as
   expect(refund).not.toHaveBeenCalled();
 });
 
-it('never completes below either total floor and exhausts the existing budget without refund', async () => {
+it('delivers all usable short chapters once without length regeneration', async () => {
   provider.mockImplementation(async (_env, { chapter }) => lengthCandidate(chapter, 650));
-  for (let wave = 0; wave < 20 && !docs[0].deliveryMeta?.reviewRequired; wave++) await generate();
-  expect(docs[0].status).not.toBe('completed');
-  expect(docs[0].deliveryMeta.reviewReason).toBe('REPORT_TOTAL_TOO_SHORT');
+  for (let wave = 0; wave < 5; wave++) await generate();
+  expect(docs[0].status).toBe('completed');
   expect(docs[0].chapters).toHaveLength(20);
-  expect(provider).toHaveBeenCalledTimes(60);
-  expect((await generate()).status).toBe(503);
-  expect(provider).toHaveBeenCalledTimes(60);
+  expect(provider).toHaveBeenCalledTimes(20);
+  expect((await generate()).status).toBe(200);
+  expect(provider).toHaveBeenCalledTimes(20);
   expect(refund).not.toHaveBeenCalled();
 });
 
@@ -453,8 +452,8 @@ for (const floor of ['paid body', 'legacy aggregate']) it(`keeps the independent
   const legacy = MODES.solo.chapters.reduce((sum, chapter) => sum + Math.ceil(chapter.minChars * 0.5), 0);
   if (floor === 'paid body') { expect(raw).toBeGreaterThan(legacy); expect(body).toBeLessThan(20000); }
   else { expect(raw).toBeLessThan(legacy); expect(body).toBeGreaterThanOrEqual(20000); }
-  expect(diagnoseCodexSession(docs[0]).exhausted).toHaveLength(20);
-  expect((await generate()).status).toBe(503);
-  expect(docs[0].status).not.toBe('completed');
+  expect(diagnoseCodexSession(docs[0]).exhausted).toHaveLength(0);
+  expect((await generate()).status).toBe(200);
+  expect(docs[0].status).toBe('completed');
   expect(provider).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
 });

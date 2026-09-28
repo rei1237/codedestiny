@@ -19,7 +19,7 @@
  */
 
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
-import { PAID_REPORT_MIN_BODY_CHARS, countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
@@ -115,7 +115,7 @@ const CHAPTER_TIMEOUT_MS = 45000;
  *    2026-09-19 "1장만 보이는" 장애의 원인 A 였다 — 2장 하나 때문에 나머지 19장이 영영
  *    시도되지 않았다. 세션을 닫는 것은 "미완 장 전부가 소진됐을 때"뿐이다.
  */
-const CHAPTER_ATTEMPT_LIMIT = 3;
+const CHAPTER_ATTEMPT_LIMIT = 2;
 
 /** 서버가 내구 상태로 확인할 수 있는 처리 단계. 게이지 문구의 정본이다. */
 const CODEX_STEPS = Object.freeze(["pending", "writing", "validating", "saving", "retrying", "finalizing", "failed", "complete"]);
@@ -772,10 +772,7 @@ function savedChapterRows(doc, expected) {
 }
 
 function codexTotalReady(expected, saved) {
-  const rows = [...saved.values()];
-  // Keep both the old implicit sum of post-dedupe floors and the paid body contract.
-  return rows.reduce((sum, row) => sum + row.body.length, 0) >= expected.reduce((sum, spec) => sum + codexDedupedChapterFloor(spec), 0)
-    && countPaidReportBodyChars(rows.map(row => row.body).join("\n")) >= PAID_REPORT_MIN_BODY_CHARS;
+  return expected.every(spec => saved.has(spec.id));
 }
 
 /**
@@ -784,11 +781,7 @@ function codexTotalReady(expected, saved) {
  * 🔴 이 판정이 두 벌이 되면 화면과 DB 가 갈라진다 — 웨이브·조회·크론 재개가 같은 함수를 본다.
  */
 function splitPendingChapters(expected, readyIds, attempts = {}, saved = new Map()) {
-  let pending = expected.filter(spec => !readyIds.has(spec.id)
-    || (saved.get(spec.id)?.lengthDraft && !attempts[`${spec.id}:lengthRepair`] && Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT));
-  if (!pending.length && saved.size && !codexTotalReady(expected, saved)) {
-    pending = expected.slice().sort((a, b) => (saved.get(a.id)?.body.length || 0) - (saved.get(b.id)?.body.length || 0));
-  }
+  const pending = expected.filter(spec => !readyIds.has(spec.id));
   return {
     pending,
     actionable: pending.filter(spec => Number(attempts[spec.id] || 0) < CHAPTER_ATTEMPT_LIMIT),

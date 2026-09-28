@@ -88,7 +88,7 @@ const BATCH_LOCK_TTL_MS = 120000;
 // 섹션이 자기 목표의 이 비율에 못 미치면 '미완'으로 보고 다음 배치에서 다시 생성한다.
 // 이 하한은 9개 통합 장의 실제 상담 밀도를 지킨다. 장 수가 아닌 각 장의 의미 범위를 기준으로 둔다.
 const SECTION_MIN_RATIO = 1;
-const SECTION_MAX_ATTEMPTS = 3;
+const SECTION_MAX_ATTEMPTS = 2;
 // 신규 결과의 필수 본문 분량. 미완료 장은 보존하며 완료로 표시하지 않는다.
 const MIN_TOTAL_CHARS = Math.floor(NAKSHATRA_TOTAL_MIN_CHARS * SECTION_MIN_RATIO);
 const SECTION_BY_ID = new Map(NAKSHATRA_SECTIONS.map((section) => [section.id, section]));
@@ -706,7 +706,6 @@ function isSectionSettled(entry, attempts = {}, allowShort = false) {
   const spec = SECTION_BY_ID.get(entry?.id);
   return Boolean(spec && entry.ok && entry.keyInsight && entry.vedicEvidence && entry.sukuyoEvidence
     && countPaidReportBodyChars(entry.body) > 0
-    && (allowShort || countPaidReportBodyChars(entry.body) >= spec.minChars || attempts[`${spec.id}:lengthRepair`] || Number(attempts[spec.id] || 0) >= SECTION_MAX_ATTEMPTS)
     && !hasRepeatedReportPassage(entry.body) && !hasForbiddenResultText([entry.keyInsight, entry.body, entry.vedicEvidence, entry.sukuyoEvidence]));
 }
 
@@ -719,10 +718,6 @@ function pickNextBatch(done, attempts = {}) {
   const byId = new Map(done.map((entry) => [entry.id, entry]));
   const settled = (section) => isSectionSettled(byId.get(section.id), attempts);
   const pool = NAKSHATRA_PHASE_CONSULTATION.filter((section) => !settled(section));
-  if (!pool.length && sumSectionChars(done) < Math.max(20000, MIN_TOTAL_CHARS)) {
-    pool.push(...NAKSHATRA_PHASE_CONSULTATION.filter(section => Number(attempts[section.id] || 0) < SECTION_MAX_ATTEMPTS
-      && countPaidReportBodyChars(byId.get(section.id)?.body) < Math.ceil(section.minChars / 0.8)));
-  }
   return { phase: "consultation", slice: pool.slice(0, SECTION_BATCH_SIZE), remaining: pool.length };
 }
 
@@ -739,7 +734,7 @@ function sumSectionChars(done) {
 function buildCompletion(sections, attempts = {}) {
   const decks = mergeConsultationSections(sections);
   const totalCharCount = sumSectionChars(sections);
-  if (countSettled(sections, attempts) !== NAKSHATRA_SECTIONS.length || totalCharCount < Math.max(20000, MIN_TOTAL_CHARS)
+  if (countSettled(sections, attempts) !== NAKSHATRA_SECTIONS.length
     || hasRepeatedReportPassage(sections.map(row => row.body).join("\n"))) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
   return { decks, totalCharCount, provider: clean(sections.find(row => row.provider)?.provider), model: clean(sections.find(row => row.model)?.model), topInsights: extractTopInsights(sections.find(row => row.id === "lifeManual")?.body) };
 }
@@ -957,7 +952,7 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
       const failure = outcomes.find(outcome => outcome.status === "rejected");
       if (failure) throw failure.reason;
     }
-    if (pickNextBatch(readSections(session), attempts).slice.length || sumSectionChars(readSections(session)) < Math.max(20000, MIN_TOTAL_CHARS)) return json(publicSession(session), { status: 202 });
+    if (pickNextBatch(readSections(session), attempts).slice.length) return json(publicSession(session), { status: 202 });
     const completion = buildCompletion(readSections(session), attempts);
     if (session.status !== "delivery_pending") session = await saveNakshatraDelivery(filter, { status: "delivery_pending", decks: completion.decks, totalCharCount: completion.totalCharCount,
       llmMeta: { ...session.llmMeta, provider: completion.provider, model: completion.model, topInsights: completion.topInsights } }, sessionId);
