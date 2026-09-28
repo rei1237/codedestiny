@@ -119,9 +119,10 @@ try {
     await page.locator('[data-saju-ai-archive]').click();
     assert.equal(await page.locator('.consultation-chapter').count(),12);
     assert.equal(await page.locator('.consultation-contents a').count(),7);
-    for (const width of [390,1440]) {
+    for (const width of [360,390,430,1440]) {
       await page.setViewportSize({width,height:900});
       await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
+      assert.ok(await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
       await page.screenshot({path:resolve(output,'result-'+width+'.png'),animations:'disabled'});
       if (reviewedResult) {
         await page.locator('.consultation-chapter').nth(7).evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));

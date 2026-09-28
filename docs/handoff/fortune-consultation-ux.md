@@ -166,3 +166,28 @@ next: 승인된 사주 실측 5회를 완료했다. v10 교정의 추가 실측 
 
 - 로컬 확정: `npm run check:fast -- --plan` 및 `npm run check:fast` exit 0. paid gate 88/88, Jest 309 suites/4,515 tests. 사후 최종 변경을 포함한 targeted prompt 27/27, UI 11/11, section-plan 160/160, 실제 생성 텍스트를 넣은 mock 브라우저 exit 0. 12챕터·7개 탐색과 8장 부제 보존을 확인했다. 긴 문단/근거 밖 해석은 그대로 캡처해 미해결 품질 문제로 남겼다.
 - `npm run verify:sitemap-drift`: 1,300 URL 일치. public mirror freshness는 커밋 전 실행 시 dirty-tree 때문에 판정 불가였으며, 커밋 후 확인해야 한다. `git diff --check` 통과. 검증 중 추가된 수정은 위 targeted 검사를 다시 실행했으며 최종 스냅샷의 공식 판정은 main CI를 따른다.
+
+
+### v10 전달 및 다음 실측 준비
+
+- 제품 main 커밋: `fcbdc3faaecd19272eff640571244dda3411fccb` (격리 원본 `04d061915`). main push 완료. [CI 36368872481](https://github.com/rei1237/codedestiny/actions/runs/36368872481), [스테이징 배포 36368905363](https://github.com/rei1237/codedestiny/actions/runs/36368905363)의 최종 상태는 후속 확인으로 확정한다.
+- 커밋 후 `npm run verify:public-mirror-fresh`: PASS. 생성기로 재실행해도 미러 변경 없음. `npm run verify:handoff-contract`: 206개 문서 PASS.
+- v10 **토큰 수만** 사전 조회: 그룹별 19,716 / 19,722 / 19,770 / 19,796 / 19,812, 합계 **98,816**. 새 generation 호출 0회. 동일 상한(입력 100,000·출력 60,000)에서 후속 실측을 준비했다.
+- 다음 실측 승인 전에는 아래 명령의 `--execute-approved`를 실행하지 않는다. 기존 live-v9 출력의 승인 사용 기록은 보존하며 같은 폴더로 재실행하지 않는다. 비용 상한/동일 질문·계산 근거/최대 5회 조건으로 새 승인이 있어야 한다.
+
+```powershell
+Set-Location 'C:\Users\user\.codex\worktrees\fortune-consultation-ux\code-destiny'
+# 기본 실행은 오프라인 입력 점검만 수행한다.
+node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-consultation-private/reconstructed-input.json --output D:/Development/fortune-consultation-private/live-v10
+# 새 승인 후에만 실행:
+# node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-consultation-private/reconstructed-input.json --output D:/Development/fortune-consultation-private/live-v10 --env-file D:/Development/code-destiny/.env.local --execute-approved
+```
+
+
+### v10 배포·화면 검증 확정
+
+- `fcbdc3faaecd19272eff640571244dda3411fccb`의 [main CI](https://github.com/rei1237/codedestiny/actions/runs/36368872481)는 Risk tier / Static guards / Typecheck and lint / Critical checks / Build Pages and Worker / CI required **모두 success**. 별도 [Paid Flow Gates](https://github.com/rei1237/codedestiny/actions/runs/36368872534)도 success.
+- [배포 36368905363](https://github.com/rei1237/codedestiny/actions/runs/36368905363) success 후 `npm run verify:staging -- --sha=fcbdc3faaecd19272eff640571244dda3411fccb`: **Pages PASS / Worker PASS**. 배포 종료 전에 실행한 확인은 이전 `4160641ee` 때문에 실패했으며, 이를 배포 성공 증거로 사용하지 않았다.
+- `node scripts/verify-fortune-consultation-ux.mjs --base https://staging.code-destiny.com --result-file D:/Development/fortune-consultation-private/live-v9/result.txt`: exit 0. 360·390·430·1440px의 카드/설명/입력 및 실제 본문 화면, 12챕터/7개 탐색/8장 부제, 결과 가로 넘침 없음을 확인했다. 서버 API는 전부 mock, 외부 호출 차단. 실제 생성 본문을 mock 보관함에서 읽은 것이며 실제 주문 저장·전달 증거가 아니다.
+- 최종 화면 증거: `artifacts/fortune-consultation-ux/saju/reviewed-result-staging/metrics.json`, `result-{360,390,430,1440}.png`, `result-chapter8-{360,390,430,1440}.png`. 360px/1440px 부제 화면을 시각 확인했다. v9의 근거 밖 문구는 삭제하지 않았고 품질 불합격 증거로 보존했다.
+- 이 이후 증거 커밋은 인수인계/브라우저 검사 범위/캡처만 갱신한다. 제품 정본과 배포 증거는 위 fcbdc3faa다. **전체 사주 단계는 추가 실측 승인 대기**이며 자미두수·숙요·서양·베다는 미착수다.

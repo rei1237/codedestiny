@@ -1,0 +1,47 @@
+{
+  "phase": "reviewed-result",
+  "evidence": [
+    {
+      "width": 360,
+      "sourceY": 1741.171875,
+      "entryY": 2119.734375,
+      "consultationY": 2118.734375,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    },
+    {
+      "width": 390,
+      "sourceY": 1690.265625,
+      "entryY": 2083.828125,
+      "consultationY": 2082.828125,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    },
+    {
+      "width": 430,
+      "sourceY": 3588.390625,
+      "entryY": 4001.953125,
+      "consultationY": 4000.953125,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    },
+    {
+      "width": 1440,
+      "sourceY": 3782.75,
+      "entryY": 4702.21875,
+      "consultationY": 4701.21875,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    }
+  ],
+  "network": "mock",
+  "resultSource": "reviewed-local-text; archive ownership and persistence mocked"
+}
