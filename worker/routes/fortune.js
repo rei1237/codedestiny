@@ -352,7 +352,10 @@ function buildSajuAISectionPromptSuffix(group, options = {}) {
     "출생시각 미상은 시주·시주 기반 해석을 확정하지 마세요. 절입·날짜 경계는 제공된 계산 기준을 따르세요. 억부와 조후가 다르면 적용 조건을 구분하고 한쪽을 임의로 덮지 마세요.",
     "대운·세운은 제공된 연도와 간지에 연결하세요. 월운 근거가 없으면 특정 월의 길흉이나 상반기·하반기 차이를 만들어내지 마세요.",
     "원국에 없는 오행과 지장간에 포함된 오행을 구분하세요. 계산 데이터에 없는 신살(예: 도화살)·길흉 관계를 일반 지식으로 추가하지 마세요. 현재 나이 또는 적용 대운이 없으면 어느 대운이 현재인지 추정하지 마세요.",
-    "점수와 좋음/주의 같은 계산 라벨은 상대적인 참고값입니다. 이를 성공 확률·재산 규모·실제 사건으로 바꾸거나 '최고의 운', '폭발적인 수익'처럼 과장해 옮기지 마세요.",
+    "점수와 좋음/주의 같은 계산 라벨은 상대적인 참고값입니다. 본문에는 점수·이모지·'최고의 운' 같은 등급 이름을 옮기지 말고, 성공 확률·재산 규모·실제 사건으로도 바꾸지 마세요. '큰 수익', '절호의 기회', '손실이 발생하기 쉽다'처럼 결과의 크기나 발생을 예언하지 마세요.",
+    "오행의 많고 적음이나 특정 십성 하나를 성격·재정 통제력·직업 적성의 직접 원인으로 단정하지 마세요. 특히 오행의 부재만으로 충동 소비, 규율 부족, 몸의 냉기, 장기·질환 취약성을 만들지 마세요. 건강은 의학적 진단이 아니며 일반적인 생활 점검과 필요시 의료 전문가 확인으로 한정하세요.",
+    "재물 질문에서도 주식·코인·부동산·금융상품·사업 확장을 좋거나 나쁜 선택으로 추천하지 마세요. 명식은 투자 판단 근거가 아니므로 예산, 손실 감당 범위, 계약 조건, 검증 가능한 소액 실험, 자격 있는 전문가 확인처럼 현실의 안전장치만 제시하세요.",
+    "2~4장은 명식 구조를 설명하고, 5~8장은 질문에 적용하며, 9~12장은 반대 조건·선택 기준·행동만 다룹니다. 뒤 챕터에서 앞 챕터의 오행 개수·십성 정의·비겁 경고를 다시 설명하지 마세요.",
     "오행을 생활 속 행동으로 풀 때 수영·식물·햇볕·색상·방향 같은 활동이 돈이나 운을 끌어당긴다고 쓰지 마세요. 행동과 결과 사이에 확인 가능한 현실적인 이유가 있어야 합니다. 수입·지출 기록, 부담 가능한 범위 확인, 작은 실험과 검토처럼 사용자가 통제하고 확인할 수 있는 행동을 제시하세요.",
     hasClosingChapter
       ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 상담자가 직접 건네는 말처럼 완결하세요."
@@ -622,16 +625,13 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
       qualityIssues: { chapterCount },
     };
   }
-  // 분량 미달을 완료로 표시하지 않는다. 정상 묶음은 체크포인트에 보존한다.
   const visibleChars = countSajuAIVisibleChars(normalized);
   if (hasRepeatedReportPassage(normalized)) return { ok: false, reason: "같은 상담 문장이 반복됩니다." };
-  if (visibleChars < SAJU_AI_MIN_RESULT_CHARS) {
-    return {
-      ok: false,
-      reason: "상담 분량이 유료 기준에 못 미칩니다.",
-      qualityIssues: { visibleChars, minChars: SAJU_AI_MIN_RESULT_CHARS },
-    };
-  }
+  // 분량은 보강 목표지만 단독 실패 사유가 아니다. 구조·근거·안전이 유효한 결과를
+  // 20,000자보다 짧다는 이유만으로 폐기하면 결제 후 무결과가 된다.
+  const lengthWarning = visibleChars < SAJU_AI_MIN_RESULT_CHARS
+    ? { visibleChars, targetMinChars: SAJU_AI_MIN_RESULT_CHARS, advisory: true }
+    : null;
   const rubric = options?.categoryRubric || getSajuAICategoryRubric(options?.domain || factSnapshot?.domain || "life_direction");
   const categoryMatches = countSajuAICategoryMatches(normalized, rubric);
   if (categoryMatches < 4) {
@@ -649,7 +649,13 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
       tenGodMismatches: tenGodValidation.mismatches,
     };
   }
-  return { ok: true, text: normalized, chapterCount, categoryMatches };
+  return {
+    ok: true,
+    text: normalized,
+    chapterCount,
+    categoryMatches,
+    ...(lengthWarning ? { qualityIssues: { length: lengthWarning } } : {}),
+  };
 }
 
 function buildSajuAIPromptPaymentRequiredError() {
@@ -4787,8 +4793,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       }
     }
     const usableGroups = sections.filter((row) => row.valid);
-    if (usableGroups.length < SAJU_AI_SECTION_GROUPS.length
-      || countSajuAIVisibleChars(usableGroups.map(row => row.text).join("\n\n")) < SAJU_AI_MIN_RESULT_CHARS) {
+    if (usableGroups.length < SAJU_AI_SECTION_GROUPS.length) {
       const partial = await saveSajuAISectionCheckpoint({ executionId: sajuExecutionId, leaseToken, sections, status: "partial" });
       return json(buildSajuAIStatusPayload(partial), { status: 202 });
     }

@@ -303,18 +303,19 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     });
   }
 
-  test("12개 섹션이 다 있고 짧기만 하면 잘림이 아니라 분량으로 떨어진다", () => {
+  test("12개 섹션과 품질 기준을 충족하면 짧아도 전달하고 분량은 경고로 남긴다", () => {
     const built = buildCareerPrompt();
     const validation = fortuneRoute.validateSajuAIResultText(CONCISE_COMPLETE_CAREER_RESULT, built.factSnapshot, {
       domain: "career",
       categoryRubric: built.categoryRubric,
     });
 
-    // 완결성 판정은 길이가 아니라 섹션·꼬리 문장으로 한다. 짧은 완성문이 incomplete 로
-    // 잡히면 repair pass 로 새는데, 실제로는 분량 하한(SAJU_AI_MIN_RESULT_CHARS)에 걸려야 한다.
+    // 완결성 판정은 길이가 아니라 섹션·꼬리 문장으로 한다. 분량은 보강 목표지만
+    // 마지막 유효 후보를 폐기하는 단독 실패 사유가 아니다.
     expect(validation.incomplete).toBeUndefined();
-    expect(validation.ok).toBe(false);
-    expect(validation.qualityIssues.minChars).toBe(sajuPrompt.SAJU_AI_MIN_RESULT_CHARS);
+    expect(validation.ok).toBe(true);
+    expect(validation.qualityIssues.length.targetMinChars).toBe(sajuPrompt.SAJU_AI_MIN_RESULT_CHARS);
+    expect(validation.qualityIssues.length.advisory).toBe(true);
   });
 
   test("권해드립니다 is a complete ending, not a reason to regenerate a paid result", () => {
