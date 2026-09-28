@@ -60,7 +60,7 @@ function homePageText(key) {
 const sourcePage = publicSeoPages.home;
 const starterPrice = getProduct("saju_mackerel").priceKRW.toLocaleString("ko-KR");
 const HOME_TITLE = "천원운세부터 보는 사주·타로 | 영냥이 — Code Destiny";
-const HOME_DESCRIPTION = `천원운세부터 시작하는 영냥이. 사주·타로·자미두수·숙요점·베다점·점성술 고등어 상담을 ${starterPrice}원 단건 결제로 이용하세요. 상담 예시와 상품별 가격을 먼저 확인할 수 있습니다.`;
+const HOME_DESCRIPTION = `천원운세부터 시작하는 영냥이. 사주·타로·자미두수·숙요점·베다점·점성술 고등어 상담을 ${starterPrice}원 단건 결제로 이용하세요. 상담 예시와 상품별 가격을 먼저 확인하세요.`;
 const HOME_SEO = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,

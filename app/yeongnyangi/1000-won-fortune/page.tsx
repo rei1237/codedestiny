@@ -9,7 +9,6 @@ import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPage
 import styles from './page.module.css';
 import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 import FounderTrust from '@/app/components/FounderTrust';
-import {founder} from '@/lib/brand/founder';
 import SampleExposure from '../_components/SampleExposure';
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 
@@ -60,7 +59,7 @@ const FAQS=[
 ];
 
 const TITLE=`천원 운세·천원사주 | ${PRICE} 상담 영냥이`;
-const DESCRIPTION=`영냥이 천원운세는 사주·타로 등 여섯 체계의 고등어 상담을 ${PRICE}에 이용하는 서비스입니다. ${founder.credential}. 상담 예시와 상품별 가격을 먼저 확인하세요.`;
+const DESCRIPTION=`영냥이 천원운세는 사주·타로 등 여섯 체계의 고등어 상담을 ${PRICE}에 이용하는 서비스입니다. 상담 예시와 상품별 가격, 이용 방법을 확인하세요.`;
 const OG_TITLE=TITLE;
 
 export const metadata:Metadata={
