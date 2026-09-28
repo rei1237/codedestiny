@@ -1491,7 +1491,7 @@ async function generateSectionGroup(env, input, calculation, group, systemPrompt
     });
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
-    if (!ai?.ok || ai?.truncated === true || ((/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env))) return { sections: {}, provider: "", model: "" };
+    if (!ai?.ok || ((/mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true) && !isStagingLlmMockEnabled(env))) return { sections: {}, provider: "", model: "" };
     const raw = sanitizeConsultationText(ai?.text || "");
     const parsed = parseJsonObjectFromText(raw) || {};
     const sections = {};
@@ -1563,17 +1563,10 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
   const sections = { ...(options.sections || {}) };
   const attempts = { ...(options.attempts || {}) };
   const valid = key => typeof sections[key]?.body === "string" && countPaidReportBodyChars(sections[key].body) > 0 && !hasRepeatedReportPassage(sections[key].body);
-  const groupFor = key => SUKUYO_SECTION_GROUPS.find(row => row.keys.includes(key));
-  const isComplete = key => valid(key) && (countPaidReportBodyChars(sections[key].body) >= SUKUYO_SECTION_SPEC_MAP.get(key).minChars
-    || attempts[`${groupFor(key).id}:lengthRepair`] || Number(attempts[groupFor(key).id] || 0) >= 3);
-  const totalChars = Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0);
-  // 모든 장을 먼저 확보한 뒤, 총합이 부족하면 목표 미달 장을 기존 예산 안에서 보강한다.
-  const needsTotalRepair = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && totalChars < 20000;
-  const needsGeneration = key => !isComplete(key) || (needsTotalRepair
-    && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars);
-  const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(needsGeneration) })).filter(group => group.keys.length);
-  const group = needsTotalRepair ? pending.find(row => Number(attempts[row.id] || 0) < 3) : pending[0];
-  if (group && Number(attempts[group.id] || 0) >= 3) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
+  const isComplete = valid;
+  const pending = SUKUYO_SECTION_GROUPS.map(group => ({ ...group, keys: group.keys.filter(key => !isComplete(key)) })).filter(group => group.keys.length);
+  const group = pending[0];
+  if (group && Number(attempts[group.id] || 0) >= 2) throw Object.assign(new Error(MESSAGES.llmFailed), { code: "LLM_FAILED", status: 503 });
   let provider = "", model = "";
   let summary = options.summary || null;
   if (group) {
@@ -1600,10 +1593,10 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     await options.onCheckpoint?.({ sections, summary });
   }
   const summaryPending = !summary && !attempts.summary;
-  const complete = !summaryPending && SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0) >= 20000
+  const complete = !summaryPending && SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key))
     && !hasRepeatedReportPassage(Object.values(sections).map(row => row.body).join("\n"));
   const result = { meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta, ...(summary || {}), sections };
-  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: summaryPending || SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 3 && row.keys.some(key => !isComplete(key) || (!complete && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars))) };
+  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: summaryPending || SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 2 && row.keys.some(key => !isComplete(key))) };
 }
 
 async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) {

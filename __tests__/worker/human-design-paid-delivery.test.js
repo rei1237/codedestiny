@@ -102,32 +102,32 @@ for (const repair of ['shorter', 'empty', 'repeated']) it(`HD ${repair} repair p
   provider.mockImplementation(async (...args) => {
     if (args[1] !== specs[0].key) return base(...args);
     calls++;
-    const body = calls === 1 ? '생활에서 선택을 관찰하고 그 의미를 차분히 돌아봅니다.'
+    const body = calls === 1 ? '생활에서 선택을 관찰하고 그 의미를 차분히 돌아봅니다. 반복되는 상황을 기록하고 다른 조건에서는 어떤 선택이 나을지 비교해 보세요.'
       : repair === 'shorter' ? '선택을 관찰합니다.' : repair === 'empty' ? ''
       : '생활에서 선택을 관찰하고 그 의미를 차분히 돌아보며 반복되는 상황을 기록합니다. '.repeat(80);
     return { ok: true, text: JSON.stringify({ body, keyPoints: [] }) };
   });
   await generate(); const draft = docs[0].sections[0].body;
   for (let i = 0; i < 8 && docs[0].status !== 'completed'; i++) await generate();
-  expect(docs[0].status).toBe('completed'); expect(calls).toBe(2);
+  expect(docs[0].status).toBe('completed'); expect(calls).toBe(1);
   expect(docs[0].sections[0].body).toBe(draft); expect(refund).not.toHaveBeenCalled();
 });
 it('HD reserved length repair completes from its saved draft after interruption', async () => {
   for (let i = 0; i < 5; i++) await generate();
-  docs[0].status = 'generating'; docs[0].sections[0] = { ...docs[0].sections[0], body: '의미 있는 선택을 관찰합니다.', status: 'degraded', issues: ['body_minimum_not_met'], attempts: 2, lengthRepair: true };
+  docs[0].status = 'generating'; docs[0].sections[0] = { ...docs[0].sections[0], body: '의미 있는 선택을 관찰합니다. 주변의 기대와 자신의 필요를 구분하고 작은 행동을 통해 편안한 방향을 찾아보세요.', status: 'degraded', issues: ['body_minimum_not_met'], attempts: 2, lengthRepair: true };
   provider.mockClear(); expect((await generate()).status).toBe(200); expect(provider).not.toHaveBeenCalled();
 });
-it('HD keeps the total floor after accepting individual short sections', async () => {
-  provider.mockImplementation(async (_env, key) => ({ ok: true, text: JSON.stringify({ body: `${key} 의미 있는 선택을 관찰합니다.`, keyPoints: [] }) }));
+it('HD completes all usable sections without a total-length repair', async () => {
+  provider.mockImplementation(async (_env, key) => ({ ok: true, text: JSON.stringify({ body: `${key} 의미 있는 선택을 관찰합니다. ${key} 주변의 기대와 자신의 필요를 구분하세요. ${key} 작은 행동을 통해 편안한 방향을 찾아보세요.`, keyPoints: [] }) }));
   for (let i = 0; i < 12; i++) await generate();
-  expect(docs[0].status).not.toBe('completed');
-  expect(Math.max(...docs[0].sections.map(row => row.attempts))).toBeLessThanOrEqual(3);
+  expect(docs[0].status).toBe('completed');
+  expect(Math.max(...docs[0].sections.map(row => row.attempts))).toBeLessThanOrEqual(2);
 });
 
-it('HD accepts a valid short last attempt while preserving the report floor', async () => {
+it('HD accepts a usable short response within two attempts', async () => {
   for (let i = 0; i < 5; i++) await generate();
-  docs[0].status = 'generating'; docs[0].sections[0] = { ...docs[0].sections[0], body: '', status: 'pending', issues: ['ai_unavailable'], attempts: 2 };
-  provider.mockClear(); provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ body: '삶에서 선택의 의미를 돌아보고 작은 행동으로 확인합니다.', keyPoints: [] }) }));
+  docs[0].status = 'generating'; docs[0].sections[0] = { ...docs[0].sections[0], body: '', status: 'pending', issues: ['ai_unavailable'], attempts: 1 };
+  provider.mockClear(); provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ body: '삶에서 선택의 의미를 돌아보고 작은 행동으로 확인합니다. 다른 사람의 속도에 맞추기 전에 자신의 필요와 감정을 정리해 보세요.', keyPoints: [] }) }));
   expect((await generate()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(1);
-  expect(docs[0].sections[0].attempts).toBe(3);
+  expect(docs[0].sections[0].attempts).toBe(2);
 });

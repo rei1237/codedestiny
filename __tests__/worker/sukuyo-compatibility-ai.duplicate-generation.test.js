@@ -264,9 +264,9 @@ test("다른 isolate의 동시 요청도 한 묶음만 생성한다", async () =
 });
 test("짧은 결과는 세 번만 보완한 뒤 실패로 남긴다", async () => {
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
-  for (let i = 0; i < 3; i++) expect((await runWave()).status).toBe(202);
+  for (let i = 0; i < 2; i++) expect((await runWave()).status).toBe(202);
   expect((await runWave()).status).toBe(503); expect(store.docs[0].status).toBe("generation_failed");
-  expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(3);
+  expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
 });
 test("예전 완료본은 현재 분량 검사나 추가 생성 없이 다시 읽는다", async () => {
   store.seed({ userId: USER_ID, idempotencyKey: KEY, personA: {}, personB: {}, sukuyoResult: {}, relationshipType: "연인", topic: "전체", accessType: "pass", messages: [{ role: "assistant", content: "과거 본문" }] });
@@ -333,7 +333,7 @@ test('P2 still rejects repeated and empty sections', async () => {
   expect(result.sections).toEqual({});
 });
 
-test('P2 selects reinforcement for a short total without waiving 20,000 characters', async () => {
+test('all saved usable sections complete below the length target', async () => {
   const input = testUtils.normalizeInput(SAMPLE_BODY);
   const calculation = testUtils.calculateSukuyo(input);
   const sections = Object.fromEntries(testUtils.SUKUYO_SECTION_SPECS.map((spec, index) => [spec.key, {
@@ -342,14 +342,14 @@ test('P2 selects reinforcement for a short total without waiving 20,000 characte
   callGeminiJsonWithRetryMock.mockResolvedValue({ ok: false, error: 'provider_unavailable' });
   const summary = { headline: 'saved summary' };
   const result = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary });
-  expect(result.complete).toBe(false);
+  expect(result.complete).toBe(true);
   expect(Object.keys(result.sections)).toHaveLength(15);
-  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(0);
   const exhausted = Object.fromEntries(testUtils.SUKUYO_SECTION_GROUPS.map(group => [group.id, 3]));
   const final = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary, attempts: exhausted });
-  expect(final.complete).toBe(false);
+  expect(final.complete).toBe(true);
   expect(final.retryable).toBe(false);
-  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(0);
 });
 
 test('P2 generates missing groups before reinforcing valid short sections', async () => {
@@ -375,7 +375,7 @@ for (const repair of ['shorter', 'empty', 'truncated', 'repeat']) test(`P3 keeps
   const onReserve = jest.fn();
   const result = await testUtils.createCompatibilityAnswer({}, input, calculation, { sections, summary: { headline: 'saved' }, attempts: { [group.id]: 1 }, onReserve });
   expect(result.complete).toBe(true); expect(result.sections[specs[0].key].body).toBe(sections[specs[0].key].body);
-  expect(onReserve).toHaveBeenCalledWith(group.id, 2, true); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
+  expect(onReserve).not.toHaveBeenCalled(); expect(callGeminiJsonWithRetryMock).not.toHaveBeenCalled();
 });
 test('P3 last short attempt completes without an additional call when total is sufficient', async () => {
  const input=testUtils.normalizeInput(SAMPLE_BODY),calculation=testUtils.calculateSukuyo(input);

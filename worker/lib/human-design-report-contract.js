@@ -57,7 +57,7 @@ export const HD_REPORT_LOCK_TTL_MS = 90000;
 /** 이만큼 갱신이 없으면 좀비로 보고 실패 처리한다. */
 export const HD_REPORT_STALE_MS = 3 * 60 * 1000;
 export const HD_REPORT_MAX_WAVES = 40; // Preserve the previous 10 × 4 part-attempt budget.
-export const HD_REPORT_MAX_SECTION_ATTEMPTS = 3;
+export const HD_REPORT_MAX_SECTION_ATTEMPTS = 2;
 /** 섹션 하나의 출력 토큰 상한. 최장 섹션(4,000자 ≈ 6,000토큰)에 여유를 둔다. */
 export const HD_REPORT_SECTION_MAX_OUTPUT_TOKENS = 9000;
 

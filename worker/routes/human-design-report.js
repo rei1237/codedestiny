@@ -306,7 +306,7 @@ async function generateSection(env, context, spec, attemptState) {
     logContext: { route: "human-design-report", section: spec.key, locale },
   });
 
-  if (!ai?.ok || !ai.text || ai.truncated || /MAX_TOKENS|length/i.test(ai.finishReason || "")) {
+  if (!ai?.ok || !ai.text) {
     return { ok: false, issues: [`ai_unavailable:${clean(ai?.error, 40) || "unknown"}`], meta: ai };
   }
   const payload = parseSectionPayload(ai.text);
@@ -526,11 +526,11 @@ function hdSectionBody(section) {
   return [section.body || "", ...(section.subsections || []).map(row => row.body || "")].join("\n");
 }
 function hdLengthOnly(section) {
-  return countPaidReportBodyChars(hdSectionBody(section)) > 0 && section.issues?.length > 0
+  return countPaidReportBodyChars(hdSectionBody(section)) >= 40 && section.issues?.length > 0
     && section.issues.every(issue => issue === "body_minimum_not_met" || issue.startsWith("too_short:"));
 }
 function hdValidDraft(section) {
-  return countPaidReportBodyChars(hdSectionBody(section)) > 0
+  return countPaidReportBodyChars(hdSectionBody(section)) >= 40
     && (section.status === "ok" || hdLengthOnly(section) || section.issues?.every(issue => issue === "report_total_too_short"));
 }
 async function verifyStoredHdAccess(doc) {
@@ -586,9 +586,8 @@ async function handleGenerate(request, env) {
     if (!snapshot || !rawAllowed) return json({ ok: false, reason: "CALCULATION_INCOMPLETE" }, { status: 422 });
     const allowed = { ...rawAllowed, all: new Set(rawAllowed.all || []) };
     // Reservation survives a lost response: a saved valid draft needs no second length repair.
-    if (current.sections.some(row => hdLengthOnly(row) && (row.lengthRepair || row.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS))) {
-      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => hdLengthOnly(row)
-        && (row.lengthRepair || row.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS) ? { ...row, status: "ok", issues: [] } : row) }, reportId);
+    if (current.sections.some(row => hdLengthOnly(row))) {
+      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => hdLengthOnly(row) ? { ...row, status: "ok", issues: [] } : row) }, reportId);
     }
     const pending = waveBudgetExhausted ? [] : current.sections.filter(row => row.status !== "ok" && row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS).slice(0, HD_REPORT_SECTION_CONCURRENCY);
     if (pending.length) {
@@ -620,7 +619,7 @@ async function handleGenerate(request, env) {
           if (valid(stored) && (!valid(section) || countPaidReportBodyChars(hdSectionBody(stored)) >= countPaidReportBodyChars(hdSectionBody(section)))) section = { ...stored };
           else if (hdValidDraft(section) && !valid(section)) section = { ...section, status: "degraded", issues: ["repeated_body"] };
           section = { ...section, attempts: result.attempts, lengthRepair: stored.lengthRepair };
-          if (hdLengthOnly(section) && (section.lengthRepair || section.attempts >= HD_REPORT_MAX_SECTION_ATTEMPTS)) section = { ...section, status: "ok", issues: [] };
+          if (hdLengthOnly(section)) section = { ...section, status: "ok", issues: [] };
           if (valid(section) && section.issues?.includes("report_total_too_short")) section = { ...section, status: "ok", issues: [] };
           const sections = current.sections.map(row => row.key === section.key ? section : row);
           const totalChars = sections.filter(row => row.status === "ok" || row.status === "degraded").reduce((sum, row) => sum + countPaidReportBodyChars(hdSectionBody(row)), 0);
@@ -631,13 +630,9 @@ async function handleGenerate(request, env) {
       if (failure) throw failure.reason;
       current = await saveHdDelivery(env, filter, { llmMeta: { ...current.llmMeta, waveInFlight: false } }, reportId);
     }
-    if (current.sections.every(row => row.status === "ok") && countPaidReportBodyChars(current.sections.map(hdSectionBody).join("\n")) < 20000) {
-      current = await saveHdDelivery(env, filter, { sections: current.sections.map(row => row.attempts < HD_REPORT_MAX_SECTION_ATTEMPTS
-        ? { ...row, status: "degraded", issues: ["report_total_too_short"] } : row) }, reportId);
-    }
     const normal = current.sections.filter(row => row.status === "ok");
     const reportBody = normal.map(hdSectionBody).join("\n");
-    if (normal.length === HD_REPORT_SECTIONS.length && countPaidReportBodyChars(reportBody) >= 20000 && !hasRepeatedReportPassage(reportBody)) {
+    if (normal.length === HD_REPORT_SECTIONS.length && !hasRepeatedReportPassage(reportBody)) {
       current = await saveHdDelivery(env, filter, { status: "delivery_pending" }, reportId);
       if (!await verifyStoredHdAccess(current)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
       current = await saveHdDelivery(env, filter, { status: "completed", completedAt: new Date(), lock: null }, reportId);
