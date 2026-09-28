@@ -75,7 +75,7 @@
 ## 구현·비주얼·공유
 
 - `product-curiosity.ts`: 여섯 체계별 질문·방법·가상 예시·한계의 단일 원본.
-- `product-offers.ts`: 운영 상품과 목차를 화면 데이터로 변환.
+- `product-offers.ts`: 운영 상품과 목차를 화면 데이터로 변환. 이용 방식도 기존 `isDirectOrFamilyPaidFeatureKey` / `isDirectOnlyPaidFeatureKey` 판정에서 읽으며 결제 정책은 수정하지 않는다.
 - `ProductGuide.tsx`: 등급별 구성·예시·무료/유료·가격·제공 방식·CTA. '가상의 편집 예시' 명시. 실제 유료 결과 샘플이라고 속이지 않는다.
 - `FortuneHome.tsx`: 기존 카드/기능 유지, 질문·기본 가격·챕터 추가, 사주 썸네일 교체. 첫 화면의 기존 질문 대표 진입 유지.
 - `/yeongnyangi/readings/{saju,ziwei,sukuyo,astrology,vedic,tarot}/`: 개인정보 없는 공개 상품 공유 주소. 상품별 제목·설명·이미지, 기존 색인 허브와 중복이라 noindex/follow. 구매자 결과·질문·이름·생일·주문 ID를 OG에 포함하지 않음.
@@ -94,7 +94,7 @@
 | 상세→시작 | `product_detail_view`, `product_sample_open`, `product_start_click` | 새 데이터 수집 필요 |
 | 상담 준비→로그인 | 기존 view_item/purchase_attempt/login_required/consultation_start와 상품 문맥 연결 | 상품별 로그인의 완전한 연결률 미검증 |
 | 결제창→성공 | checkout_pg_opened, 기존 purchase와 서버 주문 대조 | 화면 콜백만으로 성공 확정 금지. 실코호트 미분석 |
-| 성공→결과 수령 | 결제 완료 주문 중 저장된 전체 manifest를 다시 읽은 완료 결과 / 완료 주문 | fortune_result_view만으로 완전 수령 단정 금지. 운영 수령률 미확인 |
+| 성공→결과 수령 | 기존 `fortune_completed`·`fortune_first_open`과 서버 완료 주문·저장된 manifest 재열람을 대조 | 브라우저 이벤트만으로 운영 전체의 완전 수령 단정 금지. 운영 수령률 미확인 |
 | 환불·문의 | 같은 구매 코호트의 환불/문의 주문 비율 | 읽기 권한/연결 데이터 확보 전 미측정 |
 
 보고용 코호트는 운영자 테스트·확인된 봇·실고객·미분류를 분리하고 결제 실패는 창 진입 분모에 포함해 별도 원인 분류한다. 1인 반복 클릭/주문·재시도는 세션/주문 기준으로 중복 제거한다. 내부 트래픽 필터 적용 여부를 먼저 확인해야 한다. 계정의 구매자 잠재고객 3명을 성공 주문 3건으로 바꾸지 않는다.
@@ -123,3 +123,7 @@
 
 화면 증거: [390px 카드](fortune-conversion-evidence/cards-390.webp), [사주 팝업](fortune-conversion-evidence/saju-390.webp), [사주 전체 안내](fortune-conversion-evidence/saju-guide-390.webp), [베다 전체 안내](fortune-conversion-evidence/vedic-guide-390.webp), [mock 판정 JSON](fortune-conversion-evidence/verification.json).
 변경 전 사주 원화: `public/assets/yeongnyangi/original/saju.webp`; 변경 후: `public/assets/yeongnyangi/conversion/saju-pattern.webp`. 변경 전 카피는 `home-data.ts`의 '타고난 나를 만나는 시간', 변경 후는 '왜 나는 같은 선택을 반복할까?'다. 사주 결과를 이미 판정한 문장은 아니다.
+
+추가 검증: 24개 단일 상품의 이용 방식과 기존 paymentScope 정본을 대조하고, 여섯 상품 안내의 서버 렌더링에 해당 문구가 나타나는 것을 확인했다. 모두 현재 Family/단건 정책에 일치하며 화면 문구는 기존과 같다. 미래 설정 변경에 대비해 고정 문구를 제거한 표시 계층 수정이다.
+
+원격 기록: [b4d5a29fb main CI 통과](https://github.com/rei1237/codedestiny/actions/runs/36383321804), [최초 구현 push의 Paid Flow Gates 통과](https://github.com/rei1237/codedestiny/actions/runs/36383209743). 이후 다른 세션의 타로 변경을 포함한 스테이징 [36383428905](https://github.com/rei1237/codedestiny/actions/runs/36383428905)는 Worker preview 업로드의 `fetch failed`로 실패했다. 이때 본 주소 Pages/Worker는 이전 `456ea72d6`로 일치했으며 신규 반영 완료로 보지 않았다. 업로드된 [Pages 사주 미리보기](https://644fdd93.codedestiny-staging.pages.dev/yeongnyangi/readings/saju/)와 [베다 미리보기](https://644fdd93.codedestiny-staging.pages.dev/yeongnyangi/readings/vedic/)에서는 실제 390px 렌더링, 사주 참치 15챕터/가격/CTA 전환을 확인했다. 미리보기 확인과 스테이징 본 주소 반영은 별개다. 최종 배포 상태는 응답의 실행 링크와 SHA를 기준으로 확인한다.
