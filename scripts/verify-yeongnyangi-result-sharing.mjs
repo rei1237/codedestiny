@@ -26,9 +26,9 @@ try{
     window.Kakao={isInitialized:()=>true,Share:{sendDefault:data=>window.__kakaoCalls.push(data)}};
    });
    await f.context.route(`**/api/yeongnyangi/requests/${f.row.id}`,async route=>{await gate;await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({fortune:f.row})});});
-   await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id);
-   await f.page.getByText('네 상담이 어디까지 준비됐는지 살펴볼게.').waitFor();
-   const loadingCat=f.page.getByAltText('별빛 문을 열고 상담을 가져오는 영냥이');
+   await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id,{waitUntil:'domcontentloaded'});
+   await f.page.getByText('기록을 불러오고 있어요.').waitFor();
+   const loadingCat=f.page.getByRole('status').filter({hasText:'기록을 불러오고 있어요.'}).locator('img');
    assert.equal(await loadingCat.evaluate(img=>img.complete&&img.naturalWidth>0),true);
    assert.equal(await loadingCat.evaluate(img=>getComputedStyle(img.parentElement).backgroundColor),'rgba(0, 0, 0, 0)');
    await f.page.screenshot({path:`${output}/loading-${width}.png`});release();
@@ -50,9 +50,9 @@ try{
    assert.equal(f.state.generates,0);assert.equal(f.state.confirm,0);
    if(width===360){
     const complete=f.row.chapters;f.state.holdGeneration=true;f.row.chapters=complete.slice(0,2);f.row.state='GENERATING';
-    await f.page.reload();await f.page.getByText('네 이야기를 한 장씩 정성껏 쓰고 있어.',{exact:true}).waitFor();
+    await f.page.reload();await f.page.getByText('남은 상담은 서버에서 자동으로 이어져요. 창을 닫아도 내 상담 기록에서 다시 확인할 수 있어요.',{exact:true}).waitFor();
     assert.equal(await f.page.getByText('마음에 남은 상담 공유하기',{exact:false}).count(),0);
-    f.row.chapters=complete;await f.page.reload();await f.page.getByText('마지막 장까지 잘 담겼는지 확인 중이야.',{exact:true}).waitFor();
+    f.row.chapters=complete;await f.page.reload();await f.page.getByText('저장된 상담을 최종 확인하고 있어요.',{exact:true}).waitFor();
     assert.equal(await f.page.locator('progress').getAttribute('value'),'5');assert.equal(await f.page.locator('progress').getAttribute('max'),'6');
    }
    results.push({width,status:'PASS',loading:true,kakao:'mock',clipboard:true,image:true,cancel:true,realMessages:0});

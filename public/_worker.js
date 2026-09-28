@@ -334,6 +334,34 @@ async function serveDynamicFeed(request, env) {
 // 🔴 오작동 반경이 크다. 이 파일은 사이트맵에 있는 /fortune/** 약 96개를 서빙한다. 그래서
 // 경로와 shareId 정규식이 **동시에** 맞을 때만 들어오고, 무엇 하나라도 어긋나거나 예외가
 // 나면 null 을 돌려 원래 자산 서빙으로 떨어뜨린다.
+const INSIGHT_CARD_ID = /^ic_[a-f0-9]{40}$/;
+async function serveInsightCard(request, env, url) {
+  const id = url.searchParams.get('card');
+  if (!['/share', '/share/'].includes(url.pathname) || !INSIGHT_CARD_ID.test(id || '')) return null;
+  const headers = {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','CDN-Cache-Control':'no-store','X-Robots-Tag':'noindex, nofollow','Referrer-Policy':'no-referrer'};
+  try {
+    const apiOrigin = resolveApiWorkerOrigin(env);
+    if (!apiOrigin) throw new Error('UNAVAILABLE');
+    const response = await fetch(`${apiOrigin}/api/fortune/cards/${id}`, {headers:{Accept:'application/json'}, signal:AbortSignal.timeout(8000)});
+    if (response.status === 404) return new Response('<!doctype html><html lang="ko"><meta name="viewport" content="width=device-width,initial-scale=1"><title>공개가 종료된 카드</title><main><h1>이 카드는 더 이상 공개되지 않아요.</h1><p>링크가 폐기되었거나 만료되었습니다.</p><a href="/today/#daily-tarot">무료 타로 세 장 펼치기</a></main></html>',{status:404,headers});
+    if (!response.ok) throw new Error('UNAVAILABLE');
+    const card = await response.json();
+    const brands = {yeongnyangi:'영냥이',tea:'연이',neo:'네오',daily:'연이의 오늘 타로',codex:'마스터 인연의 서',karma:'운명의 업',astrology:'서양 점성술',vedic:'베다점',naming:'작명 상담',compass:'운명 나침반',humanDesign:'휴먼디자인'};
+    if (card.id !== id || !Object.hasOwn(brands,card.brand) || typeof card.text !== 'string' || Array.from(card.text).length>120) throw new Error('INVALID_CARD');
+    const title = brands[card.brand]+' · '+card.day;
+      const params = new URLSearchParams({title,desc:card.text,badge:'insight',character:card.brand==='yeongnyangi'?'yeongnyangi':card.brand==='neo'?'neo':'yeoni',theme:card.brand==='neo'?'dark':'light'});
+    const meta = {title,description:card.text,url:`${url.origin}/share/?card=${id}`,image:`${url.origin}/api/og?${params}`};
+    const asset = await env.ASSETS.fetch(request);
+    if (!asset.ok) throw new Error('ASSET_UNAVAILABLE');
+    const transformed = transformGuardianShareHtml(asset,meta,card);
+    const nextHeaders = new Headers(transformed.headers);
+    for (const [key,value] of Object.entries(headers)) nextHeaders.set(key,value);
+    nextHeaders.set('X-Code-Destiny-Share-Card','insight');
+    return hardenResponse(request.url,new Response(transformed.body,{status:200,headers:nextHeaders}));
+  } catch {
+    return new Response('<!doctype html><html lang="ko"><meta name="viewport" content="width=device-width,initial-scale=1"><title>카드 확인 중</title><main><h1>카드를 불러오지 못했어요.</h1><p>잠시 후 이 링크를 다시 열어 주세요.</p></main></html>',{status:503,headers});
+  }
+}
 const GUARDIAN_SHARE_PATHS = new Set(["/fortune/share", "/fortune/share/"]);
 const GUARDIAN_SHARE_ID_PATTERN = /^gf_[A-Za-z0-9_-]{24,80}$/;
 const GUARDIAN_SHARE_CACHE_TTL_SECONDS = 600;
@@ -490,6 +518,10 @@ export default {
       return Response.redirect(target.toString(), 301);
     }
 
+    if (request.method.toUpperCase() === 'GET') {
+      const insightCard = await serveInsightCard(request, env, url);
+      if (insightCard) return insightCard;
+    }
     const guardianShareId = request.method.toUpperCase() === "GET" ? guardianShareIdFromUrl(url) : "";
     if (guardianShareId) {
       const shareCard = await serveGuardianShareCard(request, env, ctx, url, guardianShareId);

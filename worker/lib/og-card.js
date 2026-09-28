@@ -77,6 +77,7 @@ export function escapeHtml(value) {
 export function parseOgParams(searchParams) {
   const badgeKey = String(searchParams.get("badge") || "").trim().toLowerCase();
   const themeKey = String(searchParams.get("theme") || "").trim().toLowerCase();
+  const character = searchParams.get('character');
 
   return {
     title: sanitizeText(searchParams.get("title"), TITLE_MAX) || DEFAULT_TITLE,
@@ -86,10 +87,12 @@ export function parseOgParams(searchParams) {
     // 테마는 값이 전부 undefined 인 팔레트로 렌더된다.
     badge: Object.hasOwn(BADGES, badgeKey) ? BADGES[badgeKey] : DEFAULT_BADGE,
     theme: Object.hasOwn(THEMES, themeKey) ? themeKey : "dark",
+    ...(badgeKey === 'insight' && ['yeongnyangi','yeoni','neo'].includes(character) ? {character} : {}),
   };
 }
 
 export function buildOgCardHtml(params, brandDomain) {
+  if (params.character && params.artData) return buildInsightLetterHtml(params,brandDomain);
   const palette = Object.hasOwn(THEMES, params.theme) ? THEMES[params.theme] : THEMES.dark;
   const description = params.description
     ? `<div style="display:flex;margin-top:24px;font-size:30px;line-height:1.5;color:${palette.description};">${escapeHtml(params.description)}</div>`
@@ -113,6 +116,17 @@ export function buildOgCardHtml(params, brandDomain) {
   <div style="display:flex;position:absolute;left:80px;bottom:72px;font-size:26px;color:${palette.brand};font-weight:700;">CODE DESTINY</div>
   <div style="display:flex;position:absolute;right:80px;bottom:74px;font-size:22px;color:${palette.domain};">${escapeHtml(brandDomain)}</div>
 </div>`;
+}
+
+function buildInsightLetterHtml(params, brandDomain) {
+  return `<div style="display:flex;width:1200px;height:630px;background:#fff8f0;font-family:'Noto Sans KR';position:relative;">
+    <img src="${escapeHtml(params.artData)}" width="620" height="620" style="position:absolute;right:0;bottom:0;"/>
+    <div style="display:flex;position:absolute;left:32px;top:32px;width:1136px;height:566px;border:1px solid #d6b5a2;"></div>
+    <div style="display:flex;position:absolute;left:66px;top:66px;color:#795563;font-size:19px;letter-spacing:3px;">CODE DESTINY</div>
+    <div style="display:flex;position:absolute;left:66px;top:115px;width:700px;font-size:27px;color:#795563;">${escapeHtml(params.title)}</div>
+    <div style="display:flex;position:absolute;left:66px;top:190px;width:650px;font-size:${params.description.length>80?31:38}px;line-height:1.65;color:#44273b;">${escapeHtml(params.description)}</div>
+    <div style="display:flex;position:absolute;left:66px;bottom:65px;font-size:20px;color:#795563;">${escapeHtml(brandDomain)}</div>
+  </div>`;
 }
 
 /**

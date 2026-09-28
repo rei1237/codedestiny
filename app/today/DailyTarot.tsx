@@ -1,12 +1,13 @@
 "use client";
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
-import {ArrowRight,Check,Share2,Sunrise} from 'lucide-react';
+import {ArrowRight,Check,Sunrise} from 'lucide-react';
 import TarotCardBack from '../components/TarotCardBack';
 import {PriceBadge} from '../components/PriceBadge';
 import {trackEvent} from '@/lib/analytics';
-import {DAILY_MEANINGS,DAILY_POSITIONS,DAILY_TAROT_KEY,kstDay,newDailyReading,restoreDailyReading,pickDailyCard,revealDailyCard,dailySharePath,sharedDailyCards} from '@/lib/tarot/daily-three.mjs';
+import {DAILY_MEANINGS,DAILY_POSITIONS,DAILY_TAROT_KEY,kstDay,newDailyReading,restoreDailyReading,pickDailyCard,revealDailyCard,sharedDailyCards} from '@/lib/tarot/daily-three.mjs';
 import styles from './daily-tarot.module.css';
+import PublicInsightCard from '@/components/fortune/PublicInsightCard';
 
 export interface DailyTarotCard {id:number;name:string;image:string}
 interface Reading {version:number;date:string;deck:number[];picks:number[];revealed:number}
@@ -59,15 +60,6 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
   if(!reading)return;const next=revealDailyCard(reading);save(next);
   if(next.revealed===3)emit('daily_tarot_complete');
  }
- async function share(){
-  if(!reading||reading.revealed!==3)return;
-  const url=new URL(dailySharePath(reading),window.location.origin).href;
-  emit('daily_tarot_share_attempt');
-  try{
-   if(navigator.share){await navigator.share({title:'연이와 오늘을 여는 세 장',text:'내가 고른 세 장의 상징을 함께 봐요. 당신의 오늘은 어떤 모습인가요?',url});setNotice('공유 동작을 마쳤어요.');emit('daily_tarot_share_return',{method:'native'});}
-   else{await navigator.clipboard.writeText(url);setNotice('공유 링크를 복사했어요.');emit('daily_tarot_link_copied');}
-  }catch(error){if(error instanceof Error&&error.name==='AbortError')setNotice('공유를 취소했어요.');else setNotice('공유하지 못했어요. 잠시 후 다시 시도해 주세요.');}
- }
  const selected=reading?.picks.map(slot=>reading.deck[slot])||[];
  return <section id="daily-tarot" className={styles.experience} aria-labelledby="daily-tarot-title">
   <header className={styles.welcome}>
@@ -113,7 +105,7 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
    {reading.revealed===3&&<footer className={styles.ending}>
     <p className={styles.lastWord}>“세 장의 답을 전부 해내려 하지 않아도 돼요.<br/>오늘 마음에 남은 한 가지면 충분해요.”</p>
     <p className={styles.note}>— 꽃돼지 연이</p>
-    <button className={styles.secondary} onClick={()=>void share()}><Share2 size={18}/> 세 장의 마음 공유하기</button>
+    <PublicInsightCard brand="daily" source="daily" day={reading.date} choices={selected.map((id,index)=>({id:String(id),label:DAILY_POSITIONS[index]+' · '+cards[id].name,text:DAILY_MEANINGS[id][index]}))}/>
     <p className={styles.note}>오늘은 이 카드를 다시 읽을 수 있어요. 내일은 새로운 세 장이 기다려요.</p>
     <aside className={styles.deeper}><h3>내 마음의 반복되는 패턴이 궁금하다면</h3><p>영냥이의 사주 해석에서 기질과 생활 속 선택을 더 살펴보세요.</p>
      <a href="/yeongnyangi/fortune/?product=saju_mackerel" onClick={()=>emit('daily_tarot_consultation_click',{item_id:'yeongnyangi-saju-mackerel'})}>영냥이 사주 살펴보기 <PriceBadge featureKey="yeongnyangi-saju-mackerel"/><ArrowRight size={18}/></a>

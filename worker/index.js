@@ -1487,6 +1487,10 @@ const app = {
 
       // 홈 "오늘의 운세" 허브 — 무료·무인증. Swiss WASM 을 쓰므로 별도 모듈로 떼어
       // /api/fortune/* 본 번들(결제·상담)이 그 무게를 지지 않게 한다. 그래서 catch-all 앞에 온다.
+      if (url.pathname === '/api/fortune/cards' || url.pathname.startsWith('/api/fortune/cards/')) {
+        const { handleInsightCardRoutes } = await import('./routes/insight-cards.js');
+        return withCorsHeaders(request, env, await handleInsightCardRoutes(request, env, {allowOrigin: origin => isAllowedOrigin(origin, env)}));
+      }
       if (url.pathname === "/api/fortune/today-hub") {
         return withCorsHeaders(request, env, await handleFortuneTodayRoutes(request, env));
       }

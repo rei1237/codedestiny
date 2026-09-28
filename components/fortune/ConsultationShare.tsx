@@ -6,6 +6,7 @@ import { prepareKakao, shareThrough } from '@/js/share-service.mjs';
 import { trackEvent } from '@/lib/analytics';
 import { consultationShareBrands, consultationInvitationUrl, renderConsultationShareCard, trimShareText, type ConsultationShareBrand, type ConsultationShareChoice } from '@/lib/consultation-sharing';
 import styles from './ConsultationShare.module.css';
+import PublicInsightCard from './PublicInsightCard';
 
 type Props = { brand: ConsultationShareBrand; choices: ConsultationShareChoice[] };
 
@@ -85,7 +86,7 @@ export default function ConsultationShare({ brand, choices }: Props) {
     } finally { locked.current = false; setBusy(false); }
   }
 
-  return <details className={styles.root} data-consultation-share={brand} onToggle={event => {
+  return <><PublicInsightCard brand={brand} choices={choices} source="paid"/><details className={styles.root} data-consultation-share={brand} onToggle={event => {
     setOpen(event.currentTarget.open); if (event.currentTarget.open) record('editor', 'opened');
   }}>
     <summary><Share2 size={20} aria-hidden="true" /> 마음에 남은 상담 공유하기</summary>
@@ -117,5 +118,5 @@ export default function ConsultationShare({ brand, choices }: Props) {
         <figcaption>위에서 고른 문구와 서비스 소개만 담겨요.</figcaption>
       </figure>
     </div>}
-  </details>;
+  </details></>;
 }
