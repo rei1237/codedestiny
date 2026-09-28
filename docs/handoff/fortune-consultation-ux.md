@@ -256,3 +256,4 @@ node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-cons
 - 품질 게이트는 완화했다. 카테고리 5항목 중 4개는 목표이며 3개 직접 답변은 경고와 함께 전달한다. 2개 이하, 계산 근거 충돌, 금융상품 권유, 건강 인과, 시기 사건 보장은 중대 오류로 차단한다. 분량 미달은 기존처럼 단독 실패 사유가 아니다.
 - 증거: `artifacts/fortune-consultation-ux/saju/live-v14-benchmark-summary.json`, `live-v14-quality-review.md`. 후속 자미두수·숙요·서양 점성술·베다점과 해당 이미지 생성은 게이트에 따라 미착수다.
 - **다음 단계:** v15 코드·mock·CI를 전달한 뒤, 동일 상한의 v15 사주 1건 실제 생성은 새 별도 승인 후 실행한다. 중대 오류가 없으면 경미한 문체·밀도 경고는 허용하고 자미두수부터 네 서비스를 중간 승인 없이 연속 진행한다.
+- v15 제품·검사·익명 증거 main 커밋: `a870d9e4583af17057ed812625bdb70c5403f20d`. [PR CI 36398164976](https://github.com/rei1237/codedestiny/actions/runs/36398164976)의 Risk tier / Typecheck and lint / Critical checks / Build Pages and Worker / Static guards / CI required가 모두 success였고, Paid Flow Gates·AI Locale Gate·Secret Scan·Landing Watchdog·Main drift watchdog도 같은 SHA에서 success였다. 배포 인프라 변경이 없어 별도 staging 검증은 생략했다.
