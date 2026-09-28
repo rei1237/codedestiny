@@ -1,0 +1,192 @@
+/* 사주 분석 진입점 공통 흐름 — 인생의 책부터 시빌라까지 */
+
+.saju-entry-card {
+  --saju-entry-radius: var(--cd-r-card, 20px);
+  isolation: isolate;
+}
+
+.saju-entry-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--cd-gold, #ead089) 82%, white);
+  outline-offset: 4px;
+}
+
+.fg-group--lifebook .lifebook-tile {
+  background:
+    linear-gradient(135deg, #07140f 0%, #0d241c 48%, #172f24 100%);
+}
+
+.lovebible-tile {
+  background:
+    linear-gradient(135deg, #16090f 0%, #351722 52%, #4a1f2e 100%);
+}
+
+.lifebook-tile__art,
+.lovebible-tile__art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  transition: transform var(--cd-dur-emph, 380ms) var(--cd-ease-out, ease-out), filter var(--cd-dur-base, 220ms) ease;
+}
+
+.fg-group--lifebook .lifebook-tile__art {
+  object-position: center 52%;
+}
+
+.fg-group--lovebible .lovebible-tile__art {
+  object-position: center 50%;
+}
+
+.saju-entry-card:hover .lifebook-tile__art,
+.saju-entry-card:focus-visible .lifebook-tile__art,
+.saju-entry-card:hover .lovebible-tile__art,
+.saju-entry-card:focus-visible .lovebible-tile__art {
+  transform: scale(1.025);
+  filter: saturate(1.06) brightness(1.04);
+}
+
+.fg-group--lifebook .lifebook-tile__bg,
+.lovebible-tile__bg {
+  z-index: 1;
+}
+
+.fg-group--lifebook .lifebook-tile__bg {
+  background:
+    linear-gradient(90deg, rgba(4, 13, 10, 0.88) 0%, rgba(5, 16, 12, 0.66) 40%, rgba(5, 15, 11, 0.18) 78%, rgba(5, 12, 10, 0.38) 100%),
+    linear-gradient(180deg, rgba(4, 10, 8, 0.12) 0%, rgba(4, 10, 8, 0.06) 48%, rgba(3, 8, 7, 0.76) 100%);
+}
+
+.fg-group--lovebible .lovebible-tile__bg {
+  background:
+    linear-gradient(90deg, rgba(20, 6, 13, 0.9) 0%, rgba(22, 7, 14, 0.68) 40%, rgba(21, 6, 13, 0.18) 78%, rgba(17, 5, 11, 0.42) 100%),
+    linear-gradient(180deg, rgba(17, 5, 10, 0.12) 0%, rgba(17, 5, 10, 0.08) 48%, rgba(12, 3, 8, 0.78) 100%);
+}
+
+.lifebook-tile__particles,
+.lovebible-tile__particles {
+  z-index: 2;
+}
+
+.lifebook-tile__inner,
+.lovebible-tile__inner {
+  z-index: 3;
+}
+
+.fg-group--lifebook .lifebook-tile__body,
+.fg-group--lovebible .lovebible-tile__body {
+  max-width: min(62%, 680px);
+}
+
+.fg-group--lifebook .lifebook-tile,
+.fg-group--lovebible .lovebible-tile,
+.fg-group--saju-newyear .saju-newyear-tile {
+  border-radius: var(--saju-entry-radius);
+}
+
+.fg-group--saju-newyear .saju-newyear-tile .lifebook-tile__bg {
+  z-index: 1;
+}
+
+.saju-entry-card--fusion {
+  position: relative;
+  margin: 0 0 var(--cd-sp-md, 16px) !important;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--cd-accent, #b31955) 34%, transparent) !important;
+  border-radius: var(--saju-entry-radius);
+  background:
+    radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--cd-gold, #ead089) 24%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--cd-accent, #b31955) 10%, transparent), color-mix(in srgb, var(--cd-gold, #ead089) 8%, transparent));
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--cd-text, #3c1830) 10%, transparent);
+}
+
+.saju-entry-card--fusion::before {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px solid color-mix(in srgb, var(--cd-gold, #ead089) 25%, transparent);
+  border-radius: calc(var(--saju-entry-radius) - 7px);
+  pointer-events: none;
+}
+
+.saju-entry-card--fusion .cd-concern__fusion {
+  position: relative;
+  z-index: 1;
+  padding: 20px 22px;
+}
+
+.saju-entry-card--fusion .cd-concern__fusion a {
+  display: block;
+  color: var(--cd-text, #3c1830);
+  font-size: var(--cd-t-body, 0.9rem);
+  line-height: 1.55;
+}
+
+html.neo-mode .saju-entry-card--fusion .cd-concern__fusion a {
+  color: var(--cd-text, #f4eeff);
+}
+
+#sibylSystemSection.saju-entry-card {
+  margin-bottom: var(--cd-sp-lg, 24px);
+}
+
+#sibylSystemSection .sibyl-entry-tile {
+  border-radius: var(--saju-entry-radius);
+}
+
+@media (max-width: 640px) {
+  .fg-group--lifebook .lifebook-tile__body,
+  .fg-group--lovebible .lovebible-tile__body {
+    max-width: 100%;
+  }
+
+  .fg-group--lifebook .lifebook-tile__art,
+  .fg-group--lovebible .lovebible-tile__art {
+    object-position: 70% center;
+    transform: scale(1.08);
+  }
+
+  .fg-group--lifebook .lifebook-tile__bg {
+    background:
+      linear-gradient(90deg, rgba(4, 13, 10, 0.9) 0%, rgba(5, 16, 12, 0.72) 58%, rgba(5, 12, 10, 0.38) 100%),
+      linear-gradient(180deg, rgba(4, 10, 8, 0.12) 0%, rgba(3, 8, 7, 0.84) 100%);
+  }
+
+  .fg-group--lovebible .lovebible-tile__bg {
+    background:
+      linear-gradient(90deg, rgba(20, 6, 13, 0.92) 0%, rgba(22, 7, 14, 0.76) 58%, rgba(17, 5, 11, 0.44) 100%),
+      linear-gradient(180deg, rgba(17, 5, 10, 0.12) 0%, rgba(12, 3, 8, 0.86) 100%);
+  }
+
+  .saju-entry-card--fusion .cd-concern__fusion {
+    padding: 18px 18px;
+  }
+
+  #sibylSystemSection .sibyl-entry-inner {
+    min-height: 350px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .saju-entry-card,
+  .lifebook-tile__art,
+  .lovebible-tile__art {
+    transition: none !important;
+  }
+
+  .saju-entry-card:hover .lifebook-tile__art,
+  .saju-entry-card:focus-visible .lifebook-tile__art,
+  .saju-entry-card:hover .lovebible-tile__art,
+  .saju-entry-card:focus-visible .lovebible-tile__art {
+    transform: none;
+  }
+
+  #sibylSystemSection .sibyl-entry-tile::after,
+  #sibylSystemSection .sibyl-entry-badge {
+    animation: none;
+  }
+}
