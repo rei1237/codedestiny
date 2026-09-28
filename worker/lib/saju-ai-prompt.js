@@ -22,7 +22,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v12";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v13";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -249,7 +249,7 @@ const SAJU_SPECIAL_ANGLES = Object.freeze([
   "십성 구조(재성·관성·식상·인성·비겁)의 역할 분담",
   "천간/지지의 흐름과 합·충·형·파·해의 변동성",
   "지장간의 잠재 자원과 표면 행동의 불일치",
-  "대운·세운·월운의 타이밍에서 기회/리스크 분리",
+  "대운·세운·월운의 변화 조건과 현실에서 확인할 기준 분리",
   "신살/공망의 보조적 해석과 과대해석 방지",
   "종격 가능성(전왕격·종재격·종관격·종살격·종아격) 검토",
   "신강/신약 판정 불확실성 구간과 대안 시나리오",
@@ -257,15 +257,14 @@ const SAJU_SPECIAL_ANGLES = Object.freeze([
 ]);
 
 const SAJU_MONEY_ANGLES = Object.freeze([
-  "재성을 단순 보유가 아니라 실제 작동 구조(유통/회수/축적)로 해석",
-  "식상생재 구조의 유무와 지속 가능한 매출화 경로",
-  "관성과 재성의 연결로 사회적 성취가 현금흐름으로 이어지는지 점검",
-  "비겁 과다 시 재탈/동업 리스크와 경쟁 소모 구조 분석",
-  "인성 과다 시 실행력 저하/의사결정 지연 리스크 분석",
-  "대운·세운에서 재성이 열리는 시기와 현금흐름 강화 시점 제시",
-  "십성 구조와 용신 흐름 기반으로 적합 수익 모델 3~5개 추천",
-  "직접사업형/콘텐츠지식형/상담교육형/기술자동화형/투자운용형/영업브랜딩형/전문직형/구독플랫폼형 적합도 비교",
-  "피해야 할 돈 버는 방식(투자 습관·동업 구조·소비 패턴) 명시",
+  "재성은 돈의 성패가 아니라 자원을 다루는 해석 가설로 설명하고 실제 수입·지출 기록으로 확인",
+  "식상생재는 수익 보장이 아니라 아이디어를 작은 결과물로 시험할 때 참고할 구조로 한정",
+  "관성과 재성의 관계를 실제 현금흐름의 원인으로 단정하지 않고 계약·업무 기록과 대조",
+  "비견·겁재로 동업 손실이나 재물 분탈을 예고하지 않고 역할·의사결정·정산 기준을 확인",
+  "인성으로 실행력이나 재정 판단을 단정하지 않고 실제 의사결정 기록과 지연 원인을 확인",
+  "대운·세운은 재물이 열리는 시점이 아니라 준비·실행·재검토 조건이 달라지는 구간으로 설명",
+  "명식으로 수익 모델이나 금융상품을 추천하지 않고 사용자가 제시한 선택지를 비용·검증 가능성·되돌릴 수 있음으로 비교",
+  "돈 버는 방식의 적합도를 예언하지 않고 현재 자원·고객 반응·손실 감당 범위로 판단",
 ]);
 
 const SAJU_AI_PROMPT_MASTERY_ANGLES = Object.freeze([
@@ -379,10 +378,10 @@ const SAJU_QUESTION_FOCUS_GUIDE = Object.freeze({
     "대운의 용신/기신 흐름으로 이직·승진·독립 타이밍을 가르기",
   ],
   money: [
-    "재성의 위치와 투출 여부로 돈이 머무는 그릇을 살피기",
-    "식상생재 흐름으로 매출화·현금화 통로를 가르기",
-    "비겁 과다/약세로 동업·경쟁·분산 지출의 흔들림을 짚기",
-    "대운에서 재성·식상이 열리는 구간과 기신 충돌 구간을 분리하기",
+    "재성의 위치와 투출은 자원 관리 가설로만 설명하고 실제 현금흐름 기록으로 확인하기",
+    "식상생재 흐름은 매출 예언이 아니라 작은 결과물을 시험할 질문으로 바꾸기",
+    "비겁으로 동업 손실을 단정하지 않고 역할·정산·결정권 기준을 확인하기",
+    "대운은 수익 시점이 아니라 준비·실행·재검토 조건이 달라지는 구간으로 설명하기",
   ],
   love: [
     "일지와 배우자성으로 끌림·안정·거리감의 결을 살피기",
@@ -1162,6 +1161,50 @@ function buildFixedTenGodTable(dayStem) {
   }));
 }
 
+function stripSajuPromptEvaluationFields(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const { score, grade, rating, className, emoji, ...safe } = value;
+  if (typeof safe.label === "string" && /(?:최고|역경|길운|흉운|좋은\s*운|나쁜\s*운)/.test(safe.label)) {
+    delete safe.label;
+  }
+  return safe;
+}
+
+function buildSajuPromptFactSnapshot(factSnapshot) {
+  const f = factSnapshot && typeof factSnapshot === "object" ? factSnapshot : {};
+  const structures = f.majorStructures && typeof f.majorStructures === "object" ? f.majorStructures : {};
+  const gyeokguk = structures.gyeokguk && typeof structures.gyeokguk === "object" ? structures.gyeokguk : {};
+  const luckTiming = gyeokguk.luckTiming && typeof gyeokguk.luckTiming === "object" ? gyeokguk.luckTiming : {};
+  const luck = f.luck && typeof f.luck === "object" ? f.luck : {};
+  return {
+    ...f,
+    johu: stripSajuPromptEvaluationFields(f.johu),
+    majorStructures: {
+      ...structures,
+      gyeokguk: {
+        ...stripSajuPromptEvaluationFields(gyeokguk),
+        candidates: Array.isArray(gyeokguk.candidates)
+          ? gyeokguk.candidates.map(stripSajuPromptEvaluationFields)
+          : gyeokguk.candidates,
+        luckTiming: {
+          ...luckTiming,
+          activated: Array.isArray(luckTiming.activated)
+            ? luckTiming.activated.map(stripSajuPromptEvaluationFields)
+            : luckTiming.activated,
+          broken: Array.isArray(luckTiming.broken)
+            ? luckTiming.broken.map(stripSajuPromptEvaluationFields)
+            : luckTiming.broken,
+        },
+      },
+    },
+    luck: {
+      ...luck,
+      daewun: Array.isArray(luck.daewun) ? luck.daewun.map(stripSajuPromptEvaluationFields) : luck.daewun,
+      luckRows: Array.isArray(luck.luckRows) ? luck.luckRows.map(stripSajuPromptEvaluationFields) : luck.luckRows,
+    },
+  };
+}
+
 function buildSajuMyeongsikFactCard(factSnapshot, question) {
   const f = factSnapshot && typeof factSnapshot === "object" ? factSnapshot : {};
   const day = f.dayMaster || {};
@@ -1197,19 +1240,25 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
     : "도충 조건 뚜렷하지 않음";
   const gyeok = major.gyeokguk || {};
   const gyeokCandidates = Array.isArray(gyeok.candidates) && gyeok.candidates.length
-    ? gyeok.candidates.map((row) => `${row.name}(${row.tenGod}/${row.exposed ? "투출" : "미투출"}, ${row.score}점)`).join(" | ")
+    ? gyeok.candidates.map((row) => `${row.name}(${row.tenGod}/${row.exposed ? "투출" : "미투출"})`).join(" | ")
     : DEFAULT_TEXT;
   const gyeokBreaks = Array.isArray(gyeok.breakFactors) && gyeok.breakFactors.length
     ? gyeok.breakFactors.map((row) => `${row.type}: ${row.detail}`).join(" | ")
     : "뚜렷한 파격 없음";
   const gyeokActivated = Array.isArray(gyeok.luckTiming?.activated) && gyeok.luckTiming.activated.length
-    ? gyeok.luckTiming.activated.map((row) => `${row.scope} ${row.label}`).join(" | ")
+    ? gyeok.luckTiming.activated.map((row) => {
+      const safe = stripSajuPromptEvaluationFields(row);
+      return `${safe.scope || ""} ${safe.label || safe.ganji || safe.pillar || ""}`.trim();
+    }).filter(Boolean).join(" | ")
     : (gyeok.luckTiming?.note || DEFAULT_TEXT);
   const gyeokBroken = Array.isArray(gyeok.luckTiming?.broken) && gyeok.luckTiming.broken.length
-    ? gyeok.luckTiming.broken.map((row) => `${row.scope} ${row.label}`).join(" | ")
+    ? gyeok.luckTiming.broken.map((row) => {
+      const safe = stripSajuPromptEvaluationFields(row);
+      return `${safe.scope || ""} ${safe.label || safe.ganji || safe.pillar || ""}`.trim();
+    }).filter(Boolean).join(" | ")
     : (gyeok.luckTiming?.note || DEFAULT_TEXT);
   const daewun = Array.isArray(luck.daewun) && luck.daewun.length
-    ? luck.daewun.slice(0, 6).map((row) => `${row.age || "?"}세 ${row.gan || ""}${row.zhi || ""} ${row.score == null ? "" : `${row.score}점`}`).join(" | ")
+    ? luck.daewun.slice(0, 6).map((row) => `${row.age || "?"}세 ${row.gan || ""}${row.zhi || ""}`).join(" | ")
     : DEFAULT_TEXT;
 
   return [
@@ -1258,7 +1307,7 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
     `- 기타 관계: ${Array.isArray(major.interactions) && major.interactions.length ? major.interactions.map((row) => JSON.stringify(row)).join(" | ") : DEFAULT_TEXT}`,
     "",
     "9. 조후·용신·기신",
-    `- 조후: ${f.johu?.type || DEFAULT_TEXT} / 점수 ${f.johu?.score ?? DEFAULT_TEXT}`,
+    `- 조후: ${f.johu?.type || DEFAULT_TEXT}`,
     `- 신강/신약: ${f.power?.isStrong === true ? "신강" : f.power?.isStrong === false ? "신약" : DEFAULT_TEXT}`,
     `- 용신 후보: ${Array.isArray(yong.yongshin) && yong.yongshin.length ? yong.yongshin.join(", ") : DEFAULT_TEXT}`,
     `- 기신 후보: ${Array.isArray(yong.kijishin) && yong.kijishin.length ? yong.kijishin.join(", ") : DEFAULT_TEXT}`,
@@ -2146,17 +2195,19 @@ export function buildSajuAIPromptWithDomain({
   // 이 사본을 읽는 코드는 레포에 없다(engineContext.factSnapshot / engineContext.advancedFactors 참조 0건).
   // 사실 스냅샷에 이미 실린 동일 구조는 생성용 JSON에서 한 번만 보낸다.
   // 반환하는 advancedFactors/저장 factSnapshot은 그대로 두며, 값이 다르면 둘 다 보존한다.
-  const promptAdvancedFactors = Object.fromEntries(Object.entries(advancedFactors).filter(([key, value]) =>
-    JSON.stringify(value) !== JSON.stringify(factSnapshot.majorStructures?.[key])));
+  const promptAdvancedFactors = Object.fromEntries(Object.entries(advancedFactors)
+    .filter(([key, value]) => JSON.stringify(value) !== JSON.stringify(factSnapshot.majorStructures?.[key]))
+    .map(([key, value]) => [key, key === "gyeokguk" ? buildSajuPromptFactSnapshot({ majorStructures: { gyeokguk: value } }).majorStructures.gyeokguk : value]));
+  const promptSafeFactSnapshot = buildSajuPromptFactSnapshot(factSnapshot);
   // 개고 행의 반복 필드명은 열 이름으로 한 번만 보낸다. 값/행 순서는 모두 보존한다.
-  const openings = factSnapshot.majorStructures?.earthStorageOpenings || [];
+  const openings = promptSafeFactSnapshot.majorStructures?.earthStorageOpenings || [];
   const columns = [...new Set(openings.flatMap((row) => Object.keys(row)))];
   const canPackOpenings = openings.length >= 4 && openings.every((row) =>
     columns.every((key) => Object.hasOwn(row, key) && row[key] !== undefined));
-  const promptFactSnapshot = !canPackOpenings ? factSnapshot : {
-    ...factSnapshot,
+  const promptFactSnapshot = !canPackOpenings ? promptSafeFactSnapshot : {
+    ...promptSafeFactSnapshot,
     majorStructures: {
-      ...factSnapshot.majorStructures,
+      ...promptSafeFactSnapshot.majorStructures,
       earthStorageOpenings: {
         format: "columns의 필드명 순서대로 rows 각 행의 값을 읽습니다.",
         columns,
@@ -2213,7 +2264,7 @@ export function buildSajuAIPromptWithDomain({
     `일간/일간오행: ${pillars.dayStem} / ${pillars.dayStemElement}`,
     `오행 분포: 목 ${weights.wood}, 화 ${weights.fire}, 토 ${weights.earth}, 금 ${weights.metal}, 수 ${weights.water}`,
     `우세 오행: ${weights.dominant}`,
-    `조후: ${toText(johu.type)} (점수 ${toText(johu.score)})`,
+    `조후: ${toText(johu.type)}`,
     `신강/신약: ${typeof power.isStrong === "boolean" ? (power.isStrong ? "신강" : "신약") : DEFAULT_TEXT}`,
     `용신/기신 후보: ${toArrayText(power.yongshin)} / ${toArrayText(power.kijishin)}`,
     `종격 여부: ${jong.isJong ? `예 (${toText(jong.name, "종격")})` : "아니오"}`,

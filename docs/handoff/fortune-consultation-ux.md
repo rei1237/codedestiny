@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: v12 교정과 사주 진입점 v2는 main 전달을 마쳤다. 새 별도 승인 후 v12 사주 1건을 실측하고, 의미 품질이 통과할 때만 자미두수를 시작한다.
+next: v12 실제 생성은 의미 품질 불합격이었다. v13 교정·mock·CI 전달 후 새 별도 승인으로 사주 1건을 실측하고, 의미 품질이 통과할 때만 자미두수를 시작한다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -233,3 +233,14 @@ node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-cons
 - 로컬 최종 `npm run check:fast` exit 0: paid-gate-suite 88/88, Jest 309 suites / 4,519 tests, Node 1,823 tests, lint·typecheck·Worker dry-run·사이트맵·사주/결제/복구 게이트 통과. 커밋 후 public mirror freshness와 handoff contract도 통과했다.
 - UI 브라우저 검증은 360·390·430·1440px에서 진입점·명식·상담·결과 화면과 가로 넘침을 확인했다. API는 mock이고 외부 요청은 차단했으므로 실제 결제·저장·운영 전달 증거가 아니다.
 - **다음 단계:** v12 사주 1건 실측은 새 별도 승인 전 실행하지 않는다. 의미 품질 통과 시에만 기본 자미두수의 전용 에셋·진입 UX 작업을 시작한다.
+
+
+### v12 실제 생성 불합격·v13 교정 — 2026-09-28
+
+- 사용자의 새 승인 범위로 `live-v12`를 정확히 한 번 실행했다. Gemini 2.5 Flash 생성 5회 모두 `STOP`: 입력 99,573토큰, 출력 14,044토큰, 본문 18,299자, 병렬 wall time 22,597ms, 공식 Standard 요금 기준 계산 비용 USD 0.0649819.
+- 실결제·운영 DB 쓰기·재시도·폴백·명시 캐시 생성·운영 승격은 0회다. 원본과 제공자 응답은 저장소 밖 `D:/Development/fortune-consultation-private/live-v12`에만 보존한다.
+- 의미 품질은 **불합격**이다. 완전 동일 문단 반복은 사라졌지만, 오행→재정/건강 인과, 비겁→동업 손실, 재성·식상→수익 가능성, 특정 금융상품 제안, 대운 점수·나이별 투자/사업 사건 예고가 남았다. 다섯 생성 그룹 모두 v13 검증에서 별도 거부됐다.
+- 원인은 안전 지시와 동시에 재물 분석 각도가 동업 리스크·수익 모델 추천·재성 시점을 요구한 프롬프트 내부 모순이었다. v13은 이 지시를 실제 기록 확인·작은 검증·되돌릴 수 있는 선택 기준으로 바꾼다.
+- 생성용 사실 카드와 JSON에서는 점수·등급 라벨을 제외하되 저장·응답 `factSnapshot`은 유지한다. 위험한 그룹은 길이가 충분해도 보강 대상으로 보내며 더 긴 위험 원문보다 안전한 보강본을 우선한다.
+- 증거: `artifacts/fortune-consultation-ux/saju/live-v12-benchmark-summary.json`, `live-v12-quality-review.md`. 요청 해시·원문·제공자 응답·개인정보는 저장소에 넣지 않았다.
+- 자미두수는 미착수 상태를 유지한다. v13 새 실호출은 다시 별도 승인받기 전 실행하지 않는다.

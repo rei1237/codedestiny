@@ -296,7 +296,27 @@ function resetCalls() {
   );
 }
 
-// 3-5. 한 그룹이 통째로 실패해도 나머지는 살아서 배달된다(결제 후 무결과 방지).
+// 3-5. 근거 밖 인과가 든 그룹은 길이가 충분해도 그 그룹만 다시 쓰고, 더 짧아도 안전한 보강본을 택한다.
+{
+  resetCalls();
+  const unsafeGroup = SAJU_AI_SECTION_GROUPS.find((group) => group.key === "life_domains");
+  const unsafeSentence = "화(火) 기운이 없다는 것은 심장과 혈액순환 기능이 약할 수 있음을 나타냅니다.";
+  respond = (prompt) => {
+    const group = groupForPrompt(prompt);
+    if (!group) return "";
+    if (group.key !== unsafeGroup.key) return fakeGroupBody(group, group.minChars + 200);
+    if (!prompt.includes("[보강 요청]")) return `${fakeGroupBody(group, group.minChars + 500)}\n${unsafeSentence}`;
+    return fakeGroupBody(group, group.minChars + 100);
+  };
+  const { sectionResults } = await runSajuAISectionWaves(env, { ...baseArgs, deadlineAt: Date.now() + 80000 });
+  const repairCalls = calls.filter((call) => call.prompt.includes("[보강 요청]"));
+  check(repairCalls.length === 1, `안전 보강이 ${repairCalls.length}콜 나갔다 — 위험 그룹 1개만 다시 불러야 한다`);
+  check(repairCalls[0].prompt.includes("element-health-causality"), "안전 보강 지시에 실패 유형이 없다");
+  const repaired = sectionResults.find((row) => row.group.key === unsafeGroup.key);
+  check(!repaired.text.includes(unsafeSentence), "더 긴 위험 원본이 안전한 보강본을 덮었다");
+}
+
+// 3-6. 한 그룹이 통째로 실패해도 나머지는 살아서 배달된다(결제 후 무결과 방지).
 {
   resetCalls();
   const deadGroup = SAJU_AI_SECTION_GROUPS[2];
@@ -313,7 +333,7 @@ function resetCalls() {
   }
 }
 
-// 3-6. 예산이 없으면 호출을 아예 하지 않는다(잘릴 호출은 통째로 버려진다).
+// 3-7. 예산이 없으면 호출을 아예 하지 않는다(잘릴 호출은 통째로 버려진다).
 {
   resetCalls();
   respond = () => "";

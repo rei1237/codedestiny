@@ -218,21 +218,38 @@ const SAJU_AI_RESULT_FORBIDDEN_PATTERNS = [
 const SAJU_AI_RESULT_UNSUPPORTED_PATTERNS = Object.freeze([
   Object.freeze({
     key: "element-causality",
-    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*오행(?:이|의)?\s*(?:없\w*|부재).{0,180}(?:충동|규율|통제력|질환|장기|사업\s*적합|투자\s*성향)/s,
+    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*(?:오행|기운).{0,200}(?:없\w*|부재|부족|약하\w*|강하\w*|과도\w*|드러나\s*있지\s*않\w*).{0,320}(?:충동|규율|통제(?:력)?|재물\s*관리|투자\s*성향|소유욕|사업\s*적합|수익\s*창출)/s,
+  }),
+  Object.freeze({
+    key: "element-health-causality",
+    pattern: /(?:화|목|수|금|토)(?:\([^)]*\))?\s*(?:오행|기운).{0,200}(?:없\w*|부재|부족|약하\w*|강하\w*|과도\w*|드러나\s*있지\s*않\w*).{0,320}(?:폐|대장|피부|뼈|관절|심장|소장|혈액\s*순환|신장|방광|생식기|질환|장기|기능(?:이|의)?\s*(?:약|저하)|취약)/s,
   }),
   Object.freeze({
     key: "specific-financial-product",
-    pattern: /(?:부동산|채권|배당주|주식|코인|금융상품).{0,100}(?:관심을\s*가져|권해|추천합니다|적합합니다|유리합니다|현명합니다)/s,
+    pattern: /(?:부동산|채권|배당주|주식|코인|금융\s*상품|투자\s*상품|예금|적금).{0,220}(?:관심을\s*가질|관심을\s*가져|권해|추천|적합|유리|현명|가입|큰\s*수익|재산을\s*불)/s,
+  }),
+  Object.freeze({
+    key: "fortune-score-label",
+    pattern: /(?:\d{1,3}세.{0,80}\d{1,3}점|\d{1,3}점.{0,40}(?:최고의\s*운|역경\s*운|길운|흉운)|(?:최고의\s*운|역경\s*운|길운|흉운).{0,40}\d{1,3}점)/s,
   }),
   Object.freeze({
     key: "age-event-prediction",
-    pattern: /\d{1,3}세.{0,180}(?:큰\s*수익|손실이\s*발생|사업\s*확장|투자\s*포트폴리오|재물\s*기회가\s*열)/s,
+    pattern: /\d{1,3}세.{0,260}(?:큰\s*수익|손실이\s*발생|사업\s*확장|투자\s*포트폴리오|재물\s*기회가\s*열|수입을\s*기대|재물\s*활동이\s*활발)/s,
   }),
   Object.freeze({
     key: "ten-god-financial-loss",
-    pattern: /(?:비견|겁재).{0,100}(?:재물|금전).{0,100}(?:손실|분탈|분쟁)(?:을|이|로)?\s*(?:의미|발생|이어|가능성)/s,
+    pattern: /(?:비견|겁재).{0,320}(?:재물|금전|동업).{0,220}(?:손실|분탈|분쟁|빼앗|갈등).{0,100}(?:의미|발생|이어|가능성|암시|위험|높|내포)/s,
+  }),
+  Object.freeze({
+    key: "ten-god-income-causality",
+    pattern: /(?:정재|편재|상관|식신).{0,320}(?:큰\s*수익|수입\s*창출|재물(?:을|이)\s*(?:만들|증식)|사업(?:이나|과|·)?\s*부업|부업(?:이나|과|·)?\s*사업).{0,120}(?:가능성|잠재력|능력|유리|높|의미|나타)/s,
   }),
 ]);
+
+function findSajuAIUnsupportedAdvice(text) {
+  const normalized = normalizeSajuAIResultText(text);
+  return SAJU_AI_RESULT_UNSUPPORTED_PATTERNS.find(({ pattern }) => pattern.test(normalized)) || null;
+}
 const SAJU_AI_PROGRESS_STEPS = Object.freeze([
   { progress: 0, key: "payment", message: "결제/이용권 확인 중" },
   { progress: 15, key: "chart", message: "사주 명식 불러오는 중" },
@@ -482,16 +499,18 @@ function countSajuAICategoryMatches(text, rubric) {
   }, 0);
 }
 
-/** 완결이 길이보다 우선한다 — 완결된 4,000자를 잘린 4,500자로 바꾸면 개악이다. */
+/** 안전·완결이 길이보다 우선한다 — 위험한 장문이나 잘린 장문으로 바꾸면 개악이다. */
 function scoreSajuAISectionRow(row) {
   const complete = row?.text && !detectSajuAIIncompleteResult(row.text).incomplete;
-  return (complete ? 1000000 : 0) + countSajuAIVisibleChars(row?.text);
+  const supported = row?.text && !findSajuAIUnsupportedAdvice(row.text);
+  return (supported ? 2000000 : 0) + (complete ? 1000000 : 0) + countSajuAIVisibleChars(row?.text);
 }
 
 function isSajuAISectionRowShort(row) {
   return !row?.ok
     || countSajuAIVisibleChars(row.text) < row.group.minChars
-    || detectSajuAIIncompleteResult(row.text).incomplete;
+    || detectSajuAIIncompleteResult(row.text).incomplete
+    || Boolean(findSajuAIUnsupportedAdvice(row.text));
 }
 
 /**
@@ -578,11 +597,18 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         });
         const repaired = await Promise.all(shortGroups.map(async (row) => {
           const currentChars = countSajuAIVisibleChars(row.text);
+          const unsupported = findSajuAIUnsupportedAdvice(row.text);
           // 🔴 보강 지시는 형용사가 아니라 숫자로 준다. "더 길게"로는 분량이 늘지 않는다.
           const repairLines = row.ok && currentChars > 0
             ? [
+              ...(unsupported ? [
+                `현재 이 부분에 ${unsupported.key} 유형의 근거 밖 인과·조언이 포함되어 품질 기준을 통과하지 못했습니다.`,
+                "해당 연결을 삭제하고, 명식은 해석 가설로만 다루며 실제 기록으로 확인할 조건과 되돌릴 수 있는 행동으로 처음부터 다시 쓰세요.",
+              ] : []),
+              ...(currentChars < row.group.minChars ? [
               `현재 이 부분은 공백 제외 ${currentChars.toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
               `${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 아직 쓰지 않은 근거와 장면, 판단 기준을 새로 더해 처음부터 다시 쓰세요.`,
+              ] : []),
             ]
             : [];
           await onRepair(row);
@@ -626,7 +652,7 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
   if (forbidden) {
     return { ok: false, reason: "상담문 안에 기계적인 표현이 남아 있습니다." };
   }
-  const unsupported = SAJU_AI_RESULT_UNSUPPORTED_PATTERNS.find(({ pattern }) => pattern.test(normalized));
+  const unsupported = findSajuAIUnsupportedAdvice(normalized);
   if (unsupported) {
     return {
       ok: false,
@@ -1183,6 +1209,7 @@ function validateSajuAISection(text, group, factSnapshot, { lengthRepair = false
     && !detectSajuAIIncompleteResult(normalized).incomplete
     && !hasRepeatedReportPassage(normalized)
     && !SAJU_AI_RESULT_FORBIDDEN_PATTERNS.some((pattern) => pattern.test(normalized))
+    && !findSajuAIUnsupportedAdvice(normalized)
     && validateSajuMyeongsikTenGodText(normalized, factSnapshot).ok;
 }
 

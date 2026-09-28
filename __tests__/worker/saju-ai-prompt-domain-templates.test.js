@@ -163,6 +163,10 @@ describe("Saju AI prompt domain templates", () => {
     expect(built.domainLabel).toBe("재물/수익");
     expect(built.keywordWeights).toBeDefined();
     expect(built.keywordWeights["현금흐름"]).toBeDefined();
+    expect(built.prompt).toContain("명식으로 수익 모델이나 금융상품을 추천하지 않고");
+    expect(built.prompt).toContain("비겁으로 동업 손실을 단정하지 않고");
+    expect(built.prompt).not.toContain("적합 수익 모델 3~5개 추천");
+    expect(built.prompt).not.toContain("비겁 과다 시 재탈/동업 리스크");
   });
 
   test("litigation 도메인으로 프롬프트를 생성한다", () => {
