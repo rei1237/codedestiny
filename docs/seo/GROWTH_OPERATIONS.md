@@ -206,3 +206,15 @@ node scripts/seo-public-smoke.mjs
 - 평가 기준: 운영 반영일을 확인한 다음 28일 동안 같은 핵심 URL 집단의 노출·비브랜드 검색어·클릭·색인을 비교한다. 아직 운영 배포하지 않아 성과 측정 시작일은 null. 새 날짜별 URL 수와 핵심 가이드의 실적을 합쳐 개선 효과로 보고하지 않는다.
 
 이번 단계는 Google의 [사람에게 유용한 콘텐츠 평가 기준](https://developers.google.com/search/docs/fundamentals/creating-helpful-content)에 맞춰 검증 가능한 제품 설명을 강화한다. 검색 노출 증가나 AdSense 승인을 보장하지 않는다.
+
+## 2026-09-28 주간 관측
+
+- GSC 3개월(6/26~9/25): 29클릭·357노출·CTR 8.1%·24.4위. 28일(8/29~9/25): 9클릭·99노출·9.1%·23.5위. 이전 이동 기간과 겹치므로 독립적인 개선 실험으로 해석하지 않는다.
+- 색인 보고서 갱신일은 9/21: 색인 301, 제외 2,617, 발견됨-미색인 1,014, 크롤링됨-미색인 382. 전 관측 대비 색인 +9는 사실이나 특정 변경 효과는 미확정이다.
+- GSC 외부 링크 9개/5도메인. naver.com·dcinside.com·innoforest.co.kr가 GSC에서 새로 관측됐지만 신규 획득일·품질은 미확인이다. 이노포레스트 원문 URL은 GSC에서 확인했고 공개 도구 접근은 실패했다. acquiredLinks나 관련 도메인 KPI로 승격하지 않았다.
+- Naver는 재로그인 필요. 이번 주 수치는 null이며 9/21 관측은 history와 naverObservationHistory에 보존했다. AdSense 계정과 CMP는 이번에 재관측하지 않았다.
+- 공개 상태 검사: 랜딩 19개, sitemap 1,300개 URL, 오류 0. 전체 모바일·콘텐츠 감사 결과가 아니다. 월간 감사는 같은 달 9/8 기록이 있어 이번 실행에서 반복하지 않았다.
+- 기존 후보 5개(일본 3·한국 2) 본문 재검토. 大久保 작성자·9/21 수정일, 八雲院 문의 폼, Disquiet 소개의 실제 제품 연결 확인. 제한된 연결 3개에서 대체 제안할 깨진 링크는 확인하지 못했다. 점수는 미확인 항목을 유지하며 발송 0. 근거는 candidates.json의 evidence/reviewHistory에 있다.
+- 시나스트리 0클릭/14노출/13.6위, 나밤샤 0/12/9.3위가 소표본 기회다. query-page 교차는 미관측. 기존 숙요 연애·나밤샤 품질 수정이 이미 main에 있어 수량을 채우는 재수정은 하지 않았다. 새 본문 수정 0개.
+- 다음: Naver 로그인 복구, 위 두 글의 검색어 필터·공개 본문 대조, 10월 월간 감사. 현재 홈 정본은 app/page.js이며 index.html은 /ggulggul/ 및 로케일 셸이다. 과거 작업의 홈 정본 가정을 재사용하지 않는다.
+- 원칙: [Google 사람 중심 콘텐츠](https://developers.google.com/search/docs/fundamentals/creating-helpful-content). 기록 갱신만으로 콘텐츠 개선·순위 상승을 주장하지 않는다.
