@@ -619,6 +619,9 @@ jobs:
       - name: Verify fortune hub shell matches its source
         run: npm run verify:fortune-hub-shell
 
+      - name: Verify Yeongnyangi tarot asset manifest
+        run: npm run verify:yeongnyangi-tarot-assets
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 과 js/core/service-registry.js 라
       # 티어가 low/fast 로 잡히는데, build/critical 잡에 두면 정작 지켜야 할 "홈 가격 라벨 한 줄
       # 수정"에 깨어나지 않는다. 홈 표시가격이 결제 정본(worker/lib/paid-feature-registry.js)과

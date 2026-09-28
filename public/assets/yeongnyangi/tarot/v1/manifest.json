@@ -1,0 +1,1582 @@
+{
+  "schemaVersion": 1,
+  "deckId": "yeongnyangi-tarot-v1",
+  "deckVersion": "v1",
+  "brand": "yeongnyangi",
+  "scope": "major22",
+  "completeDeck": false,
+  "expectedCardCount": 22,
+  "sizes": {
+    "thumb": 240,
+    "std": 600,
+    "hi": 1200
+  },
+  "formats": [
+    "webp",
+    "avif"
+  ],
+  "cards": [
+    {
+      "id": "M00",
+      "arcana": "major",
+      "suit": null,
+      "rank": 0,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M00-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M00-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M00-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M00-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M00-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M00-1200.avif"
+      },
+      "integrity": {
+        "M00-240.webp": {
+          "sha256": "c0a96c09f96d5a09f353bc6c25ee3b9e3b0b15830f70f02e86670516038b1cc4",
+          "bytes": 31664,
+          "width": 240,
+          "height": 360
+        },
+        "M00-240.avif": {
+          "sha256": "b39d63cb1efd9194ca4f3b709c1e5cf274ca5a1bb40fc765a4f6bec8e8128e9d",
+          "bytes": 22807,
+          "width": 240,
+          "height": 360
+        },
+        "M00-600.webp": {
+          "sha256": "d7ae5fe0a176407ad333fb71e573d19fc8b88122a71575c1f66d01c6a1d88bf1",
+          "bytes": 129276,
+          "width": 600,
+          "height": 900
+        },
+        "M00-600.avif": {
+          "sha256": "544614e3717b88088c17eaccc1f93bb6484b20bd062d8d46e506e7bc420ec7f3",
+          "bytes": 82101,
+          "width": 600,
+          "height": 900
+        },
+        "M00-1200.webp": {
+          "sha256": "494e37fb12950b635f84cc4e3953f22f5ad386a75f1b323a2c88443dd5ad70b0",
+          "bytes": 330840,
+          "width": 1200,
+          "height": 1800
+        },
+        "M00-1200.avif": {
+          "sha256": "8fed35401072432582cd3a5942b51110375f7a9d8d60dc3bc0bc85638dc351b1",
+          "bytes": 167960,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M00.alt",
+      "nameKey": "tarot.M00.name",
+      "gaze": "위-우(나비 쪽)",
+      "dominantColor": "#081818",
+      "contentHash": "12ae82050826afb0870b1b5a48cccd8ef67205c224d507a5326d6f2bce8a989c",
+      "sourceContentHash": "c176f6559165677bd47e7c76e0c3ffc29344445da90a6334d1d916616aa5130b",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M01",
+      "arcana": "major",
+      "suit": null,
+      "rank": 1,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M01-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M01-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M01-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M01-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M01-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M01-1200.avif"
+      },
+      "integrity": {
+        "M01-240.webp": {
+          "sha256": "dadbc76eb551b94d02f4aff34dcb7c67e6785ab6c0a5c6279d3fd41006143a60",
+          "bytes": 35108,
+          "width": 240,
+          "height": 360
+        },
+        "M01-240.avif": {
+          "sha256": "3dfa36b239dae5de861a412981146b5875bca0afa67b762c0c242fc710cde0e6",
+          "bytes": 24800,
+          "width": 240,
+          "height": 360
+        },
+        "M01-600.webp": {
+          "sha256": "32bab3229df6c97b215f686eebdb0056982c576f2c7dc61a62cb70b15bad8239",
+          "bytes": 148516,
+          "width": 600,
+          "height": 900
+        },
+        "M01-600.avif": {
+          "sha256": "57747548c4a804ca87ed5e99b7f8176ff37b788314839740d882489ae7718ae0",
+          "bytes": 89995,
+          "width": 600,
+          "height": 900
+        },
+        "M01-1200.webp": {
+          "sha256": "cb1a46ea1b40cb3ecb357f0c1829af2ff40f6a325b7dcd91ff41466cacf32155",
+          "bytes": 358450,
+          "width": 1200,
+          "height": 1800
+        },
+        "M01-1200.avif": {
+          "sha256": "448e145a916c42c8dda88e682b398ebd51826c0854a2a80e4820253a0f095f63",
+          "bytes": 184171,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M01.alt",
+      "nameKey": "tarot.M01.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "96cd68b120ef4f0a62af6fa38e2f9f0092f9f71491257d587c6d4298e38b5908",
+      "sourceContentHash": "844c8469edc8d1ca63097eaed64f3809abda6d6bd177aa14359c7d1cbb854513",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M02",
+      "arcana": "major",
+      "suit": null,
+      "rank": 2,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M02-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M02-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M02-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M02-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M02-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M02-1200.avif"
+      },
+      "integrity": {
+        "M02-240.webp": {
+          "sha256": "1ed42c2c6d512d8f96324d6c1ada06cfe96b6f12667189f4de23e9ff49021bf2",
+          "bytes": 28742,
+          "width": 240,
+          "height": 360
+        },
+        "M02-240.avif": {
+          "sha256": "6d13ef74cac64908f019354a9b4c362d497df3364b72b86e50d2c356a7ac2a81",
+          "bytes": 19434,
+          "width": 240,
+          "height": 360
+        },
+        "M02-600.webp": {
+          "sha256": "480342810910541c085a7ce3f5ca2ee4a37af860c2c987f87249cfcec1ad32c7",
+          "bytes": 123072,
+          "width": 600,
+          "height": 900
+        },
+        "M02-600.avif": {
+          "sha256": "e7dc5e7bb7587efae68c56c5e6173d9909146d42622a9cdfa3fc83eb1de369ae",
+          "bytes": 73113,
+          "width": 600,
+          "height": 900
+        },
+        "M02-1200.webp": {
+          "sha256": "3b46a6e806b940b3ed94d15e46cafedb30cda3944967507d481f9e87af1dde8b",
+          "bytes": 306352,
+          "width": 1200,
+          "height": 1800
+        },
+        "M02-1200.avif": {
+          "sha256": "595babb1b06d0eb9be9b8bcdafad8f0b8c1f411b4637ffca93cd5a93918c7f93",
+          "bytes": 156686,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M02.alt",
+      "nameKey": "tarot.M02.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "47376d5ac3ff2e2a31377b8ac32338e03d80b2b2a06eca07391ba8264d516e70",
+      "sourceContentHash": "aaadd9df1d4b3cea4557a5ea831105cf566347b086d0f30a11c1a8f4be52d121",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M03",
+      "arcana": "major",
+      "suit": null,
+      "rank": 3,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M03-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M03-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M03-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M03-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M03-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M03-1200.avif"
+      },
+      "integrity": {
+        "M03-240.webp": {
+          "sha256": "c8261330e2e4dd23bb2b7aaef321236819893dc963494e5b6881ed797e31266b",
+          "bytes": 38260,
+          "width": 240,
+          "height": 360
+        },
+        "M03-240.avif": {
+          "sha256": "1bd23507f12fc2da8ccd1727cbf0026d721c64b0e94851d3e605be237c190487",
+          "bytes": 31007,
+          "width": 240,
+          "height": 360
+        },
+        "M03-600.webp": {
+          "sha256": "a5441011113be67e60a4ed22cf38541075e3893c750e33ccc1d370a0fbd4c795",
+          "bytes": 164088,
+          "width": 600,
+          "height": 900
+        },
+        "M03-600.avif": {
+          "sha256": "d0efd872e461b9efbf23307ca3c70c33efee0e3e2295aadc9492473f141de45d",
+          "bytes": 111502,
+          "width": 600,
+          "height": 900
+        },
+        "M03-1200.webp": {
+          "sha256": "a1d4f21937863d3915a8f6bbca86ad7abe10cc13783b66aa8fcfd2eefc7ae9bf",
+          "bytes": 372584,
+          "width": 1200,
+          "height": 1800
+        },
+        "M03-1200.avif": {
+          "sha256": "994b0899c3eca45202daae7d81f258c50e5f9011435463f33340614fda4dcc8a",
+          "bytes": 212190,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M03.alt",
+      "nameKey": "tarot.M03.name",
+      "gaze": "viewer tilted",
+      "dominantColor": "#081818",
+      "contentHash": "1e1ce2d0a0e9c2cae01b4b929dc9749d2a5a5145f9f0898cb7967549d4ee4c8c",
+      "sourceContentHash": "e2d2446e92c914e3ae7e812445f2c1df8b26b803893da187b73c10b1ed9f4a0c",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M04",
+      "arcana": "major",
+      "suit": null,
+      "rank": 4,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M04-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M04-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M04-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M04-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M04-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M04-1200.avif"
+      },
+      "integrity": {
+        "M04-240.webp": {
+          "sha256": "37ad14283dd0c0d46c52390e15338a27f8d7c778445d433477bff615e451ba71",
+          "bytes": 34032,
+          "width": 240,
+          "height": 360
+        },
+        "M04-240.avif": {
+          "sha256": "e6e95a0b250837e5d07d94d39eaedda3e9cfcccb877b6f228fc3f38cadae5eaa",
+          "bytes": 23586,
+          "width": 240,
+          "height": 360
+        },
+        "M04-600.webp": {
+          "sha256": "c15fdd4614a2c271d92d8ef82d60f20c550fed008636367f5222637d6a9409a9",
+          "bytes": 153244,
+          "width": 600,
+          "height": 900
+        },
+        "M04-600.avif": {
+          "sha256": "9fdb004343fe5253ffdce0df7da22a496b21b1144643912c2f4e1675bfb596d1",
+          "bytes": 92128,
+          "width": 600,
+          "height": 900
+        },
+        "M04-1200.webp": {
+          "sha256": "a97701396ffcc3a93032e14161fb90f2136aba3fe67aca70178efe252a24512f",
+          "bytes": 387654,
+          "width": 1200,
+          "height": 1800
+        },
+        "M04-1200.avif": {
+          "sha256": "682c1a96bb8a5ab33a7a08661c17e1f1d2a78e6a7821851da84a99ffdffca9ae",
+          "bytes": 198509,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M04.alt",
+      "nameKey": "tarot.M04.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "29bce720171717a19396e36e0f2f836e33d720aa100ffb753b32f3f4702cca81",
+      "sourceContentHash": "54e1ef0695e0f8c6a015efafeb26400be2942bfe3291997c12b6801ddb566153",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M05",
+      "arcana": "major",
+      "suit": null,
+      "rank": 5,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M05-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M05-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M05-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M05-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M05-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M05-1200.avif"
+      },
+      "integrity": {
+        "M05-240.webp": {
+          "sha256": "e6fd48f46ddcd88076759152d7930dd8247bb25353ebf576eab87b2ad04db960",
+          "bytes": 36656,
+          "width": 240,
+          "height": 360
+        },
+        "M05-240.avif": {
+          "sha256": "23826ef3c4a3c7cd46c9f2a7fbb45eae91d8b5820819dfe80312cbf63f2faeeb",
+          "bytes": 26840,
+          "width": 240,
+          "height": 360
+        },
+        "M05-600.webp": {
+          "sha256": "a67fa58116fef4667438eeb5882045516759be58df918c590d46515d37140740",
+          "bytes": 166432,
+          "width": 600,
+          "height": 900
+        },
+        "M05-600.avif": {
+          "sha256": "a6543cbe514b9989fde1f5ad19a277bc78b2975a8407063e5b51335e351d731a",
+          "bytes": 107322,
+          "width": 600,
+          "height": 900
+        },
+        "M05-1200.webp": {
+          "sha256": "cc0fcd06372eb73eeac1da9882d6f055b93f38854e7401776459d6f0f1e1aac6",
+          "bytes": 410602,
+          "width": 1200,
+          "height": 1800
+        },
+        "M05-1200.avif": {
+          "sha256": "2332fc21355ea19d3adae6ff62f71d35d9cf081e99dec0cd158ff418fb3443d7",
+          "bytes": 226728,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M05.alt",
+      "nameKey": "tarot.M05.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "ce0e5d56a00fea421f9dffe205d6143a849baf4e6a9d2585504113211bad85d2",
+      "sourceContentHash": "eacdc2a4b0d42d0a4ed03efd33644abbf2b7fcf5653dc72cdabb94ae15f7ea83",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M06",
+      "arcana": "major",
+      "suit": null,
+      "rank": 6,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M06-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M06-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M06-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M06-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M06-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M06-1200.avif"
+      },
+      "integrity": {
+        "M06-240.webp": {
+          "sha256": "0b6911ba7c4b501ee827d0fe2807023372a7810609f2e9fe764fb1ff70321e76",
+          "bytes": 34228,
+          "width": 240,
+          "height": 360
+        },
+        "M06-240.avif": {
+          "sha256": "a5796e8413543173202c8bf17c7678ec4e5042f6e06395885c0dd727989ed245",
+          "bytes": 29528,
+          "width": 240,
+          "height": 360
+        },
+        "M06-600.webp": {
+          "sha256": "9e51106155f27ee40fe4dee396340e3424eac3f3dad619940883252b6aee3456",
+          "bytes": 160616,
+          "width": 600,
+          "height": 900
+        },
+        "M06-600.avif": {
+          "sha256": "7b310fa61cb39762cf897589fe1615c4d9af0c95ca2a62192ffb6138c45e77e5",
+          "bytes": 109095,
+          "width": 600,
+          "height": 900
+        },
+        "M06-1200.webp": {
+          "sha256": "90ea4e2db2dc96e66cf845df910d84cc5a99d511ca77d413dda91ddc7ef5ede5",
+          "bytes": 410732,
+          "width": 1200,
+          "height": 1800
+        },
+        "M06-1200.avif": {
+          "sha256": "28b2f4ecb5f853b6b968bfce87295224861ff6d6c5ac483d1b59fcd8149d2a86",
+          "bytes": 227011,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M06.alt",
+      "nameKey": "tarot.M06.name",
+      "gaze": "우측(진주 쪽, 3/4 우향)",
+      "dominantColor": "#081818",
+      "contentHash": "eae210d7e4f7b4685f7ca08bdf85731b6a4ed9bc70ebb3795e9a8de6986614d1",
+      "sourceContentHash": "ced47362f2d823717e7036c5a4f7b349df51ac56bc5633a2c9d9de4412332858",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M07",
+      "arcana": "major",
+      "suit": null,
+      "rank": 7,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M07-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M07-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M07-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M07-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M07-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M07-1200.avif"
+      },
+      "integrity": {
+        "M07-240.webp": {
+          "sha256": "db03b5acefd0a4e1d8289ebf165784b212aaf86f6f75f2fb924cdd6c5c4f8d15",
+          "bytes": 36510,
+          "width": 240,
+          "height": 360
+        },
+        "M07-240.avif": {
+          "sha256": "98db73038021790144430872324eb604e9643d4fe31772e57d24aab8b53d4277",
+          "bytes": 26694,
+          "width": 240,
+          "height": 360
+        },
+        "M07-600.webp": {
+          "sha256": "76ad4b1aa0c752b7520e2dc994ad980e86dd557a231bcfdda4d4cc1df93d62b9",
+          "bytes": 171472,
+          "width": 600,
+          "height": 900
+        },
+        "M07-600.avif": {
+          "sha256": "029d41012a0323b7d9c7a6be596036d8178e2e3d1c336402e0c999365dab4665",
+          "bytes": 109512,
+          "width": 600,
+          "height": 900
+        },
+        "M07-1200.webp": {
+          "sha256": "45ca2afed2409c5697db3c6f909519ad65686bb3d1c540b9cdcd89c7fe178aad",
+          "bytes": 431338,
+          "width": 1200,
+          "height": 1800
+        },
+        "M07-1200.avif": {
+          "sha256": "c92b610ba984b11a7baf2606cc70c0053f5aef72f24a9521d829c33ff8484bb3",
+          "bytes": 241937,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M07.alt",
+      "nameKey": "tarot.M07.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "2d6414ef2181af526f1112e9f459f6c548e478e192306dc56886646166a27890",
+      "sourceContentHash": "9fda56ce4de9119b5fdae442b4423caaccea4c89f3d49c9dde71ccb85df3de11",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M08",
+      "arcana": "major",
+      "suit": null,
+      "rank": 8,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M08-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M08-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M08-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M08-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M08-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M08-1200.avif"
+      },
+      "integrity": {
+        "M08-240.webp": {
+          "sha256": "20d53258aa1f4b4708d0c6789646ea2b6dec36061e74ff2981c77f785ec68627",
+          "bytes": 31644,
+          "width": 240,
+          "height": 360
+        },
+        "M08-240.avif": {
+          "sha256": "458036d224262908766044a642afd9424098d5e49ee2dcec8415bb76d1c89e72",
+          "bytes": 21808,
+          "width": 240,
+          "height": 360
+        },
+        "M08-600.webp": {
+          "sha256": "2535cd2c78dc58471626ec73b5901f6d2021b82a602396b886047a69a31ee44f",
+          "bytes": 136848,
+          "width": 600,
+          "height": 900
+        },
+        "M08-600.avif": {
+          "sha256": "659beb71a144f05ecf87a2dbcc632b37a96d6053309d2b46afd3e0671a8f2e3e",
+          "bytes": 82617,
+          "width": 600,
+          "height": 900
+        },
+        "M08-1200.webp": {
+          "sha256": "80289f6a8df67dcedf6c66328601a2613d08ff5578f9272558ae1750e8aa8bdb",
+          "bytes": 333968,
+          "width": 1200,
+          "height": 1800
+        },
+        "M08-1200.avif": {
+          "sha256": "9060e42c9cee478911e8063c40a7bee6ed52addf210b1d590fb5a81bd76af40c",
+          "bytes": 172682,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M08.alt",
+      "nameKey": "tarot.M08.name",
+      "gaze": "3/4 자신의 왼쪽(화면 오른쪽·사자 쪽)으로 돌렸으나 눈동자는 보는 사람",
+      "dominantColor": "#081818",
+      "contentHash": "e1833f70b32a273846cda460e50db028d91f7d1593fa4da08481b5c6f2638f65",
+      "sourceContentHash": "75df6bf1f8ff11f919878361a84691af565309be0e1d17c3723e71e5152c770d",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M09",
+      "arcana": "major",
+      "suit": null,
+      "rank": 9,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M09-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M09-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M09-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M09-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M09-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M09-1200.avif"
+      },
+      "integrity": {
+        "M09-240.webp": {
+          "sha256": "865d2381827443914d817be7ee9543d55478537dcd86e489e9ed0770475605b8",
+          "bytes": 33142,
+          "width": 240,
+          "height": 360
+        },
+        "M09-240.avif": {
+          "sha256": "6a1c7650dcd7dea91fefd9ba3f01623c7f4af6754e5c87d6e4282fcfe4f2f683",
+          "bytes": 23277,
+          "width": 240,
+          "height": 360
+        },
+        "M09-600.webp": {
+          "sha256": "cd49dec883302c257063184757b08cbbb84ad81b37b723e97ae86a5bd0c70ab2",
+          "bytes": 141624,
+          "width": 600,
+          "height": 900
+        },
+        "M09-600.avif": {
+          "sha256": "6a0273de74d9f6b2d2dbb744448d26ea7753e362d9c4529f2df1b468070a17f6",
+          "bytes": 87430,
+          "width": 600,
+          "height": 900
+        },
+        "M09-1200.webp": {
+          "sha256": "ed6550214bb0ba28ff8fffbf242d54ee47bd50687bfd3f4d55e741ef0263eed4",
+          "bytes": 366340,
+          "width": 1200,
+          "height": 1800
+        },
+        "M09-1200.avif": {
+          "sha256": "e1de66c61f79ea40efffaefdd2e6367485eec6b5ff2c80a2789f1c0081b7c923",
+          "bytes": 185419,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M09.alt",
+      "nameKey": "tarot.M09.name",
+      "gaze": "우측(보는 사람 기준 왼쪽 길), 거의 수평",
+      "dominantColor": "#081818",
+      "contentHash": "74090af415e62605ce00074ff762111baf645d6f29774a97eefa91de5dd71efa",
+      "sourceContentHash": "6d72befdda5d13e4dc5227421af4a07a154a6fcf4fa0abb256d3eb169205ff40",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M10",
+      "arcana": "major",
+      "suit": null,
+      "rank": 10,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M10-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M10-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M10-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M10-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M10-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M10-1200.avif"
+      },
+      "integrity": {
+        "M10-240.webp": {
+          "sha256": "e7938cdb2810e684e370e6b2195ffed0de45579c020efa6cf3023bf53f9e3552",
+          "bytes": 34284,
+          "width": 240,
+          "height": 360
+        },
+        "M10-240.avif": {
+          "sha256": "5bad9c3f7d5505740588a085dce4748094b7dc2813d6504be5896238eff9e5e6",
+          "bytes": 25322,
+          "width": 240,
+          "height": 360
+        },
+        "M10-600.webp": {
+          "sha256": "770291877c8d92d288386fd5a19cc63a4db0cc90cafb5868a1570944283be3fe",
+          "bytes": 154774,
+          "width": 600,
+          "height": 900
+        },
+        "M10-600.avif": {
+          "sha256": "54be92d5d6c232376642085ebf2dbbd70970cdc6b6c4952d0bcdec4dfc0b4056",
+          "bytes": 97665,
+          "width": 600,
+          "height": 900
+        },
+        "M10-1200.webp": {
+          "sha256": "c1265f8ca33f5242aaf53fc032823f15758acb6e4b0f46beeb02c75027152149",
+          "bytes": 388240,
+          "width": 1200,
+          "height": 1800
+        },
+        "M10-1200.avif": {
+          "sha256": "d25448a1b5afdf5449bc76671980739360acd152453452ea20b15c1e959f0ee0",
+          "bytes": 208931,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M10.alt",
+      "nameKey": "tarot.M10.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "e855b079d32b36fee5f4b014c41f561ecd3a7ad327dfd2f995b5c3697b63c8d3",
+      "sourceContentHash": "8656f9765f06afc50206bec66e228792314ebf08c538158b2806a19b26341fe1",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M11",
+      "arcana": "major",
+      "suit": null,
+      "rank": 11,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M11-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M11-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M11-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M11-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M11-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M11-1200.avif"
+      },
+      "integrity": {
+        "M11-240.webp": {
+          "sha256": "963966ce32ef26bd8a633ede026dbaaeede0798bb341216f9e70cc153dbaab0e",
+          "bytes": 30746,
+          "width": 240,
+          "height": 360
+        },
+        "M11-240.avif": {
+          "sha256": "cd85c88f0ce8d73451b3c713e96129e0ac50829b150aeef45bc9f1b7a72a5196",
+          "bytes": 20873,
+          "width": 240,
+          "height": 360
+        },
+        "M11-600.webp": {
+          "sha256": "72d1e1acb4d4a23ced69e2b99fe447258be864823c2765573a1296965588a439",
+          "bytes": 128394,
+          "width": 600,
+          "height": 900
+        },
+        "M11-600.avif": {
+          "sha256": "92cc359823582f390206af863c15cea52a525ff7c9df096d71002331f395f5ed",
+          "bytes": 78305,
+          "width": 600,
+          "height": 900
+        },
+        "M11-1200.webp": {
+          "sha256": "9ca5cc96c3b0ae11de3712f3c90396df00629faa244e952cd4f294cf663c6114",
+          "bytes": 329514,
+          "width": 1200,
+          "height": 1800
+        },
+        "M11-1200.avif": {
+          "sha256": "4bda2101d1eb0cb4ad9b2c32317b912167664c7d247d6251e3fa9636f17067f1",
+          "bytes": 168236,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M11.alt",
+      "nameKey": "tarot.M11.name",
+      "gaze": "정면(보는 사람)",
+      "dominantColor": "#081818",
+      "contentHash": "63a6fc861f26bd7efb0fbe52e37cf4161f83de2983da6ddea5a2f5641c6a48c6",
+      "sourceContentHash": "0012dad37b96f8d5b7eff36dda0a065e315be89a2966c956fcdebf59a73d7b29",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M12",
+      "arcana": "major",
+      "suit": null,
+      "rank": 12,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M12-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M12-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M12-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M12-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M12-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M12-1200.avif"
+      },
+      "integrity": {
+        "M12-240.webp": {
+          "sha256": "2cf61ff9fa3fe490ff6e2c7615565c31eea826add91733e1ffaf509a7722abb1",
+          "bytes": 33520,
+          "width": 240,
+          "height": 360
+        },
+        "M12-240.avif": {
+          "sha256": "a0b50ae71516c7911953f2dd7d85b573a443141708674e06ba39fa38e3132098",
+          "bytes": 22795,
+          "width": 240,
+          "height": 360
+        },
+        "M12-600.webp": {
+          "sha256": "ea2d6eedf7efea5c686a6462c3bcc74e8f52b547306cad9fe57392b28295d65e",
+          "bytes": 155302,
+          "width": 600,
+          "height": 900
+        },
+        "M12-600.avif": {
+          "sha256": "4896c4856764166dcba854a555c33ceff3b81c1709a1b3d96d75ae03b978fc75",
+          "bytes": 95686,
+          "width": 600,
+          "height": 900
+        },
+        "M12-1200.webp": {
+          "sha256": "fb312362d3ad22e037caedfd524af41af4511c4c35cc27a3bf6d51dbcb71cedf",
+          "bytes": 386984,
+          "width": 1200,
+          "height": 1800
+        },
+        "M12-1200.avif": {
+          "sha256": "83dd94b3891bff04e26bdb727d089eff669bfb42bad0a826f8673c82e7dd2b33",
+          "bytes": 207559,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M12.alt",
+      "nameKey": "tarot.M12.name",
+      "gaze": "viewer inverted",
+      "dominantColor": "#081818",
+      "contentHash": "f74cc6939a7ceaca2e53014eb3dd277cf723657ab12377d20b4576c412ddd3c4",
+      "sourceContentHash": "e7a18a28fe0f6cc8a4f911b7c9bf5c712b3b69056ca8763f8cffa06669f945ed",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M13",
+      "arcana": "major",
+      "suit": null,
+      "rank": 13,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M13-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M13-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M13-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M13-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M13-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M13-1200.avif"
+      },
+      "integrity": {
+        "M13-240.webp": {
+          "sha256": "b45bdfb348d98e88283a8576a78c4ba02c602ebea09a3d33bc44b05d85b1f5dd",
+          "bytes": 34610,
+          "width": 240,
+          "height": 360
+        },
+        "M13-240.avif": {
+          "sha256": "b3ad88ee6d66e961637f9ea6f6019916d02cbb625bbe29e589a7b016ede86cb5",
+          "bytes": 23638,
+          "width": 240,
+          "height": 360
+        },
+        "M13-600.webp": {
+          "sha256": "9f4ab9d617b2e5e00b878e72384af46484c10b08ce6c564807b371458e7790df",
+          "bytes": 148910,
+          "width": 600,
+          "height": 900
+        },
+        "M13-600.avif": {
+          "sha256": "3b2c9f6ff845a2c18cba00cb523338693ab49ca7a64a608add204df2fa895db4",
+          "bytes": 87340,
+          "width": 600,
+          "height": 900
+        },
+        "M13-1200.webp": {
+          "sha256": "d9d8f9a5e664e159d2c3d8194e628932be0eb63a2c49dfae3ceec92276339463",
+          "bytes": 358436,
+          "width": 1200,
+          "height": 1800
+        },
+        "M13-1200.avif": {
+          "sha256": "930eae299669d65985d50a81fcee9cd28b80b96b8ac554f48134c94834161825",
+          "bytes": 179293,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M13.alt",
+      "nameKey": "tarot.M13.name",
+      "gaze": "viewer with slightly raised head",
+      "dominantColor": "#081818",
+      "contentHash": "bf46ce37f7dcaa159f37df6cd769f8d7651f372ca9c8092067186cf27928c7e4",
+      "sourceContentHash": "60837ebd667f585b44d7f920fa7119288521412ab29ff613993d45b2953f4b8a",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M14",
+      "arcana": "major",
+      "suit": null,
+      "rank": 14,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M14-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M14-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M14-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M14-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M14-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M14-1200.avif"
+      },
+      "integrity": {
+        "M14-240.webp": {
+          "sha256": "c2dc2159cec569df7f7e740d435fe27f49c96482b953d41cd4f80344c343def4",
+          "bytes": 32464,
+          "width": 240,
+          "height": 360
+        },
+        "M14-240.avif": {
+          "sha256": "2d95e0b86524828a9f6d57280ad0655ff7f7aa2854e4e5b2b9702980a6c0e260",
+          "bytes": 22916,
+          "width": 240,
+          "height": 360
+        },
+        "M14-600.webp": {
+          "sha256": "af4605a2163475b91063673b31043620b2875ed945256c01a4daaf9cca52e500",
+          "bytes": 137742,
+          "width": 600,
+          "height": 900
+        },
+        "M14-600.avif": {
+          "sha256": "7df56d7e20a55dd0091f1c3f21a9bb77f2861984dd5d89d3481c72244edce64a",
+          "bytes": 82434,
+          "width": 600,
+          "height": 900
+        },
+        "M14-1200.webp": {
+          "sha256": "dea477804c00dc457b8cf6d7962413ba6a86f7f7d2dbd9ea30fd0fb3d2dd915b",
+          "bytes": 334548,
+          "width": 1200,
+          "height": 1800
+        },
+        "M14-1200.avif": {
+          "sha256": "dee53033bcdf760da7fd8c92d84e9f2de2a044fed0a8345e8b8c9909aa16aa9c",
+          "bytes": 168863,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M14.alt",
+      "nameKey": "tarot.M14.name",
+      "gaze": "viewer tilted",
+      "dominantColor": "#081818",
+      "contentHash": "240f82c6be86ba27a17ccde5ffdc7be43675bed0e2e460965332f4cf0e0b616f",
+      "sourceContentHash": "47024d2d6d49eb81b4aa499f70ad7fe6c1e3b3db6b6260571a95d445574301c7",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M15",
+      "arcana": "major",
+      "suit": null,
+      "rank": 15,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M15-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M15-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M15-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M15-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M15-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M15-1200.avif"
+      },
+      "integrity": {
+        "M15-240.webp": {
+          "sha256": "4e4e58a08f528d92a7782227cda5739ea800fe32cd108117c8beeccc80905de4",
+          "bytes": 28730,
+          "width": 240,
+          "height": 360
+        },
+        "M15-240.avif": {
+          "sha256": "b3c6f8f698c679ba1fbfcba0a1fdc5ad41fe640591878ed5ad03666e439e8c45",
+          "bytes": 17480,
+          "width": 240,
+          "height": 360
+        },
+        "M15-600.webp": {
+          "sha256": "a8d0274fb3efb5d9e479819f6d74cfc38ad3ef3cf788f6a204973013d11e3241",
+          "bytes": 125450,
+          "width": 600,
+          "height": 900
+        },
+        "M15-600.avif": {
+          "sha256": "ff7563f0dff9596c93863758be603a8e619f6a86ceb226752da5488099d3d5ef",
+          "bytes": 69233,
+          "width": 600,
+          "height": 900
+        },
+        "M15-1200.webp": {
+          "sha256": "a48ccd364c03373e5f337d350eefe8fb155c0f933e7b866a966c2eba24d83a10",
+          "bytes": 312340,
+          "width": 1200,
+          "height": 1800
+        },
+        "M15-1200.avif": {
+          "sha256": "54a9da2aa3cdfa260819612be4e5e56de024ddadf11ed52eab59580b0bf55489",
+          "bytes": 152103,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M15.alt",
+      "nameKey": "tarot.M15.name",
+      "gaze": "shadow toward viewer; companions look toward each other/up",
+      "dominantColor": "#081818",
+      "contentHash": "6fb3eb8e018bbea82194a1b5f83c6904376d76b9221b31c2e68fabc7725b5c08",
+      "sourceContentHash": "1e4fe36eeae53facbeb46af79f1ac853741585e50117f62a570389c0e830cec2",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M16",
+      "arcana": "major",
+      "suit": null,
+      "rank": 16,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M16-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M16-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M16-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M16-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M16-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M16-1200.avif"
+      },
+      "integrity": {
+        "M16-240.webp": {
+          "sha256": "744afb1282602011af625b05c72cff8a5cfb50e5d6b5fb6fed81d7b58fa5c3e3",
+          "bytes": 34272,
+          "width": 240,
+          "height": 360
+        },
+        "M16-240.avif": {
+          "sha256": "4c30b133f292d291fffb45716d8ac4af3d41d33ccb83c582803306c2f59bfed8",
+          "bytes": 23903,
+          "width": 240,
+          "height": 360
+        },
+        "M16-600.webp": {
+          "sha256": "edd9fbab97b87625ba5719bc2d34f90956fa0f572acd5e4b7201c25003fdc053",
+          "bytes": 156456,
+          "width": 600,
+          "height": 900
+        },
+        "M16-600.avif": {
+          "sha256": "06b4a18bfaedae801ee09c48283b71a4d6b0f7d39763bd92a768c90599f5b3f3",
+          "bytes": 96517,
+          "width": 600,
+          "height": 900
+        },
+        "M16-1200.webp": {
+          "sha256": "81a0a843625ac0d851d7a6672f8c79e91fb954ac1acd160f4f1e625e5ae8e423",
+          "bytes": 400768,
+          "width": 1200,
+          "height": 1800
+        },
+        "M16-1200.avif": {
+          "sha256": "43eb7cc4456ff2af5326aa2dc9890cabbcc3c2fd251e609c1dcb3deaf3195665",
+          "bytes": 209362,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M16.alt",
+      "nameKey": "tarot.M16.name",
+      "gaze": "보는 사람 쪽(동공 약간 왼쪽)",
+      "dominantColor": "#081818",
+      "contentHash": "5b4a928fe31fd88ae651a2a873b9be0e61471a1f7cf9dd9173ca0176ebcffccf",
+      "sourceContentHash": "726ec9929ef82b1631e484d41f41e16940699e5362432d485a92279968d6ec77",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M17",
+      "arcana": "major",
+      "suit": null,
+      "rank": 17,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M17-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M17-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M17-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M17-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M17-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M17-1200.avif"
+      },
+      "integrity": {
+        "M17-240.webp": {
+          "sha256": "429cc41ab683090b93a6d823659b08ea0417a23aaeec3b3ac0b960abbd30c908",
+          "bytes": 31288,
+          "width": 240,
+          "height": 360
+        },
+        "M17-240.avif": {
+          "sha256": "a1817024bc6d40c58e1aef7fbd6661ce2e9c477dc6de76b2db2c1a328368d19c",
+          "bytes": 21598,
+          "width": 240,
+          "height": 360
+        },
+        "M17-600.webp": {
+          "sha256": "7ae9782ce156b5622b7ba3da162e4bc78a1888d54b22ce34b90de19b466acd72",
+          "bytes": 137620,
+          "width": 600,
+          "height": 900
+        },
+        "M17-600.avif": {
+          "sha256": "37ea593a4858739e1f6b789d5b7fb347193b310a47380241ead62c9b7df64b3b",
+          "bytes": 83482,
+          "width": 600,
+          "height": 900
+        },
+        "M17-1200.webp": {
+          "sha256": "e660c88cf405386b3a135f5639ad2ad80eaef78a6448688158c2c96e7faa3cb1",
+          "bytes": 348708,
+          "width": 1200,
+          "height": 1800
+        },
+        "M17-1200.avif": {
+          "sha256": "9055a38e1b47d9bd76cff2d9abcb25c7a2bebc776d40a218272a981bbe1f7919",
+          "bytes": 177694,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M17.alt",
+      "nameKey": "tarot.M17.name",
+      "gaze": "viewer with slight tilt",
+      "dominantColor": "#081818",
+      "contentHash": "7d954429264af9d17eba21edb190b7144cff3b652c9b074f517d2dd69840f895",
+      "sourceContentHash": "ddf9827107737ca8651672777df68e0895a63df766a9ef01c1f19ec05452277d",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M18",
+      "arcana": "major",
+      "suit": null,
+      "rank": 18,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M18-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M18-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M18-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M18-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M18-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M18-1200.avif"
+      },
+      "integrity": {
+        "M18-240.webp": {
+          "sha256": "e36da6ab666584088ce9e58a0ce4d8f4c2d8e93a1550ec4c8e51a58a0369dffc",
+          "bytes": 33674,
+          "width": 240,
+          "height": 360
+        },
+        "M18-240.avif": {
+          "sha256": "ec75b3a90f1c011f2f3782bd1bd73f37037ffd1db1e3e0685ef3df13e40f1af0",
+          "bytes": 23010,
+          "width": 240,
+          "height": 360
+        },
+        "M18-600.webp": {
+          "sha256": "39472300f1e0a2f051598e1a5b02b5e35eadb0af43cac7e6b48626bf15d9b2fa",
+          "bytes": 157170,
+          "width": 600,
+          "height": 900
+        },
+        "M18-600.avif": {
+          "sha256": "9a6d04e16910efc58f7d9878fd52eca83703deae4882553590f3fff324e708ce",
+          "bytes": 97649,
+          "width": 600,
+          "height": 900
+        },
+        "M18-1200.webp": {
+          "sha256": "e6852ed391fe2945a0850c5842d6bef15fab7729455c9108b31925baf0dbd88b",
+          "bytes": 390668,
+          "width": 1200,
+          "height": 1800
+        },
+        "M18-1200.avif": {
+          "sha256": "5ec3cae0caf2a2d5989d490906abe8e8da45a7c59c56002ca64298adc44add75",
+          "bytes": 208353,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M18.alt",
+      "nameKey": "tarot.M18.name",
+      "gaze": "위-우(달 쪽)",
+      "dominantColor": "#081818",
+      "contentHash": "5ad8f989e1d6b6a17f7be89a2227b479149742fab91ccce69437374b3b1c698e",
+      "sourceContentHash": "04ab3a296affab18376d019733d46218ef5176c553d7f51150702964ace21edd",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M19",
+      "arcana": "major",
+      "suit": null,
+      "rank": 19,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M19-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M19-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M19-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M19-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M19-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M19-1200.avif"
+      },
+      "integrity": {
+        "M19-240.webp": {
+          "sha256": "21d6a42d86a020071357795bc9d8e971d2e92c16991503a60b2063b0af1356a8",
+          "bytes": 35198,
+          "width": 240,
+          "height": 360
+        },
+        "M19-240.avif": {
+          "sha256": "ed4f3958fbf6ffbcb80f27d8bbc52bd8bc462214083f2d0866542d0d927ca9ee",
+          "bytes": 25408,
+          "width": 240,
+          "height": 360
+        },
+        "M19-600.webp": {
+          "sha256": "f6d9460c960e0dd76ded308440dec1160dac07d18672e69be23e1bc91058a567",
+          "bytes": 163376,
+          "width": 600,
+          "height": 900
+        },
+        "M19-600.avif": {
+          "sha256": "be3cf362b6a654936009d5e54201488d84ef3283184acd52868d44315fa9dafb",
+          "bytes": 104099,
+          "width": 600,
+          "height": 900
+        },
+        "M19-1200.webp": {
+          "sha256": "2f1f67bddeef491dd7121c067654554841803e540513f3dc4cd36e6c7df2963c",
+          "bytes": 402602,
+          "width": 1200,
+          "height": 1800
+        },
+        "M19-1200.avif": {
+          "sha256": "e882649a89c31b836266302ccf4b2a44335bd12aba6830a6b01d3a48867fe236",
+          "bytes": 219223,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M19.alt",
+      "nameKey": "tarot.M19.name",
+      "gaze": "cat viewer; pony viewer-right",
+      "dominantColor": "#081818",
+      "contentHash": "5393e5c9697506d57ebc54878a76aea5bd6dc02df0fa0b42790c18549dffed16",
+      "sourceContentHash": "63573662fd2f66432a8282884eddb421974d321e3b0e94b68621cc358e2ff95d",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M20",
+      "arcana": "major",
+      "suit": null,
+      "rank": 20,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M20-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M20-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M20-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M20-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M20-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M20-1200.avif"
+      },
+      "integrity": {
+        "M20-240.webp": {
+          "sha256": "62ca0d4f86d104213a7c86a013c0464caac4cfe1e9ac55925c2a9115c5ecec33",
+          "bytes": 34974,
+          "width": 240,
+          "height": 360
+        },
+        "M20-240.avif": {
+          "sha256": "44b73adef1b547a84f807d02a7c2df9a7381f327f529e1bcfaef87ead369aca1",
+          "bytes": 26194,
+          "width": 240,
+          "height": 360
+        },
+        "M20-600.webp": {
+          "sha256": "fd3b1fb2049b96bca92a0592e6e7d8aa740dc51c32c3ff3889b2bd07d6e97c1a",
+          "bytes": 154106,
+          "width": 600,
+          "height": 900
+        },
+        "M20-600.avif": {
+          "sha256": "55ee95aef9f3e064aa121dddfdc8fadd08399b0f04d265007bbd16577ab271f3",
+          "bytes": 96768,
+          "width": 600,
+          "height": 900
+        },
+        "M20-1200.webp": {
+          "sha256": "159d5609675e1b9f84461890f69592292b6c176b4cffcccae2ef79c2d68b547b",
+          "bytes": 391400,
+          "width": 1200,
+          "height": 1800
+        },
+        "M20-1200.avif": {
+          "sha256": "9d426ed731c2e2f87d7e38d180a303fe5215698e0702abfa23fb1c121ecb3de8",
+          "bytes": 203776,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M20.alt",
+      "nameKey": "tarot.M20.name",
+      "gaze": "main viewer; all companions look up",
+      "dominantColor": "#081818",
+      "contentHash": "5dd61aa2d0ef7ffd011c07d16c8721d038dda5c93cf554be213db3831596116e",
+      "sourceContentHash": "2350ccc8d123200ee0f0b8e93e215e7cd998283e50f83aeaed9ac79119884544",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "id": "M21",
+      "arcana": "major",
+      "suit": null,
+      "rank": 21,
+      "files": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M21-240.webp",
+        "std": "/assets/yeongnyangi/tarot/v1/M21-600.webp",
+        "hi": "/assets/yeongnyangi/tarot/v1/M21-1200.webp"
+      },
+      "avifFiles": {
+        "thumb": "/assets/yeongnyangi/tarot/v1/M21-240.avif",
+        "std": "/assets/yeongnyangi/tarot/v1/M21-600.avif",
+        "hi": "/assets/yeongnyangi/tarot/v1/M21-1200.avif"
+      },
+      "integrity": {
+        "M21-240.webp": {
+          "sha256": "80225808878853b85394a3b51a32b0fa445ae00154657a99168a1cdc6ea89a51",
+          "bytes": 36832,
+          "width": 240,
+          "height": 360
+        },
+        "M21-240.avif": {
+          "sha256": "6a4da06dc44d93c9c2f365bf918e8bf111b13a2cdf75a9a2e7063a47824e1376",
+          "bytes": 27702,
+          "width": 240,
+          "height": 360
+        },
+        "M21-600.webp": {
+          "sha256": "48e12a89c0701ce79a00c0e649c90e25a80ac10ecadfab49d862714d7c34dadf",
+          "bytes": 170184,
+          "width": 600,
+          "height": 900
+        },
+        "M21-600.avif": {
+          "sha256": "8295489fa1ec83faafdf079eb7fcffe1a1a335d87cd9281f3c426a4b92aa972c",
+          "bytes": 112228,
+          "width": 600,
+          "height": 900
+        },
+        "M21-1200.webp": {
+          "sha256": "bbc781dfc5a26df71d13760844aa36d390ed9817d05a156c7e67057936e1fbf3",
+          "bytes": 439054,
+          "width": 1200,
+          "height": 1800
+        },
+        "M21-1200.avif": {
+          "sha256": "6c50fbd9bde9682a28e3d43e15c3d8d37d54cde3c98aa2d1d416f3c24d0f94b2",
+          "bytes": 241368,
+          "width": 1200,
+          "height": 1800
+        }
+      },
+      "altKey": "tarot.M21.alt",
+      "nameKey": "tarot.M21.name",
+      "gaze": "main viewer; guardians inward",
+      "dominantColor": "#081818",
+      "contentHash": "cad9de971857645fbe0abdb0fcecbb34d58c3300fd168077649450531f50a7d9",
+      "sourceContentHash": "846e1db048f43493d756c54e26aeee3c10a8c4423320888f16e9b5126b8c6f25",
+      "deckVersion": "v1",
+      "originalSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    }
+  ],
+  "back": {
+    "id": "back",
+    "files": {
+      "thumb": "/assets/yeongnyangi/tarot/v1/back-240.webp",
+      "std": "/assets/yeongnyangi/tarot/v1/back-600.webp",
+      "hi": "/assets/yeongnyangi/tarot/v1/back-1200.webp"
+    },
+    "avifFiles": {
+      "thumb": "/assets/yeongnyangi/tarot/v1/back-240.avif",
+      "std": "/assets/yeongnyangi/tarot/v1/back-600.avif",
+      "hi": "/assets/yeongnyangi/tarot/v1/back-1200.avif"
+    },
+    "integrity": {
+      "back-240.webp": {
+        "sha256": "2d1872c9d9f91b48eb34df69131354a196f0d406629f041f4202165104608c81",
+        "bytes": 81606,
+        "width": 240,
+        "height": 360
+      },
+      "back-240.avif": {
+        "sha256": "8dc5c4ec7830891146336180c176036977a724da7aad751445b10221134bca88",
+        "bytes": 101746,
+        "width": 240,
+        "height": 360
+      },
+      "back-600.webp": {
+        "sha256": "374d7c34e253e063fd970c0c39ac3f2b6c736e8f386b0675d835ae859c6d2be4",
+        "bytes": 382630,
+        "width": 600,
+        "height": 900
+      },
+      "back-600.avif": {
+        "sha256": "4a0809643e3d4b64523a5375257ac156b29bc41c132d46c538af886210a6e041",
+        "bytes": 463132,
+        "width": 600,
+        "height": 900
+      },
+      "back-1200.webp": {
+        "sha256": "5c58af4bad332fec5207f0e9e7f14aaa17f19c2c8ade22ae72e25fa7680f45f9",
+        "bytes": 1211916,
+        "width": 1200,
+        "height": 1800
+      },
+      "back-1200.avif": {
+        "sha256": "aeb9a235ad98f3cbfc49b8190d39b17d3397043d56f14928898ff3964f8c668c",
+        "bytes": 1397207,
+        "width": 1200,
+        "height": 1800
+      }
+    },
+    "altKey": "tarot.back.alt",
+    "nameKey": "tarot.back.name",
+    "gaze": "point-symmetric",
+    "dominantColor": "#181828",
+    "contentHash": "e580e4d8d179aeaae77b3138db5de66c0196540457692ab46283575f895c997a",
+    "sourceContentHash": "e580e4d8d179aeaae77b3138db5de66c0196540457692ab46283575f895c997a",
+    "deckVersion": "v1",
+    "originalSize": {
+      "width": 1024,
+      "height": 1536
+    }
+  },
+  "frame": {
+    "id": "frame",
+    "files": {
+      "thumb": "/assets/yeongnyangi/tarot/v1/frame-240.webp",
+      "std": "/assets/yeongnyangi/tarot/v1/frame-600.webp",
+      "hi": "/assets/yeongnyangi/tarot/v1/frame-1200.webp"
+    },
+    "avifFiles": {
+      "thumb": "/assets/yeongnyangi/tarot/v1/frame-240.avif",
+      "std": "/assets/yeongnyangi/tarot/v1/frame-600.avif",
+      "hi": "/assets/yeongnyangi/tarot/v1/frame-1200.avif"
+    },
+    "integrity": {
+      "frame-240.webp": {
+        "sha256": "4bbfd63bd3d9e693feb51e0f94c24cb9a80838beb9c0b7ac9d561980c5c363fe",
+        "bytes": 13990,
+        "width": 240,
+        "height": 360
+      },
+      "frame-240.avif": {
+        "sha256": "43086a3eba74a76e9977d174c69d03cd71e4e487486a56b3211d60d0f54038e5",
+        "bytes": 29993,
+        "width": 240,
+        "height": 360
+      },
+      "frame-600.webp": {
+        "sha256": "4029685dde22758409a3dc5f41c98a3de0f61391d1adbb6c09dcf964e7e9b120",
+        "bytes": 40926,
+        "width": 600,
+        "height": 900
+      },
+      "frame-600.avif": {
+        "sha256": "1139985eff2fd8bca1e78dd92ef2e2a1d9c9c2f63e8b3ff4c4d55b7c2c5d7d4a",
+        "bytes": 87347,
+        "width": 600,
+        "height": 900
+      },
+      "frame-1200.webp": {
+        "sha256": "d9854859d6c0ceb2ee2ae8be628ab3a0f20b4257060ddc5fdf303f1056c8c311",
+        "bytes": 82516,
+        "width": 1200,
+        "height": 1800
+      },
+      "frame-1200.avif": {
+        "sha256": "46cfad376ec2892884cd468324d951f74d90c1ab9988235fd331d48d777e81ee",
+        "bytes": 188081,
+        "width": 1200,
+        "height": 1800
+      }
+    },
+    "altKey": "tarot.frame.alt",
+    "nameKey": "tarot.frame.name",
+    "gaze": "not-applicable",
+    "dominantColor": "#080808",
+    "contentHash": "d3cacdcf9a8567d8d51b803c5040b6226241fdead98cf41b78813eb4f9b815a3",
+    "sourceContentHash": "d3cacdcf9a8567d8d51b803c5040b6226241fdead98cf41b78813eb4f9b815a3",
+    "deckVersion": "v1",
+    "originalSize": {
+      "width": 1024,
+      "height": 1536
+    },
+    "svg": "/assets/yeongnyangi/tarot/v1/frame.svg"
+  },
+  "encoding": {
+    "webpQuality": 90,
+    "avifQuality": 60,
+    "avifChromaSubsampling": "4:4:4",
+    "backAndFrameLossless": true,
+    "highResolution": "1200w enlarged from approved 1024w source; no new detail"
+  }
+}
