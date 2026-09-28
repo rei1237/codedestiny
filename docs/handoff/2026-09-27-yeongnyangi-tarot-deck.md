@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "펜타클14 승인 완료. Phase4a 메이저22 파이프라인 사용자 승인 완료. Phase4b 78장 파이프라인·유료 결과 덱 교체 진행. Phase5 착수 금지."
+next: "펜타클14 승인 완료. Phase4b 78장 파이프라인·유료 결과 덱 교체 완료, main CI 통과. Phase4b 사용자 승인 대기. 승인 전 Phase5 착수 금지. F-1/F-2 별도 미진행."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -78,7 +78,7 @@ next: "펜타클14 승인 완료. Phase4a 메이저22 파이프라인 사용자 
 | Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 완료·CI 통과·사용자 승인 완료(2026-09-28) |
 | F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
 | Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 4슈트 각14장 전체 승인 완료(2026-09-28) |
-| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 진행 중(Phase4a 사용자 승인 2026-09-28) |
+| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 완료·main CI 통과·사용자 승인 대기 |
 | Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 대기 |
 | Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 대기 |
 | Phase 7 | 통합 검증·최종 보고 | 6 | RED · 주력 / high | 대기 |
@@ -794,7 +794,7 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **전달 실측**: 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`을 main에 fast-forward 반영하고 git push origin main 완료. [GitHub CI 36361870996](https://github.com/rei1237/codedestiny/actions/runs/36361870996)의 headSha 일치·Typecheck and lint/Static guards/Build Pages and Worker/Critical checks/CI required 전부success를 확인했다. Linux CI에서도 새144파일 검사가success다. SVG 텍스트 해시는 LF 정규화로 Windows/Linux를 일치시킨다. 최초check:fast 실패는 위 실패기록 그대로 보존하며 성공으로 바꾸어 보고하지 않는다. 수정 접근은 lint:changed·에셋/Worker 정적검사·5개회귀테스트와 공식CI로 검증했다.
 - **재개 명령**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`, 문서 마지막 커밋을 확인한 뒤 「Phase 4a 결과」의 사용자 승인 검토부터 이어간다. public/ 결정과 펜타클 승인을 다시 묻지 않는다. Phase4a 승인 전 Phase4b/F-2 착수 금지.
 
-## Phase 4b 결과 (2026-09-28 · 구현·mock 검증 완료, main CI 확인 중)
+## Phase 4b 결과 (2026-09-28 · 완료·main CI 통과, 사용자 승인 대기)
 
 - **승인**: 사용자가 「승인할께」로 Phase4a 메이저22 파이프라인을 승인했다. public/ 결정과 펜타클 승인은 재확인하지 않았다. Phase5·F-1/F-2·Phase6/7은 착수하지 않았다.
 - **기준**: main의 d04d09c6ac3ccfde50e82635f0aebf18fdc6f335 포함을 재확인했고, 동시 세션 때문에 main 4f407762eb17b6e9aacf27a9d51918333c21d0bf에서 관리형 격리 워크트리로 작업했다. 공유 marketing/**와 next-env.d.ts 변경은 보존했다.
@@ -808,7 +808,8 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **검증 중 수정·환경**: 첫 78장 검사에서 재사용 컵에이스 선택 항목의 suit 누락 때문에 임시변환 ID undefined01이 탐지됐다. 정본 C01로 소스·파일명·메타데이터를 고쳤고 픽셀은 동일하다. C:/D: 간 공유 node_modules junction은 Next 개발 서버 경로 해석을 깨뜨렸고 symlink 보존 실행도 CSS 플러그인 경로를 깨뜨렸다. 별도 C: 의존성 캐시를 같은 lockfile로 설치하고 기존 junction을 build-cache로 보존해 정상 mock 서버를 실행했다. 제품 코드·검사기 우회는 하지 않았다.
 - **유지·한계**: 결제·가격·이용권/월정석/단건 결제·인증·API 소유권·DB 스키마/저장·생성 엔진·상담 의미·연이 덱 유지. 표시 API에 선택적 cardCode만 추가했다. 이미지 생성0/실LLM0/실PG0/운영DB쓰기0/운영승격0. 물리적 기기·운영 네트워크·인쇄는 미검증. Phase5 의식은 Phase4b 사용자 승인 전 금지다.
 - **로컬 게이트 기록**: check:fast는 critical로 자동 승격돼 paid-gate88/88(379.3초)·lint·sitemap-drift까지 통과했지만 새 TypeScript 호스트가 JS 인수의 brand/cardCode를 추론하지 못해 TS2353에서 실패했다. 작업 커밋 f24bafb49를 debfffbeb로 격리 워크트리에서 revert했다(main 반영0). 인수 객체에 JSDoc 타입 계약을 명시한 새 작업 단위의 npm run typecheck → exit0, verify:worker-no-undef →474파일OK, 관련15개 회귀 →PASS. 가드를 완화하거나 조건/예외를 추가하지 않았다. 최초 check:fast는 성공으로 보고하지 않는다. 수정된 코드의 공식 완료 판정은 main CI다.
-- **전달**: 관련 targeted 검증·mock 브라우저·수정 후 타입 검사 완료. 커밋·push·CI 결과는 전달 기록에 추가한다.
+- **전달 실측**: 동시 main 진행분 f4e3de3e4 위에 검증된 새 작업 단위만 cherry-pick해 산출물 커밋 **2db5a5c169278ca02336b6a2ca6e33d383d14cf2**로 반영하고 git push origin main 완료. 실패·revert 작업 커밋은 main에 반영하지 않았다. [GitHub CI 36365736268](https://github.com/rei1237/codedestiny/actions/runs/36365736268)의 headSha 일치와 Risk tier/Typecheck and lint/Build Pages and Worker/Critical checks/Static guards/CI required 전부 success 확인. Linux CI의 full78/480 에셋 검사도 success다. 최초 로컬 check:fast 실패와 수정 후 typecheck exit0는 위 기록대로 구분한다. 운영승격·routine staging 확인은 하지 않았다.
+- **다음·재개**: Phase4b 사용자 승인 검토부터 이어간다. Phase5 결제 후 드로우 의식은 승인 전 시작하지 않는다. F-1/F-2는 별도 미진행이며 무료 원카드가 출시됐다고 보고하지 않는다. 문서 마지막 커밋은 git log -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md로 확인한다.
 
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 
@@ -960,5 +961,5 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 
 ## 다음 세션 시작 문장
 
-- Phase 4a 승인 검토: "D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md를 읽고 main과 문서 마지막 커밋 확인 후 「Phase 4a 결과」메이저22 파이프라인 승인 검토부터 이어간다. 저장 위치는 public/ 버전 경로로 확정됐고, 승인 전 Phase4b/F-2 착수 금지."
+- Phase 4b 승인 검토: "D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md를 읽고 main과 산출물 커밋2db5a5c169278ca02336b6a2ca6e33d383d14cf2 포함 여부 및 문서 마지막 커밋 확인 후 「Phase 4b 결과」78장 파이프라인·유료 결과 덱 교체 승인 검토부터 이어간다. Phase4a 승인과 public/ 결정은 확정됐고, Phase4b 승인 전 Phase5 착수 금지."
 - F-1(병행 시 워크트리): "`D:\Development\code-destiny` 에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md` 를 읽고, main 이 clean 한지와 이 문서 커밋을 확인한 뒤, 영냥이 무료 원카드 F-1(데이터·로직)을 「다음 작업 2」 0단계부터 진행해줘."
