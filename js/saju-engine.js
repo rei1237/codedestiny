@@ -7370,10 +7370,11 @@ try {
 
 function _sajuPromptBuildResultSummaryHtml(payload) {
   var item = payload && typeof payload === 'object' ? payload : {};
-  var text = String(item.resultText || '').replace(/\s+/g, ' ').trim();
+  var paragraphs = String(item.resultText || '').split(/\n+/).map(function(line) { return line.trim(); }).filter(function(line) { return line && !_sajuPromptChapterTitle(line); });
+  var text = String(paragraphs[0] || '').replace(/\*\*/g, '').replace(/\s+/g, ' ').trim();
   var summary = text.length > 260 ? text.slice(0, 260) + '…' : text;
   return '<div style="margin:13px 13px 0;border:1px solid rgba(180,121,38,.22);background:linear-gradient(135deg,rgba(255,247,223,.9),rgba(255,255,255,.72));border-radius:8px;padding:12px;">'
-    + '<div style="font-size:.72rem;color:#8a5a16;font-weight:950;letter-spacing:.08em;">핵심 요약</div>'
+    + '<div style="font-size:.72rem;color:#8a5a16;font-weight:950;letter-spacing:.08em;">상담 첫 문단</div>'
     + '<p style="margin:6px 0 0;color:#2a2117;font-size:.86rem;line-height:1.72;word-break:keep-all;">' + _sajuPromptEscapeHtml(summary) + '</p>'
     + '</div>';
 }

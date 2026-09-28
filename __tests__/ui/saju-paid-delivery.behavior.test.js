@@ -6,7 +6,7 @@ const ts = require('typescript');
 const { JSDOM } = require('jsdom');
 const source = fs.readFileSync('js/saju-engine.js', 'utf8');
 const ast = ts.createSourceFile('saju.js', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
-const names = new Set(['_bindSajuQuestionPromptCard', '_sajuPromptOwnerId', '_sajuPromptPendingStorageKey', '_sajuPromptStorePendingJob', '_sajuPromptReadPendingJob', '_sajuPromptClearPendingJob', '_sajuPromptSavedResultsKey', '_sajuPromptReadSavedResult', '_sajuPromptStoreSavedResult', '_sajuPromptRenderChapters', '_sajuPromptChapterTitle', '_sajuPromptEscapeHtml']);
+const names = new Set(['_bindSajuQuestionPromptCard', '_sajuPromptOwnerId', '_sajuPromptPendingStorageKey', '_sajuPromptStorePendingJob', '_sajuPromptReadPendingJob', '_sajuPromptClearPendingJob', '_sajuPromptSavedResultsKey', '_sajuPromptReadSavedResult', '_sajuPromptStoreSavedResult', '_sajuPromptRenderChapters', '_sajuPromptBuildResultSummaryHtml', '_sajuPromptChapterTitle', '_sajuPromptEscapeHtml']);
 const code = ast.statements.filter(n => ts.isFunctionDeclaration(n) && names.has(n.name?.text)).map(n => n.getText(ast)).join('\n');
 function setup() {
   const fields = ['question', 'count', 'generate', 'regenerate', 'resume', 'archive', 'output', 'output-panel', 'output-text', 'copy-result', 'save-result', 'share-result', 'reset-result', 'save-state', 'status'];
@@ -174,5 +174,16 @@ test('question draft is scoped to the current owner and profile', () => {
   assert.equal(input.value,'');
   assert.equal(h.w.sessionStorage.getItem('cd_saju_consultation_draft:other:p'),null);
   assert.equal(h.posts.length,0);
+  h.close();
+});
+
+
+test('result preview shows the first paragraph without headings or later chapter text', () => {
+  const h=setup();
+  const preview=h.ctx._sajuPromptBuildResultSummaryHtml({resultText:'## 1. 질문에 대한 핵심 답변\n먼저 **역할과 보상**을 확인하세요. <script>\n## 2. 이 명식의 중심 성향\n뒤 챕터의 본문입니다.'});
+  assert.match(preview,/상담 첫 문단/);
+  assert.match(preview,/먼저 역할과 보상을 확인하세요/);
+  assert.ok(!preview.includes('##') && !preview.includes('뒤 챕터') && !preview.includes('<script>'));
+  assert.ok(h.ctx._sajuPromptBuildResultSummaryHtml({resultText:'과거 단일 본문'}).includes('과거 단일 본문'));
   h.close();
 });

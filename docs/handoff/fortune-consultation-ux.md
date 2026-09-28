@@ -134,5 +134,7 @@ next: 사주 실 LLM 1건(최대 5회, USD 1)의 별도 승인 후 익명화 전
 
 - `npm run verify:staging -- --sha=4f407762eb17b6e9aacf27a9d51918333c21d0bf`: Pages /version.json 및 Worker /api/version 모두 PASS, 같은 SHA. [배포 작업](https://github.com/rei1237/codedestiny/actions/runs/36364401868).
 - 위 배포에서 `node scripts/verify-fortune-consultation-ux.mjs --base https://staging.code-destiny.com`: exit 0. `artifacts/fortune-consultation-ux/saju/after-staging/`가 이 SHA의 최종 화면 증거다. 결과 캡처는 실제 viewport 기준이며 본문 전체 보존은 DOM 및 렌더 검사가 별도로 확인한다.
-- 제품 코드는 이 SHA 이후 변경하지 않았다. 후속 전달 커밋은 하네스의 인증 fixture/렌더 완료 관찰, 캡처 및 문서만 포함한다.
+- 이 SHA의 검증 후 결과 상단의 기존 260자 발췌가 챕터 제목을 섞어 보여주는 점을 발견했다. 본문 원문은 그대로 두고 첫 문단만 보여주며 “상담 첫 문단”으로 정확히 표시했다. 이 작은 표시 수정의 최종 CI/스테이징 결과를 후속 기록한다.
 - 현재 사주 단계는 **실제 생성 품질 비교 승인 대기**다. 코드·mock·스테이징 검증을 마쳤지만 전체 단계 완료는 아니며 나머지 네 서비스는 미착수다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 0회.
+
+- 첫 문단 발췌 검사 추가 후 saju behavior 10/10 통과. 제목/후속 챕터 혼입 방지·HTML 이스케이프·과거 단일 본문 호환을 확인했다. 로컬 네 규격 브라우저 재검증 통과.
