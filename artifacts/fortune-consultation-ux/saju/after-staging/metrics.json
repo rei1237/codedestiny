@@ -1,0 +1,46 @@
+{
+  "phase": "after",
+  "evidence": [
+    {
+      "width": 360,
+      "sourceY": 1741.171875,
+      "entryY": 2119.734375,
+      "consultationY": 2118.734375,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    },
+    {
+      "width": 390,
+      "sourceY": 1690.265625,
+      "entryY": 2083.828125,
+      "consultationY": 2082.828125,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    },
+    {
+      "width": 430,
+      "sourceY": 3587.515625,
+      "entryY": 3999.984375,
+      "consultationY": 3998.984375,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    },
+    {
+      "width": 1440,
+      "sourceY": 4187.703125,
+      "entryY": 4788.203125,
+      "consultationY": 4787.203125,
+      "hiddenAncestor": false,
+      "overflow": false,
+      "entryVisible": true,
+      "heading": "명식이 답하는사주 AI 상담"
+    }
+  ],
+  "network": "mock"
+}

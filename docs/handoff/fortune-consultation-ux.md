@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: 사주 수정 커밋 CI와 staging 검증을 완료한 뒤 실 LLM 1건의 별도 승인을 요청한다. 다른 네 상담은 미착수.
+next: 사주 실 LLM 1건(최대 5회, USD 1)의 별도 승인 후 익명화 전후 품질을 비교한다. 통과 전 다음 네 상담에 착수하지 않는다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -120,3 +120,19 @@ next: 사주 수정 커밋 CI와 staging 검증을 완료한 뒤 실 LLM 1건의
 
 - `npm run check:fast -- --committed-head` 최종 exit 0. paid-gate-suite 88/88, Jest 309 suites / 4,512 tests 통과. 초기 실패의 수정 후 검사를 완료했다.
 - 수정 CI의 미러 검사는 통과. 인수인계 frontmatter 누락만 남아 템플릿의 status/updated/next를 추가했다. 문서 변경 외 제품 코드는 추가 수정하지 않았다.
+
+
+### main CI 통과와 스테이징 화면 증거
+
+- [main CI 36364334500](https://github.com/rei1237/codedestiny/actions/runs/36364334500): `52af571dce151b29f6b11f6d74911e54eb6c81ee`, success / CI required success. 본문·Worker 구현의 Critical checks는 최초 구현 CI에서, 미러/빌드는 정합 수정 CI에서 통과했고, 마지막 문서 수정 후 정적 가드 전체도 통과했다.
+- staging 모의 브라우저 결과: 360·390·430·1440px 진입·가격·질문 입력·프로필 수정·시각 미상·200% 확대·Neo·12챕터/7목차 보관함·다시 질문 통과. `after-staging/` 캡처를 확인했다.
+- 브라우저 하네스는 무료 계산의 지연 렌더 완료를 기다린다. 보관함 fixture 주입 시 mock 인증 API도 같은 fixture 사용자를 반환한다. 이전 `user:null` 대역 때문에 제품이 정상적으로 로그아웃 처리한 실패는 제품 결함으로 분류하지 않는다. 실제 인증·결제·생성 호출은 없다.
+- `b2b024c89` staging job의 success는 최신 커밋에 양보한 종료였다. 이 SHA의 배포 확인은 불일치로 실패했으며 배포 증거로 사용하지 않는다. 최종 실배포 SHA는 후속 확인으로 남긴다.
+
+
+### 확정한 스테이징 검증
+
+- `npm run verify:staging -- --sha=4f407762eb17b6e9aacf27a9d51918333c21d0bf`: Pages /version.json 및 Worker /api/version 모두 PASS, 같은 SHA. [배포 작업](https://github.com/rei1237/codedestiny/actions/runs/36364401868).
+- 위 배포에서 `node scripts/verify-fortune-consultation-ux.mjs --base https://staging.code-destiny.com`: exit 0. `artifacts/fortune-consultation-ux/saju/after-staging/`가 이 SHA의 최종 화면 증거다. 결과 캡처는 실제 viewport 기준이며 본문 전체 보존은 DOM 및 렌더 검사가 별도로 확인한다.
+- 제품 코드는 이 SHA 이후 변경하지 않았다. 후속 전달 커밋은 하네스의 인증 fixture/렌더 완료 관찰, 캡처 및 문서만 포함한다.
+- 현재 사주 단계는 **실제 생성 품질 비교 승인 대기**다. 코드·mock·스테이징 검증을 마쳤지만 전체 단계 완료는 아니며 나머지 네 서비스는 미착수다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 0회.

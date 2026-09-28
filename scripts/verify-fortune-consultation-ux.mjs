@@ -30,12 +30,13 @@ await new Promise(done => server.listen(0, '127.0.0.1', done));
 const origin = remoteBase || `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({headless:true});
 const evidence = [];
+let fixtureSignedIn = false;
 try {
   const context = await browser.newContext({ viewport: {width:390,height:844}, reducedMotion:'reduce', serviceWorkers:'block' });
   await context.route('**/*', route => {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith('/api/')) {
-      const payload = url.pathname === '/api/billing/features' ? {legacyFeatureTable:[{featureKey:'saju_ai_question_prompt',amountKRW:10000,cost:100}]} : {ok:true,user:null,unlocks:[],profiles:[],data:null};
+      const payload = url.pathname === '/api/billing/features' ? {legacyFeatureTable:[{featureKey:'saju_ai_question_prompt',amountKRW:10000,cost:100}]} : {ok:true,user:fixtureSignedIn ? {id:'ux-fixture-owner'} : null,unlocks:[],profiles:[],data:null};
       return route.fulfill({contentType:'application/json',body:JSON.stringify(payload)});
     }
     return url.origin === origin ? route.continue() : route.abort();
@@ -84,7 +85,17 @@ try {
     assert.equal(await page.locator('#birthDate').inputValue(),'1990-05-15');
     assert.equal(await page.locator('#nameInput').inputValue(),'검증용 프로필');
     await page.locator('#birthTimeTip').click();
+    // Observe completion of the real deferred render queue without shortening or skipping it.
+    await page.evaluate(() => {
+      window.__uxRecalculationRendered = false;
+      const schedule = window.runDeferredSajuTasks;
+      window.runDeferredSajuTasks = function(tasks) {
+        if (tasks.length > 10) return schedule(tasks.concat([() => { window.__uxRecalculationRendered = true; }]));
+        return schedule(tasks);
+      };
+    });
     await page.locator('#run-btn').click();
+    await page.waitForFunction(() => window.__uxRecalculationRendered === true);
     await page.waitForFunction(() => window.__cdSajuTimeUnknown === true);
     await page.locator('[data-consultation-open]').click();
     assert.equal(await page.locator('[data-saju-ai-question]').inputValue(),'검증용 질문: 선택 기준을 알려 주세요.');
@@ -96,6 +107,7 @@ try {
     await page.evaluate(() => { document.documentElement.style.fontSize=''; document.body.classList.add('neo-mode'); });
     await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,'entry-neo-390.png'),animations:'disabled'});
     await page.evaluate(() => { document.body.classList.remove('neo-mode'); });
+    fixtureSignedIn = true;
     await page.evaluate(() => {
       localStorage.setItem('fortune_auth_user',JSON.stringify({id:'ux-fixture-owner'}));
       const titles=['질문에 대한 핵심 답변','이 명식의 중심 성향','십성 구조 해석','오행 균형 해석','현재 고민과 명식의 연결','일/돈/관계/연애/건강 리듬','대운의 전환점','올해의 흐름','조심해야 할 패턴','살리는 전략','30일 실천 가이드','마지막 한마디'];
@@ -107,7 +119,8 @@ try {
     assert.equal(await page.locator('.consultation-contents a').count(),7);
     for (const width of [390,1440]) {
       await page.setViewportSize({width,height:900});
-      await page.locator('[data-saju-ai-output-panel]').screenshot({path:resolve(output,'result-'+width+'.png'),animations:'disabled'});
+      await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
+      await page.screenshot({path:resolve(output,'result-'+width+'.png'),animations:'disabled'});
     }
     await page.locator('[data-saju-ai-reset-result]').click();
     assert.equal(await page.locator('[data-saju-ai-output-panel]').isVisible(),false);
