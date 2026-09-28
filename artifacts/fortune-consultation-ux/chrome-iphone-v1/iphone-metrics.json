@@ -1,0 +1,287 @@
+{
+  "browser": "WebKit with iPhone 13 emulation",
+  "capturesWritten": false,
+  "physicalDevice": false,
+  "nativeKeyboard": false,
+  "network": "Every API mocked; every external origin blocked; no payment/LLM/DB operations",
+  "resultSource": "none; pre-payment input only",
+  "evidence": [
+    {
+      "service": "ziwei",
+      "width": 320,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "ziwei",
+      "width": 375,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "ziwei",
+      "width": 390,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "ziwei",
+      "width": 430,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "ziwei",
+      "width": 844,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "sukuyo",
+      "width": 320,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "sukuyo",
+      "width": 375,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "sukuyo",
+      "width": 390,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "sukuyo",
+      "width": 430,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "sukuyo",
+      "width": 844,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "astrology",
+      "width": 320,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "astrology",
+      "width": 375,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "astrology",
+      "width": 390,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "astrology",
+      "width": 430,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "astrology",
+      "width": 844,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "vedic",
+      "width": 320,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "vedic",
+      "width": 375,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "vedic",
+      "width": 390,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "vedic",
+      "width": 430,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    },
+    {
+      "service": "vedic",
+      "width": 844,
+      "overflow": false,
+      "price": "5,000원 from fixture registry",
+      "keyboardDisclosure": false,
+      "touchDisclosure": true,
+      "exampleInput": true,
+      "shortViewport": true
+    }
+  ],
+  "requests": [
+    {
+      "path": "/api/yeongnyangi/products",
+      "method": "GET"
+    },
+    {
+      "path": "/api/reviews/products",
+      "method": "GET"
+    },
+    {
+      "path": "/api/reviews",
+      "method": "GET"
+    },
+    {
+      "path": "/api/reviews/summary",
+      "method": "GET"
+    },
+    {
+      "path": "/api/version",
+      "method": "GET"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/fortune/today-hub",
+      "method": "GET"
+    },
+    {
+      "path": "/api/billing/features",
+      "method": "GET"
+    },
+    {
+      "path": "/api/fortune/saju-ai-consultation/status",
+      "method": "GET"
+    },
+    {
+      "path": "/api/fortune/saju-ai-consultation/status",
+      "method": "GET"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/kasi/calendar",
+      "method": "POST"
+    },
+    {
+      "path": "/api/sukuyo/calendar/",
+      "method": "GET"
+    },
+    {
+      "path": "/api/billing/unlock-status",
+      "method": "GET"
+    },
+    {
+      "path": "/api/billing/unlock-status",
+      "method": "GET"
+    },
+    {
+      "path": "/api/billing/unlock-status",
+      "method": "GET"
+    },
+    {
+      "path": "/api/billing/features",
+      "method": "GET"
+    }
+  ],
+  "errors": [
+    "google_translate_script_failed"
+  ]
+}

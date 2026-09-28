@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-29
-next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI의 선행 조건에서 해제했다. 기본 자미두수·숙요·서양 점성술·베다점 진입점과 입력·결과 UX를 전달했다. 다음은 사용자 화면 검토 반영과 실제 기기에서의 결제 전 입력 흐름 확인이다. 새 실 LLM은 별도 승인 전 실행하지 않는다.
+next: Chrome 16/16 및 iPhone WebKit 에뮬레이션 20/20을 확인했다. 다음은 실제 iPhone Chrome/Safari의 소프트 키보드·주소창·safe area와 결제 전 입력 흐름 확인이다. 실기기·실결제·새 실 LLM은 이번 검증에 포함하지 않았다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -13,6 +13,18 @@ next: 2026-09-29 사용자 추가 승인으로 사주 실측 품질을 후속 UI
 - 현재: v15 실측의 당시 판정은 역사로 남긴다. **2026-09-29 추가 승인**에서 사용자가 비겁과 동업 손실은 타당한 해석일 수 있다고 정정했고, 100% 품질을 선행 조건으로 삼지 말고 네 서비스의 진입점·UI/UX를 계속 개선하도록 지시했다. 조건부 전통 해석을 일괄 오류로 취급하지 않는다. 결과 보장·계산 충돌·구체적 금융상품 매수 조언의 경계는 유지한다.
 - 기본 자체 상담만 대상이다. 별도 `/…-ai`, 영냥이, 운명의 섬 상품은 합치지 않는다.
 - 가격·이용권·월정석·단건 결제 정책과 주문·결과 읽기 계약을 유지한다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 실행하지 않는다.
+
+## 2026-09-29 Chrome 검토 및 iPhone 호환성 후속
+
+- 사용자의 “크롬환경에서 진행해줘 그리고 아이폰 최적화도 필요하다” 요청에 따라 설치된 Google Chrome과 Playwright WebKit의 iPhone 13 설정으로 기본 네 상담의 결제 전 입력을 확인했다.
+- WebKit에서 무료 계산 후 숨겨진 `inputPage` 안의 자미두수 상담 카드가 0×0으로 측정됐다. 기존 `__cdEnsureModalOverlaysInBody`에 자미두수·숙요·서양 모달을 추가했다. 세 모달의 생성된 그림은 eager로 읽고 정적 베다 페이지의 lazy 설정은 유지한다. 크기·srcset·async decoding·DOM ID·controller를 유지한다.
+- 검증 서버의 `.mjs` MIME을 수정했다. 모달 간 검사에서는 기존 뒤로가기 처리를 기다리고, WebKit이 예상 번역 스크립트 차단 오류에 붙이는 `Error:` 접두어만 정규화한다. 다른 browser exception은 계속 실패시킨다. 결제 버튼은 실행하지 않는다.
+- Chrome 360/390/430/1440px × 네 서비스 16/16, iPhone WebKit 320/375/390/430px 및 가로 844×390px × 네 서비스 20/20. iPhone은 터치 펼침·예시 입력·기존 카운터·16px 입력·44px 이상 버튼·조상 잘림·200% 글자 확대·높이 320px에서 버튼 전체 스크롤 접근을 확인했다. 실기기나 native keyboard 측정은 아니다.
+- 증거: `artifacts/fortune-consultation-ux/chrome-iphone-v1`의 Chrome/iPhone metrics, `iphone-input-contact.png`, 네 서비스의 320/844px 짧은 화면 캡처. 캡처 검사에서 20개 UI 시나리오를 마친 뒤 예상 번역 오류 표기 차이로 exit 1이 났다. 표기를 수정한 최종 `--metrics-only` 실행은 동일 UI에서 캡처를 재사용하며 Chrome exit 0 / 16개, WebKit exit 0 / 20개를 확인했다. 모든 API mock·외부 origin 차단이며 실제 결과·결제·LLM·운영 DB 증거가 아니다.
+- `npm run check:fast` exit 0: paid gate 88/88, Node 1,850/1,850, Jest 4,550/4,550(314 suites), lint·typecheck·sitemap·Worker dry build·static 검사 통과. 최종 harness 조정은 `node --check`, `git diff --check`와 두 브라우저 재검증으로 확인했다. Impeccable detector는 shared helper에서 `[]` / exit 0이다.
+- 공식 `sync:public`로 미러를 생성했다. `verify:public-mirror-fresh`는 C: 워크트리에서 Windows Node `UNKNOWN` 파일쓰기 오류, main에서는 다른 세션의 `marketing/**`·`next-env.d.ts` 미커밋 변경 때문에 로컬 판정 불가였다. 실패한 생성 단계가 비운 unrelated CSS는 이 작업의 이전 추적본으로 복원했다. 다른 세션의 변경은 보존하며 신선도 검사를 통과로 표시하지 않는다. 최종 공식 게이트는 아래 전달 SHA의 main CI다.
+- 구현 커밋: `990c6d809d36c34b81b701044ed68cb1b6a851e4`, main fast-forward 완료. 후속 harness·증거·인수인계의 최신 SHA는 `git log -1 --format=%H -- docs/handoff/fortune-consultation-ux.md`로 확인한다. push와 CI 결과는 전달 후 기록한다. 세부 범위는 `docs/design/fortune-consultation-ux/chrome-iphone-review.md`를 참조한다.
+- 결제·가격·이용권·월정석·단건 결제 구조, 인증·API·DB·주문·결과 복구·계산은 변경하지 않았다. 별도 AI 상품·영냥이·운명의 섬·운영 승격도 실행하지 않았다. 실기기 소프트 키보드·주소창·safe area·실제 결제창 전환은 남은 확인이다.
 
 ## 2026-09-29 추가 승인 — 기본 네 서비스 UI/UX
 
