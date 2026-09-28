@@ -11,16 +11,10 @@ const strings = value => typeof value === "string" ? value : Array.isArray(value
 const enough = (value, min) => typeof value === "string" && countPaidReportBodyChars(value) >= min;
 const present = value => enough(value, 1);
 const PART_IDS = [...Array.from({length:11},(_,i)=>String(i)),"summary"];
-// A part saved short (every field present, some under its floor) is a draft. It is
-// accepted after one length repair or on its last attempt; the 20,000 total stays.
-const accepted = (delivery, id) => Boolean(delivery.parts?.[id]) && (!delivery.short?.[id]
-  || Boolean(delivery.attempts?.[`${id}:lengthRepair`]) || (delivery.attempts?.[id] || 0) >= 3);
+// A usable saved part is final; length remains a generation target.
+const accepted = (delivery, id) => Boolean(delivery.parts?.[id]);
 function pendingParts(delivery) {
-  const open = id => (delivery.attempts?.[id] || 0) < 3;
-  const pending = PART_IDS.filter(id => !accepted(delivery, id) && open(id));
-  // Every part accepted but the total short: short parts use their remaining attempts.
-  if (!pending.length && !celestialDeliveryComplete(delivery)) return PART_IDS.filter(id => open(id) && delivery.short?.[id]);
-  return pending;
+  return PART_IDS.filter(id => !accepted(delivery, id) && (delivery.attempts?.[id] || 0) < 2);
 }
 const parse = raw => { try { const value = String(raw || ""); return JSON.parse(value.slice(value.indexOf("{"), value.lastIndexOf("}") + 1)); } catch { return null; } };
 const boundedSetting = (value, fallback, min, max) => {
@@ -29,8 +23,7 @@ const boundedSetting = (value, fallback, min, max) => {
 };
 
 export function celestialDeliveryComplete(delivery) {
-  return PART_IDS.every(id=>accepted(delivery,id))
-    && countPaidReportBodyChars(strings(delivery.parts)) >= 20000;
+  return PART_IDS.every(id=>accepted(delivery,id));
 }
 
 function validateCard(value, card) {
@@ -79,7 +72,7 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
     try {
       ai=await runWithAiLocale(snapshot.locale||"ko",()=>callGeminiText(env,requestPrompt,{
         model:["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"].map(key=>String(env?.[key]||"").trim()).find(Boolean),
-        taskType:"fortune",temperature:boundedSetting(env?.CELESTIAL_HARMONY_TEMPERATURE,0.68,0,1),
+        maxProviderAttempts:1,taskType:"fortune",temperature:boundedSetting(env?.CELESTIAL_HARMONY_TEMPERATURE,0.68,0,1),
         timeoutMs:boundedSetting(env?.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS,45000,15000,45000),
         maxOutputTokens:boundedSetting(env?.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS,11000,8000,11000),fallbackToWorkersAI:false,logContext:{sectionGroup:id},
       }));
@@ -101,7 +94,7 @@ export async function generateCelestialWave(env, snapshot, checkpoint) {
     queue=queue.then(save,save);await queue;
   }));
   const failed=calls.find(call=>call.status==="rejected");if(failed)throw failed.reason;
-  return {delivery,limited:PART_IDS.some(id=>!delivery.parts[id] && delivery.attempts[id]>=3)
+  return {delivery,limited:PART_IDS.some(id=>!delivery.parts[id] && delivery.attempts[id]>=2)
     || (!celestialDeliveryComplete(delivery) && !pendingParts(delivery).length)};
 }
 

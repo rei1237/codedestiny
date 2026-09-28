@@ -9,28 +9,16 @@ export const NAMING_CHAPTERS = ["작명가의 총평", "사주 풀이와 용신 
 export function namingChaptersText(chapters = {}) {
   return NAMING_CHAPTERS.map((_, index) => chapters[index + 1]).filter(Boolean).map(chapter => `## ${chapter.id}. ${chapter.title}\n${chapter.body}`).join("\n\n");
 }
-const NAMING_CHAPTER_MIN_CHARS = 2500;
-const NAMING_CHAPTER_TARGET_CHARS = 3200;
 const chapterChars = chapter => countPaidReportBodyChars(chapter?.body);
-// A short chapter that passed every structural check is kept as a draft. It is
-// accepted after its one length repair or on its last attempt; the 20,000 total
-// floor still decides completion.
-function chapterAccepted(state, id) {
-  const chapter = state.chapters?.[id];
-  return Boolean(chapter) && (chapterChars(chapter) >= NAMING_CHAPTER_MIN_CHARS
-    || Boolean(state.attempts?.[`${id}:lengthRepair`]) || (state.attempts?.[id] || 0) >= 3);
-}
+// Candidate identity and body validation are unchanged; accepted prose does
+// not need another generation merely to reach the requested length.
+function chapterAccepted(state, id) { return Boolean(state.chapters?.[id]); }
 export function namingReportComplete(state) {
-  return NAMING_CHAPTERS.every((_, index) => chapterAccepted(state, index + 1))
-    && countPaidReportBodyChars(namingChaptersText(state.chapters)) >= 20000;
+  return NAMING_CHAPTERS.every((_, index) => chapterAccepted(state, index + 1));
 }
 function pendingNamingChapters(state) {
-  const chapters = NAMING_CHAPTERS.map((title, index) => ({ id: index + 1, title }));
-  const open = chapter => (state.attempts[chapter.id] || 0) < 3;
-  const pending = chapters.filter(chapter => !chapterAccepted(state, chapter.id) && open(chapter));
-  // Every chapter accepted but the total short: chapters under target use their remaining attempts.
-  if (!pending.length && !namingReportComplete(state)) return chapters.filter(chapter => open(chapter) && chapterChars(state.chapters[chapter.id]) < NAMING_CHAPTER_TARGET_CHARS);
-  return pending;
+  return NAMING_CHAPTERS.map((title, index) => ({ id: index + 1, title }))
+    .filter(chapter => !chapterAccepted(state, chapter.id) && (state.attempts[chapter.id] || 0) < 2);
 }
 function parseJson(text) {
   const source = String(text || "");
@@ -43,18 +31,18 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
   let state = structuredClone(snapshot.delivery || { version: 1, attempts: {}, chapters: {}, candidates: null });
   state.invalidAttempts ||= {};
   const call = (prompt, part, maxOutputTokens) => runWithAiLocale(snapshot.locale || "ko", () => callGeminiText(env, prompt, {
-    taskType: "fortune", temperature: 0.72, timeoutMs: 45000, maxOutputTokens, fallbackToWorkersAI: false,
+    maxProviderAttempts: 1, taskType: "fortune", temperature: 0.72, timeoutMs: 45000, maxOutputTokens, fallbackToWorkersAI: false,
     logContext: { sectionGroup: part },
   }));
   const persist = () => checkpoint(structuredClone(state));
   if (!state.candidates) {
-    if ((state.attempts.candidates || 0) >= 3) return { state, limited: true };
+    if ((state.attempts.candidates || 0) >= 2) return { state, limited: true };
     state.attempts.candidates = (state.attempts.candidates || 0) + 1;
     await persist();
     let ai;
     try {
       ai = await call(`${snapshot.generatedPrompt}\n\n이번 요청은 준비 단계입니다. 8장 본문은 아직 쓰지 말고 이름 카드 블록만 출력하세요. 새 이름 5~7개와 그중 최종 추천을 정하세요. 이미 입력된 후보도 함께 비교하세요. 획수·수리 수치를 새로 계산하거나 한자의 법적 등록 가능성을 단정하지 마세요. 확인되지 않은 수리는 확인 필요라고 쓰세요.`, "candidates", 6000);
-    } catch { return { state, limited: state.attempts.candidates >= 3 }; }
+    } catch { return { state, limited: state.attempts.candidates >= 2 }; }
     const parsed = usable(ai) ? parseNamingResultCards(ai.text, { allowCardsOnly: true }) : null;
     const cards = parsed?.cards || [];
     if (cards.length >= 5 && cards.length <= 12 && new Set(cards.map(card => card.name)).size === cards.length
@@ -70,7 +58,7 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
       state.invalidAttempts.candidates = (state.invalidAttempts.candidates || 0) + 1;
       await persist();
     }
-    return { state, limited: !state.candidates && state.attempts.candidates >= 3 };
+    return { state, limited: !state.candidates && state.attempts.candidates >= 2 };
   }
   const wave = pendingNamingChapters(state).slice(0, PAID_LLM_PARTS_PER_REQUEST);
   // The repair flag is saved before the call so a lost response never buys a second repair.
@@ -106,13 +94,13 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
   }));
   const failedSave = results.find(result => result.status === "rejected");
   if (failedSave) throw failedSave.reason;
-  const limited = NAMING_CHAPTERS.some((_, index) => !state.chapters[index + 1] && (state.attempts[index + 1] || 0) >= 3)
+  const limited = NAMING_CHAPTERS.some((_, index) => !state.chapters[index + 1] && (state.attempts[index + 1] || 0) >= 2)
     || (!namingReportComplete(state) && !pendingNamingChapters(state).length);
   return { state, limited };
 }
 
 export function confirmedEmptyNamingFailure(state) {
   if (Object.keys(state.chapters || {}).length) return false;
-  return Object.entries(state.attempts || {}).some(([id, count]) => count >= 3 && state.invalidAttempts?.[id] === count
+  return Object.entries(state.attempts || {}).some(([id, count]) => count >= 2 && state.invalidAttempts?.[id] === count
     && (id !== "candidates" || !state.candidates));
 }

@@ -34,20 +34,13 @@ export function relationshipScoreBasisOk(text, score, { citation = false } = {})
 }
 export const RELATIONSHIP_PART_IDS = [...Array.from({ length: 10 }, (_, i) => String(i)), "frame"];
 const RELATIONSHIP_PART_MIN_CHARS = 2000;
-// A body part saved under its floor is a draft, not a failure. It is accepted after
-// one length repair or on its last attempt; the 20,000 total still decides completion.
-const partAccepted = (delivery, id) => Boolean(delivery.parts?.[id]) && (!delivery.short?.[id]
-  || Boolean(delivery.attempts?.[`${id}:lengthRepair`]) || (delivery.attempts?.[id] || 0) >= 3);
+// A readable saved part is delivered without a length-only repair.
+const partAccepted = (delivery, id) => Boolean(delivery.parts?.[id]);
 export function relationshipDeliveryComplete(delivery) {
-  return RELATIONSHIP_PART_IDS.every(id => partAccepted(delivery, id))
-    && countPaidReportBodyChars(Array.from({ length: 10 }, (_, i) => delivery.parts[String(i)]?.body || "").join("\n")) >= 20000;
+  return RELATIONSHIP_PART_IDS.every(id => partAccepted(delivery, id));
 }
 function pendingRelationshipParts(delivery) {
-  const open = id => (delivery.attempts?.[id] || 0) < 3;
-  const pending = RELATIONSHIP_PART_IDS.filter(id => !partAccepted(delivery, id) && open(id));
-  // Every part accepted but the total short: short parts use their remaining attempts.
-  if (!pending.length && !relationshipDeliveryComplete(delivery)) return RELATIONSHIP_PART_IDS.filter(id => open(id) && delivery.short?.[id]);
-  return pending;
+  return RELATIONSHIP_PART_IDS.filter(id => !partAccepted(delivery, id) && (delivery.attempts?.[id] || 0) < 2);
 }
 export function relationshipContent(meta) {
   return {
@@ -112,8 +105,8 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
   if (failure) throw failure.reason;
   return {
     delivery,
-    limited: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.attempts[id] >= 3)
+    limited: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.attempts[id] >= 2)
       || (!relationshipDeliveryComplete(delivery) && !pendingRelationshipParts(delivery).length),
-    knownFailed: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.invalidAttempts[id] >= 3),
+    knownFailed: RELATIONSHIP_PART_IDS.some(id => !delivery.parts[id] && delivery.invalidAttempts[id] >= 2),
   };
 }

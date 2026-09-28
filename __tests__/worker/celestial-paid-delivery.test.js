@@ -130,7 +130,7 @@ test('provider overrides retain the short-call token and time ceiling',async()=>
 });
 // A card whose six long fields are present but under 500 characters is a draft, not a failure.
 const shorten=async(base,args,tag)=>{const ai=await base(...args),value=JSON.parse(ai.text);value.archetypeReading=drawn(args[1],args[2].logContext.sectionGroup)+prose(tag,'archetype',1);return {...ai,text:JSON.stringify(value)};};
-test('a short but valid card is kept as a draft and its one repair receives it',async()=>{
+test('a short valid card is final on its first generation',async()=>{
  const base=provider.getMockImplementation();let repairPrompt='';
  provider.mockImplementation(async(...args)=>{
   if(args[2].logContext.sectionGroup!=='0')return base(...args);
@@ -140,27 +140,28 @@ test('a short but valid card is kept as a draft and its one repair receives it',
  await start();const state=docs[0].metadata.celestialDelivery.delivery;
  expect(Object.keys(state.parts)).toEqual(['0','1','2','3']);expect(state.short['0']).toBe(true);
  await resume();await resume();expect((await resume()).status).toBe(200);
- expect(repairPrompt).toContain('draft archetype 0번째');expect(docs[0].metadata.celestialDelivery.delivery.short['0']).toBe(false);
- expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(13);
+ expect(repairPrompt).toBe('');expect(docs[0].metadata.celestialDelivery.delivery.short['0']).toBe(true);
+ expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);
 });
-test('a still-short repair is accepted without a third call when the 20,000 total holds',async()=>{
+test('rereading a short card never generates a length repair',async()=>{
  const base=provider.getMockImplementation();
  provider.mockImplementation(async(...args)=>args[2].logContext.sectionGroup==='0'?shorten(base,args,args[1].includes('[저장된 초안 보완]')?'repair longer text':'draft'):base(...args));
  await start();await resume();await resume();expect((await resume()).status).toBe(200);
  const state=docs[0].metadata.celestialDelivery.delivery;
- expect(state.attempts['0']).toBe(2);expect(state.attempts['0:lengthRepair']).toBe(1);expect(state.parts['0'].archetypeReading).toContain('repair longer text');
- expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(13);
+ expect(state.attempts['0']).toBe(1);expect(state.attempts['0:lengthRepair']).toBeUndefined();expect(state.parts['0'].archetypeReading).toContain('draft');
+ expect(docs[0].premiumStatus).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);
 });
-test('a total under 20,000 spends remaining attempts, then stays partial for review',async()=>{
+test('a usable complete report below the target is delivered without extra calls',async()=>{
  const base=provider.getMockImplementation();
  provider.mockImplementation(async(...args)=>{
-  const ai=await base(...args),value=JSON.parse(ai.text),id=args[2].logContext.sectionGroup,tag='t'+provider.mock.calls.length;
+  const ai=await base(...args),value=JSON.parse(ai.text),id=args[2].logContext.sectionGroup,tag='t'+id;
   if(id==='summary'){for(const field of ['overallTheme','strongestPlanetSignal','deepestShadow','soulLesson','integrationPath','finalOracle'])value[field]=prose(tag,field,1);}
-  else for(const field of ['archetypeReading','consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'])value[field]=drawn(args[1],id)+prose(tag,field,1);
+  else for(const field of ['archetypeReading','consciousMessage','unconsciousPattern','shadowWarning','soulLesson','integrationPractice'])value[field]=(field==='archetypeReading'?drawn(args[1],id):'')+prose(tag,field,1);
   return {...ai,text:JSON.stringify(value)};
  });
  let last=await start();for(let n=0;n<10;n++)last=await resume();
- expect(last.status).toBe(202);expect(await last.json()).toMatchObject({retryable:false,status:'partial'});
- expect(provider).toHaveBeenCalledTimes(36);expect(docs[0].premiumStatus).not.toBe('completed');
- await resume();expect(provider).toHaveBeenCalledTimes(36);
+ expect(Object.keys(docs[0].metadata.celestialDelivery.delivery.parts)).toEqual(Array.from({length:11},(_,i)=>String(i)).concat("summary"));
+ expect(last.status).toBe(200);expect(await last.json()).toMatchObject({archiveSaved:true});
+ expect(provider).toHaveBeenCalledTimes(12);expect(docs[0].premiumStatus).toBe('completed');
+ await resume();expect(provider).toHaveBeenCalledTimes(12);
 });

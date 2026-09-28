@@ -105,7 +105,7 @@ test('known invalid generation refunds only after failure state is verified',asy
 });
 test('pass evidence survives separate requests without a payment transaction id',async()=>{
  provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
- await start();expect(docs[0].paymentId).toBe('');await resume();const response=await resume();
+ await start();expect(docs[0].paymentId).toBe('');const response=await resume();
  expect(executionMetadata.passRefund).toEqual({cycleKey:'2026-10-01',cost:300});
  expect((await response.json()).refunded).toBe(true);expect(refunds).toBe(1);
  await resume();expect(refunds).toBe(1);
@@ -113,21 +113,21 @@ test('pass evidence survives separate requests without a payment transaction id'
 test('unsuccessful settlement is never reported as refunded',async()=>{
  refundOutcome={refundStatus:'refund_failed'};
  provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
- await start();await resume();expect((await (await resume()).json()).refunded).toBe(false);
+ await start();expect((await (await resume()).json()).refunded).toBe(false);
 });
 test('query-shaped ids are rejected before storage lookup',async()=>{
  expect((await post({resumeSessionId:{$ne:null}})).status).toBe(422);
  expect((await post({...body,idempotencyKey:{$ne:null}})).status).toBe(422);expect(docs).toHaveLength(0);
 });
-test('new report completion uses the 19999 / 20000 body-character boundary',async()=>{
+test('completion requires all saved parts and does not regenerate at a length boundary',async()=>{
  const {relationshipDeliveryComplete}=await import('../../worker/lib/relationship-report-delivery.js');
  const parts=Object.fromEntries(Array.from({length:10},(_,i)=>[String(i),{body:'가'.repeat(2000)}]));parts.frame={summary:'요약'};
- expect(relationshipDeliveryComplete({parts})).toBe(true);parts['0'].body=parts['0'].body.slice(1);expect(relationshipDeliveryComplete({parts})).toBe(false);
+ expect(relationshipDeliveryComplete({parts})).toBe(true);parts['0'].body=parts['0'].body.slice(1);expect(relationshipDeliveryComplete({parts})).toBe(true);delete parts['1'];expect(relationshipDeliveryComplete({parts})).toBe(false);
 });
 // A part that cites the fixed score but is under 2,000 characters is a draft, not a failure.
 const shortPart=async(base,args,tag,count)=>{const response=await base(...args),value=JSON.parse(response.text);value.body=value.body.split('\n').slice(0,count).join('\n')+'\n'+tag;return {...response,text:JSON.stringify(value)};};
 const partOf=prompt=>(prompt.match(/이번 호출은 (\d+)장 중 (\d)\/2/)||[]).slice(1).join('/');
-test('a short but valid part is kept as a draft and its one repair receives it',async()=>{
+test('a short valid part delivers without a repair',async()=>{
  const base=provider.getMockImplementation();let repairPrompt='';
  provider.mockImplementation(async(...args)=>{
   if(partOf(args[1])!=='1/1')return base(...args);
@@ -136,21 +136,21 @@ test('a short but valid part is kept as a draft and its one repair receives it',
  });
  await start();expect(Object.keys(docs[0].llmMeta.delivery.parts)).toHaveLength(4);expect(docs[0].llmMeta.delivery.short['0']).toBe(true);
  await resume();expect((await resume()).status).toBe(200);
- expect(repairPrompt).toContain('초안 표식입니다.');expect(docs[0].llmMeta.delivery.short['0']).toBe(false);
- expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);expect(refunds).toBe(0);expect(closes).toBe(1);
+ expect(repairPrompt).toBe('');expect(docs[0].llmMeta.delivery.short['0']).toBe(true);
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);expect(closes).toBe(1);
 });
-test('one short part never refunds the report; a still-short repair is accepted when the total holds',async()=>{
+test('one short part is retained on subsequent reads without another generation',async()=>{
  const base=provider.getMockImplementation();
  provider.mockImplementation(async(...args)=>partOf(args[1])==='1/1'?shortPart(base,args,args[1].includes('[저장된 초안 보완]')?'보강 표식입니다.':'초안 표식입니다.',args[1].includes('[저장된 초안 보완]')?5:3):base(...args));
  await start();await resume();expect((await resume()).status).toBe(200);
- expect(docs[0].llmMeta.delivery.parts['0'].body).toContain('보강 표식입니다.');expect(docs[0].llmMeta.delivery.attempts['0']).toBe(2);
- expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(12);expect(refunds).toBe(0);
+ expect(docs[0].llmMeta.delivery.parts['0'].body).toContain('초안 표식입니다.');expect(docs[0].llmMeta.delivery.attempts['0']).toBe(1);
+ expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);
 });
-test('a total under 20,000 spends remaining attempts, then stays partial for review without refund',async()=>{
+test('a usable report under its target completes without extra generation or refund',async()=>{
  const base=provider.getMockImplementation();
  provider.mockImplementation(async(...args)=>partOf(args[1])?shortPart(base,args,'호출 '+provider.mock.calls.length+' 표식입니다.',3):base(...args));
  let last=await start();for(let n=0;n<9;n++)last=await resume();
- expect(last.status).toBe(202);expect((await last.json()).retryable).toBe(false);
- expect(provider).toHaveBeenCalledTimes(31);expect(refunds).toBe(0);expect(docs[0].status).not.toBe('completed');
- await resume();expect(provider).toHaveBeenCalledTimes(31);
+ expect(last.status).toBe(200);expect(docs[0].status).toBe('completed');
+ expect(provider).toHaveBeenCalledTimes(11);expect(refunds).toBe(0);expect(docs[0].status).toBe('completed');
+ await resume();expect(provider).toHaveBeenCalledTimes(11);
 });
