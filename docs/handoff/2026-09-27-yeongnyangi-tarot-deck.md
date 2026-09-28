@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "펜타클14 승인 완료. public/ 버전 경로 확정. Phase4a 메이저22 파이프라인 구현·검증 중. Phase4b/F-2는 Phase4a 보고 후 승인 대기."
+next: "펜타클14 승인 완료. public/ 버전 경로의 Phase4a 메이저22 파이프라인 완료·CI 통과. 사용자 Phase4a 승인 대기. 승인 전 Phase4b/F-2 착수 금지."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -75,7 +75,7 @@ next: "펜타클14 승인 완료. public/ 버전 경로 확정. Phase4a 메이�
 | **F-1** | 무료 원카드 데이터·로직(그림 불필요, UI 없음) | Phase 0 | GREEN · 주력 / medium | 대기(병행 가능) |
 | Phase 2 | 파일럿 5장(「다음 작업 3」) | Phase 1 승인·뒷면 선택 | GREEN · 주력 / medium | 완료·승인(Phase 3a 착수 지시와 후속 재사용 결정) |
 | **Phase 3a** | 메이저 22장(「다음 작업 4」, 3a-1·3a-2 두 세션) | Phase 2 승인·뒷면 선택 | GREEN · 주력 / medium | **22장 전체 승인 완료**(2026-09-28). 뒷면 C·파일럿 재사용 확정 |
-| Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 확정·구현 중 |
+| Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 완료·CI 통과·사용자 승인 대기 |
 | F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
 | Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 4슈트 각14장 전체 승인 완료(2026-09-28) |
 | Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 대기 |
@@ -779,7 +779,7 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **유지 영역**: 앱 코드·공개 에셋·타로 엔진·연이 덱·가격·이용권/월정석/단건 결제·인증/API/DB 변경0. 실결제·운영 DB·과금 LLM 검증·운영 승격0.
 - **다음**: 펜타클14 승인 완료. Phase4a는 public/assets/yeongnyangi/tarot/v1/ 버전 경로의 메이저22·뒷면C·프레임 파이프라인으로 진행한다. Phase4a 보고·승인 전 Phase4b/F-2는 시작하지 않는다.
 
-## Phase 4a 결과 (2026-09-28 · 검증·전달 중, 사용자 승인 대기)
+## Phase 4a 결과 (2026-09-28 · 완료·CI 통과, 사용자 승인 대기)
 
 - **선행·저장 결정**: 펜타클14 승인으로 마이너56 전체가 확정됐다. 사용자가 저장 위치를 「public/ 버전 경로 (추천)」으로 선택했다. 새 경로는 public/assets/yeongnyangi/tarot/v1/이며 기존 에셋을 덮어쓰지 않는다.
 - **범위**: 승인된 메이저22 프레임 적용본 + 뒷면C + 프레임에 240/600/1200w WebP·AVIF 파생을 만들었다. 총144개/22.12MiB, frame.svg·manifest.json을 함께 둔다. PNG 원본은 저장소 밖에 보존한다. 원본1024w→1200w는 확대이며 원본 세부가 추가된 것은 아니다.
@@ -791,6 +791,8 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **유지 영역**: 결제·가격·이용권/월정석/단건 결제·인증/API/DB·타로 엔진·기존연이 덱·유료결과 앱호출부 변경0. 새 이미지 생성0·실LLM/실결제/운영DB/운영승격0. CI 배선만 검사 명령1개 추가했다.
 - **재개·한계**: 기준main 커밋1fcf3b2e55c2468ce712f53c8b4f48143d3b0d5b에서 격리 작업, 승인기록 커밋114c08c48. 실제 앱모바일 연결·네트워크 실패 UI·운영배포는 미검증. Phase4a 사용자 승인 후 Phase4b의 마이너56 파생·78장 전체검사·영냥이 유료결과 어댑터 연결로 이어간다. F-2는 F-1 데이터·로직 선행도 필요하다.
 - **실패·접근 변경**: 첫 파이프라인 커밋6eb96b3fa는 check:fast의 verify:worker-no-undef에서 JSON import 속성 `with`의 파싱이 차단됐다. 해당 커밋을1fa9366cf로 revert·push하고 승인기록은 유지했다. 새 접근은 호스트가 읽은 manifest를 createTarotDeckRegistry(manifest)에 전달하는 방식이다. 공용lib에서 JSON import·파일시스템 의존성을 없앴고 검사기의 ECMAScript2023 계약을 유지했다. 수정 후 verify:worker-no-undef →474파일OK, 에셋144파일검사와5개회귀테스트PASS. 검사기 완화·조건/예외목록 추가는 하지 않았다. 첫 check:fast에서 paid-gate88개·lint·typecheck·node tests 등 선행검사는 통과했으나 전체 명령은 실패였으며, 새 접근의 공식 완료 판정은 최종main CI다.
+- **전달 실측**: 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`을 main에 fast-forward 반영하고 git push origin main 완료. [GitHub CI 36361870996](https://github.com/rei1237/codedestiny/actions/runs/36361870996)의 headSha 일치·Typecheck and lint/Static guards/Build Pages and Worker/Critical checks/CI required 전부success를 확인했다. Linux CI에서도 새144파일 검사가success다. SVG 텍스트 해시는 LF 정규화로 Windows/Linux를 일치시킨다. 최초check:fast 실패는 위 실패기록 그대로 보존하며 성공으로 바꾸어 보고하지 않는다. 수정 접근은 lint:changed·에셋/Worker 정적검사·5개회귀테스트와 공식CI로 검증했다.
+- **재개 명령**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`, 문서 마지막 커밋을 확인한 뒤 「Phase 4a 결과」의 사용자 승인 검토부터 이어간다. public/ 결정과 펜타클 승인을 다시 묻지 않는다. Phase4a 승인 전 Phase4b/F-2 착수 금지.
 
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 
