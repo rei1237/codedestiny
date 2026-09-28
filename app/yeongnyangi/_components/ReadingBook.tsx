@@ -43,10 +43,10 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
  const years=yearFocus(row.consultation?.period?.years,row.consultation?.asOf),focus=years.map(y=>y.year);
  return <div className={styles.book} lang={row.locale || 'ko'}>
   {row.chapters.length>0&&<section className={styles.overview}><h2>{copy.intro}</h2><p>{row.chapters[0].summary}</p>{(row.chapters[0].highlights || []).length>0&&<ul>{(row.chapters[0].highlights || []).map((t,i)=><li key={i}>{t}</li>)}</ul>}{row.chapters[0].advice&&<p><strong>{copy.next}</strong><br/>{row.chapters[0].advice}</p>}</section>}
-  <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{copy.contents} · {Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / {row.manifest.length}</summary>
+  <aside className={styles.navigation}><details open={open} onToggle={e=>setOpen(e.currentTarget.open)}><summary>{ask?answerCopy.answer:`${copy.contents} · ${Math.max(1,row.manifest.findIndex(c=>`chapter-${c.id}`===current)+1)} / ${row.manifest.length}`}</summary>
    <nav aria-label={copy.contents}>{row.manifest.map((chapter,i)=>{
     const head=v7PartHead(row.manifest,i,row.locale);
-    return <Fragment key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}<a href={available.has(chapter.id)?`#chapter-${chapter.id}`:'#reading-progress'} aria-current={current===`chapter-${chapter.id}`?'location':undefined}>{i+1}. {title(i)}<span className={styles.chapterStatus}>{available.has(chapter.id)?journey.saved:recovery?journey.recovery:journey.preparing}</span></a></Fragment>;
+     return <Fragment key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}<a href={available.has(chapter.id)?`#chapter-${chapter.id}`:'#reading-progress'} aria-current={current===`chapter-${chapter.id}`?'location':undefined}>{ask?'':`${i+1}. `}{title(i)}<span className={styles.chapterStatus}>{available.has(chapter.id)?journey.saved:recovery?journey.recovery:journey.preparing}</span></a></Fragment>;
    })}</nav>
   </details>{saved&&row.manifest.some(c=>`chapter-${c.id}`===saved)&&<a className={styles.resume} href={`#${saved}`}>{copy.resume}</a>}</aside>
   <div className={styles.body}>

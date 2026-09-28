@@ -121,6 +121,7 @@ export default function Result(){
  // 결제 전에는 챕터가 하나도 없다 — "0 / N개 챕터 저장됨"·진행률·목차("준비 중")를 그리면 결제가 끝난 화면처럼 보인다.
  const copy=readingCopy(row?.locale);
  const stateCopy=resultStateCopy(row?.locale);
+  const askReading=!!row?.consultation?.questions?.length;
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
@@ -145,8 +146,8 @@ export default function Result(){
     {row.consultation?.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}
    </details>}
    <div id="reading-progress" className={styles.progress} data-state={row.state}>{row.state!=='COMPLETED'&&<img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt=""/>}
-    <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
-     {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={stateCopy.progress}/>}
+     <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
+      {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={askReading?stateCopy.answerProgress:stateCopy.progress}/>}
      {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.recovery?.canRetryNow?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode||'')?<p role="status">{stateCopy.reviewRequired}</p>:<p role="status">{row.errorCode==='PAYMENT_NOT_ACTIVE'?copy.support:row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
      {row.state==='REFUNDED'&&<p>{stateCopy.refunded}</p>}
      {!row.paid&&row.state!=='REFUNDED'&&<><p>{stateCopy.unpaid}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.button} href={checkoutPath(row)}>{copy.checkout}</a>}</>}
@@ -158,7 +159,6 @@ export default function Result(){
    </>}
   </>}
   {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{row?.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarningKnown}</p>}
-  {row?.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?copy.loading:copy.continue}</button>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
   {!row&&requestId.current&&<OrderReference id={requestId.current}/>}
   <a href={row?.locale?'/yeongnyangi/library/?lang='+row.locale:'/yeongnyangi/library/'}>{copy.library}</a>

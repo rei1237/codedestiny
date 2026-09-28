@@ -7,6 +7,7 @@ import { Payment } from '../lib/models.js';
 import { json, readJson, createHttpError, handleRouteError, notFound } from '../lib/http.js';
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
+import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
 import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
 import { readRequest, ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
@@ -134,7 +135,7 @@ export async function handleYeongnyangiRoutes(request, env) {
     const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate))?$/);
     if(!match) return notFound();
     const [,id,action]=match;
-    if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readRequest(env,auth.userId,id))});
+    if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readAndContinueFortune(env,auth.userId,id))});
     if(action==='activate' && method==='POST') return json({ok:true,fortune:presentFortune(await activateFortune(env,auth.userId,id))});
     if(action==='generate' && method==='POST') {
       const row=await retryFortune(env,auth.userId,id);

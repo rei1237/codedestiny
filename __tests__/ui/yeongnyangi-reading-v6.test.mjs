@@ -63,6 +63,16 @@ test('24 single products and every offered consultation have complete tier-speci
   }
  }
 });
+test('question consultations keep the full tier depth while internal checkpoints stay an implementation detail',()=>{
+ for(const p of singles.filter(p=>p.domain!=='tarot')){
+  const ask=m.consultationKinds[p.domain].find(k=>k.id==='ask');
+  const rows=m.consultationManifest(p,ask),tag=`${p.id}/ask`;
+  assert.equal(rows.length,counts[p.fishId],tag);
+  assert.ok(rows.reduce((sum,row)=>sum+row.minimumChars,0)>=minimums[p.fishId],tag);
+  assert.ok(rows[0].factSelectors[p.domain].length>0,tag);
+  assert.ok(rows.every(row=>row.sections?.length&&row.outputTokens>0),tag);
+ }
+});
 test('the mackerel closing action chapter is the longest, and every floor sits well under its target',()=>{
  const books=[];
  for(const p of singles)for(const k of m.consultationKinds[p.domain])if(m.supportsKind(p,k))books.push({p,tag:`${p.id}/${k.id}`,rows:m.consultationManifest(p,k)});
