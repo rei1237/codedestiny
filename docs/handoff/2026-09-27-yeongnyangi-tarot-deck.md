@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-09-28
-next: "Phase4b 사용자 승인 완료. Phase5 결제 후 드로우 의식 구현·mock 검증·main CI 완료. Phase5 사용자 승인 대기. 승인 전 Phase6 착수 금지. F-1/F-2 별도 미진행."
+next: "Phase5 이후 전체 범위 사용자 승인 완료. F-1/F-2·Phase6·Phase7 구현과 mock 검증을 마치고 main에 전달했다. 실결제·실LLM·운영DB·물리 Android 검증은 별도 승인 범위다."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -72,16 +72,16 @@ next: "Phase4b 사용자 승인 완료. Phase5 결제 후 드로우 의식 구�
 |---|---|---|---|---|
 | Phase 0 | 읽기 전용 진단 | — | — | 완료·승인 |
 | Phase 1 | 스타일 바이블·캐릭터 시트·조연·슈트 모티프·뒷면 후보 3·프레임 SVG | Phase 0 | GREEN · 주력 / medium | 완료·승인(뒷면 C 확정) |
-| **F-1** | 무료 원카드 데이터·로직(그림 불필요, UI 없음) | Phase 0 | GREEN · 주력 / medium | 대기(병행 가능) |
+| **F-1** | 무료 원카드 데이터·로직(그림 불필요, UI 없음) | Phase 0 | GREEN · 주력 / medium | 완료·검증·전달 |
 | Phase 2 | 파일럿 5장(「다음 작업 3」) | Phase 1 승인·뒷면 선택 | GREEN · 주력 / medium | 완료·승인(Phase 3a 착수 지시와 후속 재사용 결정) |
 | **Phase 3a** | 메이저 22장(「다음 작업 4」, 3a-1·3a-2 두 세션) | Phase 2 승인·뒷면 선택 | GREEN · 주력 / medium | **22장 전체 승인 완료**(2026-09-28). 뒷면 C·파일럿 재사용 확정 |
 | Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 완료·CI 통과·사용자 승인 완료(2026-09-28) |
-| F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
+| F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 완료·검증·전달 |
 | Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 4슈트 각14장 전체 승인 완료(2026-09-28) |
 | Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 완료·main CI 통과·사용자 승인 완료(2026-09-28) |
-| Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 구현·mock 검증·main CI 완료, 사용자 승인 대기 |
-| Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 대기 |
-| Phase 7 | 통합 검증·최종 보고 | 6 | RED · 주력 / high | 대기 |
+| Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 완료·승인(2026-09-28 전체 후속 범위 승인) |
+| Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 완료·검증·전달 |
+| Phase 7 | 통합 검증·최종 보고 | 6 | RED · 주력 / high | 완료 |
 
 프로젝트 전체는 RED 다(결제 직후 흐름·상담 엔진·공유 표시 경로). 메이저 22장을 먼저 그리는 3a/4a 분할은 무료 원카드(§F)를 먼저 내보내기 위한 순서 변경이다.
 
@@ -812,7 +812,7 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **승인 기록**: 사용자가 2026-09-28 「승인할께」로 Phase4b 결과를 승인했다. 이 승인 뒤에만 Phase5를 시작했다.
 - **다음·재개**: Phase5 결과와 승인 대기 상태는 아래 절을 따른다. F-1/F-2는 별도 미진행이며 무료 원카드가 출시됐다고 보고하지 않는다. 문서 마지막 커밋은 git log -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md로 확인한다.
 
-## Phase 5 결과 (2026-09-28 · 구현·mock 검증·main CI 완료, 사용자 승인 대기)
+## Phase 5 결과 (2026-09-28 · 구현·mock 검증·main CI 완료·사용자 승인)
 
 - **선행 승인·범위**: Phase4b 사용자 승인 뒤 결정 ①의 A안만 구현했다. 결제 전 질문·생선 선택·prepare·checkout은 그대로 두고, 결제된 결과 화면에만 집중 3초 → 셔플 정지 → 부채꼴 자리 선택 → 순차 공개 → 상담 펼치기 의식을 넣었다. 사용자의 자리 선택은 집중을 위한 상징이며 서버가 저장한 카드 ID·순서·정역방향을 바꾸지 않는다고 화면에 명시한다.
 - **구현**: `TarotDrawRitual.tsx`가 저장된 tarot chart만 받아 단계별 연출을 제공한다. `Result.tsx`는 paid·non-refunded·tarot chart 조건에서 의식을 먼저 보여 주며, 완료 전에도 기존 결과 polling·생성은 계속된다. 카드 앞면은 공개 단계 진입 뒤 선택된 저장 카드만 preload한다. 효과음은 기본 꺼짐이며 사용자가 켠 뒤 Web Audio로 짧게 재생한다. 신규 라이브러리·네이티브 햅틱은 추가하지 않았다.
@@ -823,7 +823,29 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **검증 중 수정**: 모바일 부채꼴 카드가 서로 클릭 영역을 가리던 문제를 카드 수+4장 풀·간격·선택 z-index로 고쳤다. `next/image`의 `Image` import가 브라우저 preload 생성자를 가리던 런타임 오류는 import 별칭으로 고쳤다. 빠른 reload 전에 공개 진행 저장이 늦는 경합은 상호작용 핸들러에서 동기 저장하도록 고쳤다. 6장 preview 초기화가 reload 때 완료 상태를 덮던 것은 테스트 초기화가 빈 저장소에서만 실행되도록 고쳤다. 조건·검사기 완화는 하지 않았다.
 - **유지·한계**: 결제 정책·가격·이용권/월정석/단건 결제·인증·API 계약·DB 스키마·서버 드로우/저장·생성 엔진·연이 덱·무료 원카드 변경0. 실결제·실LLM·운영DB·운영 배포·물리 기기·네이티브 햅틱 검증은 하지 않았다. 효과음은 실제 음원 파일이 아니라 선택적 합성음이다.
 - **전달 실측**: 최신 main `c678f670d67932a0bfb3977e7d5a41ceb65b5148` 위에 검증된 산출물 커밋 `acd27721818dd9f3decb1cb6f2ad4b4cda176948`을 fast-forward 반영하고 `git push origin main` 완료. [GitHub CI 36371325284](https://github.com/rei1237/codedestiny/actions/runs/36371325284)는 같은 headSha에서 workflow conclusion success이며 Risk tier/Typecheck and lint/Static guards/Build Pages and Worker가 success다(Critical checks는 위험 등급 판정에 따라 skipped). routine staging·운영 승격은 확인하지 않았다. 공유 `marketing/**`·`next-env.d.ts` 미커밋 변경은 보존하고 커밋에 넣지 않았다.
-- **다음·게이트**: Phase5 화면·흐름·문구의 사용자 승인 검토부터 이어간다. 승인 전 Phase6 티어별 마스터 상담에는 착수하지 않는다. F-1/F-2도 별도 미진행이다.
+- **승인 기록**: 사용자가 2026-09-28 「모두 승인할테니 계속 끝까지 진행해서 영냥이 타로 카드 이미지를 완성해」라고 명시해 Phase5 결과와 이후 F-1/F-2·Phase6·Phase7 범위를 승인했다. 실결제·실LLM·운영DB·운영 배포 승인은 이 문장으로 확장 해석하지 않았다.
+
+## F-1/F-2 결과 (2026-09-28 · 무료 오늘의 영냥이 타로 완료)
+
+- **로직**: `lib/tarot/yeongnyangi-daily-card.ts`에 KST 날짜와 기기 ID를 입력으로 받는 순수 결정을 두었다. 메이저 22장과 정·역방향 44개 조합을 결정적으로 고르고, 정본 `ganji()` 일진·천간 오행·십성 태그를 오늘의 조언·행운 색/숫자/방향/소품·작은 미션으로 투영한다. 네트워크와 서버 저장은 사용하지 않는다.
+- **화면**: `DailyTarotCard.tsx`를 영냥이 room의 기존 무료 운세 위에 배치했다. 영냥이 전용 2:3 카드, 뒤집기, 카드명·정역방향·오늘의 해석·행운 포인트, 기존 무료 운세와 유료 상담 CTA를 제공한다. 저장소가 차단되면 날짜만으로 안전하게 폴백하며 결과 전달을 막지 않는다. 1024px 이하에서는 단일 열로 읽히고 키보드 focus와 reduced-motion을 지원한다.
+- **검증**: 10,000개 결정 표본에서 44개 카드·방향 조합이 모두 출현하고 편향 상한을 통과했다. node test 4/4, 브라우저 390/960px 2/2 PASS. 저장소 차단·reduced-motion·영냥이 덱만 로드·카드 공개 API 호출 0을 확인했다.
+- **범위 결정**: 현재 room 자체가 한국어 전용 표면이므로 사용하지 않는 영문 UI 사전을 새로 만들지 않았다. 카드 정본·유료 결과의 다국어 계약은 기존 5개 사이트 로케일+영문 폴백을 그대로 유지한다.
+
+## Phase 6 결과 (2026-09-28 · 티어별 마스터 상담 완료)
+
+- **상담 정본**: `worker/yeongnyangi/fortune/tarot/master-reading.ts`가 저장된 카드만 사용해 원소 균형, 메이저 비율, 반복 숫자, 궁정 카드, 시선 흐름을 결정적으로 계산한다. 프롬프트는 자리×카드×정역×질문을 함께 읽고, 역방향을 단순 부정으로 취급하지 않으며, 카드 조합의 이야기·불확실성·현실 행동을 요구한다.
+- **티어 차등**: 고등어부터 참치까지 기존 3장/6장과 기존 챕터·결제 계약은 유지하고 해석 깊이만 확장한다. 추가 카드·조언 카드·후속 LLM 호출·주제 칩은 만들지 않았다.
+- **안전·무결성**: 뽑지 않은 카드명이나 저장 방향과 다른 해석은 저장 전에 실패시킨다. 자해·극단 선택 위기 질문은 12개 읽기 로케일의 결정적 안전 우선 안내를 첫 장에 붙인다. 카드 조합 엔진의 제3자 마음 단정·성공 확률 단정 문구도 가능성 중심으로 완화했다.
+- **검증**: 마스터 계약·미선택 카드·방향 바꿈·위기 안내 node test 3/3 PASS. v7 OFF의 v6/v5/legacy/spirit ID·스냅샷·LLM 요청 불변성도 함께 통과했다. 실 LLM 샘플 평가는 호출하지 않았다.
+
+## Phase 7 결과 (2026-09-28 · 통합 검증·전달 완료)
+
+- **산출물**: 승인된 영냥이 원본 덱 78장+뒷면과 480개 파생 에셋, 유료 결과 덱 교체, 결제 후 드로우 의식, 티어별 상담 엔진, 무료 오늘의 메이저 원카드가 한 경로로 연결됐다. 이미지 원본과 Phase4b manifest·해시는 수정하지 않았다.
+- **로컬 공식 게이트**: `npm run check:fast -- --base=149933f36e590a9c84d4f26c0f205bdb1a0dda2a` exit0. paid-gate 88/88, Node 1830/1830, Jest 4515/4515, lint, typecheck, sitemap drift, Worker dry-run과 결제·권한·복구 가드를 모두 통과했다. 최신 main 재배치 뒤 핵심 node test 8/8와 typecheck를 다시 통과했다.
+- **브라우저 증거**: 유료 결과 3/6장 × 360/390/430/960/1280px와 실패 폴백 11/11 PASS. 저사양·reduced-motion·선택 카드만 로드·영냥이 덱만 로드·공개 진행 reload 복원을 확인했다. 무료 원카드는 모바일/데스크톱 2/2 PASS. 실제 PG/LLM/운영DB 호출은 전부 0이다.
+- **전달**: 코드 커밋 `29d53cb2a779dea1e415facd1c3032628f234611`와 `780d0dc8f3e0fd2ee0d6d9b725bed8e390bc3d31`를 당시 최신 main에 fast-forward하고 `git push origin main` 완료. [PR CI 36383379328](https://github.com/rei1237/codedestiny/actions/runs/36383379328), [Paid Flow Gates 36383379461](https://github.com/rei1237/codedestiny/actions/runs/36383379461), AI Locale Gate·Landing Watchdog·Main drift watchdog·Release workflow가 같은 head SHA로 success다. [Yeongnyangi Browser Shadow 36383379340](https://github.com/rei1237/codedestiny/actions/runs/36383379340)은 첫 시도에서 Chromium 전체·타로 4티어와 WebKit 앞선 케이스가 통과한 뒤 기존 `read-503` reload에서 WebKit 자체 internal error로 끝났고, 코드 변경 없이 같은 SHA의 failed job 재실행 attempt 2가 success했다.
+- **유지·미검증**: 결제 가격·이용권/월정석/단건 결제·인증·API 소유권·DB 스키마·기존 카드 수·연이 덱은 변경하지 않았다. 실결제·실 LLM·운영 DB 쓰기·routine staging/운영 승격·물리 Android 기기·네이티브 햅틱은 미검증이다.
 
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 
