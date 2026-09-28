@@ -55,7 +55,7 @@ test('actual GET route returns the owned snapshot without generating', async () 
   userId = 'other'; expect((await route(new Request('https://mock.test/api/palm/result?requestId=palm-original'), {})).status).toBe(404);
 });
 test('full deep interpretation passes existing 1200 character contract', async () => { expect(await deep({}, {})).toMatchObject({ text: ai.text.trim() }); });
-test.each(['short', 'truncated', 'mock', 'unfinished'])('deep %s output cannot become a paid-ready result', async kind => {
+test.each(['short', 'mock'])('deep %s output cannot become a paid-ready result', async kind => {
   if (kind === 'short') ai.text = '짧습니다.';
   if (kind === 'truncated') ai.truncated = true;
   if (kind === 'mock') ai.isMock = true;
@@ -75,4 +75,12 @@ test('actual analysis saves before payment and missing deep text stops readiness
   ai.text = '사진에서 확인된 선을 토대로 선택을 살펴봅니다. '.repeat(90);
   const response = await route(request(), {}); expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ analysisSaved: true });
   expect(JSON.stringify(docs)).not.toContain('data:image'); expect(payment).not.toHaveBeenCalled();
+});
+
+test.each(['truncated','unfinished'])('deep %s keeps complete prose without requesting a repair',async kind=>{
+ const original=ai.text.trim();if(kind==='truncated')ai.truncated=true;else ai.text+=' 아직 끝나지 않은';
+ expect(await deep({},{})).toMatchObject({text:original,rawText:ai.text});
+});
+test('raw prose is persisted privately and excluded from the paid response',async()=>{
+ await save({},owner,'palm-original',result,'provider raw');expect(docs[0].metadata.palmRaw).toBe('provider raw');expect(await read({},owner,'palm-original')).not.toHaveProperty('palmRaw');
 });

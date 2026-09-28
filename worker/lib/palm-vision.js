@@ -1,3 +1,4 @@
+import { normalizeNarrativeBody } from "./paid-narrative-candidate.js";
 // 손금 Gemini Vision 판독 — 워커 정본.
 //
 // 배경: 프로덕션 빌드는 next.config.mjs 의 output:"export" 라 app/api/** 라우트가 통째로
@@ -479,7 +480,7 @@ export async function analyzeHandWithGeminiVision(env, imageDataUrl, declaredSid
     logContext: { ...logContext, serviceId: "palm-reading", stage: `vision:${declaredSide}` },
   });
 
-  if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) {
+  if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) {
     console.warn("[palm-vision] gemini call failed", {
       side: declaredSide,
       error: ai?.error,
@@ -638,15 +639,15 @@ ${context}`;
     taskType: "fortune",
     timeoutMs: CONSULT_TIMEOUT_MS,
     // 텍스트 전용이라 폴백이 안전하다. 다만 유료 경로이므로 짧은 폴백은 거부한다.
-    fallbackMinChars: PALM_CONSULT_FALLBACK_MIN_CHARS,
+    fallbackMinChars: 120,
     logContext: { ...logContext, serviceId: "palm-reading", stage: "deep-consult" },
   });
 
-  if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) {
+  if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ''} ${ai.model || ''}`)) {
     console.warn("[palm-vision] deep consult failed", { error: ai?.error, status: ai?.status });
     return null;
   }
 
-  const text = String(ai.text || "").trim();
-  return text.replace(/\s/g, '').length >= PALM_CONSULT_MIN_CHARS && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, provider: ai.provider, model: ai.model } : null;
+  const text = normalizeNarrativeBody(String(ai.text || "").trim());
+  return text.replace(/\s/g, '').length >= 120 && /[.!?。？！]["'”’)]?\s*$/u.test(text) ? { text, rawText: ai.text, provider: ai.provider, model: ai.model } : null;
 }

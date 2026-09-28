@@ -551,7 +551,7 @@ export async function handlePalmRoutes(request, env) {
       visionUsed: usedVision,
       qualityScore,
     };
-    return json(body.requestId ? await savePalmAnalysis(env, auth.userId, body.requestId, result) : result);
+    return json(body.requestId ? await savePalmAnalysis(env, auth.userId, body.requestId, result, deepConsult?.rawText || "") : result);
   } catch (error) {
     return handleRouteError(error, { request, env, trace });
   }

@@ -10,7 +10,7 @@ const featureKey = 'palm-reading-general';
 const executionKey = (userId, requestId) => 'palm-analysis:' + createHash('sha256').update(JSON.stringify([String(userId), requestId])).digest('hex');
 const unavailable = () => createHttpError(503, '저장된 손금 판독을 확인하지 못했어요. 같은 판독으로 다시 시도해 주세요.', { code: 'RESULT_STORAGE_UNAVAILABLE', retryable: true });
 
-export async function savePalmAnalysis(env, userId, requestId, result) {
+export async function savePalmAnalysis(env, userId, requestId, result, rawText = "") {
   if (typeof requestId !== 'string' || requestId.length < 8 || requestId.length > 120) throw createHttpError(422, '판독 요청 ID가 필요합니다.', { code: 'REQUEST_ID_REQUIRED' });
   const filter = { userId, executionKey: executionKey(userId, requestId) };
   try {
@@ -21,7 +21,7 @@ export async function savePalmAnalysis(env, userId, requestId, result) {
     const row = await ServiceExecutionTransaction.findOneAndUpdate(filter, { $setOnInsert: {
       ...filter, featureKey, reportType: 'palmAnalysis', reportId: filter.executionKey,
       idempotencyKey: requestId, status: 'success', premiumStatus: 'completed',
-      metadata: { palmResult: saved }, completedAt: new Date(),
+      metadata: { palmResult: saved, ...(rawText ? { palmRaw: rawText } : {}) }, completedAt: new Date(),
     } }, { upsert: true, returnDocument: 'after' }).lean();
     if (!row?.metadata?.palmResult) throw unavailable();
     const confirmed = await ServiceExecutionTransaction.findOne(filter).lean();
