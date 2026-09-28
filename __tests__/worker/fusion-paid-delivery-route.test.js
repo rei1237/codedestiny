@@ -144,14 +144,14 @@ for(const kind of ['pass','monthly','single'])describe(kind,()=>{
   expect(payload.consultation.requestId).toBe('paid-original');expect(payload.consultation.id).not.toBe('private-other');
   expect(payload.consultation.resumeBody.birthDate).toBe('1995-04-18');
  });
- it('keeps short second-stage output pending and reuses the first-stage report',async()=>{
+ it('delivers provider-validated short second-stage output without a length retry',async()=>{
   const initial=Object.fromEntries(Object.entries(sections).map(([key,value])=>[key,{...value,content:value.content.slice(0,500)}]));
   generator=async()=>({result:initial,deliverable:true,qualityTier:'partial'});await route(request(),ENV);
-  generator=async({priorResult})=>({result:{...priorResult,title:'short',executiveSummary:'too short'},deliverable:true,qualityTier:'full'});
-  const short=await route(request(2),ENV);expect(short.status).toBe(202);expect(await short.json()).toMatchObject({status:'partial',nextStage:2});
-  expect(docs[0].result.deliveryRepairGroups).toEqual(['integration','action','verdict']);
-  generator=async({priorResult})=>{expect(priorResult.deliveryRepairGroups).toHaveLength(3);return {result:{...sections,executiveSummary:'complete'},deliverable:true,qualityTier:'full'}};
-  const final=await route(request(2),ENV);expect(final.status).toBe(200);expect(docs[0].result.deliveryRepairGroups).toBeUndefined();
+  generator=async({priorResult})=>({result:{...priorResult,title:'short',executiveSummary:'usable summary'},deliverable:true,qualityTier:'full'});
+  const result=await route(request(2),ENV);expect(result.status).toBe(200);
+  expect(docs[0].result.deliveryRepairGroups).toBeUndefined();
+  generator=()=>{throw Error('completed delivery must never regenerate');};
+  expect((await route(request(2),ENV)).status).toBe(200);
  });
  it('an expired generator cannot deliver partial output over a replacement lease',async()=>{
   let replacement;
@@ -266,12 +266,6 @@ it.each(["short-total", "complete-checkpoint"])("recovery handles exhausted %s w
  const runStage=jest.fn(async()=>({ok:true,stageStatus:'completed'}));
  const {runFusionFortuneRecovery}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
  const result=await runFusionFortuneRecovery(ENV,{runStage});
- if(kind==='short-total'){
-  expect(runStage).not.toHaveBeenCalled();
-  expect(result.outcomes[0].outcome).toBe('budget_exhausted');
-  expect(docs[0].generationSnapshot.recovery.reviewRequired).toBe(true);
- }else{
-  expect(runStage).toHaveBeenCalledTimes(1);
-  expect(result.outcomes[0].completed).toBe(true);
- }
+ expect(runStage).toHaveBeenCalledTimes(1);
+ expect(result.outcomes[0].completed).toBe(true);
 });

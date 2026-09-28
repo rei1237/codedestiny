@@ -2,7 +2,7 @@ import { connectDb, withMongoRetry } from './db.js';
 import { FusionFortuneConsultation, Payment } from './models.js';
 import { fusionGroupsForStage } from './fusion-fortune-prompt.js';
 import { FUSION_GROUP_MAX_ATTEMPTS } from './fusion-fortune-consultation.js';
-import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions, fusionReportMeetsTotalFloor } from './fusion-fortune.js';
+import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions } from './fusion-fortune.js';
 import { readOrderResumeContext, RESUME_APPROVED_TTL_MS } from '../payments/resume-context.js';
 import { runFusionFortuneDeliveryStage } from '../routes/fusion-fortune.js';
 
@@ -78,8 +78,7 @@ export async function runFusionFortuneRecovery(env, options = {}) {
     if (!requestId || !userId || !candidate.generationSnapshot?.input) continue;
     const stage = candidate.nextStage === 1 || !hasFusionStageOneResult(candidate.result) ? 1 : 2;
     const options = { ...fusionValidationOptions(candidate.generationSnapshot.context, candidate.generationSnapshot.input), ignoreLength: true };
-    const totalShort = stage === 2 && !fusionReportMeetsTotalFloor(candidate.result, options.locale);
-    const groups = fusionGroupsForStage(stage).filter(group => totalShort || !validateFusionFortuneGroup(candidate.result, group, options).ok);
+    const groups = fusionGroupsForStage(stage).filter(group => !validateFusionFortuneGroup(candidate.result, group, options).ok);
     // Provider reservations belong to the saved purchase and include browser attempts.
     if (groups.length && groups.every(group => Number(candidate.generationSnapshot.attempts?.[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS)) {
       await withMongoRetry(env, () => FusionFortuneConsultation.updateOne({ userId, idempotencyKey: requestId, ...buildAbandonedFusionFilter(now) },

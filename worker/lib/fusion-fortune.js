@@ -654,7 +654,7 @@ const FUSION_GROUP_TIMEOUT_MS = 45000;
 //    FUSION_RESERVATION_FRESHNESS_MS 창까지 "reserved"로 묶여 재시도가 409로 막혔다).
 //    미달·실패 그룹의 재시도는 아래 retryTargets(보완 물결)가 대신한다 — 그쪽은 매 호출 전
 //    remainingMs()로 남은 예산을 실제로 확인하므로 데드라인을 존중한다.
-export const FUSION_GROUP_MAX_ATTEMPTS = 3;
+export const FUSION_GROUP_MAX_ATTEMPTS = 2;
 const FUSION_GROUP_ATTEMPTS = 1;
 // 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
 const FUSION_GROUP_RETRY_RATIO = 0.8;
@@ -1043,14 +1043,11 @@ export async function generateFusionFortuneWithRealLLM({
     const saved = pickKeys(prior, group.keys);
     return validateFusionFortuneGroup(saved, group, validationOptions).ok
       && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every(system => validFusionSignals(saved[`${system}Section`], system, context)))
-      && (lengthRepairs[group.id] || Number(attemptCounts[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS
-        || (validateFusionFortuneGroup(saved, group, { ...validationOptions, ignoreLength: false }).ok
-          && countFusionGroupChars(saved, group) >= group.targetChars * FUSION_GROUP_RETRY_RATIO));
+;
   };
   // Paid routes always supply checkpoints. One unfinished group per request;
   // previously verified groups travel in prior and never purchase another call.
-  const waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group)
-    || (prior.deliveryRepairGroups?.includes(group.id) && !fusionReportMeetsTotalFloor(prior, context.locale)))
+  const waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group))
     .filter(group => Number(attemptCounts[group.id] || 0) < FUSION_GROUP_MAX_ATTEMPTS).slice(0, 1) : groups;
   let checkpointQueue = Promise.resolve();
   const checkpoint = async (group, value) => {
@@ -1186,7 +1183,7 @@ export async function generateFusionFortuneWithRealLLM({
     });
 
     // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
-    const shortGroups = groups.filter((group) => !failedGroups.includes(group) && !lengthRepairs[group.id] && Number(attemptCounts[group.id] || 0) < FUSION_GROUP_MAX_ATTEMPTS && (!validateFusionFortuneGroup(merged, group, { ...validationOptions, ignoreLength: false }).ok || countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO));
+    const shortGroups = [];
     // 🔴 중복은 **모델이 쓴 본문끼리만** 본다. composed(결정론 폴백이 섞인 것)로 재면 폴백이 제
     //    렌즈 문장을 여러 섹션에 재사용하는 구조 때문에 모델 잘못이 아닌 중복이 잡힌다(실측 24건/40자).
     //    2단계는 1단계 본문(prior)까지 포함해 본다 — 2단계가 요약을 그대로 베끼는 것이 잡아야 할 중복이다.
@@ -1433,13 +1430,7 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       generated.result.expertMeta = { ...generated.result.expertMeta, pendingStage: stageNumber === 1 && generated.deliverable ? 2 : stageNumber, complete: stageNumber === 2 && generated.deliverable === true };
     }
 
-    if (stageNumber === 2 && generated?.result && !fusionReportMeetsTotalFloor(generated.result, normalized.locale)) {
-      generated.deliverable = false;
-      generated.result.deliveryRepairGroups = fusionGroupsForStage(2).map(group => group.id);
-      if (generated.result.expertMeta) generated.result.expertMeta.complete = false;
-    } else if (generated?.result) {
-      delete generated.result.deliveryRepairGroups;
-    }
+    if (generated?.result) delete generated.result.deliveryRepairGroups;
 
     generationSourceForLog = generated?.generationSource || "";
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
