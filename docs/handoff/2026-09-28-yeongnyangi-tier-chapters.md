@@ -251,6 +251,16 @@ next: "Phase 3(검증기)·§6-7(UI) 완료, 플래그 OFF. 다음은 Phase 4 �
 - fail-closed 사전 가드(원칙 10): 새 카탈로그 항목에 사전 항목이 없거나 ko 제목이 카탈로그에서 드리프트하면 테스트가 실패한다. 반대로 카탈로그가 버린 키가 사전에 남아 있으면 고아 키로 실패한다. `v7Label` 은 모르는 키·키 없는 v5/v6 장에 `undefined` 를 돌려주므로 호출부의 기존 폴백이 살아 있고 생 키가 화면에 찍히지 않는다.
 - 검증(실측): 새 테스트 6/6. `npx tsc --noEmit -p . --incremental false` exit 0. `npm run check:fast`: paid-gate 스위트 88/88, `npm test`, lint, sitemap-drift 전부 통과(첫 실행은 sitemap 드리프트로 막혀 원장 재생성 후 재실행).
 
+## 생성 연속성·물어보기 답변 흐름 보강 (2026-09-28)
+
+- 커밋 `e378f1201`. 과금 LLM 0회, 실결제 0, 운영 DB 접근 0. `READING_V7_ENABLED=false` 그대로다.
+- **물어보기는 사용자에게 한 개의 충분한 답변 흐름으로 보인다.** 진행 문구·접근성 라벨·결과 내비게이션에서 `N / N개 챕터`와 숫자 접두를 숨기고, `질문에 대한 답변` 및 근거·조언 정리 흐름으로 표현했다. 내부 체크포인트와 티어별 전체 분량은 중간 저장·재개 안전성을 위해 그대로 유지한다.
+- v6 물어보기 전체 분량 하한은 고등어 5,500자·연어 10,000자·광어 18,000자·참치 40,000자로 고정했다. 내부 체크포인트 수는 5/8/11/15지만 사용자에게는 답변의 완성도와 진행 상태만 보여 준다.
+- 결과 GET을 **전달 heartbeat**로 사용한다. 결제·이용권 증빙이 살아 있고 미완성인 상담은 공급자를 HTTP 안에서 부르지 않고 큐 인계만 복구한다. `AUTOMATIC_RECOVERY_STOPPED`면 기존의 1회 제한 서버 복구 grant를 즉시 사용한 뒤 큐에 다시 싣는다. 완료·환불·미결제·운영 검토 보류 건은 쓰지 않는다.
+- 일반 미완성 결과의 수동 `상담 이어가기` 버튼은 제거했다. 정상 흐름은 최초 결제/이용권 처리 한 번 뒤 서버가 끝까지 이어 간다. 운영 검토 보류나 제한 복구가 필요한 경우의 기존 안전 버튼은 유지했다.
+- 타로 고등어도 v6에서 5개 내부 체크포인트가 맞다. 뽑는 카드 수는 가격 티어가 아니라 상담 종류 계약이다: `지금의 선택` 3장, `사랑과 관계` 6장. 상위 티어는 카드 수가 아니라 해석 범위·분량·목차 깊이를 늘린다.
+- 검증(실측): `npm run check:fast` exit 0. Node 1,848/1,848, Jest 311 스위트·4,532/4,532, TypeScript, lint, sitemap drift, 결제·이용권·복구 정책 가드, Worker dry build 모두 통과했다.
+
 ## Phase 0 세션 변경
 
 - 코드 변경은 0이다. 이 문서와 CONTEXT_AUDIT 절 하나만 커밋한다.
@@ -510,5 +520,5 @@ next: "Phase 3(검증기)·§6-7(UI) 완료, 플래그 OFF. 다음은 Phase 4 �
 ## 복사할 재개 지시
 
 ```text
-D:Developmentcode-destiny 에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md 와 docs/design/yeongnyangi-v7-chapter-catalog.md(§7·측정 1)를 읽어라. 영냥이 v7 은 Phase 2(§6-1~§6-6)·Phase 3(검증기)·§6-7(UI)까지 커밋 완료이고 플래그 READING_V7_ENABLED 는 여전히 OFF 다. 다음은 Phase 4 골든인데 유료 LLM 실호출이라 절대 규칙 1 상 네오의 정확한 1회 승인이 먼저다 — 승인 문장이 이 대화에 없으면 아무 것도 생성하지 말고, 필요한 승인 범위(몇 권·어느 티어·어느 체계)를 제시하고 멈춰라. Phase 5(플래그 ON)는 Phase 4 의 원가·품질 실측에 의존하므로 함께 대기다. 승인 후에도 실결제·운영 DB 쓰기는 금지이고, 골든은 로컬에서만 플래그를 켜서 돌린다. 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)는 Phase 5 까지 해시 갱신 없이 통과해야 한다. main·clean 확인과 git pull --ff-only 후 시작하라.
+D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md(§7·측정 1)를 읽어라. 영냥이 v7은 Phase 2(§6-1~§6-6)·Phase 3(검증기)·§6-7(UI)까지 완료했고 플래그 READING_V7_ENABLED는 여전히 OFF다. 커밋 e378f1201에서 모든 유료 결과 GET이 미완성 상담의 큐 인계를 자동 복구하도록 했고, 물어보기는 내부 체크포인트를 유지하되 사용자에게 하나의 충분한 답변 흐름으로 표시한다. 다음은 Phase 4 골든인데 유료 LLM 실호출이라 절대 규칙 1상 네오의 정확한 1회 승인이 먼저다. 승인 문장이 이 대화에 없으면 아무 것도 생성하지 말고 필요한 승인 범위(몇 권·어느 티어·어느 체계)를 제시하고 멈춰라. Phase 5(플래그 ON)는 Phase 4의 원가·품질 실측에 의존하므로 함께 대기다. 승인 후에도 실결제·운영 DB 쓰기는 금지이고, 골든은 로컬에서만 플래그를 켜서 돌린다. 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)는 Phase 5까지 해시 갱신 없이 통과해야 한다. main·clean 확인과 git pull --ff-only 후 시작하라.
 ```
