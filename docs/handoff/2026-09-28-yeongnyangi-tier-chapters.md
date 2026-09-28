@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "Phase 2 커밋 4 = 시기 매트릭스(설계 §6-4: extendAskLocalTiming 재사용, prepare 에서 계산해 스냅샷에 저장, 시기 장만 owner·나머지 장은 결정적 한 줄 요약, prepare CPU 실측). §6-1~§6-3 은 커밋 완료. 플래그 OFF, 과금 LLM 0회."
+next: "Phase 2 커밋 5 = chapter-v7 프롬프트·출력 스키마(설계 §6-5: 블록=인사이트 단위, 장면 ≤1, 선택은 결정 장만, 블록 스키마 id/title/paragraphs/sources 유지, highlights[]·topics[] 재사용, timingSummary 를 summary 장 프롬프트에 한 줄로). §6-1~§6-4 는 커밋 완료. 플래그 OFF, 과금 LLM 0회."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -137,6 +137,34 @@ next: "Phase 2 커밋 4 = 시기 매트릭스(설계 §6-4: extendAskLocalTiming
   - **불변 스냅샷은 해시 갱신 없이 통과**했다. reading-v7 6, reading-v6 14, ask-evidence 14, consultation-kinds 10 모두 통과.
   - `npx tsc --noEmit -p .` 오류 0, eslint 0.
   - `npm run check:fast` exit 0(jest 309 스위트·4,512 테스트). `app/**` 를 건드리지 않아 sitemap 원장은 바뀌지 않았다.
+
+## Phase 2 커밋 4 결과: reading-v7-timing.ts (2026-09-28)
+
+- 커밋 `eddaa5c13`. 옆 세션이 같은 체크아웃에 커밋 중이라 워크트리(`wt/v7-timing-matrix-20260928-110503`)에서 작업하고 main 에 ff 머지했다. 과금 LLM 0회, 실결제 0, DB 접근 0. 플래그 `READING_V7_ENABLED=false`, 운영 경로 import 0, `service.ts` 무변경.
+- 파일
+  - `worker/yeongnyangi/fortune/reading-v7-timing.ts` (신규, 순수·결정적)
+    - `buildV7TimingMatrix(context, input, today)`: prepare 가 부를 함수. `extendAskLocalTiming` 을 그대로 호출하고 **사주 `monthlyLuck` 만** 가져간다. 월 키(`YYYY-MM`)로 중복을 버리고, `today` 에 유효한 월주(KST 절입일 ≤ today)부터 12행을 자른다. 반환은 JSON 그대로 스냅샷에 넣을 수 있는 `{version:'v7-timing-1', domain, today, facts}`.
+    - `withV7Timing(context, matrix)`: 저장된 매트릭스를 라벨 단위로 다시 끼운다(래퍼의 `withFacts` 와 같은 규칙). 도메인·버전이 다르면 throw.
+    - `v7TimingSummaries(resolveV7Ledger 결과)`: `timingRef:'summary'` 장에만 `timingSummary` 한 줄을 붙인다. 티어 필터를 거친 원장에서 읽으므로 비참치에 프리미엄 사실이 구조적으로 못 들어간다. 줄 끝에 그 사실을 소유한 시기 장 제목을 가리킨다.
+  - `__tests__/ui/yeongnyangi-reading-v7-timing.test.mjs` (신규, node --test 4종): ① 매트릭스 12행 2026-09~2027-08, 행마다 래퍼 출력과 동일(재계산 아님), JSON 왕복 동일, 2026-09-03 이면 입추 월주(2026-08)부터 ② 시각 없는 사주·자미·베다·점성술·숙요는 행 0, 도메인·버전 불일치 throw ③ 매트릭스 적용 원장: 미분류 0, 시기 사실은 시기 장만 소유, 롤링 12개월을 연어 `yearNow`·광어/참치 `months` 가 소유, 참치 `yearsAhead` 2028~2035 유지 ④ 요약: summary 장에만·결정적·개행/출생연도 없음·비참치 대운/대한/다샤 없음·가리키는 장이 owner.
+- 설계와 다르게 한 판단
+  - **자미·베다는 매트릭스를 쓰지 않는다.** 자미는 엔진 기본값에 이미 10년 `yearlyTimeline`·`minorLuck` 이 있다. 래퍼 결과를 쓰면 창 4년으로 줄어 `yearsAhead` Y2-9 가 빈다. 베다는 래퍼가 v7 금지인 PD 행과 원장 미분류 라벨 `dashaPeriods` 를 더한다.
+  - **사주 `yearlyLuck` 도 래퍼 것을 쓰지 않는다**(같은 이유: 10년 → 4년). 래퍼에서 쓰는 것은 월운뿐이다.
+  - 12개월 자르기는 설계("원장이 자른다")와 달리 매트릭스 단계에서 한다. 원장은 받은 행을 그대로 쪼갠다. 스냅샷이 12행만 담아 작고, 원장 계약은 그대로다.
+  - 실측 요약 예(1997-02-10 14:30 여 서울, 2026-09-15)
+    - 사주 연어·광어: `올해 세운 丙午(정재가 들어오는 해) — 자세한 흐름은 「올해와 내년」 장에서 다룬다.`
+    - 사주 참치: `… · 지금 대운 乙巳(식신) — …`
+    - 자미 참치: `올해 유년 형제궁(염정·천상) · 지금 대한 복덕궁 — …`
+    - 베다 참치: `지금 마하다샤 Mercury(2031-08-31까지) · 안타르다샤 Rahu — 자세한 흐름은 「지금의 마하다샤」 장에서 다룬다.`
+    - 베다 연어·광어·점성술·숙요는 시기 장이 없어 전 장이 `none` 이고 요약도 없다.
+- CPU 실측(로컬 node, Windows. 워커 CPU 와 같은 값이 아님)
+  - 래퍼 1회 벽시계: 사주 22.1ms(콜드)/13.5ms(웜), 자미 10.5ms/6.6ms. `process.cpuUsage` 는 윈도우 해상도(약 15.6ms) 때문에 0~93ms 로 튀어 벽시계를 기준으로 삼는다.
+  - prepare 가 실제로 부르는 것은 사주 1회뿐이다(자미 0회). 워커 실측은 §6-6 배선 뒤 스테이징 `wrangler tail` 로 한다.
+- 검증(실측)
+  - 새 시기 테스트 4/4. 변이 4종이 모두 물었다: 12개월 자르기 제거(2 실패), today 기준 무시(2), 모든 장에 요약(1), 도메인 검사 제거(1). 원본 복원은 `git status` clean 으로 확인했다.
+  - **불변 스냅샷은 해시 갱신 없이 통과**했다. v7 원장 8, reading-v7 6, reading-v6·ask-evidence·consultation-kinds 38 모두 통과(리베이스 뒤 시기·불변·원장 재실행 13/13).
+  - `npx tsc --noEmit -p .` 오류 0. eslint 오류 0(경고 1: 원장 테스트와 같은 `_t` 구조분해 패턴).
+  - `npm run check:fast`: entry-encoding OK, jest 309 스위트·4,512 테스트 통과(종료 코드는 캡처하지 못했고 실패 단계 출력은 없었다).
 
 ## Phase 0 세션 변경
 
@@ -368,7 +396,7 @@ next: "Phase 2 커밋 4 = 시기 매트릭스(설계 §6-4: extendAskLocalTiming
 ## 롤백
 
 - Phase 0·1 모두 문서만 바꿨다. 각 커밋 하나를 `git revert` 하면 된다.
-- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다.
+- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다. 커밋 4(`eddaa5c13`)는 새 파일 2개뿐이라 `git revert` 하나로 끝난다.
 
 ## 다음 단계
 
@@ -379,15 +407,17 @@ next: "Phase 2 커밋 4 = 시기 매트릭스(설계 §6-4: extendAskLocalTiming
    - 끝나면 불변 스냅샷 테스트가 **갱신 없이** 통과해야 한다. `hasReadingSections` 등록이 v6 경로를 건드리면 여기서 잡힌다.
    - 그다음 세션부터 §6-3~7 을 한 커밋씩 한다. 플래그는 끝까지 OFF 다.
 3. ~~설계 §6-3 `reading-v7-ledger.ts`~~ 완료(위 "Phase 2 커밋 3 결과").
-4. 다음 세션(`[GREEN]` 새 순수 모듈 + mock 테스트, 플래그 OFF. 권장: 주력 모델 / effort high): 설계 §6-4 시기 매트릭스 한 커밋만 한다.
-   - `extendAskLocalTiming`(`worker/yeongnyangi/fortune/ask/wrappers.ts:19`)을 재사용한다. `normalized` 는 영감 모드에서만 스냅샷에 저장되므로(`service.ts:157`) prepare 에서 계산해 저장하고, 장 생성 때 다시 계산하지 않는다. 선례는 물어보기 `generationCheckpoint.evidence`.
-   - 시기 장만 `owner` 이고 나머지 장은 결정적 한 줄 요약을 받는다. 사주 `monthlyLuck` 48행은 원장이 12개월로 자른다(원장의 `monthlyLuck.M12` 태그와 맞춘다).
-   - 래퍼 1회의 워커 CPU 시간(사주 LB 8회·자미 44회)을 잰다. `service.ts` 배선은 §6-6 이므로 이 커밋에서는 순수 함수와 테스트만 둔다.
+4. ~~설계 §6-4 시기 매트릭스~~ 완료(위 "Phase 2 커밋 4 결과"). §6-6 배선 때 prepare 에서 `buildV7TimingMatrix` 를 v7 일 때만 부르고, 결과를 스냅샷(또는 `generationCheckpoint`)에 저장한다. 장 생성은 `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 순서다.
+5. 다음 세션(`[GREEN]` 순수 프롬프트·스키마 모듈 + mock 테스트, 플래그 OFF. 권장: 주력 모델 / effort high): 설계 §6-5 `chapter-v7` 프롬프트·출력 스키마 한 커밋만 한다.
+   - 블록 = 인사이트 단위, 장면 ≤1, 선택은 결정 장에만. 블록 스키마 `id/title/paragraphs/sources` 를 유지해 렌더러 분기가 필요 없게 한다.
+   - 이전 장 전달은 기존 필수 필드 `highlights[]`·`topics[]` 를 재사용한다. 스키마·렌더러·DB 는 바꾸지 않는다.
+   - summary 장 프롬프트에는 `timingSummary` 한 줄만 넣고 시기 사실 자체는 넣지 않는다. 입력 사실은 `selectV7Facts`(owns ∪ refs)다.
+   - 가장 가까운 기존 구현(`ask-chapter-v1`, v6 장 프롬프트)을 먼저 읽는다. LLM 안전 규칙(CLAUDE.md 원칙 17: 하한 ≤ 목표×0.8, 출력 토큰 여유, 형식은 거부 대신 교정)을 프롬프트·스키마에 반영한다.
    - 불변 스냅샷은 갱신 없이 통과해야 한다.
-5. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
+6. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 4(설계 §6-4 시기 매트릭스: extendAskLocalTiming 재사용, prepare 에서 계산해 스냅샷 저장, 시기 장만 owner·나머지 장은 결정적 한 줄 요약, reading-v7-ledger.ts 원장과 연결하는 순수 함수와 mock 테스트)를 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
+D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 5(설계 §6-5 chapter-v7 프롬프트·출력 스키마: 블록=인사이트 단위, 장면 ≤1, 선택은 결정 장만, 블록 스키마 id/title/paragraphs/sources 유지, highlights[]·topics[] 재사용, summary 장에는 reading-v7-timing.ts 의 timingSummary 한 줄만, 입력 사실은 selectV7Facts 인 순수 모듈과 mock 테스트)를 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
 ```
