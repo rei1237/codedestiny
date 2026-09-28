@@ -47,7 +47,9 @@ const TOPICS=Object.values(topicCatalog).map(topic=>topic.label).join(', ');
 const sukuyoPair=readingManifest(single('sukuyo','mackerel'),'general','compatibility');
 
 const FAQS=[
+ {question:'천원 운세로 무엇을 볼 수 있나요?',answer:`영냥이 천원운세에서는 사주, 타로, 자미두수, 숙요점, 베다점, 서양 점성술 중 한 가지 체계를 골라 ${PRICE} 고등어 상담을 받을 수 있어요. 각 체계의 계산이나 카드 상징을 바탕으로 AI가 기질과 고민의 흐름, 실천할 행동을 해설해요. 여섯 체계를 한 번에 읽는 초융합 상담은 별도 상품이에요.`},
  {question:'천원사주는 정말 1,000원인가요?',answer:`네. 영냥이의 고등어 상담은 사주, 자미두수, 숙요점, 베다점, 점성술, 타로 여섯 가지 모두 ${PRICE}이에요. Family 이용권 한도 또는 단건 결제로 이용하며, 결제창에서 금액과 적용 수단을 한 번 더 확인해요.`},
+ {question:'모든 영냥이 상담이 천원인가요?',answer:`${PRICE}은 각 체계의 고등어 상담 가격이에요. 더 깊은 상담은 ${TIERS.slice(1).map(fish=>`${packages[fish].name} ${won(single('saju',fish).priceKRW)}`).join(', ')}으로 구성되며, 초융합 상담도 별도 가격이에요. 선택한 상품의 가격과 이용권 적용 여부는 결제창에서 확인해 주세요.`},
  {question:'이용권이나 월정석으로도 볼 수 있나요?',answer:'Family 이용권은 적용됩니다. 다른 이용권 등급과 월정석은 적용되지 않으며, Family가 없다면 카드·카카오페이 등의 단건 결제로 이용할 수 있어요.'},
  {question:'출생시간을 모르면 상담할 수 없나요?',answer:'천원 사주는 출생시간 없이도 상담할 수 있어요. 자미두수, 숙요점, 베다점, 점성술은 출생시간으로 계산이 달라지므로 시간이 필요하고, 타로는 출생정보 없이 질문만으로 상담해요.'},
  {question:'천원으로 궁합도 볼 수 있나요?',answer:`숙요점 고등어 상담에서 궁합 상대 프로필을 함께 고르면 두 사람의 관계를 ${sukuyoPair.length}개 챕터로 읽어요. 다른 운세의 궁합 지원 여부와 필요한 정보는 상담 종류에서 확인할 수 있어요. 꿀꿀 운세 궁합 페이지도 함께 둘러볼 수 있어요.`},
@@ -57,15 +59,15 @@ const FAQS=[
  {question:'입력한 생년월일과 질문은 어떻게 쓰이나요?',answer:'입력한 출생정보와 질문은 상담을 계산하고 결과를 기록해 다시 보여 주는 데 쓰여요. 보관과 처리 방식은 개인정보 처리방침에서 확인할 수 있어요.'},
 ];
 
-const TITLE='천원사주 · 천원 사주풀이 | 사주보는 고양이 영냥이';
-const DESCRIPTION=`${founder.credential}. 영냥이 천원사주·타로 ${PRICE} 단건 상담. 공개 분석 기록, 상담 예시와 가격을 확인하고 시작하세요.`;
-const OG_TITLE='왜 나는 같은 선택을 반복할까? | 영냥이 천원사주';
+const TITLE=`천원 운세·천원사주 | ${PRICE} 상담 영냥이`;
+const DESCRIPTION=`영냥이 천원운세는 사주·타로 등 여섯 체계의 고등어 상담을 ${PRICE}에 이용하는 서비스입니다. ${founder.credential}. 상담 예시와 상품별 가격을 먼저 확인하세요.`;
+const OG_TITLE=TITLE;
 
 export const metadata:Metadata={
  metadataBase:new URL('https://code-destiny.com'),
  title:{absolute:TITLE},
  description:DESCRIPTION,
- keywords:['천원사주','천원 사주풀이','천원운세','1000원 사주','사주보는 고양이','영냥이'],
+ keywords:['천원 운세','천원운세','1000원 운세','1,000원 운세','천원사주','천원 사주풀이','1000원 사주','사주보는 고양이','영냥이'],
  alternates:{canonical:PAGE_URL},
  robots:{index:true,follow:true,googleBot:{index:true,follow:true,'max-image-preview':'large','max-snippet':-1,'max-video-preview':-1}},
  openGraph:{type:'website',locale:'ko_KR',url:PAGE_URL,siteName:siteSeo.brandName,title:OG_TITLE,description:DESCRIPTION,images:[{url:OG_IMAGE,width:800,height:800,alt:'사주보는 고양이 영냥이'}]},
@@ -74,22 +76,22 @@ export const metadata:Metadata={
 
 const jsonLd=[
  buildWebPageJsonLd({title:TITLE,description:DESCRIPTION,path:PATH}),
- buildBreadcrumbJsonLd([{name:siteSeo.brandName,path:'/'},{name:'사주보는 고양이 영냥이',path:'/yeongnyangi/'},{name:'천원사주',path:PATH}]),
- buildServiceJsonLd({name:'영냥이 천원 사주 상담',description:`사주팔자 계산을 바탕으로 AI가 ${mackerels[0].chapterCount}개 챕터로 해설하는 고등어 상담`,path:PATH}),
+ buildBreadcrumbJsonLd([{name:siteSeo.brandName,path:'/'},{name:'사주보는 고양이 영냥이',path:'/yeongnyangi/'},{name:'천원 운세·천원사주',path:PATH}]),
+ buildServiceJsonLd({name:'영냥이 천원 운세 상담',description:`사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 고등어 상담을 ${PRICE}에 이용하고, 계산이나 카드 상징을 바탕으로 AI가 ${chapterRange(mackerels)} 챕터로 해설하는 서비스`,path:PATH}),
  buildFaqPageJsonLd(FAQS),
 ];
 const serialize=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c');
 
 export default function Page(){
  return <article className={styles.hub}>
-  <nav className={styles.crumbs} aria-label="현재 위치"><a href="/">{siteSeo.brandName}</a><span aria-hidden="true">›</span><a href="/yeongnyangi/">사주보는 고양이 영냥이</a><span aria-hidden="true">›</span><span aria-current="page">천원사주</span></nav>
+  <nav className={styles.crumbs} aria-label="현재 위치"><a href="/">{siteSeo.brandName}</a><span aria-hidden="true">›</span><a href="/yeongnyangi/">사주보는 고양이 영냥이</a><span aria-hidden="true">›</span><span aria-current="page">천원 운세·천원사주</span></nav>
 
   <section className={styles.intro}>
    <div>
     <p className={styles.kicker}>사주보는 고양이 영냥이 · 고등어 상담</p>
-    <h1><span className={styles.h1Line}>천원사주 · 천원운세,</span> <span className={styles.h1Line}>영냥이 고등어 상담 {PRICE}</span></h1>
-    <p>왜 선택 앞에서 자꾸 망설이게 될까요? 지금의 고민을 남기면, 사주 계산을 바탕으로 내 질문에 대한 답과 근거, 생활 속에서 해볼 행동을 함께 읽어요.</p>
-    <p>처음이라면 사주 고등어 상담부터 시작해 보세요. {PRICE}에 {mackerels[0].chapterCount}개 챕터의 상담 글을 받고, 같은 계정의 내 상담 기록에서 다시 볼 수 있어요. 계산은 사주 엔진이, 해설은 AI가 맡아요.</p>
+    <h1><span className={styles.h1Line}>천원 운세·천원사주,</span> <span className={styles.h1Line}>영냥이 고등어 상담 {PRICE}</span></h1>
+    <p>영냥이 천원운세는 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 가지 체계의 고등어 상담을 {PRICE}에 이용하는 서비스예요. 각 체계의 계산이나 카드 상징을 바탕으로 AI가 해설하고, 같은 계정의 내 상담 기록에서 결과를 다시 볼 수 있어요.</p>
+    <p>처음이라면 사주 고등어 상담부터 시작해 보세요. {mackerels[0].chapterCount}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
     <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a><a href="#example">받게 될 답의 형태 보기</a></p>
     <p className={styles.policy}>Family 이용권이 없어도 단건 결제로 이용할 수 있어요. 상품과 가격은 다음 화면에서 바꿀 수 있으며, 로그인 후 결제창에서 총액과 적용 수단을 확인해요.</p>
    </div>
@@ -113,7 +115,7 @@ export default function Page(){
   <FounderTrust/>
   <section aria-labelledby="what">
    <h2 id="what">천원사주·천원운세란</h2>
-   <p>천원 사주, 1,000원 사주, 천원운세로 찾는 상담은 영냥이에서 모두 고등어 상담 하나를 가리켜요. Family 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받으며, 자동 결제는 아니에요.</p>
+   <p>천원 운세, 천원운세, 1000원 운세로 찾는 영냥이 상담은 고등어 상품을 가리켜요. 천원사주는 그중 사주 체계의 상담이에요. Family 이용권 한도 또는 단건 결제로 한 번의 상담 결과를 받으며, 자동 결제는 아니에요.</p>
    <p>고등어 상담은 천원 사주가 {mackerels[0].chapterCount}개, 다른 체계가 {chapterRange(mackerels.slice(1))} 챕터로 구성돼요. 상담 전체 분량 기준은 {mackerelPolicy.minimum.toLocaleString('ko-KR')}자 이상이고, 챕터마다 {mackerelPolicy.depth.join(' → ')} 순서로 내용을 담아요. 짧은 운세 문장 한 줄이 아니라, 왜 그렇게 읽었는지와 오늘 해볼 수 있는 첫 행동까지 함께 받는 구성이에요.</p>
    <p>운세마다 해석·궁합 등 제공하는 상담 종류를 먼저 골라요. 무엇이든 물어보기에서는 {TOPICS} 등의 주제를 고르고 궁금한 질문을 1,000자까지 남겨요. 타로는 카드에 물어볼 질문을 따로 적어요.</p>
   </section>
@@ -175,7 +177,7 @@ export default function Page(){
   </section>
 
   <section aria-labelledby="faq">
-   <h2 id="faq">천원사주 자주 묻는 질문</h2>
+   <h2 id="faq">천원 운세·천원사주 자주 묻는 질문</h2>
    <div className={styles.faq}>{FAQS.map(item=><section key={item.question}><h3>{item.question}</h3><p>{item.answer}</p></section>)}</div>
    <p className={styles.policy}>함께 보기: <a href="/compatibility/">꿀꿀 운세 궁합</a> · <a href="/refund-policy/">환불 정책</a> · <a href="/privacy-policy/">개인정보 처리방침</a> · <a href="/contact/">문의하기</a></p>
   </section>

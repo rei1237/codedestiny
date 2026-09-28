@@ -10,7 +10,7 @@ import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { SEO_LINK_GROUPS } from "./components/SiteFooterHub";
 import { ILGAN_MONTHLY_MONTHS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import styles from "./home-cosmic.module.css";
-import { founder } from "../lib/brand/founder";
+import { getProduct } from "../worker/yeongnyangi/payments/catalog";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -58,13 +58,14 @@ function homePageText(key) {
 }
 
 const sourcePage = publicSeoPages.home;
+const starterPrice = getProduct("saju_mackerel").priceKRW.toLocaleString("ko-KR");
+const HOME_TITLE = "천원운세부터 보는 사주·타로 | 영냥이 — Code Destiny";
+const HOME_DESCRIPTION = `천원운세부터 시작하는 영냥이. 사주·타로·자미두수·숙요점·베다점·점성술 고등어 상담을 ${starterPrice}원 단건 결제로 이용하세요. 상담 예시와 상품별 가격을 먼저 확인할 수 있습니다.`;
 const HOME_SEO = {
-  title: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
-  description:
-    `${founder.credential}. 영냥이와 사주·타로·궁합의 흐름을 읽고, 상담 예시와 공개 분석 기록을 먼저 확인하세요.`,
-  ogTitle: "사주보는 고양이 영냥이 | 사주·타로·궁합 — CODE DESTINY",
-  ogDescription:
-    `${founder.credential}. 사주보는 고양이 영냥이에게 내 고민을 들려주세요.`,
+  title: HOME_TITLE,
+  description: HOME_DESCRIPTION,
+  ogTitle: HOME_TITLE,
+  ogDescription: HOME_DESCRIPTION,
   url: "https://code-destiny.com/",
   image: "https://code-destiny.com/assets/yeongnyangi/original/kakao-profile.png",
 };
@@ -80,7 +81,7 @@ export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: { absolute: HOME_SEO.title },
   description: HOME_SEO.description,
-  keywords: page.keywords,
+  keywords: ["천원운세", "천원 운세", "1000원 운세", "1,000원 운세", "천원사주", "영냥이", ...page.keywords],
   alternates: {
     canonical: HOME_SEO.url,
   },
