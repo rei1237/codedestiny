@@ -167,7 +167,7 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect(providerCall).toHaveBeenCalledTimes(1);
     expect(providerCall.mock.calls[0][2].logContext.sectionGroup).toBe("vedic");
   });
-  it("keeps sibling checkpoints and propagates storage failure without repair calls", async () => {
+  it("stops before the next group when checkpoint confirmation fails", async () => {
     const calls = Object.fromEntries(["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"].map(name => [name, 0]));
     const { context } = await buildFusionFortuneContext(input, { adapters: fusionAdapters(calls) });
     const providerCall = jest.fn(async (_env, _prompt, options) => {
@@ -184,10 +184,10 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
       env: { NODE_ENV: "staging", ENABLE_FUSION_FORTUNE_REAL_LLM: "true", ALLOW_FUSION_FORTUNE_REAL_LLM: "true", GEMINI_API_KEY: "test-only-key" },
       providerCall, onCheckpoint,
     })).rejects.toMatchObject({ code: "RESULT_STORAGE_UNAVAILABLE" });
-    expect(providerCall).toHaveBeenCalledTimes(6);
-    expect(onCheckpoint).toHaveBeenCalledTimes(6);
+    expect(providerCall).toHaveBeenCalledTimes(1);
+    expect(onCheckpoint).toHaveBeenCalledTimes(1);
     expect(snapshots.at(-1)).toHaveProperty("sajuSection.content");
-    expect(snapshots.at(-1)).toHaveProperty("tarotSection.content");
+    expect(snapshots.at(-1)).not.toHaveProperty("tarotSection");
   });
 
   it("does not start providers when only the storage reserve remains", async () => {
@@ -889,7 +889,14 @@ describe("fusion length drafts and bounded repairs", () => {
       return { ok: true, text: JSON.stringify(value) };
     });
     const args = { input, context, env, providerCall, onAttempt, onCheckpoint: async value => { saved = structuredClone(value); } };
-    const first = await generateFusionFortuneWithRealLLM(args);
+    let first = await generateFusionFortuneWithRealLLM(args);
+    expect(first.deliverable).toBe(false);
+    expect(providerCall).toHaveBeenCalledTimes(1);
+    for(let request=0;request<10&&!first.deliverable;request++){
+      const calls=providerCall.mock.calls.length;
+      first=await generateFusionFortuneWithRealLLM({...args,priorResult:saved,priorSnapshot:snapshot});
+      expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(1);
+    }
     expect(first.deliverable).toBe(true);
     expect(snapshot.attempts.saju).toBe(2);
     expect(snapshot.lengthRepairs.saju).toBe(true);
@@ -898,7 +905,12 @@ describe("fusion length drafts and bounded repairs", () => {
     const resumed = await generateFusionFortuneWithRealLLM({ ...args, priorResult: first.result, priorSnapshot: snapshot });
     expect(resumed.deliverable).toBe(true);
     expect(providerCall).not.toHaveBeenCalled();
-    const second = await generateFusionFortuneWithRealLLM({ ...args, stage: 2, priorResult: first.result, priorSnapshot: snapshot });
+    let second = await generateFusionFortuneWithRealLLM({ ...args, stage: 2, priorResult: first.result, priorSnapshot: snapshot });
+    for(let request=0;request<10&&!second.deliverable;request++){
+      const calls=providerCall.mock.calls.length;
+      second=await generateFusionFortuneWithRealLLM({...args,stage:2,priorResult:saved,priorSnapshot:snapshot});
+      expect(providerCall.mock.calls.length-calls).toBeLessThanOrEqual(1);
+    }
     expect(second.deliverable).toBe(true);
     expect(countFusionFortuneVisibleText(second.result)).toBeGreaterThanOrEqual(30000);
     expect(countFusionReportBodyChars(second.result)).toBeGreaterThanOrEqual(20000);

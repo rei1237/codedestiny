@@ -1557,8 +1557,7 @@ async function generateSummary(env, input, calculation, systemPrompt) {
 }
 
 /**
- * 궁합 상담 전체를 한 요청 안에서 만든다 — 다섯 섹션 그룹 + 요약을 병렬로 부르고 하나로 병합한다.
- * 벽시계는 가장 느린 그룹 기준(약 40초)이라 엣지 100초 컷 안쪽에서 끝난다.
+ * 저장된 섹션을 보존하고 한 요청에 한 그룹을 만든다. 요약은 본문이 끝난 다음 요청에서 쓴다.
  */
 async function createCompatibilityAnswer(env, input, calculation, options = {}) {
   const sections = { ...(options.sections || {}) };
@@ -1584,11 +1583,7 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     attempts[group.id] = attempt;
     await options.onReserve?.(group.id, attempt, lengthRepair);
     const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
-    const [generated, generatedSummary] = await Promise.all([
-      generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections),
-      !summary && group.id === SUKUYO_SECTION_GROUPS[0].id && attempt === 1 ? generateSummary(env, input, calculation, systemPrompt) : Promise.resolve(summary),
-    ]);
-    summary = generatedSummary || summary;
+    const generated = await generateSectionGroup(env, input, calculation, group, systemPrompt, attempt, sections);
     for (const [key, row] of Object.entries(generated.sections)) {
       const others = Object.entries(sections).filter(([other]) => other !== key).map(([, value]) => value.body).join("\n");
       if (hasRepeatedReportPassage(`${others}\n${row.body}`)) continue;
@@ -1597,10 +1592,18 @@ async function createCompatibilityAnswer(env, input, calculation, options = {}) 
     provider = generated.provider; model = generated.model;
     await options.onCheckpoint?.({ sections, summary });
   }
-  const complete = SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0) >= 20000
+  if (!group && !summary && !attempts.summary) {
+    attempts.summary = 1;
+    await options.onReserve?.('summary', 1, false);
+    const systemPrompt = await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT);
+    summary = await generateSummary(env, input, calculation, systemPrompt);
+    await options.onCheckpoint?.({ sections, summary });
+  }
+  const summaryPending = !summary && !attempts.summary;
+  const complete = !summaryPending && SUKUYO_SECTION_SPECS.every(spec => isComplete(spec.key)) && Object.values(sections).reduce((sum, section) => sum + countPaidReportBodyChars(section.body), 0) >= 20000
     && !hasRepeatedReportPassage(Object.values(sections).map(row => row.body).join("\n"));
   const result = { meta: buildSukuyoCompatibilityJsonSchema(input, calculation).meta, ...(summary || {}), sections };
-  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 3 && row.keys.some(key => !isComplete(key) || (!complete && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars))) };
+  return { content: JSON.stringify(result, null, 2), provider, model, complete, sections, attempts, retryable: summaryPending || SUKUYO_SECTION_GROUPS.some(row => Number(attempts[row.id] || 0) < 3 && row.keys.some(key => !isComplete(key) || (!complete && countPaidReportBodyChars(sections[key]?.body) < SUKUYO_SECTION_SPEC_MAP.get(key).targetMinChars))) };
 }
 
 async function saveSukuyoCheckpoint(sessionId, userId, generationLease, values) {

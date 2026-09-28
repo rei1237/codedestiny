@@ -20,7 +20,7 @@ function prose(label, chars) {
 }
 function teaHarness(state) {
   const saved = [];
-  const ctx = { ...quality, structuredClone, Date, Promise, getAmbientAiLocale: () => "ko", hasGeminiKey: () => true,
+  const ctx = { PAID_LLM_PARTS_PER_REQUEST: 4, ...quality, structuredClone, Date, Promise, getAmbientAiLocale: () => "ko", hasGeminiKey: () => true,
     runWithAiLocale: (_locale, fn) => fn(),
     generateFortuneTeaGroup: jest.fn(async () => ({ ok: false })),
     mergeLlmResult: (base, candidate) => ({ ...base, ...candidate }),

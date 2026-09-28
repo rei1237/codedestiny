@@ -54,7 +54,7 @@ const REFUNDED_REASONS = new Set([
 ]);
 
 /** 서버 상한(10웨이브)보다 넉넉히 두되, 진행이 멈추면 웨이브 수와 무관하게 끊는다. */
-const MAX_WAVES = 24;
+const MAX_WAVES = 40; // One persisted part per wave; match the server recovery budget.
 /** 진행 없는 성공 응답이 이만큼 이어지면 무한루프다. 서버는 1장 이상 커밋하거나 실패를 준다. */
 const MAX_NO_PROGRESS = 3;
 /** 락 대기(409) 로만 시간을 보낼 수 있는 총량. */

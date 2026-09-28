@@ -1,3 +1,4 @@
+import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiJsonWithRetry } from "./structured-consultation.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage, paidReportBody } from "./paid-report-quality.js";
@@ -58,7 +59,7 @@ export async function generateRelationshipWave(env, meta, checkpoint) {
   let delivery = structuredClone(meta.delivery);
   const score = relationshipScoreAnchor(meta);
   delivery.short ||= {};
-  const missing = pendingRelationshipParts(delivery).slice(0, 4);
+  const missing = pendingRelationshipParts(delivery).slice(0, PAID_LLM_PARTS_PER_REQUEST);
   // The repair flag is saved before the call so a lost response never buys a second repair.
   const drafts = Object.fromEntries(missing.filter(id => delivery.parts[id]?.body).map(id => [id, delivery.parts[id].body]));
   for (const id of missing) {

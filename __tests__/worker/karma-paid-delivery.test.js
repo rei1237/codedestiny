@@ -1,5 +1,10 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+// Stress fixture: preserve multi-part storage/lease failures at the former batch width.
+// Production's one-part contract is covered by paid-llm-sequential.test.js.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 운명의 업", calendarType: "solar", focusArea: "overall", accessType: "pass" };

@@ -5,6 +5,9 @@
 const USER_ID = "64f0a1b2c3d4e5f678901234";
 const SERVICE_SCOPE = "FORTUNE_TEA_HOUSE";
 const teaFixtures = require('../fixtures/fortune-tea-llm-payload.cjs');
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
 let handleFortuneTeaHouseRoutes;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };

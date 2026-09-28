@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, BadgeCheck, PenLine, RefreshCw, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
+import ReviewRewardBanner, { type ReviewRewardPolicy } from "../components/ReviewRewardBanner";
+import { reviewRewardLabel } from "@/js/review-reward-copy.mjs";
 import { authFetch } from "../_lib/auth-client";
 import YeonSpriteFrame from "@/components/yeon/YeonSpriteFrame";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
@@ -41,6 +43,7 @@ interface EligibleProduct {
   href: string;
   usedAt: string;
   alreadyReviewed: boolean;
+  existingReviewStatus?: string;
 }
 
 interface Summary {
@@ -105,7 +108,6 @@ type ReviewsCopy = {
   submitButtonLoading: string;
   submitButtonIdle: string;
   moderationNotice: string;
-  rewardNotice: string;
   selectProductError: string;
   bodyTooShortError: string;
   submitFailedFallback: string;
@@ -163,9 +165,7 @@ const REVIEWS_COPY_EN: ReviewsCopy = {
   bodyPlaceholder: "Tell others what specifically helped you — it makes a big difference for future readers.",
   submitButtonLoading: "Submitting...",
   submitButtonIdle: "Submit review",
-  moderationNotice: "Submitted reviews go through moderation before appearing publicly.",
-  rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-  selectProductError: "Please choose which service you're reviewing.",
+  moderationNotice: "Submitted reviews go through moderation before appearing publicly.",  selectProductError: "Please choose which service you're reviewing.",
   bodyTooShortError: "Your review needs to be at least 20 characters.",
   submitFailedFallback: "Couldn't submit your review.",
   submitSuccessNotice: "Your review has been submitted. It'll appear after moderation.",
@@ -223,9 +223,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "어떤 점이 도움이 되었는지 구체적으로 적어주시면 다른 분들에게 큰 도움이 됩니다.",
     submitButtonLoading: "등록 중...",
     submitButtonIdle: "리뷰 등록",
-    moderationNotice: "등록한 후기는 바로 공개되지 않고 운영진 검수를 거쳐 반영됩니다.",
-    rewardNotice: "검수를 통과해 공개되면 후기 1건당 월정석 100개(1,000원 상당)를 드립니다.",
-    selectProductError: "리뷰를 남길 상품을 선택해 주세요.",
+    moderationNotice: "등록한 후기는 바로 공개되지 않고 운영진 검수를 거쳐 반영됩니다.",    selectProductError: "리뷰를 남길 상품을 선택해 주세요.",
     bodyTooShortError: "후기는 20자 이상 작성해 주세요.",
     submitFailedFallback: "리뷰를 등록하지 못했습니다.",
     submitSuccessNotice: "리뷰가 등록되었습니다. 검토 후 반영됩니다.",
@@ -282,9 +280,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "どんな点が役に立ったか具体的に書いていただくと、他の方の参考になります。",
     submitButtonLoading: "送信中...",
     submitButtonIdle: "レビューを投稿",
-    moderationNotice: "投稿されたレビューは審査後に公開されます。",
-    rewardNotice: "審査を通過して公開されると、レビュー1件につき月精石100個（1,000ウォン相当）を差し上げます。",
-    selectProductError: "レビューを投稿するサービスを選択してください。",
+    moderationNotice: "投稿されたレビューは審査後に公開されます。",    selectProductError: "レビューを投稿するサービスを選択してください。",
     bodyTooShortError: "レビューは20文字以上で入力してください。",
     submitFailedFallback: "レビューを投稿できませんでした。",
     submitSuccessNotice: "レビューを投稿しました。審査後に公開されます。",
@@ -340,9 +336,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "具体写下哪些地方对您有帮助，能给其他人很大的参考价值。",
     submitButtonLoading: "提交中...",
     submitButtonIdle: "提交评价",
-    moderationNotice: "提交的评价将在审核后展示。",
-    rewardNotice: "评价通过审核并公开后，每篇可获得 100 颗月精石（约合 1,000 韩元）。",
-    selectProductError: "请选择要评价的服务。",
+    moderationNotice: "提交的评价将在审核后展示。",    selectProductError: "请选择要评价的服务。",
     bodyTooShortError: "评价内容需至少20字。",
     submitFailedFallback: "评价提交失败。",
     submitSuccessNotice: "评价已提交，审核通过后展示。",
@@ -398,9 +392,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "具體寫下哪些地方對您有幫助，能給其他人很大的參考價值。",
     submitButtonLoading: "提交中...",
     submitButtonIdle: "提交評價",
-    moderationNotice: "提交的評價將在審核後展示。",
-    rewardNotice: "評價通過審核並公開後，每篇可獲得 100 顆月精石（約合 1,000 韓元）。",
-    selectProductError: "請選擇要評價的服務。",
+    moderationNotice: "提交的評價將在審核後展示。",    selectProductError: "請選擇要評價的服務。",
     bodyTooShortError: "評價內容需至少20字。",
     submitFailedFallback: "評價提交失敗。",
     submitSuccessNotice: "評價已提交，審核通過後展示。",
@@ -456,9 +448,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "Hãy viết cụ thể điều gì đã giúp ích cho bạn — điều này rất hữu ích cho những người đọc sau.",
     submitButtonLoading: "Đang gửi...",
     submitButtonIdle: "Gửi đánh giá",
-    moderationNotice: "Đánh giá đã gửi sẽ được kiểm duyệt trước khi hiển thị công khai.",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "Vui lòng chọn dịch vụ bạn muốn đánh giá.",
+    moderationNotice: "Đánh giá đã gửi sẽ được kiểm duyệt trước khi hiển thị công khai.",    selectProductError: "Vui lòng chọn dịch vụ bạn muốn đánh giá.",
     bodyTooShortError: "Đánh giá cần tối thiểu 20 ký tự.",
     submitFailedFallback: "Không thể gửi đánh giá của bạn.",
     submitSuccessNotice: "Đánh giá của bạn đã được gửi. Sẽ hiển thị sau khi kiểm duyệt.",
@@ -514,9 +504,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "क्या चीज़ आपके लिए विशेष रूप से मददगार रही, यह लिखें — इससे दूसरों को काफी मदद मिलती है।",
     submitButtonLoading: "सबमिट हो रहा है...",
     submitButtonIdle: "रिव्यू सबमिट करें",
-    moderationNotice: "सबमिट किए गए रिव्यू सार्वजनिक होने से पहले समीक्षा से गुजरते हैं।",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "कृपया वह सेवा चुनें जिसके लिए रिव्यू लिखना है।",
+    moderationNotice: "सबमिट किए गए रिव्यू सार्वजनिक होने से पहले समीक्षा से गुजरते हैं।",    selectProductError: "कृपया वह सेवा चुनें जिसके लिए रिव्यू लिखना है।",
     bodyTooShortError: "रिव्यू कम से कम 20 अक्षर का होना चाहिए।",
     submitFailedFallback: "आपका रिव्यू सबमिट नहीं हो सका।",
     submitSuccessNotice: "आपका रिव्यू सबमिट कर दिया गया है। समीक्षा के बाद दिखाई देगा।",
@@ -572,9 +560,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "Cuenta específicamente qué te ayudó — es de gran ayuda para otros lectores.",
     submitButtonLoading: "Enviando...",
     submitButtonIdle: "Enviar reseña",
-    moderationNotice: "Las reseñas enviadas pasan por moderación antes de publicarse.",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "Elige el servicio que quieres reseñar.",
+    moderationNotice: "Las reseñas enviadas pasan por moderación antes de publicarse.",    selectProductError: "Elige el servicio que quieres reseñar.",
     bodyTooShortError: "Tu reseña debe tener al menos 20 caracteres.",
     submitFailedFallback: "No se pudo enviar tu reseña.",
     submitSuccessNotice: "Tu reseña ha sido enviada. Aparecerá tras la moderación.",
@@ -630,9 +616,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "Décrivez précisément ce qui vous a aidé — cela aide beaucoup les autres lecteurs.",
     submitButtonLoading: "Envoi en cours...",
     submitButtonIdle: "Envoyer l'avis",
-    moderationNotice: "Les avis envoyés sont modérés avant d'être publiés.",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "Choisissez le service que vous souhaitez noter.",
+    moderationNotice: "Les avis envoyés sont modérés avant d'être publiés.",    selectProductError: "Choisissez le service que vous souhaitez noter.",
     bodyTooShortError: "Votre avis doit comporter au moins 20 caractères.",
     submitFailedFallback: "Votre avis n'a pas pu être envoyé.",
     submitSuccessNotice: "Votre avis a été envoyé. Il apparaîtra après modération.",
@@ -688,9 +672,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "Beschreiben Sie konkret, was Ihnen geholfen hat — das hilft anderen Lesern sehr.",
     submitButtonLoading: "Wird gesendet...",
     submitButtonIdle: "Bewertung absenden",
-    moderationNotice: "Eingereichte Bewertungen werden vor der Veröffentlichung geprüft.",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "Bitte wählen Sie die Leistung aus, die Sie bewerten möchten.",
+    moderationNotice: "Eingereichte Bewertungen werden vor der Veröffentlichung geprüft.",    selectProductError: "Bitte wählen Sie die Leistung aus, die Sie bewerten möchten.",
     bodyTooShortError: "Ihre Bewertung muss mindestens 20 Zeichen lang sein.",
     submitFailedFallback: "Ihre Bewertung konnte nicht gesendet werden.",
     submitSuccessNotice: "Ihre Bewertung wurde gesendet. Sie erscheint nach der Prüfung.",
@@ -746,9 +728,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "Beschrijf specifiek wat u heeft geholpen — dit is erg nuttig voor andere lezers.",
     submitButtonLoading: "Bezig met verzenden...",
     submitButtonIdle: "Review verzenden",
-    moderationNotice: "Ingediende reviews worden gemodereerd voordat ze zichtbaar worden.",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "Selecteer de dienst waarover u een review wilt schrijven.",
+    moderationNotice: "Ingediende reviews worden gemodereerd voordat ze zichtbaar worden.",    selectProductError: "Selecteer de dienst waarover u een review wilt schrijven.",
     bodyTooShortError: "Uw review moet minstens 20 tekens bevatten.",
     submitFailedFallback: "Uw review kon niet worden verzonden.",
     submitSuccessNotice: "Uw review is verzonden. Deze verschijnt na moderatie.",
@@ -804,9 +784,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     bodyPlaceholder: "Nyatakan secara khusus perkara yang membantu anda — ini sangat berguna untuk pembaca lain.",
     submitButtonLoading: "Menghantar...",
     submitButtonIdle: "Hantar ulasan",
-    moderationNotice: "Ulasan yang dihantar akan disemak sebelum dipaparkan secara umum.",
-    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
-    selectProductError: "Sila pilih perkhidmatan yang ingin anda ulas.",
+    moderationNotice: "Ulasan yang dihantar akan disemak sebelum dipaparkan secara umum.",    selectProductError: "Sila pilih perkhidmatan yang ingin anda ulas.",
     bodyTooShortError: "Ulasan anda perlu sekurang-kurangnya 20 aksara.",
     submitFailedFallback: "Ulasan anda tidak dapat dihantar.",
     submitSuccessNotice: "Ulasan anda telah dihantar. Ia akan dipaparkan selepas semakan.",
@@ -942,6 +920,7 @@ export default function ReviewsClient() {
 
   const [reviews, setReviews] = useState<ReviewCard[]>([]);
   const [products, setProducts] = useState<ProductOption[]>([]);
+  const [rewardPolicy, setRewardPolicy] = useState<ReviewRewardPolicy | null>(null);
   const [summary, setSummary] = useState<Summary>(EMPTY_SUMMARY);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -950,6 +929,7 @@ export default function ReviewsClient() {
   const [mobileExpanded, setMobileExpanded] = useState(false);
 
   const [writerOpen, setWriterOpen] = useState(false);
+  const writerRef = useRef<HTMLDivElement>(null);
   const [eligible, setEligible] = useState<EligibleProduct[]>([]);
   const [eligibleState, setEligibleState] = useState<"idle" | "loading" | "ready" | "guest" | "error">("idle");
   const [formProductId, setFormProductId] = useState("");
@@ -966,6 +946,7 @@ export default function ReviewsClient() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return;
       setProducts(Array.isArray(data?.items) ? data.items : []);
+      setRewardPolicy(data?.rewardPolicy || null);
     } catch {
       setProducts([]);
     }
@@ -1047,8 +1028,29 @@ export default function ReviewsClient() {
     }
   }, []);
 
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("write") === "1") void openWriter();
+  }, [openWriter]);
+
+  useEffect(() => {
+    if (!writerOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const dialog = writerRef.current;
+    dialog?.querySelector<HTMLButtonElement>("button")?.focus();
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setWriterOpen(false); return; }
+      if (event.key !== "Tab" || !dialog) return;
+      const controls = Array.from(dialog.querySelectorAll<HTMLElement>("button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled)"));
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => { document.removeEventListener("keydown", handleKey); previous?.focus(); };
+  }, [writerOpen]);
+
   const submitReview = useCallback(async () => {
-    if (!formProductId) {
+    if (!formProductId || !eligible.some((item) => item.productId === formProductId && !item.alreadyReviewed)) {
       setFormError(copy.selectProductError);
       return;
     }
@@ -1080,14 +1082,15 @@ export default function ReviewsClient() {
       setFormTitle("");
       setFormBody("");
       setEligible((prev) => prev.map((item) => (
-        item.productId === formProductId ? { ...item, alreadyReviewed: true } : item
+        item.productId === formProductId ? { ...item, alreadyReviewed: true, existingReviewStatus: "pending" } : item
       )));
+      setFormProductId(eligible.find((item) => item.productId !== formProductId && !item.alreadyReviewed)?.productId || "");
     } catch {
       setFormError(copy.submitFailedRetry);
     } finally {
       setSubmitting(false);
     }
-  }, [formBody, formProductId, formRating, formTitle, copy]);
+  }, [formBody, formProductId, formRating, formTitle, eligible, copy]);
 
   const visibleOnMobile = mobileExpanded ? reviews : reviews.slice(0, 3);
   const writableProducts = eligible.filter((item) => !item.alreadyReviewed);
@@ -1125,6 +1128,7 @@ export default function ReviewsClient() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-6">
+        <ReviewRewardBanner policy={rewardPolicy} onWrite={() => { void openWriter(); }} />
         <section className="rounded-3xl border border-[#f0d4de] bg-white px-5 py-7 dark:border-[#5a3348] dark:bg-[#2b0c1f] sm:px-8">
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#b31955] dark:text-[#f4bed1]">Reviews</p>
           <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
@@ -1269,6 +1273,7 @@ export default function ReviewsClient() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 p-0 sm:items-center sm:p-6">
           <div
             role="dialog"
+            ref={writerRef}
             aria-modal="true"
             aria-label={copy.writerDialogAriaLabel}
             className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-[#f0d4de] bg-[#fffaf7] p-5 dark:border-[#5a3348] dark:bg-[#24081a] sm:rounded-3xl sm:p-6"
@@ -1302,7 +1307,7 @@ export default function ReviewsClient() {
                   {copy.guestMessage}
                 </p>
                 <Link
-                  href="/login"
+                  href="/login?next=%2Freviews%2F%3Fwrite%3D1"
                   className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-[#b31955] px-5 text-sm font-semibold text-white hover:bg-[#951245] dark:bg-[#f4bed1] dark:text-[#3c1830]"
                 >
                   {copy.loginButton}
@@ -1311,9 +1316,12 @@ export default function ReviewsClient() {
             ) : null}
 
             {eligibleState === "error" ? (
-              <p className="mt-6 text-sm leading-7 text-[#b31955] dark:text-[#f4bed1]">
+              <div className="mt-6">
+              <p role="alert" className="text-sm leading-7 text-[#b31955] dark:text-[#f4bed1]">
                 {copy.eligibilityErrorMessage}
               </p>
+              <button type="button" onClick={() => { void openWriter(); }} className="cd-review-invite__action">이용 내역 다시 확인하기</button>
+              </div>
             ) : null}
 
             {eligibleState === "ready" && eligible.length === 0 ? (
@@ -1337,7 +1345,8 @@ export default function ReviewsClient() {
                     <option value="">{copy.selectProductPlaceholder}</option>
                     {eligible.map((item) => (
                       <option key={item.productId} value={item.productId} disabled={item.alreadyReviewed}>
-                        {item.productName}{item.alreadyReviewed ? copy.alreadyReviewedSuffix : ""}
+                        {item.productName}{item.usedAt ? ` · ${new Date(item.usedAt).toLocaleDateString(numberLocale)}` : ""}
+                        {item.alreadyReviewed ? ` (${({ pending: "검수 대기", approved: "공개", rejected: "반려" } as Record<string, string>)[item.existingReviewStatus || ""] || "작성 완료"})` : ""}
                       </option>
                     ))}
                   </select>
@@ -1405,14 +1414,14 @@ export default function ReviewsClient() {
                 <button
                   type="button"
                   onClick={() => { void submitReview(); }}
-                  disabled={submitting || writableProducts.length === 0}
+                  disabled={submitting || !formProductId || writableProducts.length === 0}
                   className="min-h-[48px] w-full rounded-full bg-[#b31955] text-sm font-semibold text-white hover:bg-[#951245] disabled:opacity-50 dark:bg-[#f4bed1] dark:text-[#3c1830] dark:hover:bg-[#e9a7c0]"
                 >
                   {submitting ? copy.submitButtonLoading : copy.submitButtonIdle}
                 </button>
 
                 <p className="rounded-2xl bg-[#fdf1f6] px-4 py-3 text-xs font-semibold leading-6 text-[#b31955] dark:bg-[#3c1830] dark:text-[#f4bed1]">
-                  {copy.rewardNotice}
+                  {reviewRewardLabel(rewardPolicy)} · 꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.
                 </p>
                 <p className="text-xs leading-6 text-[#8a6478] dark:text-[#c99cb2]">
                   {copy.moderationNotice}

@@ -6,7 +6,7 @@ import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   AstrologyAiConsultation,
@@ -1194,7 +1194,7 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
     if (pending.some(section => Number(attempts[section.key] || 0) >= 3)) {
       throw Object.assign(new Error("LLM_QUALITY_CHECK_FAILED"), { code: "LLM_QUALITY_CHECK_FAILED" });
     }
-    const batch = pending.slice(0, 2);
+    const batch = pending.slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const section of batch) {
       if (valid(section)) attempts[`${section.key}:lengthRepair`] = 1;
       attempts[section.key] = Number(attempts[section.key] || 0) + 1;

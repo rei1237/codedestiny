@@ -1,3 +1,4 @@
+import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiText } from "./gemini.js";
 import { runWithAiLocale } from "./ai-locale-context.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
@@ -57,7 +58,7 @@ function validateSummary(value) {
 export async function generateCelestialWave(env, snapshot, checkpoint) {
   let delivery = structuredClone(snapshot.delivery || {version:1,parts:{},attempts:{},invalidAttempts:{}});
   delivery.short ||= {};
-  const missing = pendingParts(delivery).slice(0,4);
+  const missing = pendingParts(delivery).slice(0, PAID_LLM_PARTS_PER_REQUEST);
   // The repair flag is saved before the call so a lost response never buys a second repair.
   const drafts = Object.fromEntries(missing.filter(id=>delivery.parts[id]).map(id=>[id,JSON.stringify(delivery.parts[id])]));
   for (const id of missing) {

@@ -25,6 +25,10 @@
  *    "차감과 기록 사이에 실패 창이 없다"이다. 가드를 되돌리면 ①은 200, ②는 start 0회로 깨진다.
  */
 import { jest } from '@jest/globals';
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 
 const USER_ID = '64b7f2a1c3d4e5f601234567';
 const ENV = {};

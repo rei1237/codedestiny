@@ -14,6 +14,7 @@ import { remoteQueryKeyToString, remoteQueryKeys } from "../../_lib/remote-query
 import OrderDetailModal from "./OrderDetailModal";
 import { adaptOrderToViewModel, type OrderDetailViewModel, type PaymentOrderRecord } from "./order-view-model";
 import PassCycleCard from "../../components/PassCycleCard";
+import ReviewRewardBanner from "../../components/ReviewRewardBanner";
 import { getPassTierLabel } from "@/lib/payment/pass-eligibility";
 import styles from "./PointHistoryClient.module.css";
 
@@ -872,6 +873,8 @@ export default function PointHistoryPage() {
             <Link href="/" prefetch={false} className={styles.navLink}>{copy.backToService}</Link>
           </nav>
         </section>
+
+        <ReviewRewardBanner />
 
         {/* 콘텐츠 가치 단위 안내 */}
         <section aria-label={copy.contentUnitAria} className={styles.highlight}>

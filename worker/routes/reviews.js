@@ -34,6 +34,7 @@ import {
 } from "../lib/review-eligibility.js";
 import { screenReviewText } from "../lib/review-moderation.js";
 import { maskDisplayName } from "../lib/mask-display-name.js";
+import { REVIEW_REWARD_AMOUNT } from "../lib/review-reward.js";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
@@ -251,6 +252,7 @@ async function handleProducts(env) {
 
   return json({
     ok: true,
+    rewardPolicy: { amount: REVIEW_REWARD_AMOUNT, currency: "moonstone", trigger: "approved" },
     items: products.map((product) => ({
       ...product,
       total: statsByProduct.get(product.productId)?.total || 0,

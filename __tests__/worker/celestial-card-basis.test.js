@@ -2,6 +2,10 @@
 // 카드별 필수 해석의 근거 대조: 본문이 실제로 뽑힌 카드·행성을 말하는지 검사한다.
 // 계산기(buildCelestialMelodyReading)를 대역하지 않고 실제 명반을 태운다.
 import { jest } from '@jest/globals';
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 let route, docs, provider, userId, forgedCard;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);

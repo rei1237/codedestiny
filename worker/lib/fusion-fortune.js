@@ -1038,7 +1038,20 @@ export async function generateFusionFortuneWithRealLLM({
   //    화면에 "6 / 4 묶음 완성"이 떴다 — 총량을 넘는 진행률은 사용자에게 고장으로 보인다.
   const composeProgress = { phase: "compose", total: groups.length, done: 0 };
 
-  const merged = {};
+  const merged = { ...prior };
+  const savedReady = group => {
+    const saved = pickKeys(prior, group.keys);
+    return validateFusionFortuneGroup(saved, group, validationOptions).ok
+      && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every(system => validFusionSignals(saved[`${system}Section`], system, context)))
+      && (lengthRepairs[group.id] || Number(attemptCounts[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS
+        || (validateFusionFortuneGroup(saved, group, { ...validationOptions, ignoreLength: false }).ok
+          && countFusionGroupChars(saved, group) >= group.targetChars * FUSION_GROUP_RETRY_RATIO));
+  };
+  // Paid routes always supply checkpoints. One unfinished group per request;
+  // previously verified groups travel in prior and never purchase another call.
+  const waveGroups = typeof onCheckpoint === 'function' ? groups.filter(group => !savedReady(group)
+    || (prior.deliveryRepairGroups?.includes(group.id) && !fusionReportMeetsTotalFloor(prior, context.locale)))
+    .filter(group => Number(attemptCounts[group.id] || 0) < FUSION_GROUP_MAX_ATTEMPTS).slice(0, 1) : groups;
   let checkpointQueue = Promise.resolve();
   const checkpoint = async (group, value) => {
     Object.assign(merged, value);
@@ -1063,7 +1076,7 @@ export async function generateFusionFortuneWithRealLLM({
     const savedValid = validateFusionFortuneGroup(saved, group, validationOptions).ok
       && (context.version !== FUSION_EXPERT_VERSION || group.stage !== 1 || group.systems.every((system) => validFusionSignals(saved[`${system}Section`], system, context)));
     if (savedValid) Object.assign(merged, saved);
-    if (!extraInstruction && savedValid) {
+    if (!extraInstruction && savedValid && (typeof onCheckpoint !== 'function' || savedReady(group))) {
       if (group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis" });
       return { ok: true, group, value: saved };
     }
@@ -1074,6 +1087,9 @@ export async function generateFusionFortuneWithRealLLM({
     }
     const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - FUSION_TAIL_RESERVE_MS));
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis_start", status: "running" });
+    if (typeof onCheckpoint === 'function' && savedValid && !savedReady(group)) {
+      extraInstruction += `\n${buildFusionShortfallInstruction(group, countFusionGroupChars(saved, group))}`;
+    }
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction });
     if (Number(attemptCounts[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
     const lengthRepair = savedValid && !lengthRepairs[group.id] && (!validateFusionFortuneGroup(saved, group, { ...validationOptions, ignoreLength: false }).ok || countFusionGroupChars(saved, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
@@ -1155,11 +1171,11 @@ export async function generateFusionFortuneWithRealLLM({
   }
 
   try {
-    const settled = await Promise.allSettled(groups.map((group) => runGroup(group)));
+    const settled = await Promise.allSettled(waveGroups.map((group) => runGroup(group)));
     const failedStorage = settled.find(outcome => outcome.status === "rejected" && outcome.reason?.code === "RESULT_STORAGE_UNAVAILABLE");
     if (failedStorage) throw failedStorage.reason;
     settled.forEach((outcome, index) => {
-      const group = groups[index];
+      const group = waveGroups[index];
       if (outcome.status !== "fulfilled" || !outcome.value.ok) {
         failedGroups.push(group);
         if (outcome.status === "fulfilled" && outcome.value.issue === "repeated_sentence") repeatedGroups.push(group);
@@ -1181,7 +1197,7 @@ export async function generateFusionFortuneWithRealLLM({
     const retryTargets = [...failedGroups, ...shortGroups, ...duplicatedGroups, ...thinGroups].filter(group => Number(attemptCounts[group.id] || 0) < FUSION_GROUP_MAX_ATTEMPTS);
     // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
     // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
-    if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
+    if (typeof onCheckpoint !== 'function' && retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
       const retryTimeoutMs = Math.min(groupTimeoutMs, remainingMs() - FUSION_TAIL_RESERVE_MS);
       const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
       const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {

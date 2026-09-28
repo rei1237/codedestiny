@@ -1,3 +1,4 @@
+import { PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  *  심화 자미두수 심층 리포트  (ZIWEI_DEEP_PDF)  —  워커 라우트
@@ -54,7 +55,7 @@ const ACCESS_TOKEN_TYPE = "ziwei-deep-pdf-access";
 const ACCESS_TOKEN_TTL = "45m";
 const TITLE = ZIWEI_DEEP_PDF_META.label; // "심화 자미두수 PDF"
 const CHAPTER_CONCURRENCY = 4; // Gemini 병렬 호출 상한(레이트리밋·subrequest 안전)
-const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청에서 생성할 챕터 수(=1 동시성 웨이브)
+const CHAPTER_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST; // 한 요청에서 생성할 챕터 수(=1 동시성 웨이브)
 
 // 전달 하한 — 폴백 문단이 다수 섞인 리포트를 "완성"으로 배달하지 않기 위한 게이트.
 // 🔴 이 게이트 없이는 15장 중 열 장이 2줄짜리 안내문이어도 30,000원이 정상 결제됐다.

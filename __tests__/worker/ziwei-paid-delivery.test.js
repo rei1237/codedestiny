@@ -91,16 +91,16 @@ async function start(extra = {}) {
   return route(new Request("https://mock.test/api/ziwei-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, ...extra }) }), {});
 }
 
-for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: six waves reuse the stored chart and groups`, async () => {
+for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: seven waves reuse the stored chart and groups`, async () => {
   mode = paid; let partial;
-  for (let i = 0; i < 5; i++) { const response = await start(partial ? { resumeSessionId: partial.sessionId } : {}); expect(response.status).toBe(202); partial = await response.json(); expect(partial.consultation.completedGroups).toHaveLength(i + 1); expect(usage).not.toHaveBeenCalled(); }
+  for (let i = 0; i < 6; i++) { const response = await start(partial ? { resumeSessionId: partial.sessionId } : {}); expect(response.status).toBe(202); partial = await response.json(); expect(partial.consultation.completedGroups).toHaveLength(i + 1); expect(provider).toHaveBeenCalledTimes(i + 1); expect(usage).not.toHaveBeenCalled(); }
   const response = await start({ resumeSessionId: partial.sessionId }); expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({ consultation: { saved: true, status: "completed", id: partial.sessionId } });
   expect(provider).toHaveBeenCalledTimes(7); expect(chart).toHaveBeenCalledTimes(1); expect(refund).not.toHaveBeenCalled();
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(7);
 });
 for (const status of ["delivery_pending", "completed"]) for (const kind of ["null", "throw", "confirm"]) it(`${status} storage ${kind} preserves generated text and never refunds`, async () => {
-  for (let i = 0; i < 5; i++) await start(); fault = { status, kind };
+  for (let i = 0; i < 6; i++) await start(); fault = { status, kind };
   const response = await start(); expect(response.status).toBe(503); expect(await response.json()).toMatchObject({ reason: "RESULT_STORAGE_UNAVAILABLE", retryable: true, resultId: docs[0].id });
   expect(refund).not.toHaveBeenCalled(); const calls = provider.mock.calls.length; fault = null;
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(calls); expect(docs[0].status).toBe("completed");
@@ -108,7 +108,7 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
 it("short groups consume only three attempts and cannot become completed", async () => {
   provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
   expect((await start()).status).toBe(202); expect((await start()).status).toBe(202); expect((await start()).status).toBe(503);
-  expect(docs[0].status).toBe("generation_failed"); expect(usage).not.toHaveBeenCalled(); expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(4);
+  expect(docs[0].status).toBe("generation_failed"); expect(usage).not.toHaveBeenCalled(); expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(3);
 });
 for (const store of [0, 1, 2, 3]) it(`revoked evidence ${store} stops even a pass fallback`, async () => {
   await start(); const calls = provider.mock.calls.length; blocked = store;
@@ -127,7 +127,7 @@ it("lease excludes concurrent work and stale leases recover saved groups", async
   docs[0].updatedAt = new Date(Date.now() - 121000); expect((await start()).status).toBe(202); expect(provider).toHaveBeenCalledTimes(calls + 1);
 });
 it("apply response loss retries the original key without regenerating", async () => {
-  for (let i = 0; i < 5; i++) await start(); usage.mockImplementationOnce(() => { throw new Error("lost response"); });
+  for (let i = 0; i < 6; i++) await start(); usage.mockImplementationOnce(() => { throw new Error("lost response"); });
   expect((await start()).status).toBe(503); expect(docs[0].status).toBe("delivery_pending"); const calls = provider.mock.calls.length;
   expect((await start()).status).toBe(200); expect(provider).toHaveBeenCalledTimes(calls);
   expect(usage.mock.calls.map(call => call[0].requestId)).toEqual(["original-paid-request", "original-paid-request"]); expect(refund).not.toHaveBeenCalled();
@@ -138,7 +138,7 @@ it("missing calculated grounding repairs only its owning group", async () => {
   for (let i = 0; i < 6; i++) expect((await start()).status).toBe(202);
   const saved = structuredClone(docs[0].llmMeta.groups.foundation); const base = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => { const value = await base(...args); const parsed = JSON.parse(value.text); const key = Object.keys(parsed.sections)[0]; parsed.sections[key].body += " 자미 명궁 형제궁 부부궁 자녀궁 재백궁 질액궁 천이궁 노복궁 관록궁을 근거로 지금 선택의 방향을 읽습니다."; return { ...value, text: JSON.stringify(parsed) }; });
-  expect((await start()).status).toBe(200); expect(provider.mock.calls.at(-1)[2].logContext.sectionGroup).toBe("essence"); expect(docs[0].llmMeta.groups.foundation).toEqual(saved);
+  expect((await start()).status).toBe(202); expect(provider.mock.calls.at(-1)[2].logContext.sectionGroup).toBe("essence"); expect(docs[0].llmMeta.groups.foundation).toEqual(saved);
 });
 it("refunds the card payment once short groups exhaust their attempts", async () => {
   mode = "paid";
@@ -161,7 +161,7 @@ for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card ref
   expect(refund).not.toHaveBeenCalled();
 });
 it("refund after provider response prevents completion and consumption", async () => {
-  for (let i = 0; i < 5; i++) await start(); const base = provider.getMockImplementation();
+  for (let i = 0; i < 6; i++) await start(); const base = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => { const value = await base(...args); blocked = 1; return value; });
   expect((await start()).status).toBe(402); expect(docs[0].status).toBe("delivery_pending"); expect(usage).not.toHaveBeenCalled();
 });
@@ -193,7 +193,7 @@ it("trims overlong groups using the same whitespace-free ceiling as the prompt",
     for (const [key, row] of Object.entries(parsed.sections)) row.body = prose(key, Math.ceil(group.targetChars * 1.5 / group.sections.length));
     return { ...result, text: JSON.stringify(parsed) };
   });
-  for (let i = 0; i < 6; i++) await start();
+  for (let i = 0; i < 7; i++) await start();
   const { countPaidReportBodyChars } = await import("../../worker/lib/paid-report-quality.js");
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(7);
   for (const group of utils.SECTION_GROUP_SPECS) expect(countPaidReportBodyChars(Object.values(docs[0].llmMeta.groups[group.id]).map(row => row.body).join("\n"))).toBeLessThanOrEqual(Math.ceil(group.targetChars * utils.SECTION_GROUP_MAX_OVER_TARGET));

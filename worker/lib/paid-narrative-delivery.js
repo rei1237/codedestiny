@@ -1,3 +1,4 @@
+import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { createHash, randomUUID } from "node:crypto";
 import { ServiceExecutionTransaction } from "./models.js";
 import { withMongoRetry } from "./db.js";
@@ -122,7 +123,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null, paidNarrativeRecovery: null },
     timeoutAt: new Date(Date.now() + 600000) }); };
   try {
-    const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 3).slice(0, 4);
+    const missing = state.tasks.filter(task => !state.parts[task.id] && (state.attempts[task.id] || 0) < 3).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     for (const task of missing) state.attempts[task.id] = (state.attempts[task.id] || 0) + 1;
     if (missing.length) await persist();
     let queue = Promise.resolve();

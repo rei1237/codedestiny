@@ -17,7 +17,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { runWithConcurrency } from "../lib/concurrency.js";
 
 // 결정적(생년월일+질문 기반) 생성 → 캐시 + in-flight dedup으로 재시도/새로고침 중복 과금 방지.
@@ -100,7 +100,7 @@ const INITIAL_CONSULTATION_SECTION_MIN_LENGTH = 1500;
 const CHAPTER_MAX_OUTPUT_TOKENS = 7000;
 // 통짜(비배치) 경로 — repair/expand 재작성용으로만 남는다.
 const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 20000;
-const PREMIUM_BATCH_SIZE = 4;
+const PREMIUM_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST;
 // 배치 안에서 장을 몇 개까지 동시에 굽는가. master-love-codex 가 이 워커에서 4가 안전함을
 // 이미 증명했다.
 const PREMIUM_CHAPTER_CONCURRENCY = 4;

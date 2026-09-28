@@ -1818,7 +1818,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     const config = await cmsPromptModelConfig(env, "ziwei-ai", { minTokens: tokensRequiredForChars(MIN_INITIAL_CONSULTATION_BODY_CHARS), maxTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS });
     let generated;
     try {
-      const calls = await Promise.allSettled([callGeminiJsonWithRetry(env, [
+      generated = await callGeminiJsonWithRetry(env, [
         buildSectionGroupPrompt(input, chart, group),
         `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
@@ -1830,9 +1830,7 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
         capTokens: SECTION_GROUP_TARGET_TOKENS, fallbackToWorkersAI: false,
         cache: { store: createLlmCacheStore(env), deterministic: true, keyExtra: `ziwei-delivery-v1-${group.id}`, skipRead: attempts[group.id] > 1 },
         logContext: { ...logContext, sectionGroup: group.id },
-      }), ...(group.id === "foundation" && attempts[group.id] === 1 ? [callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), { systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000, baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false, responseMimeType: "application/json", logContext: { ...logContext, sectionGroup: "meta" } })] : [])]);
-      generated = calls[0].status === "fulfilled" ? calls[0].value : null;
-      if (calls[1]?.status === "fulfilled" && calls[1].value?.ok) meta = parseMetaFromText(calls[1].value.text) || meta;
+      });
     } catch (error) {
       logZiweiAi("Group interrupted", { sectionGroup: group.id, code: error?.code }, "warn");
     }
@@ -1862,10 +1860,24 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
       const error = new Error("해당 챕터의 품질 검사를 통과하지 못했습니다."); error.code = "REPORT_QUALITY_FAILED"; throw error;
     }
   }
+  // Optional introduction gets its own request after all body groups are saved.
+  // Reserve it before calling so a lost response cannot purchase it again.
+  if (!group && !Object.keys(meta).length && !attempts.meta) {
+    attempts.meta = 1;
+    await checkpoint({ groups, attempts, meta });
+    const generated = await callGeminiJsonWithRetry(env, buildMetaPrompt(input, chart), {
+      systemPrompt: await resolveSystemPrompt(env), attempts: 1, timeoutMs: 45000,
+      baseTokens: 2600, capTokens: 2600, fallbackToWorkersAI: false,
+      responseMimeType: "application/json", logContext: { ...logContext, sectionGroup: "meta" },
+    }).catch(() => null); // Optional meta failure keeps the saved body deliverable.
+    if (generated?.ok) meta = parseMetaFromText(generated.text) || meta;
+    await checkpoint({ groups, attempts, meta });
+  }
+  const metaPending = !Object.keys(meta).length && !attempts.meta;
   const checked = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart);
   const text = applyZiweiHanjaToStructuredText(cleanForbiddenResult(checked.text));
   const chars = countPaidReportBodyChars(ziweiSectionBody(parseSectionsFromGroupText(text)));
-  return { text, complete: SECTION_GROUP_SPECS.every(accepted) && !checked.issues.length && chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
+  return { text, complete: !metaPending && SECTION_GROUP_SPECS.every(accepted) && !checked.issues.length && chars >= MIN_INITIAL_CONSULTATION_BODY_CHARS && chars <= MAX_INITIAL_CONSULTATION_BODY_CHARS, meta: { groups, attempts, reportMeta: meta, bodyChars: chars } };
 }
 
 async function saveZiweiDelivery(filter, fields, resultId) {

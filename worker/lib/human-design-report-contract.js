@@ -1,3 +1,4 @@
+import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 // 휴먼 디자인 프리미엄 리포트 — 섹션 정본 · 예산 · 사후 검산.
 //
 // 이 파일은 **모델을 부르지 않는다.** 무엇을 몇 자나 쓰게 할 것인지, 돌아온 것이 계산 결과와
@@ -47,7 +48,7 @@ export const HD_REPORT_MAX_TOTAL_CHARS = 60000;
 //    30,000자 ≈ 45,000토큰, gemini-2.5-flash 비스트리밍 ~200tok/s → 225초). 그래서 한 요청은
 //    웨이브 하나만 돌리고 클라이언트가 끝날 때까지 반복 호출한다.
 
-export const HD_REPORT_SECTION_CONCURRENCY = 4;
+export const HD_REPORT_SECTION_CONCURRENCY = PAID_LLM_PARTS_PER_REQUEST;
 export const HD_REPORT_SECTION_TIMEOUT_MS = 45000;
 /** 웨이브 하나의 상한. 인증·락·저장 왕복을 빼고 남기는 몫이다. */
 export const HD_REPORT_WAVE_BUDGET_MS = 75000;
@@ -55,7 +56,7 @@ export const HD_REPORT_WAVE_BUDGET_MS = 75000;
 export const HD_REPORT_LOCK_TTL_MS = 90000;
 /** 이만큼 갱신이 없으면 좀비로 보고 실패 처리한다. */
 export const HD_REPORT_STALE_MS = 3 * 60 * 1000;
-export const HD_REPORT_MAX_WAVES = 10;
+export const HD_REPORT_MAX_WAVES = 40; // Preserve the previous 10 × 4 part-attempt budget.
 export const HD_REPORT_MAX_SECTION_ATTEMPTS = 3;
 /** 섹션 하나의 출력 토큰 상한. 최장 섹션(4,000자 ≈ 6,000토큰)에 여유를 둔다. */
 export const HD_REPORT_SECTION_MAX_OUTPUT_TOKENS = 9000;

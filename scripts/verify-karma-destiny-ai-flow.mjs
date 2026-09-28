@@ -84,7 +84,7 @@ assertIncludes(routeSource, "START_ACCESS_CONFIRMATION_REQUIRED", "start route r
 assertIncludes(routeSource, "MONTHLY_CREDIT_GATE_REQUIRED", "monthly credit must use common billing gate");
 assertIncludes(routeSource, "accessType: \"monthly_credit\"", "monthly credit is payment evidence, not entitlement");
 assertIncludes(routeSource, "INITIAL_CONSULTATION_MIN_LENGTH = 30000", "premium consultation minimum length");
-assertIncludes(routeSource, "PREMIUM_BATCH_SIZE = 4", "batch generation size");
+assertIncludes(routeSource, "PREMIUM_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST", "one-part generation size");
 assertIncludes(routeSource, "PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2", "reinforcement attempts");
 assertIncludes(routeSource, "handleGenerateBatch", "batch route handler");
 assertIncludes(routeSource, "handleResult", "result route handler");

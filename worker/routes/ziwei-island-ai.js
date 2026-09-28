@@ -7,7 +7,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
@@ -727,7 +727,7 @@ async function handleStart(request, env) {
       // Every part accepted but the total short: short parts use their remaining attempts.
       return list.length || complete() ? list : specs.filter(part => open(part) && meta.short?.[part.id]);
     };
-    const wave = pendingParts().slice(0, 4);
+    const wave = pendingParts().slice(0, PAID_LLM_PARTS_PER_REQUEST);
     if (wave.length) {
       // The repair flag is saved before the call so a lost response never buys a second repair.
       const drafts = Object.fromEntries(wave.filter(part => meta.parts[part.id]?.body).map(part => [part.id, meta.parts[part.id].body]));
