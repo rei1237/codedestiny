@@ -1,7 +1,8 @@
 import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {readingLocale,readingLanguageInstruction,validateReadingLanguage,type ReadingLocale} from '../fortune/reading-locale';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
-import {READING_V6_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
+import {READING_V6_VERSION,READING_V7_VERSION,hasReadingSections,isStructuredReading,PROMPT_VERSION,readingPolicies,policyForReading} from '../fortune/reading-policy';
+import {buildV7ChapterPrompt,v7TimeTheme,type V7PromptChapter,type V7Previous} from '../fortune/reading-v7-prompt';
 import {LENGTH_FAILURES,normalizeSectionParagraphs,splitSectionParagraph,validateReadingQuality} from '../fortune/reading-quality';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
@@ -88,11 +89,13 @@ export function validateChapter(
   if(aligned.count){v=aligned.body;console.log('[yeongnyangi-year-alignment]',JSON.stringify({chapter:input.chapter.ordinal,count:aligned.count}));}
   // Section targets may exceed the paragraph cap: split at sentence ends before any check reads the blocks.
   if(hasReadingSections(input.chapter.version))v=normalizeSectionParagraphs(v);
-  const allowed = new Set(
+  // The chapter's own evidence, before the ask packet widens what a citation may point at.
+  const chapterFactIds = new Set(
     Object.values(input.analysis.contexts).filter(c=>!input.chapter.systems||input.chapter.systems.includes(c.domain)).flatMap((c) =>
       selectChapterFacts(c,input.chapter,input.analysis.topicId).map((f) => f.id),
     ),
   );
+  const allowed = new Set(chapterFactIds);
   if (input.ask && input.chapter.ordinal === 0) {
     const guide = buildAskFirstChapterPrompt(input.analysis.consultation!, input.ask.analysis, input.ask.evidence);
     for (const evidence of [...guide.evidence.facts, ...guide.evidence.timing]) allowed.add(evidence.source.factId);
@@ -122,7 +125,15 @@ export function validateChapter(
   if(input.analysis.consultation?.questionSky)validateSkyChapter(v,Object.values(input.analysis.contexts)[0],input.analysis.consultation.questionSky);
   validateReadingLanguage(v,readingLocale(input.locale));
   validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||'')});
-  if(hasReadingSections(input.chapter.version)){
+  if(input.chapter.version===READING_V7_VERSION){
+    // v7 has no fixed 'evidence' section: every insight unit carries its own citation, so the rule moves onto
+    // the blocks themselves. validateReadingQuality already rejected a block without sources, so what is left
+    // is coverage. The domain set comes from the chapter's own facts, never from the wider ask packet.
+    const cited=new Set((v.blocks || []).flatMap(b=>b.sources || []));
+    const domains=new Set([...chapterFactIds].map(id=>id.split('.')[0]));
+    if([...domains].some(domain=>![...cited].some(id=>id.startsWith(domain+'.'))))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
+    if(['flounder','tuna'].includes(input.chapter.tier || '') && cited.size<Math.min(2,chapterFactIds.size))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
+  }else if(hasReadingSections(input.chapter.version)){
     const evidence=v.blocks?.find(b=>b.id==='evidence');
     const domains=new Set([...allowed].map(id=>id.split('.')[0]));
     if(!evidence?.sources || [...domains].some(domain=>!evidence.sources!.some(id=>id.startsWith(domain+'.'))))throw new FortuneError('CHAPTER_EVIDENCE_INCOMPLETE');
@@ -203,9 +214,12 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       sukuyo: "숙요가 말하는",
       vedic: "베다점이 말하는",
     }).find(([, title]) => input.chapter.title.startsWith(title))?.[0];
-    const timeTheme =
-      input.chapter.theme === "timing" ||
-      /시기|전환|흐름|년/.test(input.chapter.title) || Boolean(input.analysis.consultation && input.chapter.ordinal===0);
+    const v7Chapter = input.chapter.version===READING_V7_VERSION ? input.chapter as V7PromptChapter : undefined;
+    // v6 guesses the timing chapter from its title; v7 asks the ledger, so only the owner chapter sees period facts.
+    const timeTheme = v7Chapter
+      ? v7TimeTheme(v7Chapter) || Boolean(input.analysis.consultation && input.chapter.ordinal===0)
+      : input.chapter.theme === "timing" ||
+        /시기|전환|흐름|년/.test(input.chapter.title) || Boolean(input.analysis.consultation && input.chapter.ordinal===0);
     const contexts = Object.values(input.analysis.contexts)
       .filter((c) => input.chapter.systems?input.chapter.systems.includes(c.domain):!named || c.domain === named)
       .map((c) => ({
@@ -256,8 +270,12 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       ...(askPrompt?.evidence.facts || []).map(fact=>fact.source.factId),
       ...(askPrompt?.evidence.timing || []).map(period=>period.source.factId)])];
     const questionCount=assignedQuestions.length;
+    // The v7 half of the request. It is fed the final sourceIds so the schema enum and CALCULATED_DATA agree
+    // even on the ask chapter, whose packet adds IDs the ledger does not carry.
+    const v7Parts=v7Chapter?buildV7ChapterPrompt({chapter:v7Chapter,facts:sourceIds.map(id=>({id,label:id,value:null})),
+      previous:input.previous as V7Previous[],askFirstChapter:Boolean(askPrompt),questionCount}):undefined;
     const baseTokens=isStructuredReading(input.chapter.version)&&input.chapter.tier?Math.max(input.chapter.outputTokens??0,readingPolicies[input.chapter.tier].outputTokens):input.chapter.outputTokens;
-    const v5Tokens=Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*480));
+    const v5Tokens=v7Parts?v7Parts.maxOutputTokens:Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*480));
     if(hasReadingSections(input.chapter.version) && v5Tokens>24576)throw new FortuneError('CHAPTER_OUTPUT_BUDGET_EXCEEDED',503);
     if (JSON.stringify(facts).length > 180000)
       throw new FortuneError("CHAPTER_CONTEXT_TOO_LARGE", 503);
@@ -322,16 +340,19 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
           evidencePresentation:'전문 용어 대신 구조화된 성향을 쉬운 말로 설명한다. 내부 ID는 sources에만 쓴다.',
           timeContract:'사건 시기를 예측하지 않는다.',
           spiritContract:spiritRules(spirit,input.analysis.contexts.saju!)}:{}),
+        // v7 keeps its contract in one module: these keys replace depth, the block/citation contracts and the
+        // previous-chapter carry. Everything a v6 chapter sends above stays exactly where it is.
+        ...(v7Parts?v7Parts.domainRules:{}),
       }),
       calculatedData: facts,
       userQuestion: askPrompt?escapeAskData(input.analysis.question||''):input.analysis.question||"",
-      outputSchema: {...schema,required:[...(locale!=='ko'?['title']:[]),...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[])],properties:{...schema.properties,...(locale!=='ko'?{title:{type:'string',description:'A concise chapter heading in the purchase language, faithfully reflecting chapter.title and focus.'}}:{}),...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action',...(askPrompt?['factIds','timingIds','evidenceStatus']:[])],properties:{...Object.fromEntries(['answer','reason','timing','action'].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})},...(askPrompt?{factIds:{type:'array',items:{type:'string',...(askFactIds.length?{enum:askFactIds}:{})}},timingIds:{type:'array',items:{type:'string',...(askTimingIds.length?{enum:askTimingIds}:{})}},evidenceStatus:{type:'string',enum:['grounded','limited']}}:{})}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:sourceIds}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),sources:{
+      outputSchema: {...schema,required:[...(locale!=='ko'?['title']:[]),...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[])],properties:{...schema.properties,...(locale!=='ko'?{title:{type:'string',description:'A concise chapter heading in the purchase language, faithfully reflecting chapter.title and focus.'}}:{}),...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action',...(askPrompt?['factIds','timingIds','evidenceStatus']:[])],properties:{...Object.fromEntries(['answer','reason','timing','action'].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})},...(askPrompt?{factIds:{type:'array',items:{type:'string',...(askFactIds.length?{enum:askFactIds}:{})}},timingIds:{type:'array',items:{type:'string',...(askTimingIds.length?{enum:askTimingIds}:{})}},evidenceStatus:{type:'string',enum:['grounded','limited']}}:{})}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:sourceIds}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),...(v7Parts?v7Parts.outputSchema:{}),sources:{
         type:'array',minItems:1,
         description:'해석에 실제 사용한 FortuneFact.id만 그대로 선택한다. 괄호, 설명, 번역을 덧붙이지 않는다.',
         items:{type:'string',enum:sourceIds},
       }}},
       sectionTitles: [input.chapter.title],
-      promptVersion: askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2",
+      promptVersion: v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2",
       // Books keep their purchase-time manifest; a later cap increase must still reach retries of those chapters.
       ...(spirit||sky?{maxProviderAttempts:1}:{}),
       maxOutputTokens:hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*480))):baseTokens,

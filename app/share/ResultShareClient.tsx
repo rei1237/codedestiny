@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./ResultShareClient.module.css";
+import InsightCardClient from './InsightCardClient';
 
 type ShareFeature = "tarot-basic" | "saju-basic";
 
@@ -50,6 +51,7 @@ export default function ResultShareClient() {
   }, [searchParams]);
   const [snapshot, setSnapshot] = useState<PublicResultSnapshot | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const insightId = searchParams?.get('card');
 
   useEffect(() => {
     let cancelled = false;
@@ -80,6 +82,8 @@ export default function ResultShareClient() {
       });
     return () => { cancelled = true; };
   }, [shareId]);
+
+  if (insightId !== null && insightId !== undefined) return <InsightCardClient id={insightId}/>;
 
   if (status === "loading") {
     return <main className={styles.page} aria-busy="true"><div className={styles.loading}>공유된 결과를 불러오는 중이에요.</div></main>;

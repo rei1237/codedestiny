@@ -142,12 +142,29 @@
       return allowed.test(saved) ? saved : '';
     } catch (_crmError) { return ''; }
   }
+  // Attribution is a small campaign enum, never the card id, text or revoke key.
+  function insightCampaign() {
+    try {
+      var query = new URLSearchParams(global.location.search);
+      var current = query.get('utm_medium') === 'share' ? query.get('utm_campaign') : '';
+      var allowed = /^(insight_ggulggul|insight_yeongnyangi)$/;
+      if (analyticsStorageState() !== 'granted') {
+        global.sessionStorage.removeItem('cd:insight:campaign');
+        return allowed.test(current || '') ? current : '';
+      }
+      if (allowed.test(current || '')) global.sessionStorage.setItem('cd:insight:campaign', JSON.stringify({value:current,until:Date.now()+1800000}));
+      var saved = JSON.parse(global.sessionStorage.getItem('cd:insight:campaign') || 'null');
+      return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
+    } catch (_) { return ''; }
+  }
   global.cdTrack = function cdTrack(eventName, params) {
     if (!eventName) return;
     try {
       var safeParams = Object.assign({}, params || {});
       var crmId = crmCampaign();
       if (crmId) safeParams.crm_campaign = crmId;
+      var insight = insightCampaign();
+      if (insight) safeParams.share_campaign = insight;
       if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
     } catch (_sendError) {

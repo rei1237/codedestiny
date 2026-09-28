@@ -1,6 +1,8 @@
 import {DomainContext} from './shared/contracts';
 import {ChapterSpec} from './book-contracts';
-import {isStructuredReading,READING_V6_VERSION} from './reading-policy';
+import {isStructuredReading,READING_V6_VERSION,READING_V7_VERSION} from './reading-policy';
+import {selectV7Facts} from './reading-v7-ledger';
+import type {ChapterSpecV7} from './reading-v7';
 
 export function relationshipSignals(value:unknown) {
  const data=value as {byName?:Record<string,{present?:boolean;hits?:unknown[];state?:string}>};
@@ -57,6 +59,9 @@ const filters:Record<string,RegExp>={
  luck:/Luck|Timeline|dasha|transit|timing|year|decade|cards|reading/i,
 };
 export function selectChapterFacts(context:DomainContext,chapter:ChapterSpec,topic='general'){
+ // v7 replaces selectors with the fact ledger: a chapter sees exactly the IDs it owns plus the ones it may reference.
+ // The ledger is rebuilt from the same stored context every time, so prepare and generation resolve identical IDs.
+ if(chapter.version===READING_V7_VERSION)return selectV7Facts(context,chapter as ChapterSpecV7);
  if(isStructuredReading(chapter.version))return selectedFacts(context,chapter);
  const pattern=filters[topic];
  let facts=pattern?context.facts.filter(f=>pattern.test(f.label)||/pillars|dayMaster|lagna|ascendant|spread/i.test(f.label)):context.facts;

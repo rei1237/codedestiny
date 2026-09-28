@@ -2,6 +2,7 @@
   "version": 1,
   "include": [
     "/api/*",
+    "/share*",
     "/rss.xml",
     "/insights/rss.xml",
     "/fortune/*",

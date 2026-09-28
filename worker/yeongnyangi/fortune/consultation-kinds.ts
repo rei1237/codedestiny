@@ -1,4 +1,5 @@
 import {readingManifestV6} from './reading-v6';
+import {readingManifestV7, v7Applies} from './reading-v7';
 import type {Product} from '../payments/catalog';
 import {FortuneError} from './shared/contracts';
 import {readingManifest, questionFactSelectors} from './reading-manifest';
@@ -36,6 +37,9 @@ const focusedTitles:Record<string,string[]>={
  money:['수입과 자원의 바탕','일과 재물의 연결','쌓고 지키는 습관','지출이 늘어나는 조건','안정과 확장의 선택','협력과 책임','반복되는 판단 패턴','부담을 줄이는 방법','다른 선택의 가능성','해석의 한계','현실에서 점검할 기준'],
 };
 export function consultationManifest(p:Product,k?:ConsultationKind,topic='general'){
+ // v7 owns its own titles, focus and fact selectors per kind, so it branches before the v6 topic mapping.
+ // v7Applies is fail-closed: it needs READING_V7_ENABLED, a single-system v6 product, a v7 tier and a v7 kind.
+ if(v7Applies(p,k))return readingManifestV7(p,k!);
  if(p.manifestVersion===READING_V6_VERSION)return readingManifestV6(p,k?.id==='ask'?topic:k?.topic||topic,k?.partner?'compatibility':'personal',k);
  const rows=readingManifest(p,k?.id==='ask'?topic:k?.topic||topic,k?.partner?'compatibility':'personal');
  if(!k||k.id==='personal'||k.id==='ask'||p.domain==='tarot')return rows;

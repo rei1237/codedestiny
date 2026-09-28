@@ -8,6 +8,7 @@ import type {FreeReading} from '@/worker/yeongnyangi/fortune/free/categories';
 import {resultShareUrl,consultationShareImage,shareChoices,freeShareChoices,shareLimit,shareMessage,shorten,renderShareCard} from '../_lib/result-share';
 import {shareCopy} from '../_lib/share-copy';
 import styles from '../yeongnyangi.module.css';
+import PublicInsightCard from '@/components/fortune/PublicInsightCard';
 
 export default function ResultSharing({row,reading}:{row:FortuneRecord;reading?:never}|{reading:FreeReading;row?:never}){
  const locale=row?.locale||'ko',copyText=shareCopy(locale);
@@ -53,7 +54,7 @@ export default function ResultSharing({row,reading}:{row:FortuneRecord;reading?:
   }catch(e){record(channel,e instanceof Error&&e.name==='AbortError'?'cancelled':'failed');setNotice(e instanceof Error&&e.name==='AbortError'?copyText.cancelled:copyText.failed);}
   finally{lock.current=false;setBusy(false);}
  }
- return <details className={styles.resultSharing} data-consultation-sharing lang={locale} onToggle={e=>{setOpen(e.currentTarget.open);if(e.currentTarget.open)record('editor','opened');}}>
+ return <><PublicInsightCard brand="yeongnyangi" choices={choices} source={row?'paid':'free'} day={asOf} locale={locale}/><details className={styles.resultSharing} data-consultation-sharing lang={locale} onToggle={e=>{setOpen(e.currentTarget.open);if(e.currentTarget.open)record('editor','opened');}}>
   <summary><Share2 size={20} aria-hidden="true"/> {copyText.summary}</summary>
   {open&&<div className={styles.shareEditor}>
    <div className={styles.shareForm}>
@@ -76,5 +77,5 @@ export default function ResultSharing({row,reading}:{row:FortuneRecord;reading?:
    </div>
    <figure className={styles.sharePreview}>{card?<img src={card.url} alt={copyText.previewAlt} width={1080} height={1350}/>:<p role="status">{imageError?copyText.imageError:copyText.imageLoading}</p>}<figcaption>{copyText.imageCaption}</figcaption></figure>
   </div>}
- </details>;
+ </details></>;
 }

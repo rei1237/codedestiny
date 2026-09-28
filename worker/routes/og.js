@@ -49,6 +49,15 @@ export async function handleOgRoutes(request, env) {
   const brandDomain = siteBaseUrl.replace(/^https?:\/\//, "");
 
   try {
+    if (params.character) {
+      // Only three owned, versioned presets; no user supplied URL is fetched.
+      const art = await fetch(`${siteBaseUrl}/assets/sharing/${params.character}-letter-v1.jpg`, {signal:AbortSignal.timeout(8000)});
+      if (!art.ok) throw new Error('INSIGHT_ART_UNAVAILABLE');
+      const bytes = new Uint8Array(await art.arrayBuffer());
+      if (bytes.length > 500000) throw new Error('INSIGHT_ART_TOO_LARGE');
+      let binary = ''; for (let i=0;i<bytes.length;i+=8192) binary += String.fromCharCode(...bytes.subarray(i,i+8192));
+      params.artData = 'data:image/jpeg;base64,' + btoa(binary);
+    }
     const glyphs = collectGlyphs(params, brandDomain);
     // 굵기 둘을 따로 받는다. 제목만 700 이고 본문·도메인은 400 이라 하나로 합치면 제목이
     // 얇아지거나 본문이 뭉개진다. 쓰인 글자만 담은 서브셋이라 각각 수 KB 수준이다.

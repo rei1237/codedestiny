@@ -10,7 +10,7 @@ const INSIGHTS_SUKUYO_PAGE_TEXT_TRANSLATIONS = {
     keywords: ["숙요점 뜻", "숙요점 용어", "영친관계", "업태관계", "안괴관계"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "숙요점 인사이트"],
     archiveTitle: "숙요점 인사이트 허브",
-    intro: "숙요점 27숙 관계 분석, 숙요 궁합, 본명숙과 월명숙 해석을 실전 사례 중심으로 제공하는 숙요점 허브입니다.",
+    intro: "숙요점은 본명숙과 두 숙 사이의 거리를 관계의 대화·경계 질문으로 풀어보는 체계입니다. Code Destiny는 출생 순간의 라히리 항성 달 황경을 27등분해 계산합니다. 전통 음력 날짜표와 결과가 다를 수 있으며, 상대의 마음이나 관계의 미래를 확정하지 않습니다.",
   },
   en: {
     title: "Sukuyo Insights Hub · 27 Mansions and Compatibility Guide | Code Destiny",
@@ -55,6 +55,7 @@ export default function InsightsSukuyoPage() {
         title={insightsSukuyoPageCopy.archiveTitle}
         intro={insightsSukuyoPageCopy.intro}
         serviceCtaPath="/sukuyo"
+        curatedSlugs={['sukuyo-what-is', 'sukuyo-27-mansions', 'sukuyo-compatibility-guide']}
       />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionPage) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />

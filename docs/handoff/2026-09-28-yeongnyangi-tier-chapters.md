@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "Phase 2 커밋 6 = 설계 §6-6 배선(consultation-kinds.ts·service.ts·chapter.ts·chapter-facts.ts 의 v7 분기). §6-1~§6-5 는 커밋 완료. 플래그 OFF, 과금 LLM 0회. fingerprint 가 걸리므로 RED."
+next: "Phase 2 완료(§6-1~§6-6 전부 커밋, 플래그 OFF). 다음은 브리프 게이트대로 네오 승인을 받은 뒤 Phase 3 = v7 전용 검증기(설계 §7·측정 1의 주 검증 3종, 위반 시 1회 재생성→결정적 삭제, 거부 금지). 과금 LLM 0회."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -189,6 +189,34 @@ next: "Phase 2 커밋 6 = 설계 §6-6 배선(consultation-kinds.ts·service.ts�
   - **불변 스냅샷은 해시 갱신 없이 통과**했다. v7 기존 19종(카탈로그 6·원장 8·시기 4 + 불변 스냅샷), v6·ask-evidence·consultation-kinds 38종 모두 통과.
   - `npx tsc --noEmit -p .` 오류 0. eslint 오류·경고 0.
   - `npm run check:fast`: entry-encoding OK, jest 단계가 윈도우 0xC0000409(3221226505)로 출력 없이 죽었다(커밋 4 세션과 같은 증상). 같은 러너를 직접 돌리면 `node scripts/run-mock-tests.mjs jest` = 309 스위트·4,515 테스트 통과. 로컬 하네스 결함이며 변경과 무관하다(범위 밖 결함 절 참조).
+
+## Phase 2 커밋 6 결과: §6-6 배선 (2026-09-28)
+
+- 커밋 `602135a61`. main 직접 작업(옆 세션은 `marketing/**` 만 건드려 워크트리가 필요 없었다). 과금 LLM 0회, 실결제 0, 운영 DB 접근 0. 플래그 `READING_V7_ENABLED=false` 그대로이고, 플래그 OFF 에서 v7 경로는 한 줄도 실행되지 않는다.
+- 파일
+  - `worker/yeongnyangi/fortune/consultation-kinds.ts`: `consultationManifest` 첫 줄에 `if(v7Applies(p,k))return readingManifestV7(p,k!)`. v6 주제 매핑보다 앞에 둔다(v7 은 종류별 제목·초점·사실 입력을 스스로 갖는다).
+  - `worker/yeongnyangi/fortune/chapter-facts.ts`: `selectChapterFacts` 첫 줄에 `if(chapter.version===READING_V7_VERSION)return selectV7Facts(context,chapter as ChapterSpecV7)`.
+  - `worker/yeongnyangi/service.ts`
+    - prepare: `v7Applies(product,kind)` 가 참일 때만 `buildV7TimingMatrix` → `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 를 한 번 돌리고, `product.manifestVersion`·`chapterCount` 를 v7 로 바꾼 뒤 매트릭스를 스냅샷 `v7Timing` 에 저장한다.
+    - fingerprint: `manifestVersion` 자리를 **같은 위치에서 토큰 하나만** 바꾼다(`v7?V7:v6?v6:{}`). v6 이하 요청의 바이트는 그대로다.
+    - 질문 장 `mustNotCover`: v7 일 때 형제 장 제목만 덜어낸다. 체계 금지어는 남는다. 소유권은 건드리지 않는다.
+    - `snapshotAnalysis(snapshot)` 헬퍼 하나로 생성(`generateNextChapter`)과 차트(`presentFortune`)가 **같은** 저장 매트릭스를 다시 입힌다. `v7Timing` 이 없는 스냅샷은 저장된 analysis 를 그대로 돌려준다.
+  - `worker/yeongnyangi/providers/chapter.ts`
+    - `buildV7ChapterPrompt` 결과를 `domainRules`(마지막 키)·`outputSchema.properties`(블록 스프레드 뒤)·`promptVersion`·`maxOutputTokens`·`timeTheme` 에 펼친다. v7 전용 키는 `version===READING_V7_VERSION` 일 때만 들어간다.
+    - 125~130줄 근거 요건에 v7 분기를 넣었다. v7 은 고정 `evidence` 소절이 없으므로 규칙이 **블록 자체**로 옮겨간다: 블록 sources 합집합이 이 장 사실의 체계를 모두 덮고, 광어·참치는 서로 다른 근거 2개 이상.
+- 설계와 다르게 한 판단
+  - **`selectChapterFacts` 에 `asOf` 4번째 인자를 만들지 않았다.** 결정성은 `context.calculatedAt`(스냅샷에 그대로 얼어 있는 문자열)에서 나온다. prepare 는 `resolveV7Ledger(manifest, withV7Timing(context,matrix))` 를 opts 없이 부르므로 생성 때의 재구축과 같은 id 가 나온다. 인자를 늘리면 기존 호출부 4곳이 깨지고 prepare/생성 드리프트 위험만 는다.
+  - **근거 도메인 집합을 ask 패킷 이전 사실(`chapterFactIds`)에서 뽑는다.** `allowed` 는 물어보기 0장에서 ask 사실까지 포함하므로, 그걸로 도메인을 세면 충족 불가능한 요구가 만들어진다. v6 분기는 종전대로 `allowed` 를 쓴다.
+  - **블록마다 sources 가 비지 않았는지는 다시 검사하지 않는다.** 바로 앞의 `validateReadingQuality` 가 이미 `INVALID_EVIDENCE` 로 막는다(원칙 6: 층을 더하기 전에 기존 장치 확인).
+  - **`resolveV7Ledger` 의 `unowned` 에 런타임 throw 를 걸지 않았다.** §6-6 범위 밖이고, 소유권 정적 가드는 커밋 3 테스트가 이미 전수로 본다.
+  - 스키마 enum 은 `sourceIds`(ask 패킷까지 합쳐진 최종 목록)로 만든다. CALCULATED_DATA 와 enum 이 갈라질 수 없다.
+- 검증(실측)
+  - **불변 스냅샷이 해시 갱신 없이 통과**했다: `flag-off v6/v5/legacy/spirit paths ... byte-identical` 1/1, 123행 × 5해시 그대로.
+  - 새 `__tests__/ui/yeongnyangi-reading-v7-wiring.test.mjs` 4/4. 변이 2종이 모두 물었다: 사실 라우팅 무력화 → 2·3번 실패, v7 근거 분기 무력화 → 3·4번 실패. 원본 복원 후 4/4.
+  - v5·v6·v7·상담·ask 계열 노드 테스트 11파일 94/94.
+  - `npx tsc --noEmit -p .` 오류 0. eslint: 새 테스트 0/0, 워커 4파일 오류 0·경고 14(전부 기존 `no-explicit-any`).
+  - `npm run check:fast` exit 0. wrangler dry-run·entry-encoding OK, jest 309 스위트·4,515 테스트 통과(이번엔 윈도우 0xC0000409 가 재현되지 않았다). 변경 집합이 워커 TS 라 `test:node` 단계는 선택되지 않았으므로 노드 테스트는 위와 같이 직접 돌렸다.
+  - 플래그 OFF 이므로 `consultationManifest` 는 모든 구매 가능 조합에서 여전히 v6 를 돌려준다(테스트 1번이 전수 확인). v7 분기가 실제로 v7 매니페스트를 돌려주는지는 플래그가 켜져야 관측되므로, 이 축은 `v7Applies(p,k,true)` 의 전수 예상값 비교로만 고정했다.
 
 ## Phase 0 세션 변경
 
@@ -421,7 +449,7 @@ next: "Phase 2 커밋 6 = 설계 §6-6 배선(consultation-kinds.ts·service.ts�
 ## 롤백
 
 - Phase 0·1 모두 문서만 바꿨다. 각 커밋 하나를 `git revert` 하면 된다.
-- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다. 커밋 4(`eddaa5c13`)와 커밋 5(`412dda498`)는 각각 새 파일 2개뿐이라 `git revert` 하나로 끝난다.
+- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다. 커밋 4(`eddaa5c13`)와 커밋 5(`412dda498`)는 각각 새 파일 2개뿐이라 `git revert` 하나로 끝난다. 커밋 6(`602135a61`)은 배선이라 되돌리면 v7 모듈 5개가 다시 고아가 될 뿐 v6 동작은 그대로다 — `git revert` 하나로 끝나고, 되돌린 뒤 불변 스냅샷을 한 번 더 돌린다.
 
 ## 다음 단계
 
@@ -434,17 +462,11 @@ next: "Phase 2 커밋 6 = 설계 §6-6 배선(consultation-kinds.ts·service.ts�
 3. ~~설계 §6-3 `reading-v7-ledger.ts`~~ 완료(위 "Phase 2 커밋 3 결과").
 4. ~~설계 §6-4 시기 매트릭스~~ 완료(위 "Phase 2 커밋 4 결과"). §6-6 배선 때 prepare 에서 `buildV7TimingMatrix` 를 v7 일 때만 부르고, 결과를 스냅샷(또는 `generationCheckpoint`)에 저장한다. 장 생성은 `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 순서다.
 5. ~~설계 §6-5 `chapter-v7` 프롬프트·출력 스키마~~ 완료(위 "Phase 2 커밋 5 결과").
-6. 다음 세션(`[RED]` 배선 — 매니페스트 분기·fingerprint·프롬프트 경로. 플래그는 계속 OFF. 권장: 주력 모델 / effort high): 설계 §6-6 배선 한 커밋만 한다.
-   - `consultation-kinds.ts` 의 `consultationManifest` 에 `v7Applies(p,k)` 분기를 넣어 `readingManifestV7` 을 부른다(결정 2). 플래그 OFF 면 도달하지 않는다.
-   - `service.ts`: prepare 에서 v7 일 때만 `buildV7TimingMatrix` 를 부르고 결과를 스냅샷에 저장한다. 장 생성은 `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 순서다.
-   - `chapter-facts.ts` `selectChapterFacts` 첫 줄에 `if(chapter.version===READING_V7_VERSION)return selectV7Facts(context,chapter)`.
-   - `chapter.ts` 에 v7 분기를 넣어 `buildV7ChapterPrompt` 결과를 `domainRules`·`outputSchema.properties`·`promptVersion`·`maxOutputTokens`·`timeTheme`·`depth` 에 펼친다. **v7 전용 키는 `chapter.version===READING_V7_VERSION` 일 때만 넣는다**(그래야 v6 페이로드가 바이트 동일하다).
-   - `chapter.ts:125-130` 의 `evidence` 블록 요구에 v7 분기가 **반드시** 필요하다. v7 소절 id 는 `insight-N`·`scene`·`decision` 이라 지금 그대로면 모든 v7 장이 `CHAPTER_EVIDENCE_INCOMPLETE` 로 떨어진다. v7 규칙: 해석 블록마다 근거 1개 이상, 블록 sources 합집합이 제공된 체계를 모두 덮고, 광어·참치는 서로 다른 근거 2개 이상.
-   - fingerprint 영향을 먼저 확인한다. 불변 스냅샷은 여기서도 갱신 없이 통과해야 한다.
+6. ~~설계 §6-6 배선~~ 완료(위 "Phase 2 커밋 6 결과"). Phase 2 는 여기서 끝난다.
 7. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 6(설계 §6-6 배선: consultation-kinds.ts 의 consultationManifest 에 v7Applies 분기, service.ts prepare 에서 buildV7TimingMatrix 저장과 withV7Timing→resolveV7Ledger→v7TimingSummaries 순서, chapter-facts.ts 의 selectChapterFacts 첫 줄에 selectV7Facts, chapter.ts 에 buildV7ChapterPrompt 분기와 chapter.ts:125-130 evidence 블록 요구의 v7 규칙)을 시작하라. v7 전용 키는 chapter.version===READING_V7_VERSION 일 때만 넣어 v6 페이로드를 바이트 동일하게 유지하고, 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다. 이 커밋은 fingerprint 를 건드리므로 RED다 — 위험·검증·롤백을 먼저 보고하라.
+D:Developmentcode-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md(§7·측정 1)를 읽어라. 영냥이 v7 Phase 2(§6-1~§6-6)는 커밋 완료이고 플래그는 OFF다. 다음은 Phase 3(v7 전용 검증기)인데 브리프 게이트상 네오 승인이 먼저다 — 승인 여부를 먼저 확인하고, 승인 전이면 Phase 2 결과 요약과 Phase 3 계획만 보고하고 멈춰라. 승인 후에는 설계 §7 의 주 검증 3종을 v7 장에만 걸고, 위반 시 1회 재생성 후에도 남으면 결정적으로 문장을 삭제하고 로그를 남긴다(원칙 17: 거부로 끝내지 않는다). 플래그는 계속 OFF, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다. main·clean 확인과 git pull --ff-only 후 시작하라.
 ```
