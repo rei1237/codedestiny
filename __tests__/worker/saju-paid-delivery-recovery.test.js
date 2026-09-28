@@ -18,7 +18,13 @@ const names = new Set([
   "buildSajuAIStatusPayload", "mapSajuAIExecutionStatus", "buildSajuAIProgress", "normalizeSajuAIStoredResult",
   "findSajuAIExecutionForRead", "handleSajuAIConsultationStatus", "handleSajuAIConsultationResult",
 ]);
-const constants = new Set(["SAJU_AI_REQUIRED_CHAPTER_PATTERNS", "SAJU_AI_INCOMPLETE_TAIL_PATTERNS", "SAJU_AI_RESULT_FORBIDDEN_PATTERNS", "SAJU_AI_PROGRESS_STEPS"]);
+const constants = new Set([
+  "SAJU_AI_REQUIRED_CHAPTER_PATTERNS",
+  "SAJU_AI_INCOMPLETE_TAIL_PATTERNS",
+  "SAJU_AI_RESULT_FORBIDDEN_PATTERNS",
+  "SAJU_AI_RESULT_UNSUPPORTED_PATTERNS",
+  "SAJU_AI_PROGRESS_STEPS",
+]);
 const extracted = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && names.has(node.name?.text)
   || ts.isVariableStatement(node) && node.declarationList.declarations.some((d) => constants.has(d.name.getText(ast))))
   .map((node) => node.getText(ast).replace(/^export /, "")).join("\n");

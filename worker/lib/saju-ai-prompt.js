@@ -22,7 +22,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v11";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v12";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -63,7 +63,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "확정표에 적힌 십성만 써서 구조를 읽고, 오행의 과한 곳과 부족한 곳은 성향을 단정하는 원인이 아니라 확인해 볼 해석 가설로 설명하세요. 오행의 유무를 재정 통제력·직업 적성·질환과 직접 연결하지 마세요.",
+    guide: "3장은 확정표의 십성 관계만, 4장은 오행 분포와 상호작용만 설명하세요. 십성·오행은 확인할 해석 가설일 뿐 성격·재정 규율·소비·직업·질환·수익·손실의 원인이나 증거가 아닙니다. 화 없음→통제 부족, 비겁→동업 손실, 재성→투자 성향처럼 연결하지 말고 두 장에서 같은 근거를 반복하지 마세요.",
   }),
   Object.freeze({
     key: "life_domains",
@@ -75,7 +75,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "5장은 사용자 질문의 각 쟁점을 계산된 명식과 연결하세요. 6장은 질문과 직접 관련된 생활 영역을 중심으로 쓰고, 다른 영역은 각각 한 짧은 문단 이내로만 다루세요. 질문에서 말하지 않은 직업·연애 상태·건강 이력을 지어내지 마세요. 오행만으로 장기·질환·체질 취약성을 추정하지 말고, 건강 조언은 일반적인 생활 점검과 필요시 의료 전문가 상담으로 한정하세요. 실제 사건처럼 단정하지 말고 적용 조건이 있는 예시로 설명하세요.",
+    guide: "5장은 질문의 쟁점을 계산된 명식과 연결하고, 6장은 관련 생활 영역만 자세히 다루세요. 질문에 없는 직업·연애·건강 이력을 만들지 말고 건강은 일반 점검과 필요시 의료 확인으로 한정합니다. 재물 질문에서도 십성·오행으로 투자 성향, 충동 소비, 동업 손실, 사업 적합성을 만들지 말고 실제 수입·지출·계약 자료로 확인할 질문을 제시하세요.",
   }),
   Object.freeze({
     key: "timing_flow",
@@ -87,7 +87,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "7장은 제공된 대운의 순서와 전환 조건을, 8장은 제공된 세운의 간지와 원국의 연결을 설명하세요. 지나온 개인사를 사실로 쓰지 마세요. 월운 계산이 없으면 특정 월·상반기·하반기 차이를 만들지 말고 시기 판단의 한계를 설명하세요. 시각 미상으로 달라지는 부분은 확정하지 않습니다. 점수와 등급을 본문에 옮기거나 수익·손실·승진 같은 사건의 크기로 번역하지 말고, 준비·실행·재검토에 유리하거나 부담이 커지는 조건만 비교하세요. 성향·오행 설명을 되풀이하지 마세요.",
+    guide: "7장은 제공된 대운 순서와 전환 조건, 8장은 세운 간지와 원국의 연결만 설명하세요. 지나온 개인사를 사실로 쓰지 말고 월운이 없으면 월·상하반기 차이를 만들지 않습니다. 대운 나이는 구간 라벨이지 그 나이의 수익·손실·사업·투자 사건 예고가 아닙니다. 점수·등급·사건 규모를 옮기지 말고 준비·실행·재검토 조건만 비교하세요.",
   }),
   Object.freeze({
     key: "strategy_action",
@@ -101,7 +101,7 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     minChars: 4000,
     targetMinChars: 5000,
     maxChars: 6000,
-    guide: "9장은 앞 장의 명식 설명을 다시 풀지 말고 질문과 관련된 반복 패턴과 그 패턴이 나타나지 않는 반대 조건을 설명하세요. 10장은 사용자가 제시한 선택지를 같은 기준(활용할 강점·감수할 부담·확인할 현실 조건)으로 비교하고, 선택지가 없으면 가능한 행동과 보류 조건을 제시하세요. 11장은 통제 가능한 30일 실천을 행동·확인 방법·다음 판단 기준으로 정리하세요. 금융상품·투자대상·수익률을 추천하지 말고 예산·손실 감당 범위·계약·전문가 확인 같은 안전장치를 제시하세요. 12장은 질문에 대한 답과 핵심 근거·주의점·첫 행동을 간결히 요약하며 새 예언을 추가하지 마세요.",
+    guide: "9장은 앞 장을 반복하지 말고 현실에서 확인할 패턴과 반대 조건만 설명하세요. 10장은 선택지를 같은 기준으로 비교하고 11장은 행동·확인 방법·다음 판단 기준을 정리합니다. 주식·코인·부동산·채권·배당주·금융상품·사업 확장을 명식으로 권하지 말고, 오행 보완을 행동 이유로 쓰지 마세요. 예산·손실 감당 범위·계약·전문가 확인 같은 안전장치만 제시하고 12장은 새 예언 없이 답·근거·주의·첫 행동만 요약하세요.",
   }),
 ]);
 

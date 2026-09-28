@@ -335,6 +335,25 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     expect(validation.ok).toBe(false);
     expect(validation.incomplete).toBe(true);
   });
+
+  test.each([
+    ["element-causality", "화 오행이 없어 재정 통제력이 약하고 충동 소비를 유발합니다."],
+    ["specific-financial-product", "부동산, 채권, 배당주 같은 자산에 관심을 가져볼 수 있습니다."],
+    ["age-event-prediction", "36세 대운에는 재물 기회가 열리므로 사업 확장을 고려하세요."],
+    ["ten-god-financial-loss", "겁재는 주변 사람과의 금전 분쟁과 재물 손실 가능성을 의미합니다."],
+  ])("실측에서 확인한 근거 밖 금융 인과를 거부한다: %s", (key, unsafeSentence) => {
+    const built = buildCareerPrompt();
+    const unsafe = CONCISE_COMPLETE_CAREER_RESULT.replace(
+      "12. 마지막 한마디",
+      `${unsafeSentence}\n\n12. 마지막 한마디`,
+    );
+    const validation = fortuneRoute.validateSajuAIResultText(unsafe, built.factSnapshot, {
+      domain: "career",
+      categoryRubric: built.categoryRubric,
+    });
+    expect(validation.ok).toBe(false);
+    expect(validation.qualityIssues.unsupportedAdvice).toBe(key);
+  });
 });
 
 

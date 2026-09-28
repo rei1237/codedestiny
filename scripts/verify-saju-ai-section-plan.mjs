@@ -140,11 +140,12 @@ const CHAPTER_TITLES = [
     );
     for (const requiredSafetyLine of [
       "본문에는 점수·이모지·'최고의 운' 같은 등급 이름을 옮기지 말고",
-      "오행의 부재만으로 충동 소비, 규율 부족, 몸의 냉기, 장기·질환 취약성을 만들지 마세요",
-      "주식·코인·부동산·금융상품·사업 확장을 좋거나 나쁜 선택으로 추천하지 마세요",
+      "십성·오행으로 투자 성향, 충동 소비, 동업 손실, 사업 적합성을 만들지 말고",
+      "주식·코인·부동산·채권·배당주·금융상품·사업 확장을 명식으로 권하지 말고",
       "뒤 챕터에서 앞 챕터의 오행 개수·십성 정의·비겁 경고를 다시 설명하지 마세요",
+      "같거나 거의 같은 문단은 한 번만 남기세요",
     ]) {
-      check(prompt.includes(requiredSafetyLine), `${group.key}: v10 실측 후 안전 교정이 프롬프트에서 빠졌다 — ${requiredSafetyLine}`);
+      check(prompt.includes(requiredSafetyLine), `${group.key}: 실제 생성 후 안전 교정이 프롬프트에서 빠졌다 — ${requiredSafetyLine}`);
     }
   }
 }

@@ -1086,7 +1086,10 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     let rootHtml = readFileSync(rootIndexPath, "utf8");
     const bustedRootHtml = restampAssetCacheRefs(rootHtml, "index.html", buildTimestamp, assetKeys);
     if (bustedRootHtml !== rootHtml) {
-      writeFileSync(rootIndexPath, bustedRootHtml);
+      // Windows can hold this 3 MB shell briefly after the public mirror reads it.
+      // Use the same bounded retry as the generated public shells instead of failing
+      // a deterministic sync on a transient UNKNOWN/EBUSY write error.
+      writeFileSyncWithRetry(rootIndexPath, Buffer.from(bustedRootHtml, "utf8"));
       console.log("[sync-legacy-static-to-public] Updated root index.html cache keys");
     }
   }

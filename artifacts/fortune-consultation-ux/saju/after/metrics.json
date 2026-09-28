@@ -9,17 +9,17 @@
       "hiddenAncestor": false,
       "overflow": false,
       "entryVisible": true,
-      "heading": "명식이 답하는사주 AI 상담"
+      "heading": "여덟 글자에서,지금의 답을 찾다"
     },
     {
       "width": 390,
-      "sourceY": 3684.21875,
-      "entryY": 4077.78125,
-      "consultationY": 4076.78125,
+      "sourceY": 3651.390625,
+      "entryY": 4044.953125,
+      "consultationY": 4043.953125,
       "hiddenAncestor": false,
       "overflow": false,
       "entryVisible": true,
-      "heading": "명식이 답하는사주 AI 상담"
+      "heading": "여덟 글자에서,지금의 답을 찾다"
     },
     {
       "width": 430,
@@ -29,18 +29,19 @@
       "hiddenAncestor": false,
       "overflow": false,
       "entryVisible": true,
-      "heading": "명식이 답하는사주 AI 상담"
+      "heading": "여덟 글자에서,지금의 답을 찾다"
     },
     {
       "width": 1440,
       "sourceY": 4226.1875,
-      "entryY": 4820.65625,
-      "consultationY": 4819.65625,
+      "entryY": 4826.6875,
+      "consultationY": 4825.6875,
       "hiddenAncestor": false,
       "overflow": false,
       "entryVisible": true,
-      "heading": "명식이 답하는사주 AI 상담"
+      "heading": "여덟 글자에서,지금의 답을 찾다"
     }
   ],
-  "network": "mock"
+  "network": "mock",
+  "resultSource": "fixture"
 }

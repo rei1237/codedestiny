@@ -15,6 +15,21 @@ if (remoteBase && !['https://staging.code-destiny.com','https://code-destiny.com
 const environment = remoteBase ? (remoteBase.includes('staging.') ? 'staging' : 'production') : 'local';
 const output = resolve('artifacts/fortune-consultation-ux/saju', phase + (remoteBase ? '-' + environment : ''));
 await mkdir(output, { recursive: true });
+async function writeFileWithRetry(path, data) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      await writeFile(path, data);
+      return;
+    } catch (error) {
+      if (!['UNKNOWN', 'EBUSY', 'EPERM'].includes(error?.code) || attempt === 19) throw error;
+      await new Promise(resolveWait => setTimeout(resolveWait, 75));
+    }
+  }
+}
+async function capture(subject, path) {
+  const image = await subject.screenshot({ animations: 'disabled' });
+  await writeFileWithRetry(path, image);
+}
 const server = createServer(async (req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
@@ -62,10 +77,10 @@ try {
       return {width:innerWidth,sourceY:source.getBoundingClientRect().top+scrollY,entryY:entry.getBoundingClientRect().top+scrollY,consultationY:target.getBoundingClientRect().top+scrollY,
         hiddenAncestor:!!entry.closest('details:not([open]),[aria-hidden="true"]'),overflow:entry.scrollWidth>entry.clientWidth+1,entryVisible:!!entry.offsetParent,heading:entry.querySelector('h2,h3,h4,.prem-title')?.textContent};
     });
-    await page.screenshot({path:resolve(output,`chart-${width}.png`),animations:'disabled'});
+    await capture(page, resolve(output,`chart-${width}.png`));
     if (phase !== 'before') {
       await page.locator('#sajuConsultationEntry').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
-      await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,`entry-${width}.png`),animations:'disabled'});
+      await capture(page.locator('#sajuConsultationEntry'), resolve(output,`entry-${width}.png`));
     }
     if (phase !== 'before') {
       assert.equal(await page.locator('[data-consultation-price]').first().textContent(),'10,000원');
@@ -74,7 +89,7 @@ try {
       await page.locator('[data-consultation-open]').focus();
       await page.keyboard.press('Enter');
       await page.locator('[data-saju-ai-question]').waitFor({state:'visible'});
-      await page.locator('[data-saju-ai-form]').screenshot({path:resolve(output,`consultation-${width}.png`),animations:'disabled'});
+      await capture(page.locator('[data-saju-ai-form]'), resolve(output,`consultation-${width}.png`));
       assert.equal(await page.locator('[data-saju-ai-question]').getAttribute('aria-label'),'상담할 질문');
       assert.ok(await page.locator('[data-saju-ai-generate]').evaluate(el=>el.getBoundingClientRect().height>=44));
     }
@@ -107,7 +122,7 @@ try {
     await page.evaluate(() => { document.documentElement.style.fontSize='200%'; });
     assert.ok(await page.locator('#sajuQuestionPromptGeneratorCard').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
     await page.evaluate(() => { document.documentElement.style.fontSize=''; document.body.classList.add('neo-mode'); });
-    await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,'entry-neo-390.png'),animations:'disabled'});
+    await capture(page.locator('#sajuConsultationEntry'), resolve(output,'entry-neo-390.png'));
     await page.evaluate(() => { document.body.classList.remove('neo-mode'); });
     fixtureSignedIn = true;
     await page.evaluate((reviewedText) => {
@@ -123,16 +138,16 @@ try {
       await page.setViewportSize({width,height:900});
       await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
       assert.ok(await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
-      await page.screenshot({path:resolve(output,'result-'+width+'.png'),animations:'disabled'});
+      await capture(page, resolve(output,'result-'+width+'.png'));
       if (reviewedResult) {
         await page.locator('.consultation-chapter').nth(7).evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
-        await page.screenshot({path:resolve(output,'result-chapter8-'+width+'.png'),animations:'disabled'});
+        await capture(page, resolve(output,'result-chapter8-'+width+'.png'));
       }
     }
     await page.locator('[data-saju-ai-reset-result]').click();
     assert.equal(await page.locator('[data-saju-ai-output-panel]').isVisible(),false);
   }
   console.log(JSON.stringify({phase,evidence,network:'all APIs mocked; all external traffic blocked'},null,2));
-  await writeFile(resolve(output,'metrics.json'),JSON.stringify({phase,evidence,network:'mock',resultSource:reviewedResult?'reviewed-local-text; archive ownership and persistence mocked':'fixture'},null,2));
+  await writeFileWithRetry(resolve(output,'metrics.json'),JSON.stringify({phase,evidence,network:'mock',resultSource:reviewedResult?'reviewed-local-text; archive ownership and persistence mocked':'fixture'},null,2));
   await context.close();
 } finally {await browser.close(); await new Promise(done=>server.close(done));}

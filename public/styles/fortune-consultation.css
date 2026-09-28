@@ -9,8 +9,9 @@
   color: var(--consult-ink);
   background: var(--consult-paper);
   border: 1px solid var(--consult-line);
-  border-radius: var(--cd-r-card, 20px);
+  border-radius: var(--cd-r-section, 26px);
   overflow: clip;
+  box-shadow: 0 22px 70px rgba(68, 34, 56, .14);
   font-size: 1rem;
   line-height: 1.75;
   scroll-margin-top: 24px;
@@ -30,14 +31,25 @@ body.neo-mode .consultation-saju {
 .consultation-saju :is(button, a, summary, textarea, input):focus-visible { outline: 3px solid var(--consult-accent); outline-offset: 3px; }
 .consultation-saju a { color: var(--consult-accent); text-underline-offset: .2em; }
 .consultation-saju ::selection { background: var(--consult-accent); color: var(--consult-paper); }
-.consultation-entry { display: grid; grid-template-columns: minmax(0, 1fr) 38%; align-items: center; gap: var(--cd-sp-md, 16px); padding: var(--cd-sp-lg, 24px); }
-.consultation-entry h3 { margin: 0 0 12px; font: inherit; font-size: clamp(1.35rem, 3vw, 1.9rem); font-weight: 800; line-height: 1.4; text-wrap: balance; }
-.consultation-entry p { margin: 0 0 16px; overflow-wrap: anywhere; }
-.consultation-entry__art { display: block; width: 100%; height: auto; border-radius: var(--cd-r-sm, 8px); }
-.consultation-entry__price { font-variant-numeric: tabular-nums; }
-.consultation-entry__price span { display: block; color: var(--consult-muted); font-size: .85rem; }
-.consultation-saju .consultation-primary { min-height: 48px; font-weight: 750; color: var(--consult-paper); background: var(--consult-accent); border-color: var(--consult-accent); }
-.consultation-primary:hover { filter: brightness(.95); }
+.consultation-entry { position: relative; isolation: isolate; display: grid; min-height: clamp(430px, 42vw, 520px); align-items: center; padding: clamp(32px, 5vw, 64px); background: #281622; }
+.consultation-entry::after { position: absolute; z-index: 3; inset: 12px; border: 1px solid rgba(255, 241, 224, .26); border-radius: calc(var(--cd-r-section, 26px) - 10px); pointer-events: none; content: ""; }
+.consultation-entry__visual { position: absolute; z-index: 0; inset: 0; display: block; overflow: hidden; }
+.consultation-entry__visual::after { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(35, 17, 29, .97) 0%, rgba(35, 17, 29, .86) 38%, rgba(35, 17, 29, .16) 70%, rgba(35, 17, 29, .04) 100%); content: ""; }
+.consultation-entry__art { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.consultation-entry__copy { position: relative; z-index: 2; width: min(62%, 600px); color: #fff8ef; }
+.consultation-entry__eyebrow { margin: 0 0 18px; color: #f2cf9d; font-size: .78rem; font-weight: 750; letter-spacing: .13em; }
+.consultation-entry h3 { margin: 0 0 18px; color: #fff9f2; font: inherit; font-size: clamp(2rem, 4vw, 3rem); font-weight: 760; letter-spacing: -.04em; line-height: 1.16; text-wrap: balance; }
+.consultation-entry p { overflow-wrap: anywhere; }
+.consultation-entry__lead { max-width: 43ch; margin: 0 0 22px; color: rgba(255, 248, 239, .88); font-size: clamp(.95rem, 1.6vw, 1.08rem); line-height: 1.8; }
+.consultation-entry__features { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+.consultation-entry__features li { padding: 7px 11px; border: 1px solid rgba(255, 241, 224, .25); border-radius: var(--cd-r-pill, 999px); color: rgba(255, 248, 239, .9); background: rgba(41, 22, 34, .44); font-size: .78rem; line-height: 1.45; backdrop-filter: blur(8px); }
+.consultation-entry__commerce { display: grid; grid-template-columns: minmax(150px, auto) minmax(240px, 1fr); gap: 8px 14px; align-items: center; max-width: 540px; }
+.consultation-entry__price { margin: 0; color: rgba(255, 248, 239, .86); font-size: .82rem; font-variant-numeric: tabular-nums; }
+.consultation-entry__price strong { display: block; margin-top: 2px; color: #fff9f2; font-size: 1.05rem; }
+.consultation-entry__price span { display: block; color: rgba(255, 248, 239, .66); font-size: .74rem; }
+.consultation-saju .consultation-primary { min-height: 52px; padding-inline: 20px; border-color: #fff4e6; color: #5d1939; background: #fff4e6; font-weight: 780; box-shadow: 0 12px 30px rgba(20, 8, 15, .22); transition: transform var(--cd-dur-fast, 120ms) ease, box-shadow var(--cd-dur-fast, 120ms) ease; }
+.consultation-primary:hover { filter: none; transform: translateY(-1px); box-shadow: 0 16px 34px rgba(20, 8, 15, .3); }
+.consultation-entry__note { grid-column: 2; margin: 0; color: rgba(255, 248, 239, .6); font-size: .72rem; line-height: 1.45; }
 .consultation-form { border-top: 1px solid var(--consult-line); scroll-margin-top: 24px; }
 .consultation-form > summary { padding: 16px 24px; cursor: pointer; }
 .consultation-form__body { padding: 0 24px 24px; max-width: 75ch; margin-inline: auto; }
@@ -71,13 +83,28 @@ body.neo-mode .consultation-saju {
 .consultation-report .consultation-chapter h4 { font-size: 1.2rem; line-height: 1.5; margin: 0 0 16px; }
 .consultation-report .consultation-chapter p { margin: 0 0 1.15em; font-size: 1rem; line-height: 1.85; overflow-wrap: anywhere; }
 @media (max-width: 759px) {
-  .consultation-entry { grid-template-columns: minmax(0, 1fr); padding: 20px; }
-  .consultation-entry__art { width: 180px; justify-self: end; }
-  .consultation-entry__copy { grid-row: 1; }
+  .consultation-entry { display: block; min-height: 0; padding: 0; background: var(--consult-paper); }
+  .consultation-entry::after { inset: 8px; border-color: rgba(255, 255, 255, .32); border-radius: calc(var(--cd-r-section, 26px) - 6px); }
+  .consultation-entry__visual { position: relative; aspect-ratio: 16 / 10; }
+  .consultation-entry__visual::after { background: linear-gradient(180deg, transparent 54%, rgba(35, 17, 29, .5) 100%); }
+  .consultation-entry__art { object-position: 58% center; }
+  .consultation-entry__copy { width: auto; padding: 24px 20px 26px; color: var(--consult-ink); background: var(--consult-paper); }
+  .consultation-entry__eyebrow { margin-bottom: 12px; color: var(--consult-accent); font-size: .72rem; }
+  .consultation-entry h3 { margin-bottom: 14px; color: var(--consult-ink); font-size: clamp(1.85rem, 9vw, 2.45rem); }
+  .consultation-entry__lead { margin-bottom: 18px; color: var(--consult-muted); font-size: .94rem; }
+  .consultation-entry__features { display: grid; gap: 6px; margin-bottom: 20px; }
+  .consultation-entry__features li { padding: 0 0 0 18px; border: 0; color: var(--consult-muted); background: transparent; font-size: .78rem; backdrop-filter: none; }
+  .consultation-entry__features li::before { position: absolute; margin-left: -18px; color: var(--consult-accent); content: "◇"; }
+  .consultation-entry__commerce { grid-template-columns: 1fr; gap: 12px; }
+  .consultation-entry__price { color: var(--consult-ink); }
+  .consultation-entry__price strong { display: inline; margin-left: 5px; color: var(--consult-ink); font-size: .95rem; }
+  .consultation-entry__price span { margin-top: 2px; color: var(--consult-muted); }
   .consultation-entry .consultation-primary { width: 100%; }
+  .consultation-saju .consultation-primary { border-color: var(--consult-accent); color: #fff9fc; background: var(--consult-accent); box-shadow: 0 10px 24px rgba(125, 24, 70, .18); }
+  .consultation-entry__note { grid-column: auto; margin: 0; color: var(--consult-muted); text-align: center; }
   .consultation-form__body { padding-inline: 20px; }
 }
-@media (prefers-reduced-motion: reduce) { .consultation-saju { scroll-behavior: auto; } }
+@media (prefers-reduced-motion: reduce) { .consultation-saju { scroll-behavior: auto; } .consultation-saju .consultation-primary { transition: none; } }
 
 .consultation-saju [data-consultation-profile-edit] { display: inline-flex; align-items: center; min-height: 44px; }
 .consultation-calibration :is(input, select) { min-height: 44px; }
