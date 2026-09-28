@@ -165,6 +165,8 @@
 /public/js/oracle-kcg.js
 /public/js/psycho-dream-analyzer-freuds-study.js
 /public/js/pwa-install-prompt.js
+/public/js/review-reward-copy.mjs
+/public/js/review-reward-invite.mjs
 /public/js/runtime-stability.js
 /public/js/saju-engine-continuation.js
 /public/js/saju-engine-tarot-sukuyo-quantum.js
@@ -234,6 +236,7 @@
 /public/styles/mobile-bottom-nav.css
 /public/styles/mobile-lite.css
 /public/styles/mobile-totem-flower-fix.css
+/public/styles/review-reward.css
 /public/styles/saju-reading.css
 /public/styles/sibyl-system.css
 /public/styles/tarot-healing-dawn.css

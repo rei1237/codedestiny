@@ -23,10 +23,10 @@ import {
   resolveReviewProductByFeatureKey,
 } from "./review-product-catalog.js";
 import { Review } from "./review-models.js";
+import { createHttpError } from "./http.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_ACCESS_METHODS = new Set(["PASS", "FAMILY", "MONTHLY"]);
-const LOOKBACK_LIMIT = 300;
 
 // 구매 인증 배지는 "실제로 돈이 오간 기록이 있다"는 사실 진술이다(review-models.js의 주석).
 // 이용권·월정석은 유료 구독이므로 구매에 포함한다.
@@ -105,7 +105,12 @@ export async function listUsedReviewProducts({ userId, env = {} }) {
   const cached = cache.entries.get(normalizedUserId);
   if (cached && cached.expiresAt > now) return cached.value.slice();
 
-  const value = await fetchUsedReviewProducts(normalizedUserId, env);
+  let value;
+  try {
+    value = await fetchUsedReviewProducts(normalizedUserId, env);
+  } catch {
+    throw createHttpError(503, "이용 내역을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.", { code: "REVIEW_ELIGIBILITY_UNAVAILABLE" });
+  }
   cache.entries.set(normalizedUserId, { value, expiresAt: now + REVIEW_ELIGIBILITY_CACHE_TTL_MS });
   // 만료 확인이 읽기 경로에만 있어 다시 오지 않는 userId 의 엔트리가 계속 남았다.
   // 쓰기마다 만료분을 걷고, 그래도 넘치면 오래된 것부터 버린다.
@@ -122,62 +127,48 @@ export async function listUsedReviewProducts({ userId, env = {} }) {
 
 async function fetchUsedReviewProducts(normalizedUserId, env) {
   const paymentUserClause = buildPaymentUserIdClause(normalizedUserId);
-  const now = new Date();
-
-  // 4개 소스는 서로 독립이므로 하나가 실패해도 나머지로 판정한다.
-  // 각 쿼리는 raw 모델 read라 자체 재시도가 없다 → 여기서 한 번만 감싼다(이중 재시도 금지).
-  const [executions, payments, pointHistories, entitlements] = await Promise.allSettled([
-    withMongoRetry(env, () => PaidExecutionRecord.find({
+  // 사용자 범위에서 키별 최신 기록을 집계한다. 최근 N건으로 자르면 오래 이용한
+  // 상품이 사라진다. 실패는 호출부로 전달하고 자격 캐시에 저장하지 않는다.
+  const latestByKey = (model, match, key, date) => withMongoRetry(env, () => model.aggregate([
+    { $match: match },
+    { $sort: { [date]: -1, _id: -1 } },
+    { $group: { _id: key, latest: { $first: "$$ROOT" } } },
+    { $replaceRoot: { newRoot: "$latest" } },
+    { $project: { featureId: 1, featureKey: 1, contentKey: 1, serviceKey: 1,
+      completedAt: 1, consumedAt: 1, createdAt: 1, paidAt: 1, unlockedAt: 1,
+      executionId: 1, paymentId: 1, merchantUid: 1, orderId: 1, "metadata.accessMethod": 1 } },
+  ]));
+  const [executions, payments, pointHistories, entitlements] = await Promise.all([
+    latestByKey(PaidExecutionRecord, {
       userId: normalizedUserId,
       status: "completed",
-    })
-      .select("featureId completedAt consumedAt executionId paymentId")
-      .sort({ completedAt: -1 })
-      .limit(LOOKBACK_LIMIT)
-      .lean()),
+    }, "$featureId", "completedAt"),
 
     paymentUserClause
-      ? withMongoRetry(env, () => Payment.find({
+      ? latestByKey(Payment, {
         userId: paymentUserClause,
         featureKey: { $nin: ["", null] },
         status: { $in: SINGLE_PAYMENT_STATUSES },
-      })
-        .select("featureKey createdAt paidAt merchantUid")
-        .sort({ createdAt: -1 })
-        .limit(LOOKBACK_LIMIT)
-        .lean())
+      }, "$featureKey", "createdAt")
       : Promise.resolve([]),
 
     paymentUserClause
-      ? withMongoRetry(env, () => PointHistory.find({
+      ? latestByKey(PointHistory, {
         userId: paymentUserClause,
         featureKey: { $nin: ["", null] },
         kind: "deduct",
-      })
-        .select("featureKey createdAt metadata merchantUid")
-        .sort({ createdAt: -1 })
-        .limit(LOOKBACK_LIMIT)
-        .lean())
+      }, { featureKey: "$featureKey", accessMethod: "$metadata.accessMethod" }, "createdAt")
       : Promise.resolve([]),
 
-    withMongoRetry(env, () => ContentEntitlement.find({
+    latestByKey(ContentEntitlement, {
       userId: normalizedUserId,
       status: "ACTIVE",
-      $or: [
-        { expiresAt: null },
-        { expiresAt: { $exists: false } },
-        { expiresAt: { $gt: now } },
-      ],
-    })
-      .select("contentKey serviceKey unlockedAt orderId")
-      .sort({ unlockedAt: -1 })
-      .limit(LOOKBACK_LIMIT)
-      .lean()),
+    }, { contentKey: "$contentKey", serviceKey: "$serviceKey" }, "unlockedAt"),
   ]);
 
   const map = new Map();
 
-  for (const row of executions.status === "fulfilled" ? executions.value || [] : []) {
+  for (const row of executions || []) {
     collect(map, resolveReviewProductByFeatureKey(row?.featureId), {
       featureKey: row?.featureId,
       orderId: row?.paymentId || row?.executionId,
@@ -186,7 +177,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
     });
   }
 
-  for (const row of payments.status === "fulfilled" ? payments.value || [] : []) {
+  for (const row of payments || []) {
     collect(map, resolveReviewProductByFeatureKey(row?.featureKey), {
       featureKey: row?.featureKey,
       orderId: row?.merchantUid,
@@ -195,7 +186,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
     });
   }
 
-  for (const row of pointHistories.status === "fulfilled" ? pointHistories.value || [] : []) {
+  for (const row of pointHistories || []) {
     // kind:"deduct"는 코인 차감·이용권 무료 통과(delta 0)·월정석 차감을 모두 덮는다
     // (billing.js:1752 pass_access 기록). accessMethod로 어느 쪽인지만 구분한다.
     const accessMethod = toText(row?.metadata?.accessMethod).toUpperCase();
@@ -208,7 +199,7 @@ async function fetchUsedReviewProducts(normalizedUserId, env) {
     });
   }
 
-  for (const row of entitlements.status === "fulfilled" ? entitlements.value || [] : []) {
+  for (const row of entitlements || []) {
     collect(map, resolveReviewProductByContentKey(row?.contentKey, row?.serviceKey), {
       featureKey: row?.contentKey,
       orderId: row?.orderId,
@@ -230,16 +221,10 @@ export async function listReviewableProducts({ userId, env = {} }) {
   const used = await listUsedReviewProducts({ userId: normalizedUserId, env });
   if (!used.length) return [];
 
-  let existing = [];
-  try {
-    existing = await withMongoRetry(env, () => Review.find({
+  const existing = await withMongoRetry(env, () => Review.find({
       userId: normalizedUserId,
       productId: { $in: used.map((item) => item.productId) },
     }).select("productId status").lean());
-  } catch {
-    // 기존 리뷰 조회 실패는 치명적이지 않다 — 중복은 unique 인덱스가 막는다.
-    existing = [];
-  }
 
   const statusByProduct = new Map(
     (Array.isArray(existing) ? existing : []).map((row) => [toText(row?.productId), toText(row?.status)]),

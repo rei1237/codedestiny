@@ -620,6 +620,8 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
      함께 고쳐야 하며, 그건 결제 경로 정책 변경이라 임의로 하지 말 것. -->
 
 <link rel="preload" as="image" href="/icons/app-logo-512.webp" fetchpriority="high">
+<link rel="stylesheet" href="/styles/review-reward.css">
+<script type="module" src="/js/review-reward-invite.mjs"></script>
 <link rel="stylesheet" href="/styles/theme-tokens.css?v=build-fbdf215eadf6">
 <link rel="stylesheet" href="/styles/core-ui.css?v=build-cf34c271f073">
 <link rel="stylesheet" href="/styles/yehwa-motifs.css?v=build-7e8472800354">
@@ -9241,6 +9243,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     <a href="/" class="cdh-brand"><span aria-hidden="true">月花</span><span>꿀꿀 운세<small>CODE DESTINY</small></span></a>
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
       <a href="/?action=cdOpenAllFortunes" data-action="cdOpenAllFortunes" data-cd-trans="home.reformActions.browse">모든 운세 둘러보기</a>
+      <a href="/reviews/?write=1">후기 남기기</a>
       <a href="/points/" data-cd-trans="home.funnelCopy.pass">이용권</a>
       <a class="cdh-login" href="/login/" data-cd-trans="home.funnelCopy.login">로그인</a>
       <details class="cdh-account"><summary data-cd-trans="home.funnelCopy.account">내 계정</summary><div id="cdhAccountSlot"></div></details>
@@ -9267,6 +9270,16 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   </section>
   <div id="cdhCookieSlot"></div>
   <div class="cdh-flow">
+    <section class="cd-review-invite" id="cdReviewInvite" aria-label="후기 작성과 월정석 보상 안내">
+      <div class="cd-review-invite__copy">
+        <h2 data-review-copy="title">후기는 나중에 남겨도 괜찮아요</h2>
+        <p data-review-copy="description">이용한 상담과 리포트의 경험을 들려주세요.</p>
+        <p class="cd-review-invite__reward" data-review-reward aria-live="polite">공개 승인 후 월정석 지급</p>
+        <p class="cd-review-invite__detail" data-review-copy="detail">꿀꿀운세에서 사용할 수 있어요. 상품별 1회 지급됩니다.</p>
+        <a class="cd-review-invite__action" data-review-copy="action" href="/reviews/?write=1">후기 남기기</a>
+      </div>
+      <img class="cd-review-invite__image" src="/images/reviews/yeoni-moonstone-gift-v1.webp" width="240" height="240" loading="lazy" alt="후기 편지와 월정석을 건네는 꽃돼지 연이">
+    </section>
     <div class="cdh-slot" id="cdhQuickSlot"><p class="cdh-says"><img src="/images/fortune-chat/persona/yeoni-greet.webp" alt="" width="264" height="372" loading="lazy" decoding="async"><span><b data-cd-trans="home.gardenCopy.saysName">연이</b><span data-cd-trans="home.gardenCopy.saysLine">어떤 운세부터 볼까요? 하나만 골라도 충분해요.</span></span></p><section data-cd-funnel-section="quick_services" class="cd-fortune-pick" id="cdQuickServices" aria-labelledby="cdQuickTitle" data-marker="cd-quick-services-fortune-pick-v20260912">
           <div class="moon-section-head cd-fortune-pick__head">
             <span class="moon-section-kicker" data-cd-trans data-key="home.fortunePick.kicker">FORTUNE GATE</span>
