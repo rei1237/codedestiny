@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: v11 실제 생성은 의미 품질 불합격이다. v12 교정과 사주 진입점 v2를 검증·전달한 뒤, 새 실측 승인 전 사주 단계와 자미두수를 보류한다.
+next: v12 교정과 사주 진입점 v2는 main 전달을 마쳤다. 새 별도 승인 후 v12 사주 1건을 실측하고, 의미 품질이 통과할 때만 자미두수를 시작한다.
 ---
 
 # 꿀꿀 운세 자체 상담 UX 인수인계
@@ -10,7 +10,7 @@ next: v11 실제 생성은 의미 품질 불합격이다. v12 교정과 사주 �
 
 - 순서: 사주 → 기본 자미두수 → 기본 숙요점 → 기본 서양 점성술 → 기본 베다점.
 - 각 서비스의 구현·검증·증거를 기록하고 이 문서를 읽은 뒤 다음 단계에 착수한다.
-- 현재: **사주 코드·mock·스테이징 검증 완료, 실제 생성 품질 비교 승인 대기**. 이후 네 단계는 미착수. 실제 생성 품질 비교가 끝나기 전 사주 단계 완료로 표기하지 않는다.
+- 현재: **v11 실제 생성 의미 품질 불합격, v12 코드·mock·CI 검증 완료, v12 새 실측 승인 대기**. 이후 네 단계는 미착수. v12 실제 생성 의미 품질이 통과하기 전 사주 단계 완료로 표기하지 않는다.
 - 기본 자체 상담만 대상이다. 별도 `/…-ai`, 영냥이, 운명의 섬 상품은 합치지 않는다.
 - 가격·이용권·월정석·단건 결제 정책과 주문·결과 읽기 계약을 유지한다. 운영 승격·실결제·실 LLM·운영 DB 쓰기는 실행하지 않는다.
 
@@ -224,3 +224,12 @@ node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-cons
 - 가격은 서버 정본을 그대로 읽고 이용권·월정석·단건 결제 구조, 인증·결제·API·DB 계약은 변경하지 않았다. 다음 서비스도 각 체계의 계산·상담 장면을 별도 에셋과 진입 UX로 설계한다.
 - 증거: `artifacts/fortune-consultation-ux/saju/live-v11-benchmark-summary.json`, `live-v11-quality-review.md`, `after/entry-{360,390,430,1440}.png`. 원문·제공자 응답·요청 해시는 저장소 밖 비공개 경로에만 보존한다.
 - **다음 단계:** v12와 사주 진입점 v2를 검증·전달한다. v12 실제 의미 품질은 새 별도 승인 전 미검증이며, 통과 전 자미두수로 넘어가지 않는다.
+
+
+### v12·사주 진입점 v2 전달 확정
+
+- 제품·에셋·검사·증거 main 커밋: `c5656f3f0e397337efc47fc4464e73b7e955b14b` (재배치 전 격리 원본 `b85551282`). 기존 main의 카드뉴스·영냥이·`next-env.d.ts` 미커밋 작업은 포함하거나 덮어쓰지 않았다.
+- [main CI 36386035230](https://github.com/rei1237/codedestiny/actions/runs/36386035230): Risk tier / Critical checks / Typecheck and lint / Build Pages and Worker / Static guards / CI required **모두 success**. [Paid Flow Gates 36386035265](https://github.com/rei1237/codedestiny/actions/runs/36386035265)도 success.
+- 로컬 최종 `npm run check:fast` exit 0: paid-gate-suite 88/88, Jest 309 suites / 4,519 tests, Node 1,823 tests, lint·typecheck·Worker dry-run·사이트맵·사주/결제/복구 게이트 통과. 커밋 후 public mirror freshness와 handoff contract도 통과했다.
+- UI 브라우저 검증은 360·390·430·1440px에서 진입점·명식·상담·결과 화면과 가로 넘침을 확인했다. API는 mock이고 외부 요청은 차단했으므로 실제 결제·저장·운영 전달 증거가 아니다.
+- **다음 단계:** v12 사주 1건 실측은 새 별도 승인 전 실행하지 않는다. 의미 품질 통과 시에만 기본 자미두수의 전용 에셋·진입 UX 작업을 시작한다.
