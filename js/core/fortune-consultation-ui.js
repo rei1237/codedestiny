@@ -56,10 +56,11 @@
     var item = services[service];
     if (!item) return '';
     // DOM is mounted by the existing renderer in this turn; the store owns catalog caching.
+    // Modal scenes load on render; Safari can leave lazy images pending inside a previously hidden overlay.
     window.setTimeout(function () { refreshPrices(service); }, 0);
     return '<section class="fc-entry" aria-label="' + item.name + '">'
       + '<picture class="fc-entry__scene"><source media="(max-width: 759px)" srcset="/images/consultation/' + service + '-yeoni-entry-v1-640.webp">'
-      + '<img src="/images/consultation/' + service + '-yeoni-entry-v1-1280.webp" width="1280" height="853" loading="lazy" decoding="async" alt="' + item.alt + '"></picture>'
+      + '<img src="/images/consultation/' + service + '-yeoni-entry-v1-1280.webp" width="1280" height="853" loading="' + (service === 'vedic' ? 'lazy' : 'eager') + '" decoding="async" alt="' + item.alt + '"></picture>'
       + '<div class="fc-entry__copy"><h3>' + item.title + '</h3><p class="fc-entry__name">' + item.name + '</p><p class="fc-entry__lead">' + item.lead + '</p>'
       + '<ul class="fc-entry__topics">' + item.topics.map(function (topic) { return '<li>' + topic + '</li>'; }).join('') + '</ul>'
       + '<p class="fc-entry__price">단건 결제 <strong data-fc-price="' + service + '">가격 확인 중</strong><span>이용권·월정석은 결제창에서 확인</span></p>'

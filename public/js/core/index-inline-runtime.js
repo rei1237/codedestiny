@@ -3883,7 +3883,8 @@ function _cdInitAfterSplash() {
    이 오버레이들은 body 직계가 아니면 모바일에서 화면에 안 보임 → body로 이동 */
 function __cdEnsureModalOverlaysInBody() {
   var ids = ['tarotLoveOverlay', 'tarotHealingOverlay', 'tarotReunionOverlay', 'tarotYearFortuneOverlay',
-    'dreamModalOverlay', 'psychoDreamModalOverlay', 'kemetOracleOverlay', 'tarotModalOverlay'];
+    'dreamModalOverlay', 'psychoDreamModalOverlay', 'kemetOracleOverlay', 'tarotModalOverlay',
+    'ziweiModalOverlay', 'sukuyoModalOverlay', 'astroModalOverlay'];
   for (var i = 0; i < ids.length; i++) {
     var el = document.getElementById(ids[i]);
     if (el && el.parentNode !== document.body) {
