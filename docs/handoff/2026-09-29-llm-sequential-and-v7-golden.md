@@ -74,6 +74,15 @@ node scripts/yeongnyangi-v7-golden.mjs --summary-only --out 'C:\Users\user\.code
 
 ## 남은 일
 
+## 전달 기록
+
+- 구현 `3d6d87a36`, 골든 도구/부분 실측 `ce850f17e`, main 전달 merge `5d10f364a24074c75ce9278f2f1f8bdca4f21b13`은 `git push origin main` 완료.
+- 해당 main CI run `36471064225`에서 타입/lint와 Paid Flow Gates는 통과했으나 정적 node 테스트 1,848개 중 HD 동시성을 숫자 리터럴로 읽던 1개가 실패했다.
+- `9ad577f64`에서 그 테스트를 실제 공통 contract import로 바꾸고 `node --require ./scripts/lib/mock-network-guard.cjs --test __tests__/ui/human-design-report.static.test.js` 27/27 통과를 확인했다. 코드 정책을 완화하지 않았다.
+- 최종 전달 CI와 `check:fast` 상태는 최종 응답의 정확한 SHA 및 run 링크를 따른다. 위 초기 실패를 성공으로 표시하지 않는다.
+
+## 다음 행동
+
 1. 참치 10장의 `V7_ANCHOR_REPEAT`와 여러 장의 `V7_FOREIGN_FACT` 원인을 저장 raw와 계산 근거만으로 분석한다. 품질 검사를 완화해 통과시키지 않는다.
 2. 추가 live 호출은 이미 소비된 시도 예산과 신규 승인 범위를 먼저 구체화해야 한다. 현 artifact를 덮어쓰지 않는다.
 3. 참치 전체와 의미 검토가 끝난 뒤 측정 상수 교체를 판단한다. 다른 체계/ask는 여전히 추정이다.
