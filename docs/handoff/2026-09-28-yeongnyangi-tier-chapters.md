@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "Phase 2 커밋 3 = reading-v7-ledger.ts(설계 §6-3: 하위 ID 분해·소유 확정, 결정적·LLM 0, 체계별 fixture 테스트, chapter-facts v6 경로 불변). §6-1·§6-2 는 커밋 완료. 플래그 OFF, 과금 LLM 0회."
+next: "Phase 2 커밋 4 = 시기 매트릭스(설계 §6-4: extendAskLocalTiming 재사용, prepare 에서 계산해 스냅샷에 저장, 시기 장만 owner·나머지 장은 결정적 한 줄 요약, prepare CPU 실측). §6-1~§6-3 은 커밋 완료. 플래그 OFF, 과금 LLM 0회."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -110,6 +110,33 @@ next: "Phase 2 커밋 3 = reading-v7-ledger.ts(설계 §6-3: 하위 ID 분해·�
   - 소유 사슬(연어의 묶음 장 → 광어·참치의 분리 장)은 티어별 owns 로 암묵 표현했다.
   - 시기 장이 없는 매니페스트(점성술·숙요·타로, 연어·광어 베다)의 비시기 장은 `timingRef:'none'`, 앵커도 `none` 이다.
   - owns 에는 원장이 풀어야 할 파생 키가 있다: `yearlyLuck.Y0/Y1/Y2-9`, `monthlyLuck.M12`, `majorLuck.current/next/arc`, `natalInteractions.<기둥>`, `yearlyTimeline.*`, `minorLuck.*`, `vimshottariDasha.arc/next`, `aspects.tension/harmony/conjunction`, 숙요 `relationMap.<관계>`(원천 `personA`), 타로 `cards.<pos>`·`reading.*.<pos>`, 십신·신살 이름. **§6-3 원장이 이 키들을 실제 하위 ID 로 분해해야 한다.**
+
+## Phase 2 커밋 3 결과: reading-v7-ledger.ts (2026-09-28)
+
+- 커밋 `07cd0fe09`. 이 SHA 의 main CI(run 36363623178)는 **옆 세션 `2903cd057` 이 남긴 공개 미러 드리프트**로 Static guards 가 실패했다(이 커밋 파일과 무관). 그 세션이 `b2b024c89`(미러)·`52af571dc`(인수인계 프론트매터)로 고쳤고, 최종 CI 판정은 이 인수인계 커밋의 run 으로 확인한다. 과금 LLM 0회, 실결제 0, DB 접근 0. 플래그 `READING_V7_ENABLED=false` 이고 원장을 import 하는 운영 경로가 없다.
+- 파일
+  - `worker/yeongnyangi/fortune/reading-v7-ledger.ts` (신규, 순수·결정적)
+    - `buildV7Ledger(context, tier, opts)`: 엔진 근거를 ASCII 하위 ID `<domain>.<label>[.<sub>...]` 사실로 쪼갠다. 사실마다 태그 단계가 있다. 미분류 라벨·슬러그 없는 이름은 `unclassified`·`unslugged` 로 드러난다(fail-closed). ID 가 겹치면 throw 한다.
+    - `resolveV7Ledger(chapters, context, opts)`: 소유를 확정한다. 규칙은 "매칭되는 장이 있는 첫 태그 단계에서, 매니페스트 순서상 첫 장이 소유"다. 매칭은 정확 일치·점 접두·연도 범위(`Y2-9`)다. refs 는 앵커 패턴을 첫 태그 단계로 풀어 구체 ID 로 바꾼다.
+    - `selectV7Facts(context, chapter, {ledger?, asOf?})`: owns ∪ refs 를 돌려준다. 모르는 ID 는 건너뛰고 `console.warn` 한다.
+    - `timeFreeYearlyLuck`: 결정 7. 시각 없는 사주에 올해·내년 세운을 넣는다. `sexagenaryYearIndexes`+`formatPillar` 를 쓰며, 시각 있는 fixture 에서 엔진 `yearlyLuck` 과 같음을 실측했다.
+    - 부재도 사실이다: 십신 count 0, `yogas.none`, `aspects.none-<family>`. 비참치는 프리미엄 라벨 사실을 버리고 `PREMIUM_KEY` 키를 지운다. `prompt` 키는 항상 지운다.
+  - `__tests__/ui/yeongnyangi-reading-v7-ledger.test.mjs` (신규, node --test 8종)
+    - fixture: 1997-02-10 14:30 여 서울(시각 있음), 사주 시각 없음(연어), 자미 장소 없음(전 티어), 타로 연애·선택. 기준일 2026-09-15.
+    - 테스트: ① 소유(미분류 0, 모든 장 소유 ≥1, 단일 소유, ID 가 `EVIDENCE_ID` 정규식 전체 일치, 시기 사실은 시기 장만, refs 는 앵커 소유) ② 비참치 프리미엄·prompt 0 ③ `selectV7Facts` = owns ∪ refs + 모르는 ID 경고 ④ 결정성 ⑤ 사주 세부(정인 부재, 년-일 충 → 배우자 장, 올해/내년 2026·2027, 향후 2028~2035, 월운 12, 대운 현재 2024·다음 2034) ⑥ 시각 없음(시주·월운·대운 0, 결정 7 일치) ⑦ 자미·베다·점성술·숙요·타로 세부 ⑧ 어휘 fail-closed(슬러그 유일·ASCII, 엔진 원천과 대조).
+  - `docs/design/yeongnyangi-v7-chapter-catalog.md`: §4 하위 ID 조각 연결자를 `:` → `.` 로 정정(4곳).
+- 설계와 다르게 한 판단(골든·§6-4 에서 조정할 수 있다)
+  - **조각 연결자 `.`**: `consultation.ts:174` `EVIDENCE_ID` 정규식에 `:` 가 없어서 `:` 를 쓰면 본문에 꼬리가 남는다.
+  - `kijishin`(기신)도 비참치 제거 키에 넣었다(v6 대비 추가).
+  - `context.calculatedAt` 은 실제 현재 시각이라 기준 연도로 쓰지 않는다. 사주는 `yearlyLuck[0].year`, 자미는 `minorLuck.current.year`, 나머지는 `opts.asOf` 를 쓴다.
+  - 자미 소한 과거 항목은 버리고 현재·미래만 남긴다. 궁은 설계대로 `transformations` 를 유지한다.
+  - Evidence label 은 하위 ID 가 아니라 원래 필드 라벨을 유지한다. `resolveV7Ledger` 는 컨텍스트 하나를 받는다.
+  - 참치 점성술 `uranus` 장이 `aspects.Neptune-conjunction-Uranus` 도 소유한다. 참치에 합(conjunction) 장이 없어서 둘째 태그 단계(행성) 소유자가 가져가는 규칙상 정답이다.
+- 검증(실측)
+  - 새 원장 테스트 8/8. 변이 7종이 모두 물었다: 프리미엄 라벨 드롭 제거(1 실패), 비 ASCII 슬러그(3), 결정 7 제거(2), 다샤 출생일 제거 누락(1), 마지막 장 소유(2), 부재 사실 제거(2), 키 정리 제거(1). 원본 복원은 cmp 로 확인했다.
+  - **불변 스냅샷은 해시 갱신 없이 통과**했다. reading-v7 6, reading-v6 14, ask-evidence 14, consultation-kinds 10 모두 통과.
+  - `npx tsc --noEmit -p .` 오류 0, eslint 0.
+  - `npm run check:fast` exit 0(jest 309 스위트·4,512 테스트). `app/**` 를 건드리지 않아 sitemap 원장은 바뀌지 않았다.
 
 ## Phase 0 세션 변경
 
@@ -341,7 +368,7 @@ next: "Phase 2 커밋 3 = reading-v7-ledger.ts(설계 §6-3: 하위 ID 분해·�
 ## 롤백
 
 - Phase 0·1 모두 문서만 바꿨다. 각 커밋 하나를 `git revert` 하면 된다.
-- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)는 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다.
+- Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다.
 
 ## 다음 단계
 
@@ -351,13 +378,16 @@ next: "Phase 2 커밋 3 = reading-v7-ledger.ts(설계 §6-3: 하위 ID 분해·�
    - 정적 테스트 5종: 소유 충돌 0, 체계 안 단조성, `evidenceInputs` 실제 필드, 금지 요소 0, 원가 가드.
    - 끝나면 불변 스냅샷 테스트가 **갱신 없이** 통과해야 한다. `hasReadingSections` 등록이 v6 경로를 건드리면 여기서 잡힌다.
    - 그다음 세션부터 §6-3~7 을 한 커밋씩 한다. 플래그는 끝까지 OFF 다.
-3. 다음 세션(`[GREEN]` 새 순수 모듈 + fixture 테스트, 플래그 OFF. 권장: 주력 모델 / effort high): 설계 §6-3 `reading-v7-ledger.ts` 한 커밋만 한다.
-   - 위 "가정"의 파생 owns 키를 체계별 fixture 차트의 실제 하위 ID 로 분해하고, 장마다 소유를 확정한다. 결정적이고 LLM 을 쓰지 않는다.
-   - `chapter-facts.ts` 의 v6 경로는 바꾸지 않는다. 불변 스냅샷은 갱신 없이 통과해야 한다.
-4. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
+3. ~~설계 §6-3 `reading-v7-ledger.ts`~~ 완료(위 "Phase 2 커밋 3 결과").
+4. 다음 세션(`[GREEN]` 새 순수 모듈 + mock 테스트, 플래그 OFF. 권장: 주력 모델 / effort high): 설계 §6-4 시기 매트릭스 한 커밋만 한다.
+   - `extendAskLocalTiming`(`worker/yeongnyangi/fortune/ask/wrappers.ts:19`)을 재사용한다. `normalized` 는 영감 모드에서만 스냅샷에 저장되므로(`service.ts:157`) prepare 에서 계산해 저장하고, 장 생성 때 다시 계산하지 않는다. 선례는 물어보기 `generationCheckpoint.evidence`.
+   - 시기 장만 `owner` 이고 나머지 장은 결정적 한 줄 요약을 받는다. 사주 `monthlyLuck` 48행은 원장이 12개월로 자른다(원장의 `monthlyLuck.M12` 태그와 맞춘다).
+   - 래퍼 1회의 워커 CPU 시간(사주 LB 8회·자미 44회)을 잰다. `service.ts` 배선은 §6-6 이므로 이 커밋에서는 순수 함수와 테스트만 둔다.
+   - 불변 스냅샷은 갱신 없이 통과해야 한다.
+5. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
 
 ## 복사할 재개 지시
 
 ```text
-D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 3(설계 §6-3 reading-v7-ledger.ts: 파생 owns 키의 하위 ID 분해·소유 확정과 체계별 fixture 테스트)을 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
+D:\Development\code-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md를 읽고, main·clean 확인과 git pull --ff-only 후 영냥이 v7 Phase 2 커밋 4(설계 §6-4 시기 매트릭스: extendAskLocalTiming 재사용, prepare 에서 계산해 스냅샷 저장, 시기 장만 owner·나머지 장은 결정적 한 줄 요약, reading-v7-ledger.ts 원장과 연결하는 순수 함수와 mock 테스트)를 시작하라. 플래그는 OFF로 두고, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다.
 ```
