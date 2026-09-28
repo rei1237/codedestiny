@@ -8,11 +8,14 @@ import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {parse} from 'dotenv';
 import {goldenMetrics} from './lib/yeongnyangi-golden-metrics.mjs';
+import {importGoldenCheckpoint,assertGoldenGenerationAllowed,goldenHash} from './lib/v7-golden-checkpoint.mjs';
 
 const arg=name=>{const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1];};
 const live=process.argv.includes('--live'),plan=process.argv.includes('--plan');
 const summaryOnly=process.argv.includes('--summary-only');
 const revalidateOnly=process.argv.includes('--revalidate-only');
+const importPath=arg('--import-checkpoint');
+assert.ok(!(importPath&&(live||plan||summaryOnly||revalidateOnly)),'Import is offline and exclusive');
 assert.ok(!((summaryOnly||revalidateOnly)&&live),'offline modes never use --live or an API key');
 assert.ok(!(summaryOnly&&revalidateOnly),'Select one offline mode');
 assert.ok(!(live&&plan),'--plan and --live are exclusive');
@@ -31,6 +34,7 @@ export {CodeDestinyProvider} from './worker/yeongnyangi/providers/code-destiny';
 export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';
 export {auditV7Chapter} from './worker/yeongnyangi/fortune/reading-v7-quality';
 export {V7_COST,v7BookCostKRW} from './worker/yeongnyangi/fortune/reading-v7-cost';
+export {CONSULTATION_QUALITY_VERSION,CONSULTATION_QUALITY_POLICY} from './worker/yeongnyangi/prompts/domain/consultation-quality';
 `,resolveDir:root,loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const Module=createRequire(import.meta.url)('node:module');
 const filename=path.join(root,'v7-golden-memory.cjs');
@@ -64,6 +68,7 @@ const books=['salmon','flounder','tuna'].map(tier=>{
  return {tier,product,manifest};
 });
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const quality={version:m.CONSULTATION_QUALITY_VERSION,hash:hash(m.CONSULTATION_QUALITY_POLICY)};
 const scope={domain:'saju',kind:'personal',asOf,fixture:{id:fixture.id,date:fixture.date,absence:fixture.absence},books:books.map(b=>({tier:b.tier,chapters:b.manifest.length,priceKRW:b.product.priceKRW})),provider:'gemini',model:'gemini-2.5-flash',maxAttemptsPerChapter:2,timeoutMs:150000,flag:false};
 console.log(JSON.stringify({scope,estimatedBaseKRW:books.reduce((sum,b)=>sum+m.v7BookCostKRW(b.manifest.length,tariff),0)}));
 if(plan)process.exit(0);
@@ -98,12 +103,37 @@ const lock=path.join(out,'running.lock');
 fs.writeFileSync(lock,String(process.pid),{flag:'wx'});
 process.on('exit',()=>{try{fs.unlinkSync(lock);}catch{}});
 const statePath=path.join(out,'checkpoint.json');
-const identity=hash({scope,manifests:books.map(b=>b.manifest),context,mode:live?'live':'mock'});
-const state=fs.existsSync(statePath)?JSON.parse(fs.readFileSync(statePath,'utf8')):{identity,scope,mode:live?'live':'mock',attempts:[],chapters:[]};
+const identityFor=mode=>hash({scope,manifests:books.map(b=>b.manifest),context,mode,quality});
+if(importPath){
+ assert.ok(path.isAbsolute(importPath),'Absolute source checkpoint required');
+ assert.ok(!fs.existsSync(statePath),'Refuse to overwrite a checkpoint');
+ assert.notEqual(path.resolve(importPath),path.resolve(statePath),'Source must be preserved');
+ const expectedHash=arg('--source-sha256');assert.match(expectedHash||'',/^[a-f0-9]{64}$/,'Explicit source hash required');
+ const bytes=fs.readFileSync(importPath),source=JSON.parse(bytes);
+ const editsPath=arg('--edited-chapters');
+ if(source.mode==='live')assert.ok(editsPath,'Live import requires reviewed editorial copy');
+ if(editsPath)assert.ok(path.isAbsolute(editsPath),'Absolute editorial file required');
+ const imported=importGoldenCheckpoint({bytes,expectedHash,scope,books,mode:source.mode,identity:identityFor(source.mode),
+  edits:editsPath?JSON.parse(fs.readFileSync(editsPath,'utf8')):undefined,
+  validate:(body,chapter,previous,options)=>m.validateChapter(body,{locale:'ko',chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous,
+   ...(options?.lengthRepair?{repair:{code:'CHAPTER_SECTION_TOO_SHORT'}}:{})})});
+ imported.quality=quality;
+ fs.writeFileSync(statePath+'.tmp',JSON.stringify(imported,null,2));fs.renameSync(statePath+'.tmp',statePath);
+ assert.equal(goldenHash(fs.readFileSync(importPath)),expectedHash,'Source changed during import');
+ console.log(JSON.stringify({mode:'offline-import',networkCalls:0,quality,chapters:imported.chapters.length,approval:imported.approval}));
+ process.exit(0);
+}
+const identity=identityFor(live?'live':'mock');
+const state=fs.existsSync(statePath)?JSON.parse(fs.readFileSync(statePath,'utf8')):{identity,scope,mode:live?'live':'mock',quality,attempts:[],chapters:[]};
 if (summaryOnly) {
  assert.ok(fs.existsSync(statePath),'Existing checkpoint required');
  assert.equal(hash(state.scope),hash(scope),'Checkpoint scope changed');
 } else assert.equal(state.identity,identity,'Scope/fixture/manifest changed; cannot resume existing paid run');
+if(live){
+ assert.ok(state.migration?.edited,'Live continuation requires explicit reviewed checkpoint import');
+ assert.equal(state.mode,'live');
+ assert.equal(state.quality?.hash,quality.hash,'Counseling prompt changed');
+}
 const persist=()=>{fs.writeFileSync(statePath+'.tmp',JSON.stringify(state,null,2));fs.renameSync(statePath+'.tmp',statePath);};
 persist();
 const nativeFetch=globalThis.fetch;
@@ -115,7 +145,12 @@ globalThis.fetch=async(url,options)=>{
  assert.ok(['/v1beta/models/gemini-2.5-flash:generateContent','/v1beta/models/gemini-2.5-flash:countTokens'].includes(target.pathname));
  assert.equal(options?.method,'POST');
  const generating=target.pathname.endsWith(':generateContent');
- if(generating){assert.equal(active.networkCalls,0,'Provider retries forbidden');active.networkCalls++;}
+ if(generating){
+  assert.equal(active.networkCalls,0,'Provider retries forbidden');
+  assert.ok(state.attempts.length-state.migration.baselineAttempts<=28,'New call budget exhausted');
+  assert.equal(active.tier,'tuna');assert.ok(active.ordinal>=10&&active.ordinal<=23,'Unapproved live chapter');
+  active.networkCalls++;
+ }
  else active.tokenizerCalls=(active.tokenizerCalls||0)+1;
  persist();
  const response=await nativeFetch(url,options);
@@ -180,6 +215,7 @@ for(const book of summaryOnly?[]:books){
    const prior=history.find(row=>row.attempt===index);
    const request={locale:'ko',chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous,...(prior?.stage==='quality'?{repair:{code:prior.error}}:{})};
    if(!record){
+    assertGoldenGenerationAllowed(state,book.tier,chapter.ordinal);
     record={tier:book.tier,ordinal:chapter.ordinal,key:chapter.key,attempt:index+1,networkCalls:0,startedAt:new Date().toISOString()};
     state.attempts.push(record);history.push(record);persist();
    }else if(!record.raw){throw new Error('Interrupted paid attempt without saved body: refuse automatic re-call');}
@@ -210,7 +246,10 @@ for(const book of summaryOnly?[]:books){
   if(state.stopped?.tier===book.tier&&state.stopped.ordinal===chapter.ordinal){delete state.stopped;persist();}
  }
 }
-const summary={scope,mode:state.mode,sourceSHA:arg('--source-sha')||null,books:books.map(book=>{
+const summary={scope,mode:state.mode,quality:state.quality,migration:state.migration,approval:state.approval,
+ newAttempts:state.migration?state.attempts.length-state.migration.baselineAttempts:state.attempts.length,
+ newNetworkCalls:state.attempts.slice(state.migration?.baselineAttempts||0).reduce((n,a)=>n+a.networkCalls,0),
+ sourceSHA:arg('--source-sha')||null,books:books.map(book=>{
  const rows=state.chapters.filter(row=>row.tier===book.tier),attempts=state.attempts.filter(row=>row.tier===book.tier);
  const tokens=attempts.reduce((sum,a)=>({input:sum.input+(a.usage?.promptTokenCount||0),output:sum.output+(a.usage?.candidatesTokenCount||0),thinking:sum.thinking+(a.usage?.thoughtsTokenCount||0),cached:sum.cached+(a.usage?.cachedContentTokenCount||0)}),{input:0,output:0,thinking:0,cached:0});
  const costKRW=((tokens.input-tokens.cached)*tariff.inputUsdPerMillion+tokens.cached*tariff.cachedInputUsdPerMillion+(tokens.output+tokens.thinking)*tariff.outputUsdPerMillion)/1e6*m.V7_COST.krwPerUsd;

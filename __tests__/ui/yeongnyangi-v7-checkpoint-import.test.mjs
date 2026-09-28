@@ -1,0 +1,55 @@
+import '../../scripts/lib/mock-network-guard.cjs';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {goldenHash,assertGoldenGenerationAllowed,importGoldenCheckpoint} from '../../scripts/lib/v7-golden-checkpoint.mjs';
+const run=(out,...args)=>spawnSync(process.execPath,['--require','./scripts/lib/mock-network-guard.cjs','scripts/yeongnyangi-v7-golden.mjs','--out',out,...args],{cwd:process.cwd(),encoding:'utf8',timeout:60000,windowsHide:true});
+test('explicit import preserves source and spent attempts, recovers tenth raw, and resumes only 11–24',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'v7-import-'));
+ try{
+  const initial=path.join(root,'source'),out=path.join(root,'target');
+  const generated=run(initial);assert.equal(generated.status,0,generated.stderr);
+  const sourcePath=path.join(initial,'checkpoint.json'),source=JSON.parse(fs.readFileSync(sourcePath));
+  source.chapters=source.chapters.filter(row=>row.tier!=='tuna'||row.ordinal<9);
+  source.attempts=source.attempts.filter(row=>row.tier!=='tuna'||row.ordinal<=9);
+  source.identity='legacy-wall-clock-identity';
+  fs.writeFileSync(sourcePath,JSON.stringify(source));
+  const bytes=fs.readFileSync(sourcePath),digest=goldenHash(bytes);
+  const args=['--import-checkpoint',sourcePath,'--source-sha256',digest];
+  assert.notEqual(run(out,'--import-checkpoint',sourcePath,'--source-sha256','0'.repeat(64)).status,0);
+  const imported=run(out,...args);assert.equal(imported.status,0,imported.stderr);
+  let state=JSON.parse(fs.readFileSync(path.join(out,'checkpoint.json')));
+  assert.deepEqual(state.attempts,source.attempts);
+  assert.equal(state.chapters.filter(row=>row.tier==='tuna').length,10);
+  assert.equal(state.chapters.find(row=>row.tier==='tuna'&&row.ordinal===9).origin,'stored-raw');
+  assert.notEqual(run(out,...args).status,0,'cannot overwrite imported state');
+  const resumed=run(out);assert.equal(resumed.status,0,resumed.stderr);
+  state=JSON.parse(fs.readFileSync(path.join(out,'checkpoint.json')));
+  assert.deepEqual(state.attempts.slice(0,source.attempts.length),source.attempts);
+  assert.deepEqual(state.attempts.slice(source.attempts.length).map(row=>row.ordinal),Array.from({length:14},(_,i)=>10+i));
+  const attempts=state.attempts.length;
+  assert.equal(run(out).status,0);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(out,'checkpoint.json'))).attempts.length,attempts);
+  assert.deepEqual(fs.readFileSync(sourcePath),bytes);
+  assert.notEqual(run(out,'--live','--env-file',path.join(root,'does-not-exist')).status,0,'mock import never permits live');
+  const books=['salmon','flounder','tuna'].map(tier=>({tier,manifest:state.chapters.filter(r=>r.tier===tier).map(r=>({ordinal:r.ordinal,key:r.key}))}));
+  const options={bytes,expectedHash:digest,scope:source.scope,books,mode:'mock',identity:'new',validate:v=>v};
+  assert.throws(()=>importGoldenCheckpoint({...options,scope:{...source.scope,asOf:'other'}}),/scope changed/);
+  assert.throws(()=>importGoldenCheckpoint({...options,mode:'live'}),/Unapproved live checkpoint/);
+  const changed=structuredClone(books);changed[0].manifest[0].key='different';
+  assert.throws(()=>importGoldenCheckpoint({...options,books:changed}),/manifest changed/);
+ }finally{assert.equal(path.dirname(path.resolve(root)),path.resolve(os.tmpdir()));fs.rmSync(root,{recursive:true,force:true});}
+});
+test('approval bound is persisted and cannot be extended or applied to earlier chapters',()=>{
+ const state={migration:{baselineAttempts:54},approval:{tier:'tuna',fromOrdinal:10,toOrdinal:23,maxNewCalls:28},attempts:Array(81).fill({networkCalls:0})};
+ assert.doesNotThrow(()=>assertGoldenGenerationAllowed(state,'tuna',23));
+ assert.throws(()=>assertGoldenGenerationAllowed(state,'tuna',9),/Unapproved chapter/);
+ assert.throws(()=>assertGoldenGenerationAllowed(state,'salmon',10),/Unapproved tier/);
+ state.attempts.push({networkCalls:0});
+ assert.throws(()=>assertGoldenGenerationAllowed(state,'tuna',23),/budget exhausted/);
+ state.approval.maxNewCalls=29;
+ assert.throws(()=>assertGoldenGenerationAllowed(state,'tuna',23),/Approval scope changed/);
+});
