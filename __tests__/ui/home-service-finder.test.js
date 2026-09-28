@@ -323,7 +323,7 @@ test("모바일의 분리된 결과 페이지에서도 원본 이미지를 읽�
   const result = doc.createElement("article");
   result.innerHTML = sliceById(shell, "resultPage");
   window.__cdMobileHomeLazyMount = { peek: (id) => id === "resultPage" ? result : null };
-  for (const [name, slug] of [["인생의 책", "life-book-ai"], ["연애 비책", "love-secret-ai"]]) {
+  for (const [name, slug] of [["인생의 책", "life-book-entry-20260929"], ["연애 비책", "love-secret-entry-20260929"]]) {
     assert.deepEqual(await search(window, doc, name), [name]);
     assert.equal(doc.querySelector('#fortuneGatewayRecs img').getAttribute('src'), `/feature-details/assets/${slug}-320.webp`);
     assert.equal(result.isConnected, false);
@@ -333,8 +333,8 @@ test("모바일의 분리된 결과 페이지에서도 원본 이미지를 읽�
 
 test("연애 비책·인생의 책·신년운세는 각 서비스 전용 이미지를 쓴다", async () => {
   const expected = new Map([
-    ["연애 비책", ["love-secret-ai-consultation", "/feature-details/assets/love-secret-ai-320.webp"]],
-    ["인생의 책", ["life-book-ai-consultation", "/feature-details/assets/life-book-ai-320.webp"]],
+    ["연애 비책", ["love-secret-ai-consultation", "/feature-details/assets/love-secret-entry-20260929-320.webp"]],
+    ["인생의 책", ["life-book-ai-consultation", "/feature-details/assets/life-book-entry-20260929-320.webp"]],
     ["신년운세", ["new-year-ai-consultation", "/feature-details/assets/new-year-ai-320.webp"]],
   ]);
 
