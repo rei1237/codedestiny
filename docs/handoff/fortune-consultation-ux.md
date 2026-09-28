@@ -92,3 +92,13 @@
 - 변경 정본: `index.html`, `js/saju-engine.js`, `styles/fortune-consultation.css`, `worker/lib/saju-ai-prompt.js`, `worker/routes/fortune.js`. 가격·주문·권리·인증·DB 스키마는 변경하지 않음.
 - 검증 변경: `__tests__/ui/saju-paid-delivery.behavior.test.js`, `scripts/verify-ai-prompt-billing-policy.mjs`, `scripts/verify-fortune-consultation-ux.mjs`. public 미러·캐시키·sitemap은 공식 생성기로 갱신.
 - 커밋·main CI·staging SHA 및 변경 후 staging 캡처는 전달 후 이 문서에 누적한다. 실제 생성 품질·원가는 아직 미검증.
+
+
+### 실제 생성 비교의 별도 승인 범위 (아직 실행 안 함)
+
+- 비교 대상: 읽기 전용으로 확인한 기존 결과 1건. 이름·연락처·장소·개인 식별 표현을 제거한 질문과 계산 근거를 사용해 v8 결과 1건을 생성하고, 질문 답변·근거 연결·반대 조건·선택지·실행성·중복·가독성을 사람이 비교한다. 테스트 표본을 고객 평균으로 보고하지 않는다.
+- 제안 범위: Gemini 2.5 Flash, 기존 5그룹 각각 1회(최대 5 생성 호출), 그룹 출력 상한 12,000토큰/합계 60,000토큰. 자동 보강·재시도·모델 폴백 없이 실패도 그대로 기록한다. 가격 정책/실결제/운영 DB 쓰기는 실행하지 않는다.
+- 입력 합계 100,000토큰 이하를 사전 확인하고 이를 넘으면 실행하지 않는다. 외부 검색·명시 캐시 생성은 사용하지 않는다. 예산 한도 USD 1.00, 이 범위의 정가 토큰 상한은 입력 $0.03 + 출력(생각 포함) $0.15 = $0.18이다. 이는 청구 실측이 아닌 상한 계산이다.
+- 가격 근거: 2026-09-28 확인한 [Google Gemini 공식 가격](https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash), Standard 입력 $0.30/1M, 출력 $2.50/1M. 실행 직전 모델·가격·입력 계측을 재확인한다.
+- 필요한 이유: CLAUDE.md 절대 규칙 1: “과금 LLM 검증 금지. mock 기본, 실호출은 정확한 1회 승인 필요.” 사용자의 이번 계획도 새 실호출의 범위·예산 별도 승인을 명시했다. 구현/mock/main CI/staging 증거를 모두 확보한 뒤 승인 요청한다.
+- 승인 후 산출물: 익명화 전후 비교, 각 그룹의 usageMetadata(입력/출력/생각/캐시), 호출 지연, 전체 조립 시간, 저장 없는 오프라인 렌더 캡처. 실제 저장·재조회 운영 통계와 구분한다.
