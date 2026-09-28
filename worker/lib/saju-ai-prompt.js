@@ -22,7 +22,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v8";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v10";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -1534,13 +1534,20 @@ export function validateSajuMyeongsikTenGodText(text, factSnapshot) {
     const aliasPattern = `(?:${aliases.join("|")})`;
     SAJU_TEN_GOD_ORDER.filter((tenGod) => tenGod !== expected).forEach((wrongTenGod) => {
       const wrongPattern = escapeRegExp(wrongTenGod);
-      const regex = new RegExp(`${aliasPattern}.{0,18}${wrongPattern}|${wrongPattern}.{0,18}${aliasPattern}`, "u");
-      const match = normalized.match(regex);
-      if (!match) return;
-      const index = Math.max(0, Number(match.index || 0) - 12);
-      const snippet = normalized.slice(index, index + 70);
-      if (snippet.includes(expected) && /(아니라|아닌|말고|대신)/.test(snippet)) return;
-      mismatches.push({ stem, expected, found: wrongTenGod, snippet });
+      // 단순 18자 근접은 "정재(甲)와 편재(乙)"의 두 쌍을 서로 뒤집어 잡는다.
+      // 읽기 표기와 조사/괄호로 직접 이어진 대응만 검사하고 다른 쌍을 넘나들지 않는다.
+      const reading = `(?:${STEM_KO[stem]}(?:${ELEMENT_KO_BY_KEY[STEM_ELEMENT_KEY[stem]]})?|${ELEMENT_KO_BY_KEY[STEM_ELEMENT_KEY[stem]]})`;
+      const token = `${aliasPattern}(?:\\(${reading}\\))?`;
+      const forward = `${token}(?:\\s*(?:은|는|이|가|의|:|=|→)\\s*|\\s+|\\s*\\(\\s*)${wrongPattern}`;
+      const backward = `${wrongPattern}(?:\\([一-龥]{2}\\))?(?:\\s*(?:인|의|:|=)\\s*|\\s+|\\s*\\(\\s*)${token}`;
+      const regex = new RegExp(`${forward}|${backward}`, "gu");
+      for (const match of normalized.matchAll(regex)) {
+        const after = normalized.slice(match.index + match[0].length, match.index + match[0].length + 36);
+        if (/^\s*(?:이|가)?\s*아니라/.test(after) && after.includes(expected)) continue;
+        const index = Math.max(0, match.index - 12);
+        mismatches.push({ stem, expected, found: wrongTenGod, snippet: normalized.slice(index, index + 70) });
+        break;
+      }
     });
   });
   return {
@@ -2137,12 +2144,39 @@ export function buildSajuAIPromptWithDomain({
   // factSnapshot·advancedFactors 는 최상위에만 싣는다. engineContext 밑에 같은 참조를 한 번 더
   // 넣으면 JSON.stringify 가 같은 객체를 두 번 직렬화해(실측 34,392자) 프롬프트가 그만큼 커지는데,
   // 이 사본을 읽는 코드는 레포에 없다(engineContext.factSnapshot / engineContext.advancedFactors 참조 0건).
+  // 사실 스냅샷에 이미 실린 동일 구조는 생성용 JSON에서 한 번만 보낸다.
+  // 반환하는 advancedFactors/저장 factSnapshot은 그대로 두며, 값이 다르면 둘 다 보존한다.
+  const promptAdvancedFactors = Object.fromEntries(Object.entries(advancedFactors).filter(([key, value]) =>
+    JSON.stringify(value) !== JSON.stringify(factSnapshot.majorStructures?.[key])));
+  // 개고 행의 반복 필드명은 열 이름으로 한 번만 보낸다. 값/행 순서는 모두 보존한다.
+  const openings = factSnapshot.majorStructures?.earthStorageOpenings || [];
+  const columns = [...new Set(openings.flatMap((row) => Object.keys(row)))];
+  const canPackOpenings = openings.length >= 4 && openings.every((row) =>
+    columns.every((key) => Object.hasOwn(row, key) && row[key] !== undefined));
+  const promptFactSnapshot = !canPackOpenings ? factSnapshot : {
+    ...factSnapshot,
+    majorStructures: {
+      ...factSnapshot.majorStructures,
+      earthStorageOpenings: {
+        format: "columns의 필드명 순서대로 rows 각 행의 값을 읽습니다.",
+        columns,
+        rows: openings.map((row) => columns.map((key) => row[key])),
+      },
+    },
+  };
+  const promptSource = Object.fromEntries(Object.entries(sajuResult).filter(([key, value]) =>
+    JSON.stringify(value) !== JSON.stringify(factSnapshot[key])));
+  const promptEngineContext = { ...(sajuResult.engineContext || {}) };
+  if (JSON.stringify(promptEngineContext.quantumMyeongli?.daewun) === JSON.stringify(factSnapshot.luck?.daewun)) {
+    const { daewun: duplicatedDaewun, ...quantumRest } = promptEngineContext.quantumMyeongli;
+    promptEngineContext.quantumMyeongli = quantumRest;
+  }
   const canonicalSajuResult = {
-    ...sajuResult,
-    factSnapshot,
-    advancedFactors,
+    ...promptSource,
+    factSnapshot: promptFactSnapshot,
+    advancedFactors: promptAdvancedFactors,
     engineContext: {
-      ...(sajuResult.engineContext && typeof sajuResult.engineContext === "object" ? sajuResult.engineContext : {}),
+      ...promptEngineContext,
     },
   };
   const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);

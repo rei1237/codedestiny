@@ -7113,7 +7113,11 @@ function _sajuPromptReadSavedResult(profileId) {
 }
 
 function _sajuPromptChapterTitle(line) {
-  var text = String(line || '').trim().replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/^\d{1,2}[.)]\s*/, '').trim();
+  var raw = String(line || '').trim();
+  var isHeading = /^(?:#{1,6}\s+|\*{0,2}\d{1,2}[.)]\s*)/.test(raw);
+  var text = raw.replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/^\d{1,2}[.)]\s*/, '').trim();
+  // 번호/Markdown 제목의 괄호 부제만 분리한다. 제목으로 시작하는 일반 본문은 건드리지 않는다.
+  if (isHeading) text = text.replace(/\s+[（(][^()（）\n]{1,80}[)）]\s*:?$/, '').trim();
   var titles = [
     '질문에 대한 핵심 답변',
     '이 명식의 중심 성향',
@@ -7146,18 +7150,22 @@ function _sajuPromptRenderChapters(text) {
     ['실천 행동', ['30일 실천 가이드']],
     ['핵심 요약', ['마지막 한마디']]
   ];
-  function ensureOpen(title) {
+  function ensureOpen(title, displayTitle) {
     if (open) html += '</section>';
     var id = 'saju-ai-chapter-' + (++chapterIndex);
     sections.push({id:id,title:title});
-    html += '<section id="' + id + '" class="consultation-chapter"><h4>' + _sajuPromptEscapeHtml(title || '핵심 상담') + '</h4>';
+    html += '<section id="' + id + '" class="consultation-chapter"><h4>' + _sajuPromptEscapeHtml(displayTitle || title || '핵심 상담') + '</h4>';
     open = true;
   }
   lines.forEach(function(line) {
     var trimmed = String(line || '').trim();
     if (!trimmed) return;
     var title = _sajuPromptChapterTitle(trimmed);
-    if (title) { ensureOpen(title); return; }
+    if (title) {
+      var displayTitle = trimmed.replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/^\d{1,2}[.)]\s*/, '').trim();
+      ensureOpen(title, displayTitle);
+      return;
+    }
     if (!open) ensureOpen('핵심 상담');
     html += '<p>' + _sajuPromptEscapeHtml(trimmed) + '</p>';
   });

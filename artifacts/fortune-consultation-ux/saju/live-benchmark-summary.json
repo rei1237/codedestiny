@@ -1,0 +1,169 @@
+{
+  "model": "gemini-2.5-flash",
+  "promptVersion": "saju-myeongsik-ai-v9",
+  "source": "live-local-benchmark",
+  "priceSource": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-flash",
+  "inputUsdPerMillion": 0.3,
+  "outputUsdPerMillion": 2.5,
+  "inputLimit": 100000,
+  "maxOutputTokensPerGroup": 12000,
+  "generationCalls": 5,
+  "groups": [
+    {
+      "key": "answer_core",
+      "startedAt": "2026-09-28T01:56:06.206Z",
+      "status": "received",
+      "finishReason": "STOP",
+      "usage": {
+        "promptTokenCount": 19447,
+        "candidatesTokenCount": 2201,
+        "totalTokenCount": 21648,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 19447
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "elapsedMs": 13130,
+      "chars": 3887,
+      "bodyChars": 2970
+    },
+    {
+      "key": "structure_reading",
+      "startedAt": "2026-09-28T01:56:06.208Z",
+      "status": "received",
+      "finishReason": "STOP",
+      "usage": {
+        "promptTokenCount": 19453,
+        "candidatesTokenCount": 3128,
+        "totalTokenCount": 22581,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 19453
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "elapsedMs": 17816,
+      "chars": 5568,
+      "bodyChars": 4062
+    },
+    {
+      "key": "life_domains",
+      "startedAt": "2026-09-28T01:56:06.209Z",
+      "status": "received",
+      "finishReason": "STOP",
+      "usage": {
+        "promptTokenCount": 19501,
+        "candidatesTokenCount": 4409,
+        "totalTokenCount": 23910,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 19501
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "elapsedMs": 23691,
+      "chars": 7658,
+      "bodyChars": 5593
+    },
+    {
+      "key": "timing_flow",
+      "startedAt": "2026-09-28T01:56:06.210Z",
+      "status": "received",
+      "finishReason": "STOP",
+      "usage": {
+        "promptTokenCount": 19527,
+        "candidatesTokenCount": 3349,
+        "totalTokenCount": 22876,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 19527
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "elapsedMs": 17648,
+      "chars": 5494,
+      "bodyChars": 4182
+    },
+    {
+      "key": "strategy_action",
+      "startedAt": "2026-09-28T01:56:06.211Z",
+      "status": "received",
+      "finishReason": "STOP",
+      "usage": {
+        "promptTokenCount": 19543,
+        "candidatesTokenCount": 4067,
+        "totalTokenCount": 23610,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 19543
+          }
+        ],
+        "serviceTier": "standard"
+      },
+      "elapsedMs": 22028,
+      "chars": 7353,
+      "bodyChars": 5409
+    }
+  ],
+  "preflightTokens": [
+    19447,
+    19453,
+    19501,
+    19527,
+    19543
+  ],
+  "paymentCalls": 0,
+  "databaseWrites": 0,
+  "retries": 0,
+  "explicitCacheCreates": 0,
+  "requestHashes": [
+    "f9fac5daf30af6ff462e2897fdb649fa25e16342560edd4aa58343092560699f",
+    "2d9fb62ca9fe8dc49e3b0a2f9d37a3f7f16b1a15082fc40fc81dd86f4fcf47ad",
+    "6aeb26a2177e74b3f881edc5c34153ce10d88e60b01e3c5331396048e56ce58f",
+    "f6bbc440fa211d06503a7eca81f291a5531bdb4ad07650e6b196d3c22cd5df7a",
+    "0490caa53a130010342f90107dadf9cb8d3d3335e9021b574c157c764fb24e7d"
+  ],
+  "maximumCalculatedUsd": 0.1792413,
+  "wallElapsedMs": 23696,
+  "bodyChars": 22216,
+  "validation": {
+    "ok": false,
+    "reason": "마지막 한마디 또는 자연스러운 마무리가 없습니다.",
+    "incomplete": true
+  },
+  "calculatedUsd": 0.0721263,
+  "costComplete": true,
+  "revalidationAfterParserFix": {
+    "ok": true,
+    "chapterCount": 12,
+    "categoryMatches": 5,
+    "networkCalls": 0
+  },
+  "editorialGate": "not passed: unsupported shinsal, ritual-to-wealth causality, current-age inference, repeated explanations",
+  "baseline": {
+    "sampleCount": 1,
+    "promptVersion": "saju-myeongsik-ai-v6",
+    "bodyChars": 17309,
+    "chapters": 12,
+    "storedChars": 22806,
+    "createdToCompletedMs": 40301,
+    "tokenUsage": null
+  },
+  "limitations": [
+    "Historical raw request absent; question and stored pillars/elements/johu/power/jong/luck used to reconstruct input without name, date of birth, user/order IDs.",
+    "Derived hiddenStemExposures/gyeokguk and luckRows differ from historical snapshot; not a controlled A/B test.",
+    "Default repository system prompt; production CMS overrides not reproduced.",
+    "Local parallel LLM wall time is not payment-to-delivery time; no production persistence or order.",
+    "v10 prompt revisions have not been sent to an LLM."
+  ]
+}

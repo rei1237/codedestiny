@@ -317,6 +317,13 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     expect(validation.qualityIssues.minChars).toBe(sajuPrompt.SAJU_AI_MIN_RESULT_CHARS);
   });
 
+  test("권해드립니다 is a complete ending, not a reason to regenerate a paid result", () => {
+    const complete = `${CONCISE_COMPLETE_CAREER_RESULT}\n오늘부터 작은 실천을 시작해 보시길 권해드립니다.`;
+    const validation = fortuneRoute.validateSajuAIResultText(complete);
+    expect(validation.incomplete).toBeUndefined();
+    expect(fortuneRoute.validateSajuAIResultText(complete.slice(0, -5)).incomplete).toBe(true);
+  });
+
   test("마지막 문장이 잘리면 incomplete 로 떨어진다", () => {
     const built = buildCareerPrompt();
     const validation = fortuneRoute.validateSajuAIResultText(`${CONCISE_COMPLETE_CAREER_RESULT}\n\n그리고`, built.factSnapshot, {
@@ -327,4 +334,26 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     expect(validation.ok).toBe(false);
     expect(validation.incomplete).toBe(true);
   });
+});
+
+
+test("generation JSON preserves all computed opening rows while sending shared structures once", () => {
+  const input = makeSajuResult({ daewun: [
+    { age: 20, gan: "甲", zhi: "戌" }, { age: 30, gan: "乙", zhi: "丑" },
+    { age: 40, gan: "丙", zhi: "未" }, { age: 50, gan: "丁", zhi: "戌" },
+  ] });
+  const original = JSON.stringify(input);
+  const built = sajuPrompt.buildSajuAIPromptWithDomain({ question: "내 재물의 흐름을 알려 주세요", domain: "money", sajuResult: input });
+  const jsonLine = built.generatedPrompt.split("\n").find(line => line.startsWith('{"fortuneType":'));
+  const sent = JSON.parse(jsonLine).analysisResult;
+  const packed = sent.factSnapshot.majorStructures.earthStorageOpenings;
+  expect(Array.isArray(packed.columns)).toBe(true);
+  const restored = packed.rows.map(row => Object.fromEntries(packed.columns.map((key, i) => [key, row[i]])));
+  expect(restored).toEqual(built.factSnapshot.majorStructures.earthStorageOpenings);
+  for (const [key, value] of Object.entries(built.advancedFactors)) {
+    expect(sent.advancedFactors[key] ?? built.factSnapshot.majorStructures[key]).toEqual(value);
+  }
+  expect(JSON.stringify(input)).toBe(original);
+  const section = fortuneRoute.__sajuAiSectionTestUtils.buildSajuAISectionPrompt(built, sajuPrompt.SAJU_AI_SECTION_GROUPS[0]);
+  expect(section.split(built.factCard)).toHaveLength(2);
 });

@@ -187,3 +187,17 @@ test('result preview shows the first paragraph without headings or later chapter
   assert.ok(h.ctx._sajuPromptBuildResultSummaryHtml({resultText:'과거 단일 본문'}).includes('과거 단일 본문'));
   h.close();
 });
+
+
+test('numbered chapter subtitles retain text and belong to the correct reading group', () => {
+  const h=setup();
+  const source='### 7. 대운의 전환점\n이전 챕터의 본문입니다.\n### 8. 올해의 흐름 (2026년 丙午)\n올해의 흐름 (참고)은 단정할 수 없습니다.';
+  const el=h.w.document.createElement('div');
+  el.innerHTML=h.ctx._sajuPromptRenderChapters(source);
+  assert.equal(el.querySelectorAll('section').length,2);
+  assert.equal(el.querySelectorAll('h4')[1].textContent,'올해의 흐름 (2026년 丙午)');
+  assert.ok(el.querySelectorAll('section')[1].textContent.includes('올해의 흐름 (참고)은 단정할 수 없습니다.'));
+  assert.equal(h.ctx._sajuPromptChapterTitle('올해의 흐름 (참고)'),'');
+  assert.match(el.querySelector('nav a').title,/올해의 흐름/);
+  h.close();
+});

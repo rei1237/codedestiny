@@ -6,7 +6,9 @@ import { resolve, extname } from 'node:path';
 import assert from 'node:assert/strict';
 
 const root = process.cwd();
-const phase = process.argv.includes('--before') ? 'before' : 'after';
+const resultIndex = process.argv.indexOf('--result-file');
+const reviewedResult = resultIndex < 0 ? '' : await readFile(process.argv[resultIndex + 1], 'utf8');
+const phase = reviewedResult ? 'reviewed-result' : process.argv.includes('--before') ? 'before' : 'after';
 const baseIndex = process.argv.indexOf('--base');
 const remoteBase = baseIndex < 0 ? '' : process.argv[baseIndex + 1];
 if (remoteBase && !['https://staging.code-destiny.com','https://code-destiny.com'].includes(remoteBase)) throw new Error('Only the two documented public hosts may be inspected');
@@ -61,11 +63,11 @@ try {
         hiddenAncestor:!!entry.closest('details:not([open]),[aria-hidden="true"]'),overflow:entry.scrollWidth>entry.clientWidth+1,entryVisible:!!entry.offsetParent,heading:entry.querySelector('h2,h3,h4,.prem-title')?.textContent};
     });
     await page.screenshot({path:resolve(output,`chart-${width}.png`),animations:'disabled'});
-    if (phase === 'after') {
+    if (phase !== 'before') {
       await page.locator('#sajuConsultationEntry').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
       await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,`entry-${width}.png`),animations:'disabled'});
     }
-    if(phase==='after') {
+    if (phase !== 'before') {
       assert.equal(await page.locator('[data-consultation-price]').first().textContent(),'10,000원');
       assert.equal(metrics.entryVisible,true); assert.equal(metrics.hiddenAncestor,false); assert.equal(metrics.overflow,false);
       assert.equal(await page.locator('#sajuConsultationEntry').evaluate(el=>el.parentElement.previousElementSibling?.id),'sajuCard');
@@ -78,7 +80,7 @@ try {
     }
     evidence.push(metrics);
   }
-  if (phase === 'after') {
+  if (phase !== 'before') {
     await page.locator('[data-saju-ai-question]').fill('검증용 질문: 선택 기준을 알려 주세요.');
     await page.locator('[data-consultation-profile-edit]').click();
     await page.locator('#birthDate').waitFor({state:'visible'});
@@ -108,12 +110,12 @@ try {
     await page.locator('#sajuConsultationEntry').screenshot({path:resolve(output,'entry-neo-390.png'),animations:'disabled'});
     await page.evaluate(() => { document.body.classList.remove('neo-mode'); });
     fixtureSignedIn = true;
-    await page.evaluate(() => {
+    await page.evaluate((reviewedText) => {
       localStorage.setItem('fortune_auth_user',JSON.stringify({id:'ux-fixture-owner'}));
       const titles=['질문에 대한 핵심 답변','이 명식의 중심 성향','십성 구조 해석','오행 균형 해석','현재 고민과 명식의 연결','일/돈/관계/연애/건강 리듬','대운의 전환점','올해의 흐름','조심해야 할 패턴','살리는 전략','30일 실천 가이드','마지막 한마디'];
-      window._sajuPromptStoreSavedResult({profileId:window._sajuPromptResolveProfileId(),resultId:'mock-consultation-ux',status:'completed',saved:true,resultText:titles.map((title,i)=>'## '+(i+1)+'. '+title+'\n이 문단은 화면 검증용 대역입니다. 실제 AI 상담의 품질을 증명하지 않습니다.\n서로 다른 조건과 선택 기준을 짧은 문단으로 읽을 수 있는지 확인합니다.').join('\n')});
+      window._sajuPromptStoreSavedResult({profileId:window._sajuPromptResolveProfileId(),resultId:'mock-consultation-ux',status:'completed',saved:true,resultText:reviewedText || titles.map((title,i)=>'## '+(i+1)+'. '+title+'\n이 문단은 화면 검증용 대역입니다. 실제 AI 상담의 품질을 증명하지 않습니다.\n서로 다른 조건과 선택 기준을 짧은 문단으로 읽을 수 있는지 확인합니다.').join('\n')});
       window._mountSajuQuestionPromptCard();
-    });
+    }, reviewedResult);
     await page.locator('[data-saju-ai-archive]').click();
     assert.equal(await page.locator('.consultation-chapter').count(),12);
     assert.equal(await page.locator('.consultation-contents a').count(),7);
@@ -121,11 +123,15 @@ try {
       await page.setViewportSize({width,height:900});
       await page.locator('[data-saju-ai-output-panel]').evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
       await page.screenshot({path:resolve(output,'result-'+width+'.png'),animations:'disabled'});
+      if (reviewedResult) {
+        await page.locator('.consultation-chapter').nth(7).evaluate(el=>el.scrollIntoView({block:'start',behavior:'instant'}));
+        await page.screenshot({path:resolve(output,'result-chapter8-'+width+'.png'),animations:'disabled'});
+      }
     }
     await page.locator('[data-saju-ai-reset-result]').click();
     assert.equal(await page.locator('[data-saju-ai-output-panel]').isVisible(),false);
   }
   console.log(JSON.stringify({phase,evidence,network:'all APIs mocked; all external traffic blocked'},null,2));
-  await writeFile(resolve(output,'metrics.json'),JSON.stringify({phase,evidence,network:'mock'},null,2));
+  await writeFile(resolve(output,'metrics.json'),JSON.stringify({phase,evidence,network:'mock',resultSource:reviewedResult?'reviewed-local-text; archive ownership and persistence mocked':'fixture'},null,2));
   await context.close();
 } finally {await browser.close(); await new Promise(done=>server.close(done));}

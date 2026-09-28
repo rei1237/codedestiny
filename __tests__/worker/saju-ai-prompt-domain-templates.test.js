@@ -101,11 +101,7 @@ describe("Saju AI prompt domain templates", () => {
     expect(sajuPrompt.validateSajuMyeongsikTenGodText("임수는 식신으로 작동합니다.", built.factSnapshot).ok).toBe(false);
   });
 
-  test("일간 기준 십성 확정표(7번 섹션)는 여러 간지가 한 줄에 나열되므로, 자동 생성된 fact card 자체는 문장 근접 검증(validateSajuMyeongsikTenGodText)의 대상이 아니다", () => {
-    // 확정표는 십성이 서로 다른 10개 천간을 한 줄에 나열하는 구조라, 근접(18자) 검증기를 그대로
-    // 돌리면 모든 일간에서 항상 오탐이 난다(2026-08-08 사고: create 라우트가 100% 500으로 막힘).
-    // 실제 환각 검증은 LLM 생성 결과(validateSajuAIResultText)에서만 수행해야 하므로, 여기서는
-    // 자동 생성 factCard가 다른 일간에서도 이 함정을 그대로 재현한다는 사실만 문서화한다.
+  test("명시적인 천간·십성 쌍이 나열된 사실 카드는 인접한 다른 쌍과 충돌하지 않는다", () => {
     STEMS.forEach((dayStem) => {
       const base = buildBaseSajuResult();
       base.pillars = { y: { g: "戊", j: "辰" }, m: { g: "甲", j: "寅" }, d: { g: dayStem, j: "卯" }, h: { g: "壬", j: "子" } };
@@ -115,8 +111,21 @@ describe("Saju AI prompt domain templates", () => {
         domain: "life_direction",
       });
       const validation = sajuPrompt.validateSajuMyeongsikTenGodText(built.factCard, built.factSnapshot);
-      expect(validation.ok).toBe(false);
+      expect(validation.ok).toBe(true);
     });
+  });
+
+  test("직접 연결된 십성 오류만 잡고 나열·일간 기준·교정 문장은 보존한다", () => {
+    const factSnapshot = { fixedTenGodTable: [
+      { stem: "甲", tenGod: "정재" }, { stem: "乙", tenGod: "편재" },
+      { stem: "壬", tenGod: "상관" }, { stem: "癸", tenGod: "식신" }, { stem: "辛", tenGod: "비견" },
+    ] };
+    for (const text of ["정재(甲)와 편재(乙)", "乙(을목) 편재와 癸(계수) 식신", "편재(偏財) 乙과 식신(食神) 癸", "辛(신금) 일간에게 화는 정관과 편관", "임수는 식신이 아니라 상관입니다."]) {
+      expect(sajuPrompt.validateSajuMyeongsikTenGodText(text, factSnapshot).ok).toBe(true);
+    }
+    for (const text of ["임수는 식신입니다.", "壬(임수) 식신", "식신(壬)", "식신(食神) 壬", "정재(乙)", "임수는 상관입니다. 하지만 壬은 식신입니다."]) {
+      expect(sajuPrompt.validateSajuMyeongsikTenGodText(text, factSnapshot).ok).toBe(false);
+    }
   });
 
   test("각 도메인별 상담 품질 rubric을 프롬프트에 넣는다", () => {
