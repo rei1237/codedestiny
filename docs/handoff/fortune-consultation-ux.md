@@ -204,3 +204,11 @@ node scripts/benchmark-saju-consultation.mjs --input D:/Development/fortune-cons
 - targeted 검증: `node scripts/verify-saju-ai-section-plan.mjs` 183 checks 통과. prompt/advanced-factor Jest 27/27 통과. v10 원문 오프라인 재검사는 12챕터·5항목·분량 advisory로 구조 통과했지만, 의미 품질 불합격은 그대로다.
 - `npm run check:fast -- --plan`은 critical로 자동 승격했다. `npm run check:fast` 최종 exit 0: paid-gate-suite 88/88, Jest 309 suites / 4,515 tests, Node 1,795 tests, lint·typecheck·Worker dry-run·사주/결제/복구 게이트 통과. 첫 실행은 이전 “분량 미달 영구 partial” 기대 테스트 1개가 실패했고, 새 계약인 bounded 보강 후 완료·저장 재조회·추가 호출 없음으로 고친 뒤 전체 재실행했다.
 - **다음 단계:** v11 변경을 `check:fast`·main CI로 전달한다. 새 실호출은 다시 별도 승인받기 전 실행하지 않으며, v11 의미 품질 통과 전 자미두수에 착수하지 않는다.
+
+
+### v11 전달 확정
+
+- v11 제품·검사·증거 main 커밋: `825cfdeb63bc90a32cd10e26e618ec522558bbe6` (격리 원본 `7dfde7b78`). 정확히 사주 관련 8개 파일만 반영했고 기존 마케팅·카드뉴스·영냥이 작업은 포함하지 않았다.
+- 해당 SHA의 [Paid Flow Gates](https://github.com/rei1237/codedestiny/actions/runs/36373475328)는 success. 동시 세션이 `main`을 `412dda4987f0d503a3df5b9bbef0ee62d6175ca5`까지 전진시켰으며, `825cfdeb6`가 최신 main의 조상임을 확인했다.
+- 최신 main의 [PR CI](https://github.com/rei1237/codedestiny/actions/runs/36373646056)는 Risk tier / Typecheck and lint / Build Pages and Worker / Critical checks / Static guards **모두 success**. AI Locale Gate·Landing Watchdog·Main drift watchdog·Secret Scan도 success. 최초 Release 실행도 success였고, 중복 후속 Release 실행 1건은 동시 실행 정책으로 취소됐다. 스테이징 URL·버전은 일상 push 범위에서 별도 확인하지 않았다.
+- **현재 단계:** v10 실제 의미 품질은 불합격이며 자미두수는 미착수다. v11은 mock·정적·회귀·CI 검증만 통과했다. 다음 행동은 동일 안전 상한의 v11 사주 1건 실제 생성에 대한 새 별도 승인 후 실측하고, 의미 품질이 통과할 때만 자미두수를 시작하는 것이다.
