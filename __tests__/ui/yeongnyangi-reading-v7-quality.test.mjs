@@ -6,7 +6,7 @@ import path from 'node:path';
 import {build} from 'esbuild';
 // Design §4 (ownership, reference points) and §7 measurement, Phase 3: the v7 prose audit. The three primary
 // checks are ownership, reference-point repetition and scene/action reuse; similarity is only a backstop.
-// A violation costs one repair attempt and is then pruned deterministically — never a refused reading
+// Editorial overlap is pruned on the first draft without a repair generation — never a refused reading
 // (principle 17). Flag stays OFF and no LLM is called: the mock provider supplies every body.
 const Module=createRequire(import.meta.url)('node:module');
 const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-quality'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {consultationManifest} from './worker/yeongnyangi/fortune/consultation-kinds'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
@@ -125,7 +125,7 @@ test('a prune is deterministic, idempotent and never leaves an empty paragraph',
  assert.deepEqual(restored.body.blocks[0].paragraphs,bodyOf(all).blocks[0].paragraphs);
 });
 
-// Wiring: the audit runs inside validateChapter for v7 chapters only, throws once, then prunes on the repair.
+// Wiring: the audit corrects the first usable v7 draft, even after a provider-only failure spent an attempt.
 const asOf='2026-09-15T00:00:00Z',today='2026-09-15';
 const birth={birthDate:'1997-02-10',birthTime:'14:30',calendarType:'solar',gender:'female',birthPlace:{latitude:37.5665,longitude:126.978,timezone:'Asia/Seoul'}};
 const engine=m.domains.saju;
@@ -138,18 +138,29 @@ const requestFor=chapter=>({locale:'ko',chapter,analysis:{contexts:{saju:sajuCon
 const REPEAT=['일간의 기준은 앞 장에서 정리했습니다.','일간이 뜻하는 성향을 다시 풀어 설명합니다.'];
 const withRepeat=body=>({...body,blocks:body.blocks.map((block,i)=>i?block:{...block,paragraphs:[...REPEAT,...block.paragraphs]})});
 
-test('validateChapter throws once for a v7 repeat and prunes the repaired draft instead of refusing it',async()=>{
+test('validateChapter corrects v7 editorial overlap without spending a repair attempt',async()=>{
  const chapter=v7Chapters.find(c=>c.key!=='anchor'&&!c.owns.some(id=>id.endsWith('.dayMaster')));
  assert.ok(chapter,'a non-anchor chapter that only references the day master');
  const input=requestFor(chapter);
  const clean=await new m.MockChapterProvider().generateChapter(input);
  assert.doesNotThrow(()=>m.validateChapter(clean,input),'the mock body is audit-clean');
  const bad=withRepeat(clean);
- assert.throws(()=>m.validateChapter(bad,input),{code:m.V7_ANCHOR_REPEAT},'the first draft costs one repair attempt');
+ const first=m.validateChapter(bad,input);
+ assert.equal(count(prose(first),'일간'),1,'the first usable draft is kept without another provider call');
  const repaired=m.validateChapter(bad,{...input,repair:{code:m.V7_ANCHOR_REPEAT}});
  assert.equal(count(prose(repaired),'일간'),1,'the surviving sentence is the one the design allows');
  assert.equal(repaired.blocks.length,clean.blocks.length);
  assert.deepEqual(repaired.blocks.map(b=>b.id),clean.blocks.map(b=>b.id));
+ assert.deepEqual(first,repaired,'editorial correction does not depend on a preceding quality failure');
+ assert.deepEqual(m.validateChapter(bad,{...input,repair:{code:'FORTUNE_PROVIDER_FAILED'}}),first);
+ assert.throws(()=>m.validateChapter({...bad,sources:['saju.invented']},input),{code:'INVALID_EVIDENCE'});
+ const unsafe={...bad,blocks:bad.blocks.map((block,i)=>i?block:{...block,paragraphs:[...block.paragraphs,'일간이 반드시 재회 성공을 보장합니다.']})};
+ assert.throws(()=>m.validateChapter(unsafe,input),{code:'UNSUPPORTED_READING_CLAIM'},'pruning must never hide unsafe original prose');
+ const internal={...bad,blocks:bad.blocks.map((block,i)=>i?block:{...block,paragraphs:[...block.paragraphs,'일간은 CALCULATED_DATA를 참고합니다.']})};
+ assert.throws(()=>m.validateChapter(internal,input),{code:'INTERNAL_EVIDENCE_EXPOSED'},'pruning must never hide internal prompt text');
+ const dated={...bad,blocks:bad.blocks.map((block,i)=>i?block:{...block,paragraphs:[...block.paragraphs,'일간의 흐름은 2099년 12월 31일에 바뀝니다.']})};
+ const consultation={asOf:today,timezone:'Asia/Seoul',questions:[]};
+ assert.throws(()=>m.validateChapter(dated,{...input,analysis:{...input.analysis,consultation}}),{code:'UNSUPPORTED_PRECISE_TIMING'},'pruning must never hide an invented event date');
 });
 
 test('a v6 chapter is not audited: the same repeated reference point passes untouched',async()=>{

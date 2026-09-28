@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-29
-next: "순차 생성 main 전달 및 CI를 확인하고, 저장된 참치 10장 raw의 일간 반복 2곳과 발표 장면 재사용 2곳을 추가 과금 없이 분석한다. Phase 4 미완료, v7 OFF 유지."
+next: "참치 10장 저장 raw는 읽기 전용 재검증 통과. 추가 과금 없이 v7 OFF를 유지하고, 별도 승인 뒤에만 미생성 11~24장의 실측을 이어간다. Phase 4 미완료."
 ---
 
 # LLM 순차 생성 및 v7 Phase 4 부분 실측
@@ -89,7 +89,45 @@ node scripts/yeongnyangi-v7-golden.mjs --summary-only --out 'C:\Users\user\.code
 
 ## 다음 행동
 
-1. 참치 10장의 `V7_ANCHOR_REPEAT`와 여러 장의 `V7_FOREIGN_FACT` 원인을 저장 raw와 계산 근거만으로 분석한다. 품질 검사를 완화해 통과시키지 않는다.
+1. 아래 후속 수정의 읽기 전용 재검증을 재현한다. 기존의 품질 검사 완화 금지 안내는 2026-09-29 사용자의 명시적 완화 요청으로 대체됐다. 계산 근거·필수 구조·안전성 검사는 유지한다.
 2. 추가 live 호출은 이미 소비된 시도 예산과 신규 승인 범위를 먼저 구체화해야 한다. 현 artifact를 덮어쓰지 않는다.
 3. 참치 전체와 의미 검토가 끝난 뒤 측정 상수 교체를 판단한다. 다른 체계/ask는 여전히 추정이다.
 4. Phase 4가 통과하고 Phase 5 승인까지 있을 때만 플래그 활성화와 공개 분량 문구를 함께 바꾼다.
+
+## 2026-09-29 참치 중단 원인과 편집 검사 완화
+
+- 사용자 요청: 품질 기준을 지나치게 엄격하게 적용하지 말고 순차적으로 끝까지 생성. 추가 과금 중단과 v7 OFF는 유지.
+- 10장 첫 시도는 tokenizer 오류로 생성 호출 0회였다. 두 번째 응답은 정상 종료(`STOP`), 입력 6,731토큰, 출력 1,569토큰, thinking 861토큰, 출력 예산 12,274토큰이었다. 이 응답은 길이/컨텍스트 초과가 아니라 `V7_ANCHOR_REPEAT`로 거절됐다.
+- 기존 검증은 직전 실패가 품질 오류일 때만 반복 문장을 정리했다. 앞선 실패가 공급자 오류라 마지막 유효 초안도 재생성을 요구하며 중단됐다.
+- 이제 v7 편집 audit은 첫 유효 초안부터 기존 결정적 정리를 적용한다. 계산 근거·블록 구조·원본의 복제 문단·안전성 검사는 그대로 유지한다. 모든 문장이 정리 대상인 블록은 기존처럼 첫 문단을 보존하고 잔여 반복을 기록한다. 편집 후 짧아진 장을 추가 과금으로 다시 늘리지 않는다. 기존 총분량 계약은 변경하지 않았다.
+- 수정 파일: `worker/yeongnyangi/providers/chapter.ts`, `worker/yeongnyangi/fortune/reading-v7-quality.ts`, `scripts/yeongnyangi-v7-golden.mjs`, 품질/골든 회귀 테스트, 이 문서.
+- 골든 mock도 실제처럼 이전 장을 다음 장에 넘긴다. `--revalidate-only`는 기존 저장 raw만 읽고 검증하며 API 키·공급자 호출·시도 예약·checkpoint/summary 쓰기를 하지 않는다.
+- 기존 실측의 읽기 전용 결과: 연어 8/8, 광어 13/13, 참치 10/24까지 검증 가능. 10장은 반복 4문장(307자)을 정리한 뒤 통과했고 복원 블록은 0이었다. 기존 checkpoint는 여전히 9/24이며 변경하지 않았다. 11~24장은 raw가 없어 실측 완료로 표시하지 않는다. 종료 코드 1은 미완료 표시다.
+- mock 참치 24/24 순차 처리 통과(생성 요청 0회). 모의 문장은 의도적으로 반복되는 구조 fixture이므로 의미 품질 증거가 아니다. 추가 테스트는 저장 raw 재검증, 공급자 오류 뒤 유효 10장 수용, 미생성 장의 미완료 유지, 실호출 모드 거부, 원본 파일 불변을 확인한다.
+- 유지: 가격·이용권/월정석/단건 결제·인증·DB 스키마·저장/lease 계약·시도 예산·v6 경로·v7 OFF. 실 LLM·실결제·운영 DB 쓰기·운영 승격 없음.
+
+읽기 전용 재현:
+
+```powershell
+Set-Location 'D:\Development\code-destiny'
+node --require ./scripts/lib/mock-network-guard.cjs scripts/yeongnyangi-v7-golden.mjs --revalidate-only --out 'C:\Users\user\.codex\artifacts\v7-golden-20260929-live2'
+```
+
+검증/커밋/main 전달 CI 결과와 재개 SHA는 아래 후속 전달 기록에 기재한다.
+
+### 후속 전달 기록
+
+- 구현 커밋: `667f830e9d0fab01776e90788af73bc19a08e9af`. 최신 main의 다른 세션 변경은 충돌 없이 통합했다. 브랜치/PR은 만들지 않았으며 main에 직접 전달한다.
+- 집중 회귀 14/14, `verify:handoff-contract` 208개 문서 통과. `check:fast`에서 유료 흐름 88/88·타입/lint·Node 1,850개·정책 가드·Worker 빌드까지 통과. 마지막 Jest 단계와 main CI의 최종 상태는 최종 응답의 정확한 SHA/run 링크를 따른다.
+- 실측 checkpoint SHA-256: `287721af3aa391f4f0c1be11fd7df784a0a08db44b4243b971604fed47e4bbb4`. 추가 유료 호출이나 원본 checkpoint 수정 없이 참치 10장 수용 가능성을 확인했다.
+- 후속 확인: 11~24장 실생성과 의미 품질 검토는 미실행. 추가 과금 중단 유지. 별도 실호출 승인 없이 기존 artifact를 재구매/덮어쓰기하지 않는다.
+
+재개:
+
+```powershell
+Set-Location 'D:\Development\code-destiny'
+git show --no-patch --oneline 667f830e9d0fab01776e90788af73bc19a08e9af
+Get-Content -Raw 'D:\Development\code-destiny\docs\handoff\2026-09-29-llm-sequential-and-v7-golden.md'
+node --require ./scripts/lib/mock-network-guard.cjs scripts/yeongnyangi-v7-golden.mjs --revalidate-only --out 'C:\Users\user\.codex\artifacts\v7-golden-20260929-live2'
+# 다음 행동: 추가 과금 중단·v7 OFF 유지. 별도 승인 뒤에만 참치 11~24장 실측 범위를 정한다.
+```

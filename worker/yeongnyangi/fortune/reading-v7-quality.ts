@@ -6,9 +6,9 @@
 // every chapter-pair n-gram test (max 5-gram Jaccard .05) while repeating itself, so similarity can never be the
 // primary signal.
 //
-// Pure and deterministic, and it never refuses a reading (principle 17). chapter.ts throws the first time, which
-// service.ts turns into exactly one repair attempt; on the repaired body the same audit prunes the offending
-// sentences and logs the counts. Scope is block paragraphs plus the scene/action topic tags — the only prose that
+// Pure and deterministic, and it never refuses a reading (principle 17). chapter.ts applies this editorial
+// correction on the first usable draft without buying another generation, and logs the counts.
+// Scope is block paragraphs plus the scene/action topic tags — the only prose that
 // can be deleted without emptying a required field, so summary/persona/highlights/questionAnswers are left alone.
 //
 // The term tables are Korean. A non-ko reading is only covered by the language-agnostic checks (scene reuse and

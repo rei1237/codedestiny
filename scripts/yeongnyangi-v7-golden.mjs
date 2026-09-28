@@ -12,7 +12,9 @@ import {goldenMetrics} from './lib/yeongnyangi-golden-metrics.mjs';
 const arg=name=>{const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1];};
 const live=process.argv.includes('--live'),plan=process.argv.includes('--plan');
 const summaryOnly=process.argv.includes('--summary-only');
-assert.ok(!(summaryOnly&&live),'--summary-only never uses --live or an API key');
+const revalidateOnly=process.argv.includes('--revalidate-only');
+assert.ok(!((summaryOnly||revalidateOnly)&&live),'offline modes never use --live or an API key');
+assert.ok(!(summaryOnly&&revalidateOnly),'Select one offline mode');
 assert.ok(!(live&&plan),'--plan and --live are exclusive');
 const root=process.cwd();
 const out=arg('--out');
@@ -62,6 +64,32 @@ const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex
 const scope={domain:'saju',kind:'personal',asOf,fixture:{id:fixture.id,date:fixture.date,absence:fixture.absence},books:books.map(b=>({tier:b.tier,chapters:b.manifest.length,priceKRW:b.product.priceKRW})),provider:'gemini',model:'gemini-2.5-flash',maxAttemptsPerChapter:2,timeoutMs:150000,flag:false};
 console.log(JSON.stringify({scope,estimatedBaseKRW:books.reduce((sum,b)=>sum+m.v7BookCostKRW(b.manifest.length,tariff),0)}));
 if(plan)process.exit(0);
+// Read-only replay: never reserve an attempt, load credentials, call a provider, or overwrite paid evidence.
+if(revalidateOnly){
+ const saved=JSON.parse(fs.readFileSync(path.join(out,'checkpoint.json'),'utf8'));
+ assert.equal(hash(saved.scope),hash(scope),'Checkpoint scope changed');
+ const replay=books.map(book=>{
+  const previous=[],failures=[];
+  let recovered=0,stoppedAt=null;
+  for(const chapter of book.manifest){
+   const existing=saved.chapters.find(row=>row.tier===book.tier&&row.ordinal===chapter.ordinal);
+   if(existing){previous.push(existing.body);continue;}
+   const history=saved.attempts.filter(row=>row.tier===book.tier&&row.ordinal===chapter.ordinal&&row.raw);
+   let accepted=false;
+   for(const record of [...history].reverse()){
+    try{
+     const body=m.validateChapter(record.raw,{locale:'ko',chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous});
+     previous.push(body);recovered++;accepted=true;break;
+    }catch(error){failures.push({ordinal:chapter.ordinal,attempt:record.attempt,code:error.code||'GOLDEN_REPLAY_FAILED'});}
+   }
+   if(!accepted){stoppedAt=chapter.ordinal;break;}
+  }
+  return {tier:book.tier,expectedChapters:book.manifest.length,savedChapters:saved.chapters.filter(row=>row.tier===book.tier).length,
+   revalidatedChapters:previous.length,recovered,stoppedAt,failures,complete:previous.length===book.manifest.length};
+ });
+ console.log(JSON.stringify({mode:'read-only-revalidation',networkCalls:0,checkpointWritten:false,books:replay}));
+ process.exit(replay.some(book=>!book.complete)?1:0);
+}
 fs.mkdirSync(out,{recursive:true});
 const lock=path.join(out,'running.lock');
 fs.writeFileSync(lock,String(process.pid),{flag:'wx'});
@@ -130,7 +158,7 @@ for(const book of summaryOnly?[]:books){
     if(!record.raw){
      record.stage='provider';persist();
      const provider=live?new m.StructuredChapterProvider(new m.CodeDestinyProvider(env,{serviceId:'yeongnyangi-v7-golden',sectionGroup:book.tier+'/'+chapter.key,attempt:index+1})):new m.MockChapterProvider();
-     record.raw=await provider.generateChapter(live?request:{...request,previous:[]});persist();
+     record.raw=await provider.generateChapter(request);persist();
     }
     record.stage='quality';persist();
     let body=typeof record.raw==='string'?JSON.parse(record.raw):record.raw;
