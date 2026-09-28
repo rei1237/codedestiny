@@ -26,6 +26,7 @@ import { fortuneMaster } from "../prompts/system/fortune-master";
 import { domainRules } from "../prompts/domain/rules";
 import { taskRules } from "../prompts/task/rules";
 import {tokensRequiredForChars} from '../../lib/llm-budget.js';
+import {attachTarotSafetyNotice,buildTarotMasterContract,validateTarotChapter} from '../fortune/tarot/master-reading';
 export interface ChapterRequest {
   locale?: ReadingLocale;
   chapter: ChapterSpec;
@@ -125,6 +126,7 @@ export function validateChapter(
   if(input.analysis.consultation?.questionSky)validateSkyChapter(v,Object.values(input.analysis.contexts)[0],input.analysis.consultation.questionSky);
   validateReadingLanguage(v,readingLocale(input.locale));
   validateReadingQuality(v,input.chapter,input.previous,input.locale,{lengthRepair:LENGTH_FAILURES.includes(input.repair?.code||'')});
+  if(input.analysis.contexts.tarot)validateTarotChapter(v,input.analysis.contexts.tarot);
   if(input.chapter.version===READING_V7_VERSION){
     // v7 has no fixed 'evidence' section: every insight unit carries its own citation, so the rule moves onto
     // the blocks themselves. validateReadingQuality already rejected a block without sources, so what is left
@@ -145,6 +147,7 @@ export function validateChapter(
   if(input.ask && input.chapter.ordinal === 0)v=validateAskChapter(v,input.analysis.consultation!,input.ask.analysis,input.ask.evidence);
   // Safety/evidence/duplicate checks see the original field text, including
   // phrases at a split boundary. Only the validated return value is formatted.
+  v=attachTarotSafetyNotice(v,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal);
   return {...v,summary:splitField(v.summary),example:splitField(v.example),advice:splitField(v.advice),
     persona:splitField(v.persona),analysis:v.analysis.map(splitField),
     highlights:v.highlights.map(splitField),topics:v.topics.map(splitField)};
@@ -166,6 +169,8 @@ const REPAIR_INSTRUCTIONS:Record<string,string>={
   ASK_EVIDENCE_INCOMPLETE:'각 questionAnswers 항목의 factIds와 timingIds에는 해당 질문의 askFirstChapter.questions에 제공된 F/T ID만 넣는다. 인용한 F/T의 source.factId를 최상위 sources에도 넣는다. 근거가 없으면 evidenceStatus를 limited로 쓰고 제공되지 않은 근거를 만들지 않는다.',
   ASK_UNSUPPORTED_TIMING:'시기 답변은 해당 질문의 timingIds가 실제로 뒷받침하는 연도와 해상도 안에서만 쓴다. 시기 근거가 없으면 evidenceStatus를 limited로 두고 특정 사건 날짜를 쓰지 않는다.',
   ASK_UNSAFE_CLAIM:'F/T 내부 ID를 사용자 문장에 노출하지 않는다. 재회·결혼·성공을 확정하거나 100%라고 말하지 않는다.',
+  TAROT_UNDRAWN_CARD:'savedCardsOnly에 없는 카드 이름을 쓰지 않는다. 서버가 저장한 카드만 해석한다.',
+  TAROT_ORIENTATION_MISMATCH:'savedCardsOnly의 orientation을 그대로 따른다. 정방향과 역방향을 바꾸지 않는다.',
   CHAPTER_DEPTH_INCOMPLETE:'blocks는 sectionContract의 id를 순서와 개수 그대로 한 번씩 쓴다. sectionContract가 없으면 requiredSections의 모든 제목을 title로 그대로 쓴다.',
 };
 // Spirit and question-sky chapters are checked against their own vocabulary (spirit.ts, question-sky-reading.ts).
@@ -326,6 +331,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         topic:input.analysis.topicId,
         periodScope:input.chapter.periodScope,
         independence:"같은 천문 관측을 공유하는 숙요·베다·점성술은 독립된 세 증거가 아니다. 타로는 질문 당시 상징이며 천문 사실의 교차검증 수에 포함하지 않는다. 근거 일치도는 적중 확률이 아니다.",
+        tarotMaster: input.analysis.contexts.tarot?buildTarotMasterContract(input.analysis.contexts.tarot,input.analysis.question,input.chapter):undefined,
         domain: contexts.map((c) => domainRules[c.domain]),
         task: taskRules[input.chapter.theme],
         chapter: input.chapter,

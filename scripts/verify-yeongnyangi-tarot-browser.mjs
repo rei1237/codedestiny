@@ -15,12 +15,17 @@ const output = 'build-cache/yeongnyangi-tarot';
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch({ headless: true }), results = [];
 try {
-  const cases = [3, 6].flatMap(count => [360, 390, 430, 1280].map(width => ({ count, width, failure: false }))).concat([{ count: 3, width: 390, failure: true }]);
-  for (const { count, width, failure } of cases) {
+  const cases = [3, 6].flatMap(count => [360, 390, 430, 960, 1280].map(width => ({ count, width, failure: false, lowEnd: count === 3 && width === 360, reduced: count === 6 && width === 960 }))).concat([{ count: 3, width: 390, failure: true, lowEnd: false, reduced: false }]);
+  for (const { count, width, failure, lowEnd, reduced } of cases) {
     const f = await fixtures(browser, base, product, width);
     try {
+      if (lowEnd) await f.page.addInitScript(() => {
+        Object.defineProperty(navigator, 'deviceMemory', { configurable: true, value: 2 });
+        Object.defineProperty(navigator, 'hardwareConcurrency', { configurable: true, value: 2 });
+      });
+      if (reduced) await f.page.emulateMedia({ reducedMotion: 'reduce' });
       const exerciseRitual = count === 3 && width === 390 && !failure;
-      const previewRitual = count === 6 && width === 1280 && !failure;
+      const previewRitual = (count === 6 && width === 1280 && !failure) || lowEnd || reduced;
       const cards = ['M00', 'W10', 'C02', 'S13', 'P06', 'P14'].slice(0, count).map((code, i) => ({ ...TAROT_CARDS.find(c => c.code === code), cardId: code, positionLabel: `자리 ${i + 1}`, orientation: i % 2 ? 'reversed' : 'upright', imageUrl: '/old-deck.jpg' }));
       const before = JSON.stringify(cards);
       const charts = readingCharts({ contexts: { tarot: { domain: 'tarot', facts: [{ id: 'tarot.cards', label: 'cards', value: cards }], limitations: [] } } }, []);
@@ -52,7 +57,9 @@ try {
       } else if (previewRitual) {
         const ritual = f.page.getByRole('region', { name: '영냥이 타로 드로우 의식' });
         await ritual.waitFor();
-        await ritual.screenshot({ path: `${output}/ritual-revealed-6-1280.png` });
+        if (lowEnd) assert.equal(await ritual.locator(':scope > div[aria-hidden="true"] > span').count(), 5);
+        if (reduced) assert.equal(await ritual.locator('button').nth(1).evaluate(el => getComputedStyle(el).transitionDuration), '0s');
+        await ritual.screenshot({ path: `${output}/ritual-revealed-${count}-${width}.png` });
         await ritual.getByRole('button', { name: '영냥이 상담 펼치기' }).click();
       }
       const panel = f.page.getByRole('region', { name: '질문 위에 펼친 카드', exact: true });
@@ -61,6 +68,15 @@ try {
       assert.equal(await images.count(), count);
       await images.evaluateAll(imgs => imgs.forEach(img => { img.loading = 'eager'; }));
       await f.page.waitForFunction(() => [...document.querySelectorAll('picture img')].every(img => img.complete && img.naturalWidth > 0));
+      const allResources = await f.page.evaluate(() => performance.getEntriesByType('resource').map(entry => entry.name));
+      const deckResources = allResources.filter(name => name.includes('/assets/yeongnyangi/tarot/v1/'));
+      const allowedCodes = new Set(cards.map(card => card.code));
+      for (const url of deckResources) {
+        const file = new URL(url).pathname.split('/').at(-1) || '';
+        const code = file.split('-')[0];
+        assert(code === 'back' || allowedCodes.has(code), `only saved cards may load: ${file}`);
+      }
+      assert.equal(allResources.some(url => url.includes('/caretaro/') || url.includes('/tarot-cards/')), false);
       assert.equal(await f.page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       for (let i = 0; i < count; i++) {
         const img = images.nth(i), src = await img.evaluate(el => el.currentSrc);
@@ -84,11 +100,11 @@ try {
       assert.equal(f.state.sdk.length, 0);
       assert.deepEqual(f.state.unknown, []);
       assert.deepEqual(f.state.errors, []);
-      results.push({ count, width, failure, ritual: exerciseRitual || previewRitual, status: 'PASS' });
+      results.push({ count, width, failure, lowEnd, reduced, ritual: exerciseRitual || previewRitual, selectedDeckResources: deckResources.length, status: 'PASS' });
     } finally { await f.context.close(); }
   }
 } finally {
   await browser.close();
   await writeFile(`${output}/results.json`, JSON.stringify({ cases: results, realPgCalls: 0, realLlmCalls: 0, productionDbWrites: 0 }, null, 2));
 }
-console.log(`PASS ${results.length} mock result cases: paid ritual restore/reveal, saved order/orientation, 2:3 art, selection, reload, own-back fallback; no real PG/LLM/DB calls`);
+console.log(`PASS ${results.length} mock result cases: paid ritual restore/reveal, saved order/orientation, 2:3 art, 360/390/430/960/1280 responsive, low-end/reduced-motion, selected-only loads, reload, own-back fallback; no real PG/LLM/DB calls`);
