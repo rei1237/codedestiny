@@ -1,7 +1,7 @@
 ---
-status: active
+status: blocked
 updated: 2026-09-28
-next: "Phase 2 완료(§6-1~§6-6 전부 커밋, 플래그 OFF). 다음은 브리프 게이트대로 네오 승인을 받은 뒤 Phase 3 = v7 전용 검증기(설계 §7·측정 1의 주 검증 3종, 위반 시 1회 재생성→결정적 삭제, 거부 금지). 과금 LLM 0회."
+next: "Phase 3(검증기)·§6-7(UI) 완료, 플래그 OFF. 다음은 Phase 4 골든인데 유료 LLM 생성이라 **네오의 정확한 1회 승인 없이는 진행 불가**(절대 규칙 1). Phase 5(플래그 ON)는 Phase 4 의 원가·품질 실측에 의존하므로 함께 막혀 있다. 승인 시 범위: 골든 fixture 로 연어·광어·참치 각 1권 실호출, 토큰·원가 실측으로 reading-v7-cost.ts 추정치 교체, 반복 지표 전후 비교."
 ---
 
 # 영냥이 티어별 챕터 확장·반복 제거 인수인계 (Phase 0 진단·Phase 1 설계 완료)
@@ -217,6 +217,39 @@ next: "Phase 2 완료(§6-1~§6-6 전부 커밋, 플래그 OFF). 다음은 브�
   - `npx tsc --noEmit -p .` 오류 0. eslint: 새 테스트 0/0, 워커 4파일 오류 0·경고 14(전부 기존 `no-explicit-any`).
   - `npm run check:fast` exit 0. wrangler dry-run·entry-encoding OK, jest 309 스위트·4,515 테스트 통과(이번엔 윈도우 0xC0000409 가 재현되지 않았다). 변경 집합이 워커 TS 라 `test:node` 단계는 선택되지 않았으므로 노드 테스트는 위와 같이 직접 돌렸다.
   - 플래그 OFF 이므로 `consultationManifest` 는 모든 구매 가능 조합에서 여전히 v6 를 돌려준다(테스트 1번이 전수 확인). v7 분기가 실제로 v7 매니페스트를 돌려주는지는 플래그가 켜져야 관측되므로, 이 축은 `v7Applies(p,k,true)` 의 전수 예상값 비교로만 고정했다.
+
+## Phase 3 결과: v7 전용 검증기 (2026-09-28, 네오 승인)
+
+- 커밋 `b996cfa41`. main 직접 작업. 과금 LLM 0회, 실결제 0, 운영 DB 접근 0. 플래그 `READING_V7_ENABLED=false` 그대로다.
+- 설계 §7·측정 1의 **주 검증 3종만** v7 장에 건다. n-gram 유사도는 기존 `validateReadingQuality` 에 이미 있으므로 새로 만들지 않고 보조 백스톱으로 남긴다(원칙 6).
+  1. `V7_FOREIGN_FACT` — 원장 소유 위반. 이 장이 소유하지도, refs 로 참조하지도 않는 체계 용어를 본문이 쓴 경우다. 허용량은 소유 `Infinity`, 앵커·`refs` 1회, 나머지 0이다.
+  2. `V7_ANCHOR_REPEAT` — 기준점 재설명. 앵커가 소유한 사실을 이 장이 한 번을 넘겨 다시 설명하는 경우다.
+  3. `V7_SCENE_REUSE` — 장면 소재·행동 중복. 앞 장에서 이미 쓴 장면 소재·행동을 다시 쓴 경우다.
+  - `V7_RESTATED_SENTENCE` 는 문장 단위 재진술(Dice > `V7_RESTATE_DICE`=.5)이며, 삭제 대상 문장을 특정하는 데 쓴다.
+- 파일
+  - `worker/yeongnyangi/fortune/reading-v7-quality.ts` (신규, 순수·결정적): 코드 4종과 `isV7QualityCode`, 임계 `V7_RESTATE_DICE`=.5·`V7_SENTENCE_MIN`=20·`V7_TAG_MIN`=2, 한국어 용어 → 사실 ID 접미 대응표 `V7_TERMS`, `auditV7Chapter(input)`, `pruneV7Chapter(body,audit)`.
+  - `worker/yeongnyangi/fortune/reading-quality.ts`: 문장 분리 정규식 `SENTENCE_BOUNDARY` 를 export 만 했다(폭 0 분리라 이어 붙이면 원문과 같다). 동작 변경 0.
+  - `worker/yeongnyangi/providers/chapter.ts`: `READING_V7_VERSION` 분기에 감사를 배선하고 한국어 `REPAIR_INSTRUCTIONS` 4개를 더했다.
+  - `__tests__/ui/yeongnyangi-reading-v7-quality.test.mjs` (신규, node --test 9종).
+- **거부로 끝나지 않는다**(원칙 17). 위반이면 재생성 1회를 던지고, 재시도 입력이 이미 v7 품질 코드면(`isV7QualityCode(input.repair?.code)`) 던지지 않고 `pruneV7Chapter` 로 해당 문장만 결정적으로 지운 뒤 로그를 남기고 통과시킨다. 분량 미달 단독으로는 실패시키지 않는다.
+- 검증(실측): 새 테스트 9/9. **불변 스냅샷은 해시 갱신 없이 통과**했다. `npm run check:fast` exit 0(jest 309 스위트·4,519 테스트, 이번엔 0xC0000409 재현 없음).
+
+## Phase 3 결과: §6-7 UI 목차·파트 머리·분량 표시 (2026-09-28)
+
+- 커밋 `7e7e2d0b6`. main 직접 작업. 과금 LLM 0회, 실결제 0, 운영 DB 접근 0. 플래그 OFF 이므로 **사용자 노출 변화는 없다**.
+- 파일
+  - `app/yeongnyangi/_lib/reading-v7-copy.ts` (신규): `reading-copy.ts` 패턴(`Copy=typeof ko`)을 따르는 ko·ja·en 사전. 키 133개(파트 12 + 장 121)를 로케일마다 리터럴로 전부 적는다. `readingV7Copy(locale)`, `v7Label(key,locale)`, `v7PartHead(chapters,index,locale)`.
+  - `worker/yeongnyangi/fortune/book-contracts.ts`: `ChapterSpec` 에 `titleKey?`·`partKey?` 를 옵셔널로 추가했다. 렌더러가 캐스트 없이 읽고, `ChapterSpecV7` 의 필수 선언도 그대로 합법이다. 상징(영감) 경로의 `{id,title,ordinal,part}` 투영은 영향 없다.
+  - `app/yeongnyangi/_components/Consultation.tsx`: 분량 표시를 `targetRange(item)` 으로 바꿨다. `partKey` 가 있으면(=v7) 매니페스트 `targetChars` 합계, 없으면 종전 `policyForReading(...).target`. 미리보기 목차에 파트 머리를 넣었다.
+  - `app/yeongnyangi/_components/ReadingBook.tsx`: 내비 목차에 파트 머리를 넣고, 비한국어 미저장 장은 사전 제목 → 모델 제목 → `Chapter N` 순으로 떨어뜨린다(진단 "비한국어 미저장 장은 Chapter N" 해소).
+  - CSS: `reading-v5.module.css`·`yeongnyangi.module.css` 에 새 `.partHeading` 타이포 규칙 한 줄씩만 더했다. **기존 레이아웃 규칙은 한 줄도 바꾸지 않았다**(설계 §6-7 요구).
+  - `__tests__/ui/yeongnyangi-reading-v7-copy.test.mjs` (신규, node --test 6종).
+  - `config/sitemap-lastmod.json`: `/` 서명 1개(app/** 편집이 원장을 무효화한다). 재생성 diff 로 실측했고 lastmod 날짜는 그대로다.
+- 설계와 다르게 하지 않은 것(요구 그대로 지킴)
+  - `verify-feature-marketing-schema.mjs:274` 가 요구하는 리터럴 `consultationManifest(item,kind,topicId).length` 는 `.fishScope` 스팬에 그대로 남겼다.
+  - 모바일 목차는 별도 컴포넌트가 아니다. `ReadingBook` 의 목차는 하나이고 `@media(max-width:999px)` 로 반응하므로, 파트 머리를 넣은 것으로 모바일 목차도 함께 처리됐다.
+- fail-closed 사전 가드(원칙 10): 새 카탈로그 항목에 사전 항목이 없거나 ko 제목이 카탈로그에서 드리프트하면 테스트가 실패한다. 반대로 카탈로그가 버린 키가 사전에 남아 있으면 고아 키로 실패한다. `v7Label` 은 모르는 키·키 없는 v5/v6 장에 `undefined` 를 돌려주므로 호출부의 기존 폴백이 살아 있고 생 키가 화면에 찍히지 않는다.
+- 검증(실측): 새 테스트 6/6. `npx tsc --noEmit -p . --incremental false` exit 0. `npm run check:fast`: paid-gate 스위트 88/88, `npm test`, lint, sitemap-drift 전부 통과(첫 실행은 sitemap 드리프트로 막혀 원장 재생성 후 재실행).
 
 ## Phase 0 세션 변경
 
@@ -434,7 +467,9 @@ next: "Phase 2 완료(§6-1~§6-6 전부 커밋, 플래그 OFF). 다음은 브�
    - 결제 완료 뒤 로딩 화면에 "결제 대기"가 기본 문구로 나올 수 있다(추정).
    - h1 생선 이름이 번역되지 않는다.
 9. v5 고등어 1건의 attempts 카운터가 장별 합과 다르다(측정 절).
-10. `npm run check:fast` 의 jest 단계가 윈도우에서 출력 없이 0xC0000409(3221226505)로 죽을 때가 있다(커밋 4·5 세션에서 재현). 래퍼는 이것을 `BLOCKED` 로 찍지만 전체 종료 코드는 0이라 조용히 넘어간다. 같은 러너를 직접 부르면(`node scripts/run-mock-tests.mjs jest`) 309 스위트·4,515 테스트가 통과한다. BLOCKED 가 보이면 러너를 직접 돌려 확인해야 한다.
+10. `app/yeongnyangi/yeongnyangi.module.css` 에 impeccable 디자인 훅이 `design-system-font` 11건("Yeongnyangi Myeongjo")을 잡는다. 전부 이번 변경 밖의 기존 브랜드 폰트 선언이고(L74·94·103·169·262 외 6건), DESIGN.md 가 `.impeccable/design.json` 보다 새롭다. 원칙 14 에 따라 억제 규칙을 넣지 않고 보고만 한다.
+11. tsc 증분 캐시(`tsconfig.tsbuildinfo`, `tsconfig.json:20` `incremental:true`)가 한 번 유령 오류를 냈다: `consultation.ts(126,55) TS2339 ... 'never'`. 그 파일은 로컬 무변경이었고, `--incremental false` 전체 검사와 증분 재검사 둘 다 exit 0 이라 **재현되지 않는다**. 실제 결함이 아니라 증분 상태 잔여물이다. 증분 결과가 이상하면 `--incremental false` 로 한 번 확인할 것.
+12. `npm run check:fast` 의 jest 단계가 윈도우에서 출력 없이 0xC0000409(3221226505)로 죽을 때가 있다(커밋 4·5 세션에서 재현). 래퍼는 이것을 `BLOCKED` 로 찍지만 전체 종료 코드는 0이라 조용히 넘어간다. 같은 러너를 직접 부르면(`node scripts/run-mock-tests.mjs jest`) 309 스위트·4,515 테스트가 통과한다. BLOCKED 가 보이면 러너를 직접 돌려 확인해야 한다.
 
 ## 남은 위험
 
@@ -450,6 +485,8 @@ next: "Phase 2 완료(§6-1~§6-6 전부 커밋, 플래그 OFF). 다음은 브�
 
 - Phase 0·1 모두 문서만 바꿨다. 각 커밋 하나를 `git revert` 하면 된다.
 - Phase 2 커밋 1(`5aa267a24`)·커밋 2(`c97fb52b2`)·커밋 3(`07cd0fe09`)은 각각 `git revert` 하나로 되돌린다. 커밋 2 를 되돌리면 sitemap 원장도 함께 돌아간다. 커밋 3 은 새 파일 2개와 설계 문서 4줄뿐이다. 커밋 4(`eddaa5c13`)와 커밋 5(`412dda498`)는 각각 새 파일 2개뿐이라 `git revert` 하나로 끝난다. 커밋 6(`602135a61`)은 배선이라 되돌리면 v7 모듈 5개가 다시 고아가 될 뿐 v6 동작은 그대로다 — `git revert` 하나로 끝나고, 되돌린 뒤 불변 스냅샷을 한 번 더 돌린다.
+- Phase 3 검증기(`b996cfa41`)는 `git revert` 하나로 끝난다. `reading-quality.ts` 의 변경은 export 추가뿐이라 되돌려도 v6 품질 검증은 그대로다.
+- §6-7 UI(`7e7e2d0b6`)도 `git revert` 하나로 끝난다. 되돌리면 sitemap 원장 `/` 서명도 함께 돌아가므로 `npm run verify:sitemap-drift` 가 통과한다. 플래그 OFF 라 사용자 화면은 revert 전후가 같다.
 
 ## 다음 단계
 
@@ -463,10 +500,13 @@ next: "Phase 2 완료(§6-1~§6-6 전부 커밋, 플래그 OFF). 다음은 브�
 4. ~~설계 §6-4 시기 매트릭스~~ 완료(위 "Phase 2 커밋 4 결과"). §6-6 배선 때 prepare 에서 `buildV7TimingMatrix` 를 v7 일 때만 부르고, 결과를 스냅샷(또는 `generationCheckpoint`)에 저장한다. 장 생성은 `withV7Timing` → `resolveV7Ledger` → `v7TimingSummaries` 순서다.
 5. ~~설계 §6-5 `chapter-v7` 프롬프트·출력 스키마~~ 완료(위 "Phase 2 커밋 5 결과").
 6. ~~설계 §6-6 배선~~ 완료(위 "Phase 2 커밋 6 결과"). Phase 2 는 여기서 끝난다.
-7. Phase 2 가 끝나면 브리프 게이트대로 네오 승인을 받고 Phase 3(v7 검증기)로 간다. Phase 4 골든은 과금이라 정확한 1회 승인이 필요하다.
+7. ~~Phase 3 v7 검증기~~ 완료(위 "Phase 3 결과: v7 전용 검증기"). 네오 승인 2026-09-28.
+8. ~~설계 §6-7 UI~~ 완료(위 "Phase 3 결과: §6-7 UI").
+9. **Phase 4 골든 — 네오 차례. 막혀 있다.** 유료 LLM 실호출이라 절대 규칙 1 에 따라 **정확한 1회 승인**이 필요하다. 승인 문장에 범위를 못 박아 주기를 권한다(권장: "연어·광어·참치 각 1권, 사주 1체계, 총 3권까지 실호출 승인"). 승인되면 이 세션이 할 일은 ① 골든 fixture 로 v7 플래그를 로컬에서만 켜고 3권 생성 ② `[llm token_usage]` 로 장당 토큰·원가 실측 → `reading-v7-cost.ts` 추정 상수 교체(10% 이하 재확인) ③ 측정 절 지표로 v6 완료본과 반복 비교 ④ 카탈로그 해석 매핑·무재 명식 fixture 조정이다.
+10. Phase 5(플래그 ON)는 Phase 4 결과에 의존하므로 함께 막혀 있다. 켜는 커밋에서 같이 할 일: 공개 티어 표(`app/yeongnyangi/1000-won-fortune/page.tsx:171`)를 v7 장 수·분량으로 교체(참치 "40,000자 이상" 약속은 못 지킨다 — 결정 5), 롤백 문서, 불변 스냅샷 해시 갱신(연어·광어·참치 `personal`·`ask`·타로 행만 바뀌어야 한다), 테스트 3개 수정(`yeongnyangi-reading-v6.test.mjs:45-65`, `yeongnyangi-section-paragraphs.test.mjs:84`, `yeongnyangi-consultation-kinds.test.mjs:27`).
 
 ## 복사할 재개 지시
 
 ```text
-D:Developmentcode-destiny에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md와 docs/design/yeongnyangi-v7-chapter-catalog.md(§7·측정 1)를 읽어라. 영냥이 v7 Phase 2(§6-1~§6-6)는 커밋 완료이고 플래그는 OFF다. 다음은 Phase 3(v7 전용 검증기)인데 브리프 게이트상 네오 승인이 먼저다 — 승인 여부를 먼저 확인하고, 승인 전이면 Phase 2 결과 요약과 Phase 3 계획만 보고하고 멈춰라. 승인 후에는 설계 §7 의 주 검증 3종을 v7 장에만 걸고, 위반 시 1회 재생성 후에도 남으면 결정적으로 문장을 삭제하고 로그를 남긴다(원칙 17: 거부로 끝내지 않는다). 플래그는 계속 OFF, 과금 LLM은 쓰지 말고 전부 mock으로 검증하며, 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)가 해시 갱신 없이 통과해야 한다. main·clean 확인과 git pull --ff-only 후 시작하라.
+D:Developmentcode-destiny 에서 docs/handoff/2026-09-28-yeongnyangi-tier-chapters.md 와 docs/design/yeongnyangi-v7-chapter-catalog.md(§7·측정 1)를 읽어라. 영냥이 v7 은 Phase 2(§6-1~§6-6)·Phase 3(검증기)·§6-7(UI)까지 커밋 완료이고 플래그 READING_V7_ENABLED 는 여전히 OFF 다. 다음은 Phase 4 골든인데 유료 LLM 실호출이라 절대 규칙 1 상 네오의 정확한 1회 승인이 먼저다 — 승인 문장이 이 대화에 없으면 아무 것도 생성하지 말고, 필요한 승인 범위(몇 권·어느 티어·어느 체계)를 제시하고 멈춰라. Phase 5(플래그 ON)는 Phase 4 의 원가·품질 실측에 의존하므로 함께 대기다. 승인 후에도 실결제·운영 DB 쓰기는 금지이고, 골든은 로컬에서만 플래그를 켜서 돌린다. 불변 스냅샷 테스트(__tests__/ui/yeongnyangi-reading-invariance.test.mjs)는 Phase 5 까지 해시 갱신 없이 통과해야 한다. main·clean 확인과 git pull --ff-only 후 시작하라.
 ```
