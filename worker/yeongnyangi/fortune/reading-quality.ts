@@ -1,6 +1,6 @@
 import type { ChapterBody, ChapterSpec } from './book-contracts';
 import { FortuneError } from './shared/contracts';
-import { hasReadingSections, isStructuredReading } from './reading-policy';
+import { hasReadingSections, isStructuredReading, READING_V7_VERSION } from './reading-policy';
 
 const normalize=(s:string)=>s.normalize('NFC').replace(/\s+/g,' ').trim();
 export const SECTION_PARAGRAPH_LIMIT=500;
@@ -117,7 +117,9 @@ export function validateReadingQuality(body:ChapterBody,chapter:ChapterSpec,prev
  const gramCache=new Map<string,Set<string>>();
  if(passages.some((p,i)=>passages.slice(0,i).some(q=>nearDuplicate(p,q,gramCache))||previousPassages.some(q=>nearDuplicate(p,q,gramCache))))throw new FortuneError('DUPLICATE_CHAPTER');
  const sentences=passages.flatMap(p=>p.split(/(?<=[.!?。])\s+/)).filter(s=>s.length>35);
- if(sentences.length-new Set(sentences).size>1)throw new FortuneError('DUPLICATE_CHAPTER');
+ // v7 edits repeated sentences after the original draft passes the hard checks below.
+ // Whole/near-copied paragraphs above still fail; v6 keeps its existing sentence rejection.
+ if(chapter.version!==READING_V7_VERSION&&sentences.length-new Set(sentences).size>1)throw new FortuneError('DUPLICATE_CHAPTER');
  const content=[...passages,body.summary,body.persona,...body.highlights,
   ...(body.questionAnswers || []).flatMap(a=>[a.answer,a.reason,a.timing,a.action])].join('\n');
  if(/(?:외도|바람기|바람끼).{0,12}\d+\s*%|(?:반드시|무조건|100%).{0,15}(?:재회|결혼|성공)|(?:암|질병|장기 이상)을?\s*(?:진단|확정)|(?:오행|명식).{0,20}(?:치료할 수|치료됩니다)/.test(content))throw new FortuneError('UNSUPPORTED_READING_CLAIM');

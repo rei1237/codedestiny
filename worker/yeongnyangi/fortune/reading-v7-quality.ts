@@ -199,7 +199,15 @@ export function auditV7Chapter(input:V7AuditInput):V7Audit{
     if(hit)flag(unit,V7_SCENE_REUSE,hit);
   }
 
-  // 4. Backstop: a previous chapter's sentence written again in other words.
+  // 4. Exact repeats within this draft are editable too; retain the first occurrence.
+  const seen=new Set<string>();
+  for(const unit of units){
+    if(unit.plain.length<=35)continue;
+    if(seen.has(unit.plain))flag(unit,V7_RESTATED_SENTENCE,'current');
+    else seen.add(unit.plain);
+  }
+
+  // Backstop: a previous chapter's sentence written again in other words.
   const earlier=previousSentences(input.previous);
   if(earlier.length){
     const cache=new Map<string,Set<string>>();
