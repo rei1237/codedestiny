@@ -299,38 +299,15 @@ test.each([5,8,11,15,18,28])('all %i chapters finish in queue without browser ca
   expect(provider).toHaveBeenCalledTimes(total);expect((await repo.readRequest({},owner,id)).chapters).toHaveLength(total);
 });
 
-test('three chapter failures stop automatically; explicit resume preserves total budget and payment',async()=>{
+test('two chapter failures exhaust one immutable budget despite user and system grants',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
-  for(let attempt=1;attempt<=3;attempt++){
-    requests[0].nextAttemptAt=null;
-    const claim=await repo.claimChapter({},owner,'id');
-    await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',attempt);
-    if(attempt<3)expect(requests[0].nextAttemptAt.getTime()-Date.now()).toBeGreaterThan(attempt===1?29000:119000);
-  }
+  await failCurrent(2,'FORTUNE_PROVIDER_FAILED');
   expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
   await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
-  const resumed=await repo.resumeRequest({},owner,'id');expect(resumed.attempts).toBe(3);expect(resumed.paymentId).toBe('pay1');
-  expect(resumed.chapterAttempts[0]).toBe(3);expect(resumed.manualRecoveryGrants[0]).toBe(1);expect(resumed.state).toBe('PAID');
-  let claim=await repo.claimChapter({},owner,'id','queue');
-  await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',4,'provider',4);
-  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
-  await repo.resumeRequest({},owner,'id');expect(requests[0].manualRecoveryGrants[0]).toBe(2);
-  claim=await repo.claimChapter({},owner,'id','queue');
-  await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',5,'provider',5);
-  // Spent user grants turn the next click into the one server retry, not a dead end.
-  const system=await repo.resumeRequest({},owner,'id');
-  expect(system).toMatchObject({state:'PAID',errorCode:'',systemRecoveryGrants:{0:2}});
-  expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'system_retry',source:'user',chapter:0});
-  for(const attempt of [6,7]){
-    requests[0].nextAttemptAt=null;
-    claim=await repo.claimChapter({},owner,'id','queue');
-    await repo.failChapter({},owner,'id',claim.token,'FORTUNE_PROVIDER_FAILED',attempt,'provider',repo.allowedChapterAttempts(requests[0],0),'',0);
-  }
-  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
-  await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409,payload:{code:'GENERATION_REVIEW_REQUIRED'}});
-  expect(requests[0]).toMatchObject({attempts:7,state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',
-    hold:{reason:'MANUAL_RECOVERY_LIMIT_REACHED',chapter:0,epoch:repo.GENERATION_FIX_EPOCH,alertPending:true}});
-  expect(payments).toHaveLength(1);
+  await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409});
+  requests[0].manualRecoveryGrants={0:20};requests[0].systemRecoveryGrants={0:20};
+  expect(repo.allowedChapterAttempts(requests[0],0)).toBe(2);
+  expect(requests[0].chapterAttempts[0]).toBe(2);expect(payments).toHaveLength(1);
 });
 
 const book=total=>({...values,snapshot:{manifest:Array.from({length:total},(_,i)=>({id:`chapter-${i}`}))}});
@@ -350,93 +327,42 @@ async function failCurrent(times,code='CHAPTER_SECTION_TOO_SHORT'){
   }
 }
 
-test('a tuna book stopped at item 10/15 is retried by the server, held, then resumed after the fix to 15/15 with one payment',async()=>{
-  const total=15;
-  await repo.createRequest({},owner,'id',book(total));await repo.attachPayment({},owner,'id',1000);
-  await saveThrough(9,total);
-  const saved=JSON.stringify(requests[0].chapters);
-  await failCurrent(3);
-  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
-  expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'automatic_recovery_stopped',chapter:9,detail:'section:example:90/121'});
-  // The buyer closed the window: the cron grants the server retry without any click.
-  expect(await repo.escalateStopped({},requests[0])).toMatchObject({state:'PAID',errorCode:''});
-  expect(requests[0].systemRecoveryGrants[9]).toBe(2);
-  await failCurrent(2);
-  expect(requests[0].errorCode).toBe('AUTOMATIC_RECOVERY_STOPPED');
-  expect(await repo.escalateStopped({},requests[0])).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
-  expect(requests[0].hold).toMatchObject({reason:'SYSTEM_RECOVERY_EXHAUSTED',chapter:9,alertPending:true,epoch:repo.GENERATION_FIX_EPOCH});
-  await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
-  // The same epoch never loops; a later generation fix is simulated by an older hold epoch.
-  expect(await repo.resumeHeldAfterFix({},requests[0])).toBeNull();
-  requests[0].hold.epoch=repo.GENERATION_FIX_EPOCH-1;
-  const resumed=await repo.resumeHeldAfterFix({},requests[0]);
-  expect(resumed).toMatchObject({state:'PAID',errorCode:'',hold:{resumes:1,alertPending:false,epoch:repo.GENERATION_FIX_EPOCH}});
-  expect(requests[0].systemRecoveryGrants[9]).toBe(2+repo.FIX_RESUME_GRANT);
-  expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'system_resume_after_fix',chapter:9,code:'SYSTEM_RECOVERY_EXHAUSTED'});
-  await saveThrough(total,total);
-  expect(requests[0]).toMatchObject({state:'COMPLETED',completedChapters:total,paymentId:'pay1'});
-  expect(JSON.stringify(requests[0].chapters.slice(0,9))).toBe(saved);
-  expect(new Set(requests[0].chapters.map(c=>c.summary)).size).toBe(total);
-  expect(payments).toHaveLength(1);
-});
-
-test('a buyer retries a spent hold twice, then it stays held for the next fix with one payment',async()=>{
-  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
-  await failCurrent(3);await repo.resumeRequest({},owner,'id');
-  await failCurrent(1);await repo.resumeRequest({},owner,'id');
-  await failCurrent(1);await repo.resumeRequest({},owner,'id');
-  await failCurrent(2);
-  expect(requests[0]).toMatchObject({errorCode:'AUTOMATIC_RECOVERY_STOPPED',manualRecoveryGrants:{0:2},systemRecoveryGrants:{0:2}});
-  expect(repo.userCanRetry(requests[0])).toBe(true);
-  expect(repo.userCanRetry({...requests[0],paymentId:null,accessMethod:'FAMILY'})).toBe(false);
-  for(const [used,system] of [[1,4],[2,6]]){
-    await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409,payload:{code:'GENERATION_REVIEW_REQUIRED'}});
-    expect(repo.userCanRetryHold(requests[0])).toBe(true);
-    expect(await repo.resumeHeldByUser({},owner,'id')).toMatchObject({state:'PAID'});
-    expect(requests[0]).toMatchObject({state:'PAID',errorCode:'',systemRecoveryGrants:{0:system},hold:{userRetries:{0:used},epoch:repo.GENERATION_FIX_EPOCH}});
-    expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'user_retry_after_hold',source:'user',chapter:0});
-    await failCurrent(2);
-  }
-  expect(requests[0].chapterAttempts[0]).toBe(11);
-  expect(repo.userCanRetry(requests[0])).toBe(false);
-  await expect(repo.resumeRequest({},owner,'id')).rejects.toMatchObject({status:409});
-  expect(repo.userCanRetryHold(requests[0])).toBe(false);
-  expect(await repo.resumeHeldByUser({},owner,'id')).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
-  expect(requests[0].systemRecoveryGrants[0]).toBe(6);expect(repo.holdAutoResumes(requests[0])).toBe(true);
-  for(const hold of [{errorCode:'ASK_LIMITED_REVIEW_REQUIRED'},{hold:{reason:'UNKNOWN'}}])
-    expect(repo.userCanRetryHold({...requests[0],hold:{},...hold})).toBe(false);
-  // A family order held before its first chapter restores its pass; an order without access has nothing to retry.
-  const fresh={...requests[0],hold:{reason:'SYSTEM_RECOVERY_EXHAUSTED'}};
-  expect(repo.userCanRetryHold(fresh)).toBe(true);
-  for(const row of [{...fresh,paymentId:null,accessMethod:'FAMILY'},{...fresh,paymentId:null,accessMethod:''}])expect(repo.userCanRetryHold(row)).toBe(false);
-  expect(repo.userCanRetryHold({...fresh,paymentId:null,accessMethod:'FAMILY',chapters:[{}]})).toBe(true);
-  expect(payments).toHaveLength(1);
-});
-
-test('a buyer hold retry decided on a stale read grants nothing once another retry has landed',async()=>{
-  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
-  Object.assign(requests[0],{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',hold:{reason:'SYSTEM_RECOVERY_EXHAUSTED',chapter:0,epoch:repo.GENERATION_FIX_EPOCH}});
-  const update=RequestModel.findOneAndUpdate;
-  // The other click was granted, failed again and was held between this click's read and its write.
-  RequestModel.findOneAndUpdate=(...args)=>{RequestModel.findOneAndUpdate=update;requests[0].hold.userRetries={0:1};return update(...args);};
-  expect(await repo.resumeHeldByUser({},owner,'id')).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
-  expect(requests[0].hold.userRetries).toEqual({0:1});expect(requests[0].systemRecoveryGrants?.[0]).toBeUndefined();
-});
-
-test('the production-shaped legacy hold resumes once even when two ticks race',async()=>{
+test('a tuna book preserves nine saved chapters when the unusable tenth exhausts its budget',async()=>{
   await repo.createRequest({},owner,'id',book(15));await repo.attachPayment({},owner,'id',1000);
-  await saveThrough(9,15);
-  Object.assign(requests[0],{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',attempts:27,
-    chapterAttempts:{...requests[0].chapterAttempts,9:5},manualRecoveryGrants:{0:2,1:1,9:2}});
-  requests[0].recoveryAudit.push({kind:'review_required',source:'user',chapter:9,at:new Date(),code:'MANUAL_RECOVERY_LIMIT_REACHED'});
-  expect(requests[0].hold).toBeUndefined();
-  expect(repo.canResumeAfterFix(requests[0])).toBe(true);
-  const [a,b]=await Promise.all([repo.resumeHeldAfterFix({},requests[0]),repo.resumeHeldAfterFix({},requests[0])]);
-  expect([a,b].filter(Boolean)).toHaveLength(1);
-  expect(requests[0]).toMatchObject({state:'PAID',hold:{resumes:1,reason:'MANUAL_RECOVERY_LIMIT_REACHED',chapter:9},systemRecoveryGrants:{9:3}});
-  expect(repo.allowedChapterAttempts(requests[0],9)).toBe(8);
-  const claim=await repo.claimChapter({},owner,'id','queue');
-  expect(claim.token).toBeTruthy();expect(claim.row.chapters).toHaveLength(9);
+  await saveThrough(9,15);const saved=JSON.stringify(requests[0].chapters);
+  await failCurrent(2);await repo.escalateStopped({},requests[0]);
+  expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED'});
+  requests[0].hold.epoch=repo.GENERATION_FIX_EPOCH-1;
+  expect(await repo.resumeHeldAfterFix({},requests[0])).toBeNull();
+  expect(JSON.stringify(requests[0].chapters)).toBe(saved);expect(payments).toHaveLength(1);
+});
+
+test('buyer retries and fix epochs do not mint a new generation budget',async()=>{
+  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
+  await failCurrent(2);await repo.escalateStopped({},requests[0]);
+  for(let i=0;i<3;i++){
+    expect(repo.userCanRetry(requests[0])).toBe(false);
+    expect(repo.userCanRetryHold(requests[0])).toBe(false);
+    await repo.resumeHeldByUser({},owner,'id');
+    requests[0].hold.epoch=0;expect(await repo.resumeHeldAfterFix({},requests[0])).toBeNull();
+  }
+  expect(requests[0].chapterAttempts[0]).toBe(2);expect(payments).toHaveLength(1);
+});
+
+test('concurrent buyer hold retries do not change a spent ledger',async()=>{
+  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
+  Object.assign(requests[0],{state:'FORTUNE_FAILED',chapterAttempts:{0:2},errorCode:'GENERATION_REVIEW_REQUIRED',hold:{reason:'SYSTEM_RECOVERY_EXHAUSTED',chapter:0,epoch:repo.GENERATION_FIX_EPOCH}});
+  await Promise.all([repo.resumeHeldByUser({},owner,'id'),repo.resumeHeldByUser({},owner,'id')]);
+  expect(requests[0].chapterAttempts).toEqual({0:2});expect(requests[0].systemRecoveryGrants?.[0]).toBeUndefined();
+});
+
+test('historical retry grants cannot reopen a spent chapter on a new fix epoch',async()=>{
+  await repo.createRequest({},owner,'id',book(15));await repo.attachPayment({},owner,'id',1000);await saveThrough(9,15);
+  Object.assign(requests[0],{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',attempts:27,chapterAttempts:{9:5},manualRecoveryGrants:{9:2},systemRecoveryGrants:{9:3}});
+  requests[0].recoveryAudit.push({kind:'review_required',source:'user',chapter:9,code:'MANUAL_RECOVERY_LIMIT_REACHED'});
+  expect(repo.canResumeAfterFix(requests[0])).toBe(false);
+  expect(await Promise.all([repo.resumeHeldAfterFix({},requests[0]),repo.resumeHeldAfterFix({},requests[0])])).toEqual([null,null]);
+  expect(repo.allowedChapterAttempts(requests[0],9)).toBe(2);expect(requests[0].chapters).toHaveLength(9);
 });
 
 test('holds that a fix cannot help are stamped out of the scan and never auto-resumed',async()=>{
@@ -454,7 +380,7 @@ test('holds that a fix cannot help are stamped out of the scan and never auto-re
 
 test.each(['refunded','cancelled','refund pending'])('a %s order is never retried or resumed by the server',async status=>{
   await repo.createRequest({},owner,'id',book(3));await repo.attachPayment({},owner,'id',1000);
-  await failCurrent(3);
+  await failCurrent(2);
   const stopped={...requests[0]};
   if(status==='refund pending')payments[0].metadata.yeongnyangiRefundPending=true;else payments[0].status=status;
   if(status==='refund pending')await expect(repo.escalateStopped({},stopped)).rejects.toMatchObject({status:409});
@@ -472,7 +398,7 @@ test('the total attempt ceiling holds the order for operators instead of spinnin
   Object.assign(requests[0],{attempts:6,chapterAttempts:{0:1}});
   await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
   expect(requests[0]).toMatchObject({errorCode:'GENERATION_REVIEW_REQUIRED',hold:{reason:'ATTEMPT_LIMIT_REACHED',chapter:0,alertPending:true}});
-  expect(repo.holdAutoResumes(requests[0])).toBe(true);
+  expect(repo.holdAutoResumes(requests[0])).toBe(false);
 });
 
 test('an alert clears only the hold it reported',async()=>{
@@ -488,50 +414,34 @@ test('an alert clears only the hold it reported',async()=>{
   expect(requests[0].hold).toMatchObject({alertPending:false,alertedAt:expect.any(Date)});
 });
 
-test('a rejected draft is retried within seconds under the same three-attempt cap; the audit keeps the block detail',async()=>{
+test('a rejected draft is retried within seconds under the same two-attempt cap; the audit keeps the block detail',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
-  for(let attempt=1;attempt<=3;attempt++){
+  for(let attempt=1;attempt<=2;attempt++){
     requests[0].nextAttemptAt=null;
     const claim=await repo.claimChapter({},owner,'id');
     await repo.failChapter({},owner,'id',claim.token,'INVALID_CHAPTER_BLOCKS',attempt,'quality',undefined,'paragraph_too_long:action');
-    if(attempt<3){const wait=requests[0].nextAttemptAt.getTime()-Date.now();expect(wait).toBeGreaterThan(4000);expect(wait).toBeLessThanOrEqual(5000);}
+    if(attempt<2){const wait=requests[0].nextAttemptAt.getTime()-Date.now();expect(wait).toBeGreaterThan(4000);expect(wait).toBeLessThanOrEqual(5000);}
   }
   expect(requests[0]).toMatchObject({errorCode:'AUTOMATIC_RECOVERY_STOPPED',nextAttemptAt:null,lastFailure:{code:'INVALID_CHAPTER_BLOCKS',stage:'quality'}});
   expect(requests[0].recoveryAudit.at(-1)).toMatchObject({kind:'automatic_recovery_stopped',code:'INVALID_CHAPTER_BLOCKS',detail:'paragraph_too_long:action'});
 });
 
-test.each(['queue','user'])('worker interruption after chapter one becomes recoverable via %s at the attempt limit',async source=>{
-  const total=5;
-  await repo.createRequest({},owner,'id',{...values,snapshot:{manifest:Array.from({length:total},(_,i)=>({id:`chapter-${i}`}))}});await repo.attachPayment({},owner,'id',1000);
-  const first=await repo.claimChapter({},owner,'id');
-  await repo.finishChapter({},owner,'id',first.token,0,{summary:'saved first chapter'},total);
-  for(let attempt=1;attempt<=3;attempt++){
-    const claim=await repo.claimChapter({},owner,'id');
-    expect(claim.token).toBeTruthy();
-    // A terminated Worker cannot call failChapter. The lease alone expires.
-    requests[0].leaseUntil=new Date(0);
-  }
-  if(source==='queue'){
-    await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
-    expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',errorCode:'AUTOMATIC_RECOVERY_STOPPED'});
-  }
-  await repo.resumeRequest({},owner,'id');
-  const resumed=await repo.claimChapter({},owner,'id');
-  expect(resumed.token).toBeTruthy();expect(resumed.row.chapters).toEqual([{summary:'saved first chapter'}]);
-  requests[0].lastFailure={stage:'quality',code:'CHAPTER_SECTION_TOO_SHORT',at:new Date()};
-  let complete=await repo.finishChapter({},owner,'id',resumed.token,1,{summary:'recovered second chapter'},total);
-  expect(complete.lastFailure).toBeNull();
-  for(let ordinal=2;ordinal<total;ordinal++){
-    const claim=await repo.claimChapter({},owner,'id');
-    complete=await repo.finishChapter({},owner,'id',claim.token,ordinal,{summary:`remaining chapter ${ordinal}`},total);
-  }
-  expect(complete.state).toBe('COMPLETED');expect(complete.paymentId).toBe('pay1');
-  expect(complete.chapterAttempts).toEqual({0:1,1:4,2:1,3:1,4:1});expect(payments).toHaveLength(1);
+test.each(['queue','scheduled'])('a durable draft survives storage interruption via %s without a new generation reservation',async source=>{
+  await repo.createRequest({},owner,'id',book(2));await repo.attachPayment({},owner,'id',1000);
+  const first=await repo.claimChapter({},owner,'id',source);
+  const draft={raw:'provider raw',body:{summary:'saved local edit'}};
+  await repo.saveChapterDraft({},owner,'id',first.token,0,draft);
+  requests[0].leaseUntil=new Date(0);
+  const resumed=await repo.claimChapter({},owner,'id',source);
+  expect(resumed.token).toBeTruthy();expect(resumed.row.chapterAttempts[0]).toBe(1);
+  expect(resumed.row.generationCheckpoint.chapterDrafts[0]).toEqual(draft);
+  await repo.finishChapter({},owner,'id',resumed.token,0,draft.body,2);await saveThrough(2,2);
+  expect(requests[0].state).toBe('COMPLETED');expect(payments).toHaveLength(1);
 });
 
 test('the last allowed attempt keeps its active lease until it finishes',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
-  requests[0].chapterAttempts={0:2};requests[0].attempts=2;
+  requests[0].chapterAttempts={0:1};requests[0].attempts=1;
   const last=await repo.claimChapter({},owner,'id');
   const duplicate=await repo.claimChapter({},owner,'id');
   expect(duplicate.token).toBeNull();expect(requests[0].state).toBe('GENERATING');
@@ -546,14 +456,12 @@ test('expired final lease can finalize a saved checkpoint without another provid
   const resumed=await repo.claimChapter({},owner,'id');expect(resumed.token).toBeNull();expect(resumed.row.state).toBe('COMPLETED');expect(resumed.row.attempts).toBe(1);
 });
 
-test('duplicate explicit recovery returns the same paid request without losing the response',async()=>{
+test('duplicate explicit recovery cannot reopen an exhausted paid request',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
-  requests[0].errorCode='AUTOMATIC_RECOVERY_STOPPED';requests[0].state='FORTUNE_FAILED';requests[0].attempts=3;
-  const rows=await Promise.all([repo.resumeRequest({},owner,'id'),repo.resumeRequest({},owner,'id')]);
-  for(const row of rows){expect(row.state).toBe('PAID');expect(row.paymentId).toBe('pay1');expect(row.attempts).toBe(3);}
-  expect(requests[0].manualRecoveryGrants[0]).toBe(1);
-  expect(requests[0].recoveryAudit.filter(event=>event.kind==='manual_retry_requested')).toHaveLength(1);
-  expect(payments).toHaveLength(1);
+  Object.assign(requests[0],{errorCode:'AUTOMATIC_RECOVERY_STOPPED',state:'FORTUNE_FAILED',attempts:2,chapterAttempts:{0:2}});
+  await Promise.allSettled([repo.resumeRequest({},owner,'id'),repo.resumeRequest({},owner,'id')]);
+  expect(requests[0]).toMatchObject({state:'FORTUNE_FAILED',paymentId:'pay1',attempts:2});
+  expect(requests[0].manualRecoveryGrants[0]).toBeUndefined();expect(payments).toHaveLength(1);
 });
 
 test('refund after final checkpoint but before completion cannot expose a completed result',async()=>{

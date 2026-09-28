@@ -32,8 +32,9 @@ import { jongCheckApplies } from './fortune/saju/jong-check-policy';
 import { enqueueConsultation } from './queue.js';
 import { FortuneError, type DomainContext, type DomainId } from './fortune/shared/contracts';
 import { CodeDestinyProvider } from './providers/code-destiny';
-import { StructuredChapterProvider, validateChapter } from './providers/chapter';
-import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, allowedChapterAttempts, holdAutoResumes, userCanRetry } from './repository.js';
+import { StructuredChapterProvider } from './providers/chapter';
+import { deliverChapter } from './providers/delivery';
+import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry } from './repository.js';
 
 const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
 
@@ -278,10 +279,12 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(sharedProvider);
-    const generated=await provider.generateChapter(input);
+    const draft=row.generationCheckpoint?.chapterDrafts?.[ordinal];
+    const generated=draft?.raw ?? await provider.generateChapter(input);
     stage='quality';
-    const result=validateChapter(generated,input);
+    const result=draft?.body ?? deliverChapter(generated,input);
     stage='storage';
+    if(!draft)await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result});
     const completed=await finishChapter(env,userId,requestId,token,ordinal,result,row.snapshot.manifest.length);
     if(!completed) throw new FortuneError('GENERATION_LEASE_LOST',409);
     console.info('[yeongnyangi-generation]',JSON.stringify({requestId,productId:row.productId,chapter:ordinal,
@@ -297,7 +300,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     // preserves the paid request and saved chapters for support review.
     const review=askQuality&&(row.lastFailure?.stage==='quality'||Number(row.chapterAttempts?.[ordinal] || 0)>=allowedAttempts);
     try { await failChapter(env,userId,requestId,token,review?'ASK_LIMITED_REVIEW_REQUIRED':code,
-      row.chapterAttempts?.[ordinal] || 1,stage,allowedAttempts,review?code:detail,ordinal); }
+      row.chapterAttempts?.[ordinal] || 1,stage,stage==='storage'?Number.MAX_SAFE_INTEGER:allowedAttempts,review?code:detail,ordinal); }
     catch { console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage:'failure_checkpoint',code})); }
     throw error;
   }

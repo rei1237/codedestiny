@@ -7,17 +7,15 @@ import { scopeConnection } from '../lib/db-scope-connection.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
-export const AUTOMATIC_CHAPTER_ATTEMPTS = 3;
-export const MANUAL_CHAPTER_RECOVERY_LIMIT = 2;
-// Once a chapter spends its user grants, the server retries it once more, then
-// holds the order and alerts operators. A hold from a spent budget can still be
-// retried by its buyer twice. Every grant path is capped, so a chapter costs at most
-// 3 automatic + 2 user + 2 system + 2x2 user-after-hold + 2x3 post-fix attempts (17).
-export const SYSTEM_CHAPTER_RETRY_GRANT = 2;
-export const USER_HOLD_RETRY_LIMIT = 2;
-export const USER_HOLD_RETRY_GRANT = 2;
-export const FIX_RESUME_GRANT = 3;
-export const MAX_FIX_RESUMES = 2;
+// One first generation and at most one server retry per chapter. Historical
+// grants remain in the audit but never enlarge the paid-generation budget.
+export const AUTOMATIC_CHAPTER_ATTEMPTS = 2;
+export const MANUAL_CHAPTER_RECOVERY_LIMIT = 0;
+export const SYSTEM_CHAPTER_RETRY_GRANT = 0;
+export const USER_HOLD_RETRY_LIMIT = 0;
+export const USER_HOLD_RETRY_GRANT = 0;
+export const FIX_RESUME_GRANT = 0;
+export const MAX_FIX_RESUMES = 0;
 // Raise when a deployed generation fix should retry held orders once more.
 // 2: chapter rejection floor relaxed to 70% of the target low (2026-09-27).
 export const GENERATION_FIX_EPOCH = 2;
@@ -42,12 +40,10 @@ export function requestAccessMethod(row = {}) {
 export function hasRequestAccess(row = {}) { return Boolean(requestAccessMethod(row)); }
 
 const grantCount=(grants,ordinal)=>Math.max(0,Number(grants?.[ordinal])||0);
-const grantTotal=grants=>Object.values(grants || {}).reduce((sum,value)=>sum+Math.max(0,Number(value)||0),0);
 // Pin a grant counter so a concurrent grant is never overwritten by a stale decision.
 const pinGrant=(field,ordinal,value)=>value?{[`${field}.${ordinal}`]:value}
   :{$or:[{[`${field}.${ordinal}`]:{$exists:false}},{[`${field}.${ordinal}`]:0}]};
-export const allowedChapterAttempts=(row,ordinal)=>AUTOMATIC_CHAPTER_ATTEMPTS
-  +grantCount(row?.manualRecoveryGrants,ordinal)+grantCount(row?.systemRecoveryGrants,ordinal);
+export const allowedChapterAttempts=(_row,_ordinal)=>AUTOMATIC_CHAPTER_ATTEMPTS;
 
 // Dotted fields: an existing hold keeps its resume count.
 const holdSet=(reason,chapter,at)=>({'hold.reason':String(reason).slice(0,80),'hold.chapter':Number.isInteger(chapter)?chapter:null,
@@ -80,6 +76,7 @@ export function userCanRetryHold(row = {}) {
 // Whether the buyer's retry button can move the order. A stopped chapter escalates through a user grant,
 // the system retry, then a user hold retry; a held chapter only while its user hold retries last.
 export function userCanRetry(row = {}) {
+  if(Number(row.chapterAttempts?.[savedChapters(row)] || 0)>=AUTOMATIC_CHAPTER_ATTEMPTS)return false;
   if(['COMPLETED','REFUNDED'].includes(row.state)||!hasRequestAccess(row))return false;
   if(row.errorCode!=='AUTOMATIC_RECOVERY_STOPPED')return userCanRetryHold(row);
   const ordinal=savedChapters(row);
@@ -212,11 +209,11 @@ async function reconcileAttemptLimit(env,userId,current) {
     ['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(current.errorCode)||
     new Date(current.leaseUntil || 0).getTime()>Date.now()||new Date(current.nextAttemptAt || 0).getTime()>Date.now())return current;
   const ordinal=current.chapters.length;
+  if(current.generationCheckpoint?.chapterDrafts?.[ordinal]?.body)return current;
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
   const manualGrants=grantCount(current.manualRecoveryGrants,ordinal),systemGrants=grantCount(current.systemRecoveryGrants,ordinal);
-  const totalGrants=grantTotal(current.manualRecoveryGrants)+grantTotal(current.systemRecoveryGrants);
   const exhausted=chapterAttempts>=allowedChapterAttempts(current,ordinal)?'AUTOMATIC_RECOVERY_STOPPED'
-    :Number(current.attempts || 0)>=total*AUTOMATIC_CHAPTER_ATTEMPTS+totalGrants?'GENERATION_REVIEW_REQUIRED':'';
+    :Number(current.attempts || 0)>=total*AUTOMATIC_CHAPTER_ATTEMPTS?'GENERATION_REVIEW_REQUIRED':'';
   if(exhausted){
     // A terminated Worker may never reach failChapter. Persist the exhausted
     // state so library recovery can grant a retry instead of showing an endless wait.
@@ -276,7 +273,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
       {$or:[{[attemptKey]:{$exists:false}},{[attemptKey]:chapterAttempts}]}],
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
   },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+180000),errorCode:''},
-    $inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1},
+    ...(!current.generationCheckpoint?.chapterDrafts?.[ordinal]?.body?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
     $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true}).lean());
   return row ? {row,token} : {row:current,token:null};
 }
@@ -324,7 +321,7 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
         const stored=await YeongnyangiRequest.findOne(filter).session(session).lean();
         if(!stored||!Array.isArray(stored.chapters)||stored.chapters.length!==total)return;
         const questions=stored.snapshot?.analysis?.consultation?.questions || [];
-        if(questions.some(q=>!stored.chapters[stored.snapshot.manifest.findIndex(c=>c.id===q.chapterId)]?.questionAnswers?.some(a=>a.questionId===q.id&&[a.answer,a.reason,a.timing,a.action].every(s=>typeof s==='string'&&s.trim().length>=10)))){
+        if(questions.some(q=>!stored.chapters[stored.snapshot.manifest.findIndex(c=>c.id===q.chapterId)]?.questionAnswers?.some(a=>a.questionId===q.id&&typeof a.answer==='string'&&a.answer.trim().length>=10))){
           result=await YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseToken:'',leaseUntil:null,
             ...holdSet('STORAGE_VERIFICATION',total-1,new Date())},$push:{recoveryAudit:{kind:'review_required',source:'storage_verification',chapter:total-1,at:new Date()}}},{new:true,session}).lean();
           return;
@@ -353,6 +350,16 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
   // Confirm the committed completion before returning it to the route/UI.
   const confirmed=await readRequest(env,userId,requestId);
   return confirmed.state==='COMPLETED'&&confirmed.chapters?.length===total?confirmed:null;
+}
+
+// A durable local edit separates generation from result storage. Replaying the
+// same owner/lease-scoped checkpoint is idempotent and does not spend LLM budget.
+export async function saveChapterDraft(env,userId,requestId,token,ordinal,draft) {
+  const field=`generationCheckpoint.chapterDrafts.${ordinal}`;
+  const filter={_id:requestId,userId:ownerId(userId),state:'GENERATING',leaseToken:token};
+  await withMongoRetry(env,()=>YeongnyangiRequest.updateOne(filter,{$set:{[field]:draft}}),{retries:0});
+  const stored=await readRequest(env,userId,requestId);
+  if(JSON.stringify(stored.generationCheckpoint?.chapterDrafts?.[ordinal])!==JSON.stringify(draft))throw failure(503,'RESULT_STORAGE_UNAVAILABLE');
 }
 
 export async function finishChapter(env, userId, requestId, token, ordinal, body, total) {
@@ -467,7 +474,7 @@ async function escalateStoppedChapter(env,userId,requestId,row,source,reason) {
   const system=grantCount(row.systemRecoveryGrants,ordinal);
   const filter={_id:requestId,userId:ownerId(userId),errorCode:'AUTOMATIC_RECOVERY_STOPPED',chapters:{$size:ordinal},
     $and:[pinGrant('manualRecoveryGrants',ordinal,grantCount(row.manualRecoveryGrants,ordinal)),pinGrant('systemRecoveryGrants',ordinal,system)]};
-  if(!system){
+  if(!system && SYSTEM_CHAPTER_RETRY_GRANT>0){
     const retried=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null},
       $inc:{[`systemRecoveryGrants.${ordinal}`]:SYSTEM_CHAPTER_RETRY_GRANT},$push:{recoveryAudit:{kind:'system_retry',source,chapter:ordinal,at:now}}},{new:true}).lean());
     return retried || readRequest(env,userId,requestId);

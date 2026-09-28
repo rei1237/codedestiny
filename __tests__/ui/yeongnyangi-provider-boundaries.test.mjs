@@ -15,9 +15,9 @@ test('question analysis uses a short deterministic single provider call',async()
  assert.equal(getOptions().thinkingBudget,0);
  setResponse({ok:true,text:'{}',truncated:true});await assert.rejects(provider.analyzeQuestion('classify','data'));
 });
-test('output truncation never becomes a completed chapter even with parseable JSON',async()=>{
+test('output truncation preserves raw text for local delivery recovery',async()=>{
  for(const flags of [{truncated:true},{finishReason:'MAX_TOKENS'}]){
-  setResponse({ok:true,text:'{}',...flags});await assert.rejects(provider.generate(request),e=>e.code==='FORTUNE_OUTPUT_TRUNCATED');
+  setResponse({ok:true,text:'{}',...flags});assert.equal((await provider.generate(request)).result,'{}');
  }
 });
 test('timeout and provider failure remain distinct recoverable errors',async()=>{

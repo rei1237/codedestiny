@@ -45,7 +45,7 @@ export class CodeDestinyProvider implements LLMProvider {
       taskType:'yeongnyangi-chapter',
       logContext:this.logContext,
     });
-    if (response.truncated || /^(MAX_TOKENS|LENGTH)$/.test(response.finishReason || '')) throw new FortuneError('FORTUNE_OUTPUT_TRUNCATED',502);
+    // Preserve truncated raw text for local body recovery before considering a paid retry.
     if (!response.ok || response.isMock || !response.text) {
       const code='error' in response ? String(response.error) : '';
       console.warn('[yeongnyangi-provider]',JSON.stringify({code:code.replace(/[^A-Za-z0-9_]/g,'').slice(0,80),status:'status' in response?response.status:null}));
