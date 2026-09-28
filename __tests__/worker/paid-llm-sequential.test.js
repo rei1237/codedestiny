@@ -76,8 +76,10 @@ test('structured repairs share one deadline and never retry a timed out provider
  try{
   provider.mockImplementation(async()=>{now+=600;return{ok:true,truncated:true,text:'{"body":"saved"}'};});
   const result=await callGeminiJsonWithRetry({},'synthetic',{attempts:3,timeoutMs:1000,baseTokens:2000});
-  expect(result.text).toContain('saved');expect(provider).toHaveBeenCalledTimes(2);
-  expect(provider.mock.calls.map(row=>row[2].timeoutMs)).toEqual([1000,400]);
+  expect(result.text).toContain('saved');expect(provider).toHaveBeenCalledTimes(1);
+  expect(result.rawText).toBe('{"body":"saved"}');
+  expect(result.truncated).toBe(false);
+  expect(provider.mock.calls.map(row=>row[2].timeoutMs)).toEqual([1000]);
   expect(provider.mock.calls.every(row=>row[2].maxProviderAttempts===1)).toBe(true);
   provider.mockClear();provider.mockResolvedValue({ok:false,error:'llm_failed',message:'provider timed out'});
   await callGeminiJsonWithRetry({},'synthetic',{attempts:3,timeoutMs:1000,baseTokens:2000});
@@ -96,3 +98,14 @@ test('all durable multi-part dispatchers use the shared one-part policy',()=>{
   expect(source).toMatch(/(?:slice\(0,\s*PAID_LLM_PARTS_PER_REQUEST\)|(?:BATCH_SIZE|CONCURRENCY)\s*=\s*PAID_LLM_PARTS_PER_REQUEST)/);
  }
 });
+
+ test('structured helper never multiplies durable attempts and caps standalone failures at two',async()=>{
+  const {callGeminiJsonWithRetry}=await import('../../worker/lib/structured-consultation.js');
+  const {runWithPaidGenerationContext}=await import('../../worker/lib/paid-generation-context.js');
+  provider.mockResolvedValue({ok:false,error:'unavailable'});
+  await runWithPaidGenerationContext({requestId:'saved',attempt:1},()=>callGeminiJsonWithRetry({},'synthetic',{attempts:9,baseTokens:2000}));
+  expect(provider).toHaveBeenCalledTimes(1);
+  provider.mockClear();
+  await callGeminiJsonWithRetry({},'synthetic',{attempts:9,baseTokens:2000});
+  expect(provider).toHaveBeenCalledTimes(2);
+ });

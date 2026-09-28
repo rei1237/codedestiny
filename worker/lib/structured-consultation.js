@@ -1,13 +1,7 @@
-// 구조화(JSON) LLM 상담 생성의 "잘림 반응형 재시도"를 한 곳에 모은다.
-// 운명의 찻집(worker/routes/fortune-tea-house.js)이 안정적으로 쓰는 패턴 중
-// 라우트-비종속 부분만 일반화했다:
-//   - responseMimeType:"application/json" 강제(모델이 코드펜스/서론으로 토큰 낭비하는 것을 막음)
-//   - 응답이 잘리면(ai.truncated) 다음 시도에서 출력 토큰을 올려 재생성
-//   - 성공 응답 중 가장 긴(=가장 완결된) 후보를 보존해 반환
-// 각 라우트의 파싱/repair/degrade 파이프라인은 그대로 두고, "첫 생성이 잘리지 않게"만 보장한다.
-// 반환 형태는 callGeminiText와 동일해 드롭인 교체가 가능하다.
-
+// 구조화 응답은 로컬에서 복구하고, 응답이 없을 때만 제한된 재시도를 사용한다.
 import { callGeminiText } from "./gemini.js";
+import { getPaidGenerationContext } from "./paid-generation-context.js";
+import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 
 /**
  * Workers AI 폴백 응답의 JSON 정화.
@@ -56,7 +50,7 @@ function sanitizeFallbackJsonText(text) {
  */
 export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
   const {
-    attempts = 3,
+    attempts = 2,
     baseTokens,
     capTokens,
     responseMimeType = "application/json",
@@ -64,6 +58,7 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
     ...rest
   } = opts;
 
+  const attemptLimit = getPaidGenerationContext() ? 1 : Math.min(2, Math.max(1, Number(attempts) || 1));
   const cap = Number(capTokens) || Number(baseTokens) || 0;
   let truncationRetries = 0;
   let best = null;
@@ -73,7 +68,7 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
   const requestedTimeout = Number(opts.timeoutMs);
   const deadlineAt = Date.now() + (requestedTimeout > 0 && Number.isFinite(requestedTimeout) ? requestedTimeout : 30000);
 
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
+  for (let attempt = 0; attempt < attemptLimit; attempt += 1) {
     const scaled = Math.round(Number(baseTokens) * (1 + 0.3 * truncationRetries));
     const maxOutputTokens = cap > 0 ? Math.min(cap, scaled) : scaled;
     const prompt = typeof buildPrompt === "function" ? buildPrompt(attempt, best) : buildPrompt;
@@ -103,10 +98,18 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
       ai.text = sanitizeFallbackJsonText(ai.text);
     }
 
-    // 성공 응답 중 가장 긴(=가장 완결에 가까운) 후보를 보존한다.
+    // A finish flag alone cannot discard paid text or buy another generation.
+    // Keep original bytes for persistence and let route-specific checks judge content.
+    if (ai.truncated && responseMimeType) {
+      const recovered = salvageTruncatedJsonObject(ai.text);
+      if (recovered) return { ...ai, rawText: ai.text, text: JSON.stringify(recovered), truncated: false };
+    }
+    if (String(ai.text || '').trim()) return ai;
+
+    // Preserve a response when the provider gave no usable text.
     if (!best || (ai.text?.length || 0) > (best.text?.length || 0)) best = ai;
     // 잘리지 않았으면 완결로 보고 즉시 반환. 잘렸으면 토큰을 올려 재시도.
-    if (!ai.truncated) return ai;
+    if (!ai.truncated && String(ai.text || "").trim()) return ai;
     truncationRetries += 1;
   }
 
