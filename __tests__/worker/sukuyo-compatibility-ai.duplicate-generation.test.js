@@ -237,18 +237,18 @@ function mockSectionsResolvedImmediately() {
 
 
 async function runWave() { return handleSukuyoCompatibilityAiRoutes(startRequest(KEY), ENV); }
-async function finishReport() { let response; for (let i = 0; i < 5; i++) response = await runWave(); return response; }
-test("다섯 요청에 한 묶음씩 저장하고 완료 때만 결과를 확정한다", async () => {
+async function finishReport() { let response; for (let i = 0; i < 6; i++) response = await runWave(); return response; }
+test("본문 다섯 묶음과 요약을 순차 저장하고 완료 때만 결과를 확정한다", async () => {
   mockSectionsResolvedImmediately();
-  for (let i = 0; i < 5; i++) {
-    const response = await runWave(); expect(response.status).toBe(i === 4 ? 200 : 202);
-    expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(i + 2);
-    expect(Object.keys(store.docs[0].llmMeta.sections)).toHaveLength((i + 1) * 3);
+  for (let i = 0; i < 6; i++) {
+    const response = await runWave(); expect(response.status).toBe(i === 5 ? 200 : 202);
+    expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(i + 1);
+    expect(Object.keys(store.docs[0].llmMeta.sections)).toHaveLength(Math.min(i + 1, 5) * 3);
   }
   expect((await runWave()).status).toBe(200); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(6);
 });
 for (const status of ["delivery_pending", "completed"]) for (const kind of ["null", "throw"]) test(`저장 ${status}/${kind}: 503 후 정상 묶음을 재사용한다`, async () => {
-  mockSectionsResolvedImmediately(); for (let i = 0; i < 4; i++) await runWave();
+  mockSectionsResolvedImmediately(); for (let i = 0; i < 5; i++) await runWave();
   storageFault = { status, kind }; const failed = await runWave(); expect(failed.status).toBe(503);
   expect(await failed.json()).toMatchObject({ ok: false, retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE" });
   const stored = store.docs[0]; expect(stored.status).not.toBe("completed"); expect(Object.keys(stored.llmMeta.sections)).toHaveLength(15);
@@ -258,15 +258,15 @@ for (const status of ["delivery_pending", "completed"]) for (const kind of ["nul
 test("다른 isolate의 동시 요청도 한 묶음만 생성한다", async () => {
   let release; const gate = new Promise(resolve => { release = resolve; });
   callGeminiJsonWithRetryMock.mockImplementation(async () => { await gate; return { ok: true, provider: "gemini", text: buildSectionPayload(testUtils.SUKUYO_SECTION_SPECS.map(spec => spec.key)) }; });
-  const first = runWave(); await waitFor(() => callGeminiJsonWithRetryMock.mock.calls.length === 2, "generation begins"); testUtils.clearStartLocks();
-  expect((await runWave()).status).toBe(202); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2);
+  const first = runWave(); await waitFor(() => callGeminiJsonWithRetryMock.mock.calls.length === 1, "generation begins"); testUtils.clearStartLocks();
+  expect((await runWave()).status).toBe(202); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1);
   release(); expect((await first).status).toBe(202);
 });
 test("짧은 결과는 세 번만 보완한 뒤 실패로 남긴다", async () => {
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
   for (let i = 0; i < 3; i++) expect((await runWave()).status).toBe(202);
   expect((await runWave()).status).toBe(503); expect(store.docs[0].status).toBe("generation_failed");
-  expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(4);
+  expect((await runWave()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(3);
 });
 test("예전 완료본은 현재 분량 검사나 추가 생성 없이 다시 읽는다", async () => {
   store.seed({ userId: USER_ID, idempotencyKey: KEY, personA: {}, personB: {}, sukuyoResult: {}, relationshipType: "연인", topic: "전체", accessType: "pass", messages: [{ role: "assistant", content: "과거 본문" }] });
@@ -275,7 +275,7 @@ test("예전 완료본은 현재 분량 검사나 추가 생성 없이 다시 �
 test("서버 결과 ID만으로 원래 입력과 미완료 묶음을 재개한다", async () => {
   mockSectionsResolvedImmediately(); await runWave(); const row = store.docs[0];
   const response = await handleSukuyoCompatibilityAiRoutes(new Request("https://mock.test/api/sukuyo-compatibility-ai/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ resumeSessionId: row._id }) }), ENV);
-  expect(response.status).toBe(202); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(3); expect(row.idempotencyKey).toBe(KEY);
+  expect(response.status).toBe(202); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2); expect(row.idempotencyKey).toBe(KEY);
 });
 test("목록은 진행 중 ID를 별도로 제공하고 과거 완료 목록을 유지한다", async () => {
   mockSectionsResolvedImmediately(); await runWave();
@@ -298,7 +298,7 @@ for (const mode of ["subscription", "paid"]) test(`${mode}: 원래 차감 증빙
 });
 for (const index of [0, 1, 2, 3]) test(`취소·환불 저장소 ${index}은 재개 시 다시 확인한다`, async () => {
   mockSectionsResolvedImmediately(); await runWave(); revokedAt = index;
-  expect((await runWave()).status).toBe(402); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(2); expect(store.docs[0].status).toBe("partial");
+  expect((await runWave()).status).toBe(402); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(1); expect(store.docs[0].status).toBe("partial");
 });
 
 afterEach(() => { expect(blockedFetch).not.toHaveBeenCalled(); });

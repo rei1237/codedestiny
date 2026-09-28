@@ -325,9 +325,9 @@ test("Family 이용권: 실제 prepare → generate는 provider-free 결과를 �
   });
 
   let generateResponse;
-  for (let wave = 0; wave < 6; wave++) {
+  for (let wave = 0; wave < 7; wave++) {
     generateResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env);
-    if (wave < 5) { expect(generateResponse.status).toBe(202); expect(consumePassForFeatureMock).not.toHaveBeenCalled(); }
+    if (wave < 6) { expect(generateResponse.status).toBe(202); expect(consumePassForFeatureMock).not.toHaveBeenCalled(); }
   }
   const generated = await generateResponse.json();
 

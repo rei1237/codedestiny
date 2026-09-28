@@ -108,8 +108,8 @@ assert(
 );
 assert(
   // 둘 다 undefined 여도 통과하지 않게 정수 검사를 함께 둔다(fail-closed, 코딩 원칙 10).
-  Number.isInteger(CHAPTER_BATCH_SIZE) && CHAPTER_BATCH_SIZE > 0 && CHAPTER_BATCH_SIZE === CHAPTER_CONCURRENCY,
-  `웨이브 크기(${CHAPTER_BATCH_SIZE})와 동시 실행 수(${CHAPTER_CONCURRENCY})가 다르거나 정수가 아니면 한 웨이브가 예산을 직렬로 초과합니다`,
+  Number.isInteger(CHAPTER_BATCH_SIZE) && CHAPTER_BATCH_SIZE === 1 && CHAPTER_BATCH_SIZE <= CHAPTER_CONCURRENCY,
+  `웨이브 크기(${CHAPTER_BATCH_SIZE})는 1이어야 하고 실행 슬롯(${CHAPTER_CONCURRENCY}) 안에 들어야 합니다`,
 );
 
 if (failures.length) {

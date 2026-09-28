@@ -68,14 +68,22 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
   let truncationRetries = 0;
   let best = null;
   let lastFailure = null;
+  // One time budget for the whole helper, including all output repairs. A retry
+  // must not restart a full timeout behind the caller's HTTP request deadline.
+  const requestedTimeout = Number(opts.timeoutMs);
+  const deadlineAt = Date.now() + (requestedTimeout > 0 && Number.isFinite(requestedTimeout) ? requestedTimeout : 30000);
 
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     const scaled = Math.round(Number(baseTokens) * (1 + 0.3 * truncationRetries));
     const maxOutputTokens = cap > 0 ? Math.min(cap, scaled) : scaled;
     const prompt = typeof buildPrompt === "function" ? buildPrompt(attempt, best) : buildPrompt;
+    const remainingMs = deadlineAt - Date.now();
+    if (remainingMs <= 0) break;
 
     const ai = await callGeminiText(env, prompt, {
       ...rest,
+      timeoutMs: remainingMs,
+      maxProviderAttempts: 1,
       ...(responseMimeType ? { responseMimeType } : {}),
       temperature: typeof temperature === "function" ? temperature(attempt) : temperature,
       maxOutputTokens,
@@ -83,6 +91,9 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
 
     if (!ai?.ok) {
       lastFailure = ai;
+      // A timed-out provider may already have incurred cost. Resume a durable
+      // part in another request rather than buy the same generation immediately.
+      if (/timeout|timed\s*out|deadline/i.test(`${ai?.error || ''} ${ai?.message || ''}`)) break;
       continue;
     }
 

@@ -4,6 +4,10 @@
 // 대역한다. 그 대역된 자리가 사각이라 실제 명반에서만 나오는 무주성(주성 없는 궁)을 한 번도 태우지
 // 못했다. 이 스위트는 명반 계산기를 대역하지 않는다 — 실제 계산기가 만든 명반으로만 판정한다.
 import { jest } from "@jest/globals";
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 import { countPaidReportBodyChars } from "../../worker/lib/paid-report-quality.js";
 
 const uid = "64b7f2a1c3d4e5f601234567";

@@ -4,6 +4,10 @@
 // "결제됐는데 402/403" 이 된다(2026-09-24). 환불·PG 취소·결제 흔적이 있는 주문은 그대로 막는다.
 // 결제 원장은 fixture 의 진짜 연산자 구현(matches)으로 평가한다 — 필터와 무관하게 행을 돌려주는 스텁이면 이 가드는 죽는다.
 import { jest } from "@jest/globals";
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 import { applyUpdate, matches } from "../fixtures/fake-payment-db.mjs";
 
 const uid = "64b7f2a1c3d4e5f601234567";
@@ -93,7 +97,7 @@ it("ziwei: the K#1 purchase starts, polls, completes and reopens past the expire
   payments = orders(ZIWEI);
   expect((await ziweiStart()).status).toBe(202);
   expect((await read(ziwei, "/api/ziwei-ai/result", docs[0].id)).status).toBe(202);
-  for (let i = 0; i < 4; i++) expect((await ziweiStart()).status).toBe(202);
+  for (let i = 0; i < 5; i++) expect((await ziweiStart()).status).toBe(202);
   expect((await ziweiStart()).status).toBe(200);
   expect((await read(ziwei, "/api/ziwei-ai/result", docs[0].id)).status).toBe(200);
   expect(payments.map(row => row.status)).toEqual(["cancelled", "fulfilled"]); expect(refund).not.toHaveBeenCalled();

@@ -299,7 +299,7 @@ for (const marker of [
   "finishLifeBookDelivery",
   "const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;",
   "const SECTION_CONCURRENCY = 4;",
-  "const MAX_GENERATION_WAVES = 8;",
+  "const MAX_GENERATION_WAVES = 32;",
   // 🔴 엣지 100초를 넘길 수 없으므로 동기 상한을 공용 헬퍼로 clamp 한다(0/음수 하한 가드 포함).
   "clampSyncLlmTimeoutMs",
   "Math.max(15000, requested)",

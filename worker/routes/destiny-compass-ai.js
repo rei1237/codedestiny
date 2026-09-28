@@ -27,7 +27,7 @@ import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from "../lib/service-execution-task.js";
 import {
@@ -377,7 +377,7 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
       }
       return json({ ...publicStoredReport(current), reason: "QUALITY_REPAIR_REQUIRED", retryable: false }, { status: 202 });
     }
-    const wave = missing.slice(0, 4);
+    const wave = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
     if (wave.length) {
       wave.forEach(spec => {
         if (saved.has(spec.key)) attempts[`${spec.key}:lengthRepair`] = 1;

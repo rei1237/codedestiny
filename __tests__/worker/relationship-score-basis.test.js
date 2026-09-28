@@ -2,6 +2,10 @@
 // 장별 근거·점수 계산 보존 대조: 저장될 본문이 실제로 계산된 확정 점수를 지키는지 검사한다.
 // 계산기(calculateLoveSecretAiSaju·scoreBoundary)를 대역하지 않고 실제 명식을 태운다.
 import { jest } from '@jest/globals';
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 let route, docs, provider, userId, wrongScorePart, silentPart;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);

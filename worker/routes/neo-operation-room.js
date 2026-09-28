@@ -20,7 +20,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
-import { SYNC_LLM_TIMEOUT_CEILING_MS } from "../lib/sync-llm-timeout.js";
+import {SYNC_LLM_TIMEOUT_CEILING_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
@@ -1703,7 +1703,7 @@ async function handleStart(request, env, ctx = null) {
     }
     if (missing.some(section => Number(doc.llmMeta.attempts?.[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
-      const selected = missing.slice(0, 4);
+      const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...doc.llmMeta.attempts };
       selected.forEach(section => {
         if (neoSectionReady(section, doc.llmMeta.sections?.[section.id], normalized.input, doc.methodSummary, true)) attempts[`${section.id}:lengthRepair`] = 1;
@@ -1872,7 +1872,7 @@ async function handleRefine(request, env) {
     }
     if (missing.some(section => Number(state.attempts[section.id] || 0) >= 3)) throw Object.assign(new Error(LLM_ERROR_MESSAGE), { code: "LLM_FAILED" });
     if (missing.length) {
-      const selected = missing.slice(0, 4);
+      const selected = missing.slice(0, PAID_LLM_PARTS_PER_REQUEST);
       const attempts = { ...state.attempts };
       selected.forEach(section => {
         if (neoRefinedSectionReady(section, state.sections[section.id], doc, true)) attempts[`${section.id}:lengthRepair`] = 1;

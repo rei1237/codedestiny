@@ -21,6 +21,10 @@ export const EDGE_RESPONSE_DEADLINE_MS = 100000;
 /** LLM 대기에 허용하는 최대치. 나머지는 요청의 앞뒤 작업 몫이다. */
 export const SYNC_LLM_TIMEOUT_CEILING_MS = 85000;
 
+// Durable paid reports finish one part, confirm its checkpoint, then resume in a new request.
+// Serializing four calls inside one HTTP request would still exceed the edge deadline.
+export const PAID_LLM_PARTS_PER_REQUEST = 1;
+
 /**
  * 동기 라우트의 LLM 타임아웃을 엣지 한계 안쪽으로 맞춘다.
  * env 로 더 짧게 주는 것은 그대로 존중하고, 더 길게 주는 것만 깎는다.

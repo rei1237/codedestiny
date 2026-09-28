@@ -6,6 +6,10 @@
  */
 
 import { jest } from "@jest/globals";
+// Multi-part stress fixture; the default one-part contract has separate coverage.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 import createResultStore from "../fixtures/fortune-tea-result-store.cjs";
 import teaFixtures from "../fixtures/fortune-tea-llm-payload.cjs";
 const { buildLlmPayload, consultBody } = teaFixtures;

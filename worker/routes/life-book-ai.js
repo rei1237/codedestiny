@@ -20,7 +20,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 
 const SERVICE_KEY = "life-book-ai";
@@ -105,13 +105,13 @@ const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
 //    한 요청 = 동시성 4 웨이브 하나(≈42초)만 돌리고, 클라가 /generate 를 반복 호출해 진행한다.
 //    (정본 패턴: master-love-codex.js CHAPTER_CONCURRENCY / nakshatra-ai.js SECTION_CONCURRENCY)
 const SECTION_CONCURRENCY = 4;
-const SECTION_BATCH_SIZE = SECTION_CONCURRENCY;
+const SECTION_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST;
 // 웨이브 최악(≈42초)의 2배. 이 값보다 STALE 창이 짧으면 락 보유 중인 정상 세션을 죽인다.
 const SECTION_LOCK_TTL_MS = 90 * 1000;
 // 1회 생성 + 자동 재시도 2회.
 const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 3;
 // 세션당 웨이브 상한. /generate 는 레이트리밋상 하루 60회라 무한 재개를 막아야 한다.
-const MAX_GENERATION_WAVES = 8;
+const MAX_GENERATION_WAVES = 32; // Same total part-attempt budget, one part per request.
 const SECTION_TIMEOUT_MS = 45000;
 const LIFE_BOOK_RESULT_TEXT_MAX_CHARS = 140000;
 const LIFE_FORTUNE_CHAPTER_TITLES = Object.freeze([

@@ -1,5 +1,10 @@
 /** @jest-environment node */
 import { jest } from '@jest/globals';
+// Stress fixture: preserve multi-part storage/lease failures at the former batch width.
+// Production's one-part contract is covered by paid-llm-sequential.test.js.
+const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
+jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
+
 let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
@@ -88,8 +93,8 @@ it('GET does not refund a stale stored report',async()=>{docs[0].updatedAt=new D
 it('historical completed body remains available without new length checks',async()=>{docs[0].status='completed';docs[0].sections=[];expect((await generate()).status).toBe(200);expect(provider).not.toHaveBeenCalled()});
 
 it('lost checkpoint confirmation preserves the written chapter and all siblings',async()=>{fault={count:1,kind:'confirm'};expect((await generate()).status).toBe(503);expect(docs[0].sections.filter(row=>row.status==='ok')).toHaveLength(4);for(let i=0;i<4;i++)await generate();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(18);expect(refund).not.toHaveBeenCalled()});
-it('known empty failures exhaust the bounded budget and retain the existing refund policy',async()=>{provider.mockImplementation(async()=>({ok:false}));docs[0].waveCount=10;expect((await generate()).status).toBe(503);expect(docs[0].status).toBe('generation_failed');expect(refund).toHaveBeenCalledTimes(1);expect(docs[0].generationError.refunded).toBe(true);expect(provider).not.toHaveBeenCalled()});
-it('unknown interrupted calls at the wave cap never turn into generation refunds',async()=>{docs[0].waveCount=10;docs[0].llmMeta={waveInFlight:true};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE'});expect(docs[0].status).toBe('generating');expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled()});
+it('known empty failures exhaust the bounded budget and retain the existing refund policy',async()=>{provider.mockImplementation(async()=>({ok:false}));docs[0].waveCount=40;expect((await generate()).status).toBe(503);expect(docs[0].status).toBe('generation_failed');expect(refund).toHaveBeenCalledTimes(1);expect(docs[0].generationError.refunded).toBe(true);expect(provider).not.toHaveBeenCalled()});
+it('unknown interrupted calls at the wave cap never turn into generation refunds',async()=>{docs[0].waveCount=40;docs[0].llmMeta={waveInFlight:true};const res=await generate();expect(res.status).toBe(503);expect(await res.json()).toMatchObject({reason:'RESULT_STORAGE_UNAVAILABLE'});expect(docs[0].status).toBe('generating');expect(provider).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled()});
 it('short outputs cannot complete even when the schema validator accepts them',async()=>{provider.mockImplementation(async()=>({ok:true,text:JSON.stringify({body:'짧은 본문',keyPoints:[]})}));await generate();expect(docs[0].sections.filter(row=>row.status==='ok')).toHaveLength(0);expect(docs[0].status).not.toBe('completed');expect(refund).not.toHaveBeenCalled()});
 
 for (const repair of ['shorter', 'empty', 'repeated']) it(`HD ${repair} repair preserves its valid short draft`, async () => {

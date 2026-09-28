@@ -49,7 +49,7 @@ import {
 } from "../lib/service-execution-task.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { assembleNatalCodex } from "../lib/nakshatra-codex.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import {
   NAKSHATRA_SECTIONS,
   NAKSHATRA_PHASE_CONSULTATION,
@@ -81,7 +81,7 @@ const SERVER_ERROR_MESSAGE = "상담실을 여는 중 문제가 생겼어요. �
 const RESULT_NOT_FOUND_MESSAGE = "저장된 상담을 찾지 못했어요.";
 const SECTION_CONCURRENCY = 4;
 // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피(master-love-codex.js:88-92 와 동일 계약).
-const SECTION_BATCH_SIZE = SECTION_CONCURRENCY;
+const SECTION_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST;
 const SECTION_TIMEOUT_MS = 45000;
 // 배치 1회(생성 + 캐시우회 재시도 최악 시간)를 덮어야 병렬 폴링이 같은 배치를 중복 기동하지 않는다.
 const BATCH_LOCK_TTL_MS = 120000;

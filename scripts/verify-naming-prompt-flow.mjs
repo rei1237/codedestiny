@@ -237,7 +237,7 @@ assertIncludes("worker/routes/naming-prompt.js", route, "findSettledNamingPaymen
   assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, "GENERATE_TIMEOUT_MS)");
   // 재시도 예산 가드 — 2차 LLM 호출이 엣지 한계를 넘기지 않아야 실패 처리·환불 경로가 돈다.
   const namingDelivery = read("worker/lib/naming-report-delivery.js");
-  for (const marker of ["timeoutMs: 45000", "fallbackToWorkersAI: false", ".slice(0, 4)", "await persist()"])
+  for (const marker of ["timeoutMs: 45000", "fallbackToWorkersAI: false", ".slice(0, PAID_LLM_PARTS_PER_REQUEST)", "await persist()"])
     assertIncludes("worker/lib/naming-report-delivery.js", namingDelivery, marker);
 }
 // 코인게이트가 단건 성공에서 돌려주는 식별자가 merchantUid 로 고정돼 있지 않다.

@@ -1,3 +1,4 @@
+import { PAID_LLM_PARTS_PER_REQUEST } from "./sync-llm-timeout.js";
 import { callGeminiText } from "./gemini.js";
 import { parseNamingResultCards } from "./naming-result-cards.js";
 import { countPaidReportBodyChars, hasRepeatedReportPassage } from "./paid-report-quality.js";
@@ -71,7 +72,7 @@ export async function generateNamingWave(env, snapshot, checkpoint) {
     }
     return { state, limited: !state.candidates && state.attempts.candidates >= 3 };
   }
-  const wave = pendingNamingChapters(state).slice(0, 4);
+  const wave = pendingNamingChapters(state).slice(0, PAID_LLM_PARTS_PER_REQUEST);
   // The repair flag is saved before the call so a lost response never buys a second repair.
   const drafts = Object.fromEntries(wave.filter(chapter => state.chapters[chapter.id]).map(chapter => [chapter.id, state.chapters[chapter.id].body]));
   for (const chapter of wave) {

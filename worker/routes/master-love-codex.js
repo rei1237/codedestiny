@@ -25,7 +25,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
+import {EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { MasterLoveCodexSession, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { recoverCodexSession } from "../lib/master-love-codex-session-access.js";
@@ -105,7 +105,7 @@ function resolveMode(value) {
 const KNOWN_FEATURE_KEYS = Object.freeze([FEATURE_KEY, COMPAT_FEATURE_KEY]);
 
 const CHAPTER_CONCURRENCY = 4; // Gemini 병렬 상한(레이트리밋·subrequest 안전)
-const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피
+const CHAPTER_BATCH_SIZE = PAID_LLM_PARTS_PER_REQUEST; // 한 요청 = 1 동시성 웨이브 → 엣지 100초 컷 회피
 const CHAPTER_TIMEOUT_MS = 45000;
 
 /**

@@ -36,7 +36,8 @@ export class CodeDestinyProvider implements LLMProvider {
     // payload once, without embedding and escaping the whole message array.
     const response=await callGeminiText(this.env, messages(request)[1].content, {
       locale:request.locale || 'ko',
-      maxOutputTokens:cap,thinkingBudget:THINKING_BUDGET,timeoutMs:90000,
+      // Queue generation owns one chapter and a 180s lease. Leave 30s for validation and persisted reread.
+      maxOutputTokens:cap,thinkingBudget:THINKING_BUDGET,timeoutMs:150000,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
       maxProviderAttempts:1,

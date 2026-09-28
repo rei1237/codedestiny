@@ -25,7 +25,7 @@ import scene from "./generation-scene.module.css";
  *    scripts/verify-human-design-report.mjs 가 숫자로 대조한다(문자열 검사가 아니다).
  *    이 값이 서버보다 크면 아직 시작도 안 한 장을 "작성 중" 이라고 말하게 된다.
  */
-const WRITING_WINDOW = 4;
+const WRITING_WINDOW = 1;
 
 type Props = {
   entries: ReportPlanEntry[];

@@ -16,7 +16,7 @@ export function registerPaidNarrativeIntent(featureKey: string, body: Record<str
   return Promise.race([sent, new Promise<void>(resolve => setTimeout(resolve, 1500))]);
 }
 
-// Four bounded server calls run per wave; transport retries keep the same identity.
+// Each request saves one bounded part; transport retries keep the same identity.
 export async function continueOracleDelivery({ body, fetcher, active, progress, endpoint = '/api/tarot/oracle-consultation', pause = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)) }: {
   body: Record<string, unknown>; fetcher: (url: string, init: RequestInit) => Promise<Response>;
   active: () => boolean; progress: (data: OracleDeliveryResponse) => void; pause?: (ms: number) => Promise<void>; endpoint?: string;

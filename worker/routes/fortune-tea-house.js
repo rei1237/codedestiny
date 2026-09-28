@@ -35,7 +35,7 @@ import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing
 import { PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
+import {clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { scopeConnection } from "../lib/db-scope-connection.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -4228,7 +4228,7 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
     const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko',
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
     const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)
-        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars && !state.attempts[group.key + ':lengthRepair'])) && (state.attempts[group.key] || 0) < 3).slice(0, 4);
+        || (countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < group.minChars && !state.attempts[group.key + ':lengthRepair'])) && (state.attempts[group.key] || 0) < 3).slice(0, PAID_LLM_PARTS_PER_REQUEST);
     if (eligible.length && !hasGeminiKey(env)) {
         return { partial: { ...teaCheckpointProgress(state, resultId), reason: 'LLM_UNAVAILABLE' } };
     }
