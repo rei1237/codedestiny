@@ -114,3 +114,20 @@ node --require ./scripts/lib/mock-network-guard.cjs scripts/yeongnyangi-v7-golde
 ```
 
 검증/커밋/main 전달 CI 결과와 재개 SHA는 아래 후속 전달 기록에 기재한다.
+
+### 후속 전달 기록
+
+- 구현 커밋: `667f830e9d0fab01776e90788af73bc19a08e9af`. 최신 main의 다른 세션 변경은 충돌 없이 통합했다. 브랜치/PR은 만들지 않았으며 main에 직접 전달한다.
+- 집중 회귀 14/14, `verify:handoff-contract` 208개 문서 통과. `check:fast`에서 유료 흐름 88/88·타입/lint·Node 1,850개·정책 가드·Worker 빌드까지 통과. 마지막 Jest 단계와 main CI의 최종 상태는 최종 응답의 정확한 SHA/run 링크를 따른다.
+- 실측 checkpoint SHA-256: `287721af3aa391f4f0c1be11fd7df784a0a08db44b4243b971604fed47e4bbb4`. 추가 유료 호출이나 원본 checkpoint 수정 없이 참치 10장 수용 가능성을 확인했다.
+- 후속 확인: 11~24장 실생성과 의미 품질 검토는 미실행. 추가 과금 중단 유지. 별도 실호출 승인 없이 기존 artifact를 재구매/덮어쓰기하지 않는다.
+
+재개:
+
+```powershell
+Set-Location 'D:\Development\code-destiny'
+git show --no-patch --oneline 667f830e9d0fab01776e90788af73bc19a08e9af
+Get-Content -Raw 'D:\Development\code-destiny\docs\handoff\2026-09-29-llm-sequential-and-v7-golden.md'
+node --require ./scripts/lib/mock-network-guard.cjs scripts/yeongnyangi-v7-golden.mjs --revalidate-only --out 'C:\Users\user\.codex\artifacts\v7-golden-20260929-live2'
+# 다음 행동: 추가 과금 중단·v7 OFF 유지. 별도 승인 뒤에만 참치 11~24장 실측 범위를 정한다.
+```
