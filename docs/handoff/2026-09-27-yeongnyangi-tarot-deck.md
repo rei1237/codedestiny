@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-28
-next: "펜타클14 승인 완료. Phase4b 78장 파이프라인·유료 결과 덱 교체 완료, main CI 통과. Phase4b 사용자 승인 대기. 승인 전 Phase5 착수 금지. F-1/F-2 별도 미진행."
+next: "Phase4b 사용자 승인 완료. Phase5 결제 후 드로우 의식 구현·mock 검증 완료. Phase5 사용자 승인 대기. 승인 전 Phase6 착수 금지. F-1/F-2 별도 미진행."
 ---
 
 # 영냥이 전용 타로 덱 — Phase 0 진단·확정 결정과 다음 단계
@@ -78,8 +78,8 @@ next: "펜타클14 승인 완료. Phase4b 78장 파이프라인·유료 결과 �
 | Phase 4a | 메이저 22장 파이프라인, 저장 위치 결정(§9) | 3a | `public/` 이면 GREEN, CI 배선은 RED · 주력 / high | public/ 버전 경로 완료·CI 통과·사용자 승인 완료(2026-09-28) |
 | F-2 | 무료 원카드 UI 출시(room 무료 탭) | F-1, 4a | GREEN · 주력 / medium | 대기 |
 | Phase 3b | 마이너 56장 | 3a 승인(4a·F-2 와 병행 가능) | GREEN · 주력 / medium | 4슈트 각14장 전체 승인 완료(2026-09-28) |
-| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 완료·main CI 통과·사용자 승인 대기 |
-| Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 대기 |
+| Phase 4b | 78장 파이프라인, 유료 결과 caretaro → 영냥이 덱 교체(결정 ④) | 3b, 4a | RED · 주력 / high | 완료·main CI 통과·사용자 승인 완료(2026-09-28) |
+| Phase 5 | 결제 후 드로우 의식(결정 ①). F-2 뒤집기 컴포넌트를 확장 | 4b | RED · 주력 / high | 구현·mock 검증 완료, 사용자 승인 대기 |
 | Phase 6 | 티어별 마스터 상담(결정 ③) | 5 | RED · 주력 / high | 대기 |
 | Phase 7 | 통합 검증·최종 보고 | 6 | RED · 주력 / high | 대기 |
 
@@ -794,7 +794,7 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **전달 실측**: 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`을 main에 fast-forward 반영하고 git push origin main 완료. [GitHub CI 36361870996](https://github.com/rei1237/codedestiny/actions/runs/36361870996)의 headSha 일치·Typecheck and lint/Static guards/Build Pages and Worker/Critical checks/CI required 전부success를 확인했다. Linux CI에서도 새144파일 검사가success다. SVG 텍스트 해시는 LF 정규화로 Windows/Linux를 일치시킨다. 최초check:fast 실패는 위 실패기록 그대로 보존하며 성공으로 바꾸어 보고하지 않는다. 수정 접근은 lint:changed·에셋/Worker 정적검사·5개회귀테스트와 공식CI로 검증했다.
 - **재개 명령**: `D:\Development\code-destiny`에서 `D:\Development\code-destiny\docs\handoff\2026-09-27-yeongnyangi-tarot-deck.md`를 읽고 main 상태와 산출물 커밋 `2c9526d235568e47b95f05d399b08626d07196a2`, 문서 마지막 커밋을 확인한 뒤 「Phase 4a 결과」의 사용자 승인 검토부터 이어간다. public/ 결정과 펜타클 승인을 다시 묻지 않는다. Phase4a 승인 전 Phase4b/F-2 착수 금지.
 
-## Phase 4b 결과 (2026-09-28 · 완료·main CI 통과, 사용자 승인 대기)
+## Phase 4b 결과 (2026-09-28 · 완료·main CI 통과·사용자 승인 완료)
 
 - **승인**: 사용자가 「승인할께」로 Phase4a 메이저22 파이프라인을 승인했다. public/ 결정과 펜타클 승인은 재확인하지 않았다. Phase5·F-1/F-2·Phase6/7은 착수하지 않았다.
 - **기준**: main의 d04d09c6ac3ccfde50e82635f0aebf18fdc6f335 포함을 재확인했고, 동시 세션 때문에 main 4f407762eb17b6e9aacf27a9d51918333c21d0bf에서 관리형 격리 워크트리로 작업했다. 공유 marketing/**와 next-env.d.ts 변경은 보존했다.
@@ -809,7 +809,20 @@ A 로 시작해도 공개 UI 는 나중에 C 로 옮길 수 있다(재작업 적
 - **유지·한계**: 결제·가격·이용권/월정석/단건 결제·인증·API 소유권·DB 스키마/저장·생성 엔진·상담 의미·연이 덱 유지. 표시 API에 선택적 cardCode만 추가했다. 이미지 생성0/실LLM0/실PG0/운영DB쓰기0/운영승격0. 물리적 기기·운영 네트워크·인쇄는 미검증. Phase5 의식은 Phase4b 사용자 승인 전 금지다.
 - **로컬 게이트 기록**: check:fast는 critical로 자동 승격돼 paid-gate88/88(379.3초)·lint·sitemap-drift까지 통과했지만 새 TypeScript 호스트가 JS 인수의 brand/cardCode를 추론하지 못해 TS2353에서 실패했다. 작업 커밋 f24bafb49를 debfffbeb로 격리 워크트리에서 revert했다(main 반영0). 인수 객체에 JSDoc 타입 계약을 명시한 새 작업 단위의 npm run typecheck → exit0, verify:worker-no-undef →474파일OK, 관련15개 회귀 →PASS. 가드를 완화하거나 조건/예외를 추가하지 않았다. 최초 check:fast는 성공으로 보고하지 않는다. 수정된 코드의 공식 완료 판정은 main CI다.
 - **전달 실측**: 동시 main 진행분 f4e3de3e4 위에 검증된 새 작업 단위만 cherry-pick해 산출물 커밋 **2db5a5c169278ca02336b6a2ca6e33d383d14cf2**로 반영하고 git push origin main 완료. 실패·revert 작업 커밋은 main에 반영하지 않았다. [GitHub CI 36365736268](https://github.com/rei1237/codedestiny/actions/runs/36365736268)의 headSha 일치와 Risk tier/Typecheck and lint/Build Pages and Worker/Critical checks/Static guards/CI required 전부 success 확인. Linux CI의 full78/480 에셋 검사도 success다. 최초 로컬 check:fast 실패와 수정 후 typecheck exit0는 위 기록대로 구분한다. 운영승격·routine staging 확인은 하지 않았다.
-- **다음·재개**: Phase4b 사용자 승인 검토부터 이어간다. Phase5 결제 후 드로우 의식은 승인 전 시작하지 않는다. F-1/F-2는 별도 미진행이며 무료 원카드가 출시됐다고 보고하지 않는다. 문서 마지막 커밋은 git log -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md로 확인한다.
+- **승인 기록**: 사용자가 2026-09-28 「승인할께」로 Phase4b 결과를 승인했다. 이 승인 뒤에만 Phase5를 시작했다.
+- **다음·재개**: Phase5 결과와 승인 대기 상태는 아래 절을 따른다. F-1/F-2는 별도 미진행이며 무료 원카드가 출시됐다고 보고하지 않는다. 문서 마지막 커밋은 git log -1 -- docs/handoff/2026-09-27-yeongnyangi-tarot-deck.md로 확인한다.
+
+## Phase 5 결과 (2026-09-28 · 구현·mock 검증 완료, 사용자 승인 대기)
+
+- **선행 승인·범위**: Phase4b 사용자 승인 뒤 결정 ①의 A안만 구현했다. 결제 전 질문·생선 선택·prepare·checkout은 그대로 두고, 결제된 결과 화면에만 집중 3초 → 셔플 정지 → 부채꼴 자리 선택 → 순차 공개 → 상담 펼치기 의식을 넣었다. 사용자의 자리 선택은 집중을 위한 상징이며 서버가 저장한 카드 ID·순서·정역방향을 바꾸지 않는다고 화면에 명시한다.
+- **구현**: `TarotDrawRitual.tsx`가 저장된 tarot chart만 받아 단계별 연출을 제공한다. `Result.tsx`는 paid·non-refunded·tarot chart 조건에서 의식을 먼저 보여 주며, 완료 전에도 기존 결과 polling·생성은 계속된다. 카드 앞면은 공개 단계 진입 뒤 선택된 저장 카드만 preload한다. 효과음은 기본 꺼짐이며 사용자가 켠 뒤 Web Audio로 짧게 재생한다. 신규 라이브러리·네이티브 햅틱은 추가하지 않았다.
+- **복원·접근성·성능**: `localStorage`에는 요청별 의식 화면 단계·선택 위치·공개 개수·완료 여부만 저장한다. 서버 카드가 유일한 정본이고 저장 실패가 결과 전달을 막지 않는다. 새로고침 뒤 공개 진행을 복원하며 완료 뒤 같은 의식을 강제 반복하지 않는다. 버튼·그룹·상태에 이름을 주고 공개 카드명·정역방향을 `aria-live`로 알린다. 키보드 focus-visible, 44px 이상 제어, `prefers-reduced-motion`, 저사양 기기 파티클 축소를 적용했다.
+- **문구·로케일**: ko/en/ja/zh-CN/zh-TW를 제공하고 그 밖의 읽기 로케일은 en으로 폴백한다. 카드 선택이 실제 재추첨인 것처럼 말하지 않고, 결제된 상담에 카드가 이미 저장됐다는 사실을 짧게 설명한다. 가격·이용권·월정석·단건 결제·환불 문구는 수정하지 않았다.
+- **브라우저 검증**: `node scripts/verify-yeongnyangi-tarot-browser.mjs` → 9/9 PASS. 390px 3장 전체 의식과 공개 1장 뒤 reload 복원, 1280px 6장 공개 상태, 기존 360/390/430/1280px 3·6장 결과, 앞면404 영냥이 뒷면 폴백을 확인했다. 저장 카드 불변·순서/방향·2:3·overflow 없음·결과 reload·생성/PG/LLM/운영DB 호출0이다. 캡처는 `build-cache/yeongnyangi-tarot/ritual-choose-390.png`, `ritual-revealed-390.png`, `ritual-revealed-6-1280.png`이며 추적하지 않는다.
+- **검증**: `npm run typecheck` exit0. `npm run verify:hero-contrast`, `npm run verify:mobile-detail-nonintrusive`, `npm run verify:yeongnyangi-tarot-assets`(full78/480/71.36MiB), 관련 node test 15/15 PASS. 변경 파일 ESLint는 error0이며 `Result.tsx`의 기존 `<img>` 2건 warning만 남았다. impeccable detect는 출력0·exit0이고 모바일/데스크톱 캡처를 직접 검토했다. 첫 `check:fast`는 paid-gate88/88·lint까지 통과한 뒤 앱 변경에 따른 sitemap lastmod 드리프트를 정상 탐지해 중단됐다. `npm run sitemap:generate`로 `/yeongnyangi/result/` 관련 원장·미러를 갱신했으며 공식 재실행과 main CI 결과는 전달 기록에 이어 쓴다.
+- **검증 중 수정**: 모바일 부채꼴 카드가 서로 클릭 영역을 가리던 문제를 카드 수+4장 풀·간격·선택 z-index로 고쳤다. `next/image`의 `Image` import가 브라우저 preload 생성자를 가리던 런타임 오류는 import 별칭으로 고쳤다. 빠른 reload 전에 공개 진행 저장이 늦는 경합은 상호작용 핸들러에서 동기 저장하도록 고쳤다. 6장 preview 초기화가 reload 때 완료 상태를 덮던 것은 테스트 초기화가 빈 저장소에서만 실행되도록 고쳤다. 조건·검사기 완화는 하지 않았다.
+- **유지·한계**: 결제 정책·가격·이용권/월정석/단건 결제·인증·API 계약·DB 스키마·서버 드로우/저장·생성 엔진·연이 덱·무료 원카드 변경0. 실결제·실LLM·운영DB·운영 배포·물리 기기·네이티브 햅틱 검증은 하지 않았다. 효과음은 실제 음원 파일이 아니라 선택적 합성음이다.
+- **다음·게이트**: Phase5 화면·흐름·문구의 사용자 승인 검토부터 이어간다. 승인 전 Phase6 티어별 마스터 상담에는 착수하지 않는다. F-1/F-2도 별도 미진행이다.
 
 ## 다음 작업 1 — Phase 1 착수 계획 (승인됨 · 2026-09-27 수행, 결과는 「Phase 1 결과」)
 

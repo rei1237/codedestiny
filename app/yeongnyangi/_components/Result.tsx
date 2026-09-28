@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import {PawPrint,RefreshCw} from 'lucide-react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,checkoutPath,type FortuneRecord} from '../_lib/api';
 import {readingCopy} from '../_lib/reading-copy';
@@ -14,6 +14,7 @@ import ReadingLoading from './ReadingLoading';
 import ResultSharing from './ResultSharing';
 import FishReceipt from './FishReceipt';
 import {OrderReference} from './OrderRecovery';
+import TarotDrawRitual,{tarotRitualCompleted} from './TarotDrawRitual';
 function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
  const copy=resultStateCopy(locale);
  return <div className={styles.recoveryNotice}>
@@ -36,6 +37,7 @@ export default function Result(){
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),mounted=useRef(true);
  const [reload,setReload]=useState(0);
+ const [ritualGate,setRitualGate]=useState<{id:string;done:boolean}|null>(null);
  const requestId=useRef('');
  const payChecks=useRef(0),[payWatching,setPayWatching]=useState(true);
  useEffect(()=>{if(row){trackFortuneDelivery(row);trackFortuneView(row,new URLSearchParams(window.location.search).get('source')||'direct');}},[row]);
@@ -108,6 +110,14 @@ export default function Result(){
   },RESULT_POLL_MS);
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row,payWatching]);
+ const tarotChart=row?.charts?.find(chart=>chart.domain==='tarot');
+ const ritualEligible=!!row?.paid&&row.state!=='REFUNDED'&&!!tarotChart;
+ const ritualRequestId=row?.id;
+ useEffect(()=>{
+  if(!ritualEligible||!ritualRequestId)return;
+  setRitualGate({id:ritualRequestId,done:tarotRitualCompleted(ritualRequestId)});
+ },[ritualEligible,ritualRequestId]);
+ const finishRitual=useCallback(()=>{if(ritualRequestId)setRitualGate({id:ritualRequestId,done:true});},[ritualRequestId]);
  // 결제 전에는 챕터가 하나도 없다 — "0 / N개 챕터 저장됨"·진행률·목차("준비 중")를 그리면 결제가 끝난 화면처럼 보인다.
  const copy=readingCopy(row?.locale);
  const stateCopy=resultStateCopy(row?.locale);
@@ -127,6 +137,7 @@ export default function Result(){
 
   {!row&&!error&&<ReadingLoading/>}
   {row&&<>
+   {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
    {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
     <summary>{row.consultation?.kindLabel || row.consultation?.topicLabel || stateCopy.consultation}</summary>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
@@ -144,6 +155,7 @@ export default function Result(){
    {!unpaid&&<ReadingBook row={row}/>}
    {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{row.consultation.kindLabel||row.consultation.topicLabel||stateCopy.consultation}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}</details>}</>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product}/><FishReceipt product={row.product}/></>}
+   </>}
   </>}
   {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{row?.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarningKnown}</p>}
   {row?.paid&&!['COMPLETED','REFUNDED'].includes(row.state)&&!['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'')&&<button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?copy.loading:copy.continue}</button>}

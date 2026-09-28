@@ -19,13 +19,42 @@ try {
   for (const { count, width, failure } of cases) {
     const f = await fixtures(browser, base, product, width);
     try {
+      const exerciseRitual = count === 3 && width === 390 && !failure;
+      const previewRitual = count === 6 && width === 1280 && !failure;
       const cards = ['M00', 'W10', 'C02', 'S13', 'P06', 'P14'].slice(0, count).map((code, i) => ({ ...TAROT_CARDS.find(c => c.code === code), cardId: code, positionLabel: `자리 ${i + 1}`, orientation: i % 2 ? 'reversed' : 'upright', imageUrl: '/old-deck.jpg' }));
       const before = JSON.stringify(cards);
       const charts = readingCharts({ contexts: { tarot: { domain: 'tarot', facts: [{ id: 'tarot.cards', label: 'cards', value: cards }], limitations: [] } } }, []);
       assert.equal(JSON.stringify(cards), before, 'saved cards remain immutable');
       Object.assign(f.row, { state: 'COMPLETED', paid: true, charts, locale: 'ko', chapters: f.row.manifest.map(() => ({ title: '저장된 상담', summary: '카드에 담긴 흐름을 살펴보세요.', analysis: ['지금의 선택을 차분히 정리해 보세요.'] })) });
       if (failure) await f.context.route('**/assets/yeongnyangi/tarot/v1/W10-*', route => route.fulfill({ status: 404, body: 'fixture missing image' }));
+      if (previewRitual) await f.page.addInitScript(({ requestId, count }) => {
+        const key = `cd:yn:tarot-ritual:v1:${requestId}`;
+        if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify({ stage: 'reveal', selected: Array.from({ length: count }, (_, index) => index), revealed: count }));
+      }, { requestId: f.row.id, count });
+      else if (!exerciseRitual) await f.page.addInitScript(({ requestId }) => localStorage.setItem(`cd:yn:tarot-ritual:v1:${requestId}`, JSON.stringify({ stage: 'reading', selected: [], revealed: 0, completed: true })), { requestId: f.row.id });
       await f.page.goto(`${base}/yeongnyangi/result/?id=${f.row.id}`);
+      if (exerciseRitual) {
+        const ritual = f.page.getByRole('region', { name: '영냥이 타로 드로우 의식' });
+        await ritual.getByRole('button', { name: '질문에 집중했어' }).click({ timeout: 5000 });
+        await ritual.getByRole('button', { name: '이 순간에 멈추기' }).click();
+        await ritual.screenshot({ path: `${output}/ritual-choose-390.png` });
+        for (let i = 1; i <= count; i++) await ritual.getByRole('button', { name: `카드 뒷면 ${i}`, exact: true }).click();
+        await ritual.getByRole('button', { name: '선택 확정하기' }).click();
+        await ritual.getByRole('button', { name: '1번째 카드 공개' }).click();
+        await f.page.reload();
+        const restored = f.page.getByRole('region', { name: '영냥이 타로 드로우 의식' });
+        await restored.waitFor();
+        assert((await restored.getByRole('button', { name: /광대 · 정방향/ }).count()) === 1, 'revealed card survives reload');
+        for (let i = 2; i <= count; i++) await restored.getByRole('button', { name: `${i}번째 카드 공개` }).click();
+        await f.page.waitForTimeout(800);
+        await restored.screenshot({ path: `${output}/ritual-revealed-390.png` });
+        await restored.getByRole('button', { name: '영냥이 상담 펼치기' }).click();
+      } else if (previewRitual) {
+        const ritual = f.page.getByRole('region', { name: '영냥이 타로 드로우 의식' });
+        await ritual.waitFor();
+        await ritual.screenshot({ path: `${output}/ritual-revealed-6-1280.png` });
+        await ritual.getByRole('button', { name: '영냥이 상담 펼치기' }).click();
+      }
       const panel = f.page.getByRole('region', { name: '질문 위에 펼친 카드', exact: true });
       await panel.scrollIntoViewIfNeeded();
       const images = panel.locator('img');
@@ -55,11 +84,11 @@ try {
       assert.equal(f.state.sdk.length, 0);
       assert.deepEqual(f.state.unknown, []);
       assert.deepEqual(f.state.errors, []);
-      results.push({ count, width, failure, status: 'PASS' });
+      results.push({ count, width, failure, ritual: exerciseRitual || previewRitual, status: 'PASS' });
     } finally { await f.context.close(); }
   }
 } finally {
   await browser.close();
   await writeFile(`${output}/results.json`, JSON.stringify({ cases: results, realPgCalls: 0, realLlmCalls: 0, productionDbWrites: 0 }, null, 2));
 }
-console.log(`PASS ${results.length} mock result cases: saved order/orientation, 2:3 art, selection, reload, own-back fallback; no real PG/LLM/DB calls`);
+console.log(`PASS ${results.length} mock result cases: paid ritual restore/reveal, saved order/orientation, 2:3 art, selection, reload, own-back fallback; no real PG/LLM/DB calls`);
