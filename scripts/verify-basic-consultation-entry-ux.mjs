@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 const root = process.cwd();
 const iphone = process.argv.includes('--iphone');
 const chrome = process.argv.includes('--chrome');
+const capture = !process.argv.includes('--metrics-only');
 assert.ok(!(iphone && chrome), 'Choose --chrome or --iphone, not both');
 const output = resolve(process.env.CD_CONSULTATION_EVIDENCE_DIR || (iphone
   ? 'artifacts/fortune-consultation-ux/basic-entry-iphone-v1'
@@ -53,7 +54,7 @@ try {
   });
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed','true'));
   const page = await context.newPage();
-  page.on('pageerror', error => { errors.push(error.message); console.error('Browser error: '+error.message); });
+  page.on('pageerror', error => { errors.push(error.message.replace(/^Error: (?=google_translate_script_failed$)/,'')); console.error('Browser error: '+error.message); });
   if (iphone) page.on('console', message => { if (message.type()==='error') console.error('WebKit console: '+message.text()); });
   page.on('dialog', dialog => { console.log('Dismissed fixture dialog: '+dialog.message()); return dialog.dismiss(); });
   await page.goto(origin, {waitUntil:'domcontentloaded'});
@@ -113,7 +114,7 @@ try {
       assert.equal(clipped,'','ancestor clips card: '+target.key+'/'+width);
       const opener=card.locator('[data-fc-open]');
       assert.ok(await opener.evaluate(el=>el.getBoundingClientRect().height>=44));
-      if (!iphone || width===390) await card.locator('.fc-entry').screenshot({path:resolve(output,`${target.key}-entry-${width}.png`),animations:'disabled',scale:'css'});
+      if (capture && (!iphone || width===390)) await card.locator('.fc-entry').screenshot({path:resolve(output,`${target.key}-entry-${width}.png`),animations:'disabled',scale:'css'});
       if (iphone) await opener.tap();
       else { await opener.focus(); await page.keyboard.press('Enter'); }
       assert.equal(await opener.getAttribute('aria-expanded'),'true');
@@ -131,7 +132,7 @@ try {
       await page.waitForTimeout(350);
       assert.ok((await question.inputValue()).length>20);
       assert.equal(await card.locator('.fc-form .fc-primary').isVisible(),true);
-      if (!iphone || width===390) await page.screenshot({path:resolve(output,`${target.key}-form-${width}.png`),animations:'disabled',scale:'css'});
+      if (capture && (!iphone || width===390)) await page.screenshot({path:resolve(output,`${target.key}-form-${width}.png`),animations:'disabled',scale:'css'});
       if (iphone) {
         // A reduced viewport is a layout check, not a native iOS keyboard measurement.
         await page.setViewportSize({width,height:320});
@@ -141,7 +142,7 @@ try {
         const box=await submit.boundingBox();
         assert.ok(box && box.y>=0 && box.y+box.height<=320, 'short viewport CTA: '+target.key+'/'+width);
         assert.ok(await card.evaluate(el=>el.scrollWidth<=el.clientWidth+1),'short viewport overflow: '+target.key+'/'+width);
-        if (width===320 || width===844) await page.screenshot({path:resolve(output,`${target.key}-short-${width}.png`),animations:'disabled',scale:'css'});
+        if (capture && (width===320 || width===844)) await page.screenshot({path:resolve(output,`${target.key}-short-${width}.png`),animations:'disabled',scale:'css'});
       }
       evidence.push({service:target.key,width,overflow:false,price:'5,000원 from fixture registry',keyboardDisclosure:!iphone,touchDisclosure:iphone,exampleInput:true,shortViewport:iphone});
     }
@@ -156,14 +157,17 @@ try {
       el.style.display='block';
       el.innerHTML='<h4>지금의 선택을 읽는 한 줄</h4><p>이 문단은 화면 검증용 대역입니다. 실제 AI 상담이나 저장된 결과가 아닙니다.</p><p>이미 알고 있는 강점을 살피고, 지금의 상황에서 먼저 확인할 조건을 정리해 보세요. 짧은 문단 사이의 간격과 긴 문장의 줄바꿈을 확인합니다.</p><h4>오늘 해볼 일</h4><p>중요한 선택 하나를 적고, 필요한 정보와 확인할 사람을 나누어 정리합니다.</p>';
     });
-    await card.locator(target.answer).screenshot({path:resolve(output,`${target.key}-result-390.png`),animations:'disabled',scale:'css'});
+    if (capture) await card.locator(target.answer).screenshot({path:resolve(output,`${target.key}-result-390.png`),animations:'disabled',scale:'css'});
     await page.evaluate(()=>document.body.classList.add('neo-mode'));
-    await card.locator('.fc-entry').screenshot({path:resolve(output,`${target.key}-neo-390.png`),animations:'disabled',scale:'css'});
+    if (capture) await card.locator('.fc-entry').screenshot({path:resolve(output,`${target.key}-neo-390.png`),animations:'disabled',scale:'css'});
     await page.evaluate(()=>document.body.classList.remove('neo-mode'));
     }
-    if(target.close) await page.evaluate(action=>window[action](),target.close);
+    if(target.close) {
+      await page.evaluate(action=>window[action](),target.close);
+      if (target.key==='ziwei' || target.key==='sukuyo') await page.waitForFunction(() => !['ziwei','sukuyo'].includes(window.history.state?.cdBasicFortuneModal));
+    }
   }
-  const result={browser:iphone?'WebKit with iPhone 13 emulation':chrome?'Google Chrome':'Chromium',physicalDevice:false,nativeKeyboard:false,network:'Every API mocked; every external origin blocked; no payment/LLM/DB operations',resultSource:iphone?'none; pre-payment input only':'explicit rendering fixture',evidence,requests,errors};
+  const result={browser:iphone?'WebKit with iPhone 13 emulation':chrome?'Google Chrome':'Chromium',capturesWritten:capture,physicalDevice:false,nativeKeyboard:false,network:'Every API mocked; every external origin blocked; no payment/LLM/DB operations',resultSource:iphone?'none; pre-payment input only':'explicit rendering fixture',evidence,requests,errors};
   assert.deepEqual(errors.filter(message=>message!=='google_translate_script_failed'), [], 'unexpected browser exception');
   await writeFile(resolve(output,'metrics.json'),JSON.stringify(result,null,2));
   console.log(JSON.stringify({scenarios:evidence.length,errors,network:result.network}));
