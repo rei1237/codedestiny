@@ -37,7 +37,7 @@
 
 ## 통합 리포트
 
-- [영냥이 천원 사주 상담 안내](https://code-destiny.com/yeongnyangi/1000-won-fortune/): 꿀꿀 운세의 대표 콘텐츠 영냥이. 계산 근거에 질문을 더하는 단건 상담의 입력·가격·결과 예시·재열람 방법을 안내합니다.
+- [영냥이 천원 운세·천원사주 상담 안내](https://code-destiny.com/yeongnyangi/1000-won-fortune/): Code Destiny의 영냥이 천원운세 안내. 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 체계의 고등어 상담을 고르고, AI 해설 방식·단건 결제·상품별 가격·결과 예시·재열람 방법을 확인합니다.
 - [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
 - [휴먼 디자인 이용 안내](https://code-destiny.com/human-design/guide/): 무료 바디그래프의 타입·권위·센터를 읽는 순서와 필요한 입력, 유료 리포트의 범위를 안내합니다.
 
