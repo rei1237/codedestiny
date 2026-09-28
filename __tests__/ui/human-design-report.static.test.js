@@ -305,11 +305,11 @@ test("본문 언어는 저장된 report.locale 이다", () => {
   assert.ok(CLIENT.includes("lang={bodyLocale}"), "본문에 lang 을 달지 않았다");
 });
 
-test("🔴 '작성 중' 장 수가 서버 동시성과 같다", () => {
+test("🔴 '작성 중' 장 수가 서버 동시성과 같다", async () => {
   // 한 웨이브가 실제로 집는 장 수만큼만 "작성 중" 이라고 말한다. 이 값이 서버보다 크면
   // 아직 시작도 안 한 장을 쓰고 있다고 말하게 되고, 그건 지어낸 진행률이다.
   const client = Number((GENERATION.match(/WRITING_WINDOW = (\d+)/) || [])[1]);
-  const server = Number((CONTRACT.match(/HD_REPORT_SECTION_CONCURRENCY = (\d+)/) || [])[1]);
+  const { HD_REPORT_SECTION_CONCURRENCY: server } = await import("../../worker/lib/human-design-report-contract.js");
   assert.ok(Number.isFinite(client) && Number.isFinite(server), "동시성 상수를 못 읽었다");
   assert.equal(client, server, "🔴 클라이언트의 '작성 중' 창이 서버 웨이브 동시성과 어긋난다");
 });
