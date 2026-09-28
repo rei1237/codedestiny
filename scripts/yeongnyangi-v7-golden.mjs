@@ -26,6 +26,7 @@ export {readingManifestV7,READING_V7_ENABLED} from './worker/yeongnyangi/fortune
 export {resolveV7Ledger,selectV7Facts} from './worker/yeongnyangi/fortune/reading-v7-ledger';
 export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing';
 export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';
+export {FortuneError} from './worker/yeongnyangi/fortune/shared/contracts';
 export {CodeDestinyProvider} from './worker/yeongnyangi/providers/code-destiny';
 export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';
 export {auditV7Chapter} from './worker/yeongnyangi/fortune/reading-v7-quality';
@@ -52,7 +53,9 @@ for(let day=1;day<=730;day++){
  if(wealth===0&&absent){fixture={id:'synthetic-no-wealth-no-benefactor',date,input,base,absence:{wealth,benefactors:benefactors.map(v=>v?.present??false)}};break;}
 }
 assert.ok(fixture,'No verified absence fixture found');
-const context=m.withV7Timing(fixture.base,await m.buildV7TimingMatrix(fixture.base,fixture.input,today));
+// The engine's calculatedAt is wall-clock metadata. Pin it to this fixture's approved asOf so the
+// same calculation has the same resume identity across processes; facts/manifest/mode still bind it.
+const context={...m.withV7Timing(fixture.base,await m.buildV7TimingMatrix(fixture.base,fixture.input,today)),calculatedAt:asOf};
 const tariff=JSON.parse(fs.readFileSync(path.join(root,'config/llm-tariffs-20260921.json'),'utf8'))['gemini/gemini-2.5-flash'];
 const books=['salmon','flounder','tuna'].map(tier=>{
  const product=m.products.find(p=>p.domain==='saju'&&p.fishId===tier&&p.readingKind==='single');
@@ -140,13 +143,41 @@ for(const book of summaryOnly?[]:books){
  const previous=state.chapters.filter(row=>row.tier===book.tier).sort((a,b)=>a.ordinal-b.ordinal).map(row=>row.body);
  for(const chapter of book.manifest){
   if(state.chapters.some(row=>row.tier===book.tier&&row.ordinal===chapter.ordinal))continue;
-  const history=state.attempts.filter(row=>row.tier===book.tier&&row.ordinal===chapter.ordinal);
+  const history=state.attempts.filter(row=>row.tier===book.tier&&row.ordinal===chapter.ordinal).sort((a,b)=>a.attempt-b.attempt);
   let complete=false;
+  // Replay every paid raw before spending any remaining attempt. Earlier validators may have rejected
+  // an editable draft; a recorded error spends the call budget, not the right to reuse its stored body.
+  for(const record of [...history].reverse()){
+   if(!record.raw)continue;
+   const prior=history.find(row=>row.attempt===record.attempt-1);
+   const request={locale:'ko',chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous,
+    ...(prior?.stage==='quality'?{repair:{code:prior.error}}:{})};
+   let body;
+   try{
+    active=record;
+    body=m.validateChapter(record.raw,request);
+   }catch(error){
+    // Only a rejected draft is skipped. Storage or programming errors must stop instead of buying a call.
+    if(!(error instanceof m.FortuneError))throw error;
+    continue;
+   }
+   finally{active=undefined;}
+   record.finalAudit=m.auditV7Chapter({body,chapter,previous});
+   record.validated=true;record.revalidated=true;
+   state.chapters.push({tier:book.tier,ordinal:chapter.ordinal,key:chapter.key,body});previous.push(body);persist();
+   output(JSON.stringify({tier:book.tier,chapter:chapter.ordinal+1,total:book.manifest.length,
+    attempt:record.attempt,status:'revalidated',pruned:record.prune?.sentences||0}));
+   complete=true;break;
+  }
+  if(complete){
+   if(state.stopped?.tier===book.tier&&state.stopped.ordinal===chapter.ordinal){delete state.stopped;persist();}
+   continue;
+  }
   for(let index=0;index<2;index++){
-   let record=history[index];
+   let record=history.find(row=>row.attempt===index+1);
    if(record?.validated){throw new Error('Checkpoint inconsistent');}
    if(record?.error)continue; // A failed attempt is spent, including timeouts.
-   const prior=history[index-1];
+   const prior=history.find(row=>row.attempt===index);
    const request={locale:'ko',chapter,analysis:{contexts:{saju:context},themes:[],signals:[]},previous,...(prior?.stage==='quality'?{repair:{code:prior.error}}:{})};
    if(!record){
     record={tier:book.tier,ordinal:chapter.ordinal,key:chapter.key,attempt:index+1,networkCalls:0,startedAt:new Date().toISOString()};
@@ -176,6 +207,7 @@ for(const book of summaryOnly?[]:books){
    }finally{active=undefined;}
   }
   if(!complete){state.stopped={tier:book.tier,ordinal:chapter.ordinal};persist();break;}
+  if(state.stopped?.tier===book.tier&&state.stopped.ordinal===chapter.ordinal){delete state.stopped;persist();}
  }
 }
 const summary={scope,mode:state.mode,sourceSHA:arg('--source-sha')||null,books:books.map(book=>{

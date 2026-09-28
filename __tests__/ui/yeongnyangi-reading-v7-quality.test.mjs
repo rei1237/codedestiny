@@ -9,7 +9,7 @@ import {build} from 'esbuild';
 // Editorial overlap is pruned on the first draft without a repair generation — never a refused reading
 // (principle 17). Flag stays OFF and no LLM is called: the mock provider supplies every body.
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-quality'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {consultationManifest} from './worker/yeongnyangi/fortune/consultation-kinds'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-v7-quality'; export {readingManifestV7} from './worker/yeongnyangi/fortune/reading-v7'; export {consultationManifest} from './worker/yeongnyangi/fortune/consultation-kinds'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {resolveV7Ledger} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7-quality.test.cjs');
 const loaded=new Module(filename);
 loaded.filename=filename;
@@ -171,4 +171,38 @@ test('a v6 chapter is not audited: the same repeated reference point passes unto
  const body=withRepeat(await new m.MockChapterProvider().generateChapter(input));
  const validated=m.validateChapter(body,input);
  assert.equal(count(prose(validated),'일간'),2,'v6 keeps its own quality rules');
+});
+
+test('all 24 v7 chapters retain valid drafts with repeated sentences but reject copied paragraphs and unsafe text',async()=>{
+ const tuna=m.products.find(p=>p.readingKind==='single'&&p.domain==='saju'&&p.fishId==='tuna');
+ const chapters=m.v7TimingSummaries(m.resolveV7Ledger(m.readingManifestV7(tuna,{id:'personal'}),sajuContext));
+ const previous=[];
+ const repeated='마음이 앞서갈 때는 결정을 잠시 늦추고 확인할 정보를 차분하게 적어 보세요.';
+ for(const chapter of chapters){
+  const input={...requestFor(chapter),previous};
+  const clean=await new m.MockChapterProvider().generateChapter(input);
+  // Every chapter has three repeated sentences beside new content, even when pruning left one paragraph.
+  const draft={...clean,blocks:clean.blocks.map((block,i)=>({...block,
+   paragraphs:block.paragraphs.map((p,j)=>i===0&&j===0?`${p} ${repeated} ${repeated} ${repeated}`:p)}))};
+  assert.equal(count(prose(draft),repeated),3);
+  let prompt;
+  const provider=new m.StructuredChapterProvider({generate:async request=>{
+   prompt=request;return {result:JSON.stringify(draft),provider:'mock',model:'24-chapter-fixture'};
+  }});
+  const validated=m.validateChapter(await provider.generateChapter(input),input);
+  assert.equal(prompt.promptVersion,'chapter-v7');
+  assert.deepEqual(prompt.outputSchema.properties.blocks.items.properties.id.enum,chapter.sections.map(s=>s.id));
+  if(previous.length)assert.ok(JSON.parse(prompt.domainRules).previousHighlights.length,'each next chapter receives stored conclusions');
+  assert.ok(count(prose(validated),repeated)<=1);
+  assert.deepEqual(validated.blocks.map(b=>b.id),chapter.sections.map(s=>s.id));
+  assert.deepEqual(m.validateChapter(draft,input),validated,'stored raw revalidation repeats the same edit');
+  const copied={...clean,blocks:clean.blocks.map((block,i)=>i?block:{...block,
+   paragraphs:[...block.paragraphs,block.paragraphs[0]]})};
+  assert.throws(()=>m.validateChapter(copied,input),{code:'DUPLICATE_CHAPTER'});
+  const unsafe={...draft,blocks:draft.blocks.map((block,i)=>i?block:{...block,
+   paragraphs:[...block.paragraphs,'반드시 재회 성공을 보장합니다.']})};
+  assert.throws(()=>m.validateChapter(unsafe,input),{code:'UNSUPPORTED_READING_CLAIM'});
+  previous.push(validated);
+ }
+ assert.equal(previous.length,24);
 });

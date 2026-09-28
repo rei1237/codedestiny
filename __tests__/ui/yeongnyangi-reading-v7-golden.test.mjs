@@ -28,6 +28,7 @@ test('golden finishes 24 sequential mock chapters and replays stored drafts with
   tenth.validated=false;tenth.attempt=2;tenth.error='V7_ANCHOR_REPEAT';
   tenth.raw.blocks[0].paragraphs.push('일간의 기준은 앞 장에서 정리했습니다. 일간의 기준을 다시 확인합니다.');
   state.attempts.push({tier:'tuna',ordinal:9,attempt:1,stage:'provider',error:'FORTUNE_PROVIDER_FAILED',networkCalls:0});
+  state.stopped={tier:'tuna',ordinal:9};
   fs.writeFileSync(file,JSON.stringify(state));
   const before=fs.readFileSync(file),summaryBefore=fs.readFileSync(path.join(out,'summary.json'));
   const replay=run(out,'--revalidate-only');
@@ -43,6 +44,29 @@ test('golden finishes 24 sequential mock chapters and replays stored drafts with
   assert.equal(fs.existsSync(path.join(out,'running.lock')),false);
   assert.notEqual(run(out,'--revalidate-only','--live').status,0,'offline replay cannot authorize paid calls');
 
+  // Normal resume must accept the same stored failed draft, not stop again or buy a third attempt.
+  const resumed=run(out);
+  assert.equal(resumed.status,0,resumed.stderr);
+  const resumedState=JSON.parse(fs.readFileSync(file,'utf8'));
+  assert.equal(resultOf(resumed).books.find(row=>row.tier==='tuna').completedChapters,24);
+  assert.equal(resumedState.attempts.length,state.attempts.length,'stored raw recovery reserves no new attempt');
+  assert.ok(resumedState.attempts.every(row=>row.networkCalls===0));
+  assert.equal(resumedState.chapters.filter(row=>row.tier==='tuna').length,24);
+  assert.equal(resumedState.stopped,undefined);
+  const resumedAgain=run(out);
+  assert.equal(resumedAgain.status,0,resumedAgain.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(file,'utf8')).attempts.length,state.attempts.length);
+
+  const corrupt=structuredClone(state);
+  const invalid=corrupt.attempts.find(row=>row.tier==='tuna'&&row.ordinal===9&&row.raw);
+  invalid.raw.sources=['saju.invented'];
+  fs.writeFileSync(file,JSON.stringify(corrupt));
+  const rejected=run(out);
+  assert.equal(rejected.status,1,'invalid stored evidence cannot be revived');
+  const rejectedState=JSON.parse(fs.readFileSync(file,'utf8'));
+  assert.equal(rejectedState.chapters.filter(row=>row.tier==='tuna').length,9);
+  assert.equal(rejectedState.attempts.length,corrupt.attempts.length,'the spent two attempts remain spent');
+
   state.attempts=state.attempts.filter(row=>row.tier!=='tuna'||row.ordinal<=9);
   fs.writeFileSync(file,JSON.stringify(state));
   const incomplete=run(out,'--revalidate-only');
@@ -51,6 +75,17 @@ test('golden finishes 24 sequential mock chapters and replays stored drafts with
   assert.equal(partial.revalidatedChapters,10);
   assert.equal(partial.stoppedAt,10);
   assert.equal(partial.complete,false);
+
+  const continued=run(out);
+  assert.equal(continued.status,0,continued.stderr);
+  const continuedState=JSON.parse(fs.readFileSync(file,'utf8'));
+  assert.equal(continuedState.chapters.filter(row=>row.tier==='tuna').length,24);
+  assert.equal(continuedState.attempts.length-state.attempts.length,14,'only the missing 11–24 chapters are generated');
+  assert.ok(continuedState.attempts.every(row=>row.networkCalls===0));
+  assert.equal(continuedState.attempts.filter(row=>row.tier==='tuna'&&row.ordinal===9).length,2);
+  continuedState.identity='wrong-scope';
+  fs.writeFileSync(file,JSON.stringify(continuedState));
+  assert.notEqual(run(out).status,0,'resume must not bypass the scope/fixture/manifest identity');
  }finally{
   assert.equal(path.dirname(path.resolve(out)),path.resolve(os.tmpdir()));
   fs.rmSync(out,{recursive:true,force:true});
