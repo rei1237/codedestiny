@@ -177,22 +177,18 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
   const matched = topicItems.length > 0 ? topicItems : INSIGHT_SEED_ARTICLES.filter(matcher);
   const items = matched.length > 0 ? matched : INSIGHT_SEED_ARTICLES.slice(0, 12);
   const recommendedItems = curated && curated.length > 0 ? curated : items.slice(0, 12);
-  const representativeTags = Array.from(new Set(items.flatMap((item) => item.tags || item.keywords || []).filter(Boolean))).slice(0, 12);
-  const beginnerGuides = items.filter((item) => /기초|입문|처음|보는 법|란\?/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
-  const practicalGuides = items.filter((item) => /해석|실전|흐름|관계|재물|사랑|직업/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
+  const recommendedSlugs = new Set(recommendedItems.map(item => item.slug));
+  const beginnerGuides = items.filter((item) => !recommendedSlugs.has(item.slug) && /기초|입문|처음|보는 법|란\?/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
+  const beginnerSlugs = new Set(beginnerGuides.map(item => item.slug));
+  const practicalGuides = items.filter((item) => !recommendedSlugs.has(item.slug) && !beginnerSlugs.has(item.slug) && /해석|실전|흐름|관계|재물|사랑|직업/.test(`${item.title} ${item.excerpt || item.description}`)).slice(0, 6);
+  const usedSlugs = new Set([...recommendedSlugs, ...beginnerSlugs, ...practicalGuides.map(item => item.slug)]);
+  const latestItems = items.filter(item => !usedSlugs.has(item.slug)).slice(0, 10);
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 text-slate-100 md:px-6 md:py-10">
       <header className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 md:px-8 md:py-8">
         <h1 className="text-2xl font-semibold text-amber-50 md:text-4xl">{title}</h1>
         <p className="mt-4 text-sm leading-7 text-slate-300 md:text-base">{intro}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {representativeTags.map((tag) => (
-            <span key={tag} className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs text-slate-200">
-              #{tag}
-            </span>
-          ))}
-        </div>
         <div className="mt-5 flex flex-wrap gap-2">
           <Link href={serviceCtaPath} className="rounded-xl border border-amber-200/40 bg-amber-200/10 px-4 py-2 text-sm hover:bg-amber-200/20">
             관련 기능 바로 시작하기
@@ -284,10 +280,10 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
         </div>
       </section>
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1525] px-5 py-6 md:px-8 md:py-8">
-        <h2 className="text-xl font-semibold text-amber-100">최신 글</h2>
+      {latestItems.length > 0 && <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1525] px-5 py-6 md:px-8 md:py-8">
+        <h2 className="text-xl font-semibold text-amber-100">이어서 읽기</h2>
         <ul className="mt-4 space-y-2">
-          {items.slice(0, 10).map((article) => (
+          {latestItems.map((article) => (
             <li key={`latest-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <Link href={`/insights/${article.slug}`} className="text-sm leading-6 text-slate-100 hover:text-amber-100">
                 {article.title}
@@ -295,9 +291,9 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
+      {(beginnerGuides.length > 0 || topicKey === 'ziwei') && <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">초보자 가이드</h2>
         {topicKey === "ziwei" ? (
           <div className="mt-4 rounded-2xl border border-amber-200/15 bg-amber-100/[0.05] px-4 py-4">
@@ -309,7 +305,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
           </div>
         ) : null}
         <ul className="mt-4 space-y-2">
-          {(beginnerGuides.length > 0 ? beginnerGuides : items.slice(0, 6)).map((article) => (
+          {beginnerGuides.map((article) => (
             <li key={`beginner-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <Link href={`/insights/${article.slug}`} className="text-sm leading-6 text-slate-100 hover:text-amber-100">
                 {article.title}
@@ -317,12 +313,12 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
 
-      <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
+      {practicalGuides.length > 0 && <section className="mt-6 rounded-3xl border border-white/10 bg-[#11182b] px-5 py-6 md:px-8 md:py-8">
         <h2 className="text-xl font-semibold text-amber-100">실전 해석 글</h2>
         <ul className="mt-4 space-y-2">
-          {(practicalGuides.length > 0 ? practicalGuides : items.slice(0, 6)).map((article) => (
+          {practicalGuides.map((article) => (
             <li key={`practical-${article.slug}`} className="rounded-lg border border-white/10 bg-white/5 px-4 py-3">
               <Link href={`/insights/${article.slug}`} className="text-sm leading-6 text-slate-100 hover:text-amber-100">
                 {article.title}
@@ -330,7 +326,7 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
 
       {topicKey === "ziwei" ? (
         <section className="mt-6 rounded-3xl border border-amber-200/15 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8" aria-labelledby="ziwei-all-articles-title">
