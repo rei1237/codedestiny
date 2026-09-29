@@ -1884,6 +1884,23 @@
   }
   // 다른 JS 모듈에서도 사용할 수 있도록 전역 노출
   window.__dpHasLoginSession = _dpHasLoginSession;
+  // Result access requires a verified session, never a local login hint.
+  var _dpResultVerifiedAt = 0, _dpResultVerifiedSignature = '';
+  window.__dpVerifyResultSession = async function() {
+    if (_dpResultVerifiedAt && Date.now() - _dpResultVerifiedAt < 1500
+      && _dpResultVerifiedSignature === _dpGetSessionHintSignature()) return 'authenticated';
+    var result = await _dpFetchJsonWithFallback('/api/auth/me', {
+      method: 'GET', credentials: 'include', cache: 'no-store',
+      headers: _dpBuildAuthHeaders({ 'x-code-destiny-cache-refresh': '1' })
+    }, { allowWorkerFallback: false, retryOn401: true, timeoutMs: _DP_FETCH_TIMEOUT_MS });
+    if (!result.ok) return _dpIsAuthRequiredResult(result) ? 'guest' : 'unavailable';
+    var payload = result.data;
+    if (!payload || payload.degraded) return 'unavailable';
+    if (!payload.user || payload.authenticated === false) return 'guest';
+    _dpResultVerifiedAt = Date.now();
+    _dpResultVerifiedSignature = _dpGetSessionHintSignature();
+    return 'authenticated';
+  };
 
   var _dpSetCurrentTimer = null;
   var _dpPendingSwitchBaseId = null;
