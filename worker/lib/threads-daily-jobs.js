@@ -11,13 +11,14 @@
 // 🔴 SNS_THREADS_POST_ENABLED 가 "split" 이 아니면 아무것도 안 한다 — "1" 이면 07:00 체인(sns-daily-post)이 발행한다.
 //    "split" 이면 그 체인의 Threads 채널이 threads_split_active 로 빠지고 이 모듈이 넘겨받는다. 텔레그램은 무관하다.
 
-import { connectDb } from "./db.js";
+import { connectDb, withMongoRetry } from "./db.js";
+import { IdempotencyKey } from "./models.js";
 import { getEnv } from "./env.js";
 import { notifyCronTaskFailures } from "./cron-failure-alert.js";
 import { getKstDateKey, getSiteBaseUrl } from "./daily-fortune-task.js";
 import { getThreadsPostMode, getThreadsSkipReason, isSwitchOn, runChannel } from "./sns-daily-post-task.js";
 import { postThreadsChain } from "./threads.js";
-import { buildUtmUrl } from "./threads-daily-providers/shared.js";
+import { buildUtmUrl, PROMPT_VERSION, repeatsRecent } from "./threads-daily-providers/shared.js";
 import * as sajuProvider from "./threads-daily-providers/saju.js";
 import * as ziweiProvider from "./threads-daily-providers/ziwei.js";
 import * as vedicProvider from "./threads-daily-providers/vedic.js";
@@ -96,7 +97,13 @@ function errorMessage(error) {
  * 한 유형의 발행 실행부 — runChannel 의 send 계약({ok, status, error?, permanent?, ref})을 지키고 던지지 않는다.
  * 순서: 정본 엔진 facts → 문안(LLM 은 문장만, 검증·폴백) → formatter → Threads 1건.
  */
-export async function publishThreadsJob(env, { type, provider, now, fetchImpl, generateImpl, sky }) {
+export async function readRecentThreadsPosts(env) {
+  const rows = await withMongoRetry(env, () => IdempotencyKey.find({userId:null, endpoint:THREADS_JOB_ENDPOINT, status:"success"})
+    .sort({updatedAt:-1}).limit(30).select({responseRef:1}).lean());
+  return rows.map(row => row.responseRef).filter(row => row?.hook && row?.body);
+}
+
+export async function publishThreadsJob(env, { type, provider, now, fetchImpl, generateImpl, sky, recent = [] }) {
   const base = { date: getKstDateKey(now), platform: "threads", account: "codedestiny_official", type, posts: 1 };
   let facts;
   try {
@@ -108,16 +115,28 @@ export async function publishThreadsJob(env, { type, provider, now, fetchImpl, g
 
   let text;
   let written;
+  const destinationUrl = buildUtmUrl(getSiteBaseUrl(env), provider.PATH, type, base.date);
   try {
-    written = await provider.writeCopy(env, facts, { generateImpl });
-    text = provider.format(facts, written.copy, buildUtmUrl(getSiteBaseUrl(env), provider.PATH, type));
+    written = await provider.writeCopy(env, facts, { generateImpl, recent });
+    if (repeatsRecent(written.copy, recent)) {
+      // A reviewed deterministic replacement costs no second model call.
+      written = await provider.writeCopy({...env, SNS_THREADS_AI_ENABLED:"0"}, facts, { recent });
+      written.rejected = [...written.rejected, "recent_duplicate"];
+    }
+    text = provider.format(facts, written.copy, destinationUrl);
   } catch (error) {
     return { ok: false, status: 0, error: `format_threw: ${errorMessage(error)}`, ref: { ...base, ids: [] } };
   }
 
+  const editorial = {promptVersion:PROMPT_VERSION, locale:"ko", topic:type, contentType:"daily_reflection",
+    hook:written.copy.hook, body:written.copy.body, text, destinationUrl,
+    campaignId:new URL(destinationUrl).searchParams.get("utm_campaign"),
+    sourceBasis:`canonical_engine:${type}:${base.date}:Asia/Seoul`, recentCompared:recent.length};
+  if (repeatsRecent(written.copy, recent)) return {ok:false,status:0,error:"editorial_review_required",
+    ref:{...base,...editorial,ids:[],reviewRequired:true}};
   const result = await postThreadsChain(env, { texts: [text], fetchImpl });
   const ids = Array.isArray(result.ids) ? result.ids : [];
-  const ref = { ...base, ids, postId: ids[0] || null, aiModel: written.model || null, rejected: written.rejected || [] };
+  const ref = { ...base, ...editorial, publishUncertain: Boolean(result.publishUncertain), containerId: result.containerId || null, ids, postId: ids[0] || null, aiModel: written.model || null, rejected: written.rejected || [] };
   if (!result.ok) {
     return {
       ok: false,
@@ -203,6 +222,11 @@ export async function runThreadsDailyJobs(env, options = {}) {
     for (const { job } of due) jobs[job.type] = { ok: false, stage: "connect_db", error: message };
   }
 
+  let recent = [];
+  if (due.some(({job}) => !jobs[job.type])) {
+    try { recent = await (options.readRecent || readRecentThreadsPosts)(env); }
+    catch (error) { for (const {job} of due) if (!jobs[job.type]) jobs[job.type] = {ok:false,stage:"history",error:errorMessage(error)}; }
+  }
   const pending = due.filter(({ job }) => !jobs[job.type]);
   const settled = await Promise.allSettled(pending.map(({ job }) => runLocked({
     env,
@@ -210,6 +234,7 @@ export async function runThreadsDailyJobs(env, options = {}) {
     endpoint: THREADS_JOB_ENDPOINT,
     keyHash: `${dateKey}:threads:${job.type}`,
     send: () => publishThreadsJob(env, {
+      recent,
       type: job.type,
       provider: providers[job.type],
       now,

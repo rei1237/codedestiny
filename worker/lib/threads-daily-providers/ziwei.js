@@ -9,10 +9,11 @@
 import { STEM_HANGUL, ganji, solarToLunar } from "../../../lib/korean-calendar/index.js";
 import { getKstDateParts } from "../daily-fortune-task.js";
 import { ASSIST_FACET, MALEFIC_FACET, PALACE_FACET, STAR_FACET } from "../island/report-star-data.js";
-import { withJosa } from "../pet/pet-elements.js";
 import { FOUR_TRANSFORMATIONS, TRANSFORMATION_LABELS } from "../ziwei-ai-chart.js";
 import {
   COMMON_RULES,
+  situationHook,
+  situationTip,
   generateJsonCopy,
   kstDateLabel,
   mergeCopy,
@@ -20,9 +21,9 @@ import {
 } from "./shared.js";
 
 export const TYPE = "ziwei";
-export const PATH = "/ziwei/";
+export const PATH = "/?question=money-ziwei#questions";
 export const HASHTAG = "자미두수";
-export const CTA = "내 명반에서 오늘 가장 강하게 움직이는 궁은?";
+export const CTA = "돈이 남지 않는 고민, 확인할 질문부터 보기";
 
 const MAX_KEY_FACTORS = 3;
 const LAYERS = [
@@ -150,25 +151,12 @@ export function hasOnlyRealSihuaPairs(text, facts) {
   return true;
 }
 
-const KIND_LINE = {
-  록기동궁: (factor) => `${factor.star}에 화록과 화기가 함께 걸립니다. 들어오는 것과 붙잡히는 것이 같은 자리에서 나오니, ${factor.keyword}에 관한 일은 속도보다 마무리를 보세요.`,
-  사화중첩: (factor) => `${factor.star}에 사화가 두 겹 걸려, ${factor.keyword}의 결이 오늘 유독 두드러집니다.`,
-  유일화기: (factor) => `오늘 화기는 ${factor.star}에 붙습니다. ${factor.keyword}에 관한 일에서 유독 놓지 못하는 것이 생기기 쉽습니다.`,
-  유일화록: (factor) => `오늘 화록은 ${factor.star}에 붙습니다. ${factor.keyword}에 관한 일에서 먼저 손을 내밀기 좋습니다.`,
-};
-
-function fallbackCopy(facts) {
-  const [first] = facts.keyFactors;
-  const { dayHuaLu: lu, dayHuaJi: ji } = facts;
-  return {
-    hook: `유일 화록은 ${lu.star}, 화기는 ${ji.star}. 오늘은 ${withJosa(lu.keyword, "이", "가")} 열리고 ${withJosa(ji.keyword, "이", "가")} 묶이는 날입니다.`,
-    body: first ? KIND_LINE[first.kind](first) : "",
-    tip: `화기 별 ${ji.star}의 ${withJosa(ji.keyword, "과", "와")} 관련된 일은 오늘 한 번 더 확인하고 넘기세요.`,
-  };
+function fallbackCopy(facts, recent = []) {
+  return {hook:situationHook(TYPE,facts,recent),body:`오늘 사화에서 ${facts.dayHuaLu.star}의 화록은 ${facts.dayHuaLu.keyword}, ${facts.dayHuaJi.star}의 화기는 ${facts.dayHuaJi.keyword}의 상징과 연결해요. 자원이 모이는 곳과 부담되는 곳을 돌아보는 질문으로 읽어보세요.`,tip:situationTip(TYPE,facts,recent)};
 }
 
 const SYSTEM_PROMPT = [
-  "당신은 30년 넘게 상담해 온 자미두수 전문가다. 사화(화록·화권·화과·화기)의 흐름 해석에 밝다.",
+  "당신은 계산 근거를 쉬운 말로 설명하는 콘텐츠 에디터이자 자미두수 전문가다. 사화(화록·화권·화과·화기)의 흐름 해석에 밝다.",
   "오늘은 특정인의 명반이 아니라 날짜로 정해지는 유일·유월·유년 사화만 다룬다. 궁 이름과 개인의 길흉을 말하지 않는다.",
   COMMON_RULES,
 ].join("\n");
@@ -181,7 +169,7 @@ export function buildPrompt(facts) {
     "",
     "다음 JSON 하나만 출력하라. 설명·코드펜스를 붙이지 마라.",
     "{",
-    '  "hook": "유일 화록·화기 별로 오늘이 어떤 날인지 한 문장. 45자 이내.",',
+    '  "hook": "facts의 해석과 이어지는 구체적인 일상 상황을 질문한다. 전문용어 나열 없이 45자 이내.",',
     '  "body": "keyFactors 첫 항목을 별의 keyword 와 함께 풀어낸 두 문장. 120자 이내.",',
     '  "tip": "dayHuaJi 를 근거로 오늘 조심해서 다룰 일 하나. 50자 이내."',
     "}",
@@ -198,9 +186,9 @@ function copyRules(facts) {
 }
 
 /** @returns {Promise<{copy: Object<string,string>, model: string|null, rejected: string[]}>} */
-export async function writeCopy(env, facts, { generateImpl } = {}) {
-  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl });
-  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts));
+export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) {
+  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl, recent });
+  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts, recent));
 }
 
 export function format(facts, copy, url) {
@@ -209,13 +197,14 @@ export function format(facts, copy, url) {
   const dayLine = `· 유일(${day.stem}일) ${SIHUA_ORDER.map((sihua) => `${SIHUA_SHORT[sihua]} ${day[sihua]}`).join(" · ")}`;
   const factorLine = (factor) => `· ${factor.star}(${factor.keyword}) — ${factor.marks.map((mark) => `${mark.layer} ${mark.sihua}`).join(" + ")}`;
   const lines = [
-    `🔮 ${facts.dateLabel} 오늘의 자미두수`,
     copy.hook,
+    copy.body,
+    copy.tip,
+    "날짜 공통 해설 · 개인 예측 아님",
+    `🔮 ${facts.dateLabel} 오늘의 자미두수`,
     "",
     dayLine,
     ...facts.keyFactors.map(factorLine),
-    "",
-    copy.body,
   ];
-  return renderPost({ head: lines.join("\n"), extra: copy.tip, cta: CTA, url, hashtag: HASHTAG });
+  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: HASHTAG });
 }

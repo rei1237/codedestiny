@@ -180,7 +180,11 @@ async function publishOneThread(doFetch, token, text, replyToId, waitOptions) {
     return { ok: false, status: 0, endpoint: "container_status", ...readiness };
   }
 
-  return await callThreadsApi(doFetch, token, "me/threads_publish", { creation_id: container.id });
+  const result = await callThreadsApi(doFetch, token, "me/threads_publish", { creation_id: container.id });
+  // A lost/invalid publish response is not proof that publication failed. Keep the
+  // container for operator reconciliation and never automatically publish again.
+  const publishUncertain = !result.ok && (result.status === 0 || result.status >= 500 || !result.code);
+  return { ...result, containerId: container.id, publishUncertain };
 }
 
 /**

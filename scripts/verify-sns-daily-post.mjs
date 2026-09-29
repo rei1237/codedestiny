@@ -1220,3 +1220,18 @@ function jsonResponse(body, status = 200) {
 }
 
 console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 2종 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 3종 · 실패 기록 유지 · 관리자 수동 실행 배선 · Threads 체인 6글(루트+오행 짝 5) · 평문 계약 · 일진 대조 365일 · 채널별 잠금 분리 · 실패 시 throw(실제 발행 0회) · 해시태그 생존(Threads 루트 1 · 텔레그램 4) · 단계 표식(load/connect_db/send · 태스크 6개 전수) · 일간 10개 축 대조 60갑자 전수 · AI 덧칠 계약(실호출 0회) · 재선점 필터 행위 검사(분기 전수) · 발행 표식 선행 · 회수 창 UTC 22:10~22:59 · 컨테이너 FINISHED 대기(타임아웃·ERROR 오분류 방지)");
+
+// A publish that succeeded remotely but lost its response must never be replayed.
+{
+ const result=await postThreadsChain({THREADS_ACCESS_TOKEN:'test-token'}, {texts:['응답 유실 검증'],fetchImpl:async(url)=>{
+  if(String(url).includes('fields=status'))return jsonResponse({status:'FINISHED'});
+  if(String(url).endsWith('/me/threads_publish'))throw new Error('response lost');
+  return jsonResponse({id:'held-container'});
+ }});
+ assert.equal(result.publishUncertain,true);assert.equal(result.containerId,'held-container');
+ assert.deepEqual(result.ids,[]);
+ const filter=buildReclaimFilter('uncertain',Date.now());
+ assert.deepEqual(filter['responseRef.publishUncertain'],{$ne:true});
+ assert.deepEqual(filter['responseRef.reviewRequired'],{$ne:true});
+ console.log('  ✓ ambiguous publish preserves container and blocks automatic reclaim');
+}
