@@ -10,7 +10,7 @@ assert(['127.0.0.1','localhost'].includes(new URL(base).hostname));
 const compiled=await build({stdin:{contents:"export {products} from './worker/yeongnyangi/payments/catalog'; export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation'; export {calculateAskTarot} from './worker/yeongnyangi/fortune/ask/tarot'; export {consultationKinds,consultationManifest} from './worker/yeongnyangi/fortune/consultation-kinds';",loader:'ts',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
 const {products,readingCharts,calculateAskTarot,consultationKinds,consultationManifest}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const product=products.find(p=>p.id==='tarot_mackerel'),kind=consultationKinds.tarot.find(k=>k.id==='compatibility');
-const output='build-cache/yeongnyangi-relationship';await mkdir(output,{recursive:true});
+const output=process.env.YEONGNYANGI_RELATIONSHIP_OUTPUT||'build-cache/yeongnyangi-relationship';await mkdir(output,{recursive:true});
 const browser=await chromium.launch({headless:true}),results=[];
 try{
  for(const width of [360,390,430,1280]){
@@ -38,6 +38,9 @@ try{
    assert.equal(f.state.requestInput.consultationKind,'compatibility');
    assert.equal(f.state.requestInput.relationshipQuestionId,'feelings');
    assert.deepEqual(f.state.requestInput.participants,{self:'나비',partner:'달'});
+   // Unmount checkout before fixture approval: its polling redirect must not race
+   // this test's explicit navigation into the separate card-ritual scenario.
+   await f.page.goto('about:blank');
    // Payment transport is mock. Actual repository recovery is tested separately.
    f.row.paid=true;f.row.state='PAID';f.state.approved=true;f.state.holdGeneration=true;
    f.row.manifest=consultationManifest(product,kind);
@@ -74,7 +77,7 @@ try{
    assert.equal(f.state.creates,1,'reread keeps original purchase');
    assert.equal(f.state.sdk.length,0,'no real or mock purchase submitted by this UI test');
    results.push({width,passed:true,creates:f.state.creates});
-  }catch(error){await f.page.screenshot({path:`${output}/failure-${width}.png`,fullPage:true});console.error(await f.page.locator('main').innerText());throw error;}finally{await f.context.close();}
+  }catch(error){await f.page.screenshot({path:`${output}/failure-${width}.png`,fullPage:true});console.error(JSON.stringify({errors:f.state.errors,http:f.state.http,unknown:f.state.unknown}));console.error(await f.page.locator('main').innerText());throw error;}finally{await f.context.close();}
  }
 }finally{await browser.close();}
 await writeFile(`${output}/results.json`,JSON.stringify({evidence:'mock browser transport; no live payment, DB or LLM',results},null,2));

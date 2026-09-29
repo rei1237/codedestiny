@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "17c3fe2a347a28f7",
+      "signature": "f398b083a2a83f0e",
       "lastmod": "2026-09-29"
     },
     "/about/": {
@@ -19,7 +19,7 @@
       "lastmod": "2026-09-28"
     },
     "/astrology/": {
-      "signature": "a177c9c3cc3dbee9",
+      "signature": "aa86f9278d985d14",
       "lastmod": "2026-09-29"
     },
     "/astrology/cosmic/": {
@@ -47,7 +47,7 @@
       "lastmod": "2026-09-28"
     },
     "/compatibility/": {
-      "signature": "7ac9302e87264052",
+      "signature": "eb7561b5374a1fb1",
       "lastmod": "2026-09-29"
     },
     "/contact/": {
@@ -67,7 +67,7 @@
       "lastmod": "2026-09-28"
     },
     "/dream/": {
-      "signature": "36ff5dc3f9aad2ab",
+      "signature": "85fc2b8e1d2a2b99",
       "lastmod": "2026-09-29"
     },
     "/dream/psycho/": {
@@ -1023,7 +1023,7 @@
       "lastmod": "2026-09-28"
     },
     "/human-design/guide/": {
-      "signature": "d91251975e04f798",
+      "signature": "b325fc838b365d1f",
       "lastmod": "2026-09-29"
     },
     "/insights/": {
@@ -1603,11 +1603,11 @@
       "lastmod": "2026-09-28"
     },
     "/love/": {
-      "signature": "5d38bc67464116f9",
+      "signature": "b6131d9d74f64683",
       "lastmod": "2026-09-29"
     },
     "/manse/": {
-      "signature": "5d39aa453b86f472",
+      "signature": "561b36814096b1ad",
       "lastmod": "2026-09-29"
     },
     "/master-love-codex/": {
@@ -1767,7 +1767,7 @@
       "lastmod": "2026-09-28"
     },
     "/physiognomy/": {
-      "signature": "6bdaed546cf332bf",
+      "signature": "49b616981a946d11",
       "lastmod": "2026-09-29"
     },
     "/privacy/": {
@@ -1791,7 +1791,7 @@
       "lastmod": "2026-09-28"
     },
     "/saju/": {
-      "signature": "416844ffa8c10a40",
+      "signature": "fb9d2e8075eddea4",
       "lastmod": "2026-09-29"
     },
     "/saju/animal-destiny/": {
@@ -1803,7 +1803,7 @@
       "lastmod": "2026-09-28"
     },
     "/saju/compatibility/": {
-      "signature": "7a9acce2d0e60387",
+      "signature": "431e72db03e91b7f",
       "lastmod": "2026-09-29"
     },
     "/saju/destiny-bias/": {
@@ -2127,7 +2127,7 @@
       "lastmod": "2026-09-28"
     },
     "/sukuyo/": {
-      "signature": "b417391311b11a68",
+      "signature": "5d4d06acad8f6413",
       "lastmod": "2026-09-29"
     },
     "/sukuyo/calendar/": {
@@ -2135,7 +2135,7 @@
       "lastmod": "2026-09-13"
     },
     "/sukuyo/compatibility/": {
-      "signature": "a3d3fdaca7c5d15c",
+      "signature": "c78e1a56064404b1",
       "lastmod": "2026-09-29"
     },
     "/sukuyo/guide/": {
@@ -2143,7 +2143,7 @@
       "lastmod": "2026-09-28"
     },
     "/tarot/": {
-      "signature": "9f4b7677e00e74f1",
+      "signature": "f0e503e0f5bb210a",
       "lastmod": "2026-09-29"
     },
     "/tarot/guide/": {
@@ -2175,7 +2175,7 @@
       "lastmod": "2026-09-29"
     },
     "/tarot/reunion/": {
-      "signature": "68c76a2155d1f27d",
+      "signature": "dffa221597a63fd0",
       "lastmod": "2026-09-29"
     },
     "/tarot/self-esteem/": {
@@ -2191,7 +2191,7 @@
       "lastmod": "2026-09-28"
     },
     "/today/": {
-      "signature": "e6f330fbe9732e4c",
+      "signature": "833a70c41328e68c",
       "lastmod": "2026-09-29"
     },
     "/vedic-ai/": {
@@ -2199,7 +2199,7 @@
       "lastmod": "2026-09-29"
     },
     "/vedic/": {
-      "signature": "2313d86f7922512c",
+      "signature": "4ae0c5fa6ee80461",
       "lastmod": "2026-09-29"
     },
     "/vedic/guide/": {
@@ -2219,7 +2219,7 @@
       "lastmod": "2026-09-28"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "d7864faa8cdcbb24",
+      "signature": "0d6c37c2937537ee",
       "lastmod": "2026-09-29"
     },
     "/zh-tw/": {
@@ -3203,7 +3203,7 @@
       "lastmod": "2026-09-28"
     },
     "/ziwei/": {
-      "signature": "3f70de40d83c1f00",
+      "signature": "72bf40dd5982a28b",
       "lastmod": "2026-09-29"
     },
     "/ziwei/animal-destiny/": {

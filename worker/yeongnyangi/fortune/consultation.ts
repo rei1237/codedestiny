@@ -143,7 +143,7 @@ export function validateConsultationAnswers(body: ChapterBody, chapter: ChapterS
 }
 
 export const professionalEvidenceNames: Record<string, string> = {
-  relationshipBasis:'두 사람의 관계 바탕',relationshipComparison:'두 사람의 교차 비교',relationshipTiming:'계산된 관계 시기',
+  relationshipBasis:'관계의 바탕',relationshipComparison:'두 사람의 교차 비교',relationshipTiming:'계산된 관계 시기',
   fiveElements: '오행의 분포', dayMaster: '일간 — 나를 나타내는 천간', pillars: '사주 네 기둥',
   pillarDetails: '천간과 지지의 구성', seasonalBalance: '월령과 계절에 따른 오행의 균형',
   tenGods: '십성의 구성', tenGodsByPillar: '각 기둥의 십성 관계', strengthHeuristic: '일간의 세력과 생조·설기 관계',
