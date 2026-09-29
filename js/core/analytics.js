@@ -157,6 +157,21 @@
       return saved && saved.until > Date.now() && allowed.test(saved.value) ? saved.value : '';
     } catch (_) { return ''; }
   }
+  // Public campaign codes only; no post text, user identifiers or result IDs.
+  function growthAttribution() {
+    try {
+      var key = 'cd:growth:campaign';
+      if (analyticsStorageState() !== 'granted') { global.sessionStorage.removeItem(key); return null; }
+      var allowed = /^(threads_[0-9]{8}_(saju|ziwei|vedic|numerology)|threads_queue_t[0-9]{2}_v1)$/;
+      var query = new URLSearchParams(global.location.search);
+      var campaign = query.get('utm_source') === 'threads' && /^(social|organic_social)$/.test(query.get('utm_medium') || '') ? query.get('utm_campaign') : '';
+      if (allowed.test(campaign || '')) global.sessionStorage.setItem(key, JSON.stringify({campaignId:campaign,until:Date.now()+1800000}));
+      var saved = JSON.parse(global.sessionStorage.getItem(key) || 'null');
+      if (!saved || saved.until <= Date.now() || !allowed.test(saved.campaignId)) { global.sessionStorage.removeItem(key); return null; }
+      return {campaignId:saved.campaignId,consent:true,version:'growth-20260929-v1',device:global.innerWidth < 768 ? 'mobile' : 'desktop'};
+    } catch (_) { return null; }
+  }
+  global.cdReadGrowthAttribution = growthAttribution;
   global.cdTrack = function cdTrack(eventName, params) {
     if (!eventName) return;
     try {
@@ -165,6 +180,8 @@
       if (crmId) safeParams.crm_campaign = crmId;
       var insight = insightCampaign();
       if (insight) safeParams.share_campaign = insight;
+      var growth = growthAttribution();
+      if (growth) { safeParams.growth_campaign = growth.campaignId; safeParams.growth_version = growth.version; }
       if (eventName === 'page_view') safeParams.page_location = pageLocation();
       global.gtag("event", String(eventName), safeParams);
     } catch (_sendError) {
@@ -172,6 +189,7 @@
     }
   };
 
+  growthAttribution();
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
   // Browser-observed server state; no profile, question, result text or request ID is sent.

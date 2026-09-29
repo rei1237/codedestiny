@@ -1,3 +1,4 @@
+import {normalizeGrowthAttribution} from '../../lib/marketing/growth-attribution.mjs';
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
 import {readingLocale} from './fortune/reading-locale';
 import {readingCharts} from './fortune/reading-presentation';
@@ -186,7 +187,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
@@ -231,7 +232,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    snapshot:{product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:3000,followupChars:8000},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:3000,followupChars:8000},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }
 
 export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){

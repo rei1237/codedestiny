@@ -1,3 +1,4 @@
+import {trackEvent} from '@/lib/analytics';
 import {authFetch} from '@/app/_lib/auth-client';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
@@ -11,6 +12,7 @@ export class FortuneApiError extends Error {
  constructor(public code:string,message:string,public status:number,public retryable=false,public retryAfterSeconds=0){super(message);}
 }
 export async function fortuneApi<T>(path:string,body?:object,options:{signal?:AbortSignal;timeoutMs?:number}={}):Promise<T> {
+ const startedAt=Date.now();
  const controller=new AbortController();
  const abort=()=>controller.abort(options.signal?.reason);
  if(options.signal?.aborted)abort();else options.signal?.addEventListener('abort',abort,{once:true});
@@ -25,8 +27,10 @@ export async function fortuneApi<T>(path:string,body?:object,options:{signal?:Ab
  try{return await Promise.race([read(),cancelled]);}
  finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);controller.signal.removeEventListener('abort',rejectAbort);}
  async function read():Promise<T>{
- const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
+ const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(path==='requests'?{...body,growthAttribution:typeof window!=='undefined'?window.cdReadGrowthAttribution?.():null}:body)}:{})});
  const payload=await response.json();
+ const operation=path==='requests'?'prepare':/^requests\/[a-f0-9]{64}$/.test(path)?'read':/^requests\/[a-f0-9]{64}\/activate$/.test(path)?'activate':'';
+ if(operation)trackEvent('fortune_response_time',{operation,duration_ms:Math.max(0,Date.now()-startedAt),http_status:response.status,observation:'browser_transport'});
  if(!response.ok){
   const code=payload.error?.code||payload.code||'REQUEST_FAILED';
   const message=['DATABASE_TEMPORARILY_UNAVAILABLE','DATABASE_CONFIG_INVALID','SERVICE_UNAVAILABLE'].includes(code)?'영냥이 서버에 잠시 연결하지 못했어요. 결제한 상담은 그대로 있어요. 잠시 후 다시 불러와 주세요.':payload.message||payload.error?.message||'상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
