@@ -22,7 +22,7 @@ const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(SAJU_AI_PROMPT_FEATURE_KEY)].cost;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v15";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v15-natal-v2";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 // ── 상담문을 나눠 쓰는 단위 ────────────────────────────────────────────────
@@ -1614,8 +1614,8 @@ function normalizeBirthInfo(profile, snapshot) {
     year: Number(pb.year || sb.year || 0) || null,
     month: Number(pb.month || sb.month || 0) || null,
     day: Number(pb.day || sb.day || 0) || null,
-    hour: Number(pb.hour || sb.hour || 0) || null,
-    minute: Number(pb.minute || sb.minute || 0) || null,
+    hour: Number.isFinite(Number(pb.hour ?? sb.hour)) ? Number(pb.hour ?? sb.hour) : null,
+    minute: Number.isFinite(Number(pb.minute ?? sb.minute)) ? Number(pb.minute ?? sb.minute) : null,
     calType: String(pb.calType || "solar").trim() || "solar",
   };
 

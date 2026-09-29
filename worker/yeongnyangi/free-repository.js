@@ -1,9 +1,12 @@
+import {SAJU_ENGINE_VERSION,SAJU_POLICY_VERSION} from "../../lib/korean-calendar/index.js";
 import {mongoose,mongoTransactionOptions,withMongoRetry} from '../lib/db.js';
 import {createHttpError} from '../lib/http.js';
 import {YeongnyangiAnchovyAccount,YeongnyangiAnchovyLedger,YeongnyangiFreeReading} from '../lib/yeongnyangi-models.js';
 import {ownerId} from './repository.js';
 import {scopeConnection} from '../lib/db-scope-connection.js';
 
+const usesSaju=category=>['saju','basic','comprehensive'].includes(category);
+const natalVersion=SAJU_ENGINE_VERSION+':'+SAJU_POLICY_VERSION;
 const failure=(status,code)=>createHttpError(status,code,{code});
 export const kstDay=(now=new Date())=>new Date(now.getTime()+9*3600000).toISOString().slice(0,10);
 const ledgerId=(owner,day,kind)=>`${owner.toString()}:${day}:${kind}`;
@@ -67,17 +70,19 @@ export async function requireDailyPass(env,userId,now=new Date()) {
 
 export async function readFreeResult(env,userId,day,category) {
   const id=await freeReadingId(userId,day,category);
-  const row=await withMongoRetry(env,()=>YeongnyangiFreeReading.findOne({_id:id,userId:ownerId(userId),day,category}).lean());
+  const filter=usesSaju(category)?{userId:ownerId(userId),day,category,'input.sajuVersion':natalVersion}:{_id:id,userId:ownerId(userId),day,category};
+  const row=await withMongoRetry(env,()=>YeongnyangiFreeReading.findOne(filter).sort({createdAt:-1}).lean());
   return row?.result||null;
 }
 
-export async function freeReadingId(userId,day,category) {
-  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${userId}:${day}:${category}`));
+export async function freeReadingId(userId,day,category,input) {
+  const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(`${userId}:${day}:${category}`+(usesSaju(category)?JSON.stringify([natalVersion]):'')));
   return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,'0')).join('');
 }
 
 export async function claimFreeReading(env,userId,day,category,profileId,input,now=new Date()) {
-  const _id=await freeReadingId(userId,day,category),owner=ownerId(userId),claim=crypto.randomUUID();
+  input=usesSaju(category)?{...input,sajuVersion:natalVersion}:input;
+  const _id=await freeReadingId(userId,day,category,{profileId,input}),owner=ownerId(userId),claim=crypto.randomUUID();
   const filter={_id,userId:owner,day,category};
   let row;
   try{
@@ -88,6 +93,7 @@ export async function claimFreeReading(env,userId,day,category,profileId,input,n
     if(Number(error?.code)!==11000)throw error;
     row=await withMongoRetry(env,()=>YeongnyangiFreeReading.findOne(filter).lean());
   }
+  if(usesSaju(category)&&(row?.profileId!==(profileId||'')||JSON.stringify(row?.input)!==JSON.stringify(input)))throw failure(409,'FREE_READING_INPUT_FROZEN');
   if(row?.result)return {row,claim:null};
   if(row?.claim===claim)return {row,claim};
   const taken=await withMongoRetry(env,()=>YeongnyangiFreeReading.findOneAndUpdate({...filter,result:null,leaseUntil:{$lte:now}},

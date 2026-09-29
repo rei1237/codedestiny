@@ -139,9 +139,13 @@ export async function handleYeongnyangiRoutes(request, env) {
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
         fortunes:page.map(row=>({id:row._id,locale:row.snapshot.locale || 'ko',product:row.snapshot.product,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel,participants:row.snapshot.analysis?.consultation?.relationship?.participants}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
-    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up))?$/);
+    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up|correction))?$/);
     if(!match) return notFound();
     const [,id,action]=match;
+    if(action==='correction' && (method==='GET'||method==='POST')) {
+      const {reviewSajuCorrection}=await import('../yeongnyangi/saju-correction.js');
+      return json({ok:true,correction:await reviewSajuCorrection(env,auth.userId,id,{enqueue:method==='POST'})});
+    }
     if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readAndContinueFortune(env,auth.userId,id))});
     if(action==='activate' && method==='POST') return json({ok:true,fortune:presentFortune(await activateFortune(env,auth.userId,id))});
     if(action==='generate' && method==='POST') {

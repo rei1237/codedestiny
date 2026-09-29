@@ -16,7 +16,7 @@ function matches(row,filter){
   });
 }
 function chain(run){
-  const query={select:()=>query,session:()=>query,lean:()=>Promise.resolve().then(run),then:(yes,no)=>Promise.resolve().then(run).then(yes,no)};
+  const query={sort:()=>query,select:()=>query,session:()=>query,lean:()=>Promise.resolve().then(run),then:(yes,no)=>Promise.resolve().then(run).then(yes,no)};
   return query;
 }
 function model(source){
@@ -92,7 +92,8 @@ test('first reading input is frozen and only the owner claim can complete it',as
   const day='2026-09-16',at=new Date('2026-09-16T03:00:00Z');
   const first=await repo.claimFreeReading({},owner,day,'basic','p1',{draft:{question:'first'}},at);
   await expect(repo.claimFreeReading({},owner,day,'basic','p2',{draft:{question:'changed'}},at)).rejects.toMatchObject({status:409});
-  const second=await repo.claimFreeReading({},owner,day,'basic','p2',{draft:{question:'changed'}},new Date(at.getTime()+121000));
+  await expect(repo.claimFreeReading({},owner,day,'basic','p2',{draft:{question:'changed'}},new Date(at.getTime()+121000))).rejects.toMatchObject({status:409});
+  const second=await repo.claimFreeReading({},owner,day,'basic','p1',{draft:{question:'first'}},new Date(at.getTime()+121000));
   expect(first.row.input.draft.question).toBe('first');expect(second.row.input.draft.question).toBe('first');
   expect(await repo.finishFreeReading({},other,first.row._id,first.claim,{title:'foreign'})).toBeNull();
   expect(await repo.finishFreeReading({},owner,first.row._id,first.claim,{title:'stale'})).toBeNull();

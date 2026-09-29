@@ -1,3 +1,4 @@
+import { SAJU_ENGINE_VERSION } from "../../../../lib/korean-calendar/index.js";
 import {
   CalculationOptions,
   DomainContext,
@@ -42,7 +43,7 @@ export function context(
 ): DomainContext {
   return {
     domain: id,
-    engineVersion: 'code-destiny-integrated-v1',
+    engineVersion: id === 'saju' ? SAJU_ENGINE_VERSION : 'code-destiny-integrated-v1',
     calculatedAt: new Date().toISOString(),
     facts: Object.entries(facts)
       .filter(([, value]) => value !== undefined && value !== null)

@@ -87,7 +87,7 @@ const MODES = Object.freeze({
     title: MASTER_LOVE_CODEX_META.label,
     chapters: MASTER_LOVE_CODEX_CHAPTERS,
     dnaMetrics: LOVE_DNA_METRICS,
-    cacheKeyExtra: "master-love-codex-v2", // 프롬프트 지시문 상향(v2) — 캐시 키는 프롬프트 전문도 해시한다
+    cacheKeyExtra: "master-love-codex-v2-natal-v2", // 프롬프트 지시문 상향(v2) — 캐시 키는 프롬프트 전문도 해시한다
   }),
   compat: Object.freeze({
     mode: "compat",
@@ -95,7 +95,7 @@ const MODES = Object.freeze({
     title: MASTER_LOVE_CODEX_COMPAT_META.label,
     chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS,
     dnaMetrics: LOVE_DNA_COMPAT_METRICS,
-    cacheKeyExtra: "master-love-codex-compat-v1",
+    cacheKeyExtra: "master-love-codex-compat-v1-natal-v2",
   }),
 });
 
@@ -192,6 +192,7 @@ function isAdmin(auth = {}) {
 function normalizePerson(src = {}) {
   const genderRaw = clean(src.gender).toLowerCase();
   const person = {
+    birthPlace: src.birthPlace,
     name: clean(src.name, 40),
     gender: genderRaw === "male" || genderRaw === "female" ? genderRaw : "",
     birthDate: clean(src.birthDate, 10),

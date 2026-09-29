@@ -18,7 +18,7 @@ export function explanationFacts(value: unknown): unknown {
     Object.entries(value)
       .filter(
         ([key]) =>
-          !forbidden.test(key) && !['residence','originalCalendar'].includes(key) &&
+          !forbidden.test(key) && !['residence','originalCalendar','original','civil','instant','termClock','corrected','dayPillarCivilDate'].includes(key) &&
           !(rawMoment && ["hour", "minute", "longitude"].includes(key)),
       )
       .map(([key, v]) => [key, explanationFacts(v)]),

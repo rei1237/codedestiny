@@ -1,3 +1,4 @@
+import { calculateNatalSaju } from "../../lib/korean-calendar/index.js";
 import { buildLifeBookExpertFactors } from "./saju-expert-factors.js";
 import { daeun } from "../../lib/korean-calendar/index.js";
 // 🔴 명리 상수 표(納音·十神·지장간·오행·十二運星·旬空)는 달력이 아니라 문자열 조회 표다.
@@ -18,18 +19,10 @@ import {
 // 벽시계**라, 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다.
 // 실측 2026-08-27: 節 경계 오프셋별 월주 불일치 −61분 0/72 · **−30분 72/72 · −1분 72/72** ·
 // +1/+30/+61분 0/72 (1970·1985·1997·2004·2013·2024 × 12節).
-// 🔴 일주·시주도 이제 코어에서 나온다(PR-F2). 야자시 축은 **keep-day** 로 명시한다 —
-// 23시대도 당일 일진을 쓴다는 뜻이고, 그래야 일간이 안 움직여 십신·용신·격국·대운이 그대로다.
-// 실측 2026-08-28(표본 18,090건, 1900~2100): 23시 **밖**은 어느 정책이든 전건 불변이고,
-// 23시대만 갈린다. 이관 전 lunar-javascript sect 2 는 **일주 keep-day + 시주 shift-day 혼종**이라
-// (일진은 안 밀면서 시주 천간만 민 날의 일간으로 뽑았다) 어느 정책으로도 그대로 재현되지 않는다.
-// 🔴 그래서 23시대 시주는 여기서 **바뀐다**. 그 혼종은 인정된 유파가 아니라 그 라이브러리의
-// 구현 특성이고, 셸(js/saju-engine.js)·앱·destiny-bias 도 각자 일관된 축을 쓴다.
+// 출생 원국은 calculateNatalSaju가 시간 보정 후 일주·시주를 함께 확정한다.
 import {
   BRANCH_HANJA,
-  NIGHT_ZI_POLICY,
   STEM_HANJA,
-  ganji,
   lunarToSolar,
   sexagenaryYearIndexes,
 } from "../../lib/korean-calendar/index.js";
@@ -274,25 +267,6 @@ function pillarFacts(key, pillar, dayStem) {
     [`get${prefix}Xun`]: () => getXun(pillar),
     [`get${prefix}XunKong`]: () => getXunKong(pillar),
   };
-}
-
-/**
- * 코어가 내는 네 기둥(한자). 지원 범위(1900~2100) 밖이면 던진다.
- *
- * 🔴 야자시 정책을 **명시해서** 넘긴다. 코어 기본값은 shift-day(출생 원국의 셸 축)지만
- * 이 소비자는 keep-day 다 — 기본값에 기대면 코어 기본값이 바뀌는 날 여기 값이 조용히 따라간다.
- */
-function corePillars(at) {
-  const core = ganji(at, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
-  if (!core) {
-    // parseDate 가 1900~2100 으로 자르므로 여기 오면 표가 깨진 것이다.
-    // 조용히 CST 달력으로 떨어지지 않는다.
-    const error = new Error(`korean-calendar core returned no ganji for ${at.year}-${at.month}-${at.day}`);
-    error.code = "CALENDAR_OUT_OF_RANGE";
-    throw error;
-  }
-  const pillar = (p) => `${STEM_HANJA[p.stemIndex]}${BRANCH_HANJA[p.branchIndex]}`;
-  return { year: pillar(core.year), month: pillar(core.month), day: pillar(core.day), hour: pillar(core.hour) };
 }
 
 /** 서기 연도의 세차(한자). 세운은 입춘이 지난 뒤를 보므로 연도만으로 닫힌다. */
@@ -723,32 +697,19 @@ function resolveSolarBirth(inputDate, birthTime, calendarType, isLeapMonth = fal
 }
 
 export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
-  const birthDate = parseDate(birthInfo.birthDate, clean(birthInfo.calendarType).toLowerCase() === "lunar");
-  if (!birthDate) {
-    const error = new Error("Invalid birth date");
-    error.code = "INVALID_BIRTH_DATE";
-    throw error;
-  }
-  const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
-  const timeUnknown = birthInfo.birthTimeUnknown === true || !clean(birthInfo.birthTime);
-  const birthTime = parseTime(timeUnknown ? "" : birthInfo.birthTime, 12);
-  if (!timeUnknown && !birthTime.valid) {
-    const error = new Error("Invalid birth time");
-    error.code = "INVALID_BIRTH_TIME";
-    throw error;
-  }
-
-  const solarBirth = resolveSolarBirth(birthDate, birthTime, calendarType, birthInfo.isLeapMonth === true);
-  const core = corePillars(solarBirth);
+  const natal = calculateNatalSaju(birthInfo);
+  const calendarType = natal.calculationMeta.original.calendarType;
+  const timeUnknown = natal.calculationMeta.timeUnknown;
+  const solarBirth = {...natal.calculationMeta.civil, hour:natal.calculationMeta.civil.hour ?? 12, minute:natal.calculationMeta.civil.minute ?? 0};
+  const core = natal.pillars;
   const yearPillar = core.year;
   const monthPillar = core.month;
   const dayPillar = core.day;
-  // hourPillarOverride: 호출부가 자체 시각 보정(진태양시 등)으로 계산한 시주를 넘길 수 있다.
-  // 넘기지 않으면 기존 동작(시계 시각 기준) 그대로다 — 나머지 5개 라우트는 영향받지 않는다.
-  const hourPillarOverride = clean(birthInfo.hourPillarOverride, 10);
+  // 일주와 시주는 같은 보정 시계와 일간에서 확정한다. 외부 시주 덮어쓰기는 허용하지 않는다.
+
   const hourPillar = timeUnknown
     ? ""
-    : (hourPillarOverride || core.hour);
+    : core.hour;
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = pillarStem(dayPillar);
   const fiveElements = buildElementDistribution(pillars);
@@ -776,7 +737,7 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   const relationSummary = summarizeRelations(natalInteractions);
   const majorLuck = buildMajorLuck({
     // 🔴 음력 입력이면 이미 코어가 환산한 양력이다(resolveSolarBirth). 대운은 그 양력 생시로 잰다.
-    birth: solarBirth,
+    birth: natal.calculationMeta.termClock,
     birthYear: solarBirth.year,
     currentYear,
     gender: birthInfo.gender,
@@ -832,6 +793,7 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
     fortuneFacts,
     interpretationPlan,
     calculationMeta: {
+      ...natal.calculationMeta,
       // 🔴 이 문자열은 출처 표기다. 예전 값은 "lunar-javascript-eightchar-core-pillars" 였는데
       // 네 기둥이 전부 코어에서 나오게 된 뒤로는 사실이 아니다(guardian-fortune 어댑터가 source 로 읽는다).
       method: "korean-calendar-core-pillars",

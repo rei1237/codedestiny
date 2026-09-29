@@ -1,3 +1,4 @@
+import {assertSajuPillarClaims} from "../../../lib/saju-correction.js";
 import { DomainContext, FortuneError, FortuneResult } from "./contracts";
 export const outputSchema = {
   type: "object",
@@ -55,6 +56,7 @@ export function validateResult(
     }
   }
   const r = record(parsed);
+  if(context.domain==="saju")assertSajuPillarClaims(r,context.facts.find(f=>f.label==="pillars")?.value);
   if (
     Object.keys(r).some(
       (k) =>

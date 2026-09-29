@@ -1,3 +1,4 @@
+import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -708,8 +709,9 @@ function calculateNewYearFortuneData(input) {
     throw error;
   }
   const birthTime = parseBirthTime(birth.birthTime);
-  const solarBirth = resolveSolarBirth(dateParts, birthTime, birth.calendarType);
-  const corePillars = coreNatalPillars(solarBirth);
+  const natal = calculateNatalSaju(birth);
+  const solarBirth = natal.calculationMeta.civil;
+  const corePillars = natal.pillars;
   const yearPillar = toKoreanGanzi(corePillars.year);
   const monthPillar = toKoreanGanzi(corePillars.month);
   const dayPillar = toKoreanGanzi(corePillars.day);
@@ -779,6 +781,7 @@ function calculateNewYearFortuneData(input) {
   const domainSignals = buildDomainSignals({ annualTenGod: targetTenGod, yongshin, johu, monthlyFlow });
 
   return {
+    calculationMeta: natal.calculationMeta,
     birthCalendar: {
       solarDate: `${solarBirth.year}-${String(solarBirth.month).padStart(2, "0")}-${String(solarBirth.day).padStart(2, "0")}`,
       inputCalendarType: birth.calendarType,
@@ -911,7 +914,7 @@ function normalizeConsultationInput(body = {}) {
     targetYear: year,
     serviceType,
     consultationType,
-    birthInfo: { name, gender, birthDate, birthTime, calendarType },
+    birthInfo: { name, gender, birthDate, birthTime, calendarType, birthPlace:birthInfo.birthPlace || body.birthPlace, isLeapMonth:birthInfo.isLeapMonth || body.isLeapMonth },
     focusArea,
     question,
     topic,
@@ -1923,7 +1926,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: "new-year-ai-v2",
+    keyExtra: "new-year-ai-v2-natal-v2",
   };
   const qualityOptions = { minTotalChars, maxTotalChars, fortuneData, hasCustomQuestion: options.hasCustomQuestion };
 

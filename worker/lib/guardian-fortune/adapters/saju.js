@@ -34,6 +34,8 @@ export async function buildSajuAdapter(input, options = {}) {
     birthTimeUnknown: !input.hasBirthTime,
     calendarType: input.calendarType,
     gender: input.gender,
+    birthPlace: input.birthPlace,
+    isLeapMonth: input.isLeapMonth || input.leapMonth,
   }, options.fusionExpert ? { now: options.now } : {});
 
   const dayMaster = nonEmptyText(raw?.dayMaster, 80);
@@ -62,6 +64,8 @@ export async function buildSajuAdapter(input, options = {}) {
       gyeokguk: raw.advancedFactors?.gyeokguk,
       hiddenStemExposures: raw.advancedFactors?.hiddenStemExposures,
     } } : {}),
+    pillars: {year:raw.yearPillar,month:raw.monthPillar,day:raw.dayPillar,hour:raw.hourPillar || null},
+    calculationMeta: raw.calculationMeta,
     dayMaster,
     tenGodsSummary: tenGodsSummary || `십성은 ${focus}를 살펴보는 단서로 사용합니다.`,
     fiveElementsSummary: fiveElementsSummary || "오행의 균형은 행동의 속도와 회복 리듬을 살펴보는 단서입니다.",

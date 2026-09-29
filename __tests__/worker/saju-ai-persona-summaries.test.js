@@ -32,7 +32,7 @@ const summaryBlock = [
 
 describe("명식이 답하는 사주 AI 상담 화자 요약", () => {
   test("v15 마지막 생성 그룹만 같은 호출에서 두 화자 블록을 요청한다", () => {
-    expect(sajuPrompt.SAJU_AI_PROMPT_VERSION).toBe("saju-myeongsik-ai-v15");
+    expect(sajuPrompt.SAJU_AI_PROMPT_VERSION).toBe("saju-myeongsik-ai-v15-natal-v2");
     const finalGroup = sajuPrompt.SAJU_AI_SECTION_GROUPS.find((group) => group.key === "strategy_action");
     const firstGroup = sajuPrompt.SAJU_AI_SECTION_GROUPS[0];
     const builtPrompt = { internalPrompt: "내부 명식 사실 카드", factCard: "명식 사실", promptVersion: sajuPrompt.SAJU_AI_PROMPT_VERSION };

@@ -313,6 +313,7 @@ const CLASSIC_MODULES = Object.freeze([
   "lib/korean-calendar/core.js",
   "lib/korean-calendar/ganji.js",
   "lib/korean-calendar/daeun.js",
+  "lib/korean-calendar/natal.js",
 ]);
 
 /** 모듈 구문을 걷어낸다. 남으면 던진다 — 조용히 반쪽짜리 파일을 내는 것이 최악이다. */

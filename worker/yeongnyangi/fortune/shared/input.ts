@@ -13,7 +13,7 @@ function profile(value: unknown, domain: DomainId): BirthProfile {
   const p = {...value} as Record<string, unknown>;
   if (p.calendarType !== undefined && !['solar','lunar'].includes(String(p.calendarType)))
     throw new FortuneError("INVALID_CALENDAR");
-  let originalCalendar: BirthProfile['originalCalendar'];
+  let originalCalendar: BirthProfile['originalCalendar'] = p.originalCalendar as BirthProfile['originalCalendar'];
   if(p.calendarType==='lunar') {
     if(typeof p.birthDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(p.birthDate))throw new FortuneError('INVALID_BIRTH_DATE');
     const [y,m,d]=p.birthDate.split('-').map(Number);

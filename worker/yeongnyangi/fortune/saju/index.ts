@@ -2,7 +2,7 @@ import { calculateScreenSaju } from './runtime';
 import { context, domain } from "../shared/domain";
 export const saju = domain(
   "saju",
-  `기존 CODE DESTINY 화면의 한국 절기·민용일·야자시 shift-day 및 시주 경도 보정으로 계산된 명리 자료다.
+  `기존 CODE DESTINY 화면의 실제 출생 순간의 한국 절기 및 지역 평균시 보정 후 일주·시주 shift-day으로 계산된 명리 자료다.
 일간·월령·지장간·십성·합충형파해와 운의 상호작용을 함께 읽는다. 오행 개수만으로 신강/신약·용신을 확정하지 않는다.
 strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대조하며 불일치는 설명한다. 오행의 강점과 과다의 그림자를 함께 풀어낸다.
 시주가 없으면 자녀·말년·시주 관련 근거 및 구체적 대운 시작 시점을 단정하지 않는다. 재성은 수익 보장이 아니다.`,
@@ -18,7 +18,7 @@ strength/usefulGod는 휴리스틱이므로 조후·월령·통근 근거와 대
     const r = calculateScreenSaju(input.personA!,new Date(options.asOf || Date.now()),options.jongAnswer);
     const limitations = [
       "강약·용신은 월령·통근·조후와 함께 읽는 참고 판단입니다.",
-      "한국 표준시 출생 기준입니다.",
+      "절입은 실제 출생 순간으로 비교하며 일주·시주는 지역 평균시 보정 후 함께 계산합니다.",
     ];
     if (!input.personA!.birthTime)
       limitations.push(

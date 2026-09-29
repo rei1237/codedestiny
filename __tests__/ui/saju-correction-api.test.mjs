@@ -1,0 +1,19 @@
+import '../../scripts/lib/mock-network-guard.cjs';
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const mocks={
+ 'worker/lib/db.js':'export const withMongoRetry=async(e,fn)=>fn();',
+ 'worker/lib/models.js':`export const Payment={findOne:q=>globalThis.__correctionDb.query('payment',q)};export const ProfileCard={findOne:q=>globalThis.__correctionDb.query('profile',q)};export const PointHistory={findOne:q=>globalThis.__correctionDb.query('evidence',q)};`,
+ 'worker/yeongnyangi/repository.js':`export const ownerId=x=>x;export const hasRequestAccess=r=>!!r.paymentId;export const YeongnyangiRequest={findOne:q=>globalThis.__correctionDb.query('request',q),updateOne:()=>{throw Error('unexpected write in dry run')}};`,
+};
+const bundle=await build({stdin:{contents:"export {reviewSajuCorrection} from './worker/yeongnyangi/saju-correction.js'",resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'db-only-mock',setup(b){b.onLoad({filter:/worker[\\/]/},a=>{const key=Object.keys(mocks).find(k=>a.path.replaceAll('\\','/').endsWith(k));return key?{contents:mocks[key],loader:'js'}:undefined;});}}]});
+const {reviewSajuCorrection}=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+test('actual correction service dry-run is owner-scoped and read-only; snapshot precedes changed profile',async()=>{
+ const owner='a'.repeat(24),id='b'.repeat(64),queries=[];
+ const row={_id:id,userId:owner,state:'COMPLETED',paymentId:'payment',snapshot:{natalInput:{personA:{birthDate:'1988-01-07',birthTime:'23:26',calendarType:'solar'}},analysis:{contexts:{saju:{engineVersion:'old',facts:[{label:'pillars',value:{year:'丁卯',month:'癸丑',day:'辛酉',hour:'戊子'}}]}}}},chapters:['original']};
+ const original=JSON.stringify(row);
+ globalThis.__correctionDb={query(type,q){queries.push({type,q});assert.equal(q.userId,owner);const result=type==='payment'?{_id:'payment'}:row;return {select(){return this},lean:async()=>result};}};
+ const result=await reviewSajuCorrection({},owner,id);
+ assert.equal(result.status,'correction-required');assert.deepEqual(result.changed,['hour']);assert.equal(result.after.hour,'己亥');assert.equal(JSON.stringify(row),original);assert.ok(queries.every(q=>q.type!=='profile'));assert.ok(queries.some(q=>q.q['metadata.unlockRevoked']?.$ne===true));
+});

@@ -154,6 +154,8 @@ function normalizePersonInfo(value = {}, options = {}) {
   const birthTimeUnknown = toBoolean(source.birthTimeUnknown) || !clean(source.birthTime);
   const time = splitBirthTime(source.birthTime);
   const normalized = {
+    birthPlace: source.birthPlace,
+    isLeapMonth: source.isLeapMonth || source.leapMonth,
     name: clean(source.name || source.nickname, 80),
     gender: normalizeGender(source.gender),
     birthDate: birth?.birthDate || "",
@@ -216,7 +218,8 @@ function buildLifeBookInput(info, hourPillarOverride = "") {
     birthTimeUnknown: info.birthTimeUnknown,
     calendarType: info.calendarType,
     gender: normalizeGender(info.gender),
-    hourPillarOverride,
+    birthPlace: info.birthPlace,
+    isLeapMonth: info.isLeapMonth,
   };
 }
 
@@ -226,13 +229,8 @@ function buildLifeBookInput(info, hourPillarOverride = "") {
  * 보정 결과가 원래 시주와 같으면 2차 호출을 건너뛴다(대부분의 시각이 여기에 해당).
  */
 function calculateChartWithHourCorrection(info) {
-  const base = calculateLifeBookAiSaju(buildLifeBookInput(info));
-  const corrected = resolveCorrectedHourPillar(info, base.dayMaster);
-  if (!corrected || corrected.pillar === clean(base.hourPillar, 10)) {
-    return { saju: base, hourCorrection: corrected?.correction || null };
-  }
-  const adjusted = calculateLifeBookAiSaju(buildLifeBookInput(info, corrected.pillar));
-  return { saju: adjusted, hourCorrection: corrected.correction };
+  const saju = calculateLifeBookAiSaju(buildLifeBookInput(info));
+  return {saju,hourCorrection:saju.calculationMeta.correction};
 }
 
 function distributionFromCounts(source = {}) {

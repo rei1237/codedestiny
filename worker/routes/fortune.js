@@ -1,3 +1,4 @@
+import {validateSajuNatalPayload} from "../lib/saju-correction.js";
 import { deliverFeatureQuestion, readFeatureQuestionRequest } from '../lib/feature-question-delivery.js';
 import { deliverGuardianPaid } from '../lib/guardian-paid-delivery.js';
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
@@ -4735,7 +4736,6 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     existingExecution = await PaidExecutionRecord.findOne({ executionId: sajuExecutionId, userId: String(auth?.userId || "").trim() }).lean();
   } catch { return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 저장 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", 503, { retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId }); }
   if (["cancelled", "refunded"].includes(existingExecution?.status) || ["CANCELLED", "REFUNDED"].includes(existingExecution?.result?.order?.paymentStatus)) return buildSajuAIPromptPaymentRequiredError();
-  if (existingExecution?.result?.payloadHash && existingExecution.result.payloadHash !== payloadHash) return buildSajuAIPromptError("REQUEST_CONFLICT", "기존 상담과 입력이 다릅니다. 저장된 상담에서 이어서 시도해 주세요.", 409);
   if (existingExecution?.resultId) resultId = existingExecution.resultId;
   if (existingExecution?.result?.resumeBody) body = existingExecution.result.resumeBody;
 
@@ -4764,6 +4764,15 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   if (!preflightAccess) {
     return buildSajuAIPromptPaymentRequiredError();
   }
+
+  // Completed paid reports remain readable across engine versions, with their original interpretation.
+  if (existingExecution?.status === "completed") {
+    const stored = normalizeSajuAIStoredResult(existingExecution);
+    if (stored) return json({...stored,calculationReviewRequired:existingExecution?.result?.resumeBody?.sajuResult?.calculationMeta?.engineVersion !== "saju-natal-v2"});
+  }
+  if (existingExecution?.result?.payloadHash && existingExecution.result.payloadHash !== payloadHash) return buildSajuAIPromptError("REQUEST_CONFLICT", "기존 상담과 입력이 다릅니다. 저장된 상담에서 이어서 시도해 주세요.", 409);
+  try { validateSajuNatalPayload(sajuResult); }
+  catch { return buildSajuAIPromptError("SAJU_RECALCULATION_REQUIRED", "계산 기준이 업데이트되었습니다. 원래 출생정보로 사주를 다시 확인해 주세요. 기존 결제 내역은 유지됩니다.", 409); }
 
   let consumePayload = null;
   let chargedCoins = 0;

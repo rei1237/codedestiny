@@ -1415,6 +1415,17 @@ function _applyTrueSolarTimeCorrection(input) {
 var _CD_STEMS_HANJA = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 var _CD_BRANCHES_HANJA = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
 
+// Adapt only the shape; all calendar decisions belong to the shared natal engine.
+function _cdNatalBazi(chart) {
+  var result = {};
+  ['Year','Month','Day','Time'].forEach(function(label,index) {
+    var pillar = chart.pillars[['year','month','day','hour'][index]] || '';
+    result['get'+label+'Gan'] = function() { return pillar[0] || ''; };
+    result['get'+label+'Zhi'] = function() { return pillar[1] || ''; };
+  });
+  return result;
+}
+
 function _cdCivilDayPillar(year, month, day, hour) {
   var y = Number(year), m = Number(month), d = Number(day);
   if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
@@ -2794,6 +2805,7 @@ function _syncDestinyFlowerSajuSnapshot(reason) {
     var birth = window._astroBirth || window._ziweiBirth || {};
 
     var snapshot = {
+      calculationMeta: window.__cdSajuCalculationMeta || null,
       updatedAt: new Date().toISOString(),
       reason: reason || 'runtime-sync',
       name: USER_NAME || '',
@@ -2943,41 +2955,19 @@ window.computeProfileForModal = function(profile) {
   GENDER = profile.gender || 'F';
 
   try {
-    var bazi = _coreEightChar(corrYear, corrMonth, corrDay, corrH, corrM);
-    // 코어 팔자에는 대운(getYun) 축이 없으므로 여기서 붙인다 — 안 붙이면 이 경로(모달 프로필)로
-    // 들어온 사용자만 퀀텀 전략의 대운이 조용히 빈다.
-    // 🔴 넘기는 시각은 **진태양시 보정 전** 원본이다 — calculate() 의 같은 호출과 축을 맞춘다.
-    attachKasiDaewunBridge(bazi, {
-      year: year,
-      month: month,
-      day: day,
-      hour: hour,
-      minute: minute,
-      second: 0
+    var chart = _koreanCalendar().calculateNatalSaju({
+      birthDate:String(b.year)+'-'+String(b.month).padStart(2,'0')+'-'+String(b.day).padStart(2,'0'),
+      birthTime:String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0'),
+      calendarType:calType,birthTimeUnknown:b.unknownHour===true||b.timeUnknown===true||!hasBirthHour,
+      birthPlace:hasBirthLocation?{latitude:lat,longitude:lng,timezone:tzName}:undefined
     });
-    try {
-      var _gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(corrYear, corrMonth, corrDay, corrH, corrM, 0));
-      if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
-        bazi.getYearGan  = function() { return _gj.secha[0]; };
-        bazi.getYearZhi  = function() { return _gj.secha[1]; };
-        bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
-        bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
-        bazi.getDayGan   = function() { return _gj.iljin[0]; };
-        bazi.getDayZhi   = function() { return _gj.iljin[1]; };
-      }
-    } catch(e) {}
-
+    window.__cdSajuCalculationMeta = chart.calculationMeta;
+    var bazi = _cdNatalBazi(chart);
+    attachKasiDaewunBridge(bazi,Object.assign({second:0},chart.calculationMeta.termClock));
     var yg=bazi.getYearGan(), yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(), mz=bazi.getMonthZhi();
-    var dg=bazi.getDayGan(),   dz=bazi.getDayZhi();
-    var hg=bazi.getTimeGan(),  hz=bazi.getTimeZhi();
-    // 일주는 민용일(원본 달력 날짜) 기준, 시주는 오자둔(민용일 일간)+진태양시 보정 시각으로 재정한다.
-    var _cdDay = _cdCivilDayPillar(year, month, day, hour);
-    if (_cdDay) {
-      dg = _cdDay.g; dz = _cdDay.j;
-      var _cdHour = _cdHourPillarFromDayStem(dg, corrH);
-      if (_cdHour) { hg = _cdHour.g; hz = _cdHour.j; }
-    }
+    var dg=bazi.getDayGan(), dz=bazi.getDayZhi();
+    var hg=bazi.getTimeGan(), hz=bazi.getTimeZhi();
     var p = {
       y:{g:yg,j:yz,gE:(GAN[yg]||{}).e,jE:(JI[yz]||{}).e},
       m:{g:mg,j:mz,gE:(GAN[mg]||{}).e,jE:(JI[mz]||{}).e},
@@ -5249,37 +5239,34 @@ async function calculate(){
     return;
   }
 
+  var natalChart = _koreanCalendar().calculateNatalSaju({
+    birthDate: bd, calendarType: calType, birthTimeUnknown: (_hourWasDefault || (window.__cdBirthTimeUnknown === true && hour === 12 && minute === 0)),
+    birthTime: String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0'),
+    birthPlace: opt ? {name:opt.text, longitude:bLong, latitude:bLat, timezone:bTz} : undefined
+  });
+  window.__cdSajuCalculationMeta = natalChart.calculationMeta;
   var correctedYear = correction.correctedYear;
   var correctedMonth = correction.correctedMonth;
   var correctedDay = correction.correctedDay;
   var correctedHour = correction.correctedHour;
   var correctedMinute = correction.correctedMinute;
   var correctionMsg = "";
-  var resultObj = {
-    finalAdjustedTime: '',
-    offsetDetails: {
-      longitudeOffset: Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000,
-      dstOffset: tzResolved.dstMinutes,
-      totalCorrection: Math.round(correction.totalCorrectionMinutes * 1000) / 1000,
-      isDstApplied: tzResolved.isDstApplied,
-      baseOffsetHours: tzResolved.baseOffsetHours,
-      effectiveOffsetHours: tzResolved.tzOffsetHours
-    }
-  };
-  resultObj.finalAdjustedTime = String(correctedHour).padStart(2, '0') + ':' + String(correctedMinute).padStart(2, '0');
-
-  correctionMsg = `<li><span class="hero-correction-label">시간 보정 내역</span> 입력시간: ${inputTimeStr} → 보정시간: ${resultObj.finalAdjustedTime}</li>`
-                + `<li>출생지: ${opt ? opt.text : bTz}</li>`
-                + `<li>시간대: UTC${bTzOff >= 0 ? '+' : ''}${bTzOff} (표준 UTC${tzResolved.baseOffsetHours >= 0 ? '+' : ''}${tzResolved.baseOffsetHours})</li>`
-                + `<li>경도 보정: ${(Math.round(correction.longitudeCorrectionMinutes * 1000) / 1000)}분 (기준경도 ${stdLong}° vs 실제경도 ${bLong}°)</li>`
-                + `<li>서머타임(DST) 적용: ${tzResolved.dstMinutes}분</li>`
-                + `<li>총 보정 시간: ${(Math.round(correction.totalCorrectionMinutes * 1000) / 1000)}분</li>`
-                + `<li>보정 후 기준일: ${correctedYear}-${String(correctedMonth).padStart(2,'0')}-${String(correctedDay).padStart(2,'0')}</li>`;
+  var sajuTime = natalChart.calculationMeta;
+  var sajuClock = sajuTime.corrected;
+  var resultObj = {finalAdjustedTime:sajuClock ? String(sajuClock.hour).padStart(2,'0')+':'+String(sajuClock.minute).padStart(2,'0') : '시간 미상',offsetDetails:{longitudeOffset:sajuTime.correction.longitudeCorrectionMinutes,dstOffset:sajuTime.correction.dstMinutes,totalCorrection:sajuTime.correction.totalCorrectionMinutes}};
+  correctionMsg = sajuClock
+    ? `<li><span class="hero-correction-label">시간 보정 내역</span> 입력시간: ${inputTimeStr} → 보정시간: ${resultObj.finalAdjustedTime}</li>`
+      + `<li>경도 보정: ${Math.round(sajuTime.correction.longitudeCorrectionMinutes*1000)/1000}분 · 서머타임 제거: ${sajuTime.correction.dstMinutes}분</li>`
+      + `<li>적용 보정: ${sajuTime.correction.appliedMinutes}분 · 균시차 미적용</li>`
+      + `<li>보정 후 기준일: ${sajuClock.year}-${String(sajuClock.month).padStart(2,'0')}-${String(sajuClock.day).padStart(2,'0')}</li>`
+    : '<li>출생시간 미상: 시주를 계산하지 않습니다.</li>';
 
   // 점성술 계산 전용 원본(표준시) 출생 데이터
   var _birthMinuteDefault = (!_hourWasDefault && _minuteWasDefault);
   var _birthTimeUnknown = (_hourWasDefault || (window.__cdBirthTimeUnknown === true && hour === 12 && minute === 0));
   window.__cdSajuTimeUnknown = _birthTimeUnknown;
+
+
   window._astroBirth={year:year,month:month,day:day,hour:hour,minute:minute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown,minuteDefault:_birthMinuteDefault,locationDefault:!opt};
 
   window._ziweiBirth={year:correctedYear,month:correctedMonth,day:correctedDay,hour:correctedHour,minute:correctedMinute,lat:bLat,lon:bLong,tz:bTzOff,unknownHour:_birthTimeUnknown,timeDefault:_birthTimeUnknown};
@@ -5295,18 +5282,19 @@ async function calculate(){
     latitude: bLat,
     unknownHour: _birthTimeUnknown,
     timeDefault: _birthTimeUnknown,
-    dstOffsetMinutes: (resultObj && resultObj.offsetDetails) ? resultObj.offsetDetails.dstOffset : 0,
-    totalCorrectionMinutes: (resultObj && resultObj.offsetDetails) ? resultObj.offsetDetails.totalCorrection : 0
+    dstOffsetMinutes: tzResolved.dstMinutes,
+    totalCorrectionMinutes: correction.totalCorrectionMinutes
   };
   window.__cdActiveBirthProfile = {
     name: USER_NAME || (document.getElementById('nameInput') && document.getElementById('nameInput').value) || '나',
     gender: GENDER || window._gender || 'F',
     birth: {
-      year: year,
-      month: month,
-      day: day,
+      year: Number(bd.split('-')[0]),
+      month: Number(bd.split('-')[1]),
+      day: Number(bd.split('-')[2]),
       hour: hour,
       minute: minute,
+      timeUnknown: _birthTimeUnknown,
       calType: calType
     },
     location: {
@@ -5436,18 +5424,14 @@ async function calculate(){
       pillarError.code = 'KASI_PILLAR_MISSING';
       throw pillarError;
     }
-    // 일주(日柱)는 민용일(원본 달력 날짜) 기준으로 재정한다. 진태양시 보정이 자정을 넘겨 밀어낸
-    // 보정일이 일주로 새면 하루 밀림(예: 을사→갑진)이 발생하므로 원본 달력 날짜로 일진을 계산하고,
-    // 시주(時柱)는 민용일 일간 기준 오자둔 + 진태양시 보정 시각의 2시간지로 파생한다.
-    var _cdCivilDay = _cdCivilDayPillar(year, month, day, hour);
-    if (_cdCivilDay) {
-      kasiDayPair = _cdCivilDay;
-      var _cdCivilHour = _cdHourPillarFromDayStem(_cdCivilDay.g, correctedHour);
-      if (_cdCivilHour) kasiHourPair = _cdCivilHour;
-      // 다운스트림(G_KASI_PILLARS/진단 표시)도 민용일 일주·시주와 일치시킨다.
-      if (normalizedKasiPillars && normalizedKasiPillars.day) normalizedKasiPillars.day.ganji = kasiDayPair.g + kasiDayPair.j;
-      if (_cdCivilHour && normalizedKasiPillars && normalizedKasiPillars.hour) normalizedKasiPillars.hour.ganji = kasiHourPair.g + kasiHourPair.j;
-    }
+    // 공통 원국: 절입은 실제 순간, 일주·시주는 보정 날짜/시각을 공유한다.
+    kasiYearPair = parseKasiGanjiPair(natalChart.pillars.year);
+    kasiMonthPair = parseKasiGanjiPair(natalChart.pillars.month);
+    kasiDayPair = parseKasiGanjiPair(natalChart.pillars.day);
+    kasiHourPair = natalChart.pillars.hour ? parseKasiGanjiPair(natalChart.pillars.hour) : {g:'',j:''};
+    ['year','month','day','hour'].forEach(function(key) {
+      if (normalizedKasiPillars[key]) normalizedKasiPillars[key].ganji = natalChart.pillars[key] || '';
+    });
     var bazi = {
       getYearGan: function() { return kasiYearPair.g; },
       getYearZhi: function() { return kasiYearPair.j; },
@@ -5459,14 +5443,7 @@ async function calculate(){
       getTimeZhi: function() { return kasiHourPair.j; }
     };
     // 대운 시작은 절입까지의 거리로 세므로 절기와 같은 KST 축을 쓴다(위 연·월주와 동일 이유).
-    attachKasiDaewunBridge(bazi, {
-      year: year,
-      month: month,
-      day: day,
-      hour: hour,
-      minute: minute,
-      second: 0
-    });
+    attachKasiDaewunBridge(bazi, Object.assign({second:0}, natalChart.calculationMeta.termClock));
 
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
@@ -5536,7 +5513,7 @@ async function calculate(){
     var timeCorrectionStr = "";
     if(correctionMsg) {
       timeCorrectionStr = `<section class="hero-correction-card" aria-label="${_sajuEngineText("se_5146_attr_aria_label")}">
-                            <h4 class="hero-correction-title"><i class="fa fa-clock-o" aria-hidden="true"></i> 진태양시 자동 변환 적용</h4>
+                            <h4 class="hero-correction-title"><i class="fa fa-clock-o" aria-hidden="true"></i> 지역 평균시 보정</h4>
                             <ul class="hero-correction-list">${correctionMsg}</ul>
                            </section>`;
     }
@@ -6833,6 +6810,7 @@ function _buildSajuAIPromptPayload(opts) {
   var payload = _applySajuAIPromptPrivacy({
     profile: Object.assign({}, _sajuPromptClone(profile) || {}, profileId ? { profileId: profileId } : {}),
     snapshot: _sajuPromptClone(snapshot),
+    calculationMeta: _sajuPromptClone(window.__cdSajuCalculationMeta),
     pillars: _sajuPromptClone(G_PILLARS || null),
     natal: _sajuPromptClone(G_NATAL || null),
     johu: _sajuPromptClone(G_JOHU || null),
@@ -29366,34 +29344,8 @@ async function runCompatCore(compatRunBtn, name, bd, type){
       day = pairCtx.partner.solar.day || day;
     }
 
-    var bazi=_coreEightChar(year,month,day,hour,minute);
-
-    var kasiYearPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.year) : null;
-    var kasiMonthPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.month) : null;
-    var kasiDayPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.day) : null;
-    var kasiApplied = !!(kasiYearPair && kasiMonthPair && kasiDayPair);
-
-    if (kasiApplied) {
-      bazi.getYearGan = function() { return kasiYearPair.g; };
-      bazi.getYearZhi = function() { return kasiYearPair.j; };
-      bazi.getMonthGan = function() { return kasiMonthPair.g; };
-      bazi.getMonthZhi = function() { return kasiMonthPair.j; };
-      bazi.getDayGan = function() { return kasiDayPair.g; };
-      bazi.getDayZhi = function() { return kasiDayPair.j; };
-    } else {
-      try {
-        var _gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(year, month, day, hour, minute, 0));
-        if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
-            bazi.getYearGan = function() { return _gj.secha[0]; };
-            bazi.getYearZhi = function() { return _gj.secha[1]; };
-            bazi.getMonthGan = function() { return _gj.weolgeon[0]; };
-            bazi.getMonthZhi = function() { return _gj.weolgeon[1]; };
-            bazi.getDayGan = function() { return _gj.iljin[0]; };
-            bazi.getDayZhi = function() { return _gj.iljin[1]; };
-        }
-      } catch(e) {}
-    }
-
+    var partnerNatal = _koreanCalendar().calculateNatalSaju({birthDate:bd,calendarType:compatCalType,birthTime:String(hour).padStart(2,'0')+':'+String(minute).padStart(2,'0')});
+    var bazi=_cdNatalBazi(partnerNatal);
     var yg=bazi.getYearGan(),yz=bazi.getYearZhi();
     var mg=bazi.getMonthGan(),mz=bazi.getMonthZhi();
     var dg=bazi.getDayGan(),dz=bazi.getDayZhi();
