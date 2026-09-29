@@ -64,6 +64,8 @@ export function buildSajuSnapshotFromBirth(birthInfo = {}) {
       birthTimeUnknown: birthInfo.birthTimeUnknown === true || !String(birthInfo.birthTime || "").trim(),
       calendarType: birthInfo.calendarType,
       gender: birthInfo.gender,
+      birthPlace: birthInfo.birthPlace,
+      isLeapMonth: birthInfo.isLeapMonth || birthInfo.leapMonth,
     });
 
     const d = splitPillar(result.dayPillar);
@@ -82,6 +84,7 @@ export function buildSajuSnapshotFromBirth(birthInfo = {}) {
 
     return {
       pillars,
+      calculationMeta: result.calculationMeta,
       natal: { elements: mapElementsToEnglish(result.fiveElements) },
       power: {
         yongshin: yongshin ? [yongshin] : [],

@@ -1,13 +1,10 @@
+import { calculateNatalSaju } from "../../../../lib/korean-calendar/index.js";
 import {
-  _applyTrueSolarTimeCorrection,
-  _cdCivilDayPillar,
-  _cdHourPillarFromDayStem,
   calcPower,
   calcNatalElement,
   analyzeJohu,
   detectJong,
   applyRuntimeYongshinPolicy,
-  resolveBirthTimezoneOffset,
 } from "../saju-runtime.mjs";
 import {
   ganji,
@@ -22,53 +19,20 @@ import {
 } from "../../../lib/life-book-ai-saju.js";
 import { buildSajuAdvancedFactors } from "../../../lib/saju-ai-prompt.js";
 import { buildLoveShinsal } from "../../../lib/saju-shinsal.js";
-import { BirthProfile, FortuneError } from "../shared/contracts";
-import {koreanCivilProfile} from '../shared/korean-time';
+import { BirthProfile } from "../shared/contracts";
 import { flipStrength, jongCheckYears, resolveJongVerdict, strengthCheckYears, type JongAnswer } from './jong-check';
 
 export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
-  if (profile.birthPlace && profile.birthPlace.timezone !== "Asia/Seoul")
-    throw new FortuneError("SAJU_KST_REQUIRED");
-  const normalized=koreanCivilProfile(profile);
-  profile=normalized.profile;
-  const [year, month, day] = profile.birthDate.split("-").map(Number);
-  const [hour, minute] = (profile.birthTime || "12:00").split(":").map(Number);
-  const at = { year, month, day, hour, minute };
-  const tz = resolveBirthTimezoneOffset(
-    year,
-    month,
-    day,
-    hour,
-    minute,
-    "Asia/Seoul",
-    9,
-  );
-  const correction = _applyTrueSolarTimeCorrection({
-    ...at,
-    longitude: profile.birthPlace?.longitude ?? 127,
-    standardMeridian: tz.baseOffsetHours * 15,
-  });
-  const core = ganji(at);
-  if (!core || !correction) throw new FortuneError("CALENDAR_UNAVAILABLE", 503);
-  const civil = _cdCivilDayPillar(year, month, day, hour)!;
-  const correctedHour = _cdHourPillarFromDayStem(
-    civil.g,
-    correction.correctedHour,
-  )!;
-  const pillars = {
-    year: formatPillar(core.year.stemIndex, core.year.branchIndex, "hanja"),
-    month: formatPillar(core.month.stemIndex, core.month.branchIndex, "hanja"),
-    day: civil.g + civil.j,
-    hour: correctedHour.g + correctedHour.j,
-  };
+  const natalChart = calculateNatalSaju(profile);
+  const pillars = natalChart.pillars;
+  const year = natalChart.calculationMeta.termClock.year;
+  const civil = { g: pillars.day[0], j: pillars.day[1] };
   const kstYear = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
   const r = calculateLifeBookAiSaju(profile, {
     now: new Date(Date.UTC(kstYear, 0, 15)),
-    pillars,
   });
   const next = calculateLifeBookAiSaju(profile, {
     now: new Date(Date.UTC(kstYear + 5, 0, 15)),
-    pillars,
   });
   r.yearlyLuck = [...r.yearlyLuck, ...next.yearlyLuck];
   const monthlyLuck = nodeTerms(kstYear).map(
@@ -101,11 +65,11 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
         g:
           k === "hour" && !profile.birthTime
             ? ""
-            : pillars[k as keyof typeof pillars][0],
+            : pillars[k as keyof typeof pillars]?.[0] || "",
         j:
           k === "hour" && !profile.birthTime
             ? ""
-            : pillars[k as keyof typeof pillars][1],
+            : pillars[k as keyof typeof pillars]?.[1] || "",
       },
     ]),
   );
@@ -173,14 +137,6 @@ export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer
       usefulElements: power?.yongshin,
       unfavorableElements: power?.kijishin,
     }),
-    calculationMeta: {
-      method: "code-destiny-screen",
-      nightZiPolicy: "shift-day",
-      hourCorrectionMinutes: correction.totalCorrectionMinutes,
-      timeUnknown: !profile.birthTime,
-      historicalOffsetHours: normalized.offsetHours,
-      wallClockAdjustmentMinutes: normalized.adjustmentMinutes,
-      correctionMethod: 'fixed-KST calendar, longitude mean-solar hour; equation-of-time not applied',
-    },
+    calculationMeta: natalChart.calculationMeta,
   };
 }

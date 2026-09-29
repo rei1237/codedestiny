@@ -43,6 +43,7 @@ import {
   NIGHT_ZI_POLICY,
   STEM_HANJA,
   ganji,
+  calculateNatalSaju,
 } from "../lib/korean-calendar/index.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -90,8 +91,8 @@ function* birthMoments({ fromYear = 1930, toYear = 2030, yearStep = 1 } = {}) {
 // 그러면 이 파일들의 23시대 값이 코어 기본값 변경에 조용히 끌려간다.
 {
   const CONSUMERS = [
-    ["worker/lib/life-book-ai-saju.js", "NIGHT_ZI_POLICY.KEEP_DAY"],
-    ["worker/routes/new-year-ai.js", "NIGHT_ZI_POLICY.KEEP_DAY"],
+    ["worker/lib/life-book-ai-saju.js", "calculateNatalSaju(birthInfo)"],
+    ["worker/routes/new-year-ai.js", "calculateNatalSaju(birth)"],
     // destiny-bias 는 사용자가 고르는 정책이라 두 값을 다 갖는다.
     ["worker/lib/destiny-bias-engine.js", "NIGHT_ZI_POLICY.SHIFT_DAY"],
     ["worker/lib/destiny-bias-engine.js", "NIGHT_ZI_POLICY.KEEP_DAY"],
@@ -132,7 +133,8 @@ function* birthMoments({ fromYear = 1930, toYear = 2030, yearStep = 1 } = {}) {
 
     const life = calculateLifeBookAiSaju({ birthDate, birthTime, calendarType: "solar", gender: "male" });
     const lifeGot = [life?.yearPillar, life?.monthPillar, life?.dayPillar, life?.hourPillar].join("/");
-    const lifeWant = [want.year, want.month, want.day, want.hour].join("/");
+    const natalWant = calculateNatalSaju({birthDate,birthTime,calendarType:"solar"}).pillars;
+    const lifeWant = [natalWant.year, natalWant.month, natalWant.day, natalWant.hour].join("/");
     if (lifeGot !== lifeWant) rows.push(`${birthDate} ${birthTime} life-book ${lifeGot} vs 코어 ${lifeWant}`);
 
     const ny = calculateNewYearFortuneData({
@@ -144,7 +146,7 @@ function* birthMoments({ fromYear = 1930, toYear = 2030, yearStep = 1 } = {}) {
   }
   ok("② 원국 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 500, `표본 ${probes}건`);
   ok("② 표본에 23시대가 들어 있다(없으면 이 가드가 축을 안 지킨다)", nightProbes >= 100, `23시대 ${nightProbes}건`);
-  ok("② life-book·new-year 의 네 기둥이 코어 keep-day 와 전건 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  ok("② life-book 공통 지역시 원국 및 new-year 공통 지역시 정책 일치", rows.length === 0, rows.slice(0, 10).join("\n      "));
 }
 
 // ── ③ destiny-bias 의 정책 3종이 코어와 1:1 로 대응한다 ────────────────────
@@ -345,6 +347,6 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `[verify:natal-day-pillar-axis] OK — 검사 ${checks}건 · 원국 축 keep-day 명시 확인 · ` +
+  `[verify:natal-day-pillar-axis] OK — 검사 ${checks}건 · 소비자별 원국 정책 확인 · ` +
     "제품 소스 lunar-javascript import 0건",
 );

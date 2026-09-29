@@ -451,6 +451,8 @@ function normalizeConsultationInput(body = {}) {
       birthTime,
       birthTimeUnknown,
       calendarType,
+      birthPlace: birthSource.birthPlace || body.birthPlace,
+      isLeapMonth: birthSource.isLeapMonth || body.isLeapMonth,
     },
     focusArea,
     topic: topic || FOCUS_AREA_LABELS[focusArea],
@@ -2617,7 +2619,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
                 store: createLlmCacheStore(env),
                 deterministic: true,
                 ttlSeconds: 30 * 24 * 60 * 60,
-                keyExtra: `life-book-ai-v2-${consultationType}-${section.id}`,
+                keyExtra: `life-book-ai-v2-natal-v2-${consultationType}-${section.id}`,
               },
               logContext: { ...baseLogContext, sectionId: section.id, attempt },
             });

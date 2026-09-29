@@ -218,13 +218,15 @@ let divergence = null;
   const rows = [];
   let probes = 0;
   for (const at of birthMoments({ fromYear: 1950, toYear: 2035, yearStep: 5 })) {
-    const result = calculateLifeBookAiSaju({
+    let result;
+    try { result = calculateLifeBookAiSaju({
       birthDate: `${at.year}-${pad2(at.month)}-${pad2(at.day)}`,
       birthTime: `${pad2(at.hour)}:${pad2(at.minute)}`,
       gender: at.gender === "M" ? "male" : "female",
       calendarType: "solar",
     });
-    const core = daeun(at, { gender: at.gender });
+    } catch(e) { if (e.code !== "AMBIGUOUS_BIRTH_TIME" || at.year !== 1955 || at.month !== 5 || at.day !== 5 || at.hour !== 0) throw e; console.log("[daeun] rejected historical DST transition sample", JSON.stringify(at)); continue; }
+    const core = daeun(result.calculationMeta.termClock, { gender: at.gender });
     probes += 1;
     const luck = result?.majorLuck;
     if (!luck?.available) { rows.push(`${at.year}-${at.month}-${at.day} majorLuck 미제공: ${luck?.reason || "?"}`); continue; }

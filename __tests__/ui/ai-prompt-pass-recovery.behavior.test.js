@@ -154,6 +154,7 @@ async function routeFixture(name) {
   const json = (body, init) => new Response(JSON.stringify(body), init);
   const fail = (code, message, status) => json({ ok: false, code, message }, { status });
   Object.assign(f.context, {
+    validateSajuNatalPayload: () => {}, // natal validation has its own executable contract tests
     Request, Response, Headers, console: { info() {}, warn() {}, error() {} },
     json, readJson: request => request.json(),
     readFeatureQuestionRequest: request => request.json(),

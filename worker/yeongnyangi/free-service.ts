@@ -57,7 +57,7 @@ export async function prepareFreeReading(env:Record<string,unknown>,userId:strin
   const input:FortuneInput=birthCategories.has(config.id)
     ?domains[validationDomain].validateInput(raw)
     :{question:raw.question,readingMode:'personal'};
-  if(input.personA&&['saju','basic','comprehensive','dangsaju','ziwei','kusei'].includes(category))koreanCivilProfile(input.personA);
+  if(input.personA&&['dangsaju','ziwei','kusei'].includes(category))koreanCivilProfile(input.personA);
   const drawn=category==='tarot'?drawTarotCardsForSpread('three_card_cause_process_outcome'):undefined;
   const claimed=await claimFreeReading(env,userId,day,category,profileId,{input,draft,drawn},now);
   if(claimed.row.result)return claimed.row.result;

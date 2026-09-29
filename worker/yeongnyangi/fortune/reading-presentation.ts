@@ -1,3 +1,4 @@
+import {SAJU_ENGINE_VERSION} from "../../../lib/korean-calendar/index.js";
 import { getTarotCardByAnyId } from '../../../lib/tarot/tarot-cards.mjs';
 import { yeongnyangiCardArt } from '../../../lib/tarot/yeongnyangi-deck';
 import type { ChapterSpec, MasterAnalysis } from './book-contracts';
@@ -70,6 +71,6 @@ export function readingCharts(analysis:MasterAnalysis,manifest:ChapterSpec[]):Re
        add(key,'계산된 시기 · '+text(r.lord || r.planet || r.ganji || r.pillar || r.year),[{label:'주기',value:text(r.lord || r.planet || r.ganji || r.pillar || r.year)},{label:'시작',value:text(r.startDate || r.startYear || r.startAge)},{label:'끝',value:text(r.endDate || r.endYear || r.endAge)}],{kind:'timing'});
       }
     }
-    return {domain:d,title:titles[d],groups,limitations:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};
+    return {domain:d,title:titles[d],groups,limitations:d==='saju'&&context.engineVersion!==SAJU_ENGINE_VERSION?[...context.limitations,'이 보고서는 이전 계산 기준으로 작성되었습니다. 원국과 관련 해석의 정정 여부를 확인해야 합니다.']:context.limitations,...(f.spreadId==='yeongnyangi_compatibility_six'?{relationship:true}:{}),source:d==='tarot'?'서버에 저장된 카드 배열':'구매 당시 저장된 계산 근거',...(d==='astrology'?{cusps:Array.isArray(f.houseCusps)?f.houseCusps.filter((n:unknown)=>typeof n==='number'):[]}: {})};
   });
 }

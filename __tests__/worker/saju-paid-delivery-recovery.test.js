@@ -134,6 +134,7 @@ function harness(mode = "single") {
       return { acknowledged: true };
     },
   };
+  ctx.validateSajuNatalPayload = () => {}; // isolated persistence harness; natal contract tested separately
   vm.createContext(ctx); vm.runInContext(extracted, ctx);
   const body = { question: "앞으로 진로를 어떻게 정할까요", domain: "life_direction", sajuResult: {}, requestId: "same" };
   return {
