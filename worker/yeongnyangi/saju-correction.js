@@ -32,7 +32,7 @@ export function correctionStore(env) {
    return read(job.ownerId,job.id);
   },
   claim:async(owner,{maxAttempts})=>{
-   const candidates=await withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(owner),state:{$ne:'REFUNDED'},'generationCheckpoint.sajuCorrections':{$exists:true}}).select('generationCheckpoint.sajuCorrections').sort({_id:1}).limit(20).lean());
+   const candidates=await withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(owner),state:{$ne:'REFUNDED'},$expr:{$anyElementTrue:[{$map:{input:{$objectToArray:{$ifNull:['$generationCheckpoint.sajuCorrections',{}]}},as:'job',in:{$and:[{$eq:['$$job.v.status','queued']},{$lt:['$$job.v.attempts',maxAttempts]}]}}}]}}).select('generationCheckpoint.sajuCorrections').sort({_id:1}).limit(20).lean());
    for(const parent of candidates)for(const job of Object.values(parent.generationCheckpoint.sajuCorrections||{})){
     if(job.status!=='queued'||job.attempts>=maxAttempts)continue;
     const claimed=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({...filter(owner,job.id),[path(job.id)+'.status']:'queued',[path(job.id)+'.attempts']:job.attempts},{$set:{[path(job.id)+'.status']:'running'},$inc:{[path(job.id)+'.attempts']:1}},{new:true}).lean());
@@ -41,7 +41,10 @@ export function correctionStore(env) {
    return null;
   },
   saveDraft:async(owner,id,draft)=>withMongoRetry(env,()=>YeongnyangiRequest.updateOne({...filter(owner,id),[path(id)+'.status']:'running'},{$set:{[path(id)+'.draft']:draft}})),
-  complete:async(owner,id)=>withMongoRetry(env,()=>YeongnyangiRequest.updateOne({...filter(owner,id),state:{$ne:'REFUNDED'},[path(id)+'.status']:'running',[path(id)+'.draft.complete']:true},{$set:{[path(id)+'.status']:'complete',[path(id)+'.completedAt']:new Date()}})),
+  complete:async(owner,id)=>{
+   const result=await withMongoRetry(env,()=>YeongnyangiRequest.updateOne({...filter(owner,id),state:{$ne:'REFUNDED'},[path(id)+'.status']:'running',[path(id)+'.draft.complete']:true},{$set:{[path(id)+'.status']:'complete',[path(id)+'.completedAt']:new Date()}}));
+   if(result.modifiedCount!==1)throw failure('CORRECTION_SAVE_UNCONFIRMED');
+  },
   hold:async(owner,id,code)=>withMongoRetry(env,()=>YeongnyangiRequest.updateOne(filter(owner,id),{$set:{[path(id)+'.status']:'held',[path(id)+'.code']:code}})),
  };
 }
