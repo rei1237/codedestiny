@@ -128,7 +128,10 @@ test('contract: approved v7 flag keeps tier and kind boundaries; v7 chapters car
  for(const p of singles)for(const k of m.consultationKinds[p.domain]||[]){
   assert.equal(m.v7Applies(p,k),TIERS.includes(p.fishId)&&KINDS[p.domain].includes(k.id),`${p.id}/${k.id}`);
   assert.equal(m.v7Applies(p,k,true),TIERS.includes(p.fishId)&&KINDS[p.domain].includes(k.id),`${p.id}/${k.id} enabled`);
-  if(m.supportsKind(p,k))assert.equal(m.consultationManifest(p,k).every(c=>c.version===m.READING_V7_VERSION),m.v7Applies(p,k),`${p.id}/${k.id} version`);
+  if(m.supportsKind(p,k)){
+   const selectedV7=m.v7Applies(p,k)&&p.domain!=='tarot';
+   assert.equal(m.consultationManifest(p,k).every(c=>c.version===m.READING_V7_VERSION),selectedV7,`${p.id}/${k.id} version`);
+  }
  }
  assert.throws(()=>m.readingManifestV7(productFor('saju','mackerel'),{id:'personal'}),{code:'INVALID_READING_MANIFEST'});
  assert.throws(()=>m.readingManifestV7(productFor('tarot','tuna'),{id:'personal'}),{code:'INVALID_READING_MANIFEST'});

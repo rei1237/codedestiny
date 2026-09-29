@@ -86,7 +86,8 @@ async function prepared(productId,kindId,extra={}){
 const row=(r,manifests)=>[sha(r.id),sha(r.prepare),sha(r.requests),sha(r.validated),manifests].join(' ');
 const topicManifests=(p,k)=>sha(Object.fromEntries(m.topicIds.map(t=>[t,m.consultationManifest(p,k,t)])));
 
-// Four-system counseling intentionally changes only requests (2026-09-29); all other columns stay pinned.
+// Four-system counseling intentionally changes only requests (2026-09-29). Tarot choice/love rows pin
+// the new v2 purchase contract; no-kind legacy rows remain pinned to the historical contract.
 // id prepare requests validated manifests — sha256(canonical JSON) prefixes, fixed 2026-09-28T03:00Z / Asia/Seoul.
 const EXPECTED={
  "saju_mackerel:legacy": "532f8f0c5f45 d45c56bcda71 beefc6345d5c 851da5b221c0 8b73190c4eb8",
@@ -184,17 +185,17 @@ const EXPECTED={
  "astrology_tuna:work": "1fcf562a3790 3d8384ffdfdb 198a8a664d9a faad9e29a3e8 22515b7f0512",
  "astrology_tuna:ask": "d88d54b4129f 58f0870bcd27 8aaad3279135 32bab9073df9 85918032d0e7",
  "tarot_mackerel:legacy": "b8697ff4eb9c b8650f9fad9a 921019f68a12 28fbe3a172a1 6aa275b457cb",
- "tarot_mackerel:choice": "8cd405fb514c 39c271b2f9b1 f771e753c5ed ab63b66c51fc d825334382d4",
- "tarot_mackerel:love": "79173a41dc3e 8668d3a33e64 221b043d4aac ab63b66c51fc 104ab9efa89e",
+ "tarot_mackerel:choice": "d9101ea94d78 ff245b6e92b3 edf8ba0f9e8c 69ed41cb7f31 3040b60d8f9a",
+ "tarot_mackerel:love": "40679d816dbe 8a575aead6f3 cb56e5b50859 94dcac1bb98c ec43dbbb0b03",
  "tarot_salmon:legacy": "3f2a60f7e8f5 85991733f183 f77e43b3a4e5 e07dff5f971b c3a12d10a0fe",
- "tarot_salmon:choice": "3c052f303c3b a4ba8c4d8851 72dccc622369 b9803d41684e c5d59e90fbe2",
- "tarot_salmon:love": "1249c3001451 d13eca59079c 8837ac1bd58b e5e4fd3fbab7 3b0dfe5c23de",
+ "tarot_salmon:choice": "f3cfd282e806 827a71ba2368 de9b732135a4 46778f85fe31 0847bd77ffd7",
+ "tarot_salmon:love": "98862054f11b 9e90fc175d4c d8146aa0095d 92bb7cdeb91c 827911f6ce9f",
  "tarot_flounder:legacy": "ac6ed92e4d6e 34e8c738c2ca 337cb15334c5 77f6e0cc6fa7 200019185775",
- "tarot_flounder:choice": "e6b8c38cdfb3 b06d51f32245 8bfa6cecbbc6 eec2494bf5b4 0a393f5c5c47",
- "tarot_flounder:love": "d9201a3f70aa 5304778de30a f1dc1d5f6b69 4c68fbd20b83 3f3e038b6dd8",
+ "tarot_flounder:choice": "1172412da761 495e638f048e e62aec216932 358f2b973686 157bdc132835",
+ "tarot_flounder:love": "05b2e55b02c9 df0ba03bc5cc 123b8805b104 200ad771bfc7 cbc2d0bac5dd",
  "tarot_tuna:legacy": "658c78b450f7 9ffb292ae10b 950ae5caadf2 171c651f45cc cdfa81f3a8a1",
- "tarot_tuna:choice": "aeff082f2619 c8e0bf307012 99b0e12eb034 49c5a018bac0 818105ef441b",
- "tarot_tuna:love": "d055a34b971f 9b1afccbed92 432129d34295 b37bc5f4da7d f90ac169ab5e",
+ "tarot_tuna:choice": "9a082858af6b 02322322580f 841857741f95 20fe26558894 e4dde4d5d80d",
+ "tarot_tuna:love": "d906d40792d3 a22b487fb49b e6160c3d1fd0 ce972e6fbea3 f40bb48c0c1e",
  "fusion_saju_ziwei:legacy": "8e41fdc6c761 2d1115bb53c2 99e664d4b8fd 118e34b767b7 0d9429c32910",
  "fusion_saju_ziwei:personal": "ab5419840ee2 bb11749730bf 2752ff87de94 8bb94d84f4c0 bcdf0bda0fc4",
  "fusion_saju_ziwei:ask": "370220dbd3f2 355cefd21fcf 0d83799b9eb1 5f3897a28626 0d9429c32910",
@@ -214,7 +215,7 @@ const EXPECTED={
  "saju_mackerel@spirit": "9fed71573999 f534870eb198 6c2ebf3b2e24 c3b521dd1883 -"
 };
 
-test('approved v7 paths pin new purchase contracts while legacy and fusion remain invariant',{timeout:600000},async()=>{
+test('approved versioned paths pin new purchases while legacy and fusion remain invariant',{timeout:600000},async()=>{
   const actual={};
   for(const p of m.products)for(const k of kindsFor(p))actual[`${p.id}:${k?.id||'legacy'}`]=row(await prepared(p.id,k?.id),topicManifests(p,k));
   for(const [key,extra] of Object.entries(variants)){

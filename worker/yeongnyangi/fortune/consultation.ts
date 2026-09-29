@@ -3,6 +3,7 @@ import { FortuneError } from './shared/contracts';
 import { topicLabel } from './topics';
 
 export interface Consultation {
+  tarotConsultation?: {version:string;kind:string};
   relationship?: {version:string;questionId?:string;participants?:{self:string;partner:string}};
   consultationKind?: string;
   kindVersion?: 1;

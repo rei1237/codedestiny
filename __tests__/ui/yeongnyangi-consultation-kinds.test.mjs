@@ -13,7 +13,7 @@ const replacements={
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__kindTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/relationship-calculation'; export {validateInput} from './worker/yeongnyangi/fortune/shared/input'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/relationship-calculation'; export {validateInput} from './worker/yeongnyangi/fortune/shared/input'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {readingLocales} from './worker/yeongnyangi/fortune/reading-locale'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('spirit-service-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const {prepareFortune,presentFortune,generateNextChapter,jongCheckFortune}=loaded.exports;
 
@@ -49,7 +49,10 @@ test('relationship modes generate all chapters from saved facts without paid cal
   for(const chapter of row.snapshot.manifest){
    let sent;await new loaded.exports.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}}).generateChapter({locale:'ko',chapter,analysis:row.snapshot.analysis,previous:[]});
    const selected=Object.fromEntries(sent.calculatedData.facts.map(f=>[f.label,f.value]));
-   if(domain==='tarot')assert.equal(selected.cards.length,6);
+    if(domain==='tarot'){
+     assert.equal(selected.cards.length,6);
+     assert.equal(JSON.parse(sent.domainRules).tarotMaster.methodVersion,'yeongnyangi-tarot-consultation-v2');
+    }
    else {assert.ok(selected.relationshipBasis.self);if(kind==='compatibility')assert.ok(selected.relationshipBasis.partner);}
   }
  }
@@ -185,11 +188,10 @@ test('old requests retain legacy shape and question behavior',async()=>{
  assert.equal(row.generationCheckpoint,undefined);
 });
 
-test('only explicit question menus save private evidence packets without changing paid manifests',async()=>{
- for(const productId of ['saju_mackerel','ziwei_mackerel','vedic_mackerel','astrology_mackerel','sukuyo_mackerel','tarot_mackerel','fusion_saju_ziwei']) {
+test('only general ask menus save private evidence packets; tarot v2 keeps its own frozen contract',async()=>{
+ for(const productId of ['saju_mackerel','ziwei_mackerel','vedic_mackerel','astrology_mackerel','sukuyo_mackerel','fusion_saju_ziwei']) {
   const product=products.find(p=>p.id===productId);
-  const request={...body,productId,consultationKind:productId.startsWith('tarot')?'choice':'ask',
-   question:'첫 질문의 근거를 확인해 주세요.',locale:'ja'};
+  const request={...body,productId,consultationKind:'ask',question:'첫 질문의 근거를 확인해 주세요.',locale:'ja'};
   const row=await prepareFortune(env,'evidence-owner',request);
   const packet=row.generationCheckpoint.evidence;
   assert.equal(row.generationCheckpoint.version,'ask-generation-v1');
@@ -202,7 +204,23 @@ test('only explicit question menus save private evidence packets without changin
   assert.equal(presentFortune(row).askEvidence,undefined,'raw packet is not a public API field');
   assert.deepEqual(await prepareFortune(env,'evidence-owner',request),row);
  }
+ const tarot=await prepareFortune(env,'evidence-owner',{...body,productId:'tarot_mackerel',consultationKind:'choice',question:'이 선택을 이어갈까요?',locale:'ja'});
+ assert.equal(tarot.generationCheckpoint,undefined);
+ assert.deepEqual(tarot.snapshot.tarotConsultation,{version:'yeongnyangi-tarot-consultation-v2',kind:'choice'});
+ assert.equal(tarot.snapshot.analysis.contexts.tarot.facts.find(f=>f.label==='tarotConsultation').value.version,'yeongnyangi-tarot-consultation-v2');
+ assert.equal(tarot.snapshot.manifest.length,5);
  assert.equal(globalThis.__kindTest.calls,0);
+});
+
+test('choice and love keep every output locale while seven new tarot menus stay Korean-only',async()=>{
+ for(const locale of loaded.exports.readingLocales)for(const consultationKind of ['choice','love']){
+  const row=await prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:`${locale} 언어 결과`,locale});
+  assert.equal(row.snapshot.locale,locale);
+  assert.equal(row.snapshot.analysis.consultation.tarotConsultation.kind,consultationKind);
+ }
+ for(const consultationKind of ['feelings','contact','reunion','compatibility','career','money','healing']){
+  await assert.rejects(()=>prepareFortune(env,'tarot-locale-owner',{...body,productId:'tarot_mackerel',consultationKind,question:'한국어 전용 범위',locale:'en',...(consultationKind==='compatibility'?{participants:{self:'나',partner:'상대'}}:{})}),error=>error.code==='READING_LOCALE_UNAVAILABLE');
+ }
 });
 
 test('tarot retries reuse the first stored draw; storage uncertainty blocks a new draw',async()=>{

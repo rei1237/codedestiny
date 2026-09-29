@@ -6,7 +6,7 @@ import path from 'node:path';
 import {build} from 'esbuild';
 // Design §6-6: the wiring that makes v7 reachable. consultation-kinds branches on v7Applies, chapter-facts
 // routes a v7 chapter to the ledger, chapter.ts spreads the chapter-v7 prompt and moves the evidence rule
-// onto the insight blocks. The flag stays OFF, so every purchasable reading must still resolve to v6.
+// onto the insight blocks. Tarot v2 owns new tarot purchases before the older v7 selector.
 const Module=createRequire(import.meta.url)('node:module');
 const built=await build({stdin:{contents:`export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7Applies,readingManifestV7,READING_V7_ENABLED} from './worker/yeongnyangi/fortune/reading-v7'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {resolveV7Ledger,selectV7Facts} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {buildV7ChapterPrompt} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7-wiring.test.cjs');
@@ -38,7 +38,8 @@ test('flag ON: only eligible single-system kinds use v7; legacy and fusion stay 
   const expected=p.manifestVersion===m.READING_V6_VERSION&&['salmon','flounder','tuna'].includes(p.fishId)&&(V7_KINDS[p.domain]||[]).includes(kind.id);
   assert.equal(m.v7Applies(p,kind),expected,where);
   assert.equal(m.v7Applies(p,kind,false),false,`${where} rollback`);
-  assert.equal(m.consultationManifest(p,kind).every(c=>c.version===m.READING_V7_VERSION),expected,where);
+  const selectedV7=expected&&p.domain!=='tarot';
+  assert.equal(m.consultationManifest(p,kind).every(c=>c.version===m.READING_V7_VERSION),selectedV7,where);
  }
  assert.equal(m.v7Applies(productOf('saju','flounder'),undefined),false);
  for(const p of m.products.filter(p=>p.readingKind!=='single'))assert.equal(m.v7Applies(p,{id:'personal'}),false);
