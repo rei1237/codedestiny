@@ -12,7 +12,7 @@ export default function SajuLandingHero() {
         <a className={styles.jump} href="#sajuBirthForm">내 사주 시작하기 <ArrowDown size={16} aria-hidden="true" /></a>
         <div className={styles.scope}>
           <strong>기본 명식 · 오행 · 십성</strong>
-          <span>무료로 확인해요. AI 심화 상담은 별도 선택입니다.</span>
+          <span>입력 후 로그인하면 무료로 확인해요. AI 심화 상담은 별도 선택입니다.</span>
         </div>
       </div>
       <div id="sajuBirthForm" className={styles.form}>

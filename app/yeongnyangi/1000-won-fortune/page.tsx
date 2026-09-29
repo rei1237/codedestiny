@@ -137,7 +137,7 @@ export default function Page(){
 
   <section aria-labelledby="difference">
    <h2 id="difference">무료 운세와 천원 상담의 차이</h2>
-   <p>꿀꿀 운세에는 로그인 없이 볼 수 있는 운세 페이지가 있어요. <a href="/today/">오늘의 운세</a>, <a href="/saju/">사주 풀이</a>, <a href="/ziwei/">자미두수 명반</a>, <a href="/sukuyo/">숙요점 본명숙</a>, <a href="/vedic/">베다 점성술</a>, <a href="/astrology/">점성술 차트</a>, <a href="/tarot/">타로</a>에서 계산 결과와 기본 풀이를 먼저 확인할 수 있어요.</p>
+   <p>꿀꿀 운세의 무료 기능을 먼저 살펴보세요. <a href="/today/">오늘의 운세</a>, <a href="/saju/">사주 풀이</a>, <a href="/ziwei/">자미두수 명반</a>, <a href="/sukuyo/">숙요점 본명숙</a>, <a href="/vedic/">베다 점성술</a>, <a href="/astrology/">점성술 차트</a>, <a href="/tarot/">타로</a>에서 각 기능을 알아볼 수 있어요. 무료 사주는 출생 정보를 입력하고 회원가입 또는 로그인 후 결과를 확인해요.</p>
    <p>천원 상담은 같은 계산을 출발점으로 삼되, 내가 고른 주제와 질문을 반영해 챕터별로 이어지는 글을 새로 써요. 결과는 내 계정의 상담 기록에 남아 나중에 다시 열 수 있어요. 기본 성향만 알고 싶다면 무료 페이지로 충분하고, 한 가지 고민을 근거와 함께 길게 읽고 싶을 때 천원 상담이 맞아요.</p>
    <div className={styles.tableWrap}><table>
     <caption>무료 운세 페이지와 영냥이 고등어 상담 비교</caption>

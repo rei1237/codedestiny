@@ -4750,6 +4750,80 @@ function redirectToLoginForFortune(){
   window.location.href = '/login?next=' + nextPath;
 }
 
+var SAJU_LOGIN_DRAFT_KEY = 'cd:saju-login-draft:v1';
+var SAJU_LOGIN_FIELDS = ['nameInput', 'birthDate', 'birthHour', 'birthMinute', 'birthTimeText', 'birthCountry', 'birthCountryInput'];
+var sajuResultSessionPending = null;
+function sajuLoginDraftScope(path) {
+  return ['/', '/index.html', '/ggulggul', '/ggulggul/'].indexOf(path) >= 0 ? '/ggulggul/' : path;
+}
+function getSajuLoginReturnPath() {
+  var url = new URL(getSajuReturnPath(), window.location.origin);
+  url.pathname = sajuLoginDraftScope(url.pathname);
+  url.searchParams.set('action', 'cdOneStepFreeSajuEntry');
+  return url.pathname + url.search + url.hash;
+}
+function saveSajuLoginDraft() {
+  var fields = {};
+  SAJU_LOGIN_FIELDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) fields[id] = String(el.value || '').slice(0, 200);
+  });
+  var calendar = document.querySelector('input[name="calType"]:checked');
+  var draft = { savedAt: Date.now(), path: sajuLoginDraftScope(location.pathname),
+    fields: fields, gender: GENDER || window._gender, timeUnknown: window.__cdBirthTimeUnknown === true, calendar: calendar ? calendar.value : 'solar' };
+  sessionStorage.setItem(SAJU_LOGIN_DRAFT_KEY, JSON.stringify(draft));
+}
+async function ensureSajuResultSession() {
+  if (sajuResultSessionPending) return sajuResultSessionPending;
+  sajuResultSessionPending = (async function() {
+    var status = 'unavailable';
+    try {
+      if (typeof window.__dpVerifyResultSession === 'function') status = await window.__dpVerifyResultSession();
+    } catch (_) {}
+    if (status === 'authenticated') return true;
+    if (status !== 'guest') {
+      setSajuFormStatus('로그인 상태를 확인하지 못했어요. 입력은 그대로 두고 잠시 후 다시 눌러 주세요.', 'error');
+      return false;
+    }
+    try { saveSajuLoginDraft(); } catch (_) {
+      setSajuFormStatus('입력 정보를 임시 보관하지 못했어요. 브라우저의 저장 공간을 허용한 뒤 다시 눌러 주세요.', 'error');
+      return false;
+    }
+    if (typeof window.cdTrack === 'function') window.cdTrack('fortune_login_required', { service: 'saju' });
+    if (typeof window.__cdOpenLoginRequiredModal === 'function') {
+      window.__cdOpenLoginRequiredModal({ reason: 'fortune_result', nextPath: getSajuLoginReturnPath() });
+    } else window.location.assign('/login/?next=' + encodeURIComponent(getSajuLoginReturnPath()));
+    return false;
+  })();
+  try { return await sajuResultSessionPending; } finally { sajuResultSessionPending = null; }
+}
+async function restoreSajuLoginDraft() {
+  var draft;
+  try {
+    draft = JSON.parse(sessionStorage.getItem(SAJU_LOGIN_DRAFT_KEY) || 'null');
+    if (!draft) return;
+    if (!Number.isFinite(draft.savedAt) || Date.now() - draft.savedAt > 3600000 || draft.savedAt > Date.now()) {
+      sessionStorage.removeItem(SAJU_LOGIN_DRAFT_KEY); return;
+    }
+    if (draft.path !== sajuLoginDraftScope(location.pathname) || !draft.fields) return;
+    SAJU_LOGIN_FIELDS.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && typeof draft.fields[id] === 'string') el.value = draft.fields[id];
+    });
+    if (draft.gender === 'M' || draft.gender === 'F') setGender(draft.gender);
+    window.__cdBirthTimeUnknown = draft.timeUnknown === true;
+    document.querySelectorAll('input[name="calType"]').forEach(function(el) { el.checked = el.value === draft.calendar; });
+    setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 사주를 이어서 볼 수 있어요.', 'info');
+    // Do not redirect again when the user cancels login or uses browser Back.
+    var status = typeof window.__dpVerifyResultSession === 'function' ? await window.__dpVerifyResultSession() : 'unavailable';
+    if (status !== 'authenticated') return;
+    if (typeof window.cdTrack === 'function') window.cdTrack('fortune_login_resumed', { service: 'saju' });
+    await startSajuCalculationFlow();
+  } catch (_) {
+    setSajuFormStatus('입력 정보를 다시 확인한 뒤 결과 보기를 눌러 주세요.', 'info');
+  }
+}
+
 function redirectToPointRecharge(){
   var nextPath = getSajuEncodedReturnPath('fortune-point-return-path');
   window.location.href = '/points?next=' + nextPath;
@@ -4843,9 +4917,7 @@ function validateSajuFormBeforeLogin() {
 
 async function checkPrivacyAndCalculate() {
   if (!validateSajuFormBeforeLogin()) return;
-  // 무료 사주 열람은 비로그인도 가능하다. 계산은 전부 클라이언트 사이드(lunar Solar)라
-  // 입력값이 브라우저를 떠나지 않으므로, 로그인 대신 개인정보 동의를 받는다.
-  // 저장(프로필 카드)과 유료 섹션은 그대로 로그인·결제를 요구한다.
+  // Input remains available before login; results require a verified session.
   var signedIn = typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession();
   if (!signedIn && sessionStorage.getItem('privacyAgreed') !== 'true') {
     openPrivacyModal();
@@ -4889,6 +4961,7 @@ async function startSajuCalculationFlow() {
   }
   GENDER = selectedGender;
   window._gender = selectedGender;
+  if (!await ensureSajuResultSession()) return;
   try {
     if (location && (location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       console.debug('[saju] submit input', {
@@ -4944,6 +5017,8 @@ async function startSajuCalculationFlow() {
   var resultPage = document.getElementById('resultPage');
   var isResultVisible = !!(resultPage && resultPage.style.display !== 'none');
   if (!isResultVisible) return;
+
+  try { sessionStorage.removeItem(SAJU_LOGIN_DRAFT_KEY); } catch (_) {}
 
   clearSajuFormStatus();
   await consumeFortunePointAfterCalculation();
@@ -5070,6 +5145,7 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
 async function calculate(){
+  if (!await ensureSajuResultSession()) return;
   var existingCharm=document.getElementById('specialCharmCard');
   if(existingCharm)existingCharm.remove();
 

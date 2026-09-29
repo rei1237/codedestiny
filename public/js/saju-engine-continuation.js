@@ -162,6 +162,7 @@ function _safeBootstrapSajuFlow() {
 
   _ensureFormFieldsReady();
   _unlockCoreBirthInputsAfterBootstrapError();
+  if (typeof restoreSajuLoginDraft === 'function') void restoreSajuLoginDraft();
 
   requestAnimationFrame(function() {
     try {
