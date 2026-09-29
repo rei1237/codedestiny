@@ -84,7 +84,7 @@ function collectEmittedEventNames() {
   return names;
 }
 
-function boot({ url = "https://code-destiny.com/", consent = "", measurementId = "", lastVisit = null, body = "" } = {}) {
+function boot({ url = "https://code-destiny.com/", consent = "", measurementId = "", lastVisit = null, body = "", beforeEval = null } = {}) {
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", () => { /* 미구현 내비게이션 경고는 이 가드의 관심사가 아니다 */ });
 
@@ -98,6 +98,7 @@ function boot({ url = "https://code-destiny.com/", consent = "", measurementId =
   if (consent) window.document.cookie = `cd_cookie_consent=${encodeURIComponent(consent)}; path=/`;
   if (lastVisit !== null) window.localStorage.setItem("cd_ga_last_visit_v1", String(lastVisit));
   if (measurementId) window.__CD_GA_ID = measurementId;
+  if (beforeEval) beforeEval(window);
 
   window.eval(ANALYTICS_SOURCE);
 
@@ -344,6 +345,60 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.ok(names.includes("home_section_click"), "합친 리스너에서 home_section_click 이 사라졌다");
 }
 
+/* ⑩-3 영냥이 포털은 노출·클릭·도착만 세고, 상담 개인정보를 싣지 않는다 */
+{
+  const observed = [];
+  const impression = boot({
+    body: `<a id="portalImpression" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-portal-link data-cd-portal-placement="home_hero">영냥이</a>`,
+    beforeEval(window) {
+      window.IntersectionObserver = class {
+        constructor(callback) { this.callback = callback; observed.push(this); }
+        observe(target) { this.target = target; }
+        unobserve() {}
+      };
+    },
+  });
+  impression.window.document.dispatchEvent(new impression.window.Event("DOMContentLoaded"));
+  assert.equal(observed.length, 1, "영냥이 포털 노출 관측기가 설치되지 않았다");
+  observed[0].callback([{ target: impression.window.document.getElementById("portalImpression"), isIntersecting: true, intersectionRatio: 0.52 }]);
+  const impressionEvent = (impression.window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .find((c) => c[0] === "event" && c[1] === "yeongnyangi_portal_impression");
+  assert.ok(impressionEvent, "영냥이 포털이 보였는데 yeongnyangi_portal_impression 이 나가지 않았다");
+  assert.equal(impressionEvent[2].placement, "home_hero");
+
+  const markup = `
+    <a id="portal" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-portal-link data-cd-portal-placement="home_hero">영냥이</a>
+  `;
+  const { window } = boot({ body: markup });
+  window.document.getElementById("portal").click();
+  const click = (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .find((c) => c[0] === "event" && c[1] === "yeongnyangi_portal_click");
+  assert.ok(click, "영냥이 포털 클릭에서 yeongnyangi_portal_click 이 나가지 않았다");
+  assert.equal(click[2].from_service, "ggulggul");
+  assert.equal(click[2].to_service, "yeongnyangi");
+  assert.equal(click[2].placement, "home_hero");
+  assert.equal(click[2].destination, "/yeongnyangi/fortune/");
+  for (const forbidden of ["question", "birth", "birthdate", "partner", "result_id"]) {
+    assert.ok(!(forbidden in click[2]), `포털 클릭 이벤트에 상담 개인정보 필드 ${forbidden} 가 실렸다`);
+  }
+
+  const arrived = boot({ url: "https://code-destiny.com/yeongnyangi/fortune/" });
+  arrived.window.sessionStorage.setItem("cd:yeongnyangi:portal-entry", JSON.stringify({
+    at: Date.now(),
+    from: "ggulggul",
+    placement: "home_hero",
+  }));
+  arrived.window.document.dispatchEvent(new arrived.window.Event("DOMContentLoaded"));
+  const arrival = (arrived.window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .find((c) => c[0] === "event" && c[1] === "yeongnyangi_portal_arrival");
+  assert.ok(arrival, "영냥이 포털 도착에서 yeongnyangi_portal_arrival 이 나가지 않았다");
+  assert.equal(arrival[2].destination, "/yeongnyangi/fortune/");
+  assert.equal(arrived.window.sessionStorage.getItem("cd:yeongnyangi:portal-entry"), null, "도착 후 포털 세션 표식이 지워지지 않았다");
+}
+
 /* ⑪ 홈 셸에 표식이 실제로 붙어 있고, 결과 페이지에는 없는가 */
 {
   const homeStart = SHELL_SOURCE.indexOf('<main id="inputPage"');
@@ -489,4 +544,4 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   );
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");

@@ -112,9 +112,62 @@
     }
   }
 
+  var portalMoving = false;
+  function portalReducedMotion() {
+    try {
+      return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (_) {
+      return false;
+    }
+  }
+  function markPortalJourney(link) {
+    try {
+      window.sessionStorage.setItem('cd:yeongnyangi:portal-entry', JSON.stringify({
+        at: Date.now(),
+        from: 'ggulggul',
+        placement: link.getAttribute('data-cd-portal-placement') || 'home'
+      }));
+    } catch (_) {}
+  }
+  function clearPortalOverlay() {
+    portalMoving = false;
+    doc.classList.remove('cd-yn-portal-active');
+    document.querySelectorAll('.cd-yn-portal-overlay').forEach(function (node) { node.remove(); });
+    document.querySelectorAll('.cdh-yn-portal.is-entering').forEach(function (node) { node.classList.remove('is-entering'); });
+  }
+  function enterYeongnyangiPortal(link) {
+    if (portalMoving) return;
+    portalMoving = true;
+    markPortalJourney(link);
+    link.classList.add('is-entering');
+    doc.classList.add('cd-yn-portal-active');
+    var overlay = document.createElement('div');
+    overlay.className = 'cd-yn-portal-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.innerHTML = '<span class="cd-yn-portal-overlay__door"></span>';
+    document.body.appendChild(overlay);
+    window.setTimeout(function () {
+      try {
+        window.location.assign(link.href);
+      } catch (_) {
+        clearPortalOverlay();
+      }
+    }, 680);
+    window.setTimeout(clearPortalOverlay, 2500);
+  }
+
   document.addEventListener('click', function (event) {
     var target = event.target instanceof Element ? event.target : null;
     if (!target) return;
+    var portal = target.closest('[data-cd-portal-link]');
+    if (portal && portal.href && !event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+      markPortalJourney(portal);
+      if (!portalReducedMotion()) {
+        event.preventDefault();
+        enterYeongnyangiPortal(portal);
+      }
+      return;
+    }
     // data-action 진입점(퀵 서비스 사주 카드)은 공용 디스패처가 실행한다. 여기서도 부르면 두 번 돈다.
     var freeEntry = target.closest('[data-cdh-free]');
     if (freeEntry && !freeEntry.hasAttribute('data-action')) {
@@ -147,6 +200,7 @@
   }, true);
 
   window.addEventListener('hashchange', route);
+  window.addEventListener('pageshow', clearPortalOverlay);
   if (new URLSearchParams(location.search).get('action') === 'cdOneStepFreeSajuEntry') revealInput();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', route, { once: true });
   else route();

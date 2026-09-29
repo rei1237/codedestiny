@@ -28,6 +28,41 @@ function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boole
   </div>
  </div>;
 }
+function resultBridgeCopy(locale?:FortuneRecord['locale']){
+ if(locale==='ko')return {
+  title:'상담을 다 읽은 뒤, 이어갈 길',
+  body:'영냥이가 펼친 이야기를 먼저 천천히 읽어보세요. 같은 질문을 더 구체적으로 묻고 싶을 때만, 실제 상담 구성 안에서 이어갈 수 있어요.',
+  related:'관련 상담 1개 보기',
+  garden:'연이의 정원으로 돌아가기',
+ };
+ if(locale==='ja')return {
+  title:'読み終えたあとに進める道',
+  body:'まずは今の鑑定をゆっくり読んでください。同じテーマをもう少し具体的に聞きたいときだけ、実際の鑑定メニューから続けられます。',
+  related:'関連する鑑定を1件見る',
+  garden:'ヨニの庭へ戻る',
+ };
+ return {
+  title:'After you finish this reading',
+  body:'Take your time with the result first. If you want to ask a more specific question on the same theme, you can continue through an actual Yeongnyangi reading option.',
+  related:'View one related reading',
+  garden:"Return to Yeoni's garden",
+ };
+}
+function ResultBridge({row,locale}:{row:FortuneRecord;locale?:FortuneRecord['locale']}){
+ const copy=resultBridgeCopy(locale);
+ const domain=row.product.systems.length>1?'fusion':row.product.domain;
+ const href=`/yeongnyangi/fortune/?domain=${encodeURIComponent(domain)}&lang=${encodeURIComponent(locale||'ko')}`;
+ return <section className={styles.resultBridge} aria-labelledby="yn-result-bridge-title" data-cd-cross-sell="yeongnyangi_result_complete">
+  <div>
+   <h2 id="yn-result-bridge-title">{copy.title}</h2>
+   <p>{copy.body}</p>
+  </div>
+  <nav aria-label={copy.title}>
+   <a className={styles.button} href={href}>{copy.related}</a>
+   <a href={`/ggulggul/?lang=${encodeURIComponent(locale||'ko')}`}>{copy.garden}</a>
+  </nav>
+ </section>;
+}
 const RESULT_POLL_MS=1500;
 // 결제 확정(웹훅·PG 복귀)보다 먼저 열린 결과 화면이 새로고침 없이 넘어가도록 /activate 를 RESULT_POLL_MS 간격으로 다시 확인하는 상한(약 3분).
 const PAY_CHECK_LIMIT=Math.ceil(180000/RESULT_POLL_MS);
@@ -137,7 +172,7 @@ export default function Result(){
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
   <SpiritResult row={row} onRow={setRow}/>
-  {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
+  {row.state==='COMPLETED'&&<><ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/></>}
   {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
     {row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode||'')?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
@@ -167,7 +202,7 @@ export default function Result(){
    </div>
    {supportLink}
    {!unpaid&&<ReadingBook row={row}/>}
-   {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
+   {row.state==='COMPLETED'&&<><ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}
    </>}
   </>}
