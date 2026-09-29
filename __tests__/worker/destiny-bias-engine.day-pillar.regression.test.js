@@ -132,4 +132,28 @@ describe("destiny-bias-engine day pillar regression", () => {
     expect(later?.sajuCoreResult?.daewoon?.list?.[0]?.pillar).toBe("己丑");
     expect((morning?.sajuCoreResult?.daewoon?.list || []).length).toBeGreaterThanOrEqual(9);
   });
+  test("uses the shared natal contract for the corrected 23:00 day boundary", () => {
+    const profile = buildSajuProfile({
+      name: "시간계약",
+      gender: "female",
+      hourPillarTimePolicy: "TRUE_SOLAR_TIME",
+      dayChangePolicy: "MIDNIGHT",
+      birth: {
+        calendarType: "solar",
+        birthDate: "1988-01-07",
+        birthTime: "23:26",
+        birthPlace: "서울",
+        timezone: "Asia/Seoul",
+        longitude: 126.978,
+        latitude: 37.5665,
+      },
+    });
+
+    expect(profile?.pillars?.year?.ganji).toBe("丁卯");
+    expect(profile?.pillars?.month?.ganji).toBe("癸丑");
+    expect(profile?.pillars?.day?.ganji).toBe("辛酉");
+    expect(profile?.pillars?.hour?.ganji).toBe("己亥");
+    expect(profile?.hourPillarTimePolicy).toBe("LOCAL_MEAN_TIME");
+    expect(profile?.dayChangePolicy).toBe("LATE_ZI_NEXT_DAY");
+  });
 });

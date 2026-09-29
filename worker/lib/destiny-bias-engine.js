@@ -12,6 +12,7 @@ import {
   BRANCH_HANJA,
   NIGHT_ZI_POLICY,
   STEM_HANJA,
+  calculateNatalSaju,
   ganji,
   lunarToSolar,
   nodeTerms,
@@ -624,6 +625,28 @@ function normalizePillar(stem, branch) {
   };
 }
 
+function normalizeNatalPillar(value) {
+  const chars = Array.from(String(value || ""));
+  return normalizePillar(chars[0], chars[1]);
+}
+
+function natalBirthPlace(rawPerson, location) {
+  const rawBirth = rawPerson?.birth || {};
+  const longitude = Number(rawBirth.longitude ?? rawBirth.lng ?? rawPerson?.longitude ?? rawPerson?.lng);
+  const latitude = Number(rawBirth.latitude ?? rawBirth.lat ?? rawPerson?.latitude ?? rawPerson?.lat);
+  const timezone = String(rawBirth.timezone ?? rawBirth.tz ?? rawPerson?.timezone ?? rawPerson?.tz ?? "").trim();
+
+  // Partial legacy labels are not a birthplace. Let the shared contract record
+  // its explicit Seoul default instead of silently combining unrelated fields.
+  if (!Number.isFinite(longitude) || !timezone) return undefined;
+  return {
+    name: location.name,
+    longitude,
+    ...(Number.isFinite(latitude) ? { latitude } : {}),
+    timezone,
+  };
+}
+
 function formatDateLabel(y, m, d) {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
@@ -938,19 +961,34 @@ export function buildSajuProfile(rawPerson) {
   const gender = normalizeGender(rawPerson?.gender);
   const birth = normalizeBirthPayload(rawPerson?.birth || {}, rawPerson || {});
   const location = resolveBirthLocation(rawPerson?.birth || {}, rawPerson || {});
-  const hourPillarTimePolicy = normalizeHourPillarTimePolicy(
-    rawPerson?.hourPillarTimePolicy
-    || rawPerson?.timeCorrectionPolicy
-    || rawPerson?.birth?.hourPillarTimePolicy,
-  );
-  const dayChangePolicy = normalizeDayChangePolicy(rawPerson?.dayChangePolicy || rawPerson?.birth?.dayChangePolicy);
-
-  const solarClock = resolveSolarBirth(birth);
+  // This product used to retain a separate true-solar-time / day-change axis.
+  // All natal consumers now share saju-natal-v2: term pillars use the actual
+  // instant, while day/hour pillars use the corrected local-mean clock.
+  const hourPillarTimePolicy = HOUR_PILLAR_TIME_POLICIES.LOCAL_MEAN_TIME;
+  const dayChangePolicy = DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY;
+  const natal = calculateNatalSaju({
+    birthDate: formatDateLabel(birth.year, birth.month, birth.day),
+    birthTime: birth.unknownTime ? undefined : `${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`,
+    calendarType: birth.calendarType,
+    isLeapMonth: birth.isLeapMonth,
+    birthPlace: natalBirthPlace(rawPerson, location),
+  });
+  const solarClock = { ...natal.calculationMeta.civil, second: 0 };
   // 🔴 표기용 음력도 코어가 낸다. 예전에는 lunar-javascript 의 **중국 음력**을 그대로 실어 보냈다.
   const lunarClock = solarToLunar(solarClock.year, solarClock.month, solarClock.day);
   const lunarMonth = resolveLunarMonthValue(lunarClock);
 
-  const correctedClock = applyHourPillarTimeCorrection(birth, location, hourPillarTimePolicy);
+  const natalCorrection = natal.calculationMeta.correction;
+  const natalCorrected = natal.calculationMeta.corrected || solarClock;
+  const correctedClock = {
+    correctedYear: natalCorrected.year,
+    correctedMonth: natalCorrected.month,
+    correctedDay: natalCorrected.day,
+    correctedHour: natalCorrected.hour,
+    correctedMinute: natalCorrected.minute,
+    longitudeCorrectionMinutes: natalCorrection.longitudeCorrectionMinutes,
+    equationOfTimeMinutes: 0,
+  };
   const correctedSolar = {
     year: correctedClock.correctedYear,
     month: correctedClock.correctedMonth,
@@ -960,24 +998,12 @@ export function buildSajuProfile(rawPerson) {
     second: 0,
   };
 
-  // 🔴 진태양시 정책만 보정된 시각으로 일진을 잡는다(기존 동작 그대로).
-  const dayPillarAt = dayChangePolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY ? correctedSolar : solarClock;
-  const corePillarDay = coreDayPillar(dayPillarAt, dayChangePolicy);
-
   const includeHour = !birth.unknownTime;
-  const dayStem = corePillarDay.stem;
-  const dayBranch = corePillarDay.branch;
-
-  let hourStem = "";
-  let hourBranch = "";
-  if (includeHour) {
-    hourBranch = getHourBranchByClock(correctedClock.correctedHour);
-    hourStem = getHourStemByDayStem(dayStem, hourBranch);
-  }
+  const canonicalPillars = natal.pillars;
 
   // 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
   // 야자시 정책은 일진에만 걸리므로 여기서는 인자를 넘기지 않는다.
-  const clockGanji = ganji(solarClock);
+  const clockGanji = ganji(natal.calculationMeta.termClock);
   if (!clockGanji) {
     // 생년은 normalizeBirthPayload 가 1900~2100 으로 자르므로 코어 지원 범위 안이다.
     // 여기 오면 표가 깨진 것이지 입력이 이상한 것이 아니다 — 조용히 CST 달력으로 떨어지지 않는다.
@@ -985,10 +1011,10 @@ export function buildSajuProfile(rawPerson) {
   }
 
   const pillars = {
-    year: normalizePillar(STEM_HANJA[clockGanji.year.stemIndex], BRANCH_HANJA[clockGanji.year.branchIndex]),
-    month: normalizePillar(STEM_HANJA[clockGanji.month.stemIndex], BRANCH_HANJA[clockGanji.month.branchIndex]),
-    day: normalizePillar(dayStem, dayBranch),
-    hour: normalizePillar(hourStem, hourBranch),
+    year: normalizeNatalPillar(canonicalPillars.year),
+    month: normalizeNatalPillar(canonicalPillars.month),
+    day: normalizeNatalPillar(canonicalPillars.day),
+    hour: includeHour ? normalizeNatalPillar(canonicalPillars.hour) : null,
   };
 
   const dayMasterStem = pillars.day.stem;

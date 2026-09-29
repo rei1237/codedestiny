@@ -1,6 +1,5 @@
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
-import { lunarToSolar } from "@/lib/korean-calendar";
-import { nodeTerms } from "@/lib/korean-calendar";
+import { calculateNatalSaju, lunarToSolar, nodeTerms } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
@@ -353,6 +352,26 @@ function makePillar(stemRaw: string, branchRaw: string): SajuPillarLocal {
     branch,
     ganji: `${stem}${branch}`,
   };
+}
+
+function canonicalNatalPlace(input: LocalSajuInput) {
+  const longitude = getInputLongitude(input);
+  const timezone = String(input.timezone || "").trim();
+  if (!Number.isFinite(longitude) || !timezone) return undefined;
+
+  const latitude = getInputLatitude(input);
+  return {
+    name: input.birthplace || "출생지",
+    longitude: Number(longitude),
+    ...(Number.isFinite(latitude) ? { latitude: Number(latitude) } : {}),
+    timezone,
+  };
+}
+
+function canonicalNatalPillar(value: string | null): SajuPillarLocal | null {
+  if (!value) return null;
+  const chars = Array.from(value);
+  return makePillar(chars[0] || "", chars[1] || "");
 }
 
 function resolveSolarDate(input: LocalSajuInput) {
@@ -5307,6 +5326,13 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
 
   const timezoneInfo = normalizeTimezone(input);
   const solarDate = resolveSolarDate(input);
+  const canonicalNatal = calculateNatalSaju({
+    birthDate: `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
+    birthTime: input.hasTime ? `${String(input.hour ?? 0).padStart(2, "0")}:${String(input.minute ?? 0).padStart(2, "0")}` : undefined,
+    calendarType: input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
+    isLeapMonth: Boolean(input.lunarLeap),
+    birthPlace: canonicalNatalPlace(input),
+  });
 
   const hour = input.hasTime && Number.isFinite(input.hour) ? clamp(Number(input.hour), 0, 23) : 12;
   const minute = input.hasTime && Number.isFinite(input.minute) ? clamp(Number(input.minute), 0, 59) : 0;
@@ -5348,10 +5374,10 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     ? getHourPillar(dayPillar.stem, corrected)
     : null;
   const pillars = {
-    year: yearPillarResult.pillar,
-    month: monthPillar,
-    day: dayPillar,
-    hour: hourPillar,
+    year: canonicalNatalPillar(canonicalNatal.pillars.year) || yearPillarResult.pillar,
+    month: canonicalNatalPillar(canonicalNatal.pillars.month) || monthPillar,
+    day: canonicalNatalPillar(canonicalNatal.pillars.day) || dayPillar,
+    hour: canonicalNatalPillar(canonicalNatal.pillars.hour) || hourPillar,
   };
   const daewoonDirection = getDaewoonDirection(input, yearPillarResult.pillar.stem);
   // 대운 시작도 절기까지의 거리로 세므로 절기와 같은 표준시 축을 쓴다.
@@ -5390,7 +5416,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   return {
     pillars,
     fourPillars: pillars,
-    dayStem: dayPillar.stem,
+    dayStem: pillars.day.stem,
     timeUnknown: !input.hasTime,
     solarTermBoundary,
     daewoonStartAge: daewoonStart.age,
@@ -5418,6 +5444,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
         longitude,
       },
       solarDate,
+      canonicalNatal: canonicalNatal.calculationMeta,
       standardClock,
       correctedClock: corrected,
       hourPillarTimeCorrection: correctedByPolicy
