@@ -30,6 +30,7 @@ const schema = new mongoose.Schema({
   leaseToken: { type: String, default: '' },
   leaseUntil: { type: Date, default: null },
   paymentGeneration: { type: Number, default: 0 },
+  paymentClaimOrderId: { type: String, default: '' },
   attempts: { type: Number, default: 0 },
   chapterAttempts: { type: mongoose.Schema.Types.Mixed, default: {} },
   manualRecoveryGrants: { type: mongoose.Schema.Types.Mixed, default: {} },

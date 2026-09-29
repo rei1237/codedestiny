@@ -223,7 +223,7 @@ function pgConfirmsNonPaidEvent(eventType, pg, orderId) {
   const type = String(eventType || "").trim().toLowerCase();
   const normalized = String(pg?.status || "").toLowerCase();
   const raw = String(pg?.rawV2?.status || "").toUpperCase();
-  if (type === "transaction.failed") return normalized !== "paid";
+  if (type === "transaction.failed") return normalized === "failed";
   if (type === "transaction.cancelled") {
     return raw ? raw === "CANCELLED" || raw === "CANCELED" : normalized === "cancelled";
   }
@@ -262,6 +262,11 @@ async function applyNonPaidEventAfterRequery(env, ctx, event, { withDb, fetchPay
       const applied = confirmed
         ? await applyNonPaidPgEvent(db, { eventType: event.eventType, orderId: event.paymentId })
         : { ignored: true, reason: "PG_STATUS_MISMATCH", pgStatus: String(pg?.status || "") };
+      if (confirmed) {
+        const {paymentAttemptSummary}=await import('./pg.js');
+        await db.updateOne(Payment,{merchantUid:event.paymentId,status:{$in:['failed','cancelled','refunded']}},
+          {$set:{'metadata.paymentAttempt':paymentAttemptSummary(pg)}});
+      }
       await markEventProcessed(db, { eventId: event.eventId });
       return applied;
     });
@@ -751,13 +756,9 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
       && order.metadata?.purchaseGrantVersion !== 1;
     return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt) && !executionMissing, settled: true };
   }
-  // 🔴 PG_PAYMENT_NOT_PAID 로 닫힌 FAILED 는 되살린다(2026-09-03). 결제창을 연 뒤 60초 지나 /points 부팅
-  // 재확인이 돌면 PG 가 아직 ready 라 422 → failed 가 되는데, 그 뒤 실제 결제가 나면 웹훅·크론이 이 주문을
-  // 다시 만난다. 이 코드는 pg.js verifyPgPayment 만 던지므로(git grep 2026-09-03) V2 주문에 한정되고,
-  // markOrderPaid CAS 는 failed 를 제외하지 않아 그대로 PAID 로 넘어가며 failure* 를 비운다. PG 가 여전히
-  // 미결제면 markOrderFailed(status:"pending" 정확 일치)가 no-op 이고 422 만 다시 나간다.
-  // 그 밖의 FAILED(다른 failureCode)·CANCELLED·REFUNDED 는 종전대로 409 다.
-  const revivable = status === "FAILED" && String(order.failureCode || "") === "PG_PAYMENT_NOT_PAID";
+  // PG 미확정/실패로 닫힌 주문도 지연 승인을 서버에서 다시 검증한다.
+  // 금액 불일치 등 검증 실패와 CANCELLED·REFUNDED는 되살리지 않는다.
+  const revivable = status === "FAILED" && ["PG_PAYMENT_NOT_PAID","PG_PAYMENT_FAILED","PG_PAYMENT_CANCELLED","pg_webhook_failed"].includes(String(order.failureCode || ""));
   if (status !== "PENDING" && !revivable) {
     throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status });
   }
@@ -821,7 +822,7 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
     const contract = classify(error);
     // 사실이 어긋난 것(422)은 주문을 실패로 확정한다. 닿지 못한 것(503)은 상태를 건드리지 않는다 —
     // PG 가 살아나면 그대로 확정될 주문이다.
-    if (contract.status === 422) {
+    if (contract.status === 422 && contract.code !== "PG_PAYMENT_NOT_PAID") {
       await withDb(env, ctx, (db) => markOrderFailed(db, {
         orderId, failureCode: contract.code, failureMessage: error.message, failureStage: "pg-verify",
       }));
@@ -930,6 +931,10 @@ async function grantOrderEntitlement(db, order) {
     // 회당 구매권은 주문·요청에 묶인다. 서비스별 실행 기록을 미리 만들거나
     // 기능 전체를 영구 해금하지 않아 기존 실행 신원과 새 회차의 과금 정책을 보존한다.
     if (String(product.billingType || "per_use") === "per_use") {
+      if (/^yn-[a-f0-9]{64}$/.test(order.requestId || '')) {
+        const {claimFortunePayment}=await import('../yeongnyangi/payment-intent.js');
+        if(!await claimFortunePayment(db,order))return false;
+      }
       await grantPurchaseEntitlement(db, order, product);
       await db.updateOne(Payment, { merchantUid: String(order.merchantUid), status: { $in: ["paid", "success", "fulfilled"] } }, {
         $set: { "metadata.purchaseGrantVersion": 1 },
@@ -1130,7 +1135,7 @@ const ROUTES = {
    */
   "POST /prepare": {
     auth: "required",
-    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope }) {
+    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
       // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
       if (isPassLikeBody(body)) return handlePassPrepare({ request, env, ctx, userId, body, withDb });
@@ -1172,6 +1177,14 @@ const ROUTES = {
          (policy-versions.js buildRefundConsentRecord 머리주석 — 구버전 앱·옛 셸 보호). */
       const refundConsent = body.refundConsent === true;
       const foreignCard = canUseForeignCard({ user: { id: userId }, product: { type: "digital_content" }, billingCountry: null, paymentChannel: paymentMethod }, { env });
+
+      if (String(product.featureKey || '').startsWith('yeongnyangi-')) {
+        const {reconcileFortuneCheckout}=await import('../yeongnyangi/payment-intent.js');
+        await reconcileFortuneCheckout({env,userId,requestId:body.requestId,product,
+          withDb:fn=>withDb(env,ctx,fn),fetchPayment:pgDeps?.fetchPayment,
+          confirmPaid:(orderId,pg)=>confirmOrder(env,ctx,{orderId,actorUserId:userId},{withDb,deps:{fetchPayment:async()=>pg}}),
+        });
+      }
 
       const { order, user } = await withDb(env, ctx, async (db) => {
         /* 🔴 사용자 조회와 주문 발급을 겹친다. 이 두 왕복은 서로를 기다릴 이유가 없다 — 사용자 문서는

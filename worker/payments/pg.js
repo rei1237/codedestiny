@@ -28,9 +28,22 @@
 import { fetchPortOnePayment, getPortOneConfig } from "../lib/portone.js";
 import { paymentError } from "./errors.js";
 
+export function paymentAttemptSummary(pg) {
+  const raw=pg?.rawV2 || pg || {};
+  const provider=String(raw.channel?.pgProvider || '').toUpperCase();
+  const pgCode=String(raw.failure?.pgCode || '').toUpperCase();
+  const status=String(pg?.status || '').toLowerCase();
+  return {
+    provider: /^[A-Z0-9_]{1,40}$/.test(provider) ? provider : 'UNKNOWN',
+    outcome: status==='paid'?'succeeded':status==='failed'?(pgCode==='CANCEL'?'cancelled':'failed'):status==='cancelled'?'cancelled':'unconfirmed',
+    pgCode: /^[A-Z0-9_.-]{1,80}$/.test(pgCode)?pgCode:'',
+  };
+}
+
 /** PG 응답에서 남길 것. 여기 없는 필드는 저장되지 않는다 — 특히 customer 는 통째로 빠진다. */
 function summarize(pg) {
   return {
+    attempt: paymentAttemptSummary(pg),
     paymentId: String(pg?.paymentId || ""),
     status: String(pg?.status || ""),
     amount: Number(pg?.amount || 0),
@@ -123,6 +136,12 @@ export async function verifyPgPayment(env, { orderId, expectedAmountKRW }, deps 
 
   // ② 실제로 결제됐는가. ready(가상계좌 발급) · failed · cancelled 전부 여기서 걸린다.
   if (String(pg.status || "") !== "paid") {
+    if (pg.status === "failed" || pg.status === "cancelled") {
+      const cancelled = pg.status === "cancelled" || String(pg.rawV2?.failure?.pgCode || pg.failure?.pgCode || '').toUpperCase() === 'CANCEL';
+      throw paymentError(cancelled ? "PG_PAYMENT_CANCELLED" : "PG_PAYMENT_FAILED",
+        cancelled ? "결제를 취소했어요. 결제 상태를 확인한 뒤 다른 수단을 선택할 수 있어요." : "결제사에서 결제가 완료되지 않았어요. 결제 상태를 확인한 뒤 다른 수단을 선택해 주세요.",
+        { orderId, pgStatus: pg.status });
+    }
     throw paymentError("PG_PAYMENT_NOT_PAID", "아직 결제가 완료되지 않았습니다.", {
       orderId,
       pgStatus: String(pg.status || ""),

@@ -111,14 +111,8 @@ export default function HomePage() {
       </details>
       <nav className={styles.paths} aria-label="구매 전 정책 확인">
         <Link href="/ggulggul/#premiumVvipCollection">이용권·월정석·단건 결제 안내</Link>
-        <Link href="/about/">서비스 소개</Link>
-        <Link href="/terms/">이용약관</Link>
         <Link href="/terms#refund-policy">환불정책</Link>
         <Link href="/privacy">개인정보처리방침</Link>
-        <Link href="/faq/">자주 묻는 질문</Link>
-        <Link href="/disclaimer/">이용 전 안내</Link>
-        <Link href="/editorial-policy/">해석 기준</Link>
-        <Link href="/advertising-policy/">광고 정책</Link>
         <Link href="/contact/">고객센터</Link>
       </nav>
     </section></LocalizedServiceSummary>

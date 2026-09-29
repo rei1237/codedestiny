@@ -188,12 +188,14 @@ async function attachDirectPayment(env, userId, requestId, expectedCharge) {
         const proof = await Payment.findOneAndUpdate({
           userId:owner,requestId:`yn-${requestId}`,featureKey:request.featureKey,paymentType:'digital_content',purchaseType:{$ne:'GIFT'},
           paymentAmount:expectedCharge,status:{$in:paidStatuses},
+          ...(request.paymentClaimOrderId?{merchantUid:request.paymentClaimOrderId}:{}),
+          'metadata.duplicatePaymentReviewRequired':{$ne:true},
           $or:[{'metadata.consumedBy':{$exists:false}},{'metadata.consumedBy':null},{'metadata.consumedBy':''}],
         }, {$set:{'metadata.consumedBy':requestId,'metadata.consumedScope':'yeongnyangi-integrated','metadata.consumedAt':new Date()}},
         {new:true,session,sort:{createdAt:1}}).lean();
         if (!proof) throw failure(402,'PAYMENT_REQUIRED');
         result = await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,paymentId:null},
-          {$set:{paymentId:proof._id,accessMethod:'DIRECT_KRW',state:'PAID'}},{new:true,session}).lean();
+          {$set:{paymentId:proof._id,paymentClaimOrderId:proof.merchantUid,accessMethod:'DIRECT_KRW',state:'PAID'}},{new:true,session}).lean();
         if (!result) throw failure(409,'PAYMENT_ATTACH_CONFLICT');
       }, mongoTransactionOptions());
       return result;
