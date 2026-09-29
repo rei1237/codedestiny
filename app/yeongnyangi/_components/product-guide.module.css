@@ -1,6 +1,7 @@
 .guide {color:#eadff0;text-align:left;line-height:1.75;font-size:15px;overflow-wrap:anywhere}
 .guide :is(h2,h3) {font-size:20px;color:#f1d3a3;margin:30px 0 10px;font-family:var(--serif)}
 .guide p {margin:12px 0;line-height:1.75}
+.guide .offerHook {margin:16px 0 8px;color:#fff4de;font:700 20px/1.45 var(--serif)}
 .guide a {color:#f1d3a3;text-decoration:underline;text-underline-offset:4px;display:inline-block;padding:10px 0}
 .tiers {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .tiers button {min-height:64px;border:1px solid #776786;border-radius:12px;background:#231e35;color:#f5edf7;padding:10px;font:inherit;cursor:pointer}

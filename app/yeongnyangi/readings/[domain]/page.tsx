@@ -13,7 +13,7 @@ function validDomain(value:string):value is DomainId{return Object.prototype.has
 type Props={params:Promise<{domain:string}>};
 export async function generateMetadata({params}:Props):Promise<Metadata>{
  const {domain}=await params;if(!validDomain(domain))notFound();
- const title=`${productCuriosity[domain].question} | 영냥이 ${systemNames[domain]}`;
+ const title=`${productCuriosity[domain].hook} | 영냥이 ${systemNames[domain]}`;
  const description=productCuriosity[domain].method;
  const url=`https://code-destiny.com/yeongnyangi/readings/${domain}/`;
  const images=[{url:`https://code-destiny.com${productArtwork(domain)}`,alt:`영냥이 ${systemNames[domain]} 상담 안내`}];
@@ -23,7 +23,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
 export default async function ReadingGuide({params}:Props){
  const {domain}=await params;if(!validDomain(domain))notFound();
  return <article className={styles.page}>
-  <h1>{productCuriosity[domain].question}</h1>
+  <h1>{productCuriosity[domain].hook}</h1>
   <p>{systemNames[domain]} · 사주보는 고양이 영냥이</p>
   <Image className={styles.art} src={productArtwork(domain)} width={960} height={640} alt={domain==='saju'?'달빛 아래 펼친 네 기둥의 한지 그림':`${systemNames[domain]} 상담을 안내하는 영냥이`} priority/>
   <ProductGuide domain={domain} offers={productOffers[domain]} surface="product_page"/>

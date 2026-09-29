@@ -2646,6 +2646,9 @@
 }
 .ynOriginal .service-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   overflow: hidden;
   padding: 0;
   text-align: left;
@@ -2712,7 +2715,14 @@
   color: #76523f;
 }
 .ynOriginal .service-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 244px;
   padding: 10px 13px 13px;
+}
+.ynOriginal .service-copy .service-kicker {
+  margin: 0 0 5px;
 }
 .ynOriginal .service-copy h3 {
   font-family: var(--serif);
@@ -2720,6 +2730,26 @@
   color: #f1d3a3;
   font-weight: 700;
   line-height: 1.35;
+}
+.ynOriginal .service-copy .service-hook {
+  min-height: 2.7em;
+  margin: 5px 0 9px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.ynOriginal .service-copy .service-description {
+  display: -webkit-box;
+  min-height: 3.1em;
+  margin: 0 0 8px;
+  overflow: hidden;
+  color: #cbb8d5;
+  font-size: 12px;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.ynOriginal .service-copy .service-price {
+  margin: 0 0 8px;
 }
 .ynOriginal .service-copy p {
   font-size: 14px;
@@ -2730,11 +2760,18 @@
 }
 .ynOriginal .service-copy small { display: block; color: #ead9eb; font-size: 13px; margin: 8px 0; }
 .ynOriginal .service-copy > span {
+  margin-top: auto;
   font-size: 11px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #e9d7be;
+}
+.ynOriginal .service-panel-description {
+  max-width: 58ch;
+  margin: 0 0 24px;
+  color: #d8c7df;
+  line-height: 1.8;
 }
 .ynOriginal .fusion-section {
   margin: 38px -2px 0;

@@ -19,11 +19,11 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
  const Heading=surface==='product_page'?'h2':'h3';
  useEffect(()=>{trackProductStep('product_detail_view',domain,offers[0].itemId,surface);},[domain,offers,surface]);
  return <div className={styles.guide}>
-  <div className={styles.offer}><p><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.chapters.length}개 챕터</p><p>{copy.question} 입력 정보와 계산 근거를 연결한 AI 해설을 받아요.</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>상담 구성과 결제 조건 확인하기</a></div>
+  <div className={styles.offer}><p><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.chapters.length}개 챕터</p><p className={styles.offerHook}>{copy.hook}</p><p>{copy.description}</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>상담 구성과 결제 조건 확인하기</a></div>
   <Heading>이런 상황에 잘 맞아요</Heading><p>나의 성향이나 반복되는 선택을 이해하고, 다음 행동의 기준을 정리하고 싶을 때 살펴보세요.</p>
   <Heading>확인할 수 있는 내용</Heading><ul>{offer.chapters.slice(0,3).map(title=><li key={title}>{title}</li>)}</ul>
   <Heading>이런 답을 찾는다면 맞지 않아요</Heading><p>상대의 속마음, 특정 사건의 날짜, 합격·재회·수익을 확정하는 답은 제공하지 않아요.</p>
-  <Heading>어떤 방식으로 읽을까?</Heading><p>{copy.method}</p>
+  <Heading>어떤 방식으로 읽을까?</Heading><p>{copy.detail}</p><p>{copy.method}</p>
   <Heading>결제 후 펼쳐질 이야기</Heading>
   <div className={styles.tiers} role="group" aria-label="상담 깊이 선택">{offers.map(p=><button key={p.id} type="button" aria-pressed={offer.id===p.id} onClick={()=>setFish(p.fish)}>{p.fishName}<span>{p.price.toLocaleString('ko-KR')}원</span></button>)}</div>
   <p aria-live="polite"><strong>{offer.fishName} · {offer.chapters.length}개 챕터</strong><br/>{offer.depth}</p>

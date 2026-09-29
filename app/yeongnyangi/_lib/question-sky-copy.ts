@@ -2,9 +2,10 @@ import {SPIRIT_NOTICE} from '@/worker/yeongnyangi/fortune/spirit-contract';
 
 export const questionSkyCopy={
   ko:{
+    entry:{kicker:'질문 순간의 상담',title:'영냥 신점',description:'질문이 떠오른 순간의 기운과 인연의 흐름',action:'질문 남기기'},
     input:{
       title:'영냥 신점',horaryTitle:'영냥 호라리',intro:'질문이 마음에 떠오른 순간, 그때의 하늘과 자리에서 이야기의 결을 읽어줄게.',
-      description:'질문 순간을 읽는 전통 방식으로, 너의 선택에 비친 상징과 조건을 살펴볼게.',notice:SPIRIT_NOTICE,
+      description:'질문이 떠오른 순간의 기운과 자리에서, 선택에 비친 상징과 관계의 조건을 살펴보는 전통 상담 방식이야.',notice:SPIRIT_NOTICE,
       questionLabel:'영냥이에게 궁금한 한 가지',questionPlaceholder:'가장 알고 싶은 한 가지를 적어줘.',
       topicLabel:'궁금한 주제',topicHelp:'고른 주제보다 직접 적어준 질문을 먼저 살펴볼게.',relationshipLabel:'그 사람과 나의 관계',
       cityLabel:'질문이 떠올랐을 때 내가 있던 도시',cityPlaceholder:'질문자 도시 선택',locationConfirmed:'확인한 현재 위치를 사용할게. 시간대:',

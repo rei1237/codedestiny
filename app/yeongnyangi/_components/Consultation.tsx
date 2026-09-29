@@ -2,6 +2,7 @@
 import {getQuestionGuide} from "@/lib/fortune/question-journey";
 import {consultationKinds,consultationDomain,supportsKind,consultationManifest} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import {consultationTitle,fusionDescription} from '../_lib/consultation-copy';
+import {getFortuneCopy} from '../_lib/product-curiosity';
 import {readingFeatures} from './ReadingIdentity';
 import CurrentLocationButton,{type CurrentLocation} from '@/app/components/CurrentLocationButton';
 import {useEffect,useRef,useState} from 'react';
@@ -18,6 +19,7 @@ import predictionRecords from '@/lib/brand/prediction-records.json';
 import {predictionTimeline} from '@/lib/brand/prediction-timeline';
 import {trackEvent} from '@/lib/analytics';
 import {readingLocale,readingLocales,readingLanguageNames,type ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {questionSkyCopyFor} from '../_lib/question-sky-copy';
 import {getCurrentLoadingLocale} from '@/constants/loadingMessages';
 import {consultationInputCopy} from '../_lib/consultation-input-copy';
 import {journeyCopy} from '../_lib/journey-copy';
@@ -26,7 +28,6 @@ import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {jongCheckCopy} from '../_lib/jong-check-copy';
 import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-policy';
 import type {JongCheck,JongReply} from '@/worker/yeongnyangi/fortune/saju/jong-check';
-const explanation:Record<string,string>={saju:'사주팔자와 오행, 십성으로 기질과 삶의 흐름을 읽어요.',ziwei:'자미두수 명반의 궁과 별, 운의 흐름을 함께 살펴봐요.',sukuyo:'본명숙과 관계의 거리를 숙요점의 관점에서 살펴봐요.',vedic:'라그나와 달, 나크샤트라와 다샤를 인도 점성술로 읽어요.',astrology:'태양·달·상승점과 행성 관계를 출생 차트로 살펴봐요. 실시간 트랜짓은 포함하지 않아요.',tarot:'출생정보 없이 질문과 카드의 상징으로 상황과 선택을 읽어요.',fusion:'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'};
 const loginDraftKey='yeongnyangi:consultation-login-draft';
 const predictionProofRecords=predictionRecords.map(record=>{
  const entry=predictionTimeline[record.url];
@@ -60,6 +61,8 @@ export default function Consultation(){
   trackEvent('view_item',{currency:product.currency,value:product.priceKRW,items:[{item_id:product.cdFeatureKey,item_name:product.name,price:product.priceKRW}],service:'yeongnyangi'});
  },[ready,product]);
  const kind=consultationKinds[domain].find(k=>k.id===kindId)||consultationKinds[domain][0];
+ const systemCopy=domain==='fusion'?null:getFortuneCopy(domain as 'saju'|'ziwei'|'sukuyo'|'vedic'|'astrology'|'tarot',kind.id);
+ const spiritEntryCopy=questionSkyCopyFor().entry;
  const askCopy=askPhase5Copy(locale).input;
  const selectableLocales=kind.question?readingLocales:readingLocales.slice(0,3);
  const preview=consultationManifest(product,kind,topicId);
@@ -181,11 +184,11 @@ export default function Consultation(){
    <select value={locale} disabled={busy} onChange={e=>{setLocale(readingLocale(e.target.value));setError('');}}>{selectableLocales.map(value=><option key={value} value={value}>{readingLanguageNames[value]}</option>)}</select>
   </label>
   <p lang={locale}>{kind.question?askCopy.languageHint:locale==='en'?'Your new reading will be written in English. The purchase language stays fixed for recovery and rereading. Some menus and calculated chart labels remain in Korean.':locale==='ja'?'新しい鑑定結果は日本語で作成します。再開・再閲覧でも購入時の言語を維持します。一部のメニューと計算図の表示は韓国語です。':'새 상담은 선택한 언어로 작성돼요. 복구하거나 다시 읽어도 구매 시 선택한 언어를 유지해요.'}</p>
-  <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>영냥 신점</strong><br/>질문이 떠오른 순간의 기운과 선택 살펴보기</span></a>
+  <a className={styles.spiritEntry} href="/yeongnyangi/fortune/?mode=spirit"><img src="/assets/yeongnyangi/spirit/eastern-oracle.webp" width={64} height={68} alt=""/><span><strong>{spiritEntryCopy.title}</strong><br/>{spiritEntryCopy.description}</span></a>
   <div className={styles.tabs} role="group" aria-label="운세 종류">{[...Object.entries(systemNames),['fusion','복합 운세']].map(([id,label])=><button key={id} aria-pressed={domain===id} onClick={()=>chooseDomain(id)}>{label}</button>)}</div>
   <div className={styles.kindChoices} role="group" aria-label="상담 종류">{consultationKinds[domain].map(item=><button key={item.id} aria-pressed={kind.id===item.id} onClick={()=>chooseKind(item.id)}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>
 
-  <p className={styles.systemDescription}>{fusionDescription(product)||explanation[domain]}</p>
+  {domain==='fusion'?<p className={styles.systemDescription}>{fusionDescription(product)||'서로 다른 운세 체계의 공통점과 차이점을 구분해 깊이 읽어요.'}</p>:<div className={styles.systemDescription}><strong>{systemCopy?.cardTitle}</strong><p>{systemCopy?.description}</p><p>{systemCopy?.detail}</p></div>}
   {domain==='fusion'&&<p className={styles.systemDescription}>각 체계는 고유한 기준으로 계산해. 같은 흐름과 다른 해석을 나란히 읽고, 네가 선택할 수 있는 행동으로 정리해줄게. 결제 후 창을 닫아도 내 상담 기록에서 이어 읽을 수 있어.</p>}
   <div className={styles.consultationDesk}>
    <aside className={styles.consultationGuide} aria-label="선택한 상담 요약">

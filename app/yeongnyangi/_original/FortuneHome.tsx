@@ -262,7 +262,9 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                 <span className="section-aside">여섯 가지 운명의 언어</span>
               </div>
               <div className="service-grid" ref={catalogueRef}>
-                {services.map((item) => (
+                {services.map((item) => {
+                  const copy = productCuriosity[item.id];
+                  return (
                   <button
                     className={`service-card ${item.id === "ziwei" ? "ivory-art" : ""}`}
                     key={item.id}
@@ -279,15 +281,18 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                       </span>
                     </div>
                     <div className="service-copy">
-                      <p>{item.name}</p>
-                      <h3>{productCuriosity[item.id].question}</h3>
-                      <small>{offers[item.id][0].price.toLocaleString('ko-KR')}원부터<br/>{offers[item.id][0].fishName} · {offers[item.id][0].chapters.length}개 챕터</small>
+                      <p className="service-kicker">{item.name}</p>
+                      <h3>{copy.cardTitle}</h3>
+                      <p className="service-hook">{copy.hook}</p>
+                      <p className="service-description">{copy.description}</p>
+                      <small className="service-price">{offers[item.id][0].price.toLocaleString('ko-KR')}원부터<br/>{offers[item.id][0].fishName} · {offers[item.id][0].chapters.length}개 챕터</small>
                       <span>
                         보러가기 <ArrowRight size={14} />
                       </span>
                     </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </section>
 
@@ -603,7 +608,8 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                 className={`detail-art ${service.id === "ziwei" ? "ivory-detail" : ""}`}
                 alt={service.id==='saju'?'달빛 아래 한지에 펼친 네 기둥의 상징':`${service.name} 상담을 안내하는 영냥이`}
               />
-              <h2>{productCuriosity[service.id].question}</h2>
+              <h2>{productCuriosity[service.id].hook}</h2>
+              <p className="service-panel-description">{productCuriosity[service.id].detail}</p>
               <ProductGuide key={service.id} domain={service.id} offers={offers[service.id]}/>
               </div>
           )}
