@@ -121,22 +121,28 @@ await isolated(async () => {
   assert(elapsedMs < 2000, `1차 성공은 즉시 끝나야 한다 (실제 ${elapsedMs}ms)`);
 });
 
-// (2) 일시적 오류(5xx) 3회 소진 후 Workers AI 폴백 성공 — 총 소요시간이 timeoutMs를 넘지 않아야 한다.
+// (2) Transient failures share the two-call purchase budget with fallback.
 await isolated(async () => {
   const { fetch, calls: fetchCalls } = instantFailFetch(500);
   globalThis.fetch = fetch;
-  const { env, calls: aiCalls } = stubAiRun(() => ({ response: "폴백 성공 본문" }));
+  const { env, calls: aiCalls } = stubAiRun(() => ({ response: "unused fallback" }));
   const startedAt = Date.now();
-  const result = await callLLM({ prompt: "테스트", timeoutMs: 5000 }, env);
-  const elapsedMs = Date.now() - startedAt;
-  assert(result.provider === "cloudflare", `Gemini 전멸 후엔 폴백으로 넘어가야 한다 (실제: ${result.provider})`);
-  assert(fetchCalls.length === 3, `일시적 오류는 최대 3회(1차+재시도2) 시도해야 한다 (실제 ${fetchCalls.length}회)`);
-  assert(aiCalls.length === 1, `1차 폴백 모델이 성공하면 2차는 호출되지 않아야 한다 (실제 ${aiCalls.length}회)`);
-  assert(
-    elapsedMs < 5000,
-    `Gemini 재시도 + 폴백 총 소요시간이 timeoutMs(5000ms) 안에서 끝나야 한다 (실제 ${elapsedMs}ms)`,
-  );
-  assert(elapsedMs >= 1300, `백오프(400ms+900ms)를 실제로 기다려야 한다 (실제 ${elapsedMs}ms)`);
+  let message = "";
+  try { await callLLM({ prompt: "bounded retry", timeoutMs: 5000 }, env); }
+  catch (error) { message = String(error.message); }
+  assert(message.includes("boom 500"), "exhaustion preserves the real provider failure");
+  assert(fetchCalls.length === 2, "transient failure allows only one additional provider attempt");
+  assert(aiCalls.length === 0, "fallback cannot mint another attempt after the shared cap");
+  assert(Date.now() - startedAt < 5000, "retries stay inside the shared timeout");
+});
+// A non-retryable primary failure leaves one attempt for an allowed fallback.
+await isolated(async () => {
+  const { fetch, calls: fetchCalls } = instantFailFetch(400);
+  globalThis.fetch = fetch;
+  const { env, calls: aiCalls } = stubAiRun(() => ({ response: "fallback answer" }));
+  const result = await callLLM({ prompt: "bounded fallback", timeoutMs: 5000 }, env);
+  assert(result.provider === "cloudflare", "remaining budget can deliver a fallback");
+  assert(fetchCalls.length === 1 && aiCalls.length === 1, "primary and fallback share two total attempts");
 });
 
 // (3) 🔴 핵심 재현 케이스: 느린 1차 시도가 예산을 통째로 써버리면 폴백은 호출조차 되지 않고
