@@ -3,6 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {readFileSync} from 'node:fs';
+import ts from 'typescript';
 import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
 const bundle=await build({stdin:{contents:`
  export * from './worker/yeongnyangi/fortune/reading-locale';
@@ -88,6 +89,30 @@ test('a separate result language preserves the UI language through checkout and 
  assert.equal(new URL(url.searchParams.get('returnTo'),url.origin).searchParams.get('lang'),'en');
  assert.equal(row.locale,'ja','the persisted result language is unchanged');
  assert.equal(new URL(m.checkoutPath(row),url.origin).searchParams.get('lang'),'ja','legacy callers retain their original routing');
+});
+
+test('the actual auth request builder preserves every selected output language over an English site locale',async()=>{
+ const source=ts.createSourceFile('auth-client.ts',readFileSync('app/_lib/auth-client.ts','utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
+ const requestBuilder=source.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name?.text==='buildAuthRequest');
+ assert.ok(requestBuilder);
+ const compiled=await build({entryPoints:['app/yeongnyangi/_lib/api.ts'],bundle:true,platform:'node',format:'esm',write:false,
+  plugins:[{name:'closed-auth-transport',setup(builder){builder.onLoad({filter:/[\\/]auth-client\.ts$/},()=>({loader:'ts',resolveDir:process.cwd()+'/app/_lib',contents:`
+   import {AI_LOCALE_HEADER} from '../../lib/i18n/ai-locale.js';
+   const readMobileAppAccessToken=()=>'',isMobileAppRuntime=()=>false,detectLocale=()=>'en';
+   const isAuthoritativeAuthPath=()=>false,CACHE_REFRESH_HEADER='x-code-destiny-cache-refresh';
+   ${requestBuilder.getText(source)}
+   export async function authFetch(path,init){
+    const request=buildAuthRequest('http://127.0.0.1'+path,init);
+    return new Response(JSON.stringify({body:await request.json(),header:request.headers.get(AI_LOCALE_HEADER),credentials:request.credentials}));
+   }
+  `}));}}]});
+ const client=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+ for(const locale of RUNTIME_LOCALES){
+  const result=await client.fortuneApi('requests',{locale,priceLocale:'en',productId:'saju_mackerel'});
+  assert.equal(result.header,locale);assert.equal(result.body.locale,locale);
+  assert.equal(result.body.priceLocale,'en');assert.equal(result.body.productId,'saju_mackerel');
+  assert.equal(result.credentials,'include');
+ }
 });
 
 test('unsupported UI locale selects visible English fallback; API refuses an implicit paid language substitution',()=>{

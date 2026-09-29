@@ -1,5 +1,6 @@
 import {trackEvent} from '@/lib/analytics';
 import {authFetch} from '@/app/_lib/auth-client';
+import {AI_LOCALE_HEADER} from '@/lib/i18n/ai-locale';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec,ChapterBody} from '@/worker/yeongnyangi/fortune/book-contracts';
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
@@ -27,7 +28,10 @@ export async function fortuneApi<T>(path:string,body?:object,options:{signal?:Ab
  try{return await Promise.race([read(),cancelled]);}
  finally{clearTimeout(timer);options.signal?.removeEventListener('abort',abort);controller.signal.removeEventListener('abort',rejectAbort);}
  async function read():Promise<T>{
- const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(path==='requests'?{...body,growthAttribution:typeof window!=='undefined'?window.cdReadGrowthAttribution?.():null}:body)}:{})});
+ // authFetch aligns legacy body.locale with this header. The selected reading
+ // language must explicitly override its default (the surrounding UI language).
+ const outputLocale=path==='requests'&&body&&'locale' in body&&typeof body.locale==='string'?body.locale:null;
+ const response=await authFetch(`/api/yeongnyangi/${path}`,{cache:'no-store',signal:controller.signal,...(body?{method:'POST',headers:{'Content-Type':'application/json',...(outputLocale?{[AI_LOCALE_HEADER]:outputLocale}:{})},body:JSON.stringify(path==='requests'?{...body,growthAttribution:typeof window!=='undefined'?window.cdReadGrowthAttribution?.():null}:body)}:{})});
  const payload=await response.json();
  const operation=path==='requests'?'prepare':/^requests\/[a-f0-9]{64}$/.test(path)?'read':/^requests\/[a-f0-9]{64}\/activate$/.test(path)?'activate':'';
  if(operation)trackEvent('fortune_response_time',{operation,duration_ms:Math.max(0,Date.now()-startedAt),http_status:response.status,observation:'browser_transport'});
