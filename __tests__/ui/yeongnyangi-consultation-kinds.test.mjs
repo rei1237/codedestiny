@@ -24,7 +24,11 @@ test('all offered modes preserve paid chapter depth and have complete unique tit
  for(const p of products)for(const k of consultationKinds[consultationDomain(p)]){
   if(!supportsKind(p,k)){assert.throws(()=>resolveConsultationKind(p,k.id));continue;}
   const rows=consultationManifest(p,k);
-  assert.equal(rows.length,p.chapterCount,`${p.id}/${k.id}`);
+  if(rows[0]?.version!=='destiny-book-v7')assert.equal(rows.length,p.chapterCount,`${p.id}/${k.id}`);
+  else {
+   const counts={saju:[8,13,24],ziwei:[8,13,20],vedic:[8,13,23],astrology:[8,10,12],sukuyo:[6,8,10],'tarot:love':[5,7,9],'tarot:choice':[4,5,6]};
+   assert.equal(rows.length,counts[p.domain==='tarot'?`tarot:${k.id}`:p.domain][['salmon','flounder','tuna'].indexOf(p.fishId)],`${p.id}/${k.id} v7 depth`);
+  }
   assert.equal(new Set(rows.map(r=>r.title)).size,rows.length);
   assert.ok(rows.every(r=>r.title&&r.focus&&r.minimumChars>0));
  }
@@ -144,4 +148,17 @@ test('종격 answers change only premium saju requests; no answer keeps the lega
  assert.ok(JSON.stringify(rejected.snapshot.analysis).includes('rejectedByUser')&&!JSON.stringify(plain.snapshot.analysis).includes('rejectedByUser'));
  assert.equal((await prepareFortune(env,'owner',{...tuna,jongCheck:answer('unsure')}))._id!==plain._id,true,'every answer is its own request');
  await assert.rejects(prepareFortune(env,'owner',{...tuna,jongCheck:{best:'no'}}),{code:'INVALID_JONG_CHECK'});
+});
+
+test('new v7 purchases leave a paid v6 result and its original price untouched',async()=>{
+ const legacy=await prepareFortune(env,'v7-rollout-owner',{...body,productId:'saju_salmon'});
+ assert.equal(legacy.snapshot.manifest[0].version,'destiny-book-v6');
+ legacy.paymentId='original-v6-payment';legacy.state='COMPLETED';legacy.chapters=[{summary:'saved v6 prose'}];
+ const before=structuredClone(legacy);
+ const fresh=await prepareFortune(env,'v7-rollout-owner',{...body,productId:'saju_salmon',consultationKind:'personal'});
+ assert.equal(fresh.snapshot.manifest[0].version,'destiny-book-v7');assert.notEqual(fresh._id,legacy._id);
+ assert.equal(fresh.amountKRW,legacy.amountKRW);assert.deepEqual(legacy,before);
+ assert.equal(presentFortune(legacy).chapters[0].summary,'saved v6 prose');
+ assert.equal(presentFortune(legacy).manifest[0].version,'destiny-book-v6');
+ assert.equal(globalThis.__kindTest.calls,0);
 });

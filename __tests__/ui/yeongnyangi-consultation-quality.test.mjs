@@ -19,7 +19,7 @@ for(const domain of ['saju','ziwei','vedic','astrology']){
 test('current supported kinds and tiers, plus v7 personal/ask, receive only their calculated IDs and school',async()=>{
  let requests=0;
  for(const [domain,context] of Object.entries(contexts))for(const product of m.products.filter(p=>p.readingKind==='single'&&p.domain===domain)){
-  const current=m.consultationKinds[domain].filter(k=>!k.partner&&m.supportsKind(product,k)).map(k=>m.consultationManifest(product,k)[0]);
+  const current=m.consultationKinds[domain].filter(k=>!k.partner&&m.supportsKind(product,k)).map(k=>{const rows=m.consultationManifest(product,k);return rows[0].version==='destiny-book-v7'?m.resolveV7Ledger(rows,context).chapters[0]:rows[0];});
   const v7=product.fishId==='mackerel'?[]:['personal','ask'].map(id=>m.resolveV7Ledger(m.readingManifestV7(product,{id}),context).chapters[0]);
   for(const chapter of [...current,...v7]){
    let sent;

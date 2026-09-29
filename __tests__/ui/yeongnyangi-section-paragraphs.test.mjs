@@ -53,7 +53,7 @@ test('sentence splitter keeps the text, fits every part to the cap and is idempo
  }
 });
 
-test('every v5/v6 product chapter passes once long section paragraphs are split, and fails without it',()=>{
+test('every v5/v6/v7 product chapter passes once long section paragraphs are split, and fails without it',()=>{
  const sets=[];
  for(const p of m.products){
   const domain=m.consultationDomain(p),kinds=m.consultationKinds[domain].filter(k=>m.supportsKind(p,k));
@@ -81,7 +81,7 @@ test('every v5/v6 product chapter passes once long section paragraphs are split,
  }
  // Fail closed: an empty or partial matrix must not pass silently.
  assert.deepEqual([...tiers].sort(),['assorted','flounder','mackerel','omakase','salmon','tuna']);
- assert.deepEqual([...versions].sort(),[m.READING_V5_VERSION,m.READING_V6_VERSION].sort());
+ assert.deepEqual([...versions].sort(),[m.READING_V5_VERSION,m.READING_V6_VERSION,'destiny-book-v7'].sort());
  for(const [domain,list] of Object.entries(m.consultationKinds))for(const k of list)assert.ok(kinds.has(`${domain}/${k.id}`),`${domain}/${k.id} not covered`);
  assert.equal(new Set(sets.map(s=>s.tag.split('/')[0])).size,m.products.length);
  assert.ok(oversized>0&&oversized<chapters,`${oversized}/${chapters}`);

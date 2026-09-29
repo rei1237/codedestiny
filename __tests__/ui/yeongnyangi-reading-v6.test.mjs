@@ -2,8 +2,10 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const built=await build({stdin:{contents:`export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor,chapterFloor,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+const built=await build({stdin:{contents:`export {readingManifestV6} from './worker/yeongnyangi/fortune/reading-v6'; export * from './worker/yeongnyangi/fortune/reading-policy'; export {products} from './worker/yeongnyangi/payments/catalog'; export {readingManifest} from './worker/yeongnyangi/fortune/reading-manifest'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {sectionFloor,chapterFloor,bodyCharacterCount} from './worker/yeongnyangi/fortune/reading-quality'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const m=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
+// Pin the purchased v6 contract independently of the current new-order rollout.
+const legacyManifest=(p,k)=>m.readingManifestV6(p,k?.topic||'general',k?.partner?'compatibility':'personal',k);
 const counts={mackerel:5,salmon:8,flounder:11,tuna:15};
 const minimums={mackerel:5500,salmon:10000,flounder:18000,tuna:40000};
 const singles=m.products.filter(p=>p.readingKind==='single');
@@ -46,7 +48,7 @@ test('24 single products and every offered consultation have complete tier-speci
  assert.equal(singles.length,24);
  for(const p of singles)for(const k of m.consultationKinds[p.domain]){
   if(!m.supportsKind(p,k))continue;
-  const rows=m.consultationManifest(p,k),tag=`${p.id}/${k.id}`;
+  const rows=legacyManifest(p,k),tag=`${p.id}/${k.id}`;
   assert.equal(p.manifestVersion,m.READING_V6_VERSION,tag);
   assert.equal(p.chapterCount,counts[p.fishId],tag);
   assert.equal(rows.length,counts[p.fishId],tag);
@@ -66,7 +68,7 @@ test('24 single products and every offered consultation have complete tier-speci
 test('question consultations keep the full tier depth while internal checkpoints stay an implementation detail',()=>{
  for(const p of singles.filter(p=>p.domain!=='tarot')){
   const ask=m.consultationKinds[p.domain].find(k=>k.id==='ask');
-  const rows=m.consultationManifest(p,ask),tag=`${p.id}/ask`;
+  const rows=legacyManifest(p,ask),tag=`${p.id}/ask`;
   assert.equal(rows.length,counts[p.fishId],tag);
   assert.ok(rows.reduce((sum,row)=>sum+row.minimumChars,0)>=minimums[p.fishId],tag);
   assert.ok(rows[0].factSelectors[p.domain].length>0,tag);
@@ -75,7 +77,7 @@ test('question consultations keep the full tier depth while internal checkpoints
 });
 test('the mackerel closing action chapter is the longest, and every floor sits well under its target',()=>{
  const books=[];
- for(const p of singles)for(const k of m.consultationKinds[p.domain])if(m.supportsKind(p,k))books.push({p,tag:`${p.id}/${k.id}`,rows:m.consultationManifest(p,k)});
+ for(const p of singles)for(const k of m.consultationKinds[p.domain])if(m.supportsKind(p,k))books.push({p,tag:`${p.id}/${k.id}`,rows:legacyManifest(p,k)});
  for(const p of m.products.filter(p=>p.readingKind!=='single'))books.push({p,tag:p.id,rows:m.readingManifest(p)});
  for(const {p,tag,rows} of books){
   const action=rows.at(-1),others=rows.slice(0,-1);
@@ -106,14 +108,14 @@ test('fusion retains v5 counts and quotas; explicit legacy versions cannot inher
 test('personal Sukuyo excludes all partner fields; paired Sukuyo owns both directional distances',()=>{
  const p=singles.find(p=>p.id==='sukuyo_tuna');
  for(const row of m.readingManifest(p))assert.deepEqual(row.factSelectors.sukuyo,['personA']);
- for(const id of ['compatibility','relationship'])for(const row of m.consultationManifest(p,m.consultationKinds.sukuyo.find(k=>k.id===id))){
+ for(const id of ['compatibility','relationship'])for(const row of legacyManifest(p,m.consultationKinds.sukuyo.find(k=>k.id===id))){
   for(const field of ['personB','relation','forwardDistance','reverseDistance'])assert.ok(row.factSelectors.sukuyo.includes(field));
  }
 });
 test('tarot choice and love use the card-specific 15 questions without invented new draws',()=>{
  const p=singles.find(p=>p.id==='tarot_tuna');
  for(const kind of m.consultationKinds.tarot){
-  const rows=m.consultationManifest(p,kind);
+  const rows=legacyManifest(p,kind);
   for(const key of ['positions','flow','choiceA','choiceB','observation','revision'])assert.ok(rows.some(c=>c.key===key));
   assert.ok(rows.every(c=>c.factSelectors.tarot.includes('cards')));
  }
@@ -138,14 +140,14 @@ test('v6 provider uses section schema and adequate budget; old v4/v5 schemas rem
 });
 test('timing preparations receive next periods rather than repeating only the current period',()=>{
  const timing=m.consultationKinds.saju.find(k=>k.id==='timing');
- const rows=m.consultationManifest(product,timing);
+ const rows=legacyManifest(product,timing);
  const timingContext={...context,facts:[...context.facts,{id:'saju.majorLuck',label:'majorLuck',value:{currentCycle:{index:3},cycles:[{index:2},{index:3},{index:4},{index:5}]}}]};
  for(const key of ['next','preparation','alternatives','limits']){
   const fact=m.selectChapterFacts(timingContext,rows.find(c=>c.key===key)).find(f=>f.label==='majorLuck');
   assert.deepEqual(fact.value.cycles,[{index:4}]);
  }
  const vedic=singles.find(p=>p.id==='vedic_tuna');
- for(const key of ['next','preparation'])assert.ok(m.consultationManifest(vedic,m.consultationKinds.vedic.find(k=>k.id==='timing')).find(c=>c.key===key).factSelectors.vedic.includes('vimshottariDasha.periods'));
+ for(const key of ['next','preparation'])assert.ok(legacyManifest(vedic,m.consultationKinds.vedic.find(k=>k.id==='timing')).find(c=>c.key===key).factSelectors.vedic.includes('vimshottariDasha.periods'));
 });
 test('v6 rejects missing depth, false evidence, duplicated prose and unsupported claims',()=>{
  const absent=structuredClone(good);absent.blocks.pop();assert.throws(()=>m.validateChapter(absent,input),{code:'CHAPTER_DEPTH_INCOMPLETE'});

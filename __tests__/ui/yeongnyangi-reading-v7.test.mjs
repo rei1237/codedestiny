@@ -123,12 +123,12 @@ test('cost guard: estimated book cost stays within 10% of price and tier chapter
  }
 });
 
-test('contract: flag OFF keeps v6; v7 chapters carry per-chapter sections, timing ownership and part order',()=>{
- assert.equal(m.READING_V7_ENABLED,false);
+test('contract: approved v7 flag keeps tier and kind boundaries; v7 chapters carry per-chapter sections, timing ownership and part order',()=>{
+ assert.equal(m.READING_V7_ENABLED,true);
  for(const p of singles)for(const k of m.consultationKinds[p.domain]||[]){
-  assert.equal(m.v7Applies(p,k),false,`${p.id}/${k.id}`);
+  assert.equal(m.v7Applies(p,k),TIERS.includes(p.fishId)&&KINDS[p.domain].includes(k.id),`${p.id}/${k.id}`);
   assert.equal(m.v7Applies(p,k,true),TIERS.includes(p.fishId)&&KINDS[p.domain].includes(k.id),`${p.id}/${k.id} enabled`);
-  if(m.supportsKind(p,k))assert.ok(m.consultationManifest(p,k).every(c=>c.version!==m.READING_V7_VERSION),`${p.id}/${k.id} still v6`);
+  if(m.supportsKind(p,k))assert.equal(m.consultationManifest(p,k).every(c=>c.version===m.READING_V7_VERSION),m.v7Applies(p,k),`${p.id}/${k.id} version`);
  }
  assert.throws(()=>m.readingManifestV7(productFor('saju','mackerel'),{id:'personal'}),{code:'INVALID_READING_MANIFEST'});
  assert.throws(()=>m.readingManifestV7(productFor('tarot','tuna'),{id:'personal'}),{code:'INVALID_READING_MANIFEST'});

@@ -31,18 +31,17 @@ const sajuContext=m.withV7Timing(base,await m.buildV7TimingMatrix(base,sajuInput
 const resolved=Object.fromEntries(['salmon','flounder','tuna'].map(tier=>[tier,m.v7TimingSummaries(m.resolveV7Ledger(manifest('saju',tier),sajuContext))]));
 const requestFor=chapter=>({locale:'ko',chapter,analysis:{contexts:{saju:sajuContext},themes:[],signals:[]},previous:[]});
 
-test('flag OFF: v7Applies is false everywhere and every purchasable reading keeps its v6 manifest',()=>{
- assert.equal(m.READING_V7_ENABLED,false);
+test('flag ON: only eligible single-system kinds use v7; legacy and fusion stay unchanged',()=>{
+ assert.equal(m.READING_V7_ENABLED,true);
  for(const p of singles)for(const kind of m.consultationKinds[p.domain]||[]){
   const where=`${p.id}/${kind.id}`;
-  assert.equal(m.v7Applies(p,kind),false,where);
-  assert.ok(m.consultationManifest(p,kind).every(c=>c.version!==m.READING_V7_VERSION),where);
-  // The same branch with the flag forced on: single-system v6 products, v7 tiers, v7 kinds only.
   const expected=p.manifestVersion===m.READING_V6_VERSION&&['salmon','flounder','tuna'].includes(p.fishId)&&(V7_KINDS[p.domain]||[]).includes(kind.id);
-  assert.equal(m.v7Applies(p,kind,true),expected,where);
+  assert.equal(m.v7Applies(p,kind),expected,where);
+  assert.equal(m.v7Applies(p,kind,false),false,`${where} rollback`);
+  assert.equal(m.consultationManifest(p,kind).every(c=>c.version===m.READING_V7_VERSION),expected,where);
  }
- // A kind is required: an old client that sends no consultationKind never crosses into v7.
- assert.equal(m.v7Applies(productOf('saju','flounder'),undefined,true),false);
+ assert.equal(m.v7Applies(productOf('saju','flounder'),undefined),false);
+ for(const p of m.products.filter(p=>p.readingKind!=='single'))assert.equal(m.v7Applies(p,{id:'personal'}),false);
 });
 
 test('selectChapterFacts routes a v7 chapter to the ledger instead of the v6 selectors',()=>{
@@ -59,7 +58,7 @@ test('selectChapterFacts routes a v7 chapter to the ledger instead of the v6 sel
  assert.ok(!sajuContext.facts.some(f=>f.id.split('.').length>2));
  assert.ok(seen.some(id=>id.split('.').length>2));
  // A v6 chapter on the same context still takes the selector path.
- const v6=m.consultationManifest(productOf('saju','flounder'),m.consultationKinds.saju.find(k=>k.id==='personal'))[1];
+ const v6=m.consultationManifest(productOf('saju','flounder'),undefined)[1];
  const v6Ids=m.selectChapterFacts(sajuContext,v6).map(f=>f.id);
  assert.ok(v6Ids.length&&v6Ids.every(id=>sajuContext.facts.some(f=>f.id===id)));
 });
@@ -85,7 +84,7 @@ test('the provider sends the chapter-v7 prompt and budget while v6 chapters are 
  assert.ok(enumerated.length&&enumerated.every(id=>ledgerIds.has(id)));
  assert.equal(request.maxOutputTokens,m.buildV7ChapterPrompt({chapter,facts:[],previous:[]}).maxOutputTokens);
 
- const v6=m.consultationManifest(productOf('saju','flounder'),m.consultationKinds.saju.find(k=>k.id==='personal'))[1];
+ const v6=m.consultationManifest(productOf('saju','flounder'),undefined)[1];
  const v6Fixture=await new m.MockChapterProvider().generateChapter(requestFor(v6));
  let v6Request;
  await new m.StructuredChapterProvider({generate:async r=>{v6Request=r;return {result:v6Fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(v6));

@@ -6,8 +6,8 @@ import {READING_V6_VERSION,READING_V7_VERSION,v7ChapterPolicy} from './reading-p
 import {tokensRequiredForChars} from '../../lib/llm-budget.js';
 
 // v7 per-system chapter catalog (docs/design/yeongnyangi-v7-chapter-catalog.md §1-§3).
-// Off until Phase 5; nothing calls readingManifestV7 while this is false.
-export const READING_V7_ENABLED=false;
+// Approved rollout: new eligible orders use v7; stored purchase snapshots stay authoritative.
+export const READING_V7_ENABLED=true;
 
 export type V7Tier=Extract<FishId,'salmon'|'flounder'|'tuna'>;
 export type TimingRef='owner'|'summary'|'none';

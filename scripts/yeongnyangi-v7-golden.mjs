@@ -41,7 +41,8 @@ const filename=path.join(root,'v7-golden-memory.cjs');
 const loaded=new Module(filename);loaded.filename=filename;loaded.paths=Module._nodeModulePaths(root);
 loaded._compile(bundle.outputFiles[0].text,filename);
 const m=loaded.exports;
-assert.equal(m.READING_V7_ENABLED,false,'Published flag must remain OFF');
+// Golden manifests are explicit and offline replay remains valid after the production rollout.
+assert.equal(typeof m.READING_V7_ENABLED,'boolean');
 const asOf='2026-09-29T03:00:00Z',today=asOf.slice(0,10);
 const engine=m.domains.saju;
 const inputFor=date=>engine.validateInput({personA:{birthDate:date,birthTime:'14:30',calendarType:'solar',gender:'female',birthPlace:{latitude:37.5665,longitude:126.978,timezone:'Asia/Seoul'}},readingMode:'personal'});
@@ -69,6 +70,7 @@ const books=['salmon','flounder','tuna'].map(tier=>{
 });
 const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const quality={version:m.CONSULTATION_QUALITY_VERSION,hash:hash(m.CONSULTATION_QUALITY_POLICY)};
+// Keep the original golden scope flag for immutable historical checkpoint identities.
 const scope={domain:'saju',kind:'personal',asOf,fixture:{id:fixture.id,date:fixture.date,absence:fixture.absence},books:books.map(b=>({tier:b.tier,chapters:b.manifest.length,priceKRW:b.product.priceKRW})),provider:'gemini',model:'gemini-2.5-flash',maxAttemptsPerChapter:2,timeoutMs:150000,flag:false};
 console.log(JSON.stringify({scope,estimatedBaseKRW:books.reduce((sum,b)=>sum+m.v7BookCostKRW(b.manifest.length,tariff),0)}));
 if(plan)process.exit(0);

@@ -164,7 +164,7 @@ test('validateChapter corrects v7 editorial overlap without spending a repair at
 });
 
 test('a v6 chapter is not audited: the same repeated reference point passes untouched',async()=>{
- const manifest=m.consultationManifest(product,{id:'personal'});
+ const manifest=m.consultationManifest(product,undefined);
  assert.ok(manifest.every(c=>c.version===m.READING_V6_VERSION));
  const chapter=manifest[1];
  const input=requestFor(chapter);
