@@ -40,12 +40,15 @@ try {
       attempts += 1;
       return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"summary":"fixture","status":"ready"}' }] }, finishReason: attempts === 1 ? 'MAX_TOKENS' : 'STOP' }] }), { status: 200 });
     };
-    // A saved report must override a later HTTP/UI locale, including retry/repair.
+    // A saved report must override a later HTTP/UI locale. A recoverable JSON
+    // response is retained without buying a second provider call.
     const repaired = await runWithAiLocale(locale === 'ko' ? 'ja' : 'ko', () => callGeminiJsonWithRetry(
       { GEMINIF_API_KEY: 'fixture-key' }, attempt => attempt ? 'Repair the previous JSON; preserve identifiers.' : 'Generate JSON.',
       { locale, baseTokens: 100, capTokens: 200, systemPrompt: 'Keep summary and status keys; ready is a fixed enum.' },
     ));
-    assert.equal(attempts, 2);
+    assert.equal(attempts, 1);
+    assert.equal(repaired.truncated, false);
+    assert.equal(repaired.rawText, '{"summary":"fixture","status":"ready"}');
     assert.deepEqual(JSON.parse(repaired.text), { summary: 'fixture', status: 'ready' });
     let fallback;
     globalThis.fetch = async () => new Response('{}', { status: 400 });

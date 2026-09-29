@@ -171,13 +171,16 @@ try {
       }).filter(Boolean));
       assert.deepEqual(hollowDisclosures, [], `${type}: 펼쳤는데 아무것도 보이지 않는 서랍`);
       if (type === 'astro') {
-        // The reading house lists the seven authored astrology articles and opens one inline.
+        // The reading house lists every valid authored astrology article and opens one inline.
         assert.equal(await page.locator('#fr-astro-chart .astro-wheel-card').count(), 1);
         assert.equal(await page.locator('#fr-astro-chart').evaluate(el => el.closest('details') === null), true);
         assert.equal(await page.locator('.fr-astro-nav a').count(), 5);
         const stories = page.locator('#fr-astro-articles .astro-house-story');
         await stories.first().waitFor({ timeout: 15000 });
-        assert.equal(await stories.count(), 7);
+        const astroCatalogue = JSON.parse(await fs.readFile(path.join(root, 'public/data/astro-reading/index.json'), 'utf8'))
+          .filter(article => /^[a-z0-9-]+$/.test(article.slug) && article.href === `/insights/${article.slug}/` && /^[a-z0-9-]+\.json$/.test(article.body));
+        assert.equal(await stories.count(), astroCatalogue.length);
+        assert.deepEqual(await stories.evaluateAll(links => links.map(link => link.getAttribute('href'))), astroCatalogue.map(article => article.href));
         // Paid entries must survive the move untouched: AI counsel plus both compatibility panels.
         assert.equal(await page.locator('#fr-astro-consult #astroAiPromptSection').count(), 1);
         assert.equal(await page.locator('#fr-astro-consult .astro-compat-panel').count(), 2);
@@ -342,6 +345,10 @@ try {
         assert.equal(await page.locator('.fr-flow-point').nth(3).getAttribute('aria-pressed'), 'true');
         assert.ok((await page.locator('.fr-flow-readout').innerText()).length > 20);
         assert.equal(await page.locator('.fr-flow-curve').evaluateAll(els => els.some(el => /NaN|undefined/.test(el.getAttribute('d')))), false);
+        const consultationForm = page.locator('#zwConsultationForm');
+        assert.equal(await consultationForm.evaluate(form => form.open), false, '상담 입력은 결과 화면에서 접힌 상태로 시작해야 한다');
+        await consultationForm.locator('summary').click();
+        await page.waitForFunction(() => document.querySelector('#zwConsultationForm')?.open === true);
         assert.equal(await page.locator('#zwDeepAiPromptDomain option').count(), 14);
         await page.locator('#zwDeepAiPromptDomain').selectOption('study');
         await page.locator('#zwDeepAiPromptExample').click();

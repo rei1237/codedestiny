@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-29
-next: 미적용 레거시 무료 결과의 실제 입력·결과 완주를 이어가고, KST 기준 전환 코호트를 보려면 GA4 보고 시간대 정합 또는 KST 경계의 별도 추출 범위를 먼저 확정
+next: 운영 승격 뒤 question-journey-v1의 첫 KST 완전 일자 코호트를 같은 경계로 읽고, 실제 OAuth·PG 복귀와 실기기 검증은 별도 승인 범위에서 진행
 ---
 
 # 질문 중심 전환 개선 · 2026-09-29
@@ -85,3 +85,6 @@ lib/fortune/question-journey.ts의 6개 공개 해설. 개인화 계산 결과�
 - `verify-basic-fortune-library`는 `.impeccable/basic-fortune/before/sukuyo-data.json` 기준 스냅샷이 이 워크트리에 없어 시작 전에 실패했다. 코드 실패나 통과로 해석하지 않는다. 그 기준 스냅샷을 제공하거나, 해당 검증을 환경 의존 없이 재구성하기 전까지 기본 운세 라이브러리 전수 검증은 미완료다.
 - 읽기 전용 운영 DB 28일 보고(2026-09-01T01:28Z~2026-09-29T01:28Z): 영냥이 결제 연결 요청 12건 중 COMPLETED 7·REFUNDED 5, 24시간 초과 미완결 0, 현재 `GENERATION_REVIEW_REQUIRED` 0이다. 활성 결제→요청 연결은 6건이며 missingRequest·unactivated는 모두 0이다. 환불·부분 저장·고객 결제 대기를 포함하므로 완료율이나 생성 SLO로 사용하지 않는다. PG 대조·복구·쓰기·LLM 호출은 수행하지 않았다.
 - GA4 FortuneDevelope 속성 526361229의 보고 시간대는 미국 로스앤젤레스(GMT-07:00)다. 2026-09-01~28 LA 보고서에서 `question_topics_view` 검색 결과는 0건이었다. 따라서 같은 계측 버전의 **KST** 28일 선택→완주→상세→결제→정상 전달 코호트는 아직 N/A다. GA4 화면의 LA 기간을 KST 분모·분자로 섞거나, 서버 원장의 7/12를 전달률로 쓰지 않는다.
+- KST 코호트 경계는 `Asia/Seoul`의 `[00:00, 다음 날 00:00)`로 확정한다. GA4는 속성 시간대(`America/Los_Angeles`)의 `dateHour`로 추출해 이 구간만 합산한다. 2026-09의 PDT에는 KST 날짜 D가 LA의 `D-1 08:00`~`D 07:59`, PST에는 `D-1 07:00`~`D 06:59`다. DST 경계는 고정 오프셋이 아니라 두 IANA 시간대를 변환해 계산한다.
+- GA4 속성 시간대는 기존 보고서와의 연속성을 깨지 않도록 바꾸지 않는다. 전환은 `content_version=question-journey-v1`의 `question_select → free_guide_result_view → question_offer_click → checkout_opened → purchase`를 같은 KST 창에서 각각 집계한다. 전달은 서버 원장에서 같은 KST 창의 `paidAt`·`completedAt`을 별도 계열로 읽으며, 서로 다른 기준일을 나눗셈하거나 개인 식별자로 결합하지 않는다.
+- 레거시 무료 결과 완주: 자미두수·숙요·서양 점성술은 실제 브라우저 mock에서 프로필 입력→결과→접힌 상담 폼 열기→키보드·뒤로가기·오류 복구·5개 로케일을 통과했다. 베다점은 24개 명식·11개 라그나·7개 결과 토픽의 인라인 엔진 결과를 통과했다. 모든 API/상담 응답은 mock이며 실제 결제·LLM·운영 DB 쓰기는 0건이다.
