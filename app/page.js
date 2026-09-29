@@ -90,7 +90,7 @@ export default function HomePage() {
   return <>
     <LegacyHomeEntry defaultTarget="/ggulggul/" />
     <LocalizedServiceSummary><section className={styles.guide} aria-labelledby="homeGuideTitle">
-      <h2 id="homeGuideTitle">꿀꿀 운세로 들어가기</h2>
+      <h1 id="homeGuideTitle">꿀꿀 운세로 들어가기</h1>
       <p>Code Destiny의 대표 입구는 꽃돼지 연이와 네오가 안내하는 꿀꿀 운세입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
       <nav className={styles.paths} aria-label="대표 입구와 상담 안내">
         <Link href="/ggulggul/">연이의 정원에서 시작하기</Link>
