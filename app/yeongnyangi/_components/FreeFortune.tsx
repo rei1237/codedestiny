@@ -1,4 +1,6 @@
 "use client";
+import {FreeQuestionNext} from "@/app/components/QuestionJourney";
+import {trackEvent} from "@/lib/analytics";
 import FreePromptContinuation from '@/app/components/FreePromptContinuation';
 import QuestionSkyConsultation from './QuestionSkyConsultation';
 import Image from "next/image";
@@ -13,6 +15,7 @@ import '../_original/free-fortune.css';
 import ResultSharing from './ResultSharing';
 
 function Reading({reading}:{reading:FreeReading}){
+ useEffect(()=>{trackEvent("free_result_view",{feature_id:reading.category,surface:"yeongnyangi_free",content_type:reading.kind,content_version:reading.version});},[reading]);
  return <article className="free-reading">
   <div className="free-reading-heading"><div><p>{reading.day} · {reading.kind==='reflection'?'질문과 상징 해설':reading.kind==='symbolic'?'상징 리딩':'계산 근거가 있는 해설'}</p><h3>{reading.title}</h3></div></div>
   {reading.charts?.map(chart=><details className="free-chart" key={chart.domain}><summary>{chart.title}</summary><p>{chart.source}</p>{chart.groups.map((group,index)=><section key={`${group.label}-${index}`}><h4>{group.label}</h4><dl>{group.items.map(item=><div key={`${item.label}-${item.value}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></section>)}</details>)}
@@ -20,6 +23,7 @@ function Reading({reading}:{reading:FreeReading}){
   <ResultSharing key={`${reading.category}-${reading.day}`} reading={reading}/>
   <h4>영냥이가 조금 더 풀어줄게.</h4><div className="room-daily-message">{reading.paragraphs.map((text,index)=><p key={index}>{text}</p>)}</div>
   <details className="free-evidence"><summary>어떤 근거로 읽었을까?</summary><dl>{reading.basis.map((basis,index)=><div key={index}><dt>{basis.label}</dt><dd>{basis.value}</dd></div>)}</dl>{reading.limitations.map((item,index)=><p key={index}>{item}</p>)}</details>
+  <FreeQuestionNext category={reading.category} source="yeongnyangi_free"/>
   <FreePromptContinuation prompt={reading.prompt}/>
  </article>;
 }
@@ -68,7 +72,7 @@ export default function FreeFortune(){
   catch(reason){if(v===attendanceVersion.current&&account===readDestinyProfileAccountId())fail(reason);}finally{lock.current=false;setBusy(false);}
  }
  async function read(event:FormEvent){
-  event.preventDefault();if(lock.current)return;lock.current=true;setBusy(true);setError('');const v=++version.current;
+  event.preventDefault();if(lock.current)return;trackEvent("free_feature_start",{feature_id:category,surface:"yeongnyangi_free"});lock.current=true;setBusy(true);setError('');const v=++version.current;
   try{const data=await fortuneApi<{result:FreeReading}>('free/reading',{category,profileId:profileId||undefined,draft});if(v===version.current)setReading(data.result);}
   catch(reason){if(v===version.current)fail(reason);}finally{lock.current=false;setBusy(false);}
  }

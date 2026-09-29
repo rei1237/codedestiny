@@ -1,3 +1,4 @@
+import {FreeQuestionNext} from "./QuestionJourney";
 import { Fragment } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Compass } from "lucide-react";
@@ -436,6 +437,7 @@ export default function SeoLandingTemplate({ page, hero = null }) {
 
         <ContentIntegrityNote tone="light" contentPath={page?.path || ""} dateModified={dateModified} />
 
+        {["/saju","/sukuyo","/ziwei","/astrology","/vedic","/tarot"].includes(page.path) && <FreeQuestionNext category={({"/saju":"saju","/sukuyo":"sukuyo","/ziwei":"ziwei","/astrology":"astrology","/vedic":"vedic","/tarot":"tarot"})[page.path] || "general"} source="seo_guide"/>}
         <section aria-labelledby="seoLandingRelated" className="mt-[clamp(3.5rem,8vw,5.5rem)]">
           <SectionHead id="seoLandingRelated" title={copy.relatedFeatures} label={copy.relatedFlow} />
           {topicProfile?.topicSummary ? (

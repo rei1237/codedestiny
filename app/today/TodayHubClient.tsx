@@ -18,6 +18,7 @@
 // 배포 게이트(광고 불가·색인 가능 라우트 최소 1800자)를 지탱하는 것은 children 으로 들어오는
 // 서버 렌더 해설(TodaySystemPrimer + TodayReadingGuide)이다 — 아래 카드는 한 글자도 안 센다.
 
+import {FreeQuestionNext} from "@/app/components/QuestionJourney";
 import Link from "next/link";
 import Image from "next/image";
 import DailyTarot, {type DailyTarotCard} from "./DailyTarot";
@@ -1225,6 +1226,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
             <TodayLoadingPanel locale={locale} />
           )}
         </div>
+
+        {data&&!failed&&locale==="ko"&&<FreeQuestionNext category={active} source="today_result"/>}
 
         {/* 프로필 유도 — 날짜 기반 값은 이미 위에 나와 있고, 여기서 개인 판정을 권한다. */}
         {data && !personalized && (

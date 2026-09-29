@@ -3,7 +3,7 @@
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {ArrowRight,Check,Sunrise} from 'lucide-react';
 import TarotCardBack from '../components/TarotCardBack';
-import {PriceBadge} from '../components/PriceBadge';
+import {FreeQuestionNext} from '../components/QuestionJourney';
 import {trackEvent} from '@/lib/analytics';
 import {DAILY_MEANINGS,DAILY_POSITIONS,DAILY_TAROT_KEY,kstDay,newDailyReading,restoreDailyReading,pickDailyCard,revealDailyCard,sharedDailyCards} from '@/lib/tarot/daily-three.mjs';
 import styles from './daily-tarot.module.css';
@@ -107,9 +107,7 @@ export default function DailyTarot({cards}:{cards:DailyTarotCard[]}) {
     <p className={styles.note}>— 꽃돼지 연이</p>
     <PublicInsightCard brand="daily" source="daily" day={reading.date} choices={selected.map((id,index)=>({id:String(id),label:DAILY_POSITIONS[index]+' · '+cards[id].name,text:DAILY_MEANINGS[id][index]}))}/>
     <p className={styles.note}>오늘은 이 카드를 다시 읽을 수 있어요. 내일은 새로운 세 장이 기다려요.</p>
-    <aside className={styles.deeper}><h3>내 마음의 반복되는 패턴이 궁금하다면</h3><p>영냥이의 사주 해석에서 기질과 생활 속 선택을 더 살펴보세요.</p>
-     <a href="/yeongnyangi/fortune/?product=saju_mackerel" onClick={()=>emit('daily_tarot_consultation_click',{item_id:'yeongnyangi-saju-mackerel'})}>영냥이 사주 살펴보기 <PriceBadge featureKey="yeongnyangi-saju-mackerel"/><ArrowRight size={18}/></a>
-    </aside>
+    <FreeQuestionNext category="tarot" source="daily_tarot_result"/>
    </footer>}
   </>}
   {!storageOk&&<p role="status" className={styles.note}>이 브라우저에서 저장할 수 없어 이번 방문 동안만 결과를 볼 수 있어요.</p>}

@@ -13,7 +13,7 @@ import React from 'react';import {createRoot} from 'react-dom/client';
 import Result from './app/yeongnyangi/_components/Result';
 import styles from './app/yeongnyangi/yeongnyangi.module.css';
 createRoot(document.getElementById('root')).render(<main className={styles.page}><Result/></main>);
-`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,outfile:'fixture.js',external:['/assets/*'],format:'iife',platform:'browser',jsx:'automatic',
+`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,outfile:'fixture.js',external:['/assets/*'],format:'iife',platform:'browser',jsx:'automatic',define:{'process.env':'{}'},
  plugins:[{name:'result-fixtures',setup(b){
   b.onResolve({filter:/\/api$/},()=>({path:'api',namespace:'fixture'}));
   b.onResolve({filter:/^@\/lib\/analytics$/},()=>({path:'analytics',namespace:'fixture'}));
@@ -40,6 +40,7 @@ export async function fortuneApi(path){
  window.calls.read++;if(window.calls.read===1)throw new FortuneApiError('SERVICE_UNAVAILABLE','영냥이 서버에 잠시 연결하지 못했어요.',503);
  return {fortune:row};
 }
+export function resultPath(id){return '/yeongnyangi/result/?id='+encodeURIComponent(id);}
 export function loginForCurrentPage(){throw Error('unexpected login');}
 export function checkoutPath(){if(activateCase||unpaidCase)return '#checkout';throw Error('paid retry must not enter checkout');}
 `:path==='analytics'?'export function trackFortuneDelivery(){} export function trackFortuneView(){}':path==='style'?'export default {};':'export default function Child(){return null;}'}));
@@ -62,6 +63,7 @@ try{
  for(const width of [390,1280]){
   const page=await browser.newPage({viewport:{width,height:844}});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  page.on('pageerror',e=>console.error('fixture pageerror:',e.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/?id='+'a'.repeat(64));
   await page.getByRole('button',{name:'다시 불러오기',exact:true}).waitFor();
   await page.screenshot({path:'build-cache/yeongnyangi-retry/error-'+width+'.png'});
@@ -80,6 +82,7 @@ try{
  {
   const page=await browser.newPage({viewport:{width:390,height:844}});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  page.on('pageerror',e=>console.error('fixture pageerror:',e.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/?case=activate&id='+'a'.repeat(64));
   await page.getByText('결제가 확인되면 이 화면이 자동으로 바뀌어요.').waitFor();
   assert.equal(await page.getByRole('button',{name:'다시 불러오기',exact:true}).count(),0,'activate 실패가 읽은 상담을 가리면 안 된다');
@@ -91,6 +94,7 @@ try{
  {
   const page=await browser.newPage({viewport:{width:390,height:844}});
   await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+  page.on('pageerror',e=>console.error('fixture pageerror:',e.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/?case=unpaid&id='+'a'.repeat(64));
   await page.getByText('아직 확인된 결제가 없어요.',{exact:false}).waitFor();
   assert.equal(await page.getByText(/개 챕터 저장됨/).count(),0,'결제 전 화면에 챕터 저장 진행률을 그리면 안 된다');

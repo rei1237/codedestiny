@@ -16,7 +16,7 @@ export default function NightHero(){
    <h1 id="hero-title">사주보는 고양이,<br/><span>영냥이에게 물어봐.</span></h1>
    <p>타고난 성향부터 지금의 고민까지.<br/>사주·별·카드의 흐름을 읽고,<br className={styles.mobileBreak}/> 네가 해볼 선택을 함께 정리해.</p>
    <div className={styles.actions}>
-    <a className={styles.primary} href="/yeongnyangi/fortune/?domain=saju&fish=mackerel&consultationKind=ask" data-cd-business-entry="paid"><PawPrint size={20} aria-hidden="true"/>내 질문으로 상담 시작하기<ArrowRight size={19} aria-hidden="true"/></a>
+    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>내 고민부터 골라보기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.secondary} href="#readings"><BookOpen size={18} aria-hidden="true"/>상담 종류 살펴보기</a>
    </div>
    <p className={styles.price}>천원 운세부터 · 사주 고등어 {starter.priceKRW.toLocaleString('ko-KR')}원 · {starter.chapterCount}개 챕터</p>

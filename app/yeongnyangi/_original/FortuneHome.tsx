@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero from "../_components/NightHero";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
 import FounderTrust from "@/app/components/FounderTrust";
@@ -37,7 +38,6 @@ import {
 } from "lucide-react";
 import CatMotion from "./CatMotion";
 import {
-  concerns,
   recommendations,
   services,
 } from "./home-data";
@@ -52,15 +52,6 @@ type Panel =
   | "fusion"
   | null;
 const imagePath = (name: string) => name==='saju'?'/assets/yeongnyangi/conversion/saju-pattern.webp':`/assets/yeongnyangi/original/${name}.webp`;
-const concernIcons: Record<string, typeof Heart> = {
-  heart: Heart,
-  wallet: Wallet,
-  rings: Circle,
-  briefcase: BriefcaseBusiness,
-  book: BookOpen,
-  eyes: Eye,
-  sparkles: Sparkles,
-};
 
 function Art({
   name,
@@ -107,7 +98,6 @@ function SectionHeading({
 export default function FortuneHome({offers}:{offers:ProductOffers}) {
   const [panel, setPanel] = useState<Panel>(null);
   const [serviceId, setServiceId] = useState("saju");
-  const [concern, setConcern] = useState<string | null>(null);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [notice, setNotice] = useState("");
   const [timeOfDay, setTimeOfDay] = useState("night");
@@ -116,7 +106,6 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
   const openerRef = useRef<HTMLElement | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
   const catalogueRef = useRef<HTMLDivElement>(null);
-  const selectedConcern = concerns.find((item) => item.id === concern);
   const service = services.find((item) => item.id === serviceId) || services[0];
   const returnTo = typeof window === "undefined" ? "/yeongnyangi/fortune/" : window.location.pathname + window.location.search;
   const socialProviders: { id: SocialProvider; label: string }[] = [
@@ -261,48 +250,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
               </nav>
 
           <div className="main-content">
-            <section
-              className="concern-section"
-              aria-labelledby="concern-title"
-            >
-              <div className="section-heading">
-                <h2 id="concern-title">지금 뭐가 궁금해?</h2>
-                <PawPrint size={19} className="gold" />
-              </div>
-              <p className="section-description">
-                어려운 건 몰라도 돼. 네 고민부터 골라봐.
-              </p>
-              <div className="concern-chips">
-                {concerns.map((item) => {
-                  const Icon = concernIcons[item.icon];
-                  return (
-                    <button
-                      key={item.id}
-                      aria-pressed={concern === item.id}
-                      onClick={() =>
-                        setConcern(concern === item.id ? null : item.id)
-                      }
-                    >
-                      <Icon size={17} />
-                      <span>{item.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              {selectedConcern && (
-                <div className="concern-answer" aria-live="polite">
-                  <p>{selectedConcern.line}</p>
-                  <div>
-                    {selectedConcern.ids.map((id) => (
-                      <button key={id} onClick={() => openService(id)}>
-                        {services.find((x) => x.id === id)?.name} 살펴보기
-                        <ArrowRight size={14} />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </section>
+            <QuestionJourney source="home"/>
 
             <section
               className="readings-section"
@@ -316,7 +264,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
               <div className="service-grid" ref={catalogueRef}>
                 {services.map((item) => (
                   <button
-                    className={`service-card ${item.id === "ziwei" ? "ivory-art" : ""} ${selectedConcern && (selectedConcern.ids as readonly string[]).includes(item.id) ? "is-recommended" : ""}`}
+                    className={`service-card ${item.id === "ziwei" ? "ivory-art" : ""}`}
                     key={item.id}
                     data-product-domain={item.id}
                     onClick={() => openService(item.id)}
@@ -395,7 +343,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
                 <span>Code Destiny 연결</span>
                 <h2 id="ggulggul-title">연이의 따뜻한 운세도 만나봐.</h2>
                 <p>
-                  Code Destiny의 꽃돼지 연이가 전하는 또 다른 이야기. 상담과 이용 방식은 각 서비스에서 확인해 줘.
+                  영냥이에서는 지금의 질문을 상담하고, 꿀꿀 운세에서는 점술과 주제별 콘텐츠를 깊이 둘러봐. 연이는 다정하게, 네오는 현실적인 조언으로 함께해.
                 </p>
                 <div>
                   <a className="outlined-cta" href="/points/">

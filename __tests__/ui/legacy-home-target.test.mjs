@@ -12,3 +12,8 @@ test("legacy payment returns, service inputs and shared fragments survive verbat
   assert.equal(legacyHomeTarget("?feature=ziwei&year=1990", ""), "/ggulggul/?feature=ziwei&year=1990");
   assert.equal(legacyHomeTarget("", "#saju-result"), "/ggulggul/#saju-result");
 });
+
+test("question guides stay on the new home while payment parameters still leave", () => {
+ assert.equal(legacyHomeTarget("?question=money", "#questions"), null);
+ assert.equal(legacyHomeTarget("?question=money&paymentId=original", "#questions"), "/ggulggul/?question=money&paymentId=original#questions");
+});

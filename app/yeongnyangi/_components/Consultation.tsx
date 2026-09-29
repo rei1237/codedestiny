@@ -1,4 +1,5 @@
 "use client";
+import {getQuestionGuide} from "@/lib/fortune/question-journey";
 import {consultationKinds,consultationDomain,supportsKind,consultationManifest} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import {consultationTitle,fusionDescription} from '../_lib/consultation-copy';
 import {readingFeatures} from './ReadingIdentity';
@@ -111,6 +112,8 @@ export default function Consultation(){
   const nextDomain=consultationDomain(selected);
   const requestedKind=consultationKinds[nextDomain].find(k=>k.id===params.get('consultationKind'))||(params.get('topic')?consultationKinds[nextDomain].find(k=>k.id==='ask'):undefined)||consultationKinds[nextDomain][0];
   setKindId(requestedKind.id);
+  const entryQuestion=getQuestionGuide(params.get("questionId"));
+  if(entryQuestion&&entryQuestion.productId===selected.id&&entryQuestion.kind===requestedKind.id&&requestedKind.question)setQuestion(entryQuestion.question);
   if(readingLocales.includes(preferred as ReadingLocale)&& (requestedKind.question||readingLocales.slice(0,3).includes(preferred as 'ko'|'en'|'ja')))setLocale(preferred as ReadingLocale);
   if(!supportsKind(selected,requestedKind))setProductId(products.find(p=>consultationDomain(p)===nextDomain&&supportsKind(p,requestedKind))!.id);
   const requestedTopic=params.get('topic');
@@ -222,6 +225,8 @@ export default function Consultation(){
     return <li key={chapter.id}>{head&&<b className={styles.partHeading}>{head}</b>}{v7Label(chapter.titleKey,locale)||chapter.title}</li>;
    })}</ol></details>
    <div className={styles.checkoutSection}><div className={styles.checkoutTotal}><span>{product.fishName} · Family 이용권 또는 단건 결제</span><strong>{product.priceKRW.toLocaleString('ko-KR')}<small>원</small></strong></div>
+   <p>결제 후 선택한 구성의 {preview.length}개 챕터를 생성해요. 생성 시간은 분량과 대기 상태에 따라 달라져요. 저장된 내용과 진행 상황은 내 상담 기록에서 다시 확인할 수 있어요.</p>
+   <a href="/yeongnyangi/library/">이미 구매한 상담 확인하기</a>
    <p>선택한 운세의 계산 결과를 바탕으로 AI가 해설해요. 선택을 돕는 참고 자료이며 미래를 확정하지 않아요.</p>
    {missing.length>0&&<ul className={styles.inputHints}>{missing.map(message=><li key={message}>{message}</li>)}</ul>}
    <button className={styles.checkoutButton} disabled={busy||(!guest&&(!ready||missing.length>0||!available.some(p=>p.id===productId)))} onClick={()=>void prepare()}>{busy?inputCopy.busy:guest?inputCopy.loginContinue:inputCopy.checkout}<ArrowRight size={18} aria-hidden="true"/></button>
