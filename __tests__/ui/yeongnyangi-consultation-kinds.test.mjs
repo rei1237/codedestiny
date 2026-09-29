@@ -7,19 +7,134 @@ import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
 globalThis.__kindTest={rows:new Map(),calls:0};
 const replacements={
-  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:filter=>({lean:async()=>({updatedAt:null,birth:filter.profileId==='jong'?{year:1975,month:1,day:22,hour:14,minute:0,timeUnknown:false,calType:'solar'}:{year:filter.profileId==='partner'?1994:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
+  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:filter=>({lean:async()=>globalThis.__kindTest.profileOverride?globalThis.__kindTest.profileOverride(filter):({updatedAt:null,birth:filter.profileId==='jong'?{year:1975,month:1,day:22,hour:14,minute:0,timeUnknown:false,calType:'solar'}:{year:filter.profileId==='partner'?1994:1997,month:2,day:10,hour:12,minute:0,timeUnknown:false,calType:'solar'},gender:'F',location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup in this fixture');};export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{throw new Error("unexpected analysis checkpoint")};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__kindTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{if(globalThis.__kindTest.readError)throw Object.assign(new Error('database unavailable'),{code:'RESULT_STORAGE_UNAVAILABLE'});const row=globalThis.__kindTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__kindTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){globalThis.__kindTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export * from './worker/yeongnyangi/service'; export * from './worker/yeongnyangi/fortune/relationship-calculation'; export {validateInput} from './worker/yeongnyangi/fortune/shared/input'; export * from './worker/yeongnyangi/fortune/consultation-kinds'; export {products} from './worker/yeongnyangi/payments/catalog'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('spirit-service-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const {prepareFortune,presentFortune,generateNextChapter,jongCheckFortune}=loaded.exports;
 
 const {consultationKinds,consultationDomain,consultationManifest,supportsKind,resolveConsultationKind,products,selectChapterFacts}=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
 const body={productId:'saju_mackerel',profileId:'self',timezone:'Asia/Seoul',topicId:'general'};
+const relationRequest=(domain,kind='compatibility')=>({...body,productId:domain+'_mackerel',consultationKind:kind,question:'우리 관계에서 조율할 점은 무엇인가요?',...(kind==='compatibility'&&domain!=='tarot'?{partnerProfileId:'partner'}:{}),...(domain==='tarot'?{participants:{self:'나비',partner:'별'}}:{})});
+test('relationship modes generate all chapters from saved facts without paid calls',async()=>{
+ for(const [domain,kind] of [['ziwei','love'],['ziwei','marriage'],['ziwei','compatibility'],['vedic','compatibility'],['astrology','compatibility'],['tarot','compatibility']]){
+  const row=await prepareFortune(env,'relation-owner',relationRequest(domain,kind));
+  assert.equal(row.snapshot.product.manifestVersion,'destiny-book-v6');
+  assert.equal(row.snapshot.manifest.length,5);
+  const facts=Object.fromEntries(row.snapshot.analysis.contexts[domain].facts.map(f=>[f.label,f.value]));
+  if(domain==='tarot'){
+   assert.equal(facts.spreadId,'yeongnyangi_compatibility_six');assert.equal(facts.cards.length,6);
+   assert.equal(new Set(facts.cards.map(c=>c.cardId)).size,6);
+   assert.equal(facts.cards[0].positionKey,'self_heart');assert.equal(facts.cards[1].positionKey,'other_heart');
+  }else{
+   assert.ok(facts.relationshipBasis.self);
+   if(kind==='compatibility'){assert.ok(facts.relationshipBasis.partner);assert.ok(facts.relationshipComparison);}
+   for(const chapter of row.snapshot.manifest)assert.ok(selectChapterFacts(row.snapshot.analysis.contexts[domain],chapter).some(f=>f.label==='relationshipBasis'));
+  }
+  if(domain==='ziwei'){
+   assert.ok(facts.relationshipBasis.self.romance.every(s=>Number.isInteger(s.branchIndex)));
+   assert.ok(facts.relationshipTiming.self.decade);assert.equal(facts.relationshipTiming.self.annual.length,2);
+   assert.notDeepEqual(facts.relationshipTiming.self.annual[0].transformations,facts.relationshipTiming.self.annual[1].transformations);
+  }
+  if(domain==='vedic'){assert.ok(facts.relationshipBasis.self.seventhLord);assert.ok(Object.keys(facts.relationshipBasis.self.d9Signs).length);assert.ok(facts.relationshipTiming.overlaps.length);}
+  if(domain==='astrology')assert.ok(facts.relationshipComparison.crossAspects.some(a=>['Saturn','Uranus','Pluto'].includes(a.from)||['Saturn','Uranus','Pluto'].includes(a.to)));
+  const previous=[];
+  for(const chapter of row.snapshot.manifest){const input={locale:'ko',chapter,analysis:row.snapshot.analysis,previous};const result=await new loaded.exports.MockChapterProvider().generateChapter(input);loaded.exports.validateChapter(result,input);previous.push(result);}
+  assert.equal(previous.length,5);assert.equal(globalThis.__kindTest.calls,0);
+  for(const chapter of row.snapshot.manifest){
+   let sent;await new loaded.exports.StructuredChapterProvider({generate:async request=>{sent=request;return {result:{},provider:'mock',model:'fixture'};}}).generateChapter({locale:'ko',chapter,analysis:row.snapshot.analysis,previous:[]});
+   const selected=Object.fromEntries(sent.calculatedData.facts.map(f=>[f.label,f.value]));
+   if(domain==='tarot')assert.equal(selected.cards.length,6);
+   else {assert.ok(selected.relationshipBasis.self);if(kind==='compatibility')assert.ok(selected.relationshipBasis.partner);}
+  }
+ }
+});
+test('relationship intents survive profile edits and provider outages; uncertain reads never redraw',async()=>{
+ const request={...relationRequest('tarot'),consultationAttemptId:'12345678-1234-4234-8234-123456789abc'};
+ const row=await prepareFortune(env,'relation-replay',request);
+ assert.equal(await prepareFortune({},'relation-replay',request),row);
+ globalThis.__kindTest.readError=true;
+ try{await assert.rejects(()=>prepareFortune(env,'relation-replay',request),e=>e.code==='RESULT_STORAGE_UNAVAILABLE');}finally{delete globalThis.__kindTest.readError;}
+ const different=await prepareFortune(env,'relation-replay',{...request,participants:{self:'나비',partner:'달'}});assert.notEqual(different._id,row._id);
+ const ziwei={...relationRequest('ziwei'),consultationAttemptId:'22345678-1234-4234-8234-123456789abc'};
+ const saved=await prepareFortune(env,'relation-replay',ziwei);
+ globalThis.__kindTest.profileOverride=()=>{throw Error('must read original intent before profiles');};
+ try{assert.equal(await prepareFortune({},'relation-replay',ziwei),saved);}finally{delete globalThis.__kindTest.profileOverride;}
+});
+test('relationship pre-purchase validation rejects missing partner, foreign owner, unknown time and unsupported locale',async()=>{
+ for(const domain of ['ziwei','vedic','astrology']){
+  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),partnerProfileId:undefined}),e=>e.code==='PARTNER_REQUIRED');
+  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),locale:'en'}),e=>e.code==='READING_LOCALE_UNAVAILABLE');
+  await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest(domain),partnerTimeUnknown:true}),e=>e.code==='BIRTH_TIME_REQUIRED');
+ }
+ await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest('tarot'),participants:{self:'나'}}),e=>e.code==='PARTICIPANT_NAMES_REQUIRED');
+ await assert.rejects(()=>prepareFortune(env,'owner',{...relationRequest('ziwei'),partnerProfileId:'self'}),e=>e.code==='DISTINCT_PARTNER_REQUIRED');
+ globalThis.__kindTest.profileOverride=filter=>{assert.equal(filter.userId,'owner');return null;};
+ try{await assert.rejects(()=>prepareFortune(env,'owner',relationRequest('ziwei')),e=>e.code==='PROFILE_NOT_FOUND');}finally{delete globalThis.__kindTest.profileOverride;}
+});
+test('overseas solar clock agrees with independent Swiss EOT within the declared daily approximation',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const {default:create}=await import('sweph-wasm/wasm/swisseph');
+ const {default:Swiss}=await import('sweph-wasm');
+ const raw=await create({wasmBinary:await readFile('public/js/vendor/sweph-wasm/wasm/swisseph.wasm')});
+ const swe=new Swiss(raw);
+ // Swiss programmer reference §9.4: E = LAT - LMT, UT input, output in days.
+ for(const birthDate of ['1990-07-01','2000-02-11','2024-11-03']){
+  const clock=loaded.exports.ziweiRelationshipClock({birthDate,birthTime:'12:00',gender:'female',calendarType:'solar',birthPlace:{latitude:0,longitude:0,timezone:'UTC'}});
+  const exact=swe.swe_time_equ(Date.parse(clock.audit.utc)/86400000+2440587.5)*1440;
+  assert.ok(Math.abs(clock.audit.equationOfTimeMinutes-exact)<1,'daily approximation must remain within one minute at independent fixtures');
+  assert.equal(Math.sign(clock.audit.equationOfTimeMinutes),Math.sign(exact));
+ }
+ const clock=loaded.exports.ziweiRelationshipClock;
+ const p={birthDate:'2000-02-11',birthTime:'00:00',gender:'female',calendarType:'solar',birthPlace:{latitude:0,longitude:0,timezone:'UTC'}};
+ assert.equal(clock(p).profile.birthDate,'2000-02-10');
+ assert.equal(clock({...p,birthTime:'00:15'}).profile.birthDate,'2000-02-11');
+ assert.equal(clock({...p,birthTime:'01:14'}).profile.birthTime.slice(0,2),'00');
+ assert.equal(clock({...p,birthTime:'01:15'}).profile.birthTime.slice(0,2),'01');
+});
+test('relationship copy references exist and every tier retains all required report topics',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const source=await readFile('app/yeongnyangi/_lib/relationship-copy.ts','utf8');
+ const compiled=await build({stdin:{contents:source,loader:'ts'},format:'esm',write:false});
+ const {relationshipCopy}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+ for(const file of ['app/yeongnyangi/_components/Consultation.tsx','app/yeongnyangi/_components/TarotDrawRitual.tsx','app/yeongnyangi/_original/FortuneHome.tsx']){
+  const content=await readFile(file,'utf8');
+  for(const match of content.matchAll(/relationshipCopy\.(\w+)/g))assert.ok(relationshipCopy[match[1]],`${file}: ${match[1]}`);
+ }
+ const journey=await readFile('app/yeongnyangi/_components/RelationshipJourney.tsx','utf8');
+ for(const match of journey.matchAll(/copy\.(\w+)/g))assert.ok(relationshipCopy[match[1]],match[1]);
+ for(const domain of ['ziwei','vedic','astrology','tarot']){
+  const kinds=consultationKinds[domain].filter(k=>k.koOnly);
+  for(const kind of kinds){
+   const tiers=products.filter(p=>p.domain===domain&&p.readingKind==='single');
+   const all=tiers.map(p=>consultationManifest(p,kind).flatMap(c=>c.sections.map(s=>s.title)));
+   for(const title of all[0])if(!['현실 장면','지금 할 일'].includes(title))for(const titles of all)assert.ok(titles.includes(title),`${domain}/${kind.id}: ${title}`);
+  }
+ }
+});
+test('overseas Ziwei uses UTC plus longitude and EOT and rejects DST ambiguity',()=>{
+ const {ziweiRelationshipClock,calculateRelationshipZiwei,extendRelationshipContext,validateInput}=loaded.exports;
+ const profile={birthDate:'1990-07-01',birthTime:'12:00',gender:'female',calendarType:'solar',birthPlace:{latitude:40.71,longitude:-74.006,timezone:'America/New_York'}};
+ const clock=ziweiRelationshipClock(profile);
+ assert.equal(clock.audit.utc,'1990-07-01T16:00:00.000Z');
+ assert.ok(clock.profile.birthTime>='10:59'&&clock.profile.birthTime<='11:03','solar noon correction must remove DST exactly once');
+ assert.throws(()=>ziweiRelationshipClock({...profile,birthDate:'2024-11-03',birthTime:'01:30'}),e=>e.code==='AMBIGUOUS_BIRTH_TIME');
+ assert.throws(()=>ziweiRelationshipClock({...profile,birthDate:'2024-03-10',birthTime:'02:30'}),e=>e.code==='AMBIGUOUS_BIRTH_TIME');
+ const dateLine=ziweiRelationshipClock({...profile,birthTime:'00:10',birthPlace:{latitude:1.87,longitude:-157.4,timezone:'Pacific/Kiritimati'}});
+ assert.notEqual(dateLine.profile.birthDate,profile.birthDate);
+ const lunar=validateInput({personA:{...profile,calendarType:'lunar',birthDate:'1990-05-10',leapMonth:true}},'ziwei');
+ assert.equal(lunar.personA.calendarType,'solar');assert.ok(lunar.personA.originalCalendar.leapMonth);
+ assert.throws(()=>validateInput({personA:{...profile,calendarType:'lunar',birthDate:'1990-02-31'}},'ziwei'));
+ const a=calculateRelationshipZiwei(profile,'2026-09-29'),b=calculateRelationshipZiwei({...profile,birthDate:'1987-12-21'},'2026-09-29');
+ const ab=extendRelationshipContext(a,b,'2026-09-29'),ba=extendRelationshipContext(b,a,'2026-09-29');
+ const basis=c=>c.facts.find(f=>f.label==='relationshipBasis').value;
+ assert.deepEqual(basis(ab).self,basis(ba).partner);assert.notDeepEqual(basis(ab).self,basis(ab).partner);
+});
 test('all offered modes preserve paid chapter depth and have complete unique titles',()=>{
  for(const p of products)for(const k of consultationKinds[consultationDomain(p)]){
   if(!supportsKind(p,k)){assert.throws(()=>resolveConsultationKind(p,k.id));continue;}

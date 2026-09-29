@@ -4045,3 +4045,9 @@
   .ynOriginal .main-content::before{height:1180px;background:linear-gradient(rgb(16 27 44/.32),rgb(16 27 44/.32)),url(/assets/yeongnyangi/night/sky-veil-mobile.webp) center top/112% auto repeat-y}
   .ynOriginal .room-section::before{background:radial-gradient(ellipse at 50% 55%,rgb(16 27 44/.25),rgb(16 27 44/.7) 80%),url(/assets/yeongnyangi/night/room-lamp-mobile.webp) 18% center/cover no-repeat}
 }
+/* Relationship entry follows the existing night-room palette. */
+.ynOriginal .fortune-relationship-entry {max-width:760px;margin:24px auto;padding:24px;color:var(--yn-text,#f4edf7);}
+.ynOriginal .fortune-relationship-entry h2 {font-size:clamp(1.35rem,5vw,1.8rem);line-height:1.35;text-wrap:balance;}
+.ynOriginal .fortune-relationship-entry p {line-height:1.7;margin:12px 0 20px;}
+.ynOriginal .fortune-relationship-entry a {display:inline-flex;gap:16px;align-items:center;min-height:48px;padding:12px 24px;border-radius:12px;background:#edc9a3;color:#241824;font-weight:700;text-decoration:none;}
+.ynOriginal .fortune-relationship-entry a:focus-visible {outline:3px solid #fff;outline-offset:4px;}

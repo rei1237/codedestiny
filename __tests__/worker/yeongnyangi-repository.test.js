@@ -316,6 +316,24 @@ test.each([5,8,11,15,18,28])('all %i chapters finish in queue without browser ca
   expect(provider).toHaveBeenCalledTimes(total);expect((await repo.readRequest({},owner,id)).chapters).toHaveLength(total);
 });
 
+test('paid relationship snapshots and drawn cards survive failed chapter recovery on the original order',async()=>{
+ const snapshot={manifest:[{id:'relationship-1'},{id:'relationship-2'}],analysis:{consultation:{consultationKind:'compatibility',relationship:{version:'relationship-v1',participants:{self:'나비',partner:'달'}}},contexts:{tarot:{facts:[{label:'cards',value:[{cardId:'M00',positionKey:'self_heart',orientation:'upright'},{cardId:'M01',positionKey:'other_heart',orientation:'reversed'}]}]}}}};
+ const before=JSON.parse(JSON.stringify(snapshot));
+ await repo.createRequest({},owner,'id',{...values,snapshot});
+ await repo.attachPayment({},owner,'id',1000);
+ const first=await repo.claimChapter({},owner,'id');
+ await repo.finishChapter({},owner,'id',first.token,0,{summary:'saved relationship opening'},2);
+ const failed=await repo.claimChapter({},owner,'id');
+ await repo.failChapter({},owner,'id',failed.token,'PROVIDER_FAILED');
+ requests[0].nextAttemptAt=new Date(Date.now()-1);
+ const retry=await repo.claimChapter({},owner,'id');
+ expect(retry.row.chapters[0].summary).toBe('saved relationship opening');
+ await repo.finishChapter({},owner,'id',retry.token,1,{summary:'saved relationship advice'},2);
+ const restored=await repo.readRequest({},owner,'id');
+ expect(restored.snapshot).toEqual(before);expect(restored.state).toBe('COMPLETED');expect(payments).toHaveLength(1);
+ expect((await repo.claimChapter({},owner,'id')).token).toBeNull();
+});
+
 test('two chapter failures exhaust one immutable budget despite user and system grants',async()=>{
   await repo.createRequest({},owner,'id',values);await repo.attachPayment({},owner,'id',1000);
   await failCurrent(2,'FORTUNE_PROVIDER_FAILED');

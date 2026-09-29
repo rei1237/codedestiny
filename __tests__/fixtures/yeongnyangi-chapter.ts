@@ -69,5 +69,6 @@ export function mockReadingV5(input:ChapterRequest,sources:string[]):ChapterBody
   }
   return {id:section.id,title:section.title,paragraphs,sources};
  });
- return validateChapter({summary:`${c.title} · 모의 상담 구성 확인`,analysis:[],blocks,example:'',advice:'',highlights:[c.title],sources,persona:'검증용 이야기야. 실제 상담 결과와는 구분해서 살펴봐.',topics:[c.title]},input);
+ const assigned=(input.analysis.consultation?.questions||[]).filter(q=>q.chapterId===c.id);
+ return validateChapter({...(assigned.length?{questionAnswers:assigned.map(q=>({questionId:q.id,answer:'이 답변은 관계 상담 연결을 확인하기 위한 모의 문장입니다. 실제 해석이나 상대의 마음을 뜻하지 않습니다.',reason:'저장된 양쪽 계산 근거를 전달하는 구조를 확인합니다.',timing:'실제 시기 해석이 아닌 검증 자료입니다.',action:'상대의 의사와 경계를 존중하며 대화로 확인하세요.'}))}:{}),summary:`${c.title} · 모의 상담 구성 확인`,analysis:[],blocks,example:'',advice:'',highlights:[c.title],sources,persona:'검증용 이야기야. 실제 상담 결과와는 구분해서 살펴봐.',topics:[c.title]},input);
 }

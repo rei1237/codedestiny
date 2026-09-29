@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import QuestionJourney from "@/app/components/QuestionJourney";
+import {relationshipCopy} from '../_lib/relationship-copy';
 import NightHero from "../_components/NightHero";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
 import FounderTrust from "@/app/components/FounderTrust";
@@ -248,6 +249,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
         <main>
           <NightHero/>
+          <section className="fortune-relationship-entry"><h2>{relationshipCopy.intro}</h2><p>{relationshipCopy.description}</p><a href="/yeongnyangi/fortune/?flow=relationship">{relationshipCopy.entry}<ArrowRight size={18} aria-hidden="true"/></a></section>
               <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
                 <a href="/yeongnyangi/room/#daily">무료 운세</a>
                 <a href="/yeongnyangi/library/">내 상담 기록</a>

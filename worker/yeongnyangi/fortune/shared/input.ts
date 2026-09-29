@@ -1,5 +1,6 @@
 import { lunarToSolar } from '../../../../lib/korean-calendar/index.js';
 import { topicIds } from '../topics';
+import {relationshipAliases} from '../relationship-contract';
 import {
   BirthProfile,
   DomainId,
@@ -97,12 +98,12 @@ export function validateInput(value: unknown, domain: DomainId): FortuneInput {
     throw new FortuneError("INVALID_QUESTION");
   const topicId=typeof v.topicId==='string'?v.topicId:'general';
   if(!topicIds.includes(topicId))throw new FortuneError('INVALID_TOPIC');
-  if(domain==='tarot')return {question:question.trim(),topicId,spreadId:topicId==='relationship'||topicId==='love'?'relationship_six_card':'three_card_cause_process_outcome'};
+  if(domain==='tarot')return {question:question.trim(),topicId,...(v.consultationKind==='compatibility'?{readingMode:'compatibility' as const,participants:relationshipAliases(v.participants),spreadId:'yeongnyangi_compatibility_six'}:{spreadId:topicId==='relationship'||topicId==='love'?'relationship_six_card':'three_card_cause_process_outcome'})};
+  const paired=domain==='sukuyo'?v.readingMode!=='personal':v.readingMode==='compatibility';
   return {
     topicId,
     personA: profile(v.personA, domain),
-    ...((domain === 'sukuyo'||domain === 'saju'&&v.readingMode==='compatibility') ? { readingMode: v.readingMode === 'personal' ? 'personal' as const : 'compatibility' as const } : {}),
-    ...((domain === "sukuyo"||domain === "saju") && (domain==='sukuyo'?v.readingMode !== 'personal':v.readingMode==='compatibility') ? { personB: profile(v.personB, domain) } : {}),
+    ...(paired?{readingMode:'compatibility' as const,personB:profile(v.personB,domain)}:domain==='sukuyo'?{readingMode:'personal' as const}:{}),
     question: question.trim(),
   };
 }

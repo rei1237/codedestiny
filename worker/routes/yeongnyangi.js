@@ -13,7 +13,10 @@ import { readRequest, ownerId, YeongnyangiRequest, userCanRetry } from '../yeong
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
-  READING_LOCALE_UNAVAILABLE:'선택한 상담은 해당 언어를 지원하지 않아요. 일반 상담에서 한국어·English·日本語 중 선택해 주세요.',
+  PARTICIPANT_NAMES_REQUIRED:'두 사람의 이름 또는 별칭을 40자 이내로 입력해 주세요.',
+  INVALID_RELATIONSHIP_QUESTION:'궁합 질문을 다시 선택해 주세요.',
+  READING_LOCALE_UNAVAILABLE:'선택한 상담은 해당 언어를 지원하지 않아요. 상담 언어를 한국어로 바꾸거나 다른 상담을 선택해 주세요.',
+  AMBIGUOUS_BIRTH_TIME:'출생지의 서머타임 전환으로 해당 시각을 하나로 확정할 수 없어요. 출생기록과 시간대를 확인하거나 출생정보가 필요 없는 타로 궁합을 선택해 주세요.',
   INVALID_CONSULTATION_KIND:'상담 종류를 다시 선택해 주세요.',
   CONSULTATION_TIER_REQUIRED:'선택한 전문 상담을 제공하는 등급을 골라 주세요.',
   PARTNER_REQUIRED:'궁합 상대 프로필을 선택해 주세요.',
@@ -51,7 +54,7 @@ const messages={
   "LLM_NOT_CONFIGURED": "지금은 상담을 준비하고 있어요. 결제는 진행되지 않아요.",
   "GENERATION_REVIEW_REQUIRED": "남은 항목을 이어서 만드는 중이에요. 이미 저장된 항목은 지금 볼 수 있고, 운영팀에 자동으로 전달돼 추가 결제 없이 복구해요.",
   "FORTUNE_PROVIDER_FAILED": "상담을 잠시 멈췄어요. 다시 결제하지 말고 같은 상담에서 이어가 주세요.",
-  "PARTNER_NOT_SUPPORTED": "두 사람의 궁합은 숙요 상담에서 선택해 주세요.",
+  "PARTNER_NOT_SUPPORTED": "상대 프로필은 두 사람 궁합 상담에서 선택해 주세요.",
   "ANCHOVY_REQUIRED": "멸치가 한 마리 필요해요. 먼저 오늘 출석을 확인해 주세요.",
   "DAILY_PASS_REQUIRED": "오늘의 16종을 먼저 열어 주세요. 멸치 한 마리면 모두 볼 수 있어요.",
   "FREE_PROFILE_REQUIRED": "이 운세에는 본인 프로필이 필요해요. 프로필을 선택하거나 새로 만들어 주세요.",
@@ -127,14 +130,14 @@ export async function handleYeongnyangiRoutes(request, env) {
       const cutoff=new Date(Date.now()-UNPAID_HIDE_AFTER_MS);
       // keep=null 이면 숨기지 않는다(결제 주문 조회 실패 — 결제한 상담이 사라져 보이는 쪽보다 취소 건이 보이는 쪽이 안전하다).
       const listPage=keep=>withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),...before,...(keep?{$nor:[staleUnpaid(cutoff,keep)]}:{})})
-        .select('_id productId state paymentId accessMethod passEvidenceId createdAt completedAt snapshot.product snapshot.manifest.id snapshot.locale snapshot.analysis.consultation.consultationKind snapshot.analysis.consultation.kindLabel completedChapters errorCode manualRecoveryGrants systemRecoveryGrants hold').sort({createdAt:-1,_id:-1}).limit(31).maxTimeMS(4000).lean(),readOptions);
+        .select('_id productId state paymentId accessMethod passEvidenceId createdAt completedAt snapshot.product snapshot.manifest.id snapshot.locale snapshot.analysis.consultation.consultationKind snapshot.analysis.consultation.kindLabel snapshot.analysis.consultation.relationship.participants completedChapters errorCode manualRecoveryGrants systemRecoveryGrants hold').sort({createdAt:-1,_id:-1}).limit(31).maxTimeMS(4000).lean(),readOptions);
       const [firstRows,unattached]=await Promise.all([listPage([]),withMongoRetry(env,()=>Payment.find({userId:ownerId(auth.userId),requestId:/^yn-[a-f0-9]{64}$/,
         paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},'metadata.consumedBy':{$in:[null,'']}}).select('requestId').limit(50).maxTimeMS(4000).lean(),readOptions).catch(()=>null)]);
       const keep=unattached?.map(order=>order.requestId.slice(3));
       const rows=!keep?await listPage(null):keep.length?await listPage(keep):firstRows;
       const page=rows.slice(0,30),last=page.at(-1);
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
-        fortunes:page.map(row=>({id:row._id,locale:row.snapshot.locale || 'ko',product:row.snapshot.product,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
+        fortunes:page.map(row=>({id:row._id,locale:row.snapshot.locale || 'ko',product:row.snapshot.product,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel,participants:row.snapshot.analysis?.consultation?.relationship?.participants}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
     const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up))?$/);
     if(!match) return notFound();

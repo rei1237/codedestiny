@@ -40,7 +40,8 @@ function fixedWorld(){
 }
 
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
-const kindsFor=p=>[undefined,...m.consultationKinds[m.consultationDomain(p)]].filter(k=>!k||m.supportsKind(p,k));
+const kindsFor=p=>[undefined,...m.consultationKinds[m.consultationDomain(p)]].filter(k=>!k||!k.koOnly&&m.supportsKind(p,k));
+// New Korean relationship contracts have dedicated calculation/manifest tests; these hashes pin legacy products.
 const variants={'saju_salmon@timeUnknown':{profileId:'notime'},'ziwei_salmon@noPlace':{profileId:'noplace'},'saju_mackerel@spirit':{mode:'spirit-v1',topicId:'relationship',spirit:{relationship:'헤어진 사이',topic:'space',situation:'차단한 상황'}}};
 
 // The chapter fixture writes no questionAnswers, so assigned questions get fixed answers; ask answers stay limited.

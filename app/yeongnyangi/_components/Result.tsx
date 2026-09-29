@@ -154,6 +154,7 @@ export default function Result(){
    {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
     <summary>{consultationLabel}</summary>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
+    {row.consultation?.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}
     {row.consultation?.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
     {row.consultation?.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}
    </details>}
@@ -167,7 +168,7 @@ export default function Result(){
    </div>
    {supportLink}
    {!unpaid&&<ReadingBook row={row}/>}
-   {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
+   {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}
    </>}
   </>}
