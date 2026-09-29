@@ -44,6 +44,7 @@ export function loginForCurrentPage(){
  window.location.assign(`/login/?next=${next}&returnTo=${next}`);
 }
 export function resultPath(id:string,locale?:ReadingLocale){return `/yeongnyangi/result/?id=${encodeURIComponent(id)}${locale?`&lang=${locale}`:''}`;}
-export function checkoutPath(row:FortuneRecord){
- return `/checkout/?featureKey=${encodeURIComponent(row.product.cdFeatureKey)}&requestId=${row.id}${row.locale?`&lang=${row.locale}`:''}&returnTo=${encodeURIComponent(resultPath(row.id,row.locale))}`;
+// URL lang controls the surrounding UI; the persisted row locale controls the reading itself.
+export function checkoutPath(row:FortuneRecord,siteLocale:ReadingLocale|undefined=row.locale){
+ return `/checkout/?featureKey=${encodeURIComponent(row.product.cdFeatureKey)}&requestId=${row.id}${siteLocale?`&lang=${siteLocale}`:''}&returnTo=${encodeURIComponent(resultPath(row.id,siteLocale))}`;
 }

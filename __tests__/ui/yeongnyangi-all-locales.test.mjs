@@ -18,6 +18,7 @@ const bundle=await build({stdin:{contents:`
  export {tarotRitualCopy} from './app/yeongnyangi/_lib/tarot-ritual-copy';
  export {jongCheckCopy} from './app/yeongnyangi/_lib/jong-check-copy';
  export {getCheckoutCopy} from './app/checkout/checkout-copy';
+ export {checkoutPath} from './app/yeongnyangi/_lib/api';
  import React from 'react'; import {renderToStaticMarkup} from 'react-dom/server';
  import Select from './app/yeongnyangi/_components/ReadingLanguageSelect';
  export const renderSelect=(locale)=>renderToStaticMarkup(React.createElement(Select,{locale,siteLocale:locale,onChange:()=>{}}));
@@ -78,6 +79,17 @@ for(const locale of RUNTIME_LOCALES)test(`${locale}: complete dropdown, localize
  }
  console.log(JSON.stringify({kind:'mock-payload',outputLocale:rules.outputLocale,outputLanguageName:rules.outputLanguageName,priceLocale:rules.priceLocale,toneProfile:rules.toneProfile}));
 });
+test('a separate result language preserves the UI language through checkout and return without changing the purchase',()=>{
+ const row={id:'a'.repeat(64),locale:'ja',product:{cdFeatureKey:'yeongnyangi-saju-mackerel'}};
+ const url=new URL(m.checkoutPath(row,'en'),'https://example.invalid');
+ assert.equal(url.pathname,'/checkout/');assert.equal(url.searchParams.get('requestId'),row.id);
+ assert.equal(url.searchParams.get('featureKey'),row.product.cdFeatureKey);
+ assert.equal(url.searchParams.get('lang'),'en');
+ assert.equal(new URL(url.searchParams.get('returnTo'),url.origin).searchParams.get('lang'),'en');
+ assert.equal(row.locale,'ja','the persisted result language is unchanged');
+ assert.equal(new URL(m.checkoutPath(row),url.origin).searchParams.get('lang'),'ja','legacy callers retain their original routing');
+});
+
 test('unsupported UI locale selects visible English fallback; API refuses an implicit paid language substitution',()=>{
  assert.deepEqual(m.resolveReadingLanguage('pt-BR'),{locale:'en',fallback:true});
  assert.deepEqual(m.resolveReadingLanguage('zh-Hant'),{locale:'zh-TW',fallback:false});
