@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-29
-next: 운영 승격 전 실기기 로그인·PG 복귀 검증과 동일 계측 버전의 전환·전달 코호트 확인
+next: 미적용 레거시 무료 결과의 실제 입력·결과 완주를 이어가고, KST 기준 전환 코호트를 보려면 GA4 보고 시간대 정합 또는 KST 경계의 별도 추출 범위를 먼저 확정
 ---
 
 # 질문 중심 전환 개선 · 2026-09-29
@@ -77,3 +77,11 @@ lib/fortune/question-journey.ts의 6개 공개 해설. 개인화 계산 결과�
 첫 main CI에서 계측 표식 충돌 발견: 새 홈 nav의 concern_pick이 기존 홈 영역과 중복되고, 결과 페이지에 홈 전용 표식이 붙었다. 홈은 question_entry로 분리하고 결과는 기존 cross_sell_click의 saju_question 출처로 구분했다. 검사를 완화하지 않았다. 그 외 첫 CI 타입/린트·빌드·Critical checks 및 Paid Flow Gates 통과. 최종 CI 결과는 전달 메시지의 정확한 커밋/실행 링크를 기준으로 확인한다.
 
 로컬 증거 사본: D:/Development/code-destiny/build-cache/question-journey. 질문/상품/꿀꿀/SEO/오늘 허브를 360/390/430/1280px에서 캡처. 꿀꿀은 초기 로딩이 끝난 뒤 재확인했다. SEO/오늘 캡처는 비로그인 화면이며 개인 결과 계산 E2E 증거가 아니다.
+
+## 2026-09-29 후속 검증
+
+- 격리 mock 프런트엔드에서 `verify-yeongnyangi-free-ui`를 다시 실행했다. 360/390/430/768/1280px의 출석·멸치 해제·읽기, 중복·실패·reduced motion·게스트 안내가 통과했고 실제 결제 호출과 DB 쓰기는 0건이다. 이는 영냥이 무료 16종의 기존 공유 흐름 검증이며, 레거시 타일의 전체 계산 결과 완주 증거는 아니다.
+- `verify-mobile-entry-actions`는 레지스트리 104행, route 90개, action 32개와 모바일 핵심 배선 3/3을 통과했다. `verify-mobile-journeys`, `verify-physiognomy-report`, `verify-sukuyo-reading-house`, `action-entry-dispatch.static.test.js`도 통과했다. 따라서 대표 레거시 진입·관상 결과 구성·숙요 계산 결과·액션 디스패치는 mock/정적 계약에서 확인됐다.
+- `verify-basic-fortune-library`는 `.impeccable/basic-fortune/before/sukuyo-data.json` 기준 스냅샷이 이 워크트리에 없어 시작 전에 실패했다. 코드 실패나 통과로 해석하지 않는다. 그 기준 스냅샷을 제공하거나, 해당 검증을 환경 의존 없이 재구성하기 전까지 기본 운세 라이브러리 전수 검증은 미완료다.
+- 읽기 전용 운영 DB 28일 보고(2026-09-01T01:28Z~2026-09-29T01:28Z): 영냥이 결제 연결 요청 12건 중 COMPLETED 7·REFUNDED 5, 24시간 초과 미완결 0, 현재 `GENERATION_REVIEW_REQUIRED` 0이다. 활성 결제→요청 연결은 6건이며 missingRequest·unactivated는 모두 0이다. 환불·부분 저장·고객 결제 대기를 포함하므로 완료율이나 생성 SLO로 사용하지 않는다. PG 대조·복구·쓰기·LLM 호출은 수행하지 않았다.
+- GA4 FortuneDevelope 속성 526361229의 보고 시간대는 미국 로스앤젤레스(GMT-07:00)다. 2026-09-01~28 LA 보고서에서 `question_topics_view` 검색 결과는 0건이었다. 따라서 같은 계측 버전의 **KST** 28일 선택→완주→상세→결제→정상 전달 코호트는 아직 N/A다. GA4 화면의 LA 기간을 KST 분모·분자로 섞거나, 서버 원장의 7/12를 전달률로 쓰지 않는다.
