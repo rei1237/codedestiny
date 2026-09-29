@@ -50,11 +50,12 @@ lib/fortune/question-journey.ts의 6개 공개 해설. 개인화 계산 결과�
 - verify-question-journey: 360/390/430/1280px 질문 4개 선택, 딥링크, 상품 CTA, 가로 넘침 없음, pageerror 없음. .tmp/question-journey/에 실제 브라우저 스크린샷/JSON.
 - 390px 질문 화면과 360px 상품 화면을 이미지로 직접 확인. 긴 해설은 아래로 읽으며 하단 메뉴와 겹치지 않도록 기존 스크롤 영역 사용.
 - verify-yeongnyangi-result-retry: 390/1280px 복구, 저장 챕터 보존, 중복 클릭 억제, 결제 직후 activate 일시 실패, 미결제 상태 통과. fixture에 누락된 resultPath/process.env만 보완. 실제 PG/LLM 호출 0.
+- verify-yeongnyangi-free-ui: 360/390/430/768/1280px 출석·무료 열기·읽기, 중복 출석/실패/reduced motion/게스트 로그인 안내 통과. 모든 API mock, 실제 과금/DB 쓰기 0.
 - legacy-home-target 3/3: 질문 링크 유지 및 결제 복귀 파라미터 보존.
 - impeccable detect: 새 컴포넌트/CSS/상품 안내 findings 0.
 
 ### 확인 공백과 공개 조건
-- 기존 verify-yeongnyangi-consultation-browser는 숙요 본명숙 버튼 대기에서 실패. 실제 로그인 복귀·전 상품 준비·보관함 전체 브라우저 시나리오 완료로 보고하지 않는다.
+- verify-yeongnyangi-consultation-browser: 최초 숙요 전환 대기 timeout 이후 직접 진입에서 정상 DOM/pageerror 0 확인. 동일 시나리오 재실행 통과: 4 viewport 상담, 상품 제한, 준비 payload, 종격 질문, 보관함 오류 재시도/페이지네이션/중복 제거. 실제 OAuth/PG 복귀는 별도 미검증.
 - 실기기 Safari/Chrome, 실제 PG 승인/유료 LLM/운영 저장·재열람, 새 이벤트 GA4 수집과 효과는 미검증. 운영 승격하지 않는다.
 - 무료 전수 표는 등록부/메뉴/카테고리 인벤토리이며 각 기능의 모든 계산·결과 조합을 브라우저 완주했다는 뜻이 아니다. 미적용 기능은 기존 흐름을 유지한다.
 - 시간형 기존 기능의 날짜/만료 전수 검증과 상품별 생성시간 SLO는 후속 검증. 생성시간을 임의로 약속하지 않는다.
@@ -62,7 +63,6 @@ lib/fortune/question-journey.ts의 6개 공개 해설. 개인화 계산 결과�
 
 ### 다음 작업자
 1. question-journey-free-map.md의 미적용 기능별 실제 입력/결과를 순차 완주하고 계산 근거별 템플릿 필요 여부 결정.
-2. 숙요 브라우저 대기 실패 원인 확인 후 로그인 복귀/보관함 전수 mock 완주.
+2. 실제 OAuth 로그인·PG 복귀와 실기기 브라우저 검증은 별도 승인/계정 범위에서 진행. mock 성공을 실결제 성공으로 해석하지 않는다.
 3. 동일 계측 버전의 KST 28일 코호트(시간대 확인 포함)로 선택·완주·상세·결제·정상 전달을 함께 비교.
 4. 본 변경은 코드 전달이며 운영 공개 승인은 별도. 가격/권한/결제/생성/DB 계약은 그대로 유지.
-
