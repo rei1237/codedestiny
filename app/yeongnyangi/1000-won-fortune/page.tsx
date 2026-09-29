@@ -91,7 +91,7 @@ export default function Page(){
     <h1><span className={styles.h1Line}>천원 운세·천원사주,</span> <span className={styles.h1Line}>영냥이 고등어 상담 {PRICE}</span></h1>
     <p>영냥이 천원운세는 사주·타로·자미두수·숙요점·베다점·서양 점성술 중 한 가지 체계의 고등어 상담을 {PRICE}에 이용하는 서비스예요. 각 체계의 계산이나 카드 상징을 바탕으로 AI가 해설하고, 같은 계정의 내 상담 기록에서 결과를 다시 볼 수 있어요.</p>
     <p>처음이라면 사주 고등어 상담부터 시작해 보세요. {mackerels[0].chapterCount}개 챕터에서 내 기질과 고민의 흐름을 읽고, 왜 그렇게 해석했는지와 생활 속에서 해볼 행동을 함께 살펴요.</p>
-    <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a><a href="#example">받게 될 답의 형태 보기</a></p>
+    <p className={styles.actions} data-cd-cross-sell="thousand_won_intro"><a className={styles.primary} href={QUESTION_HREF}>{PRICE} 사주에 내 질문 남기기</a><a href="#example">받게 될 답의 형태 보기</a></p>
     <p className={styles.policy}>Family 이용권이 없어도 단건 결제로 이용할 수 있어요. 상품과 가격은 다음 화면에서 바꿀 수 있으며, 로그인 후 결제창에서 총액과 적용 수단을 확인해요.</p>
    </div>
    <img src="/assets/yeongnyangi/hero.webp" width={480} height={480} alt="생선을 기다리며 사주를 봐 주는 고양이 영냥이" fetchPriority="high"/>
@@ -107,7 +107,7 @@ export default function Page(){
     <dt>오늘 해볼 행동</dt><dd>{SEO_READING_EXAMPLES['/saju'].action} 확인할 항목 하나와 결정할 기한을 정해 보세요.</dd>
    </dl>
    <details><summary>가상 입력과 계산 기준 보기</summary><p>{SEO_READING_EXAMPLES['/saju'].input}</p><a href="/methodology/">계산과 해석 기준</a></details>
-   <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="#systems">다른 운세와 필요한 정보 보기</a></p>
+   <p className={styles.actions} data-cd-cross-sell="thousand_won_example"><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="#systems">다른 운세와 필요한 정보 보기</a></p>
    <SampleExposure targetId="example" itemId={mackerels[0].cdFeatureKey}/>
   </section>
 
@@ -129,7 +129,7 @@ export default function Page(){
      <p><strong>필요한 정보</strong> {info.input}</p>
      <ol className={styles.chapters}>{chapters.map(chapter=><li key={chapter.id}>{chapter.title}</li>)}</ol>
      {p.domain==='sukuyo'&&<p><strong>천원 숙요 궁합</strong> 상대 프로필을 고르면 {sukuyoPair.map(chapter=>chapter.title).join(', ')} 순서로 두 사람의 관계를 읽어요.</p>}
-     <p className={styles.links}><a className={styles.primary} href={`/yeongnyangi/fortune/?domain=${p.domain}&fish=mackerel`}>{info.name} 상담 알아보기</a><a href={info.freeHref}>{info.freeLabel}</a></p>
+     <p className={styles.links} data-cd-cross-sell={`thousand_won_${p.domain}`}><a className={styles.primary} href={`/yeongnyangi/fortune/?domain=${p.domain}&fish=mackerel`}>{info.name} 상담 알아보기</a><a href={info.freeHref}>{info.freeLabel}</a></p>
     </section>;})}
    </div>
   </section>
@@ -184,7 +184,7 @@ export default function Page(){
   <section className={styles.closing} aria-labelledby="start">
    <h2 id="start">영냥이에게 첫 이야기를 들려줘</h2>
    <p>어떤 체계로 볼지 고민된다면 출생시간 없이도 가능한 천원 사주부터, 지금 당장 답이 궁금한 질문이 있다면 천원 타로부터 시작해 보세요.</p>
-   <p className={styles.actions}><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="/yeongnyangi/fortune/?domain=tarot&fish=mackerel">천원 타로 상담 알아보기</a><a href="/yeongnyangi/">영냥이의 방 둘러보기</a></p>
+   <p className={styles.actions} data-cd-cross-sell="thousand_won_closing"><a className={styles.primary} href={QUESTION_HREF}>내 질문으로 {PRICE} 상담 준비하기</a><a href="/yeongnyangi/fortune/?domain=tarot&fish=mackerel">천원 타로 상담 알아보기</a><a href="/yeongnyangi/">영냥이의 방 둘러보기</a></p>
   </section>
 
   <KakaoChannelInvite source="product_detail" />
