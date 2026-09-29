@@ -1,20 +1,20 @@
 ---
-status: blocked
+status: done
 updated: 2026-09-29
-next: 다국어 세션의 공용 파일 커밋 이후 새 타로 모듈을 실제 입력·구매·프롬프트·UI에 연결하고 통합 검증
+next: 운영 승격·실결제·실 LLM·운영 DB 검증은 해당 범위의 별도 승인 시에만 수행
 ---
 
 # 영냥이 타로 상담 v2 구현과 통합
 
-사용자가 승인한 추가 작업이다. 기존 궁합 작업과 함께 완료해야 하며, 이 문서의 미완료 항목이 남으면 worktree를 archive하거나 전체 완료로 보고하지 않는다.
+기존 궁합 작업과 타로 상담 v2를 같은 구매·저장·복구 흐름에 연결한 완료 기록이다.
 
 ## 현재 상태
 
-- 작업 위치: `C:\Users\user\.codex\worktrees\relationship-readings\code-destiny`.
-- 기존 궁합 커밋: `31a401bd0e1bf4ae13886f4b888f703ef3717df5`.
-- 공유 main의 `lib/tarot/spreads.mjs`, `worker/yeongnyangi/fortune/consultation-kinds.ts`에 다른 세션의 미커밋 변경이 남아 있다. 사용자는 해당 커밋 이후 통합하도록 지시했다. 해당 파일이나 공유 main은 수정하지 않았다.
-- 신규 독립 모듈과 안내 컴포넌트를 구현했다. **서비스에 아직 연결하지 않았다. 사용자 화면의 역전 현상은 아직 수정 완료가 아니다.**
-- 가격·상품 ID·결제·인증·DB·기존 저장 구매는 변경하지 않았다. 실 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않는다.
+- 원래 인수인계 HEAD `6766fe65800d094d71823f2f335ca3b0ba771b13`을 확인했다.
+- 다른 세션의 공용 변경이 들어간 최신 `origin/main` `c69f872bd` 위로 궁합·타로 3개 커밋을 리베이스했다. 새 커밋은 `3bec5a00f`, `ebac67cab`, `62ac33e07`이다.
+- 통합 구현 커밋은 `205fe39b4`다. 타로 v2가 신규 단독 타로 구매에서 v7보다 먼저 선택되며, kind 없는 구클라이언트와 저장된 기존 구매는 기존 계약을 유지한다.
+- 궁합 질문은 연락·재회·속마음·궁합 타로로 이어지고, 별칭과 질문은 구매 intent에 고정된다. 저장소 읽기 불확실성은 재추첨으로 처리하지 않는다.
+- 가격·상품 ID·결제·인증·DB 스키마·기존 저장 구매는 변경하지 않았다. 실 LLM·실결제·운영 DB·프로덕션 승격은 실행하지 않았다.
 
 ## 신규 모듈
 
@@ -24,10 +24,12 @@ next: 다국어 세션의 공용 파일 커밋 이후 새 타로 모듈을 실�
 - `consultation-calculation.ts`: 중복 없는 보안 난수 추첨, 고정 자리·정역방향, 질문 유형별 의미와 조합 엔진 재사용. 기존 조합의 일반 관계 서사를 제외하고 탐지 유형·제목만 전달한다.
 - `consultation-evidence.ts`: 카드별 의미·자리·도상 메타데이터를 구매 시 고정하는 fact. 복구 시 최신 사전으로 재계산하지 않는다.
 - `consultation-prompt.ts`: 저장된 v2 fact에서만 전문 해석 계약을 구성한다.
-- `app/yeongnyangi/_components/TarotConsultationGuide.tsx`와 CSS: 카드 수와 챕터 수를 구분하는 한국어 안내. 실제 Consultation 연결과 브라우저 검증 대기.
+- `app/yeongnyangi/_components/TarotConsultationGuide.tsx`와 CSS: 카드 수와 챕터 수를 구분하는 한국어 안내. Consultation 연결과 브라우저 검증 완료.
 - `__tests__/ui/yeongnyangi-tarot-consultation-v2.test.mjs`: 독립 모듈 7개 테스트.
 
-## 통합 작업 — 모두 필요
+## 통합 완료 계약
+
+아래 10개 항목은 `205fe39b4`와 선행 커밋에서 모두 연결·검증했다.
 
 1. 다른 세션이 공용 파일을 커밋했는지 확인한다. 완료되면 기존 궁합 인수인계대로 main 변경을 worktree에 병합하고 기존 12개 언어·사이트/결과 언어 분리를 보존한다.
 2. `consultation-kinds.ts`의 tarot 목록에 registry의 9개 상담을 연결한다. 기존 choice/love는 다국어 유지, 나머지는 koOnly. compatibility는 기존 별칭 입력을 유지한다. 신규 요청 manifest는 tarot v2가 기존 relationship/v7 분기보다 먼저 적용되도록 한다. 기존 구매는 저장된 manifest를 그대로 사용한다.
@@ -60,10 +62,18 @@ next: 다국어 세션의 공용 파일 커밋 이후 새 타로 모듈을 실�
 
 ## 검증 기록
 
-- `node --test __tests__/ui/yeongnyangi-tarot-consultation-v2.test.mjs`: 7/7 통과.
-- `npm run typecheck`: exit 0. 이후 추가된 prompt/UI도 check:fast의 타입 검사에서 통과했다.
-- `npm run check:fast -- --plan`: critical 검사 계획 확인.
-- `npm run check:fast`: exit 0. paid gate 88/88(전체 npm test 포함, 324.1초), lint·사이트맵·타입·Node·환경·결제 정책·Worker dry-run·인코딩 통과. 마지막 Jest 316 suites / 4577 tests 통과(219.164초). 로그는 worktree 상위 `tarot-v2-check-fast.log`.
-- Impeccable 안내 컴포넌트/CSS 정적 검사: primary findings 0. 실제 화면 검증을 대신하지 않는다.
-- `npm run verify:handoff-contract`: 213개 문서 통과.
-- 서비스 연결, 실제 화면, 결제/복구 통합, 다국어, main push·CI: 미검증.
+- 타로·v7·불변성 관련 6개 파일: 40/40 통과. 신규 choice/love v2 구매 해시만 갱신했고 no-kind legacy·융합 fixture는 그대로 유지했다.
+- `npm run typecheck`: exit 0.
+- `npm run check:fast -- --plan`: critical 계획 확인.
+- `npm run sitemap:generate` 후 `npm run verify:sitemap-drift`: URL 1300개 일치.
+- `npm run check:fast`: exit 0. paid gate 88/88, Node 1920/1920, Jest 316 suites·4577 tests, lint·타입·환경·결제 정책·Worker dry-run·인코딩 통과.
+- `scripts/verify-yeongnyangi-relationship-browser.mjs`: mock 개발 서버에서 360/390/430/1280px 전부 통과. 궁합 질문 → 속마음 타로, 입력 보존, 결제 payload, 고정 카드, 결과·보관함 재열람, 7장 진로 카드 전 버튼 도달을 확인했다.
+- 브라우저 증거는 로컬 mock이며 실결제·실 LLM·운영 DB·물리 기기 증거가 아니다.
+
+## 재개 명령
+
+운영 승격이나 실연동 검증을 별도로 승인받았을 때만 아래 기록에서 시작한다.
+
+```text
+cd /d D:\Development\code-destiny && type D:\Development\code-destiny\docs\handoff\yeongnyangi-tarot-quality-integration-20260929.md && git show 205fe39b4 --stat
+```
