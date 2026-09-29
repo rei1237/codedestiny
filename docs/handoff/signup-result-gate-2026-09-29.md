@@ -33,6 +33,8 @@ next: main CI 확인 후 승인된 ref만 운영 승격; 실제 모바일 OAuth 
 - `npm run verify:payment-choice-parity -- --self-test`, `npm run verify:analytics-events`, `npm run verify:public-mirror-fresh`: 통과.
 - Impeccable 기계 검사: `[]`. 모바일/데스크톱 실제 모의 렌더 확인. 첫 캡처의 전환 애니메이션 중간 상태를 완료 상태와 구별했다.
 - 최초 `check:fast`: 85/88 통과. 실패 3개는 스크립트 캐시 핀과 수정 중 소스/미러 불일치였으며 개별 재검증은 통과. 최종 전체 실행·main CI 결과는 전달 시 별도 기록한다.
+- 최종 로컬 스위트: 87/88 통과 후 `billing-client.ts`의 캐시 주소 변경에 대한 동결 기록 해시만 갱신해 해당 가드도 통과했다. 전체 npm test는 통과했다. `check:fast` 명령 전체가 종료 코드 0이었다고 보고하지 않는다.
+- 첫 main CI에서 기존 사주 요약 브라우저 픽스처가 인증 사용자를 반환하지 않아 막혔다. 정상 회원 픽스처로 수정했고 16개 요약 화면 조합이 로컬 통과했다. 새 비회원/로그인 복귀 브라우저 검사도 CI에 연결했다.
 
 증거: `C:/Users/user/.codex/visualizations/2026/09/29/01a0ec3d-d2f7-78a0-a792-501230c600dd/signup-result-gate/`
 

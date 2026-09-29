@@ -6,6 +6,7 @@ try {
  const context=await browser.newContext({viewport:{width:390,height:844}});
  await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.pathname==='/api/relationship-boundary-test/generate')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,sessionId:'mock-reading',score:52,grade:'medium',character:{title:'관계를 읽는 시간',caption:'회귀 검증용 결과'},scoreFactors:['서로의 약속과 생활 리듬을 살펴봅니다.'],summary:'관계의 흐름을 함께 살펴봅니다.',sections:Array.from({length:5},(_,i)=>({title:'관계의 장면 '+(i+1),body:Array.from({length:12},(_,j)=>('검증 문단 '+(j+1)+'. 서로의 마음과 생활 리듬을 존중하고 대화로 경계를 정하는 모습을 살펴봅니다. ').repeat(6)).join('\n\n')})),finalMessage:'서로 존중하는 대화를 이어 가세요.'})});if(url.pathname.startsWith('/api/'))return route.fulfill({status:200,contentType:'application/json',body:'{"ok":true,"unlocks":[],"profiles":[]}'});return url.origin===origin && ['GET','HEAD'].includes(route.request().method())?route.continue():route.abort();});
  await context.addInitScript(()=>sessionStorage.setItem('privacyAgreed','true'));
+ await context.route('**/api/auth/me',route=>route.fulfill({status:200,json:{ok:true,authenticated:true,user:{id:'relationship-test-member',name:'회귀검증'}}}));
  const page=await context.newPage();page.setDefaultTimeout(45000);page.on('dialog',d=>d.dismiss());
  await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
  await page.locator('#cdQuickServices a[href*="cdOneStepFreeSajuEntry"]').click();
