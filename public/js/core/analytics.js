@@ -189,6 +189,88 @@
     }
   };
 
+  function portalPayload(link) {
+    var destination = "";
+    try {
+      destination = new URL(link.getAttribute("href") || "", global.location.href).pathname;
+    } catch (_) {
+      destination = "";
+    }
+    return {
+      from_service: "ggulggul",
+      to_service: "yeongnyangi",
+      placement: String(link.getAttribute("data-cd-portal-placement") || "home"),
+      destination: destination || "/yeongnyangi/",
+      metric_version: 1
+    };
+  }
+  function trackPortalImpressions() {
+    try {
+      var links = Array.prototype.slice.call(document.querySelectorAll("[data-cd-portal-link]"));
+      if (!links.length) return;
+      var seen = new WeakSet();
+      var fire = function (link) {
+        if (!link || seen.has(link)) return;
+        seen.add(link);
+        global.cdTrack("yeongnyangi_portal_impression", portalPayload(link));
+      };
+      if (typeof global.IntersectionObserver === "function") {
+        var observer = new global.IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting && entry.intersectionRatio >= 0.45) {
+              fire(entry.target);
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: [0.45] });
+        links.forEach(function (link) { observer.observe(link); });
+        return;
+      }
+      links.forEach(function (link) {
+        var rect = link.getBoundingClientRect ? link.getBoundingClientRect() : null;
+        if (!rect || (rect.width > 0 && rect.height > 0 && rect.bottom >= 0 && rect.top <= (global.innerHeight || 0))) fire(link);
+      });
+    } catch (_portalImpressionError) {
+      /* 계측 실패는 무시한다 */
+    }
+  }
+  function finishPortalArrival() {
+    try {
+      if (!/^\/yeongnyangi(?:\/|$)/.test(global.location.pathname)) return;
+      var raw = global.sessionStorage.getItem("cd:yeongnyangi:portal-entry");
+      if (!raw) return;
+      global.sessionStorage.removeItem("cd:yeongnyangi:portal-entry");
+      var data = JSON.parse(raw);
+      if (!data || data.from !== "ggulggul" || Date.now() - Number(data.at || 0) > 120000) return;
+      global.cdTrack("yeongnyangi_portal_arrival", {
+        from_service: "ggulggul",
+        to_service: "yeongnyangi",
+        placement: /^[a-z0-9_]{1,60}$/.test(data.placement || "") ? data.placement : "home",
+        destination: global.location.pathname,
+        metric_version: 1
+      });
+      var overlay = document.createElement("div");
+      overlay.setAttribute("aria-hidden", "true");
+      overlay.style.cssText = "position:fixed;inset:0;z-index:2147482600;pointer-events:none;background:radial-gradient(circle at 50% 48%,rgba(255,248,208,.92),rgba(159,129,255,.38) 30%,rgba(9,5,20,0) 72%);animation:cdYnPortalArrive .46s cubic-bezier(.16,1,.3,1) forwards";
+      var style = document.createElement("style");
+      style.textContent = "@keyframes cdYnPortalArrive{0%{opacity:1;filter:blur(0);transform:scale(1)}100%{opacity:0;filter:blur(10px);transform:scale(1.06)}}@media(prefers-reduced-motion:reduce){@keyframes cdYnPortalArrive{0%{opacity:.35}100%{opacity:0}}}";
+      document.head.appendChild(style);
+      document.body.appendChild(overlay);
+      global.setTimeout(function () { overlay.remove(); style.remove(); }, 620);
+    } catch (_portalArrivalError) {
+      /* 계측 실패는 무시한다 */
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      trackPortalImpressions();
+      finishPortalArrival();
+    }, { once: true });
+  } else {
+    trackPortalImpressions();
+    finishPortalArrival();
+  }
+
   growthAttribution();
   if (crmCampaign()) global.cdTrack('crm_landing_visit', { landing_path: global.location.pathname });
   var purchaseEvents = Object.create(null);
@@ -287,6 +369,13 @@
       return;
     }
     if (!anchor) return;
+    try {
+      if (anchor.hasAttribute("data-cd-portal-link")) {
+        global.cdTrack("yeongnyangi_portal_click", portalPayload(anchor));
+      }
+    } catch (_portalClickError) {
+      /* 계측 실패는 무시한다 */
+    }
     var businessEntry = anchor.getAttribute('data-cd-business-entry');
     if (businessEntry === 'paid' || businessEntry === 'daily') {
       global.cdTrack('home_business_entry', { destination: businessEntry });
