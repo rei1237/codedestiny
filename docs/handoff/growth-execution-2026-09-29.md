@@ -63,7 +63,9 @@ Codex 프롬프트는 최신 검수 큐·근거·중복·성과 피드백을 읽
 
 승인 후 main CI가 통과한 정확한 SHA를 고정한 승인 release ref로 기존 Release Cloudflare Pages and Worker workflow의 mode=production을 실행한다. target_sha는 pages_only 전용이라 전체 승격 고정용으로 오용하지 않는다. 승인 SHA 이후 진전한 main을 자동 승격하지 않는다.
 
-배포 직전 기존 Pages deployment ID와 Worker version ID를 읽어 보관한다. 릴리스 내부 smoke 및 Pages /version.json, Worker /api/version의 동일 SHA를 확인한다. 실패하면 기존 workflow mode=rollback에 보관한 두 ID를 사용한다. 롤백 ID는 아직 조회하지 않았으며 가짜 값을 넣지 않았다.
+2026-09-29 18:43 KST 읽기 전용 확인: 운영 Pages/Worker 모두 e462be60284da08b4b990c75e2826e328950c5ef. Pages deployment 95d9e69a-d1fe-41ec-8451-37abdf80d77d, 활성 Worker version 5bc04355-0c98-4070-a345-6e0c4379578f. npm run deploy:rollback -- --list를 primary main에서 읽기 전용으로 실행했다(다른 세션 dirty 상태는 그대로 보존). 운영 변경0회.
+
+배포 직전 위 두 ID가 여전히 현재 버전인지 다시 확인한다. 릴리스 내부 smoke 및 Pages /version.json, Worker /api/version의 동일 SHA를 확인한다. 실패하면 기존 workflow mode=rollback에 보관한 두 ID를 사용한다. 화면 증거 폴더의 release-plan.md에는 승인 대상 SHA·승격/원복 명령·현재 운영 이후 전체 main 커밋 목록을 남긴다. 이번 개선 전부터 main에 있던 미승격 변경도 포함되므로 최신 main으로 임의 대체하지 않는다.
 
 코드 원복은 해당 기능 커밋만 git revert한다. Threads Worker는 190a1566e, 분석은 c68e7b1f8, 큐는 2e5e6228a. 이미 공개된 글·URL·성과 로그는 되돌려 지우지 않는다. Codex 자동화는 현재 계정/시간/target을 유지한 채 이전 prompt 텍스트만 복구한다.
 
