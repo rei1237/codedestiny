@@ -3,7 +3,7 @@ import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildOrganizationJsonLd, buildWebPageJsonLd } from "../lib/structured-data";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import LocalizedServiceSummary from "./components/LocalizedServiceSummary";
-import { SEO_LINK_GROUPS } from "./components/SiteFooterHub";
+import { SEO_LINK_GROUPS, POLICY_LINKS } from "./components/SiteFooterHub";
 import { ILGAN_MONTHLY_MONTHS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import styles from "./home-guide.module.css";
 
@@ -111,9 +111,7 @@ export default function HomePage() {
       </details>
       <nav className={styles.paths} aria-label="구매 전 정책 확인">
         <Link href="/ggulggul/#premiumVvipCollection">이용권·월정석·단건 결제 안내</Link>
-        <Link href="/terms#refund-policy">환불정책</Link>
-        <Link href="/privacy">개인정보처리방침</Link>
-        <Link href="/contact/">고객센터</Link>
+        {POLICY_LINKS.map(link=><Link key={link.href} href={link.href}>{link.text}</Link>)}
       </nav>
     </section></LocalizedServiceSummary>
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(orgJsonLd)}} />

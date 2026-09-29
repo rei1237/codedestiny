@@ -1,0 +1,464 @@
+{
+  "date": "2026-09-30",
+  "codeCommit": "72ee4d30b",
+  "environment": "loopback SDK/HTTP fixtures with external network blocked",
+  "distinctScenarios": 68,
+  "passed": 68,
+  "realPgCalls": 0,
+  "realLlmCalls": 0,
+  "productionDbWrites": 0,
+  "runs": [
+    {
+      "filter": "kakao|cancel|reload|no-redirect|double-click|concurrent|sdk|redirect",
+      "status": "FAIL",
+      "passed": 16,
+      "failed": 1
+    },
+    {
+      "filter": "webkit-390-KAKAOPAY-redirect|webkit-430|webkit-pg-cancel|webkit-inline-cancel|webkit-reload|webkit-double-click|webkit-concurrent|webkit-no-redirect|product-",
+      "status": "FAIL",
+      "passed": 18,
+      "failed": 1
+    },
+    {
+      "filter": "webkit-|product-|chromium.*new-tab-no-storage|chromium-pg-failed|chromium-inline-failure",
+      "status": "FAIL",
+      "passed": 37,
+      "failed": 1
+    },
+    {
+      "filter": "webkit-390-(CARD|KAKAOPAY)|webkit-(pg-cancel-return|pg-failed-return|reload-checkout|no-redirect-poll|double-click|concurrent-pending-tabs|inline-cancel|inline-failure)",
+      "status": "FAIL",
+      "passed": 8,
+      "failed": 1
+    },
+    {
+      "filter": "(webkit|chromium)-(pg-cancel-return|pg-failed-return|inline-cancel|inline-failure|abandon-back)",
+      "status": "PASS",
+      "passed": 10,
+      "failed": 0
+    },
+    {
+      "filter": "webkit-360-CARD-new-tab-no-storage|webkit-430-(CARD|KAKAOPAY)-redirect",
+      "status": "PASS",
+      "passed": 3,
+      "failed": 0
+    }
+  ],
+  "latestResults": [
+    {
+      "name": "chromium-360-CARD-new-tab-no-storage",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-360-CARD-redirect",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-360-KAKAOPAY-new-tab-no-storage",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-360-KAKAOPAY-redirect",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-390-CARD-new-tab-no-storage",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-390-CARD-redirect",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-390-KAKAOPAY-new-tab-no-storage",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-390-KAKAOPAY-redirect",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-430-CARD-new-tab-no-storage",
+      "status": "PASS",
+      "width": 430,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-430-CARD-redirect",
+      "status": "PASS",
+      "width": 430,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-430-KAKAOPAY-new-tab-no-storage",
+      "status": "PASS",
+      "width": 430,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-430-KAKAOPAY-redirect",
+      "status": "PASS",
+      "width": 430,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-abandon-back",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-concurrent-pending-tabs",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-concurrent-tabs",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-double-click",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-inline-cancel",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-inline-failure",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-no-redirect-poll",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-pg-cancel-return",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-pg-failed-return",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "chromium-reload-checkout",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "product-astrology_flounder",
+      "status": "PASS",
+      "width": 390,
+      "product": "astrology_flounder"
+    },
+    {
+      "name": "product-astrology_mackerel",
+      "status": "PASS",
+      "width": 390,
+      "product": "astrology_mackerel"
+    },
+    {
+      "name": "product-astrology_salmon",
+      "status": "PASS",
+      "width": 390,
+      "product": "astrology_salmon"
+    },
+    {
+      "name": "product-astrology_tuna",
+      "status": "PASS",
+      "width": 390,
+      "product": "astrology_tuna"
+    },
+    {
+      "name": "product-fusion_all",
+      "status": "PASS",
+      "width": 390,
+      "product": "fusion_all"
+    },
+    {
+      "name": "product-fusion_astrology_tarot",
+      "status": "PASS",
+      "width": 390,
+      "product": "fusion_astrology_tarot"
+    },
+    {
+      "name": "product-fusion_saju_ziwei",
+      "status": "PASS",
+      "width": 390,
+      "product": "fusion_saju_ziwei"
+    },
+    {
+      "name": "product-fusion_sukuyo_vedic",
+      "status": "PASS",
+      "width": 390,
+      "product": "fusion_sukuyo_vedic"
+    },
+    {
+      "name": "product-saju_flounder",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_flounder"
+    },
+    {
+      "name": "product-saju_mackerel",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "product-saju_salmon",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_salmon"
+    },
+    {
+      "name": "product-saju_tuna",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_tuna"
+    },
+    {
+      "name": "product-sukuyo_flounder",
+      "status": "PASS",
+      "width": 390,
+      "product": "sukuyo_flounder"
+    },
+    {
+      "name": "product-sukuyo_mackerel",
+      "status": "PASS",
+      "width": 390,
+      "product": "sukuyo_mackerel"
+    },
+    {
+      "name": "product-sukuyo_salmon",
+      "status": "PASS",
+      "width": 390,
+      "product": "sukuyo_salmon"
+    },
+    {
+      "name": "product-sukuyo_tuna",
+      "status": "PASS",
+      "width": 390,
+      "product": "sukuyo_tuna"
+    },
+    {
+      "name": "product-tarot_flounder",
+      "status": "PASS",
+      "width": 390,
+      "product": "tarot_flounder"
+    },
+    {
+      "name": "product-tarot_mackerel",
+      "status": "PASS",
+      "width": 390,
+      "product": "tarot_mackerel"
+    },
+    {
+      "name": "product-tarot_salmon",
+      "status": "PASS",
+      "width": 390,
+      "product": "tarot_salmon"
+    },
+    {
+      "name": "product-tarot_tuna",
+      "status": "PASS",
+      "width": 390,
+      "product": "tarot_tuna"
+    },
+    {
+      "name": "product-vedic_flounder",
+      "status": "PASS",
+      "width": 390,
+      "product": "vedic_flounder"
+    },
+    {
+      "name": "product-vedic_mackerel",
+      "status": "PASS",
+      "width": 390,
+      "product": "vedic_mackerel"
+    },
+    {
+      "name": "product-vedic_salmon",
+      "status": "PASS",
+      "width": 390,
+      "product": "vedic_salmon"
+    },
+    {
+      "name": "product-vedic_tuna",
+      "status": "PASS",
+      "width": 390,
+      "product": "vedic_tuna"
+    },
+    {
+      "name": "product-ziwei_flounder",
+      "status": "PASS",
+      "width": 390,
+      "product": "ziwei_flounder"
+    },
+    {
+      "name": "product-ziwei_mackerel",
+      "status": "PASS",
+      "width": 390,
+      "product": "ziwei_mackerel"
+    },
+    {
+      "name": "product-ziwei_salmon",
+      "status": "PASS",
+      "width": 390,
+      "product": "ziwei_salmon"
+    },
+    {
+      "name": "product-ziwei_tuna",
+      "status": "PASS",
+      "width": 390,
+      "product": "ziwei_tuna"
+    },
+    {
+      "name": "webkit-360-CARD-new-tab-no-storage",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-360-CARD-redirect",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-360-KAKAOPAY-redirect",
+      "status": "PASS",
+      "width": 360,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-390-CARD-new-tab-no-storage",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-390-CARD-redirect",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-390-KAKAOPAY-new-tab-no-storage",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-390-KAKAOPAY-redirect",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-430-CARD-redirect",
+      "status": "PASS",
+      "width": 430,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-430-KAKAOPAY-redirect",
+      "status": "PASS",
+      "width": 430,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-abandon-back",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-concurrent-pending-tabs",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-double-click",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-inline-cancel",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-inline-failure",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-no-redirect-poll",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-pg-cancel-return",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-pg-failed-return",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    },
+    {
+      "name": "webkit-reload-checkout",
+      "status": "PASS",
+      "width": 390,
+      "product": "saju_mackerel"
+    }
+  ],
+  "limitations": [
+    "Incremental verification across commits: full product matrix preceded the final cancel-history-only fix.",
+    "No physical-device, PG sandbox, or new production approval proof.",
+    "Initial development chunk/Unexpected EOF failures were rerun. The real cancel-history defect was corrected and both browser engines rerun.",
+    "This is a selected payment matrix, not every test defined by the browser harness."
+  ]
+}
