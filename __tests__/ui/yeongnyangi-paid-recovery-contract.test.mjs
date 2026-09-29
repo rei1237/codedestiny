@@ -8,10 +8,10 @@ import path from 'node:path';
 const require=createRequire(import.meta.url),Module=require('node:module');
 globalThis.__paidRecovery={row:null,providerCalls:[],claims:[],finishes:[],failures:[],failOnce:false};
 const replacements={
-  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={};`,
+  'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:()=>({lean:async()=>globalThis.__paidRecovery.profile})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
   'worker/yeongnyangi/repository.js':`export const reserveQuestionSkyFollowup=async()=>{throw new Error('unexpected followup in this fixture');};export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=r=>globalThis.__paidRecovery.canRetry??r.errorCode==='AUTOMATIC_RECOVERY_STOPPED';
-export const saveChapterDraft=async(e,u,id,token,ordinal,draft)=>{const r=globalThis.__paidRecovery.row;r.generationCheckpoint||={};r.generationCheckpoint.chapterDrafts||={};r.generationCheckpoint.chapterDrafts[ordinal]=draft;};export const saveAskAnalysis=async(e,u,id,token,analysis)=>{const f=globalThis.__paidRecovery;if(!f)throw new Error("unexpected analysis");f.row.generationCheckpoint.analysis=analysis;if(f.storageFailure)throw new Error("storage uncertain");return analysis;};export const ownerId=x=>x;export const createRequest=async()=>{};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
+export const saveChapterDraft=async(e,u,id,token,ordinal,draft)=>{const r=globalThis.__paidRecovery.row;r.generationCheckpoint||={};r.generationCheckpoint.chapterDrafts||={};r.generationCheckpoint.chapterDrafts[ordinal]=draft;};export const saveAskAnalysis=async(e,u,id,token,analysis)=>{const f=globalThis.__paidRecovery;if(!f)throw new Error("unexpected analysis");f.row.generationCheckpoint.analysis=analysis;if(f.storageFailure)throw new Error("storage uncertain");return analysis;};export const ownerId=x=>x;export const createRequest=async(e,u,id,values)=>{const row={_id:id,userId:u,...values,state:'CREATED',chapters:[]};globalThis.__paidRecovery.prepared=structuredClone(row);return row;};export const readRequest=async()=>globalThis.__paidRecovery.row;export const attachPayment=async()=>globalThis.__paidRecovery.row;
 export const claimChapter=async(e,u,id,source)=>{const f=globalThis.__paidRecovery,r=f.row;f.claims.push({id,source,chapter:r.chapters.length});if(r.state==='COMPLETED')return {row:r,token:null};r.state='GENERATING';const n=r.chapters.length;r.chapterAttempts[n]=(r.chapterAttempts[n]||0)+1;r.leaseToken='lease-'+n;return {row:r,token:r.leaseToken};};
 export const finishChapter=async(e,u,id,token,ordinal,body,total)=>{const f=globalThis.__paidRecovery,r=f.row;f.finishes.push({id,token,ordinal});assertOrdinal(r.chapters.length,ordinal);r.chapters.push(body);r.completedChapters=r.chapters.length;r.state=r.chapters.length===total?'COMPLETED':'PAID';return r;};
 export const failChapter=async(e,u,id,token,code,attempt,stage,allowedAttempts)=>{const f=globalThis.__paidRecovery;f.failures.push({id,code,attempt,stage,allowedAttempts});f.row.state='FORTUNE_FAILED';f.row.errorCode=code;f.row.lastFailure={code,stage};};
@@ -25,9 +25,9 @@ export class StructuredChapterProvider{async generateChapter(input){const f=glob
 export const validateChapter=value=>{const f=globalThis.__paidRecovery;if(f.rejectQuality>0){f.rejectQuality--;throw new Error('invalid answer evidence');}return value;};
 `,
 };
-const bundle=await build({stdin:{contents:"export {generateNextChapter,presentFortune} from './worker/yeongnyangi/service';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'recovery-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const normalized=args.path.replaceAll('\\','/');const key=Object.keys(replacements).find(item=>normalized.endsWith(item)||normalized.endsWith(item+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {generateNextChapter,presentFortune,prepareFortune} from './worker/yeongnyangi/service';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'recovery-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const normalized=args.path.replaceAll('\\','/');const key=Object.keys(replacements).find(item=>normalized.endsWith(item)||normalized.endsWith(item+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('yeongnyangi-paid-recovery-contract.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
-const {generateNextChapter,presentFortune}=loaded.exports;
+const {generateNextChapter,presentFortune,prepareFortune}=loaded.exports;
 const env={GEMINIF_API_KEY:'fixture-only',LLM_DRY_RUN:'false'};
 function row(chapters=[]){return {_id:'a'.repeat(64),userId:'owner',profileId:'profile',productId:'saju_mackerel',paymentId:'original-payment',state:'PAID',errorCode:'',chapters:[...chapters],completedChapters:chapters.length,chapterAttempts:{},manualRecoveryGrants:{},snapshot:{product:{id:'saju_mackerel'},analysis:{consultation:{}},manifest:[{id:'first'},{id:'second'},{id:'third'}]}};}
 function reset(chapters=[]){globalThis.__paidRecovery={row:row(chapters),providerCalls:[],claims:[],finishes:[],failures:[],failOnce:false};return globalThis.__paidRecovery;}
@@ -128,4 +128,19 @@ test('question-analysis checkpoints keep purchase locale through chapter retry a
   await generateNextChapter(env,'owner',f.row._id);
   assert.equal(f.providerCalls.length,calls);
  }
+});
+
+test('actual paid preparation stores authoritative pillars and preserves unlabeled birthplace',async()=>{
+ const f=reset();f.profile={updatedAt:'2026-01-01T00:00:00Z',gender:'F',birth:{year:1988,month:1,day:7,hour:23,minute:26,calType:'solar'},location:{lat:37.5665,lng:126.978,tz:'Asia/Seoul',label:''}};
+ const r=await prepareFortune(env,'owner',{profileId:'profile',productId:'saju_mackerel',question:'타고난 성향과 일의 방향을 알려주세요.'});
+ const facts=Object.fromEntries(r.snapshot.analysis.contexts.saju.facts.map(f=>[f.label,f.value]));
+ assert.deepEqual(facts.pillars,{year:'丁卯',month:'癸丑',day:'辛酉',hour:'己亥'});
+ assert.equal(r.snapshot.natalInput.personA.birthTime,'23:26');
+ assert.equal(r.snapshot.natalInput.personA.birthPlace.longitude,126.978);
+ assert.deepEqual(f.prepared.snapshot.analysis.contexts.saju.facts,r.snapshot.analysis.contexts.saju.facts);
+ f.profile.location={lat:35.1796,lng:129.0756,tz:'Asia/Seoul',label:''};
+ const busan=await prepareFortune(env,'owner',{profileId:'profile',productId:'saju_mackerel',question:'타고난 성향과 일의 방향을 알려주세요.'});
+ assert.equal(busan.snapshot.natalInput.personA.birthPlace.longitude,129.0756);
+ assert.notEqual(busan.fingerprint,r.fingerprint);
+ assert.equal(f.providerCalls.length,0);
 });

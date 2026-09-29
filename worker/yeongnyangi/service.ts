@@ -77,7 +77,7 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
     ...(!timeUnknown?{birthTime:b.timeUnknown===true && supplement.birthTime ? supplement.birthTime : `${pad(b.hour)}:${pad(b.minute)}`} : {}),
     calendarType:b.calType==='solar'?'solar':'lunar',leapMonth:b.calType==='lunar_leap',
     gender:profile.gender==='M'?'male':profile.gender==='F'?'female':undefined,
-    ...(place.label ? {birthPlace:{name:place.label,latitude:place.lat,longitude:place.lng,timezone:place.tz}} : supplement.birthPlace ? {birthPlace:supplement.birthPlace} : {}),
+    ...(place.tz && Number.isFinite(place.lng) && Number.isFinite(place.lat) ? {birthPlace:{name:place.label,latitude:place.lat,longitude:place.lng,timezone:place.tz}} : supplement.birthPlace ? {birthPlace:supplement.birthPlace} : {}),
   };
 }
 
