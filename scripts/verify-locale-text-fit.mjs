@@ -91,6 +91,39 @@ const RISK_CHECKS = [
  *    실패하고, 여기 있는데 스캔에서 안 나오면 낡은 항목으로 보고 역시 실패한다.
  */
 const ACCEPTED = new Map([
+  ...["fixed-height", "fixed-width"].map((risk) => [
+    `.cd-direct-payment-moonstone-icon|${risk}`,
+    {
+      why: "월정석 SVG 아이콘은 번역 텍스트를 담지 않는 장식이다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /<svg class="cd-direct-payment-moonstone-icon"[^>]*aria-hidden="true"/,
+        note: "월정석 아이콘이 장식 SVG라는 전제가 사라졌다",
+      },
+    },
+  ]),
+  ...["fixed-height", "fixed-width", "flex-rigid"].map((risk) => [
+    `.cd-direct-payment-reward__mark|${risk}`,
+    {
+      why: "보상 장식 칸에는 이미지 한 개만 있고 번역 문구는 별도 copy 요소에서 줄바꿈한다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /<span class="cd-direct-payment-reward__mark" aria-hidden="true">'\s*\+ '<img class="cd-direct-payment-reward__mascot"[^>]*>' \+ "<\/span>"/,
+        note: "보상 장식 칸에 이미지 한 개만 들어간다는 전제가 사라졌다",
+      },
+    },
+  ]),
+  ...["fixed-height", "fixed-width"].map((risk) => [
+    `.cd-direct-payment-reward__mascot|${risk}`,
+    {
+      why: "연이 마스코트는 빈 대체 텍스트를 가진 장식 이미지이며 번역 문구를 담지 않는다.",
+      needs: {
+        file: "js/core/checkout-entry.js",
+        test: /<img class="cd-direct-payment-reward__mascot"[^>]*alt="" aria-hidden="true"/,
+        note: "연이 마스코트가 장식 이미지라는 전제가 사라졌다",
+      },
+    },
+  ]),
   // --- 결제창: 전제가 살아있는 동안만 유효한 예외 ---
   [
     ".cd-direct-payment-recommend|flex-rigid",
