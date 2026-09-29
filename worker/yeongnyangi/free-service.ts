@@ -18,7 +18,7 @@ function birthFromProfile(profile:any) {
   return {birthDate:`${birth.year}-${pad(birth.month)}-${pad(birth.day)}`,
     ...(!birth.timeUnknown?{birthTime:`${pad(birth.hour)}:${pad(birth.minute)}`}:{ }),
     calendarType,leapMonth:birth.calType==='lunar_leap',gender,
-    ...(place.label?{birthPlace:{name:place.label,latitude:place.lat,longitude:place.lng,timezone:place.tz}}:{}),
+    ...(place.tz && Number.isFinite(place.lng) && Number.isFinite(place.lat)?{birthPlace:{name:place.label,latitude:place.lat,longitude:place.lng,timezone:place.tz}}:{}),
   };
 }
 
