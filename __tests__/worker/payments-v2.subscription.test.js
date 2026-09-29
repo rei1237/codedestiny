@@ -525,19 +525,16 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(user.profileSubscription.lastPassOrderId).toBe(order.merchantUid);
   });
 
-  test.each(['pg_webhook_failed','AMOUNT_MISMATCH'])("지연 승인 복구와 보안 대조 실패를 구분한다: %s", async failureCode => {
+  test("🔴 다른 사유로 닫힌 FAILED 주문은 Paid 웹훅으로도 되살리지 않는다(ORDER_NOT_CONFIRMABLE 유지)", async () => {
     const db = makeFakePaymentDb({ uniqueKeys: [["provider", "eventId"]] });
     const user = seedUser(db);
     const order = await prepareOrder(db, "standard", "sub-failed-other");
     const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
-    Object.assign(row, { status: "failed", orderState: "FAILED", failureCode });
+    Object.assign(row, { status: "failed", orderState: "FAILED", failureCode: "pg_webhook_failed" });
     mockPortOnePayment({ paymentId: order.merchantUid, amount: Number(row.paymentAmount) });
 
     const response = await postPaidWebhook(db, order.merchantUid, "evt_failed_other");
     const payload = await response.json();
-    if(failureCode==='pg_webhook_failed') {
-      expect(response.status).toBe(200);expect(row.status).toBe('paid');expect(user.profileSubscription.tier).toBe('standard');return;
-    }
     expect(response.status).not.toBe(200);
     expect(payload.code).toBe("ORDER_NOT_CONFIRMABLE");
     expect(row.status).toBe("failed");

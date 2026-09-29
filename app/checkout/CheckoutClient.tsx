@@ -50,7 +50,6 @@ type CheckoutParams = {
   requestId: string;
   featureKey: string;
   returnTo: string;
-  paymentReturn: boolean;
 };
 
 type GateState =
@@ -58,7 +57,6 @@ type GateState =
   | { phase: "paying" }
   | { phase: "paid" }
   | { phase: "cancelled" }
-  | { phase: "confirming"; message: string }
   | { phase: "error"; message: string };
 
 /** returnTo 는 auth-return 규칙을 통과한 뒤에도 영냥이 경로만 허용한다(오픈 리다이렉트 봉쇄). */
@@ -74,12 +72,11 @@ function resolveFeatureKey(raw: string | null): string {
 }
 
 function readParams(): CheckoutParams {
-  if (typeof window === "undefined") return { requestId: "", featureKey: "", returnTo: DEFAULT_RETURN_TO, paymentReturn: false };
+  if (typeof window === "undefined") return { requestId: "", featureKey: "", returnTo: DEFAULT_RETURN_TO };
   const params = new URLSearchParams(window.location.search);
   const requestId=/^[a-f0-9]{64}$/.test(params.get("requestId")||"") ? params.get("requestId")! : "";
   return {
     requestId,
-    paymentReturn: ["portone_redirect", "paymentId", "payment_id", "imp_uid"].some(key => params.has(key)),
     featureKey: resolveFeatureKey(params.get("featureKey")),
     returnTo: requestId ? resultPath(requestId) : resolveReturnTo(params.get("returnTo")),
   };
@@ -95,9 +92,7 @@ function redirectToLogin(): void {
 /** 결제를 안 하고 나갈 때 브라우저 뒤로가기가 "이전 화면"인지 판정한다. 같은 출처 영냥이 화면(상담 폼 등)에서 넘어왔을 때만 참이다.
  * 새 탭·PG 왕복 뒤(직전 문서가 PG 이거나 비어 있음)·미결제 결과 화면에서 온 경우는 거짓이라 링크의 href(영냥이 방)가 처리한다 —
  * 뒤로가기가 PG 페이지로 새거나 결과 화면으로 되돌아가는 일이 없다. */
-function canGoBackToPreviousScreen(paymentReturn: boolean): boolean {
-  // Referrer can survive an app round-trip; capture PG return before its query is removed.
-  if (paymentReturn) return false;
+function canGoBackToPreviousScreen(): boolean {
   if (typeof window === "undefined" || window.history.length <= 1) return false;
   try {
     const from = new URL(document.referrer);
@@ -231,10 +226,7 @@ export default function CheckoutClient() {
         setGate({ phase: "paid" });window.location.assign(params.returnTo);return;
       }
       if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
-      if (code === "PAYMENT_CANCELLED" || code === "PG_PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
-      if (["PG_PAYMENT_NOT_PAID","PG_UNAVAILABLE","GRANT_PENDING","PENDING_CONFIRMATION"].includes(code)) {
-        setGate({phase:"confirming",message:String(result.error?.message || result.message || copy.errPaymentUnknown)});return;
-      }
+      if (code === "PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
       setGate({phase:"error",message:String(result.error?.message || result.message || copy.errPaymentFailed)});
     } catch(error) {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
@@ -247,7 +239,7 @@ export default function CheckoutClient() {
   const leaveHref = isSoulCatMode ? params.returnTo : DEFAULT_RETURN_TO;
   const chooseHref = isSoulCatMode ? params.returnTo : FISH_CHOOSER_PATH;
   const leaveToPreviousScreen = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (isSoulCatMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen(params.paymentReturn)) return;
+    if (isSoulCatMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen()) return;
     event.preventDefault();
     window.history.back();
   };
@@ -289,13 +281,12 @@ export default function CheckoutClient() {
                 disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(formatKrw(pricing.amountKRW))}
+                  : gate.phase === "paid" ? copy.payReturning : copy.payAction(formatKrw(pricing.amountKRW))}
               </button>
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
                 {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
                 {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
-                {gate.phase === "confirming" ? <p role="status">{gate.message}</p> : null}
               </div>
               <a href={chooseHref} className={styles.back}>{copy.reselect}</a>
               <p className={styles.security}>

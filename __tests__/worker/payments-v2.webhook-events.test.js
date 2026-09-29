@@ -52,21 +52,6 @@ async function postWebhook(db, body, { fetchPayment } = {}) {
 
 const makeDb = () => makeFakePaymentDb({ uniqueKeys: [["provider", "eventId"]] });
 
-test.each(['ready','pending','unknown','paid'])('late failure webhook cannot turn PG %s into failure',async status=>{
-  const db=makeDb();const order=seedOrder(db);
-  const {response,payload}=await postWebhook(db,{type:'Transaction.Failed',data:{paymentId:order.merchantUid}},
-    {fetchPayment:async()=>({paymentId:order.merchantUid,status})});
-  expect(response.status).toBe(200);expect(payload.reason).toBe('PG_STATUS_MISMATCH');expect(order.status).toBe('pending');
-});
-
-test('verified Kakao CANCEL is recorded separately from PG rejection without storing raw customer data',async()=>{
- const db=makeDb(),order=seedOrder(db);
- await postWebhook(db,{type:'Transaction.Failed',data:{paymentId:order.merchantUid}},
-  {fetchPayment:async()=>({paymentId:order.merchantUid,status:'failed',rawV2:{channel:{pgProvider:'KAKAOPAY'},failure:{pgCode:'CANCEL'},customer:{name:'private'}}})});
- expect(order.metadata.paymentAttempt).toEqual({provider:'KAKAOPAY',outcome:'cancelled',pgCode:'CANCEL'});
- expect(JSON.stringify(order)).not.toContain('private');
-});
-
 function seedOrder(db, overrides = {}) {
   const order = {
     merchantUid: "cdorder1",

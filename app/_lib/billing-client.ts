@@ -463,7 +463,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-e35e5ef50580";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-da4788372fbf";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -2551,16 +2551,13 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       __cdDirectPaymentChoiceConfirmed: requestedMode === "DIRECT_KRW",
     });
   } catch (error) {
-    // Preserve server verification and cancellation states across the legacy gate.
-    const runtimeError = asRecord(error);
-    const status = Number(runtimeError?.status);
     return {
       ok: false,
-      status: Number.isInteger(status) && status >= 400 && status <= 599 ? status : 500,
+      status: 402,
       data: null,
       message: error instanceof Error ? error.message : billingClientText("billingClient.message.001"),
       error: {
-        code: toText(runtimeError?.code) || "PAYMENT_RUNTIME_ERROR",
+        code: "PAYMENT_REQUIRED",
         message: error instanceof Error ? error.message : billingClientText("billingClient.message.002"),
       },
       raw: {},
