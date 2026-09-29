@@ -86,6 +86,7 @@ GSC/네이버 후속: 기존 속성 소유권으로 로그인→기존 sitemap.x
 ## Threads 실제 경로·다음 발행
 
 - Worker: 기존 `SNS_THREADS_POST_ENABLED=split`, 사주08:30·자미12:00·베다16:00·수비학20:30 KST. 기존 매10분 cron과 60분 실행 창, 계정 codedestiny_official, 토큰, 키 `${date}:threads:${type}` 유지. 생성 대기 큐는 없고 슬롯에서 facts→1회 AI 문장→검수/결정론 대체→발행한다.
+- 모델 경로: shared.js → callGeminiText → lib/llm-client.ts. 저장소 운영 vars의 SNS_THREADS_AI_ENABLED=1, GEMINI_MODEL=gemini-2.5-flash를 유지했다. 실제 모델은 기존 env 해석과 응답 aiModel 기록을 따른다. 이번 dry-run은 모델 호출0회이며 운영 모델 응답 품질을 검증한 것은 아니다.
 - prompt version `growth-20260929-v1`. 실제 계산값만 사용, 허위30년 경력 제거, 상황별 첫 문장/행동, 날짜 공통 해설 표시. 최근 성공30개와 훅/3글자 조각 유사도 검사. 이는 의미를 완벽히 판별하는 AI 심사가 아니다. Codex 큐에서는 편집 검수를 추가한다.
 - AI 필드 실패는 검수된 결정론 문장으로 대체. 중복은 추가 유료 호출 없이 대체1회; 그래도 중복이면 기존 잠금 기록에 reviewRequired+본문 격리. 기존 발행 창 마지막 틱에서 알림. 과거 공개 글 수정·삭제 없음.
 - 발행 version/본문/근거/캠페인/게시ID/실패 container를 기존 IdempotencyKey에 기록. 해당 split endpoint만 보존35일로 늘려 최근30개와 14~30일 관찰 지원. 기존 다른 채널 TTL은 유지.
