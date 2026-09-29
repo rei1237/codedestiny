@@ -4,7 +4,11 @@ export const READING_VERSION = 'destiny-book-v4';
 export const READING_V5_VERSION = 'destiny-book-v5';
 export const READING_V6_VERSION = 'destiny-book-v6';
 export const READING_V7_VERSION = 'destiny-book-v7';
-export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION || version === READING_V7_VERSION;
+// A paid question-sky consultation is intentionally split into a concise first
+// answer and one buyer-triggered deepening response. It has its own immutable
+// snapshot version; legacy sky books keep their original manifests.
+export const QUESTION_SKY_TWO_STAGE_VERSION = 'question-sky-flounder-3';
+export const hasReadingSections = (version?: string) => version === READING_V5_VERSION || version === READING_V6_VERSION || version === READING_V7_VERSION || version === QUESTION_SKY_TWO_STAGE_VERSION;
 export const isStructuredReading = (version?: string) => version === READING_VERSION || hasReadingSections(version);
 export const PROMPT_VERSION = 'chapter-v4';
 export const readingPolicies = {

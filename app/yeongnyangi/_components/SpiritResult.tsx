@@ -1,40 +1,62 @@
 "use client";
-import {SKY_IMAGE,skyModes,skyShare} from '@/worker/yeongnyangi/fortune/question-sky-contract';
+import {SKY_IMAGE,skyShare} from '@/worker/yeongnyangi/fortune/question-sky-contract';
 import {useState} from 'react';
-import {SPIRIT_IMAGE,SPIRIT_TITLE,SPIRIT_NOTICE,buildSpiritShare} from '@/worker/yeongnyangi/fortune/spirit-contract';
-import type {FortuneRecord} from '../_lib/api';
+import {SPIRIT_IMAGE,SPIRIT_TITLE,buildSpiritShare} from '@/worker/yeongnyangi/fortune/spirit-contract';
+import {fortuneApi,FortuneApiError,type FortuneRecord} from '../_lib/api';
+import {questionSkyCopyFor} from '../_lib/question-sky-copy';
 import {resultShareUrl} from '../_lib/result-share';
 import styles from '../yeongnyangi.module.css';
-export default function SpiritResult({row}:{row:FortuneRecord}){
+
+const moodAssets={mystic:'/assets/yeongnyangi/spirit/drum.webp',focus:'/assets/yeongnyangi/moods/ponder.webp',sure:'/assets/yeongnyangi/moods/beam.webp',warm:'/assets/yeongnyangi/moods/blanket.webp',wink:'/assets/yeongnyangi/moods/wink.webp'} as const;
+type Mood=keyof typeof moodAssets;
+function MoodImage({mood}:{mood?:string}){
+  const copy=questionSkyCopyFor().result;
+  if(!mood||!(mood in moodAssets))return null;
+  return <figure className={styles.spiritMood}><img src={moodAssets[mood as Mood]} width={360} height={300} loading="lazy" alt={copy.moodAlt}/></figure>;
+}
+
+export default function SpiritResult({row,onRow}:{row:FortuneRecord;onRow:(next:FortuneRecord)=>void}){
   const [message,setMessage]=useState('');
+  const [followup,setFollowup]=useState('');
+  const [busy,setBusy]=useState(false);
   const sky=row.consultation?.questionSky;
   const spirit=sky||row.consultation?.spirit;
+  const copy=questionSkyCopyFor().result;
+  const primary=row.chapters[0];
+  const isTwoStage=Boolean(row.followup);
   async function share(){
-    // Only an allowlisted reflection key enters the anonymous summary:
-    // no question, name, birth information, result id, or private URL can escape.
     const spiritShare={...(sky?skyShare(sky.mode,sky.shareKey):buildSpiritShare(spirit?.shareKey)),url:resultShareUrl(row,typeof navigator.share==='function'?'native':'copy')};
-    try{if(navigator.share){await navigator.share(spiritShare);setMessage('공유 창에서 선택한 동작을 마쳤어요.');}else {await navigator.clipboard.writeText(`${spiritShare.title}\n${spiritShare.text}\n${spiritShare.url}`);setMessage('익명 소개를 복사했어요.');}}catch(error){setMessage(error instanceof Error&&error.name==='AbortError'?'공유를 취소했어요.':'공유를 마치지 못했어요. 아래 상담 공유에서 문구를 복사할 수 있어요.');}
+    try{if(navigator.share){await navigator.share(spiritShare);setMessage(copy.shareDone);}else {await navigator.clipboard.writeText(`${spiritShare.title}\n${spiritShare.text}\n${spiritShare.url}`);setMessage(copy.shareCopied);}}catch(error){setMessage(error instanceof Error&&error.name==='AbortError'?copy.shareCancelled:copy.shareError);}
+  }
+  async function submitFollowup(event:React.FormEvent){
+    event.preventDefault();if(busy)return;
+    setBusy(true);setMessage('');
+    try{const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}/follow-up`,{question:followup});onRow(fortune);}
+    catch(error){setMessage(error instanceof FortuneApiError?copy.errors[error.code as keyof typeof copy.errors]||error.message:error instanceof Error?error.message:copy.errors.FOLLOWUP_NOT_AVAILABLE);}
+    finally{setBusy(false);}
   }
   if(!spirit)return null;
+  const stageStatus=row.state==='COMPLETED'?copy.complete:row.state==='AWAITING_FOLLOWUP'?copy.awaiting:row.chapters.length<1?copy.saving:copy.deepening;
   return <div className={styles.spirit}>
-    <header className={styles.spiritIntro}><img src={sky?SKY_IMAGE:SPIRIT_IMAGE} width={303} height={320} alt="질문의 결을 읽는 영냥이"/><div><h1>{sky?skyModes[sky.mode]:SPIRIT_TITLE}</h1><p>{row.chapters[0]?.summary||'질문의 결을 살피는 중'}</p></div></header>
-    <p>상담 기준: {new Date(spirit.askedAt).toLocaleString('ko-KR',{timeZone:row.consultation?.timezone||'Asia/Seoul'})} · {row.consultation?.timezone}</p>
-    {sky&&<p>질문자 지역: {sky.cityName} · 도시 중심 기준의 상징 풀이</p>}
+    <header className={styles.spiritIntro}><img src={sky?SKY_IMAGE:SPIRIT_IMAGE} width={303} height={320} alt={copy.moodAlt}/><div><h1>{sky&&isTwoStage?copy.title:sky?sky.mode==='prashna-v1'?copy.title:questionSkyCopyFor().input.horaryTitle:SPIRIT_TITLE}</h1><p>{primary?.summary||copy.saving}</p></div></header>
+    {sky&&isTwoStage&&<section className={styles.questionContext}><h2>{copy.questionLabel}</h2><p>{row.consultation?.question}</p></section>}
+    <p>{copy.consultedAt}: {new Date(spirit.askedAt).toLocaleString('ko-KR',{timeZone:row.consultation?.timezone||'Asia/Seoul'})} · {row.consultation?.timezone}</p>
+    {sky&&<p>{copy.region}: {sky.cityName} · {copy.regionSuffix}</p>}
     <p>{row.consultation?.topicLabel} · {spirit.relationship}</p>
     {row.state!=='REFUNDED'&&<>
-      <p role="status">{row.state==='COMPLETED'?'모든 이야기의 저장을 확인했어.':row.chapters.length===row.manifest.length?'저장된 이야기를 최종 확인하는 중':row.chapters.length<2?'질문의 결을 살피는 중':'인연의 흐름을 정리하는 중'} · {row.chapters.length}/{row.manifest.length} 저장됨</p>
-      <progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label="이야기 저장과 최종 확인 진행률"/>
+      <p role="status">{stageStatus} · {row.chapters.length}/{row.manifest.length} 저장됨</p>
+      <progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={copy.progress}/>
       {row.chapters.map((chapter,index)=><article className={styles.chapter} key={row.manifest[index].id}>
-        <h2>{row.manifest[index].title}</h2>
-        {index===1&&<p className={styles.summary}>{spirit.space}</p>}
-        {index===3&&<p className={styles.summary}>{row.consultation?.asOf} 기준. {spirit.timing}</p>}
-        {index!==0&&<p>{chapter.summary}</p>}
-        {chapter.questionAnswers?.map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text||'질문에 대한 답변'}</h3><p>{answer.answer}</p><p>{answer.reason}</p><p>{answer.timing}</p><p>{answer.action}</p></section>)}
+        {index===0&&<MoodImage mood={chapter.visualSlots?.opening}/>}<h2>{row.manifest[index].title}</h2>
+        {index===0&&<MoodImage mood={chapter.visualSlots?.verdict}/>} {index===1&&<MoodImage mood={chapter.visualSlots?.followup}/>}
+        {chapter.questionAnswers?.map(answer=><section key={answer.questionId}><h3>{copy.answerLabel}</h3><p>{answer.answer}</p><p>{answer.reason}</p><p>{answer.timing}</p><p>{answer.action}</p></section>)}
         {chapter.blocks?.map((block,i)=><section key={i}><h3>{block.title}</h3>{block.paragraphs.map((p,j)=><p key={j}>{p}</p>)}</section>)}
-        <p>{chapter.example}</p><p>{chapter.advice}</p>
+        <p>{chapter.example}</p><p>{chapter.advice}</p>{index===0&&<><p>{chapter.persona}</p><MoodImage mood={chapter.visualSlots?.closing}/></>}
       </article>)}
-      {row.state==='COMPLETED'&&<section className={styles.chapter}><h2>영냥이의 마무리</h2><p>{row.chapters.at(-1)?.persona}</p><button onClick={()=>void share()}>익명 요약 공유하기</button>{message&&<p role="status">{message}</p>}</section>}
+      {isTwoStage&&row.state==='AWAITING_FOLLOWUP'&&row.followup?.status==='available'&&<section className={styles.followupPanel}><h2>{copy.followupTitle}</h2><p>{copy.followupDescription}</p><div className={styles.followupChips}>{row.followup.suggestions.map(suggestion=><button type="button" key={suggestion} onClick={()=>setFollowup(suggestion)}>{suggestion}</button>)}</div><form onSubmit={submitFollowup}><label htmlFor="sky-followup">{copy.followupTitle}</label><textarea id="sky-followup" required minLength={5} maxLength={600} rows={3} value={followup} onChange={event=>setFollowup(event.target.value)} placeholder={copy.followupPlaceholder}/><button type="submit" disabled={busy}>{busy?copy.followupBusy:copy.followupSubmit}</button></form>{message&&<p role="alert">{message}</p>}</section>}
+      {isTwoStage&&row.followup?.used&&row.state==='COMPLETED'&&<p role="status">{copy.followupUsed}</p>}
+      {row.state==='COMPLETED'&&<section className={styles.chapter}><h2>{copy.finalTitle}</h2><p>{row.chapters.at(-1)?.persona}</p><button onClick={()=>void share()}>{copy.share}</button>{message&&<p role="status">{message}</p>}</section>}
     </>}
-    <p>{SPIRIT_NOTICE}</p><nav className={styles.spiritLinks} aria-label="다음 상담"><a href="/yeongnyangi/library/">내 상담 기록</a><a href={sky?.mode==='horary-v1'?'/yeongnyangi/fortune/?mode=horary':'/yeongnyangi/fortune/?mode=spirit'}>새 상담 시작하기</a></nav>
+    <p>{questionSkyCopyFor().input.notice}</p><nav className={styles.spiritLinks} aria-label={copy.noticeNavigation}><a href="/yeongnyangi/library/">{copy.library}</a><a href="/yeongnyangi/fortune/?mode=spirit">{copy.newReading}</a></nav>
   </div>;
 }

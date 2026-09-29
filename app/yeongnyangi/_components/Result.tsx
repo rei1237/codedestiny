@@ -80,7 +80,7 @@ export default function Result(){
   return ()=>{cancelled=true;mounted.current=false;if(timer)clearTimeout(timer);};
  },[reload]);
  useEffect(()=>{
-  if(!row?.paid || ['COMPLETED','REFUNDED'].includes(row.state) || row.errorCode==='PAYMENT_NOT_ACTIVE')return;
+  if(!row?.paid || ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state) || row.errorCode==='PAYMENT_NOT_ACTIVE')return;
   const held=['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode || '');
   let cancelled=false;
   const timer=setTimeout(async()=>{
@@ -125,9 +125,9 @@ export default function Result(){
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product}/>}
-  <SpiritResult row={row}/>
+  <SpiritResult row={row} onRow={setRow}/>
   {row.state==='COMPLETED'&&<ResultSharing key={row.id} row={row}/>}
-  {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a href={checkoutPath(row)}>{copy.checkout}</a>}</>:row.state!=='COMPLETED'&&<>
+  {row.state==='REFUNDED'?<p>{stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a href={checkoutPath(row)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
     {row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(row.errorCode||'')?<p role="status">{copy.held}</p>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
   {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<OrderReference id={row.id} locale={row.locale}/>

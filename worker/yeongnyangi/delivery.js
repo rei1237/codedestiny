@@ -11,7 +11,7 @@ export async function readAndContinueFortune(env,userId,requestId) {
   let row=await repository.readRequest(env,userId,requestId);
   const total=row.snapshot?.manifest?.length || 0;
   if(!providerReady(env)||!env.YEONGNYANGI_QUEUE||!repository.hasRequestAccess(row)||!total||row.chapters.length>=total||
-    ['COMPLETED','REFUNDED'].includes(row.state)||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode))return row;
+    ['COMPLETED','REFUNDED','AWAITING_FOLLOWUP'].includes(row.state)||['PAYMENT_NOT_ACTIVE','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode))return row;
   try{
     if(row.errorCode==='AUTOMATIC_RECOVERY_STOPPED')row=await repository.escalateStopped(env,row);
     if(row.state!=='COMPLETED'&&!['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode))

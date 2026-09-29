@@ -2,6 +2,58 @@ import {FortuneError,type DomainContext} from './shared/contracts';
 import type {ChapterBody,ChapterSpec} from './book-contracts';
 import {SKY_TIMING,type SkyPublic} from './question-sky-contract';
 import {spiritTitles} from './spirit-contract';
+import {QUESTION_SKY_TWO_STAGE_VERSION} from './reading-policy';
+
+export const QUESTION_SKY_MOODS=['mystic','focus','sure','warm','wink'] as const;
+type QuestionSkyMood=typeof QUESTION_SKY_MOODS[number];
+
+const visible=(value:unknown)=>typeof value==='string'?value.trim():'';
+const compact=(value:string)=>value.normalize('NFKC').replace(/[\s\p{P}]/gu,'');
+const allowedMood=(value:unknown):value is QuestionSkyMood=>typeof value==='string'&&(QUESTION_SKY_MOODS as readonly string[]).includes(value);
+
+/** New purchases only. Old eight-chapter sky snapshots keep skyManifest(). */
+export function questionSkyTwoStageManifest(context:DomainContext):ChapterSpec[]{
+  const factSelectors={ [context.domain]:context.facts.map(f=>f.label) };
+  return [
+    {id:'question-sky-v3-primary',ordinal:0,title:'영냥이의 첫 답',part:'영냥 신점',theme:'action',version:QUESTION_SKY_TWO_STAGE_VERSION,
+      systems:[context.domain],factSelectors,focus:'첫 문장을 결론으로 시작하고 질문을 다시 쓰지 않는다. 결론·계산 근거·조건·지금 할 행동 하나·영냥이 한마디를 새 정보만으로 정리한다.',
+      excludes:['실제 소재지','속마음 단정','사건 날짜 보장'],periodScope:SKY_TIMING,minimumChars:3000,targetChars:[3000,3400],outputTokens:8192,
+      requiredSections:['핵심 답','근거','지금 할 행동'],sections:[
+        {id:'verdict',title:'핵심 답',role:'interpretation',instruction:'첫 문장은 결론이다. 질문을 복창하거나 재진술하지 않는다.',minimumChars:600,targetChars:[700,850]},
+        {id:'evidence',title:'근거',role:'interpretation',instruction:'계산된 상징 1~2개만 쉬운 말로 연결한다.',minimumChars:1500,targetChars:[1600,1800]},
+        {id:'action',title:'지금 할 행동',role:'action',instruction:'시기·조건의 한계와 지금 할 행동 딱 한 가지를 제시한다.',minimumChars:900,targetChars:[1000,1150]},
+      ]},
+    {id:'question-sky-v3-deep',ordinal:1,title:'심화 상담',part:'영냥 신점',theme:'timing',version:QUESTION_SKY_TWO_STAGE_VERSION,
+      systems:[context.domain],factSelectors,focus:'심화 질문에만 답한다. 1차 결론과 문장을 요약하거나 반복하지 않고 시기 구간·선택지 비교·상황별 분기·실행 계획의 새 정보만 제시한다.',
+      excludes:['실제 소재지','속마음 단정','사건 날짜 보장'],periodScope:SKY_TIMING,minimumChars:8000,targetChars:[8000,8600],outputTokens:16384,
+      requiredSections:['심화 판단','근거','선택지와 조건','실행 계획'],sections:[
+        {id:'detail',title:'심화 판단',role:'interpretation',instruction:'심화 질문에 대한 새 판단을 바로 제시한다.',minimumChars:1700,targetChars:[1800,2000]},
+        {id:'evidence',title:'근거',role:'interpretation',instruction:'1차와 다른 계산 근거 또는 같은 근거의 새 연결만 설명한다.',minimumChars:2300,targetChars:[2400,2600]},
+        {id:'options',title:'선택지와 조건',role:'example',instruction:'선택지 비교 또는 상황별 분기를 구체적으로 풀어낸다.',minimumChars:2200,targetChars:[2300,2500]},
+        {id:'plan',title:'실행 계획',role:'action',instruction:'사용자가 통제할 수 있는 실행 계획과 관찰 기준으로 끝낸다.',minimumChars:1800,targetChars:[1900,2100]},
+      ]},
+  ];
+}
+
+export function sanitizeQuestionSkyBody(body:ChapterBody,chapter:ChapterSpec):ChapterBody{
+  if(chapter.version!==QUESTION_SKY_TWO_STAGE_VERSION)return body;
+  const {followUpSuggestions:_suggestions,visualSlots:_slots,...rest}=body;
+  const raw=body.visualSlots||{};
+  const slots=Object.fromEntries(Object.entries(raw).filter(([key,value])=>['opening','verdict','closing','followup'].includes(key)&&allowedMood(value))) as Record<string,string>;
+  const suggestions=(body.followUpSuggestions||[]).map(visible).filter(value=>value.length>=5&&value.length<=180).slice(0,3);
+  const stageSlots=chapter.ordinal===0?Object.fromEntries(Object.entries(slots).filter(([key])=>['opening','verdict','closing'].includes(key))):Object.fromEntries(Object.entries(slots).filter(([key])=>key==='followup'));
+  return {...rest,...(Object.keys(stageSlots).length?{visualSlots:stageSlots}:{}),...(chapter.ordinal===0&&suggestions.length?{followUpSuggestions:suggestions}:{})};
+}
+
+export function validateQuestionSkyTwoStage(body:ChapterBody,chapter:ChapterSpec,originalQuestion:string){
+  if(chapter.version!==QUESTION_SKY_TWO_STAGE_VERSION)return;
+  const prose=[body.summary,body.persona,...(body.blocks||[]).flatMap(block=>[block.title,...block.paragraphs])].join('\n');
+  const normalizedQuestion=compact(originalQuestion);
+  if(normalizedQuestion.length>=5&&compact(prose).includes(normalizedQuestion))throw new FortuneError('QUESTION_REPEAT');
+  if(/^\s*(?:질문|궁금|~|무엇|어떻게).{0,20}[?？]/u.test(body.summary)||/[?？]\s*$/.test(body.summary))throw new FortuneError('QUESTION_REPEAT');
+  if(chapter.ordinal===0&&body.followUpSuggestions&&body.followUpSuggestions.length!==3)throw new FortuneError('FOLLOWUP_SUGGESTIONS_INVALID');
+  if(chapter.ordinal===1&&body.followUpSuggestions?.length)throw new FortuneError('FOLLOWUP_SUGGESTIONS_INVALID');
+}
 
 export function skyManifest(original:ChapterSpec[],context:DomainContext){
   if(original.length===8){

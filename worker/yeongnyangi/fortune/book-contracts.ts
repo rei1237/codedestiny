@@ -54,6 +54,10 @@ export interface ChapterBody {
   sources: string[];
   persona: string;
   topics: string[];
+  // Only question-sky v3 uses these fields. They are optional so historical
+  // purchases deserialize exactly as originally saved.
+  followUpSuggestions?: string[];
+  visualSlots?: { opening?: string; verdict?: string; closing?: string; followup?: string };
 }
 export interface Signal {
   theme: Theme;

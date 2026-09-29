@@ -1,14 +1,14 @@
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
 import {readingLocale} from './fortune/reading-locale';
 import {readingCharts} from './fortune/reading-presentation';
-import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, readingChapterCount } from './fortune/reading-policy';
+import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
 import { resolveV7Ledger } from './fortune/reading-v7-ledger';
 import { buildV7TimingMatrix, v7TimingSummaries, withV7Timing } from './fortune/reading-v7-timing';
 import {validateSpiritInput,spiritPublic,spiritManifest,spiritEvidence} from './fortune/spirit';
 import {validateSkyInput,skyMoment,calculateQuestionSky} from './fortune/question-sky';
 import {skyModes,skyTopics,SKY_IMAGE,SKY_TIMING} from './fortune/question-sky-contract';
-import {skyManifest} from './fortune/question-sky-reading';
+import {questionSkyTwoStageManifest} from './fortune/question-sky-reading';
 import {SPIRIT_MODE,SPIRIT_TITLE,SPIRIT_IMAGE,spiritTopics} from './fortune/spirit-contract';
 import { ProfileCard } from '../lib/models.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
@@ -34,7 +34,7 @@ import { FortuneError, type DomainContext, type DomainId } from './fortune/share
 import { CodeDestinyProvider } from './providers/code-destiny';
 import { StructuredChapterProvider } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
-import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry } from './repository.js';
+import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
 
 const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
 
@@ -205,7 +205,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   if(body.mode==='horary-v1')throw new FortuneError('HORARY_FREE_PROMPT_REQUIRED');
   const input=validateSkyInput(body);
   const product=getProduct('saju_flounder');
-  const fingerprint=await digest({input,priceKRW:product.priceKRW,version:'question-sky-flounder-2'});
+  const fingerprint=await digest({input,priceKRW:product.priceKRW,version:QUESTION_SKY_TWO_STAGE_VERSION});
   const id=await digest({userId,fingerprint,...consultationAttempt(body)});
   await connectDb(env);
   // Existing paid or partial snapshots always win, even when a provider is down
@@ -214,13 +214,16 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
   const moment=skyMoment(input);
   const calculated=await calculateQuestionSky(env,input,moment);
-  product.manifestVersion=READING_V5_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);
+  product.manifestVersion=QUESTION_SKY_TWO_STAGE_VERSION;product.chapterCount=2;
   const clock=consultationClock(moment.timezone,moment.date);
   const context=calculated.context;
-  calculated.publicData.evidenceVersion='question-sky-flounder-2';
+  calculated.publicData.evidenceVersion=QUESTION_SKY_TWO_STAGE_VERSION;
   context.facts.push({id:`${context.domain}.question-calculation`,label:'프라슈나 계산 근거',value:{method:'Lahiri sidereal / Whole Sign',chart:calculated.chart,judgements:calculated.audit,limits:['위계는 본궁·고양·손상·추락만 산출','실제 감정·소재지·사건 시기의 관측 아님']}});
-  const manifest=skyManifest(readingManifest(product,'general','personal',READING_VERSION),context);
+  const manifest=questionSkyTwoStageManifest(context);
   const consultation=createConsultation(input.question,input.topic,clock,manifest);
+  // The question is displayed once in the result shell. The generated prose
+  // receives it as context but never creates a second question-answer heading.
+  consultation.questions=[];
   consultation.questionSky=calculated.publicData;
   consultation.topicLabel=skyTopics[input.topic];
   consultation.period={kind:'default',label:SKY_TIMING};
@@ -228,7 +231,14 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    snapshot:{product,analysis,manifest,input,questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    snapshot:{product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:3000,followupChars:8000},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+}
+
+export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){
+  if(!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
+  const row=await reserveQuestionSkyFollowup(env,userId,requestId,question);
+  await enqueueConsultation(env,row);
+  return row;
 }
 
 export async function activateFortune(env: Record<string, unknown>, userId: string, requestId: string) {
@@ -276,7 +286,11 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
     stage='provider';
     const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
       ? {code:row.lastFailure.code}:undefined;
-    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask};
+    const followupQuestion=ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION
+      ? row.generationCheckpoint?.followup?.question : undefined;
+    if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
+      throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
+    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(sharedProvider);
     const draft=row.generationCheckpoint?.chapterDrafts?.[ordinal];
@@ -309,18 +323,20 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 export function presentFortune(row: any) {
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
-  const complete=row.state==='COMPLETED',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
+  const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
   // A held order is still being recovered server-side: saved chapters stay readable and nothing asks the buyer to pay or chase.
   const held=!complete&&!blocked&&errorCode==='GENERATION_REVIEW_REQUIRED';
   // The buyer may retry a stopped chapter, or a held one whose budget ran out, a capped number of times.
   const canRetryNow=userCanRetry(row);
   const recovery={requestId:String(row._id),savedChapters:row.chapters.length,totalChapters:row.snapshot.manifest.length,
-    providerNeeded:!complete&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!blocked&&!held,
+    providerNeeded:!complete&&!awaitingFollowup&&row.chapters.length<row.snapshot.manifest.length,retryable:!complete&&!awaitingFollowup&&!blocked&&!held,
     canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
     nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
     charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest):undefined,
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
-    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,sources:[]})) : row.chapters,recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
+    chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters,
+    followup:row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION?{status:row.generationCheckpoint?.followup?.status || (awaitingFollowup?'available':'unavailable'),used:Boolean(row.generationCheckpoint?.followup?.used),suggestions:row.generationCheckpoint?.followup?.suggestions || row.chapters?.[0]?.followUpSuggestions || []}:undefined,
+    recovery,errorCode,createdAt:row.createdAt,completedAt:row.completedAt};
 }

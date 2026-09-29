@@ -8,7 +8,7 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
-import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady } from '../yeongnyangi/service.ts';
+import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
 import { readRequest, ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
@@ -28,7 +28,11 @@ const messages={
   PRICE_CHANGED:'상담 가격이 변경되었어요. 상담 선택 화면에서 50,000원 가격을 확인한 뒤 다시 시작해 주세요.',
   HORARY_FREE_PROMPT_REQUIRED:'호라리는 무료 프롬프트 화면에서 이용해 주세요.',
   QUESTION_LOCATION_REQUIRED:'위치 사용에 동의하거나 질문 당시 도시를 선택해 주세요.',
-  QUESTION_SKY_INPUT:'5자 이상 질문(최대 8개), 주제와 질문자 도시를 확인해 주세요.',
+  QUESTION_SKY_INPUT:'5자 이상인 한 가지 질문과 질문자 도시를 확인해 주세요.',
+  FOLLOWUP_INPUT_INVALID:'심화 질문은 5자 이상 600자 이하의 한 가지 질문으로 적어 주세요.',
+  FOLLOWUP_NOT_AVAILABLE:'지금은 심화 질문을 받을 수 없어요. 첫 결과를 다시 확인해 주세요.',
+  FOLLOWUP_ALREADY_USED:'이번 상담에 포함된 심화 질문은 이미 사용했어요.',
+  FOLLOWUP_NOT_SUBMITTED:'심화 질문을 먼저 제출해 주세요.',
   QUESTION_TIME_REQUIRED:'질문이 떠오른 날짜와 시각을 정확히 입력해 주세요.',
   QUESTION_TIME_AMBIGUOUS:'이 도시에서는 서머타임 전환으로 해당 시각을 하나로 확정할 수 없어요. 다른 명확한 질문 시각으로 상담해 주세요.',
   QUESTION_TIME_RANGE:'질문 시각은 최근 5년 이내이며 미래가 아니어야 해요.',
@@ -132,7 +136,7 @@ export async function handleYeongnyangiRoutes(request, env) {
       return json({ok:true,nextCursor:rows.length>30?`${new Date(last.createdAt).toISOString()}_${last._id}`:null,
         fortunes:page.map(row=>({id:row._id,locale:row.snapshot.locale || 'ko',product:row.snapshot.product,state:row.state,paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),completedChapters:row.completedChapters,totalChapters:row.snapshot.manifest?.length,recovering:libraryRecovering(row),canRetry:userCanRetry(row),createdAt:row.createdAt,consultationKind:row.snapshot.analysis?.consultation?.consultationKind,kindLabel:row.snapshot.analysis?.consultation?.kindLabel}))},{headers:{'Cache-Control':'private, no-store','Server-Timing':`auth;dur=${authMs.toFixed(1)}, db;dur=${dbMs.toFixed(1)}, query;dur=${(performance.now()-queryStart).toFixed(1)}`}});
     }
-    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate))?$/);
+    const match=path.match(/^requests\/([a-f0-9]{64})(?:\/(activate|generate|follow-up))?$/);
     if(!match) return notFound();
     const [,id,action]=match;
     if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readAndContinueFortune(env,auth.userId,id))});
@@ -140,6 +144,12 @@ export async function handleYeongnyangiRoutes(request, env) {
     if(action==='generate' && method==='POST') {
       const row=await retryFortune(env,auth.userId,id);
       return json({ok:true,fortune:presentFortune(row)},{status:row.state==='COMPLETED'?200:202});
+    }
+    if(action==='follow-up' && method==='POST') {
+      const body=await readJson(request);
+      if(!body || typeof body!=='object' || Array.isArray(body))throw createHttpError(400,'심화 질문 정보를 확인해 주세요.',{code:'FOLLOWUP_INPUT_INVALID'});
+      const row=await submitQuestionSkyFollowup(env,auth.userId,id,body.question);
+      return json({ok:true,fortune:presentFortune(row)},{status:202});
     }
     return notFound();
   } catch(error) {

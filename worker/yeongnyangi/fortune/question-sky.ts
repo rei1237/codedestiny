@@ -35,7 +35,8 @@ export function validateSkyInput(body:any):SkyInput{
   if(!Object.hasOwn(skyTopics,v.topic)||(!v.location&&!questionCities.some(c=>c.id===v.cityId)))throw new FortuneError('QUESTION_SKY_INPUT');
   const location=v.location===undefined?undefined:validateQuestionLocation(v.location);
   const question=text(body.question,1000,true);
-  if(question.length<5||question.split(/\n+|(?<=[?？])\s*/u).filter(s=>s.trim()).length>8)throw new FortuneError('QUESTION_SKY_INPUT');
+  const questionCount=question.split(/\n+|(?<=[?？])\s*/u).filter(s=>s.trim()).length;
+  if(question.length<5||(body.mode==='prashna-v1'?questionCount!==1:questionCount>8))throw new FortuneError('QUESTION_SKY_INPUT');
   const situation=text(v.situation??'',600);
   return {mode:body.mode,question,location,topic:v.topic,cityId:location?'':v.cityId,localTime:text(v.localTime,16,true),relationship:text(v.relationship??'',80),situation,
     boundary:v.boundary===true||/차단|거부|연락하지\s*말|찾아오지\s*말/.test(question+' '+situation)};

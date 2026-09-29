@@ -8,6 +8,7 @@ import {alignRelativeYears,redactInternalEvidence} from '../fortune/consultation
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
 import {splitSectionParagraph} from '../fortune/reading-quality';
+import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
 
 // The strict validator remains a diagnostic contract. Delivery accepts the
 // provider's useful text after local editing; it never invents missing insights.
@@ -49,10 +50,13 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
   // A question must still have a substantive provider-authored answer. Citation
   // completeness and the optional timing/reason subdivisions do not buy retries.
   if(expected.some(q=>!answers.some(a=>a.questionId===q.id&&a.answer.length>=20)))throw new FortuneError('QUESTION_ANSWER_INCOMPLETE');
-  let body:ChapterBody={summary:edit(value.summary)||actual[0],analysis,example:edit(value.example),advice:edit(value.advice),
+  let body:ChapterBody=sanitizeQuestionSkyBody({summary:edit(value.summary)||actual[0],analysis,example:edit(value.example),advice:edit(value.advice),
     persona:edit(value.persona),highlights:list(value.highlights).map(edit).filter(Boolean),topics:list(value.topics),blocks,
     sources:[...new Set([...sources(value.sources),...blocks.flatMap(b=>b.sources||[])])],questionAnswers:answers,
-    ...(prose(value.title)?{title:prose(value.title)}:{})};
+    ...(prose(value.title)?{title:prose(value.title)}:{}),
+    ...(Array.isArray(value.followUpSuggestions)?{followUpSuggestions:list(value.followUpSuggestions)}:{}),
+    ...(value.visualSlots&&typeof value.visualSlots==='object'&&!Array.isArray(value.visualSlots)?{visualSlots:value.visualSlots}:{}),
+  },input.chapter);
   body=redactInternalEvidence(body,input.analysis.question,Object.values(input.analysis.contexts).flatMap(c=>c.facts.map(f=>f.label)),input.locale).body;
   if(input.analysis.consultation)body=alignRelativeYears(body,input.analysis.consultation.asOf,input.locale).body;
   validateReadingLanguage(body,readingLocale(input.locale));

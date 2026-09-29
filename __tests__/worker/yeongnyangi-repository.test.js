@@ -130,6 +130,23 @@ test('ask generation evidence is stored separately and an intent replay cannot r
   expect(requests).toHaveLength(1);
 });
 
+test('question-sky first result waits for one atomic follow-up instead of queueing chapter two',async()=>{
+  const sky={...values,productId:'saju_flounder',featureKey:'yeongnyangi-saju-flounder',amountKRW:5000,
+    snapshot:{manifest:[{},{}],questionSkyStage:{version:'question-sky-flounder-3'}}};
+  payments[0].featureKey=sky.featureKey;payments[0].paymentAmount=sky.amountKRW;
+  await repo.createRequest({},owner,'id',sky);await repo.attachPayment({},owner,'id',sky.amountKRW);
+  const first=await repo.claimChapter({},owner,'id');
+  await repo.finishChapter({},owner,'id',first.token,0,{summary:'첫 답',followUpSuggestions:['첫 심화 질문입니다.','둘째 심화 질문입니다.','셋째 심화 질문입니다.']},2);
+  expect(requests[0].state).toBe('AWAITING_FOLLOWUP');
+  expect((await repo.claimChapter({},owner,'id')).token).toBeNull();
+  const submitted=await repo.reserveQuestionSkyFollowup({},owner,'id','첫 심화 질문입니다.');
+  expect(submitted.state).toBe('PAID');expect(submitted.generationCheckpoint.followup.used).toBe(true);
+  await expect(repo.reserveQuestionSkyFollowup({},owner,'id','다른 심화 질문입니다.')).rejects.toMatchObject({code:'FOLLOWUP_ALREADY_USED'});
+  const second=await repo.claimChapter({},owner,'id');
+  await repo.finishChapter({},owner,'id',second.token,1,{summary:'심화 답'},2);
+  expect(requests[0].state).toBe('COMPLETED');
+});
+
 async function claimedAsk() {
   await repo.createRequest({},owner,'id',{...values,generationCheckpoint:{version:'ask-generation-v1',evidence:{facts:[]}}});
   await repo.attachPayment({},owner,'id',1000);

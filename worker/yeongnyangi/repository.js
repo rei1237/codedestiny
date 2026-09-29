@@ -149,6 +149,30 @@ export async function createRequest(env, userId, id, values) {
   return row;
 }
 
+// The first question-sky result is an intentional pause, not a failed or
+// incomplete delivery. This compare-and-set both protects the one included
+// deepening turn and preserves the exact submitted text for retries.
+export async function reserveQuestionSkyFollowup(env,userId,requestId,question) {
+  const text=typeof question==='string'?question.trim():'';
+  if(text.length<5||text.length>600||text.split(/\n+|(?<=[?？])\s*/u).filter(Boolean).length!==1)throw failure(400,'FOLLOWUP_INPUT_INVALID');
+  const current=await readRequest(env,userId,requestId);
+  if(current.snapshot?.questionSkyStage?.version!=='question-sky-flounder-3')throw failure(409,'FOLLOWUP_NOT_AVAILABLE');
+  const saved=current.generationCheckpoint?.followup;
+  if(saved?.question){
+    if(saved.question===text)return current;
+    throw failure(409,'FOLLOWUP_ALREADY_USED');
+  }
+  const now=new Date();
+  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),state:'AWAITING_FOLLOWUP',
+    'generationCheckpoint.followup.status':'available','generationCheckpoint.followup.used':{$ne:true}},
+    {$set:{state:'PAID',errorCode:'',nextAttemptAt:null,queuedUntil:null,queuedChapter:-1,
+      'generationCheckpoint.followup':{status:'submitted',used:true,question:text,submittedAt:now}}}, {new:true}).lean());
+  if(row)return row;
+  const latest=await readRequest(env,userId,requestId);
+  if(latest.generationCheckpoint?.followup?.question===text)return latest;
+  throw failure(409,latest.generationCheckpoint?.followup?.used?'FOLLOWUP_ALREADY_USED':'FOLLOWUP_NOT_AVAILABLE');
+}
+
 async function attachDirectPayment(env, userId, requestId, expectedCharge) {
   const owner = ownerId(userId);
   // Register the whole atomic operation with the shared connection guard. Otherwise
@@ -246,7 +270,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
       throw failure(409,'PAYMENT_NOT_ACTIVE');
     }
   }
-  if (current.state === 'COMPLETED') return {row:current,token:null};
+  if (current.state === 'COMPLETED' || current.state === 'AWAITING_FOLLOWUP') return {row:current,token:null};
   // A response can be lost after the last checkpoint is durable but before its
   // completion marker is committed. Re-read that stored result instead of
   // calling the provider for a non-existent next chapter.
@@ -389,11 +413,13 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
           return;
         }
         const isLast=ordinal+1===total;
+        const awaitingFollowup=request.snapshot?.questionSkyStage?.version==='question-sky-flounder-3'&&ordinal===0&&total===2;
         result = await YeongnyangiRequest.findOneAndUpdate(filter,
           {$push:{chapters:body},$set:{completedChapters:ordinal+1,
             // Keep the last chapter's lease until the saved document has been
             // read back. A late writer must not race the completion marker.
-            ...(isLast?{}:{state:'PAID',leaseToken:'',leaseUntil:null}),errorCode:'',lastFailure:null,nextAttemptAt:null}}, {new:true,session}).lean();
+            ...(isLast?{}:awaitingFollowup?{state:'AWAITING_FOLLOWUP',leaseToken:'',leaseUntil:null,
+              'generationCheckpoint.followup':{status:'available',used:false,suggestions:Array.isArray(body.followUpSuggestions)?body.followUpSuggestions:[]}}:{state:'PAID',leaseToken:'',leaseUntil:null}),errorCode:'',lastFailure:null,nextAttemptAt:null,queuedUntil:null}}, {new:true,session}).lean();
       }, mongoTransactionOptions());
       return result;
     } finally { await session.endSession(); }

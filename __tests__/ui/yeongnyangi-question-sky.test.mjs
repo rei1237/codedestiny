@@ -118,12 +118,24 @@ test('free horary exports computed coordinates, timezone, traditional chart and 
  assert.notEqual(changed.prompt,result.prompt);
  for(const location of [{source:'geolocation',latitude:91,longitude:0,accuracy:1},{source:'geolocation',latitude:1,longitude:1,accuracy:-1},{source:'ip',latitude:1,longitude:1,accuracy:1}])await assert.rejects(api.prepareHoraryPrompt({}, {...payload,questionSky:{...payload.questionSky,location}},now),/QUESTION_LOCATION_REQUIRED/);
 });
-test('new prashna product is flounder and all eight chapters have distinct complete sections',()=>{
- const value=api.validateSkyInput({mode:'prashna-v1',productId:'saju_flounder',question:input.question,questionSky:input});
+test('new prashna product accepts one initial question and uses the two-stage manifest',()=>{
+ const oneQuestion='그 사람과 재회할까요?';
+ const value=api.validateSkyInput({mode:'prashna-v1',productId:'saju_flounder',question:oneQuestion,questionSky:{...input,question:oneQuestion}});
  assert.equal(value.mode,'prashna-v1');
- assert.throws(()=>api.validateSkyInput({mode:'prashna-v1',productId:'saju_mackerel',question:input.question,questionSky:input}),/INVALID_READING_MODE/);
+ assert.throws(()=>api.validateSkyInput({mode:'prashna-v1',productId:'saju_flounder',question:input.question,questionSky:input}),/QUESTION_SKY_INPUT/);
+ assert.throws(()=>api.validateSkyInput({mode:'prashna-v1',productId:'saju_mackerel',question:oneQuestion,questionSky:{...input,question:oneQuestion}}),/INVALID_READING_MODE/);
  const context=api.projectQuestionChart(chart,value).context,product=api.getProduct('saju_flounder');
- const manifest=api.skyManifest(api.readingManifest(product,'general','personal','destiny-book-v4'),context);
- assert.equal(product.priceKRW,5000);assert.equal(manifest.length,8);assert.equal(new Set(manifest.map(c=>c.title)).size,8);
- assert.ok(manifest.every(c=>c.minimumChars>0&&c.focus&&c.requiredSections.length===2));
+ const manifest=api.questionSkyTwoStageManifest(context);
+ assert.equal(product.priceKRW,5000);assert.equal(manifest.length,2);assert.deepEqual(manifest.map(c=>c.minimumChars),[3000,8000]);
+ assert.ok(manifest.every(c=>c.focus&&c.requiredSections.length>=2));
+});
+test('two-stage output strips unknown image slots, limits placements, and rejects question repetition',()=>{
+ const context=api.projectQuestionChart(chart,{...input,mode:'prashna-v1',question:'재회할까요?'}).context;
+ const [first,deep]=api.questionSkyTwoStageManifest(context);
+ const base={summary:'기다리기보다 내 기준을 먼저 정하는 편이 나아.',persona:'지금은 네 기준을 조용히 지켜 봐.',analysis:[],example:'',advice:'',highlights:[],topics:[],sources:[],blocks:[{title:'핵심 답',paragraphs:['계산 근거를 생활의 선택으로 풀어낸다.']}],visualSlots:{opening:'mystic',verdict:'sure',closing:'warm',followup:'wink',unsafe:'outside'},followUpSuggestions:['어떤 조건이 바뀌면 선택을 다시 볼까?','내가 먼저 지킬 기준은 무엇일까?','상황별로 무엇을 관찰해야 할까?','네 번째 후보는 버려져야 해']};
+ const clean=api.sanitizeQuestionSkyBody(base,first);
+ assert.deepEqual(clean.visualSlots,{opening:'mystic',verdict:'sure',closing:'warm'});assert.equal(clean.followUpSuggestions.length,3);
+ const deepClean=api.sanitizeQuestionSkyBody(base,deep);
+ assert.deepEqual(deepClean.visualSlots,{followup:'wink'});assert.equal(deepClean.followUpSuggestions,undefined);
+ assert.throws(()=>api.validateQuestionSkyTwoStage({...clean,summary:'재회할까요?'},first,'재회할까요?'),/QUESTION_REPEAT/);
 });

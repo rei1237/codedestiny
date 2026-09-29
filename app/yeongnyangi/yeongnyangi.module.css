@@ -768,6 +768,18 @@
 @media(max-width:600px) { .spiritIntro { flex-direction:column; align-items:flex-start; gap:16px; } .spiritIntro img { width:124px; align-self:center; } }
 
 .spirit progress { width:100%; accent-color:var(--yn-gold); }
+.spiritMood { width:min(100%,360px); margin:24px auto; }
+.spiritMood img { display:block; width:100%; height:auto; object-fit:contain; animation:yn-spirit-fade .45s ease-out both; }
+.followupPanel { margin:32px 0; padding:24px; border:1px solid var(--yn-line); border-radius:16px; background:var(--yn-surface); }
+.followupPanel h2 { margin-top:0; }
+.followupPanel form { display:grid; gap:12px; margin-top:20px; }
+.followupPanel textarea { width:100%; min-height:96px; padding:12px; border:1px solid var(--yn-line); border-radius:10px; background:var(--yn-night); color:var(--yn-ivory); font:inherit; line-height:1.7; resize:vertical; }
+.followupPanel button { min-height:44px; }
+.followupChips { display:flex; flex-wrap:wrap; gap:10px; }
+.followupChips button { flex:1 1 180px; padding:10px 12px; border:1px solid var(--yn-line); border-radius:12px; background:transparent; color:var(--yn-ivory); text-align:left; }
+.followupChips button:hover,.followupChips button:focus-visible { border-color:var(--yn-gold); background:var(--yn-night); }
+@keyframes yn-spirit-fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .spiritMood img { animation:none; } }
 .readingLoading { display:flex; align-items:center; justify-content:center; gap:24px; padding:12px 0; margin:24px 0; color:var(--yn-ivory); }
 .readingLoading img { flex:none; width:140px; height:auto; }
 .readingLoading p { margin:8px 0; }

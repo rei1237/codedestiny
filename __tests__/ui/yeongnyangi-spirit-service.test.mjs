@@ -9,7 +9,7 @@ globalThis.__spiritTest={rows:new Map(),calls:0};
 const replacements={
   'worker/lib/models.js':`export const CmsEntry={find:()=>({limit:()=>({lean:async()=>[]})})};export const ProfileCard={findOne:()=>({lean:async()=>({updatedAt:null,birth:{year:1997,month:2,day:10,timeUnknown:true,calType:'solar'},gender:'F'})})};`,
   'worker/lib/db.js':`export const connectDb=async()=>{};export const withMongoRetry=async(e,fn)=>fn();`,
-  'worker/yeongnyangi/repository.js':`export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{throw new Error("unexpected analysis checkpoint")};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__spiritTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__spiritTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__spiritTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
+  'worker/yeongnyangi/repository.js':`export const allowedChapterAttempts=(r,n)=>3+Number(r?.manualRecoveryGrants?.[n]||0)+Number(r?.systemRecoveryGrants?.[n]||0);export const holdAutoResumes=()=>false;export const userCanRetry=()=>false;export const reserveQuestionSkyFollowup=async()=>{throw new Error("unexpected followup")};export const saveChapterDraft=async()=>{};export const saveAskAnalysis=async()=>{throw new Error("unexpected analysis checkpoint")};export const ownerId=x=>x;export const createRequest=async(e,u,id,v)=>{const m=globalThis.__spiritTest.rows;if(!m.has(id))m.set(id,{...v,_id:id,userId:u,state:'CREATED',chapters:[]});return m.get(id)};export const readRequest=async(e,u,id)=>{const row=globalThis.__spiritTest.rows.get(id);if(!row)throw Object.assign(new Error('not found'),{code:'FORTUNE_NOT_FOUND'});return row;};export const attachPayment=async()=>{};export const claimChapter=async()=>({row:globalThis.__spiritTest.claim,token:'lease'});export const finishChapter=async()=>{};export const failChapter=async()=>{};`,
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(request){globalThis.__spiritTest.lastLocale=request.locale;globalThis.__spiritTest.calls++;throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
@@ -53,13 +53,13 @@ test('invalid stored manifest fails closed before any provider call',async()=>{
 
 for(const mode of ['prashna-v1'])test(mode+' uses question moment without a profile and preserves duplicate/paid/partial/refunded requests',async()=>{
   const localTime=new Date(Date.now()-86400000).toISOString().slice(0,16);
-  const questionBody={mode,productId:'saju_flounder',question:'그 사람과 재회할까요? 연락을 기다릴까요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',situation:'연락이 끊겼어요',cityId:'seoul',localTime,boundary:true}};
+  const questionBody={mode,productId:'saju_flounder',question:'그 사람과 재회할까요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',situation:'연락이 끊겼어요',cityId:'seoul',localTime,boundary:true}};
   const [a,b]=await Promise.all([prepareFortune(env,'sky-owner',questionBody),prepareFortune(env,'sky-owner',questionBody)]);
-  assert.equal(a._id,b._id);assert.equal(a.profileId,'question-sky');assert.equal(a.snapshot.manifest.length,8);
+  assert.equal(a._id,b._id);assert.equal(a.profileId,'question-sky');assert.equal(a.snapshot.manifest.length,2);
   assert.ok(a.snapshot.calculation.audit.length>0);assert.equal(a.snapshot.input.localTime,localTime);
   assert.equal(a.snapshot.analysis.consultation.questionSky.situation,'연락이 끊겼어요');
   assert.equal(a.amountKRW,5000);assert.equal(a.featureKey,'yeongnyangi-saju-flounder');
-  assert.ok(a.snapshot.manifest.every(c=>c.title&&c.focus&&c.requiredSections.length===2));
+  assert.ok(a.snapshot.manifest.every(c=>c.title&&c.focus&&c.requiredSections.length>=2));
   assert.ok(a.snapshot.analysis.contexts.vedic.facts.some(f=>f.label==='프라슈나 계산 근거'));
   assert.equal((await prepareFortune(env,'owner',body)).amountKRW,1000);
   a.paymentId='original-payment';a.state='GENERATING';a.chapters=[{summary:'saved chapter',sources:['private-calculation']}];
