@@ -27,3 +27,23 @@ for(const [file,marker] of [['index.html','_cdDuplicateConfirmFallback'],['js/de
   });
  }
 }
+
+const billingSource=fs.readFileSync(path.join(__dirname,'../../app/_lib/billing-client.ts'),'utf8');
+const billingAst=ts.createSourceFile('billing.ts',billingSource,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
+const runtime=billingAst.statements.find(node=>ts.isFunctionDeclaration(node)&&node.name.text==='runPaidServiceRuntimePayment');
+let catcher;
+function findCatch(node){if(ts.isCatchClause(node))catcher=node;ts.forEachChild(node,findCatch);}
+findCatch(runtime);assert.ok(catcher,'actual outer runtime catch');
+const caught=ts.transpileModule(`function caught(error){${catcher.block.getText(billingAst)}}`,{compilerOptions:{target:ts.ScriptTarget.ES2020}}).outputText;
+for(const [code,status] of [['PG_PAYMENT_NOT_PAID',409],['PG_UNAVAILABLE',503],['PG_PAYMENT_CANCELLED',422],['AMOUNT_MISMATCH',422],['FORTUNE_ALREADY_PAID',409]]){
+ test(`outer gate preserves ${code}`,()=>{
+  const context=vm.createContext({Error,asRecord:v=>v,toText:v=>String(v||''),billingClientText:()=>''});
+  vm.runInContext(caught,context);
+  const result=context.caught(Object.assign(new Error('fixture'),{code,status}));
+  assert.equal(result.error.code,code);assert.equal(result.status,status);assert.equal(result.ok,false);
+ });
+}
+test('unclassified SDK/runtime exception is distinct from a payment refusal',()=>{
+ const context=vm.createContext({Error,asRecord:v=>v,toText:v=>String(v||''),billingClientText:()=>''});vm.runInContext(caught,context);
+ const result=context.caught(new Error('SDK exception'));assert.equal(result.error.code,'PAYMENT_RUNTIME_ERROR');assert.equal(result.status,500);
+});
