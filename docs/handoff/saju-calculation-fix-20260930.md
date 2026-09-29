@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-09-30
 next: Verify main CI and staging, then finish independent natal consumers and paid correction delivery
 ---
@@ -7,9 +7,9 @@ next: Verify main CI and staging, then finish independent natal consumers and pa
 
 상세 근거·정책·회귀 범위: [saju-time-contract-20260930.md](../context/saju-time-contract-20260930.md).
 
-검증한 핵심 수정 커밋 `d9c21993a`, main 통합 `35f52ba9d`, 정정 큐 저장 확인 `feb8073d05ef93ce006ca80320fa312f9046c23d`는 main에 push했다. 이후 빈 출생지 placeholder를 명시적 기본 지역으로 처리하고 네오/오늘운세 윤달 전달 누락을 수정했다. 이 문서는 그 후속 변경과 함께 커밋한다.
+검증한 핵심 수정 커밋 `d9c21993a`, main 통합 `35f52ba9d`, 정정 큐 저장 확인 `feb8073d05ef93ce006ca80320fa312f9046c23d`는 main에 push했다. 이후 빈 출생지 placeholder를 명시적 기본 지역으로 처리하고 네오/오늘운세 윤달 전달 누락을 수정했다. 이 문서는 그 후속 변경과 함께 커밋했다. 유료·무료 프로필의 label 없는 출생지 전달 추가 수정까지 마지막 코드 커밋은 `0c0601cd1f52bd05b7e57a91db3028c491e6c8ca`이며 main push 완료다.
 
-- Node1928, typecheck, lint, Worker dry-run build 통과. 후속 정정mock6, 네오/오늘운세 Jest61, 네오품질, 시간계약941 통과.
+- Node1928, typecheck, lint, Worker dry-run build 통과. 후속 정정/모달mock9, 네오/오늘운세 Jest61, 네오품질, 시간계약941, 유료 준비/복구8, 프로필 정규화2 통과.
 - 기존 check:fast 유료 가드의 실패2개는 토큰 해시 원복, 프롬프트 버전 기대값, correction 모듈 lazy import로 고쳤고 해당 검사는 재통과했다. 전체 최종 판정은 GitHub main CI에서 확인해야 한다.
 - 운영 배포/실LLM/운영DB 쓰기/고객 연락 없음. 운영 영향 건수 미조사, 정정 실제 발행0건.
 - 아직 전체 해결이 아니다: 독립 animal-destiny/destiny-bias 엔진 옵션 이관, 전체 유료상품 정정과 고객 보관함 연결, 실제 로그인/공유/상담 재시도 E2E, 스테이징 동일 버전 검증이 남았다.
@@ -22,7 +22,7 @@ next: Verify main CI and staging, then finish independent natal consumers and pa
 ```powershell
 Set-Location 'D:\Development\code-destiny'
 git status --short
-git merge-base --is-ancestor feb8073d05ef93ce006ca80320fa312f9046c23d HEAD
+git merge-base --is-ancestor 0c0601cd1f52bd05b7e57a91db3028c491e6c8ca HEAD
 gh run list --branch main --limit 10
 Get-Content 'D:\Development\code-destiny\docs\handoff\saju-calculation-fix-20260930.md'
 ```

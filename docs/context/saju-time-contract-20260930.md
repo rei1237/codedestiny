@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-09-30
 next: main CI and staging verification, remaining independent saju engines and paid correction delivery
 ---
