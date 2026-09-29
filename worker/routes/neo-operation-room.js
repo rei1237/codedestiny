@@ -144,6 +144,7 @@ function normalizeBirthInfo(source = {}) {
     birthTime: birthTimeUnknown ? "" : clean(birth.birthTime, 5),
     birthTimeUnknown,
     calendarType: clean(birth.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar",
+    isLeapMonth: birth.isLeapMonth === true || birth.leapMonth === true,
     city: clean(birth.city || birthPlace.city || birth.birthCity, 80),
     country: clean(birth.country || birthPlace.country, 80),
     timezone: clean(birth.timezone || birth.tz || birthPlace.timezone || birthPlace.timeZone, 80),

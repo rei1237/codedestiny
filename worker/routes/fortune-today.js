@@ -242,6 +242,7 @@ function buildSaju(input, today, wantDetail) {
     birthTime: input.birthTime,
     birthTimeUnknown: input.timeUnknown,
     calendarType: input.calendarType === "solar" ? "solar" : "lunar",
+    isLeapMonth: input.calendarType === "lunar_leap",
     gender: input.gender,
   });
   const verdict = judgeSajuDayFortune(natal, dayPillar);

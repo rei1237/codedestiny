@@ -49,3 +49,10 @@ test('server recomputes full natal input and rejects stale or forged pillars', a
  const unknown=calculateNatalSaju({...birth,birthTime:undefined});
  assert.equal(validateSajuNatalPayload(unknown).pillars.hour,null);
 });
+
+test('legacy empty location is explicitly assumed; partial locations are never silently completed',async()=>{
+ const {calculateNatalSaju}=await import('../../lib/korean-calendar/index.js');
+ const result=calculateNatalSaju({...birth,birthPlace:{city:'',country:'',latitude:null,longitude:null,timezone:''}});
+ assert.equal(result.calculationMeta.location.assumed,true);assert.equal(result.pillars.hour,'己亥');
+ assert.throws(()=>calculateNatalSaju({...birth,birthPlace:{longitude:126.978}}),/INVALID_BIRTH_PLACE/);
+});

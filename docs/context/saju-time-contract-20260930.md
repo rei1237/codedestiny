@@ -53,7 +53,8 @@ next: main CI and staging verification, remaining independent saju engines and p
 - 독립 lunar-javascript 일진 비교, 캡처된 KASI 일진50개, 윤년/월말/연말/윤달, 시진 경계 전·정각·후, 전날 이동, 서울/부산/제주 경도, 한국 역사적 표준시/DST, 뉴욕/시드니.
 - 절입 ±1분은 시간축 일치 검사이며 같은 코어의 절입 값 자체를 독립적으로 검증했다는 뜻이 아니다.
 - `verify-natal-day-pillar-axis`18, `verify-daeun-korean-calendar`16 통과. 1955-05-05 00:05는 실제 시간대 공백이므로 거부하는 표본으로 구분했다.
-- 실제 모달 함수 VM2, 정정 큐/검산4, 정정 서비스 DB mock1 통과.
+- 실제 모달 함수 VM2, 정정 큐/검산/빈출생지5, 정정 서비스 DB mock2 통과.
+- 네오/오늘운세 Jest61 및 네오 품질 가드 통과. 네오와 오늘운세의 윤달 전달 누락도 수정했다.
 - 최종 `npm run test:node` 1928/1928, typecheck, lint, Worker dry-run build 통과.
 - 정적 Chromium에서 실제 모달 계산+renderManse 호출 후 네 기둥을 화면으로 확인. 외부 네트워크 차단/스크립트 수동 초기화. 일반 사용자 입력→로그인→API→화면 전체 E2E 증거는 아니다.
 - 영냥이 invariance 회귀 통과. 새 엔진의 사주/사주 포함 복합38개만 기대 digest 변경, 비사주 값은 유지.
