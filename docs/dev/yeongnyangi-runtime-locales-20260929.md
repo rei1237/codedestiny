@@ -1,7 +1,7 @@
 ---
-status: mock-verified-release-pending
+status: released
 updated: 2026-09-29
-next: main CI 통과 후 staging 화면과 양쪽 SHA를 확인하고 승인된 1회 production 승격 실행
+next: 원어민 결과 검수와 실제 휴대폰 확인은 별도 검증 범위로 진행
 ---
 
 # 영냥이 전체 런타임 언어 연결 검증
@@ -35,8 +35,18 @@ SEO용 공개 정적 로케일 목록과 런타임 목록은 역할이 다르다
 - 아래 12개 StructuredChapterProvider 요청은 fake LLM 결과로 검증했다. 실제 LLM 호출은 없다.
 - incremental TypeScript, changed lint, sitemap 검증 통과.
 - 최종 언어 독립 이동·공통 요청 빌더 회귀를 포함한 all-locales mock 17/17 통과.
-- 로컬 Next 개발 모드에서 manifest/스크립트 로딩 오류가 재현되어 전체 브라우저 PASS로 기재하지 않는다. CI 정적 staging 산출물에서 scripts/verify-yeongnyangi-locale-browser.mjs로 HTTP/PG/LLM을 차단한 12개 화면 검증을 진행한다.
-- staging/production 완료 여부는 릴리스 후 별도 실행 로그와 양쪽 SHA 증거로 보고한다. 이 문서는 사전 검증 기록이다.
+- 로컬 Next 개발 모드의 manifest/스크립트 로딩 오류는 전체 브라우저 PASS로 기재하지 않는다. 최종 CI 정적 staging 산출물에서는 scripts/verify-yeongnyangi-locale-browser.mjs로 HTTP/PG/LLM을 mock 처리한 12개 화면 검증이 통과했다.
+
+## 배포 검증 완료
+- 릴리스 정본: `5e39e678a029511d99c674fe050289363dc3f9ed`, 고정 태그 `release-yeongnyangi-i18n-20260929-transport`.
+- 해당 SHA의 [전체 CI](https://github.com/rei1237/codedestiny/actions/runs/36556133708) 성공. [Browser Shadow](https://github.com/rei1237/codedestiny/actions/runs/36557346303)는 Chromium·WebKit 108/108, 28개 상품 PASS. 실 PG·실 LLM·운영 DB 쓰기는 모두 0이다.
+- 동시 작업을 보존한 main `b11983513031f50c839b5f0a49a96a008601b76f`의 [CI required](https://github.com/rei1237/codedestiny/actions/runs/36556884973)도 성공했다.
+- [Staging 배포](https://github.com/rei1237/codedestiny/actions/runs/36556946917)는 Pages와 Worker 모두 `b11983513031f50c839b5f0a49a96a008601b76f`다. 릴리스 SHA와 영냥이·결제 화면 및 공통 auth-client 관련 소스가 동일함을 diff로 확인했다. 두 배포의 전체 소스 SHA가 같다는 의미는 아니다.
+- Staging 실제 정적 화면의 12개 로케일 흐름 및 영어 화면/일본어 결과 독립 흐름 PASS. 사이트 이동 URL은 영어, 요청 헤더·본문 및 저장 결과는 일본어로 유지됐다. 360·390·430·1280 폭에서 가로 넘침이 없었다. 결제·인증·LLM 통신은 mock이며 실제 운영 연동 검증으로 해석하지 않는다.
+- 사용자 요청에 따른 [1회 production 승격](https://github.com/rei1237/codedestiny/actions/runs/36558955362) 성공. `npm run verify:deployed-sha -- --sha=5e39e678a029511d99c674fe050289363dc3f9ed --origin=https://code-destiny.com --attempts=1`에서 Pages `/version.json`과 Worker `/api/version` 모두 해당 SHA PASS.
+- 운영 공개 UI 추가 검사는 한국어·영어의 각 4개 경로 PASS 후 일본어 상품 안내에서 HTTP 429로 중단했다. 이후 해당 일본어 URL 단건 HTTP 요청은 200이었다. 운영 12개 언어 전체 브라우저 검사를 통과했다고 기재하지 않는다. 방화벽·제한 설정을 우회하거나 변경하지 않았다.
+
+실행 로그는 `build-cache/yeongnyangi-all-locales-payloads.jsonl`, `build-cache/yeongnyangi-locales-staging-final-sha.log`, `build-cache/yeongnyangi-locales-staging-final-browser.log`, `build-cache/yeongnyangi-locales-staging-independent.log`, `build-cache/yeongnyangi-locales-production-sha.log`, `build-cache/yeongnyangi-locales-production-public.log`, `build-cache/yeongnyangi-release-verification.json`에 있다. build-cache는 로컬 검증 산출물이며 Git 문서의 배포 기록과 함께 확인한다.
 
 ## LLM mock 요청
 | outputLocale | outputLanguageName | priceLocale |
@@ -61,6 +71,7 @@ SEO용 공개 정적 로케일 목록과 런타임 목록은 역할이 다르다
 법률 문서 원문은 기존 공개 문서 로케일과 fallback 정책을 유지한다.
 
 ## 변경 파일
+아래 목록에는 로케일 변경과 함께 정합성을 검증한 기존 동시 작업의 안내·생성 미러 파일도 포함한다. 가격·인증 정책 변경을 이 로케일 릴리스에서 새로 구현한 목록으로 해석하지 않는다.
 - `__tests__/ui/legacy-home-target.test.mjs`
 - `__tests__/ui/yeongnyangi-all-locales.test.mjs`
 - `__tests__/ui/yeongnyangi-reading-invariance.test.mjs`
