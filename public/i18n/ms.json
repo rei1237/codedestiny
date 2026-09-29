@@ -1960,6 +1960,11 @@
       "moonSubtitle": "Kami akan membukanya dengan cara paling mudah.",
       "directTitleLabel": "Kandungan ini sahaja",
       "monthlyUnit": "mata wang acara",
+      "monthlyReward": {
+        "eyebrow": "GUNAKAN GANJARAN SEDIA ADA",
+        "title": "Batu bulan boleh diterima melalui manfaat pas, acara atau pemasaran, dan laporan pepijat yang disahkan.",
+        "detail": "Gunakan baki anda untuk membuka kandungan ini serta-merta tanpa bayaran tambahan."
+      },
       "passBuyTitle": "Buka dengan pas",
       "passChecking": "Menyemak pas anda…",
       "passMissGoStore": "Pas anda tidak meliputi ini, kami bawa anda ke kedai pas.",

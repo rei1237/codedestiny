@@ -1960,6 +1960,11 @@
       "moonSubtitle": "Wir öffnen ihn auf dem für dich einfachsten Weg.",
       "directTitleLabel": "Nur dieser Inhalt",
       "monthlyUnit": "Event-Währung",
+      "monthlyReward": {
+        "eyebrow": "GESPEICHERTE BELOHNUNGEN NUTZEN",
+        "title": "Mondsteine können aus Passvorteilen, Events oder Marketing sowie bestätigten Fehlerberichten stammen.",
+        "detail": "Nutze dein Guthaben, um dies ohne zusätzliche Zahlung sofort zu öffnen."
+      },
       "passBuyTitle": "Mit Pass öffnen",
       "passChecking": "Pass wird geprüft …",
       "passMissGoStore": "Dein Pass deckt das nicht ab – wir bringen dich zum Pass-Shop.",

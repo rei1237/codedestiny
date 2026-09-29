@@ -12562,6 +12562,7 @@
     var monthlyBadgeText = _dpCheckoutText('payment.directModal.monthlyBadge', '월정석');
     var monthlyTitleText = _dpCheckoutText('payment.directModal.monthlyTitle', '월정석으로 열기');
     var monthlyUnitText = _dpCheckoutText('payment.directModal.monthlyUnit', '이벤트 재화');
+    var monthlyRewardHtml = '<span class="cd-direct-payment-reward__copy"><span class="cd-direct-payment-reward__eyebrow">' + esc(_dpCheckoutText('payment.directModal.monthlyReward.eyebrow', '보유 보상으로 이용')) + '</span><span class="cd-direct-payment-reward__title">' + esc(_dpCheckoutText('payment.directModal.monthlyReward.title', '이용권 혜택·이벤트/마케팅·확정된 오류 제보 보상으로 받을 수 있어요.')) + '</span><span class="cd-direct-payment-reward__detail">' + esc(_dpCheckoutText('payment.directModal.monthlyReward.detail', '보유분으로 열면 추가 결제 없이 바로 이용할 수 있어요.')) + '</span></span>';
     var guideBubbleText = recommendedOption === 'monthly'
       ? _dpCheckoutText('payment.directModal.guide.monthly', '가지고 있는 월정석으로 추가 지출 없이 열 수 있어요!')
       : (recommendedOption === 'pass'
@@ -12617,6 +12618,7 @@
               titleHtml: esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString(_dpCheckoutDisplayLocale())) + '</span> ' + esc(monthlyUnitText),
               descHtml: esc(monthlyHintText),
               descAttr: ' data-monthly-hint',
+              rewardHtml: monthlyRewardHtml,
               afterHtml: monthlyBalanceCheckHtml,
             },
           },

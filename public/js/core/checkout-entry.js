@@ -78,10 +78,19 @@
       '.cd-direct-payment-option[data-mode="pass-store"]{border-color:rgba(232,200,138,.3)}',
       '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(232,200,138,.18)}',
       '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(232,200,138,.18)}',
+      '.cd-direct-payment-moonstone-icon{display:block;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}',
       '.cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;font-weight:700;line-height:1.32;color:#F5F1FB;word-break:keep-all}',
       '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8}',
       '.cd-direct-payment-option br{display:none}',
       '.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8;word-break:keep-all}',
+      '.cd-direct-payment-reward{display:flex;align-items:flex-start;gap:9px;margin-top:11px;padding:10px 11px;border:1px solid rgba(232,200,138,.26);border-radius:12px;background:linear-gradient(115deg,rgba(232,200,138,.14),rgba(244,190,209,.08));box-shadow:inset 0 1px 0 rgba(253,242,217,.1)}',
+      '.cd-direct-payment-reward__mark{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:46px;height:46px;margin-top:-2px;color:#E8C88A}',
+      '.cd-direct-payment-reward__mark .cd-direct-payment-moonstone-icon{width:15px;height:15px}',
+      '.cd-direct-payment-reward__mascot{display:block;width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 4px 7px rgba(14,8,28,.35))}',
+      '.cd-direct-payment-reward__copy{min-width:0}',
+      '.cd-direct-payment-reward__eyebrow{font-size:10.5px!important;font-weight:800;letter-spacing:.04em;color:#E8C88A!important}',
+      '.cd-direct-payment-reward__title{margin-top:1px;font-size:12.5px!important;font-weight:800;line-height:1.4!important;color:#F5F1FB!important;word-break:keep-all}',
+      '.cd-direct-payment-reward__detail{margin-top:2px;font-size:11.5px!important;line-height:1.45!important;color:rgba(237,232,245,.82)!important;word-break:keep-all}',
       // 🔴 헤드는 줄바꿈이 가능해야 한다 — 배지(등급 접두가 붙는 es 에서 가장 길다)와 추천 리본이
       // 한 줄에 못 들어가면 다이얼로그의 overflow-x:hidden 이 스크롤바 없이 조용히 잘라 낸다.
       // gap:8px 이 줄 간격도 겸한다.
@@ -158,7 +167,7 @@
       '@keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}',
       '@keyframes cdCheckoutOptionProgress{from{transform:translateX(-100%)}to{transform:translateX(100%)}}',
       '@keyframes cdMoonlitPetalDrift{0%{transform:translateX(0);opacity:0}10%{opacity:.6}50%{transform:translateX(92cqw);opacity:.75}90%{opacity:.5}100%{transform:translateX(0);opacity:0}}',
-      '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid,.cd-direct-payment-method-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
+      '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid,.cd-direct-payment-method-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-reward{gap:8px;margin-top:9px;padding:9px 10px}.cd-direct-payment-reward__title{font-size:12px!important}.cd-direct-payment-reward__detail{font-size:11px!important}.cd-direct-payment-legal{font-size:10.5px}}',
       '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}.cd-direct-payment-option.is-loading::after{animation:none!important;transform:none;opacity:.75}}'
   ];
   var RETURN_KEY = "cd_checkout_return_v1";
@@ -704,10 +713,14 @@
    *
    * spec 필드: allow(false면 빈 문자열) · dataMode · extraDataAttrs(예: ' data-monthly-option disabled
    * aria-disabled="true"') · extraClass(예: ' is-store') · ariaLabel(있으면 escape 후 부착) · glyph
-   * (이모지) · badgeLabel(escape 대상) · titleHtml/descHtml(호출부가 이미 조립·이스케이프한 HTML) ·
+   * (이모지; 월정석은 공통 SVG로 대체) · badgeLabel(escape 대상) · titleHtml/descHtml(호출부가 이미 조립·이스케이프한 HTML) ·
    * descAttr(예: ' data-monthly-hint') · afterHtml(카드 형제로 붙는 조각 — <button> 중첩 금지라 월정석
-   * 잔량 확인 버튼이 여기로 온다).
+   * 잔량 확인 버튼이 여기로 온다) · rewardHtml(월정석 보상 안내; 호출부가 이스케이프한 HTML).
    */
+  function buildMoonstoneIconHtml() {
+    return '<svg class="cd-direct-payment-moonstone-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.7 3.3a8.8 8.8 0 1 0 5 15.9A8 8 0 1 1 15.7 3.3Z"></path><path d="m17.4 6.4.5 1.2 1.2.5-1.2.5-.5 1.2-.5-1.2-1.2-.5 1.2-.5.5-1.2Z"></path></svg>';
+  }
+
   function buildPaymentChoiceOptionHtml(option, spec, ctx) {
     if (!spec || spec.allow === false) return "";
     var escape = ctx.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
@@ -720,13 +733,19 @@
       ? '<span class="cd-direct-payment-go">' + escape(ctx.goLabel) + "</span>"
       : "";
     var ariaAttr = spec.ariaLabel ? ' aria-label="' + escape(spec.ariaLabel) + '"' : "";
+    var glyphHtml = option === "monthly" ? buildMoonstoneIconHtml() : escape(spec.glyph);
+    var rewardHtml = spec.rewardHtml
+      ? '<span class="cd-direct-payment-reward" data-monthly-reward-info><span class="cd-direct-payment-reward__mark" aria-hidden="true">'
+        + '<img class="cd-direct-payment-reward__mascot" src="/assets/mascot/yeoni-moonstone-reward-v1.png" alt="" aria-hidden="true" loading="lazy">' + "</span>" + spec.rewardHtml + "</span>"
+      : "";
     return (
       '<button type="button" class="cd-direct-payment-option' + (spec.extraClass || "") + variantClass
       + '" data-mode="' + spec.dataMode + '"' + (spec.extraDataAttrs || "") + ariaAttr + ">"
       + '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">'
-      + spec.glyph + "</span>" + escape(spec.badgeLabel) + "</span>" + recommendHtml + "</span>"
+      + glyphHtml + "</span>" + escape(spec.badgeLabel) + "</span>" + recommendHtml + "</span>"
       + "<strong>" + spec.titleHtml + "</strong>"
       + '<span class="cd-direct-payment-desc"' + (spec.descAttr || "") + ">" + spec.descHtml + "</span>"
+      + rewardHtml
       + goHtml
       + "</button>"
     );

@@ -1960,6 +1960,11 @@
       "moonSubtitle": "我們會用最方便的方式為你打開。",
       "directTitleLabel": "只買這個內容",
       "monthlyUnit": "活動貨幣",
+      "monthlyReward": {
+        "eyebrow": "使用已獲得的獎勵",
+        "title": "月精石可透過通行證權益、活動/行銷以及已確認的問題回報獎勵獲得。",
+        "detail": "使用已有餘額即可立即開啟，無需額外付款。"
+      },
       "passBuyTitle": "用通行證打開",
       "passChecking": "正在確認你的通行證。",
       "passMissGoStore": "你的通行證無法開啟此內容，正在前往通行證商店。",

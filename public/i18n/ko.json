@@ -1596,6 +1596,11 @@
       "moonSubtitle": "가장 편한 방법으로 열어 드릴게요.",
       "directTitleLabel": "이번 콘텐츠만",
       "monthlyUnit": "이벤트 재화",
+      "monthlyReward": {
+        "eyebrow": "보유 보상으로 이용",
+        "title": "이용권 혜택·이벤트/마케팅·확정된 오류 제보 보상으로 받을 수 있어요.",
+        "detail": "보유분으로 열면 추가 결제 없이 바로 이용할 수 있어요."
+      },
       "passBuyTitle": "이용권으로 열기",
       "passChecking": "이용권을 확인하고 있습니다.",
       "passMissGoStore": "보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.",

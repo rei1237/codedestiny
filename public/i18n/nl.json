@@ -1960,6 +1960,11 @@
       "moonSubtitle": "We openen het op de makkelijkste manier voor je.",
       "directTitleLabel": "Alleen deze content",
       "monthlyUnit": "eventvaluta",
+      "monthlyReward": {
+        "eyebrow": "GEBRUIK JE BESCHIKBARE BELONINGEN",
+        "title": "Maanstenen kunnen komen uit pasvoordelen, evenementen of marketing en bevestigde bugmeldingen.",
+        "detail": "Gebruik je saldo om dit direct te openen zonder extra betaling."
+      },
       "passBuyTitle": "Openen met een pas",
       "passChecking": "Je pas wordt gecontroleerd…",
       "passMissGoStore": "Je pas dekt dit niet, we brengen je naar de paswinkel.",

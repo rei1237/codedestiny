@@ -1960,6 +1960,11 @@
       "moonSubtitle": "Chúng tôi sẽ mở theo cách tiện nhất cho bạn.",
       "directTitleLabel": "Chỉ nội dung này",
       "monthlyUnit": "tiền sự kiện",
+      "monthlyReward": {
+        "eyebrow": "DÙNG PHẦN THƯỞNG HIỆN CÓ",
+        "title": "Đá nguyệt quang có thể đến từ quyền lợi thẻ, sự kiện hoặc tiếp thị và báo lỗi đã được xác nhận.",
+        "detail": "Dùng số dư hiện có để mở ngay mà không cần thanh toán thêm."
+      },
       "passBuyTitle": "Mở bằng vé",
       "passChecking": "Đang kiểm tra vé của bạn…",
       "passMissGoStore": "Vé của bạn không bao gồm mục này, chúng tôi sẽ đưa bạn đến cửa hàng vé.",

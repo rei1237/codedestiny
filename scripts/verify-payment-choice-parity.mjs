@@ -151,6 +151,8 @@ const BUILDER_MARKERS = [
   // 이건 소스 grep 으로는 절대 볼 수 없다(그래서 옛 배열이 조용히 죽었다).
   'data-mode="monthly" data-monthly-option',
   "data-monthly-hint",
+  "data-monthly-reward-info",
+  "cd-direct-payment-moonstone-icon",
   // 단건결제 2단계(결제수단 고르기). data-mode 가 **아닌** 훅이어야 한다 —
   // [data-mode] 는 "고르면 모달을 닫는" 노드다(붙이면 수단 선택이 창을 닫는다).
   "cd-direct-payment-method-grid",
@@ -255,7 +257,11 @@ const renderedSkeleton = (() => {
       pass: card("pass-store", { extraClass: " is-store" }),
       direct: card("direct"),
       // 렌더러 셋이 실제로 넘기는 형태 그대로 — 이 두 조각이 붙어야 쪼개진 마커가 재조립된다.
-      monthly: card("monthly", { extraDataAttrs: " data-monthly-option", descAttr: " data-monthly-hint" }),
+      monthly: card("monthly", {
+        extraDataAttrs: " data-monthly-option",
+        descAttr: " data-monthly-hint",
+        rewardHtml: '<span class="cd-direct-payment-reward__copy">reward</span>',
+      }),
     },
   }) + checkoutEntry.buildDirectPayMethodStepHtml({ escape })
     // 정책 링크 줄도 같은 묶음으로 본다 — 렌더 결과로 봐야 링크 누락과 [data-mode] 혼입을 잡는다.
@@ -523,6 +529,9 @@ const REQUIRED_ALL = [
   "payment.directModal.monthlyHint.use",
   "payment.directModal.monthlyHint.checking",
   "payment.directModal.monthlyHint.insufficient",
+  "payment.directModal.monthlyReward.eyebrow",
+  "payment.directModal.monthlyReward.title",
+  "payment.directModal.monthlyReward.detail",
   "payment.directModal.currentMonthly",
   // 잔량 문구 키(monthlyBalance.*)는 2026-08-12 에 자동 조회와 함께 사라졌다가, 2026-08-13 에
   // **온디맨드 확인 버튼** 용도로 돌아왔다. 열 때가 아니라 누를 때만 쓰이는 문구다.

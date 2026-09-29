@@ -1960,6 +1960,11 @@
       "moonSubtitle": "Lo abriremos de la forma más cómoda para ti.",
       "directTitleLabel": "Solo este contenido",
       "monthlyUnit": "moneda de evento",
+      "monthlyReward": {
+        "eyebrow": "USA TUS RECOMPENSAS DISPONIBLES",
+        "title": "Las piedras lunares pueden recibirse por beneficios del pase, eventos o marketing y reportes de errores confirmados.",
+        "detail": "Usa tu saldo para abrirlo de inmediato sin pago adicional."
+      },
       "passBuyTitle": "Abrir con un pase",
       "passChecking": "Comprobando tu pase…",
       "passMissGoStore": "Tu pase no cubre esto, te llevamos a la tienda de pases.",

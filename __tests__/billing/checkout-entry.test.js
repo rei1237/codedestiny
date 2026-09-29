@@ -166,6 +166,28 @@ describe("buildPaymentChoiceCardsHtml", () => {
     expect(html).toContain("data-monthly-hint");
     expect(html).toContain("<button data-monthly-balance-check></button>");
   });
+
+  it("월정석 카드에는 접근성 트리에서 제외한 SVG와 보상 안내를 함께 그린다", () => {
+    const html = checkoutEntry.buildPaymentChoiceCardsHtml({
+      ...baseCtx,
+      order: ["monthly"],
+      cards: {
+        monthly: {
+          allow: true,
+          dataMode: "monthly",
+          glyph: "🌙",
+          badgeLabel: "월정석",
+          titleHtml: "월정석으로 열기",
+          descHtml: "추가 지출이 없어요.",
+          rewardHtml: '<span class="cd-direct-payment-reward__copy">보유 보상으로 이용</span>',
+        },
+      },
+    });
+    expect(html).toContain('data-monthly-reward-info');
+    expect(html).toContain('class="cd-direct-payment-moonstone-icon"');
+    expect(html).toContain('aria-hidden="true" focusable="false"');
+    expect(html).not.toContain('>🌙</span>월정석');
+  });
 });
 
 describe("buildPassStoreUrl", () => {

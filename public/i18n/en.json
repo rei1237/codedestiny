@@ -1960,6 +1960,11 @@
       "moonSubtitle": "We'll open it the easiest way for you.",
       "directTitleLabel": "Just this content",
       "monthlyUnit": "event currency",
+      "monthlyReward": {
+        "eyebrow": "USE YOUR SAVED REWARDS",
+        "title": "Moonstones can come from pass benefits, events or marketing, and confirmed bug reports.",
+        "detail": "Use what you have to open this right away with no extra payment."
+      },
       "passBuyTitle": "Open with a pass",
       "passChecking": "Checking your pass…",
       "passMissGoStore": "Your pass does not cover this, so we're taking you to the pass shop.",

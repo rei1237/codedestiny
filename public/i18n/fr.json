@@ -1960,6 +1960,11 @@
       "moonSubtitle": "Nous l'ouvrirons de la façon la plus simple pour vous.",
       "directTitleLabel": "Ce contenu uniquement",
       "monthlyUnit": "monnaie d'événement",
+      "monthlyReward": {
+        "eyebrow": "UTILISER VOS RÉCOMPENSES DISPONIBLES",
+        "title": "Les pierres de lune peuvent venir des avantages du pass, d'événements ou du marketing, et de signalements confirmés.",
+        "detail": "Utilisez votre solde pour ouvrir ce contenu immédiatement, sans paiement supplémentaire."
+      },
       "passBuyTitle": "Ouvrir avec un pass",
       "passChecking": "Vérification de votre pass…",
       "passMissGoStore": "Votre pass ne couvre pas ce contenu, direction la boutique de pass.",

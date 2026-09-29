@@ -1960,6 +1960,11 @@
       "moonSubtitle": "我们会用最方便的方式为你打开。",
       "directTitleLabel": "只买这个内容",
       "monthlyUnit": "活动货币",
+      "monthlyReward": {
+        "eyebrow": "使用已获得的奖励",
+        "title": "月精石可通过通行证权益、活动/营销以及已确认的问题报告奖励获得。",
+        "detail": "使用已有余额即可立即打开，无需额外支付。"
+      },
       "passBuyTitle": "用通行证打开",
       "passChecking": "正在确认你的通行证。",
       "passMissGoStore": "你的通行证无法开启此内容，正在前往通行证商店。",
