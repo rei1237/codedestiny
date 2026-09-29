@@ -234,10 +234,8 @@ await check("requestPayment 가 실패해도 __cdSuppressPaymentUnloadBlock 이 
   assertEqual(window.__cdSuppressPaymentUnloadBlock, false, "억제 플래그가 켜진 채로 남으면 안 된다");
 });
 
-/* ④ 중복 paymentId → confirm 422 → 새 키로 1회 재시도 ──────────────────────────────
-   422 는 PG 가 "그 주문은 결제되지 않았다"고 확정한 것이라(worker/payments/pg.js) 돈이 나가지
-   않았음이 확실하다. 이 갈래가 셸에만 있어서 독립 정적·App Router 는 자력 복구가 불가능했다. */
-await check("중복 paymentId 뒤 confirm 422 이면 새 키로 1회 재시도한다", async () => {
+/* ④ 중복 paymentId → 서버에서 확인한 PG 실패 → 새 키로 1회 재시도 */
+await check("중복 paymentId 뒤 PG_PAYMENT_FAILED 422 이면 새 키로 1회 재시도한다", async () => {
   let confirmSeen = 0;
   const { window, calls } = bootRuntime({
     routes: {
@@ -245,7 +243,7 @@ await check("중복 paymentId 뒤 confirm 422 이면 새 키로 1회 재시도�
       "/api/billing/confirm": () => {
         confirmSeen += 1;
         return confirmSeen === 1
-          ? jsonResponse(422, { ok: false, code: "PG_PAYMENT_NOT_PAID", message: "결제되지 않은 주문입니다." })
+          ? jsonResponse(422, { ok: false, code: "PG_PAYMENT_FAILED", message: "PG 실패가 확인된 주문입니다." })
           : jsonResponse(200, { ok: true, data: {} });
       },
     },
@@ -265,6 +263,23 @@ await check("중복 paymentId 뒤 confirm 422 이면 새 키로 1회 재시도�
   if (!/:r[0-9a-z]+$/.test(keys[1])) throw new Error(`재시도가 새 ':r' 키를 써야 한다(실제 ${keys[1]})`);
   if (keys[1] === keys[0]) throw new Error("재시도가 같은 키를 재사용했다 — 같은 주문·같은 paymentId 가 된다");
 });
+
+for (const [code,status] of [["PG_PAYMENT_NOT_PAID",409],["PG_UNAVAILABLE",503],["AMOUNT_MISMATCH",422]]) {
+  await check(`${code}는 새 결제창을 열지 않고 원래 상태를 돌려준다`, async () => {
+    let sdkCalls=0;
+    const {window,calls}=bootRuntime({
+      routes:{
+        "/api/billing/checkout":()=>jsonResponse(200,{ok:true,data:{order:ORDER}}),
+        "/api/billing/confirm":()=>jsonResponse(status,{ok:false,code,message:"fixture"}),
+      },
+      portOne:{requestPayment:async()=>{sdkCalls++;return {code:"ALREADY_PAID"};}},
+    });
+    let failure;await runCheckout(window).catch(error=>{failure=error;});await flush(80);
+    assertEqual(checkoutCalls(calls).length,1,"확인 실패는 새 주문을 만들지 않는다");
+    assertEqual(sdkCalls,1,"두 번째 SDK 창을 열지 않는다");
+    assertEqual(failure?.code,code,"확인 상태가 UI까지 보존된다");
+  });
+}
 
 /* ⑤ 409 IDEMPOTENCY_CONFLICT 는 새 키 1회 재시도로 풀린다 ─────────────────────────
    서버가 이제 409 를 거의 내지 않지만(worker/payments/orders.js createPayableOrder), 세대 소진

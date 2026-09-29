@@ -53,7 +53,7 @@
      (플레이스홀더가 배포돼도 안전하다). 공개 식별자라 소스에 그대로 두어도 된다.
      Next 라우트는 app/layout.js 가 NEXT_PUBLIC_GA_MEASUREMENT_ID 로 같은 전역을 주입한다. -->
       <script>window.__CD_GA_ID = "";</script>
-      <script src="/js/core/analytics.js?v=build-b1d3248c76ef" defer></script>
+      <script src="/js/core/analytics.js?v=build-8f363ab036cd" defer></script>
       <script>
         window.tailwind = window.tailwind || {};
         tailwind.config = {
@@ -947,7 +947,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta property="og:description" content="四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。">
 <meta property="og:url" content="https://code-destiny.com/ja/">
 <meta property="og:locale" content="ja_JP">
-<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e65c21866c12">
+<meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0cf756b84608">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
@@ -956,7 +956,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="無料 四柱推命・タロット・紫微斗数・相性占い | CODE DESTINY">
 <meta name="twitter:description" content="四柱推命、紫微斗数、宿曜占星術、タロットから自分の傾向と選択を見つめる占いサービス。公開解説とAI鑑定の違い、各機能の利用条件をご案内します。">
-<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e65c21866c12">
+<meta name="twitter:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0cf756b84608">
 <meta name="twitter:image:alt" content="ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード">
 <script type="application/ld+json">
 {
@@ -5475,6 +5475,35 @@ html:is(:lang(ja), :lang(zh)) .cdh :is(h1, h2, h3, p) {
 /* 2026-09-24 연이의 꽃정원 — 큰 CTA 하나 + 연이 안내 + 이용권 + 접힌 "더 둘러보기" + 한 줄 버그 제보 */
 .cdh-primary{box-shadow:0 12px 26px color-mix(in srgb,var(--cdh-accent) 26%,transparent)}
 .cdh-textlink{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 6px;color:var(--cdh-accent)!important;font-size:.9rem;font-weight:760;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
+.cdh-yn-portal{position:relative;isolation:isolate;display:grid;grid-template-columns:58px minmax(0,1fr);align-items:center;gap:12px;width:min(100%,390px);min-height:76px;padding:10px 12px;overflow:hidden;border:1px solid color-mix(in srgb,var(--cdh-gold) 42%,var(--cdh-line));border-radius:18px;background:radial-gradient(circle at 42px 34px,color-mix(in srgb,#fff8dd 84%,transparent),transparent 54px),linear-gradient(135deg,color-mix(in srgb,var(--cdh-card) 90%,#fff8d8),var(--cdh-surface));box-shadow:0 14px 32px color-mix(in srgb,var(--cdh-accent) 14%,transparent),inset 0 1px #ffffffb8;color:var(--cdh-ink)!important;text-decoration:none;transform:translateZ(0)}
+.cdh-yn-portal:before,.cdh-yn-portal:after{content:"";position:absolute;pointer-events:none}
+.cdh-yn-portal:before{inset:-60px -44px auto auto;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--cdh-gold) 34%,transparent),transparent 66%);opacity:.75}
+.cdh-yn-portal:after{inset:0;background:radial-gradient(circle at 76% 22%,#fff 0 1px,transparent 2px),radial-gradient(circle at 88% 68%,#fff8c7 0 1px,transparent 2px),radial-gradient(circle at 52% 74%,#fff 0 1px,transparent 2px);opacity:.68;mix-blend-mode:screen}
+.cdh-yn-portal:hover{border-color:color-mix(in srgb,var(--cdh-gold) 72%,var(--cdh-accent));box-shadow:0 18px 38px color-mix(in srgb,var(--cdh-accent) 20%,transparent),inset 0 1px #fff}
+.cdh-yn-portal:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:4px}
+.cdh-yn-portal__door{position:relative;z-index:1;display:grid;place-items:center;width:58px;height:58px;border-radius:18px;background:linear-gradient(145deg,#27173e,#6440a0);box-shadow:inset 0 0 0 1px #ffffff30,0 10px 22px #4d2a7e38;overflow:hidden}
+.cdh-yn-portal__ring{position:absolute;inset:6px;border:1px solid #f7df95;border-radius:45% 45% 50% 50%;box-shadow:0 0 18px #f7df9599,inset 0 0 14px #ffffff38}
+.cdh-yn-portal__door img{position:relative;z-index:1;width:43px;height:43px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 5px 8px #10081a66)}
+.cdh-yn-portal__copy{position:relative;z-index:1;display:grid;gap:2px;min-width:0}
+.cdh-yn-portal__copy strong{color:var(--cdh-ink);font-size:.88rem;font-weight:840;line-height:1.38;word-break:keep-all}
+.cdh-yn-portal__copy small{color:var(--cdh-muted);font-size:.74rem;font-weight:690;line-height:1.45;word-break:keep-all}
+.cdh-yn-portal__foot{display:inline-flex;align-items:center;width:max-content;max-width:100%;min-height:26px;margin-top:3px;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--cdh-gold-soft) 78%,#fff);color:#6c471c;font-size:.7rem;font-weight:820;line-height:1.35;white-space:normal}
+.cdh-yn-portal.is-entering .cdh-yn-portal__ring{animation:cdYnPortalRing .72s cubic-bezier(.16,1,.3,1) both}
+.cdh-yn-portal.is-entering .cdh-yn-portal__door img{animation:cdYnPortalAvatar .72s cubic-bezier(.16,1,.3,1) both}
+html.cd-yn-portal-active body:has(#cdHomeFunnel) #cdHomeFunnel{transform:scale(.985);filter:brightness(.82);transition:transform .72s cubic-bezier(.16,1,.3,1),filter .72s cubic-bezier(.16,1,.3,1)}
+.cd-yn-portal-overlay{position:fixed;z-index:2147482600;inset:0;display:grid;place-items:center;pointer-events:none;background:rgba(20,11,38,.28);opacity:0;animation:cdYnPortalOverlay .72s cubic-bezier(.16,1,.3,1) forwards}
+.cd-yn-portal-overlay__door{width:30vmin;height:30vmin;min-width:120px;min-height:120px;border-radius:45% 45% 50% 50%;background:radial-gradient(circle,#fff8d2 0 9%,#d9c5ff 23%,#5c3b96 42%,#12071e 68%);box-shadow:0 0 42px #fff0a6,0 0 96px #9b79ff;transform:scale(.28)}
+html.neo-mode .cdh-yn-portal,body.neo-mode .cdh-yn-portal{border-color:#e8d5a352;background:radial-gradient(circle at 42px 34px,rgba(232,213,163,.26),transparent 54px),linear-gradient(135deg,#211931,#100d22);box-shadow:0 16px 34px #0000004f,inset 0 1px #ffffff18;color:#f4eeff!important}
+html.neo-mode .cdh-yn-portal__copy strong,body.neo-mode .cdh-yn-portal__copy strong{color:#f4eeff}
+html.neo-mode .cdh-yn-portal__copy small,body.neo-mode .cdh-yn-portal__copy small{color:#d8c8ea}
+html.neo-mode .cdh-yn-portal__foot,body.neo-mode .cdh-yn-portal__foot{background:#2f2647;color:#f2d99d}
+html.neo-mode .cdh-yn-portal__door,body.neo-mode .cdh-yn-portal__door{background:linear-gradient(145deg,#0d0920,#3a2b61)}
+@keyframes cdYnPortalRing{0%{transform:scale(1);opacity:.8}45%{transform:scale(.72);opacity:1}100%{transform:scale(2.4);opacity:0}}
+@keyframes cdYnPortalAvatar{0%{transform:scale(1);opacity:1}70%{transform:scale(.82);opacity:.9}100%{transform:scale(.18);opacity:0}}
+@keyframes cdYnPortalOverlay{0%{opacity:0}24%{opacity:1}100%{opacity:1;background:#0b0615}}
+@media (max-width: 640px){.cdh-actions .cdh-yn-portal{width:100%;grid-template-columns:48px minmax(0,1fr);min-height:68px;padding:8px 10px}.cdh-yn-portal__door{width:48px;height:48px;border-radius:15px}.cdh-yn-portal__door img{width:36px;height:36px}.cdh-yn-portal__copy strong{font-size:.82rem}.cdh-yn-portal__copy small{font-size:.7rem}.cdh-yn-portal__foot{font-size:.67rem}}
+@media (max-width: 640px){.cdh-copy>nav.cdh-actions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.cdh-copy>nav.cdh-actions .cdh-textlink{justify-content:flex-start;align-items:center;min-height:42px;padding:8px 10px;border:1px solid var(--cdh-line);border-radius:12px;background:color-mix(in srgb,var(--cdh-card) 78%,transparent);font-size:.76rem;line-height:1.4;text-decoration:none}.cdh-copy>nav.cdh-actions+.cdh-actions{gap:6px;margin-top:16px}}
+@media (prefers-reduced-motion: reduce){.cdh-yn-portal.is-entering .cdh-yn-portal__ring,.cdh-yn-portal.is-entering .cdh-yn-portal__door img,.cd-yn-portal-overlay{animation:none!important}.cd-yn-portal-overlay{opacity:1;background:rgba(10,6,21,.22)}html.cd-yn-portal-active body:has(#cdHomeFunnel) #cdHomeFunnel{transform:none;filter:none;transition:none}}
 .cdh-bubble{position:absolute;z-index:4;top:4%;left:0;max-width:min(230px,56%);padding:12px 15px;border:1px solid var(--cdh-line);border-radius:20px 20px 4px 20px;background:var(--cdh-card);color:var(--cdh-ink);font:inherit;font-size:.86rem;font-weight:700;line-height:1.55;text-align:left;word-break:keep-all;box-shadow:0 12px 28px #8d356224;transform:rotate(-2deg);cursor:pointer}
 .cdh-bubble:hover{border-color:var(--cdh-accent)}
 .cdh-garden>img{cursor:pointer}
@@ -9358,7 +9387,17 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
       </nav>
       <div class="cdh-actions">
         <a class="cdh-primary" href="/today/#daily-tarot" data-cd-business-entry="daily" data-cd-trans="home.business.daily">연이와 무료 세 장 펼치기</a>
-        <a class="cdh-textlink" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-business-entry="paid"><span data-cd-trans="home.business.paid">영냥이 사주 살펴보기</span> <span data-cd-price="yeongnyangi-saju-mackerel">1,000원</span> <span aria-hidden="true">↗</span></a>
+        <a class="cdh-yn-portal" href="/yeongnyangi/fortune/?product=saju_mackerel" data-cd-business-entry="paid" data-cd-portal-link data-cd-portal-placement="home_hero" aria-label="영냥이의 달빛 점술방으로 이동, 사주 고등어 상담 1,000원부터">
+          <span class="cdh-yn-portal__door" aria-hidden="true">
+            <span class="cdh-yn-portal__ring"></span>
+            <img src="/assets/yeongnyangi/original/avatar.webp" alt="" width="160" height="160" loading="lazy" decoding="async">
+          </span>
+          <span class="cdh-yn-portal__copy">
+            <strong>연이의 정원 너머, 영냥이의 달빛 점술방</strong>
+            <small>지금 마음에 걸리는 질문 하나를 꺼내볼까요?</small>
+            <span class="cdh-yn-portal__foot"><span data-cd-price="yeongnyangi-saju-mackerel">1,000원</span>부터 · 사주 고등어 상담 준비하기</span>
+          </span>
+        </a>
       </div>
     </div>
     <div class="cdh-garden">
@@ -17083,7 +17122,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
                 <!-- 핀란드 주석점 -->
                 <a class="tarot-tile tarot-tile--sikojen-fc" href="/oracle/sikojen-povailu/"
                    aria-label="핀란드 주석점 시작" data-cd-trans-attr="aria-label:home.tiles.sikojenAria">
-                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-e65c21866c12" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
+                  <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-0cf756b84608" data-img-alt="핀란드 돼지 주석점 — 연이와 주석 그림자 의식" data-cd-trans-attr="data-img-alt:home.tiles.sikojenAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🐷</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
                     <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
@@ -20688,7 +20727,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      DCL 이고, 하는 일은 첫 페인트가 아니라 프로필 카드 강화다. high 로 두면 그 다운로드가 LCP
      히어로 이미지 preload 와 같은 우선순위 슬롯을 놓고 경쟁해 LCP 를 늦춘다. low 도 쓰지 않는다 —
      DCL 이 defer 실행을 기다리므로 지나치게 내리면 DCL 자체가 밀린다. 기본값이 맞다. -->
-<script defer src="/js/destiny-profile.js?v=build-ff0c8914bec8" data-marker="profile-card-date-input-v20260624"></script>
+<script defer src="/js/destiny-profile.js?v=build-d5ff02b0861f" data-marker="profile-card-date-input-v20260624"></script>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4bc5b80fb7f9" data-marker="fortune-gateway-v1"></script>
@@ -20698,13 +20737,13 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-7721a84c04d7" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-54e2e7249e70" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/core/home-funnel.js?v=build-c1e51c0bbb78"></script>
+<script defer src="/js/core/home-funnel.js?v=build-8ce17cd71a7c"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-bd7fb164057b" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/basicFortunePresentation.js?v=build-3104af6b29a2" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-ba2380db1771" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
-<script defer src="/js/core/index-inline-runtime.js?v=build-111ce195390a" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
+<script defer src="/js/core/index-inline-runtime.js?v=build-3f0c24729e1c" data-cd-saju-prompt-marker="saju-ai-consultation-flow-v20260706 saju-ai-calibration-v20260706 saju-ai-llm-result-v20260625 sukuyo-guardian-drawing-v20260625 sukuyo-pastlife-v2-20260621" data-cd-kemet-ai-prompt-marker="kemet-ai-prompt-generator-v20260619"></script>
 <script defer src="/js/pwa-install-prompt.js?v=build-a2fe793e0b11"></script>
 <script data-cd-lazy-src="/js/admin-flower.js" data-cd-mobile-delay="2"></script>
 <div class="share-toast" id="shareToast"></div>
@@ -20830,7 +20869,7 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
             content: {
               title: tr('kakaoReferral.kakaoTitle', 'Code Destiny 별빛 운세 초대'),
               description: tr('kakaoReferral.kakaoDescription', '이 카카오 공유 링크로 친구를 초대할 수 있어요.'),
-              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-e65c21866c12',
+              imageUrl: 'https://code-destiny.com/og/code-destiny-og-vvip.png?v=build-0cf756b84608',
               link: { mobileWebUrl: shareUrl, webUrl: shareUrl }
             },
             buttons: [
@@ -23840,11 +23879,10 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
     });
     if (!confirmRes.ok) {
       var confirmMessage = (confirmRes.payload && (confirmRes.payload.message || (confirmRes.payload.error && confirmRes.payload.error.message))) || '결제 검증에 실패했습니다.';
-      // 🔴 중복 결제 폴백에서 받은 422 = PG 가 "그 주문은 결제되지 않았다"고 확정한 것이다
-      // (worker/payments/pg.js 의 PG_PAYMENT_NOT_PAID — 서버가 주문을 FAILED 로 닫는다).
-      // 돈이 나가지 않았음이 확정된 이 경우에만 새 키로 1회 재시도해 "몇 번을 눌러도 결제창이
-      // 안 뜨는" 갇힘을 푼다. 503(PG 미도달)은 결제 여부를 모르므로 새 주문을 만들지 않는다.
-      if (_cdDuplicateConfirmFallback && Number(confirmRes.status) === 422) {
+      // 서버가 확인한 PG 실패·취소만 새 키로 1회 재시도한다.
+      // 미확정·조회 장애·금액 불일치는 새 결제를 열지 않는다.
+      var confirmCode = String((confirmRes.payload && (confirmRes.payload.code || (confirmRes.payload.error && confirmRes.payload.error.code))) || '').toUpperCase();
+      if (_cdDuplicateConfirmFallback && Number(confirmRes.status) === 422 && ['PG_PAYMENT_FAILED', 'PG_PAYMENT_CANCELLED'].indexOf(confirmCode) >= 0) {
         try { if (window.console) console.warn('[direct-checkout] 기존 주문은 미결제로 확정됨 — 새 키로 1회 재시도합니다'); } catch (_) {}
         var _cdRetryKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '') + ':r' + Date.now().toString(36);
         return await (window._cdRunDirectKrwCheckout || _cdRunDirectKrwCheckout)(Object.assign({}, opts, {
@@ -23854,7 +23892,10 @@ html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fus
           __cdDirectPaymentChoiceConfirmed: true
         }));
       }
-      throw new Error(confirmMessage);
+      var confirmError = new Error(confirmMessage);
+      confirmError.code = confirmCode;
+      confirmError.status = Number(confirmRes.status || 0);
+      throw confirmError;
     }
     // 🔴 202 PENDING_CONFIRMATION(카드 승인 완료·지급 마무리만 남음, 웹훅·10분 크론이 마무리)을
     // 아래 일반 실패 문구로 세탁하면 안 된다 — "결제가 완료되지 않았어요"는 재결제를 유도해
@@ -33785,7 +33826,7 @@ function updateBadge() {
 <!-- jsPDF removed from initial bundle; load on demand only if a feature requires it -->
 <script data-cd-noncritical-src="/js/sibyl-system.js?v=build-17f27a22f2a0" data-cd-mobile-delay="2" data-cd-lowend-skip="1"></script>
 <script src="/js/cd-lazy-feature-loader.js" defer></script>
-<script type="module" src="/js/app.js?v=build-de26d22ed2d3"></script>
+<script type="module" src="/js/app.js?v=build-aa0d32f254d7"></script>
 <!-- Feature Preview Panel v2 -->
 <template id="tilePvwOverlayTemplate" data-component="MobileFeatureBottomSheetTemplate">
 <div id="tilePvwOverlay" class="tile-pvw-overlay cd-detail-overlay MobileFeatureBottomSheet" data-cd-detail-overlay="" data-component="MobileFeatureBottomSheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tilePvwTitle" data-marker="main-overlay-dedupe-v20260625 mobile-feature-bottom-sheet-v20260701 feature-marketing-detail-v20260702">
@@ -34209,7 +34250,7 @@ function updateBadge() {
 (function(){
   'use strict';
   var D={
-    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-e65c21866c12',fallbackCta:'운명 카드 만들기'},
+    '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-0cf756b84608',fallbackCta:'운명 카드 만들기'},
     gotoZiweiPremium:{cat:'프리미엄 · 자미두수 전문가 상담',fallbackTitle:'자미두수 전문가 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · 전문가 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     openNamingPromptModal:{cat:'작명 · 전문가 상담',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 조건을 바탕으로 용신·소리오행·한자 의미·수리 풀이를 종합해 전문가가 직접 이름을 짓고, 그 결과를 만든 프롬프트 원문까지 함께 드립니다.',feats:['입력과 무료 초안 추천은 무료로 열립니다','프리미엄 작명 시작 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리를 종합한 완성형 결과 제공','결제 검증 후 전문가 작명 결과와 PDF 저장, 생성에 사용된 프롬프트 원문까지 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'작명 시작하기'},
@@ -34254,7 +34295,7 @@ function updateBadge() {
     openRuneOracle:{cat:'스톤헨지 · 룬 오라클',fallbackTitle:'ᚠ 스톤헨지 룬 오라클',tagline:'바이킹 전사들이 전투 전날 뽑았던 그 룬 — 오늘 내린 결정이 맞는지 룬 문자가 답합니다',feats:['고대 퓨사크 24룬 완전 정통 해석','정방향·역방향 모든 상황 적용','지금 직면한 결정에 룬이 구체적으로 답함','켈트 전통 스톤헨지 의식 감성 비주얼'],cost:'5,000원',ct:'paid',img:'/fuctionassets/rune.webp'},
     openGeomancyOracle:{cat:'지오맨시 · 흙점',fallbackTitle:'⟁ 지오맨시 흙점',tagline:'아라비아 왕국의 재상들이 국가 대사를 결정할 때 쓴 대지의 신탁 — 16행 점이 오늘 방향을 알려줍니다',feats:['중동·아프리카 4000년 전통 흙점 완전 분석','16개 점 패턴으로 보는 오늘 내가 해야 할 것','돈·사랑·진로 중 지금 집중해야 할 방향 파악','감성적 사막 아트 비주얼 리딩'],cost:'5,000원',ct:'paid',img:'/fuctionassets/geomancy.webp'},
     openRoyalTeaOracle:{cat:'영국 홍차점 · 타세오그래피',fallbackTitle:'🫖 영국 홍차점',tagline:'빅토리아 여왕도 중요한 결정 전에 찻잎의 징조를 살폈습니다 — 왕실의 찻잎 문양이 오늘의 운명을 전합니다',feats:['영국 왕실 전통 타세오그래피 의식 완전 체험','찻잎 형태 20가지 상징 심층 해독 & 적용','오늘 내가 반드시 알아야 할 운명의 메시지','빅토리아 시대 감성 왕실 리포트'],cost:'3,000원',ct:'paid',img:'/fuctionassets/london.webp'},
-    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-e65c21866c12'},
+    '/oracle/sikojen-povailu':{cat:'핀란드 주석점 · 북유럽 새해 의식',fallbackTitle:'🐷 핀란드 돼지 주석점',tagline:'작은 돼지 연이가 반짝이는 주석 그림자를 따라 올해의 행운, 사랑, 돈의 징조를 부드럽게 전해줍니다.',feats:['녹은 주석이 물에 닿는 순간 피어나는 새해 징조 리딩','귀여운 돼지 연이와 함께 고르는 금전·연애·행운 주머니','주석 형상과 그림자 메시지로 보는 겉운과 속마음의 흐름','결과를 예쁜 의식 카드처럼 확인하고 바로 공유 가능'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/핀란드%20돼지%20주석점.webp?v=build-0cf756b84608'},
     '/destiny-poker.html':{cat:'데스티니 포커',fallbackTitle:'🃏 데스티니 포커',tagline:'신과의 카드 대결에서 이기면 행운이 찾아옵니다 — 올림푸스 신들과 운명을 건 포커 한 판',feats:['5장 포커로 신과 벌이는 운명 대결 게임','제우스·아테나·포세이돈·헤르메스 4신 배틀','오늘 내 승률이 바로 오늘의 운세 지수','완전 무료 엔터테인먼트 점술 게임'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/destiny%20pocker.webp'},
     openLoveSimulation:{cat:'사주 · 연애 시뮬레이션',fallbackTitle:'💕 LOVE CODE',tagline:'사주 오행으로 이 사람이 내 소울메이트인지 즉시 알 수 있습니다 — 가상 데이트로 찰떡 궁합 직접 확인',feats:['사주 8글자 기반 연애 페르소나 자동 생성','오행 궁합으로 찾는 최고 상성 & 최악 상대 비교','일간별 실시간 채팅으로 연애 케미 직접 체험','8가지 데이트 코스 & 크리티컬 히트 이벤트'],cost:'🔒 잠금 해제 10,000원',ct:'paid',img:'/fuctionassets/love code.webp'},
     openAstroModal:{cat:'점성술 · 기본 출생차트',fallbackTitle:'✨ 서양 점성술 기본 출생차트',tagline:'태양 별자리·달 별자리·상승궁과 MC로 나를 이해하는 5분 기본 리딩입니다.',feats:['출생 정보 신뢰도와 계산 기준 표시','태양 별자리·달 별자리·상승궁 3축 통합 해석','MC·10하우스·6하우스 기반 역할 조건','상대 차트 교차 분석은 시너스트리 궁합으로 확장'],cost:'✨ 기본 무료 · 시너스트리 궁합 3,000원',ct:'free',img:'/fuctionassets/jumsung.webp'},

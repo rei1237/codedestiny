@@ -5461,7 +5461,10 @@
             __cdIdempotencyConflictRetry: true
           }));
         }
-        throw new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
+        var dpCheckoutError = new Error(_dpReadBillingMessage(checkoutRes.payload, '결제 준비에 실패했습니다.'));
+        dpCheckoutError.code = checkoutErrCode;
+        dpCheckoutError.status = Number(checkoutRes.status || 0);
+        throw dpCheckoutError;
       }
 
       var checkoutData = _dpExtractBillingData(checkoutRes.payload);
@@ -5784,13 +5787,10 @@
       }));
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody }, { retryOn401: true, refreshOn401: true });
       if (!confirmRes.ok) {
-        // 🔴 중복 결제 폴백에서 받은 422 = PG 가 "그 주문은 결제되지 않았다"고 확정한 것이다
-        // (worker/payments/pg.js 의 PG_PAYMENT_NOT_PAID — 서버가 주문을 FAILED 로 닫는다).
-        // 돈이 나가지 않았음이 확정된 이 경우에만 새 키로 1회 재시도해 "몇 번을 눌러도 결제창이
-        // 안 뜨는" 갇힘을 푼다. 503(PG 미도달)은 결제 여부를 모르므로 새 주문을 만들지 않는다.
-        // 셸(index.html _cdRunDirectKrwCheckout)과 같은 자리·같은 조건이다 — 이 갈래가 dp 에만
-        // 없어서 독립 정적·App Router 페이지는 같은 상황에서 자력 복구가 불가능했다.
-        if (dpDuplicateConfirm && Number(confirmRes.status) === 422 && opts.__cdDuplicatePaymentRetry !== true) {
+        // 서버가 확인한 PG 실패·취소만 새 키로 1회 재시도한다.
+        // 미확정·조회 장애·금액 불일치는 새 결제를 열지 않는다.
+        var dpConfirmCode = String((confirmRes.payload && (confirmRes.payload.code || (confirmRes.payload.error && confirmRes.payload.error.code))) || '').toUpperCase();
+        if (dpDuplicateConfirm && Number(confirmRes.status) === 422 && ['PG_PAYMENT_FAILED', 'PG_PAYMENT_CANCELLED'].indexOf(dpConfirmCode) >= 0 && opts.__cdDuplicatePaymentRetry !== true) {
           try { if (window.console) console.warn('[dp-direct-checkout] 기존 주문은 미결제로 확정됨 — 새 키로 1회 재시도합니다'); } catch (_dpRetryLogError) {}
           var _dpDuplicateRetryKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '') + ':r' + Date.now().toString(36);
           return await window._cdRunDirectKrwCheckout(Object.assign({}, opts, {
@@ -5799,7 +5799,10 @@
             __cdDuplicatePaymentRetry: true
           }));
         }
-        throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+        var dpConfirmError = new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+        dpConfirmError.code = dpConfirmCode;
+        dpConfirmError.status = Number(confirmRes.status || 0);
+        throw dpConfirmError;
       }
       // 확정됐으니 이제 복귀 티켓을 회수한다.
       _dpClearDirectResumeTicket();

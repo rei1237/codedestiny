@@ -52,12 +52,12 @@ describe("pg: 네 가지 대조", () => {
     );
   });
 
-  test("② 미결제 상태는 PG_PAYMENT_NOT_PAID — ready/failed/cancelled 전부", async () => {
-    for (const status of ["ready", "failed", "cancelled"]) {
+  test("② 확인 중, PG 실패, 취소를 구분한다", async () => {
+    for (const [status,code,http] of [["ready","PG_PAYMENT_NOT_PAID",409],["failed","PG_PAYMENT_FAILED",422],["cancelled","PG_PAYMENT_CANCELLED",422]]) {
       await expectPaymentError(
         () => verifyPgPayment(ENV, OK, { fetchPayment: async () => pgReply({ status }) }),
-        "PG_PAYMENT_NOT_PAID",
-        422,
+        code,
+        http,
       );
     }
   });
@@ -201,7 +201,7 @@ describe("pg: PG 응답의 PII 는 저장 형태로 넘어가지 않는다", () 
     expect(result.summary.rawV2).toBeUndefined();
     // 대조·정산에 필요한 것은 남아 있어야 한다.
     expect(Object.keys(result.summary).sort()).toEqual(
-      ["amount", "channelCheck", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
+      ["amount", "attempt", "channelCheck", "currency", "paidAt", "payMethod", "paymentId", "receiptUrl", "status", "storeIdCheck"],
     );
   });
 });

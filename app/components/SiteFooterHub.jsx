@@ -53,6 +53,8 @@ const POLICY_LINKS = [
   { href: "/insights/", text: "인사이트 아카이브" },
 ];
 
+export { POLICY_LINKS };
+
 export const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),

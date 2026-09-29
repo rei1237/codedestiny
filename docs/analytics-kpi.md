@@ -25,7 +25,7 @@ next: "S1 운영 승격 뒤 셸 경로 UTM 링크 1회(쿠키 동의 후 — Rea
 - `utm_source` = 플랫폼: `instagram` · `threads` · `kakao` · `youtube` · `naver_blog` · `x`.
 - `utm_medium` = 오가닉(게시물·프로필 링크·채널 메뉴)은 `social` — GA4 Organic Social 은 이 매체 값만으로 판정된다. 광고는 `paid_social`(출처가 GA4 소셜 목록에 있으면 Paid Social, 없으면 Paid Other). `channel`·`share`·`post` 는 어떤 기본 채널 규칙에도 맞지 않아 출처에 따라 Unassigned 가 된다([GA4 기본 채널 그룹](https://support.google.com/analytics/answer/9756891)).
 - `utm_campaign` = 시리즈·장치(예: `fortune_month01`, `channel_menu`, `profile_link`), `utm_content` = 게시물·소재(예: `f01_20260924`).
-- 사이트 내부 링크에는 UTM을 달지 않는다(세션 출처를 덮는다). 내부 이동은 `cross_sell_click`·`home_section_click` 으로 본다. 현재 예외 1곳: 셸의 영냥이 진입 버튼 2개(`index.html:20333`, `utm_source=code_destiny&utm_medium=referral`, 테스트가 href 를 고정)는 S1 승격부터 다시 귀속을 덮는다 — 후속 과제.
+- 사이트 내부 링크에는 UTM을 달지 않는다(세션 출처를 덮는다). 내부 이동은 `cross_sell_click`·`home_section_click` 으로 보고, 꿀꿀 운세 첫 화면의 영냥이 포털은 `yeongnyangi_portal_*` 이벤트로 별도 측정한다.
 - 공개 공유 링크의 `utm_medium=share&utm_campaign=public_share` 는 `share_receive` 계약이라 이 규칙으로 바꾸지 않는다.
 - 예: `https://code-destiny.com/today/?utm_source=instagram&utm_medium=social&utm_campaign=fortune_month01&utm_content=f01_20260924`
 
@@ -58,6 +58,7 @@ next: "S1 운영 승격 뒤 셸 경로 UTM 링크 1회(쿠키 동의 후 — Rea
 |---|---|---|---|
 | `page_view` | `gtag("config")` 자동 (`js/core/analytics.js:125`) + 라우트 전환 (`app/providers/NavigationProvider.tsx:175`) | GA4 | `page_path` · `page_location`(경로 + `utm_*` 만) |
 | `home_section_click` | `js/core/analytics.js:272` (앵커 위임) | GA4 | `section`(10종) · `destination` |
+| `yeongnyangi_portal_impression` · `yeongnyangi_portal_click` · `yeongnyangi_portal_arrival` | `js/core/analytics.js` + `js/core/home-funnel.js` | GA4 | `from_service` · `to_service` · `placement` · `destination` · `metric_version` |
 | `cross_sell_click` | `js/core/analytics.js:251` | GA4 | `from_service` · `to_service` |
 | `share_receive` | `js/core/analytics.js:294` | GA4 | `referral_channel` |
 | `retention_visit` | `js/core/analytics.js:315` | GA4 | `days_since_last_visit` |
@@ -99,6 +100,8 @@ next: "S1 운영 승격 뒤 셸 경로 UTM 링크 1회(쿠키 동의 후 — Rea
 |---|---|---|---|
 | 홈 섹션 클릭률 | `home_section_click` ÷ 홈 `page_view` | `section` 10종 | 어느 면이 실제로 이동을 만드는가 — A/B 의 판정 지표 |
 | 섹션 점유 | 섹션별 `home_section_click` ÷ 전체 `home_section_click` | `section` | 홈 구조를 바꿨을 때 클릭이 어디로 옮겨갔나 |
+| 영냥이 포털 클릭률 | `yeongnyangi_portal_click` ÷ `yeongnyangi_portal_impression` | `placement` · 기기 | 꿀꿀 운세 첫 화면의 영냥이 연결이 실제로 발견되고 눌리는가 |
+| 영냥이 포털 도착률 | `yeongnyangi_portal_arrival` ÷ `yeongnyangi_portal_click` | `placement` · 기기 | 포털 전환·라우팅이 사용자를 잃지 않는가 |
 | 무료 체험 완주율 | `free_saju_completed` ÷ `free_saju_started` | `signed_in` | 무료 경로에서 이탈이 나는지 |
 | 결제창 도달률 | `checkout_opened` ÷ `free_saju_completed` | `feature_key` | 무료→유료 다리가 작동하는지 |
 | 결제창 전환율 | `purchase_complete` ÷ `checkout_opened` | `feature_key` · `payment_mode` | 결제창 자체의 설득력 |
