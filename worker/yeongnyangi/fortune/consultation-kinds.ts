@@ -5,18 +5,25 @@ import {FortuneError} from './shared/contracts';
 import {readingManifest, questionFactSelectors} from './reading-manifest';
 import {withReadingSections} from './reading-sections';
 import {READING_V5_VERSION,READING_V6_VERSION} from './reading-policy';
+import {relationshipManifest} from './relationship-manifest';
+import {isRelationshipReading} from './relationship-contract';
+import {tarotConsultations,tarotConsultation,type TarotConsultationId} from './tarot/consultation-contract';
+import {tarotConsultationManifest} from './tarot/consultation-manifest';
 
-export type ConsultationKind = {id:string;label:string;description:string;topic:string;partner?:boolean;professional?:boolean;question?:boolean};
+export type ConsultationKind = {id:string;label:string;description:string;topic:string;partner?:boolean;professional?:boolean;question?:boolean;koOnly?:boolean};
 const ask:ConsultationKind={id:'ask',label:'무엇이든 물어보기',description:'선택한 운세로 궁금한 이야기 살펴보기',topic:'general',question:true};
 const kind=(id:string,label:string,description:string,topic='general',extra:Partial<ConsultationKind>={}):ConsultationKind=>({id,label,description,topic,...extra});
+const compatibility=kind('compatibility','두 사람의 궁합','끌림부터 함께 사는 조건까지','relationship',{partner:true,question:true,koOnly:true});
+const tarotKinds:ConsultationKind[]=(Object.entries(tarotConsultations) as [TarotConsultationId,(typeof tarotConsultations)[TarotConsultationId]][])
+ .map(([id,spec])=>kind(id,spec.label,spec.prompt,spec.topic,{question:true,koOnly:spec.koOnly}));
 // Menus restored from SoulCat src/data/fortune.ts; calculations and purchases stay in Code Destiny.
 export const consultationKinds:Record<string,ConsultationKind[]>={
  saju:[kind('personal','사주 해석','기질과 삶의 바탕'),kind('compatibility','궁합','두 사람의 명식과 관계의 차이','relationship',{partner:true}),kind('timing','대운','현재 대운과 다음 전환','luck',{professional:true}),kind('love','연애와 인연','마음이 움직이는 방식','love'),kind('work','일과 적성','내 힘이 쓰이는 자리','work'),kind('money','재물','쌓고 지키는 습관','money'),ask],
  sukuyo:[kind('personal','본명숙','27숙으로 살펴보는 나의 바탕'),kind('compatibility','두 사람의 궁합','끌림과 거리, 관계의 방향','relationship',{partner:true}),kind('relationship','관계 유지','서로의 속도를 이해하는 법','relationship',{partner:true}),ask],
- vedic:[kind('personal','베다 차트','라그나·달·나크샤트라'),kind('timing','다샤의 시기 흐름','삶의 시기와 변화의 결','luck',{professional:true}),ask],
- astrology:[kind('personal','출생 차트','감정·욕망·관계의 패턴'),kind('work','재능과 일','내가 빛나는 환경','work'),ask],
- ziwei:[kind('personal','명반 해석','삶의 중심과 타고난 결'),kind('money','일과 재물','관록궁·재백궁의 연결','money'),ask],
- tarot:[kind('choice','지금의 선택','원인·과정·결과의 3카드','general',{question:true}),kind('love','사랑과 관계','관계의 흐름을 살피는 6카드','love',{question:true})],
+ vedic:[kind('personal','베다 차트','라그나·달·나크샤트라'),compatibility,kind('timing','다샤의 시기 흐름','삶의 시기와 변화의 결','luck',{professional:true}),ask],
+ astrology:[kind('personal','출생 차트','감정·욕망·관계의 패턴'),compatibility,kind('work','재능과 일','내가 빛나는 환경','work'),ask],
+ ziwei:[kind('personal','명반 해석','삶의 중심과 타고난 결'),kind('money','일과 재물','관록궁·재백궁의 연결','money'),kind('love','연애운','끌림과 표현, 반복되는 마음의 패턴','love',{koOnly:true}),kind('marriage','결혼운','배우자상과 함께 사는 조건','love',{koOnly:true}),compatibility,ask],
+ tarot:tarotKinds,
  fusion:[kind('personal','종합 해석','서로 다른 체계의 공통점과 차이'),ask],
 };
 export const consultationDomain=(p:Product)=>p.readingKind==='single'?p.domain:'fusion';
@@ -37,6 +44,9 @@ const focusedTitles:Record<string,string[]>={
  money:['수입과 자원의 바탕','일과 재물의 연결','쌓고 지키는 습관','지출이 늘어나는 조건','안정과 확장의 선택','협력과 책임','반복되는 판단 패턴','부담을 줄이는 방법','다른 선택의 가능성','해석의 한계','현실에서 점검할 기준'],
 };
 export function consultationManifest(p:Product,k?:ConsultationKind,topic='general'){
+ const tarotSpec=p.domain==='tarot'&&p.readingKind==='single'?tarotConsultation(k?.id):undefined;
+ if(tarotSpec)return tarotConsultationManifest(p,k!.id as TarotConsultationId);
+ if(isRelationshipReading(p.domain,k?.id)&&p.readingKind==='single')return relationshipManifest(p,k!);
  // v7 owns its own titles, focus and fact selectors per kind, so it branches before the v6 topic mapping.
  // v7Applies is fail-closed: it needs READING_V7_ENABLED, a single-system v6 product, a v7 tier and a v7 kind.
  if(v7Applies(p,k))return readingManifestV7(p,k!);

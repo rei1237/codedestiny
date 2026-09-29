@@ -20,7 +20,7 @@ export function calculateAskTarot(input:FortuneInput,fusion=false) {
     const orientation=randomIndex(2)===0?'upright':'reversed';
     const images=buildImageCandidates(card.code);
     return {cardId:card.code,id:card.id,name:card.nameEn,nameEn:card.nameEn,nameKr:card.nameKo,nameKo:card.nameKo,
-      position:position.key,positionKey:position.key,orientation,imageKey:card.imageKey||card.code.toLowerCase(),
+      position:position.key,positionKey:position.key,...(spreadId==='yeongnyangi_compatibility_six'?{positionLabel:position.label}:{}),orientation,imageKey:card.imageKey||card.code.toLowerCase(),
       imageUrl:images[0],imageCandidates:images,proxyImageUrl:'',localImageUrl:images[0],
       keywords:card.keywords.slice(0,5),interpretation:getMeaningByQuestion(card,orientation,spread.questionType||'general').line};
   });

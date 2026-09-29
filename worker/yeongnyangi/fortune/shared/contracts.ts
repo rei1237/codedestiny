@@ -12,6 +12,8 @@ export interface BirthProfile {
   originalCalendar?: { date: string; type: 'solar' | 'lunar'; leapMonth: boolean };
 }
 export interface FortuneInput {
+  participants?: {self:string;partner:string};
+  consultationKind?: string;
   readingMode?: 'personal' | 'compatibility';
   personA?: BirthProfile;
   topicId?: string;
@@ -59,7 +61,7 @@ export interface FortuneLLMResponse {
 export interface LLMProvider {
   generate(request: FortuneLLMRequest): Promise<FortuneLLMResponse>;
 }
-export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; tarotFusion?: boolean; jongAnswer?: import('../saju/jong-check').JongAnswer; }
+export interface CalculationOptions { runtimeEnv?: Record<string, unknown>; asOf?: string; tarotFusion?: boolean; relationshipReading?: boolean; jongAnswer?: import('../saju/jong-check').JongAnswer; }
 
 export interface FortuneDomain {
   id: DomainId;

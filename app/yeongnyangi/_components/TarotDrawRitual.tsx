@@ -1,4 +1,5 @@
 'use client';
+import {relationshipCopy} from '../_lib/relationship-copy';
 import {useEffect,useMemo,useState,type CSSProperties} from 'react';
 import NextImage from 'next/image';
 import {Volume2,VolumeX} from 'lucide-react';
@@ -8,6 +9,7 @@ import {yeongnyangiCardArt} from '@/lib/tarot/yeongnyangi-deck';
 import {tarotRitualCopy} from '../_lib/tarot-ritual-copy';
 import TarotCardArt from './TarotCardArt';
 import styles from '../yeongnyangi.module.css';
+import relationshipStyles from './relationship.module.css';
 
 type Stage='focus'|'shuffle'|'choose'|'reveal'|'reading';
 type Stored={stage:Stage;selected:number[];revealed:number;completed?:boolean};
@@ -32,6 +34,8 @@ function chime(){
 export default function TarotDrawRitual({requestId,chart,locale,onComplete}:{requestId:string;chart:ReadingChart;locale?:ReadingLocale;onComplete:()=>void}){
  const copy=tarotRitualCopy(locale),cards=chart.groups.filter(group=>group.kind!=='timing'&&group.cardCode);
  const [ready,setReady]=useState(false),[stage,setStage]=useState<Stage>('focus'),[selected,setSelected]=useState<number[]>([]),[revealed,setRevealed]=useState(0),[breath,setBreath]=useState(3),[sound,setSound]=useState(false),[particles,setParticles]=useState(12);
+ const groupTitle=selected.length===0?relationshipCopy.drawSelf:selected.length===1?relationshipCopy.drawPartner:relationshipCopy.drawTogether;
+ const revealTitle=revealed===0?relationshipCopy.drawSelf:revealed===1?relationshipCopy.drawPartner:relationshipCopy.drawTogether;
  const pool=useMemo(()=>Array.from({length:cards.length+4},(_,index)=>index),[cards.length]);
  useEffect(()=>{
   const value=stored(requestId);
@@ -73,12 +77,12 @@ export default function TarotDrawRitual({requestId,chart,locale,onComplete}:{req
    <h2>{copy.shuffleTitle}</h2><p>{copy.shuffleBody}</p><button type="button" onClick={()=>advance('choose')}>{copy.stopShuffle}</button>
   </div>}
   {stage==='choose'&&<div>
-   <header className={styles.ritualHeader}><h2>{copy.chooseTitle}</h2><p>{copy.chooseBody}</p><strong role="status">{copy.chooseProgress(selected.length,cards.length)}</strong></header>
-   <div className={styles.cardFan} role="group" aria-label={copy.chooseTitle}>{pool.map((index)=><button type="button" key={index} aria-pressed={selected.includes(index)} aria-label={`${copy.cardBack(index+1)}${selected.includes(index)?` · ${copy.selected}`:''}`} onClick={()=>choose(index)} style={{'--fan-offset':index-(pool.length-1)/2} as CSSProperties}><TarotCardArt/><span>{selected.includes(index)?selected.indexOf(index)+1:''}</span></button>)}</div>
+   <header className={styles.ritualHeader}><h2 aria-live="polite">{chart.relationship?groupTitle:copy.chooseTitle}</h2><p>{chart.relationship?relationshipCopy.symbolism:copy.chooseBody}</p><strong role="status">{copy.chooseProgress(selected.length,cards.length)}</strong></header>
+   <div className={chart.relationship?relationshipStyles.cardChoices:styles.cardFan} role="group" aria-label={copy.chooseTitle}>{pool.map((index)=><button type="button" key={index} aria-pressed={selected.includes(index)} aria-label={`${copy.cardBack(index+1)}${selected.includes(index)?` · ${copy.selected}`:''}`} onClick={()=>choose(index)} style={{'--fan-offset':index-(pool.length-1)/2} as CSSProperties}><TarotCardArt/><span>{selected.includes(index)?selected.indexOf(index)+1:''}</span></button>)}</div>
    <button type="button" className={styles.ritualPrimary} disabled={selected.length!==cards.length} onClick={()=>advance('reveal')}>{copy.confirm}</button>
   </div>}
   {stage==='reveal'&&<div>
-   <header className={styles.ritualHeader}><h2>{copy.revealTitle}</h2><p>{copy.revealBody}</p></header>
+   <header className={styles.ritualHeader}><h2 aria-live="polite">{chart.relationship?revealTitle:copy.revealTitle}</h2><p>{chart.relationship?relationshipCopy.symbolism:copy.revealBody}</p></header>
    <p className={styles.srOnly} aria-live="polite">{live}</p>
    <div className={styles.ritualSpread} role="group" aria-label={copy.revealTitle}>{cards.map((card,index)=>{
     const open=index<revealed,next=index===revealed,art=yeongnyangiCardArt(card.cardCode,locale),major=card.cardCode?.startsWith('M');

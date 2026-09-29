@@ -4,6 +4,7 @@ import type {ChapterBody, ChapterSpec} from '../book-contracts';
 import type {DomainContext} from '../shared/contracts';
 import {FortuneError} from '../shared/contracts';
 import type {ReadingLocale} from '../reading-locale';
+import {savedTarotConsultation,tarotConsultationPrompt} from './consultation-prompt';
 
 type SavedCard={cardId?:string;code?:string;name?:string;nameKo?:string;nameKr?:string;position?:string;positionKey?:string;orientation?:string};
 
@@ -35,6 +36,8 @@ export function isCrisisQuestion(question:unknown){return CRISIS.test(text(quest
 export function tarotSafetyNotice(question:unknown,locale:ReadingLocale){return isCrisisQuestion(question)?SAFETY_NOTICE[locale]:undefined;}
 
 export function buildTarotMasterContract(context:DomainContext,question:unknown,chapter:ChapterSpec){
+ const v2=tarotConsultationPrompt(context,chapter);
+ if(v2)return {...v2,crisisSafety:isCrisisQuestion(question)?'예언이나 카드 조언을 중단하고 즉시 안전 확보, 신뢰할 사람과 함께 있기, 지역 응급·위기 지원 요청을 먼저 안내한다. 진단하거나 비난하지 않는다.':undefined};
  const saved=savedTarotCards(context);
  if(!saved.length)return undefined;
  const cards=saved.map((card,index)=>{
@@ -79,13 +82,23 @@ export function validateTarotChapter(body:ChapterBody,context:DomainContext){
   const model=TAROT_CARDS.find(item=>item.code===code);
   return [model?.nameKo||card.nameKo||card.nameKr||card.name||'',card.orientation==='reversed'?'역방향':'정방향'];
  }).filter(([name])=>Boolean(name)) as [string,string][]);
+ const v2=savedTarotConsultation(context);
+ const positions=v2?new Map(v2.cards.map(card=>[card.positionLabel,card.name])):new Map<string,string>();
  for(const card of TAROT_CARDS){
   const escaped=card.nameKo.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const explicit=new RegExp(`${escaped}\\s*(?:카드)?\\s*(정방향|역방향)`,'u').exec(content);
-  if(!explicit)continue;
+  const mention=new RegExp(`${escaped}\\s*(?:카드|정방향|역방향)`,'u').exec(content);
+  if(!mention)continue;
   const expected=allowed.get(card.nameKo);
   if(!expected)throw new FortuneError('TAROT_UNDRAWN_CARD');
-  if(explicit[1]!==expected)throw new FortuneError('TAROT_ORIENTATION_MISMATCH');
+  const direction=new RegExp(`${escaped}\\s*(?:카드)?\\s*(정방향|역방향)`,'u').exec(content)?.[1];
+  if(direction&&direction!==expected)throw new FortuneError('TAROT_ORIENTATION_MISMATCH');
+  if(v2){
+   const named=[...positions.keys()].flatMap(label=>{
+    const before=content.lastIndexOf(label,mention.index),after=content.indexOf(label,mention.index+mention[0].length);
+    return [{label,distance:before<0?Infinity:mention.index-(before+label.length)},{label,distance:after<0?Infinity:after-(mention.index+mention[0].length)}];
+   }).filter(row=>row.distance<=40).sort((a,b)=>a.distance-b.distance)[0]?.label;
+   if(named&&positions.get(named)!==card.nameKo)throw new FortuneError('TAROT_POSITION_MISMATCH');
+  }
  }
 }
 

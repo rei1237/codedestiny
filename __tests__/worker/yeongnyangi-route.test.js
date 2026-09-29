@@ -20,7 +20,7 @@ jest.unstable_mockModule('../../worker/lib/security/index.js',()=>({enforceSensi
 jest.unstable_mockModule('../../worker/routes/yeongnyangi-profiles.js',()=>({handleYeongnyangiProfiles:profilesHandler}));
 jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({products:[{id:'saju_mackerel',priceKRW:1000}]}));
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
-  prepareFortune:prepare,jongCheckFortune:jongCheck,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
+  submitQuestionSkyFollowup:jest.fn(),prepareFortune:prepare,jongCheckFortune:jongCheck,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
   providerReady:env=>Boolean(env.GEMINIF_API_KEY),
   submitQuestionSkyFollowup:async()=>{throw new Error("unexpected followup in route fixture");},
 }));

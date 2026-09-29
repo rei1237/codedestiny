@@ -1,6 +1,7 @@
 import { calculateZiweiAiChart } from "../../../lib/ziwei-ai-chart.js";
 import { context, domain } from "../shared/domain";
 import {koreanCivilProfile} from '../shared/korean-time';
+import {calculateRelationshipZiwei} from '../relationship-calculation';
 export const ziwei = domain(
   "ziwei",
   `한국 음력으로 계산된 자미두수 명반이다. 명궁·신궁·12궁과 주성/보조성/살성의 명암, 사화, 삼방사정을 함께 읽는다.
@@ -15,6 +16,7 @@ export const ziwei = domain(
     "영냥이의 조언",
   ],
   async (input, options = {}) => {
+    if(options.relationshipReading)return calculateRelationshipZiwei(input.personA!,new Date(options.asOf||Date.now()).toISOString().slice(0,10));
     input={...input,personA:koreanCivilProfile(input.personA!).profile};
     const r = calculateZiweiAiChart(input.personA!,{year:new Date(new Date(options.asOf || Date.now()).getTime()+9*3600000).getUTCFullYear()});
     return context(

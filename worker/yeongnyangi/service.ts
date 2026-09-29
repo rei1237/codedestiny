@@ -1,6 +1,10 @@
 import {normalizeGrowthAttribution} from '../../lib/marketing/growth-attribution.mjs';
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
+import {isRelationshipReading,RELATIONSHIP_VERSION,relationshipAliases,validateRelationshipQuestion} from './fortune/relationship-contract';
+import {extendRelationshipContext} from './fortune/relationship-calculation';
 import {readingLocale,readingOutputContext} from './fortune/reading-locale';
+import {TAROT_CONSULTATION_VERSION,tarotConsultation,type TarotConsultationId} from './fortune/tarot/consultation-contract';
+import {calculateTarotConsultation} from './fortune/tarot/consultation-calculation';
 import {readingCharts} from './fortune/reading-presentation';
 import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
@@ -86,16 +90,36 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
+  const relationship=isRelationshipReading(product.domain,kind?.id)&&product.readingKind==='single';
+  const tarotSpec=product.domain==='tarot'&&product.readingKind==='single'?tarotConsultation(kind?.id):undefined;
+  const tarotV2=Boolean(tarotSpec);
+  if(kind?.koOnly&&locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
+  const relationshipQuestionId=validateRelationshipQuestion(body.relationshipQuestionId);
+  const participants=product.domain==='tarot'&&(relationship||tarotV2&&body.participants)?relationshipAliases(body.participants):undefined;
   // Fail-closed: false unless READING_V7_ENABLED, a single-system v6 tier product and a v7 consultation kind.
-  const v7=v7Applies(product,kind);
-  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
+  const v7=!tarotV2&&v7Applies(product,kind);
+  const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput&&!relationship&&!tarotV2);
   // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
   const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
     if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');
-    body={...body,topicId:kind.id==='ask'?body.topicId:kind.topic,question:kind.question?body.question:''};
+    body={...body,topicId:kind.id==='ask'?body.topicId:kind.topic,question:kind.question||kind.partner&&relationshipQuestionId?body.question:''};
     if(kind.question&&!(typeof body.question==='string'&&body.question.trim()))throw new FortuneError('QUESTION_REQUIRED');
+  }
+  // New relationship intents survive profile edits and midnight. Read before
+  // provider readiness, chart calculation or drawing; uncertain reads stop here.
+  let relationshipId:string|undefined;
+  if(relationship&&attempt.consultationAttemptId){
+    relationshipId=await digest({userId,version:RELATIONSHIP_VERSION,...attempt,productId:product.id,kind:kind?.id,profileId:body.profileId,partnerProfileId:body.partnerProfileId,question:body.question,relationshipQuestionId,participants,birthDetails:body.birthDetails,timeUnknown:body.timeUnknown,partnerTimeUnknown:body.partnerTimeUnknown});
+    await connectDb(env);
+    try{return await readRequest(env,userId,relationshipId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
+  }
+  let tarotIntentId:string|undefined;
+  if(tarotV2&&attempt.consultationAttemptId){
+    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants});
+    await connectDb(env);
+    try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
   if (!providerReady(env)) throw new FortuneError('LLM_NOT_CONFIGURED',503);
   if (product.domain==='tarot' && product.readingKind==='single') body={...body,profileId:'tarot-question'};
@@ -103,7 +127,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   await connectDb(env);
   const profile=body.profileId==='tarot-question' && product.domain==='tarot' ? {updatedAt:null} : await withMongoRetry(env,()=>ProfileCard.findOne({userId:ownerId(userId),profileId:body.profileId}).lean());
   if (!profile) throw new FortuneError('PROFILE_NOT_FOUND',404);
-  if(body.partnerProfileId && (!['sukuyo',...(kind?.partner?['saju']:[])].includes(product.domain)||product.readingKind!=='single')) throw new FortuneError('PARTNER_NOT_SUPPORTED');
+  if(body.partnerProfileId && (!['sukuyo',...(kind?.partner?['saju','ziwei','vedic','astrology']:[])].includes(product.domain)||product.readingKind!=='single')) throw new FortuneError('PARTNER_NOT_SUPPORTED');
   let partner;
   if (body.partnerProfileId) {
     if(body.partnerProfileId===body.profileId)throw new FortuneError('DISTINCT_PARTNER_REQUIRED');
@@ -113,7 +137,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   }
   const raw={personA:birthFromProfile(profile,body.timeUnknown===true,body.birthDetails || {}),
     ...(partner?{personB:birthFromProfile(partner,body.partnerTimeUnknown===true)}:{}),
-    question:body.question,topicId:body.topicId,readingMode:partner?'compatibility':'personal'};
+    question:body.question,topicId:body.topicId,readingMode:partner||participants?'compatibility':'personal',consultationKind:kind?.id,participants};
   const normalized=Object.fromEntries(product.systems.map(id=>[id,domains[id].validateInput(raw)]));
   for(const input of Object.values(normalized)) {
     for(const person of [input.personA,input.personB])if(person && ['flounder','tuna'].includes(product.fishId) &&
@@ -123,8 +147,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
   const fingerprint=await digest({productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
-  const id=await digest({userId,fingerprint,...attempt});
-  if(askEvidenceEnabled) {
+  const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{})});
+  if(askEvidenceEnabled||relationship||tarotV2) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
     // Storage uncertainty is not permission to recalculate an existing purchase.
     try { return await readRequest(env,userId,id); }
@@ -134,13 +158,20 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // Clients without an attempt retain their original deterministic recovery identity.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
   // Free questions also read the 꿀꿀 daily systems; started first so Swiss latency overlaps the domain calculations.
-  const crossDaily=(!kind||kind.question)&&!spiritInput?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
+  const crossDaily=(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotV2?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
-    askEvidenceEnabled&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
-      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
+    tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
+    (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
+      : await domains[system].calculate(normalized[system],{runtimeEnv:env,asOf:date,relationshipReading:relationship,tarotFusion:product.readingKind!=='single',...(system==='saju'&&jongAnswer?{jongAnswer}:{})}));
+  if(relationship&&product.domain!=='tarot'){
+    const system=product.domain,input=normalized[system];
+    const other=input.personB?await domains[system].calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:date,relationshipReading:true}):undefined;
+    contexts[system]=extendRelationshipContext(contexts[system]!,other,date);
+  }
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
+  if(tarotV2){product.manifestVersion=READING_V6_VERSION;product.chapterCount=manifest.length;}
   if(spiritInput)manifest=spiritManifest(manifest);
   let v7Timing;
   if(v7){
@@ -154,8 +185,10 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     product.chapterCount=manifest.length;
   }
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest);
+  if(relationship||participants||kind?.partner&&relationshipQuestionId)analysis.consultation.relationship={version:RELATIONSHIP_VERSION,questionId:relationshipQuestionId,participants:participants||(partner?{self:String(profile.name||'나').slice(0,40),partner:String(partner.name||'상대').slice(0,40)}:undefined)};
+  if(tarotV2)analysis.consultation.tarotConsultation={version:TAROT_CONSULTATION_VERSION,kind:kind!.id};
   if(kind){analysis.consultation.consultationKind=kind.id;analysis.consultation.kindVersion=1;analysis.consultation.kindLabel=kind.label;if(!kind.question)analysis.consultation.period={kind:'default',label:kind.professional?'저장된 계산 기준의 현재 시기와 다음 전환':'출생 성향과 선택한 상담의 조건'};}
-  if(!kind||kind.question){
+  if((!kind||kind.question)&&!relationship&&!tarotV2){
   // Questions are answered before the fixed outline, without reducing paid depth.
   manifest[0].focus='사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
   manifest[0].excludes=[];
@@ -186,7 +219,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{locale,...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{locale,...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(tarotV2?{tarotConsultation:{version:TAROT_CONSULTATION_VERSION,kind:kind!.id}}:{}),...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */

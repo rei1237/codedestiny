@@ -1,0 +1,11 @@
+.guide { margin-block: 1.5rem; max-width: 68ch; color: inherit; }
+.guide h3 { margin-block: 0 0.75rem; text-wrap: balance; }
+.guide p { line-height: 1.75; overflow-wrap: anywhere; }
+.counts { display: flex; flex-wrap: wrap; gap: 1rem 2.5rem; margin-block: 1rem; }
+.counts div { display: flex; align-items: baseline; gap: 0.75rem; }
+.counts dt { font-size: 0.875rem; }
+.counts dd { margin: 0; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.guide summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; text-decoration: underline; text-underline-offset: 0.25em; }
+.guide summary:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.guide ol { padding-inline-start: 1.5rem; line-height: 1.8; }
+.notice { font-size: 0.875rem; }
