@@ -50,6 +50,7 @@ type CheckoutParams = {
   requestId: string;
   featureKey: string;
   returnTo: string;
+  paymentReturn: boolean;
 };
 
 type GateState =
@@ -73,11 +74,12 @@ function resolveFeatureKey(raw: string | null): string {
 }
 
 function readParams(): CheckoutParams {
-  if (typeof window === "undefined") return { requestId: "", featureKey: "", returnTo: DEFAULT_RETURN_TO };
+  if (typeof window === "undefined") return { requestId: "", featureKey: "", returnTo: DEFAULT_RETURN_TO, paymentReturn: false };
   const params = new URLSearchParams(window.location.search);
   const requestId=/^[a-f0-9]{64}$/.test(params.get("requestId")||"") ? params.get("requestId")! : "";
   return {
     requestId,
+    paymentReturn: ["portone_redirect", "paymentId", "payment_id", "imp_uid"].some(key => params.has(key)),
     featureKey: resolveFeatureKey(params.get("featureKey")),
     returnTo: requestId ? resultPath(requestId) : resolveReturnTo(params.get("returnTo")),
   };
@@ -93,7 +95,9 @@ function redirectToLogin(): void {
 /** 결제를 안 하고 나갈 때 브라우저 뒤로가기가 "이전 화면"인지 판정한다. 같은 출처 영냥이 화면(상담 폼 등)에서 넘어왔을 때만 참이다.
  * 새 탭·PG 왕복 뒤(직전 문서가 PG 이거나 비어 있음)·미결제 결과 화면에서 온 경우는 거짓이라 링크의 href(영냥이 방)가 처리한다 —
  * 뒤로가기가 PG 페이지로 새거나 결과 화면으로 되돌아가는 일이 없다. */
-function canGoBackToPreviousScreen(): boolean {
+function canGoBackToPreviousScreen(paymentReturn: boolean): boolean {
+  // Referrer can survive an app round-trip; capture PG return before its query is removed.
+  if (paymentReturn) return false;
   if (typeof window === "undefined" || window.history.length <= 1) return false;
   try {
     const from = new URL(document.referrer);
@@ -243,7 +247,7 @@ export default function CheckoutClient() {
   const leaveHref = isSoulCatMode ? params.returnTo : DEFAULT_RETURN_TO;
   const chooseHref = isSoulCatMode ? params.returnTo : FISH_CHOOSER_PATH;
   const leaveToPreviousScreen = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (isSoulCatMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen()) return;
+    if (isSoulCatMode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !canGoBackToPreviousScreen(params.paymentReturn)) return;
     event.preventDefault();
     window.history.back();
   };

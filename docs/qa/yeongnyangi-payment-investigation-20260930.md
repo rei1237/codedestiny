@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: mock-verified-live-validation-pending
 updated: 2026-09-30
-next: Complete targeted browser checks and main CI; physical-device app return remains unverified.
+next: Check main CI for the final correction; physical-device and PG sandbox return remain unverified.
 ---
 
 # 영냥이 카카오페이 거래 조사 — 2026-09-30
@@ -56,6 +56,8 @@ PortOne failure 응답에는 reason과 pgCode가 있고 별도의 PortOne 오류
 5. 상담 문서의 `paymentClaimOrderId` CAS로 두 승인이 상담 권한을 두 번 만들지 않게 한다. 추가 승인에는 `metadata.duplicatePaymentReviewRequired`/duplicateOf를 남긴다. 상담 연결도 이 claim을 따른다. 실제 취소·환불은 하지 않는다.
 6. 결제 세대 0의 쿼리에서 중복 `$or` 키가 Family 접근 조건을 덮어쓰던 문제를 `$and`로 수정했다.
 7. PG 검증 결과에서 provider/outcome/pgCode만 보관해 취소와 실패를 분리한다. 과거 행에 없는 수단을 최초 선택값으로 추정하지 않는다.
+8. 셸·독립 런타임·React 공통 래퍼에서 서버 오류 code/status를 보존한다. PG 실패·취소만 새 키 재시도를 허용하며, 미확정·조회 장애·금액 불일치는 새 창을 열지 않는다. SDK/런타임 예외는 PAYMENT_RUNTIME_ERROR로 구분한다. 독립 페이지 25개 참조의 캐시 핀도 갱신했다.
+9. **WebKit에서 별도로 재현한 취소 복귀 문제:** PG 왕복 뒤에도 남은 referrer를 믿고 history.back()을 호출하면 영냥이 방 대신 결제 화면으로 돌아갔다. URL에서 PG 파라미터가 제거되기 전에 paymentReturn을 보존해 PG 복귀 문서는 명시된 영냥이 방 링크로 나간다. 이 수정 뒤 Chromium/WebKit 취소·실패·일반 뒤로가기 10건이 통과했다. 이것을 사고 당시 CANCEL의 원인이라고 소급해서 단정하지 않는다.
 
 결제 상태와 전달 상태는 기존 Payment / YeongnyangiRequest·queue·recovery 분리를 유지한다. 결제 완료 주문 자체가 큐 전송 실패 시 재등록의 근거이며, 결과 읽기와 크론 복구는 저장된 챕터와 기존 재시도 예산을 사용한다. 본 작업은 LLM 예산을 늘리지 않는다.
 
@@ -73,7 +75,15 @@ node scripts/report-payment-attempts.mjs --db=code_destiny --since=2026-09-29T13
 
 ## 검증 범위 및 미확인
 
-검증 결과는 완료 시 이 절을 갱신한다. mock 통과는 실제 PG/실기기 성공 증거가 아니다.
+mock 통과는 실제 PG/실기기 성공 증거가 아니다. 실과금·실 LLM 호출은 0회다.
+
+- `npm run check:fast -- --plan`: 결제 위험 변경으로 critical 승격. `npm run check:fast`: 결제 스위트 88/88(전체 Jest 포함) 통과. 뒤의 일자 사이트맵 드리프트는 재생성 후 통과했다. Node 1,915건 중 4건은 로컬 CRLF 때문에 소스 경계를 찾지 못했고 LF 복원 후 해당 26건을 재실행해 모두 통과했다. 최초 check:fast 한 번 전체가 성공했다고 보고하지 않는다.
+- 남은 계획의 targeted 검사: typecheck, 결제 문구/선택/SDK·pass·복귀·queue 관련 검증, worker build, encoding 통과. 최종 통합 트리의 공식 전체 판정은 main CI다.
+- `node --test __tests__/ui/direct-payment-confirm-classification.behavior.test.js`: 16/16. `checkout-cancel-history.behavior.test.js`: 5/5. 루트/언어별 복귀 보존: 4/4.
+- `node scripts/verify-pg-window-no-conflict.mjs`: PASS. CI의 이전 PG_PAYMENT_NOT_PAID/422 fixture가 새 계약과 충돌한 것을 FAILED/422로 수정했고, NOT_PAID/409·PG_UNAVAILABLE/503·AMOUNT_MISMATCH/422는 두 번째 checkout/SDK 호출을 금지하는 실제 런타임 검사를 추가했다.
+- `YEONGNYANGI_TEST_BASE=http://127.0.0.1:21840 node scripts/verify-yeongnyangi-browser.mjs --payment-filter=...`: SDK/HTTP fixtures, 외부망 차단. 영냥이 28개 상품 전체의 가격 대조 및 결제→결과 연결 통과. Chromium 360/390/430 결제 복귀·새 탭/저장소 소실·새로고침·반복/동시 클릭·취소/실패 통과. WebKit 390 카드/카카오페이 복귀 및 새 탭, polling, 새로고침, 중복/동시 요청 통과.
+- 취소 회귀 수정 후 별도 브라우저 실행: Chromium/WebKit `abandon-back`, `pg-cancel-return`, `pg-failed-return`, `inline-cancel`, `inline-failure` **10/10 통과**. 초기 개발 서버 청크 로딩/Unexpected EOF 오류는 이력에 남겼으며 실기기 오류로 해석하지 않는다. 전체 기존 브라우저 매트릭스를 모두 통과했다고 주장하지 않는다.
+- 꿀꿀 운세 공통 결제 런타임은 `verify:portone-single-payment`, `verify:payment-choice-parity`, `verify:pg-window-no-conflict`로 회귀 검증했다. 실제 카드 승인 새 실행은 하지 않았다.
 
 | 요구 시나리오 | 검사 계층 |
 |---|---|
@@ -90,6 +100,18 @@ node scripts/report-payment-attempts.mjs --db=code_destiny --since=2026-09-29T13
 | 기존 루트/언어별 복귀 | legacy-home-target 테스트, 기존 복귀 URL/query/hash 유지 |
 
 남은 확인: iOS Safari/카카오 인앱 실기기의 앱 실행·취소·복귀·세션 소실, Android Chrome 실기기, 배포된 앱 WebView/외부 앱 정책, 실제 PG 테스트 환경 왕복, 운영 승격 후 승인된 실결제 검증. 기존 Android 앱은 웹 PortOne과 Play Billing 정책 경계를 확인해야 하며 웹 mock을 앱 검증으로 대체하지 않는다. 본 사고에서 CSP/팝업 차단 로그가 없으므로 설정 변경의 근거로 삼지 않았다.
+
+## 수정 파일
+
+- `worker/payments/{index,pg,errors}.js`: 확인 중/취소/PG 실패 분리, 이벤트 재조회, 동일 확정 경로.
+- `worker/yeongnyangi/payment-intent.js`, `repository.js`, `worker/lib/yeongnyangi-models.js`: 재시도 전 PG 조회, 세대 CAS, 상담 단일 claim.
+- `worker/lib/portone.js`: 조회 HTTP 상태/오류 코드 전달.
+- `app/checkout/CheckoutClient.tsx`, `app/_lib/billing-client.ts`, `index.html`, `js/destiny-profile.js`: 안내 상태·원본 오류 보존·취소 복귀.
+- `config/payment-freeze.json`, 정적 public 미러와 25개 캐시 참조: 정본 동기화.
+- `scripts/report-payment-attempts.mjs`, 회귀 테스트: 읽기 전용 지표와 실패 주입 검사.
+- 날짜 사이트맵 갱신은 별도 `531ed5e9f` 커밋. 다른 세션의 메인/상담 변경은 병합 보존했으며 결제 수정의 성과로 집계하지 않는다.
+
+운영 확인은 `metadata.duplicatePaymentReviewRequired=true`, 동일 requestId의 복수 PAID, 유효 PAID 주문과 CREATED 상담의 불일치, `GENERATING/FORTUNE_FAILED`에서 오래 갱신되지 않은 상담을 기준으로 담당자가 원본 주문을 찾는다. 기존 `scripts/report-paid-delivery-health.mjs`의 누락/미활성·부분 저장·검토 필요 집계를 함께 사용한다. 본 작업에서는 이 보고서를 실행하거나 복구 작업을 운영에 등록하지 않았다.
 
 ## 유지 영역·롤백
 
