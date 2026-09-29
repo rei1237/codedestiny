@@ -10,6 +10,8 @@ import { tmpdir, freemem } from 'node:os';
 const root = process.cwd();
 const server = createServer(async (req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+  // This suite tests a member's paid summary; guest/result access is covered by verify-saju-result-login.mjs.
+  if (pathname === '/api/auth/me') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,authenticated:true,user:{id:'summary-race-user',name:'회귀검증'}})); return; }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
