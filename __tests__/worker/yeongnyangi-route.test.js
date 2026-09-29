@@ -22,6 +22,7 @@ jest.unstable_mockModule('../../worker/yeongnyangi/payments/catalog.ts',()=>({pr
 jest.unstable_mockModule('../../worker/yeongnyangi/service.ts',()=>({
   prepareFortune:prepare,jongCheckFortune:jongCheck,activateFortune:activate,generateNextChapter:generate,presentFortune:row=>row,
   providerReady:env=>Boolean(env.GEMINIF_API_KEY),
+  submitQuestionSkyFollowup:async()=>{throw new Error("unexpected followup in route fixture");},
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/free-service.ts',()=>({
   attendanceStatus:attendance,attend,unlockToday:unlock,getFreeReading:freeRead,prepareFreeReading:freePrepare,
