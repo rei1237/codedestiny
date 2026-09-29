@@ -78,8 +78,8 @@ Codex 프롬프트는 최신 검수 큐·근거·중복·성과 피드백을 읽
 ## 전달 상태
 
 - 원격 main push 완료: 2e5e6228a24fb5e609c9623e0b1799188a607f98. 다른 세션의 dirty main은 건드리지 않고 격리 HEAD를 원격 main에 fast-forward했다.
-- 구현의 공식 CI: https://github.com/rei1237/codedestiny/actions/runs/36549355659 . 이 문서 작성 시 진행 중이며, 최종 결과는 같은 실행 URL과 최종 보고에서 확인한다.
-- 로컬 paid-gate-suite 88/88, lint/typecheck/sitemap drift 통과. check:fast의 후속 전체 검사도 끝까지 확인한다.
+- 최초 구현 CI: https://github.com/rei1237/codedestiny/actions/runs/36549355659 . 빌드·고위험·타입/lint는 통과했지만 자미 이직 가이드의 생성 JSON 미러가 낡아 Static guards가 실패했다. sync:public로 해당 index와 본문 해시 파일을 다시 생성했다. 최종 후속 CI 결과는 최종 보고와 화면 증거 폴더의 verification-final.json에서 확인한다.
+- 로컬 check:fast 종료코드0: paid-gate-suite 88/88, lint/typecheck/sitemap drift, Worker dry-run build, strict-core 인코딩, Jest 316묶음/4,576개 통과. node 테스트 1,879개도 통과했다. 실배포/실 PG/실 LLM 검증은 아니다.
 - 기존 자동화 저장: 2026-09-29 18:29 KST. automation_update 성공 후 TOML을 다시 읽어 ACTIVE·rrule·target chat·한글 원문·version·큐 연결을 확인했다. 이름/rrule/target은 원본과 동일하고, 한글 대체 문자0개다.
 - 자동화 전후 원문은 위 화면 증거 폴더의 automation-before.json / automation-after.json에 저장했다. 롤백은 automation_update로 이전 prompt만 적용하며 예약과 계정을 바꾸지 않는다.
 - 다음 기존 실행 2026-09-29 21:10 KST. 새 Worker 운영 코드 승격과 실제 게시 URL 확인은 아직 미완료다.
