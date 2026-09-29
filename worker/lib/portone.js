@@ -213,7 +213,10 @@ async function requestJson(url, options, errorPrefix) {
     });
     if (!response.ok) {
       const remoteMessage = payload?.message || payload?.code || payload?.type || response.statusText;
-      throw new Error(`${errorPrefix}: ${remoteMessage}`);
+      const error = new Error(`${errorPrefix}: ${remoteMessage}`);
+      error.status = response.status;
+      error.code = payload?.type || payload?.code || '';
+      throw error;
     }
     return payload;
   } catch (error) {

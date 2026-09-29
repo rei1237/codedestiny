@@ -57,6 +57,7 @@ type GateState =
   | { phase: "paying" }
   | { phase: "paid" }
   | { phase: "cancelled" }
+  | { phase: "confirming"; message: string }
   | { phase: "error"; message: string };
 
 /** returnTo 는 auth-return 규칙을 통과한 뒤에도 영냥이 경로만 허용한다(오픈 리다이렉트 봉쇄). */
@@ -226,7 +227,10 @@ export default function CheckoutClient() {
         setGate({ phase: "paid" });window.location.assign(params.returnTo);return;
       }
       if (code === "AUTH_REQUIRED" || code === "UNAUTHORIZED" || result.status === 401) {redirectToLogin();return;}
-      if (code === "PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
+      if (code === "PAYMENT_CANCELLED" || code === "PG_PAYMENT_CANCELLED") {setGate({ phase: "cancelled" });return;}
+      if (["PG_PAYMENT_NOT_PAID","PG_UNAVAILABLE","GRANT_PENDING","PENDING_CONFIRMATION"].includes(code)) {
+        setGate({phase:"confirming",message:String(result.error?.message || result.message || copy.errPaymentUnknown)});return;
+      }
       setGate({phase:"error",message:String(result.error?.message || result.message || copy.errPaymentFailed)});
     } catch(error) {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
@@ -281,12 +285,13 @@ export default function CheckoutClient() {
                 disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : copy.payAction(formatKrw(pricing.amountKRW))}
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(formatKrw(pricing.amountKRW))}
               </button>
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
                 {gate.phase === "cancelled" ? <p>{copy.cancelled}</p> : null}
                 {gate.phase === "error" ? <p role="alert">{gate.message}</p> : null}
+                {gate.phase === "confirming" ? <p role="status">{gate.message}</p> : null}
               </div>
               <a href={chooseHref} className={styles.back}>{copy.reselect}</a>
               <p className={styles.security}>
