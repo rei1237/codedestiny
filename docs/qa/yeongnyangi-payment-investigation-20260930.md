@@ -78,11 +78,11 @@ node scripts/report-payment-attempts.mjs --db=code_destiny --since=2026-09-29T13
 mock 통과는 실제 PG/실기기 성공 증거가 아니다. 실과금·실 LLM 호출은 0회다.
 
 - `npm run check:fast -- --plan`: 결제 위험 변경으로 critical 승격. `npm run check:fast`: 결제 스위트 88/88(전체 Jest 포함) 통과. 뒤의 일자 사이트맵 드리프트는 재생성 후 통과했다. Node 1,915건 중 4건은 로컬 CRLF 때문에 소스 경계를 찾지 못했고 LF 복원 후 해당 26건을 재실행해 모두 통과했다. 최초 check:fast 한 번 전체가 성공했다고 보고하지 않는다.
-- 남은 계획의 targeted 검사: typecheck, 결제 문구/선택/SDK·pass·복귀·queue 관련 검증, worker build, encoding 통과. 최종 통합 트리의 공식 전체 판정은 main CI다.
+- 남은 계획의 targeted 검사: typecheck, 결제 문구/선택/SDK·pass·복귀·queue 관련 검증, worker build, encoding 통과. 72ee4d30b의 Critical checks와 [별도 결제 게이트](https://github.com/rei1237/codedestiny/actions/runs/36640713719)는 통과했다. 최초 통합 CI의 미러/홈 정책 링크·H1 실패는 별도 통합 보완 커밋에서 수정했다. 최종 통합 트리 2ea82d3b2의 공식 판정은 [main CI](https://github.com/rei1237/codedestiny/actions/runs/36642213832)에서 확인한다.
 - `node --test __tests__/ui/direct-payment-confirm-classification.behavior.test.js`: 16/16. `checkout-cancel-history.behavior.test.js`: 5/5. 루트/언어별 복귀 보존: 4/4.
 - `node scripts/verify-pg-window-no-conflict.mjs`: PASS. CI의 이전 PG_PAYMENT_NOT_PAID/422 fixture가 새 계약과 충돌한 것을 FAILED/422로 수정했고, NOT_PAID/409·PG_UNAVAILABLE/503·AMOUNT_MISMATCH/422는 두 번째 checkout/SDK 호출을 금지하는 실제 런타임 검사를 추가했다.
 - `YEONGNYANGI_TEST_BASE=http://127.0.0.1:21840 node scripts/verify-yeongnyangi-browser.mjs --payment-filter=...`: SDK/HTTP fixtures, 외부망 차단. 영냥이 28개 상품 전체의 가격 대조 및 결제→결과 연결 통과. Chromium 360/390/430 결제 복귀·새 탭/저장소 소실·새로고침·반복/동시 클릭·취소/실패 통과. WebKit 390 카드/카카오페이 복귀 및 새 탭, polling, 새로고침, 중복/동시 요청 통과.
-- 취소 회귀 수정 후 별도 브라우저 실행: Chromium/WebKit `abandon-back`, `pg-cancel-return`, `pg-failed-return`, `inline-cancel`, `inline-failure` **10/10 통과**. 초기 개발 서버 청크 로딩/Unexpected EOF 오류는 이력에 남겼으며 실기기 오류로 해석하지 않는다. 전체 기존 브라우저 매트릭스를 모두 통과했다고 주장하지 않는다.
+- 취소 회귀 수정 후 별도 브라우저 실행: Chromium/WebKit `abandon-back`, `pg-cancel-return`, `pg-failed-return`, `inline-cancel`, `inline-failure` **10/10 통과**. 초기 개발 서버 청크 로딩/Unexpected EOF 오류는 이력에 남겼으며 실기기 오류로 해석하지 않는다. 이후 GitHub의 전체 브라우저 매트릭스도 72ee4d30b에서 108/108 통과했다([실행 기록](https://github.com/rei1237/codedestiny/actions/runs/36640630089)). 실기기/PG 실거래 증거는 아니다.
 - 꿀꿀 운세 공통 결제 런타임은 `verify:portone-single-payment`, `verify:payment-choice-parity`, `verify:pg-window-no-conflict`로 회귀 검증했다. 실제 카드 승인 새 실행은 하지 않았다.
 
 | 요구 시나리오 | 검사 계층 |
@@ -117,7 +117,7 @@ mock 통과는 실제 PG/실기기 성공 증거가 아니다. 실과금·실 LL
 
 가격/상품/이용권/월정석/단건 결제 정책, 인증, 메인 진입점, 포털 연출, 채널/CID, 운영 설정, LLM 호출/예산은 유지했다. 상담 claim 필드만 스키마에 추가하며 운영 마이그레이션은 실행하지 않았다.
 
-롤백은 이 작업 커밋만 `git revert <payment-fix-commit>` 후 main CI로 확인한다. 다른 작업을 reset하지 않는다. 저장된 claim/검토 메타데이터는 지우지 않으며 회계 증거로 보존한다. 이미 발생한 중복 승인은 코드 롤백으로 해소되지 않는다. 운영 승격은 별도 승인 범위이다.
+롤백은 이 작업 커밋만 `git revert 72ee4d30b 09c5ecb2a 048bdd359` 후 main CI로 확인한다. 다른 작업을 reset하지 않는다. 저장된 claim/검토 메타데이터는 지우지 않으며 회계 증거로 보존한다. 이미 발생한 중복 승인은 코드 롤백으로 해소되지 않는다. 운영 승격은 별도 승인 범위이다.
 
 ## 공식 문서
 
