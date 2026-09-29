@@ -2,10 +2,11 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {transform} from 'esbuild';
-import {sliceFunction} from '../../scripts/lib/js-source-slice.mjs';
+import ts from 'typescript';
 import {calculateNatalSaju} from '../../lib/korean-calendar/index.js';
 for(const path of ['worker/yeongnyangi/service.ts','worker/yeongnyangi/free-service.ts']) {
- const source=sliceFunction(fs.readFileSync(path,'utf8'),'function birthFromProfile(');
+ const file=ts.createSourceFile(path,fs.readFileSync(path,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
+ const source=file.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='birthFromProfile').getText(file);
  const {code}=await transform(source+'\nexport default birthFromProfile;',{loader:'ts',format:'esm'});
  const {default:normalize}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
  test(path+' retains unlabeled birthplace, leap month and unknown time',()=>{
