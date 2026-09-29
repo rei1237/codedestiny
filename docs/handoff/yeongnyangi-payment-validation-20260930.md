@@ -1,5 +1,5 @@
 ---
-status: mock-verified-live-validation-pending
+status: active
 updated: 2026-09-30
 next: Confirm final main CI, then verify a dedicated PG test channel before physical-device tests.
 ---
