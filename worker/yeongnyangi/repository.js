@@ -415,7 +415,7 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
         const isLast=ordinal+1===total;
         const awaitingFollowup=request.snapshot?.questionSkyStage?.version==='question-sky-flounder-3'&&ordinal===0&&total===2;
         result = await YeongnyangiRequest.findOneAndUpdate(filter,
-          {$push:{chapters:body},$set:{completedChapters:ordinal+1,
+          {$push:{chapters:body},$set:{...(ordinal===0?{firstContentAt:new Date()}:{}),completedChapters:ordinal+1,
             // Keep the last chapter's lease until the saved document has been
             // read back. A late writer must not race the completion marker.
             ...(isLast?{}:awaitingFollowup?{state:'AWAITING_FOLLOWUP',leaseToken:'',leaseUntil:null,

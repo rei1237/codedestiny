@@ -230,12 +230,12 @@
   {
     "slug": "tarot-reunion-reading",
     "title": "재회 리딩 완전 가이드 — 희망과 현실을 함께 읽는 법",
-    "manuscriptSha256": "2ef4be6147e974b7385375a6484186cbfabd7f9464d4527015d4f7fa970d1922",
+    "manuscriptSha256": "9b4c6356c59a4afb607b4ff28a9556526bf48eff3eecc7b71d3d63b939a6f738",
     "status": "ai-edited",
     "reviewer": "OpenAI Codex (AI)",
-    "reviewedAt": "2026-09-09",
-    "finding": "특정 카드의 재회 질문 출현 빈도 주장 제거. 상대 마음의 증거라는 표현 수정. 심판의 원전 도상과 편집 적용 구분",
-    "limits": "동의·연락 거절이 카드 해석보다 우선",
+    "reviewedAt": "2026-09-29",
+    "finding": "재회 가능성과 상대 마음을 단정하지 않도록 유지. 컵 6은 가상 해석 예로 표시하고 거절 경계와 무료 재회 타로 링크를 대조",
+    "limits": "AI 문체·링크 검수이며 실제 상대 감정이나 재회 성과 검증 아님",
     "humanReview": "unconfirmed",
     "adsAllowed": false
   },

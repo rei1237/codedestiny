@@ -16,11 +16,13 @@ try{
   try{
    f.state.prepareConsultation=(input,row)=>createConsultation(input.question,input.topicId,consultationClock(input.timezone,new Date('2026-09-22T00:00:00Z')),row.manifest);
    await f.page.goto(base+'/');
-   const cta=f.page.getByRole('button',{name:'영냥이에게 상담하기',exact:true});await cta.waitFor();
+   const cta=f.page.getByRole('link',{name:'내 고민부터 골라보기',exact:true});await cta.waitFor();
    const box=await cta.boundingBox();assert.ok(box&&box.y>=0&&box.y+box.height<=844,`CTA is in first viewport at ${width}`);
    assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
    await f.page.screenshot({path:`build-cache/yeongnyangi-consultation-ui/home-${width}.png`});
-   await cta.click();await f.page.waitForURL('**/yeongnyangi/fortune/**');
+   await cta.click();await f.page.waitForURL('**/#questions');
+   await f.page.getByRole('link',{name:'영냥이에게 내 질문으로 상담하기',exact:true}).click();
+   await f.page.waitForURL('**/yeongnyangi/fortune/**');
    // The default kind is 사주 해석; only 무엇이든 물어보기 shows the topic and question fields.
    await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
    await f.page.getByLabel('상담 주제',{exact:true}).selectOption('love');
@@ -39,10 +41,11 @@ try{
    const original=structuredClone(f.row.consultation);
    // Transport-only paid fixture; real PG/LLM calls are blocked.
    f.row.paid=true;f.row.state='PAID';
-   await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id);
+   await f.page.waitForURL('**/yeongnyangi/result/**');
    await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
-   await f.page.getByRole('region',{name:'이번 상담의 주제와 질문'}).getByText(question,{exact:true}).waitFor();
-   assert.equal(await f.page.getByRole('heading',{name:'해석의 근거',exact:true}).count(),2);
+   await f.page.locator('details').filter({has:f.page.locator('summary',{hasText:'연애운'})}).locator('summary').click();
+   await f.page.getByText(question,{exact:true}).waitFor();
+   assert.equal(await f.page.getByText('해석의 근거',{exact:true}).count(),2);
    assert.equal(await f.page.getByText(/saju\.fiveElements/).count(),0);
    await f.page.reload();await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
    assert.deepEqual(f.row.consultation,original);assert.equal(f.state.generates,f.row.manifest.length);

@@ -21,8 +21,10 @@ test('each Yeongnyangi domain has distinct conversion copy',()=>{
  assert.deepEqual(Object.keys(productCuriosity).sort(),domains.sort());
  assert.equal(new Set(domains.map(domain=>productCuriosity[domain].description)).size,domains.length);
  assert.ok(productCuriosity.saju.description.includes('네 기둥'));
- assert.ok(productCuriosity.ziwei.description.includes('황실'));
- assert.ok(productCuriosity.sukuyo.detail.includes('도쿠가와'));
+ assert.ok(productCuriosity.ziwei.description.includes('명반'));
+ assert.doesNotMatch(productCuriosity.ziwei.description,/황실/);
+ assert.ok(productCuriosity.sukuyo.detail.includes('본명숙'));
+ assert.doesNotMatch(productCuriosity.sukuyo.detail,/금지|도쿠가와/);
  assert.ok(productCuriosity.vedic.description.includes('라그나'));
  assert.ok(productCuriosity.tarot.detail.includes('카드'));
  assert.ok(fortuneCopyByLocale.ko.domains.astrology.description.includes('행성'));

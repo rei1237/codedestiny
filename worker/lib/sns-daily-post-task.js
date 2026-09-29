@@ -199,6 +199,8 @@ export function buildReclaimFilter(keyHash, now, endpoint = SNS_POST_ENDPOINT) {
     userId: null,
     endpoint,
     keyHash,
+    "responseRef.publishUncertain": { $ne: true },
+    "responseRef.reviewRequired": { $ne: true },
     $and: [
       { $or: [{ "responseRef.ids": { $exists: false } }, { "responseRef.ids": { $size: 0 } }] },
       {
@@ -275,7 +277,7 @@ export async function runChannel({ env, now, keyHash, send, endpoint = SNS_POST_
     env,
     () => IdempotencyKey.findOneAndUpdate(
       buildReclaimFilter(keyHash, now, endpoint),
-      { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
+      { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + (endpoint === "cron:sns-threads-daily" ? 35 * 24 * 60 * 60 * 1000 : DEDUPE_TTL_MS)) } },
       { new: true },
     ),
     { retries: 0 },
@@ -292,7 +294,7 @@ export async function runChannel({ env, now, keyHash, send, endpoint = SNS_POST_
           endpoint,
           keyHash,
           status: "processing",
-          expiresAt: new Date(now + DEDUPE_TTL_MS),
+          expiresAt: new Date(now + (endpoint === "cron:sns-threads-daily" ? 35 * 24 * 60 * 60 * 1000 : DEDUPE_TTL_MS)),
         }),
         { retries: 0 },
       );
@@ -304,6 +306,9 @@ export async function runChannel({ env, now, keyHash, send, endpoint = SNS_POST_
           env,
           () => IdempotencyKey.findOne({ endpoint, keyHash }),
         ).catch(() => null);
+        if (existing?.responseRef?.publishUncertain || existing?.responseRef?.reviewRequired) {
+          return {ok:false,stage:"review",error:existing.responseRef.publishUncertain?"publish_uncertain":"editorial_review_required",keyHash,ref:existing.responseRef};
+        }
         const partial = existing?.status === "failed";
         const posted = Array.isArray(existing?.responseRef?.ids) ? existing.responseRef.ids.length : 0;
         console.log(
@@ -397,6 +402,8 @@ async function sendThreadsChannel(env, now, fetchImpl, generateImpl) {
     ...result,
     ref: {
       ids: result.ids || [],
+      publishUncertain: Boolean(result.publishUncertain),
+      containerId: result.containerId || null,
       posts: texts.length,
       // 그날 문안을 모델이 썼는지 결정론으로 갔는지를 잠금 문서에 남긴다 — 발행은 됐는데 문장이
       // 늘 같다는 신고가 오면 여기부터 본다(GET /api/admin/sns-daily-post/status 로 보인다).

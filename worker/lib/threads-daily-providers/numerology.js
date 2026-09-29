@@ -9,9 +9,10 @@
 import { calculateUniversalNumbers, isMasterNumber } from "../../../lib/numerology/personal-day.mjs";
 import { getNumberVoice } from "../../../lib/tarot/numerology-tarot-synthesis.mjs";
 import { getKstDateParts } from "../daily-fortune-task.js";
-import { withJosa } from "../pet/pet-elements.js";
 import {
   COMMON_RULES,
+  situationHook,
+  situationTip,
   generateJsonCopy,
   kstDateLabel,
   mergeCopy,
@@ -19,9 +20,9 @@ import {
 } from "./shared.js";
 
 export const TYPE = "numerology";
-export const PATH = "/today?tab=number";
+export const PATH = "/today/?tab=number";
 export const HASHTAG = "수비학";
-export const CTA = "내 생일로 계산한 오늘의 Personal Day 숫자는?";
+export const CTA = "내 생년월일의 수와 성향을 무료로 살펴보기";
 
 const digitSum = (value) => String(value).split("").reduce((sum, digit) => sum + Number(digit), 0);
 
@@ -74,17 +75,12 @@ function numbersSupported(facts) {
   };
 }
 
-function fallbackCopy(facts) {
-  const { universalDay, voice } = facts;
-  return {
-    hook: `오늘 날짜를 더한 수는 ${universalDay}, ${voice.keyword}의 수입니다.`,
-    body: `${withJosa(voice.core, "이", "가")} 앞에 서는 날입니다. 오늘은 ${voice.arena}에 무게를 두세요.`,
-    tip: voice.act,
-  };
+function fallbackCopy(facts, recent = []) {
+  return {hook:situationHook(TYPE,facts,recent),body:`오늘 날짜를 더해 줄인 보편일수 ${facts.universalDay}은 ${facts.voice.keyword}의 상징이에요. 개인의 운명을 정하는 숫자가 아니라 하루를 돌아보는 질문으로 읽어보세요.`,tip:situationTip(TYPE,facts,recent)};
 }
 
 const SYSTEM_PROMPT = [
-  "당신은 30년 넘게 상담해 온 수비학(numerology) 전문가다. 피타고라스식 날짜 수 해석에 밝다.",
+  "당신은 계산 근거를 쉬운 말로 설명하는 콘텐츠 에디터이자 수비학(numerology) 전문가다. 피타고라스식 날짜 수 해석에 밝다.",
   "오늘은 특정인의 생일이 아니라 오늘 날짜만으로 정해지는 보편일수(Universal Day)만 다룬다. 개인일수·라이프 패스·타로를 말하지 않는다.",
   COMMON_RULES,
 ].join("\n");
@@ -96,7 +92,7 @@ export function buildPrompt(facts) {
     "",
     "다음 JSON 하나만 출력하라. 설명·코드펜스를 붙이지 마라.",
     "{",
-    '  "hook": "보편일수 universalDay 로 오늘이 어떤 날인지 한 문장. 그 숫자를 넣는다. 45자 이내.",',
+    '  "hook": "facts의 해석과 이어지는 구체적인 일상 상황을 질문한다. 전문용어 나열 없이 45자 이내.",',
     '  "body": "voice.core·light·shadow 를 녹여 오늘 살릴 결과 경계할 결을 말하는 두 문장. facts 에 없는 숫자를 쓰지 않는다. 110자 이내.",',
     '  "tip": "voice.act·arena 를 근거로 오늘 해 볼 만한 행동 하나. 50자 이내."',
     "}",
@@ -113,22 +109,23 @@ function copyRules(facts) {
 }
 
 /** @returns {Promise<{copy: Object<string,string>, model: string|null, rejected: string[]}>} */
-export async function writeCopy(env, facts, { generateImpl } = {}) {
-  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl });
-  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts));
+export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) {
+  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl, recent });
+  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts, recent));
 }
 
 export function format(facts, copy, url) {
   const { universalDay, universalMonth, universalYear, voice } = facts;
   const lines = [
-    `🔢 ${facts.dateLabel} 오늘의 수비학 · ${facts.basis}`,
     copy.hook,
+    copy.body,
+    copy.tip,
+    "날짜 공통 해설 · 개인 예측 아님",
+    `🔢 ${facts.dateLabel} 오늘의 수비학 · ${facts.basis}`,
     "",
     `· 보편일수(Universal Day) ${universalDay}${facts.master ? "(마스터 넘버)" : ""} · ${voice.keyword}`,
     `· 계산 ${facts.calculation}`,
     `· 이달의 수 ${universalMonth} · 올해의 수 ${universalYear}`,
-    "",
-    copy.body,
   ];
-  return renderPost({ head: lines.join("\n"), extra: copy.tip, cta: CTA, url, hashtag: HASHTAG });
+  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: HASHTAG });
 }

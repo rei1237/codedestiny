@@ -8,7 +8,7 @@
 import { BRANCH_HANGUL, BRANCH_HANJA, STEM_HANGUL, STEM_HANJA, ganji } from "../../../lib/korean-calendar/index.js";
 import { getKstDateParts } from "../daily-fortune-task.js";
 import { BRANCH_ELEMENT, STEM_ELEMENT } from "../life-book-ai-saju.js";
-import { SHINSAL_LINE, TEN_GOD_LINE, buildTodaySajuPublic } from "../today-saju-detail.js";
+import { TEN_GOD_LINE, buildTodaySajuPublic } from "../today-saju-detail.js";
 import {
   getBranchPairRelations,
   getHwagaeBranch,
@@ -18,6 +18,8 @@ import {
 } from "../saju-shinsal.js";
 import {
   COMMON_RULES,
+  situationHook,
+  situationTip,
   generateJsonCopy,
   kstDateLabel,
   mergeCopy,
@@ -25,20 +27,12 @@ import {
 } from "./shared.js";
 
 export const TYPE = "saju";
-export const PATH = "/today?tab=saju";
+export const PATH = "/saju/";
 export const HASHTAG = "오늘의사주";
-export const CTA = "내 사주에서는 오늘 이 기운이 어떻게 들어올까?";
+export const CTA = "무료 원국으로 내 성향부터 살펴보기";
 
 const ELEMENTS = ["목", "화", "토", "금", "수"];
 const BRANCH_ANIMAL = { 子: "쥐", 丑: "소", 寅: "호랑이", 卯: "토끼", 辰: "용", 巳: "뱀", 午: "말", 未: "양", 申: "원숭이", 酉: "닭", 戌: "개", 亥: "돼지" };
-
-const STEM_RELATION_LINE = {
-  합: "일간과 월간이 합으로 묶여, 흩어지기보다 한곳으로 모이는 결입니다.",
-  충: "일간과 월간이 부딪혀, 계획과 실제가 한 번씩 엇갈리기 쉽습니다.",
-  동: "일간과 월간이 같은 오행이라, 이달의 흐름과 오늘의 결이 한 방향입니다.",
-  생: "일간과 월간이 서로 생하는 사이라, 이달의 흐름이 오늘을 밀어 줍니다.",
-  극: "일간과 월간이 서로 극하는 사이라, 이달의 흐름과 오늘의 결이 맞서기 쉽습니다.",
-};
 
 // 판정 어휘 — 모델 문장에 이 중 facts 에 없는 것이 섞이면 필드를 버린다.
 const VOCABULARY = [
@@ -130,18 +124,12 @@ function allowedTerms(facts) {
   ];
 }
 
-function fallbackCopy(facts) {
-  const dominant = facts.dominantElements.join("·");
-  const missing = facts.missingElements.length ? ` ${facts.missingElements.join("·")} 기운은 비어 있습니다.` : "";
-  return {
-    hook: `${facts.dayPillar.ko}일, ${facts.mood}입니다.`,
-    body: `세운·월주·일주 여섯 글자 중 ${dominant} 기운이 가장 두텁고,${missing} ${STEM_RELATION_LINE[facts.stemRelation] || ""}`.trim(),
-    tip: facts.branchStar && SHINSAL_LINE[facts.branchStar.name] ? `${facts.branchStar.name} — ${SHINSAL_LINE[facts.branchStar.name]}` : "",
-  };
+function fallbackCopy(facts, recent = []) {
+  return {hook:situationHook(TYPE,facts,recent),body:`오늘 날짜의 세운·월주·일주 여섯 글자에는 ${facts.dominantElements.join("·")} 기운이 두드러져요. 오행의 많고 적음은 개인의 능력 점수가 아니에요.`,tip:situationTip(TYPE,facts,recent)};
 }
 
 const SYSTEM_PROMPT = [
-  "당신은 30년 넘게 상담해 온 한국의 사주 명리학자다. 자평명리를 따른다.",
+  "당신은 계산 근거를 쉬운 말로 설명하는 콘텐츠 에디터이자 한국의 사주 명리학자다. 자평명리를 따른다.",
   "오늘은 특정인의 명식이 아니라 날짜 자체의 기운(일진·월주·세운)만 다룬다. 개인의 길흉을 말하지 않는다.",
   COMMON_RULES,
 ].join("\n");
@@ -153,7 +141,7 @@ export function buildPrompt(facts) {
     "",
     "다음 JSON 하나만 출력하라. 설명·코드펜스를 붙이지 마라.",
     "{",
-    '  "hook": "오늘 일진이 어떤 날인지 한 문장. 일진 이름을 넣는다. 50자 이내.",',
+    '  "hook": "facts의 해석과 이어지는 구체적인 일상 상황을 질문한다. 전문용어 나열 없이 45자 이내.",',
     '  "body": "오행 분포(dominantElements·missingElements)와 일간·월간 관계(stemRelation)를 녹인 두 문장. 140자 이내.",',
     '  "tip": "branchStar 를 근거로 오늘 해 볼 만한 행동 하나. 55자 이내."',
     "}",
@@ -170,17 +158,20 @@ function copyRules(facts) {
 }
 
 /** @returns {Promise<{copy: Object<string,string>, model: string|null, rejected: string[]}>} */
-export async function writeCopy(env, facts, { generateImpl } = {}) {
-  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl });
-  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts));
+export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) {
+  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl, recent });
+  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts, recent));
 }
 
 export function format(facts, copy, url) {
   const { dayPillar: dp, elementTally: tally } = facts;
   const tallyLine = Object.entries(tally).filter(([, n]) => n > 0).map(([element, n]) => `${element}${n}`).join(" · ");
   const lines = [
-    `🌸 ${facts.dateLabel} 오늘의 사주`,
     copy.hook,
+    copy.body,
+    copy.tip,
+    "날짜 공통 해설 · 개인 예측 아님",
+    `🌸 ${facts.dateLabel} 오늘의 사주`,
     "",
     `· 일진 ${dp.ko}(${dp.hanja}) — 천간 ${dp.stemElement} · 지지 ${dp.branchElement}(${dp.animal})`,
     `· 오행(${facts.yearPillar.ko}년·${facts.monthPillar.ko}월·${dp.ko}일) ${tallyLine}`,
@@ -188,6 +179,6 @@ export function format(facts, copy, url) {
   if (facts.branchStar) lines.push(`· ${facts.branchStar.animals.join("·")}에게 오늘은 ${facts.branchStar.name}`);
   const pair = [facts.harmonyAnimals && `합 ${facts.harmonyAnimals}`, facts.clashAnimals && `충 ${facts.clashAnimals}`].filter(Boolean);
   if (pair.length) lines.push(`· ${pair.join(" / ")}`);
-  lines.push("", copy.body);
-  return renderPost({ head: lines.join("\n"), extra: copy.tip, cta: CTA, url, hashtag: HASHTAG });
+
+  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: HASHTAG });
 }

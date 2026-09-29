@@ -21,6 +21,8 @@ const schema = new mongoose.Schema({
   passMonthlyLimitCoin: { type: Number, default: 0 },
   passPolicyVersion: { type: String, default: '' },
   snapshot: { type: mongoose.Schema.Types.Mixed, required: true },
+  // Consented public campaign metadata is separate from the immutable reading inputs.
+  growthAttribution: { type: mongoose.Schema.Types.Mixed, default: undefined },
   // Versioned generation evidence is separate from the immutable purchase snapshot.
   generationCheckpoint: { type: mongoose.Schema.Types.Mixed, default: undefined },
   chapters: { type: [mongoose.Schema.Types.Mixed], default: [] },
@@ -41,6 +43,7 @@ const schema = new mongoose.Schema({
   recoveryAudit: { type: [mongoose.Schema.Types.Mixed], default: [] },
   errorCode: { type: String, default: '' },
   lastFailure: { code: String, stage: String, at: Date },
+  firstContentAt: { type: Date, default: null },
   completedAt: { type: Date, default: null },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });
 schema.index({ userId: 1, createdAt: -1, _id: -1 });

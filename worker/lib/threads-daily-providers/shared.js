@@ -8,11 +8,11 @@
 import { callGeminiText } from "../gemini.js";
 import { getKstDateParts } from "../daily-fortune-task.js";
 import { isThreadsAiEnabled } from "../threads-ai-writer.js";
-import { clampThreadsText } from "../threads-daily-content.js";
 import { threadsTextWeight } from "../threads.js";
 
 // API 상한(500)보다 낮게 — threads-daily-content.js 의 CHAIN_TEXT_LIMIT 과 같은 여유.
 export const POST_TEXT_LIMIT = 480;
+export const PROMPT_VERSION = "growth-20260929-v1";
 
 const AI_TIMEOUT_MS = 20000;
 const WEEKDAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
@@ -53,9 +53,47 @@ export function kstDateLabel(now) {
 }
 
 /** Threads → 사이트 유입 링크. 캠페인은 유형별로 갈라 어느 글이 데려왔는지 본다. */
-export function buildUtmUrl(base, path, type) {
-  const glue = path.includes("?") ? "&" : "?";
-  return `${base}${path}${glue}utm_source=threads&utm_medium=social&utm_campaign=daily_${type}`;
+export function buildUtmUrl(base, path, type, dateKey = "") {
+  const url = new URL(path, base);
+  url.searchParams.set("utm_source", "threads");
+  url.searchParams.set("utm_medium", "social");
+  url.searchParams.set("utm_campaign", dateKey ? `threads_${dateKey.replace(/-/g, "")}_${type}` : `daily_${type}`);
+  return url.toString();
+}
+
+const SCENES = {
+  saju: ["여러 일을 벌였는데 마무리가 남았다면?", "할 말은 많은데 어디부터 꺼낼지 막막한가요?", "서두를수록 같은 일을 다시 하게 된다면?", "시작은 쉬운데 끝내기가 어렵다면?", "오늘 할 일을 적다가 또 늘려 놓았나요?", "부탁을 받자마자 괜찮다고 대답했나요?", "혼자 해결하려다 하루가 다 갔다면?", "잘한 일보다 놓친 일만 떠오르나요?", "계획을 바꿀지 조금 더 버틸지 고민된다면?", "결정한 뒤에도 자꾸 다른 선택이 떠오르나요?"],
+  ziwei: ["돈은 들어왔는데 어디에 썼는지 흐릿한가요?", "일은 끝났는데 확인할 답장이 남았나요?", "좋은 제안 앞에서 놓치는 조건은 없나요?", "성과가 났는데 보상 이야기는 미뤘나요?", "통장보다 먼저 살펴볼 지출 약속이 있나요?", "도와주다 내 일정이 밀리고 있나요?", "고정비를 줄일지 수입을 늘릴지 고민되나요?", "급한 부탁에 내 기준을 내려놓고 있나요?", "계약서보다 상대의 말에 기대고 있나요?", "열심히 한 일과 인정받는 일이 다르다면?"],
+  vedic: ["새 일을 시작하기 전에 정리할 일이 남았나요?", "오늘 집중이 흐트러져 일정부터 바꾸려 하나요?", "계획은 선명한데 첫 행동이 막막한가요?", "빨리 움직일지 한 번 더 확인할지 고민되나요?", "내 속도보다 남의 속도에 맞추고 있나요?", "생각이 많아져 쉬는 시간도 놓쳤나요?", "중요한 결정을 피로한 채로 내리고 있나요?", "새 약속을 잡기 전에 남은 일을 보셨나요?", "한 번에 바꾸려다 아무것도 못 했다면?", "오래 미룬 일을 오늘 시작하고 싶다면?"],
+  numerology: ["잠들기 전 끝내지 못한 일이 떠오르나요?", "오늘 해야 할 일과 하고 싶은 일이 달랐나요?", "결정을 미룬 이유를 한 문장으로 적어볼까요?", "도움을 청할 일이 있는데 혼자 붙잡고 있나요?", "내일 일정에 빈칸이 하나도 없나요?", "오늘 잘한 일을 너무 작게 보고 있나요?", "계획을 세우는 데 하루를 다 썼나요?", "오늘의 선택을 내일도 반복하고 싶나요?", "그만할 일보다 더할 일만 찾고 있나요?", "하루를 마치며 내 기준을 다시 보고 싶나요?"],
+};
+const ACTIONS = {
+  saju:["새로 맡을 일보다 끝낼 일 하나부터 골라보세요.","전하고 싶은 핵심을 한 문장으로 적어보세요.","다시 확인할 항목 하나를 체크리스트에 남겨보세요.","끝났다고 볼 기준을 작게 정해보세요.","오늘 목록에서 내일로 미룰 일 하나를 빼보세요.","가능한 시간부터 확인한 뒤 답해도 괜찮아요.","내가 할 일과 도움받을 일을 나눠보세요.","오늘 해낸 일을 결과와 과정으로 하나씩 적어보세요.","계획을 바꿀 조건 하나를 먼저 정해보세요.","선택할 때 중요했던 기준으로 다시 비교해보세요."],
+  ziwei:["자동 결제와 직접 고른 지출을 나눠 적어보세요.","답장이 필요한 일과 단순 공유를 구분해보세요.","좋아 보이는 조건 옆에 미확인 조건도 적어보세요.","성과를 어떤 기준으로 평가하는지 먼저 확인해보세요.","이번 달 확정 지출과 예정 지출을 구분해보세요.","부탁을 수락하기 전 내 마감부터 확인해보세요.","내가 바꿀 수 있는 지출 한 항목부터 살펴보세요.","바로 답하기 전에 내가 지킬 조건을 적어보세요.","구두 약속이 문서에도 있는지 확인해보세요.","기대하는 결과와 내가 맡은 역할을 맞춰보세요."],
+  vedic:["시작 전에 마칠 일 하나를 먼저 적어보세요.","일정을 바꾸기 전에 방해 요소 하나를 줄여보세요.","오늘 끝낼 수 있는 첫 단계를 작게 정해보세요.","되돌리기 어려운 선택인지 먼저 확인해보세요.","오늘 쓸 수 있는 시간에 맞춰 목표를 줄여보세요.","잠시 쉬고 다시 판단할 시간을 정해보세요.","쉬고 나서도 같은 판단인지 다시 확인해보세요.","남은 일의 마감을 확인한 뒤 약속을 잡아보세요.","한 번에 바꿀 일 하나만 골라보세요.","준비물을 꺼내는 것부터 작게 시작해보세요."],
+  numerology:["남은 일과 내일 해도 되는 일을 나눠 적어보세요.","내일은 하고 싶은 일에 쓸 작은 시간을 남겨보세요.","더 필요한 정보와 잃기 싫은 것을 나눠보세요.","도움받고 싶은 부분을 구체적으로 한 줄 적어보세요.","다음 일정 사이에 쉴 간격을 하나 남겨보세요.","완료한 결과 하나와 들인 노력 하나를 기록해보세요.","내일은 계획의 첫 단계만 먼저 실행해보세요.","반복하고 싶은 선택 한 가지를 적어보세요.","이번 주에 줄일 약속 하나를 골라보세요.","내일도 지킬 기준을 한 문장으로 남겨보세요."],
+};
+export function situationTip(type, facts, recent = []) {
+  const hook = situationHook(type, facts, recent);
+  return ACTIONS[type]?.[SCENES[type]?.indexOf(hook)] || "오늘 확인할 질문 하나를 적어보세요.";
+}
+export function situationHook(type, facts, recent = []) {
+  const options = SCENES[type] || SCENES.saju;
+  const offset = [...String(facts.dateLabel || "")].reduce((sum, char) => sum + char.charCodeAt(0), 0) % options.length;
+  const seen = new Set(recent.map(row => row.hook));
+  return Array.from({length:options.length}, (_, index) => options[(offset + index) % options.length]).find(hook => !seen.has(hook)) || options[offset];
+}
+// Lexical near-duplicate guard; editorial review still judges meaning and evidence.
+export function repeatsRecent(copy, recent = []) {
+  const normalize = text => String(text || "").replace(/[^가-힣a-z]/gi, "");
+  const grams = text => new Set(Array.from({length:Math.max(0,text.length-2)},(_,i)=>text.slice(i,i+3)));
+  const candidate = grams(normalize(`${copy.hook} ${copy.body}`));
+  return recent.some(row => {
+    if (normalize(row.hook) && normalize(row.hook) === normalize(copy.hook)) return true;
+    const previous = grams(normalize(`${row.hook} ${row.body}`));
+    const common = [...candidate].filter(word => previous.has(word)).length;
+    return common / Math.max(1, new Set([...candidate,...previous]).size) >= 0.85;
+  });
 }
 
 /** 발행 문안에 섞이면 안 되는 것 — 태그·링크·마크다운 강조·해시태그·이모지. */
@@ -97,6 +135,7 @@ export function acceptCopyField(value, { min, max, vocabulary = [], allowed = []
   if (text.length < min || text.length > max) return "";
   if (hasForbiddenMarkup(text)) return "";
   if (findGenericPhrase(text)) return "";
+  if (/100%|무조건|반드시|절대|적중률|상담해.*년|제가.*상담|재회.*보장|부자.*된다|죽음|불행이/.test(text)) return "";
   if (forbidden.some((word) => text.includes(word))) return "";
   if (findUnsupportedTerm(text, vocabulary, allowed)) return "";
   if (typeof validate === "function" && !validate(text)) return "";
@@ -126,18 +165,22 @@ export const COMMON_RULES = [
   "- 링크·해시태그·이모지·마크다운·HTML 태그를 쓰지 않는다. 그건 발행하는 쪽이 붙인다.",
   "- 결제·구매·상담 권유를 쓰지 않는다.",
   "- 존댓말 평서문으로, 문장은 짧게 끊는다.",
+  "- 첫 문장은 독자가 겪을 수 있는 구체적인 상황을 질문한다. 독자가 실제로 그 상황이라고 단정하지 않는다.",
+  "- 본문은 그 상황에서 확인할 기준을 facts의 상징과 연결한다. 점술 용어 뒤에는 쉬운 풀이를 붙인다.",
+  "- 날짜만 계산한 공통 상징이다. 개인 명식·상대의 속마음·개별 사건을 알아낸 것처럼 말하지 않는다.",
+  "- 상담 경력·고객 일화·후기·매출을 창작하지 않는다. recent 문구는 재사용하지 않는다.",
 ].join("\n");
 
 /**
  * facts 를 문장으로 옮기는 LLM 1회. 던지지 않는다 — 실패하면 null 이고 호출부가 결정론 문장으로 간다.
  * @returns {Promise<{fields: Object, model: string}|null>}
  */
-export async function generateJsonCopy(env, { type, systemPrompt, prompt, generateImpl }) {
+export async function generateJsonCopy(env, { type, systemPrompt, prompt, generateImpl, recent = [] }) {
   if (!isThreadsAiEnabled(env)) return null;
   const generate = typeof generateImpl === "function" ? generateImpl : callGeminiText;
   let result;
   try {
-    result = await generate(env, prompt, {
+    result = await generate(env, `${prompt}\nrecent (재사용 금지): ${JSON.stringify(recent.map(({hook,body})=>({hook,body})))}`, {
       systemPrompt,
       taskType: "fortune",
       locale: "ko",
@@ -185,7 +228,7 @@ export function mergeCopy(generated, rules, fallback) {
 }
 
 /**
- * 게시물 한 개를 조립한다. 해시태그 몫을 예산에서 먼저 빼고 본문만 클램프한다
+ * 게시물 한 개를 조립한다. 해시태그 몫을 예산에서 먼저 빼고 완전한 문장 단위로 담는다
  * (태그를 붙인 뒤 자르면 태그가 먼저 잘린다 — appendRootHashtag 와 같은 규약).
  * 🔴 CTA·링크도 본문보다 먼저 예산을 잡는다 — 길이가 넘쳐도 유입 경로는 잘리지 않는다.
  */
@@ -193,7 +236,12 @@ export function renderPost({ head, extra = "", cta, url, hashtag }, limit = POST
   const tail = `\n\n${cta}\n→ ${url}\n\n#${hashtag}`;
   const budget = limit - threadsTextWeight(tail);
   // extra(한 줄 팁)는 통째로 들어갈 때만 붙인다 — 문장 중간에서 "…" 로 끊긴 팁보다 없는 편이 낫다.
-  const withExtra = extra ? `${head}\n\n${extra}` : head;
-  const body = threadsTextWeight(withExtra) <= budget ? withExtra : head;
-  return `${clampThreadsText(body, budget)}${tail}`;
+  const lines = String(head).split("\n");
+  let body = "";
+  for (const line of lines) {
+    const next = body ? `${body}\n${line}` : line;
+    if (threadsTextWeight(next) <= budget) body = next;
+  }
+  if (extra && threadsTextWeight(`${body}\n\n${extra}`) <= budget) body += `\n\n${extra}`;
+  return `${body.trim()}${tail}`;
 }

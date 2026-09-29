@@ -84,6 +84,7 @@ try {
 }
 const { jobs, shared, saju, ziwei, vedic, numerology, calculateUniversalNumbers, computeTodaySky, getDailyChainThreadsSkipReason, threadsTextWeight, PALACE_FACET } = m;
 
+const runJobs=(env,options={})=>jobs.runThreadsDailyJobs(env,{readRecent:async()=>[],...options});
 let passed = 0;
 async function check(label, fn) {
   await fn();
@@ -160,6 +161,7 @@ function harness(overrides = {}) {
   const fetch = threadsFetch(overrides.fetch);
   const counters = { connect: 0, notify: [] };
   const options = {
+    readRecent: async () => [],
     runLocked: lock.runLocked,
     connect: async () => { counters.connect += 1; if (overrides.connectFails) throw new Error("mongo down"); },
     notify: async (_env, failures) => { counters.notify.push(...failures); return { ok: true }; },
@@ -172,7 +174,7 @@ console.log("▶ ① 발행 창");
 await check("08:29 는 대상 아님, 08:30·09:29 는 사주만, 09:30 은 아님", async () => {
   for (const [h, mi, expectSaju] of [[8, 29, false], [8, 30, true], [9, 29, true], [9, 30, false]]) {
     const { options, lock } = harness();
-    const result = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, now: SEP17(h, mi) });
+    const result = await runJobs(BASE_ENV, { ...options, now: SEP17(h, mi) });
     assert.equal(result.jobs.saju.skipped === "outside_window", !expectSaju, `${h}:${mi} saju`);
     assert.equal(lock.calls.length, expectSaju ? 1 : 0, `${h}:${mi} lock calls`);
     assert.equal(result.jobs.ziwei.skipped, "outside_window");
@@ -184,7 +186,7 @@ await check("잘못된 시각은 그 Job 만 건너뛰고 기본값으로 돌리
   for (const bad of ["8:30", "24:00", "23:30", "12:60", "", "noon"]) assert.equal(jobs.parseJobTime(bad), null, bad);
   const { options, lock } = harness();
   const env = { ...BASE_ENV, THREADS_SAJU_TIME: "8:30", THREADS_ZIWEI_TIME: "08:30" };
-  const result = await jobs.runThreadsDailyJobs(env, { ...options, now: SEP17(8, 40) });
+  const result = await runJobs(env, { ...options, now: SEP17(8, 40) });
   assert.equal(result.jobs.saju.skipped, "invalid_time");
   assert.equal(result.jobs.ziwei.ok, true);
   assert.deepEqual(lock.calls.map((c) => c.keyHash), ["2026-09-17:threads:ziwei"]);
@@ -200,19 +202,19 @@ console.log("▶ ② 스위치·비용 0 경로");
 await check("분할 스위치 꺼짐·토큰 없음·창 밖이면 connect 0회", async () => {
   for (const env of [{ ...BASE_ENV, SNS_THREADS_POST_ENABLED: "1" }, { ...BASE_ENV, SNS_THREADS_POST_ENABLED: "0" }, { ...BASE_ENV, THREADS_ACCESS_TOKEN: "" }, BASE_ENV]) {
     const { options, counters } = harness();
-    const result = await jobs.runThreadsDailyJobs(env, { ...options, now: env === BASE_ENV ? SEP17(3, 0) : SEP17(8, 30) });
+    const result = await runJobs(env, { ...options, now: env === BASE_ENV ? SEP17(3, 0) : SEP17(8, 30) });
     assert.equal(result.ok, true);
     assert.equal(counters.connect, 0);
   }
   const { options } = harness();
-  assert.equal((await jobs.runThreadsDailyJobs({ ...BASE_ENV, SNS_THREADS_POST_ENABLED: "1" }, { ...options, now: SEP17(8, 30) })).skipped, "split_disabled");
+  assert.equal((await runJobs({ ...BASE_ENV, SNS_THREADS_POST_ENABLED: "1" }, { ...options, now: SEP17(8, 30) })).skipped, "split_disabled");
 });
 await check("수비학은 var 없이 기본 켜짐(20:30 발행), THREADS_NUMEROLOGY_ENABLED=\"0\" 일 때만 job_disabled", async () => {
   const { options, lock, fetch } = harness();
-  const off = await jobs.runThreadsDailyJobs({ ...BASE_ENV, THREADS_NUMEROLOGY_ENABLED: "0" }, { ...options, now: SEP17(20, 30) });
+  const off = await runJobs({ ...BASE_ENV, THREADS_NUMEROLOGY_ENABLED: "0" }, { ...options, now: SEP17(20, 30) });
   assert.equal(off.jobs.numerology.skipped, "job_disabled");
   assert.equal(lock.calls.length, 0);
-  const on = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, now: SEP17(20, 30) });
+  const on = await runJobs(BASE_ENV, { ...options, now: SEP17(20, 30) });
   assert.equal(on.jobs.numerology.ok, true, JSON.stringify(on.jobs.numerology));
   assert.deepEqual(lock.calls.map((c) => c.keyHash), ["2026-09-17:threads:numerology"]);
   assert.match(fetch.posted[0], /보편일수\(Universal Day\) 9/);
@@ -223,8 +225,8 @@ await check("수비학은 var 없이 기본 켜짐(20:30 발행), THREADS_NUMERO
 console.log("▶ ③ 중복 방지·재시도");
 await check("같은 날 같은 type 재실행은 already_posted, 발행 1회", async () => {
   const { options, fetch, lock } = harness();
-  const first = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, now: SEP17(8, 30) });
-  const second = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, now: SEP17(8, 40) });
+  const first = await runJobs(BASE_ENV, { ...options, now: SEP17(8, 30) });
+  const second = await runJobs(BASE_ENV, { ...options, now: SEP17(8, 40) });
   assert.equal(first.jobs.saju.ok, true);
   assert.equal(second.jobs.saju.skipped, "already_posted");
   assert.equal(fetch.posted.length, 1);
@@ -241,12 +243,12 @@ await check("실패(발행 0건)는 다음 틱에 재시도되고, 다른 type �
   const failing = threadsFetch({ fail: true });
   const ok = threadsFetch();
   const base = { runLocked: lock.runLocked, connect: async () => {}, notify: async () => ({ ok: true }) };
-  const r1 = await jobs.runThreadsDailyJobs(BASE_ENV, { ...base, fetchImpl: failing.impl, now: SEP17(12, 0) });
+  const r1 = await runJobs(BASE_ENV, { ...base, fetchImpl: failing.impl, now: SEP17(12, 0) });
   assert.equal(r1.ok, false);
-  const r2 = await jobs.runThreadsDailyJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(12, 10) });
+  const r2 = await runJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(12, 10) });
   assert.equal(r2.jobs.ziwei.ok, true);
   assert.equal(ok.posted.length, 1);
-  const r3 = await jobs.runThreadsDailyJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(16, 0), sky: undefined });
+  const r3 = await runJobs(BASE_ENV, { ...base, fetchImpl: ok.impl, now: SEP17(16, 0), sky: undefined });
   assert.equal(r3.jobs.vedic.ok, true, JSON.stringify(r3.jobs.vedic));
   assert.deepEqual([...lock.docs.keys()].sort(), ["cron:sns-threads-daily|2026-09-17:threads:vedic", "cron:sns-threads-daily|2026-09-17:threads:ziwei"]);
 });
@@ -255,7 +257,7 @@ console.log("▶ ④ 격리");
 await check("사주 provider 가 던져도 자미·베다·수비학은 발행된다", async () => {
   const { options, fetch } = harness();
   const providers = { ...jobs.DEFAULT_PROVIDERS, saju: { ...saju, buildFacts: () => { throw new Error("boom"); } } };
-  const result = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, providers, force: true, now: SEP17(3, 0) });
+  const result = await runJobs(BASE_ENV, { ...options, providers, force: true, now: SEP17(3, 0) });
   assert.equal(result.jobs.saju.ok, false);
   assert.match(result.jobs.saju.error, /facts_threw: boom/);
   assert.equal(result.jobs.ziwei.ok, true);
@@ -266,10 +268,10 @@ await check("사주 provider 가 던져도 자미·베다·수비학은 발행�
 await check("facts 가 null 이면 facts_unavailable, connectDb 실패는 due Job 만 connect_db 실패", async () => {
   const { options } = harness();
   const providers = { ...jobs.DEFAULT_PROVIDERS, ziwei: { ...ziwei, buildFacts: () => null } };
-  const r = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, providers, now: SEP17(12, 0) });
+  const r = await runJobs(BASE_ENV, { ...options, providers, now: SEP17(12, 0) });
   assert.equal(r.jobs.ziwei.error, "facts_unavailable");
   const down = harness({ connectFails: true });
-  const d = await jobs.runThreadsDailyJobs(BASE_ENV, { ...down.options, now: SEP17(8, 30) });
+  const d = await runJobs(BASE_ENV, { ...down.options, now: SEP17(8, 30) });
   assert.equal(d.jobs.saju.stage, "connect_db");
   assert.equal(d.jobs.ziwei.skipped, "outside_window");
   assert.equal(down.lock.calls.length, 0);
@@ -345,6 +347,9 @@ await check("366일 × 4유형 × (결정론/최대 길이 모델 문안)", asyn
         assert.ok(weight <= shared.POST_TEXT_LIMIT, `${type} ${i} weight ${weight}`);
         assert.ok(text.endsWith(`→ ${url}\n\n#${provider.HASHTAG}`), `${type} ${i} 꼬리가 잘렸다`);
         assert.ok(text.includes(provider.CTA));
+        assert.ok(text.includes(facts.dateLabel), `${type} date missing`);
+        assert.ok(text.includes(written.copy.body), `${type} body missing`);
+        assert.ok(text.includes("개인 예측 아님"), `${type} scope missing`);
         assert.ok(text.includes(written.copy.tip), `${type} ${i} 팁이 빠졌다 weight=${weight}
 ${text}
 TIP=${written.copy.tip}`);
@@ -376,7 +381,7 @@ await check("사주 — 범용 문구·facts 밖 신살은 그 필드만 버린�
   assert.deepEqual(written.rejected, ["hook", "body"]);
   assert.equal(written.copy.tip, "오전에 미뤄 둔 연락 하나를 먼저 정리해 보세요.");
   assert.equal(written.model, "stub-model");
-  assert.ok(written.copy.hook.startsWith("갑오일"));
+  assert.equal(written.copy.hook, shared.situationHook("saju", facts));
 });
 await check("자미두수 — 궁 이름·facts 밖 별은 버린다", async () => {
   const facts = ziwei.buildFacts({}, SEP17(12, 0));
@@ -432,7 +437,7 @@ await check("SNS_THREADS_AI_ENABLED 꺼짐 → 모델 호출 0회, aiModel null"
   let calls = 0;
   const generateImpl = async () => { calls += 1; return { ok: false }; };
   const { options } = harness();
-  const result = await jobs.runThreadsDailyJobs(BASE_ENV, { ...options, generateImpl, force: true, now: SEP17(3, 0) });
+  const result = await runJobs(BASE_ENV, { ...options, generateImpl, force: true, now: SEP17(3, 0) });
   assert.equal(calls, 0);
   for (const type of ["saju", "ziwei", "vedic", "numerology"]) assert.equal(result.jobs[type].ref.aiModel, null);
 });
@@ -440,14 +445,14 @@ await check("SNS_THREADS_AI_ENABLED 꺼짐 → 모델 호출 0회, aiModel null"
 console.log("▶ ⑨ 알림");
 await check("첫 틱 실패는 조용히, 마지막 틱(+50분) 실패만 1통, force 는 0통", async () => {
   const early = harness({ fetch: { fail: true } });
-  await jobs.runThreadsDailyJobs(BASE_ENV, { ...early.options, now: SEP17(8, 30) });
+  await runJobs(BASE_ENV, { ...early.options, now: SEP17(8, 30) });
   assert.equal(early.counters.notify.length, 0);
   const last = harness({ fetch: { fail: true } });
-  await jobs.runThreadsDailyJobs(BASE_ENV, { ...last.options, now: SEP17(9, 20) });
+  await runJobs(BASE_ENV, { ...last.options, now: SEP17(9, 20) });
   assert.deepEqual(last.counters.notify.map((f) => f.name), ["threads:daily-saju"]);
   assert.match(last.counters.notify[0].message, /^2026-09-17 stage=send/);
   const manual = harness({ fetch: { fail: true } });
-  const r = await jobs.runThreadsDailyJobs(BASE_ENV, { ...manual.options, only: "saju", force: true, now: SEP17(9, 20) });
+  const r = await runJobs(BASE_ENV, { ...manual.options, only: "saju", force: true, now: SEP17(9, 20) });
   assert.equal(manual.counters.notify.length, 0);
   assert.deepEqual(Object.keys(r.jobs), ["saju"]);
 });
@@ -494,3 +499,14 @@ await check("10분 크론·관리자 수동 실행·두 wrangler [vars]", async 
 });
 
 console.log(`\nverify-threads-daily-jobs: ${passed}개 통과`);
+
+await check('campaign IDs survive fragments and differ by day; recent duplicate hooks use a zero-call replacement',async()=>{
+ const url=new URL(shared.buildUtmUrl('https://code-destiny.com','/?question=money#questions','ziwei','2026-09-29'));
+ assert.equal(url.searchParams.get('utm_campaign'),'threads_20260929_ziwei');assert.equal(url.hash,'#questions');assert.equal(url.searchParams.get('question'),'money');
+ const facts=saju.buildFacts({},SEP17(8,30));const original=await saju.writeCopy({},facts);
+ const next=await saju.writeCopy({},facts,{recent:[original.copy]});
+ assert.notEqual(next.copy.hook,original.copy.hook);assert.equal(shared.repeatsRecent(original.copy,[original.copy]),true);
+ const fetch=threadsFetch();const result=await jobs.publishThreadsJob(BASE_ENV,{type:'saju',provider:saju,now:SEP17(8,30),fetchImpl:fetch.impl,recent:[original.copy]});
+ assert.equal(result.ok,true);assert.equal(result.ref.promptVersion,shared.PROMPT_VERSION);assert.equal(result.ref.recentCompared,1);
+ assert.equal(result.ref.campaignId,'threads_20260917_saju');assert.notEqual(result.ref.hook,original.copy.hook);
+});

@@ -7,12 +7,13 @@
 
 import { getNakshatraAttributes } from "../../../constants/nakshatra-attributes.js";
 import { getKstDateParts } from "../daily-fortune-task.js";
-import { withJosa } from "../pet/pet-elements.js";
 import { computeTodaySky } from "../today-sky.js";
 import { MOVABLE_KARANA, TITHI_NAMES, YOGA_NAMES } from "../today-vedic-detail.js";
 import { GRAHA_KO, SIGNS_KO, SIGN_LORDS, signKoName } from "../vedic-derived-calculations.js";
 import {
   COMMON_RULES,
+  situationHook,
+  situationTip,
   generateJsonCopy,
   kstDateLabel,
   mergeCopy,
@@ -20,9 +21,9 @@ import {
 } from "./shared.js";
 
 export const TYPE = "vedic";
-export const PATH = "/today?tab=vedic";
+export const PATH = "/?question=career-vedic#questions";
 export const HASHTAG = "베다점";
-export const CTA = "내 Nakshatra에서 오늘의 달은 어떤 영향을 줄까?";
+export const CTA = "변화 앞에서 망설인다면, 일과 시기의 질문 정리하기";
 
 const NAKSHATRA_COUNT = 27;
 
@@ -89,21 +90,12 @@ function allowedTerms(facts) {
   ];
 }
 
-function fallbackCopy(facts) {
-  const { nakshatra: nak, vara, yoga, tithi, karana } = facts;
-  const dayPart = vara ? `${vara.theme} ${vara.ko}` : "오늘";
-  return {
-    hook: `달이 ${nak.nameKo}에 머무는 ${dayPart}입니다.`,
-    // 상징·샥티는 사실 줄에 이미 있다 — 본문은 신격 키워드와 티티 성격만 옮긴다.
-    body: `${nak.nameKo}의 결은 ${nak.deityKeywords.slice(0, 2).join("·")}. ${tithi.groupLine}`,
-    tip: yoga.caution
-      ? `요가가 ${withJosa(yoga.name, "이라", "라")} 새 일보다 하던 일을 다지는 편이 낫습니다.`
-      : karana.line,
-  };
+function fallbackCopy(facts, recent = []) {
+  return {hook:situationHook(TYPE,facts,recent),body:`오늘 달이 머무는 ${facts.nakshatra.nameKo}는 ${facts.nakshatra.deityKeywords.slice(0,2).join("·")}의 상징으로 읽어요. 달의 위치만으로 내 결정의 결과를 알 수는 없어요.`,tip:situationTip(TYPE,facts,recent)};
 }
 
 const SYSTEM_PROMPT = [
-  "당신은 30년 넘게 상담해 온 베다 점성술(죠티샤) 전문가다. 나크샤트라와 판창가 해석에 밝다.",
+  "당신은 계산 근거를 쉬운 말로 설명하는 콘텐츠 에디터이자 베다 점성술(죠티샤) 전문가다. 나크샤트라와 판창가 해석에 밝다.",
   "오늘은 특정인의 출생 차트가 아니라 오늘 하늘(달의 나크샤트라·판창가)만 다룬다. 개인의 길흉과 다샤를 말하지 않는다.",
   COMMON_RULES,
 ].join("\n");
@@ -115,7 +107,7 @@ export function buildPrompt(facts) {
     "",
     "다음 JSON 하나만 출력하라. 설명·코드펜스를 붙이지 마라.",
     "{",
-    '  "hook": "오늘 달이 머무는 나크샤트라로 오늘이 어떤 날인지 한 문장. 나크샤트라 이름을 넣는다. 45자 이내.",',
+    '  "hook": "facts의 해석과 이어지는 구체적인 일상 상황을 질문한다. 전문용어 나열 없이 45자 이내.",',
     '  "body": "나크샤트라의 symbol·shakti·deityKeywords 와 티티(tithi.group)를 녹인 두 문장. 110자 이내.",',
     '  "tip": "yoga.caution·karana 를 근거로 오늘 해 볼 만한 행동 하나. 50자 이내."',
     "}",
@@ -132,23 +124,24 @@ function copyRules(facts) {
 }
 
 /** @returns {Promise<{copy: Object<string,string>, model: string|null, rejected: string[]}>} */
-export async function writeCopy(env, facts, { generateImpl } = {}) {
-  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl });
-  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts));
+export async function writeCopy(env, facts, { generateImpl, recent = [] } = {}) {
+  const generated = await generateJsonCopy(env, { type: TYPE, systemPrompt: SYSTEM_PROMPT, prompt: buildPrompt(facts), generateImpl, recent });
+  return mergeCopy(generated, copyRules(facts), fallbackCopy(facts, recent));
 }
 
 export function format(facts, copy, url) {
   const { nakshatra: nak, moonSign, tithi, yoga, karana } = facts;
   const lines = [
-    `🌙 ${facts.dateLabel} 오늘의 베다점 · ${facts.basis}`,
     copy.hook,
+    copy.body,
+    copy.tip,
+    "날짜 공통 해설 · 개인 예측 아님",
+    `🌙 ${facts.dateLabel} 오늘의 베다점 · ${facts.basis}`,
     "",
     `· 달 나크샤트라 ${nak.nameKo}(${nak.nameEn}) ${nak.pada}파다 — 지배성 ${nak.lordKo}`,
     `· 상징 ${nak.symbol} · ${nak.shakti}`,
     `· 달 라시 ${moonSign.nameKo}(지배성 ${moonSign.lordKo})`,
     `· 티티 ${tithi.name}(${tithi.group}) · 요가 ${yoga.name}${yoga.caution ? "(주의)" : ""} · 카라나 ${karana.name}`,
-    "",
-    copy.body,
   ];
-  return renderPost({ head: lines.join("\n"), extra: copy.tip, cta: CTA, url, hashtag: HASHTAG });
+  return renderPost({ head: lines.join("\n"),  cta: CTA, url, hashtag: HASHTAG });
 }

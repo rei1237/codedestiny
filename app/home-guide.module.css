@@ -1,0 +1,19 @@
+.guide {
+  background: #101222;
+  color: #f1edf7;
+  padding: 40px max(20px, calc((100% - 1040px) / 2)) 56px;
+  font-family: var(--font-body);
+  line-height: 1.8;
+}
+.guide h2 { font-size: clamp(1.25rem, 3vw, 1.75rem); text-wrap: balance; }
+.guide p { max-width: 72ch; color: #d2cddd; }
+.guide a { color: #eee0b3; text-underline-offset: .25em; }
+.guide a:focus-visible, .directory summary:focus-visible { outline: 2px solid #eee0b3; outline-offset: 4px; }
+.paths { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-block: 24px; }
+.paths a { display: inline-flex; align-items: center; min-height: 44px; }
+.directory { border-block: 1px solid #484355; margin-top: 32px; padding-block: 12px; }
+.directory summary { cursor: pointer; min-height: 44px; align-content: center; font-weight: 600; }
+.links { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 24px; padding-block: 16px; }
+.links h3 { font-size: 1rem; margin: 0 0 8px; }
+.links ul { list-style: none; padding: 0; margin: 0; }
+.links a { display: inline-flex; align-items: center; min-height: 44px; }

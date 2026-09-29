@@ -106,3 +106,30 @@ test('React initial events wait for the existing analytics installation', async(
  assert.equal(events.filter(row=>row[1]==='daily_tarot_reopen').length,1);
  dom.window.close();
 });
+
+test('Threads attribution survives internal navigation only with consent and within its TTL',()=>{
+ const dom=boot('https://code-destiny.com/?utm_source=threads&utm_medium=social&utm_campaign=threads_20260929_saju&question=private'),w=dom.window;
+ assert.equal(w.cdReadGrowthAttribution(),null);
+ w.document.cookie='cd_cookie_consent=accepted; path=/';
+ assert.equal(w.cdReadGrowthAttribution().campaignId,'threads_20260929_saju');
+ w.history.replaceState({},'', '/checkout/');
+ w.cdTrack('checkout_start',{service:'yeongnyangi'});
+ assert.equal(w.dataLayer.at(-1)[2].growth_campaign,'threads_20260929_saju');
+ assert.equal(JSON.stringify(w.cdReadGrowthAttribution()).includes('private'),false);
+ w.sessionStorage.setItem('cd:growth:campaign',JSON.stringify({campaignId:'threads_20260929_saju',until:Date.now()-1}));
+ assert.equal(w.cdReadGrowthAttribution(),null);
+ w.history.replaceState({},'', '/?utm_source=threads&utm_medium=social&utm_campaign=private-user-data');
+ assert.equal(w.cdReadGrowthAttribution(),null);
+ w.sessionStorage.setItem('cd:growth:campaign',JSON.stringify({campaignId:'threads_20260929_saju',until:Date.now()+1000}));
+ w.document.cookie='cd_cookie_consent=essential; path=/';
+ assert.equal(w.cdReadGrowthAttribution(),null);assert.equal(w.sessionStorage.getItem('cd:growth:campaign'),null);
+ dom.window.close();
+});
+test('server attribution accepts public campaign metadata and discards unknown fields',async()=>{
+ const {normalizeGrowthAttribution:normalize}=await import('../../lib/marketing/growth-attribution.mjs');
+ assert.equal(normalize({campaignId:'threads_20260929_saju'}),undefined);
+ assert.equal(normalize({consent:true,version:'growth-20260929-v1',campaignId:'private'}),undefined);
+ const clean=normalize({consent:true,version:'growth-20260929-v1',campaignId:'threads_queue_t02_v1',device:'mobile',question:'private',userId:'private'});
+ assert.deepEqual(Object.keys(clean).sort(),['campaignId','consent','device','version']);
+ assert.equal(JSON.stringify(clean).includes('private'),false);
+});

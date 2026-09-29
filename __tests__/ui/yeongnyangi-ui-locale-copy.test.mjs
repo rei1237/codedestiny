@@ -39,11 +39,13 @@ test('input and recovery copy preserve payment and retry cautions for each purch
  assert.match(resultStateCopy('en').reviewRequired,/Do not pay again/);
  assert.match(resultStateCopy('ja').reviewRequired,/再度支払わず/);
 });
-test('a held paid reading tells the buyer it is being recovered, never to chase support or pay again',()=>{
+test('a held paid reading preserves saved content and gives a review path without promising automatic completion',()=>{
  for(const locale of ['ko','en','ja']){
   for(const text of [resultStateCopy(locale).reviewRequired,readingCopy(locale).held]){
-   assert.doesNotMatch(text,/문의|contact support|お問い合わせ/i);
-   assert.match(text,/추가 결제 없이|no extra cost|追加料金なし/);
+   assert.match(text,/저장된 내용|Saved chapters|保存済みの内容/);
+   assert.match(text,/다시 결제하지|Do not pay again|再度支払わず/);
+   assert.match(text,/주문번호|order ID|注文番号/);
+   assert.doesNotMatch(text,/자동으로.*완성|automatically.*complete|自動.*完成/i);
   }
   assert.match(readingCopy(locale).recoveringItems(9,15),/9\/15/);
  }
