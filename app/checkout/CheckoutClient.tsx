@@ -30,6 +30,9 @@ import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricin
 import "../yeongnyangi/night-tokens.css";
 import { products } from "@/worker/yeongnyangi/payments/catalog";
 import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
+import {consultationLocaleCopy,localizedSystem,localizedTier} from '../yeongnyangi/_lib/consultation-locale-copy';
+import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {askPhase5Copy} from '../yeongnyangi/_lib/ask-phase5-copy';
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 import { getCheckoutCopy, resolveCheckoutPolicyHrefs } from "./checkout-copy";
 import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
@@ -264,14 +267,15 @@ export default function CheckoutClient() {
           ) : (
             <>
               <div className={styles.product}>
-                <img src={`/assets/yeongnyangi/fish/${product.fishId}.webp`} alt="" width={240} height={108} />
-                <div><h2>{product.name} · {product.fishName}</h2><p>{depthDescriptions[product.fishId]}</p></div>
+                <img src={lang==='ko'?`/assets/yeongnyangi/fish/${product.fishId}.webp`:product.reactionAsset} alt="" width={240} height={108} />
+                <div><h2>{lang==='ko'?`${product.name} · ${product.fishName}`:`${localizedSystem(product.readingKind==='single'?product.domain:'fusion',lang)} · ${localizedTier(product.fishId,lang)}`}</h2><p>{lang==='ko'?depthDescriptions[product.fishId]:consultationLocaleCopy(lang).method}</p></div>
               </div>
               <dl className={styles.receipt}>
                 <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
                 <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
                 <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
               </dl>
+              <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
               <p className={styles.policy}>{copy.policyLine1}<br />{copy.policyLine2}</p>
               <button type="button" onClick={() => { void startPayment(); }}
                 disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}

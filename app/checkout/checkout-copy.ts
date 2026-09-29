@@ -13,11 +13,12 @@
  *    `선택한 상담과 생선이 달라요…`(:306). 그 하네스는 package.json·CI 어디에도 배선돼 있지 않아서
  *    (전수 grep 0건) 깨져도 아무도 물지 않는다. 그래서 더 조심한다.
  *
- * 저작은 ko·en·ja·zh-CN·zh-TW 5개다. 나머지 7개 로케일은 EN 으로 떨어진다(레포 규칙).
+ * 결제 화면은 전체 runtime 로케일을 저작한다. 정책 문서 링크는 실제 존재하는 공개 라우트를 따른다.
  */
 import type { LoadingLocale } from "@/constants/loadingMessages";
 import type { Locale } from "@/lib/i18n/locales";
 import { getLocalizedPublicHref } from "@/lib/i18n/routes";
+import {nativeCheckoutCopy} from './checkout-locales';
 
 export type CheckoutCopy = {
   navAria: string;
@@ -250,7 +251,7 @@ const CHECKOUT_COPY: Partial<Record<LoadingLocale, CheckoutCopy>> = {
 
 /** 표에 없는 로케일은 영어를 쓴다 — 한국어로 떨어뜨리지 않는다. */
 export function getCheckoutCopy(locale: LoadingLocale): CheckoutCopy {
-  return CHECKOUT_COPY[locale] || EN;
+  return CHECKOUT_COPY[locale] || nativeCheckoutCopy(locale) || EN;
 }
 
 /** 화면 언어 → 정책 페이지가 실제로 존재하는 로케일. 표에 없으면 영어다. */

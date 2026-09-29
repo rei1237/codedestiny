@@ -10,6 +10,9 @@ const packages={mackerel:products.find(p=>p.id==='saju_mackerel')!};
 import FishCatalog from "./FishCatalog";
 import ProductGuide, {trackProductStep, type ProductOffers} from '../_components/ProductGuide';
 import {productCuriosity} from '../_lib/product-curiosity';
+import {useReadingLanguage} from '../_lib/use-reading-language';
+import LocalizedFortuneHome from '../_components/LocalizedFortuneHome';
+import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -96,6 +99,7 @@ function SectionHeading({
 }
 
 export default function FortuneHome({offers}:{offers:ProductOffers}) {
+  const {siteLocale}=useReadingLanguage();
   const [panel, setPanel] = useState<Panel>(null);
   const [serviceId, setServiceId] = useState("saju");
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -209,6 +213,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
     fusion: "영냥이의 초융합 운세",
   };
 
+  if(siteLocale!=='ko')return <LocalizedFortuneHome locale={siteLocale} offers={offers}/>;
   return (
     <>
       <a className="skip-link" href="#readings">
@@ -229,6 +234,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
             <a href="#recommendations"><Image src="/assets/yeongnyangi/ui/nav-recommendations.webp" width={28} height={28} alt=""/><span>영냥이 추천</span></a>
           </nav>
           <div className="header-actions">
+            <LocaleSwitcher preservePath locale={siteLocale}/>
             <button
               className="icon-button bell"
               aria-label="알림 보기"

@@ -1,5 +1,5 @@
 import {resolveConsultationKind,consultationManifest} from './fortune/consultation-kinds';
-import {readingLocale} from './fortune/reading-locale';
+import {readingLocale,readingOutputContext} from './fortune/reading-locale';
 import {readingCharts} from './fortune/reading-presentation';
 import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
@@ -76,7 +76,7 @@ function birthFromProfile(profile: any, timeUnknown: boolean, supplement: any = 
 
 export async function prepareFortune(env: Record<string, unknown>, userId: string, body: any) {
   const locale=readingLocale(body.locale);
-  // Symbolic readings retain their Korean-only vocabulary/validator contract.
+  // Symbolic modes have separate Korean evidence and safety validators.
   if(body.mode && locale!=='ko')throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   const attempt=consultationAttempt(body);
   const product=getProduct(body.productId);
@@ -90,7 +90,6 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const askEvidenceEnabled=Boolean(kind?.question&&!spiritInput);
   // Only tiers that keep 종격 evidence ask; an answer sent anywhere else is dropped, not stored.
   const jongAnswer=jongCheckApplies(product)&&!spiritInput?parseJongAnswer(body.jongCheck):undefined;
-  if(!askEvidenceEnabled && !['ko','en','ja'].includes(locale))throw new FortuneError('READING_LOCALE_UNAVAILABLE');
   if(kind){
     if(kind.partner&&!body.partnerProfileId)throw new FortuneError('PARTNER_REQUIRED');
     if(!kind.partner&&body.partnerProfileId)throw new FortuneError('PARTNER_NOT_SUPPORTED');
@@ -186,7 +185,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
-    snapshot:{locale,product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
+    snapshot:{locale,...(!body.mode?{outputContext:readingOutputContext(locale,body)}:{}),product,analysis,manifest,profileUpdatedAt:profile.updatedAt,...(spiritInput?{normalized}: {}),...(v7Timing?{v7Timing}:{})}});
 }
 
 /** Pre-payment 종격 question: the same profile, supplement and consultation day prepareFortune will use. Read-only, no LLM. */
@@ -290,7 +289,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
       ? row.generationCheckpoint?.followup?.question : undefined;
     if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
       throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-    const input={locale:readingLocale(row.snapshot.locale),chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion};
+    const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion};
     if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
     const provider=new StructuredChapterProvider(sharedProvider);
     const draft=row.generationCheckpoint?.chapterDrafts?.[ordinal];

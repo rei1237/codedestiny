@@ -47,9 +47,13 @@ test('the dictionary has no key the catalog never uses', ()=>{
  assert.deepEqual(orphans,[],'remove dictionary entries the catalog dropped');
 });
 
-test('non-ko locales fall back to en, and ko needs no locale argument', ()=>{
+test('native locales have their own chapter labels, and ko needs no locale argument', ()=>{
  const key='yeongnyangi.v7.saju.anchor';
- assert.equal(m.v7Label(key,'zh-CN'),m.v7Label(key,'en'));
+ for(const locale of ['zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
+  assert.notEqual(m.v7Label(key,locale),m.v7Label(key,'en'));
+  assert.deepEqual(Object.keys(m.readingV7Copy(locale)),Object.keys(m.readingV7Copy('ko')));
+  assert.doesNotMatch(Object.values(m.readingV7Copy(locale)).join(' '),/[가-힣]/);
+ }
  assert.equal(m.v7Label(key),m.v7Label(key,'ko'));
  assert.notEqual(m.v7Label(key,'ja'),m.v7Label(key,'en'));
 });

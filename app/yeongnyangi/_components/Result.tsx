@@ -15,6 +15,8 @@ import ResultSharing from './ResultSharing';
 import FishReceipt from './FishReceipt';
 import {OrderReference} from './OrderRecovery';
 import TarotDrawRitual,{tarotRitualCompleted} from './TarotDrawRitual';
+import {useReadingLanguage} from '../_lib/use-reading-language';
+import {localizedSystem,localizedTier,localizedKind} from '../_lib/consultation-locale-copy';
 function RecoveryNotice({message,busy,onRetry,locale}:{message:string;busy:boolean;onRetry:()=>void;locale?:FortuneRecord['locale']}){
  const copy=resultStateCopy(locale);
  return <div className={styles.recoveryNotice}>
@@ -34,6 +36,8 @@ function sameRequest(fortune:FortuneRecord,id:string){
  return fortune;
 }
 export default function Result(){
+ const {siteLocale}=useReadingLanguage();
+ const siteLanguage=useRef(siteLocale);siteLanguage.current=siteLocale;
  const [row,setRow]=useState<FortuneRecord|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),mounted=useRef(true);
  const [reload,setReload]=useState(0);
@@ -72,7 +76,7 @@ export default function Result(){
    }catch(e){
     if(cancelled)return;
     if(e instanceof FortuneApiError&&e.status===401){loginForCurrentPage();return;}
-    setError(e instanceof Error?e.message:resultStateCopy().loadFailed);
+    setError(siteLanguage.current==='ko'&&e instanceof Error?e.message:resultStateCopy(siteLanguage.current).loadFailed);
     if(attempt<3 && (!(e instanceof FortuneApiError)||e.retryable))timer=setTimeout(()=>void load(attempt+1),Math.max(2000*2**attempt,e instanceof FortuneApiError?e.retryAfterSeconds*1000:0));
    }
   }
@@ -119,8 +123,11 @@ export default function Result(){
  },[ritualEligible,ritualRequestId]);
  const finishRitual=useCallback(()=>{if(ritualRequestId)setRitualGate({id:ritualRequestId,done:true});},[ritualRequestId]);
  // 결제 전에는 챕터가 하나도 없다 — "0 / N개 챕터 저장됨"·진행률·목차("준비 중")를 그리면 결제가 끝난 화면처럼 보인다.
- const copy=readingCopy(row?.locale);
- const stateCopy=resultStateCopy(row?.locale);
+ const locale=row?.locale||siteLocale;
+ const copy=readingCopy(locale);
+ const stateCopy=resultStateCopy(locale);
+ const consultationLabel=row&&locale==='ko'?(row.consultation?.kindLabel||row.consultation?.topicLabel||stateCopy.consultation):row?.consultation?.consultationKind?localizedKind(row.consultation.consultationKind,locale):stateCopy.consultation;
+ const periodLabel=row?.consultation?.period?(locale==='ko'?row.consultation.period.label:row.consultation.period.years?.map(value=>value.year).join('–')||[row.consultation.period.start,row.consultation.period.end].filter(Boolean).join('–')||stateCopy.periodHint):'';
   const askReading=!!row?.consultation?.questions?.length;
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
@@ -132,18 +139,18 @@ export default function Result(){
   </>}
   {error&&<><p role="alert">{row.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarning}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{stateCopy.retry}</button></>}<OrderReference id={row.id} locale={row.locale}/>
  </section>;
- return <section className={styles.reader} lang={row?.locale||'ko'}>
-  <h1>{row?`${row.product.name} · ${row.product.fishName}`:stateCopy.result}</h1>
+ return <section className={styles.reader} lang={locale}>
+  <h1>{row?(locale==='ko'?`${row.product.name} · ${row.product.fishName}`:`${localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`):stateCopy.result}</h1>
   {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
 
-  {!row&&!error&&<ReadingLoading/>}
+  {!row&&!error&&<ReadingLoading locale={siteLocale}/>}
   {row&&<>
    {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
    {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
-    <summary>{row.consultation?.kindLabel || row.consultation?.topicLabel || stateCopy.consultation}</summary>
+    <summary>{consultationLabel}</summary>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
     {row.consultation?.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
-    {row.consultation?.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}
+    {row.consultation?.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}
    </details>}
    <div id="reading-progress" className={styles.progress} data-state={row.state}>{row.state!=='COMPLETED'&&<img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt=""/>}
      <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
@@ -154,13 +161,13 @@ export default function Result(){
     </div>
    </div>
    {!unpaid&&<ReadingBook row={row}/>}
-   {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{row.consultation.kindLabel||row.consultation.topicLabel||stateCopy.consultation}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {row.consultation.period.label}. {stateCopy.periodHint}</p>}</details>}</>}
-   {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product}/><FishReceipt product={row.product}/></>}
+   {row.state==='COMPLETED'&&<><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
+   {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}
    </>}
   </>}
-  {error&&!row&&requestId.current?<RecoveryNotice message={error} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{row?.locale&&row.locale!=='ko'?stateCopy.loadFailed:error} {stateCopy.paidWarningKnown}</p>}
+  {error&&!row&&requestId.current?<RecoveryNotice message={locale==='ko'?error:stateCopy.loadFailed} locale={locale} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{locale==='ko'?error:requestId.current?stateCopy.loadFailed:stateCopy.notFound} {stateCopy.paidWarningKnown}</p>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
-  {!row&&requestId.current&&<OrderReference id={requestId.current}/>}
+  {!row&&requestId.current&&<OrderReference id={requestId.current} locale={siteLocale}/>}
   <a href={row?.locale?'/yeongnyangi/library/?lang='+row.locale:'/yeongnyangi/library/'}>{copy.library}</a>
  </section>;
 }

@@ -2,6 +2,7 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
+import {RUNTIME_LOCALES} from '../../lib/i18n/locale-normalize.js';
 const built=await build({stdin:{contents:"export {chartCopy,chartTerm,chartLimitation} from './app/yeongnyangi/_lib/reading-chart-copy'; export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy'; export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy'; export {readingCopy} from './app/yeongnyangi/_lib/reading-copy'; export {askPhase5Copy} from './app/yeongnyangi/_lib/ask-phase5-copy'; export {jongCheckCopy} from './app/yeongnyangi/_lib/jong-check-copy';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
 const {chartCopy,chartTerm,chartLimitation,consultationInputCopy,resultStateCopy,readingCopy,askPhase5Copy,jongCheckCopy}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].text).toString('base64'));
 test('chart display translates known evidence while retaining saved source values',()=>{
@@ -13,7 +14,7 @@ test('chart display translates known evidence while retaining saved source value
  assert.equal(chartLimitation('상대: 한국 표준시 출생 기준입니다.','en'),'Partner: Based on birth time in Korea Standard Time.');
  assert.equal(chartLimitation('질문 당시의 카드 상징을 읽습니다. 천문 계산이나 미래의 확정 증거가 아닙니다.','ja'),'質問時に引いたカードの象徴を読みます。天文計算や未来の確定的な証拠ではありません。');
  assert.equal(chartTerm('금성','de'),'Venus');
- assert.equal(chartCopy('fr').heading,'Explore the basis of your reading');
+ assert.equal(chartCopy('fr').heading,'Explorez les fondements de votre lecture');
 });
 
 test('question input and answer modes have complete 12-language copy',()=>{
@@ -47,13 +48,13 @@ test('a held paid reading tells the buyer it is being recovered, never to chase 
   assert.match(readingCopy(locale).recoveringItems(9,15),/9\/15/);
  }
 });
-test('종격 year check is written for the five authored languages and falls back to English elsewhere',()=>{
- const authored=['ko','en','ja','zh-CN','zh-TW'].map(locale=>jongCheckCopy(locale));
+test('종격 year check is authored in every site language',()=>{
+ const authored=RUNTIME_LOCALES.map(locale=>jongCheckCopy(locale));
  for(const copy of authored)for(const [key,value] of Object.entries(copy))if(typeof value==='string')assert.ok(value.length>0,key);
- assert.equal(new Set(authored.map(copy=>copy.best)).size,5);
- assert.equal(new Set(authored.map(copy=>copy.strengthIntro)).size,5);
+ assert.equal(new Set(authored.map(copy=>copy.best)).size,RUNTIME_LOCALES.length);
+ assert.equal(new Set(authored.map(copy=>copy.strengthIntro)).size,RUNTIME_LOCALES.length);
  assert.ok(authored.every(copy=>copy.strengthIntro!==copy.intro),'the 신강/신약 check has its own intro');
- for(const locale of ['vi','hi','es','fr','de','nl','ms'])assert.equal(jongCheckCopy(locale),jongCheckCopy('en'));
+ for(const locale of ['vi','hi','es','fr','de','nl','ms'])assert.notEqual(jongCheckCopy(locale).heading,jongCheckCopy('en').heading);
  assert.equal(jongCheckCopy('ko').year(2022,'壬寅(임인)'),'2022년 壬寅(임인)');
  assert.equal(jongCheckCopy('en').year(2022,'壬寅(임인)'),'2022 (壬寅)');
 });

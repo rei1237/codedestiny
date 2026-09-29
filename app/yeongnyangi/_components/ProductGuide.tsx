@@ -5,19 +5,23 @@ import {questionGuides,contextualQuestionGuides,questionGuideHref} from '@/lib/f
 import {productCuriosity} from '../_lib/product-curiosity';
 import {trackEvent} from '@/lib/analytics';
 import styles from './product-guide.module.css';
+import {useReadingLanguage} from '../_lib/use-reading-language';
+import LocalizedProductGuide from './LocalizedProductGuide';
 
 export type ProductOffer = {id:string; itemId:string; fish:string; fishName:string; price:number; paymentLabel:string; chapters:string[]; depth:string};
 export type ProductOffers = Record<DomainId, ProductOffer[]>;
 export const CURIOSITY_VERSION='question-scope-v1';
-export function trackProductStep(event:string, domain:string, itemId:string, surface='home_catalog'){
- trackEvent(event,{service:'yeongnyangi',domain,item_id:itemId,content_id:CURIOSITY_VERSION,locale:'ko',surface});
+export function trackProductStep(event:string, domain:string, itemId:string, surface='home_catalog',locale='ko'){
+ trackEvent(event,{service:'yeongnyangi',domain,item_id:itemId,content_id:CURIOSITY_VERSION,locale,surface});
 }
 export default function ProductGuide({domain,offers,surface='home_catalog'}:{domain:DomainId;offers:ProductOffer[];surface?:'home_catalog'|'product_page'}){
+ const {siteLocale}=useReadingLanguage();
  const [fish,setFish]=useState('mackerel');
  const offer=offers.find(p=>p.fish===fish)||offers[0];
  const copy=productCuriosity[domain];
  const Heading=surface==='product_page'?'h2':'h3';
- useEffect(()=>{trackProductStep('product_detail_view',domain,offers[0].itemId,surface);},[domain,offers,surface]);
+ useEffect(()=>{trackProductStep('product_detail_view',domain,offers[0].itemId,surface,siteLocale);},[domain,offers,surface,siteLocale]);
+ if(siteLocale!=='ko')return <LocalizedProductGuide domain={domain} offers={offers} locale={siteLocale} surface={surface}/>;
  return <div className={styles.guide}>
   <div className={styles.offer}><p><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.chapters.length}개 챕터</p><p className={styles.offerHook}>{copy.hook}</p><p>{copy.description}</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>상담 구성과 결제 조건 확인하기</a></div>
   <Heading>이런 상황에 잘 맞아요</Heading><p>나의 성향이나 반복되는 선택을 이해하고, 다음 행동의 기준을 정리하고 싶을 때 살펴보세요.</p>

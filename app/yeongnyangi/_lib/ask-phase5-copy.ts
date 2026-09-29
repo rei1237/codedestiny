@@ -1,5 +1,6 @@
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import type {TopicId} from '@/worker/yeongnyangi/fortune/topics';
+import {consultationLocaleCopy} from './consultation-locale-copy';
 
 type InputCopy={language:string;languageHint:string;heading:string;intro:string;topic:string;general:string;question:string;placeholder:string;required:string;topics:Record<TopicId,string>};
 type AnswerCopy={answer:string;reason:string;timing:string;action:string;normal:string;limited:string;limitedHint:string;care:string;careHint:string};
@@ -20,4 +21,6 @@ const copies:Record<ReadingLocale,PhaseCopy>={
  ms:{input:{language:'Bahasa bacaan',languageHint:'Jawapan baharu dan bacaan semula akan menggunakan bahasa ini. Sesetengah menu dan carta pengiraan masih dalam bahasa Korea.',heading:'Ceritakan perkara yang merisaukan anda',intro:'Mulakan dengan perkara yang paling penting. Soalan dan jawapan boleh menggunakan bahasa berbeza.',topic:'Topik bacaan',general:'Gambaran umum',question:'Soalan anda untuk Yeongnyangi',placeholder:'Apakah yang paling ingin anda fahami sekarang?',required:'Sila masukkan soalan anda.',topics:{love:'Cinta',money:'Kewangan',year:'Tahun ini',relationship:'Hubungan',luck:'Aliran semasa',work:'Kerja dan kebolehan',self:'Memahami diri',healing:'Pemulihan'}},answer:{answer:'Jawapan kepada soalan anda',reason:'Asas tafsiran',timing:'Masa dan batasan',action:'Nasihat praktikal',normal:'Bacaan berdasarkan maklumat yang ada',limited:'Maklumat terhad',limitedHint:'Pengiraan atau bukti masa yang ada belum cukup untuk menyokong soalan ini sepenuhnya. Bacalah sebagai pilihan dan perkara untuk disemak.',care:'Topik yang sensitif',careHint:'Tafsiran tentang kesihatan dan keselamatan hanya sebagai rujukan. Dapatkan nasihat profesional yang layak jika perlu.'}},
 };
 
-export const askPhase5Copy=(locale?:ReadingLocale)=>copies[locale||'ko'];
+export const askPhase5Copy=(locale?:ReadingLocale)=>{
+ const copy=copies[locale||'ko'];return {...copy,input:{...copy.input,languageHint:consultationLocaleCopy(locale||'ko').languageHint}};
+};

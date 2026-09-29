@@ -7,6 +7,7 @@ import {
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
 import YeongnyangiHome from "./yeongnyangi/_components/Home";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
+import LocalizedServiceSummary from './components/LocalizedServiceSummary';
 import { SEO_LINK_GROUPS } from "./components/SiteFooterHub";
 import { ILGAN_MONTHLY_MONTHS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import styles from "./home-cosmic.module.css";
@@ -251,7 +252,7 @@ export default function HomePage() {
       <LegacyHomeEntry />
       <YeongnyangiHome />
       <details className={styles.pageWrap}>
-      <summary>CODE DESTINY 서비스와 이용 안내</summary>
+      <LocalizedServiceSummary>
       <nav className={styles.discoveryGrid} aria-label="운세와 읽을거리 전체 탐색">
         <section>
           <h2>운세 자료실</h2>
@@ -375,7 +376,7 @@ export default function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       </section>
-      </details>
+      </LocalizedServiceSummary></details>
     </>
   );
 }

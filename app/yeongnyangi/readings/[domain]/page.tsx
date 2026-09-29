@@ -6,6 +6,7 @@ import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {productOffers,productArtwork} from '../../_lib/product-offers';
 import {productCuriosity} from '../../_lib/product-curiosity';
 import ProductGuide from '../../_components/ProductGuide';
+import LocalizedGuideScreen from '../../_components/LocalizedGuideScreen';
 import styles from './page.module.css';
 export const dynamicParams=false;
 export function generateStaticParams(){return Object.keys(productCuriosity).map(domain=>({domain}));}
@@ -22,10 +23,10 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
 }
 export default async function ReadingGuide({params}:Props){
  const {domain}=await params;if(!validDomain(domain))notFound();
- return <article className={styles.page}>
+ return <LocalizedGuideScreen domain={domain}><article className={styles.page}>
   <h1>{productCuriosity[domain].hook}</h1>
   <p>{systemNames[domain]} · 사주보는 고양이 영냥이</p>
   <Image className={styles.art} src={productArtwork(domain)} width={960} height={640} alt={domain==='saju'?'달빛 아래 펼친 네 기둥의 한지 그림':`${systemNames[domain]} 상담을 안내하는 영냥이`} priority/>
   <ProductGuide domain={domain} offers={productOffers[domain]} surface="product_page"/>
- </article>;
+ </article></LocalizedGuideScreen>;
 }

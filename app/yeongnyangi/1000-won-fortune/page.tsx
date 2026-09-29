@@ -11,6 +11,7 @@ import {SEO_READING_EXAMPLES} from '@/lib/seo-reading-examples';
 import FounderTrust from '@/app/components/FounderTrust';
 import SampleExposure from '../_components/SampleExposure';
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
+import LocalizedGuideScreen from '../_components/LocalizedGuideScreen';
 
 // 천원사주 허브. 영냥이 고등어 상담의 검색 착륙 페이지다(docs/seo/YEONGNYANGI_SEARCH_STRATEGY.md).
 // 🔴 가격·챕터·분량·입력 조건을 여기 숫자로 적지 말 것 — 결제 가격표와 상담 매니페스트에서 빌드 때 읽는다.
@@ -82,7 +83,7 @@ const jsonLd=[
 const serialize=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c');
 
 export default function Page(){
- return <article className={styles.hub}>
+ return <LocalizedGuideScreen><article className={styles.hub}>
   <nav className={styles.crumbs} aria-label="현재 위치"><a href="/">{siteSeo.brandName}</a><span aria-hidden="true">›</span><a href="/yeongnyangi/">사주보는 고양이 영냥이</a><span aria-hidden="true">›</span><span aria-current="page">천원 운세·천원사주</span></nav>
 
   <section className={styles.intro}>
@@ -189,5 +190,5 @@ export default function Page(){
 
   <KakaoChannelInvite source="product_detail" />
   {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serialize(item)}}/>)}
- </article>;
+ </article></LocalizedGuideScreen>;
 }

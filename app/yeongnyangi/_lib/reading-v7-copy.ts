@@ -1,9 +1,10 @@
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
+import {nativeV7Copy} from './reading-v7-locales';
 // v7 chapter and part labels (docs/design/yeongnyangi-v7-chapter-catalog.md §6-7). Keys are the manifest's
 // own `titleKey`/`partKey`, so a chapter without them (v5/v6) never reaches this dictionary and its UI is unchanged.
 // ko mirrors the catalog titles in reading-v7.ts; __tests__/ui/yeongnyangi-reading-v7-copy.test.mjs fails when
 // the two drift or when a catalog entry has no entry here. ja and en follow the reading-copy.ts `Copy=typeof ko`
-// pattern; every other reading locale falls back to en (the repo-wide i18n fallback).
+// pattern; all other runtime locales use native semantic labels from reading-v7-locales.ts.
 const ko={
  'yeongnyangi.v7.part.base':'바탕',
  'yeongnyangi.v7.part.love':'연애',
@@ -410,7 +411,7 @@ const ja:Copy={
  'yeongnyangi.v7.tarot.choice.flow':'カードが共に語る流れ',
  'yeongnyangi.v7.tarot.choice.decision':'今の選択',
 };
-export const readingV7Copy=(locale?:ReadingLocale):Copy=>locale==='ko'||!locale?ko:locale==='ja'?ja:en;
+export const readingV7Copy=(locale?:ReadingLocale):Copy=>locale==='ko'||!locale?ko:locale==='ja'?ja:locale==='en'?en:nativeV7Copy(Object.keys(ko),locale) as Copy;
 // Returns undefined for a v5/v6 chapter (no key) and for a key the dictionary does not know, so every caller
 // keeps its existing fallback instead of rendering a raw key.
 export const v7Label=(key:string|undefined,locale?:ReadingLocale):string|undefined=>

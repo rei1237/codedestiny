@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import { getRouteKeyByLocalizedPath, I18N_ROUTE_MAP } from "../../lib/i18n/routes";
+import type {RuntimeLocale} from '@/lib/i18n/locale-normalize';
 
-type LocaleCode = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+type LocaleCode = RuntimeLocale;
 type RouteLocaleCode = "ko" | "en" | "ja" | "zh" | "zh-TW";
 type LocaleItem = { code: LocaleCode; slug: string; label: string; shortLabel: string; hrefLang: string; routeLocale?: RouteLocaleCode };
 
@@ -112,7 +113,7 @@ function getLocalizedHref(pathname: string, targetLocale: LocaleItem) {
   return targetLocale.slug || `/?lang=${encodeURIComponent(targetLocale.code)}`;
 }
 
-export function LocaleSwitcher() {
+export function LocaleSwitcher({preservePath=false,locale}:{preservePath?:boolean;locale?:LocaleCode}={}) {
   const pathname = usePathname() || "/";
 
   const [savedLocale, setSavedLocale] = React.useState<LocaleItem>(LOCALE_SWITCHER_LABELS[0]);
@@ -122,7 +123,7 @@ export function LocaleSwitcher() {
     setSavedLocale(readSavedLocale());
   }, []);
 
-  const current = React.useMemo(() => detectLocaleFromPath(pathname) || savedLocale, [pathname, savedLocale]);
+  const current = React.useMemo(() => LOCALE_SWITCHER_LABELS.find(item=>item.code===locale)||detectLocaleFromPath(pathname)||savedLocale, [locale,pathname,savedLocale]);
   const currentLabel = current.shortLabel;
   const copy = LOCALE_SWITCHER_COPY[current.code] || LOCALE_SWITCHER_COPY.ko;
 
@@ -176,13 +177,14 @@ export function LocaleSwitcher() {
             <Link
               key={locale.code}
               role="menuitem"
-              href={getLocalizedHref(pathname, locale)}
+              href={preservePath?`${pathname}?${new URLSearchParams({...Object.fromEntries(typeof window==='undefined'?[]:new URLSearchParams(window.location.search)),lang:locale.code})}`:getLocalizedHref(pathname, locale)}
               hrefLang={locale.hrefLang}
               lang={locale.hrefLang}
-              onClick={() => {
+              onClick={(event) => {
                 setOpen(false);
                 setSavedLocale(locale);
                 saveLocalePreference(locale.code);
+                if(preservePath){event.preventDefault();window.location.assign(event.currentTarget.href);}
               }}
               style={{
                 display: "block",
