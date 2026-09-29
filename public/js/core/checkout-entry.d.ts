@@ -187,6 +187,8 @@ export type PaymentChoiceCardSpec = {
   descHtml: string;
   /** 예: ' data-monthly-hint'. */
   descAttr?: string;
+  /** 카드 본문 안에 붙는 보상 안내 조각 — 호출부가 이미 이스케이프한 HTML. */
+  rewardHtml?: string;
   /** 카드 형제로 붙는 조각(월정석 잔량 확인 버튼 등) — <button> 중첩 금지라 카드 안이 아니다. */
   afterHtml?: string;
 };
