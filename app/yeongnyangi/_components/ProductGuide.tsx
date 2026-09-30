@@ -38,7 +38,7 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <Heading>무료와 유료, 무엇이 다를까?</Heading><p>무료 운세에서는 요약된 흐름을 살펴봐요. 유료 상담은 선택한 체계와 등급에 맞춘 챕터별 해석을 받고, 같은 계정의 내 상담 기록에서 이어 읽어요.</p>
   <p>결과는 웹에서 읽고 내 상담 기록에서 다시 열어요. 생성 시간은 분량과 대기 상태에 따라 달라져요. 지연되면 같은 주문의 진행 상황을 확인하고, 재결제 전에 기존 결과를 확인해 주세요.</p>
   <a href="/yeongnyangi/library/">이미 구매한 상담 확인하기 →</a>
-  {[...questionGuides,...contextualQuestionGuides].filter(q=>q.productId.startsWith(domain+'_')).slice(0,2).map(q=><a key={q.id} href={questionGuideHref(q.id)}>{q.question} — 무료 해설 읽기 →</a>)}
+  {[...questionGuides,...contextualQuestionGuides].filter(q=>q.productId.startsWith(domain+'_')).slice(0,2).map(q=><a key={q.id} href={questionGuideHref(q.id)}>{q.question} — 이 고민에 맞는 상담 보기 →</a>)}
   <a href="/today/">오늘의 무료 흐름 먼저 살펴보기 →</a>
   <div className={styles.offer}><p><strong>{offer.price.toLocaleString('ko-KR')}원</strong> · {offer.fishName} · {offer.chapters.length}개 챕터</p><p>{offer.paymentLabel}. 다음 화면에서 상담 종류와 프로필을 고르고, 로그인 후 결제창에서 적용 수단과 총액을 확인해요.</p><a className={styles.cta} href={`/yeongnyangi/fortune/?domain=${domain}&fish=${offer.fish}`} onClick={()=>trackProductStep('product_start_click',domain,offer.itemId,surface)}>이 구성으로 상담 준비하기 →</a></div>
   {domain==='saju'&&<a href="/#founder-records">대통령 관련 공개 분석 기록도 확인하기 →</a>}

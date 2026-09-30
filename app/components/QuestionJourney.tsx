@@ -12,33 +12,29 @@ function Exposure({event,source,q}:{event:string;source:string;q?:QuestionGuide}
 }
 export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
  const {product,kind,chapters}=questionOffer(q);
- return <section className={styles.reading} aria-label="관련 상담 안내">
-  <h3>{q.next}</h3><Exposure key={q.id} event="question_offer_view" source={source} q={q}/>
-  <p>무료 해설은 질문을 정리하는 출발점이에요. 유료 상담에서는 {kind.partner?'두 사람의 프로필':product.domain==='tarot'?'입력한 질문과 카드의 상징':'나의 출생정보와 계산 근거'}을 바탕으로 다음 분석을 제공해요: {kind.description}.</p>
+ return <section className={styles.offer} aria-label="선택한 질문의 상담 안내">
+  <h3>{q.question}</h3><Exposure key={q.id} event="question_offer_view" source={source} q={q}/>
+  <p className={styles.offerLead}>{q.next} 영냥이는 {kind.partner?'두 사람의 프로필과 관계 흐름':product.domain==='tarot'?'입력한 질문과 카드의 상징':'선택한 프로필과 계산 근거'}을 바탕으로, {kind.description}을 챕터별로 정리해요.</p>
+  <h4>상담에서 확인할 내용</h4>
   <ul>{chapters.slice(0,3).map(ch=><li key={ch.id}>{ch.title}</li>)}</ul>
-  <p><strong>{product.priceKRW.toLocaleString('ko-KR')}원 · {chapters.length}개 챕터</strong><br/>{product.name} · {kind.label} · {product.fishName}</p>
-  <p className={styles.label}>로그인 후 Family 이용권 적용 여부 또는 단건 결제를 확인해요. 생성 시간은 상담 분량과 대기 상태에 따라 달라지며, 진행 상황과 저장된 결과는 내 상담 기록에서 확인해요.</p>
+  <p className={styles.price}><strong>{product.priceKRW.toLocaleString('ko-KR')}원 · {chapters.length}개 챕터</strong><span>{product.name} · {kind.label} · {product.fishName}</span></p>
+  <p className={styles.note}>로그인 후 이용권·월정석 적용 여부와 단건 결제 총액을 확인해요. 생성 중인 상담과 저장된 결과는 내 상담 기록에서 다시 확인할 수 있어요.</p>
   <a className={styles.primary} href={questionCheckoutHref(q)} onClick={()=>record('question_offer_click',source,q)}>이 질문의 상담 구성 확인하기</a>
-  <a href="/yeongnyangi/library/">이미 구매했다면 내 상담 기록 보기</a>
+  <a className={styles.library} href="/yeongnyangi/library/">이미 구매했다면 내 상담 기록 보기</a>
  </section>;
 }
 export default function QuestionJourney({source='home'}:{source?:string}){
  const [selected,setSelected]=useState<QuestionGuide>();
- useEffect(()=>{const q=getQuestionGuide(new URLSearchParams(window.location.search).get('question'));if(q){setSelected(q);record('free_guide_start',source,q);}},[source]);
- function choose(q:QuestionGuide){setSelected(q);record('question_select',source,q);record('free_guide_start',source,q);}
+ useEffect(()=>{const q=getQuestionGuide(new URLSearchParams(window.location.search).get('question'));if(q){setSelected(q);record('question_select',source,q);}},[source]);
+ function choose(q:QuestionGuide){setSelected(q);record('question_select',source,q);}
  const buttons=(rows:QuestionGuide[])=>rows.map(q=><button type="button" key={q.id} aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q)}><small>{q.group}</small>{q.question}</button>);
  return <section id="questions" className={styles.journey} aria-label="고민으로 시작하기">
-  <h2>지금 마음에 걸리는 질문은?</h2><p>점술을 몰라도 괜찮아요. 먼저 질문을 골라 생각을 정리해 보세요.</p>
+  <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>질문을 고르면 영냥이가 어떤 방식으로 읽는지, 상담에서 확인할 내용과 결제 조건을 먼저 보여드려요.</p></div><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 112px, 176px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/></div>
   <Exposure event="question_topics_view" source={source}/>
   <div className={styles.choices}>{buttons(questionGuides.slice(0,4))}</div>
   <details><summary>다른 고민 더 찾아보기</summary><div className={styles.choices}>{buttons(questionGuides.slice(4))}</div><a href="/ggulggul/">꿀꿀 운세에서 점술별로 둘러보기</a></details>
-  <div id="question-reading" aria-live="polite">{selected&&<article className={styles.reading} key={selected.id}>
-   <p className={styles.label}>로그인 없이 읽는 무료 해설 · 개인 운세를 계산한 결과는 아니에요.</p><h3>{selected.question}</h3>
-   <p>{selected.answer}</p><p>{selected.basis}</p><h3>살릴 점과 살펴볼 점</h3><p>{selected.strength}</p><p>{selected.caution}</p><h3>오늘 해볼 한 가지</h3><p>{selected.action}</p>
-   <Exposure event="free_guide_result_view" source={source} q={selected}/>
-   <a href={selected.freeHref}>{selected.freeLabel}</a><QuestionOffer q={selected} source={source}/>
-  </article>}</div>
-  <nav aria-label="서비스 선택"><a href="/yeongnyangi/fortune/">영냥이에게 내 질문으로 상담하기</a><a href="/ggulggul/">꿀꿀 운세에서 깊이 탐색하기</a></nav>
+  <div id="question-reading" aria-live="polite">{selected&&<QuestionOffer key={selected.id} q={selected} source={source}/>}</div>
+  <nav className={styles.explore} aria-label="다른 상담 탐색"><a href="/yeongnyangi/fortune/">영냥이의 모든 상담 보기</a><a href="/ggulggul/">꿀꿀 운세에서 깊이 탐색하기</a></nav>
  </section>;
 }
 export function FreeQuestionNext({category,source}:{category:string;source:string}){

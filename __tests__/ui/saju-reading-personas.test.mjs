@@ -57,3 +57,21 @@ test('seasonal assessment follows engine type, including the neutral band',()=>{
   const data=structuredClone(fixture);data.johu.score=1;data.johu.type='neutral';
   assert.equal(api.build(data,'neo','ko').climate.blocks[0].text,api.copy('ko').neutral);
 });
+
+// Protect the requested long-form closing from a return to three analytical blocks.
+test('closing is a personal letter with distinct, respectful persona voices',()=>{
+  const yeon=api.build({...fixture,name:'민지'},'pig','ko').letter;
+  const neo=api.build({...fixture,name:'민지'},'neo','ko').letter;
+  assert.match(yeon.greeting,/민지님께/);
+  assert.ok(yeon.paragraphs.join('').length>=900);
+  assert.ok(yeon.paragraphs.length>=6);
+  assert.match(yeon.paragraphs.join(''),/辛|보석/);
+  assert.match(yeon.signature,/연이/);
+  assert.match(neo.paragraphs.join(''),/작전|정리하자|확인해라/);
+  assert.doesNotMatch(neo.paragraphs.join(''),/징징|똥고집|처듣|무적/);
+  assert.notEqual(yeon.title,neo.title);
+  assert.doesNotMatch(neo.paragraphs.join(''),/예요|있어요|보세요|하세요/);
+  assert.equal(api.build(fixture,'pig','ko').letter.greeting,'이 편지를 읽는 당신께,');
+  const other=structuredClone(fixture);other.p.d={g:'甲',j:'子',gE:'wood'};
+  assert.notEqual(api.build(other,'pig','ko').letter.paragraphs[1],yeon.paragraphs[1]);
+});

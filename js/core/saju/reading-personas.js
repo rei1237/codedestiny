@@ -5,9 +5,9 @@
   var gods = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
   var copy = {
     ko: {
-      yeon: '연이', neo: '네오', garden: '기질을 이해하는 정원', room: '선택을 점검하는 작전실',
-      same: '같은 명식, 다른 읽기 방식입니다. 계산값과 무료·유료 범위는 같아요.',
-      compareNeo: '연이가 발견한 단서를 네오의 기준으로 살펴보기', compareYeon: '네오가 정리한 기준을 연이의 이야기로 읽기',
+      yeon: '연이', neo: '네오', garden: '연이의 달빛 사주', room: '네오의 달빛 전략실',
+      same: '당신의 기질과 삶의 흐름을 차분히 읽습니다. 원하는 상담자를 선택해 주세요.',
+      compareNeo: '네오 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
       observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '네오의 진단', basis: '계산 근거', action: '행동 기준',
       element: '오행의 분포', temperament: '타고난 기질', ten: '십성으로 읽는 역할', climate: '조후 · 계절의 감각', strength: '억부 · 힘을 쓰는 방식', flow: '현재 흐름', letter: '마지막으로 건네는 말',
       names: ['목(木)', '화(火)', '토(土)', '금(金)', '수(水)'],
@@ -42,13 +42,38 @@
       flowRuleCare: '일정을 조정하고 선택지를 남기세요. 점수만으로 관계·직업·투자의 결론을 내리지 마세요.',
       period: '현재 대운', year: '올해 세운', more: '자세히 읽기', sample: '샘플 · 가상 명식의 설명 예시',
       sampleNote: '설명 형식을 보여주는 예시이며 회원님의 결과가 아닙니다.',
-      paidDifference: '무료에서는 현재 흐름과 기질을, 아래 정적 풀이에서는 더 넓은 기간과 주제별 해설을 읽습니다. 입력한 명식의 계산값에 연결된 정적 해설입니다.',
-      paidDaeun: '10년 단위 흐름, 대운별 근거와 연도별 상세를 비교하고 싶은 분께 맞습니다.',
+      paidDifference: '입력한 생년 정보로 계산한 명식에 맞춰 준비된 해설을 엮습니다. 무료 풀이에서 살펴본 기질과 현재 흐름을 더 넓은 시야로 이어 읽어보세요.',
+      paidDaeun: '10년마다 달라지는 삶의 흐름과 해마다의 변화를 함께 읽습니다. 일·관계·재물의 해설에서 지금 준비할 선택을 살펴보세요.',
       paidSummary: '일간·월령·오행·십성을 성격·일·관계 등 여러 주제로 이어 읽고 싶은 분께 맞습니다.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
-      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 풀이', paidRead: '풀이 확인하기',
+      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 · 삶의 계절을 읽다', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거를 짚고, 지금 준비할 선택과 행동을 정리합니다.', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
+      letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
+      letterOpening: '긴 풀이를 읽으며 어떤 문장에서는 고개를 끄덕이고, 어떤 대목에서는 잠시 마음이 멈췄을지도 모르겠어요. 오늘은 답을 서둘러 정하기보다 따뜻한 차 한 잔을 사이에 두고, 당신의 이야기를 조금 더 듣는 마음으로 이 편지를 남겨요.',
+      letterDay: '명식에서 나를 읽는 기준인 일간은 {stem}이에요. {image} 이 모습이 익숙하게 느껴진다면, 요즘 그 힘을 어디에 쓰고 있는지 천천히 떠올려보세요. 타고난 기질은 지켜야 할 숙제가 아니라, 나를 조금 덜 오해하기 위한 실마리니까요.',
+      letterImages: ['큰 나무가 가지를 뻗듯, 방향을 정하고 한 걸음씩 나아가는 모습을 떠올릴 수 있어요.', '풀과 덩굴이 자리를 찾아 자라듯, 주변을 살피며 길을 조정하는 모습을 떠올릴 수 있어요.', '햇살이 공간을 밝히듯, 생각과 마음을 밖으로 나누는 모습을 떠올릴 수 있어요.', '작은 등불이 가까운 자리를 비추듯, 관심을 기울인 일과 사람을 세심하게 살피는 모습을 떠올릴 수 있어요.', '산이 자리를 지키듯, 흔들리는 상황에서 중심을 잡으려는 모습을 떠올릴 수 있어요.', '흙이 씨앗을 품듯, 일상의 작은 조건을 돌보며 결실을 기다리는 모습을 떠올릴 수 있어요.', '도구의 날을 다듬듯, 얽힌 일을 정리하고 필요한 결정을 내리는 모습을 떠올릴 수 있어요.', '보석의 결을 살피듯, 작은 차이를 알아보고 소중한 기준을 가꾸는 모습을 떠올릴 수 있어요.', '강물이 길을 찾듯, 여러 가능성을 살피며 넓게 생각하는 모습을 떠올릴 수 있어요.', '조용한 빗물이 스며들듯, 쉽게 지나치는 기색과 감정을 깊이 살피는 모습을 떠올릴 수 있어요.'],
+      letterBalance: '오행의 분포에서는 {observation} {scene} 잘 쓰이던 힘도 쉬지 않고 쓰면 부담이 될 수 있어요. 반대로 적게 나타난 기운이 있다고 해서 당신에게 그 능력이 없다는 뜻은 아니랍니다. 숫자로 빈자리를 채우려 하기보다, 실제 생활에서 편안했던 방식과 지쳤던 순간을 함께 살펴주세요.',
+      letterTied: '여러 오행이 비슷한 비중으로 나타나고 있어요. 한 가지 모습으로 당신을 정리하기보다, 상황에 따라 달라지는 마음을 함께 바라보고 싶어요. 어떤 날은 앞장서고, 다른 날은 조용히 살피는 나도 같은 당신이니까요.',
+      letterStrong: '일간을 돕는 힘이 비교적 큰 구조로 읽혀요. 스스로 방향을 잡는 데 익숙하다면, 혼자 해낼 수 있다는 이유로 모든 몫을 안고 있지는 않은지 돌아보면 좋겠어요. 도움을 청하는 일은 내 힘을 내려놓는 것이 아니라, 오래 쓸 수 있도록 나누는 일이기도 해요.',
+      letterWeak: '일간을 돕는 힘보다 주변의 요구가 크게 읽히는 구조예요. 이것은 당신의 마음이 약하다거나 능력이 부족하다는 뜻이 아니에요. 충분히 준비할 시간, 함께 의논할 사람, 쉬어 갈 자리가 있을 때 자신의 힘을 더 편안하게 쓸 수 있다는 방향으로 받아들여주세요.',
+      letterJong: '명식에서는 한 방향으로 모이는 기세를 살피는 종격 가능성이 검토되었어요. 강하다거나 약하다는 말 하나로 당신을 설명하기보다, 어떤 환경에서 힘이 자연스럽게 이어지는지 바라보는 편이 좋겠어요. 해석보다 당신이 실제로 겪은 경험을 먼저 놓아주세요.',
+      letterCare: '혹시 요즘 기대만큼 일이 풀리지 않아 자신에게 엄격해졌다면, 결과를 곧바로 나의 가치와 묶지는 않았으면 해요. 힘든 시간이 꼭 좋은 일의 예고인 것은 아니지만, 오늘의 부담을 줄이는 선택은 지금도 해볼 수 있어요. 해야 할 일을 하나 덜어내거나, 믿을 만한 사람에게 지금의 사정을 말하는 작은 선택부터요.',
+      letterPractice: '오늘 이 편지에서 한 가지만 가져간다면, 이렇게 시작해보면 어떨까요. {action} 누군가에게 잘 보이기 위한 숙제가 아니라, 내 하루가 조금 더 편안해지는지 알아보는 작은 시도예요. 잘 맞지 않는다면 다른 방법을 골라도 괜찮아요.',
+      letterClosing: '찻잔을 내려놓을 때처럼, 오늘 읽은 말도 잠시 곁에 놓아두세요. 마음에 남은 문장은 간직하고, 나와 맞지 않는 말은 흘려보내도 좋아요. 당신의 삶을 가장 가까이에서 살아온 사람은 당신이니까요. 다음 걸음이 아직 선명하지 않더라도, 자신을 다그치지 않고 선택할 여유가 곁에 남기를 연이가 바라요.',
+      neoLetterTitle: '마지막 작전 메모', neoGreeting: '{name}님, 이제 선택의 기준을 정리하자.', neoSignature: '네오 · 다음 한 수는 당신의 선택',
+      neoDominant: '{element} {value}%가 상대적으로 두드러진다. {trait}을 살펴볼 단서다.',
+      neoTied: '여러 오행이 가장 큰 비중을 함께 차지한다. 한 가지 성향으로 묶지 말고 상황별 반응을 살펴라.',
+      neoScenes: ['새로운 일을 여러 개 시작하는 편이라면 끝맺는 데 쓸 시간을 함께 잡아라.', '표현에 힘이 실리는 편이라면 상대가 답할 간격도 확보해라.', '맡은 역할을 지키려다가 다른 사람의 책임까지 떠안고 있지 않은지 점검해라.', '기준이 분명한 것은 강점이다. 다만 기준을 지키느라 목적을 놓치고 있지는 않은지 확인해라.', '작은 변화를 잘 알아차리는 편이라면 관찰을 실행으로 옮길 시점도 정해라.'],
+      neoActions: ['새 과제를 늘리기 전에 진행 중인 일 하나의 마감을 정해라.', '전달할 내용과 상대가 들을 여유를 확인하고, 말한 뒤에는 답을 기다려라.', '맡을 일의 범위와 쓸 수 있는 시간을 먼저 적어라.', '꼭 지킬 기준 하나와 조정할 수 있는 기준 하나를 나눠라.', '확인할 질문 하나와 작게 시험해 볼 일을 정해라.'],
+      letterGuestGreeting: '이 편지를 읽는 당신께,', neoGuestGreeting: '이제 선택의 기준을 정리하자.',
+      neoOpening: '명식은 판세를 살피는 참고 자료다. 결정을 대신 내려주는 지시서는 아니다. 맞는 대목은 써먹고, 실제 경험과 어긋나는 해석은 보류해라. 지금 필요한 건 좋은 말의 개수가 아니라, 실행할 기준 하나다.',
+      neoClue: '{observation} 여기서 볼 것은 우열이 아니라 힘을 쓰는 방식이다. {scene} 이런 패턴이 실제로 반복되는지 최근의 선택부터 점검해라.',
+      neoStrong: '일간을 돕는 힘이 비교적 크다. 혼자 추진하기 전에 다른 의견을 들을 자리를 확보해라. 자신감이 있어도 시간과 자원이 늘어나는 것은 아니다. 맡을 일과 나눌 일을 먼저 정리하자.',
+      neoWeak: '일간에 비해 주변의 요구가 큰 구조다. 능력 부족이라는 판정이 아니다. 준비 시간과 지원 없이 역할부터 늘리지 마라. 혼자 감당하기 어렵다면 범위를 줄이거나 도움을 요청하는 것도 전략이다.',
+      neoJong: '한 방향의 기세를 따르는 종격 가능성이 검토됐다. 보통의 강약 공식으로 결론 내리지 마라. 환경에 맞춰 움직였을 때 실제로 효과가 있었는지부터 확인해라.',
+      neoAction: '오늘의 작전은 간단하다. {action} 실행할 시점과 확인할 결과를 적어라. 해본 뒤 도움이 됐는지 평가하고, 맞지 않으면 방법을 바꿔라. 계획을 고치는 것은 패배가 아니라 판단의 일부다.',
+      neoClosing: '관계든 일이든 명식만 보고 큰 결론을 내리지 마라. 상대의 실제 행동, 약속한 조건, 감당할 비용을 함께 확인해라. 당신을 몰아붙이는 대신 선택을 선명하게 만드는 것, 그게 이 작전의 목적이다. 오늘 움직일 수 있는 범위부터 시작하자.',
       endYeon: '오늘 읽은 모든 문장을 나에게 맞추려 애쓰지 않아도 괜찮아요. 실제 내 모습과 맞닿은 단서 하나부터 천천히 살펴보세요.',
       endNeo: '명식은 선택을 대신하지 않습니다. 맞는 근거와 맞지 않는 해석을 구분하고, 오늘 확인할 행동 하나만 정하세요.'
     },
@@ -62,7 +87,7 @@
       godTraits: ["A preference for self-directed choices", "Energy from cooperation and competition", "Expression refined through practice", "A habit of reviewing familiar rules", "Interest in connecting opportunities", "Steady attention to resources and commitments", "Focus on demanding tasks", "Attention to roles and standards", "Deep exploration of unfamiliar views", "Preparation through learning and support"],
       godLife: ['Making your own decisions may feel comfortable. Hear another view too.', 'Working alongside others may energise you. Notice when comparison becomes draining.', 'Regular practice and expression may help you develop a skill.', 'You may question familiar rules. Explain the reason for a proposed change.', 'Connecting opportunities may interest you. Check what you can realistically manage.', 'Keeping small financial commitments and promises may bring stability.', 'Demanding tasks may focus your attention. Make recovery part of the schedule.', 'Clear roles may feel comfortable. Practise adjusting when expectations change.', 'You may explore unfamiliar perspectives deeply. Test them against experience.', 'Learning and support may renew your energy. Put one lesson into practice.'],
       godRules: ['Separate individual from shared decisions and consult where needed.', 'Agree on costs and roles before competing. Pause if comparison replaces the goal.', 'Start with a repeatable workload. Use completed work to plan the next step.', 'Offer an alternative when identifying a problem. Avoid judging the person.', 'List time and downside limits for each opportunity. Defer what exceeds them.', 'Record income, costs and commitments. Do not let stability prevent necessary change.', 'Check resources before accepting pressure. Share work if rest suffers.', 'Clarify responsibility. Adjust rules with evidence when they undermine their purpose.', 'Treat intuition as a hypothesis. Verify before making a major decision.', 'Apply one lesson directly. Review the final choice even when receiving help.'],
-      distribution: 'Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.', dominant: '{element} at {value}% is relatively prominent: a clue to {trait}.', balanced: 'Several elements share the largest proportion. Consider how different situations bring out different strengths.', dayBasis: 'Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.', godBasis: '{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.', unknown: 'Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.', cold: 'The seasonal score leans cooler. Notice what helps you prepare before starting an activity.', hot: 'The seasonal score leans warmer. Leave recovery intervals when increasing your pace.', neutral: 'The temperature score is centred. Observe your actual routine rather than compensating in one direction.', climateBasis: 'Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.', climateAction: 'Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.', strong: 'The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.', weak: 'Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.', jong: 'The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.', strengthBasis: 'Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.', strengthAction: 'Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.', flowBasis: '{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.', flowOpen: 'The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.', flowCare: 'The existing assessment suggests adjustment. Review pace, responsibilities and schedules.', flowRuleOpen: 'Start small when resources and plans are ready. A score does not guarantee an outcome.', flowRuleCare: 'Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.', period: 'Current ten-year cycle', year: 'Current annual cycle', more: 'Read more', sample: 'Sample · a fictional chart', sampleNote: 'An example of the format, not your personal result.', paidDifference: 'The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.', paidDaeun: 'For comparing ten-year periods, chart evidence and annual details.', paidSummary: 'For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.', recovery: 'Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.', inputs: 'Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.', pricePending: 'Checking price', priceUnavailable: 'Confirm the price in the payment information', summaryTitle: 'Comprehensive reading', paidRead: 'View reading', catTitle: 'Yeongnyangi readings', catPurpose: 'Explore your chart with the cat guide', catGo: 'Explore', catPrice: 'From {price}', endYeon: 'You do not need to fit every sentence. Start with one clue that connects with your own experience.', endNeo: 'A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.'
+      distribution: 'Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.', dominant: '{element} at {value}% is relatively prominent: a clue to {trait}.', balanced: 'Several elements share the largest proportion. Consider how different situations bring out different strengths.', dayBasis: 'Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.', godBasis: '{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.', unknown: 'Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.', cold: 'The seasonal score leans cooler. Notice what helps you prepare before starting an activity.', hot: 'The seasonal score leans warmer. Leave recovery intervals when increasing your pace.', neutral: 'The temperature score is centred. Observe your actual routine rather than compensating in one direction.', climateBasis: 'Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.', climateAction: 'Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.', strong: 'The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.', weak: 'Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.', jong: 'The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.', strengthBasis: 'Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.', strengthAction: 'Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.', flowBasis: '{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.', flowOpen: 'The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.', flowCare: 'The existing assessment suggests adjustment. Review pace, responsibilities and schedules.', flowRuleOpen: 'Start small when resources and plans are ready. A score does not guarantee an outcome.', flowRuleCare: 'Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.', period: 'Current ten-year cycle', year: 'Current annual cycle', more: 'Read more', sample: 'Sample · a fictional chart', sampleNote: 'An example of the format, not your personal result.', paidDifference: 'The free reading covers temperament and current cycles. These static readings add longer periods and thematic detail, using explanations linked to the calculated chart.', paidDaeun: 'For comparing ten-year periods, chart evidence and annual details.', paidSummary: 'For connecting the day stem, season, elements and Ten Gods across temperament, work and relationships.', recovery: 'Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record.', inputs: 'Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.', pricePending: 'Checking price', priceUnavailable: 'Confirm the price in the payment information', summaryTitle: 'Comprehensive reading', daeunTitle: 'Your ten-year cycles', graphTitle: 'Cycle comparison', yeonIntro: 'Read your temperament and the season you are in, one page at a time.', neoIntro: 'Review the chart evidence and turn it into practical choices.', paidRead: 'View reading', catTitle: 'Yeongnyangi readings', catPurpose: 'Explore your chart with the cat guide', catGo: 'Explore', catPrice: 'From {price}', endYeon: 'You do not need to fit every sentence. Start with one clue that connects with your own experience.', endNeo: 'A chart does not decide for you. Separate supported observations from mismatches and choose one action to test.'
     }
   };
   function locale() {
@@ -110,7 +135,15 @@
     model.climate=section(c.climate,cool?c.cold:warm?c.hot:c.neutral,fmt(c.climateBasis,{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],c.climateAction);
     model.strength=section(c.strength,jong.isJong?c.jong:pw.isStrong?c.strong:c.weak,fmt(c.strengthBasis,{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],c.strengthAction);
     model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60; return section(row.kind==='year'?c.year:c.period,good?c.flowOpen:c.flowCare,fmt(c.flowBasis,{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),good?c.flowOpen:c.flowCare,good?c.flowRuleOpen:c.flowRuleCare); });
-    model.letter=section(c.letter,elementText,model.day.evidence,c.scenes[day],neo?c.endNeo:c.endYeon);
+    var name=String(input.name||'').trim();
+    if(lang==='ko') {
+      var stemIndex=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(p.d.g);
+      model.letter={title:neo?c.neoLetterTitle:c.letter, greeting:name?fmt(neo?c.neoGreeting:c.letterGreeting,{name:name}):(neo?c.neoGuestGreeting:c.letterGuestGreeting), signature:neo?c.neoSignature:c.letterSignature,
+        paragraphs:neo?[c.neoOpening,fmt(c.neoClue,{observation:tied?c.neoTied:fmt(c.neoDominant,{element:c.names[dominant],value:ratios[dominant].toFixed(0),trait:c.traits[dominant]}),scene:c.neoScenes[dominant]}),jong.isJong?c.neoJong:pw.isStrong?c.neoStrong:c.neoWeak,fmt(c.neoAction,{action:c.neoActions[day]}),c.neoClosing]:[
+          c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),c.letterClosing], evidence:model.day.evidence};
+    } else {
+      model.letter={title:c.letter,greeting:neo?c.neo:c.yeon,signature:neo?c.neo:c.yeon,paragraphs:[elementText,c.scenes[day],neo?c.rules[day]:c.actions[day],neo?c.endNeo:c.endYeon],evidence:model.day.evidence};
+    }
     return model;
   }
   var state = null, flow = [], daily = [], openGod = null;
@@ -119,11 +152,15 @@
     var p=root.G_PILLARS, ten={};
     [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(ch){var g=root.getTenGod(p.d.g,ch);if(g&&g!=='?')ten[g]=(ten[g]||0)+1;});
     var birth=root.G_KASI_CONTEXT||{};
-    return {p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    return {name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
   }
   function markup(reading, model, heading) {
     var c=langCopy(locale());
     return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+esc(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
+  }
+  function letterMarkup(model) {
+    var r=model.letter,c=langCopy(locale());
+    return '<article class="saju-reading saju-letter" data-reading-mode="'+model.mode+'"><p class="saju-letter__greeting">'+esc(r.greeting)+'</p><div class="saju-letter__prose">'+r.paragraphs.map(function(text){return '<p>'+esc(text)+'</p>';}).join('')+'</div><p class="saju-letter__signature">'+esc(r.signature)+'</p><details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(r.evidence)+'</p></details>'+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</article>';
   }
   function write(id, html) { var el=document.getElementById(id);if(el)el.innerHTML=html; }
   function ensureHeader() {
@@ -136,7 +173,7 @@
   }
   function renderHeader() {
     var c=langCopy(locale()), selected=mode(), neo=selected==='neo';ensureHeader();
-    write('sajuReadingHeader','<img src="/images/saju/'+(neo?'neo-plan':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(c.same)+'</p>'+controls()+'<button type="button" class="saju-reading-compare" data-saju-mode="'+(neo?'pig':'neo')+'">'+esc(neo?c.compareYeon:c.compareNeo)+'</button></div>');
+    write('sajuReadingHeader','<img src="/images/saju/'+(neo?'neo-plan':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(neo?c.neoIntro:c.yeonIntro)+'</p>'+controls()+'</div>');
     var form=document.getElementById('destinyCardForm');
     if(form&&!document.getElementById('sajuInputModes')){var host=document.createElement('div');host.id='sajuInputModes';host.className='saju-input-modes';form.prepend(host);}
     write('sajuInputModes',controls()+'<p>'+esc(neo?c.room:c.garden)+'</p>');
@@ -166,7 +203,7 @@
       reading.blocks=model.mode==='neo'?[{label:c.diagnosis,text:good?c.flowOpen:c.flowCare},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?c.godRules[gi]:c.strengthAction}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
       write(i===0?'dailyPanel':'monthlyPanel',markup(reading,model,true));
     });
-    if(section==='letter'||section==='all') {write('letterTitle',esc(mode()==='neo'?c.neo:c.yeon)+' · '+esc(c.letter));write('letterContent',markup(model.letter,model,false));}
+    if(section==='letter'||section==='all') {write('letterTitle',esc(mode()==='neo'?c.neo:c.yeon)+' · '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
   }
   function refreshCopy() {
@@ -180,7 +217,7 @@
       el.dataset.readingLocale=locale()+':'+mode();
       var sample=build({p:{d:{g:'辛',j:'酉',gE:'metal'}},natal:{dominant:'metal',ratios:{wood:100/3,fire:100/9,earth:100/9,metal:400/9,water:0}},ten:{'비견':2},flow:[{kind:'period',g:'甲',j:'午',score:60}]},mode(),locale());
       var price=document.querySelector('[data-saju-price-key="'+key+'"]');
-      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'neo-plan':'yeoni-clue')+'-160.webp" width="56" height="56" alt="" decoding="async"><h3>'+esc(key==='section_daewun'?c.period:c.summaryTitle)+'</h3><strong class="saju-static-offer__price">'+esc(price?price.textContent:c.pricePending)+'</strong><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><p>'+esc(c.paidDifference)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p><p>'+esc(c.recovery)+'</p>';
+      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'neo-plan-160.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><h3>'+esc(key==='section_daewun'?c.daeunTitle:c.summaryTitle)+'</h3><strong class="saju-static-offer__price">'+esc(price?price.textContent:c.pricePending)+'</strong><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><p>'+esc(c.paidDifference)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p><p>'+esc(c.recovery)+'</p>';
     });
   }
   function showGod(key, open) {
