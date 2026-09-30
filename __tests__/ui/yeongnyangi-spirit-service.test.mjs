@@ -158,3 +158,28 @@ test('all site locales prepare ordinary, question, compatibility and fusion read
   }
  }finally{delete globalThis.__spiritTest.fullProfile;}
 });
+
+
+test('previously stored ordinary, symbolic and question-time purchases keep their original content and budgets',async()=>{
+ const {mode,spirit,...regular}=body;
+ const sky={mode:'prashna-v1',productId:'saju_flounder',question:'현재 관계에서 먼저 살필 점은 무엇인가요?',questionSky:{topic:'reunion',relationship:'헤어진 사이',cityId:'seoul',localTime:new Date(Date.now()-86400000).toISOString().slice(0,16),boundary:false}};
+ const calls=globalThis.__spiritTest.calls;
+ for(const [index,input] of [regular,body,sky].entries()){
+  const owner='historical-budget-owner-'+index;
+  const stored=await prepareFortune(env,owner,input);
+  // Simulate a persisted pre-profile purchase with its own original goals and
+  // declared allowance. Replaying the purchase may not migrate or compact it.
+  stored.snapshot.manifest=stored.snapshot.manifest.map(chapter=>{
+   const {outputBudgetVersion,...historical}=chapter;
+   return {...historical,targetChars:[3200,3800],minimumChars:3000,outputTokens:12288};
+  });
+  stored.paymentId='historical-payment';stored.state='GENERATING';
+  stored.chapters=[{summary:'Previously delivered prose remains available'}];
+  const before=JSON.stringify(stored.snapshot);
+  const replay=await prepareFortune(env,owner,input);
+  assert.equal(replay,stored);assert.equal(JSON.stringify(replay.snapshot),before);
+  assert.equal(replay.chapters[0].summary,'Previously delivered prose remains available');
+  assert.ok(replay.snapshot.manifest.every(chapter=>chapter.outputBudgetVersion===undefined));
+ }
+ assert.equal(globalThis.__spiritTest.calls,calls,'a repeated preparation never calls an LLM');
+});

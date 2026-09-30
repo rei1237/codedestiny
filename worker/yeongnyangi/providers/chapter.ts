@@ -1,3 +1,5 @@
+import {isConciseReading,conciseOutputTokens} from '../fortune/concise-reading';
+import {conciseReadingPrompt} from '../fortune/concise-reading-prompt';
 import {skyRules,validateSkyChapter} from '../fortune/question-sky-reading';
 import {readingLocale,readingLanguageInstruction,readingOutputContext,validateReadingLanguage,type ReadingLocale,type ReadingOutputContext} from '../fortune/reading-locale';
 import {spiritEvidence,spiritRules,validateSpiritChapter} from '../fortune/spirit';
@@ -306,8 +308,8 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
     // even on the ask chapter, whose packet adds IDs the ledger does not carry.
     const v7Parts=v7Chapter?buildV7ChapterPrompt({chapter:v7Chapter,facts:sourceIds.map(id=>({id,label:id,value:null})),
       previous:input.previous as V7Previous[],askFirstChapter:Boolean(askPrompt),questionCount}):undefined;
-    const baseTokens=isStructuredReading(input.chapter.version)&&input.chapter.tier?Math.max(input.chapter.outputTokens??0,readingPolicies[input.chapter.tier].outputTokens):input.chapter.outputTokens;
-    const v5Tokens=v7Parts?v7Parts.maxOutputTokens:Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*480));
+    const baseTokens=isConciseReading(input.chapter)?input.chapter.outputTokens:isStructuredReading(input.chapter.version)&&input.chapter.tier?Math.max(input.chapter.outputTokens??0,readingPolicies[input.chapter.tier].outputTokens):input.chapter.outputTokens;
+    const v5Tokens=isConciseReading(input.chapter)?conciseOutputTokens(input.chapter,questionCount):v7Parts?v7Parts.maxOutputTokens:Math.max(baseTokens || 0,tokensRequiredForChars((input.chapter.targetChars?.[1] || 0)+600+questionCount*480));
     if(hasReadingSections(input.chapter.version) && v5Tokens>24576)throw new FortuneError('CHAPTER_OUTPUT_BUDGET_EXCEEDED',503);
     if (JSON.stringify(facts).length > 180000)
       throw new FortuneError("CHAPTER_CONTEXT_TOO_LARGE", 503);
@@ -385,6 +387,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         // v7 keeps its contract in one module: these keys replace depth, the block/citation contracts and the
         // previous-chapter carry. Everything a v6 chapter sends above stays exactly where it is.
         ...(v7Parts?v7Parts.domainRules:{}),
+        ...(isConciseReading(input.chapter)?conciseReadingPrompt(input.chapter,{domains:contexts.map(c=>c.domain),plainLanguageOnly:Boolean(sky||spirit),questionCount}):{}),
       }),
       calculatedData: facts,
       userQuestion: askPrompt?escapeAskData(input.analysis.question||''):input.followupQuestion || input.analysis.question||"",
@@ -394,10 +397,11 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
         items:{type:'string',enum:sourceIds},
       }}},
       sectionTitles: [input.chapter.title],
-      promptVersion: v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2",
+      outputBudgetVersion:input.chapter.outputBudgetVersion,
+      promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(isConciseReading(input.chapter)?"-concise-20260930":""),
       // Books keep their purchase-time manifest; a later cap increase must still reach retries of those chapters.
       ...(spirit||sky?{maxProviderAttempts:1}:{}),
-      maxOutputTokens:hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*480))):baseTokens,
+      maxOutputTokens:isConciseReading(input.chapter)||hasReadingSections(input.chapter.version)?v5Tokens:questionCount?Math.min(16384,Math.max(baseTokens || 8192,tokensRequiredForChars((input.chapter.targetChars?.[1] || 2000)+questionCount*480))):baseTokens,
     });
     this.receipt = { provider: response.provider, model: response.model };
     let candidate:any=response.result;

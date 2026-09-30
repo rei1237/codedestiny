@@ -1,3 +1,4 @@
+import { storedChapterDraft } from './stored-chapter.js';
 import { mongoose, mongoTransactionOptions, withMongoRetry } from '../lib/db.js';
 import { Payment } from '../lib/models.js';
 import { createHttpError } from '../lib/http.js';
@@ -235,7 +236,7 @@ async function reconcileAttemptLimit(env,userId,current) {
     ['AUTOMATIC_RECOVERY_STOPPED','GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(current.errorCode)||
     new Date(current.leaseUntil || 0).getTime()>Date.now()||new Date(current.nextAttemptAt || 0).getTime()>Date.now())return current;
   const ordinal=current.chapters.length;
-  if(current.generationCheckpoint?.chapterDrafts?.[ordinal]?.body)return current;
+  if(storedChapterDraft(current))return current;
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
   const manualGrants=grantCount(current.manualRecoveryGrants,ordinal),systemGrants=grantCount(current.systemRecoveryGrants,ordinal);
   const exhausted=chapterAttempts>=allowedChapterAttempts(current,ordinal)?'AUTOMATIC_RECOVERY_STOPPED'
@@ -260,7 +261,7 @@ async function reconcileAttemptLimit(env,userId,current) {
   return current;
 }
 
-export async function claimChapter(env, userId, requestId, source = 'queue') {
+export async function claimChapter(env, userId, requestId, source = 'queue', options = {}) {
   const current = await readRequest(env,userId,requestId);
   const accessMethod=requestAccessMethod(current);
   if (!accessMethod) throw failure(402,'PAYMENT_REQUIRED');
@@ -281,6 +282,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
     const completed=await completeStoredRequest(env,userId,requestId,total);
     return {row:completed || current,token:null};
   }
+  if (options.storedOnly && !storedChapterDraft(current)) throw failure(503,'LLM_NOT_CONFIGURED');
   if (['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED'].includes(current.errorCode)) throw failure(409,current.errorCode);
   if (new Date(current.nextAttemptAt || 0).getTime()>Date.now()) return {row:current,token:null};
   if (new Date(current.leaseUntil || 0).getTime()>Date.now()) return {row:current,token:null};
@@ -294,12 +296,13 @@ export async function claimChapter(env, userId, requestId, source = 'queue') {
   const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
     _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
     chapters:{$size:current.chapters.length},
+    ...(options.storedOnly?{[`generationCheckpoint.chapterDrafts.${ordinal}.body`]:{$exists:true,$ne:null}}:{}),
     errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED']},
     $and:[{$or:[{nextAttemptAt:null},{nextAttemptAt:{$lte:now}}]},
       {$or:[{[attemptKey]:{$exists:false}},{[attemptKey]:chapterAttempts}]}],
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
   },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+180000),errorCode:''},
-    ...(!current.generationCheckpoint?.chapterDrafts?.[ordinal]?.body?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
+    ...(!options.storedOnly&&!storedChapterDraft(current)?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
     $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true}).lean());
   return row ? {row,token} : {row:current,token:null};
 }

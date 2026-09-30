@@ -8,7 +8,7 @@ import {build} from 'esbuild';
 // routes a v7 chapter to the ledger, chapter.ts spreads the chapter-v7 prompt and moves the evidence rule
 // onto the insight blocks. Tarot v2 owns new tarot purchases before the older v7 selector.
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7Applies,readingManifestV7,READING_V7_ENABLED} from './worker/yeongnyangi/fortune/reading-v7'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {resolveV7Ledger,selectV7Facts} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {buildV7ChapterPrompt} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export {conciseReadingManifest,CONCISE_READING_VERSION} from './worker/yeongnyangi/fortune/concise-reading'; export {chapterOutputTokenBudget} from './worker/yeongnyangi/providers/code-destiny'; export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7Applies,readingManifestV7,READING_V7_ENABLED} from './worker/yeongnyangi/fortune/reading-v7'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {resolveV7Ledger,selectV7Facts} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {buildV7ChapterPrompt} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7-wiring.test.cjs');
 const loaded=new Module(filename);
 loaded.filename=filename;
@@ -104,4 +104,42 @@ test('the evidence requirement moves onto the insight blocks: no evidence sectio
  const thin={...body,sources:[single],blocks:body.blocks.map(b=>({...b,sources:[single]}))};
  assert.ok(m.selectChapterFacts(sajuContext,chapter).length>1);
  assert.throws(()=>m.validateChapter(thin,input),{code:'CHAPTER_EVIDENCE_INCOMPLETE'});
+});
+
+
+test('only a newly prepared concise manifest selects reduced budgets and the focused reading prompt',async()=>{
+ for(const old of [resolved.flounder[1],m.consultationManifest(productOf('saju','mackerel'),undefined)[1]]){
+  const chapter=m.conciseReadingManifest([old])[0];
+  let request;
+  const fixture=await new m.MockChapterProvider().generateChapter(requestFor(chapter));
+  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(chapter));
+  const rules=JSON.parse(request.domainRules);
+  assert.equal(request.outputBudgetVersion,m.CONCISE_READING_VERSION);
+  assert.ok(request.promptVersion.endsWith('-concise-20260930'));
+  assert.deepEqual(rules.lengthContract.target,chapter.targetChars);
+  assert.equal(request.maxOutputTokens,chapter.outputTokens);
+  assert.ok(m.chapterOutputTokenBudget(request.maxOutputTokens,request.outputBudgetVersion)<m.chapterOutputTokenBudget(8192));
+  assert.deepEqual(request.outputSchema.properties.blocks.items.properties.id.enum,chapter.sections.map(s=>s.id));
+  assert.deepEqual(chapter.factIds,old.factIds);
+  assert.deepEqual(chapter.owns,old.owns);
+ }
+});
+
+test('new readings distinguish four reasoning depths without adding tokens or changing owned facts',async()=>{
+ const approaches=new Set();
+ for(const tier of ['mackerel','salmon','flounder','tuna']){
+  const old=tier==='mackerel'?m.consultationManifest(productOf('saju',tier),undefined)[1]:resolved[tier][1];
+  const chapter=m.conciseReadingManifest([old])[0];
+  const fixture=await new m.MockChapterProvider().generateChapter(requestFor(chapter));
+  let request;
+  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(chapter));
+  const depth=JSON.parse(request.domainRules).conciseReading.tierDepth;
+  assert.equal(depth.tier,tier);
+  approaches.add(depth.approach);
+  assert.equal(request.maxOutputTokens,chapter.outputTokens);
+  assert.deepEqual(chapter.owns,old.owns);
+  assert.deepEqual(chapter.factIds,old.factIds);
+  assert.deepEqual(request.outputSchema.properties.blocks.items.properties.id.enum,old.sections.map(s=>s.id));
+ }
+ assert.equal(approaches.size,4);
 });

@@ -2,9 +2,9 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const compiled=await build({stdin:{contents:"export {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny'; export {tokensRequiredForChars} from './worker/lib/llm-budget.js'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationManifest,consultationKinds,consultationDomain,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7OutputTokens} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
+const compiled=await build({stdin:{contents:"export {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny'; export {tokensRequiredForChars} from './worker/lib/llm-budget.js'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationManifest,consultationKinds,consultationDomain,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7OutputTokens} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {conciseReadingManifest,conciseOutputTokens,CONCISE_READING_VERSION} from './worker/yeongnyangi/fortune/concise-reading'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
  plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return response;}'}));}}]});
-const {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET,tokensRequiredForChars,products,consultationManifest,consultationKinds,consultationDomain,supportsKind,v7OutputTokens,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET,tokensRequiredForChars,products,consultationManifest,consultationKinds,consultationDomain,supportsKind,v7OutputTokens,conciseReadingManifest,conciseOutputTokens,CONCISE_READING_VERSION,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const provider=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'});
 const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',calculatedData:{},outputSchema:{},sectionTitles:[]};
 
@@ -89,4 +89,67 @@ test('chapter transport sends fixed evidence once and keeps system instructions 
  assert.deepEqual(payload.CALCULATED_DATA.facts,[{id:'saju.dayMaster',value:'wood'}]);
  assert.equal(getOptions().systemPrompt,'SYSTEM_ONLY');
  assert.equal(getPrompt().includes('SYSTEM_ONLY'),false);
+});
+
+
+test('new concise purchases reduce the floor while preserving the declared complete answer allowance',async()=>{
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ for(const [declared,expected] of [[4000,5120],[8192,9216],[24576,25600],[undefined,12274],[Infinity,12274]]){
+  await provider.generate({...request,domainRules:'{}',outputBudgetVersion:CONCISE_READING_VERSION,maxOutputTokens:declared});
+  assert.equal(getOptions().maxOutputTokens,expected);
+  assert.equal(getOptions().maxProviderAttempts,1);
+ }
+ // An unknown version must not silently shrink old callers' allowance.
+ assert.equal(chapterOutputTokenBudget(4000,'unknown'),9216);
+});
+
+test('concise transport keeps every fact and rule with one structured schema while legacy bytes stay unchanged',async()=>{
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ const rules={question:{text:'질문 \"원문\"',ids:['q1']},contracts:['근거를 유지한다','계산되지 않은 사실을 만들지 않는다']};
+ const input={...request,domainRules:JSON.stringify(rules),calculatedData:{facts:[{id:'saju.dayMaster',value:{wood:2}}]},outputSchema:{type:'object',properties:{answer:{type:'string'}}}};
+ await provider.generate(input);
+ const legacy=getPrompt();
+ assert.equal(JSON.parse(legacy).DOMAIN_CONTEXT,JSON.stringify(rules));
+ assert.deepEqual(JSON.parse(legacy).OUTPUT_SCHEMA,input.outputSchema);
+ await provider.generate({...input,outputBudgetVersion:CONCISE_READING_VERSION});
+ const compact=JSON.parse(getPrompt());
+ assert.deepEqual(compact.DOMAIN_CONTEXT,rules);
+ assert.deepEqual(compact.CALCULATED_DATA,input.calculatedData);
+ assert.equal(compact.USER_QUESTION,input.userQuestion);
+ assert.deepEqual(compact.SECTION_TITLES,input.sectionTitles);
+ assert.equal(Object.hasOwn(compact,'OUTPUT_SCHEMA'),false);
+ assert.deepEqual(getOptions().responseSchema,input.outputSchema);
+ assert.ok(getPrompt().length<legacy.length);
+ await provider.generate(input);
+ assert.equal(getPrompt(),legacy);
+});
+
+test('every concise catalog chapter preserves sections, evidence ownership and full answer headroom without mutating saved manifests',()=>{
+ let cases=0;
+ for(const product of products)for(const kind of [undefined,...consultationKinds[consultationDomain(product)].filter(k=>supportsKind(product,k))]){
+  const stored=consultationManifest(product,kind),before=JSON.stringify(stored),compact=conciseReadingManifest(stored);
+  assert.equal(JSON.stringify(stored),before);
+  assert.equal(compact.length,stored.length);
+  assert.deepEqual(conciseReadingManifest(compact),compact,'previews cannot compact twice');
+  for(const [i,chapter] of compact.entries()){
+   const original=stored[i];
+   assert.equal(chapter.minimumChars,Math.min(Math.round((original.minimumChars||original.targetChars[0])*.88),chapter.targetChars[0]));
+   for(const [j,section] of (chapter.sections||[]).entries())assert.equal(section.minimumChars,Math.min(Math.round(original.sections[j].minimumChars*.88),section.targetChars[0]));
+  }
+  compact.forEach((chapter,index)=>{
+   const old=stored[index];
+   assert.equal(chapter.outputBudgetVersion,CONCISE_READING_VERSION);
+   assert.deepEqual(chapter.sections.map(s=>[s.id,s.title,s.role,s.instruction]),old.sections.map(s=>[s.id,s.title,s.role,s.instruction]));
+   for(const field of ['id','key','version','systems','factSelectors','owns','refs','mustCover','minInsightUnits','scene','decision'])assert.deepEqual(chapter[field],old[field]);
+   for(const target of [0,1])assert.ok(Math.abs(chapter.targetChars[target]/old.targetChars[target]-.88)<.005);
+   for(const questions of [0,8]){
+    const output=chapterOutputTokenBudget(conciseOutputTokens(chapter,questions),chapter.outputBudgetVersion);
+    assert.ok(output>=tokensRequiredForChars(chapter.targetChars[1]+600+questions*480)+CHAPTER_THINKING_BUDGET);
+    const sectionUpper=chapter.sections.reduce((n,s)=>n+s.targetChars[1],0);
+    assert.ok(output>=tokensRequiredForChars(sectionUpper+600+questions*480)+CHAPTER_THINKING_BUDGET);
+    cases++;
+   }
+  });
+ }
+ assert.ok(cases>2000);
 });
