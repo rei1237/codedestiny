@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "dbdc0dd0fddcf304",
+      "signature": "73a162064b7cf400",
       "lastmod": "2026-09-30"
     },
     "/about/": {
@@ -55,7 +55,7 @@
       "lastmod": "2026-09-30"
     },
     "/destiny-compass/": {
-      "signature": "028ce3cc9a62fc02",
+      "signature": "a3a8160d0f96d948",
       "lastmod": "2026-09-30"
     },
     "/destiny-poker": {
@@ -703,7 +703,7 @@
       "lastmod": "2026-09-30"
     },
     "/fortune/prompt-hub/": {
-      "signature": "86a352175390658f",
+      "signature": "40187fa708356f21",
       "lastmod": "2026-09-30"
     },
     "/fortune/today/": {
@@ -1027,7 +1027,7 @@
       "lastmod": "2026-09-30"
     },
     "/insights/": {
-      "signature": "9210ad3f9405a4bd",
+      "signature": "27443b6d6b659cf5",
       "lastmod": "2026-09-30"
     },
     "/insights/astrology/": {
@@ -1043,7 +1043,7 @@
       "lastmod": "2026-09-30"
     },
     "/insights/famous-saju/": {
-      "signature": "f610547681c5f77d",
+      "signature": "1515bf147e5b1dce",
       "lastmod": "2026-09-30"
     },
     "/insights/fusion/": {
@@ -1787,7 +1787,7 @@
       "lastmod": "2026-09-30"
     },
     "/saju-guardian/": {
-      "signature": "04b47ad8a5a2d2d7",
+      "signature": "5353618bc5a8e345",
       "lastmod": "2026-09-30"
     },
     "/saju/": {
@@ -1795,7 +1795,7 @@
       "lastmod": "2026-09-30"
     },
     "/saju/animal-destiny/": {
-      "signature": "bfda82ff84f4dc19",
+      "signature": "163fc3994187a310",
       "lastmod": "2026-09-30"
     },
     "/saju/basic/": {
@@ -1811,7 +1811,7 @@
       "lastmod": "2026-09-29"
     },
     "/saju/destiny-meeting-place/": {
-      "signature": "ba8c87c99c359a43",
+      "signature": "eafd85ae0a635554",
       "lastmod": "2026-09-30"
     },
     "/saju/five-elements/": {
@@ -1823,7 +1823,7 @@
       "lastmod": "2026-09-30"
     },
     "/saju/love-simulation/": {
-      "signature": "3c80e48f64f6a536",
+      "signature": "24f10a9ed6753bd6",
       "lastmod": "2026-09-30"
     },
     "/saju/monthly/2026-09/": {
