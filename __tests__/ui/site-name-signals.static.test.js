@@ -255,3 +255,16 @@ test("app/ 에 남은 비-브랜드 siteName 리터럴은 렌더되지 않는 �
     );
   }
 });
+
+
+test("연이·네오 설치 매니페스트의 이름이 웹 브랜드와 같다", () => {
+  for (const directory of ["", "public"]) {
+    for (const filename of ["manifest.json", "manifest-neo.json"]) {
+      const relative = path.join(directory, filename);
+      const manifest = JSON.parse(fs.readFileSync(path.join(root, relative), "utf8"));
+      assert.equal(manifest.name, BRAND, relative + " name");
+      assert.equal(manifest.short_name, BRAND, relative + " short_name");
+    }
+  }
+
+});
