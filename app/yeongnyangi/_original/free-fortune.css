@@ -411,3 +411,16 @@
     animation: none;
   }
 }
+
+/* Only runs after the server confirms a newly unlocked daily reading. */
+.ynOriginal .anchovy-cat.unimpressed>img:first-child{transform:translateY(5px) rotate(-5deg)}
+.ynOriginal .anchovy-sigh{position:absolute;right:8px;top:35px;color:#f7e5c3;font-family:"Yeongnyangi Myeongjo",serif;font-size:24px;pointer-events:none}
+@media(prefers-reduced-motion:no-preference){
+ .ynOriginal .anchovy-cat.unimpressed>img:first-child{animation:anchovy-long-sigh 1.6s ease-out both}
+ .ynOriginal .anchovy-sigh{animation:anchovy-sigh-cloud 1.6s ease-out both}
+ .ynOriginal .anchovy-cat.ready>img:first-child{animation:anchovy-look-up .5s ease-out both}
+}
+@keyframes anchovy-long-sigh{0%{transform:translateY(0) rotate(0)}35%{transform:translateY(-3px) rotate(-2deg)}100%{transform:translateY(5px) rotate(-5deg)}}
+@keyframes anchovy-sigh-cloud{from{opacity:0;transform:translateY(6px)}35%{opacity:1}to{opacity:0;transform:translateY(-18px)}}
+@keyframes anchovy-look-up{from{transform:translateY(5px) rotate(-5deg)}to{transform:none}}
+@media(prefers-reduced-motion:reduce){.ynOriginal .anchovy-cat.unimpressed>img:first-child{transform:none}}

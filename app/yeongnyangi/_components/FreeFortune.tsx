@@ -33,7 +33,7 @@ export default function FreeFortune(){
  const profileState=useProfiles(),profileId=profileState.profileId;
  const [category,setCategory]=useState('basic'),[reading,setReading]=useState<FreeReading|null>(null),[draft,setDraft]=useState<Record<string,string>>({question:''});
  const [guest,setGuest]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [reaction,setReaction]=useState<'idle'|'award'|'receive'|'unimpressed'>('idle');
+ const [reaction,setReaction]=useState<'idle'|'award'|'receive'|'unimpressed'|'ready'>('idle');
  const lock=useRef(false),version=useRef(0),timers=useRef<ReturnType<typeof setTimeout>[]>([]),currentDay=useRef('');
  const attendanceVersion=useRef(0);
  function clearReactionTimers(){timers.current.forEach(clearTimeout);timers.current=[];}
@@ -65,9 +65,10 @@ export default function FreeFortune(){
    if(kind==='attendance'&&next.awarded)setReaction('award');
    else if(kind==='free/unlock'&&next.newlyUnlocked){
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;setReaction(reduced?'unimpressed':'receive');
-    if(!reduced)timers.current.push(setTimeout(()=>setReaction('unimpressed'),400));
+    if(!reduced)timers.current.push(setTimeout(()=>setReaction('unimpressed'),650));
+    timers.current.push(setTimeout(()=>setReaction('ready'),2400));
    }else return;
-   timers.current.push(setTimeout(()=>{setReaction('idle');timers.current=[];},1800));
+   timers.current.push(setTimeout(()=>{setReaction('idle');timers.current=[];},kind==='free/unlock'?5200:2400));
   }
   catch(reason){if(v===attendanceVersion.current&&account===readDestinyProfileAccountId())fail(reason);}finally{lock.current=false;setBusy(false);}
  }
@@ -76,8 +77,8 @@ export default function FreeFortune(){
   try{const data=await fortuneApi<{result:FreeReading}>('free/reading',{category,profileId:profileId||undefined,draft});if(v===version.current)setReading(data.result);}
   catch(reason){if(v===version.current)fail(reason);}finally{lock.current=false;setBusy(false);}
  }
- return <section id="daily" className="room-daily free-fortune" aria-labelledby="daily-title">
-  <div className="free-welcome"><div className={`anchovy-cat ${reaction}`}><Image src="/assets/yeongnyangi/fish/reaction-anchovy.webp" width={240} height={240} alt="작은 멸치 한 마리를 집어 들고 시큰둥하게 바라보는 영냥이"/>{reaction==='receive'&&<Image className="incoming-anchovy" src="/assets/yeongnyangi/fish/anchovy.webp" width={64} height={32} alt=""/>}</div><div><h2 id="daily-title">멸치 한 마리,<br/>오늘의 이야기.</h2><p className="anchovy-dialogue">{reaction==='receive'||reaction==='unimpressed'?'……이 작은 걸 나한테? 흠, 일단 받을게.':'……멸치 한 마리? 작네. 그래도 이야기는 제대로 봐줄게.'}</p></div></div>
+ return <section tabIndex={-1} id="daily" className="room-daily free-fortune" aria-labelledby="daily-title">
+  <div className="free-welcome"><div className={`anchovy-cat ${reaction}`}><Image src={reaction==='unimpressed'||reaction==='receive'?'/assets/yeongnyangi/original/neo-fish-curse.webp':'/assets/yeongnyangi/fish/reaction-anchovy.webp'} width={240} height={240} alt={reaction==='unimpressed'||reaction==='receive'?'한쪽 앞발은 거절하면서 다른 앞발은 이미 멸치를 받는 영냥이':'작은 멸치를 들고 이야기를 기다리는 영냥이'}/>{reaction==='receive'&&<Image className="incoming-anchovy" src="/assets/yeongnyangi/fish/anchovy.webp" width={64} height={32} alt=""/>}{reaction==='unimpressed'&&<span className="anchovy-sigh" aria-hidden="true">하아…</span>}</div><div><h2 id="daily-title">멸치 한 마리,<br/>오늘의 이야기.</h2><p className="anchovy-dialogue" aria-live="polite">{reaction==='receive'?'잠깐. 내려놔 봐. …멸치 맞네.':reaction==='unimpressed'?'하아… 두 대통령의 운세를 봤던 내가, 이 작은 멸치에.':reaction==='ready'?'…그래도 네 마음까지 작은 건 아니니까. 앉아. 제대로 읽어줄게.':reaction==='award'?'왔구나. 오늘 멸치는 챙겨뒀어. 잊은 줄 알았지?':'멸치 한 마리에 한숨 한 번. 그래도 네 이야기는 끝까지 들어줄게.'}</p></div></div>
   <div className="attendance-bar"><div className="anchovy-balance"><Image src="/assets/yeongnyangi/fish/anchovy.webp" width={72} height={36} alt="멸치"/><span>내 멸치<strong>{state?`${state.balance}마리`:'로그인 후 확인'}</strong></span>{reaction==='award'&&<span className="anchovy-award" aria-hidden="true"><Image src="/assets/yeongnyangi/fish/anchovy.webp" width={48} height={24} alt=""/>멸치 +1</span>}</div><div className="attendance-actions">{guest?<button className="free-primary" type="button" onClick={loginForCurrentPage}>로그인하고 출석하기<ArrowRight size={17}/></button>:state?<><button type="button" onClick={()=>void action('attendance')} disabled={busy||state.attended}>{state.attended?<Check size={17}/>:<Gift size={17}/>} {state.attended?'오늘 출석 완료':'출석하고 멸치 받기'}</button><button type="button" className="free-primary" onClick={()=>void action('free/unlock')} disabled={busy||state.unlocked||state.balance<1}>{state.unlocked?<BookOpen size={17}/>:<ArrowRight size={17}/>} {state.unlocked?'오늘의 16종 열림':'멸치 1마리 건네기'}</button></>:<p>출석 수첩을 확인하고 있어.</p>}</div></div>
   <p className="free-policy">한국 시간 기준 하루 한 번 출석하면 멸치 1마리. 1마리로 오늘의 16종 전체를 열 수 있어. 남은 멸치는 계속 쌓아둘게.</p><p className="free-status" role="status">{notice}</p>
   {error&&<div className="free-error" role="alert"><p>{error}</p>{!guest&&<button type="button" disabled={busy} onClick={()=>refresh().then(()=>setError('')).catch(fail)}>상태 다시 확인</button>}</div>}

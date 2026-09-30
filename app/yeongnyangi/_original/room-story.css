@@ -1,0 +1,47 @@
+/* Room-owned extensions: preserve the original plum, ivory and old-gold world. */
+.ynOriginal .room-listening{max-width:1240px;margin:auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#dfcce7;font-size:13px}
+.ynOriginal .room-sound{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:#dfcce7}
+.ynOriginal .room-sound button{display:inline-flex;align-items:center;gap:8px;min-height:44px;border:1px solid #897095;border-radius:999px;padding:8px 14px;background:#30223e;color:#fff3e2}
+.ynOriginal .room-sound label{display:flex;align-items:center;gap:8px}
+.ynOriginal .room-sound input{width:88px;min-height:44px;accent-color:#e9c78d}
+.ynOriginal .room-sound [role=status]{flex-basis:100%;line-height:1.6}
+.ynOriginal .room-companion{padding:28px 22px;background:#23182f;color:#fff3e2;min-width:0}
+.ynOriginal .room-companion h2{font-family:var(--serif);font-size:26px;line-height:1.5;text-wrap:balance}
+.ynOriginal .room-companion-intro{font-size:14px;line-height:1.9;color:#dfcce7;margin:10px 0 20px}
+.ynOriginal .room-objects{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ynOriginal .room-objects button,.ynOriginal .room-note-options button,.ynOriginal .story-choices button{display:flex;justify-content:center;align-items:center;gap:8px;min-height:46px;padding:10px 12px;border:1px solid #897095;border-radius:12px;background:#30223e;color:#fff3e2;font-size:14px}
+.ynOriginal .room-objects button:hover,.ynOriginal .room-note-options button:hover,.ynOriginal .story-choices button:hover{background:#49305e}
+.ynOriginal .room-objects [aria-pressed=true],.ynOriginal .room-note-options [aria-pressed=true],.ynOriginal .story-choices [aria-pressed=true]{border-color:#e9c78d;color:#ffe1a9;background:#49305e}
+.ynOriginal .room-moment{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:center;min-height:160px;padding-block:20px}
+.ynOriginal .room-moment-portrait{background:#fffaf1;border-radius:50%;overflow:hidden}
+.ynOriginal .room-moment img{width:100%;height:auto;mix-blend-mode:multiply}
+.ynOriginal .room-moment p{font-family:var(--serif);font-size:16px;line-height:1.8}
+.ynOriginal .room-moment small{display:block;margin-top:8px;color:#dfcce7;font-size:12px;line-height:1.7}
+.ynOriginal .room-note-drawer{border-top:1px solid #705979;padding-top:20px}
+.ynOriginal .room-note-drawer h3{display:flex;align-items:center;gap:8px;font-family:var(--serif);font-size:19px}
+.ynOriginal .room-note-drawer>p{font-size:13px;color:#dfcce7;line-height:1.8;margin-top:8px}
+.ynOriginal .room-note-options{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.ynOriginal .room-note-options button{font-size:12px;border-radius:999px}
+.ynOriginal .room-note-result{padding-block:8px 20px}
+.ynOriginal .room-note-result h4{font-family:var(--serif);font-size:18px;color:#e9c78d}
+.ynOriginal .room-note-result p{font-size:14px;line-height:1.9;margin-top:10px}
+.ynOriginal .room-note-result button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:46px;border:1px solid #897095;border-radius:12px;padding:10px 14px;margin-top:16px;font-size:13px;color:#fff3e2;background:#382347;text-align:left}
+.ynOriginal .room-note-result .room-note-praise{color:#e9c78d}
+.ynOriginal .room-note-drawer>small{display:block;font-size:12px;line-height:1.8;color:#dfcce7}
+.ynOriginal .room-note-drawer>a{display:flex;align-items:center;gap:10px;min-height:44px;color:#e9c78d;font-size:14px;margin-top:10px}
+.ynOriginal .room-companion :focus-visible,.ynOriginal .room-sound :focus-visible,.ynOriginal .story-panel :focus-visible{outline:3px solid #e9c78d;outline-offset:3px}
+.ynOriginal .story-reading>.room-sound{margin-bottom:18px}
+.ynOriginal .story-text p+p{margin-top:16px}
+.ynOriginal .story-visual.is-full-art .story-background{opacity:1;object-position:44% center;filter:none}
+.ynOriginal .story-choices{margin-block:22px 12px;border-top:1px solid #705979;padding-top:18px}
+.ynOriginal .story-choices>p:first-child{color:#dfcce7;font-size:13px;margin-bottom:12px}
+.ynOriginal .story-choices>div{display:flex;flex-wrap:wrap;gap:8px}
+.ynOriginal .story-choices .story-choice-reply{font-size:14px;line-height:1.9;color:#f4dfb9;margin-top:14px}
+.ynOriginal .story-choice-reply:empty{display:none}
+.ynOriginal .story-fiction-note{font-size:12px;line-height:1.8;color:#cbb5d1;margin:20px 0}
+.ynOriginal .story-reading::selection,.ynOriginal .room-companion ::selection{background:#e9c78d;color:#261834}
+.ynOriginal .daily-tarot{grid-column:1/-1}
+@media(min-width:900px){.ynOriginal .room-companion{border-radius:0 22px 22px 0;padding:28px}.ynOriginal .room-presence{height:100%;min-height:650px}.ynOriginal .room-resident{bottom:130px}.ynOriginal .room-presence-caption{padding-inline:30px;font-size:15px}.ynOriginal .room-prologue-entry{min-height:260px}}
+@media(max-width:599px){.ynOriginal .room-listening{padding-inline:18px}.ynOriginal .room-listening>span{font-size:12px}.ynOriginal .story-panel{grid-template-rows:minmax(120px,.75fr) minmax(160px,1.25fr) auto}.ynOriginal .story-reading{padding-inline:20px}.ynOriginal .story-text h2{font-size:23px}.ynOriginal .room-presence-caption{font-size:12px;padding-inline:14px}.ynOriginal .room-note-options button{flex:1 1 auto}}
+@media(prefers-reduced-motion:reduce){.ynOriginal .story-panel *{animation:none!important;transition:none!important}.ynOriginal .has-transition .first-frame{display:none}.ynOriginal .has-transition .final-frame{opacity:1}}
+.ynOriginal .room-play-note{font-size:12px;line-height:1.8;color:#dfcce7;margin-bottom:18px}
