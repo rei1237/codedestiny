@@ -7,7 +7,7 @@ import {readingLocale,validateReadingLanguage} from '../fortune/reading-locale';
 import {alignRelativeYears,redactInternalEvidence} from '../fortune/consultation';
 import {selectChapterFacts} from '../fortune/chapter-facts';
 import {attachTarotSafetyNotice} from '../fortune/tarot/master-reading';
-import {splitSectionParagraph} from '../fortune/reading-quality';
+import {nearDuplicate,splitSectionParagraph} from '../fortune/reading-quality';
 import {sanitizeQuestionSkyBody} from '../fortune/question-sky-reading';
 
 // The strict validator remains a diagnostic contract. Delivery accepts the
@@ -24,16 +24,21 @@ export function deliverChapter(raw:unknown,input:ChapterRequest):ChapterBody {
     try{value=JSON.parse(value);}catch{value=salvageTruncatedJsonObject(value);}
   }
   if(!value||typeof value!=='object'||Array.isArray(value))throw new FortuneError('INVALID_CHAPTER');
-  const seen=new Set(input.previous.flatMap(p=>[...(p.blocks?.flatMap(b=>b.paragraphs)||p.analysis||[])])
-    .map(p=>p.replace(/\s/gu,'')));
+  const distinct=input.previous.flatMap(p=>[...(p.blocks?.flatMap(b=>b.paragraphs)||p.analysis||[])]);
+  const seen=new Set(distinct.map(p=>p.replace(/\s/gu,'')));
+  const gramCache=new Map<string,Set<string>>();
   const edit=(text:unknown)=>{
     const clean=prose(text);
     // Remove only complete offending sentences; retain the remaining answer.
     return clean.split(/(?<=[.!?。？！])\s+/u).filter(s=>!unsafe.test(s)).join(' ').trim();
   };
-  const paragraphs=(items:unknown)=>list(items).flatMap(p=>splitSectionParagraph(edit(p),5000)).filter(p=>{
-    const key=p.replace(/\s/gu,'');if(!key||seen.has(key))return false;seen.add(key);return true;
-  });
+  // Remove the same near-copies rejected by the strict validator locally; do
+  // not buy a new generation just to reword an already useful explanation.
+  const paragraphs=(items:unknown)=>list(items).map(edit).filter(p=>{
+    const key=p.replace(/\s/gu,'');
+    if(!key||seen.has(key)||distinct.some(previous=>nearDuplicate(p,previous,gramCache)))return false;
+    seen.add(key);distinct.push(p);return true;
+  }).flatMap(p=>splitSectionParagraph(p));
   const allowed=new Set(Object.values(input.analysis.contexts).flatMap(c=>selectChapterFacts(c,input.chapter,input.analysis.topicId).map(f=>f.id)));
   if(input.ask)for(const item of [...input.ask.evidence.facts,...input.ask.evidence.timing])allowed.add(item.source.factId);
   const sources=(items:unknown)=>[...new Set(list(items).filter(id=>allowed.has(id)))];
