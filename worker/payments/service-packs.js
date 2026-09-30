@@ -237,7 +237,10 @@ export async function createServicePackOrder(db,input) {
     throw paymentError('DIRECT_ONLY_PAYMENT_REQUIRED','영냥이 횟수 이용권은 단건 결제로 구매해 주세요.');
   const key=String(input.idempotencyKey||'').trim();
   if(!key||key.length>140)throw paymentError('IDEMPOTENCY_KEY_REQUIRED','구매 요청 식별자를 확인해 주세요.');
-  const {createOrder}=await import('./orders.js');
+  const {createOrder,deriveOrderId}=await import('./orders.js');
+  if(input.expectedOrderId!==undefined && (typeof input.expectedOrderId!=='string'
+    || input.expectedOrderId!==await deriveOrderId(input.userId,'service-pack:'+key)))
+    throw paymentError('ORDER_NOT_CONFIRMABLE','저장된 구매 요청과 원주문이 일치하지 않습니다. 결제 상태를 다시 확인해 주세요.');
   const {purchaseTypeOf}=await import('./gifts.js');
   const purchaseType=purchaseTypeOf(input.purchaseType);
   const order=await createOrder(db,{...input,purchaseType,idempotencyKey:'service-pack:'+key,requestId:'service-pack:'+key});

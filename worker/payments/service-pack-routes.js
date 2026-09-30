@@ -39,6 +39,7 @@ export function createServicePackRoutes({prepareOrder,confirmOrder,orderStatus,r
         throw paymentError('DIRECT_ONLY_PAYMENT_REQUIRED','영냥이 횟수 이용권은 단건 결제로 구매해 주세요.');
       return prepareOrder({...args,preparedProduct:product,preparedPurchaseType:purchaseType,preparedGiftDraft:giftDraft,body:{
         productId:product.productId,featureKey:product.featureKey,idempotencyKey,paymentMethod,
+        ...(body.expectedOrderId!==undefined?{expectedOrderId:body.expectedOrderId}:{}),
         refundConsent:body.refundConsent===true,returnPath:purchaseType==='GIFT'?'/gift/complete':'/points',purchaseType,paymentType:'digital_content'
       }});
     }},

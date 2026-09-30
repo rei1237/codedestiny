@@ -20,6 +20,7 @@ async function scenario(name,options={},run){
  globalThis.window={location:{assign:url=>redirects.push(url)}};
  const purchaseType=options.gift?'GIFT':'SELF';
  const pending={planId:catalog.planId,idempotencyKey:'original-key',orderId:'original-order',purchaseType,packSnapshot:snapshot,...(options.gift?{gift:{senderName:'보낸이',recipientName:'받는이',giftMessage:'선물'}}:{})};
+ if(options.corruptKey)pending.idempotencyKey='damaged-key';
  if(options.noSnapshot)delete pending.packSnapshot;
  api.savePendingPack('owner-a',pending);
  const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'Content-Type':'application/json'}});
@@ -34,8 +35,9 @@ async function scenario(name,options={},run){
   }
   if(path.endsWith('/catalog'))return reply({ok:true,plans:options.planRemoved?[]:[{...catalog,...(options.catalogDrift?{totalUses:8}:{})}],giftEnabled:!options.giftDisabled});
   if(path.endsWith('/prepare')){
-   prepareAttempts++;assert.equal(body.idempotencyKey,'original-key');assert.equal(body.paymentMethod,'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
-   assert.deepEqual(Object.keys(body).sort(),['planId','idempotencyKey','paymentMethod','refundConsent','purchaseType',...(options.gift?['gift']:[])].sort());
+   prepareAttempts++;assert.equal(body.idempotencyKey,options.corruptKey?'damaged-key':'original-key');assert.equal(body.expectedOrderId,options.newPurchase?undefined:'original-order');assert.equal(body.paymentMethod,'card_general');assert.equal(body.refundConsent,true);assert.equal(body.purchaseType,purchaseType);assert.equal(body.planId,catalog.planId);
+   assert.deepEqual(Object.keys(body).sort(),['planId','idempotencyKey','paymentMethod','refundConsent','purchaseType',...(options.gift?['gift']:[]),...(options.newPurchase?[]:['expectedOrderId'])].sort());
+   if(options.corruptKey)return reply({ok:false,code:'ORDER_NOT_CONFIRMABLE'},409);
    if(options.prepareLoss&&prepareAttempts===1)throw new TypeError('mock prepare response lost');
    if(options.paidDuringPrepare)paid=true;
    return reply({order:{merchantUid:options.orderMismatch?'different-order':'original-order',paymentAmount:catalog.priceKRW,productName:catalog.label,customer:{customerId:'owner-a',fullName:'QA',email:'qa@example.invalid'},storeId:'fixture',channelKey:'fixture',status:paid?'PAID':'PENDING',purchaseType,...(options.gift?{giftId:'gift_original-order'}:{}),packSnapshot:{...snapshot,...(options.returnedDrift?{validityDays:38}:{})}}});
@@ -50,6 +52,8 @@ async function scenario(name,options={},run){
 for(const gift of [false,true])await scenario('same order resumes '+(gift?'GIFT':'SELF'),{gift},async({resume,calls,sdk,redirects})=>{assert.equal(await resume(),!gift);assert.equal(calls[0].path,'/api/payments/service-packs/orders/original-order/confirm');assert.equal(sdk.length,1);assert.equal(sdk[0].paymentId,'original-order');if(gift)assert.equal(redirects[0],'/gift/complete/?orderId=original-order');});
 await scenario('prepare response lost then explicit retry keeps original key', {prepareLoss:true},async({resume,sdk})=>{await assert.rejects(resume(),e=>e.code==='REQUEST_UNCERTAIN');assert.equal(sdk.length,0);assert.equal(await resume(),true);assert.equal(sdk.length,1);});
 for(const gift of [false,true])await scenario('already paid '+(gift?'GIFT':'SELF')+' never opens SDK',{gift,paid:true},async({resume,calls,sdk})=>{assert.equal(await resume(),!gift);assert.equal(calls.length,1);assert.equal(sdk.length,0);});
+await scenario('new purchase omits resume-only expectedOrderId',{newPurchase:true},async({calls,sdk})=>{await api.preparePackPurchase(catalog.planId,'original-key',true);assert.equal(calls.length,1);assert.equal(sdk.length,0);});
+await scenario('damaged key sends original expectedOrderId and stops on server rejection',{corruptKey:true},async({resume,calls,sdk})=>{await assert.rejects(resume(),e=>e.code==='ORDER_NOT_CONFIRMABLE');const prepare=calls.find(call=>call.path.endsWith('/prepare'));assert.equal(prepare.body.expectedOrderId,'original-order');assert.equal(prepare.body.idempotencyKey,'damaged-key');assert.equal(sdk.length,0);});
 await scenario('payment settles between confirm and prepare',{paidDuringPrepare:true},async({resume,sdk})=>{assert.equal(await resume(),true);assert.equal(sdk.length,0);});
 for(const [name,options,code]of [
  ['another account',{otherOwner:true},'PENDING_ORDER_UNAVAILABLE'],

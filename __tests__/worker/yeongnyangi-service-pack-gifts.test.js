@@ -314,3 +314,34 @@ test('a server pack id without a yeongnyangi prefix retains its gift through pre
  expect(f.rows(PurchaseEntitlement)[0].userId).toBe(RECIPIENT);
  expect(f.rows(PurchaseEntitlement)[0].remainingUses).toBe(plainProduct.packSnapshot.totalUses);
 });
+
+test.each(['wrong-order','damaged-key','other-owner'])('expected order blocks %s before a SELF or GIFT payment upsert',async problem=>{
+ for(const purchaseType of ['SELF','GIFT']){
+  const f=fixture(),args=prepareArgs(f,{purchaseType});
+  const prepared=await (await routes()['POST /service-packs/prepare'].handle(args)).json();
+  args.body.expectedOrderId=prepared.order.orderId;
+  if(problem==='wrong-order')args.body.expectedOrderId='cd'+'0'.repeat(38);
+  if(problem==='damaged-key')args.body.idempotencyKey='damaged-key';
+  if(problem==='other-owner')args.userId=RECIPIENT;
+  const write=f.db.findOneAndUpdate;let paymentUpserts=0;
+  f.db.findOneAndUpdate=(Model,filter,update,options)=>{
+   if(Model===Payment&&options?.upsert)paymentUpserts++;
+   return write(Model,filter,update,options);
+  };
+  await expect(routes()['POST /service-packs/prepare'].handle(args)).rejects.toMatchObject({code:'ORDER_NOT_CONFIRMABLE'});
+  expect(paymentUpserts).toBe(0);expect(f.rows(Payment)).toHaveLength(1);
+  expect(f.rows(Payment)[0].merchantUid).toBe(prepared.order.orderId);expect(f.rows(Payment)[0].status).toBe('pending');
+  expect(f.rows(PurchaseEntitlement)).toHaveLength(0);
+ }
+});
+test('matching expected order reuses the original SELF and GIFT payment without a new order',async()=>{
+ for(const purchaseType of ['SELF','GIFT']){
+  const f=fixture(),args=prepareArgs(f,{purchaseType});
+  const prepared=await (await routes()['POST /service-packs/prepare'].handle(args)).json();
+  args.body.expectedOrderId=prepared.order.orderId;
+  const resumed=await (await routes()['POST /service-packs/prepare'].handle(args)).json();
+  expect(resumed.order.orderId).toBe(prepared.order.orderId);
+  expect(f.rows(Payment)).toHaveLength(1);expect(f.rows(PurchaseEntitlement)).toHaveLength(0);
+  expect(f.rows(Gift)).toHaveLength(purchaseType==='GIFT'?1:0);
+ }
+});

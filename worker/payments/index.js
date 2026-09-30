@@ -1254,7 +1254,7 @@ const ROUTES = {
           paymentMethod,
           foreignCard,
           refundConsent,
-          ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft}:{}),
+          ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft,expectedOrderId:body.expectedOrderId}:{}),
         });
         if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {
           const {ensureGiftForOrder}=await import('./gifts.js');

@@ -69,9 +69,9 @@ export async function confirmPackOrder(orderId:string){
  const confirmed=await packRequest<{entitlementStatus?:string}>(path+'/confirm',{});
  return confirmed.entitlementStatus==='granted';
 }
-export async function preparePackPurchase(planId:string,idempotencyKey:string,refundConsent:boolean,purchaseType:PackPurchaseType='SELF',gift?:PackGiftDraft):Promise<PackOrder>{
+export async function preparePackPurchase(planId:string,idempotencyKey:string,refundConsent:boolean,purchaseType:PackPurchaseType='SELF',gift?:PackGiftDraft,expectedOrderId?:string):Promise<PackOrder>{
  if(isMobileAppRuntime())throw new ServicePackError('APP_PACK_NOT_AVAILABLE');
- const {order}=await packRequest<{order:PackOrder}>('service-packs/prepare',{planId,idempotencyKey,paymentMethod:'card_general',refundConsent,purchaseType,...(purchaseType==='GIFT'?{gift}:{})});
+ const {order}=await packRequest<{order:PackOrder}>('service-packs/prepare',{planId,idempotencyKey,paymentMethod:'card_general',refundConsent,purchaseType,...(purchaseType==='GIFT'?{gift}:{}),...(expectedOrderId?{expectedOrderId}:{})});
  if(!order||!text(order.merchantUid)||!positive(order.paymentAmount)||!text(order.productName)||order.packSnapshot?.planId!==planId||order.purchaseType!==purchaseType||(purchaseType==='GIFT'&&!text(order.giftId)))throw new ServicePackError('INVALID_ORDER');
  parsePackPlans({plans:[{...order.packSnapshot,autoRenew:false}]});
  return order;
@@ -133,7 +133,7 @@ export async function resumePendingPackPurchase(ownerId:string,refundConsent:boo
  const plan=catalog.plans.find(item=>item.planId===pending.planId);
  if(!plan||!samePackSnapshot(plan,pending.packSnapshot)||(pending.purchaseType==='GIFT'&&!catalog.giftEnabled))
   throw new ServicePackError('PENDING_ORDER_UNAVAILABLE');
- const order=await preparePackPurchase(pending.planId,pending.idempotencyKey,true,pending.purchaseType,pending.gift);
+ const order=await preparePackPurchase(pending.planId,pending.idempotencyKey,true,pending.purchaseType,pending.gift,pending.orderId);
  assertCurrent();
  if(order.merchantUid!==pending.orderId||!samePackSnapshot(order.packSnapshot,pending.packSnapshot)
   ||!['PENDING','PAID'].includes(String(order.status||'').toUpperCase()))throw new ServicePackError('ORDER_MISMATCH');
