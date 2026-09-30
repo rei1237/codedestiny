@@ -144,7 +144,7 @@
     var overlay = document.createElement('div');
     overlay.className = 'cd-yn-portal-overlay';
     overlay.setAttribute('aria-hidden', 'true');
-    overlay.innerHTML = '<span class="cd-yn-portal-overlay__door"></span>';
+    overlay.innerHTML = '<div class="cd-yn-portal-overlay__scene"><span class="cd-yn-portal-overlay__moon" aria-hidden="true"></span><span class="cd-yn-portal-overlay__portrait"><img src="/assets/yeongnyangi/original/avatar.webp" width="160" height="160" alt="" decoding="async"></span><p class="cd-yn-portal-overlay__title">영냥이의 달빛 점술방</p><p class="cd-yn-portal-overlay__note">달빛을 따라, 이야기가 이어지는 곳으로</p><span class="cd-yn-portal-overlay__line" aria-hidden="true"></span></div>';
     document.body.appendChild(overlay);
     window.setTimeout(function () {
       try {
@@ -152,7 +152,7 @@
       } catch (_) {
         clearPortalOverlay();
       }
-    }, 680);
+    }, 640);
     window.setTimeout(clearPortalOverlay, 2500);
   }
 

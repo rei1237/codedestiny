@@ -1,5 +1,5 @@
 ---
-status: verified-mock
+status: active
 updated: 2026-09-30
 next: 대상 변경만 커밋하고 main CI에서 검증한다. 실 LLM 및 운영 결제는 실행하지 않는다.
 ---

@@ -675,7 +675,7 @@ function setupFeatureCodeSplit() {
     physiognomy: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PhysiognomyUI.js?v=hc500a55c5938')),
     pastLifeFace: () => __loadScriptOnce('AnalysisEngine.js?v=h96b7981840e2').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=hf6bf26211a46')),
     mbti: () => __loadScriptOnce('js/astral-soul.js'),
-    hwatu: () => __loadScriptOnce('HwatuFortune.js?v=h9ee7eacf3957')
+    hwatu: () => __loadScriptOnce('HwatuFortune.js?v=h7c6f7751f293')
   };
 
   const state = { physiognomy: null, pastLifeFace: null, mbti: null, hwatu: null };

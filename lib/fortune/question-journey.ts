@@ -1,8 +1,9 @@
+import {everydayConcerns} from './question-concerns';
 import {getProduct} from '@/worker/yeongnyangi/payments/catalog';
 import {consultationKinds, consultationManifest, supportsKind} from '@/worker/yeongnyangi/fortune/consultation-kinds';
 import type {TopicId} from '@/worker/yeongnyangi/fortune/topics';
 
-export const QUESTION_VERSION='question-journey-v2';
+export const QUESTION_VERSION='question-journey-v3';
 export type QuestionGuide={id:string;group:string;question:string;next:string;productId:string;kind:string;topic:TopicId};
 // Question-to-paid-consultation mapping. Product/kind pairs are validated below.
 export const questionGuides:QuestionGuide[]=[
@@ -13,13 +14,21 @@ export const questionGuides:QuestionGuide[]=[
  {id:'distance',group:'관계의 거리',question:'좋아하는데 왜 자꾸 엇갈릴까?',next:'두 사람의 기질과 관계의 거리를 함께 읽어볼까?',productId:'sukuyo_mackerel',kind:'compatibility',topic:'relationship'},
  {id:'choice',group:'망설이는 마음',question:'계속할까, 여기서 그만둘까?',next:'카드의 상징으로 내 바람과 망설임을 더 살펴볼까?',productId:'tarot_mackerel',kind:'choice',topic:'self'},
 ];
+export const concernGuides=[...questionGuides,...everydayConcerns];
+export const concernGroups=[...new Set(everydayConcerns.map(q=>q.group))];
+const legacyGroups:Record<string,string>={reconnect:'연애·재회',money:'돈·생활',partner:'결혼·동행',career:'직장·이직',distance:'친구·인간관계',choice:'마음·자존감'};
+export function filterConcerns(search:string,group='전체'){
+ const query=search.trim().normalize('NFKC').toLocaleLowerCase('ko-KR');
+ return concernGuides.filter(q=>(group==='전체'||(legacyGroups[q.id]||q.group)===group)&&`${q.question} ${q.group} ${legacyGroups[q.id]||''}`.normalize('NFKC').toLocaleLowerCase('ko-KR').includes(query));
+}
+export const anythingConsultationHref='/yeongnyangi/fortune/?product=saju_mackerel&consultationKind=ask';
 // Same editorial question, but the follow-up stays within the source system.
 export const contextualQuestionGuides:QuestionGuide[]=[
  {...questionGuides[1],id:'money-ziwei',productId:'ziwei_mackerel',kind:'money'},
  {...questionGuides[3],id:'career-astrology',productId:'astrology_mackerel',kind:'work'},
  {...questionGuides[3],id:'career-vedic',productId:'vedic_mackerel',kind:'ask'},
 ];
-export function getQuestionGuide(id:unknown){return [...questionGuides,...contextualQuestionGuides].find(q=>q.id===id);}
+export function getQuestionGuide(id:unknown){return [...concernGuides,...contextualQuestionGuides].find(q=>q.id===id);}
 export function questionOffer(q:QuestionGuide){
  const product=getProduct(q.productId);
  const kind=consultationKinds[product.domain].find(k=>k.id===q.kind);

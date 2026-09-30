@@ -345,28 +345,31 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
 
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
+              <Moon className="ggulggul-bridge__moon" size={28} strokeWidth={1} aria-hidden="true" />
               <div className="ggulggul-bridge__art">
                 <img
-                  src="/assets/yeongnyangi/original/ggulggul-fortune.webp"
-                  width="512"
-                  height="512"
-                  alt="연꽃 위에서 웃고 있는 꿀꿀 운세 꽃돼지"
+                  src="/images/home/yeoni-pass-mascot-480.webp"
+                  srcSet="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w"
+                  sizes="(max-width: 560px) 148px, 168px"
+                  width="480"
+                  height="480"
+                  alt="연꽃을 달고 달빛 운세 카드를 든 꽃돼지 연이"
                   loading="lazy"
                   decoding="async"
                 />
               </div>
               <div className="ggulggul-bridge__copy">
-                <span>Code Destiny 연결</span>
-                <h2 id="ggulggul-title">연이의 따뜻한 운세도 만나봐.</h2>
+                <h2 id="ggulggul-title">달빛 따라, <span>꿀꿀운세로.</span></h2>
                 <p>
-                  영냥이에서는 지금의 질문을 상담하고, 꿀꿀 운세에서는 점술과 주제별 콘텐츠를 깊이 둘러봐. 연이는 다정하게, 네오는 현실적인 조언으로 함께해.
+                  꽃돼지 연이가 기다리는 다정한 운세 정원.<br />
+                  사주·타로부터 삶의 여러 흐름까지, 천천히 둘러봐.
                 </p>
-                <div>
-                  <a className="outlined-cta" href="/points/">
-                    꽃돼지 이용권 알아보기 <ArrowRight size={17} />
+                <div className="ggulggul-bridge__actions">
+                  <a className="ggulggul-bridge__entry" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
+                    연이의 꽃정원 둘러보기 <ArrowRight size={17} aria-hidden="true" />
                   </a>
-                  <a className="text-link" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
-                    꿀꿀 운세로 이동 <ChevronRight size={15} />
+                  <a className="text-link" href="/points/">
+                    이용권 알아보기 <ChevronRight size={15} aria-hidden="true" />
                   </a>
                 </div>
               </div>
@@ -375,30 +378,17 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
               <div className="fusion-card">
                 <Art name="story-curse" className="fusion-art" />
                 <div className="fusion-shade" />
-                <div className="fusion-top">
-                  <Sparkles size={18} aria-hidden="true" />
-                  <Moon size={25} />
+                <div className="fusion-intro">
+                  <div>
+                    <h2 id="fusion-title">서로 다른 시선으로,<br /><span>나를 더 깊이.</span></h2>
+                    <p className="fusion-name">영냥이의 초융합 운세</p>
+                  </div>
+                  <img className="fusion-mascot" src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(min-width: 900px) 200px, 120px" width="800" height="800" alt="여러 운세의 이야기를 함께 읽는 영냥이" loading="lazy" decoding="async" />
                 </div>
-                <h2 id="fusion-title">
-                  흩어진 운명을,
-                  <br />
-                  <span>하나의 이야기로.</span>
-                </h2>
-                <p className="fusion-name">영냥이의 초융합 운세</p>
-                <p className="fusion-description">
-                  서로 다른 운세의 시선을 모아
-                  <br />
-                  나를 더 깊이 이해하는 시간.
-                </p>
-                <div className="fusion-systems">
-                  사주 · 자미두수 · 숙요 · 베다 · 점성술 · 타로
-                </div>
-                <button
-                  className="outlined-cta"
-                  onClick={() => openPanel("fusion")}
-                >
-                  내 운명 깊게 보기 <ArrowRight size={17} />
-                </button>
+                <p className="fusion-description">사주와 자미두수, 숙요와 베다, 점성술과 타로를 짝지어 읽거나, 여섯 체계를 한 번에 살펴봐.</p>
+                <p className="fusion-description">각 체계에서 따로 계산한 근거를 바탕으로 기질·관계·일과 돈의 흐름을 비교해. 겹치는 해석과 다른 해석을 구분하고, 마지막에는 지금의 선택과 실천 순서를 정리해 줄게.</p>
+                <div className="fusion-systems">출생 정보로 읽는 다섯 체계 · 고민의 선택지를 비추는 타로</div>
+                <button className="outlined-cta" onClick={() => openPanel("fusion")}>초융합 상담 구성 보기 <ArrowRight size={17} aria-hidden="true" /></button>
               </div>
             </section>
 

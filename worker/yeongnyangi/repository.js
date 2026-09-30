@@ -233,7 +233,8 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
   const monthlyInput={userId,featureKeys:[current.featureKey],tokens:['yn-'+requestId,requestId],
     minimumAmount:calculatePaidFeatureMembershipCreditCost(current.featureKey,coinCost)};
   const monthly=await withMongoRetry(env,()=>findMoonstoneSpendEvidence(env,monthlyInput),readOptions);
-  if(monthly) return withMongoRetry(env,async()=>{
+  if(monthly) {
+    const attached=await withMongoRetry(env,async()=>{
     const session=await (scopeConnection() || mongoose).startSession();
     try {
       let attached;
@@ -244,9 +245,11 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
           $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},
           {$set:{accessMethod:'MOONLIGHT_STONE',moonstoneLedgerId:proof.ledgerId,state:'PAID'}},{new:true,session}).lean();
       },mongoTransactionOptions());
-      return attached || readRequest(env,userId,requestId);
+      return attached;
     }finally{await session.endSession();}
-  });
+    });
+    return attached || readRequest(env,userId,requestId);
+  }
   // Shared checkout yn-id and historical bare id belong to this one consultation.
   // Durable proof precedes new consumption so response loss or pass expiry cannot charge twice.
   let evidence=await withMongoRetry(env,()=>findNonCashEvidence(current,userId),readOptions);
