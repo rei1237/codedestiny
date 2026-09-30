@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 /**
+ * 2026-09-30: 소비자는 natal-v2 공통 지역시 원국을 사용한다. 아래 구 유파 축 설명은 이관 전 배경이다.
+ * ③은 구 옵션이 들어와도 현재 공통 원국을 유지하는지 네 기둥 전체를 대조한다.
+ *
  * 원국 일주·시주 축 가드 — "야자시 축을 각 소비자가 **명시**하고, 그 값이 코어에서 나온다".
  *
  *   node scripts/verify-natal-day-pillar-axis.mjs [--report] [--self-test]
@@ -149,34 +152,32 @@ function* birthMoments({ fromYear = 1930, toYear = 2030, yearStep = 1 } = {}) {
   ok("② life-book 공통 지역시 원국 및 new-year 공통 지역시 정책 일치", rows.length === 0, rows.slice(0, 10).join("\n      "));
 }
 
-// ── ③ destiny-bias 의 정책 3종이 코어와 1:1 로 대응한다 ────────────────────
+// ── ③ destiny-bias는 공통 natal-v2를 사용하며 구 옵션으로 축을 갈라놓지 않는다 ──
 {
   const { buildSajuProfile, DAY_CHANGE_POLICIES } = await import("../worker/lib/destiny-bias-engine.js");
-  const EXPECTED = new Map([
-    [DAY_CHANGE_POLICIES.MIDNIGHT, NIGHT_ZI_POLICY.KEEP_DAY],
-    [DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY, NIGHT_ZI_POLICY.SHIFT_DAY],
-  ]);
   const rows = [];
   let probes = 0;
+  const birthPlace = {name:"서울",longitude:126.978,latitude:37.5665,timezone:"Asia/Seoul"};
   for (const at of birthMoments({ fromYear: 1940, toYear: 2025, yearStep: 3 })) {
-    for (const [dayPolicy, nightZi] of EXPECTED) {
-      const want = corePillars(at, nightZi);
-      if (!want) continue;
+    // Compare the same civil time, historical timezone and local-mean correction.
+    // Raw ganji(at) intentionally has no birthplace correction and is not the consumer contract.
+    const expected = calculateNatalSaju({
+      birthDate:at.year+'-'+pad2(at.month)+'-'+pad2(at.day),
+      birthTime:pad2(at.hour)+':'+pad2(at.minute),calendarType:"solar",birthPlace,
+    }).pillars;
+    const want = [expected.year,expected.month,expected.day,expected.hour].join('/');
+    for (const dayPolicy of Object.values(DAY_CHANGE_POLICIES)) {
       probes += 1;
       const profile = buildSajuProfile({
-        birth: { ...at, longitude: 126.978, latitude: 37.5665 },
-        gender: "male",
-        dayChangePolicy: dayPolicy,
-        hourPillarTimePolicy: "KST_CLOCK_TIME",
+        birth: { ...at, ...birthPlace }, gender: "male",dayChangePolicy:dayPolicy,
+        hourPillarTimePolicy:"KST_CLOCK_TIME",
       });
-      const got = profile?.pillars?.day?.ganji || "";
-      if (got !== want.day) {
-        rows.push(`${at.year}-${at.month}-${at.day} ${pad2(at.hour)}시 ${dayPolicy} 일주 ${got} vs 코어 ${want.day}`);
-      }
+      const got = ['year','month','day','hour'].map(key=>profile?.pillars?.[key]?.ganji||'').join('/');
+      if (got !== want) rows.push(at.year+'-'+at.month+'-'+at.day+' '+pad2(at.hour)+'시 '+dayPolicy+' 원국 '+got+' vs 공통 원국 '+want);
     }
   }
-  ok("③ destiny-bias 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 300, `표본 ${probes}건`);
-  ok("③ 정책 3종이 코어 야자시 정책과 1:1 로 대응한다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  ok("③ destiny-bias 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 1000, '표본 '+probes+'건');
+  ok("③ 구 정책 옵션 3종에서도 공통 지역시 원국 네 기둥을 유지한다", rows.length === 0, rows.slice(0,10).join('\n      '));
 }
 
 // ── ④ 두 정책이 23시대에서 실제로 갈린다 ───────────────────────────────────
