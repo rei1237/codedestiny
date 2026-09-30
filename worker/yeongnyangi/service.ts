@@ -161,8 +161,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // A new form starts a separate purchase; retries in that form keep the same intent.
   // Clients without an attempt retain their original deterministic recovery identity.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
-  // Free questions also read the 꿀꿀 daily systems; started first so Swiss latency overlaps the domain calculations.
-  const crossDaily=(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotV2?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
+  // New single-system requests use their calculated native facts only; the hub has a separate birth-time contract.
+  // Fusion keeps cross-system daily evidence, and stored snapshots return before this new preparation path.
+  const crossDaily=product.readingKind!=='single'&&(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotV2?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')

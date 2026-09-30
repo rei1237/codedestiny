@@ -8,7 +8,7 @@ import {build} from 'esbuild';
 // routes a v7 chapter to the ledger, chapter.ts spreads the chapter-v7 prompt and moves the evidence rule
 // onto the insight blocks. Tarot v2 owns new tarot purchases before the older v7 selector.
 const Module=createRequire(import.meta.url)('node:module');
-const built=await build({stdin:{contents:`export {conciseReadingManifest,CONCISE_READING_VERSION} from './worker/yeongnyangi/fortune/concise-reading'; export {chapterOutputTokenBudget} from './worker/yeongnyangi/providers/code-destiny'; export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7Applies,readingManifestV7,READING_V7_ENABLED} from './worker/yeongnyangi/fortune/reading-v7'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {resolveV7Ledger,selectV7Facts} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {buildV7ChapterPrompt} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
+const built=await build({stdin:{contents:`export {conciseReadingPrompt} from './worker/yeongnyangi/fortune/concise-reading-prompt'; export {conciseReadingManifest,CONCISE_READING_VERSION} from './worker/yeongnyangi/fortune/concise-reading'; export {chapterOutputTokenBudget} from './worker/yeongnyangi/providers/code-destiny'; export {consultationManifest,consultationKinds} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7Applies,readingManifestV7,READING_V7_ENABLED} from './worker/yeongnyangi/fortune/reading-v7'; export {READING_V6_VERSION,READING_V7_VERSION} from './worker/yeongnyangi/fortune/reading-policy'; export {selectChapterFacts} from './worker/yeongnyangi/fortune/chapter-facts'; export {resolveV7Ledger,selectV7Facts} from './worker/yeongnyangi/fortune/reading-v7-ledger'; export {buildV7TimingMatrix,withV7Timing,v7TimingSummaries} from './worker/yeongnyangi/fortune/reading-v7-timing'; export {buildV7ChapterPrompt} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {StructuredChapterProvider,validateChapter} from './worker/yeongnyangi/providers/chapter'; export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter'; export {products} from './worker/yeongnyangi/payments/catalog'; export {domains} from './worker/yeongnyangi/fortune/index';`,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'}});
 const filename=path.resolve('yeongnyangi-reading-v7-wiring.test.cjs');
 const loaded=new Module(filename);
 loaded.filename=filename;
@@ -71,6 +71,7 @@ test('the provider sends the chapter-v7 prompt and budget while v6 chapters are 
  await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(chapter));
  assert.equal(request.promptVersion,'chapter-v7');
  const rules=JSON.parse(request.domainRules);
+ assert.equal(rules.conciseReading,undefined,'Stored pre-concise chapters keep their existing writing contract');
  assert.deepEqual(rules.factOwnership.owns,chapter.owns);
  assert.deepEqual(rules.factOwnership.references,chapter.refs);
  assert.deepEqual(rules.excludedSubjects,chapter.mustNotCover);
@@ -133,7 +134,9 @@ test('new readings distinguish four reasoning depths without adding tokens or ch
   const fixture=await new m.MockChapterProvider().generateChapter(requestFor(chapter));
   let request;
   await new m.StructuredChapterProvider({generate:async r=>{request=r;return {result:fixture,provider:'mock',model:'test'};}}).generateChapter(requestFor(chapter));
-  const depth=JSON.parse(request.domainRules).conciseReading.tierDepth;
+  const writing=JSON.parse(request.domainRules).conciseReading;
+  assert.equal(writing.contractVersion,'concise-evidence-language-20260930-r2');
+  const depth=writing.tierDepth;
   assert.equal(depth.tier,tier);
   approaches.add(depth.approach);
   assert.equal(request.maxOutputTokens,chapter.outputTokens);
@@ -142,4 +145,27 @@ test('new readings distinguish four reasoning depths without adding tokens or ch
   assert.deepEqual(request.outputSchema.properties.blocks.items.properties.id.enum,old.sections.map(s=>s.id));
  }
  assert.equal(approaches.size,4);
+});
+
+
+test('concise evidence-language contract bounds traits, tarot and unsupported periods without changing the chapter',()=>{
+ const chapter=m.conciseReadingManifest([m.consultationManifest(productOf('saju','mackerel'),undefined)[1]])[0];
+ const before=structuredClone(chapter);
+ const common=m.conciseReadingPrompt(chapter,{domains:['saju'],questionCount:8}).conciseReading;
+ assert.equal(common.contractVersion,'concise-evidence-language-20260930-r2');
+ assert.match(common.personalBasis,/알려주지 않은 현재 습관/);
+ assert.match(common.honesty,/조건에 따라 확인할 가설/);
+ assert.match(common.questionPriority,/기간 근거가 없으면/);
+ assert.match(common.questionPriority,/실천·관찰 기간으로만/);
+ const tarot=m.conciseReadingPrompt(chapter,{domains:['tarot'],questionCount:8}).conciseReading;
+ assert.match(tarot.domainFocus[0],/이번 질문에서 살펴볼 가능한 선택 패턴/);
+ assert.match(tarot.domainFocus[0],/카드로 타고난 성격·고유한 강점·계속될 행동을 확정하지 않는다/);
+ const vedic=m.conciseReadingPrompt(chapter,{domains:['vedic'],questionCount:8}).conciseReading;
+ assert.match(vedic.domainFocus[0],/출생 배치만 있으면 올해의 기회나 유리한 시기라고 확정하지 않고/);
+ const plain=m.conciseReadingPrompt(chapter,{domains:['vedic','tarot'],plainLanguageOnly:true,questionCount:8}).conciseReading;
+ assert.doesNotMatch(JSON.stringify(plain),/다샤|라그나|정역방향|하우스/,'Plain-language question consultations do not reintroduce specialist terms');
+ assert.equal(plain.crossReading,undefined);
+ assert.deepEqual(chapter,before,'Writing instructions cannot mutate stored budgets, sections or evidence');
+ assert.deepEqual(common.tierDepth,tarot.tierDepth);
+ assert.deepEqual(common.tierDepth,vedic.tierDepth);
 });
