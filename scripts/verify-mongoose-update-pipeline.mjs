@@ -80,7 +80,9 @@ const FLOORS = Object.freeze({ files: 200, updateCalls: 300, arrayUpdates: 2 });
  * 동명 선언 합집합에 걸린 경우 3건. 넷 다 넘기는 값은 객체이고 배열이 될 경로가 없다.
  * 🔴 올리기 전에 새로 생긴 호출이 배열을 넘길 수 없음을 확인할 것. 확인 없이 올리면 가드가 죽는다.
  */
-const BLIND_SPOT_LIMIT = 4;
+// 2026-09-30: restoreMonthlyCreditLot의 writeUser 래퍼 1건 추가 검토. 유일한 호출부는
+// $set/$inc/선택적 $pull 객체 리터럴만 전달한다. 런타임 DB 동작 변경 없음.
+const BLIND_SPOT_LIMIT = 5;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 수신자 판정 — 이 호출이 Mongoose 쿼리 계층을 타는가
