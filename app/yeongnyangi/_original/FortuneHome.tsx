@@ -249,7 +249,10 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
         <main>
           <NightHero/>
-          <section className="fortune-relationship-entry"><h2>{relationshipCopy.intro}</h2><p>{relationshipCopy.description}</p><a href="/yeongnyangi/fortune/?flow=relationship">{relationshipCopy.entry}<ArrowRight size={18} aria-hidden="true"/></a></section>
+          <section className="fortune-relationship-entry" aria-labelledby="relationship-entry-title">
+            <div className="fortune-relationship-entry__content"><h2 id="relationship-entry-title">{relationshipCopy.intro}</h2><p>{relationshipCopy.description}</p><a href="/yeongnyangi/fortune/?flow=relationship">{relationshipCopy.entry}<ArrowRight size={18} aria-hidden="true"/></a></div>
+            <Image className="fortune-relationship-entry__art" src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 160px, 420px" alt="수정구 앞에서 두 사람의 이야기를 기다리는 영냥이" loading="lazy"/>
+          </section>
               <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
                 <a href="/yeongnyangi/room/#daily">무료 운세</a>
                 <a href="/yeongnyangi/library/">내 상담 기록</a>
