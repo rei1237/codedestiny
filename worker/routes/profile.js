@@ -1137,10 +1137,12 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
       if (!createPayment.ok) return createPayment.response;
     }
 
-    let created;
-    let replayedCreate = false;
+    // A completed payment can reread its existing card, never recreate a later-deleted one.
+    let created = existingPaidCreate ? await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean()) : null;
+    if (existingPaidCreate && !created) return profileMutationConflictResponse("이미 완료된 프로필 추가 결제입니다. 새 작업으로 다시 진행해 주세요.", { requestId: createRequestId });
+    let replayedCreate = Boolean(created);
     try {
-      created = await withMongoRetry(env, () => ProfileCard.create({
+      if (!created) created = await withMongoRetry(env, () => ProfileCard.create({
         userId: auth.userId,
         profileId: normalized.profileId,
         name: normalized.name,

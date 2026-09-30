@@ -103,3 +103,9 @@ test('uncertain create receipt recovers existing card and completes its original
 test('invalid action is rejected before charging',async()=>{
  await expect(pay('constructor')).rejects.toMatchObject({code:'INVALID_REQUEST'});expect(consumeLots).not.toHaveBeenCalled();
 });
+
+test('completed creation proof cannot recreate a subsequently deleted card',async()=>{
+ await pay('create','new');expect((await handleProfileRoutes(request('create','new'),{})).status).toBe(201);
+ collections.ProfileCard.rows.splice(1,1);
+ expect((await handleProfileRoutes(request('create','new'),{})).status).toBe(409);expect(collections.ProfileCard.rows).toHaveLength(1);expect(consumeLots).toHaveBeenCalledTimes(1);
+});
