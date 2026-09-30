@@ -1,4 +1,5 @@
 "use client";
+import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -812,6 +813,7 @@ export default function AstrologyAiResultClient() {
             </aside>
           </div>
         )}
+        {!loading && consultation && <PaidResultImageGuide domain="astrology" status={consultation.status} content={assistantContent} basis={consultation.analysisBasis} />}
         {!loading && shareChoices.length > 0 && (
           <div className="mt-6 max-w-3xl">
             <ConsultationShare brand="astrology" choices={shareChoices} />

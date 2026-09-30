@@ -8011,6 +8011,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
     stopPolling(); stopProgress(); clearPaidEvidence();
     activePendingJob = null; currentResultPayload = null; requestInFlight = false;
     outputEl.value = ''; outputTextEl.innerHTML = ''; outputPanel.style.display = 'none';
+    var oldEditorial = outputPanel.querySelector('[data-paid-editorial-report]');
+    if (oldEditorial) oldEditorial.remove();
     inputEl.value = '';
     if (form) form.open = false;
     if (resumeBtn) resumeBtn.style.display = 'none';
@@ -8241,6 +8243,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     if (summaryEl) summaryEl.innerHTML = _sajuPromptBuildResultSummaryHtml(currentResultPayload, currentPersonaMode);
     if (questionEl) questionEl.innerHTML = _sajuPromptBuildQuestionHtml(currentResultPayload);
     if (basisEl) basisEl.innerHTML = _sajuPromptBuildBasisHtml(currentResultPayload);
+    var previousEditorial = outputPanel.querySelector('[data-paid-editorial-report]');
+    if (previousEditorial) previousEditorial.remove();
+    if (payload.status === 'completed' && payload.saved === true && window.CDPaidEditorialReport) {
+      window.CDPaidEditorialReport.mount({host:outputPanel,completed:true,paid:true,resultText:text,title:'나의 사주 AI 상담 보고서',locale:_sajuEngineCurrentLang(),domain:'saju',analysisBasis:payload.analysisBasis});
+    }
     updateSavedState();
     outputPanel.style.display = 'block';
     if (payload.status === 'completed') outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -14864,6 +14871,7 @@ function renderAstroInsightLegacyNeon() {
                 : '<p style="color:#e0f2fe;white-space:pre-wrap;">' + resultText.replace(/[<>&]/g, '') + '</p>');
               answerEl.style.display = 'block';
               answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              if (window.CDPaidEditorialReport) window.CDPaidEditorialReport.mount({host:answerEl,completed:payload.status === 'completed' && payload.saved === true,paid:true,domain:'astrology',analysisBasis:payload.analysisBasis,resultText:resultText,title:'나의 점성술 AI 상담 보고서',locale:_sajuEngineCurrentLang()});
             }
             // 프롬프트 무료 동봉.
             if (bonusPrompt) {
@@ -22284,6 +22292,7 @@ function renderZiwei(p, natal, targetId) {
               : '<p style="color:#ede9fe;white-space:pre-wrap;">' + resultText.replace(/[<>&]/g, '') + '</p>');
             answerEl.style.display = 'block';
             answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (window.CDPaidEditorialReport) window.CDPaidEditorialReport.mount({host:answerEl,completed:payload.status === 'completed' && payload.saved === true,paid:true,domain:'ziwei',analysisBasis:payload.analysisBasis,resultText:resultText,title:'나의 자미두수 AI 상담 보고서',locale:_sajuEngineCurrentLang()});
           }
           // 프롬프트 무료 동봉 — 결과를 본 사용자에게 상담에 쓰인 프롬프트를 함께 제공.
           if (bonusPrompt) {

@@ -1,0 +1,15 @@
+// Legacy paid result presentation, fully mocked. No provider, account or payment calls.
+import './lib/mock-network-guard.cjs';
+import assert from 'node:assert/strict';
+import {mkdir,readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {build} from 'esbuild';
+import {chromium} from '@playwright/test';
+const output=resolve(process.argv[2]||'build-cache/paid-editorial-report');await mkdir(output,{recursive:true});
+const css=await readFile('css/paid-editorial-report.css','utf8');const script=(await build({entryPoints:['js/core/paid-editorial-report.mjs'],bundle:true,format:'iife',write:false})).outputFiles[0].text;
+const browser=await chromium.launch({headless:true});const errors=[],external=[];
+try{for(const width of [360,390,430,1280]){
+ const page=await browser.newPage({viewport:{width,height:920}});page.on('pageerror',error=>errors.push(error.message));await page.route('**/*',async route=>{const url=new URL(route.request().url());if(url.hostname!=='127.0.0.1'){external.push(url.href);return route.abort();}if(url.pathname.startsWith('/assets/'))return route.fulfill({body:await readFile(resolve('public','.'+url.pathname)),contentType:'image/png'});return route.fulfill({body:'<!doctype html><html><body style="margin:0"><main id="host"></main></body></html>',contentType:'text/html'});});await page.goto('http://127.0.0.1/mock-paid');await page.addStyleTag({content:css});await page.addScriptTag({content:script});
+ const outcome=await page.evaluate(()=>{const host=document.getElementById('host'),input={host,domain:'saju',paid:true,completed:true,resultText:'저장된 상담의 문장을 그대로 읽습니다. 질문 속 나의 선택을 차분히 살펴보세요.\n\n강한 기운도 지나치면 부담으로 드러날 수 있습니다.',analysisBasis:{groups:[{title:'일주',items:[{label:'천간·지지',value:'乙丑'}]}]}};const first=window.CDPaidEditorialReport.mount(input);const denied=window.CDPaidEditorialReport.mount({...input,paid:false});const stale=host.children.length;const unfinished=window.CDPaidEditorialReport.mount({...input,completed:false});const success=window.CDPaidEditorialReport.mount(input);return {first,denied,stale,unfinished,success,overflow:document.documentElement.scrollWidth>innerWidth};});
+ assert.deepEqual(outcome,{first:true,denied:false,stale:0,unfinished:false,success:true,overflow:false});const report=page.locator('[data-paid-editorial-report]');await report.locator('summary').click();assert.match(await report.locator('textarea').inputValue(),/乙丑/);assert.equal(await report.getByRole('button',{name:/PNG/}).count(),0);if(width===390||width===1280)await report.screenshot({path:resolve(output,`ggulggul-legacy-${width}.png`)});await page.close();
+}assert.deepEqual(errors,[]);assert.deepEqual(external,[]);}finally{await browser.close();}console.log(JSON.stringify({widths:4,paidGate:'mocked',externalRequests:0,output},null,2));

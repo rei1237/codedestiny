@@ -7,7 +7,6 @@ export type SummaryReport={reportVersion:string;serviceType:string;locale:string
 export type RenderableReport=Pick<SummaryReport,'serviceType'|'locale'|'headline'|'oneLineSummary'|'keywords'|'chart'|'sections'|'mascotMessage'|'coverage'|'mascot'>;
 export type PublicSummaryReport=RenderableReport&Pick<SummaryReport,'reportVersion'>;
 const names:Record<string,string>={saju:'나의 사주 요약 보고서',vedic:'나의 베다 운명 지도',astrology:'나의 별자리 성향 보고서',ziwei:'나의 자미두수 운명 보고서',tarot:'나의 타로 메시지 & 탄생 상징 카드',sukuyo:'나의 숙요 관계 지도'};
-const mascots:Record<string,string>={saju:'/assets/mascot/yeoni-moonstone-reward-v1.png',vedic:'/assets/yeongnyangi/report/v1/vedic-elephant.webp',astrology:'/assets/yeongnyangi/report/v1/astrology-owl.webp',ziwei:'/assets/yeongnyangi/report/v1/ziwei-neo-clean.webp',tarot:'/assets/yeongnyangi/report/v1/tarot-fox.webp',sukuyo:'/assets/yeongnyangi/report/v1/sukuyo-rabbit.webp'};
 const themes:Record<string,string>={self:'성향',love:'관계',relations:'관계',career:'일',wealth:'재물',timing:'현재 흐름',action:'다음 행동',cross:'함께 읽기'};
 function compact(value:unknown,max=240){return typeof value==='string'?Array.from(value.replace(/\s+/g,' ').trim()).slice(0,max).join(''):'';}
 function singleDomain(row:FortuneRecord){return row.product?.systems?.length===1?row.product.systems[0]:row.product?.domain||'fortune';}
@@ -15,13 +14,13 @@ function chartFingerprint(value:unknown){let hash=2166136261;for(const char of J
 // This is an owned-result projection. It never runs a calculator or an LLM, and does not alter the paid body.
 export function buildSummaryReport(row:FortuneRecord):SummaryReport|null{
  if(!row.paid||row.state!=='COMPLETED'||!Array.isArray(row.chapters)||!row.chapters.length)return null;
- const domain=singleDomain(row),ownedChart=row.charts?.find(c=>c.domain===domain)||row.charts?.[0]||null;
+ const domain=singleDomain(row),ownedChart=row.charts?.find(c=>c.domain===domain)||null;
  const chart=ownedChart?.limitations?.some(limit=>limit.includes('원국과 관련 해석의 정정'))?null:ownedChart;
  const sections=row.chapters.flatMap((chapter,i)=>{
   const spec=row.manifest[i];if(!spec)return [];
-  const text=chapter.questionAnswers?.[0]?.answer||chapter.summary;
-  const body=compact(text,270);return body?[{title:themes[spec.theme]||compact(spec.title,42),body,chapterId:spec.id}]:[];
- }).slice(0,7);
+  const text=[chapter.questionAnswers?.[0]?.answer||chapter.summary,chapter.advice].filter(Boolean).join('\n\n');
+  const body=typeof text==='string'?text.trim():'';return body?[{title:themes[spec.theme]||compact(spec.title,42),body,chapterId:spec.id}]:[];
+ });
  const first=row.chapters[0];
  const summary=compact(first.questionAnswers?.[0]?.answer||first.summary,180);
  const focus=chart?.groups.find(group=>domain==='saju'?group.label==='일주':domain==='vedic'?group.label.includes('라그나'):domain==='astrology'?group.label==='태양':domain==='ziwei'?group.label.includes('명궁'):domain==='tarot'?Boolean(group.cardCode):true);
@@ -31,7 +30,7 @@ export function buildSummaryReport(row:FortuneRecord):SummaryReport|null{
  const keywords=(first.highlights||[]).map(x=>compact(x,18)).filter(Boolean).slice(0,3);
  const available=[...(chart?['구매 당시 저장된 계산 차트']:[]),...(sections.length?['완성된 상담 문장']:[])];
  const missing=chart?[]:[ownedChart?'원국 정정 확인이 필요해 차트 공유를 보류했습니다.':'구매 당시 차트 자료가 없어 본문 문장만 요약했습니다.'];
- return {reportVersion:SUMMARY_REPORT_VERSION,serviceType:domain,locale:row.locale||'ko',sourceResultVersion:`${row.id}:${row.completedAt||row.createdAt}`,calculationVersion:chart?.source||'stored-result-without-chart',sourceChartHash:chartFingerprint(chart),generationState:chart?'ready':'degraded',headline,oneLineSummary:summary,keywords,chart,sections,mascotMessage:compact(first.persona||first.advice,140),coverage:{available,missing},mascot:mascots[domain]||'/assets/yeongnyangi/hero.webp'};
+ return {reportVersion:SUMMARY_REPORT_VERSION,serviceType:domain,locale:row.locale||'ko',sourceResultVersion:`${row.id}:${row.completedAt||row.createdAt}`,calculationVersion:chart?.source||'stored-result-without-chart',sourceChartHash:chartFingerprint(chart),generationState:chart?'ready':'degraded',headline,oneLineSummary:summary,keywords,chart,sections,mascotMessage:compact(first.persona||first.advice,140),coverage:{available,missing},mascot:'/assets/yeongnyangi/report-saju-yeongnyangi-v1.png'};
 }
 export function reportName(domain:string){return names[domain]||'나의 운세 요약 보고서';}
 export function visibleChartGroups(report:RenderableReport){

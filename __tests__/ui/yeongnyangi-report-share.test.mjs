@@ -46,3 +46,15 @@ test('changed chart and wrong owner invalidate the share',async()=>{
  fixture.charts[0].groups[0].items[0].value='甲子';
  assert.equal((await readReportShare({},token)).status,404);
 });
+
+test('expiry and revoked entitlement invalidate an existing public link',async()=>{
+ const expired='d'.repeat(64),refunded='e'.repeat(64);
+ await createReportShare({},'owner',fixture.id,expired);
+ const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(expired));
+ const key=Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
+ store.get(key).expiresAt=new Date(0);
+ assert.equal((await readReportShare({},expired)).status,404);
+ await createReportShare({},'owner',fixture.id,refunded);
+ fixture.paid=false;
+ try{assert.equal((await readReportShare({},refunded)).status,404);}finally{fixture.paid=true;}
+});

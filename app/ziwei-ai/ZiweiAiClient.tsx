@@ -1,4 +1,5 @@
 "use client";
+import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
@@ -1417,6 +1418,7 @@ export default function ZiweiAiPage() {
                   </div>
                 </section>
 
+                <PaidResultImageGuide domain="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} />
                 <div className="chatList">
                   {assistantSections.map((section) => (
                     <article className="chatCard" key={section.key} data-ziwei-pdf-section>

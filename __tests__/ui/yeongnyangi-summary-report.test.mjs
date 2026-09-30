@@ -6,6 +6,7 @@ import {createRequire} from 'node:module';
 const bundle=await build({entryPoints:['app/yeongnyangi/_lib/summary-report.ts'],bundle:true,platform:'node',format:'cjs',write:false});
 const module={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),module,module.exports);
 const {buildSummaryReport,publicShareReport,publicReportDraft,visibleChartGroups}=module.exports;
+import {buildExternalImagePrompt,reportGuideCopy,reportDomains} from '../../js/core/fortune-report-content.mjs';
 const secret='010101-1234567';
 function fixture(domain){return {paid:true,state:'COMPLETED',id:'private-result-id',createdAt:'2026-09-30',product:{domain,systems:[domain]},manifest:[{id:'a',title:'첫 결과',theme:'self'}],chapters:[{summary:`상담 비밀 ${secret}`,advice:'조언',persona:'개인적인 한마디',highlights:['비공개 키워드']}],charts:[{domain,title:`${domain} 차트`,source:'구매 당시 저장된 계산 근거',limitations:['비공개 한계'],groups:[{id:'main',label:'나의 상징',items:[{label:'값',value:'辛酉'}],chapterIds:['a']},{id:'partner',label:'상대 이름',items:[{label:'이름',value:'비밀상대'}],chapterIds:['a']}]}]};}
 test('all five report domains reuse owned chart references and completed content',()=>{
@@ -51,4 +52,39 @@ test('only bundled Yeongnyangi tarot art paths enter public data',()=>{
  assert.equal(publicReportDraft(publicShareReport(buildSummaryReport(row))).chart.groups[0].image,'/assets/yeongnyangi/tarot/v1/M08-600.webp');
  row.charts[0].groups[0].image='https://third-party.example/card.png';
  assert.equal(publicReportDraft(publicShareReport(buildSummaryReport(row))).chart.groups[0].image,undefined);
+});
+test('all six systems preserve saved values without inventing charts or sharing private content',()=>{
+ for(const domain of reportDomains){
+  const report=buildSummaryReport(fixture(domain));
+  const prompt=buildExternalImagePrompt({brand:'yeongnyangi',domain,locale:'ko',groups:report.chart.groups,passages:report.sections.map(section=>section.body)});
+  assert.ok(prompt.includes('辛酉'));assert.ok(prompt.includes(secret));
+  assert.match(prompt,/Do not calculate a new chart/);assert.match(prompt,/Do not make a public share image/);
+  assert.match(prompt,/white fluffy cat/);assert.match(prompt,/editable HTML\/SVG/);
+ }
+});
+test('localized guides cover six separate systems in all twelve runtime locales',()=>{
+ for(const locale of ['ko','en','ja','zh-CN','zh-TW','vi','hi','es','fr','de','nl','ms']){
+  const guides=reportDomains.map(domain=>reportGuideCopy(locale,domain));
+  assert.equal(new Set(guides.map(copy=>copy.guide)).size,6);
+  for(const copy of guides){assert.equal(copy.locale,locale);assert.ok(copy.guide.length>50);assert.ok(copy.privacy);}
+ }
+});
+test('wrong-system charts are omitted and saved passages are not cut mid-sentence',()=>{
+ const row=fixture('saju');row.charts[0].domain='vedic';row.chapters[0].summary='원본 문장입니다. '.repeat(70);
+ const report=buildSummaryReport(row);assert.equal(report.chart,null);
+ assert.ok(report.sections[0].body.includes(row.chapters[0].summary.trim()));
+});
+
+test('external prompt preserves saved chart limitations and correction notices',()=>{
+ const note='출생시간 미상: 시주와 정확한 대운 시작 시점은 해석하지 않습니다.';
+ const prompt=buildExternalImagePrompt({brand:'yeongnyangi',domain:'saju',locale:'ko',notes:[note]});
+ assert.ok(prompt.includes(note));assert.match(prompt,/Keep every supplied limitation/);
+});
+
+test('normal structured messages retain short Korean and English passages and dates',async()=>{
+ const compiled=await build({entryPoints:['lib/fortune/report-passages.ts'],bundle:true,platform:'node',format:'cjs',write:false});
+ const loaded={exports:{}};new Function('require','module','exports',compiled.outputFiles[0].text)(createRequire(import.meta.url),loaded,loaded.exports);
+ const messages=[JSON.stringify({sections:{summary:'Take your time.',advice:['Ask before deciding.','Wait until Friday.'],period:'2027',value:0}}),JSON.stringify({sections:{summary:'천천히 가세요.',advice:'먼저 물어보세요.'}})];
+ const passages=loaded.exports.savedReportPassages(messages).join('\n');
+ for(const value of ['Take your time.','Ask before deciding.','Wait until Friday.','2027','value: 0','천천히 가세요.','먼저 물어보세요.'])assert.ok(passages.includes(value),value);
 });

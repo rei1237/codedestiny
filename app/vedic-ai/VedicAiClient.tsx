@@ -1,4 +1,5 @@
 "use client";
+import PaidResultImageGuide from "@/components/fortune/PaidResultImageGuide";
 
 import CurrentLocationButton from '@/app/components/CurrentLocationButton';
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -3496,6 +3497,7 @@ export default function VedicAiClient() {
                 </article>
               </div>
 
+              <PaidResultImageGuide domain="vedic" status={consultation.status} content={consultation.messages.filter(message=>message.role==="assistant").map(message=>message.content)} basis={consultation.analysisBasis} />
               <div className={styles.chatList}>
                 {consultation.messages.map((message, index) => {
                   const structured = message.role === "assistant" ? parseStructuredReading(message.content) : null;
