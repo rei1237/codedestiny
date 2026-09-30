@@ -10,6 +10,7 @@ const bundle = await build({
       export const page = Page().props.page;
       export { metadata };
       export { SEO_SERVICE_SCOPES } from './lib/seo-service-scope.js';
+      export { SEO_LANDING_PAGES } from './lib/seo-landing-pages.js';
       export { relationFromForwardDistance } from './worker/lib/sukuyo-relation-core.js';`,
     resolveDir: process.cwd(),
   },
@@ -26,7 +27,7 @@ const bundle = await build({
     },
   }],
 });
-const { page, metadata, SEO_SERVICE_SCOPES, relationFromForwardDistance } = await import(
+const { page, metadata, SEO_SERVICE_SCOPES, SEO_LANDING_PAGES, relationFromForwardDistance } = await import(
   'data:text/javascript;base64,' + Buffer.from(bundle.outputFiles[0].text).toString('base64')
 );
 
@@ -40,6 +41,11 @@ test('compatibility landing distinguishes public guidance from the paid analysis
   assert.ok(page.steps.some(text => text.includes('유료 분석')));
   assert.match(SEO_SERVICE_SCOPES[page.path].paid, /기본 궁합·정밀 궁합/);
   assert.doesNotMatch(SEO_SERVICE_SCOPES['/sukuyo'].free, /두 사람/);
+  assert.match(SEO_LANDING_PAGES.sukuyo.description, /본명숙과 기본 성향/);
+  assert.match(SEO_LANDING_PAGES.sukuyo.description, /별도 유료 궁합/);
+  assert.doesNotMatch(SEO_LANDING_PAGES.sukuyo.keywords.join(' '), /궁합 무료/);
+  assert.match(SEO_LANDING_PAGES.compatibility.intro, /기본·정밀 궁합 분석은 별도 유료/);
+  assert.match(SEO_SERVICE_SCOPES['/compatibility'].paid, /숙요점의 기본·정밀 궁합/);
   assert.ok(page.faqs.slice(0, 5).some(faq => /별도 유료/.test(faq.answer)));
 });
 
