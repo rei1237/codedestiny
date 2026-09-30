@@ -16,6 +16,7 @@ next: 빈 판매목록을 유지하며 새 팩 통합 main CI 결과를 기록�
 - 기존 월정석·이미지 변경 기준: 38ebd153baf1eff3af7976581934fd0de1a8cc0b. [CI 실행 36683071504](https://github.com/rei1237/codedestiny/actions/runs/36683071504)는 해당 SHA의 completed/success이며 CI required도 success다. 이 성공을 새 팩 변경의 CI 성공으로 확대하지 않는다.
 - 새 세트 서버: f9583c2b6705ec5906998bdd143c969eec564d2c (feat: add direct-purchase fish passes and atomic gifting with sales closed).
 - 새 경로·인증 테스트: c1fbd8f8071033531d345021fd372ca6ca6304af (test: declare service pack routes and authentication requirements), 해당 suite 76/76 PASS.
+- 첫 통합 전달 093f01962b99e7e336a41fdac0017fd6742037ab의 CI 36685868126은 변경 파일 린트에서 서버 helper `useId`를 React Hook으로 판단해 실패했다. 증빙 ID 산식은 유지하고 이름만 `packUseEvidenceId`로 바로잡았다. 동일 38파일 변경 린트와 관련 Jest 2 suites / 42 tests가 통과했으며, 보완 커밋의 최종 CI는 별도로 확인해야 한다.
 - 동일 주문 재개 UI: 9600c7974b50f556b13f1beb8497cac1a63775a0 커밋이 존재한다. 후속 원주문 ID 대조 P2와 문서는 부모 작업에서 전달하며, 새 팩 통합 CI의 최종 SHA/성공 결과는 아직 대기 중이다.
 
 ## 실제 구현
