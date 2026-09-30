@@ -109,3 +109,9 @@ test('completed creation proof cannot recreate a subsequently deleted card',asyn
  collections.ProfileCard.rows.splice(1,1);
  expect((await handleProfileRoutes(request('create','new'),{})).status).toBe(409);expect(collections.ProfileCard.rows).toHaveLength(1);expect(consumeLots).toHaveBeenCalledTimes(1);
 });
+
+test('request ID alone cannot authorize an unpaid profile mutation',async()=>{
+ const req=new Request('https://example.com/api/profile/'+PID,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:`profile-card:delete:${PID}:unpaid`})});
+ expect((await handleProfileRoutes(req,{})).status).toBe(402);
+ expect(collections.ProfileCard.rows).toHaveLength(1);expect(consumeLots).not.toHaveBeenCalled();
+});

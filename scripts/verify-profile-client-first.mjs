@@ -14,6 +14,7 @@ const targets = {
   client: read("js/destiny-profile.js"),
   publicClient: fs.existsSync(publicClientPath) ? read("public/js/destiny-profile.js") : "",
   profileRoute: read("worker/routes/profile.js"),
+  moonstoneProof: read("worker/lib/profile-moonstone-mutation.js"),
   authRoute: read("worker/routes/auth.js"),
   limits: read("worker/lib/profile-limits.js"),
   packageJson: read("package.json"),
@@ -39,13 +40,18 @@ expect("limits", "maxProfileCount", "policy snapshot exposes maxProfileCount");
 expect("authRoute", "profilePolicySnapshot: buildProfilePolicySnapshot", "auth response carries login-time policy");
 expect("profileRoute", "profilePolicySnapshot: buildProfilePolicySnapshot", "profile APIs carry policy snapshot");
 expect("profileRoute", "serverSyncedAt", "profile APIs expose sync timestamp");
-expect("profileRoute", "PROFILE_LIMIT_RECONCILE_REQUIRED", "server hard validation asks client to reconcile");
+expectAbsent("profileRoute", "PROFILE_LIMIT_RECONCILE_REQUIRED", "valid paid creation is not rejected by included slot limits");
 expect("profileRoute", "countDocuments({ userId: auth.userId })", "server final create validation counts once");
 expect("profileRoute", "findCompletedProfileMutationReplay", "delete replay lookup is present");
 expect("profileRoute", "delete_replay", "delete replay returns a completed mutation state");
 expect("profileRoute", "trace.stage = \"delete_mutation\"", "profile mutation trace records delete stage");
 expectAbsent("profileRoute", "const createPolicy = await resolveProfileCardActionAccess", "create no longer performs server-first policy preflight");
-expectAbsent("profileRoute", "source.requestId", "request id is not treated as payment evidence");
+// A request ID selects a server ledger entry; it is never sufficient proof by itself.
+expect("profileRoute", "return findProfileMoonstoneEvidence({ userId: auth.userId, ...input })", "profile API validates scoped server evidence");
+expect("moonstoneProof", "findMoonstoneSpendEvidence", "common settled spend verification");
+expect("moonstoneProof", "row.sourceId !== requestId || row.profileId !== profileId || row.amount !== PROFILE_CARD_DELETE_COST_MONTHLY_STONES", "request identity, profile and exact price are verified");
+expect("moonstoneProof", "storedAction !== action", "proof binds the mutation action");
+expect("moonstoneProof", "moonstoneSpendRefundFilter()", "refunded proof is excluded");
 
 expect("client", "KEY_POLICY_PREFIX", "client caches scoped policy snapshots");
 expect("client", "PROFILE_POLICY_TTL_MS = 10 * 60 * 1000", "client policy cache has 10 minute TTL");
