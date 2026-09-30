@@ -27,7 +27,17 @@ async function writeFileWithRetry(path, data) {
   }
 }
 async function capture(subject, path) {
-  const image = await subject.screenshot({ animations: 'disabled' });
+  if (subject.scrollIntoViewIfNeeded) {
+    // Offscreen result sections use content-visibility; wait for their measured heights.
+    for (let attempt=0;attempt<8;attempt++) {
+      await subject.evaluate(el=>window.scrollBy({top:el.getBoundingClientRect().top-24,behavior:'instant'}));
+      await new Promise(done=>setTimeout(done,200));
+      if (await subject.evaluate(el=>Math.abs(el.getBoundingClientRect().top-24)<4)) break;
+    }
+    assert.ok(await subject.evaluate(el=>{const r=el.getBoundingClientRect();return r.top<innerHeight&&r.bottom>0;}),'capture target must be in the viewport');
+  }
+  // Capture the settled viewport; locator screenshots scroll again and invalidate virtual section heights.
+  const image = await (subject.page ? subject.page() : subject).screenshot({ animations: 'disabled' });
   await writeFileWithRetry(path, image);
 }
 const server = createServer(async (req, res) => {
@@ -55,6 +65,8 @@ try {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith('/api/')) {
       apiRequests.push(url.pathname);
+      // Result entry requires a verified session; this response is a local fixture only.
+      if (url.pathname === '/api/auth/me') return route.fulfill({json:{ok:true,user:{id:'ux-fixture-owner'},authenticated:true}});
       const payload = url.pathname === '/api/billing/features' ? {legacyFeatureTable:[{featureKey:'saju_ai_question_prompt',amountKRW:10000,cost:100}]} : {ok:true,user:fixtureSignedIn ? {id:'ux-fixture-owner'} : null,unlocks:[],profiles:[],data:null};
       return route.fulfill({contentType:'application/json',body:JSON.stringify(payload)});
     }
@@ -80,6 +92,25 @@ try {
         hiddenAncestor:!!entry.closest('details:not([open]),[aria-hidden="true"]'),overflow:entry.scrollWidth>entry.clientWidth+1,entryVisible:!!entry.offsetParent,heading:entry.querySelector('h2,h3,h4,.prem-title')?.textContent};
     });
     await capture(page, resolve(output,`chart-${width}.png`));
+    for (const mode of ['pig','neo']) {
+      await page.evaluate(mode=>document.querySelector('#sajuReadingHeader [data-saju-mode="'+mode+'"]').click(),mode);
+      await page.waitForFunction(mode=>document.querySelector('#letterContent .saju-letter')?.dataset.readingMode===mode,mode);
+      const letter=page.locator('#letterContent');
+      await capture(letter,resolve(output,`letter-${mode}-${width}.png`));
+      assert.ok(await letter.locator('.saju-letter__prose p').count()>=5);
+      assert.ok(await letter.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+      await capture(page.locator('#sajuConsultationEntry'),resolve(output,`entry-${mode}-${width}.png`));
+      const art=await page.locator('#sajuConsultationEntry').evaluate(el=>{
+        const img=[...el.querySelectorAll('img')].find(i=>i.getBoundingClientRect().height>0);
+        const rect=img.getBoundingClientRect(),frame=img.parentElement.getBoundingClientRect();
+        return {height:rect.height,frameHeight:frame.height};
+      });
+      assert.ok(art.height<=art.frameHeight+1,'The entry artwork fits its frame');
+      if(mode==='pig')assert.ok(Math.abs(art.height-art.frameHeight)<1,'Yeoni artwork fills the frame');
+
+    }
+    await page.evaluate(()=>document.querySelector('#sajuReadingHeader [data-saju-mode="pig"]').click());
+
     if (phase !== 'before') {
       await page.locator('#sajuConsultationEntry').evaluate(el => el.scrollIntoView({block:'start',behavior:'instant'}));
       await capture(page.locator('#sajuConsultationEntry'), resolve(output,`entry-${width}.png`));

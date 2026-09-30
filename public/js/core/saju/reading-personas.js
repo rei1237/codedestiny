@@ -49,6 +49,26 @@
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
       pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '종합 사주 풀이', daeunTitle: '대운 · 삶의 계절을 읽다', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거를 짚고, 지금 준비할 선택과 행동을 정리합니다.', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
+      letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
+      letterOpening: '긴 풀이를 읽으며 어떤 문장에서는 고개를 끄덕이고, 어떤 대목에서는 잠시 마음이 멈췄을지도 모르겠어요. 오늘은 답을 서둘러 정하기보다 따뜻한 차 한 잔을 사이에 두고, 당신의 이야기를 조금 더 듣는 마음으로 이 편지를 남겨요.',
+      letterDay: '명식에서 나를 읽는 기준인 일간은 {stem}이에요. {image} 이 모습이 익숙하게 느껴진다면, 요즘 그 힘을 어디에 쓰고 있는지 천천히 떠올려보세요. 타고난 기질은 지켜야 할 숙제가 아니라, 나를 조금 덜 오해하기 위한 실마리니까요.',
+      letterImages: ['큰 나무가 가지를 뻗듯, 방향을 정하고 한 걸음씩 나아가는 모습을 떠올릴 수 있어요.', '풀과 덩굴이 자리를 찾아 자라듯, 주변을 살피며 길을 조정하는 모습을 떠올릴 수 있어요.', '햇살이 공간을 밝히듯, 생각과 마음을 밖으로 나누는 모습을 떠올릴 수 있어요.', '작은 등불이 가까운 자리를 비추듯, 관심을 기울인 일과 사람을 세심하게 살피는 모습을 떠올릴 수 있어요.', '산이 자리를 지키듯, 흔들리는 상황에서 중심을 잡으려는 모습을 떠올릴 수 있어요.', '흙이 씨앗을 품듯, 일상의 작은 조건을 돌보며 결실을 기다리는 모습을 떠올릴 수 있어요.', '도구의 날을 다듬듯, 얽힌 일을 정리하고 필요한 결정을 내리는 모습을 떠올릴 수 있어요.', '보석의 결을 살피듯, 작은 차이를 알아보고 소중한 기준을 가꾸는 모습을 떠올릴 수 있어요.', '강물이 길을 찾듯, 여러 가능성을 살피며 넓게 생각하는 모습을 떠올릴 수 있어요.', '조용한 빗물이 스며들듯, 쉽게 지나치는 기색과 감정을 깊이 살피는 모습을 떠올릴 수 있어요.'],
+      letterBalance: '오행의 분포에서는 {observation} {scene} 잘 쓰이던 힘도 쉬지 않고 쓰면 부담이 될 수 있어요. 반대로 적게 나타난 기운이 있다고 해서 당신에게 그 능력이 없다는 뜻은 아니랍니다. 숫자로 빈자리를 채우려 하기보다, 실제 생활에서 편안했던 방식과 지쳤던 순간을 함께 살펴주세요.',
+      letterTied: '여러 오행이 비슷한 비중으로 나타나고 있어요. 한 가지 모습으로 당신을 정리하기보다, 상황에 따라 달라지는 마음을 함께 바라보고 싶어요. 어떤 날은 앞장서고, 다른 날은 조용히 살피는 나도 같은 당신이니까요.',
+      letterStrong: '일간을 돕는 힘이 비교적 큰 구조로 읽혀요. 스스로 방향을 잡는 데 익숙하다면, 혼자 해낼 수 있다는 이유로 모든 몫을 안고 있지는 않은지 돌아보면 좋겠어요. 도움을 청하는 일은 내 힘을 내려놓는 것이 아니라, 오래 쓸 수 있도록 나누는 일이기도 해요.',
+      letterWeak: '일간을 돕는 힘보다 주변의 요구가 크게 읽히는 구조예요. 이것은 당신의 마음이 약하다거나 능력이 부족하다는 뜻이 아니에요. 충분히 준비할 시간, 함께 의논할 사람, 쉬어 갈 자리가 있을 때 자신의 힘을 더 편안하게 쓸 수 있다는 방향으로 받아들여주세요.',
+      letterJong: '명식에서는 한 방향으로 모이는 기세를 살피는 종격 가능성이 검토되었어요. 강하다거나 약하다는 말 하나로 당신을 설명하기보다, 어떤 환경에서 힘이 자연스럽게 이어지는지 바라보는 편이 좋겠어요. 해석보다 당신이 실제로 겪은 경험을 먼저 놓아주세요.',
+      letterCare: '혹시 요즘 기대만큼 일이 풀리지 않아 자신에게 엄격해졌다면, 결과를 곧바로 나의 가치와 묶지는 않았으면 해요. 힘든 시간이 꼭 좋은 일의 예고인 것은 아니지만, 오늘의 부담을 줄이는 선택은 지금도 해볼 수 있어요. 해야 할 일을 하나 덜어내거나, 믿을 만한 사람에게 지금의 사정을 말하는 작은 선택부터요.',
+      letterPractice: '오늘 이 편지에서 한 가지만 가져간다면, 이렇게 시작해보면 어떨까요. {action} 누군가에게 잘 보이기 위한 숙제가 아니라, 내 하루가 조금 더 편안해지는지 알아보는 작은 시도예요. 잘 맞지 않는다면 다른 방법을 골라도 괜찮아요.',
+      letterClosing: '찻잔을 내려놓을 때처럼, 오늘 읽은 말도 잠시 곁에 놓아두세요. 마음에 남은 문장은 간직하고, 나와 맞지 않는 말은 흘려보내도 좋아요. 당신의 삶을 가장 가까이에서 살아온 사람은 당신이니까요. 다음 걸음이 아직 선명하지 않더라도, 자신을 다그치지 않고 선택할 여유가 곁에 남기를 연이가 바라요.',
+      neoLetterTitle: '마지막 작전 메모', neoGreeting: '{name}님, 이제 선택의 기준을 정리하자.', neoSignature: '네오 · 다음 한 수는 당신의 선택',
+      neoOpening: '명식은 판세를 살피는 참고 자료다. 결정을 대신 내려주는 지시서는 아니다. 맞는 대목은 써먹고, 실제 경험과 어긋나는 해석은 보류해라. 지금 필요한 건 좋은 말의 개수가 아니라, 실행할 기준 하나다.',
+      neoClue: '{observation} 여기서 볼 것은 우열이 아니라 힘을 쓰는 방식이다. {scene} 이런 패턴이 실제로 반복되는지 최근의 선택부터 점검해라.',
+      neoStrong: '일간을 돕는 힘이 비교적 크다. 혼자 추진하기 전에 다른 의견을 들을 자리를 확보해라. 자신감이 있어도 시간과 자원이 늘어나는 것은 아니다. 맡을 일과 나눌 일을 먼저 정리하자.',
+      neoWeak: '일간에 비해 주변의 요구가 큰 구조다. 능력 부족이라는 판정이 아니다. 준비 시간과 지원 없이 역할부터 늘리지 마라. 혼자 감당하기 어렵다면 범위를 줄이거나 도움을 요청하는 것도 전략이다.',
+      neoJong: '한 방향의 기세를 따르는 종격 가능성이 검토됐다. 보통의 강약 공식으로 결론 내리지 마라. 환경에 맞춰 움직였을 때 실제로 효과가 있었는지부터 확인해라.',
+      neoAction: '오늘의 작전은 간단하다. {action} 실행할 시점과 확인할 결과를 적어라. 해본 뒤 도움이 됐는지 평가하고, 맞지 않으면 방법을 바꿔라. 계획을 고치는 것은 패배가 아니라 판단의 일부다.',
+      neoClosing: '관계든 일이든 명식만 보고 큰 결론을 내리지 마라. 상대의 실제 행동, 약속한 조건, 감당할 비용을 함께 확인해라. 당신을 몰아붙이는 대신 선택을 선명하게 만드는 것, 그게 이 작전의 목적이다. 오늘 움직일 수 있는 범위부터 시작하자.',
       endYeon: '오늘 읽은 모든 문장을 나에게 맞추려 애쓰지 않아도 괜찮아요. 실제 내 모습과 맞닿은 단서 하나부터 천천히 살펴보세요.',
       endNeo: '명식은 선택을 대신하지 않습니다. 맞는 근거와 맞지 않는 해석을 구분하고, 오늘 확인할 행동 하나만 정하세요.'
     },
@@ -110,7 +130,15 @@
     model.climate=section(c.climate,cool?c.cold:warm?c.hot:c.neutral,fmt(c.climateBasis,{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],c.climateAction);
     model.strength=section(c.strength,jong.isJong?c.jong:pw.isStrong?c.strong:c.weak,fmt(c.strengthBasis,{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],c.strengthAction);
     model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60; return section(row.kind==='year'?c.year:c.period,good?c.flowOpen:c.flowCare,fmt(c.flowBasis,{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),good?c.flowOpen:c.flowCare,good?c.flowRuleOpen:c.flowRuleCare); });
-    model.letter=section(c.letter,elementText,model.day.evidence,c.scenes[day],neo?c.endNeo:c.endYeon);
+    var name=String(input.name||c.letterGuest||'you').trim();
+    if(lang==='ko') {
+      var stemIndex=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(p.d.g);
+      model.letter={title:neo?c.neoLetterTitle:c.letter, greeting:fmt(neo?c.neoGreeting:c.letterGreeting,{name:name}), signature:neo?c.neoSignature:c.letterSignature,
+        paragraphs:neo?[c.neoOpening,fmt(c.neoClue,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.neoJong:pw.isStrong?c.neoStrong:c.neoWeak,fmt(c.neoAction,{action:c.rules[day]}),c.neoClosing]:[
+          c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),c.letterClosing], evidence:model.day.evidence};
+    } else {
+      model.letter={title:c.letter,greeting:neo?c.neo:c.yeon,signature:neo?c.neo:c.yeon,paragraphs:[elementText,c.scenes[day],neo?c.rules[day]:c.actions[day],neo?c.endNeo:c.endYeon],evidence:model.day.evidence};
+    }
     return model;
   }
   var state = null, flow = [], daily = [], openGod = null;
@@ -119,11 +147,15 @@
     var p=root.G_PILLARS, ten={};
     [p.y.g,p.y.j,p.m.g,p.m.j,p.d.j,p.h.g,p.h.j].forEach(function(ch){var g=root.getTenGod(p.d.g,ch);if(g&&g!=='?')ten[g]=(ten[g]||0)+1;});
     var birth=root.G_KASI_CONTEXT||{};
-    return {p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
+    return {name:root.USER_NAME,p:p,natal:root.G_NATAL,ten:ten,johu:root.G_JOHU,power:root.G_POWER,jong:root.G_JONG,unknown:birth.unknownHour===true||birth.timeDefault===true||root.__cdSajuTimeUnknown===true,flow:flow};
   }
   function markup(reading, model, heading) {
     var c=langCopy(locale());
     return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+esc(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
+  }
+  function letterMarkup(model) {
+    var r=model.letter,c=langCopy(locale());
+    return '<article class="saju-reading saju-letter" data-reading-mode="'+model.mode+'"><p class="saju-letter__greeting">'+esc(r.greeting)+'</p><div class="saju-letter__prose">'+r.paragraphs.map(function(text){return '<p>'+esc(text)+'</p>';}).join('')+'</div><p class="saju-letter__signature">'+esc(r.signature)+'</p><details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(r.evidence)+'</p></details>'+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</article>';
   }
   function write(id, html) { var el=document.getElementById(id);if(el)el.innerHTML=html; }
   function ensureHeader() {
@@ -166,7 +198,7 @@
       reading.blocks=model.mode==='neo'?[{label:c.diagnosis,text:good?c.flowOpen:c.flowCare},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?c.godRules[gi]:c.strengthAction}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
       write(i===0?'dailyPanel':'monthlyPanel',markup(reading,model,true));
     });
-    if(section==='letter'||section==='all') {write('letterTitle',esc(mode()==='neo'?c.neo:c.yeon)+' · '+esc(c.letter));write('letterContent',markup(model.letter,model,false));}
+    if(section==='letter'||section==='all') {write('letterTitle',esc(mode()==='neo'?c.neo:c.yeon)+' · '+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
   }
   function refreshCopy() {
