@@ -215,10 +215,12 @@ try {
       const shots = resolve(tmpdir(), 'cd-saju-moonlight');
       await mkdir(shots, {recursive:true});
       if (!alreadyUnlocked && shell.label === 'mobile') {
-        await page.locator('#sajuReadingHeader img').evaluate(img => img.decode());
+        // Persona/viewport refresh can replace an image while decode() is pending.
+        // Poll the current DOM node; missing or broken assets still time out.
+        await page.waitForFunction(() => {const img=document.querySelector('#sajuReadingHeader img');return img?.complete && img.naturalWidth>0;});
         await page.screenshot({path:resolve(shots,'header-'+mode+'-'+width+'.png')});
         await page.locator('[data-saju-offer="section_daewun"]').scrollIntoViewIfNeeded();
-        await page.locator('[data-saju-offer="section_daewun"] img').evaluate(img => img.decode());
+        await page.waitForFunction(() => {const img=document.querySelector('[data-saju-offer="section_daewun"] img');return img?.complete && img.naturalWidth>0;});
         await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
       }
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
