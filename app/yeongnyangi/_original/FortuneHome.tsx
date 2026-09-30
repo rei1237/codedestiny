@@ -342,28 +342,31 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
 
 
             <section className="ggulggul-bridge" aria-labelledby="ggulggul-title">
+              <Moon className="ggulggul-bridge__moon" size={28} strokeWidth={1} aria-hidden="true" />
               <div className="ggulggul-bridge__art">
                 <img
-                  src="/assets/yeongnyangi/original/ggulggul-fortune.webp"
-                  width="512"
-                  height="512"
-                  alt="연꽃 위에서 웃고 있는 꿀꿀 운세 꽃돼지"
+                  src="/images/home/yeoni-pass-mascot-480.webp"
+                  srcSet="/images/home/yeoni-pass-mascot-240.webp 240w, /images/home/yeoni-pass-mascot-480.webp 480w"
+                  sizes="(max-width: 560px) 148px, 168px"
+                  width="480"
+                  height="480"
+                  alt="연꽃을 달고 달빛 운세 카드를 든 꽃돼지 연이"
                   loading="lazy"
                   decoding="async"
                 />
               </div>
               <div className="ggulggul-bridge__copy">
-                <span>Code Destiny 연결</span>
-                <h2 id="ggulggul-title">연이의 따뜻한 운세도 만나봐.</h2>
+                <h2 id="ggulggul-title">달빛 따라, <span>꿀꿀운세로.</span></h2>
                 <p>
-                  영냥이에서는 지금의 질문을 상담하고, 꿀꿀 운세에서는 점술과 주제별 콘텐츠를 깊이 둘러봐. 연이는 다정하게, 네오는 현실적인 조언으로 함께해.
+                  꽃돼지 연이가 기다리는 다정한 운세 정원.<br />
+                  사주·타로부터 삶의 여러 흐름까지, 천천히 둘러봐.
                 </p>
-                <div>
-                  <a className="outlined-cta" href="/points/">
-                    꽃돼지 이용권 알아보기 <ArrowRight size={17} />
+                <div className="ggulggul-bridge__actions">
+                  <a className="ggulggul-bridge__entry" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
+                    연이의 꽃정원 둘러보기 <ArrowRight size={17} aria-hidden="true" />
                   </a>
-                  <a className="text-link" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
-                    꿀꿀 운세로 이동 <ChevronRight size={15} />
+                  <a className="text-link" href="/points/">
+                    이용권 알아보기 <ChevronRight size={15} aria-hidden="true" />
                   </a>
                 </div>
               </div>
