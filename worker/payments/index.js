@@ -1427,7 +1427,7 @@ const ROUTES = {
              권한뿐이다. */
           let result;
           try {
-            result = await spendMoonstone(db, { userId, product, purchaseId: requestId, profileId });
+            result = await spendMoonstone(db, { userId, product, purchaseId: requestId, profileId, profileAction: body.profileAction || body.actionType || body.action });
           } catch (error) {
             if (grantedIdentity) {
               await dropEntitlementByIdentity(db, { userId, identity: grantedIdentity, orderId: requestId });

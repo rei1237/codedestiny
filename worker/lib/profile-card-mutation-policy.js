@@ -227,18 +227,6 @@ export async function getProfileCardMutationPolicy(userId, profileCardId, action
     }
   }
 
-  if (normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE && paymentSettled) {
-    const slot = canAddProfile(user, currentProfileCardCount);
-    if (!slot.allowed) {
-      return buildProfileCardMutationPolicyResult({
-        requiresPayment: false,
-        reason: slot.reason,
-        passType: entitlement?.isActive ? String(entitlement.passTier || entitlement.tier || "") : undefined,
-        limit: slot.limit,
-        currentProfileCardCount,
-      });
-    }
-  }
 
   if (paymentSettled) {
     return buildProfileCardMutationPolicyResult({

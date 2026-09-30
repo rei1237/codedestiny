@@ -193,7 +193,7 @@ const cases = [
       ["policy", "PROFILE_CARD_CREATE_PAYMENT_REQUIRED"],
       ["profileRoute", "const profilePolicySnapshot = buildProfilePolicySnapshot"],
       ["profileRoute", "const createFitsLocalPolicy = yeongnyangi || canCreateProfileWithinSubscriptionLimit"],
-      ["profileRoute", "PROFILE_LIMIT_RECONCILE_REQUIRED"],
+      ["profileRoute", 'profileCardActionPaymentRequiredResponse("create", createRequestId, normalized.profileId)'],
       ["profileRoute", "async function handleCreateProfile(request, auth, env, yeongnyangi = false)"],
       ["profileRoute", "url.pathname = \"/api/profile\";"],
       ["profileRoute", "handleProfileRoutesUncached(new Request(url, request), env, true)"],

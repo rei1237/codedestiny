@@ -148,3 +148,17 @@ test("재열람 응답은 모르는 잔액을 0 으로 싣지 않는다 — 해�
   expect(payload.data.balance).toBeUndefined();
   expect(payload.data.unlockMap[UNLOCK_ITEM.featureKey]).toBe(true);
 });
+
+
+test('profile moonstone adapter retains operation metadata and replays without deducting twice',async()=>{
+ const db=makeFakePaymentDb({uniqueKeys:[['userId','type','sourceId']]});const user=seedFundedUser(db);
+ const requestId='profile-card:delete:yn_test:adapter';
+ async function send(actionType='profile_card_delete') {
+  return handlePaymentsContext(new Request('https://code-destiny.com/api/payments/coin-gate/moonstone',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${await tokenFor(USER)}`},body:JSON.stringify({featureKey:'profile-card-manage',paymentMode:'MOONLIGHT_STONE',profileId:'yn_test',requestId,actionType})}),ENV,{prefix:'/api/payments',withDb:(_e,_c,fn)=>fn(db)});
+ }
+ expect((await send()).status).toBe(200);expect((await send()).status).toBe(200);
+ const spends=db.rows.filter(r=>r.type==='MONTHLY_CREDIT_SPEND');expect(spends).toHaveLength(1);
+ expect(spends[0].metadata).toMatchObject({profileAction:'delete',profileId:'yn_test',requestId});
+ expect(spends[0].amount).toBe(500);expect(user.profileSubscription.membershipCreditBalance).toBe(99500);
+ expect((await send('profile_card_update')).status).toBe(409);
+});
