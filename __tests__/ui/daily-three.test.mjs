@@ -43,6 +43,8 @@ test('22 existing major cards have images and three dedicated non-empty readings
 test('daily client does not import paid Mind Scan or generation transport',()=>{
  const source=readFileSync(new URL('../../app/today/DailyTarot.tsx',import.meta.url),'utf8');
  assert.doesNotMatch(source,/useCoinGate|usePaidResume|continueOracleDelivery|fortuneApi|authFetch|fetch\(/);
- assert.match(source,/TarotCardBack/);
+ assert.match(source,/fortuneTeaHouseAssets\.premium\.tarotCardBack/);
+ const page=readFileSync(new URL('../../app/today/page.js',import.meta.url),'utf8');
+ assert.match(page,/image:getTarotCardImageUrl\(\{arcana:card\.arcana,number:card\.number\}\)/);
  assert.match(source,/catch\{setStorageOk\(false\)/);
 });
