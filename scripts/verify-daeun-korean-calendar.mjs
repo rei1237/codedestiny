@@ -48,6 +48,13 @@ function ok(label, condition, detail = "") {
   if (!condition) failures.push(`${label}${detail ? `\n      ${detail}` : ""}`);
   else if (REPORT) console.log(`  ok  ${label}`);
 }
+function isHistoricalDstTransitionAmbiguity(error, at) {
+  return error?.code === "AMBIGUOUS_BIRTH_TIME"
+    && at.year === 1955
+    && at.month === 5
+    && at.day === 5
+    && at.hour === 0;
+}
 
 const STEM_HANJA = "甲乙丙丁戊己庚辛壬癸";
 const BRANCH_HANJA = "子丑寅卯辰巳午未申酉戌亥";
@@ -225,7 +232,7 @@ let divergence = null;
       gender: at.gender === "M" ? "male" : "female",
       calendarType: "solar",
     });
-    } catch(e) { if (e.code !== "AMBIGUOUS_BIRTH_TIME" || at.year !== 1955 || at.month !== 5 || at.day !== 5 || at.hour !== 0) throw e; console.log("[daeun] rejected historical DST transition sample", JSON.stringify(at)); continue; }
+    } catch(e) { if (!isHistoricalDstTransitionAmbiguity(e, at)) throw e; console.log("[daeun] rejected historical DST transition sample", JSON.stringify(at)); continue; }
     const core = daeun(result.calculationMeta.termClock, { gender: at.gender });
     probes += 1;
     const luck = result?.majorLuck;
@@ -331,11 +338,18 @@ let divergence = null;
   for (const at of birthMoments({ fromYear: 1950, toYear: 2035, yearStep: 5 })) {
     // 성별 미상은 birthMoments 가 안 내므로 여기서 한 번 더 돌린다.
     for (const gender of [at.gender, "OTHER"]) {
-      const profile = buildSajuProfile({
-        name: "t",
-        gender,
-        birth: { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, calendarType: "solar" },
-      });
+      let profile;
+      try {
+        profile = buildSajuProfile({
+          name: "t",
+          gender,
+          birth: { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, calendarType: "solar" },
+        });
+      } catch (e) {
+        if (!isHistoricalDstTransitionAmbiguity(e, at)) throw e;
+        console.log("[daeun] rejected historical DST transition sample", JSON.stringify({ ...at, gender }));
+        continue;
+      }
       const dw = profile?.sajuCoreResult?.daewoon;
       const first = dw?.list?.[0];
       const legacy = profile?.daewoon?.[0];
