@@ -31,6 +31,17 @@ let activePage;
 let activeCase = '';
 const browserErrors = [];
 
+async function settleScroll(page) {
+  // Await the existing smooth-scroll/200ms tap-suppression lifecycle before another user tap.
+  await page.evaluate(() => new Promise(resolve => {
+    let timer;
+    const finish = () => { window.removeEventListener('scroll', changed); resolve(); };
+    const changed = () => { clearTimeout(timer); timer = setTimeout(finish, 300); };
+    window.addEventListener('scroll', changed, {passive:true});
+    changed();
+  }));
+}
+
 async function assertSummaryVisible(page, label) {
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
   // The report can exceed 30,000px; scrollIntoViewIfNeeded can consider a
@@ -207,10 +218,11 @@ try {
   await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
   assert.equal(await page.locator('#yearList .year-row').count(), 10, 'paid cycle supplies all ten annual readings');
   assert.match(await page.locator('#dwDetail').innerText(), /대운과 세운/);
+  await settleScroll(page);
   const firstCycle = await page.locator('.saju-cycle-guide').innerText();
   await page.locator('#dwGrid .dw-item').nth(1).scrollIntoViewIfNeeded();
   // The existing direct-tap guard intentionally suppresses taps within 200ms of scrolling.
-  await page.waitForTimeout(350);
+  await settleScroll(page);
   await page.locator('#dwGrid .dw-item').nth(1).click();
   await page.waitForFunction(() => Number(document.querySelector('.saju-cycle-guide')?.dataset.cycleAge) === Number(window.G_DAEWUN[1].age));
   assert.notEqual(await page.locator('.saju-cycle-guide').innerText(), firstCycle, 'another cycle has its own consultation');
