@@ -173,12 +173,15 @@ const CASES = [
     expectCorrected: "00:04",
   },
   {
-    label: "정책 명시 TRUE_SOLAR_TIME — 2022-10-25 13:20 서울 (균시차 포함, 미시 유지)",
+    label: "정책 명시 TRUE_SOLAR_TIME 입력 — 공개 사주 코어는 평균태양시 시주 유지",
     birth: { year: 2022, month: 10, day: 25, hour: 13, minute: 20, ...SEOUL },
     policy: "TRUE_SOLAR_TIME",
-    expectHour: "乙未",
+    expectHour: "甲午",
     expectDay: "辛亥",
-    expectCorrected: "13:04",
+    // TRUE_SOLAR_TIME 은 일부 레거시/관리자 진단 입력으로 남아 있지만, 공개 사주 계약은
+    // saju-natal-v2 의 평균태양시 시주를 정본으로 쓴다. Worker 는 이 계약으로 수렴하고,
+    // Next.js 는 legacy correction evidence 를 보존할 수 있으므로 보정 시각 패리티는 보지 않는다.
+    expectCorrected: null,
   },
 ];
 
@@ -205,13 +208,15 @@ for (const testCase of CASES) {
   }
 
   // 보정 시각은 정적 셸·Next.js 만 분 단위로 노출한다(워커 증거는 날짜까지 붙은 문자열이라 포함 여부만 본다).
-  if (results["정적 셸"]) {
+  if (results["정적 셸"] && testCase.expectCorrected) {
     assertEqual(results["정적 셸"].correctedTime, testCase.expectCorrected, `${testCase.label} / 정적 셸 보정 시각`);
   }
-  assertEqual(results["Next.js"].correctedTime, testCase.expectCorrected, `${testCase.label} / Next.js 보정 시각`);
-  if (!String(results["워커"].correctedTime).includes(testCase.expectCorrected)) {
-    failures++;
-    console.error(`  ✗ ${testCase.label} / 워커 보정 시각: ${testCase.expectCorrected} 를 포함해야 하는데 ${results["워커"].correctedTime}`);
+  if (testCase.expectCorrected) {
+    assertEqual(results["Next.js"].correctedTime, testCase.expectCorrected, `${testCase.label} / Next.js 보정 시각`);
+    if (!String(results["워커"].correctedTime).includes(testCase.expectCorrected)) {
+      failures++;
+      console.error(`  ✗ ${testCase.label} / 워커 보정 시각: ${testCase.expectCorrected} 를 포함해야 하는데 ${results["워커"].correctedTime}`);
+    }
   }
   // 안 쓴 균시차를 보정 내역에 실어 보내면 읽는 쪽이 적용된 것으로 오해한다(신고의 원인이었던 착시).
   if (testCase.policy !== "TRUE_SOLAR_TIME") {

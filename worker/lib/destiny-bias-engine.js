@@ -632,9 +632,9 @@ function normalizeNatalPillar(value) {
 
 function natalBirthPlace(rawPerson, location) {
   const rawBirth = rawPerson?.birth || {};
-  const longitude = Number(rawBirth.longitude ?? rawBirth.lng ?? rawPerson?.longitude ?? rawPerson?.lng);
-  const latitude = Number(rawBirth.latitude ?? rawBirth.lat ?? rawPerson?.latitude ?? rawPerson?.lat);
-  const timezone = String(rawBirth.timezone ?? rawBirth.tz ?? rawPerson?.timezone ?? rawPerson?.tz ?? "").trim();
+  const longitude = Number(rawBirth.longitude ?? rawBirth.lng ?? rawPerson?.longitude ?? rawPerson?.lng ?? location?.longitude);
+  const latitude = Number(rawBirth.latitude ?? rawBirth.lat ?? rawPerson?.latitude ?? rawPerson?.lat ?? location?.latitude);
+  const timezone = String(rawBirth.timezone ?? rawBirth.tz ?? rawPerson?.timezone ?? rawPerson?.tz ?? location?.timezone ?? "").trim();
 
   // Partial legacy labels are not a birthplace. Let the shared contract record
   // its explicit Seoul default instead of silently combining unrelated fields.
