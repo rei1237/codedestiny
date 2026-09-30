@@ -226,6 +226,7 @@ try {
   if (await page.locator('#dwGrid .dw-item').count() === 0) {
     const daewunButton = page.locator('#daewunGate button[data-unlock-key]').first();
     await daewunButton.scrollIntoViewIfNeeded();
+    await settleScroll(page);
     await daewunButton.click();
   }
   await page.waitForFunction(() => document.querySelectorAll('#dwGrid .dw-item').length > 0, undefined, {timeout:10000});
