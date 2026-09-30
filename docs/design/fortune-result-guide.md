@@ -37,6 +37,13 @@ next: 새 삽화와 React·레거시 화면 검증 후 main 해당 커밋의 CI 
 - 외부 AI로 자동 전송하거나 외부 생성 API를 호출하지 않는다. 사용자가 개인적인 내용을 읽고 삭제한 뒤 직접 전달한다.
 - 기존 결과 접근 권한과 공개 링크의 동의·공개 범위·해제 경계를 유지한다. 프롬프트는 소유자용이며 공개 공유 이미지용이 아니다.
 - 결제·이용권·월정석·단건 결제 정책과 서버 권한 판정을 바꾸지 않는다.
-- 이전 안내 버전: 단위 14개·typecheck·실제 컴포넌트 mock 288조합·레거시 4개 너비 통과, 외부 요청 0건. 새 삽화와 화면 변경의 검증은 진행 중이다.
+- 새 삽화 버전: 단위 14개·typecheck·실제 컴포넌트 mock 288조합·레거시 4개 너비가 통과했고 외부 요청은 0건이다. 기존 사주/대운 복구 브라우저 검사도 전체 통과했다.
 - 이번 캡처 위치: `C:/Users/user/.codex/visualizations/2026/09/30/01a0efff-5e39-7872-9168-5984e5319986/report-guide-premium/`.
 - 실제 구매·실기기·운영 환경은 미검증이다. main CI도 확인 전이며, 이전 검증 결과로 이번 변경의 완료를 주장하지 않는다.
+
+## Asset generation prompt
+Built-in image_gen, 2026-09-30. The existing flower pig was supplied only as an identity reference.
+
+> Create a new premium editorial watercolor illustration for the Ggulggul Fortune reading guide. Preserve Yeoni's pink flower-pig identity, lotus by the ear, rounded snout, warm brown eyes and brown hooves. Show Yeoni calmly reading an open cream book beside a porcelain teacup, lotus sprig and crescent moon. Delicate sepia ink and watercolor, dusty rose, ivory and champagne gold; organic edges and a transparent background. Square composition with breathing room, no text, watermark, UI, glossy 3D, crystal ball or cat.
+
+원본 PNG는 다운로드에, 640px WebP는 화면에 사용한다. React mock 288개 조합과 레거시 4개 너비, 접힌 상태 복사·키보드 펼침·클립보드 실패 복구, 타입 검사 및 계약 테스트 14개가 통과했다. 독립 리뷰 ship; 본문/보조문/복사 버튼 대비 12.92/5.74/6.25:1. 실제 구매·실기기는 미검증이다.

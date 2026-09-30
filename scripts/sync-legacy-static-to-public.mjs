@@ -449,6 +449,7 @@ function stripLegacyPublicBlocks(html) {
 
 /** 모듈 지정자 캐시 키를 회전시킬 파일. 루트와 public 사본에 같은 목록을 쓴다. */
 const MODULE_IMPORT_CACHE_KEY_FILES = [
+  ["js", "core", "paid-editorial-report.mjs"],
   ["js", "app.js"],
   ["js", "core", "init.js"],
   ["js", "core", "bootstrapDestinyFlower.js"],

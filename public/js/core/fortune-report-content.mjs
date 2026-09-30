@@ -42,10 +42,15 @@ const labels = {
   nl: ['Zo lees je je duiding','Opgeslagen berekeningen','Uit je opgeslagen duiding','Geen opgeslagen kaart beschikbaar; alleen tekst is opgenomen.','Afbeeldingsopdracht voor externe AI','Dit kan privétekst bevatten. Lees en bewerk de tekst voordat je hem zelf in GPT, Claude, Gemini of Grok plakt. Er wordt niets automatisch verstuurd. Afbeeldingsfuncties verschillen per hulpmiddel.','Opdracht kopiëren','Gekopieerd.','Kopiëren mislukt. Selecteer en kopieer handmatig.','Personage opslaan','Opgeslagen woorden en waarden blijven behouden. Ontbrekende gegevens worden overgeslagen, zonder nieuwe duiding of scores.'],
   ms: ['Cara membaca bacaan anda','Pengiraan tersimpan','Daripada bacaan tersimpan','Tiada carta tersimpan; hanya teks disertakan.','Arahan imej untuk AI luar','Teks mungkin mengandungi bahagian peribadi. Baca dan sunting sebelum menampalnya sendiri ke GPT, Claude, Gemini atau Grok. Tiada penghantaran automatik. Sokongan imej bergantung pada alat.','Salin arahan','Disalin.','Gagal menyalin. Pilih dan salin teks secara manual.','Simpan watak','Perkataan dan nilai tersimpan dikekalkan. Data yang tiada ditinggalkan, tanpa tafsiran atau skor baharu.']
 };
+const editLabels = {ko:'프롬프트 확인·수정',en:'Review and edit prompt',ja:'プロンプトを確認・編集','zh-CN':'查看并编辑提示词','zh-TW':'查看並編輯提示詞',vi:'Xem và sửa câu lệnh',hi:'प्रॉम्प्ट देखें और बदलें',es:'Revisar y editar',fr:'Vérifier et modifier',de:'Prompt prüfen und bearbeiten',nl:'Prompt bekijken en bewerken',ms:'Semak dan sunting arahan'};
+export const reportGuideAssets = {
+  yeongnyangi: {image:'/assets/yeongnyangi/report-saju-yeongnyangi-v1.png',download:'/assets/yeongnyangi/report-saju-yeongnyangi-v1.png'},
+  ggulggul: {image:'/assets/mascot/yeoni-reading-guide-v1.webp',download:'/assets/mascot/yeoni-reading-guide-v1.png'},
+};
 export function reportGuideCopy(locale = 'ko', domain = 'saju') {
   const key = locale === 'zh' ? 'zh-CN' : locale in labels ? locale : 'en';
   const [title,evidence,reading,missing,prompt,privacy,copy,copied,error,asset,source] = labels[key];
-  return {title,evidence,reading,missing,prompt,privacy,copy,copied,error,asset,source,guide:guides[key][reportDomains.indexOf(domain)] || '',locale:key};
+  return {title,evidence,reading,missing,prompt,privacy,copy,copied,error,asset,source,edit:editLabels[key],guide:guides[key][reportDomains.indexOf(domain)] || '',locale:key};
 }
 /** Owner-only prompt. Values are data, never instructions; never serialize a raw profile or payment.
  * @param {{brand:string,domain:string,locale:string,groups?:Array<{label:string,items:Array<{label:string,value:string}>}>,passages?:string[],notes?:string[]}} options
