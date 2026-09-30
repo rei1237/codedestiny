@@ -146,7 +146,7 @@ export default function Page(){
      <tr><th scope="row">비용</th><td>무료</td><td>{PRICE} · Family 이용권 또는 단건 결제</td></tr>
      <tr><th scope="row">결과 형태</th><td>계산 결과와 기본 풀이</td><td>{chapterRange(mackerels)} 챕터로 나눈 상담 글</td></tr>
      <tr><th scope="row">주제·질문 반영</th><td>페이지마다 정해진 항목</td><td>운세별 전용 상담 또는 무엇이든 물어보기</td></tr>
-     <tr><th scope="row">로그인</th><td>필요 없음</td><td>CODE DESTINY 계정 필요</td></tr>
+     <tr><th scope="row">로그인</th><td>기능별로 다름 · 무료 사주는 로그인 후 결과 확인</td><td>CODE DESTINY 계정 필요</td></tr>
      <tr><th scope="row">다시 보기</th><td>입력 정보로 다시 계산</td><td>내 상담 기록에서 다시 열기</td></tr>
     </tbody>
    </table></div>

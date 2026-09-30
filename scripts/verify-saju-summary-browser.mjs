@@ -17,7 +17,7 @@ const server = createServer(async (req, res) => {
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
   try {
     const data = await readFile(file).catch(() => readFile(resolve(root, 'public', '.' + pathname)));
-    res.setHeader('Content-Type', ({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp'})[extname(file)] || 'application/octet-stream');
+    res.setHeader('Content-Type', ({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp'})[extname(file)] || 'application/octet-stream');
     res.end(data);
   } catch { res.writeHead(404); res.end(); }
 });
@@ -92,6 +92,7 @@ try {
   await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed', 'true'));
   const page = await context.newPage();
+  page.setDefaultTimeout(15000);
   activePage = page;
   activeCase = `${shell.label}-${alreadyUnlocked ? 'unlocked' : 'restored'}`;
   page.on('dialog', dialog => dialog.dismiss());
@@ -211,12 +212,28 @@ try {
   }
   // Same local mock boundary: verify the actual paid daeun renderer and recovery button.
   assert.equal(await page.locator('#dwGrid .dw-item').count(), 0, 'locked daeun must not contain paid rows');
-  await page.evaluate(() => {
-    window.unlockedFeatureMap.section_daewun = true;
-    window.dispatchEvent(new CustomEvent('cd:unlocks-changed', {
-      detail: { source: 'summary-browser-local-unlock', unlockedFeatureMap: window.unlockedFeatureMap }
-    }));
+  const daeunGrant = await page.evaluate(() => {
+    const profileId = String(window.__cdCurrentDestinyProfile?.profileId || window.__cdActiveBirthProfile?.profileId || 'profile-summary-race');
+    window.__cdCurrentDestinyProfile = {...window.__cdCurrentDestinyProfile, profileId};
+    window.__cdActiveBirthProfile = {...window.__cdActiveBirthProfile, profileId};
+    // Seed the same verified grant path as the restored-summary fixture above.
+    // A transient global-map write can be replaced by the AccessStore refresh.
+    const finalized = window._cdFinalizeUnlockState('section_daewun', {
+      data: {
+        featureKey: 'section_daewun',
+        profileId,
+        requestId: 'daeun-browser-mock-payment',
+        accessGranted: true,
+        accessGrant: {
+          featureKey: 'section_daewun',
+          profileId,
+          evidenceId: 'daeun-browser-mock-payment'
+        }
+      }
+    });
+    return {finalized, unlocked: window.isTileKeyUnlocked('section_daewun')};
   });
+  assert.deepEqual(daeunGrant, {finalized:true, unlocked:true}, 'mock daeun grant must be confirmed for the active profile');
   await page.waitForFunction(() => {
     const rows = document.querySelectorAll('#dwGrid .dw-item').length;
     const button = document.querySelector('#daewunGate button[data-unlock-key]');

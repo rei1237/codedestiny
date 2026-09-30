@@ -1,0 +1,1890 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-09-30T03:17:56.601Z",
+  "localBaseSha": "dd8788d3f3c50a8251e2e3475af6e9f335cfc179",
+  "site": "https://code-destiny.com",
+  "method": "Read-only public HTTPS GET. HTML was parsed as received; no JavaScript rendering or authenticated search console access.",
+  "limitations": [
+    "A Googlebot User-Agent from this machine is not a verified Googlebot request.",
+    "HTTP 200 and indexable HTML do not prove Google or Naver index inclusion, impressions, rankings, or Google-selected canonical.",
+    "Client JavaScript navigation is not executed in this audit.",
+    "Deployment SHA only describes the observed production response at the recorded time.",
+    "visibleTextLength is extracted from raw HTML after removing script/style/svg; CSS visibility, accessibility-tree text, and browser layout are not evaluated."
+  ],
+  "results": [
+    {
+      "path": "/",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:02.666Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 113400,
+      "title": "천원운세부터 보는 사주·타로 | 영냥이 — Code Destiny",
+      "h1": [
+        "사주보는 고양이, 영냥이에게 물어봐."
+      ],
+      "canonical": [
+        "https://code-destiny.com/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "천원운세부터 시작하는 영냥이. 사주·타로·자미두수·숙요점·베다점·점성술 고등어 상담을 1,000원 단건 결제로 이용하세요. 상담 예시와 상품별 가격을 먼저 확인하세요.",
+      "metaRefresh": [],
+      "visibleTextLength": 4947,
+      "internalAnchorCount": 119,
+      "keyInternalLinks": [
+        {
+          "href": "/yeongnyangi/room/",
+          "text": "영냥이의 방"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/#example",
+          "text": "결제 전 상담 예시 읽기 →"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?flow=relationship",
+          "text": "궁합 보기"
+        },
+        {
+          "href": "/yeongnyangi/room/#daily",
+          "text": "무료 운세"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 상담 기록"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "다른 운세 둘러보기"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세에서 점술별로 둘러보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/",
+          "text": "영냥이에게 내 질문으로 상담하기"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세에서 깊이 탐색하기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?mode=spirit",
+          "text": "질문 순간의 상담 영냥 신점 질문이 떠오른 순간의 기운과 인연의 흐름 질문 남기기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel",
+          "text": "천원 으로 내 흐름 물어보기 →"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel",
+          "text": "1,000 원 상담 알아보기 →"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/",
+          "text": "천원운세 가격과 상담 안내"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/#example",
+          "text": "결제 전 상담 예시 읽기"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세로 이동"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=tarot&amp;topic=love",
+          "text": "연애운 마음이 닿는 순간 이야기 살펴보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;topic=money",
+          "text": "재물운 나의 재물 흐름 이야기 살펴보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=ziwei&amp;topic=year",
+          "text": "올해 운세 올해, 남은 이야기 이야기 살펴보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=sukuyo&amp;topic=relationship",
+          "text": "인연 이야기 낯익은 인연의 비밀 이야기 살펴보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 무료 운세"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 결과"
+        },
+        {
+          "href": "/",
+          "text": "영냥이 홈"
+        },
+        {
+          "href": "/yeongnyangi/fortune/",
+          "text": "운세 보기"
+        },
+        {
+          "href": "/yeongnyangi/room/",
+          "text": "영냥이의 방"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꽃돼지 운세"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세 바로가기"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주·만세력 알아보기"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/",
+          "text": "천원 상담의 가격과 결과 예시"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꽃돼지 연이와 꿀꿀 운세 둘러보기"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "구매한 상담 다시 열기"
+        },
+        {
+          "href": "/fortune/date/",
+          "text": "날짜별 띠 운세"
+        },
+        {
+          "href": "/saju/monthly/2026-09/",
+          "text": "2026년 9월 일간별 운세"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주풀이 보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세 확인하기"
+        },
+        {
+          "href": "/fortune/today/",
+          "text": "오늘의 별자리·띠 운세 24종"
+        },
+        {
+          "href": "/fortune/tomorrow/",
+          "text": "내일의 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/weekly/",
+          "text": "이번 주 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/monthly/",
+          "text": "이번 달 별자리·띠 운세"
+        },
+        {
+          "href": "/saju/basic/",
+          "text": "사주 만세력 기본 해석"
+        },
+        {
+          "href": "/saju/sibyl/",
+          "text": "시빌라 시스템"
+        },
+        {
+          "href": "/fortune/",
+          "text": "별자리·띠 운세 허브"
+        },
+        {
+          "href": "/saju/destiny-meeting-place/",
+          "text": "사주로 보는 인연의 장소"
+        },
+        {
+          "href": "/saju-guardian/",
+          "text": "사주 가디언 수호 인장"
+        },
+        {
+          "href": "/tarot/",
+          "text": "명리학 타로 시작하기"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "명리학 타로"
+        },
+        {
+          "href": "/tarot/love/",
+          "text": "우리는 무슨 사이"
+        },
+        {
+          "href": "/tarot/healing/",
+          "text": "따뜻한 태양 회복 타로"
+        },
+        {
+          "href": "/tarot/self-esteem/",
+          "text": "자존감 레벨업 타로"
+        },
+        {
+          "href": "/tarot/reunion/",
+          "text": "재회운 타로"
+        },
+        {
+          "href": "/tarot/prompt-maker/",
+          "text": "타로 프롬프트 라이브러리"
+        },
+        {
+          "href": "/tarot/year/",
+          "text": "십이지신 천운 타로"
+        },
+        {
+          "href": "/tarot/mindscan/",
+          "text": "속마음 알아보기"
+        },
+        {
+          "href": "/tarot/crystal-soul/",
+          "text": "원석 소울 타로"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "무료 숙요점 27수 궁합 보기"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "운명 찻집 상담"
+        },
+        {
+          "href": "/fortune/prompt-hub/",
+          "text": "운세 프롬프트 허브"
+        },
+        {
+          "href": "/ggulggul/#premiumVvipCollection",
+          "text": "이용권·월정석·단건 결제 안내"
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/ggulggul/",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:03.312Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/ggulggul/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 659949,
+      "title": "꿀꿀 운세 | 꽃돼지 연이와 보는 무료 사주·타로",
+      "h1": [
+        "꿀꿀 운세, 꽃돼지 연이와 지금의 고민을 차근차근"
+      ],
+      "canonical": [
+        "https://code-destiny.com/ggulggul/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        }
+      ],
+      "description": "꿀꿀 운세는 꽃돼지 연이와 함께 사주·자미두수·숙요점·베다점·점성술·타로의 흐름을 살펴보는 운세 서비스입니다.",
+      "metaRefresh": [],
+      "visibleTextLength": 28445,
+      "internalAnchorCount": 197,
+      "keyInternalLinks": [
+        {
+          "href": "/",
+          "text": "KR"
+        },
+        {
+          "href": "/",
+          "text": "月花 꿀꿀 운세 CODE DESTINY"
+        },
+        {
+          "href": "/today/#daily-tarot",
+          "text": "연이와 무료 세 장 펼치기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?product=saju_mackerel",
+          "text": "영냥이 사주 살펴보기 1,000원 ↗"
+        },
+        {
+          "href": "/today/",
+          "text": "✦ 오늘의 운세 전체 보기"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "운명의 찻집 추천 상담 열기"
+        },
+        {
+          "href": "/fortune-chat/",
+          "text": "FORTUNE CHAT 대화형 운명 상담 한 가지 고민에서 시작해, 따뜻한 연이와 직설적인 네오가 지금의 흐름을 정리해 드려요. 회원가입 무료 1회 이후 1회 3,000원 상담 시"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "추천 운명의 찻집 사주·타로·궁합을 다정하게 풀어주는 감성 상담 ✦ 사주 ☼ 타로 ♡ 궁합 ◈ AI 5,000원~ 이용권 사용 가능 상담 시작 →"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "대신 운명의 찻집 →"
+        },
+        {
+          "href": "/sukuyo-compatibility-ai/",
+          "text": "숙요점 궁합 전문가 상담 27숙 관계 상담"
+        },
+        {
+          "href": "/saju/",
+          "text": "사주"
+        },
+        {
+          "href": "/tarot/",
+          "text": "타로"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "숙요점"
+        },
+        {
+          "href": "/saju/guide/",
+          "text": "사주 입문 가이드"
+        },
+        {
+          "href": "/tarot/guide/",
+          "text": "타로 가이드"
+        },
+        {
+          "href": "/fortune/",
+          "text": "띠·별자리 운세"
+        },
+        {
+          "href": "/saju/monthly/2026-09/",
+          "text": "일간별 월간 운세"
+        },
+        {
+          "href": "/fortune/date/",
+          "text": "날짜별 띠 운세"
+        },
+        {
+          "href": "/saju/basic/#destinyCardForm",
+          "text": "사주"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "타로"
+        },
+        {
+          "href": "/saju/basic/#destinyCardForm",
+          "text": "✦ 운명 카드 만들기"
+        },
+        {
+          "href": "/",
+          "text": "홈"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "🔮 타로 카드 리딩"
+        },
+        {
+          "href": "/fortune/prompt-hub/",
+          "text": "✍ 종합 운세 프롬프트 무료 · 11가지 도구"
+        },
+        {
+          "href": "/fortune-teller-fish.html",
+          "text": "🐟 포춘텔러 물고기 오늘의 한 마디"
+        },
+        {
+          "href": "/fortune/prompt-hub/",
+          "text": "무료체험 CODE DESTINY MASTER 종합 운세 프롬프트 사주·타로·점성술·자미두수 등 16가지 도구로 무료 상담 프롬프트를 바로 만들어 보세요. 사주·타로·점성술 등 16"
+        },
+        {
+          "href": "/tarot/love/",
+          "text": "🎭 NEW 1회 3,000원 💕 우리는 무슨 사이? 말과 행동 사이의 온도"
+        },
+        {
+          "href": "/tarot/healing/",
+          "text": "🎭 HEALING 무료 ☀ 따뜻한 태양 회복 타로 마음이 지친 자리와 오늘의 빛"
+        },
+        {
+          "href": "/tarot/self-esteem/",
+          "text": "🎭 SELF UP 무료 ✨ 자기 기준 회복 타로 타인의 시선에서 내 마음의 중심으로"
+        },
+        {
+          "href": "/tarot/reunion/",
+          "text": "🎭 관계 회복 1회 3,000원 🌊 재회운 등대 타로 남은 온기와 안전한 거리"
+        },
+        {
+          "href": "/tarot/prompt-maker/",
+          "text": "🎭 NEW 카드 수에 따라 3,000~5,000원 💘 타로 프롬프트 라이브러리 스프레드 선택 · 카드 열기 · 리딩 문장 완성"
+        },
+        {
+          "href": "/tarot/year/",
+          "text": "🎭 NEW 1회 5,000원 🐉 십이지신 천운 타로 열두 달의 수호 월운"
+        },
+        {
+          "href": "/tarot/numerology/",
+          "text": "NUMEROLOGY 1회 3,000원 🔢 수비학 타로 생명수·오늘수 5카드 리딩"
+        },
+        {
+          "href": "/tarot-ijik.html",
+          "text": "CAREER 1회 3,000원 💼 이직 운명의 카드 남길 기준과 옮길 방향 7카드"
+        },
+        {
+          "href": "/tarot/mindscan/",
+          "text": "NEW 1회 3,000원 🔮 말과 행동 사이 마음의 온도 10카드"
+        },
+        {
+          "href": "/tarot/crystal-soul/",
+          "text": "NEW 1회 3,000원 💎 원석 소울 타로 크리스탈 에너지 리딩"
+        },
+        {
+          "href": "/sukuyo-compatibility-ai/",
+          "text": "* SUKUYO 전문가 상담 · 30,000원 숙요점 궁합 전문가 상담 두 사람의 27숙과 관계 흐름을 따라 끌림, 상처, 현실적 선택을 따뜻하게 읽습니다. 두 사람의 본명숙과 관"
+        },
+        {
+          "href": "/saju/love-simulation/",
+          "text": "💕 💕 LOVE CODE 사주 연애 시뮬레이션"
+        },
+        {
+          "href": "/saju/animal-destiny/",
+          "text": "獸 獸 십이운성 동물점 운명 동물 도감"
+        },
+        {
+          "href": "/saju/destiny-meeting-place/",
+          "text": "緣 緣 인연의 장소 장소와 타이밍"
+        },
+        {
+          "href": "/saju/destiny-bias/",
+          "text": "✨ FANDESTINY 무료 ✨ 최애운명 포토카드 무드 리딩"
+        },
+        {
+          "href": "/saju-fpti/",
+          "text": "🔮 FPTI 무료 🔮 사주 FPTI 테스트 오행·십성 4축 성향 분석"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세 전체보기 리포트 →"
+        },
+        {
+          "href": "/saju/sibyl/",
+          "text": "일부 무료 심층 리포트 5,000원 FREE ANALYSIS SIBYL-v3.14 ⚡ 시빌라 시스템 사주 팔자 기반 진로 적성 × 운명 위험 계수 분석 🎯 데스티니 휴 색채 진단"
+        },
+        {
+          "href": "/yeongnyangi/?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=hero",
+          "text": "영냥이 만나러 가기"
+        },
+        {
+          "href": "/yeongnyangi/room/?utm_source=code_destiny&utm_medium=referral&utm_campaign=yeongnyangi_home&utm_content=free#daily",
+          "text": "🐟 무료 운세 먼저 보기"
+        },
+        {
+          "href": "/saju/basic/",
+          "text": "사주"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "타로"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세"
+        },
+        {
+          "href": "/saju/guide/",
+          "text": "이용 가이드"
+        },
+        {
+          "href": "/saju/guide/",
+          "text": "사주 기본 가이드"
+        },
+        {
+          "href": "/saju/ten-gods/",
+          "text": "십성 해석 가이드"
+        },
+        {
+          "href": "/saju/five-elements/",
+          "text": "오행과 균형"
+        },
+        {
+          "href": "/sukuyo/guide/",
+          "text": "숙요 27숙 궁합"
+        },
+        {
+          "href": "/tarot/guide/",
+          "text": "타로 리딩 입문"
+        }
+      ],
+      "inlineRedirectEvidence": [
+        "              window.location.href = href;",
+        "          window.location.assign('/vedic-ai');",
+        "    window.location.assign(target);",
+        "    window.location.assign(target);"
+      ],
+      "externalScriptSources": []
+    },
+    {
+      "path": "/today/",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:03.859Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/today/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 130907,
+      "title": "오늘의 운세 | 생년월일 운세로 보는 오늘 재물운·연애운",
+      "h1": [
+        "연이와 오늘을 펼쳐요"
+      ],
+      "canonical": [
+        "https://code-destiny.com/today/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "오늘의 운세를 생년월일 기준으로 확인해 보세요. 그날의 일진이 내 일간과 만나 어떤 십성을 끌어올리는지 보고, 오늘 힘을 쓸 곳과 하루 미뤄 둘 일을 나눠 드립니다.",
+      "metaRefresh": [],
+      "visibleTextLength": 5883,
+      "internalAnchorCount": 35,
+      "keyInternalLinks": [
+        {
+          "href": "/fortune/weekly/aries/",
+          "text": "양자리 주간 해석 자세히 보기"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/",
+          "text": "사주보는 고양이 영냥이의 천원사주 안내"
+        },
+        {
+          "href": "/fortune/today/",
+          "text": "오늘 운세"
+        },
+        {
+          "href": "/fortune/tomorrow/",
+          "text": "내일 운세"
+        },
+        {
+          "href": "/fortune/weekly/",
+          "text": "이번 주 운세"
+        },
+        {
+          "href": "/fortune/monthly/",
+          "text": "이번 달 운세"
+        },
+        {
+          "href": "/saju/monthly/2026-09/",
+          "text": "내 일간으로 이번 달 흐름 보기 태어난 날의 천간인 일간을 기준으로 2026년 9월 정유 의 재물운·연애운·직업운·건강운을 확인합니다."
+        },
+        {
+          "href": "/fortune/date/",
+          "text": "날짜별 띠 운세 archive 특정 날짜의 원숭이띠·용띠 등 12띠 운세와 일진 근거를 최근 30일 범위에서 다시 확인합니다."
+        },
+        {
+          "href": "/fortune/today/aries/",
+          "text": "♈ 양자리"
+        },
+        {
+          "href": "/fortune/today/taurus/",
+          "text": "♉ 황소자리"
+        },
+        {
+          "href": "/fortune/today/gemini/",
+          "text": "♊ 쌍둥이자리"
+        },
+        {
+          "href": "/fortune/today/cancer/",
+          "text": "♋ 게자리"
+        },
+        {
+          "href": "/fortune/today/leo/",
+          "text": "♌ 사자자리"
+        },
+        {
+          "href": "/fortune/today/virgo/",
+          "text": "♍ 처녀자리"
+        },
+        {
+          "href": "/fortune/today/libra/",
+          "text": "♎ 천칭자리"
+        },
+        {
+          "href": "/fortune/today/scorpio/",
+          "text": "♏ 전갈자리"
+        },
+        {
+          "href": "/fortune/today/sagittarius/",
+          "text": "♐ 궁수자리"
+        },
+        {
+          "href": "/fortune/today/capricorn/",
+          "text": "♑ 염소자리"
+        },
+        {
+          "href": "/fortune/today/aquarius/",
+          "text": "♒ 물병자리"
+        },
+        {
+          "href": "/fortune/today/pisces/",
+          "text": "♓ 물고기자리"
+        },
+        {
+          "href": "/fortune/today/rat/",
+          "text": "🐭 쥐띠"
+        },
+        {
+          "href": "/fortune/today/ox/",
+          "text": "🐮 소띠"
+        },
+        {
+          "href": "/fortune/today/tiger/",
+          "text": "🐯 범띠"
+        },
+        {
+          "href": "/fortune/today/rabbit/",
+          "text": "🐰 토끼띠"
+        },
+        {
+          "href": "/fortune/today/dragon/",
+          "text": "🐲 용띠"
+        },
+        {
+          "href": "/fortune/today/snake/",
+          "text": "🐍 뱀띠"
+        },
+        {
+          "href": "/fortune/today/horse/",
+          "text": "🐴 말띠"
+        },
+        {
+          "href": "/fortune/today/goat/",
+          "text": "🐑 양띠"
+        },
+        {
+          "href": "/fortune/today/monkey/",
+          "text": "🐵 원숭이띠"
+        },
+        {
+          "href": "/fortune/today/rooster/",
+          "text": "🐔 닭띠"
+        },
+        {
+          "href": "/fortune/today/dog/",
+          "text": "🐶 개띠"
+        },
+        {
+          "href": "/fortune/today/pig/",
+          "text": "🐷 돼지띠"
+        },
+        {
+          "href": "/sukuyo/calendar/",
+          "text": "🌙 숙요 달력 이번 달 27수의 흐름을 한눈에 봅니다."
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/saju/",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:04.147Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/saju/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 162701,
+      "title": "무료 사주 풀이 | 사주팔자 오행·십성·대운 보는 곳",
+      "h1": [
+        "무료 사주 풀이 나의 기질과 지금의 흐름을 읽다"
+      ],
+      "canonical": [
+        "https://code-destiny.com/saju/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "무료 사주 풀이를 찾는다면 생년월일과 출생 시간을 넣어 사주팔자·오행·십성·대운을 확인해 보세요. 성향과 재물운·연애운·직업운의 흐름까지 짚어 드립니다.",
+      "metaRefresh": [],
+      "visibleTextLength": 7137,
+      "internalAnchorCount": 116,
+      "keyInternalLinks": [
+        {
+          "href": "/",
+          "text": "꿀꿀 운세 홈"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 상담 기록"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/#saju",
+          "text": "사주보는 고양이 영냥이의 천원 사주 상담 안내"
+        },
+        {
+          "href": "/saju/guide/",
+          "text": "사주 명식과 오행 읽는 법"
+        },
+        {
+          "href": "/saju/monthly/2026-09/",
+          "text": "2026년 9월 일간별 운세"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주풀이 보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세 확인하기"
+        },
+        {
+          "href": "/fortune/today/",
+          "text": "오늘의 별자리·띠 운세 24종"
+        },
+        {
+          "href": "/fortune/tomorrow/",
+          "text": "내일의 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/weekly/",
+          "text": "이번 주 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/monthly/",
+          "text": "이번 달 별자리·띠 운세"
+        },
+        {
+          "href": "/saju/basic/",
+          "text": "사주 만세력 기본 해석"
+        },
+        {
+          "href": "/saju/sibyl/",
+          "text": "시빌라 시스템"
+        },
+        {
+          "href": "/fortune/",
+          "text": "별자리·띠 운세 허브"
+        },
+        {
+          "href": "/saju/destiny-meeting-place/",
+          "text": "사주로 보는 인연의 장소"
+        },
+        {
+          "href": "/saju-guardian/",
+          "text": "사주 가디언 수호 인장"
+        },
+        {
+          "href": "/tarot/",
+          "text": "명리학 타로 시작하기"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "명리학 타로"
+        },
+        {
+          "href": "/tarot/love/",
+          "text": "우리는 무슨 사이"
+        },
+        {
+          "href": "/tarot/healing/",
+          "text": "따뜻한 태양 회복 타로"
+        },
+        {
+          "href": "/tarot/self-esteem/",
+          "text": "자존감 레벨업 타로"
+        },
+        {
+          "href": "/tarot/reunion/",
+          "text": "재회운 타로"
+        },
+        {
+          "href": "/tarot/prompt-maker/",
+          "text": "타로 프롬프트 라이브러리"
+        },
+        {
+          "href": "/tarot/year/",
+          "text": "십이지신 천운 타로"
+        },
+        {
+          "href": "/tarot/mindscan/",
+          "text": "속마음 알아보기"
+        },
+        {
+          "href": "/tarot/crystal-soul/",
+          "text": "원석 소울 타로"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "무료 숙요점 27수 궁합 보기"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "운명 찻집 상담"
+        },
+        {
+          "href": "/fortune/prompt-hub/",
+          "text": "운세 프롬프트 허브"
+        },
+        {
+          "href": "/",
+          "text": "홈"
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/sukuyo/",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:04.404Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/sukuyo/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 159720,
+      "title": "숙요점 사이트 | 무료 27수 본명숙·숙요 궁합 보기",
+      "h1": [
+        "숙요점 사이트 — 생년월일로 내 본명숙 찾기"
+      ],
+      "canonical": [
+        "https://code-destiny.com/sukuyo/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "무료 숙요점으로 본명숙과 두 사람의 관계 유형을 확인하세요. Code Destiny의 달 황경 계산 기준, 출생시간 미상일 때의 한계, 결과가 다른 이유를 안내합니다.",
+      "metaRefresh": [],
+      "visibleTextLength": 6657,
+      "internalAnchorCount": 116,
+      "keyInternalLinks": [
+        {
+          "href": "/",
+          "text": "꿀꿀 운세 홈"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "숙요점 사이트 — 생년월일로 내 본명숙 찾기"
+        },
+        {
+          "href": "/sukuyo/guide/",
+          "text": "계산·해석 기준"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 상담 기록"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/#sukuyo",
+          "text": "사주보는 고양이 영냥이의 천원 숙요점 상담 안내"
+        },
+        {
+          "href": "/sukuyo/compatibility/",
+          "text": "숙요 궁합 계산과 관계 유형"
+        },
+        {
+          "href": "/sukuyo/guide/",
+          "text": "27숙"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주풀이 보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세 확인하기"
+        },
+        {
+          "href": "/fortune/today/",
+          "text": "오늘의 별자리·띠 운세 24종"
+        },
+        {
+          "href": "/fortune/tomorrow/",
+          "text": "내일의 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/weekly/",
+          "text": "이번 주 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/monthly/",
+          "text": "이번 달 별자리·띠 운세"
+        },
+        {
+          "href": "/saju/basic/",
+          "text": "사주 만세력 기본 해석"
+        },
+        {
+          "href": "/saju/sibyl/",
+          "text": "시빌라 시스템"
+        },
+        {
+          "href": "/fortune/",
+          "text": "별자리·띠 운세 허브"
+        },
+        {
+          "href": "/saju/destiny-meeting-place/",
+          "text": "사주로 보는 인연의 장소"
+        },
+        {
+          "href": "/saju-guardian/",
+          "text": "사주 가디언 수호 인장"
+        },
+        {
+          "href": "/tarot/",
+          "text": "명리학 타로 시작하기"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "명리학 타로"
+        },
+        {
+          "href": "/tarot/love/",
+          "text": "우리는 무슨 사이"
+        },
+        {
+          "href": "/tarot/healing/",
+          "text": "따뜻한 태양 회복 타로"
+        },
+        {
+          "href": "/tarot/self-esteem/",
+          "text": "자존감 레벨업 타로"
+        },
+        {
+          "href": "/tarot/reunion/",
+          "text": "재회운 타로"
+        },
+        {
+          "href": "/tarot/prompt-maker/",
+          "text": "타로 프롬프트 라이브러리"
+        },
+        {
+          "href": "/tarot/year/",
+          "text": "십이지신 천운 타로"
+        },
+        {
+          "href": "/tarot/mindscan/",
+          "text": "속마음 알아보기"
+        },
+        {
+          "href": "/tarot/crystal-soul/",
+          "text": "원석 소울 타로"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "무료 숙요점 27수 궁합 보기"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "운명 찻집 상담"
+        },
+        {
+          "href": "/fortune/prompt-hub/",
+          "text": "운세 프롬프트 허브"
+        },
+        {
+          "href": "/",
+          "text": "홈"
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/yeongnyangi/1000-won-fortune/",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:04.736Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/yeongnyangi/1000-won-fortune/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 122969,
+      "title": "천원 운세·천원사주 | 1,000원 상담 영냥이",
+      "h1": [
+        "천원 운세·천원사주, 영냥이 고등어 상담 1,000원"
+      ],
+      "canonical": [
+        "https://code-destiny.com/yeongnyangi/1000-won-fortune/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "영냥이 천원운세는 사주·타로 등 여섯 체계의 고등어 상담을 1,000원에 이용하는 서비스입니다. 상담 예시와 상품별 가격, 이용 방법을 확인하세요.",
+      "metaRefresh": [],
+      "visibleTextLength": 7156,
+      "internalAnchorCount": 42,
+      "keyInternalLinks": [
+        {
+          "href": "/yeongnyangi/?lang=ko",
+          "text": "영냥이의 방"
+        },
+        {
+          "href": "/yeongnyangi/library/?lang=ko",
+          "text": "내 상담"
+        },
+        {
+          "href": "/",
+          "text": "꿀꿀 운세"
+        },
+        {
+          "href": "/yeongnyangi/",
+          "text": "사주보는 고양이 영냥이"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel&amp;consultationKind=ask",
+          "text": "1,000원 사주에 내 질문 남기기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel&amp;consultationKind=ask",
+          "text": "내 질문으로 1,000원 상담 준비하기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel",
+          "text": "천원 으로 내 흐름 물어보기 →"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel",
+          "text": "천원 사주 상담 알아보기"
+        },
+        {
+          "href": "/saju/",
+          "text": "사주 풀이 먼저 보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=ziwei&amp;fish=mackerel",
+          "text": "천원 자미두수 상담 알아보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=sukuyo&amp;fish=mackerel",
+          "text": "천원 숙요점 상담 알아보기"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "본명숙 먼저 보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=vedic&amp;fish=mackerel",
+          "text": "천원 베다점 상담 알아보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=astrology&amp;fish=mackerel",
+          "text": "천원 점성술 상담 알아보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=tarot&amp;fish=mackerel",
+          "text": "천원 타로 상담 알아보기"
+        },
+        {
+          "href": "/tarot/",
+          "text": "타로 카드 먼저 뽑아보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세"
+        },
+        {
+          "href": "/saju/",
+          "text": "사주 풀이"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "숙요점 본명숙"
+        },
+        {
+          "href": "/tarot/",
+          "text": "타로"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 상담"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel&amp;consultationKind=ask",
+          "text": "내 질문으로 1,000원 상담 준비하기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=tarot&amp;fish=mackerel",
+          "text": "천원 타로 상담 알아보기"
+        },
+        {
+          "href": "/yeongnyangi/",
+          "text": "영냥이의 방 둘러보기"
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/robots.txt",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:05.046Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/robots.txt",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/plain; charset=utf-8",
+        "cache-control": "public, max-age=86400",
+        "etag": "W/\"d469e135f02142fefed3dbe1b1ed4861\""
+      },
+      "responseBytes": 5771,
+      "wildcardGroup": "*\nAllow: /\nAllow: /api/og\nDisallow: /api/\nDisallow: /api-hello-test/\nDisallow: /admin/\nDisallow: /account/\nDisallow: /staging/\nDisallow: /preview/\nDisallow: /*-debug/\nDisallow: /auth/\nDisallow: /debug/\nDisallow: /test/\nDisallow: /profile/\nDisallow: /payment/\nDisallow: /payments/\nDisallow: /checkout/\nDisallow: /success/\nDisallow: /fail/\nDisallow: /result/\nDisallow: /results/\nDisallow: /report/progress/\nDisallow: /my/\nDisallow: /me/\nDisallow: /mypage/private/\nDisallow: /*?session=\nDisallow: /*?token=\nDisallow: /*?auth=",
+      "sitemaps": [
+        "https://code-destiny.com/sitemap-ko.xml",
+        "https://code-destiny.com/sitemap-ja.xml",
+        "https://code-destiny.com/sitemap-en.xml",
+        "https://code-destiny.com/sitemap-zh.xml",
+        "https://code-destiny.com/sitemap-zh-tw.xml"
+      ],
+      "googlebotSpecificGroup": false
+    },
+    {
+      "path": "/sitemap.xml",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:05.235Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/sitemap.xml",
+      "redirected": false,
+      "headers": {
+        "content-type": "application/xml",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "etag": "W/\"616e82d413d640d9258167914b2e17ee\""
+      },
+      "responseBytes": 586663,
+      "kind": "urlset",
+      "locationCount": 1300,
+      "priorityPages": {
+        "/": true,
+        "/ggulggul/": true,
+        "/today/": true,
+        "/saju/": true,
+        "/sukuyo/": true,
+        "/yeongnyangi/1000-won-fortune/": true
+      },
+      "childSitemaps": []
+    },
+    {
+      "path": "/version.json",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:05.449Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/version.json",
+      "redirected": false,
+      "headers": {
+        "content-type": "application/json",
+        "cache-control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "etag": "W/\"31941a2e02f7ce5c17938431f0a3d91e\""
+      },
+      "responseBytes": 448,
+      "version": {
+        "ok": true,
+        "service": "code-destiny",
+        "appVersion": "0.1.0",
+        "gitSha": "d8b2fa284798a592d60f59b297b1ad5ac98b4d0e",
+        "buildTime": "2026-09-29T15:33:01.610Z",
+        "environment": "production",
+        "source": "pages",
+        "commit": "d8b2fa284798a592d60f59b297b1ad5ac98b4d0e",
+        "commitShort": "d8b2fa284798",
+        "branch": "main",
+        "builtAt": "2026-09-29T15:33:01.610Z",
+        "deploymentMode": "manual-pages-only",
+        "buildSource": "github-actions"
+      }
+    },
+    {
+      "path": "/api/version",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:05.626Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/api/version",
+      "redirected": false,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store, no-cache, must-revalidate"
+      },
+      "responseBytes": 309,
+      "version": {
+        "ok": true,
+        "appVersion": "d8b2fa284798",
+        "gitSha": "d8b2fa284798a592d60f59b297b1ad5ac98b4d0e",
+        "buildTime": null,
+        "environment": "production",
+        "source": "worker-native",
+        "commit": "d8b2fa284798a592d60f59b297b1ad5ac98b4d0e",
+        "commitShort": "d8b2fa284798",
+        "branch": "main",
+        "builtAt": null,
+        "deploymentMode": "manual-pages-only"
+      }
+    },
+    {
+      "path": "/",
+      "userAgent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "fetchedAt": "2026-09-30T03:17:06.781Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 113400,
+      "title": "천원운세부터 보는 사주·타로 | 영냥이 — Code Destiny",
+      "h1": [
+        "사주보는 고양이, 영냥이에게 물어봐."
+      ],
+      "canonical": [
+        "https://code-destiny.com/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "천원운세부터 시작하는 영냥이. 사주·타로·자미두수·숙요점·베다점·점성술 고등어 상담을 1,000원 단건 결제로 이용하세요. 상담 예시와 상품별 가격을 먼저 확인하세요.",
+      "metaRefresh": [],
+      "visibleTextLength": 4947,
+      "internalAnchorCount": 119,
+      "keyInternalLinks": [
+        {
+          "href": "/yeongnyangi/room/",
+          "text": "영냥이의 방"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/#example",
+          "text": "결제 전 상담 예시 읽기 →"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?flow=relationship",
+          "text": "궁합 보기"
+        },
+        {
+          "href": "/yeongnyangi/room/#daily",
+          "text": "무료 운세"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 상담 기록"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "다른 운세 둘러보기"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세에서 점술별로 둘러보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/",
+          "text": "영냥이에게 내 질문으로 상담하기"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세에서 깊이 탐색하기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?mode=spirit",
+          "text": "질문 순간의 상담 영냥 신점 질문이 떠오른 순간의 기운과 인연의 흐름 질문 남기기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel",
+          "text": "천원 으로 내 흐름 물어보기 →"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;fish=mackerel",
+          "text": "1,000 원 상담 알아보기 →"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/",
+          "text": "천원운세 가격과 상담 안내"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/#example",
+          "text": "결제 전 상담 예시 읽기"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세로 이동"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=tarot&amp;topic=love",
+          "text": "연애운 마음이 닿는 순간 이야기 살펴보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=saju&amp;topic=money",
+          "text": "재물운 나의 재물 흐름 이야기 살펴보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=ziwei&amp;topic=year",
+          "text": "올해 운세 올해, 남은 이야기 이야기 살펴보기"
+        },
+        {
+          "href": "/yeongnyangi/fortune/?domain=sukuyo&amp;topic=relationship",
+          "text": "인연 이야기 낯익은 인연의 비밀 이야기 살펴보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 무료 운세"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "내 결과"
+        },
+        {
+          "href": "/",
+          "text": "영냥이 홈"
+        },
+        {
+          "href": "/yeongnyangi/fortune/",
+          "text": "운세 보기"
+        },
+        {
+          "href": "/yeongnyangi/room/",
+          "text": "영냥이의 방"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꽃돼지 운세"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꿀꿀 운세 바로가기"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주·만세력 알아보기"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/",
+          "text": "천원 상담의 가격과 결과 예시"
+        },
+        {
+          "href": "/ggulggul/",
+          "text": "꽃돼지 연이와 꿀꿀 운세 둘러보기"
+        },
+        {
+          "href": "/yeongnyangi/library/",
+          "text": "구매한 상담 다시 열기"
+        },
+        {
+          "href": "/fortune/date/",
+          "text": "날짜별 띠 운세"
+        },
+        {
+          "href": "/saju/monthly/2026-09/",
+          "text": "2026년 9월 일간별 운세"
+        },
+        {
+          "href": "/saju/",
+          "text": "무료 사주풀이 보기"
+        },
+        {
+          "href": "/today/",
+          "text": "오늘의 운세 확인하기"
+        },
+        {
+          "href": "/fortune/today/",
+          "text": "오늘의 별자리·띠 운세 24종"
+        },
+        {
+          "href": "/fortune/tomorrow/",
+          "text": "내일의 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/weekly/",
+          "text": "이번 주 별자리·띠 운세"
+        },
+        {
+          "href": "/fortune/monthly/",
+          "text": "이번 달 별자리·띠 운세"
+        },
+        {
+          "href": "/saju/basic/",
+          "text": "사주 만세력 기본 해석"
+        },
+        {
+          "href": "/saju/sibyl/",
+          "text": "시빌라 시스템"
+        },
+        {
+          "href": "/fortune/",
+          "text": "별자리·띠 운세 허브"
+        },
+        {
+          "href": "/saju/destiny-meeting-place/",
+          "text": "사주로 보는 인연의 장소"
+        },
+        {
+          "href": "/saju-guardian/",
+          "text": "사주 가디언 수호 인장"
+        },
+        {
+          "href": "/tarot/",
+          "text": "명리학 타로 시작하기"
+        },
+        {
+          "href": "/tarot/mingri/",
+          "text": "명리학 타로"
+        },
+        {
+          "href": "/tarot/love/",
+          "text": "우리는 무슨 사이"
+        },
+        {
+          "href": "/tarot/healing/",
+          "text": "따뜻한 태양 회복 타로"
+        },
+        {
+          "href": "/tarot/self-esteem/",
+          "text": "자존감 레벨업 타로"
+        },
+        {
+          "href": "/tarot/reunion/",
+          "text": "재회운 타로"
+        },
+        {
+          "href": "/tarot/prompt-maker/",
+          "text": "타로 프롬프트 라이브러리"
+        },
+        {
+          "href": "/tarot/year/",
+          "text": "십이지신 천운 타로"
+        },
+        {
+          "href": "/tarot/mindscan/",
+          "text": "속마음 알아보기"
+        },
+        {
+          "href": "/tarot/crystal-soul/",
+          "text": "원석 소울 타로"
+        },
+        {
+          "href": "/sukuyo/",
+          "text": "무료 숙요점 27수 궁합 보기"
+        },
+        {
+          "href": "/fortune-tea-house/",
+          "text": "운명 찻집 상담"
+        },
+        {
+          "href": "/fortune/prompt-hub/",
+          "text": "운세 프롬프트 허브"
+        },
+        {
+          "href": "/ggulggul/#premiumVvipCollection",
+          "text": "이용권·월정석·단건 결제 안내"
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/today/",
+      "userAgent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "fetchedAt": "2026-09-30T03:17:07.024Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/today/",
+      "redirected": false,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-cache"
+      },
+      "responseBytes": 130907,
+      "title": "오늘의 운세 | 생년월일 운세로 보는 오늘 재물운·연애운",
+      "h1": [
+        "연이와 오늘을 펼쳐요"
+      ],
+      "canonical": [
+        "https://code-destiny.com/today/"
+      ],
+      "robots": [
+        {
+          "name": "robots",
+          "content": "index, follow"
+        },
+        {
+          "name": "googlebot",
+          "content": "index, follow, max-video-preview:-1, max-image-preview:large, max-snippet:-1"
+        }
+      ],
+      "description": "오늘의 운세를 생년월일 기준으로 확인해 보세요. 그날의 일진이 내 일간과 만나 어떤 십성을 끌어올리는지 보고, 오늘 힘을 쓸 곳과 하루 미뤄 둘 일을 나눠 드립니다.",
+      "metaRefresh": [],
+      "visibleTextLength": 5883,
+      "internalAnchorCount": 35,
+      "keyInternalLinks": [
+        {
+          "href": "/fortune/weekly/aries/",
+          "text": "양자리 주간 해석 자세히 보기"
+        },
+        {
+          "href": "/yeongnyangi/1000-won-fortune/",
+          "text": "사주보는 고양이 영냥이의 천원사주 안내"
+        },
+        {
+          "href": "/fortune/today/",
+          "text": "오늘 운세"
+        },
+        {
+          "href": "/fortune/tomorrow/",
+          "text": "내일 운세"
+        },
+        {
+          "href": "/fortune/weekly/",
+          "text": "이번 주 운세"
+        },
+        {
+          "href": "/fortune/monthly/",
+          "text": "이번 달 운세"
+        },
+        {
+          "href": "/saju/monthly/2026-09/",
+          "text": "내 일간으로 이번 달 흐름 보기 태어난 날의 천간인 일간을 기준으로 2026년 9월 정유 의 재물운·연애운·직업운·건강운을 확인합니다."
+        },
+        {
+          "href": "/fortune/date/",
+          "text": "날짜별 띠 운세 archive 특정 날짜의 원숭이띠·용띠 등 12띠 운세와 일진 근거를 최근 30일 범위에서 다시 확인합니다."
+        },
+        {
+          "href": "/fortune/today/aries/",
+          "text": "♈ 양자리"
+        },
+        {
+          "href": "/fortune/today/taurus/",
+          "text": "♉ 황소자리"
+        },
+        {
+          "href": "/fortune/today/gemini/",
+          "text": "♊ 쌍둥이자리"
+        },
+        {
+          "href": "/fortune/today/cancer/",
+          "text": "♋ 게자리"
+        },
+        {
+          "href": "/fortune/today/leo/",
+          "text": "♌ 사자자리"
+        },
+        {
+          "href": "/fortune/today/virgo/",
+          "text": "♍ 처녀자리"
+        },
+        {
+          "href": "/fortune/today/libra/",
+          "text": "♎ 천칭자리"
+        },
+        {
+          "href": "/fortune/today/scorpio/",
+          "text": "♏ 전갈자리"
+        },
+        {
+          "href": "/fortune/today/sagittarius/",
+          "text": "♐ 궁수자리"
+        },
+        {
+          "href": "/fortune/today/capricorn/",
+          "text": "♑ 염소자리"
+        },
+        {
+          "href": "/fortune/today/aquarius/",
+          "text": "♒ 물병자리"
+        },
+        {
+          "href": "/fortune/today/pisces/",
+          "text": "♓ 물고기자리"
+        },
+        {
+          "href": "/fortune/today/rat/",
+          "text": "🐭 쥐띠"
+        },
+        {
+          "href": "/fortune/today/ox/",
+          "text": "🐮 소띠"
+        },
+        {
+          "href": "/fortune/today/tiger/",
+          "text": "🐯 범띠"
+        },
+        {
+          "href": "/fortune/today/rabbit/",
+          "text": "🐰 토끼띠"
+        },
+        {
+          "href": "/fortune/today/dragon/",
+          "text": "🐲 용띠"
+        },
+        {
+          "href": "/fortune/today/snake/",
+          "text": "🐍 뱀띠"
+        },
+        {
+          "href": "/fortune/today/horse/",
+          "text": "🐴 말띠"
+        },
+        {
+          "href": "/fortune/today/goat/",
+          "text": "🐑 양띠"
+        },
+        {
+          "href": "/fortune/today/monkey/",
+          "text": "🐵 원숭이띠"
+        },
+        {
+          "href": "/fortune/today/rooster/",
+          "text": "🐔 닭띠"
+        },
+        {
+          "href": "/fortune/today/dog/",
+          "text": "🐶 개띠"
+        },
+        {
+          "href": "/fortune/today/pig/",
+          "text": "🐷 돼지띠"
+        },
+        {
+          "href": "/sukuyo/calendar/",
+          "text": "🌙 숙요 달력 이번 달 27수의 흐름을 한눈에 봅니다."
+        }
+      ],
+      "inlineRedirectEvidence": [],
+      "externalScriptSources": [
+        "/_next/static/chunks/4bd1b696-bad92808725a934a.js",
+        "/_next/static/chunks/31255-a9bb9cd85b5ea6d0.js",
+        "/_next/static/chunks/main-app-785e9d61131682a3.js",
+        "/_next/static/chunks/52619-c48a18d6f62d2371.js",
+        "/_next/static/chunks/81356-652fddd9ca18e662.js",
+        "/_next/static/chunks/91686-4604cfbee205a5d5.js",
+        "/_next/static/chunks/60774-130f7dbbd46ccf78.js",
+        "/_next/static/chunks/58219-9d2319dfa1d27d7b.js",
+        "/_next/static/chunks/60670-fca02bd7d4122c60.js",
+        "/_next/static/chunks/66637-5d31460d4012e024.js",
+        "/_next/static/chunks/45428-e14f37da1b578983.js",
+        "/_next/static/chunks/98224-feba79912bd2d561.js",
+        "/_next/static/chunks/88633-8798f6ecf84e5903.js",
+        "/_next/static/chunks/50848-52bc24584f88fcfa.js",
+        "/_next/static/chunks/63140-48cef90e1691b4f1.js",
+        "/_next/static/chunks/34-73ac22f29522d576.js",
+        "/_next/static/chunks/32391-757389c8d274cabe.js",
+        "/_next/static/chunks/75111-6109e3d8096bb0bc.js",
+        "/_next/static/chunks/57852-df3a4be2191e158b.js",
+        "/_next/static/chunks/app/layout-064b891aea1af02b.js"
+      ]
+    },
+    {
+      "path": "/sitemap-ko.xml",
+      "userAgent": "CodeDestiny-SEO-Audit/1.0",
+      "fetchedAt": "2026-09-30T03:17:55.756Z",
+      "status": 200,
+      "finalUrl": "https://code-destiny.com/sitemap-ko.xml",
+      "redirected": false,
+      "headers": {
+        "content-type": "application/xml",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "etag": "W/\"440ea73d140261bfa2c0bc8c1969ab7d\""
+      },
+      "responseBytes": 176204,
+      "kind": "urlset",
+      "locationCount": 803,
+      "priorityPages": {
+        "/": true,
+        "/ggulggul/": true,
+        "/today/": true,
+        "/saju/": true,
+        "/sukuyo/": true,
+        "/yeongnyangi/1000-won-fortune/": true
+      }
+    }
+  ],
+  "localSourceObservation": {
+    "baseSha": "dd8788d3f3c50a8251e2e3475af6e9f335cfc179",
+    "productionShaIsAncestorOfBase": true,
+    "rootPage": "app/page.js",
+    "rootEntryComponent": "app/components/LegacyHomeEntry.tsx",
+    "observation": "Local base root page sets LegacyHomeEntry defaultTarget=/ggulggul/; its useEffect calls window.location.replace(target). This is source evidence about the local base, not observed production browser behavior."
+  }
+}

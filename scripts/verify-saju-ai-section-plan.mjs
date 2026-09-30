@@ -138,21 +138,53 @@ const CHAPTER_TITLES = [
       prompt.includes("여기서는 쓰지도 말고 요약하지도 마세요"),
       `${group.key}: 남의 챕터 금지 문구가 없다`,
     );
+    // v16: 전통 해석의 조건과 반대 조건을 요구한다. 동업·재물 해석 자체를 금지하지 않는다.
     for (const requiredSafetyLine of [
-      "본문에는 점수·이모지·'최고의 운' 같은 등급 이름을 옮기지 말고",
-      "십성·오행으로 투자 성향, 충동 소비, 동업 손실, 사업 적합성을 만들지 말고",
-      "주식·코인·부동산·채권·배당주·금융상품·사업 확장을 명식으로 권하지 말고",
+      "제공된 명식 근거 → 전통 명리 해석 → 성립 조건과 완화·반대 조건 → 생활 장면과 실행 가능한 조언",
+      "같은 일간·월령·십성표·용신 후보를 유지하고 앞 장의 판단을 이유 없이 바꾸지 마세요",
+      "본문에는 점수·이모지·'최고의 운' 같은 등급 이름을 옮기거나 성공 확률·재산 규모로 바꾸지 마세요",
+      "기회·경쟁·손실 가능성의 전통 해석은 실제 배치와 성립·완화 조건을 함께 설명할 수 있지만",
+      "특정 사건의 발생이나 결과의 크기를 보장하지 마세요",
+      "십성과 제공된 관계를 바탕으로 성향·직업·재물·동업의 강점과 부담을 조건부로 해석하세요",
+      "비겁이 있다는 이유만으로 손실을 정하지 말고 재성의 힘과 식상·관성의 조절 등 반대 조건을 설명하세요",
+      "한 오행의 유무로 재정 통제력이나 질환을 판단하지 마세요",
+      "건강은 생활 리듬 점검과 필요시 의료 확인으로 한정하세요",
+      "명식으로 주식·코인·부동산·채권·배당주·금융상품의 선택이나 무리한 사업 확장을 권하지 마세요",
       "뒤 챕터에서 앞 챕터의 오행 개수·십성 정의·비겁 경고를 다시 설명하지 마세요",
       "같거나 거의 같은 문단은 한 번만 남기세요",
     ]) {
-      check(prompt.includes(requiredSafetyLine), `${group.key}: 실제 생성 후 안전 교정이 프롬프트에서 빠졌다 — ${requiredSafetyLine}`);
+      check(prompt.includes(requiredSafetyLine), `${group.key}: 조건부 해석 또는 안전 기준이 프롬프트에서 빠졌다 — ${requiredSafetyLine}`);
     }
+    check(
+      !prompt.includes("십성·오행으로 투자 성향, 충동 소비, 동업 손실, 사업 적합성을 만들지 말고"),
+      `${group.key}: 조건부 전통 해석까지 일괄 금지하는 이전 정책이 되살아났다`,
+    );
     if (group.key === "timing_flow") {
-      check(prompt.includes("'좋은 운·주의 운·최고의 운·역경 운' 같은 등급"), `${group.key}: v14에서 재발한 대운 등급 차단 문구가 없다`);
+      check(prompt.includes("점수·등급·성공 확률을 옮기지 말고"), `${group.key}: 대운 점수·등급·성공 확률 차단 문구가 없다`);
+      check(prompt.includes("특정 나이의 수익·손실·사건을 확정하지 않습니다"), `${group.key}: 시기 해석을 사건 보장과 구분하는 기준이 없다`);
     }
   }
 }
 
+// 조건부 전통 해석은 전달하고 보장·의학·투자상품 단정은 실제 결과 검증기에서도 차단한다.
+{
+  const completeText = SAJU_AI_SECTION_GROUPS.map((group) => fakeGroupBody(group, group.minChars + 200)).join("\n\n");
+  const withReading = (reading) => completeText.replace("12. 마지막 한마디", `${reading}\n\n12. 마지막 한마디`);
+  const conditional = "겁재가 재성을 다투고 식상·관성의 조절이 부족한 경우에는 동업 손실 가능성을 살핍니다. 다만 재성이 충분하고 역할·정산 기준이 분명하면 공동 성과로 이어질 여지도 있습니다. 식신생재는 수익을 보장하지 않습니다.";
+  check(validateSajuAIResultText(withReading(conditional)).ok, "조건부 동업 해석과 수익 보장의 부정을 금지 주장으로 오인했다");
+  for (const [expected, reading] of [
+    ["fortune-score-label", "36세 병술 대운은 81점으로 최고의 운에 해당합니다."],
+    ["fortune-grade-label", "다음 대운은 주의 운이므로 지출을 줄여야 합니다."],
+    ["age-event-prediction", "36세 대운에는 반드시 큰 수익을 얻으니 사업을 확장하세요."],
+    ["ten-god-financial-loss", "겁재 때문에 동업에서 반드시 재물 손실이 발생합니다."],
+    ["ten-god-income-causality", "상관이 있으므로 사업 수입 창출이 반드시 보장됩니다."],
+    ["element-health-causality", "화(火) 기운이 없다는 것은 심장과 혈액순환 기능이 약할 수 있음을 나타냅니다."],
+    ["specific-financial-product", "부동산, 채권, 배당주 같은 자산에 관심을 가져볼 수 있습니다."],
+  ]) {
+    const validation = validateSajuAIResultText(withReading(reading));
+    check(!validation.ok && validation.qualityIssues?.unsupportedAdvice === expected, `결과 검증기가 ${expected} 주장을 차단하지 않았다`);
+  }
+}
 // ── 3. 웨이브 동작 ────────────────────────────────────────────────────────
 const builtPrompt = { generatedPrompt: "내부 프롬프트 본문", factCard: "일간: 辛", domain: "life_direction" };
 const baseArgs = {

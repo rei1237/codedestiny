@@ -11,6 +11,7 @@ import "./build-ziwei-reading-library.mjs";
 import { cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, statSync, readdirSync, rmSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, resolve, join } from "node:path";
+import { JSDOM } from "jsdom";
 import {
   ROOT_ASSET_REF_FILES,
   computeRootAssetCacheKeys,
@@ -449,6 +450,7 @@ function stripLegacyPublicBlocks(html) {
 
 /** 모듈 지정자 캐시 키를 회전시킬 파일. 루트와 public 사본에 같은 목록을 쓴다. */
 const MODULE_IMPORT_CACHE_KEY_FILES = [
+  ["js", "core", "paid-editorial-report.mjs"],
   ["js", "app.js"],
   ["js", "core", "init.js"],
   ["js", "core", "bootstrapDestinyFlower.js"],
@@ -616,6 +618,38 @@ function writeLocaleManifest(localePath) {
   return fileName;
 }
 
+// Each shell owns its WebPage; the shared WebSite and publisher keep their global IDs.
+function applyShellPageIdentity(indexHtml, canonicalUrl) {
+  const headEnd = indexHtml.indexOf("</head>");
+  if (headEnd < 0) throw new Error(`[sync-legacy-static-to-public] Missing shell head: ${canonicalUrl}`);
+  const dom = new JSDOM(indexHtml.slice(0, headEnd + 7).replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, ""));
+  const document = dom.window.document;
+  const title = document.title;
+  const description = document.querySelector('meta[name="description"]')?.content;
+  const language = document.documentElement.lang;
+  const hasUrlSignals = document.querySelector('link[rel="canonical"]') && document.querySelector('meta[property="og:url"]');
+  dom.window.close();
+  if (!title || !description || !language || !hasUrlSignals) {
+    throw new Error(`[sync-legacy-static-to-public] Missing shell page metadata: ${canonicalUrl}`);
+  }
+  let pageCount = 0;
+  const html = indexHtml.replace(/(<script\b[^>]*\btype=["']application\/ld\+json["'][^>]*>)([\s\S]*?)(<\/script>)/gi, (full, open, source, close) => {
+    const data = JSON.parse(source);
+    const nodes = data["@graph"] || [data];
+    const pages = nodes.filter((node) => node["@type"] === "WebPage");
+    if (!pages.length) return full;
+    for (const page of pages) {
+      Object.assign(page, { "@id": `${canonicalUrl}#webpage`, url: canonicalUrl, name: title, description, inLanguage: language });
+      pageCount += 1;
+    }
+    return `${open}\n${JSON.stringify(data, null, 2).replace(/</g, "\\u003c")}\n${close}`;
+  });
+  if (pageCount !== 1) throw new Error(`[sync-legacy-static-to-public] Expected one WebPage for ${canonicalUrl}; found ${pageCount}`);
+  return html
+    .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
+    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`);
+}
+
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const seo = LOCALE_SHELL_SEO[localePath];
   if (!seo) return indexHtml;
@@ -634,7 +668,7 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
   const canonicalUrl = `https://code-destiny.com${localePath}/`;
   const manifestFile = writeLocaleManifest(localePath);
   const localeShellTitle = resolveLocaleShellTitle(seo);
-  return indexHtml
+  const localizedHtml = indexHtml
     .replace(
       /<link rel="manifest" href="\/manifest\.json([^"]*)">/i,
       manifestFile ? `<link rel="manifest" href="/${manifestFile}$1">` : "$&",
@@ -644,10 +678,8 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
     // 속성 없는 <title> 만 매칭하던 과거 정규식은 조용히 no-op 이라 로케일 셸이
     // 한국어 제목을 그대로 물려받았다. 여는 태그(=마커)는 보존하고 본문만 바꾼다.
     .replace(/(<title\b[^>]*>)[^<]*(<\/title>)/i, `$1${localeShellTitle}$2`)
-    .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
     .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${seo.description}"/>`)
     .replace(/<meta name="keywords" content="[^"]*"/i, `<meta name="keywords" content="${seo.keywords}"`)
-    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`)
     .replace(/<meta property="og:locale" content="[^"]*">/i, `<meta property="og:locale" content="${seo.ogLocale}">`)
     .replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${localeShellTitle}">`)
     .replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${seo.description}">`)
@@ -664,6 +696,27 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
     )
     .replace(/<meta property="og:image:alt" content="[^"]*">/i, `<meta property="og:image:alt" content="${seo.imageAlt}">`)
     .replace(/<meta name="twitter:image:alt" content="[^"]*">/i, `<meta name="twitter:image:alt" content="${seo.imageAlt}">`);
+  return applyShellPageIdentity(localizedHtml, canonicalUrl);
+}
+
+const GGULGGUL_SHELL_SEO = {
+  title: "꿀꿀 운세 | 사주 달빛정원 — 연이·네오·영냥이 운세 상담",
+  description:
+    "꿀꿀 운세에서 꽃돼지 연이와 네오의 사주·타로 상담을 둘러보고, 같은 Code Destiny 안의 영냥이 달빛 점술방에서 지금의 질문을 편하게 이어 보세요.",
+  canonicalUrl: "https://code-destiny.com/ggulggul/",
+};
+
+function applyGgulggulSeoMeta(indexHtml) {
+  const { title, description, canonicalUrl } = GGULGGUL_SHELL_SEO;
+  return indexHtml
+    .replace(/(<title\b[^>]*>)[^<]*(<\/title>)/i, `$1${title}$2`)
+    .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
+    .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}"/>`)
+    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${title}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${description}">`)
+    .replace(/<meta name="twitter:title" content="[^"]*">/i, `<meta name="twitter:title" content="${title}">`)
+    .replace(/<meta name="twitter:description" content="[^"]*">/i, `<meta name="twitter:description" content="${description}">`);
 }
 
 function stripBomInPublicHtmlTree(targetDir) {
@@ -997,7 +1050,8 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 
   const flowerDir = resolve(publicDir, "ggulggul");
   mkdirSync(flowerDir, { recursive: true });
-  const flowerHtml = baseIndexHtml.replace(/(<link[^>]+rel=["']canonical["'][^>]+href=["'])https:\/\/code-destiny\.com\/?(["'])/i, "$1https://code-destiny.com/ggulggul/$2");
+  const flowerHtml = applyShellPageIdentity(dedupeUtf8CharsetMeta(applyGgulggulSeoMeta(baseIndexHtml)), GGULGGUL_SHELL_SEO.canonicalUrl);
+  assertEntryHtmlHealthy(flowerHtml, "public/ggulggul/index.html");
   writeFileSyncWithRetry(resolve(flowerDir, "index.html"), Buffer.from(flowerHtml, "utf8"));
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
