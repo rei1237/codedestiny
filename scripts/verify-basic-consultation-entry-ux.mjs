@@ -45,6 +45,8 @@ try {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith('/api/')) {
       requests.push({path:url.pathname,method:route.request().method()});
+      // Result entry requires a verified session; this response is a local fixture only.
+      if (url.pathname === '/api/auth/me') return route.fulfill({json:{ok:true,user:{id:'ux-fixture-owner'},authenticated:true}});
       const payload = url.pathname === '/api/billing/features'
         ? {legacyFeatureTable:targets.map(t=>({featureKey:t.key+'_ai_prompt_generator',amountKRW:5000,cost:50}))}
         : {ok:true,user:null,unlocks:[],profiles:[],data:null};
@@ -96,7 +98,7 @@ try {
       await card.locator('img').scrollIntoViewIfNeeded();
       await page.waitForFunction(({selector,width})=>{
         const img=document.querySelector(selector+' img');
-        return img?.complete && img.naturalWidth>0 && img.currentSrc.endsWith((width<760?'640':'1280')+'.webp');
+        return img?.complete && img.naturalWidth>0 && img.currentSrc.includes('/images/feature-details/') && img.getBoundingClientRect().height>100 && getComputedStyle(img).visibility==='visible' && getComputedStyle(img).opacity==='1';
       },{selector:target.card,width}).catch(async error=>{
         console.error(await card.locator('img').evaluate(img=>({src:img.currentSrc,complete:img.complete,naturalWidth:img.naturalWidth,innerWidth:window.innerWidth,viewport:window.visualViewport?.width})));
         throw error;

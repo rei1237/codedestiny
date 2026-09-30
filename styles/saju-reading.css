@@ -1,9 +1,9 @@
 /* Owned by the static saju surface, never by the shared mobile wrapper. */
-#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
+#resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
   --reading-ink:#54233e;--reading-muted:#774661;--reading-accent:#a52c60;--reading-paper:#fff8fb;--reading-line:#e5c3d2;
   color:var(--reading-ink);background:var(--reading-paper);font-family:inherit;
 }
-body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading {
+body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading {
   --reading-ink:#f4eafa;--reading-muted:#d6c7e5;--reading-accent:#e8c985;--reading-paper:#21182f;--reading-line:#685277;
 }
 #sajuReadingHeader {display:flex;align-items:flex-start;gap:16px;padding:24px;border:1px solid var(--reading-line);border-radius:20px;margin:0 0 24px;}
@@ -112,3 +112,17 @@ body.neo-mode #tsGrid .saju-ten-button small {color:#e8c985;}
 #resultPage {overflow-anchor:none;}
 
 .saju-static-offer__guide {float:right;object-fit:contain;background:transparent;margin:0 0 8px 12px;}
+
+/* The closing note is a continuous letter, separate from analytical cards. */
+#resultPage #letterBox {padding:28px clamp(18px,4vw,44px);background:var(--reading-paper);border:1px solid var(--reading-line);}
+#resultPage #letterTitle {color:var(--reading-accent);line-height:1.6;margin:0 0 24px;}
+#resultPage .saju-letter {padding:0;border-radius:0;background:transparent;text-align:left;}
+#resultPage .saju-letter p {max-width:62ch;margin-inline:auto;line-height:2.05;word-break:keep-all;overflow-wrap:anywhere;}
+#resultPage .saju-letter__prose {font-family:"MaruBuri","Noto Serif KR",serif;}
+#resultPage .saju-letter__prose p + p {margin-top:1.5em;}
+#resultPage .saju-letter .saju-letter__greeting {margin-bottom:1.8em;color:var(--reading-accent);font-size:1.15rem;font-weight:700;}
+#resultPage .saju-letter .saju-letter__signature {margin-top:2em;padding-top:1.2em;border-top:1px solid var(--reading-line);text-align:right;color:var(--reading-accent);}
+#resultPage .saju-letter .saju-reading__evidence {max-width:62ch;margin:32px auto 0;}
+#resultPage .saju-letter .saju-reading__evidence:focus-within {outline:2px solid var(--reading-accent);outline-offset:4px;}
+
+#resultPage .saju-letter[data-reading-mode="neo"] .saju-letter__prose {font-family:inherit;}
