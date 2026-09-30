@@ -4,8 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { getGiftGuidance, GIFT_STATUS_LABELS } from "@/lib/payment/gift-policy.js";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { giftApi, GiftApiError, type GiftView } from "../gift-client";
+import ServicePackGiftDetails,{isServicePackGift,usePackGiftCopy} from "../ServicePackGiftDetails";
+
+import type {OwnedServicePack} from "@/app/components/service-packs/service-pack-client";
 
 export default function ClaimPage() {
+  const {copy:packCopy}=usePackGiftCopy();
+  const [ownedPack,setOwnedPack]=useState<OwnedServicePack>();
   const token = useRef("");
   const lock = useRef(false);
   const [gift, setGift] = useState<GiftView>();
@@ -42,7 +47,8 @@ export default function ClaimPage() {
         return;
       }
       const data = await giftApi("/claim", input);
-      setGift(data.gift); setNotice("선물을 받았어요. 이용권이 계정에 적용되었습니다.");
+      if(isServicePackGift(data.gift)){if(!data.grant?.servicePack)throw new Error("수령 내역을 다시 확인해 주세요.");setOwnedPack(data.grant.servicePack);setGift(data.gift);setNotice(packCopy.giftClaimSuccess);}
+      else {setGift(data.gift); setNotice("선물을 받았어요. 이용권이 계정에 적용되었습니다.");}
     } catch (e) {
       if (e instanceof GiftApiError && e.status === 401) setAccount("");
       setNotice(e instanceof Error ? e.message : "다시 시도해 주세요.");
@@ -50,12 +56,12 @@ export default function ClaimPage() {
   };
   return <>
     <h1>운명의 선물이 도착했어요</h1>
-    {gift && <article className="gift-card"><HoneyPassArtwork tier={gift.product.tier} className="gift-pass-art" sizes="196px" /><p>{gift.senderName}님이 준비한 마음</p><h2>{gift.product.name}</h2><p>수령 후 {gift.product.durationDays}일 동안 이용할 수 있는 이용권이에요.</p>{gift.recipientName && <p>{gift.recipientName}님에게</p>}{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}<p className="gift-meta">{GIFT_STATUS_LABELS[gift.status as keyof typeof GIFT_STATUS_LABELS] || gift.status}</p>{gift.expiresAt && <p className="gift-meta">수령 기한: {new Date(gift.expiresAt).toLocaleDateString("ko-KR")}</p>}</article>}
+    {gift && <article className="gift-card"><HoneyPassArtwork tier={gift.product.productType==="service_pack"?null:gift.product.tier} className="gift-pass-art" sizes="196px" /><p>{gift.senderName}님이 준비한 마음</p><h2>{gift.product.name}</h2>{isServicePackGift(gift)?<ServicePackGiftDetails gift={gift} owned={ownedPack}/>:<p>수령 후 {gift.product.durationDays}일 동안 이용할 수 있는 이용권이에요.</p>}{gift.recipientName && <p>{gift.recipientName}님에게</p>}{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}<p className="gift-meta">{GIFT_STATUS_LABELS[gift.status as keyof typeof GIFT_STATUS_LABELS] || gift.status}</p>{gift.expiresAt && <p className="gift-meta">수령 기한: {new Date(gift.expiresAt).toLocaleDateString("ko-KR")}</p>}</article>}
     {account && <p>수령 계정: {account}</p>}
     {gift?.status === "PAID" && <button disabled={busy} onClick={() => void receive()}>{busy ? "수령 확인 중" : account ? "이 계정으로 선물 받기" : "로그인하고 선물 받기"}</button>}
     <div role="status" aria-live="polite">{notice && <p className="gift-notice">{notice}</p>}</div>
     {!gift && <button disabled={busy} onClick={() => void refresh()}>선물 다시 확인하기</button>}
-    {gift?.status === "CLAIMED" && <a className="gift-button" href="/points/">이용권 확인하기</a>}
-    <details><summary>수령·이용·환불 안내</summary><p>{getGiftGuidance(lang)}</p></details>
+    {gift?.status === "CLAIMED" && <a className="gift-button" href={isServicePackGift(gift)?"/points/#fish-packs":"/points/"}>{isServicePackGift(gift)?packCopy.giftViewWallet:"이용권 확인하기"}</a>}
+    <details><summary>수령·이용·환불 안내</summary><p>{isServicePackGift(gift)?packCopy.giftNotice:getGiftGuidance(lang)}</p></details>
   </>;
 }

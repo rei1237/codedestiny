@@ -1,6 +1,5 @@
 "use client";
 
-import ServicePackShowcase from "../components/service-packs/ServicePackShowcase";
 import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
 import { trackConfirmedPurchase } from "@/lib/analytics";
 
@@ -25,6 +24,7 @@ import {
 import { usePassSaleAvailability } from "@/app/hooks/usePassSaleAvailability";
 import { PASS_MONTHLY_WON } from "@/lib/payment/pass-pricing";
 import { MoonShopMain, MoonShopSkeleton, MoonlightShopHero, ShopPigImage } from "./MoonShopFrame";
+import {ServicePackShop} from "../components/service-packs/ServicePacks";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -4187,6 +4187,7 @@ export default function PointsPage() {
     if (typeof window === "undefined") return;
 
     const query = new URLSearchParams(window.location.search);
+    if (query.get("service_pack_return") === "1") return; // Dedicated pack recovery owns this return.
     const redirectMarked = query.get("portone_redirect");
     const subscriptionRedirectMarked = query.get("portone_subscription_redirect");
     const impSuccess = String(query.get("imp_success") || "").toLowerCase();
@@ -4415,6 +4416,7 @@ export default function PointsPage() {
     // 리다이렉트 복귀는 위 효과가 맡는다 — 다만 **확정을 실제로 시작했을 때만** 양보한다.
     // 🔴 마커 존재만으로 물러나면, 위 효과가 락 충돌·복귀 정보 부재로 확정 없이 끝났을 때 아무도 확정하지 않는다.
     const query = new URLSearchParams(window.location.search);
+    if (query.get("service_pack_return") === "1") return; // Dedicated pack recovery owns this return.
     const hasRedirectMarker = !!(
       query.get("portone_redirect") || query.get("portone_subscription_redirect")
       || query.get("paymentId") || query.get("payment_id") || query.get("imp_uid")
@@ -5062,7 +5064,7 @@ export default function PointsPage() {
           hasError={pointStateHasError}
           onRetry={retryPointState}
         />
-        <ServicePackShowcase locale={lang} />
+        <ServicePackShop locale={lang} />
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}
