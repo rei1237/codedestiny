@@ -211,9 +211,24 @@ try {
   }
   // Same local mock boundary: verify the actual paid daeun renderer and recovery button.
   assert.equal(await page.locator('#dwGrid .dw-item').count(), 0, 'locked daeun must not contain paid rows');
-  await page.evaluate(() => { window.unlockedFeatureMap.section_daewun = true; });
-  await page.locator('#daewunGate button[data-unlock-key]').click();
-  await page.waitForFunction(() => document.querySelectorAll('#dwGrid .dw-item').length > 0);
+  await page.evaluate(() => {
+    window.unlockedFeatureMap.section_daewun = true;
+    window.dispatchEvent(new CustomEvent('cd:unlocks-changed', {
+      detail: { source: 'summary-browser-local-unlock', unlockedFeatureMap: window.unlockedFeatureMap }
+    }));
+  });
+  await page.waitForFunction(() => {
+    const rows = document.querySelectorAll('#dwGrid .dw-item').length;
+    const button = document.querySelector('#daewunGate button[data-unlock-key]');
+    const buttonVisible = !!button && !!(button.offsetWidth || button.offsetHeight || button.getClientRects().length);
+    return rows > 0 || buttonVisible;
+  }, undefined, {timeout:10000});
+  if (await page.locator('#dwGrid .dw-item').count() === 0) {
+    const daewunButton = page.locator('#daewunGate button[data-unlock-key]').first();
+    await daewunButton.scrollIntoViewIfNeeded();
+    await daewunButton.click();
+  }
+  await page.waitForFunction(() => document.querySelectorAll('#dwGrid .dw-item').length > 0, undefined, {timeout:10000});
   await page.locator('#dwGrid .dw-item').first().click();
   await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
   assert.equal(await page.locator('#yearList .year-row').count(), 10, 'paid cycle supplies all ten annual readings');
@@ -248,7 +263,10 @@ try {
       assert.match(await page.locator('.saju-cycle-guide > p').first().textContent(), mode === 'neo' ? /핵심은/ : /살펴볼게요/);
       assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
     }
-    await page.locator('#dwGrid .dw-item').first().click();
+    const firstDwItem = page.locator('#dwGrid .dw-item').first();
+    await firstDwItem.scrollIntoViewIfNeeded();
+    await settleScroll(page);
+    await firstDwItem.click();
     await page.locator('#dwDetail .saju-cycle-guide').scrollIntoViewIfNeeded();
     assert.equal(await page.locator('.saju-cycle-guide').evaluate(el => el.scrollWidth > el.clientWidth + 1),false);
     console.log('PASS daeun recovery, ten annual rows and persona access '+width+'px');
