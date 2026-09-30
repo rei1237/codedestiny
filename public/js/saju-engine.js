@@ -30584,91 +30584,41 @@ function renderCurrentSeasonSummary(bazi){
 }
 
 function buildDaewunReadingGuide(age, gan, zhi, ev) {
-  var start = Number(BIRTH_YEAR) + Number(age) - 1;
-  var neo = document.body.classList.contains('neo-mode');
-  var supportive = ev.score >= 60;
-  var next = (window.G_DAEWUN || []).find(function(row) { return Number(row.age) > Number(age); });
-  var transition = next
-    ? '다음 대운은 ' + next.g + next.j + ', 표에 표시된 ' + next.age + '세부터 이어집니다. 전환 전후에는 앞선 시기에 쌓은 일과 관계가 함께 이어지므로, 한 해를 경계로 모든 것이 바뀐다고 보지 않습니다.'
-    : '현재 표의 마지막 구간입니다. 이후 시기를 이 자료만으로 확정하지 않고, 지금 유지할 기반과 바꿀 습관을 먼저 정리합니다.';
-  return '<section class="saju-cycle-guide"><h3>' + gan + zhi + ' 대운 · ' + start + '–' + (start + 9) + '년</h3>' +
-    '<p>' + (neo ? '이 시기에 힘을 실을 일과 조정할 일을 구분하세요.' : '열 해의 큰 흐름 속에서, 내 속도로 준비할 일을 함께 찾아볼게요.') + '</p>' +
-    '<dl><dt>대운과 세운, 함께 읽는 법</dt><dd>대운은 약 10년의 큰 배경, 세운은 그 안에서 해마다 달라지는 흐름입니다. 같은 대운 안에서도 해마다 체감이 다를 수 있으니 아래 연도별 해설을 함께 읽어보세요.</dd>' +
-    '<dt>지금의 실행 기준</dt><dd>' + (supportive ? '준비해 온 일 하나를 작은 범위에서 시험해 보세요. 도움이 되는 흐름이라도 시간·자금·협력자가 갖춰졌는지 확인하고, 실제 반응을 보며 범위를 넓히는 편이 좋습니다.' : '중요한 약속과 고정 지출부터 살펴보세요. 부담이 큰 일은 나누고 회복 시간을 확보해, 변화가 필요할 때 선택할 여지를 남겨두는 편이 좋습니다.') + '</dd>' +
-    '<dt>다음 계절을 준비하며</dt><dd>' + transition + '</dd>' +
-    '<dt>해석의 근거와 범위</dt><dd>타고난 명식과 대운의 글자를 대조해 계절의 균형(조후), 나를 돕거나 소모시키는 힘(억부), 한쪽으로 모인 기세(종격)를 살핍니다. 한 요소만으로 좋고 나쁨을 정하지 않으며, 점수는 성공 확률이 아닙니다. 표시 연도는 기존 대운표의 나이 기준을 연도로 옮긴 범위이며 정확한 교운 날짜를 뜻하지 않습니다.' +
-    (window.__cdSajuTimeUnknown ? ' 출생시간을 모르는 경우 시작 시기와 시주에 의존하는 해석에는 한계가 있습니다.' : '') + '</dd></dl></section>';
+  var p=G_PILLARS, api=window.SajuReadingPresentation;
+  if(!p||!api)return '';
+  var knownKeys=window.__cdSajuTimeUnknown?['y','m','d']:['y','m','d','h'];
+  var labels={y:'년주',m:'월주',d:'일주',h:'시주'}, counts={};
+  knownKeys.forEach(function(key){['g','j'].forEach(function(part){if(key==='d'&&part==='g')return;var god=getTenGod(p.d.g,p[key][part]);counts[god]=(counts[god]||0)+1;});});
+  var relations=_getDwHapResults(gan,zhi).map(function(row){
+    var part=row.type.indexOf('간')===0?'g':'j';
+    var positions=knownKeys.filter(function(key){return p[key][part]===row.partner;}).map(function(key){return labels[key];});
+    return Object.assign({},row,{positions:positions});
+  }).filter(function(row){return row.positions.length>0;});
+  return api.cycleMarkup({age:age,startYear:Number(BIRTH_YEAR)+Number(age)-1,day:p.d.g,month:p.m.j,
+    dominant:G_NATAL&&G_NATAL.dominant,power:G_POWER,jong:G_JONG,climate:G_JOHU&&G_JOHU.type,
+    stem:{char:gan,element:GAN[gan].e,god:getTenGod(p.d.g,gan),balance:getQuantumElType(GAN[gan].e,p,G_JONG,G_POWER,G_JOHU)},
+    branch:{char:zhi,element:JI[zhi].e,god:getTenGod(p.d.g,zhi),balance:getQuantumElType(JI[zhi].e,p,G_JONG,G_POWER,G_JOHU)},
+    godCounts:counts,relations:relations,unknown:!!window.__cdSajuTimeUnknown,
+    next:(window.G_DAEWUN||[]).find(function(row){return Number(row.age)>Number(age);})
+  },document.body.classList.contains('neo-mode')?'neo':'pig');
+}
+function refreshDaewunReadingGuide(){
+  var guide=document.querySelector('#dwDetail .saju-cycle-guide');
+  if(!guide||!_cdSajuGateUnlocked('section_daewun'))return;
+  var age=Number(guide.dataset.cycleAge),gan=guide.dataset.cycleGan,zhi=guide.dataset.cycleZhi;
+  guide.outerHTML=buildDaewunReadingGuide(age,gan,zhi);
 }
 
 function showDwDetail(age,gan,zhi,evaluation,score){
   var gd=GAN[gan]||{e:'earth',n:'?'},jd=JI[zhi]||{e:'water',a:'?'};
   var startYear=BIRTH_YEAR+age-1;
   var isGood=score>=60;
-  var gaeun=getDetailedGaeun(gd.e,isGood);
-  var lbCls=score>=80?'lb-best':score>=60?'lb-good':score>=40?'lb-ok':'lb-bad';
   var jg=G_JONG,pw=G_POWER,jh=G_JOHU;
   var ev=evalDaewun(gan,zhi);
 
-  var evalText='<div style="display:inline-block; padding:4px 10px; background:#F4F6FF; color:#1C64F2; border-radius:6px; font-size:0.85rem; font-weight:800; margin-bottom:10px; border:1px solid #D1DEF8">흐름의 핵심: '+ev.evalSummary+'</div><br>';
-  if(jg&&jg.isJong){
-    var jlabel = jg.isGaJong ? '가종격' : '종격';
-    evalText+=gd.e===jg.dominant||jd.e===jg.dominant
-      ?'✅ <b>'+jlabel+' 지배 기운('+EL_K[jg.dominant]+')이 강화</b>되는 대운입니다. 한 방향으로 힘을 모으는 장점을 살펴볼 시기입니다.'+(jg.isGaJong?'<br><span style="font-size:.78rem;color:#7B1FA2">※ 가종격은 한쪽 기세를 따를 가능성을 살피는 분류입니다. 대운 하나로 격의 확정이나 성과를 단정하지 않습니다.</span>':'')
-      :gd.e===whoControls(jg.dominant)||jd.e===whoControls(jg.dominant)
-        ?'⚠️ <b>'+jlabel+'을 약화시키는 기운</b>이 들어옵니다. 자신의 강점이 흔들리는 시기, 내실을 다지세요.'
-        :'🙂 '+jlabel+'에 큰 영향을 주지 않는 중립 대운입니다.';
-  }else{
-    var ganType = getQuantumElType(gd.e, G_PILLARS, jg, pw, jh);
-    var zhiType = getQuantumElType(jd.e, G_PILLARS, jg, pw, jh);
-
-    var goodEls = [];
-    var badEls = [];
-    if(ganType === 'good') goodEls.push(EL_K[gd.e]);
-    if(zhiType === 'good') goodEls.push(EL_K[jd.e]);
-    if(ganType === 'bad') badEls.push(EL_K[gd.e]);
-    if(zhiType === 'bad') badEls.push(EL_K[jd.e]);
-
-    if(goodEls.length) evalText += '✅ <b>조후/용신('+goodEls.join(',')+') 기운 포함</b> — 나를 돕고 균형을 맞춰주는 긍정적인 시기입니다. ';
-    if(badEls.length) evalText += '⚠️ <b>기신('+badEls.join(',')+') 기운 포함</b> — 주의가 필요하며 방어적인 태도가 유리합니다. ';
-    if(!goodEls.length && !badEls.length) evalText = '🙂 조후나 억부에 큰 치우침이 없는 중립적인 대운입니다. ';
-
-    evalText += '<br><span style="font-size:0.8rem;color:#888;">※ 글자 사이의 관계와 계절적 균형을 함께 검토한 참고 해석입니다.</span>';
-  }
-
-  if(ev.hasChungBonus){
-    var bonusContent = ev.chungBonusText || '💥 <b>흉신 파기(沖) 발생!</b> 기신(흉신)이 사주 원국과 충돌하여 깨졌습니다. 흉한 기운이 오히려 큰 발복의 기회로 반전되는 매우 긍정적인 대운입니다.';
-    evalText += '<div style="margin-top:8px;padding:12px;background:#FFF3E0;border-radius:8px;border-left:4px solid #FFB300;font-size:0.9rem;line-height:1.6;color:#E65100;box-shadow:0 2px 6px rgba(255,152,0,0.15);">'+
-                bonusContent + '</div>';
-  }
-  if(ev.hasChungPenalty){
-    var penaltyContent = ev.chungPenaltyText || '⚠️ <b>용신 파손(沖) 발생!</b> 용신이 사주 원국과 충돌하여 깨졌습니다. 믿었던 기운이 흔들릴 수 있으니 무리한 확장을 피하고 수성(守城)에 집중해야 하는 대운입니다.';
-    evalText += '<div style="margin-top:8px;padding:12px;background:#FFEBEE;border-radius:8px;border-left:4px solid #EF5350;font-size:0.9rem;line-height:1.6;color:#C62828;box-shadow:0 2px 6px rgba(244,67,54,0.15);">'+
-                penaltyContent + '</div>';
-  }
-
-  var html=
-    buildDaewunReadingGuide(age,gan,zhi,ev)+
-    buildDwQmSection(gan,zhi)+
-
-    '<div style="background:#fff;padding:14px;border-radius:12px;margin-bottom:12px;border:1px solid #FFE0D6">'+
-    '<div style="font-size:.82rem;color:#888;margin-bottom:4px">이 시기의 기질과 환경</div>'+
-    '<div style="font-size:1.15rem;font-weight:700;color:#333;margin-bottom:6px">'+gan+zhi+
-    ' <span style="font-size:.85rem;font-weight:400;color:#999">('+gd.n+' '+jd.a+')</span></div>'+
-    '<span class="luck-badge '+lbCls+'">'+evaluation+'</span>'+
-    '<div style="font-size:.84rem;color:#555;line-height:1.78;margin-top:10px">'+evalText+'</div>'+
-    '</div>'+
-
-    '<div class="gaeun-grid">'+
-    '<div class="gaeun-box"><div class="gaeun-icon">💘</div><div class="gaeun-title">연애운</div><div class="gaeun-content">'+gaeun.love+'</div></div>'+
-    '<div class="gaeun-box"><div class="gaeun-icon">💰</div><div class="gaeun-title">재물운</div><div class="gaeun-content">'+gaeun.wealth+'</div></div>'+
-    '<div class="gaeun-box"><div class="gaeun-icon">👥</div><div class="gaeun-title">인간관계</div><div class="gaeun-content">'+gaeun.relationship+'</div></div>'+
-    '<div class="gaeun-box"><div class="gaeun-icon">💼</div><div class="gaeun-title">커리어</div><div class="gaeun-content">'+gaeun.career+'</div></div>'+
-    '<div class="gaeun-box"><div class="gaeun-icon">🏥</div><div class="gaeun-title">건강</div><div class="gaeun-content">'+gaeun.health+'</div></div>'+
-    '<div class="gaeun-box"><div class="gaeun-icon">🌈</div><div class="gaeun-title">개운법</div><div class="gaeun-content">'+gaeun.lifestyle+'</div></div>'+
-    '</div>'+
-
-    '<div style="border-top:2px solid #FFE0D6;padding-top:16px;margin-top:4px">'+
-    '<div style="font-weight:700;color:var(--pink);font-size:.9rem;margin-bottom:12px">📅 세운(연운) 상세</div>'+
+  var html=buildDaewunReadingGuide(age,gan,zhi,ev)+
+    '<div style="border-top:1px solid #e5c3d2;padding-top:16px;margin-top:4px">'+
+    '<h3 style="font-size:1.1rem;margin-bottom:12px">세운 · 해마다 달라지는 흐름</h3>'+
     '<div class="year-list" id="yearList"></div></div>';
 
   var detail=document.getElementById('dwDetail');

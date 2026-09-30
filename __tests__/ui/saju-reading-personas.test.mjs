@@ -75,3 +75,30 @@ test('closing is a personal letter with distinct, respectful persona voices',()=
   const other=structuredClone(fixture);other.p.d={g:'甲',j:'子',gE:'wood'};
   assert.notEqual(api.build(other,'pig','ko').letter.paragraphs[1],yeon.paragraphs[1]);
 });
+
+const cycleFixture={age:31,startYear:2020,day:'辛',month:'丑',dominant:'metal',power:{isStrong:true},jong:{isJong:false},climate:'cold',stem:{char:'甲',element:'wood',god:'정재',balance:'good'},branch:{char:'午',element:'fire',god:'편관',balance:'bad'},godCounts:{정재:1,편관:0},relations:[{src:'午',partner:'子',type:'지충(地支)',isChung:true,positions:['일주']}],unknown:false,next:{age:41,g:'乙',j:'未'}};
+test('cycle consultation changes with natal facts and selected cycle without mutation',()=>{
+  const original=JSON.stringify(cycleFixture);
+  const first=api.buildCycle(cycleFixture,'pig');
+  const other=structuredClone(cycleFixture);other.day='甲';other.month='午';other.power.isStrong=false;other.climate='hot';other.stem.god='비견';other.branch.god='상관';other.relations=[];
+  const second=api.buildCycle(other,'pig');
+  assert.notEqual(first.sections[0].text,second.sections[0].text);
+  assert.notEqual(first.sections[1].text,second.sections[1].text);
+  assert.notEqual(first.sections[5].text,second.sections[5].text);
+  assert.match(first.sections[4].text,/일주.*子/);
+  assert.match(second.sections[4].text,/별도로 표시되지/);
+  other.stem={char:'壬',element:'water',god:'편인',balance:'bad'};
+  assert.notEqual(api.buildCycle(other,'pig').sections[5].text,second.sections[5].text);
+  assert.equal(JSON.stringify(cycleFixture),original);
+  assert.equal(first.sections.length,9);
+});
+test('cycle voices share evidence, honor uncertainty and escape rendered facts',()=>{
+  const yeon=api.buildCycle(cycleFixture,'pig'),neo=api.buildCycle(cycleFixture,'neo');
+  assert.notEqual(yeon.intro,neo.intro);
+  assert.deepEqual(yeon.sections[4],neo.sections[4]);
+  const unknown=structuredClone(cycleFixture);unknown.unknown=true;unknown.jong={isJong:true,isGaJong:true};unknown.day='<script>alert(1)</script>';
+  const report=api.buildCycle(unknown,'neo');assert.match(report.warning,/출생시간 미상/);assert.match(report.sections[0].text,/가종격/);
+  assert.doesNotMatch(api.cycleMarkup(unknown,'pig'),/<script>/);
+  assert.match(api.cycleMarkup(unknown,'pig'),/&lt;script&gt;/);
+  assert.equal(api.buildCycle(null,'pig'),null);
+});

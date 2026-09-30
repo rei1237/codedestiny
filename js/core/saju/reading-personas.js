@@ -147,6 +147,50 @@
     return model;
   }
   var state = null, flow = [], daily = [], openGod = null;
+  // Editorial interpretation of supplied engine facts only; no new fortune scoring.
+  var cycleRoles = {
+    '비견': {name:'자기 기준과 동료', theme:'스스로 방향을 정하고 동료와 나란히 힘을 쓰는 주제', work:'독립적으로 맡을 업무와 협업할 업무를 구분하면 실력을 드러내기 좋습니다.', money:'공동 지출과 개인 지출을 나누고, 친분이 있는 거래도 역할과 비용을 기록해 두세요.', relation:'서로의 자율성을 존중하되 내 방식만 옳다고 밀어붙이고 있지는 않은지 살펴보세요.', action:'혼자 결정할 일과 합의가 필요한 일을 나누어 적어보세요.'},
+    '겁재': {name:'경쟁과 자원 배분', theme:'사람들과 함께 움직이며 기회와 자원을 나누는 주제', work:'경쟁이 의욕을 깨울 수 있지만, 비교보다 맡은 역할과 성과 기준을 분명히 하는 편이 좋습니다.', money:'동업·공동 구매에서는 분담금과 중단 조건을 먼저 합의하세요. 경쟁심 때문에 예산을 늘리지 않는 것이 중요합니다.', relation:'가까운 사이일수록 부탁을 모두 받아주기보다 시간과 책임의 경계를 정해보세요.', action:'새 협업을 시작하기 전 역할·비용·종료 기준을 한 장에 정리해 보세요.'},
+    '식신': {name:'꾸준한 표현과 생산', theme:'익힌 능력을 반복 가능한 결과물로 만들어 가는 주제', work:'반복해서 다듬을 수 있는 기술과 작업 방식이 강점이 됩니다. 완성한 결과를 꾸준히 보여주세요.', money:'수입을 크게 예상하기보다 실제로 반복할 수 있는 작업량과 비용을 확인해 보세요.', relation:'함께 식사하거나 일상을 나누는 작은 표현이 관계를 편안하게 만들 수 있습니다.', action:'지치지 않고 반복할 수 있는 작업 분량과 쉬는 시간을 함께 정해보세요.'},
+    '상관': {name:'질문과 새로운 표현', theme:'익숙한 방식에 질문을 던지고 나만의 표현을 찾는 주제', work:'개선점을 발견하는 눈을 제안서·작품·실험으로 옮겨보세요. 지적만 하기보다 실행 가능한 대안을 붙이면 설득력이 생깁니다.', money:'새 아이디어의 수익성은 작은 실험으로 확인하세요. 반응이 오기 전에 지출부터 늘리지 않는 편이 좋습니다.', relation:'솔직함이 강점이 되려면 상대가 받아들일 수 있는 시점과 말투도 함께 살펴야 합니다.', action:'바꾸고 싶은 문제 하나에 이유와 대안을 한 문장씩 적어보세요.'},
+    '편재': {name:'기회 탐색과 연결', theme:'외부 기회와 사람·자원을 연결하는 주제', work:'새 고객이나 다른 업무 영역을 살펴볼 수 있습니다. 여러 가능성 가운데 실제로 감당할 수 있는 것부터 골라보세요.', money:'기회가 많아 보일수록 현금 흐름과 손실 한도를 먼저 확인하세요. 운의 해석을 투자 수익의 근거로 삼지는 마세요.', relation:'만남의 폭을 넓히되 가까운 관계에 쓸 시간도 남겨두세요. 많은 연결과 깊은 신뢰는 따로 돌봐야 합니다.', action:'관심 있는 기회 세 가지를 시간·비용·회수 가능성으로 비교해 보세요.'},
+    '정재': {name:'생활 기반과 축적', theme:'꾸준히 관리하며 생활의 기반을 쌓아 가는 주제', work:'책임 범위와 일정이 분명한 일에서 장점을 살펴볼 수 있습니다. 작은 성과를 기록해 다음 계획에 반영해 보세요.', money:'고정 지출과 저축 목표를 현실에 맞춰 점검해 보세요. 안정만 지키려다 필요한 배움과 변화까지 미루지는 않는 것이 좋습니다.', relation:'약속을 지키는 태도가 신뢰를 쌓습니다. 돌봄과 책임이 한 사람에게만 몰리지 않도록 대화해 보세요.', action:'이번 달 유지할 지출과 줄일 지출, 필요한 준비 비용을 나눠보세요.'},
+    '편관': {name:'도전과 부담 조절', theme:'요구가 높은 과제에 대응하며 경계를 세우는 주제', work:'어려운 역할이 집중력을 끌어낼 수 있지만 권한 없이 책임만 늘어나는 것은 피해야 합니다. 필요한 지원을 먼저 요청하세요.', money:'예상 밖 비용에 대비할 여지를 두세요. 압박을 벗어나기 위해 성급하게 큰 계약을 결정하지 않는 편이 좋습니다.', relation:'긴장이 쌓일 때 상대를 통제하려 하기보다 내가 감당할 수 있는 선을 분명히 알려주세요.', action:'맡은 책임에 비해 부족한 시간·권한·지원이 무엇인지 점검해 보세요.'},
+    '정관': {name:'책임과 신뢰', theme:'역할과 약속을 지키며 신뢰를 쌓는 주제', work:'조직의 기준과 내 역할을 맞추는 일이 중요해질 수 있습니다. 평가 기준을 확인하고 성과를 차분히 기록하세요.', money:'계약·납부·정기 지출처럼 미루기 쉬운 의무를 정리해 보세요. 체면을 위해 감당하기 어려운 비용을 떠안지는 마세요.', relation:'관계의 이름보다 실제로 지킬 수 있는 약속을 확인하세요. 상대에게도 같은 기준을 강요하고 있지는 않은지 돌아보세요.', action:'내가 책임질 범위와 상대에게 확인할 약속을 구분해 보세요.'},
+    '편인': {name:'탐구와 관점 전환', theme:'익숙하지 않은 관점을 깊이 살피고 전문성을 다듬는 주제', work:'혼자 깊이 파고드는 시간이 도움이 될 수 있습니다. 연구나 아이디어가 실제로 쓰일 장면을 정해두면 고립을 줄일 수 있습니다.', money:'자료·도구·배움에 드는 비용이 쌓이지 않는지 확인하세요. 관심과 실제 활용 가능성을 나눠보는 편이 좋습니다.', relation:'혼자 생각할 시간이 필요하다면 상대에게 설명해 주세요. 말하지 않은 마음까지 알아주기를 기다리지는 마세요.', action:'새롭게 배운 내용 하나를 작은 결과물이나 대화로 옮겨보세요.'},
+    '정인': {name:'배움과 지지 기반', theme:'배우고 도움을 주고받으며 기반을 보완하는 주제', work:'교육·기록·멘토의 피드백을 통해 준비를 다질 수 있습니다. 배움이 충분한지보다 실제로 한 번 적용했는지를 확인하세요.', money:'교육과 준비에 필요한 예산을 정해두세요. 보호받는 환경이 있더라도 스스로 관리할 생활 기반을 함께 마련하는 편이 좋습니다.', relation:'도움을 받아들이되 고마움 때문에 모든 요청을 수락할 필요는 없습니다. 서로 편안한 지원의 범위를 이야기해 보세요.', action:'도움받을 일 하나와 스스로 실행할 일 하나를 함께 정해보세요.'}
+  };
+  function buildCycle(input, selected) {
+    if (!input || !input.day || !input.stem || !input.branch) return null;
+    var neo=selected==='neo', a=cycleRoles[input.stem.god], b=cycleRoles[input.branch.god];
+    if(!a || !b)return null;
+    var section=[], end=Number(input.startYear)+9;
+    function add(title,text){section.push({title:title,text:text});}
+    function elName(key){var i=elements.indexOf(key);return i>=0?copy.ko.names[i]:'확인되지 않은 기운';}
+    var dominant=elName(input.dominant), strength=input.jong&&input.jong.isJong
+      ? '한 방향으로 모인 기세를 살피는 '+(input.jong.isGaJong?'가종격':'종격')+' 가능성이 검토됩니다. 일반적인 신강·신약 기준만으로 해석하지 않습니다.'
+      : input.power ? (input.power.isStrong?'일간을 지지하는 힘이 비교적 큰 구조로, 내 힘을 어디에 쓰고 나눌지가 중요합니다.':'주변 역할의 요구에 비해 일간의 지원이 적은 구조로, 도움과 준비 시간을 확보하는 방식이 중요합니다.') : '강약을 확인할 자료가 없어 그에 따른 결론은 보류합니다.';
+    add('타고난 명식과 이번 대운의 만남','나를 읽는 기준인 일간은 '+input.day+'이고, 계절의 바탕을 보는 월지는 '+input.month+'입니다. '+(input.dominant? '원국에서는 '+dominant+'의 비중이 상대적으로 두드러집니다. 같은 기운이 많아지는 것만으로 유리하다고 보지는 않습니다. ':'')+strength);
+    function roleText(row,role,label){var count=Number(input.godCounts[row.god])||0;return label+' '+row.char+'('+elName(row.element)+')는 일간 '+input.day+'에게 '+row.god+' · '+role.name+'로 읽힙니다. '+role.theme+'가 이번 시기를 이해할 단서입니다. '+(count?'원국에서 이 십성이 '+count+'곳에 나타나므로 익숙한 역할이 다시 강조되는지 살펴보세요.':'원국의 대표 글자에서는 이 십성이 두드러지지 않아, 익숙하지 않은 역할을 연습하는 관점으로 살펴볼 수 있습니다.')+' '+role.action;}
+    add('천간에서 읽는 선택과 표현',roleText(input.stem,a,'대운의 천간'));
+    add('지지에서 읽는 생활의 바탕',roleText(input.branch,b,'대운의 지지')+' 지지의 십성은 대표 기운을 기준으로 읽으며 지장간 전체를 하나의 성향으로 단정하지 않습니다. '+(input.stem.god===input.branch.god?'위아래 글자가 같은 주제를 반복합니다. 강점을 충분히 쓰되 한 방식에만 몰두하지 않는 여유도 필요합니다.':'겉으로 펼칠 일과 일상에서 챙길 기반이 서로 다를 수 있습니다. 두 주제 중 하나를 버리기보다 함께 감당할 순서를 정해보세요.'));
+    var climate=input.climate==='cold'||input.climate==='cool'?'차가운 쪽':input.climate==='hot'||input.climate==='warm'?'따뜻한 쪽':'한쪽 온도에 크게 치우치지 않는 쪽';
+    function balance(row){return row.char+'의 '+elName(row.element)+'은 '+(row.balance==='good'?'현재 명식의 균형을 돕는 후보':row.balance==='bad'?'현재 명식에서 부담을 늘릴 수 있는 기운':'균형의 유불리가 뚜렷하지 않은 기운')+'로 검토됩니다.';}
+    add('힘의 균형을 함께 살피면',(input.climate?'원국의 조후, 즉 계절의 온도 균형은 '+climate+'으로 읽힙니다. ':'조후 자료가 없어 계절적 보완은 단정하지 않습니다. ')+balance(input.stem)+' '+balance(input.branch)+' '+(input.stem.balance!==input.branch.balance?'도움과 부담의 방향이 서로 다릅니다. 좋은 기회를 활용하더라도 소모되는 부분을 함께 보완해야 합니다. ':'한 방향의 신호가 반복되더라도 실제 결과는 준비와 환경에 따라 달라집니다. ')+(input.jong&&input.jong.isJong?'종격에서는 중심 기세를 이어가는지 흐트러뜨리는지를 우선 살핍니다.':'신강·신약은 능력의 등급이 아니라 힘의 배분을 읽는 참고 기준입니다.'));
+    var relations=(input.relations||[]).map(function(r){return '대운 '+r.src+'과 원국 '+r.positions.join('·')+'의 '+r.partner+' 사이에 '+r.type+'이 관찰됩니다. '+(r.isChung?'충은 서로 다른 방향의 요구를 살피는 관계입니다. 기존 역할이나 생활 방식을 조정할 계기로 읽되 이별·사고 같은 사건을 단정하지 않습니다.':'합은 두 글자가 묶여 작용하는 관계입니다. '+elName(r.hapEl)+'으로 기운이 모일 가능성을 참고하되 합이 있다는 이유만으로 변화나 성과를 확정하지 않습니다.');});
+    add('원국의 어느 자리와 만나는가',relations.length?relations.join('\n\n'):'이번 자료에서는 원국과 대운 사이의 천간합·육합·충이 별도로 표시되지 않습니다. 이것이 변화가 없다는 뜻은 아닙니다. 위의 십성과 균형을 중심으로 읽어보세요.');
+    var capacity=input.jong&&input.jong.isJong?'중심 기세에 맞는 역할인지 확인하면서 한 방향에만 모든 자원을 걸지는 마세요.':input.power?(input.power.isStrong?'원국에서 지지받는 힘이 있는 만큼 일을 혼자 끌고 가기보다 성과를 나눌 구조와 마감 기준을 함께 마련해 보세요.':'원국에서 지원을 확보하는 것이 중요한 만큼 새 역할을 맡기 전에 협력자·시간·준비 비용을 먼저 확보하는 편이 좋습니다.'):'실제 가용 시간과 자원을 기준으로 범위를 정해보세요.';
+    add('일과 재물에서 살펴볼 선택',a.work+' '+capacity+' '+a.money+(input.stem.god!==input.branch.god?' 생활 기반에서는 '+b.money:''));
+    add('관계에서 반복하기 쉬운 모습',b.relation+(input.stem.god!==input.branch.god?' 밖으로 드러내는 태도에서는 '+a.relation:'')+' 상대의 마음이나 관계의 결말을 정해 놓기보다 실제 대화와 행동을 함께 확인해 보세요.');
+    add(neo?'실행할 순서를 정리하세요':'이 계절을 내 것으로 만드는 작은 실천','먼저, '+a.action+' 이어서, '+(a===b?'같은 역할이 반복될 때 소모되는 시간과 비용을 점검해 보세요.':b.action)+' 마지막으로, 한 달 뒤 실제로 달라진 점과 소모된 자원을 돌아보세요. 이는 10년 안의 특정 해를 예언하는 구분이 아니라, 지금 시작할 수 있는 실행 순서입니다.');
+    add('대운과 세운, 다음 시기를 함께 읽기','대운은 약 10년의 큰 배경이고 세운은 그 안에서 해마다 달라지는 흐름입니다. 아래 연도별 해설을 함께 읽어보세요. '+(input.next?'다음 '+input.next.g+input.next.j+' 대운은 표의 '+input.next.age+'세부터 이어집니다. 앞선 시기에 만든 일과 관계도 이어지므로 한 해를 경계로 삶이 모두 바뀐다고 보지는 않습니다.':'현재 표의 마지막 구간으로, 이후 시기를 이 자료만으로 확정하지 않습니다.')+' 표시 연도는 대운표의 나이 기준을 옮긴 범위이며 정확한 교운 날짜를 뜻하지 않습니다.');
+    return {title:input.stem.char+input.branch.char+' 대운 · '+input.startYear+'–'+end+'년',intro:(neo?'이번 대운의 핵심은 ':'이번 열 해에는 ')+a.name+(a===b?'':', 그리고 '+b.name)+(neo?'입니다. 근거를 확인하고 감당할 수 있는 행동부터 정하세요.':'의 주제를 함께 살펴볼게요. 익숙한 강점과 새롭게 필요한 태도를 구분해 보세요.'),sections:section,warning:input.unknown?'출생시간 미상: 시주를 제외한 자리만 관계 설명에 표시했습니다. 정오를 대입한 원국의 비율·강약과 대운 시작 시기는 참고용이며 확정할 수 없습니다.':'해석은 현재 명식의 상징적 흐름을 설명하며 실제 사건·수익·관계의 결말을 보장하지 않습니다.'};
+  }
+  function cycleMarkup(input, selected) {
+    var model=buildCycle(input,selected);if(!model)return '';
+    return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3><p>'+esc(model.intro)+'</p><p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section){return '<dt>'+esc(section.title)+'</dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>';}).join('')+'</dl></section>';
+  }
+
   function snapshot() {
     if (!root.G_PILLARS || !root.G_NATAL) return null;
     var p=root.G_PILLARS, ten={};
@@ -236,8 +280,8 @@
     expanded.forEach(function(s){var parent=s.parent&&document.getElementById(s.parent);var e=s.el.isConnected?s.el:parent&&parent.querySelectorAll('details')[s.index];if(e)e.open=s.open;});
     requestAnimationFrame(function(){requestAnimationFrame(function(){if(visible&&visible.isConnected)window.scrollBy({top:visible.getBoundingClientRect().top-offset,behavior:'instant'});var f=focusId?document.getElementById(focusId):focusMode?document.querySelector(focusHost+' [data-saju-mode="'+focusMode+'"]'):null;if(f)f.focus({preventScroll:true});preserving=false;});});
   }
-  function changed() {preserve(function(){render('all');refreshCopy();if(!root.G_PILLARS)renderHeader();});}
-  root.SajuReadingPresentation={build:build,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
+  function changed() {preserve(function(){render('all');refreshCopy();if(typeof root.refreshDaewunReadingGuide==='function')root.refreshDaewunReadingGuide();if(!root.G_PILLARS)renderHeader();});}
+  root.SajuReadingPresentation={build:build,buildCycle:buildCycle,cycleMarkup:cycleMarkup,render:render,changed:changed,showGod:showGod,setFlow:function(rows){flow=rows.map(function(r){return Object.assign({},r);});render('flow');},setDaily:function(day,month){daily=[day,month];render('daily');},copy:langCopy,sourceCopy:copy,escape:esc,locale:locale,refreshCopy:refreshCopy};
   if(typeof document==='undefined')return;
   document.addEventListener('click',function(event){
     var button=event.target.closest('[data-saju-mode]');

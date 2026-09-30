@@ -207,6 +207,15 @@ try {
   await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
   assert.equal(await page.locator('#yearList .year-row').count(), 10, 'paid cycle supplies all ten annual readings');
   assert.match(await page.locator('#dwDetail').innerText(), /대운과 세운/);
+  const firstCycle = await page.locator('.saju-cycle-guide').innerText();
+  await page.locator('#dwGrid .dw-item').nth(1).scrollIntoViewIfNeeded();
+  // The existing direct-tap guard intentionally suppresses taps within 200ms of scrolling.
+  await page.waitForTimeout(350);
+  await page.locator('#dwGrid .dw-item').nth(1).click();
+  await page.waitForFunction(() => Number(document.querySelector('.saju-cycle-guide')?.dataset.cycleAge) === Number(window.G_DAEWUN[1].age));
+  assert.notEqual(await page.locator('.saju-cycle-guide').innerText(), firstCycle, 'another cycle has its own consultation');
+  assert.equal(await page.locator('.saju-cycle-guide dt').count(), 9);
+  assert.match(await page.locator('.saju-cycle-guide').innerText(), /일간.*월지/);
   for (const width of [360,390,430,1280]) {
     await page.setViewportSize({width,height:900});
     for (const mode of ['pig','neo']) {
@@ -224,6 +233,7 @@ try {
         await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
       }
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
+      assert.match(await page.locator('.saju-cycle-guide > p').first().textContent(), mode === 'neo' ? /핵심은/ : /살펴볼게요/);
       assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
     }
     await page.locator('#dwGrid .dw-item').first().click();
