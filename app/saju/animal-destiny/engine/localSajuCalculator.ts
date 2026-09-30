@@ -1,5 +1,5 @@
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
-import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms } from "@/lib/korean-calendar";
+import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms, resolveNatalInstant } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
@@ -358,12 +358,34 @@ function makePillar(stemRaw: string, branchRaw: string): SajuPillarLocal {
   };
 }
 
-function canonicalNatalPlace(input: LocalSajuInput) {
+function canonicalNatalPlace(
+  input: LocalSajuInput,
+  timezoneInfo: { timezone: string; offsetMinutes: number },
+  solarDate: { year: number; month: number; day: number },
+) {
   const longitude = getInputLongitude(input);
-  const timezone = String(input.timezone || "").trim();
-  if (!Number.isFinite(longitude) || !timezone) return undefined;
-
+  const timezone = timezoneInfo.timezone;
   const latitude = getInputLatitude(input);
+  if (!Number.isFinite(longitude)) {
+    if (timezoneInfo.offsetMinutes === KST_OFFSET_MINUTES) return undefined;
+    const hour = input.hasTime && Number.isFinite(input.hour) ? Number(input.hour) : 12;
+    const minute = input.hasTime && Number.isFinite(input.minute) ? Number(input.minute) : 0;
+    let noCorrectionLongitude = timezoneInfo.offsetMinutes / 4;
+    try {
+      const instant = resolveNatalInstant({ ...solarDate, hour, minute }, timezone);
+      noCorrectionLongitude = (instant.standardOffsetMinutes + instant.dstMinutes) / 4;
+    } catch {
+      // normalizeTimezone already chose a safe offset; keep that no-correction fallback.
+    }
+    return {
+      name: input.birthplace || "출생지 경도 미입력",
+      longitude: noCorrectionLongitude,
+      ...(Number.isFinite(latitude) ? { latitude: Number(latitude) } : {}),
+      timezone,
+      longitudeCorrectionAssumed: "none",
+    };
+  }
+
   return {
     name: input.birthplace || "출생지",
     longitude: Number(longitude),
@@ -5326,14 +5348,15 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
     birthTime: input.hasTime ? `${String(input.hour ?? 0).padStart(2, "0")}:${String(input.minute ?? 0).padStart(2, "0")}` : undefined,
     calendarType: input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
     isLeapMonth: Boolean(input.lunarLeap),
-    birthPlace: canonicalNatalPlace(input),
+    birthPlace: canonicalNatalPlace(input, timezoneInfo, solarDate),
   });
 
   // The applied policy is the canonical natal contract; legacy input options remain input evidence only.
   const standardClock = { ...canonicalNatal.calculationMeta.civil, hour: canonicalNatal.calculationMeta.civil.hour ?? 12, minute: canonicalNatal.calculationMeta.civil.minute ?? 0 };
   const hourPillarTimePolicy: HourPillarTimePolicy = "LOCAL_MEAN_TIME";
-  const corrected = canonicalNatal.calculationMeta.corrected || standardClock;
-  const trueSolarTimeUsed = input.hasTime;
+  const correctionLongitude = resolveHourPillarLongitude({ ...input, timezone: timezoneInfo.timezone }, timezoneInfo.offsetMinutes);
+  const trueSolarTimeUsed = Boolean(input.hasTime && correctionLongitude != null);
+  const corrected = trueSolarTimeUsed ? (canonicalNatal.calculationMeta.corrected || standardClock) : standardClock;
   const zashiMode = "early";
   // Solar terms use the actual instant in KST, including lunar conversion and historical DST.
   const termClock = canonicalNatal.calculationMeta.termClock;
@@ -5418,7 +5441,9 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
       hourPillarTimeCorrection: {
         ...canonicalNatal.calculationMeta.correction,
         policy: hourPillarTimePolicy,
-        status: input.hasTime ? "applied" : "not_applied_birth_time_unknown",
+        status: input.hasTime
+          ? trueSolarTimeUsed ? "applied" : "not_applied_missing_birthplace_longitude"
+          : "not_applied_birth_time_unknown",
       },
       solarTerms: {
         active: solarTermWindow.active,
