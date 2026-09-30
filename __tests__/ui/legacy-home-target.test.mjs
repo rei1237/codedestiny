@@ -64,9 +64,9 @@ function homeRedirects(search = "", hash = "") {
   return redirects;
 }
 
-test("home component keeps ordinary and campaign visits on the indexable root", () => {
-  assert.deepEqual(homeRedirects(), []);
-  assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune", "#readings"), []);
+test("home component opens Ggulggul and preserves campaign attribution", () => {
+  assert.deepEqual(homeRedirects(), ["/ggulggul/"]);
+  assert.deepEqual(homeRedirects("?utm_source=google&utm_campaign=free-fortune", "#readings"), ["/ggulggul/?utm_source=google&utm_campaign=free-fortune#readings"]);
 });
 
 test("home component preserves question guides and their campaign attribution", () => {

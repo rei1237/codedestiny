@@ -99,7 +99,7 @@ export default function HomePage() {
   const orgJsonLd = buildOrganizationJsonLd();
   const webPageJsonLd = buildWebPageJsonLd({title:page.title, description:page.description, path:page.path});
   return <>
-    <LegacyHomeEntry />
+    <LegacyHomeEntry defaultTarget="/ggulggul/" />
     <LocalizedServiceSummary><section className={styles.guide} aria-labelledby="homeGuideTitle">
       <h1 id="homeGuideTitle">무료 운세부터 나의 질문에 맞는 상담까지</h1>
       <p>사주 달빛정원은 꿀꿀 운세의 꽃돼지 연이·네오와 영냥이를 함께 만나는 Code Destiny의 운세 상담 공간입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
