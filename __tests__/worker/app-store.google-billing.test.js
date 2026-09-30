@@ -144,7 +144,7 @@ function pickFreeFeatureKey() {
     const result = billingRegistry.getBillingFeaturePricing({ featureKey: key });
     if (!result?.ok || !result.pricing) continue;
     const coin = Math.floor(Number(result.pricing.coinPrice ?? result.pricing.cost ?? 0));
-    if (appPricing.isAppFreeCoinPrice(coin)) return key;
+    if (appPricing.isAppFreeCoinPrice(coin) && !key.startsWith("yeongnyangi-")) return key;
   }
   return null; // 무료 구간 기능이 사라지면 해당 테스트만 건너뛴다.
 }
@@ -631,6 +631,30 @@ describe("free-grant — 앱 무료 구간", () => {
 });
 
 describe("intent — 결제 의도 기록", () => {
+  test("고등어 상담은 음악용 저가 무료 정책으로 지급하지 않는다", async () => {
+    const { status, payload } = await callRoute(postJson("/free-grant", {
+      featureKey: "yeongnyangi-saju-mackerel", requestId: "yn-" + "a".repeat(64),
+    }));
+    expect(status).toBe(503);
+    expect(payload.code).toBe("APP_SKU_NOT_VERIFIED");
+    expect(mockPaymentCreate).not.toHaveBeenCalled();
+  });
+
+  test("앱 종료 뒤 영수증 복구가 서버 의도의 상담 ID를 보존한다", async () => {
+    const requestId = "yn-" + "a".repeat(64);
+    mockIntentFindOne.mockReturnValue({ sort: () => ({ lean: async () => ({
+      featureKey: "yeongnyangi-saju-salmon", requestId, profileId: "saved-profile",
+    }) }) });
+    const { status, payload } = await callRoute(postJson("/google/restore", {
+      purchases: [{ productId: "cd_content_tier_01", purchaseToken: "orphan-yn", orderId: "GPA.test" }],
+    }));
+    expect(status).toBe(200);
+    expect(payload.data.failedPurchases).toEqual([]);
+    expect(mockPaymentCreate.mock.calls[0][0].requestId).toBe(requestId);
+    expect(mockPaymentCreate.mock.calls[0][0].pricingSnapshot.requestId).toBe(requestId);
+    expect(payload.data.purchases[0].shouldConsume).toBe(true);
+  });
+
   test("launchBillingFlow 직전 의도를 남기고 obfuscatedAccountId를 내려준다", async () => {
     const { status, payload } = await callRoute(postJson("/google/intent", {
       featureKey: perUse.key,

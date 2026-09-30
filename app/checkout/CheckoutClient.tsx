@@ -24,7 +24,9 @@
 import {ServicePackCheckout} from "@/app/components/service-packs/ServicePacks";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
+import { isMobileAppRuntime, loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
+import { authFetch } from "@/app/_lib/auth-client";
+import { queryAppProducts } from "@/app/app/_lib/native-billing";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
 import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
@@ -128,6 +130,7 @@ export default function CheckoutClient() {
   const [available,setAvailable]=useState(false);
   const [checked,setChecked]=useState(false);
   const [reading,setReading]=useState<FortuneRecord|null>(null);
+  const [nativePrice,setNativePrice]=useState<string|null>(process.env.NEXT_PUBLIC_RUNTIME_TARGET === 'mobile-app' ? '' : null);
   const [gate, setGate] = useState<GateState>({ phase: "idle" });
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   // 표는 모듈 상수라 같은 로케일이면 참조가 그대로다 — 아래 useEffect·useCallback 의존성에 넣어도 안전하다.
@@ -139,6 +142,27 @@ export default function CheckoutClient() {
     (amount: number) => copy.won(Math.max(0, Math.round(amount)), intlLocale),
     [copy, intlLocale],
   );
+
+  useEffect(() => {
+    if (!isMobileAppRuntime()) return;
+    let cancelled = false;
+    setNativePrice('');
+    async function readPlayPrice() {
+      try {
+        const response = await authFetch(`/api/app-store/products?featureKey=${encodeURIComponent(params.featureKey)}`);
+        if (!response.ok) return;
+        const payload = await response.json();
+        const productId = payload?.data?.product?.productId;
+        if (!productId) return;
+        const details = await queryAppProducts([productId]);
+        const price = details.find(product => product.productId === productId)?.formattedPrice;
+        if (!cancelled && price) setNativePrice(price);
+      } catch { /* Unknown Play prices must never fall back to a web KRW price. */ }
+    }
+    void readPlayPrice();
+    window.addEventListener('focus', readPlayPrice);
+    return () => { cancelled = true; window.removeEventListener('focus', readPlayPrice); };
+  }, [params.featureKey]);
 
   useEffect(() => {
     const sync = () => setLang(getCurrentLoadingLocale());
@@ -292,7 +316,7 @@ export default function CheckoutClient() {
               <dl className={styles.receipt}>
                 <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
                 <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
-                <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
+                <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play'}</dd></div>
                 {!pricing.monthlyExcluded && <div className={styles.moonstones}><dt>{alliance.moonstoneLabel}</dt><dd>{alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</dd></div>}
               </dl>
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
@@ -309,7 +333,7 @@ export default function CheckoutClient() {
                 disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(formatKrw(pricing.amountKRW))}
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play')}
               </button>
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>

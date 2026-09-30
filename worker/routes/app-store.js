@@ -167,7 +167,7 @@ function resolveProduct(pricing, env, body = {}) {
 
   // 웹 ₩500 이하 기능은 인상해도 Play KRW 최저 판매가를 밑돌 수 있어 SKU를 만들지 않고
   // 앱에서만 무료로 통과시킨다(웹은 유료 그대로).
-  if (isAppFreeCoinPrice(coinPrice)) {
+  if (isAppFreeCoinPrice(coinPrice) && !featureKey.startsWith("yeongnyangi-")) {
     return {
       provider: "GOOGLE_PLAY",
       kind: "free",
@@ -697,7 +697,7 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       throw error;
     }
     const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now, passOrderId: impUid });
-    return { payment: existing, user, requestId, idempotent: true };
+    return { payment: existing, user, requestId: existing.requestId || requestId, idempotent: true };
   }
 
   const payment = await Payment.create({
@@ -973,7 +973,7 @@ async function handleGoogleRestore(request, env) {
           throw error;
         }
 
-        const { pricing, product } = await resolveProductByProductId(env, {
+        const { pricing, product, intent } = await resolveProductByProductId(env, {
           ...body,
           ...nativePurchase,
           productId,
@@ -995,6 +995,13 @@ async function handleGoogleRestore(request, env) {
             ...body,
             ...nativePurchase,
             packageName,
+            // A Play receipt has no consultation request ID. Recover the original
+            // server-side intent before consuming the purchase, so a killed app
+            // can still attach this payment to the same saved consultation.
+            requestId: intent?.requestId || nativePurchase?.requestId || body.requestId,
+            profileId: intent?.profileId || nativePurchase?.profileId || body.profileId,
+            reportId: intent?.reportId || nativePurchase?.reportId || body.reportId,
+            sessionId: intent?.sessionId || nativePurchase?.sessionId || body.sessionId,
             productId: product.productId,
             productType: product.productType,
             purchaseToken,
