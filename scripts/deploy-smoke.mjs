@@ -308,7 +308,12 @@ async function checkPages() {
         fail("route " + route + " returned HTTP " + (nav.response?.status() || "no response"));
       }
       await page.waitForTimeout(250);
-      if (route === "/") await checkAssets(page);
+      if (route === "/") {
+        // The home entry hydrates before redirecting to the static shell. Inspect
+        // its settled destination, never the transient document between navigations.
+        await page.waitForURL(new URL("/ggulggul/", base).href, { waitUntil: "domcontentloaded", timeout: 15000 });
+        await checkAssets(page);
+      }
     } catch (error) {
       fail("route " + route + " failed: " + error.message);
     }
