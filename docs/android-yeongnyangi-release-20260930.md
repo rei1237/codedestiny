@@ -129,6 +129,8 @@ CODE DESTINY의 사주보는 고양이 영냥이가 연애, 관계, 일과 돈, 
 - Google Play 구매 mock 테스트: 24/24 통과(수정 직후).
 - `npm run check:fast`: 종료 코드 0. paid-gate-suite 88/88, Jest 326개 suite·4,833개 test 통과. 타입 검사·린트·Worker 빌드 및 선택된 정책 검사를 포함한다. 이후 추가한 layout 수정은 targeted eslint 및 최종 모바일 Next 빌드에서 재검증했다.
 - `npx eslint --quiet app/yeongnyangi/layout.tsx app/checkout/CheckoutClient.tsx`, `git diff --check`: 종료 코드 0.
+- 최종 웹 산출물의 첫 앱 검사는 옛 루트 셸 가정 때문에 3건 실패했다. `verify-app-no-portone.mjs`의 기존 연이/네오·법적 고지·홈 보존 검사를 실제 `/ggulggul/` 경로로 이동하고 영냥이 첫 화면·법적 고지 검사를 추가했다. 수정 후 `node scripts/verify-app-no-portone.mjs --dist dist` 전 항목 통과. 검사 삭제 또는 외부 결제 차단 완화 없음.
+- `gradlew compileReleaseJavaWithJavac`: BUILD SUCCESSFUL (15초). 최종 웹 자산 동기화와 AAB/APK 서명 결과는 BUILD-RESULT.json을 확인한다.
 - 코드 커밋: `356ffc4e7`(결제 복구/가격), `e6cc7768812295e6bb293cecb1838f044d584eda`(앱 진입/브랜드/모바일 헤더/스토어 자료). main fast-forward 및 push 완료. 다른 세션의 marketing, next-env.d.ts, tsconfig.json 변경은 포함하지 않았다.
 - 초기 웹 번들 실패: C:/D: 드라이브 간 node_modules junction에 따른 Next 경로 오류. junction 제거 후 lockfile 그대로 npm ci 설치 완료. 작업과 무관한 의존성 버전 변경 없음.
 - 최종 빌드/CI/파일 해시 결과는 바탕화면 BUILD-RESULT.json에 별도로 기록한다.

@@ -18,6 +18,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
 const DIST = distArgIndex > -1 ? path.resolve(ROOT, process.argv[distArgIndex + 1]) : "";
 const GUARD_PUBLIC_PATH = "/js/app-payment-guard.js";
+// 루트는 영냥이 진입점이다. 기존 연이/네오 셸은 /ggulggul/에 보존된다.
+const LEGACY_SHELL_PATH = path.join("ggulggul", "index.html");
+const YEONGNYANGI_HOME_PATH = path.join("yeongnyangi", "index.html");
 
 const failures = [];
 
@@ -373,7 +376,7 @@ if (DIST) {
       // <html> 과 <body> 의 테마 상태가 어긋난 채 남는다 — 이 프로젝트가 금지한 "반쪽 오버라이드".
       // 그 결과 로딩 중 다크→연이로 뒤집혀 보였고, 테마 강제까지 겹치자 홈이 흰 화면이 됐다.
       // 다시 사라지면 같은 사고가 반복되므로 존재를 강제한다.
-      const shellPath = path.join(DIST, "index.html");
+      const shellPath = path.join(DIST, LEGACY_SHELL_PATH);
       const shellHtml = await fs.readFile(shellPath, "utf8").catch(() => "");
       const markupRe = /<[a-z]+[^>]*\sclass="[^"]*theme-switch-wrapper[^"]*"/i;
       check(
@@ -404,7 +407,7 @@ if (DIST) {
     }
     {
       // 셸 계열 HTML 에 브릿지 <script> 가 실제로 주입됐는지 표본 검사.
-      const shellCandidates = ["index.html", "en/index.html", "ja/index.html", "zh/index.html", "static/index.html"];
+      const shellCandidates = ["index.html", LEGACY_SHELL_PATH, YEONGNYANGI_HOME_PATH, "en/index.html", "ja/index.html", "zh/index.html", "static/index.html"];
       let checkedShells = 0;
       let missingBridge = [];
       for (const rel of shellCandidates) {
@@ -450,13 +453,13 @@ if (DIST) {
         strayBlocks.length ? `잔존: ${strayBlocks.slice(0, 5).join(", ")}` : "",
       );
 
-      const shellHtml = await fs.readFile(path.join(DIST, "index.html"), "utf8").catch(() => "");
+      const shellHtml = await fs.readFile(path.join(DIST, LEGACY_SHELL_PATH), "utf8").catch(() => "");
       const legalKept = ['href="/privacy/', 'href="/terms/', 'cd-footer-business-details'];
       const missingLegal = legalKept.filter((needle) => !shellHtml.includes(needle));
       check(
         "법적 고지 존치: 개인정보처리방침·이용약관 링크 + 사업자 정보",
         shellHtml.length > 0 && missingLegal.length === 0,
-        missingLegal.length ? `누락: ${missingLegal.join(", ")}` : "dist/index.html 을 읽지 못했다",
+        missingLegal.length ? `누락: ${missingLegal.join(", ")}` : "dist/ggulggul/index.html 을 읽지 못했다",
       );
     }
 
@@ -540,7 +543,9 @@ if (DIST) {
       ).length;
 
     const pagesToCheck = [
-      ["index.html", "홈(루트 셸)"],
+      ["index.html", "루트 진입점"],
+      [YEONGNYANGI_HOME_PATH, "영냥이 앱 첫 화면"],
+      [LEGACY_SHELL_PATH, "꿀꿀 운세(기존 연이/네오 셸)"],
       [path.join("saju", "basic", "index.html"), "/saju/basic (앱 탭 — /insights 링크 있던 곳)"],
       [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
     ];
@@ -573,7 +578,12 @@ if (DIST) {
         `남은 링크 ${afterCount}건`,
       );
 
-      if (relPath === "index.html") {
+      if (relPath === YEONGNYANGI_HOME_PATH) {
+        const doc = pageWindow.document;
+        check("영냥이 첫 화면과 상담 진입 보존", Boolean(doc.getElementById("hero-title") && doc.querySelector('a[href^="/yeongnyangi/fortune/"]')));
+        check("영냥이 법적 고지와 사업자 정보 보존", Boolean(doc.querySelector('.service-navigation__business') && doc.querySelector('a[href^="/privacy-policy/"]') && doc.querySelector('a[href^="/terms/"]')));
+      }
+      if (relPath === LEGACY_SHELL_PATH) {
         // 섹션째 사라져야 한다 — 앵커만 지우면 제목만 남은 빈 카드가 된다.
         for (const id of ["cd-insights-body", "cd-famous-body", "fsp-grid"]) {
           check(`홈: #${id} 제거됨`, !pageWindow.document.getElementById(id));
