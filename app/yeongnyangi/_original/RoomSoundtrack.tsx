@@ -40,7 +40,8 @@ export function useRoomSoundtrack(mood:keyof typeof tracks) {
   player.addEventListener('playing',started);
   player.addEventListener('pause',paused);
   if(enabled){
-   if(player.src !== source){player.pause();player.src = source;}
+   // Re-selecting the source clears a previous media error on explicit retry.
+   player.pause();player.src = source;
    play();
   }else{player.pause();setPlaying(false);}
   document.addEventListener('visibilitychange',visibility);
