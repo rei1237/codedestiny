@@ -9,7 +9,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import MoonIcon from "@/components/ui/MoonIcon";
 import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 
 const MOON_SHOP_MAIN_CLASS =
@@ -17,7 +16,7 @@ const MOON_SHOP_MAIN_CLASS =
 const MOON_SHOP_MAIN_BACKGROUND =
   "var(--cd-page-bg-gradient, radial-gradient(circle at 50% -10%, rgba(30,27,96,0.54), transparent 38%), #08091A)";
 
-// 히어로 메달리온·지갑 카드·빈 주문 내역 세 곳이 같은 연이를 쓰므로 로딩 실패 폴백까지 여기서만 관리한다.
+// 지갑 카드·빈 주문 내역이 같은 연이를 쓰므로 로딩 실패 폴백까지 여기서만 관리한다.
 // (URL 정본은 결제 대기 화면과 공유하는 PAYMENT_PIG_LOGO_URL — 상점용 상수를 따로 만들지 않는다.)
 // 상점에서는 최대 90px로만 쓰므로 Cloudflare Image Resizing 축소본을 먼저 받는다.
 // 정본이 동일 오리진 상대경로가 된 뒤에도 축소본을 계속 쓰도록 상대경로를 그대로 이어 붙인다
@@ -65,21 +64,23 @@ export function MoonlightShopHero() {
         <span />
       </div>
       <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-          <div className="moon-shop-visual" aria-hidden="true">
-            <span className="moon-shop-visual-ring moon-shop-visual-ring--one" />
-            <span className="moon-shop-visual-ring moon-shop-visual-ring--two" />
-            <MoonIcon phase="full" className="moon-shop-visual-moon" />
-            <ShopPigImage className="moon-shop-visual-pig" />
-            <span className="moon-shop-visual-spark moon-shop-visual-spark--one" />
-            <span className="moon-shop-visual-spark moon-shop-visual-spark--two" />
-            <span className="moon-shop-visual-spark moon-shop-visual-spark--three" />
-          </div>
-          <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[color:var(--moon-silver)]">연이의 달빛 이용권 상점</p>
-            <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
+        <div className="flex min-w-0 flex-1 flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
+          <img
+            src="/assets/yeongnyangi/payment-alliance/moonlight-fish-ticket-shop-v1.webp"
+            alt="달빛 상점에서 고등어·연어·광어·참치 그림 꾸러미를 함께 소개하는 꽃돼지 연이와 영냥이"
+            width={1280}
+            height={853}
+            loading="eager"
+            decoding="async"
+            className="w-56 max-w-full flex-shrink-0 rounded-2xl sm:w-52"
+          />
+          <div className="min-w-0 max-w-2xl">
+            <h1 className="mt-2 break-keep text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
             <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
               달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-[color:var(--moon-silver)]">
+              연이의 가게에 생선을 좋아하는 영냥이가 놀러 왔어요. “달빛도 좋지만, 생선은 더 좋다냥!”
             </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
               이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.

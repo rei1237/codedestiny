@@ -1,0 +1,11 @@
+# Moonlight fish ticket shop v1
+
+Generated: 2026-09-30
+Tool: built-in image_gen
+Reference: public/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp (character identities and rendering style)
+Source: C:/Users/user/.codex/generated_images/01a0f064-7ff1-7953-8bc8-c43cb50ccd53/exec-78151eee-daae-411a-a1d7-50987de2a620.png
+Delivery: 1280px WebP, quality 84, opaque. No prices or quantities are embedded; catalog fields own commercial terms.
+
+## Final prompt
+
+Use the attached illustration as character and rendering-style reference, not as a composition to copy. Create a new polished landscape 3:2 storybook/anime shop hero illustration for a Korean fortune consultation service. Setting: Yeoni's warm moonlight ticket shop, midnight-blue and lavender storefront interior, lotus lanterns, small crescent-moon sign with no lettering, cozy wooden shop counter. Exactly two main characters: the same adorable glossy round baby-pink flower pig Yeoni with a large translucent pink lotus flower on her head, big brown sparkling eyes, lavender scarf, tiny brown hooves; and the same fluffy white fortune-teller cat Yeongnyangi with purple eyes, navy wizard hat with gold moon and star details, navy cloak and purple gemstone brooch. Yeoni is proudly welcoming the cat's new fish ticket sets into her shop; cat looks quietly delighted, hugging one cute fish-shaped parcel, emphasizing that fish is his favorite. On the counter display FOUR DISTINCT premium paper ticket gift sets, each a small elegant fan of moon-and-lotus paper tickets with one charming illustrated fish emblem: silver-blue striped mackerel, coral salmon, flat golden-brown flounder, deep blue tuna. Four sets visually clear but no written words, no numbers, no prices, no monetary symbols, no coins. These are illustrated consultation ticket packages, not raw fish food, no gore. Keep characters recognizable from reference and especially do not revert Yeoni to an old flat brown-outline pig mascot. Rich but calm lighting, soft high-end detail, cute and trustworthy, clean foreground, one harmonious shop scene, generous safe margins around faces and products so it crops gracefully on mobile. No text, no logo lettering, no watermarks. Opaque background.
