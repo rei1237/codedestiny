@@ -2,11 +2,35 @@ import '../../scripts/lib/mock-network-guard.cjs';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-const compiled=await build({stdin:{contents:"export {CodeDestinyProvider} from './worker/yeongnyangi/providers/code-destiny'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
+const compiled=await build({stdin:{contents:"export {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET} from './worker/yeongnyangi/providers/code-destiny'; export {tokensRequiredForChars} from './worker/lib/llm-budget.js'; export {products} from './worker/yeongnyangi/payments/catalog'; export {consultationManifest,consultationKinds,consultationDomain,supportsKind} from './worker/yeongnyangi/fortune/consultation-kinds'; export {v7OutputTokens} from './worker/yeongnyangi/fortune/reading-v7-prompt'; export {setResponse,getOptions,getPrompt} from 'mock-gemini.js';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,
  plugins:[{name:'mock-provider-transport',setup(b){b.onResolve({filter:/gemini\.js$/},()=>({path:'gemini',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'let response,options,payload; export function setResponse(value){response=value;} export function getOptions(){return options;} export function getPrompt(){return payload;} export async function callGeminiText(env,prompt,opts){options=opts;payload=prompt;return response;}'}));}}]});
-const {CodeDestinyProvider,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const {CodeDestinyProvider,chapterOutputTokenBudget,CHAPTER_THINKING_BUDGET,tokensRequiredForChars,products,consultationManifest,consultationKinds,consultationDomain,supportsKind,v7OutputTokens,setResponse,getOptions,getPrompt}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const provider=new CodeDestinyProvider({GEMINIF_API_KEY:'fixture-not-used',LLM_DRY_RUN:'false'});
 const request={system:'fixture',domainRules:'fixture',userQuestion:'fixture',calculatedData:{},outputSchema:{},sectionTitles:[]};
+
+test('declared output allowance is honored without shrinking large answers or losing old caller headroom',async()=>{
+ setResponse({ok:true,text:'{}',provider:'gemini'});
+ for(const [declared,expected] of [[8192,9216],[4000,9216],[24576,25600],[undefined,12274],[0,12274],[NaN,12274]]){
+  await provider.generate({...request,maxOutputTokens:declared});
+  assert.equal(getOptions().maxOutputTokens,expected);
+  assert.equal(getOptions().thinkingBudget,CHAPTER_THINKING_BUDGET);
+  assert.equal(getOptions().maxProviderAttempts,1);
+  assert.equal(getOptions().fallbackToWorkersAI,false);
+ }
+});
+
+test('every catalog chapter keeps its full goal, header, eight-question and thinking allowances',()=>{
+ let chapters=0;
+ for(const product of products)for(const kind of [undefined,...consultationKinds[consultationDomain(product)].filter(k=>supportsKind(product,k))]){
+  for(const chapter of consultationManifest(product,kind))for(const questions of [0,8]){
+   const requested=v7OutputTokens(chapter,questions);
+   const minimum=tokensRequiredForChars((chapter.targetChars?.[1]||0)+600+questions*480)+CHAPTER_THINKING_BUDGET;
+   assert.ok(chapterOutputTokenBudget(requested)>=minimum,`${product.id}/${kind?.id}/${chapter.id}/${questions}`);
+   chapters++;
+  }
+ }
+ assert.ok(chapters>2000);
+});
 test('question analysis uses a short deterministic single provider call',async()=>{
  setResponse({ok:true,text:'{"questions":[]}'});
  assert.equal(await provider.analyzeQuestion('classify','data'),'{"questions":[]}');
