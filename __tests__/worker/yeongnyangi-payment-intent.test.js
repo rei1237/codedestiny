@@ -53,14 +53,14 @@ test('SDK failure before PG registration permits same-ID recovery only for autho
 
 test('late dual approvals claim one consultation and flag the extra payment without refund',async()=>{
  const {db,input,fortune}=setup();const a=await createPayableOrder(db,input);
- await markOrderFailed(db,{orderId:a.merchantUid,failureCode:'PG_PAYMENT_CANCELLED'});
+ await reconcileFortuneCheckout({...input,withDb:fn=>fn(db),fetchPayment:async()=>({paymentId:a.merchantUid,status:'cancelled'})});
  const b=await createPayableOrder(db,input);
  for(const order of [a,b])await markOrderPaid(db,{orderId:order.merchantUid,order,pg:{summary:{}}});
  const claims=await Promise.all([claimFortunePayment(db,a),claimFortunePayment(db,b)]);
- expect(claims.filter(Boolean)).toHaveLength(1);expect(fortune.paymentClaimOrderId).toBe(a.merchantUid);
- expect(db.rows[1].metadata.duplicatePaymentReviewRequired).toBe(true);
+ expect(claims.filter(Boolean)).toHaveLength(1);expect(fortune.paymentClaimOrderId).toBe(b.merchantUid);
+ expect(db.rows[0].metadata.duplicatePaymentReviewRequired).toBe(true);
  expect(db.rows.every(r=>r.status==='paid')).toBe(true);
- expect(await claimFortunePayment(db,a)).toBe(true);
+ expect(await claimFortunePayment(db,b)).toBe(true);
 });
 
 test('generation zero cannot overwrite concurrently granted Family access',async()=>{
@@ -75,7 +75,7 @@ test('paid but not yet activated never opens a second payable order',async()=>{
 });
 test('terminal failure retries one shared next order',async()=>{
  const {db,input}=setup();const a=await createPayableOrder(db,input);
- await markOrderFailed(db,{orderId:a.merchantUid,failureCode:'PG_FAILED'});
+ await reconcileFortuneCheckout({...input,withDb:fn=>fn(db),fetchPayment:async()=>({paymentId:a.merchantUid,status:'failed'})});
  const [b,c]=await Promise.all([createPayableOrder(db,input),createPayableOrder(db,input)]);
  expect(b.merchantUid).not.toBe(a.merchantUid);expect(b.merchantUid).toBe(c.merchantUid);expect(db.rows).toHaveLength(2);
 });
@@ -102,7 +102,7 @@ test('more than three cancelled attempts still have one deterministic next order
  const {db,input}=setup();
  for(let i=0;i<8;i++){
   const a=await createPayableOrder(db,input);
-  await markOrderFailed(db,{orderId:a.merchantUid,failureCode:'PG_DECLINED'});
+  await reconcileFortuneCheckout({...input,withDb:fn=>fn(db),fetchPayment:async()=>({paymentId:a.merchantUid,status:'failed'})});
  }
  const [a,b]=await Promise.all([createPayableOrder(db,input),createPayableOrder(db,input)]);
  expect(a.merchantUid).toBe(b.merchantUid);expect(db.rows).toHaveLength(9);

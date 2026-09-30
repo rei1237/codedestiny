@@ -1,6 +1,6 @@
 import {withMongoRetry} from '../lib/db.js';
 import {Payment,ProfileCard,PointHistory} from '../lib/models.js';
-import {YeongnyangiRequest,ownerId,hasRequestAccess} from './repository.js';
+import {YeongnyangiRequest,ownerId,hasRequestAccess,findNonCashEvidence} from './repository.js';
 import {inspectSajuCorrection,queueSajuCorrection,sajuCorrectionKey} from '../lib/saju-correction.js';
 import {SAJU_ENGINE_VERSION} from '../../lib/korean-calendar/index.js';
 const failure=code=>Object.assign(new Error(code),{code,status:409});
@@ -24,7 +24,7 @@ export function correctionStore(env) {
    const row=await readOriginal(env,owner,id);
    if(!hasRequestAccess(row)||row.state==='REFUNDED')return {paid:false,refunded:true};
    if(row.paymentId){const payment=await withMongoRetry(env,()=>Payment.findOne({_id:row.paymentId,userId:ownerId(owner),'metadata.consumedBy':id,status:{$in:['paid','success','fulfilled']},refundLock:null,'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true}}).select('_id').lean());return {paid:!!payment,refunded:!payment};}
-   const evidence=row.passEvidenceId?await withMongoRetry(env,()=>PointHistory.findOne({_id:row.passEvidenceId,userId:ownerId(owner),featureKey:row.featureKey,'metadata.requestId':String(row._id),'metadata.accessMethod':'FAMILY','metadata.refundedForServiceExecution':{$ne:true}}).select('_id').lean()):null;
+   const evidence=await withMongoRetry(env,()=>findNonCashEvidence(row,owner));
    return {paid:!!evidence,refunded:false};
   },
   insertOnce:async job=>{

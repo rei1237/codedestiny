@@ -1084,7 +1084,9 @@ export async function generateFusionFortuneWithRealLLM({
     if (typeof onCheckpoint === 'function' && savedValid && !savedReady(group)) {
       extraInstruction += `\n${buildFusionShortfallInstruction(group, countFusionGroupChars(saved, group))}`;
     }
-    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction });
+    // responseSchema below already carries every key, descriptor and array minimum.
+    // Keep the display prompt intact; send each schema only once to the provider.
+    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: prior, extraInstruction, schemaInPrompt: false });
     if (Number(attemptCounts[group.id] || 0) >= FUSION_GROUP_MAX_ATTEMPTS) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
     const lengthRepair = savedValid && !lengthRepairs[group.id] && (!validateFusionFortuneGroup(saved, group, { ...validationOptions, ignoreLength: false }).ok || countFusionGroupChars(saved, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(group.id, { lengthRepair }) : null;
@@ -1098,7 +1100,7 @@ export async function generateFusionFortuneWithRealLLM({
         responseMimeType: "application/json",
         // 🔴 구조화 출력을 켜는 유일한 지점이다 — 다른 호출부는 이 옵션을 세우지 않으므로
         //    공용 경로(gemini.js·llm-client.ts)는 초융합 밖에서 바디가 이전과 같다.
-        //    되돌릴 때도 이 한 줄만 지운다.
+        //    해제할 때는 위 schemaInPrompt도 true로 되돌려 출력 계약을 유지한다.
         responseSchema: groupPrompt.geminiSchema,
         attempts,
         maxOutputTokens: fusionGroupTokens(group, env),

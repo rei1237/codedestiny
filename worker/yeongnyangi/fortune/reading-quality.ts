@@ -63,7 +63,7 @@ export function normalizeSectionParagraphs(body:ChapterBody):ChapterBody{
  return {...body,blocks:body.blocks.map(b=>!b||!Array.isArray(b.paragraphs)?b:
   {...b,paragraphs:b.paragraphs.flatMap(p=>typeof p!=='string'?[p]:!p.trim()?[]:splitSectionParagraph(p.trim()))})};
 }
-function nearDuplicate(a:string,b:string,cache:Map<string,Set<string>>){
+export function nearDuplicate(a:string,b:string,cache:Map<string,Set<string>>){
  if(a.length<120||b.length<120)return false;
  const grams=(s:string)=>{const found=cache.get(s);if(found)return found;const clean=s.replace(/[^\p{L}\p{N}]/gu,'');const result=new Set(Array.from({length:Math.max(0,clean.length-2)},(_,i)=>clean.slice(i,i+3)));cache.set(s,result);return result;};
  const left=grams(a),right=grams(b);let shared=0;for(const g of left)if(right.has(g))shared++;

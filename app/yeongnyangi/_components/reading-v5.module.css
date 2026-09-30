@@ -23,3 +23,15 @@
 /* v7 part head inside the contents list. A new element only; the sticky/grid layout above is unchanged. */
 .partHeading{display:block;padding:.85rem .4rem .1rem;color:var(--gold);font-size:.78rem;letter-spacing:.04em}
 @media(max-width:999px){.navigation:has(details[open]){position:relative;top:auto}.navigation nav{max-height:42vh}.body{width:100%}}
+
+/* Saved answers lead the reading; reference material remains available on demand. */
+.overview .originalQuestion{margin:0 0 1.25rem;padding:0;color:var(--muted);font-size:1rem;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
+.overview .focusAnswer{font-size:clamp(1.18rem,2.5vw,1.4rem);line-height:1.85;color:var(--ink)}
+.focusDetails{margin:1.5rem 0 0}.focusDetails>div{padding:1rem 0;border-top:1px solid var(--yn-line)}
+.focusDetails dt,.focusAction h3{font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 .5rem}
+.focusDetails dd{margin:0;line-height:1.85;font-size:1rem;word-break:keep-all;overflow-wrap:anywhere}
+.overview .focusAction{padding:1.25rem 0 0;margin-top:1rem;border-top:1px solid var(--yn-line)}
+.overview .focusAction p{font-size:1rem;margin:.5rem 0}
+.reference{border-bottom:1px solid var(--yn-line);margin-bottom:1rem}
+.reference>summary{cursor:pointer;min-height:48px;padding:.75rem 0;color:var(--gold);line-height:1.65;font-weight:600}
+.reference[open]{padding-bottom:1rem}

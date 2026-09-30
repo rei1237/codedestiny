@@ -15,6 +15,7 @@ import {authFetch} from '@/app/_lib/auth-client';
 import {ArrowRight,Moon,Sparkles} from 'lucide-react';
 import {products,systemNames,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {depthDescriptions,policyForReading} from '@/worker/yeongnyangi/fortune/reading-policy';
+import {conciseReadingManifest} from '@/worker/yeongnyangi/fortune/concise-reading';
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,checkoutPath,type FortuneRecord} from '../_lib/api';
 import ProfilePicker from './ProfilePicker';
@@ -31,6 +32,7 @@ import {consultationLocaleCopy,localizedSystem,localizedKind,localizedTier} from
 import {questionSkyCopyFor} from '../_lib/question-sky-copy';
 import {consultationInputCopy} from '../_lib/consultation-input-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
+import {readingDepthCopy,readingTierDepth} from '../_lib/reading-depth-copy';
 import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {jongCheckCopy} from '../_lib/jong-check-copy';
 import {jongCheckApplies} from '@/worker/yeongnyangi/fortune/saju/jong-check-policy';
@@ -85,12 +87,11 @@ export default function Consultation(){
  const systemCopy=domain==='fusion'?null:getFortuneCopy(domain as 'saju'|'ziwei'|'sukuyo'|'vedic'|'astrology'|'tarot',kind.id);
  const spiritEntryCopy=questionSkyCopyFor().entry;
  const askCopy=askPhase5Copy(siteLocale).input;
- const preview=consultationManifest(product,kind,topicId);
- // v7 sets the length per chapter, so the book target is the manifest sum. v6 has no per-chapter target in the
- // selector, so it keeps the tier policy range. partKey marks a v7 manifest (book-contracts.ts).
+ const preview=conciseReadingManifest(consultationManifest(product,kind,topicId));
+ // New purchase previews use the same concise manifest as preparation. Saved results keep their own manifest.
  const targetRange=(item:Product)=>{
-  const rows=consultationManifest(item,kind,topicId);
-  const target=rows.some(row=>row.partKey)
+  const rows=conciseReadingManifest(consultationManifest(item,kind,topicId));
+  const target=rows.every(row=>row.targetChars?.every(n=>Number.isFinite(n)&&n>0))
    ?[0,1].map(i=>rows.reduce((sum,row)=>sum+(row.targetChars?.[i]||0),0))
    :policyForReading(item.fishId,item.manifestVersion).target;
   return target.map(n=>n.toLocaleString(siteLocale)).join('~');
@@ -255,8 +256,9 @@ export default function Consultation(){
    </section>}
   <h2 className={styles.selectionHeading} lang={siteLocale}>{ui.depth}</h2>
   <p lang={siteLocale}>{ui.depthHint} {kind.question&&ui.questionHint}</p>
+  {domain!=='fusion'&&<p lang={siteLocale} data-reading-depth-note>{readingDepthCopy(siteLocale).sharedTopics}</p>}
   <div className={`${styles.fishes} ${domain==='fusion'?styles.fusionChoices:''}`} role="group" aria-label={siteLocale==='ko'?'생선 상품':ui.depth}>{choices.map(item=><button key={item.id} onClick={()=>setProductId(item.id)} aria-pressed={productId===item.id}>
-   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
+   <img src={siteLocale==='ko'?item.image:item.reactionAsset} alt="" width={240} height={108}/><strong>{tierLabel(item)}</strong><span className={styles.fishPrice}>{price(item.priceKRW)}</span><span className={styles.fishScope}>{consultationManifest(item,kind,topicId).length} {ui.chapters}{productId===item.id&&<b>{ui.selected}</b>}</span>{domain!=='fusion'&&<small>{targetRange(item)} {ui.target}</small>}{readingTierDepth(item.fishId,siteLocale)?<small data-reading-tier-depth={item.fishId}>{readingTierDepth(item.fishId,siteLocale)}</small>:siteLocale==='ko'&&<small>{fusionDescription(item)||depthDescriptions[item.fishId]}</small>}
   </button>)}</div>
    <details className={styles.manifestPreview}><summary>{kindLabel(kind.id)} · {preview.length} {ui.chapters} · {ui.contents}</summary><ol>{preview.map((chapter,i)=>{
     const head=v7PartHead(preview,i,siteLocale);

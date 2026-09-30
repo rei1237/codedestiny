@@ -1,3 +1,4 @@
+import {CONCISE_READING_VERSION,CONCISE_MIN_OUTPUT_TOKENS} from '../fortune/concise-reading';
 import { callGeminiText } from '../../lib/gemini.js';
 import { tokensRequiredForChars } from '../../lib/llm-budget.js';
 import { FortuneError, type FortuneLLMRequest, type LLMProvider } from '../fortune/shared/contracts';
@@ -14,7 +15,18 @@ function providerSchema(value: any): any {
 }
 
 // Gemini 2.5 thinking tokens eat into maxOutputTokens (lib/llm-client.ts), so the cap adds the thinking budget on top.
-const THINKING_BUDGET=1024;
+export const CHAPTER_THINKING_BUDGET=1024;
+
+export function chapterOutputTokenBudget(requested?: number, version?: string): number {
+  const declared=Number(requested);
+  // StructuredChapterProvider already budgets the target, headings and assigned
+  // answers. Preserve that allowance instead of raising every chapter to 6,000
+  // characters. Old callers without a declared budget keep the old allowance.
+  const content=Number.isFinite(declared)&&declared>0
+    ? Math.max(version===CONCISE_READING_VERSION?CONCISE_MIN_OUTPUT_TOKENS:8192,Math.ceil(declared))
+    : Math.max(8192,tokensRequiredForChars(6000));
+  return content+CHAPTER_THINKING_BUDGET;
+}
 
 export class CodeDestinyProvider implements LLMProvider {
   constructor(private env: Record<string, unknown>, private logContext: Record<string, unknown> = {}) {}
@@ -31,13 +43,21 @@ export class CodeDestinyProvider implements LLMProvider {
   async generate(request: FortuneLLMRequest) {
     // No fixture or paid-provider fallback is selected by request parameters.
     if (getEnv(this.env,'LLM_DRY_RUN') === 'true' || !getEnv(this.env,'GEMINIF_API_KEY')) throw new FortuneError('LLM_NOT_CONFIGURED',503);
-    const cap=Math.max(request.maxOutputTokens || 8192,tokensRequiredForChars(6000))+THINKING_BUDGET;
+    const cap=chapterOutputTokenBudget(request.maxOutputTokens,request.outputBudgetVersion);
     // The system instructions already travel in systemPrompt. Send the user
     // payload once, without embedding and escaping the whole message array.
-    const response=await callGeminiText(this.env, messages(request)[1].content, {
+    let payload=messages(request)[1].content;
+    if(request.outputBudgetVersion===CONCISE_READING_VERSION){
+      // The actual responseSchema carries the same output contract below. Keep
+      // each fact/rule once and avoid escaping the entire domain JSON as text.
+      const {OUTPUT_SCHEMA:_schema,...data}=JSON.parse(payload);
+      data.DOMAIN_CONTEXT=JSON.parse(request.domainRules);
+      payload=JSON.stringify(data);
+    }
+    const response=await callGeminiText(this.env, payload, {
       locale:request.locale || 'ko',
       // Queue generation owns one chapter and a 180s lease. Leave 30s for validation and persisted reread.
-      maxOutputTokens:cap,thinkingBudget:THINKING_BUDGET,timeoutMs:150000,
+      maxOutputTokens:cap,thinkingBudget:CHAPTER_THINKING_BUDGET,timeoutMs:150000,
       // The durable chapter counter owns retries. Hidden provider retries would
       // multiply calls behind one recorded attempt and delay queue recovery.
       maxProviderAttempts:1,

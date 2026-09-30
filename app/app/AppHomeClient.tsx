@@ -73,7 +73,7 @@ export default function AppHomeClient() {
       <header className="cd-app-bar flex min-h-16 items-center justify-between gap-3 px-4 pb-3 pt-3">
         <Link href="/app" className="flex min-w-0 items-center gap-3 no-underline" aria-label={copy.appHomeAriaLabel}>
           <img
-            src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp"
+            src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp?v=yeoni-current-20260930"
             alt=""
             width={40}
             height={40}

@@ -32,6 +32,8 @@
  * 폐지된 통화(코인)의 0-delta 감사행이라 신규 시스템은 쓰지 않는다. 월정석의 회계 정본은
  * MonthlyCreditLedger 하나다. 구 데이터는 그대로 보존되며 아무것도 지우지 않는다.
  */
+import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
+import { isMoonstoneSpendRefunded } from "../lib/moonstone-spend-proof.js";
 import { MonthlyCreditLedger, User } from "../lib/models.js";
 import { consumeMonthlyCreditLotsWithDb } from "../lib/monthly-credit-store.js";
 import { paymentError } from "./errors.js";
@@ -94,6 +96,16 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   const cost = Math.max(0, Math.floor(Number(product?.monthlyCost || 0)));
   if (cost <= 0) throw paymentError("PRODUCT_NOT_FOUND", "월정석으로 결제할 수 없는 상품입니다.");
 
+  if(String(product.featureKey || '').startsWith('yeongnyangi-')
+    && (Number(product.priceCoins)!==Number(FEATURE_KEY_PRICE_TABLE[product.featureKey]?.cost)
+      || cost!==calculatePaidFeatureMembershipCreditCost(product.featureKey)))
+    throw paymentError('INVALID_REQUEST','상담 상품의 월정석 금액이 일치하지 않습니다.');
+  const funding=/^yeongnyangi-/.test(String(product.featureKey || ''))?await import('../yeongnyangi/payment-funding.js'):null;
+  const fundingClaim=funding?await funding.reserveFortuneFunding(db,{userId,requestId:sourceId,featureKey:product.featureKey,coinCost:product.priceCoins,method:'MOONLIGHT_STONE'}):null;
+  const finishSpend=async result=>{
+    if(funding)await funding.completeFortuneFunding(db,fundingClaim,{ledgerId:result.ledgerId});
+    return result;
+  };
   const now = new Date();
 
   // ── 1. 원장 예약. **효과보다 의도를 먼저 남긴다.**
@@ -134,8 +146,12 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   if (!(await reserve())) {
     // 이미 같은 purchaseId 로 진행됐거나 진행 중이다. 어느 쪽인지는 정산 여부가 말해 준다.
     const existing = await db.findOne(MonthlyCreditLedger, ledgerFilter(uid, sourceId));
+    if(existing && (String(existing.serviceKey)!==String(product.featureKey) || Number(existing.amount)!==cost))
+      throw paymentError('IDEMPOTENCY_CONFLICT','같은 결제 요청의 상품이나 금액이 일치하지 않습니다.');
+    if(existing && isMoonstoneSpendRefunded(existing))
+      throw paymentError('IDEMPOTENCY_CONFLICT','복원된 월정석 결제로 상담을 다시 열 수 없습니다.');
     if (existing?.settledAt) {
-      return { balance: Number(existing.afterBalance || 0), replayed: true, ledgerId: String(existing._id || "") };
+      return finishSpend({ balance: Number(existing.afterBalance || 0), replayed: true, ledgerId: String(existing._id || "") });
     }
 
     /* 🔴 여기는 오래 막다른 길이었다. 형제 요청이 예약만 남기고 죽으면(아이솔레이트 종료·op 타임아웃)
@@ -153,7 +169,7 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
         { ...ledgerFilter(uid, sourceId), ...UNSETTLED_FILTER },
         { $set: { beforeBalance: evidence.balance + cost, afterBalance: evidence.balance, settledAt: new Date(), updatedAt: new Date() } },
       );
-      return { balance: evidence.balance, replayed: true, ledgerId: String(existing._id || "") };
+      return finishSpend({ balance: evidence.balance, replayed: true, ledgerId: String(existing._id || "") });
     }
 
     /* 차감은 없었다 = 사용자는 과금되지 않았다. 죽은 예약을 걷어내고 이 요청이 이어받는다.
@@ -177,6 +193,7 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
        지우지 않으면 재시도가 영영 409 만 받는 데드락이 된다. */
     await db.deleteOne(MonthlyCreditLedger, { ...ledgerFilter(uid, sourceId), ...UNSETTLED_FILTER });
 
+    if(funding)await funding.releaseFortuneFunding(db,fundingClaim);
     if (deducted.reason === "INSUFFICIENT") {
       throw paymentError("INSUFFICIENT_MOONSTONE", "월정석이 부족합니다.", {
         required: cost,
@@ -204,7 +221,7 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
     { $set: { beforeBalance: afterBalance + cost, afterBalance, settledAt: new Date(), updatedAt: new Date() } },
   );
 
-  return { balance: afterBalance, replayed: deducted.reason === "ALREADY_PROCESSED", ledgerId: reservedLedgerId };
+  return finishSpend({ balance: afterBalance, replayed: deducted.reason === "ALREADY_PROCESSED", ledgerId: reservedLedgerId });
 }
 
 /**

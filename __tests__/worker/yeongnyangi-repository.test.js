@@ -1,6 +1,7 @@
 import {jest} from '@jest/globals';
 import mongoose from 'mongoose';
 const owner='507f1f77bcf86cd799439011', other='507f1f77bcf86cd799439022';
+let loseStoredDraftAtClaim=false;
 let requests=[],payments=[],evidences=[],familyUser=null,failWrite=false,failFinalRead=false,failFinalComplete=false,refundBeforeFinalization=false,tail=Promise.resolve(),activeOperations=0;
 const consumePass=jest.fn(),refundPass=jest.fn();
 const get=(row,key)=>key.split('.').reduce((v,k)=>v?.[k],row);
@@ -31,11 +32,12 @@ function set(row,key,value) {
   current[keys.at(-1)]=value;
 }
 function query(fn) {
-  const chain={session:()=>chain,select:()=>chain,lean:async()=>fn(),then:(a,b)=>Promise.resolve().then(fn).then(a,b)};
+  const chain={session:()=>chain,select:()=>chain,sort:()=>chain,limit:()=>chain,lean:async()=>fn(),then:(a,b)=>Promise.resolve().then(fn).then(a,b)};
   return chain;
 }
 function model(source,kind) {
   return {
+    find:filter=>query(()=>source().filter(row=>matches(row,filter))),
     findOne:filter=>query(()=>{
       if(kind==='request'&&failFinalRead&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
       if(kind==='request'&&refundBeforeFinalization&&filter.completedChapters!==undefined){refundBeforeFinalization=false;payments[0].status='refunded';}
@@ -44,6 +46,7 @@ function model(source,kind) {
     findOneAndUpdate:(filter,update,options={})=>query(()=>{
       if(kind==='request'&&failWrite&&update.$set?.paymentId)throw new Error('write failed');
       if(kind==='request'&&failFinalComplete&&update.$set?.state==='COMPLETED'){failFinalComplete=false;throw new Error('completion write failed');}
+      if(kind==='request'&&loseStoredDraftAtClaim&&update.$set?.leaseToken){loseStoredDraftAtClaim=false;delete requests[0].generationCheckpoint.chapterDrafts[requests[0].chapters.length];}
       let row=source().find(row=>matches(row,filter));
       if(!row&&options.upsert){row={...filter,...update.$setOnInsert};source().push(row);}
       if(!row)return null;
@@ -81,7 +84,7 @@ jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   },mongoTransactionOptions:()=>txOptions,
   isTransientMongoError:()=>false,
 }));
-jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory}));
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger')}));
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
 jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));
@@ -117,7 +120,7 @@ test('tuna stops at item 9 of 15 and resumes from item 9 under concurrent recove
   expect(consumePass).not.toHaveBeenCalled();
 });
 beforeEach(()=>{
-  requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
+  loseStoredDraftAtClaim=false;requests=[];payments=[{_id:'pay1',requestId:'yn-id',userId:owner,featureKey:values.featureKey,paymentType:'digital_content',status:'paid',paymentAmount:1000,metadata:{}}];
   evidences=[];familyUser=null;consumePass.mockReset();refundPass.mockReset();
   failWrite=false;failFinalRead=false;failFinalComplete=false;refundBeforeFinalization=false;tail=Promise.resolve();
 });
@@ -553,4 +556,39 @@ test('refund in progress suspends generation without discarding earlier chapters
   expect(requests[0].state).toBe('FORTUNE_FAILED');expect(requests[0].chapters).toHaveLength(1);
   await expect(repo.readRequest({},owner,'id')).rejects.toMatchObject({status:409});
   await expect(repo.claimChapter({},owner,'id')).rejects.toMatchObject({status:409});
+});
+
+test('stored-only claim with no draft preserves the entire generation budget',async()=>{
+  await repo.createRequest({},owner,'id',book(1));await repo.attachPayment({},owner,'id',1000);
+  await expect(repo.claimChapter({},owner,'id','scheduled',{storedOnly:true})).rejects.toMatchObject({code:'LLM_NOT_CONFIGURED'});
+  expect(requests[0].attempts).toBe(0);expect(requests[0].chapterAttempts?.[0]).toBeUndefined();
+});
+test('concurrent stored-only recovery has one lease and keeps attempt two unchanged',async()=>{
+  await repo.createRequest({},owner,'id',book(1));await repo.attachPayment({},owner,'id',1000);
+  requests[0].attempts=2;requests[0].chapterAttempts={0:2};
+  const body={summary:'durable paid result'};
+  requests[0].generationCheckpoint={chapterDrafts:{0:{raw:'raw',body}}};
+  const claims=await Promise.all([repo.claimChapter({},owner,'id','scheduled',{storedOnly:true}),repo.claimChapter({},owner,'id','scheduled',{storedOnly:true})]);
+  expect(claims.filter(claim=>claim.token)).toHaveLength(1);
+  expect(requests[0].attempts).toBe(2);expect(requests[0].chapterAttempts[0]).toBe(2);
+  const claim=claims.find(claim=>claim.token);
+  await repo.finishChapter({},owner,'id',claim.token,0,body,1);
+  expect((await repo.readRequest({},owner,'id')).state).toBe('COMPLETED');
+});
+test('stored-only claim CAS rejects a draft removed after its read without consuming an attempt',async()=>{
+  await repo.createRequest({},owner,'id',book(1));await repo.attachPayment({},owner,'id',1000);
+  requests[0].attempts=2;requests[0].chapterAttempts={0:2};
+  requests[0].generationCheckpoint={chapterDrafts:{0:{raw:'raw',body:{summary:'saved'}}}};
+  loseStoredDraftAtClaim=true;
+  const claim=await repo.claimChapter({},owner,'id','scheduled',{storedOnly:true});
+  expect(claim.token).toBeNull();expect(requests[0].attempts).toBe(2);expect(requests[0].state).toBe('PAID');
+});
+test('stored-only completion keeps the existing paid proof and does not claim another attempt',async()=>{
+  await repo.createRequest({},owner,'id',book(1));await repo.attachPayment({},owner,'id',1000);
+  const claim=await repo.claimChapter({},owner,'id');
+  failFinalRead=true;
+  await expect(repo.finishChapter({},owner,'id',claim.token,0,{summary:'stored'},1)).rejects.toThrow();
+  requests[0].leaseUntil=new Date(0);
+  const restored=await repo.claimChapter({},owner,'id','scheduled',{storedOnly:true});
+  expect(restored.token).toBeNull();expect(restored.row.state).toBe('COMPLETED');expect(restored.row.attempts).toBe(1);
 });

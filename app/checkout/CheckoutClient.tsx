@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * 영냥이(SoulCat) Family·단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
+ * 영냥이(SoulCat) Family·월정석·단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
  *
  * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
- * 가리킨다 → 여기서 CD 결제창을 **Family 이용권 또는 단건 결제 전용**으로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
+ * 가리킨다 → 여기서 CD 결제창을 **Family 이용권·월정석·단건 결제**으로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
  * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
  *
  * 이 페이지는 두 진입점을 공유한다 — `isSoulCatMode = !params.requestId`로 분기한다.
@@ -13,8 +13,8 @@
  * - **CD 내부 모드**(`requestId`=64자리 상담 id): CD 자체 영냥이 상품이 결제 전 만들어 둔 상담
  *   레코드의 id로 이 페이지를 연다 — `available`/웹훅 선확인이 그 레코드를 직접 조회한다.
  *
- * 🔴 결제 범위는 두 겹이다. ① 서버: `paymentScope:"direct_or_family"` 상품은 다른 이용권·월정석을 402 로 거부
- *    (worker/payments/index.js). ② 이 호출부: `allowedPaymentModes:["pass","direct"]`로 Family·단건만 그린다.
+ * 🔴 일반 이용권은 적용되지 않는다. 월정석 허용과 환산은 서버 payment policy 정본을 따른다.
+ *    Family 이용권은 기존 한도로 적용하고, 실제 결제수단은 공용 게이트에서 선택한다.
  * 🔴 featureKey 는 `yeongnyangi-` 접두만 받는다 — 이 페이지가 다른 상품의 우회 결제창이 되면 안 된다.
  * 🔴 가격은 레지스트리(resolveServerFeaturePricing)에서만 온다. URL 의 금액을 믿지 않는다.
  * 🔴 화면 문구는 `checkout-copy.ts` 의 동기 표에서 온다. 사전(useT)으로 옮기면 첫 렌더가 비고, 그건
@@ -33,9 +33,12 @@ import { depthDescriptions } from "@/worker/yeongnyangi/fortune/reading-policy";
 import {consultationLocaleCopy,localizedSystem,localizedTier} from '../yeongnyangi/_lib/consultation-locale-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {askPhase5Copy} from '../yeongnyangi/_lib/ask-phase5-copy';
+import {readingDepthCopy,readingTierDepth} from '../yeongnyangi/_lib/reading-depth-copy';
+import {isConciseReading} from '@/worker/yeongnyangi/fortune/concise-reading';
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 import { getCheckoutCopy, resolveCheckoutPolicyHrefs } from "./checkout-copy";
 import {fortuneApi,FortuneApiError,resultPath,type FortuneRecord} from '../yeongnyangi/_lib/api';
+import { paymentAllianceCopy } from "./payment-alliance-copy";
 import styles from "./checkout.module.css";
 
 const FEATURE_KEY_PATTERN = /^yeongnyangi-[a-z0-9-]+$/;
@@ -127,6 +130,7 @@ export default function CheckoutClient() {
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   // 표는 모듈 상수라 같은 로케일이면 참조가 그대로다 — 아래 useEffect·useCallback 의존성에 넣어도 안전하다.
   const copy = getCheckoutCopy(lang);
+  const alliance = paymentAllianceCopy(lang);
   const intlLocale = INTL_LOCALE_BY_LOADING_LOCALE[lang] || INTL_LOCALE_BY_LOADING_LOCALE.ko;
   const policyHrefs = useMemo(() => resolveCheckoutPolicyHrefs(lang), [lang]);
   const formatKrw = useCallback(
@@ -140,6 +144,9 @@ export default function CheckoutClient() {
     window.addEventListener("cd:locale-ready", sync);
     return () => { window.removeEventListener("languagechange", sync); window.removeEventListener("cd:locale-ready", sync); };
   }, []);
+
+  const product = products.find(item => item.cdFeatureKey === params.featureKey);
+  const productName = product ? `${localizedSystem(product.readingKind === "single" ? product.domain : "fusion",lang)} · ${localizedTier(product.fishId,lang)}` : copy.title;
 
   const pricing = useMemo(() => {
     if (!params.featureKey) return null;
@@ -217,11 +224,12 @@ export default function CheckoutClient() {
         : `yn-${params.requestId}`;
       const result = await runPaidAccessGate({
         featureKey: pricing.featureKey,
-        reason: "yeongnyangi-checkout",
+        reason: productName,
         requestId,
         cost: pricing.cost,
         amountKRW: pricing.amountKRW,
-        allowedPaymentModes: ["pass", "direct"],
+        allowedPaymentModes: pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
+        membershipCreditCost: pricing.membershipCreditCost,
         passStorePlan: "family",
         disablePassFirst: true,
         resume: buildResume({ returnTo: params.returnTo }),
@@ -240,7 +248,7 @@ export default function CheckoutClient() {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
       setGate({phase:'error',message:error instanceof Error?error.message:copy.errPaymentUnknown});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params, copy, isSoulCatMode]);
+  }, [pricing, available, buildResume, params, copy, isSoulCatMode, productName]);
 
   // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
   // SoulCat 모드의 returnTo 는 진짜 직전 화면이라 그대로 쓴다.
@@ -252,7 +260,7 @@ export default function CheckoutClient() {
     window.history.back();
   };
 
-  const product = products.find(item => item.cdFeatureKey === params.featureKey);
+  const showTierDepth = Boolean(reading?.manifest?.some(isConciseReading) && product && readingTierDepth(product.fishId,lang));
   return (
     <main className={styles.page} data-yn-night>
       <nav className={styles.nav} aria-label={copy.navAria}>
@@ -260,8 +268,8 @@ export default function CheckoutClient() {
       </nav>
       <section className={styles.checkout} aria-labelledby="checkout-title">
         <div className={styles.host}>
-          <img src="/assets/yeongnyangi/hero.webp" alt={copy.heroAlt} width={480} height={480} />
-          <p>{copy.hostLine1}<br />{copy.hostLine2}</p>
+          <img src="/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp" alt={alliance.imageAlt} width={1200} height={800} />
+          <div><h2>{alliance.title}</h2><p>{alliance.story}</p></div>
         </div>
         <div className={styles.paper}>
           <h1 id="checkout-title">{copy.title}</h1>
@@ -276,15 +284,21 @@ export default function CheckoutClient() {
             <>
               <div className={styles.product}>
                 <img src={lang==='ko'?`/assets/yeongnyangi/fish/${product.fishId}.webp`:product.reactionAsset} alt="" width={240} height={108} />
-                <div><h2>{lang==='ko'?`${product.name} · ${product.fishName}`:`${localizedSystem(product.readingKind==='single'?product.domain:'fusion',lang)} · ${localizedTier(product.fishId,lang)}`}</h2><p>{lang==='ko'?depthDescriptions[product.fishId]:consultationLocaleCopy(lang).method}</p></div>
+                <div><h2>{lang==='ko'?`${product.name} · ${product.fishName}`:`${localizedSystem(product.readingKind==='single'?product.domain:'fusion',lang)} · ${localizedTier(product.fishId,lang)}`}</h2><p data-reading-tier-depth={showTierDepth?product.fishId:undefined}>{showTierDepth?readingTierDepth(product.fishId,lang):lang==='ko'?depthDescriptions[product.fishId]:consultationLocaleCopy(lang).method}</p></div>
               </div>
+              {showTierDepth&&<p className={styles.depthNote} data-reading-depth-note>{readingDepthCopy(lang).sharedTopics}</p>}
               <dl className={styles.receipt}>
                 <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
                 <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
                 <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{formatKrw(pricing.amountKRW)}</dd></div>
+                {!pricing.monthlyExcluded && <div className={styles.moonstones}><dt>{alliance.moonstoneLabel}</dt><dd>{alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</dd></div>}
               </dl>
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
-              <p className={styles.policy}>{copy.policyLine1}<br />{copy.policyLine2}</p>
+              <div className={styles.policy}>
+                <p>{copy.policyLine1}</p>
+                {!pricing.monthlyExcluded && pricing.monthlyCreditMultiplier > 1 && <p>{alliance.moonstoneValue(pricing.monthlyCreditMultiplier)}</p>}
+                <p>{copy.policyLine2}</p>
+              </div>
               <button type="button" onClick={() => { void startPayment(); }}
                 disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>

@@ -1043,7 +1043,7 @@ window.startShuffleSequence = function() {
     for(let i=0; i<4; i++) {
         const char = TAZZA_SYSTEM.CHARACTERS[charKeys[i]];
         const pos = positions[i];
-        document.getElementById(`tc${pos}Img`).src = char.image || '/fuctionassets/연이.webp';
+        document.getElementById(`tc${pos}Img`).src = char.image || '/fuctionassets/연이.webp?v=yeoni-current-20260930';
         document.getElementById(`tc${pos}Name`).innerText = char.name;
         document.getElementById(`tc${pos}Text`).innerText = char.catchphrase;
     }

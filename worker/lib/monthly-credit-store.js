@@ -155,12 +155,17 @@ export async function restoreMonthlyCreditLot({
   incrementGranted = false,
   pullRequestId = "",
   returnDetails = false,
+  db = null,
 } = {}) {
   const restoreAmount = Math.max(0, Math.floor(Number(amount || 0)));
   if (!userId || restoreAmount <= 0) return null;
+  const readUser = () => db ? db.findOne(User,{_id:userId},{projection:{profileSubscription:1}})
+    : User.findById(userId).select("profileSubscription").lean();
+  const writeUser = (filter,update,options) => db ? db.findOneAndUpdate(User,filter,update,options)
+    : User.findOneAndUpdate(filter,update,options).lean();
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
-    const current = await User.findById(userId).select("profileSubscription").lean();
+    const current = await readUser();
     if (!current?._id) return null;
     const sub = current.profileSubscription || {};
     const ensured = ensureLotsForBalance(sub, Date.now());
@@ -171,7 +176,7 @@ export async function restoreMonthlyCreditLot({
       now: Date.now(),
     });
     const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
-    const updated = await User.findOneAndUpdate(
+    const updated = await writeUser(
       { _id: userId, ...buildLotsVersionFilter(version) },
       {
         $set: {
@@ -180,13 +185,13 @@ export async function restoreMonthlyCreditLot({
         },
         $inc: {
           "profileSubscription.membershipCreditLotsVersion": 1,
-          ...(decrementUsed ? { "profileSubscription.membershipCreditUsed": -restoreAmount } : {}),
+          ...(decrementUsed && granted.added ? { "profileSubscription.membershipCreditUsed": -restoreAmount } : {}),
           ...(incrementGranted && granted.added ? { "profileSubscription.membershipCreditGranted": restoreAmount } : {}),
         },
         ...(pullRequestId ? { $pull: { recentConsumeRequestIds: pullRequestId } } : {}),
       },
       { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-    ).lean();
+    );
     if (updated) {
       try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
       // 복구(환불·롤백)도 접근 결정을 바꾼다 — 위 차감 경로와 같은 이유로 함께 버린다.

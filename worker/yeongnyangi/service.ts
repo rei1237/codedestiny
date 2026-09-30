@@ -1,3 +1,5 @@
+import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
+import {conciseReadingManifest} from './fortune/concise-reading';
 import { assertSajuPillarClaims } from "../lib/saju-correction.js";
 import { SAJU_ENGINE_VERSION, SAJU_POLICY_VERSION } from "../../lib/korean-calendar/index.js";
 import {normalizeGrowthAttribution} from '../../lib/marketing/growth-attribution.mjs';
@@ -43,7 +45,7 @@ import { StructuredChapterProvider } from './providers/chapter';
 import { deliverChapter } from './providers/delivery';
 import { createRequest, readRequest, attachPayment, claimChapter, finishChapter, failChapter, ownerId, saveAskAnalysis, saveChapterDraft, allowedChapterAttempts, holdAutoResumes, userCanRetry, reserveQuestionSkyFollowup } from './repository.js';
 
-const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||row?.accessMethod==='FAMILY'||row?.passEvidenceId);
+const hasRequestAccess=(row:any)=>Boolean(row?.paymentId||['FAMILY','MOONLIGHT_STONE'].includes(row?.accessMethod)||row?.passEvidenceId||row?.moonstoneLedgerId);
 
 /**
  * A v7 snapshot stores its timing matrix once at prepare; every later read re-applies it to the stored
@@ -159,8 +161,9 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   // A new form starts a separate purchase; retries in that form keep the same intent.
   // Clients without an attempt retain their original deterministic recovery identity.
   const contexts: Partial<Record<DomainId,DomainContext>>={};
-  // Free questions also read the 꿀꿀 daily systems; started first so Swiss latency overlaps the domain calculations.
-  const crossDaily=(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotV2?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
+  // New single-system requests use their calculated native facts only; the hub has a separate birth-time contract.
+  // Fusion keeps cross-system daily evidence, and stored snapshots return before this new preparation path.
+  const crossDaily=product.readingKind!=='single'&&(!kind||kind.question)&&!spiritInput&&!relationship&&!tarotV2?computeCrossDaily(env,raw,date,product.systems):Promise.resolve([]);
   for(const system of product.systems) contexts[system]=domains[system].buildContext(
     tarotV2&&system==='tarot'?calculateTarotConsultation(kind!.id as TarotConsultationId):
     (askEvidenceEnabled||relationship)&&system==='tarot' ? calculateAskTarot(normalized[system],product.readingKind!=='single')
@@ -218,6 +221,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     birthTimeKnown:product.systems.every(system=>system==='tarot'||Boolean(normalized[system].personA?.birthTime)),
     ...(partner?{partnerTimeKnown:product.systems.every(system=>Boolean(normalized[system].personB?.birthTime))}:{}),
   }) : undefined;
+  manifest=conciseReadingManifest(manifest);
   return createRequest(env,userId,id,{profileId:body.profileId,productId:product.id,featureKey:product.cdFeatureKey,
     amountKRW:product.priceKRW,fingerprint,
     ...(askEvidence?{generationCheckpoint:{version:'ask-generation-v1',evidence:askEvidence}}:{}),
@@ -254,7 +258,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   const context=calculated.context;
   calculated.publicData.evidenceVersion=QUESTION_SKY_TWO_STAGE_VERSION;
   context.facts.push({id:`${context.domain}.question-calculation`,label:'프라슈나 계산 근거',value:{method:'Lahiri sidereal / Whole Sign',chart:calculated.chart,judgements:calculated.audit,limits:['위계는 본궁·고양·손상·추락만 산출','실제 감정·소재지·사건 시기의 관측 아님']}});
-  const manifest=questionSkyTwoStageManifest(context);
+  const manifest=conciseReadingManifest(questionSkyTwoStageManifest(context));
   const consultation=createConsultation(input.question,input.topic,clock,manifest);
   // The question is displayed once in the result shell. The generated prose
   // receives it as context but never creates a second question-answer heading.
@@ -266,7 +270,7 @@ async function prepareQuestionSky(env:Record<string,unknown>,userId:string,body:
   product.name=skyModes[input.mode];product.image=SKY_IMAGE;
   // New purchases use the registry flounder contract; old snapshots are never rewritten.
   return createRequest(env,userId,id,{profileId:'question-sky',productId:product.id,featureKey:product.cdFeatureKey,amountKRW:product.priceKRW,fingerprint,
-    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:3000,followupChars:8000},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
+    growthAttribution:normalizeGrowthAttribution(body.growthAttribution),snapshot:{product,analysis,manifest,input,questionSkyStage:{version:QUESTION_SKY_TWO_STAGE_VERSION,firstChars:manifest[0].targetChars?.[0],followupChars:manifest[1].targetChars?.[0]},questionMoment:{...moment,date:moment.date.toISOString()},calculation:{raw:calculated.raw,audit:calculated.audit,moonMotion:calculated.moonMotion}}});
 }
 
 export async function submitQuestionSkyFollowup(env:Record<string,unknown>,userId:string,requestId:string,question:unknown){
@@ -285,63 +289,77 @@ export async function activateFortune(env: Record<string, unknown>, userId: stri
 }
 
 export async function generateNextChapter(env: Record<string, unknown>, userId: string, requestId: string, source: 'queue'|'scheduled' = 'queue') {
-  if (!providerReady(env)) throw new FortuneError('LLM_NOT_CONFIGURED',503);
-  const {row,token}=await claimChapter(env,userId,requestId,source);
+  const storedOnly=!providerReady(env);
+  if(storedOnly&&!canResumeStoredChapter(await readRequest(env,userId,requestId)))
+    throw new FortuneError('LLM_NOT_CONFIGURED',503);
+  const {row,token}=await claimChapter(env,userId,requestId,source,{storedOnly});
   if(!token) return row;
   const ordinal=row.chapters.length;
-  const startedAt=Date.now();let stage='provider';
+  const startedAt=Date.now();let stage='provider';let result:any;
   try {
-    const sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
-      access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
-      attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source});
-    let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
-    if(row.generationCheckpoint?.version==='ask-generation-v1') {
-      const consultation=row.snapshot.analysis.consultation;
-      const saved=row.generationCheckpoint.analysis;
-      if(saved) {
-        if(saved.version!=='ask-analysis-v1')throw new FortuneError('INVALID_ASK_ANALYSIS',500);
-        parseAskAnalysis(escapeAskData(saved),consultation);
-      } else {
-        stage='analysis';
-        const analysis=await analyzeAsk(consultation,(system,data)=>sharedProvider.analyzeQuestion(system,data));
-        stage='storage';
-        await saveAskAnalysis(env,userId,requestId,token,analysis);
+    const draft=storedChapterDraft(row);
+    if(draft) result=draft.body;
+    else {
+      // A stored-only claim cannot turn into a paid provider call after a race.
+      if(storedOnly||!providerReady(env))throw new FortuneError('LLM_NOT_CONFIGURED',503);
+      const sharedProvider=new CodeDestinyProvider(env,{serviceId:row.featureKey,requestId,
+        access:row.accessMethod || (row.paymentId?'DIRECT_KRW':''),sectionGroup:String(ordinal+1),
+        attempt:Number(row.chapterAttempts?.[ordinal] || 1),generationSource:source});
+      let ask: {analysis:AskAnalysis;evidence:EvidencePacket}|undefined;
+      if(row.generationCheckpoint?.version==='ask-generation-v1') {
+        const consultation=row.snapshot.analysis.consultation;
+        const saved=row.generationCheckpoint.analysis;
+        if(saved) {
+          if(saved.version!=='ask-analysis-v1')throw new FortuneError('INVALID_ASK_ANALYSIS',500);
+          parseAskAnalysis(escapeAskData(saved),consultation);
+        } else {
+          stage='analysis';
+          const analysis=await analyzeAsk(consultation,(system,data)=>sharedProvider.analyzeQuestion(system,data));
+          stage='storage';
+          await saveAskAnalysis(env,userId,requestId,token,analysis);
+        }
+        // Recheck access after analysis/storage before paying for the chapter call.
+        const current=await readRequest(env,userId,requestId);
+        if(current.state!=='GENERATING'||current.leaseToken!==token)throw new FortuneError('GENERATION_LEASE_LOST',409);
+        if(ordinal===0) {
+          const checkpoint=current.generationCheckpoint;
+          if(checkpoint?.version!=='ask-generation-v1'||!checkpoint.evidence||!checkpoint.analysis)
+            throw new FortuneError('INVALID_ASK_CHECKPOINT',500);
+          parseAskAnalysis(escapeAskData(checkpoint.analysis),consultation);
+          ask={analysis:checkpoint.analysis,evidence:checkpoint.evidence};
+        }
       }
-      // Recheck access after analysis/storage before paying for the chapter call.
-      const current=await readRequest(env,userId,requestId);
-      if(current.state!=='GENERATING'||current.leaseToken!==token)throw new FortuneError('GENERATION_LEASE_LOST',409);
-      if(ordinal===0) {
-        const checkpoint=current.generationCheckpoint;
-        if(checkpoint?.version!=='ask-generation-v1'||!checkpoint.evidence||!checkpoint.analysis)
-          throw new FortuneError('INVALID_ASK_CHECKPOINT',500);
-        parseAskAnalysis(escapeAskData(checkpoint.analysis),consultation);
-        ask={analysis:checkpoint.analysis,evidence:checkpoint.evidence};
-      }
+      stage='provider';
+      const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
+        ? {code:row.lastFailure.code}:undefined;
+      const followupQuestion=ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION
+        ? row.generationCheckpoint?.followup?.question : undefined;
+      if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
+        throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
+      const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion};
+      if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
+      const provider=new StructuredChapterProvider(sharedProvider);
+      const generated=await provider.generateChapter(input);
+      stage='quality';
+      result=deliverChapter(generated,input);
+      const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;
+      if(natalFacts)assertSajuPillarClaims(result,natalFacts);
+      stage='storage';
+      await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result});
     }
-    stage='provider';
-    const repair=Number(row.chapterAttempts?.[ordinal] || 0)>1 && row.lastFailure?.stage==='quality'
-      ? {code:row.lastFailure.code}:undefined;
-    const followupQuestion=ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION
-      ? row.generationCheckpoint?.followup?.question : undefined;
-    if(ordinal===1&&row.snapshot?.questionSkyStage?.version===QUESTION_SKY_TWO_STAGE_VERSION&&!followupQuestion)
-      throw new FortuneError('FOLLOWUP_NOT_SUBMITTED',409);
-    const input={locale:readingLocale(row.snapshot.locale),outputContext:row.snapshot.outputContext,chapter:row.snapshot.manifest[ordinal],analysis:snapshotAnalysis(row.snapshot),previous:row.chapters,repair,ask,followupQuestion};
-    if(!input.chapter) throw new FortuneError('INVALID_MANIFEST',500);
-    const provider=new StructuredChapterProvider(sharedProvider);
-    const draft=row.generationCheckpoint?.chapterDrafts?.[ordinal];
-    const generated=draft?.raw ?? await provider.generateChapter(input);
-    stage='quality';
-    const result=draft?.body ?? deliverChapter(generated,input);
-    const natalFacts=input.analysis.contexts?.saju?.facts.find(f=>f.label==='pillars')?.value;
-    if(natalFacts)assertSajuPillarClaims(result,natalFacts);
     stage='storage';
-    if(!draft)await saveChapterDraft(env,userId,requestId,token,ordinal,{raw:generated,body:result});
     const completed=await finishChapter(env,userId,requestId,token,ordinal,result,row.snapshot.manifest.length);
     if(!completed) throw new FortuneError('GENERATION_LEASE_LOST',409);
     console.info('[yeongnyangi-generation]',JSON.stringify({requestId,productId:row.productId,chapter:ordinal,
       stage:'checkpoint',source,durationMs:Date.now()-startedAt,state:completed.state,recordedAt:new Date().toISOString()}));
     return completed;
   } catch(error) {
+    if(stage==='storage'&&result) {
+      try {
+        const stored=await readRequest(env,userId,requestId);
+        if(stored.state!=='REFUNDED'&&JSON.stringify(stored.chapters?.[ordinal])===JSON.stringify(result))return stored;
+      } catch { /* Keep the existing storage failure checkpoint if reread is unavailable. */ }
+    }
     const code=error instanceof FortuneError?error.code:stage==='storage'?'RESULT_STORAGE_UNAVAILABLE':'GENERATION_FAILED';
     const detail=error instanceof FortuneError?error.detail:undefined;
     console.warn('[yeongnyangi-generation]',JSON.stringify({requestId,chapter:ordinal,stage,durationMs:Date.now()-startedAt,code,detail}));

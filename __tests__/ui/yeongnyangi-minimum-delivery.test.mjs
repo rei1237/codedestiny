@@ -21,3 +21,26 @@ test('a question needs an actual answer, but optional subdivisions and citation 
  const result=deliverChapter({...body,questionAnswers:[{questionId:'q1',answer:paragraph2}]},askInput);
  assert.equal(result.questionAnswers[0].answer,paragraph2);assert.equal(result.questionAnswers[0].timing,'');
 });
+
+test('local recovery removes reworded copies while keeping the distinct answer and its evidence',()=>{
+ const first=paragraph1+' 서두르기 전에 내가 확인한 사실과 기대한 장면을 따로 적어 두면 해석의 차이를 확인하기 쉽습니다.';
+ const reworded=first.replace('차분하게','신중하게');
+ const second=paragraph2+' 관찰한 반응이 예상과 다르면 같은 행동을 밀어붙이지 말고 상대와 확인할 대화의 시점부터 다시 조정해 보세요.';
+ const raw={...body,blocks:[{id:'one',title:'관계의 패턴',paragraphs:[first,reworded,second],sources:['self-pattern']}],sources:['self-pattern']};
+ const withEvidence={...input,analysis:{...input.analysis,contexts:{saju:{domain:'saju',facts:[{id:'self-pattern',label:'pillars',value:{}}],limitations:[]}}}};
+ const result=deliverChapter(raw,withEvidence);
+ assert.deepEqual(result.blocks[0].paragraphs,[first,second]);
+ assert.deepEqual(result.blocks[0].sources,['self-pattern']);
+ assert.deepEqual(result.sources,['self-pattern']);
+ const reread=deliverChapter(raw,{...withEvidence,previous:[{...result,blocks:[{...result.blocks[0],paragraphs:[first]}]}]});
+ assert.deepEqual(reread.blocks[0].paragraphs,[second]);
+});
+
+test('recovered long prose is split for reading without truncating its content',()=>{
+ const long=Array.from({length:8},(_,i)=>`${i+1}번째로 확인할 것은 기대와 실제 반응의 차이입니다. 질문에 필요한 기록을 한 가지씩 살펴보고 아직 모르는 부분은 단정하지 않은 채 다음 행동의 기준으로 남겨 두세요.`).join(' ');
+ assert.ok(Array.from(long).length>500);
+ const result=deliverChapter({...body,blocks:[{id:'one',title:'확인할 신호',paragraphs:[long]}]},input);
+ assert.ok(result.blocks[0].paragraphs.length>1);
+ assert.ok(result.blocks[0].paragraphs.every(p=>Array.from(p).length<=500));
+ assert.equal(result.blocks[0].paragraphs.join('').replace(/\s/gu,''),long.replace(/\s/gu,''));
+});

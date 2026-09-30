@@ -15,11 +15,26 @@ jest.unstable_mockModule('../../worker/yeongnyangi/service',()=>({providerReady:
 let runYeongnyangiRecovery,abandonedRequestFilter,holdAlertMessage;
 beforeAll(async()=>{({runYeongnyangiRecovery,abandonedRequestFilter,holdAlertMessage}=await import('../../worker/yeongnyangi/recovery.js'));});
 beforeEach(()=>{orders=[];candidates=[];held=[];stopped=[];alerts=[];filters=[];keepHold.mockClear();markHoldAlerted.mockClear();});
-test('disabled provider cannot enter DB or call LLM',async()=>{
-  const connectDb=jest.fn(),generate=jest.fn();
-  expect(await runYeongnyangiRecovery({},{connectDb,generate})).toMatchObject({skipped:'disabled'});
-  expect(connectDb).not.toHaveBeenCalled();expect(generate).not.toHaveBeenCalled();
+test('disabled provider scans stored work without activating purchases or reviving holds',async()=>{
+  const connectDb=jest.fn(),generate=jest.fn(),activate=jest.fn(),resumeAfterFix=jest.fn(),escalate=jest.fn(),enqueue=jest.fn();
+  const result=await runYeongnyangiRecovery({YEONGNYANGI_QUEUE:{}},{connectDb,generate,activate,resumeAfterFix,escalate,enqueue});
+  expect(result).toMatchObject({storedOnly:true,scanned:0});
+  expect(connectDb).toHaveBeenCalledTimes(1);
+  for(const fn of [generate,activate,resumeAfterFix,escalate,enqueue])expect(fn).not.toHaveBeenCalled();
+  expect(filters).toHaveLength(1);expect(filters[0].$and.at(-1).$expr).toBeTruthy();
 });
+test('disabled recovery finishes only the current durable draft and complete chapter marker',async()=>{
+  candidates=[
+    {_id:'draft',userId:'owner',chapters:[],snapshot:{manifest:[{}]},generationCheckpoint:{chapterDrafts:{0:{body:{summary:'saved'}}}}},
+    {_id:'done',userId:'owner',chapters:[{summary:'saved'}],snapshot:{manifest:[{}]}},
+    {_id:'empty',userId:'owner',chapters:[],snapshot:{manifest:[{}]}},
+  ];
+  const generate=jest.fn(async(_env,_owner,id)=>({...candidates.find(row=>row._id===id),state:'COMPLETED'})),enqueue=jest.fn();
+  await runYeongnyangiRecovery({YEONGNYANGI_QUEUE:{}},{generate,enqueue});
+  expect(generate.mock.calls.map(call=>call[2])).toEqual(['draft','done']);
+  expect(enqueue).not.toHaveBeenCalled();
+});
+
 test('approved order missing browser return reuses its original intent',async()=>{
   orders=[{_id:'p',userId:'owner',requestId:`yn-${'a'.repeat(64)}`}];
   const activate=jest.fn().mockResolvedValue({});

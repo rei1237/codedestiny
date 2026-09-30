@@ -507,7 +507,7 @@ function pickSchema(keys) {
  * 🔴 손으로 쓴 키 목록을 두지 않는다 — 상수에서 전수 유도하므로 키가 늘면 따라온다.
  *
  * 분량("3,600자 이상")은 Gemini 스키마로 표현할 수 없어 `description` 으로 넘기고,
- * 프롬프트 본문의 스키마 줄도 그대로 남긴다.
+ * 관리자용 프롬프트에는 같은 스키마를 표시하고, 구조화 API 전송에서는 사본을 생략할 수 있다.
  */
 export function toGeminiSchema(node) {
   if (Array.isArray(node)) {
@@ -603,10 +603,10 @@ export function buildFusionSectionPromptPrefix({ context = {}, stage = 1, priorS
 /**
  * 그룹 하나의 프롬프트. 자기가 맡은 키만 담긴 JSON 객체를 요구한다.
  * priorSections 는 2단계 그룹에만 의미가 있다 — 1단계 결과 객체를 넘기면 요약이 서버 컨텍스트 앞에 실린다.
- * @param {{ context?: object, group: object, priorSections?: object, extraInstruction?: string }} args
+ * @param {{ context?: object, group: object, priorSections?: object, extraInstruction?: string, schemaInPrompt?: boolean }} args
  */
-export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "" } = {}) {
-  if (context.version === FUSION_EXPERT_VERSION) return buildExpertGroupPrompt(context, group, priorSections, extraInstruction);
+export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "", schemaInPrompt = true } = {}) {
+  if (context.version === FUSION_EXPERT_VERSION) return buildExpertGroupPrompt(context, group, priorSections, extraInstruction, schemaInPrompt);
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const responseSchema = pickSchema(group.keys);
   // 🔴 상한은 스키마 서술자(lengthDirective)와 **같은 함수**에서 나온다 — 두 자리가 다른 천장을
@@ -635,7 +635,7 @@ export function buildFusionSectionGroupPrompt({ context = {}, group, priorSectio
       ? ["타로 기준: tarotSpread.cards의 카드 이름과 포지션 여섯 개를 모두 tarotSection에서 정확히 언급하고, 목록 밖의 카드는 절대 추가하지 않는다."]
       : []),
     `분량 기준(이 그룹 합계 목표 ${Number(group.targetChars).toLocaleString("ko-KR")}자, 합계 상한 ${fusionGroupCeilingChars(group).toLocaleString("ko-KR")}자):\n${minCharLines.join("\n")}\n  합계가 목표에 닿으면 남은 근거가 있어도 거기서 마무리한다. 길이가 아니라 근거 밀도가 이 상담의 값이다.`,
-    `응답 JSON 스키마(이 키만):\n${JSON.stringify(responseSchema)}`,
+    ...(schemaInPrompt ? [`응답 JSON 스키마(이 키만):\n${JSON.stringify(responseSchema)}`] : []),
     ...(extraInstruction ? [extraInstruction] : []),
   ].join("\n\n");
 
@@ -775,7 +775,7 @@ function expertPromptPrefix(context, stage, prior) {
     JSON.stringify({ context: projected, independent: buildFusionStageOneDigest(prior), crossCheck: buildFusionEvidenceCrossCheck(prior, context) }),
   ].join("\n\n");
 }
-function buildExpertGroupPrompt(context, group, prior, extraInstruction) {
+function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaInPrompt = true) {
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const prefix = expertPromptPrefix(context, group.stage, prior);
   let responseSchema = structuredClone(pickSchema(group.keys));
@@ -795,7 +795,7 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction) {
     group.stage === 1 ? `독립 전문가: ${group.systems.join(", ")}. 다른 체계의 결론을 추측하지 않는다. signals에는 동일 질문에 대한 영역별 결론과 실제 존재하는 근거 경로를 기록한다.\n${JSON.stringify({ systems: own, topic: safeContext.topic, questionFocus: safeContext.questionFocus })}` : "최종 종합과 행동은 제공된 crossCheck와 독립 결론을 근거로 작성한다.",
     group.systems.includes("tarot") ? "여섯 카드의 카드명·정역방향·포지션을 모두 인용한다. 카드 이름 자체는 서버의 표기를 유지한다." : "",
     group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
-    `응답 JSON 스키마: ${JSON.stringify(responseSchema)}`, extraInstruction,
+    schemaInPrompt ? `응답 JSON 스키마: ${JSON.stringify(responseSchema)}` : "", extraInstruction,
   ].filter(Boolean).join("\n\n");
   return { systemPrompt: EXPERT_SYSTEM_PROMPT, userPrompt, promptPrefix: prefix, responseSchema, geminiSchema: toGeminiSchema(responseSchema) };
 }

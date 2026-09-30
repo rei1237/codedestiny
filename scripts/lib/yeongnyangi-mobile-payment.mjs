@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {build} from 'esbuild';
 import {chromium,webkit,devices} from '@playwright/test';
+import {resolveProduct} from '../../worker/payments/catalog.js';
+import {legacyMoonstoneEnvelope} from '../../worker/payments/compat.js';
 export const QA_API_ORIGIN='https://yeongnyangi-qa.example.invalid';
 
 const user={id:'507f1f77bcf86cd799439011',_id:'507f1f77bcf86cd799439011',name:'QA 고객',email:'qa@example.invalid',phoneNumber:'01012345678',role:'user'};
@@ -11,13 +13,15 @@ const config={configured:true,serverVerificationConfigured:true,inicisConfigured
 const resultPath=id=>`/yeongnyangi/result/?id=${id}`;
 const checkoutPath=row=>`/checkout/?featureKey=${row.product.cdFeatureKey}&requestId=${row.id}&returnTo=${encodeURIComponent(resultPath(row.id))}`;
 
-export async function fixtures(browser,base,product,width=390){
+export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}={}){
  const mobile=devices[browser.browserType().name()==='webkit'?'iPhone 13':'Pixel 7'];
  const context=await browser.newContext({viewport:{width,height:844},screen:{width,height:844},isMobile:true,hasTouch:true,userAgent:mobile.userAgent,serviceWorkers:'block'});
  context.setDefaultTimeout(30000);context.setDefaultNavigationTimeout(120000);
  await context.addCookies([{name:'fortune_auth_role',value:'user',url:base}]);
  const row={id:'a'.repeat(64),productId:product.id,profileId:'shared-profile',product,state:'CREATED',paid:false,chapters:[],manifest:Array.from({length:product.chapterCount},(_,i)=>({id:`chapter-${i}`,title:`QA 상담 ${i+1}`})),createdAt:new Date().toISOString()};
  const state={row,orders:new Map(),sdk:[],confirm:0,activates:0,generates:0,resumeReads:0,unknown:[],errors:[],approved:false,pending:false,auth:true,read503:0,activate503:0,generate503:0,holdGeneration:false,generationBoundary:0,sdkMode:'redirect',handlerDelay:0,assetDelays:0};
+ state.monthlyBalance=monthlyBalance;state.monthlyRequests=[];state.monthlySpends=new Map();state.monthlyDeductions=0;
+ const authUser=()=>({...user,profileSubscription:{tier:'free',isActive:false,membershipCreditBalance:state.monthlyBalance}});
  state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;
  state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
  context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event')state.apiInFlight.set(request,request.frame().page());});
@@ -64,9 +68,9 @@ export async function fixtures(browser,base,product,width=390){
    return route.continue();
   }
   const input=request.method()==='POST'?request.postDataJSON()||{}:{};
-  if(path==='/api/auth/me')return send(state.auth?{ok:true,authenticated:true,user}:{ok:false,authenticated:false,code:'UNAUTHORIZED'},state.auth?200:401);
+  if(path==='/api/auth/me')return send(state.auth?{ok:true,authenticated:true,user:authUser()}:{ok:false,authenticated:false,code:'UNAUTHORIZED'},state.auth?200:401);
   if(path==='/api/auth/refresh')return send({ok:false,code:'UNAUTHORIZED'},401);
-  if(path==='/api/auth/login'){state.auth=true;return send({ok:true,authenticated:true,user},200,{'Set-Cookie':'fortune_auth_role=user; Path=/; SameSite=Lax; Max-Age=3600'});}
+  if(path==='/api/auth/login'){state.auth=true;return send({ok:true,authenticated:true,user:authUser()},200,{'Set-Cookie':'fortune_auth_role=user; Path=/; SameSite=Lax; Max-Age=3600'});}
   if(!state.auth&&path!=='/api/yeongnyangi/products')return send({ok:false,code:'UNAUTHORIZED',message:'QA 세션 만료'},401);
   if(path==='/api/payments/config')return send(config);
   if(path==='/api/me/payment-phone')return send({ok:true,hasPhone:true,phoneNumber:user.phoneNumber,phoneConsent:true});
@@ -78,12 +82,30 @@ export async function fixtures(browser,base,product,width=390){
   }
   if(path==='/api/yeongnyangi/products')return send({ok:true,products:state.products.map(p=>({...p,available:true}))});
   if(path==='/api/yeongnyangi/attendance')return send({ok:true,day:'2026-09-16',balance:0,attended:false,unlocked:false});
-  if(path==='/api/me/access-state')return send({ok:true,authenticated:true,pass:{active:false},subscription:{tier:'free',status:'inactive'},monthly:{balance:0},unlockedFeatures:[]});
-  if(path==='/api/billing/balance')return send({ok:true,data:{monthlyBalance:0,balance:0,subscription:{tier:'free',status:'inactive'}}});
-  if(path==='/api/fortune/pig-coin/profile-subscription/status')return send({ok:true,authenticated:true,subscription:{tier:'free',status:'inactive'}});
+  if(path==='/api/me/access-state')return send({ok:true,authenticated:true,pass:{active:false},subscription:{tier:'free',status:'inactive'},monthly:{balance:state.monthlyBalance},unlockedFeatures:[]});
+  if(path==='/api/billing/balance')return send({ok:true,data:{monthlyBalance:state.monthlyBalance,balance:state.monthlyBalance,subscription:{tier:'free',status:'inactive'}}});
+  if(path==='/api/fortune/pig-coin/profile-subscription/status')return send({ok:true,authenticated:true,subscription:{tier:'free',status:'inactive',membershipCreditBalance:state.monthlyBalance}});
   if(path==='/api/payments/report-failure')return send({ok:true});
   if(path==='/api/billing/funnel-event')return send({ok:true});
   if(path==='/api/billing/unlock-status')return send({ok:true,unlocked:false,data:{unlocked:false}});
+  if(path==='/api/billing/coin-gate'){
+   // The actual browser route is rewritten by worker/index.js to V2 /coin-gate/moonstone.
+   // Reuse its exported response builder; the in-memory ledger is the only payment substitute.
+   assert.equal(request.method(),'POST');assert.equal(input.paymentMode,'MOONLIGHT_STONE');
+   assert.equal(input.featureKey,product.cdFeatureKey);assert.equal(input.requestId,`yn-${row.id}`);
+   state.monthlyRequests.push(input);
+   const item=resolveProduct({featureKey:input.featureKey});
+   assert.equal(item.monthlyExcluded,false);
+   let spend=state.monthlySpends.get(input.requestId);
+   const replayed=Boolean(spend);
+   if(!spend){
+    if(state.monthlyBalance<item.monthlyCost)return send({ok:false,code:'INSUFFICIENT_MONTHLY_CREDITS',monthlyBalance:state.monthlyBalance,currentMonthlyCredits:state.monthlyBalance,requiredMonthlyCredits:item.monthlyCost,membershipCreditCost:item.monthlyCost},402);
+    state.monthlyBalance-=item.monthlyCost;state.monthlyDeductions++;
+    spend={ledgerId:`fixture-monthly-${row.id}`,balance:state.monthlyBalance};state.monthlySpends.set(input.requestId,spend);
+   }
+   state.approved=true;
+   return send(legacyMoonstoneEnvelope({product:item,requestId:input.requestId,profileId:input.profileId||'',spend:{...spend,replayed},unlock:false}));
+  }
   if(path==='/api/billing/checkout'){
    assert.equal(input.featureKey,product.cdFeatureKey);assert.equal(input.requestId,`yn-${row.id}`);
    assert.equal(input.refundConsent,true,'Direct payment must record the current refund consent');
@@ -153,8 +175,8 @@ export async function fixtures(browser,base,product,width=390){
 
 async function openCheckout(f,base,method='CARD'){
  await f.page.goto(f.checkoutUrl||base+checkoutPath(f.row),{waitUntil:'domcontentloaded'});
- await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();
- const pay=f.page.getByRole('button',{name:/단건 결제하기/});
+ await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
+ const pay=f.page.getByRole('button',{name:/결제 방식 선택하기/});
  if(f.state.doubleClicks){await pay.click({trial:true});await pay.evaluate(b=>{b.click();b.click();b.click();});}else await pay.click();
  // The real payment choice UI must open; never call its runner from a test.
  const consent=f.page.locator('[data-refund-consent-input]'),direct=f.page.locator('[data-mode="direct"]');
@@ -338,7 +360,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
       }
       if(scenario==='external-return'){
        const target=new URL(base+checkoutPath(f.row));target.searchParams.set('returnTo','https://outside.example.invalid/');
-       await f.page.goto(target.href);await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();
+       await f.page.goto(target.href);await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
        // 결제를 그만두는 링크는 결제 "성공" 뒤 주소(미결제 결과 화면)가 아니라 영냥이 방·생선 고르기로 간다.
        assert.equal(await f.page.locator('a').filter({hasText:'← 영냥이 방'}).getAttribute('href'),'/yeongnyangi/');
        assert.equal(await f.page.locator('a').filter({hasText:'생선 다시 고르기'}).getAttribute('href'),'/yeongnyangi/fortune/');
@@ -353,7 +375,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        await f.page.getByRole('group',{name:'상담 종류'}).getByRole('button',{name:/무엇이든 물어보기/}).click();
        await f.page.getByLabel('영냥이에게 궁금한 이야기').fill('올해의 흐름이 궁금해요.');
        await f.page.getByRole('button',{name:'결제 내용 확인하기',exact:true}).click();
-       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();
+       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
        assert.equal(f.state.creates,1);
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();
        await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/fortune/');
@@ -369,7 +391,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        assert.equal(await f.page.getByText(/개 챕터 저장됨/).count(),0,'Unpaid result must not draw chapter progress');
        assert.equal(await f.page.getByRole('navigation',{name:'상담 목차'}).count(),0,'Unpaid result must not draw the table of contents');
        await f.page.getByRole('link',{name:'결제 내용 확인하기'}).click();
-       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();
+       await f.page.waitForURL('**/checkout/**');await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();
        await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/');
        assert.equal(f.state.sdk.length,0);
@@ -389,7 +411,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
        const foreignId='fixture-pg-foreign-owner';
        await redirectBack(f,{noStorage:true,approved:false,paymentId:foreignId});
        await waitFixture(()=>f.state.http.some(r=>r.path===`/api/payments/orders/${foreignId}/resume`&&r.status===404));
-       await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();
+       await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
        assert.equal(new URL(f.page.url()).pathname,'/checkout/');assert.equal(new URL(f.page.url()).searchParams.get('requestId'),f.row.id);
        assert.equal(f.row.paid,false);assert.equal(f.state.generates,0);assert.equal(f.state.sdk.length,1);assert.equal(f.state.orders.size,1);return;
       }
@@ -404,7 +426,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
       }
       if(scenario==='inline-cancel'||scenario==='inline-failure'){
        await f.page.locator('p[role="alert"]').or(f.page.getByText('결제를 취소했어요. 준비되면 다시 눌러 주세요.')).first().waitFor();
-       assert.equal(await f.page.getByRole('button',{name:/단건 결제하기/}).isEnabled(),true);
+       assert.equal(await f.page.getByRole('button',{name:/결제 방식 선택하기/}).isEnabled(),true);
        await waitFixture(()=>f.state.sdk.length===1);
        assert.equal(f.state.confirm,0);assert.equal(f.row.paid,false);assert.equal(f.state.generates,0);return;
       }
@@ -415,7 +437,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
       }else if(scenario==='pg-cancel-return'||scenario==='pg-failed-return'){
        f.page.on('dialog',d=>d.dismiss());
        await redirectBack(f,{approved:false,code:scenario==='pg-cancel-return'?'PAYMENT_CANCELLED':'FAILURE_TYPE_PG_PROVIDER'});
-       await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();
+       await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();
        assert.equal(f.state.confirm,0);assert.equal(f.row.paid,false);assert.equal(f.state.generates,0);
        // PG 를 다녀온 뒤에는 직전 문서가 PG(또는 빈 값)라 뒤로가기 대신 영냥이 방으로 간다 — 미결제 결과 화면을 거치지 않는다.
        await f.page.locator('a').filter({hasText:'← 영냥이 방'}).click();await f.page.waitForURL(url=>url.pathname==='/yeongnyangi/');

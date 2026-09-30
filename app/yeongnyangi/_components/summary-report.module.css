@@ -1,1 +1,5 @@
 .share{margin-top:32px;padding-top:28px;border-top:1px solid #806b91;color:#f7f0df}.share button{font:inherit;min-height:44px;margin:4px;padding:8px 16px;background:#e7c993;color:#201a30;border:1px solid #e7c993;border-radius:8px;cursor:pointer}.share button:disabled{opacity:.55;cursor:not-allowed}.share :is(button,input):focus-visible{outline:3px solid #e7c993;outline-offset:4px}.share label{display:flex;align-items:flex-start;gap:10px;margin:18px 0}.share input[type=checkbox]{width:22px;height:22px;flex:none;accent-color:#e7c993}.share input:not([type=checkbox]){box-sizing:border-box;display:block;width:100%;padding:12px;font:16px/1.5 sans-serif;background:#251e39;color:#f7f0df;border:1px solid #a992bd;border-radius:8px}.share li{margin-bottom:12px}
+
+.tools{margin:3rem 0;padding:1rem 0;border-block:1px solid var(--yn-line);color:var(--yn-ivory)}
+.tools>summary{cursor:pointer;min-height:48px;padding:.75rem 0;line-height:1.65;font-weight:600;overflow-wrap:anywhere;color:var(--yn-gold)}
+.tools>summary:focus-visible{outline:3px solid var(--yn-gold);outline-offset:4px}

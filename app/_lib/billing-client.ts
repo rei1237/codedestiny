@@ -1121,7 +1121,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"));
   const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
   const musicTrackSub = checkoutEntry.text("payment.directModal.musicTrackSub", "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.");
-  const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
+  const monthlyCost = resolveKnownMembershipCreditCost(opts, coinPrice);
   const callerMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
   const hasCallerMonthlyBalance = typeof callerMonthlyBalanceRaw === "number" && Number.isFinite(callerMonthlyBalanceRaw) && callerMonthlyBalanceRaw >= 0;
   // 회당결제(per-use)는 eligibility 서버 왕복을 건너뛰므로(runBillingCoinGate의 mayBeAlreadyUnlocked 분기)
@@ -1142,7 +1142,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyCanUse = monthlyCost > 0 && (!hasProvidedMonthlyBalance || monthlyBalance >= monthlyCost);
   // 월정석은 정적 결제창과 동일하게 잔량과 무관히 항상 노출하고, 부족하면 숨기지 않고 비활성(회색)으로 둔다.
   // equalPriorityMethods 목록에 없다고 버튼을 제거하지 않는다(서버가 잔량 부족 시 목록에서 빼도 회색으로 노출).
-  const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit");
+  const paymentPricing = resolveServerFeaturePricing({ featureKey: toText(opts.featureKey), categoryKey: toText(opts.categoryKey), subFeatureKey: toText(opts.subFeatureKey), reason: toText(opts.reason) });
+  const canShowMonthly = paymentPricing?.monthlyExcluded !== true
+    && (!allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit"));
   const monthlyDisabled = !monthlyCanUse;
   // 서버가 DIRECT_KRW를 동등 노출로 지정하면 단건 버튼 노출을 보장한다(제거는 하지 않음 — monthly와 대칭).
   if (hasEqualPriorityMethods && equalPriorityMethods.includes("DIRECT_KRW")) canShowDirect = true;
@@ -1168,7 +1170,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")
       : checkoutEntry.text("payment.directModal.passBuyTitle", "이용권으로 열기");
   const passStoreHint = familyPassStore
-    ? "영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용할 수 있어요. 이미 Family라면 눌러서 확인해 주세요."
+    ? paymentPricing?.monthlyExcluded === false
+      ? "Family 이용권·월정석·단건 결제로 이용할 수 있어요. 이미 Family라면 눌러서 확인해 주세요."
+      : "영냥이 유료 리딩은 Family 이용권 또는 단건 결제로 이용할 수 있어요. 이미 Family라면 눌러서 확인해 주세요."
     : hasActivePassTier
       ? checkoutEntry.text("payment.directModal.passHint.upgrade", "지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.")
       : checkoutEntry.text("payment.directModal.passHint.store", "한 번 결제하고 30일 동안 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.");
@@ -2270,6 +2274,15 @@ function shouldCacheBillingCoinGateResult(result: BillingResult<BillingCoinGateD
   return hasVerifiedBillingAccess(result.data, pricing?.featureKey || record?.featureKey || "");
 }
 
+function resolveKnownMembershipCreditCost(input: {featureKey?: unknown; categoryKey?: unknown; subFeatureKey?: unknown; reason?: unknown; membershipCreditCost?: unknown}, coinCost: number, serverCost?: unknown): number {
+  const pricing = resolveServerFeaturePricing({
+    featureKey: toText(input.featureKey), categoryKey: toText(input.categoryKey),
+    subFeatureKey: toText(input.subFeatureKey), reason: toText(input.reason),
+  });
+  // Registered products use the same conversion as the server, even if an old caller supplied a lower amount.
+  return pricing?.membershipCreditCost ?? Math.max(0, Math.floor(toNumber(serverCost ?? input.membershipCreditCost, coinCost * 10)));
+}
+
 function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentEligibility | null) {
   const amountKRW = Math.max(0, Math.floor(toNumber(
     eligibility?.priceKRW
@@ -2417,7 +2430,7 @@ function resolveRuntimeBillingPricing(input: BillingCoinGateInput, eligibility: 
     currency: toText(rawPricing.currency || "KRW"),
     cashPrice: amountKRW,
     amountKRW,
-    membershipCreditCost: toNumber(rawPricing.membershipCreditCost ?? input.membershipCreditCost, cost * 10),
+    membershipCreditCost: resolveKnownMembershipCreditCost({...input, featureKey}, cost, rawPricing.membershipCreditCost),
     paymentMode: toText(rawPricing.paymentMode || "single_purchase"),
     coinDisplayOnly: rawPricing.coinDisplayOnly === undefined ? true : Boolean(rawPricing.coinDisplayOnly),
   };
@@ -2472,7 +2485,9 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
     if (appAmountKRW === null) {
       return nativeAppStoreFailure(
         "APP_SKU_NOT_VERIFIED",
-        "Google Play 판매를 준비하고 있습니다. 웹에서 Family 이용권 또는 단건 결제를 이용해 주세요.",
+        resolveServerFeaturePricing({ ...input, featureKey })?.monthlyExcluded === false
+          ? "Google Play 판매를 준비하고 있습니다. 웹에서 Family 이용권·월정석·단건 결제를 이용해 주세요."
+          : "Google Play 판매를 준비하고 있습니다. 웹에서 Family 이용권 또는 단건 결제를 이용해 주세요.",
       );
     }
     // Play 최저가를 밑도는 저가 콘텐츠는 앱에서 무료다 — 결제창을 띄우지 않는다.
@@ -2499,7 +2514,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       coinPrice: cost,
       amountKrw: amountKRW,
       amountKRW,
-      membershipCreditCost: toNumber(input.membershipCreditCost, cost * 10),
+      membershipCreditCost: resolveKnownMembershipCreditCost(input, cost),
       productId: input.productId,
       productType: input.productType,
       serviceType: input.serviceType || input.productType,
@@ -3691,7 +3706,7 @@ async function fetchPaymentEligibilityUncached(input: {
   const coinCost = Math.max(0, Math.floor(toNumber(options.coinCost ?? data.coinCost ?? pricing.coinPrice ?? pricing.cost ?? input.coinCost ?? input.coinPrice, explicitPriceKRW > 0 ? Math.ceil(explicitPriceKRW / 100) : 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(explicitPriceKRW > 0 ? explicitPriceKRW : coinCost * 100, 0)));
   const monthlyBalance = phase === "pass" ? 0 : Math.max(0, Math.floor(toNumber(options.monthlyBalance ?? data.monthlyBalance ?? data.membershipCreditBalance, 0)));
-  const monthlyCost = Math.max(0, Math.floor(toNumber(options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost, coinCost * 10)));
+  const monthlyCost = resolveKnownMembershipCreditCost(input, coinCost, options.membershipCreditCost ?? data.membershipCreditCost ?? pricing.membershipCreditCost);
   const membershipPass = asRecord(data.membershipPass);
   const passTier = normalizePassTier(
     options.passTier

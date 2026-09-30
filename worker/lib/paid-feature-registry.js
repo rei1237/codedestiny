@@ -1,4 +1,4 @@
-import { normalizePaidFeaturePricingShape } from "./billing-policy.js";
+import { calculateMembershipCreditCost, normalizePaidFeaturePricingShape } from "./billing-policy.js";
 import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
 // 러브 코드는 재실행마다 소비하는 리포트가 아니라 계정 단위 영구 해금 상품이다.
@@ -182,8 +182,8 @@ export const FEATURE_KEY_REASON_COSTS = Object.freeze(
   ),
 );
 
-// 영냥이(SoulCat, /yeongnyangi/*) 책 상품. Family 이용권 또는 단건 결제만 허용하며
-// 다른 이용권 등급과 월정석은 통하지 않는다(paymentScope:"direct_or_family", 2026-09-23 사용자 확정).
+// 영냥이 책 상품은 Family 이용권 권리를 유지하고 월정석을 제휴 가치로 받는다.
+// 일반 이용권은 제외하며 1,000원 상담은 월정석 500개다(2026-09-30 사용자 요청).
 // 가격 정본은 SoulCat server/payments/catalog.ts 와 같아야 한다(6 체계 × 4 어종 + 퓨전 4종).
 const YEONGNYANGI_SYSTEMS = Object.freeze({
   saju: "사주", ziwei: "자미두수", sukuyo: "숙요", vedic: "베다점", astrology: "서양 점성술", tarot: "타로",
@@ -198,7 +198,7 @@ const YEONGNYANGI_FUSIONS = Object.freeze([
   ["fusion-all", "사주 + 자미두수 + 숙요 + 베다점 + 서양 점성술 + 타로", "생선 오마카세", 50000],
 ]);
 function buildYeongnyangiEntry(name, fishName, amountKRW) {
-  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family" };
+  return { cost: amountKRW / 100, amountKRW, reason: `영냥이 ${name} ${fishName}`, paymentScope: "direct_or_family", membershipCreditAllowed: true, membershipCreditMultiplier: 5 };
 }
 const YEONGNYANGI_RAW_PRICE_ENTRIES = Object.freeze(Object.fromEntries([
   ...Object.entries(YEONGNYANGI_SYSTEMS).flatMap(([system, name]) =>
@@ -384,10 +384,32 @@ export function isDirectOnlyPaidFeatureKey(featureKey) {
   return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_ONLY;
 }
 
-/** 결제 범위 `direct_or_family`: Family 이용권 또는 단건 결제만 허용하고 월정석·다른 이용권은 거절한다. */
+/** 이용권 중 Family만 허용한다. 월정석 예외는 getPaidFeaturePaymentPolicy가 판정한다. */
 export function isDirectOrFamilyPaidFeatureKey(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
   return Boolean(key) && FEATURE_KEY_PRICE_TABLE[key]?.paymentScope === PAYMENT_SCOPE_DIRECT_OR_FAMILY;
+}
+
+/** 표시·견적·실차감·증빙이 공유하는 기능별 월정석 정본. */
+export function calculatePaidFeatureMembershipCreditCost(featureKey, coinCost) {
+  const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
+  const multiplier = Number(spec?.membershipCreditMultiplier || 1);
+  return calculateMembershipCreditCost(coinCost ?? spec?.cost) * multiplier;
+}
+
+export function getPaidFeaturePaymentPolicy(featureKey) {
+  const spec = FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)];
+  const directOnly = isDirectOnlyPaidFeatureKey(featureKey);
+  const familyPassOnly = isDirectOrFamilyPaidFeatureKey(featureKey);
+  const monthlyExcluded = directOnly || (familyPassOnly && spec?.membershipCreditAllowed !== true);
+  return {
+    paymentScope: String(spec?.paymentScope || ""),
+    directOnly, familyPassOnly, monthlyExcluded,
+    membershipCreditMultiplier: Number(spec?.membershipCreditMultiplier || 1),
+    allowedPaymentMethods: familyPassOnly
+      ? ["FAMILY", "DIRECT_KRW", ...(!monthlyExcluded ? ["MOONLIGHT_STONE"] : [])]
+      : directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"],
+  };
 }
 
 const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({

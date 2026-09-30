@@ -110,6 +110,10 @@ export async function createOrder(db, {
     idempotencyKey=generationKey(requestId,fortunePaymentGeneration);
   }
   const orderId = await deriveOrderId(userId, idempotencyKey);
+  if (fortunePaymentGeneration !== undefined) {
+    const {reserveFortuneDirectFunding}=await import('../yeongnyangi/payment-intent.js');
+    await reserveFortuneDirectFunding(db,{userId,requestId,featureKey:product.featureKey,orderId,generation:fortunePaymentGeneration});
+  }
   const now = new Date();
 
   let result = null;
@@ -345,8 +349,10 @@ export async function createPayableOrder(db, input) {
         if(restored) return restored;
         continue;
       }
-      if(!['failed','cancelled'].includes(order.status)) throw paymentError('ORDER_NOT_CONFIRMABLE','이 주문의 결제 상태를 먼저 확인해 주세요.');
-      await advanceFortunePaymentGeneration(db,input.userId,input.requestId,Number(order.metadata?.fortunePaymentGeneration||0));
+      if(order.status!=='failed' || order.failureStage!=='pg-retry-check'
+        || !['PG_PAYMENT_FAILED','PG_PAYMENT_CANCELLED'].includes(order.failureCode))
+        throw paymentError('ORDER_NOT_CONFIRMABLE','이 주문의 결제 상태를 먼저 확인해 주세요.');
+      await advanceFortunePaymentGeneration(db,input.userId,input.requestId,Number(order.metadata?.fortunePaymentGeneration||0),order.merchantUid);
     }
     throw paymentError('IDEMPOTENCY_CONFLICT','결제 상태를 다시 확인한 뒤 시도해 주세요.');
   }

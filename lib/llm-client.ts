@@ -1070,7 +1070,8 @@ async function callCloudflareWorkersAI(
         ...(finishReason ? { finishReason } : {}),
       };
     } catch (error) {
-      // 폐기(5028)·스키마 거부·빈 응답 — 사유를 가리지 않고 다음 모델로 넘긴다.
+      if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
+      // 폐기(5028)·스키마 거부·빈 응답은 남은 예산 안에서 다음 모델로 넘긴다.
       // 마지막 모델까지 실패하면 사유를 전부 합쳐 올린다.
       failures.push(`${model}: ${getErrorMessage(error)}`);
       if ((error as Error & { fallbackBudgetExhausted?: boolean }).fallbackBudgetExhausted) {
@@ -1082,10 +1083,28 @@ async function callCloudflareWorkersAI(
   throw new Error(`Cloudflare Workers AI failed. ${failures.join(" | ")}`);
 }
 
+// An early gateway timeout/abort can leave generation running at the provider.
+// A remaining local deadline is not permission to purchase the same output again.
+function isGenerationTimeout(error: unknown): boolean {
+  const candidate = error as { status?: number; name?: string; code?: string };
+  return [408, 504].includes(Number(candidate?.status || 0))
+    || /^(?:AbortError|TimeoutError)$/.test(String(candidate?.name || ""))
+    || /^(?:ETIMEDOUT|LLM_GENERATION_TIMEOUT)$/.test(String(candidate?.code || ""))
+    || /timeout|timed\s*out|deadline|aborted/i.test(getErrorMessage(error));
+}
+
+function generationTimeoutFailure(error: unknown): Error {
+  return Object.assign(new Error(`LLM generation timed out: ${getErrorMessage(error)}`), {
+    code: "LLM_GENERATION_TIMEOUT",
+    status: Number((error as { status?: number })?.status || 0) || 504,
+  });
+}
+
 // 일시적 장애(429/5xx/overloaded/빈 응답)만 재시도 대상. 타임아웃은 이미 시간
 // 예산을 소진했고 장문 생성은 재시도 시 런타임 한도를 넘길 수 있어 제외한다.
 // 키 미설정/400·403·404는 재시도해도 성공하지 않으므로 제외한다.
 function isTransientGeminiError(error: unknown): boolean {
+  if (isGenerationTimeout(error)) return false;
   const status = Number((error as { status?: number })?.status || 0);
   if (status === 429 || (status >= 500 && status <= 599)) return true;
   const message = getErrorMessage(error).toLowerCase();
@@ -1168,6 +1187,7 @@ async function callLLMUncached(
     try {
       return await callGeminiWithRetry(request, env, deadlineAt, budget);
     } catch (error) {
+      if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
       geminiError = error;
     }
   }
@@ -1187,6 +1207,7 @@ async function callLLMUncached(
     try {
       return await callGeminiWithRetry(withoutContextCache, env, deadlineAt, budget);
     } catch (error) {
+      if (isGenerationTimeout(error)) throw generationTimeoutFailure(error);
       geminiError = error;
     }
   }
@@ -1205,6 +1226,7 @@ async function callLLMUncached(
   try {
     return await callCloudflareWorkersAI(request, env, deadlineAt, budget);
   } catch (cloudflareError) {
+    if (isGenerationTimeout(cloudflareError)) throw cloudflareError;
     throw new Error(
       `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(
         cloudflareError,

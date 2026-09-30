@@ -5,6 +5,7 @@ import {fortuneApi} from '../_lib/api';
 import {buildSummaryReport,publicShareReport} from '../_lib/summary-report';
 import {sajuReportCopy,sajuShareControls} from '../_lib/saju-report-copy';
 import {chartTerm} from '../_lib/reading-chart-copy';
+import {readingFocusCopy} from '../_lib/reading-focus-copy';
 import {prepareKakao,shareThrough} from '@/js/share-service.mjs';
 import ExternalImageGuide from '@/components/fortune/ExternalImageGuide';
 import styles from './summary-report.module.css';
@@ -26,10 +27,10 @@ function OwnedReport({row,report}:{row:FortuneRecord;report:NonNullable<ReturnTy
  async function revokeLink(){if(!shareLink||busy)return;setBusy(true);try{await fortuneApi(`report-shares/${shareLink.token}/revoke`,{});localStorage.removeItem(`yeongnyangi:report-share:${row.id}`);setShareLink(null);setConsent(false);setStatus(shareText?.linkRemoved||'공개 링크를 해제했어요. 이미 저장된 이미지는 회수할 수 없습니다.');}catch{setStatus(shareText?.linkRemoveError||'공유 해제에 실패했어요. 다시 시도해 주세요.');}finally{setBusy(false);}}
  async function copyLink(){if(!shareLink)return;try{await navigator.clipboard.writeText(shareLink.url);setStatus(shareText?.linkCopied||'공개 링크를 복사했어요.');}catch{setStatus(`${shareText?.copyManual||'직접 복사할 링크:'} ${shareLink.url}`);}}
  async function kakaoShare(){if(!shareLink||!report)return;try{const result=await shareThrough('kakao',{title:'Code Destiny · Yeongnyangi',text:publicShareReport(report).oneLineSummary,url:shareLink.url,image:`https://code-destiny.com${report.mascot}`});setStatus(result.status==='opened'?(shareText?.opened||'카카오톡 공유창을 열었어요.'):result.status==='cancelled'?(shareText?.cancelled||'공유를 취소했어요.'):(shareText?.failed||'카카오톡 공유창을 열지 못했어요. 링크를 복사해 보내 주세요.'));}catch{setStatus(shareText?.failed||'카카오톡 공유창을 열지 못했어요. 링크를 복사해 보내 주세요.');}}
- return <div id="my-fortune-summary"><ExternalImageGuide brand="yeongnyangi" domain={report.serviceType} locale={report.locale} groups={groups} passages={passages} notes={report.chart?.limitations||report.coverage.missing}>
+ return <details id="my-fortune-summary" className={styles.tools}><summary>{readingFocusCopy(row.locale).tools}</summary><ExternalImageGuide brand="yeongnyangi" domain={report.serviceType} locale={report.locale} groups={groups} passages={passages} notes={report.chart?.limitations||report.coverage.missing}>
   <section className={styles.share}><button type="button" aria-expanded={shareOpen} onClick={()=>setShareOpen(value=>!value)}>{shareText.share}</button>
   {shareOpen&&<><p>{text.linkExpires}</p><p>{text.publicNotice}</p><ul>{publicReport.chart?.groups.map(group=><li key={group.id}><strong>{chartTerm(group.label,row.locale)}</strong>{group.items.map((item,index)=><div key={index}>{chartTerm(item.label,row.locale)}: {item.value}</div>)}</li>)}</ul>
   {!shareLink?<><label><input type="checkbox" checked={consent} onChange={event=>setConsent(event.target.checked)}/>{text.linkConsent}</label><button type="button" disabled={!consent||busy} onClick={()=>void createLink()}>{text.linkCreate}</button></>:<><input aria-label={text.linkCopy} readOnly value={shareLink.url} onFocus={event=>event.target.select()}/><button type="button" onClick={()=>void copyLink()}>{text.linkCopy}</button><button type="button" onClick={()=>void kakaoShare()}>{shareText.kakao}</button><button type="button" disabled={busy} onClick={()=>void revokeLink()}>{text.linkRevoke}</button></>}</>}
   <p role="status" aria-live="polite">{status}</p></section>
- </ExternalImageGuide></div>;
+ </ExternalImageGuide></details>;
 }

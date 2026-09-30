@@ -25,6 +25,8 @@ import {
   FEATURE_KEY_PRICE_TABLE,
   PAID_FEATURE_BILLING_TYPES,
   getPaidFeatureBillingType,
+  getPaidFeaturePaymentPolicy,
+  calculatePaidFeatureMembershipCreditCost,
   listServerPricedFeatureKeys,
 } from "../worker/lib/paid-feature-registry.js";
 
@@ -272,40 +274,56 @@ for (const featureKey of listServerPricedFeatureKeys()) {
   const coinCost = Math.max(0, Math.floor(Number(pricing.coinPrice || pricing.cost || 0)));
   if (!(coinCost > 0)) continue;
   const billingType = getPaidFeatureBillingType(featureKey);
+  const membershipCreditCost = calculatePaidFeatureMembershipCreditCost(featureKey, coinCost);
+  const paymentPolicy = getPaidFeaturePaymentPolicy(featureKey);
   const pricingInput = {
     ...pricing,
     featureKey,
     coinPrice: coinCost,
     cost: coinCost,
-    membershipCreditCost: coinCost * 10,
+    membershipCreditCost,
   };
-  const standardDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.STANDARD), pricingInput, { membershipCreditBalance: coinCost * 10 });
-  const premiumDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.PREMIUM), pricingInput, { membershipCreditBalance: coinCost * 10 });
-  const vvipDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.VVIP), pricingInput, { membershipCreditBalance: coinCost * 10 });
+  const standardDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.STANDARD), pricingInput, { membershipCreditBalance: membershipCreditCost });
+  const premiumDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.PREMIUM), pricingInput, { membershipCreditBalance: membershipCreditCost });
+  const vvipDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.VVIP), pricingInput, { membershipCreditBalance: membershipCreditCost });
   const familyDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.FAMILY), pricingInput, { membershipCreditBalance: 0 });
 
   // 이용권 제외 기능(프로필 카드 추가/삭제 등)은 tier 한도와 무관하게 전 tier(family 포함) 미커버여야 한다.
-  // 정본 판정(isPassExcludedPricing)을 그대로 써서 향후 추가되는 제외 기능도 자동으로 덮는다.
-  // 과거엔 이 루프가 profile-card-manage에 대해 "premium/vvip는 한도 안이니 커버됨"을 단언해 버그를
-  // 정상으로 고정했고, 같은 파일의 licenseTier!=="FAMILY"/profile_card_pass_excluded 단언과 모순이었다.
-  // direct_or_family(영냥이, 등록소 paymentScope): Family와 단건만 허용한다.
-  // 다른 이용권·월정석은 거절하고, Family는 같은 공용 차감 경로로 커버한다.
+  // direct_or_family는 이용권 중 Family만 허용한다. 월정석 허용·가격은 별도 정본을 따른다.
   if (__billingTestUtils.isFamilyPassOnlyPricing(pricingInput)) {
+    const monthlyAllowed = !paymentPolicy.monthlyExcluded;
+    const allowedMethods = ["FAMILY", "DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
+    const paidMethods = ["DIRECT_KRW", ...(monthlyAllowed ? ["MOONLIGHT_STONE"] : [])];
+    if (featureKey.startsWith("yeongnyangi-")) {
+      assert.equal(monthlyAllowed, true, `${featureKey}: 승인된 영냥이 월정석 결제 유지`);
+      assert.equal(membershipCreditCost, coinCost * 50, `${featureKey}: 1,000원당 500 월정석 정본`);
+    }
     for (const [label, decisionForTier] of [
       ["standard", standardDecision],
       ["premium", premiumDecision],
       ["vvip", vvipDecision],
     ]) {
       assert.equal(decisionForTier.canUseByPass, false, `${featureKey}: ${label} 이용권은 영냥이를 커버하면 안 된다`);
-      assert.equal(decisionForTier.canUseByMonthly, false, `${featureKey}: 월정석은 영냥이를 커버하면 안 된다(${label})`);
-      assert.deepEqual(decisionForTier.allowedPaymentMethods, ["FAMILY", "DIRECT_KRW"], `${featureKey}: Family와 단건만 허용한다(${label})`);
-      assert.deepEqual(decisionForTier.equalPriorityMethods, ["DIRECT_KRW"], `${featureKey}: Family 미보유 시 단건과 Family 안내로 인계한다(${label})`);
-      assert.ok(decisionForTier.hiddenMethods.includes("MOONLIGHT_STONE") && decisionForTier.hiddenMethods.includes("COIN"), `${featureKey}: 월정석·코인을 숨긴다(${label})`);
-      assert.equal(decisionForTier.decisionReason, "FAMILY_PASS_REQUIRED", `${featureKey}: Family 필요 사유(${label})`);
+      assert.equal(decisionForTier.canUseByMonthly, monthlyAllowed, `${featureKey}: 정본 월정석 잔량으로 결제 가능 여부(${label})`);
+      assert.deepEqual(decisionForTier.allowedPaymentMethods, allowedMethods, `${featureKey}: Family·단건·허용된 월정석(${label})`);
+      assert.deepEqual(decisionForTier.equalPriorityMethods, paidMethods, `${featureKey}: Family 미보유 시 결제 선택지(${label})`);
+      assert.deepEqual(decisionForTier.hiddenMethods, monthlyAllowed ? ["COIN"] : ["COIN", "MOONLIGHT_STONE"], `${featureKey}: 허용된 월정석을 숨기면 안 된다(${label})`);
+      assert.equal(decisionForTier.decisionReason, "FAMILY_PASS_REQUIRED", `${featureKey}: 일반 이용권은 계속 제외(${label})`);
     }
     assert.equal(familyDecision.canUseByPass, true, `${featureKey}: Family 이용권은 영냥이를 커버해야 한다`);
-    assert.equal(familyDecision.canUseByMonthly, false, `${featureKey}: Family 보유 중에도 월정석을 노출하면 안 된다`);
-    assert.deepEqual(familyDecision.allowedPaymentMethods, ["FAMILY", "DIRECT_KRW"], `${featureKey}: 허용 수단 정본`);
+    assert.equal(familyDecision.canUseByMonthly, false, `${featureKey}: 월정석 잔량 0이면 결제 불가`);
+    assert.deepEqual(familyDecision.allowedPaymentMethods, allowedMethods, `${featureKey}: 허용 수단 정본`);
+    if (monthlyAllowed) {
+      // 표시 비용 생략 시에도 같은 서버 정가를 쓰고, 잔량 부족이 결제수단 자체를 숨기지 않는다.
+      const withoutMonthlyCost = { ...pricingInput };
+      delete withoutMonthlyCost.membershipCreditCost;
+      const exactBalance = __billingTestUtils.buildPassPaymentDecision({}, withoutMonthlyCost, { membershipCreditBalance: membershipCreditCost });
+      const shortBalance = __billingTestUtils.buildPassPaymentDecision({}, withoutMonthlyCost, { membershipCreditBalance: membershipCreditCost - 1 });
+      assert.equal(exactBalance.canUseByMonthly, true, `${featureKey}: 정본 비용과 같은 잔량 허용`);
+      assert.equal(shortBalance.canUseByMonthly, false, `${featureKey}: 월정석 1개 부족하면 거절`);
+      assert.deepEqual(shortBalance.equalPriorityMethods, paidMethods, `${featureKey}: 잔량이 부족해도 결제 선택지 유지`);
+      assert.deepEqual(shortBalance.allowedPaymentMethods, allowedMethods, `${featureKey}: 잔량과 허용 수단을 구분`);
+    }
     continue;
   }
 

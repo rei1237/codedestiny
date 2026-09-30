@@ -12,6 +12,8 @@ const bundle=await build({stdin:{contents:`
  export {resolveReadingLanguage} from './app/yeongnyangi/_lib/use-reading-language';
  export {consultationInputCopy} from './app/yeongnyangi/_lib/consultation-input-copy';
  export {readingCopy} from './app/yeongnyangi/_lib/reading-copy';
+ export {readingFocusCopy} from './app/yeongnyangi/_lib/reading-focus-copy';
+ export {readingDepthCopy,readingTierDepth} from './app/yeongnyangi/_lib/reading-depth-copy';
  export {resultStateCopy} from './app/yeongnyangi/_lib/result-state-copy';
  export {shareCopy} from './app/yeongnyangi/_lib/share-copy';
  export {journeyCopy} from './app/yeongnyangi/_lib/journey-copy';
@@ -36,7 +38,9 @@ test('reading locales and labels reuse the site runtime source of truth',()=>{
 });
 for(const locale of RUNTIME_LOCALES)test(`${locale}: complete dropdown, localized purchase copy and actual mock chapter payload`,async()=>{
  const copy=m.consultationLocaleCopy(locale);
- for(const name of ['consultationInputCopy','readingCopy','resultStateCopy','shareCopy','journeyCopy','chartCopy','visualCopy','tarotRitualCopy','jongCheckCopy','getCheckoutCopy']){
+ for(const tier of ['mackerel','salmon','flounder','tuna']){const text=m.readingTierDepth(tier,locale);assert.ok(text?.trim());if(locale!=='ko')assert.doesNotMatch(text,/[가-힣]/);}
+ assert.equal(m.readingTierDepth('unknown',locale),undefined);
+ for(const name of ['consultationInputCopy','readingCopy','readingFocusCopy','readingDepthCopy','resultStateCopy','shareCopy','journeyCopy','chartCopy','visualCopy','tarotRitualCopy','jongCheckCopy','getCheckoutCopy']){
   const native=m[name](locale),original=m[name]('ko');
   for(const key of Object.keys(original)){
    assert.equal(typeof native[key],typeof original[key],`${locale} ${name}.${key} is authored`);

@@ -1341,9 +1341,9 @@ const ROUTES = {
         directOnly = catalogItem.directOnly === true;
         familyPassOnly = catalogItem.familyPassOnly === true;
       } catch { billingType = "per_use"; }
-      // direct_only/direct_or_family 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 범위 필드다. 구 coin-gate
+      // 카탈로그가 월정석을 제외한 상품은 월정석으로 열 수 없다 — 정본은 카탈로그 범위 필드다. 구 coin-gate
       // MONTHLY 요청은 worker/index.js 가 여기로 재작성하므로 이 자리가 실제 관문이다.
-      if (directOnly || familyPassOnly) {
+      if (resolveProduct({ featureKey: product.featureKey }).monthlyExcluded) {
         throw paymentError(directOnly ? "DIRECT_ONLY_PAYMENT_REQUIRED" : "FAMILY_OR_DIRECT_PAYMENT_REQUIRED",
           directOnly ? "이 상품은 단건 결제로만 이용할 수 있습니다." : "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요.",
           { featureKey: product.featureKey, familyPassOnly });
@@ -1633,8 +1633,8 @@ const ROUTES = {
     auth: "required",
     async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
-      if (product.directOnly) {
-        throw paymentError("DIRECT_ONLY_PAYMENT_REQUIRED", "이 상품은 단건 결제로만 이용할 수 있습니다.");
+      if (product.monthlyExcluded) {
+        throw paymentError("MONTHLY_NOT_ALLOWED", "이 상품의 다른 결제 방식을 선택해 주세요.");
       }
       if (product.passExcluded) {
         throw paymentError("PASS_NOT_APPLICABLE", "이 기능은 월정석으로 결제할 수 없습니다.");
@@ -1643,11 +1643,14 @@ const ROUTES = {
       const purchaseId = String(body.idempotencyKey || "").trim();
       const result = await withDb(env, ctx, async (db) => {
         const spend = await spendMoonstone(db, { userId, product, purchaseId, profileId: body.profileId });
-        await grantEntitlement(db, {
-          userId, product, orderId: purchaseId, profileId: body.profileId,
-          contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
-        });
-        await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+        // This family-only monthly consultation owns its request proof, not a permanent unlock.
+        if (!(product.familyPassOnly && !product.monthlyExcluded)) {
+          await grantEntitlement(db, {
+            userId, product, orderId: purchaseId, profileId: body.profileId,
+            contentKey: body.contentKey, scope: body.scope, source: "MONTHLY",
+          });
+          await markUserFeatureUnlocked(db, { userId, featureKey: product.featureKey });
+        }
         return spend;
       });
       invalidateBalanceSnapshot(userId); // 월정석 차감 반영

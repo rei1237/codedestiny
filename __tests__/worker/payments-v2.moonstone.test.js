@@ -152,6 +152,25 @@ describe("실패하면 사용자는 과금되지 않은 채로 남는다", () =>
 });
 
 describe("재생과 동시성", () => {
+  test.each([
+    { featureKey: "other-product" },
+    { monthlyCost: 3001 },
+  ])("같은 원장 요청을 다른 상품 또는 금액으로 재생할 수 없다: %j", async changes => {
+    const db = makeLedgerDb();
+    await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots: consumeReturning(OK) });
+    const consumeLots = consumeReturning(OK);
+    await expectError(() => spendMoonstone(db, { userId: USER, product: { ...PRODUCT, ...changes }, purchaseId: PURCHASE }, { consumeLots }), "IDEMPOTENCY_CONFLICT", 409);
+    expect(consumeLots.calls).toHaveLength(0);
+    expect(db.rows).toHaveLength(1);
+  });
+  test("서비스 실패로 복원한 원장으로 다시 접근을 열 수 없다", async () => {
+    const db = makeLedgerDb();
+    await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots: consumeReturning(OK) });
+    db.rows[0].metadata = { refundedForServiceExecution: true };
+    const consumeLots = consumeReturning(OK);
+    await expectError(() => spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots }), "IDEMPOTENCY_CONFLICT", 409);
+    expect(consumeLots.calls).toHaveLength(0);
+  });
   test("이미 정산된 구매를 다시 부르면 그대로 성공을 돌려준다", async () => {
     const db = makeLedgerDb();
     await spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots: consumeReturning(OK) });
@@ -168,7 +187,7 @@ describe("재생과 동시성", () => {
   test("🔴 형제 요청이 차감 중이면 409 다 — 402 로 내면 카드로 이중과금된다", async () => {
     const db = makeLedgerDb();
     // 미정산 예약만 있는 상태(형제가 차감 중)를 만든다.
-    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000 });
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000 });
     await expectError(
       () => spendMoonstone(db, { userId: USER, product: PRODUCT, purchaseId: PURCHASE }, { consumeLots: consumeReturning(OK) }),
       "MOONSTONE_IN_PROGRESS",
@@ -196,7 +215,7 @@ describe("재생과 동시성", () => {
 
   test("🔴 죽은 형제의 예약(미차감)은 이어받아 진행한다 — 크론까지 기다리지 않는다", async () => {
     const db = makeLedgerDb();
-    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: DEAD });
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000, createdAt: DEAD });
     await db.insertOne({}, { _id: USER, recentConsumeRequestIds: [] });
     db.rows[1]._id = USER;
 
@@ -213,7 +232,7 @@ describe("재생과 동시성", () => {
 
   test("🔴 죽은 형제가 차감까지 했다면 정산만 마무리한다 — 두 번 깎지 않는다", async () => {
     const db = makeLedgerDb();
-    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: DEAD });
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000, createdAt: DEAD });
     await db.insertOne({}, { _id: USER, recentConsumeRequestIds: [PURCHASE], profileSubscription: { membershipCreditBalance: 4200 } });
     db.rows[1]._id = USER;
 
@@ -231,7 +250,7 @@ describe("재생과 동시성", () => {
   test("🔴 아직 어린 예약은 이어받지 않는다 — 살아 있는 형제를 가로채면 안 된다", async () => {
     const db = makeLedgerDb();
     await db.insertOne({}, {
-      userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: new Date(),
+      userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000, createdAt: new Date(),
     });
     const consumeLots = consumeReturning(OK);
     await expectError(
@@ -249,7 +268,7 @@ describe("크론: 고아 예약 정리", () => {
 
   test("차감 증거가 있으면 정산한다", async () => {
     const db = makeLedgerDb();
-    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: OLD });
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000, createdAt: OLD });
     await db.insertOne({}, { _id: USER, recentConsumeRequestIds: [PURCHASE], profileSubscription: { membershipCreditBalance: 4200 } });
     db.rows[1]._id = USER;
 
@@ -261,7 +280,7 @@ describe("크론: 고아 예약 정리", () => {
 
   test("🔴 차감 증거가 없으면 예약만 걷어낸다 — 사용자는 과금되지 않았다", async () => {
     const db = makeLedgerDb();
-    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: OLD });
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000, createdAt: OLD });
     await db.insertOne({}, { _id: USER, recentConsumeRequestIds: [] });
     db.rows[1]._id = USER;
 
@@ -272,7 +291,7 @@ describe("크론: 고아 예약 정리", () => {
 
   test("아직 어린 예약은 건드리지 않는다 — 진행 중일 수 있다", async () => {
     const db = makeLedgerDb();
-    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000, createdAt: new Date() });
+    await db.insertOne({}, { userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000, createdAt: new Date() });
     const report = await settleOrphanSpends(db);
     expect(report.scanned).toBe(0);
     expect(db.rows).toHaveLength(1);
@@ -281,7 +300,7 @@ describe("크론: 고아 예약 정리", () => {
   test("이미 정산된 행은 대상이 아니다", async () => {
     const db = makeLedgerDb();
     await db.insertOne({}, {
-      userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, amount: 3000,
+      userId: USER, type: __moonstoneTestUtils.SPEND, sourceId: PURCHASE, serviceKey: PRODUCT.featureKey, amount: 3000,
       createdAt: OLD, settledAt: new Date(),
     });
     expect((await settleOrphanSpends(db)).scanned).toBe(0);

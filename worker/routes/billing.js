@@ -13,6 +13,8 @@ import {
   listBillingFeatures,
 } from "../lib/billing-feature-registry.js";
 import {
+  calculatePaidFeatureMembershipCreditCost,
+  getPaidFeaturePaymentPolicy,
   LEGACY_LOVE_CODE_FEATURE_KEYS,
   LOVE_CODE_FEATURE_KEY,
   isDirectOrFamilyPaidFeatureKey,
@@ -1014,7 +1016,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     overrides.monthlyBalance ?? lotDerivedMonthlyBalance ?? 0,
   )));
   const membershipCreditCost = Math.max(0, Math.floor(Number(
-    pricing?.membershipCreditCost || calculateMembershipCreditCost(coinCost),
+    pricing?.membershipCreditCost || calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, coinCost),
   )));
   const hasActivePass = activeEntitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
@@ -1053,21 +1055,19 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     passExcluded,
   });
   const passCovered = featureAccess.allowed && !familyQuotaExhausted && !monthlyQuotaExceeded;
-  // direct_only/direct_or_family: 월정석 불가 — 서버가 MOONLIGHT_STONE 을 내보내면 셸 렌더러가
-  // 월정석 카드를 다시 켜므로(index.html equalPriorityMethods 재활성화) 목록에서 아예 뺀다.
-  const directOnly = isDirectOnlyPricing(pricing);
-  const monthlyCovered = !directOnly && !familyPassOnly && coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
+  // 월정석 허용과 결제수단 표시는 기능별 결제 정책 정본을 따른다.
+  const paymentPolicy = getPaidFeaturePaymentPolicy(pricing?.featureKey);
+  const { directOnly, monthlyExcluded } = paymentPolicy;
+  const monthlyCovered = !monthlyExcluded && coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
   // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다(direct_only 예외).
-  const equalPriorityPaidMethods = (directOnly || familyPassOnly) ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
+  const equalPriorityPaidMethods = monthlyExcluded ? ["DIRECT_KRW"] : ["DIRECT_KRW", "MOONLIGHT_STONE"];
 
   return {
     coinCost,
     hasActivePass,
     passTier,
-    // 🔴 클라이언트 스냅샷(cd_subscription_snapshot_v2)의 유효기간 근거. 이 값이 없으면 스냅샷은
-    // "만료일을 모르는 active" 로 저장돼 5분 뒤 폐기되고, 이용권 보유자가 매번 서버 왕복을 다시 탄다.
-    // activeEntitlement 는 위에서 이미 계산돼 있어 DB 왕복이 늘지 않는다.
+    // 기존 계산값의 만료일로 클라이언트 이용권 스냅샷을 유지하며 DB 재조회는 하지 않는다.
     expiresAt: hasActivePass ? (activeEntitlement?.expiresAt || null) : null,
     passLimit: hasActivePass && passLimitValue > 0 ? passLimitValue : null,
     passLimitKRW: hasActivePass && passLimitValue > 0 ? calculateKrwAmountFromCoins(passLimitValue) : null,
@@ -1077,12 +1077,12 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     canUseByMonthly: monthlyCovered,
     canUseByCard: true,
     familyPassOnly,
-    allowedPaymentMethods: familyPassOnly ? ["FAMILY", "DIRECT_KRW"] : (directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"]),
+    allowedPaymentMethods: paymentPolicy.allowedPaymentMethods,
     recommendedMethod: passCovered ? "PASS" : "PAYMENT_CHOICE",
     recommendedMethods: passCovered ? ["PASS"] : equalPriorityPaidMethods,
     equalPriorityMethods: passCovered ? [] : equalPriorityPaidMethods,
     paymentPriority: passCovered ? "PASS_FIRST" : "USER_CHOICE_EQUAL",
-    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", "MOONLIGHT_STONE"] : [])),
+    hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : (directOnly ? ["PASS", "COIN", "MOONLIGHT_STONE"] : (familyPassOnly ? ["COIN", ...(monthlyExcluded ? ["MOONLIGHT_STONE"] : [])] : [])),
     // 포함 횟수를 다 쓴 경우에도 결제수단은 그대로 동등 노출된다(위 equalPriorityPaidMethods).
     // 클라이언트가 "이용권이 없어서"가 아니라 "포함 횟수를 다 써서"라고 안내할 수 있도록
     // 사유와 잔여 횟수를 함께 내린다.
@@ -1284,7 +1284,7 @@ function resolveMonthlyCreditCostForBilling(pricing, body = {}) {
   ) {
     return Math.max(0, Math.floor(Number(PROFILE_CARD_DELETE_COST_MONTHLY_STONES || 0)));
   }
-  return calculateMembershipCreditCost(coinPrice);
+  return calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, coinPrice);
 }
 
 async function assertProfileCardPassPolicyIfNeeded({ userId, profileId, pricing, body = {} }) {
@@ -3387,7 +3387,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     });
   }
   // direct_only/direct_or_family: 월정석 차감 경로를 진입에서 닫는다(fail-closed).
-  if (monthlyBalanceRequested && (directOnlyForPricing || familyPassOnlyForPricing)) {
+  if (monthlyBalanceRequested && getPaidFeaturePaymentPolicy(pricing?.featureKey).monthlyExcluded) {
     return failure(402, "MONTHLY_NOT_ALLOWED", familyPassOnlyForPricing ? "이 상품은 Family 이용권 또는 단건 결제로 이용해 주세요." : "이 상품은 월정석으로 결제할 수 없습니다. 단건 결제로 이용해 주세요.", undefined, {
       pricing,
       paymentOptions: buildPassPaymentDecision(null, pricing, null),
@@ -4056,7 +4056,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         paymentMethod: requestedPaymentMode || "monthly",
         amountCoins: Number(pricing?.coinPrice || pricing?.cost || 0),
         amountKRW: calculateKrwAmountFromCoins(Number(pricing?.coinPrice || pricing?.cost || 0)),
-        monthlyRequiredAmount: calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        monthlyRequiredAmount: calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, Number(pricing?.coinPrice || pricing?.cost || 0)),
         idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
       });
       logPaidAccessStage("MONTHLY_BALANCE_CHECK_START", {
@@ -4066,7 +4066,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         profileId,
         accessMethod: "monthly",
         paymentMethod: requestedPaymentMode || "monthly",
-        monthlyRequiredAmount: calculateMembershipCreditCost(Number(pricing?.coinPrice || pricing?.cost || 0)),
+        monthlyRequiredAmount: calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, Number(pricing?.coinPrice || pricing?.cost || 0)),
         idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
       });
       logPaidAccessStage("MONTHLY_PROCESSING_START", {
@@ -4424,7 +4424,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         subFeatureKey: pricing.subFeatureKey,
         paymentAmount: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
         coinPrice: resolvePricingCoinCost(pricing),
-        membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(resolvePricingCoinCost(pricing))),
+        membershipCreditCost: Number(pricing.membershipCreditCost || calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, resolvePricingCoinCost(pricing))),
         requestId,
         reportId: reportId || undefined,
         sessionId: reportSessionId || undefined,
@@ -4466,7 +4466,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           subFeatureKey: pricing.subFeatureKey,
           paymentAmount: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
           coinPrice: resolvePricingCoinCost(pricing),
-          membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(resolvePricingCoinCost(pricing))),
+          membershipCreditCost: Number(pricing.membershipCreditCost || calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, resolvePricingCoinCost(pricing))),
           requestId,
           reportId: reportId || undefined,
           sessionId: reportSessionId || undefined,
@@ -4505,7 +4505,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           subFeatureKey: pricing.subFeatureKey,
           paymentAmount: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
           coinPrice: resolvePricingCoinCost(pricing),
-          membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(resolvePricingCoinCost(pricing))),
+          membershipCreditCost: Number(pricing.membershipCreditCost || calculatePaidFeatureMembershipCreditCost(pricing?.featureKey, resolvePricingCoinCost(pricing))),
           requestId,
           reportId: reportId || undefined,
           sessionId: reportSessionId || undefined,

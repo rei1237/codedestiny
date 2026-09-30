@@ -1,3 +1,4 @@
+import { canResumeStoredChapter } from './stored-chapter.js';
 import { connectDb, withMongoRetry } from '../lib/db.js';
 import { isDbUnavailableError } from '../lib/http.js';
 import { Payment } from '../lib/models.js';
@@ -17,7 +18,7 @@ const HOLD_SCAN = 10;
 const ALERT_TIMEOUT_MS = 5000;
 
 export function abandonedRequestFilter(now) {
-  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:'FAMILY',passEvidenceId:{$ne:null}}],
+  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:{$in:['FAMILY']},passEvidenceId:{$ne:null}},{accessMethod:'MOONLIGHT_STONE',moonstoneLedgerId:{$ne:null}}],
     updatedAt:{$lt:new Date(now-ABANDONED_MS)},
     errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
     $and:[{$or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]}]};
@@ -93,17 +94,17 @@ async function reviveHeldOrders(env, options, now, outcomes) {
 // Existing ten-minute recovery tick. Original immutable input, chapter lease and
 // total attempt budget are shared with the browser; no new charge or LLM retry layer.
 export async function runYeongnyangiRecovery(env, options = {}) {
-  if (!(options.providerReady || providerReady)(env)) return {ok:true,skipped:'disabled'};
+  const canGenerate=(options.providerReady || providerReady)(env);
   const clock=options.clock || Date.now, now=clock(), deadline=now+BUDGET_MS;
   await (options.connectDb || connectDb)(env);
   const activate=options.activate || activateFortune, generate=options.generate || generateNextChapter;
-  const orders=await withMongoRetry(env,()=>Payment.find({
+  const orders=canGenerate?await withMongoRetry(env,()=>Payment.find({
     requestId:/^yn-[a-f0-9]{64}$/,
     paymentType:'digital_content',purchaseType:{$ne:'GIFT'},status:{$in:['paid','success','fulfilled']},
     'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true},
     'metadata.consumedBy':null,createdAt:{$lt:new Date(now-ABANDONED_MS)},
     $or:[{'metadata.yeongnyangiRecoveryAfter':null},{'metadata.yeongnyangiRecoveryAfter':{$lte:new Date(now)}}],
-  }).sort({createdAt:1}).limit(MAX_REQUESTS).lean());
+  }).sort({createdAt:1}).limit(MAX_REQUESTS).lean()):[];
   const outcomes=[];
   for(const order of orders){
     if(clock()+CHAPTER_RESERVE_MS>deadline)break;
@@ -118,15 +119,16 @@ export async function runYeongnyangiRecovery(env, options = {}) {
       outcomes.push({outcome:'activation_pending'});
     }
   }
-  const revived=await reviveHeldOrders(env,options,now,outcomes);
-  const candidates=await withMongoRetry(env,()=>YeongnyangiRequest.find(abandonedRequestFilter(now))
+  const revived=canGenerate?await reviveHeldOrders(env,options,now,outcomes):[];
+  const candidates=await withMongoRetry(env,()=>YeongnyangiRequest.find(canGenerate?abandonedRequestFilter(now):storedRecoveryFilter(now))
     .sort({updatedAt:1}).limit(MAX_REQUESTS).lean());
   const revivedIds=new Set(revived.map(row=>String(row._id)));
   const pending=[...revived,...candidates.filter(row=>!revivedIds.has(String(row._id)))];
   while(pending.length && clock()+CHAPTER_RESERVE_MS<=deadline){
     const candidate=pending.shift();
+    if(!canGenerate&&!canResumeStoredChapter(candidate))continue;
     try{
-      if(env.YEONGNYANGI_QUEUE){await (options.enqueue || enqueueConsultation)(env,candidate);outcomes.push({outcome:'queued'});continue;}
+      if(canGenerate&&env.YEONGNYANGI_QUEUE){await (options.enqueue || enqueueConsultation)(env,candidate);outcomes.push({outcome:'queued'});continue;}
       const row=await generate(env,String(candidate.userId),String(candidate._id),'scheduled');
       outcomes.push({outcome:row.state});
       // A held lease or failed attempt waits for a future tick; never spin on it.
@@ -134,5 +136,17 @@ export async function runYeongnyangiRecovery(env, options = {}) {
     }catch(error){outcomes.push({outcome:String(error?.code || 'GENERATION_FAILED').slice(0,80)});}
   }
   console.log('[yeongnyangi-recovery]',JSON.stringify({scanned:candidates.length,outcomes}));
-  return {ok:true,scanned:candidates.length,outcomes};
+  return {ok:true,scanned:candidates.length,outcomes,...(!canGenerate?{storedOnly:true}:{})};
+}
+
+// Select the current ordinal's saved draft, not historical drafts from prior chapters.
+// Older interrupted rows without a draft cannot starve recoverable rows while the provider is disabled.
+export function storedRecoveryFilter(now) {
+  const filter=abandonedRequestFilter(now);
+  const saved={$size:{$ifNull:['$chapters',[]]}},total={$size:{$ifNull:['$snapshot.manifest',[]]}};
+  filter.$and.push({$expr:{$and:[{$gt:[total,0]},{$or:[
+    {$gte:[saved,total]},
+    {$in:[{$toString:saved},{$map:{input:{$objectToArray:{$ifNull:['$generationCheckpoint.chapterDrafts',{}]}},as:'draft',in:'$$draft.k'}}]},
+  ]}]}});
+  return filter;
 }
