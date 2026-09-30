@@ -1,0 +1,11 @@
+.guestList { margin-block: 20px; }
+.guestList details { border-bottom: 1px solid rgba(190,155,110,.3); padding-block: 12px; }
+.guestList summary { cursor: pointer; min-height: 44px; }
+.guestList ul { list-style: none; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); }
+.guestList li { padding: 12px; border: 1px solid rgba(190,155,110,.3); border-radius: 12px; }
+.guestList p { margin: 6px 0 0; font-size: .88rem; line-height: 1.6; }
+.guestHeading { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.guestHeading span { border: 1px solid currentColor; border-radius: 20px; padding: 2px 8px; font-size: .8rem; }
+.guestHeading span[data-grade="yong"] { background: #fff0bb; color: #634016; }
+.guestHeading span[data-grade="hee"] { background: #fbe4ef; color: #743655; }
+.guestHeading span[data-grade="gi"], .guestHeading span[data-grade="gu"] { background: #eee2fa; color: #52366b; }

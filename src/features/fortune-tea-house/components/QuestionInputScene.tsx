@@ -1,4 +1,5 @@
 "use client";
+import { SAJU_CATEGORIES, resolveQuestionCategory } from "@/lib/fortune-tea-house/saju-category";
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import type { FormEvent } from "react";
@@ -257,7 +258,11 @@ function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfil
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
+const CATEGORY_KO = { love: "연애·재회", compatibility: "궁합·관계", marriage: "결혼·출산", career: "직업·진로", wealth: "재물·사업", study: "학업·시험", health: "컨디션 관리", family: "가족·인간관계", timing: "이사·시기", annual: "올해의 흐름" };
 const KO = {
+  categoryLabel: "이번 질문의 주제",
+  categoryAuto: "질문에서 찾기",
+  categoryClarify: "이번에는 어떤 주제를 먼저 살펴볼까요? 주제를 하나 골라 주세요.",
   autoQuestionNotice: "비워두면 “{question}”로 열어볼게요.",
   cupAltarAria: "{cup} 찻잔 상담",
   k0hw8pcd: "불러올 프로필을 골라 주세요. 선택하면 아래 정보가 바로 채워집니다.",
@@ -406,6 +411,7 @@ const KO = {
 
 export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, onDraftChange, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
   const copy = useTeaHouseCopy("questionInput", KO);
+  const categories = useTeaHouseCopy("questionCategories", CATEGORY_KO);
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
   const priceLabelForMode = useCallback(
     (mode: FortuneTeaHouseConsultMode, spread?: FortuneTeaTarotSpread) =>
@@ -471,6 +477,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     focus: initialInput?.sajuCompatibility?.focus || copy.k0y7lflt,
     currentSituation: initialInput?.sajuCompatibility?.currentSituation || "",
   }));
+  const [questionCategory, setQuestionCategory] = useState(initialInput?.questionCategory || "");
   const [question, setQuestion] = useState(initialInput?.question || "");
   const [error, setError] = useState("");
 
@@ -479,11 +486,11 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   useEffect(() => {
     onDraftChange?.({ consultationMode, nickname, profileId, birthDate, birthTime,
       birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
-      sukuyo: sukuyoInput, sajuCompatibility: sajuCompatInput, question,
+      sukuyo: sukuyoInput, sajuCompatibility: sajuCompatInput, question, questionCategory,
       concernTopic: selectedCup.topic });
   }, [onDraftChange, consultationMode, nickname, profileId, birthDate, birthTime,
     birthTimeUnknown, birthPlace, timezone, gender, calendarType, tarotSpread,
-    sukuyoInput, sajuCompatInput, question, selectedCup.topic]);
+    sukuyoInput, sajuCompatInput, question, questionCategory, selectedCup.topic]);
 
   const applyProfileOption = useCallback((option: TeaHouseProfileOption, announce = true) => {
     setSelectedProfileOptionId(option.optionId);
@@ -729,6 +736,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       sukuyo: consultationMode === "sukuyo" ? nextSukuyoInput : undefined,
       sajuCompatibility: isCompat ? nextSajuCompatInput : undefined,
       question: nextQuestion,
+      questionCategory: consultationMode === "saju" ? resolveQuestionCategory({ questionCategory, question: nextQuestion }).primary || undefined : undefined,
     };
   }
 
@@ -743,6 +751,10 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       : question.trim();
     if (nextQuestion.length < 4) {
       setError(copy.kmvgimc7);
+      return;
+    }
+    if (consultationMode === "saju" && resolveQuestionCategory({ questionCategory, question: nextQuestion }).needsClarification) {
+      setError(copy.categoryClarify);
       return;
     }
     if (consultationMode === "saju" && !birthDate) {
@@ -952,6 +964,15 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             </fieldset>
           ) : null}
 
+          {consultationMode === "saju" ? (
+            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="tea-question-category">
+              {copy.categoryLabel}
+              <select id="tea-question-category" className={`${styles.questionInput} ${questionInputUi}`} value={questionCategory} onChange={event => setQuestionCategory(event.target.value)} disabled={isSubmitting}>
+                <option value="">{copy.categoryAuto}</option>
+                {SAJU_CATEGORIES.map(id => <option key={id} value={id}>{categories[id as keyof typeof categories]}</option>)}
+              </select>
+            </label>
+          ) : null}
           {consultationMode === "sukuyo" ? (
             <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaQuestion">
               

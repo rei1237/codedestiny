@@ -15789,7 +15789,8 @@
       "speeches": {
         "0": "Welcome in. Let me warm today's heart for you first.",
         "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
-        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?",
+        "3": "मेरा प्रेमी? वह यह कहकर घर से गया कि सफल होकर मुझे मीठी ज़िंदगी देगा। मुझे भरोसा है कि वह एक दिन लौट आएगा!"
       },
       "title": "The Destiny Tea House",
       "leadTop": "At the end of a moonlit alley, a door opens.",
@@ -16527,7 +16528,10 @@
       "kymdceg6": "Something budding",
       "kzifs9il": "Reading topic",
       "kznuhtae": "Tarot spread",
-      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open."
+      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
+      "categoryLabel": "आपके प्रश्न का विषय",
+      "categoryAuto": "प्रश्न से पहचानें",
+      "categoryClarify": "पहले किस विषय को देखें? कृपया एक विषय चुनें।"
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -18943,6 +18947,52 @@
           "positionMeaning": "A practical standard to hold on to today"
         }
       }
+    },
+    "questionCategories": {
+      "love": "प्रेम और पुनर्मिलन",
+      "compatibility": "अनुकूलता और रिश्ते",
+      "marriage": "विवाह और बच्चे",
+      "career": "काम और दिशा",
+      "wealth": "धन और व्यवसाय",
+      "study": "पढ़ाई और परीक्षा",
+      "health": "दैनिक सेहत की देखभाल",
+      "family": "परिवार और संबंध",
+      "timing": "स्थान परिवर्तन और समय",
+      "annual": "इस वर्ष का प्रवाह"
+    },
+    "guests": {
+      "title": "इस पाठ के दस देवता अतिथि",
+      "more": "स्थिति और आधार देखें",
+      "scopes": {
+        "natal": "नियमित अतिथि",
+        "daewoon": "कुछ समय ठहरने वाले अतिथि",
+        "sewoon": "हर वर्ष आने वाले अतिथि"
+      },
+      "grades": {
+        "yong": "आदरणीय अतिथि",
+        "hee": "स्वागत योग्य अतिथि",
+        "gi": "सावधानी माँगने वाले अतिथि",
+        "gu": "साथ में समझने वाले अतिथि",
+        "han": "राहगीर अतिथि",
+        "unavailable": "श्रेणी उपलब्ध नहीं"
+      },
+      "positions": {
+        "year": "वर्ष स्तंभ",
+        "month": "माह स्तंभ",
+        "day": "दिन स्तंभ",
+        "hour": "घंटा स्तंभ"
+      },
+      "stem": "स्वर्गीय तना",
+      "hidden": "छिपा तना",
+      "current": "वर्तमान प्रमुख चक्र",
+      "nature": {
+        "auspicious": "परंपरागत स्वभाव: शुभ",
+        "challenging": "परंपरागत स्वभाव: चुनौतीपूर्ण",
+        "neutral": "परंपरागत स्वभाव: तटस्थ"
+      },
+      "unavailable": "श्रेणी का डेटा नहीं मिला, इसलिए केवल स्वभाव और स्थिति देखते हैं।",
+      "helpful": "परंपरागत स्वभाव चुनौतीपूर्ण होने पर भी, इस कुंडली में यह भूमिका संतुलन में सहायक मानी गई है।",
+      "caution": "यह बुरा व्यक्ति या तय भाग्य नहीं है। इसे व्यावहारिक सलाह के साथ पढ़ें।"
     }
   },
   "fortuneVar": {

@@ -15789,7 +15789,8 @@
       "speeches": {
         "0": "Welcome in. Let me warm today's heart for you first.",
         "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
-        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?",
+        "3": "Teman lelaki saya? Dia keluar rumah sambil berjanji akan berjaya dan memberi saya kehidupan yang manis. Saya percaya dia akan pulang suatu hari nanti!"
       },
       "title": "The Destiny Tea House",
       "leadTop": "At the end of a moonlit alley, a door opens.",
@@ -16527,7 +16528,10 @@
       "kymdceg6": "Something budding",
       "kzifs9il": "Reading topic",
       "kznuhtae": "Tarot spread",
-      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open."
+      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
+      "categoryLabel": "Topik soalan anda",
+      "categoryAuto": "Kenal pasti daripada soalan",
+      "categoryClarify": "Topik mana yang kita lihat dahulu? Sila pilih satu."
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -18943,6 +18947,52 @@
           "positionMeaning": "A practical standard to hold on to today"
         }
       }
+    },
+    "questionCategories": {
+      "love": "Cinta dan pertemuan semula",
+      "compatibility": "Keserasian dan hubungan",
+      "marriage": "Perkahwinan dan anak",
+      "career": "Kerjaya dan hala tuju",
+      "wealth": "Wang dan perniagaan",
+      "study": "Pelajaran dan peperiksaan",
+      "health": "Kesejahteraan harian",
+      "family": "Keluarga dan pergaulan",
+      "timing": "Berpindah dan masa",
+      "annual": "Aliran tahun ini"
+    },
+    "guests": {
+      "title": "Tetamu Sepuluh Dewa dalam bacaan ini",
+      "more": "Lihat kedudukan dan asas",
+      "scopes": {
+        "natal": "Tetamu tetap",
+        "daewoon": "Tetamu yang tinggal sementara",
+        "sewoon": "Tetamu tahunan"
+      },
+      "grades": {
+        "yong": "Tetamu terhormat",
+        "hee": "Tetamu dialu-alukan",
+        "gi": "Tetamu yang perlu dilayan dengan cermat",
+        "gu": "Tetamu untuk diteliti bersama",
+        "han": "Tetamu yang singgah",
+        "unavailable": "Tiada pengelasan"
+      },
+      "positions": {
+        "year": "Tiang tahun",
+        "month": "Tiang bulan",
+        "day": "Tiang hari",
+        "hour": "Tiang jam"
+      },
+      "stem": "Batang langit",
+      "hidden": "Batang tersembunyi",
+      "current": "Kitaran besar semasa",
+      "nature": {
+        "auspicious": "Sifat tradisional: baik",
+        "challenging": "Sifat tradisional: mencabar",
+        "neutral": "Sifat tradisional: neutral"
+      },
+      "unavailable": "Tiada data pengelasan, jadi kita hanya melihat sifat dan kedudukan.",
+      "helpful": "Walaupun sifat tradisionalnya mencabar, peranan ini dinilai membantu keseimbangan dalam carta ini.",
+      "caution": "Ini bukan orang jahat atau takdir yang tetap. Baca bersama nasihat praktikal."
     }
   },
   "fortuneVar": {

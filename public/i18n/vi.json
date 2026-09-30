@@ -15789,7 +15789,8 @@
       "speeches": {
         "0": "Welcome in. Let me warm today's heart for you first.",
         "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
-        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?",
+        "3": "Bạn trai à? Anh ấy rời nhà, bảo sẽ thành công để mình được hưởng cuộc sống ngọt ngào. Mình tin một ngày anh ấy sẽ trở về!"
       },
       "title": "The Destiny Tea House",
       "leadTop": "At the end of a moonlit alley, a door opens.",
@@ -16527,7 +16528,10 @@
       "kymdceg6": "Something budding",
       "kzifs9il": "Reading topic",
       "kznuhtae": "Tarot spread",
-      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open."
+      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
+      "categoryLabel": "Chủ đề câu hỏi",
+      "categoryAuto": "Tìm từ câu hỏi",
+      "categoryClarify": "Mình xem chủ đề nào trước nhé? Bạn hãy chọn một chủ đề."
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -18943,6 +18947,52 @@
           "positionMeaning": "A practical standard to hold on to today"
         }
       }
+    },
+    "questionCategories": {
+      "love": "Tình yêu và tái hợp",
+      "compatibility": "Tương hợp và quan hệ",
+      "marriage": "Hôn nhân và con cái",
+      "career": "Công việc và định hướng",
+      "wealth": "Tiền bạc và kinh doanh",
+      "study": "Học tập và thi cử",
+      "health": "Chăm sóc thể trạng",
+      "family": "Gia đình và giao tiếp",
+      "timing": "Chuyển nhà và thời điểm",
+      "annual": "Dòng chảy năm nay"
+    },
+    "guests": {
+      "title": "Khách Thập Thần trong lần xem này",
+      "more": "Xem vị trí và căn cứ",
+      "scopes": {
+        "natal": "Khách quen",
+        "daewoon": "Khách ở lại một thời gian",
+        "sewoon": "Khách ghé mỗi năm"
+      },
+      "grades": {
+        "yong": "Khách quý",
+        "hee": "Khách được chào đón",
+        "gi": "Khách cần tiếp đón thận trọng",
+        "gu": "Khách cần xem xét cùng",
+        "han": "Khách qua đường",
+        "unavailable": "Chưa có phân hạng"
+      },
+      "positions": {
+        "year": "Trụ năm",
+        "month": "Trụ tháng",
+        "day": "Trụ ngày",
+        "hour": "Trụ giờ"
+      },
+      "stem": "Thiên can",
+      "hidden": "Tàng can",
+      "current": "Đại vận hiện tại",
+      "nature": {
+        "auspicious": "Tính chất truyền thống: cát thần",
+        "challenging": "Tính chất truyền thống: hung thần",
+        "neutral": "Tính chất truyền thống: trung tính"
+      },
+      "unavailable": "Chưa có dữ liệu phân hạng, nên chỉ xét tính chất và vị trí.",
+      "helpful": "Dù có tính chất hung thần theo truyền thống, trong lá số này vai trò ấy được xác định là giúp cân bằng.",
+      "caution": "Đây không phải người xấu hay số phận đã định. Hãy xem cùng lời khuyên ứng phó."
     }
   },
   "fortuneVar": {

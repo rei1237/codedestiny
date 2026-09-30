@@ -9,6 +9,7 @@ import FiveElementBalance from "./FiveElementBalance";
 import SajuPillarBoard from "./SajuPillarBoard";
 import TeaHouseButton from "./TeaHouseButton";
 import TenGodSymbolCard from "./TenGodSymbolCard";
+import SajuGuestList from "./SajuGuestList";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
@@ -207,6 +208,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         </section>
       ) : null}
 
+      <SajuGuestList guests={saju.guests} />
       <section className={styles.sajuPanelSection} aria-labelledby="sajuTenGodTitle" data-tea-pdf-section>
         <div className={styles.sajuPanelSectionHeader}>
           <span>{copy.tenGodEyebrow}</span>

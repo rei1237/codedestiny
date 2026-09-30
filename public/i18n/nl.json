@@ -15789,7 +15789,8 @@
       "speeches": {
         "0": "Welcome in. Let me warm today's heart for you first.",
         "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
-        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?",
+        "3": "Mijn vriend? Hij vertrok met de belofte succesvol te worden en mij een heerlijk leven te geven. Ik geloof dat hij ooit terugkomt!"
       },
       "title": "The Destiny Tea House",
       "leadTop": "At the end of a moonlit alley, a door opens.",
@@ -16527,7 +16528,10 @@
       "kymdceg6": "Something budding",
       "kzifs9il": "Reading topic",
       "kznuhtae": "Tarot spread",
-      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open."
+      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
+      "categoryLabel": "Onderwerp van je vraag",
+      "categoryAuto": "Herkennen uit de vraag",
+      "categoryClarify": "Welk onderwerp bekijken we eerst? Kies er één."
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -18943,6 +18947,52 @@
           "positionMeaning": "A practical standard to hold on to today"
         }
       }
+    },
+    "questionCategories": {
+      "love": "Liefde en hereniging",
+      "compatibility": "Compatibiliteit en relaties",
+      "marriage": "Huwelijk en kinderen",
+      "career": "Werk en richting",
+      "wealth": "Geld en zaken",
+      "study": "Studie en examens",
+      "health": "Dagelijks welzijn",
+      "family": "Familie en contacten",
+      "timing": "Verhuizen en timing",
+      "annual": "Het verloop van dit jaar"
+    },
+    "guests": {
+      "title": "De Tien Goden als gasten in deze lezing",
+      "more": "Posities en onderbouwing tonen",
+      "scopes": {
+        "natal": "Vaste gasten",
+        "daewoon": "Gasten die langer blijven",
+        "sewoon": "Jaarlijkse gasten"
+      },
+      "grades": {
+        "yong": "Eregast",
+        "hee": "Welkome gast",
+        "gi": "Gast die aandacht vraagt",
+        "gu": "Gast om samen te bekijken",
+        "han": "Voorbijgaande gast",
+        "unavailable": "Geen indeling beschikbaar"
+      },
+      "positions": {
+        "year": "Jaarpijler",
+        "month": "Maandpijler",
+        "day": "Dagpijler",
+        "hour": "Uurpijler"
+      },
+      "stem": "Hemelse stam",
+      "hidden": "Verborgen stam",
+      "current": "Huidige grote cyclus",
+      "nature": {
+        "auspicious": "Traditionele aard: gunstig",
+        "challenging": "Traditionele aard: uitdagend",
+        "neutral": "Traditionele aard: neutraal"
+      },
+      "unavailable": "Er is geen indeling beschikbaar; we bekijken alleen aard en positie.",
+      "helpful": "Ondanks een traditioneel uitdagende aard is deze rol in deze kaart als ondersteunend voor het evenwicht beoordeeld.",
+      "caution": "Dit is geen slecht mens of vaststaand lot. Lees dit samen met het praktische advies."
     }
   },
   "fortuneVar": {

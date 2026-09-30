@@ -15789,7 +15789,8 @@
       "speeches": {
         "0": "Welcome in. Let me warm today's heart for you first.",
         "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
-        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?",
+        "3": "¿Mi novio? Se fue diciendo que triunfaría y me daría una vida dulce. ¡Yo creo que algún día volverá!"
       },
       "title": "The Destiny Tea House",
       "leadTop": "At the end of a moonlit alley, a door opens.",
@@ -16527,7 +16528,10 @@
       "kymdceg6": "Something budding",
       "kzifs9il": "Reading topic",
       "kznuhtae": "Tarot spread",
-      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open."
+      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
+      "categoryLabel": "Tema de tu pregunta",
+      "categoryAuto": "Identificarlo en la pregunta",
+      "categoryClarify": "¿Qué tema vemos primero? Elige uno."
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -18943,6 +18947,52 @@
           "positionMeaning": "A practical standard to hold on to today"
         }
       }
+    },
+    "questionCategories": {
+      "love": "Amor y reencuentro",
+      "compatibility": "Compatibilidad y relaciones",
+      "marriage": "Matrimonio e hijos",
+      "career": "Trabajo y rumbo",
+      "wealth": "Dinero y negocios",
+      "study": "Estudios y exámenes",
+      "health": "Bienestar cotidiano",
+      "family": "Familia y vínculos",
+      "timing": "Mudanzas y momentos",
+      "annual": "El curso de este año"
+    },
+    "guests": {
+      "title": "Invitados de los Diez Dioses de esta lectura",
+      "more": "Ver posiciones y fundamentos",
+      "scopes": {
+        "natal": "Clientes habituales",
+        "daewoon": "Invitados que se quedan un tiempo",
+        "sewoon": "Invitados de cada año"
+      },
+      "grades": {
+        "yong": "Invitado de honor",
+        "hee": "Invitado bienvenido",
+        "gi": "Invitado que requiere cuidado",
+        "gu": "Invitado a considerar en conjunto",
+        "han": "Invitado de paso",
+        "unavailable": "Sin clasificación"
+      },
+      "positions": {
+        "year": "Pilar del año",
+        "month": "Pilar del mes",
+        "day": "Pilar del día",
+        "hour": "Pilar de la hora"
+      },
+      "stem": "Tronco celeste",
+      "hidden": "Tronco oculto",
+      "current": "Ciclo mayor actual",
+      "nature": {
+        "auspicious": "Naturaleza tradicional: favorable",
+        "challenging": "Naturaleza tradicional: desafiante",
+        "neutral": "Naturaleza tradicional: neutral"
+      },
+      "unavailable": "No hay clasificación disponible; solo vemos la naturaleza y la posición.",
+      "helpful": "Aunque su naturaleza tradicional sea desafiante, esta carta le asigna un papel que ayuda al equilibrio.",
+      "caution": "No es una mala persona ni un destino fijado. Léelo junto con los consejos prácticos."
     }
   },
   "fortuneVar": {

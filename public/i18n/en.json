@@ -15789,7 +15789,8 @@
       "speeches": {
         "0": "Welcome in. Let me warm today's heart for you first.",
         "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
-        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?",
+        "3": "My boyfriend? He left saying he'd make it big and give me the sweet life. I believe he'll come back someday!"
       },
       "title": "The Destiny Tea House",
       "leadTop": "At the end of a moonlit alley, a door opens.",
@@ -16527,7 +16528,10 @@
       "kymdceg6": "Something budding",
       "kzifs9il": "Reading topic",
       "kznuhtae": "Tarot spread",
-      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open."
+      "kzzksrnj": "We couldn't find a saved profile. Fill in the details below and the reading can open.",
+      "categoryLabel": "Topic of your question",
+      "categoryAuto": "Find it in my question",
+      "categoryClarify": "Which topic shall we look at first? Please choose one."
     },
     "resultSheet": {
       "cardOrdinal": "Card {index} ·",
@@ -18943,6 +18947,52 @@
           "positionMeaning": "A practical standard to hold on to today"
         }
       }
+    },
+    "questionCategories": {
+      "love": "Love & reunion",
+      "compatibility": "Compatibility & relationships",
+      "marriage": "Marriage & children",
+      "career": "Career & direction",
+      "wealth": "Money & business",
+      "study": "Study & exams",
+      "health": "Everyday wellbeing",
+      "family": "Family & social ties",
+      "timing": "Moving & timing",
+      "annual": "This year's flow"
+    },
+    "guests": {
+      "title": "Ten God guests in this reading",
+      "more": "Show positions and evidence",
+      "scopes": {
+        "natal": "Regular guests",
+        "daewoon": "Guests staying for a while",
+        "sewoon": "Guests visiting each year"
+      },
+      "grades": {
+        "yong": "Honored guest",
+        "hee": "Welcome guest",
+        "gi": "Guest needing care",
+        "gu": "Guest to consider together",
+        "han": "Passing guest",
+        "unavailable": "Grade unavailable"
+      },
+      "positions": {
+        "year": "Year pillar",
+        "month": "Month pillar",
+        "day": "Day pillar",
+        "hour": "Hour pillar"
+      },
+      "stem": "Heavenly stem",
+      "hidden": "Hidden stem",
+      "current": "Current major cycle",
+      "nature": {
+        "auspicious": "Traditional nature: auspicious",
+        "challenging": "Traditional nature: challenging",
+        "neutral": "Traditional nature: neutral"
+      },
+      "unavailable": "No grade was provided, so we look only at nature and position.",
+      "helpful": "Even with a challenging traditional nature, this chart identifies a role that supports balance.",
+      "caution": "This is neither a bad person nor a fixed fate. Read it alongside the practical advice."
     }
   },
   "fortuneVar": {
