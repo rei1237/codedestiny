@@ -33,6 +33,7 @@ const failure = (status, code) => {
 const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
 
 export function requestAccessMethod(row = {}) {
+  if (row.accessMethod === 'SERVICE_PACK' || row.packEntitlementId) return 'SERVICE_PACK';
   if (row.accessMethod === 'MOONLIGHT_STONE' || row.moonstoneLedgerId) return 'MOONLIGHT_STONE';
   if (row.accessMethod === 'FAMILY' || row.passEvidenceId) return 'FAMILY';
   if (row.accessMethod === 'DIRECT_KRW' || row.paymentId) return 'DIRECT_KRW';
@@ -99,6 +100,10 @@ async function loadFamilyLedger() {
 
 export async function findNonCashEvidence(row, userId, session = null, commitMarker = '') {
   const id=String(row._id);
+  if(requestAccessMethod(row)==='SERVICE_PACK') {
+    const {findYeongnyangiServicePackEvidence}=await loadFamilyLedger();
+    return findYeongnyangiServicePackEvidence({row,userId,session,commitMarker});
+  }
   if(requestAccessMethod(row)==='MOONLIGHT_STONE') {
     const {findMoonstoneSpendEvidence}=await import('../lib/moonstone-spend-proof.js');
     const {calculatePaidFeatureMembershipCreditCost}=await import('../lib/paid-feature-registry.js');
@@ -340,7 +345,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
   const chapterAttempts=Number(current.chapterAttempts?.[ordinal] || 0);
   const token=crypto.randomUUID(), now=new Date();
   const attemptKey=`chapterAttempts.${ordinal}`;
-  const row = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({
+  const claim = session => YeongnyangiRequest.findOneAndUpdate({
     _id:requestId,userId:ownerId(userId),state:{$in:['PAID','FORTUNE_FAILED','GENERATING']},
     chapters:{$size:current.chapters.length},
     ...(options.storedOnly?{[`generationCheckpoint.chapterDrafts.${ordinal}.body`]:{$exists:true,$ne:null}}:{}),
@@ -350,7 +355,20 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
     $or:[{leaseUntil:null},{leaseUntil:{$lte:now}}],
   },{$set:{state:'GENERATING',leaseToken:token,leaseUntil:new Date(now.getTime()+180000),errorCode:''},
     ...(!options.storedOnly&&!storedChapterDraft(current)?{$inc:{attempts:1,[`chapterAttempts.${ordinal}`]:1}}:{}),
-    $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true}).lean());
+    $push:{recoveryAudit:{kind:'generation_claim',source:['queue','scheduled'].includes(source)?source:'queue',chapter:ordinal,at:now}}}, {new:true,...(session?{session}:{})}).lean();
+  const row=await withMongoRetry(env,async()=>{
+    if(accessMethod!=='SERVICE_PACK')return claim();
+    const session=await (scopeConnection() || mongoose).startSession();
+    try {
+      let claimed=null;
+      await session.withTransaction(async()=>{
+        const proof=await findNonCashEvidence(current,userId,session,'claim:'+token);
+        if(!proof)throw failure(409,'PAYMENT_NOT_ACTIVE');
+        claimed=await claim(session);
+      },mongoTransactionOptions());
+      return claimed;
+    } finally { await session.endSession(); }
+  });
   return row ? {row,token} : {row:current,token:null};
 }
 
@@ -488,6 +506,14 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
 
 async function refundTerminalFamilyQuota(env,userId,requestId) {
   const owner=ownerId(userId);
+  const pack=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'SERVICE_PACK',
+    $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
+      {state:'REFUNDED',errorCode:'SERVICE_PACK_USE_RESTORED'}]}).lean(),readOptions);
+  if(pack) {
+    const {refundYeongnyangiServicePack}=await loadFamilyLedger();
+    const result=await withMongoRetry(env,()=>refundYeongnyangiServicePack({userId,requestId}));
+    return Boolean(result.restored);
+  }
   const monthly=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'MOONLIGHT_STONE',
     $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
       {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);

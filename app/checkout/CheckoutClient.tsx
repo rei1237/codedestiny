@@ -21,6 +21,7 @@
  *    결제 임계 화면에서 번역 누락보다 나쁘다. 상품명·분석 깊이는 아직 카탈로그의 한국어 데이터다.
  */
 
+import {ServicePackCheckout} from "@/app/components/service-packs/ServicePacks";
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
@@ -122,7 +123,8 @@ export default function CheckoutClient() {
   const [params] = useState<CheckoutParams>(() => readParams());
   const isSoulCatMode = !params.requestId;
   const auth = useAuthStore();
-  const paymentLock=useRef(false);
+  const paymentLock=useRef(false),packLock=useRef(false);
+  const [packBusy,setPackBusy]=useState(false);
   const [available,setAvailable]=useState(false);
   const [checked,setChecked]=useState(false);
   const [reading,setReading]=useState<FortuneRecord|null>(null);
@@ -206,7 +208,7 @@ export default function CheckoutClient() {
   },[isSoulCatMode,signedIn,params,copy]);
 
   const startPayment = useCallback(async () => {
-    if (!pricing || !available || paymentLock.current) return;
+    if (!pricing || !available || paymentLock.current || packLock.current) return;
     paymentLock.current=true;
     setGate({ phase: "paying" });
     try {
@@ -299,8 +301,12 @@ export default function CheckoutClient() {
                 {!pricing.monthlyExcluded && pricing.monthlyCreditMultiplier > 1 && <p>{alliance.moonstoneValue(pricing.monthlyCreditMultiplier)}</p>}
                 <p>{copy.policyLine2}</p>
               </div>
+              {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
+                disabled={gate.phase === "paying" || gate.phase === "paid"}
+                onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
+                onPaid={()=>{setGate({phase:"paid"});window.location.assign(params.returnTo);}} />}
               <button type="button" onClick={() => { void startPayment(); }}
-                disabled={!authSettled || !signedIn || !checked || !available || gate.phase === "paying" || gate.phase === "paid"}
+                disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
                   : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : copy.payAction(formatKrw(pricing.amountKRW))}

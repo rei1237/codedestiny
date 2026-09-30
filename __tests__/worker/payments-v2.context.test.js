@@ -56,6 +56,9 @@ describe("라우트 표", () => {
       "GET /orders/:id/status",
       "GET /pass-offers",
       "GET /recoveries",
+      "GET /service-packs/catalog",
+      "GET /service-packs/orders/:id/status",
+      "GET /service-packs/wallet",
       // 월정석 컷오버 어댑터 — 구 coin-gate 의 MOONLIGHT_STONE 분기(재작성)가 여기로 온다.
       "POST /coin-gate/moonstone",
       // 이용권 검사 컷오버 — 구 coin-gate 의 MEMBERSHIP_PASS 분기(재작성)가 여기로 온다.
@@ -67,6 +70,10 @@ describe("라우트 표", () => {
       "POST /orders/:id/confirm",
       // 주문 발급 컷오버 어댑터 — 구 /api/payments/prepare · /api/billing/checkout(재작성)이 여기로 온다.
       "POST /prepare",
+      "POST /service-packs/consume",
+      "POST /service-packs/orders/:id/confirm",
+      "POST /service-packs/prepare",
+      "POST /service-packs/quote",
       // 이용권(구독) 컷오버 — 구 /api/payments/subscription/prepare|confirm(재작성)이 여기로 온다.
       "POST /subscription/confirm",
       "POST /subscription/prepare",
@@ -84,7 +91,11 @@ describe("라우트 표", () => {
 
   test("🔴 카탈로그·결제 설정·webhook 만 신원을 보지 않는다", () => {
     const anonymous = Object.entries(ROUTES).filter(([, r]) => r.auth === "none").map(([k]) => k).sort();
-    expect(anonymous).toEqual(["GET /config", "GET /features", "GET /pass-offers", "POST /webhook"]);
+    expect(anonymous).toEqual(["GET /config", "GET /features", "GET /pass-offers", "GET /service-packs/catalog", "POST /webhook"]);
+    const privatePackRoutes = Object.entries(ROUTES)
+      .filter(([key]) => key.includes(" /service-packs/") && key !== "GET /service-packs/catalog");
+    expect(privatePackRoutes).toHaveLength(6);
+    for (const [, route] of privatePackRoutes) expect(route.auth).toBe("required");
   });
 
   test("🔴 webhook 만 원문 본문을 읽는다 — 재직렬화하면 서명이 깨진다", () => {

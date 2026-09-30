@@ -7,6 +7,8 @@
 .gift-card { border: 1px solid #65537d; background: #171126; border-radius: 20px; padding: 28px 24px; margin: 24px 0; }
 .gift-card blockquote { border-top: 1px solid #65537d; margin: 24px 0 0; padding-top: 20px; white-space: pre-wrap; font-family: var(--font-serif, serif); line-height: 1.8; overflow-wrap: anywhere; }
 .gift-symbol { display: block; color: #e8d5a3; font-size: 40px; margin-bottom: 20px; }
+.gift-pass-art { width: min(196px, 100%); aspect-ratio: 1; margin: 0 auto 20px; }
+.gift-pass-art-compact { width: min(128px, 100%); margin-bottom: 12px; }
 .gift-pig { display: block; margin: 0 auto 8px; width: 100px; height: 100px; object-fit: contain; }
 .gift-promo { text-align: center; color: #e8d5a3; font-weight: 700; margin: 0 0 16px; }
 .gift-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }

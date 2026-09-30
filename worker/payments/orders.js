@@ -98,11 +98,12 @@ export async function createOrder(db, {
   userId, product, idempotencyKey, paymentType = "digital_content",
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
   requestId = "", paidResume = null, env = {}, foreignCard = null, refundConsent = false,
+  purchaseType = "SELF", giftDraft = null,
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
   let fortunePaymentGeneration;
-  if (String(product.featureKey || '').startsWith('yeongnyangi-')) {
+  if (product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-')) {
     const {assertFortunePaymentIntent}=await import('../yeongnyangi/payment-intent.js');
     const fortune=await assertFortunePaymentIntent(db,{env,userId,requestId,product});
     profileId=fortune.profileId;
@@ -131,13 +132,15 @@ export async function createOrder(db, {
           // prepare(payments.js)는 이 필드를 썼고 V2 로 넘어오며 빠졌다. 클라이언트가 requestId 와
           // idempotencyKey 를 다른 값으로 보내면 {requestId} 절이 영영 매칭되지 않는다.
           requestId: String(requestId || "").trim(),
-          ...((paidResume || String(product.featureKey || '').startsWith('yeongnyangi-')) ? { metadata: {
+          ...((paidResume || (product.fulfillmentType==='service_pack'&&giftDraft) || String(product.featureKey || '').startsWith('yeongnyangi-')) ? { metadata: {
             ...(paidResume ? {paidResume} : {}),
-            ...(String(product.featureKey || '').startsWith('yeongnyangi-') ? {
+            ...(product.fulfillmentType==='service_pack'&&giftDraft?{giftDraft}:{}),
+            ...(product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-') ? {
               productType:'YEONGNYANGI_FORTUNE', paymentType:'ONE_TIME', fortuneRequestId:requestId.slice(3), fortunePaymentGeneration,
             } : {}),
           } } : {}),
           paymentType,
+          ...(product.fulfillmentType==='service_pack'?{purchaseType}:{}),
           accessType: "single_purchase",
           status: "pending",
           orderState: "PENDING",
@@ -158,6 +161,7 @@ export async function createOrder(db, {
             priceCoins: product.priceCoins,
             monthlyCost: product.monthlyCost,
             billingType: product.billingType,
+            ...(product.fulfillmentType==='service_pack'?{fulfillmentType:'service_pack',packSnapshot:product.packSnapshot}:{}),
             profileId, contentKey, scope, returnPath,
             createdAt: now.toISOString(),
           },
@@ -335,6 +339,10 @@ export function terminalGenerationKey(idempotencyKey) {
  * 불가로 돌아오는 도달 불가 경로의 fail-closed 이고, 클라이언트의 새-키 재시도가 그 코드에 걸려 있다.
  */
 export async function createPayableOrder(db, input) {
+  if(input?.product?.fulfillmentType==='service_pack') {
+    const {createServicePackOrder}=await import('./service-packs.js');
+    return createServicePackOrder(db,input);
+  }
   if (String(input?.product?.featureKey || '').startsWith('yeongnyangi-')) {
     const {advanceFortunePaymentGeneration}=await import('../yeongnyangi/payment-intent.js');
     for(let attempt=0;attempt<3;attempt++) {

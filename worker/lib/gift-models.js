@@ -18,6 +18,7 @@ const giftSchema = new mongoose.Schema({
   status: { type: String, enum: Object.values(GIFT_STATUS), required: true },
   claimTokenHash: String,
   tokenVersion: { type: Number, default: 0 },
+  servicePackProofVersion: Number,
   purchasedAt: Date, claimedAt: Date, expiresAt: Date,
   refundRequestedAt: Date, refundRequestId: String, refundPreviousStatus: String,
   reviewRequired: Boolean, paymentCancellation: mongoose.Schema.Types.Mixed,
@@ -35,6 +36,7 @@ const grantSchema = new mongoose.Schema({
   orderId: String, paymentId: String,
   before: mongoose.Schema.Types.Mixed, after: mongoose.Schema.Types.Mixed,
   grantedAt: Date,
+  servicePackProofVersion: Number,
 }, { timestamps: true });
 const contextSchema = new mongoose.Schema({
   contextHash: { type: String, unique: true, required: true },

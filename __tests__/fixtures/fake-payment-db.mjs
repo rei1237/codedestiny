@@ -15,7 +15,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 // Mongo ObjectIds are immutable values; structuredClone loses their BSON type.
 function cloneDocument(value) {
   if(value == null || typeof value!=='object' || value._bsontype==='ObjectId')return value;
-  if(value instanceof Date)return new Date(value);
+  if(Object.prototype.toString.call(value)==='[object Date]')return new Date(value.getTime());
   if(Array.isArray(value))return value.map(cloneDocument);
   return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,cloneDocument(item)]));
 }
@@ -78,6 +78,7 @@ export function matches(doc, filter) {
       });
     }
     if (cond === null) return value === null || value === undefined;
+    if (Array.isArray(value) && !Array.isArray(cond)) return value.some(item=>String(item)===String(cond));
     return String(value) === String(cond);
   });
 }

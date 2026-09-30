@@ -78,7 +78,11 @@ export async function handleGiftRoute({ request, env, ctx, path, withDb }) {
       if (method === "POST" && path === "/claim") {
         await assertGiftIndexes(db);
         const result = await claimGift(db, { tokenHash: await contextHash(db, request, body), userId });
-        return { ...result, grant: { source: "GIFT", giftId: result.grant.giftId, appliedSubscription: result.grant.after, grantedAt: result.grant.grantedAt } };
+        return { ...result, grant: { source: "GIFT", giftId: result.grant.giftId,
+          ...(result.gift.product?.productType==='service_pack'
+            ? {servicePack:result.grant.after.servicePack}
+            : {appliedSubscription:result.grant.after}),
+          grantedAt: result.grant.grantedAt } };
       }
       if (method === "GET" && ["/sent", "/received"].includes(path)) return listGifts(db, { userId, received: path === "/received", cursor: new URL(request.url).searchParams.get("cursor") || "" });
       if (method === "GET" && path === "/account") {

@@ -1,13 +1,22 @@
 "use client";
+import Link from 'next/link';
+import HoneyPassArtwork from "@/components/yeon/HoneyPassArtwork";
 import { useEffect, useRef, useState } from "react";
 import GiftSharing from "../GiftSharing";
 import { giftApi, GiftApiError, type GiftView } from "../gift-client";
+import ServicePackGiftDetails,{isServicePackGift,usePackGiftCopy} from "../ServicePackGiftDetails";
+
+import {useAuthStore} from "@/app/_lib/auth-store";
+import {readPendingPack,savePendingPack} from "@/app/components/service-packs/service-pack-client";
 
 export default function GiftComplete() {
+  const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||"");
+  const {copy:packCopy}=usePackGiftCopy();
   const [gift, setGift] = useState<GiftView>();
   const [notice, setNotice] = useState("결제 내역을 확인하고 있어요. 다시 결제하지 말아 주세요.");
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
+  useEffect(()=>{if(ownerId&&gift?.status==="PAID"&&isServicePackGift(gift)){const pending=readPendingPack(ownerId);if(pending?.orderId===gift.orderId)savePendingPack(ownerId,null);}},[ownerId,gift]);
   const check = async () => {
     if (lock.current) return;
     lock.current = true; setBusy(true);
@@ -16,8 +25,10 @@ export default function GiftComplete() {
     try {
       if (!id) throw new Error("주문을 찾을 수 없습니다. 보낸 선물함에서 확인해 주세요.");
       let d = await giftApi(`/gift_${encodeURIComponent(id)}`);
+      setGift(d.gift);
       if (d.gift?.status === "PENDING_PAYMENT") {
-        await giftApi("/api/payments/subscription/confirm", { merchantUid: id, impUid: id, purchaseType: "GIFT" });
+        if(isServicePackGift(d.gift))await giftApi(`/api/payments/service-packs/orders/${encodeURIComponent(id)}/confirm`,{});
+        else await giftApi("/api/payments/subscription/confirm", { merchantUid: id, impUid: id, purchaseType: "GIFT" });
         d = await giftApi(`/gift_${encodeURIComponent(id)}`);
       }
       setGift(d.gift); setNotice(d.gift?.status === "PAID" ? "링크를 만들어 소중한 사람에게 보내세요." : "선물 상태를 확인해 주세요.");
@@ -30,5 +41,7 @@ export default function GiftComplete() {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void check(); }, []);
-  return <><h1>{gift?.status === "PAID" ? "선물이 준비되었습니다" : "선물 결제 확인"}</h1><p role="status">{notice}</p>{gift && <><article className="gift-card"><span className="gift-symbol" aria-hidden="true">✉</span><h2>{gift.product.name}</h2>{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}</article><GiftSharing gift={gift} onChange={setGift} /></>}<div className="gift-actions"><button className="secondary" disabled={busy} onClick={() => void check()}>결제 상태 다시 확인</button><a className="gift-button" href="/gift/box/">보낸 선물 확인하기</a></div></>;
+  const pending=ownerId?readPendingPack(ownerId):null;
+  const canResume=gift?.status==='PENDING_PAYMENT'&&isServicePackGift(gift)&&pending?.orderId===gift.orderId&&Boolean(pending?.packSnapshot);
+  return <><h1>{gift?.status === "PAID" ? "선물이 준비되었습니다" : "선물 결제 확인"}</h1><p role="status">{notice}</p>{gift && <><article className="gift-card"><HoneyPassArtwork tier={gift.product.productType==="service_pack"?null:gift.product.tier} className="gift-pass-art" sizes="196px" /><h2>{gift.product.name}</h2><ServicePackGiftDetails gift={gift}/>{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}</article><GiftSharing gift={gift} onChange={setGift} /></>}<div className="gift-actions">{canResume&&<Link className="gift-button" href="/points/#fish-packs" prefetch={false}>{packCopy.resumeAtShop}</Link>}<button className="secondary" disabled={busy} onClick={() => void check()}>결제 상태 다시 확인</button><a className="gift-button" href="/gift/box/">보낸 선물 확인하기</a></div></>;
 }

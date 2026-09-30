@@ -1,15 +1,19 @@
 import { authFetch } from "@/app/_lib/auth-client";
 
+import type {ServicePackPlan,OwnedServicePack} from '@/app/components/service-packs/service-pack-client';
+export type GiftPackProduct=ServicePackPlan&{productType:'service_pack';productId:string;name:string;durationDays:number};
+export type GiftSubscriptionProduct={productType?:'subscription';name:string;durationDays:number;wonPrice:number;tier:string};
 export type GiftView = {
   giftId: string; orderId?: string; status: string; senderName: string; recipientName: string;
   giftMessage: string; expiresAt?: string; purchasedAt?: string; claimedAt?: string;
   tokenVersion?: number; hasLink?: boolean; reviewRequired?: boolean;
-  product: { name: string; durationDays: number; wonPrice: number; tier: string };
+  product: GiftSubscriptionProduct | GiftPackProduct;
 };
 export type GiftResponse = {
   gift?: GiftView; gifts?: GiftView[]; nextCursor?: string | null; claimPath?: string;
   displayName?: string; subscription?: { tier?: string; expiresAt?: string };
   activationPending?: boolean; purchaseType?: string; message?: string;
+  grant?: {source:"GIFT";giftId:string;grantedAt:string;servicePack?:OwnedServicePack};
 };
 export class GiftApiError extends Error {
   constructor(public status: number, public code: string, message: string) { super(message); }

@@ -59,3 +59,14 @@ test('a transaction conflict retries against committed state and keeps the same 
   expect(db.rows[0]).toBe(user);
   expect(user.balance).toBe(85);
 });
+
+test('transaction snapshots preserve Date values from another VM realm', async () => {
+  const { runInNewContext } = await import('node:vm');
+  const expiresAt = runInNewContext("new Date('2099-10-30T00:00:00Z')");
+  expect(expiresAt instanceof Date).toBe(false);
+  const db = makeFakePaymentDb();
+  db.rows.push({ _id: 'owner', profileSubscription: { expiresAt }, spent: 0 });
+  await db.transaction(tx => tx.updateOne(null, { _id: 'owner' }, { $inc: { spent: 1 } }));
+  expect(db.rows[0].profileSubscription.expiresAt).toBeInstanceOf(Date);
+  expect(db.rows[0].profileSubscription.expiresAt.getTime()).toBe(expiresAt.getTime());
+});

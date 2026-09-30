@@ -20,11 +20,14 @@ function inputText(value, max) {
   return value.trim();
 }
 export function giftDraftFor(body, plan) {
-  if (!GIFTABLE_TIERS.includes(plan.tier)) throw paymentError("PRODUCT_NOT_FOUND", "선물할 수 없는 상품입니다.");
+  const servicePack=plan.fulfillmentType==='service_pack';
+  if (!servicePack&&!GIFTABLE_TIERS.includes(plan.tier)) throw paymentError("PRODUCT_NOT_FOUND", "선물할 수 없는 상품입니다.");
   return {
     senderName: inputText(body?.senderName, 40), recipientName: inputText(body?.recipientName, 40),
     giftMessage: inputText(body?.giftMessage, 500), policyVersion: GIFT_POLICY_VERSION,
-    productSnapshot: { ...plan, currency: "KRW" },
+    productSnapshot: servicePack?{...plan.packSnapshot,productId:plan.productId,productType:'service_pack',
+      fulfillmentType:'service_pack',name:plan.label,durationDays:plan.packSnapshot.validityDays,autoRenew:false,currency:'KRW'}
+      : { ...plan, currency: "KRW" },
   };
 }
 export async function hashGiftToken(raw) {
@@ -54,8 +57,11 @@ export async function assertGiftIndexes(db) {
     }
   }
 }
+export function giftPurchasesEnabled(env,request) {
+  return String(env?.GIFTS_ENABLED || '')==='1'&&!/^(1|true)$/i.test(request?.headers.get('X-CD-App')||'');
+}
 export function assertGiftPurchasesEnabled(env, request) {
-  if (String(env?.GIFTS_ENABLED || "") !== "1" || /^(1|true)$/i.test(request.headers.get("X-CD-App") || "")) {
+  if (!giftPurchasesEnabled(env,request)) {
     throw paymentError("GIFT_UNAVAILABLE", "현재 선물 구매를 준비 중입니다.");
   }
 }
@@ -106,35 +112,59 @@ export async function claimGift(db, { tokenHash, userId, now = new Date() }) {
       if (String(gift.recipientUserId) !== String(userId)) throw paymentError("GIFT_CLAIMED", "이미 수령된 선물입니다.");
       const grant = await tx.findOne(GiftGrant, { giftId: gift.giftId });
       if (!grant) throw paymentError("DB_UNAVAILABLE", "수령 상태를 확인 중입니다. 다시 확인해 주세요.");
+      if(gift.productSnapshot?.productType==='service_pack') {
+        const {readClaimedGiftServicePack}=await import('./service-pack-gift-proof.js');
+        const servicePack=await readClaimedGiftServicePack(tx,gift,grant);
+        if(!servicePack)throw paymentError('GIFT_UNCLAIMABLE','수령된 이용권 증빙을 확인해 주세요.');
+        return {gift:presentGift(gift),grant:{...grant,after:{...grant.after,servicePack}},replayed:true};
+      }
       return { gift: presentGift(gift), grant, replayed: true };
     }
     if (gift.status !== "PAID" || !(new Date(gift.expiresAt) > now)) throw paymentError("GIFT_UNCLAIMABLE", "취소·환불·만료되었거나 아직 준비 중인 선물입니다.");
     const user = await tx.findOne(User, { _id: toObjectId(userId) });
     if (!user) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
     const plan = gift.productSnapshot;
-    if (!resolvePassPlan(plan?.tier, 1, plan?.passPolicyVersion || "legacy")) throw paymentError("PRODUCT_NOT_FOUND", "이용권 정보를 확인할 수 없습니다.");
-    if (isPassPolicyMix(user.profileSubscription || {}, plan, now)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
-    const transition = evaluatePassTierTransition(user.profileSubscription, plan.tier, now);
-    if (!["NEW", "EXTENSION_ALLOWED"].includes(transition.code)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
+    const servicePack=plan?.productType==='service_pack';
+    const packs=servicePack?await import('./service-packs.js'):null;
+    let transition=null;
+    if(!servicePack) {
+      if (!resolvePassPlan(plan?.tier, 1, plan?.passPolicyVersion || "legacy")) throw paymentError("PRODUCT_NOT_FOUND", "이용권 정보를 확인할 수 없습니다.");
+      if (isPassPolicyMix(user.profileSubscription || {}, plan, now)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
+      transition = evaluatePassTierTransition(user.profileSubscription, plan.tier, now);
+      if (!["NEW", "EXTENSION_ALLOWED"].includes(transition.code)) throw paymentError("GIFT_TIER_CONFLICT", "현재 이용권이 종료된 후 이 선물을 수령할 수 있습니다.");
+    }
     // The payment write serializes operator/webhook cancellation with claiming.
     const payment = await tx.findOneAndUpdate(Payment, {
       merchantUid: gift.orderId, purchaseType: "GIFT", status: { $in: ["paid", "success", "fulfilled"] },
       refundRequestedAt: null,
+      ...(servicePack?packs.activeOrderFilter(gift.purchaserUserId,gift.orderId):{}),
     }, { $inc: { "metadata.giftClaimVersion": 1 } }, { returnDocument: "after" });
     if (!payment) throw paymentError("GIFT_UNCLAIMABLE", "결제 또는 환불 상태를 확인 중입니다.");
     const claimed = await tx.findOneAndUpdate(Gift, { _id: gift._id, status: "PAID", claimTokenHash: tokenHash, expiresAt: { $gt: now } }, {
       $set: { status: "CLAIMED", recipientUserId: user._id, claimedAt: now, updatedAt: now },
     }, { returnDocument: "after" });
     if (!claimed) throw paymentError("GIFT_CONFLICT", "수령 상태가 변경되었습니다. 다시 확인해 주세요.");
-    const activation = await activatePassSubscription(tx, {
-      userId, plan, orderId: gift.giftId, paidAt: now, now, existing: user,
-      paymentMethod: "gift", expiresAt: computePassExpiry({ transition, paidAt: now, now, durationDays: plan.durationDays }),
-    });
-    if (activation.conflict) throw paymentError("GIFT_CONFLICT", "이용권이 변경되었습니다. 다시 수령해 주세요.");
+    let before=user.profileSubscription||null,after;
+    if(servicePack) {
+      if(payment.pricingSnapshot?.fulfillmentType!=='service_pack'
+        ||JSON.stringify(payment.metadata?.giftDraft?.productSnapshot)!==JSON.stringify(plan))
+        throw paymentError('GIFT_UNCLAIMABLE','선물 상품 증빙이 일치하지 않습니다.');
+      const right=await packs.grantServicePackInTransaction(tx,payment,{
+        recipientUserId:userId,giftId:gift.giftId,claimedAt:now,
+      });
+      before=null;after={productType:'service_pack',servicePack:packs.presentPack(right,true,now)};
+    } else {
+      const activation = await activatePassSubscription(tx, {
+        userId, plan, orderId: gift.giftId, paidAt: now, now, existing: user,
+        paymentMethod: "gift", expiresAt: computePassExpiry({ transition, paidAt: now, now, durationDays: plan.durationDays }),
+      });
+      if (activation.conflict) throw paymentError("GIFT_CONFLICT", "이용권이 변경되었습니다. 다시 수령해 주세요.");
+      after=activation.user.profileSubscription;
+    }
     const grant = {
       giftId: gift.giftId, source: "GIFT", purchaserUserId: gift.purchaserUserId,
       recipientUserId: user._id, orderId: gift.orderId, paymentId: gift.paymentId,
-      before: user.profileSubscription || null, after: activation.user.profileSubscription,
+      before, after,
       grantedAt: now, createdAt: now, updatedAt: now,
     };
     await tx.insertOne(GiftGrant, grant);
