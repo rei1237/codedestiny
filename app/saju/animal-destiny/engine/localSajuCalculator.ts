@@ -882,7 +882,8 @@ function calculateDaewoonStartFromCore(
   if (!result) return unknown;
   const node = result.meta.referenceNode;
   const baseTerm = buildSolarTermBoundariesFromCore(node.year, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES)
-    .find((term) => term.index === node.index / 2) || null;
+    .find((term) => term.year === node.year && term.month === node.month && term.day === node.day
+      && term.hour === node.hour && term.minute === node.minute) || null;
   return {
     direction: result.forward ? "forward" : "reverse",
     start: {
