@@ -263,20 +263,47 @@ test("the preview smoke only forgives 404s that cannot be app defects", () => {
   // 404 가 아닌 것은 이 판정기의 소관이 아니다.
   assert.equal(ignorable(line(`https://${previewHost}/x.js`).replace("404", "500")), false, "404 가 아닌 것을 무시합니다");
 
-  // 커스텀 도메인(프리뷰가 아님)에서는 어떤 404 도 넘기지 않는다.
+  // 커스텀 도메인(프리뷰가 아님)에서는 정적 셸의 RSC 보조 요청만 넘긴다.
   const live = loadIgnorablePreview404(false, "staging.code-destiny.com");
   assert.equal(live(line("https://staging.code-destiny.com/cdn-cgi/rum?")), false, "라이브에서 404 를 무시합니다");
   assert.equal(live(line("https://assets.code-destiny.com/x.woff2")), false, "라이브에서 교차 출처 404 를 무시합니다");
+  assert.equal(
+    live(line("https://staging.code-destiny.com/ggulggul/index.txt?_rsc=3lb4g")),
+    true,
+    "라이브 정적 셸의 Next RSC 보조 404 를 실패로 봅니다",
+  );
+  assert.equal(
+    live(line("https://staging.code-destiny.com/js/services/destiny-flower-engine.js")),
+    false,
+    "라이브 같은 출처 앱 자산 404 를 무시합니다",
+  );
 
   // 판정기가 실제로 배선돼 있어야 한다 — 함수만 있고 안 부르면 아무것도 지키지 않는다.
   const noise = extractFunctionSource(smoke, "function isExpectedConsoleNoise(value) {");
   assert.ok(noise.includes("isIgnorablePreview404(value)"), "isExpectedConsoleNoise 가 새 404 판정기를 부르지 않습니다");
+  assert.ok(noise.includes("isExpectedStaticShellCssFallbackNoise(value)"), "정적 셸 CSS fallback 판정기가 배선되지 않았습니다");
 
   // 옛 무제한 규칙이 남아 있으면 위 판정기는 무의미하다.
   const corsNoise = extractFunctionSource(smoke, "function isExpectedPreviewCorsNoise(value) {");
   const pagesNoise = extractFunctionSource(smoke, "function isExpectedPagesPreviewNoise(value) {");
   assert.ok(!/status of 404/.test(corsNoise), "isExpectedPreviewCorsNoise 에 무제한 404 규칙이 남아 있습니다");
   assert.ok(!/status of 404/.test(pagesNoise), "isExpectedPagesPreviewNoise 에 무제한 404 규칙이 남아 있습니다");
+});
+
+test("the production smoke only forgives the static shell css fallback mime noise", () => {
+  const body = extractFunctionSource(smoke, "function isExpectedStaticShellCssFallbackNoise(value) {");
+  const detector = new Function("smokeHost", body + "; return isExpectedStaticShellCssFallbackNoise;")("code-destiny.com");
+  const line = (url) =>
+    `Refused to apply style from '${url}' because its MIME type ('text/html') is not a supported stylesheet MIME type, and strict MIME checking is enabled. https://code-destiny.com/`;
+
+  assert.equal(detector(line("https://code-destiny.com/_next/static/css/d3c0f2ea63bfba52.css")), true);
+  assert.equal(detector(line("https://code-destiny.com/styles/core-ui.css")), false, "정적 셸 소스 CSS MIME 오류를 무시합니다");
+  assert.equal(detector(line("https://assets.code-destiny.com/_next/static/css/d3c0f2ea63bfba52.css")), false, "교차 출처 CSS MIME 오류를 무시합니다");
+  assert.equal(
+    detector("Failed to load resource: the server responded with a status of 404 () https://code-destiny.com/_next/static/css/d3c0f2ea63bfba52.css"),
+    false,
+    "404 를 MIME 완화로 넘깁니다",
+  );
 });
 
 test("asset smoke retries page.content only for navigation churn", () => {

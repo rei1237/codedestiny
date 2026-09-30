@@ -41,7 +41,7 @@ function isExpectedFontNoise(value) {
     /blocked by CORS policy.*font/i.test(value);
 }
 /**
- * 프리뷰에서 무시해도 되는 404 인가.
+ * 정적 셸에서 무시해도 되는 404 인가.
  *
  * 🔴 2026-08-24 까지 이 자리는 `isPagesPreview` 이기만 하면 **모든 404 를** 무시했다. 호스트도
  * 경로도 보지 않았으므로, 승격 전 관문인 프리뷰 스모크가 **같은 출처의 앱 자산이 통째로 빠져도
@@ -56,24 +56,43 @@ function isExpectedFontNoise(value) {
  *     존재하지 않는 텍스트 페이로드지만, 실제 JS/CSS/이미지 자산 누락과는 별개다.
  * 그 밖의 같은 출처 404 는 진짜 결함이므로 **승격 전에** 실패로 잡는다.
  *
+ * 프로덕션 커스텀 도메인도 루트 정적 셸과 App Router 가 공존하므로, 같은 RSC 보조 요청만은
+ * 동일하게 실패에서 제외한다. 앱 자산 404 를 넓게 넘기면 안 되므로 /index.txt + _rsc 만 허용한다.
+ *
  * 출처를 판정할 URL 이 문자열에 없으면 무시하지 않는다(fail-closed).
  */
 function isIgnorablePreview404(value) {
-  if (!isPagesPreview) return false;
   if (!/status of 404/i.test(value)) return false;
-  if (/\/cdn-cgi\//i.test(value)) return true;
+  if (/\/cdn-cgi\//i.test(value)) return isPagesPreview;
   const urls = String(value).match(/https?:\/\/[^\s)"'`]+/gi) || [];
   if (!urls.length) return false;
   return urls.every((raw) => {
     try {
       const parsed = new URL(raw);
-      if (parsed.hostname.toLowerCase() !== smokeHost) return true;
+      const sameHost = parsed.hostname.toLowerCase() === smokeHost;
+      const isRscText = parsed.pathname.endsWith("/index.txt") && parsed.searchParams.has("_rsc");
+      if (!sameHost) return isPagesPreview;
+      if (isRscText) return true;
+      if (!isPagesPreview) return false;
       if (parsed.pathname.startsWith("/api/")) return true;
-      return parsed.pathname.endsWith("/index.txt") && parsed.searchParams.has("_rsc");
+      return false;
     } catch {
       return false;
     }
   });
+}
+function isExpectedStaticShellCssFallbackNoise(value) {
+  if (!/Refused to apply style/i.test(value) || !/MIME type \('text\/html'\)/i.test(value)) return false;
+  const urls = String(value).match(/https?:\/\/[^\s)"'`]+/gi) || [];
+  const cssUrls = urls.filter((raw) => {
+    try {
+      const parsed = new URL(raw);
+      return parsed.hostname.toLowerCase() === smokeHost && /^\/_next\/static\/css\/[^/]+\.css$/i.test(parsed.pathname);
+    } catch {
+      return false;
+    }
+  });
+  return cssUrls.length === 1;
 }
 function isExpectedPreviewCorsNoise(value) {
   return isPagesPreview &&
@@ -91,7 +110,8 @@ function isExpectedConsoleNoise(value) {
     isExpectedPreviewCorsNoise(value) ||
     (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(value)) ||
     isExpectedPagesPreviewNoise(value) ||
-    isIgnorablePreview404(value);
+    isIgnorablePreview404(value) ||
+    isExpectedStaticShellCssFallbackNoise(value);
 }
 
 /**
