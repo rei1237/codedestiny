@@ -9,7 +9,7 @@ import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
 import { activateFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
-import { readRequest, ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
+import { ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import {attendanceStatus,attend,unlockToday,getFreeReading,prepareFreeReading} from '../yeongnyangi/free-service.ts';
 
 const messages={
@@ -75,6 +75,11 @@ export async function handleYeongnyangiRoutes(request, env) {
   try {
     const url=new URL(request.url), method=request.method.toUpperCase();
     const path=url.pathname.replace(/^\/api\/yeongnyangi\/?/,'').replace(/\/$/,'');
+    const reportShare=path.match(/^report-shares\/([a-f0-9]{64})$/);
+    if(reportShare&&method==='GET'){
+      const {readReportShare}=await import('../yeongnyangi/report-share.js');
+      return readReportShare(env,reportShare[1]);
+    }
     if(path==='products' && method==='GET') return json({ok:true,products:products.map(p=>({...p,available:providerReady(env)}))});
     if(['free/horary','location'].includes(path)&&method==='POST'){
       const security=await enforceSensitiveEndpointSecurity({env,request,endpoint:`yeongnyangi:${path}`,allowedMethods:['POST'],requireJson:true,rateLimit:{limit:15,windowSeconds:60},maxPayloadBytes:12000});
@@ -99,6 +104,16 @@ export async function handleYeongnyangiRoutes(request, env) {
     if(path==='free/unlock' && method==='POST') return json({ok:true,...await unlockToday(env,auth.userId)});
     if(path==='free/reading' && method==='GET') return json({ok:true,...await getFreeReading(env,auth.userId,url.searchParams.get('category')||'basic')});
     if(path==='free/reading' && method==='POST') return json({ok:true,result:await prepareFreeReading(env,auth.userId,await readJson(request))});
+    if(path==='report-shares'&&method==='POST'){
+      const {createReportShare}=await import('../yeongnyangi/report-share.js');
+      const body=await readJson(request);
+      return createReportShare(env,auth.userId,body?.requestId,body?.token);
+    }
+    const revokeShare=path.match(/^report-shares\/([a-f0-9]{64})\/revoke$/);
+    if(revokeShare&&method==='POST'){
+      const {revokeReportShare}=await import('../yeongnyangi/report-share.js');
+      return revokeReportShare(env,auth.userId,revokeShare[1]);
+    }
     if(path==='requests' && method==='POST') {
       const body=await readJson(request);
       if(!body || typeof body!=='object' || Array.isArray(body)) {
