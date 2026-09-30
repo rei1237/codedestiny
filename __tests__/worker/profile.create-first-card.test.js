@@ -58,6 +58,7 @@ beforeAll(async () => {
       },
       User: { findById: userFindById, updateOne: userUpdateOne },
       PointHistory: {},
+      MonthlyCreditLedger: { find: () => ({ select() { return this; }, sort() { return this; }, limit() { return this; }, lean: async () => [] }) },
     })),
     jest.unstable_mockModule("../../worker/lib/monthly-credit-store.js", () => ({
       restoreMonthlyCreditLot: jest.fn(),
@@ -250,8 +251,8 @@ describe("영냥이 전용 프로필 정책", () => {
   test("공용 API는 body의 영냥이 플래그와 무관하게 기존 생성 제한을 유지한다", async () => {
     profileCardCountDocuments.mockResolvedValue(50);
     const response = await callCreate({ profile: NEW_CARD, yeongnyangi: true, source: "yeongnyangi" });
-    expect(response.status).toBe(409);
-    expect((await response.json()).code).toBe("PROFILE_LIMIT_RECONCILE_REQUIRED");
+    expect(response.status).toBe(402);
+    expect((await response.json()).code).toBe("PAYMENT_REQUIRED");
     expect(profileCardCreate).not.toHaveBeenCalled();
   });
   test("영냥이 목록은 소유 프로필 전체를 반환하고 GET에서 기본 프로필을 쓰지 않는다", async () => {

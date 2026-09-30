@@ -34,6 +34,7 @@
  */
 import { calculatePaidFeatureMembershipCreditCost, FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { isMoonstoneSpendRefunded } from "../lib/moonstone-spend-proof.js";
+import { profileMutationMetadata } from "../lib/profile-mutation-context.js";
 import { MonthlyCreditLedger, User } from "../lib/models.js";
 import { consumeMonthlyCreditLotsWithDb } from "../lib/monthly-credit-store.js";
 import { paymentError } from "./errors.js";
@@ -83,7 +84,7 @@ async function readSpendEvidence(db, userId, sourceId) {
  *   부분이고, 틀리면 돈이 사라진다. 주입하지 않으면 실제 CAS 가 아래 db 핸들로 그대로 돈다.
  * @returns {Promise<{ balance: number, replayed: boolean, ledgerId: string }>}
  */
-export async function spendMoonstone(db, { userId, product, purchaseId, profileId = "" }, deps = {}) {
+export async function spendMoonstone(db, { userId, product, purchaseId, profileId = "", profileAction = "" }, deps = {}) {
   /* 🔴 mongoose 판(consumeMonthlyCreditLots)이 아니라 db 핸들 판이다. 결제 컨텍스트는 공유
      핸드셰이크를 건너뛸 수 있어(worker/payments/db.js), mongoose 모델을 부르면 콜드
      아이솔레이트에서 bufferCommands:false 때문에 즉시 죽어 503 이 된다 — 잔량이 충분해도
@@ -100,6 +101,8 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
     && (Number(product.priceCoins)!==Number(FEATURE_KEY_PRICE_TABLE[product.featureKey]?.cost)
       || cost!==calculatePaidFeatureMembershipCreditCost(product.featureKey)))
     throw paymentError('INVALID_REQUEST','상담 상품의 월정석 금액이 일치하지 않습니다.');
+  const mutationMetadata = profileMutationMetadata({ featureKey: product.featureKey, profileId, purchaseId: sourceId, action: profileAction });
+  if (!mutationMetadata) throw paymentError("INVALID_REQUEST", "프로필 변경 정보를 확인해 주세요.");
   const funding=/^yeongnyangi-/.test(String(product.featureKey || ''))?await import('../yeongnyangi/payment-funding.js'):null;
   const fundingClaim=funding?await funding.reserveFortuneFunding(db,{userId,requestId:sourceId,featureKey:product.featureKey,coinCost:product.priceCoins,method:'MOONLIGHT_STONE'}):null;
   const finishSpend=async result=>{
@@ -130,7 +133,7 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
         serviceKey: String(product.featureKey || ""),
         profileId: String(profileId || ""),
         reason: String(product.label || ""),
-        metadata: { purchaseId: sourceId, productId: String(product.productId || "") },
+        metadata: { purchaseId: sourceId, productId: String(product.productId || ""), ...mutationMetadata },
         createdAt: now,
         updatedAt: now,
         // settledAt 은 일부러 넣지 않는다 — 이 순간의 이 행이 '미정산 예약'이라는 표식이다.
@@ -150,6 +153,9 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
       throw paymentError('IDEMPOTENCY_CONFLICT','같은 결제 요청의 상품이나 금액이 일치하지 않습니다.');
     if(existing && isMoonstoneSpendRefunded(existing))
       throw paymentError('IDEMPOTENCY_CONFLICT','복원된 월정석 결제로 상담을 다시 열 수 없습니다.');
+    if (mutationMetadata.profileAction && existing && (existing.serviceKey !== String(product.featureKey || "") || String(existing.profileId || "") !== String(profileId || "") || Number(existing.amount) !== cost || (existing.metadata?.profileAction && existing.metadata.profileAction !== mutationMetadata.profileAction))) {
+      throw paymentError("IDEMPOTENCY_CONFLICT", "기존 월정석 결제의 대상 또는 금액이 일치하지 않습니다.");
+    }
     if (existing?.settledAt) {
       return finishSpend({ balance: Number(existing.afterBalance || 0), replayed: true, ledgerId: String(existing._id || "") });
     }

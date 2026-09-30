@@ -29,6 +29,7 @@ const schema = new mongoose.Schema({
   // Versioned generation evidence is separate from the immutable purchase snapshot.
   generationCheckpoint: { type: mongoose.Schema.Types.Mixed, default: undefined },
   chapters: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  correction: { type: mongoose.Schema.Types.Mixed, default: undefined },
   completedChapters: { type: Number, default: 0 },
   leaseToken: { type: String, default: '' },
   leaseUntil: { type: Date, default: null },

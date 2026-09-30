@@ -1,3 +1,4 @@
+import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
 import {conciseReadingManifest} from './fortune/concise-reading';
 import { assertSajuPillarClaims } from "../lib/saju-correction.js";
@@ -376,6 +377,7 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 }
 
 export function presentFortune(row: any) {
+  row = correctedFortune(row);
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
   const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';

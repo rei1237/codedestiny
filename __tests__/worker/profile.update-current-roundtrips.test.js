@@ -46,6 +46,7 @@ beforeAll(async () => {
       ProfileCard: { findOne: profileCardFindOne, find: profileCardFind },
       User: { findById: userFindById, updateOne: userUpdateOne },
       PointHistory: {},
+      MonthlyCreditLedger: { find: () => ({ select() { return this; }, sort() { return this; }, limit() { return this; }, lean: async () => [] }) },
     })),
     jest.unstable_mockModule("../../worker/lib/monthly-credit-store.js", () => ({
       restoreMonthlyCreditLot: jest.fn(),
