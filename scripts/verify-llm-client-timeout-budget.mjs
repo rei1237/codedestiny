@@ -153,18 +153,19 @@ await isolated(async () => {
   globalThis.fetch = fetch;
   const { env, calls: aiCalls } = stubAiRun(() => ({ response: "호출되면 안 되는 응답" }));
   const startedAt = Date.now();
-  let message = "";
+  let message = "", code = "";
   try {
     await callLLM({ prompt: "테스트", timeoutMs: 500 }, env);
   } catch (error) {
     message = String(error?.message || "");
+    code = String(error?.code || "");
   }
   const elapsedMs = Date.now() - startedAt;
   assert(fetchCalls.length === 1, `타임아웃은 재시도 대상이 아니므로 fetch는 1회만 호출되어야 한다 (실제 ${fetchCalls.length}회)`);
   assert(aiCalls.length === 0, `예산이 바닥나면 폴백 모델을 호출하면 안 된다 (실제 ${aiCalls.length}회 호출)`);
   assert(
-    message.includes("skipped (fallback budget exhausted)"),
-    `건너뛴 폴백 모델의 사유가 에러 메시지에 남아야 한다 (실제: ${message})`,
+    code === "LLM_GENERATION_TIMEOUT",
+    `생성 타임아웃은 폴백 진입 전에 명시적 코드로 중단되어야 한다 (실제: ${code}: ${message})`,
   );
   assert(
     elapsedMs < 500 * 1.8,

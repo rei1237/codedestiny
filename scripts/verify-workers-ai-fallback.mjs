@@ -160,11 +160,12 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
 {
   const { env, calls } = stubEnv(() => new Promise(() => {}));
   const startedAt = Date.now();
-  let message = "";
+  let message = "", code = "";
   try {
     await callLLM({ prompt: "테스트", timeoutMs: 300 }, env);
   } catch (error) {
     message = String(error?.message || "");
+    code = String(error?.code || "");
   }
   const elapsedMs = Date.now() - startedAt;
   assert(message.includes("timed out"), `무응답 모델을 시간으로 끊어야 한다 (실제: ${message})`);
@@ -172,8 +173,8 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   // 예산은 모델마다가 아니라 체인 전체에 걸린다 — 1차가 다 써 버리면 2차는 호출조차 하지 않는다.
   assert(calls.length === 1, `예산 소진 후 다음 모델을 호출하면 안 된다 (실제 ${calls.length}회 호출)`);
   assert(
-    message.includes("fallback budget exhausted"),
-    `건너뛴 모델의 사유가 실패 메시지에 남아야 한다 (실제: ${message})`,
+    code === "LLM_GENERATION_TIMEOUT",
+    `생성 타임아웃은 다음 모델 진입 전에 명시적 코드로 중단되어야 한다 (실제: ${code}: ${message})`,
   );
 }
 
