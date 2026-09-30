@@ -127,7 +127,7 @@ test("Family repurchase stacks both 30-day duration and 500,000 won coverage", a
   expect(new Date(user.profileSubscription.expiresAt).toISOString()).toBe(secondExpiry.toISOString());
 });
 
-test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeongnyangi is Family-only", async () => {
+test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeongnyangi keeps Family pass coverage", async () => {
   const plan = currentPassPlan("vvip");
   expect(giftDraftFor({}, plan).productSnapshot.passPolicyVersion).toBe(CURRENT_PASS_POLICY_VERSION);
   const user = { _id: "64b000000000000000000001", profileSubscription: {
@@ -142,7 +142,7 @@ test("VVIP consumes one 30,000 reading exactly, preserves gift version, and Yeon
   expect(evaluatePassCoverage({ user, entitlement: user.profileSubscription, coinCost: 30 }).covered).toBe(true);
   const other = { profileSubscription: { ...plan, isActive: true, expiresAt } };
   const yn = resolveProduct({ featureKey: "yeongnyangi-saju-mackerel" });
-  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: true, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW"] });
+  expect(yn).toMatchObject({ familyPassOnly: true, monthlyExcluded: false, passExcluded: false, allowedPaymentMethods: ["FAMILY", "DIRECT_KRW", "MOONLIGHT_STONE"] });
   expect(describePassEligibility({ user: other, entitlement: other.profileSubscription, product: { ...yn, passExcluded: true } }).eligible).toBe(false);
 });
 

@@ -32,11 +32,12 @@ function set(row,key,value) {
   current[keys.at(-1)]=value;
 }
 function query(fn) {
-  const chain={session:()=>chain,select:()=>chain,lean:async()=>fn(),then:(a,b)=>Promise.resolve().then(fn).then(a,b)};
+  const chain={session:()=>chain,select:()=>chain,sort:()=>chain,limit:()=>chain,lean:async()=>fn(),then:(a,b)=>Promise.resolve().then(fn).then(a,b)};
   return chain;
 }
 function model(source,kind) {
   return {
+    find:filter=>query(()=>source().filter(row=>matches(row,filter))),
     findOne:filter=>query(()=>{
       if(kind==='request'&&failFinalRead&&filter.completedChapters!==undefined){failFinalRead=false;throw new Error('final reread failed');}
       if(kind==='request'&&refundBeforeFinalization&&filter.completedChapters!==undefined){refundBeforeFinalization=false;payments[0].status='refunded';}
@@ -83,7 +84,7 @@ jest.unstable_mockModule('../../worker/lib/db.js',()=>({
   },mongoTransactionOptions:()=>txOptions,
   isTransientMongoError:()=>false,
 }));
-jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory}));
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment,User,PointHistory,MonthlyCreditLedger:model(()=>[],'monthly-ledger')}));
 jest.unstable_mockModule('../../worker/lib/entitlement-policy.js',()=>({resolveCanonicalEntitlement:user=>user?.profileSubscription || {}}));
 jest.unstable_mockModule('../../worker/lib/pass-consumption.js',()=>({consumePassForFeature:consumePass,refundPassCoverage:refundPass}));
 jest.unstable_mockModule('../../worker/payments/passes.js',()=>({passUsageEvidenceId:()=> '507f1f77bcf86cd799439099'}));

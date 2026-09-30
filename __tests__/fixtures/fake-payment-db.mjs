@@ -181,9 +181,20 @@ export function makeFakePaymentDb(options = {}) {
         // roll back writes made concurrently outside that transaction.
         for(let attempt=0;attempt<3;attempt++) {
           const version=JSON.stringify(committedRows), draft=cloneDocument(committedRows);
+          const originals=new Map(draft.map((row,index)=>[row,committedRows[index]]));
           const result=await transactionScope.run(draft,()=>run(this));
           if(JSON.stringify(committedRows)!==version)continue;
-          committedRows.splice(0,committedRows.length,...draft);
+          // Existing model fixtures retain references to seeded documents.
+          // Publish successful writes onto those objects only after conflict checks.
+          const published = draft.map(row => {
+            const original = originals.get(row);
+            if (!original) return row;
+            for (const key of Object.keys(original)) {
+              if (!Object.hasOwn(row, key)) delete original[key];
+            }
+            return Object.assign(original, row);
+          });
+          committedRows.splice(0,committedRows.length,...published);
           return result;
         }
         throw new Error('fake-payment-db: transaction write conflict');
