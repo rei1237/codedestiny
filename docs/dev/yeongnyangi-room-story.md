@@ -63,3 +63,22 @@ node scripts/verify-yeongnyangi-room-story-browser.mjs
 - 모바일 모션 줄이기에서 한숨 애니메이션 비활성 확인. 실기기는 미검증.
 - 내장 이미지 생성 2장: WebP 합계 약 401KiB, 코믹 컷 투명도 유지.
 - Windows 드라이브 간 node_modules 정션의 Next 경로 문제는 독립 의존성 복사본으로 해결. 제품 설정 변경 없음.
+
+## 음악 오류 복구 검증
+
+`node scripts/verify-yeongnyangi-room-soundtrack.mjs`는 실제 React 훅을 로컬 브라우저에 올리고 짧은 무음 WAV만 사용한다. 첫 미디어 요청 실패 후 명시적 재시도, 음량 변경, 숨겨진 탭의 정지/복귀, unmount의 source 해제를 확인했다. 기존 오류 상태가 남는 문제를 재현한 뒤, 음악을 다시 켤 때 source를 새로 선택하도록 수정해 전체 시나리오를 통과했다.
+
+## 수정 파일
+
+- `app/yeongnyangi/_original/home-data.ts`: 9장면과 선택 대사의 정본.
+- `app/yeongnyangi/_original/StoryPanel.tsx`: 문단, 삽화, 장면 선택, 음악 컨트롤.
+- `app/yeongnyangi/_original/Room.tsx`: 방과 이야기, 무료 운세 진입 연결.
+- `app/yeongnyangi/_original/RoomInteractions.tsx`: 방 놀이와 마음별 쪽지.
+- `app/yeongnyangi/_original/RoomSoundtrack.tsx`: 기존 음원 4곡과 재생 생명주기.
+- `app/yeongnyangi/_original/room-story.css`: 방·이야기 화면의 반응형 스타일.
+- `app/yeongnyangi/_components/FreeFortune.tsx`, `app/yeongnyangi/_original/free-fortune.css`: 확인된 멸치 사용 뒤의 반응 연출.
+- `public/assets/yeongnyangi/original/neo-mirror-grief.webp`, `public/assets/yeongnyangi/original/neo-fish-curse.webp`: 직접 생성한 삽화.
+- `scripts/verify-yeongnyangi-room-story-browser.mjs`, `scripts/verify-yeongnyangi-room-soundtrack.mjs`: 화면·mock 운세·음악 회귀 검증.
+- `docs/dev/yeongnyangi-room-story.md`: 계획, 생성 프롬프트와 검증 기록.
+
+추가 음악 수정의 check:fast 자동 상향 검사도 통과했다. paid-gate-suite 88/88, Jest 317스위트·4599테스트, 전체 lint/typecheck 및 Worker dry-run 포함. 실제 운영 호출 검증으로 해석하지 않는다.
