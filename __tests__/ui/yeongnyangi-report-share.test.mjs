@@ -19,9 +19,9 @@ const mock={
  './service.ts':'export const presentFortune=row=>row;'
 };
 const result=await build({entryPoints:['worker/yeongnyangi/report-share.js'],bundle:true,platform:'node',format:'cjs',write:false,plugins:[{name:'report-share-mocks',setup(build){build.onResolve({filter:/^(\.\.\/lib\/(?:db|yeongnyangi-report-share-store)\.js|\.\/(?:repository\.js|service\.ts))$/},args=>args.importer.endsWith('report-share.js')?{path:args.path,namespace:'mock'}:null);build.onLoad({filter:/.*/,namespace:'mock'},args=>({contents:mock[args.path],loader:'js'}));}}]});
-const bundledModule={exports:{}};
-new Function('require','module','exports',result.outputFiles[0].text)(createRequire(import.meta.url),bundledModule,bundledModule.exports);
-const {createReportShare,readReportShare,revokeReportShare}=bundledModule.exports;
+const cjsModule={exports:{}};
+new Function('require','module','exports',result.outputFiles[0].text)(createRequire(import.meta.url),cjsModule,cjsModule.exports);
+const {createReportShare,readReportShare,revokeReportShare}=cjsModule.exports;
 
 test('public link needs an owned paid result, excludes private text, and revokes',async()=>{
  const token='b'.repeat(64);

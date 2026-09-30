@@ -667,6 +667,26 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
     .replace(/<meta name="twitter:image:alt" content="[^"]*">/i, `<meta name="twitter:image:alt" content="${seo.imageAlt}">`);
 }
 
+const GGULGGUL_SHELL_SEO = {
+  title: "꿀꿀 운세 | 사주 달빛정원 — 연이·네오·영냥이 운세 상담",
+  description:
+    "꿀꿀 운세에서 꽃돼지 연이와 네오의 사주·타로 상담을 둘러보고, 같은 Code Destiny 안의 영냥이 달빛 점술방에서 지금의 질문을 편하게 이어 보세요.",
+  canonicalUrl: "https://code-destiny.com/ggulggul/",
+};
+
+function applyGgulggulSeoMeta(indexHtml) {
+  const { title, description, canonicalUrl } = GGULGGUL_SHELL_SEO;
+  return indexHtml
+    .replace(/(<title\b[^>]*>)[^<]*(<\/title>)/i, `$1${title}$2`)
+    .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
+    .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}"/>`)
+    .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${title}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${description}">`)
+    .replace(/<meta name="twitter:title" content="[^"]*">/i, `<meta name="twitter:title" content="${title}">`)
+    .replace(/<meta name="twitter:description" content="[^"]*">/i, `<meta name="twitter:description" content="${description}">`);
+}
+
 function stripBomInPublicHtmlTree(targetDir) {
   if (!existsSync(targetDir)) return;
 
@@ -998,7 +1018,8 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
 
   const flowerDir = resolve(publicDir, "ggulggul");
   mkdirSync(flowerDir, { recursive: true });
-  const flowerHtml = baseIndexHtml.replace(/(<link[^>]+rel=["']canonical["'][^>]+href=["'])https:\/\/code-destiny\.com\/?(["'])/i, "$1https://code-destiny.com/ggulggul/$2");
+  const flowerHtml = dedupeUtf8CharsetMeta(applyGgulggulSeoMeta(baseIndexHtml));
+  assertEntryHtmlHealthy(flowerHtml, "public/ggulggul/index.html");
   writeFileSyncWithRetry(resolve(flowerDir, "index.html"), Buffer.from(flowerHtml, "utf8"));
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
