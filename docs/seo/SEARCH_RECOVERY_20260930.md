@@ -1,10 +1,12 @@
 ---
 status: active
 updated: 2026-09-30
-next: 승인된 운영 승격의 링크 오류 수정본 CI와 재배포를 확인하고 핵심 URL의 재수집과 28일 검색 실적을 비교한다.
+next: 운영 반영과 재수집 접수 결과를 기준으로 2026-10-07 크롤링·canonical, 2026-10-28 동일 기간 검색 실적을 비교한다.
 ---
 
 # Google 노출 진단과 검색 의도 개선
+
+2026-09-30 최종 상태: SEO 수정 `5e730cbba` 운영 승격 완료. Pages·Worker SHA 일치, 공개 URL 11개·스타일시트 56개·운영 브라우저 검사 통과. Google·네이버 대표 URL 4개씩 재수집 요청 접수 완료. 실제 색인 갱신과 검색 실적 변화는 후속 측정 대상이다.
 
 ## 판정
 
@@ -147,3 +149,52 @@ Pages·Worker 운영 SHA는 모두 `d8b2fa284798a592d60f59b297b1ad5ac98b4d0e`. �
 사용자가 운영 승격을 승인했다. 최초 릴리스 [36666864992](https://github.com/rei1237/codedestiny/actions/runs/36666864992)는 배포 후 브라우저 검사에서 `/ggulggul/index.txt?_rsc=…` 404와 CSS MIME 오류로 실패했고, Pages·Worker 모두 기존 `d8b2fa284798a592d60f59b297b1ad5ac98b4d0e`로 자동 롤백된 것을 실제 버전 응답에서 확인했다. 해당 CSS는 불변 배포 URL에서 HTTP 200 `text/css`로 확인되어 파일 누락으로 단정하지 않는다.
 
 홈의 정적 `/ggulggul/` 셸 진입 2곳을 Next Link 대신 일반 문서 링크로 수정했다. 정적 셸에는 Next RSC 응답이 없어 미리 불러오기가 404를 만들기 때문이다. 전체 홈 자동 이동을 되살리지 않고, 무료·천원 검색 의도와 홈 URL 유지 변경을 보존한다. 실제 컴포넌트 회귀 검사 8/8 및 수정 파일 린트를 확인하고, 재생성한 사이트맵 원장을 함께 전달한다. 운영 브라우저 검사와 Pages·Worker SHA 일치를 모두 확인하기 전에는 승격 완료로 보고하지 않는다.
+
+## 운영 반영 검증 (2026-09-30 13:54 KST)
+
+- 운영 SHA: `5e730cbba2f1b742da8d92edb1cdd63c13ea3257`, 고정 태그 `release-seo-20260930-5e730cbba`. 다른 세션의 후속 main 변경은 이번 운영 릴리스에 포함하지 않았다.
+- [CI required 성공](https://github.com/rei1237/codedestiny/actions/runs/36668876225/job/109741727120), [운영 릴리스 성공](https://github.com/rei1237/codedestiny/actions/runs/36669742529). 기존 스모크의 RSC·CSS 오류 판정을 완화하지 않은 SHA로 통과했다.
+- 릴리스 내부 프리뷰 `7d93eee7.codedestiny-5md.pages.dev`와 운영 `code-destiny.com`의 브라우저 스모크 모두 PASS. 결제 다이얼로그 항목은 보이는 비회원 진입 버튼이 없어 skipped였으므로 검증했다고 보지 않는다. 실제 결제·LLM·운영 DB 쓰기는 실행하지 않았다.
+- `npm run verify:deployed-sha -- --sha=5e730cbba2f1b742da8d92edb1cdd63c13ea3257 --origin=https://code-destiny.com --attempts=1`: Pages `/version.json`와 Worker `/api/version` 모두 위 SHA로 PASS.
+- 공개 GET 관측 시각: 2026-09-30T04:54:13.545Z. 11개 URL 모두 HTTP 200, 자기 canonical, noindex 없음, 유효한 JSON-LD, 사이트맵 포함. 동일 출처 스타일시트 56개 모두 HTTP 200 및 text/css, HTML 대체 응답 없음.
+- 홈 제목·검색 의도 본문, 천원 허브의 무료 사주 로그인 안내, 5개 정적 셸의 canonical·og:url·WebPage 동일성을 개별 단언으로 확인했다.
+
+| URL | HTTP | canonical·검색 허용·JSON-LD·사이트맵 |
+| --- | --- | --- |
+| / | 200 | PASS |
+| /ggulggul/ | 200 | PASS |
+| /today/ | 200 | PASS |
+| /saju/ | 200 | PASS |
+| /sukuyo/ | 200 | PASS |
+| /compatibility/ | 200 | PASS |
+| /yeongnyangi/1000-won-fortune/ | 200 | PASS |
+| /en/ | 200 | PASS |
+| /ja/ | 200 | PASS |
+| /zh/ | 200 | PASS |
+| /zh-tw/ | 200 | PASS |
+
+자동 IndexNow는 기존 체크포인트 대비 변경·삭제 알림 800건을 제출해 HTTP 200 OK로 접수됐다. Google 재색인 요청의 대체 수단이나 실제 색인·순위 개선 증거로 해석하지 않는다.
+
+운영 Chrome/CUA 관측(2026-09-30T04:58:02.519Z) 7건에서 일반·UTM 홈 URL 유지, 새 제목·H1, 정적 셸 진입 2개 링크의 실제 문서 이동과 앵커, 오늘·숙요·천원 안내를 확인했다. 확인한 스타일시트는 cssRules가 정상 접근됐고, 콘솔 오류·경고 0건, RSC 404·CSS MIME 오류 미관측, 확인한 화면의 가로 넘침 없음이었다. 기존 브라우저의 새 버전 안내는 나타났지만 콘텐츠와 탐색을 막지 않았다. 데스크톱 브라우저 결과이며 실제 모바일 기기·로그인·생성·결제·LLM 검증 또는 검색 성과 증거는 아니다.
+
+### 검색 플랫폼 재수집 접수
+
+네이버 웹마스터 도구의 수집 요청 이력에서 아래 4건 접수를 확인했다(2026-09-30, KST). 최초 홈 상대 경로 입력은 형식 검사에서 거절되어 절대 URL로 고친 뒤 1건만 접수됐다. 중복 접수는 하지 않았다.
+
+| URL | 네이버 접수 시각 |
+| --- | --- |
+| / | 13:55:56 |
+| /ggulggul/ | 13:56:59 |
+| /sukuyo/ | 13:59:25 |
+| /yeongnyangi/1000-won-fortune/ | 13:59:52 |
+
+Google Search Console에서는 아래 4개 URL의 실제 URL 테스트가 모두 “Google에 등록할 수 있음”으로 통과했고, 각 색인 생성 요청의 성공 모달을 확인했다. 아래는 요청 시각(KST)이다.
+
+| URL | Google 요청 시각 | 요청 전 저장 색인 상태 |
+| --- | --- | --- |
+| / | 13:56:29 | 등록되어 있음 |
+| /ggulggul/ | 14:00:46 | 발견됨 — 현재 색인이 생성되지 않음, 최근 크롤링 없음 |
+| /sukuyo/ | 14:02:07 | 등록되어 있음 |
+| /yeongnyangi/1000-won-fortune/ | 14:03:08 | 등록되어 있음 |
+
+두 플랫폼 모두 대상 URL별 1회 접수만 수행했고, CAPTCHA 해결이나 인증 변경 없이 완료했다. 전체 사이트가 Google에서 미색인인 것은 아니다. 홈·숙요·천원 페이지의 노출 문제와 꿀꿀 페이지의 미수집·미색인 상태를 구분한다. 요청 접수는 실제 색인 완료나 검색 순위 상승을 의미하지 않는다. D+7(2026-10-07)에 크롤링·Google 선택 canonical을, D+28(2026-10-28)에 이전 28일과 같은 길이의 노출·클릭·CTR·비브랜드 검색어를 비교한다. 이 문서는 비교 계획이며 자동 모니터를 생성한 것은 아니다.
