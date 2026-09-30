@@ -40,7 +40,8 @@ for(const productId of ids)test(`${productId}: engine -> snapshot -> every promp
  const snapshot=structuredClone(row.snapshot),product=row.snapshot.product;
  assert.deepEqual(Object.keys(snapshot.analysis.contexts).sort(),[...product.systems].sort());
  for(const system of product.systems){const c=snapshot.analysis.contexts[system];assert.equal(c.domain,system);assert.ok(c.engineVersion);assert.ok(c.facts.length);assert.ok(c.facts.every(f=>f.id.startsWith(system+'.')));}
- assert.equal(snapshot.manifest.length,productId==='fusion_all'?28:18);
+ assert.equal(snapshot.manifest.length,productId==='fusion_all'?29:19);
+ assert.equal(snapshot.manifest.at(-1).key,'prevention');
  assert.deepEqual(snapshot.manifest.at(-1).systems,product.systems);
  const seen=[],outputs=[];
  globalThis.__fusionGenerate=async request=>{

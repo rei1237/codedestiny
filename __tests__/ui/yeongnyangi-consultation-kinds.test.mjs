@@ -200,7 +200,8 @@ test('only general ask menus save private evidence packets; tarot v2 keeps its o
   assert.equal(packet.locale,'ja');
   assert.ok(packet.facts.length);
   assert.equal(row.amountKRW,product.priceKRW);
-  assert.equal(row.snapshot.manifest.length,product.chapterCount);
+  assert.equal(row.snapshot.manifest.length,product.chapterCount+(productId==='fusion_saju_ziwei'?1:0));
+  assert.equal(row.snapshot.manifest.length,row.snapshot.product.chapterCount);
   assert.equal(presentFortune(row).askEvidence,undefined,'raw packet is not a public API field');
   assert.deepEqual(await prepareFortune(env,'evidence-owner',request),row);
  }

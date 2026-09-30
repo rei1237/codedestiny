@@ -1,5 +1,7 @@
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
 import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
+import { buildLuckNatalInteractions } from '../lib/life-book-ai-saju.js';
+import { PREVENTION_VERSION, PREVENTION_RULES, buildSajuPrevention, preventionPillarDetails, canonicalPreventionPillar, preventionTiming, hasUnsupportedPreventionClaim } from '../lib/fortune-prevention.js';
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -513,8 +515,8 @@ function buildDaewoonSewoonSummary({ birthYear, gender, yearStem, targetYear, ta
 }
 
 function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
-  const opportunityMonths = monthlyFlow.filter((row) => row.timing === "기회").map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
-  const cautionMonths = monthlyFlow.filter((row) => row.timing === "주의").map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
+  const opportunityMonths = monthlyFlow.filter((row) => row.timing.includes("기회")).map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
+  const cautionMonths = monthlyFlow.filter((row) => row.timing.includes("주의")).map((row) => `${row.month}월 ${row.pillar}`).slice(0, 4);
   const domain = TEN_GOD_DOMAIN[annualTenGod] || "새해의 역할 변화";
   return {
     career: `${annualTenGod || "세운"}은 ${domain}을 통해 일의 방향을 드러냅니다.`,
@@ -705,6 +707,7 @@ function calculateNewYearFortuneData(input) {
   const dayPillar = toKoreanGanzi(corePillars.day);
   const hourPillar = timeUnknown ? "" : toKoreanGanzi(corePillars.hour);
   const pillarMap = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
+  const preventionDetails = preventionPillarDetails(pillarMap);
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = pillarStem(dayPillar);
   const dayBranch = pillarBranch(dayPillar);
@@ -737,11 +740,8 @@ function calculateNewYearFortuneData(input) {
     const element = STEM_ELEMENT[stem] || BRANCH_ELEMENT[branch] || "";
     const tenGod = tenGodFor(dayMaster, stem);
     const branchRelation = describeBranchRelation(dayBranch, branch);
-    const timing = yongshin.yongshinElementsKo.includes(element) || /합/.test(branchRelation)
-      ? "기회"
-      : yongshin.kijishinElementsKo.includes(element) || /충/.test(branchRelation)
-        ? "주의"
-        : "정비";
+    const interactions = buildLuckNatalInteractions(canonicalPreventionPillar(monthPillar), preventionDetails, {includeGroups:true});
+    const timing = preventionTiming(interactions, yongshin.yongshinElementsKo.includes(element), yongshin.kijishinElementsKo.includes(element));
     return {
       month,
       pillar: monthPillar,
@@ -753,6 +753,7 @@ function calculateNewYearFortuneData(input) {
       stemRelationToDayMaster: describeStemRelation(dayMaster, stem),
       relationToDayBranch: branchRelation,
       timing,
+      interactions,
       domains: buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch: branchRelation }, domainContext),
     };
   });
@@ -768,6 +769,8 @@ function calculateNewYearFortuneData(input) {
   const domainSignals = buildDomainSignals({ annualTenGod: targetTenGod, yongshin, johu, monthlyFlow });
 
   return {
+    prevention: buildSajuPrevention({pillars:pillarMap,strength:natalAnalysis.power,jong:natalAnalysis.jong,
+      periods:[{kind:'year',year:targetYear,pillar:targetPillar},...monthlyFlow.map(row=>({kind:'month',year:targetYear,month:row.month,pillar:row.pillar}))]}),
     calculationMeta: natal.calculationMeta,
     natalAnalysis,
     birthCalendar: {
@@ -1451,8 +1454,11 @@ const NEW_YEAR_AI_SECTION_OUTLINES = Object.freeze({
   ],
 });
 
-function buildSectionOutlineLines(input, section) {
-  const lines = NEW_YEAR_AI_SECTION_OUTLINES[section.key] || [];
+function buildSectionOutlineLines(input, section, prevention = false) {
+  const lines = (NEW_YEAR_AI_SECTION_OUTLINES[section.key] || []).map((line,index)=>
+    prevention && section.key === 'health' && index === 0
+      ? '1. 오행과 조후의 치우침은 생활 리듬과 무리하는 습관을 돌아보는 전통적 해석으로만 사용합니다. 관찰 가능한 피로·휴식·일정의 조건과 예방 행동을 설명하며 특정 장기·질환·호르몬의 상태를 명식으로 판단하지 않습니다.'
+      : line);
   // 사용자가 직접 남긴 질문은 총운 섹션이 맨 앞에서 책임진다(조립 순서상 상담문 첫머리).
   const questionLine = input.hasCustomQuestion && section.key === "overview"
     ? ["0. 다른 무엇보다 먼저, 소제목 **질문에 대한 답변**을 굵게 쓰고 사용자가 직접 남긴 질문에 직접적이고 구체적으로 답합니다. 이 답변을 마친 뒤에 아래 1번부터 이어갑니다."]
@@ -1526,7 +1532,15 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     ] : [
       "첫 답변은 아래 흐름을 모두 자연스럽게 포함하세요.",
     ]),
-    ...(section ? buildSectionOutlineLines(input, section) : outline.map((item) => item.line)),
+    ...(section ? buildSectionOutlineLines(input, section, fortuneData.prevention?.version === PREVENTION_VERSION) : outline.map((item) => item.line)),
+    ...(fortuneData.prevention?.version === PREVENTION_VERSION ? [
+      `[주의점 상담 계약 ${PREVENTION_VERSION}] ${PREVENTION_RULES}`,
+      !section || section.key === 'overview'
+        ? '총운 안에 **올해 주의할 흐름과 나를 지키는 선택**을 독립 소제목으로 반드시 쓴다. 근거가 뚜렷한 주의점을 최대 3개 고르고 기회와 부담·관찰 신호·피할 행동과 대안·완충 조건을 함께 쓴다.'
+        : '총운의 주의점 요약을 반복하지 말고 이번 분야에 해당하는 구체적인 신호와 예방 행동을 설명한다.',
+      '월별 판정의 기회와 주의는 함께 존재할 수 있다. 기회와 주의로 표시된 달은 양쪽 조건을 모두 설명한다. 합은 자동 길운·합화가 아니고 형충파해는 자동 흉운이 아니다. 요청한 대상 연도와 계산된 월운만 사용한다.',
+      '신살·오행·명식으로 호르몬, 질환이나 장기의 상태를 판단하지 않는다. 건강 해석은 관찰 가능한 생활 리듬·휴식·과부하 예방에 한정한다.',
+    ] : []),
     "",
     ...(section ? buildSectionLengthLines(section) : [
       "완성 상담문 전체 본문 합계는 공백을 제외하고 20,000자 이상 28,000자 이하로 맞추세요.",
@@ -1607,9 +1621,10 @@ function validateConsultationQuality(text, options = {}) {
     .filter(([, pattern]) => !pattern.test(cleaned))
     .map(([topic]) => topic);
   const issues = [];
+  if (options.fortuneData?.prevention?.version === PREVENTION_VERSION && !/\*\*올해 주의할 흐름과 나를 지키는 선택\*\*\s*\n?\s*[^\s*#]/.test(cleaned)) issues.push('PREVENTION_SECTION_MISSING');
   if (totalChars < minTotalChars) issues.push(`MIN_TOTAL_CHARS:${totalChars}/${minTotalChars}`);
   if (totalChars > maxTotalChars) issues.push(`MAX_TOTAL_CHARS:${totalChars}/${maxTotalChars}`);
-  if (hasForbiddenResult(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
+  if (hasForbiddenResult(cleaned) || options.fortuneData?.prevention?.version === PREVENTION_VERSION && hasUnsupportedPreventionClaim(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
   if (sections.length < 6) issues.push(`SECTION_COUNT:${sections.length}/6`);
   if (missingTopics.length) issues.push(`MISSING_EXPERT_TOPICS:${missingTopics.join("|")}`);
   issues.push(...validateFortuneDataConsistency(cleaned, options.fortuneData, options.hasCustomQuestion));
@@ -1627,6 +1642,7 @@ function validateConsultationQuality(text, options = {}) {
 
 function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
   const lines = [];
+  if (issues.includes('PREVENTION_SECTION_MISSING')) lines.push('총운에 **올해 주의할 흐름과 나를 지키는 선택** 소제목과 비어 있지 않은 해설을 추가한다. 실제 근거에 맞는 기회와 부담, 관찰 신호, 피할 행동과 대안, 완충 조건과 한계를 설명한다.');
   if (issues.includes("QUESTION_ANSWER_SECTION_MISSING")) {
     lines.push("사용자가 직접 남긴 질문에 대한 답변이 빠졌습니다. 본문 맨 앞에 소제목 **질문에 대한 답변**을 굵게 쓰고 그 질문에 직접적이고 구체적으로 답한 뒤, 나머지 내용을 이어가세요.");
   }
@@ -1680,6 +1696,7 @@ function buildSectionPrompt(input, fortuneData, section, repairLines = [], previ
 // 조립본 검증 이슈를 그 이슈를 책임지는 섹션에만 매핑하기 위한 표.
 // MISSING_CATEGORIES는 여기 없다 — 카테고리마다 책임 섹션이 달라 아래 표로 낱개 분배한다.
 const NEW_YEAR_AI_ISSUE_SECTION_KEY = Object.freeze({
+  PREVENTION_SECTION_MISSING: 'overview',
   QUESTION_ANSWER_SECTION_MISSING: "overview",
   ANNUAL_PILLAR_UNSTATED: "overview",
   SEWOON_INTERACTION_UNSTATED: "overview",
@@ -1728,7 +1745,7 @@ function mapIssuesToSections(quality, results) {
     }
     if (code === "FORBIDDEN_RESULT_PATTERN") {
       // 어느 섹션이 실제로 걸렸는지 본다. 전체를 다시 쓰지 않는다.
-      for (const row of results) if (hasForbiddenResult(row.text)) push(row.key, issue);
+      for (const row of results) if (hasForbiddenResult(row.text) || hasUnsupportedPreventionClaim(row.text)) push(row.key, issue);
       continue;
     }
     // 분량 합계로는 책임 섹션을 알 수 없다 — 아래에서 섹션 실측으로 판정한다.

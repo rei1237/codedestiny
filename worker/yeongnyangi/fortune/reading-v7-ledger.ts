@@ -255,6 +255,7 @@ export function buildV7Ledger(context:DomainContext,tier:V7Tier,opts:V7LedgerOpt
   const kit:Kit={emit,get,baseYear,unslug:(label,value)=>ledger.unslugged.push(`${label}:${typeof value==='string'?value:JSON.stringify(value)}`)};
   const excluded=V7_EXCLUDED_LABELS[context.domain];
   for(const f of context.facts){
+    if(f.label==='preventionEvidence')continue;
     if(excluded.includes(f.label))continue;
     if(!SPLITTERS[context.domain](f.label,f.value as O,kit))ledger.unclassified.push(f.label);
   }
