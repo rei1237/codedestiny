@@ -487,6 +487,22 @@ async function serveGuardianShareCard(request, env, ctx, url, shareId) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    // Resolve the home before serving HTML: waiting for React's useEffect
+    // briefly paints the introductory page before the actual main screen.
+    if (url.pathname === "/" || url.pathname === "/index.html") {
+      const hasLegacyInput = [...url.searchParams.keys()].some(
+        key => !/^(utm_.+|gclid|fbclid|msclkid|ref|question|lang)$/.test(key),
+      );
+      url.pathname = !hasLegacyInput && url.searchParams.get("question")
+        ? "/yeongnyangi/"
+        : "/ggulggul/";
+      // Keep the query verbatim. Browsers inherit the original fragment when
+      // Location has none, preserving existing service/result deep links.
+      return new Response(null, {
+        status: 302,
+        headers: { Location: url.toString(), "Cache-Control": "no-store" },
+      });
+    }
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       const apiResponse = await proxyApiRequest(request, env);
       return hardenResponse(request.url, apiResponse, { api: true });
