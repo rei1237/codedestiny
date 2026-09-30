@@ -161,8 +161,6 @@ export async function restoreMonthlyCreditLot({
   if (!userId || restoreAmount <= 0) return null;
   const readUser = () => db ? db.findOne(User,{_id:userId},{projection:{profileSubscription:1}})
     : User.findById(userId).select("profileSubscription").lean();
-  const writeUser = (filter,update,options) => db ? db.findOneAndUpdate(User,filter,update,options)
-    : User.findOneAndUpdate(filter,update,options).lean();
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const current = await readUser();
@@ -176,22 +174,23 @@ export async function restoreMonthlyCreditLot({
       now: Date.now(),
     });
     const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
-    const updated = await writeUser(
-      { _id: userId, ...buildLotsVersionFilter(version) },
-      {
-        $set: {
-          "profileSubscription.membershipCreditLots": granted.lots,
-          "profileSubscription.membershipCreditBalance": granted.balance,
-        },
-        $inc: {
-          "profileSubscription.membershipCreditLotsVersion": 1,
-          ...(decrementUsed && granted.added ? { "profileSubscription.membershipCreditUsed": -restoreAmount } : {}),
-          ...(incrementGranted && granted.added ? { "profileSubscription.membershipCreditGranted": restoreAmount } : {}),
-        },
-        ...(pullRequestId ? { $pull: { recentConsumeRequestIds: pullRequestId } } : {}),
+    const restoreFilter = { _id: userId, ...buildLotsVersionFilter(version) };
+    const restoreUpdate = {
+      $set: {
+        "profileSubscription.membershipCreditLots": granted.lots,
+        "profileSubscription.membershipCreditBalance": granted.balance,
       },
-      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-    );
+      $inc: {
+        "profileSubscription.membershipCreditLotsVersion": 1,
+        ...(decrementUsed && granted.added ? { "profileSubscription.membershipCreditUsed": -restoreAmount } : {}),
+        ...(incrementGranted && granted.added ? { "profileSubscription.membershipCreditGranted": restoreAmount } : {}),
+      },
+      ...(pullRequestId ? { $pull: { recentConsumeRequestIds: pullRequestId } } : {}),
+    };
+    const restoreOptions = { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } };
+    const updated = db
+      ? await db.findOneAndUpdate(User, restoreFilter, restoreUpdate, restoreOptions)
+      : await User.findOneAndUpdate(restoreFilter, restoreUpdate, restoreOptions).lean();
     if (updated) {
       try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
       // 복구(환불·롤백)도 접근 결정을 바꾼다 — 위 차감 경로와 같은 이유로 함께 버린다.
