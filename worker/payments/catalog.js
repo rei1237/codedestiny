@@ -13,6 +13,8 @@
  * 내려갈 수 있는 이유가 이것이다.
  */
 import {
+  calculatePaidFeatureMembershipCreditCost,
+  getPaidFeaturePaymentPolicy,
   FEATURE_KEY_PRICE_TABLE,
   LOVE_CODE_FEATURE_KEY,
   LOVE_CODE_PRODUCT_ID,
@@ -25,7 +27,6 @@ import {
   resolveFeatureReasonCost,
 } from "../lib/paid-feature-registry.js";
 import {
-  calculateMembershipCreditCost,
   normalizePaidFeaturePricingShape,
 } from "../lib/billing-policy.js";
 import { paymentError } from "./errors.js";
@@ -112,13 +113,13 @@ export function resolveProduct(input = {}) {
     billingType: getPaidFeatureBillingType(canonicalFeatureKey) || PAID_FEATURE_BILLING_TYPES.PER_USE,
     priceKRW,
     priceCoins,
-    monthlyCost: calculateMembershipCreditCost(priceCoins),
+    monthlyCost: calculatePaidFeatureMembershipCreditCost(canonicalFeatureKey, priceCoins),
     label: String(found.spec.reason || "").trim(),
     passExcluded: PASS_EXCLUDED_SET.has(canonicalFeatureKey) || directOnly,
     directOnly,
     familyPassOnly,
-    monthlyExcluded: directOnly || familyPassOnly,
-    allowedPaymentMethods: Object.freeze(familyPassOnly ? ["FAMILY", "DIRECT_KRW"] : directOnly ? ["DIRECT_KRW"] : ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"]),
+    monthlyExcluded: getPaidFeaturePaymentPolicy(canonicalFeatureKey).monthlyExcluded,
+    allowedPaymentMethods: Object.freeze(getPaidFeaturePaymentPolicy(canonicalFeatureKey).allowedPaymentMethods),
   });
 }
 

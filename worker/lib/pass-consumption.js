@@ -91,6 +91,9 @@ function makeNativeDb(session) { return {
     try { return await txn.withTransaction(() => run(makeNativeDb(txn)), mongoTransactionOptions()); }
     finally { await txn.endSession(); }
   },
+  find(Model, filter, options) {
+    return Model.collection.find(filter, { ...options, session }).toArray();
+  },
   findOne(Model, filter, options) {
     return Model.collection.findOne(filter, { ...options, session });
   },
@@ -102,6 +105,12 @@ function makeNativeDb(session) { return {
   },
 }; }
 const nativeDb = makeNativeDb();
+
+// Reuse the existing scoped native transaction adapter for one terminal refund.
+export async function refundYeongnyangiMoonstone(input) {
+  const {refundTerminalMoonstone}=await import('../yeongnyangi/moonstone-refund.js');
+  return refundTerminalMoonstone(input.db || nativeDb,input);
+}
 
 /**
  * 이용권으로 이 건을 커버하고 **누적 사용량을 실제로 차감**한다.
@@ -141,6 +150,7 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
 }
 
 export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, db = nativeDb }) {
+  if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
   const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost });
@@ -183,6 +193,52 @@ export async function consumePassForFeature({ user, entitlement, userId, feature
     coverage: withPersistedPassUsage(coverage, updated),
     user: updated,
   };
+}
+
+// Family retains the existing face-value allowance. Its receipt and consultation
+// claim commit with that one debit, serializing moonstone and PG choices.
+async function consumeYeongnyangiFamily({user,entitlement,userId,featureKey,requestId,coinCost,db}) {
+  const {buildPassConsumeMarker,consumePassCoverage,evaluatePassCoverage,recordPassUsageEvidence,findPassUsageEvidence}=await loadPassPolicy();
+  const funding=await import('../yeongnyangi/payment-funding.js');
+  const id=String(requestId || '').replace(/^yn-/,'');
+  if(!/^[a-f0-9]{64}$/.test(id))throw Object.assign(new Error('상담 주문을 확인해 주세요.'),{code:'INVALID_REQUEST',status:422});
+  const canonical='yn-'+id,cost=Math.max(0,Math.floor(Number(coinCost)||0));
+  const coverage=evaluatePassCoverage({user,entitlement,coinCost:cost});
+  const existing=await findPassUsageEvidence(db,userId,featureKey,canonical)||await findPassUsageEvidence(db,userId,featureKey,id);
+  const markers=Array.isArray(user?.recentConsumeRequestIds)?user.recentConsumeRequestIds:[];
+  const marker=buildPassConsumeMarker(featureKey,canonical);
+  if(existing && existing.metadata?.accessMethod!=='FAMILY')throw Object.assign(new Error('Family 이용권 증빙을 확인해 주세요.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
+  if(!existing && (markers.includes(marker)||markers.includes(buildPassConsumeMarker(featureKey,id))))
+    throw Object.assign(new Error('이용권 차감 증빙을 확인 중입니다.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
+  if(!existing && (String(coverage.tier)!=='family'||!coverage.covered))
+    return {covered:false,reason:coverage.tier!=='family'?'family_pass_required':coverage.reason,replayed:false,coverage};
+  const result=await db.transaction(async tx=>{
+    const claim=await funding.reserveFortuneFunding(tx,{userId,requestId:canonical,featureKey,coinCost:cost,method:'PASS'});
+    let receipt=existing,updated=user;
+    if(receipt) {
+      receipt=await tx.findOneAndUpdate(PointHistory,{_id:receipt._id,'metadata.refundedForServiceExecution':{$ne:true}},
+        {$set:{'metadata.yeongnyangiCommit':'attach:'+id}},{returnDocument:'after'});
+      if(!receipt)throw Object.assign(new Error('이용권 증빙이 복원되었습니다.'),{code:'PAYMENT_NOT_ACTIVE',status:409});
+    } else {
+      updated=await consumePassCoverage(tx,{userId,coverage,marker,existingMarkers:markers});
+      if(!updated){await funding.releaseFortuneFunding(tx,claim);return null;}
+      await recordPassUsageEvidence(tx,{userId,product:{featureKey,priceCoins:cost},requestId:canonical,coverage,user});
+      receipt=await findPassUsageEvidence(tx,userId,featureKey,canonical);
+      if(!receipt)throw Object.assign(new Error('이용권 증빙 저장을 확인 중입니다.'),{code:'PAYMENT_EVIDENCE_PENDING',status:503});
+    }
+    const meta=receipt.metadata || {};
+    await funding.completeFortuneFunding(tx,claim,{evidenceId:receipt._id,tier:'family',debit:Number(meta.coinCost ?? cost),
+      cycleKey:meta.passCycleKey || coverage.cycleKey,budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin,
+      profileLimit:meta.passProfileLimit ?? user?.profileSubscription?.profileLimit,
+      maxCoveredCoin:meta.passLimit ?? coverage.perItemLimit,
+      policyVersion:meta.passPolicyVersion || user?.profileSubscription?.passPolicyVersion});
+    return {user:updated,coverage:{...coverage,covered:true,reason:'',tier:'family',
+      coinCost:Number(meta.coinCost ?? cost),cycleKey:meta.passCycleKey || coverage.cycleKey,
+      budgetCoin:meta.passBudgetCoin ?? coverage.budgetCoin}};
+  });
+  if(!result)return {covered:false,reason:'pass_access_conflict',replayed:false,coverage};
+  invalidatePassUsageReadCaches(userId);
+  return {covered:true,reason:'',replayed:Boolean(existing),coverage:withPersistedPassUsage(result.coverage,result.user),user:result.user};
 }
 
 /**

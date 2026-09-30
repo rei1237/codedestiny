@@ -48,6 +48,14 @@ const REFUND_MARKERS = Object.freeze([
   "metadata.refundedForLoveSecretAiFailure",
 ]);
 
+export function moonstoneSpendRefundFilter() {
+  return Object.fromEntries(REFUND_MARKERS.map(marker=>[marker,{$ne:true}]));
+}
+
+export function isMoonstoneSpendRefunded(row) {
+  return REFUND_MARKERS.some(path => path.split('.').reduce((value,key)=>value?.[key],row) === true);
+}
+
 function clean(value, max = ID_MAX) {
   return String(value ?? "").trim().slice(0, max);
 }
@@ -65,7 +73,7 @@ function uniqueTokens(tokens) {
  * 토큰 하나가 원장에서 나타날 수 있는 모든 자리.
  * `sourceId` 가 V2 정본이고 나머지는 구 `billing.js` 행 호환이다.
  */
-function tokenClauses(token) {
+function tokenClauses(token, native = false) {
   const clauses = [
     { sourceId: token },
     { "metadata.purchaseId": token },
@@ -76,7 +84,7 @@ function tokenClauses(token) {
     { "metadata.monthlyCreditLedgerId": token },
     { "metadata.pointHistoryId": token },
   ];
-  if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
+  if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: native ? new mongoose.Types.ObjectId(token) : token });
   return clauses;
 }
 
@@ -94,7 +102,7 @@ function tokenClauses(token) {
  */
 function settlementState(row) {
   if (row?.settledAt) return "settled";
-  if (Number.isFinite(Number(row?.afterBalance))) return "legacy";
+  if (row?.afterBalance != null && Number.isFinite(Number(row.afterBalance))) return "legacy";
   return "unsettled";
 }
 
@@ -122,45 +130,60 @@ function toEvidence(row) {
  * @returns {Promise<{ledgerId:string, sourceId:string, amount:number, serviceKey:string}|null>}
  *   null 은 "증빙 없음"이다. DB 장애는 예외로 던지므로 호출부가 402 가 아닌 503 으로 다뤄야 한다.
  */
-export async function findMoonstoneSpendEvidence(_env, { userId, featureKeys, tokens } = {}) {
+export async function findMoonstoneSpendEvidence(_env, { userId, featureKeys, tokens, minimumAmount = 0, session = null, claimRequestId = "", commitMarker = "", db = null } = {}) {
   const uid = clean(userId, 64);
   const keys = uniqueTokens(featureKeys).map((key) => clean(key, 120)).filter(Boolean);
   const ids = uniqueTokens(tokens);
   if (!uid || !keys.length || !ids.length) return null;
 
-  const refundFilter = Object.fromEntries(REFUND_MARKERS.map((marker) => [marker, { $ne: true }]));
-  const rows = await MonthlyCreditLedger.find({
-    userId: uid,
+  const refundFilter = moonstoneSpendRefundFilter();
+  const filter = {
+    userId: db ? userId : uid,
     type: SPEND,
     ...refundFilter,
+    ...(Number(minimumAmount)>0?{amount:{$gte:Number(minimumAmount)}}:{}),
     $and: [
       // 기능 매칭: V2 는 serviceKey 에, 구 billing.js 일부 경로는 metadata.featureKey 에 적었다.
       { $or: [{ serviceKey: { $in: keys } }, { "metadata.featureKey": { $in: keys } }] },
-      { $or: ids.flatMap(tokenClauses) },
+      { $or: ids.flatMap(token=>tokenClauses(token,Boolean(db))) },
     ],
-  })
-    .select("_id amount sourceId serviceKey afterBalance settledAt")
-    .sort({ createdAt: -1 })
-    .limit(CANDIDATE_LIMIT)
-    .lean();
+  };
+  const rows = db ? await db.find(MonthlyCreditLedger,filter,{sort:{createdAt:-1},limit:CANDIDATE_LIMIT})
+    : await (async()=>{
+      const query=MonthlyCreditLedger.find(filter).select("_id amount sourceId serviceKey afterBalance settledAt metadata")
+        .sort({createdAt:-1}).limit(CANDIDATE_LIMIT);
+      if(session)query.session(session);
+      return query.lean();
+    })();
+  const accept=async row=>{
+    if(!claimRequestId && !commitMarker)return toEvidence(row);
+    const claim=String(claimRequestId);
+    const claimFilter={...filter,_id:row._id,
+      $and:[...filter.$and,{$or:[{'metadata.yeongnyangiRequestId':claim},{'metadata.yeongnyangiRequestId':{$exists:false}}]}]};
+    const update={$set:{'metadata.yeongnyangiRequestId':claim,...(commitMarker?{'metadata.yeongnyangiCommit':commitMarker}:{})}};
+    const proof=db?await db.findOneAndUpdate(MonthlyCreditLedger,claimFilter,update,{returnDocument:'after'})
+      :await MonthlyCreditLedger.findOneAndUpdate(claimFilter,update,{new:true,...(session?{session}:{})}).lean();
+    return proof?toEvidence(proof):null;
+  };
 
   if (!rows.length) return null;
 
   const undecided = [];
   for (const row of rows) {
     const state = settlementState(row);
-    if (state === "settled" || state === "legacy") return toEvidence(row);
+    if (state === "settled" || state === "legacy") return accept(row);
     undecided.push(row);
   }
 
   // 남은 것은 전부 미정산 예약행이다. 차감의 정본 증거는 사용자 문서의 recentConsumeRequestIds 다
   // — lot CAS 가 차감과 **같은 갱신에서** 넣으므로 둘은 한 세트이고, writer 자신과 크론이 쓰는
   // 판정(moonstone.js readSpendEvidence)과 동일하다. 차감이 없으면 배열에도 없으니 무료 열람은 새지 않는다.
-  const user = await User.findById(uid).select("recentConsumeRequestIds").lean();
+  const user=db?await db.findOne(User,{_id:userId},{projection:{recentConsumeRequestIds:1}})
+    :await (async()=>{const q=User.findById(uid).select("recentConsumeRequestIds");if(session)q.session(session);return q.lean()})();
   const consumed = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];
   if (!consumed.length) return null;
   const deducted = undecided.find((row) => consumed.includes(String(row.sourceId || "")));
-  return deducted ? toEvidence(deducted) : null;
+  return deducted ? accept(deducted) : null;
 }
 
 export const __moonstoneSpendProofTestUtils = { settlementState, tokenClauses, REFUND_MARKERS };

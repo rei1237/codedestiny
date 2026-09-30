@@ -15,7 +15,7 @@
 //   (Node 전용 API 없음). billing-client.ts 는 이미 worker/lib/app-store-pricing.js 와
 //   paid-feature-registry.js 를 같은 방식으로 번들에 넣고 있다.
 import { getBillingFeaturePricing } from "../../worker/lib/billing-feature-registry.js";
-import { isDirectOrFamilyPaidFeatureKey } from "../../worker/lib/paid-feature-registry.js";
+import { calculatePaidFeatureMembershipCreditCost, getPaidFeaturePaymentPolicy } from "../../worker/lib/paid-feature-registry.js";
 
 export type ServerFeaturePricingInput = {
   categoryKey?: string;
@@ -30,6 +30,7 @@ export type ServerFeaturePricing = {
   cost: number;
   amountKRW: number;
   membershipCreditCost: number;
+  monthlyCreditMultiplier: number;
   /** 이용권으로 커버되지 않는 기능(프로필 카드 관리 등). 서버 정본: worker/routes/billing.js */
   passExcluded: boolean;
   familyPassOnly: boolean;
@@ -75,14 +76,16 @@ export function resolveServerFeaturePricing(input: ServerFeaturePricingInput): S
     const featureKey = String(pricing.featureKey || input.featureKey || "").trim();
     const amountKRW = toPositiveInt(pricing.amountKRW ?? pricing.cashPrice) || cost * 100;
 
+    const paymentPolicy = getPaidFeaturePaymentPolicy(featureKey);
     return {
       featureKey,
       cost,
       amountKRW,
-      membershipCreditCost: toPositiveInt(pricing.membershipCreditCost) || cost * 10,
+      membershipCreditCost: toPositiveInt(calculatePaidFeatureMembershipCreditCost(featureKey, cost)),
+      monthlyCreditMultiplier: paymentPolicy.membershipCreditMultiplier,
       passExcluded: PASS_EXCLUDED_FEATURE_KEYS.has(featureKey),
-      familyPassOnly: isDirectOrFamilyPaidFeatureKey(featureKey),
-      monthlyExcluded: isDirectOrFamilyPaidFeatureKey(featureKey),
+      familyPassOnly: paymentPolicy.familyPassOnly,
+      monthlyExcluded: paymentPolicy.monthlyExcluded,
     };
   } catch {
     return null;

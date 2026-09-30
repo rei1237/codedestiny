@@ -34,7 +34,7 @@ try{
    assert.ok((await fish.getByRole('button',{pressed:true}).innerText()).includes(String(consultationManifest(product,consultationKinds.saju.find(k=>k.id==='ask'),'general').length)));
    await fish.scrollIntoViewIfNeeded();await noOverflow(f.page);await shot(f.page,`tiers-${width}`);
    await f.page.getByRole('button',{name:'결제 내용 확인하기'}).click();await f.page.waitForURL('**/checkout/**');
-   await f.page.getByRole('button',{name:/단건 결제하기/}).waitFor();await noOverflow(f.page);await shot(f.page,`checkout-${width}`);
+   await f.page.getByRole('button',{name:/결제 방식 선택하기/}).waitFor();await noOverflow(f.page);await shot(f.page,`checkout-${width}`);
    Object.assign(f.row,{paid:true,state:'GENERATING',locale:'ko',chapters:[{summary:'섬세하게 살피고, 스스로의 속도로 선택하는 사람',analysis:['목표를 세우면 꾸준히 이어가는 힘이 있어요. 다만 관계의 분위기를 먼저 살피다 보면 자신의 필요를 뒤로 미룰 수 있습니다.','이번 주에는 가장 중요한 일 하나를 골라 작은 단위로 나누어 보세요. 선택의 기준을 기록하면 마음의 부담을 덜어낼 수 있어요.'],advice:'오늘 할 수 있는 일 하나를 적어 보세요.',persona:'서두르지 않아도 돼. 네 속도로 읽어보자.'}]});
    await f.page.goto(base+'/yeongnyangi/result/?id='+f.row.id);await f.page.locator('#reading-progress progress').waitFor();
    assert.equal(await f.page.locator('#reading-progress progress').getAttribute('value'),'1');

@@ -1,4 +1,5 @@
 import {
+  calculatePaidFeatureMembershipCreditCost,
   COIN_GATE_PER_USE_REASON_COSTS,
   FEATURE_KEY_REASON_COSTS,
   FEATURE_KEY_PRICE_TABLE,
@@ -7,7 +8,6 @@ import {
   normalizePaidFeatureKey,
 } from "./paid-feature-registry.js";
 import {
-  calculateMembershipCreditCost,
   KRW_PER_COIN,
   MEMBERSHIP_CREDIT_PER_COIN,
   normalizePaidFeaturePricingShape,
@@ -143,7 +143,7 @@ function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey,
   const pricing = normalizePaidFeaturePricingShape({ cost, amountKRW });
   const coinPrice = pricing.coinPrice;
   const resolvedAmountKRW = pricing.amountKRW;
-  const membershipCreditCost = calculateMembershipCreditCost(coinPrice);
+  const membershipCreditCost = calculatePaidFeatureMembershipCreditCost(featureKey, coinPrice);
   const billingType = getPaidFeatureBillingType(featureKey);
   return {
     categoryKey,
@@ -163,7 +163,7 @@ function toPricingShape({ categoryKey, categoryLabel, subFeatureKey, featureKey,
     membershipCreditCost,
     pricingPolicy: {
       krwPerCoin: KRW_PER_COIN,
-      membershipCreditPerCoin: MEMBERSHIP_CREDIT_PER_COIN,
+      membershipCreditPerCoin: coinPrice > 0 ? membershipCreditCost / coinPrice : MEMBERSHIP_CREDIT_PER_COIN,
     },
     paymentMode: "single_purchase",
     coinDisplayOnly: false,

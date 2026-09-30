@@ -18,7 +18,7 @@ const HOLD_SCAN = 10;
 const ALERT_TIMEOUT_MS = 5000;
 
 export function abandonedRequestFilter(now) {
-  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:'FAMILY',passEvidenceId:{$ne:null}}],
+  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:{$in:['FAMILY']},passEvidenceId:{$ne:null}},{accessMethod:'MOONLIGHT_STONE',moonstoneLedgerId:{$ne:null}}],
     updatedAt:{$lt:new Date(now-ABANDONED_MS)},
     errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
     $and:[{$or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]}]};

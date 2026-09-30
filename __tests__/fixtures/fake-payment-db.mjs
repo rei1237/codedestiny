@@ -10,6 +10,16 @@
  * 미구현 연산자를 만나면 **조용히 통과시키지 않고 던진다** — 조용한 통과가 가짜 초록불을 만든다.
  */
 
+import { AsyncLocalStorage } from 'node:async_hooks';
+
+// Mongo ObjectIds are immutable values; structuredClone loses their BSON type.
+function cloneDocument(value) {
+  if(value == null || typeof value!=='object' || value._bsontype==='ObjectId')return value;
+  if(value instanceof Date)return new Date(value);
+  if(Array.isArray(value))return value.map(cloneDocument);
+  return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,cloneDocument(item)]));
+}
+
 function isOperatorMap(cond) {
   return cond && typeof cond === "object" && !Array.isArray(cond)
     && Object.keys(cond).some((key) => key.startsWith("$"));
@@ -63,6 +73,7 @@ export function matches(doc, filter) {
         if (op === "$lte") return comparable && value <= operand;
         if (op === "$gte") return comparable && value >= operand;
         if (op === "$exists") return (value !== undefined) === operand;
+        if (op === "$size") return Array.isArray(value) && value.length === operand;
         throw new Error(`fake-payment-db: 미구현 연산자 ${op}`);
       });
     }
@@ -145,7 +156,8 @@ function duplicateKeyError() {
  *   onDuplicate — upsert 경합을 임의 시점에 재현하는 용도.
  */
 export function makeFakePaymentDb(options = {}) {
-  const rows = [];
+  const committedRows = [], transactionScope = new AsyncLocalStorage();
+  const currentRows = () => transactionScope.getStore() || committedRows;
   const ctx = { ops: 0 };
   const uniqueKeys = options.uniqueKeys || [];
   let nextId = 1;
@@ -154,7 +166,7 @@ export function makeFakePaymentDb(options = {}) {
   function violatesUnique(doc) {
     return uniqueKeys.some((keys) => {
       if (keys.some((key) => doc[key] === undefined)) return false;
-      return rows.some((row) => keys.every((key) => String(row[key]) === String(doc[key])));
+      return currentRows().some((row) => keys.every((key) => String(row[key]) === String(doc[key])));
     });
   }
 
@@ -164,17 +176,25 @@ export function makeFakePaymentDb(options = {}) {
       let release;
       transactionTail = new Promise(resolve => { release = resolve; });
       await prior;
-      const snapshot = rows.map(row => structuredClone(row));
-      try { return await run(this); }
-      catch (error) { rows.splice(0, rows.length, ...snapshot); throw error; }
-      finally { release(); }
+      try {
+        // A transaction owns a private snapshot. A failed transaction must never
+        // roll back writes made concurrently outside that transaction.
+        for(let attempt=0;attempt<3;attempt++) {
+          const version=JSON.stringify(committedRows), draft=cloneDocument(committedRows);
+          const result=await transactionScope.run(draft,()=>run(this));
+          if(JSON.stringify(committedRows)!==version)continue;
+          committedRows.splice(0,committedRows.length,...draft);
+          return result;
+        }
+        throw new Error('fake-payment-db: transaction write conflict');
+      } finally { release(); }
     },
-    rows,
+    get rows() { return currentRows(); },
     ctx,
-    async findOne(_Model, filter) { ctx.ops += 1; return rows.find((r) => matches(r, filter)) || null; },
+    async findOne(_Model, filter) { ctx.ops += 1; return currentRows().find((r) => matches(r, filter)) || null; },
     async find(_Model, filter, options = {}) {
       ctx.ops += 1;
-      let out = rows.filter((r) => matches(r, filter));
+      let out = currentRows().filter((r) => matches(r, filter));
       // 드라이버 FindOptions 의 sort/limit 만 흉내 낸다(단일 키). 크론 재지급의 "최신 우선"이 여기 기댄다.
       if (options.sort && typeof options.sort === "object") {
         const [key, dir] = Object.entries(options.sort)[0] || [];
@@ -183,24 +203,24 @@ export function makeFakePaymentDb(options = {}) {
       if (Number.isFinite(Number(options.limit)) && Number(options.limit) > 0) out = out.slice(0, Number(options.limit));
       return out;
     },
-    async countDocuments(_Model, filter) { ctx.ops += 1; return rows.filter((r) => matches(r, filter)).length; },
+    async countDocuments(_Model, filter) { ctx.ops += 1; return currentRows().filter((r) => matches(r, filter)).length; },
     async insertOne(_Model, doc) {
       ctx.ops += 1;
       if (violatesUnique(doc)) throw duplicateKeyError();
       const created = { _id: `oid${nextId += 1}`, ...doc };
-      rows.push(created);
+      currentRows().push(created);
       return { insertedId: created._id };
     },
     async updateOne(_Model, filter, update) {
       ctx.ops += 1;
-      const hit = rows.find((r) => matches(r, filter));
+      const hit = currentRows().find((r) => matches(r, filter));
       if (!hit) return { matchedCount: 0, modifiedCount: 0 };
       applyUpdate(hit, update);
       return { matchedCount: 1, modifiedCount: 1 };
     },
     async findOneAndUpdate(_Model, filter, update, opts = {}) {
       ctx.ops += 1;
-      const hit = rows.find((r) => matches(r, filter));
+      const hit = currentRows().find((r) => matches(r, filter));
       if (hit) {
         const before = { ...hit };
         applyUpdate(hit, update);
@@ -211,14 +231,14 @@ export function makeFakePaymentDb(options = {}) {
       const created = { _id: `oid${nextId += 1}`, ...(update.$setOnInsert || {}) };
       applyUpdate(created, { ...update, $setOnInsert: undefined });
       if (violatesUnique(created)) throw duplicateKeyError();
-      rows.push(created);
+      currentRows().push(created);
       // upsert 로 **새로 만든** 경우 before 는 없다. 이 null 이 "처음 지급"의 신호다.
       return opts.returnDocument === "before" ? null : created;
     },
     async deleteOne(_Model, filter) {
       ctx.ops += 1;
-      const index = rows.findIndex((r) => matches(r, filter));
-      if (index >= 0) rows.splice(index, 1);
+      const index = currentRows().findIndex((r) => matches(r, filter));
+      if (index >= 0) currentRows().splice(index, 1);
       return { deletedCount: index >= 0 ? 1 : 0 };
     },
   };

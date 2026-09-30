@@ -33,6 +33,7 @@ const failure = (status, code) => {
 const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
 
 export function requestAccessMethod(row = {}) {
+  if (row.accessMethod === 'MOONLIGHT_STONE' || row.moonstoneLedgerId) return 'MOONLIGHT_STONE';
   if (row.accessMethod === 'FAMILY' || row.passEvidenceId) return 'FAMILY';
   if (row.accessMethod === 'DIRECT_KRW' || row.paymentId) return 'DIRECT_KRW';
   return '';
@@ -66,7 +67,7 @@ export function canResumeAfterFix(row = {}) {
 const savedChapters=row=>Array.isArray(row.chapters)?row.chapters.length:Number(row.completedChapters || 0);
 // A family order held before its first chapter restores its pass instead, so it never gets a buyer hold retry.
 // Access method and the saved count are pinned by the caller, so the decision holds at write time.
-const holdRetryLeft=(row,ordinal)=>hasRequestAccess(row)&&!(requestAccessMethod(row)==='FAMILY'&&!ordinal)&&
+const holdRetryLeft=(row,ordinal)=>hasRequestAccess(row)&&!(requestAccessMethod(row)!=='DIRECT_KRW'&&!ordinal)&&
   grantCount(row.hold?.userRetries,ordinal)<USER_HOLD_RETRY_LIMIT;
 // A hold from a spent budget (never a deterministic rejection or the ask limit) that its buyer may still retry.
 export function userCanRetryHold(row = {}) {
@@ -96,17 +97,29 @@ async function loadFamilyLedger() {
   return {...consumption,...passes};
 }
 
-async function findFamilyEvidence(row, userId, session = null) {
+export async function findNonCashEvidence(row, userId, session = null, commitMarker = '') {
+  const id=String(row._id);
+  if(requestAccessMethod(row)==='MOONLIGHT_STONE') {
+    const {findMoonstoneSpendEvidence}=await import('../lib/moonstone-spend-proof.js');
+    const {calculatePaidFeatureMembershipCreditCost}=await import('../lib/paid-feature-registry.js');
+    return findMoonstoneSpendEvidence(null,{userId,featureKeys:[row.featureKey],
+      tokens:[row.moonstoneLedgerId, 'yn-'+id, id],session,
+      minimumAmount:calculatePaidFeatureMembershipCreditCost(row.featureKey,Number(row.amountKRW)/100),
+      ...(commitMarker?{claimRequestId:id,commitMarker}:{})});
+  }
   const [{PointHistory},{passUsageEvidenceId}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
-  const evidenceId=row.passEvidenceId || passUsageEvidenceId(userId,row.featureKey,row._id);
-  const query=PointHistory.findOne({_id:evidenceId,userId:ownerId(userId),featureKey:row.featureKey,
-    'metadata.requestId':String(row._id),'metadata.accessMethod':'FAMILY','metadata.refundedForServiceExecution':{$ne:true}});
+  const ids=row.passEvidenceId?[row.passEvidenceId]:[passUsageEvidenceId(userId,row.featureKey,'yn-'+id),passUsageEvidenceId(userId,row.featureKey,id)];
+  const filter={_id:{$in:ids},userId:ownerId(userId),featureKey:row.featureKey,
+    'metadata.requestId':{$in:[id,'yn-'+id]},'metadata.accessMethod':{$in:['FAMILY']},
+    'metadata.refundedForServiceExecution':{$ne:true}};
+  const query=commitMarker?PointHistory.findOneAndUpdate(filter,{$set:{'metadata.yeongnyangiCommit':commitMarker}},{new:true,session})
+    :PointHistory.findOne(filter);
   if(session)query.session(session);
   return query.lean();
 }
 
 async function assertFamilyEvidence(env, row, userId, session = null) {
-  const evidence=await findFamilyEvidence(row,userId,session);
+  const evidence=await findNonCashEvidence(row,userId,session);
   if(!evidence)throw failure(409,'PAYMENT_NOT_ACTIVE');
   return evidence;
 }
@@ -130,7 +143,7 @@ export async function readRequest(env, userId, requestId) {
     if (!payment || !paidStatuses.includes(payment.status) || payment.refundLock || payment.metadata?.unlockRevoked || payment.metadata?.yeongnyangiRefundPending) {
       throw failure(409,'PAYMENT_NOT_ACTIVE');
     }
-  } else if (requestAccessMethod(row)==='FAMILY' && row.state !== 'REFUNDED') await assertFamilyEvidence(env,row,userId);
+  } else if (requestAccessMethod(row) && requestAccessMethod(row)!=='DIRECT_KRW' && row.state !== 'REFUNDED') await assertFamilyEvidence(env,row,userId);
   return row;
 }
 
@@ -214,19 +227,50 @@ export async function attachPayment(env, userId, requestId, expectedCharge, opti
   const storedAmountKRW=Math.max(0,Math.floor(Number(current.amountKRW || expectedCharge)));
   const currentAmountKRW=Math.max(0,Math.floor(Number(options?.currentAmountKRW || storedAmountKRW)));
   if(currentAmountKRW!==storedAmountKRW)throw failure(409,'PRICE_CHANGED');
+  const {findMoonstoneSpendEvidence}=await import('../lib/moonstone-spend-proof.js');
+  const {calculatePaidFeatureMembershipCreditCost}=await import('../lib/paid-feature-registry.js');
+  const coinCost=Math.max(0,Math.floor(currentAmountKRW/100));
+  const monthlyInput={userId,featureKeys:[current.featureKey],tokens:['yn-'+requestId,requestId],
+    minimumAmount:calculatePaidFeatureMembershipCreditCost(current.featureKey,coinCost)};
+  const monthly=await withMongoRetry(env,()=>findMoonstoneSpendEvidence(env,monthlyInput),readOptions);
+  if(monthly) return withMongoRetry(env,async()=>{
+    const session=await (scopeConnection() || mongoose).startSession();
+    try {
+      let attached;
+      await session.withTransaction(async()=>{
+        const proof=await findMoonstoneSpendEvidence(env,{...monthlyInput,session,claimRequestId:requestId,commitMarker:'attach:'+requestId});
+        if(!proof)throw failure(409,'PAYMENT_NOT_ACTIVE');
+        attached=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),paymentId:null,
+          $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},
+          {$set:{accessMethod:'MOONLIGHT_STONE',moonstoneLedgerId:proof.ledgerId,state:'PAID'}},{new:true,session}).lean();
+      },mongoTransactionOptions());
+      return attached || readRequest(env,userId,requestId);
+    }finally{await session.endSession();}
+  });
+  // Shared checkout yn-id and historical bare id belong to this one consultation.
+  // Durable proof precedes new consumption so response loss or pass expiry cannot charge twice.
+  let evidence=await withMongoRetry(env,()=>findNonCashEvidence(current,userId),readOptions);
   const {User,resolveCanonicalEntitlement}=await loadFamilyIdentity();
   const user=await withMongoRetry(env,()=>User.findById(ownerId(userId)).lean(),readOptions);
   const entitlement=resolveCanonicalEntitlement(user || {});
-  if(String(entitlement?.passTier || entitlement?.tier || '').toLowerCase()!=='family')throw failure(402,'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
-  const {consumePassForFeature,passUsageEvidenceId}=await loadFamilyLedger();
-  const coinCost=Math.max(0,Math.floor(currentAmountKRW/100));
-  const consumed=await consumePassForFeature({user,entitlement,userId,featureKey:current.featureKey,requestId,coinCost});
-  if(!consumed.covered)throw failure(402,consumed.reason==='monthly_pass_limit_exceeded'?'MONTHLY_PASS_LIMIT_EXCEEDED':'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
-  const evidenceId=passUsageEvidenceId(userId,current.featureKey,requestId);
+  let consumed=null;
+  if(!evidence) {
+    if(String(entitlement?.passTier || entitlement?.tier || '').toLowerCase()!=='family')throw failure(402,'FAMILY_OR_DIRECT_PAYMENT_REQUIRED');
+    const {consumePassForFeature}=await loadFamilyLedger();
+    consumed=await consumePassForFeature({user,entitlement,userId,featureKey:current.featureKey,requestId:'yn-'+requestId,coinCost});
+    if(!consumed.covered)throw failure(402,consumed.reason==='monthly_pass_limit_exceeded'?'MONTHLY_PASS_LIMIT_EXCEEDED':'PAYMENT_REQUIRED');
+    evidence=await withMongoRetry(env,()=>findNonCashEvidence(current,userId),readOptions);
+    if(!evidence)throw failure(503,'PAYMENT_EVIDENCE_PENDING');
+  }
+  const meta=evidence.metadata || {},coverage=consumed?.coverage || {};
+  const tier=String(meta.passTier || coverage.tier || entitlement.passTier || entitlement.tier || 'family');
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:ownerId(userId),paymentId:null,
-    $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},{$set:{accessMethod:'FAMILY',passEvidenceId:evidenceId,
-      passCycleKey:String(consumed.coverage?.cycleKey || ''),passCoinCost:coinCost,passTier:'family',
-      passMonthlyLimitCoin:Number(consumed.coverage?.budgetCoin || 0),passPolicyVersion:String(user?.profileSubscription?.passPolicyVersion || ''),state:'PAID'}},{new:true}).lean());
+    $or:[{accessMethod:null},{accessMethod:{$exists:false}}]},{$set:{accessMethod:'FAMILY',passEvidenceId:evidence._id,
+      passCycleKey:String(meta.passCycleKey || coverage.cycleKey || ''),passCoinCost:Number(meta.passBudgetCost ?? meta.coinCost ?? coverage.passBudgetCost ?? coinCost),passTier:tier,
+      passMonthlyLimitCoin:Number(meta.passBudgetCoin ?? coverage.budgetCoin ?? 0),
+      passProfileLimit:Number(meta.passProfileLimit ?? user?.profileSubscription?.profileLimit ?? 0),
+      passMaxCoveredCoin:Number(meta.passLimit ?? coverage.perItemLimit ?? 0),
+      passPolicyVersion:String(meta.passPolicyVersion || user?.profileSubscription?.passPolicyVersion || ''),state:'PAID'}},{new:true}).lean());
   return row || readRequest(env,userId,requestId);
 }
 
@@ -265,7 +309,7 @@ export async function claimChapter(env, userId, requestId, source = 'queue', opt
   const current = await readRequest(env,userId,requestId);
   const accessMethod=requestAccessMethod(current);
   if (!accessMethod) throw failure(402,'PAYMENT_REQUIRED');
-  if(accessMethod==='FAMILY')await assertFamilyEvidence(env,current,userId);
+  if(accessMethod!=='DIRECT_KRW')await assertFamilyEvidence(env,current,userId);
   else {
     const proof = await withMongoRetry(env, () => Payment.findOne({_id:current.paymentId,userId:ownerId(userId),'metadata.consumedBy':requestId}).select('_id status metadata refundLock').lean());
     if (!proof || !paidStatuses.includes(proof.status) || proof.refundLock || proof.metadata?.unlockRevoked || proof.metadata?.yeongnyangiRefundPending) {
@@ -318,8 +362,8 @@ export async function saveAskAnalysis(env,userId,requestId,token,analysis) {
           'generationCheckpoint.version':'ask-generation-v1'};
         const current=await YeongnyangiRequest.findOne(filter).session(session).lean();
         if(!current||new Date(current.leaseUntil).getTime()<=Date.now())throw failure(409,'GENERATION_LEASE_LOST');
-        const proof=requestAccessMethod(current)==='FAMILY'
-          ? await findFamilyEvidence(current,userId,session)
+        const proof=requestAccessMethod(current)!=='DIRECT_KRW'
+          ? await findNonCashEvidence(current,userId,session,'analysis:'+requestId)
           : await Payment.findOneAndUpdate({_id:current.paymentId,userId:owner,'metadata.consumedBy':requestId,
             status:{$in:paidStatuses},refundLock:null,'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true}},
             {$set:{'metadata.yeongnyangiAnalysisCommit':requestId}},{new:true,session}).lean();
@@ -356,8 +400,8 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
           return;
         }
         const accessMethod=requestAccessMethod(stored);
-        const proof=accessMethod==='FAMILY'
-          ? await findFamilyEvidence(stored,userId,session)
+        const proof=accessMethod!=='DIRECT_KRW'
+          ? await findNonCashEvidence(stored,userId,session,'complete:'+requestId)
           : await Payment.findOneAndUpdate({_id:stored.paymentId,userId:owner,'metadata.consumedBy':requestId,
             status:{$in:paidStatuses},refundLock:null,'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true}},
           {$set:{'metadata.yeongnyangiCompletionCommit':requestId}},{new:true,session}).lean();
@@ -365,7 +409,7 @@ async function completeStoredRequest(env, userId, requestId, total, token = '') 
           const payment=accessMethod==='DIRECT_KRW'
             ? await Payment.findOne({_id:stored.paymentId,userId:owner}).session(session).lean()
             : null;
-          const refunded=accessMethod==='FAMILY'||(payment&&['refunded','cancelled'].includes(payment.status));
+          const refunded=accessMethod!=='DIRECT_KRW'||(payment&&['refunded','cancelled'].includes(payment.status));
           result=await YeongnyangiRequest.findOneAndUpdate(filter,{$set:{state:refunded?'REFUNDED':'FORTUNE_FAILED',errorCode:'PAYMENT_NOT_ACTIVE',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
           return;
         }
@@ -403,8 +447,8 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
         // Write the payment in the same transaction: a read alone allows a refund to
         // commit between validation and chapter storage (snapshot write skew).
         const accessMethod=requestAccessMethod(request);
-        const proof=accessMethod==='FAMILY'
-          ? await findFamilyEvidence(request,userId,session)
+        const proof=accessMethod!=='DIRECT_KRW'
+          ? await findNonCashEvidence(request,userId,session,'chapter:'+token+':'+ordinal)
           : await Payment.findOneAndUpdate({
             _id:request.paymentId,userId:ownerId(userId),'metadata.consumedBy':requestId,
             status:{$in:paidStatuses},refundLock:null,'metadata.unlockRevoked':{$ne:true},
@@ -441,13 +485,21 @@ export async function finishChapter(env, userId, requestId, token, ordinal, body
 
 async function refundTerminalFamilyQuota(env,userId,requestId) {
   const owner=ownerId(userId);
-  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'FAMILY',
+  const monthly=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:'MOONLIGHT_STONE',
+    $or:[{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
+      {state:'REFUNDED',errorCode:'MONTHLY_CREDIT_RESTORED'}]}).lean(),readOptions);
+  if(monthly) {
+    const {refundYeongnyangiMoonstone}=await import('../lib/pass-consumption.js');
+    const refunded=await withMongoRetry(env,()=>refundYeongnyangiMoonstone({userId,requestId}));
+    return Boolean(refunded.refunded);
+  }
+  const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOne({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
     state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0}).lean(),readOptions);
   if(!row)return false;
   const [{PointHistory},{refundPassCoverage}]=await Promise.all([loadFamilyIdentity(),loadFamilyLedger()]);
   const refunded=await refundPassCoverage({userId,cycleKey:row.passCycleKey,cost:row.passCoinCost,refundId:`yeongnyangi:${requestId}`,
-    restorePass:{tier:'family',expiresAt:row.passCycleKey,monthlyLimitCoin:row.passMonthlyLimitCoin,profileLimit:0,
-      maxCoveredCoin:999999999,passPolicyVersion:row.passPolicyVersion}});
+    restorePass:{tier:row.passTier || 'family',expiresAt:row.passCycleKey,monthlyLimitCoin:row.passMonthlyLimitCoin,profileLimit:row.passProfileLimit || 0,
+      maxCoveredCoin:row.passMaxCoveredCoin || (row.passTier==='family'||!row.passTier?999999999:0),passPolicyVersion:row.passPolicyVersion}});
   if(!refunded.refunded)return false;
   return withMongoRetry(env,async()=>{
     const session=await (scopeConnection() || mongoose).startSession();
@@ -457,7 +509,7 @@ async function refundTerminalFamilyQuota(env,userId,requestId) {
         const evidence=await PointHistory.findOneAndUpdate({_id:row.passEvidenceId,userId:owner,
           'metadata.refundedForServiceExecution':{$ne:true}},{$set:{'metadata.refundedForServiceExecution':true,'metadata.refundedAt':new Date()}},{new:true,session}).lean();
         if(!evidence)return;
-        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,accessMethod:'FAMILY',
+        const request=await YeongnyangiRequest.findOneAndUpdate({_id:requestId,userId:owner,accessMethod:{$in:['FAMILY']},
           state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',completedChapters:0},
         {$set:{state:'REFUNDED',errorCode:'PASS_QUOTA_RESTORED',leaseToken:'',leaseUntil:null}},{new:true,session}).lean();
         restored=Boolean(request);
