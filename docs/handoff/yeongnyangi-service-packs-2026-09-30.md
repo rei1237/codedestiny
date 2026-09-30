@@ -2,7 +2,7 @@
 status: active
 implementationStatus: implemented-sales-disabled
 updated: 2026-09-30
-next: 빈 판매목록을 유지하며 새 팩 통합 main CI 결과를 기록하고, 후속 가격·회수·기간 및 원가를 확정한다.
+next: 빈 판매목록을 유지하며 후속 가격·회수·기간과 서버비·가입 혜택을 포함한 원가를 확정한다.
 ---
 
 # 영냥이 전용 횟수 이용권·선물
@@ -11,13 +11,13 @@ next: 빈 판매목록을 유지하며 새 팩 통합 main CI 결과를 기록�
 
 사용자가 “빈 판매목록으로 구매·선물 코드 적용 승인” 및 “이용권은 오직 단건 결제를 통해서만 구매 가능하도록해야해”를 명시했다. 이에 구매·보유·상담 소비·실패 복원·기존 선물 연동 코드를 적용했다. 상품 판매 가격·회수·기간은 아직 확정하지 않았으며 SERVICE_PACK_PLANS는 빈 객체다. 과거 검토 문서의 가격 후보는 운영 승인값이 아니다.
 
-코드 적용 승인은 이미 받았고 전용 세트 서버 구현은 커밋했다. 현재 상태는 **구현 완료·판매 비활성(implemented-sales-disabled)**이며, 새 팩 통합 CI는 아직 대기 중이다. 이 문서는 전달 검증을 대체하지 않는다. 실 PG·운영 DB·환불 실행·LLM·배포는 이 기술 적용에서 수행하지 않았다.
+코드 적용 승인은 이미 받았고 전용 세트 서버 구현은 커밋했다. 현재 상태는 **구현 완료·판매 비활성(implemented-sales-disabled)**이며, 새 팩 통합 코드의 main CI는 통과했다. 이 문서는 전달 검증을 대체하지 않는다. 실 PG·운영 DB·환불 실행·LLM·배포는 이 기술 적용에서 수행하지 않았다.
 
 - 기존 월정석·이미지 변경 기준: 38ebd153baf1eff3af7976581934fd0de1a8cc0b. [CI 실행 36683071504](https://github.com/rei1237/codedestiny/actions/runs/36683071504)는 해당 SHA의 completed/success이며 CI required도 success다. 이 성공을 새 팩 변경의 CI 성공으로 확대하지 않는다.
 - 새 세트 서버: f9583c2b6705ec5906998bdd143c969eec564d2c (feat: add direct-purchase fish passes and atomic gifting with sales closed).
 - 새 경로·인증 테스트: c1fbd8f8071033531d345021fd372ca6ca6304af (test: declare service pack routes and authentication requirements), 해당 suite 76/76 PASS.
-- 첫 통합 전달 093f01962b99e7e336a41fdac0017fd6742037ab의 CI 36685868126은 변경 파일 린트에서 서버 helper `useId`를 React Hook으로 판단해 실패했다. 증빙 ID 산식은 유지하고 이름만 `packUseEvidenceId`로 바로잡았다. 동일 38파일 변경 린트와 관련 Jest 2 suites / 42 tests가 통과했으며, 보완 커밋의 최종 CI는 별도로 확인해야 한다.
-- 동일 주문 재개 UI: 9600c7974b50f556b13f1beb8497cac1a63775a0 커밋이 존재한다. 후속 원주문 ID 대조 P2와 문서는 부모 작업에서 전달하며, 새 팩 통합 CI의 최종 SHA/성공 결과는 아직 대기 중이다.
+- 첫 통합 전달 093f01962b99e7e336a41fdac0017fd6742037ab의 CI 36685868126은 변경 파일 린트에서 서버 helper `useId`를 React Hook으로 판단해 실패했다. 증빙 ID 산식은 유지하고 이름만 `packUseEvidenceId`로 바로잡았다. 동일 38파일 변경 린트와 관련 Jest 2 suites / 42 tests가 통과했으며, 보완 커밋 5c5fbacb8216c10545da6daeee4b06aa730b7f42의 최종 CI 성공을 아래에 기록했다.
+- 동일 주문 재개 UI: 9600c7974b50f556b13f1beb8497cac1a63775a0 커밋이 존재한다. 원주문 ID 대조 보완 f866fe7db와 함께 main에 전달했다.
 
 ## 실제 구현
 
@@ -71,7 +71,7 @@ createServicePackOrder는 동일한 멱등키의 기존 PENDING/PAID 주문을 �
 - 동일 주문 재개 UI 테스트 22/22 PASS (349.19ms, UI 담당 실행). 새 구매 필드 생략·원주문 ID 전달·키 손상 시 SDK 0회를 포함한다. 명령: node --test __tests__/ui/service-pack-pending-resume.behavior.test.mjs.
 - 원주문 대조 서버 회귀 4개 추가 후 관련 3 suites / 167 tests PASS (5.316초). SELF/GIFT 모두 잘못된 ID·키 손상·다른 계정의 Payment upsert 호출 0회/신규 주문 0건, 정상 동일 주문 재사용을 확인했다. 신규 세트 검사는 총 96개다.
 - 부모 통합 로컬 검사: 첫 check:fast에서 Jest 324 suites 중 323개가 통과했고, 새 경로 목록 2개 단언이 실패했다. 수정 후 해당 suite 76/76 PASS를 확인했으며 이어 남은 typecheck·Node 2,111개 검사·Worker build·guards가 통과했다. **전체 check:fast를 다시 실행해 성공한 결과는 아니다.**
-- 기존 38ebd153b의 CI required 성공은 위 링크로 확인했다. 새 팩 통합 main CI는 대기 중이며 부모 작업에서 후속 기록한다. 미실행된 검사를 통과로 간주하지 않는다.
+- 최종 코드 5c5fbacb8216c10545da6daeee4b06aa730b7f42의 [CI 36686426683](https://github.com/rei1237/codedestiny/actions/runs/36686426683)이 completed/success다. Typecheck and lint, Build Pages and Worker, Critical checks, Static guards, CI required가 모두 success이며 CI required job은 109797216127이다. 같은 SHA의 paid-flow-gates와 replica-transactions도 success다. 이는 실제 PG·운영 DB·LLM·운영 배포 검증을 대신하지 않는다.
 
 명령:
 
@@ -87,12 +87,12 @@ node scripts/run-mock-tests.mjs jest --runTestsByPath __tests__/worker/yeongnyan
 
 ## 재개 정보
 
-- 작업 디렉터리: C:\Users\user\.codex\worktrees\yeongnyangi-payment-alliance\code-destiny
-- 문서: C:\Users\user\.codex\worktrees\yeongnyangi-payment-alliance\code-destiny\docs\handoff\yeongnyangi-service-packs-2026-09-30.md
-- 문서 작성 기준 마지막 커밋: 51aa10ab57c9893723d1b02a1dc359ff06c4f763
-- 다음 행동: 새 팩 통합 main CI의 최종 SHA/성공 결과를 먼저 기록한다. 빈 판매목록을 유지하면서 별도 원가/판매 정책 확정 작업을 진행한다.
+- 작업 디렉터리: D:\Development\code-destiny
+- 문서: D:\Development\code-destiny\docs\handoff\yeongnyangi-service-packs-2026-09-30.md
+- 마지막 검증 코드 커밋: 5c5fbacb8216c10545da6daeee4b06aa730b7f42
+- 다음 행동: 빈 판매목록을 유지하면서 별도 원가/판매 정책 확정 작업을 진행한다. 기존 후보 가격을 판매 정본에 자동 적용하지 않는다.
 
 ~~~text
-C:\Users\user\.codex\worktrees\yeongnyangi-payment-alliance\code-destiny에서 C:\Users\user\.codex\worktrees\yeongnyangi-payment-alliance\code-destiny\docs\handoff\yeongnyangi-service-packs-2026-09-30.md를 읽고, git status와 마지막 기준 커밋 51aa10ab57c9893723d1b02a1dc359ff06c4f763 및 이후 커밋을 확인한 뒤 새 팩 통합 main CI 결과 기록부터 이어서 진행하라. 다른 세션의 변경을 보존하고 판매 catalog는 비워 둬라.
+D:\Development\code-destiny에서 D:\Development\code-destiny\docs\handoff\yeongnyangi-service-packs-2026-09-30.md를 읽고, git status와 마지막 기준 커밋 5c5fbacb8216c10545da6daeee4b06aa730b7f42 및 이후 커밋을 확인한 뒤 빈 판매목록을 유지한 원가·가격·회수·기간 검토부터 이어서 진행하라. 다른 세션의 변경을 보존하고 판매 catalog는 비워 둬라.
 ~~~
 
