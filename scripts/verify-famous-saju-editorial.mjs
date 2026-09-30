@@ -114,12 +114,22 @@ for (const [slug, entry] of entries) {
   // 엔진 정합
   const reading = service.buildCelebrityReading(seed);
   const engine = await multiSystem.buildCelebrityMultiSystem({ birthDate: seed.birthDate, birthTime: seed.birthTime, country: seed.country, magazine: reading.magazine });
+  const canCompareSajuAnchor = reading.calculationStatus === "calculated";
   const expected = {
-    dayPillar: reading.magazine.pillars.day.ganji,
-    dayElement: reading.magazine.dayElement,
+    dayPillar: canCompareSajuAnchor ? reading.magazine.pillars.day.ganji : entry.chart?.dayPillar ?? null,
+    dayElement: canCompareSajuAnchor ? reading.magazine.dayElement : entry.chart?.dayElement ?? null,
     sukuyo: engine.sukuyo ? engine.sukuyo.mansion : null,
     vedic: engine.vedic ? engine.vedic.nakshatras : null,
   };
+  if (!canCompareSajuAnchor) {
+    if (!entry.chart?.dayPillar || !entry.chart?.dayElement) {
+      fail(slug, "계산 보류 인물은 검수 원고 chart.dayPillar/dayElement 앵커가 필요하다");
+    }
+    const basisText = `${entry.narrative?.join(" ") || ""} ${entry.crossSystemNote || ""}`;
+    if (!/사주\s*3주|3주/.test(basisText)) {
+      fail(slug, "계산 보류 인물은 원고에 사주 3주 기준을 명시해야 한다");
+    }
+  }
   const actual = entry.chart || {};
   for (const key of ["dayPillar", "dayElement", "sukuyo", "vedic"]) {
     if (JSON.stringify(actual[key] ?? null) !== JSON.stringify(expected[key])) {
