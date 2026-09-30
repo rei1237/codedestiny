@@ -53,6 +53,8 @@ test('visible 편관 and balance differ from hidden stems and movement is not au
  const c=visible.candidates.find(c=>c.key==='visible-pyeongwan');
  assert.equal(c.anchors.positions[0].role,'support');
  assert.deepEqual(c.anchors.positions[0].rootedAt,['month']);
+ const sameElement=m.buildSajuPrevention({pillars:{month:'丙午',day:'庚申'}});
+ assert.deepEqual(sameElement.candidates.find(c=>c.key==='visible-pyeongwan').anchors.positions[0].rootedAt,['month'],'opposite-polarity hidden stem of the same element can also provide a root');
  assert.equal(c.buffering.unresolvedPattern,true);
  assert.equal(visible.candidates.find(c=>c.key==='movement').anchors.yeokma,null);
  const burden=m.buildSajuPrevention({pillars:{month:'丙寅',day:'庚申'},strength:{yongshin:[],kijishin:['fire']}});

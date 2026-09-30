@@ -1,4 +1,4 @@
-import { buildNatalInteractions, buildLuckNatalInteractions, tenGodFor, buildHiddenStemDetails } from './life-book-ai-saju.js';
+import { buildNatalInteractions, buildLuckNatalInteractions, tenGodFor, buildHiddenStemDetails, STEM_ELEMENT } from './life-book-ai-saju.js';
 
 export const PREVENTION_VERSION = 'prevention-20260930-v1';
 export const PREVENTION_TITLE = '조심해야 할 흐름과 나를 지키는 선택';
@@ -76,7 +76,7 @@ export function buildSajuPrevention({ pillars = {}, strength = {}, jong = {}, sh
     const positions = visible.map(([position,d]) => {
       const element = ELEMENTS[Math.floor(STEMS.indexOf(d.heavenlyStem)/2)];
       return {position,pillar:d.pillar,element,
-        rootedAt:Object.entries(details).filter(([,x])=>rows(x.hiddenStems).some(h=>h.stem===d.heavenlyStem)).map(([key])=>key),
+        rootedAt:Object.entries(details).filter(([,x])=>rows(x.hiddenStems).some(h=>STEM_ELEMENT[h.stem]===STEM_ELEMENT[d.heavenlyStem])).map(([key])=>key),
         role:balance.helpfulElements.includes(element)&&balance.burdensomeElements.includes(element)?'mixed':balance.helpfulElements.includes(element)?'support':balance.burdensomeElements.includes(element)?'burden':'undetermined'};
     });
     emit('visible-pyeongwan',{kind:'natal'},{positions,month:details.month,dayMaster:details.day?.heavenlyStem},
