@@ -1,0 +1,73 @@
+.section {
+  margin: 32px 0;
+  padding: 24px 20px;
+  border: 1px solid #59677e;
+  border-radius: 24px;
+  background: #11182b;
+  color: #f4f2f8;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.section h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.3rem, 3vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.section > p {
+  max-width: 68ch;
+  margin: 0;
+  color: #c0c9dc;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.sets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+}
+
+.sets li {
+  min-width: 0;
+  text-align: center;
+}
+
+.sets img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 220px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.sets h3 {
+  margin: 12px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.section ::selection {
+  background: #efd496;
+  color: #1b2030;
+}
+
+@media (max-width: 640px) {
+  .sets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 12px;
+  }
+
+  .section {
+    padding: 24px 16px;
+  }
+
+}

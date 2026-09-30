@@ -1,5 +1,6 @@
 "use client";
 
+import ServicePackShowcase from "../components/service-packs/ServicePackShowcase";
 import { getGiftGuidance } from "@/lib/payment/gift-policy.js";
 import { trackConfirmedPurchase } from "@/lib/analytics";
 
@@ -7,7 +8,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import MoonIcon, { type MoonPhase } from "@/components/ui/MoonIcon";
+import MoonIcon from "@/components/ui/MoonIcon";
+import HoneyPassArtwork from "@/components/yeon/HoneyPassArtwork";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import WithdrawModal from "../components/WithdrawModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
@@ -2489,13 +2491,6 @@ function getMoonlightBenefitLabel(tier: SubscriptionTier) {
   return "30일 혜택 선택 가능";
 }
 
-function getMoonlightPlanPhase(plan: SubscriptionPlan): MoonPhase {
-  if (plan.tier === "family") return "full";
-  if (plan.tier === "vvip") return "gibbous";
-  if (plan.tier === "premium") return "half";
-  return "crescent";
-}
-
 // 🔴 ShopPigImage · MoonlightShopHero 는 app/points/MoonShopFrame.tsx 로 옮겼다(2026-09-07).
 //    로딩 폴백(ssr:false)과 부팅 중 화면이 본 렌더와 **같은 히어로**를 그려야 LCP/CLS 가 잡히는데,
 //    이 파일은 지연 로드되는 청크라 여기 두면 서버 HTML 에 들어가지 못한다.
@@ -2531,10 +2526,14 @@ function MoonlightActivePassCard({
     <section className="moon-card moon-active-card rounded-[24px] p-5 sm:p-6" aria-label={copy.currentPassAria}>
       <div className="relative z-10">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(167,139,250,0.12)] shadow-[0_0_28px_rgba(167,139,250,0.32)]">
-              <span className="text-2xl text-white" aria-hidden="true">∞</span>
-            </div>
+          <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
+            {isActivePass ? (
+              <HoneyPassArtwork tier={tier} className="h-16 w-16 sm:h-20 sm:w-20" sizes="(min-width: 640px) 80px, 64px" />
+            ) : (
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(167,139,250,0.12)] shadow-[0_0_28px_rgba(167,139,250,0.32)]">
+                <span className="text-2xl text-white" aria-hidden="true">∞</span>
+              </div>
+            )}
             <div className="min-w-0">
               <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 달빛 이용권 혜택</p>
               <h2 className="mt-1 text-xl font-black leading-tight text-white">{title}</h2>
@@ -2544,7 +2543,7 @@ function MoonlightActivePassCard({
               </p>
             </div>
           </div>
-          <span className="moon-family-badge rounded-full px-3 py-1 text-[11px] font-black">
+          <span className="moon-family-badge absolute right-0 top-0 rounded-full px-3 py-1 text-[11px] font-black sm:static">
             {tier === "family" ? "FAMILY" : tier === "free" ? "READY" : tier.toUpperCase()}
           </span>
         </div>
@@ -2821,10 +2820,8 @@ function MoonlightShopPlans({
 
           return (
             <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>
-              <div className="grid gap-4 sm:grid-cols-[82px_1fr_auto] sm:items-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[20px] border border-[color:var(--moon-rim)] bg-[rgba(8,9,26,0.42)]">
-                  <MoonIcon phase={getMoonlightPlanPhase(plan)} className="h-16 w-16" title={currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]} />
-                </div>
+              <div className="grid gap-4 sm:grid-cols-[128px_1fr_auto] sm:items-center">
+                <HoneyPassArtwork tier={plan.tier} className="h-28 w-28 sm:h-32 sm:w-32" sizes="(min-width: 640px) 128px, 112px" />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-black text-white">{currentPassPlan(plan.tier)?.name || copy.planTitles[plan.tier]}</h3>
@@ -4914,6 +4911,7 @@ export default function PointsPage() {
           }}
         >
           <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
+            <HoneyPassArtwork tier={pendingSubscriptionPaymentPlan.tier} className="mx-auto mb-3 h-24 w-24" sizes="96px" />
             <p id="subscriptionPaymentChoiceTitle" className="text-base font-black text-white">
               {copy.subscriptionPaymentChoiceTitle}
             </p>
@@ -5064,6 +5062,7 @@ export default function PointsPage() {
           hasError={pointStateHasError}
           onRetry={retryPointState}
         />
+        <ServicePackShowcase locale={lang} />
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}

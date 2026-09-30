@@ -1,4 +1,5 @@
 "use client";
+import HoneyPassArtwork from "@/components/yeon/HoneyPassArtwork";
 import { useEffect, useRef, useState } from "react";
 import GiftSharing from "../GiftSharing";
 import { giftApi, GiftApiError, type GiftView } from "../gift-client";
@@ -30,5 +31,5 @@ export default function GiftComplete() {
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { void check(); }, []);
-  return <><h1>{gift?.status === "PAID" ? "선물이 준비되었습니다" : "선물 결제 확인"}</h1><p role="status">{notice}</p>{gift && <><article className="gift-card"><span className="gift-symbol" aria-hidden="true">✉</span><h2>{gift.product.name}</h2>{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}</article><GiftSharing gift={gift} onChange={setGift} /></>}<div className="gift-actions"><button className="secondary" disabled={busy} onClick={() => void check()}>결제 상태 다시 확인</button><a className="gift-button" href="/gift/box/">보낸 선물 확인하기</a></div></>;
+  return <><h1>{gift?.status === "PAID" ? "선물이 준비되었습니다" : "선물 결제 확인"}</h1><p role="status">{notice}</p>{gift && <><article className="gift-card"><HoneyPassArtwork tier={gift.product.tier} className="gift-pass-art" sizes="196px" /><h2>{gift.product.name}</h2>{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}</article><GiftSharing gift={gift} onChange={setGift} /></>}<div className="gift-actions"><button className="secondary" disabled={busy} onClick={() => void check()}>결제 상태 다시 확인</button><a className="gift-button" href="/gift/box/">보낸 선물 확인하기</a></div></>;
 }

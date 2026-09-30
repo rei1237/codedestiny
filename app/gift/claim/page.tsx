@@ -1,4 +1,5 @@
 "use client";
+import HoneyPassArtwork from "@/components/yeon/HoneyPassArtwork";
 import { useEffect, useRef, useState } from "react";
 import { getGiftGuidance, GIFT_STATUS_LABELS } from "@/lib/payment/gift-policy.js";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -49,7 +50,7 @@ export default function ClaimPage() {
   };
   return <>
     <h1>운명의 선물이 도착했어요</h1>
-    {gift && <article className="gift-card"><span className="gift-symbol" aria-hidden="true">✉</span><p>{gift.senderName}님이 준비한 마음</p><h2>{gift.product.name}</h2><p>수령 후 {gift.product.durationDays}일 동안 이용할 수 있는 이용권이에요.</p>{gift.recipientName && <p>{gift.recipientName}님에게</p>}{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}<p className="gift-meta">{GIFT_STATUS_LABELS[gift.status as keyof typeof GIFT_STATUS_LABELS] || gift.status}</p>{gift.expiresAt && <p className="gift-meta">수령 기한: {new Date(gift.expiresAt).toLocaleDateString("ko-KR")}</p>}</article>}
+    {gift && <article className="gift-card"><HoneyPassArtwork tier={gift.product.tier} className="gift-pass-art" sizes="196px" /><p>{gift.senderName}님이 준비한 마음</p><h2>{gift.product.name}</h2><p>수령 후 {gift.product.durationDays}일 동안 이용할 수 있는 이용권이에요.</p>{gift.recipientName && <p>{gift.recipientName}님에게</p>}{gift.giftMessage && <blockquote>{gift.giftMessage}</blockquote>}<p className="gift-meta">{GIFT_STATUS_LABELS[gift.status as keyof typeof GIFT_STATUS_LABELS] || gift.status}</p>{gift.expiresAt && <p className="gift-meta">수령 기한: {new Date(gift.expiresAt).toLocaleDateString("ko-KR")}</p>}</article>}
     {account && <p>수령 계정: {account}</p>}
     {gift?.status === "PAID" && <button disabled={busy} onClick={() => void receive()}>{busy ? "수령 확인 중" : account ? "이 계정으로 선물 받기" : "로그인하고 선물 받기"}</button>}
     <div role="status" aria-live="polite">{notice && <p className="gift-notice">{notice}</p>}</div>
