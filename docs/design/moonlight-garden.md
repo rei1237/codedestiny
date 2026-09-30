@@ -39,7 +39,7 @@ Use case: precise-object-edit. EDIT REFERENCE 1, an existing cute pig app icon. 
 
 ## 구현·검수 기록
 
-- HTML/React의 제목은 불투명 `#1b1028` 배경에 `#fff5e5` 글자로 표시하며, 그림은 `object-fit: contain`으로 전체 구도를 보존한다.
+- HTML 부팅 게이트의 제목은 불투명 `#1b1028` 배경에 `#fff5e5` 글자로 표시하며, 그림은 `object-fit: contain`으로 전체 구도를 보존한다.
 - 일반 아이콘은 원본, PWA maskable은 adaptive 전용 원본, Android foreground는 adaptive 원본에 8% inset을 적용한다. 얼굴·연꽃·영냥이 모자의 원형 잘림을 검수했다.
 - 실제 index 소스에서 추출한 CSS·마크업을 고정 진행률로 렌더링하여 360·390·430·1440px를 확인했다. 실제 부팅 시간 측정이 아니다. 별도의 실제 셸 smoke에서 부팅 해제와 제목·manifest를 확인했다. 외부 네트워크 요청은 차단했다.
 - 브랜드/static 검사 19개 통과. 디자인 detector `[]`. 독립 검수의 두 지적(데스크톱 대비, Android 원형 실루엣)이 재검수에서 resolved로 판정됐다.
@@ -50,3 +50,6 @@ Use case: precise-object-edit. EDIT REFERENCE 1, an existing cute pig app icon. 
 ```text
 Use case: precise-object-edit. This is a technical adaptive-app-icon canvas expansion, NOT a redesign. Preserve the supplied cute pig and small cat-wizard silhouette EXACTLY: identical face, expression, flower, proportions, colours and pose. Zoom OUT the entire existing composition: scale its pig, lotus and cat silhouette down together to fit completely inside the CENTER 56% of the square canvas, leaving 22% background space on all four sides. Extend the existing soft lavender pink background naturally to all outer edges with no seam, no inner square, no visible picture border. Continue a calm uniform pastel lavender (#dfb2e8) around the outskirts, remove floating petal decoration in the extra margins. Nothing else changes. The full figure and cat silhouette must be visible within a circle centered on canvas with diameter 80 percent of canvas. Full bleed square 1024x1024, no text, no rounded border, no phone mockup. This image will be cropped by Android's circular app icon mask; the added margins are intentional mandatory technical safe area. Do NOT zoom into the face or fill the canvas with the pig.
 ```
+
+- 루트 app/loading.js는 정적 소개·정책 페이지를 스트리밍 HTML로 바꿔 AdSense 본문 검사에 실패하므로 제거했다. 웹 로딩은 기존 HTML 부팅 게이트, 네이티브 로딩은 Android splash 자산이 담당한다.
+- 실제 셸 390px 캡처에서 스크롤바 여백을 게이트 동안만 없애고 삽화 고유 비율로 중앙 정렬함을 확인했다.
