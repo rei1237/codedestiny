@@ -30,6 +30,22 @@ export function kstDateKey(now=new Date()){return new Date(now.getTime()+9*36000
 export function dailyTarotReading(dateKey:string,deviceId=''):DailyTarotReading{
  if(!/^\d{4}-\d{2}-\d{2}$/.test(dateKey))throw new Error('INVALID_DATE_KEY');
  const value=hash(`${dateKey}:${deviceId}`),cardIndex=value%22,orientation=(Math.floor(value/22)%2?'reversed':'upright') as 'upright'|'reversed';
+ return readingForCard(dateKey,cardIndex,orientation);
+}
+
+// Draw without replacement; the first card preserves the existing daily seed.
+export function dailyTarotSpread(dateKey:string,deviceId=''):DailyTarotReading[]{
+ const first=dailyTarotReading(dateKey,deviceId),remaining=Array.from({length:22},(_,i)=>i).filter(i=>TAROT_CARDS[i].code!==first.cardCode);
+ const cards=[first];
+ for(let position=1;position<3;position++){
+  const seed=hash(`${dateKey}:${deviceId}:spread:${position}`);
+  const [index]=remaining.splice(seed%remaining.length,1);
+  cards.push(readingForCard(dateKey,index,Math.floor(seed/22)%2?'reversed':'upright'));
+ }
+ return cards;
+}
+
+function readingForCard(dateKey:string,cardIndex:number,orientation:'upright'|'reversed'):DailyTarotReading{
  const card=TAROT_CARDS[cardIndex],tag=TAGS[cardIndex];
  const [year,month,day]=dateKey.split('-').map(Number),pillar=ganji({year,month,day,hour:12,minute:0});
  if(!pillar)throw new Error('GANJI_UNAVAILABLE');

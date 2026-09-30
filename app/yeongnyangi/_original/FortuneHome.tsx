@@ -4,6 +4,7 @@ import QuestionJourney from "@/app/components/QuestionJourney";
 import {relationshipCopy} from '../_lib/relationship-copy';
 import NightHero from "../_components/NightHero";
 import QuestionSkyEntry from "../_components/QuestionSkyEntry";
+import FeedbackInvitation from '../_components/FeedbackInvitation';
 import FounderTrust from "@/app/components/FounderTrust";
 import SessionControls from "./SessionControls";
 import {products} from "@/worker/yeongnyangi/payments/catalog";
@@ -253,12 +254,17 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
             <div className="fortune-relationship-entry__content"><h2 id="relationship-entry-title">{relationshipCopy.intro}</h2><p>{relationshipCopy.description}</p><a href="/yeongnyangi/fortune/?flow=relationship">{relationshipCopy.entry}<ArrowRight size={18} aria-hidden="true"/></a></div>
             <Image className="fortune-relationship-entry__art" src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 160px, 420px" alt="수정구 앞에서 두 사람의 이야기를 기다리는 영냥이" loading="lazy"/>
           </section>
-              <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
-                <a href="/yeongnyangi/room/#daily">무료 운세</a>
-                <a href="/yeongnyangi/library/">내 상담 기록</a>
-                <a href="/ggulggul/">다른 운세 둘러보기</a>
-                <a href="#founder-records">상담사 경력과 공개 예측 기록</a>
-              </nav>
+          <nav className="hero-secondary-links" aria-label="다른 서비스와 상담 기록">
+            <a className="hero-free-invitation" href="/yeongnyangi/room/#daily-tarot">
+              <Image src="/assets/yeongnyangi/fish/reaction-anchovy.webp" width={144} height={144} alt="멸치를 들고 기다리는 영냥이"/>
+              <span><strong>무료 운세, 나랑 놀다 갈래?</strong><span>오늘의 타로 세 장부터 가볍게 펼쳐봐.</span><b>무료 운세 보러 가기 <ArrowRight size={18}/></b></span>
+            </a>
+            <div className="hero-category-links">
+              <a href="/yeongnyangi/library/"><BookOpen size={22}/><span><strong>내 상담 기록</strong><small>맡겨둔 이야기, 다시 펼쳐봐.</small></span><ChevronRight size={17}/></a>
+              <a href="/ggulggul/"><Compass size={22}/><span><strong>다른 운세 둘러보기</strong><small>꽃돼지의 점술방도 구경할래?</small></span><ChevronRight size={17}/></a>
+              <a href="#founder-records"><Bookmark size={22}/><span><strong>상담사 경력과 공개 예측 기록</strong><small>어떤 길을 걸어왔는지 들려줄게.</small></span><ChevronRight size={17}/></a>
+            </div>
+          </nav>
 
           <div className="main-content">
             <QuestionJourney source="home"/>
@@ -333,6 +339,7 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
               />
             </button>
 
+            <FeedbackInvitation/>
             <FounderTrust/>
             <aside className="starter-invitation">
               <h2>{Number(packages.mackerel.priceKRW) === 1000 ? "천원부터 시작하는 운세" : `${packages.mackerel.priceKRW.toLocaleString("ko-KR")}원부터 시작하는 운세`}</h2>

@@ -53,22 +53,22 @@
 .ynOriginal .room-small-moment h2 { font-size: 17px; }
 .ynOriginal .room-small-moment p { font-size: 12px; color: #cbb8d3; line-height: 1.85; margin-top: 8px; }
 .ynOriginal .room-footer { border-top: 1px solid #94745235; color: #bfa6c9; display: flex; gap: 10px; justify-content: center; align-items: center; padding: 26px 20px max(26px, env(safe-area-inset-bottom)); font-size: 11px; }
-.ynOriginal .daily-tarot{padding:34px 22px 38px;background:#100d1d;border-block:1px solid #9b7a5042;color:#f8eddd;display:grid;grid-template-columns:minmax(180px,260px) minmax(0,1fr);gap:28px;align-items:center;position:relative;overflow:hidden}
+.ynOriginal .daily-tarot{padding:34px 22px 38px;background:#100d1d;border-block:1px solid #9b7a5042;color:#f8eddd;display:grid;grid-template-columns:minmax(0,1fr);gap:28px;align-items:center;position:relative;overflow:hidden}
 .ynOriginal .daily-tarot::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 16% 18%,#b7965d1f,transparent 32%),radial-gradient(circle at 82% 72%,#8066a81c,transparent 36%)}
 .ynOriginal .daily-tarot-copy,.ynOriginal .daily-tarot-flip,.ynOriginal .daily-tarot-reading{position:relative;z-index:1}
-.ynOriginal .daily-tarot-copy{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr;column-gap:9px;align-items:center}
-.ynOriginal .daily-tarot-copy>svg{color:#e9c98e}.ynOriginal .daily-tarot-copy h2{font-family:var(--serif);font-size:24px;color:#f2d8aa}.ynOriginal .daily-tarot-copy p{grid-column:2;max-width:62ch;margin-top:5px;color:#d1bfd5;font-size:13px;line-height:1.8}
-.ynOriginal .daily-tarot-flip{display:grid;justify-items:center;gap:13px;min-height:350px;padding:0;color:#f6e8d4;perspective:1000px}
+.ynOriginal .daily-tarot-copy{display:grid;justify-items:center;gap:10px;text-align:center}
+.ynOriginal .daily-tarot-copy>svg{color:#e9c98e}.ynOriginal .daily-tarot-copy h2{font-family:var(--serif);font-size:24px;color:#f2d8aa}.ynOriginal .daily-tarot-copy p{max-width:62ch;margin-top:5px;color:#d1bfd5;font-size:13px;line-height:1.8}
+.ynOriginal .daily-tarot-flip{display:grid;justify-items:center;gap:13px;min-height:0;min-width:0;padding:0;color:#f6e8d4;perspective:1000px}
 .ynOriginal .daily-tarot-flip:focus-visible{outline:3px solid #e8c78b;outline-offset:5px;border-radius:16px}
-.ynOriginal .daily-tarot-card{display:block;width:min(210px,62vw);aspect-ratio:2/3;position:relative;transform-style:preserve-3d;filter:drop-shadow(0 15px 24px #0008)}
+.ynOriginal .daily-tarot-card{display:block;width:100%;max-width:200px;aspect-ratio:2/3;position:relative;transform-style:preserve-3d;filter:drop-shadow(0 15px 24px #0008)}
 .ynOriginal .daily-tarot-back,.ynOriginal .daily-tarot-front{position:absolute;inset:0;display:block;backface-visibility:hidden;border-radius:14px;overflow:hidden;border:1px solid #d8b87880;transition:transform .75s cubic-bezier(.2,.8,.2,1),opacity .3s ease}
 .ynOriginal .daily-tarot-front{opacity:0;transform:rotateY(180deg)}.ynOriginal .daily-tarot-flip.is-open .daily-tarot-back{opacity:0;transform:rotateY(-180deg)}.ynOriginal .daily-tarot-flip.is-open .daily-tarot-front{opacity:1;transform:rotateY(0)}.ynOriginal .daily-tarot-card picture,.ynOriginal .daily-tarot-card img{width:100%;height:100%;display:block;object-fit:cover}.ynOriginal .daily-tarot-reversed{transform:rotate(180deg)}
 .ynOriginal .daily-tarot-flip strong{font-family:var(--serif);font-size:17px;color:#f2d8aa}
 .ynOriginal .daily-tarot-reading{align-self:stretch;display:grid;align-content:center;gap:16px}.ynOriginal .daily-tarot-comment{font-family:var(--serif);font-size:17px;line-height:1.9;color:#f5e5cf;max-width:56ch}
 .ynOriginal .daily-tarot-reading dl{display:grid;gap:12px}.ynOriginal .daily-tarot-reading dl>div{display:grid;grid-template-columns:100px 1fr;gap:13px;border-top:1px solid #9c80534a;padding-top:12px}.ynOriginal .daily-tarot-reading dt{color:#e9c98e;font-size:12px;font-weight:700}.ynOriginal .daily-tarot-reading dd{color:#ded0e2;font-size:13px;line-height:1.8}
 .ynOriginal .daily-tarot-luck{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;padding:15px 16px;border-radius:14px;background:#261d34;border:1px solid #a8865c55}.ynOriginal .daily-tarot-luck svg{color:#e9c98e}.ynOriginal .daily-tarot-luck span{font-size:12px;color:#e9c98e}.ynOriginal .daily-tarot-luck b,.ynOriginal .daily-tarot-luck p{grid-column:2}.ynOriginal .daily-tarot-luck b{font-size:13px}.ynOriginal .daily-tarot-luck p{font-size:12px;color:#d1bfd5;line-height:1.7}
-.ynOriginal .daily-tarot-reading nav{display:flex;flex-wrap:wrap;gap:8px}.ynOriginal .daily-tarot-reading nav a{min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;border:1px solid #b6936466;color:#f0d5aa;font-size:12px}.ynOriginal .daily-tarot-reading nav a:focus-visible{outline:3px solid #e8c78b;outline-offset:3px}
-@media(max-width:1024px){.ynOriginal .daily-tarot{grid-template-columns:1fr;padding:28px 18px 32px;gap:20px}.ynOriginal .daily-tarot-copy{grid-column:auto}.ynOriginal .daily-tarot-flip{min-height:330px}.ynOriginal .daily-tarot-reading dl>div{grid-template-columns:1fr;gap:4px}.ynOriginal .daily-tarot-reading nav{display:grid}.ynOriginal .daily-tarot-reading nav a{justify-content:space-between}}
+.ynOriginal .daily-tarot-next{display:flex;flex-wrap:wrap;gap:8px}.ynOriginal .daily-tarot-next a{min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:10px 14px;border-radius:12px;border:1px solid #b6936466;color:#f0d5aa;font-size:12px}.ynOriginal .daily-tarot-next a:focus-visible{outline:3px solid #e8c78b;outline-offset:3px}
+@media(max-width:1024px){.ynOriginal .daily-tarot{grid-template-columns:1fr;padding:28px 18px 32px;gap:20px}.ynOriginal .daily-tarot-copy{grid-column:auto}.ynOriginal .daily-tarot-flip{min-height:0}.ynOriginal .daily-tarot-reading dl>div{grid-template-columns:1fr;gap:4px}.ynOriginal .daily-tarot-next{display:grid}.ynOriginal .daily-tarot-next a{justify-content:space-between}}
 @media(prefers-reduced-motion:reduce){.ynOriginal .daily-tarot-back,.ynOriginal .daily-tarot-front{transition:none}.ynOriginal .daily-tarot-flip.is-open .daily-tarot-back{display:none}.ynOriginal .daily-tarot-flip.is-open .daily-tarot-front{transform:none}}
 @media (min-width: 900px) {
   .ynOriginal .room-header { height: 82px; padding-inline: 35px; }
@@ -93,3 +93,15 @@
 .ynOriginal .room-guide p { white-space: pre-line; }
 
 .ynOriginal .room-notebook:focus-visible { outline: 2px solid #e9c78d; outline-offset: 3px; }
+
+.ynOriginal .daily-tarot {scroll-margin-top:24px}
+.ynOriginal .daily-tarot-spread {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,3vw,28px);width:100%;max-width:680px;margin-inline:auto}
+.ynOriginal .daily-tarot-position {font-size:14px;color:#e9c98e;font-weight:700}
+.ynOriginal .daily-tarot-flip small {font-size:12px;color:#d1bfd5;line-height:1.5}
+.ynOriginal .daily-tarot-progress {text-align:center;color:#e9c98e;font-size:14px;line-height:1.7}
+.ynOriginal .daily-tarot-readings {display:grid;gap:24px;width:100%;max-width:760px;margin-inline:auto}
+.ynOriginal .daily-tarot-reading[hidden] {display:none}
+.ynOriginal .daily-tarot-reading h3 {font-family:var(--serif);font-size:20px;color:#f2d8aa}
+.ynOriginal .daily-tarot-reading>p {font-size:15px;line-height:1.9}
+.ynOriginal .daily-tarot-next {justify-content:center}
+@media(max-width:480px){.ynOriginal .daily-tarot-flip {gap:8px}.ynOriginal .daily-tarot-flip strong {font-size:14px}.ynOriginal .daily-tarot-position {font-size:13px}.ynOriginal .daily-tarot-copy h2 {font-size:23px}.ynOriginal .daily-tarot-copy p {font-size:14px}}

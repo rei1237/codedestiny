@@ -43,3 +43,14 @@ test('room component is local-only and keeps the existing free and paid destinat
  assert.match(source,/href="\/yeongnyangi\/fortune\/"/);
  assert.match(source,/crypto\.getRandomValues/);
 });
+
+test('daily spread keeps three unique cards, order and orientations across reloads',()=>{
+ for(let i=0;i<200;i++){
+  const device='spread-'+i, cards=subject.dailyTarotSpread('2026-10-01',device);
+  assert.equal(cards.length,3);
+  assert.equal(new Set(cards.map(card=>card.cardCode)).size,3);
+  assert.deepEqual(subject.dailyTarotSpread('2026-10-01',device),cards);
+  assert.deepEqual(cards[0],subject.dailyTarotReading('2026-10-01',device));
+ }
+ assert.notDeepEqual(subject.dailyTarotSpread('2026-10-01','a'),subject.dailyTarotSpread('2026-10-02','a'));
+});
