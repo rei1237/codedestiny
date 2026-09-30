@@ -67,8 +67,27 @@ const LEGACY_PREPARE_ORDER_KEYS = [
   "merchantUid", "paymentAmount", "amountKRW", "amountKrw", "coinPrice", "costCoins",
   "membershipCreditCost", "featureKey", "accessType", "profileId", "profileCardId",
   "productType", "serviceType", "actionType", "idempotencyKey", "orderId",
-  "productName", "customer", "pricing", "foreignCard",
+  "orderName", "productName", "customer", "pricing", "foreignCard",
 ];
+
+test.each([
+  ["section_daewun", "사주 대운 분석"],
+  ["section_summary", "종합 사주 풀이"],
+])("사주 %s 주문명은 공통 버튼 문구 대신 상품명을 사용한다", async (featureKey, expectedName) => {
+  const db = makeFakePaymentDb();
+  seedUser(db);
+  const { response, payload } = await postPrepare(db, {
+    paymentType: "digital_content",
+    featureKey,
+    reason: "풀이 확인하기",
+    idempotencyKey: `order-name-${featureKey}`,
+  });
+  expect(response.status).toBe(201);
+  expect(payload.order.featureKey).toBe(featureKey);
+  expect(payload.order.orderName).toBe(expectedName);
+  expect(payload.order.productName).toBe(expectedName);
+  expect(new TextEncoder().encode(payload.order.orderName).length).toBeLessThanOrEqual(40);
+});
 
 test("PointsClient 형 바디(멱등키 없음): 201 + 소비 키 전부 + 클릭마다 새 주문", async () => {
   const db = makeFakePaymentDb();

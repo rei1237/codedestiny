@@ -91,10 +91,17 @@ export function legacyOrderDetailEnvelope(order) {
    customer 폰·이메일·이름, coinPrice·featureKey), dp 폴백(같은 집합의 부분), PointsClient(merchantUid·
    paymentAmount·productName·coinPrice·customer.phoneNumber). 나머지는 구 응답과의 키 패리티 유지용 —
    빠지면 "200 인데 화면만 비는" 부류가 되므로 **초집합**으로 항상 전부 내보낸다. */
+const SAJU_SECTION_PAYMENT_NAMES = Object.freeze({
+  section_daewun: "사주 대운 분석",
+  section_summary: "종합 사주 풀이",
+});
+
 export function toLegacyPrepareOrder(order, { config = {}, customer = null, pricing = null, body = {}, foreignCard = null } = {}) {
   const amount = Number(order?.paymentAmount || 0);
   const coins = Number(order?.expectedChargedPoints ?? order?.coinPrice ?? 0);
   const snapshot = (order?.pricingSnapshot && typeof order.pricingSnapshot === "object") ? order.pricingSnapshot : {};
+  // 사주 섹션의 버튼 문구는 두 상품 모두 "풀이 확인하기"다. PG에는 주문의 기능키로 구분한 이름을 보낸다.
+  const sectionPaymentName = SAJU_SECTION_PAYMENT_NAMES[String(order?.featureKey || "")] || "";
   return {
     // PG 클라이언트 config 블록 — 셸이 이걸 인라인으로 받으면 /api/payments/config 왕복을 건너뛴다.
     storeId: String(config.storeId || ""),
@@ -121,7 +128,8 @@ export function toLegacyPrepareOrder(order, { config = {}, customer = null, pric
     actionType: String(body.actionType || ""),
     idempotencyKey: String(order?.idempotencyKey || ""),
     orderId: String(order?.merchantUid || ""),
-    productName: String(body.productName || pricing?.label || order?.featureKey || "Code Destiny"),
+    orderName: sectionPaymentName,
+    productName: sectionPaymentName || String(body.productName || pricing?.label || order?.featureKey || "Code Destiny"),
     customer: customer && typeof customer === "object" ? customer : { fullName: "", email: "", phoneNumber: "" },
     pricing: pricing || snapshot || null,
     // 해외 발급 카드 결제창 노출 판정(index.js /prepare 가 지금 판정과 주문 스냅숏을 좁힌 값). 클라이언트는 offered 가 true 일 때만 해외카드 파라미터를 붙인다.
