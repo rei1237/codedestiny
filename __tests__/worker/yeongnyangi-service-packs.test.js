@@ -12,7 +12,7 @@ import {Payment,PointHistory} from '../../worker/lib/models.js';
 import {PurchaseEntitlement} from '../../worker/payments/purchase-entitlement-model.js';
 const USER='507f1f77bcf86cd799439011',OTHER='507f1f77bcf86cd799439022',ID='e'.repeat(64),RID='yn-'+ID;
 const PLAN='yeongnyangi-service-pack-mackerel-fixture';
-// Fixture values are not a public offer. Production SERVICE_PACK_PLANS remains empty.
+// Fixture values are not a public offer. They remain independent of the approved public offer.
 const fixturePlans={[PLAN]:{name:'모의 고등어 이용권',fishId:'mackerel',priceKRW:9900,totalUses:13,validityDays:90,policyVersion:'fixture-only'}};
 const product=resolveServicePackProduct(PLAN,fixturePlans),consultation=resolveProduct({featureKey:'yeongnyangi-saju-mackerel'});
 const subscription={tier:'family',isActive:true,expiresAt:new Date('2099-10-30'),monthlySpendCoin:123,
@@ -35,11 +35,12 @@ async function purchase(f,key='purchase-one'){
 const consume=(f,right,requestId=RID)=>consumeServicePack(f.db,{userId:USER,requestId,entitlementId:String(right._id)});
 const terminal=f=>Object.assign(f.row,{state:'FORTUNE_FAILED',errorCode:'GENERATION_REVIEW_REQUIRED',leaseUntil:null,leaseToken:''});
 const restore=f=>restoreFailedServicePackUse(f.db,{userId:USER,requestId:RID});
-test('production catalog remains empty and refuses unpriced sales before DB work',async()=>{
- expect(Object.keys(SERVICE_PACK_PLANS)).toHaveLength(0);
+test('production catalog exposes approved offers and refuses unknown sales before DB work',async()=>{
+ expect(Object.keys(SERVICE_PACK_PLANS)).toHaveLength(12);
  expect(()=>resolveServicePackProduct(PLAN)).toThrow();
  const routes=createServicePackRoutes({prepareOrder:()=>{throw Error('must not reach purchase')}});
- expect(await (await routes['GET /service-packs/catalog'].handle()).json()).toEqual({ok:true,plans:[],giftEnabled:false});
+ const catalog=await (await routes['GET /service-packs/catalog'].handle()).json();
+ expect(catalog).toMatchObject({ok:true,giftEnabled:false});expect(catalog.plans).toHaveLength(12);
  await expect(routes['POST /service-packs/prepare'].handle({body:{planId:PLAN,idempotencyKey:'x'}})).rejects.toMatchObject({code:'PRODUCT_NOT_FOUND'});
 });
 test('same-fish entitlement has exactly six server-registry systems and immutable price/count',()=>{
@@ -276,4 +277,43 @@ test.each(['cancellationReviewRequired','yeongnyangiRefundPending','right-revoke
   env:{},ctx:{},userId:USER,params:{id:right.orderId},withDb:(_env,_ctx,fn)=>fn(f.db)};
  await expect(routes['POST /service-packs/orders/:id/confirm'].handle(args)).rejects.toMatchObject({code:'ORDER_NOT_CONFIRMABLE'});
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
+});
+
+const approvedFish=[['mackerel',1000,[19,50,100]],['salmon',3000,[6,17,33]],['flounder',5000,[4,10,20]],['tuna',10000,[2,5,10]]];
+test.each(approvedFish)('%s catalog fixes approved prices, counts and 30-day duration',(fish,unit,counts)=>{
+ ['small','medium','large'].forEach((size,i)=>{
+  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-'+size+'-v1');
+  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:[14900,39900,79900][i],validityDays:30,policyVersion:'yeongnyangi-pack-20260930'});
+  expect(offer.allowedPaymentMethods).toEqual(['DIRECT_KRW']);
+  const right={type:'service_pack',status:'granted',packSnapshot:offer.packSnapshot,remainingUses:counts[i],expiresAt:new Date('2099-01-01')};
+  for(const [otherFish,otherPrice] of approvedFish)for(const system of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
+   expect(servicePackCoverage(right,'yeongnyangi-'+system+'-'+otherFish,otherPrice).covered).toBe(otherFish===fish);
+  }
+  for(const suffix of ['saju-ziwei','sukuyo-vedic','astrology-tarot','all'])expect(servicePackCoverage(right,'yeongnyangi-fusion-'+suffix,suffix==='all'?50000:20000).covered).toBe(false);
+ });
+});
+test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v1');
+ const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'approved',env:{}});
+ await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-approved',paidAt:new Date(),summary:{mock:true}}});
+ const right=f.db.rows.find(r=>r.type==='service_pack');
+ expect(Math.round((new Date(right.expiresAt)-new Date(right.grantedAt))/86400000)).toBe(30);
+ Object.assign(f.row,{featureKey:'yeongnyangi-saju-'+target,amountKRW:amount});
+ const quote=await quoteServicePack(f.db,{userId:USER,requestId:RID});
+ expect(quote.candidates).toHaveLength(fish===target?1:0);
+ if(fish===target){await consume(f,right);expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(offer.packSnapshot.totalUses-1);}
+ else{await expect(consume(f,right)).rejects.toMatchObject({code:'SERVICE_PACK_NOT_COVERED'});expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(offer.packSnapshot.totalUses);expect(f.row.paymentClaimOrderId).toBe('');}
+});
+
+test.each(approvedFish)('%s moonstones deduct the displayed five-times alliance amount',async(fish,amount)=>{
+ const f=fixture(),item=resolveProduct({featureKey:'yeongnyangi-saju-'+fish}),expected=amount/2;
+ Object.assign(f.row,{featureKey:item.featureKey,amountKRW:amount});
+ f.user.profileSubscription.membershipCreditBalance=expected;
+ f.user.profileSubscription.membershipCreditLots[0].amount=expected;
+ f.user.profileSubscription.membershipCreditLots[0].remaining=expected;
+ expect(item.monthlyCost).toBe(expected);
+ await spendMoonstone(f.db,{userId:USER,product:item,purchaseId:RID});
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(0);
+ await spendMoonstone(f.db,{userId:USER,product:item,purchaseId:RID});
+ expect(f.user.profileSubscription.membershipCreditBalance).toBe(0);
 });

@@ -1,4 +1,4 @@
-import { CURRENT_PASS_PLANS, PRIOR_PASS_PLANS, currentPassPlan, priorPassPlan } from "../../lib/payment/pass-policy.js";
+import { PREVIOUS_PASS_PLANS, previousPassPlan, CURRENT_PASS_PLANS, PRIOR_PASS_PLANS, currentPassPlan, priorPassPlan } from "../../lib/payment/pass-policy.js";
 // 앱(Google Play) 전용 가격표 정본.
 //
 // 웹 가격(worker/lib/paid-feature-registry.js)은 절대 건드리지 않는다.
@@ -70,7 +70,8 @@ const CONTENT_TIER_TABLE = Object.freeze([
 // 동일하다(canUseByPass 가 코인으로 판정하므로). 월 이용 한도는 앱 SKU 필드로는 노출하지
 // 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
 const PASS_TIER_TABLE = Object.freeze([
-  // Family v3는 Play Console SKU 검증 전까지 코드 가격표에도 만들지 않는다. 웹 offer만 판매 가능하다.
+  ...Object.keys(PREVIOUS_PASS_PLANS).filter(tier => tier !== "family").map(tier => { const p = previousPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
+  // Family v4는 Play Console SKU 검증 전까지 코드 가격표에도 만들지 않는다. 웹 offer만 판매 가능하다.
   ...Object.keys(CURRENT_PASS_PLANS).filter(tier => tier !== "family").map(tier => { const p = currentPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
   ...Object.keys(PRIOR_PASS_PLANS).map(tier => { const p = priorPassPlan(tier); return { passTier: tier, productId: p.appProductId, amountKRW: p.wonPrice, webAmountKRW: p.wonPrice, coinLimit: p.maxCoveredCoin, passPolicyVersion: p.passPolicyVersion }; }),
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 9900, webAmountKRW: 9900, coinLimit: 50 },

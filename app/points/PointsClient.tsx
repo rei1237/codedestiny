@@ -17,6 +17,8 @@ import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import {
   CURRENT_PASS_POLICY_VERSION,
+  PREVIOUS_PASS_POLICY_VERSION,
+  previousPassPlan,
   PRIOR_PASS_POLICY_VERSION,
   currentPassPlan,
   priorPassPlan,
@@ -747,6 +749,7 @@ function getSubscriptionPolicyFreeLimit(
   policyVersion = "legacy",
 ) {
   const normalized = normalizeSubscriptionTier(tier);
+  if (policyVersion === PREVIOUS_PASS_POLICY_VERSION) return previousPassPlan(normalized)?.maxCoveredCoin || 0;
   if (policyVersion === CURRENT_PASS_POLICY_VERSION) return currentPassPlan(normalized)?.maxCoveredCoin || 0;
   if (policyVersion === PRIOR_PASS_POLICY_VERSION) return priorPassPlan(normalized)?.maxCoveredCoin || 0;
   if (normalized === "family") return 999999999;
@@ -1214,14 +1217,24 @@ function formatSubscriptionDurationLabel(months: unknown, copy: PointsPageCopy =
 }
 
 function formatSubscriptionPlanPolicy(plan: Pick<SubscriptionPlan, "freeUpTo">, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
-  if (plan.freeUpTo === null) return copy.allPaidPdfPolicy;
+  if (plan.freeUpTo === null) return langSensitiveLabel(copy, "건당 금액 상한 없음", "No per-item price cap");
   return copy.generalLimitPolicy(formatCoinValue(plan.freeUpTo, copy, locale));
 }
 
 function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "freeUpTo" | "durationMonths">, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
   const duration = formatSubscriptionDurationLabel(plan.durationMonths, copy);
-  if (plan.tier === "family") return copy.familyValueLine(duration);
+  if (plan.tier === "family") return formatSalePlanFeature(plan.tier, "monthlyCap", copy, locale) + " / " + duration;
   return copy.planValueLine(formatCoinValue(Number(plan.freeUpTo || 0), copy, locale), duration);
+}
+
+function formatSalePlanFeature(tier: SubscriptionTier, feature: string, copy: PointsPageCopy, locale: string) {
+  const offer = currentPassPlan(tier);
+  if (offer && feature === "monthlyCap") {
+    const amount = formatCoinValue(offer.monthlyLimitCoin, copy, locale);
+    return langSensitiveLabel(copy, `30일 최대 ${amount} 상당`, `Up to ${amount} worth over 30 days`);
+  }
+  if (offer && feature.startsWith("under")) return copy.generalLimitPolicy(formatCoinValue(offer.maxCoveredCoin, copy, locale));
+  return copy.planFeatures[tier]?.[feature] || feature;
 }
 
 function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" | "accessType">) {
@@ -2163,7 +2176,7 @@ function SubscriptionSection({
               {/* 기능 목록 */}
               <ul className="mt-3 flex-1 space-y-1.5">
                 {plan.features.map((f) => {
-                  const translatedFeature = copy.planFeatures[plan.tier]?.[f] || f;
+                  const translatedFeature = formatSalePlanFeature(plan.tier, f, copy, formatLocale);
                   const isBonus = f.startsWith("bonus");
                   const isKey = ["under3000", "under5000", "under10000", "allPaidPdf", "monthlyCap"].includes(f);
                   return (
@@ -2816,7 +2829,7 @@ function MoonlightShopPlans({
           const planTierRank = getSubscriptionTierRank(plan.tier);
           const lowerTierBlocked = activeTierRank > 0 && planTierRank < activeTierRank;
           const ctaDisabled = isProcessing || lowerTierBlocked || !saleReady[plan.tier] || (subscription.isActive && subscription.passPolicyVersion !== CURRENT_PASS_POLICY_VERSION);
-          const features = plan.features.slice(0, 4).map((feature) => copy.planFeatures[plan.tier]?.[feature] || feature);
+          const features = plan.features.slice(0, 4).map((feature) => formatSalePlanFeature(plan.tier, feature, copy, formatLocale));
 
           return (
             <article key={plan.id} className={`moon-plan-card rounded-[22px] p-4 ${isHighlighted ? "ring-2 ring-[color:var(--moon-glow)]" : ""} ${lowerTierBlocked ? "opacity-60" : ""}`}>

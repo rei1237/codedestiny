@@ -821,29 +821,29 @@
       "chipShareReward": "Pago único fuera del rango",
       "plansAria": "Tarjetas de resumen del plan de pase",
       "standardName": "Miel Estándar 30 días",
-      "standardPrice": "30 días · KRW 14.900",
+      "standardPrice": "30 días · KRW 9.900",
       "standardLine": "Contenido de hasta 5000 KRW",
-      "standardBenefit1": "Hasta 40.000 KRW al mes",
+      "standardBenefit1": "Hasta 20.000 KRW al mes",
       "standardBenefit2": "Hasta 3 perfiles",
       "standardCta": "Ver estándar",
       "recommendedAria": "Plan recomendado",
       "recommendedBadge": "Recomendado",
       "premiumName": "Miel Premium 30 días",
-      "premiumPrice": "30 días · KRW 39.900",
+      "premiumPrice": "30 días · KRW 29.900",
       "premiumLine": "Contenido de hasta 10.000 KRW",
-      "premiumBenefit1": "Hasta 100.000 KRW al mes",
+      "premiumBenefit1": "Hasta 60.000 KRW al mes",
       "premiumBenefit2": "Hasta 7 perfiles",
       "premiumCta": "Ver plan recomendado",
       "vvipName": "VVIP Tarro Miel 30 días",
-      "vvipPrice": "30 días · KRW 79.900",
+      "vvipPrice": "30 días · KRW 59.900",
       "vvipLine": "Contenido de hasta 30.000 KRW",
-      "vvipBenefit1": "Hasta 200.000 KRW al mes",
+      "vvipBenefit1": "Hasta 120.000 KRW al mes",
       "vvipBenefit2": "Hasta 15 perfiles",
       "vvipCta": "Ver beneficios VVIP",
       "familyName": "Código Destino Familia 30 días",
       "familyPrice": "30 días · KRW 149.000",
       "familyLine": "Todo el contenido incluido en el pase",
-      "familyBenefit1": "Hasta 500.000 KRW al mes",
+      "familyBenefit1": "Hasta 350.000 KRW al mes",
       "familyBenefit2": "Perfiles ilimitados",
       "familyCta": "Ver familia",
       "premiumNote": "Premium Honey es la opción más equilibrada si sueles usar contenido de unos 10.000 KRW.",
@@ -2193,19 +2193,19 @@
       "packages": {
         "standard": {
           "name": "Miel Estándar 30 Días",
-          "desc": "30 días · Contenido de hasta 5000 KRW · Hasta 40.000 KRW al mes · Hasta 3 perfiles"
+          "desc": "30 días · Contenido de hasta 5000 KRW · Hasta 20.000 KRW al mes · Hasta 3 perfiles"
         },
         "premium": {
           "name": "Miel Premium 30 Días",
-          "desc": "30 días · Contenido de hasta 10.000 KRW · Hasta 100.000 KRW al mes · Hasta 7 perfiles"
+          "desc": "30 días · Contenido de hasta 10.000 KRW · Hasta 60.000 KRW al mes · Hasta 7 perfiles"
         },
         "vvip": {
           "name": "Tarro de Miel VVIP 30 Días",
-          "desc": "30 días · Contenido de hasta 30.000 KRW · Hasta 200.000 KRW al mes · Hasta 15 perfiles"
+          "desc": "30 días · Contenido de hasta 30.000 KRW · Hasta 120.000 KRW al mes · Hasta 15 perfiles"
         },
         "family": {
           "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Todo el contenido incluido en el pase · Hasta 500.000 KRW al mes · Perfiles ilimitados"
+          "desc": "30 días · Todo el contenido incluido en el pase · Hasta 350.000 KRW al mes · Perfiles ilimitados"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",

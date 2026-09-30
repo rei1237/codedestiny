@@ -821,29 +821,29 @@
       "chipShareReward": "Bayaran sekali di luar julat",
       "plansAria": "Lulus kad ringkasan pelan",
       "standardName": "Madu Standard 30 hari",
-      "standardPrice": "30 hari · KRW 14,900",
+      "standardPrice": "30 hari · KRW 9,900",
       "standardLine": "Kandungan sehingga KRW 5,000",
-      "standardBenefit1": "Sehingga KRW 40,000 sebulan",
+      "standardBenefit1": "Sehingga KRW 20,000 sebulan",
       "standardBenefit2": "Sehingga 3 profil",
       "standardCta": "Lihat Standard",
       "recommendedAria": "Pelan yang disyorkan",
       "recommendedBadge": "Disyorkan",
       "premiumName": "Madu Premium 30 hari",
-      "premiumPrice": "30 hari · KRW 39,900",
+      "premiumPrice": "30 hari · KRW 29,900",
       "premiumLine": "Kandungan sehingga KRW 10,000",
-      "premiumBenefit1": "Sehingga KRW 100,000 sebulan",
+      "premiumBenefit1": "Sehingga KRW 60,000 sebulan",
       "premiumBenefit2": "Sehingga 7 profil",
       "premiumCta": "Lihat pelan yang disyorkan",
       "vvipName": "Balang Madu VVIP 30 hari",
-      "vvipPrice": "30 hari · KRW 79,900",
+      "vvipPrice": "30 hari · KRW 59,900",
       "vvipLine": "Kandungan sehingga KRW 30,000",
-      "vvipBenefit1": "Sehingga KRW 200,000 sebulan",
+      "vvipBenefit1": "Sehingga KRW 120,000 sebulan",
       "vvipBenefit2": "Sehingga 15 profil",
       "vvipCta": "Lihat faedah VVIP",
       "familyName": "Keluarga Kod Destiny 30 hari",
       "familyPrice": "30 hari · KRW 149,000",
       "familyLine": "Semua kandungan yang dilindungi pas",
-      "familyBenefit1": "Sehingga KRW 500,000 sebulan",
+      "familyBenefit1": "Sehingga KRW 350,000 sebulan",
       "familyBenefit2": "Profil tanpa had",
       "familyCta": "Lihat Keluarga",
       "premiumNote": "Premium Honey ialah pilihan paling seimbang jika anda kerap menggunakan kandungan sekitar KRW 10,000.",
@@ -2193,19 +2193,19 @@
       "packages": {
         "standard": {
           "name": "Madu Standard 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 5,000 · Sehingga KRW 40,000 sebulan · Sehingga 3 profil"
+          "desc": "30 hari · Kandungan sehingga KRW 5,000 · Sehingga KRW 20,000 sebulan · Sehingga 3 profil"
         },
         "premium": {
           "name": "Madu Premium 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 10,000 · Sehingga KRW 100,000 sebulan · Sehingga 7 profil"
+          "desc": "30 hari · Kandungan sehingga KRW 10,000 · Sehingga KRW 60,000 sebulan · Sehingga 7 profil"
         },
         "vvip": {
           "name": "Balang Madu VVIP 30 Hari",
-          "desc": "30 hari · Kandungan sehingga KRW 30,000 · Sehingga KRW 200,000 sebulan · Sehingga 15 profil"
+          "desc": "30 hari · Kandungan sehingga KRW 30,000 · Sehingga KRW 120,000 sebulan · Sehingga 15 profil"
         },
         "family": {
           "name": "Kod Destiny Keluarga 30 Hari",
-          "desc": "30 hari · Semua kandungan yang dilindungi pas · Sehingga KRW 500,000 sebulan · Profil tanpa had"
+          "desc": "30 hari · Semua kandungan yang dilindungi pas · Sehingga KRW 350,000 sebulan · Profil tanpa had"
         }
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",

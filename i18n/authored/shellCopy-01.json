@@ -85,18 +85,18 @@
     "ms": "Semua kandungan yang dilindungi pas"
   },
   "home.passMini.familyBenefit1": {
-    "ko": "월 최대 50만원 상당",
-    "en": "Up to KRW 500,000 worth per month",
-    "ja": "月あたり最大500,000ウォン相当",
-    "zh-CN": "每月最多500,000韩元",
-    "zh-TW": "每月最多500,000韓元",
-    "vi": "Tối đa 500.000 KRW mỗi tháng",
-    "hi": "हर महीने KRW 500,000 तक",
-    "es": "Hasta 500.000 KRW al mes",
-    "fr": "Jusqu'à 500 000 KRW par mois",
-    "de": "Bis zu 500.000 KRW pro Monat",
-    "nl": "Tot KRW 500.000 per maand",
-    "ms": "Sehingga KRW 500,000 sebulan"
+    "ko": "월 최대 35만원 상당",
+    "en": "Up to KRW 350,000 worth per month",
+    "ja": "月あたり最大350,000ウォン相当",
+    "zh-CN": "每月最多350,000韩元",
+    "zh-TW": "每月最多350,000韓元",
+    "vi": "Tối đa 350.000 KRW mỗi tháng",
+    "hi": "हर महीने KRW 350,000 तक",
+    "es": "Hasta 350.000 KRW al mes",
+    "fr": "Jusqu'à 350 000 KRW par mois",
+    "de": "Bis zu 350.000 KRW pro Monat",
+    "nl": "Tot KRW 350.000 per maand",
+    "ms": "Sehingga KRW 350,000 sebulan"
   },
   "home.tiles.tarotPromptMakerTitle": {
     "ko": "💘 타로 프롬프트 라이브러리",

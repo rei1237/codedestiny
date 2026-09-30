@@ -1,11 +1,13 @@
 ---
 status: active
-implementationStatus: implemented-sales-disabled
+implementationStatus: approved-catalog-implemented
 updated: 2026-09-30
-next: 빈 판매목록을 유지하며 후속 가격·회수·기간과 서버비·가입 혜택을 포함한 원가를 확정한다.
+next: 승인된 판매 정책의 회귀 검사와 main CI를 확인한다.
 ---
 
 # 영냥이 전용 횟수 이용권·선물
+
+> 아래 빈 판매목록 기록은 이전 구현 당시의 이력이다. 2026-09-30 후속 사용자 승인으로 12개 상품을 등록했다. 최신 가격·횟수는 payment-gating 문서의 2026-09-30 승인 절과 SERVICE_PACK_PLANS를 따른다.
 
 ## 현재 상태
 

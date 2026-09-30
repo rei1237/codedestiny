@@ -3,7 +3,7 @@
 // billing-feature-registry.js)이 이미 있어서 import 경로는 그대로 살려 둔다.
 // billing-policy.js 는 import·env·전역이 없는 순수 상수 모듈이라 클라이언트 번들
 // (app/app/store/AppPassStoreClient.tsx 가 이 파일을 import 한다)에 들어가도 안전하다.
-import { CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
+import { PREVIOUS_PASS_POLICY_VERSION, previousPassPlan, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION, currentPassPlan, priorPassPlan, passPolicyVersion } from "../../lib/payment/pass-policy.js";
 import { KRW_PER_COIN } from "./billing-policy.js";
 
 export { KRW_PER_COIN };
@@ -113,6 +113,11 @@ export const PASS_LIMITS = Object.freeze({
 export function resolvePassPolicy(subscription = {}, tierInput) {
   const tier = normalizePassTier(tierInput || subscription?.passTier || subscription?.tier);
   const version = passPolicyVersion(subscription);
+  if (version === PREVIOUS_PASS_POLICY_VERSION) {
+    const plan = previousPassPlan(tier);
+    return plan ? { ...HONEY_PASS_POLICY[tier], maxCoveredCoin: plan.maxCoveredCoin,
+      monthlyCoveredCoin: plan.monthlyLimitCoin, maxProfiles: plan.profileLimit, passPolicyVersion: version } : null;
+  }
   if (version === CURRENT_PASS_POLICY_VERSION) {
     const plan = currentPassPlan(tier);
     return plan ? { ...HONEY_PASS_POLICY[tier], maxCoveredCoin: plan.maxCoveredCoin,

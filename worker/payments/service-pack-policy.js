@@ -1,9 +1,19 @@
 import { FEATURE_KEY_PRICE_TABLE, YEONGNYANGI_PAID_FEATURE_KEYS } from '../lib/paid-feature-registry.js';
 import { paymentError } from './errors.js';
 
-// Sales stay disabled until reviewed prices, uses and validity are entered here.
+// Approved 2026-09-30: same-fish consultations only, 30 days, direct PG purchase.
 // This table is the only source of pack price/quantity; request bodies carry an id only.
-export const SERVICE_PACK_PLANS = Object.freeze({});
+export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
+  ['mackerel', '고등어', [19, 50, 100]],
+  ['salmon', '연어', [6, 17, 33]],
+  ['flounder', '광어', [4, 10, 20]],
+  ['tuna', '참치', [2, 5, 10]],
+].flatMap(([fishId, label, uses]) => ['small', 'medium', 'large'].map((size, index) => [
+  `yeongnyangi-pack-${fishId}-${size}-v1`,
+  Object.freeze({ name: `${label} 세트 ${uses[index]}회`, fishId,
+    priceKRW: [14900, 39900, 79900][index], totalUses: uses[index], validityDays: 30,
+    policyVersion: 'yeongnyangi-pack-20260930' }),
+]))));
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 
 export function servicePackFeatures(fishId) {

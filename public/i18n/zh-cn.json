@@ -821,29 +821,29 @@
       "chipShareReward": "范围外单次付费",
       "plansAria": "通过计划摘要卡",
       "standardName": "标准蜂蜜 30 天",
-      "standardPrice": "30 天 · 14,900 韩元",
+      "standardPrice": "30 天 · 9,900 韩元",
       "standardLine": "5,000韩元级内容",
-      "standardBenefit1": "每月最多40,000韩元",
+      "standardBenefit1": "每月最多20,000韩元",
       "standardBenefit2": "最多 3 个配置文件",
       "standardCta": "查看标准",
       "recommendedAria": "推荐计划",
       "recommendedBadge": "推荐",
       "premiumName": "优质蜂蜜 30 天",
-      "premiumPrice": "30 天 · 39,900 韩元",
+      "premiumPrice": "30 天 · 29,900 韩元",
       "premiumLine": "10,000韩元级内容",
-      "premiumBenefit1": "每月最多 100,000韩元",
+      "premiumBenefit1": "每月最多 60,000韩元",
       "premiumBenefit2": "最多 7 个配置文件",
       "premiumCta": "查看推荐计划",
       "vvipName": "VVIP 蜂蜜罐 30 天",
-      "vvipPrice": "30 天 · 79,900 韩元",
+      "vvipPrice": "30 天 · 59,900 韩元",
       "vvipLine": "30,000韩元级内容",
-      "vvipBenefit1": "每月最多 200,000韩元",
+      "vvipBenefit1": "每月最多 120,000韩元",
       "vvipBenefit2": "最多 15 个配置文件",
       "vvipCta": "查看 VVIP 福利",
       "familyName": "代码命运家庭 30 天",
       "familyPrice": "30 天 · 149,000 韩元",
       "familyLine": "使用权涵盖的全部内容",
-      "familyBenefit1": "每月最多500,000韩元",
+      "familyBenefit1": "每月最多350,000韩元",
       "familyBenefit2": "档案数量不限",
       "familyCta": "查看系列",
       "premiumNote": "如果您常看10,000韩元级内容,高级蜂蜜最为均衡。",
@@ -2193,19 +2193,19 @@
       "packages": {
         "standard": {
           "name": "标准蜂蜜30天",
-          "desc": "30天 · 5,000韩元级内容 · 每月最多40,000韩元 · 最多 3 个配置文件"
+          "desc": "30天 · 5,000韩元级内容 · 每月最多20,000韩元 · 最多 3 个配置文件"
         },
         "premium": {
           "name": "高级蜂蜜30天",
-          "desc": "30天 · 10,000韩元级内容 · 每月最多 100,000韩元 · 最多 7 个配置文件"
+          "desc": "30天 · 10,000韩元级内容 · 每月最多 60,000韩元 · 最多 7 个配置文件"
         },
         "vvip": {
           "name": "VVIP蜂蜜罐30天",
-          "desc": "30天 · 30,000韩元级内容 · 每月最多 200,000韩元 · 最多 15 个配置文件"
+          "desc": "30天 · 30,000韩元级内容 · 每月最多 120,000韩元 · 最多 15 个配置文件"
         },
         "family": {
           "name": "Code Destiny Family 30天",
-          "desc": "30天 · 使用权涵盖的全部内容 · 每月最多500,000韩元 · 档案数量不限"
+          "desc": "30天 · 使用权涵盖的全部内容 · 每月最多350,000韩元 · 档案数量不限"
         }
       },
       "monthlyStatusChecking": "正在确认余额和通行证状态。",

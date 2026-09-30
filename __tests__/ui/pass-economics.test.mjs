@@ -15,13 +15,13 @@ test("approved pass prices keep the chosen coverage and the stress report remain
       { tier, wonPrice, maxCoveredCoin, monthlyLimitCoin }
     )),
     [
-      { tier: "standard", wonPrice: 14900, maxCoveredCoin: 50, monthlyLimitCoin: 400 },
-      { tier: "premium", wonPrice: 39900, maxCoveredCoin: 100, monthlyLimitCoin: 1000 },
-      { tier: "vvip", wonPrice: 79900, maxCoveredCoin: 300, monthlyLimitCoin: 2000 },
-      { tier: "family", wonPrice: 149000, maxCoveredCoin: 999999999, monthlyLimitCoin: 5000 },
+      { tier: "standard", wonPrice: 9900, maxCoveredCoin: 50, monthlyLimitCoin: 200 },
+      { tier: "premium", wonPrice: 29900, maxCoveredCoin: 100, monthlyLimitCoin: 600 },
+      { tier: "vvip", wonPrice: 59900, maxCoveredCoin: 300, monthlyLimitCoin: 1200 },
+      { tier: "family", wonPrice: 149000, maxCoveredCoin: 999999999, monthlyLimitCoin: 3500 },
     ],
   );
-  assert.ok(CURRENT_PASS_PLANS.family.monthlyLimitCoin * 100 >= CURRENT_PASS_PLANS.family.wonPrice * 3);
+  assert.equal(CURRENT_PASS_PLANS.family.monthlyLimitCoin * 100, 350000);
   assert.equal(planningReport.pricingDriver, "tarot-love-relationship");
   assert.equal(planningReport.assumptions.inputTokenCapProvenInCode, true);
   assert.equal(planningReport.assumptions.workersAiInputTokenCapProvenInCode, true);

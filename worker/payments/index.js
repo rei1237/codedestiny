@@ -21,6 +21,7 @@
 import { listCurrentPassOffers } from "../lib/pass-sale-policy.js";
 import {
   CURRENT_PASS_POLICY_VERSION,
+  PREVIOUS_PASS_POLICY_VERSION,
   isPassPolicyMix,
   LEGACY_PASS_POLICY_VERSION,
   PRIOR_PASS_POLICY_VERSION,
@@ -375,8 +376,10 @@ function resolvePassRequest(env, body = {}) {
     throw paymentError("INVALID_SUBSCRIPTION_DURATION", "이용권 기간이 올바르지 않습니다.");
   }
   const planIdHint = String(body.planId || "");
-  const inferredPolicyVersion = planIdHint.endsWith("_v3")
+  const inferredPolicyVersion = planIdHint.endsWith("_v4")
     ? CURRENT_PASS_POLICY_VERSION
+    : planIdHint.endsWith("_v3")
+      ? PREVIOUS_PASS_POLICY_VERSION
     : planIdHint.endsWith("_v2")
       ? PRIOR_PASS_POLICY_VERSION
       : LEGACY_PASS_POLICY_VERSION;
@@ -2057,5 +2060,5 @@ export async function runPaymentsV2Reconcile(env) {
 }
 
 export const __paymentsContextTestUtils = {
-  ROUTES, matchRoute, presentOrder, confirmOrder, evaluateConfirmable, settleVerifiedOrder, contractFor, applyNonPaidPgEvent,
+  ROUTES, matchRoute, resolvePassRequest, presentOrder, confirmOrder, evaluateConfirmable, settleVerifiedOrder, contractFor, applyNonPaidPgEvent,
 };

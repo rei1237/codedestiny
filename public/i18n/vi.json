@@ -821,29 +821,29 @@
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
       "standardName": "Mật ong chuẩn 30 ngày",
-      "standardPrice": "30 ngày · 14.900 KRW",
+      "standardPrice": "30 ngày · 9.900 KRW",
       "standardLine": "Nội dung đến khoảng 5.000 KRW",
-      "standardBenefit1": "Tối đa 40.000 KRW mỗi tháng",
+      "standardBenefit1": "Tối đa 20.000 KRW mỗi tháng",
       "standardBenefit2": "Tối đa 3 hồ sơ",
       "standardCta": "Xem tiêu chuẩn",
       "recommendedAria": "Gói đề xuất",
       "recommendedBadge": "Được đề xuất",
       "premiumName": "Mật ong cao cấp 30 ngày",
-      "premiumPrice": "30 ngày · 39.900 KRW",
+      "premiumPrice": "30 ngày · 29.900 KRW",
       "premiumLine": "Nội dung đến khoảng 10.000 KRW",
-      "premiumBenefit1": "Tối đa 100.000 KRW mỗi tháng",
+      "premiumBenefit1": "Tối đa 60.000 KRW mỗi tháng",
       "premiumBenefit2": "Tối đa 7 hồ sơ",
       "premiumCta": "Xem gói đề xuất",
       "vvipName": "Hũ mật ong VVIP 30 ngày",
-      "vvipPrice": "30 ngày · 79.900 KRW",
+      "vvipPrice": "30 ngày · 59.900 KRW",
       "vvipLine": "Nội dung đến khoảng 30.000 KRW",
-      "vvipBenefit1": "Tối đa 200.000 KRW mỗi tháng",
+      "vvipBenefit1": "Tối đa 120.000 KRW mỗi tháng",
       "vvipBenefit2": "Tối đa 15 hồ sơ",
       "vvipCta": "Xem lợi ích VVIP",
       "familyName": "Mã Định Mệnh Gia Đình 30 ngày",
       "familyPrice": "30 ngày · 149.000 KRW",
       "familyLine": "Toàn bộ nội dung áp dụng gói",
-      "familyBenefit1": "Tối đa 500.000 KRW mỗi tháng",
+      "familyBenefit1": "Tối đa 350.000 KRW mỗi tháng",
       "familyBenefit2": "Hồ sơ không giới hạn",
       "familyCta": "Xem gia đình",
       "premiumNote": "Premium Honey cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
@@ -2193,19 +2193,19 @@
       "packages": {
         "standard": {
           "name": "Mật Ong Tiêu Chuẩn 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 40.000 KRW mỗi tháng · Tối đa 3 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 20.000 KRW mỗi tháng · Tối đa 3 hồ sơ"
         },
         "premium": {
           "name": "Mật Ong Cao Cấp 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 100.000 KRW mỗi tháng · Tối đa 7 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 60.000 KRW mỗi tháng · Tối đa 7 hồ sơ"
         },
         "vvip": {
           "name": "Hũ Mật Ong VVIP 30 Ngày",
-          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 200.000 KRW mỗi tháng · Tối đa 15 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 30.000 KRW · Tối đa 120.000 KRW mỗi tháng · Tối đa 15 hồ sơ"
         },
         "family": {
           "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 500.000 KRW mỗi tháng · Hồ sơ không giới hạn"
+          "desc": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 350.000 KRW mỗi tháng · Hồ sơ không giới hạn"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",

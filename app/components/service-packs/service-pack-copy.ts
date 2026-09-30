@@ -2,8 +2,9 @@ import type {LoadingLocale} from '@/constants/loadingMessages';
 
 const COPY={
   "ko": {
+    "scope": "{fish} 상담 전용 · {days}일 · 총 {total}회",
     "title": "영냥이 전용 이용권",
-    "intro": "연이가 단골을 위한 생선 세트를 마련했어요. 같은 생선의 상담에 1회씩 사용할 수 있어요.",
+    "intro": "연이가 단골을 위한 생선 세트를 마련했어요. 선택한 생선 상담에만 1회씩 사용할 수 있어요. 다른 생선과 융합 상담에는 사용할 수 없어요.",
     "owned": "내 전용 이용권",
     "empty": "보유한 전용 이용권이 없어요.",
     "unavailable": "보유 상태를 확인하지 못했어요. 다시 확인해 주세요.",
@@ -50,6 +51,7 @@ const COPY={
     "resumeAtShop": "상점에서 기존 주문 이어가기"
   },
   "en": {
+    "scope": "{fish} consultations only · {days} days · {total} uses",
     "title": "Yeongnyangi consultation passes",
     "intro": "Yeoni has prepared fish sets for returning guests. Each use opens one consultation with the same fish tier.",
     "owned": "My consultation passes",
@@ -98,6 +100,7 @@ const COPY={
     "resumeAtShop": "Continue this order in the shop"
   },
   "ja": {
+    "scope": "{fish}の相談専用 · {days}日 · 全{total}回",
     "title": "ヨンニャンイ専用利用券",
     "intro": "ヨニが常連さん向けに魚のセットを用意しました。同じ魚の相談に1回ずつ使えます。",
     "owned": "保有している専用利用券",
@@ -146,6 +149,7 @@ const COPY={
     "resumeAtShop": "ショップで同じ注文を続ける"
   },
   "zh-CN": {
+    "scope": "仅限{fish}咨询 · {days}天 · 共{total}次",
     "title": "灵猫专用咨询券",
     "intro": "妍伊为老朋友准备了鱼套餐。同一种鱼的咨询，每次使用1次。",
     "owned": "我的专用咨询券",
@@ -194,6 +198,7 @@ const COPY={
     "resumeAtShop": "在商店继续原订单"
   },
   "zh-TW": {
+    "scope": "僅限{fish}諮詢 · {days}天 · 共{total}次",
     "title": "靈貓專用諮詢券",
     "intro": "妍伊為老朋友準備了魚套餐。同一種魚的諮詢，每次使用1次。",
     "owned": "我的專用諮詢券",
@@ -242,6 +247,7 @@ const COPY={
     "resumeAtShop": "在商店繼續原訂單"
   },
   "vi": {
+    "scope": "Chỉ tư vấn {fish} · {days} ngày · {total} lượt",
     "title": "Vé tư vấn riêng Yeongnyangi",
     "intro": "Yeoni chuẩn bị các bộ cá cho khách quen. Mỗi lượt mở một bài tư vấn cùng hạng cá.",
     "owned": "Vé tư vấn của tôi",
@@ -290,6 +296,7 @@ const COPY={
     "resumeAtShop": "Tiếp tục đơn này tại cửa hàng"
   },
   "hi": {
+    "scope": "केवल {fish} परामर्श · {days} दिन · {total} उपयोग",
     "title": "योंगन्यांगी के परामर्श पास",
     "intro": "योनी ने नियमित मेहमानों के लिए मछली सेट तैयार किए हैं। हर उपयोग से उसी मछली स्तर का एक परामर्श खुलता है।",
     "owned": "मेरे परामर्श पास",
@@ -338,6 +345,7 @@ const COPY={
     "resumeAtShop": "दुकान में यही ऑर्डर जारी रखें"
   },
   "es": {
+    "scope": "Solo consultas {fish} · {days} días · {total} usos",
     "title": "Pases de consulta de Yeongnyangi",
     "intro": "Yeoni preparó lotes de pescado para quienes regresan. Cada uso abre una consulta del mismo nivel de pescado.",
     "owned": "Mis pases de consulta",
@@ -386,6 +394,7 @@ const COPY={
     "resumeAtShop": "Continuar este pedido en la tienda"
   },
   "fr": {
+    "scope": "Consultations {fish} uniquement · {days} jours · {total} utilisations",
     "title": "Pass de consultation Yeongnyangi",
     "intro": "Yeoni a préparé des lots de poissons pour les habitués. Chaque utilisation ouvre une consultation du même niveau de poisson.",
     "owned": "Mes pass de consultation",
@@ -434,6 +443,7 @@ const COPY={
     "resumeAtShop": "Reprendre cette commande dans la boutique"
   },
   "de": {
+    "scope": "Nur {fish}-Beratungen · {days} Tage · {total} Nutzungen",
     "title": "Yeongnyangi-Beratungspässe",
     "intro": "Yeoni hat Fischpakete für Stammgäste vorbereitet. Jede Nutzung öffnet eine Beratung derselben Fischstufe.",
     "owned": "Meine Beratungspässe",
@@ -482,6 +492,7 @@ const COPY={
     "resumeAtShop": "Diese Bestellung im Shop fortsetzen"
   },
   "nl": {
+    "scope": "Alleen {fish}-consulten · {days} dagen · {total} keer",
     "title": "Yeongnyangi-consultatiepassen",
     "intro": "Yeoni heeft vispakketten voor vaste gasten klaargezet. Elk gebruik opent één consultatie van hetzelfde visniveau.",
     "owned": "Mijn consultatiepassen",
@@ -530,6 +541,7 @@ const COPY={
     "resumeAtShop": "Deze bestelling in de winkel hervatten"
   },
   "ms": {
+    "scope": "Konsultasi {fish} sahaja · {days} hari · {total} penggunaan",
     "title": "Pas konsultasi Yeongnyangi",
     "intro": "Yeoni menyediakan set ikan untuk tetamu tetap. Setiap penggunaan membuka satu konsultasi bagi tahap ikan yang sama.",
     "owned": "Pas konsultasi saya",

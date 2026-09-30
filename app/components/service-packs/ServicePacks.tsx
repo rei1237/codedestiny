@@ -124,15 +124,16 @@ export function ServicePackShop({locale}:{locale:LoadingLocale}){
  return <section id="fish-packs" className={styles.section} aria-labelledby="fish-packs-title">
   <header><h2 id="fish-packs-title">{copy.title}</h2><p>{copy.intro}</p></header>
   <p className={styles.policy}>{divisor&&divisor>1?alliance.moonstoneValue(divisor):null} {policy.policyLine2}</p>
-  {catalog.loading?<p role="status">{copy.loading}</p>:catalog.error?<p role="alert">{copy.unavailable} <button type="button" onClick={()=>void refreshCatalog()}>{copy.retry}</button></p>:<ul className={styles.plans}>
-   {catalog.plans.map(item=>{const savings=item.unitPriceKRW*item.totalUses-item.priceKRW;return <li key={item.planId}>
+  {catalog.loading?<p role="status">{copy.loading}</p>:catalog.error?<p role="alert">{copy.unavailable} <button type="button" onClick={()=>void refreshCatalog()}>{copy.retry}</button></p>:[...new Set(catalog.plans.map(item=>item.fishId))].map(fishId=><section key={fishId} className={styles.fishGroup} aria-labelledby={`fish-pack-${fishId}`}>
+   <h3 id={`fish-pack-${fishId}`}>{localizedTier(fishId,locale)}</h3><ul className={styles.plans}>
+   {catalog.plans.filter(item=>item.fishId===fishId).map(item=>{const savings=item.unitPriceKRW*item.totalUses-item.priceKRW;return <li key={item.planId}>
     <Image src={SERVICE_PACK_IMAGES[item.fishId]} alt="" width={240} height={240} sizes="(max-width:520px) 104px, 180px" loading="lazy"/>
-    <h3>{item.label}</h3><strong className={styles.price}>{won(item.priceKRW,locale)}</strong><p>{packText(copy.remaining,{total:item.totalUses,remaining:item.totalUses})}</p>
-    <p>{packText(copy.durationLabel,{days:item.validityDays})}</p><p className={styles.systems}>{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
+    <h4>{item.label}</h4><strong className={styles.price}>{won(item.priceKRW,locale)}</strong><p>{packText(copy.remaining,{total:item.totalUses,remaining:item.totalUses})}</p>
+    <p>{packText(copy.scope,{fish:localizedTier(item.fishId,locale),days:item.validityDays,total:item.totalUses})}</p><p className={styles.systems}>{copy.eligible}: {eligibleNames(item.eligibleFeatureKeys,locale)}</p>
     {savings>0&&<p>{packText(copy.savings,{total:item.totalUses,amount:won(savings,locale)})}</p>}
     <div className={styles.planActions}><button type="button" aria-pressed={selected===item.planId&&purchaseType==='SELF'} disabled={busy||Boolean(pendingOrder)} onClick={()=>{setSelected(item.planId);setPurchaseType('SELF');setConsent(false);}}>{copy.selfPurchase}</button>{catalog.giftEnabled&&<button type="button" aria-pressed={selected===item.planId&&purchaseType==='GIFT'} disabled={busy||Boolean(pendingOrder)||isMobileAppRuntime()} onClick={()=>{setSelected(item.planId);setPurchaseType('GIFT');setConsent(false);}}>{copy.giftPurchase}</button>}</div>
    </li>;})}
-  </ul>}
+  </ul></section>)}
   {plan&&!pendingOrder&&<div className={styles.purchase} ref={purchaseRef} tabIndex={-1} aria-labelledby="service-pack-purchase-title">
    <h3 id="service-pack-purchase-title">{plan.label} · {won(plan.priceKRW,locale)} · {purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</h3>
    <p>{packText(purchaseType==='GIFT'?copy.giftUsagePeriod:copy.validity,{days:plan.validityDays})}</p>

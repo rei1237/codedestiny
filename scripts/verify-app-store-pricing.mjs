@@ -20,7 +20,7 @@ import {
   resolveAppContentTier,
 } from "../worker/lib/app-store-pricing.js";
 import { PASS_LIMITS } from "../worker/lib/profile-limits.js";
-import { CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_PLANS, PRIOR_PASS_POLICY_VERSION } from "../lib/payment/pass-policy.js";
+import { PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_PLANS, CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_PLANS, PRIOR_PASS_POLICY_VERSION } from "../lib/payment/pass-policy.js";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -111,7 +111,9 @@ for (const pass of listAppPassProducts()) {
 for (const pass of listAppPassProducts()) {
   const versionedPlan = pass.passPolicyVersion === CURRENT_PASS_POLICY_VERSION
     ? CURRENT_PASS_PLANS[pass.passTier]
-    : pass.passPolicyVersion === PRIOR_PASS_POLICY_VERSION
+    : pass.passPolicyVersion === PREVIOUS_PASS_POLICY_VERSION
+      ? PREVIOUS_PASS_PLANS[pass.passTier]
+      : pass.passPolicyVersion === PRIOR_PASS_POLICY_VERSION
       ? PRIOR_PASS_PLANS[pass.passTier]
       : null;
   const webLimit = versionedPlan?.maxCoveredCoin ?? PASS_LIMITS[pass.passTier];

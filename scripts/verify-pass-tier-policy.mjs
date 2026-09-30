@@ -43,7 +43,7 @@ import { listAppPassProducts } from "../worker/lib/app-store-pricing.js";
 import { listProducts } from "../worker/payments/catalog.js";
 import { PASS_MONTHLY_WON } from "../lib/payment/pass-pricing.js";
 import {
-  CURRENT_PASS_PLANS,
+  PREVIOUS_PASS_PLANS, PREVIOUS_PASS_POLICY_VERSION, CURRENT_PASS_PLANS,
   CURRENT_PASS_POLICY_VERSION,
   PRIOR_PASS_PLANS,
   PRIOR_PASS_POLICY_VERSION,
@@ -214,9 +214,10 @@ function extractAll(label, source, patternFor) {
 
 // 사본 1 — 앱 SKU 테이블(모듈이라 직접 읽는다)
 const allAppPasses = listAppPassProducts();
-check("신규 v3 3개·직전 v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 10, `실제=${allAppPasses.length}`);
+check("신규 v4 3개·v3 3개·v2 3개·기존 4개 앱 SKU 보존", allAppPasses.length === 13, `실제=${allAppPasses.length}`);
 for (const [version, plans] of [
   [CURRENT_PASS_POLICY_VERSION, CURRENT_PASS_PLANS],
+  [PREVIOUS_PASS_POLICY_VERSION, PREVIOUS_PASS_PLANS],
   [PRIOR_PASS_POLICY_VERSION, PRIOR_PASS_PLANS],
 ]) {
   const versioned = allAppPasses.filter(pass => pass.passPolicyVersion === version);

@@ -6,7 +6,7 @@ import { grantEntitlement } from "../../worker/payments/entitlements.js";
 import { CONTENT_ENTITLEMENT_STATUSES } from "../../worker/lib/models.js";
 import { createOrder, createPayableOrder, markOrderPaid } from "../../worker/payments/orders.js";
 import { evaluatePassCoverage } from "../../worker/payments/passes.js";
-import { CURRENT_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
+import { CURRENT_PASS_POLICY_VERSION, PREVIOUS_PASS_POLICY_VERSION, PRIOR_PASS_POLICY_VERSION, LEGACY_PASS_POLICY_VERSION } from "../../lib/payment/pass-policy.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
 
 const USER = "507f1f77bcf86cd799439011";
@@ -32,7 +32,8 @@ test("대운 신규 해금은 5,000원·월정석 500이며 앱도 같은 가격
 test.each([
   [LEGACY_PASS_POLICY_VERSION, 300],
   [PRIOR_PASS_POLICY_VERSION, 200],
-  [CURRENT_PASS_POLICY_VERSION, 400],
+  [PREVIOUS_PASS_POLICY_VERSION, 400],
+  [CURRENT_PASS_POLICY_VERSION, 200],
 ])("%s 스탠다드는 대운을 커버하지만 잔여 한도는 새 가격을 따른다", (passPolicyVersion, budgetCoin) => {
   const expiresAt = new Date(Date.now() + 86400000).toISOString();
   const entitlement = { isActive: true, tier: "standard", expiresAt };
