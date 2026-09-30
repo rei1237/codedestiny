@@ -63,7 +63,7 @@ const GLOBAL_HEADER_COPY: Record<LoadingLocale, {
     menu: "메뉴",
     auth: "인증",
     policyLinks: "정책 링크",
-    brandTagline: "사주 달빛정원",
+    brandTagline: "꿀꿀 운세",
   },
   en: {
     nav: { "/index.html": "Home", "/insights": "Insights", "/privacy": "Privacy", "/terms": "Terms", "/contact": "Contact", "/about": "About", "/disclaimer": "Disclaimer", "/advertising-policy": "Advertising Policy", "/editorial-policy": "Editorial Policy", "/methodology": "Content Methodology" },

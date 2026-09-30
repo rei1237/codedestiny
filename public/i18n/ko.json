@@ -53,7 +53,7 @@
       "ziwei": "자미두수",
       "vedic": "베다점",
       "astrology": "점성술",
-      "brandAlias": "사주 달빛정원",
+      "brandAlias": "꿀꿀 운세",
       "mainAria": "메인 서비스 바로가기",
       "astrologyHub": "점성술",
       "astrologyHubAria": "점성술 허브",
@@ -1282,7 +1282,7 @@
       "consultNavAria": "추천 상담 살펴보기"
     },
     "searchEntry": {
-      "title": "꿀꿀운세",
+      "title": "꿀꿀 운세",
       "fusion": "오늘의 나를 읽는 시간",
       "intro": "오늘의 마음에, 다정한 방향 하나",
       "lead": "오늘의 운세와 타로 세 장, 연이와 무료로 시작해요.",
@@ -3531,7 +3531,7 @@
     "sq_9794_attr_aria_label": "숙요 인연 레이더 차트"
   },
   "shell": {
-    "CODEDESTINY": "꿀꿀 운세 | 사주 달빛정원 — 연이·네오 운세 상담",
+    "CODEDESTINY": "꿀꿀 운세 | 연이·네오 사주·타로 상담",
     "cdCookieConsentCopy": {
       "cdCookieConsentActions": {
         "kniuoqf": "동의하기",

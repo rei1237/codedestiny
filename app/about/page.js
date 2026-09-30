@@ -1,3 +1,4 @@
+import PressCoverage from "../components/PressCoverage";
 import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import { trustRoutes } from "../../lib/i18n/public-trust-copy.mjs";
 import Link from "next/link";
@@ -212,6 +213,7 @@ export default function AboutPage() {
           <Link href="/contact" className="cd-chip">{aboutPageText("docs.contact")}</Link>
         </div>
       </section>
+      <PressCoverage />
     </main>
   );
 }

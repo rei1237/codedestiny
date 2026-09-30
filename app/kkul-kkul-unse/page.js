@@ -1,3 +1,5 @@
+import { PRESS_COVERAGE } from "../../lib/seo/press-coverage.mjs";
+import PressCoverage from "../components/PressCoverage";
 import Link from "next/link";
 import styles from "../home-cosmic.module.css";
 import { siteSeo } from "../../lib/seo/siteSeo";
@@ -131,6 +133,7 @@ const webPageJsonLd = {
   "@id": `${PAGE_URL}#webpage`,
   url: PAGE_URL,
   name: SEO.title,
+  citation: PRESS_COVERAGE.url,
   description: SEO.description,
   inLanguage: "ko-KR",
   isPartOf: {
@@ -231,6 +234,7 @@ export default function KkulKkulUnsePage() {
         </div>
       </section>
 
+      <PressCoverage />
       <section className={styles.sectionBand} aria-labelledby="brandHistoryHeading">
         <div className={styles.sectionHeader}>
           <p className={styles.sectionKicker}>Brand Story</p>

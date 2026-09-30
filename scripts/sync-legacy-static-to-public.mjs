@@ -700,7 +700,7 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
 }
 
 const GGULGGUL_SHELL_SEO = {
-  title: "꿀꿀 운세 | 사주 달빛정원 — 연이·네오·영냥이 운세 상담",
+  title: "꿀꿀 운세 | 연이·네오 사주·타로 상담",
   description:
     "꿀꿀 운세에서 꽃돼지 연이와 네오의 사주·타로 상담을 둘러보고, 같은 Code Destiny 안의 영냥이 달빛 점술방에서 지금의 질문을 편하게 이어 보세요.",
   canonicalUrl: "https://code-destiny.com/ggulggul/",

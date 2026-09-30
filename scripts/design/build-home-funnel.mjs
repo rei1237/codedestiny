@@ -1,3 +1,4 @@
+import { renderPressCoverageHtml } from "../../lib/seo/press-coverage.mjs";
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parse } from 'parse5';
 import { FEATURE_KEY_PRICE_TABLE } from '../../worker/lib/paid-feature-registry.js';
@@ -44,6 +45,7 @@ const nodes = {
 };
 
 const vars = Object.fromEntries(Object.entries(nodes).map(([key, node]) => [key, htmlOf(node, key)]));
+vars.pressCoverage = renderPressCoverageHtml();
 const won = value => Number(value).toLocaleString('ko-KR') + '원';
 vars.pass = `<section class="cdh-pass" aria-labelledby="cdhPassTitle" data-design-marker="moonlight-pass-banner-v20260626">
   <div class="cdh-pass__intro">

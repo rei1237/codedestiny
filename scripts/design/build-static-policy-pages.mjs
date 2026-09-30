@@ -49,7 +49,8 @@ const compiled = require(outfile);
 const escape = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const compiledCssPath = path.join(cache, 'pages.css');
 const styles = (fs.existsSync(compiledCssPath) ? fs.readFileSync(compiledCssPath, 'utf8') + '\n' : '')
-  + fs.readFileSync('styles/static-policy.css', 'utf8');
+  + fs.readFileSync('styles/static-policy.css', 'utf8')
+  + fs.readFileSync('styles/press-coverage.css', 'utf8');
 fs.mkdirSync('public/styles', { recursive: true });
 fs.mkdirSync('public/js', { recursive: true });
 fs.writeFileSync('public/styles/static-policy.css', styles);
