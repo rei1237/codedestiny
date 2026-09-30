@@ -247,6 +247,16 @@ test("the preview smoke only forgives 404s that cannot be app defects", () => {
   assert.equal(ignorable(line(`https://${previewHost}/cdn-cgi/rum?`)), true, "Cloudflare RUM 404 를 실패로 봅니다");
   assert.equal(ignorable(line(`https://${previewHost}/api/health`)), true, "정적 전용 프리뷰의 /api 404 를 실패로 봅니다");
   assert.equal(ignorable(line("https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2")), true, "교차 출처 404 를 실패로 봅니다");
+  assert.equal(
+    ignorable(line(`https://${previewHost}/ggulggul/index.txt?_rsc=3lb4g`)),
+    true,
+    "Pages preview 의 Next RSC 보조 404 를 실패로 봅니다",
+  );
+  assert.equal(
+    ignorable(line(`https://${previewHost}/ggulggul/index.txt`)),
+    false,
+    "_rsc 없는 같은 출처 index.txt 404 를 무시합니다",
+  );
 
   // 출처를 모르면 무시하지 않는다(fail-closed).
   assert.equal(ignorable("Failed to load resource: the server responded with a status of 404 ()"), false, "URL 없는 404 를 무시합니다");
@@ -267,6 +277,15 @@ test("the preview smoke only forgives 404s that cannot be app defects", () => {
   const pagesNoise = extractFunctionSource(smoke, "function isExpectedPagesPreviewNoise(value) {");
   assert.ok(!/status of 404/.test(corsNoise), "isExpectedPreviewCorsNoise 에 무제한 404 규칙이 남아 있습니다");
   assert.ok(!/status of 404/.test(pagesNoise), "isExpectedPagesPreviewNoise 에 무제한 404 규칙이 남아 있습니다");
+});
+
+test("asset smoke retries page.content only for navigation churn", () => {
+  assert.ok(smoke.includes("async function stablePageContent(page)"), "page.content 경합 완화 함수가 없습니다");
+  assert.ok(smoke.includes("await stablePageContent(page)"), "자산 검사가 안정화된 HTML 읽기를 사용하지 않습니다");
+  assert.ok(
+    /page is navigating and changing the content/i.test(smoke),
+    "page.content 네비게이션 경합만 재시도하도록 고정되어 있지 않습니다",
+  );
 });
 
 // 🔴 콜드스타트 5xx 한 건이 무관한 커밋을 롤백시키던 구멍의 회귀 가드 (2026-09-03).

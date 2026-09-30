@@ -48,10 +48,12 @@ function isExpectedFontNoise(value) {
  * 초록불**을 냈다. 실제로 그날 릴리스는 프리뷰 PASS → 승격 → 커스텀 도메인에서
  * `/js/services/destiny-flower-engine.js` 404 로 FAIL → 자동 롤백이었다. 관문이 뒤에 있었다.
  *
- * 프리뷰 호스트에서 404 가 정상인 것은 셋뿐이다:
+ * 프리뷰 호스트에서 404 가 정상인 것은 넷뿐이다:
  *   · 교차 출처 — assets.code-destiny.com 등. 프리뷰 배포본에 없는 것이 정상이다.
  *   · /cdn-cgi/* — Cloudflare RUM·beacon. 프리뷰 배포에는 붙지 않는다.
  *   · /api/* — 프리뷰 Pages 배포는 정적 전용이라 워커 라우트가 없다(deploy-safe.mjs:793-795).
+ *   · /<route>/index.txt?_rsc=* — Next/App Router 전환 보조 요청. 정적 Pages preview 에서는
+ *     존재하지 않는 텍스트 페이로드지만, 실제 JS/CSS/이미지 자산 누락과는 별개다.
  * 그 밖의 같은 출처 404 는 진짜 결함이므로 **승격 전에** 실패로 잡는다.
  *
  * 출처를 판정할 URL 이 문자열에 없으면 무시하지 않는다(fail-closed).
@@ -66,7 +68,8 @@ function isIgnorablePreview404(value) {
     try {
       const parsed = new URL(raw);
       if (parsed.hostname.toLowerCase() !== smokeHost) return true;
-      return parsed.pathname.startsWith("/api/");
+      if (parsed.pathname.startsWith("/api/")) return true;
+      return parsed.pathname.endsWith("/index.txt") && parsed.searchParams.has("_rsc");
     } catch {
       return false;
     }
@@ -180,7 +183,7 @@ function imageResizingOriginalPath(pathname) {
 }
 
 async function checkAssets(page) {
-  const html = await page.content();
+  const html = await stablePageContent(page);
   const paths = [...new Set([...html.matchAll(/(?:src|href)=[\"'](\/[^\"'#?]+)[\"']/gi)].map((m) => m[1]))]
     .filter((item) => /\.(?:js|css|woff2?|png|jpg|jpeg|webp|svg|ico)$/i.test(item))
     .slice(0, 40);
@@ -205,6 +208,19 @@ async function checkAssets(page) {
     }
   }
   if (!paths.length) fail("no local JS/CSS/static assets found in HTML");
+}
+
+async function stablePageContent(page) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await page.content();
+    } catch (error) {
+      if (!/page is navigating and changing the content/i.test(String(error?.message || "")) || attempt === 1) throw error;
+      await page.waitForLoadState("domcontentloaded", { timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(250);
+    }
+  }
+  throw new Error("page content could not be read after navigation settled");
 }
 
 async function checkPages() {
