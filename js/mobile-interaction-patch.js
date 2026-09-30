@@ -1357,7 +1357,7 @@
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js?v=build-ccced4ad1688'
     ],
-    openHwatuModal: ['HwatuFortune.js?v=h9ee7eacf3957'],
+    openHwatuModal: ['HwatuFortune.js?v=h7c6f7751f293'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
     openTarotLoveModal: ['js/tarot-love-experience.js?v=build-ccced4ad1688'],
