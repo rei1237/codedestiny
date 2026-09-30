@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import Image from "next/image";
+import { type CSSProperties } from "react";
+import LandingPig from "./LandingPig";
 import { Clock3, DoorOpen, Sparkles } from "lucide-react";
-import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
-import { fortuneTeaHouseAssets, talkingPigYeoniFrameCrops } from "../data/assets";
-import { pigSpriteFrameStyle } from "../lib/pigSpriteStyle";
+import { fortuneTeaHouseAssets } from "../data/assets";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import TeaHouseButton from "./TeaHouseButton";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -17,16 +15,15 @@ type FortuneTeaHouseLandingProps = {
   onShowHistory: () => void;
 };
 
-/** 랜딩에서 돌려 보여 주는 마스코트 프레임. 크롭 표에서 이 순서로 꺼낸다. */
-const TALKING_PIG_FRAME_IDS = ["welcome", "thinking", "surprised"] as const;
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다(없으면 이 문구가 그대로 남는다). */
 const KO = {
-  // 순서가 talkingPigFrames 와 1:1 이다 — 프레임이 바뀌면 여기도 같이 바꿀 것.
+  // 긴 네 번째 대사는 노출 간격과 횟수를 제한한다.
   speeches: [
     "어서 오세요. 오늘의 마음은 제가 먼저 따뜻하게 데워둘게요.",
     "질문은 천천히 꺼내도 괜찮아요. 찻잎은 마음의 속도를 기다릴 줄 알아요.",
     "달빛이 조금 더 가까워졌어요. 지금의 흐름을 함께 살펴볼까요?",
+    "남자친구? 성공해서 꿀 빨게 해주겠다면서 집 나갔는데, 언젠가 돌아올 거라고 나는 믿고 있어!",
   ],
   title: "운명의 찻집",
   leadTop: "달빛 골목 끝에서 문이 열립니다.",
@@ -92,35 +89,6 @@ const landingGuideCardStyle: CSSProperties = {
 
 export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onReplayPrologue, onShowHistory }: FortuneTeaHouseLandingProps) {
   const copy = useTeaHouseCopy("landing", KO);
-  const pigGate = useSpritePlaybackGate<HTMLSpanElement>();
-  const [activePigFrame, setActivePigFrame] = useState(0);
-  const [usePigFallback, setUsePigFallback] = useState(false);
-  const [usePigSingleFallback, setUsePigSingleFallback] = useState(false);
-  // 스프라이트 좌표는 그대로 쓰고, alt 로 나가는 문구만 사전을 태운다.
-  const crops = useTeaHouseCopy("pigFrames", talkingPigYeoniFrameCrops);
-  const talkingPigFrames = useMemo(() => TALKING_PIG_FRAME_IDS.map((id) => crops[id]), [crops]);
-  const activePig = talkingPigFrames[activePigFrame] || talkingPigFrames[0]!;
-  const activePigSrc = usePigSingleFallback
-    ? fortuneTeaHouseAssets.cutout.flowerPig
-    : usePigFallback
-      ? activePig.fallbackSrc
-      : activePig.src;
-
-  useEffect(() => {
-    if (!pigGate.canAnimate) {
-      setActivePigFrame(0);
-      return undefined;
-    }
-    const timer = window.setInterval(() => {
-      setActivePigFrame((current) => (current + 1) % talkingPigFrames.length);
-    }, 3400);
-    return () => window.clearInterval(timer);
-  }, [pigGate.canAnimate]);
-
-  useEffect(() => {
-    setUsePigFallback(false);
-    setUsePigSingleFallback(false);
-  }, [activePigFrame]);
 
   return (
     <section className={`${styles.landingScene} ${landingSceneUi}`} aria-labelledby="fortuneTeaHouseTitle">
@@ -180,35 +148,7 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
             </button>
           </div>
 
-          <div className={styles.landingVisual} aria-label={copy.visualAria}>
-            <span className={styles.landingPigAura} aria-hidden />
-            <div className={styles.landingSpeechWrap} role="note">
-              <span className={styles.landingSpeechOrnament} aria-hidden />
-              <p>{copy.speeches[activePigFrame] || copy.speeches[0]}</p>
-            </div>
-            <span
-              ref={pigGate.ref}
-              className={`${styles.landingPigMascot} ${usePigSingleFallback ? "" : styles.pigSpriteFrame}`}
-              style={pigSpriteFrameStyle(activePig)}
-            >
-              <Image
-                className={usePigSingleFallback ? styles.landingPigSingleImage : styles.pigSpriteSheet}
-                src={activePigSrc}
-                alt={activePig.label}
-                fill
-                sizes="(max-width: 640px) 48vw, 24vw"
-                loading="lazy"
-                unoptimized
-                onError={() => {
-                  if (!usePigFallback && !usePigSingleFallback) {
-                    setUsePigFallback(true);
-                    return;
-                  }
-                  setUsePigSingleFallback(true);
-                }}
-              />
-            </span>
-          </div>
+          <LandingPig speeches={copy.speeches} visualAria={copy.visualAria} />
         </div>
       </div>
       <div className={landingGuideUi} aria-label={copy.guideAria}>
