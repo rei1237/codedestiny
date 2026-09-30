@@ -38,6 +38,7 @@ export default function Layout({children}:{children:ReactNode}){
  usePortalArrival(pathname);
  const {siteLocale}=useReadingLanguage();
  const copy=chromeCopy(siteLocale);
- if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/'].includes(pathname || ''))return children;
+ const pagePath=(pathname || '').replace(/\/index\.html$/, '/');
+ if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/'].includes(pagePath))return children;
  return <main className={styles.page} data-yn-night lang={siteLocale}><nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div><a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{copy.library}</a><a href={`/?lang=${siteLocale}`}>CODE DESTINY</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>{children}<footer className={styles.footer}><p>Yeongnyangi · CODE DESTINY</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
 }
