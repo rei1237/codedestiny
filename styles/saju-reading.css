@@ -151,4 +151,3 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 #resultPage .saju-letter .saju-reading__evidence:focus-within {outline:2px solid var(--reading-accent);outline-offset:4px;}
 
 #resultPage .saju-letter[data-reading-mode="neo"] .saju-letter__prose {font-family:inherit;}
-
