@@ -106,6 +106,16 @@ function makeNativeDb(session) { return {
 }; }
 const nativeDb = makeNativeDb();
 
+// The same request-scoped adapter keeps pack proof checks on the caller's session.
+export async function findYeongnyangiServicePackEvidence({row,userId,session=null,commitMarker=''}) {
+  const {findServicePackUseEvidence}=await import('../payments/service-packs.js');
+  return findServicePackUseEvidence(makeNativeDb(session),{userId,requestId:'yn-'+row._id,featureKey:row.featureKey,commitMarker});
+}
+export async function refundYeongnyangiServicePack({userId,requestId}) {
+  const {restoreFailedServicePackUse}=await import('../payments/service-packs.js');
+  return restoreFailedServicePackUse(nativeDb,{userId,requestId:'yn-'+requestId});
+}
+
 // Reuse the existing scoped native transaction adapter for one terminal refund.
 export async function refundYeongnyangiMoonstone(input) {
   const {refundTerminalMoonstone}=await import('../yeongnyangi/moonstone-refund.js');

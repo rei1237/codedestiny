@@ -77,6 +77,9 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   PURCHASE_POLICY_DENIED: { status: 403 },
 
   // 404 — 대상이 없다.
+  SERVICE_PACK_NOT_COVERED: { status: 402 },
+  SERVICE_PACK_EXHAUSTED: { status: 402 },
+  SERVICE_PACK_EXPIRED: { status: 402 },
   PRODUCT_NOT_FOUND: { status: 404 },
   ORDER_NOT_FOUND: { status: 404 },
 

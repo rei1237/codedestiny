@@ -1394,6 +1394,10 @@ const app = {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
         }
+        if (url.pathname.startsWith("/api/payments/service-packs/")) {
+          const { handlePaymentsContext } = await import("./payments/index.js");
+          return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));
+        }
         if (url.pathname.startsWith("/api/payments/gifts/")) {
           const { handlePaymentsContext } = await import("./payments/index.js");
           return withCorsHeaders(request, env, await handlePaymentsContext(request, env, { prefix: "/api/payments" }));

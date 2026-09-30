@@ -41,6 +41,7 @@ import { classify, contractFor, paymentError, responseHeadersFor } from "./error
 import { createPaymentContext, toObjectId, withPaymentDb } from "./db.js";
 import { logPayment } from "./log.js";
 import { listProducts, resolveProduct } from "./catalog.js";
+import { createServicePackRoutes } from "./service-pack-routes.js";
 import { verifyPgPayment } from "./pg.js";
 import { isLegacySingleOrderId } from "./order-id.js";
 import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, revokeEntitlementForOrder } from "./entitlements.js";
@@ -752,7 +753,7 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "" }) {
   }
   if (status === "PAID") {
     // 재생. PG 를 다시 부르지 않는다 — PortOne 지연이 확정 경로의 지배적 비용이다.
-    const executionMissing = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
+    const executionMissing = order.paymentType === "digital_content" && order.purchaseType !== "GIFT" && isPerUseFeatureKey(order.featureKey)
       && order.metadata?.purchaseGrantVersion !== 1;
     return { order, replayed: true, granted: Boolean(order.entitlementGrantedAt) && !executionMissing, settled: true };
   }
@@ -802,10 +803,20 @@ async function settleVerifiedOrder(db, ctx, { order, pg }) {
  */
 async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {}) {
   const { withDb, deps = {}, afterSettle } = options;
-  const begun = options.begun
-    || await withDb(env, ctx, async (db) => evaluateConfirmable(ctx, await findOrder(db, { orderId }), { orderId, actorUserId }));
+  const begun = options.begun || await withDb(env,ctx,async db=>{
+    const order=await findOrder(db,{orderId});
+    if(options.request&&order?.purchaseType==='GIFT'&&order.pricingSnapshot?.fulfillmentType==='service_pack') {
+      const {assertGiftOrigin}=await import('./gift-routes.js');
+      assertGiftOrigin(options.request,env);
+    }
+    return evaluateConfirmable(ctx,order,{orderId,actorUserId});
+  });
 
   if (begun.settled) {
+    if(begun.order.pricingSnapshot?.fulfillmentType==='service_pack') {
+      const {assertServicePackPurchaseActive}=await import('./service-packs.js');
+      await withDb(env,ctx,db=>assertServicePackPurchaseActive(db,begun.order,{requireEntitlement:begun.granted}));
+    }
     if (!begun.granted) begun.granted = await withDb(env, ctx, db => grantOrderEntitlement(db, begun.order));
     if (afterSettle) await withDb(env, ctx, (db) => afterSettle(db, begun));
     if(env.YEONGNYANGI_QUEUE && /^yn-[a-f0-9]{64}$/.test(begun.order?.requestId || '')) {
@@ -832,6 +843,10 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
 
   const settled = await withDb(env, ctx, async (db) => {
     const result = await settleVerifiedOrder(db, ctx, { order: begun.order, pg });
+    if(result.granted&&result.order.pricingSnapshot?.fulfillmentType==='service_pack') {
+      const {assertServicePackPurchaseActive}=await import('./service-packs.js');
+      await assertServicePackPurchaseActive(db,result.order,{requireEntitlement:true});
+    }
     if (afterSettle) await afterSettle(db, result);
     return result;
   });
@@ -924,6 +939,14 @@ async function grantOrderEntitlement(db, order) {
       return granted;
     }
     const snapshot = order.pricingSnapshot || {};
+    if(snapshot.fulfillmentType==='service_pack') {
+      const {grantServicePack}=await import('./service-packs.js');
+      await grantServicePack(db,order);
+      await db.updateOne(Payment,{merchantUid:String(order.merchantUid),status:{$in:['paid','success','fulfilled']}},
+        {$set:{'metadata.purchaseGrantVersion':1}});
+      await markEntitlementGranted(db,{orderId:String(order.merchantUid)});
+      return true;
+    }
     const product = resolveProduct({
       productId: String(order.productId || ""),
       featureKey: String(order.featureKey || ""),
@@ -972,6 +995,11 @@ async function grantOrderEntitlement(db, order) {
    auth: "required" 면 토큰에서 userId 를 뽑아 넘긴다(**Mongo 읽기 0회**),
          "none" 이면 신원을 보지 않는다(webhook·카탈로그). */
 const ROUTES = {
+  ...createServicePackRoutes({
+    prepareOrder:args=>ROUTES["POST /prepare"].handle(args),
+    confirmOrder:args=>ROUTES["POST /orders/:id/confirm"].handle(args),
+    orderStatus:args=>ROUTES["GET /orders/:id/status"].handle(args),
+  }),
   "GET /recoveries": {
     auth: "required",
     async handle({ request, env, ctx, userId, withDb }) {
@@ -998,10 +1026,15 @@ const ROUTES = {
         assertOrderOwner(order, userId);
         const execution = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
           ? await readPaidExecution(db, order) : null;
-        const entitlement = order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
-          ? await readPurchaseEntitlement(db, order) : null;
+        const entitlement = order.pricingSnapshot?.fulfillmentType==='service_pack'
+          ? await (await import('./service-packs.js')).findServicePackPurchaseGrant(db,order)
+          : order.paymentType === "digital_content" && isPerUseFeatureKey(order.featureKey)
+            ? await readPurchaseEntitlement(db, order) : null;
         const paid = toOrderStatus(order) === "PAID";
-        const ready = paid && (entitlement
+        const packOrderActive = order.pricingSnapshot?.fulfillmentType === 'service_pack'
+          ? Boolean(await (await import('./service-packs.js')).findActiveServicePackOrder(db, userId, order.merchantUid))
+          : true;
+        const ready = paid && packOrderActive && (entitlement
           ? entitlement.status === "granted"
           : (order.paymentType !== "digital_content" || !isPerUseFeatureKey(order.featureKey)) && Boolean(order.entitlementGrantedAt));
         return json({ ok: true, ...presentOrder(order), verified: paid,
@@ -1135,14 +1168,14 @@ const ROUTES = {
    */
   "POST /prepare": {
     auth: "required",
-    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps }) {
+    async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps, preparedProduct, preparedPurchaseType='SELF', preparedGiftDraft=null }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
       // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
       if (isPassLikeBody(body)) return handlePassPrepare({ request, env, ctx, userId, body, withDb });
       // 🔴 가격 해석은 구 정본(billing-feature-registry) 체인을 그대로 탄다(legacy-pricing.js).
       // 첫 배선은 catalog(resolveProduct)를 썼는데, mode/reportMode/categoryKey 변형 가격을 잃어
       // 해당 기능의 단건 결제가 400(금액 불일치)으로 막히는 라이브 결함이었다(2026-08-12 수정).
-      const listedProduct = resolveLegacyProduct(body);
+      const listedProduct = preparedProduct || resolveLegacyProduct(body);
       ctx.productId = listedProduct.productId;
 
       /* 🔴 트립와이어는 **정가** 기준이다. 클라이언트가 낡은 가격으로 결제창을 여는 것을 막는 장치라
@@ -1178,7 +1211,7 @@ const ROUTES = {
       const refundConsent = body.refundConsent === true;
       const foreignCard = canUseForeignCard({ user: { id: userId }, product: { type: "digital_content" }, billingCountry: null, paymentChannel: paymentMethod }, { env });
 
-      if (String(product.featureKey || '').startsWith('yeongnyangi-')) {
+      if (product.fulfillmentType!=='service_pack' && String(product.featureKey || '').startsWith('yeongnyangi-')) {
         const {reconcileFortuneCheckout}=await import('../yeongnyangi/payment-intent.js');
         await reconcileFortuneCheckout({env,userId,requestId:body.requestId,product,
           withDb:fn=>withDb(env,ctx,fn),fetchPayment:pgDeps?.fetchPayment,
@@ -1193,6 +1226,10 @@ const ROUTES = {
            일반 경로에서는 폴백이 필요 없고, 두 왕복이 겹쳐 **결제창 앞 대기가 한 왕복만큼 짧아진다**
            (클릭→PG창 사이 서버 왕복은 이 prepare 하나뿐이라 그만큼이 그대로 체감 지연이다).
            바디에 profileId 가 없으면 예전처럼 사용자 문서를 먼저 기다린다 — 그때만 직렬이다. */
+        if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {
+          const {assertGiftIndexes}=await import('./gifts.js');
+          await assertGiftIndexes(db);
+        }
         const userPromise = db.findOne(User, { _id: toObjectId(userId) }, { projection: LEGACY_PREPARE_USER_PROJECTION });
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
@@ -1217,7 +1254,12 @@ const ROUTES = {
           paymentMethod,
           foreignCard,
           refundConsent,
+          ...(product.fulfillmentType==='service_pack'?{purchaseType:preparedPurchaseType,giftDraft:preparedGiftDraft}:{}),
         });
+        if(product.fulfillmentType==='service_pack'&&preparedPurchaseType==='GIFT') {
+          const {ensureGiftForOrder}=await import('./gifts.js');
+          await ensureGiftForOrder(db,created);
+        }
         return { order: created, user: await userPromise };
       });
       ctx.orderId = String(order.merchantUid || "");
@@ -1233,6 +1275,13 @@ const ROUTES = {
         body,
         foreignCard: narrowToOrderSnapshot(foreignCard, order.foreignCard),
       });
+      if(product.fulfillmentType==='service_pack') {
+        legacyOrder.purchaseType=order.purchaseType||'SELF';
+        if(order.purchaseType==='GIFT')legacyOrder.giftId='gift_'+order.merchantUid;
+        legacyOrder.status=toOrderStatus(order);
+        legacyOrder.entitlementGranted=Boolean(order.entitlementGrantedAt);
+        legacyOrder.packSnapshot=order.pricingSnapshot.packSnapshot;
+      }
       const envelope = legacyPrepareEnvelope(legacyOrder, { idempotent });
       if (legacyEnvelope === "billing-checkout") return json(legacyBillingCheckoutEnvelope(envelope));
       return json(envelope, { status: idempotent ? 200 : 201 });
@@ -1243,7 +1292,7 @@ const ROUTES = {
     auth: "required",
     async handle({ request, env, ctx, userId, params, withDb }) {
       ctx.orderId = params.id;
-      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb });
+      const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb, request });
       ctx.paymentStatus = "PAID";
       // 결제 확정이 GET /api/auth/me 의 entitlement/points 필드를 바꾼다 — 30초 엣지 캐시를 지운다
       // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
@@ -1280,7 +1329,7 @@ const ROUTES = {
       const orderId = String(body.merchantUid || body.orderId || body.paymentId || body.impUid || "").trim();
       if (!orderId) throw paymentError("INVALID_REQUEST", "merchantUid 가 필요합니다.");
       ctx.orderId = orderId;
-      const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, { withDb });
+      const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, { withDb, request });
       ctx.paymentStatus = "PAID";
       // 결제 확정이 GET /api/auth/me 의 entitlement/points 필드를 바꾼다 — 30초 엣지 캐시를 지운다
       // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).

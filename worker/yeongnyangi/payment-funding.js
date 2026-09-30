@@ -10,6 +10,7 @@ export async function reserveFortuneFunding(db,{userId,requestId,featureKey,coin
   if(!String(featureKey).startsWith('yeongnyangi-'))return null;
   if(!/^yn-[a-f0-9]{64}$/.test(String(requestId)) || getPaidFeaturePaymentPolicy(featureKey).monthlyExcluded)
     throw paymentError('INVALID_REQUEST','영냥이 방에서 상담 내용을 먼저 선택해 주세요.');
+  if(!['PASS','SERVICE_PACK','MOONLIGHT_STONE'].includes(method))throw paymentError('INVALID_REQUEST','결제 방식을 확인해 주세요.');
   const id=requestId.slice(3),owner=toObjectId(userId),key='alliance:'+method+':'+requestId;
   const current=await db.findOne(YeongnyangiRequest,{_id:id,userId:owner});
   if(!current||current.featureKey!==featureKey||Number(current.amountKRW)!==Number(coinCost)*100)
@@ -44,8 +45,8 @@ export async function releaseFortuneFunding(db,claim) {
 export async function completeFortuneFunding(db,claim,proof) {
   if(!claim||claim.settled)return;
   if(claim.method==='PASS'&&proof.tier!=='family')throw paymentError('FAMILY_OR_DIRECT_PAYMENT_REQUIRED','Family 이용권을 확인해 주세요.');
-  const accessMethod=claim.method==='PASS'?'FAMILY':'MOONLIGHT_STONE';
-  const fields=claim.method==='PASS'?{
+  const accessMethod=claim.method==='SERVICE_PACK'?'SERVICE_PACK':claim.method==='PASS'?'FAMILY':'MOONLIGHT_STONE';
+  const fields=claim.method==='SERVICE_PACK'?{passEvidenceId:proof.evidenceId,packEntitlementId:toObjectId(proof.entitlementId)}:claim.method==='PASS'?{
     passEvidenceId:proof.evidenceId,passCycleKey:String(proof.cycleKey||''),passCoinCost:Number(proof.debit||0),
     passTier:String(proof.tier||''),passMonthlyLimitCoin:Number(proof.budgetCoin||0),
     passProfileLimit:Number(proof.profileLimit||0),passMaxCoveredCoin:Number(proof.maxCoveredCoin||0),passPolicyVersion:String(proof.policyVersion||''),
