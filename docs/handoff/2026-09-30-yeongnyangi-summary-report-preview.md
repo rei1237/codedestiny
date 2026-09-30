@@ -1,10 +1,12 @@
 ---
-status: review-preview
+status: done
 updated: 2026-09-30
-next: finish locale and chart-specific layouts, resolve the existing paid-gate test failure, then validate and deliver through main CI
+next: superseded by docs/handoff/2026-09-30-fortune-report-external-ai-astra-handoff.md; follow the external AI prompt workflow
 ---
 
 # 영냥이 운세 요약 보고서 프리뷰
+
+이 프리뷰 방향은 종료됐다. 아래 내용은 당시 기록이며, 현재 구현과 검증은 [외부 AI 프롬프트 전환 문서](2026-09-30-fortune-report-external-ai-astra-handoff.md)를 따른다. 서비스 내 보고서 PNG 자동 생성은 제거했다.
 
 ## 작업 위치와 범위
 

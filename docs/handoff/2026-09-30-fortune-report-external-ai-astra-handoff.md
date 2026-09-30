@@ -1,5 +1,5 @@
 ---
-status: implemented-awaiting-main-ci
+status: active
 updated: 2026-09-30
 next: push the integrated main commit and verify its CI required check; do not run production or paid providers
 ---
@@ -31,7 +31,8 @@ next: push the integrated main commit and verify its CI required check; do not r
 - 모든 브라우저 요청을 mock으로 가로채며 외부 요청 0건. 실제 구매 결과와 일치한다는 증거는 아니다.
 - 독립 화면 검토의 두 P2(계산 한계 누락, 정상 JSON 짧은 본문 누락)는 수정 후 해결 판정. 디자인 검출기 primary 0; 두 폰트 크기 권고도 기존 크기로 조정했다.
 - 최초 `check:fast` 실패 원인: Windows 줄바꿈으로 인한 정적 검사, 삭제 파일의 Git 추적 상태, Node 테스트 위치, 구 기준의 Family 환급 날짜. 앞의 세 항목을 수정했고 마지막 항목은 최신 main에 이미 해결되어 main 단독 9개 환급 테스트가 통과했다.
-- 수정 후 PortOne/사주 해금/상세 팝업/해외결제 안내 정적 검사 모두 통과. 최신 main 통합 뒤 공식 check:fast 및 CI를 재확인한다.
+- 수정 후 PortOne/사주 해금/상세 팝업/해외결제 안내 정적 검사 모두 통과. `npm run check:fast -- --base=origin/main`도 통과했으며 유료 접근 검사 88개, Jest 317개 스위트의 4,600개 테스트가 포함된다.
+- CI에서 발견한 테스트 변수명과 사이트맵·정적 미러 드리프트를 수정했다. 최신 main 통합 뒤 미러 및 사이트맵 검사도 통과했다. 문서 상태값을 저장소 규약에 맞춘 뒤 최종 SHA의 전체 CI를 확인한다.
 
 ## 현재 기준과 남은 증거
 - 원래 재개 커밋: `1b17e5f2f84411cd2bc1cd190b08ba13cb5c8827`.
