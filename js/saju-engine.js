@@ -30476,7 +30476,7 @@ function renderDaewun(bazi){
       // ── 점수 기반 요약 라벨 (배지 없을 때 공통 표시) ─────────────────────
       var evalLabelHtml='';
       if(!jongBadgeHtml){
-        var shortLabel=ev.score>=80?'🌟최고':ev.score>=60?'☀️길':ev.score>=40?'🍀무난':ev.score>=20?'⚠️주의':'🌧️역경';
+        var shortLabel=ev.score>=80?'확장을 살필 때':ev.score>=60?'준비를 펼칠 때':ev.score>=40?'균형을 지킬 때':ev.score>=20?'속도를 조절할 때':'기반을 돌볼 때';
         if(ev.hasChungBonus) shortLabel='💥'+shortLabel;
         if(ev.hasChungPenalty) shortLabel='⚡'+shortLabel;
         evalLabelHtml='<div class="dw-eval-label">'+shortLabel+'</div>';
@@ -30583,6 +30583,23 @@ function renderCurrentSeasonSummary(bazi){
   }catch(err){ console.error('올해의 나 요약 오류',err); }
 }
 
+function buildDaewunReadingGuide(age, gan, zhi, ev) {
+  var start = Number(BIRTH_YEAR) + Number(age) - 1;
+  var neo = document.body.classList.contains('neo-mode');
+  var supportive = ev.score >= 60;
+  var next = (window.G_DAEWUN || []).find(function(row) { return Number(row.age) > Number(age); });
+  var transition = next
+    ? '다음 대운은 ' + next.g + next.j + ', 표에 표시된 ' + next.age + '세부터 이어집니다. 전환 전후에는 앞선 시기에 쌓은 일과 관계가 함께 이어지므로, 한 해를 경계로 모든 것이 바뀐다고 보지 않습니다.'
+    : '현재 표의 마지막 구간입니다. 이후 시기를 이 자료만으로 확정하지 않고, 지금 유지할 기반과 바꿀 습관을 먼저 정리합니다.';
+  return '<section class="saju-cycle-guide"><h3>' + gan + zhi + ' 대운 · ' + start + '–' + (start + 9) + '년</h3>' +
+    '<p>' + (neo ? '이 시기에 힘을 실을 일과 조정할 일을 구분하세요.' : '열 해의 큰 흐름 속에서, 내 속도로 준비할 일을 함께 찾아볼게요.') + '</p>' +
+    '<dl><dt>대운과 세운, 함께 읽는 법</dt><dd>대운은 약 10년의 큰 배경, 세운은 그 안에서 해마다 달라지는 흐름입니다. 같은 대운 안에서도 해마다 체감이 다를 수 있으니 아래 연도별 해설을 함께 읽어보세요.</dd>' +
+    '<dt>지금의 실행 기준</dt><dd>' + (supportive ? '준비해 온 일 하나를 작은 범위에서 시험해 보세요. 도움이 되는 흐름이라도 시간·자금·협력자가 갖춰졌는지 확인하고, 실제 반응을 보며 범위를 넓히는 편이 좋습니다.' : '중요한 약속과 고정 지출부터 살펴보세요. 부담이 큰 일은 나누고 회복 시간을 확보해, 변화가 필요할 때 선택할 여지를 남겨두는 편이 좋습니다.') + '</dd>' +
+    '<dt>다음 계절을 준비하며</dt><dd>' + transition + '</dd>' +
+    '<dt>해석의 근거와 범위</dt><dd>타고난 명식과 대운의 글자를 대조해 계절의 균형(조후), 나를 돕거나 소모시키는 힘(억부), 한쪽으로 모인 기세(종격)를 살핍니다. 한 요소만으로 좋고 나쁨을 정하지 않으며, 점수는 성공 확률이 아닙니다. 표시 연도는 기존 대운표의 나이 기준을 연도로 옮긴 범위이며 정확한 교운 날짜를 뜻하지 않습니다.' +
+    (window.__cdSajuTimeUnknown ? ' 출생시간을 모르는 경우 시작 시기와 시주에 의존하는 해석에는 한계가 있습니다.' : '') + '</dd></dl></section>';
+}
+
 function showDwDetail(age,gan,zhi,evaluation,score){
   var gd=GAN[gan]||{e:'earth',n:'?'},jd=JI[zhi]||{e:'water',a:'?'};
   var startYear=BIRTH_YEAR+age-1;
@@ -30592,11 +30609,11 @@ function showDwDetail(age,gan,zhi,evaluation,score){
   var jg=G_JONG,pw=G_POWER,jh=G_JOHU;
   var ev=evalDaewun(gan,zhi);
 
-  var evalText='<div style="display:inline-block; padding:4px 10px; background:#F4F6FF; color:#1C64F2; border-radius:6px; font-size:0.85rem; font-weight:800; margin-bottom:10px; border:1px solid #D1DEF8">🧭 통합 진단: '+ev.evalSummary+'</div><br>';
+  var evalText='<div style="display:inline-block; padding:4px 10px; background:#F4F6FF; color:#1C64F2; border-radius:6px; font-size:0.85rem; font-weight:800; margin-bottom:10px; border:1px solid #D1DEF8">흐름의 핵심: '+ev.evalSummary+'</div><br>';
   if(jg&&jg.isJong){
     var jlabel = jg.isGaJong ? '가종격' : '종격';
     evalText+=gd.e===jg.dominant||jd.e===jg.dominant
-      ?'✅ <b>'+jlabel+' 지배 기운('+EL_K[jg.dominant]+')이 강화</b>되는 대운입니다. 종격의 에너지를 최대로 발휘하는 시기!'+(jg.isGaJong?'<br><span style="font-size:.78rem;color:#7B1FA2">※ 가종격이 강화 대운을 만나면 진종격으로 전환 — 폭발적 발복 가능</span>':'')
+      ?'✅ <b>'+jlabel+' 지배 기운('+EL_K[jg.dominant]+')이 강화</b>되는 대운입니다. 한 방향으로 힘을 모으는 장점을 살펴볼 시기입니다.'+(jg.isGaJong?'<br><span style="font-size:.78rem;color:#7B1FA2">※ 가종격은 한쪽 기세를 따를 가능성을 살피는 분류입니다. 대운 하나로 격의 확정이나 성과를 단정하지 않습니다.</span>':'')
       :gd.e===whoControls(jg.dominant)||jd.e===whoControls(jg.dominant)
         ?'⚠️ <b>'+jlabel+'을 약화시키는 기운</b>이 들어옵니다. 자신의 강점이 흔들리는 시기, 내실을 다지세요.'
         :'🙂 '+jlabel+'에 큰 영향을 주지 않는 중립 대운입니다.';
@@ -30615,7 +30632,7 @@ function showDwDetail(age,gan,zhi,evaluation,score){
     if(badEls.length) evalText += '⚠️ <b>기신('+badEls.join(',')+') 기운 포함</b> — 주의가 필요하며 방어적인 태도가 유리합니다. ';
     if(!goodEls.length && !badEls.length) evalText = '🙂 조후나 억부에 큰 치우침이 없는 중립적인 대운입니다. ';
 
-    evalText += '<br><span style="font-size:0.8rem;color:#888;">※ 퀀텀 명리 엔진(합화 및 조후 우선)이 반영된 종합 평가입니다.</span>';
+    evalText += '<br><span style="font-size:0.8rem;color:#888;">※ 글자 사이의 관계와 계절적 균형을 함께 검토한 참고 해석입니다.</span>';
   }
 
   if(ev.hasChungBonus){
@@ -30630,10 +30647,11 @@ function showDwDetail(age,gan,zhi,evaluation,score){
   }
 
   var html=
+    buildDaewunReadingGuide(age,gan,zhi,ev)+
     buildDwQmSection(gan,zhi)+
 
     '<div style="background:#fff;padding:14px;border-radius:12px;margin-bottom:12px;border:1px solid #FFE0D6">'+
-    '<div style="font-size:.82rem;color:#888;margin-bottom:4px">대운 종합 평가 (퀀텀 명리 엔진 반영)</div>'+
+    '<div style="font-size:.82rem;color:#888;margin-bottom:4px">이 시기의 기질과 환경</div>'+
     '<div style="font-size:1.15rem;font-weight:700;color:#333;margin-bottom:6px">'+gan+zhi+
     ' <span style="font-size:.85rem;font-weight:400;color:#999">('+gd.n+' '+jd.a+')</span></div>'+
     '<span class="luck-badge '+lbCls+'">'+evaluation+'</span>'+

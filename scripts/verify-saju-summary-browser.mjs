@@ -16,8 +16,8 @@ const server = createServer(async (req, res) => {
   const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
   try {
-    const data = await readFile(file);
-    res.setHeader('Content-Type', ({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml'})[extname(file)] || 'application/octet-stream');
+    const data = await readFile(file).catch(() => readFile(resolve(root, 'public', '.' + pathname)));
+    res.setHeader('Content-Type', ({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.webp':'image/webp'})[extname(file)] || 'application/octet-stream');
     res.end(data);
   } catch { res.writeHead(404); res.end(); }
 });
@@ -197,6 +197,37 @@ try {
     assert.equal(await chapter.evaluate(el => getComputedStyle(el).maxHeight), 'none');
     assert.equal(await page.locator('#summaryArea .btn-sub').count(), 0);
     console.log(`PASS ${shell.label} ${alreadyUnlocked ? 'previously unlocked' : 'restored'} summary ${width}px: ${metrics.length} characters`);
+  }
+  // Same local mock boundary: verify the actual paid daeun renderer and recovery button.
+  assert.equal(await page.locator('#dwGrid .dw-item').count(), 0, 'locked daeun must not contain paid rows');
+  await page.evaluate(() => { window.unlockedFeatureMap.section_daewun = true; });
+  await page.locator('#daewunGate button[data-unlock-key]').click();
+  await page.waitForFunction(() => document.querySelectorAll('#dwGrid .dw-item').length > 0);
+  await page.locator('#dwGrid .dw-item').first().click();
+  await page.locator('#dwDetail .saju-cycle-guide').waitFor({state:'visible'});
+  assert.equal(await page.locator('#yearList .year-row').count(), 10, 'paid cycle supplies all ten annual readings');
+  assert.match(await page.locator('#dwDetail').innerText(), /대운과 세운/);
+  for (const width of [360,390,430,1280]) {
+    await page.setViewportSize({width,height:900});
+    for (const mode of ['pig','neo']) {
+      await page.evaluate(mode => document.querySelector('#sajuReadingHeader [data-saju-mode="'+mode+'"]').click(), mode);
+      await page.locator('#sajuReadingHeader').scrollIntoViewIfNeeded();
+      const shots = resolve(tmpdir(), 'cd-saju-moonlight');
+      await mkdir(shots, {recursive:true});
+      if (!alreadyUnlocked && shell.label === 'mobile') {
+        await page.locator('#sajuReadingHeader img').evaluate(img => img.decode());
+        await page.screenshot({path:resolve(shots,'header-'+mode+'-'+width+'.png')});
+        await page.locator('[data-saju-offer="section_daewun"]').scrollIntoViewIfNeeded();
+        await page.locator('[data-saju-offer="section_daewun"] img').evaluate(img => img.decode());
+        await page.screenshot({path:resolve(shots,'offer-'+mode+'-'+width+'.png')});
+      }
+      assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
+      assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
+    }
+    await page.locator('#dwGrid .dw-item').first().click();
+    await page.locator('#dwDetail .saju-cycle-guide').scrollIntoViewIfNeeded();
+    assert.equal(await page.locator('.saju-cycle-guide').evaluate(el => el.scrollWidth > el.clientWidth + 1),false);
+    console.log('PASS daeun recovery, ten annual rows and persona access '+width+'px');
   }
   await context.close();
  }
