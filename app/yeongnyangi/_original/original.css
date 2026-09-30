@@ -4103,8 +4103,16 @@
   .ynOriginal .room-section::before{background:radial-gradient(ellipse at 50% 55%,rgb(16 27 44/.25),rgb(16 27 44/.7) 80%),url(/assets/yeongnyangi/night/room-lamp-mobile.webp) 18% center/cover no-repeat}
 }
 /* Relationship entry follows the existing night-room palette. */
-.ynOriginal .fortune-relationship-entry {max-width:760px;margin:24px auto;padding:24px;color:var(--yn-text,#f4edf7);}
-.ynOriginal .fortune-relationship-entry h2 {font-size:clamp(1.35rem,5vw,1.8rem);line-height:1.35;text-wrap:balance;}
-.ynOriginal .fortune-relationship-entry p {line-height:1.7;margin:12px 0 20px;}
-.ynOriginal .fortune-relationship-entry a {display:inline-flex;gap:16px;align-items:center;min-height:48px;padding:12px 24px;border-radius:12px;background:#edc9a3;color:#241824;font-weight:700;text-decoration:none;}
-.ynOriginal .fortune-relationship-entry a:focus-visible {outline:3px solid #fff;outline-offset:4px;}
+.ynOriginal .fortune-relationship-entry {display:grid;grid-template-columns:1.2fr 1fr;align-items:center;max-width:1040px;margin:48px auto;overflow:hidden;border:1px solid var(--yn-line);border-radius:24px;background:var(--yn-night);color:var(--yn-ivory);}
+.ynOriginal .fortune-relationship-entry__content {padding:clamp(24px,4vw,44px);}
+.ynOriginal .fortune-relationship-entry h2 {margin:0;font-size:clamp(1.5rem,2.8vw,2rem);font-weight:600;line-height:1.5;letter-spacing:-.03em;text-wrap:balance;}
+.ynOriginal .fortune-relationship-entry p {line-height:1.8;margin:16px 0 24px;color:var(--yn-muted);word-break:keep-all;}
+.ynOriginal .fortune-relationship-entry a {display:inline-flex;gap:24px;align-items:center;min-height:48px;padding:12px 24px;border-radius:12px;background:var(--yn-gold);color:var(--yn-deep);font-weight:700;text-decoration:none;}
+.ynOriginal .fortune-relationship-entry a:hover {background:var(--yn-ivory);}
+.ynOriginal .fortune-relationship-entry a:focus-visible {outline:3px solid var(--yn-gold);outline-offset:4px;}
+.ynOriginal .fortune-relationship-entry__art {display:block;width:100%;height:auto;}
+@media(max-width:759px){
+ .ynOriginal .fortune-relationship-entry {grid-template-columns:1fr;margin:32px 20px;border-radius:20px;}
+ .ynOriginal .fortune-relationship-entry__content {padding:24px;}
+ .ynOriginal .fortune-relationship-entry__art {width:160px;justify-self:end;margin:0 24px 24px;border-radius:12px;}
+}

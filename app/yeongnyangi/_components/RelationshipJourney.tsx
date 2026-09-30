@@ -1,4 +1,7 @@
 "use client";
+import Image from 'next/image';
+import {ArrowLeft,ArrowRight,Check,ChevronDown} from 'lucide-react';
+import {useEffect,useRef} from 'react';
 import {relationshipQuestions,relationshipAdvice} from '@/worker/yeongnyangi/fortune/relationship-contract';
 import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
@@ -18,21 +21,44 @@ export default function RelationshipJourney({stage,setStage,questionId,onQuestio
  const hasBirth=Boolean(self&&partner),hasTime=hasBirth&&!self?.birth?.timeUnknown&&!partner?.birth?.timeUnknown;
  const recommended=selected?.domain==='ziwei'&&hasTime?'ziwei':'tarot';
  const engines=[recommended,...(['ziwei','saju','sukuyo','vedic','astrology','tarot'] as DomainId[]).filter(d=>d!==recommended)] as DomainId[];
+ const step=stage==='question'?0:stage==='people'?1:2;
+ const heading=useRef<HTMLHeadingElement>(null);
+ const previousStage=useRef(stage);
+ useEffect(()=>{if(previousStage.current!==stage){heading.current?.focus();previousStage.current=stage;}},[stage]);
+ const renderEngine=(d:DomainId,featured=false)=><article key={d} className={featured?styles.recommended:styles.engine}>
+  <div className={styles.engineHeading}><h3>{systemNames[d]} 궁합</h3>{featured&&<span className={styles.recommendation}><Check size={14} aria-hidden="true"/>{copy.recommended}</span>}</div>
+  <p className={styles.engineDescription}>{relationshipAdvice[d]}</p>
+  {d!=='tarot'&&(!hasBirth||d!=='saju'&&!hasTime)&&<p className={styles.requirement}>{copy.missingBirth}</p>}
+  <button type="button" className={featured?styles.primary:styles.secondary} onClick={()=>onEngine(d)}>{systemNames[d]} {copy.start}<ArrowRight size={18} aria-hidden="true"/></button>
+ </article>;
  return <section className={styles.journey} aria-label={copy.entry}>
-  <h1>{stage==='question'?copy.question:stage==='people'?copy.people:copy.engine}</h1>
-  <p>{copy.description}</p>
-  {stage==='question'?<div className={styles.questions}>{relationshipQuestions.map(q=><button key={q.id} onClick={()=>{onQuestion(q.id,q.label);setStage('people');}}>{q.label}</button>)}</div>:<>
-   <p className={styles.chosen}>{selected?.label}</p>
-   {stage==='people'?<>
-    <label>{copy.self}<input maxLength={40} value={participants.self} onChange={e=>onParticipants({...participants,self:e.target.value})}/></label>
-    <label>{copy.partner}<input maxLength={40} value={participants.partner} onChange={e=>onParticipants({...participants,partner:e.target.value})}/></label>
-    <p>{copy.birthHint}</p>
-    <details><summary>{copy.birthOptional}</summary><ProfilePicker state={profileState} locale="ko"/>
-     <label>상대 프로필<select value={partnerId} onChange={e=>onPartner(e.target.value)}><option value="">상대 프로필 선택</option>{profiles.filter(p=>profileKey(p)!==profileState.profileId).map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>
-    </details>
-    <button disabled={!complete} onClick={()=>setStage('engine')}>{copy.next}</button>
-   </>:<div className={styles.engines}>{engines.map(d=><article key={d}><h2>{systemNames[d]} 궁합 {d===recommended&&<small>{copy.recommended}</small>}</h2><p>{relationshipAdvice[d]}</p>{d!=='tarot'&&(!hasBirth||d!=='saju'&&!hasTime)&&<p>{copy.missingBirth}</p>}<button onClick={()=>onEngine(d)}>{systemNames[d]} {copy.start}</button></article>)}</div>}
-   <button onClick={()=>setStage(stage==='people'?'question':'people')}>{copy.back}</button>
-  </>}
+  <ol className={styles.steps} aria-label={copy.progress}>{copy.steps.map((label,index)=><li key={label} aria-current={step===index?'step':undefined} className={index<step?styles.finished:undefined}><span aria-hidden="true">{index<step?<Check size={14}/>:index+1}</span>{label}</li>)}</ol>
+  <div className={styles.layout}>
+   <aside className={styles.companion} aria-label="영냥이의 궁합 안내">
+    <Image className={styles.scene} src="/assets/yeongnyangi/reading-art/insight.webp" width={720} height={480} sizes="(max-width: 759px) 100vw, 340px" alt="수정구를 들여다보며 이야기를 기다리는 영냥이"/>
+    <p className={styles.companionCopy}>{copy.description}</p>
+   </aside>
+   <div className={styles.content}>
+    <header className={styles.heading}><h1 ref={heading} tabIndex={-1}>{step===0?copy.question:step===1?copy.people:copy.engine}</h1><p>{step===0?copy.questionHint:step===1?copy.peopleHint:copy.engineHint}</p></header>
+    {selected&&stage!=='question'&&<div className={styles.chosen}><span>{copy.selectedQuestion}</span><strong>{selected.label}</strong></div>}
+    {stage==='question'?<div className={styles.questions}>{relationshipQuestions.map(q=><button type="button" className={styles.question} key={q.id} onClick={()=>{onQuestion(q.id,q.label);setStage('people');}}><span>{q.label}</span><ArrowRight size={18} aria-hidden="true"/></button>)}</div>:<>
+     {stage==='people'?<>
+      <div className={styles.people}>
+       <div className={styles.person}><span className={styles.personRole}>{copy.selfRole}</span><label className={styles.field}>{copy.self}<input className={styles.input} aria-describedby="relationship-names-hint" maxLength={40} placeholder={copy.selfPlaceholder} value={participants.self} onChange={e=>onParticipants({...participants,self:e.target.value})}/></label></div>
+       <div className={styles.person}><span className={styles.personRole}>{copy.partnerRole}</span><label className={styles.field}>{copy.partner}<input className={styles.input} aria-describedby="relationship-names-hint" maxLength={40} placeholder={copy.partnerPlaceholder} value={participants.partner} onChange={e=>onParticipants({...participants,partner:e.target.value})}/></label></div>
+      </div>
+      <div className={styles.guide}><Image src="/assets/yeongnyangi/expressions/welcome.webp" width={48} height={48} alt=""/><p>{copy.tarotHint}</p></div>
+      <details className={styles.birth}><summary><span>{copy.birthOptional}</span><small>{copy.optional}</small><ChevronDown size={18} aria-hidden="true"/></summary><div className={styles.birthBody}><p className={styles.birthHint}>{copy.birthHint}</p><ProfilePicker state={profileState} locale="ko"/>
+       <label className={styles.field}>{copy.partnerProfile}<select className={styles.input} aria-label={copy.partnerProfile} value={partnerId} onChange={e=>onPartner(e.target.value)}><option value="">{copy.partnerProfilePlaceholder}</option>{profiles.filter(p=>profileKey(p)!==profileState.profileId).map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>
+      </div></details>
+      <p className={styles.status} id="relationship-names-hint" aria-live="polite">{complete?copy.ready:copy.namesRequired}</p>
+     </>:<div className={styles.engines}><h2 className={styles.sectionTitle}>{copy.recommended}</h2>{renderEngine(engines[0],true)}<h2 className={styles.sectionTitle}>{copy.otherEngines}</h2>{engines.slice(1).map(d=>renderEngine(d))}</div>}
+     <div className={styles.actions}>
+      {stage==='people'&&<button type="button" className={styles.primary} disabled={!complete} aria-describedby="relationship-names-hint" onClick={()=>setStage('engine')}>{copy.next}<ArrowRight size={18} aria-hidden="true"/></button>}
+      <button type="button" className={styles.back} onClick={()=>setStage(stage==='people'?'question':'people')}><ArrowLeft size={16} aria-hidden="true"/>{copy.back}</button>
+     </div>
+    </>}
+   </div>
+  </div>
  </section>;
 }
