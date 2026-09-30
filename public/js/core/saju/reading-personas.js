@@ -62,6 +62,11 @@
       letterPractice: '오늘 이 편지에서 한 가지만 가져간다면, 이렇게 시작해보면 어떨까요. {action} 누군가에게 잘 보이기 위한 숙제가 아니라, 내 하루가 조금 더 편안해지는지 알아보는 작은 시도예요. 잘 맞지 않는다면 다른 방법을 골라도 괜찮아요.',
       letterClosing: '찻잔을 내려놓을 때처럼, 오늘 읽은 말도 잠시 곁에 놓아두세요. 마음에 남은 문장은 간직하고, 나와 맞지 않는 말은 흘려보내도 좋아요. 당신의 삶을 가장 가까이에서 살아온 사람은 당신이니까요. 다음 걸음이 아직 선명하지 않더라도, 자신을 다그치지 않고 선택할 여유가 곁에 남기를 연이가 바라요.',
       neoLetterTitle: '마지막 작전 메모', neoGreeting: '{name}님, 이제 선택의 기준을 정리하자.', neoSignature: '네오 · 다음 한 수는 당신의 선택',
+      neoDominant: '{element} {value}%가 상대적으로 두드러진다. {trait}을 살펴볼 단서다.',
+      neoTied: '여러 오행이 가장 큰 비중을 함께 차지한다. 한 가지 성향으로 묶지 말고 상황별 반응을 살펴라.',
+      neoScenes: ['새로운 일을 여러 개 시작하는 편이라면 끝맺는 데 쓸 시간을 함께 잡아라.', '표현에 힘이 실리는 편이라면 상대가 답할 간격도 확보해라.', '맡은 역할을 지키려다가 다른 사람의 책임까지 떠안고 있지 않은지 점검해라.', '기준이 분명한 것은 강점이다. 다만 기준을 지키느라 목적을 놓치고 있지는 않은지 확인해라.', '작은 변화를 잘 알아차리는 편이라면 관찰을 실행으로 옮길 시점도 정해라.'],
+      neoActions: ['새 과제를 늘리기 전에 진행 중인 일 하나의 마감을 정해라.', '전달할 내용과 상대가 들을 여유를 확인하고, 말한 뒤에는 답을 기다려라.', '맡을 일의 범위와 쓸 수 있는 시간을 먼저 적어라.', '꼭 지킬 기준 하나와 조정할 수 있는 기준 하나를 나눠라.', '확인할 질문 하나와 작게 시험해 볼 일을 정해라.'],
+      letterGuestGreeting: '이 편지를 읽는 당신께,', neoGuestGreeting: '이제 선택의 기준을 정리하자.',
       neoOpening: '명식은 판세를 살피는 참고 자료다. 결정을 대신 내려주는 지시서는 아니다. 맞는 대목은 써먹고, 실제 경험과 어긋나는 해석은 보류해라. 지금 필요한 건 좋은 말의 개수가 아니라, 실행할 기준 하나다.',
       neoClue: '{observation} 여기서 볼 것은 우열이 아니라 힘을 쓰는 방식이다. {scene} 이런 패턴이 실제로 반복되는지 최근의 선택부터 점검해라.',
       neoStrong: '일간을 돕는 힘이 비교적 크다. 혼자 추진하기 전에 다른 의견을 들을 자리를 확보해라. 자신감이 있어도 시간과 자원이 늘어나는 것은 아니다. 맡을 일과 나눌 일을 먼저 정리하자.',
@@ -130,11 +135,11 @@
     model.climate=section(c.climate,cool?c.cold:warm?c.hot:c.neutral,fmt(c.climateBasis,{score:j.score,wet:j.moistCnt,dry:j.dryCnt}),cool?c.scenes[4]:warm?c.scenes[1]:c.scenes[2],c.climateAction);
     model.strength=section(c.strength,jong.isJong?c.jong:pw.isStrong?c.strong:c.weak,fmt(c.strengthBasis,{score:pw.score,support:(pw.yongshin||[]).map(function(e){return c.names[elements.indexOf(e)]||e;}).join(' · ')}),pw.isStrong?c.scenes[0]:c.scenes[2],c.strengthAction);
     model.flow=(input.flow||[]).map(function(row) { var good=row.score>=60; return section(row.kind==='year'?c.year:c.period,good?c.flowOpen:c.flowCare,fmt(c.flowBasis,{label:row.kind==='year'?c.year:c.period,stem:row.g,branch:row.j,score:row.score}),good?c.flowOpen:c.flowCare,good?c.flowRuleOpen:c.flowRuleCare); });
-    var name=String(input.name||c.letterGuest||'you').trim();
+    var name=String(input.name||'').trim();
     if(lang==='ko') {
       var stemIndex=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'].indexOf(p.d.g);
-      model.letter={title:neo?c.neoLetterTitle:c.letter, greeting:fmt(neo?c.neoGreeting:c.letterGreeting,{name:name}), signature:neo?c.neoSignature:c.letterSignature,
-        paragraphs:neo?[c.neoOpening,fmt(c.neoClue,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.neoJong:pw.isStrong?c.neoStrong:c.neoWeak,fmt(c.neoAction,{action:c.rules[day]}),c.neoClosing]:[
+      model.letter={title:neo?c.neoLetterTitle:c.letter, greeting:name?fmt(neo?c.neoGreeting:c.letterGreeting,{name:name}):(neo?c.neoGuestGreeting:c.letterGuestGreeting), signature:neo?c.neoSignature:c.letterSignature,
+        paragraphs:neo?[c.neoOpening,fmt(c.neoClue,{observation:tied?c.neoTied:fmt(c.neoDominant,{element:c.names[dominant],value:ratios[dominant].toFixed(0),trait:c.traits[dominant]}),scene:c.neoScenes[dominant]}),jong.isJong?c.neoJong:pw.isStrong?c.neoStrong:c.neoWeak,fmt(c.neoAction,{action:c.neoActions[day]}),c.neoClosing]:[
           c.letterOpening,fmt(c.letterDay,{stem:p.d.g,image:c.letterImages[stemIndex<0?day*2:stemIndex]}),tied?c.letterTied:fmt(c.letterBalance,{observation:elementText,scene:c.scenes[dominant]}),jong.isJong?c.letterJong:pw.isStrong?c.letterStrong:c.letterWeak,c.letterCare,fmt(c.letterPractice,{action:c.actions[day]}),c.letterClosing], evidence:model.day.evidence};
     } else {
       model.letter={title:c.letter,greeting:neo?c.neo:c.yeon,signature:neo?c.neo:c.yeon,paragraphs:[elementText,c.scenes[day],neo?c.rules[day]:c.actions[day],neo?c.endNeo:c.endYeon],evidence:model.day.evidence};

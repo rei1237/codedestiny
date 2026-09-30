@@ -70,6 +70,8 @@ test('closing is a personal letter with distinct, respectful persona voices',()=
   assert.match(neo.paragraphs.join(''),/작전|정리하자|확인해라/);
   assert.doesNotMatch(neo.paragraphs.join(''),/징징|똥고집|처듣|무적/);
   assert.notEqual(yeon.title,neo.title);
+  assert.doesNotMatch(neo.paragraphs.join(''),/예요|있어요|보세요|하세요/);
+  assert.equal(api.build(fixture,'pig','ko').letter.greeting,'이 편지를 읽는 당신께,');
   const other=structuredClone(fixture);other.p.d={g:'甲',j:'子',gE:'wood'};
   assert.notEqual(api.build(other,'pig','ko').letter.paragraphs[1],yeon.paragraphs[1]);
 });
