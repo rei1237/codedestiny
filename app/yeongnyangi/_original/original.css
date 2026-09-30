@@ -2864,13 +2864,14 @@
   border-radius: 12px;
   pointer-events: none;
 }
-.ynOriginal .fusion-top {
-  display: flex;
-  justify-content: space-between;
+.ynOriginal .fusion-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 8px;
   align-items: center;
-  color: var(--gold);
-  margin-bottom: 17px;
 }
+.ynOriginal .fusion-mascot {width:100%;height:auto;filter:drop-shadow(0 12px 18px #150c2099);}
+.ynOriginal .fusion-description {max-width:68ch;}
 .ynOriginal .premium-label {
   font-size: 9px;
   letter-spacing: 1.6px;
@@ -2893,14 +2894,14 @@
   font-weight: 600;
 }
 .ynOriginal .fusion-description {
-  font-size: 12px;
-  color: #e1cddb;
-  margin-top: 7px;
+  font-size: 15px;
+  color: #f0dfe9;
+  margin-top: 16px;
   line-height: 1.8;
 }
 .ynOriginal .fusion-systems {
-  font-size: 9px;
-  color: #cfb7cf;
+  font-size: 12px;
+  color: #e5cfe0;
   margin: 15px 0 18px;
   letter-spacing: -0.1px;
 }
@@ -3796,34 +3797,26 @@
     min-height: 320px;
     padding: 34px 40px;
   }
-  .ynOriginal .fusion-top {
-    margin-bottom: 10px;
+  .ynOriginal .fusion-intro {
+    grid-template-columns: minmax(0,1fr) 200px;
   }
   .ynOriginal .fusion-card h2 {
     font-size: 35px;
   }
   .ynOriginal .fusion-name {
-    position: absolute;
-    left: 52%;
-    top: 94px;
-    margin: 0;
+    margin-top: 14px;
     font-size: 24px;
   }
   .ynOriginal .fusion-description {
-    position: absolute;
-    left: 52%;
-    top: 136px;
-    font-size: 14px;
+    font-size: 16px;
   }
   .ynOriginal .fusion-systems {
     margin-top: 20px;
   }
   .ynOriginal .fusion-card .outlined-cta {
-    position: absolute;
-    left: 52%;
-    bottom: 45px;
-    width: 38%;
-    max-width: none;
+    width: 100%;
+    max-width: 320px;
+    margin-top: 24px;
   }
   .ynOriginal .recommendations-section {
     margin-top: 48px;

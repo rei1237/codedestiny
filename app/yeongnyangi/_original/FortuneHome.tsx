@@ -375,30 +375,17 @@ export default function FortuneHome({offers}:{offers:ProductOffers}) {
               <div className="fusion-card">
                 <Art name="story-curse" className="fusion-art" />
                 <div className="fusion-shade" />
-                <div className="fusion-top">
-                  <Sparkles size={18} aria-hidden="true" />
-                  <Moon size={25} />
+                <div className="fusion-intro">
+                  <div>
+                    <h2 id="fusion-title">서로 다른 시선으로,<br /><span>나를 더 깊이.</span></h2>
+                    <p className="fusion-name">영냥이의 초융합 운세</p>
+                  </div>
+                  <img className="fusion-mascot" src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(min-width: 900px) 200px, 120px" width="800" height="800" alt="여러 운세의 이야기를 함께 읽는 영냥이" loading="lazy" decoding="async" />
                 </div>
-                <h2 id="fusion-title">
-                  흩어진 운명을,
-                  <br />
-                  <span>하나의 이야기로.</span>
-                </h2>
-                <p className="fusion-name">영냥이의 초융합 운세</p>
-                <p className="fusion-description">
-                  서로 다른 운세의 시선을 모아
-                  <br />
-                  나를 더 깊이 이해하는 시간.
-                </p>
-                <div className="fusion-systems">
-                  사주 · 자미두수 · 숙요 · 베다 · 점성술 · 타로
-                </div>
-                <button
-                  className="outlined-cta"
-                  onClick={() => openPanel("fusion")}
-                >
-                  내 운명 깊게 보기 <ArrowRight size={17} />
-                </button>
+                <p className="fusion-description">사주와 자미두수, 숙요와 베다, 점성술과 타로를 짝지어 읽거나, 여섯 체계를 한 번에 살펴봐.</p>
+                <p className="fusion-description">각 체계에서 따로 계산한 근거를 바탕으로 기질·관계·일과 돈의 흐름을 비교해. 겹치는 해석과 다른 해석을 구분하고, 마지막에는 지금의 선택과 실천 순서를 정리해 줄게.</p>
+                <div className="fusion-systems">출생 정보로 읽는 다섯 체계 · 고민의 선택지를 비추는 타로</div>
+                <button className="outlined-cta" onClick={() => openPanel("fusion")}>초융합 상담 구성 보기 <ArrowRight size={17} aria-hidden="true" /></button>
               </div>
             </section>
 
