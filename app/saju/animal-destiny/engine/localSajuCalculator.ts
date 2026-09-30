@@ -287,10 +287,10 @@ export interface LocalSajuResult {
 }
 
 /**
- * 시주(時柱) 시각 보정 정책. 문자열 값은 worker/lib/destiny-bias-engine.js 의
- * HOUR_PILLAR_TIME_POLICIES 와 동일해야 한다(정적 셸 포함 3개 엔진이 같은 정책을 쓴다).
+ * 시주(時柱) 시각 보정 정책. 기존 요청 옵션은 워커와 같은 문자열을 유지한다.
+ * CIVIL_TIME은 경도 미상일 때 공통 명식이 반환하는 미보정 결과 정책이다.
  */
-export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME";
+export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME" | "CIVIL_TIME";
 
 export interface LocalSajuInput {
   year: number;
@@ -310,7 +310,7 @@ export interface LocalSajuInput {
   timezoneOffset?: number;
   timezoneOffsetMinutes?: number;
   daylightSavingTime?: boolean;
-  hourPillarTimePolicy?: HourPillarTimePolicy;
+  hourPillarTimePolicy?: Exclude<HourPillarTimePolicy, "CIVIL_TIME">;
   useTrueSolarTime?: boolean;
   trueSolarTime?: boolean;
   trueSolarTimeCorrection?: boolean;
@@ -358,15 +358,16 @@ function makePillar(stemRaw: string, branchRaw: string): SajuPillarLocal {
   };
 }
 
-function canonicalNatalPlace(input: LocalSajuInput) {
-  const longitude = getInputLongitude(input);
-  const timezone = String(input.timezone || "").trim();
-  if (!Number.isFinite(longitude) || !timezone) return undefined;
+function canonicalNatalPlace(input: LocalSajuInput, timezone: string) {
+  // Preserve explicitly invalid coordinates for canonical validation; zero is a valid longitude.
+  const longitude = input.birthLongitude ?? input.longitude;
+  // Only Korean/default input may inherit the complete Seoul location.
+  if (longitude == null && timezone === DEFAULT_TIMEZONE) return undefined;
 
   const latitude = getInputLatitude(input);
   return {
     name: input.birthplace || "출생지",
-    longitude: Number(longitude),
+    longitude,
     ...(Number.isFinite(latitude) ? { latitude: Number(latitude) } : {}),
     timezone,
   };
@@ -5147,7 +5148,7 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4827_prop_label"), value: input.calendarType === "lunar" ? `음력 입력을 양력 기준으로 변환${input.lunarLeap ? "했고 윤달 정보를 반영" : ""}` : "양력 입력 기준", why: "원국은 실제 태양력 날짜와 절기 경계를 기준으로 재산출한다." },
       { label: localSajuCalculatorText("lsc_4828_prop_label"), value: "사용", why: `년주는 입춘, 월주는 절입 기준이며 현재 절기 근거는 ${activeSource}이다.` },
       { label: localSajuCalculatorText("lsc_4829_prop_label"), value: timezone, why: "일주 경계와 시주는 출생지 시간대를 기준으로 판단한다." },
-      { label: localSajuCalculatorText("lsc_4830_prop_label"), value: trueSolarTimeUsed ? "사용" : "미사용", why: !trueSolarTimeUsed ? "출생시간 미상으로 시주를 산출하지 않았습니다." : "출생지 경도와 당시 시간대·서머타임을 반영한 지역 평균시입니다. 균시차는 적용하지 않습니다." },
+      { label: localSajuCalculatorText("lsc_4830_prop_label"), value: trueSolarTimeUsed ? "사용" : "미사용", why: !input.hasTime ? "출생시간 미상으로 시주를 산출하지 않았습니다." : !trueSolarTimeUsed ? "출생지 경도가 없어 입력한 현지 시각으로 일주·시주를 산출했습니다. 절기는 출생지 시간대로 환산한 실제 출생 순간을 기준으로 합니다." : "출생지 경도와 당시 시간대·서머타임을 반영한 지역 평균시입니다. 균시차는 적용하지 않습니다." },
       { label: localSajuCalculatorText("lsc_4831_prop_label"), value: daewoonStart.age ?? "미산출", why: "KST 절기와 출생 순간을 비교한 공통 대운 계산의 세는 나이입니다. 입운까지의 경과 연·월·일은 별도로 표시합니다." },
       { label: localSajuCalculatorText("lsc_4832_prop_label"), value: daewoonDirection, why: "양남음녀 순행, 음남양녀 역행 원칙을 기본값으로 적용했다." },
       { label: localSajuCalculatorText("lsc_4833_prop_label"), value: calculationConfidence, why: "절기 소스, 출생 시각, 지역 평균시 보정 근거를 함께 봅니다." },
@@ -5321,19 +5322,21 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
 
   const timezoneInfo = normalizeTimezone(input);
   const solarDate = resolveSolarDate(input);
+  const birthPlace = canonicalNatalPlace(input, timezoneInfo.timezone);
+  const allowMissingLongitude = birthPlace != null && birthPlace.longitude == null;
   const canonicalNatal = calculateNatalSaju({
     birthDate: `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
     birthTime: input.hasTime ? `${String(input.hour ?? 0).padStart(2, "0")}:${String(input.minute ?? 0).padStart(2, "0")}` : undefined,
     calendarType: input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
     isLeapMonth: Boolean(input.lunarLeap),
-    birthPlace: canonicalNatalPlace(input),
-  });
+    birthPlace,
+  }, { allowMissingLongitude });
 
   // The applied policy is the canonical natal contract; legacy input options remain input evidence only.
   const standardClock = { ...canonicalNatal.calculationMeta.civil, hour: canonicalNatal.calculationMeta.civil.hour ?? 12, minute: canonicalNatal.calculationMeta.civil.minute ?? 0 };
-  const hourPillarTimePolicy: HourPillarTimePolicy = "LOCAL_MEAN_TIME";
+  const hourPillarTimePolicy: HourPillarTimePolicy = canonicalNatal.calculationMeta.correction.method === "CIVIL_TIME" ? "CIVIL_TIME" : "LOCAL_MEAN_TIME";
   const corrected = canonicalNatal.calculationMeta.corrected || standardClock;
-  const trueSolarTimeUsed = input.hasTime;
+  const trueSolarTimeUsed = input.hasTime && canonicalNatal.calculationMeta.correction.method === "LOCAL_MEAN_TIME";
   const zashiMode = "early";
   // Solar terms use the actual instant in KST, including lunar conversion and historical DST.
   const termClock = canonicalNatal.calculationMeta.termClock;
@@ -5418,7 +5421,7 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
       hourPillarTimeCorrection: {
         ...canonicalNatal.calculationMeta.correction,
         policy: hourPillarTimePolicy,
-        status: input.hasTime ? "applied" : "not_applied_birth_time_unknown",
+        status: !input.hasTime ? "not_applied_birth_time_unknown" : trueSolarTimeUsed ? "applied" : "not_applied_birthplace_longitude_unknown",
       },
       solarTerms: {
         active: solarTermWindow.active,

@@ -2250,7 +2250,7 @@ function __cdEnsureSajuCoreLoaded() {
     /* 🔴 맨 앞이어야 한다. 아래 kasi-calendar-service·saju-engine 이 window.KoreanCalendar 를
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
-    '/js/core/korean-calendar.js?v=build-91a0b530968c',
+    '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/core/kasi-calendar-service.js?v=build-99c5568a4710',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/saju-engine.js?v=build-278741dbf63a',
@@ -8343,7 +8343,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     /* 🔴 맨 앞이어야 한다. 아래 kasi-calendar-service·saju-engine 이 window.KoreanCalendar 를
      * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
      * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
-    '/js/core/korean-calendar.js?v=build-91a0b530968c',
+    '/js/core/korean-calendar.js?v=build-370c38a7da44',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/saju-engine.js?v=build-278741dbf63a',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
