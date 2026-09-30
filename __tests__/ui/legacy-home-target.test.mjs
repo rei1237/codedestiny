@@ -83,3 +83,11 @@ test("home component prioritizes legacy payment returns over question guides", (
     "/ggulggul/?question=money&paymentId=original#questions",
   ]);
 });
+
+test("static shell entries use document navigation instead of Next RSC prefetch", () => {
+  const entries = [...homeSource.matchAll(/<(a|Link)\b[^>]*\bhref="(\/ggulggul\/[^"]*)"[^>]*>/g)];
+  assert.deepEqual(entries.map(([, , href]) => href), ["/ggulggul/", "/ggulggul/#premiumVvipCollection"]);
+  for (const [, tag, href] of entries) {
+    assert.equal(tag, "a", `${href} has no Next RSC payload; it needs a full document navigation`);
+  }
+});

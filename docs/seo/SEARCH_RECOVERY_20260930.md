@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-09-30
-next: main CI 통과 후 운영 승격을 별도로 승인받고 핵심 URL의 재수집과 28일 검색 실적을 비교한다.
+next: 승인된 운영 승격의 링크 오류 수정본 CI와 재배포를 확인하고 핵심 URL의 재수집과 28일 검색 실적을 비교한다.
 ---
 
 # Google 노출 진단과 검색 의도 개선
@@ -141,3 +141,9 @@ Pages·Worker 운영 SHA는 모두 `d8b2fa284798a592d60f59b297b1ad5ac98b4d0e`. �
 - [Google: 재수집 요청](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl): 재수집은 며칠~몇 주가 걸릴 수 있고 색인 보장은 없다.
 - [Google: 스팸 정책](https://developers.google.com/search/docs/essentials/spam-policies): 과도한 키워드 반복·검색 순위 목적의 대량 콘텐츠·링크 조작을 피한다.
 - [네이버: 검색엔진 최적화의 목적](https://searchadvisor.naver.com/guide/seo-basic-intro): 검색엔진이 콘텐츠를 이해하고 사용자가 원하는 정보를 찾도록 정리한다.
+
+## 운영 승격 재시도 기록 (2026-09-30)
+
+사용자가 운영 승격을 승인했다. 최초 릴리스 [36666864992](https://github.com/rei1237/codedestiny/actions/runs/36666864992)는 배포 후 브라우저 검사에서 `/ggulggul/index.txt?_rsc=…` 404와 CSS MIME 오류로 실패했고, Pages·Worker 모두 기존 `d8b2fa284798a592d60f59b297b1ad5ac98b4d0e`로 자동 롤백된 것을 실제 버전 응답에서 확인했다. 해당 CSS는 불변 배포 URL에서 HTTP 200 `text/css`로 확인되어 파일 누락으로 단정하지 않는다.
+
+홈의 정적 `/ggulggul/` 셸 진입 2곳을 Next Link 대신 일반 문서 링크로 수정했다. 정적 셸에는 Next RSC 응답이 없어 미리 불러오기가 404를 만들기 때문이다. 전체 홈 자동 이동을 되살리지 않고, 무료·천원 검색 의도와 홈 URL 유지 변경을 보존한다. 실제 컴포넌트 회귀 검사 8/8 및 수정 파일 린트를 확인하고, 재생성한 사이트맵 원장을 함께 전달한다. 운영 브라우저 검사와 Pages·Worker SHA 일치를 모두 확인하기 전에는 승격 완료로 보고하지 않는다.

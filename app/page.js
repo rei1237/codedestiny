@@ -104,7 +104,9 @@ export default function HomePage() {
       <h1 id="homeGuideTitle">무료 운세부터 나의 질문에 맞는 상담까지</h1>
       <p>사주 달빛정원은 꿀꿀 운세의 꽃돼지 연이·네오와 영냥이를 함께 만나는 Code Destiny의 운세 상담 공간입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
       <nav className={styles.paths} aria-label="대표 입구와 상담 안내">
-        <Link href="/ggulggul/">연이의 정원에서 시작하기</Link>
+        {/* /ggulggul/ is a static HTML shell without a Next RSC payload. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/ggulggul/">연이의 정원에서 시작하기</a>
         <Link href="/today/">오늘의 무료 운세 보기</Link>
         <Link href="/today/#daily-tarot">무료 타로 세 장 펼치기</Link>
         <Link href="/saju/">무료 사주·만세력 알아보기</Link>
@@ -138,7 +140,9 @@ export default function HomePage() {
         </nav>
       </details>
       <nav className={styles.paths} aria-label="구매 전 정책 확인">
-        <Link href="/ggulggul/#premiumVvipCollection">이용권·월정석·단건 결제 안내</Link>
+        {/* /ggulggul/ is a static HTML shell without a Next RSC payload. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+        <a href="/ggulggul/#premiumVvipCollection">이용권·월정석·단건 결제 안내</a>
         {POLICY_LINKS.map(link=><Link key={link.href} href={link.href}>{link.text}</Link>)}
       </nav>
     </section></LocalizedServiceSummary>
