@@ -203,8 +203,8 @@ export default function Result(){
     </div>
    </div>
    {supportLink}
-   {row.state==='COMPLETED'&&<SummaryReportView row={row}/>}
    {!unpaid&&<ReadingBook row={row}/>}
+   {row.state==='COMPLETED'&&<SummaryReportView row={row}/>}
    {row.state==='COMPLETED'&&<><ResultBridge row={row} locale={row.locale}/><ResultSharing key={row.id} row={row}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}
    </>}

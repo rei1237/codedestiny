@@ -7,6 +7,7 @@ import {trackEvent} from '@/lib/analytics';
 import styles from './product-guide.module.css';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import LocalizedProductGuide from './LocalizedProductGuide';
+import {readingDepthCopy,readingTierDepth} from '../_lib/reading-depth-copy';
 
 export type ProductOffer = {id:string; itemId:string; fish:string; fishName:string; price:number; paymentLabel:string; chapters:string[]; depth:string};
 export type ProductOffers = Record<DomainId, ProductOffer[]>;
@@ -29,8 +30,9 @@ export default function ProductGuide({domain,offers,surface='home_catalog'}:{dom
   <Heading>이런 답을 찾는다면 맞지 않아요</Heading><p>상대의 속마음, 특정 사건의 날짜, 합격·재회·수익을 확정하는 답은 제공하지 않아요.</p>
   <Heading>어떤 방식으로 읽을까?</Heading><p>{copy.detail}</p><p>{copy.method}</p>
   <Heading>결제 후 펼쳐질 이야기</Heading>
+  <p data-reading-depth-note>{readingDepthCopy().sharedTopics}</p>
   <div className={styles.tiers} role="group" aria-label="상담 깊이 선택">{offers.map(p=><button key={p.id} type="button" aria-pressed={offer.id===p.id} onClick={()=>setFish(p.fish)}>{p.fishName}<span>{p.price.toLocaleString('ko-KR')}원</span></button>)}</div>
-  <p aria-live="polite"><strong>{offer.fishName} · {offer.chapters.length}개 챕터</strong><br/>{offer.depth}</p>
+  <p aria-live="polite"><strong>{offer.fishName} · {offer.chapters.length}개 챕터</strong><br/><span data-reading-tier-depth={offer.fish}>{readingTierDepth(offer.fish)||offer.depth}</span></p>
   <p className={styles.note}>아래는 기본 해석의 목차예요. 다음 화면에서 궁합·질문 등 상담 종류를 바꾸면 그에 맞는 목차를 다시 확인할 수 있어요.</p>
   <ol className={styles.chapters}>{offer.chapters.map((title,i)=><li key={`${offer.id}-${i}`}>{title}</li>)}</ol>
   <p>{copy.limit}</p>
