@@ -98,6 +98,7 @@ function consultBody(overrides = {}) {
           hour: "을사",
         },
         daewoon: DAEWOON_ROWS,
+        usefulGodEvidence: { yong: "wood", hee: ["wood", "fire"], gi: ["metal"], strength: "weak" },
       },
     },
     ...overrides,
@@ -184,6 +185,11 @@ describe("운명 찻집 사주 — 시기 근거 테이블", () => {
     // 대운이 있으면 구간(PERIOD) 해상도까지 답할 수 있다.
     expect(timingFacts.resolution).toBe("PERIOD");
     expect(timingFacts.availableYears).toContain(new Date().getUTCFullYear());
+    expect(prompt.guestReading.todayKst).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(prompt.guestReading.guests.length).toBeGreaterThan(0);
+    expect(prompt.guestReading.guests.length).toBeLessThanOrEqual(12);
+    expect(prompt.guestReading.guests.filter(guest => guest.evidence.element === "wood").every(guest => guest.grade === "yong")).toBe(true);
+    expect(prompt.sajuFactInput.myeongsikFacts.guestManifest).toBeUndefined();
   });
 
   test("대운이 없으면 해상도가 연 단위로 내려간다", async () => {
@@ -210,6 +216,8 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     callGeminiTextMock.mockImplementation(async (_env, raw) => {
       const output = JSON.parse(JSON.stringify(teaFixtures.buildLlmPayload('three')).replace(/펜타클 10|황제|컵 5/g, '입력 명식').replace(/카드/g, '명식'));
       output.saju = { title: '명식과 금전의 흐름', summary: long('요약'), oneLineAdvice: '지출 기록으로 작은 기준을 확인하세요.', pillars: { day: '잘못된 계산' }, deepSections: SECTION_TITLES.map((title, index) => ({ id: 'llm-' + index, title, body: long(title) })) };
+      output.saju.guests = [{ id: "invented", grade: "gi" }];
+      output.saju.usefulGodEvidence = { yong: "metal", gi: ["wood"] };
       if (!mismatched && JSON.parse(raw).groupRule.exactSectionTitle === SECTION_TITLES[0]) {
         mismatched = true;
         output.saju.deepSections[0].body = '경금은 정관입니다. ' + output.saju.deepSections[0].body;
@@ -226,6 +234,9 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     expect(response.payload.result.saju.deepSections.map(section => section.title)).toEqual(SECTION_TITLES);
     expect(response.payload.result.saju.pillars).toEqual(body.draftResult.saju.pillars);
     expect(response.payload.result.saju.daewoon).toEqual(DAEWOON_ROWS);
+    expect(response.payload.result.saju.usefulGodEvidence).toEqual(body.draftResult.saju.usefulGodEvidence);
+    expect(response.payload.result.saju.guests.length).toBeGreaterThan(0);
+    expect(response.payload.result.saju.guests.some(guest => guest.id === "invented")).toBe(false);
     expect(callGeminiTextMock).toHaveBeenCalledTimes(16);
     expect(response.payload.result.saju.deepSections[0].body).not.toContain('경금은 정관');
   });

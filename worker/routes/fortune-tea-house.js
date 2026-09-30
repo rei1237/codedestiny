@@ -37,6 +37,9 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import {clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { scopeConnection } from "../lib/db-scope-connection.js";
+import { buildSajuGuests, kstDate } from "../../lib/fortune-tea-house/saju-guests.js";
+import { CATEGORY_FOCUS, resolveQuestionCategory } from "../../lib/fortune-tea-house/saju-category.js";
+import { buildGuestPrompt } from "../../lib/fortune-tea-house/saju-guest-prompt.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -1044,6 +1047,7 @@ function normalizeRequest(body) {
 
   return {
     consultationMode,
+    questionCategory: resolveQuestionCategory({ questionCategory: body?.questionCategory }).primary || undefined,
     attemptId: cleanText(body?.attemptId, 180),
     resultId: cleanText(body?.resultId, 180),
     jobId: cleanText(body?.jobId, 180),
@@ -1665,8 +1669,12 @@ const teaCompatSajuRule = {
 
 function resolveSajuCategoryRule(value = {}) {
   if (cleanText(value.consultationMode, 40) === "sajuCompatibility") return teaCompatSajuRule;
+  const questionCategory = resolveQuestionCategory(value).primary;
+  const cupForCategory = { love: "lotus-moon", career: "star-black-tea", wealth: "gold-cinnamon" };
+  const mappedCup = cupForCategory[questionCategory];
+  if (mappedCup && teaCategorySajuPromptMap[mappedCup]) return teaCategorySajuPromptMap[mappedCup];
   const id = cleanText(value.selectedTeaCupId || value.teaCup?.id, 80);
-  if (teaCategorySajuPromptMap[id]) return teaCategorySajuPromptMap[id];
+  if (!questionCategory && teaCategorySajuPromptMap[id]) return teaCategorySajuPromptMap[id];
   const source = [
     value.selectedTeaCupName,
     value.selectedTeaCupTopic,
@@ -1676,14 +1684,14 @@ function resolveSajuCategoryRule(value = {}) {
     value.question,
     value.questionSummary,
   ].filter(Boolean).join(" ");
-  return Object.values(teaCategorySajuPromptMap).find((rule) => rule.aliases.some((alias) => source.includes(alias))) || {
+  return (!questionCategory && Object.values(teaCategorySajuPromptMap).find((rule) => rule.aliases.some((alias) => source.includes(alias)))) || {
     id: "general",
     aliases: [],
     resultKey: "coreReading",
-    category: cleanText(value.selectedTeaCupTopic || value.teaCup?.topic, 80) || "사주 상담",
-    concept: "확인된 명식과 질문을 바탕으로 손님에게 필요한 기준과 다음 행동을 읽는 상담",
+    category: questionCategory || cleanText(value.selectedTeaCupTopic || value.teaCup?.topic, 80) || "사주 상담",
+    concept: CATEGORY_FOCUS[questionCategory]?.focus || "확인된 명식과 질문을 바탕으로 손님에게 필요한 기준과 다음 행동을 읽는 상담",
     minChars: SAJU_MIN_RESULT_CHARS,
-    focus: ["일간", "오행", "십성", "현재 운의 흐름", "질문에 맞는 현실 조언"],
+    focus: CATEGORY_FOCUS[questionCategory] ? [CATEGORY_FOCUS[questionCategory].focus] : ["일간", "오행", "십성", "현재 운의 흐름", "질문에 맞는 현실 조언"],
     requiredSections: SAJU_REQUIRED_SECTION_TITLES,
     gauges: [
       ["기질 선명도", "gold", 56, "일간과 오행이 손님의 기본 반응 방식을 비춥니다."],
@@ -1780,7 +1788,7 @@ function fortuneTeaSajuPillarGanji(saju, key) {
 
 // 독립 "AI 사주 생성" 기능의 순수 파생(지장간 투간/투출·도충·개고·십성 확정표)을
 // 찻집 명식(pillars 간지 + 대운 목록)에 그대로 적용한다 — 같은 워커 번들 재사용, 재계산 없음.
-function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
+function buildFortuneTeaSajuMyeongsikFacts(request, saju, includeGuests = false) {
   const pillarGanji = {
     year: fortuneTeaSajuPillarGanji(saju, "year"),
     month: fortuneTeaSajuPillarGanji(saju, "month"),
@@ -1844,6 +1852,7 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
       .join(" | ");
     return {
       fixedTenGodTable: factSnapshot.fixedTenGodTable,
+      ...(includeGuests ? { guestManifest: buildSajuGuests({ facts: factSnapshot, decisions: saju?.usefulGodEvidence, timing: buildFortuneTeaTimingFacts(saju) }) } : {}),
       tenGodFixedTable: (factSnapshot.fixedTenGodTable || [])
         .map((row) => `${row.stem}${row.stemKorean ? `(${row.stemKorean})` : ""}=${row.tenGod}`)
         .join(" | "),
@@ -1865,8 +1874,10 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
         .map((row) => cleanText([row?.label, row?.stage || row?.name].filter(Boolean).join(" "), 40))
         .filter(Boolean)
         .join(" · "),
-      yongshin: (factSnapshot.yongshinKijishin?.yongshin || []).slice(0, 3).join(", "),
-      kijishin: (factSnapshot.yongshinKijishin?.kijishin || []).slice(0, 3).join(", "),
+      usefulGodEvidence: saju?.usefulGodEvidence,
+      yongshin: cleanText(saju?.usefulGodEvidence?.yong, 40),
+      heeshin: (saju?.usefulGodEvidence?.hee || []).slice(0, 5).join(", "),
+      kijishin: (saju?.usefulGodEvidence?.gi || []).slice(0, 5).join(", "),
       johu: cleanText(factSnapshot.johu?.summary || factSnapshot.johu?.label, 160),
     };
   } catch {
@@ -1916,7 +1927,8 @@ const FORTUNE_TEA_SEWOON_YEARS_AHEAD = 5;
 function buildFortuneTeaTimingFacts(saju) {
   const dayGanji = fortuneTeaSajuPillarGanji(saju, "day");
   const dayStem = dayGanji ? Array.from(dayGanji)[0] : "";
-  const nowYear = new Date().getUTCFullYear();
+  const todayKst = kstDate();
+  const nowYear = Number(todayKst.slice(0, 4));
 
   const daewoonRows = (Array.isArray(saju?.daewoon) ? saju.daewoon : [])
     .slice(0, 8)
@@ -1950,6 +1962,7 @@ function buildFortuneTeaTimingFacts(saju) {
 
   return {
     currentYear: nowYear,
+    todayKst,
     daewoonRows,
     sewoonRows,
     monthlyAvailable: false,
@@ -1957,7 +1970,7 @@ function buildFortuneTeaTimingFacts(saju) {
     // 시기 답변의 최대 해상도. 대운이 있으면 구간(PERIOD), 세운만 있으면 연(YEAR), 아무것도 없으면 NONE.
     resolution: daewoonRows.length ? "PERIOD" : sewoonRows.length ? "YEAR" : "NONE",
     rule: daewoonRows.length || sewoonRows.length
-      ? "시기를 답할 때는 daewoonRows/sewoonRows 에 실제로 있는 연도·구간만 인용한다. 표에 없는 연·월을 만들어 쓰지 않는다. 월 단위는 데이터가 없으므로 '상반기/하반기' 같은 구간 표현까지만 쓴다."
+      ? "시기를 답할 때는 daewoonRows/sewoonRows에 실제로 있는 연도·대운 구간만 인용한다. 월운이 없으므로 특정 월·날짜·상반기/하반기 적기를 만들지 않는다."
       : "시기 근거 데이터가 없다. 연도나 월을 특정하지 말고 '어떤 조건이 갖춰지면'의 조건부 표현으로만 답하고, 시기를 특정할 수 없는 이유를 한 문장으로 밝힌다.",
   };
 }
@@ -2726,6 +2739,7 @@ function normalizeDraftResult(candidate, request) {
   const requiredSajuSections = getSajuRequiredSectionTitles(request);
   const hasRequiredSajuTitles = requiredSajuSections.every((title) => normalizedDeepSections.some((section) => section.title === title));
   if (isSajuFamilyMode(request.consultationMode)) {
+    mergedSaju.guests = buildFortuneTeaSajuMyeongsikFacts(request, mergedSaju, true)?.guestManifest || [];
     mergedSaju.deepSections = normalizedDeepSections.length >= requiredSajuSections.length && normalizedDeepLength >= getSajuMinResultChars(request) && hasRequiredSajuTitles
       ? normalizedDeepSections
       : buildFallbackSajuDeepSections(request, mergedSaju);
@@ -2949,6 +2963,8 @@ function mergeLlmResult(fallback, parsed, options = {}) {
     saju: {
       ...fallback.saju,
       ...(safeParsed.saju || {}),
+      guests: fallback.saju.guests,
+      usefulGodEvidence: fallback.saju.usefulGodEvidence,
       title: mergeLine(safeParsed.saju?.title, fallback.saju.title, 80),
       summary: mergeProse(safeParsed.saju?.summary, fallback.saju.summary),
       caution: mergeProse(safeParsed.saju?.caution, fallback.saju.caution, 1200),
@@ -3542,7 +3558,7 @@ function buildSystemPrompt(consultationMode = "tarot") {
       "사주 용어를 쓰되 그 자리에서 한 문장으로 풀어 주고, 같은 문장 패턴을 반복하지 않는다.",
       "사주 상담은 사용자의 실제 입력값, 출생시간 미상 여부, 오행 균형, 십성, 질문을 서로 연결해 충분한 분량으로 작성한다.",
       "궁합 질문이 아니어도 일반 질문(일, 돈, 마음, 시기, 선택)을 같은 깊이로 다룬다. 질문이 넓으면 이 명식에서 지금 가장 크게 움직이는 흐름부터 짚는다.",
-      "전달받은 십성만 사용한다. primaryTenGod이 없으면 십성 이름을 새로 만들지 않는다.",
+      "전달받은 십성 확정표와 손님 명단만 사용한다. primaryTenGod은 대표 표시값이며 전체 명단을 대체하지 않는다.",
       "챕터 소제목은 요구된 제목을 한 글자도 바꾸지 말고 그대로 쓰고, 본문은 소제목의 그림을 이어 가는 이야기처럼 잇는다.",
       ...sharedOutputRules,
     ].join("\n");
@@ -3779,6 +3795,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
         ? `이전 응답이 품질 검증을 통과하지 못했다. ${describeQualityIssue(lastQualityError)}`
         : undefined,
       sajuFactInput,
+      guestReading: consultationMode === "saju" ? buildGuestPrompt(request, fallback.saju.guests || [], sajuFactInput.timingFacts.todayKst) : undefined,
       tarotFactInput,
       sukuyoFactInput,
       sajuQualityRule: isSajuFamilyMode(consultationMode)
@@ -3860,13 +3877,13 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
             timingRule: [
               "'언제', '언제쯤', '몇 년', '얼마나 기다려야' 류의 질문에는 timingFacts를 근거로 **시기를 먼저 답하고** 그 다음에 명식 근거를 설명한다. 시기 답을 마지막 문단으로 미루지 않는다.",
               "인용 가능한 연도·구간은 timingFacts.availableYears와 daewoonRows의 startYear~endYear 뿐이다. 여기에 없는 연도·월을 쓰면 실패다.",
-              "월 단위 운은 계산 입력이 없다(timingFacts.monthlyAvailable=false). '○월'로 특정하지 말고 '상반기/하반기', '초반/중반' 구간 표현까지만 쓴다.",
+              "월 단위 운은 계산 입력이 없다(timingFacts.monthlyAvailable=false). 특정 월·날짜·상반기/하반기 적기를 만들지 않는다. 실제 대운 구간과 세운 연도까지만 답한다.",
               "확정 어투를 쓰지 않는다. '2027년 3월에 반드시 벌게 됩니다'가 아니라 '2027년 세운이 ○○이라 수익화 흐름이 강해지는 것으로 해석할 수 있습니다'처럼 근거와 해석을 함께 쓴다.",
               "timingFacts.resolution이 'NONE'이면 연도를 아예 쓰지 말고 조건부로만 답한 뒤 시기를 특정할 수 없는 이유를 한 문장 밝힌다.",
             ],
             personalizationRule: "누구에게나 맞는 위로 대신 '왜 이 질문이 이 명식에서 지금 커졌는지'와 '현실에서 어떤 행동을 줄이거나 시작할지'를 함께 쓴다.",
             uncertaintyRule: "sajuFactInput에 없는 항목은 만들지 않는다. 부족한 항목은 단정하지 말고 입력된 정보만으로 볼 수 있는 범위를 밝힌다.",
-            topicCoverageRule: "가능한 경우 성향과 마음의 패턴, 일과 재능, 돈과 현실 감각, 연애와 관계, 현재 운의 흐름, 조심할 점, 지금 바로 할 수 있는 행동 조언을 모두 건드린다.",
+            topicCoverageRule: "질문에 직접 답하는 결론을 먼저 쓰고 선택된 주제와 보조 주제에 집중한다. 관련 없는 연애·직업·재물 총운으로 확장하지 않는다.",
             closingRule: "closingLine은 찻집의 차와 향 이미지를 담되 과장된 캐릭터 말투 없이 한 문장으로 쓴다.",
             noGenericAdvice: ["노력하면 좋아집니다", "긍정적으로 생각하세요", "대화가 중요합니다", "균형을 잡는 것이 필요합니다"],
             birthTimeUnknownRule: "출생시간이 없거나 birthTimeUnknown이 true이면 세부 시주 해석 제한을 명시하고, 생년월일 중심의 큰 흐름으로 말한다.",
@@ -4108,7 +4125,7 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
         // 🔴 프롬프트를 바꾼 PR 은 이 버전을 반드시 올린다. 결정론 캐시 TTL 이 30일이라
         // 버전을 그대로 두면 캐시된 구버전 응답이 재생되어 테스트는 통과하는데 프로덕션 효과가 0이 된다.
         // v2: timingFacts(대운·다년 세운) 도입 + 시기 규칙 + 합충형해파 요구 제거.
-        keyExtra: `tea-house-${consultationMode}-${group.key}-v4`,
+        keyExtra: `tea-house-${consultationMode}-${group.key}-${isSajuFamilyMode(consultationMode) ? "v5" : "v4"}`,
         minChars: group.minChars,
       },
     });

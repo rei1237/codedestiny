@@ -108,8 +108,10 @@ type SajuProfile = {
     ranked?: Array<{ name?: string; score?: number }>;
   };
   usefulGods?: {
-    yong?: unknown;
-    hee?: unknown;
+    yong?: string;
+    hee?: string[];
+    gi?: string[];
+    strength?: string;
   };
   // 🔴 엔진(worker/lib/destiny-bias-engine.js)은 profile.daewoon 을 **평평한 레거시 배열**로 주고
   // (ganji/startAge/endAge/startYear/endYear), .list 를 가진 구조체는 profile.sajuCoreResult.daewoon 에 둔다.
@@ -550,6 +552,7 @@ function snapshotFromNormalizedBirth(birth: NormalizedBirthInput, name: string):
       strongElements: listElements(profile.fiveElements?.strongest),
       weakElements: listElements(profile.fiveElements?.lacking),
       usefulElements: [...listElements(profile.usefulGods?.yong), ...listElements(profile.usefulGods?.hee)].filter((value, index, array) => array.indexOf(value) === index),
+      usefulGodEvidence: profile.usefulGods ? { ...profile.usefulGods } : undefined,
       monthBranch: monthBranch || undefined,
       season: seasonFromMonthBranch(monthBranch) || undefined,
       daewoon: buildDaewoonSnapshot(profile),
@@ -658,6 +661,7 @@ export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot, request
     ].filter(Boolean),
     birthSummary,
     dayMaster: snapshot.dayMaster,
+    usefulGodEvidence: snapshot.usefulGodEvidence,
     dominantElements,
     pillars: pillarBoard,
     fiveElements: fiveElementBalance,

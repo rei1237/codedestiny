@@ -1,5 +1,6 @@
 import type { TarotOrientation } from "./tarotCards";
 import type { TenGodId } from "./tenGods";
+import type { UsefulGodEvidence, SajuGuest } from "@/lib/fortune-tea-house/saju-guests";
 
 export type TeaHouseEmotionTone = "pink" | "purple" | "blue" | "gold" | "green";
 export type FortuneTeaHouseConsultMode = "tarot" | "saju" | "sajuCompatibility" | "sukuyo";
@@ -41,6 +42,7 @@ export type FortuneTeaHouseSajuCompatInput = {
 };
 
 export type FortuneTeaHouseConsultRequest = {
+  questionCategory?: string;
   consultationMode?: FortuneTeaHouseConsultMode;
   attemptId?: string;
   resultId?: string;
@@ -66,6 +68,7 @@ export type FortuneTeaHouseConsultRequest = {
 };
 
 export type FortuneTeaHouseQuestionInput = {
+  questionCategory?: string;
   consultationMode: FortuneTeaHouseConsultMode;
   nickname?: string;
   concernTopic: string;
@@ -131,6 +134,7 @@ export type FortuneTeaSajuDaewoonRow = {
 };
 
 export type FortuneTeaSajuSnapshot = {
+  usefulGodEvidence?: UsefulGodEvidence;
   available: boolean;
   dayMaster?: string;
   pillars?: {
@@ -404,6 +408,8 @@ export type FortuneTeaHouseConsultResponse = {
     resultPrelude?: string;
   };
   saju: {
+    usefulGodEvidence?: UsefulGodEvidence;
+    guests?: SajuGuest[];
     available: boolean;
     title: string;
     summary: string;
