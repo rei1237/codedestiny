@@ -4,8 +4,8 @@ import {build} from 'esbuild';
 import {createRequire} from 'node:module';
 
 const bundle=await build({entryPoints:['app/yeongnyangi/_lib/summary-report.ts'],bundle:true,platform:'node',format:'cjs',write:false});
-const module={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),module,module.exports);
-const {buildSummaryReport,publicShareReport,publicReportDraft,visibleChartGroups}=module.exports;
+const bundledModule={exports:{}};new Function('require','module','exports',bundle.outputFiles[0].text)(createRequire(import.meta.url),bundledModule,bundledModule.exports);
+const {buildSummaryReport,publicShareReport,publicReportDraft,visibleChartGroups}=bundledModule.exports;
 import {buildExternalImagePrompt,reportGuideCopy,reportDomains} from '../../js/core/fortune-report-content.mjs';
 const secret='010101-1234567';
 function fixture(domain){return {paid:true,state:'COMPLETED',id:'private-result-id',createdAt:'2026-09-30',product:{domain,systems:[domain]},manifest:[{id:'a',title:'첫 결과',theme:'self'}],chapters:[{summary:`상담 비밀 ${secret}`,advice:'조언',persona:'개인적인 한마디',highlights:['비공개 키워드']}],charts:[{domain,title:`${domain} 차트`,source:'구매 당시 저장된 계산 근거',limitations:['비공개 한계'],groups:[{id:'main',label:'나의 상징',items:[{label:'값',value:'辛酉'}],chapterIds:['a']},{id:'partner',label:'상대 이름',items:[{label:'이름',value:'비밀상대'}],chapterIds:['a']}]}]};}
