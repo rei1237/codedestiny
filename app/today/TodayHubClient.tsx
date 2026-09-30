@@ -21,6 +21,7 @@
 import {FreeQuestionNext} from "@/app/components/QuestionJourney";
 import Link from "next/link";
 import Image from "next/image";
+import styles from "./today-hub.module.css";
 import DailyTarot, {type DailyTarotCard} from "./DailyTarot";
 import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
@@ -68,6 +69,13 @@ interface HubResponse {
 
 type TodaySystem = "saju" | "sukuyo" | "vedic" | "number";
 type DetailLoadState = "idle" | "loading" | "failed" | "loaded";
+
+const SYSTEM_ART: Record<TodaySystem, {src:string;alt:string;invitation:string}> = {
+  saju: {src:"/images/consultation/saju-yeoni-entry-v2-640.webp",alt:"오행의 흐름이 담긴 책을 펼치는 연이",invitation:"오늘의 기운 속에서, 내 힘을 어디에 쓸지 함께 살펴봐요."},
+  sukuyo: {src:"/images/consultation/sukuyo-yeoni-entry-v1-640.webp",alt:"달빛 정원에서 스물일곱 별의 흐름을 안내하는 연이",invitation:"가까이 다가갈 때와 잠시 쉬어갈 때, 달의 흐름에 귀 기울여요."},
+  vedic: {src:"/images/consultation/vedic-yeoni-entry-v1-640.webp",alt:"천문 관측 도구와 달의 지도를 살펴보는 연이",invitation:"오늘 하늘의 리듬을 읽고, 내 속도에 맞는 선택을 찾아봐요."},
+  number: {src:"/images/today/yeoni-numerology.webp",alt:"숫자 타일과 날짜 수첩으로 하루의 리듬을 살펴보는 연이",invitation:"숫자가 비추는 오늘의 주제에서, 가볍게 실천할 한 가지를 골라요."},
+};
 
 const TODAY_LOADING_IMAGE = "/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp";
 
@@ -862,15 +870,17 @@ function CardPanel({
   const hasSections = Boolean(card.sections?.length);
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border border-white/12 bg-white/[0.05] p-5 sm:p-6">
+      <div className={locale === "ko" ? styles.result : "rounded-3xl border border-white/12 bg-white/[0.05] p-5 sm:p-6"}>
+        {locale === "ko" && <Image className={styles.resultArt} src={SYSTEM_ART[card.system].src} alt={SYSTEM_ART[card.system].alt} width={640} height={427} sizes="(max-width:768px) 100vw, 720px"/>}
+        <div className={locale === "ko" ? styles.resultBody : undefined}>
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-xs font-bold tracking-tight text-rose-200">{card.anchor}</p>
           <span className="ml-auto">
             <VerdictBadge card={card} copy={copy} />
           </span>
         </div>
-        <h2 className="mt-3 break-keep text-lg font-black leading-8 text-white sm:text-xl">{card.headline}</h2>
-        {locale === "ko" && <p className="mt-4 text-sm leading-7 text-rose-200">연이가 {tabLabel}의 흐름을 읽어드릴게요. 오늘 마음에 남는 말이 있다면, 작은 실천 하나로 옮겨봐요.</p>}
+        <h2 className={locale === "ko" ? styles.resultTitle : "mt-3 break-keep text-lg font-black leading-8 text-white sm:text-xl"}>{card.headline}</h2>
+        {locale === "ko" && <p className="mt-4 text-sm leading-7 text-rose-200">{SYSTEM_ART[card.system].invitation}</p>}
         <p className="mt-2 max-w-[64ch] break-keep text-sm leading-7 text-slate-200">{card.body}</p>
         {card.detail && <p className="mt-3 break-keep text-xs leading-6 text-slate-400">{card.detail}</p>}
         {card.highlights.length > 0 && (
@@ -885,6 +895,7 @@ function CardPanel({
             ))}
           </ul>
         )}
+        </div>
       </div>
       <details
         className="rounded-2xl border border-white/15 bg-white/[0.025] p-4"
@@ -1102,8 +1113,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
   const activeTab = { ...activeTabKey, label: copy.tabLabel[activeTabKey.key], blurb: copy.tabBlurb[activeTabKey.key] };
 
   return (
-    <main className="relative min-h-[100dvh] bg-[#070A11] pb-28 text-slate-100">
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <main className={`relative min-h-[100dvh] pb-28 text-slate-100 ${locale === "ko" ? styles.page : "bg-[#070A11]"}`}>
+      <div hidden={locale === "ko"} aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[600px] w-[1100px] -translate-x-1/2 bg-gradient-to-b from-purple-900/25 via-indigo-900/15 to-transparent opacity-80 blur-3xl" />
         <div className="absolute right-0 top-[500px] h-[600px] w-[600px] rounded-full bg-amber-500/10 blur-3xl" />
       </div>
@@ -1116,9 +1127,9 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           </p>
         </div>
 
-        <header className="mt-8 text-center sm:mt-12">
+        <header className={locale === "ko" ? styles.hero : "mt-8 text-center sm:mt-12"}>
           {locale === "ko" && <Image src="/images/fortune-chat/persona/yeoni-greet.webp" alt="반갑게 인사하는 꽃돼지 연이" width={88} height={124} className="mx-auto object-contain" priority />}
-          <h1 className="mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl">{locale === "ko" ? period === "weekly" ? "연이와 한 주를 펼쳐요" : "연이와 오늘을 펼쳐요" : copy.heroTitle}</h1>
+          <h1 className={locale === "ko" ? styles.title : "mt-5 text-3xl font-black tracking-tight text-white drop-shadow-md sm:text-5xl"}>{locale === "ko" ? period === "weekly" ? "연이와 한 주를 펼쳐요" : "연이와 오늘을 펼쳐요" : copy.heroTitle}</h1>
           <p className="mx-auto mt-4 max-w-2xl break-keep text-sm leading-7 text-slate-300 sm:text-base sm:leading-8">
             {locale === "ko" ? "어서 와요, 꽃돼지 연이예요. 따뜻한 차 한 잔 곁에 두고 오늘과 이번 주의 흐름을 함께 살펴볼까요? 마음에 남는 조언 하나만 가볍게 챙겨가요." : copy.heroLead}
           </p>
@@ -1131,7 +1142,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         {locale === "ko" && <div hidden={period !== "weekly"}>{weeklyContent}</div>}
         <div hidden={locale === "ko" && period === "weekly"}>
         {/* 탭 */}
-        <div role="tablist" aria-label={copy.tabsAriaLabel} className="mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5">
+        <div role="tablist" aria-label={copy.tabsAriaLabel} className={locale === "ko" ? styles.tabs : "mt-8 grid grid-cols-2 gap-2 rounded-2xl sm:grid-cols-4 border border-white/10 bg-white/[0.04] p-1.5"}>
           {TAB_KEYS.map((tab) => {
             const selected = tab.key === active;
             return (
@@ -1148,12 +1159,12 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
                 tabIndex={selected ? 0 : -1}
                 onClick={() => setActive(tab.key)}
                 onKeyDown={moveTab}
-                className={`inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-bold transition-colors ${
+                className={locale === "ko" ? styles.tab : `inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-bold transition-colors ${
                   selected ? "bg-amber-400/20 text-amber-100" : "text-slate-300 hover:bg-white/[0.06]"
                 }`}
               >
-                <span aria-hidden="true">{tab.emoji}</span>
-                {copy.tabLabel[tab.key]}
+                {locale === "ko" ? <Image src={SYSTEM_ART[tab.key].src} alt="" width={160} height={107} sizes="(max-width:600px) 22vw, 170px"/> : <span aria-hidden="true">{tab.emoji}</span>}
+                <span>{copy.tabLabel[tab.key]}</span>
               </button>
             );
           })}
@@ -1175,7 +1186,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
                   required
                   value={guestBirth}
                   onChange={(event) => setGuestBirth(maskBirthDateInput(event.target.value))}
-                  className="min-h-11 rounded-xl border border-white/16 bg-white/[0.06] px-3 text-sm font-semibold text-slate-100 placeholder:text-slate-500"
+                  className="min-h-11 rounded-xl border border-white/16 bg-white/[0.06] px-3 text-base font-semibold text-slate-100 placeholder:text-slate-500"
                 />
               </label>
               <button

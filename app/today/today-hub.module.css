@@ -1,0 +1,17 @@
+.page{background:#1d1019;color:#fff3ed}
+.hero{position:relative;margin:36px 0 0;padding:8px 12px 28px;text-align:center;border-bottom:1px solid #d6a68b30}
+.title{font-family:'Gowun Batang','Noto Serif KR',serif;font-size:clamp(30px,5vw,46px);font-weight:500;letter-spacing:-.035em;line-height:1.4;margin:18px 0 0;color:#fff3ed;text-wrap:balance}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:32px}
+.tab{display:flex;flex-direction:column;align-items:stretch;gap:0;min-width:0;border-radius:12px;overflow:hidden;border:1px solid #d6a68b40;background:#321c2a;color:#dfc0ce;padding:0;cursor:pointer;transition:border-color .18s ease,background .18s ease}
+.tab img{width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}
+.tab>span{padding:12px 4px;font-size:14px;font-weight:600}
+.tab[aria-selected="true"]{border-color:#f4bed1;background:#f4bed1;color:#482335}
+.tab:hover{border-color:#f4bed1}
+.tab:focus-visible{outline:3px solid #f4bed1;outline-offset:4px}
+.result{overflow:hidden;border:1px solid #d6a68b40;border-radius:20px;background:#2d1925}
+.resultArt{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover}
+.resultBody{padding:28px 32px 32px}
+.resultTitle{font-family:'Gowun Batang','Noto Serif KR',serif;font-size:clamp(23px,3.4vw,30px);font-weight:500;line-height:1.65;letter-spacing:-.03em;margin:18px 0 0;color:#fff3ed;word-break:keep-all;text-wrap:balance}
+@media(min-width:700px){.result{display:grid;grid-template-columns:42% minmax(0,1fr)}.resultArt{height:100%;aspect-ratio:auto;object-position:right center}.resultBody{padding:28px 24px}}
+@media(max-width:600px){.hero{margin-top:24px;padding-bottom:24px}.tabs{gap:8px;margin-top:24px}.tab{border-radius:9px}.tab>span{font-size:13px;padding:11px 2px}.resultBody{padding:24px 22px}.resultTitle{font-size:25px}.resultArt{aspect-ratio:3/2}}
+@media(prefers-reduced-motion:reduce){.tab{transition:none}}
