@@ -37,12 +37,10 @@ const ROOT_LAYOUT_COPY = {
 };
 
 const ROOT_SEO = {
-  title: "꿀꿀 운세 | 무료 사주팔자·타로·궁합 — Code Destiny",
-  description:
-    "꿀꿀 운세(구 꿀꿀 만세력) — 생년월일 하나로 무료 사주팔자, 타로, 궁합, 자미두수, 신년운세까지. 코드 데스티니(Code Destiny).",
-  ogTitle: "꿀꿀 운세 | 무료 사주·타로·궁합 — Code Destiny",
-  ogDescription:
-    "꿀꿀 운세 — 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 재밌고 정확하게 보는 코드 데스티니 공식 서비스.",
+  title: siteSeo.defaultTitle,
+  description: siteSeo.defaultDescription,
+  ogTitle: siteSeo.defaultTitle,
+  ogDescription: siteSeo.defaultDescription,
 };
 
 export const metadata = {
@@ -77,14 +75,14 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/icons/app-logo-96.png",
+    icon: "/icons/moonlight-garden-v1-96.png",
     shortcut: "/favicon.ico",
-    apple: "/icons/app-logo-180.png",
+    apple: "/icons/moonlight-garden-v1-180.png",
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    title: siteSeo.siteName,
+    title: siteSeo.brandName,
     statusBarStyle: "default",
   },
   // 🔴 여기에 `alternates` 를 다시 두지 말 것 (2026-08-27 제거).

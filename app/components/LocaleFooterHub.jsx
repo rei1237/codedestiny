@@ -99,7 +99,7 @@ export default function LocaleFooterHub({ locale }) {
 
       <div className={styles.sfhShell}>
         <a href={I18N_ROUTE_MAP.home[locale]} className={styles.sfhBrand} aria-label={copy.localeNavLabels.home}>
-          <Image src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="56px" />
+          <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="56px" />
           <span>
             <strong>CODE DESTINY</strong>
             <small>{copy.title}</small>

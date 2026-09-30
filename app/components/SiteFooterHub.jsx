@@ -186,7 +186,7 @@ export default function SiteFooterHub() {
         {/* 정적 홈 셸로 곧장 이동한다. */}
         {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a href="/index.html" className={styles.sfhBrand} aria-label="Code Destiny 홈">
-          <Image src="/icons/app-logo-512.webp" alt="" width={512} height={512} sizes="56px" />
+          <Image src="/icons/moonlight-garden-v1-512.webp" alt="" width={512} height={512} sizes="56px" />
           <span>
             <strong>CODE DESTINY</strong>
             <small>오늘의 마음이 조금 가벼워지는 곳</small>

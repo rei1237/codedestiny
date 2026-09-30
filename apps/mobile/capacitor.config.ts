@@ -10,7 +10,7 @@ type ServerConfig = NonNullable<CapacitorConfig["server"]> & { html5mode?: boole
 
 const config: CapacitorConfig = {
   appId: process.env.CODE_DESTINY_ANDROID_PACKAGE_ID || "com.codedestiny.app",
-  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "Code Destiny",
+  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "사주 달빛정원",
   webDir: "../../dist",
   server: {
     androidScheme: "https",
@@ -35,9 +35,8 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchAutoHide: true,
-      // 셸이 연이 라이트(크림/로즈)로 뜨므로 스플래시도 같은 톤이어야 첫 페인트에 번쩍이지 않는다.
-      // 예전 값(#070b1f 네이비)은 앱이 다크 허브를 띄우던 시절의 잔재다.
-      backgroundColor: "#fffaf7",
+      // 연이·네오 모두 통합 브랜드의 웹 부팅 화면과 같은 시작 배경을 쓴다.
+      backgroundColor: "#1b1028",
     },
   },
 };

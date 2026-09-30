@@ -4,9 +4,8 @@
     <color name="colorPrimary">#B31955</color>
     <color name="colorPrimaryDark">#7D1240</color>
     <color name="colorAccent">#EAD089</color>
-    <!-- Android 12+ 스플래시 배경(다크). splash_logo.webp(꿀꿀 운세 로고 앱버전)를 이 위에 표시. -->
-    <!-- 셸이 연이 라이트(크림)로 뜨므로 스플래시도 같은 톤이어야 첫 페인트에 번쩍이지 않는다. -->
-    <color name="cd_splash_bg">#FFFAF7</color>
-    <!-- 네오 모드 스플래시 배경. 웹 부팅 게이트 베일(html.cd-boot-gate.neo-mode)의 #0a0818 과 같은 값. -->
-    <color name="cd_splash_bg_neo">#0A0818</color>
+    <!-- Android 시작 화면과 사주 달빛정원의 웹 부팅 일러스트 배경을 맞춘다. -->
+    <color name="cd_splash_bg">#1B1028</color>
+    <!-- 네오 모드도 같은 통합 브랜드 시작 화면을 사용한다. -->
+    <color name="cd_splash_bg_neo">#1B1028</color>
 </resources>

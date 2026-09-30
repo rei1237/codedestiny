@@ -11,10 +11,10 @@ test("공개 페이지 공통 헤더와 푸터가 꽃돼지 브랜드를 공유�
   const localeFooter = read("app/components/LocaleFooterHub.jsx");
 
   for (const source of [header, footer, localeFooter]) {
-    assert.match(source, /\/icons\/app-logo-512\.webp/);
+    assert.match(source, /\/icons\/moonlight-garden-v1-512\.webp/);
     assert.match(source, /CODE DESTINY/);
   }
-  assert.match(header, /꿀꿀 운세/);
+  assert.match(header, /사주 달빛정원/);
   assert.match(footer, /오늘의 마음이 조금 가벼워지는 곳/);
 });
 

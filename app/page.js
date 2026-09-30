@@ -8,29 +8,29 @@ import { ILGAN_MONTHLY_MONTHS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import styles from "./home-guide.module.css";
 
 const sourcePage = publicSeoPages.home;
-const HOME_TITLE = "꿀꿀 운세 | 사주·타로·연애운 상담 — Code Destiny";
-const HOME_DESCRIPTION = "꽃돼지 연이와 네오가 오늘의 운세, 타로, 사주, 연애·재물·인생 흐름을 차근차근 안내합니다. 무료 확인부터 주제별 유료 상담까지 한곳에서 둘러보세요.";
+const HOME_TITLE = siteSeo.defaultTitle;
+const HOME_DESCRIPTION = siteSeo.defaultDescription;
 const HOME_SEO = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
   ogTitle: HOME_TITLE,
   ogDescription: HOME_DESCRIPTION,
   url: "https://code-destiny.com/",
-  image: "https://code-destiny.com/icons/app-logo-512.webp",
+  image: "https://code-destiny.com/icons/moonlight-garden-v1-512.png",
 };
 
 const page = {
   ...sourcePage,
   title: HOME_SEO.title,
   description: HOME_SEO.description,
-  h1: "꿀꿀 운세",
+  h1: siteSeo.brandName,
 };
 
 export const metadata = {
   metadataBase: new URL("https://code-destiny.com"),
   title: { absolute: HOME_SEO.title },
   description: HOME_SEO.description,
-  keywords: ["꿀꿀 운세", "무료 사주", "무료 타로", "연애운", "재물운", "영냥이", ...page.keywords],
+  keywords: [siteSeo.brandName, "꿀꿀 운세", "무료 사주", "무료 타로", "연애운", "재물운", "영냥이", ...page.keywords],
   alternates: {
     canonical: HOME_SEO.url,
     languages: {
@@ -59,8 +59,8 @@ export const metadata = {
     images: [
       {
         url: HOME_SEO.image,
-        width: 800,
-        height: 800,
+        width: 512,
+        height: 512,
         alt: HOME_SEO.ogTitle,
       },
     ],
@@ -90,8 +90,8 @@ export default function HomePage() {
   return <>
     <LegacyHomeEntry defaultTarget="/ggulggul/" />
     <LocalizedServiceSummary><section className={styles.guide} aria-labelledby="homeGuideTitle">
-      <h1 id="homeGuideTitle">꿀꿀 운세로 들어가기</h1>
-      <p>Code Destiny의 대표 입구는 꽃돼지 연이와 네오가 안내하는 꿀꿀 운세입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
+      <h1 id="homeGuideTitle">사주 달빛정원으로 들어가기</h1>
+      <p>사주 달빛정원은 꿀꿀 운세의 꽃돼지 연이·네오와 영냥이를 함께 만나는 Code Destiny의 운세 상담 공간입니다. 무료 타로와 사주 기질 확인으로 가볍게 시작하고, 관계·일·돈·올해의 선택처럼 지금의 질문에 맞는 상담을 이어서 고를 수 있어요.</p>
       <nav className={styles.paths} aria-label="대표 입구와 상담 안내">
         <Link href="/ggulggul/">연이의 정원에서 시작하기</Link>
         <Link href="/today/#daily-tarot">무료 타로 세 장 펼치기</Link>

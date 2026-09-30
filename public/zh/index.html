@@ -501,16 +501,16 @@
 <meta name="theme-color" content="#FFF8F0" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
 <link rel="manifest" href="/manifest.zh.json?v=build-b26c52f1e759">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="96x96" href="/icons/app-logo-96.png">
-<link rel="apple-touch-icon" href="/icons/app-logo-180.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/icons/moonlight-garden-v1-96.png">
+<link rel="apple-touch-icon" href="/icons/moonlight-garden-v1-180.png">
 
 <!-- ═══ 성능 및 캐싱 최적화 ═══ -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Expires" content="public">
 <meta name="apple-mobile-web-app-capable" content="true">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="CODE DESTINY 蜜豚运势">
-<meta name="application-name" content="꿀꿀 운세">
+<meta name="apple-mobile-web-app-title" content="Saju Moonlight Garden">
+<meta name="application-name" content="사주 달빛정원">
 
 <!-- ═══ DNS Prefetch 및 리소스 힌트 ═══ -->
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
@@ -589,30 +589,25 @@ html.cd-deeplink-boot.neo-mode body::after{background:var(--cd-bg, #0d1234)}
      의사요소가 아닌 실제 요소를 쓴다. -->
 <style>
 .cd-boot-gate__veil{display:none}
-/* z-index 는 쿠키 배너(100260)보다 위. 그보다 낮으면 부팅 중에 배너만 게이트를 뚫고 올라온다. */
-html.cd-boot-gate .cd-boot-gate__veil{position:fixed;inset:0;z-index:100400;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#fffaf7;color:#3c1830}
-html.cd-boot-gate.neo-mode .cd-boot-gate__veil{background:#0a0818;color:#f4eeff}
-/* 앱 아이콘과 같은 로고를 쓴다 — 네이티브 스플래시에서 이어지는 인상을 끊지 않기 위해서다 */
-html.cd-boot-gate .cd-boot-gate__logo{width:88px;height:88px;border-radius:24px;object-fit:contain;background:rgba(255,255,255,.9);box-shadow:0 14px 32px rgba(150,72,104,.18);animation:cdBootPulse 2.4s ease-in-out infinite}
-html.cd-boot-gate.neo-mode .cd-boot-gate__logo{background:rgba(20,16,44,.9);box-shadow:0 16px 36px rgba(0,0,0,.5)}
-html.cd-boot-gate .cd-boot-gate__word{font-size:.82rem;font-weight:900;letter-spacing:.24em;text-transform:uppercase;opacity:.72}
-html.cd-boot-gate .cd-boot-gate__bar{width:132px;height:3px;border-radius:999px;overflow:hidden;background:rgba(60,24,48,.14)}
-html.cd-boot-gate.neo-mode .cd-boot-gate__bar{background:rgba(244,238,255,.16)}
-/* 실제 진행률 — scaleX 로 그린다. --cd-boot-progress 는 부팅 마일스톤에서만 올라간다(가짜 진행 없음). */
-html.cd-boot-gate .cd-boot-gate__bar i{display:block;width:100%;height:100%;border-radius:inherit;background:#b31955;transform-origin:left center;transform:scaleX(var(--cd-boot-progress,0));transition:transform .28s cubic-bezier(.22,1,.36,1)}
-html.cd-boot-gate.neo-mode .cd-boot-gate__bar i{background:#e8d5a3}
+html.cd-boot-gate{scrollbar-gutter:auto;overflow:hidden}
+html.cd-boot-gate .cd-boot-gate__veil{position:fixed;inset:0;z-index:100400;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;background:#1b1028;color:#fff5e5}
+html.cd-boot-gate .cd-boot-gate__art{position:absolute;top:50%;left:0;width:100%;height:auto;max-height:100vh;max-height:100dvh;transform:translateY(-50%);object-fit:contain;object-position:center}
+html.cd-boot-gate .cd-boot-gate__intro{position:absolute;top:0;left:0;right:0;padding:max(env(safe-area-inset-top),6vh) 20px 16px;background:#1b1028;text-align:center}
+html.cd-boot-gate .cd-boot-gate__word{display:block;font-family:var(--font-serif,'Noto Serif KR',serif);font-size:clamp(1.75rem,6vw,2.5rem);font-weight:700;line-height:1.35;letter-spacing:-.025em;color:#fff5e5;text-shadow:0 2px 14px #1b1028}
+html.cd-boot-gate .cd-boot-gate__welcome{margin:10px 0 0;font-size:.9rem;line-height:1.6;color:#fff0d6;text-shadow:0 2px 10px #1b1028}
+html.cd-boot-gate .cd-boot-gate__footer{position:absolute;bottom:max(calc(env(safe-area-inset-bottom) + 24px),6vh);display:flex;flex-direction:column;align-items:center;gap:14px;padding:16px 24px;background:#1b1028;border-radius:20px}
+html.cd-boot-gate .cd-boot-gate__message{font-size:.875rem;line-height:1.5;color:#f6e5cf}
+html.cd-boot-gate .cd-boot-gate__bar{width:148px;height:3px;border-radius:999px;overflow:hidden;background:#655268}
+/* Existing boot milestones own progress and dismissal; no artificial delay. */
+html.cd-boot-gate .cd-boot-gate__bar i{display:block;width:100%;height:100%;border-radius:inherit;background:#ead089;transform-origin:left center;transform:scaleX(var(--cd-boot-progress,0));transition:transform .28s cubic-bezier(.22,1,.36,1)}
 html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
-@keyframes cdBootPulse{0%,100%{opacity:.78;transform:scale(.985)}50%{opacity:1;transform:scale(1.015)}}
-@media (prefers-reduced-motion:reduce){
-  html.cd-boot-gate .cd-boot-gate__logo{animation:none}
-  html.cd-boot-gate .cd-boot-gate__bar i{transition:none}
-  html.cd-boot-gate-out .cd-boot-gate__veil{transition:none}
-}
+@media(prefers-reduced-motion:reduce){html.cd-boot-gate .cd-boot-gate__bar i,html.cd-boot-gate-out .cd-boot-gate__veil{transition:none}}
+
 </style>
 <script>(function(){try{var d=document.documentElement,mm=window.matchMedia;var isTouch=(mm&&mm('(max-width: 900px), (hover: none) and (pointer: coarse)').matches);if(!isTouch)return;if(!/[?&]action=[^&]/.test(String(location.search||'')))return;d.classList.add('cd-deeplink-boot');/* 런타임 스크립트가 실패해도 화면이 가려진 채 남지 않도록 하드 상한을 둔다 */setTimeout(function(){try{d.classList.remove('cd-deeplink-boot');}catch(e){}},5000);}catch(e){}})();</script>
 <!-- 부팅 게이트 로고: 첫 프레임에 준비돼 있어야 로고 없는 빈 게이트가 잠깐 보이지 않는다 -->
 <!-- 브랜드 로고 프리로드. 🔴 이 URL 은 이 파일의 로고 소비자 전부와 **문자 그대로 같아야** 한다:
-     부팅 게이트 로고(.cd-boot-gate__logo) · 히어로 마스코트(#honeypigLogo) · 결제 오버레이와
+     히어로 마스코트(#honeypigLogo) · 결제 오버레이와
      paid-gate 스프라이트의 background-image · js/io-image-lazy-loader.js 의 SRCSET_HINTS.
      하나라도 다른 문자열(리사이즈 변형이나 ?v= 붙은 경로 포함)을 쓰면 캐시 키가 갈려 같은 그림을
      두 번 받고, 결제 오버레이는 클릭 시점에 콜드 캐시가 된다(그게 이 preload 의 존재 이유다).
@@ -944,7 +939,7 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
 
 <!-- ═══ OG 태그 (기본 한국어) ═══ -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="꿀꿀 운세">
+<meta property="og:site_name" content="사주 달빛정원">
 <meta property="og:title" content="CODE DESTINY | 免费四柱八字·塔罗·紫微斗数·合婚 — 每日运势">
 <meta property="og:description" content="通过四柱命理、紫微斗数、宿曜占星术与塔罗认识自己的行为和关系。阅读公开解说，了解AI解读的用途与局限，并在各功能页面确认使用条件。">
 <meta property="og:url" content="https://code-destiny.com/zh/">
@@ -1047,10 +1042,10 @@ html:not(.cd-mobile-runtime) .cd-home-guide { content-visibility: auto; contain-
     {
       "@type": "WebSite",
       "@id": "https://code-destiny.com/#website",
-      "name": "꿀꿀 운세",
+      "name": "사주 달빛정원",
       "alternateName": ["CodeDestiny", "코드데스티니", "꿀꿀운세", "꿀꿀 운세", "꽃돼지 운세", "꽃돼지 사주"],
       "url": "https://code-destiny.com",
-      "description": "꿀꿀 운세는 꽃돼지 연이와 함께 사주·자미두수·숙요점·베다점·점성술·타로의 흐름을 살펴보는 운세 서비스입니다.",
+      "description": "사주 달빛정원은 꿀꿀 운세의 꽃돼지 연이·네오와 영냥이가 함께하는 사주·타로·운세 상담 서비스입니다. 나의 기질과 관계, 일과 돈의 흐름을 살펴보세요.",
       "publisher": { "@id": "https://code-destiny.com/#organization" }
     },
     {
@@ -5578,10 +5573,10 @@ html.neo-mode .cdh-yn-portal__door,body.neo-mode .cdh-yn-portal__door{background
 <!-- 몰입 배경 — 문서 최하단 레이어(z-index:-1). body 배경색은 캔버스로 전파되므로 이 위에 그려진다.
      스타일은 cd-home-showcase-v20260801 블록, 패럴럭스는 같은 이름의 스크립트가 --cd-atmos-scroll 만 갱신. -->
 <div id="cdHomeAtmos" aria-hidden="true"><span class="cd-atmos__layer cd-atmos__layer--far"></span><span class="cd-atmos__layer cd-atmos__layer--near"></span></div>
-<div class="cd-boot-gate__veil" aria-hidden="true">
-  <img class="cd-boot-gate__logo" src="/icons/app-logo-512.webp" alt="" width="88" height="88" decoding="async" fetchpriority="low">
-  <span class="cd-boot-gate__word">Code Destiny</span>
-  <span class="cd-boot-gate__bar"><i></i></span>
+<div class="cd-boot-gate__veil" role="status" aria-live="polite" aria-label="사주 달빛정원 준비 중">
+  <img class="cd-boot-gate__art" src="/images/brand/moonlight-garden-splash-720.webp" srcset="/images/brand/moonlight-garden-splash-720.webp 720w, /images/brand/moonlight-garden-splash-1080.webp 1024w" sizes="(min-aspect-ratio: 1/1) 67vh, 100vw" alt="" width="1024" height="1536" decoding="async" fetchpriority="high">
+  <div class="cd-boot-gate__intro"><span class="cd-boot-gate__word">사주 달빛정원</span><p class="cd-boot-gate__welcome">연이·네오·영냥이와 함께, 나의 흐름을 읽는 곳</p></div>
+  <div class="cd-boot-gate__footer"><span class="cd-boot-gate__message">달빛정원을 준비하고 있어요</span><span class="cd-boot-gate__bar" aria-hidden="true"><i></i></span></div>
 </div>
 <script data-marker="cd-boot-progress-v20260730">
 /* 부팅 준비 신호 + 진행률.
@@ -10167,7 +10162,7 @@ return you.name.restore();</span>
         <a class="moon-topbar__brand no-underline decoration-0 hover:no-underline focus:no-underline" href="#inputPage" aria-label="CODE DESTINY 홈으로 이동" data-cd-trans-attr="aria-label:shell.logoArea.moonTopbar.CODEDESTINY.ariaLabel">
           <span class="inline-flex items-center gap-1.5 rounded-full border border-[#e8dfc8]/20 bg-[#e8dfc8]/[0.07] px-3 py-1 shadow-[0_8px_20px_rgba(4,5,18,0.22),inset_0_1px_0_rgba(255,255,255,0.14)] backdrop-blur-md">
             <strong class="bg-gradient-to-r from-[#fff7dd] via-[#d8bd72] to-[#c3d0ef] bg-clip-text font-serif text-[1.08rem] font-extrabold leading-none text-transparent no-underline decoration-0">CODE DESTINY</strong>
-            <em class="not-italic text-[0.68rem] font-black uppercase leading-none tracking-normal text-[#cff7ef] no-underline decoration-0 drop-shadow-[0_0_10px_rgba(94,234,212,0.22)]" data-cd-trans data-key="home.nav.brandAlias">꿀꿀 운세</em>
+            <em class="not-italic text-[0.68rem] font-black uppercase leading-none tracking-normal text-[#cff7ef] no-underline decoration-0 drop-shadow-[0_0_10px_rgba(94,234,212,0.22)]" data-cd-trans data-key="home.nav.brandAlias">사주 달빛정원</em>
           </span>
         </a>
         <nav class="moon-topbar__nav" aria-label="메인 서비스 바로가기" data-cd-trans-attr="aria-label:home.nav.mainAria" data-marker="cd-nav-hub-8-v20260723">

@@ -1240,19 +1240,15 @@ function writeThemeModeState(isNeo) {
 function applyPwaThemeAssets(isNeo) {
   var manifestLink = document.querySelector('link[rel="manifest"]');
   if (manifestLink) {
-    var manifestHref = (isNeo ? '/manifest-neo.json' : '/manifest.json') + '?v=' + THEME_LOGO_REV;
+    var manifestHref = (isNeo ? '/manifest-neo.json' : '/manifest.json') + '?v=20260930-moonlight-garden-v1';
     manifestLink.setAttribute('href', manifestHref);
   }
 
   var faviconLink = document.getElementById('pwa-favicon');
   var appleIconLink = document.getElementById('pwa-apple-icon');
-  if (isNeo) {
-    if (faviconLink) { faviconLink.setAttribute('href', NEO_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', NEO_LOGO_URL);
-  } else {
-    if (faviconLink) { faviconLink.setAttribute('href', PIG_LOGO_URL); faviconLink.setAttribute('type', 'image/webp'); faviconLink.setAttribute('sizes', '192x192'); }
-    if (appleIconLink) appleIconLink.setAttribute('href', PIG_LOGO_URL);
-  }
+  // Installation identity is shared; character artwork inside each theme stays separate.
+  if (faviconLink) { faviconLink.setAttribute('href', '/icons/moonlight-garden-v1-96.png'); faviconLink.setAttribute('type', 'image/png'); faviconLink.setAttribute('sizes', '96x96'); }
+  if (appleIconLink) appleIconLink.setAttribute('href', '/icons/moonlight-garden-v1-180.png');
 }
 
 function syncThemeLogoSources(reason) {
