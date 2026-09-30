@@ -195,7 +195,7 @@ export default function Result(){
     {row.consultation?.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}
    </details>}
    <div id="reading-progress" className={styles.progress} data-state={row.state}>{row.state!=='COMPLETED'&&<img src="/assets/yeongnyangi/hero.webp" width={120} height={120} alt=""/>}
-     <div>{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
+     <div>{row.correction&&<p role="status">{row.correction.reason}</p>}{!unpaid&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
       {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={askReading?stateCopy.answerProgress:stateCopy.progress}/>}
      {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&(row.recovery?.canRetryNow?<><p role="alert">{stateCopy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{busy?stateCopy.recovering:copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED'].includes(row.errorCode||'')?<p role="status">{stateCopy.reviewRequired}</p>:<p role="status">{row.errorCode==='PAYMENT_NOT_ACTIVE'?copy.support:row.chapters.length===row.manifest.length?copy.reviewing:copy.generating}</p>)}
      {row.state==='REFUNDED'&&<p>{stateCopy.refunded}</p>}

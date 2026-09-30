@@ -31,9 +31,10 @@ const present=new Function('correctedFortune','readingCharts','readingLocale','s
 test('chart, paid body, summary and public share use one corrected reading without regeneration',()=>{
  const context=hour=>({domain:'saju',engineVersion:'saju-natal-v2',facts:[{id:'saju.pillars',label:'pillars',value:{year:'丁卯',month:'癸丑',day:'辛酉',hour}}],limitations:[]});
  const row={...structuredClone(original),paymentId:'paid',productId:'saju_tuna',snapshot:{analysis:{contexts:{saju:context('戊子')},asOf:'2026-09-26'},product:{domain:'saju',systems:['saju']},manifest:[{id:'chapter-a',title:'기질',sources:['saju.pillars']}]}};
- row.correction={...correction,analysis:{...row.snapshot.analysis,contexts:{saju:context('己亥')}},chapters:[{summary:'기해시 정정',highlights:[],blocks:[]}]};
+ row.correction={...correction,reason:'시주 정정',analysis:{...row.snapshot.analysis,contexts:{saju:context('己亥')}},chapters:[{summary:'기해시 정정',highlights:[],blocks:[]}]};
  const originalJson=JSON.stringify(row);const view=present(row);const report=cjs.exports.buildSummaryReport(view);
  assert.match(JSON.stringify(view.charts),/己亥/);assert.doesNotMatch(JSON.stringify(view.charts),/戊子/);
+ assert.equal(view.correction.reason,'시주 정정');assert.equal(view.charts[0].source,'검수된 정정 계산 근거');
  assert.equal(view.chapters[0].summary,'기해시 정정');assert.equal(report.oneLineSummary,'기해시 정정');
  assert.match(JSON.stringify(report.chart),/己亥/);
  const share=cjs.exports.publicReportDraft(cjs.exports.publicShareReport(report));assert.ok(share.chart);

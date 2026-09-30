@@ -377,7 +377,9 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 }
 
 export function presentFortune(row: any) {
+  const originalRow = row;
   row = correctedFortune(row);
+  const correctionApplied = row !== originalRow;
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
   const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
@@ -390,7 +392,8 @@ export function presentFortune(row: any) {
     canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
     nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
-    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest):undefined,
+    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest).map(chart=>correctionApplied?{...chart,source:"검수된 정정 계산 근거"}:chart):undefined,
+    ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters,
