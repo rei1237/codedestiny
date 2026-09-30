@@ -9,7 +9,7 @@ import styles from "./home-guide.module.css";
 
 const sourcePage = publicSeoPages.home;
 const HOME_TITLE = siteSeo.defaultTitle;
-const HOME_DESCRIPTION = "사주 달빛정원에서 연이·네오·영냥이를 만나보세요. 꿀꿀 운세부터 영냥이 상담까지, 사주와 타로로 기질을 살펴보고 관계·일·돈에 관한 나의 질문에 맞는 서비스를 고를 수 있습니다.";
+const HOME_DESCRIPTION = "사주 달빛정원에서 연이·네오·영냥이를 만나보세요. 꿀꿀 운세부터 영냥이 상담까지, 사주·타로로 기질과 관계·일·돈의 흐름을 살펴보세요.";
 const HOME_SEO = {
   title: HOME_TITLE,
   description: HOME_DESCRIPTION,
