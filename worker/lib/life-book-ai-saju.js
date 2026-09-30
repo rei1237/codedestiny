@@ -462,7 +462,7 @@ function collectGroupInteractions(entries, groups, type) {
 }
 
 // 명리 관계성은 결과 문장 생성 전에 JSON 근거로만 고정해 LLM이 임의로 합충을 만들지 못하게 합니다.
-function buildNatalInteractions(pillarDetails = {}) {
+export function buildNatalInteractions(pillarDetails = {}) {
   const entries = pillarEntries(pillarDetails);
   return {
     stemCombinations: buildPairInteractions(entries, STEM_COMBINATION_PAIRS, "stem", "천간합"),
@@ -477,13 +477,18 @@ function buildNatalInteractions(pillarDetails = {}) {
   };
 }
 
-export function buildLuckNatalInteractions(luckPillar, pillarDetails = {}) {
+export function buildLuckNatalInteractions(luckPillar, pillarDetails = {}, { includeGroups = false } = {}) {
   const luckStem = pillarStem(luckPillar);
   const luckBranch = pillarBranch(luckPillar);
   const entries = pillarEntries(pillarDetails);
   const luckEntry = { key: "luck", label: "운", pillar: luckPillar, stem: luckStem, branch: luckBranch };
   const combinedEntries = [luckEntry, ...entries];
   return {
+    ...(includeGroups ? {
+      branchPunishments: collectGroupInteractions(combinedEntries, BRANCH_PUNISHMENT_GROUPS, "지지형").filter((item) => item.pillars.includes("luck")),
+      threeHarmony: collectGroupInteractions(combinedEntries, THREE_HARMONY_GROUPS, "삼합").filter((item) => item.pillars.includes("luck")),
+      directionalGroups: collectGroupInteractions(combinedEntries, DIRECTIONAL_GROUPS, "방합").filter((item) => item.pillars.includes("luck")),
+    } : {}),
     stemCombinations: buildPairInteractions(combinedEntries, STEM_COMBINATION_PAIRS, "stem", "천간합").filter((item) => item.pillars.includes("luck")),
     stemClashes: buildPairInteractions(combinedEntries, STEM_CLASH_PAIRS, "stem", "천간충").filter((item) => item.pillars.includes("luck")),
     branchCombinations: buildPairInteractions(combinedEntries, BRANCH_COMBINATION_PAIRS, "branch", "지지육합").filter((item) => item.pillars.includes("luck")),

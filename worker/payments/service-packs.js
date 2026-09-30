@@ -9,7 +9,7 @@ import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { reserveFortuneFunding, completeFortuneFunding } from '../yeongnyangi/payment-funding.js';
 
 const PAID=['paid','success','fulfilled'];
-const useId=(userId,requestId)=>paidExecutionDocumentId('service-pack-use:'+userId+':'+requestId);
+const packUseEvidenceId=(userId,requestId)=>paidExecutionDocumentId('service-pack-use:'+userId+':'+requestId);
 const restoreId=(userId,requestId)=>paidExecutionDocumentId('service-pack-restore:'+userId+':'+requestId);
 const packId=orderId=>paidExecutionDocumentId('purchase:'+orderId);
 export const activeOrderFilter=(userId,orderId)=>({merchantUid:orderId,userId:toObjectId(userId),status:{$in:PAID},
@@ -101,7 +101,7 @@ export async function grantServicePackInTransaction(tx,order,{recipientUserId=''
 // Paid proof remains live at read, generation claim and chapter/completion writes.
 // A committing caller uses its transaction adapter and a marker to serialize PG revocation.
 export async function findServicePackUseEvidence(db,{userId,requestId,featureKey,commitMarker=''}) {
-  const evidence=await db.findOne(PointHistory,{_id:useId(userId,requestId),userId:toObjectId(userId),
+  const evidence=await db.findOne(PointHistory,{_id:packUseEvidenceId(userId,requestId),userId:toObjectId(userId),
     featureKey,'metadata.requestId':requestId,'metadata.accessMethod':'SERVICE_PACK',
     'metadata.refundedForServiceExecution':{$ne:true}});
   if(!evidence)return null;
@@ -131,7 +131,7 @@ export async function consumeServicePack(db,{userId,entitlementId,requestId,now=
     if(!claim)throw paymentError('INVALID_REQUEST','이용권 적용 상담을 확인하지 못했어요.');
     const account=await tx.findOne(User,{_id:toObjectId(userId)},{projection:{points:1}});
     const balanceAfter=Math.max(0,Number(account?.points||0));
-    const receiptId=useId(userId,requestId);
+    const receiptId=packUseEvidenceId(userId,requestId);
     const prior=await tx.findOne(PointHistory,{_id:receiptId,userId:toObjectId(userId)});
     if(claim.settled&&!prior)throw paymentError('INVALID_REQUEST','저장된 상담 이용 증빙을 확인하지 못했어요.');
     if(prior) {

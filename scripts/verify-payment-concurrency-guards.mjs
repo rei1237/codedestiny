@@ -357,6 +357,12 @@ for (const dir of ["worker/routes", "worker/lib"]) {
     const source = readFileSync(resolve(root, rel), "utf8");
     if (!source.includes("restoreMonthlyCreditLot(")) continue;
     if (!source.includes("MonthlyCreditLedger")) continue;
+    if (rel === "worker/routes/profile.js") {
+      // Legacy PointHistory refunds remain here; canonical ledger refunds are delegated and scanned below.
+      assert.match(source, /return refundProfileMoonstone\(evidence, auth\.userId, reason\)/);
+      assert.match(source, /evidence\?\.moonstoneLedger/);
+      continue;
+    }
     monthlyRefundSites.push([rel, source]);
   }
 }

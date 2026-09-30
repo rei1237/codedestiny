@@ -1,3 +1,4 @@
+import "../styles/press-coverage.css";
 import "../styles/globals.css";
 import "../styles/theme-tokens.css";
 import "../styles/feature-marketing-detail.css";
@@ -37,8 +38,8 @@ const ROOT_LAYOUT_COPY = {
 };
 
 const ROOT_SEO = {
-  title: "사주 달빛정원 | 사주·타로·영냥이 상담 — Code Destiny",
-  description: "사주 달빛정원은 Code Destiny의 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
+  title: "꿀꿀 운세 | 사주·타로·영냥이 상담 — Code Destiny",
+  description: "꿀꿀 운세는 Code Destiny의 사주·타로 상담 서비스입니다. 꽃돼지 연이, 네오, 영냥이와 함께 자신의 기질과 관계를 살펴보고 일상에서 선택할 방향을 찾아보세요.",
   ogTitle: siteSeo.defaultTitle,
   ogDescription: siteSeo.defaultDescription,
 };

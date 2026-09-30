@@ -703,6 +703,7 @@
       }
     }
 
+    var timeUnknown = typeof birth.timeUnknown === 'boolean' ? birth.timeUnknown : (next.timeUnknown === true || next.birthTimeUnknown === true);
     var timeText = typeof next.birthTime === 'string' ? next.birthTime : '';
     if (!timeText && typeof next.birthIso === 'string') {
       var isoTime = String(next.birthIso).split(/[T\s]/)[1] || '';
@@ -724,10 +725,10 @@
     var day = _dpToProfileInt(birth.day != null ? birth.day : (next.birthDay != null ? next.birthDay : parsedDate && parsedDate.day), NaN);
 
     if (_dpHasValidProfileDate(year, month, day)) {
-      var hour = _dpToProfileInt(birth.hour != null ? birth.hour : (next.birthHour != null ? next.birthHour : parsedTime && parsedTime.hour), 12);
-      var minute = _dpToProfileInt(birth.minute != null ? birth.minute : (next.birthMinute != null ? next.birthMinute : parsedTime && parsedTime.minute), 0);
-      if (hour < 0 || hour > 23) hour = 12;
-      if (minute < 0 || minute > 59) minute = 0;
+      var hour = _dpToProfileInt(birth.hour != null ? birth.hour : (next.birthHour != null ? next.birthHour : parsedTime && parsedTime.hour), null);
+      var minute = _dpToProfileInt(birth.minute != null ? birth.minute : (next.birthMinute != null ? next.birthMinute : parsedTime && parsedTime.minute), null);
+      if (hour < 0 || hour > 23) hour = null;
+      if (minute < 0 || minute > 59) minute = null;
       var calType = String(birth.calType || next.calType || next.calendarType || 'solar').trim();
       if (calType !== 'lunar' && calType !== 'lunar_leap') calType = 'solar';
 
@@ -735,18 +736,20 @@
         year: year,
         month: month,
         day: day,
-        hour: hour,
-        minute: minute,
+        hour: timeUnknown ? null : hour,
+        minute: timeUnknown ? null : minute,
+        timeUnknown: timeUnknown,
         calType: calType
       });
       next.birthYear = year;
       next.birthMonth = month;
       next.birthDay = day;
-      next.birthHour = hour;
-      next.birthMinute = minute;
+      next.timeUnknown = next.birthTimeUnknown = timeUnknown;
+      next.birthHour = timeUnknown ? null : hour;
+      next.birthMinute = timeUnknown ? null : minute;
       next.calType = calType;
       next.birthDate = year + '-' + _dpPad2(month) + '-' + _dpPad2(day);
-      next.birthTime = _dpPad2(hour) + ':' + _dpPad2(minute);
+      next.birthTime = timeUnknown || hour == null || minute == null ? '' : _dpPad2(hour) + ':' + _dpPad2(minute);
       next.birthIso = next.birthDate + ' ' + next.birthTime;
     }
 
@@ -7223,6 +7226,8 @@
     var bd      = bdEl ? _dpNormalizeBirthDateInputValue(bdEl.value) : '';
     var hourRaw = parseInt((document.getElementById('birthHour') || {}).value, 10);
     var minuteRaw = parseInt((document.getElementById('birthMinute') || {}).value, 10);
+    var timeUnknown = window.__cdBirthTimeUnknown === true;
+    if (!timeUnknown && (!Number.isFinite(hourRaw) || hourRaw < 0 || hourRaw > 23 || !Number.isFinite(minuteRaw) || minuteRaw < 0 || minuteRaw > 59)) return null;
     var hour = (Number.isFinite(hourRaw) && hourRaw >= 0 && hourRaw <= 23) ? hourRaw : 12;
     var minute = (Number.isFinite(minuteRaw) && minuteRaw >= 0 && minuteRaw <= 59) ? minuteRaw : 0;
     /* 성별: 활성 버튼 우선, 폴백 window._gender, 기본값 'F' */
@@ -7274,7 +7279,7 @@
     return {
       name: name || '사용자',
       gender: gender,
-      birth: { year: year, month: month, day: day, hour: hour, minute: minute, calType: calType },
+      birth: { year: year, month: month, day: day, hour: timeUnknown ? null : hour, minute: timeUnknown ? null : minute, timeUnknown: timeUnknown, calType: calType },
       location: {
         label: locationLabel,
         tz: tz,
@@ -7291,8 +7296,20 @@
     return String(value == null ? '' : value).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
   }
 
+  function _dpProfileMutationTicket(action, profileId, update) {
+    var key = 'cd_profile_mutation:' + _dpGetProfileScope() + ':' + action + ':' + profileId;
+    try {
+      if (update === null) { window.sessionStorage.removeItem(key); return null; }
+      if (update) window.sessionStorage.setItem(key, JSON.stringify(update));
+      return JSON.parse(window.sessionStorage.getItem(key) || 'null');
+    } catch (_) { return null; }
+  }
   function _dpBuildProfileManageRequestId(action, profileId) {
-    return ('profile-card:' + action + ':' + String(profileId || 'new') + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8)).slice(0, 120);
+    var saved = _dpProfileMutationTicket(action, profileId);
+    if (saved && saved.requestId) return saved.requestId;
+    var requestId = ('profile-card:' + action + ':' + String(profileId || 'new') + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 8)).slice(0, 120);
+    _dpProfileMutationTicket(action, profileId, { requestId: requestId });
+    return requestId;
   }
 
   function _dpReadProfileDeleteLock() {
@@ -7678,17 +7695,22 @@
   }
 
   async function _dpRunProfileDeleteGate(profile, profileId, requestId) {
-    var choice = await _dpOpenProfileDeleteGate(profile, profileId, requestId);
+    var pending = _dpProfileMutationTicket('delete', profileId);
+    if (pending && pending.paymentContext) return pending.paymentContext;
+    var choice = pending && pending.method === 'monthly' ? 'monthly' : await _dpOpenProfileDeleteGate(profile, profileId, requestId);
     if (!choice) return null;
     if (choice === 'family') return {};
     var base = _dpBuildProfileDeletePaymentBase(profileId, requestId);
     if (choice === 'monthly') {
+      _dpProfileMutationTicket('delete', profileId, { requestId: requestId, method: 'monthly' });
       _dpSetPaymentPending(true, '\uD504\uB85C\uD544 \uCE74\uB4DC \uC0AD\uC81C \uACB0\uC81C \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uB294 \uC911\uC785\uB2C8\uB2E4...', 'monthly');
       var monthlyPayload = await _dpRunMonthlyCreditFromMainGate(Object.assign({}, base, {
         paymentMode: 'MOONLIGHT_STONE',
         accessMode: 'moonlight_stone'
       }));
-      return _dpNormalizeProfileDeletePaymentContext(monthlyPayload, profileId, requestId, 'MOONLIGHT_STONE');
+      var context = _dpNormalizeProfileDeletePaymentContext(monthlyPayload, profileId, requestId, 'MOONLIGHT_STONE');
+      _dpProfileMutationTicket('delete', profileId, { requestId: requestId, method: 'monthly', paymentContext: context });
+      return context;
     }
     if (typeof window._cdRunDirectKrwCheckout !== 'function') {
       throw new Error('\uB2E8\uAC74\uACB0\uC81C \uBAA8\uB4C8\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4. \uD398\uC774\uC9C0\uB97C \uC0C8\uB85C\uACE0\uCE68 \uD55C \uB4A4 \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.');
@@ -7721,6 +7743,9 @@
      리다이렉트 복귀 재개 핸들러가 **같은 요청**을 쓰도록 여기 한 곳에 둔다(원칙 6 — 같은 요청 조립을
      둘로 가르지 않는다). paymentContext 는 게이트가 준 결제 증빙이 그대로 실린다. */
   function _dpSendProfileMutation(mutationAction, profileId, requestId, profileData, paymentContext) {
+    var pending = _dpProfileMutationTicket(mutationAction, profileId);
+    if (!paymentContext && pending) paymentContext = pending.paymentContext;
+    if (paymentContext) _dpProfileMutationTicket(mutationAction, profileId, { requestId: requestId, paymentContext: paymentContext });
     var isDelete = mutationAction === 'delete';
     var isUpdate = mutationAction === 'update';
     var url = (isDelete || isUpdate) ? '/api/profile/' + encodeURIComponent(profileId) : '/api/profile';
@@ -7744,6 +7769,12 @@
       retryTransient: true,
       maxTransientRetries: 2,
       timeoutMs: _DP_FETCH_TIMEOUT_MS
+    }).then(function(result) {
+      if (result && result.ok) {
+        _dpProfileMutationTicket(mutationAction, profileId, null);
+        if (mutationAction === 'create') { try { sessionStorage.removeItem('cd_profile_create:' + _dpGetProfileScope()); } catch (_) {} }
+      }
+      return result;
     });
   }
 
@@ -9494,8 +9525,9 @@
         year: year,
         month: month,
         day: day,
-        hour: hour,
-        minute: minute,
+        hour: b.timeUnknown ? null : hour,
+        timeUnknown: b.timeUnknown === true,
+        minute: b.timeUnknown ? null : minute,
         calType: b.calType || 'solar'
       },
       location: {
@@ -9512,11 +9544,12 @@
     bridge.birthYear = year;
     bridge.birthMonth = month;
     bridge.birthDay = day;
-    bridge.birthHour = hour;
-    bridge.birthMinute = minute;
+    bridge.timeUnknown = bridge.birthTimeUnknown = b.timeUnknown === true;
+    bridge.birthHour = b.timeUnknown ? null : hour;
+    bridge.birthMinute = b.timeUnknown ? null : minute;
     bridge.calType = bridge.birth.calType;
     bridge.birthDate = year + '-' + _dpPad2(month) + '-' + _dpPad2(day);
-    bridge.birthTime = _dpPad2(hour) + ':' + _dpPad2(minute);
+    bridge.birthTime = b.timeUnknown ? '' : _dpPad2(hour) + ':' + _dpPad2(minute);
     bridge.lat = lat;
     bridge.lng = lng;
     bridge.lon = lng;
@@ -9694,8 +9727,9 @@
 
     var hourEl = document.getElementById('birthHour');
     var minEl  = document.getElementById('birthMinute');
-    if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
-    if (minEl)  minEl.value  = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+    window.__cdBirthTimeUnknown = b.timeUnknown === true;
+    if (hourEl) hourEl.value = b.timeUnknown ? '' : (b.hour != null ? b.hour : '');
+    if (minEl) minEl.value = b.timeUnknown ? '' : (b.minute != null ? b.minute : '');
 
     /* ② 장소 선택 — tz 일치 옵션 중 좌표 최근접 매칭(전 지역 정확 복원), 폴백 tz-only */
     var countrySel = document.getElementById('birthCountry');
@@ -9915,16 +9949,19 @@
       btn.checked = btn.value === (b.calType || 'solar');
       if (btn.checked) try { btn.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
     });
+    window.__cdApplyingUnknownBirthTime = true;
     var hourEl = document.getElementById('birthHour');
     var minEl = document.getElementById('birthMinute');
     if (hourEl) {
-      hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
+      hourEl.value = b.timeUnknown ? '' : (b.hour != null ? b.hour : '');
       _dpDispatchProfileFieldRefresh(hourEl);
     }
     if (minEl) {
-      minEl.value = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
+      minEl.value = b.timeUnknown ? '' : (b.minute != null ? b.minute : '');
       _dpDispatchProfileFieldRefresh(minEl);
     }
+    window.__cdBirthTimeUnknown = b.timeUnknown === true;
+    window.__cdApplyingUnknownBirthTime = false;
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
       var lng = (l.lng !== undefined && l.lng !== null) ? Number(l.lng) : Number(l.lon);
@@ -9953,6 +9990,7 @@
   }
 
   function _dpClearProfileForm() {
+    window.__cdBirthTimeUnknown = false;
     _dpSetProfileFieldValue('nameInput', '');
     _dpSetProfileFieldValue('birthDate', '');
     _dpSetProfileFieldValue('birthHour', '');
@@ -10018,9 +10056,15 @@
     /* 과부하 금지 — 두 값은 의미가 다르다. 하나로 합치면 한도 가드가 수정까지 삼킨다(#248 회귀). */
     var updateRequiresPayment = isUpdate && !isFamilyPlan;
     var createRequiresPayment = !isUpdate && !canUsePlanSlot;
+    var createDraftKey = 'cd_profile_create:' + _dpGetProfileScope();
+    var createDraft = null;
+    var createSignature = JSON.stringify(data);
+    try { createDraft = JSON.parse(sessionStorage.getItem(createDraftKey) || 'null'); } catch (_) {}
     var createProfileId = isUpdate
       ? String(currentProfile.id || currentProfile.profileId)
       : String(data.profileId || data.id || '').trim() || _dpBuildProfileCreateId(data && data.name);
+    if (!isUpdate && createDraft && createDraft.signature === createSignature) createProfileId = createDraft.profileId;
+    if (!isUpdate) { try { sessionStorage.setItem(createDraftKey, JSON.stringify({ signature: createSignature, profileId: createProfileId })); } catch (_) {} }
     data.profileId = createProfileId;
     data.id = createProfileId;
     var createRequestId = _dpBuildProfileManageRequestId(mutationAction, createProfileId);

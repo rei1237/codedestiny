@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {transform} from 'esbuild';
+import {build,transform} from 'esbuild';
 import ts from 'typescript';
 import {calculateNatalSaju} from '../../lib/korean-calendar/index.js';
 for(const path of ['worker/yeongnyangi/service.ts','worker/yeongnyangi/free-service.ts']) {
@@ -17,3 +17,11 @@ for(const path of ['worker/yeongnyangi/service.ts','worker/yeongnyangi/free-serv
   p.birth.timeUnknown=true;assert.equal(normalize(p,false).birthTime,undefined);
  });
 }
+
+const bundled=await build({entryPoints:['worker/yeongnyangi/fortune/saju/index.ts'],bundle:true,write:false,platform:'node',format:'esm',logLevel:'silent'});
+const {saju}=await import('data:text/javascript;base64,'+Buffer.from(bundled.outputFiles[0].text).toString('base64'));
+test('Incheon 23:26 uses the same corrected Gihae hour in the paid/free saju domain',async()=>{
+ const input=saju.validateInput({personA:{birthDate:'1988-01-07',birthTime:'23:26',gender:'female',calendarType:'solar',birthPlace:{latitude:37.456,longitude:126.7052,timezone:'Asia/Seoul',label:'인천'}},topicId:'general',question:''});
+ const context=await saju.calculate(input,{asOf:'2026-09-26'});
+ assert.deepEqual(context.facts.find(f=>f.id==='saju.pillars').value,{year:'丁卯',month:'癸丑',day:'辛酉',hour:'己亥'});
+});

@@ -22,3 +22,10 @@ test('missing or invalid time still requires correction unless explicitly unknow
  expect(validateRequiredBirth({birth:{...birth,hour:null,minute:null}}).ok).toBe(false);
  expect(validateRequiredBirth({birth:{...birth,month:2,day:30,timeUnknown:true}}).ok).toBe(false);
 });
+
+test('explicit canonical known time overrides stale unknown aliases',()=>{
+ for(const hour of [0,12,23]) {
+  const value=validateRequiredBirth({timeUnknown:true,birthTimeUnknown:true,birth:{...birth,timeUnknown:false,hour,minute:26}});
+  expect(value.birth.timeUnknown).toBe(false);expect(value.birth.hour).toBe(hour);
+ }
+});

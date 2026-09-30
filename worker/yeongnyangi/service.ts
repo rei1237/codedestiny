@@ -1,3 +1,4 @@
+import { correctedFortune } from "./reading-correction.js";
 import { storedChapterDraft, canResumeStoredChapter } from './stored-chapter.js';
 import {conciseReadingManifest} from './fortune/concise-reading';
 import { assertSajuPillarClaims } from "../lib/saju-correction.js";
@@ -27,6 +28,7 @@ import { domains } from './fortune';
 import { getProduct } from './payments/catalog';
 import { analyze } from './fortune/analysis';
 import { readingManifest, questionFactSelectors } from './fortune/reading-manifest';
+import {withPreventionReading,withPreventionTiming,preventionEligible,PREVENTION_VERSION} from './fortune/prevention';
 import { computeCrossDaily } from './fortune/daily-cross';
 import { buildEvidencePacket } from './fortune/ask/packet';
 import { extendAskLocalTiming } from './fortune/ask/wrappers';
@@ -150,7 +152,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const now=new Date();
   const clock=consultationClock(body.timezone,now);
   const date=clock.asOf;
-  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
+  const fingerprint=await digest({...(product.systems.includes("saju")?{sajuEngine:SAJU_ENGINE_VERSION,sajuPolicy:SAJU_POLICY_VERSION}:{}),productId:product.id,priceKRW:product.priceKRW,profileId:body.profileId,normalized,date,timezone:clock.timezone,consultationVersion:1,...(!spiritInput&&preventionEligible(product.fishId)?{preventionVersion:PREVENTION_VERSION}:{}),...(locale!=='ko'?{locale}:{}),...(v7?{manifestVersion:READING_V7_VERSION}:product.manifestVersion===READING_V6_VERSION?{manifestVersion:product.manifestVersion}:{}),...(kind?{consultationKind:kind.id,kindVersion:1}:{}),...(spiritInput?{mode:SPIRIT_MODE,spiritInput}:{}),...(jongAnswer?{jongCheck:jongAnswer}:{})});
   const id=tarotIntentId||relationshipId||await digest({userId,fingerprint,...attempt,...(relationship?{relationshipVersion:RELATIONSHIP_VERSION}:{}),...(tarotV2?{tarotConsultationVersion:TAROT_CONSULTATION_VERSION}:{})});
   if(askEvidenceEnabled||relationship||tarotV2) {
     // A retry reads the immutable purchase intent before any calculation or card draw.
@@ -173,6 +175,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     const other=input.personB?await domains[system].calculate({...input,personA:input.personB,personB:undefined,readingMode:'personal'},{runtimeEnv:env,asOf:date,relationshipReading:true}):undefined;
     contexts[system]=extendRelationshipContext(contexts[system]!,other,date);
   }
+  if(!spiritInput&&preventionEligible(product.fishId)&&contexts.saju)contexts.saju=withPreventionTiming(contexts.saju);
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
@@ -185,9 +188,17 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     // the stored matrix, so it never recomputes a period or resolves a different owner.
     const context=contexts[product.domain]!;
     v7Timing=await buildV7TimingMatrix(context,normalized[product.domain],date);
+    if(preventionEligible(product.fishId)){
+      const enriched=withPreventionTiming(withV7Timing(context,v7Timing));
+      v7Timing.facts=v7Timing.facts.map(f=>enriched.facts.find(x=>x.label===f.label)||f);
+    }
     manifest=v7TimingSummaries(resolveV7Ledger(manifest as ChapterSpecV7[],withV7Timing(context,v7Timing)));
     product.manifestVersion=READING_V7_VERSION;
     product.chapterCount=manifest.length;
+  }
+  if(!spiritInput&&preventionEligible(product.fishId)){
+    if(v7Timing)analysis.contexts[product.domain]=withV7Timing(contexts[product.domain]!,v7Timing);
+    manifest=withPreventionReading(manifest,analysis,product.fishId);product.chapterCount=manifest.length;
   }
   analysis.consultation=createConsultation(body.question || '',analysis.topicId || 'general',clock,manifest);
   if(relationship||participants||kind?.partner&&relationshipQuestionId)analysis.consultation.relationship={version:RELATIONSHIP_VERSION,questionId:relationshipQuestionId,participants:participants||(partner?{self:String(profile.name||'나').slice(0,40),partner:String(partner.name||'상대').slice(0,40)}:undefined)};
@@ -376,6 +387,9 @@ export async function generateNextChapter(env: Record<string, unknown>, userId: 
 }
 
 export function presentFortune(row: any) {
+  const originalRow = row;
+  row = correctedFortune(row);
+  const correctionApplied = row !== originalRow;
   const symbolic=Boolean(row.snapshot.analysis.consultation?.spirit||row.snapshot.analysis.consultation?.questionSky);
   const errorCode=row.errorCode==='ASK_LIMITED_REVIEW_REQUIRED'?'GENERATION_REVIEW_REQUIRED':row.errorCode;
   const complete=row.state==='COMPLETED',awaitingFollowup=row.state==='AWAITING_FOLLOWUP',blocked=row.state==='REFUNDED'||errorCode==='PAYMENT_NOT_ACTIVE';
@@ -388,7 +402,8 @@ export function presentFortune(row: any) {
     canRetryNow,nextAttemptAt:row.nextAttemptAt || null,reviewRequired:held,
     nextAction:complete?'reread':blocked?'support':canRetryNow?'retry':held?'held':'wait',autoResume:held&&holdAutoResumes(row)};
   return {id:row._id,locale:readingLocale(row.snapshot.locale),profileId:row.profileId,productId:row.productId,state:row.state,
-    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest):undefined,
+    charts:!symbolic && hasRequestAccess(row) && row.state!=='REFUNDED'?readingCharts(snapshotAnalysis(row.snapshot),row.snapshot.manifest).map(chart=>correctionApplied?{...chart,source:"검수된 정정 계산 근거"}:chart):undefined,
+    ...(correctionApplied?{correction:{reason:row.correction.reason,appliedAt:row.correction.appliedAt}}:{}),
     paid:hasRequestAccess(row),accessMethod:row.accessMethod || (row.paymentId?'DIRECT_KRW':undefined),product:row.snapshot.product,manifest:symbolic ? row.snapshot.manifest.map(({id,title,ordinal,part}:any)=>({id,title,ordinal,part})) : row.snapshot.manifest,
     consultation:row.snapshot.analysis.consultation || {topicId:row.snapshot.analysis.topicId || 'general',question:row.snapshot.analysis.question || '',asOf:row.snapshot.analysis.asOf},
     chapters:row.state==='REFUNDED'?[]:symbolic ? row.chapters.map(({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots}:any)=>({summary,analysis,example,advice,persona,highlights,topics,blocks,questionAnswers,followUpSuggestions,visualSlots,sources:[]})) : row.chapters,

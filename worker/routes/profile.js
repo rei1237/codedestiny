@@ -179,7 +179,7 @@ export function validateRequiredBirth(rawProfile) {
   );
 
   const hasDateParts = birth.year !== undefined && birth.month !== undefined && birth.day !== undefined;
-  const timeUnknown = birth.timeUnknown === true || source.timeUnknown === true || source.birthTimeUnknown === true;
+  const timeUnknown = typeof birth.timeUnknown === "boolean" ? birth.timeUnknown : (source.timeUnknown === true || source.birthTimeUnknown === true);
   const hasTimeParts = birth.hour !== undefined && birth.hour !== null && birth.minute !== undefined && birth.minute !== null;
 
   if (!hasDateParts && !parsedDate) {
@@ -238,7 +238,7 @@ function normalizeIncomingProfile(raw, index) {
   );
   const parsedTime = parseBirthTimeText(source.birthTime || birth.birthTime || birth.time || source.time);
 
-  const timeUnknown = birth.timeUnknown === true || source.timeUnknown === true || source.birthTimeUnknown === true;
+  const timeUnknown = typeof birth.timeUnknown === "boolean" ? birth.timeUnknown : (source.timeUnknown === true || source.birthTimeUnknown === true);
   return {
     profileId: buildProfileId(source.profileId || source.id, index),
     name: sanitizeName(source.name),
@@ -293,6 +293,7 @@ function hasProfileMutationPaymentContext(body = {}) {
   const consume = source.consume && typeof source.consume === "object" ? source.consume : null;
   const accessGrant = source.accessGrant && typeof source.accessGrant === "object" ? source.accessGrant : null;
   const values = [
+    source.requestId,
     source.paymentMode,
     source.paymentMethod,
     source.accessMethod,
@@ -602,7 +603,17 @@ function evidencePaymentMethodMatches(evidence, paymentMethod) {
   return true;
 }
 
+async function profileEvidenceModel(evidence) {
+  return evidence?.moonstoneLedger ? (await import("../lib/models.js")).MonthlyCreditLedger : PointHistory;
+}
+async function readProfileMoonstone(auth, input) {
+  const { findProfileMoonstoneEvidence } = await import("../lib/profile-moonstone-mutation.js");
+  return findProfileMoonstoneEvidence({ userId: auth.userId, ...input });
+}
+
 async function findProfileMutationPaymentEvidence(auth, { action, profileId, requestId, body }) {
+  const ledger = await readProfileMoonstone(auth, { action, profileId, requestId });
+  if (ledger) return { ok: true, evidence: ledger };
   const actionType = resolveProfileMutationActionType(action);
   const clauses = buildProfileMutationEvidenceClauses({ requestId, body, profileId });
   const baseQuery = {
@@ -662,6 +673,8 @@ async function findProfileMutationPaymentEvidence(auth, { action, profileId, req
 
 async function findCompletedProfileMutationReplay(auth, { action, profileId, requestId, body }) {
   if (!requestId) return null;
+  const ledger = await readProfileMoonstone(auth, { action, profileId, requestId });
+  if (ledger?.metadata?.profileMutationCompleted) return ledger;
   const clauses = buildProfileMutationEvidenceClauses({ requestId, body, profileId });
   const evidence = await PointHistory.findOne({
     userId: auth.userId,
@@ -765,6 +778,10 @@ async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
     return { ok: false, response: profileCardActionPaymentRequiredResponse(action, requestId, profileId) };
   }
 
+  if (evidence.moonstoneLedger && evidence.metadata?.profileMutationInProgress && evidence.metadata.profilePaymentKey === requestId) {
+    const created = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+    if (created) return { ok: true, requestId, evidence };
+  }
   const claim = await claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence });
   if (!claim.ok) return claim;
 
@@ -794,12 +811,16 @@ async function ensureProfileCreatePaymentAuthorized(auth, { profileId, body }) {
 async function claimProfileMutationEvidence(auth, { action, profileId, requestId, evidence }) {
   if (!evidence?._id) return { ok: true };
 
-  const result = await PointHistory.updateOne(
+  const model = await profileEvidenceModel(evidence);
+  const result = await model.updateOne(
     {
       _id: evidence._id,
       userId: auth.userId,
       "metadata.profileMutationCompleted": { $ne: true },
-      "metadata.profileMutationInProgress": { $ne: true },
+      ...(evidence.moonstoneLedger ? { ...((await import("../lib/moonstone-spend-proof.js")).moonstoneSpendRefundFilter()), $or: [
+        { "metadata.profileMutationInProgress": { $ne: true } },
+        { "metadata.profilePaymentKey": requestId, "metadata.profileMutationInProgressAt": { $lt: new Date(Date.now() - 90000) } },
+      ] } : { "metadata.profileMutationInProgress": { $ne: true } }),
     },
     {
       $set: {
@@ -829,7 +850,8 @@ async function recordProfileMutationCompleted(auth, { action, profileId, request
   const now = new Date();
 
   if (evidence?._id) {
-    await PointHistory.updateOne(
+    const model = await profileEvidenceModel(evidence);
+    await model.updateOne(
       {
         _id: evidence._id,
         userId: auth.userId,
@@ -884,6 +906,10 @@ async function recordProfileMutationCompleted(auth, { action, profileId, request
 }
 
 async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, requestId, evidence, reason }) {
+  if (evidence?.moonstoneLedger) {
+    const { refundProfileMoonstone } = await import("../lib/profile-moonstone-mutation.js");
+    return refundProfileMoonstone(evidence, auth.userId, reason);
+  }
   const metadata = evidence?.metadata || {};
   if (!evidence?._id || metadata.profileMutationCompleted === true) return;
   if (metadata.accessType !== "membership_credit") {
@@ -1096,19 +1122,14 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
     const profilePolicySnapshot = buildProfilePolicySnapshot(user, { source: "profile_create" });
     const createFitsLocalPolicy = yeongnyangi || canCreateProfileWithinSubscriptionLimit(subscription, count);
     let createPayment = null;
+    const createRequestId = readProfileMutationRequestId(body, "create", normalized.profileId);
+    const existingPaidCreate = !createFitsLocalPolicy && hasProfileMutationPaymentContext(body)
+      ? await findCompletedProfileMutationReplay(auth, { action: "create", profileId: normalized.profileId, requestId: createRequestId, body }) : null;
     if (!createFitsLocalPolicy && !hasProfileMutationPaymentContext(body)) {
-      return json({
-        ok: false,
-        success: false,
-        code: "PROFILE_LIMIT_RECONCILE_REQUIRED",
-        message: "현재 이용권의 기본 프로필 카드 저장 개수를 초과했습니다. 기존 카드를 정리하거나 이용권을 확인해 주세요.",
-        subscription,
-        profilePolicySnapshot,
-        serverSyncedAt: new Date().toISOString(),
-      }, { status: 409 });
+      return profileCardActionPaymentRequiredResponse("create", createRequestId, normalized.profileId);
     }
 
-    if (!createFitsLocalPolicy) {
+    if (!createFitsLocalPolicy && !existingPaidCreate) {
       createPayment = await ensureProfileCreatePaymentAuthorized(auth, {
         profileId: normalized.profileId,
         body,
@@ -1116,10 +1137,12 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
       if (!createPayment.ok) return createPayment.response;
     }
 
-    let created;
-    let replayedCreate = false;
+    // A completed payment can reread its existing card, never recreate a later-deleted one.
+    let created = existingPaidCreate ? await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId: normalized.profileId }).lean()) : null;
+    if (existingPaidCreate && !created) return profileMutationConflictResponse("이미 완료된 프로필 추가 결제입니다. 새 작업으로 다시 진행해 주세요.", { requestId: createRequestId });
+    let replayedCreate = Boolean(created);
     try {
-      created = await withMongoRetry(env, () => ProfileCard.create({
+      if (!created) created = await withMongoRetry(env, () => ProfileCard.create({
         userId: auth.userId,
         profileId: normalized.profileId,
         name: normalized.name,
@@ -1140,7 +1163,7 @@ async function handleCreateProfile(request, auth, env, yeongnyangi = false) {
         if (existing) created = existing;
       }
       if (!created) {
-        if (createPayment?.evidence) {
+        if (createPayment?.evidence && !isDbUnavailableError(error)) {
           await refundProfileMutationCreditIfNeeded(auth, {
             action: "create",
             profileId: normalized.profileId,
@@ -1311,6 +1334,12 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
 
   const body = await readJson(request);
+  const requestId = readProfileMutationRequestId(body, "update", profileId);
+  const replay = await findCompletedProfileMutationReplay(auth, { action: "update", profileId, requestId, body });
+  if (replay) {
+    const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
+    return json({ ok: true, success: true, replayed: true, profile: profiles.find(p => p.id === profileId), profiles });
+  }
   const rawProfile = body?.profile && typeof body.profile === "object" ? body.profile : body;
   const existingProfile = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId }).lean());
   if (!existingProfile) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
@@ -1328,6 +1357,15 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
       ...((rawProfile.location && typeof rawProfile.location === "object") ? rawProfile.location : {}),
     },
   };
+  const incomingBirth = rawProfile.birth || {};
+  if (typeof incomingBirth.timeUnknown === "boolean" || rawProfile.birthTime !== undefined || (incomingBirth.hour != null && incomingBirth.minute != null)) {
+    mergedProfile.birth.timeUnknown = typeof incomingBirth.timeUnknown === "boolean" ? incomingBirth.timeUnknown : rawProfile.timeUnknown === true;
+    mergedProfile.timeUnknown = mergedProfile.birthTimeUnknown = mergedProfile.birth.timeUnknown;
+    if (rawProfile.birthTime !== undefined && incomingBirth.hour === undefined) {
+      const time = parseBirthTimeText(rawProfile.birthTime);
+      mergedProfile.birth.hour = time?.hour; mergedProfile.birth.minute = time?.minute;
+    }
+  }
   const birthValidation = validateRequiredBirth(mergedProfile);
   if (!birthValidation.ok) {
     return json({ ok: false, success: false, message: birthValidation.message }, { status: 400 });
@@ -1367,7 +1405,7 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
       { returnDocument: "after" },
     ).lean());
   } catch (error) {
-    await refundProfileMutationCreditIfNeeded(auth, {
+    if (!isDbUnavailableError(error)) await refundProfileMutationCreditIfNeeded(auth, {
       action: PROFILE_CARD_MUTATION_ACTIONS.UPDATE,
       profileId,
       requestId: authorization.requestId,
@@ -1490,7 +1528,14 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
 
   if (trace) trace.stage = "delete_read";
   const existingProfile = await withMongoRetry(env, () => ProfileCard.findOne({ userId: auth.userId, profileId }).lean());
-  if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  if (!existingProfile) {
+    const pending = await readProfileMoonstone(auth, { action: "delete", profileId, requestId });
+    if (pending?.metadata?.profileMutationInProgress && pending.metadata.profilePaymentKey === requestId) {
+      await recordProfileMutationCompleted(auth, { action: "delete", profileId, requestId, evidence: pending });
+      return buildProfileDeleteResponse(auth, profileId, env, { evidence: pending, replayed: true });
+    }
+    return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+  }
 
   if (trace) trace.stage = "delete_policy";
   const authorization = await ensureProfileDeleteAuthorized(auth, {
