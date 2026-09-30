@@ -179,7 +179,7 @@ function buildSajuMailContext(sub, today) {
     elementBalance: formatElementBalance(snapshot.natal),
     yongshin: formatElementList(snapshot.power && (snapshot.power.yongshin || snapshot.power.useful || snapshot.power.good)),
     avoidElements: formatElementList(snapshot.power && (snapshot.power.kijishin || snapshot.power.bad || snapshot.power.avoid)),
-    johuType: safeText(snapshot.johu && (snapshot.johu.type || snapshot.johu.badgeTxt), "기운 조율"),
+    johuType: safeText(snapshot.johu && (snapshot.johu.badgeTxt || snapshot.johu.type), "기운 조율"),
     todayPillar: today.dayPillar,
     yearFlow: today.yearPillar,
     dailyPreview: getPreviewLine(snapshot.dailyPreview),

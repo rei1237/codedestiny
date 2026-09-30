@@ -397,7 +397,7 @@ const RAW_PIG_COIN_UNLOCK_PRODUCTS = Object.freeze({
     amountKRW: 5000,
     reason: "러브 코드",
   },
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 30, reason: "Section daewun unlock" },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, amountKRW: 5000, reason: "Section daewun unlock" },
   "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock" },
   "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock" },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "Destiny flower atelier full unlock" },
@@ -433,8 +433,9 @@ export const PIG_COIN_UNLOCK_PRODUCTS = normalizeRegistryPricingTable(RAW_PIG_CO
 //    클라이언트가 이 코인게이트를 아예 거치지 않게 됐고(navigateToZiweiChart 는 무조건 직행),
 //    안 쓰는 가격표만 남아 있었다. 과거 결제 조회용 PERSISTENT_UNLOCK_KEY_SET(fortune.js)
 //    키는 human-design-chart 선례대로 남긴다.
+//  · 2026-09-30 대운 신규 해금 3,000원 → 5,000원. 기존 구매권은 유지하고 월정석·이용권 소비는 정가 환산을 따른다.
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 30, reason: "Section daewun unlock" },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, amountKRW: 5000, reason: "Section daewun unlock" },
   "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock" },
   "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock" },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "Destiny flower atelier full unlock" },

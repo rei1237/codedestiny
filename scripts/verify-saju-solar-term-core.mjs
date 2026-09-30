@@ -214,22 +214,23 @@ for (const year of SAMPLE_YEARS) {
 
   // E — 사주 엔진은 "그 시각이 지나온 節" 을 근거로 실어 보낸다. 節 +1분에서 그 節이 잡혀야 한다.
   const localNodes = nodeTerms(year).map((node) => {
-    const at = new Date(Date.UTC(node.year, node.month - 1, node.day, node.hour, node.minute) + 60000);
+    const instant = Date.UTC(node.year, node.month - 1, node.day, node.hour - 9, node.minute) + 60000;
+    // The table is fixed KST; the natal input is historical Seoul civil time.
+    // Intl/ICU supplies the independent civil offset (including 1950 DST).
+    // An explicit legacy offset must not bypass the actual natal policy.
+    const civil = Object.fromEntries(new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).formatToParts(instant).map(part => [part.type, part.value]));
     const result = calculateLocalSaju({
       hasTime: true,
       calendarType: "solar",
       timezone: "Asia/Seoul",
-      // nodeTerms() is the Korean calendar core's fixed KST wall-clock table.
-      // Keep this parity check on that declared KST axis; runtime callers that
-      // need historical civil-time accuracy omit the explicit offset and use
-      // the IANA timezone rules instead.
-      timezoneOffsetMinutes: 540,
-      hourPillarTimePolicy: "KST_CLOCK_TIME",
-      year: at.getUTCFullYear(),
-      month: at.getUTCMonth() + 1,
-      day: at.getUTCDate(),
-      hour: at.getUTCHours(),
-      minute: at.getUTCMinutes(),
+      year: Number(civil.year),
+      month: Number(civil.month),
+      day: Number(civil.day),
+      hour: Number(civil.hour),
+      minute: Number(civil.minute),
       gender: "male",
     });
     const active = result?.calculationEvidence?.solarTerms?.active;

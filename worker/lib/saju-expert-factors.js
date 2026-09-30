@@ -10,9 +10,11 @@ export function buildLifeBookExpertFactors(saju) {
     pillars,
     daewoon: (saju.majorLuck?.cycles || []).map((cycle) => ({ ganji: cycle.pillar, startAge: cycle.startAge, scope: "daewoon" })),
     yearlyLuck: (saju.yearlyLuck || []).map((row) => ({ ganji: row.pillar, year: row.year, scope: "sewoon" })),
-    power: {
+    // Structured runtime power takes precedence; text parsing is only for stored legacy callers.
+    power: saju.power && typeof saju.power === "object" ? saju.power : {
       yongshin: [String(saju.usefulGod || "")[0]].filter(Boolean),
       kijishin: [String(saju.unfavorableGod || "")[0]].filter(Boolean),
     },
+    jong: saju.jong,
   });
 }

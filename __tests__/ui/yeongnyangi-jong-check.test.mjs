@@ -98,10 +98,12 @@ test('strength question: a non-종격 chart within one 7-point step of the 신�
   assert.equal(calculateScreenSaju(weakSide,now).jongCheck.kind,'strength');
   assert.equal(calculateScreenSaju({...person,birthDate:'1970-01-22',birthTime:'08:00'},now).jongCheck,null,'score -34 is not on the line');
   assert.equal(asked.kind,'jong');
-  // A 종격 candidate is its own frame even when its score sits on the line and its own question is skipped.
-  const jongOnLine=calculateScreenSaju({...person,birthDate:'1984-05-15',birthTime:'02:00'},now);
-  assert.ok(jongOnLine.jong.isJong&&jongOnLine.strength.score>=23&&jongOnLine.strength.score<=36);
-  assert.equal(jongOnLine.jongCheck,null);
+  // 합의 짝만으로 합화시켜 만든 종격을 유지하지 않는다. 이 명식은 합화 조건을
+  // 충족하지 않으므로 일반격의 기존 신강/신약 경계 질문을 그대로 적용한다.
+  const conditionalChart=calculateScreenSaju({...person,birthDate:'1984-05-15',birthTime:'02:00'},now);
+  assert.equal(conditionalChart.jong.isJong,false);
+  assert.equal(conditionalChart.strength.score,27);
+  assert.equal(conditionalChart.jongCheck.kind,'strength');
 });
 
 test('saju reading: both "no" flips a boundary 신강/신약, both "yes" confirms, anything else changes nothing',async()=>{

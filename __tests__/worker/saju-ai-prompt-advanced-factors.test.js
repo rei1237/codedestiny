@@ -372,6 +372,37 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
   });
 
   test.each([
+    "식신생재는 수익을 보장하지 않습니다. 겁재가 있어도 동업 손실을 확정하지 않습니다.",
+    "36세 대운이 수입 증가를 보장하는 것은 아닙니다.",
+    "식신의 생산성을 살리려면 반드시 실제 수익과 비용을 확인하세요. 비겁의 경쟁을 읽을 때에도 손실 가능성을 점검하고 반드시 역할과 정산을 기록하세요.",
+    "겁재가 재성을 다투고 식상·관성의 조절이 부족한 경우에는 동업에서 손실이나 분쟁 가능성을 살핍니다. 다만 재성이 충분하고 정산과 역할이 분명하면 경쟁이 공동 성과로 이어질 여지도 있습니다.",
+    "상관이 재성으로 이어지고 일간이 감당할 힘이 있는 경우에는 기술을 사업이나 부업으로 표현할 가능성을 살펴볼 수 있습니다. 수입 창출은 고객의 반응과 비용을 따로 확인해야 합니다.",
+    "36세 대운의 재성이 원국의 식상을 이어받는다면 재물 기회를 넓히는 쪽으로 해석할 수 있습니다. 다만 일간의 지원이 부족하면 부담이 커질 수 있으므로 사업 확장 전 실제 자원과 비용을 확인하세요.",
+    "겁재의 경쟁과 동업 손실은 조건에 따라 달라집니다.\n\n계약 내용은 반드시 기록하고 역할과 정산 기준을 확인하세요."
+  ])("전통 명리의 조건부 해석을 결과 보장으로 오인하지 않는다", (traditionalReading) => {
+    const built = buildCareerPrompt();
+    const text = CONCISE_COMPLETE_CAREER_RESULT.replace("12. 마지막 한마디", traditionalReading + "\n\n12. 마지막 한마디");
+    const validation = fortuneRoute.validateSajuAIResultText(text, built.factSnapshot, {domain: "career", categoryRubric: built.categoryRubric});
+    expect(validation.ok).toBe(true);
+    expect(validation.qualityIssues.unsupportedAdvice).toBeUndefined();
+  });
+
+  test("모든 그룹은 같은 근거와 조건부 해석 계약을 받고 12장·분량·토큰 계약을 유지한다", () => {
+    const built = buildCareerPrompt();
+    expect(sajuPrompt.SAJU_AI_SECTION_GROUPS.flatMap(group => group.chapters).map(chapter => chapter.no)).toEqual(Array.from({length: 12}, (_, index) => index + 1));
+    expect(sajuPrompt.SAJU_AI_SECTION_MAX_OUTPUT_TOKENS).toBe(12000);
+    for (const group of sajuPrompt.SAJU_AI_SECTION_GROUPS) {
+      const prompt = fortuneRoute.__sajuAiSectionTestUtils.buildSajuAISectionPrompt(built, group);
+      expect(prompt.split(built.factCard)).toHaveLength(2);
+      expect(prompt).toContain("전통 명리 해석 → 성립 조건과 완화·반대 조건");
+      expect(prompt).toContain("같은 일간·월령·십성표·용신 후보");
+      expect(prompt).toContain("합의 존재와 합화의 성립");
+      expect(prompt).not.toContain("동업 손실, 사업 적합성을 만들지 말고");
+      expect([group.minChars, group.targetMinChars, group.maxChars]).toEqual([4000, 5000, 6000]);
+    }
+  });
+
+  test.each([
     ["element-causality", "화 오행이 없어 재정 통제력이 약하고 충동 소비를 유발합니다."],
     ["element-causality", "화(火) 기운은 드러나 있지 않아 재물 관리가 즉흥적으로 흐를 수 있습니다."],
     ["element-health-causality", "화(火) 기운이 없다는 것은 심장과 혈액순환 기능이 약할 수 있음을 나타냅니다."],
@@ -381,10 +412,10 @@ describe("상담문 완결성 검증 (validateSajuAIResultText)", () => {
     ["fortune-grade-label", "이 구간은 재정을 키우기 좋은 운으로 분류됩니다."],
     ["fortune-grade-label", "다음 대운은 주의 운이므로 지출을 줄여야 합니다."],
     ["fortune-score-label", "36세 병술 대운은 81점으로 최고의 운에 해당합니다."],
-    ["age-event-prediction", "36세 대운에는 재물 기회가 열리므로 사업 확장을 고려하세요."],
+    ["age-event-prediction", "36세 대운에는 반드시 큰 수익을 얻으니 사업을 확장하세요."],
     ["age-event-prediction", "46세 대운에는 수입이 안정되고 자산이 성장할 것입니다."],
-    ["ten-god-financial-loss", "겁재는 주변 사람과의 금전 분쟁과 재물 손실 가능성을 의미합니다."],
-    ["ten-god-income-causality", "상관은 부업이나 사업을 통한 수입 창출 가능성을 높입니다."],
+    ["ten-god-financial-loss", "겁재 때문에 동업에서 반드시 재물 손실이 발생합니다."],
+    ["ten-god-income-causality", "상관이 있으므로 사업 수입 창출이 반드시 보장됩니다."],
   ])("실측에서 확인한 근거 밖 금융 인과를 거부한다: %s", (key, unsafeSentence) => {
     const built = buildCareerPrompt();
     const unsafe = CONCISE_COMPLETE_CAREER_RESULT.replace(

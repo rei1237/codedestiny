@@ -18,7 +18,6 @@ import {
   type DiaryNatalChart,
 } from "@/lib/diary/fortune-adapter";
 import { readTodoProgress, type DiaryExtDay } from "./ext-snapshot";
-import { lunarToSolar } from "@/lib/korean-calendar";
 import {
   readCurrentDestinyProfile,
   resolveDestinyProfileBirthParts,
@@ -106,34 +105,40 @@ export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
   fortune: null,
 };
 
-/**
- * 활성 프로필 → 어댑터가 받는 양력 생년월일시.
- * 셸 `_activeProfilePillars:465` 와 같은 순서다 — 시가 없으면 12시, 음력이면 양력으로 옮기고
- * 옮기지 못하면 `null`(그 자리에서 원국을 만들지 않는다).
- */
-function resolveDiaryBirthInput(profile: DestinyProfileCard | null): DiaryBirthInput | null {
-  const parts = resolveDestinyProfileBirthParts(profile);
-  if (!parts) return null;
-
-  const birth = profile?.birth || {};
-  const calType = String(birth.calType || profile?.calType || profile?.calendarType || "solar").toLowerCase();
-  let { year, month, day } = parts;
-  if (calType.includes("lunar")) {
-    const converted = lunarToSolar(year, month, day, calType.includes("leap"));
-    if (!converted) return null;
-    year = converted.year;
-    month = converted.month;
-    day = converted.day;
+/** 활성 프로필의 원본 역법·출생지·시각 미상 정보를 공통 원국 계산기에 전달한다. */
+export function resolveDiaryBirthInput(profile: DestinyProfileCard | null): DiaryBirthInput | null {
+  if (!profile) return null;
+  let parts = resolveDestinyProfileBirthParts(profile);
+  const birth = (profile.birth || {}) as NonNullable<DestinyProfileCard["birth"]> & { unknownHour?: boolean; isLeapMonth?: boolean };
+  const calType = String(birth.calType || profile.calType || profile.calendarType || "solar").toLowerCase().replace("lunar-leap", "lunar_leap");
+  if (calType !== "solar") {
+    // 음력 2월 30일은 유효할 수 있다. Gregorian 날짜 검사로 먼저 거절하지 않는다.
+    const parsedDate = /^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})$/.exec(String(profile.birthDate || profile.birthIso || "").split(/[T\s]/)[0]);
+    const year = Number(birth.year ?? profile.birthYear ?? parsedDate?.[1]);
+    const month = Number(birth.month ?? profile.birthMonth ?? parsedDate?.[2]);
+    const day = Number(birth.day ?? profile.birthDay ?? parsedDate?.[3]);
+    parts = [year, month, day].every(Number.isInteger) && month >= 1 && month <= 12 && day >= 1 && day <= 30 ? { year, month, day } : null;
   }
-
-  const hour = Number(birth.hour ?? profile?.birthHour);
-  const minute = Number(birth.minute ?? profile?.birthMinute);
+  if (!parts) return null;
+  const parsedTime = /^(\d{1,2}):(\d{2})$/.exec(String(profile.birthTime || ""));
+  const rawHour = birth.hour ?? profile.birthHour ?? parsedTime?.[1];
+  const rawMinute = birth.minute ?? profile.birthMinute ?? parsedTime?.[2];
+  const unknown = birth.timeUnknown === true || birth.unknownHour === true || profile.timeUnknown === true
+    || profile.birthTimeUnknown === true || profile.noBirthTime === true || rawHour == null || rawHour === "";
+  const location = profile.location;
+  const explicitPlace = (profile as DestinyProfileCard & { birthPlace?: DiaryBirthInput["birthPlace"] }).birthPlace;
+  const number = (value: unknown) => value == null || value === "" ? undefined : Number(value);
+  const birthPlace = explicitPlace || (location && (location.lng != null || location.tz) ? {
+    longitude: number(location.lng), latitude: number(location.lat), timezone: location.tz,
+  } : undefined);
   return {
-    year,
-    month,
-    day,
-    hour: Number.isFinite(hour) ? hour : null,
-    minute: Number.isFinite(minute) ? minute : null,
+    ...parts,
+    hour: unknown ? null : Number(rawHour),
+    minute: unknown ? null : rawMinute == null || rawMinute === "" ? 0 : Number(rawMinute),
+    birthTimeUnknown: unknown,
+    calendarType: calType,
+    isLeapMonth: profile.isLeapMonth === true || birth.isLeapMonth === true || calType === "lunar_leap",
+    birthPlace,
   };
 }
 
@@ -158,6 +163,8 @@ export function readDiaryTodaySnapshot(ymd: string): DiaryTodaySnapshot {
   try {
     birth = resolveDiaryBirthInput(readCurrentDestinyProfile());
     chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
+    // 관계 Lite는 양력 민용 날짜를 받는다. 음력 원본과 보정 시계는 chart 메타에 보존한다.
+    if (birth && chart) birth = { ...birth, ...chart.calculationMeta.civil, calendarType: "solar", isLeapMonth: false };
     fortune = classifyDiaryDay(chart, ymd);
   } catch {
     chart = null;

@@ -160,35 +160,67 @@
     '편인': {name:'탐구와 관점 전환', theme:'익숙하지 않은 관점을 깊이 살피고 전문성을 다듬는 주제', work:'혼자 깊이 파고드는 시간이 도움이 될 수 있습니다. 연구나 아이디어가 실제로 쓰일 장면을 정해두면 고립을 줄일 수 있습니다.', money:'자료·도구·배움에 드는 비용이 쌓이지 않는지 확인하세요. 관심과 실제 활용 가능성을 나눠보는 편이 좋습니다.', relation:'혼자 생각할 시간이 필요하다면 상대에게 설명해 주세요. 말하지 않은 마음까지 알아주기를 기다리지는 마세요.', action:'새롭게 배운 내용 하나를 작은 결과물이나 대화로 옮겨보세요.'},
     '정인': {name:'배움과 지지 기반', theme:'배우고 도움을 주고받으며 기반을 보완하는 주제', work:'교육·기록·멘토의 피드백을 통해 준비를 다질 수 있습니다. 배움이 충분한지보다 실제로 한 번 적용했는지를 확인하세요.', money:'교육과 준비에 필요한 예산을 정해두세요. 보호받는 환경이 있더라도 스스로 관리할 생활 기반을 함께 마련하는 편이 좋습니다.', relation:'도움을 받아들이되 고마움 때문에 모든 요청을 수락할 필요는 없습니다. 서로 편안한 지원의 범위를 이야기해 보세요.', action:'도움받을 일 하나와 스스로 실행할 일 하나를 함께 정해보세요.'}
   };
+  // These interpretations explain supplied facts; they never establish a new pattern or score.
+  var cycleRoleConditions = {
+    '비견': {help:'일간이 감당할 힘을 보태 주는 경우에는 동료의 지원과 자율성이 강점이 됩니다.',burden:'일간의 힘이 이미 충분한데 경쟁까지 커지면 공동 자원의 몫과 결정권을 둘러싼 긴장이 생길 수 있습니다.',check:'비겁쟁재는 비겁이 재성을 다투는 구조를 말합니다. 비견 한 글자만으로 성립하지 않으며 재성의 힘과 식상·관성의 조절을 함께 확인해야 합니다.'},
+    '겁재': {help:'일간이 지원을 필요로 할 때에는 함께 어려운 일을 맡는 사람과 추진력을 얻는 쪽으로 읽을 수 있습니다.',burden:'경쟁과 자원 분배가 부담으로 작용하면 동업에서 정산이나 역할을 두고 마찰이 생길 가능성을 살핍니다.',check:'겁재를 곧 손실로 읽지는 않습니다. 재성이 감당할 힘이 있는지, 식상으로 힘을 풀거나 관성으로 조절하는 근거가 있는지에 따라 해석이 달라집니다.'},
+    '식신': {help:'표현하고 생산하는 힘이 균형을 도우면 익힌 기술을 꾸준한 결과물로 옮기는 데 강점을 살펴볼 수 있습니다.',burden:'일간이 감당할 여력이 적으면 생산과 돌봄에 힘을 계속 쓰는 일이 소모로 이어질 수 있습니다.',check:'식신생재는 식신의 생산이 재성으로 이어지는 관계입니다. 재성의 연결과 일간의 수용력이 함께 확인될 때 해석하며 식신만으로 수입을 약속하지 않습니다.'},
+    '상관': {help:'표현력이 필요한 명식에서는 익숙한 기준을 개선하고 전문성을 드러내는 힘으로 읽을 수 있습니다.',burden:'표현과 요구가 지나치게 앞서면 조직의 규칙이나 상대의 기대와 부딪히는 장면을 살펴야 합니다.',check:'상관견관은 상관과 정관의 관계를 살피는 말입니다. 정관의 존재와 작용, 인성·재성의 조절을 확인한 뒤 판단하며 상관 하나로 갈등을 확정하지 않습니다.'},
+    '편재': {help:'일간이 재성을 감당하고 균형에도 도움이 되면 외부 기회와 자원을 연결하는 역할을 살펴볼 수 있습니다.',burden:'재성의 요구에 비해 지원이 부족하면 여러 거래와 책임을 동시에 떠안는 일이 부담이 될 수 있습니다.',check:'재다신약은 재성이 많아 일간이 감당하기 어려운 구조입니다. 재성의 개수만으로 정하지 않고 월령·통근·지원과 식상의 연결을 함께 살핍니다.'},
+    '정재': {help:'재성이 균형을 도우면 정해진 일과 자원을 꾸준히 관리하고 생활의 기반을 쌓는 힘으로 읽을 수 있습니다.',burden:'감당할 힘보다 현실의 의무가 커지면 안정에 대한 책임감이 걱정과 과도한 통제로 나타날 수 있습니다.',check:'정재가 있다고 재산이 안정되는 것은 아닙니다. 일간의 수용력과 비겁·식상·관성의 배치에 따라 축적, 분배, 책임 가운데 강조점이 달라집니다.'},
+    '편관': {help:'일간이 압박을 감당하고 제화의 근거가 있으면 어려운 역할을 맡아 집중력과 결단을 쓰는 힘으로 읽을 수 있습니다.',burden:'압박에 비해 지원이 부족하면 책임이 과중해지고 자신의 속도를 잃는 장면을 살펴야 합니다.',check:'식신제살은 식신이 편관을 조절하는 관계, 살인상생은 편관의 힘을 인성이 이어받아 일간을 돕는 관계입니다. 해당 근거가 확인될 때만 적용하며 편관 자체를 흉운으로 단정하지 않습니다.'},
+    '정관': {help:'정관이 균형에 도움이 되면 역할과 규칙을 지키는 태도가 신뢰와 책임 있는 일로 이어질 여지를 살펴봅니다.',burden:'규칙과 평가의 요구가 감당할 힘을 넘으면 체면이나 의무 때문에 필요한 선택을 미루기 쉬울 수 있습니다.',check:'관인상생은 관성의 힘이 인성을 거쳐 일간을 돕는 관계입니다. 인성의 연결과 일간의 힘을 확인해야 하며 정관만으로 승진이나 결혼을 확정하지 않습니다.'},
+    '편인': {help:'배움과 지원이 필요한 구조에서는 익숙하지 않은 문제를 깊이 탐구하고 관점을 바꾸는 힘을 살펴봅니다.',burden:'인성이 이미 부담인 구조에서는 생각과 준비가 길어져 표현과 실행의 흐름이 막히는지 살펴야 합니다.',check:'편인과 식신이 함께 있다고 곧 도식으로 판단하지 않습니다. 식신의 힘과 재성의 조절 등 실제 관계를 확인해 배움이 생산을 돕는지 제약하는지 구분합니다.'},
+    '정인': {help:'일간에 지원이 필요한 때에는 교육, 기록, 믿을 만한 도움으로 기반을 보완하는 힘으로 읽을 수 있습니다.',burden:'지원이 이미 충분한데 인성이 부담으로 더해지면 보호받는 환경에 머물며 실행을 미루는 모습을 점검합니다.',check:'인성이 많다는 것만으로 게으름을 판단하지 않습니다. 일간의 강약과 식상으로 표현할 통로가 있는지를 함께 확인해야 합니다.'}
+  };
   function buildCycle(input, selected) {
     if (!input || !input.day || !input.stem || !input.branch) return null;
     var neo=selected==='neo', a=cycleRoles[input.stem.god], b=cycleRoles[input.branch.god];
     if(!a || !b)return null;
-    var section=[], end=Number(input.startYear)+9;
+    var section=[], end=Number(input.startYear)+9, powerKnown=input.power&&typeof input.power.isStrong==='boolean';
     function add(title,text){section.push({title:title,text:text});}
     function elName(key){var i=elements.indexOf(key);return i>=0?copy.ko.names[i]:'확인되지 않은 기운';}
+    function positionName(value){return ({y:'년주',year:'년주',m:'월주',month:'월주',d:'일주',day:'일주',h:'시주',hour:'시주'})[value]||value;}
     var dominant=elName(input.dominant), strength=input.jong&&input.jong.isJong
       ? '한 방향으로 모인 기세를 살피는 '+(input.jong.isGaJong?'가종격':'종격')+' 가능성이 검토됩니다. 일반적인 신강·신약 기준만으로 해석하지 않습니다.'
-      : input.power ? (input.power.isStrong?'일간을 지지하는 힘이 비교적 큰 구조로, 내 힘을 어디에 쓰고 나눌지가 중요합니다.':'주변 역할의 요구에 비해 일간의 지원이 적은 구조로, 도움과 준비 시간을 확보하는 방식이 중요합니다.') : '강약을 확인할 자료가 없어 그에 따른 결론은 보류합니다.';
-    add('타고난 명식과 이번 대운의 만남','나를 읽는 기준인 일간은 '+input.day+'이고, 계절의 바탕을 보는 월지는 '+input.month+'입니다. '+(input.dominant? '원국에서는 '+dominant+'의 비중이 상대적으로 두드러집니다. 같은 기운이 많아지는 것만으로 유리하다고 보지는 않습니다. ':'')+strength);
-    function roleText(row,role,label){var count=Number(input.godCounts[row.god])||0;return label+' '+row.char+'('+elName(row.element)+')는 일간 '+input.day+'에게 '+row.god+' · '+role.name+'로 읽힙니다. '+role.theme+'가 이번 시기를 이해할 단서입니다. '+(count?'원국에서 이 십성이 '+count+'곳에 나타나므로 익숙한 역할이 다시 강조되는지 살펴보세요.':'원국의 대표 글자에서는 이 십성이 두드러지지 않아, 익숙하지 않은 역할을 연습하는 관점으로 살펴볼 수 있습니다.')+' '+role.action;}
-    add('천간에서 읽는 선택과 표현',roleText(input.stem,a,'대운의 천간'));
-    add('지지에서 읽는 생활의 바탕',roleText(input.branch,b,'대운의 지지')+' 지지의 십성은 대표 기운을 기준으로 읽으며 지장간 전체를 하나의 성향으로 단정하지 않습니다. '+(input.stem.god===input.branch.god?'위아래 글자가 같은 주제를 반복합니다. 강점을 충분히 쓰되 한 방식에만 몰두하지 않는 여유도 필요합니다.':'겉으로 펼칠 일과 일상에서 챙길 기반이 서로 다를 수 있습니다. 두 주제 중 하나를 버리기보다 함께 감당할 순서를 정해보세요.'));
+      : powerKnown ? (input.power.isStrong?'일간을 지지하는 힘이 비교적 큰 구조로, 내 힘을 어디에 쓰고 나눌지가 중요합니다.':'주변 역할의 요구에 비해 일간의 지원이 적은 구조로, 도움과 준비 시간을 확보하는 방식이 중요합니다.') : '강약을 확인할 자료가 없어 그에 따른 결론은 보류합니다.';
+    add('타고난 명식과 이번 대운의 만남','나를 읽는 기준인 일간은 '+input.day+'이고, 계절의 바탕을 보는 월지는 '+input.month+'입니다. '+(input.dominant?'원국에서는 '+dominant+'의 비중이 상대적으로 두드러집니다. 같은 기운이 많아지는 것만으로 유리하다고 보지는 않습니다. ':'')+strength+'\n\n이번 대운의 '+input.stem.char+input.branch.char+'가 원국에서 필요한 힘을 보태는지, 이미 충분한 힘을 더하는지를 구분해 읽습니다. 많은 기운도 막히거나 과해지면 제 역할을 쓰기 어려울 수 있고, 적은 기운도 계절과 뿌리의 지원에 따라 작용이 달라집니다.');
+    function roleText(row,role,label){
+      var count=Number((input.godCounts||{})[row.god])||0, condition=cycleRoleConditions[row.god];
+      var reading=row.balance==='good'?condition.help:row.balance==='bad'?condition.burden:condition.help+' 다만 '+condition.burden;
+      return label+' '+row.char+'('+elName(row.element)+')는 일간 '+input.day+'에게 '+row.god+' · '+role.name+'로 읽힙니다. '+role.theme+'가 이번 시기를 이해할 단서입니다. '+(count?'원국의 대표 글자에서 이 십성이 '+count+'곳에 확인됩니다. 개수는 같은 역할의 반복을 보여 주며 그 힘의 세기 자체를 뜻하지는 않습니다.':'원국의 대표 글자에서는 이 십성이 두드러지지 않습니다. 지장간까지 없다는 뜻은 아니며 새 역할이 드러나는지 함께 살펴봅니다.')+'\n\n'+reading+' '+condition.check;
+    }
+    var roots=Array.isArray(input.stem.roots)?input.stem.roots.filter(function(row){return row&&row.branch&&row.hiddenStem&&(!input.unknown||positionName(row.position)!=='시주');}):null;
+    var rootText=roots===null?'':roots.length?' 통근은 천간이 지지 속 장간에 뿌리를 두는 것입니다. 제공된 근거에서는 '+roots.map(function(row){return positionName(row.position)+' '+row.branch+' 속 '+row.hiddenStem;}).join(' · ')+'에서 연결을 확인합니다. 뿌리의 존재와 강약은 구분하고 계절의 지원도 함께 읽습니다.':' 제공된 자리에서는 이번 천간의 통근 근거가 확인되지 않습니다. 이것만으로 작용이 없다고 단정하지 않고 다른 지원과 계절을 함께 살핍니다.';
+    add('천간에서 읽는 선택과 표현',roleText(input.stem,a,'대운의 천간')+rootText);
+    var hidden=Array.isArray(input.branch.hiddenStems)?input.branch.hiddenStems.filter(function(row){return row&&row.stem&&row.god;}):[];
+    var hiddenText=hidden.length?' 지장간은 지지 안에 담긴 천간입니다. 이번 지지에서 제공된 장간은 '+hidden.map(function(row){return row.stem+'('+row.god+(row.layer?' · '+row.layer:'')+')';}).join(', ')+'입니다. 대표 십성과 함께 읽되 장간의 존재만으로 투간이나 통근, 용신 성립을 새로 판단하지 않습니다.':' 지지의 십성은 대표 기운을 기준으로 읽으며 지장간 전체를 하나의 성향으로 단정하지 않습니다.';
+    var branchReading=input.stem.god===input.branch.god?'대운의 지지 '+input.branch.char+'('+elName(input.branch.element)+')도 일간 '+input.day+'에게 '+input.branch.god+'로 읽힙니다. 천간에서 드러나는 '+b.name+'의 주제가 생활의 기반에서도 반복되는 구조입니다. 겉으로 선택한 방향을 일상에서 지속할 수 있는지 살펴보세요.':roleText(input.branch,b,'대운의 지지');
+    add('지지에서 읽는 생활의 바탕',branchReading+hiddenText+'\n\n'+(input.stem.god===input.branch.god?'위아래 글자가 같은 주제를 반복합니다. 강점을 충분히 쓰되 한 방식에만 몰두하지 않는 여유도 필요합니다.':'겉으로 펼칠 일과 일상에서 챙길 기반이 서로 다를 수 있습니다. 두 주제 중 하나를 버리기보다 함께 감당할 순서를 정해보세요.'));
     var climate=input.climate==='cold'||input.climate==='cool'?'차가운 쪽':input.climate==='hot'||input.climate==='warm'?'따뜻한 쪽':'한쪽 온도에 크게 치우치지 않는 쪽';
     function balance(row){return row.char+'의 '+elName(row.element)+'은 '+(row.balance==='good'?'현재 명식의 균형을 돕는 후보':row.balance==='bad'?'현재 명식에서 부담을 늘릴 수 있는 기운':'균형의 유불리가 뚜렷하지 않은 기운')+'로 검토됩니다.';}
-    add('힘의 균형을 함께 살피면',(input.climate?'원국의 조후, 즉 계절의 온도 균형은 '+climate+'으로 읽힙니다. ':'조후 자료가 없어 계절적 보완은 단정하지 않습니다. ')+balance(input.stem)+' '+balance(input.branch)+' '+(input.stem.balance!==input.branch.balance?'도움과 부담의 방향이 서로 다릅니다. 좋은 기회를 활용하더라도 소모되는 부분을 함께 보완해야 합니다. ':'한 방향의 신호가 반복되더라도 실제 결과는 준비와 환경에 따라 달라집니다. ')+(input.jong&&input.jong.isJong?'종격에서는 중심 기세를 이어가는지 흐트러뜨리는지를 우선 살핍니다.':'신강·신약은 능력의 등급이 아니라 힘의 배분을 읽는 참고 기준입니다.'));
-    var relations=(input.relations||[]).map(function(r){return '대운 '+r.src+'과 원국 '+r.positions.join('·')+'의 '+r.partner+' 사이에 '+r.type+'이 관찰됩니다. '+(r.isChung?'충은 서로 다른 방향의 요구를 살피는 관계입니다. 기존 역할이나 생활 방식을 조정할 계기로 읽되 이별·사고 같은 사건을 단정하지 않습니다.':'합은 두 글자가 묶여 작용하는 관계입니다. '+elName(r.hapEl)+'으로 기운이 모일 가능성을 참고하되 합이 있다는 이유만으로 변화나 성과를 확정하지 않습니다.');});
-    add('원국의 어느 자리와 만나는가',relations.length?relations.join('\n\n'):'이번 자료에서는 원국과 대운 사이의 천간합·육합·충이 별도로 표시되지 않습니다. 이것이 변화가 없다는 뜻은 아닙니다. 위의 십성과 균형을 중심으로 읽어보세요.');
-    var capacity=input.jong&&input.jong.isJong?'중심 기세에 맞는 역할인지 확인하면서 한 방향에만 모든 자원을 걸지는 마세요.':input.power?(input.power.isStrong?'원국에서 지지받는 힘이 있는 만큼 일을 혼자 끌고 가기보다 성과를 나눌 구조와 마감 기준을 함께 마련해 보세요.':'원국에서 지원을 확보하는 것이 중요한 만큼 새 역할을 맡기 전에 협력자·시간·준비 비용을 먼저 확보하는 편이 좋습니다.'):'실제 가용 시간과 자원을 기준으로 범위를 정해보세요.';
-    add('일과 재물에서 살펴볼 선택',a.work+' '+capacity+' '+a.money+(input.stem.god!==input.branch.god?' 생활 기반에서는 '+b.money:''));
-    add('관계에서 반복하기 쉬운 모습',b.relation+(input.stem.god!==input.branch.god?' 밖으로 드러내는 태도에서는 '+a.relation:'')+' 상대의 마음이나 관계의 결말을 정해 놓기보다 실제 대화와 행동을 함께 확인해 보세요.');
-    add(neo?'실행할 순서를 정리하세요':'이 계절을 내 것으로 만드는 작은 실천','먼저, '+a.action+' 이어서, '+(a===b?'같은 역할이 반복될 때 소모되는 시간과 비용을 점검해 보세요.':b.action)+' 마지막으로, 한 달 뒤 실제로 달라진 점과 소모된 자원을 돌아보세요. 이는 10년 안의 특정 해를 예언하는 구분이 아니라, 지금 시작할 수 있는 실행 순서입니다.');
-    add('대운과 세운, 다음 시기를 함께 읽기','대운은 약 10년의 큰 배경이고 세운은 그 안에서 해마다 달라지는 흐름입니다. 아래 연도별 해설을 함께 읽어보세요. '+(input.next?'다음 '+input.next.g+input.next.j+' 대운은 표의 '+input.next.age+'세부터 이어집니다. 앞선 시기에 만든 일과 관계도 이어지므로 한 해를 경계로 삶이 모두 바뀐다고 보지는 않습니다.':'현재 표의 마지막 구간으로, 이후 시기를 이 자료만으로 확정하지 않습니다.')+' 표시 연도는 대운표의 나이 기준을 옮긴 범위이며 정확한 교운 날짜를 뜻하지 않습니다.');
+    add('힘의 균형을 함께 살피면',(input.climate?'원국의 조후, 즉 계절의 온도 균형은 '+climate+'으로 읽힙니다. ':'조후 자료가 없어 계절적 보완은 단정하지 않습니다. ')+balance(input.stem)+' '+balance(input.branch)+' '+(input.stem.balance!==input.branch.balance?'도움과 부담의 방향이 서로 다릅니다. 좋은 기회를 활용하더라도 소모되는 부분을 함께 보완해야 합니다. ':'한 방향의 신호가 반복되더라도 실제 결과는 준비와 환경에 따라 달라집니다. ')+'\n\n억부는 일간이 감당할 힘의 균형을, 조후는 계절의 한난조습을 살피는 기준입니다. 두 판단이 다를 때에는 어느 한쪽을 지우지 않고 도움이 되는 조건과 부담이 되는 조건을 나눠 읽습니다. '+(input.jong&&input.jong.isJong?'종격에서는 중심 기세를 이어가는지 흐트러뜨리는지를 우선 살핍니다.':'신강·신약은 능력의 등급이 아니라 힘의 배분을 읽는 참고 기준입니다.'));
+    var relations=(input.relations||[]).map(function(r){
+      var relation='대운 '+r.src+'과 원국 '+(r.positions||[]).map(positionName).join('·')+'의 '+r.partner+' 사이에 '+r.type+'이 관찰됩니다. ';
+      if(r.isChung||r.type.indexOf('충')>=0)relation+='충은 두 기운이 맞부딪치는 관계로, 기존 역할과 생활 기반의 변화 가능성을 살핍니다. 희신·기신 가운데 어느 쪽이 영향을 받는지에 따라 의미가 달라지며 충 하나로 이별·사고나 발복을 정하지 않습니다.';
+      else if(r.type.indexOf('합')>=0)relation+=r.transformed===true?'현재 적용한 기준에서는 합 관계와 합화 조건이 함께 확인되어 '+elName(r.hapEl)+'으로 작용하는 근거를 읽습니다. 변화한 기운이 명식에 필요한지와 부담을 주는지를 다시 구분해야 합니다.':'합은 글자들이 묶여 작용하는 관계입니다. '+(r.hapEl?elName(r.hapEl)+'으로 모이는 방향은 합화 후보이며, ':'')+'합이 있다는 것과 다른 오행으로 합화하는 것은 다릅니다. 월령·통근·쟁합·충의 조건을 확인하기 전에는 원래 기운이 사라졌다고 보지 않습니다.';
+      else if(r.type.indexOf('형')>=0)relation+='형은 같은 문제를 거듭 조정해야 하는 긴장으로 읽을 수 있습니다. 해당 자리의 십성과 다른 합충을 함께 살피며 질병이나 처벌을 확정하지 않습니다.';
+      else if(r.type.indexOf('파')>=0||r.type.indexOf('해')>=0)relation+='파·해는 관계의 균열이나 조율이 필요한 지점을 보조적으로 살피는 관계입니다. 실제 마찰이 있는지 확인하고 약속과 역할을 구체적으로 맞추는 데 활용하세요.';
+      else relation+='어느 자리에 어떤 십성으로 작용하는지와 다른 관계의 완화 조건을 함께 살펴보세요.';
+      if(Array.isArray(r.conditions)&&r.conditions.length)relation+=' 확인된 조건: '+r.conditions.join(' · ')+'.';
+      return relation;
+    });
+    add('원국의 어느 자리와 만나는가',relations.length?relations.join('\n\n'):'이번 자료에서는 원국과 대운 사이의 합·충·형·파·해가 별도로 표시되지 않습니다. 이것이 변화가 없다는 뜻은 아닙니다. 위의 십성과 균형을 중심으로 읽어보세요.');
+    var capacity=input.jong&&input.jong.isJong?'중심 기세에 맞는 역할인지 확인하면서 한 방향에만 모든 자원을 걸지는 마세요.':powerKnown?(input.power.isStrong?'원국에서 지지받는 힘이 있는 만큼 일을 혼자 끌고 가기보다 성과를 나눌 구조와 마감 기준을 함께 마련해 보세요.':'원국에서 지원을 확보하는 것이 중요한 만큼 새 역할을 맡기 전에 협력자·시간·준비 비용을 먼저 확보하는 편이 좋습니다.'):'실제 가용 시간과 자원을 기준으로 범위를 정해보세요.';
+    add('일과 재물에서 살펴볼 선택','일의 전면에서는 '+input.stem.god+'의 '+a.name+', 생활 기반에서는 '+input.branch.god+'의 '+b.name+'가 해석의 출발점입니다. '+a.work+' '+capacity+'\n\n'+a.money+(input.stem.god!==input.branch.god?' 생활 기반에서는 '+b.money:'')+' 명식의 기회나 부담은 실제 계약·수입·지출에서 확인할 조건과 함께 읽으세요. 같은 흐름에서도 준비와 역할 분담에 따라 결과가 달라질 수 있습니다.');
+    add('관계에서 반복하기 쉬운 모습','관계의 일상에서는 '+input.branch.god+'의 주제가 강조됩니다. '+b.relation+(input.stem.god!==input.branch.god?' 밖으로 드러내는 '+input.stem.god+'의 태도에서는 '+a.relation:'')+'\n\n갈등이 생겼다면 성격의 결함으로 단정하기보다 기대한 역할과 실제로 감당할 역할이 어긋났는지 살펴보세요. 상대의 마음이나 관계의 결말을 정해 놓기보다 실제 대화와 행동을 함께 확인해 보세요.');
+    add(neo?'실행할 순서를 정리하세요':'이 계절을 내 것으로 만드는 작은 실천','먼저, '+a.action+' 이어서, '+(a===b?'같은 역할이 반복될 때 소모되는 시간과 비용을 점검해 보세요.':b.action)+' 마지막으로, 한 달 뒤 실제로 달라진 점과 소모된 자원을 돌아보세요.\n\n도움이 된 선택은 유지하고, 부담이 커진 선택은 범위와 속도를 줄여 다시 확인하세요. 이는 10년 안의 특정 해를 예언하는 구분이 아니라, 지금 시작할 수 있는 실행 순서입니다.');
+    add('대운과 세운, 다음 시기를 함께 읽기','대운은 약 10년의 큰 배경이고 세운은 그 안에서 해마다 달라지는 흐름입니다. 아래 연도별 해설에서는 세운의 간지가 원국과 맺는 관계뿐 아니라, 이 대운의 주제를 이어 가는지 다른 요구를 더하는지도 함께 살펴보세요. 대운과 세운을 각각 좋고 나쁜 점수로 더해 사건을 정하지는 않습니다.\n\n'+(input.next?'다음 '+input.next.g+input.next.j+' 대운은 표의 '+input.next.age+'세부터 이어집니다. 앞선 시기에 만든 일과 관계도 이어지므로 한 해를 경계로 삶이 모두 바뀐다고 보지는 않습니다.':'현재 표의 마지막 구간으로, 이후 시기를 이 자료만으로 확정하지 않습니다.')+' 표시 연도는 대운표의 나이 기준을 옮긴 범위이며 정확한 교운 날짜를 뜻하지 않습니다.');
     return {title:input.stem.char+input.branch.char+' 대운 · '+input.startYear+'–'+end+'년',intro:(neo?'이번 대운의 핵심은 ':'이번 열 해에는 ')+a.name+(a===b?'':', 그리고 '+b.name)+(neo?'입니다. 근거를 확인하고 감당할 수 있는 행동부터 정하세요.':'의 주제를 함께 살펴볼게요. 익숙한 강점과 새롭게 필요한 태도를 구분해 보세요.'),sections:section,warning:input.unknown?'출생시간 미상: 시주를 제외한 자리만 관계 설명에 표시했습니다. 정오를 대입한 원국의 비율·강약과 대운 시작 시기는 참고용이며 확정할 수 없습니다.':'해석은 현재 명식의 상징적 흐름을 설명하며 실제 사건·수익·관계의 결말을 보장하지 않습니다.'};
   }
   function cycleMarkup(input, selected) {
     var model=buildCycle(input,selected);if(!model)return '';
-    return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3><p>'+esc(model.intro)+'</p><p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section){return '<dt>'+esc(section.title)+'</dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>';}).join('')+'</dl></section>';
+    return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3><p>'+esc(model.intro)+'</p><p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section,index){return '<dt><strong>'+String(index+1).padStart(2,'0')+'. '+esc(section.title)+'</strong></dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>';}).join('')+'</dl></section>';
   }
 
   function snapshot() {
