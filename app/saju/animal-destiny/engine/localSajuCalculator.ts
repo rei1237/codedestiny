@@ -1,5 +1,5 @@
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
-import { calculateNatalSaju, lunarToSolar, nodeTerms } from "@/lib/korean-calendar";
+import { calculateNatalSaju, daeun, DAEUN_POLICY_VERSION, lunarToSolar, nodeTerms } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 import { standardMeridianForTimezone } from "@/worker/lib/birth-time-context.js";
 import { wallClockToUtcMillis } from "@/worker/lib/iana-offset.js";
@@ -10,7 +10,7 @@ const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
     "lsc_4827_prop_label": "양력/음력 변환 여부",
     "lsc_4828_prop_label": "절기 기준 사용 여부",
     "lsc_4829_prop_label": "출생지 시간대",
-    "lsc_4830_prop_label": "진태양시 사용 여부",
+    "lsc_4830_prop_label": "지역 평균시 보정 여부",
     "lsc_4831_prop_label": "대운 시작 나이",
     "lsc_4832_prop_label": "대운 순행/역행",
     "lsc_4833_prop_label": "계산 신뢰도",
@@ -220,6 +220,10 @@ export interface DaewoonStartLocal {
   months: number;
   days: number;
   baseTerm: SolarTermBoundaryLocal | null;
+  /** Added for new calculations; absent fields in saved reports keep their original meaning. */
+  policyVersion?: string;
+  ageBasis?: "korean-counting-age";
+  startSolar?: { year: number; month: number; day: number };
 }
 
 export interface NatalAnalysisLocal {
@@ -283,10 +287,10 @@ export interface LocalSajuResult {
 }
 
 /**
- * 시주(時柱) 시각 보정 정책. 문자열 값은 worker/lib/destiny-bias-engine.js 의
- * HOUR_PILLAR_TIME_POLICIES 와 동일해야 한다(정적 셸 포함 3개 엔진이 같은 정책을 쓴다).
+ * 시주(時柱) 시각 보정 정책. 기존 요청 옵션은 워커와 같은 문자열을 유지한다.
+ * CIVIL_TIME은 경도 미상일 때 공통 명식이 반환하는 미보정 결과 정책이다.
  */
-export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME";
+export type HourPillarTimePolicy = "KST_CLOCK_TIME" | "LOCAL_MEAN_TIME" | "TRUE_SOLAR_TIME" | "CIVIL_TIME";
 
 export interface LocalSajuInput {
   year: number;
@@ -306,7 +310,7 @@ export interface LocalSajuInput {
   timezoneOffset?: number;
   timezoneOffsetMinutes?: number;
   daylightSavingTime?: boolean;
-  hourPillarTimePolicy?: HourPillarTimePolicy;
+  hourPillarTimePolicy?: Exclude<HourPillarTimePolicy, "CIVIL_TIME">;
   useTrueSolarTime?: boolean;
   trueSolarTime?: boolean;
   trueSolarTimeCorrection?: boolean;
@@ -354,15 +358,16 @@ function makePillar(stemRaw: string, branchRaw: string): SajuPillarLocal {
   };
 }
 
-function canonicalNatalPlace(input: LocalSajuInput) {
-  const longitude = getInputLongitude(input);
-  const timezone = String(input.timezone || "").trim();
-  if (!Number.isFinite(longitude) || !timezone) return undefined;
+function canonicalNatalPlace(input: LocalSajuInput, timezone: string) {
+  // Preserve explicitly invalid coordinates for canonical validation; zero is a valid longitude.
+  const longitude = input.birthLongitude ?? input.longitude;
+  // Only Korean/default input may inherit the complete Seoul location.
+  if (longitude == null && timezone === DEFAULT_TIMEZONE) return undefined;
 
   const latitude = getInputLatitude(input);
   return {
     name: input.birthplace || "출생지",
-    longitude: Number(longitude),
+    longitude,
     ...(Number.isFinite(latitude) ? { latitude: Number(latitude) } : {}),
     timezone,
   };
@@ -867,41 +872,29 @@ function getDaewoonDirection(input: LocalSajuInput, yearStem: StemKr): "forward"
   return (gender === "male" && isYangYearStem) || (gender === "female" && !isYangYearStem) ? "forward" : "reverse";
 }
 
-function calculateDaewoonStart(
-  direction: "forward" | "reverse" | "unknown",
-  birth: { year: number; month: number; day: number; hour: number; minute: number },
-  solarTermWindow: { previous: SolarTermBoundaryLocal | null; next: SolarTermBoundaryLocal | null },
-  timezoneOffsetMinutes: number,
-): DaewoonStartLocal {
-  const baseTerm = direction === "forward"
-    ? solarTermWindow.next
-    : direction === "reverse"
-      ? solarTermWindow.previous
-      : null;
-  if (!baseTerm) {
-    return {
-      age: null,
-      years: 0,
-      months: 0,
-      days: 0,
-      baseTerm: null,
-    };
-  }
-
-  const diffHours = Math.abs(boundaryInstantMs(baseTerm, timezoneOffsetMinutes) - wallTimeToInstantMs(birth, timezoneOffsetMinutes)) / 3600000;
-  // Traditional daewoon conversion: 3 days = 1 year, 1 day = 4 months, 1 hour = about 5 life-days.
-  const age = diffHours / 72;
-  const years = Math.floor(age);
-  const monthFloat = (age - years) * 12;
-  const months = Math.floor(monthFloat);
-  const days = Math.round((monthFloat - months) * 30);
-
+function calculateDaewoonStartFromCore(
+  canonicalNatal: ReturnType<typeof calculateNatalSaju>,
+  input: LocalSajuInput,
+): { direction: "forward" | "reverse" | "unknown"; start: DaewoonStartLocal } {
+  const gender = normalizeGender(input);
+  const unknown = { direction: "unknown" as const, start: { age: null, years: 0, months: 0, days: 0, baseTerm: null, policyVersion: DAEUN_POLICY_VERSION, ageBasis: "korean-counting-age" as const } };
+  if (!input.hasTime || gender === "unknown") return unknown;
+  const result = daeun(canonicalNatal.calculationMeta.termClock, { gender: gender === "male" ? "M" : "F", birthCivilYear: canonicalNatal.calculationMeta.civil.year });
+  if (!result) return unknown;
+  const node = result.meta.referenceNode;
+  const baseTerm = buildSolarTermBoundariesFromCore(node.year, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES)
+    .find((term) => term.year === node.year && term.month === node.month && term.day === node.day
+      && term.hour === node.hour && term.minute === node.minute) || null;
   return {
-    age: Math.round(age * 100) / 100,
-    years,
-    months,
-    days,
-    baseTerm,
+    direction: result.forward ? "forward" : "reverse",
+    start: {
+      age: result.cycles[1]?.startAge ?? null,
+      ...result.start,
+      baseTerm,
+      startSolar: result.startSolar,
+      policyVersion: result.meta.policyVersion,
+      ageBasis: "korean-counting-age",
+    },
   };
 }
 
@@ -5066,7 +5059,10 @@ function buildStructuredAdvancedReport(args: {
     daewoon: {
       current: asReportRecord(daewoon.currentDaewoon),
       direction: daewoonDirection,
-      startAge: daewoonStart.age ?? 0,
+      startAge: daewoonStart.age,
+      ageBasis: daewoonStart.ageBasis,
+      policyVersion: daewoonStart.policyVersion,
+      entryElapsed: { years: daewoonStart.years, months: daewoonStart.months, days: daewoonStart.days },
       periods: asReportRows(daewoon.periods).length ? asReportRows(daewoon.periods) : luckRows.filter((row) => row.scope === "daewoon"),
       currentAnalysis: displayValue(daewoon.summary || asReportRecord(daewoon.requiredOutput).totalReview, ""),
     },
@@ -5152,10 +5148,10 @@ function buildFinalAdvancedReport(args: {
       { label: localSajuCalculatorText("lsc_4827_prop_label"), value: input.calendarType === "lunar" ? `음력 입력을 양력 기준으로 변환${input.lunarLeap ? "했고 윤달 정보를 반영" : ""}` : "양력 입력 기준", why: "원국은 실제 태양력 날짜와 절기 경계를 기준으로 재산출한다." },
       { label: localSajuCalculatorText("lsc_4828_prop_label"), value: "사용", why: `년주는 입춘, 월주는 절입 기준이며 현재 절기 근거는 ${activeSource}이다.` },
       { label: localSajuCalculatorText("lsc_4829_prop_label"), value: timezone, why: "일주 경계와 시주는 출생지 시간대를 기준으로 판단한다." },
-      { label: localSajuCalculatorText("lsc_4830_prop_label"), value: trueSolarTimeUsed ? "사용" : "미사용", why: !trueSolarTimeUsed ? "좌표 또는 옵션 조건이 충족되지 않아 표준시 기준으로 산출했다." : resolveHourPillarTimePolicy(input) === "TRUE_SOLAR_TIME" ? "출생지 경도와 균시차를 반영했다." : "출생지 경도를 반영했다(평균태양시)." },
-      { label: localSajuCalculatorText("lsc_4831_prop_label"), value: daewoonStart.age ?? "미산출", why: "절입 시각까지의 시간 차이를 전통 환산법으로 나누었다." },
+      { label: localSajuCalculatorText("lsc_4830_prop_label"), value: trueSolarTimeUsed ? "사용" : "미사용", why: !input.hasTime ? "출생시간 미상으로 시주를 산출하지 않았습니다." : !trueSolarTimeUsed ? "출생지 경도가 없어 입력한 현지 시각으로 일주·시주를 산출했습니다. 절기는 출생지 시간대로 환산한 실제 출생 순간을 기준으로 합니다." : "출생지 경도와 당시 시간대·서머타임을 반영한 지역 평균시입니다. 균시차는 적용하지 않습니다." },
+      { label: localSajuCalculatorText("lsc_4831_prop_label"), value: daewoonStart.age ?? "미산출", why: "KST 절기와 출생 순간을 비교한 공통 대운 계산의 세는 나이입니다. 입운까지의 경과 연·월·일은 별도로 표시합니다." },
       { label: localSajuCalculatorText("lsc_4832_prop_label"), value: daewoonDirection, why: "양남음녀 순행, 음남양녀 역행 원칙을 기본값으로 적용했다." },
-      { label: localSajuCalculatorText("lsc_4833_prop_label"), value: calculationConfidence, why: "절기 소스, 출생 시각, 진태양시 보정 여부를 함께 본다." },
+      { label: localSajuCalculatorText("lsc_4833_prop_label"), value: calculationConfidence, why: "절기 소스, 출생 시각, 지역 평균시 보정 근거를 함께 봅니다." },
     ]),
     reportSection(2, "사주 원국", [
       { label: "년주", value: pillarText(pillars.year), why: "입춘 이전 출생이면 전년도 년주로 넘기는 절기 기준이다." },
@@ -5317,7 +5313,7 @@ function buildFinalAdvancedReport(args: {
  * 십이운성 동물점 전용 정밀 사주 계산기.
  * - 양력/음력(윤달 포함) 입력 지원
  * - KASI 절기 기준과 동일한 간지 수식으로 연/월/일/시주 계산
- * - 진태양시는 옵션과 출생지 좌표가 있을 때만 보정
+ * - 공통 명식 정책: 지역 평균시(경도·과거 DST) 보정 후 일주·시주를 함께 확정
  */
 export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   if (input.locationType === "current" || input.usingCurrentLocation === true) {
@@ -5326,62 +5322,35 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
 
   const timezoneInfo = normalizeTimezone(input);
   const solarDate = resolveSolarDate(input);
+  const birthPlace = canonicalNatalPlace(input, timezoneInfo.timezone);
+  const allowMissingLongitude = birthPlace != null && birthPlace.longitude == null;
   const canonicalNatal = calculateNatalSaju({
     birthDate: `${String(input.year).padStart(4, "0")}-${String(input.month).padStart(2, "0")}-${String(input.day).padStart(2, "0")}`,
     birthTime: input.hasTime ? `${String(input.hour ?? 0).padStart(2, "0")}:${String(input.minute ?? 0).padStart(2, "0")}` : undefined,
     calendarType: input.calendarType === "lunar" && input.lunarLeap ? "lunar_leap" : (input.calendarType || "solar"),
     isLeapMonth: Boolean(input.lunarLeap),
-    birthPlace: canonicalNatalPlace(input),
-  });
+    birthPlace,
+  }, { allowMissingLongitude });
 
-  const hour = input.hasTime && Number.isFinite(input.hour) ? clamp(Number(input.hour), 0, 23) : 12;
-  const minute = input.hasTime && Number.isFinite(input.minute) ? clamp(Number(input.minute), 0, 59) : 0;
-  const standardClock = input.daylightSavingTime
-    ? shiftWallTimeByMinutes(solarDate.year, solarDate.month, solarDate.day, hour, minute, -60)
-    : { ...solarDate, hour, minute };
-  const hourPillarTimePolicy = resolveHourPillarTimePolicy(input);
-  const correctedByPolicy = input.hasTime
-    ? applyHourPillarTimeCorrection(
-      standardClock.year,
-      standardClock.month,
-      standardClock.day,
-      standardClock.hour,
-      standardClock.minute,
-      input,
-      timezoneInfo.offsetMinutes,
-      hourPillarTimePolicy,
-    )
-    : null;
-  const corrected = correctedByPolicy || standardClock;
-  // 시주 시각 보정이 실제로 적용됐는가(정책 무관). 어떤 정책이었는지는 hourPillarTimePolicy 로 구분한다.
-  const trueSolarTimeUsed = Boolean(correctedByPolicy);
-  const zashiMode = normalizeZashiMode(input);
-
-  const kasiByYear = buildKasiSolarTermBoundariesByYear(input.kasiSolarTerms);
-  // 절기(입춘·월령) 판정은 표준시로 한다. 절입 시각 자체가 표준시로 발표되므로 한쪽만 경도 보정하면
-  // 절기 경계 ±32분에 태어난 사람의 연주·월주가 통째로 밀린다. 시각 보정은 시주 전용이며
-  // 워커 엔진(destiny-bias-engine.js)도 연·월·일주는 보정 전 시계로 세운다.
-  const yearPillarResult = getYearPillar(standardClock, timezoneInfo.offsetMinutes, kasiByYear);
-  const solarTermWindow = getSolarTermWindow(standardClock, timezoneInfo.offsetMinutes, kasiByYear);
-  const monthPillar = getMonthPillar(yearPillarResult.pillar.stem, solarTermWindow.active);
-  // 일주(日柱)는 표준시 민용일(달력 날짜) 기준으로 판정한다. 시주 시각 보정(경도, 정책에 따라 균시차)은
-  // 일주 날짜 경계를 자정 너머로 밀지 않는다.
-  // (예: 1981-01-27 00:30 대구는 진태양시로 전날 23:52가 되지만 일주는 1/27=을사가 정답)
-  const dayPillarDate = getDayPillarDate(standardClock, zashiMode);
-  const dayPillar = getDayPillar(dayPillarDate);
-  // 시지(時支)는 진태양시 보정된 시각의 2시간지, 시간(時干)은 민용일 일간에서 오자둔으로 파생된다.
-  const hourPillar = input.hasTime
-    ? getHourPillar(dayPillar.stem, corrected)
-    : null;
+  // The applied policy is the canonical natal contract; legacy input options remain input evidence only.
+  const standardClock = { ...canonicalNatal.calculationMeta.civil, hour: canonicalNatal.calculationMeta.civil.hour ?? 12, minute: canonicalNatal.calculationMeta.civil.minute ?? 0 };
+  const hourPillarTimePolicy: HourPillarTimePolicy = canonicalNatal.calculationMeta.correction.method === "CIVIL_TIME" ? "CIVIL_TIME" : "LOCAL_MEAN_TIME";
+  const corrected = canonicalNatal.calculationMeta.corrected || standardClock;
+  const trueSolarTimeUsed = input.hasTime && canonicalNatal.calculationMeta.correction.method === "LOCAL_MEAN_TIME";
+  const zashiMode = "early";
+  // Solar terms use the actual instant in KST, including lunar conversion and historical DST.
+  const termClock = canonicalNatal.calculationMeta.termClock;
+  const yearPillarResult = getYearPillar(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
+  const solarTermWindow = getSolarTermWindow(termClock, CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES, new Map());
+  const dayPillarDate = canonicalNatal.calculationMeta.dayPillarCivilDate;
   const pillars = {
-    year: canonicalNatalPillar(canonicalNatal.pillars.year) || yearPillarResult.pillar,
-    month: canonicalNatalPillar(canonicalNatal.pillars.month) || monthPillar,
-    day: canonicalNatalPillar(canonicalNatal.pillars.day) || dayPillar,
-    hour: canonicalNatalPillar(canonicalNatal.pillars.hour) || hourPillar,
+    year: canonicalNatalPillar(canonicalNatal.pillars.year)!,
+    month: canonicalNatalPillar(canonicalNatal.pillars.month)!,
+    day: canonicalNatalPillar(canonicalNatal.pillars.day)!,
+    hour: canonicalNatalPillar(canonicalNatal.pillars.hour),
   };
-  const daewoonDirection = getDaewoonDirection(input, yearPillarResult.pillar.stem);
-  // 대운 시작도 절기까지의 거리로 세므로 절기와 같은 표준시 축을 쓴다.
-  const daewoonStart = calculateDaewoonStart(daewoonDirection, standardClock, solarTermWindow, timezoneInfo.offsetMinutes);
+  // 원국과 같은 출생 순간에서 코어 대운을 산출한다. 나이는 세는 나이, 입운 경과는 years/months/days다.
+  const { direction: daewoonDirection, start: daewoonStart } = calculateDaewoonStartFromCore(canonicalNatal, input);
   const longitude = getInputLongitude(input);
   const latitude = getInputLatitude(input);
   const solarTermBoundary = {
@@ -5439,6 +5408,8 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
         daylightSavingTime: Boolean(input.daylightSavingTime),
         zashiMode,
         hourPillarTimePolicy,
+        requestedZashiMode: input.zashiMode,
+        requestedHourPillarTimePolicy: input.hourPillarTimePolicy,
         birthplace: input.birthplace || "",
         latitude,
         longitude,
@@ -5447,25 +5418,11 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
       canonicalNatal: canonicalNatal.calculationMeta,
       standardClock,
       correctedClock: corrected,
-      hourPillarTimeCorrection: correctedByPolicy
-        ? {
-          policy: hourPillarTimePolicy,
-          status: "applied",
-          longitude: resolveHourPillarLongitude(input, timezoneInfo.offsetMinutes),
-          standardMeridian: Number.isFinite(input.standardMeridian)
-            ? Number(input.standardMeridian)
-            : standardMeridianForTimezone(input.timezone || DEFAULT_TIMEZONE, timezoneInfo.offsetMinutes / 60, standardClock.year, standardClock.month, standardClock.day, standardClock.hour, standardClock.minute),
-          // 균시차는 TRUE_SOLAR_TIME 일 때만 실제로 더해진다. LOCAL_MEAN_TIME 은 경도 보정만 쓴다.
-          equationOfTimeMinutes: hourPillarTimePolicy === "TRUE_SOLAR_TIME"
-            ? equationOfTimeMinutes(standardClock.year, standardClock.month, standardClock.day)
-            : 0,
-        }
-        : {
-          policy: hourPillarTimePolicy,
-          status: hourPillarTimePolicy === "KST_CLOCK_TIME"
-            ? "not_requested"
-            : (input.hasTime ? "not_applied_missing_birthplace_coordinates" : "not_applied_birth_time_unknown"),
-        },
+      hourPillarTimeCorrection: {
+        ...canonicalNatal.calculationMeta.correction,
+        policy: hourPillarTimePolicy,
+        status: !input.hasTime ? "not_applied_birth_time_unknown" : trueSolarTimeUsed ? "applied" : "not_applied_birthplace_longitude_unknown",
+      },
       solarTerms: {
         active: solarTermWindow.active,
         next: solarTermWindow.next,
@@ -5475,14 +5432,19 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
         rule: "month and year pillars use solar-term ingress boundaries, not lunar months",
       },
       dayPillar: {
-        method: "UTC serial day with local timezone date boundary",
+        method: canonicalNatal.calculationMeta.dayBoundaryRule,
+        policyVersion: canonicalNatal.calculationMeta.policyVersion,
         zashiMode,
         dateUsed: dayPillarDate,
       },
       daewoon: {
         direction: daewoonDirection,
         rule: "yang male/yin female forward; yin male/yang female reverse",
-        conversion: "3 days = 1 year; 1 day = 4 months; 1 hour = about 5 days",
+        policyVersion: daewoonStart.policyVersion,
+        ageBasis: daewoonStart.ageBasis,
+        calendarFrame: "KST",
+        conversion: "sect 1: 3 days = 1 year; 1 two-hour branch = 10 life-days",
+        entryElapsed: { years: daewoonStart.years, months: daewoonStart.months, days: daewoonStart.days },
         baseTerm: daewoonStart.baseTerm,
         startAge: daewoonStart.age,
       },

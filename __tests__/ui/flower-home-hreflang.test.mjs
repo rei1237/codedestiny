@@ -32,3 +32,33 @@ test('sitemap and HTML keep the Flower Pig cluster separate from Yeongnyangi roo
  assert.ok(root,'preserve the existing root URL');
  assert.equal(root.getElementsByTagName('xhtml:link').length,0);
 });
+
+test('Flower Pig shell page identities match their canonical URL and localized metadata',()=>{
+ const pageIds=new Set();
+ for(const path of homes){
+  const html=readFileSync(`public${path}index.html`,'utf8');
+  const head=html.slice(0,html.indexOf('</head>')+7);
+  const dom=new JSDOM(head.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi,''));
+  const document=dom.window.document;
+  const canonical=document.querySelector('link[rel="canonical"]').href;
+  assert.equal(document.querySelector('meta[property="og:url"]').content,canonical,path);
+  const nodes=[...document.querySelectorAll('script[type="application/ld+json"]')].flatMap(script=>{
+   const data=JSON.parse(script.textContent);
+   return data['@graph']||[data];
+  });
+  const pages=nodes.filter(node=>node['@type']==='WebPage');
+  assert.equal(pages.length,1,path);
+  const page=pages[0];
+  assert.equal(page['@id'],`${canonical}#webpage`,path);
+  assert.equal(page.url,canonical,path);
+  assert.equal(page.name,document.title,path);
+  assert.equal(page.description,document.querySelector('meta[name="description"]').content,path);
+  assert.equal(page.inLanguage,document.documentElement.lang,path);
+  assert.equal(page.isPartOf['@id'],`${origin}/#website`,path);
+  assert.equal(nodes.find(node=>node['@type']==='WebSite')['@id'],`${origin}/#website`,path);
+  assert.equal(nodes.find(node=>node['@type']==='Organization')['@id'],`${origin}/#organization`,path);
+  assert.ok(!pageIds.has(page['@id']),`${path} reuses another page ID`);
+  pageIds.add(page['@id']);
+  dom.window.close();
+ }
+});

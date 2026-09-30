@@ -165,7 +165,11 @@ describe("Saju AI prompt domain templates", () => {
     expect(built.keywordWeights["현금흐름 기록"]).toBeDefined();
     expect(built.prompt).toContain("명식으로 수익 모델이나 금융상품을 추천하지 않고");
     expect(built.prompt).toContain("비겁으로 동업 손실을 단정하지 않고");
-    expect(built.prompt).toContain("대운·세운을 수익 예고가 아닌 재검토 시점의 라벨로만 사용");
+    expect(built.prompt).toContain("대운·세운이 원국의 재성·식상·비겁에 더하는 기회와 부담");
+    expect(built.prompt).toContain("성립 조건과 완화·반대 조건");
+    expect(built.prompt).toContain("동일한 일간");
+    expect(built.keywordWeights["재성의 수용력과 연결"]).toBeDefined();
+    expect(built.prompt).not.toContain("비겁→동업 손실, 재성→투자 성향처럼 연결하지 말고");
     expect(built.prompt).not.toContain("시기별 수익 가속");
     expect(built.prompt).not.toContain("가장 현실적인 수익모델 3가지");
     expect(built.prompt).not.toContain("적합 수익 모델 3~5개 추천");

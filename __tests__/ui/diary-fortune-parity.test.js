@@ -25,6 +25,9 @@ const { sliceFunction, stripComments } = require("../../scripts/lib/js-source-sl
 const koreanCalendar = require("../../lib/korean-calendar/index.js");
 const copyEngine = require("../../lib/saju/natal-power.js");
 const copyCore = require("../../lib/diary/fortune-core.js");
+const { loadTsModule } = require("../../scripts/lib/load-ts-module.mjs");
+const adapter = loadTsModule("lib/diary/fortune-adapter.ts");
+const snapshot = loadTsModule("app/diary/_lib/today-snapshot.ts");
 
 const root = path.resolve(__dirname, "../..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8").replace(/\r\n/g, "\n");
@@ -49,6 +52,7 @@ const ENGINE_PARTS = [
   "function parentOf(",
   "var CD_JANGGAN={",
   "function calcPower(",
+  "function sajuHapAssessment(",
   "function detectJong(",
 ];
 
@@ -136,19 +140,11 @@ function libGanji(parts) {
 }
 
 function libDayGanji(ymd) {
-  const [year, month, day] = ymd.split("-").map(Number);
-  const gz = libGanji({ year, month, day, hour: DAY_LOOKUP_HOUR, minute: 0 });
-  return gz ? pairOf(gz.day) : null;
+  return adapter.dayGanji(ymd);
 }
 
 function libNatalPillars(birth) {
-  let hour = Number(birth.hour);
-  let minute = Number(birth.minute);
-  if (!Number.isFinite(hour) || hour < 0 || hour > 23) hour = 12;
-  if (!Number.isFinite(minute) || minute < 0 || minute > 59) minute = 0;
-  const gz = libGanji({ year: birth.year, month: birth.month, day: birth.day, hour, minute });
-  if (!gz) return null;
-  return { y: pairOf(gz.year), m: pairOf(gz.month), d: pairOf(gz.day), h: pairOf(gz.hour) };
+  return adapter.buildDiaryNatalChart(birth, "2026-01-01")?.pillars || null;
 }
 
 /* ─── 표본 ───────────────────────────────────────────────────── */
@@ -246,12 +242,9 @@ test("운기 등급이 원본 _classifyDayFromSaju 와 생년 8 × 400일 전건
     ctxRef.power = originalChart.power;
     ctxRef.jong = originalChart.jong;
 
-    // lib/diary/fortune-adapter.ts 의 buildDiaryNatalChart 와 같은 배선.
-    const libPillars = libNatalPillars(birth);
-    const libPower = copyEngine.calcPower(libPillars);
-    const libJong = copyEngine.detectJong(libPillars);
-    const libLucky = copyCore.getLuckyElement(libPower, libJong, libDayGanji(referenceYmd));
-    const libDayEl = copyCore.GAN_ELEM[libPillars.d.g] || "earth";
+    // 실제 TypeScript 어댑터를 실행한다. 테스트 안의 복제 배선만 비교하지 않는다.
+    const libChart = adapter.buildDiaryNatalChart(birth, referenceYmd);
+    const libLucky = libChart.luckyEl;
     assert.equal(libLucky, originalLucky, `${birth.year}: 행운 오행 불일치`);
 
     for (const day of days) {
@@ -261,14 +254,7 @@ test("운기 등급이 원본 _classifyDayFromSaju 와 생년 8 × 400일 전건
         originalChart.power,
         originalChart.jong,
       );
-      const libVerdict = copyCore.classifyDayFromSaju(
-        libDayGanji(day.ymd),
-        libPillars,
-        libPower,
-        libJong,
-        libDayEl,
-        libLucky,
-      );
+      const libVerdict = adapter.classifyDiaryDay(libChart, day.ymd);
 
       const where = `${birth.year}-${pad2(birth.month)}-${pad2(birth.day)} / ${day.ymd}`;
       assert.notEqual(originalVerdict.tone, "profile", `${where}: 표본이 원국 없이 빠졌다 — 증명이 공회전한다`);
@@ -352,7 +338,8 @@ test("fortune-adapter.ts 가 동치 3축을 명시 고정하고, 행운 오행�
   assert.match(adapter, /hour: DAY_LOOKUP_HOUR/, "dayGanji 가 조회 시각 상수를 쓰지 않는다");
 
   const keepDayCount = adapter.split("nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY").length - 1;
-  assert.equal(keepDayCount, 2, `야자시 KEEP_DAY 가 ${keepDayCount}곳에 있다 — 일진·원국 두 곳 모두 명시해야 한다`);
+  assert.equal(keepDayCount, 1, `KEEP_DAY는 정오 일진 조회에만 쓴다. 출생 원국은 공통 natal 정책을 따른다 (${keepDayCount})`);
+  assert.match(adapter, /natal = calculateNatalSaju\(/, "원국이 공통 계산기를 호출하지 않는다");
 
   // 🔴 이 파일이 "오늘"을 스스로 정하면 KST 축이 둘로 갈린다. 오늘은 kst-date.ts 만 정한다.
   assert.ok(!/new Date\(\s*\)/.test(adapter), "fortune-adapter.ts 가 new Date() 로 오늘을 만든다");
@@ -367,15 +354,82 @@ test("fortune-adapter.ts 가 동치 3축을 명시 고정하고, 행운 오행�
   );
 });
 
-test("야자시 KEEP_DAY 는 실제로 판정을 가른다 — 빼먹으면 23시대 원국이 하루 밀린다", () => {
-  const birth = { year: 1985, month: 11, day: 3, hour: 23, minute: 30 };
-  const keepDay = koreanCalendar.ganji(birth, { nightZiPolicy: koreanCalendar.NIGHT_ZI_POLICY.KEEP_DAY });
-  const shiftDay = koreanCalendar.ganji(birth, { nightZiPolicy: koreanCalendar.NIGHT_ZI_POLICY.SHIFT_DAY });
+test("지역 평균시 보정 후 23시 경계를 공통 원국 정책과 동일하게 적용한다", () => {
+  // 1981-01-27 Daegu 23:30 - 26분 = 23:04. 공통 정책은 다음 민용일 병오를 쓴다.
+  const birth = { year: 1981, month: 1, day: 27, hour: 23, minute: 30,
+    birthPlace: { longitude: 128.6014, latitude: 35.87, timezone: "Asia/Seoul" } };
+  const chart = adapter.buildDiaryNatalChart(birth, "2026-01-01");
+  assert.deepEqual(chart.pillars.d, { g: "丙", j: "午" });
+  assert.equal(chart.calculationMeta.corrected.hour, 23);
+  assert.equal(chart.calculationMeta.corrected.minute, 4);
+  assert.deepEqual(chart.calculationMeta.dayPillarCivilDate, { year: 1981, month: 1, day: 28 });
+  assert.notDeepEqual(pairOf(libGanji(birth).day), chart.pillars.d, "과거 무보정 KEEP_DAY 계산과 달라야 하는 경계 반례");
+});
 
-  assert.notDeepEqual(
-    pairOf(keepDay.day),
-    pairOf(shiftDay.day),
-    "표본이 두 야자시 정책을 가르지 못한다 — 이 검사가 무의미해졌다",
-  );
-  assert.deepEqual(pairOf(keepDay.day), libNatalPillars(birth).d, "어댑터 축이 KEEP_DAY 가 아니다");
+test("프로필의 음력·윤달·출생지·해외 DST·미상 시각을 셸과 앱 모두 보존한다", () => {
+  const engine = buildEngineSandbox();
+  const ref = { value: null };
+  const original = buildDiarySandbox(engine, ref, {});
+  const profiles = [
+    { birthDate: "1987-11-18", birthTime: "23:26", calendarType: "lunar" },
+    { birthDate: "2023-02-30", birthTime: "12:00", calendarType: "lunar" },
+    { birth: { year: 2023, month: 2, day: 1, hour: 0, minute: 30, calType: "lunar" }, isLeapMonth: true },
+    { birth: { year: 1988, month: 6, day: 1, hour: 12, minute: 0 }, location: { lng: "126.978", lat: "37.5665", tz: "Asia/Seoul" } },
+    { birthDate: "1960-01-07", birthTime: "12:00" },
+    { birthDate: "2000-01-01", birthTime: "00:15", location: { lng: 151.2093, tz: "Australia/Sydney" } },
+    { birthDate: "1999-12-31", birthTime: "23:45", location: { lng: -74.006, tz: "America/New_York" } },
+    { birthDate: "1990-03-18", birthTime: "07:20", birthPlace: { longitude: -74.006, timezone: "America/New_York" } },
+    { birth: { year: 1988, month: 1, day: 7, hour: null, minute: null } },
+    { birthDate: "1988-01-07", birthTime: "12:00", birthTimeUnknown: true },
+    { birth: { year: 1988, month: 1, day: 7, hour: 12, minute: 0, unknownHour: true } },
+  ];
+  for (const profile of profiles) {
+    ref.value = profile;
+    const input = snapshot.resolveDiaryBirthInput(profile);
+    const chart = adapter.buildDiaryNatalChart(input, "2026-01-01");
+    const shell = original.activeProfilePillars();
+    assert.ok(chart && shell, JSON.stringify(profile));
+    assert.deepEqual(shell.pillars, chart.pillars, "셸과 앱 명식");
+    assert.deepEqual(shell.calculationMeta, chart.calculationMeta, "변환·시간대·시각미상 메타");
+    assert.deepEqual(shell.power, chart.power, "원국 억부");
+    if (profile.birthDate === "2023-02-30") {
+      assert.deepEqual(chart.calculationMeta.civil, { year: 2023, month: 3, day: 21, hour: 12, minute: 0 });
+      assert.equal(chart.calculationMeta.original.calendarType, "lunar");
+    }
+    if (input.birthTimeUnknown) {
+      assert.deepEqual(chart.pillars.h, { g: "", j: "" }, "정오/자시 시주를 만들면 안 된다");
+      assert.equal(chart.calculationMeta.instant, null);
+      assert.equal(chart.calculationMeta.timeUnknown, true);
+    }
+  }
+  assert.equal(adapter.buildDiaryNatalChart({ year: 1988, month: 1, day: 7, hour: 99 }, "2026-01-01"), null, "무효 시각을 정오로 대체하지 않는다");
+  for (const profile of [
+    { birthDate: "2024-03-10", birthTime: "02:30", location: { lng: -74.006, tz: "America/New_York" } },
+    { birthDate: "2024-11-03", birthTime: "01:30", location: { lng: -74.006, tz: "America/New_York" } },
+    { birthDate: "1990-03-18", birthTime: "07:20", location: { lng: -74.006 } },
+  ]) {
+    ref.value = profile;
+    assert.equal(original.activeProfilePillars(), null, "모호한 시각/불완전 출생지 셸 거절");
+    assert.equal(adapter.buildDiaryNatalChart(snapshot.resolveDiaryBirthInput(profile), "2026-01-01"), null, "모호한 시각/불완전 출생지 앱 거절");
+  }
+});
+
+test("다이어리 스냅샷은 음력 원본 메타를 보존하고 관계 Lite에는 양력 민용 날짜를 준다", () => {
+  const previousWindow = global.window;
+  const emptyStorage = { getItem: () => null };
+  try {
+    global.window = { localStorage: emptyStorage, sessionStorage: emptyStorage,
+      __cdGetCurrentDestinyProfile: () => ({ birthDate: "2023-02-30", calendarType: "lunar", birthTimeUnknown: true }) };
+    const result = snapshot.readDiaryTodaySnapshot("2026-01-01");
+    assert.ok(result.chart && result.fortune);
+    assert.equal(result.chart.calculationMeta.original.birthDate, "2023-02-30");
+    assert.equal(result.chart.calculationMeta.original.calendarType, "lunar");
+    assert.deepEqual([result.birth.year, result.birth.month, result.birth.day], [2023, 3, 21]);
+    assert.equal(result.birth.calendarType, "solar");
+    assert.equal(result.birth.hour, null);
+    assert.deepEqual(result.chart.pillars.h, { g: "", j: "" });
+  } finally {
+    if (previousWindow === undefined) delete global.window;
+    else global.window = previousWindow;
+  }
 });

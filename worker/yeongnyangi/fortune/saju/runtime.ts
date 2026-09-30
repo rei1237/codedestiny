@@ -25,7 +25,7 @@ import { flipStrength, jongCheckYears, resolveJongVerdict, strengthCheckYears, t
 export function calculateScreenSaju(profile: BirthProfile, now: Date, jongAnswer?: JongAnswer) {
   const natalChart = calculateNatalSaju(profile);
   const pillars = natalChart.pillars;
-  const year = natalChart.calculationMeta.termClock.year;
+  const year = natalChart.calculationMeta.civil.year;
   const civil = { g: pillars.day[0], j: pillars.day[1] };
   const kstYear = new Date(now.getTime() + 9 * 3600000).getUTCFullYear();
   const r = calculateLifeBookAiSaju(profile, {

@@ -1,4 +1,5 @@
 import {calculateNatalSaju} from "../../lib/korean-calendar/index.js";
+import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "../lib/saju-natal-analysis.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -324,17 +325,21 @@ function logNewYearAi(marker, details = {}, level = "info") {
   console[method](`[NewYear AI LLM ${marker}]`, details);
 }
 
-function parseDateParts(value) {
+function parseDateParts(value, calendarType = "solar", isLeapMonth = false) {
   const raw = clean(value, 10);
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const date = new Date(Date.UTC(year, month - 1, day));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
-  // 한국 음양력 코어가 답하는 구간. 밖이면 조용히 중국 달력으로 떨어지지 않고 입력을 거절한다.
+  // 역법에 맞게 검증한다. 유효한 음력 2월 30일을 양력 날짜 검사로 거절하지 않는다.
   if (year < 1900 || year > 2100) return null;
+  if (calendarType === "lunar") {
+    if (!lunarToSolar(year, month, day, isLeapMonth === true)) return null;
+  } else {
+    const date = new Date(Date.UTC(year, month - 1, day));
+    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  }
   return { year, month, day };
 }
 
@@ -406,16 +411,6 @@ function pickElement(fiveElements, direction = "dominant") {
   return entries[0]?.[0] || "";
 }
 
-function judgeStrength(dayStem, fiveElements) {
-  const dayElement = STEM_ELEMENT[dayStem] || "";
-  const total = Object.values(fiveElements || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-  const own = Number(fiveElements?.[dayElement] || 0);
-  const ratio = total > 0 ? own / total : 0;
-  if (ratio >= 0.34) return "일간의 기운이 강한 편";
-  if (ratio <= 0.18) return "일간의 기운이 약한 편";
-  return "일간의 기운이 비교적 균형적인 편";
-}
-
 function describeBranchRelation(sourceBranch, targetBranch) {
   if (!sourceBranch || !targetBranch) return "";
   if (BRANCH_CLASH[sourceBranch] === targetBranch) return `${sourceBranch}-${targetBranch} 충으로 변화와 조정 압력이 생기기 쉬움`;
@@ -458,39 +453,36 @@ function buildGyeokgukSummary(dayMaster, monthPillar) {
   };
 }
 
-function buildYongshinSummary(dayMaster, fiveElements) {
-  const ranking = rankedElements(fiveElements);
-  const dominant = ranking[0]?.element || "";
-  const weak = [...ranking].reverse()[0]?.element || "";
-  const dayElement = STEM_ELEMENT[dayMaster] || "";
-  const strength = judgeStrength(dayMaster, fiveElements);
+function buildYongshinSummary(dayMaster, fiveElements, natalAnalysis) {
+  const useful = (natalAnalysis.power?.yongshin || []).map((element) => SAJU_ELEMENT_KO[element]);
+  const caution = (natalAnalysis.power?.kijishin || []).map((element) => SAJU_ELEMENT_KO[element]);
   return {
-    dayElement,
-    strength,
-    elementRanking: ranking,
-    coreYongshinKo: weak || "보완 오행 미산출",
-    heesinKo: PRODUCES[weak] || dayElement || "",
-    gisinKo: dominant || "과한 오행 미산출",
-    reading: `${strength}이므로 ${weak || "부족한 기운"}을 보완하고 ${dominant || "강한 기운"}이 과해지는 선택을 조절하는 방향을 우선합니다.`,
+    dayElement: STEM_ELEMENT[dayMaster] || "",
+    strength: natalAnalysis.strength,
+    elementRanking: rankedElements(fiveElements),
+    coreYongshinKo: useful[0] || "",
+    heesinKo: useful[1] || "",
+    gisinKo: caution[0] || "",
+    yongshinElementsKo: useful,
+    kijishinElementsKo: caution,
+    reading: natalAnalysis.usefulGod + " " + natalAnalysis.unfavorableGod,
+    limitation: natalAnalysis.limitation,
   };
 }
 
-function buildJohuSummary(monthBranch, fiveElements) {
-  const season = BRANCH_SEASON[monthBranch] || "";
-  const urgentElement = ["사", "오", "미"].includes(monthBranch)
-    ? "수"
-    : ["해", "자", "축"].includes(monthBranch)
-      ? "화"
-      : ["신", "유", "술"].includes(monthBranch)
-        ? "목"
-        : ["인", "묘", "진"].includes(monthBranch)
-          ? "금"
-          : pickElement(fiveElements, "weak");
+function buildJohuSummary(natalAnalysis) {
+  const johu = natalAnalysis.johu;
+  const useful = (natalAnalysis.power?.johuYongshin || []).map((element) => SAJU_ELEMENT_KO[element]);
+  const climateLabels = { hot: "열기가 강한 편", warm: "따뜻한 편", neutral: "한난이 비교적 균형을 이룬 편", cool: "서늘한 편", cold: "차가운 편" };
   return {
-    season,
-    urgentElementKo: urgentElement,
-    climate: `${season || "월령"}의 온도와 습도를 기준으로 ${urgentElement || "부족한 기운"} 조절을 먼저 봅니다.`,
-    reading: `${urgentElement || "균형 기운"}이 살아나면 판단과 컨디션이 안정되고, 과열되거나 얼어붙은 흐름이 완만해집니다.`,
+    season: johu.season,
+    type: johu.type,
+    score: johu.score,
+    moistType: johu.moistType,
+    urgentElementKo: useful[0] || "",
+    usefulElementsKo: useful,
+    climate: johu.season + " 월령과 원국을 함께 보면 " + climateLabels[johu.type] + "으로 평가합니다.",
+    reading: (useful.length ? useful.join("·") + "을 한난·조습의 보완 후보로 살핍니다. 최종 희용신은 억부와 종격 조건을 함께 확인합니다." : "한난·조습의 보완 오행을 따로 확정하지 않고 원국의 균형을 살핍니다.") + " 사주의 온도로 건강 상태를 판단하지 않습니다.",
   };
 }
 
@@ -702,28 +694,23 @@ function coreMonthPillar(year, month) {
 // 사주·세운 계산은 LLM에 넘길 구조 데이터만 만들고, 해석 문장은 LLM 상담 단계에서 생성한다.
 function calculateNewYearFortuneData(input) {
   const birth = input.birthInfo || {};
-  const dateParts = parseDateParts(birth.birthDate);
-  if (!dateParts) {
-    const error = new Error("Invalid birth date for new-year consultation.");
-    error.code = "INVALID_BIRTH_DATE";
-    throw error;
-  }
-  const birthTime = parseBirthTime(birth.birthTime);
+  // 날짜 유효성·음력 환산·시각 미상은 공통 원국 계산 계약으로 판정한다.
   const natal = calculateNatalSaju(birth);
+  const timeUnknown = natal.calculationMeta.timeUnknown;
   const solarBirth = natal.calculationMeta.civil;
   const corePillars = natal.pillars;
+  const natalAnalysis = buildSajuNatalAnalysis(corePillars, { timeUnknown });
   const yearPillar = toKoreanGanzi(corePillars.year);
   const monthPillar = toKoreanGanzi(corePillars.month);
   const dayPillar = toKoreanGanzi(corePillars.day);
-  const hourPillar = birthTime.timeUnknown ? "" : toKoreanGanzi(corePillars.hour);
+  const hourPillar = timeUnknown ? "" : toKoreanGanzi(corePillars.hour);
   const pillarMap = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = pillarStem(dayPillar);
   const dayBranch = pillarBranch(dayPillar);
-  const monthBranch = pillarBranch(monthPillar);
   const fiveElements = buildElementDistribution(pillars);
   const tenGods = buildTenGodDistribution(dayMaster, pillars);
-  const strength = judgeStrength(dayMaster, fiveElements);
+  const strength = natalAnalysis.strength;
   const dominantElement = pickElement(fiveElements, "dominant");
   const balancingElement = pickElement(fiveElements, "weak");
   const targetYear = Number(input.targetYear || input.year);
@@ -733,8 +720,8 @@ function calculateNewYearFortuneData(input) {
   const targetTenGod = tenGodFor(dayMaster, targetStem);
   const annualInteractions = buildAnnualInteractions(pillarMap, targetStem, targetBranch);
   const gyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
-  const yongshin = buildYongshinSummary(dayMaster, fiveElements);
-  const johu = buildJohuSummary(monthBranch, fiveElements);
+  const yongshin = buildYongshinSummary(dayMaster, fiveElements, natalAnalysis);
+  const johu = buildJohuSummary(natalAnalysis);
   const domainContext = {
     dayElement: STEM_ELEMENT[dayMaster] || "",
     yongshin,
@@ -750,9 +737,9 @@ function calculateNewYearFortuneData(input) {
     const element = STEM_ELEMENT[stem] || BRANCH_ELEMENT[branch] || "";
     const tenGod = tenGodFor(dayMaster, stem);
     const branchRelation = describeBranchRelation(dayBranch, branch);
-    const timing = element === balancingElement || /합/.test(branchRelation)
+    const timing = yongshin.yongshinElementsKo.includes(element) || /합/.test(branchRelation)
       ? "기회"
-      : element === dominantElement || /충/.test(branchRelation)
+      : yongshin.kijishinElementsKo.includes(element) || /충/.test(branchRelation)
         ? "주의"
         : "정비";
     return {
@@ -770,7 +757,7 @@ function calculateNewYearFortuneData(input) {
     };
   });
   const daewoonSewoon = buildDaewoonSewoonSummary({
-    birthYear: dateParts.year,
+    birthYear: solarBirth.year,
     gender: birth.gender,
     yearStem: pillarStem(yearPillar),
     targetYear,
@@ -782,10 +769,11 @@ function calculateNewYearFortuneData(input) {
 
   return {
     calculationMeta: natal.calculationMeta,
+    natalAnalysis,
     birthCalendar: {
       solarDate: `${solarBirth.year}-${String(solarBirth.month).padStart(2, "0")}-${String(solarBirth.day).padStart(2, "0")}`,
       inputCalendarType: birth.calendarType,
-      timeUnknown: birthTime.timeUnknown,
+      timeUnknown,
     },
     saju: {
       yearPillar,
@@ -869,10 +857,8 @@ function normalizeFocusArea(value) {
   return "overall";
 }
 
-function isValidDateKey(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+function isValidDateKey(value, calendarType, isLeapMonth) {
+  return Boolean(parseDateParts(value, calendarType, isLeapMonth));
 }
 
 function normalizeConsultationInput(body = {}) {
@@ -884,8 +870,10 @@ function normalizeConsultationInput(body = {}) {
   const name = clean(body.userName ?? body.name ?? body.nickname ?? birthInfo.name, 80);
   const gender = normalizeGender(body.gender ?? birthInfo.gender);
   const birthDate = clean(body.birthDate ?? birthInfo.birthDate, 10);
-  const birthTime = clean(body.birthTime ?? birthInfo.birthTime, 5);
+  const birthTimeUnknown = body.birthTimeUnknown === true || birthInfo.birthTimeUnknown === true;
+  const birthTime = birthTimeUnknown ? "" : clean(body.birthTime ?? birthInfo.birthTime, 5);
   const calendarType = clean(body.calendarType ?? birthInfo.calendarType, 20).toLowerCase();
+  const isLeapMonth = birthInfo.isLeapMonth || body.isLeapMonth;
   const focusArea = normalizeFocusArea(body.focusArea ?? body.topicArea ?? body.domain);
   const question = clean(body.question ?? body.topic ?? body.consultationTopic, 1000);
   const topic = question || `${FOCUS_AREA_LABELS[focusArea] || FOCUS_AREA_LABELS.overall} 중심의 ${year || ""}년 신년운세`;
@@ -900,7 +888,7 @@ function normalizeConsultationInput(body = {}) {
   if (!gender || !birthDate || !calendarType) {
     return { ok: false, message: "신년운세 상담에 필요한 정보가 부족해요. 생년월일, 성별, 달력 기준을 다시 확인해 주세요." };
   }
-  if (!isValidDateKey(birthDate)) return { ok: false, message: "생년월일을 YYYY-MM-DD 형식으로 입력해 주세요." };
+  if (!isValidDateKey(birthDate, calendarType, isLeapMonth)) return { ok: false, message: "선택한 양력·음력 기준에 맞는 생년월일과 윤달 여부를 확인해 주세요." };
   if (birthTime && !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(birthTime)) {
     return { ok: false, message: "출생시간은 HH:mm 형식으로 입력해 주세요." };
   }
@@ -914,7 +902,8 @@ function normalizeConsultationInput(body = {}) {
     targetYear: year,
     serviceType,
     consultationType,
-    birthInfo: { name, gender, birthDate, birthTime, calendarType, birthPlace:birthInfo.birthPlace || body.birthPlace, isLeapMonth:birthInfo.isLeapMonth || body.isLeapMonth },
+    birthInfo: { name, gender, birthDate, birthTime, calendarType, birthPlace:birthInfo.birthPlace || body.birthPlace, isLeapMonth,
+      ...(birthTimeUnknown ? { birthTimeUnknown: true } : {}) },
     focusArea,
     question,
     topic,

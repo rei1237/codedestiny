@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { Solar, Lunar } from "lunar-javascript";
 import { loadTsModule } from "./lib/load-ts-module.mjs";
+import { FEATURE_KEY_PRICE_TABLE } from "../worker/lib/paid-feature-registry.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -264,7 +265,9 @@ const newYorkDstCase = runLocalCase({
 });
 assertEqual(newYorkDstCase.timezone, "America/New_York", "local timezone should preserve US zone");
 assertEqual(newYorkDstCase.trueSolarTimeUsed, true, "local US true solar time flag");
-assertEqual(newYorkDstCase.calculationEvidence.correctedClock?.hour, 6, "local US DST true solar hour correction");
+assertEqual(newYorkDstCase.calculationEvidence.correctedClock?.hour, 7, "1990-03-18 New York has no DST: use historical IANA offset");
+assertEqual(newYorkDstCase.calculationEvidence.correctedClock?.minute, 24, "New York local-mean correction rounds to +4 minutes");
+assertEqual(newYorkDstCase.calculationEvidence.canonicalNatal.instant.dstApplied, false, "manual DST flag does not override the actual historical instant");
 
 const parisCase = runLocalCase({
   year: 1990,
@@ -338,11 +341,13 @@ assert(storageOpenings.some((row) => row.storageBranch === "\ucd95" && row.branc
 assert(storageCase.natalAnalysis.earthStorageAnalysis?.overburdened === true, "earth storage analysis should flag heavy earth pressure");
 assert((storageCase.natalAnalysis.earthStorageAnalysis?.developmentPrescription || []).length >= 3, "heavy earth chart should include hidden-resource prescriptions");
 
+// Seoul 00:30 corrects to previous-day 23:58, then shift-day gives Jan 1.
+// This preserves the intended 子 month/hour and 午 day under the actual canonical policy.
 const ziDoChungCase = runLocalCase({
   year: 1984,
   month: 1,
   day: 1,
-  hour: 23,
+  hour: 0,
   minute: 30,
   gender: "male",
   luckPillars: [{ scope: "daewoon", ganji: "\uac11\uc790", label: "test daewoon zi" }],
@@ -351,7 +356,7 @@ const mixedDoChungCase = runLocalCase({
   year: 1984,
   month: 1,
   day: 1,
-  hour: 23,
+  hour: 0,
   minute: 30,
   gender: "male",
   luckPillars: [
@@ -666,8 +671,8 @@ assert(reportEntries.every((entry) => entry.why || entry.action), "local final r
 assertIncludes(finalReport.markdown, "\uadfc\uac70:", "local final report should explain why");
 assertIncludes(finalReport.markdown, "\ucc98\ubc29:", "local final report should include practical prescriptions");
 const structuredReport = local.structuredAdvancedReport;
-if (!structuredReport || structuredReport.metadata?.engineVersion !== "QUANTUM_MYEONGRI_ENGINE_V2" || structuredReport.metadata?.priceCoins !== 100) {
-  throw new Error("local structured advanced report should expose v2 metadata and 100 coin price");
+if (!structuredReport || structuredReport.metadata?.engineVersion !== "QUANTUM_MYEONGRI_ENGINE_V2" || structuredReport.metadata?.priceCoins !== FEATURE_KEY_PRICE_TABLE.rpt_quantumCard.cost) {
+  throw new Error("local structured advanced report should expose v2 metadata and the server registry price");
 }
 const requiredStructuredKeys = [
   "metadata",

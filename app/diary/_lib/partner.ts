@@ -45,7 +45,7 @@ function parsePartnerBirth(raw: string): { ymd: string; year: number; month: num
   return { ymd: `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`, year, month, day };
 }
 
-/** `HH:MM` 이면 시·분으로 쪼갠다. 아니면 `null` — 그때 어댑터가 12시로 본다. */
+/** `HH:MM` 이면 시·분으로 쪼갠다. 아니면 `null` — 그때 사주 어댑터는 시주를 만들지 않는다. */
 function parsePartnerTime(raw: string): { hour: number; minute: number } | null {
   const match = /^(\d{1,2}):(\d{2})$/.exec(String(raw || ""));
   if (!match) return null;

@@ -1,6 +1,7 @@
 import { calculateNatalSaju } from "../../lib/korean-calendar/index.js";
+import { buildSajuNatalAnalysis, SAJU_ELEMENT_KO } from "./saju-natal-analysis.js";
 import { buildLifeBookExpertFactors } from "./saju-expert-factors.js";
-import { daeun } from "../../lib/korean-calendar/index.js";
+import { daeun, DAEUN_POLICY_VERSION } from "../../lib/korean-calendar/index.js";
 // 🔴 명리 상수 표(納音·十神·지장간·오행·十二運星·旬空)는 달력이 아니라 문자열 조회 표다.
 // lunar-javascript 의 LunarUtil 에서 그대로 옮겨 왔고, verify:myeongri-tables 가 매번 잔차 0 을 다시 증명한다.
 import {
@@ -337,16 +338,6 @@ function buildElementDistribution(pillars) {
   return counts;
 }
 
-function judgeStrength(dayStem, fiveElements) {
-  const dayElement = STEM_ELEMENT[dayStem] || "";
-  const total = Object.values(fiveElements || {}).reduce((sum, value) => sum + Number(value || 0), 0);
-  const own = Number(fiveElements?.[dayElement] || 0);
-  const ratio = total > 0 ? own / total : 0;
-  if (ratio >= 0.34) return "일간의 기운이 강한 편";
-  if (ratio <= 0.18) return "일간의 기운이 약한 편";
-  return "일간의 기운이 비교적 균형을 이룬 편";
-}
-
 function pickBalancingElement(fiveElements) {
   const entries = Object.entries(fiveElements || {}).sort((a, b) => Number(a[1]) - Number(b[1]));
   return entries[0]?.[0] || "";
@@ -585,7 +576,10 @@ const SEXAGENARY_CYCLE = Array.from({ length: 60 }, (_, index) => `${STEMS[index
  * 코어의 daeun() 은 lunar-javascript `getYun()` sect 1 을 **그대로 재현**한 것이라
  * 관례는 안 바뀌고 節의 시간대만 KST 로 바뀐다(가드가 잔차 0 으로 증명한다).
  */
-function buildMajorLuck({ birth, birthYear, currentYear, gender, dayMaster, pillarDetails, monthPillar }) {
+function buildMajorLuck({ birth, birthYear, currentYear, gender, dayMaster, pillarDetails, monthPillar, timeUnknown }) {
+  if (timeUnknown) {
+    return { available: false, policyVersion: DAEUN_POLICY_VERSION, reason: "출생시간 미상으로 정확한 대운 시작 시점은 산출하지 않습니다." };
+  }
   const genderCode = normalizeGenderCode(gender);
   if (genderCode === null) {
     return {
@@ -593,7 +587,7 @@ function buildMajorLuck({ birth, birthYear, currentYear, gender, dayMaster, pill
       reason: "성별 비공개 입력이어서 대운 순행·역행을 단정하지 않습니다.",
     };
   }
-  const yun = birth ? daeun(birth, { gender: genderCode === 1 ? "M" : "F" }) : null;
+  const yun = birth ? daeun(birth, { gender: genderCode === 1 ? "M" : "F", birthCivilYear: birthYear }) : null;
   if (!yun) {
     return { available: false, reason: "대운 계산에 필요한 생년월일시를 확인할 수 없습니다." };
   }
@@ -633,6 +627,9 @@ function buildMajorLuck({ birth, birthYear, currentYear, gender, dayMaster, pill
   const startSolarDate = `${s.year}-${String(s.month).padStart(2, "0")}-${String(s.day).padStart(2, "0")}`;
   return {
     available: true,
+    policyVersion: yun.meta.policyVersion,
+    ageBasis: yun.meta.ageBasis,
+    birthCivilYear: yun.meta.birthCivilYear,
     direction: yun.forward ? "순행" : "역행",
     genderCode,
     startAfterBirth: {
@@ -702,6 +699,7 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   const timeUnknown = natal.calculationMeta.timeUnknown;
   const solarBirth = {...natal.calculationMeta.civil, hour:natal.calculationMeta.civil.hour ?? 12, minute:natal.calculationMeta.civil.minute ?? 0};
   const core = natal.pillars;
+  const natalAnalysis = buildSajuNatalAnalysis(core, { timeUnknown });
   const yearPillar = core.year;
   const monthPillar = core.month;
   const dayPillar = core.day;
@@ -733,6 +731,19 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   };
   const tenGodsByPillar = buildTenGodByPillar(pillarDetails);
   const seasonalBalance = buildSeasonalBalance(pillarBranch(monthPillar), fiveElements, dayMaster);
+  // This existing root is included in every chapter's evidence slice.
+  seasonalBalance.adjustment = natalAnalysis.usefulGod;
+  seasonalBalance.runtimeInterpretation = {
+    powerScore: natalAnalysis.power?.score ?? null,
+    isStrong: natalAnalysis.power?.isStrong ?? null,
+    yongshin: natalAnalysis.power?.yongshin || [],
+    kijishin: natalAnalysis.power?.kijishin || [],
+    johuType: natalAnalysis.johu.type,
+    johuCandidates: (natalAnalysis.power?.johuYongshin || []).map((element) => SAJU_ELEMENT_KO[element]),
+    jongCandidate: natalAnalysis.jong.isJong ? natalAnalysis.jong.name : "",
+    confirmationRequired: natalAnalysis.jong.confirmationRequired,
+    limitation: natalAnalysis.limitation,
+  };
   const natalInteractions = buildNatalInteractions(pillarDetails);
   const relationSummary = summarizeRelations(natalInteractions);
   const majorLuck = buildMajorLuck({
@@ -744,11 +755,10 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
     dayMaster,
     pillarDetails,
     monthPillar,
+    timeUnknown,
   });
   const yearlyLuck = buildYearlyLuck({ startYear: currentYear, dayMaster, birthYear: solarBirth.year, majorLuck, pillarDetails });
-  const strength = judgeStrength(dayMaster, fiveElements);
-  const usefulGod = usefulElement ? `${usefulElement} 기운을 보완 축으로 봅니다.` : "";
-  const unfavorableGod = dominantElement ? `${dominantElement} 기운이 과해질 때 균형을 살핍니다.` : "";
+  const { strength, usefulGod, unfavorableGod } = natalAnalysis;
   const interpretationPlan = buildInterpretationPlan();
   const fortuneFacts = buildFortuneFacts({
     dayMaster,
@@ -765,7 +775,8 @@ export function calculateLifeBookAiSaju(birthInfo = {}, options = {}) {
   });
 
   return {
-    advancedFactors: buildLifeBookExpertFactors({ yearPillar, monthPillar, dayPillar, hourPillar, majorLuck, yearlyLuck, usefulGod, unfavorableGod }),
+    advancedFactors: buildLifeBookExpertFactors({ yearPillar, monthPillar, dayPillar, hourPillar, majorLuck, yearlyLuck, usefulGod, unfavorableGod, power: natalAnalysis.power, jong: natalAnalysis.jong }),
+    natalAnalysis,
     yearPillar,
     monthPillar,
     dayPillar,

@@ -15,6 +15,8 @@
 // 정적 엔진은 소스에서 함수 본문을 그대로 추출해 쓰므로 복제 공식이 아니라 정본을 검사한다.
 
 import fs from "node:fs";
+import assert from "node:assert/strict";
+import { calculateNatalSaju, ganji, formatPillar, nodeTerms } from "../lib/korean-calendar/index.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadTsModule } from "./lib/load-ts-module.mjs";
@@ -236,7 +238,72 @@ for (const testCase of CASES) {
   console.log(`  Next.js  정책=${noCoords.hourPillarTimePolicy} 보정적용=${noCoords.trueSolarTimeUsed} 시각=${corrected.hour}:${String(corrected.minute).padStart(2, "0")}`);
   assertEqual(noCoords.trueSolarTimeUsed, false, "비KST + 경도 없음 → 보정 미적용");
   assertEqual(corrected.hour, 13, "비KST + 경도 없음 → 시각 원본 유지");
+  assertEqual(corrected.minute, 20, "비KST + 경도 없음 → 분 원본 유지");
+  const meta = noCoords.calculationEvidence.canonicalNatal;
+  assertEqual(meta.location.timezone, "America/New_York", "실제 시간대 보존");
+  assertEqual(meta.location.longitude, null, "경도를 추정하지 않음");
+  assertEqual(meta.location.assumed, false, "서울 기본 위치가 아님");
+  assertEqual(meta.instant.iso, "2022-10-25T17:20:00.000Z", "뉴욕 EDT UTC−4 실제 순간");
+  assert.deepEqual(meta.termClock, { year: 2022, month: 10, day: 26, hour: 2, minute: 20 }, "절기는 실제 순간의 KST를 사용");
+  assertEqual(meta.correction.method, "CIVIL_TIME", "경도 미상 계산 방법");
+  assertEqual(noCoords.hourPillarTimePolicy, meta.correction.method, "결과 정책은 실제 계산 방법과 동일");
+  assertEqual(noCoords.calculationEvidence.hourPillarTimeCorrection.policy, meta.correction.method, "보정 근거 정책은 실제 계산 방법과 동일");
+  assertEqual(meta.correction.reason, "missing_longitude", "경도 미상 사유");
+  assertEqual(meta.correction.appliedMinutes, 0, "DST를 일주·시주에 따로 보정하지 않음");
+  assertEqual(meta.policyVersion, "civil-minute-shift23-missing-longitude-v1", "미보정 정책 근거 분리");
+  assertEqual(noCoords.calculationEvidence.hourPillarTimeCorrection.status, "not_applied_birthplace_longitude_unknown", "시각 미상과 경도 미상을 구분");
+  assert.ok(JSON.stringify(noCoords.finalAdvancedReport).includes("출생지 경도가 없어 입력한 현지 시각"), "리포트의 경도 미상 설명");
+  const civilPillars = ganji({ year: 2022, month: 10, day: 25, hour: 13, minute: 20 }, { nightZiPolicy: "shift-day" });
+  assertEqual(koGanjiToHanja(noCoords.pillars.day.ganji), formatPillar(civilPillars.day.stemIndex, civilPillars.day.branchIndex, "hanja"), "미보정 civil 일주");
+  assertEqual(koGanjiToHanja(noCoords.pillars.hour.ganji), formatPillar(civilPillars.hour.stemIndex, civilPillars.hour.branchIndex, "hanja"), "미보정 civil 시주");
   console.log("");
+}
+
+// Longitude cannot alter UTC or the year/month boundary. Exercise the real adapter at Ipchun.
+{
+  console.log("[경도 없는 뉴욕 입력 — 입춘 직전·직후의 실제 UTC와 년·월주 보존]");
+  const ipchun = nodeTerms(2022).find(term => term.month === 2);
+  const ingressUtc = Date.UTC(ipchun.year, ipchun.month - 1, ipchun.day, ipchun.hour - 9, ipchun.minute);
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const boundaries = [];
+  for (const delta of [-1, 0, 1]) {
+    const utc = ingressUtc + delta * 60000;
+    const parts = Object.fromEntries(formatter.formatToParts(utc).map(part => [part.type, part.value]));
+    const input = { hasTime: true, gender: "male", timezone: "America/New_York", year: +parts.year, month: +parts.month, day: +parts.day, hour: +parts.hour, minute: +parts.minute };
+    const missing = calculateLocalSaju(input);
+    const located = calculateLocalSaju({ ...input, longitude: -74.006 });
+    const meta = missing.calculationEvidence.canonicalNatal;
+    assertEqual(meta.instant.iso, new Date(utc).toISOString(), "경도 없는 절입 입력의 실제 UTC");
+    assert.deepEqual(meta.termClock, located.calculationEvidence.canonicalNatal.termClock, "동일한 KST 절입 시각");
+    assert.deepEqual([missing.pillars.year, missing.pillars.month], [located.pillars.year, located.pillars.month], "동일한 년·월주");
+    assert.deepEqual(missing.daewoonStart, located.daewoonStart, "동일한 대운 기산");
+    boundaries.push([missing.pillars.year.ganji, missing.pillars.month.ganji]);
+  }
+  assert.notDeepEqual(boundaries[0], boundaries[1], "입춘 순간 년·월주가 변경되어야 한다");
+  assert.deepEqual(boundaries[1], boundaries[2], "입춘 직후 변경된 년·월주 유지");
+  console.log("");
+}
+
+// The opt-in admits only absent longitude, not bad coordinates or invalid IANA zones.
+{
+  const input = { birthDate: "2022-10-25", birthTime: "13:20", birthPlace: { timezone: "America/New_York" } };
+  assert.throws(() => calculateNatalSaju(input), /INVALID_BIRTH_PLACE/, "기본 계약은 경도 없는 출생지를 거절");
+  for (const longitude of [NaN, Infinity, -181, 181, ""]) {
+    assert.throws(() => calculateNatalSaju({ ...input, birthPlace: { ...input.birthPlace, longitude } }, { allowMissingLongitude: true }), /INVALID_BIRTH_PLACE/);
+    assert.throws(() => calculateLocalSaju({ year: 2022, month: 10, day: 25, hour: 13, minute: 20, hasTime: true, timezone: "America/New_York", longitude }), /INVALID_BIRTH_PLACE/);
+  }
+  assert.throws(() => calculateNatalSaju({ ...input, birthPlace: { timezone: "invalid-zone" } }, { allowMissingLongitude: true }), /INVALID_BIRTH_TIMEZONE/);
+  const zero = calculateLocalSaju({ year: 2022, month: 10, day: 25, hour: 13, minute: 20, hasTime: true, timezone: "Europe/London", longitude: 0 });
+  assertEqual(zero.calculationEvidence.canonicalNatal.location.longitude, 0, "경도 0은 유효한 좌표");
+  assertEqual(zero.calculationEvidence.canonicalNatal.correction.method, "LOCAL_MEAN_TIME", "경도 0에는 지역 평균시 정책 적용");
+  const nullLongitude = calculateLocalSaju({ year: 2022, month: 10, day: 25, hour: 13, minute: 20, hasTime: true, timezone: "America/New_York", longitude: null });
+  assertEqual(nullLongitude.calculationEvidence.canonicalNatal.correction.method, "CIVIL_TIME", "null 경도는 미입력");
+  const unknown = calculateLocalSaju({ year: 2022, month: 10, day: 25, hasTime: false, timezone: "America/New_York" });
+  assertEqual(unknown.pillars.hour, null, "시각 미상일 때 시주를 만들지 않음");
+  assertEqual(unknown.calculationEvidence.hourPillarTimeCorrection.status, "not_applied_birth_time_unknown", "시각 미상 근거 유지");
+  for (const [month, day, hour, minute] of [[3, 13, 2, 30], [11, 6, 1, 30]]) {
+    assert.throws(() => calculateLocalSaju({ year: 2022, month, day, hour, minute, hasTime: true, timezone: "America/New_York" }), /AMBIGUOUS_BIRTH_TIME/, "DST 중복·누락 시각을 추정하지 않음");
+  }
 }
 
 // 경도가 없는 한국 표준시 입력은 서울 기본 경도로 보정돼 정적 셸과 같은 시주를 내야 한다.
@@ -244,6 +311,7 @@ for (const testCase of CASES) {
   console.log("[경도 없는 KST 입력은 서울 기본 경도로 보정한다]");
   const noCoordsKst = localHourPillar({ year: 2022, month: 10, day: 25, hour: 13, minute: 20, longitude: null });
   console.log(`  Next.js  정책=${noCoordsKst.policy} 보정=${noCoordsKst.correctedTime} 시주=${noCoordsKst.hour}`);
+  assertEqual(noCoordsKst.policy, "LOCAL_MEAN_TIME", "KST 기본 정책 유지");
   assertEqual(noCoordsKst.hour, "甲午", "KST + 경도 없음 → 서울 기본 경도 보정");
   assertEqual(noCoordsKst.correctedTime, "12:48", "KST + 경도 없음 → 보정 시각");
   console.log("");

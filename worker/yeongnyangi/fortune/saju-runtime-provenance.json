@@ -1,6 +1,6 @@
 {
   "sourcePath": "js/saju-engine.js",
-  "sha256": "e95a3a852ab8d51a8d5d291139994c5dd0049518328204acc297ea7b85405027",
+  "sha256": "278741dbf63a6d94a97901de48e4cbee711ddbe7717d66f3128017b3ff7de571",
   "symbols": [
     {
       "name": "_applyTrueSolarTimeCorrection",

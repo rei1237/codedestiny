@@ -233,7 +233,7 @@ let divergence = null;
       calendarType: "solar",
     });
     } catch(e) { if (!isHistoricalDstTransitionAmbiguity(e, at)) throw e; console.log("[daeun] rejected historical DST transition sample", JSON.stringify(at)); continue; }
-    const core = daeun(result.calculationMeta.termClock, { gender: at.gender });
+    const core = daeun(result.calculationMeta.termClock, { gender: at.gender, birthCivilYear: result.calculationMeta.civil.year });
     probes += 1;
     const luck = result?.majorLuck;
     if (!luck?.available) { rows.push(`${at.year}-${at.month}-${at.day} majorLuck 미제공: ${luck?.reason || "?"}`); continue; }
@@ -329,7 +329,7 @@ let divergence = null;
 // 따로 계산해 **0부터의 소수 나이**로 냈고, 같은 응답의 `list[].startAgeDisplay` 는
 // 코어의 **세는 나이**였다(실측 2026-08-28, 13,176표본 전건 1~2년 차).
 // 여기서 보는 것은 "값이 맞나"가 아니라 **축이 하나인가**다.
-// 성별 미상 경로(fallbackDaewoonList)까지 함께 본다 — 거기만 다른 축이었다.
+// 성별 미상 경로는 대운 판단을 보류해야 한다 — 순행과 시작 나이를 만들어 내지 않는다.
 {
   const { buildSajuProfile } = await import("../worker/lib/destiny-bias-engine.js");
   const rows = [];
@@ -356,6 +356,10 @@ let divergence = null;
       probes += 1;
       if (gender === "OTHER") genderless += 1;
       const label = `${at.year}-${pad2(at.month)}-${pad2(at.day)} ${pad2(at.hour)}시 ${gender}`;
+      if (gender === "OTHER") {
+        if (dw?.available !== false || first || legacy) rows.push(`${label} 성별 미상에서 대운을 단정했다`);
+        continue;
+      }
       if (!dw || !first || !legacy) { rows.push(`${label} 대운이 비었다`); continue; }
       // 🔴 옛 두 축의 흔적이 되살아나면 즉시 실패시킨다.
       for (const dead of ["startAgeYearsDecimal", "startAgeYears", "startAgeMonths", "startAgeDays"]) {
@@ -391,3 +395,6 @@ console.log(
     `KST 전환으로 ${divergence.moved}/${divergence.probes}건(${(divergence.moved / divergence.probes * 100).toFixed(2)}%) 이동 ` +
     `(순역 ${divergence.forwardFlips} · 1번 대운 시작나이 ${divergence.entryAgeMoved})`,
 );
+
+// Product adapters must share this policy for lunar, overseas and DST births as well.
+await import("./test-saju-daeun-consumer-parity.mjs");

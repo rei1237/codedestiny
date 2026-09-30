@@ -22,9 +22,10 @@ beforeAll(async () => {
  *    클라이언트가 이 코인게이트를 아예 거치지 않게 됐고(navigateToZiweiChart 는 무조건 직행),
  *    안 쓰는 가격표만 남아 있었다. 과거 결제 조회용 PERSISTENT_UNLOCK_KEY_SET(fortune.js)
  *    키는 human-design-chart 선례대로 남긴다.
+ *  · 2026-09-30 대운 신규 해금 3,000원 → 5,000원. 과거 구매권·구매금액은 유지한다.
  */
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
-  "unlock.section_daewun": { featureKey: "section_daewun", cost: 30, reason: "Section daewun unlock", forceDeduct: true },
+  "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, amountKRW: 5000, reason: "Section daewun unlock", forceDeduct: true },
   "unlock.section_summary": { featureKey: "section_summary", cost: 30, reason: "Section summary unlock", forceDeduct: true },
   "unlock.section_compat": { featureKey: "section_compat", cost: 30, reason: "Section compat unlock", forceDeduct: true },
   "unlock.flower_fc": { featureKey: "flower-fc", cost: 50, reason: "Destiny flower atelier full unlock", forceDeduct: true },

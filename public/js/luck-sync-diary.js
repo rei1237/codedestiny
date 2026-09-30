@@ -470,55 +470,38 @@ function _lsdText(key) {
         : (window.__cdCurrentDestinyProfile || window.__cdActiveBirthProfile || null);
     } catch (_) {}
 
-    var birth = profile && profile.birth;
-    /* 🔴 게이트를 lunar-javascript 가 아니라 한국 음양력 코어로 잡는다 — 아래 계산이 실제로
-       필요로 하는 것이 그것이고, 예전 조건이었다면 그 라이브러리를 걷어내는 순간
-       이 기능(활성 프로필 원국)이 통째로 죽는다. */
-    if (!birth || !window.KoreanCalendar || typeof window.KoreanCalendar.ganji !== 'function') return null;
-
-    var year = Number(birth.year);
-    var month = Number(birth.month);
-    var day = Number(birth.day);
-    var hour = Number(birth.hour);
-    var minute = Number(birth.minute);
-    if (!isFinite(year) || !isFinite(month) || !isFinite(day)) return null;
-    if (!isFinite(hour) || hour < 0 || hour > 23) hour = 12;
-    if (!isFinite(minute) || minute < 0 || minute > 59) minute = 0;
-
-    var calType = String(birth.calType || profile.calType || 'solar');
-    if (calType !== 'solar' && window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
-      try {
-        var converted = window.KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
-        if (converted) {
-          year = Number(converted.year);
-          month = Number(converted.month);
-          day = Number(converted.day);
-        }
-      } catch (_) { return null; }
-    }
-
+    var birth = (profile && profile.birth) || {};
+    var core = window.KoreanCalendar;
+    if (!profile || !core || typeof core.calculateNatalSaju !== 'function') return null;
+    var dateText = String(profile.birthDate || profile.birthIso || '').split(/[T\s]/)[0];
+    var parsedDate = /^(\d{4})[-./]?(\d{1,2})[-./]?(\d{1,2})$/.exec(dateText);
+    var year = Number(birth.year != null ? birth.year : profile.birthYear != null ? profile.birthYear : parsedDate && parsedDate[1]);
+    var month = Number(birth.month != null ? birth.month : profile.birthMonth != null ? profile.birthMonth : parsedDate && parsedDate[2]);
+    var day = Number(birth.day != null ? birth.day : profile.birthDay != null ? profile.birthDay : parsedDate && parsedDate[3]);
+    var parsedTime = /^(\d{1,2}):(\d{2})$/.exec(String(profile.birthTime || ''));
+    var rawHour = birth.hour != null ? birth.hour : profile.birthHour != null ? profile.birthHour : parsedTime && parsedTime[1];
+    var rawMinute = birth.minute != null ? birth.minute : profile.birthMinute != null ? profile.birthMinute : parsedTime && parsedTime[2];
+    var unknown = birth.timeUnknown === true || birth.unknownHour === true || profile.timeUnknown === true || profile.birthTimeUnknown === true || profile.noBirthTime === true || rawHour == null || rawHour === '';
+    var calType = String(birth.calType || profile.calType || profile.calendarType || 'solar').toLowerCase().replace('lunar-leap', 'lunar_leap');
+    var location = profile.location || {};
+    var birthPlace = profile.birthPlace || ((location.lng != null || location.tz) ? {
+      longitude: location.lng == null || location.lng === '' ? undefined : Number(location.lng),
+      latitude: location.lat == null || location.lat === '' ? undefined : Number(location.lat),
+      timezone: location.tz
+    } : undefined);
     try {
-      // 🔴 바로 아래 _coreGanjiPillars 가 이미 같은 부품을 1-based 로 받는다 — 그 축에 맞춘다.
-      var birthParts = { year: year, month: month, day: day, hour: hour, minute: minute, second: 0 };
-      var corePillars = _coreGanjiPillars(year, month, day, hour, minute);
-      var ganji = window.KasiEngine && typeof window.KasiEngine.getGanjiFromParts === 'function'
-        ? window.KasiEngine.getGanjiFromParts(birthParts, { yaja: false, leapMonthOption: 'prev' })
-        : null;
-      var yearPair = _normalizeGanjiPair(ganji && (ganji.secha || ganji.year)) || _normalizeGanjiPair(corePillars && corePillars.year);
-      var monthPair = _normalizeGanjiPair(ganji && (ganji.weolgeon || ganji.month)) || _normalizeGanjiPair(corePillars && corePillars.month);
-      var dayPair = _normalizeGanjiPair(ganji && (ganji.iljin || ganji.day)) || _normalizeGanjiPair(corePillars && corePillars.day);
-      var hourPair = _normalizeGanjiPair(ganji && (ganji.sigan || ganji.hour)) || _normalizeGanjiPair(corePillars && corePillars.hour);
-      if (!yearPair || !monthPair || !dayPair || !hourPair) return null;
-
-      var pillars = {
-        y: { g: yearPair.charAt(0), j: yearPair.charAt(1) },
-        m: { g: monthPair.charAt(0), j: monthPair.charAt(1) },
-        d: { g: dayPair.charAt(0), j: dayPair.charAt(1) },
-        h: { g: hourPair.charAt(0), j: hourPair.charAt(1) }
-      };
+      var natal = core.calculateNatalSaju({
+        birthDate: String(year)+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'),
+        birthTime: unknown ? undefined : String(Number(rawHour)).padStart(2,'0')+':'+String(rawMinute == null || rawMinute === '' ? 0 : Number(rawMinute)).padStart(2,'0'),
+        birthTimeUnknown: unknown, calendarType: calType,
+        isLeapMonth: profile.isLeapMonth === true || birth.isLeapMonth === true || calType === 'lunar_leap',
+        birthPlace: birthPlace
+      });
+      var pair = function(value){return {g:value ? value.charAt(0) : '',j:value ? value.charAt(1) : ''};};
+      var pillars = {y:pair(natal.pillars.year),m:pair(natal.pillars.month),d:pair(natal.pillars.day),h:pair(natal.pillars.hour)};
       var power = typeof window.calcPower === 'function' ? window.calcPower(pillars) : null;
       var jong = typeof window.detectJong === 'function' ? window.detectJong(pillars) : null;
-      return { pillars: pillars, power: power, jong: jong, source: 'active-profile' };
+      return { pillars: pillars, power: power, jong: jong, calculationMeta: natal.calculationMeta, source: 'active-profile' };
     } catch (_) {
       return null;
     }

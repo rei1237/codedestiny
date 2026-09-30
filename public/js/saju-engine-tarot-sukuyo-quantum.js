@@ -3514,61 +3514,29 @@ function analyzeFortuneGZ(gz, p, label){
   var UMM=['丑','戌','未'];
   var hasSamHyung=ISS.every(function(c){return checkSet.indexOf(c)>=0});
   var hasUmmHyung=UMM.every(function(c){return checkSet.indexOf(c)>=0});
-  if(hasSamHyung)hyungAlerts.push('인사신(寅巳申) 삼형 — 교통사고·수술·구설 주의');
-  if(hasUmmHyung)hyungAlerts.push('축술미(丑戌未) 삼형 — 감정싸움·자기 파괴적 행동 주의');
+  if(hasSamHyung)hyungAlerts.push('인사신(寅巳申) 삼형 — 세 지지가 함께 작용합니다. 일정·역할의 마찰을 살피되 사고나 수술을 예고하는 것으로 해석하지 않습니다.');
+  if(hasUmmHyung)hyungAlerts.push('축술미(丑戌未) 삼형 — 책임이나 고집이 맞부딪히는 상황인지 살피고 역할의 경계를 조율하세요.');
   if(checkSet.indexOf('寅')>=0&&checkSet.indexOf('巳')>=0&&!hasSamHyung)hyungAlerts.push('인사(寅巳) 형 — 인간관계 마찰 주의');
-  if(checkSet.indexOf('子')>=0&&checkSet.indexOf('卯')>=0)hyungAlerts.push('자묘(子卯) 형 — 감정 충돌·법적 분쟁 주의');
+  if(checkSet.indexOf('子')>=0&&checkSet.indexOf('卯')>=0)hyungAlerts.push('자묘(子卯) 형 — 관계의 거리와 예절에 대한 기대가 다른지 확인하고 말과 약속을 정리하세요.');
 
   var chungAlerts=[];
-  var chungBonusAlerts=[];
-  var natalGanHeMergedFG = (jg && jg.ganHeMerged) ? jg.ganHeMerged : {}; // 원국 합화된 천간 (천간충 무효화용)
-  var isMetalDM = p.d.g === '庚' || p.d.g === '辛';
-  var isFireFavorable = pw&&(pw.yongshin.indexOf('fire')>=0);
-  if (jg && jg.isJong) { isFireFavorable = isFireFavorable || jg.dominant==='fire' || jg.parEl==='fire'; }
-
   var pairs=[['子','午'],['丑','未'],['寅','申'],['卯','酉'],['辰','戌'],['巳','亥']];
   pairs.forEach(function(pr){
     if((gz.j===pr[0]&&natalBranches.indexOf(pr[1])>=0)||(gz.j===pr[1]&&natalBranches.indexOf(pr[0])>=0)){
-      // 지지충은 합>충 원칙 미적용 — 기존 로직 그대로 유지
-      var key=pr[0]+pr[1];
-      if(isMetalDM && isFireFavorable && (key==='子午'||key==='午子'||key==='巳亥'||key==='亥巳')) {
-        chungBonusAlerts.push('🔥수화기제(水火旣濟) — 특별한 제련발복! 물과 불의 충돌이 오히려 '+gGod+'·'+jGod+'의 거대한 성취로 날카롭게 완성됩니다.');
-      } else if(key==='丑未'||key==='未丑'){
-        chungAlerts.push('축미충(丑未沖) — 丁·癸 입묘: '+getTenGod(p.d.g,'丁')+'·'+getTenGod(p.d.g,'癸')+' 영역 변동 주의');
-      }else if(key==='辰戌'||key==='戌辰'){
-        chungAlerts.push('진술충(辰戌沖) — 丙·壬·辛 입묘: '+getTenGod(p.d.g,'丙')+'·'+getTenGod(p.d.g,'壬')+' 영역 정체 주의');
-      }else{
-        chungAlerts.push(pr[0]+pr[1]+'충 — 해당 기운 충돌, 계획 변경 가능성');
-      }
+      chungAlerts.push(pr[0]+pr[1]+'충(沖) — 원국과 운의 지지가 충을 이룹니다. 해당 궁위의 역할과 생활 환경을 함께 살피며 바뀐 일정이나 관계의 조건을 점검하세요. 충만으로 손실이나 성취를 확정하지 않습니다.');
     }
   });
-
-  var ganPairs=[['丙','壬'],['丁','癸']];
+  var ganPairs=[['甲','庚'],['乙','辛'],['丙','壬'],['丁','癸']];
   var natalGans=[p.y.g,p.m.g,p.d.g,p.h.g];
-
-  if (p.d.g === '辛' && gz.g === '丁') {
-    var hasWood = p.y.j==='寅'||p.y.j==='卯'||p.m.j==='寅'||p.m.j==='卯'||p.h.j==='寅'||p.h.j==='卯'||gz.j==='寅'||gz.j==='卯'||natalGans.indexOf('甲')>=0||natalGans.indexOf('乙')>=0;
-    var sinDingMsg = '⚠️ 편관(丁) 위협 — 신금(辛)에게 정화(丁)는 보석을 녹이는 불과 같아 부정적입니다. 나서지 말고 수성하세요.';
-    if (hasWood) sinDingMsg = '⚠️ 편관(丁)+목(木) 위협 — 토(土)가 극을 받아 보호막이 깨진 상태로 정화(丁)를 맞이합니다. 관재구설과 파재를 극도로 조심하세요.';
-    chungAlerts.push(sinDingMsg);
-  }
-
   ganPairs.forEach(function(pr){
     if((gz.g===pr[0]&&natalGans.indexOf(pr[1])>=0)||(gz.g===pr[1]&&natalGans.indexOf(pr[0])>=0)){
-      // 원국에서 합화된 천간이면 충 무효
-      var targetNatalGan = (gz.g===pr[0]) ? pr[1] : pr[0];
-      if (natalGanHeMergedFG[targetNatalGan]) return; // 합화된 천간은 충 불가
-      if(isMetalDM && isFireFavorable) {
-        if(chungBonusAlerts.length===0) chungBonusAlerts.push('🔥화련진금(火鍊眞金) — 제련발복! 천간의 수화 충돌이 도리어 금 기운을 명검으로 벼려냅니다.');
-      } else {
-        chungAlerts.push(pr[0]+pr[1]+'충 — 천간 기운 충돌');
-      }
+      chungAlerts.push(pr[0]+pr[1]+'충(沖) — 천간의 방향이 맞서는 관계입니다. 각 글자의 십성, 통근과 월령을 함께 보며 책임이나 표현 방식의 조율이 필요한지 살피세요.');
     }
   });
 
   var JIHE={'子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午'};
   var heInfo=null;
-  if(JIHE[gz.j]&&natalBranches.indexOf(JIHE[gz.j])>=0)heInfo=gz.j+JIHE[gz.j]+'합 — 기운이 합쳐져 안정된 흐름';
+  if(JIHE[gz.j]&&natalBranches.indexOf(JIHE[gz.j])>=0)heInfo=gz.j+JIHE[gz.j]+'합(合) — 두 지지가 연결됩니다. 합화 여부와 유불리는 월령·통근·다른 합충을 함께 살펴야 합니다.';
 
   var EL_K_LOCAL={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
 
@@ -3614,9 +3582,7 @@ function analyzeFortuneGZ(gz, p, label){
   var lb=LUCKY_BRAND[luckyEl]||LUCKY_BRAND.earth;
 
   var grade,icon,batteryPercent=50;
-  if(chungBonusAlerts.length>0){
-    grade='🌟 대발복';icon='🔥';batteryPercent=95;
-  }else if(hyungAlerts.length>0||chungAlerts.length>0){
+  if(hyungAlerts.length>0||chungAlerts.length>0){
     if((hyungAlerts.length+chungAlerts.length)>=2){grade='주의 ⚠️';icon='🌧️';batteryPercent=20;}
     else{grade='보통 🙂';icon='⛅';batteryPercent=45;}
   }else if(isYong){grade='길운 🌟';icon='☀️';batteryPercent=85;}
@@ -3624,23 +3590,20 @@ function analyzeFortuneGZ(gz, p, label){
   else{grade='무난 🍀';icon='🌤️';batteryPercent=60;}
 
   var adviceItems=[];
-  chungBonusAlerts.forEach(function(b){
-    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2672_prop_title"),body:b});
-  });
-  if(isGi && chungBonusAlerts.length===0){
+  if(isGi){
     adviceItems.push({
       type:'warn',
       title:_sajuQuantumText("sq_2677_prop_title"),
-      body:'오늘 들어오는 기운('+incomingElText+')이 원국의 기신(忌神) '+overlappedGiText+'와(과) 겹칩니다. 고집·손재수·충돌로 이어질 수 있으니 큰 결정을 미루세요.'
+      body:'오늘 들어오는 기운('+incomingElText+')이 원국의 기신(忌神) '+overlappedGiText+'와(과) 겹칩니다. 원국의 균형을 더 치우치게 하는지 살필 대목입니다. 일정과 책임이 과도해진 부분이 있는지 확인하고 감당할 범위를 정하세요.'
     });
   }else if(isYong){
-    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2681_prop_title"),body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 당신에게 필요한 용신과 맞아떨어집니다. 도전·협상·투자에 길한 날입니다.'});
+    adviceItems.push({type:'good',title:_sajuQuantumText("sq_2681_prop_title"),body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 용신으로 분류된 오행과 연결됩니다. 준비해 온 일을 점검할 계기로 삼되, 계약이나 금전 결정은 실제 조건과 자료로 판단하세요.'});
   }
   hyungAlerts.forEach(function(h){
     adviceItems.push({type:'warn',title:'🔺 형살 발생 — '+h.split(' — ')[0],body:h.split(' — ')[1]||h});
   });
   chungAlerts.forEach(function(c){
-    adviceItems.push({type:'warn',title:'💢 충·입묘 — '+c.split(' — ')[0],body:c.split(' — ').slice(1).join(' — ')});
+    adviceItems.push({type:'warn',title:'💢 충(沖) — '+c.split(' — ')[0],body:c.split(' — ').slice(1).join(' — ')});
   });
   if(heInfo)adviceItems.push({type:'good',title:_sajuQuantumText("sq_2689_prop_title"),body:heInfo});
 
@@ -18513,8 +18476,14 @@ function renderQuantumStrategy(p, natal, bazi){
   window.__cdQuantumRendered=true;
 
   var pw=G_POWER, jg=G_JONG;
+  var qSameChart=typeof G_PILLARS!=='undefined' && G_PILLARS && ['y','m','d','h'].every(function(k){
+    var left=p[k]||{}, right=G_PILLARS[k]||{};
+    return (left.g||'')===(right.g||'') && (left.j||'')===(right.j||'');
+  });
+  var qTimeUnknown=window.__cdSajuTimeUnknown===true || window.__cdBirthTimeUnknown===true || p.timeUnknown===true || p.unknownHour===true;
+  if(qTimeUnknown)p=Object.assign({},p,{h:{g:'',j:''}});
 
-  /* ── 합화 테이블 ── */
+  /* ── 원국 관계쌍 표시용 테이블: 합화 성립 판정과 구분 ── */
   var GANHE_Q={'甲':{'己':'earth'},'己':{'甲':'earth'},'乙':{'庚':'metal'},'庚':{'乙':'metal'},'丙':{'辛':'water'},'辛':{'丙':'water'},'丁':{'壬':'wood'},'壬':{'丁':'wood'},'戊':{'癸':'fire'},'癸':{'戊':'fire'}};
   var JIHE_Q={'子':{'丑':'earth'},'丑':{'子':'earth'},'寅':{'亥':'wood'},'亥':{'寅':'wood'},'卯':{'戌':'fire'},'戌':{'卯':'fire'},'辰':{'酉':'metal'},'酉':{'辰':'metal'},'巳':{'申':'water'},'申':{'巳':'water'},'午':{'未':'fire'},'未':{'午':'fire'}};
   var EL_CLR={wood:'#4ade80',fire:'#f87171',earth:'#fbbf24',metal:'#cbd5e1',water:'#60a5fa'};
@@ -18527,306 +18496,97 @@ function renderQuantumStrategy(p, natal, bazi){
     return getQuantumElType(el, p, jg, pw, G_JOHU);
   }
 
-  /* ── 현재 대운 추출 ── */
+  /* 현재 대운은 대운표의 공통 배열에서 선택한다. 시각 미상은 기운 시점을 확정하지 않는다. */
+  var qLuckRows=!qTimeUnknown && qSameChart && Array.isArray(window.G_DAEWUN)?window.G_DAEWUN:[];
   var dg='', dz='';
-  try{
-    var yun=bazi.getYun(GENDER==='M'?1:0);
-    var list=yun.getDaYun();
-    var curDw=null;
-    list.forEach(function(dw,idx){
-      if(idx===0)return;
-      var age=dw.getStartAge();
-      if(age&&age>0&&age<=CURRENT_AGE) curDw=dw;
-    });
-    if(curDw){var gz=curDw.getGanZhi();dg=gz[0]||'';dz=gz[1]||'';}
-  }catch(e){}
+  var currentDaeun=qLuckRows.find(function(row){
+    return Number.isFinite(Number(row.age)) && typeof CURRENT_AGE==='number' && CURRENT_AGE>=Number(row.age) && CURRENT_AGE<=Number(row.age)+9;
+  });
+  if(currentDaeun){dg=currentDaeun.g||'';dz=currentDaeun.j||'';}
 
-  /* ── 현재 세운 추출 ──
-     오늘 실제 날짜로 뽑는다. 세차는 입춘(立春) 경계를 적용하므로 1/1~입춘 전에는 전년 세운이
-     나온다. (과거 6/15 고정값은 이 구간에서 1년 앞선 세운을 표시했다)
-     그 입춘을 이제 한국 음양력 코어의 KST 절기표가 가른다 — lunar-javascript 는 중국 표준시
-     기준이라 절기가 CST 23시대에 든 해(1930~2030 중 4.0%)에서 경계일이 하루 어긋났다. */
-  var qNow=new Date();
+  /* UTC+9 부품으로 현재 순간을 조회한다. 브라우저 시간대·정오 고정으로 입춘 당일을 밀지 않는다. */
+  var qNow=new Date(Date.now()+9*60*60*1000);
+  var qYear=qNow.getUTCFullYear(), qMonth=qNow.getUTCMonth()+1, qDay=qNow.getUTCDate();
+  var qHour=qNow.getUTCHours(), qMinute=qNow.getUTCMinutes();
   var sg='', sz='';
   try{
-    var baziY=_coreEightChar(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0);
+    var baziY=_coreEightChar(qYear,qMonth,qDay,qHour,qMinute);
     sg=baziY.getYearGan(); sz=baziY.getYearZhi();
   }catch(e){}
 
-  /* ── 합화 분석 핵심 함수 ── */
-  function analyzeHap(inGan, inZhi, label){
-    var results=[];
-    var seen={};
-    if(inGan){
-      var inGanEl=(GAN[inGan]&&GAN[inGan].e)||'earth';
-      var ganHit=false;
-      origGans.forEach(function(og){
-        if(!og)return;
-        var hapEl=null;
-        if(GANHE_Q[inGan]&&GANHE_Q[inGan][og]) hapEl=GANHE_Q[inGan][og];
-        else if(GANHE_Q[og]&&GANHE_Q[og][inGan]) hapEl=GANHE_Q[og][inGan];
-        if(hapEl){
-          var key=inGan+'_'+og+'_'+hapEl;
-          if(!seen[key]){
-            seen[key]=true;
-            ganHit=true;
-            var orgT=elType(inGanEl), newT=elType(hapEl);
-            results.push({type:'간합',src:inGan,partner:og,hapEl:hapEl,orgEl:inGanEl,orgType:orgT,newType:newT,changed:(orgT!==newT)});
-          }
-        }
-      });
-      if(!ganHit) results.push({type:'무합',src:inGan,partner:null,hapEl:null,orgEl:inGanEl,orgType:elType(inGanEl),newType:null,changed:false});
-    }
-    if(inZhi){
-      var inZhiEl=(JI[inZhi]&&JI[inZhi].e)||'earth';
-      var zhiHit=false;
-      origZhis.forEach(function(oz){
-        if(!oz)return;
-        var hapEl=null;
-        if(JIHE_Q[inZhi]&&JIHE_Q[inZhi][oz]) hapEl=JIHE_Q[inZhi][oz];
-        else if(JIHE_Q[oz]&&JIHE_Q[oz][inZhi]) hapEl=JIHE_Q[oz][inZhi];
-        if(hapEl){
-          var key=inZhi+'_'+oz+'_'+hapEl;
-          if(!seen[key]){
-            seen[key]=true;
-            zhiHit=true;
-            var orgT=elType(inZhiEl), newT=elType(hapEl);
-            results.push({type:'지합',src:inZhi,partner:oz,hapEl:hapEl,orgEl:inZhiEl,orgType:orgT,newType:newT,changed:(orgT!==newT)});
-          }
-        }
-      });
-      if(!zhiHit) results.push({type:'무합',src:inZhi,partner:null,hapEl:null,orgEl:inZhiEl,orgType:elType(inZhiEl),newType:null,changed:false});
-    }
-    return results;
+  // 원국 내부 관계 표시에서도 쓰는 정통 천간충·지지충 짝이다.
+  var GAN_CHUNG={'甲':'庚','乙':'辛','丙':'壬','丁':'癸','庚':'甲','辛':'乙','壬':'丙','癸':'丁'};
+  var ZHI_CHUNG={'子':'午','丑':'未','寅':'申','卯':'酉','辰':'戌','巳':'亥','午':'子','未':'丑','申':'寅','酉':'卯','戌':'辰','亥':'巳'};
+  function sharedRelations(inGan,inZhi){
+    if(!qSameChart||typeof _getDwHapResults!=='function')return [];
+    return _getDwHapResults(inGan,inZhi);
   }
+  var dwResults=(dg||dz)?sharedRelations(dg,dz):[];
+  var seResults=(sg||sz)?sharedRelations(sg,sz):[];
+  var keyEvents=dwResults.concat(seResults);
 
-  /* ── 충(沖) 분석 핵심 함수 ── */
-  var GAN_CHUNG = {'甲':'庚', '乙':'辛', '丙':'壬', '丁':'癸', '庚':'甲', '辛':'乙', '壬':'丙', '癸':'丁'};
-  var ZHI_CHUNG = {'子':'午', '丑':'未', '寅':'申', '卯':'酉', '辰':'戌', '巳':'亥', '午':'子', '未':'丑', '申':'寅', '酉':'卯', '戌':'辰', '亥':'巳'};
-
-  function analyzeChung(inGan, inZhi, label){
-    var results=[];
-    var seen={};
-    if(inGan){
-      origGans.forEach(function(og){
-        if(!og)return;
-        if(GAN_CHUNG[inGan] === og || GAN_CHUNG[og] === inGan){
-          var key=inGan+'_chung_'+og;
-          if(!seen[key]){
-            seen[key]=true;
-            var ogEl=(GAN[og]&&GAN[og].e)||'earth';
-            var srcEl=(GAN[inGan]&&GAN[inGan].e)||'earth';
-            var tz=p;
-            var isMetalDM = tz && tz.d && (tz.d.g === '庚' || tz.d.g === '辛');
-            var jg=G_JONG, pw=G_POWER;
-            var isFireFavorable=false;
-            if(pw) isFireFavorable = pw.yongshin.indexOf('fire')>=0;
-            if(jg&&jg.isJong) isFireFavorable = isFireFavorable||jg.dominant==='fire'||jg.parEl==='fire';
-            var isSpecial = isMetalDM && isFireFavorable && ((srcEl==='fire'&&ogEl==='water')||(srcEl==='water'&&ogEl==='fire'));
-            var ogType=elType(ogEl);
-            results.push({type:'간충',src:inGan,partner:og,orgEl:ogEl,orgType:ogType,isChung:true,isSpecialChung:isSpecial});
-          }
-        }
-      });
-      if(p.d.g==='辛' && inGan==='丁'){
-        results.push({type:'흉운',src:inGan,partner:'辛',orgEl:'metal',orgType:'good',isChung:true,isSpecialChung:false,isSinDing:true});
-      }
-    }
-    if(inZhi){
-      origZhis.forEach(function(oz){
-        if(!oz)return;
-        if(ZHI_CHUNG[inZhi] === oz || ZHI_CHUNG[oz] === inZhi){
-          var key=inZhi+'_chung_'+oz;
-          if(!seen[key]){
-            seen[key]=true;
-            var ozEl=(JI[oz]&&JI[oz].e)||'earth';
-            var srcEl=(JI[inZhi]&&JI[inZhi].e)||'earth';
-            var tz=p;
-            var isMetalDM = tz && tz.d && (tz.d.g === '庚' || tz.d.g === '辛');
-            var jg=G_JONG, pw=G_POWER;
-            var isFireFavorable=false;
-            if(pw) isFireFavorable = pw.yongshin.indexOf('fire')>=0;
-            if(jg&&jg.isJong) isFireFavorable = isFireFavorable||jg.dominant==='fire'||jg.parEl==='fire';
-            var isSpecial = isMetalDM && isFireFavorable && ((srcEl==='fire'&&ozEl==='water')||(srcEl==='water'&&ozEl==='fire'));
-            var ozType=elType(ozEl);
-            results.push({type:'지충',src:inZhi,partner:oz,orgEl:ozEl,orgType:ozType,isChung:true,isSpecialChung:isSpecial});
-          }
-        }
-      });
-    }
-    return results;
-  }
-
-  var dwHaps=(dg||dz)?analyzeHap(dg,dz,'대운'):[];
-  var seHaps=(sg||sz)?analyzeHap(sg,sz,'세운'):[];
-  var dwChungs=(dg||dz)?analyzeChung(dg,dz,'대운'):[];
-  var seChungs=(sg||sz)?analyzeChung(sg,sz,'세운'):[];
-
-  var dwResults = dwHaps.concat(dwChungs);
-  var seResults = seHaps.concat(seChungs);
-  var keyEvents=dwResults.concat(seResults).filter(function(r){return r.changed || r.isChung;});
-
-  /* ── 합화/충 카드 HTML ── */
+  /* ── 합과 합화, 충을 서로 구분해 표시한다. ── */
   function eventCardHTML(r,runLabel){
-    if(r.isSinDing) {
-      return '<div class="qm-hap-card hap-bad">'+
-        '<div class="qm-hap-top">'+
-          '<span class="qm-hap-badge qm-hap-danger">⚠️보석용해</span>'+
-          '<span style="font-size:.7rem;color:#4a7a6a;margin-left:8px">'+runLabel+' · 편관의 강력한 위협</span>'+
-        '</div>'+
-        '<div class="qm-hap-desc">신금(辛)에게 정화(丁)는 완성된 보석을 녹이는 화로불과 같아 신강하더라도 본질을 심각하게 훼손합니다. 성급한 나섬을 버리고 토(土)의 보호 아래 한 발 물러서서 조용히 내실을 다져야 하는 극히 불안한 시기입니다.</div>'+
-      '</div>';
-    }
+    var conditions=Array.isArray(r.conditions)?r.conditions:[];
+    var note=conditions.length?' '+conditions.join(' · '):'';
     if(r.isChung){
-      var isSpecial=r.isSpecialChung;
-      var isBonus=(r.orgType==='bad' || isSpecial); // 흉신을 깨면 길, 특수발복이면 길
-      var isSnare=(r.orgType==='good' && !isSpecial); // 용신을 깨면 흉
-      var cls=isBonus?'':isSnare?'hap-bad':'hap-neutral';
-      var badge=isSpecial?'🔥 제련발복':isBonus?'💥 흉신파기':isSnare?'⚠ 용신파손':'⚔️ 충돌발생';
-      var badgeCls=isSpecial?'qm-hap-good':isBonus?'qm-hap-good':isSnare?'qm-hap-danger':'qm-hap-plain';
-      var desc=isSpecial
-        ?'금(金) 일간이 꼭 필요한 화(火)를 귀하게 쓰는 중에 수(水)와 충돌합니다. 피하거나 물러서는 것이 아니라, 거대한 담금질의 시간이 되어 예상을 뛰어넘는 찬란한 성취를 쟁취하게 됩니다.'
-        :isBonus
-        ?'운에서 온 <b>'+r.src+'</b>이(가) 원국의 흉신(<b>'+r.partner+'·'+EL_K[r.orgEl]+'</b>)을 충(沖)하여 깨뜨립니다. 흉한 기운이 사라져 오히려 큰 발복의 기회가 됩니다.'
-        :isSnare
-        ?'운에서 온 <b>'+r.src+'</b>이(가) 원국의 용신(<b>'+r.partner+'·'+EL_K[r.orgEl]+'</b>)을 충(沖)하여 깨뜨립니다. 믿었던 기운이 흔들릴 수 있으니 각별한 주의가 필요합니다.'
-        :'운에서 온 <b>'+r.src+'</b>이(가) 원국의 <b>'+r.partner+'</b>을(를) 충(沖)합니다. 변화와 이동수가 예상됩니다.';
-      return '<div class="qm-hap-card '+cls+'">'+
-        '<div class="qm-hap-top">'+
-          '<span class="qm-hap-badge '+badgeCls+'">'+badge+'</span>'+
-          '<span style="font-size:.7rem;color:#4a7a6a;margin-left:8px">'+runLabel+' · '+r.type+'</span>'+
-        '</div>'+
-        '<div class="qm-transform">'+
-          '<span class="qm-from">'+r.src+'</span>'+
-          '<span style="font-size:.8rem;color:#e63946;padding:0 4px;font-weight:bold;"> ⚡충(沖)⚡ </span>'+
-          '<span class="qm-to" style="color:#333">'+r.partner+' ('+EL_K[r.orgEl]+')</span>'+
-        '</div>'+
-        '<div class="qm-hap-desc">'+desc+'</div>'+
-      '</div>';
+      return '<div class="qm-hap-card hap-neutral"><div class="qm-hap-top">'+
+        '<span class="qm-hap-badge qm-hap-plain">'+qEsc(r.type)+'</span>'+
+        '<span style="font-size:.7rem;color:#4a7a6a;margin-left:8px">'+qEsc(runLabel)+'</span></div>'+
+        '<div class="qm-transform"><span class="qm-from">'+qEsc(r.src)+'</span><span class="qm-arrow">충(沖)</span><span class="qm-to">'+qEsc(r.partner)+'</span></div>'+
+        '<div class="qm-hap-desc">원국과 운의 글자가 맞서는 관계입니다. 용신·기신 한 항목만으로 발복이나 손실을 정하지 않고, 각 글자의 세력과 궁위·다른 합충을 함께 살핍니다.'+qEsc(note)+'</div></div>';
     }
-    if(r.type==='무합'){
-      var t=r.orgType;
-      var tLbl={good:'용신',bad:'기신',neutral:'중립'}[t]||'중립';
-      var tCls={good:'qm-hap-good',bad:'qm-hap-danger',neutral:'qm-hap-plain'}[t]||'qm-hap-plain';
-      return '<div class="qm-hap-card hap-neutral">'+
-        '<div class="qm-hap-top"><span class="qm-hap-badge '+tCls+'">합화 없음</span>'+
-        '<span style="font-size:.7rem;color:#4a6a5a;margin-left:8px">'+runLabel+' '+r.src+' · '+EL_K[r.orgEl]+' ('+tLbl+')</span></div>'+
-        '<div class="qm-hap-desc">원국 글자들과 합을 이루지 않아 <b>'+EL_K[r.orgEl]+'</b> 본래 특성 그대로 작용합니다.</div>'+
-      '</div>';
-    }
-    var isBonus=(r.orgType==='bad'&&r.newType==='good');
-    var isSnare=(r.orgType==='good'&&r.newType==='bad');
-    var cls=isBonus?'':isSnare?'hap-bad':'hap-neutral';
-    var badge=isBonus?'⚡ 환골탈태':isSnare?'⚠ 탐합망귀':'🔄 합화변환';
-    var badgeCls=isBonus?'qm-hap-good':isSnare?'qm-hap-danger':'qm-hap-plain';
-    var toCls=r.newType==='good'?'qm-to-good':r.newType==='bad'?'qm-to-bad':'qm-to-neutral';
-    var hapColor=EL_CLR[r.hapEl]||'#94a3b8';
-    var desc=isBonus
-      ?'흉신(<b>'+EL_K[r.orgEl]+'</b>)이 '+r.type+'으로 용신(<b style="color:'+hapColor+'">'+EL_K[r.hapEl]+'</b>)으로 변환됩니다. 겉으로 무서운 글자가 실은 기회입니다.'
-      :isSnare
-      ?'용신(<b>'+EL_K[r.orgEl]+'</b>)이 탐합망귀(貪合忘貴)로 기신(<b style="color:#ff4d6d">'+EL_K[r.hapEl]+'</b>)으로 묶입니다. 지금 가진 것을 지키는 것이 먼저입니다.'
-      :'<b>'+EL_K[r.orgEl]+'</b>이(가) '+r.type+'으로 <b style="color:'+hapColor+'">'+EL_K[r.hapEl]+'</b>으로 변합니다.';
-    return '<div class="qm-hap-card '+cls+'">'+
-      '<div class="qm-hap-top">'+
-        '<span class="qm-hap-badge '+badgeCls+'">'+badge+'</span>'+
-        '<span style="font-size:.7rem;color:#4a7a6a;margin-left:8px">'+runLabel+' · '+r.type+'</span>'+
-      '</div>'+
-      '<div class="qm-transform">'+
-        '<span class="qm-from">'+r.src+' ('+EL_K[r.orgEl]+')</span>'+
-        '<span style="font-size:.8rem;color:#3a6a5a;padding:0 2px">+ '+r.partner+'</span>'+
-        '<span class="qm-arrow'+(isSnare?' arr-bad':'')+'">⟶</span>'+
-        '<span class="qm-to '+toCls+'" style="color:'+hapColor+'">'+EL_K[r.hapEl]+'</span>'+
-      '</div>'+
-      '<div class="qm-hap-desc">'+desc+'</div>'+
-    '</div>';
+    var transformed=r.transformed===true;
+    var label=transformed?'합화(合化) 조건 성립':'합(合) · 합화 조건 확인';
+    var color=EL_CLR[r.hapEl]||'#94a3b8';
+    var target=transformed?(EL_K[r.hapEl]||r.hapEl||''):'합화 미확정';
+    var desc=transformed
+      ? '현재 판정 기준에서 '+(EL_K[r.hapEl]||r.hapEl)+'로 합화하는 조건을 충족합니다. 그 오행의 유불리는 원국 전체의 균형과 함께 해석합니다.'
+      : '두 글자가 합을 이루지만, 다른 오행으로 바뀌었다고 확정하지 않습니다. '+(r.hapEl?'합화 후보는 '+(EL_K[r.hapEl]||r.hapEl)+'이며, ':'')+'월령·통근·투간·쟁합과 충을 함께 살펴야 합니다.';
+    return '<div class="qm-hap-card hap-neutral"><div class="qm-hap-top"><span class="qm-hap-badge qm-hap-plain">'+label+'</span>'+
+      '<span style="font-size:.7rem;color:#4a7a6a;margin-left:8px">'+qEsc(runLabel+' · '+r.type)+'</span></div>'+
+      '<div class="qm-transform"><span class="qm-from">'+qEsc(r.src)+'</span><span style="font-size:.8rem;color:#3a6a5a;padding:0 2px">+ '+qEsc(r.partner)+'</span>'+
+      '<span class="qm-arrow">'+(transformed?'⟶':'·')+'</span><span class="qm-to qm-to-neutral" style="color:'+color+'">'+qEsc(target)+'</span></div>'+
+      '<div class="qm-hap-desc">'+qEsc(desc+note)+'</div></div>';
   }
 
-  /* ── 팩트 폭행 생성 ── */
+  /* 계산 근거와 해석 조건을 함께 안내한다. */
   function buildFacts(){
     var facts=[];
-    
-    var dwEl = (dg ? (GAN[dg]&&GAN[dg].e) : null);
-    var dzEl = (dz ? (JI[dz]&&JI[dz].e) : null);
-    
-    if(dwEl || dzEl){
-      var dwType = elType(dzEl || dwEl); // 지지 중심
-      var dwElName = EL_K[dzEl || dwEl];
-      
-      if(dwType === 'good'){
-        facts.push('현재 대운은 <b>'+dwElName+'</b> 기운이 주도합니다. 단순한 신강/신약을 넘어 <b>계절적 조후와 오행의 쏠림을 종합적으로 고려할 때 매우 유리한 용신 대운</b>입니다. 적극적으로 나아가십시오.');
-      } else if(dwType === 'bad'){
-        facts.push('현재 대운은 <b>'+dwElName+'</b> 기운이 강하게 들어옵니다. 겉보기엔 좋아 보일지라도 <b>조후(한난조습)나 원국의 특수한 구조 상 불리하게 작용하는 기신 대운</b>일 수 있으니, 무리한 확장은 피하고 수성하십시오.');
-      } else {
-        facts.push('현재 대운은 <b>'+dwElName+'</b> 기운으로, 원국에 미치는 영향이 중립적이거나 혼재되어 있습니다. 세운의 흐름을 잘 타야 합니다.');
-      }
+    var dwEl=dz?(JI[dz]&&JI[dz].e):(dg?(GAN[dg]&&GAN[dg].e):null);
+    if(dwEl){
+      var role={good:'용신권',bad:'기신권',neutral:'중립권'}[elType(dwEl)]||'중립권';
+      facts.push('현재 대운의 지지 중심 오행은 <b>'+qEsc(EL_K[dwEl])+'</b>이며 이 명식에서는 '+role+'으로 분류됩니다. 월령과 한난조습, 일간의 세력에 따른 해석이므로 성취나 손실을 뜻하는 확정 판정은 아닙니다.');
+    }else{
+      facts.push(qTimeUnknown?'태어난 시각을 알 수 없어 대운의 정확한 시작 시점과 현재 구간은 확정하지 않습니다. 확인된 원국 범위에서 성향과 선택의 조건을 살핍니다.':'현재 대운 구간이 확인되지 않았습니다. 대운표의 시작 나이와 출생 정보를 먼저 확인하세요.');
     }
-
     keyEvents.forEach(function(r){
-      if(r.isSinDing) {
-        facts.push('<b>편관(丁)의 강력한 위협!</b> 신금(辛)인 당신에게 정화(丁)가 침투했습니다. 이는 보석을 녹이는 화로불과 같아 신강하더라도 본질을 심각하게 훼손하는 치명적 흉운입니다. 절대 성급히 나서거나 무리한 확장을 시도하지 마시고, 토(土)의 보호 아래 조용히 엎드려 내실을 다지는 수성(守城)에 혼신을 쏟아야 할 때입니다.');
-      } else if(r.isChung){
-        if(r.isSpecialChung)
-          facts.push('<b>'+r.src+'</b>이(가) 원국의 <b>'+r.partner+'</b>과 충(沖)합니다. 그러나 이는 흉운이 아닙니다! 화(火)를 귀하게 쓰는 금(金) 일간에게 물과 불의 충돌은 단단함을 명검으로 벼려내는 제련발복(🔥)의 거대한 담금질입니다.');
-        else if(r.orgType==='bad')
-          facts.push('<b>'+r.src+'</b>이(가) 원국의 <b>'+r.partner+'('+EL_K[r.orgEl]+' 흉신)</b>을 충(沖)하여 깨뜨립니다. 흉신이 파괴되어 오히려 <b>대발복의 기회</b>가 열립니다.');
-        else if(r.orgType==='good')
-          facts.push('<b>'+r.src+'</b>이(가) 원국의 <b>'+r.partner+'('+EL_K[r.orgEl]+' 용신)</b>을 충(沖)하여 깨뜨립니다. 믿었던 기반이 흔들릴 수 있으니 <b>수성(守城)</b>에 집중하십시오.');
-      } else {
-        if(r.orgType==='bad'&&r.newType==='good')
-          facts.push('<b>'+r.src+'('+EL_K[r.orgEl]+' 흉신)</b>이 원국 <b>'+r.partner+'</b>와 '+r.type+'하여 <b>용신('+EL_K[r.hapEl]+')</b>으로 변합니다. 이 글자가 무서워 도망쳤다면 당신은 기회를 차버린 겁니다.');
-        else if(r.orgType==='good'&&r.newType==='bad')
-          facts.push('<b>'+r.src+'('+EL_K[r.orgEl]+' 용신)</b>이 원국 <b>'+r.partner+'</b>와 '+r.type+'하여 기신('+EL_K[r.hapEl]+')<b>으로 묶입니다.</b> 좋아 보이는 운이 함정인 전형적 탐합망귀 패턴입니다.');
-        else if(r.orgType==='neutral'&&r.newType==='good')
-          facts.push('<b>'+r.src+'</b>이(가) 합화로 <b>'+EL_K[r.hapEl]+'(용신오행)</b>이 됩니다. 평범해 보이는 글자가 숨겨진 조력 에너지를 발동시킵니다.');
-      }
+      var pair='<b>'+qEsc(r.src+'·'+r.partner)+'</b> '+qEsc(r.type);
+      if(r.isChung)facts.push(pair+'이 확인됩니다. 서로 다른 방향의 요구를 조율할 대목으로 보되, 해당 궁위와 십성·통근을 함께 검토해야 생활 영역을 좁힐 수 있습니다.');
+      else if(r.transformed)facts.push(pair+'은 현재 기준에서 '+qEsc(EL_K[r.hapEl]||r.hapEl)+' 합화 조건이 성립합니다. 바뀐 오행의 역할과 원국의 균형을 함께 비교하세요.');
+      else facts.push(pair+'이 있으나 합화는 미확정입니다. 합의 연결과 오행의 변화를 구분하고 월령·통근·투간·쟁합·충의 조건을 확인하세요.');
     });
-    if(facts.length<=1){ // 대운 평가만 있거나 없는 경우
-      if(jg&&jg.isJong)
-        facts.push('이번 운에서 극적 합화 변환이 없습니다. <b>'+jg.name+'</b>의 지배 오행('+EL_K[jg.dominant]+')을 강화하고 역행하는 글자를 최대한 피하십시오. 종격은 순류할 때 극강, 역류할 때 극파입니다.');
-      else if(pw)
-        facts.push('이번 운에서 합화에 의한 劇的 변환은 없습니다. <b>'+(pw.isStrong?'신강 사주':'신약 사주')+'</b>의 원칙과 <b>조후(한난조습)</b>를 엄밀히 고려하여 용신('+(pw.yongshin.map(function(e){return EL_K[e];}).join('·'))+') 강화에만 집중하십시오. 단순함이 최강 천기입니다.');
-      else
-        facts.push('합화 변환이 감지되지 않습니다. 원국 그대로의 흐름을 따르십시오.');
-    }
+    if(!keyEvents.length)facts.push(qSameChart?'현재 대운·세운과 원국 사이에 수집된 합·충 관계가 없습니다. 관계가 없다는 사실만으로 길흉을 정하지 않고 오행의 균형과 십성의 역할을 함께 살핍니다.':'원국과 운의 계산 상태가 일치하지 않아 합·충 해석을 보류했습니다. 명식을 다시 계산한 뒤 확인하세요.');
     return facts;
   }
 
-  /* ── 천기 액션 생성 ── */
+  /* 오행 이미지는 행동을 정리하는 주제다. 질환·투자 결과의 근거로 쓰지 않는다. */
   function buildActions(){
     var actDB={
-      wood:['동쪽 방향 활동 강화, 초록 환경으로 목(木) 기운 증폭','교육·창업·새로운 시작에 적극 나설 때 — 목의 계절','간(肝) 건강 챙기며 아침 루틴으로 성장 에너지 점화'],
-      fire:['남향 공간, 붉은 포인트 인테리어로 화(火) 도화선 점화','발표·네트워킹·퍼포먼스 활동에 집중 — 존재감 극대화 시기','심장·혈압 수호를 병행하며 고강도 활동과 충분한 수면 균형 유지'],
-      earth:['부동산·기반 자산 점검 또는 현재 자리 안정화 최우선','인맥 중재·신뢰 관계 구축 — 사람이 자산이 되는 구조 형성','위장·소화기 건강 + 황색 계열 식단 보강으로 토 에너지 충전'],
-      metal:['서쪽 방향·미니멀 공간 정리로 금(金) 결정화 에너지 활성','계약·협상·법률 마무리를 이번 주기 안에 완성할 것','폐·기관지 수호 + 흰색·은색 소품으로 정밀함 에너지 강화'],
-      water:['북향 활용, 검은색·남색 포인트로 수(水) 흐름 극대화','기획·리서치·천기수립에 집중 — 보이지 않는 곳에서 판을 짜는 시기','신장·방광 보온 + 충분한 수분 섭취 + 통찰 명상으로 지혜 에너지 비축']
+      wood:['시작하려는 일 하나를 고르고 이번 주에 확인할 작은 목표를 적으세요.','배움이나 새 계획은 필요한 시간·비용·도움부터 정리하세요.'],
+      fire:['발표나 대화 전에 전하고 싶은 핵심을 세 문장으로 정리하세요.','활동이 몰린 날에는 휴식 시간을 먼저 일정에 넣으세요.'],
+      earth:['진행 중인 일을 목록으로 만들고 마무리할 순서를 정하세요.','반복되는 지출과 맡은 책임을 확인해 감당할 범위를 정하세요.'],
+      metal:['계약과 협업은 역할·기한·비용을 문서로 확인하세요.','결정 기준을 적고 필요한 자료가 빠져 있지 않은지 점검하세요.'],
+      water:['선택을 서두르기 전에 모르는 정보와 확인할 사람을 정리하세요.','혼자 생각한 뒤 실제 상황을 아는 사람의 의견과 비교하세요.']
     };
     var acts=[], used={};
-    
-    var targetEls=keyEvents.filter(function(r){return r.newType==='good';}).map(function(r){return r.hapEl;});
-    
-    var dwEl = (dz ? (JI[dz]&&JI[dz].e) : (dg ? (GAN[dg]&&GAN[dg].e) : null));
-    if(dwEl && elType(dwEl)==='good') targetEls.push(dwEl);
-    
-    if(targetEls.length===0&&pw) targetEls=pw.yongshin.slice(0,2);
-    if(targetEls.length===0&&jg&&jg.isJong) targetEls=[jg.dominant];
-    
-    targetEls.forEach(function(el){
-      if(!el||used[el])return;
-      used[el]=1;
-      (actDB[el]||[]).forEach(function(a){acts.push(a);});
-    });
-    
-    if(dwEl && elType(dwEl)==='bad'){
-      acts.unshift('현재 대운은 조후나 쏠림 상 불리한 기운('+EL_K[dwEl]+')이 강하므로, 무리한 투자나 확장을 피하고 현상 유지에 집중하십시오.');
-    }
-
-    if(keyEvents.some(function(r){return r.isSinDing;})) {
-      acts.unshift('【절대 수성】 직장, 인간관계, 투자 등 전방위적으로 변동을 금하고 현 상태를 유지하는 데 사활을 거십시오.');
-      acts.unshift('【멘탈 수호】 과도한 책임감이나 명예욕을 버리고, 타인의 비판에 일희일비하지 않는 평정심을 유지하십시오.');
-    }
-
-    if(acts.length===0)
-      acts=['운에서 큰 변환이 없으니 원국 용신 에너지를 꾸준히 강화하는 루틴을 지속하십시오','매월 용신 오행의 색상·방향·음식으로 착실히 에너지 보강','갑작스러운 도전보다 현재 포지션을 단단하게 유지하며 다음 대운을 준비하십시오'];
+    var targetEls=keyEvents.filter(function(r){return r.transformed && r.newType==='good';}).map(function(r){return r.hapEl;});
+    var dwEl=dz?(JI[dz]&&JI[dz].e):(dg?(GAN[dg]&&GAN[dg].e):null);
+    if(dwEl)targetEls.push(dwEl);
+    if(!targetEls.length&&pw&&Array.isArray(pw.yongshin))targetEls=pw.yongshin.slice(0,2);
+    targetEls.forEach(function(el){if(!el||used[el])return;used[el]=1;(actDB[el]||[]).forEach(function(a){acts.push(a);});});
+    if(keyEvents.some(function(r){return r.isChung;}))acts.unshift('일정이나 관계의 조건이 달라졌다면 바뀐 사실을 먼저 확인하고 역할과 기한을 다시 합의하세요.');
+    if(!acts.length)acts=['지금 해결할 고민 하나와 확인된 사실을 적어 보세요.','선택지마다 필요한 시간·비용·도움을 비교하고 작은 단계부터 실행하세요.'];
     return acts.slice(0,5);
   }
 
@@ -18996,7 +18756,7 @@ function renderQuantumStrategy(p, natal, bazi){
       for(var b=a+1;b<ganSlots.length;b++){
         var L=ganSlots[a], R=ganSlots[b];
         var hapEl=(GANHE_Q[L.gan]&&GANHE_Q[L.gan][R.gan])||(GANHE_Q[R.gan]&&GANHE_Q[R.gan][L.gan])||null;
-        if(hapEl)pushHarmony('천간합',[L.gan,R.gan],[L.label,R.label],hapEl,'합화 대상 '+(EL_K[hapEl]||hapEl));
+        if(hapEl)pushHarmony('천간합',[L.gan,R.gan],[L.label,R.label],hapEl,'합화 후보 · 성립 조건 별도 확인: '+(EL_K[hapEl]||hapEl));
         if(GAN_CHUNG[L.gan]===R.gan||GAN_CHUNG[R.gan]===L.gan){
           out.conflict.push({type:'천간충',branches:[L.gan,R.gan],positions:[L.label,R.label],
             label:L.label+' '+L.gan+' · '+R.label+' '+R.gan});
@@ -19008,7 +18768,7 @@ function renderQuantumStrategy(p, natal, bazi){
       for(var j2=i+1;j2<slots.length;j2++){
         var s1=slots[i], s2=slots[j2];
         var he=(JIHE_Q[s1.branch]&&JIHE_Q[s1.branch][s2.branch])||(JIHE_Q[s2.branch]&&JIHE_Q[s2.branch][s1.branch])||null;
-        if(he)pushHarmony('육합',[s1.branch,s2.branch],[s1.label,s2.label],he,'합화 대상 '+(EL_K[he]||he));
+        if(he)pushHarmony('육합',[s1.branch,s2.branch],[s1.label,s2.label],he,'합화 후보 · 성립 조건 별도 확인: '+(EL_K[he]||he));
       }
     }
     /* 삼합·반합 / 방합 */
@@ -19165,7 +18925,7 @@ function renderQuantumStrategy(p, natal, bazi){
   /* 대운 전 구간 — renderDaewun이 채워 둔 window.G_DAEWUN 재사용.
      행 점수는 evalDaewun(메모이즈 내장)을 그대로 쓴다. */
   var qDaewunTimeline=(function(){
-    var rows=(typeof window!=='undefined'&&Array.isArray(window.G_DAEWUN))?window.G_DAEWUN:[];
+    var rows=qLuckRows;
     return rows.map(function(row){
       var ev=null;
       try{ if(typeof evalDaewun==='function')ev=evalDaewun(row.g,row.j); }catch(_){}
@@ -19193,16 +18953,16 @@ function renderQuantumStrategy(p, natal, bazi){
     var out=[];
     try{
       for(var off=0;off<5;off++){
-        var y=qNow.getFullYear()+off;
+        var y=qYear+off;
         /* 첫 행만 오늘 날짜(입춘 반영), 이후는 각 연도 중반으로 안전하게 조회 */
         var ec=(off===0)
-          ? _coreEightChar(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0)
+          ? _coreEightChar(qYear,qMonth,qDay,qHour,qMinute)
           : _coreEightChar(y,6,15,12,0);
         var gz={g:ec.getYearGan(),j:ec.getYearZhi()};
         var res=null;
         try{ res=analyzeFortuneGZ(gz,p,(off===0?'올해 세운':(y+'년 세운'))); }catch(_){}
         out.push({
-          year:(off===0?(gz.g+gz.j===sg+sz?qNow.getFullYear():qNow.getFullYear()):y),
+          year:y,
           labelYear:y, gan:gz.g, zhi:gz.j, isCurrent:(off===0), result:res,
           ganRole:elType((GAN[gz.g]&&GAN[gz.g].e)||''),
           zhiRole:elType((JI[gz.j]&&JI[gz.j].e)||''),
@@ -19219,13 +18979,16 @@ function renderQuantumStrategy(p, natal, bazi){
     if(typeof getMonthGanZhi!=='function')return out;
     for(var m=1;m<=12;m++){
       var gz=null;
-      try{ gz=getMonthGanZhi(qNow.getFullYear(),m); }catch(_){}
+      try{
+        if(m===qMonth){var currentMonth=_coreEightChar(qYear,qMonth,qDay,qHour,qMinute);gz={g:currentMonth.getMonthGan(),j:currentMonth.getMonthZhi()};}
+        else gz=getMonthGanZhi(qYear,m);
+      }catch(_){}
       if(!gz||!gz.g)continue;
       var res=null;
       try{ res=analyzeFortuneGZ(gz,p,m+'월운'); }catch(_){}
       out.push({
         month:m, gan:gz.g, zhi:gz.j, result:res,
-        isCurrent:(m===qNow.getMonth()+1),
+        isCurrent:(m===qMonth),
         ganRole:elType((GAN[gz.g]&&GAN[gz.g].e)||''),
         zhiRole:elType((JI[gz.j]&&JI[gz.j].e)||''),
         tenGod:qTenGodOf(gz.g)||'', branchTenGod:qTenGodOfBranch(gz.j)||''
@@ -19239,10 +19002,10 @@ function renderQuantumStrategy(p, natal, bazi){
     var out=[];
     if(typeof getGanZhiForDate!=='function')return out;
     var WEEK=['일','월','화','수','목','금','토'];
-    // 🔴 "오늘"만 로컬 Date 에서 읽고(그 축에만 존재하는 개념이다), 이후 날짜 산술은 전부 부품으로
+    // KST의 오늘을 기준으로 이후 날짜 산술은 전부 부품으로
     //    한다. 예전에는 매 칸을 new Date(y, m, d+i, 12, 0, 0) 로 다시 조립해서, 하루가 통째로 없는
     //    존(Pacific/Apia 2011-12-30)에서 그 칸의 일진이 하루 밀렸다.
-    var qNowParts=_kasiPartsOf(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0,0);
+    var qNowParts=_kasiPartsOf(qYear,qMonth,qDay,12,0,0);
     for(var d=0;d<7;d++){
       var at=_kasiShiftPartsByDays(qNowParts,d);
       var weekdayIdx=new Date(Date.UTC(at.year,at.month-1,at.day)).getUTCDay();
@@ -19269,7 +19032,7 @@ function renderQuantumStrategy(p, natal, bazi){
   var structType=(jg&&jg.isJong)?jg.name+(jg.pct>=90?'(眞)':'(假)'):(pw?(pw.isStrong?'정격 신강':'정격 신약'):'정격');
   var structTagCls=(jg&&jg.isJong)?'qm-tag-jong':(pw&&pw.isStrong?'qm-tag-strong':'qm-tag-weak');
 
-  var dwLabel=(dg||dz)?('현재 대운 · '+(dg||'')+(dz?(' '+dz):'')):'대운 불명';
+  var dwLabel=(dg||dz)?('현재 대운 · '+(dg||'')+(dz?(' '+dz):'')):(qTimeUnknown?'시각 미상 · 대운 시점 미확정':'대운 구간 미확인');
   var seLabel=(sg||sz)?('현재 세운 · '+(sg||'')+(sz?(' '+sz):'')):'세운 불명';
   var dayEl=(GAN[p.d.g]&&GAN[p.d.g].e)||'';
   var monthEl=(JI[p.m.j]&&JI[p.m.j].e)||'';
@@ -19316,7 +19079,7 @@ function renderQuantumStrategy(p, natal, bazi){
   }).join('');
   function qLuckRow(label,gan,zhi,results){
     var gEl=(GAN[gan]&&GAN[gan].e)||'', zEl=(JI[zhi]&&JI[zhi].e)||'';
-    var hitCount=qArr(results).filter(function(r){return r.changed||r.isChung;}).length;
+    var hitCount=qArr(results).length;
     return {label:label,gan:gan,zhi:zhi,ganEl:gEl,zhiEl:zEl,ganRole:elType(gEl),zhiRole:elType(zEl),hitCount:hitCount};
   }
   var luckRows=[qLuckRow('현재 대운',dg,dz,dwResults),qLuckRow('현재 세운',sg,sz,seResults)];
@@ -19328,7 +19091,7 @@ function renderQuantumStrategy(p, natal, bazi){
         (item.ganEl?qElementChip(item.ganEl,item.ganRole):'')+
         (item.zhiEl?qElementChip(item.zhiEl,item.zhiRole):'')+
       '</div>'+
-      '<div class="qm-luck-note">합화·충 핵심 신호 '+item.hitCount+'개</div>'+
+      '<div class="qm-luck-note">합·충 관계 '+item.hitCount+'개</div>'+
     '</div>';
   }).join('');
   var structureHtml=
@@ -19403,7 +19166,7 @@ function renderQuantumStrategy(p, natal, bazi){
         (positions?'<span style="font-size:.7rem;color:#8fa3b8;margin-left:8px">'+qEsc(positions)+'</span>':'')+
       '</div>'+
       '<div class="qm-transform"><span class="qm-from">'+qEsc(members)+'</span>'+
-        (item.element?'<span class="qm-arrow">→</span><span class="qm-to qm-to-good">'+qEsc(EL_K[item.element]||item.element)+'</span>':'')+
+        (item.element?'<span class="qm-arrow">·</span><span class="qm-to qm-to-neutral">'+qEsc((EL_K[item.element]||item.element)+' 후보')+'</span>':'')+
       '</div>'+
       (item.note||item.label?'<div class="qm-hap-desc">'+qEsc(item.note||item.label)+'</div>':'')+
     '</div>';
@@ -19415,7 +19178,7 @@ function renderQuantumStrategy(p, natal, bazi){
         qRelations.harmony.map(function(r){return qRelationRow(r,'good');}).join(''));
     }
     if(qRelations.conflict.length){
-      parts.push('<div class="qm-mini-title" style="margin-top:10px">충·형·파·해 — 충돌·손상</div>'+
+      parts.push('<div class="qm-mini-title" style="margin-top:10px">충·형·파·해 — 조율할 조건</div>'+
         qRelations.conflict.map(function(r){return qRelationRow(r,'bad');}).join(''));
     }
     if(qRelations.wonjin.length){
@@ -19480,7 +19243,7 @@ function renderQuantumStrategy(p, natal, bazi){
           '</div>'+
         '</div>';
       }).join('')+'</div>'
-    : '<div class="qm-no-hap">▎ 대운 데이터를 불러오지 못했습니다</div>';
+    : '<div class="qm-no-hap">'+qEsc(qTimeUnknown?'태어난 시각을 알 수 없어 대운의 시작 시점과 구간을 확정하지 않습니다.':'대운 구간을 확인할 수 없습니다. 출생 정보와 대운표를 다시 확인해 주세요.')+'</div>';
 
   var qYearlyHtml=qYearlyFlow.length
     ? '<div class="qm-luck-grid qm-luck-grid--timeline">'+qYearlyFlow.map(function(row){
@@ -19585,16 +19348,13 @@ function renderQuantumStrategy(p, natal, bazi){
         return '<div class="qm-action-item"><div class="qm-action-num">'+qEsc(String(tenGodCounts[tg]))+'</div><div class="qm-action-text"><b>'+qEsc(tg)+'</b> · '+qEsc(qTenGodGroup(tg))+'<br><span style="color:#b6c9d8">'+qEsc(qTenGodTone(tg))+'</span></div></div>';
       }).join('')
     : '<div class="qm-action-item"><div class="qm-action-num">—</div><div class="qm-action-text">십성의 결은 옅게 머물러 오행과 조후의 균형이 먼저 떠오릅니다.</div></div>';
-  var qGoodShiftCount=keyEvents.filter(function(r){return r.isSpecialChung || r.orgType==='bad' || r.newType==='good';}).length;
-  var qRiskShiftCount=keyEvents.filter(function(r){return r.isSinDing || (r.orgType==='good' && (r.isChung || r.newType==='bad'));}).length;
   var qHapCount=keyEvents.filter(function(r){return !r.isChung;}).length;
+  var qTransformCount=keyEvents.filter(function(r){return r.transformed===true;}).length;
   var qChungCount=keyEvents.filter(function(r){return r.isChung;}).length;
-  var qDecision=qRiskShiftCount>qGoodShiftCount?'수성 우선':(qGoodShiftCount>0?'확장 가능':'균형 관찰');
-  var qDecisionTone=qDecision==='수성 우선'
-    ? '운의 겉모양보다 흔들리는 기반을 먼저 지키는 기운이 강하게 떠오릅니다.'
-    : (qDecision==='확장 가능'
-      ? '합화와 충의 변이가 막힌 기운을 열어 실전 기회로 바꾸는 흐름으로 열립니다.'
-      : '큰 변환보다 원국의 중심을 안정적으로 다듬는 빛이 머무릅니다.');
+  var qDecision=qChungCount>0?'합충 조건 점검':(qHapCount>0?'합화 조건 점검':'원국 균형 점검');
+  var qDecisionTone=qChungCount>0
+    ? '충이 있는 궁위의 역할과 현실의 변화 조건을 함께 살펴야 합니다. 충을 용신 파괴나 기신 제거로 단정하지 않습니다.'
+    : (qHapCount>0?'합의 성립과 합화를 구분하며, 월령·통근·투간 등 확인된 조건을 기준으로 읽습니다.':'수집된 합충이 없어도 길흉이 정해지는 것은 아닙니다. 오행의 균형과 현실의 상황을 함께 살핍니다.');
   var qProfessionalSummary=structType+'의 그릇 위로 '+qElementNames(favorableElements.concat(qUnique(yongList)))+' 기운이 살아나고, '+qElementNames(cautionElements.concat(qUnique(kiList)))+' 기운은 조용히 눌러야 할 자리로 비칩니다. 주도 십성은 '+mainTenGod+(mainTenGodCount?' '+mainTenGodCount+'회':'')+'로 떠오르며, '+qTenGodTone(mainTenGod)+' '+qDecisionTone;
   var qCounselHtml=
     '<div class="qm-action-item"><div class="qm-action-num">命</div><div class="qm-action-text"><b>격국의 중심</b><br>'+qEsc(structType+' · '+powerLabel+'의 골격 위에 '+johuLabel+'의 온습이 깔립니다. 일간 '+(p.d.g||'-')+' '+dayMasterName+'은 '+qElLabel(dayEl)+'의 결로 서 있고, 월령 '+(p.m.j||'-')+'은 '+qElLabel(monthEl)+'의 계절문을 엽니다.')+'</div></div>'+
@@ -19603,8 +19363,8 @@ function renderQuantumStrategy(p, natal, bazi){
   /* 판단축 칩 — 실제로 산출된 것만 켠다(과거에는 6개가 조건 없이 항상 표시됐다) */
   var qAxisChips=(function(){
     var axes=[
-      {label:'합화 우선', on:qHapCount>0},
-      {label:'충 변이', on:qChungCount>0},
+      {label:'합·합화 구분', on:qHapCount>0},
+      {label:'충 관계', on:qChungCount>0},
       {label:'원국 내부 합충형파해', on:(qRelations.conflict.length+qRelations.harmony.length+qRelations.wonjin.length)>0},
       {label:'억부·조후 통합', on:!!pw},
       {label:'종격 보정', on:!!(jg&&jg.isJong)},
@@ -19623,7 +19383,7 @@ function renderQuantumStrategy(p, natal, bazi){
 
   var qEvidenceHtml=
     '<div class="qm-summary-grid">'+
-      '<div class="qm-oracle-card"><div class="qm-oracle-label">최종 판정</div><div class="qm-oracle-value">'+qEsc(qDecision)+'</div><div class="qm-oracle-meta">합화 '+qHapCount+'건 · 충 '+qChungCount+'건 · 핵심 변이 '+keyEvents.length+'건</div></div>'+
+      '<div class="qm-oracle-card"><div class="qm-oracle-label">최종 판정</div><div class="qm-oracle-value">'+qEsc(qDecision)+'</div><div class="qm-oracle-meta">합 '+qHapCount+'건 · 합화 조건 성립 '+qTransformCount+'건 · 충 '+qChungCount+'건</div></div>'+
       '<div class="qm-oracle-card"><div class="qm-oracle-label">유리 오행</div><div class="qm-yong-list">'+qElementChipList(favorableElements.concat(qUnique(yongList)),'good','유리 오행 중립')+'</div></div>'+
       '<div class="qm-oracle-card"><div class="qm-oracle-label">주의 오행</div><div class="qm-yong-list">'+qElementChipList(cautionElements.concat(qUnique(kiList)),'bad','주의 오행 중립')+'</div></div>'+
     '</div>'+
@@ -19797,7 +19557,7 @@ function renderQuantumStrategy(p, natal, bazi){
       '</details>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">⚡</span><span class="qm-sec-title s2">運의 환골탈태 — 합화 및 충(沖) 변이 분석</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">⚡</span><span class="qm-sec-title s2">운의 관계 — 합·합화·충(沖) 조건</span></div>'+
         '<div class="qm-panel">'+
           (dg||dz
             ?'<div style="font-size:.7rem;color:#006640;font-weight:800;letter-spacing:.08em;margin-bottom:8px">▌ '+dwLabel+'</div>'+dwResults.map(function(r){return eventCardHTML(r,'대운');}).join('')
@@ -19805,7 +19565,7 @@ function renderQuantumStrategy(p, natal, bazi){
           (sg||sz
             ?'<div style="font-size:.7rem;color:#006640;font-weight:800;letter-spacing:.08em;margin:'+(dg||dz?'14px':'0')+' 0 8px">▌ '+seLabel+'</div>'+seResults.map(function(r){return eventCardHTML(r,'세운');}).join('')
             :'')+
-          (!dg&&!dz&&!sg&&!sz?'<div class="qm-no-hap">▎ 운 데이터를 불러오지 못했습니다</div>':'')+
+          (!dwResults.length&&!seResults.length?'<div class="qm-no-hap">'+qEsc(!qSameChart?'원국 계산 상태를 다시 확인해 주세요.':'현재 확인된 합·충 관계가 없습니다. 합충이 없다는 이유만으로 길흉을 정하지 않습니다.')+'</div>':'')+
         '</div>'+
       '</div>'+
 
@@ -19824,7 +19584,7 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">✺</span><span class="qm-sec-title s4">천기 실행 처방</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✺</span><span class="qm-sec-title s4">현실적인 행동 조언</span></div>'+
         '<div class="qm-panel">'+
           qSafeHtmlList(actions,'이번 주기는 확장보다 정돈이 먼저입니다. 일정, 계약, 돈의 흐름을 차분히 정리하세요.','qm-action-text')+
         '</div>'+

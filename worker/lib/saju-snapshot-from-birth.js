@@ -1,4 +1,5 @@
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
+import { buildSajuNatalAnalysis } from "./saju-natal-analysis.js";
 
 // 한자 간지 → 한글 변환 (발송 템플릿이 기대하는 한글 표기와 정합)
 const STEM_CN = "甲乙丙丁戊己庚辛壬癸";
@@ -36,16 +37,6 @@ function mapElementsToEnglish(fiveElements) {
   return out;
 }
 
-function pickMinElement(fiveElements) {
-  const entries = Object.entries(fiveElements || {}).sort((a, b) => Number(a[1]) - Number(b[1]));
-  return entries[0]?.[0] || "";
-}
-
-function pickMaxElement(fiveElements) {
-  const entries = Object.entries(fiveElements || {}).sort((a, b) => Number(b[1]) - Number(a[1]));
-  return entries[0]?.[0] || "";
-}
-
 /**
  * 생년정보로 사주를 계산해, 일일 운세 발송 템플릿(worker/lib/daily-fortune-task.js)이
  * 요구하는 sajuSnapshot 형태로 변환한다. 계산 불가(무효 생년월일 등)이면 null 반환.
@@ -78,19 +69,19 @@ export function buildSajuSnapshotFromBirth(birthInfo = {}) {
       h: result.hourPillar ? splitPillar(result.hourPillar) : { g: "", j: "" },
     };
 
-    // 발송 템플릿의 formatElementName은 영문 키(wood→"목(木)")를 라벨로 변환하므로 영문 키로 전달
-    const yongshin = ELEMENT_KR_TO_EN[pickMinElement(result.fiveElements)] || "";
-    const kijishin = ELEMENT_KR_TO_EN[pickMaxElement(result.fiveElements)] || "";
+    // Reuse the screen/Yeongnyangi analysis policy. A low element count alone is not a yongshin verdict.
+    const analysis = result.natalAnalysis || buildSajuNatalAnalysis({
+      year: result.yearPillar, month: result.monthPillar, day: result.dayPillar, hour: result.hourPillar,
+    }, { timeUnknown: result.calculationMeta.timeUnknown });
 
     return {
       pillars,
       calculationMeta: result.calculationMeta,
       natal: { elements: mapElementsToEnglish(result.fiveElements) },
-      power: {
-        yongshin: yongshin ? [yongshin] : [],
-        kijishin: kijishin ? [kijishin] : [],
-      },
-      johu: { type: String(result.strength || "").trim() || "기운 조율" },
+      power: analysis.power,
+      johu: analysis.johu,
+      jong: analysis.jong,
+      analysisBasis: analysis.analysisBasis,
     };
   } catch (_) {
     return null;

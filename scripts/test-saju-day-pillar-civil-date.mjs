@@ -126,14 +126,16 @@ for (const [h, m, expectedDay] of [[23, 30, "1/26 야자시"], [0, 30, "1/27 자
   });
   console.log(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} (${expectedDay}): 일주=${result.pillars.day.ganji} 시주=${result.pillars.hour?.ganji}`);
 }
-// 1981-01-27 은 을사일, 1981-01-26 은 갑진일. late(기본) 야자시에서 23:30(1/27)은 1/27 을사여야 한다.
+// 현행 saju-natal-v2는 평균시 보정 후 23시 익일 정책이다. 과거 late 옵션은 현재 계산 정책을 바꾸지 않는다.
 {
   const r2330 = calculateLocalSaju({
     hasTime: true, calendarType: "solar", timezone: "Asia/Seoul",
     year: 1981, month: 1, day: 27, hour: 23, minute: 30, gender: "male",
     longitude: daegu.lon, latitude: daegu.lat, useTrueSolarTime: true,
   });
-  assertEqual(r2330.pillars.day.ganji, "을사", "1981-01-27 23:30 대구 일주(민용일 을사, 진태양시가 다음날로 넘기지 않음)");
+  assertEqual(r2330.pillars.day.ganji, "병오", "1981-01-27 23:30 대구: 평균시 23:04 이후 익일 일주");
+  assertEqual(r2330.calculationEvidence.correctedClock.hour, 23, "표시 근거도 실제 평균시 23시를 사용");
+  assertEqual(r2330.calculationEvidence.correctedClock.minute, 4, "평균시 분 반올림 근거");
 }
 
 // 정책 미지정(런타임 기본 = 평균태양시)에서도 자정을 넘기는 보정이 일주를 밀지 않는지.
@@ -251,7 +253,7 @@ console.log("\n=== [검증] 출생지 복원 최근접 매칭(_dpSelectBirthPlac
 const dpSrc = fs.readFileSync(path.join(root, "js/destiny-profile.js"), "utf8");
 const dpHelperMatch = dpSrc.match(/^ {2}function _dpSelectBirthPlaceOption[\s\S]*?^ {2}}/m);
 if (!dpHelperMatch) throw new Error("destiny-profile.js에서 _dpSelectBirthPlaceOption을 찾지 못함");
-const selectBirthPlaceOption = new Function(`${dpHelperMatch[0]}\nreturn _dpSelectBirthPlaceOption;`)();
+const selectBirthPlaceOption = new Function("window", `${dpHelperMatch[0]}\nreturn _dpSelectBirthPlaceOption;`)({});
 
 // 실제 BIRTH_PLACE_GROUPS 순서(부산이 대구보다 앞) — 과거 버그는 이 순서에서 대구→부산으로 오선택했다.
 const LIST_ORDER = [

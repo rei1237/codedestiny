@@ -366,11 +366,11 @@ const TABLE_FINGERPRINT = "kc1:fa21fe1cc7dc";
  * 세 축을 섞지 않는 것이 이 상수가 여기 따로 있는 이유다.
  */
 const NIGHT_ZI_POLICY = Object.freeze({
-  /** 23시대 → 익일 일진. 셸의 _cdCivilDayPillar(js/saju-engine.js:1433)가 이 축이고, 그래서 기본값이다.
-   * 🔴 **앱 localSajuCalculator 는 이 축이 아니다**(2026-08-28 정정 — 그렇게 적혀 있었으나 사실이 아니다).
-   * 그쪽 기본값은 zashiMode `"late"` 이고(:556) 일자를 미는 것은 `"early"` 뿐이라(:803) keep-day 다.
-   * 🔴 출생 원국을 세우는 세 소비자(life-book·new-year·destiny-bias)도 keep-day 를 **소스에 명시**한다
-   * (verify:natal-day-pillar-axis ①). 즉 이 기본값에 기대는 23시대 원국 소비자는 현재 없다. */
+  /** 보정 시각 23시대 → 익일 일진.
+   * 출생 원국은 natal.js의 calculateNatalSaju가 지역 평균시 보정 후 이 정책을 명시한다.
+   * 정적 셸·앱·life-book·new-year·destiny-bias는 그 공통 원국을 소비하며,
+   * 시주 천간도 확정된 같은 일간에서 파생한다(사주 시간 계약 검사로 검증).
+   * 오늘의 일진 등 출생 원국 이외의 소비자는 각자의 시계와 정책을 명시한다. */
   SHIFT_DAY: "shift-day",
   /** 23시대도 당일 일진. **"오늘 일진" 축**이고 호출부가 둘 있다 — 둘 다 KasiEngine.getGanji 를
    * { yaja: false } 로 부르거나 그 값과 나란히 쓰이므로 기본값으로 부르면 한 화면에 두 축이 섞인다.
@@ -809,6 +809,9 @@ function prevNodeTerm(year, month, day, hour, minute) {
   return null;
 }
 
+// Identifies the existing sect-1 conversion and counting-age convention.
+// Additive metadata: saved charts without this field remain readable as legacy snapshots.
+const DAEUN_POLICY_VERSION = "daeun-kst-sect1-counting-age-v1";
 const secondsOf = (moment) => Number(moment.second) || 0;
 
 /**
@@ -821,9 +824,11 @@ const secondsOf = (moment) => Number(moment.second) || 0;
  * @param {{year,month,day,hour,minute,second?}} input.prevNode     직전 節
  * @param {{year,month,day,hour,minute,second?}} input.nextNode     다음 節
  * @param {"M"|"F"} input.gender
+ * @param {number} [input.birthCivilYear=birth.year]                 양력 민용 출생연도(세는 나이 전용)
  * @param {number} [input.count=10]                                 대운 칸 수(0번 미입운 포함)
  */
-function daeunFromFrame({ birth, yearStemIndex, monthPillar, prevNode, nextNode, gender, count = 10 }) {
+function daeunFromFrame({ birth, yearStemIndex, monthPillar, prevNode, nextNode, gender, count = 10, birthCivilYear = birth.year }) {
+  if (!Number.isInteger(birthCivilYear)) return null;
   const male = String(gender || "").toUpperCase() === "M";
   const yangYear = yearStemIndex % 2 === 0;
   const forward = (yangYear && male) || (!yangYear && !male);
@@ -857,15 +862,17 @@ function daeunFromFrame({ birth, yearStemIndex, monthPillar, prevNode, nextNode,
         index: 0,
         stemIndex: null,
         branchIndex: null,
-        startYear: birth.year,
+        startYear: birthCivilYear,
         endYear: startSolar.year - 1,
         startAge: 1,
-        endAge: startSolar.year - birth.year,
+        endAge: startSolar.year - birthCivilYear,
       });
       continue;
     }
     const startYear = startSolar.year + (index - 1) * 10;
-    const startAge = startYear - birth.year + 1;
+    // KST conversion may cross New Year for an overseas birth. The term clock
+    // measures the interval; counting age still refers to the civil birth year.
+    const startAge = startYear - birthCivilYear + 1;
     const cycleIndex = mod(monthCycleIndex + step * index, 60);
     cycles.push({
       index,
@@ -884,6 +891,11 @@ function daeunFromFrame({ birth, yearStemIndex, monthPillar, prevNode, nextNode,
     startSolar,
     cycles,
     meta: {
+      policyVersion: DAEUN_POLICY_VERSION,
+      ageBasis: "korean-counting-age",
+      birthCivilYear,
+      calendarFrame: "KST",
+      referenceNode: forward ? nextNode : prevNode,
       referenceTerm: forward ? "next-node" : "prev-node",
       hourDiff,
       dayDiff,
@@ -897,7 +909,7 @@ function daeunFromFrame({ birth, yearStemIndex, monthPillar, prevNode, nextNode,
  * 한국 표준시 절기표로 대운을 낸다.
  *
  * @param {{year,month,day,hour,minute}} at  KST 벽시계
- * @param {{gender:"M"|"F", count?:number, nightZiPolicy?:string}} options
+ * @param {{gender:"M"|"F", count?:number, nightZiPolicy?:string, birthCivilYear?:number}} options
  */
 function daeun(at, options = {}) {
   const gz = ganji(at, options);
@@ -919,6 +931,7 @@ function daeun(at, options = {}) {
     nextNode: next,
     gender: options.gender,
     count: options.count,
+    birthCivilYear: options.birthCivilYear,
   });
 }
 
@@ -956,7 +969,8 @@ function resolveNatalInstant(civil,timezone) {
   const standardOffsetMinutes=dstApplied&&standardSamples.length?offsetAt(standardSamples.reduce((a,b)=>Math.abs(a-timestamp)<Math.abs(b-timestamp)?a:b)):offsetMinutes;
   return {timestamp,iso:new Date(timestamp).toISOString(),offsetMinutes,standardOffsetMinutes,dstApplied,dstMinutes:offsetMinutes-standardOffsetMinutes};
 }
-function calculateNatalSaju(input={}) {
+/** @param {{allowMissingLongitude?:boolean}} [options] Internal opt-in for timezone-only legacy inputs. */
+function calculateNatalSaju(input={},options={}) {
   const rawDate=String(input.birthDate||'');
   const date=/^(\d{4})-(\d{2})-(\d{2})$/.exec(rawDate);
   if(!date)natalFail('INVALID_BIRTH_DATE');
@@ -980,12 +994,16 @@ function calculateNatalSaju(input={}) {
   const emptyPlace=rawPlace && typeof rawPlace==='object' && Object.values(rawPlace).every(v=>v===null||v===undefined||v==='');
   const supplied=emptyPlace?undefined:rawPlace;
   const place=supplied?{...supplied}: {...SAJU_DEFAULT_PLACE};
-  if(!Number.isFinite(place.longitude)||Math.abs(place.longitude)>180||!place.timezone)natalFail('INVALID_BIRTH_PLACE');
+  // A known timezone still determines the actual instant when longitude was not collected.
+  // Default callers remain strict; invalid supplied coordinates never opt into this fallback.
+  const civilClockFallback=options.allowMissingLongitude===true&&Boolean(supplied)&&place.longitude==null;
+  if((!civilClockFallback&&(!Number.isFinite(place.longitude)||Math.abs(place.longitude)>180))||!place.timezone)natalFail('INVALID_BIRTH_PLACE');
+  if(civilClockFallback)place.longitude=null;
   const instant=resolveNatalInstant(civil,place.timezone);
   // UTC -> local mean solar clock. Algebraically: longitude correction minus DST.
   // Round the total minutes to nearest integer (Math.round), including date rollover.
-  const longitudeCorrectionMinutes=(place.longitude-instant.standardOffsetMinutes/4)*4;
-  const totalCorrectionMinutes=longitudeCorrectionMinutes-instant.dstMinutes;
+  const longitudeCorrectionMinutes=civilClockFallback?null:(place.longitude-instant.standardOffsetMinutes/4)*4;
+  const totalCorrectionMinutes=civilClockFallback?0:longitudeCorrectionMinutes-instant.dstMinutes;
   const corrected=natalParts(natalWall(civil)+Math.round(totalCorrectionMinutes)*60000);
   const termClock=natalParts(instant.timestamp+9*3600000);
   const terms=ganji(termClock,{nightZiPolicy:'keep-day'});
@@ -994,11 +1012,11 @@ function calculateNatalSaju(input={}) {
   const text=p=>formatPillar(p.stemIndex,p.branchIndex,'hanja');
   const pillars={year:text(terms.year),month:text(terms.month),day:text(daily.day),hour:timeUnknown?null:text(daily.hour)};
   const calculationMeta={
-    engineVersion:SAJU_ENGINE_VERSION,policyVersion:SAJU_POLICY_VERSION,tableFingerprint:TABLE_FINGERPRINT,
+    engineVersion:SAJU_ENGINE_VERSION,policyVersion:civilClockFallback?'civil-minute-shift23-missing-longitude-v1':SAJU_POLICY_VERSION,tableFingerprint:TABLE_FINGERPRINT,
     original:{birthDate:rawDate,birthTime:timeUnknown?null:String(input.birthTime),calendarType,leapMonth,...(input.originalCalendar?{originalCalendar:input.originalCalendar}:{})},
     location:{...place,assumed:!supplied},civil:{...civil,hour:timeUnknown?null:civil.hour,minute:timeUnknown?null:civil.minute},
     instant:timeUnknown?null:instant,termClock,termTimeAssumed:timeUnknown,
-    correction:{method:'LOCAL_MEAN_TIME',standardMeridian:instant.standardOffsetMinutes/4,longitudeCorrectionMinutes,equationOfTimeMinutes:0,dstMinutes:instant.dstMinutes,totalCorrectionMinutes,appliedMinutes:Math.round(totalCorrectionMinutes),rounding:'nearest-minute-Math.round'},
+    correction:{method:civilClockFallback?'CIVIL_TIME':'LOCAL_MEAN_TIME',...(civilClockFallback?{reason:'missing_longitude'}:{}),standardMeridian:instant.standardOffsetMinutes/4,longitudeCorrectionMinutes,equationOfTimeMinutes:0,dstMinutes:instant.dstMinutes,totalCorrectionMinutes,appliedMinutes:Math.round(totalCorrectionMinutes),rounding:'nearest-minute-Math.round'},
     corrected:timeUnknown?null:corrected,nightZiPolicy:'shift-day',
     dayBoundaryRule:'corrected 23:00-23:59 uses next civil day; 00:00-00:59 uses current civil day; hour stem uses that same day stem',
     timeUnknown,dayPillarCivilDate:daily.meta.dayPillarCivilDate,
@@ -1010,6 +1028,7 @@ function calculateNatalSaju(input={}) {
 root.KoreanCalendar = Object.freeze({
   BRANCH_HANGUL: BRANCH_HANGUL,
   BRANCH_HANJA: BRANCH_HANJA,
+  DAEUN_POLICY_VERSION: DAEUN_POLICY_VERSION,
   DEFAULT_NIGHT_ZI_POLICY: DEFAULT_NIGHT_ZI_POLICY,
   MIDNIGHT_RISKS: MIDNIGHT_RISKS,
   NIGHT_ZI_POLICY: NIGHT_ZI_POLICY,

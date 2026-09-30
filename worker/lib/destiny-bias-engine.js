@@ -1,5 +1,5 @@
 
-import { daeun } from "../../lib/korean-calendar/index.js";
+import { daeun, DAEUN_POLICY_VERSION } from "../../lib/korean-calendar/index.js";
 import { calculateEquationOfTimeMinutes, shiftLocalDateByDays, standardMeridianForTimezone } from "./birth-time-context.js";
 import { resolveTimezoneOffsetHours } from "./iana-offset.js";
 
@@ -850,6 +850,15 @@ function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYe
   const isMale = gender === "M";
   const isFemale = gender === "F";
   const yearIsYang = YANG_STEMS.has(yearStem);
+  if ((!isMale && !isFemale) || !birthMoment) {
+    return {
+      available: false,
+      policyVersion: DAEUN_POLICY_VERSION,
+      reason: !birthMoment ? "출생시간 미상으로 정확한 대운 시작 시점은 산출하지 않습니다." : "성별 비공개 입력이어서 대운 순행·역행을 단정하지 않습니다.",
+      direction: "UNKNOWN", directionLabel: "판단 보류", startAge: null, startYear: null,
+      displayText: "대운 시작 시점 판단 보류", entryElapsed: null, list: [],
+    };
+  }
 
   let direction = "FORWARD";
   if (isMale || isFemale) {
@@ -868,12 +877,16 @@ function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYe
   let coreDaeun = null;
   if ((isMale || isFemale) && birthMoment) {
     try {
-      coreDaeun = daeun(birthMoment, { gender: isMale ? "M" : "F" });
+      coreDaeun = daeun(birthMoment, { gender: isMale ? "M" : "F", birthCivilYear: birthYear });
     } catch (_error) {
       coreDaeun = null;
     }
   }
 
+  if (!coreDaeun) {
+    return { available: false, policyVersion: DAEUN_POLICY_VERSION, reason: "대운 계산에 필요한 절기 정보를 확인할 수 없습니다.", direction: "UNKNOWN", directionLabel: "판단 보류", startAge: null, startYear: null, displayText: "대운 시작 시점 판단 보류", entryElapsed: null, list: [] };
+  }
+  direction = coreDaeun.forward ? "FORWARD" : "BACKWARD";
   let list = [];
   if (coreDaeun) {
     try {
@@ -932,6 +945,10 @@ function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYe
   }
 
   return {
+    available: Boolean(coreDaeun),
+    policyVersion: DAEUN_POLICY_VERSION,
+    ageBasis: "korean-counting-age",
+    birthCivilYear: coreDaeun.meta.birthCivilYear,
     direction,
     directionLabel: direction === "FORWARD" ? "순행" : "역행",
     basis: {
@@ -1026,7 +1043,7 @@ export function buildSajuProfile(rawPerson) {
 
   // 🔴 예전에는 lunar-javascript 의 절기를 그대로 `dateTimeKst` 라는 이름으로 실어 보냈다.
   // 그 값은 CST 벽시계라 이름과 내용이 어긋나 있었다.
-  const termWindow = coreNodeTermWindow(solarClock);
+  const termWindow = coreNodeTermWindow(natal.calculationMeta.termClock);
   const prevMajorTerm = termWindow.previous;
   const nextMajorTerm = termWindow.next;
   const monthBoundaryTerm = prevMajorTerm;
@@ -1035,15 +1052,9 @@ export function buildSajuProfile(rawPerson) {
   const ipchunTerm = coreNodeTermSummary((nodeTerms(clockGanji.meta.sexagenaryYear) || [])[1]);
 
   const daewoon = buildDaewoonFromCore(
-    // 🔴 대운은 **보정 전 원본 생시**로 잰다 — 진태양시 보정본을 넣으면 節까지의 거리가
-    // 경도 보정만큼 움직여 기운 나이가 달라진다. 셸의 attachKasiDaewunBridge 도 같은 축이다.
-    {
-      year: birth.year,
-      month: birth.month,
-      day: birth.day,
-      hour: birth.unknownTime ? 12 : birth.hour,
-      minute: birth.unknownTime ? 0 : birth.minute,
-    },
+    // 음력 환산 및 과거 시간대/DST를 해결한 실제 출생 순간을 KST 절기와 비교한다.
+    // 지역 평균시 보정 시계는 일주·시주 전용이며 대운에 다시 적용하지 않는다.
+    birth.unknownTime ? null : natal.calculationMeta.termClock,
     pillars.year.stem,
     gender,
     termWindow,
@@ -1089,7 +1100,10 @@ export function buildSajuProfile(rawPerson) {
     },
     policies: {
       dayChangePolicy,
+      natalPolicyVersion: natal.calculationMeta.policyVersion,
+      daeunPolicyVersion: DAEUN_POLICY_VERSION,
     },
+    calculationMeta: natal.calculationMeta,
     pillars: {
       year: pillars.year.ganji,
       month: pillars.month.ganji,
@@ -1142,6 +1156,7 @@ export function buildSajuProfile(rawPerson) {
     hourPillarTimePolicy,
     dayChangePolicy,
     timeCorrection: coreResult.timeCorrection,
+    calculationMeta: natal.calculationMeta,
     calendar: {
       solarDate: formatDateLabel(solarClock.year, solarClock.month, solarClock.day),
       lunarDate: formatDateLabel(lunarClock?.lunarYear, lunarMonth, lunarClock?.lunarDay),

@@ -5,7 +5,7 @@
  * 계층2 `lib/diary/fortune-core.js` 를 이어 붙여, `/diary` 가 부르는 유일한 표면을 만든다.
  *
  * 🔴 **동치 3축을 여기서 명시 고정한다.** 하나만 어긋나도 셸 모달과 판정이 조용히 갈린다.
- *  1. 야자시 `NIGHT_ZI_POLICY.KEEP_DAY` — 코어 기본값은 SHIFT_DAY 라, 안 넘기면 23시대가 하루 밀린다.
+ *  1. 출생 원국은 `calculateNatalSaju` — 절기 순간·지역 평균시·보정 후 23시 경계를 공통 적용한다.
  *  2. 일진 조회 시각 `hour: 12` — 셸 달력이 셀 날짜를 정오로 만들어 조회하는 것과 같은 축이다.
  *  3. 날짜축 `Asia/Seoul` — 이 파일은 `new Date()` 를 아예 쓰지 않고 `YYYY-MM-DD`(KST)만 받는다.
  *     오늘을 구하는 곳은 `app/diary/_lib/kst-date.ts` 의 `kstTodayYmd()` 하나다.
@@ -14,7 +14,7 @@
  * `_activeProfilePillars:465` · `renderMzSections:1560`(`_lsdCtx` 조립).
  */
 
-import { formatPillar, ganji, NIGHT_ZI_POLICY } from "@/lib/korean-calendar";
+import { calculateNatalSaju, formatPillar, ganji, NIGHT_ZI_POLICY } from "@/lib/korean-calendar";
 import { calcPower, detectJong } from "@/lib/saju/natal-power";
 import {
   calcTenStar,
@@ -30,9 +30,13 @@ export interface DiaryBirthInput {
   year: number;
   month: number;
   day: number;
-  /** 모르면 12시로 본다 — 셸 `_activeProfilePillars:485` 와 같은 기본값이다. */
+  /** 미상은 시주를 만들지 않는다. 정오 가정은 년·월·일주 계산 메타에만 남는다. */
   hour?: number | null;
   minute?: number | null;
+  calendarType?: string;
+  isLeapMonth?: boolean;
+  birthTimeUnknown?: boolean;
+  birthPlace?: { longitude?: number; latitude?: number; timezone?: string };
 }
 
 export interface GanjiPair {
@@ -48,6 +52,7 @@ export interface DiaryNatalChart {
   /** 🔴 기준일 일진으로 **한 번만** 계산한다 — 셸이 `_lsdCtx.luckyEl` 을 그렇게 쓴다. */
   luckyEl: string;
   referenceYmd: string;
+  calculationMeta: ReturnType<typeof calculateNatalSaju>["calculationMeta"];
 }
 
 export interface DiaryDayFortune {
@@ -100,21 +105,27 @@ export function buildDiaryNatalChart(birth: DiaryBirthInput, referenceYmd: strin
   const day = Number(birth?.day);
   if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
 
-  let hour = Number(birth.hour);
-  let minute = Number(birth.minute);
-  if (!Number.isFinite(hour) || hour < 0 || hour > 23) hour = 12;
-  if (!Number.isFinite(minute) || minute < 0 || minute > 59) minute = 0;
-
-  const gz = ganji({ year, month, day, hour, minute }, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
-  if (!gz) return null;
-
-  const y = pairOf(gz.year);
-  const m = pairOf(gz.month);
-  const d = pairOf(gz.day);
-  const h = pairOf(gz.hour);
-  if (!y || !m || !d || !h) return null;
-
-  const pillars = { y, m, d, h };
+  const timeUnknown = birth.birthTimeUnknown === true || birth.hour == null;
+  const hour = timeUnknown ? null : Number(birth.hour);
+  const minute = birth.minute == null ? 0 : Number(birth.minute);
+  let natal: ReturnType<typeof calculateNatalSaju>;
+  try {
+    natal = calculateNatalSaju({
+      birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
+      birthTime: timeUnknown ? undefined : `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+      birthTimeUnknown: timeUnknown,
+      calendarType: birth.calendarType || "solar",
+      isLeapMonth: birth.isLeapMonth,
+      birthPlace: birth.birthPlace,
+    });
+  } catch {
+    return null;
+  }
+  const pair = (value: string | null): GanjiPair => ({ g: value?.[0] || "", j: value?.[1] || "" });
+  const pillars = {
+    y: pair(natal.pillars.year), m: pair(natal.pillars.month),
+    d: pair(natal.pillars.day), h: pair(natal.pillars.hour),
+  };
   const power = calcPower(pillars);
   const jong = detectJong(pillars);
   const referenceGz = dayGanji(referenceYmd);
@@ -123,9 +134,10 @@ export function buildDiaryNatalChart(birth: DiaryBirthInput, referenceYmd: strin
     pillars,
     power,
     jong,
-    dayMasterEl: GAN_ELEM[d.g] || "earth",
+    dayMasterEl: GAN_ELEM[pillars.d.g] || "earth",
     luckyEl: getLuckyElement(power, jong, referenceGz),
     referenceYmd,
+    calculationMeta: natal.calculationMeta,
   };
 }
 
