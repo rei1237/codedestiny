@@ -48,8 +48,14 @@ const service = require(path.join(root, "lib/famous-saju/celebrity-saju-service.
 const detailPage = readFileSync(path.join(root, "app/insights/famous-saju/[slug]/page.tsx"), "utf8");
 const serviceSource = readFileSync(path.join(root, "lib/famous-saju/celebrity-saju-service.ts"), "utf8");
 
-const unknownBirthTime = service.publishedCelebritySajuSeeds.find((item) => item.birthDate && !item.isBirthTimeKnown);
-const knownBirthTime = service.publishedCelebritySajuSeeds.find((item) => item.birthDate && item.isBirthTimeKnown);
+const unknownBirthTime = service.publishedCelebritySajuSeeds.find((item) => {
+  if (!item.birthDate || item.isBirthTimeKnown) return false;
+  return service.buildCelebrityReading(item).calculationStatus === "calculated";
+});
+const knownBirthTime = service.publishedCelebritySajuSeeds.find((item) => {
+  if (!item.birthDate || !item.isBirthTimeKnown) return false;
+  return service.buildCelebrityReading(item).calculationStatus === "calculated";
+});
 
 assert(unknownBirthTime, "A celebrity seed with unknown birth time is required");
 assert(knownBirthTime, "A celebrity seed with known birth time is required");
