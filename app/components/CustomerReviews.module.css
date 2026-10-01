@@ -1,48 +1,97 @@
-/* FounderTrust 안에서 쓰는 메신저 캡처형 후기. 색은 부모의 --ft-* (영냥이 토큰)를 그대로 받는다. 새 색 없음. */
+/* 메신저 대화창형 후기. 색은 부모의 --ft-*(FounderTrust)를 먼저, 없으면 영냥이 밤 토큰(--yn-*)을 받는다. 새 색 없음. */
 .reviews {
-  --cr-gold: var(--ft-gold, #e9c78d);
-  --cr-ivory: var(--ft-ivory, #fff3e2);
-  --cr-deep: var(--ft-deep, #18132b);
-  --cr-muted: var(--ft-muted, #c7b5ce);
+  --cr-gold: var(--ft-gold, var(--yn-gold, #e5c58e));
+  --cr-ivory: var(--ft-ivory, var(--yn-ivory, #f3eee5));
+  --cr-deep: var(--ft-deep, var(--yn-deep, #0b1220));
+  --cr-surface: var(--ft-surface, var(--yn-surface, #18263a));
+  --cr-muted: var(--ft-muted, var(--yn-muted, #bac9da));
+  --cr-serif: var(--ft-serif, var(--serif, serif));
+  --cr-hairline: color-mix(in srgb, var(--cr-gold) 22%, transparent);
   margin-top: 32px;
   scroll-margin-top: 80px;
 }
 .reviews .title { margin: 0 0 14px; color: var(--cr-ivory); font-family: inherit; font-size: 17px; line-height: 1.5; }
-.grid { display: grid; gap: 14px; align-items: start; }
+.grid { display: grid; gap: 14px; }
 .card {
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(233, 199, 141, 0.28);
+  border: 1px solid color-mix(in srgb, var(--cr-gold) 30%, transparent);
   border-radius: 20px;
-  background: rgba(24, 19, 43, 0.6);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+  background: var(--cr-surface);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.22);
   overflow: hidden;
 }
+/* 원문 속 한 구절. 따옴표는 장식이고 글은 말풍선의 부분 문자열 그대로다. */
+.reviews .quote {
+  margin: 0;
+  padding: 20px 20px 16px;
+  color: var(--cr-gold);
+  font-family: var(--cr-serif);
+  font-size: 19px;
+  line-height: 1.5;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.reviews .quote::before { content: "\201C"; display: block; height: 0.5em; font-size: 2.2em; line-height: 1; opacity: 0.6; }
 .bar {
   display: flex;
   justify-content: space-between;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(233, 199, 141, 0.18);
+  border-bottom: 1px solid var(--cr-hairline);
   color: var(--cr-gold);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.thread { display: flex; flex-direction: column; gap: 6px; padding: 16px 16px 6px; }
+.quote + .bar { border-top: 1px solid var(--cr-hairline); }
+/* 대화창: 왼쪽 아바타 + 보낸 사람 + 말풍선 묶음. 첫 말풍선에만 꼬리. */
+.thread {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  padding: 16px 16px 10px;
+  background: color-mix(in srgb, var(--cr-deep) 55%, transparent);
+}
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid color-mix(in srgb, var(--cr-gold) 55%, transparent);
+  border-radius: 50%;
+  background: var(--cr-surface);
+  color: var(--cr-gold);
+}
+.bubbles { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
+.sender { margin: 1px 0 2px; color: var(--cr-muted); font-size: 12px; line-height: 1.4; }
 .reviews .bubble {
-  align-self: flex-start;
-  max-width: 82%;
+  position: relative;
+  max-width: 100%;
   margin: 0;
-  padding: 8px 11px;
-  border-radius: 4px 16px 16px 16px;
+  padding: 8px 12px;
+  border-radius: 16px;
   background: var(--cr-ivory);
   color: var(--cr-deep);
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.6;
   white-space: pre-line;
   word-break: keep-all;
   overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+.reviews .bubble:first-of-type { border-top-left-radius: 4px; }
+.reviews .bubble:first-of-type::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -6px;
+  width: 8px;
+  height: 10px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
 }
 .meta {
   display: flex;
@@ -50,6 +99,7 @@
   justify-content: space-between;
   gap: 2px 12px;
   padding: 10px 16px 14px;
+  background: color-mix(in srgb, var(--cr-deep) 55%, transparent);
   color: var(--cr-muted);
   font-size: 12px;
   line-height: 1.5;
@@ -66,13 +116,35 @@
 }
 .more > summary:focus-visible { outline: 2px solid var(--cr-gold); outline-offset: 3px; }
 .more[open] > summary { margin-bottom: 10px; }
+/* 나머지 후기: 길이가 제각각이라 같은 칸 격자 대신 메시지 벽처럼 흘린다. */
+.wall { column-gap: 14px; }
+.wall > .card { break-inside: avoid; margin-bottom: 14px; }
 .reviews .fine { margin: 14px 0 0; color: var(--cr-muted); font-size: 12.5px; line-height: 1.6; }
 @media (min-width: 640px) {
   .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero { grid-column: 1 / -1; }
+  .wall { columns: 2; }
 }
 @media (min-width: 960px) {
-  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+  .hero { grid-column: auto; grid-row: span 2; }
+  .hero .quote { padding: 28px 28px 20px; font-size: 24px; }
+  .wall { columns: 3; }
 }
 /* inline: 좁은 패널 안. (0,2,0) 이 위 미디어쿼리의 .grid 를 이겨 화면 폭과 무관하게 1열. */
 .inline { margin-top: 12px; }
 .inline .grid { grid-template-columns: minmax(0, 1fr); }
+/* 스크롤로 화면에 들어올 때 말풍선이 짧게 떠오른다. 지원 브라우저·모션 허용일 때만 — 그 밖에는 정지 화면 그대로. */
+@keyframes crArrive {
+  from { opacity: 0; transform: translateY(10px) scale(0.985); }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reviews .bubble,
+    .reviews .quote {
+      animation: crArrive linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+  }
+}
