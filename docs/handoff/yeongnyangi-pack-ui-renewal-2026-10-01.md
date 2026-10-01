@@ -2,7 +2,7 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 후속 과제 1~7, '두 이용권 적용 표시', 별건 3개(d2d5f5ee8·9e9c0057c·2f138d795)까지 완료. 남은 것은 아래 '새 별건'뿐이다(모두 범위 밖·보고만). 스테이징 카카오페이 실결제 1회는 2026-10-01에 사용했다. 다시 결제하려면 새 1회 승인이 필요하다.
+next: 후속 과제 1~7, '두 이용권 적용 표시', 별건 3개(d2d5f5ee8·9e9c0057c·2f138d795), '새 별건' 2개(세트 이름 로케일 2d792919d, portone.ts 401은 결함 아님)까지 완료. 남은 것은 구매 모달 어종 중복 표기 관찰 1건(보고만)이다. 스테이징 카카오페이 실결제 1회는 2026-10-01에 사용했다. 다시 결제하려면 새 1회 승인이 필요하다.
 ---
 
 # 영냥이 전용 이용권 리뉴얼 (2026-10-01)
@@ -149,11 +149,17 @@ next: 후속 과제 1~7, '두 이용권 적용 표시', 별건 3개(d2d5f5ee8·9
   - 내용: 17개 경로(/saju·/ziwei·/dream·/love·/manse 등)의 signature만 달랐고 lastmod는 같았다.
   - 원인(실측): 원장을 마지막으로 재생성한 65c6be3a5 뒤에, 자미두수 머지 17afd3f3f가 `lib/ziwei-star-strength.js` 등 app/lib 12개 파일을 들여왔다. 그 머지는 원장을 재생성하지 않았다.
   - 이번 세션 파일 3개는 무관하다. 수정 전과 후 버전 모두 `--check`를 통과한다.
-- 세트 label은 서버의 한국어 고정값이다(`service-pack-policy.js:15`). 그래서 en/ja 등에서도 "고등어 세트 5회"로 나온다. 보유 목록·상단 요약·세트 카드 세 곳이 모두 해당된다.
-- `lib/payment/portone.ts:272`도 `retryOn401:false`다. 동결 파일이라 손대지 않았다.
+- ~~세트 label이 서버의 한국어 고정값이라 en/ja 등에서도 "고등어 세트 5회"로 나온다.~~ **2d792919d.**
+  - `service-pack-copy.ts`에 `packName(pack, locale)`과 12개 로케일 `packName` 키를 더했다. ko는 서버 label을 그대로 쓴다. 다른 로케일은 `localizedTier(fishId)`와 `totalUses`로 이름을 다시 짓는다(예: "5-use Mackerel set", "サバセット 5回").
+  - 표시 8곳에 적용했다: 보유 목록, 상단 요약, 세트 카드, 구매 모달, 이어가기 패널, 완료 패널, /checkout 이용권 칸, /checkout 선택 목록.
+  - 표시 전용이다. 서버 label, 주문, `samePackSnapshot` 비교는 그대로다.
+  - 검증(실측): tsx로 12개 로케일 출력을 확인했다. `service-pack-pending-resume` 32/32, `check:fast` EXIT 0(jest 4915/4915).
+  - 미검증: 화면 캡처는 하지 않았다. fr·es처럼 긴 이름("Lot Maquereau de 5 utilisations")이 360 폭 카드 제목에서 두 줄로 꺾일 수 있다.
+- ~~`lib/payment/portone.ts:272`도 `retryOn401:false`다.~~ **결함 아님, 변경 없음.** 이 호출은 `GET /api/payments/config`다. 워커 라우트가 `auth: "none"`이고 Mongo도 쓰지 않는 공개 설정이다(`worker/payments/index.js:1068`, `worker/index.js:1374`). 401이 나지 않으므로 refresh 재시도가 필요 없다. 동결 파일도 손대지 않았다.
+- 남은 관찰(보고만): 구매 모달 요약 줄은 "어종 · 세트 이름 · 가격"이라 어종이 두 번 나온다(ko에서도 "고등어 · 고등어 세트 5회"). 이번 변경 전부터 있던 표기다.
 
 ## 재개 정보
 
 ~~~text
-D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 2f138d795 이후 커밋을 확인하라. 별건 3개까지 끝났다. 남은 것은 '새 별건'(세트 label 로케일, portone.ts 401)뿐이다. 실결제는 새 1회 승인이 있을 때만 한다.
+D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 2d792919d 이후 커밋을 확인하라. 별건과 새 별건까지 모두 끝났다. 남은 것은 구매 모달 어종 중복 표기(보고만)와 비한국어 긴 세트 이름의 화면 미확인뿐이다. 실결제는 새 1회 승인이 있을 때만 한다.
 ~~~
