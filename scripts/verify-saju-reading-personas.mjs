@@ -1,17 +1,21 @@
 import { chromium } from 'playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
 
 const base=process.env.SAJU_READING_URL||'http://127.0.0.1:34350';
 if(!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(base))throw new Error('Use the local mock server only');
-const out=resolve(process.env.SAJU_READING_SHOTS||'.codex-saju-reading-shots');mkdirSync(out,{recursive:true});
+// 저장소 밖에 쓴다: 저장소 안 쓰기는 Next dev 재컴파일(HMR)을 일으켜 측정을 흔든다.
+const out=resolve(process.env.SAJU_READING_SHOTS||resolve(tmpdir(),'code-destiny-saju-reading-shots'));mkdirSync(out,{recursive:true});
 const baseline=process.argv.includes('--baseline');
 const browser=await chromium.launch({headless:true});
 const results=[];
 try {
   for(const width of [360,390,430,1440]){
     const context=await browser.newContext({viewport:{width,height:width===1440?1000:844},reducedMotion:'reduce'});
+    // 무료 사주 결과는 검증된 로그인 세션이 필요하다(932a22824). 결과 게이트의 세션 확인만 mock 으로 통과시킨다.
+    await context.addInitScript(()=>Object.defineProperty(window,'__dpVerifyResultSession',{configurable:true,get:()=>async()=>'authenticated',set(){}}));
     const page=await context.newPage();const requests=[];const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     await context.route('**/*',route=>{
@@ -22,6 +26,8 @@ try {
     });
     await page.goto(base+'/ggulggul/',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(baseline=>document.querySelector('.cd-soulcat-entry')&&(baseline||window.SajuReadingPresentation),baseline);
+    // 부팅 게이트가 걷히는 중에는 스크롤바가 빠져 body 폭이 달라지므로 끝난 뒤에 잰다.
+    await page.waitForFunction(()=>{const c=document.documentElement.classList;return !c.contains('cd-boot-gate')&&!c.contains('cd-boot-gate-out');});
     await page.evaluate(()=>{document.getElementById('cdhMore').open=true;document.querySelector('.cd-soulcat-entry').scrollIntoView({behavior:'instant'});});
     await page.waitForFunction(()=>{const i=document.querySelector('.cd-soulcat-entry img');return i.complete&&i.naturalWidth>0;});
     await page.locator('.cd-soulcat-entry').screenshot({path:resolve(out,`cat-${width}.png`)});
