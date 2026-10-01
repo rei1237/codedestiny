@@ -10,7 +10,7 @@ export const preventionEligible=(tier:PackageId)=>['flounder','tuna','assorted',
 export const hasPrevention=(chapter:Pick<ChapterSpec,'preventionVersion'>)=>chapter.preventionVersion===PREVENTION_VERSION;
 export const allowsPreventionBalance=(chapter:ChapterSpec)=>hasPrevention(chapter)&&chapter.key==='prevention'&&chapter.tier==='flounder'&&chapter.systems?.includes('saju')===true;
 // Exactly the new caution packet may expose the limited balance interpretation at flounder.
-export const preventionTierRule='용신·기신은 제공된 사주 주의점 근거의 조건부 판단만 설명한다. 희신·대운·종격·마하다샤·안타르다샤·삼방사정은 다루지 않는다.';
+export const preventionTierRule='용신·기신은 제공된 사주 주의점 근거의 조건부 판단만 설명한다. 희신·대운·종격·마하다샤·안타르다샤는 다루지 않는다.';
 const LABEL='preventionEvidence';
 const inputs:Record<DomainId,string[]>={
  saju:['pillars','pillarDetails','tenGodsByPillar','fiveElements','seasonalBalance','natalInteractions','partnerChart','relationshipComparison'],
@@ -31,7 +31,10 @@ const domainAdvice:Record<DomainId,string>={
 function scoped(value:unknown,premium:boolean):unknown {
  if(Array.isArray(value))return value.map(v=>scoped(v,premium));
  if(!value||typeof value!=='object')return value;
- return Object.fromEntries(Object.entries(value).filter(([key])=>! /prompt|summaryForPrompt/i.test(key)&&(premium||! /useful|unfavorable|yongshin|kijishin|heeShin|jong|majorLuck|decade|dasha|divisional|d9|yogas|fourTransformations|natalTransformations|transformations|sanFangSiZheng/i.test(key))).map(([key,v])=>[key,scoped(v,premium)]));
+ // A Ziwei palace's own transformations are its natal sihua and reach every tier with its strengths.
+ // Annual sihua (relationshipTiming annual[].transformations) has no mainStars and stays premium-only.
+ const palace=Array.isArray((value as Record<string,unknown>).mainStars);
+ return Object.fromEntries(Object.entries(value).filter(([key])=>! /prompt|summaryForPrompt/i.test(key)&&(premium||(palace&&key==='transformations')||! /useful|unfavorable|yongshin|kijishin|heeShin|jong|majorLuck|decade|dasha|divisional|d9|yogas|fourTransformations|natalTransformations|transformations|sanFangSiZheng/i.test(key))).map(([key,v])=>[key,scoped(v,premium)]));
 }
 export function withPreventionTiming(context:DomainContext):DomainContext {
  if(context.domain!=='saju')return context;

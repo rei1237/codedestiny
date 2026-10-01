@@ -187,12 +187,13 @@ export function validateChapter(
 }
 // A quality retry (service.ts repair) restates the rule that failed; an unmapped code is sent alone.
 // Same word list as validateReadingQuality's TIER_SCOPE_VIOLATION check.
-const TIER_SCOPED_TERMS=/용신|희신|대운|마하다샤|안타르다샤|삼방사정/;
+// 삼방사정은 2026-10-01 부터 모든 단계에 준다(궁 사실의 facing·trines). 시기·용신 계열만 단계 용어로 남긴다.
+const TIER_SCOPED_TERMS=/용신|희신|대운|마하다샤|안타르다샤/;
 const LENGTH_REPAIR='본문 합계는 lengthContract.minimum 이상, sectionContract의 소절마다 minimumChars 이상을 새로운 해설로 채우고 targetChars를 목표로 쓴다. 500자를 넘는 소절은 문장 단위로 끊어 여러 문단으로 나눈다. 같은 문단이나 문장을 되풀이해 분량을 채우지 않는다. 되풀이한 문단은 분량에 들어가지 않는다.';
 const REPAIR_INSTRUCTIONS:Record<string,string>={
   INVALID_CHAPTER_BLOCKS:'blocks는 sectionContract가 있으면 그 id 순서대로 소절마다 하나씩 만든다. 각 block의 title은 구매 언어로 된 비어 있지 않은 소제목, paragraphs는 비어 있지 않은 문단 배열이다. 문단은 각각 500자 이하로 쓰고 긴 소절은 문장 단위로 끊어 여러 문단으로 나눈다. 한 문장이 500자를 넘지 않게 한다. HTML 태그를 쓰지 않는다. analysis·example·advice는 blockContract를 그대로 따른다.',
   INTERNAL_EVIDENCE_EXPOSED:'summary·persona·highlights·blocks의 title과 paragraphs·questionAnswers 등 사용자에게 보이는 모든 문장에 CALCULATED_DATA의 id(체계명.항목)와 label 같은 영문 데이터 키, CALCULATED_DATA·USER_QUESTION·FortuneFact·questionAnswers·factSelectors·requiredSections·engineVersion 같은 시스템 이름을 쓰지 않는다. 내부 ID는 sources에만 넣고 본문은 professionalEvidenceNames의 명칭을 구매 언어로 풀이으로 설명한다.',
-  TIER_SCOPE_VIOLATION:'용신·희신·대운·마하다샤·안타르다샤·삼방사정이라는 말을 어떤 필드에도 쓰지 않는다. 다루지 않는다고 안내하거나 부정하는 문장에도 쓰지 않는다. 명식의 일반 해석만 한다.',
+  TIER_SCOPE_VIOLATION:'용신·희신·대운·마하다샤·안타르다샤라는 말을 어떤 필드에도 쓰지 않는다. 다루지 않는다고 안내하거나 부정하는 문장에도 쓰지 않는다. 명식의 일반 해석만 한다.',
   DUPLICATE_CHAPTER:'summary와 example은 previousConclusions·previousExamples와 겹치지 않는 이번 장만의 내용으로 쓴다. 이번 장의 문단끼리, 또는 이전 장의 문단을 그대로 옮기거나 단어만 바꿔 다시 쓰지 않는다. 같은 문장을 두 번 쓰지 않는다.',
   CHAPTER_SECTION_TOO_SHORT:LENGTH_REPAIR,
   CHAPTER_TOO_SHORT:LENGTH_REPAIR,

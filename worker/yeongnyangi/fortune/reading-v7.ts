@@ -221,7 +221,7 @@ export const V7_FORBIDDEN:Record<DomainId,string[]>={
 };
 const NON_PREMIUM_FORBIDDEN:Partial<Record<DomainId,string[]>>={
   saju:['대운','용신·종격'],
-  ziwei:['대한','사화 전용 해석','삼방사정'],
+  ziwei:['대한','사화 전용 해석'],
   vedic:['다샤','요가','분할도'],
 };
 
