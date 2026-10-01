@@ -118,6 +118,12 @@ next: 4단계 — 운세별 에셋·포즈, 로딩·빈 기록·오류 에셋.
 
 ## 남은 위험·후속 (우선순위순)
 
+0. 🔴 **main CI `Critical checks` 가 2단계 `6cb20649c` 부터 실패한다**(로컬 재현: `node scripts/verify-worker-config-parity.mjs --self-test`).
+   - 메시지: "vars.ENABLE_FORTUNE_CHAT_CONSULTATIONS: 스테이징 전용 키인데 스테이징 설정에 없다"(baseline passes 케이스).
+   - 원인: 키를 `STAGING_ONLY_KEYS` 에 선언했지만, self-test 픽스처 `BASE_STAGING` 의 `[vars]` 에는 넣지 않았다.
+   - 고치는 법(추정, 미실행): `BASE_STAGING` 에 `'ENABLE_FORTUNE_CHAT_CONSULTATIONS = "true"',` 한 줄을 넣는다.
+   - 이 job 은 결제·워커 파일이 바뀐 push 에서만 돈다. 그래서 e1f2174e0·d0cf372fd 에서는 skipped 로 가려져 있었다.
+
 1. 🔴 **카드 결제 prepare 측 가드가 없다.**
    - 무료/이용권으로 연 상담에 낡은 탭이 `fc-` 카드 결제를 또 할 수 있다.
    - 지금은 크론이 사후에 중복 결제로 감지하고 운영 알림만 보낸다(자동 환불 없음).
