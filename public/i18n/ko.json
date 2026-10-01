@@ -1337,7 +1337,11 @@
       "searchLead": "고민·방식·가격으로 지금 필요한 운세를 찾아보세요.",
       "searchPlaceholder": "연애, 재물, 이직… 궁금한 운세를 찾아보세요",
       "filterToggle": "필터",
-      "filterMorePurpose": "다른 고민"
+      "filterMorePurpose": "다른 고민",
+      "shareReward": "친구가 가입하면 월정석 100개",
+      "shareTerms": "이 버튼으로 공유한 링크로 친구가 회원가입을 완료해야 지급돼요 · 하루 최대 500개 · 지급일부터 30일 사용",
+      "todayGateCta": "프로필 만들고 오늘의 운세 보기",
+      "todayGateDesc": "생년월일로 사주 일진·숙요 27수·베다 달자리를 내 명식에 맞춰 계산해요."
     }
   },
   "footer": {

@@ -1490,7 +1490,11 @@
       "searchLead": "Find the reading you need by concern, method or price.",
       "searchPlaceholder": "Love, money, a job move… search readings",
       "filterToggle": "Filters",
-      "filterMorePurpose": "More concerns"
+      "filterMorePurpose": "More concerns",
+      "shareReward": "100 Moonstones when a friend signs up",
+      "shareTerms": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+      "todayGateCta": "Create a profile to see today's fortune",
+      "todayGateDesc": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart."
     }
   },
   "terms": {

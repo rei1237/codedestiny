@@ -56,6 +56,16 @@
     });
   }
 
+  // 대화형 상담 문은 지금 홈 테마(연이·네오)의 상담 캐릭터로 연다. 정적 href(/fortune-chat/)는 그대로 둔다.
+  var chatDoor = document.querySelector('#fortuneGatewayEntry .fortune-gateway__door--chat');
+  function syncChatDoor() {
+    if (chatDoor) chatDoor.setAttribute('href', '/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni'));
+  }
+  if (chatDoor) {
+    syncChatDoor();
+    if (window.MutationObserver) new MutationObserver(syncChatDoor).observe(doc, { attributes: true, attributeFilter: ['class'] });
+  }
+
   function move(selector, slotId) {
     var node = document.querySelector(selector);
     var slot = document.getElementById(slotId);

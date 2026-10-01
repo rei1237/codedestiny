@@ -1490,7 +1490,11 @@
       "searchLead": "按烦恼、占法和价格，找到你现在需要的运势。",
       "searchPlaceholder": "恋爱、财运、跳槽……搜索想看的运势",
       "filterToggle": "筛选",
-      "filterMorePurpose": "其他烦恼"
+      "filterMorePurpose": "其他烦恼",
+      "shareReward": "好友注册即得100颗月定石",
+      "shareTerms": "好友须通过此按钮分享的链接完成注册才会发放 · 每天最多500颗 · 发放后30天内有效",
+      "todayGateCta": "创建档案，查看今日运势",
+      "todayGateDesc": "根据出生日期，按你的命盘计算四柱日辰、宿曜二十七宿与吠陀月亮星座。"
     }
   },
   "terms": {

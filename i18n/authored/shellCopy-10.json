@@ -306,5 +306,61 @@
     "de": "More concerns",
     "nl": "More concerns",
     "ms": "More concerns"
+  },
+  "home.gardenCopy.shareReward": {
+    "ko": "친구가 가입하면 월정석 100개",
+    "en": "100 Moonstones when a friend signs up",
+    "ja": "友だちが登録すると月定石100個",
+    "zh-CN": "好友注册即得100颗月定石",
+    "zh-TW": "好友註冊即得100顆月定石",
+    "vi": "100 Moonstones when a friend signs up",
+    "hi": "100 Moonstones when a friend signs up",
+    "es": "100 Moonstones when a friend signs up",
+    "fr": "100 Moonstones when a friend signs up",
+    "de": "100 Moonstones when a friend signs up",
+    "nl": "100 Moonstones when a friend signs up",
+    "ms": "100 Moonstones when a friend signs up"
+  },
+  "home.gardenCopy.shareTerms": {
+    "ko": "이 버튼으로 공유한 링크로 친구가 회원가입을 완료해야 지급돼요 · 하루 최대 500개 · 지급일부터 30일 사용",
+    "en": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "ja": "このボタンで共有したリンクから友だちが会員登録を完了したときだけ付与 · 1日最大500個 · 付与日から30日間有効",
+    "zh-CN": "好友须通过此按钮分享的链接完成注册才会发放 · 每天最多500颗 · 发放后30天内有效",
+    "zh-TW": "好友須透過此按鈕分享的連結完成註冊才會發放 · 每天最多500顆 · 發放後30天內有效",
+    "vi": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "hi": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "es": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "fr": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "de": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "nl": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days",
+    "ms": "Paid only when a friend completes sign-up through the link you share here · Up to 500 a day · Valid for 30 days"
+  },
+  "home.gardenCopy.todayGateCta": {
+    "ko": "프로필 만들고 오늘의 운세 보기",
+    "en": "Create a profile to see today's fortune",
+    "ja": "プロフィールを作って今日の運勢を見る",
+    "zh-CN": "创建档案，查看今日运势",
+    "zh-TW": "建立檔案，查看今日運勢",
+    "vi": "Create a profile to see today's fortune",
+    "hi": "Create a profile to see today's fortune",
+    "es": "Create a profile to see today's fortune",
+    "fr": "Create a profile to see today's fortune",
+    "de": "Create a profile to see today's fortune",
+    "nl": "Create a profile to see today's fortune",
+    "ms": "Create a profile to see today's fortune"
+  },
+  "home.gardenCopy.todayGateDesc": {
+    "ko": "생년월일로 사주 일진·숙요 27수·베다 달자리를 내 명식에 맞춰 계산해요.",
+    "en": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "ja": "生年月日から、四柱の日辰・宿曜27宿・ヴェーダの月星座をあなたの命式に合わせて計算します。",
+    "zh-CN": "根据出生日期，按你的命盘计算四柱日辰、宿曜二十七宿与吠陀月亮星座。",
+    "zh-TW": "根據出生日期，依你的命盤計算四柱日辰、宿曜二十七宿與吠陀月亮星座。",
+    "vi": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "hi": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "es": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "fr": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "de": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "nl": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart.",
+    "ms": "Your birth date lets us read today's Saju day pillar, Sukuyo mansion and Vedic moon sign against your own chart."
   }
 }

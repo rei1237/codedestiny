@@ -1490,7 +1490,11 @@
       "searchLead": "依煩惱、占法和價格，找到你現在需要的運勢。",
       "searchPlaceholder": "戀愛、財運、轉職……搜尋想看的運勢",
       "filterToggle": "篩選",
-      "filterMorePurpose": "其他煩惱"
+      "filterMorePurpose": "其他煩惱",
+      "shareReward": "好友註冊即得100顆月定石",
+      "shareTerms": "好友須透過此按鈕分享的連結完成註冊才會發放 · 每天最多500顆 · 發放後30天內有效",
+      "todayGateCta": "建立檔案，查看今日運勢",
+      "todayGateDesc": "根據出生日期，依你的命盤計算四柱日辰、宿曜二十七宿與吠陀月亮星座。"
     }
   },
   "terms": {

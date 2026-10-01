@@ -1490,7 +1490,11 @@
       "searchLead": "悩み・占術・価格から、いま必要な占いを探せます。",
       "searchPlaceholder": "恋愛、金運、転職…気になる占いを探す",
       "filterToggle": "絞り込み",
-      "filterMorePurpose": "ほかの悩み"
+      "filterMorePurpose": "ほかの悩み",
+      "shareReward": "友だちが登録すると月定石100個",
+      "shareTerms": "このボタンで共有したリンクから友だちが会員登録を完了したときだけ付与 · 1日最大500個 · 付与日から30日間有効",
+      "todayGateCta": "プロフィールを作って今日の運勢を見る",
+      "todayGateDesc": "生年月日から、四柱の日辰・宿曜27宿・ヴェーダの月星座をあなたの命式に合わせて計算します。"
     }
   },
   "terms": {
