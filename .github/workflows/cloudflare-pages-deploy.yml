@@ -651,6 +651,10 @@ jobs:
       # 🔴 정적 가드는 배선을 지키고, 실제로 색인을 막는 것은 이 프로브다. 빌드 파이프라인의
       # 어떤 단계가 산출물을 다시 써서 메타가 사라져도 여기서 잡힌다. 실패하면 배포를 실패로
       # 남겨 다음 릴리스 전에 반드시 보게 한다.
+      # 🔴 `/` 는 워커가 /ggulggul/ 로 302 를 직접 돌려준다(public/_worker.js, 88cb9a849). 워커가
+      # 만든 응답에는 _headers 의 X-Robots-Tag 가 붙지 않아, 302 만 보던 프로브가 09-30 부터 매번
+      # 실패했다. 리다이렉트 응답은 색인되지 않으므로 끝까지 따라가 **최종 응답 블록만** 판정한다
+      # (중간 hop 의 헤더로 통과하지 않게).
       - name: Probe staging is not indexable
         if: ${{ !cancelled() && steps.deploy.outcome == 'success' }}
         run: |
@@ -661,9 +665,10 @@ jobs:
             printf '%s\n' "$ROBOTS";
             exit 1;
           }
-          HEADERS=$(curl -fsSI "${CD_STAGING_ORIGIN}/")
-          printf '%s\n' "$HEADERS" | grep -qi 'x-robots-tag:.*noindex' || {
-            echo "::error::${CD_STAGING_ORIGIN} 응답에 X-Robots-Tag: noindex 가 없습니다.";
+          HEADERS=$(curl -fsSIL --max-redirs 5 "${CD_STAGING_ORIGIN}/" | tr -d '\r')
+          FINAL_HEADERS=$(printf '%s\n' "$HEADERS" | awk '/^HTTP\//{block=""} {block=block $0 "\n"} END{printf "%s", block}')
+          printf '%s\n' "$FINAL_HEADERS" | grep -qi 'x-robots-tag:.*noindex' || {
+            echo "::error::${CD_STAGING_ORIGIN}/ 의 최종 응답(리다이렉트 추적 후)에 X-Robots-Tag: noindex 가 없습니다.";
             printf '%s\n' "$HEADERS";
             exit 1;
           }

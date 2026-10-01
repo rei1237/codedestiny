@@ -55,4 +55,4 @@ next: 본 작업 완료. 아래 "남은 일"은 별도 세션에서 하나씩.
 6. /en 의 오늘 카드 날짜가 한국어(`paintDate` 가 ko 전용). `public/i18n` 의 고아 키 `home.reviews.empty`, 저작본↔ko.json 드리프트.
 7. 네오 보조 글자 대비 약 4.75:1, 네오 키커 점무늬 최저 픽셀 4.34:1.
 8. (해결됨) main CI parity 픽스처 결함은 옆 세션 95945a6ae 가 고쳤다.
-9. 릴리스 dispatch run 36828942296(1b0663918)이 `Deploy staging › Probe staging is not indexable` 에서 실패: "staging 응답에 X-Robots-Tag: noindex 가 없습니다". 이 작업 범위는 `_headers`·worker·.github·functions·robots 를 건드리지 않았고(0파일), 같은 SHA 의 schedule 릴리스 36829588474 는 성공했다. 원인 미확인(추정: 옆 세션 17afd3f3f 스테이징 배포와 겹친 순간의 탐침). 반복되면 스테이징 noindex 헤더 경로를 조사할 것.
+9. (해결됨) 릴리스 dispatch run 36828942296(1b0663918)의 `Deploy staging › Probe staging is not indexable` 실패는 일시적 겹침이 아니라 09-30 88cb9a849 이후 탐침이 돈 모든 배포에서 반복된 결함이었다. 88cb9a849 가 `public/_worker.js` 에서 `/` → `/ggulggul/` 302 를 워커가 직접 돌려주게 했고, 워커가 만든 응답에는 `_headers` 의 X-Robots-Tag 가 붙지 않는데 탐침은 `curl -fsSI /` 로 302 만 봤다. 위의 "같은 SHA 의 schedule 릴리스 성공"은 `Deploy staging` 을 건너뛴 run 이라 반증이 아니었다. 탐침이 리다이렉트를 따라가 최종 응답 블록만 판정하도록 고쳤다(`.github/workflows/cloudflare-pages-deploy.yml`). 실제 색인 위험은 낮았다 — robots.txt 전면 Disallow 와 `/ggulggul/` 의 noindex 는 줄곧 살아 있었다.
