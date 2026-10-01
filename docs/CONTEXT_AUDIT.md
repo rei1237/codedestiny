@@ -260,3 +260,21 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **같은 날 고친 사실 드리프트**: `/` 는 다시 꿀꿀 운세다(`5687ea634`, 2026-09-30 — `app/page.js` 가 검색용 안내를 그리고 LegacyHomeEntry 가 브라우저를 `/ggulggul/` 로 보낸다). 영냥이는 `/yeongnyangi/` 다. 위 2026-09-24 절의 "`/` = 영냥이"는 그 커밋 전까지의 사실이다. `CLAUDE.md` 홈 문장과 `docs/CURRENT_DEV_BASELINE.md` 4절을 고쳤다.
 - **검색 범위**: `docs/handoff/**`·`marketing/**`·`public/**` 밖 `git grep` — `원칙 12`, `/clear`(식별자 제외), `한 세션에 한`·`1 세션`·`세션 전환`. 남은 것은 역사 기록뿐이다(`docs/code-destiny-audit.md` 213행, 이 문서 122행, 예산 훅 머리 주석의 2026-08 근거). 이 문구들을 단언하는 테스트·검증기는 0건이다.
 - **롤백**: `.claude/settings.json` 훅 등록 커밋을 먼저 되돌리고, 규칙 문서 커밋을 되돌리면 옛 흐름으로 돌아간다.
+
+## 2026-10-01 컨셉·디자인 정본 신설과 디자인 규칙 충돌 8건
+
+- **요청(원문)**: "운세 서비스를 만들고 있으니 컨셉이나 디자인 등에 대해서도 딱 최적이 되도록 코딩 최적화를 해주면 좋겠다". 사용자가 고른 범위는 "정본+규칙 정리"다 — 제품 코드는 바꾸지 않고, 하드코딩 색의 토큰 통합은 후속이다.
+- **해소 원칙**: 코드 실물 > 가장 최근 문서. 새 정본 `docs/context/design-canon.md`(정체성·목소리·용어·토큰 지도·표면 규칙·검증 루프, 약 2k 토큰)를 만들고 `CLAUDE.md` 라우팅의 UI 줄을 "컨셉·디자인·UI — design-canon 먼저"로 바꿨다.
+- **충돌 8건과 처리**
+  1. `/` 의 정체 — 위 항목에서 정정했다.
+  2. 영냥이 누락 — `PRODUCT.md`(브랜드 성격·디자인 원칙), `docs/context/design-and-ui.md` 3·15·39행, `docs/context/content-assets.md` 7·9행과 콘텐츠 보이스 절에 상담가 셋과 정본 링크를 넣었다. content-assets 7행이 가리키던 FloatingCharacter·TypewriterBubble 은 저장소에 더는 없다(docs/handoff 밖 0건).
+  3. `dark:` — "병행 필수"(PRODUCT 35행 2026-07-09, design-and-ui 24행 2026-08-15)와 `DESIGN.md` §9 "새로 들이지 않는다"(2026-09-05, 모두 blame 날짜)가 충돌했다. 최신인 금지로 통일했다.
+  4. 애니메이션 "Tailwind 만"(design-and-ui 22행) — 영냥이 CSS Modules·키프레임을 예외로 적었다.
+  5. 테마 축 — `DESIGN.md` §9 끝에 영냥이 `--yn-*` 독립 팔레트 단락을 더하고, design-and-ui 39행 "App Router 는 네오 단일"에 영냥이 예외를 적었다. "4갈래" 표현은 `.impeccable/design.json` 129행이 같은 말을 써서 그대로 뒀다.
+  6. 반경 — design-and-ui 11행 "3종"을 실물 6단(8·12·16·20·26·999px)으로 고쳤다. impeccable 감지 훅 캘리브레이션은 그대로다.
+  7. 말투·장소명 — 말투 정본은 상담 프롬프트(`worker/yeongnyangi/prompts/persona/`)다. PRODUCT 의 "따뜻한 존댓말" 일괄 서술을 화자별(영냥이 반말, 연이·네오 존댓말, UI 해요체)로 바꿨다. 장소명은 둘 다 살아 있어 개명하지 않았다 — docs·marketing·마크다운 밖 git grep 파일 수: 운명의 찻집 98·꽃빛 상담실 1, 팩폭 전략실 9·별빛 전략실 4.
+  8. design-and-ui 7행 "UI/UX 요청은 항상 impeccable 스킬을 사용" ↔ 프로젝트 설정 user-invocable-only(모델이 못 부름) — 다음 커밋에서 impeccable·audit·critique·polish 를 name-only 로 바꾼다.
+- **승인된 가정**(계획 승인 때 확정): 캐릭터 대사는 그 캐릭터 말투, UI 크롬(버튼·안내·결제·법적 문구)은 해요체, 식별 이모지는 🌸·🦁 만.
+- **뺀 것**: 계획 초안의 "정치 용어 금지"는 커밋된 근거 문서가 없어 정본에 넣지 않았다.
+- **검색 범위**: `__tests__`·`scripts`·`.github` 에서 PRODUCT·DESIGN·design-and-ui·content-assets·design-canon 문장을 단언하는 테스트·검증기는 0건이다(주석 인용뿐). `scripts/measure-mobile-routes.mjs` 4행이 인용하는 design-and-ui 19행(인체공학)은 줄 위치를 유지했다.
+- **롤백**: 이 커밋 하나를 되돌리면 된다.

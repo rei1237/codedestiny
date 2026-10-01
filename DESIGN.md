@@ -327,3 +327,5 @@ App Router 에는 표면 계열이 셋 있고, 서로 대체재가 아니다. �
 | **4. Tailwind `dark:`** | `tailwind.config.js` 에 `darkMode` 키가 **없어** 기본값 `media`(OS 설정) | `dark:` 374건 / 30개 파일 | 축1~3 어느 쪽과도 연동 안 됨. `styles/mobile-bottom-nav.css:344-349` 가 이 불일치를 `body:has(...)` 로 우회 중 |
 
 **새 화면은 축1 위에 짓는다** — 색은 `--cd-*` 토큰으로 받고, `dark:` 유틸리티나 `prefers-color-scheme` 을 새로 들이지 않는다. 축2~4 는 현황 기록이지 따라야 할 본보기가 아니다.
+
+**축 밖의 독립 팔레트 — 영냥이 (2026-10-01 추가).** `app/yeongnyangi/` 와 `/checkout` 은 위 4축 어디와도 연동되지 않는 밤 팔레트 `--yn-*`(`app/yeongnyangi/night-tokens.css`, `.ynOriginal`·`[data-yn-night]` 스코프, `color-scheme: dark`, 스위치 없음)를 쓴다. 영냥이 화면은 축1 이 아니라 이 토큰 위에 짓는다 — 지도는 `docs/context/design-canon.md` §4.

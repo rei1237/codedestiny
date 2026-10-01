@@ -4,9 +4,9 @@
 
 ## Content Assets
 
-- **캐릭터**: "연이(Yeon)" 마스코트 — `components/yeon/` (FloatingCharacter, SpriteFrame, TypewriterBubble 등)
+- **캐릭터**: 상담가 셋 — 영냥이(주인공, `app/yeongnyangi/`, 마스터 이미지 `public/assets/yeongnyangi/original/hero-800.webp`)·연이(꽃돼지, `components/yeon/` YeonSpriteFrame 등)·네오. 정체성·목소리 정본은 [design-canon](design-canon.md)
 - **연이 이미지 자산은 화면별로 용도가 고정되어 있다** — 이름이 비슷하다고 임의로 바꾸지 말 것:
-  - 메인 홈 히어로 상단(`index.html` `.moon-hero__picture--mascot`): 연이 모드=자는 연이(`/fuctionassets/자는 연이.png`), 네오 모드=전략실 네오(R2 `DestinyWar/전략실 네오 메인-Photoroom.png`, `syncHeroMascot`가 테마 전환 시 교체)
+  - 꽃돼지 홈(`/ggulggul/`, 정적 셸 `index.html`) 히어로 상단(`.moon-hero__picture--mascot`): 연이 모드=자는 연이(`/fuctionassets/자는 연이.png`), 네오 모드=전략실 네오(R2 `DestinyWar/전략실 네오 메인-Photoroom.png`, `syncHeroMascot`가 테마 전환 시 교체)
   - 운명 찻집 타로 앨범 히어로(`src/features/fortune-tea-house/components/DestinyCafeTarotAlbum.tsx`의 `TarotAlbumHero`): 연이 스프라이트7(`fortuneTeaHouseAssets.yeoni.transparent.sprite7CharacterR2`)을 크롭+idle 애니메이션으로 표시 — 자는 연이 이미지로 바꾸지 않는다
   - 어떤 화면에 어떤 연이 자산이 맞는지 확실치 않으면 추측해서 교체하지 말고 반드시 먼저 사용자에게 확인한다(코딩 원칙 1번 참고)
 - **음악**: `app/music/` 라우트, 실제 음원은 외부 CDN(`music.code-destiny.com`)에서 서빙 (레포에는 커버아트만 `public/music-covers/`)
@@ -25,4 +25,5 @@
 - 점성술 · 베다 · 수쿠요 **체계를 섞지 않는다.**
 - **연이 / 운명의 찻집**: 따뜻하고 부드러운 편지체.
 - **네오 / 팩폭 전략실**: 직설적인 전략가 톤 — 다만 모욕하지 않는다.
+- **영냥이 / 달빛 점술방**: 반말, 도도하지만 다정한 전문 상담가. 세 상담가의 말투 정본은 상담 프롬프트다([design-canon](design-canon.md) §2).
 - UI/UX 순간에 기존 비주얼이 원하는 감정·캐릭터 정체성·상담 몰입을 못 받쳐 주면, 필요한 원본 자산을 만들어 최적화된 WebP 로 넣는다. 검증된 기존 자산 재사용이 우선이지만, 자산이 없다는 이유만으로 중요한 UX 순간을 비주얼 없이 두지 않는다.
