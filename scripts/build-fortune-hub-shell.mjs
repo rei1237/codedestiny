@@ -218,7 +218,9 @@ ${renderPeriodLinkList(id, allSigns)}
   <meta property="og:url" content="https://code-destiny.com/fortune/">
   <meta property="og:site_name" content="꿀꿀 운세">
   <meta property="og:locale" content="ko_KR">
-  <meta property="og:image" content="https://code-destiny.com/icons/app-logo-512.png">
+  <meta property="og:image" content="https://code-destiny.com/og/code-destiny-og-vvip.png?v=468a9ec52b">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta name="google-adsense-account" content="ca-pub-9863227498729828">
   <link rel="canonical" href="https://code-destiny.com/fortune/">
   <link rel="icon" href="/icons/app-logo-192.png">

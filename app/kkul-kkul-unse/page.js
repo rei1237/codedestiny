@@ -5,7 +5,7 @@ import styles from "../home-cosmic.module.css";
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
-const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba";
+const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=468a9ec52b";
 
 // 브랜드 별칭의 대표 URL 은 홈 "/" 이고 이 페이지는 그 관계를 설명하는 보조 안내다.
 // 그래서 제목도 브랜드 헤드텀 단독이 아니라 "안내" 성격의 질문형으로 둔다 —

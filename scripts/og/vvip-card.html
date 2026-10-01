@@ -246,15 +246,14 @@
       inset 0 8px 18px rgba(255, 255, 255, .6);
   }
 
-  /* 계산: 캐릭터 실체는 원본의 세로 83.5%, 가로 중심이 1.2% 우측.
-     전신이 다 들어오도록 잡고 3px 만 아래로 내려 바닥에 선 느낌을 준다. */
+  /* 영냥이+연이 공동 카메오: 1024x1024 정사각 원본이 원판과 같은 비율이라
+     단순 cover 로 꽉 채운다. */
   .cameo__pig {
     position: absolute;
-    width: 231px;
-    height: 231px;
-    left: -11px;
-    top: -5px;
-    object-fit: contain;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .title {
@@ -496,8 +495,8 @@
         <div class="brand">
           <div class="cameo">
             <div class="cameo__disc">
-              <img class="cameo__pig" alt="연꽃 관을 쓴 꽃돼지 연이"
-                   src="https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.webp">
+              <img class="cameo__pig" alt="보라 마법사 모자를 쓴 영냥이와 연꽃 관을 쓴 꽃돼지 연이가 다정하게 함께 있는 모습"
+                   src="../../public/images/brand/yeongnyangi-yeoni-cameo.png">
             </div>
           </div>
           <div class="title">꿀꿀 운세</div>
