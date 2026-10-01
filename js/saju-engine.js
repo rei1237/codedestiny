@@ -3373,7 +3373,6 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     var gZhi = ZHI_LIST[pi];
     function parseStarRows(list, borrowedByTag){
       return (list || []).map(function(raw){
-        var hasHwaGi = /화기/.test(raw || '');
         var plain = (raw || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
         var borrowedFlag = borrowedByTag ? /\(차성\)|\b차성\b/.test(plain) : false;
         var starName = plain
@@ -3384,23 +3383,9 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
           .trim()
           .split(' ')[0];
         if(!starName) return null;
-        var strength = zwComputeStarStrength(starName, gZhi, borrowedFlag, {
-          hourIndex: hourIdx,
-          lunarMonth: lmonth,
-          yearGan: yearGan,
-          luCunZhiIdx: (luCunZhi !== undefined ? luCunZhi : -1)
-        }) || '평';
-        if (hasHwaGi) {
-          var normalized = zwNormalizeStrength(strength);
-          if (starName === '거문') {
-            // 거문 화기는 현실 리스크를 동반하되, 본래 광휘는 즉시 붕괴시키지 않는다.
-            var downGeomun = {'묘':'묘','득':'득','리':'평','평':'함','함':'함'};
-            strength = downGeomun[normalized] || normalized;
-          } else {
-            var down = {'묘':'리','득':'평','리':'함','평':'함','함':'함'};
-            strength = down[normalized] || normalized;
-          }
-        }
+        // 강약은 별이 앉은 자리의 정본 등급 그대로다. 화기가 붙어도 등급을 내리지 않는다(사화는 따로 읽는다).
+        // 강약을 매기지 않는 별은 ''.
+        var strength = zwComputeStarStrength(starName, gZhi, borrowedFlag);
         var hit = (raw || '').match(/화록|화권|화과|화기/);
         var sihua = hit ? hit[0] : '';
         return {
@@ -16141,383 +16126,71 @@ function renderAstroInsightLegacyNeon() {
 }
 
 /* ─────── 자미두수 12궁 심층 분석 요약 ─────── */
-// 고정 밝기표를 제거하고 별의 위상/오행/시간 기반 계산식으로 밝기를 산출한다.
-var ZW_BRANCH_ELEMENT = {
-  '子':'water','丑':'earth','寅':'wood','卯':'wood','辰':'earth','巳':'fire',
-  '午':'fire','未':'earth','申':'metal','酉':'metal','戌':'earth','亥':'water'
+// 별 강약(廟旺得利平不陷) — 정본 lib/ziwei-star-strength.js starStrength 의 사본(20성 × 12지지, 子=0).
+// 셸은 모듈을 불러올 수 없는 고전 스크립트라 표를 옮겨 둔다. scripts/verify-ziwei-borrowed-star-strength.mjs 가
+// 240칸을 정본과 대조하므로 여기서 고치지 말고 정본을 고친 뒤 다시 옮긴다.
+// 7등급을 접지 않는다(묘≠왕, 불≠평≠함). '' = 그 별이 구조상 앉지 못하는 지지.
+// 표에 없는 별(좌보·우필·녹존·천괴·천월·천마·지공·지겁 등)은 강약을 매기지 않는다 — 글자도 붙이지 않는다.
+// 강약은 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가다(원전 「入庙不加吉，平等」).
+var ZW_STAR_STRENGTH = {
+  '자미':['평','묘','왕','왕','득','왕','묘','묘','왕','왕','득','왕'],
+  '천기':['묘','함','득','왕','왕','평','묘','함','득','왕','리','평'],
+  '태양':['함','불','왕','묘','왕','왕','왕','득','득','평','불','함'],
+  '무곡':['왕','묘','득','리','묘','평','왕','묘','득','리','묘','평'],
+  '천동':['왕','불','리','평','평','묘','함','불','왕','평','평','묘'],
+  '염정':['평','리','묘','평','리','함','평','리','묘','평','리','함'],
+  '천부':['묘','묘','묘','득','묘','득','왕','묘','득','왕','묘','득'],
+  '태음':['묘','묘','왕','함','함','함','불','불','리','왕','왕','묘'],
+  '탐랑':['왕','묘','평','리','묘','함','왕','묘','평','리','묘','함'],
+  '거문':['왕','불','묘','묘','함','왕','왕','불','묘','묘','함','왕'],
+  '천상':['묘','묘','묘','함','득','득','묘','득','묘','함','득','득'],
+  '천량':['묘','왕','묘','묘','묘','함','묘','왕','함','득','묘','함'],
+  '칠살':['왕','묘','묘','왕','묘','평','왕','묘','묘','왕','묘','평'],
+  '파군':['묘','왕','득','함','왕','평','묘','왕','득','함','왕','평'],
+  '문창':['득','묘','함','리','득','묘','함','리','득','묘','함','리'],
+  '문곡':['득','묘','함','왕','득','묘','함','왕','득','묘','함','왕'],
+  '경양':['함','묘','','함','묘','','함','묘','','함','묘',''],
+  '타라':['','묘','함','','묘','함','','묘','함','','묘','함'],
+  '화성':['함','득','묘','리','함','득','묘','리','함','득','묘','리'],
+  '영성':['함','득','묘','리','함','득','묘','리','함','득','묘','리']
 };
-var ZW_BRANCH_YINYANG = {
-  '子':'yang','丑':'yin','寅':'yang','卯':'yin','辰':'yang','巳':'yin',
-  '午':'yang','未':'yin','申':'yang','酉':'yin','戌':'yang','亥':'yin'
-};
-var ZW_ELEMENT_GENERATES = {'wood':'fire','fire':'earth','earth':'metal','metal':'water','water':'wood'};
-var ZW_ELEMENT_CONTROLS = {'wood':'earth','earth':'water','water':'fire','fire':'metal','metal':'wood'};
-var ZW_STAR_PROFILE = {
-  '자미': { element:'earth', yinYang:'yang', phase:4, amp:2.1, bias:0.95 },
-  '천기': { element:'wood', yinYang:'yin', phase:2, amp:2.05, bias:0.85 },
-  '태양': { element:'fire', yinYang:'yang', phase:5, amp:2.2, bias:0.8 },
-  '무곡': { element:'metal', yinYang:'yin', phase:8, amp:2.1, bias:0.2 },
-  '천동': { element:'water', yinYang:'yang', phase:0, amp:2.0, bias:0.3 },
-  '염정': { element:'fire', yinYang:'yin', phase:6, amp:2.0, bias:0.7 },
-  '천부': { element:'earth', yinYang:'yang', phase:2, amp:2.05, bias:0.8 },
-  '태음': { element:'water', yinYang:'yin', phase:10, amp:2.15, bias:0.8 },
-  '탐랑': { element:'wood', yinYang:'yang', phase:6, amp:2.0, bias:0.75 },
-  '거문': { element:'water', yinYang:'yin', phase:9, amp:2.0, bias:0.7 },
-  '천상': { element:'water', yinYang:'yang', phase:3, amp:1.95, bias:0.75 },
-  '천량': { element:'earth', yinYang:'yang', phase:4, amp:1.95, bias:0.75 },
-  '칠살': { element:'metal', yinYang:'yang', phase:7, amp:2.05, bias:0.7 },
-  '파군': { element:'water', yinYang:'yin', phase:10, amp:2.1, bias:0.1 },
-  '좌보': { element:'earth', yinYang:'yang', phase:2, amp:1.55, bias:0.55 },
-  '우필': { element:'earth', yinYang:'yin', phase:8, amp:1.55, bias:0.9 },
-  '문창': { element:'metal', yinYang:'yang', phase:1, amp:1.5, bias:0.5 },
-  '문곡': { element:'water', yinYang:'yin', phase:9, amp:1.5, bias:0.5 },
-  '녹존': { element:'earth', yinYang:'yang', phase:5, amp:1.45, bias:0.55 },
-  '천마': { element:'fire', yinYang:'yang', phase:8, amp:1.55, bias:0.45 },
-  '천괴': { element:'fire', yinYang:'yang', phase:11, amp:1.35, bias:0.55 },
-  '천월': { element:'water', yinYang:'yin', phase:5, amp:1.35, bias:0.55 },
-  '경양': { element:'metal', yinYang:'yang', phase:7, amp:1.45, bias:0.95 },
-  '타라': { element:'earth', yinYang:'yin', phase:3, amp:1.45, bias:0.2 },
-  '화성': { element:'fire', yinYang:'yang', phase:5, amp:1.5, bias:0.2 },
-  '영성': { element:'fire', yinYang:'yin', phase:11, amp:1.5, bias:0.2 },
-  '지공': { element:'metal', yinYang:'yin', phase:10, amp:1.35, bias:0.2 },
-  '지겁': { element:'water', yinYang:'yang', phase:0, amp:1.35, bias:0.2 }
-};
+var ZW_STRENGTH_GRADES = ['묘','왕','득','리','평','불','함'];
+var ZW_STRENGTH_GLYPH = {'묘':'廟','왕':'旺','득':'得','리':'利','평':'平','불':'不','함':'陷'};
 if (typeof window !== 'undefined') {
   window.AstroEngine = AstroEngine;
   window.renderAstroInsightLegacyNeon = renderAstroInsightLegacyNeon;
 }
 
-function zwCircularDistance12(a, b){
-  var d = Math.abs(((a - b) % 12 + 12) % 12);
-  return d > 6 ? 12 - d : d;
-}
 // 맞은편 궁(對宮)의 지지. 차성이 실제로 앉아 있는 자리를 찾을 때 쓴다.
 function zwOppositeZhi(zhi){
   var idx = ZHI_LIST.indexOf(zhi);
   if(idx < 0) return zhi;
   return ZHI_LIST[(idx + 6) % 12];
 }
-function zwElementAffinityScore(starElement, branchElement){
-  if(!starElement || !branchElement) return 0;
-  if(starElement === branchElement) return 0.75;
-  if(ZW_ELEMENT_GENERATES[starElement] === branchElement) return 0.2;
-  if(ZW_ELEMENT_GENERATES[branchElement] === starElement) return 0.3;
-  if(ZW_ELEMENT_CONTROLS[starElement] === branchElement) return -0.85;
-  if(ZW_ELEMENT_CONTROLS[branchElement] === starElement) return -1.0;
-  return 0;
-}
-function zwGetStrengthContext(){
-  var meta = (window._currentZiweiData && window._currentZiweiData.calcMeta) || null;
-  return {
-    hourIndex: meta && typeof meta.hourIndex === 'number' ? meta.hourIndex : 0,
-    lunarMonth: meta && typeof meta.lunarMonth === 'number' ? meta.lunarMonth : 1
-  };
-}
-var ZW_CLASSICAL_STATE = {
-  '자미':{'子':'평','丑':'묘','寅':'왕','卯':'왕','辰':'묘','巳':'평','午':'묘','未':'묘','申':'평','酉':'평','戌':'묘','亥':'평'},
-  '천기':{'子':'평','丑':'함','寅':'왕','卯':'왕','辰':'평','巳':'리','午':'함','未':'평','申':'묘','酉':'왕','戌':'평','亥':'묘'},
-  '태양':{'子':'함','丑':'함','寅':'묘','卯':'묘','辰':'왕','巳':'왕','午':'묘','未':'왕','申':'평','酉':'함','戌':'함','亥':'함'},
-  '무곡':{'子':'묘','丑':'왕','寅':'리','卯':'평','辰':'묘','巳':'평','午':'평','未':'평','申':'왕','酉':'묘','戌':'함','亥':'리'},
-  '천동':{'子':'왕','丑':'함','寅':'평','卯':'묘','辰':'함','巳':'평','午':'함','未':'묘','申':'평','酉':'평','戌':'리','亥':'왕'},
-  '염정':{'子':'평','丑':'평','寅':'묘','卯':'평','辰':'묘','巳':'함','午':'묘','未':'묘','申':'묘','酉':'평','戌':'평','亥':'평'},
-  '천부':{'子':'묘','丑':'묘','寅':'왕','卯':'평','辰':'묘','巳':'평','午':'묘','未':'묘','申':'왕','酉':'평','戌':'묘','亥':'평'},
-  '태음':{'子':'왕','丑':'묘','寅':'한','卯':'평','辰':'함','巳':'함','午':'함','未':'평','申':'평','酉':'묘','戌':'묘','亥':'왕'},
-  '탐랑':{'子':'왕','丑':'평','寅':'묘','卯':'리','辰':'평','巳':'묘','午':'왕','未':'평','申':'묘','酉':'묘','戌':'평','亥':'묘'},
-  '거문':{'子':'왕','丑':'묘','寅':'평','卯':'함','辰':'함','巳':'묘','午':'함','未':'묘','申':'묘','酉':'평','戌':'함','亥':'묘'},
-  '천상':{'子':'묘','丑':'묘','寅':'왕','卯':'평','辰':'왕','巳':'리','午':'묘','未':'묘','申':'왕','酉':'평','戌':'묘','亥':'평'},
-  '천량':{'子':'평','丑':'묘','寅':'묘','卯':'묘','辰':'묘','巳':'평','午':'묘','未':'함','申':'묘','酉':'평','戌':'묘','亥':'함'},
-  '칠살':{'子':'묘','丑':'평','寅':'묘','卯':'평','辰':'왕','巳':'평','午':'묘','未':'왕','申':'묘','酉':'평','戌':'묘','亥':'평'},
-  '파군':{'子':'왕','丑':'함','寅':'묘','卯':'함','辰':'묘','巳':'함','午':'왕','未':'함','申':'함','酉':'함','戌':'묘','亥':'리'},
-  '좌보':{'子':'왕','丑':'묘','寅':'왕','卯':'묘','辰':'묘','巳':'리','午':'왕','未':'묘','申':'왕','酉':'리','戌':'왕','亥':'리'},
-  '우필':{'子':'왕','丑':'묘','寅':'왕','卯':'리','辰':'왕','巳':'리','午':'왕','未':'묘','申':'왕','酉':'리','戌':'묘','亥':'리'},
-  '문창':{'子':'리','丑':'왕','寅':'묘','卯':'왕','辰':'왕','巳':'왕','午':'약','未':'왕','申':'묘','酉':'왕','戌':'리','亥':'왕'},
-  '문곡':{'子':'리','丑':'왕','寅':'묘','卯':'왕','辰':'리','巳':'왕','午':'리','未':'왕','申':'리','酉':'왕','戌':'리','亥':'왕'},
-  '녹존':{'子':'묘','丑':'왕','寅':'리','卯':'왕','辰':'리','巳':'약','午':'왕','未':'왕','申':'리','酉':'왕','戌':'리','亥':'약'},
-  '천괴':{'子':'평','丑':'평','寅':'왕','卯':'평','辰':'평','巳':'평','午':'왕','未':'평','申':'왕','酉':'평','戌':'평','亥':'평'},
-  '천월':{'子':'평','丑':'평','寅':'평','卯':'평','辰':'평','巳':'평','午':'평','未':'리','申':'묘','酉':'리','戌':'평','亥':'평'},
-  '천마':{'子':'왕','丑':'리','寅':'묘','卯':'리','辰':'왕','巳':'리','午':'묘','未':'리','申':'왕','酉':'리','戌':'묘','亥':'리'},
-  '경양':{'子':'약','丑':'리','寅':'왕','卯':'묘','辰':'왕','巳':'리','午':'약','未':'리','申':'왕','酉':'묘','戌':'묘','亥':'리'},
-  '타라':{'子':'약','丑':'약','寅':'리','卯':'왕','辰':'묘','巳':'함','午':'리','未':'약','申':'함','酉':'리','戌':'왕','亥':'약'},
-  '화성':{'子':'약','丑':'왕','寅':'왕','卯':'리','辰':'왕','巳':'리','午':'약','未':'평','申':'왕','酉':'함','戌':'왕','亥':'리'},
-  '영성':{'子':'약','丑':'리','寅':'묘','卯':'묘','辰':'왕','巳':'리','午':'약','未':'리','申':'왕','酉':'함','戌':'왕','亥':'리'},
-  '지공':{'子':'리','丑':'약','寅':'리','卯':'왕','辰':'묘','巳':'묘','午':'리','未':'리','申':'리','酉':'왕','戌':'묘','亥':'왕'},
-  '지겁':{'子':'리','丑':'약','寅':'리','卯':'리','辰':'리','巳':'평','午':'리','未':'약','申':'리','酉':'왕','戌':'묘','亥':'왕'}
-};
+// 7등급 그대로 돌려준다. 모르는 값은 '' — 없는 강약을 만들지 않는다.
 function zwNormalizeStrength(level){
-  var lv = (level || '').trim();
-  if(lv === '묘' || lv === '왕') return '묘';
-  if(lv === '득') return '득';
-  if(lv === '리' || lv === '이') return '리';
-  if(lv === '약') return '리';
-  if(lv === '평' || lv === '한' || lv === '불') return '평';
-  if(lv === '함' || lv === '실') return '함';
-  return '평';
+  var lv = String(level || '').trim();
+  return ZW_STRENGTH_GRADES.indexOf(lv) >= 0 ? lv : '';
+}
+// 강한 순 1(묘)…7(함), 강약 없음 0. 길흉 순서가 아니다.
+function zwStrengthRank(level){
+  return ZW_STRENGTH_GRADES.indexOf(zwNormalizeStrength(level)) + 1;
 }
 function zwStrengthToSymbol(level){
-  var lv = zwNormalizeStrength(level);
-  var map = {'묘':'◎','득':'O','리':'▲','평':'△','함':'X'};
-  return map[lv] || '△';
+  return ZW_STRENGTH_GLYPH[zwNormalizeStrength(level)] || '';
 }
-function zwStrengthToClass(level){
-  var lv = zwNormalizeStrength(level);
-  if(lv === '묘') return 'myo';
-  if(lv === '득') return 'wang';
-  if(lv === '평') return 'han';
-  if(lv === '함') return 'heum';
-  return 'ri';
-}
-// 기호(◎/O/▲/△/X)만으로는 의미를 알기 어려우므로 짧은 한글 설명을 함께 붙인다.
+// 글자만으로는 뜻을 알기 어려워 짧은 풀이를 붙인다. 좋고 나쁨이 아니라 드러나는 정도다.
 function zwStrengthShortMeaning(level){
-  var lv = zwNormalizeStrength(level);
-  if(lv === '묘') return '최상';
-  if(lv === '득') return '득지';
-  if(lv === '평') return '균형';
-  if(lv === '함') return '함몰 주의';
-  return '이로움';
+  var map = {'묘':'가장 또렷','왕':'힘 있게 드러남','득':'무난히 드러남','리':'한 단계 덜함','평':'중간','불':'힘이 약함','함':'막히기 쉬움'};
+  return map[zwNormalizeStrength(level)] || '';
 }
-function zwStrengthStepUp(level, steps){
-  var order = ['함','평','리','득','묘'];
-  var lv = zwNormalizeStrength(level);
-  var idx = order.indexOf(lv);
-  if(idx < 0) idx = 2;
-  var n = Number(steps) || 1;
-  while(n-- > 0 && idx < order.length - 1) idx++;
-  return order[idx];
-}
-function zwStrengthStepDown(level, steps){
-  var order = ['함','평','리','득','묘'];
-  var lv = zwNormalizeStrength(level);
-  var idx = order.indexOf(lv);
-  if(idx < 0) idx = 2;
-  var n = Number(steps) || 1;
-  while(n-- > 0 && idx > 0) idx--;
-  return order[idx];
-}
-function zwStrengthToNumeric(level){
-  var lv = zwNormalizeStrength(level);
-  if(lv === '함') return 0;
-  if(lv === '평') return 1;
-  if(lv === '리') return 2;
-  if(lv === '득') return 3;
-  return 4; // 묘
-}
-function zwNumericToStrength(v){
-  if(v >= 3.5) return '묘';
-  if(v >= 2.5) return '득';
-  if(v >= 1.5) return '리';
-  if(v >= 0.5) return '평';
-  return '함';
-}
-function zwBuildHarmonicProfile(){
-  var out = {};
-  var N = 12;
-  var PI2 = Math.PI * 2;
-  Object.keys(ZW_CLASSICAL_STATE || {}).forEach(function(star){
-    var sm = ZW_CLASSICAL_STATE[star] || {};
-    var y = ZHI_LIST.map(function(z){ return zwStrengthToNumeric(sm[z] || '평'); });
-    var a0 = 0;
-    for(var n=0; n<N; n++) a0 += y[n];
-    a0 /= N;
-    var ak = [];
-    var bk = [];
-    for(var k=1; k<=6; k++){
-      var sa = 0, sb = 0;
-      for(var i=0; i<N; i++){
-        var th = PI2 * k * i / N;
-        sa += y[i] * Math.cos(th);
-        sb += y[i] * Math.sin(th);
-      }
-      ak[k] = (2 / N) * sa;
-      bk[k] = (k === 6) ? 0 : ((2 / N) * sb);
-    }
-    out[star] = { a0:a0, ak:ak, bk:bk };
-  });
-  return out;
-}
-function zwEvalHarmonic(profile, branchIdx){
-  if(!profile) return 2;
-  var N = 12;
-  var PI2 = Math.PI * 2;
-  var x = profile.a0;
-  for(var k=1; k<=6; k++){
-    var th = PI2 * k * branchIdx / N;
-    x += (profile.ak[k] || 0) * Math.cos(th);
-    if(k !== 6) x += (profile.bk[k] || 0) * Math.sin(th);
-  }
-  return x;
-}
-var ZW_HARMONIC_PROFILE = zwBuildHarmonicProfile();
-var ZW_BRIGHTNESS_CFG = {
-  distSlope: 0.34,
-  spatialGain: 0.12,
-  elemGain: 0.32,
-  classicalBlend: 0.36,
-  yinYangMatch: 0.12,
-  yinYangMismatch: -0.05,
-  monthAmp: 0.12,
-  hourAmp: 0.10,
-  polMatch: 0.08,
-  polMismatch: -0.03,
-  beneficAdj: 0.10,
-  maleficAdj: -0.14,
-  biasGain: 0.08,
-  yangNear1: 1.18,
-  yangNear0: 0.08,
-  yangNear2: 0.42,
-  yangNear3: 0.12,
-  yangFar4: -0.20,
-  yangEarthBoost: 0.22,
-  yangMetalBoost: 0.12,
-  yangEarthYinNearBoost: 2.85,
-  yangYearPolarityBoost: 0.10,
-  yangYearPolarityPenalty: -0.06,
-  horseSummerPenalty: -0.70,
-  horseColdBoost: 0.20,
-  tuoNear1: -0.55,
-  tuoNear0: -0.32,
-  tuoFar4: -0.35,
-  kongGood: 0.45,
-  kongBad: -0.25,
-  jieBad: -0.32,
-  jieGood: 0.15,
-  fireLingGood: 0.28,
-  fireLingBad: -0.32
-};
-var ZW_BRIGHTNESS_STAR_BIAS = {};
-var ZW_BRIGHTNESS_BRANCH_BIAS = {
-  '子':0,'丑':0,'寅':0,'卯':0,'辰':0,'巳':0,
-  '午':0,'未':0,'申':0,'酉':0,'戌':0,'亥':0
-};
-var ZW_BRIGHTNESS_INTERACTION_BIAS = {};
-function zwComputeBrightnessScore(starName, zhi, ctxOverride){
-  var profile = ZW_STAR_PROFILE[starName];
-  var zhiIdx = ZHI_LIST.indexOf(zhi);
-  if(!profile || zhiIdx < 0) return null;
-
-  var ctx = ctxOverride || zwGetStrengthContext();
-  var cfg = ZW_BRIGHTNESS_CFG;
-  var harmonic = zwEvalHarmonic(ZW_HARMONIC_PROFILE[starName], zhiIdx);
-  var dist = zwCircularDistance12(zhiIdx, profile.phase);
-  var spatial = (profile.amp - (dist * cfg.distSlope)) * cfg.spatialGain;
-  var elem = zwElementAffinityScore(profile.element, ZW_BRANCH_ELEMENT[zhi]);
-  var yinYangFit = (profile.yinYang && ZW_BRANCH_YINYANG[zhi] && profile.yinYang === ZW_BRANCH_YINYANG[zhi]) ? cfg.yinYangMatch : cfg.yinYangMismatch;
-
-  var hourIdx = (ctx && typeof ctx.hourIndex === 'number') ? ctx.hourIndex : 0;
-  var lunarMonth = (ctx && typeof ctx.lunarMonth === 'number') ? ctx.lunarMonth : 1;
-  var yearGan = (ctx && typeof ctx.yearGan === 'string') ? ctx.yearGan : '';
-  var luIdx = (ctx && typeof ctx.luCunZhiIdx === 'number') ? ctx.luCunZhiIdx : -1;
-  var seasonalAdj = 0;
-
-  var monthRes = Math.cos((((lunarMonth - 1) - profile.phase + 12) % 12) * Math.PI / 6) * cfg.monthAmp;
-  var hourRes = Math.sin(((hourIdx - profile.phase + 12) % 12) * Math.PI / 6) * cfg.hourAmp;
-
-  var ganPol = {'甲':'yang','乙':'yin','丙':'yang','丁':'yin','戊':'yang','己':'yin','庚':'yang','辛':'yin','壬':'yang','癸':'yin'};
-  var polAdj = (yearGan && profile.yinYang && ganPol[yearGan] === profile.yinYang) ? cfg.polMatch : cfg.polMismatch;
-
-  var beneficSet = {'자미':1,'천부':1,'천량':1,'천상':1,'좌보':1,'우필':1,'문창':1,'문곡':1,'천괴':1,'천월':1,'녹존':1};
-  var maleficSet = {'경양':1,'타라':1,'화성':1,'영성':1,'지공':1,'지겁':1};
-  var familyAdj = 0;
-  if(beneficSet[starName]) familyAdj += cfg.beneficAdj;
-  if(maleficSet[starName]) familyAdj += cfg.maleficAdj;
-
-  var yangTuoAdj = 0;
-  if(luIdx >= 0 && (starName === '경양' || starName === '타라')) {
-    var d = zwCircularDistance12(zhiIdx, luIdx);
-    if(starName === '경양') {
-      if(d === 1) yangTuoAdj += cfg.yangNear1;
-      else if(d === 0) yangTuoAdj += cfg.yangNear0;
-      else if(d === 2) yangTuoAdj += cfg.yangNear2;
-      else if(d === 3) yangTuoAdj += cfg.yangNear3;
-      else if(d >= 4) yangTuoAdj += cfg.yangFar4;
-
-      var branchEl = ZW_BRANCH_ELEMENT[zhi] || '';
-      if(branchEl === 'earth') yangTuoAdj += cfg.yangEarthBoost;
-      else if(branchEl === 'metal') yangTuoAdj += cfg.yangMetalBoost;
-
-      if(d === 1 && branchEl === 'earth' && ZW_BRANCH_YINYANG[zhi] === 'yin') {
-        yangTuoAdj += cfg.yangEarthYinNearBoost;
-      }
-
-      if(yearGan && ganPol[yearGan] && ZW_BRANCH_YINYANG[zhi]) {
-        if(ganPol[yearGan] === ZW_BRANCH_YINYANG[zhi]) yangTuoAdj += cfg.yangYearPolarityBoost;
-        else yangTuoAdj += cfg.yangYearPolarityPenalty;
-      }
-    } else {
-      if(d === 1) yangTuoAdj += cfg.tuoNear1;
-      else if(d === 0) yangTuoAdj += cfg.tuoNear0;
-      else if(d >= 4) yangTuoAdj += cfg.tuoFar4;
-    }
-  }
-
-  var shaAdj = 0;
-  if(starName === '지공') {
-    if(zhi === '巳' || zhi === '酉' || zhi === '亥') shaAdj += cfg.kongGood;
-    if(zhi === '卯' || zhi === '未') shaAdj += cfg.kongBad;
-  } else if(starName === '지겁') {
-    if(zhi === '巳' || zhi === '酉') shaAdj += cfg.jieBad;
-    if(zhi === '子' || zhi === '辰') shaAdj += cfg.jieGood;
-  } else if(starName === '화성' || starName === '영성') {
-    if(zhi === '辰' || zhi === '戌') shaAdj += cfg.fireLingGood;
-    if(zhi === '酉') shaAdj += cfg.fireLingBad;
-  }
-
-  if(starName === '천마') {
-    if(lunarMonth >= 6 && lunarMonth <= 8) seasonalAdj += cfg.horseSummerPenalty;
-    if(lunarMonth >= 11 || lunarMonth <= 2) seasonalAdj += cfg.horseColdBoost;
-  }
-
-  var starBias = (ZW_BRIGHTNESS_STAR_BIAS[starName] || 0);
-  var branchBias = (ZW_BRIGHTNESS_BRANCH_BIAS[zhi] || 0);
-  var interKey = starName + '|' + zhi;
-  var interBias = (ZW_BRIGHTNESS_INTERACTION_BIAS[interKey] || 0);
-  var modelScore = harmonic + spatial + (elem * cfg.elemGain) + yinYangFit + monthRes + hourRes + polAdj + familyAdj + yangTuoAdj + shaAdj + seasonalAdj + ((profile.bias || 0) * cfg.biasGain) + starBias + branchBias + interBias;
-  var classicalRaw = (ZW_CLASSICAL_STATE[starName] && ZW_CLASSICAL_STATE[starName][zhi]) || '평';
-  var classicalScore = zwStrengthToNumeric(classicalRaw);
-  var blend = (typeof cfg.classicalBlend === 'number') ? Math.max(0, Math.min(1, cfg.classicalBlend)) : 0;
-  return (modelScore * (1 - blend)) + (classicalScore * blend);
-}
-
-// Star|Branch 일반 보정치 (케이스 고정값이 아닌 규칙 기반 캘리브레이션)
-ZW_BRIGHTNESS_INTERACTION_BIAS = {
-  '자미|酉': -1.15,
-  '탐랑|酉': -3.88,
-  '거문|戌': 5.00,
-  '천상|亥': -1.05,
-  '천량|子': 1.33,
-  '염정|丑': 0.98,
-  '칠살|丑': 3.18,
-  '무곡|巳': -1.05,
-  '파군|巳': 4.08,
-  '천기|申': -3.88,
-  '태음|申': -0.95,
-  '천량|巳': -1.94,
-  '자미|辰': -6.68,
-  '거문|卯': 7.00,
-  '탐랑|寅': -4.54,
-  '천마|亥': 0.90,
-  '파군|申': -1.00,
-  '우필|子': 0.30,
-  '천괴|子': 0.45,
-  '좌보|寅': 0.35,
-  '천량|卯': 0.15,
-  '천마|巳': 0.45
-};
-// 차성(借星)은 빌려 온 별이라 원성이 가진 힘의 70%로 읽는다.
-var ZW_BORROWED_STAR_RATIO = 0.7;
-function zwComputeStarStrength(starName, zhi, isBorrowed, ctxOverride){
-  // 🔴 차성은 빈 궁이 아니라 **대궁(맞은편)에 실제로 앉아 있다.** 빌려 온 자리의 지지로 밝기를
-  // 재면 지지 거리가 항상 6(최대 충)이라 zwComputeBrightnessScore 의 거리항이 최소가 되고,
-  // 고전표(ZW_CLASSICAL_STATE)도 충 방향에서 대체로 반대 등급이라(태양 午=묘 / 子=함)
-  // 등급이 통째로 뒤집힌다 — 실측 2026-08-29: 원성 묘 78건 중 31건이 화면에 함(X)으로,
-  // 원성 함 40건 중 15건이 오히려 득(O)으로 나왔다. 반드시 별이 실제로 앉은 자리에서 잰다.
-  var seatZhi = isBorrowed ? zwOppositeZhi(zhi) : zhi;
-  var score = zwComputeBrightnessScore(starName, seatZhi, ctxOverride);
-  if(score == null) return null;
-  if(!isBorrowed) return zwNumericToStrength(score);
-  // 등급을 한 칸 내리던 예전 방식(down 맵)은 '평'을 '함'으로 떨어뜨려, 평범한 별까지 함몰로
-  // 보이게 만들었다. 등급이 아니라 점수를 70%로 환산한 뒤 다시 등급으로 되돌린다.
-  var clamped = Math.max(0, Math.min(4, score));
-  return zwNumericToStrength(clamped * ZW_BORROWED_STAR_RATIO);
+function zwComputeStarStrength(starName, zhi, isBorrowed){
+  // 🔴 차성은 빈 궁이 아니라 대궁(맞은편)에 실제로 앉아 있다 — 별이 앉은 자리의 등급을 그대로 읽는다.
+  //    빌려 왔다고 깎지 않는다. 옛 점수 모델·차성 ×0.7 환산·화기 강등은 원전에 없는 규칙이라 걷어 냈다.
+  var row = ZW_STAR_STRENGTH[String(starName || '').trim()];
+  if(!row) return '';
+  var idx = ZHI_LIST.indexOf(isBorrowed ? zwOppositeZhi(zhi) : zhi);
+  return idx < 0 ? '' : (row[idx] || '');
 }
 var ZW_GUNG_DEF={
   '명궁':'선천 자아·기질·운명의 뿌리',
@@ -16565,20 +16238,10 @@ function buildZwSummaryTableHtml(palace) {
   var isCompactView = (typeof window !== 'undefined' && window.matchMedia)
     ? window.matchMedia('(max-width: 980px)').matches
     : false;
-  function parseBrSymbol(rawStr){
-    var plain=(rawStr||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
-    if(/◎/.test(plain)) return '묘';
-    if(/(^|\s)(O|○)(?=\s|$)/.test(plain)) return '득';
-    if(/▲/.test(plain)) return '리';
-    if(/△/.test(plain)) return '평';
-    if(/(^|\s)X(?=\s|$)/.test(plain)) return '함';
-    return '';
-  }
   function parseMainStar(rawStr){
     var plain=(rawStr||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
     var isBorrowed=/\(차성\)|\b차성\b/.test(plain);
     var sihua=getSihua(plain);
-    var brHint=parseBrSymbol(plain);
     var name=plain
       .replace(/\(차성\)/g,'')
       .replace(/화록|화권|화과|화기/g,'')
@@ -16586,7 +16249,7 @@ function buildZwSummaryTableHtml(palace) {
       .replace(/(^|\s)[O○X](?=\s|$)/g,' ')
       .trim()
       .split(' ')[0];
-    return { name:name||'', isBorrowed:isBorrowed, sihua:sihua, brHint:brHint };
+    return { name:name||'', isBorrowed:isBorrowed, sihua:sihua };
   }
   function getCleanStarName(rawStr){
     return (rawStr||'')
@@ -16598,35 +16261,19 @@ function buildZwSummaryTableHtml(palace) {
       .split(' ')[0];
   }
   function getSihua(rawStr){var m=(rawStr||'').match(/화록|화권|화과|화기/);return m?m[0]:null;}
-  function getEffectiveBr(sn,z,isBorrowed,brHint){
-    var b=zwNormalizeStrength(brHint || zwComputeStarStrength(sn,z,isBorrowed) || '평');
-    return b;
+  function getEffectiveBr(sn,z,isBorrowed){
+    return zwComputeStarStrength(sn,z,isBorrowed);
   }
-  function getBrTag(b,isBorrowed){
-    var c={'묘':'#4ade80','득':'#60a5fa','리':'#f59e0b','평':'#94a3b8','함':'#f87171'};
-    var bg={'묘':'rgba(74,222,128,0.15)','득':'rgba(96,165,250,0.15)','리':'rgba(245,158,11,0.15)','평':'rgba(148,163,184,0.1)','함':'rgba(248,113,113,0.15)'};
-    var label=zwStrengthToSymbol(b)+(isBorrowed?'*':'');
-    return '<span style="color:'+c[b]+';background:'+bg[b]+';padding:1px 5px;border-radius:3px;font-size:0.68rem;font-weight:700">'+label+'</span>';
+  // 등급은 글자(廟…陷)로 구분한다. 색으로 좋고 나쁨을 나타내지 않는다. 강약 없는 별은 표기 없음.
+  function getBrTag(b){
+    var label=zwStrengthToSymbol(b);
+    if(!label) return '';
+    return '<span title="'+zwStrengthShortMeaning(b)+'" style="color:#fde68a;background:rgba(253,230,138,0.12);padding:1px 5px;border-radius:3px;font-size:0.72rem;font-weight:700;margin-left:3px">'+label+'</span>';
   }
+  // 궁의 강약은 첫 주성의 등급 그대로 읽는다. 여러 별을 평균하지 않는다(등급은 점수가 아니다).
   function calcStrengthTier(mainMeta,zhi){
-    if(!mainMeta || !mainMeta.length) return '리';
-    // 사용자 기준: ◎(묘) > O(득) > ▲(리) > △(평) > X(함·실)
-    var scoreMap={묘:5,득:4,리:3,평:2,함:1};
-    var weight=[1,0.72,0.56,0.44];
-    var sum=0, wsum=0;
-    for(var i=0;i<mainMeta.length && i<4;i++){
-      var m=mainMeta[i];
-      var b=getEffectiveBr(m.name,zhi,m.isBorrowed,m.brHint);
-      var w=weight[i] || 0.35;
-      sum += (scoreMap[b] || 2) * w;
-      wsum += w;
-    }
-    var avg = wsum ? (sum/wsum) : 3;
-    if(avg>=4.4) return '묘';
-    if(avg>=3.6) return '득';
-    if(avg>=2.8) return '리';
-    if(avg>=1.8) return '평';
-    return '함';
+    if(!mainMeta || !mainMeta.length) return '';
+    return getEffectiveBr(mainMeta[0].name,zhi,mainMeta[0].isBorrowed);
   }
   function genSummary(gungName,mainMeta,zhi,sh,auxStars){
     var gungDef = zwGungDef(gungName) || gungName;
@@ -16641,10 +16288,11 @@ function buildZwSummaryTableHtml(palace) {
     var star=mainMeta[0].name;
     var kw=ZW_STAR_KW[star]||star;
     var tier=calcStrengthTier(mainMeta,zhi);
-    var tierText={묘:'매우 강하게 작동',득:'안정적으로 힘을 얻음',리:'이롭게 활용 가능',평:'균형 관리 필요',함:'제약이 큰 상태'}[tier]||'작동';
+    var tierText={묘:'성질이 가장 또렷하게 드러나는 자리',왕:'성질이 힘 있게 드러나는 자리',득:'자리를 얻어 무난히 드러나는 자리',리:'힘이 한 단계 덜하게 드러나는 자리',평:'함께 앉은 별·사화의 영향을 크게 받는 중간 자리',불:'자리를 얻지 못해 힘이 약한 자리',함:'성질이 막히거나 비틀려 드러나기 쉬운 자리'}[tier]||'';
     var isDual=(mainMeta.length>1);
     var secondary=isDual ? (ZW_STAR_KW[mainMeta[1].name]||mainMeta[1].name) : '';
-    var mainLine = kw + (isDual ? (' · ' + secondary) : '') + '가 중심축이 되어, ' + tierText + '합니다.';
+    var mainLine = kw + (isDual ? (' · ' + secondary) : '') + '가 중심축이 됩니다.'
+      + (tierText ? (' 주성 ' + star + (((star.charCodeAt(star.length - 1) - 0xAC00) % 28) ? '은 ' : '는 ') + tierText + '(' + zwStrengthToSymbol(tier) + ')에 앉아 있습니다.') : '');
     var supportLine = supportAux.length
       ? ('보조성 ' + supportAux.slice(0, 2).join(' · ') + '가 완충막이 되어 흐름을 매끈하게 받쳐 줍니다.')
       : '보조성 직접 후원은 약하지만, 주성의 방향을 분명히 세우면 결과가 흔들리지 않습니다.';
@@ -16653,8 +16301,9 @@ function buildZwSummaryTableHtml(palace) {
     else if (sh === '화록') contextText = '회수와 연결이 빠르게 붙는 시기라, 작은 기회도 기록해 두는 편이 좋습니다.';
     else if (sh === '화권') contextText = '주도권과 실행력이 살아나지만, 독주보다 역할 분담이 더 큰 성과를 만듭니다.';
     else if (sh === '화과') contextText = '평판·평가·정돈된 결과물에서 강점이 드러납니다.';
-    else if (tier === '묘' || tier === '득') contextText = '추진력이 잘 붙는 구간이라, 중요한 일은 직접 밀어붙이는 편이 유리합니다.';
-    else if (tier === '평' || tier === '함') contextText = '에너지 소모가 큰 편이므로, 확장보다 복구와 정리를 먼저 두는 편이 안전합니다.';
+    else if (tier === '묘' || tier === '왕' || tier === '득') contextText = '주성의 성질이 또렷하게 드러나는 자리라, 중요한 일은 주성의 방식대로 직접 풀어 갈 때 결과가 분명합니다.';
+    else if (tier === '불' || tier === '함') contextText = '주성의 성질이 그대로 드러나기 어려운 자리라, 함께 앉은 별·사화·맞은편 궁에서 보완 조건을 먼저 확인하는 편이 안전합니다.';
+    else if (tier === '평') contextText = '함께 앉은 별과 사화에 따라 드러나는 모습이 크게 달라지니, 같은 궁의 보조성과 맞은편 궁을 함께 보는 편이 정확합니다.';
     else contextText = '현재 흐름을 안정적으로 유지하면서 다음 타이밍을 준비하는 것이 효율적입니다.';
     var contextLine = '이 궁은 ' + gungDef + '의 규칙을 따르므로, ' + contextText;
     return mainLine + ' ' + supportLine + ' ' + contextLine;
@@ -16678,8 +16327,8 @@ function buildZwSummaryTableHtml(palace) {
     var starsDisp='';
     if(mainMeta.length){
       starsDisp=mainMeta.map(function(m){
-        var b2=getEffectiveBr(m.name,zhi,m.isBorrowed,m.brHint);
-        var text=m.name+getBrTag(b2,m.isBorrowed);
+        var b2=getEffectiveBr(m.name,zhi,m.isBorrowed);
+        var text=m.name+getBrTag(b2);
         if(m.isBorrowed) text+='<span style="color:#facc15;font-weight:800;font-size:0.67rem;margin-left:3px">차성</span>';
         var sh3=m.sihua;
         if(sh3) text+='<span style="color:'+ZW_SIHUA_COLOR[sh3]+';font-weight:900;font-size:0.68rem;margin-left:2px">'+ZW_SIHUA_LABEL[sh3]+'</span>';
@@ -16715,9 +16364,9 @@ function buildZwSummaryTableHtml(palace) {
     });
   }
 
-  var legendHtml = '<div class="zw-summary-legend" style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap">'
-    +'<span>밝기: <b style="color:#4ade80">◎(묘)</b>=최상 · <b style="color:#60a5fa">O(득)</b>=득지 · <b style="color:#f59e0b">▲(리)</b>=이로움 · <b style="color:#94a3b8">△(평)</b>=균형 · <b style="color:#f87171">X(함·실)</b>=함몰</span>'
-    +'<span><b>*</b> 표시는 차성(借星) 보정 밝기이며 원성 밝기의 70%로 환산</span>'
+  var legendHtml = '<div class="zw-summary-legend" style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap;word-break:keep-all">'
+    +'<span>강약: <b style="color:#fde68a;letter-spacing:.12em">廟 旺 得 利 平 不 陷</b> — 왼쪽일수록 별의 성질이 또렷한 자리 · 길흉 아님 · 글자 없는 별은 강약을 매기지 않음</span>'
+    +'<span>차성(借星)은 맞은편 궁에 실제로 앉은 자리의 강약을 그대로 적음</span>'
     +'<span>사화: <b style="color:#4ade80">화록▲</b>=재물·인연 · <b style="color:#60a5fa">화권▲</b>=권위 · <b style="color:#c084fc">화과▲</b>=명성 · <b style="color:#f87171">화기▼</b>=주의</span>'
     +'</div>';
   var focusRows = ['명궁','관록궁','재백궁','부부궁'].map(function(name) {
@@ -16772,7 +16421,7 @@ function buildZwSummaryTableHtml(palace) {
       +'<div class="zw-summary-table-wrap" style="overflow-x:auto"><table class="zw-summary-table" style="width:100%;border-collapse:collapse;min-width:540px">'
       +'<thead><tr style="background:rgba(88,28,220,0.3)">'
       +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem;white-space:nowrap">궁(宮) · 정의</th>'
-      +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">주성(밝기)</th>'
+      +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">주성(강약)</th>'
       +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem;white-space:nowrap">보조성</th>'
       +'<th style="padding:8px 10px;text-align:left;color:#c084fc;font-size:0.74rem">한줄 해석</th>'
       +'</tr></thead>'
@@ -17059,12 +16708,15 @@ var ZW_PALACE_DEEP_FRAME = {
   '복덕궁': { q: '내 마음은 무엇으로 채워지는가',                   field: 'self',   label: '내면 발현' },
   '부모궁': { q: '윗사람·문서 인연은 어떻게 작동하는가',            field: 'people', label: '후원 발현' }
 };
+// 강약은 길흉이 아니라 그 별의 성질이 얼마나 또렷하게 드러나는가다. 7등급을 접지 않는다.
 var ZW_BR_DEEP_PHRASE = {
-  '묘': '지금 배치에서 이 별은 가장 밝은 상태(묘)라, 장점이 그대로 실력이 됩니다.',
-  '득': '힘을 얻은 상태(득지)라 장점이 안정적으로 발현됩니다.',
-  '리': '이로운 자리(리)여서, 방향만 맞추면 충분히 힘을 냅니다.',
-  '평': '평탄한 상태(평)라 과신도 비관도 금물 — 꾸준함이 성패를 가릅니다.',
-  '함': '빛이 약해진 상태(함)여서 장점보다 그림자가 먼저 나오기 쉽습니다. 주의점을 먼저 읽으세요.'
+  '묘': '이 자리에서 별의 성질이 가장 또렷하고 안정적으로 드러납니다(廟). 장점과 습관이 모두 선명하게 보입니다.',
+  '왕': '이 자리에서 별의 성질이 힘 있게 드러납니다(旺). 별이 가진 방식이 그대로 행동으로 이어지기 쉽습니다.',
+  '득': '자리를 얻어 별의 성질이 무난히 드러납니다(得). 장점이 안정적으로 발현됩니다.',
+  '리': '쓸 만하지만 힘이 한 단계 덜한 자리입니다(利). 방향만 맞추면 충분히 힘을 냅니다.',
+  '평': '중간 자리입니다(平). 함께 앉은 별·사화·맞은편 궁에 따라 드러나는 모습이 크게 달라집니다.',
+  '불': '자리를 얻지 못해 힘이 약합니다(不). 별의 장점이 저절로 드러나지 않으니 보완 조건을 함께 보세요.',
+  '함': '별의 성질이 막히거나 비틀려 드러나기 쉬운 자리입니다(陷). 장점보다 그림자가 먼저 나오기 쉬우니 주의점을 먼저 읽으세요.'
 };
 var ZW_AUX_STAR_EFFECT = {
   '천괴': '어려울 때 손을 내미는 윗사람·남성 귀인의 도움이 붙습니다',
@@ -17150,10 +16802,11 @@ function zwDeepStarNames(entry) {
   });
   return names;
 }
+// 등급은 글자로만 구분한다(색으로 좋고 나쁨을 나타내지 않는다). 강약 없는 별은 표기 없음.
 function zwDeepBrTag(strength) {
-  var c = { '묘':'#4ade80','득':'#60a5fa','리':'#f59e0b','평':'#94a3b8','함':'#f87171' };
-  var b = c[strength] ? strength : '평';
-  return '<span style="color:'+c[b]+';border:1px solid '+c[b]+'44;border-radius:999px;padding:1px 7px;font-size:0.68rem;font-weight:800;">'+b+'</span>';
+  var glyph = zwStrengthToSymbol(strength);
+  if (!glyph) return '';
+  return '<span title="'+zwStrengthShortMeaning(strength)+'" style="color:#fde68a;border:1px solid rgba(253,230,138,0.35);border-radius:999px;padding:1px 7px;font-size:0.72rem;font-weight:800;">'+glyph+'</span>';
 }
 function zwDeepCardShell(icon, title, sub, bodyHtml, accent, open) {
   var color = accent || '#c4b5fd';
@@ -17193,7 +16846,7 @@ function buildZwTwelvePalaceDeepHtml(pd) {
       if (mains.length) {
         mains.slice(0, 2).forEach(function(st){
           var prof = zwStarProfile(st.name);
-          var brPhrase = ZW_BR_DEEP_PHRASE[st.strength] || ZW_BR_DEEP_PHRASE['평'];
+          var brPhrase = ZW_BR_DEEP_PHRASE[st.strength] || '';
           body += '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(196,181,253,0.18);border-radius:10px;padding:10px 11px;margin-bottom:8px;">'
             +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">'
               +'<b style="color:#fde68a;font-size:0.88rem;">'+zwDeepEsc(st.name)+'</b>'
@@ -17203,8 +16856,8 @@ function buildZwTwelvePalaceDeepHtml(pd) {
             +'</div>'
             +'<div style="margin-bottom:4px;"><b style="color:#c4b5fd;">'+zwDeepEsc(frame.label)+':</b> '+zwDeepEsc(prof[frame.field])+'</div>'
             +'<div style="color:#94a3b8;font-size:0.78rem;">'+zwDeepEsc(brPhrase)
-            +(st.borrowed ? ' 차성은 원성이 가진 힘의 70% 수준으로 읽습니다.' : '')+'</div>'
-            +(st.strength === '함' || st.strength === '평'
+            +(st.borrowed ? ' 차성은 맞은편 궁에 실제로 앉은 자리의 강약으로 읽습니다.' : '')+'</div>'
+            +(st.strength === '함' || st.strength === '불' || st.strength === '평'
               ? '<div style="color:#fca5a5;font-size:0.78rem;margin-top:4px;"><b>그림자:</b> '+zwDeepEsc(prof.shadow)+'</div>'
               : '')
           +'</div>';
@@ -17265,13 +16918,13 @@ function buildZwTwelvePalaceDeepHtml(pd) {
         +'<b>실전 조언:</b> '+zwDeepEsc(adviceProf ? adviceProf.advice : '이 궁의 결정은 혼자 정하지 말고, 신뢰하는 한 사람의 의견을 거쳐 확정하세요. 공궁 축은 검증 절차가 곧 힘입니다.')
       +'</div>';
       var chipStars = mains.length
-        ? mains.map(function(s){ return zwDeepEsc(s.name)+'('+zwDeepEsc(s.strength)+')'; }).join(' · ')
+        ? mains.map(function(s){ var g = zwStrengthToSymbol(s.strength); return zwDeepEsc(s.name)+(g ? '('+g+')' : ''); }).join(' · ')
         : '공궁';
       cards += zwDeepCardShell(ZW_PALACE_ICON[pName] || '◆', zwDisplayPalaceName(pName), chipStars, body, pName === '명궁' ? '#fde68a' : '#c4b5fd', pName === '명궁');
     }
     if (!cards) return '';
     return '<div data-cd-marker="ziwei-12palace-deep-v20260711" style="padding:12px 12px 6px;border-top:1px solid rgba(139,92,246,0.25);">'
-      + zwDeepSectionHead('12궁 정밀 해설 — 궁별 심층 리딩', '위 요약 지도의 근거를 궁마다 펼쳐 설명합니다. 각 카드는 주성의 본질과 밝기(묘·득·리·평·함), 보조성·흉성, 사화, 삼방사정을 겹쳐 읽은 결과입니다.', '#6ee7b7')
+      + zwDeepSectionHead('12궁 정밀 해설 — 궁별 심층 리딩', '위 요약 지도의 근거를 궁마다 펼쳐 설명합니다. 각 카드는 주성의 본질과 강약(廟·旺·得·利·平·不·陷), 보조성·흉성, 사화, 삼방사정을 겹쳐 읽은 결과입니다.', '#6ee7b7')
       + cards
       + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:8px 2px 6px;">읽는 순서 팁: 명궁 → 관록궁 → 재백궁 → 부부궁을 먼저 읽고, 나머지 궁은 지금 고민과 닿는 곳부터 여세요. 같은 별도 궁과 밝기에 따라 전혀 다르게 작동합니다.</div>'
     +'</div>';
@@ -18346,12 +17999,7 @@ function renderZiwei(p, natal, targetId) {
       white-space: normal;
     }
     .zw-star-main-borrowed { font-size: clamp(9px, 0.82vw, 12px); font-weight: 700; color: #d6d3d1; text-shadow: none; opacity: 0.9; line-height: 1.25; word-break: keep-all; overflow-wrap: anywhere; white-space: normal; }
-    .zw-star-strength { font-size: 0.72rem; font-weight: 900; margin-left: 4px; letter-spacing: 0.02em; }
-    .zw-star-strength.myo { color: #4ade80; }
-    .zw-star-strength.wang { color: #60a5fa; }
-    .zw-star-strength.ri { color: #94a3b8; }
-    .zw-star-strength.han { color: #f59e0b; }
-    .zw-star-strength.heum { color: #f87171; }
+    .zw-star-strength { font-size: 0.72rem; font-weight: 900; margin-left: 4px; letter-spacing: 0.02em; color: #fde68a; }
     .zw-star-strength-label { font-size: 0.6rem; font-weight: 700; opacity: 0.78; margin-left: 1px; color: #cbd5e1; }
     .zw-star-aux, .zw-star-bad {
       width: 100%;
@@ -20865,7 +20513,15 @@ function renderZiwei(p, natal, targetId) {
     return { name: name || '', borrowed: borrowed, sihua: sihua };
   }
   function _zwGetEffectiveBr(name, zhi, borrowed){
-    return zwComputeStarStrength(name, zhi, borrowed) || '평';
+    return zwComputeStarStrength(name, zhi, borrowed);
+  }
+  // 별 옆 강약 글자(廟…陷) + 한 글자 등급명. 강약을 매기지 않는 별은 빈 문자열.
+  // 격자 칸이 좁아 풀이 문장을 붙이면 한 자씩 줄바꿈된다 — 풀이는 title 로만 둔다.
+  function _zwStrengthBadgeHtml(br){
+    var symbol = zwStrengthToSymbol(br);
+    if (!symbol) return '';
+    return ' <span class="zw-star-strength" title="' + zwStrengthShortMeaning(br) + '">' + symbol + '</span>'
+      + ' <span class="zw-star-strength-label">(' + zwNormalizeStrength(br) + ')</span>';
   }
   // 사화(四化) 인라인 라벨 색: 명반 상단 태그(zw-tag-hwa-*)와 동일 위계로 통일
   function _zwSihuaColor(sihua){
@@ -20879,13 +20535,10 @@ function renderZiwei(p, natal, targetId) {
     var p = _zwParseMainRaw(rawStr);
     if (!p.name) return '';
     var br = _zwGetEffectiveBr(p.name, zhi, p.borrowed);
-    var symbol = zwStrengthToSymbol(br);
-    var symCls = zwStrengthToClass(br);
-    var strengthLabelHtml = ' <span class="zw-star-strength-label">('+zwStrengthShortMeaning(br)+')</span>';
     var sihuaColor = _zwSihuaColor(p.sihua);
     var sihuaHtml = p.sihua ? (' <span style="color:'+sihuaColor+';font-weight:900;font-size:0.75rem;margin-left:3px;">'+p.sihua+'</span>') : '';
     var borrowedHtml = p.borrowed ? ' <span style="font-size:0.6rem;opacity:0.75;color:#FFD700;">(차성)</span>' : '';
-    return p.name + ' <span class="zw-star-strength '+symCls+'">' + symbol + '</span>' + strengthLabelHtml + sihuaHtml + borrowedHtml;
+    return p.name + _zwStrengthBadgeHtml(br) + sihuaHtml + borrowedHtml;
   }
   function _zwRenderMinorStar(rawStr, zhi){
     var plain = _zwToStarRawText(rawStr).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -20905,12 +20558,7 @@ function renderZiwei(p, natal, targetId) {
     if(!name) return '';
     var sihuaColor = _zwSihuaColor(sihua);
     var sihuaHtml = sihua ? (' <span style="color:'+sihuaColor+';font-weight:900;font-size:0.7rem;margin-left:2px;">'+sihua+'</span>') : '';
-    var br = zwComputeStarStrength(name, zhi, false);
-    if(!br) return name + sihuaHtml;
-    var symbol = zwStrengthToSymbol(br);
-    var symCls = zwStrengthToClass(br);
-    var strengthLabelHtml = ' <span class="zw-star-strength-label">('+zwStrengthShortMeaning(br)+')</span>';
-    return name + ' <span class="zw-star-strength '+symCls+'">' + symbol + '</span>' + strengthLabelHtml + sihuaHtml;
+    return name + _zwStrengthBadgeHtml(zwComputeStarStrength(name, zhi, false)) + sihuaHtml;
   }
 
   var ZW_PORTFOLIO_PALACE_ALIAS = {
@@ -21196,10 +20844,9 @@ function renderZiwei(p, natal, targetId) {
   }
 
   function _zwLifeAnimalStrengthScore(starName, branch, isBorrowed) {
-    var scoreMap = { '묘': 5, '왕': 4, '평': 3, '리': 2, '함': 1 };
-    var br = zwComputeStarStrength(starName, branch || '', !!isBorrowed) || '평';
-    var norm = zwNormalizeStrength(br);
-    return scoreMap[norm] || 3;
+    // 강한 순 7(묘)…1(함). 강약을 매기지 않는 별은 가운데 4.
+    var rank = zwStrengthRank(zwComputeStarStrength(starName, branch || '', !!isBorrowed));
+    return rank ? 8 - rank : 4;
   }
 
   function _zwExtractLifeMainEntries(row) {
@@ -21942,10 +21589,10 @@ function renderZiwei(p, natal, targetId) {
       .replace(/\s+/g, ' ')
       .trim();
     if (!text) return null;
-    var symbolMatch = text.match(/[◎○△×]/);
+    var symbolMatch = text.match(/[◎○△×廟旺得利平不陷]/);
     var symbol = symbolMatch ? symbolMatch[0] : '';
     var name = text
-      .replace(/[◎○△×]/g, '')
+      .replace(/[◎○△×廟旺得利平不陷]/g, '')
       .replace(/\(차성\)/g, '')
       .trim();
     if (!name) return null;
@@ -24469,9 +24116,10 @@ function renderZiwei(p, natal, targetId) {
         }
 
         // Persona는 클릭 궁이 아닌 명반 전체(12궁) 집계로 고정 산출한다.
+        // 별 강약 가중(7등급 그대로). 강약을 매기지 않는 별은 3.0.
         var brightnessWeight = function(level){
-          var map = { myo: 5.0, wang: 4.2, ri: 3.3, han: 2.4, heum: 1.5 };
-          return map[level] || 3.0;
+          var map = { '묘': 5.0, '왕': 4.6, '득': 4.2, '리': 3.3, '평': 2.4, '불': 1.9, '함': 1.5 };
+          return map[zwNormalizeStrength(level)] || 3.0;
         };
         var personaStarScore = Object.create(null);
         var personaAuxPool = [];
@@ -24495,8 +24143,7 @@ function renderZiwei(p, natal, targetId) {
 
           pMainMeta.forEach(function(m){
             var lv = zwComputeStarStrength(m.name, pZhi, !!m.isBorrowed);
-            var stClass = zwStrengthToClass(lv);
-            var score = pWeight * brightnessWeight(stClass) * (m.isBorrowed ? 0.9 : 1.0);
+            var score = pWeight * brightnessWeight(lv) * (m.isBorrowed ? 0.9 : 1.0);
             personaStarScore[m.name] = (personaStarScore[m.name] || 0) + score;
             if (m.isBorrowed) personaBorrowedPool.push(m.name);
           });

@@ -59,11 +59,12 @@ test('grades never fold and unknown notation stays null',()=>{
   assert.ok(isZiweiMainStar('파군')&&!isZiweiMainStar('문창'));
 });
 
-test('legacy table is kept for comparison only: equals shell and worker rows, matches the classical text on 49 of 126 cells',()=>{
+test('legacy table is kept for comparison only: equals worker rows, matches the classical text on 49 of 126 cells; the shell reads the canonical copy',()=>{
   const branchHan='子丑寅卯辰巳午未申酉戌亥',branchKo='자축인묘진사오미신유술해';
   const shell=readFileSync('js/saju-engine.js','utf8'),worker=readFileSync('worker/lib/ziwei-ai-chart.js','utf8'),app=readFileSync('app/_lib/ziwei-strength.ts','utf8');
+  // S4 (2026-10-01) replaced the shell's legacy table with ZW_STAR_STRENGTH; verify:ziwei-borrowed-strength checks all 240 cells.
+  assert.ok(!shell.includes('ZW_CLASSICAL_STATE')&&shell.includes('var ZW_STAR_STRENGTH = {'));
   for(const [star,row] of Object.entries(ZIWEI_LEGACY_MAIN_STRENGTH_TABLE)){
-    assert.ok(shell.includes(`'${star}':{${[...branchHan].map((b,i)=>`'${b}':'${row[i]}'`).join(',')}}`),`shell ${star}`);
     assert.ok(worker.includes(`"${star}":{${[...branchKo].map((b,i)=>`"${b}":"${row[i]}"`).join(',')}}`),`worker ${star}`);
     // The app copy folds 태음 寅 '한' into '평'; every other cell is identical.
     const appRow=star==='태음'?row.map((g,i)=>i===2?'평':g):row;
