@@ -17,6 +17,8 @@ const built=await build({stdin:{contents:`
  export {buildPreventionFact} from './worker/yeongnyangi/fortune/prevention';
  export {calculateRelationshipZiwei,extendRelationshipContext} from './worker/yeongnyangi/fortune/relationship-calculation';
  export {validateChapter} from './worker/yeongnyangi/providers/chapter';
+ export * from './worker/yeongnyangi/fortune/ziwei/block-palaces';
+ export {readingCharts} from './worker/yeongnyangi/fortune/reading-presentation';
  export {MockChapterProvider} from './__tests__/fixtures/yeongnyangi-chapter';
  export {products} from './worker/yeongnyangi/payments/catalog';
  export {domains} from './worker/yeongnyangi/fortune/index';
@@ -125,8 +127,43 @@ for(const [name,manifest] of manifests){
     const result=await new m.MockChapterProvider().generateChapter(input);
     assert.doesNotThrow(()=>m.validateChapter({...result,summary:'삼방사정으로 보면 관록궁과 재백궁이 명궁을 받쳐 줍니다.'},input));
     assert.throws(()=>m.validateChapter({...result,summary:'대운을 설명합니다.'},input),/TIER_SCOPE_VIOLATION/);
+    // 선택 필드 palaces: 저장 명반의 궁만 남고 모르는 궁은 버린다. 장을 거부하지 않는다.
+    const hinted={...result,blocks:result.blocks.map((b,i)=>i?b:{...b,palaces:['없는궁','명궁']})};
+    assert.deepEqual(m.validateChapter(hinted,input).blocks[0].palaces,['명궁']);
   });
 }
+
+test('block palaces are an optional hint: schema enum from the saved chart, unknown names dropped, never rejected',()=>{
+  const analysis={contexts:{ziwei:{facts:[{label:'palaces',value:chart()}]}}},names=m.ziweiBlockPalaceNames(analysis,['saju','ziwei']);
+  assert.deepEqual(names,NAMES);
+  assert.deepEqual(m.ziweiBlockPalaceNames(analysis,['saju']),[]);
+  const schema={type:'object',properties:{blocks:{type:'array',items:{type:'object',properties:{title:{type:'string'}},required:['title']}}}};
+  const hinted=m.withBlockPalacesSchema(schema,names).properties.blocks.items;
+  assert.deepEqual(hinted.properties.palaces.items.enum,NAMES);
+  assert.deepEqual(hinted.required,['title']);
+  assert.equal(m.withBlockPalacesSchema(schema,[]),schema);
+  const out=m.sanitizeBlockPalaces({summary:'',blocks:[{title:'a',paragraphs:[],palaces:[' 명궁','없는궁','명궁','재백궁','관록궁','천이궁']},{title:'b',paragraphs:[],palaces:['없는궁']}]},names);
+  assert.deepEqual(out.blocks,[{title:'a',paragraphs:[],palaces:['명궁','재백궁','관록궁']},{title:'b',paragraphs:[]}]);
+  const plain={summary:'',blocks:[{title:'c',paragraphs:[]}]};
+  assert.equal(m.sanitizeBlockPalaces(plain,names),plain);
+});
+
+test('the reading chart redraws the saved palaces with canonical grades, hanja and natal sihua — no regeneration',()=>{
+  const palaces=chart({1:{mainStars:['자미','파군'],transformations:['화권:자미']},2:{mainStars:['염정'],assistantStars:['좌보','문창']}});
+  const [view]=m.readingCharts({contexts:{ziwei:{domain:'ziwei',facts:[{label:'palaces',value:palaces},{label:'bodyPalace',value:'부부궁'}]}}},[]);
+  const cells=view.groups.map(g=>g.ziwei);
+  assert.deepEqual(cells.map(c=>c.branch),[0,1,2,3,4,5,6,7,8,9,10,11]);
+  const pick=(c,k)=>c.stars.map(s=>[s.name,s.kind,s[k]]);
+  assert.deepEqual(pick(cells[1],'grade'),[['자미','main','묘'],['파군','main','왕']]);
+  assert.deepEqual(pick(cells[1],'gradeHanja'),[['자미','main','廟'],['파군','main','旺']]);
+  assert.equal(cells[1].stars[0].hua,'화권');
+  assert.equal(cells[1].stars[0].hanja,'紫微');
+  assert.deepEqual(pick(cells[2],'grade'),[['염정','main','묘'],['좌보','assistant',null],['문창','assistant','함']]);
+  assert.equal(cells[2].stars[1].basis,null,'no strength is invented for an unrated star');
+  assert.deepEqual(cells.map(c=>c.body),NAMES.map(n=>n==='부부궁'));
+  assert.ok(cells[1].notes.some(n=>n.includes('자미(묘)')));
+  assert.deepEqual(palaces,chart({1:{mainStars:['자미','파군'],transformations:['화권:자미']},2:{mainStars:['염정'],assistantStars:['좌보','문창']}}),'stored palaces are not rewritten');
+});
 
 test('flounder prevention keeps each palace natal sihua but strips the annual sihua timeline',()=>{
   const fact=m.buildPreventionFact(pair,'flounder'),anchors=fact.value.anchors;

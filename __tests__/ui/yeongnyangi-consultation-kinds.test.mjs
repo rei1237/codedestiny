@@ -203,6 +203,9 @@ test('only general ask menus save private evidence packets; tarot v2 keeps its o
   assert.equal(row.snapshot.manifest.length,product.chapterCount+(productId==='fusion_saju_ziwei'?1:0));
   assert.equal(row.snapshot.manifest.length,row.snapshot.product.chapterCount);
   assert.equal(presentFortune(row).askEvidence,undefined,'raw packet is not a public API field');
+  const answered={...row,chapters:[{summary:'저장된 답',analysis:[],questionAnswers:[],internalBasis:{questionAnswers:[{questionId:'q1',factIds:['F001'],timingIds:[],evidenceStatus:'grounded',sources:['saju.tenGods']}]}}]};
+  assert.equal(presentFortune(answered).chapters[0].internalBasis,undefined,'server-only citations never reach the client');
+  assert.equal(presentFortune(answered).chapters[0].summary,'저장된 답');
   assert.deepEqual(await prepareFortune(env,'evidence-owner',request),row);
  }
  const tarot=await prepareFortune(env,'evidence-owner',{...body,productId:'tarot_mackerel',consultationKind:'choice',question:'이 선택을 이어갈까요?',locale:'ja'});

@@ -1,0 +1,43 @@
+/* 자미 명반(ZiweiReadingChart). 영냥이 책(.book, 어두운 테마)과 연이/네오 상담(밝은·어두운 테마)이 같이 쓴다.
+   색은 두 화면 토큰을 순서대로 빌린다 — 영냥이 --yn-*, 상담 --ink·--muted·--rose·--line·--bubble.
+   등급·사화는 글자로 구분하고, 색으로 좋고 나쁨을 나타내지 않는다. 글자는 12px 아래로 내리지 않는다.
+   굵기만으로 위계를 만들지 않는다 — 상담 화면 본문 서체(CodeDestinyBody)는 local() 한 벌이라 font-synthesis:none 아래서 굵게 그려지지 않는다. 궁 이름은 크기, 별 줄은 흐린 색으로 구분한다.
+   🔴 칸 선택자는 (0,3,1), 눌림·호버는 (0,4,1) — .book .chart button(0,2,1)·:hover·[aria-pressed](0,3,1)보다 이겨야 한다. */
+.root,.hint{--zw-ink:var(--ink,currentColor);--zw-muted:var(--muted,currentColor);--zw-accent:var(--yn-gold,var(--rose,currentColor));--zw-line:var(--yn-line,var(--line,color-mix(in srgb,currentColor 30%,transparent)));--zw-surface:var(--yn-surface,var(--bubble,transparent))}
+.root{margin:1rem 0 0;color:var(--zw-ink)}
+.grid{gap:4px}
+.root .grid button.cell{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:2px;min-width:0;min-height:72px;margin:0;padding:6px 5px;font:inherit;font-size:12px;line-height:1.35;text-align:left;color:var(--zw-ink);background:var(--zw-surface);border:1px solid var(--zw-line);border-radius:8px;box-shadow:none;cursor:pointer;word-break:keep-all;overflow-wrap:anywhere}
+.root .grid button.cell:hover{background:color-mix(in srgb,var(--zw-accent) 8%,var(--zw-surface))}
+.root .grid button.cell[aria-pressed=true]{border-color:var(--zw-accent);background:color-mix(in srgb,var(--zw-accent) 14%,var(--zw-surface));box-shadow:inset 0 0 0 1px var(--zw-accent)}
+.root .grid button.cell b{font-size:14px;font-weight:700}
+.root .grid button.cell small{display:block;font-size:12px;color:var(--zw-muted)}
+.root .grid button.cell :is(i,em){font-style:normal;font-weight:700;color:var(--zw-accent);margin-left:1px}
+.center{text-wrap:balance;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;padding:8px;text-align:center;border:1px dashed var(--zw-line);border-radius:8px;color:var(--zw-muted);font-size:12px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}
+.center b{color:var(--zw-ink);font-size:14px;letter-spacing:.08em}
+.center p{margin:0}
+.center .glyphs{color:var(--zw-accent);font-weight:700;letter-spacing:.12em}
+.detail{margin-top:1rem;padding:.5rem 0 0}
+.detail h4{display:flex;flex-wrap:wrap;align-items:baseline;gap:.45rem;margin:0 0 .5rem;font-size:1.1rem}
+.detail h4 small,.star small{color:var(--zw-muted);font-size:max(12px,.82rem);font-weight:400}
+.detail h5{margin:1rem 0 .35rem;font-size:max(12px,.9rem);color:var(--zw-muted)}
+.detail ul{list-style:none;margin:0;padding:0}
+.detail li{padding:.55rem 0;border-bottom:1px solid var(--zw-line);line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+.root .detail p{margin:.25rem 0 0;font-size:max(12px,.92rem);line-height:1.7;color:var(--zw-muted);word-break:keep-all;overflow-wrap:anywhere}
+.star{display:flex;flex-wrap:wrap;align-items:baseline;gap:.4rem}
+.star b{font-size:1rem}
+.grade{color:var(--zw-accent);font-weight:700}
+.tag{font-style:normal;font-size:12px;font-weight:700;line-height:1.5;padding:0 6px;border:1px solid var(--zw-accent);border-radius:999px;color:var(--zw-accent)}
+.related{margin-top:.75rem}
+.related a{display:block;padding:.6rem 0;color:var(--zw-accent)}
+.related summary,.how summary{cursor:pointer;min-height:44px;padding:.75rem 0;align-content:center}
+.how{margin-top:.75rem;border-top:1px solid var(--zw-line)}
+.how summary{color:var(--zw-accent);font-weight:600}
+.how p,.how li{font-size:max(12px,.92rem);line-height:1.75}
+.root .how p{margin:.65rem 0 0}
+.how li{color:var(--zw-muted)}
+.hint{display:flex;align-items:center;gap:10px;margin:.25rem 0 .75rem;padding:0}
+.mini{gap:2px;width:60px;flex:none}
+.mini i{display:block;height:11px;border:1px solid var(--zw-line);border-radius:2px}
+.mini i[data-on]{background:var(--zw-accent);border-color:var(--zw-accent)}
+.hint figcaption{min-width:0;font-size:max(12px,.85rem);line-height:1.5;color:var(--zw-muted);word-break:keep-all;overflow-wrap:anywhere}
+.hint figcaption b{color:var(--zw-ink);font-weight:700}

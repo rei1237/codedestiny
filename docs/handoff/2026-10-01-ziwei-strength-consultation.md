@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-01
-next: S2 — 영냥이·연이/네오 상담 화면에 자미 명반 격자(강약 표기·탭 설명·설명 옆 궁 강조)를 붙인다. S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
+next: S3 — 사주·점성·베다·숙요에도 설명마다 명반을 붙인다(선례: 이번 S2 의 ZiweiBlockHint·block palaces). S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
 ---
 
 # 영냥이 자미두수 — 정확한 강약표 위에서 강약을 읽는 상담 + 설명마다 명반
@@ -14,11 +14,26 @@ next: S2 — 영냥이·연이/네오 상담 화면에 자미 명반 격자(강�
 - 설명할 때마다 해당 명반을 보여 준다. 모든 운세에 해당한다.
 - 2026-10-01 추가 요구: "정확한 데이터를 기반으로 해야해 그리고 강약도 반드시 반영이 되어야한다". 다른 사이트 캡처로 사용자가 직접 확인해 줄 수 있다고 했다.
 
-## 지금 상태 (S1 완료)
+## 지금 상태 (S1·S2 완료)
 
 S1(강약표·상담 사실·프롬프트·단계 정책)은 main 에 머지됐다. 커밋은 `git log --oneline --grep=ziwei -8` 로 확인한다.
 
-S2~S5 는 남아 있다. 영냥이 상담 화면에는 아직 명반이 나오지 않는다.
+S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="ziwei" --grep="palaces" -8` 로 확인한다. S3~S5 와 S0 이 남아 있다.
+
+### S2 에서 바꾼 것
+
+- **명반 격자**: `app/components/ziwei/ZiweiPalaceGrid.tsx` 는 공용 4×4 배치다. 꿀꿀 `AdvancedZiweiSectionV2` 와 영냥이가 같이 쓴다. 영냥이 쪽은 `app/yeongnyangi/_components/ZiweiReadingChart.tsx` 이고, `ReadingCharts` 가 자미 차트일 때만 이것을 그린다. 따라서 영냥이 책과 연이/네오 `ConsultationResult` 에 같이 나온다.
+  - 열두 궁이 모두 서로 다른 지지로 와야 격자를 그린다. 아니면 예전 버튼 목록으로 돌아간다(fail-closed).
+  - 칸 안의 주성 옆에는 등급 한자 한 글자(廟…陷)와 사화 글자(祿權科忌)를 둔다. 색은 테마마다 한 가지라 좋고 나쁨을 나타내지 않는다.
+  - 탭하면 아래 설명(한자·등급 뜻·사화·"현대 표" 표시)이 바뀐다. "이 별의 강약을 어떻게 읽었나"는 기본으로 접혀 있다.
+  - 문구는 `app/yeongnyangi/_lib/ziwei-chart-copy.ts` 에 있다. ko·en·ja·zh-CN·zh-TW 를 저작했고 나머지는 en 이다. 별·궁 이름은 한글 그대로 `lang="ko"` 를 단다.
+- **표시 데이터**: `reading-presentation.ts` 의 `readingCharts` 가 자미 궁 그룹마다 `ziwei`(별·한자·정본 등급·근거 종류·사화·궁 조건 notes)를 붙인다. 읽을 때마다 저장 context 로 다시 계산한다. 기존 주문은 LLM 재생성 없이 새 명반을 본다. 저장값은 바꾸지 않는다.
+- **소절 옆 궁 강조**: 장 블록의 선택 필드 `palaces` 는 `worker/yeongnyangi/fortune/ziwei/block-palaces.ts` 에 있다.
+  - 스키마에는 자미 장에만 enum(저장 명반 궁 이름)·최대 3개로 들어간다. required 는 그대로다.
+  - 모르는 값·중복·빈 값은 버리고 거부하지 않는다. chapter·delivery 경로 모두 적용한다.
+  - 화면은 `ZiweiBlockHint`(작은 위치 격자 + "이 소절이 짚은 궁: …" 글자)다.
+- **ask 근거 보존**: `ask/validate.ts` 는 factIds·timingIds·근거 출처를 서버 전용 `internalBasis` 로 남긴다. `presentFortune` 은 모든 비상징 장에서 이것을 지운다. delivery 대체 경로는 internalBasis 를 남기지 않는다.
+- **invariance 해시표**: ask 행은 validated 만, ziwei/fusion 행은 requests(스키마)만 바뀌었다. 43행 모두 의도 확인 후 갱신했다.
 
 ### 원인 (실측)
 
@@ -109,7 +124,7 @@ S2~S5 는 남아 있다. 영냥이 상담 화면에는 아직 명반이 나오�
   | 화성 | 卯리 未리 亥리 | — |
   | 영성 | 卯리 未리 亥리 | — |
 
-- [ ] **S2 화면 (영냥이·연이/네오)**
+- [x] **S2 화면 (영냥이·연이/네오)** — 2026-10-01 완료. 아래 "S2 검증"을 본다.
   - 작업:
     - `AdvancedZiweiSectionV2.tsx` 의 4×4 격자를 공용 `ZiweiPalaceGrid` 로 뺀다. `ReadingCharts` 가 자미 명반을 표시하게 한다.
     - 주성 옆에 한자·등급 글자를 둔다. 색만으로 구분하지 않는다.
@@ -128,6 +143,9 @@ S2~S5 는 남아 있다. 영냥이 상담 화면에는 아직 명반이 나오�
   - 앱 `mapZiweiStrengthSymbol` 이 빈 값을 △ 로 그리는 결함을 고친다.
 
 ## 함정
+
+- **상담(연이/네오) 화면 본문은 굵게 그려지지 않는다.** 전역 `CodeDestinyBody` 가 `local()` 한 벌이고 `font-synthesis:none` 이다. 위계는 크기·색으로 만든다. 사이트 전역 문제라 S2 에서는 고치지 않았다.
+- **명반 칸 선택자는 (0,3,1) 이상이어야 한다.** `.book .chart button`·`span` 규칙이 칸을 덮는다. 칸 안에 span 을 두지 않는다.
 
 - **v7 매니페스트는 그대로 쓰면 안 된다.** `readingManifestV7` 은 owns/refs 패턴이므로 `resolveV7Ledger(...).chapters` 를 거쳐야 `selectChapterFacts` 가 사실을 찾는다. 고등어는 v6 만 된다.
 - **단계 금지어의 실제 거부 지점은 `reading-quality.ts` 의 `validateReadingQuality`(TIER_SCOPE_VIOLATION)다.** `providers/chapter.ts` 의 `TIER_SCOPED_TERMS` 는 프롬프트 어휘와 교정 문구만 바꾼다. 이 차이는 변이 시험으로 확인했다.
@@ -151,9 +169,25 @@ node scripts/verify-ziwei-star-parity.mjs # 21건 통과
 
 변이 시험: `reading-quality.ts` 의 금지어 정규식에 "삼방사정"을 되돌리면 테스트가 실패한다.
 
+## S2 검증 (2026-10-01, 전부 mock — 실 LLM·결제·DB 0회)
+
+```
+npm run check:fast        # node 2176/2176, jest 전체 통과(critical 승격)
+node scripts/run-mock-tests.mjs node __tests__/ui/yeongnyangi-ziwei-palace-strength.test.mjs  # block palaces·명반 재계산 포함
+```
+
+화면 검증은 next dev(워크트리, 127.0.0.1:18122)에 Playwright 를 붙여 했다. 커밋하지 않은 임시 스크립트다.
+
+- 영냥이 ziwei_tuna·fusion_saju_ziwei, 연이·네오 상담 결과를 각각 360·390px 에서 봤다.
+- 넘침 0, 12px 미만 글자 0, 칸 이탈 0. 대비는 최소 5.19:1(연이 등급 한자)이다.
+- 결제 SDK·confirm·activate·create·generate 호출 0건, 결제·구매 버튼 0개다.
+- 옛 저장 차트(`ziwei` 없음)는 예전 버튼으로 돌아가고 소절 글자 설명은 남는다.
+- visual-checker 1차 판정에서 P2 2건(조건 목록 어절 끊김, 상담 화면 궁 이름 위계)이 나와 고쳤다. 2차 판정 결과는 아래 남은 P3 를 본다.
+- 남은 P3: 상담 두 테마의 칸 테두리가 옅다(1.3~1.6:1). 엔진 궁 조건 notes 는 한다체라 해요체 설명과 섞인다. 등급 설명 줄이 대시로 시작하기도 한다.
+
 ## 모르는 것
 
-- **실 LLM 상담 품질은 미검증이다.** mock 은 입력이 바뀐 것만 보여 준다.
+- **실 LLM 상담 품질은 미검증이다.** mock 은 입력이 바뀐 것만 보여 준다. Gemini 가 선택 필드 `palaces` 를 얼마나 채울지도 실호출 전에는 모른다. 비어도 화면은 강조만 빠진다.
   - 실호출 검수는 정확한 1회 승인이 있어야 한다.
   - 승인되면 연어 1건을 생성하고 본문 전체를 사용자에게 전달한다.
 - **보충 54칸은 현대 출처 1개(iztro)에만 기대고 있다.** S0 전까지는 단일 출처다.

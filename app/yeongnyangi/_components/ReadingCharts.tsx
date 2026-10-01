@@ -5,6 +5,7 @@ import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import {chartCopy,chartTerm,chartLimitation} from '../_lib/reading-chart-copy';
 import styles from './reading-v5.module.css';
 import TarotCardArt from './TarotCardArt';
+import ZiweiReadingChart,{ziweiGroups} from './ZiweiReadingChart';
 import { yeongnyangiCardArt } from '@/lib/tarot/yeongnyangi-deck';
 
 function Wheel({chart,locale}:{chart:ReadingChart;locale?:ReadingLocale}){
@@ -28,18 +29,19 @@ function Chart({chart,available,titles,locale}:{chart:ReadingChart;available:Set
  if(!group)return null;
  const related=group.chapterIds.filter(id=>available.has(id));
  const timing=chart.groups.filter(g=>g.kind==='timing');
+ const ziwei=ziweiGroups(chart);
  const layout=chart.domain==='ziwei'||chart.domain==='vedic'?styles.palaces:chart.domain==='tarot'?styles.cards:chart.domain==='sukuyo'?styles.relationship:styles.chartChoices;
  return <section className={styles.chart} aria-label={chartTerm(chart.title,locale)}>
   <header><h3>{chartTerm(chart.title,locale)}</h3><p>{chart.source==='서버에 저장된 카드 배열'?copy.sourceCards:chart.source==='구매 당시 저장된 계산 근거'?copy.sourceStored:chart.source}</p></header>
   {chart.domain==='astrology'&&<Wheel chart={chart} locale={locale}/>}
-  <div className={layout} role="group" aria-label={`${chartTerm(chart.title,locale)} · ${copy.select}`}>{chart.groups.filter(g=>g.kind!=='timing').map(g=><button type="button" key={g.id} aria-pressed={g.id===group.id} onClick={()=>setSelected(g.id)}>
+  {ziwei?<ZiweiReadingChart groups={ziwei} selected={group.id} onSelect={setSelected} available={available} titles={titles} locale={locale}/>:<div className={layout} role="group" aria-label={`${chartTerm(chart.title,locale)} · ${copy.select}`}>{chart.groups.filter(g=>g.kind!=='timing').map(g=><button type="button" key={g.id} aria-pressed={g.id===group.id} onClick={()=>setSelected(g.id)}>
    {chart.domain==='tarot'?<TarotCardArt key={g.cardCode || g.id} cardCode={g.cardCode} locale={locale} className={g.reversed?styles.reversed:undefined}/>:g.image&&<img src={g.image} alt="" width={140} height={240} loading="lazy" className={g.reversed?styles.reversed:undefined}/>}
    <strong>{chartTerm(g.label,locale)}</strong>{['ziwei','vedic','tarot'].includes(chart.domain)&&<span>{chart.domain==='tarot'&&g.cardCode?yeongnyangiCardArt(g.cardCode,locale).name:g.items[0]?.value?chartTerm(g.items[0].value,locale):copy.none}</span>}
-  </button>)}</div>
+  </button>)}</div>}
   {timing.length>0&&<div className={styles.timeline} role="group" aria-label={copy.timingSelect}><h4>{copy.timing}</h4>{timing.map(g=><button type="button" key={g.id} aria-pressed={g.id===group.id} onClick={()=>setSelected(g.id)}>{chartTerm(g.label,locale)}</button>)}</div>}
-  <div className={styles.chartDetail} aria-live="polite"><h4>{chartTerm(group.label,locale)}</h4><dl>{group.items.map((item,i)=><div key={i}><dt>{chartTerm(item.label,locale)}</dt><dd>{chart.domain==='tarot'&&item.label==='카드'&&group.cardCode?yeongnyangiCardArt(group.cardCode,locale).name:chartTerm(item.value,locale)}{group.label.includes('오행 분포')&&Number.isFinite(Number(item.value))&&<meter min={0} max={Math.max(1,group.items.reduce((n,item)=>n+(Number(item.value)||0),0))} value={Number(item.value)} aria-label={copy.weight(chartTerm(item.label,locale))}/>}</dd></div>)}</dl>
+  {!ziwei&&<div className={styles.chartDetail} aria-live="polite"><h4>{chartTerm(group.label,locale)}</h4><dl>{group.items.map((item,i)=><div key={i}><dt>{chartTerm(item.label,locale)}</dt><dd>{chart.domain==='tarot'&&item.label==='카드'&&group.cardCode?yeongnyangiCardArt(group.cardCode,locale).name:chartTerm(item.value,locale)}{group.label.includes('오행 분포')&&Number.isFinite(Number(item.value))&&<meter min={0} max={Math.max(1,group.items.reduce((n,item)=>n+(Number(item.value)||0),0))} value={Number(item.value)} aria-label={copy.weight(chartTerm(item.label,locale))}/>}</dd></div>)}</dl>
    {related.length?<div><p>{copy.related}</p>{related.slice(0,2).map(id=><a key={id} href={`#chapter-${id}`}>{titles[id]}</a>)}{related.length>2&&<details><summary>{copy.more(related.length-2)}</summary>{related.slice(2).map(id=><a key={id} href={`#chapter-${id}`}>{titles[id]}</a>)}</details>}</div>:<p>{copy.empty}</p>}
-  </div>
+  </div>}
   <details className={styles.limits}><summary>{copy.limits}</summary>{chart.limitations.map((limit,i)=><p key={i} lang={chartLimitation(limit,locale)===limit?'ko':locale}>{chartLimitation(limit,locale)}</p>)}</details>
  </section>;
 }
