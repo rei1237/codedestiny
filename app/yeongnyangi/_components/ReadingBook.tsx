@@ -8,6 +8,7 @@ import {askPhase5Copy} from '../_lib/ask-phase5-copy';
 import {journeyCopy} from '../_lib/journey-copy';
 import {v7Label,v7PartHead} from '../_lib/reading-v7-copy';
 import ReadingCharts from './ReadingCharts';
+import {ZiweiBlockHint} from './ZiweiReadingChart';
 import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,TimingTimeline,YearFocus} from './ReadingVisuals';
 import {expressionFor,interludes,isRichReading,sajuFacts,timingRows,yearFocus} from '../_lib/reading-visuals';
 import styles from './reading-v5.module.css';
@@ -38,6 +39,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
  // Long readings get every visual; question readings of any length get the charts, answer table and mascot,
  // while the glance table, key points and illustrations stay long-reading only.
  const rich=isRichReading(row.chapters),ask=!!row.consultation?.questions?.length,visual=rich||ask;
+ const ziweiChart=row.charts?.find(chart=>chart.domain==='ziwei');
  const breaks=rich?interludes(row.chapters,row.manifest):new Map();
  const timing=visual?timingRows(row.charts || []):[];
  const timingChapter=timing.length?row.manifest.findIndex((c,i)=>i<row.chapters.length&&c.theme==='timing'):-1;
@@ -74,7 +76,7 @@ export default function ReadingBook({row}:{row:FortuneRecord}){
     {chapter.questionAnswers?.filter(answer=>answer!==firstAnswer).map(answer=><section key={answer.questionId}><h3>{row.consultation?.questions?.find(q=>q.id===answer.questionId)?.text || (answer.mode?answerCopy.answer:copy.answer)}</h3>
      {answer.mode&&<div className={styles.answerStatus} data-mode={answer.mode} role="note"><strong>{answerCopy[answer.mode]}</strong>{answer.mode==='limited'&&<p>{answerCopy.limitedHint}</p>}{answer.mode==='care'&&<p>{answerCopy.careHint}</p>}</div>}
      <p>{answer.answer}</p>{visual?<AnswerTable label={answer.mode?answerCopy.answer:copy.answer} rows={[[answer.mode?answerCopy.reason:copy.reason,answer.reason],[answer.mode?answerCopy.timing:copy.timing,answer.timing],[answer.mode?answerCopy.action:copy.action,answer.action]]}/>:<><h4>{answer.mode?answerCopy.reason:copy.reason}</h4><p>{answer.reason}</p><h4>{answer.mode?answerCopy.timing:copy.timing}</h4><p>{answer.timing}</p><h4>{answer.mode?answerCopy.action:copy.action}</h4><p>{answer.action}</p></>}</section>)}
-    {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={block.id || b}><h3>{block.title}</h3>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
+    {chapter.blocks?.length?chapter.blocks.map((block,b)=><section key={block.id || b}><h3>{block.title}</h3><ZiweiBlockHint palaces={block.palaces} chart={ziweiChart} locale={row.locale}/>{block.paragraphs.map((text,i)=><p key={i}>{text}</p>)}</section>):chapter.analysis.map((text,i)=><p key={i}>{text}</p>)}
     {chapter.example&&<section><h3>{copy.example}</h3><p>{chapter.example}</p></section>}{chapter.advice&&(index>0||!!firstAnswer)&&<section><h3>{copy.next}</h3><p>{chapter.advice}</p></section>}
     {index===timingAt&&timingLate&&<TimingTimeline rows={timing} focus={focus} locale={row.locale}/>}
     {visual&&index===0&&saju&&<SajuBoard pillars={saju.pillars} elements={saju.elements} locale={row.locale}/>}
