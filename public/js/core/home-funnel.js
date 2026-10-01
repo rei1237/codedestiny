@@ -8,7 +8,6 @@
   var form = document.getElementById('destinyCardForm');
   var doc = document.documentElement;
   var lastFilter = null;
-  var finderDisclosure = document.getElementById('cdhFinderDisclosure');
   var more = document.getElementById('cdhMore');
   var bubble = home.querySelector('[data-cdh-bubble]');
   var bubbleIndex = 0;
@@ -19,9 +18,6 @@
     ['home.gardenCopy.bubble3', '타로 세 장부터 가볍게 펼쳐 봐요!'],
     ['home.gardenCopy.bubble4', '고민은 천천히, 끝까지 들을게요.']
   ] : [];
-  if (finderDisclosure) finderDisclosure.addEventListener('toggle', function () {
-    if (finderDisclosure.open) document.dispatchEvent(new Event('cd:home-finder-open'));
-  });
 
   // 홈의 유일한 접기는 "연이의 정원"(<details id="cdhMore">)이다. 상태는 details.open 하나뿐이고
   // 저장하지 않는다 — 재방문은 늘 닫힌 채 시작한다. 정원을 여닫는 다른 코드는 이 두 함수를 부른다.
@@ -116,14 +112,15 @@
     }
     if (isFinder) {
       doc.classList.remove('cdh-input-open');
-      if (finderDisclosure) finderDisclosure.open = true;
-      document.dispatchEvent(new Event('cd:home-finder-open'));
+      services.hidden = false;
       var filter = hash.split('/')[1] || '';
       if (filter !== lastFilter) {
         services.querySelectorAll('[aria-pressed="true"]').forEach(function (chip) { chip.click(); });
         var chip = services.querySelector(filter === 'tarot'
           ? '[data-method="tarot"]'
           : '[data-purpose="' + filter.replace(/[^a-z]/g, '') + '"]');
+        // 필터 패널 안의 칩(가족·인생 등)은 패널을 열어 눌린 상태가 보이게 한다.
+        if (chip && chip.closest('.fortune-gateway__filter-panel')) chip.closest('.fortune-gateway__filter-panel').open = true;
         if (chip) chip.click();
         lastFilter = filter;
       }
@@ -136,7 +133,6 @@
     } else if (hash === 'home') {
       doc.classList.remove('cdh-input-open');
       services.hidden = false;
-      if (finderDisclosure) finderDisclosure.open = false;
       window.scrollTo(0, 0);
     } else if (hash === 'destinyCardForm') {
       revealInput();

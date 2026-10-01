@@ -486,6 +486,12 @@
     var clearButton = root.querySelector('[data-cd-search-clear]');
     var resetButton = root.querySelector('[data-cd-finder-reset]');
     var summary = document.getElementById('fortuneGatewayResultSummary');
+    var filterPanel = root.querySelector('.fortune-gateway__filter-panel');
+    var filterCount = root.querySelector('[data-cd-filter-count]');
+    /* 홈(꿀꿀 운세)에서는 입력·칩을 고르기 전에는 결과를 깔지 않는다(2026-10-01 홈 개편).
+       단독 마운트(테스트·홈 밖)는 기존처럼 기본 목록을 보여 준다. */
+    var homeFunnel = document.getElementById("cdHomeFunnel");
+    var emptyUntilAsked = Boolean(homeFunnel && homeFunnel.contains(root));
 
     function state() {
       return {
@@ -499,11 +505,22 @@
     function render() {
       var current = state();
       var active = current.query || current.purposes.length || current.methods.length || current.buckets.length;
-      /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      var list = active || document.getElementById("cdHomeFunnel") ? filterServices(current) : DEFAULT_PICKS;
-      renderRichResults(panel, list, current);
       if (clearButton) clearButton.hidden = !current.query;
       if (resetButton) resetButton.hidden = !active;
+      if (filterCount && filterPanel) {
+        var inPanel = filterPanel.querySelectorAll('[aria-pressed="true"]').length;
+        filterCount.textContent = inPanel ? String(inPanel) : "";
+        filterCount.hidden = !inPanel;
+      }
+      if (!active && emptyUntilAsked) {
+        panel.textContent = "";
+        panel.hidden = true;
+        if (summary) summary.textContent = "";
+        return;
+      }
+      /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
+      var list = active ? filterServices(current) : DEFAULT_PICKS;
+      renderRichResults(panel, list, current);
       if (summary) summary.textContent = active
         ? '조건에 맞는 서비스 ' + list.length + '개'
         : '전체 서비스 ' + list.length + '개';
@@ -591,14 +608,7 @@
   function boot() {
     var home = document.getElementById("cdHomeFunnel");
     var finder = document.getElementById("cdFinder");
-    var disclosure = document.getElementById("cdhFinderDisclosure");
-    if (home && finder && (!home.contains(finder) || (disclosure && !disclosure.open)) && !boot.requested) {
-      document.addEventListener("cd:home-finder-open", function () {
-        boot.requested = true;
-        boot();
-      }, { once: true });
-      return;
-    }
+    /* 홈 검색은 늘 펼쳐져 있다(2026-10-01). 입력 전에는 결과를 그리지 않으므로 마운트는 가볍다. */
     mount({
       rootId: "fortuneGatewayDiscover",
       resultsId: "fortuneGatewayRecs",
@@ -617,7 +627,13 @@
        (2026-08-19, 사용자 요청). 이제 홈 검색은 #cdFinder 하나뿐이고, #cdServiceIndex 는
        헤더 + 펼치기 토글 + 컬렉션 그리드(#featureBegin) 로만 남는다. 두 번째 mount() 제거. */
 
-    warmCatalogue();
+    /* 카탈로그(타일 스크랩)는 홈에서는 검색 영역을 처음 만질 때 데운다 — 첫 화면 비용에 넣지 않는다. */
+    if (home && finder && home.contains(finder)) {
+      finder.addEventListener("focusin", warmCatalogue, { once: true });
+      finder.addEventListener("pointerdown", warmCatalogue, { once: true });
+    } else {
+      warmCatalogue();
+    }
 
     /* 네비 '전체 서비스' → 검색 섹션으로 스크롤 + 포커스 */
     document.addEventListener("click", function (event) {

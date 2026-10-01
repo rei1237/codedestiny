@@ -39,6 +39,7 @@ try {
     assert.ok(layout.scroll<=layout.width+2,JSON.stringify(layout));
     assert.ok(layout.documentWidth<=width+2,JSON.stringify(layout));
     await page.screenshot({path:join(artifactDir,`home-${width}.png`)});
+    if(await page.locator('#cdhMore:not([open]) > summary').count())await page.locator('#cdhMore > summary').click();
     const entry=page.locator('[data-cdh-free]').first();
     await entry.focus();
     await page.keyboard.press('Enter');

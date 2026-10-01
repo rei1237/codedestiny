@@ -35,9 +35,11 @@ function sliceById(html, id) {
 
 // jsdom 은 생성 직후 readyState 가 "loading" 이라 엔진이 DOMContentLoaded 를 기다린다.
 // 그 이벤트를 실제로 기다린다 — 손으로 dispatch 하면 jsdom 이 뒤이어 한 번 더 쏘아 이중 부팅된다.
-async function boot(extraTiles = []) {
+async function boot(extraTiles = [], { home = false } = {}) {
   const markup = [
     '<main id="inputPage">',
+    // 홈(꿀꿀 운세) 안에 마운트되면 입력 전에는 결과를 그리지 않는다.
+    ...(home ? ['<div id="cdHomeFunnel">'] : []),
     sliceById(shell, "fortuneGatewayDiscover"),
     sliceById(shell, "cdServiceIndex"),
     // 컬렉션 타일 한 장 — 레지스트리에 없는 항목이 검색으로만 잡히는지 보기 위해서다.
@@ -47,6 +49,7 @@ async function boot(extraTiles = []) {
     '<span class="tarot-tile__coin-badge">1회 5,000원</span>',
     "</a>",
     ...extraTiles,
+    ...(home ? ["</div>"] : []),
     "</main>",
   ].join("\n");
 
@@ -491,4 +494,36 @@ test("닫힌 컬렉션 카드(__cdLazyCards)도 검색에 잡힌다", async () =
     hits.includes("닫힌 컬렉션 카드"),
     `__cdLazyCards 에만 있는 카드가 검색에서 빠졌다: ${hits.join(", ")}`,
   );
+});
+
+test("홈 안의 검색은 입력·칩을 고르기 전에는 결과를 그리지 않고, 필터 패널 칩 수를 센다", async () => {
+  const { window, doc } = await boot([], { home: true });
+  const panel = doc.getElementById("fortuneGatewayRecs");
+  const summary = doc.getElementById("fortuneGatewayResultSummary");
+  const count = doc.querySelector("[data-cd-filter-count]");
+  assert.equal(panel.hidden, true, "입력 전에 결과 패널이 열렸다");
+  assert.equal(panel.querySelectorAll(".fortune-gateway__rec").length, 0, "입력 전에 기본 목록을 깔았다");
+  assert.equal(summary.textContent, "", "입력 전에 결과 요약을 띄웠다");
+  assert.equal(count.hidden, true);
+
+  const input = doc.getElementById("fortuneGatewaySearch");
+  input.value = "회복 타로";
+  input.dispatchEvent(new window.Event("input"));
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  assert.equal(panel.hidden, false);
+  assert.ok(names(panel).includes("따뜻한 태양 회복 타로"), "컬렉션 타일이 검색되지 않는다");
+
+  doc.querySelector("[data-cd-search-clear]").click();
+  assert.equal(panel.hidden, true, "검색어를 지워도 결과가 남았다");
+
+  // 가족·인생 등 나머지 고민과 방식·가격 칩은 필터 패널 안이다. 눌린 수를 토글에 보인다.
+  const panelChip = doc.querySelector('#fortuneGatewayFilterPanel [data-purpose="family"]');
+  assert.ok(panelChip, "가족 칩이 필터 패널 안에 없다");
+  panelChip.click();
+  doc.querySelector('#fortuneGatewayFilterPanel [data-price="free"]').click();
+  assert.equal(count.hidden, false);
+  assert.equal(count.textContent, "2");
+  doc.querySelector("[data-cd-finder-reset]").click();
+  assert.equal(panel.hidden, true, "선택 초기화 뒤에도 결과가 남았다");
+  assert.equal(count.hidden, true);
 });

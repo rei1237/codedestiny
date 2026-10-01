@@ -224,18 +224,18 @@
     "ms": "Explore more of Yeoni's garden"
   },
   "home.gardenCopy.moreItems": {
-    "ko": "영냥이 · 오늘의 운세 · 고민으로 찾기 · 전체 검색 · 이야기와 음악",
-    "en": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "ja": "ヨンニャンイ · 今日の運勢 · 悩みから探す · 全体検索 · 物語と音楽",
-    "zh-CN": "灵喵 · 今日运势 · 按烦恼查找 · 全部搜索 · 故事与音乐",
-    "zh-TW": "靈喵 · 今日運勢 · 依煩惱查找 · 全部搜尋 · 故事與音樂",
-    "vi": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "hi": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "es": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "fr": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "de": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "nl": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music",
-    "ms": "Yeongnyangi · Today's fortune · Find by concern · Search all · Stories & music"
+    "ko": "여섯 점술 · 이용권 · 다이어리 · 전체 컬렉션 · 이야기와 음악 · 언론과 기록",
+    "en": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "ja": "六つの占術 · 利用券 · ダイアリー · 全コレクション · 物語と音楽 · 報道と記録",
+    "zh-CN": "六种占法 · 使用券 · 日记 · 全部合集 · 故事与音乐 · 媒体与记录",
+    "zh-TW": "六種占法 · 使用券 · 日記 · 全部合集 · 故事與音樂 · 媒體與紀錄",
+    "vi": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "hi": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "es": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "fr": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "de": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "nl": "Six readings · Passes · Diary · All collections · Stories & music · Press & records",
+    "ms": "Six readings · Passes · Diary · All collections · Stories & music · Press & records"
   },
   "home.gardenCopy.moreClose": {
     "ko": "연이의 정원 접기",
@@ -250,5 +250,61 @@
     "de": "Fold Yeoni's garden",
     "nl": "Fold Yeoni's garden",
     "ms": "Fold Yeoni's garden"
+  },
+  "home.gardenCopy.searchLead": {
+    "ko": "고민·방식·가격으로 지금 필요한 운세를 찾아보세요.",
+    "en": "Find the reading you need by concern, method or price.",
+    "ja": "悩み・占術・価格から、いま必要な占いを探せます。",
+    "zh-CN": "按烦恼、占法和价格，找到你现在需要的运势。",
+    "zh-TW": "依煩惱、占法和價格，找到你現在需要的運勢。",
+    "vi": "Find the reading you need by concern, method or price.",
+    "hi": "Find the reading you need by concern, method or price.",
+    "es": "Find the reading you need by concern, method or price.",
+    "fr": "Find the reading you need by concern, method or price.",
+    "de": "Find the reading you need by concern, method or price.",
+    "nl": "Find the reading you need by concern, method or price.",
+    "ms": "Find the reading you need by concern, method or price."
+  },
+  "home.gardenCopy.searchPlaceholder": {
+    "ko": "연애, 재물, 이직… 궁금한 운세를 찾아보세요",
+    "en": "Love, money, a job move… search readings",
+    "ja": "恋愛、金運、転職…気になる占いを探す",
+    "zh-CN": "恋爱、财运、跳槽……搜索想看的运势",
+    "zh-TW": "戀愛、財運、轉職……搜尋想看的運勢",
+    "vi": "Love, money, a job move… search readings",
+    "hi": "Love, money, a job move… search readings",
+    "es": "Love, money, a job move… search readings",
+    "fr": "Love, money, a job move… search readings",
+    "de": "Love, money, a job move… search readings",
+    "nl": "Love, money, a job move… search readings",
+    "ms": "Love, money, a job move… search readings"
+  },
+  "home.gardenCopy.filterToggle": {
+    "ko": "필터",
+    "en": "Filters",
+    "ja": "絞り込み",
+    "zh-CN": "筛选",
+    "zh-TW": "篩選",
+    "vi": "Filters",
+    "hi": "Filters",
+    "es": "Filters",
+    "fr": "Filters",
+    "de": "Filters",
+    "nl": "Filters",
+    "ms": "Filters"
+  },
+  "home.gardenCopy.filterMorePurpose": {
+    "ko": "다른 고민",
+    "en": "More concerns",
+    "ja": "ほかの悩み",
+    "zh-CN": "其他烦恼",
+    "zh-TW": "其他煩惱",
+    "vi": "More concerns",
+    "hi": "More concerns",
+    "es": "More concerns",
+    "fr": "More concerns",
+    "de": "More concerns",
+    "nl": "More concerns",
+    "ms": "More concerns"
   }
 }

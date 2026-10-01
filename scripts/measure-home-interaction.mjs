@@ -62,16 +62,14 @@ const MOBILE_UA =
  *    `a.tarot-tile--mindscan` 1,224ms)이라, 못 잰다는 것은 **가장 중요한 것을 못 잰다**는 뜻이었다.
  */
 const TARGETS = [
-  /* 검색 입력은 기본으로 접힌 `#cdhFinderDisclosure` 안에 있고, 펼칠 때 finder 가 마운트된다.
-     사용자와 같은 진입점(summary 클릭)으로 먼저 펼친다. */
+  /* 검색 입력은 홈에 늘 펼쳐져 있다(2026-10-01 — 검색 디스클로저 제거). 화면 안으로만 가져온다. */
   {
     name: "서비스 검색 입력",
     selector: "#fortuneGatewaySearch",
     type: "type",
     text: "사주",
     setup: async (page) => {
-      await scrollIntoView(page, "#cdhFinderDisclosure summary");
-      if (!(await page.$eval("#cdhFinderDisclosure", (d) => d.open))) await page.click("#cdhFinderDisclosure summary");
+      await scrollIntoView(page, "#fortuneGatewaySearch");
       await page.waitForSelector("#fortuneGatewaySearch", { state: "visible" });
     },
   },

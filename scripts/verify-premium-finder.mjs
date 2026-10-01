@@ -47,7 +47,6 @@ try {
     ]) {
       const stem = `${slug}-${width}-${colorScheme}`;
       await page.goto(`${base}/ggulggul/`, { waitUntil: 'domcontentloaded' });
-      await page.locator('#cdhFinderDisclosure summary').click();
       const input = page.locator('#fortuneGatewaySearch');
       const panel = page.locator('#fortuneGatewayRecs');
       const card = panel.locator(`a[href="/${slug}/"]`);

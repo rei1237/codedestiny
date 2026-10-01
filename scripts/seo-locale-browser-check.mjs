@@ -43,6 +43,7 @@ try {
         title: document.querySelector('#cdhTitle').textContent,
         remainingKoreanLeaves: [...document.querySelectorAll('#cdHomeFunnel *')].filter(el => !el.children.length && /[가-힣]/.test(el.textContent)).length,
       }));
+      if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
       await page.locator('[data-cdh-free]').first().click();
       await page.locator('#destinyCardForm').waitFor({ state: 'visible' });
       await page.evaluate(() => window.changeLanguage('ko'));

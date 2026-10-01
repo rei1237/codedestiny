@@ -1485,8 +1485,12 @@
       "passNote": "Standard・Premium・VVIPは花ぶた占いに、Familyは花ぶたとヨンニャンイの有料リーディングに適用されます。購入済みの利用券は購入時の条件を維持します。",
       "passCta": "利用券4種を見る",
       "moreTitle": "ヨニの庭をもっと見る",
-      "moreItems": "ヨンニャンイ · 今日の運勢 · 悩みから探す · 全体検索 · 物語と音楽",
-      "moreClose": "ヨニの庭を閉じる"
+      "moreItems": "六つの占術 · 利用券 · ダイアリー · 全コレクション · 物語と音楽 · 報道と記録",
+      "moreClose": "ヨニの庭を閉じる",
+      "searchLead": "悩み・占術・価格から、いま必要な占いを探せます。",
+      "searchPlaceholder": "恋愛、金運、転職…気になる占いを探す",
+      "filterToggle": "絞り込み",
+      "filterMorePurpose": "ほかの悩み"
     }
   },
   "terms": {

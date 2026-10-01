@@ -48,10 +48,13 @@ test("fortune planner entry cuts over to the /diary app", () => {
   // 2026-09-12(6fc160f56, FORTUNE GATE 6카드 개편): #cdHomeSecondaryPanel 래퍼와
   // .cd-home-secondary-panel 접기/펼치기 CSS 는 이 개편에서 함께 지워졌다 — 접이식 보조
   // 패널이라는 개념 자체가 없어졌다(실측: index.html 에 두 선택자 모두 0개). 지킬 것은
-  // 여전히 "다이어리 진입이 살아 있고, 오늘의 운세 다음·관심사 선택 앞 순서를 지키는 것"이다.
+  // 여전히 "다이어리 진입이 살아 있고, 오늘의 운세 다음 순서를 지키는 것"이다.
+  // 2026-10-01(ggulggul-home-essentials): 고민 선택은 접기 밖 필수 섹션이 됐고, 다이어리는
+  // 단일 접기 "연이의 정원"(#cdhGardenBody) 안 부가 탐색으로 옮겼다 — 진입점 자체는 그대로다.
   assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
   assert.ok(html.indexOf('id="cdhDiarySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
-  assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="cdhConcern"'));
+  assert.ok(html.indexOf('id="cdhConcern"') < html.indexOf('id="cdhGardenBody"'));
+  assert.ok(html.indexOf('id="cdhGardenBody"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   assert.doesNotMatch(html, /id="cdHomeSecondaryPanel"/);
   assert.doesNotMatch(html, /\.cd-home-secondary-panel\{/);
   // 2026-09-08(home-existing-assets-reassembly): 대표 상담은 홈 정보 구조 안으로 승격됐고,
@@ -67,7 +70,7 @@ test("fortune planner entry cuts over to the /diary app", () => {
   assert.ok(html.indexOf('id="dpDestinyPanel"') < html.indexOf('id="destinyCardForm"'));
   assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
   assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
-  // 다이어리는 접힌 보조 영역 밖, 오늘의 운세 다음에 항상 노출한다.
+  // 다이어리는 오늘의 운세 다음, 연이의 정원 안에 있다.
   assert.ok(html.indexOf('id="cdhTodaySlot"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   /* 2026-08-21: 온보딩 레일 앵커(__cdRailAnchor)를 요구하던 단언을 걷어냈다.
      b44bd7862 'remove empty onboarding rail' 이 그 줄을 통째로 지웠는데 이 단언은 남아

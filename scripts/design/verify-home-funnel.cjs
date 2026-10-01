@@ -21,6 +21,23 @@ function contrast(foreground, background) {
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
 
+// 필수 6섹션: 접기 밖에서 보이고, 각 진입점이 보이며 눌릴 자리를 가진다.
+async function assertEssentials(page, label) {
+  const essentials = [
+    ['search', '#cdhServices #fortuneGatewaySearch'],
+    ['today', '#cdhTodaySlot #cdTodayHub'],
+    ['concern', '#cdhConcern #cdConcernPick'],
+    ['chat', '#cdhGatewaySlot #fortuneGatewayEntry a[href^="/fortune-chat/"]'],
+    ['featured', '#cdhFeatured #cdSignatureConsult a[href]'],
+    ['share', '#cdhShareControls #dpKakaoReferralShareBtn'],
+  ];
+  for (const [name, selector] of essentials) {
+    const node = page.locator(selector).first();
+    assert.ok(await node.isVisible(), `${label}: ${name} is visible`);
+    assert.equal(await node.evaluate((el) => Boolean(el.closest('details:not([open])'))), false, `${label}: ${name} is outside any closed fold`);
+  }
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   // Never let UI fixtures reach external services, even when the shell loads SDKs.
@@ -50,18 +67,29 @@ function contrast(foreground, background) {
       await page.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
       await page.locator('#cdhConcernSlot #cdConcernPick').waitFor({ state: 'attached', timeout: 10000 });
       await page.waitForTimeout(250);
-      assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'search starts folded');
+      // 필수 6섹션은 접기 밖에서 바로 보이고, 각자 쓸 수 있는 진입점이 있다(2026-10-01 홈 개편).
+      await assertEssentials(page, `${width}px first visit`);
+      assert.equal(await page.locator('#fortuneGatewaySearch').getAttribute('placeholder'), '연애, 재물, 이직… 궁금한 운세를 찾아보세요', 'search placeholder');
+      assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'no search results before input');
+      assert.equal(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count(), 0, 'no default list rendered before input');
+      assert.equal(await page.locator('#fortuneGatewayFilterPanel').evaluate((panel) => panel.open), false, 'search filter panel starts closed');
       assert.equal(await page.locator('#cdhCollections').isVisible(), false, 'collections start folded');
       assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'secondary garden starts folded');
       assert.equal(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), false, 'diary waits behind one tap');
-      assert.ok(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), 'pass stays in the primary flow');
+      assert.equal(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), false, 'pass lives in the garden');
       assert.ok(await page.locator('#cdhFeedbackSlot .cd-feedback__cta').isVisible(), 'slim bug report row stays in the primary flow');
+      // 닫힌 정원 안은 Tab 순회에 걸리지 않는다.
+      assert.equal(await page.evaluate(() => {
+        const body = document.getElementById('cdhGardenBody');
+        return [...body.querySelectorAll('a[href],button,input,[tabindex]')].some((node) => { node.focus(); return document.activeElement === node; });
+      }), false, 'closed garden content cannot take focus');
       const gardenSummary = page.locator('#cdhMore > summary');
       assert.equal(await gardenSummary.getAttribute('aria-controls'), 'cdhGardenBody', 'garden summary controls its body');
       assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'false', 'garden summary reports closed');
       assert.ok(await page.locator('#cdhMore .cdh-more__on').isVisible(), 'closed label offers to open the garden');
       await gardenSummary.click();
-      assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'true', 'garden summary reports open');
+      // details 의 toggle 이벤트는 비동기 태스크다 — aria-expanded 동기화를 기다린다(1초 안).
+      await page.waitForFunction(() => document.querySelector('#cdhMore > summary').getAttribute('aria-expanded') === 'true', null, { timeout: 1000 });
       assert.ok(await page.locator('#cdhMore .cdh-more__off').isVisible(), 'open label offers to close the garden');
       assert.equal(await page.locator('#cdhMore .cdh-more__on').isVisible(), false, 'only one garden label shows');
       assert.ok(await page.locator('#cdhDiarySlot #cdDiaryPlannerEntry').isVisible(), 'diary restored');
@@ -69,10 +97,9 @@ function contrast(foreground, background) {
       assert.equal(await page.locator('#cdHomeExpandToggle').count(), 0, 'the garden is the only home fold');
       assert.ok(await page.locator('#cdhCollections').isVisible(), 'collections open with the garden');
       assert.ok(await page.locator('#cdhCollections > .feature-card-grid').count(), 'existing cards live inside the garden');
-      await page.locator('#cdhFinderDisclosure summary').click();
-      assert.ok(await page.locator('#fortuneGatewaySearch').isVisible(), 'search opens on request');
-      await page.locator('#cdhFinderDisclosure summary').click();
-      assert.equal(await page.locator('#fortuneGatewaySearch').isVisible(), false, 'search closes again');
+      assert.ok(await page.locator('#cdhPass .cdh-pass__btn').isVisible(), 'pass opens with the garden');
+      assert.ok(await page.locator('#cdhQuickSlot [data-cdh-free]').isVisible(), 'free saju entry opens with the garden');
+      assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'opening the garden does not touch search');
       const closeButton = page.locator('#cdhMore [data-cdh-garden-close]');
       await closeButton.focus();
       await closeButton.click();
@@ -145,8 +172,6 @@ function contrast(foreground, background) {
       }
 
       if (width === 390) {
-        // 대표 상담은 연이의 정원 안이다 — 위 접기 단계가 정원을 닫았으므로 다시 연다.
-        await page.locator('#cdhMore > summary').click();
         await page.locator('#cdSignatureConsult').scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
         const fusionImage = page.locator('.cd-sig-card--fusion .cd-sig-card__img');
@@ -156,15 +181,28 @@ function contrast(foreground, background) {
       }
 
       await page.evaluate(() => { document.documentElement.classList.remove('neo-mode'); document.body.classList.remove('neo-mode'); location.hash = 'services'; });
-      await page.waitForSelector('#fortuneGatewayRecs .fortune-gateway__rec');
+      await page.waitForFunction(() => document.activeElement && document.activeElement.id === 'fortuneGatewaySearch');
+      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'search hash does not open the garden');
+      assert.equal(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count(), 0, 'search hash alone renders no results');
       const searchBorders = await page.locator('.fortune-gateway__search').evaluate((shell) => ({
         shell: getComputedStyle(shell).borderTopWidth,
         input: getComputedStyle(shell.querySelector('input')).borderTopWidth,
       }));
       assert.equal(searchBorders.shell, '1px');
       assert.equal(searchBorders.input, '0px');
+      await page.locator('#fortuneGatewaySearch').fill('검색되지않는없는운세');
+      await page.waitForTimeout(250);
+      assert.ok(await page.locator('#fortuneGatewayRecs').filter({ hasText: '일치하는 서비스가 없어요' }).isVisible(), 'empty search explains no match');
+      await page.locator('[data-cd-search-clear]').click();
+      assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'clearing the query hides results again');
+      // 정원 안 컬렉션에만 있는 서비스도 검색된다(타일 스크랩). 검색은 정원을 열지 않는다.
       await page.locator('#fortuneGatewaySearch').fill('나크샤트라');
+      await page.waitForTimeout(250);
+      assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count() > 0, 'garden-only service is searchable');
+      assert.equal(await page.locator('#cdhMore').evaluate((more) => more.open), false, 'search does not open the garden');
+      await page.locator('#fortuneGatewayFilterPanel > summary').click();
       await page.locator('[data-price="free"]').click();
+      assert.equal(await page.locator('[data-cd-filter-count]').textContent(), '1', 'filter toggle counts active panel filters');
       await page.waitForTimeout(250);
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').count() > 0, 'search and free filter');
       assert.ok(await page.locator('[data-cd-finder-reset]').isVisible(), 'reset appears for active filters');
@@ -174,7 +212,9 @@ function contrast(foreground, background) {
       assert.ok(await page.locator('#fortuneGatewayRecs .fortune-gateway__rec').filter({ hasText: '음악' }).count(), '1000 won filter includes music');
       await page.locator('#cdhServices').screenshot({ path: path.join(out, `finder-${width}.png`) });
       await page.locator('[data-cd-finder-reset]').click();
+      assert.equal(await page.locator('#fortuneGatewayRecs').isVisible(), false, 'reset returns to the empty search state');
       if (width === 390 || width === 1440) {
+        await page.locator('#cdhMore > summary').click();
         await page.locator('#cdhDiarySlot').scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
         await page.locator('#cdhDiarySlot').screenshot({ path: path.join(out, `diary-${width}.png`) });
@@ -192,10 +232,31 @@ function contrast(foreground, background) {
 
     const deepLink = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     await deepLink.goto(origin + '/static/index.html#cdhFeatured', { waitUntil: 'domcontentloaded' });
-    await deepLink.waitForFunction(() => document.getElementById('cdhMore')?.open === true, null, { timeout: 10000 });
-    assert.ok(await deepLink.locator('#cdhFeatured').isVisible(), 'bottom-nav anchor opens the folded garden');
+    await deepLink.locator('#cdhFeatured #cdSignatureConsult').waitFor({ state: 'visible', timeout: 10000 });
+    assert.equal(await deepLink.locator('#cdhMore').evaluate((more) => more.open), false, 'featured anchor is outside the garden');
+    for (const anchor of ['cdhPass', 'cdhExpertsSlot']) {
+      await deepLink.goto(origin + '/static/index.html#' + anchor, { waitUntil: 'domcontentloaded' });
+      await deepLink.waitForFunction(() => document.getElementById('cdhMore')?.open === true, null, { timeout: 10000 });
+      await deepLink.waitForTimeout(250);
+      const box = await deepLink.locator('#' + anchor).boundingBox();
+      assert.ok(box && box.y < 844 && box.y + box.height > 0, `#${anchor} deep link opens only the garden and scrolls to the target`);
+    }
     results.push({ deepLinkOpensFold: true });
     await deepLink.close();
+
+    // 예전 상태(모두 펼치기 클래스·저장 테마)를 흉내 내도 필수 섹션이 가려지지 않는다.
+    const legacy = await browser.newPage({ viewport: { width: 375, height: 812 }, reducedMotion: 'reduce' });
+    await legacy.addInitScript(() => {
+      try { localStorage.setItem('cdHomeExpanded', '1'); } catch (_) {}
+      document.addEventListener('DOMContentLoaded', () => document.documentElement.classList.add('cd-home-expanded'));
+    });
+    await legacy.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
+    await legacy.locator('#cdhConcernSlot #cdConcernPick').waitFor({ state: 'attached', timeout: 10000 });
+    await legacy.waitForTimeout(250);
+    await assertEssentials(legacy, 'legacy state');
+    assert.equal(await legacy.locator('#cdhMore').evaluate((more) => more.open), false, 'legacy state starts with the garden closed');
+    results.push({ legacyStateKeepsEssentials: true });
+    await legacy.close();
 
     const member = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
     let profiles = [];
@@ -223,6 +284,8 @@ function contrast(foreground, background) {
     member.on('dialog', (dialog) => dialog.type() === 'confirm' ? dialog.accept() : dialog.dismiss());
     await member.goto(origin + '/static/index.html', { waitUntil: 'domcontentloaded' });
     await member.waitForSelector('#cdAuthLogoutBtn', { state: 'attached' });
+    await assertEssentials(member, 'logged in');
+    await member.locator('#cdhMore > summary').click();
     await member.locator('[data-cdh-free]').first().click();
     await member.locator('#nameInput').fill('꽃길 테스트');
     await member.locator('#birthDate').fill('1995-05-15');
