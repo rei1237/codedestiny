@@ -36,6 +36,8 @@ next: 4종 모두 완료. 남은 것은 CI 배선 여부(사용자 결정)뿐 �
   - 빠진 단언: 고정 팔레트·전환 색 3종, 공유 히어로 artSrc, 16:9 비율. 이전 초안의 미호출 프로브 함수(`installProbes` 등)는 커밋 전에 지웠다.
   - 실측: `node scripts/verify-feature-popup-journey.mjs` PASS(74 상세 × 4폭, exit 0, 약 2분 50초, 서버 불필요). 변이 확인(저장소 `scripts/` 임시 사본, 3상품×390폭, 서빙 내용만 바꿈 — 제품 파일 무변경, 사본 삭제함): 무변이 PASS / 푸터 항상 표시 → "sticky CTA hidden" FAIL / 푸터 영구 숨김 → "sticky CTA visible … after hero scrolls away" FAIL / 미러 클릭 위임 제거 → "delegates exactly once" FAIL / 마운트 시 자동 클릭 → "no implicit checkout" FAIL / 본문 색 투명 → "hero body contrast 1 < 4.5" FAIL / 이미지 차단 → "hero art loaded" FAIL. 6종 모두 문다.
   - CI 미배선·npm 스크립트 없음은 그대로다.
+  - 보완(같은 날 병행 세션): 픽스처는 상품마다 `pvw-open` 을 지워 닫은 뒤 연다(셸 `_close()` 와 같은 흐름). 닫지 않고 다시 마운트하면 360/fusion-fortune 에서 열 때 스티키 푸터가 보였다 — `actionCleanups` 가 `visibility` IntersectionObserver 를 끊지 않아(닫힘 관찰자만 끊음) 이전 상품의 관찰자가 남아 `fortuneCtaAtTop` 을 다투기 때문이다. 현재 유일한 호출부 `index.html` `_open` 은 열린 채 재마운트하지 않아 실사용 경로는 아님(추정, 호출부 1곳 grep 근거) — **후속 과제(보고만)**: `js/feature-detail-preview.mjs` 의 cleanup 에 `visibility?.disconnect()` 추가 검토. 별도 실측: 74×4 전체 변이 6종(푸터 상시/영구 숨김, 히어로 CTA 첫 화면 밖, 이중 위임, 본문 대비 1.95, 공유 히어로 src) 모두 FAIL, 무변이 3/3 PASS.
+  - 미검증 관찰: 픽스처의 CTA 문구는 템플릿 기본값 "지금 시작하기 →" 인데 비주얼 상세 CSS 가 버튼 `:after` 화살표를 더해 이중 화살표로 보인다. 런타임 문구에 → 가 남는지는 확인 안 함.
 
 ## 3. verify-review-anytime-ui — 서버 필요 + 자기 스크린샷이 HMR 을 유발 (확정)
 
