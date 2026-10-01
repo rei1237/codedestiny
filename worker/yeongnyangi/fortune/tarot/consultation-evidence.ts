@@ -2,7 +2,7 @@ import {TAROT_CARDS} from '../../../../lib/tarot/tarot-cards.mjs';
 import {getMeaningByQuestion} from '../../../../lib/tarot/tarot-interpretation-engine.mjs';
 import {yeongnyangiCardMetadata} from '../../../../lib/tarot/yeongnyangi-deck';
 import {FortuneError,type DomainContext} from '../shared/contracts';
-import {TAROT_CONSULTATION_VERSION,tarotConsultations,tarotConsultationSpread,tarotInterpretationRules,type TarotConsultationId} from './consultation-contract';
+import {TAROT_CONSULTATION_VERSION,chatTarotRules,tarotConsultations,tarotConsultationSpread,tarotInterpretationRules,type TarotConsultationId} from './consultation-contract';
 
 // Materialize the semantic evidence once at purchase time. Resume must use this
 // stored fact instead of rebuilding meanings against a newer card dictionary.
@@ -29,4 +29,8 @@ export function tarotConsultationEvidence(context:DomainContext,id:TarotConsulta
 export function attachTarotConsultationEvidence(context:DomainContext,id:TarotConsultationId):DomainContext{
  const value=tarotConsultationEvidence(context,id);
  return {...context,facts:[...context.facts.filter(f=>f.label!=='tarotConsultation'),{id:'tarot.tarotConsultation',label:'tarotConsultation',value}]};
+}
+/** Fortune-chat evidence without the Yeongnyangi voice; the cards and meanings are untouched. */
+export function withChatTarotVoice(context:DomainContext):DomainContext{
+ return {...context,facts:context.facts.map(f=>f.label==='tarotConsultation'?{...f,value:{...(f.value as any),rules:chatTarotRules((f.value as any).rules)}}:f)};
 }

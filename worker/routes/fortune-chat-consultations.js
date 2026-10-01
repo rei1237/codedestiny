@@ -20,6 +20,7 @@ const messages = {
   INVALID_PERSONA: '상담할 친구를 다시 골라 주세요.',
   PRODUCT_NOT_FOUND: '이 운세는 아직 대화형 상담으로 준비되지 않았어요. 다른 운세를 골라 주세요.',
   QUESTION_REQUIRED: '가장 궁금한 한 가지를 적어 주세요.',
+  INVALID_CONSULTATION_KIND: '타로로 볼 고민의 종류를 다시 골라 주세요.',
   PROFILE_REQUIRED: '상담할 프로필을 선택해 주세요.',
   PROFILE_NOT_FOUND: '이 계정에서 프로필을 찾지 못했어요. 다시 선택해 주세요.',
   BIRTH_TIME_REQUIRED: '이 운세에는 출생시간이 필요해요. 프로필의 시간을 확인해 주세요.',

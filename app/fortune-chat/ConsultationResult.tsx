@@ -82,7 +82,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
         {!!first.highlights?.length && <ul className={styles.highlights}>{first.highlights.map((h, i) => <li key={i}>{h}</li>)}</ul>}
         {!!row.charts?.length && (
           <details className={styles.charts}>
-            <summary>명식 자료 펼쳐 보기</summary>
+            <summary>{row.product?.systems?.[0] === "tarot" ? "펼친 카드 다시 보기" : "명식 자료 펼쳐 보기"}</summary>
             <ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(manifest.map((c, i) => [c.id, title(i)]))} locale={row.locale} />
           </details>
         )}

@@ -38,3 +38,5 @@ export const tarotInterpretationRules=[
  '상대의 실제 마음, 확정된 연락 날짜, 성공 확률, 투자 수익을 만들지 않는다. 거절과 무응답을 존중한다.',
  '따뜻하고 차분한 영냥이 상담 문체로 근거·다른 가능성·관찰 신호·사용자가 선택할 행동을 구분한다.',
 ].join(' ');
+/** Yeoni and Neo bring their own voice (personaPrompt); every other tarot rule stays word for word. */
+export const chatTarotRules=(text:string)=>text.replace('따뜻하고 차분한 영냥이 상담 문체로','상담자의 말투로');

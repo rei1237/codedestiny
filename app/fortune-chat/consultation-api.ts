@@ -4,7 +4,9 @@ import type { FortuneRecord } from "@/app/yeongnyangi/_lib/api";
 
 /** 연이·네오 상담 엔진(/api/fortune-chat/consultations) 클라이언트. 서버 계약은 worker/routes/fortune-chat-consultations.js. */
 export type ChatPersona = "yeoni" | "neo";
-export type ChatDomain = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology";
+export type ChatDomain = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology" | "tarot";
+/** 타로는 명식 없이 고민의 종류로 읽는다. 서버 허용 목록은 worker/yeongnyangi/payments/catalog.ts 의 chatTarotKinds. */
+export type ChatTarotKind = "choice" | "love" | "feelings" | "contact" | "reunion" | "career" | "money" | "healing";
 export type ChatAccessChoice = "free_trial" | "pass" | "checkout" | "";
 
 export type ChatConsultation = Omit<FortuneRecord, "accessMethod"> & {
@@ -31,8 +33,11 @@ export type ChatConsultationSummary = {
 export type CreateConsultationInput = {
   persona: ChatPersona;
   domain: ChatDomain;
-  profileId: string;
+  /** 명식 운세에만 보낸다. 타로는 프로필 없이 읽는다. */
+  profileId?: string;
   question: string;
+  /** 타로에만 보낸다. 명식 운세는 늘 자유 질문(ask)이다. */
+  tarotKind?: ChatTarotKind;
   consultationAttemptId: string;
 };
 
@@ -73,11 +78,11 @@ type One = { ok: true; consultation: ChatConsultation };
 
 export const consultationApi = {
   list: (persona: ChatPersona) => call<{ ok: true; enabled?: boolean; consultations: ChatConsultationSummary[] }>(`?persona=${persona}`),
-  create: (input: CreateConsultationInput) => call<One>("", {
+  create: ({ tarotKind, ...input }: CreateConsultationInput) => call<One>("", {
     ...input,
     locale: "ko",
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Seoul",
-    consultationKind: "ask",
+    consultationKind: tarotKind || "ask",
     topicId: "general",
   }).then((r) => r.consultation),
   read: (id: string) => call<One>(`/${id}`).then((r) => r.consultation),

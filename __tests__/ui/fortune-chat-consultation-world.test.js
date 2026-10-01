@@ -28,7 +28,7 @@ test('a late response never revives a closed or replaced consultation',()=>{
 });
 
 test('every persona has its own art for each fortune domain and room moment, and the files ship',()=>{
-  const domains=['saju','ziwei','sukuyo','vedic','astrology'];
+  const domains=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
   for(const who of ['yeoni','neo']){
     assert.deepEqual(Object.keys(DOMAIN_ART[who]).sort(),[...domains].sort());
     assert.deepEqual(Object.keys(MOMENT_ART[who]).sort(),['empty','error','loading']);

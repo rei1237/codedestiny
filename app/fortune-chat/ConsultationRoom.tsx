@@ -10,10 +10,10 @@ import ProfileForm from "@/app/yeongnyangi/_components/ProfileForm";
 import { canOfferCheckout, canOfferFreeTrial, guardCheckout } from "./consultation-access";
 import {
   consultationApi, ConsultationApiError, isConsultationId,
-  type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona,
+  type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona, type ChatTarotKind,
 } from "./consultation-api";
 import ConsultationResult from "./ConsultationResult";
-import { DOMAIN_ART, EMPTY_ROWS, MOMENT_ART, poseFor, refreshRow, showRow, type PersonaRows, type RoomMoment } from "./consultation-world";
+import { DOMAIN_ART, EMPTY_ROWS, MOMENT_ART, poseFor, refreshRow, showRow, TAROT_KINDS, type PersonaRows, type RoomMoment } from "./consultation-world";
 import { PersonaAvatar } from "./PersonaAvatar";
 import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
@@ -41,6 +41,7 @@ const DOMAINS: { id: ChatDomain; label: string }[] = [
   { id: "sukuyo", label: "숙요" },
   { id: "vedic", label: "베다점" },
   { id: "astrology", label: "서양 점성술" },
+  { id: "tarot", label: "타로" },
 ];
 const SUGGESTIONS = ["올해 이직해도 괜찮을까요?", "지금 관계를 이어가도 될까요?", "요즘 돈 흐름은 어떤가요?", "올해 가장 조심할 시기는 언제예요?"];
 const STATE_LABEL: Record<string, string> = {
@@ -106,6 +107,9 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [domain, setDomain] = useState<ChatDomain>("saju");
   const [question, setQuestion] = useState("");
+  const [tarotKind, setTarotKind] = useState<ChatTarotKind>("choice");
+  const tarot = domain === "tarot";
+  const kind = TAROT_KINDS.find((k) => k.id === tarotKind) || TAROT_KINDS[0];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -245,12 +249,14 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
   const create = async () => {
     const text = question.trim();
-    if (busy || !text || !profileId) return;
+    if (busy || !text || (!tarot && !profileId)) return;
     if (guest) { loginForCurrentPage(); return; }
     setBusy(true); setError(""); setNotice("");
     try {
       if (!attempt.current[persona]) attempt.current[persona] = crypto.randomUUID();
-      const next = await consultationApi.create({ persona, domain, profileId, question: text, consultationAttemptId: attempt.current[persona] });
+      const next = await consultationApi.create(tarot
+        ? { persona, domain, tarotKind, question: text, consultationAttemptId: attempt.current[persona] }
+        : { persona, domain, profileId, question: text, consultationAttemptId: attempt.current[persona] });
       attempt.current[persona] = "";
       if (!mounted.current) return;
       show(next); setConsultationParam(next.id); setQuestion("");
@@ -385,41 +391,46 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
               </div>
             </section>
 
-            <section className={styles.panel} aria-labelledby="consultation-profile">
-              <h2 id="consultation-profile" className={styles.sectionTitle}>누구의 명식으로 볼까요?</h2>
-              {guest ? (
-                <div className={styles.actions}><button type="button" onClick={loginForCurrentPage}>로그인하고 상담 시작하기</button></div>
-              ) : profilesLoading && !profiles.length ? (
-                <p className={styles.muted} role="status">프로필을 불러오는 중이에요.</p>
-              ) : !profiles.length || addingProfile ? (
-                <ProfileForm locale="ko" onSaved={(profile) => { saved(profile); setAddingProfile(false); void refreshProfiles(true); }} />
-              ) : (
-                <div className={styles.profileRow}>
-                  <select aria-label="상담할 프로필" value={profileId} onChange={(e) => select(e.target.value)}>
-                    {profiles.map((p) => <option key={profileKey(p)} value={profileKey(p)}>{p.name || "이름 없는 프로필"}</option>)}
-                  </select>
-                  <button type="button" className={styles.linkButton} onClick={() => setAddingProfile(true)}>새 프로필</button>
-                </div>
-              )}
-            </section>
-
             <section className={styles.panel} aria-labelledby="consultation-domain">
               <h2 id="consultation-domain" className={styles.sectionTitle}>어떤 운세로 볼까요?</h2>
               <div className={`${base.chips} ${styles.chipWrap}`}>
                 {DOMAINS.map((d) => <button key={d.id} type="button" aria-pressed={domain === d.id} onClick={() => setDomain(d.id)}>{d.label}</button>)}
               </div>
               <DomainArt persona={persona} domain={domain} />
+              {tarot && <p className={styles.muted}>타로는 생년월일 없이 지금의 고민과 카드로 읽어요.</p>}
             </section>
 
+            {!tarot && (
+              <section className={styles.panel} aria-labelledby="consultation-profile">
+                <h2 id="consultation-profile" className={styles.sectionTitle}>누구의 명식으로 볼까요?</h2>
+                {guest ? (
+                  <div className={styles.actions}><button type="button" onClick={loginForCurrentPage}>로그인하고 상담 시작하기</button></div>
+                ) : profilesLoading && !profiles.length ? (
+                  <p className={styles.muted} role="status">프로필을 불러오는 중이에요.</p>
+                ) : !profiles.length || addingProfile ? (
+                  <ProfileForm locale="ko" onSaved={(profile) => { saved(profile); setAddingProfile(false); void refreshProfiles(true); }} />
+                ) : (
+                  <div className={styles.profileRow}>
+                    <select aria-label="상담할 프로필" value={profileId} onChange={(e) => select(e.target.value)}>
+                      {profiles.map((p) => <option key={profileKey(p)} value={profileKey(p)}>{p.name || "이름 없는 프로필"}</option>)}
+                    </select>
+                    <button type="button" className={styles.linkButton} onClick={() => setAddingProfile(true)}>새 프로필</button>
+                  </div>
+                )}
+              </section>
+            )}
+
             <section className={styles.panel} aria-labelledby="consultation-question">
-              <h2 id="consultation-question" className={styles.sectionTitle}>무엇이 궁금한가요?</h2>
+              <h2 id="consultation-question" className={styles.sectionTitle}>{tarot ? "어떤 고민을 카드로 볼까요?" : "무엇이 궁금한가요?"}</h2>
               <div className={`${base.chips} ${styles.chipWrap}`}>
-                {SUGGESTIONS.map((s) => <button key={s} type="button" aria-pressed={question === s} onClick={() => setQuestion(s)}>{s}</button>)}
+                {tarot
+                  ? TAROT_KINDS.map((k) => <button key={k.id} type="button" aria-pressed={tarotKind === k.id} onClick={() => setTarotKind(k.id)}>{k.label}</button>)
+                  : SUGGESTIONS.map((s) => <button key={s} type="button" aria-pressed={question === s} onClick={() => setQuestion(s)}>{s}</button>)}
               </div>
               <textarea className={styles.textarea} rows={3} maxLength={QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
-                placeholder={world.placeholder} aria-labelledby="consultation-question" />
+                placeholder={tarot ? kind.prompt : world.placeholder} aria-labelledby="consultation-question" />
               <div className={styles.actions}>
-                <button type="button" disabled={busy || !question.trim() || (!guest && !profileId) || enabled === false} onClick={() => void create()}>
+                <button type="button" disabled={busy || !question.trim() || (!guest && !tarot && !profileId) || enabled === false} onClick={() => void create()}>
                   {busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}
                 </button>
               </div>
@@ -436,7 +447,7 @@ export default function ConsultationRoom({ initialId = "", initialPersona = "yeo
 
             {offerCheckout && (
               <div className={styles.accessPanel} data-consultation-access>
-                <p>질문과 명식을 확인했어요. 상담을 열면 {personaName}가 바로 답을 쓰기 시작해요.</p>
+                <p>{rowDomain === "tarot" ? "질문에 맞춰 카드를 펼쳐 두었어요." : "질문과 명식을 확인했어요."} 상담을 열면 {personaName}가 바로 답을 쓰기 시작해요.</p>
                 <div className={styles.actions}>
                   {canOfferFreeTrial(row) && <button type="button" disabled={busy || isPaying} onClick={() => void openFreeTrial()}>무료 상담 1회로 열기</button>}
                   <button type="button" data-consultation-pay disabled={busy || isPaying} onClick={() => void pay()}>
