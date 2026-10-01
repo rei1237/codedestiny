@@ -700,7 +700,8 @@ assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보�
 assertNotContains(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "overlay cleanup must not be awaited before opening the PG window");
 assertBefore(cardSubscriptionSource, "closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens right after the React overlay is cleared");
 assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "withSubscriptionMethod(orderMethod, \"결제 승인 내역을 안전하게 확인하고 있어요.", "subscription confirm wait starts only after PG response");
-assertContains(pointsSource, "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.", "standard pass paid-service policy UI");
+// 2026-10-01: "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내…" 단언은 지웠다. 그 문장은 {false&&} 안에서만
+// 렌더되던 SubscriptionSection 본문에만 있어 실제 화면을 지키지 못했고, 죽은 컴포넌트를 지우면서 함께 사라졌다.
 assertContains(pointsSource, "subscriptions?: Record<string, unknown>[]", "points page reads payments/me subscriptions");
 assertContains(pointsSource, "normalizeSubscriptionStatusFromPayload", "points page normalizes subscription payloads");
 assertContains(pointsSource, "mergeSubscriptionState", "points page merges server subscription state");
