@@ -47,7 +47,7 @@ next: 본 작업 완료. 아래 "남은 일"은 별도 세션에서 하나씩.
 
 ## 남은 일 (보고만, 범위 밖)
 
-1. 변경 전부터 실패: `verify-today-hub-gate`, `verify-review-anytime-ui`, `verify-saju-reading-personas`, `verify-feature-popup-journey`.
+1. 변경 전부터 실패: `verify-today-hub-gate`, `verify-review-anytime-ui`, `verify-saju-reading-personas`, `verify-feature-popup-journey`. → 원인 진단 완료(제품 결함 없음, 넷 다 낡은 검증기): [stale-verifiers-2026-10-01](stale-verifiers-2026-10-01.md).
 2. 390px 게이트웨이 제목 2행 "지"가 기존 달 원반·금색 원 장식과 2~3px 겹친다(명조 전환 뒤 2행 끝이 17px 물러나 오히려 줄었음).
 3. 게이트웨이 연이 CTA "상담 시작하기 →" 화살표 대비 1.28:1.
 4. 모바일 고민 섹션 제목·키커가 왼쪽 정렬(데스크톱은 가운데) — 기존 스타일.
