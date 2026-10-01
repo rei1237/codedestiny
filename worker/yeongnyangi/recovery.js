@@ -18,7 +18,7 @@ const HOLD_SCAN = 10;
 const ALERT_TIMEOUT_MS = 5000;
 
 export function abandonedRequestFilter(now) {
-  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:{$in:['FAMILY','SERVICE_PACK']},passEvidenceId:{$ne:null}},{accessMethod:'MOONLIGHT_STONE',moonstoneLedgerId:{$ne:null}}],
+  return {state:{$in:['PAID','GENERATING','FORTUNE_FAILED']},$or:[{paymentId:{$ne:null}},{accessMethod:{$in:['FAMILY','SERVICE_PACK']},passEvidenceId:{$ne:null}},{accessMethod:'MOONLIGHT_STONE',moonstoneLedgerId:{$ne:null}},{accessMethod:{$in:['PER_USE','ACCOUNT_FREE_TRIAL']}}],
     updatedAt:{$lt:new Date(now-ABANDONED_MS)},
     errorCode:{$nin:['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']},
     $and:[{$or:[{leaseUntil:null},{leaseUntil:{$lte:new Date(now)}}]}]};
@@ -91,6 +91,19 @@ async function reviveHeldOrders(env, options, now, outcomes) {
   return revived;
 }
 
+// A fortune-chat payment either opened its consultation or was approved after the consultation opened another way
+// (free use, pass). The second is a double charge, so operators hear about it before the order is marked.
+async function settleChatOrder(env, order, row, notify, outcomes) {
+  const attached=row?.accessMethod==='PER_USE'&&row.perUseSource==='payment'&&String(row.perUseEvidenceId)===String(order._id);
+  if(!attached&&!await sendHoldAlert(env,{subject:`[꿀꿀 운세] 중복 결제 확인 ${String(order._id).slice(0,12)}`,text:[
+    `결제: ${order._id}`,`상담: ${order.requestId}`,`열린 방식: ${row?.accessMethod || 'UNKNOWN'}`,
+    '같은 상담이 다른 방식으로 먼저 열린 뒤 카드 결제가 승인됨. 운영자 환불 확인 필요',
+  ].join('\n')},notify)){outcomes.push({outcome:'alert_pending'});return;}
+  await withMongoRetry(env,()=>Payment.updateOne({_id:order._id,'metadata.fortuneChatRecovery':null},
+    {$set:{'metadata.fortuneChatRecovery':attached?'attached':'duplicate'}}));
+  outcomes.push({outcome:attached?'chat_attached':'duplicate_payment'});
+}
+
 // Existing ten-minute recovery tick. Original immutable input, chapter lease and
 // total attempt budget are shared with the browser; no new charge or LLM retry layer.
 export async function runYeongnyangiRecovery(env, options = {}) {
@@ -98,17 +111,23 @@ export async function runYeongnyangiRecovery(env, options = {}) {
   const clock=options.clock || Date.now, now=clock(), deadline=now+BUDGET_MS;
   await (options.connectDb || connectDb)(env);
   const activate=options.activate || activateFortune, generate=options.generate || generateNextChapter;
-  const orders=canGenerate?await withMongoRetry(env,()=>Payment.find({
-    requestId:/^yn-[a-f0-9]{64}$/,
+  const paidOrders=(requestId,extra={})=>withMongoRetry(env,()=>Payment.find({
+    requestId,...extra,
     paymentType:'digital_content',purchaseType:{$ne:'GIFT'},status:{$in:['paid','success','fulfilled']},
     'metadata.unlockRevoked':{$ne:true},'metadata.yeongnyangiRefundPending':{$ne:true},
     'metadata.consumedBy':null,createdAt:{$lt:new Date(now-ABANDONED_MS)},
     $or:[{'metadata.yeongnyangiRecoveryAfter':null},{'metadata.yeongnyangiRecoveryAfter':{$lte:new Date(now)}}],
-  }).sort({createdAt:1}).limit(MAX_REQUESTS).lean()):[];
+  }).sort({createdAt:1}).limit(MAX_REQUESTS).lean());
+  const orders=canGenerate?await paidOrders(/^yn-[a-f0-9]{64}$/):[];
+  // Fortune-chat payments stay proof (never consumed), so a handled one is marked instead of dropping out of the scan.
+  const chatOrders=canGenerate?await paidOrders(/^fc-[a-f0-9]{64}$/,{'metadata.fortuneChatRecovery':null}):[];
   const outcomes=[];
-  for(const order of orders){
+  for(const order of [...orders,...chatOrders]){
     if(clock()+CHAPTER_RESERVE_MS>deadline)break;
-    try{await activate(env,String(order.userId),order.requestId.slice(3));}
+    try{
+      const row=await activate(env,String(order.userId),order.requestId.slice(3));
+      if(order.requestId.startsWith('fc-'))await settleChatOrder(env,order,row,options.notify,outcomes);
+    }
     catch(error){
       // A malformed historical order must not starve later paid orders each tick,
       // but a DB blip must not delay a paid result by a whole day.

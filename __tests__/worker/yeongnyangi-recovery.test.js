@@ -3,7 +3,8 @@ let orders=[],candidates=[],held=[],stopped=[],alerts=[],filters=[];
 const chain=(rows)=>({sort:()=>chain(rows),limit:()=>chain(rows),lean:async()=>rows});
 jest.unstable_mockModule('../../worker/lib/db.js',()=>({connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
 const updateOne=jest.fn(async()=>({modifiedCount:1}));
-jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment:{find:()=>chain(orders),updateOne}}));
+jest.unstable_mockModule('../../worker/lib/models.js',()=>({Payment:{find:filter=>chain(orders.filter(order=>filter.requestId.test(order.requestId)
+  &&!(filter['metadata.fortuneChatRecovery']===null&&order.metadata?.fortuneChatRecovery))),updateOne}}));
 const scan=filter=>{filters.push(filter);return filter.errorCode==='AUTOMATIC_RECOVERY_STOPPED'?stopped:filter['hold.alertPending']?alerts
   :filter.errorCode==='GENERATION_REVIEW_REQUIRED'?held:candidates;};
 const keepHold=jest.fn(async()=>({modifiedCount:1})),markHoldAlerted=jest.fn(async()=>({modifiedCount:1}));
@@ -68,6 +69,34 @@ test('tick reserves provider and commit time before starting another chapter',as
   const generate=jest.fn().mockImplementation(async()=>{now+=140000;return {_id:'id',userId:'owner',chapters:[{}],state:'PAID'};});
   await runYeongnyangiRecovery({},{providerReady:()=>true,generate,clock:()=>now});
   expect(generate).toHaveBeenCalledTimes(1);
+});
+test('fortune-chat consultations resume like every other paid access',()=>{
+  expect(abandonedRequestFilter(Date.now()).$or).toContainEqual({accessMethod:{$in:['PER_USE','ACCOUNT_FREE_TRIAL']}});
+});
+test('a paid fortune-chat order opens its consultation once and is marked',async()=>{
+  orders=[{_id:'done',userId:'owner',requestId:`fc-${'d'.repeat(64)}`,metadata:{fortuneChatRecovery:'attached'}},{_id:'pay',userId:'owner',requestId:`fc-${'c'.repeat(64)}`}];updateOne.mockClear();
+  const activate=jest.fn().mockResolvedValue({accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'pay'}),notify=jest.fn();
+  const result=await runYeongnyangiRecovery({},{providerReady:()=>true,activate,notify});
+  expect(activate).toHaveBeenCalledTimes(1);expect(activate).toHaveBeenCalledWith({},'owner','c'.repeat(64));expect(notify).not.toHaveBeenCalled();
+  expect(updateOne).toHaveBeenCalledWith({_id:'pay','metadata.fortuneChatRecovery':null},{$set:{'metadata.fortuneChatRecovery':'attached'}});
+  expect(result.outcomes).toContainEqual({outcome:'chat_attached'});
+});
+test('a card payment for a consultation already opened another way reaches operators before it is marked',async()=>{
+  orders=[{_id:'pay',userId:'owner',requestId:`fc-${'c'.repeat(64)}`}];updateOne.mockClear();
+  const activate=jest.fn().mockResolvedValue({accessMethod:'ACCOUNT_FREE_TRIAL'});
+  let result=await runYeongnyangiRecovery({},{providerReady:()=>true,activate,notify:async()=>({results:[{ok:false}]})});
+  expect(updateOne).not.toHaveBeenCalled();expect(result.outcomes).toContainEqual({outcome:'alert_pending'});
+  const notify=jest.fn(async()=>({results:[{ok:true}]}));
+  result=await runYeongnyangiRecovery({},{providerReady:()=>true,activate,notify});
+  expect(notify.mock.calls[0][1].text).toContain('ACCOUNT_FREE_TRIAL');expect(notify.mock.calls[0][1].text).not.toContain('owner');
+  expect(updateOne).toHaveBeenCalledWith({_id:'pay','metadata.fortuneChatRecovery':null},{$set:{'metadata.fortuneChatRecovery':'duplicate'}});
+  expect(result.outcomes).toContainEqual({outcome:'duplicate_payment'});
+});
+test('a second card payment for a consultation another payment opened is a duplicate too',async()=>{
+  orders=[{_id:'second',userId:'owner',requestId:`fc-${'c'.repeat(64)}`}];updateOne.mockClear();
+  const activate=jest.fn().mockResolvedValue({accessMethod:'PER_USE',perUseSource:'payment',perUseEvidenceId:'first'});
+  await runYeongnyangiRecovery({},{providerReady:()=>true,activate,notify:async()=>({results:[{ok:true}]})});
+  expect(updateOne).toHaveBeenCalledWith({_id:'second','metadata.fortuneChatRecovery':null},{$set:{'metadata.fortuneChatRecovery':'duplicate'}});
 });
 test('review-required and payment-suspended requests are excluded',()=>{
   expect(abandonedRequestFilter(Date.now()).errorCode.$nin).toEqual(['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']);
