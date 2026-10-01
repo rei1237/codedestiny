@@ -172,7 +172,7 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
     assert.match(html, /data-purchase-stage="awareness"/);
     assert.match(html, /data-feature-conversion-request/);
     assert.doesNotMatch(html, /onclick=|href="(?:javascript:|\/checkout|\/payment)/);
-    const founderLinks = new Set(detail.founder ? ['/about/#author', ...JSON.parse(fs.readFileSync('lib/brand/prediction-records.json', 'utf8')).map(record => record.url)] : []);
+    const founderLinks = new Set(detail.founder ? ['/about/#author', '/yeongnyangi/#founder-records'] : []);
     for (const link of html.matchAll(/href="([^"]+)"/g)) {
       if (!founderLinks.has(link[1])) assert.match(link[1], /^\/features\/[a-z0-9-]+\/$/);
     }
@@ -187,20 +187,20 @@ test('popup journey preserves image previews and escapes FAQ without adding chec
 test('premium introductions reuse founder evidence and contain complete portrait artwork', async () => {
   const { loadTsModule } = await import('../../scripts/lib/load-ts-module.mjs');
   const founder = loadTsModule('lib/brand/founder.ts').founder;
-  const records = JSON.parse(fs.readFileSync('lib/brand/prediction-records.json', 'utf8'));
   for (const [slug, material] of [['life-book-ai', 'book'], ['love-secret-ai', 'letter']]) {
     const detail = JSON.parse(fs.readFileSync(`public/feature-details/${slug}.json`, 'utf8'));
     assert.equal(detail.material, material);
-    assert.deepEqual(detail.founder, { ...founder, records });
+    assert.deepEqual(detail.founder, { credential: founder.credential, method: founder.method });
     const fragment = JSDOM.fragment(renderFeatureDetailPanels(detail));
     const portrait = fragment.querySelector('.fortuneObject img');
     assert.ok(Number(portrait.getAttribute('height')) > Number(portrait.getAttribute('width')));
     assert.equal(fragment.querySelector('.fortuneObject figcaption').textContent, detail.title);
-    assert.equal(fragment.querySelectorAll('.fortuneFounder time').length, records.length);
-    for (const link of fragment.querySelectorAll('.fortuneFounder a[target]')) assert.equal(link.rel, 'noopener noreferrer');
+    assert.equal(fragment.querySelector('.fortuneFounder a[href="/yeongnyangi/#founder-records"]')?.textContent, '네오 1:1 상담 실제 후기 보기');
+    assert.equal(fragment.querySelectorAll('.fortuneFounder a[target]').length, 0);
   }
-  const unsafe = renderFeatureDetailPanels({ verification: 'verified', founder: { credential: '<img>', records: [{ url: 'javascript:alert(1)', title: '<script>' }] } });
-  assert.doesNotMatch(unsafe, /javascript:|<img>|<script>/);
+  const unsafe = renderFeatureDetailPanels({ verification: 'verified', founder: { credential: '<img>', method: '<script>' } });
+  assert.match(unsafe, /&lt;img&gt;/);
+  assert.doesNotMatch(unsafe, /<img>|<script>/);
 });
 
 test('detail loader deduplicates per feature and retries failed fetches', async () => {

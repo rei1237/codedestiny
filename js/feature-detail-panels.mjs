@@ -15,9 +15,8 @@ function renderStory(story, heading) {
 }
 
 function renderFounder(founder, heading) {
-  if (!founder?.credential || !founder.records?.length) return '';
-  const records = founder.records.filter(record => /^https:\/\/blog\.naver\.com\/neosaju\/\d+$/.test(record.url));
-  return `<section class="featureDetailPanel fortuneFounder" data-purchase-stage="trust"><${heading}>${escape(founder.credential)}</${heading}><p class="fortuneFounderHeadline">${escape(founder.headline)}</p><p>${escape(founder.description)}</p><ul>${records.map(record => `<li><a href="${escape(record.url)}" target="_blank" rel="noopener noreferrer"><time datetime="${escape(record.date)}">${escape(record.date)}</time><span>${escape(record.title)}</span><span>원문 보기 ↗</span></a></li>`).join('')}</ul><p class="fortuneFounderMethod">${escape(founder.method)}</p><a href="/about/#author">상담사 네오 소개</a></section>`;
+  if (!founder?.credential || !founder.method) return '';
+  return `<section class="featureDetailPanel fortuneFounder" data-purchase-stage="trust"><${heading}>${escape(founder.credential)}</${heading}><p class="fortuneFounderMethod">${escape(founder.method)}</p><a href="/yeongnyangi/#founder-records">네오 1:1 상담 실제 후기 보기</a><a href="/about/#author">상담사 네오 소개</a></section>`;
 }
 
 function renderContents(detail, heading) {

@@ -91,7 +91,6 @@ export function buildVisualDetails(html, book) {
   const legacy = extractObjectLiteral(html, 'D');
   const verified = extractObjectLiteral(html, 'FEATURE_VISUAL_DETAILS');
   const founder = loadTsModule('lib/brand/founder.ts').founder;
-  const predictionRecords = JSON.parse(fs.readFileSync(path.join(root, 'lib/brand/prediction-records.json'), 'utf8'));
   const context = { window: {} };
   vm.runInNewContext(fs.readFileSync(path.join(root, 'js/core/service-registry.js'), 'utf8'), context);
   const react = loadTsModule('app/_lib/serviceFeatureRegistry.ts').SERVICE_FEATURES;
@@ -154,7 +153,7 @@ export function buildVisualDetails(html, book) {
     };
     const final = items[record.slug];
     if (['book', 'letter'].includes(final.material)) {
-      final.founder = { ...founder, records: predictionRecords };
+      final.founder = { credential: founder.credential, method: founder.method };
     }
     // These inline wrappers are source evidence, never browser asset requests.
     if (['destiny-flower', 'astrology-flower', 'ziwei-flower', 'sukuyo-flower'].includes(record.slug)) {

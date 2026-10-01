@@ -28,12 +28,7 @@
 .featureVisualDetail[data-fortune-material] .fortuneStory{border-top:1px solid var(--fortune-line)}
 .featureVisualDetail[data-fortune-material] .fortuneSamplePage{padding:36px 30px;border-radius:0;box-shadow:none;background:#fffdf8}
 .featureVisualDetail[data-fortune-material] .fortuneSamplePage>p:not(.fortuneSampleTitle){font-family:var(--font-serif,Georgia,serif);font-size:18px;line-height:2}
-.featureVisualDetail .fortuneFounderHeadline{color:var(--fortune-ink);font-family:var(--font-serif,Georgia,serif);font-size:20px}
-.fortuneFounder ul{list-style:none;margin:24px 0;padding:0;border-top:1px solid var(--fortune-line)}
-.fortuneFounder li{border-bottom:1px solid var(--fortune-line)}
 .fortuneFounder a{display:block;min-height:44px;padding:14px 0;color:var(--fortune-accent);text-underline-offset:4px}
-.fortuneFounder li a{display:grid;grid-template-columns:100px minmax(0,1fr) auto;gap:14px;text-decoration:none;font-size:14px;align-items:baseline}
-.fortuneFounder time{font-variant-numeric:tabular-nums}
 .featureVisualDetail .fortuneFounderMethod{font-size:14px;line-height:1.8}
 @media(max-width:699px){
  .featureVisualDetail[data-fortune-material] .featureDetailHero{grid-template-columns:minmax(0,1fr);gap:24px;padding:24px 22px 32px}
@@ -41,8 +36,6 @@
  .featureVisualDetail .fortuneObject figcaption{font-size:24px}
  .featureVisualDetail[data-fortune-material] .featureDetailHero .featureDetailBody{padding:0}
  .featureVisualDetail[data-fortune-material] .fortuneSamplePage{padding:28px 20px}
- .fortuneFounder li a{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}
- .fortuneFounder time{grid-column:1/-1}
 }
 .featureVisualDetail ::selection{background:var(--fortune-accent);color:white}
 .featureVisualDetail :is(button,a,summary,input):focus-visible{outline:3px solid var(--fortune-accent);outline-offset:4px}
