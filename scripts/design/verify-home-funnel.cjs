@@ -116,7 +116,8 @@ async function assertEssentials(page, label) {
       assert.equal(await gardenSummary.getAttribute('aria-expanded'), 'false', 'garden summary reports closed again');
       assert.ok(await gardenSummary.evaluate((node) => document.activeElement === node), 'closing returns focus to the garden summary');
       const summaryBox = await gardenSummary.boundingBox();
-      assert.ok(summaryBox && summaryBox.y >= 0 && summaryBox.y + summaryBox.height <= height + 1, 'garden summary stays on screen after closing');
+      // scrollIntoView 는 정수 스크롤로 맞추므로 소수 위치의 요약 줄은 위로 1px 미만 넘칠 수 있다(1280 실측 -0.469).
+      assert.ok(summaryBox && summaryBox.y >= -1 && summaryBox.y + summaryBox.height <= height + 1, 'garden summary stays on screen after closing');
       if (width <= 430) {
         await page.locator('#cdMobileBottomNav [data-nav-key="fortunes"]').click();
         await page.locator('#cdMobileFortuneOverview.is-open').waitFor();
