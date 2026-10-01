@@ -66,6 +66,8 @@ test('a Yeongnyangi request is never served, activated or continued here',async(
 });
 test('history is per persona and limited to fortune-chat consultations',async()=>{
   expect((await handleFortuneChatRoutes(request(''),on)).status).toBe(400);
-  expect((await handleFortuneChatRoutes(request('?persona=neo'),on)).status).toBe(200);
+  const listed=await handleFortuneChatRoutes(request('?persona=neo'),on);
+  expect(listed.status).toBe(200);expect(await listed.json()).toMatchObject({enabled:true,consultations:[]});
+  expect(await (await handleFortuneChatRoutes(request('?persona=yeoni'),{})).json()).toMatchObject({enabled:false});
   expect(find).toHaveBeenCalledWith({userId,persona:'neo',featureKey:'fortune-chat-consultation'});
 });

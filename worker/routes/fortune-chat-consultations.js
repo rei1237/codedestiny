@@ -98,7 +98,8 @@ export async function handleFortuneChatConsultations(request, env, path) {
     if (!id && method === 'GET') {
       const chosen = persona(url.searchParams.get('persona'));
       if (!chosen) throw createHttpError(400, messages.INVALID_PERSONA, { code: 'INVALID_PERSONA' });
-      return json({ ok: true, consultations: await list(env, auth.userId, chosen) }, noStore);
+      // `enabled` tells the page whether to open the new room for a fresh consultation; history and reading stay open either way.
+      return json({ ok: true, enabled: enabled(env), consultations: await list(env, auth.userId, chosen) }, noStore);
     }
     if (!id && method === 'POST') {
       if (!enabled(env)) return notFound();
