@@ -207,3 +207,10 @@ html body #cdHomeFunnel #cdTodayHub .cd-today-card__anchor{border-color:var(--td
 #cdHomeFunnel #cdTodayHub :is(.cd-today__cta,.cd-today__gate-cta)>span{flex:1 1 auto;text-align:center;word-break:keep-all;text-wrap:balance}
 html.neo-mode #cdHomeFunnel #cdTodayHub .cd-today__pig{box-shadow:0 0 0 2px #f4e6c0,0 0 0 3px var(--td-line)}
 @media(max-width:560px){#cdHomeFunnel #cdTodayHub{--td-art-w:140px;padding:24px 16px 22px;border-radius:22px}#cdHomeFunnel #cdTodayHub:before{width:120px;height:72px;top:-12px;left:-16px}#cdHomeFunnel #cdTodayHub .cd-today__actions>*{flex:1 1 100%}#cdHomeFunnel #cdTodayHub .cd-today__gate{padding:18px 12px 18px}#cdHomeFunnel #cdTodayHub .cd-today__gate-cta{display:flex;width:100%;padding-right:18px;font-size:14px}}
+/* 홈 제목은 R2 나눔명조 700 하나로 맞춘다(2026-10-01). Mulmaru 는 400 한 굵기뿐이라 740·800·950 을 주면
+   데스크톱에서 가짜 굵게가 됐다. 본문·카드 소제목(h3)은 기기 글꼴 그대로, 히어로 h1 은 손대지 않는다.
+   🔴 #inputPage … .moon-section-head h2{font-family:var(--font-display)!important} 를 이겨야 해서 id 두 개 + !important.
+   🔴 전역 *{font-family:var(--font-body)} 때문에 제목 안 번역 span 은 상속을 못 받는다 — span 도 직접 지정한다. */
+html body #inputPage #cdHomeFunnel :is(#cdhServicesTitle,#cdConcernPickTitle,#fortuneGatewayTitle,#cdQuickTitle,#cdhPassTitle,#cdDiaryPlannerTitle,#cdhExploreTitle,#cdPressTitle,#cdhRecordsTitle,#cdHomeGuideTitle,#cdFeedbackGateTitle,.cd-reviews__title,.cd-review-invite__copy h2,.feat-collection__title,.tarot-collection__title,:is(#fortuneGatewayTitle,#cdDiaryPlannerTitle)>span){font-family:"CodeDestinySerifKR","CodeDestinySerifLatin","Nanum Myeongjo","Noto Serif KR",serif!important;font-weight:700!important;font-synthesis-weight:none}
+/* 영문 키커는 Cinzel — 한글이 섞이면 그 글자만 본문 글꼴로 떨어진다. */
+html body #inputPage #cdHomeFunnel :is(.moon-section-kicker,.fortune-gateway__door-kicker,.moon-music-entry__kicker,.moon-story-entry__kicker){font-family:"CodeDestinySerifLatin",var(--font-body,sans-serif)!important;font-weight:700;letter-spacing:.14em!important}
