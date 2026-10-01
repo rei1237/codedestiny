@@ -3060,6 +3060,8 @@ export default function PointsPage() {
   const authState = useAuthStore();
   const userAccess = useUserAccess();
   const authStoreUserId = authState.user?.id || "";
+  // 영냥이 세트 카드도 달빛 이용권 카드와 같은 원화 청구 고지를 쓴다(문구 정본은 이 파일의 useOverseasCharge 하나).
+  const overseasCharge = useOverseasCharge();
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
@@ -5086,7 +5088,7 @@ export default function PointsPage() {
           hasError={pointStateHasError}
           onRetry={retryPointState}
         />
-        <ServicePackShop locale={lang} />
+        <ServicePackShop locale={lang} overseasCharge={overseasCharge} />
         <MoonlightShopPlans
           subscription={subscription}
           onSubscribe={openSelfPurchase}

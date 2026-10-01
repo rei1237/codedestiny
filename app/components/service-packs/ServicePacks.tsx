@@ -44,7 +44,8 @@ export function PackRows({packs,locale}:{packs:OwnedServicePack[];locale:Loading
  </li>)}</ul>;
 }
 
-export function ServicePackShop({locale}:{locale:LoadingLocale}){
+// 해외 원화 청구 고지는 PointsClient useOverseasCharge 가 만든 값을 받는다. 한국어 화면에서는 null 이다.
+export function ServicePackShop({locale,overseasCharge=null}:{locale:LoadingLocale;overseasCharge?:{notice:string;approx:(krw:number)=>string}|null}){
  const auth=useAuthStore(),ownerId=String(auth.user?.id||auth.user?._id||'');
  const copy=servicePackCopy(locale),policy=getCheckoutCopy(locale),alliance=paymentAllianceCopy(locale),links=resolveCheckoutPolicyHrefs(locale);
  const [catalog,setCatalog]=useState<{plans:ServicePackPlan[];error:boolean;loading:boolean;giftEnabled:boolean}>({plans:[],error:false,loading:true,giftEnabled:false});
@@ -201,6 +202,7 @@ export function ServicePackShop({locale}:{locale:LoadingLocale}){
        </div>
        <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
         <p className="text-2xl font-black text-[color:var(--moon-gold)]">{won(item.priceKRW,locale)}</p>
+        {overseasCharge?.approx(item.priceKRW)?<p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(item.priceKRW)}</p>:null}
         <button type="button" disabled={busy||Boolean(pendingOrder)} onClick={()=>openPurchase(item.planId,'SELF')} className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto">{copy.buyCta}</button>
         {catalog.giftEnabled&&<>
          <p className="mt-2 flex items-center justify-center gap-1 text-center text-[11px] font-bold text-[color:var(--moon-mist)]"><ShopPigImage className="h-4 w-4 object-contain"/>{copy.giftPromo}</p>
@@ -212,6 +214,7 @@ export function ServicePackShop({locale}:{locale:LoadingLocale}){
     })}</div>
    </section>;
   })}
+  {overseasCharge&&!catalog.loading&&!catalog.error?<p className="mt-4 text-xs font-bold leading-relaxed text-[color:var(--moon-mist)]">{overseasCharge.notice}</p>:null}
   {/* 하단 탭바(.cd-mnav z-index 960) 위에 떠야 닫기·결제 버튼이 가려지지 않는다. */}
   {modalOpen&&plan&&<div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/72 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="service-pack-purchase-title" data-pack-purchase onClick={event=>{if(event.target===event.currentTarget)closePurchase();}}>
    <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
