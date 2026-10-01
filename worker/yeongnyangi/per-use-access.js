@@ -9,7 +9,8 @@ import { verifyPerUsePayment } from '../lib/nakshatra-paid-access.js';
 import { findMoonstoneSpendEvidence, moonstoneSpendRefundFilter } from '../lib/moonstone-spend-proof.js';
 import { calculatePaidFeatureMembershipCreditCost } from '../lib/paid-feature-registry.js';
 import { findGuardianFortuneFreeTrial } from '../lib/guardian-fortune-usage.js';
-import { chatPaymentRequestId } from './access-methods.js';
+import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
+import { chatCardClaim, chatPassClaim, chatPaymentRequestId } from './access-methods.js';
 export { PER_USE_SOURCES } from './access-methods.js';
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -71,6 +72,21 @@ async function assertNoOpenCheckout(env, owner, rid, featureKey) {
   if (open) throw failure(409, 'PG_PAYMENT_NOT_PAID', { paidFeatureKey: featureKey, paymentRequestId: rid });
 }
 
+// The pass spend runs outside any transaction, so the consultation is claimed first: card prepare cannot reserve it
+// meanwhile (payment-intent.js assertChatPaymentIntent). Only a spend known not to have happened gives it back.
+async function holdForPass(env, row, owner, rid) {
+  const id = String(row._id), card = chatCardClaim(id), key = chatPassClaim(id);
+  const unattached = { _id: id, userId: owner, featureKey: row.featureKey, state: 'CREATED', paymentId: null,
+    $or: [{ accessMethod: null }, { accessMethod: { $exists: false } }] };
+  const held = await withMongoRetry(env, () => YeongnyangiRequest.findOneAndUpdate({ ...unattached, paymentClaimOrderId: { $ne: card } },
+    { $set: { paymentClaimOrderId: key } }, { new: true }).lean());
+  if (!held) {
+    const carded = await withMongoRetry(env, () => YeongnyangiRequest.findOne({ ...unattached, paymentClaimOrderId: card }).select('_id').lean(), readOptions);
+    throw carded ? failure(409, 'PG_PAYMENT_NOT_PAID', { paidFeatureKey: row.featureKey, paymentRequestId: rid }) : failure(409, 'ACCESS_ALREADY_ATTACHED');
+  }
+  return () => withMongoRetry(env, () => YeongnyangiRequest.updateOne({ ...unattached, paymentClaimOrderId: key }, { $set: { paymentClaimOrderId: '' } }));
+}
+
 /**
  * Proves access for a fortune-chat consultation and returns what to store on it.
  * An existing payment, coin, moonlight-stone or pass use under `fc-<id>` wins, then a free use this request
@@ -90,11 +106,16 @@ export async function proveChatAccess(env, { row, userId, owner, coinPrice, choi
     }
     if (choice === 'checkout') throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
     if (choice !== 'free_trial' && choice !== 'pass') throw required();
-    await assertNoOpenCheckout(env, owner, rid, featureKey);
-    if (choice === 'free_trial') return { accessMethod: 'ACCOUNT_FREE_TRIAL', consumeTrial: true };
+    if (choice === 'free_trial') {
+      await assertNoOpenCheckout(env, owner, rid, featureKey);
+      return { accessMethod: 'ACCOUNT_FREE_TRIAL', consumeTrial: true };
+    }
+    const release = await holdForPass(env, row, owner, rid);
+    // Card orders prepared before the claim existed are still read once (nothing was spent, so the claim goes back).
+    await assertNoOpenCheckout(env, owner, rid, featureKey).catch(async error => { await release(); throw error; });
     proof = await verifyPerUsePayment(env, input);
     if (proof?.proven === null) throw failure(503, 'PAYMENT_EVIDENCE_PENDING');
-    if (proof?.proven !== true) throw required();
+    if (proof?.proven !== true) { await release(); throw required(); }
   }
   const passRefund = proof.passRefund ? { cycleKey: proof.passRefund.cycleKey, cost: proof.passRefund.cost } : undefined;
   let stored;

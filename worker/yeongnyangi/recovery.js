@@ -131,11 +131,20 @@ export async function runYeongnyangiRecovery(env, options = {}) {
     catch(error){
       // A malformed historical order must not starve later paid orders each tick,
       // but a DB blip must not delay a paid result by a whole day.
+      const transient=isDbUnavailableError(error),code=String(error?.code || 'ACTIVATION_PENDING').slice(0,80);
+      // A paid fortune-chat order that cannot open its consultation (e.g. one already refunded) would only retry daily.
+      // Operators hear about it once; an undelivered alert is retried on the next tick instead of a day later.
+      const alert=!transient&&order.requestId.startsWith('fc-')&&!order.metadata?.fortuneChatActivationAlerted;
+      const alerted=alert&&await sendHoldAlert(env,{subject:`[꿀꿀 운세] 결제 상담 열기 실패 ${String(order._id).slice(0,12)}`,text:[
+        `결제: ${order._id}`,`상담: ${order.requestId}`,`오류: ${code}`,
+        '카드 결제가 승인됐지만 상담을 열지 못함. 24시간마다 자동 재시도. 운영자 확인 필요(환불 여부 포함)',
+      ].join('\n')},options.notify);
       await withMongoRetry(env,()=>Payment.updateOne({_id:order._id},{$set:{
-        'metadata.yeongnyangiRecoveryAfter':new Date(now+(isDbUnavailableError(error)?TRANSIENT_HOLD_MS:PERMANENT_HOLD_MS)),
-        'metadata.yeongnyangiRecoveryCode':String(error?.code || 'ACTIVATION_PENDING').slice(0,80),
+        'metadata.yeongnyangiRecoveryAfter':new Date(now+(transient||(alert&&!alerted)?TRANSIENT_HOLD_MS:PERMANENT_HOLD_MS)),
+        'metadata.yeongnyangiRecoveryCode':code,
+        ...(alerted?{'metadata.fortuneChatActivationAlerted':true}:{}),
       }}));
-      outcomes.push({outcome:'activation_pending'});
+      outcomes.push({outcome:alert&&!alerted?'alert_pending':alerted?'activation_alert_sent':'activation_pending'});
     }
   }
   const revived=canGenerate?await reviveHeldOrders(env,options,now,outcomes):[];

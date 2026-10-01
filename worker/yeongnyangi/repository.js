@@ -5,7 +5,7 @@ import { createHttpError } from '../lib/http.js';
 
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
 import { scopeConnection } from '../lib/db-scope-connection.js';
-import { CHAT_FEATURE_KEY, chatPaymentRequestId } from './access-methods.js';
+import { CHAT_FEATURE_KEY, chatCardClaim, chatPaymentRequestId } from './access-methods.js';
 export { YeongnyangiRequest };
 
 const paidStatuses = ['paid','success','fulfilled'];
@@ -253,8 +253,12 @@ const unattachedChat=(requestId,userId)=>({_id:requestId,userId:ownerId(userId),
 async function attachChatAccess(env, userId, requestId, current, expectedCharge, options) {
   const currentAmountKRW=assertCurrentPrice(current,expectedCharge,options);
   const {proveChatAccess}=await import('./per-use-access.js');
-  const {accessMethod,consumeTrial,...access}=await proveChatAccess(env,{row:current,userId:String(userId),owner:ownerId(userId),
-    coinPrice:Math.floor(currentAmountKRW/100),choice:String(options?.access || '')});
+  let proven;
+  try{
+    proven=await proveChatAccess(env,{row:current,userId:String(userId),owner:ownerId(userId),
+      coinPrice:Math.floor(currentAmountKRW/100),choice:String(options?.access || '')});
+  }catch(error){if(error?.code==='ACCESS_ALREADY_ATTACHED')return readRequest(env,userId,requestId);throw error;}
+  const {accessMethod,consumeTrial,...access}=proven;
   if(accessMethod==='ACCOUNT_FREE_TRIAL')return attachFreeTrial(env,userId,requestId,consumeTrial);
   const row=await withMongoRetry(env,()=>YeongnyangiRequest.findOneAndUpdate(unattachedChat(requestId,userId),
     {$set:{accessMethod:'PER_USE',...access,state:'PAID'}},{new:true}).lean());
@@ -275,8 +279,12 @@ async function attachFreeTrial(env, userId, requestId, consume) {
         const spent=(consume?await usage.consumeGuardianFortuneFreeTrial({...trial,session}):null)
           || await usage.findGuardianFortuneFreeTrial({...trial,session});
         if(!spent)throw failure(402,'FREE_TRIAL_USED',{paidFeatureKey:CHAT_FEATURE_KEY,paymentRequestId:trial.requestId});
-        row=await YeongnyangiRequest.findOneAndUpdate(unattachedChat(requestId,userId),
+        // A card window reserved after the open-checkout read still wins: the spend rolls back with this write.
+        const card=chatCardClaim(requestId);
+        row=await YeongnyangiRequest.findOneAndUpdate({...unattachedChat(requestId,userId),paymentClaimOrderId:{$ne:card}},
           {$set:{accessMethod:'ACCOUNT_FREE_TRIAL',state:'PAID'}},{new:true,session}).lean();
+        if(!row&&await YeongnyangiRequest.findOne({...unattachedChat(requestId,userId),paymentClaimOrderId:card}).session(session).lean())
+          throw failure(409,'PG_PAYMENT_NOT_PAID',{paidFeatureKey:CHAT_FEATURE_KEY,paymentRequestId:trial.requestId});
         if(!row)throw failure(409,'ACCESS_ALREADY_ATTACHED');
       },mongoTransactionOptions());
       return row;

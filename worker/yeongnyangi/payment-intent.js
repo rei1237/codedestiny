@@ -1,7 +1,7 @@
 import { getEnv } from '../lib/env.js';
 import { Payment } from '../lib/models.js';
 import { YeongnyangiRequest } from '../lib/yeongnyangi-models.js';
-import { hasRequestAccess } from './access-methods.js';
+import { chatCardClaim, hasRequestAccess } from './access-methods.js';
 import { resolveChargeAmountKRW } from '../lib/portone.js';
 import { toObjectId } from '../payments/db.js';
 import { paymentError } from '../payments/errors.js';
@@ -87,11 +87,24 @@ export async function assertFortunePaymentIntent(db, {env, userId, requestId, pr
 // A fortune-chat consultation (fc-<id>) opens one card window only while nothing has opened it yet: a free use,
 // pass, stones or an earlier paid order already attached means a stale tab, never a second charge.
 // No pass lookup here — card prepare reads only this consultation and its card orders (billing-pass-policy).
+// The card claim is taken before the order exists: a pass activation holding the field blocks the window, and the
+// free use attaches only while no card claim is there (repository.js attachFreeTrial), so neither can slip between.
 export async function assertChatPaymentIntent(db,{userId,requestId,product}) {
   if(!/^fc-[a-f0-9]{64}$/.test(String(requestId || '')))throw paymentError('INVALID_REQUEST','상담 내용을 먼저 확인해 주세요.');
-  const id=requestId.slice(3);
-  const chat=await db.findOne(YeongnyangiRequest,{_id:id,userId:toObjectId(userId)});
-  if(!chat || chat.featureKey!==product.featureKey)throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
+  const id=requestId.slice(3),owner=toObjectId(userId),key=chatCardClaim(id);
+  const chat=await db.findOneAndUpdate(YeongnyangiRequest,{_id:id,userId:owner,featureKey:product.featureKey,state:'CREATED',paymentId:null,
+    $and:[
+      {$or:[{accessMethod:null},{accessMethod:''},{accessMethod:{$exists:false}}]},
+      {$or:[{paymentClaimOrderId:key},{paymentClaimOrderId:''},{paymentClaimOrderId:null},{paymentClaimOrderId:{$exists:false}}]},
+    ],
+  },{$set:{paymentClaimOrderId:key}},{returnDocument:'after'});
+  if(!chat) {
+    const current=await db.findOne(YeongnyangiRequest,{_id:id,userId:owner});
+    if(!current || current.featureKey!==product.featureKey)throw paymentError('INVALID_REQUEST','상담 주문과 상품을 확인하지 못했어요.');
+    if(hasRequestAccess(current) || current.state!=='CREATED')
+      throw paymentError('FORTUNE_ALREADY_PAID','이미 열린 상담이에요. 결제 없이 상담방에서 이어 주세요.',{fortuneRequestId:id});
+    throw paymentError('MOONSTONE_IN_PROGRESS','선택한 이용권을 확인 중이에요. 다시 결제하지 말고 같은 상담에서 잠시 후 확인해 주세요.');
+  }
   const paid=hasRequestAccess(chat) || await db.findOne(Payment,{
     userId:toObjectId(userId),requestId,paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},
   },{projection:{_id:1}});

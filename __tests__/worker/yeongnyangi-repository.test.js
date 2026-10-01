@@ -776,6 +776,34 @@ describe('fortune-chat per-use access',()=>{
     expect(requests[0].accessMethod).toBeFalsy();
   });
 
+  // Card prepare reserves the consultation before its order is written; the open-checkout read sees nothing yet.
+  test.each(['pass','free_trial'])('a card window reserved before its order is visible still blocks %s',async access=>{
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    requests[0].paymentClaimOrderId='card:fc-id';
+    await expect(activate(access)).rejects.toMatchObject({status:409,code:'PG_PAYMENT_NOT_PAID'});
+    expect(onlyExistingChecks()).toBe(true);
+    expect(accounts[0]?.freeUsed || 0).toBe(0);
+    expect(requests[0]).toMatchObject({paymentClaimOrderId:'card:fc-id',state:'CREATED'});
+    expect(requests[0].accessMethod).toBeFalsy();
+  });
+
+  test('a pass activation holds the consultation while it spends and gives it back only when nothing was spent',async()=>{
+    nothingYet();
+    await repo.createRequest({},owner,'id',chat);
+    await expect(activate('pass')).rejects.toMatchObject({status:402,code:'PAYMENT_REQUIRED'});
+    expect(requests[0].paymentClaimOrderId).toBe('');
+    verifyPerUse.mockReset();
+    verifyPerUse.mockResolvedValueOnce({proven:false,source:'',reason:'NO_EXISTING_CONSUMPTION'}).mockResolvedValueOnce({proven:null});
+    await expect(activate('pass')).rejects.toMatchObject({status:503,code:'PAYMENT_EVIDENCE_PENDING'});
+    expect(requests[0].paymentClaimOrderId).toBe('access:pass:fc-id');
+    familyUser={_id:owner,profileSubscription:{tier:'family',passTier:'family',isActive:true}};
+    verifyPerUse.mockReset();
+    verifyPerUse.mockResolvedValueOnce({proven:false,source:'',reason:'NO_EXISTING_CONSUMPTION'})
+      .mockImplementationOnce(async()=>{evidences.push({...passReceipt,metadata:{...passReceipt.metadata}});return {proven:true,source:'pass',reason:'',passRefund:{cycleKey:'c1',cost:30}};});
+    expect(await activate('pass')).toMatchObject({accessMethod:'PER_USE',paymentClaimOrderId:'access:pass:fc-id'});
+  });
+
   test('the free consultation is spent once per account, shared with the legacy route, and reused by its own retry',async()=>{
     nothingYet();
     await repo.createRequest({},owner,'id',chat);

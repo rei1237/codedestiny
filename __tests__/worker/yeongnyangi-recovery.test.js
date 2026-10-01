@@ -98,6 +98,36 @@ test('a second card payment for a consultation another payment opened is a dupli
   await runYeongnyangiRecovery({},{providerReady:()=>true,activate,notify:async()=>({results:[{ok:true}]})});
   expect(updateOne).toHaveBeenCalledWith({_id:'second','metadata.fortuneChatRecovery':null},{$set:{'metadata.fortuneChatRecovery':'duplicate'}});
 });
+test('a paid fortune-chat order that cannot open its consultation reaches operators once, then retries daily',async()=>{
+  const now=Date.now(),day=24*60*60*1000,fiveMinutes=5*60*1000;
+  const refused=Object.assign(new Error('refunded'),{code:'FORTUNE_REFUNDED',status:409});
+  const activate=jest.fn().mockRejectedValue(refused);
+  orders=[{_id:'pay',userId:'owner',requestId:`fc-${'c'.repeat(64)}`,metadata:{}}];updateOne.mockClear();
+  let result=await runYeongnyangiRecovery({},{providerReady:()=>true,activate,clock:()=>now,notify:async()=>({results:[{ok:false}]})});
+  expect(updateOne.mock.calls[0][1].$set).toEqual({'metadata.yeongnyangiRecoveryAfter':new Date(now+fiveMinutes),'metadata.yeongnyangiRecoveryCode':'FORTUNE_REFUNDED'});
+  expect(result.outcomes).toContainEqual({outcome:'alert_pending'});
+  updateOne.mockClear();
+  const notify=jest.fn(async()=>({results:[{ok:true}]}));
+  result=await runYeongnyangiRecovery({},{providerReady:()=>true,activate,clock:()=>now,notify});
+  expect(notify).toHaveBeenCalledTimes(1);
+  expect(notify.mock.calls[0][1].text).toContain('FORTUNE_REFUNDED');expect(notify.mock.calls[0][1].text).not.toContain('owner');
+  expect(updateOne.mock.calls[0][1].$set).toMatchObject({'metadata.yeongnyangiRecoveryAfter':new Date(now+day),'metadata.fortuneChatActivationAlerted':true});
+  expect(result.outcomes).toContainEqual({outcome:'activation_alert_sent'});
+  orders[0].metadata.fortuneChatActivationAlerted=true;notify.mockClear();updateOne.mockClear();
+  result=await runYeongnyangiRecovery({},{providerReady:()=>true,activate,clock:()=>now,notify});
+  expect(notify).not.toHaveBeenCalled();
+  expect(updateOne.mock.calls[0][1].$set['metadata.yeongnyangiRecoveryAfter']).toEqual(new Date(now+day));
+  expect(result.outcomes).toContainEqual({outcome:'activation_pending'});
+});
+test('a database outage or a Yeongnyangi order activation failure sends no fortune-chat alert',async()=>{
+  const outage=Object.assign(new Error('down'),{name:'MongoNetworkError',code:'DB_UNAVAILABLE',status:503});
+  const notify=jest.fn(async()=>({results:[{ok:true}]}));
+  orders=[{_id:'pay',userId:'owner',requestId:`fc-${'c'.repeat(64)}`,metadata:{}}];
+  await runYeongnyangiRecovery({},{providerReady:()=>true,activate:jest.fn().mockRejectedValue(outage),notify});
+  orders=[{_id:'yn',userId:'owner',requestId:`yn-${'c'.repeat(64)}`,metadata:{}}];
+  await runYeongnyangiRecovery({},{providerReady:()=>true,activate:jest.fn().mockRejectedValue(new Error('bad')),notify});
+  expect(notify).not.toHaveBeenCalled();
+});
 test('review-required and payment-suspended requests are excluded',()=>{
   expect(abandonedRequestFilter(Date.now()).errorCode.$nin).toEqual(['GENERATION_REVIEW_REQUIRED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE','AUTOMATIC_RECOVERY_STOPPED']);
 });

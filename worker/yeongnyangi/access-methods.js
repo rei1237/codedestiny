@@ -9,5 +9,10 @@ export const hasRequestAccess = row => Boolean(row?.paymentId || NON_CASH_ACCESS
 // coin, moonlight-stone and pass records carry `fc-<request id>`, never the Yeongnyangi `yn-` prefix.
 export const CHAT_FEATURE_KEY = 'fortune-chat-consultation';
 export const chatPaymentRequestId = id => `fc-${id}`;
+// `paymentClaimOrderId` holders on a fortune-chat consultation. Card prepare and a pass activation take the field by
+// compare-and-set before anything can be charged, so a card window and a pass spend never both start. One card claim
+// covers every order generation of the consultation (the browser key is the deterministic `fc-<id>`).
+export const chatCardClaim = id => `card:fc-${id}`;
+export const chatPassClaim = id => `access:pass:fc-${id}`;
 // Durable record a per-use consultation is pinned to; `point` covers coin, moonlight-stone and pass receipts.
 export const PER_USE_SOURCES = Object.freeze(['payment','point','ledger','admin']);

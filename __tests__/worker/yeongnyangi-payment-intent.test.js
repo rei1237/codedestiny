@@ -112,8 +112,9 @@ describe('fortune-chat consultation card prepare (fc-)',()=>{
  const chat={productId:'fortune-chat-consultation',featureKey:'fortune-chat-consultation',priceKRW:3000,priceCoins:30,monthlyCost:300,billingType:'per_use'};
  const chatSetup=overrides=>{
   const fixture=setup({featureKey:chat.featureKey,amountKRW:3000,...overrides});
-  const models=[],read=fixture.db.findOne;
+  const models=[],read=fixture.db.findOne,write=fixture.db.findOneAndUpdate;
   fixture.db.findOne=async(Model,...rest)=>{models.push(Model.modelName);return read(Model,...rest);};
+  fixture.db.findOneAndUpdate=async(Model,...rest)=>{models.push(Model.modelName);return write(Model,...rest);};
   return {...fixture,models,input:{...fixture.input,product:chat,requestId:`fc-${id}`,idempotencyKey:'chat-first'}};
  };
  test('an unopened consultation gets one card order and the guard reads no pass state',async()=>{
@@ -137,6 +138,20 @@ describe('fortune-chat consultation card prepare (fc-)',()=>{
   await markOrderPaid(db,{orderId:first.merchantUid,order:first,pg:{summary:{}}});
   await expect(createPayableOrder(db,{...input,idempotencyKey:'chat-second'})).rejects.toMatchObject({code:'FORTUNE_ALREADY_PAID'});
   expect(db.rows).toHaveLength(1);
+ });
+ test('the card window claims the consultation once for every order generation',async()=>{
+  const {db,input,fortune}=chatSetup();
+  const first=await createPayableOrder(db,input);
+  expect(fortune.paymentClaimOrderId).toBe(`card:fc-${id}`);
+  await markOrderFailed(db,{orderId:first.merchantUid,failureCode:'USER_CANCELLED',failureStage:'client'});
+  const next=await createPayableOrder(db,input);
+  expect(next.merchantUid).not.toBe(first.merchantUid);expect(next.status).toBe('pending');
+  expect(fortune.paymentClaimOrderId).toBe(`card:fc-${id}`);
+ });
+ test('a pass activation holding the consultation opens no card window',async()=>{
+  const {db,input,fortune}=chatSetup({paymentClaimOrderId:`access:pass:fc-${id}`});
+  await expect(createPayableOrder(db,input)).rejects.toMatchObject({code:'MOONSTONE_IN_PROGRESS'});
+  expect(db.rows).toHaveLength(0);expect(fortune.paymentClaimOrderId).toBe(`access:pass:fc-${id}`);
  });
  test.each([
   ['another owner',{userId:'507f1f77bcf86cd799439022'}],
