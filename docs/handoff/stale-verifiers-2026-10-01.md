@@ -1,8 +1,8 @@
 ---
-status: active
-implementationStatus: in-progress
+status: done
+implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 1~3번(today-hub-gate·review-anytime-ui·saju-reading-personas) 완료. 다음은 4번 feature-popup-journey — 현재 팝업 계약을 사용자와 먼저 정한다. 한 세션에 하나씩.
+next: 4종 모두 완료. 남은 것은 CI 배선 여부(사용자 결정)뿐 — 지시 없이 배선하지 않는다.
 ---
 
 # 변경 전부터 실패하던 verify 4종 — 원인 진단 (2026-10-01)
@@ -16,7 +16,7 @@ next: 1~3번(today-hub-gate·review-anytime-ui·saju-reading-personas) 완료. �
 1. ~~today-hub-gate~~ — **완료**(29a8c4f6f, 2026-10-01).
 2. ~~review-anytime-ui~~ — **완료**(2026-10-01, 아래 3절).
 3. ~~saju-reading-personas~~ — **완료**(edccb0fa8 검증기, 24fdaf1c3 안내문 span, 2026-10-01, 아래 4절).
-4. feature-popup-journey — 현재 팝업 계약을 먼저 정해야 다시 쓸 수 있다.
+4. ~~feature-popup-journey~~ — **완료**(9785f3838, 2026-10-01, 아래 2절).
 
 ## 1. verify-today-hub-gate — 추출 경계가 낡음 (확정)
 
@@ -31,6 +31,11 @@ next: 1~3번(today-hub-gate·review-anytime-ui·saju-reading-personas) 완료. �
 - HEAD 에서 단언을 던지지 않고 모아 세면 낡은 단언군이 6개 이상이다: 전환 프롬프트 부재, CTA 높이 0, 팔레트·전환 색 3종, artSrc(더는 공유 히어로가 아님), 16:9 비율(현재 1.6, 세로 소재 0.878, 아트 없음 NaN).
 - 추정: 09-15/16 디자인 커밋들이 나머지 단언을 낡게 했다(커밋별 이분 탐색은 안 함). CTA 높이 0 이 의도된 것(스티키 푸터 `fortuneCtaAtTop` 토글)인지는 미검증.
 - 수정 방향: 현재 팝업이 지켜야 할 계약을 먼저 정하고 다시 쓴다. 단언값만 현재 값으로 맞추면 결함을 정답으로 고정할 위험이 있다.
+- **완료(9785f3838, 2026-10-01, 계약은 사용자가 추천안으로 확정)**:
+  - 계약: (1) 열 때 히어로 미러 CTA 가 보이고 터치 가능(≥44px)하며 스티키 푸터는 숨는다. 끝까지 스크롤해 히어로가 사라지면 스티키 CTA 가 보이고 터치 가능하며 본문이 그 뒤로 가려지지 않는다 — 어느 스크롤 위치에서도 CTA 는 하나. (2) 결제는 명시적 탭에서만: 열기·공유 복사로는 0회, 히어로 버튼 탭은 원본 CTA 로 정확히 1회 위임. (3) 히어로 제목·본문·버튼 대비 WCAG AA 4.5 이상(테마·소재별 색은 고정값으로 단언하지 않음). (4) 상품별 히어로 아트(`<slug>.json` 의 `image`)가 실제로 로드된다. 전환 프롬프트는 0개(미러가 대체). 폴백 팝업 기본 팔레트·가로 넘침·공유 URL·외부 요청 0·페이지 오류 0 단언은 유지.
+  - 빠진 단언: 고정 팔레트·전환 색 3종, 공유 히어로 artSrc, 16:9 비율. 이전 초안의 미호출 프로브 함수(`installProbes` 등)는 커밋 전에 지웠다.
+  - 실측: `node scripts/verify-feature-popup-journey.mjs` PASS(74 상세 × 4폭, exit 0, 약 2분 50초, 서버 불필요). 변이 확인(저장소 `scripts/` 임시 사본, 3상품×390폭, 서빙 내용만 바꿈 — 제품 파일 무변경, 사본 삭제함): 무변이 PASS / 푸터 항상 표시 → "sticky CTA hidden" FAIL / 푸터 영구 숨김 → "sticky CTA visible … after hero scrolls away" FAIL / 미러 클릭 위임 제거 → "delegates exactly once" FAIL / 마운트 시 자동 클릭 → "no implicit checkout" FAIL / 본문 색 투명 → "hero body contrast 1 < 4.5" FAIL / 이미지 차단 → "hero art loaded" FAIL. 6종 모두 문다.
+  - CI 미배선·npm 스크립트 없음은 그대로다.
 
 ## 3. verify-review-anytime-ui — 서버 필요 + 자기 스크린샷이 HMR 을 유발 (확정)
 
@@ -61,4 +66,4 @@ next: 1~3번(today-hub-gate·review-anytime-ui·saju-reading-personas) 완료. �
 
 ## 다음 세션 첫 문장
 
-"docs/handoff/stale-verifiers-2026-10-01.md 를 읽고, 권장 순서 4번 verify-feature-popup-journey 를 다뤄줘 — 낡은 단언군을 정리해 현재 팝업이 지켜야 할 계약 초안을 먼저 나에게 보여주고, 내가 정한 뒤에 검증기를 다시 써."
+없음 — 4종 모두 완료. CI 배선을 원하면: "docs/handoff/stale-verifiers-2026-10-01.md 의 검증기 4종 중 무엇을 CI 에 배선할지 정해줘 — 서버가 필요한 2종(review-anytime-ui·saju-reading-personas)은 mock dev 기동이 전제다."
