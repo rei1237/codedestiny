@@ -17,6 +17,19 @@ test("Yeoni chat keeps a unified character choice and neutral usage label", () =
   assert.match(client, /무료 상담/);
 });
 
+test("a ?character= link opens that consultant and the saved session does not override it", () => {
+  // 홈의 대화형 상담 문은 지금 테마(연이·네오)를 ?character= 로 넘긴다(js/core/home-funnel.js).
+  const client = read("app/fortune-chat/FortuneChatClient.tsx");
+  for (const snippet of [
+    'value === "neo" || value === "yeoni" ? value : ""',
+    'useState<Character>(() => requestedCharacter(params) || "yeoni")',
+    'useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"))',
+    "if (payload.session?.characterId && !requested) setCharacter(storedCharacter)",
+  ]) assert.ok(client.includes(snippet), snippet);
+  const funnel = read("js/core/home-funnel.js");
+  assert.ok(funnel.includes("'/fortune-chat/?character=' + (doc.classList.contains('neo-mode') ? 'neo' : 'yeoni')"));
+});
+
 test("suggested questions are offered, never typed into the box for the user", () => {
   // 주제 칩이 입력창을 곧바로 덮어써서, 고른 적 없는 문장이 질문으로 나갔다.
   // 이제 주제 칩은 주제만 고르고, 추천 질문은 사용자가 누른 것만 들어간다.

@@ -265,6 +265,12 @@ function id() { return globalThis.crypto?.randomUUID?.() || `fortune-chat-${Date
 /** 결제 게이트와 생성 요청이 **같은 requestId** 를 써야 서버가 증빙을 찾는다. */
 function makeRequestId() { return `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; }
 
+/** 홈 등에서 `?character=neo|yeoni` 로 들어오면 그 상담자로 시작한다. 그 밖의 값은 무시한다. */
+function requestedCharacter(params: { get(name: string): string | null } | null): Character | "" {
+  const value = params?.get("character");
+  return value === "neo" || value === "yeoni" ? value : "";
+}
+
 function welcome(character: Character = "yeoni"): Message[] {
   return [{ id: id(), speaker: "assistant", text: CHARACTER_GREETING[character] }];
 }
@@ -295,12 +301,12 @@ export default function FortuneChatClient() {
   const params = useSearchParams();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
-  const [messages, setMessages] = useState<Message[]>(welcome);
+  const [messages, setMessages] = useState<Message[]>(() => welcome(requestedCharacter(params) || "yeoni"));
   const [usage, setUsage] = useState<Usage | null>(null);
   const [topic, setTopic] = useState(params?.get("topic") || "");
   const [category, setCategory] = useState<Category | "">("");
   const [question, setQuestion] = useState("");
-  const [character, setCharacter] = useState<Character>("yeoni");
+  const [character, setCharacter] = useState<Character>(() => requestedCharacter(params) || "yeoni");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -332,8 +338,10 @@ export default function FortuneChatClient() {
     if (!response.ok || !payload) throw new Error("상담방 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
     if (payload.session?.sessionId) setSessionId(payload.session.sessionId);
     if (payload.usage) setUsage(payload.usage);
-    const storedCharacter: Character = payload.session?.characterId === "neo" ? "neo" : "yeoni";
-    if (payload.session?.characterId) setCharacter(storedCharacter);
+    // 링크로 고른 상담자가 있으면 저장된 세션의 상담자로 덮어쓰지 않는다(대화 기록은 그대로 이어 간다).
+    const requested = requestedCharacter(params);
+    const storedCharacter: Character = requested || (payload.session?.characterId === "neo" ? "neo" : "yeoni");
+    if (payload.session?.characterId && !requested) setCharacter(storedCharacter);
     if (payload.session?.selectedTopic) setTopic(payload.session.selectedTopic);
     const stored = payload.session?.messages;
     // 은퇴 포맷 기록은 복원하지 않고 지금 인사말로 새로 연다. 다음 전송의 persist 가 서버
