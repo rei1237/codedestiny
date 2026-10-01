@@ -1,9 +1,12 @@
 import assert from "node:assert/strict";
 import { mkdirSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { chromium } from "playwright";
 
 const base = process.env.REVIEW_UI_BASE_URL || "http://localhost:3107";
-const output = ".integration/review-anytime";
+// 저장소 밖에 쓴다: 저장소 안 쓰기는 Next dev 재컴파일을 일으켜 /reviews 를 로딩 셸에 멈추게 한다.
+const output = join(tmpdir(), "code-destiny-review-anytime");
 mkdirSync(output, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const user = { id: "507f1f77bcf86cd799439011", name: "mock-user", profileSubscription: {} };
@@ -93,5 +96,5 @@ try {
     if (width <= 540) assert((await page.locator("#cdReviewInvite .cd-review-invite__image").boundingBox()).width <= 80, "home mascot overlaps mobile copy");
     await page.locator("#cdReviewInvite").screenshot({ path: `${output}/home-${width}.png` });
   }
-  console.log("PASS: 320/390/1280px, auto-open, mock login return, date/status, submit once, empty/error/retry, keyboard focus, history/home CTA, neo theme (mock)");
+  console.log(`PASS: 320/390/1280px, auto-open, mock login return, date/status, submit once, empty/error/retry, keyboard focus, history/home CTA, neo theme (mock); screenshots: ${output}`);
 } finally { await browser.close(); }

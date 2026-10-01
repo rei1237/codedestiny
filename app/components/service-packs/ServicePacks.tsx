@@ -264,7 +264,7 @@ export function ServicePackShop({locale,overseasCharge=null,onWalletChange}:{loc
    <div className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
     <Image src={SERVICE_PACK_IMAGES[plan.fishId]} alt="" width={240} height={240} sizes="96px" loading="eager" className="mx-auto mb-3 h-24 w-24 object-contain"/>
     <h2 id="service-pack-purchase-title" ref={purchaseRef} tabIndex={-1} className="text-base font-black text-white">{copy.payTitle}</h2>
-    <p className="mt-2 text-sm leading-relaxed text-slate-200">{localizedTier(plan.fishId,locale)} · {packName(plan,locale)} · {won(plan.priceKRW,locale)} · {purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</p>
+    <p className="mt-2 text-sm leading-relaxed text-slate-200">{packName(plan,locale)} · {won(plan.priceKRW,locale)} · {purchaseType==='GIFT'?copy.giftPurchase:copy.selfPurchase}</p>
     <p className="mt-1 text-[12px] font-bold text-[#f3dd9a]">{copy.wonOnly}</p>
     <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
      <p className="font-black text-white">{packText(copy.conditionsTitle,{days:plan.validityDays})}</p>
