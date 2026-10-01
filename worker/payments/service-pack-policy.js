@@ -1,18 +1,20 @@
 import { FEATURE_KEY_PRICE_TABLE, YEONGNYANGI_PAID_FEATURE_KEYS } from '../lib/paid-feature-registry.js';
 import { paymentError } from './errors.js';
 
-// Approved 2026-09-30: same-fish consultations only, 30 days, direct PG purchase.
-// This table is the only source of pack price/quantity; request bodies carry an id only.
+// Approved 2026-10-01 (replaces 2026-09-30 table): same-fish consultations only, 30 days, direct PG purchase.
+// 5·10·20 uses at 10/15/20% off the single price. Prices are written out, not derived, so a unit
+// price change cannot silently reprice packs. This table is the only source of pack price/quantity.
+const PACK_USES = Object.freeze([5, 10, 20]);
 export const SERVICE_PACK_PLANS = Object.freeze(Object.fromEntries([
-  ['mackerel', '고등어', [19, 50, 100]],
-  ['salmon', '연어', [6, 17, 33]],
-  ['flounder', '광어', [4, 10, 20]],
-  ['tuna', '참치', [2, 5, 10]],
-].flatMap(([fishId, label, uses]) => ['small', 'medium', 'large'].map((size, index) => [
-  `yeongnyangi-pack-${fishId}-${size}-v1`,
-  Object.freeze({ name: `${label} 세트 ${uses[index]}회`, fishId,
-    priceKRW: [14900, 39900, 79900][index], totalUses: uses[index], validityDays: 30,
-    policyVersion: 'yeongnyangi-pack-20260930' }),
+  ['mackerel', '고등어', [4500, 8500, 16000]],
+  ['salmon', '연어', [13500, 25500, 48000]],
+  ['flounder', '광어', [22500, 42500, 80000]],
+  ['tuna', '참치', [45000, 85000, 160000]],
+].flatMap(([fishId, label, prices]) => ['small', 'medium', 'large'].map((size, index) => [
+  `yeongnyangi-pack-${fishId}-${size}-v2`,
+  Object.freeze({ name: `${label} 세트 ${PACK_USES[index]}회`, fishId,
+    priceKRW: prices[index], totalUses: PACK_USES[index], validityDays: 30,
+    policyVersion: 'yeongnyangi-pack-20261001' }),
 ]))));
 const FISH = Object.freeze(['mackerel','salmon','flounder','tuna']);
 

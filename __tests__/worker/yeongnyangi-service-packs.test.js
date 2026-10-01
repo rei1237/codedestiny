@@ -279,11 +279,14 @@ test.each(['cancellationReviewRequired','yeongnyangiRefundPending','right-revoke
  expect(f.db.rows.find(r=>r.type==='service_pack').remainingUses).toBe(13);
 });
 
-const approvedFish=[['mackerel',1000,[19,50,100]],['salmon',3000,[6,17,33]],['flounder',5000,[4,10,20]],['tuna',10000,[2,5,10]]];
-test.each(approvedFish)('%s catalog fixes approved prices, counts and 30-day duration',(fish,unit,counts)=>{
+const approvedFish=[['mackerel',1000,[4500,8500,16000]],['salmon',3000,[13500,25500,48000]],['flounder',5000,[22500,42500,80000]],['tuna',10000,[45000,85000,160000]]];
+const counts=[5,10,20];
+test.each(approvedFish)('%s catalog fixes approved 2026-10-01 prices, counts and 30-day duration',(fish,unit,prices)=>{
  ['small','medium','large'].forEach((size,i)=>{
-  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-'+size+'-v1');
-  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:[14900,39900,79900][i],validityDays:30,policyVersion:'yeongnyangi-pack-20260930'});
+  const offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-'+size+'-v2');
+  expect(offer.packSnapshot).toMatchObject({fishId:fish,unitPriceKRW:unit,totalUses:counts[i],priceKRW:prices[i],validityDays:30,policyVersion:'yeongnyangi-pack-20261001'});
+  // Approved discount ladder: 10/15/20% off the same-fish single price.
+  expect(prices[i]).toBe(unit*counts[i]*[0.9,0.85,0.8][i]);
   expect(offer.allowedPaymentMethods).toEqual(['DIRECT_KRW']);
   const right={type:'service_pack',status:'granted',packSnapshot:offer.packSnapshot,remainingUses:counts[i],expiresAt:new Date('2099-01-01')};
   for(const [otherFish,otherPrice] of approvedFish)for(const system of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
@@ -293,7 +296,7 @@ test.each(approvedFish)('%s catalog fixes approved prices, counts and 30-day dur
  });
 });
 test.each(approvedFish.flatMap(([fish])=>approvedFish.map(([target,price])=>[fish,target,price])))('%s pack quote/consume only serves %s when identical',async(fish,target,amount)=>{
- const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v1');
+ const f=fixture(),offer=resolveServicePackProduct('yeongnyangi-pack-'+fish+'-small-v2');
  const order=await createServicePackOrder(f.db,{userId:USER,product:offer,idempotencyKey:'approved',env:{}});
  await __paymentsContextTestUtils.settleVerifiedOrder(f.db,{},{order,pg:{pgTransactionId:'mock-approved',paidAt:new Date(),summary:{mock:true}}});
  const right=f.db.rows.find(r=>r.type==='service_pack');
