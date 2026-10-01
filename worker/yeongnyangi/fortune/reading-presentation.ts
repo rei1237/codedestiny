@@ -8,6 +8,7 @@ import { selectChapterFacts } from './chapter-facts';
 import { starStrength } from '../../../lib/ziwei-star-strength.js';
 import { ZIWEI_HANJA } from '../../lib/ziwei-hanja.js';
 import { enrichZiweiPalaces } from './ziwei/reading-facts';
+import { PLANET_KO } from './block-anchors';
 
 /** 자미 명반 한 칸. 저장 명반으로 표시할 때마다 다시 계산한다 — 강약 정본(lib/ziwei-star-strength.js)이 바뀌면 옛 결과 화면도 따라온다. */
 export interface ReadingZiweiStar{name:string;hanja:string|null;kind:'main'|'assistant'|'malefic';grade:string|null;gradeHanja:string|null;basis:'classical'|'modern-single'|null;hua?:string}
@@ -33,7 +34,7 @@ function ziweiPalace(p:any,enriched:any,f:Record<string,any>):ReadingZiweiPalace
     stars:[...strings(p.mainStars).map(n=>star(n,'main')),...strings(p.assistantStars).map(n=>star(n,'assistant')),...strings(p.maleficStars).map(n=>star(n,'malefic'))],
     notes:strings(enriched?.readingNotes)};
 }
-const names:Record<string,string>={Sun:'태양',Moon:'달',Mercury:'수성',Venus:'금성',Mars:'화성',Jupiter:'목성',Saturn:'토성',Uranus:'천왕성',Neptune:'해왕성',Pluto:'명왕성',Rahu:'라후',Ketu:'케투',Aries:'양자리',Taurus:'황소자리',Gemini:'쌍둥이자리',Cancer:'게자리',Leo:'사자자리',Virgo:'처녀자리',Libra:'천칭자리',Scorpio:'전갈자리',Sagittarius:'사수자리',Capricorn:'염소자리',Aquarius:'물병자리',Pisces:'물고기자리',conjunction:'합',opposition:'충',trine:'삼분각',square:'사각',sextile:'육분각',wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
+const names:Record<string,string>={...PLANET_KO,Aries:'양자리',Taurus:'황소자리',Gemini:'쌍둥이자리',Cancer:'게자리',Leo:'사자자리',Virgo:'처녀자리',Libra:'천칭자리',Scorpio:'전갈자리',Sagittarius:'사수자리',Capricorn:'염소자리',Aquarius:'물병자리',Pisces:'물고기자리',conjunction:'합',opposition:'충',trine:'삼분각',square:'사각',sextile:'육분각',wood:'목',fire:'화',earth:'토',metal:'금',water:'수'};
 function text(value:unknown):string {
   if(value===null||value===undefined)return '자료 없음';
   if(Array.isArray(value))return value.map(text).join(' · ')||'없음';

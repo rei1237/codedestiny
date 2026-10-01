@@ -12,7 +12,7 @@ import {selectChapterFacts} from '../fortune/chapter-facts';
 import {hasPrevention,allowsPreventionBalance,preventionTierRule,PREVENTION_RULES,PREVENTION_VERSION} from '../fortune/prevention';
 import {buildAskFirstChapterPrompt} from '../fortune/ask/prompt';
 import {validateAskChapter} from '../fortune/ask/validate';
-import {sanitizeBlockPalaces,withBlockPalacesSchema,ziweiBlockPalaceNames} from '../fortune/ziwei/block-palaces';
+import {blockAnchorNames,sanitizeBlockAnchors,withBlockAnchorsSchema} from '../fortune/block-anchors';
 import {escapeAskData, type AskAnalysis} from '../fortune/ask/analysis';
 import type {EvidencePacket} from '../fortune/ask/contracts';
 import {alignRelativeYears, assertProfessionalProse, redactInternalEvidence, validateConsultationAnswers, validatePreciseTiming, professionalEvidenceNames, yearGanji} from '../fortune/consultation';
@@ -182,10 +182,10 @@ export function validateChapter(
   // Safety/evidence/duplicate checks see the original field text, including
   // phrases at a split boundary. Only the validated return value is formatted.
   v=attachTarotSafetyNotice(v,input.analysis.question,readingLocale(input.locale),input.chapter.ordinal);
-  // palaces 는 선택 필드라 검사 대상이 아니다. 저장 명반에 없는 궁 이름만 버린다(block-palaces.ts).
-  return sanitizeBlockPalaces({...v,summary:splitField(v.summary),example:splitField(v.example),advice:splitField(v.advice),
+  // palaces·pillars 등 명반 강조는 선택 필드라 검사 대상이 아니다. 저장 명식에 없는 이름만 버린다(block-anchors.ts).
+  return sanitizeBlockAnchors({...v,summary:splitField(v.summary),example:splitField(v.example),advice:splitField(v.advice),
     persona:splitField(v.persona),analysis:v.analysis.map(splitField),
-    highlights:v.highlights.map(splitField),topics:v.topics.map(splitField)},ziweiBlockPalaceNames(input.analysis,input.chapter.systems));
+    highlights:v.highlights.map(splitField),topics:v.topics.map(splitField)},blockAnchorNames(input.analysis,input.chapter.systems));
 }
 // A quality retry (service.ts repair) restates the rule that failed; an unmapped code is sent alone.
 // Same word list as validateReadingQuality's TIER_SCOPE_VIOLATION check.
@@ -316,7 +316,7 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       ...(askPrompt?.evidence.facts || []).map(fact=>fact.source.factId),
       ...(askPrompt?.evidence.timing || []).map(period=>period.source.factId)])];
     const questionCount=assignedQuestions.length;
-    const blockPalaceNames=ziweiBlockPalaceNames(input.analysis,input.chapter.systems);
+    const blockAnchors=blockAnchorNames(input.analysis,input.chapter.systems);
     // The v7 half of the request. It is fed the final sourceIds so the schema enum and CALCULATED_DATA agree
     // even on the ask chapter, whose packet adds IDs the ledger does not carry.
     const v7Parts=v7Chapter?buildV7ChapterPrompt({chapter:v7Chapter,facts:sourceIds.map(id=>({id,label:id,value:null})),
@@ -406,11 +406,11 @@ export class StructuredChapterProvider implements FortuneChapterProvider {
       }),
       calculatedData: facts,
       userQuestion: askPrompt?escapeAskData(input.analysis.question||''):input.followupQuestion || input.analysis.question||"",
-      outputSchema: withBlockPalacesSchema({...schema,required:[...(locale!=='ko'?['title']:[]),...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[]),...(skyTwoStage&&input.chapter.ordinal===0?['followUpSuggestions','visualSlots']:skyTwoStage?['visualSlots']:[])],properties:{...schema.properties,...(locale!=='ko'?{title:{type:'string',description:'A concise chapter heading in the purchase language, faithfully reflecting chapter.title and focus.'}}:{}),...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(skyTwoStage?{visualSlots:{type:'object',additionalProperties:false,properties:input.chapter.ordinal===0?{opening:{type:'string',enum:['mystic','focus','sure','warm','wink']},verdict:{type:'string',enum:['mystic','focus','sure','warm','wink']},closing:{type:'string',enum:['mystic','focus','sure','warm','wink']}}:{followup:{type:'string',enum:['mystic','focus','sure','warm','wink']}}},...(input.chapter.ordinal===0?{followUpSuggestions:{type:'array',minItems:3,maxItems:3,items:{type:'string',minLength:5,maxLength:180}}}:{})}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action',...(askPrompt?['factIds','timingIds','evidenceStatus']:[])],properties:{...Object.fromEntries(['answer','reason','timing','action'].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})},...(askPrompt?{factIds:{type:'array',items:{type:'string',...(askFactIds.length?{enum:askFactIds}:{})}},timingIds:{type:'array',items:{type:'string',...(askTimingIds.length?{enum:askTimingIds}:{})}},evidenceStatus:{type:'string',enum:['grounded','limited']}}:{})}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:sourceIds}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),...(v7Parts?v7Parts.outputSchema:{}),sources:{
+      outputSchema: withBlockAnchorsSchema({...schema,required:[...(locale!=='ko'?['title']:[]),...(isStructuredReading(input.chapter.version)?[...schema.required,"blocks"]:schema.required),...(questionCount?['questionAnswers']:[]),...(skyTwoStage&&input.chapter.ordinal===0?['followUpSuggestions','visualSlots']:skyTwoStage?['visualSlots']:[])],properties:{...schema.properties,...(locale!=='ko'?{title:{type:'string',description:'A concise chapter heading in the purchase language, faithfully reflecting chapter.title and focus.'}}:{}),...(hasReadingSections(input.chapter.version)?{example:{type:"string",enum:[""]},advice:{type:"string",enum:[""]},analysis:{type:"array",maxItems:0,items:{type:"string"}}}:{}),...(skyTwoStage?{visualSlots:{type:'object',additionalProperties:false,properties:input.chapter.ordinal===0?{opening:{type:'string',enum:['mystic','focus','sure','warm','wink']},verdict:{type:'string',enum:['mystic','focus','sure','warm','wink']},closing:{type:'string',enum:['mystic','focus','sure','warm','wink']}}:{followup:{type:'string',enum:['mystic','focus','sure','warm','wink']}}},...(input.chapter.ordinal===0?{followUpSuggestions:{type:'array',minItems:3,maxItems:3,items:{type:'string',minLength:5,maxLength:180}}}:{})}:{}),...(questionCount?{questionAnswers:{type:'array',minItems:questionCount,maxItems:questionCount,items:{type:'object',additionalProperties:false,required:['questionId','answer','reason','timing','action',...(askPrompt?['factIds','timingIds','evidenceStatus']:[])],properties:{...Object.fromEntries(['answer','reason','timing','action'].map(k=>[k,{type:'string'}])),questionId:{type:'string',...(questionCount?{enum:assignedQuestions.map(q=>q.id)}:{})},...(askPrompt?{factIds:{type:'array',items:{type:'string',...(askFactIds.length?{enum:askFactIds}:{})}},timingIds:{type:'array',items:{type:'string',...(askTimingIds.length?{enum:askTimingIds}:{})}},evidenceStatus:{type:'string',enum:['grounded','limited']}}:{})}}}}:{}),...(isStructuredReading(input.chapter.version)?{blocks:{type:"array",minItems:input.chapter.sections?.length || 2,maxItems:input.chapter.sections?.length || 8,items:{type:"object",additionalProperties:false,required:input.chapter.sections?["id","title","paragraphs","sources"]:["title","paragraphs"],properties:{...(input.chapter.sections?{id:{type:"string",enum:input.chapter.sections.map(s=>s.id)},sources:{type:"array",minItems:1,items:{type:"string",enum:sourceIds}}}:{}),title:{type:"string"},paragraphs:{type:"array",minItems:1,items:{type:"string"}}}}}}:{}),...(v7Parts?v7Parts.outputSchema:{}),sources:{
         type:'array',minItems:1,
         description:'해석에 실제 사용한 FortuneFact.id만 그대로 선택한다. 괄호, 설명, 번역을 덧붙이지 않는다.',
         items:{type:'string',enum:sourceIds},
-      }}},blockPalaceNames),
+      }}},blockAnchors),
       sectionTitles: [input.chapter.title],
       outputBudgetVersion:input.chapter.outputBudgetVersion,
       promptVersion: (v7Parts?v7Parts.promptVersion:askPrompt?'ask-chapter-v1':input.chapter.version===READING_V6_VERSION?"chapter-v6":hasReadingSections(input.chapter.version)?"chapter-v5":isStructuredReading(input.chapter.version)?PROMPT_VERSION:input.chapter.systems?"chapter-v3":"chapter-v2")+(isConciseReading(input.chapter)?"-concise-20260930":"")+(hasPrevention(input.chapter)?`-${PREVENTION_VERSION}`:""),
