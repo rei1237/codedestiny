@@ -31,16 +31,36 @@ const SHELLS = [
 ];
 const BLOCK_START = '<style id="cd-today-hub-v20260808">';
 const BLOCK_END = "<!-- 대표 운명 상담";
+const SECTION_ID = 'id="cdTodayHub"';
 
 const failures = [];
 const fail = (message) => failures.push(message);
+
+// 마크업 <section id="cdTodayHub"> 는 홈 퍼널 슬롯(#cdhTodaySlot)으로 올라가 스타일·스크립트
+// 블록과 떨어져 있다(948eee737). 그래서 section 은 <section>/</section> 깊이로 따로 잘라
+// 블록 앞에 붙인다 — 스크립트가 돌 때 마크업이 이미 있어야 한다.
+function extractSection(text, relPath) {
+  const at = text.indexOf(SECTION_ID);
+  const open = at < 0 ? -1 : text.lastIndexOf("<section", at);
+  if (open < 0) throw new Error(`${relPath}: <section ${SECTION_ID}> 를 찾지 못했습니다.`);
+  const tag = /<\/?section\b/g;
+  tag.lastIndex = open;
+  let depth = 0;
+  for (let m = tag.exec(text); m; m = tag.exec(text)) {
+    depth += m[0] === "<section" ? 1 : -1;
+    if (depth === 0) return { open, close: text.indexOf(">", m.index) + 1 };
+  }
+  throw new Error(`${relPath}: <section ${SECTION_ID}> 의 닫는 태그를 찾지 못했습니다.`);
+}
 
 function extractBlock(relPath) {
   const text = readFileSync(resolve(rootDir, relPath), "utf8");
   const start = text.indexOf(BLOCK_START);
   const end = text.indexOf(BLOCK_END, start);
   if (start < 0 || end < 0) throw new Error(`${relPath}: 허브 블록 경계를 찾지 못했습니다.`);
-  return text.slice(start, end);
+  const { open, close } = extractSection(text, relPath);
+  if (open >= start && open < end) return text.slice(start, end);
+  return text.slice(open, close) + text.slice(start, end);
 }
 
 function buildResponse(overrides = {}) {
