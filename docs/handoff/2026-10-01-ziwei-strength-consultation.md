@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-10-01
-next: S4 — 꿀꿀 셸·앱 자미 강약을 정본 모듈로 통일한다(아래 S4 항목, regression-scout 먼저). S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
+next: S5 — 남은 자미 경로(워커 ziwei-ai·deep report·island·master-love-codex)를 정본 7등급으로 옮긴다(아래 S5 항목, regression-scout 먼저). S0(사용자 캡처)이 먼저 오면 그것부터 반영한다.
 ---
 
 # 영냥이 자미두수 — 정확한 강약표 위에서 강약을 읽는 상담 + 설명마다 명반
@@ -14,13 +14,15 @@ next: S4 — 꿀꿀 셸·앱 자미 강약을 정본 모듈로 통일한다(아�
 - 설명할 때마다 해당 명반을 보여 준다. 모든 운세에 해당한다.
 - 2026-10-01 추가 요구: "정확한 데이터를 기반으로 해야해 그리고 강약도 반드시 반영이 되어야한다". 다른 사이트 캡처로 사용자가 직접 확인해 줄 수 있다고 했다.
 
-## 지금 상태 (S1·S2·S3 완료)
+## 지금 상태 (S1·S2·S3·S4 완료)
 
 S1(강약표·상담 사실·프롬프트·단계 정책)은 main 에 머지됐다. 커밋은 `git log --oneline --grep=ziwei -8` 로 확인한다.
 
 S2(영냥이·연이/네오 명반 화면)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="ziwei" --grep="palaces" -8` 로 확인한다.
 
-S3(사주·점성·베다·숙요 소절마다 명반)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="chart points" --grep="each section reads" -4` 로 확인한다. S4·S5 와 S0 이 남아 있다.
+S3(사주·점성·베다·숙요 소절마다 명반)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="chart points" --grep="each section reads" -4` 로 확인한다.
+
+S4(꿀꿀 셸·앱·워커 프롬프트 강약 통일)도 main 에 머지됐다. 커밋은 `git log --oneline --grep="canonical 7" --grep="major period by branch" -4` 로 확인한다. 아래 "S4 검증"을 본다. S5 와 S0 이 남아 있다.
 
 ### S3 에서 바꾼 것
 
@@ -159,13 +161,14 @@ S3(사주·점성·베다·숙요 소절마다 명반)도 main 에 머지됐다.
     - 기존 결과는 저장 명반으로 강약을 다시 계산해 표시만 한다. LLM 재생성은 하지 않는다.
   - 판정 기준: 360·390px visual-checker 통과, 기존 주문 화면에서 재결제 요구 0건.
 - [x] **S3 다른 운세의 '설명마다 명반'** — 사주·점성·베다·숙요. 2026-10-01 완료. 위 "S3 에서 바꾼 것"과 아래 "S3 검증"을 본다.
-- [ ] **S4 꿀꿀 셸·앱 통일**
+- [x] **S4 꿀꿀 셸·앱 통일** — 2026-10-01 완료. 아래 "S4 검증"을 본다.
   - 셸·앱 강약을 정본 모듈로 바꾼다. 점수 혼합, 차성 ×0.7, 화기 강등을 걷어 내고 관련 가드를 재정의한다.
   - 셸 대한 궁 오인덱스(`js/saju-engine.js:17703`, `:21767`)를 고친다.
   - `worker/lib/ziwei-ai-prompt.js` 를 바꾸고 `sync:public` 미러를 갱신한다.
 - [ ] **S5 나머지 자미 경로**
   - `worker/routes/ziwei-ai.js`, deep report, island(점수 영향이 있으므로 regression-scout 먼저), master-love-codex.
-  - 앱 `mapZiweiStrengthSymbol` 이 빈 값을 △ 로 그리는 결함을 고친다.
+  - 워커에 남은 옛 5기호: `worker/lib/ziwei-ai-chart.js`(옛 표 행, 테스트가 정본과 비교용으로 고정), `worker/lib/ziwei-deep-report-prompt.mjs:183` 범례, `__tests__/worker/admin-prompt-lab-engines.test.js` 의 옛 기호 허용, `scripts/lib/ziwei-deep-chart-fixture.cjs`.
+  - (해소) 앱 `mapZiweiStrengthSymbol` 의 빈 값 → △ 결함은 S4 앱 커밋이 함수째 걷어 내면서 사라졌다.
 
 ## 함정
 
@@ -231,6 +234,41 @@ npm run check:fast                                            # 서버 커밋·�
   - 비강조 뼈대(칸 테두리·바퀴 원·눈금)의 대비가 연이 1.3:1, 네오 1.6:1 이다. 자미 힌트와 같은 토큰이다.
   - 사주 격자가 다른 힌트보다 29px 넓다. 그래서 한 소절에 자미·사주가 같이 붙으면 캡션 시작 위치가 어긋난다.
   - 베다 라그나 캡션 "쌍둥이자리 · 라그나" 의 가운뎃점이 항목 구분점과 같은 글리프다. 큰 차트 라벨을 그대로 쓴 것이다.
+
+## S4 검증 (2026-10-01, 전부 mock — 실 LLM·결제·DB 0회)
+
+표기는 사용자가 고른 "한자 한 글자"다. 별 옆에 廟旺得利平不陷 중 한 글자를 붙이고, 일곱 등급을 접지 않는다. 표에 없는 별(좌보·우필·녹존·괴월·천마·지공·지겁 등)은 글자를 붙이지 않는다. 강약은 길흉이 아니므로 색은 한 가지다(셸 #fde68a, 앱 text-amber-200).
+
+- 커밋 넷(워크트리에서 만들어 main 에 머지, 미러 재동기화 별도 커밋):
+  - 셸 대한 궁을 목록 순서가 아니라 지지로 찾는다(`js/saju-engine.js`).
+  - 워커 프롬프트(`worker/lib/ziwei-ai-prompt.js`)가 정본 7등급·한자로 읽는다.
+  - 셸: 옛 `ZW_CLASSICAL_STATE`·점수 혼합·차성 ×0.7·화기 강등을 걷고 `ZW_STAR_STRENGTH`(정본 240칸 복사)를 읽는다. 가드 `verify:ziwei-borrowed-strength` 는 "셸 표 = 정본"을 칸마다 대조하도록 재정의했다.
+  - 앱: `app/_lib/ziwei-strength.ts` 가 `lib/ziwei-star-strength.js` 를 읽는다. 앱 `ZIWEI_CLASSICAL_STATE`(태음 寅 '한'을 '평'으로 접던 표)와 지어낸 지지 프로필을 걷었다. 격자 아래 범례(5개 로케일)를 더했다. 저장된 옛 명반의 ◎/O/▲/△/X 는 원래 이름(묘·득·리·평·함)으로 받아들인다.
+
+```
+npm run check:fast                                   # 앱 커밋: critical 승격, node 2189/2189, jest 4915/4915, exit 0
+node --test __tests__/ui/ziwei-star-strength.test.mjs   # 5/5
+node scripts/verify-ziwei-borrowed-star-strength.mjs # 234건, 셸 표 240칸 = 정본
+node scripts/verify-ziwei-star-parity.mjs            # 21건
+node scripts/verify-ziwei-consultation.mjs           # PASS (기준 해시 재계산 — 바뀐 필드는 별 강약·strengthSummary 뿐)
+node scripts/verify-ziwei-deep-counseling-quality.cjs # PASS
+npm run verify:ziwei-chart-customer-copy && npm run verify:ziwei-chart-detail-view  # ok (48)
+npm run verify:sitemap-drift                         # OK (원장은 같은 커밋에 넣었다)
+```
+
+화면 검증은 Playwright 로 했다(커밋하지 않은 임시 스크립트).
+- 셸 `/ggulggul/` `renderZiwei`, 앱 `/ziwei/chart/`(next dev, 1985-03-12 07시 남)를 360·390px 에서 봤다.
+- 앱 실측: 정본과 다른 칸 0(앱 명반 210칸 중 130칸 정본 일치, 80칸은 강약 없음, 옛 기호 0). 칸 이탈 0, 글자가 별 이름과 떨어진 줄 0, 최소 글자 12px, 가로 넘침 0, 페이지 오류 0.
+- visual-checker: 격자 글자·범례 통과. 글자색은 픽셀 실측으로 전부 #fde68a, 대비 10.97~14.52:1. 범례는 띄어쓰기 자리에서만 끊긴다.
+
+### S4 에서 고치지 않은 것 (후속)
+
+- 앱 궁 상세 카드("핵심 주성 자미得 · 천상得")의 강약 글자는 본문색이다. 원래도 문자열을 이어 붙인 목록이라 ◎ 때부터 색이 없었다. 격자처럼 호박색으로 할지는 정하지 않았다.
+- 앱 격자 궁 이름이 지지 글자에 밀려 "질액 사 / 궁"처럼 끊긴다(360·390, 명궁 제외 11칸). S4 diff 밖의 머리 영역이다.
+- 셸 기존 문제: 대한·소한 라벨 겹침, 별 이름 끊김, 상세 버튼 무스타일, 범례 회색 대비 4.10:1, `zw-cell` aria-label 이 문자열을 그대로 이어 붙임, 요약표 보조성 행에 강약 없음, "우필가" 조사 오류.
+- 꽃 엔진(`worker/lib/destiny-flower-engine.js`)은 '불'을 평 쪽으로 접는다. 페르소나 점수는 차성 ×0.9 를 아직 쓴다.
+- 앱 '불'은 약한 쪽으로 읽었다: 5단 밝기 읽기에서 함, 옛 힌트 키에서 X, `weakStars`·`hasXianRuo` 에 포함. 원전 不得地 를 '힘을 얻지 못함'으로 읽은 가정이다.
+- 죽은 코드(보고만): `AdvancedZiweiSectionV2.tsx` 의 `ZIWEI_STRENGTH_SYMBOL_KEY`·`zPatternStrengthDescription`·copy 의 `strengthDescriptions`, `advanced-ziwei-reading.ts` 의 `BRIGHTNESS_RULES[].symbol`, `scripts/verify-ziwei-brightness-constraints.cjs`(배선 없음·낡음).
 
 ## 모르는 것
 
