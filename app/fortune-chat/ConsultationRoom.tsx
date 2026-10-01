@@ -12,6 +12,7 @@ import {
   type ChatConsultation, type ChatConsultationSummary, type ChatDomain, type ChatPersona,
 } from "./consultation-api";
 import ConsultationResult from "./ConsultationResult";
+import { EMPTY_ROWS, refreshRow, showRow, type PersonaRows } from "./consultation-world";
 import { PersonaAvatar } from "./PersonaAvatar";
 import base from "./fortune-chat.module.css";
 import styles from "./consultation.module.css";
@@ -28,9 +29,10 @@ const HELD_POLL_MS = 30000;
 const ACTIVATION_TRIES = Math.ceil(180000 / POLL_MS);
 const HELD = ["GENERATION_REVIEW_REQUIRED", "AUTOMATIC_RECOVERY_STOPPED", "ASK_LIMITED_REVIEW_REQUIRED"];
 
-const PERSONAS: { id: ChatPersona; name: string; line: string }[] = [
-  { id: "yeoni", name: "연이", line: "다정하게, 마음부터 살펴요" },
-  { id: "neo", name: "네오", line: "차분하게, 흐름부터 짚어요" },
+// 상담자마다 세계가 다르다 — 연이는 마음부터, 네오(별빛 전략실)는 판단부터. 결과 순서는 consultation-world.ts.
+const PERSONAS: { id: ChatPersona; name: string; line: string; title: string; sub: string; placeholder: string }[] = [
+  { id: "yeoni", name: "연이", line: "다정하게, 마음부터 살펴요", title: "연이의 운명 상담", sub: "명식을 바탕으로 질문 하나에 깊게 답해요", placeholder: "지금 가장 마음에 걸리는 질문 하나를 적어 주세요." },
+  { id: "neo", name: "네오", line: "판단부터, 근거와 순서로 짚어요", title: "네오의 별빛 전략실", sub: "판단부터 짚고 근거와 할 일을 정리해요", placeholder: "정해야 할 것 하나를 적어 주세요. 판단부터 짚어 드릴게요." },
 ];
 const DOMAINS: { id: ChatDomain; label: string }[] = [
   { id: "saju", label: "사주" },
@@ -73,7 +75,9 @@ async function readWithEvidence(id: string) {
 
 export default function ConsultationRoom({ initialId = "" }: { initialId?: string }) {
   const [persona, setPersona] = useState<ChatPersona>("yeoni");
-  const [row, setRow] = useState<ChatConsultation | null>(null);
+  // 상담자별로 보던 상담을 따로 둔다 — 연이·네오를 오가도 각자의 결과가 그대로 남는다.
+  const [rows, setRows] = useState<PersonaRows>(EMPTY_ROWS);
+  const row = rows[persona];
   const [history, setHistory] = useState<ChatConsultationSummary[]>([]);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [domain, setDomain] = useState<ChatDomain>("saju");
@@ -84,7 +88,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
   const [addingProfile, setAddingProfile] = useState(false);
   const { profiles, profileId, select, saved, guest, loading: profilesLoading, refresh: refreshProfiles } = useProfiles();
   const { ensurePaidAccess, isPaying } = useCoinGate();
-  const attempt = useRef("");
+  const attempt = useRef<Record<ChatPersona, string>>({ yeoni: "", neo: "" });
   const mounted = useRef(true);
   const rowRef = useRef<ChatConsultation | null>(null);
   rowRef.current = row;
@@ -93,6 +97,14 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
     mounted.current = true;
     return () => { mounted.current = false; };
   }, []);
+
+  /** 사용자가 연 상담: 그 상담자 칸에 놓고 그 세계로 간다. */
+  const show = useCallback((next: ChatConsultation) => {
+    setRows((current) => showRow(current, next));
+    setPersona(next.persona);
+  }, []);
+  /** 뒤늦게 온 응답: 그 칸이 아직 같은 상담일 때만 바꾼다. */
+  const refresh = useCallback((next: ChatConsultation) => setRows((current) => refreshRow(current, next)), []);
 
   const fail = useCallback((reason: unknown, fallback: string) => {
     if (!mounted.current) return;
@@ -120,13 +132,13 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
       let next = same(await consultationApi.read(id), id);
       if (canOfferCheckout(next)) next = await readWithEvidence(id);
       if (!mounted.current) return;
-      setRow(next); setPersona(next.persona); setConsultationParam(id);
+      show(next); setConsultationParam(id);
     } catch (reason) {
       fail(reason, "상담을 불러오지 못했어요. 잠시 후 다시 열어 주세요.");
     } finally {
       if (mounted.current) setBusy(false);
     }
-  }, [fail]);
+  }, [fail, show]);
 
   useEffect(() => {
     // 이 화면이 방금 연 상담이 주소에 실린 경우는 다시 읽지 않는다.
@@ -156,7 +168,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
     setBusy(true); setError("");
     try {
       const next = await waitForActivation(id);
-      if (mounted.current) { setRow(next); setPersona(next.persona); setNotice(""); }
+      if (mounted.current) { show(next); setNotice(""); }
       return true;
     } catch (reason) {
       fail(reason, "결제는 확인되면 이 상담에 그대로 연결돼요. 잠시 후 다시 열어 주세요.");
@@ -170,35 +182,37 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
   useEffect(() => {
     if (!row || !canOfferCheckout(row)) return undefined;
     const id = row.id;
-    const refresh = () => {
+    const recheck = () => {
       if (document.visibilityState !== "visible") return;
-      void readWithEvidence(id).then((next) => { if (mounted.current && rowRef.current?.id === id) setRow(next); }).catch(() => {});
+      void readWithEvidence(id).then((next) => { if (mounted.current) refresh(next); }).catch(() => {});
     };
-    window.addEventListener("focus", refresh);
-    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("focus", recheck);
+    document.addEventListener("visibilitychange", recheck);
     return () => {
-      window.removeEventListener("focus", refresh);
-      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("focus", recheck);
+      document.removeEventListener("visibilitychange", recheck);
     };
-  }, [row]);
+  }, [row, refresh]);
 
   // 결제된 상담은 다 쓸 때까지 읽는다. 읽기(GET)가 남은 생성을 이어 준다.
   useEffect(() => {
     if (!row?.paid || ["COMPLETED", "REFUNDED", "AWAITING_FOLLOWUP"].includes(row.state) || row.errorCode === "PAYMENT_NOT_ACTIVE") return undefined;
     const id = row.id;
+    const who = row.persona;
     let cancelled = false;
     const timer = setTimeout(async () => {
       try {
         const next = same(await consultationApi.read(id), id);
-        if (!cancelled) setRow(next);
+        if (!cancelled) refresh(next);
       } catch (reason) {
         if (cancelled) return;
         if (reason instanceof ConsultationApiError && reason.status === 401) { loginForCurrentPage(); return; }
-        setRow((current) => (current ? { ...current } : current));
+        // 같은 상담을 새 객체로 바꿔 다음 읽기를 예약한다.
+        setRows((current) => (current[who]?.id === id ? { ...current, [who]: { ...current[who]! } } : current));
       }
     }, HELD.includes(row.errorCode || "") ? HELD_POLL_MS : POLL_MS);
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [row]);
+  }, [row, refresh]);
 
   useEffect(() => {
     if (row?.state === "COMPLETED") void loadHistory(row.persona);
@@ -210,11 +224,11 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
     if (guest) { loginForCurrentPage(); return; }
     setBusy(true); setError(""); setNotice("");
     try {
-      if (!attempt.current) attempt.current = crypto.randomUUID();
-      const next = await consultationApi.create({ persona, domain, profileId, question: text, consultationAttemptId: attempt.current });
-      attempt.current = "";
+      if (!attempt.current[persona]) attempt.current[persona] = crypto.randomUUID();
+      const next = await consultationApi.create({ persona, domain, profileId, question: text, consultationAttemptId: attempt.current[persona] });
+      attempt.current[persona] = "";
       if (!mounted.current) return;
-      setRow(next); setConsultationParam(next.id); setQuestion("");
+      show(next); setConsultationParam(next.id); setQuestion("");
       void loadHistory(persona);
     } catch (reason) {
       if (reason instanceof ConsultationApiError && reason.status === 404 && reason.code === "NOT_FOUND") {
@@ -231,12 +245,12 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
     setBusy(true); setError(""); setNotice("");
     try {
       const next = same(await consultationApi.activate(id, "free_trial"), id);
-      if (mounted.current) setRow(next);
+      if (mounted.current) refresh(next);
     } catch (reason) {
       if (reason instanceof ConsultationApiError && reason.code === "PG_PAYMENT_NOT_PAID") {
         setError("이 상담은 결제창이 열려 있어요. 결제를 마치거나 취소한 뒤 다시 시도해 주세요.");
       } else fail(reason, "무료 상담을 열지 못했어요. 잠시 후 다시 시도해 주세요.");
-      void readWithEvidence(id).then((next) => { if (mounted.current) setRow(next); }).catch(() => {});
+      void readWithEvidence(id).then((next) => { if (mounted.current) refresh(next); }).catch(() => {});
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -258,7 +272,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
       }));
       if (!mounted.current) return;
       if (!guarded.opened) {
-        if (guarded.row) { setRow(guarded.row); if (guarded.row.paid) setNotice("이미 열린 상담이에요. 결제 없이 이어서 볼 수 있어요."); }
+        if (guarded.row) { refresh(guarded.row); if (guarded.row.paid) setNotice("이미 열린 상담이에요. 결제 없이 이어서 볼 수 있어요."); }
         else fail(guarded.error, "상담 상태를 확인하지 못해 결제창을 열지 않았어요. 잠시 후 다시 시도해 주세요.");
         return;
       }
@@ -269,7 +283,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
         return;
       }
       const next = await waitForActivation(id);
-      if (mounted.current) { setRow(next); setNotice(""); }
+      if (mounted.current) { refresh(next); setNotice(""); }
     } catch (reason) {
       fail(reason, "결제는 확인되면 이 상담에 그대로 연결돼요. 다시 결제하지 말고 잠시 후 다시 열어 주세요.");
     } finally {
@@ -283,7 +297,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
     setBusy(true); setError("");
     try {
       const next = same(await consultationApi.generate(id), id);
-      if (mounted.current) setRow(next);
+      if (mounted.current) refresh(next);
     } catch (reason) {
       fail(reason, "이어 쓰기를 접수하지 못했어요. 다시 결제하지 말고 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -292,22 +306,41 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
   };
 
   const startNew = () => {
-    setRow(null); setError(""); setNotice(""); setConsultationParam("");
+    setRows((current) => ({ ...current, [persona]: null })); setError(""); setNotice(""); setConsultationParam("");
     void loadHistory(persona);
   };
 
-  const personaName = PERSONAS.find((p) => p.id === (row?.persona || persona))?.name || "연이";
+  /** 모드 전환: 지금 보던 상담은 그 상담자 칸에 남고, 다른 상담자가 보던 상담(있으면)이 다시 열린다. */
+  const switchPersona = (next: ChatPersona) => {
+    if (next === persona || busy || isPaying) return;
+    setPersona(next); setError(""); setNotice("");
+    setConsultationParam(rows[next]?.id || "");
+  };
+
+  const world = PERSONAS.find((p) => p.id === persona) || PERSONAS[0];
+  const personaName = world.name;
   const offerCheckout = canOfferCheckout(row);
   const writing = !!row?.paid && row.state !== "COMPLETED" && row.state !== "REFUNDED";
   const held = writing && HELD.includes(row?.errorCode || "");
 
   return (
-    <main className={base.room} data-consultation-room>
+    <main className={`${base.room}${persona === "neo" ? ` ${styles.starlight}` : ""}`} data-consultation-room data-persona={persona}>
       <header className={base.header}>
-        <button type="button" className={base.backButton} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.back())}>←</button>
+        <button type="button" className={`${base.backButton} ${styles.backButton}`} aria-label="뒤로" onClick={() => (row ? startNew() : window.history.back())}>←</button>
         <div className={base.brand}>
-          <PersonaAvatar persona={row?.persona || persona} mood={row ? "read" : "greet"} size="sm" decorative />
-          <div><strong>{personaName}의 운명 상담</strong><span>명식을 바탕으로 질문 하나에 깊게 답해요</span></div>
+          <PersonaAvatar persona={persona} mood={row ? "read" : "greet"} size="sm" decorative />
+          <div><strong>{world.title}</strong><span>{world.sub}</span></div>
+        </div>
+        <div className={styles.modeSwitch} role="group" aria-label="상담자 바꾸기" data-consultation-mode>
+          {PERSONAS.map((p) => {
+            const kept = p.id !== persona && !!rows[p.id];
+            return (
+              <button key={p.id} type="button" aria-pressed={persona === p.id} disabled={busy || isPaying} onClick={() => switchPersona(p.id)}
+                aria-label={kept ? `${p.name} — 보던 상담이 있어요` : p.name} title={kept ? "보던 상담이 그대로 있어요" : undefined}>
+                {p.name}{kept && <i className={styles.keptDot} aria-hidden="true" />}
+              </button>
+            );
+          })}
         </div>
       </header>
 
@@ -318,7 +351,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
               <h2 id="consultation-persona" className={styles.sectionTitle}>누구와 이야기할까요?</h2>
               <div className={styles.personaPicker}>
                 {PERSONAS.map((p) => (
-                  <button key={p.id} type="button" aria-pressed={persona === p.id} onClick={() => setPersona(p.id)}>
+                  <button key={p.id} type="button" aria-pressed={persona === p.id} disabled={busy || isPaying} onClick={() => switchPersona(p.id)}>
                     <PersonaAvatar persona={p.id} mood="greet" size="sm" decorative />
                     <span><strong>{p.name}</strong><small>{p.line}</small></span>
                   </button>
@@ -357,7 +390,7 @@ export default function ConsultationRoom({ initialId = "" }: { initialId?: strin
                 {SUGGESTIONS.map((s) => <button key={s} type="button" aria-pressed={question === s} onClick={() => setQuestion(s)}>{s}</button>)}
               </div>
               <textarea className={styles.textarea} rows={3} maxLength={QUESTION_MAX} value={question} onChange={(e) => setQuestion(e.target.value)}
-                placeholder="지금 가장 마음에 걸리는 질문 하나를 적어 주세요." aria-labelledby="consultation-question" />
+                placeholder={world.placeholder} aria-labelledby="consultation-question" />
               <div className={styles.actions}>
                 <button type="button" disabled={busy || !question.trim() || (!guest && !profileId) || enabled === false} onClick={() => void create()}>
                   {busy ? "상담을 준비하는 중…" : guest ? "로그인하고 상담 시작하기" : "상담 준비하기"}

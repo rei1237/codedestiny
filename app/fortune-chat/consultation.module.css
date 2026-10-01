@@ -195,3 +195,80 @@
   .panel, .result > section { padding: 14px 13px; border-radius: 18px; }
   .coreAnswer { font-size: 1rem; }
 }
+
+/* ── 모드 전환(연이 ⇄ 네오). 보던 상담은 각자 칸에 남는다 — 다른 쪽에 보던 상담이 있으면 점으로 알린다. ── */
+.modeSwitch {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bubble) 70%, transparent);
+  padding: 3px;
+}
+.modeSwitch button {
+  position: relative;
+  min-width: 48px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  padding: 0 11px;
+  color: var(--muted);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+.modeSwitch button[aria-pressed=true] { background: var(--rose); color: var(--bubble-mine-ink); }
+.modeSwitch button:disabled { opacity: .55; cursor: not-allowed; }
+.modeSwitch button:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-ring); }
+.keptDot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rose);
+  box-shadow: 0 0 0 2px var(--bubble);
+}
+
+/* ── 네오 세계: 별빛 전략실. 기존 네오 화면(남색 #050713·금색 #f8e7b6)과 같은 계열.
+   🔴 표면·글자·강조색을 한 세트로 바꾼다(반쪽 테마 금지). 강조 버튼은 금색 위 남색 글자다.
+   `main.starlight` 로 .room(다른 모듈의 클래스 하나)보다 확실히 이긴다. ── */
+main.starlight {
+  color-scheme: dark;
+  --ink: #f4ead6;
+  --muted: #bdb6d0;
+  --rose: #e9c46a;
+  --rose-soft: #6a5aa0;
+  --gold: #b8913a;
+  --line: rgba(233, 196, 106, .22);
+  --bubble: #141834;
+  --bubble-mine-ink: #11132b;
+  --halo: rgba(233, 196, 106, .2);
+  --focus-ring: rgba(233, 196, 106, .5);
+  background:
+    radial-gradient(1.5px 1.5px at 14% 22%, rgba(255, 244, 214, .8), transparent),
+    radial-gradient(1px 1px at 38% 9%, rgba(255, 244, 214, .7), transparent),
+    radial-gradient(1.5px 1.5px at 67% 31%, rgba(255, 244, 214, .6), transparent),
+    radial-gradient(1px 1px at 86% 16%, rgba(255, 244, 214, .8), transparent),
+    radial-gradient(1px 1px at 23% 64%, rgba(255, 244, 214, .5), transparent),
+    radial-gradient(1.5px 1.5px at 78% 72%, rgba(255, 244, 214, .5), transparent),
+    radial-gradient(circle at 80% 0%, rgba(245, 201, 103, .16), transparent 24rem),
+    linear-gradient(180deg, #050713 0%, #0a0d22 100%);
+  color: var(--ink);
+}
+main.starlight > header { box-shadow: 0 1px 0 rgba(233, 196, 106, .12), 0 10px 28px rgba(0, 0, 0, .3); }
+.starlight .backButton:hover { border-color: var(--line); background: color-mix(in srgb, var(--rose) 14%, var(--bubble)); }
+.starlight .panel,
+.starlight .result > section { box-shadow: 0 12px 26px rgba(0, 0, 0, .28); }
+main.starlight [role=alert] { color: #ffb8a8; }
+
+/* 핵심 판단은 브리핑처럼 — 금색 선으로 맨 위 판단을 못 박는다. */
+.starlight .core { border-left: 3px solid var(--rose); }
+
+@media (max-width: 560px) {
+  .modeSwitch button { min-width: 44px; padding: 0 8px; font-size: .76rem; }
+}

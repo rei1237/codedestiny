@@ -1,7 +1,9 @@
 "use client";
+import type { ReactNode } from "react";
 import ReadingCharts from "@/app/yeongnyangi/_components/ReadingCharts";
 import type { ChapterBody } from "@/worker/yeongnyangi/fortune/book-contracts";
 import type { ChatConsultation } from "./consultation-api";
+import { RESULT_ORDER, SECTION_LABEL, type ResultSection } from "./consultation-world";
 import { PersonaAvatar } from "./PersonaAvatar";
 import styles from "./consultation.module.css";
 
@@ -28,14 +30,17 @@ function Body({ chapter }: { chapter: ChapterBody }) {
 }
 
 /**
- * 상담 결과. 순서는 핵심 답변 → 요약 카드 → 근거 → 흐름 → 시기 → 행동 → 마무리로 고정한다
- * (인수인계 2단계). 저장된 챕터만 그리며, 생성 중이면 남은 챕터 수를 함께 알린다.
+ * 상담 결과. 섹션 순서는 상담자 세계를 따른다(consultation-world.ts) — 연이는 핵심 답변 → 요약 카드 → 근거 →
+ * 흐름 → 시기 → 행동, 네오는 핵심 판단 → 지금 할 일 → 시기 → 판단 근거 → 판세 → 장별 브리핑. 마무리는 늘 끝이다.
+ * 저장된 챕터만 그리며, 생성 중이면 남은 챕터 수를 함께 알린다.
  */
 export default function ConsultationResult({ row, onNew }: { row: ChatConsultation; onNew: () => void }) {
   const chapters = row.chapters || [];
   const manifest = row.manifest || [];
   const first = chapters[0];
   if (!first) return null;
+  const label = SECTION_LABEL[row.persona] || SECTION_LABEL.yeoni;
+  const order = RESULT_ORDER[row.persona] || RESULT_ORDER.yeoni;
   const answers = chapters.flatMap((c) => c.questionAnswers || []);
   const core: Answer | undefined = answers[0];
   const questionText = (a: Answer) => row.consultation?.questions?.find((q) => q.id === a.questionId)?.text;
@@ -49,28 +54,30 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
   const writing = chapters.length < manifest.length;
   const available = new Set(manifest.slice(0, chapters.length).map((c) => c.id));
 
-  return (
-    <div className={styles.result} data-consultation-result>
-      <section className={styles.core} aria-labelledby="consultation-core">
-        <p className={styles.kicker} id="consultation-core">핵심 답변</p>
+  const sections: Record<ResultSection, () => ReactNode> = {
+    core: () => (
+      <section key="core" className={styles.core} aria-labelledby="consultation-core">
+        <p className={styles.kicker} id="consultation-core">{label.core}</p>
         {(core && questionText(core)) || row.consultation?.question
           ? <blockquote className={styles.question}>{(core && questionText(core)) || row.consultation?.question}</blockquote>
           : null}
         {core?.mode && MODE_NOTE[core.mode] && <p className={styles.modeNote} role="note">{MODE_NOTE[core.mode]}</p>}
         <p className={styles.coreAnswer}>{core?.answer || first.summary}</p>
       </section>
-
-      <section aria-labelledby="consultation-summary">
-        <h3 id="consultation-summary" className={styles.sectionTitle}>요약 카드</h3>
+    ),
+    summary: () => (
+      <section key="summary" aria-labelledby="consultation-summary">
+        <h3 id="consultation-summary" className={styles.sectionTitle}>{label.summary}</h3>
         <ol className={styles.summaryCards}>
           {chapters.map((chapter, i) => (
             <li key={manifest[i]?.id || i}><strong>{title(i)}</strong><p>{chapter.summary}</p></li>
           ))}
         </ol>
       </section>
-
-      <section aria-labelledby="consultation-evidence">
-        <h3 id="consultation-evidence" className={styles.sectionTitle}>근거</h3>
+    ),
+    evidence: () => (
+      <section key="evidence" aria-labelledby="consultation-evidence">
+        <h3 id="consultation-evidence" className={styles.sectionTitle}>{label.evidence}</h3>
         {core?.reason && <p>{core.reason}</p>}
         {!!first.highlights?.length && <ul className={styles.highlights}>{first.highlights.map((h, i) => <li key={i}>{h}</li>)}</ul>}
         {!!row.charts?.length && (
@@ -80,9 +87,10 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
           </details>
         )}
       </section>
-
-      <section aria-labelledby="consultation-flow">
-        <h3 id="consultation-flow" className={styles.sectionTitle}>흐름</h3>
+    ),
+    flow: () => (
+      <section key="flow" aria-labelledby="consultation-flow">
+        <h3 id="consultation-flow" className={styles.sectionTitle}>{label.flow}</h3>
         {answers.slice(1).map((a) => (
           <article key={a.questionId} className={styles.chapter}>
             <h4>{questionText(a) || "함께 물어본 것"}</h4>
@@ -98,33 +106,37 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
           </article>
         ))}
       </section>
+    ),
+    timing: () => (core?.timing || timing.length > 0) && (
+      <section key="timing" aria-labelledby="consultation-timing">
+        <h3 id="consultation-timing" className={styles.sectionTitle}>{label.timing}</h3>
+        {core?.timing && <p className={styles.callout}>{core.timing}</p>}
+        {timing.map(({ chapter, index }) => (
+          <article key={manifest[index]?.id || index} className={styles.chapter}>
+            <h4>{title(index)}</h4>
+            <Body chapter={chapter} />
+          </article>
+        ))}
+      </section>
+    ),
+    action: () => (core?.action || action.length > 0 || first.advice) && (
+      <section key="action" aria-labelledby="consultation-action">
+        <h3 id="consultation-action" className={styles.sectionTitle}>{label.action}</h3>
+        {(core?.action || first.advice) && <p className={styles.callout}>{core?.action || first.advice}</p>}
+        {action.map(({ chapter, index }) => (
+          <article key={manifest[index]?.id || index} className={styles.chapter}>
+            <h4>{title(index)}</h4>
+            <Body chapter={chapter} />
+            {chapter.advice && <p className={styles.callout}>{chapter.advice}</p>}
+          </article>
+        ))}
+      </section>
+    ),
+  };
 
-      {(core?.timing || timing.length > 0) && (
-        <section aria-labelledby="consultation-timing">
-          <h3 id="consultation-timing" className={styles.sectionTitle}>시기</h3>
-          {core?.timing && <p className={styles.callout}>{core.timing}</p>}
-          {timing.map(({ chapter, index }) => (
-            <article key={manifest[index]?.id || index} className={styles.chapter}>
-              <h4>{title(index)}</h4>
-              <Body chapter={chapter} />
-            </article>
-          ))}
-        </section>
-      )}
-
-      {(core?.action || action.length > 0 || first.advice) && (
-        <section aria-labelledby="consultation-action">
-          <h3 id="consultation-action" className={styles.sectionTitle}>행동</h3>
-          {(core?.action || first.advice) && <p className={styles.callout}>{core?.action || first.advice}</p>}
-          {action.map(({ chapter, index }) => (
-            <article key={manifest[index]?.id || index} className={styles.chapter}>
-              <h4>{title(index)}</h4>
-              <Body chapter={chapter} />
-              {chapter.advice && <p className={styles.callout}>{chapter.advice}</p>}
-            </article>
-          ))}
-        </section>
-      )}
+  return (
+    <div className={styles.result} data-consultation-result data-persona={row.persona}>
+      {order.map((key) => sections[key]())}
 
       {writing ? (
         <p className={styles.progress} role="status" aria-live="polite">
@@ -132,7 +144,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
         </p>
       ) : (
         <section className={styles.closing} aria-labelledby="consultation-closing">
-          <h3 id="consultation-closing" className={styles.sectionTitle}>마무리</h3>
+          <h3 id="consultation-closing" className={styles.sectionTitle}>{label.closing}</h3>
           <div className={styles.closingLine}>
             <PersonaAvatar persona={row.persona} mood="cheer" size="sm" decorative />
             {closing && <p>{closing}</p>}
