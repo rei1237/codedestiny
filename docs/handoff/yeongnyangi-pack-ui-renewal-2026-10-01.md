@@ -145,16 +145,15 @@ next: 후속 과제 1~7, '두 이용권 적용 표시', 별건 3개(d2d5f5ee8·9
   - 실결제와 실제 토큰 만료 401 재현은 하지 않았다.
 
 ### 새 별건 (보고만, 미해결)
-- **sitemap 원장 드리프트(main).** `verify:sitemap-drift`가 실패한다.
-  - 내용: 17개 경로(/saju·/ziwei·/dream·/love·/manse 등)의 signature만 다르고 lastmod는 같다.
+- ~~**sitemap 원장 드리프트(main).**~~ **해소됨.** 옆 세션 c26b737ab가 원장을 재생성했고, 그 뒤 `--check`는 OK(URL 1300개)다.
+  - 내용: 17개 경로(/saju·/ziwei·/dream·/love·/manse 등)의 signature만 달랐고 lastmod는 같았다.
   - 원인(실측): 원장을 마지막으로 재생성한 65c6be3a5 뒤에, 자미두수 머지 17afd3f3f가 `lib/ziwei-star-strength.js` 등 app/lib 12개 파일을 들여왔다. 그 머지는 원장을 재생성하지 않았다.
   - 이번 세션 파일 3개는 무관하다. 수정 전과 후 버전 모두 `--check`를 통과한다.
-  - 고치는 법: `npm run sitemap:generate` → `config/sitemap-lastmod.json`만 커밋한다. 자미두수 작업 축에서 처리한다.
 - 세트 label은 서버의 한국어 고정값이다(`service-pack-policy.js:15`). 그래서 en/ja 등에서도 "고등어 세트 5회"로 나온다. 보유 목록·상단 요약·세트 카드 세 곳이 모두 해당된다.
 - `lib/payment/portone.ts:272`도 `retryOn401:false`다. 동결 파일이라 손대지 않았다.
 
 ## 재개 정보
 
 ~~~text
-D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 2f138d795 이후 커밋을 확인하라. 별건 3개까지 끝났다. 남은 것은 '새 별건'(sitemap 원장 드리프트, 세트 label 로케일, portone.ts 401)뿐이다. 실결제는 새 1회 승인이 있을 때만 한다.
+D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고 git status와 2f138d795 이후 커밋을 확인하라. 별건 3개까지 끝났다. 남은 것은 '새 별건'(세트 label 로케일, portone.ts 401)뿐이다. 실결제는 새 1회 승인이 있을 때만 한다.
 ~~~
