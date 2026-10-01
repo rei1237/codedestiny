@@ -1,7 +1,7 @@
 "use client";
 import type { ReactNode } from "react";
 import ReadingCharts from "@/app/yeongnyangi/_components/ReadingCharts";
-import { ZiweiBlockHint } from "@/app/yeongnyangi/_components/ZiweiReadingChart";
+import BlockChartHints from "@/app/yeongnyangi/_components/BlockChartHints";
 import type { ReadingChart } from "@/worker/yeongnyangi/fortune/reading-presentation";
 import type { ChapterBody } from "@/worker/yeongnyangi/fortune/book-contracts";
 import type { ChatConsultation } from "./consultation-api";
@@ -15,14 +15,14 @@ const MODE_NOTE: Record<string, string> = {
   care: "마음이 많이 쓰이는 질문이라 조심스럽게 답했어요. 혼자 버거우면 주변이나 전문가의 도움도 함께 받아 주세요.",
 };
 
-function Body({ chapter, ziwei }: { chapter: ChapterBody; ziwei?: ReadingChart }) {
+function Body({ chapter, charts }: { chapter: ChapterBody; charts?: ReadingChart[] }) {
   return (
     <>
       {chapter.blocks?.length
         ? chapter.blocks.map((block, b) => (
             <div key={block.id || b} className={styles.block}>
               {block.title && <h4>{block.title}</h4>}
-              <ZiweiBlockHint palaces={block.palaces} chart={ziwei} />
+              <BlockChartHints block={block} charts={charts} />
               {block.paragraphs.map((text, i) => <p key={i}>{text}</p>)}
             </div>
           ))
@@ -40,7 +40,6 @@ function Body({ chapter, ziwei }: { chapter: ChapterBody; ziwei?: ReadingChart }
 export default function ConsultationResult({ row, onNew }: { row: ChatConsultation; onNew: () => void }) {
   const chapters = row.chapters || [];
   const manifest = row.manifest || [];
-  const ziweiChart = row.charts?.find((chart) => chart.domain === "ziwei");
   const first = chapters[0];
   if (!first) return null;
   const label = SECTION_LABEL[row.persona] || SECTION_LABEL.yeoni;
@@ -106,7 +105,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
         {flow.map(({ chapter, index }) => (
           <article key={manifest[index]?.id || index} className={styles.chapter}>
             <h4>{title(index)}</h4>
-            <Body chapter={chapter} ziwei={ziweiChart} />
+            <Body chapter={chapter} charts={row.charts} />
           </article>
         ))}
       </section>
@@ -118,7 +117,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
         {timing.map(({ chapter, index }) => (
           <article key={manifest[index]?.id || index} className={styles.chapter}>
             <h4>{title(index)}</h4>
-            <Body chapter={chapter} ziwei={ziweiChart} />
+            <Body chapter={chapter} charts={row.charts} />
           </article>
         ))}
       </section>
@@ -130,7 +129,7 @@ export default function ConsultationResult({ row, onNew }: { row: ChatConsultati
         {action.map(({ chapter, index }) => (
           <article key={manifest[index]?.id || index} className={styles.chapter}>
             <h4>{title(index)}</h4>
-            <Body chapter={chapter} ziwei={ziweiChart} />
+            <Body chapter={chapter} charts={row.charts} />
             {chapter.advice && <p className={styles.callout}>{chapter.advice}</p>}
           </article>
         ))}

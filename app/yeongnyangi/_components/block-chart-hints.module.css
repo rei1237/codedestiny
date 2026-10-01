@@ -1,0 +1,25 @@
+/* 소절 옆 명반 강조(BlockChartHints). 자미 ZiweiBlockHint(ziwei-reading-chart.module.css .hint)와 같은 모양·토큰을 쓴다 —
+   영냥이 --yn-*, 상담 --ink·--muted·--rose·--line 을 순서대로 빌린다.
+   강조는 색과 함께 크기·테두리로도 구분하고, 이름·값은 figcaption 글자로 늘 함께 적는다. 글자는 12px 아래로 내리지 않는다.
+   굵기만으로 위계를 만들지 않는다 — 상담 본문 서체는 font-synthesis:none 아래서 굵게 그려지지 않는다. 이름은 진한 색으로 구분한다. */
+.hint{--bh-ink:var(--ink,currentColor);--bh-muted:var(--muted,currentColor);--bh-accent:var(--yn-gold,var(--rose,currentColor));--bh-line:var(--yn-line,var(--line,color-mix(in srgb,currentColor 30%,transparent)));
+ display:flex;align-items:center;gap:10px;margin:.25rem 0 .75rem;padding:0}
+.hint figcaption{min-width:0;font-size:max(12px,.85rem);line-height:1.5;color:var(--bh-muted);word-break:keep-all;overflow-wrap:anywhere}
+.hint figcaption b{color:var(--bh-ink);font-weight:700}
+.hint figcaption b span{display:inline-block;max-width:100%}
+.pillars{display:grid;grid-template-columns:repeat(4,20px);gap:3px;flex:none}
+.pillars i{display:block;padding:2px 0;font-style:normal;font-size:12px;line-height:1.25;text-align:center;white-space:pre-line;color:var(--bh-muted);border:1px solid var(--bh-line);border-radius:3px}
+.pillars i[data-on]{color:var(--bh-ink);border-color:var(--bh-accent);background:color-mix(in srgb,var(--bh-accent) 22%,transparent);box-shadow:inset 0 0 0 1px var(--bh-accent)}
+.signs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;width:60px;flex:none}
+.signs i{display:block;height:11px;border:1px solid var(--bh-line);border-radius:2px}
+.signs i[data-lagna]{background:linear-gradient(to top right,transparent calc(50% - .75px),var(--bh-muted) 50%,transparent calc(50% + .75px))}
+.signs i[data-on]{background:var(--bh-accent);border-color:var(--bh-accent)}
+/* 강조된 라그나 칸은 통째로 칠하지 않는다 — 빗금이 묻혀 행성 칸과 구분되지 않는다. 테두리 두 겹 + 강조색 빗금으로 그린다. */
+.signs i[data-lagna][data-on]{background:linear-gradient(to top right,transparent calc(50% - 1.5px),var(--bh-accent) 50%,transparent calc(50% + 1.5px)),color-mix(in srgb,var(--bh-accent) 22%,transparent);box-shadow:inset 0 0 0 1px var(--bh-accent)}
+.wheel{width:60px;height:60px;flex:none;overflow:visible}
+.wheel .rim{fill:none;stroke:var(--bh-line);stroke-width:2}
+.wheel .tick{fill:var(--bh-line)}
+.wheel .asc{stroke:var(--bh-muted);stroke-width:2;stroke-dasharray:4 3}
+.wheel .asc[data-on]{stroke:var(--bh-accent);stroke-width:5;stroke-dasharray:none}
+.wheel .dot{fill:var(--bh-muted)}
+.wheel .dot[data-on]{fill:var(--bh-accent);stroke:var(--bh-ink);stroke-width:2}
