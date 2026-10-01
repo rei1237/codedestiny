@@ -144,7 +144,7 @@ export async function handleYeongnyangiRoutes(request, env) {
       const readOptions={retries:1,retryOnOperationTimeout:true,retryAdmissionOnOverload:true};
       const cutoff=new Date(Date.now()-UNPAID_HIDE_AFTER_MS);
       // keep=null 이면 숨기지 않는다(결제 주문 조회 실패 — 결제한 상담이 사라져 보이는 쪽보다 취소 건이 보이는 쪽이 안전하다).
-      const listPage=keep=>withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),...before,...(keep?{$nor:[staleUnpaid(cutoff,keep)]}:{})})
+      const listPage=keep=>withMongoRetry(env,()=>YeongnyangiRequest.find({userId:ownerId(auth.userId),persona:null,...before,...(keep?{$nor:[staleUnpaid(cutoff,keep)]}:{})})
         .select('_id productId state paymentId accessMethod passEvidenceId createdAt completedAt snapshot.product snapshot.manifest.id snapshot.locale snapshot.analysis.consultation.consultationKind snapshot.analysis.consultation.kindLabel snapshot.analysis.consultation.relationship.participants completedChapters errorCode manualRecoveryGrants systemRecoveryGrants hold').sort({createdAt:-1,_id:-1}).limit(31).maxTimeMS(4000).lean(),readOptions);
       const [firstRows,unattached]=await Promise.all([listPage([]),withMongoRetry(env,()=>Payment.find({userId:ownerId(auth.userId),requestId:/^yn-[a-f0-9]{64}$/,
         paymentType:'digital_content',status:{$in:['paid','success','fulfilled']},'metadata.consumedBy':{$in:[null,'']}}).select('requestId').limit(50).maxTimeMS(4000).lean(),readOptions).catch(()=>null)]);

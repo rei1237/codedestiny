@@ -106,7 +106,7 @@ test('list uses owner filter, bounded projection and stable pagination',async()=
   lean.mockResolvedValue(Array.from({length:31},()=>({_id:id,snapshot:{product:{id:'saju_mackerel'}},createdAt:stamp,state:'PAID'})));
   const response=await handleYeongnyangiRoutes(request(`requests?cursor=${stamp}_${id}`),env);
   const body=await response.json();expect(body.fortunes).toHaveLength(30);expect(body.nextCursor).toBe(`${stamp}_${id}`);
-  expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,$or:expect.any(Array)}));
+  expect(find).toHaveBeenCalledWith(expect.objectContaining({userId,persona:null,$or:expect.any(Array)}));
   expect(limit).toHaveBeenCalledWith(31);expect(select.mock.calls[0][0].split(' ')).not.toEqual(expect.arrayContaining(['chapters','snapshot.analysis']));
   expect(maxTimeMS).toHaveBeenCalledWith(4000);expect(response.headers.get('Server-Timing')).toMatch(/auth;dur=.*db;dur=.*query;dur=/);
 });
