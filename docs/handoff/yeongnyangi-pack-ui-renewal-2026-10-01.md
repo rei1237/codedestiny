@@ -2,7 +2,7 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 후속 과제(아래)는 사용자가 고를 때만 착수한다. 이 작업 자체는 완료.
+next: 후속 과제 1·2·3·4·6·7 완료. #5(간편결제, RED)만 남았고 사용자 결정 뒤에만 착수한다.
 ---
 
 # 영냥이 전용 이용권 리뉴얼 (2026-10-01)
@@ -42,7 +42,7 @@ next: 후속 과제(아래)는 사용자가 고를 때만 착수한다. 이 작�
   - 통과: 구조 일치, 오버레이, 줄바꿈, 자가·선물 모달, 가로 넘침 없음.
   - 실결제는 하지 않았다.
 
-## 후속 과제 (보고만, 미착수)
+## 후속 과제 (#5만 미착수)
 
 1. ~~꽃돼지 결제 모달이 하단 탭바(z 960)에 가려질 수 있다.~~ **완료(2026-10-01)**
    - 재현: 360×640에서 모달 맨 아래 "닫기"를 누르면 탭바의 "모든 운세" 링크가 눌렸다.
@@ -51,14 +51,28 @@ next: 후속 과제(아래)는 사용자가 고를 때만 착수한다. 이 작�
    - 원인: 정책 칩(`formatSubscriptionPlanPolicy`)과 기능 칩 `under*` 키가 같은 문구를 냈다. Standard·VVIP도 같았다.
    - 수정: 카드 기능 칩에서 `under*`를 뺐다. 960 폭 DOM 실측에서 카드마다 해당 칩이 1개다.
    - 별건(미해결): `verify:sitemap-drift`가 이 수정 이전부터 실패한다. /dream·/love·/manse 등 16개 경로의 서명이 바뀌었다. 이 수정을 빼고 돌려도 실패한다.
-3. 취소·실패 복귀가 다른 탭에서 일어나면 sessionStorage 스냅샷이 없어 구매 버튼이 잠길 수 있다(추정, 미재현).
-4. 배포 시점에 남은 `-v1` 미완료 주문은 "이어가기"가 막힌다. "결제 확인"으로는 처리된다.
-5. 영냥이 세트 결제수단은 카드만 된다. 간편결제를 붙이려면 결제 실행을 바꿔야 한다(RED).
-6. 해외 원화 환산 안내(`useOverseasCharge`)가 세트 카드에 없다.
-7. `SubscriptionSection`(PointsClient)이 `{false&&}` 안에 있어 죽은 코드다.
+3. ~~취소·실패 복귀가 다른 탭에서 일어나면 구매 버튼이 잠긴다.~~ **완료(2026-10-01, 85b693e8b)**
+   - 재현: 수정 전 코드를 jsdom에 실제 `ServicePackShop`으로 렌더했다. 다른 탭 복귀(스냅샷 없음) 뒤 "결제 확인"이 계속 NOT_PAID로 실패해 버튼이 잠긴 채 남았다.
+   - 수정: 다른 탭 취소 복귀는 서버 확인을 1회 한다. 확인 결과가 FAILED/CANCELLED이거나, 이어갈 스냅샷이 없는 NOT_PAID이면 로컬 대기 주문을 지우고 `notPaid` 문구를 띄운다. 서버는 새 키로 새 주문을 만든다(`service-pack:<key>`).
+   - 유지: 같은 탭 취소에 이어갈 스냅샷이 있으면 이어가기 패널과 잠금을 그대로 둔다. 서버에 닿지 못하면(DATABASE_UNAVAILABLE 등) 잠금을 유지한다.
+4. ~~`-v1` 미완료 주문은 "이어가기"가 막히고 버튼이 잠긴다.~~ **완료(같은 커밋)**
+   - 이어가기는 여전히 막혀 있다. 카탈로그에 없는 플랜이라 의도한 동작이다. 대신 "결제 확인"에서 NOT_PAID가 오면 잠금이 풀려 새 세트를 고를 수 있다.
+   - 검증: 임시 jsdom 시나리오 6개가 모두 통과했다(#3·#4 각각, 서버 불통, 같은 탭 유지 2개, CANCELLED). `service-pack-pending-resume` 22/22.
+5. 영냥이 세트 결제수단은 카드만 된다. 간편결제를 붙이려면 결제 실행을 바꿔야 한다(RED, **미착수**).
+   - 현재 구조: 모달에 `data-pack-pay-method="card"` 타일 하나만 있다(ServicePacks.tsx). 서버(`worker/payments/service-packs.js`)는 결제수단을 구분하지 않는다.
+   - 결정 필요: 붙일 간편결제 종류(카카오·네이버·토스 등)와, 꽃돼지 결제창의 수단 선택을 재사용할지 여부. 실결제 검증은 승인 대상이다.
+6. ~~해외 원화 환산 안내가 세트 카드에 없다.~~ **완료(2026-10-01, 4b36b99b5)**
+   - PointsPage가 기존 `useOverseasCharge()` 결과를 `ServicePackShop`의 `overseasCharge` prop으로 넘긴다. 카드 가격 아래에 "약 … 상당"을, 목록 끝에 원화 승인 고지를 꽃돼지 카드와 같은 마크업으로 표시한다.
+   - 문구 정본은 checkout-entry 그대로이고, `verify:overseas-payment-notice`의 호출 파일 목록도 바뀌지 않았다. 한국어 화면에서는 null이라 기존과 같다.
+7. ~~`SubscriptionSection`이 죽은 코드다.~~ **완료(2026-10-01, eab383f36)**
+   - 컴포넌트, 렌더 위치, 그것만 쓰던 문구 키 6개(`purchasePass` 등, 타입·ko·en)를 지웠다. 삭제 전에 deletion-auditor로 3면 검색을 했다.
+   - `verify-billing-pass-policy.mjs`의 "PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서…" 단언은 지우고 주석으로 대체했다. 그 문장은 죽은 본문에만 있어서 원래 화면을 지키지 못하고 있었다.
+   - 별건(미해결):
+     - 살아 있는 `/points`에는 위 PDF·일반 유료 서비스 조건 문장이 없다. 필요한 정책 고지인지는 결제 문서 담당의 판단이 필요하다.
+     - PointsClient의 `{false && (...)}` 죽은 블록이 아직 남아 있다(②-2 구분선 등). `points-shop-request-budget.static.test.js`의 "월정석으로는 이용권을 구매할 수 없습니다."와 billing-pass-policy의 `<SubscriptionStatusCard subscription={subscription} />` 단언은 이제 그 죽은 블록 안에서만 맞는다. 그 블록을 지우면 두 단언도 같이 손봐야 한다.
 
 ## 재개 정보
 
 ~~~text
-D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고, git status와 d69a959bd 이후 커밋을 확인한 뒤 사용자가 고른 후속 과제 하나만 진행하라.
+D:\Development\code-destiny에서 docs\handoff\yeongnyangi-pack-ui-renewal-2026-10-01.md를 읽고, git status와 e46626df3 이후 커밋을 확인한 뒤, 남은 후속 과제 #5(간편결제, RED)는 사용자가 결제수단과 검증 승인을 정한 경우에만 진행하라.
 ~~~
