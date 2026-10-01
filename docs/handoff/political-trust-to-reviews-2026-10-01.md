@@ -2,12 +2,12 @@
 status: done
 implementationStatus: shipped-to-main
 updated: 2026-10-01
-next: 후속 과제 1(Consultation 결제 전 후기 배치, 승인 대기), 2(유명인 데이터 속 정치인), 3(Play 콘솔 수동 반영)
+next: 후속 과제 2(유명인 데이터 속 정치인), 3(Play 콘솔 수동 반영)
 ---
 
 # 정치 적중 주장 제거 → 실제 1:1 상담 후기·방법론 (2026-10-01)
 
-다음 세션 첫 문장: "docs/handoff/political-trust-to-reviews-2026-10-01.md 를 읽고 후속 과제 1(Consultation 결제 직전 후기 노출 설계안) 승인 여부부터 확인해줘."
+다음 세션 첫 문장: "docs/handoff/political-trust-to-reviews-2026-10-01.md 를 읽고 후속 과제 2(유명인 데이터 속 정치인)의 범위와 가드 허용목록 숫자부터 잡아줘."
 
 ## 결과
 
@@ -25,6 +25,7 @@ next: 후속 과제 1(Consultation 결제 전 후기 배치, 승인 대기), 2(�
 | 9854558f2 | sitemap 원장 재생성 — 서명 488개(운세 480 = 셸 사전을 읽음, index.html 셸 5, about, ggulggul, 천원 페이지) |
 | 9123b4b9f | `consultation-locale-copy.ts` 에 키 삭제 뒤 남은 공백 줄 제거(`git diff --check`) |
 | e9fc9468c | 정적 셸 화면 교정: 카드 머리 금색 대비, 푸터 날짜 묶음, `.cdh p{margin:0}` 에 눌린 문단 간격 복구 |
+| f10745a25 | 후속 과제 1: Consultation 가이드 패널에 대표 후기 2건 접힘 노출(ko 전용) + 사람/AI 구분 고지. `CustomerReviews` 에 `variant="inline"` 추가 |
 
 - 후기 정본: `lib/brand/customer-reviews.mjs` 12건(대표 ★ 024·047·050). 블로그 neosaju/224032671570 캡처를 3회 대조해 원문 그대로 옮겼고 원문 sha256 을 테스트가 고정한다. 게시 동의는 블로그 게시 때 받음(사용자 확인).
   - `visibleReviews()` 는 `consent===true && visible===true` 이고 필드가 온전한 항목만 낸다. 0건이면 화면 섹션 전체가 사라진다.
@@ -44,7 +45,11 @@ next: 후속 과제 1(Consultation 결제 전 후기 배치, 승인 대기), 2(�
 
 ## 후속 과제
 
-1. **Consultation(결제 직전) 화면 후기 노출** — 설계만 했다. 대표 후기 2건 접힘 노출안. 결제 흐름에 붙어 있어 승인 후 별도 작업.
+1. ~~**Consultation(결제 직전) 화면 후기 노출**~~ — **완료(f10745a25, 2026-10-01 승인).**
+   - 자리: `aside.consultationGuide` 의 `guideNote` 바로 아래(91f6b7e0f 가 대통령 블록을 지운 슬롯). 결제 버튼·`prepare()`·이용권 판정은 무변경, `config/payment-freeze.json` 대상 파일 없음.
+   - `<details>` 기본 접힘, `siteLocale==='ko'` 이고 `visibleReviews()` 가 1건 이상일 때만. 고지 "네오가 사람 1:1 상담에서 받은 후기예요. 여기서 고르는 상담은 AI가 작성해요." 가 카드보다 먼저 나온다. 금액·블로그 링크 없음.
+   - `CustomerReviews` `variant="inline"`: 제목·"더 보기" 없음, 1열. 기본 `section` 은 그대로라 FounderTrust 무변경.
+   - 설계안 문구 "계산 엔진과 AI 해설" 대신 "AI가 작성해요" — 타로 상품에도 맞게.
 2. **유명인 데이터 속 정치인(그룹 B)** — `app/saju/destiny-bias/lib/celebrityProfiles.ts`, `i18n/authored/shellRuntime-05/12/15/17/18.json`(가드 허용목록, 개수 고정), `js/saju-engine.js`, `lib/famous-saju/celebrity-data.ts`, `js/inline/saju-core-bootstrap.js`, `public/famous/`. 정리하면 가드 허용목록 숫자도 같이 내린다.
 3. **Play 콘솔** — `store-assets/google-play/yeongnyangi-20260930/{short,full}-description-ko.txt` 를 콘솔에 수동 반영.
 4. **블로그 원문 글** 224032671570 의 "세계에서 유일/100%/대통령" 문구 수정 권장(사용자 판단). about 의 '원문 모음' 링크가 이 글을 가리킨다.
@@ -58,6 +63,8 @@ next: 후속 과제 1(Consultation 결제 전 후기 배치, 승인 대기), 2(�
 - `i18n:check` 체인이 없는 스크립트 `verify:i18n` 을 참조한다.
 - `scripts/build-purchase-journey-review.mjs --check` 가 main 에서 이미 drift(appRoutes 243→268 등) — 이번 변경 무관.
 - KASI prefetch 미사용(엔진 동결 대상이라 손대지 않음).
+- 후기 말풍선의 "…"(U+2026) 이 1280 에서 한 줄에 홀로 남는다. 공유 카드(`CustomerReviews`) 동작이라 FounderTrust 에도 있고, 원문 해시가 걸린 문자열이라 손대지 않았다. 고치려면 CSS(`text-wrap: pretty` 등)로.
+- (추정, 코드 근거) 비ko 로케일에서 Consultation 후기 블록이 첫 SSR 에 ko 로 그려졌다가 `?lang=` 판독 뒤 사라질 수 있다. `useReadingLanguage` 가 ko 로 시작하는 기존 ko 전용 요소와 같은 동작이다. 로드 완료 뒤 `?lang=en` 블록 0건은 실측했다.
 
 ## 검증 (실측)
 
@@ -72,3 +79,11 @@ next: 후속 과제 1(Consultation 결제 전 후기 배치, 승인 대기), 2(�
 - 화면(visual-checker, 요소 캡처 360·640·960·1280, 고정 요소 숨김): 영냥이 홈·천원 페이지 PASS. 꿀꿀 정적 셸은 1차 판정에서 나온 3건을 고쳤다 — 카드 머리 금색 대비 4.29→약 5.8:1(`color-mix` 로 잉크 25% 섞음), 푸터 "2025.03 블로그 게시" 줄바꿈 고아(`nowrap` 묶음), en 에서 줄 끝 "·" 매달림. 2차 판정에서 대비 5.81:1·푸터 PASS, 그리드 1/2/3열 PASS, 정치어 0. 마지막 카드↔고지 간격 4px 이 남아 원인을 계측했다 — `.cdh p{margin:0}`(0,1,1)이 `.cdh-kakao-fine` 등(0,1,0)을 이겨 문단 margin 이 전부 0 이었다. `.cdh-trust-offer` 접두로 올린 뒤 DOM 계측으로 lead 아래·fine 위·note 위 12px 적용 확인(360·640).
 - 남겨 둔 것: en 640 에서 제목이 "one-" / "on-one" 으로 하이픈 뒤 줄바꿈 — 영어 조판상 정상이고, 고치려면 12개 로케일 사전과 원장 488 서명을 다시 건드려야 해서 두었다.
 - 미실행: `verify-conversion-sharing`, `verify-premium-detail`, `verify-premium-finder`(서버 필요) — 문법 검사만.
+
+### 후속 과제 1 (f10745a25)
+
+- `node --test __tests__/ui/customer-reviews.test.mjs`: 7/7. 변이 2회(ko 가드 제거 / inline 에 "더 보기" 복원) 모두 실패 확인.
+- `npm run check:fast`: exit 0 — critical 등급 33단계(결제 검증기 포함), test:node 2192, jest 328 스위트/4915. 하드코딩 한국어 래칫 OK(기준선 유지).
+- `node scripts/generate-sitemap.mjs --check`: OK(URL 1300). 원장은 천원 페이지 서명 1개만 바뀜(lastmod 불변).
+- 화면(mock dev, `/yeongnyangi/fortune/?domain=saju`): 360·768·1280 카드 1열·가로 넘침 없음, summary 44px. 1280 에서 펼쳐도 결제 버튼 y 불변. `?lang=en` 블록 0건. 대비 summary 10.46:1·말풍선 16.43:1·고지 10.25:1. visual-checker 1차에서 마커 사라짐(summary `display:flex`)·단어 중간 줄바꿈 2건을 고쳤고 2차 PASS.
+- 미실행: 스테이징 확인(결제 로직 무변경이라 생략), 실제 결제 진행(mock 은 프로필이 없어 버튼 비활성).
