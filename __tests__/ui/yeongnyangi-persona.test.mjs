@@ -15,7 +15,7 @@ const replacements={
   'worker/yeongnyangi/queue.js':`export const enqueueConsultation=async()=>{};`,
   'worker/yeongnyangi/providers/code-destiny':`export class CodeDestinyProvider{async generate(){throw new Error('UNEXPECTED_PROVIDER_CALL')}}`,
 };
-const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct} from './worker/yeongnyangi/payments/catalog'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
+const bundle=await build({stdin:{contents:"export {prepareFortune} from './worker/yeongnyangi/service'; export {products,getChatProduct,resolveStoredProduct,getProduct,chatTarotKinds} from './worker/yeongnyangi/payments/catalog'; export {tarotConsultations} from './worker/yeongnyangi/fortune/tarot/consultation-contract'; export {TAROT_KINDS} from './app/fortune-chat/consultation-world'; export {StructuredChapterProvider,personaPrompt} from './worker/yeongnyangi/providers/chapter'; export {persona as yeongnyangiPersona} from './worker/yeongnyangi/prompts/persona/yeongnyangi'; export {persona as yeoniPersona} from './worker/yeongnyangi/prompts/persona/yeoni'; export {persona as neoPersona} from './worker/yeongnyangi/prompts/persona/neo';",resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'cjs',write:false,loader:{'.wasm':'binary'},plugins:[{name:'mock-boundaries',setup(b){b.onLoad({filter:/worker[\\/](?:lib|yeongnyangi)[\\/]/},args=>{const key=Object.keys(replacements).find(k=>args.path.replaceAll('\\','/').endsWith(k)||args.path.replaceAll('\\','/').endsWith(k+'.ts'));return key?{contents:replacements[key],loader:'ts'}:undefined;});}}]});
 const loaded=new Module(path.resolve('persona-tests.cjs'));loaded.paths=Module._nodeModulePaths(process.cwd());loaded._compile(bundle.outputFiles[0].text,loaded.id);
 const m=loaded.exports;
 const env={GEMINIF_API_KEY:'mock-never-sent',LLM_DRY_RUN:'false'};
@@ -82,13 +82,43 @@ test('yeoni and neo prepare the same birth data, facts, outline and evidence as 
 });
 
 test('chat products keep their own price and stay out of the Yeongnyangi catalog',()=>{
- for(const domain of ['saju','ziwei','sukuyo','vedic','astrology']){
+ for(const domain of ['saju','ziwei','sukuyo','vedic','astrology','tarot']){
   const chat=m.getChatProduct(domain),fish=m.getProduct(domain+'_mackerel');
   assert.equal(chat.priceKRW,3000);assert.equal(chat.cdFeatureKey,'fortune-chat-consultation');
   assert.equal(chat.chapterCount,fish.chapterCount);assert.equal(chat.manifestVersion,fish.manifestVersion);
   assert.deepEqual(m.resolveStoredProduct('chat_'+domain),chat);
  }
- assert.throws(()=>m.getChatProduct('tarot'),e=>e.code==='PRODUCT_NOT_FOUND');
- assert.throws(()=>m.resolveStoredProduct('chat_tarot'),e=>e.code==='PRODUCT_NOT_FOUND');
+ assert.throws(()=>m.getChatProduct('fusion'),e=>e.code==='PRODUCT_NOT_FOUND');
+ assert.throws(()=>m.resolveStoredProduct('chat_fusion_all'),e=>e.code==='PRODUCT_NOT_FOUND');
  assert.ok(!m.products.some(p=>p.id.startsWith('chat_')||p.cdFeatureKey==='fortune-chat-consultation'));
+});
+
+test('chat tarot reads a v2 question spread in the persona voice without a birth profile',async()=>{
+ const consultationAttemptId=crypto.randomUUID();
+ const ask={timezone:'Asia/Seoul',domain:'tarot',consultationKind:'career',question:'지금 회사를 옮겨도 될까요?',consultationAttemptId};
+ const [yeoni,neo]=await Promise.all(['yeoni','neo'].map(persona=>m.prepareFortune(env,'tarot-owner',ask,{persona})));
+ assert.notEqual(yeoni._id,neo._id);
+ for(const row of [yeoni,neo]){
+  assert.equal(row.productId,'chat_tarot');assert.equal(row.featureKey,'fortune-chat-consultation');assert.equal(row.amountKRW,3000);
+  assert.equal(row.profileId,'tarot-question');
+  assert.deepEqual(row.snapshot.tarotConsultation,{version:'yeongnyangi-tarot-consultation-v2',kind:'career'});
+  assert.equal(row.snapshot.manifest.length,5);
+  const saved=row.snapshot.analysis.contexts.tarot.facts.find(f=>f.label==='tarotConsultation').value;
+  assert.match(saved.rules,/상담자의 말투로/);
+  assert.doesNotMatch(JSON.stringify(row.snapshot.manifest)+saved.rules,/영냥/);
+  const sent=await capture({locale:'ko',chapter:row.snapshot.manifest[1],analysis:row.snapshot.analysis,previous:[],persona:row.persona});
+  assert.doesNotMatch(JSON.stringify(sent),/영냥/);
+ }
+ // A retry of the same form reads the stored intent instead of drawing again.
+ assert.equal((await m.prepareFortune(env,'tarot-owner',ask,{persona:'neo'}))._id,neo._id);
+ for(const consultationKind of [undefined,'ask','compatibility'])
+  await assert.rejects(m.prepareFortune(env,'tarot-owner',{...ask,consultationKind},{persona:'yeoni'}),e=>e.code==='INVALID_CONSULTATION_KIND',String(consultationKind));
+ // Yeongnyangi tarot keeps its own voice.
+ const shop=await m.prepareFortune(env,'tarot-owner',{timezone:'Asia/Seoul',productId:'tarot_mackerel',consultationKind:'career',question:'지금 회사를 옮겨도 될까요?',consultationAttemptId:crypto.randomUUID()});
+ assert.match(JSON.stringify(shop.snapshot.manifest),/영냥이 상담 문체/);
+});
+
+test('the room offers exactly the chat tarot kinds with the server labels',()=>{
+ assert.deepEqual(m.TAROT_KINDS.map(k=>k.id),[...m.chatTarotKinds]);
+ for(const k of m.TAROT_KINDS)assert.equal(k.label,m.tarotConsultations[k.id].label);
 });

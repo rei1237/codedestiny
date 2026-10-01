@@ -1,4 +1,4 @@
-import type { ChatConsultation, ChatDomain, ChatPersona } from "./consultation-api";
+import type { ChatConsultation, ChatDomain, ChatPersona, ChatTarotKind } from "./consultation-api";
 import type { PersonaMood } from "./personaSprite";
 
 /**
@@ -37,11 +37,26 @@ export function refreshRow(rows: PersonaRows, row: ChatConsultation): PersonaRow
   return rows[row.persona]?.id === row.id ? { ...rows, [row.persona]: row } : rows;
 }
 
+/**
+ * 타로 상담이 읽는 고민의 종류(6C). 이름과 질문 안내는 영냥이 타로 v2 계약(consultation-contract.ts)과 같은 말이고,
+ * 서버가 받는 종류(catalog.chatTarotKinds)와 순서까지 같다. 두 사람 궁합은 이름과 관계 계약이 필요해 영냥이에만 둔다.
+ */
+export const TAROT_KINDS: { id: ChatTarotKind; label: string; prompt: string }[] = [
+  { id: "choice", label: "지금의 선택", prompt: "지금 어떤 선택을 고민하고 있나요?" },
+  { id: "love", label: "사랑과 관계", prompt: "두 사람 사이에서 이해하고 싶은 장면을 알려 주세요." },
+  { id: "feelings", label: "그 사람 마음", prompt: "상대의 어떤 말이나 행동이 마음에 남았나요?" },
+  { id: "contact", label: "연락의 흐름", prompt: "마지막 소통과 지금 고민하는 행동을 알려 주세요." },
+  { id: "reunion", label: "재회와 관계 회복", prompt: "관계가 멀어진 이유와 다시 확인하고 싶은 점은 무엇인가요?" },
+  { id: "career", label: "일과 진로", prompt: "지금의 일과 생각 중인 변화는 무엇인가요?" },
+  { id: "money", label: "돈과 생활", prompt: "수입·지출·생활에서 바꾸고 싶은 습관을 알려 주세요." },
+  { id: "healing", label: "마음 회복", prompt: "요즘 마음을 지치게 하는 일과 필요한 도움은 무엇인가요?" },
+];
+
 export type Art = { src: string; alt: string };
 
 /**
  * 운세 축마다 상담자가 앉은 자리(4단계). 연이는 운세 입구 그림(consultation/*-yeoni-entry)을 그대로 쓰고,
- * 네오는 같은 다섯 장면을 별빛 전략실로 다시 그렸다(fortune-chat/neo/*).
+ * 네오는 같은 다섯 장면을 별빛 전략실로 다시 그렸다(fortune-chat/neo/*). 타로(6C)는 두 사람 모두 새로 그렸다.
  */
 export const DOMAIN_ART: Record<ChatPersona, Record<ChatDomain, Art>> = {
   yeoni: {
@@ -50,6 +65,7 @@ export const DOMAIN_ART: Record<ChatPersona, Record<ChatDomain, Art>> = {
     sukuyo: { src: "/images/consultation/sukuyo-yeoni-entry-v1-640.webp", alt: "달빛 정원에서 스물일곱 별의 흐름을 안내하는 연이" },
     vedic: { src: "/images/consultation/vedic-yeoni-entry-v1-640.webp", alt: "천문 관측 도구와 달의 지도를 살펴보는 연이" },
     astrology: { src: "/images/consultation/astrology-yeoni-entry-v1-640.webp", alt: "아스트롤라베와 출생 천궁도를 살펴보는 연이" },
+    tarot: { src: "/images/fortune-chat/yeoni/tarot-640.webp", alt: "촛불 곁에서 엎어 둔 타로 카드 석 장에 앞발을 얹은 연이" },
   },
   neo: {
     saju: { src: "/images/fortune-chat/neo/saju-640.webp", alt: "다섯 기운의 판 위에서 말을 옮기는 네오" },
@@ -57,6 +73,7 @@ export const DOMAIN_ART: Record<ChatPersona, Record<ChatDomain, Art>> = {
     sukuyo: { src: "/images/fortune-chat/neo/sukuyo-640.webp", alt: "달빛 아래 스물일곱 별의 두루마리를 읽는 네오" },
     vedic: { src: "/images/fortune-chat/neo/vedic-640.webp", alt: "관측소에서 별 지도를 재는 네오" },
     astrology: { src: "/images/fortune-chat/neo/astrology-640.webp", alt: "천궁도와 망원경 앞에서 판을 짜는 네오" },
+    tarot: { src: "/images/fortune-chat/neo/tarot-640.webp", alt: "작전 지도처럼 펼친 타로 카드를 한 장 들어 살피는 네오" },
   },
 };
 

@@ -18,7 +18,9 @@ export function getProduct(id:unknown):Product{const p=products.find(p=>p.id===i
 // Fortune-chat (Yeoni/Neo) consultations reuse the mackerel reading depth at their own per-use price.
 // They are kept out of `products`, so the Yeongnyangi shop, packs, moonlight stones and Family never offer them.
 export {CHAT_FEATURE_KEY};
-export const chatDomains:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology'];
+export const chatDomains:DomainId[]=['saju','ziwei','sukuyo','vedic','astrology','tarot'];
+// Tarot chat reads a question only. Compatibility needs both names and the relationship contract, so it stays in Yeongnyangi.
+export const chatTarotKinds=['choice','love','feelings','contact','reunion','career','money','healing'] as const;
 export function getChatProduct(domain:unknown):Product{
  if(!chatDomains.includes(domain as DomainId))throw new FortuneError('PRODUCT_NOT_FOUND',404);
  const resolved=getBillingFeaturePricing({featureKey:CHAT_FEATURE_KEY});

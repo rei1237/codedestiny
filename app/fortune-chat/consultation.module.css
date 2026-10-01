@@ -166,6 +166,11 @@
 .highlights { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
 .charts summary { color: var(--rose); font-size: .84rem; font-weight: 900; cursor: pointer; }
 .charts[open] summary { margin-bottom: 10px; }
+/* 영냥이 차트 스타일은 `.book` 아래에서만 버튼을 세로로 쌓는다. 상담실에는 `.book` 이 없어 자리와 카드 이름이 붙어 보였다(6C 타로). */
+.charts section header h3 { color: var(--rose); }
+.charts [role="group"] button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; text-align: center; overflow-wrap: anywhere; }
+.charts [role="group"] button span { display: block; font-size: .8rem; color: var(--muted); }
+.charts [role="group"] picture { display: block; width: 100%; }
 
 .chapter { display: grid; gap: 8px; border-top: 1px solid var(--line); padding-top: 10px; }
 .chapter:first-of-type { border-top: 0; padding-top: 0; }

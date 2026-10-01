@@ -8,8 +8,9 @@ import {resolveConsultationKind,consultationManifest} from './fortune/consultati
 import {isRelationshipReading,RELATIONSHIP_VERSION,relationshipAliases,validateRelationshipQuestion} from './fortune/relationship-contract';
 import {extendRelationshipContext} from './fortune/relationship-calculation';
 import {readingLocale,readingOutputContext} from './fortune/reading-locale';
-import {TAROT_CONSULTATION_VERSION,tarotConsultation,type TarotConsultationId} from './fortune/tarot/consultation-contract';
+import {TAROT_CONSULTATION_VERSION,chatTarotRules,tarotConsultation,type TarotConsultationId} from './fortune/tarot/consultation-contract';
 import {calculateTarotConsultation} from './fortune/tarot/consultation-calculation';
+import {withChatTarotVoice} from './fortune/tarot/consultation-evidence';
 import {readingCharts} from './fortune/reading-presentation';
 import { READING_VERSION, READING_V5_VERSION, READING_V6_VERSION, READING_V7_VERSION, QUESTION_SKY_TWO_STAGE_VERSION, readingChapterCount } from './fortune/reading-policy';
 import { v7Applies, type ChapterSpecV7 } from './fortune/reading-v7';
@@ -25,7 +26,7 @@ import { connectDb, withMongoRetry } from '../lib/db.js';
 import { getEnv } from '../lib/env.js';
 import { resolveChargeAmountKRW } from '../lib/portone.js';
 import { domains } from './fortune';
-import { getProduct, getChatProduct, resolveStoredProduct } from './payments/catalog';
+import { getProduct, getChatProduct, resolveStoredProduct, chatTarotKinds } from './payments/catalog';
 import { analyze } from './fortune/analysis';
 import { readingManifest, questionFactSelectors } from './fortune/reading-manifest';
 import {withPreventionReading,withPreventionTiming,preventionEligible,PREVENTION_VERSION} from './fortune/prevention';
@@ -97,6 +98,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   const spiritInput=body.mode===SPIRIT_MODE?validateSpiritInput(body):undefined;
   if(spiritInput){product.manifestVersion=READING_VERSION;product.chapterCount=readingChapterCount(product.domain,product.fishId,READING_VERSION);}
   const kind=resolveConsultationKind(product,body.consultationKind);
+  // A chat tarot always uses a v2 question spread; any other kind would leave the chat on an older tarot contract.
+  if(persona&&product.domain==='tarot'&&!(chatTarotKinds as readonly string[]).includes(kind?.id||''))throw new FortuneError('INVALID_CONSULTATION_KIND');
   const relationship=isRelationshipReading(product.domain,kind?.id)&&product.readingKind==='single';
   const tarotSpec=product.domain==='tarot'&&product.readingKind==='single'?tarotConsultation(kind?.id):undefined;
   const tarotV2=Boolean(tarotSpec);
@@ -124,7 +127,7 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   }
   let tarotIntentId:string|undefined;
   if(tarotV2&&attempt.consultationAttemptId){
-    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants});
+    tarotIntentId=await digest({userId,version:TAROT_CONSULTATION_VERSION,...attempt,locale,productId:product.id,kind:kind!.id,question:body.question,participants,...(persona?{persona}:{})});
     await connectDb(env);
     try{return await readRequest(env,userId,tarotIntentId);}catch(error:any){if(error?.code!=='FORTUNE_NOT_FOUND')throw error;}
   }
@@ -177,10 +180,12 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
     contexts[system]=extendRelationshipContext(contexts[system]!,other,date);
   }
   if(!spiritInput&&preventionEligible(product.fishId)&&contexts.saju)contexts.saju=withPreventionTiming(contexts.saju);
+  if(persona&&tarotV2)contexts.tarot=withChatTarotVoice(contexts.tarot!);
   const analysis={...analyze(contexts),question:normalized[product.domain].question,topicId:normalized[product.domain].topicId,readingMode:raw.readingMode,asOf:date};
   let manifest=readingManifest(product,analysis.topicId,raw.readingMode,spiritInput?READING_VERSION:product.manifestVersion);
   if(kind)manifest=consultationManifest(product,kind,analysis.topicId);
   if(tarotV2){product.manifestVersion=READING_V6_VERSION;product.chapterCount=manifest.length;}
+  if(persona&&tarotV2)manifest=manifest.map(c=>c.focus?{...c,focus:chatTarotRules(c.focus)}:c);
   if(spiritInput)manifest=spiritManifest(manifest);
   let v7Timing;
   if(v7){
